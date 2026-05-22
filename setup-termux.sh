@@ -12,7 +12,7 @@ pkg update -y && pkg upgrade -y
 
 echo ""
 echo "[2/5] Instalando dependencias del sistema..."
-pkg install -y nodejs ffmpeg libvips git python
+pkg install -y nodejs ffmpeg git python
 
 echo ""
 echo "[3/5] Instalando yt-dlp (descarga de música)..."

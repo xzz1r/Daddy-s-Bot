@@ -1,4 +1,3 @@
-const sharp = require('sharp');
 const { ffmpegPath } = require('./ffmpeg');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs-extra');
@@ -7,13 +6,45 @@ const config = require('../config');
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
-async function imageToSticker(imageBuffer) {
-  const resized = await sharp(imageBuffer)
-    .resize(512, 512, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
-    .webp({ quality: config.sticker.quality, lossless: false })
-    .toBuffer();
+// Detect image format from buffer magic bytes to give ffmpeg the right extension
+function detectExt(buffer) {
+  if (buffer[0] === 0xFF && buffer[1] === 0xD8) return 'jpg';
+  if (buffer[0] === 0x89 && buffer[1] === 0x50) return 'png';
+  if (buffer[0] === 0x47 && buffer[1] === 0x49) return 'gif';
+  if (buffer[0] === 0x52 && buffer[1] === 0x49) return 'webp'; // RIFF…WEBP
+  return 'jpg';
+}
 
-  return addStickerMeta(resized);
+const SCALE_VF = 'scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=0x00000000,format=rgba';
+
+async function imageToSticker(imageBuffer) {
+  const ext = detectExt(imageBuffer);
+  const inputFile = tempFile(ext);
+  const outputFile = tempFile('webp');
+
+  await fs.writeFile(inputFile, imageBuffer);
+
+  try {
+    await new Promise((resolve, reject) => {
+      ffmpeg(inputFile)
+        .setFfmpegPath(ffmpegPath)
+        .outputOptions([
+          '-vf', SCALE_VF,
+          '-quality', '100',
+          '-compression_level', '0',
+        ])
+        .toFormat('webp')
+        .on('error', reject)
+        .on('end', resolve)
+        .save(outputFile);
+    });
+
+    const webpBuffer = await fs.readFile(outputFile);
+    return addStickerMeta(webpBuffer);
+  } finally {
+    await cleanTemp(inputFile);
+    await cleanTemp(outputFile);
+  }
 }
 
 async function videoToSticker(videoBuffer) {
@@ -28,7 +59,7 @@ async function videoToSticker(videoBuffer) {
         .setFfmpegPath(ffmpegPath)
         .inputOptions(['-t 6'])
         .outputOptions([
-          '-vf', `fps=${config.sticker.fps},scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=0x00000000,format=rgba`,
+          '-vf', `fps=${config.sticker.fps},${SCALE_VF}`,
           '-loop', '0',
           '-preset', 'default',
           '-an',
@@ -63,7 +94,7 @@ async function gifToSticker(gifBuffer) {
       ffmpeg(inputFile)
         .setFfmpegPath(ffmpegPath)
         .outputOptions([
-          '-vf', `fps=${config.sticker.fps},scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=0x00000000,format=rgba`,
+          '-vf', `fps=${config.sticker.fps},${SCALE_VF}`,
           '-loop', '0',
           '-preset', 'default',
           '-an',
@@ -85,8 +116,8 @@ async function gifToSticker(gifBuffer) {
 }
 
 function addStickerMeta(webpBuffer) {
-  const pack = config.sticker.pack;     // "Ur daddy"
-  const author = config.sticker.author; // "ItsSeb4s"
+  const pack = config.sticker.pack;
+  const author = config.sticker.author;
 
   const json = JSON.stringify({
     'sticker-pack-id': 'itsseb4s-urdaddy',
