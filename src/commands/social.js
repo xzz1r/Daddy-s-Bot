@@ -129,6 +129,7 @@ async function cmdHelp(sock, msg) {
 
 ╔═══════════════════════════╗
 ║  Prefijo: *${p}*  │  ${p}Commands
+║  👑 Owner: *xz1s (Sebastian)*
 ╚═══════════════════════════╝`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
