@@ -20,6 +20,8 @@ pip install -q yt-dlp 2>/dev/null || pip3 install -q yt-dlp
 
 echo ""
 echo "[4/5] Instalando dependencias de Node..."
+# Borrar node_modules y package-lock para garantizar instalación limpia
+rm -rf node_modules package-lock.json
 npm install
 
 echo ""
