@@ -4,8 +4,6 @@ const {
   DisconnectReason,
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
-  makeInMemoryStore,
-  jidNormalizedUser,
 } = require('@whiskeysockets/baileys');
 const pino = require('pino');
 const path = require('path');
@@ -18,11 +16,6 @@ const logger = require('./utils/logger');
 const config = require('./config');
 
 const AUTH_DIR = path.join(__dirname, '../data/auth');
-const STORE_FILE = path.join(__dirname, '../data/store.json');
-
-const store = makeInMemoryStore({
-  logger: pino({ level: 'silent' }),
-});
 
 let sock = null;
 let reconnectAttempts = 0;
@@ -47,17 +40,9 @@ async function connectToWhatsApp() {
     },
     printQRInTerminal: false,
     markOnlineOnConnect: true,
-    generateHighQualityLinkPreview: true,
-    getMessage: async (key) => {
-      if (store) {
-        const msg = await store.loadMessage(key.remoteJid, key.id);
-        return msg?.message || undefined;
-      }
-      return undefined;
-    },
+    generateHighQualityLinkPreview: false,
+    getMessage: async () => undefined,
   });
-
-  store.bind(sock.ev);
 
   // QR Code
   sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
