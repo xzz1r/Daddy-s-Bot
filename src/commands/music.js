@@ -1,13 +1,13 @@
-const { searchYouTube, downloadAudio, downloadBuffer } = require('../utils/downloader');
+const { searchYouTube, downloadAudio } = require('../utils/downloader');
 const { formatDuration } = require('../utils/helpers');
 const { incrementStat } = require('../utils/state');
 const logger = require('../utils/logger');
 const fs = require('fs-extra');
 
-// !p <query> - search and send audio
+// !Playsong <query> - search and send audio only
 async function cmdPlay(sock, msg, args) {
   if (!args.length) {
-    return sock.sendMessage(msg.key.remoteJid, { text: '❌ Usa: *!p* <canción o artista>' }, { quoted: msg });
+    return sock.sendMessage(msg.key.remoteJid, { text: '❌ Usa: *!Playsong* <canción o artista>' }, { quoted: msg });
   }
 
   const query = args.join(' ');
@@ -40,17 +40,6 @@ async function cmdPlay(sock, msg, args) {
 
   try {
     const audioBuffer = await fs.readFile(result.filePath);
-
-    // Send thumbnail if available
-    if (result.thumbnail) {
-      try {
-        const thumbBuffer = await downloadBuffer(result.thumbnail);
-        await sock.sendMessage(jid, {
-          image: thumbBuffer,
-          caption: `🎵 *${result.title}*\n👤 ${result.author || 'Desconocido'}\n⏱ ${formatDuration(result.duration)}`,
-        }, { quoted: msg });
-      } catch {}
-    }
 
     await sock.sendMessage(jid, {
       audio: audioBuffer,
@@ -93,7 +82,7 @@ async function cmdSearch(sock, msg, args) {
     text += `*${i + 1}.* ${v.title}\n`;
     text += `   └ 👤 ${v.channel || '?'} | ⏱ ${v.duration || '?'}\n\n`;
   });
-  text += `_Usa !p <nombre> para descargar_`;
+  text += `_Usa !Playsong <nombre> para descargar_`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }

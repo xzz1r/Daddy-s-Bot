@@ -73,10 +73,8 @@ async function handleMessage(sock, msg) {
 
   try {
     switch (command) {
-      // Music commands
-      case 'p':
-      case 'play':
-      case 'musica':
+      // Music command
+      case 'playsong':
         await cmdPlay(sock, msg, args);
         break;
 

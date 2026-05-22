@@ -100,7 +100,7 @@ async function cmdHelp(sock, msg) {
   const text = `🤖 *${config.botName} - Comandos*
 
 🎵 *MÚSICA*
-• ${p}p <canción> - Reproducir música
+• ${p}Playsong <canción> - Reproducir música
 • ${p}buscar <canción> - Buscar canciones
 
 🎭 *STICKERS*
