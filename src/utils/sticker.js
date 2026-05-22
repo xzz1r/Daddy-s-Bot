@@ -1,5 +1,5 @@
 const sharp = require('sharp');
-const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+const { ffmpegPath } = require('./ffmpeg');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs-extra');
 const { tempFile, cleanTemp } = require('./helpers');
