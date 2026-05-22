@@ -22,7 +22,10 @@ echo ""
 echo "[4/5] Instalando dependencias de Node..."
 # Borrar node_modules y package-lock para garantizar instalación limpia
 rm -rf node_modules package-lock.json
-npm install
+# --ignore-scripts evita que sharp (dep interna de baileys) intente compilarse en ARM
+npm install --ignore-scripts
+# Borrar sharp ya que no lo usamos y falla en Android ARM
+rm -rf node_modules/sharp
 
 echo ""
 echo "[5/5] Configurando archivo .env..."
