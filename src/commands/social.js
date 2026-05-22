@@ -92,35 +92,44 @@ async function cmdInfo(sock, msg) {
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
 
-// !ayuda / !help / !menu
+// !Commands / !ayuda / !help / !menu
 async function cmdHelp(sock, msg) {
   const jid = msg.key.remoteJid;
   const p = config.prefix;
 
-  const text = `🤖 *${config.botName} - Comandos*
+  const text = `╔═══════════════════════════╗
+║   🤖 *${config.botName} Commands*
+╚═══════════════════════════╝
 
 🎵 *MÚSICA*
-• ${p}Playsong <canción> - Reproducir música
-• ${p}buscar <canción> - Buscar canciones
+┣ ${p}Playsong <canción>
+┗ _Busca y envía la canción en audio_
 
 🎭 *STICKERS*
-• ${p}s - Crear sticker (responde imagen/video)
-  _Soporta: jpg, png, gif, mp4 (animado 60fps)_
+┣ ${p}s
+┗ _Respondé una imagen, video o sticker_
+   _Soporta jpg · png · gif · mp4 (60fps)_
 
 📊 *TOPS*
-• ${p}top <cat> [cantidad] - Rankings
-  _Categorías: musica, peliculas, series, juegos,_
-  _youtube, spotify, anime, paises, cripto, apps_
-  _Ejemplo: ${p}top cripto 20_
+┣ ${p}top <categoría> [cantidad]
+┗ _Rankings de hasta 100 resultados_
+
+   *Categorías disponibles:*
+   🎵 musica  🎬 peliculas  📺 series
+   🎮 juegos  ▶️ youtube   🎧 spotify
+   🌸 anime   🌍 paises    💰 cripto  📱 apps
+
+   _Ej: ${p}top cripto 20 · ${p}top anime 5_
 
 ⚙️ *CONTROL*
-• ${p}on - Activar bot
-• ${p}off - Desactivar bot
-• ${p}ping - Ver latencia
-• ${p}info - Estado del bot
-• ${p}ayuda - Este menú
+┣ ${p}on  › Activar bot en el grupo
+┣ ${p}off › Desactivar bot en el grupo
+┣ ${p}ping › Ver latencia
+┗ ${p}info › Estado y estadísticas
 
-_Prefijo actual: *${p}*_`;
+╔═══════════════════════════╗
+║  Prefijo: *${p}*  │  ${p}Commands
+╚═══════════════════════════╝`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
