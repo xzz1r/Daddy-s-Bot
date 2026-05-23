@@ -34,10 +34,7 @@ async function cmdTodos(sock, msg, args, groupMeta) {
   }
 
   const mentions = participants.map((p) => p.id);
-  const note = (args || []).join(' ').trim();
-
-  let text = note ? `*${note}*\n\n` : '*Atención, gente:*\n\n';
-  text += mentions.map((id) => `@${id.split('@')[0]}`).join(' ');
+  const text = (args || []).join(' ').trim() || '👋';
 
   await sock.sendMessage(jid, { text, mentions });
 }

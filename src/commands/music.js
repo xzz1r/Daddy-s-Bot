@@ -32,6 +32,12 @@ async function cmdPlay(sock, msg, args) {
   // Send audio — use RAM buffer if available, otherwise read from disk
   try {
     const audioBuffer = result.buffer || await fs.readFile(result.filePath);
+
+    if (audioBuffer.length > 25 * 1024 * 1024) {
+      if (!fromCache) cleanTemp(result.filePath).catch(() => {});
+      return sock.sendMessage(jid, { text: '❌ La canción pesa más de 25MB y no puede enviarse.' }, { quoted: msg });
+    }
+
     await sock.sendMessage(jid, {
       audio: audioBuffer,
       mimetype: result.mimetype || 'audio/mp4',
