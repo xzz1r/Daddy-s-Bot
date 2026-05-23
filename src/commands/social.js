@@ -153,14 +153,6 @@ async function cmdHelp(sock, msg) {
 ┗ ${p}del                  › Borrar mensaje citado (admin)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   *TOPS GLOBALES*
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┗ ${p}top <categoria> [n]
-   _musica · peliculas · series · juegos_
-   _youtube · spotify · anime · paises_
-   _cripto · apps_
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
    *CONTROL*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┣ ${p}on                   › Activar bot

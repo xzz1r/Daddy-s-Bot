@@ -3,7 +3,6 @@ const { isBotEnabled, incrementStat } = require('../utils/state');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { cmdPlay, cmdSearch } = require('../commands/music');
 const { cmdSticker } = require('../commands/sticker');
-const { cmdTop } = require('../commands/tops');
 const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdCount } = require('../commands/count');
 const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
@@ -103,13 +102,6 @@ async function handleMessage(sock, msg) {
       case 'sticker':
       case 'stk':
         await cmdSticker(sock, msg);
-        break;
-
-      // Top commands
-      case 'top':
-      case 'tops':
-      case 'ranking':
-        await cmdTop(sock, msg, args);
         break;
 
       case 'top5':
