@@ -150,10 +150,12 @@ async function cmdHelp(sock, msg) {
    _Sin @user → te mide a vos mismo_
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   🤖  *INTELIGENCIA ARTIFICIAL*
+   🤖  *INTELIGENCIA ARTIFICIAL (Grok)*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┗ ${p}g <pregunta>         › Grok IA
-   _Respondé a un mensaje con ${p}g para usarlo como contexto_
+┣ Privado: respondé y Grok contesta solo
+┣ Grupo: mencioná al bot o respondé un msg suyo
+┗ ${p}g <pregunta>         › Forzar respuesta
+   _Sin filtros, cualquier tema_
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
    📢  *UTILIDADES*

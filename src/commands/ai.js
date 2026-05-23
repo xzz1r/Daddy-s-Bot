@@ -50,8 +50,8 @@ function chunkText(text, maxLen = 3500) {
   return chunks;
 }
 
-// !g <pregunta>   |   reply + !g <pregunta>
-async function cmdGrok(sock, msg, args) {
+// Core function — used by both !g and the auto-reply
+async function runGrok(sock, msg, prompt, contextText = null, { quietStart = false } = {}) {
   const jid = msg.key.remoteJid;
   const apiKey = process.env.GROK_API_KEY || process.env.XAI_API_KEY;
 
@@ -66,19 +66,15 @@ async function cmdGrok(sock, msg, args) {
     }, { quoted: msg });
   }
 
-  const prompt = (args || []).join(' ').trim();
-  if (!prompt) {
-    return sock.sendMessage(jid, {
-      text: '❌ Usa: *!g* <pregunta>\nO respondé a un mensaje con *!g <pregunta>* para usarlo como contexto.',
-    }, { quoted: msg });
-  }
+  if (!prompt || !prompt.trim()) return;
 
-  const quotedText = extractQuoted(msg);
-  const userContent = quotedText
-    ? `Mensaje al que estoy respondiendo en el chat:\n"""\n${quotedText}\n"""\n\nMi pregunta sobre eso: ${prompt}`
+  const userContent = contextText
+    ? `Mensaje al que estoy respondiendo en el chat:\n"""\n${contextText}\n"""\n\nMi pregunta sobre eso: ${prompt}`
     : prompt;
 
-  await sock.sendMessage(jid, { text: '🤖 Pensando...' }, { quoted: msg }).catch(() => {});
+  if (!quietStart) {
+    await sock.sendMessage(jid, { text: '🤖 Pensando...' }, { quoted: msg }).catch(() => {});
+  }
 
   try {
     const res = await axios.post(GROK_API, {
@@ -110,4 +106,16 @@ async function cmdGrok(sock, msg, args) {
   }
 }
 
-module.exports = { cmdGrok };
+// !g <pregunta>   |   reply + !g <pregunta>
+async function cmdGrok(sock, msg, args) {
+  const prompt = (args || []).join(' ').trim();
+  if (!prompt) {
+    return sock.sendMessage(msg.key.remoteJid, {
+      text: '❌ Usa: *!g* <pregunta>\nO respondé a un mensaje con *!g <pregunta>*.',
+    }, { quoted: msg });
+  }
+  const quotedText = extractQuoted(msg);
+  return runGrok(sock, msg, prompt, quotedText, { quietStart: false });
+}
+
+module.exports = { cmdGrok, runGrok, extractQuoted };
