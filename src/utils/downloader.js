@@ -107,12 +107,12 @@ async function downloadAudio(videoUrl) {
   try {
     await ytdlp([
       videoUrl,
-      '-f', 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best',
+      '-f', 'bestaudio[abr<=128][ext=m4a]/bestaudio[abr<=128][ext=webm]/bestaudio[abr<=128]/bestaudio[ext=m4a]/bestaudio/best',
       '-o', outTemplate,
       '--no-playlist',
       '--no-warnings',
       '--no-part',
-      '--max-filesize', '60M',
+      '--max-filesize', '25M',
       '--no-mtime',
       '--socket-timeout', '20',
       '--extractor-args', `youtube:player_client=${PLAYER_CLIENTS}`,
