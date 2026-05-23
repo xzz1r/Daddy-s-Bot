@@ -22,7 +22,8 @@ function detectYtDlp() {
 }
 
 const YT_DLP = detectYtDlp();
-const PLAYER_CLIENTS = ['tv_embedded', 'android', 'web_safari', 'web'].join(',');
+// 'android' es el cliente más rápido y el que mejor funciona sin firmas
+const PLAYER_CLIENTS = 'android,tv_embedded';
 
 // Spawn yt-dlp with a 3-minute timeout to prevent silent hangs
 function ytdlp(args) {
@@ -100,7 +101,8 @@ async function searchYouTube(query) {
 async function downloadAudio(videoUrl) {
   const baseName = `audio_${Date.now()}_${Math.random().toString(36).slice(2)}`;
   const tempDir = path.dirname(tempFile('tmp'));
-  const outTemplate = path.join(tempDir, `${baseName}.%(ext)s`);
+  // Title is baked into the filename via yt-dlp template — no extra network call needed
+  const outTemplate = path.join(tempDir, `${baseName}__%(title).80B.%(ext)s`);
 
   try {
     await ytdlp([
@@ -112,6 +114,7 @@ async function downloadAudio(videoUrl) {
       '--no-part',
       '--max-filesize', '60M',
       '--no-mtime',
+      '--socket-timeout', '20',
       '--extractor-args', `youtube:player_client=${PLAYER_CLIENTS}`,
     ]);
   } catch (err) {
@@ -129,6 +132,10 @@ async function downloadAudio(videoUrl) {
     throw new Error('Archivo descargado vacío');
   }
 
+  // Extract title from filename: "<baseName>__<title>.<ext>"
+  const titleMatch = audioFile.match(/__(.+)\.[^.]+$/);
+  const title = titleMatch ? titleMatch[1].trim() : 'Sin título';
+
   const ext = path.extname(audioFile).slice(1).toLowerCase();
   const mimetypes = {
     m4a: 'audio/mp4', mp4: 'audio/mp4', mp3: 'audio/mpeg',
@@ -136,7 +143,7 @@ async function downloadAudio(videoUrl) {
     opus: 'audio/ogg; codecs=opus', aac: 'audio/aac',
   };
 
-  return { filePath: fullPath, title: 'Sin título', mimetype: mimetypes[ext] || 'audio/mp4', ext };
+  return { filePath: fullPath, title, mimetype: mimetypes[ext] || 'audio/mp4', ext };
 }
 
 module.exports = { searchYouTube, downloadAudio };

@@ -5,55 +5,55 @@ const { getCached, setCached } = require('../utils/musicCache');
 const logger = require('../utils/logger');
 const fs = require('fs-extra');
 
-// !Playsong <query> - search and send audio only
+// !Playsong <query> — search and send audio only
 async function cmdPlay(sock, msg, args) {
+  const jid = msg.key.remoteJid;
+
   if (!args.length) {
-    return sock.sendMessage(msg.key.remoteJid, { text: '❌ Usa: *!Playsong* <canción o artista>' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: '❌ Usa: *!Playsong* <canción o artista>' }, { quoted: msg });
   }
 
   const query = args.join(' ');
-  const jid = msg.key.remoteJid;
+
+  // Immediate feedback so the user knows the bot received the command
+  await sock.sendMessage(jid, { text: '🔎 Buscando...' }, { quoted: msg }).catch(() => {});
 
   // Try cache first
-  let cached = await getCached(query).catch(() => null);
+  let result = await getCached(query).catch(() => null);
+  let fromCache = !!result;
 
-  if (!cached) {
-    await sock.sendMessage(jid, { text: '...' }, { quoted: msg });
-
-    let downloaded;
+  if (!result) {
     try {
-      downloaded = await downloadAudio(`ytsearch1:${query}`);
+      result = await downloadAudio(`ytsearch1:${query}`);
     } catch (err) {
       logger.error(`Download error: ${err.message}`);
       return sock.sendMessage(jid, { text: `❌ ${err.message}` }, { quoted: msg });
     }
-    try {
-      await setCached(query, downloaded.filePath, downloaded.title, downloaded.mimetype, downloaded.ext);
-    } catch {}
-    await cleanTemp(downloaded.filePath);
-    cached = await getCached(query).catch(() => null);
-    if (!cached) {
-      // Fallback: send directly from temp (shouldn't normally happen)
-      cached = downloaded;
-    }
   }
 
+  // Send audio
   try {
-    const audioBuffer = await fs.readFile(cached.filePath);
+    const audioBuffer = await fs.readFile(result.filePath);
     await sock.sendMessage(jid, {
       audio: audioBuffer,
-      mimetype: cached.mimetype || 'audio/mp4',
-      fileName: `${cached.title}.${cached.ext || 'm4a'}`,
+      mimetype: result.mimetype || 'audio/mp4',
+      fileName: `${result.title}.${result.ext || 'm4a'}`,
       ptt: false,
     }, { quoted: msg });
     await incrementStat('musicPlayed');
   } catch (err) {
     logger.error(`Send audio error: ${err.message}`);
-    await sock.sendMessage(jid, { text: `❌ ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: `❌ Error al enviar audio: ${err.message}` }, { quoted: msg });
+  }
+
+  // Cache and cleanup (only if it was a fresh download)
+  if (!fromCache) {
+    try { await setCached(query, result.filePath, result.title, result.mimetype, result.ext); } catch {}
+    await cleanTemp(result.filePath);
   }
 }
 
-// !buscar <query> - show search results list
+// !buscar <query> — list search results
 async function cmdSearch(sock, msg, args) {
   if (!args.length) {
     return sock.sendMessage(msg.key.remoteJid, { text: '❌ Usa: *!buscar* <canción>' }, { quoted: msg });
@@ -75,8 +75,7 @@ async function cmdSearch(sock, msg, args) {
 
   let text = `*Resultados para: ${query}*\n\n`;
   results.forEach((v, i) => {
-    text += `*${i + 1}.* ${v.title}\n`;
-    text += `   ${v.channel} | ${v.duration}\n\n`;
+    text += `*${i + 1}.* ${v.title}\n   ${v.channel} | ${v.duration}\n\n`;
   });
   text += `_Usa !Playsong <nombre> para descargar_`;
 

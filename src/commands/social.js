@@ -110,15 +110,20 @@ async function cmdHelp(sock, msg) {
 ┗ _Responde una imagen, video o sticker_
    _Soporta jpg · png · gif · mp4 (60fps)_
 
-*TOPS*
+*TOPS DEL GRUPO*
+┣ ${p}top5 <tema>  › Top 5 random del grupo
+┣ ${p}top10 <tema> › Top 10 random del grupo
+┣ ${p}count        › Quién mandó más mensajes
+┗ _Min 10 mensajes para aparecer_
+
+*TOPS GLOBALES*
 ┣ ${p}top <categoria> [cantidad]
-┗ _Rankings de hasta 100 resultados_
+┗ _musica, peliculas, series, juegos, youtube,_
+   _spotify, anime, paises, cripto, apps_
 
-   _Categorias: musica, peliculas, series,_
-   _juegos, youtube, spotify, anime,_
-   _paises, cripto, apps_
-
-   _Ej: ${p}top cripto 20 · ${p}top anime 5_
+*IA*
+┣ ${p}g <pregunta> › Pregunta a Grok
+┗ _Responde a un mensaje con ${p}g para usarlo como contexto_
 
 *CONTROL*
 ┣ ${p}on  › Activar bot en el grupo
