@@ -99,7 +99,7 @@ async function cmdHelp(sock, msg) {
 
   const text = `╔═══════════════════════════╗
 ║                           ║
-║     👑  *xz1s (Sebastian)*  👑
+║     *xz1s (Sebastian)*
 ║         OWNER DEL BOT
 ║                           ║
 ║      *${config.botName}*
@@ -107,28 +107,28 @@ async function cmdHelp(sock, msg) {
 ╚═══════════════════════════╝
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   🎵  *MÚSICA*
+   *MUSICA*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┣ ${p}Playsong <canción>   › Enviar audio
 ┣ ${p}play <canción>       › Alias
 ┗ ${p}buscar <canción>     › Listar resultados
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   🎭  *STICKERS*
+   *STICKERS*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┣ ${p}s                    › Imagen/video/sticker → sticker
 ┗ ${p}ttp <texto>          › Texto → sticker
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   🏆  *TOPS DEL GRUPO*
+   *TOPS DEL GRUPO*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┣ ${p}top5 <tema>          › Top 5 aleatorio
 ┣ ${p}top10 <tema>         › Top 10 aleatorio
 ┗ ${p}count                › Ranking de mensajes
-   _Mín. 10 mensajes para aparecer en tops_
+   _Min. 10 mensajes para aparecer en tops_
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   🎯  *DINÁMICAS (% sobre alguien)*
+   *DINAMICAS (% sobre alguien)*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┣ ${p}ship                 › Empareja 2 al azar
 ┣ ${p}gay @user
@@ -150,20 +150,20 @@ async function cmdHelp(sock, msg) {
    _Sin @user → te mide a vos mismo_
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   🤖  *INTELIGENCIA ARTIFICIAL (Grok)*
+   *INTELIGENCIA ARTIFICIAL (Grok)*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┣ ${p}g <pregunta>         › Pregunta a Grok
 ┗ ${p}setgrok <key>        › Configurar key (owner, una sola vez)
-   _Respondé a un mensaje con ${p}g para usarlo como contexto_
+   _Responde a un mensaje con ${p}g para usarlo como contexto_
    _Sin filtros, cualquier tema_
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   📢  *UTILIDADES*
+   *UTILIDADES*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┗ ${p}todos <aviso>        › Etiquetar a todos (admin)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   📊  *TOPS GLOBALES*
+   *TOPS GLOBALES*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┗ ${p}top <categoria> [n]
    _musica · peliculas · series · juegos_
@@ -171,16 +171,16 @@ async function cmdHelp(sock, msg) {
    _cripto · apps_
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   ⚙️  *CONTROL*
+   *CONTROL*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┣ ${p}on                   › Activar bot
 ┣ ${p}off                  › Desactivar bot
 ┣ ${p}ping                 › Latencia
-┗ ${p}info                 › Estado y estadísticas
+┗ ${p}info                 › Estado y estadisticas
 
 ╔═══════════════════════════╗
 ║    Prefijo: *${p}*    │   ${p}Commands
-║       👑 *xz1s (Sebastian)*
+║       *xz1s (Sebastian)*
 ╚═══════════════════════════╝`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
