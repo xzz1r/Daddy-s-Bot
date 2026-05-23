@@ -4,7 +4,6 @@ const path = require('path');
 const { tempFile, cleanTemp } = require('./helpers');
 const logger = require('./logger');
 
-// Detect yt-dlp binary path
 function detectYtDlp() {
   const candidates = [
     '/data/data/com.termux/files/home/.local/bin/yt-dlp',
@@ -23,19 +22,22 @@ function detectYtDlp() {
 }
 
 const YT_DLP = detectYtDlp();
-logger.info(`yt-dlp detectado en: ${YT_DLP}`);
 
-function ytdlp(args, opts = {}) {
+function ytdlp(args) {
   return new Promise((resolve, reject) => {
-    const proc = spawn(YT_DLP, args, { ...opts });
+    const proc = spawn(YT_DLP, args);
     let stdout = '';
     let stderr = '';
     proc.stdout?.on('data', (d) => { stdout += d.toString(); });
     proc.stderr?.on('data', (d) => { stderr += d.toString(); });
-    proc.on('error', (err) => reject(new Error(`yt-dlp no se pudo ejecutar: ${err.message}. Instalá con: pip install yt-dlp`)));
+    proc.on('error', (err) => reject(new Error(`yt-dlp no se pudo ejecutar: ${err.message}`)));
     proc.on('close', (code) => {
       if (code === 0) resolve(stdout);
-      else reject(new Error(stderr.trim() || `yt-dlp salió con código ${code}`));
+      else {
+        // Extract a clean error message from stderr
+        const cleanErr = stderr.split('\n').filter(l => l.startsWith('ERROR:')).pop() || stderr.trim().split('\n').pop() || `código ${code}`;
+        reject(new Error(cleanErr.replace(/^ERROR:\s*/, '')));
+      }
     });
   });
 }
@@ -50,6 +52,9 @@ function formatSeconds(s) {
   return `${m}:${String(sec).padStart(2, '0')}`;
 }
 
+// Bypass YouTube's signature extraction by using alternative player clients
+const PLAYER_CLIENTS = ['tv_embedded', 'android', 'web_safari', 'web'].join(',');
+
 async function searchYouTube(query) {
   try {
     const output = await ytdlp([
@@ -58,8 +63,8 @@ async function searchYouTube(query) {
       '--no-download',
       '--no-warnings',
       '--no-playlist',
-      '--default-search', 'ytsearch',
       '--skip-download',
+      '--extractor-args', `youtube:player_client=${PLAYER_CLIENTS}`,
     ]);
 
     const lines = output.trim().split('\n').filter(l => l.trim().startsWith('{'));
@@ -71,19 +76,16 @@ async function searchYouTube(query) {
           title: v.title || 'Sin título',
           duration: formatSeconds(v.duration),
           channel: v.uploader || v.channel || 'Desconocido',
-          views: v.view_count,
           url: v.webpage_url || `https://www.youtube.com/watch?v=${v.id}`,
         };
-      } catch {
-        return null;
-      }
+      } catch { return null; }
     }).filter(Boolean);
 
     if (!videos.length) throw new Error('Sin resultados');
     return videos;
   } catch (err) {
     logger.error(`YouTube search error: ${err.message}`);
-    throw new Error(`Error al buscar: ${err.message}`);
+    throw new Error(err.message);
   }
 }
 
@@ -91,64 +93,77 @@ async function downloadAudio(videoUrl) {
   const baseName = `audio_${Date.now()}_${Math.random().toString(36).slice(2)}`;
   const tempDir = path.dirname(tempFile('tmp'));
   const outTemplate = path.join(tempDir, `${baseName}.%(ext)s`);
-  const expectedFile = path.join(tempDir, `${baseName}.mp3`);
 
+  let info;
   try {
-    // First, get metadata
     const infoJson = await ytdlp([
       videoUrl,
       '--dump-json',
       '--no-download',
       '--no-warnings',
       '--no-playlist',
+      '--extractor-args', `youtube:player_client=${PLAYER_CLIENTS}`,
     ]);
+    info = JSON.parse(infoJson.trim().split('\n').find(l => l.startsWith('{')));
+  } catch (err) {
+    throw new Error(`No se pudo leer info: ${err.message}`);
+  }
 
-    const info = JSON.parse(infoJson.trim().split('\n').find(l => l.startsWith('{')));
-    const duration = info.duration || 0;
+  const duration = info.duration || 0;
+  if (duration > 600) {
+    throw new Error(`Video muy largo (${formatSeconds(duration)}, máx 10 min)`);
+  }
 
-    if (duration > 600) {
-      throw new Error(`El video es muy largo (${formatSeconds(duration)}, máx 10 min)`);
-    }
-
-    // Download audio as mp3
+  // Download best audio in native format (no ffmpeg post-processing to avoid extra failure points)
+  try {
     await ytdlp([
       videoUrl,
-      '-x',                              // extract audio
-      '--audio-format', 'mp3',
-      '--audio-quality', '0',            // best quality
+      '-f', 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best',
       '-o', outTemplate,
       '--no-playlist',
       '--no-warnings',
       '--no-part',
       '--max-filesize', '60M',
       '--no-mtime',
+      '--extractor-args', `youtube:player_client=${PLAYER_CLIENTS}`,
     ]);
-
-    // Verify file exists and is non-empty
-    if (!await fs.pathExists(expectedFile)) {
-      // Sometimes yt-dlp keeps a different ext, search the dir
-      const files = await fs.readdir(tempDir);
-      const found = files.find(f => f.startsWith(baseName));
-      if (!found) throw new Error('yt-dlp no produjo archivo');
-      const altPath = path.join(tempDir, found);
-      await fs.move(altPath, expectedFile);
-    }
-
-    const stat = await fs.stat(expectedFile);
-    if (stat.size < 1024) {
-      throw new Error('Archivo descargado vacío o corrupto');
-    }
-
-    return {
-      filePath: expectedFile,
-      title: info.title || 'Sin título',
-      author: info.uploader || info.channel || 'Desconocido',
-      duration,
-    };
   } catch (err) {
-    await cleanTemp(expectedFile);
-    throw err;
+    throw new Error(err.message);
   }
+
+  // Find the actual downloaded file (extension depends on YouTube's format choice)
+  const files = await fs.readdir(tempDir);
+  const audioFile = files.find(f => f.startsWith(baseName));
+  if (!audioFile) throw new Error('yt-dlp no produjo archivo');
+  const fullPath = path.join(tempDir, audioFile);
+
+  const stat = await fs.stat(fullPath);
+  if (stat.size < 1024) {
+    await cleanTemp(fullPath);
+    throw new Error('Archivo descargado vacío');
+  }
+
+  // Map extension to proper mimetype so WhatsApp plays it as audio
+  const ext = path.extname(audioFile).slice(1).toLowerCase();
+  const mimetypes = {
+    m4a: 'audio/mp4',
+    mp4: 'audio/mp4',
+    mp3: 'audio/mpeg',
+    webm: 'audio/webm',
+    ogg: 'audio/ogg',
+    opus: 'audio/ogg; codecs=opus',
+    aac: 'audio/aac',
+  };
+  const mimetype = mimetypes[ext] || 'audio/mp4';
+
+  return {
+    filePath: fullPath,
+    title: info.title || 'Sin título',
+    author: info.uploader || info.channel || 'Desconocido',
+    duration,
+    mimetype,
+    ext,
+  };
 }
 
 module.exports = { searchYouTube, downloadAudio };

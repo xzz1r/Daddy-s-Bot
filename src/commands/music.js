@@ -48,8 +48,8 @@ async function cmdPlay(sock, msg, args) {
 
     await sock.sendMessage(jid, {
       audio: audioBuffer,
-      mimetype: 'audio/mp4',
-      fileName: `${result.title}.mp3`,
+      mimetype: result.mimetype || 'audio/mp4',
+      fileName: `${result.title}.${result.ext || 'm4a'}`,
       ptt: false,
     }, { quoted: msg });
 
