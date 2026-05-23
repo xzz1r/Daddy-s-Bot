@@ -163,7 +163,11 @@ async function imageToSticker(imageBuffer) {
 
 async function videoToSticker(videoBuffer) {
   const detected = detectExt(videoBuffer);
-  const ext = detected === 'webp' ? 'webp' : (detected || 'mp4');
+
+  // WebP sticker: ffmpeg decoder crashes; re-inject metadata directly
+  if (detected === 'webp') return await addStickerMeta(videoBuffer);
+
+  const ext = detected || 'mp4';
   const inputFile = tempFile(ext);
   const outputFile = tempFile('webp');
   await fs.writeFile(inputFile, videoBuffer);
