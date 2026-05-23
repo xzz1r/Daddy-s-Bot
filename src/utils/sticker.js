@@ -168,9 +168,7 @@ async function imageToSticker(imageBuffer) {
   }
 }
 
-const MAX_STICKER_BYTES = 490 * 1024;
-
-function encodeAnimWebp(inputFile, outputFile, fps, quality) {
+function encodeAnimWebp(inputFile, outputFile) {
   return new Promise((resolve, reject) => {
     let stderrBuf = '';
     const runWithCodec = (codec) => {
@@ -178,12 +176,12 @@ function encodeAnimWebp(inputFile, outputFile, fps, quality) {
       ffmpeg(inputFile)
         .setFfmpegPath(ffmpegPath)
         .outputOptions([
-          '-vf', VF_ANIM(fps),
+          '-vf', VF_ANIM(25),
           '-c:v', codec,
           '-loop', '0',
           '-an',
-          '-q:v', String(quality),
-          '-compression_level', '2',
+          '-q:v', '85',
+          '-compression_level', '1',
           '-preset', 'default',
           '-y',
         ])
@@ -204,18 +202,9 @@ function encodeAnimWebp(inputFile, outputFile, fps, quality) {
   });
 }
 
-// Fallbacks: keep 15fps, reduce quality first — choppiness is worse than slight blur
-const FALLBACK_TIERS = [
-  { fps: 15, quality: 65 },
-  { fps: 15, quality: 52 },
-  { fps: 15, quality: 40 },
-  { fps: 12, quality: 40 },
-];
-
 async function videoToSticker(videoBuffer) {
   const detected = detectExt(videoBuffer);
 
-  // WebP: inject metadata directly — no ffmpeg needed
   if (detected === 'webp') return addStickerMeta(videoBuffer);
 
   const ext = detected || 'mp4';
@@ -224,20 +213,9 @@ async function videoToSticker(videoBuffer) {
   await fs.writeFile(inputFile, videoBuffer);
 
   try {
-    // First attempt: highest quality — 15fps, q80
-    await encodeAnimWebp(inputFile, outputFile, 15, 80);
-    let buf = await fs.readFile(outputFile);
+    await encodeAnimWebp(inputFile, outputFile);
+    const buf = await fs.readFile(outputFile);
     if (buf.length < 100) throw new Error('Sticker animado vacío');
-
-    // Only re-encode if over WhatsApp's 500KB limit (long/heavy video — rare for ≤8s)
-    if (buf.length > MAX_STICKER_BYTES) {
-      for (const { fps, quality } of FALLBACK_TIERS) {
-        await encodeAnimWebp(inputFile, outputFile, fps, quality);
-        buf = await fs.readFile(outputFile);
-        if (buf.length <= MAX_STICKER_BYTES) break;
-      }
-    }
-
     return addStickerMeta(buf);
   } finally {
     await cleanTemp(inputFile);
