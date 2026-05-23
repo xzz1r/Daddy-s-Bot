@@ -117,13 +117,13 @@ async function handleMessage(sock, msg) {
         if (isOwner(sender, msg.key.fromMe)) {
           await cmdClearCache(sock, msg);
         } else {
-          await sock.sendMessage(jid, { text: '❌ Solo el owner puede usar este comando.' }, { quoted: msg });
+          await sock.sendMessage(jid, { text: 'Solo el owner puede usar este comando.' }, { quoted: msg });
         }
         break;
 
       case 'whoami':
         await sock.sendMessage(jid, {
-          text: `Tu JID: *${sender}*\nOwner: *${isOwner(sender, msg.key.fromMe) ? 'Sí' : 'No'}*`,
+          text: `Tu JID: *${sender}*\nOwner: *${isOwner(sender, msg.key.fromMe) ? 'Si' : 'No'}*`,
         }, { quoted: msg });
         break;
 
@@ -256,7 +256,7 @@ async function handleMessage(sock, msg) {
     }
   } catch (err) {
     logger.error(`Command ${command} error: ${err.message}`);
-    sock.sendMessage(jid, { text: `❌ Error inesperado: ${err.message}` }, { quoted: msg }).catch(() => {});
+    sock.sendMessage(jid, { text: `Error inesperado: ${err.message}` }, { quoted: msg }).catch(() => {});
   }
 
   if (config.autoTyping) sock.sendPresenceUpdate('paused', jid).catch(() => {});

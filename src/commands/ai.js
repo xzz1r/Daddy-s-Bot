@@ -77,19 +77,19 @@ async function cmdGrok(sock, msg, args) {
   if (!apiKey) {
     return sock.sendMessage(jid, {
       text:
-        '❌ Grok no está configurado todavía.\n\n' +
+        'Grok no esta configurado todavia.\n\n' +
         '*Pasos (solo una vez):*\n' +
-        '1. Entrá a console.x.ai y sacá tu API key gratis\n' +
-        '2. En el chat del bot mandá:\n' +
+        '1. Entra a console.x.ai y saca tu API key gratis\n' +
+        '2. En el chat del bot manda:\n' +
         '   *!setgrok TU_API_KEY*\n\n' +
-        'Después ya podés usar !g siempre, sin volver a configurar nada.',
+        'Despues ya podes usar !g siempre, sin volver a configurar nada.',
     }, { quoted: msg });
   }
 
   const prompt = (args || []).join(' ').trim();
   if (!prompt) {
     return sock.sendMessage(jid, {
-      text: '❌ Usa: *!g* <pregunta>\nO respondé a un mensaje con *!g <pregunta>*.',
+      text: 'Usa: *!g* <pregunta>\nO responde a un mensaje con *!g <pregunta>*.',
     }, { quoted: msg });
   }
 
@@ -98,7 +98,7 @@ async function cmdGrok(sock, msg, args) {
     ? `Mensaje al que estoy respondiendo en el chat:\n"""\n${quoted}\n"""\n\nMi pregunta sobre eso: ${prompt}`
     : prompt;
 
-  await sock.sendMessage(jid, { text: '🤖 Pensando...' }, { quoted: msg }).catch(() => {});
+  await sock.sendMessage(jid, { text: 'Pensando...' }, { quoted: msg }).catch(() => {});
 
   try {
     const res = await axios.post(GROK_API, {
@@ -125,7 +125,7 @@ async function cmdGrok(sock, msg, args) {
     const apiErr = err.response?.data?.error?.message || err.response?.data?.error || err.message;
     logger.error(`Grok error: ${typeof apiErr === 'string' ? apiErr : JSON.stringify(apiErr)}`);
     await sock.sendMessage(jid, {
-      text: `❌ Grok: ${typeof apiErr === 'string' ? apiErr : 'error desconocido'}`,
+      text: `Grok: ${typeof apiErr === 'string' ? apiErr : 'error desconocido'}`,
     }, { quoted: msg });
   }
 }
@@ -135,25 +135,25 @@ async function cmdSetGrokKey(sock, msg, args) {
   const jid = msg.key.remoteJid;
   const sender = msg.key.participant || msg.key.remoteJid;
 
-  if (!isOwner(sender)) {
-    return sock.sendMessage(jid, { text: '❌ Solo el owner puede configurar Grok.' }, { quoted: msg });
+  if (!isOwner(sender, msg.key.fromMe)) {
+    return sock.sendMessage(jid, { text: 'Solo el owner puede configurar Grok.' }, { quoted: msg });
   }
 
   const key = (args || []).join(' ').trim();
   if (!key || !key.startsWith('xai-')) {
     return sock.sendMessage(jid, {
-      text: '❌ Usa: *!setgrok xai-tu_clave*\n\n_La key empieza con "xai-". Conseguila gratis en console.x.ai_',
+      text: 'Usa: *!setgrok xai-tu_clave*\n\n_La key empieza con "xai-". Conseguila gratis en console.x.ai_',
     }, { quoted: msg });
   }
 
   try {
     await saveApiKey(key);
     await sock.sendMessage(jid, {
-      text: '✅ Grok configurado correctamente. Ya podés usar *!g* en cualquier momento.\n\n_Por seguridad, borrá tu mensaje con la key del chat._',
+      text: 'Grok configurado correctamente. Ya podes usar *!g* en cualquier momento.\n\n_Por seguridad, borra tu mensaje con la key del chat._',
     }, { quoted: msg });
   } catch (err) {
     logger.error(`setGrokKey error: ${err.message}`);
-    await sock.sendMessage(jid, { text: `❌ Error guardando key: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: `Error guardando key: ${err.message}` }, { quoted: msg });
   }
 }
 

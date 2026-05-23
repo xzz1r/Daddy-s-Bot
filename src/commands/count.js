@@ -5,12 +5,12 @@ async function cmdCount(sock, msg) {
   const jid = msg.key.remoteJid;
 
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: '❌ Este comando solo funciona en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Este comando solo funciona en grupos.' }, { quoted: msg });
   }
 
   const users = await getActiveUsers(jid, 1);
   if (!users.length) {
-    return sock.sendMessage(jid, { text: 'Aún no hay mensajes contados en este grupo.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Aun no hay mensajes contados en este grupo.' }, { quoted: msg });
   }
 
   users.sort((a, b) => b.count - a.count);

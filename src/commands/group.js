@@ -28,17 +28,17 @@ function isMuted(groupJid, userJid) {
 async function cmdTodos(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: '❌ Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
   }
 
   const sender = msg.key.participant || msg.key.remoteJid;
   if (!isOwner(sender, msg.key.fromMe) && !isAdmin(groupMeta?.participants, sender)) {
-    return sock.sendMessage(jid, { text: '❌ Solo admins pueden usar este comando.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
   }
 
   const participants = groupMeta?.participants || [];
   if (!participants.length) {
-    return sock.sendMessage(jid, { text: '❌ No pude obtener miembros del grupo.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No pude obtener miembros del grupo.' }, { quoted: msg });
   }
 
   const mentions = participants.map((p) => p.id);
@@ -82,19 +82,19 @@ async function cmdTodos(sock, msg, args, groupMeta) {
 
   // Plain text
   if (caption) return sock.sendMessage(jid, { text: caption, mentions });
-  return sock.sendMessage(jid, { text: '📢', mentions });
+  return sock.sendMessage(jid, { text: '.', mentions });
 }
 
 // !kick @user — remove a member (admin only)
 async function cmdKick(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: '❌ Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
   }
 
   const sender = msg.key.participant || msg.key.remoteJid;
   if (!isOwner(sender, msg.key.fromMe) && !isAdmin(groupMeta?.participants, sender)) {
-    return sock.sendMessage(jid, { text: '❌ Solo admins pueden usar este comando.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
   }
 
   // Get target from mention or quoted message
@@ -103,23 +103,23 @@ async function cmdKick(sock, msg, args, groupMeta) {
   const target = mentioned[0] || quotedParticipant || null;
 
   if (!target) {
-    return sock.sendMessage(jid, { text: '❌ Menciona o responde al usuario que quieres expulsar.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Menciona o responde al usuario que quieres expulsar.' }, { quoted: msg });
   }
 
   if (target === sender) {
-    return sock.sendMessage(jid, { text: '❌ No puedes expulsarte a ti mismo.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No puedes expulsarte a ti mismo.' }, { quoted: msg });
   }
 
   if (isAdmin(groupMeta?.participants, target) && !isOwner(sender, msg.key.fromMe)) {
-    return sock.sendMessage(jid, { text: '❌ No puedes expulsar a otro admin.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No puedes expulsar a otro admin.' }, { quoted: msg });
   }
 
   try {
     await sock.groupParticipantsUpdate(jid, [target], 'remove');
     const num = target.split('@')[0];
-    await sock.sendMessage(jid, { text: `✅ @${num} fue expulsado del grupo.`, mentions: [target] }, { quoted: msg });
+    await sock.sendMessage(jid, { text: `@${num} fue expulsado del grupo.`, mentions: [target] }, { quoted: msg });
   } catch (err) {
-    await sock.sendMessage(jid, { text: `❌ No pude expulsar al usuario: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: `No pude expulsar al usuario: ${err.message}` }, { quoted: msg });
   }
 }
 
@@ -130,12 +130,12 @@ async function cmdDel(sock, msg, groupMeta) {
   const isGroup = jid.endsWith('@g.us');
 
   if (isGroup && !isOwner(sender, msg.key.fromMe) && !isAdmin(groupMeta?.participants, sender)) {
-    return sock.sendMessage(jid, { text: '❌ Solo admins pueden borrar mensajes.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo admins pueden borrar mensajes.' }, { quoted: msg });
   }
 
   const ctx = msg.message?.extendedTextMessage?.contextInfo;
   if (!ctx?.stanzaId) {
-    return sock.sendMessage(jid, { text: '❌ Responde al mensaje que quieres borrar con !del.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Responde al mensaje que quieres borrar con !del.' }, { quoted: msg });
   }
 
   const deleteKey = {
@@ -148,7 +148,7 @@ async function cmdDel(sock, msg, groupMeta) {
   try {
     await sock.sendMessage(jid, { delete: deleteKey });
   } catch (err) {
-    await sock.sendMessage(jid, { text: `❌ No pude borrar el mensaje: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: `No pude borrar el mensaje: ${err.message}` }, { quoted: msg });
   }
 }
 
@@ -156,11 +156,11 @@ async function cmdDel(sock, msg, groupMeta) {
 async function cmdMute(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: '❌ Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
   }
   const sender = msg.key.participant || msg.key.remoteJid;
   if (!isOwner(sender, msg.key.fromMe) && !isAdmin(groupMeta?.participants, sender)) {
-    return sock.sendMessage(jid, { text: '❌ Solo admins pueden mutear.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo admins pueden mutear.' }, { quoted: msg });
   }
 
   const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
@@ -168,10 +168,10 @@ async function cmdMute(sock, msg, args, groupMeta) {
   const target = mentioned[0] || quotedParticipant;
 
   if (!target) {
-    return sock.sendMessage(jid, { text: '❌ Menciona o responde al usuario que quieres mutear.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Menciona o responde al usuario que quieres mutear.' }, { quoted: msg });
   }
   if (target === sender) {
-    return sock.sendMessage(jid, { text: '❌ No puedes mutearte a ti mismo.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No puedes mutearte a ti mismo.' }, { quoted: msg });
   }
 
   const minutes = Math.min(Math.max(parseInt(args.find(a => /^\d+$/.test(a)) || '10', 10), 1), 1440);
@@ -179,7 +179,7 @@ async function cmdMute(sock, msg, args, groupMeta) {
 
   const num = target.split('@')[0];
   await sock.sendMessage(jid, {
-    text: `🔇 @${num} muteado por ${minutes} minuto${minutes === 1 ? '' : 's'}. No podrá usar comandos.`,
+    text: `@${num} muteado por ${minutes} minuto${minutes === 1 ? '' : 's'}. No podra usar comandos.`,
     mentions: [target],
   }, { quoted: msg });
 }
@@ -188,11 +188,11 @@ async function cmdMute(sock, msg, args, groupMeta) {
 async function cmdUnmute(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: '❌ Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
   }
   const sender = msg.key.participant || msg.key.remoteJid;
   if (!isOwner(sender, msg.key.fromMe) && !isAdmin(groupMeta?.participants, sender)) {
-    return sock.sendMessage(jid, { text: '❌ Solo admins pueden desmutear.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo admins pueden desmutear.' }, { quoted: msg });
   }
 
   const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
@@ -200,13 +200,13 @@ async function cmdUnmute(sock, msg, args, groupMeta) {
   const target = mentioned[0] || quotedParticipant;
 
   if (!target) {
-    return sock.sendMessage(jid, { text: '❌ Menciona al usuario que quieres desmutear.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Menciona al usuario que quieres desmutear.' }, { quoted: msg });
   }
 
   mutedUsers.delete(`${jid}|${target}`);
   const num = target.split('@')[0];
   await sock.sendMessage(jid, {
-    text: `🔊 @${num} desmuteado.`,
+    text: `@${num} desmuteado.`,
     mentions: [target],
   }, { quoted: msg });
 }
@@ -222,27 +222,27 @@ function getTarget(msg) {
 async function cmdPromote(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: '❌ Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
   }
   const sender = msg.key.participant || msg.key.remoteJid;
   if (!isOwner(sender, msg.key.fromMe) && !isAdmin(groupMeta?.participants, sender)) {
-    return sock.sendMessage(jid, { text: '❌ Solo admins pueden usar este comando.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
   }
 
   const target = getTarget(msg);
   if (!target) {
-    return sock.sendMessage(jid, { text: '❌ Menciona o responde al usuario que quieres ascender.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Menciona o responde al usuario que quieres ascender.' }, { quoted: msg });
   }
   if (isAdmin(groupMeta?.participants, target)) {
-    return sock.sendMessage(jid, { text: '❌ Ese usuario ya es admin.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Ese usuario ya es admin.' }, { quoted: msg });
   }
 
   try {
     await sock.groupParticipantsUpdate(jid, [target], 'promote');
     const num = target.split('@')[0];
-    await sock.sendMessage(jid, { text: `🎖️ @${num} ahora es admin.`, mentions: [target] }, { quoted: msg });
+    await sock.sendMessage(jid, { text: `@${num} ahora es admin.`, mentions: [target] }, { quoted: msg });
   } catch (err) {
-    await sock.sendMessage(jid, { text: `❌ No pude ascender al usuario: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: `No pude ascender al usuario: ${err.message}` }, { quoted: msg });
   }
 }
 
@@ -250,30 +250,30 @@ async function cmdPromote(sock, msg, args, groupMeta) {
 async function cmdDemote(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: '❌ Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
   }
   const sender = msg.key.participant || msg.key.remoteJid;
   if (!isOwner(sender, msg.key.fromMe) && !isAdmin(groupMeta?.participants, sender)) {
-    return sock.sendMessage(jid, { text: '❌ Solo admins pueden usar este comando.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
   }
 
   const target = getTarget(msg);
   if (!target) {
-    return sock.sendMessage(jid, { text: '❌ Menciona o responde al admin que quieres degradar.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Menciona o responde al admin que quieres degradar.' }, { quoted: msg });
   }
   if (target === sender && !isOwner(sender, msg.key.fromMe)) {
-    return sock.sendMessage(jid, { text: '❌ No puedes degradarte a ti mismo.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No puedes degradarte a ti mismo.' }, { quoted: msg });
   }
   if (!isAdmin(groupMeta?.participants, target)) {
-    return sock.sendMessage(jid, { text: '❌ Ese usuario no es admin.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Ese usuario no es admin.' }, { quoted: msg });
   }
 
   try {
     await sock.groupParticipantsUpdate(jid, [target], 'demote');
     const num = target.split('@')[0];
-    await sock.sendMessage(jid, { text: `📉 @${num} ha sido degradado a miembro.`, mentions: [target] }, { quoted: msg });
+    await sock.sendMessage(jid, { text: `@${num} degradado a miembro.`, mentions: [target] }, { quoted: msg });
   } catch (err) {
-    await sock.sendMessage(jid, { text: `❌ No pude degradar al usuario: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: `No pude degradar al usuario: ${err.message}` }, { quoted: msg });
   }
 }
 
@@ -281,25 +281,25 @@ async function cmdDemote(sock, msg, args, groupMeta) {
 async function cmdNotifAdmin(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: '❌ Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
   }
   const sender = msg.key.participant || msg.key.remoteJid;
   if (!isOwner(sender, msg.key.fromMe) && !isAdmin(groupMeta?.participants, sender)) {
-    return sock.sendMessage(jid, { text: '❌ Solo admins pueden cambiar esta configuración.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo admins pueden cambiar esta configuracion.' }, { quoted: msg });
   }
 
   const arg = (args[0] || '').toLowerCase();
   if (arg !== 'on' && arg !== 'off') {
     const current = isAdminNotifyEnabled(jid) ? 'activadas' : 'desactivadas';
-    return sock.sendMessage(jid, { text: `ℹ️ Notificaciones de admin: *${current}*\nUsa !notifadmin on/off para cambiar.` }, { quoted: msg });
+    return sock.sendMessage(jid, { text: `Notificaciones de admin: *${current}*\nUsa !notifadmin on/off para cambiar.` }, { quoted: msg });
   }
 
   const enable = arg === 'on';
   await toggleAdminNotify(jid, enable);
   await sock.sendMessage(jid, {
     text: enable
-      ? '🔔 Notificaciones de cambios de admin *activadas*.'
-      : '🔕 Notificaciones de cambios de admin *desactivadas*.',
+      ? 'Notificaciones de cambios de admin activadas.'
+      : 'Notificaciones de cambios de admin desactivadas.',
   }, { quoted: msg });
 }
 

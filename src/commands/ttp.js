@@ -118,10 +118,10 @@ async function cmdTtp(sock, msg, args) {
   const text = (args || []).join(' ').trim();
 
   if (!text) {
-    return sock.sendMessage(jid, { text: '❌ Usa: *!ttp* <texto>' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Usa: *!ttp* <texto>' }, { quoted: msg });
   }
   if (text.length > 120) {
-    return sock.sendMessage(jid, { text: '❌ Máximo 120 caracteres.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Maximo 120 caracteres.' }, { quoted: msg });
   }
 
   try {
@@ -132,7 +132,7 @@ async function cmdTtp(sock, msg, args) {
     await sock.sendMessage(jid, { sticker: stickerBuffer }, { quoted: msg });
   } catch (err) {
     logger.error(`TTP error: ${err.message}`);
-    await sock.sendMessage(jid, { text: `❌ Error al crear sticker: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: `Error al crear sticker: ${err.message}` }, { quoted: msg });
   }
 }
 

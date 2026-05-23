@@ -10,7 +10,7 @@ async function cmdPlay(sock, msg, args) {
   const jid = msg.key.remoteJid;
 
   if (!args.length) {
-    return sock.sendMessage(jid, { text: '❌ Usa: *!Playsong* <canción o artista>' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Usa: *!Playsong* <cancion o artista>' }, { quoted: msg });
   }
 
   const query = args.join(' ');
@@ -20,12 +20,12 @@ async function cmdPlay(sock, msg, args) {
   const fromCache = !!result;
 
   if (!result) {
-    await sock.sendMessage(jid, { text: '🔎 Buscando...' }, { quoted: msg }).catch(() => {});
+    await sock.sendMessage(jid, { text: 'Buscando...' }, { quoted: msg }).catch(() => {});
     try {
       result = await downloadAudio(`ytsearch1:${query}`);
     } catch (err) {
       logger.error(`Download error: ${err.message}`);
-      return sock.sendMessage(jid, { text: `❌ ${err.message}` }, { quoted: msg });
+      return sock.sendMessage(jid, { text: `Error: ${err.message}` }, { quoted: msg });
     }
   }
 
@@ -35,7 +35,7 @@ async function cmdPlay(sock, msg, args) {
 
     if (audioBuffer.length > 25 * 1024 * 1024) {
       if (!fromCache) cleanTemp(result.filePath).catch(() => {});
-      return sock.sendMessage(jid, { text: '❌ La canción pesa más de 25MB y no puede enviarse.' }, { quoted: msg });
+      return sock.sendMessage(jid, { text: 'La cancion pesa mas de 25MB y no puede enviarse.' }, { quoted: msg });
     }
 
     await sock.sendMessage(jid, {
@@ -47,7 +47,7 @@ async function cmdPlay(sock, msg, args) {
     incrementStat('musicPlayed');
   } catch (err) {
     logger.error(`Send audio error: ${err.message}`);
-    await sock.sendMessage(jid, { text: `❌ Error al enviar audio: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: `Error al enviar audio: ${err.message}` }, { quoted: msg });
   }
 
   // Cache and cleanup (only if it was a fresh download)
@@ -60,7 +60,7 @@ async function cmdPlay(sock, msg, args) {
 // !buscar <query> — list search results
 async function cmdSearch(sock, msg, args) {
   if (!args.length) {
-    return sock.sendMessage(msg.key.remoteJid, { text: '❌ Usa: *!buscar* <canción>' }, { quoted: msg });
+    return sock.sendMessage(msg.key.remoteJid, { text: 'Usa: *!buscar* <cancion>' }, { quoted: msg });
   }
 
   const query = args.join(' ');
@@ -70,11 +70,11 @@ async function cmdSearch(sock, msg, args) {
   try {
     results = await searchYouTube(query);
   } catch (err) {
-    return sock.sendMessage(jid, { text: `❌ ${err.message}` }, { quoted: msg });
+    return sock.sendMessage(jid, { text: err.message }, { quoted: msg });
   }
 
   if (!results.length) {
-    return sock.sendMessage(jid, { text: '❌ No encontré resultados.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No encontre resultados.' }, { quoted: msg });
   }
 
   let text = `*Resultados para: ${query}*\n\n`;
@@ -91,9 +91,9 @@ async function cmdClearCache(sock, msg) {
   const jid = msg.key.remoteJid;
   try {
     await clearCache();
-    await sock.sendMessage(jid, { text: '✅ Cache de música borrado.' }, { quoted: msg });
+    await sock.sendMessage(jid, { text: 'Cache de musica borrado.' }, { quoted: msg });
   } catch (err) {
-    await sock.sendMessage(jid, { text: `❌ Error al borrar cache: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: `Error al borrar cache: ${err.message}` }, { quoted: msg });
   }
 }
 

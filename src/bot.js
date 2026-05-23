@@ -128,8 +128,8 @@ async function connectToWhatsApp() {
       const allJids = meta.participants.map(p => p.id);
       const names = participants.map(jid => `@${jid.split('@')[0]}`).join(', ');
       const text = action === 'promote'
-        ? `🎖️ ${names} ahora es admin del grupo.`
-        : `📉 ${names} ha sido degradado a miembro.`;
+        ? `${names} ahora es admin del grupo.`
+        : `${names} ha sido degradado a miembro.`;
       sock.sendMessage(groupJid, { text, mentions: allJids }).catch(() => {});
     } catch {}
   });

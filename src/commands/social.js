@@ -25,18 +25,18 @@ async function cmdOn(sock, msg, groupMeta) {
   if (isGroup) {
     const canToggle = isOwner(sender, msg.key.fromMe) || isAdmin(groupMeta?.participants, sender);
     if (!canToggle) {
-      return sock.sendMessage(jid, { text: '❌ Solo admins pueden usar este comando.' }, { quoted: msg });
+      return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
     }
     await toggleGroup(jid, true);
-    return sock.sendMessage(jid, { text: '✅ Bot *activado* en este grupo.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Bot *activado* en este grupo.' }, { quoted: msg });
   }
 
   if (!isOwner(sender, msg.key.fromMe)) {
-    return sock.sendMessage(jid, { text: '❌ Solo el dueño puede usar este comando.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo el dueno puede usar este comando.' }, { quoted: msg });
   }
 
   await setState({ botEnabled: true });
-  await sock.sendMessage(jid, { text: '✅ Bot *activado* globalmente.' }, { quoted: msg });
+  await sock.sendMessage(jid, { text: 'Bot *activado* globalmente.' }, { quoted: msg });
   logger.success('Bot activado globalmente');
 }
 
@@ -49,31 +49,29 @@ async function cmdOff(sock, msg, groupMeta) {
   if (isGroup) {
     const canToggle = isOwner(sender, msg.key.fromMe) || isAdmin(groupMeta?.participants, sender);
     if (!canToggle) {
-      return sock.sendMessage(jid, { text: '❌ Solo admins pueden usar este comando.' }, { quoted: msg });
+      return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
     }
     await toggleGroup(jid, false);
-    return sock.sendMessage(jid, { text: '🔴 Bot *desactivado* en este grupo.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Bot *desactivado* en este grupo.' }, { quoted: msg });
   }
 
   if (!isOwner(sender, msg.key.fromMe)) {
-    return sock.sendMessage(jid, { text: '❌ Solo el dueño puede usar este comando.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo el dueno puede usar este comando.' }, { quoted: msg });
   }
 
   await setState({ botEnabled: false });
-  await sock.sendMessage(jid, { text: '🔴 Bot *desactivado* globalmente.' }, { quoted: msg });
+  await sock.sendMessage(jid, { text: 'Bot *desactivado* globalmente.' }, { quoted: msg });
   logger.warn('Bot desactivado globalmente');
 }
 
 // !ping - latency check
-// delivery = WA server delay (msg timestamp → bot received it)
-// send    = bot → WA server ACK round-trip
 async function cmdPing(sock, msg) {
   const jid = msg.key.remoteJid;
   const delivery = Date.now() - (msg.messageTimestamp * 1000);
   const start = Date.now();
-  await sock.sendMessage(jid, { text: '⚡' }, { quoted: msg });
+  await sock.sendMessage(jid, { text: '...' }, { quoted: msg });
   const send = Date.now() - start;
-  sock.sendMessage(jid, { text: `*${send}ms* envío  ·  *${delivery}ms* entrega WA` }, { quoted: msg }).catch(() => {});
+  sock.sendMessage(jid, { text: `*${send}ms* envio  .  *${delivery}ms* entrega WA` }, { quoted: msg }).catch(() => {});
 }
 
 // !info - bot status
@@ -81,19 +79,18 @@ async function cmdInfo(sock, msg) {
   const jid = msg.key.remoteJid;
   const state = getState();
   const uptime = formatUptime(Date.now() - (state.stats?.startTime || Date.now()));
-  const status = state.botEnabled ? '🟢 Activo' : '🔴 Inactivo';
+  const status = state.botEnabled ? 'Activo' : 'Inactivo';
 
-  const text = `╔══════════════════╗
-║   *${config.botName}* 🤖
-╠══════════════════╣
-║ Estado: ${status}
-║ Uptime: ⏱ ${uptime}
-║ Mensajes: 📨 ${state.stats?.messagesReceived || 0}
-║ Comandos: ⚡ ${state.stats?.commandsExecuted || 0}
-║ Stickers: 🎭 ${state.stats?.stickersCreated || 0}
-║ Música: 🎵 ${state.stats?.musicPlayed || 0}
-║ Prefijo: ${config.prefix}
-╚══════════════════╝`;
+  const text =
+`*${config.botName}*
+
+Estado:    ${status}
+Uptime:    ${uptime}
+Mensajes:  ${state.stats?.messagesReceived || 0}
+Comandos:  ${state.stats?.commandsExecuted || 0}
+Stickers:  ${state.stats?.stickersCreated || 0}
+Musica:    ${state.stats?.musicPlayed || 0}
+Prefijo:   ${config.prefix}`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
@@ -104,25 +101,25 @@ async function cmdHelp(sock, msg) {
   const p = config.prefix;
 
   const text =
-`*${config.botName}*  ·  by xz1s (Sebastian)
+`*${config.botName}*  .  by xz1s (Sebastian)
 Prefijo: *${p}*
 
-*MÚSICA*
-${p}Playsong <canción>  › reproducir audio
-${p}play <canción>      › alias de Playsong
-${p}buscar <canción>    › listar resultados
+*MUSICA*
+${p}Playsong <cancion>  .  reproducir audio
+${p}play <cancion>      .  alias de Playsong
+${p}buscar <cancion>    .  listar resultados
 
 *STICKERS*
-${p}s                   › imagen / video → sticker
-${p}ttp <texto>         › texto → sticker
+${p}s                   .  imagen / video a sticker
+${p}ttp <texto>         .  texto a sticker
 
 *TOPS*
-${p}top5 <tema>         › top 5 aleatorio del grupo
-${p}top10 <tema>        › top 10 aleatorio del grupo
-${p}count               › ranking de mensajes del grupo
+${p}top5 <tema>         .  top 5 aleatorio del grupo
+${p}top10 <tema>        .  top 10 aleatorio del grupo
+${p}count               .  ranking de mensajes del grupo
 
-*DINÁMICAS*
-${p}ship                › empareja 2 miembros al azar
+*DINAMICAS*
+${p}ship                .  empareja 2 miembros al azar
 ${p}gay  ${p}simp  ${p}sexy  ${p}rata
 ${p}gilipollas  ${p}subnormal  ${p}imbecil
 ${p}capullo  ${p}pringado  ${p}mamon
@@ -131,26 +128,26 @@ ${p}guarro  ${p}paleto  ${p}cutre
 _Uso: ${p}<comando> [@mencionar]  —  sin @ te mide a ti_
 
 *INTELIGENCIA ARTIFICIAL*
-${p}g <pregunta>        › pregunta a Grok (sin filtros)
-${p}setgrok <key>       › configurar API key (owner)
+${p}g <pregunta>        .  pregunta a Grok (sin filtros)
+${p}setgrok <key>       .  configurar API key (owner)
 _Responde a un mensaje con ${p}g para usarlo como contexto_
 
-*ADMINISTRACIÓN*  _(solo admins)_
-${p}tagall <texto>      › mencionar a todos
-${p}kick @user          › expulsar miembro
-${p}promote @user       › ascender a admin
-${p}demote @user        › degradar a miembro
-${p}mute @user [min]    › silenciar comandos
-${p}unmute @user        › quitar silencio
-${p}del                 › borrar mensaje citado
-${p}notifadmin on/off   › notificaciones de cambios de admin
+*ADMINISTRACION*  _(solo admins)_
+${p}tagall <texto>      .  mencionar a todos
+${p}kick @user          .  expulsar miembro
+${p}promote @user       .  ascender a admin
+${p}demote @user        .  degradar a miembro
+${p}mute @user [min]    .  silenciar comandos
+${p}unmute @user        .  quitar silencio
+${p}del                 .  borrar mensaje citado
+${p}notifadmin on/off   .  notificaciones de cambios de admin
 
 *CONTROL*
-${p}on                  › activar bot
-${p}off                 › desactivar bot
-${p}ping                › latencia
-${p}info                › estado y estadísticas
-${p}clearcache          › borrar cache de música (owner)`;
+${p}on                  .  activar bot
+${p}off                 .  desactivar bot
+${p}ping                .  latencia
+${p}info                .  estado y estadisticas
+${p}clearcache          .  borrar cache de musica (owner)`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
