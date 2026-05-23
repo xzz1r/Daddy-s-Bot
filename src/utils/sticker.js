@@ -204,12 +204,12 @@ function encodeAnimWebp(inputFile, outputFile, fps, quality) {
   });
 }
 
-// Tiers only used if first encode exceeds WhatsApp's 500 KB limit (rare for ≤8s videos)
+// Fallbacks: keep 15fps, reduce quality first — choppiness is worse than slight blur
 const FALLBACK_TIERS = [
-  { fps: 12, quality: 72 },
-  { fps: 10, quality: 65 },
-  { fps: 8,  quality: 58 },
-  { fps: 6,  quality: 50 },
+  { fps: 15, quality: 65 },
+  { fps: 15, quality: 52 },
+  { fps: 15, quality: 40 },
+  { fps: 12, quality: 40 },
 ];
 
 async function videoToSticker(videoBuffer) {
