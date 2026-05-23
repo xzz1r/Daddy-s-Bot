@@ -38,27 +38,30 @@ function runFfmpeg(inputFile, outputFile, options) {
   });
 }
 
-// Build TIFF-wrapped EXIF containing WhatsApp sticker pack JSON
+// WhatsApp-specific EXIF: TIFF wrapper with custom tag 0x5741 ('WA' LE) type UNDEFINED (7).
+// This is the format WhatsApp actually reads for sticker pack metadata — the standard
+// EXIF UserComment (0x9286) does NOT work even though it's technically valid EXIF.
 function buildExif(pack, author) {
   const json = JSON.stringify({
-    'sticker-pack-id': 'com.itsseb4s.daddysbot',
+    'sticker-pack-id': 'com.xz1s.daddysbot',
     'sticker-pack-name': pack,
     'sticker-pack-publisher': author,
-    'emojis': [],
+    'emojis': [''],
   });
   const data = Buffer.from(json, 'utf-8');
-  // 8-byte header + 2-byte IFD count + 12-byte IFD entry = 22 bytes before data (no next-IFD pointer)
-  const buf = Buffer.alloc(22 + data.length);
-  buf[0] = 0x49; buf[1] = 0x49;          // II little-endian
-  buf[2] = 0x2A; buf[3] = 0x00;          // TIFF magic
-  buf.writeUInt32LE(8, 4);               // offset to first IFD
-  buf.writeUInt16LE(1, 8);               // 1 IFD entry
-  buf.writeUInt16LE(0x9286, 10);         // tag: UserComment
-  buf.writeUInt16LE(0x0002, 12);         // type: ASCII
-  buf.writeUInt32LE(data.length, 14);    // count
-  buf.writeUInt32LE(22, 18);             // offset to data
-  data.copy(buf, 22);
-  return buf;
+
+  const header = Buffer.from([
+    0x49, 0x49, 0x2A, 0x00,             // TIFF magic (II, little-endian)
+    0x08, 0x00, 0x00, 0x00,             // first IFD offset = 8
+    0x01, 0x00,                         // 1 IFD entry
+    0x41, 0x57,                         // tag 0x5741 ('WA' little-endian) — WhatsApp custom
+    0x07, 0x00,                         // type 7 (UNDEFINED)
+    0x00, 0x00, 0x00, 0x00,             // count (filled below)
+    0x16, 0x00, 0x00, 0x00,             // data offset = 22
+  ]);
+  header.writeUInt32LE(data.length, 14);
+
+  return Buffer.concat([header, data]);
 }
 
 // Inject EXIF chunk directly into WebP binary (RIFF manipulation)

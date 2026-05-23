@@ -14,8 +14,8 @@ const config = {
 
   // Sticker settings
   sticker: {
-    pack: 'Ur daddy',
-    author: 'ItsSeb4s',
+    pack: 'xz1s (Sebastian)',
+    author: 'xz1s (Sebastian)',
     quality: 100,
     fps: 60,
   },
