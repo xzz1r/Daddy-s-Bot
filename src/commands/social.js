@@ -98,38 +98,37 @@ async function cmdHelp(sock, msg) {
   const p = config.prefix;
 
   const text = `╔═══════════════════════════╗
-║   🤖 *${config.botName} Commands*
+║   *${config.botName} — Commands*
 ╚═══════════════════════════╝
 
-🎵 *MÚSICA*
-┣ ${p}Playsong <canción>
-┗ _Busca y envía la canción en audio_
+*MUSICA*
+┣ ${p}Playsong <cancion>
+┗ _Busca y envia la cancion en audio_
 
-🎭 *STICKERS*
+*STICKERS*
 ┣ ${p}s
-┗ _Respondé una imagen, video o sticker_
+┗ _Responde una imagen, video o sticker_
    _Soporta jpg · png · gif · mp4 (60fps)_
 
-📊 *TOPS*
-┣ ${p}top <categoría> [cantidad]
+*TOPS*
+┣ ${p}top <categoria> [cantidad]
 ┗ _Rankings de hasta 100 resultados_
 
-   *Categorías disponibles:*
-   🎵 musica  🎬 peliculas  📺 series
-   🎮 juegos  ▶️ youtube   🎧 spotify
-   🌸 anime   🌍 paises    💰 cripto  📱 apps
+   _Categorias: musica, peliculas, series,_
+   _juegos, youtube, spotify, anime,_
+   _paises, cripto, apps_
 
    _Ej: ${p}top cripto 20 · ${p}top anime 5_
 
-⚙️ *CONTROL*
+*CONTROL*
 ┣ ${p}on  › Activar bot en el grupo
 ┣ ${p}off › Desactivar bot en el grupo
 ┣ ${p}ping › Ver latencia
-┗ ${p}info › Estado y estadísticas
+┗ ${p}info › Estado y estadisticas
 
 ╔═══════════════════════════╗
 ║  Prefijo: *${p}*  │  ${p}Commands
-║  👑 Owner: *xz1s (Sebastian)*
+║  Owner: *xz1s (Sebastian)*
 ╚═══════════════════════════╝`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });

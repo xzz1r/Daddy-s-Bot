@@ -1,6 +1,6 @@
 const config = {
   prefix: '!',
-  botName: 'SocialBot',
+  botName: "Daddy's Bot",
   ownerNumber: process.env.OWNER_NUMBER || '5491100000000',
   language: 'es',
   autoRead: true,
