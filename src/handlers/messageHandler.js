@@ -1,8 +1,10 @@
 const config = require('../config');
 const { isBotEnabled, incrementStat } = require('../utils/state');
+const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { cmdPlay, cmdSearch } = require('../commands/music');
 const { cmdSticker } = require('../commands/sticker');
 const { cmdTop } = require('../commands/tops');
+const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp } = require('../commands/social');
 const logger = require('../utils/logger');
 
@@ -40,6 +42,11 @@ async function handleMessage(sock, msg) {
   const msgType = getMessageType(msg);
 
   await incrementStat('messagesReceived');
+
+  // Per-group per-user counter for !top5 / !top10
+  if (jid.endsWith('@g.us') && sender) {
+    incrementMsgCount(jid, sender).catch(() => {});
+  }
 
   // Check if bot is enabled for this jid
   const enabled = await isBotEnabled(jid);
@@ -97,6 +104,14 @@ async function handleMessage(sock, msg) {
       case 'tops':
       case 'ranking':
         await cmdTop(sock, msg, args);
+        break;
+
+      case 'top5':
+        await cmdTopRandom(sock, msg, 5);
+        break;
+
+      case 'top10':
+        await cmdTopRandom(sock, msg, 10);
         break;
 
       // Bot control
