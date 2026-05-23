@@ -29,16 +29,16 @@ async function cmdPlay(sock, msg, args) {
     }
   }
 
-  // Send audio
+  // Send audio — use RAM buffer if available, otherwise read from disk
   try {
-    const audioBuffer = await fs.readFile(result.filePath);
+    const audioBuffer = result.buffer || await fs.readFile(result.filePath);
     await sock.sendMessage(jid, {
       audio: audioBuffer,
       mimetype: result.mimetype || 'audio/mp4',
       fileName: `${result.title}.${result.ext || 'm4a'}`,
       ptt: false,
     }, { quoted: msg });
-    await incrementStat('musicPlayed');
+    incrementStat('musicPlayed');
   } catch (err) {
     logger.error(`Send audio error: ${err.message}`);
     await sock.sendMessage(jid, { text: `❌ Error al enviar audio: ${err.message}` }, { quoted: msg });
@@ -47,7 +47,7 @@ async function cmdPlay(sock, msg, args) {
   // Cache and cleanup (only if it was a fresh download)
   if (!fromCache) {
     try { await setCached(query, result.filePath, result.title, result.mimetype, result.ext); } catch {}
-    await cleanTemp(result.filePath);
+    cleanTemp(result.filePath).catch(() => {});
   }
 }
 

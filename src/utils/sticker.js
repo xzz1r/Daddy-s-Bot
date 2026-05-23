@@ -119,27 +119,20 @@ function injectExifIntoWebP(webp, exifBuf) {
   return Buffer.concat([header, body]);
 }
 
-async function addStickerMeta(webpBuffer) {
+function addStickerMeta(webpBuffer) {
   const exif = buildExif(config.sticker.pack, config.sticker.author);
+  // Binary injection is pure buffer ops — no parsing overhead, no double-load
   try {
-    const img = new webpmux.Image();
-    await img.load(webpBuffer);
-    img.exif = exif;
-    const out = await img.save(null);
-    // Verify EXIF was actually written
-    const check = new webpmux.Image();
-    await check.load(out);
-    if (!check.exif || check.exif.length < 10) {
-      logger.error('EXIF: node-webpmux no embedió el EXIF — usando fallback binario');
-      return injectExifIntoWebP(webpBuffer, exif);
-    }
-    return out;
-  } catch (err) {
-    logger.error(`node-webpmux EXIF error: ${err.message}`);
+    return injectExifIntoWebP(webpBuffer, exif);
+  } catch {
+    // Binary injection failed (corrupt/unusual WebP) — fall back to webpmux
     try {
-      return injectExifIntoWebP(webpBuffer, exif);
-    } catch (err2) {
-      logger.error(`EXIF binario error: ${err2.message}`);
+      const img = new webpmux.Image();
+      return img.load(webpBuffer).then(() => {
+        img.exif = exif;
+        return img.save(null);
+      }).catch(() => webpBuffer);
+    } catch {
       return webpBuffer;
     }
   }
@@ -149,18 +142,12 @@ async function imageToSticker(imageBuffer) {
   const ext = detectExt(imageBuffer);
   if (!ext) throw new Error('Formato de imagen no reconocido');
 
-  // WebP: ffmpeg decoder crashes on some builds; inject metadata directly
-  if (ext === 'webp') return await addStickerMeta(imageBuffer);
+  // WebP: inject metadata directly — no ffmpeg needed
+  if (ext === 'webp') return addStickerMeta(imageBuffer);
 
   const inputFile = tempFile(ext);
   const outputFile = tempFile('webp');
   await fs.writeFile(inputFile, imageBuffer);
-
-  const stat = await fs.stat(inputFile);
-  if (stat.size === 0) {
-    await cleanTemp(inputFile);
-    throw new Error('Imagen vacía al guardar en disco');
-  }
 
   try {
     await runFfmpeg(inputFile, outputFile, [
@@ -168,21 +155,20 @@ async function imageToSticker(imageBuffer) {
       '-c:v', 'libwebp',
       '-frames:v', '1',
       '-q:v', '80',
+      '-compression_level', '2',
       '-an',
       '-y',
     ]);
     const webpBuffer = await fs.readFile(outputFile);
     if (webpBuffer.length < 100) throw new Error('Sticker generado vacío');
-    return await addStickerMeta(webpBuffer);
+    return addStickerMeta(webpBuffer);
   } finally {
     await cleanTemp(inputFile);
     await cleanTemp(outputFile);
   }
 }
 
-const MAX_STICKER_BYTES = 490 * 1024; // WhatsApp rejects animated stickers > ~500 KB
-
-function encodeAnimWebp(inputFile, outputFile, fps, quality) {
+function encodeAnimWebp(inputFile, outputFile) {
   return new Promise((resolve, reject) => {
     let stderrBuf = '';
     const runWithCodec = (codec) => {
@@ -190,22 +176,23 @@ function encodeAnimWebp(inputFile, outputFile, fps, quality) {
       ffmpeg(inputFile)
         .setFfmpegPath(ffmpegPath)
         .outputOptions([
-          '-vf', VF_ANIM(fps),
+          '-vf', VF_ANIM(10),
           '-c:v', codec,
           '-loop', '0',
           '-an',
-          '-q:v', String(quality),
+          '-q:v', '75',
+          '-compression_level', '2',
           '-preset', 'default',
           '-y',
         ])
         .toFormat('webp')
         .on('stderr', (line) => { stderrBuf += line + '\n'; })
-        .on('error', (err) => {
+        .on('error', () => {
           if (codec === 'libwebp_anim') {
             runWithCodec('libwebp');
           } else {
             const lastLines = stderrBuf.trim().split('\n').slice(-4).join(' | ');
-            reject(new Error(lastLines || err.message));
+            reject(new Error(lastLines || 'ffmpeg error'));
           }
         })
         .on('end', resolve)
@@ -218,40 +205,19 @@ function encodeAnimWebp(inputFile, outputFile, fps, quality) {
 async function videoToSticker(videoBuffer) {
   const detected = detectExt(videoBuffer);
 
-  // WebP sticker: ffmpeg decoder crashes; re-inject metadata directly
-  if (detected === 'webp') return await addStickerMeta(videoBuffer);
+  // WebP: inject metadata directly — no ffmpeg needed
+  if (detected === 'webp') return addStickerMeta(videoBuffer);
 
   const ext = detected || 'mp4';
   const inputFile = tempFile(ext);
   const outputFile = tempFile('webp');
   await fs.writeFile(inputFile, videoBuffer);
 
-  const stat = await fs.stat(inputFile);
-  if (stat.size === 0) {
-    await cleanTemp(inputFile);
-    throw new Error('Video vacío al guardar en disco');
-  }
-
-  // No time limit — encode full video. Auto-reduce quality/fps until under 500 KB.
-  const tiers = [
-    { fps: 12, quality: 80 },
-    { fps: 10, quality: 70 },
-    { fps: 8,  quality: 60 },
-    { fps: 6,  quality: 50 },
-  ];
-
   try {
-    let lastBuffer = null;
-    for (const { fps, quality } of tiers) {
-      await encodeAnimWebp(inputFile, outputFile, fps, quality);
-      const buf = await fs.readFile(outputFile);
-      if (buf.length < 100) throw new Error('Sticker animado vacío');
-      lastBuffer = buf;
-      if (buf.length <= MAX_STICKER_BYTES) {
-        return await addStickerMeta(buf);
-      }
-    }
-    return await addStickerMeta(lastBuffer);
+    await encodeAnimWebp(inputFile, outputFile);
+    const buf = await fs.readFile(outputFile);
+    if (buf.length < 100) throw new Error('Sticker animado vacío');
+    return addStickerMeta(buf);
   } finally {
     await cleanTemp(inputFile);
     await cleanTemp(outputFile);
