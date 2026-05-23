@@ -31,27 +31,4 @@ async function cmdTodos(sock, msg, args, groupMeta) {
   await sock.sendMessage(jid, { text, mentions });
 }
 
-// !sorteo <op1> | <op2> | <op3>   OR   <op1>, <op2>, <op3>
-async function cmdSorteo(sock, msg, args) {
-  const jid = msg.key.remoteJid;
-  const raw = (args || []).join(' ').trim();
-  if (!raw) {
-    return sock.sendMessage(jid, {
-      text: '❌ Usa: *!sorteo* op1 | op2 | op3\nO: *!sorteo* op1, op2, op3',
-    }, { quoted: msg });
-  }
-
-  const sep = raw.includes('|') ? '|' : ',';
-  const options = raw.split(sep).map((s) => s.trim()).filter(Boolean);
-
-  if (options.length < 2) {
-    return sock.sendMessage(jid, { text: '❌ Dame al menos 2 opciones separadas por | o ,' }, { quoted: msg });
-  }
-
-  const chosen = options[Math.floor(Math.random() * options.length)];
-  await sock.sendMessage(jid, {
-    text: `🎲 *Sorteo entre ${options.length} opciones:*\n\n👉 *${chosen}*`,
-  }, { quoted: msg });
-}
-
-module.exports = { cmdTodos, cmdSorteo };
+module.exports = { cmdTodos };

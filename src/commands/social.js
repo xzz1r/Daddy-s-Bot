@@ -137,7 +137,6 @@ async function cmdHelp(sock, msg) {
 
 *UTILIDADES*
 ┣ ${p}todos <aviso> › Etiqueta a todos (admin)
-┣ ${p}sorteo a|b|c  › Elige uno al azar
 ┗ ${p}g <pregunta>  › Pregunta a Grok IA
 
 *TOPS GLOBALES*
