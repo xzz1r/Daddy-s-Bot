@@ -18,8 +18,7 @@ async function cmdPlay(sock, msg, args) {
   let cached = await getCached(query).catch(() => null);
 
   if (!cached) {
-    // Show processing indicator
-    await sock.sendMessage(jid, { react: { text: '⏳', key: msg.key } }).catch(() => {});
+    await sock.sendMessage(jid, { text: '...' }, { quoted: msg });
 
     let downloaded;
     try {
