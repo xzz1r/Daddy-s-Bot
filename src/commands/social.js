@@ -3,10 +3,11 @@ const { formatUptime } = require('../utils/helpers');
 const config = require('../config');
 const logger = require('../utils/logger');
 
-function isOwner(jid) {
+// fromMe = true means the message was sent from the bot's own linked account = owner
+function isOwner(jid, fromMe) {
+  if (fromMe) return true;
   const num = jid.replace(/@[^@]+$/, '').replace(/\D/g, '');
   const owner = String(config.ownerNumber).replace(/\D/g, '');
-  // Match exact number OR suffix match (handles country code variations like 34 vs 0034)
   return num === owner || num.endsWith(owner) || owner.endsWith(num);
 }
 
@@ -22,7 +23,7 @@ async function cmdOn(sock, msg, groupMeta) {
   const isGroup = jid.endsWith('@g.us');
 
   if (isGroup) {
-    const canToggle = isOwner(sender) || isAdmin(groupMeta?.participants, sender);
+    const canToggle = isOwner(sender, msg.key.fromMe) || isAdmin(groupMeta?.participants, sender);
     if (!canToggle) {
       return sock.sendMessage(jid, { text: '❌ Solo admins pueden usar este comando.' }, { quoted: msg });
     }
@@ -30,7 +31,7 @@ async function cmdOn(sock, msg, groupMeta) {
     return sock.sendMessage(jid, { text: '✅ Bot *activado* en este grupo.' }, { quoted: msg });
   }
 
-  if (!isOwner(sender)) {
+  if (!isOwner(sender, msg.key.fromMe)) {
     return sock.sendMessage(jid, { text: '❌ Solo el dueño puede usar este comando.' }, { quoted: msg });
   }
 
@@ -46,7 +47,7 @@ async function cmdOff(sock, msg, groupMeta) {
   const isGroup = jid.endsWith('@g.us');
 
   if (isGroup) {
-    const canToggle = isOwner(sender) || isAdmin(groupMeta?.participants, sender);
+    const canToggle = isOwner(sender, msg.key.fromMe) || isAdmin(groupMeta?.participants, sender);
     if (!canToggle) {
       return sock.sendMessage(jid, { text: '❌ Solo admins pueden usar este comando.' }, { quoted: msg });
     }
@@ -54,7 +55,7 @@ async function cmdOff(sock, msg, groupMeta) {
     return sock.sendMessage(jid, { text: '🔴 Bot *desactivado* en este grupo.' }, { quoted: msg });
   }
 
-  if (!isOwner(sender)) {
+  if (!isOwner(sender, msg.key.fromMe)) {
     return sock.sendMessage(jid, { text: '❌ Solo el dueño puede usar este comando.' }, { quoted: msg });
   }
 

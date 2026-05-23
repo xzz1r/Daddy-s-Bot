@@ -32,7 +32,7 @@ async function cmdTodos(sock, msg, args, groupMeta) {
   }
 
   const sender = msg.key.participant || msg.key.remoteJid;
-  if (!isOwner(sender) && !isAdmin(groupMeta?.participants, sender)) {
+  if (!isOwner(sender, msg.key.fromMe) && !isAdmin(groupMeta?.participants, sender)) {
     return sock.sendMessage(jid, { text: '❌ Solo admins pueden usar este comando.' }, { quoted: msg });
   }
 
@@ -93,7 +93,7 @@ async function cmdKick(sock, msg, args, groupMeta) {
   }
 
   const sender = msg.key.participant || msg.key.remoteJid;
-  if (!isOwner(sender) && !isAdmin(groupMeta?.participants, sender)) {
+  if (!isOwner(sender, msg.key.fromMe) && !isAdmin(groupMeta?.participants, sender)) {
     return sock.sendMessage(jid, { text: '❌ Solo admins pueden usar este comando.' }, { quoted: msg });
   }
 
@@ -110,7 +110,7 @@ async function cmdKick(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: '❌ No puedes expulsarte a ti mismo.' }, { quoted: msg });
   }
 
-  if (isAdmin(groupMeta?.participants, target) && !isOwner(sender)) {
+  if (isAdmin(groupMeta?.participants, target) && !isOwner(sender, msg.key.fromMe)) {
     return sock.sendMessage(jid, { text: '❌ No puedes expulsar a otro admin.' }, { quoted: msg });
   }
 
@@ -129,7 +129,7 @@ async function cmdDel(sock, msg, groupMeta) {
   const sender = msg.key.participant || msg.key.remoteJid;
   const isGroup = jid.endsWith('@g.us');
 
-  if (isGroup && !isOwner(sender) && !isAdmin(groupMeta?.participants, sender)) {
+  if (isGroup && !isOwner(sender, msg.key.fromMe) && !isAdmin(groupMeta?.participants, sender)) {
     return sock.sendMessage(jid, { text: '❌ Solo admins pueden borrar mensajes.' }, { quoted: msg });
   }
 
@@ -159,7 +159,7 @@ async function cmdMute(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: '❌ Solo en grupos.' }, { quoted: msg });
   }
   const sender = msg.key.participant || msg.key.remoteJid;
-  if (!isOwner(sender) && !isAdmin(groupMeta?.participants, sender)) {
+  if (!isOwner(sender, msg.key.fromMe) && !isAdmin(groupMeta?.participants, sender)) {
     return sock.sendMessage(jid, { text: '❌ Solo admins pueden mutear.' }, { quoted: msg });
   }
 
@@ -191,7 +191,7 @@ async function cmdUnmute(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: '❌ Solo en grupos.' }, { quoted: msg });
   }
   const sender = msg.key.participant || msg.key.remoteJid;
-  if (!isOwner(sender) && !isAdmin(groupMeta?.participants, sender)) {
+  if (!isOwner(sender, msg.key.fromMe) && !isAdmin(groupMeta?.participants, sender)) {
     return sock.sendMessage(jid, { text: '❌ Solo admins pueden desmutear.' }, { quoted: msg });
   }
 
@@ -225,7 +225,7 @@ async function cmdPromote(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: '❌ Solo en grupos.' }, { quoted: msg });
   }
   const sender = msg.key.participant || msg.key.remoteJid;
-  if (!isOwner(sender) && !isAdmin(groupMeta?.participants, sender)) {
+  if (!isOwner(sender, msg.key.fromMe) && !isAdmin(groupMeta?.participants, sender)) {
     return sock.sendMessage(jid, { text: '❌ Solo admins pueden usar este comando.' }, { quoted: msg });
   }
 
@@ -253,7 +253,7 @@ async function cmdDemote(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: '❌ Solo en grupos.' }, { quoted: msg });
   }
   const sender = msg.key.participant || msg.key.remoteJid;
-  if (!isOwner(sender) && !isAdmin(groupMeta?.participants, sender)) {
+  if (!isOwner(sender, msg.key.fromMe) && !isAdmin(groupMeta?.participants, sender)) {
     return sock.sendMessage(jid, { text: '❌ Solo admins pueden usar este comando.' }, { quoted: msg });
   }
 
@@ -261,7 +261,7 @@ async function cmdDemote(sock, msg, args, groupMeta) {
   if (!target) {
     return sock.sendMessage(jid, { text: '❌ Menciona o responde al admin que quieres degradar.' }, { quoted: msg });
   }
-  if (target === sender && !isOwner(sender)) {
+  if (target === sender && !isOwner(sender, msg.key.fromMe)) {
     return sock.sendMessage(jid, { text: '❌ No puedes degradarte a ti mismo.' }, { quoted: msg });
   }
   if (!isAdmin(groupMeta?.participants, target)) {
@@ -284,7 +284,7 @@ async function cmdNotifAdmin(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: '❌ Solo en grupos.' }, { quoted: msg });
   }
   const sender = msg.key.participant || msg.key.remoteJid;
-  if (!isOwner(sender) && !isAdmin(groupMeta?.participants, sender)) {
+  if (!isOwner(sender, msg.key.fromMe) && !isAdmin(groupMeta?.participants, sender)) {
     return sock.sendMessage(jid, { text: '❌ Solo admins pueden cambiar esta configuración.' }, { quoted: msg });
   }
 

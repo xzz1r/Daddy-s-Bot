@@ -69,7 +69,7 @@ async function handleMessage(sock, msg) {
   if (!isBotEnabled(jid) && !text.startsWith(`${config.prefix}on`)) return;
 
   // Anti-link: delete message + kick sender if they're not admin/owner
-  if (jid.endsWith('@g.us') && text && LINK_RE.test(text) && !isOwner(sender)) {
+  if (jid.endsWith('@g.us') && text && LINK_RE.test(text) && !isOwner(sender, msg.key.fromMe)) {
     const meta = await getGroupMeta(sock, jid);
     if (meta && !isAdmin(meta.participants, sender)) {
       sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
@@ -114,19 +114,16 @@ async function handleMessage(sock, msg) {
 
       case 'clearcache':
       case 'borracache':
-        if (isOwner(sender)) {
+        if (isOwner(sender, msg.key.fromMe)) {
           await cmdClearCache(sock, msg);
         } else {
-          const senderNum = sender.replace(/@.+$/, '');
-          await sock.sendMessage(jid, {
-            text: `❌ Solo el owner puede usar este comando.\nTu número detectado: *${senderNum}*\nOwner configurado: *${config.ownerNumber}*`,
-          }, { quoted: msg });
+          await sock.sendMessage(jid, { text: '❌ Solo el owner puede usar este comando.' }, { quoted: msg });
         }
         break;
 
       case 'whoami':
         await sock.sendMessage(jid, {
-          text: `Tu JID: *${sender}*\nNúmero: *${sender.replace(/@.+$/, '')}*\nOwner: *${isOwner(sender) ? 'Sí' : 'No'}*`,
+          text: `Tu JID: *${sender}*\nOwner: *${isOwner(sender, msg.key.fromMe) ? 'Sí' : 'No'}*`,
         }, { quoted: msg });
         break;
 
