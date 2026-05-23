@@ -18,6 +18,9 @@ async function cmdPlay(sock, msg, args) {
   let cached = await getCached(query).catch(() => null);
 
   if (!cached) {
+    // Show processing indicator
+    await sock.sendMessage(jid, { react: { text: '⏳', key: msg.key } }).catch(() => {});
+
     let downloaded;
     try {
       downloaded = await downloadAudio(`ytsearch1:${query}`);

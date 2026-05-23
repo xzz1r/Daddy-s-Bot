@@ -118,21 +118,27 @@ function injectExifIntoWebP(webp, exifBuf) {
 
 async function addStickerMeta(webpBuffer) {
   const exif = buildExif(config.sticker.pack, config.sticker.author);
-  // Try node-webpmux first (handles all WebP variants correctly)
   try {
     const img = new webpmux.Image();
     await img.load(webpBuffer);
     img.exif = exif;
-    return await img.save(null);
+    const out = await img.save(null);
+    // Verify EXIF was actually written
+    const check = new webpmux.Image();
+    await check.load(out);
+    if (!check.exif || check.exif.length < 10) {
+      logger.error('EXIF: node-webpmux no embedió el EXIF — usando fallback binario');
+      return injectExifIntoWebP(webpBuffer, exif);
+    }
+    return out;
   } catch (err) {
-    logger.error(`node-webpmux EXIF failed: ${err.message} — usando fallback`);
-  }
-  // Fallback: direct RIFF binary injection
-  try {
-    return injectExifIntoWebP(webpBuffer, exif);
-  } catch (err) {
-    logger.error(`EXIF binary injection failed: ${err.message}`);
-    return webpBuffer;
+    logger.error(`node-webpmux EXIF error: ${err.message}`);
+    try {
+      return injectExifIntoWebP(webpBuffer, exif);
+    } catch (err2) {
+      logger.error(`EXIF binario error: ${err2.message}`);
+      return webpBuffer;
+    }
   }
 }
 
