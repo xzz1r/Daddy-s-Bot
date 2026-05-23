@@ -6,7 +6,7 @@ const { cmdSticker } = require('../commands/sticker');
 const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdCount } = require('../commands/count');
 const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
-const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, isMuted, isAdmin } = require('../commands/group');
+const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, isMuted, isAdmin } = require('../commands/group');
 const { cmdShip } = require('../commands/ship');
 const { cmdTtp } = require('../commands/ttp');
 const percent = require('../commands/percent');
@@ -21,6 +21,7 @@ const NEEDS_META = new Set([
   'on','off','tagall','todos','all','everyone',
   'kick','expulsar','del','borrar','delete',
   'ship','top5','top10','mute','unmute','desmute',
+  'promote','ascender','demote','degradar','notifadmin',
 ]);
 
 // Group metadata cache with 30s TTL — avoids repeated network calls
@@ -150,6 +151,20 @@ async function handleMessage(sock, msg) {
       case 'all':
       case 'everyone':
         await cmdTodos(sock, msg, args, groupMeta);
+        break;
+
+      case 'promote':
+      case 'ascender':
+        await cmdPromote(sock, msg, args, groupMeta);
+        break;
+
+      case 'demote':
+      case 'degradar':
+        await cmdDemote(sock, msg, args, groupMeta);
+        break;
+
+      case 'notifadmin':
+        await cmdNotifAdmin(sock, msg, args, groupMeta);
         break;
 
       case 'kick':

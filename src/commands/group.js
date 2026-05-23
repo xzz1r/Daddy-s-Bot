@@ -1,5 +1,6 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const { isOwner } = require('./social');
+const { toggleAdminNotify, isAdminNotifyEnabled } = require('../utils/state');
 
 async function streamToBuffer(stream) {
   const chunks = [];
@@ -210,4 +211,96 @@ async function cmdUnmute(sock, msg, args, groupMeta) {
   }, { quoted: msg });
 }
 
-module.exports = { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, isMuted, isAdmin };
+// Helper: get target from mention or quoted message
+function getTarget(msg) {
+  const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
+  const quotedParticipant = msg.message?.extendedTextMessage?.contextInfo?.participant;
+  return mentioned[0] || quotedParticipant || null;
+}
+
+// !promote @user — give admin rights (admin only)
+async function cmdPromote(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: '❌ Solo en grupos.' }, { quoted: msg });
+  }
+  const sender = msg.key.participant || msg.key.remoteJid;
+  if (!isOwner(sender) && !isAdmin(groupMeta?.participants, sender)) {
+    return sock.sendMessage(jid, { text: '❌ Solo admins pueden usar este comando.' }, { quoted: msg });
+  }
+
+  const target = getTarget(msg);
+  if (!target) {
+    return sock.sendMessage(jid, { text: '❌ Menciona o responde al usuario que quieres ascender.' }, { quoted: msg });
+  }
+  if (isAdmin(groupMeta?.participants, target)) {
+    return sock.sendMessage(jid, { text: '❌ Ese usuario ya es admin.' }, { quoted: msg });
+  }
+
+  try {
+    await sock.groupParticipantsUpdate(jid, [target], 'promote');
+    const num = target.split('@')[0];
+    await sock.sendMessage(jid, { text: `🎖️ @${num} ahora es admin.`, mentions: [target] }, { quoted: msg });
+  } catch (err) {
+    await sock.sendMessage(jid, { text: `❌ No pude ascender al usuario: ${err.message}` }, { quoted: msg });
+  }
+}
+
+// !demote @user — remove admin rights (admin only)
+async function cmdDemote(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: '❌ Solo en grupos.' }, { quoted: msg });
+  }
+  const sender = msg.key.participant || msg.key.remoteJid;
+  if (!isOwner(sender) && !isAdmin(groupMeta?.participants, sender)) {
+    return sock.sendMessage(jid, { text: '❌ Solo admins pueden usar este comando.' }, { quoted: msg });
+  }
+
+  const target = getTarget(msg);
+  if (!target) {
+    return sock.sendMessage(jid, { text: '❌ Menciona o responde al admin que quieres degradar.' }, { quoted: msg });
+  }
+  if (target === sender && !isOwner(sender)) {
+    return sock.sendMessage(jid, { text: '❌ No puedes degradarte a ti mismo.' }, { quoted: msg });
+  }
+  if (!isAdmin(groupMeta?.participants, target)) {
+    return sock.sendMessage(jid, { text: '❌ Ese usuario no es admin.' }, { quoted: msg });
+  }
+
+  try {
+    await sock.groupParticipantsUpdate(jid, [target], 'demote');
+    const num = target.split('@')[0];
+    await sock.sendMessage(jid, { text: `📉 @${num} ha sido degradado a miembro.`, mentions: [target] }, { quoted: msg });
+  } catch (err) {
+    await sock.sendMessage(jid, { text: `❌ No pude degradar al usuario: ${err.message}` }, { quoted: msg });
+  }
+}
+
+// !notifadmin on/off — toggle admin change notifications for this group (admin only)
+async function cmdNotifAdmin(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: '❌ Solo en grupos.' }, { quoted: msg });
+  }
+  const sender = msg.key.participant || msg.key.remoteJid;
+  if (!isOwner(sender) && !isAdmin(groupMeta?.participants, sender)) {
+    return sock.sendMessage(jid, { text: '❌ Solo admins pueden cambiar esta configuración.' }, { quoted: msg });
+  }
+
+  const arg = (args[0] || '').toLowerCase();
+  if (arg !== 'on' && arg !== 'off') {
+    const current = isAdminNotifyEnabled(jid) ? 'activadas' : 'desactivadas';
+    return sock.sendMessage(jid, { text: `ℹ️ Notificaciones de admin: *${current}*\nUsa !notifadmin on/off para cambiar.` }, { quoted: msg });
+  }
+
+  const enable = arg === 'on';
+  await toggleAdminNotify(jid, enable);
+  await sock.sendMessage(jid, {
+    text: enable
+      ? '🔔 Notificaciones de cambios de admin *activadas*.'
+      : '🔕 Notificaciones de cambios de admin *desactivadas*.',
+  }, { quoted: msg });
+}
+
+module.exports = { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, isMuted, isAdmin };

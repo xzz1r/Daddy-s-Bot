@@ -10,7 +10,7 @@ const path = require('path');
 const fs = require('fs-extra');
 const qrcode = require('qrcode-terminal');
 const { handleMessage } = require('./handlers/messageHandler');
-const { initState } = require('./utils/state');
+const { initState, isAdminNotifyEnabled } = require('./utils/state');
 const { ensureTemp } = require('./utils/helpers');
 const logger = require('./utils/logger');
 const config = require('./config');
@@ -118,6 +118,21 @@ async function connectToWhatsApp() {
   });
 
   sock.ev.on('creds.update', saveCreds);
+
+  // Admin change notifications — tagall-style ping when promote/demote happens
+  sock.ev.on('group-participants.update', async ({ id: groupJid, participants, action }) => {
+    if (action !== 'promote' && action !== 'demote') return;
+    if (!isAdminNotifyEnabled(groupJid)) return;
+    try {
+      const meta = await sock.groupMetadata(groupJid);
+      const allJids = meta.participants.map(p => p.id);
+      const names = participants.map(jid => `@${jid.split('@')[0]}`).join(', ');
+      const text = action === 'promote'
+        ? `🎖️ ${names} ahora es admin del grupo.`
+        : `📉 ${names} ha sido degradado a miembro.`;
+      sock.sendMessage(groupJid, { text, mentions: allJids }).catch(() => {});
+    } catch {}
+  });
 
   sock.ev.on('messages.upsert', ({ messages, type }) => {
     if (type !== 'notify') return;

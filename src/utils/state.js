@@ -79,5 +79,20 @@ function incrementStat(key) {
   }
 }
 
-module.exports = { initState, getState, setState, isBotEnabled, toggleGroup, incrementStat };
+// Sync — admin change notifications are ON by default for every group
+function isAdminNotifyEnabled(jid) {
+  return !(_state.adminNotifyDisabled || []).includes(jid);
+}
+
+async function toggleAdminNotify(jid, enable) {
+  if (!_state.adminNotifyDisabled) _state.adminNotifyDisabled = [];
+  if (enable) {
+    _state.adminNotifyDisabled = _state.adminNotifyDisabled.filter(g => g !== jid);
+  } else {
+    if (!_state.adminNotifyDisabled.includes(jid)) _state.adminNotifyDisabled.push(jid);
+  }
+  await saveState(_state);
+}
+
+module.exports = { initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, isAdminNotifyEnabled, toggleAdminNotify };
 
