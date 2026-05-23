@@ -19,7 +19,9 @@ const AUTH_DIR = path.join(__dirname, '../data/auth');
 
 let sock = null;
 let reconnectAttempts = 0;
+let consecutive401 = 0;
 const MAX_RECONNECTS = 10;
+const MAX_401 = 3; // only clear session after 3 consecutive 401s
 
 async function connectToWhatsApp() {
   await fs.ensureDir(AUTH_DIR);
@@ -28,16 +30,9 @@ async function connectToWhatsApp() {
 
   const credsFile = path.join(AUTH_DIR, 'creds.json');
   const hasSession = await fs.pathExists(credsFile);
-  if (hasSession) {
-    logger.info('Sesión guardada encontrada — conectando sin QR...');
-  } else {
-    logger.info('Primera vez — escanea el QR que aparecerá a continuación');
-  }
 
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
-  const { version, isLatest } = await fetchLatestBaileysVersion();
-
-  logger.info(`Baileys v${version}${isLatest ? ' (latest)' : ' (update available)'}`);
+  const { version } = await fetchLatestBaileysVersion();
 
   sock = makeWASocket({
     version,
@@ -50,49 +45,64 @@ async function connectToWhatsApp() {
     markOnlineOnConnect: true,
     generateHighQualityLinkPreview: false,
     getMessage: async () => undefined,
+    // Keep connection alive
+    keepAliveIntervalMs: 15000,
+    retryRequestDelayMs: 2000,
   });
 
-  // QR Code
   sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
     if (qr) {
-      logger.info('Escanea el QR code:');
+      console.log('\nEscanea el QR con WhatsApp → Dispositivos vinculados → Vincular dispositivo:\n');
       qrcode.generate(qr, { small: true });
     }
 
     if (connection === 'close') {
       const statusCode = lastDisconnect?.error?.output?.statusCode;
-      const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
 
-      logger.warn(`Conexión cerrada (código: ${statusCode})`);
+      if (statusCode === DisconnectReason.loggedOut || statusCode === 401) {
+        consecutive401++;
 
-      if (shouldReconnect && reconnectAttempts < MAX_RECONNECTS) {
+        if (consecutive401 < MAX_401) {
+          // Could be a temporary WhatsApp rejection, retry before wiping session
+          const delay = 5000 * consecutive401;
+          logger.error(`Sesión rechazada (401), reintentando en ${delay / 1000}s... (${consecutive401}/${MAX_401})`);
+          setTimeout(connectToWhatsApp, delay);
+        } else {
+          // Confirmed logout — wipe and show QR
+          logger.error('Sesion definitivamente cerrada. Escaneá el QR de nuevo.');
+          await fs.remove(AUTH_DIR);
+          consecutive401 = 0;
+          reconnectAttempts = 0;
+          setTimeout(connectToWhatsApp, 2000);
+        }
+        return;
+      }
+
+      // Any other disconnect — normal reconnect with backoff
+      consecutive401 = 0;
+      if (reconnectAttempts < MAX_RECONNECTS) {
         reconnectAttempts++;
         const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
-        logger.info(`Reconectando en ${delay / 1000}s... (intento ${reconnectAttempts}/${MAX_RECONNECTS})`);
         setTimeout(connectToWhatsApp, delay);
-      } else if (statusCode === DisconnectReason.loggedOut) {
-        logger.error('Sesión cerrada. Eliminando credenciales...');
-        await fs.remove(AUTH_DIR);
-        process.exit(1);
       } else {
-        logger.error('Máximo de reconexiones alcanzado. Reiniciando proceso...');
+        logger.error('No se pudo reconectar. Reiniciá el bot manualmente.');
         process.exit(1);
       }
+
     } else if (connection === 'open') {
       reconnectAttempts = 0;
-      const user = sock.user;
-      logger.success(`Bot conectado como ${user?.name || user?.id || 'desconocido'}`);
-      logger.bot(`${config.botName} está listo 24/7 🚀`);
-      logger.info(`Prefijo: ${config.prefix} | Owner: ${config.ownerNumber}`);
+      consecutive401 = 0;
+      // Explicit save on full connection to ensure session is complete
+      await saveCreds();
+      console.log(`\n✓ Daddy's Bot conectado\n`);
+
     } else if (connection === 'connecting') {
-      logger.info('Conectando a WhatsApp...');
+      if (!hasSession) return; // only log if reconnecting
     }
   });
 
-  // Save credentials on update
   sock.ev.on('creds.update', saveCreds);
 
-  // Handle messages
   sock.ev.on('messages.upsert', async ({ messages, type }) => {
     if (type !== 'notify') return;
     for (const msg of messages) {
@@ -104,7 +114,6 @@ async function connectToWhatsApp() {
     }
   });
 
-  // Auto-read messages
   if (config.autoRead) {
     sock.ev.on('messages.upsert', async ({ messages }) => {
       for (const msg of messages) {
@@ -115,23 +124,12 @@ async function connectToWhatsApp() {
     });
   }
 
-  // Keep-alive heartbeat every 30s
-  setInterval(async () => {
-    try {
-      await sock.sendPresenceUpdate('available');
-    } catch {}
-  }, 30000);
-
   return sock;
 }
 
-// Graceful shutdown
 process.on('SIGINT', async () => {
-  logger.warn('Apagando bot...');
   if (sock) {
-    try {
-      await sock.logout();
-    } catch {}
+    try { sock.end(); } catch {}
   }
   process.exit(0);
 });
