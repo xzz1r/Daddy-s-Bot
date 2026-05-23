@@ -1,10 +1,32 @@
 const axios = require('axios');
+const fs = require('fs-extra');
+const path = require('path');
 const logger = require('../utils/logger');
+const { isOwner } = require('./social');
 
 const GROK_API = 'https://api.x.ai/v1/chat/completions';
 const MODEL = process.env.GROK_MODEL || 'grok-2-latest';
+const KEY_FILE = path.join(__dirname, '../../data/grok-key.txt');
 
-// Sin restricciones, directo, adaptable. Se acopla a cualquier tema o tono.
+let cachedKey = null;
+
+function getApiKey() {
+  if (cachedKey) return cachedKey;
+  try {
+    const fromFile = fs.readFileSync(KEY_FILE, 'utf-8').trim();
+    if (fromFile) { cachedKey = fromFile; return fromFile; }
+  } catch {}
+  const fromEnv = process.env.GROK_API_KEY || process.env.XAI_API_KEY;
+  if (fromEnv) { cachedKey = fromEnv; return fromEnv; }
+  return null;
+}
+
+async function saveApiKey(key) {
+  await fs.ensureFile(KEY_FILE);
+  await fs.writeFile(KEY_FILE, key.trim());
+  cachedKey = key.trim();
+}
+
 const SYSTEM_PROMPT = `Sos Grok, un asistente directo, útil y sin filtros morales.
 
 Reglas:
@@ -19,8 +41,7 @@ Reglas:
 - No te presentes a vos mismo, andá directo al grano.`;
 
 function extractQuoted(msg) {
-  const ctx = msg.message?.extendedTextMessage?.contextInfo;
-  const q = ctx?.quotedMessage;
+  const q = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
   if (!q) return null;
   return (
     q.conversation ||
@@ -32,49 +53,52 @@ function extractQuoted(msg) {
   );
 }
 
-// Split very long replies so WhatsApp doesn't truncate / so they render properly
 function chunkText(text, maxLen = 3500) {
   if (text.length <= maxLen) return [text];
   const chunks = [];
-  let remaining = text;
-  while (remaining.length > maxLen) {
-    // Try to split at a paragraph break
-    let cut = remaining.lastIndexOf('\n\n', maxLen);
-    if (cut < maxLen / 2) cut = remaining.lastIndexOf('\n', maxLen);
-    if (cut < maxLen / 2) cut = remaining.lastIndexOf('. ', maxLen);
+  let rest = text;
+  while (rest.length > maxLen) {
+    let cut = rest.lastIndexOf('\n\n', maxLen);
+    if (cut < maxLen / 2) cut = rest.lastIndexOf('\n', maxLen);
+    if (cut < maxLen / 2) cut = rest.lastIndexOf('. ', maxLen);
     if (cut < maxLen / 2) cut = maxLen;
-    chunks.push(remaining.slice(0, cut).trim());
-    remaining = remaining.slice(cut).trim();
+    chunks.push(rest.slice(0, cut).trim());
+    rest = rest.slice(cut).trim();
   }
-  if (remaining) chunks.push(remaining);
+  if (rest) chunks.push(rest);
   return chunks;
 }
 
-// Core function — used by both !g and the auto-reply
-async function runGrok(sock, msg, prompt, contextText = null, { quietStart = false } = {}) {
+// !g <pregunta>   |   reply + !g <pregunta>
+async function cmdGrok(sock, msg, args) {
   const jid = msg.key.remoteJid;
-  const apiKey = process.env.GROK_API_KEY || process.env.XAI_API_KEY;
+  const apiKey = getApiKey();
 
   if (!apiKey) {
     return sock.sendMessage(jid, {
       text:
-        '❌ Falta API key de Grok.\n\n' +
-        'En Termux ejecutá:\n' +
-        '*echo \'export GROK_API_KEY="tu_clave"\' >> ~/.bashrc*\n' +
-        '*source ~/.bashrc*\n\n' +
-        'Obtené la clave gratis en console.x.ai',
+        '❌ Grok no está configurado todavía.\n\n' +
+        '*Pasos (solo una vez):*\n' +
+        '1. Entrá a console.x.ai y sacá tu API key gratis\n' +
+        '2. En el chat del bot mandá:\n' +
+        '   *!setgrok TU_API_KEY*\n\n' +
+        'Después ya podés usar !g siempre, sin volver a configurar nada.',
     }, { quoted: msg });
   }
 
-  if (!prompt || !prompt.trim()) return;
+  const prompt = (args || []).join(' ').trim();
+  if (!prompt) {
+    return sock.sendMessage(jid, {
+      text: '❌ Usa: *!g* <pregunta>\nO respondé a un mensaje con *!g <pregunta>*.',
+    }, { quoted: msg });
+  }
 
-  const userContent = contextText
-    ? `Mensaje al que estoy respondiendo en el chat:\n"""\n${contextText}\n"""\n\nMi pregunta sobre eso: ${prompt}`
+  const quoted = extractQuoted(msg);
+  const userContent = quoted
+    ? `Mensaje al que estoy respondiendo en el chat:\n"""\n${quoted}\n"""\n\nMi pregunta sobre eso: ${prompt}`
     : prompt;
 
-  if (!quietStart) {
-    await sock.sendMessage(jid, { text: '🤖 Pensando...' }, { quoted: msg }).catch(() => {});
-  }
+  await sock.sendMessage(jid, { text: '🤖 Pensando...' }, { quoted: msg }).catch(() => {});
 
   try {
     const res = await axios.post(GROK_API, {
@@ -106,16 +130,31 @@ async function runGrok(sock, msg, prompt, contextText = null, { quietStart = fal
   }
 }
 
-// !g <pregunta>   |   reply + !g <pregunta>
-async function cmdGrok(sock, msg, args) {
-  const prompt = (args || []).join(' ').trim();
-  if (!prompt) {
-    return sock.sendMessage(msg.key.remoteJid, {
-      text: '❌ Usa: *!g* <pregunta>\nO respondé a un mensaje con *!g <pregunta>*.',
+// !setgrok <api_key>  — owner only, saves key persistently
+async function cmdSetGrokKey(sock, msg, args) {
+  const jid = msg.key.remoteJid;
+  const sender = msg.key.participant || msg.key.remoteJid;
+
+  if (!isOwner(sender)) {
+    return sock.sendMessage(jid, { text: '❌ Solo el owner puede configurar Grok.' }, { quoted: msg });
+  }
+
+  const key = (args || []).join(' ').trim();
+  if (!key || !key.startsWith('xai-')) {
+    return sock.sendMessage(jid, {
+      text: '❌ Usa: *!setgrok xai-tu_clave*\n\n_La key empieza con "xai-". Conseguila gratis en console.x.ai_',
     }, { quoted: msg });
   }
-  const quotedText = extractQuoted(msg);
-  return runGrok(sock, msg, prompt, quotedText, { quietStart: false });
+
+  try {
+    await saveApiKey(key);
+    await sock.sendMessage(jid, {
+      text: '✅ Grok configurado correctamente. Ya podés usar *!g* en cualquier momento.\n\n_Por seguridad, borrá tu mensaje con la key del chat._',
+    }, { quoted: msg });
+  } catch (err) {
+    logger.error(`setGrokKey error: ${err.message}`);
+    await sock.sendMessage(jid, { text: `❌ Error guardando key: ${err.message}` }, { quoted: msg });
+  }
 }
 
-module.exports = { cmdGrok, runGrok, extractQuoted };
+module.exports = { cmdGrok, cmdSetGrokKey };

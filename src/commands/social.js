@@ -152,9 +152,9 @@ async function cmdHelp(sock, msg) {
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
    🤖  *INTELIGENCIA ARTIFICIAL (Grok)*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┣ Privado: respondé y Grok contesta solo
-┣ Grupo: mencioná al bot o respondé un msg suyo
-┗ ${p}g <pregunta>         › Forzar respuesta
+┣ ${p}g <pregunta>         › Pregunta a Grok
+┗ ${p}setgrok <key>        › Configurar key (owner, una sola vez)
+   _Respondé a un mensaje con ${p}g para usarlo como contexto_
    _Sin filtros, cualquier tema_
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━

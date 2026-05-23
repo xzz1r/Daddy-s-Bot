@@ -6,7 +6,7 @@ const { cmdSticker } = require('../commands/sticker');
 const { cmdTop } = require('../commands/tops');
 const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdCount } = require('../commands/count');
-const { cmdGrok, runGrok, extractQuoted } = require('../commands/ai');
+const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
 const { cmdTodos } = require('../commands/group');
 const { cmdShip } = require('../commands/ship');
 const { cmdTtp } = require('../commands/ttp');
@@ -24,30 +24,6 @@ function extractText(msg) {
     m?.documentMessage?.caption ||
     ''
   );
-}
-
-// Decide if a non-command message should trigger an automatic Grok reply.
-// Private chats: always. Groups: only when the bot is mentioned or someone replied to a bot message.
-function shouldAutoReplyAI(msg, text, sock, jid) {
-  if (!text || text.length < 2) return false;
-
-  const botId = sock?.user?.id;
-  if (!botId) return false;
-  const botNumber = botId.split(':')[0].split('@')[0];
-
-  // Private chat (1-on-1)
-  if (!jid.endsWith('@g.us')) return true;
-
-  // Group: check mention
-  const ctx = msg.message?.extendedTextMessage?.contextInfo;
-  const mentioned = ctx?.mentionedJid || [];
-  if (mentioned.some((j) => j.startsWith(`${botNumber}@`))) return true;
-
-  // Group: check if replying to a message from the bot
-  const repliedParticipant = ctx?.participant;
-  if (repliedParticipant && repliedParticipant.startsWith(`${botNumber}@`)) return true;
-
-  return false;
 }
 
 function getMessageType(msg) {
@@ -84,21 +60,8 @@ async function handleMessage(sock, msg) {
   // Always allow !on command even when disabled
   if (!enabled && !text.startsWith(`${config.prefix}on`)) return;
 
-  // Non-command messages → auto-reply with Grok in private chats or when mentioned/replied in groups
-  if (!text.startsWith(config.prefix)) {
-    if (text && shouldAutoReplyAI(msg, text, sock, jid)) {
-      const botNumber = sock.user?.id?.split(':')[0]?.split('@')[0] || '';
-      // Strip the bot mention from the prompt for cleaner input
-      const cleanPrompt = text.replace(new RegExp(`@${botNumber}\\s*`, 'g'), '').trim();
-      if (cleanPrompt) {
-        const quoted = extractQuoted(msg);
-        await runGrok(sock, msg, cleanPrompt, quoted, { quietStart: true }).catch((err) => {
-          logger.error(`Auto-reply error: ${err.message}`);
-        });
-      }
-    }
-    return;
-  }
+  // Only process prefix commands
+  if (!text.startsWith(config.prefix)) return;
 
   const args = text.slice(config.prefix.length).trim().split(/\s+/);
   const command = args.shift()?.toLowerCase();
@@ -165,6 +128,11 @@ async function handleMessage(sock, msg) {
       case 'ai':
       case 'grok':
         await cmdGrok(sock, msg, args);
+        break;
+
+      case 'setgrok':
+      case 'setkey':
+        await cmdSetGrokKey(sock, msg, args);
         break;
 
       // Group utilities
