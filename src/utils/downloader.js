@@ -101,18 +101,19 @@ async function searchYouTube(query) {
 async function downloadAudio(videoUrl) {
   const baseName = `audio_${Date.now()}_${Math.random().toString(36).slice(2)}`;
   const tempDir = path.dirname(tempFile('tmp'));
-  // Title is baked into the filename via yt-dlp template — no extra network call needed
   const outTemplate = path.join(tempDir, `${baseName}__%(title).80B.%(ext)s`);
 
   try {
     await ytdlp([
       videoUrl,
-      '-f', 'bestaudio[abr<=70][ext=webm]/bestaudio[abr<=70]/bestaudio[abr<=96][ext=webm]/bestaudio[abr<=96]/bestaudio[abr<=128]/bestaudio/best',
+      '-x',
+      '--audio-format', 'opus',
+      '--audio-quality', '64K',
       '-o', outTemplate,
       '--no-playlist',
       '--no-warnings',
       '--no-part',
-      '--max-filesize', '25M',
+      '--max-filesize', '50M',
       '--no-mtime',
       '--socket-timeout', '20',
       '--extractor-args', `youtube:player_client=${PLAYER_CLIENTS}`,
@@ -132,18 +133,21 @@ async function downloadAudio(videoUrl) {
     throw new Error('Archivo descargado vacío');
   }
 
-  // Extract title from filename: "<baseName>__<title>.<ext>"
   const titleMatch = audioFile.match(/__(.+)\.[^.]+$/);
   const title = titleMatch ? titleMatch[1].trim() : 'Sin título';
 
   const ext = path.extname(audioFile).slice(1).toLowerCase();
   const mimetypes = {
-    m4a: 'audio/mp4', mp4: 'audio/mp4', mp3: 'audio/mpeg',
-    webm: 'audio/webm', ogg: 'audio/ogg',
-    opus: 'audio/ogg; codecs=opus', aac: 'audio/aac',
+    opus: 'audio/ogg; codecs=opus',
+    ogg:  'audio/ogg; codecs=opus',
+    m4a:  'audio/mp4',
+    mp4:  'audio/mp4',
+    mp3:  'audio/mpeg',
+    webm: 'audio/webm',
+    aac:  'audio/aac',
   };
 
-  return { filePath: fullPath, title, mimetype: mimetypes[ext] || 'audio/mp4', ext };
+  return { filePath: fullPath, title, mimetype: mimetypes[ext] || 'audio/ogg; codecs=opus', ext };
 }
 
 module.exports = { searchYouTube, downloadAudio };
