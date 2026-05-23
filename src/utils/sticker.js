@@ -46,8 +46,8 @@ function buildExif(pack, author) {
     'emojis': [],
   });
   const data = Buffer.from(json, 'utf-8');
-  // 8-byte TIFF header + 2-byte IFD count + 12-byte IFD entry + 4-byte next-IFD = 26 bytes before data
-  const buf = Buffer.alloc(26 + data.length);
+  // 8-byte header + 2-byte IFD count + 12-byte IFD entry = 22 bytes before data (no next-IFD pointer)
+  const buf = Buffer.alloc(22 + data.length);
   buf[0] = 0x49; buf[1] = 0x49;          // II little-endian
   buf[2] = 0x2A; buf[3] = 0x00;          // TIFF magic
   buf.writeUInt32LE(8, 4);               // offset to first IFD
@@ -55,9 +55,8 @@ function buildExif(pack, author) {
   buf.writeUInt16LE(0x9286, 10);         // tag: UserComment
   buf.writeUInt16LE(0x0002, 12);         // type: ASCII
   buf.writeUInt32LE(data.length, 14);    // count
-  buf.writeUInt32LE(26, 18);             // offset to data
-  buf.writeUInt32LE(0, 22);              // next IFD = none
-  data.copy(buf, 26);
+  buf.writeUInt32LE(22, 18);             // offset to data
+  data.copy(buf, 22);
   return buf;
 }
 

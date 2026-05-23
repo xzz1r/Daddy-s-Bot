@@ -48,10 +48,6 @@ async function cmdSticker(sock, msg) {
     }, { quoted: msg });
   }
 
-  await sock.sendMessage(jid, {
-    text: `Creando sticker ${found.type === 'video' ? 'animado' : ''}...`,
-  }, { quoted: msg });
-
   let buffer;
   try {
     const stream = await downloadContentFromMessage(found.msg, getContentType(found.type));
