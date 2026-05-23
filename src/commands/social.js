@@ -98,61 +98,87 @@ async function cmdHelp(sock, msg) {
   const p = config.prefix;
 
   const text = `╔═══════════════════════════╗
-║   *${config.botName} — Commands*
+║                           ║
+║     👑  *xz1s (Sebastian)*  👑
+║         OWNER DEL BOT
+║                           ║
+║      *${config.botName}*
+║                           ║
 ╚═══════════════════════════╝
 
-*MUSICA*
-┣ ${p}Playsong <cancion>
-┗ _Busca y envia la cancion en audio_
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   🎵  *MÚSICA*
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┣ ${p}Playsong <canción>   › Enviar audio
+┣ ${p}play <canción>       › Alias
+┗ ${p}buscar <canción>     › Listar resultados
 
-*STICKERS*
-┣ ${p}s             › Responde una imagen/video/sticker
-┗ ${p}ttp <texto>   › Crear sticker de texto
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   🎭  *STICKERS*
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┣ ${p}s                    › Imagen/video/sticker → sticker
+┗ ${p}ttp <texto>          › Texto → sticker
 
-*TOPS DEL GRUPO*
-┣ ${p}top5 <tema>   › Top 5 random
-┣ ${p}top10 <tema>  › Top 10 random
-┣ ${p}count         › Quién mandó más mensajes
-┗ _Min 10 mensajes para aparecer en tops_
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   🏆  *TOPS DEL GRUPO*
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┣ ${p}top5 <tema>          › Top 5 aleatorio
+┣ ${p}top10 <tema>         › Top 10 aleatorio
+┗ ${p}count                › Ranking de mensajes
+   _Mín. 10 mensajes para aparecer en tops_
 
-*DINÁMICAS*
-┣ ${p}ship                › Empareja 2 random
-┣ ${p}gay @user           › % gay
-┣ ${p}simp @user          › % simp
-┣ ${p}sexy @user          › % sexy
-┣ ${p}rata @user          › % rata
-┣ ${p}gilipollas @user    › % gilipollas
-┣ ${p}subnormal @user     › % subnormal
-┣ ${p}imbecil @user       › % imbécil
-┣ ${p}capullo @user       › % capullo
-┣ ${p}pringado @user      › % pringado
-┣ ${p}mamon @user         › % mamón
-┣ ${p}pijo @user          › % pijo
-┣ ${p}friki @user         › % friki
-┣ ${p}chorizo @user       › % chorizo
-┣ ${p}guarro @user        › % guarro
-┣ ${p}paleto @user        › % paleto
-┗ ${p}cutre @user         › % cutre
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   🎯  *DINÁMICAS (% sobre alguien)*
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┣ ${p}ship                 › Empareja 2 al azar
+┣ ${p}gay @user
+┣ ${p}simp @user
+┣ ${p}sexy @user
+┣ ${p}rata @user
+┣ ${p}gilipollas @user
+┣ ${p}subnormal @user
+┣ ${p}imbecil @user
+┣ ${p}capullo @user
+┣ ${p}pringado @user
+┣ ${p}mamon @user
+┣ ${p}pijo @user
+┣ ${p}friki @user
+┣ ${p}chorizo @user
+┣ ${p}guarro @user
+┣ ${p}paleto @user
+┗ ${p}cutre @user
    _Sin @user → te mide a vos mismo_
 
-*UTILIDADES*
-┣ ${p}todos <aviso> › Etiqueta a todos (admin)
-┗ ${p}g <pregunta>  › Pregunta a Grok IA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   🤖  *INTELIGENCIA ARTIFICIAL*
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┗ ${p}g <pregunta>         › Grok IA
+   _Respondé a un mensaje con ${p}g para usarlo como contexto_
 
-*TOPS GLOBALES*
-┣ ${p}top <categoria> [cantidad]
-┗ _musica, peliculas, series, juegos, youtube,_
-   _spotify, anime, paises, cripto, apps_
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   📢  *UTILIDADES*
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┗ ${p}todos <aviso>        › Etiquetar a todos (admin)
 
-*CONTROL*
-┣ ${p}on  › Activar bot en el grupo
-┣ ${p}off › Desactivar bot en el grupo
-┣ ${p}ping › Ver latencia
-┗ ${p}info › Estado y estadisticas
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   📊  *TOPS GLOBALES*
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┗ ${p}top <categoria> [n]
+   _musica · peliculas · series · juegos_
+   _youtube · spotify · anime · paises_
+   _cripto · apps_
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ⚙️  *CONTROL*
+━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┣ ${p}on                   › Activar bot
+┣ ${p}off                  › Desactivar bot
+┣ ${p}ping                 › Latencia
+┗ ${p}info                 › Estado y estadísticas
 
 ╔═══════════════════════════╗
-║  Prefijo: *${p}*  │  ${p}Commands
-║  Owner: *xz1s (Sebastian)*
+║    Prefijo: *${p}*    │   ${p}Commands
+║       👑 *xz1s (Sebastian)*
 ╚═══════════════════════════╝`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
