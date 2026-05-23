@@ -1,6 +1,7 @@
 const { ffmpegPath } = require('./ffmpeg');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs-extra');
+const webpmux = require('node-webpmux');
 const { tempFile, cleanTemp } = require('./helpers');
 const config = require('../config');
 const logger = require('./logger');
@@ -116,11 +117,21 @@ function injectExifIntoWebP(webp, exifBuf) {
 }
 
 async function addStickerMeta(webpBuffer) {
+  const exif = buildExif(config.sticker.pack, config.sticker.author);
+  // Try node-webpmux first (handles all WebP variants correctly)
   try {
-    const exif = buildExif(config.sticker.pack, config.sticker.author);
+    const img = new webpmux.Image();
+    await img.load(webpBuffer);
+    img.exif = exif;
+    return await img.save(null);
+  } catch (err) {
+    logger.error(`node-webpmux EXIF failed: ${err.message} — usando fallback`);
+  }
+  // Fallback: direct RIFF binary injection
+  try {
     return injectExifIntoWebP(webpBuffer, exif);
   } catch (err) {
-    logger.error(`EXIF injection failed: ${err.message}`);
+    logger.error(`EXIF binary injection failed: ${err.message}`);
     return webpBuffer;
   }
 }
