@@ -107,7 +107,7 @@ async function downloadAudio(videoUrl) {
   try {
     await ytdlp([
       videoUrl,
-      '-f', 'bestaudio[abr<=128][ext=m4a]/bestaudio[abr<=128][ext=webm]/bestaudio[abr<=128]/bestaudio[ext=m4a]/bestaudio/best',
+      '-f', 'bestaudio[abr<=70][ext=webm]/bestaudio[abr<=70]/bestaudio[abr<=96][ext=webm]/bestaudio[abr<=96]/bestaudio[abr<=128]/bestaudio/best',
       '-o', outTemplate,
       '--no-playlist',
       '--no-warnings',
