@@ -6,12 +6,15 @@ const { cmdSticker } = require('../commands/sticker');
 const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdCount } = require('../commands/count');
 const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
-const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, isMuted } = require('../commands/group');
+const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, isMuted, isAdmin } = require('../commands/group');
 const { cmdShip } = require('../commands/ship');
 const { cmdTtp } = require('../commands/ttp');
 const percent = require('../commands/percent');
-const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp } = require('../commands/social');
+const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, isOwner } = require('../commands/social');
 const logger = require('../utils/logger');
+
+// Detects http/https links, www. links, and common invite/spam patterns
+const LINK_RE = /https?:\/\/[^\s]{4,}|www\.[^\s]{4,}|(?:t\.me|chat\.whatsapp\.com|wa\.me)\/[^\s]+/i;
 
 // Commands that need group metadata — skip the network call for everything else
 const NEEDS_META = new Set([
@@ -60,6 +63,21 @@ async function handleMessage(sock, msg) {
 
   // Sync in-memory check — no async overhead
   if (!isBotEnabled(jid) && !text.startsWith(`${config.prefix}on`)) return;
+
+  // Anti-link: delete message + kick sender if they're not admin/owner
+  if (jid.endsWith('@g.us') && text && LINK_RE.test(text) && !isOwner(sender)) {
+    const meta = await getGroupMeta(sock, jid);
+    if (meta && !isAdmin(meta.participants, sender)) {
+      sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
+      sock.groupParticipantsUpdate(jid, [sender], 'remove').catch(() => {});
+      sock.sendMessage(jid, {
+        text: `⛔ @${sender.split('@')[0]} expulsado por enviar links.`,
+        mentions: [sender],
+      }).catch(() => {});
+      return;
+    }
+  }
+
   if (!text.startsWith(config.prefix)) return;
 
   const args = text.slice(config.prefix.length).trim().split(/\s+/);

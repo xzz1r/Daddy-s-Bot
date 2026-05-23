@@ -168,4 +168,4 @@ async function cmdUnmute(sock, msg, args, groupMeta) {
   }, { quoted: msg });
 }
 
-module.exports = { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, isMuted };
+module.exports = { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, isMuted, isAdmin };

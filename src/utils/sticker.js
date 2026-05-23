@@ -204,11 +204,12 @@ function encodeAnimWebp(inputFile, outputFile, fps, quality) {
   });
 }
 
-// Tiers only used if first encode exceeds WhatsApp's 500 KB limit (rare for ≤10s videos)
+// Tiers only used if first encode exceeds WhatsApp's 500 KB limit (rare for ≤8s videos)
 const FALLBACK_TIERS = [
-  { fps: 8, quality: 65 },
-  { fps: 6, quality: 55 },
-  { fps: 5, quality: 45 },
+  { fps: 12, quality: 72 },
+  { fps: 10, quality: 65 },
+  { fps: 8,  quality: 58 },
+  { fps: 6,  quality: 50 },
 ];
 
 async function videoToSticker(videoBuffer) {
@@ -223,12 +224,12 @@ async function videoToSticker(videoBuffer) {
   await fs.writeFile(inputFile, videoBuffer);
 
   try {
-    // First attempt: best quality (10fps, q75) — covers virtually all ≤10s videos
-    await encodeAnimWebp(inputFile, outputFile, 10, 75);
+    // First attempt: highest quality — 15fps, q80
+    await encodeAnimWebp(inputFile, outputFile, 15, 80);
     let buf = await fs.readFile(outputFile);
     if (buf.length < 100) throw new Error('Sticker animado vacío');
 
-    // Only re-encode if over WhatsApp's limit (heavy video or long duration)
+    // Only re-encode if over WhatsApp's 500KB limit (long/heavy video — rare for ≤8s)
     if (buf.length > MAX_STICKER_BYTES) {
       for (const { fps, quality } of FALLBACK_TIERS) {
         await encodeAnimWebp(inputFile, outputFile, fps, quality);
