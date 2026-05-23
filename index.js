@@ -5,8 +5,8 @@ const chalk = require('chalk');
 
 console.log(chalk.magenta(`
 ╔══════════════════════════════╗
-║       SocialBot WhatsApp     ║
-║    Música · Tops · Stickers  ║
+║         Daddy's Bot          ║
+║       by xz1s (Sebastian)    ║
 ╚══════════════════════════════╝
 `));
 
