@@ -150,6 +150,8 @@ async function cmdHelp(sock, msg) {
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┣ ${p}tagall <aviso>       › Etiquetar a todos (admin)
 ┣ ${p}kick @user           › Expulsar usuario (admin)
+┣ ${p}mute @user [min]     › Silenciar comandos (admin)
+┣ ${p}unmute @user         › Quitar mute (admin)
 ┗ ${p}del                  › Borrar mensaje citado (admin)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━

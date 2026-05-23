@@ -32,6 +32,7 @@ async function saveState(state) {
 }
 
 let _state = { ...defaultState };
+let _savePending = false;
 
 async function initState() {
   _state = await loadState();
@@ -48,9 +49,10 @@ async function setState(updates) {
   return _state;
 }
 
-async function isBotEnabled(jid) {
+// Sync — reads in-memory state only
+function isBotEnabled(jid) {
   if (!_state.botEnabled) return false;
-  if (_state.disabledGroups && _state.disabledGroups.includes(jid)) return false;
+  if (_state.disabledGroups?.includes(jid)) return false;
   return true;
 }
 
@@ -64,10 +66,18 @@ async function toggleGroup(jid, enable) {
   await saveState(_state);
 }
 
-async function incrementStat(key) {
+// Sync + debounced disk write — never blocks message handling
+function incrementStat(key) {
   if (!_state.stats) _state.stats = {};
   _state.stats[key] = (_state.stats[key] || 0) + 1;
-  await saveState(_state);
+  if (!_savePending) {
+    _savePending = true;
+    setTimeout(() => {
+      _savePending = false;
+      saveState(_state).catch(() => {});
+    }, 5000);
+  }
 }
 
 module.exports = { initState, getState, setState, isBotEnabled, toggleGroup, incrementStat };
+

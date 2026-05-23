@@ -5,6 +5,17 @@ function isAdmin(participants, jid) {
   return p?.admin === 'admin' || p?.admin === 'superadmin';
 }
 
+// In-memory mute store: `groupJid|userJid` -> expireTimestamp
+const mutedUsers = new Map();
+
+function isMuted(groupJid, userJid) {
+  const k = `${groupJid}|${userJid}`;
+  const exp = mutedUsers.get(k);
+  if (!exp) return false;
+  if (Date.now() > exp) { mutedUsers.delete(k); return false; }
+  return true;
+}
+
 // !todos — mention everyone in the group (admin only)
 async function cmdTodos(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
@@ -98,4 +109,63 @@ async function cmdDel(sock, msg, groupMeta) {
   }
 }
 
-module.exports = { cmdTodos, cmdKick, cmdDel };
+// !mute @user [minutos] — silencia comandos de un usuario (admin only)
+async function cmdMute(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: '❌ Solo en grupos.' }, { quoted: msg });
+  }
+  const sender = msg.key.participant || msg.key.remoteJid;
+  if (!isOwner(sender) && !isAdmin(groupMeta?.participants, sender)) {
+    return sock.sendMessage(jid, { text: '❌ Solo admins pueden mutear.' }, { quoted: msg });
+  }
+
+  const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
+  const quotedParticipant = msg.message?.extendedTextMessage?.contextInfo?.participant;
+  const target = mentioned[0] || quotedParticipant;
+
+  if (!target) {
+    return sock.sendMessage(jid, { text: '❌ Menciona o responde al usuario que quieres mutear.' }, { quoted: msg });
+  }
+  if (target === sender) {
+    return sock.sendMessage(jid, { text: '❌ No puedes mutearte a ti mismo.' }, { quoted: msg });
+  }
+
+  const minutes = Math.min(Math.max(parseInt(args.find(a => /^\d+$/.test(a)) || '10', 10), 1), 1440);
+  mutedUsers.set(`${jid}|${target}`, Date.now() + minutes * 60_000);
+
+  const num = target.split('@')[0];
+  await sock.sendMessage(jid, {
+    text: `🔇 @${num} muteado por ${minutes} minuto${minutes === 1 ? '' : 's'}. No podrá usar comandos.`,
+    mentions: [target],
+  }, { quoted: msg });
+}
+
+// !unmute @user — quita el mute (admin only)
+async function cmdUnmute(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: '❌ Solo en grupos.' }, { quoted: msg });
+  }
+  const sender = msg.key.participant || msg.key.remoteJid;
+  if (!isOwner(sender) && !isAdmin(groupMeta?.participants, sender)) {
+    return sock.sendMessage(jid, { text: '❌ Solo admins pueden desmutear.' }, { quoted: msg });
+  }
+
+  const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
+  const quotedParticipant = msg.message?.extendedTextMessage?.contextInfo?.participant;
+  const target = mentioned[0] || quotedParticipant;
+
+  if (!target) {
+    return sock.sendMessage(jid, { text: '❌ Menciona al usuario que quieres desmutear.' }, { quoted: msg });
+  }
+
+  mutedUsers.delete(`${jid}|${target}`);
+  const num = target.split('@')[0];
+  await sock.sendMessage(jid, {
+    text: `🔊 @${num} desmuteado.`,
+    mentions: [target],
+  }, { quoted: msg });
+}
+
+module.exports = { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, isMuted };

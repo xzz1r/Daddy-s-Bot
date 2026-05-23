@@ -6,12 +6,33 @@ const { cmdSticker } = require('../commands/sticker');
 const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdCount } = require('../commands/count');
 const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
-const { cmdTodos, cmdKick, cmdDel } = require('../commands/group');
+const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, isMuted } = require('../commands/group');
 const { cmdShip } = require('../commands/ship');
 const { cmdTtp } = require('../commands/ttp');
 const percent = require('../commands/percent');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp } = require('../commands/social');
 const logger = require('../utils/logger');
+
+// Commands that need group metadata — skip the network call for everything else
+const NEEDS_META = new Set([
+  'on','off','tagall','todos','all','everyone',
+  'kick','expulsar','del','borrar','delete',
+  'ship','top5','top10','mute','unmute','desmute',
+]);
+
+// Group metadata cache with 30s TTL — avoids repeated network calls
+const metaCache = new Map();
+async function getGroupMeta(sock, jid) {
+  const c = metaCache.get(jid);
+  if (c && Date.now() - c.ts < 30_000) return c.meta;
+  try {
+    const meta = await sock.groupMetadata(jid);
+    metaCache.set(jid, { meta, ts: Date.now() });
+    return meta;
+  } catch {
+    return c?.meta ?? null;
+  }
+}
 
 function extractText(msg) {
   const m = msg.message;
@@ -25,18 +46,6 @@ function extractText(msg) {
   );
 }
 
-function getMessageType(msg) {
-  const m = msg.message;
-  if (!m) return null;
-  if (m.imageMessage) return 'image';
-  if (m.videoMessage) return 'video';
-  if (m.stickerMessage) return 'sticker';
-  if (m.audioMessage) return 'audio';
-  if (m.documentMessage) return 'document';
-  if (m.conversation || m.extendedTextMessage) return 'text';
-  return 'unknown';
-}
-
 async function handleMessage(sock, msg) {
   if (!msg.message) return;
   if (msg.key.fromMe) return;
@@ -44,48 +53,36 @@ async function handleMessage(sock, msg) {
   const jid = msg.key.remoteJid;
   const sender = msg.key.participant || msg.key.remoteJid;
   const text = extractText(msg).trim();
-  const msgType = getMessageType(msg);
 
-  await incrementStat('messagesReceived');
+  // Non-blocking counters — never delay command execution
+  incrementStat('messagesReceived');
+  if (jid.endsWith('@g.us') && sender) incrementMsgCount(jid, sender).catch(() => {});
 
-  // Per-group per-user counter for !top5 / !top10
-  if (jid.endsWith('@g.us') && sender) {
-    incrementMsgCount(jid, sender).catch(() => {});
-  }
-
-  // Check if bot is enabled for this jid
-  const enabled = await isBotEnabled(jid);
-
-  // Always allow !on command even when disabled
-  if (!enabled && !text.startsWith(`${config.prefix}on`)) return;
-
-  // Only process prefix commands
+  // Sync in-memory check — no async overhead
+  if (!isBotEnabled(jid) && !text.startsWith(`${config.prefix}on`)) return;
   if (!text.startsWith(config.prefix)) return;
 
   const args = text.slice(config.prefix.length).trim().split(/\s+/);
   const command = args.shift()?.toLowerCase();
-
   if (!command) return;
 
+  // Check mute before anything else
+  if (isMuted(jid, sender)) return;
+
   logger.cmd(sender.split('@')[0], `${config.prefix}${command} ${args.join(' ')}`);
-  await incrementStat('commandsExecuted');
+  incrementStat('commandsExecuted');
 
-  // Auto typing indicator
-  if (config.autoTyping) {
-    await sock.sendPresenceUpdate('composing', jid).catch(() => {});
-  }
+  // Fire-and-forget — don't delay command start waiting for presence ACK
+  if (config.autoTyping) sock.sendPresenceUpdate('composing', jid).catch(() => {});
 
-  // Fetch group metadata for admin checks
+  // Only fetch group metadata for commands that actually need it
   let groupMeta = null;
-  if (jid.endsWith('@g.us')) {
-    try {
-      groupMeta = await sock.groupMetadata(jid);
-    } catch {}
+  if (jid.endsWith('@g.us') && NEEDS_META.has(command)) {
+    groupMeta = await getGroupMeta(sock, jid);
   }
 
   try {
     switch (command) {
-      // Music command
       case 'playsong':
       case 'playaudio':
       case 'play':
@@ -97,7 +94,6 @@ async function handleMessage(sock, msg) {
         await cmdSearch(sock, msg, args);
         break;
 
-      // Sticker commands
       case 's':
       case 'sticker':
       case 'stk':
@@ -127,7 +123,6 @@ async function handleMessage(sock, msg) {
         await cmdSetGrokKey(sock, msg, args);
         break;
 
-      // Group utilities
       case 'tagall':
       case 'todos':
       case 'all':
@@ -146,6 +141,15 @@ async function handleMessage(sock, msg) {
         await cmdDel(sock, msg, groupMeta);
         break;
 
+      case 'mute':
+        await cmdMute(sock, msg, args, groupMeta);
+        break;
+
+      case 'unmute':
+      case 'desmute':
+        await cmdUnmute(sock, msg, args, groupMeta);
+        break;
+
       case 'ship':
         await cmdShip(sock, msg, args, groupMeta);
         break;
@@ -154,7 +158,6 @@ async function handleMessage(sock, msg) {
         await cmdTtp(sock, msg, args);
         break;
 
-      // Random % about a user
       case 'gay':        await percent.cmdGay(sock, msg); break;
       case 'simp':       await percent.cmdSimp(sock, msg); break;
       case 'sexy':
@@ -176,7 +179,6 @@ async function handleMessage(sock, msg) {
       case 'paleto':     await percent.cmdPaleto(sock, msg); break;
       case 'cutre':      await percent.cmdCutre(sock, msg); break;
 
-      // Bot control
       case 'on':
         await cmdOn(sock, msg, groupMeta);
         break;
@@ -203,18 +205,14 @@ async function handleMessage(sock, msg) {
         break;
 
       default:
-        // Unknown command - silently ignore to avoid spam
         break;
     }
   } catch (err) {
     logger.error(`Command ${command} error: ${err.message}`);
-    await sock.sendMessage(jid, { text: `❌ Error inesperado: ${err.message}` }, { quoted: msg }).catch(() => {});
+    sock.sendMessage(jid, { text: `❌ Error inesperado: ${err.message}` }, { quoted: msg }).catch(() => {});
   }
 
-  // Stop typing indicator
-  if (config.autoTyping) {
-    await sock.sendPresenceUpdate('paused', jid).catch(() => {});
-  }
+  if (config.autoTyping) sock.sendPresenceUpdate('paused', jid).catch(() => {});
 }
 
 module.exports = { handleMessage };
