@@ -180,6 +180,41 @@ async function imageToSticker(imageBuffer) {
   }
 }
 
+const MAX_STICKER_BYTES = 490 * 1024; // WhatsApp rejects animated stickers > ~500 KB
+
+function encodeAnimWebp(inputFile, outputFile, fps, quality) {
+  return new Promise((resolve, reject) => {
+    let stderrBuf = '';
+    const runWithCodec = (codec) => {
+      stderrBuf = '';
+      ffmpeg(inputFile)
+        .setFfmpegPath(ffmpegPath)
+        .outputOptions([
+          '-vf', VF_ANIM(fps),
+          '-c:v', codec,
+          '-loop', '0',
+          '-an',
+          '-q:v', String(quality),
+          '-preset', 'default',
+          '-y',
+        ])
+        .toFormat('webp')
+        .on('stderr', (line) => { stderrBuf += line + '\n'; })
+        .on('error', (err) => {
+          if (codec === 'libwebp_anim') {
+            runWithCodec('libwebp');
+          } else {
+            const lastLines = stderrBuf.trim().split('\n').slice(-4).join(' | ');
+            reject(new Error(lastLines || err.message));
+          }
+        })
+        .on('end', resolve)
+        .save(outputFile);
+    };
+    runWithCodec('libwebp_anim');
+  });
+}
+
 async function videoToSticker(videoBuffer) {
   const detected = detectExt(videoBuffer);
 
@@ -197,53 +232,26 @@ async function videoToSticker(videoBuffer) {
     throw new Error('Video vacío al guardar en disco');
   }
 
-  try {
-    const fps = Math.min(config.sticker.fps, 15);
-    await new Promise((resolve, reject) => {
-      let stderrBuf = '';
-      ffmpeg(inputFile)
-        .setFfmpegPath(ffmpegPath)
-        .inputOptions(['-t', '6'])
-        .outputOptions([
-          '-vf', VF_ANIM(fps),
-          '-c:v', 'libwebp_anim',
-          '-loop', '0',
-          '-an',
-          '-q:v', '55',
-          '-preset', 'default',
-          '-y',
-        ])
-        .toFormat('webp')
-        .on('stderr', (line) => { stderrBuf += line + '\n'; })
-        .on('error', () => {
-          stderrBuf = '';
-          ffmpeg(inputFile)
-            .setFfmpegPath(ffmpegPath)
-            .inputOptions(['-t', '6'])
-            .outputOptions([
-              '-vf', VF_ANIM(fps),
-              '-c:v', 'libwebp',
-              '-loop', '0',
-              '-an',
-              '-q:v', '55',
-              '-y',
-            ])
-            .toFormat('webp')
-            .on('stderr', (line) => { stderrBuf += line + '\n'; })
-            .on('error', (err) => {
-              const lastLines = stderrBuf.trim().split('\n').slice(-4).join(' | ');
-              reject(new Error(lastLines || err.message));
-            })
-            .on('end', resolve)
-            .save(outputFile);
-        })
-        .on('end', resolve)
-        .save(outputFile);
-    });
+  // No time limit — encode full video. Auto-reduce quality/fps until under 500 KB.
+  const tiers = [
+    { fps: 12, quality: 80 },
+    { fps: 10, quality: 70 },
+    { fps: 8,  quality: 60 },
+    { fps: 6,  quality: 50 },
+  ];
 
-    const webpBuffer = await fs.readFile(outputFile);
-    if (webpBuffer.length < 100) throw new Error('Sticker animado vacío');
-    return await addStickerMeta(webpBuffer);
+  try {
+    let lastBuffer = null;
+    for (const { fps, quality } of tiers) {
+      await encodeAnimWebp(inputFile, outputFile, fps, quality);
+      const buf = await fs.readFile(outputFile);
+      if (buf.length < 100) throw new Error('Sticker animado vacío');
+      lastBuffer = buf;
+      if (buf.length <= MAX_STICKER_BYTES) {
+        return await addStickerMeta(buf);
+      }
+    }
+    return await addStickerMeta(lastBuffer);
   } finally {
     await cleanTemp(inputFile);
     await cleanTemp(outputFile);

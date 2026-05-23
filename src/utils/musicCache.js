@@ -33,7 +33,7 @@ async function getCached(query) {
     return null;
   }
   entry.timestamp = Date.now();
-  await saveIndex();
+  saveIndex().catch(() => {}); // fire-and-forget — don't block the response
   return { filePath, title: entry.title, mimetype: entry.mimetype, ext: entry.ext };
 }
 

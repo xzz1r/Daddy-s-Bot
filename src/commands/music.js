@@ -15,14 +15,12 @@ async function cmdPlay(sock, msg, args) {
 
   const query = args.join(' ');
 
-  // Immediate feedback so the user knows the bot received the command
-  await sock.sendMessage(jid, { text: '🔎 Buscando...' }, { quoted: msg }).catch(() => {});
-
-  // Try cache first
+  // Check cache first — hit = instant send, no search message needed
   let result = await getCached(query).catch(() => null);
-  let fromCache = !!result;
+  const fromCache = !!result;
 
   if (!result) {
+    await sock.sendMessage(jid, { text: '🔎 Buscando...' }, { quoted: msg }).catch(() => {});
     try {
       result = await downloadAudio(`ytsearch1:${query}`);
     } catch (err) {
