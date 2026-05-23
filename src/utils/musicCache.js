@@ -50,6 +50,14 @@ async function getCached(query) {
   const entry = index[k];
   if (!entry) return null;
 
+  // Invalidate old opus/ogg cache — WhatsApp can't play those as music
+  if (entry.ext === 'opus' || entry.ext === 'ogg' || entry.ext === 'webm') {
+    await fs.remove(path.join(CACHE_DIR, entry.file)).catch(() => {});
+    delete index[k];
+    saveIndex().catch(() => {});
+    return null;
+  }
+
   const filePath = path.join(CACHE_DIR, entry.file);
   let buffer;
   try {

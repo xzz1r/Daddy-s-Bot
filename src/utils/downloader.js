@@ -107,7 +107,7 @@ async function downloadAudio(videoUrl) {
     await ytdlp([
       videoUrl,
       '-x',
-      '--audio-format', 'opus',
+      '--audio-format', 'm4a',
       '--audio-quality', '64K',
       '-o', outTemplate,
       '--no-playlist',
@@ -138,16 +138,16 @@ async function downloadAudio(videoUrl) {
 
   const ext = path.extname(audioFile).slice(1).toLowerCase();
   const mimetypes = {
-    opus: 'audio/ogg; codecs=opus',
-    ogg:  'audio/ogg; codecs=opus',
     m4a:  'audio/mp4',
     mp4:  'audio/mp4',
     mp3:  'audio/mpeg',
-    webm: 'audio/webm',
     aac:  'audio/aac',
+    ogg:  'audio/ogg',
+    opus: 'audio/ogg; codecs=opus',
+    webm: 'audio/webm',
   };
 
-  return { filePath: fullPath, title, mimetype: mimetypes[ext] || 'audio/ogg; codecs=opus', ext };
+  return { filePath: fullPath, title, mimetype: mimetypes[ext] || 'audio/mp4', ext };
 }
 
 module.exports = { searchYouTube, downloadAudio };
