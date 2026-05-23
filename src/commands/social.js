@@ -116,17 +116,23 @@ async function cmdHelp(sock, msg) {
 ┗ _Min 10 mensajes para aparecer en tops_
 
 *DINÁMICAS*
-┣ ${p}ship          › Empareja 2 random
-┣ ${p}gay @user     › % gay
-┣ ${p}simp @user    › % simp
-┣ ${p}iq @user      › IQ random
-┣ ${p}sexy @user    › % sexy
-┣ ${p}pendejo @user › % pendejo
-┣ ${p}loco @user    › % loco
-┣ ${p}rata @user    › % rata
-┣ ${p}chongo @user  › % chongo
-┣ ${p}borracho @user
-┗ ${p}chamuyero @user
+┣ ${p}ship                › Empareja 2 random
+┣ ${p}gay @user           › % gay
+┣ ${p}simp @user          › % simp
+┣ ${p}sexy @user          › % sexy
+┣ ${p}rata @user          › % rata
+┣ ${p}gilipollas @user    › % gilipollas
+┣ ${p}subnormal @user     › % subnormal
+┣ ${p}imbecil @user       › % imbécil
+┣ ${p}capullo @user       › % capullo
+┣ ${p}pringado @user      › % pringado
+┣ ${p}mamon @user         › % mamón
+┣ ${p}pijo @user          › % pijo
+┣ ${p}friki @user         › % friki
+┣ ${p}chorizo @user       › % chorizo
+┣ ${p}guarro @user        › % guarro
+┣ ${p}paleto @user        › % paleto
+┗ ${p}cutre @user         › % cutre
    _Sin @user → te mide a vos mismo_
 
 *UTILIDADES*

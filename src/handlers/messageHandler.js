@@ -151,18 +151,25 @@ async function handleMessage(sock, msg) {
         break;
 
       // Random % about a user
-      case 'gay':       await percent.cmdGay(sock, msg, args); break;
-      case 'simp':      await percent.cmdSimp(sock, msg, args); break;
-      case 'pendejo':   await percent.cmdPendejo(sock, msg, args); break;
-      case 'iq':        await percent.cmdIq(sock, msg, args); break;
-      case 'loco':
-      case 'crazy':     await percent.cmdCrazy(sock, msg, args); break;
+      case 'gay':        await percent.cmdGay(sock, msg); break;
+      case 'simp':       await percent.cmdSimp(sock, msg); break;
       case 'sexy':
-      case 'hot':       await percent.cmdHot(sock, msg, args); break;
-      case 'rata':      await percent.cmdRata(sock, msg, args); break;
-      case 'borracho':  await percent.cmdBorracho(sock, msg, args); break;
-      case 'chamuyero': await percent.cmdChamuyero(sock, msg, args); break;
-      case 'chongo':    await percent.cmdChongo(sock, msg, args); break;
+      case 'hot':        await percent.cmdHot(sock, msg); break;
+      case 'rata':       await percent.cmdRata(sock, msg); break;
+      case 'gilipollas': await percent.cmdGilipollas(sock, msg); break;
+      case 'subnormal':  await percent.cmdSubnormal(sock, msg); break;
+      case 'imbecil':
+      case 'imbécil':    await percent.cmdImbecil(sock, msg); break;
+      case 'capullo':    await percent.cmdCapullo(sock, msg); break;
+      case 'pringado':   await percent.cmdPringado(sock, msg); break;
+      case 'mamon':
+      case 'mamón':      await percent.cmdMamon(sock, msg); break;
+      case 'pijo':       await percent.cmdPijo(sock, msg); break;
+      case 'friki':      await percent.cmdFriki(sock, msg); break;
+      case 'chorizo':    await percent.cmdChorizo(sock, msg); break;
+      case 'guarro':     await percent.cmdGuarro(sock, msg); break;
+      case 'paleto':     await percent.cmdPaleto(sock, msg); break;
+      case 'cutre':      await percent.cmdCutre(sock, msg); break;
 
       // Bot control
       case 'on':
