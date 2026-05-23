@@ -51,11 +51,14 @@ function extractText(msg) {
 
 async function handleMessage(sock, msg) {
   if (!msg.message) return;
-  if (msg.key.fromMe) return;
 
   const jid = msg.key.remoteJid;
   const sender = msg.key.participant || msg.key.remoteJid;
   const text = extractText(msg).trim();
+
+  // Skip own messages that aren't commands (avoids bot responding to itself)
+  // fromMe = true when the owner sends from their linked phone — still allow commands
+  if (msg.key.fromMe && !text.startsWith(config.prefix)) return;
 
   // Non-blocking counters — never delay command execution
   incrementStat('messagesReceived');

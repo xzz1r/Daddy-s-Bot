@@ -4,8 +4,10 @@ const config = require('../config');
 const logger = require('../utils/logger');
 
 function isOwner(jid) {
-  const num = jid.replace('@s.whatsapp.net', '').replace('@g.us', '');
-  return num === config.ownerNumber || config.ownerNumber.includes(num);
+  const num = jid.replace(/@[^@]+$/, '').replace(/\D/g, '');
+  const owner = String(config.ownerNumber).replace(/\D/g, '');
+  // Match exact number OR suffix match (handles country code variations like 34 vs 0034)
+  return num === owner || num.endsWith(owner) || owner.endsWith(num);
 }
 
 function isAdmin(participants, jid) {
