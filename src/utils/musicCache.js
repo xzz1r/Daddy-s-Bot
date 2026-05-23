@@ -102,5 +102,14 @@ async function setCached(query, srcPath, title, mimetype, ext) {
   } catch {}
 }
 
-module.exports = { getCached, setCached };
+async function clearCache() {
+  await loadIndex();
+  const files = Object.values(index).map(e => path.join(CACHE_DIR, e.file));
+  await Promise.all(files.map(f => fs.remove(f).catch(() => {})));
+  index = {};
+  await saveIndex();
+  ramCache.clear();
+}
+
+module.exports = { getCached, setCached, clearCache };
 

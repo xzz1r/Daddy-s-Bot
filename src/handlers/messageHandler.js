@@ -1,7 +1,7 @@
 const config = require('../config');
 const { isBotEnabled, incrementStat } = require('../utils/state');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
-const { cmdPlay, cmdSearch } = require('../commands/music');
+const { cmdPlay, cmdSearch, cmdClearCache } = require('../commands/music');
 const { cmdSticker } = require('../commands/sticker');
 const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdCount } = require('../commands/count');
@@ -106,6 +106,11 @@ async function handleMessage(sock, msg) {
       case 'buscar':
       case 'search':
         await cmdSearch(sock, msg, args);
+        break;
+
+      case 'clearcache':
+      case 'borracache':
+        if (isOwner(sender)) await cmdClearCache(sock, msg);
         break;
 
       case 's':

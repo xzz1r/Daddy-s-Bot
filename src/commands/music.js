@@ -1,7 +1,7 @@
 const { searchYouTube, downloadAudio } = require('../utils/downloader');
 const { cleanTemp } = require('../utils/helpers');
 const { incrementStat } = require('../utils/state');
-const { getCached, setCached } = require('../utils/musicCache');
+const { getCached, setCached, clearCache } = require('../utils/musicCache');
 const logger = require('../utils/logger');
 const fs = require('fs-extra');
 
@@ -86,4 +86,15 @@ async function cmdSearch(sock, msg, args) {
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
 
-module.exports = { cmdPlay, cmdSearch };
+// !clearcache — owner only, deletes all cached songs from RAM and disk
+async function cmdClearCache(sock, msg) {
+  const jid = msg.key.remoteJid;
+  try {
+    await clearCache();
+    await sock.sendMessage(jid, { text: '✅ Cache de música borrado.' }, { quoted: msg });
+  } catch (err) {
+    await sock.sendMessage(jid, { text: `❌ Error al borrar cache: ${err.message}` }, { quoted: msg });
+  }
+}
+
+module.exports = { cmdPlay, cmdSearch, cmdClearCache };
