@@ -168,7 +168,9 @@ async function imageToSticker(imageBuffer) {
   }
 }
 
-function encodeAnimWebp(inputFile, outputFile) {
+const MAX_STICKER_BYTES = 490 * 1024;
+
+function encodeAnimWebp(inputFile, outputFile, fps, quality) {
   return new Promise((resolve, reject) => {
     let stderrBuf = '';
     const runWithCodec = (codec) => {
@@ -176,11 +178,11 @@ function encodeAnimWebp(inputFile, outputFile) {
       ffmpeg(inputFile)
         .setFfmpegPath(ffmpegPath)
         .outputOptions([
-          '-vf', VF_ANIM(10),
+          '-vf', VF_ANIM(fps),
           '-c:v', codec,
           '-loop', '0',
           '-an',
-          '-q:v', '75',
+          '-q:v', String(quality),
           '-compression_level', '2',
           '-preset', 'default',
           '-y',
@@ -202,6 +204,13 @@ function encodeAnimWebp(inputFile, outputFile) {
   });
 }
 
+// Tiers only used if first encode exceeds WhatsApp's 500 KB limit (rare for ≤10s videos)
+const FALLBACK_TIERS = [
+  { fps: 8, quality: 65 },
+  { fps: 6, quality: 55 },
+  { fps: 5, quality: 45 },
+];
+
 async function videoToSticker(videoBuffer) {
   const detected = detectExt(videoBuffer);
 
@@ -214,9 +223,20 @@ async function videoToSticker(videoBuffer) {
   await fs.writeFile(inputFile, videoBuffer);
 
   try {
-    await encodeAnimWebp(inputFile, outputFile);
-    const buf = await fs.readFile(outputFile);
+    // First attempt: best quality (10fps, q75) — covers virtually all ≤10s videos
+    await encodeAnimWebp(inputFile, outputFile, 10, 75);
+    let buf = await fs.readFile(outputFile);
     if (buf.length < 100) throw new Error('Sticker animado vacío');
+
+    // Only re-encode if over WhatsApp's limit (heavy video or long duration)
+    if (buf.length > MAX_STICKER_BYTES) {
+      for (const { fps, quality } of FALLBACK_TIERS) {
+        await encodeAnimWebp(inputFile, outputFile, fps, quality);
+        buf = await fs.readFile(outputFile);
+        if (buf.length <= MAX_STICKER_BYTES) break;
+      }
+    }
+
     return addStickerMeta(buf);
   } finally {
     await cleanTemp(inputFile);
