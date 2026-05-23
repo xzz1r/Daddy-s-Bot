@@ -14,7 +14,7 @@ const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, isOwner } = require('../comman
 const logger = require('../utils/logger');
 
 // Detects http/https links, www. links, and common invite/spam patterns
-const LINK_RE = /https?:\/\/[^\s]{4,}|www\.[^\s]{4,}|(?:t\.me|chat\.whatsapp\.com|wa\.me)\/[^\s]+/i;
+const LINK_RE = /https?:\/\/[^\s]{4,}|www\.[^\s]{4,}|(?:t\.me|chat\.whatsapp\.com)\/[^\s]+/i;
 
 // Commands that need group metadata — skip the network call for everything else
 const NEEDS_META = new Set([
@@ -70,10 +70,6 @@ async function handleMessage(sock, msg) {
     if (meta && !isAdmin(meta.participants, sender)) {
       sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
       sock.groupParticipantsUpdate(jid, [sender], 'remove').catch(() => {});
-      sock.sendMessage(jid, {
-        text: `⛔ @${sender.split('@')[0]} expulsado por enviar links.`,
-        mentions: [sender],
-      }).catch(() => {});
       return;
     }
   }
