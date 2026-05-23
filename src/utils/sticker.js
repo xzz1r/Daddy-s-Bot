@@ -44,6 +44,9 @@ async function imageToSticker(imageBuffer) {
   const ext = detectExt(imageBuffer);
   if (!ext) throw new Error('Formato de imagen no reconocido');
 
+  // ffmpeg WebP decoder crashes on some builds; WebP is already valid, just inject metadata
+  if (ext === 'webp') return await addStickerMeta(imageBuffer);
+
   const inputFile = tempFile(ext);
   const outputFile = tempFile('webp');
 

@@ -94,30 +94,13 @@ async function downloadAudio(videoUrl) {
   const tempDir = path.dirname(tempFile('tmp'));
   const outTemplate = path.join(tempDir, `${baseName}.%(ext)s`);
 
-  let info;
+  // Single yt-dlp call: print title and download simultaneously
+  let output;
   try {
-    const infoJson = await ytdlp([
+    output = await ytdlp([
       videoUrl,
-      '--dump-json',
-      '--no-download',
-      '--no-warnings',
-      '--no-playlist',
-      '--extractor-args', `youtube:player_client=${PLAYER_CLIENTS}`,
-    ]);
-    info = JSON.parse(infoJson.trim().split('\n').find(l => l.startsWith('{')));
-  } catch (err) {
-    throw new Error(`No se pudo leer info: ${err.message}`);
-  }
-
-  const duration = info.duration || 0;
-  if (duration > 600) {
-    throw new Error(`Video muy largo (${formatSeconds(duration)}, máx 10 min)`);
-  }
-
-  // Download best audio in native format (no ffmpeg post-processing to avoid extra failure points)
-  try {
-    await ytdlp([
-      videoUrl,
+      '--print', '%(title)s',
+      '--no-simulate',
       '-f', 'bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio/best',
       '-o', outTemplate,
       '--no-playlist',
@@ -125,13 +108,18 @@ async function downloadAudio(videoUrl) {
       '--no-part',
       '--max-filesize', '60M',
       '--no-mtime',
+      '--match-filter', 'duration<=600',
       '--extractor-args', `youtube:player_client=${PLAYER_CLIENTS}`,
     ]);
   } catch (err) {
+    if (err.message.includes('does not pass filter') || err.message.includes('match-filter')) {
+      throw new Error('Video muy largo (máx 10 min)');
+    }
     throw new Error(err.message);
   }
 
-  // Find the actual downloaded file (extension depends on YouTube's format choice)
+  const title = output.trim().split('\n')[0] || 'Sin título';
+
   const files = await fs.readdir(tempDir);
   const audioFile = files.find(f => f.startsWith(baseName));
   if (!audioFile) throw new Error('yt-dlp no produjo archivo');
@@ -143,7 +131,6 @@ async function downloadAudio(videoUrl) {
     throw new Error('Archivo descargado vacío');
   }
 
-  // Map extension to proper mimetype so WhatsApp plays it as audio
   const ext = path.extname(audioFile).slice(1).toLowerCase();
   const mimetypes = {
     m4a: 'audio/mp4',
@@ -156,14 +143,7 @@ async function downloadAudio(videoUrl) {
   };
   const mimetype = mimetypes[ext] || 'audio/mp4';
 
-  return {
-    filePath: fullPath,
-    title: info.title || 'Sin título',
-    author: info.uploader || info.channel || 'Desconocido',
-    duration,
-    mimetype,
-    ext,
-  };
+  return { filePath: fullPath, title, mimetype, ext };
 }
 
 module.exports = { searchYouTube, downloadAudio };
