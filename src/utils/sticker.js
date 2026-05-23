@@ -168,7 +168,20 @@ async function imageToSticker(imageBuffer) {
   }
 }
 
-function encodeAnimWebp(inputFile, outputFile) {
+// WhatsApp's real animated sticker limit is ~1MB
+const MAX_STICKER_BYTES = 1024 * 1024;
+
+// Tiers: quality drops before FPS to keep motion smooth
+const ANIM_TIERS = [
+  { fps: 20, quality: 82 },
+  { fps: 20, quality: 72 },
+  { fps: 15, quality: 72 },
+  { fps: 15, quality: 62 },
+  { fps: 15, quality: 52 },
+  { fps: 12, quality: 52 },
+];
+
+function encodeAnimWebp(inputFile, outputFile, fps, quality) {
   return new Promise((resolve, reject) => {
     let stderrBuf = '';
     const runWithCodec = (codec) => {
@@ -176,12 +189,12 @@ function encodeAnimWebp(inputFile, outputFile) {
       ffmpeg(inputFile)
         .setFfmpegPath(ffmpegPath)
         .outputOptions([
-          '-vf', VF_ANIM(25),
+          '-vf', VF_ANIM(fps),
           '-c:v', codec,
           '-loop', '0',
           '-an',
-          '-q:v', '85',
-          '-compression_level', '1',
+          '-q:v', String(quality),
+          '-compression_level', '2',
           '-preset', 'default',
           '-y',
         ])
@@ -213,9 +226,13 @@ async function videoToSticker(videoBuffer) {
   await fs.writeFile(inputFile, videoBuffer);
 
   try {
-    await encodeAnimWebp(inputFile, outputFile);
-    const buf = await fs.readFile(outputFile);
-    if (buf.length < 100) throw new Error('Sticker animado vacío');
+    let buf = null;
+    for (const { fps, quality } of ANIM_TIERS) {
+      await encodeAnimWebp(inputFile, outputFile, fps, quality);
+      buf = await fs.readFile(outputFile);
+      if (buf.length >= 100 && buf.length <= MAX_STICKER_BYTES) break;
+    }
+    if (!buf || buf.length < 100) throw new Error('Sticker animado vacío');
     return addStickerMeta(buf);
   } finally {
     await cleanTemp(inputFile);
