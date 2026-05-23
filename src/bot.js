@@ -26,6 +26,14 @@ async function connectToWhatsApp() {
   await ensureTemp();
   await initState();
 
+  const credsFile = path.join(AUTH_DIR, 'creds.json');
+  const hasSession = await fs.pathExists(credsFile);
+  if (hasSession) {
+    logger.info('Sesión guardada encontrada — conectando sin QR...');
+  } else {
+    logger.info('Primera vez — escanea el QR que aparecerá a continuación');
+  }
+
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
   const { version, isLatest } = await fetchLatestBaileysVersion();
 

@@ -5,3 +5,7 @@ data/state.json
 temp/
 .env
 *.log
+
+# Nunca borrar la carpeta data/ con git clean
+!data/.gitkeep
+!temp/.gitkeep
