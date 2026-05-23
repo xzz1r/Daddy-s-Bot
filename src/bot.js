@@ -21,7 +21,16 @@ let sock = null;
 let reconnectAttempts = 0;
 let consecutive401 = 0;
 const MAX_RECONNECTS = 10;
-const MAX_401 = 3; // only clear session after 3 consecutive 401s
+const MAX_401 = 3;
+
+// Cache Baileys version — avoids an HTTP round-trip on every reconnect
+let _baileysVersion = null;
+async function getBaileysVersion() {
+  if (_baileysVersion) return _baileysVersion;
+  const { version } = await fetchLatestBaileysVersion();
+  _baileysVersion = version;
+  return version;
+}
 
 async function connectToWhatsApp() {
   await fs.ensureDir(AUTH_DIR);
@@ -32,7 +41,7 @@ async function connectToWhatsApp() {
   const hasSession = await fs.pathExists(credsFile);
 
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
-  const { version } = await fetchLatestBaileysVersion();
+  const version = await getBaileysVersion();
 
   sock = makeWASocket({
     version,
@@ -45,9 +54,16 @@ async function connectToWhatsApp() {
     markOnlineOnConnect: true,
     generateHighQualityLinkPreview: false,
     getMessage: async () => undefined,
-    // Keep connection alive
-    keepAliveIntervalMs: 15000,
+    // More frequent keep-alives = more stable WebSocket on mobile/Termux
+    keepAliveIntervalMs: 10_000,
     retryRequestDelayMs: 2000,
+    connectTimeoutMs: 60_000,
+    // Skip full history sync — much faster initial connection
+    syncFullHistory: false,
+    // Don't emit events for the bot's own outgoing messages
+    emitOwnEvents: false,
+    // Ignore status@broadcast to reduce irrelevant event processing
+    shouldIgnoreJid: jid => jid === 'status@broadcast',
   });
 
   sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
@@ -103,26 +119,16 @@ async function connectToWhatsApp() {
 
   sock.ev.on('creds.update', saveCreds);
 
-  sock.ev.on('messages.upsert', async ({ messages, type }) => {
+  sock.ev.on('messages.upsert', ({ messages, type }) => {
     if (type !== 'notify') return;
     for (const msg of messages) {
-      try {
-        await handleMessage(sock, msg);
-      } catch (err) {
-        logger.error(`handleMessage error: ${err.message}`);
+      // Fire-and-forget read receipt — never blocks message processing
+      if (config.autoRead && !msg.key.fromMe && msg.key.remoteJid) {
+        sock.readMessages([msg.key]).catch(() => {});
       }
+      handleMessage(sock, msg).catch(err => logger.error(`handleMessage error: ${err.message}`));
     }
   });
-
-  if (config.autoRead) {
-    sock.ev.on('messages.upsert', async ({ messages }) => {
-      for (const msg of messages) {
-        if (!msg.key.fromMe && msg.key.remoteJid) {
-          await sock.readMessages([msg.key]).catch(() => {});
-        }
-      }
-    });
-  }
 
   return sock;
 }

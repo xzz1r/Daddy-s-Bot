@@ -62,12 +62,15 @@ async function cmdOff(sock, msg, groupMeta) {
 }
 
 // !ping - latency check
+// delivery = WA server delay (msg timestamp → bot received it)
+// send    = bot → WA server ACK round-trip
 async function cmdPing(sock, msg) {
   const jid = msg.key.remoteJid;
+  const delivery = Date.now() - (msg.messageTimestamp * 1000);
   const start = Date.now();
-  await sock.sendMessage(jid, { text: '...' }, { quoted: msg });
-  const latency = Date.now() - start;
-  await sock.sendMessage(jid, { text: `⚡ *${latency}ms*` });
+  await sock.sendMessage(jid, { text: '⚡' }, { quoted: msg });
+  const send = Date.now() - start;
+  sock.sendMessage(jid, { text: `*${send}ms* envío  ·  *${delivery}ms* entrega WA` }, { quoted: msg }).catch(() => {});
 }
 
 // !info - bot status
