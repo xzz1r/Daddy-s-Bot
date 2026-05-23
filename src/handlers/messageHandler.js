@@ -7,6 +7,10 @@ const { cmdTop } = require('../commands/tops');
 const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdCount } = require('../commands/count');
 const { cmdGrok } = require('../commands/ai');
+const { cmdTodos, cmdSorteo } = require('../commands/group');
+const { cmdShip } = require('../commands/ship');
+const { cmdTtp } = require('../commands/ttp');
+const percent = require('../commands/percent');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp } = require('../commands/social');
 const logger = require('../utils/logger');
 
@@ -125,6 +129,40 @@ async function handleMessage(sock, msg) {
       case 'grok':
         await cmdGrok(sock, msg, args);
         break;
+
+      // Group utilities
+      case 'todos':
+      case 'all':
+      case 'everyone':
+        await cmdTodos(sock, msg, args, groupMeta);
+        break;
+
+      case 'ship':
+        await cmdShip(sock, msg, args, groupMeta);
+        break;
+
+      case 'sorteo':
+      case 'random':
+        await cmdSorteo(sock, msg, args);
+        break;
+
+      case 'ttp':
+        await cmdTtp(sock, msg, args);
+        break;
+
+      // Random % about a user
+      case 'gay':       await percent.cmdGay(sock, msg, args); break;
+      case 'simp':      await percent.cmdSimp(sock, msg, args); break;
+      case 'pendejo':   await percent.cmdPendejo(sock, msg, args); break;
+      case 'iq':        await percent.cmdIq(sock, msg, args); break;
+      case 'loco':
+      case 'crazy':     await percent.cmdCrazy(sock, msg, args); break;
+      case 'sexy':
+      case 'hot':       await percent.cmdHot(sock, msg, args); break;
+      case 'rata':      await percent.cmdRata(sock, msg, args); break;
+      case 'borracho':  await percent.cmdBorracho(sock, msg, args); break;
+      case 'chamuyero': await percent.cmdChamuyero(sock, msg, args); break;
+      case 'chongo':    await percent.cmdChongo(sock, msg, args); break;
 
       // Bot control
       case 'on':

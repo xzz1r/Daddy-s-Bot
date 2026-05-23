@@ -106,24 +106,38 @@ async function cmdHelp(sock, msg) {
 ┗ _Busca y envia la cancion en audio_
 
 *STICKERS*
-┣ ${p}s
-┗ _Responde una imagen, video o sticker_
-   _Soporta jpg · png · gif · mp4 (60fps)_
+┣ ${p}s             › Responde una imagen/video/sticker
+┗ ${p}ttp <texto>   › Crear sticker de texto
 
 *TOPS DEL GRUPO*
-┣ ${p}top5 <tema>  › Top 5 random del grupo
-┣ ${p}top10 <tema> › Top 10 random del grupo
-┣ ${p}count        › Quién mandó más mensajes
-┗ _Min 10 mensajes para aparecer_
+┣ ${p}top5 <tema>   › Top 5 random
+┣ ${p}top10 <tema>  › Top 10 random
+┣ ${p}count         › Quién mandó más mensajes
+┗ _Min 10 mensajes para aparecer en tops_
+
+*DINÁMICAS*
+┣ ${p}ship          › Empareja 2 random
+┣ ${p}gay @user     › % gay
+┣ ${p}simp @user    › % simp
+┣ ${p}iq @user      › IQ random
+┣ ${p}sexy @user    › % sexy
+┣ ${p}pendejo @user › % pendejo
+┣ ${p}loco @user    › % loco
+┣ ${p}rata @user    › % rata
+┣ ${p}chongo @user  › % chongo
+┣ ${p}borracho @user
+┗ ${p}chamuyero @user
+   _Sin @user → te mide a vos mismo_
+
+*UTILIDADES*
+┣ ${p}todos <aviso> › Etiqueta a todos (admin)
+┣ ${p}sorteo a|b|c  › Elige uno al azar
+┗ ${p}g <pregunta>  › Pregunta a Grok IA
 
 *TOPS GLOBALES*
 ┣ ${p}top <categoria> [cantidad]
 ┗ _musica, peliculas, series, juegos, youtube,_
    _spotify, anime, paises, cripto, apps_
-
-*IA*
-┣ ${p}g <pregunta> › Pregunta a Grok
-┗ _Responde a un mensaje con ${p}g para usarlo como contexto_
 
 *CONTROL*
 ┣ ${p}on  › Activar bot en el grupo
