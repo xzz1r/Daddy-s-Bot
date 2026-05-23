@@ -1,5 +1,5 @@
 const { searchYouTube, downloadAudio } = require('../utils/downloader');
-const { formatDuration } = require('../utils/helpers');
+const { formatDuration, cleanTemp } = require('../utils/helpers');
 const { incrementStat } = require('../utils/state');
 const logger = require('../utils/logger');
 const fs = require('fs-extra');
@@ -13,7 +13,7 @@ async function cmdPlay(sock, msg, args) {
   const query = args.join(' ');
   const jid = msg.key.remoteJid;
 
-  await sock.sendMessage(jid, { text: `🔍 Buscando *${query}*...` }, { quoted: msg });
+  await sock.sendMessage(jid, { text: `Buscando *${query}*...` }, { quoted: msg });
 
   let results;
   try {
@@ -28,29 +28,37 @@ async function cmdPlay(sock, msg, args) {
 
   const video = results[0];
   await sock.sendMessage(jid, {
-    text: `🎵 Descargando: *${video.title}*\n👤 ${video.channel || 'Desconocido'}\n⏱ ${video.duration || '?'}`,
+    text: `Descargando: *${video.title}*\nCanal: ${video.channel}\nDuracion: ${video.duration}`,
   }, { quoted: msg });
 
   let result;
   try {
     result = await downloadAudio(video.url);
   } catch (err) {
+    logger.error(`Download error: ${err.message}`);
     return sock.sendMessage(jid, { text: `❌ Error al descargar: ${err.message}` }, { quoted: msg });
   }
 
   try {
+    // Validate file before sending
+    const stat = await fs.stat(result.filePath);
+    if (!stat.size) throw new Error('Archivo vacio');
+
     const audioBuffer = await fs.readFile(result.filePath);
 
     await sock.sendMessage(jid, {
       audio: audioBuffer,
-      mimetype: 'audio/mpeg',
+      mimetype: 'audio/mp4',
+      fileName: `${result.title}.mp3`,
       ptt: false,
     }, { quoted: msg });
 
     await incrementStat('musicPlayed');
-    logger.success(`Música enviada: ${result.title}`);
+    logger.success(`Audio enviado: ${result.title} (${stat.size} bytes)`);
+  } catch (err) {
+    logger.error(`Send audio error: ${err.message}`);
+    await sock.sendMessage(jid, { text: `❌ Error al enviar audio: ${err.message}` }, { quoted: msg });
   } finally {
-    const { cleanTemp } = require('../utils/helpers');
     await cleanTemp(result.filePath);
   }
 }
@@ -64,7 +72,7 @@ async function cmdSearch(sock, msg, args) {
   const query = args.join(' ');
   const jid = msg.key.remoteJid;
 
-  await sock.sendMessage(jid, { text: `🔍 Buscando *${query}*...` }, { quoted: msg });
+  await sock.sendMessage(jid, { text: `Buscando *${query}*...` }, { quoted: msg });
 
   let results;
   try {
@@ -77,10 +85,10 @@ async function cmdSearch(sock, msg, args) {
     return sock.sendMessage(jid, { text: '❌ No encontré resultados.' }, { quoted: msg });
   }
 
-  let text = `🎵 *Resultados para: ${query}*\n\n`;
+  let text = `*Resultados para: ${query}*\n\n`;
   results.forEach((v, i) => {
     text += `*${i + 1}.* ${v.title}\n`;
-    text += `   └ 👤 ${v.channel || '?'} | ⏱ ${v.duration || '?'}\n\n`;
+    text += `   ${v.channel} | ${v.duration}\n\n`;
   });
   text += `_Usa !Playsong <nombre> para descargar_`;
 

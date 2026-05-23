@@ -1,17 +1,19 @@
 const { ffmpegPath } = require('./ffmpeg');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs-extra');
+const webpmux = require('node-webpmux');
 const { tempFile, cleanTemp } = require('./helpers');
 const config = require('../config');
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
-// Detect image format from buffer magic bytes to give ffmpeg the right extension
+// Detect format from magic bytes so ffmpeg gets a proper extension
 function detectExt(buffer) {
+  if (!buffer || buffer.length < 12) return 'jpg';
   if (buffer[0] === 0xFF && buffer[1] === 0xD8) return 'jpg';
   if (buffer[0] === 0x89 && buffer[1] === 0x50) return 'png';
   if (buffer[0] === 0x47 && buffer[1] === 0x49) return 'gif';
-  if (buffer[0] === 0x52 && buffer[1] === 0x49) return 'webp'; // RIFF…WEBP
+  if (buffer[0] === 0x52 && buffer[1] === 0x49 && buffer.slice(8, 12).toString() === 'WEBP') return 'webp';
   return 'jpg';
 }
 
@@ -30,8 +32,11 @@ async function imageToSticker(imageBuffer) {
         .setFfmpegPath(ffmpegPath)
         .outputOptions([
           '-vf', SCALE_VF,
-          '-quality', '100',
-          '-compression_level', '0',
+          '-quality', '95',
+          '-compression_level', '4',
+          '-loop', '0',
+          '-an',
+          '-vsync', '0',
         ])
         .toFormat('webp')
         .on('error', reject)
@@ -40,7 +45,7 @@ async function imageToSticker(imageBuffer) {
     });
 
     const webpBuffer = await fs.readFile(outputFile);
-    return addStickerMeta(webpBuffer);
+    return await addStickerMeta(webpBuffer);
   } finally {
     await cleanTemp(inputFile);
     await cleanTemp(outputFile);
@@ -48,7 +53,8 @@ async function imageToSticker(imageBuffer) {
 }
 
 async function videoToSticker(videoBuffer) {
-  const inputFile = tempFile('mp4');
+  const ext = detectExt(videoBuffer) === 'webp' ? 'webp' : 'mp4';
+  const inputFile = tempFile(ext);
   const outputFile = tempFile('webp');
 
   await fs.writeFile(inputFile, videoBuffer);
@@ -57,17 +63,17 @@ async function videoToSticker(videoBuffer) {
     await new Promise((resolve, reject) => {
       ffmpeg(inputFile)
         .setFfmpegPath(ffmpegPath)
-        .inputOptions(['-t 6'])
+        .inputOptions(['-t', '6'])
         .outputOptions([
           '-vf', `fps=${config.sticker.fps},${SCALE_VF}`,
           '-loop', '0',
           '-preset', 'default',
           '-an',
           '-vsync', '0',
-          '-compression_level', '0',
-          '-quality', '100',
+          '-compression_level', '6',
+          '-quality', '75',
           '-qmin', '0',
-          '-qmax', '0',
+          '-qmax', '50',
         ])
         .toFormat('webp')
         .on('error', reject)
@@ -76,7 +82,7 @@ async function videoToSticker(videoBuffer) {
     });
 
     const webpBuffer = await fs.readFile(outputFile);
-    return addStickerMeta(webpBuffer);
+    return await addStickerMeta(webpBuffer);
   } finally {
     await cleanTemp(inputFile);
     await cleanTemp(outputFile);
@@ -99,7 +105,8 @@ async function gifToSticker(gifBuffer) {
           '-preset', 'default',
           '-an',
           '-vsync', '0',
-          '-quality', '100',
+          '-compression_level', '6',
+          '-quality', '75',
         ])
         .toFormat('webp')
         .on('error', reject)
@@ -108,66 +115,56 @@ async function gifToSticker(gifBuffer) {
     });
 
     const webpBuffer = await fs.readFile(outputFile);
-    return addStickerMeta(webpBuffer);
+    return await addStickerMeta(webpBuffer);
   } finally {
     await cleanTemp(inputFile);
     await cleanTemp(outputFile);
   }
 }
 
-function addStickerMeta(webpBuffer) {
-  const pack = config.sticker.pack;
-  const author = config.sticker.author;
-
+// Build proper WhatsApp sticker EXIF blob (raw TIFF)
+function buildExif(pack, author) {
   const json = JSON.stringify({
-    'sticker-pack-id': 'itsseb4s-urdaddy',
+    'sticker-pack-id': 'com.itsseb4s.daddysbot',
     'sticker-pack-name': pack,
     'sticker-pack-publisher': author,
+    'emojis': [],
   });
-  const jsonBuffer = Buffer.from(json, 'utf-8');
-  const exifBuffer = Buffer.alloc(jsonBuffer.length + 22);
+  const jsonBuf = Buffer.from(json, 'utf-8');
 
-  exifBuffer.writeUInt32BE(jsonBuffer.length + 18, 0);
-  exifBuffer.write('Exif\0\0', 4, 'binary');
-  exifBuffer.write('II', 10, 'binary');
-  exifBuffer.writeUInt16LE(42, 12);
-  exifBuffer.writeUInt32LE(8, 14);
-  exifBuffer.writeUInt16LE(1, 18);
-  exifBuffer.writeUInt16LE(0x9286, 20);
-  exifBuffer.writeUInt16LE(2, 22);
-  exifBuffer.writeUInt32LE(jsonBuffer.length, 24);
-  exifBuffer.writeUInt32LE(0, 28);
-  jsonBuffer.copy(exifBuffer, 32);
+  // TIFF header (little-endian)
+  const header = Buffer.from([
+    0x49, 0x49,             // "II" byte order
+    0x2A, 0x00,             // 42 magic
+    0x08, 0x00, 0x00, 0x00, // offset to IFD0 = 8
+  ]);
 
+  // IFD0: 1 entry + 4 bytes next-IFD offset
+  const ifd = Buffer.alloc(2 + 12 + 4);
+  ifd.writeUInt16LE(1, 0);                            // 1 entry
+  ifd.writeUInt16LE(0x9286, 2);                       // tag: UserComment
+  ifd.writeUInt16LE(0x0002, 4);                       // type: ASCII
+  ifd.writeUInt32LE(jsonBuf.length, 6);               // count
+  ifd.writeUInt32LE(header.length + ifd.length, 10);  // value offset (after IFD)
+  ifd.writeUInt32LE(0, 14);                           // next IFD = 0
+
+  return Buffer.concat([header, ifd, jsonBuf]);
+}
+
+async function addStickerMeta(webpBuffer) {
   try {
-    const riff = webpBuffer.slice(0, 4).toString();
-    if (riff !== 'RIFF') return webpBuffer;
-    const webp = webpBuffer.slice(8, 12).toString();
-    if (webp !== 'WEBP') return webpBuffer;
+    const pack = config.sticker.pack;
+    const author = config.sticker.author;
+    const exif = buildExif(pack, author);
 
-    let hasVP8X = false;
-    let insertPos = 12;
-
-    while (insertPos < webpBuffer.length) {
-      const chunk = webpBuffer.slice(insertPos, insertPos + 4).toString();
-      if (chunk === 'VP8X') { hasVP8X = true; break; }
-      if (chunk === 'VP8 ' || chunk === 'VP8L') break;
-      const chunkSize = webpBuffer.readUInt32LE(insertPos + 4);
-      insertPos += 8 + chunkSize + (chunkSize % 2);
-    }
-
-    if (hasVP8X) {
-      const flags = webpBuffer.readUInt8(insertPos + 8);
-      webpBuffer.writeUInt8(flags | 0x08, insertPos + 8);
-    }
-
-    const exifChunk = Buffer.alloc(8 + exifBuffer.length);
-    exifChunk.write('EXIF', 0);
-    exifChunk.writeUInt32LE(exifBuffer.length, 4);
-    exifBuffer.copy(exifChunk, 8);
-
-    return Buffer.concat([webpBuffer, exifChunk]);
-  } catch {
+    const img = new webpmux.Image();
+    await img.load(webpBuffer);
+    img.exif = exif;
+    const out = await img.save(null);
+    return out;
+  } catch (err) {
+    // If metadata injection fails for any reason, return the bare webp
+    // so the sticker still gets sent (just without author info)
     return webpBuffer;
   }
 }
