@@ -5,6 +5,8 @@ const { cmdPlay, cmdSearch } = require('../commands/music');
 const { cmdSticker } = require('../commands/sticker');
 const { cmdTop } = require('../commands/tops');
 const { cmdTopRandom } = require('../commands/topsRandom');
+const { cmdCount } = require('../commands/count');
+const { cmdGrok } = require('../commands/ai');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp } = require('../commands/social');
 const logger = require('../utils/logger');
 
@@ -107,11 +109,21 @@ async function handleMessage(sock, msg) {
         break;
 
       case 'top5':
-        await cmdTopRandom(sock, msg, 5);
+        await cmdTopRandom(sock, msg, 5, args);
         break;
 
       case 'top10':
-        await cmdTopRandom(sock, msg, 10);
+        await cmdTopRandom(sock, msg, 10, args);
+        break;
+
+      case 'count':
+        await cmdCount(sock, msg);
+        break;
+
+      case 'g':
+      case 'ai':
+      case 'grok':
+        await cmdGrok(sock, msg, args);
         break;
 
       // Bot control
