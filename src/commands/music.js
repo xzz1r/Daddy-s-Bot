@@ -1,6 +1,7 @@
 const { searchYouTube, downloadAudio } = require('../utils/downloader');
 const { cleanTemp } = require('../utils/helpers');
 const { incrementStat } = require('../utils/state');
+const { getCached, setCached } = require('../utils/musicCache');
 const logger = require('../utils/logger');
 const fs = require('fs-extra');
 
@@ -13,28 +14,40 @@ async function cmdPlay(sock, msg, args) {
   const query = args.join(' ');
   const jid = msg.key.remoteJid;
 
-  let result;
-  try {
-    result = await downloadAudio(`ytsearch1:${query}`);
-  } catch (err) {
-    logger.error(`Download error: ${err.message}`);
-    return sock.sendMessage(jid, { text: `❌ ${err.message}` }, { quoted: msg });
+  // Try cache first
+  let cached = await getCached(query).catch(() => null);
+
+  if (!cached) {
+    let downloaded;
+    try {
+      downloaded = await downloadAudio(`ytsearch1:${query}`);
+    } catch (err) {
+      logger.error(`Download error: ${err.message}`);
+      return sock.sendMessage(jid, { text: `❌ ${err.message}` }, { quoted: msg });
+    }
+    try {
+      await setCached(query, downloaded.filePath, downloaded.title, downloaded.mimetype, downloaded.ext);
+    } catch {}
+    await cleanTemp(downloaded.filePath);
+    cached = await getCached(query).catch(() => null);
+    if (!cached) {
+      // Fallback: send directly from temp (shouldn't normally happen)
+      cached = downloaded;
+    }
   }
 
   try {
-    const audioBuffer = await fs.readFile(result.filePath);
+    const audioBuffer = await fs.readFile(cached.filePath);
     await sock.sendMessage(jid, {
       audio: audioBuffer,
-      mimetype: result.mimetype || 'audio/mp4',
-      fileName: `${result.title}.${result.ext || 'm4a'}`,
+      mimetype: cached.mimetype || 'audio/mp4',
+      fileName: `${cached.title}.${cached.ext || 'm4a'}`,
       ptt: false,
     }, { quoted: msg });
     await incrementStat('musicPlayed');
   } catch (err) {
     logger.error(`Send audio error: ${err.message}`);
     await sock.sendMessage(jid, { text: `❌ ${err.message}` }, { quoted: msg });
-  } finally {
-    await cleanTemp(result.filePath);
   }
 }
 
