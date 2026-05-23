@@ -160,7 +160,9 @@ async function cmdHelp(sock, msg) {
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
    *UTILIDADES*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┗ ${p}todos <aviso>        › Etiquetar a todos (admin)
+┣ ${p}todos <aviso>        › Etiquetar a todos (admin)
+┣ ${p}kick @user           › Expulsar usuario (admin)
+┗ ${p}del                  › Borrar mensaje citado (admin)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
    *TOPS GLOBALES*

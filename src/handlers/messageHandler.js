@@ -7,7 +7,7 @@ const { cmdTop } = require('../commands/tops');
 const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdCount } = require('../commands/count');
 const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
-const { cmdTodos } = require('../commands/group');
+const { cmdTodos, cmdKick, cmdDel } = require('../commands/group');
 const { cmdShip } = require('../commands/ship');
 const { cmdTtp } = require('../commands/ttp');
 const percent = require('../commands/percent');
@@ -140,6 +140,17 @@ async function handleMessage(sock, msg) {
       case 'all':
       case 'everyone':
         await cmdTodos(sock, msg, args, groupMeta);
+        break;
+
+      case 'kick':
+      case 'expulsar':
+        await cmdKick(sock, msg, args, groupMeta);
+        break;
+
+      case 'del':
+      case 'borrar':
+      case 'delete':
+        await cmdDel(sock, msg, groupMeta);
         break;
 
       case 'ship':
