@@ -103,78 +103,54 @@ async function cmdHelp(sock, msg) {
   const jid = msg.key.remoteJid;
   const p = config.prefix;
 
-  const text = `╔═══════════════════════════╗
-║                           ║
-║     *xz1s (Sebastian)*
-║         OWNER DEL BOT
-║                           ║
-║      *${config.botName}*
-║                           ║
-╚═══════════════════════════╝
+  const text =
+`*${config.botName}*  ·  by xz1s (Sebastian)
+Prefijo: *${p}*
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   *MUSICA*
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┣ ${p}Playsong <canción>   › Enviar audio
-┣ ${p}play <canción>       › Alias
-┗ ${p}buscar <canción>     › Listar resultados
+*MÚSICA*
+${p}Playsong <canción>  › reproducir audio
+${p}play <canción>      › alias de Playsong
+${p}buscar <canción>    › listar resultados
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   *STICKERS*
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┣ ${p}s                    › Imagen/video/sticker → sticker
-┗ ${p}ttp <texto>          › Texto → sticker
+*STICKERS*
+${p}s                   › imagen / video → sticker
+${p}ttp <texto>         › texto → sticker
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   *TOPS DEL GRUPO*
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┣ ${p}top5 <tema>          › Top 5 aleatorio
-┣ ${p}top10 <tema>         › Top 10 aleatorio
-┗ ${p}count                › Ranking de mensajes
-   _Min. 10 mensajes para aparecer en tops_
+*TOPS*
+${p}top5 <tema>         › top 5 aleatorio del grupo
+${p}top10 <tema>        › top 10 aleatorio del grupo
+${p}count               › ranking de mensajes del grupo
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   *DINAMICAS (% sobre alguien)*
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┣ ${p}ship                 › Empareja 2 al azar
-┣ gay · simp · sexy · rata
-┣ gilipollas · subnormal · imbecil
-┣ capullo · pringado · mamon
-┗ maricon · friki · chorizo · guarro · paleto · cutre
-   _Uso: ${p}<comando> [@user]  —  sin @user te mide a ti_
+*DINÁMICAS*
+${p}ship                › empareja 2 miembros al azar
+${p}gay  ${p}simp  ${p}sexy  ${p}rata
+${p}gilipollas  ${p}subnormal  ${p}imbecil
+${p}capullo  ${p}pringado  ${p}mamon
+${p}maricon  ${p}friki  ${p}chorizo
+${p}guarro  ${p}paleto  ${p}cutre
+_Uso: ${p}<comando> [@mencionar]  —  sin @ te mide a ti_
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   *INTELIGENCIA ARTIFICIAL (Grok)*
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┣ ${p}g <pregunta>         › Pregunta a Grok
-┗ ${p}setgrok <key>        › Configurar key (owner, una sola vez)
-   _Responde a un mensaje con ${p}g para usarlo como contexto_
-   _Sin filtros, cualquier tema_
+*INTELIGENCIA ARTIFICIAL*
+${p}g <pregunta>        › pregunta a Grok (sin filtros)
+${p}setgrok <key>       › configurar API key (owner)
+_Responde a un mensaje con ${p}g para usarlo como contexto_
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   *UTILIDADES*
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┣ ${p}tagall <aviso>       › Etiquetar a todos (admin)
-┣ ${p}kick @user           › Expulsar usuario (admin)
-┣ ${p}promote @user        › Ascender a admin (admin)
-┣ ${p}demote @user         › Degradar admin (admin)
-┣ ${p}mute @user [min]     › Silenciar comandos (admin)
-┣ ${p}unmute @user         › Quitar mute (admin)
-┣ ${p}del                  › Borrar mensaje citado (admin)
-┗ ${p}notifadmin on/off    › Notif. cambios de admin
+*ADMINISTRACIÓN*  _(solo admins)_
+${p}tagall <texto>      › mencionar a todos
+${p}kick @user          › expulsar miembro
+${p}promote @user       › ascender a admin
+${p}demote @user        › degradar a miembro
+${p}mute @user [min]    › silenciar comandos
+${p}unmute @user        › quitar silencio
+${p}del                 › borrar mensaje citado
+${p}notifadmin on/off   › notificaciones de cambios de admin
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   *CONTROL*
-━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┣ ${p}on                   › Activar bot
-┣ ${p}off                  › Desactivar bot
-┣ ${p}ping                 › Latencia
-┗ ${p}info                 › Estado y estadisticas
-
-╔═══════════════════════════╗
-║    Prefijo: *${p}*    │   ${p}Commands
-║       *xz1s (Sebastian)*
-╚═══════════════════════════╝`;
+*CONTROL*
+${p}on                  › activar bot
+${p}off                 › desactivar bot
+${p}ping                › latencia
+${p}info                › estado y estadísticas
+${p}clearcache          › borrar cache de música (owner)`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
