@@ -136,6 +136,7 @@ async function handleMessage(sock, msg) {
         break;
 
       // Group utilities
+      case 'tagall':
       case 'todos':
       case 'all':
       case 'everyone':
@@ -175,7 +176,8 @@ async function handleMessage(sock, msg) {
       case 'pringado':   await percent.cmdPringado(sock, msg); break;
       case 'mamon':
       case 'mamón':      await percent.cmdMamon(sock, msg); break;
-      case 'pijo':       await percent.cmdPijo(sock, msg); break;
+      case 'maricon':
+      case 'maricón':    await percent.cmdMaricon(sock, msg); break;
       case 'friki':      await percent.cmdFriki(sock, msg); break;
       case 'chorizo':    await percent.cmdChorizo(sock, msg); break;
       case 'guarro':     await percent.cmdGuarro(sock, msg); break;

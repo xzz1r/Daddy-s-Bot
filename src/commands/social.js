@@ -65,9 +65,9 @@ async function cmdOff(sock, msg, groupMeta) {
 async function cmdPing(sock, msg) {
   const jid = msg.key.remoteJid;
   const start = Date.now();
-  await sock.sendMessage(jid, { text: '🏓 Pong!' }, { quoted: msg });
+  await sock.sendMessage(jid, { text: '...' }, { quoted: msg });
   const latency = Date.now() - start;
-  await sock.sendMessage(jid, { text: `⚡ Latencia: *${latency}ms*` });
+  await sock.sendMessage(jid, { text: `⚡ *${latency}ms*` });
 }
 
 // !info - bot status
@@ -131,23 +131,11 @@ async function cmdHelp(sock, msg) {
    *DINAMICAS (% sobre alguien)*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ┣ ${p}ship                 › Empareja 2 al azar
-┣ ${p}gay @user
-┣ ${p}simp @user
-┣ ${p}sexy @user
-┣ ${p}rata @user
-┣ ${p}gilipollas @user
-┣ ${p}subnormal @user
-┣ ${p}imbecil @user
-┣ ${p}capullo @user
-┣ ${p}pringado @user
-┣ ${p}mamon @user
-┣ ${p}pijo @user
-┣ ${p}friki @user
-┣ ${p}chorizo @user
-┣ ${p}guarro @user
-┣ ${p}paleto @user
-┗ ${p}cutre @user
-   _Sin @user → te mide a vos mismo_
+┣ gay · simp · sexy · rata
+┣ gilipollas · subnormal · imbecil
+┣ capullo · pringado · mamon
+┗ maricon · friki · chorizo · guarro · paleto · cutre
+   _Uso: ${p}<comando> [@user]  —  sin @user te mide a ti_
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
    *INTELIGENCIA ARTIFICIAL (Grok)*
@@ -160,7 +148,7 @@ async function cmdHelp(sock, msg) {
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
    *UTILIDADES*
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-┣ ${p}todos <aviso>        › Etiquetar a todos (admin)
+┣ ${p}tagall <aviso>       › Etiquetar a todos (admin)
 ┣ ${p}kick @user           › Expulsar usuario (admin)
 ┗ ${p}del                  › Borrar mensaje citado (admin)
 
