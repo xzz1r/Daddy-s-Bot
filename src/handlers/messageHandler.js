@@ -114,7 +114,20 @@ async function handleMessage(sock, msg) {
 
       case 'clearcache':
       case 'borracache':
-        if (isOwner(sender)) await cmdClearCache(sock, msg);
+        if (isOwner(sender)) {
+          await cmdClearCache(sock, msg);
+        } else {
+          const senderNum = sender.replace(/@.+$/, '');
+          await sock.sendMessage(jid, {
+            text: `❌ Solo el owner puede usar este comando.\nTu número detectado: *${senderNum}*\nOwner configurado: *${config.ownerNumber}*`,
+          }, { quoted: msg });
+        }
+        break;
+
+      case 'whoami':
+        await sock.sendMessage(jid, {
+          text: `Tu JID: *${sender}*\nNúmero: *${sender.replace(/@.+$/, '')}*\nOwner: *${isOwner(sender) ? 'Sí' : 'No'}*`,
+        }, { quoted: msg });
         break;
 
       case 's':
