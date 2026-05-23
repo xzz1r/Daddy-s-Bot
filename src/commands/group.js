@@ -1,4 +1,11 @@
+const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const { isOwner } = require('./social');
+
+async function streamToBuffer(stream) {
+  const chunks = [];
+  for await (const chunk of stream) chunks.push(chunk);
+  return Buffer.concat(chunks);
+}
 
 function isAdmin(participants, jid) {
   const p = participants?.find((x) => x.id === jid);
@@ -16,7 +23,7 @@ function isMuted(groupJid, userJid) {
   return true;
 }
 
-// !todos — mention everyone in the group (admin only)
+// !tagall — mention everyone. Forwards media if replying to one, otherwise sends text.
 async function cmdTodos(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
@@ -34,9 +41,47 @@ async function cmdTodos(sock, msg, args, groupMeta) {
   }
 
   const mentions = participants.map((p) => p.id);
-  const text = (args || []).join(' ').trim() || '👋';
+  const caption = (args || []).join(' ').trim();
 
-  await sock.sendMessage(jid, { text, mentions });
+  // Check for media in the command message itself (image/video sent with !tagall as caption)
+  const m = msg.message;
+  const ownImage = m?.imageMessage;
+  const ownVideo = m?.videoMessage;
+
+  if (ownImage) {
+    const buf = await streamToBuffer(await downloadContentFromMessage(ownImage, 'image'));
+    return sock.sendMessage(jid, { image: buf, caption, mentions });
+  }
+  if (ownVideo) {
+    const buf = await streamToBuffer(await downloadContentFromMessage(ownVideo, 'video'));
+    return sock.sendMessage(jid, { video: buf, caption, mentions });
+  }
+
+  // Check for quoted message
+  const ctx = msg.message?.extendedTextMessage?.contextInfo;
+  const quoted = ctx?.quotedMessage;
+
+  if (quoted) {
+    if (quoted.imageMessage) {
+      const buf = await streamToBuffer(await downloadContentFromMessage(quoted.imageMessage, 'image'));
+      return sock.sendMessage(jid, { image: buf, caption: caption || quoted.imageMessage.caption || '', mentions });
+    }
+    if (quoted.videoMessage) {
+      const buf = await streamToBuffer(await downloadContentFromMessage(quoted.videoMessage, 'video'));
+      return sock.sendMessage(jid, { video: buf, caption: caption || quoted.videoMessage.caption || '', mentions });
+    }
+    if (quoted.audioMessage) {
+      const buf = await streamToBuffer(await downloadContentFromMessage(quoted.audioMessage, 'audio'));
+      return sock.sendMessage(jid, { audio: buf, mimetype: quoted.audioMessage.mimetype || 'audio/mp4', mentions });
+    }
+    // Quoted text
+    const quotedText = quoted.conversation || quoted.extendedTextMessage?.text || '';
+    return sock.sendMessage(jid, { text: caption || quotedText, mentions });
+  }
+
+  // Plain text
+  if (caption) return sock.sendMessage(jid, { text: caption, mentions });
+  return sock.sendMessage(jid, { text: '📢', mentions });
 }
 
 // !kick @user — remove a member (admin only)
