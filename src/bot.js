@@ -9,7 +9,7 @@ const pino = require('pino');
 const path = require('path');
 const fs = require('fs-extra');
 const qrcode = require('qrcode-terminal');
-const { handleMessage } = require('./handlers/messageHandler');
+const { handleMessage, invalidateGroupMeta } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled } = require('./utils/state');
 const { isBusiness } = require('./utils/businessCheck');
 const { ensureTemp } = require('./utils/helpers');
@@ -122,27 +122,47 @@ async function connectToWhatsApp() {
 
   // Group events: anti-business on join, anti-admin + notifications on promote/demote
   sock.ev.on('group-participants.update', async ({ id: groupJid, author, participants, action }) => {
-    // Anti-business: kick WhatsApp Business accounts that just joined
+    // Any participant change invalidates the cached metadata for that group —
+    // otherwise commands run within 30s of a join/kick see stale member lists.
+    invalidateGroupMeta(groupJid);
+
+    const botPhone = sock.user?.id ? sock.user.id.split('@')[0].split(':')[0] : '';
+
+    // Anti-business: kick WhatsApp Business accounts that just joined.
+    // Parallel check across all new joiners — keeps response time flat when
+    // multiple users join at once via group link.
     if (action === 'add' && isAntiBusinessEnabled(groupJid)) {
-      for (const newJid of participants) {
+      const candidates = participants.filter(jid => {
+        if (!jid) return false;
+        const phone = jid.split('@')[0].split(':')[0];
+        return phone !== botPhone; // never try to kick self
+      });
+
+      await Promise.all(candidates.map(async (newJid) => {
+        let biz;
         try {
-          if (!(await isBusiness(sock, newJid))) continue;
+          biz = await isBusiness(sock, newJid);
+        } catch (err) {
+          logger.warn(`Anti-empresa: chequeo fallo para ${newJid}: ${err.message}`);
+          return;
+        }
+        if (!biz) return;
+        try {
           await sock.groupParticipantsUpdate(groupJid, [newJid], 'remove');
           const num = newJid.split('@')[0];
           sock.sendMessage(groupJid, {
             text: `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada automaticamente.`,
             mentions: [newJid],
-          }).catch(() => {});
+          }).catch((e) => logger.warn(`Anti-empresa: send fallo en ${groupJid}: ${e.message}`));
         } catch (err) {
-          logger.warn(`Anti-empresa fallo en ${newJid}: ${err.message}`);
+          logger.warn(`Anti-empresa: kick fallo para ${newJid} en ${groupJid} (¿bot no es admin?): ${err.message}`);
         }
-      }
+      }));
       return;
     }
 
     if (action !== 'promote' && action !== 'demote') return;
 
-    const botPhone = sock.user?.id ? sock.user.id.split('@')[0].split(':')[0] : '';
     const authorPhone = author ? author.split('@')[0].split(':')[0] : '';
     const fromBot = botPhone && authorPhone === botPhone;
 

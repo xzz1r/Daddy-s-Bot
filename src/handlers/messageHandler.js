@@ -26,18 +26,30 @@ const NEEDS_META = new Set([
   'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness',
 ]);
 
-// Group metadata cache with 30s TTL — avoids repeated network calls
+// Group metadata cache: 30s TTL, bounded at 500 entries (FIFO eviction).
+// Bot.js calls invalidateGroupMeta() on participant changes so the cache
+// never serves stale member lists right after joins/kicks/promotes.
+const META_TTL = 30_000;
+const META_MAX = 500;
 const metaCache = new Map();
+
 async function getGroupMeta(sock, jid) {
   const c = metaCache.get(jid);
-  if (c && Date.now() - c.ts < 30_000) return c.meta;
+  if (c && Date.now() - c.ts < META_TTL) return c.meta;
   try {
     const meta = await sock.groupMetadata(jid);
+    if (metaCache.size >= META_MAX) {
+      metaCache.delete(metaCache.keys().next().value);
+    }
     metaCache.set(jid, { meta, ts: Date.now() });
     return meta;
   } catch {
     return c?.meta ?? null;
   }
+}
+
+function invalidateGroupMeta(jid) {
+  metaCache.delete(jid);
 }
 
 function extractText(msg) {
@@ -272,4 +284,4 @@ async function handleMessage(sock, msg) {
   if (config.autoTyping) sock.sendPresenceUpdate('paused', jid).catch(() => {});
 }
 
-module.exports = { handleMessage };
+module.exports = { handleMessage, invalidateGroupMeta };
