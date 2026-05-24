@@ -138,7 +138,8 @@ async function cmdTtp(sock, msg, args) {
 
   try {
     const { imageToSticker } = require('../utils/sticker');
-    const author = msg.pushName?.trim() || msg.key.remoteJid.split('@')[0];
+    const senderJid = msg.key.participant || msg.key.remoteJid;
+    const author = msg.pushName?.trim() || senderJid.split('@')[0].split(':')[0] || 'Anonimo';
     const buffer = await textToStickerBuffer(text);
     // Run through addStickerMeta by piping as WebP into imageToSticker (it'll hit the WebP bypass)
     const stickerBuffer = await imageToSticker(buffer, author);

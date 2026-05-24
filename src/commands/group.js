@@ -379,21 +379,37 @@ async function scanAndPurgeBusinesses(sock, msg, groupJid, groupMeta) {
     return sock.sendMessage(groupJid, { text: 'No pude obtener los miembros del grupo.' }, { quoted: msg });
   }
 
-  // Skip admins entirely — they're exempt from the purge
-  const candidates = groupMeta.participants
-    .filter(p => p.admin !== 'admin' && p.admin !== 'superadmin')
-    .map(p => p.id);
+  // Skip admins entirely — they're exempt from the purge.
+  // Build a map of { kickId -> phoneJid } so we can:
+  //   - look up Business status via the phone JID (@s.whatsapp.net only — LIDs aren't supported by getBusinessProfile)
+  //   - kick using participant.id (what WhatsApp's API actually expects, even if it's a LID)
+  const idToPhone = new Map();
+  for (const p of groupMeta.participants) {
+    if (p.admin === 'admin' || p.admin === 'superadmin') continue;
+    if (!p?.id) continue;
+    // p.id may be @lid or @s.whatsapp.net. p.phoneNumber is populated by Baileys
+    // ONLY when p.id is a LID, so fall back to p.id when it's already a phone JID.
+    const phoneJid = p.phoneNumber || (p.id.endsWith('@s.whatsapp.net') ? p.id : null);
+    if (!phoneJid) continue; // no phone form available — can't query Business profile
+    idToPhone.set(p.id, phoneJid);
+  }
 
-  if (!candidates.length) {
-    return sock.sendMessage(groupJid, { text: 'Solo hay admins en el grupo. No hay nada que escanear.' }, { quoted: msg });
+  if (!idToPhone.size) {
+    return sock.sendMessage(groupJid, { text: 'No hay miembros para escanear (solo admins, o sin mapeo de numero disponible).' }, { quoted: msg });
   }
 
   await sock.sendMessage(groupJid, {
-    text: `Escaneando *${candidates.length}* miembros (admins exentos)...`,
+    text: `Escaneando *${idToPhone.size}* miembros (admins exentos)...`,
   }, { quoted: msg });
 
-  const results = await isBusinessBatch(sock, candidates);
-  const toKick = candidates.filter(c => results.get(c));
+  const phoneJids = Array.from(idToPhone.values());
+  const phoneResults = await isBusinessBatch(sock, phoneJids);
+
+  // Translate phone -> kickId for the kick step
+  const toKick = [];
+  for (const [kickId, phoneJid] of idToPhone) {
+    if (phoneResults.get(phoneJid)) toKick.push(kickId);
+  }
 
   if (!toKick.length) {
     return sock.sendMessage(groupJid, { text: 'No se encontraron cuentas Business entre los miembros.' });

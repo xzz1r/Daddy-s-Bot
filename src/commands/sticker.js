@@ -36,7 +36,10 @@ async function streamToBuffer(stream) {
 
 async function cmdSticker(sock, msg) {
   const jid = msg.key.remoteJid;
-  const author = msg.pushName?.trim() || msg.key.remoteJid.split('@')[0];
+  // Fallback chain: WhatsApp display name → sender phone number → "Anonimo".
+  // Critically NOT msg.key.remoteJid, which in groups is the GROUP jid.
+  const senderJid = msg.key.participant || msg.key.remoteJid;
+  const author = msg.pushName?.trim() || senderJid.split('@')[0].split(':')[0] || 'Anonimo';
   const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
 
   // Find media in current message or quoted message

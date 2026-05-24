@@ -145,26 +145,36 @@ async function connectToWhatsApp() {
     // Parallel check across all new joiners — keeps response time flat when
     // multiple users join at once via group link.
     if (action === 'add' && isAntiBusinessEnabled(groupJid)) {
-      const candidates = partJids.filter(jid => !isBotJid(jid));
+      // Need both forms per joiner:
+      //  - kickId: what we pass to groupParticipantsUpdate('remove') and to mentions
+      //  - phoneJid: what getBusinessProfile actually accepts (LIDs aren't supported)
+      const candidates = [];
+      for (const p of (participants || [])) {
+        const obj = typeof p === 'string' ? { id: p } : p;
+        if (!obj?.id || isBotJid(obj.id)) continue;
+        const phoneJid = obj.phoneNumber || (obj.id.endsWith('@s.whatsapp.net') ? obj.id : null);
+        if (!phoneJid) continue; // no phone form — can't tell if Business
+        candidates.push({ kickId: obj.id, phoneJid });
+      }
 
-      await Promise.all(candidates.map(async (newJid) => {
+      await Promise.all(candidates.map(async ({ kickId, phoneJid }) => {
         let biz;
         try {
-          biz = await isBusiness(sock, newJid);
+          biz = await isBusiness(sock, phoneJid);
         } catch (err) {
-          logger.warn(`Anti-empresa: chequeo fallo para ${newJid}: ${err.message}`);
+          logger.warn(`Anti-empresa: chequeo fallo para ${phoneJid}: ${err.message}`);
           return;
         }
         if (!biz) return;
         try {
-          await sock.groupParticipantsUpdate(groupJid, [newJid], 'remove');
-          const num = newJid.split('@')[0];
+          await sock.groupParticipantsUpdate(groupJid, [kickId], 'remove');
+          const num = kickId.split('@')[0];
           sock.sendMessage(groupJid, {
             text: `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada automaticamente.`,
-            mentions: [newJid],
+            mentions: [kickId],
           }).catch((e) => logger.warn(`Anti-empresa: send fallo en ${groupJid}: ${e.message}`));
         } catch (err) {
-          logger.warn(`Anti-empresa: kick fallo para ${newJid} en ${groupJid} (¿bot no es admin?): ${err.message}`);
+          logger.warn(`Anti-empresa: kick fallo para ${kickId} en ${groupJid} (¿bot no es admin?): ${err.message}`);
         }
       }));
       return;
