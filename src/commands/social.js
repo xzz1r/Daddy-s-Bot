@@ -121,6 +121,7 @@ prefijo *${p}*
 
 *DINAMICAS*
 *${p}ship*   *${p}sexy*   *${p}crack*   *${p}inteligencia*   *${p}cerdo*
+*${p}feminidad*   *${p}masculinidad*   *${p}inutil*
 *${p}gay*   *${p}maricon*   *${p}simp*   *${p}rata*   *${p}friki*
 _Con @ mide a otro miembro. Sin @ te mide a ti._
 

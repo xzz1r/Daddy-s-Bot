@@ -228,6 +228,9 @@ async function handleMessage(sock, msg) {
       case 'crack':          await percent.cmdCrack(sock, msg); break;
       case 'inteligencia':   await percent.cmdInteligencia(sock, msg); break;
       case 'cerdo':          await percent.cmdCerdo(sock, msg); break;
+      case 'feminidad':      await percent.cmdFeminidad(sock, msg); break;
+      case 'masculinidad':   await percent.cmdMasculinidad(sock, msg); break;
+      case 'inutil':         await percent.cmdInutil(sock, msg); break;
 
       case 'on':
         await cmdOn(sock, msg, groupMeta);
