@@ -4,15 +4,21 @@
 
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-// Distribucion sesgada con exponente 1.8.
-// Resultado aproximado por tier:
-//   tier "malo"  (corte/insulto)  ≈ 50%
-//   tier medio                    ≈ 32%
-//   tier "bueno" (halago)         ≈ 18%
+// Distribucion de dinámicas:
+//   Negativo (goodIsHigh=false): 70% alto (≥70%), 20% medio, 10% bajo (≤30%)
+//   Positivo (goodIsHigh=true):  10% alto (≥70%), 20% medio, 70% bajo (≤30%)
+// Dentro de cada tier el valor es uniforme — evita que todo salga en el mismo número.
 function rollPercent(goodIsHigh) {
-  const skewed = Math.pow(Math.random(), 1.8);
-  const p = goodIsHigh ? skewed : 1 - skewed;
-  return Math.floor(p * 101);
+  const rand = Math.random();
+  if (!goodIsHigh) {
+    if (rand < 0.70) return 70 + Math.floor(Math.random() * 31); // 70-100
+    if (rand < 0.90) return 31 + Math.floor(Math.random() * 39); // 31-69
+    return Math.floor(Math.random() * 31);                        // 0-30
+  } else {
+    if (rand < 0.10) return 70 + Math.floor(Math.random() * 31); // 70-100
+    if (rand < 0.30) return 31 + Math.floor(Math.random() * 39); // 31-69
+    return Math.floor(Math.random() * 31);                        // 0-30
+  }
 }
 
 const LABELS = {
