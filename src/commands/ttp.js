@@ -1,6 +1,7 @@
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs-extra');
 const path = require('path');
+const { Readable } = require('stream');
 const { ffmpegPath } = require('../utils/ffmpeg');
 const { tempFile, cleanTemp } = require('../utils/helpers');
 const logger = require('../utils/logger');
@@ -84,17 +85,28 @@ async function textToStickerBuffer(text) {
 
   const outputFile = tempFile('webp');
 
+  // 512x512 RGBA transparent frame piped as rawvideo — avoids needing lavfi
+  const blankFrame = Buffer.alloc(512 * 512 * 4, 0);
+  const inputStream = new Readable({ read() {} });
+  inputStream.push(blankFrame);
+  inputStream.push(null);
+
   await new Promise((resolve, reject) => {
     let stderr = '';
-    ffmpeg()
+    ffmpeg(inputStream)
       .setFfmpegPath(ffmpegPath)
-      .input('color=c=0x00000000:s=512x512:d=1')
-      .inputOptions(['-f', 'lavfi'])
+      .inputOptions([
+        '-f', 'rawvideo',
+        '-pixel_format', 'rgba',
+        '-video_size', '512x512',
+        '-framerate', '1',
+      ])
       .outputOptions([
         '-vf', drawFilters,
         '-c:v', 'libwebp',
         '-frames:v', '1',
         '-q:v', '90',
+        '-pix_fmt', 'rgba',
         '-an',
         '-y',
       ])

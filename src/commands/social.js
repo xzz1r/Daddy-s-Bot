@@ -121,6 +121,9 @@ ${p}count               .  ranking de mensajes del grupo
 *DINAMICAS*
 ${p}ship                .  empareja 2 miembros al azar
 ${p}sexy                .  % de atractivo
+${p}crack               .  % de nivel y talento
+${p}capo                .  % de liderazgo
+${p}listo               .  % de inteligencia
 ${p}gay  ${p}maricon  ${p}simp  ${p}rata  ${p}friki
 _Uso: ${p}<comando> [@mencionar]  —  sin @ te mide a ti_
 
