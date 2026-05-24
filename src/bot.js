@@ -126,17 +126,26 @@ async function connectToWhatsApp() {
     // otherwise commands run within 30s of a join/kick see stale member lists.
     invalidateGroupMeta(groupJid);
 
-    const botPhone = sock.user?.id ? sock.user.id.split('@')[0].split(':')[0] : '';
+    // Newer Baileys emits participants as objects { id, phoneNumber, lid, admin, ... }.
+    // Older versions used plain JID strings. Normalize to an array of JID strings.
+    const partJids = (participants || [])
+      .map(p => (typeof p === 'string' ? p : p?.id))
+      .filter(Boolean);
+
+    // Bot detection covers both phone JID (older groups) and LID (newer groups).
+    const botJids = [sock.user?.id, sock.user?.lid].filter(Boolean);
+    const botIds = new Set(botJids.map(j => j.split('@')[0].split(':')[0]));
+    const isBotJid = (jid) => {
+      if (!jid) return false;
+      const base = String(jid).split('@')[0].split(':')[0];
+      return botIds.has(base);
+    };
 
     // Anti-business: kick WhatsApp Business accounts that just joined.
     // Parallel check across all new joiners — keeps response time flat when
     // multiple users join at once via group link.
     if (action === 'add' && isAntiBusinessEnabled(groupJid)) {
-      const candidates = participants.filter(jid => {
-        if (!jid) return false;
-        const phone = jid.split('@')[0].split(':')[0];
-        return phone !== botPhone; // never try to kick self
-      });
+      const candidates = partJids.filter(jid => !isBotJid(jid));
 
       await Promise.all(candidates.map(async (newJid) => {
         let biz;
@@ -163,15 +172,14 @@ async function connectToWhatsApp() {
 
     if (action !== 'promote' && action !== 'demote') return;
 
-    const authorPhone = author ? author.split('@')[0].split(':')[0] : '';
-    const fromBot = botPhone && authorPhone === botPhone;
+    const fromBot = isBotJid(author);
 
-    const targets = participants.map(jid => `@${jid.split('@')[0]}`).join(', ');
-    const authorTag = author ? `@${author.split('@')[0]}` : 'Alguien';
+    const targets = partJids.map(jid => `@${jid.split('@')[0]}`).join(', ');
+    const authorTag = author ? `@${String(author).split('@')[0]}` : 'Alguien';
 
     // Anti-admin: revert any promote that didn't come from the bot owner
     if (action === 'promote' && !fromBot && isAntiAdminEnabled(groupJid)) {
-      const toDemote = Array.from(new Set([...(author ? [author] : []), ...participants]));
+      const toDemote = Array.from(new Set([...(author ? [author] : []), ...partJids]));
       try {
         await sock.groupParticipantsUpdate(groupJid, toDemote, 'demote');
         const text =
@@ -179,7 +187,9 @@ async function connectToWhatsApp() {
           `${authorTag} intento dar admin a ${targets}.\n` +
           `Ambos han sido degradados automaticamente.`;
         sock.sendMessage(groupJid, { text, mentions: toDemote }).catch(() => {});
-      } catch {}
+      } catch (err) {
+        logger.warn(`Anti-admin: demote fallo en ${groupJid}: ${err.message}`);
+      }
       return; // skip the regular notification — the anti-admin one already explains it
     }
 
@@ -188,7 +198,7 @@ async function connectToWhatsApp() {
       const text = action === 'promote'
         ? `${authorTag} ha dado admin a ${targets}.`
         : `${authorTag} ha quitado admin a ${targets}.`;
-      const mentions = [...participants, ...(author ? [author] : [])];
+      const mentions = [...partJids, ...(author ? [author] : [])];
       sock.sendMessage(groupJid, { text, mentions }).catch(() => {});
     }
   });
