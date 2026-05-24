@@ -138,7 +138,8 @@ _Responde a un mensaje con ${p}g para dar contexto_
 *${p}del*                 borrar mensaje citado
 *${p}notifadmin* on/off   notificaciones de admin
 *${p}antiadmin* on/off    bloquear ascensos no autorizados
-_Solo admins. !antiadmin es solo owner._
+*${p}antiempresa* on/off/scan  expulsar cuentas Business
+_Solo admins. !antiadmin y !antiempresa solo owner._
 
 *CONTROL*
 *${p}on*                  activar bot

@@ -10,7 +10,8 @@ const path = require('path');
 const fs = require('fs-extra');
 const qrcode = require('qrcode-terminal');
 const { handleMessage } = require('./handlers/messageHandler');
-const { initState, isAdminNotifyEnabled, isAntiAdminEnabled } = require('./utils/state');
+const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled } = require('./utils/state');
+const { isBusiness } = require('./utils/businessCheck');
 const { ensureTemp } = require('./utils/helpers');
 const logger = require('./utils/logger');
 const config = require('./config');
@@ -119,8 +120,26 @@ async function connectToWhatsApp() {
 
   sock.ev.on('creds.update', saveCreds);
 
-  // Admin change notifications + anti-admin enforcement
+  // Group events: anti-business on join, anti-admin + notifications on promote/demote
   sock.ev.on('group-participants.update', async ({ id: groupJid, author, participants, action }) => {
+    // Anti-business: kick WhatsApp Business accounts that just joined
+    if (action === 'add' && isAntiBusinessEnabled(groupJid)) {
+      for (const newJid of participants) {
+        try {
+          if (!(await isBusiness(sock, newJid))) continue;
+          await sock.groupParticipantsUpdate(groupJid, [newJid], 'remove');
+          const num = newJid.split('@')[0];
+          sock.sendMessage(groupJid, {
+            text: `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada automaticamente.`,
+            mentions: [newJid],
+          }).catch(() => {});
+        } catch (err) {
+          logger.warn(`Anti-empresa fallo en ${newJid}: ${err.message}`);
+        }
+      }
+      return;
+    }
+
     if (action !== 'promote' && action !== 'demote') return;
 
     const botPhone = sock.user?.id ? sock.user.id.split('@')[0].split(':')[0] : '';

@@ -110,5 +110,21 @@ async function toggleAntiAdmin(jid, enable) {
   await saveState(_state);
 }
 
-module.exports = { initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin };
+// Sync — anti-business is OFF by default. When ON, WhatsApp Business accounts
+// joining the group are kicked automatically.
+function isAntiBusinessEnabled(jid) {
+  return (_state.antiBusinessEnabled || []).includes(jid);
+}
+
+async function toggleAntiBusiness(jid, enable) {
+  if (!_state.antiBusinessEnabled) _state.antiBusinessEnabled = [];
+  if (enable) {
+    if (!_state.antiBusinessEnabled.includes(jid)) _state.antiBusinessEnabled.push(jid);
+  } else {
+    _state.antiBusinessEnabled = _state.antiBusinessEnabled.filter(g => g !== jid);
+  }
+  await saveState(_state);
+}
+
+module.exports = { initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness };
 

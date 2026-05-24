@@ -1,6 +1,7 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const { isOwner } = require('./social');
-const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled } = require('../utils/state');
+const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled } = require('../utils/state');
+const { isBusinessBatch } = require('../utils/businessCheck');
 
 async function streamToBuffer(stream) {
   const chunks = [];
@@ -336,4 +337,78 @@ async function cmdAntiAdmin(sock, msg, args) {
   }, { quoted: msg });
 }
 
-module.exports = { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, isMuted, isAdmin };
+// !antiempresa on/off/scan — owner only. Auto-kicks WhatsApp Business accounts.
+async function cmdAntiBusiness(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+  }
+  const sender = msg.key.participant || msg.key.remoteJid;
+  if (!isOwner(sender, msg.key.fromMe)) {
+    return sock.sendMessage(jid, { text: 'Solo el owner del bot puede activar esto.' }, { quoted: msg });
+  }
+
+  const arg = (args[0] || '').toLowerCase();
+
+  if (arg === 'scan') {
+    return scanAndPurgeBusinesses(sock, msg, jid, groupMeta);
+  }
+
+  if (arg !== 'on' && arg !== 'off') {
+    const current = isAntiBusinessEnabled(jid) ? 'activado' : 'desactivado';
+    return sock.sendMessage(jid, {
+      text:
+        `Anti-empresa: *${current}*\n\n` +
+        `*!antiempresa on*    activar (Business nuevas son expulsadas)\n` +
+        `*!antiempresa off*   desactivar\n` +
+        `*!antiempresa scan*  barrer Business actuales del grupo`,
+    }, { quoted: msg });
+  }
+
+  const enable = arg === 'on';
+  await toggleAntiBusiness(jid, enable);
+  await sock.sendMessage(jid, {
+    text: enable
+      ? 'Anti-empresa *activado*.\nCuando una cuenta de WhatsApp Business entre al grupo, sera expulsada automaticamente.\n\nUsa *!antiempresa scan* para barrer las que ya estan dentro.'
+      : 'Anti-empresa *desactivado*.',
+  }, { quoted: msg });
+}
+
+async function scanAndPurgeBusinesses(sock, msg, groupJid, groupMeta) {
+  if (!groupMeta?.participants?.length) {
+    return sock.sendMessage(groupJid, { text: 'No pude obtener los miembros del grupo.' }, { quoted: msg });
+  }
+
+  // Skip admins entirely — they're exempt from the purge
+  const candidates = groupMeta.participants
+    .filter(p => p.admin !== 'admin' && p.admin !== 'superadmin')
+    .map(p => p.id);
+
+  if (!candidates.length) {
+    return sock.sendMessage(groupJid, { text: 'Solo hay admins en el grupo. No hay nada que escanear.' }, { quoted: msg });
+  }
+
+  await sock.sendMessage(groupJid, {
+    text: `Escaneando *${candidates.length}* miembros (admins exentos)...`,
+  }, { quoted: msg });
+
+  const results = await isBusinessBatch(sock, candidates);
+  const toKick = candidates.filter(c => results.get(c));
+
+  if (!toKick.length) {
+    return sock.sendMessage(groupJid, { text: 'No se encontraron cuentas Business entre los miembros.' });
+  }
+
+  try {
+    await sock.groupParticipantsUpdate(groupJid, toKick, 'remove');
+    const tags = toKick.map(j => `@${j.split('@')[0]}`).join(', ');
+    await sock.sendMessage(groupJid, {
+      text: `*Anti-empresa:* expulsadas *${toKick.length}* cuentas Business.\n${tags}`,
+      mentions: toKick,
+    });
+  } catch (err) {
+    await sock.sendMessage(groupJid, { text: `Error al expulsar: ${err.message}` });
+  }
+}
+
+module.exports = { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, isAdmin };
