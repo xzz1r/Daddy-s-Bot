@@ -146,7 +146,7 @@ _Solo admins_
 *OWNER*
 *${p}setgrok* <key>       configurar API key de Grok
 *${p}clearcache*          borrar cache de musica
-_Solo xz1s_`;
+_Solo owner del bot_`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }

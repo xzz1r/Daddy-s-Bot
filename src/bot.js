@@ -119,22 +119,17 @@ async function connectToWhatsApp() {
 
   sock.ev.on('creds.update', saveCreds);
 
-  // Admin change notifications — tagall-style ping when promote/demote happens
-  // Shows both the author (who performed the change) and the target, with their numbers visible
-  sock.ev.on('group-participants.update', async ({ id: groupJid, author, participants, action }) => {
+  // Admin change notifications — fires when any promote/demote happens in a group
+  sock.ev.on('group-participants.update', ({ id: groupJid, author, participants, action }) => {
     if (action !== 'promote' && action !== 'demote') return;
     if (!isAdminNotifyEnabled(groupJid)) return;
-    try {
-      const meta = await sock.groupMetadata(groupJid);
-      const allJids = meta.participants.map(p => p.id);
-      const targets = participants.map(jid => `@${jid.split('@')[0]}`).join(', ');
-      const authorTag = author ? `@${author.split('@')[0]}` : 'Alguien';
-      const text = action === 'promote'
-        ? `${authorTag} ha ascendido a admin a ${targets}.`
-        : `${authorTag} ha degradado a miembro a ${targets}.`;
-      const mentions = Array.from(new Set([...allJids, ...participants, ...(author ? [author] : [])]));
-      sock.sendMessage(groupJid, { text, mentions }).catch(() => {});
-    } catch {}
+    const targets = participants.map(jid => `@${jid.split('@')[0]}`).join(', ');
+    const authorTag = author ? `@${author.split('@')[0]}` : 'Alguien';
+    const text = action === 'promote'
+      ? `${authorTag} ha dado admin a ${targets}.`
+      : `${authorTag} ha quitado admin a ${targets}.`;
+    const mentions = [...participants, ...(author ? [author] : [])];
+    sock.sendMessage(groupJid, { text, mentions }).catch(() => {});
   });
 
   sock.ev.on('messages.upsert', ({ messages, type }) => {
