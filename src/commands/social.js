@@ -112,6 +112,7 @@ prefijo *${p}*
 *${p}s*                   imagen o video a sticker
 *${p}ttp* <texto>         texto a sticker
 *${p}toimg*              sticker a imagen
+*${p}pfp* @user          foto de perfil de alguien
 
 *TOPS*
 *${p}top5* <tema>         top 5 aleatorio del grupo
