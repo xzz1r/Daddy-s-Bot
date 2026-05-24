@@ -36,6 +36,7 @@ async function streamToBuffer(stream) {
 
 async function cmdSticker(sock, msg) {
   const jid = msg.key.remoteJid;
+  const author = msg.pushName?.trim() || msg.key.remoteJid.split('@')[0];
   const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
 
   // Find media in current message or quoted message
@@ -64,19 +65,19 @@ async function cmdSticker(sock, msg) {
   let stickerBuffer;
   try {
     if (found.type === 'video') {
-      stickerBuffer = await videoToSticker(buffer);
+      stickerBuffer = await videoToSticker(buffer, author);
     } else if (found.type === 'sticker') {
       // Re-encode existing sticker to re-stamp metadata with our pack
       const mime = found.msg.mimetype || '';
       const isAnimated = found.msg.isAnimated === true || mime.includes('animated');
       stickerBuffer = isAnimated
-        ? await videoToSticker(buffer)
-        : await imageToSticker(buffer);
+        ? await videoToSticker(buffer, author)
+        : await imageToSticker(buffer, author);
     } else {
       const mime = found.msg.mimetype || '';
       stickerBuffer = mime.includes('gif')
-        ? await gifToSticker(buffer)
-        : await imageToSticker(buffer);
+        ? await gifToSticker(buffer, author)
+        : await imageToSticker(buffer, author);
     }
   } catch (err) {
     logger.error(`Sticker conversion error: ${err.message}`);

@@ -14,7 +14,7 @@ const config = {
 
   // Sticker settings
   sticker: {
-    pack: 'xz1s (Sebastian)',
+    pack: "Daddy's Bot (Xz1s)",
     author: 'xz1s (Sebastian)',
     quality: 100,
     fps: 60,

@@ -119,8 +119,8 @@ function injectExifIntoWebP(webp, exifBuf) {
   return Buffer.concat([header, body]);
 }
 
-function addStickerMeta(webpBuffer) {
-  const exif = buildExif(config.sticker.pack, config.sticker.author);
+function addStickerMeta(webpBuffer, author) {
+  const exif = buildExif(config.sticker.pack, author || config.sticker.author);
   // Binary injection is pure buffer ops — no parsing overhead, no double-load
   try {
     return injectExifIntoWebP(webpBuffer, exif);
@@ -138,12 +138,12 @@ function addStickerMeta(webpBuffer) {
   }
 }
 
-async function imageToSticker(imageBuffer) {
+async function imageToSticker(imageBuffer, author) {
   const ext = detectExt(imageBuffer);
   if (!ext) throw new Error('Formato de imagen no reconocido');
 
   // WebP: inject metadata directly — no ffmpeg needed
-  if (ext === 'webp') return addStickerMeta(imageBuffer);
+  if (ext === 'webp') return addStickerMeta(imageBuffer, author);
 
   const inputFile = tempFile(ext);
   const outputFile = tempFile('webp');
@@ -161,7 +161,7 @@ async function imageToSticker(imageBuffer) {
     ]);
     const webpBuffer = await fs.readFile(outputFile);
     if (webpBuffer.length < 100) throw new Error('Sticker generado vacío');
-    return addStickerMeta(webpBuffer);
+    return addStickerMeta(webpBuffer, author);
   } finally {
     await cleanTemp(inputFile);
     await cleanTemp(outputFile);
@@ -215,10 +215,10 @@ function encodeAnimWebp(inputFile, outputFile, fps, quality) {
   });
 }
 
-async function videoToSticker(videoBuffer) {
+async function videoToSticker(videoBuffer, author) {
   const detected = detectExt(videoBuffer);
 
-  if (detected === 'webp') return addStickerMeta(videoBuffer);
+  if (detected === 'webp') return addStickerMeta(videoBuffer, author);
 
   const ext = detected || 'mp4';
   const inputFile = tempFile(ext);
@@ -233,15 +233,15 @@ async function videoToSticker(videoBuffer) {
       if (buf.length >= 100 && buf.length <= MAX_STICKER_BYTES) break;
     }
     if (!buf || buf.length < 100) throw new Error('Sticker animado vacío');
-    return addStickerMeta(buf);
+    return addStickerMeta(buf, author);
   } finally {
     await cleanTemp(inputFile);
     await cleanTemp(outputFile);
   }
 }
 
-async function gifToSticker(gifBuffer) {
-  return videoToSticker(gifBuffer);
+async function gifToSticker(gifBuffer, author) {
+  return videoToSticker(gifBuffer, author);
 }
 
 module.exports = { imageToSticker, videoToSticker, gifToSticker };
