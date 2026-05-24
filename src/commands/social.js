@@ -101,53 +101,57 @@ async function cmdHelp(sock, msg) {
   const p = config.prefix;
 
   const text =
-`*${config.botName}*  .  by xz1s (Sebastian)
-Prefijo: *${p}*
+`*${config.botName}*  by xz1s
+prefijo *${p}*
 
 *MUSICA*
-${p}Playsong <cancion>  .  reproducir audio
-${p}play <cancion>      .  alias de Playsong
-${p}buscar <cancion>    .  listar resultados
+*${p}play* <cancion>      reproducir audio
+*${p}buscar* <cancion>    buscar canciones
 
 *STICKERS*
-${p}s                   .  imagen / video a sticker
-${p}ttp <texto>         .  texto a sticker
+*${p}s*                   imagen o video a sticker
+*${p}ttp* <texto>         texto a sticker
 
 *TOPS*
-${p}top5 <tema>         .  top 5 aleatorio del grupo
-${p}top10 <tema>        .  top 10 aleatorio del grupo
-${p}count               .  ranking de mensajes del grupo
+*${p}top5* <tema>         top 5 aleatorio del grupo
+*${p}top10* <tema>        top 10 aleatorio del grupo
+*${p}count*               ranking de mensajes
 
 *DINAMICAS*
-${p}ship                .  empareja 2 miembros al azar
-${p}sexy                .  % de atractivo
-${p}crack               .  % de nivel y talento
-${p}capo                .  % de liderazgo
-${p}listo               .  % de inteligencia
-${p}gay  ${p}maricon  ${p}simp  ${p}rata  ${p}friki
-_Uso: ${p}<comando> [@mencionar]  —  sin @ te mide a ti_
+*${p}ship*                emparejar 2 miembros al azar
+*${p}sexy*                nivel de atractivo
+*${p}crack*               nivel de talento
+*${p}capo*                nivel de liderazgo
+*${p}listo*               nivel de inteligencia
+*${p}gay*                 nivel de gay
+*${p}maricon*             nivel de maricon
+*${p}simp*                nivel de simp
+*${p}rata*                nivel de rata
+*${p}friki*               nivel de friki
+_Con @ mide a otro miembro. Sin @ te mide a ti._
 
 *INTELIGENCIA ARTIFICIAL*
-${p}g <pregunta>        .  pregunta a Grok (sin filtros)
-${p}setgrok <key>       .  configurar API key (owner)
-_Responde a un mensaje con ${p}g para usarlo como contexto_
+*${p}g* <pregunta>        Grok sin filtros
+*${p}setgrok* <key>       configurar API key
+_Responde a un mensaje con ${p}g para dar contexto_
 
-*ADMINISTRACION*  _(solo admins)_
-${p}tagall <texto>      .  mencionar a todos
-${p}kick @user          .  expulsar miembro
-${p}promote @user       .  ascender a admin
-${p}demote @user        .  degradar a miembro
-${p}mute @user [min]    .  silenciar comandos
-${p}unmute @user        .  quitar silencio
-${p}del                 .  borrar mensaje citado
-${p}notifadmin on/off   .  notificaciones de cambios de admin
+*ADMINISTRACION*
+*${p}tagall* <texto>      mencionar a todos
+*${p}kick* @user          expulsar miembro
+*${p}promote* @user       ascender a admin
+*${p}demote* @user        degradar a miembro
+*${p}mute* @user [min]    silenciar comandos
+*${p}unmute* @user        quitar silencio
+*${p}del*                 borrar mensaje citado
+*${p}notifadmin* on/off   notificaciones de admin
+_Solo admins_
 
 *CONTROL*
-${p}on                  .  activar bot
-${p}off                 .  desactivar bot
-${p}ping                .  latencia
-${p}info                .  estado y estadisticas
-${p}clearcache          .  borrar cache de musica (owner)`;
+*${p}on*                  activar bot
+*${p}off*                 desactivar bot
+*${p}ping*                latencia
+*${p}info*                estado y estadisticas
+*${p}clearcache*          borrar cache de musica`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
