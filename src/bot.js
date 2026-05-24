@@ -144,39 +144,62 @@ async function connectToWhatsApp() {
     // Anti-business: kick WhatsApp Business accounts that just joined.
     // Parallel check across all new joiners — keeps response time flat when
     // multiple users join at once via group link.
-    if (action === 'add' && isAntiBusinessEnabled(groupJid)) {
-      // Need both forms per joiner:
-      //  - kickId: what we pass to groupParticipantsUpdate('remove') and to mentions
-      //  - phoneJid: what getBusinessProfile actually accepts (LIDs aren't supported)
-      const candidates = [];
-      for (const p of (participants || [])) {
-        const obj = typeof p === 'string' ? { id: p } : p;
-        if (!obj?.id || isBotJid(obj.id)) continue;
-        const phoneJid = obj.phoneNumber || (obj.id.endsWith('@s.whatsapp.net') ? obj.id : null);
-        if (!phoneJid) continue; // no phone form — can't tell if Business
-        candidates.push({ kickId: obj.id, phoneJid });
+    if (action === 'add') {
+      const fromBot = isBotJid(author);
+      const authorTag = author ? `@${String(author).split('@')[0]}` : 'Alguien';
+
+      if (isAntiBusinessEnabled(groupJid)) {
+        // Need both forms per joiner:
+        //  - kickId: what we pass to groupParticipantsUpdate('remove') and to mentions
+        //  - phoneJid: what getBusinessProfile actually accepts (LIDs aren't supported)
+        const candidates = [];
+        for (const p of (participants || [])) {
+          const obj = typeof p === 'string' ? { id: p } : p;
+          if (!obj?.id || isBotJid(obj.id)) continue;
+          const phoneJid = obj.phoneNumber || (obj.id.endsWith('@s.whatsapp.net') ? obj.id : null);
+          if (!phoneJid) continue;
+          candidates.push({ kickId: obj.id, phoneJid });
+        }
+
+        await Promise.all(candidates.map(async ({ kickId, phoneJid }) => {
+          let biz;
+          try {
+            biz = await isBusiness(sock, phoneJid);
+          } catch (err) {
+            logger.warn(`Anti-empresa: chequeo fallo para ${phoneJid}: ${err.message}`);
+            return;
+          }
+          if (!biz) return;
+          try {
+            await sock.groupParticipantsUpdate(groupJid, [kickId], 'remove');
+            const num = kickId.split('@')[0];
+            sock.sendMessage(groupJid, {
+              text: `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada automaticamente.`,
+              mentions: [kickId],
+            }).catch((e) => logger.warn(`Anti-empresa: send fallo en ${groupJid}: ${e.message}`));
+          } catch (err) {
+            logger.warn(`Anti-empresa: kick fallo para ${kickId} en ${groupJid} (¿bot no es admin?): ${err.message}`);
+          }
+        }));
       }
 
-      await Promise.all(candidates.map(async ({ kickId, phoneJid }) => {
-        let biz;
-        try {
-          biz = await isBusiness(sock, phoneJid);
-        } catch (err) {
-          logger.warn(`Anti-empresa: chequeo fallo para ${phoneJid}: ${err.message}`);
-          return;
+      // Anti-admin: kick anyone added by a non-owner admin (bot is the only one allowed to add).
+      if (!fromBot && author && isAntiAdminEnabled(groupJid)) {
+        const toKick = partJids.filter(jid => !isBotJid(jid));
+        if (toKick.length) {
+          try {
+            await sock.groupParticipantsUpdate(groupJid, toKick, 'remove');
+            const tags = toKick.map(j => `@${j.split('@')[0]}`).join(', ');
+            sock.sendMessage(groupJid, {
+              text: `*Anti-admin:* ${authorTag} agrego a ${tags} sin permiso del owner. Expulsados automaticamente.`,
+              mentions: [...toKick, author],
+            }).catch(() => {});
+          } catch (err) {
+            logger.warn(`Anti-admin: kick added member fallo en ${groupJid}: ${err.message}`);
+          }
         }
-        if (!biz) return;
-        try {
-          await sock.groupParticipantsUpdate(groupJid, [kickId], 'remove');
-          const num = kickId.split('@')[0];
-          sock.sendMessage(groupJid, {
-            text: `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada automaticamente.`,
-            mentions: [kickId],
-          }).catch((e) => logger.warn(`Anti-empresa: send fallo en ${groupJid}: ${e.message}`));
-        } catch (err) {
-          logger.warn(`Anti-empresa: kick fallo para ${kickId} en ${groupJid} (¿bot no es admin?): ${err.message}`);
-        }
-      }));
+      }
+
       return;
     }
 
