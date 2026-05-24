@@ -1,23 +1,45 @@
-// Dinamicas con % aleatorio sesgado: salir "bien" es raro (~18%).
-// goodIsHigh: true  → comando positivo (sexy, crack...), % alto = bueno
-// goodIsHigh: false → comando negativo (gay, simp...), % alto = corte
-
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-// Distribucion de dinámicas:
-//   Negativo (goodIsHigh=false): 70% alto (≥70%), 20% medio, 10% bajo (≤30%)
-//   Positivo (goodIsHigh=true):  10% alto (≥70%), 20% medio, 70% bajo (≤30%)
-// Dentro de cada tier el valor es uniforme — evita que todo salga en el mismo número.
-function rollPercent(goodIsHigh) {
+function isAdminInGroup(groupMeta, jid) {
+  if (!groupMeta?.participants || !jid) return false;
+  const p = groupMeta.participants.find(p => p.id === jid);
+  return p?.admin === 'admin' || p?.admin === 'superadmin';
+}
+
+// Distribuciones por tier (uniforme dentro de cada rango):
+//
+//                    │ alto ≥70% │ medio 31-69% │ bajo ≤30%
+//  ─────────────────┼───────────┼──────────────┼──────────
+//  Negativo normal  │   70 %    │    20 %       │   10 %
+//  Negativo admin   │   10 %    │    25 %       │   65 %
+//  Positivo normal  │   35 %    │    30 %       │   35 %
+//  Positivo admin   │   65 %    │    25 %       │   10 %
+function rollPercent(goodIsHigh, senderIsAdmin) {
   const rand = Math.random();
+  const hi = () => 70 + Math.floor(Math.random() * 31);
+  const mid = () => 31 + Math.floor(Math.random() * 39);
+  const lo = () => Math.floor(Math.random() * 31);
+
   if (!goodIsHigh) {
-    if (rand < 0.70) return 70 + Math.floor(Math.random() * 31); // 70-100
-    if (rand < 0.90) return 31 + Math.floor(Math.random() * 39); // 31-69
-    return Math.floor(Math.random() * 31);                        // 0-30
+    // Negativo: normalmente resulta alto (malo), admins se libran
+    if (senderIsAdmin) {
+      if (rand < 0.65) return lo();
+      if (rand < 0.90) return mid();
+      return hi();
+    }
+    if (rand < 0.70) return hi();
+    if (rand < 0.90) return mid();
+    return lo();
   } else {
-    if (rand < 0.10) return 70 + Math.floor(Math.random() * 31); // 70-100
-    if (rand < 0.30) return 31 + Math.floor(Math.random() * 39); // 31-69
-    return Math.floor(Math.random() * 31);                        // 0-30
+    // Positivo: probabilidad intermedia para todos, alta para admins
+    if (senderIsAdmin) {
+      if (rand < 0.65) return hi();
+      if (rand < 0.90) return mid();
+      return lo();
+    }
+    if (rand < 0.35) return hi();
+    if (rand < 0.65) return mid();
+    return lo();
   }
 }
 
@@ -682,13 +704,16 @@ function extractTarget(msg) {
   return msg.key.participant || msg.key.remoteJid;
 }
 
-async function runPercent(sock, msg, key) {
+async function runPercent(sock, msg, key, groupMeta) {
   const jid = msg.key.remoteJid;
   const cfg = LABELS[key];
   if (!cfg) return;
 
+  const sender = msg.key.participant || msg.key.remoteJid;
+  const senderIsAdmin = isAdminInGroup(groupMeta, sender);
+
   const target = extractTarget(msg);
-  const percent = rollPercent(cfg.goodIsHigh);
+  const percent = rollPercent(cfg.goodIsHigh, senderIsAdmin);
   const verdict = percent >= 70 ? pick(cfg.high) : percent <= 30 ? pick(cfg.low) : pick(cfg.mid);
   const finale = pick(cfg.extreme);
 
@@ -700,7 +725,7 @@ async function runPercent(sock, msg, key) {
   await sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });
 }
 
-const makeCmd = (key) => (sock, msg) => runPercent(sock, msg, key);
+const makeCmd = (key) => (sock, msg, groupMeta) => runPercent(sock, msg, key, groupMeta);
 
 module.exports = {
   cmdGay:           makeCmd('gay'),

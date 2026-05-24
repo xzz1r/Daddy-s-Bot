@@ -24,6 +24,8 @@ const NEEDS_META = new Set([
   'kick','expulsar','del','borrar','delete',
   'ship','top5','top10','mute','unmute','desmute',
   'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness',
+  'gay','simp','sexy','hot','rata','maricon','maricón','friki',
+  'crack','inteligencia','cerdo','feminidad','masculinidad','inutil',
 ]);
 
 // Group metadata cache: 30s TTL, bounded at 500 entries (FIFO eviction).
@@ -233,20 +235,20 @@ async function handleMessage(sock, msg) {
         await cmdPfp(sock, msg);
         break;
 
-      case 'gay':        await percent.cmdGay(sock, msg); break;
-      case 'simp':       await percent.cmdSimp(sock, msg); break;
+      case 'gay':        await percent.cmdGay(sock, msg, groupMeta); break;
+      case 'simp':       await percent.cmdSimp(sock, msg, groupMeta); break;
       case 'sexy':
-      case 'hot':        await percent.cmdHot(sock, msg); break;
-      case 'rata':       await percent.cmdRata(sock, msg); break;
+      case 'hot':        await percent.cmdHot(sock, msg, groupMeta); break;
+      case 'rata':       await percent.cmdRata(sock, msg, groupMeta); break;
       case 'maricon':
-      case 'maricón':    await percent.cmdMaricon(sock, msg); break;
-      case 'friki':      await percent.cmdFriki(sock, msg); break;
-      case 'crack':          await percent.cmdCrack(sock, msg); break;
-      case 'inteligencia':   await percent.cmdInteligencia(sock, msg); break;
-      case 'cerdo':          await percent.cmdCerdo(sock, msg); break;
-      case 'feminidad':      await percent.cmdFeminidad(sock, msg); break;
-      case 'masculinidad':   await percent.cmdMasculinidad(sock, msg); break;
-      case 'inutil':         await percent.cmdInutil(sock, msg); break;
+      case 'maricón':    await percent.cmdMaricon(sock, msg, groupMeta); break;
+      case 'friki':      await percent.cmdFriki(sock, msg, groupMeta); break;
+      case 'crack':          await percent.cmdCrack(sock, msg, groupMeta); break;
+      case 'inteligencia':   await percent.cmdInteligencia(sock, msg, groupMeta); break;
+      case 'cerdo':          await percent.cmdCerdo(sock, msg, groupMeta); break;
+      case 'feminidad':      await percent.cmdFeminidad(sock, msg, groupMeta); break;
+      case 'masculinidad':   await percent.cmdMasculinidad(sock, msg, groupMeta); break;
+      case 'inutil':         await percent.cmdInutil(sock, msg, groupMeta); break;
 
       case 'on':
         await cmdOn(sock, msg, groupMeta);
