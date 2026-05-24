@@ -1,4 +1,4 @@
-const { getState, setState, toggleGroup, isBotEnabled, incrementStat } = require('../utils/state');
+const { getState, setState, toggleGroup } = require('../utils/state');
 const { formatUptime } = require('../utils/helpers');
 const config = require('../config');
 const logger = require('../utils/logger');
@@ -101,8 +101,8 @@ async function cmdHelp(sock, msg) {
   const p = config.prefix;
 
   const text =
-`*${config.botName}*  by xz1s (Sebastian)
-prefijo *${p}*
+`*${config.botName}*
+by xz1s (Sebastian)  ·  prefijo *${p}*
 
 *MUSICA*
 *${p}play* <cancion>      reproducir audio
@@ -111,21 +111,21 @@ prefijo *${p}*
 *STICKERS*
 *${p}s*                   imagen o video a sticker
 *${p}ttp* <texto>         texto a sticker
-*${p}toimg*              sticker a imagen
-*${p}pfp* @user          foto de perfil de alguien
+*${p}toimg*               sticker a imagen
+*${p}pfp* @user           foto de perfil
 
 *TOPS*
-*${p}top5* <tema>         top 5 aleatorio del grupo
-*${p}top10* <tema>        top 10 aleatorio del grupo
+*${p}top5* <tema>         top 5 aleatorio
+*${p}top10* <tema>        top 10 aleatorio
 *${p}count*               ranking de mensajes
 
 *DINAMICAS*
-*${p}ship*   *${p}sexy*   *${p}crack*   *${p}inteligencia*   *${p}cerdo*
-*${p}feminidad*   *${p}masculinidad*   *${p}inutil*
-*${p}gay*   *${p}maricon*   *${p}simp*   *${p}rata*   *${p}friki*
-_Con @ mide a otro miembro. Sin @ te mide a ti._
+_Halagos:_  *${p}sexy*  *${p}crack*  *${p}inteligencia*  *${p}feminidad*  *${p}masculinidad*
+_Insultos:_  *${p}gay*  *${p}maricon*  *${p}simp*  *${p}rata*  *${p}friki*  *${p}cerdo*  *${p}inutil*
+*${p}ship*                emparejar 2 miembros al azar
+_Con @ mide a otro. Sin @ te mide a ti._
 
-*INTELIGENCIA ARTIFICIAL*
+*IA*
 *${p}g* <pregunta>        Grok sin filtros
 _Responde a un mensaje con ${p}g para dar contexto_
 

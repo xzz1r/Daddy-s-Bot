@@ -23,6 +23,17 @@ async function saveIndex() {
   await fs.writeJson(INDEX_FILE, index);
 }
 
+// Debounced disk write — batches rapid mutations (timestamp updates, evictions)
+// into a single write 1s later. Avoids hammering disk on busy chats.
+let _saveTimer = null;
+function scheduleIndexSave() {
+  if (_saveTimer) return;
+  _saveTimer = setTimeout(() => {
+    _saveTimer = null;
+    saveIndex().catch(() => {});
+  }, 1000);
+}
+
 function cacheKey(query) {
   return crypto.createHash('md5').update(query.toLowerCase().trim()).digest('hex');
 }
@@ -54,7 +65,7 @@ async function getCached(query) {
   if (entry.ext === 'opus' || entry.ext === 'ogg' || entry.ext === 'webm') {
     await fs.remove(path.join(CACHE_DIR, entry.file)).catch(() => {});
     delete index[k];
-    saveIndex().catch(() => {});
+    scheduleIndexSave();
     return null;
   }
 
@@ -65,7 +76,7 @@ async function getCached(query) {
   } catch {
     // File missing — clean up index
     delete index[k];
-    saveIndex().catch(() => {});
+    scheduleIndexSave();
     return null;
   }
 

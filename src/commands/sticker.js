@@ -88,7 +88,7 @@ async function cmdSticker(sock, msg) {
       throw new Error('Sticker generado vacio');
     }
     await sock.sendMessage(jid, { sticker: stickerBuffer }, { quoted: msg });
-    await incrementStat('stickersCreated');
+    incrementStat('stickersCreated');
     logger.success(`Sticker enviado (${found.type}, ${stickerBuffer.length} bytes)`);
   } catch (err) {
     logger.error(`Sticker send error: ${err.message}`);
