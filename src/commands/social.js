@@ -120,11 +120,8 @@ ${p}count               .  ranking de mensajes del grupo
 
 *DINAMICAS*
 ${p}ship                .  empareja 2 miembros al azar
-${p}gay  ${p}simp  ${p}sexy  ${p}rata
-${p}gilipollas  ${p}subnormal  ${p}imbecil
-${p}capullo  ${p}pringado  ${p}mamon
-${p}maricon  ${p}friki  ${p}chorizo
-${p}guarro  ${p}paleto  ${p}cutre
+${p}sexy                .  % de atractivo
+${p}gay  ${p}maricon  ${p}simp  ${p}rata  ${p}friki
 _Uso: ${p}<comando> [@mencionar]  —  sin @ te mide a ti_
 
 *INTELIGENCIA ARTIFICIAL*
