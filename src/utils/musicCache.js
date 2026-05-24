@@ -81,7 +81,7 @@ async function getCached(query) {
   }
 
   entry.timestamp = Date.now();
-  saveIndex().catch(() => {});
+  scheduleIndexSave();
 
   const result = { buffer, title: entry.title, mimetype: entry.mimetype, ext: entry.ext };
   storeInRam(k, buffer, entry.title, entry.mimetype, entry.ext);

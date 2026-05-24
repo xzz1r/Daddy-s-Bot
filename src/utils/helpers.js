@@ -5,6 +5,20 @@ const TEMP_DIR = path.join(__dirname, '../../temp');
 
 async function ensureTemp() {
   await fs.ensureDir(TEMP_DIR);
+  // Sweep stale temp files (>1h old) from previous runs so the dir doesn't
+  // accumulate failed downloads, half-encoded stickers, etc.
+  const ONE_HOUR = 60 * 60 * 1000;
+  try {
+    const entries = await fs.readdir(TEMP_DIR);
+    const now = Date.now();
+    await Promise.all(entries.map(async (name) => {
+      const full = path.join(TEMP_DIR, name);
+      try {
+        const stat = await fs.stat(full);
+        if (now - stat.mtimeMs > ONE_HOUR) await fs.remove(full);
+      } catch {}
+    }));
+  } catch {}
   return TEMP_DIR;
 }
 
