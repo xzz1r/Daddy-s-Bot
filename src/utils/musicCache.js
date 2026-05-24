@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const CACHE_DIR = path.join(__dirname, '../../data/music_cache');
 const INDEX_FILE = path.join(CACHE_DIR, 'index.json');
 const MAX_SONGS = 60;
-const MAX_RAM_SONGS = 8; // keep last 8 songs as Buffers in RAM — zero disk I/O on replay
+const MAX_RAM_SONGS = 20; // keep last 20 songs as Buffers in RAM — zero disk I/O on replay
 
 let index = null;
 
