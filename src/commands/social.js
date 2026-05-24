@@ -101,7 +101,7 @@ async function cmdHelp(sock, msg) {
   const p = config.prefix;
 
   const text =
-`*${config.botName}*  by xz1s
+`*${config.botName}*  by xz1s (Sebastian)
 prefijo *${p}*
 
 *MUSICA*
@@ -118,21 +118,12 @@ prefijo *${p}*
 *${p}count*               ranking de mensajes
 
 *DINAMICAS*
-*${p}ship*                emparejar 2 miembros al azar
-*${p}sexy*                nivel de atractivo
-*${p}crack*               nivel de talento
-*${p}capo*                nivel de liderazgo
-*${p}listo*               nivel de inteligencia
-*${p}gay*                 nivel de gay
-*${p}maricon*             nivel de maricon
-*${p}simp*                nivel de simp
-*${p}rata*                nivel de rata
-*${p}friki*               nivel de friki
+*${p}ship*   *${p}sexy*   *${p}crack*   *${p}capo*   *${p}listo*
+*${p}gay*   *${p}maricon*   *${p}simp*   *${p}rata*   *${p}friki*
 _Con @ mide a otro miembro. Sin @ te mide a ti._
 
 *INTELIGENCIA ARTIFICIAL*
 *${p}g* <pregunta>        Grok sin filtros
-*${p}setgrok* <key>       configurar API key
 _Responde a un mensaje con ${p}g para dar contexto_
 
 *ADMINISTRACION*
@@ -151,7 +142,11 @@ _Solo admins_
 *${p}off*                 desactivar bot
 *${p}ping*                latencia
 *${p}info*                estado y estadisticas
-*${p}clearcache*          borrar cache de musica`;
+
+*OWNER*
+*${p}setgrok* <key>       configurar API key de Grok
+*${p}clearcache*          borrar cache de musica
+_Solo xz1s_`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
