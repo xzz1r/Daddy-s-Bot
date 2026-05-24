@@ -10,7 +10,7 @@ const path = require('path');
 const fs = require('fs-extra');
 const qrcode = require('qrcode-terminal');
 const { handleMessage } = require('./handlers/messageHandler');
-const { initState, isAdminNotifyEnabled } = require('./utils/state');
+const { initState, isAdminNotifyEnabled, isAntiAdminEnabled } = require('./utils/state');
 const { ensureTemp } = require('./utils/helpers');
 const logger = require('./utils/logger');
 const config = require('./config');
@@ -119,17 +119,39 @@ async function connectToWhatsApp() {
 
   sock.ev.on('creds.update', saveCreds);
 
-  // Admin change notifications — fires when any promote/demote happens in a group
-  sock.ev.on('group-participants.update', ({ id: groupJid, author, participants, action }) => {
+  // Admin change notifications + anti-admin enforcement
+  sock.ev.on('group-participants.update', async ({ id: groupJid, author, participants, action }) => {
     if (action !== 'promote' && action !== 'demote') return;
-    if (!isAdminNotifyEnabled(groupJid)) return;
+
+    const botPhone = sock.user?.id ? sock.user.id.split('@')[0].split(':')[0] : '';
+    const authorPhone = author ? author.split('@')[0].split(':')[0] : '';
+    const fromBot = botPhone && authorPhone === botPhone;
+
     const targets = participants.map(jid => `@${jid.split('@')[0]}`).join(', ');
     const authorTag = author ? `@${author.split('@')[0]}` : 'Alguien';
-    const text = action === 'promote'
-      ? `${authorTag} ha dado admin a ${targets}.`
-      : `${authorTag} ha quitado admin a ${targets}.`;
-    const mentions = [...participants, ...(author ? [author] : [])];
-    sock.sendMessage(groupJid, { text, mentions }).catch(() => {});
+
+    // Anti-admin: revert any promote that didn't come from the bot owner
+    if (action === 'promote' && !fromBot && isAntiAdminEnabled(groupJid)) {
+      const toDemote = Array.from(new Set([...(author ? [author] : []), ...participants]));
+      try {
+        await sock.groupParticipantsUpdate(groupJid, toDemote, 'demote');
+        const text =
+          `*Anti-admin: accion revertida.*\n` +
+          `${authorTag} intento dar admin a ${targets}.\n` +
+          `Ambos han sido degradados automaticamente.`;
+        sock.sendMessage(groupJid, { text, mentions: toDemote }).catch(() => {});
+      } catch {}
+      return; // skip the regular notification — the anti-admin one already explains it
+    }
+
+    // Regular notification (skip if the bot itself did the action — !promote/!demote already responds)
+    if (!fromBot && isAdminNotifyEnabled(groupJid)) {
+      const text = action === 'promote'
+        ? `${authorTag} ha dado admin a ${targets}.`
+        : `${authorTag} ha quitado admin a ${targets}.`;
+      const mentions = [...participants, ...(author ? [author] : [])];
+      sock.sendMessage(groupJid, { text, mentions }).catch(() => {});
+    }
   });
 
   sock.ev.on('messages.upsert', ({ messages, type }) => {

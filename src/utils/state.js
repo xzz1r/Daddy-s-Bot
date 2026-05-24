@@ -94,5 +94,21 @@ async function toggleAdminNotify(jid, enable) {
   await saveState(_state);
 }
 
-module.exports = { initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, isAdminNotifyEnabled, toggleAdminNotify };
+// Sync — anti-admin protection is OFF by default. When ON, any promote by a
+// non-owner admin gets auto-reverted (both author and target are demoted).
+function isAntiAdminEnabled(jid) {
+  return (_state.antiAdminEnabled || []).includes(jid);
+}
+
+async function toggleAntiAdmin(jid, enable) {
+  if (!_state.antiAdminEnabled) _state.antiAdminEnabled = [];
+  if (enable) {
+    if (!_state.antiAdminEnabled.includes(jid)) _state.antiAdminEnabled.push(jid);
+  } else {
+    _state.antiAdminEnabled = _state.antiAdminEnabled.filter(g => g !== jid);
+  }
+  await saveState(_state);
+}
+
+module.exports = { initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin };
 

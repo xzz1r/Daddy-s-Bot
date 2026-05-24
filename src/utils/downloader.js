@@ -56,48 +56,6 @@ function ytdlp(args) {
   });
 }
 
-function formatSeconds(s) {
-  if (!s) return '?';
-  const total = parseInt(s, 10);
-  const h = Math.floor(total / 3600);
-  const m = Math.floor((total % 3600) / 60);
-  const sec = total % 60;
-  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
-  return `${m}:${String(sec).padStart(2, '0')}`;
-}
-
-async function searchYouTube(query) {
-  try {
-    const output = await ytdlp([
-      `ytsearch5:${query}`,
-      '--dump-json',
-      '--no-download',
-      '--no-warnings',
-      '--no-playlist',
-      '--skip-download',
-      '--extractor-args', `youtube:player_client=${PLAYER_CLIENTS}`,
-    ]);
-    const lines = output.trim().split('\n').filter(l => l.trim().startsWith('{'));
-    const videos = lines.map(line => {
-      try {
-        const v = JSON.parse(line);
-        return {
-          id: v.id,
-          title: v.title || 'Sin título',
-          duration: formatSeconds(v.duration),
-          channel: v.uploader || v.channel || 'Desconocido',
-          url: v.webpage_url || `https://www.youtube.com/watch?v=${v.id}`,
-        };
-      } catch { return null; }
-    }).filter(Boolean);
-    if (!videos.length) throw new Error('Sin resultados');
-    return videos;
-  } catch (err) {
-    logger.error(`YouTube search error: ${err.message}`);
-    throw new Error(err.message);
-  }
-}
-
 async function downloadAudio(videoUrl) {
   const baseName = `audio_${Date.now()}_${Math.random().toString(36).slice(2)}`;
   const tempDir = path.dirname(tempFile('tmp'));
@@ -150,4 +108,4 @@ async function downloadAudio(videoUrl) {
   return { filePath: fullPath, title, mimetype: mimetypes[ext] || 'audio/mp4', ext };
 }
 
-module.exports = { searchYouTube, downloadAudio };
+module.exports = { downloadAudio };

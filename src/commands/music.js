@@ -1,4 +1,4 @@
-const { searchYouTube, downloadAudio } = require('../utils/downloader');
+const { downloadAudio } = require('../utils/downloader');
 const { cleanTemp } = require('../utils/helpers');
 const { incrementStat } = require('../utils/state');
 const { getCached, setCached, clearCache } = require('../utils/musicCache');
@@ -57,35 +57,6 @@ async function cmdPlay(sock, msg, args) {
   }
 }
 
-// !buscar <query> — list search results
-async function cmdSearch(sock, msg, args) {
-  if (!args.length) {
-    return sock.sendMessage(msg.key.remoteJid, { text: 'Usa: *!buscar* <cancion>' }, { quoted: msg });
-  }
-
-  const query = args.join(' ');
-  const jid = msg.key.remoteJid;
-
-  let results;
-  try {
-    results = await searchYouTube(query);
-  } catch (err) {
-    return sock.sendMessage(jid, { text: err.message }, { quoted: msg });
-  }
-
-  if (!results.length) {
-    return sock.sendMessage(jid, { text: 'No encontre resultados.' }, { quoted: msg });
-  }
-
-  let text = `*Resultados para: ${query}*\n\n`;
-  results.forEach((v, i) => {
-    text += `*${i + 1}.* ${v.title}\n   ${v.channel} | ${v.duration}\n\n`;
-  });
-  text += `_Usa !Playsong <nombre> para descargar_`;
-
-  await sock.sendMessage(jid, { text }, { quoted: msg });
-}
-
 // !clearcache — owner only, deletes all cached songs from RAM and disk
 async function cmdClearCache(sock, msg) {
   const jid = msg.key.remoteJid;
@@ -97,4 +68,4 @@ async function cmdClearCache(sock, msg) {
   }
 }
 
-module.exports = { cmdPlay, cmdSearch, cmdClearCache };
+module.exports = { cmdPlay, cmdClearCache };

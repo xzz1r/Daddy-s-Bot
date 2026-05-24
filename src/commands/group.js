@@ -1,6 +1,6 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const { isOwner } = require('./social');
-const { toggleAdminNotify, isAdminNotifyEnabled } = require('../utils/state');
+const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled } = require('../utils/state');
 
 async function streamToBuffer(stream) {
   const chunks = [];
@@ -218,14 +218,19 @@ function getTarget(msg) {
   return mentioned[0] || quotedParticipant || null;
 }
 
-// !promote @user — give admin rights (admin only)
+// !promote @user — give admin rights (admin only, owner-only when antiadmin is on)
 async function cmdPromote(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
     return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
   }
   const sender = msg.key.participant || msg.key.remoteJid;
-  if (!isOwner(sender, msg.key.fromMe) && !isAdmin(groupMeta?.participants, sender)) {
+
+  if (isAntiAdminEnabled(jid)) {
+    if (!isOwner(sender, msg.key.fromMe)) {
+      return sock.sendMessage(jid, { text: 'Anti-admin esta activado. Solo el owner del bot puede dar admin.' }, { quoted: msg });
+    }
+  } else if (!isOwner(sender, msg.key.fromMe) && !isAdmin(groupMeta?.participants, sender)) {
     return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
   }
 
@@ -303,4 +308,32 @@ async function cmdNotifAdmin(sock, msg, args, groupMeta) {
   }, { quoted: msg });
 }
 
-module.exports = { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, isMuted, isAdmin };
+// !antiadmin on/off — owner only. Blocks any non-owner promote and reverts it.
+async function cmdAntiAdmin(sock, msg, args) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+  }
+  const sender = msg.key.participant || msg.key.remoteJid;
+  if (!isOwner(sender, msg.key.fromMe)) {
+    return sock.sendMessage(jid, { text: 'Solo el owner del bot puede activar esto.' }, { quoted: msg });
+  }
+
+  const arg = (args[0] || '').toLowerCase();
+  if (arg !== 'on' && arg !== 'off') {
+    const current = isAntiAdminEnabled(jid) ? 'activado' : 'desactivado';
+    return sock.sendMessage(jid, {
+      text: `Anti-admin: *${current}*\nUsa *!antiadmin on/off* para cambiar.`,
+    }, { quoted: msg });
+  }
+
+  const enable = arg === 'on';
+  await toggleAntiAdmin(jid, enable);
+  await sock.sendMessage(jid, {
+    text: enable
+      ? 'Anti-admin *activado*.\nSi un admin que no es el owner del bot da admin a otro, se les quita admin a los dos automaticamente y se notifica al grupo.'
+      : 'Anti-admin *desactivado*.',
+  }, { quoted: msg });
+}
+
+module.exports = { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, isMuted, isAdmin };

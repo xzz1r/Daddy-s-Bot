@@ -1,12 +1,12 @@
 const config = require('../config');
 const { isBotEnabled, incrementStat } = require('../utils/state');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
-const { cmdPlay, cmdSearch, cmdClearCache } = require('../commands/music');
+const { cmdPlay, cmdClearCache } = require('../commands/music');
 const { cmdSticker } = require('../commands/sticker');
 const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdCount } = require('../commands/count');
 const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
-const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, isMuted, isAdmin } = require('../commands/group');
+const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, isMuted, isAdmin } = require('../commands/group');
 const { cmdShip } = require('../commands/ship');
 const { cmdTtp } = require('../commands/ttp');
 const { cmdToImg } = require('../commands/toimg');
@@ -23,7 +23,7 @@ const NEEDS_META = new Set([
   'on','off','tagall','todos','all','everyone',
   'kick','expulsar','del','borrar','delete',
   'ship','top5','top10','mute','unmute','desmute',
-  'promote','ascender','demote','degradar','notifadmin',
+  'promote','ascender','demote','degradar','notifadmin','antiadmin',
 ]);
 
 // Group metadata cache with 30s TTL — avoids repeated network calls
@@ -109,11 +109,6 @@ async function handleMessage(sock, msg) {
         await cmdPlay(sock, msg, args);
         break;
 
-      case 'buscar':
-      case 'search':
-        await cmdSearch(sock, msg, args);
-        break;
-
       case 'clearcache':
       case 'borracache':
         if (isOwner(sender, msg.key.fromMe)) {
@@ -177,6 +172,10 @@ async function handleMessage(sock, msg) {
 
       case 'notifadmin':
         await cmdNotifAdmin(sock, msg, args, groupMeta);
+        break;
+
+      case 'antiadmin':
+        await cmdAntiAdmin(sock, msg, args);
         break;
 
       case 'kick':

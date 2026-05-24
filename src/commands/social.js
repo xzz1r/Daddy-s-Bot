@@ -106,12 +106,11 @@ by xz1s (Sebastian)  ·  prefijo *${p}*
 
 *MUSICA*
 *${p}play* <cancion>      reproducir audio
-*${p}buscar* <cancion>    buscar canciones
 
 *STICKERS*
 *${p}s*                   imagen o video a sticker
 *${p}ttp* <texto>         texto a sticker
-*${p}toimg*               sticker a imagen
+*${p}toimg*               sticker o foto de una vista a imagen
 *${p}pfp* @user           foto de perfil
 
 *TOPS*
@@ -138,7 +137,8 @@ _Responde a un mensaje con ${p}g para dar contexto_
 *${p}unmute* @user        quitar silencio
 *${p}del*                 borrar mensaje citado
 *${p}notifadmin* on/off   notificaciones de admin
-_Solo admins_
+*${p}antiadmin* on/off    bloquear ascensos no autorizados
+_Solo admins. !antiadmin es solo owner._
 
 *CONTROL*
 *${p}on*                  activar bot
