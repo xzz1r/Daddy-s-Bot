@@ -118,7 +118,7 @@ prefijo *${p}*
 *${p}count*               ranking de mensajes
 
 *DINAMICAS*
-*${p}ship*   *${p}sexy*   *${p}crack*   *${p}capo*   *${p}listo*
+*${p}ship*   *${p}sexy*   *${p}crack*   *${p}inteligencia*   *${p}cerdo*
 *${p}gay*   *${p}maricon*   *${p}simp*   *${p}rata*   *${p}friki*
 _Con @ mide a otro miembro. Sin @ te mide a ti._
 
