@@ -187,7 +187,7 @@ async function connectToWhatsApp() {
     const targets = partJids.map(jid => `@${jid.split('@')[0]}`).join(', ');
     const authorTag = author ? `@${String(author).split('@')[0]}` : 'Alguien';
 
-    // Anti-admin: revert any promote that didn't come from the bot owner
+    // Anti-admin: revert any promote that didn't come from the bot
     if (action === 'promote' && !fromBot && isAntiAdminEnabled(groupJid)) {
       const toDemote = Array.from(new Set([...(author ? [author] : []), ...partJids]));
       try {
@@ -200,7 +200,26 @@ async function connectToWhatsApp() {
       } catch (err) {
         logger.warn(`Anti-admin: demote fallo en ${groupJid}: ${err.message}`);
       }
-      return; // skip the regular notification — the anti-admin one already explains it
+      return;
+    }
+
+    // Anti-admin: revert any demote that didn't come from the bot
+    // Admin A removes B's admin → bot restores B and removes A's admin.
+    if (action === 'demote' && !fromBot && isAntiAdminEnabled(groupJid)) {
+      try {
+        // Restore victims first, then punish the author
+        await sock.groupParticipantsUpdate(groupJid, partJids, 'promote');
+        if (author) await sock.groupParticipantsUpdate(groupJid, [author], 'demote');
+        const punished = author ? [author] : [];
+        const text =
+          `*Anti-admin: accion revertida.*\n` +
+          `${authorTag} intento quitar admin a ${targets}.\n` +
+          `Se ha restaurado su admin y ${authorTag} ha sido degradado.`;
+        sock.sendMessage(groupJid, { text, mentions: [...partJids, ...punished] }).catch(() => {});
+      } catch (err) {
+        logger.warn(`Anti-admin: revert demote fallo en ${groupJid}: ${err.message}`);
+      }
+      return;
     }
 
     // Regular notification (skip if the bot itself did the action — !promote/!demote already responds)
