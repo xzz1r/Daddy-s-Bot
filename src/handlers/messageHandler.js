@@ -9,6 +9,7 @@ const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
 const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, isMuted, isAdmin } = require('../commands/group');
 const { cmdShip } = require('../commands/ship');
 const { cmdTtp } = require('../commands/ttp');
+const { cmdToImg } = require('../commands/toimg');
 const percent = require('../commands/percent');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, isOwner } = require('../commands/social');
 const logger = require('../utils/logger');
@@ -203,6 +204,11 @@ async function handleMessage(sock, msg) {
 
       case 'ttp':
         await cmdTtp(sock, msg, args);
+        break;
+
+      case 'toimg':
+      case 'stimg':
+        await cmdToImg(sock, msg);
         break;
 
       case 'gay':        await percent.cmdGay(sock, msg); break;
