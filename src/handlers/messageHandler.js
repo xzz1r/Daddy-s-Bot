@@ -151,7 +151,7 @@ async function handleMessage(sock, msg) {
         break;
 
       case 'count':
-        await cmdCount(sock, msg, groupMeta);
+        await cmdCount(sock, msg, groupMeta, args);
         break;
 
       case 'g':

@@ -59,13 +59,32 @@ function isGroupAdmin(groupMeta, jid) {
   return p?.admin === 'admin' || p?.admin === 'superadmin';
 }
 
-async function cmdCount(sock, msg, groupMeta) {
+async function cmdCount(sock, msg, groupMeta, args) {
   const jid = msg.key.remoteJid;
 
   if (!jid.endsWith('@g.us')) {
     return sock.sendMessage(jid, { text: 'Este comando solo funciona en grupos.' }, { quoted: msg });
   }
 
+  // !count @mention — show that specific person's count
+  const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0]
+    || (args?.[0]?.startsWith('@') ? groupMeta?.participants?.find(p => p.id.startsWith(args[0].slice(1)))?.id : null);
+
+  if (mentioned) {
+    const all = await getActiveUsers(jid, 1);
+    const entry = all.find(u => u.jid === mentioned);
+    const phone = mentioned.split('@')[0];
+    const count = entry?.count ?? 0;
+    const msgs = count === 1 ? '1 mensaje' : `${count} mensajes`;
+    const rank = count > 0 ? all.sort((a, b) => b.count - a.count).findIndex(u => u.jid === mentioned) + 1 : null;
+    const rankStr = rank ? ` — puesto #${rank}` : '';
+    return sock.sendMessage(jid, {
+      text: `@${phone} tiene *${msgs}* en este grupo${rankStr}.`,
+      mentions: [mentioned],
+    }, { quoted: msg });
+  }
+
+  // !count — show top 10 ranking
   const users = await getActiveUsers(jid, 1);
   if (!users.length) {
     return sock.sendMessage(jid, { text: 'Aun no hay mensajes contados en este grupo.' }, { quoted: msg });
