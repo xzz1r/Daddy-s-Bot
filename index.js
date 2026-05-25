@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
+require('dotenv').config();
+
 const chalk = require('chalk');
 
 console.log(chalk.magenta(`
