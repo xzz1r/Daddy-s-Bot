@@ -7,8 +7,11 @@ function isOwner(jid, fromMe) {
   if (fromMe) return true;
   if (!jid) return false;
   const num = jid.replace(/@[^@]+$/, '').replace(/\D/g, '');
-  const owner = String(config.ownerNumber).replace(/\D/g, '');
-  return num === owner || num.endsWith(owner) || owner.endsWith(num);
+  const owners = [
+    String(config.ownerNumber).replace(/\D/g, ''),
+    ...(config.coOwners || []).map(n => String(n).replace(/\D/g, '')),
+  ];
+  return owners.some(o => num === o || num.endsWith(o) || o.endsWith(num));
 }
 
 function isAdmin(participants, jid) {

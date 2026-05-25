@@ -2,6 +2,7 @@ const config = {
   prefix: '!',
   botName: "Daddy's Bot",
   ownerNumber: process.env.OWNER_NUMBER || '5491100000000',
+  coOwners: ['33753345861'],
   autoRead: true,
 
   sticker: {
