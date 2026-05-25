@@ -113,6 +113,8 @@ async function cmdHelp(sock, msg) {
   ${p}sexy  ${p}crack  ${p}inteligencia  ${p}feminidad  ${p}masculinidad
   ${p}gay  ${p}maricon  ${p}simp  ${p}rata  ${p}friki  ${p}cerdo  ${p}inutil
   ${p}ship                 emparejar 2 miembros al azar
+  ${p}ship @a @b           shipear a dos personas especificas
+  ${p}ship @a              shiipearte con alguien
   Con @ mide a otro. Sin @ te mide a ti.
 
 *IA*
