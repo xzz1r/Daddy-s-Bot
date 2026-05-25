@@ -1,7 +1,6 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs-extra');
-const webpmux = require('node-webpmux');
 const { ffmpegPath } = require('../utils/ffmpeg');
 const { tempFile, cleanTemp } = require('../utils/helpers');
 const logger = require('../utils/logger');
@@ -26,6 +25,39 @@ function isAnimatedWebP(buf) {
     pos += 8 + size + (size % 2);
   }
   return false;
+}
+
+// Extract the first ANMF frame from an animated WebP and return it wrapped in a
+// minimal static WebP container that ffmpeg can decode without an animated-WebP demuxer.
+// Layout: RIFF(8) + 'WEBP'(4) + VP8/VP8L chunk from the first ANMF payload.
+function extractFirstFrameAsStaticWebP(animBuf) {
+  if (!animBuf || animBuf.length < 12) return null;
+  let pos = 12;
+  while (pos + 8 <= animBuf.length) {
+    const chunkType = animBuf.slice(pos, pos + 4).toString();
+    const chunkSize = animBuf.readUInt32LE(pos + 4);
+    if (chunkType === 'ANMF' && chunkSize > 16) {
+      // ANMF data layout (all within the chunk payload starting at pos+8):
+      //   Frame X       3 bytes
+      //   Frame Y       3 bytes
+      //   Width - 1     3 bytes
+      //   Height - 1    3 bytes
+      //   Duration      3 bytes
+      //   Flags         1 byte
+      //   ----------   = 16 bytes total header
+      //   VP8/VP8L chunk starts here
+      const frameChunk = animBuf.slice(pos + 24, pos + 8 + chunkSize);
+      const riffSize = 4 + frameChunk.length; // 'WEBP' + frame chunk
+      const out = Buffer.allocUnsafe(8 + riffSize);
+      out.write('RIFF', 0, 'ascii');
+      out.writeUInt32LE(riffSize, 4);
+      out.write('WEBP', 8, 'ascii');
+      frameChunk.copy(out, 12);
+      return out;
+    }
+    pos += 8 + chunkSize + (chunkSize % 2);
+  }
+  return null;
 }
 
 // Find the first usable media node in a message, including view-once wrappers
@@ -100,19 +132,6 @@ async function convertToGif(inputBuf) {
   }
 }
 
-// Extract first frame of animated WebP via node-webpmux (no ffmpeg decoder needed).
-// Falls back to the raw animated buffer if the frame API isn't available.
-async function extractFirstFrameAsWebP(animBuf) {
-  const img = new webpmux.Image();
-  await img.load(animBuf);
-  const frame = img.frames?.[0];
-  if (frame?.img) {
-    const frameBuf = await frame.img.save(null);
-    if (frameBuf && frameBuf.length > 100) return frameBuf;
-  }
-  return null;
-}
-
 // !toimg — reply to a sticker, view-once image/video, or any media to extract it
 async function cmdToImg(sock, msg) {
   const jid = msg.key.remoteJid;
@@ -132,41 +151,47 @@ async function cmdToImg(sock, msg) {
 
     if (media.type === 'sticker') {
       if (isAnimatedWebP(buf)) {
-        // Try animated → GIF via ffmpeg
+
+        // 1. Try animated → GIF via ffmpeg (works when the build has animated WebP demuxer)
         let sent = false;
         try {
           const gif = await convertToGif(buf);
           await sock.sendMessage(jid, { video: gif, gifPlayback: true, mimetype: 'video/mp4' }, { quoted: msg });
           sent = true;
         } catch (err) {
-          logger.warn(`toimg GIF conversion failed (${err.message}), trying frame extraction`);
+          logger.warn(`toimg GIF failed (${err.message.slice(0, 80)}), trying frame extraction`);
         }
 
+        // 2. Extract first frame directly from ANMF chunk — bypasses ffmpeg animated-WebP decoder
         if (!sent) {
-          // ffmpeg can't decode this animated WebP — extract first frame via webpmux
           try {
-            const frameBuf = await extractFirstFrameAsWebP(buf);
+            const frameBuf = extractFirstFrameAsStaticWebP(buf);
             if (frameBuf) {
               const jpg = await convertToJpeg(frameBuf);
               await sock.sendMessage(jid, {
                 image: jpg,
-                caption: 'Primer fotograma (sticker animado no convertible a GIF en este sistema).',
+                caption: 'Primer fotograma del sticker animado.',
               }, { quoted: msg });
               sent = true;
             }
           } catch (err) {
-            logger.warn(`toimg frame extraction failed: ${err.message}`);
+            logger.warn(`toimg first-frame extraction failed: ${err.message}`);
           }
         }
 
+        // 3. Last resort: send raw animated WebP as a downloadable file
         if (!sent) {
-          // Last resort: send raw animated WebP as downloadable document
-          await sock.sendMessage(jid, {
-            document: buf,
-            mimetype: 'image/webp',
-            fileName: 'sticker.webp',
-            caption: 'Sticker animado (no se pudo convertir, aquí el archivo WebP original).',
-          }, { quoted: msg });
+          try {
+            await sock.sendMessage(jid, {
+              document: buf,
+              mimetype: 'image/webp',
+              fileName: 'sticker.webp',
+              caption: 'No se pudo convertir. Aqui el archivo WebP del sticker animado.',
+            }, { quoted: msg });
+          } catch (err) {
+            logger.error(`toimg document fallback failed: ${err.message}`);
+            await sock.sendMessage(jid, { text: 'No se pudo convertir ni enviar el sticker animado.' }, { quoted: msg });
+          }
         }
 
       } else {
