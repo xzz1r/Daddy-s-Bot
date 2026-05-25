@@ -5,7 +5,7 @@ const logger = require('../utils/logger');
 const { isOwner } = require('./social');
 
 const GROK_API = 'https://api.x.ai/v1/chat/completions';
-const MODEL = process.env.GROK_MODEL || 'grok-2-latest';
+const MODEL = process.env.GROK_MODEL || 'grok-3';
 const KEY_FILE = path.join(__dirname, '../../data/grok-key.txt');
 
 let cachedKey = null;
