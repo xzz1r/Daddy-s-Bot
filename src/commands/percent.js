@@ -719,7 +719,7 @@ async function runPercent(sock, msg, key, groupMeta) {
 
   const text =
     `*@${target.split('@')[0]} es ${percent}% ${cfg.name}*\n\n` +
-    `_${verdict}_\n\n` +
+    `${verdict}\n\n` +
     `${finale}`;
 
   await sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });

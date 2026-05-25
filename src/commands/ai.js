@@ -142,14 +142,14 @@ async function cmdSetGrokKey(sock, msg, args) {
   const key = (args || []).join(' ').trim();
   if (!key || !key.startsWith('xai-')) {
     return sock.sendMessage(jid, {
-      text: 'Usa: *!setgrok xai-tu_clave*\n\n_La key empieza con "xai-". Conseguila gratis en console.x.ai_',
+      text: 'Usa: *!setgrok xai-tu_clave*\n\nLa key empieza con "xai-". Conseguila gratis en console.x.ai',
     }, { quoted: msg });
   }
 
   try {
     await saveApiKey(key);
     await sock.sendMessage(jid, {
-      text: 'Grok configurado correctamente. Ya podes usar *!g* en cualquier momento.\n\n_Por seguridad, borra tu mensaje con la key del chat._',
+      text: 'Grok configurado correctamente. Ya podes usar *!g* en cualquier momento.\n\nPor seguridad, borra tu mensaje con la key del chat.',
     }, { quoted: msg });
   } catch (err) {
     logger.error(`setGrokKey error: ${err.message}`);

@@ -75,7 +75,7 @@ async function cmdShip(sock, msg, args, groupMeta) {
     `*Ship del dia*\n\n` +
     `@${a.split('@')[0]}  x  @${b.split('@')[0]}\n\n` +
     `${bar}\n*${compat}% de compatibilidad*\n\n` +
-    `_${verdict}_`;
+    `${verdict}`;
 
   await sock.sendMessage(jid, { text, mentions: [a, b] }, { quoted: msg });
 }

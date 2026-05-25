@@ -102,56 +102,58 @@ async function cmdHelp(sock, msg) {
   const p = config.prefix;
 
   const text =
-`*${config.botName}*
-by xz1s (Sebastian)  ·  prefijo *${p}*
+`         *${config.botName}*
+      by xz1s (Sebastian)
+          Prefijo: ${p}
+--------------------------------
 
 *MUSICA*
-*${p}play* <cancion>      reproducir audio
+  ${p}play <cancion>       reproducir audio
 
 *STICKERS*
-*${p}s*                   imagen o video a sticker
-*${p}ttp* <texto>         texto a sticker
-*${p}toimg*               sticker o foto de una vista a imagen
-*${p}pfp* @user           foto de perfil
+  ${p}s                    imagen o video a sticker
+  ${p}ttp <texto>          texto a sticker
+  ${p}toimg                sticker a imagen
+  ${p}pfp @user            foto de perfil
 
 *TOPS*
-*${p}top5* <tema>         top 5 aleatorio
-*${p}top10* <tema>        top 10 aleatorio
-*${p}count*               ranking de mensajes
+  ${p}top5 <tema>          top 5 aleatorio
+  ${p}top10 <tema>         top 10 aleatorio
+  ${p}count                ranking de mensajes
 
 *DINAMICAS*
-_Halagos:_  *${p}sexy*  *${p}crack*  *${p}inteligencia*  *${p}feminidad*  *${p}masculinidad*
-_Insultos:_  *${p}gay*  *${p}maricon*  *${p}simp*  *${p}rata*  *${p}friki*  *${p}cerdo*  *${p}inutil*
-*${p}ship*                emparejar 2 miembros al azar
-_Con @ mide a otro. Sin @ te mide a ti._
+  ${p}sexy  ${p}crack  ${p}inteligencia  ${p}feminidad  ${p}masculinidad
+  ${p}gay  ${p}maricon  ${p}simp  ${p}rata  ${p}friki  ${p}cerdo  ${p}inutil
+  ${p}ship                 emparejar 2 miembros al azar
+  Con @ mide a otro. Sin @ te mide a ti.
 
 *IA*
-*${p}g* <pregunta>        Grok sin filtros
-_Responde a un mensaje con ${p}g para dar contexto_
+  ${p}g <pregunta>         Grok sin filtros
+  Responde un mensaje con ${p}g para dar contexto.
 
 *ADMINISTRACION*
-*${p}tagall* <texto>      mencionar a todos
-*${p}kick* @user          expulsar miembro
-*${p}promote* @user       ascender a admin
-*${p}demote* @user        degradar a miembro
-*${p}mute* @user [min]    silenciar comandos
-*${p}unmute* @user        quitar silencio
-*${p}del*                 borrar mensaje citado
-*${p}notifadmin* on/off   notificaciones de admin
-*${p}antiadmin* on/off    bloquear ascensos no autorizados
-*${p}antiempresa* on/off/scan  expulsar cuentas Business
-_Solo admins. !antiadmin y !antiempresa solo owner._
+  ${p}tagall <texto>       mencionar a todos
+  ${p}kick @user           expulsar miembro
+  ${p}promote @user        ascender a admin
+  ${p}demote @user         degradar a miembro
+  ${p}mute @user [min]     silenciar comandos
+  ${p}unmute @user         quitar silencio
+  ${p}del                  borrar mensaje citado
+  ${p}notifadmin on/off    notificaciones de admin
+  ${p}antiadmin on/off     bloquear ascensos externos
+  ${p}antiempresa on/off   expulsar cuentas Business
+  Solo admins. antiadmin y antiempresa solo owner.
 
 *CONTROL*
-*${p}on*                  activar bot
-*${p}off*                 desactivar bot
-*${p}ping*                latencia
-*${p}info*                estado y estadisticas
+  ${p}on                   activar bot
+  ${p}off                  desactivar bot
+  ${p}ping                 latencia
+  ${p}info                 estado y estadisticas
 
 *OWNER*
-*${p}setgrok* <key>       configurar API key de Grok
-*${p}clearcache*          borrar cache de musica
-_Solo owner del bot_`;
+  ${p}setgrok <key>        configurar API de Grok
+  ${p}clearcache           borrar cache de musica
+  Solo el owner del bot.`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
