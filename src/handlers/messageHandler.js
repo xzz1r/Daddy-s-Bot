@@ -28,6 +28,9 @@ const NEEDS_META = new Set([
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil',
   'count',
+  // Owner-gated commands also need meta in groups to resolve LID → phone
+  // for isOwner checks (otherwise co-owners always fail in modern groups).
+  'clearcache','borracache','setgrok','setkey','whoami',
 ]);
 
 // Group metadata cache: 30s TTL, bounded at 500 entries (FIFO eviction).
@@ -83,9 +86,9 @@ async function handleMessage(sock, msg) {
   }
 
   // Anti-link: delete message + kick sender if they're not admin/owner
-  if (jid.endsWith('@g.us') && text && LINK_RE.test(text) && !isOwner(sender, msg.key.fromMe)) {
+  if (jid.endsWith('@g.us') && text && LINK_RE.test(text)) {
     const meta = await getGroupMeta(sock, jid);
-    if (meta && !isAdmin(meta.participants, sender)) {
+    if (meta && !isOwner(sender, msg.key.fromMe, meta) && !isAdmin(meta.participants, sender)) {
       sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
       sock.groupParticipantsUpdate(jid, [sender], 'remove').catch(() => {});
       return;
@@ -120,7 +123,7 @@ async function handleMessage(sock, msg) {
 
       case 'clearcache':
       case 'borracache':
-        if (isOwner(sender, msg.key.fromMe)) {
+        if (isOwner(sender, msg.key.fromMe, groupMeta)) {
           await cmdClearCache(sock, msg);
         } else {
           await sock.sendMessage(jid, { text: 'Solo el owner puede usar este comando.' }, { quoted: msg });
@@ -129,7 +132,7 @@ async function handleMessage(sock, msg) {
 
       case 'whoami':
         await sock.sendMessage(jid, {
-          text: `Tu JID: *${sender}*\nOwner: *${isOwner(sender, msg.key.fromMe) ? 'Si' : 'No'}*`,
+          text: `Tu JID: *${sender}*\nOwner: *${isOwner(sender, msg.key.fromMe, groupMeta) ? 'Si' : 'No'}*`,
         }, { quoted: msg });
         break;
 
@@ -159,7 +162,7 @@ async function handleMessage(sock, msg) {
 
       case 'setgrok':
       case 'setkey':
-        await cmdSetGrokKey(sock, msg, args);
+        await cmdSetGrokKey(sock, msg, args, groupMeta);
         break;
 
       case 'tagall':
@@ -184,7 +187,7 @@ async function handleMessage(sock, msg) {
         break;
 
       case 'antiadmin':
-        await cmdAntiAdmin(sock, msg, args);
+        await cmdAntiAdmin(sock, msg, args, groupMeta);
         break;
 
       case 'antiempresa':

@@ -121,7 +121,7 @@ async function cmdCount(sock, msg, groupMeta, args) {
     return sock.sendMessage(jid, { text: 'Este comando solo funciona en grupos.' }, { quoted: msg });
   }
 
-  if (!isOwner(sender, msg.key.fromMe) && !isAdminInMeta(groupMeta, sender)) {
+  if (!isOwner(sender, msg.key.fromMe, groupMeta) && !isAdminInMeta(groupMeta, sender)) {
     return sock.sendMessage(jid, { text: 'Solo los admins pueden usar este comando.' }, { quoted: msg });
   }
 

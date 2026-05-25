@@ -88,11 +88,19 @@ function runFfmpeg(inputFile, outputFile, options, format = 'webp') {
 // This is the format WhatsApp actually reads for sticker pack metadata — the standard
 // EXIF UserComment (0x9286) does NOT work even though it's technically valid EXIF.
 function buildExif(pack, author) {
+  // WhatsApp validates these fields before allowing "Add to favorites" / "Save".
+  // `emojis: ['']` (array with empty string) silently breaks the save flow even
+  // though the marca shows up — must be a real array, empty or with valid chars.
+  // The is-avatar-sticker / app-store-link fields are part of the canonical
+  // pack format; missing them also blocks save on some WhatsApp clients.
   const json = JSON.stringify({
     'sticker-pack-id': 'com.xz1s.daddysbot',
     'sticker-pack-name': pack,
     'sticker-pack-publisher': author,
-    'emojis': [''],
+    'emojis': [],
+    'is-avatar-sticker': 0,
+    'android-app-store-link': '',
+    'ios-app-store-link': '',
   });
   const data = Buffer.from(json, 'utf-8');
 

@@ -3,15 +3,32 @@
 
 const config = require('../config');
 
-function isOwner(jid, fromMe) {
+function isOwner(jid, fromMe, groupMeta) {
   if (fromMe) return true;
   if (!jid) return false;
-  const num = jid.replace(/@[^@]+$/, '').replace(/\D/g, '');
+
   const owners = [
     String(config.ownerNumber).replace(/\D/g, ''),
     ...(config.coOwners || []).map(n => String(n).replace(/\D/g, '')),
   ];
-  return owners.some(o => num === o || num.endsWith(o) || o.endsWith(num));
+
+  // Candidates: the JID itself, plus the participant's phoneNumber if we have
+  // group metadata. Modern groups use LID JIDs (xxxxx@lid) — extracting digits
+  // from a LID does NOT give a phone number, so without this lookup the
+  // co-owner check silently fails in every group.
+  const candidates = [jid];
+  if (groupMeta?.participants) {
+    const p = groupMeta.participants.find(x => x.id === jid);
+    if (p?.phoneNumber) candidates.push(p.phoneNumber);
+    if (p?.lid && p.lid !== jid) candidates.push(p.lid);
+  }
+
+  for (const c of candidates) {
+    const num = String(c).replace(/@[^@]+$/, '').replace(/\D/g, '');
+    if (!num) continue;
+    if (owners.some(o => num === o || num.endsWith(o) || o.endsWith(num))) return true;
+  }
+  return false;
 }
 
 function isAdmin(participants, jid) {

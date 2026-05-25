@@ -118,11 +118,11 @@ async function cmdGrok(sock, msg, args) {
 }
 
 // !setgrok <api_key>  — owner only, saves key persistently
-async function cmdSetGrokKey(sock, msg, args) {
+async function cmdSetGrokKey(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   const sender = msg.key.participant || msg.key.remoteJid;
 
-  if (!isOwner(sender, msg.key.fromMe)) {
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
     return sock.sendMessage(jid, { text: 'Solo el owner puede configurar Grok.' }, { quoted: msg });
   }
 

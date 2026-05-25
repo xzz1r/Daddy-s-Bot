@@ -11,7 +11,7 @@ async function cmdOn(sock, msg, groupMeta) {
   const isGroup = jid.endsWith('@g.us');
 
   if (isGroup) {
-    const canToggle = isOwner(sender, msg.key.fromMe) || isAdmin(groupMeta?.participants, sender);
+    const canToggle = isOwner(sender, msg.key.fromMe, groupMeta) || isAdmin(groupMeta?.participants, sender);
     if (!canToggle) {
       return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
     }
@@ -19,7 +19,7 @@ async function cmdOn(sock, msg, groupMeta) {
     return sock.sendMessage(jid, { text: 'Bot *activado* en este grupo.' }, { quoted: msg });
   }
 
-  if (!isOwner(sender, msg.key.fromMe)) {
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
     return sock.sendMessage(jid, { text: 'Solo el dueno puede usar este comando.' }, { quoted: msg });
   }
 
@@ -35,7 +35,7 @@ async function cmdOff(sock, msg, groupMeta) {
   const isGroup = jid.endsWith('@g.us');
 
   if (isGroup) {
-    const canToggle = isOwner(sender, msg.key.fromMe) || isAdmin(groupMeta?.participants, sender);
+    const canToggle = isOwner(sender, msg.key.fromMe, groupMeta) || isAdmin(groupMeta?.participants, sender);
     if (!canToggle) {
       return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
     }
@@ -43,7 +43,7 @@ async function cmdOff(sock, msg, groupMeta) {
     return sock.sendMessage(jid, { text: 'Bot *desactivado* en este grupo.' }, { quoted: msg });
   }
 
-  if (!isOwner(sender, msg.key.fromMe)) {
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
     return sock.sendMessage(jid, { text: 'Solo el dueno puede usar este comando.' }, { quoted: msg });
   }
 
