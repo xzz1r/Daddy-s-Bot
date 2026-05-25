@@ -215,18 +215,17 @@ async function imageToSticker(imageBuffer, author) {
   }
 }
 
-// WhatsApp animated sticker hard limit: 500KB
-const MAX_STICKER_BYTES = 500 * 1024;
+// WhatsApp's real animated sticker limit is ~1MB
+const MAX_STICKER_BYTES = 1024 * 1024;
 
-// Tiers: quality drops before FPS to keep motion smooth, targeting <500KB
+// Tiers: quality drops before FPS to keep motion smooth
 const ANIM_TIERS = [
-  { fps: 15, quality: 75 },
-  { fps: 15, quality: 65 },
-  { fps: 12, quality: 65 },
-  { fps: 12, quality: 55 },
-  { fps: 10, quality: 55 },
-  { fps: 10, quality: 45 },
-  { fps: 8,  quality: 45 },
+  { fps: 20, quality: 82 },
+  { fps: 20, quality: 72 },
+  { fps: 15, quality: 72 },
+  { fps: 15, quality: 62 },
+  { fps: 15, quality: 52 },
+  { fps: 12, quality: 52 },
 ];
 
 function encodeAnimWebp(inputFile, outputFile, fps, quality) {
