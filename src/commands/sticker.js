@@ -34,6 +34,23 @@ async function streamToBuffer(stream) {
   return Buffer.concat(chunks);
 }
 
+// Detect animated WebP by searching for the ANIM chunk in the RIFF container.
+// WhatsApp needs isAnimated:true in the proto to handle animated stickers correctly —
+// without it, the client treats the WebP as static and breaks on save/forward.
+function isAnimatedWebP(buf) {
+  if (!buf || buf.length < 12) return false;
+  if (buf.slice(0, 4).toString() !== 'RIFF') return false;
+  if (buf.slice(8, 12).toString() !== 'WEBP') return false;
+  let pos = 12;
+  while (pos + 8 <= buf.length) {
+    const type = buf.slice(pos, pos + 4).toString();
+    if (type === 'ANIM') return true;
+    const size = buf.readUInt32LE(pos + 4);
+    pos += 8 + size + (size % 2);
+  }
+  return false;
+}
+
 async function cmdSticker(sock, msg) {
   const jid = msg.key.remoteJid;
   // Fallback chain: WhatsApp display name → sender phone number → "Anonimo".
@@ -91,9 +108,10 @@ async function cmdSticker(sock, msg) {
     if (!stickerBuffer || stickerBuffer.length < 100) {
       throw new Error('Sticker generado vacio');
     }
-    await sock.sendMessage(jid, { sticker: stickerBuffer }, { quoted: msg });
+    const animated = isAnimatedWebP(stickerBuffer);
+    await sock.sendMessage(jid, { sticker: stickerBuffer, ...(animated && { isAnimated: true }) }, { quoted: msg });
     incrementStat('stickersCreated');
-    logger.success(`Sticker enviado (${found.type}, ${stickerBuffer.length} bytes)`);
+    logger.success(`Sticker enviado (${found.type}, ${stickerBuffer.length} bytes, animated=${animated})`);
   } catch (err) {
     logger.error(`Sticker send error: ${err.message}`);
     await sock.sendMessage(jid, { text: `Error al enviar sticker: ${err.message}` }, { quoted: msg });
