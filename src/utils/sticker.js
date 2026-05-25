@@ -1,7 +1,6 @@
 const { ffmpegPath } = require('./ffmpeg');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs-extra');
-const webpmux = require('node-webpmux');
 const { tempFile, cleanTemp } = require('./helpers');
 const config = require('../config');
 const logger = require('./logger');
@@ -166,21 +165,16 @@ function injectExifIntoWebP(webp, exifBuf) {
   return Buffer.concat([header, body]);
 }
 
-async function addStickerMeta(webpBuffer, author) {
+function addStickerMeta(webpBuffer, author) {
   const exif = buildExif(config.sticker.pack, author || config.sticker.author);
-  // Binary injection is pure buffer ops — no parsing overhead, no double-load
+  // Pure buffer ops — no parsing overhead, no double-load. If it ever throws on
+  // a malformed WebP, ship the sticker without pack metadata instead of dragging
+  // in a heavy parser as a fallback (node-webpmux used to be that fallback).
   try {
     return injectExifIntoWebP(webpBuffer, exif);
-  } catch {
-    // Binary injection failed (corrupt/unusual WebP) — fall back to webpmux
-    try {
-      const img = new webpmux.Image();
-      await img.load(webpBuffer);
-      img.exif = exif;
-      return await img.save(null);
-    } catch {
-      return webpBuffer;
-    }
+  } catch (err) {
+    logger.warn(`addStickerMeta: binary inject failed, sending without pack: ${err.message}`);
+    return webpBuffer;
   }
 }
 

@@ -65,7 +65,9 @@ async function connectToWhatsApp() {
       keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' })),
     },
     printQRInTerminal: false,
-    markOnlineOnConnect: true,
+    // false → bot doesn't appear "online" all the time. This reduces incoming
+    // receipt traffic and lowers perceived response latency from WhatsApp's side.
+    markOnlineOnConnect: false,
     generateHighQualityLinkPreview: false,
     getMessage: async () => undefined,
     // More frequent keep-alives = more stable WebSocket on mobile/Termux

@@ -1,5 +1,5 @@
 const { getActiveUsers } = require('../utils/messageCounter');
-const { isOwner } = require('./social');
+const { isOwner, isAdminInMeta } = require('../utils/wa');
 
 const MEDALS = ['🥇', '🥈', '🥉', '🎖️', '🎖️'];
 
@@ -113,11 +113,6 @@ const ADMIN_PHRASES = [
   ],
 ];
 
-function isGroupAdmin(groupMeta, jid) {
-  const p = groupMeta?.participants?.find(p => p.id === jid);
-  return p?.admin === 'admin' || p?.admin === 'superadmin';
-}
-
 async function cmdCount(sock, msg, groupMeta, args) {
   const jid = msg.key.remoteJid;
   const sender = msg.key.participant || msg.key.remoteJid;
@@ -126,7 +121,7 @@ async function cmdCount(sock, msg, groupMeta, args) {
     return sock.sendMessage(jid, { text: 'Este comando solo funciona en grupos.' }, { quoted: msg });
   }
 
-  if (!isOwner(sender, msg.key.fromMe) && !isGroupAdmin(groupMeta, sender)) {
+  if (!isOwner(sender, msg.key.fromMe) && !isAdminInMeta(groupMeta, sender)) {
     return sock.sendMessage(jid, { text: 'Solo los admins pueden usar este comando.' }, { quoted: msg });
   }
 
@@ -164,7 +159,7 @@ async function cmdCount(sock, msg, groupMeta, args) {
     const msgs = u.count === 1 ? '1 mensaje' : `${u.count} mensajes`;
 
     if (i < 3) {
-      const admin = isGroupAdmin(groupMeta, u.jid);
+      const admin = isAdminInMeta(groupMeta, u.jid);
       const phrase = pick(admin ? ADMIN_PHRASES[i] : MEMBER_PHRASES[i]);
       text += `${MEDALS[i]} *@${phone}* — ${msgs}\n`;
       text += `${phrase}\n\n`;

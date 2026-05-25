@@ -24,14 +24,14 @@ async function saveIndex() {
 }
 
 // Debounced disk write — batches rapid mutations (timestamp updates, evictions)
-// into a single write 1s later. Avoids hammering disk on busy chats.
+// into a single write 5s later. Avoids hammering disk on busy chats.
 let _saveTimer = null;
 function scheduleIndexSave() {
   if (_saveTimer) return;
   _saveTimer = setTimeout(() => {
     _saveTimer = null;
     saveIndex().catch(() => {});
-  }, 1000);
+  }, 5000);
 }
 
 function cacheKey(query) {

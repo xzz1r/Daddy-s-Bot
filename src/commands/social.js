@@ -1,20 +1,8 @@
 const { getState, setState, toggleGroup } = require('../utils/state');
 const { formatUptime } = require('../utils/helpers');
+const { isOwner, isAdmin } = require('../utils/wa');
 const config = require('../config');
 const logger = require('../utils/logger');
-
-// fromMe = true means the message was sent from the bot's own linked account = owner
-function isOwner(jid, fromMe) {
-  if (fromMe) return true;
-  const num = jid.replace(/@[^@]+$/, '').replace(/\D/g, '');
-  const owner = String(config.ownerNumber).replace(/\D/g, '');
-  return num === owner || num.endsWith(owner) || owner.endsWith(num);
-}
-
-function isAdmin(participants, jid) {
-  const participant = participants?.find(p => p.id === jid);
-  return participant?.admin === 'admin' || participant?.admin === 'superadmin';
-}
 
 // !on - turn bot on (in group or globally)
 async function cmdOn(sock, msg, groupMeta) {
@@ -158,4 +146,5 @@ async function cmdHelp(sock, msg) {
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
 
-module.exports = { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, isOwner };
+module.exports = { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp };
+

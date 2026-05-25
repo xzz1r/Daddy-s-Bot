@@ -6,13 +6,14 @@ const { cmdSticker } = require('../commands/sticker');
 const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdCount } = require('../commands/count');
 const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
-const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, isAdmin } = require('../commands/group');
+const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted } = require('../commands/group');
 const { cmdShip } = require('../commands/ship');
 const { cmdTtp } = require('../commands/ttp');
 const { cmdToImg } = require('../commands/toimg');
 const { cmdPfp } = require('../commands/pfp');
 const percent = require('../commands/percent');
-const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, isOwner } = require('../commands/social');
+const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp } = require('../commands/social');
+const { isOwner, isAdmin, extractText } = require('../utils/wa');
 const logger = require('../utils/logger');
 
 // Detects http/https links, www. links, and common invite/spam patterns
@@ -53,18 +54,6 @@ async function getGroupMeta(sock, jid) {
 
 function invalidateGroupMeta(jid) {
   metaCache.delete(jid);
-}
-
-function extractText(msg) {
-  const m = msg.message;
-  return (
-    m?.conversation ||
-    m?.extendedTextMessage?.text ||
-    m?.imageMessage?.caption ||
-    m?.videoMessage?.caption ||
-    m?.documentMessage?.caption ||
-    ''
-  );
 }
 
 async function handleMessage(sock, msg) {

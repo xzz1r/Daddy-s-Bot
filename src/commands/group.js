@@ -1,5 +1,5 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const { isOwner } = require('./social');
+const { isOwner, isAdmin, getTarget } = require('../utils/wa');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled } = require('../utils/state');
 const { isBusinessBatch } = require('../utils/businessCheck');
 
@@ -7,11 +7,6 @@ async function streamToBuffer(stream) {
   const chunks = [];
   for await (const chunk of stream) chunks.push(chunk);
   return Buffer.concat(chunks);
-}
-
-function isAdmin(participants, jid) {
-  const p = participants?.find((x) => x.id === jid);
-  return p?.admin === 'admin' || p?.admin === 'superadmin';
 }
 
 // In-memory mute store: `groupJid|userJid` -> expireTimestamp
@@ -219,13 +214,6 @@ async function cmdUnmute(sock, msg, args, groupMeta) {
     text: `@${num} desmuteado.`,
     mentions: [target],
   }, { quoted: msg });
-}
-
-// Helper: get target from mention or quoted message
-function getTarget(msg) {
-  const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
-  const quotedParticipant = msg.message?.extendedTextMessage?.contextInfo?.participant;
-  return mentioned[0] || quotedParticipant || null;
 }
 
 // !promote @user — give admin rights (admin only, owner-only when antiadmin is on)
@@ -436,4 +424,4 @@ async function scanAndPurgeBusinesses(sock, msg, groupJid, groupMeta) {
   }
 }
 
-module.exports = { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, isAdmin };
+module.exports = { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted };

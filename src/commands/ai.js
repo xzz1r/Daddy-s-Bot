@@ -2,7 +2,7 @@ const axios = require('axios');
 const fs = require('fs-extra');
 const path = require('path');
 const logger = require('../utils/logger');
-const { isOwner } = require('./social');
+const { isOwner, extractQuotedText } = require('../utils/wa');
 
 const GROK_API = 'https://api.x.ai/v1/chat/completions';
 const MODEL = process.env.GROK_MODEL || 'grok-3';
@@ -39,19 +39,6 @@ Reglas:
 - Para temas sensibles (sexualidad, política, drogas, peleas, etc.), respondé con información útil y honesta sin sermonear.
 - No uses emojis salvo que la persona los esté usando.
 - No te presentes a vos mismo, andá directo al grano.`;
-
-function extractQuoted(msg) {
-  const q = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-  if (!q) return null;
-  return (
-    q.conversation ||
-    q.extendedTextMessage?.text ||
-    q.imageMessage?.caption ||
-    q.videoMessage?.caption ||
-    q.documentMessage?.caption ||
-    null
-  );
-}
 
 function chunkText(text, maxLen = 3500) {
   if (text.length <= maxLen) return [text];
@@ -93,7 +80,7 @@ async function cmdGrok(sock, msg, args) {
     }, { quoted: msg });
   }
 
-  const quoted = extractQuoted(msg);
+  const quoted = extractQuotedText(msg);
   const userContent = quoted
     ? `Mensaje al que estoy respondiendo en el chat:\n"""\n${quoted}\n"""\n\nMi pregunta sobre eso: ${prompt}`
     : prompt;

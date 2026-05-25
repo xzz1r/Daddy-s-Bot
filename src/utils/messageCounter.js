@@ -17,13 +17,15 @@ async function load() {
   await loadPromise;
 }
 
-// Debounced save to avoid disk thrash on busy groups
+// Debounced save to avoid disk thrash on busy groups.
+// 10s window batches hundreds of increments into one write on chatty groups —
+// worst case loss on crash is ~10s of message counts, which is acceptable.
 function scheduleSave() {
   if (saveTimer) return;
   saveTimer = setTimeout(async () => {
     saveTimer = null;
     try { await fs.writeJson(COUNT_FILE, counts); } catch {}
-  }, 2000);
+  }, 10000);
 }
 
 async function increment(groupJid, userJid) {

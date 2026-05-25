@@ -1,10 +1,6 @@
-function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+const { isAdminInMeta, getTargetOrSelf } = require('../utils/wa');
 
-function isAdminInGroup(groupMeta, jid) {
-  if (!groupMeta?.participants || !jid) return false;
-  const p = groupMeta.participants.find(p => p.id === jid);
-  return p?.admin === 'admin' || p?.admin === 'superadmin';
-}
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 // Distribuciones por tier (uniforme dentro de cada rango):
 //
@@ -696,23 +692,15 @@ const LABELS = {
   },
 };
 
-function extractTarget(msg) {
-  const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
-  if (mentioned) return mentioned;
-  const quotedParticipant = msg.message?.extendedTextMessage?.contextInfo?.participant;
-  if (quotedParticipant) return quotedParticipant;
-  return msg.key.participant || msg.key.remoteJid;
-}
-
 async function runPercent(sock, msg, key, groupMeta) {
   const jid = msg.key.remoteJid;
   const cfg = LABELS[key];
   if (!cfg) return;
 
   const sender = msg.key.participant || msg.key.remoteJid;
-  const senderIsAdmin = isAdminInGroup(groupMeta, sender);
+  const senderIsAdmin = isAdminInMeta(groupMeta, sender);
 
-  const target = extractTarget(msg);
+  const target = getTargetOrSelf(msg);
   const percent = rollPercent(cfg.goodIsHigh, senderIsAdmin);
   const verdict = percent >= 70 ? pick(cfg.high) : percent <= 30 ? pick(cfg.low) : pick(cfg.mid);
   const finale = pick(cfg.extreme);
