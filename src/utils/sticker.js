@@ -18,16 +18,63 @@ function detectExt(buffer) {
   return null;
 }
 
+// Extract the first ANMF frame from an animated WebP as a minimal static WebP.
+// Used to generate a thumbnail without needing ffmpeg's animated WebP decoder.
+function extractFirstAnmfFrame(animBuf) {
+  if (!animBuf || animBuf.length < 12) return null;
+  let pos = 12;
+  while (pos + 8 <= animBuf.length) {
+    const chunkType = animBuf.slice(pos, pos + 4).toString();
+    const chunkSize = animBuf.readUInt32LE(pos + 4);
+    if (chunkType === 'ANMF' && chunkSize > 16) {
+      const frameChunk = animBuf.slice(pos + 24, pos + 8 + chunkSize);
+      const riffSize = 4 + frameChunk.length;
+      const out = Buffer.allocUnsafe(8 + riffSize);
+      out.write('RIFF', 0, 'ascii');
+      out.writeUInt32LE(riffSize, 4);
+      out.write('WEBP', 8, 'ascii');
+      frameChunk.copy(out, 12);
+      return out;
+    }
+    pos += 8 + chunkSize + (chunkSize % 2);
+  }
+  return null;
+}
+
+// Generate a small PNG thumbnail from an animated WebP.
+// WhatsApp needs pngThumbnail on animated stickers to enable saving and forwarding.
+async function generateAnimatedThumb(animBuf) {
+  const frameBuf = extractFirstAnmfFrame(animBuf);
+  if (!frameBuf) return null;
+  const inputFile = tempFile('webp');
+  const outputFile = tempFile('png');
+  await fs.writeFile(inputFile, frameBuf);
+  try {
+    await runFfmpeg(inputFile, outputFile, [
+      '-vframes', '1',
+      '-vf', 'scale=96:96:force_original_aspect_ratio=decrease',
+      '-y',
+    ], 'image2');
+    const buf = await fs.readFile(outputFile);
+    return buf.length > 100 ? buf : null;
+  } catch {
+    return null;
+  } finally {
+    await cleanTemp(inputFile);
+    await cleanTemp(outputFile);
+  }
+}
+
 const VF_STATIC = 'scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=#00000000';
 const VF_ANIM = (fps) => `fps=${fps},scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=#00000000`;
 
-function runFfmpeg(inputFile, outputFile, options) {
+function runFfmpeg(inputFile, outputFile, options, format = 'webp') {
   return new Promise((resolve, reject) => {
     let stderrBuf = '';
     ffmpeg(inputFile)
       .setFfmpegPath(ffmpegPath)
       .outputOptions(options)
-      .toFormat('webp')
+      .toFormat(format)
       .on('stderr', (line) => { stderrBuf += line + '\n'; })
       .on('error', (err) => {
         const lastLines = stderrBuf.trim().split('\n').slice(-4).join(' | ');
@@ -168,17 +215,18 @@ async function imageToSticker(imageBuffer, author) {
   }
 }
 
-// WhatsApp's real animated sticker limit is ~1MB
-const MAX_STICKER_BYTES = 1024 * 1024;
+// WhatsApp animated sticker hard limit: 500KB
+const MAX_STICKER_BYTES = 500 * 1024;
 
-// Tiers: quality drops before FPS to keep motion smooth
+// Tiers: quality drops before FPS to keep motion smooth, targeting <500KB
 const ANIM_TIERS = [
-  { fps: 20, quality: 82 },
-  { fps: 20, quality: 72 },
-  { fps: 15, quality: 72 },
-  { fps: 15, quality: 62 },
-  { fps: 15, quality: 52 },
-  { fps: 12, quality: 52 },
+  { fps: 15, quality: 75 },
+  { fps: 15, quality: 65 },
+  { fps: 12, quality: 65 },
+  { fps: 12, quality: 55 },
+  { fps: 10, quality: 55 },
+  { fps: 10, quality: 45 },
+  { fps: 8,  quality: 45 },
 ];
 
 function encodeAnimWebp(inputFile, outputFile, fps, quality) {
@@ -244,4 +292,4 @@ async function gifToSticker(gifBuffer, author) {
   return videoToSticker(gifBuffer, author);
 }
 
-module.exports = { imageToSticker, videoToSticker, gifToSticker };
+module.exports = { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb };

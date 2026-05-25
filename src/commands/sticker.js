@@ -1,5 +1,5 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const { imageToSticker, videoToSticker, gifToSticker } = require('../utils/sticker');
+const { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb } = require('../utils/sticker');
 const { incrementStat } = require('../utils/state');
 const logger = require('../utils/logger');
 
@@ -109,9 +109,14 @@ async function cmdSticker(sock, msg) {
       throw new Error('Sticker generado vacio');
     }
     const animated = isAnimatedWebP(stickerBuffer);
-    await sock.sendMessage(jid, { sticker: stickerBuffer, ...(animated && { isAnimated: true }) }, { quoted: msg });
+    const pngThumbnail = animated ? await generateAnimatedThumb(stickerBuffer).catch(() => null) : undefined;
+    await sock.sendMessage(jid, {
+      sticker: stickerBuffer,
+      ...(animated && { isAnimated: true }),
+      ...(pngThumbnail && { pngThumbnail }),
+    }, { quoted: msg });
     incrementStat('stickersCreated');
-    logger.success(`Sticker enviado (${found.type}, ${stickerBuffer.length} bytes, animated=${animated})`);
+    logger.success(`Sticker enviado (${found.type}, ${stickerBuffer.length} bytes, animated=${animated}, thumb=${!!pngThumbnail})`);
   } catch (err) {
     logger.error(`Sticker send error: ${err.message}`);
     await sock.sendMessage(jid, { text: `Error al enviar sticker: ${err.message}` }, { quoted: msg });
