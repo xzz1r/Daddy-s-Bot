@@ -92,25 +92,38 @@ async function setCached(query, srcPath, title, mimetype, ext) {
   await loadIndex();
   const k = cacheKey(query);
 
-  // Evict oldest disk entry if at limit
-  const entries = Object.entries(index);
-  if (entries.length >= MAX_SONGS) {
-    const [oldKey, oldEntry] = entries.sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
-    await fs.remove(path.join(CACHE_DIR, oldEntry.file)).catch(() => {});
-    delete index[oldKey];
+  // Evict oldest disk entry if at limit. Single-pass O(n) min — beats sort on the
+  // whole index every write, which can be hundreds of entries over time.
+  let count = 0;
+  let oldestKey = null;
+  let oldestTs = Infinity;
+  for (const key in index) {
+    count++;
+    const ts = index[key].timestamp;
+    if (ts < oldestTs) { oldestTs = ts; oldestKey = key; }
+  }
+  if (count >= MAX_SONGS && oldestKey) {
+    await fs.remove(path.join(CACHE_DIR, index[oldestKey].file)).catch(() => {});
+    delete index[oldestKey];
   }
 
   const cacheFile = `${k}${path.extname(srcPath)}`;
   const destPath = path.join(CACHE_DIR, cacheFile);
-  await fs.copy(srcPath, destPath);
+
+  // Read source once → write to cache + keep in RAM. Avoids the prior copy + read
+  // double-IO pattern that hit disk twice for every freshly downloaded song.
+  let buffer = null;
+  try {
+    buffer = await fs.readFile(srcPath);
+    await fs.writeFile(destPath, buffer);
+  } catch {
+    await fs.copy(srcPath, destPath).catch(() => {});
+  }
+
   index[k] = { file: cacheFile, title, mimetype, ext, timestamp: Date.now() };
   await saveIndex();
 
-  // Also load into RAM cache
-  try {
-    const buffer = await fs.readFile(destPath);
-    storeInRam(k, buffer, title, mimetype, ext);
-  } catch {}
+  if (buffer) storeInRam(k, buffer, title, mimetype, ext);
 }
 
 async function clearCache() {

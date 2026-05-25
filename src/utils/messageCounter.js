@@ -35,10 +35,14 @@ async function increment(groupJid, userJid) {
 
 async function getActiveUsers(groupJid, minMessages = 10) {
   await load();
-  const group = counts[groupJid] || {};
-  return Object.entries(group)
-    .filter(([, c]) => c >= minMessages)
-    .map(([jid, count]) => ({ jid, count }));
+  const group = counts[groupJid];
+  if (!group) return [];
+  const out = [];
+  for (const jid in group) {
+    const count = group[jid];
+    if (count >= minMessages) out.push({ jid, count });
+  }
+  return out;
 }
 
 module.exports = { increment, getActiveUsers };

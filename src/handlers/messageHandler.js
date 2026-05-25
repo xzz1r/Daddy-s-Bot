@@ -78,12 +78,20 @@ async function handleMessage(sock, msg) {
   // fromMe = true when the owner sends from their linked phone — still allow commands
   if (msg.key.fromMe && !text.startsWith(config.prefix)) return;
 
-  // Non-blocking counters — never delay command execution
+  // Non-blocking counters — never delay command execution.
+  // Don't count the bot's own messages so the owner doesn't inflate their rank.
   incrementStat('messagesReceived');
-  if (jid.endsWith('@g.us') && sender) incrementMsgCount(jid, sender).catch(() => {});
+  if (!msg.key.fromMe && jid.endsWith('@g.us') && sender) {
+    incrementMsgCount(jid, sender).catch(() => {});
+  }
 
-  // Sync in-memory check — no async overhead
-  if (!isBotEnabled(jid) && !text.startsWith(`${config.prefix}on`)) return;
+  // Sync in-memory check — no async overhead.
+  // Exact-command match so things like "!once" don't bypass disabled state.
+  if (!isBotEnabled(jid)) {
+    const rest = text.startsWith(config.prefix) ? text.slice(config.prefix.length) : '';
+    const firstWord = rest.split(/\s+/, 1)[0].toLowerCase();
+    if (firstWord !== 'on') return;
+  }
 
   // Anti-link: delete message + kick sender if they're not admin/owner
   if (jid.endsWith('@g.us') && text && LINK_RE.test(text) && !isOwner(sender, msg.key.fromMe)) {

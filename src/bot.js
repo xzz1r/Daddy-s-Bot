@@ -21,8 +21,21 @@ const AUTH_DIR = path.join(__dirname, '../data/auth');
 let sock = null;
 let reconnectAttempts = 0;
 let consecutive401 = 0;
+let botIds = null; // Set<string> of bot's bare IDs (phone + LID), populated on open
 const MAX_RECONNECTS = 10;
 const MAX_401 = 3;
+
+function scheduleReconnect(delay) {
+  // Tear down the old socket so its event listeners/WebSocket don't leak across
+  // reconnects (long-running bots otherwise accumulate them).
+  if (sock) {
+    try { sock.ev.removeAllListeners(); } catch {}
+    try { sock.end(); } catch {}
+    sock = null;
+  }
+  botIds = null;
+  setTimeout(connectToWhatsApp, delay);
+}
 
 // Cache Baileys version — avoids an HTTP round-trip on every reconnect
 let _baileysVersion = null;
@@ -83,14 +96,14 @@ async function connectToWhatsApp() {
           // Could be a temporary WhatsApp rejection, retry before wiping session
           const delay = 5000 * consecutive401;
           logger.error(`Sesión rechazada (401), reintentando en ${delay / 1000}s... (${consecutive401}/${MAX_401})`);
-          setTimeout(connectToWhatsApp, delay);
+          scheduleReconnect(delay);
         } else {
           // Confirmed logout — wipe and show QR
           logger.error('Sesion definitivamente cerrada. Escaneá el QR de nuevo.');
           await fs.remove(AUTH_DIR);
           consecutive401 = 0;
           reconnectAttempts = 0;
-          setTimeout(connectToWhatsApp, 2000);
+          scheduleReconnect(2000);
         }
         return;
       }
@@ -100,7 +113,7 @@ async function connectToWhatsApp() {
       if (reconnectAttempts < MAX_RECONNECTS) {
         reconnectAttempts++;
         const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
-        setTimeout(connectToWhatsApp, delay);
+        scheduleReconnect(delay);
       } else {
         logger.error('No se pudo reconectar. Reiniciá el bot manualmente.');
         process.exit(1);
@@ -109,6 +122,10 @@ async function connectToWhatsApp() {
     } else if (connection === 'open') {
       reconnectAttempts = 0;
       consecutive401 = 0;
+      // Precompute bot's bare IDs (phone + LID) so participant-update events
+      // don't have to rebuild the Set on every notification.
+      const myJids = [sock.user?.id, sock.user?.lid].filter(Boolean);
+      botIds = new Set(myJids.map(j => j.split('@')[0].split(':')[0]));
       // Explicit save on full connection to ensure session is complete
       await saveCreds();
       console.log(`\n✓ Daddy's Bot conectado\n`);
@@ -133,10 +150,9 @@ async function connectToWhatsApp() {
       .filter(Boolean);
 
     // Bot detection covers both phone JID (older groups) and LID (newer groups).
-    const botJids = [sock.user?.id, sock.user?.lid].filter(Boolean);
-    const botIds = new Set(botJids.map(j => j.split('@')[0].split(':')[0]));
+    // botIds is precomputed at 'connection: open' to skip the rebuild per event.
     const isBotJid = (jid) => {
-      if (!jid) return false;
+      if (!jid || !botIds) return false;
       const base = String(jid).split('@')[0].split(':')[0];
       return botIds.has(base);
     };

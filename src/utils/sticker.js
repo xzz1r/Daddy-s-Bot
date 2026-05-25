@@ -166,7 +166,7 @@ function injectExifIntoWebP(webp, exifBuf) {
   return Buffer.concat([header, body]);
 }
 
-function addStickerMeta(webpBuffer, author) {
+async function addStickerMeta(webpBuffer, author) {
   const exif = buildExif(config.sticker.pack, author || config.sticker.author);
   // Binary injection is pure buffer ops — no parsing overhead, no double-load
   try {
@@ -175,10 +175,9 @@ function addStickerMeta(webpBuffer, author) {
     // Binary injection failed (corrupt/unusual WebP) — fall back to webpmux
     try {
       const img = new webpmux.Image();
-      return img.load(webpBuffer).then(() => {
-        img.exif = exif;
-        return img.save(null);
-      }).catch(() => webpBuffer);
+      await img.load(webpBuffer);
+      img.exif = exif;
+      return await img.save(null);
     } catch {
       return webpBuffer;
     }

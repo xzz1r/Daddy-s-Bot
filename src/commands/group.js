@@ -25,6 +25,15 @@ function isMuted(groupJid, userJid) {
   return true;
 }
 
+// Periodic sweep — isMuted only evicts entries that get queried after expiry,
+// so abandoned mutes would otherwise accumulate forever in a 24/7 bot.
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, exp] of mutedUsers) {
+    if (now > exp) mutedUsers.delete(k);
+  }
+}, 10 * 60 * 1000).unref();
+
 // !tagall — mention everyone. Forwards media if replying to one, otherwise sends text.
 async function cmdTodos(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
