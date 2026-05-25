@@ -26,6 +26,7 @@ const NEEDS_META = new Set([
   'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness',
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil',
+  'count',
 ]);
 
 // Group metadata cache: 30s TTL, bounded at 500 entries (FIFO eviction).
@@ -150,7 +151,7 @@ async function handleMessage(sock, msg) {
         break;
 
       case 'count':
-        await cmdCount(sock, msg);
+        await cmdCount(sock, msg, groupMeta);
         break;
 
       case 'g':
