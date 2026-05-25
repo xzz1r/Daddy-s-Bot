@@ -258,11 +258,12 @@ async function connectToWhatsApp() {
   sock.ev.on('messages.upsert', ({ messages, type }) => {
     if (type !== 'notify') return;
     for (const msg of messages) {
-      // Fire-and-forget read receipt — never blocks message processing
+      // handleMessage runs first so its sock.sendMessage is queued BEFORE readMessages.
+      // Swapping the order would add one extra WA round-trip in front of every command response.
+      handleMessage(sock, msg).catch(err => logger.error(`handleMessage error: ${err.message}`));
       if (config.autoRead && !msg.key.fromMe && msg.key.remoteJid) {
         sock.readMessages([msg.key]).catch(() => {});
       }
-      handleMessage(sock, msg).catch(err => logger.error(`handleMessage error: ${err.message}`));
     }
   });
 

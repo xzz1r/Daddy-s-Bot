@@ -67,11 +67,12 @@ async function cmdOff(sock, msg, groupMeta) {
 // !ping - latency check
 async function cmdPing(sock, msg) {
   const jid = msg.key.remoteJid;
-  const delivery = Date.now() - (msg.messageTimestamp * 1000);
+  const skew = Date.now() - (msg.messageTimestamp * 1000);
   const start = Date.now();
   await sock.sendMessage(jid, { text: '...' }, { quoted: msg });
   const send = Date.now() - start;
-  sock.sendMessage(jid, { text: `*${send}ms* envio  .  *${delivery}ms* entrega WA` }, { quoted: msg }).catch(() => {});
+  const skewStr = skew >= 0 ? `${skew}ms` : `${Math.abs(skew)}ms (reloj WA +${Math.abs(skew)}ms adelantado)`;
+  sock.sendMessage(jid, { text: `*${send}ms* envio  ·  *${skewStr}* desfase` }, { quoted: msg }).catch(() => {});
 }
 
 // !info - bot status

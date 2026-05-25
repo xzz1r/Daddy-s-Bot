@@ -106,9 +106,6 @@ async function handleMessage(sock, msg) {
   logger.cmd(sender.split('@')[0], `${config.prefix}${command} ${args.join(' ')}`);
   incrementStat('commandsExecuted');
 
-  // Fire-and-forget — don't delay command start waiting for presence ACK
-  if (config.autoTyping) sock.sendPresenceUpdate('composing', jid).catch(() => {});
-
   // Only fetch group metadata for commands that actually need it
   let groupMeta = null;
   if (jid.endsWith('@g.us') && NEEDS_META.has(command)) {
@@ -283,7 +280,6 @@ async function handleMessage(sock, msg) {
     sock.sendMessage(jid, { text: `Error inesperado: ${err.message}` }, { quoted: msg }).catch(() => {});
   }
 
-  if (config.autoTyping) sock.sendPresenceUpdate('paused', jid).catch(() => {});
 }
 
 module.exports = { handleMessage, invalidateGroupMeta };
