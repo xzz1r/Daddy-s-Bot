@@ -75,9 +75,17 @@ async function cmdTodos(sock, msg, args, groupMeta) {
 
   // --- Media in the quoted (replied-to) message ---
   const ctx = msg.message?.extendedTextMessage?.contextInfo;
-  const quoted = ctx?.quotedMessage;
+  const rawQuoted = ctx?.quotedMessage;
 
-  if (quoted) {
+  if (rawQuoted) {
+    // View-once messages wrap the real media under viewOnceMessage / viewOnceMessageV2.
+    // Unwrap first so the rest of the handlers don't need to know about this.
+    const quoted =
+      rawQuoted.viewOnceMessageV2Extension?.message ||
+      rawQuoted.viewOnceMessageV2?.message ||
+      rawQuoted.viewOnceMessage?.message ||
+      rawQuoted;
+
     if (quoted.imageMessage) {
       const buf = await dl(quoted.imageMessage, 'image');
       return sock.sendMessage(jid, { image: buf, caption: caption || quoted.imageMessage.caption || '', mentions });
