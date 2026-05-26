@@ -10,7 +10,18 @@ async function streamToBuffer(stream) {
 }
 
 // In-memory mute store: `groupJid|userJid` -> expireTimestamp
+// Hard-capped: insertion-ordered Map evicts oldest entry past the cap so a
+// long-running bot can't blow memory if mutes are added but never queried.
 const mutedUsers = new Map();
+const MAX_MUTED = 5000;
+
+function muteUser(groupJid, userJid, expireTs) {
+  const k = `${groupJid}|${userJid}`;
+  if (mutedUsers.size >= MAX_MUTED && !mutedUsers.has(k)) {
+    mutedUsers.delete(mutedUsers.keys().next().value);
+  }
+  mutedUsers.set(k, expireTs);
+}
 
 function isMuted(groupJid, userJid) {
   const k = `${groupJid}|${userJid}`;
@@ -205,7 +216,7 @@ async function cmdMute(sock, msg, args, groupMeta) {
   }
 
   const minutes = Math.min(Math.max(parseInt(args.find(a => /^\d+$/.test(a)) || '10', 10), 1), 1440);
-  mutedUsers.set(`${jid}|${target}`, Date.now() + minutes * 60_000);
+  muteUser(jid, target, Date.now() + minutes * 60_000);
 
   const num = target.split('@')[0];
   await sock.sendMessage(jid, {

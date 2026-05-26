@@ -32,7 +32,7 @@ async function saveState(state) {
 }
 
 let _state = { ...defaultState };
-let _savePending = false;
+let _saveTimer = null;
 
 async function initState() {
   _state = await loadState();
@@ -70,13 +70,22 @@ async function toggleGroup(jid, enable) {
 function incrementStat(key) {
   if (!_state.stats) _state.stats = {};
   _state.stats[key] = (_state.stats[key] || 0) + 1;
-  if (!_savePending) {
-    _savePending = true;
-    setTimeout(() => {
-      _savePending = false;
+  if (!_saveTimer) {
+    _saveTimer = setTimeout(() => {
+      _saveTimer = null;
       saveState(_state).catch(() => {});
     }, 5000);
   }
+}
+
+// Force-flush any pending debounced save — called on shutdown so the last
+// few seconds of stat increments aren't lost when the process exits.
+async function flushState() {
+  if (_saveTimer) {
+    clearTimeout(_saveTimer);
+    _saveTimer = null;
+  }
+  try { await saveState(_state); } catch {}
 }
 
 // Sync — admin change notifications are ON by default for every group
@@ -126,5 +135,5 @@ async function toggleAntiBusiness(jid, enable) {
   await saveState(_state);
 }
 
-module.exports = { initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness };
+module.exports = { initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, flushState, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness };
 

@@ -135,5 +135,16 @@ async function clearCache() {
   ramCache.clear();
 }
 
-module.exports = { getCached, setCached, clearCache };
+// Force-flush pending debounced index save — call on shutdown.
+async function flushCache() {
+  if (_saveTimer) {
+    clearTimeout(_saveTimer);
+    _saveTimer = null;
+  }
+  if (index) {
+    try { await saveIndex(); } catch {}
+  }
+}
+
+module.exports = { getCached, setCached, clearCache, flushCache };
 

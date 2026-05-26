@@ -52,15 +52,29 @@ async function cmdOff(sock, msg, groupMeta) {
   logger.warn('Bot desactivado globalmente');
 }
 
-// !ping - latency check
+// !ping - latency check. Uses the WebSocket IQ ping (raw network RTT to
+// WhatsApp servers) instead of round-tripping an encrypted message — that
+// avoids the 700-1300ms E2E encryption + delivery overhead and gives a
+// stable number that actually reflects connection quality.
 async function cmdPing(sock, msg) {
   const jid = msg.key.remoteJid;
-  const skew = Date.now() - (msg.messageTimestamp * 1000);
-  const start = Date.now();
-  await sock.sendMessage(jid, { text: '...' }, { quoted: msg });
-  const send = Date.now() - start;
-  const skewStr = skew >= 0 ? `${skew}ms` : `${Math.abs(skew)}ms (reloj WA +${Math.abs(skew)}ms adelantado)`;
-  sock.sendMessage(jid, { text: `*${send}ms* envio  ·  *${skewStr}* desfase` }, { quoted: msg }).catch(() => {});
+
+  let wsPing = null;
+  if (typeof sock.query === 'function') {
+    try {
+      const start = Date.now();
+      await sock.query({
+        tag: 'iq',
+        attrs: { to: 's.whatsapp.net', type: 'get', xmlns: 'w:p' },
+        content: [{ tag: 'ping', attrs: {} }],
+      });
+      wsPing = Date.now() - start;
+    } catch {}
+  }
+
+  await sock.sendMessage(jid, {
+    text: wsPing !== null ? `Pong: *${wsPing}ms*` : 'Pong',
+  });
 }
 
 // !info - bot status

@@ -40,11 +40,18 @@ const META_TTL = 30_000;
 const META_MAX = 500;
 const metaCache = new Map();
 
+// Hard timeout on the groupMetadata call — without this, a stalled WebSocket
+// can hang the entire message handler for tens of seconds (or forever).
+const META_FETCH_TIMEOUT = 8000;
+
 async function getGroupMeta(sock, jid) {
   const c = metaCache.get(jid);
   if (c && Date.now() - c.ts < META_TTL) return c.meta;
   try {
-    const meta = await sock.groupMetadata(jid);
+    const meta = await Promise.race([
+      sock.groupMetadata(jid),
+      new Promise((_, rej) => setTimeout(() => rej(new Error('groupMetadata timeout')), META_FETCH_TIMEOUT)),
+    ]);
     if (metaCache.size >= META_MAX) {
       metaCache.delete(metaCache.keys().next().value);
     }

@@ -67,20 +67,33 @@ async function generateAnimatedThumb(animBuf) {
 const VF_STATIC = 'scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=#00000000';
 const VF_ANIM = (fps) => `fps=${fps},scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=#00000000`;
 
+// Hard kill if ffmpeg runs longer than this — on Termux a hung encode can
+// otherwise pin a CPU core forever and zombie the command.
+const FFMPEG_TIMEOUT_MS = 45_000;
+
 function runFfmpeg(inputFile, outputFile, options, format = 'webp') {
   return new Promise((resolve, reject) => {
     let stderrBuf = '';
-    ffmpeg(inputFile)
+    let timer = null;
+    const cmd = ffmpeg(inputFile)
       .setFfmpegPath(ffmpegPath)
       .outputOptions(options)
       .toFormat(format)
       .on('stderr', (line) => { stderrBuf += line + '\n'; })
       .on('error', (err) => {
+        if (timer) clearTimeout(timer);
         const lastLines = stderrBuf.trim().split('\n').slice(-4).join(' | ');
         reject(new Error(lastLines || err.message));
       })
-      .on('end', resolve)
-      .save(outputFile);
+      .on('end', () => {
+        if (timer) clearTimeout(timer);
+        resolve();
+      });
+    timer = setTimeout(() => {
+      try { cmd.kill('SIGKILL'); } catch {}
+      reject(new Error('ffmpeg timeout'));
+    }, FFMPEG_TIMEOUT_MS);
+    cmd.save(outputFile);
   });
 }
 
@@ -232,9 +245,11 @@ const ANIM_TIERS = [
 function encodeAnimWebp(inputFile, outputFile, fps, quality) {
   return new Promise((resolve, reject) => {
     let stderrBuf = '';
+    let timer = null;
+    let activeCmd = null;
     const runWithCodec = (codec) => {
       stderrBuf = '';
-      ffmpeg(inputFile)
+      activeCmd = ffmpeg(inputFile)
         .setFfmpegPath(ffmpegPath)
         .outputOptions([
           '-vf', VF_ANIM(fps),
@@ -252,13 +267,21 @@ function encodeAnimWebp(inputFile, outputFile, fps, quality) {
           if (codec === 'libwebp_anim') {
             runWithCodec('libwebp');
           } else {
+            if (timer) clearTimeout(timer);
             const lastLines = stderrBuf.trim().split('\n').slice(-4).join(' | ');
             reject(new Error(lastLines || 'ffmpeg error'));
           }
         })
-        .on('end', resolve)
+        .on('end', () => {
+          if (timer) clearTimeout(timer);
+          resolve();
+        })
         .save(outputFile);
     };
+    timer = setTimeout(() => {
+      try { activeCmd?.kill('SIGKILL'); } catch {}
+      reject(new Error('ffmpeg timeout'));
+    }, FFMPEG_TIMEOUT_MS);
     runWithCodec('libwebp_anim');
   });
 }

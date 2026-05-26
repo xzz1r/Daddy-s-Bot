@@ -47,4 +47,16 @@ async function getActiveUsers(groupJid, minMessages = 10) {
   return out;
 }
 
-module.exports = { increment, getActiveUsers };
+// Force-flush pending debounced save — call on shutdown to avoid losing
+// up to 10s of message counts when the process exits.
+async function flushCounts() {
+  if (saveTimer) {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+  }
+  if (counts) {
+    try { await fs.writeJson(COUNT_FILE, counts); } catch {}
+  }
+}
+
+module.exports = { increment, getActiveUsers, flushCounts };

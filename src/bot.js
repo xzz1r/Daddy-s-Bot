@@ -10,7 +10,9 @@ const path = require('path');
 const fs = require('fs-extra');
 const qrcode = require('qrcode-terminal');
 const { handleMessage, invalidateGroupMeta } = require('./handlers/messageHandler');
-const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled } = require('./utils/state');
+const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, flushState } = require('./utils/state');
+const { flushCounts } = require('./utils/messageCounter');
+const { flushCache } = require('./utils/musicCache');
 const { isBusiness } = require('./utils/businessCheck');
 const { ensureTemp } = require('./utils/helpers');
 const logger = require('./utils/logger');
@@ -246,19 +248,34 @@ async function connectToWhatsApp() {
 
     // Anti-admin: revert any demote that didn't come from the bot
     // Admin A removes B's admin → bot restores B and removes A's admin.
+    // Track each step separately so the notification reflects what actually
+    // happened — a wholesale try/catch would lie if only one step succeeded.
     if (action === 'demote' && !fromBot && isAntiAdminEnabled(groupJid)) {
+      let restored = false;
+      let punished = false;
       try {
-        // Restore victims first, then punish the author
         await sock.groupParticipantsUpdate(groupJid, partJids, 'promote');
-        if (author) await sock.groupParticipantsUpdate(groupJid, [author], 'demote');
-        const punished = author ? [author] : [];
-        const text =
-          `*Anti-admin: accion revertida.*\n` +
-          `${authorTag} intento quitar admin a ${targets}.\n` +
-          `Se ha restaurado su admin y ${authorTag} ha sido degradado.`;
-        sock.sendMessage(groupJid, { text, mentions: [...partJids, ...punished] }).catch(() => {});
+        restored = true;
       } catch (err) {
-        logger.warn(`Anti-admin: revert demote fallo en ${groupJid}: ${err.message}`);
+        logger.warn(`Anti-admin: restore fallo en ${groupJid}: ${err.message}`);
+      }
+      if (author) {
+        try {
+          await sock.groupParticipantsUpdate(groupJid, [author], 'demote');
+          punished = true;
+        } catch (err) {
+          logger.warn(`Anti-admin: punish fallo en ${groupJid}: ${err.message}`);
+        }
+      }
+      if (restored || punished) {
+        const parts = [`*Anti-admin: accion revertida.*`, `${authorTag} intento quitar admin a ${targets}.`];
+        if (restored && punished) parts.push(`Admin restaurado y ${authorTag} degradado.`);
+        else if (restored) parts.push(`Admin restaurado.`);
+        else parts.push(`${authorTag} ha sido degradado.`);
+        sock.sendMessage(groupJid, {
+          text: parts.join('\n'),
+          mentions: [...partJids, ...(author ? [author] : [])],
+        }).catch(() => {});
       }
       return;
     }
@@ -288,12 +305,18 @@ async function connectToWhatsApp() {
   return sock;
 }
 
-process.on('SIGINT', async () => {
+async function gracefulShutdown() {
+  // Flush all debounced writes BEFORE closing the socket — otherwise the last
+  // few seconds of stats, message counts, and music index updates are lost.
+  await Promise.allSettled([flushState(), flushCounts(), flushCache()]);
   if (sock) {
     try { sock.end(); } catch {}
   }
   process.exit(0);
-});
+}
+
+process.on('SIGINT', gracefulShutdown);
+process.on('SIGTERM', gracefulShutdown);
 
 process.on('uncaughtException', (err) => {
   logger.error(`Excepción no capturada: ${err.message}`);
