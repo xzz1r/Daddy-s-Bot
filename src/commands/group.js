@@ -49,45 +49,62 @@ async function cmdTodos(sock, msg, args, groupMeta) {
   const mentions = participants.map((p) => p.id);
   const caption = (args || []).join(' ').trim();
 
-  // Check for media in the command message itself (image/video sent with !tagall as caption)
-  const m = msg.message;
-  const ownImage = m?.imageMessage;
-  const ownVideo = m?.videoMessage;
+  // Helper: download any media type to buffer
+  async function dl(mediaMsg, type) {
+    return streamToBuffer(await downloadContentFromMessage(mediaMsg, type));
+  }
 
-  if (ownImage) {
-    const buf = await streamToBuffer(await downloadContentFromMessage(ownImage, 'image'));
+  // --- Media attached to the command message itself ---
+  const m = msg.message;
+  if (m?.imageMessage) {
+    const buf = await dl(m.imageMessage, 'image');
     return sock.sendMessage(jid, { image: buf, caption, mentions });
   }
-  if (ownVideo) {
-    const buf = await streamToBuffer(await downloadContentFromMessage(ownVideo, 'video'));
+  if (m?.videoMessage) {
+    const buf = await dl(m.videoMessage, 'video');
     return sock.sendMessage(jid, { video: buf, caption, mentions });
   }
+  if (m?.stickerMessage) {
+    const buf = await dl(m.stickerMessage, 'sticker');
+    return sock.sendMessage(jid, {
+      sticker: buf,
+      ...(m.stickerMessage.isAnimated && { isAnimated: true }),
+      mentions,
+    });
+  }
 
-  // Check for quoted message
+  // --- Media in the quoted (replied-to) message ---
   const ctx = msg.message?.extendedTextMessage?.contextInfo;
   const quoted = ctx?.quotedMessage;
 
   if (quoted) {
     if (quoted.imageMessage) {
-      const buf = await streamToBuffer(await downloadContentFromMessage(quoted.imageMessage, 'image'));
+      const buf = await dl(quoted.imageMessage, 'image');
       return sock.sendMessage(jid, { image: buf, caption: caption || quoted.imageMessage.caption || '', mentions });
     }
     if (quoted.videoMessage) {
-      const buf = await streamToBuffer(await downloadContentFromMessage(quoted.videoMessage, 'video'));
+      const buf = await dl(quoted.videoMessage, 'video');
       return sock.sendMessage(jid, { video: buf, caption: caption || quoted.videoMessage.caption || '', mentions });
     }
+    if (quoted.stickerMessage) {
+      const buf = await dl(quoted.stickerMessage, 'sticker');
+      return sock.sendMessage(jid, {
+        sticker: buf,
+        ...(quoted.stickerMessage.isAnimated && { isAnimated: true }),
+        mentions,
+      });
+    }
     if (quoted.audioMessage) {
-      const buf = await streamToBuffer(await downloadContentFromMessage(quoted.audioMessage, 'audio'));
+      const buf = await dl(quoted.audioMessage, 'audio');
       return sock.sendMessage(jid, { audio: buf, mimetype: quoted.audioMessage.mimetype || 'audio/mp4', mentions });
     }
-    // Quoted text
+    // Quoted text → use it as body if no caption given
     const quotedText = quoted.conversation || quoted.extendedTextMessage?.text || '';
-    return sock.sendMessage(jid, { text: caption || quotedText, mentions });
+    return sock.sendMessage(jid, { text: caption || quotedText || '​', mentions });
   }
 
-  // Plain text
-  if (caption) return sock.sendMessage(jid, { text: caption, mentions });
-  return sock.sendMessage(jid, { text: '.', mentions });
+  // Plain text or invisible ping
+  return sock.sendMessage(jid, { text: caption || '​', mentions });
 }
 
 // !kick @user — remove a member (admin only)
