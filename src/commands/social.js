@@ -137,12 +137,12 @@ async function cmdHelp(sock, msg) {
 
 *ADMINISTRACION*
   ${p}tagall <texto>       mencionar a todos
-  ${p}kick @user           expulsar miembro
+  ${p}kick @a @b @c        expulsar uno o varios
   ${p}promote @user        ascender a admin
   ${p}demote @user         degradar a miembro
-  ${p}mute @user [min]     silenciar comandos
+  ${p}mute @user [min]     silenciar (sin min muestra el tiempo restante)
   ${p}unmute @user         quitar silencio
-  ${p}del                  borrar mensaje citado
+  ${p}del                  borrar mensaje citado (y el !del)
   ${p}notifadmin on/off    notificaciones de admin
   ${p}antiadmin on/off     bloquear ascensos externos
   ${p}antiempresa on/off   expulsar cuentas Business

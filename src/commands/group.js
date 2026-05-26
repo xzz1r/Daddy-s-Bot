@@ -31,6 +31,14 @@ function isMuted(groupJid, userJid) {
   return true;
 }
 
+// Returns ms remaining on the mute, or 0 if not muted / already expired.
+function getMuteRemaining(groupJid, userJid) {
+  const exp = mutedUsers.get(`${groupJid}|${userJid}`);
+  if (!exp) return 0;
+  const r = exp - Date.now();
+  return r > 0 ? r : 0;
+}
+
 // Periodic sweep — isMuted only evicts entries that get queried after expiry,
 // so abandoned mutes would otherwise accumulate forever in a 24/7 bot.
 setInterval(() => {
@@ -138,29 +146,55 @@ async function cmdKick(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
   }
 
-  // Get target from mention or quoted message
+  // Collect all candidates: every @mention + the quoted participant (if any).
+  // Dedup so `!kick @a @a` doesn't double-process.
   const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
   const quotedParticipant = msg.message?.extendedTextMessage?.contextInfo?.participant;
-  const target = mentioned[0] || quotedParticipant || null;
+  const all = [...new Set([...mentioned, ...(quotedParticipant ? [quotedParticipant] : [])])];
 
-  if (!target) {
+  if (!all.length) {
     return sock.sendMessage(jid, { text: 'Menciona o responde al usuario que quieres expulsar.' }, { quoted: msg });
   }
 
-  if (target === sender) {
-    return sock.sendMessage(jid, { text: 'No puedes expulsarte a ti mismo.' }, { quoted: msg });
+  // Partition: targets we can actually kick vs ones we skip (with reason).
+  // Owner can kick admins; regular admins cannot.
+  const senderIsOwner = isOwner(sender, msg.key.fromMe, groupMeta);
+  const targets = [];
+  const skipped = [];
+  for (const t of all) {
+    if (t === sender) { skipped.push({ jid: t, reason: 'sos vos mismo' }); continue; }
+    if (isAdmin(groupMeta?.participants, t) && !senderIsOwner) {
+      skipped.push({ jid: t, reason: 'es admin' });
+      continue;
+    }
+    targets.push(t);
   }
 
-  if (isAdmin(groupMeta?.participants, target) && !isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No puedes expulsar a otro admin.' }, { quoted: msg });
+  if (!targets.length) {
+    const reasons = skipped.map(s => `@${s.jid.split('@')[0]} (${s.reason})`).join(', ');
+    return sock.sendMessage(jid, {
+      text: `No pude expulsar a nadie:\n${reasons}`,
+      mentions: skipped.map(s => s.jid),
+    }, { quoted: msg });
   }
 
   try {
-    await sock.groupParticipantsUpdate(jid, [target], 'remove');
-    const num = target.split('@')[0];
-    await sock.sendMessage(jid, { text: `@${num} fue expulsado del grupo.`, mentions: [target] }, { quoted: msg });
+    // Single batch call to the WA API instead of one round-trip per user.
+    await sock.groupParticipantsUpdate(jid, targets, 'remove');
+    const tags = targets.map(t => `@${t.split('@')[0]}`).join(', ');
+    let text = targets.length === 1
+      ? `${tags} fue expulsado del grupo.`
+      : `*${targets.length}* expulsados: ${tags}`;
+    if (skipped.length) {
+      const skipTags = skipped.map(s => `@${s.jid.split('@')[0]} (${s.reason})`).join(', ');
+      text += `\nSalteados: ${skipTags}`;
+    }
+    await sock.sendMessage(jid, {
+      text,
+      mentions: [...targets, ...skipped.map(s => s.jid)],
+    }, { quoted: msg });
   } catch (err) {
-    await sock.sendMessage(jid, { text: `No pude expulsar al usuario: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: `No pude expulsar: ${err.message}` }, { quoted: msg });
   }
 }
 
@@ -188,6 +222,10 @@ async function cmdDel(sock, msg, groupMeta) {
 
   try {
     await sock.sendMessage(jid, { delete: deleteKey });
+    // Also delete the !del command itself — keeps the chat clean. The bot is
+    // already an admin (required for the previous delete to work), so it can
+    // delete any message including the admin's command.
+    sock.sendMessage(jid, { delete: msg.key }).catch(() => {});
   } catch (err) {
     await sock.sendMessage(jid, { text: `No pude borrar el mensaje: ${err.message}` }, { quoted: msg });
   }
@@ -215,12 +253,28 @@ async function cmdMute(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: 'No puedes mutearte a ti mismo.' }, { quoted: msg });
   }
 
-  const minutes = Math.min(Math.max(parseInt(args.find(a => /^\d+$/.test(a)) || '10', 10), 1), 1440);
+  const explicit = args.find(a => /^\d+$/.test(a));
+  const num = target.split('@')[0];
+
+  // If already muted and no new duration given, report remaining time
+  // instead of silently re-muting at the default (10m). Avoids the footgun
+  // of "I thought I muted them for an hour but it's actually 10 minutes".
+  if (!explicit) {
+    const remaining = getMuteRemaining(jid, target);
+    if (remaining > 0) {
+      const mins = Math.ceil(remaining / 60_000);
+      return sock.sendMessage(jid, {
+        text: `@${num} ya esta muteado. Le quedan *${mins}* minuto${mins === 1 ? '' : 's'}.\nUsa *!mute @user <minutos>* para cambiar la duracion.`,
+        mentions: [target],
+      }, { quoted: msg });
+    }
+  }
+
+  const minutes = Math.min(Math.max(parseInt(explicit || '10', 10), 1), 1440);
   muteUser(jid, target, Date.now() + minutes * 60_000);
 
-  const num = target.split('@')[0];
   await sock.sendMessage(jid, {
-    text: `@${num} muteado por ${minutes} minuto${minutes === 1 ? '' : 's'}. No podra usar comandos.`,
+    text: `@${num} muteado por *${minutes}* minuto${minutes === 1 ? '' : 's'}. No podra usar comandos.`,
     mentions: [target],
   }, { quoted: msg });
 }
