@@ -97,6 +97,12 @@ function getSender(msg) {
   return msg.key.participant || msg.key.remoteJid;
 }
 
+// Combined owner-or-admin gate. Owner is checked first because it's the cheap
+// path and short-circuits the participants scan.
+function isGroupAdmin(sender, fromMe, groupMeta) {
+  return isOwner(sender, fromMe, groupMeta) || isAdmin(groupMeta?.participants, sender);
+}
+
 // Mention/reply target. Returns null when neither is present.
 function getTarget(msg) {
   const ctx = msg.message?.extendedTextMessage?.contextInfo;
@@ -136,6 +142,7 @@ function extractQuotedText(msg) {
 module.exports = {
   isOwner,
   isAdmin,
+  isGroupAdmin,
   getSender,
   getTarget,
   getTargetOrSelf,

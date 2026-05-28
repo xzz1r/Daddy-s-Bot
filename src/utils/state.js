@@ -56,16 +56,6 @@ function isBotEnabled(jid) {
   return true;
 }
 
-async function toggleGroup(jid, enable) {
-  if (enable) {
-    _state.disabledGroups = (_state.disabledGroups || []).filter(g => g !== jid);
-  } else {
-    if (!_state.disabledGroups) _state.disabledGroups = [];
-    if (!_state.disabledGroups.includes(jid)) _state.disabledGroups.push(jid);
-  }
-  await saveState(_state);
-}
-
 // Sync + debounced disk write — never blocks message handling
 function incrementStat(key) {
   if (!_state.stats) _state.stats = {};
@@ -88,52 +78,33 @@ async function flushState() {
   try { await saveState(_state); } catch {}
 }
 
-// Sync — admin change notifications are ON by default for every group
-function isAdminNotifyEnabled(jid) {
-  return !(_state.adminNotifyDisabled || []).includes(jid);
+// Per-group flag lists. `key` is the state field; `present` toggles membership.
+// Some flags are stored as opt-out lists (disabledGroups, adminNotifyDisabled)
+// and some as opt-in (antiAdminEnabled, antiBusinessEnabled) — the caller passes
+// the semantically correct `present` value.
+function hasMembership(key, jid) {
+  return (_state[key] || []).includes(jid);
 }
 
-async function toggleAdminNotify(jid, enable) {
-  if (!_state.adminNotifyDisabled) _state.adminNotifyDisabled = [];
-  if (enable) {
-    _state.adminNotifyDisabled = _state.adminNotifyDisabled.filter(g => g !== jid);
-  } else {
-    if (!_state.adminNotifyDisabled.includes(jid)) _state.adminNotifyDisabled.push(jid);
-  }
+async function setMembership(key, jid, present) {
+  const list = _state[key] || [];
+  const has = list.includes(jid);
+  if (present && !has) _state[key] = [...list, jid];
+  else if (!present && has) _state[key] = list.filter(g => g !== jid);
+  else return;
   await saveState(_state);
 }
 
-// Sync — anti-admin protection is OFF by default. When ON, any promote by a
-// non-owner admin gets auto-reverted (both author and target are demoted).
-function isAntiAdminEnabled(jid) {
-  return (_state.antiAdminEnabled || []).includes(jid);
-}
+// Disabled per group (opt-out) → enable=true means NOT in list
+const toggleGroup        = (jid, enable) => setMembership('disabledGroups',       jid, !enable);
+const isAdminNotifyEnabled = (jid)       => !hasMembership('adminNotifyDisabled', jid);
+const toggleAdminNotify  = (jid, enable) => setMembership('adminNotifyDisabled',  jid, !enable);
 
-async function toggleAntiAdmin(jid, enable) {
-  if (!_state.antiAdminEnabled) _state.antiAdminEnabled = [];
-  if (enable) {
-    if (!_state.antiAdminEnabled.includes(jid)) _state.antiAdminEnabled.push(jid);
-  } else {
-    _state.antiAdminEnabled = _state.antiAdminEnabled.filter(g => g !== jid);
-  }
-  await saveState(_state);
-}
-
-// Sync — anti-business is OFF by default. When ON, WhatsApp Business accounts
-// joining the group are kicked automatically.
-function isAntiBusinessEnabled(jid) {
-  return (_state.antiBusinessEnabled || []).includes(jid);
-}
-
-async function toggleAntiBusiness(jid, enable) {
-  if (!_state.antiBusinessEnabled) _state.antiBusinessEnabled = [];
-  if (enable) {
-    if (!_state.antiBusinessEnabled.includes(jid)) _state.antiBusinessEnabled.push(jid);
-  } else {
-    _state.antiBusinessEnabled = _state.antiBusinessEnabled.filter(g => g !== jid);
-  }
-  await saveState(_state);
-}
+// Enabled per group (opt-in) → enable=true means IN list
+const isAntiAdminEnabled    = (jid)         => hasMembership('antiAdminEnabled',     jid);
+const toggleAntiAdmin       = (jid, enable) => setMembership('antiAdminEnabled',     jid, enable);
+const isAntiBusinessEnabled = (jid)         => hasMembership('antiBusinessEnabled',  jid);
+const toggleAntiBusiness    = (jid, enable) => setMembership('antiBusinessEnabled',  jid, enable);
 
 module.exports = { initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, flushState, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness };
 

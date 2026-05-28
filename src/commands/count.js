@@ -1,5 +1,5 @@
 const { getActiveUsers, resetCounts } = require('../utils/messageCounter');
-const { isOwner, isAdmin, getSender } = require('../utils/wa');
+const { isOwner, isAdmin, isGroupAdmin, getSender } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
 
 const MEDALS = ['🥇', '🥈', '🥉', '🎖️', '🎖️'];
@@ -120,7 +120,7 @@ async function cmdCount(sock, msg, groupMeta, args) {
     return sock.sendMessage(jid, { text: 'Este comando solo funciona en grupos.' }, { quoted: msg });
   }
 
-  if (!isOwner(sender, msg.key.fromMe, groupMeta) && !isAdmin(groupMeta?.participants, sender)) {
+  if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
     return sock.sendMessage(jid, { text: 'Solo los admins pueden usar este comando.' }, { quoted: msg });
   }
 

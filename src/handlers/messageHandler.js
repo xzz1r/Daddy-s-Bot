@@ -13,7 +13,7 @@ const { cmdToImg } = require('../commands/toimg');
 const { cmdPfp } = require('../commands/pfp');
 const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdInteligencia, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy } = require('../commands/percent');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp } = require('../commands/social');
-const { isOwner, isAdmin, extractText, rememberMapping, getSender } = require('../utils/wa');
+const { isOwner, isGroupAdmin, extractText, rememberMapping, getSender } = require('../utils/wa');
 const logger = require('../utils/logger');
 
 // Detects http/https links, www. links, and common invite/spam patterns
@@ -102,7 +102,7 @@ async function handleMessage(sock, msg) {
   // Anti-link: delete message + kick sender if they're not admin/owner
   if (jid.endsWith('@g.us') && text && LINK_RE.test(text)) {
     const meta = await getGroupMeta(sock, jid);
-    if (meta && !isOwner(sender, msg.key.fromMe, meta) && !isAdmin(meta.participants, sender)) {
+    if (meta && !isGroupAdmin(sender, msg.key.fromMe, meta)) {
       sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
       sock.groupParticipantsUpdate(jid, [sender], 'remove').catch(() => {});
       return;
