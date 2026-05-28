@@ -7,10 +7,10 @@ function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 //                    │ alto ≥70% │ medio 31-69% │ bajo ≤30%
 //  ─────────────────┼───────────┼──────────────┼──────────
 //  Negativo miembro │   70 %    │    20 %      │   10 %
-//  Negativo admin   │   10 %    │    25 %      │   65 %
+//  Negativo admin   │   60 %    │    25 %      │   15 %
 //  Negativo owner   │    2 %    │    8 %       │   90 %
 //  Positivo miembro │   35 %    │    30 %      │   35 %
-//  Positivo admin   │   65 %    │    25 %      │   10 %
+//  Positivo admin   │   45 %    │    30 %      │   25 %
 //  Positivo owner   │   90 %    │    8 %       │    2 %
 function rollPercent(goodIsHigh, senderIsAdmin, senderIsOwner) {
   const rand = Math.random();
@@ -25,9 +25,9 @@ function rollPercent(goodIsHigh, senderIsAdmin, senderIsOwner) {
       return hi();
     }
     if (senderIsAdmin) {
-      if (rand < 0.65) return lo();
-      if (rand < 0.90) return mid();
-      return hi();
+      if (rand < 0.60) return hi();
+      if (rand < 0.85) return mid();
+      return lo();
     }
     if (rand < 0.70) return hi();
     if (rand < 0.90) return mid();
@@ -39,8 +39,8 @@ function rollPercent(goodIsHigh, senderIsAdmin, senderIsOwner) {
       return lo();
     }
     if (senderIsAdmin) {
-      if (rand < 0.65) return hi();
-      if (rand < 0.90) return mid();
+      if (rand < 0.45) return hi();
+      if (rand < 0.75) return mid();
       return lo();
     }
     if (rand < 0.35) return hi();
@@ -871,9 +871,9 @@ async function runPercent(sock, msg, key, groupMeta) {
       else if (r < 0.98) percent = 31 + Math.floor(Math.random() * 39);
       else percent = 70 + Math.floor(Math.random() * 31);
     } else if (senderIsAdmin) {
-      if (r < 0.65) percent = Math.floor(Math.random() * 31);
+      if (r < 0.75) percent = 70 + Math.floor(Math.random() * 31);
       else if (r < 0.90) percent = 31 + Math.floor(Math.random() * 39);
-      else percent = 70 + Math.floor(Math.random() * 31);
+      else percent = Math.floor(Math.random() * 31);
     } else {
       if (r < 0.85) percent = 70 + Math.floor(Math.random() * 31);
       else if (r < 0.95) percent = 31 + Math.floor(Math.random() * 39);
