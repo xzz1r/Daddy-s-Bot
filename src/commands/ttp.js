@@ -4,6 +4,7 @@ const path = require('path');
 const { Readable } = require('stream');
 const { ffmpegPath } = require('../utils/ffmpeg');
 const { tempFile, cleanTemp } = require('../utils/helpers');
+const { getSender } = require('../utils/wa');
 const logger = require('../utils/logger');
 
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -138,7 +139,7 @@ async function cmdTtp(sock, msg, args) {
 
   try {
     const { imageToSticker } = require('../utils/sticker');
-    const senderJid = msg.key.participant || msg.key.remoteJid;
+    const senderJid = getSender(msg);
     const author = msg.pushName?.trim() || senderJid.split('@')[0].split(':')[0] || 'Anonimo';
     const buffer = await textToStickerBuffer(text);
     // Run through addStickerMeta by piping as WebP into imageToSticker (it'll hit the WebP bypass)

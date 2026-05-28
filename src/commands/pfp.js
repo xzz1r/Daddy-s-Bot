@@ -1,12 +1,10 @@
 const axios = require('axios');
+const { getTarget } = require('../utils/wa');
 
 // !pfp @user — fetch profile picture and send to group
-async function cmdPfp(sock, msg, groupMeta) {
+async function cmdPfp(sock, msg) {
   const jid = msg.key.remoteJid;
-
-  const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
-  const quotedParticipant = msg.message?.extendedTextMessage?.contextInfo?.participant;
-  const target = mentioned || quotedParticipant || null;
+  const target = getTarget(msg);
 
   if (!target) {
     return sock.sendMessage(jid, { text: 'Menciona o responde a alguien con !pfp.' }, { quoted: msg });

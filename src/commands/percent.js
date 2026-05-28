@@ -1,6 +1,5 @@
-const { isOwner, isAdminInMeta, getTargetOrSelf } = require('../utils/wa');
-
-function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+const { isOwner, isAdmin, getTargetOrSelf } = require('../utils/wa');
+const { pick } = require('../utils/helpers');
 
 // Distribuciones por tier — basadas en el ROL DEL TARGET, no del sender:
 //
@@ -820,7 +819,7 @@ async function runPercent(sock, msg, key, groupMeta) {
   const target = getTargetOrSelf(msg);
   // El % se basa en el ROL DEL TARGET, no del sender
   const targetIsOwner = isOwner(target, false, groupMeta);
-  const targetIsAdmin = isAdminInMeta(groupMeta, target);
+  const targetIsAdmin = isAdmin(groupMeta?.participants, target);
 
   const percent = rollPercent(cfg.goodIsHigh, targetIsAdmin, targetIsOwner);
   const verdict = percent >= 70 ? pick(cfg.high) : percent <= 30 ? pick(cfg.low) : pick(cfg.mid);

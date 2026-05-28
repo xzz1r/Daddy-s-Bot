@@ -1,13 +1,5 @@
-function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
-
-function shuffle(arr) {
-  const a = arr.slice();
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
+const { pick, shuffle } = require('../utils/helpers');
+const { getSender } = require('../utils/wa');
 
 const VERDICTS = {
   perfect: [
@@ -85,7 +77,7 @@ async function cmdShip(sock, msg, args, groupMeta) {
   }
 
   const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
-  const sender = msg.key.participant || msg.key.remoteJid;
+  const sender = getSender(msg);
 
   let a, b;
 

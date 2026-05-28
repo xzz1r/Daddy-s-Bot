@@ -17,6 +17,23 @@ function detectExt(buffer) {
   return null;
 }
 
+// Detect animated WebP by searching for the ANIM chunk in the RIFF container.
+// WhatsApp needs isAnimated:true in the proto to handle animated stickers correctly —
+// without it, the client treats the WebP as static and breaks on save/forward.
+function isAnimatedWebP(buf) {
+  if (!buf || buf.length < 12) return false;
+  if (buf.slice(0, 4).toString() !== 'RIFF') return false;
+  if (buf.slice(8, 12).toString() !== 'WEBP') return false;
+  let pos = 12;
+  while (pos + 8 <= buf.length) {
+    const type = buf.slice(pos, pos + 4).toString();
+    if (type === 'ANIM') return true;
+    const size = buf.readUInt32LE(pos + 4);
+    pos += 8 + size + (size % 2);
+  }
+  return false;
+}
+
 // Extract the first ANMF frame from an animated WebP as a minimal static WebP.
 // Used to generate a thumbnail without needing ffmpeg's animated WebP decoder.
 function extractFirstAnmfFrame(animBuf) {
@@ -315,4 +332,4 @@ async function gifToSticker(gifBuffer, author) {
   return videoToSticker(gifBuffer, author);
 }
 
-module.exports = { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb };
+module.exports = { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, isAnimatedWebP, extractFirstAnmfFrame };

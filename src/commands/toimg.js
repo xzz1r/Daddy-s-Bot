@@ -2,63 +2,11 @@ const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs-extra');
 const { ffmpegPath } = require('../utils/ffmpeg');
-const { tempFile, cleanTemp } = require('../utils/helpers');
+const { tempFile, cleanTemp, streamToBuffer } = require('../utils/helpers');
+const { isAnimatedWebP, extractFirstAnmfFrame } = require('../utils/sticker');
 const logger = require('../utils/logger');
 
 ffmpeg.setFfmpegPath(ffmpegPath);
-
-async function streamToBuffer(stream) {
-  const chunks = [];
-  for await (const chunk of stream) chunks.push(chunk);
-  return Buffer.concat(chunks);
-}
-
-function isAnimatedWebP(buf) {
-  if (!buf || buf.length < 12) return false;
-  if (buf.slice(0, 4).toString() !== 'RIFF') return false;
-  if (buf.slice(8, 12).toString() !== 'WEBP') return false;
-  let pos = 12;
-  while (pos + 8 <= buf.length) {
-    const type = buf.slice(pos, pos + 4).toString();
-    if (type === 'ANIM') return true;
-    const size = buf.readUInt32LE(pos + 4);
-    pos += 8 + size + (size % 2);
-  }
-  return false;
-}
-
-// Extract the first ANMF frame from an animated WebP and return it wrapped in a
-// minimal static WebP container that ffmpeg can decode without an animated-WebP demuxer.
-// Layout: RIFF(8) + 'WEBP'(4) + VP8/VP8L chunk from the first ANMF payload.
-function extractFirstFrameAsStaticWebP(animBuf) {
-  if (!animBuf || animBuf.length < 12) return null;
-  let pos = 12;
-  while (pos + 8 <= animBuf.length) {
-    const chunkType = animBuf.slice(pos, pos + 4).toString();
-    const chunkSize = animBuf.readUInt32LE(pos + 4);
-    if (chunkType === 'ANMF' && chunkSize > 16) {
-      // ANMF data layout (all within the chunk payload starting at pos+8):
-      //   Frame X       3 bytes
-      //   Frame Y       3 bytes
-      //   Width - 1     3 bytes
-      //   Height - 1    3 bytes
-      //   Duration      3 bytes
-      //   Flags         1 byte
-      //   ----------   = 16 bytes total header
-      //   VP8/VP8L chunk starts here
-      const frameChunk = animBuf.slice(pos + 24, pos + 8 + chunkSize);
-      const riffSize = 4 + frameChunk.length; // 'WEBP' + frame chunk
-      const out = Buffer.allocUnsafe(8 + riffSize);
-      out.write('RIFF', 0, 'ascii');
-      out.writeUInt32LE(riffSize, 4);
-      out.write('WEBP', 8, 'ascii');
-      frameChunk.copy(out, 12);
-      return out;
-    }
-    pos += 8 + chunkSize + (chunkSize % 2);
-  }
-  return null;
-}
 
 // Find the first usable media node in a message, including view-once wrappers
 function findMedia(m) {
@@ -165,7 +113,7 @@ async function cmdToImg(sock, msg) {
         // 2. Extract first frame directly from ANMF chunk — bypasses ffmpeg animated-WebP decoder
         if (!sent) {
           try {
-            const frameBuf = extractFirstFrameAsStaticWebP(buf);
+            const frameBuf = extractFirstAnmfFrame(buf);
             if (frameBuf) {
               const jpg = await convertToJpeg(frameBuf);
               await sock.sendMessage(jid, {

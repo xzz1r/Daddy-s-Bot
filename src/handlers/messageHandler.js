@@ -13,7 +13,7 @@ const { cmdToImg } = require('../commands/toimg');
 const { cmdPfp } = require('../commands/pfp');
 const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdInteligencia, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy } = require('../commands/percent');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp } = require('../commands/social');
-const { isOwner, isAdmin, extractText, rememberMapping } = require('../utils/wa');
+const { isOwner, isAdmin, extractText, rememberMapping, getSender } = require('../utils/wa');
 const logger = require('../utils/logger');
 
 // Detects http/https links, www. links, and common invite/spam patterns
@@ -70,7 +70,7 @@ async function handleMessage(sock, msg) {
   if (!msg.message) return;
 
   const jid = msg.key.remoteJid;
-  const sender = msg.key.participant || msg.key.remoteJid;
+  const sender = getSender(msg);
   const text = extractText(msg).trim();
 
   // Some Baileys versions surface both LID (msg.key.participant) and phone

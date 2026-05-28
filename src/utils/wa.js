@@ -91,8 +91,10 @@ function isAdmin(participants, jid) {
   return p?.admin === 'admin' || p?.admin === 'superadmin';
 }
 
-function isAdminInMeta(groupMeta, jid) {
-  return isAdmin(groupMeta?.participants, jid);
+// Canonical sender. In groups msg.key.remoteJid is the GROUP JID;
+// the actual sender lives in msg.key.participant. Falls back to remoteJid for DMs.
+function getSender(msg) {
+  return msg.key.participant || msg.key.remoteJid;
 }
 
 // Mention/reply target. Returns null when neither is present.
@@ -103,7 +105,7 @@ function getTarget(msg) {
 
 // Same as getTarget but defaults to the sender — used by !sexy/!gay/etc.
 function getTargetOrSelf(msg) {
-  return getTarget(msg) || msg.key.participant || msg.key.remoteJid;
+  return getTarget(msg) || getSender(msg);
 }
 
 function extractText(msg) {
@@ -134,7 +136,7 @@ function extractQuotedText(msg) {
 module.exports = {
   isOwner,
   isAdmin,
-  isAdminInMeta,
+  getSender,
   getTarget,
   getTargetOrSelf,
   extractText,

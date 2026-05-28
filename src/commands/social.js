@@ -1,13 +1,13 @@
 const { getState, setState, toggleGroup } = require('../utils/state');
 const { formatUptime } = require('../utils/helpers');
-const { isOwner, isAdmin } = require('../utils/wa');
+const { isOwner, isAdmin, getSender } = require('../utils/wa');
 const config = require('../config');
 const logger = require('../utils/logger');
 
 // !on - turn bot on (in group or globally)
 async function cmdOn(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
-  const sender = msg.key.participant || msg.key.remoteJid;
+  const sender = getSender(msg);
   const isGroup = jid.endsWith('@g.us');
 
   if (isGroup) {
@@ -31,7 +31,7 @@ async function cmdOn(sock, msg, groupMeta) {
 // !off - turn bot off (in group or globally)
 async function cmdOff(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
-  const sender = msg.key.participant || msg.key.remoteJid;
+  const sender = getSender(msg);
   const isGroup = jid.endsWith('@g.us');
 
   if (isGroup) {

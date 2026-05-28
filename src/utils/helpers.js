@@ -46,4 +46,23 @@ function formatUptime(ms) {
   return `${s}s`;
 }
 
-module.exports = { ensureTemp, tempFile, cleanTemp, formatUptime };
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+async function streamToBuffer(stream) {
+  const chunks = [];
+  for await (const chunk of stream) chunks.push(chunk);
+  return Buffer.concat(chunks);
+}
+
+module.exports = { ensureTemp, tempFile, cleanTemp, formatUptime, pick, shuffle, streamToBuffer };

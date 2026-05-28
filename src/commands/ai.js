@@ -2,7 +2,7 @@ const axios = require('axios');
 const fs = require('fs-extra');
 const path = require('path');
 const logger = require('../utils/logger');
-const { isOwner, extractQuotedText } = require('../utils/wa');
+const { isOwner, extractQuotedText, getSender } = require('../utils/wa');
 
 const GROK_API = 'https://api.x.ai/v1/chat/completions';
 const MODEL = process.env.GROK_MODEL || 'grok-3';
@@ -120,7 +120,7 @@ async function cmdGrok(sock, msg, args) {
 // !setgrok <api_key>  — owner only, saves key persistently
 async function cmdSetGrokKey(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
-  const sender = msg.key.participant || msg.key.remoteJid;
+  const sender = getSender(msg);
 
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
     return sock.sendMessage(jid, { text: 'Solo el owner puede configurar Grok.' }, { quoted: msg });

@@ -1,9 +1,8 @@
 const { getActiveUsers, resetCounts } = require('../utils/messageCounter');
-const { isOwner, isAdminInMeta } = require('../utils/wa');
+const { isOwner, isAdmin, getSender } = require('../utils/wa');
+const { pick } = require('../utils/helpers');
 
 const MEDALS = ['🥇', '🥈', '🥉', '🎖️', '🎖️'];
-
-const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 
 const MEMBER_PHRASES = [
   [
@@ -115,13 +114,13 @@ const ADMIN_PHRASES = [
 
 async function cmdCount(sock, msg, groupMeta, args) {
   const jid = msg.key.remoteJid;
-  const sender = msg.key.participant || msg.key.remoteJid;
+  const sender = getSender(msg);
 
   if (!jid.endsWith('@g.us')) {
     return sock.sendMessage(jid, { text: 'Este comando solo funciona en grupos.' }, { quoted: msg });
   }
 
-  if (!isOwner(sender, msg.key.fromMe, groupMeta) && !isAdminInMeta(groupMeta, sender)) {
+  if (!isOwner(sender, msg.key.fromMe, groupMeta) && !isAdmin(groupMeta?.participants, sender)) {
     return sock.sendMessage(jid, { text: 'Solo los admins pueden usar este comando.' }, { quoted: msg });
   }
 
@@ -159,7 +158,7 @@ async function cmdCount(sock, msg, groupMeta, args) {
     const msgs = u.count === 1 ? '1 mensaje' : `${u.count} mensajes`;
 
     if (i < 3) {
-      const admin = isAdminInMeta(groupMeta, u.jid);
+      const admin = isAdmin(groupMeta?.participants, u.jid);
       const phrase = pick(admin ? ADMIN_PHRASES[i] : MEMBER_PHRASES[i]);
       text += `${MEDALS[i]} *@${phone}* — ${msgs}\n`;
       text += `${phrase}\n\n`;
@@ -176,7 +175,7 @@ async function cmdCount(sock, msg, groupMeta, args) {
 // !resetcount — owner only: clears message ranking for this group
 async function cmdResetCount(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
-  const sender = msg.key.participant || msg.key.remoteJid;
+  const sender = getSender(msg);
 
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
     return sock.sendMessage(jid, { text: 'Solo el owner puede resetear el contador.' }, { quoted: msg });
