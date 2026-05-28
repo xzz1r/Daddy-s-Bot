@@ -73,7 +73,7 @@ async function cmdPing(sock, msg) {
   }
 
   await sock.sendMessage(jid, {
-    text: wsPing !== null ? `Pong: *${wsPing}ms*` : 'Pong',
+    text: wsPing !== null ? `*${wsPing}ms*` : 'Ping',
   });
 }
 
@@ -125,7 +125,7 @@ async function cmdHelp(sock, msg) {
 
 *DINAMICAS*
   ${p}sexy  ${p}crack  ${p}inteligencia  ${p}feminidad  ${p}masculinidad
-  ${p}gay  ${p}maricon  ${p}simp  ${p}rata  ${p}friki  ${p}cerdo  ${p}inutil
+  ${p}gay  ${p}maricon  ${p}simp  ${p}rata  ${p}friki  ${p}cerdo  ${p}inutil  ${p}femboy
   ${p}ship                 emparejar 2 miembros al azar
   ${p}ship @a @b           shipear a dos personas especificas
   ${p}ship @a              shiipearte con alguien

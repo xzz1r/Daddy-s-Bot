@@ -11,7 +11,7 @@ const { cmdShip } = require('../commands/ship');
 const { cmdTtp } = require('../commands/ttp');
 const { cmdToImg } = require('../commands/toimg');
 const { cmdPfp } = require('../commands/pfp');
-const percent = require('../commands/percent');
+const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdInteligencia, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy } = require('../commands/percent');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp } = require('../commands/social');
 const { isOwner, isAdmin, extractText, rememberMapping } = require('../utils/wa');
 const logger = require('../utils/logger');
@@ -26,7 +26,7 @@ const NEEDS_META = new Set([
   'ship','top5','top10','mute','unmute','desmute',
   'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness',
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
-  'crack','inteligencia','cerdo','feminidad','masculinidad','inutil',
+  'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy',
   'count',
   // Owner-gated commands also need meta in groups to resolve LID → phone
   // for isOwner checks (otherwise co-owners always fail in modern groups).
@@ -247,20 +247,21 @@ async function handleMessage(sock, msg) {
         await cmdPfp(sock, msg);
         break;
 
-      case 'gay':        await percent.cmdGay(sock, msg, groupMeta); break;
-      case 'simp':       await percent.cmdSimp(sock, msg, groupMeta); break;
+      case 'gay':        await cmdGay(sock, msg, groupMeta); break;
+      case 'simp':       await cmdSimp(sock, msg, groupMeta); break;
       case 'sexy':
-      case 'hot':        await percent.cmdHot(sock, msg, groupMeta); break;
-      case 'rata':       await percent.cmdRata(sock, msg, groupMeta); break;
+      case 'hot':        await cmdHot(sock, msg, groupMeta); break;
+      case 'rata':       await cmdRata(sock, msg, groupMeta); break;
       case 'maricon':
-      case 'maricón':    await percent.cmdMaricon(sock, msg, groupMeta); break;
-      case 'friki':      await percent.cmdFriki(sock, msg, groupMeta); break;
-      case 'crack':          await percent.cmdCrack(sock, msg, groupMeta); break;
-      case 'inteligencia':   await percent.cmdInteligencia(sock, msg, groupMeta); break;
-      case 'cerdo':          await percent.cmdCerdo(sock, msg, groupMeta); break;
-      case 'feminidad':      await percent.cmdFeminidad(sock, msg, groupMeta); break;
-      case 'masculinidad':   await percent.cmdMasculinidad(sock, msg, groupMeta); break;
-      case 'inutil':         await percent.cmdInutil(sock, msg, groupMeta); break;
+      case 'maricón':    await cmdMaricon(sock, msg, groupMeta); break;
+      case 'friki':      await cmdFriki(sock, msg, groupMeta); break;
+      case 'crack':          await cmdCrack(sock, msg, groupMeta); break;
+      case 'inteligencia':   await cmdInteligencia(sock, msg, groupMeta); break;
+      case 'cerdo':          await cmdCerdo(sock, msg, groupMeta); break;
+      case 'feminidad':      await cmdFeminidad(sock, msg, groupMeta); break;
+      case 'masculinidad':   await cmdMasculinidad(sock, msg, groupMeta); break;
+      case 'inutil':         await cmdInutil(sock, msg, groupMeta); break;
+      case 'femboy':         await cmdFemboy(sock, msg, groupMeta); break;
 
       case 'on':
         await cmdOn(sock, msg, groupMeta);

@@ -62,6 +62,13 @@ const LABELS = {
       'La gente saca el telefono cuando pasas sin haberte conocido nunca.',
       'Estas en el grupo de los esteticamente privilegiados, los que con cero esfuerzo se llevan todo.',
       'Tu cara es de las que paralizan conversaciones a media frase.',
+      'Tienes esa fotogenia que no se entrena, que se tiene o no se tiene.',
+      'La gente te mira y luego mira a sus parejas con una pregunta silenciosa.',
+      'Tu nivel estetico sube al grupo con solo aparecer en pantalla.',
+      'Naciste con esa combinacion de rasgos que los artistas pagan por ver de cerca.',
+      'Tu carisma visual es de los que no se pueden comprar con dinero ni tiempo.',
+      'Hay personas que se arreglan una hora para lo que tu tienes al levantarte.',
+      'Tu fotogenia no es suerte, es estructura, y la estructura no miente.',
     ],
     mid: [
       'Vas tirando, ni feo ni guapo, en la zona gris mas dificil de digerir.',
@@ -72,6 +79,9 @@ const LABELS = {
       'En el monton, exactamente donde nadie te va a recordar manyana.',
       'Si te arreglases podrias dar mas, pero no lo haces y por eso estas aqui.',
       'Tu fisico depende totalmente del filtro de Instagram, eso es lo que dice.',
+      'No generás segunda mirada pero tampoco apartas la vista, ahi estas.',
+      'Potencial sin desarrollar, que es casi peor que no tenerlo.',
+      'Con mas cuidado diario podrias dar mucho mas, pero te conformas.',
     ],
     low: [
       'No te ha tocado la lotteria genetica y se te nota desde dos calles.',
@@ -81,6 +91,8 @@ const LABELS = {
       'Si la cara fuera importante, te habrian devuelto al hospital.',
       'No es feura, es desproporcion documentada en cada centimetro.',
       'Tu fisico es un argumento solido contra la teoria del azar.',
+      'La genetica contigo fue pragmatica, no generosa.',
+      'Tienes cara de persona interesante, que es lo mas diplomatico que se puede decir.',
     ],
     extreme: [
       'Tienes esa belleza dificil que no todo el mundo sabe ver, mejor para ti.',
@@ -332,6 +344,16 @@ const LABELS = {
       'Llevas la bandera por dentro y se transparenta cada vez que sonries.',
       'Tu paleta de colores la firma alguien que no esta engananyado.',
       'Si la heterosexualidad fuera examen, lo suspenderias antes de leer la primera pregunta.',
+      'Tu forma de sentarte ya es un comentario sin palabras sobre tu orientacion.',
+      'Cada vez que dices que no eres gay, alguien del grupo sonrie sin poder evitarlo.',
+      'La pluma que llevas tiene su propio codigo postal.',
+      'Tu cuarto huele a vela de lavanda y eso ya es una declaracion publica.',
+      'Cuando hablas de tios guapos se te cambia la voz de forma involuntaria.',
+      'Vas al gym y lo primero que miras no es lo que la gente cree que miras.',
+      'Tu forma de describir a otros hombres incluye adjetivos que nadie te pidio.',
+      'Llevas mas cuidado en el pelo que cualquier chica del grupo, y se nota por que.',
+      'Tu sentido del estilo delata mas cosas de las que tu curriculum jamas podria contar.',
+      'Tienes opiniones sobre tonos de azul que ningún hombre hetero deberia poder distinguir.',
     ],
     mid: [
       'Algo se te mueve por dentro cuando pasan tios buenos por la calle.',
@@ -342,6 +364,10 @@ const LABELS = {
       'Una de cal y otra de arena, todavia te lo estas pensando.',
       'En el grupo hay debate sobre ti, y sin ironia ninguna.',
       'Cualquier dia te decantas y nadie en este grupo se va a sorprender.',
+      'Hay momentos en los que te miras al espejo y preguntas cosas que no verbalizas.',
+      'Tu curiosidad existe, solo que todavia no le has puesto nombre oficial.',
+      'A veces te pilla mirando y luego lo justificas con algo que no convence del todo.',
+      'Tu zona gris tiene mas grises de los que admites en voz alta.',
     ],
     low: [
       'Mas hetero que un toro en feria de pueblo.',
@@ -351,6 +377,9 @@ const LABELS = {
       'No hay duda en tu hoja de servicios, aunque eso casi sea peor.',
       'Tan hetero que te incomodan hasta los abrazos largos entre amigos.',
       'Tu masculinidad raya lo aburrido, pero al menos es coherente.',
+      'Hetero de manual. Nada que senalar en ningun frente conocido.',
+      'La madera mas derecha del grupo. Cuestion cerrada sin debate posible.',
+      'Cero sospechas, cero curiosidad, nada que discutir en ningun contexto.',
     ],
     extreme: [
       'Eres el tipo de persona del que todos hablan mal cuando sales de la sala.',
@@ -387,6 +416,14 @@ const LABELS = {
       'Aceptas las migajas como si fueran banquete, y por eso te las siguen tirando.',
       'Aceptas la friendzone como si fuera un ascenso laboral.',
       'Coleccionas rechazos como cromos y aun asi sigues comprando sobres.',
+      'Le das like a todo lo que sube aunque sea una foto de su desayuno mediocre.',
+      'Tienes su horario memorizado y ella no sabe ni en que ciudad vives.',
+      'Le mandas buenos dias cada manyana y recibes silencio como respuesta.',
+      'Viajas dos horas para verla y ella cancela con un audio de diez segundos.',
+      'Le compras cosas que no te pidio para que te quiera, y ni asi funciona.',
+      'Tu nivel de disponibilidad es el motivo por el que nadie te toma en serio.',
+      'Le defiendes publicamente a ella mientras ella ignora que existes en privado.',
+      'Eres la persona a la que recurre cuando todos los demas han dicho que no.',
     ],
     mid: [
       'Simping moderado pero se te nota la desesperacion en cada mensaje.',
@@ -397,6 +434,9 @@ const LABELS = {
       'Conoces el limite y aun asi flirteas con cruzarlo cada semana.',
       'Vas y vienes, sin terminar de aprender la leccion nunca.',
       'Cada dos por tres recaes en patrones que sabes perfectamente que te hacen mal.',
+      'La persona en cuestion no merece ni la mitad de lo que le das, y en el fondo lo sabes.',
+      'Hay dias en los que te respetas y dias en los que tiras todo eso por la ventana.',
+      'Tu dignidad aparece los lunes y desaparece en cuanto ella te escribe.',
     ],
     low: [
       'Digno, no te arrastras por nadie y eso ya es mucho en este grupo.',
@@ -406,6 +446,9 @@ const LABELS = {
       'No persigues, atraes. Esa es la unica clave que importa.',
       'Cuando alguien no te valora, desapareces sin drama. Asi se hace.',
       'Te respetan porque te respetas tu primero, y eso se nota.',
+      'Tienes esa frialdad sana que hace que la gente te quiera de verdad y no por interes.',
+      'Nunca has confundido obsesion con amor, y eso te ahorra mucho dolor.',
+      'El limite lo tienes claro y no lo cruzas aunque te lo pongan facil.',
     ],
     extreme: [
       'Eres un felpudo con patas. Te utilizan, lo saben, y tu sigues ahi sonriendo.',
@@ -442,6 +485,14 @@ const LABELS = {
       'Sonries con la boca mientras la mente ya planea el siguiente movimiento.',
       'Tu padre sabe quien eres y por eso no presume de ti delante de nadie.',
       'Estas en cuatro grupos paralelos hablando mal del resto en cada uno.',
+      'Finges lealtad mientras buscas el momento ideal para usarla en tu contra.',
+      'Sabes mas secretos de los que deberia saber alguien de confianza.',
+      'Cuando te preguntan que paso en este grupo, siempre sabes mas de lo que dices.',
+      'Tu definicion de confidencial dura lo que dura la proxima conversacion interesante.',
+      'Te vas y la conversacion cambia de tema, siempre en el mismo sentido.',
+      'Eres el tipo de persona que sonrie en la foto de grupo y luego se la manda a los que no estan.',
+      'Lo que se te cuenta en privado tiene fecha de caducidad muy corta contigo.',
+      'Siembras cizanya sin que se note y luego pones cara de no saber nada.',
     ],
     mid: [
       'Algo de rata tienes, pero no llegas a plaga todavia.',
@@ -452,6 +503,8 @@ const LABELS = {
       'Hay gente del grupo que ya empieza a contarte solo verdades a medias.',
       'Tu rata interior esta creciendo y se nota en pequenyos gestos.',
       'No estas perdido del todo pero el camino esta resbaladizo.',
+      'A veces guardas secretos, a veces no, y la gente ya no sabe en que columna ponerte.',
+      'No eres rata de manual pero tienes los instintos y eso preocupa a los que te conocen bien.',
     ],
     low: [
       'Mas leal que un perro, no traicionarias ni a tu peor enemigo de borracho.',
@@ -460,6 +513,9 @@ const LABELS = {
       'Tus amigos duermen tranquilos contigo cerca.',
       'Eres de los que mueren con el secreto a cuestas, admirable.',
       'Tu palabra es ley para ti, y eso vale mucho en estos tiempos.',
+      'Fiel a los tuyos incluso cuando no conviene, eso tiene precio y tu lo pagas.',
+      'Lo que te cuentan se queda contigo, y por eso la gente te cuenta cosas que no cuentan a otros.',
+      'La gente confia en ti sin pensarlo dos veces, y eso es algo que muy pocos tienen.',
     ],
     extreme: [
       'Todo el mundo en este grupo sabe que no eres de fiar, solo que nadie te lo ha dicho aun.',
@@ -496,6 +552,11 @@ const LABELS = {
       'Eres tan obvio que ya no enganyas ni a los muy distraidos del pueblo.',
       'Tu estilo de ropa es un comunicado sin firmar que todos leen igual.',
       'Hasta las paredes huyen del color que desprendes al andar.',
+      'Tu voz sube tres tonos cuando hablas de alguien que te gusta y no eres consciente de ello.',
+      'Tu forma de reir tiene una firma particular que nadie malinterpreta.',
+      'Cuando dices que eres muy masculino nadie en este grupo discute para no herirte.',
+      'Tu masculinidad es tan frágil que se rompe con una pregunta directa.',
+      'La pluma que llevas gratis podria venderse a precio premium en otros contextos.',
     ],
     mid: [
       'Algo de pluma hay, no te voy a mentir, y la gente la nota.',
@@ -505,6 +566,8 @@ const LABELS = {
       'Hay gestos que repites sin darte cuenta y todos los catalogan.',
       'Tu lucha interna es publica aunque tu no lo creas.',
       'Vas a tener que aceptarlo antes o despues, mejor antes que despues.',
+      'Tienes manierismos que hablan por ti aunque tu prefieras no hacerlo.',
+      'En el grupo hay apostas sobre ti y ninguna va en la direccion que esperarias.',
     ],
     low: [
       'Mas macho que Rambo con resaca un domingo de marzo.',
@@ -512,6 +575,8 @@ const LABELS = {
       'Tu masculinidad es de manual antiguo, agresiva y sin matices.',
       'Heterosexualidad sin grietas, casi insoportable.',
       'Tu mundo se reduce a tres temas masculinos repetidos en bucle.',
+      'Tan derecho que hasta la arquitectura podria aprender de tu plano.',
+      'Cero sospechas, cero pluma, cero debate posible en ningun angulo conocido.',
     ],
     extreme: [
       'Vaya maricon, deberias salirte del grupo, nadie te quiere aca.',
@@ -550,6 +615,14 @@ const LABELS = {
       'Tu padre ya no sabe en que invertir esperanza, contigo se ha rendido.',
       'La discusion mas importante de tu semana fue sobre un personaje ficticio.',
       'Tu casa es un templo a marcas que ningun adulto reconoce.',
+      'Tu feed de Reddit es tu unica ventana al mundo exterior y lo sabes.',
+      'Pasas horas debatiendo lore de universos que no existen con desconocidos que tampoco existen.',
+      'Tu historial de busqueda parece la nota de ingreso a un manicomio especializado.',
+      'Has llorado por la muerte de un personaje ficticio mas de una vez este ano.',
+      'Tu coleccion de merchandising vale mas que tus perspectivas de futuro.',
+      'Conoces la wiki de memoria pero no sabes el cumpleanyos de tu mejor amigo.',
+      'Tu cuarto a oscuras con la pantalla encendida es tu estado natural.',
+      'Cuando alguien dice que no conoce ese personaje, te parte algo por dentro.',
     ],
     mid: [
       'Friki moderado, sales a la calle de vez en cuando, lo cual ya es algo.',
@@ -558,6 +631,9 @@ const LABELS = {
       'A ratos eres friki, a ratos persona, es complicado de gestionar.',
       'Sales del cuarto los fines de semana, hay esperanza moderada.',
       'Tu carpeta de descargas y tu carpeta de recuerdos pesan parecido.',
+      'Puedes pasar por normal en entornos controlados pero luego sale el monstruo.',
+      'Friki de armario, que es exactamente igual de grave pero con mas hipocresia.',
+      'Cuando conoces a alguien que comparte tus referencias se te ilumina la cara de forma preocupante.',
     ],
     low: [
       'Cero raro, lo mas normal del grupo. Eso ya es exito.',
@@ -565,6 +641,8 @@ const LABELS = {
       'Te mueves bien en cualquier ambiente, eso es un don.',
       'Tu vida es tan equilibrada que casi suena sospechoso.',
       'Pasas por persona promedio y eso aqui ya es un logro real.',
+      'Tienes vida real, amigos de carne y hueso y hobbies al aire libre. Un misterio.',
+      'Normal a niveles que generan envidia en este grupo.',
     ],
     extreme: [
       'Llevas tanto tiempo hablando con pantallas que ya no sabes como hablar con personas.',
@@ -602,6 +680,13 @@ const LABELS = {
       'Tu nevera es una novela de terror con capitulos por fecha de caducidad.',
       'No tienes normas de higiene, tienes ausencia total de ellas.',
       'La basura de tu cuarto ya tiene ecosistema propio y especies endemicas.',
+      'Usas la misma toalla desde meses atras y ves el problema en los demas.',
+      'Tu ropa interior tiene una antiguedad que podrian estudiar en arqueologia.',
+      'La ultima vez que limpiaste a fondo fue porque vinieron tus padres, y a duras penas.',
+      'Tu concepto de limpiar es mover la basura de lugar para que no estorbe.',
+      'Tus zapatillas tienen una historia olfativa que nadie esta preparado para escuchar.',
+      'Te duchas cuando no te queda otra opcion, no por habito.',
+      'La gente que ha comido en tu casa lo cuenta como una experiencia de supervivencia.',
     ],
     mid: [
       'Algo de cerdo hay, no te voy a mentir, y se nota en detalles.',
@@ -611,6 +696,8 @@ const LABELS = {
       'A veces te duchas, a veces no, y se nota la diferencia desde la calle.',
       'Tu nivel de orden depende de si tienes visita, no de criterio propio.',
       'Tu cocina cuenta una historia que no quieres que nadie lea hasta el final.',
+      'Tienes rachas limpias y rachas oscuras, sin equilibrio sostenido.',
+      'Podrias vivir bien si te lo propusieras, el problema es que casi nunca te lo propones.',
     ],
     low: [
       'Limpio y ordenado, eso ya dice algo en este grupo.',
@@ -619,6 +706,8 @@ const LABELS = {
       'Presentable sin alardes, pero presentable.',
       'Tienes el orden basico que muchos no consiguen mantener mas de una semana.',
       'Nada que objetar en lo higienico, y eso en este grupo ya es merito.',
+      'Limpio, ordenado, sin rastro de porqueria. Un rara avis en cualquier contexto.',
+      'Tu espacio refleja quien eres, y lo que refleja no esta mal para nada.',
     ],
     extreme: [
       'Eres un cerdo clinico, el tipo de persona que baja el nivel de cualquier espacio que pisa.',
@@ -633,6 +722,60 @@ const LABELS = {
       'Tu relacion con la higiene es hostil, no es pereza, es enemistad declarada.',
       'Si pudieras verte desde fuera te darias asco a ti mismo, y eso es decir mucho.',
       'Hay un nivel de mugre que ya no es descuido sino agresion al entorno, y tu lo alcanzas cada semana.',
+    ],
+  },
+
+  femboy: {
+    name: 'femboy',
+    goodIsHigh: false,
+    biasHigh: true,
+    high: [
+      'Femboy de coleccion, las bragas te quedan mejor que a la mayoria de chicas.',
+      'Tan femboy que hasta las cosmetólogas te piden consejo de maquillaje.',
+      'Mas femboy que un gato con lazos en un estudio de fotografia kawaii.',
+      'Tu masculinidad se fue de vacaciones hace anyos y mando una postal diciendo que no vuelve.',
+      'Usas mas productos de belleza que la mayoria de influencers del nicho.',
+      'Tu voz sube dos tonos cuando te pones nervioso, y te pones nervioso cada cinco minutos.',
+      'Tus gestos son un tutorial involuntario de como no parecer macho.',
+      'El nivel de femboy que irradias es medible con instrumentos de precision.',
+      'Tu guardarropa tiene mas colores que una tienda de caramelos en primavera.',
+      'Cuando dices que eres muy masculino, todo el grupo aguanta la risa al mismo tiempo.',
+      'Eres tan femboy que los animes te piden autografo.',
+      'Tu forma de reir ya clasifica en tres categorias que no son la masculina.',
+      'La forma en que te sientas deberia venir con subtitulos explicativos.',
+      'Tus snapshots de perfil tienen mas filtros que una depuradora industrial.',
+      'Eres tan femboy que cuando entras a un bar la gente no sabe en que seccion sentarte.',
+    ],
+    mid: [
+      'Algo de femboy hay ahi, no te voy a mentir, pero tampoco lo llevas con conviccion.',
+      'Femboy de guardar para los dias que no hay nadie mirando, eso es lo mas triste.',
+      'A ratos se nota, a ratos lo controlas, sin patron claro todavia.',
+      'Tienes movimientos que solo se explican con ciertos tutoriales de TikTok.',
+      'La linea que pisas es fina, y cada dia la cruzas un poco mas sin darte cuenta.',
+      'Tu lado femenino existe y lo sabes, aunque prefieras no darle nombre oficial.',
+      'Las referencias que haces delatarian a cualquiera menos a ti, que ya no cuenta.',
+    ],
+    low: [
+      'Nada de femboy, masculinidad solida sin fisuras visibles desde ningun angulo.',
+      'Tan macho que hasta las herramientas te miran con respeto involuntario.',
+      'Tu lado femenino no ha dado senyales de vida en ninguna interaccion registrada.',
+      'Brutalmente masculino, cero adornos, cero filtros, cero duda de ningun tipo.',
+      'La testosterona en tu caso no es cuestionable ni siquiera en dias malos.',
+      'Tienes la energia de alguien que nunca ha visto un tutorial de maquillaje y esta muy bien asi.',
+    ],
+    extreme: [
+      'Eres el femboy de referencia. El que los demas señalan cuando quieren explicar el concepto.',
+      'Tu existencia es una obra de arte de genero que nadie pidio pero que esta ahi.',
+      'Llevas tanto tiempo siendo femboy que ya no te resulta raro, y eso es lo que lo hace raro.',
+      'El grupo lleva meses debatiendo si decirte algo, y han decidido que no merece la pena.',
+      'Eres la prueba viviente de que los genes a veces se confunden en el camino.',
+      'Cuando te ries, el universo reequilibra algo que no sabia que necesitaba reequilibrar.',
+      'Tu forma de existir levanta preguntas que la biologia moderna no sabe responder todavia.',
+      'La purpurina que llevas en el alma se te nota en el andar, en la risa y en todo lo demas.',
+      'Eres femboy de nivel experto, certificado por el grupo sin que nadie haya necesitado votacion.',
+      'Tu colonia huele bien, tu outfit tiene coherencia, y tu masculinidad brilla por su ausencia, todo al mismo tiempo.',
+      'Eres lo que pasa cuando alguien tiene buen gusto pero las opciones equivocadas.',
+      'El universo te creo femboy y tu lo aceptaste con una elegancia que, irónicamente, tambien es muy femboy.',
     ],
   },
 
@@ -655,6 +798,12 @@ const LABELS = {
       'No solo no ayudas, consigues que los que si ayudan tengan que trabajar mas.',
       'La brecha entre lo que crees que aportas y lo que aportas de verdad es un abismo.',
       'Tu existencia en un proyecto es mas un obstaculo que un recurso.',
+      'Tus promesas se cotizan a precio de basura porque ya nadie las toma en serio.',
+      'Le das a las cosas el doble del tiempo necesario para sacar la mitad del resultado posible.',
+      'Tu curva de aprendizaje es tan plana que podria confundirse con el suelo.',
+      'Eres el tipo de persona al que se asignan tareas simples por seguridad del grupo.',
+      'Cuando algo sale mal, nadie necesita buscar mucho para saber donde empezar.',
+      'Tu autoconcepto laboral es una obra de ficcion sin parangon en este grupo.',
     ],
     mid: [
       'Util a ratos, inutil a ratos, sin ritmo ni patron claro identificable.',
@@ -701,7 +850,16 @@ async function runPercent(sock, msg, key, groupMeta) {
   const senderIsAdmin = isAdminInMeta(groupMeta, sender);
 
   const target = getTargetOrSelf(msg);
-  const percent = rollPercent(cfg.goodIsHigh, senderIsAdmin);
+  let percent;
+  if (cfg.biasHigh) {
+    // 85% toward high tier (70-100), 10% mid, 5% low
+    const r = Math.random();
+    if (r < 0.85) percent = 70 + Math.floor(Math.random() * 31);
+    else if (r < 0.95) percent = 31 + Math.floor(Math.random() * 39);
+    else percent = Math.floor(Math.random() * 31);
+  } else {
+    percent = rollPercent(cfg.goodIsHigh, senderIsAdmin);
+  }
   const verdict = percent >= 70 ? pick(cfg.high) : percent <= 30 ? pick(cfg.low) : pick(cfg.mid);
   const finale = pick(cfg.extreme);
 
@@ -728,4 +886,5 @@ module.exports = {
   cmdFeminidad:     makeCmd('feminidad'),
   cmdMasculinidad:  makeCmd('masculinidad'),
   cmdInutil:        makeCmd('inutil'),
+  cmdFemboy:        makeCmd('femboy'),
 };

@@ -11,6 +11,7 @@ const fs = require('fs-extra');
 const qrcode = require('qrcode-terminal');
 const { handleMessage, invalidateGroupMeta } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, flushState } = require('./utils/state');
+const { isOwner } = require('./utils/wa');
 const { flushCounts } = require('./utils/messageCounter');
 const { flushCache } = require('./utils/musicCache');
 const { isBusiness } = require('./utils/businessCheck');
@@ -230,8 +231,9 @@ async function connectToWhatsApp() {
     const targets = partJids.map(jid => `@${jid.split('@')[0]}`).join(', ');
     const authorTag = author ? `@${String(author).split('@')[0]}` : 'Alguien';
 
-    // Anti-admin: revert any promote that didn't come from the bot
-    if (action === 'promote' && !fromBot && isAntiAdminEnabled(groupJid)) {
+    // Anti-admin: revert any promote that didn't come from the bot.
+    // Owner/co-owner promotions are exempt — they have authority to grant admin.
+    if (action === 'promote' && !fromBot && !isOwner(author, false, null) && isAntiAdminEnabled(groupJid)) {
       const toDemote = Array.from(new Set([...(author ? [author] : []), ...partJids]));
       try {
         await sock.groupParticipantsUpdate(groupJid, toDemote, 'demote');
@@ -250,7 +252,7 @@ async function connectToWhatsApp() {
     // Admin A removes B's admin → bot restores B and removes A's admin.
     // Track each step separately so the notification reflects what actually
     // happened — a wholesale try/catch would lie if only one step succeeded.
-    if (action === 'demote' && !fromBot && isAntiAdminEnabled(groupJid)) {
+    if (action === 'demote' && !fromBot && !isOwner(author, false, null) && isAntiAdminEnabled(groupJid)) {
       let restored = false;
       let punished = false;
       try {
