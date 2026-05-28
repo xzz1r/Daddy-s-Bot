@@ -553,7 +553,6 @@ const LABELS = {
   femboy: {
     name: 'femboy',
     goodIsHigh: false,
-    biasHigh: true,
     high: [
       'Más femboy que cualquier cosa que puedas citar como comparación. Sin margen de ambigüedad.',
       'Tu masculinidad no se fue de vacaciones. Se fue y no dejó dirección ni número de contacto.',
@@ -649,28 +648,7 @@ async function runPercent(sock, msg, key, groupMeta) {
   const senderIsAdmin = isAdminInMeta(groupMeta, sender);
 
   const target = getTargetOrSelf(msg);
-  let percent;
-  if (cfg.biasHigh) {
-    const r = Math.random();
-    if (senderIsOwner) {
-      // 93% lo — owner casi nunca es femboy
-      if (r < 0.93) percent = Math.floor(Math.random() * 31);
-      else if (r < 0.98) percent = 31 + Math.floor(Math.random() * 39);
-      else percent = 70 + Math.floor(Math.random() * 31);
-    } else if (senderIsAdmin) {
-      // 84% hi — admin también sale alto pero menos que miembro
-      if (r < 0.84) percent = 70 + Math.floor(Math.random() * 31);
-      else if (r < 0.96) percent = 31 + Math.floor(Math.random() * 39);
-      else percent = Math.floor(Math.random() * 31);
-    } else {
-      // 95% hi — miembro casi siempre sale alto
-      if (r < 0.95) percent = 70 + Math.floor(Math.random() * 31);
-      else if (r < 0.99) percent = 31 + Math.floor(Math.random() * 39);
-      else percent = Math.floor(Math.random() * 31);
-    }
-  } else {
-    percent = rollPercent(cfg.goodIsHigh, senderIsAdmin, senderIsOwner);
-  }
+  const percent = rollPercent(cfg.goodIsHigh, senderIsAdmin, senderIsOwner);
   const verdict = percent >= 70 ? pick(cfg.high) : percent <= 30 ? pick(cfg.low) : pick(cfg.mid);
   const showExtreme = percent >= 70 && cfg.extreme?.length;
 
