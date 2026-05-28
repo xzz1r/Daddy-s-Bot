@@ -68,37 +68,47 @@ async function cmdTodos(sock, msg, args, groupMeta) {
   const mentions = participants.map((p) => p.id);
   const caption = (args || []).join(' ').trim();
 
-  // Helper: download any media type to buffer
-  async function dl(mediaMsg, type) {
-    return streamToBuffer(await downloadContentFromMessage(mediaMsg, type));
+  // Returns buffer on success, null on any download failure.
+  // Silent null lets callers fall through to text-only tagall instead of crashing.
+  async function tryDl(mediaMsg, type) {
+    try {
+      return await streamToBuffer(await downloadContentFromMessage(mediaMsg, type));
+    } catch {
+      return null;
+    }
   }
 
   // --- Media attached to the command message itself ---
   const m = msg.message;
   if (m?.imageMessage) {
-    const buf = await dl(m.imageMessage, 'image');
-    return sock.sendMessage(jid, { image: buf, caption, mentions });
+    const buf = await tryDl(m.imageMessage, 'image');
+    if (buf) return sock.sendMessage(jid, { image: buf, caption: caption || m.imageMessage.caption || '', mentions });
   }
   if (m?.videoMessage) {
-    const buf = await dl(m.videoMessage, 'video');
-    return sock.sendMessage(jid, { video: buf, caption, mentions });
+    const buf = await tryDl(m.videoMessage, 'video');
+    if (buf) return sock.sendMessage(jid, { video: buf, caption: caption || m.videoMessage.caption || '', mentions });
   }
   if (m?.stickerMessage) {
-    const buf = await dl(m.stickerMessage, 'sticker');
-    return sock.sendMessage(jid, {
+    const buf = await tryDl(m.stickerMessage, 'sticker');
+    if (buf) return sock.sendMessage(jid, {
       sticker: buf,
-      ...(m.stickerMessage.isAnimated && { isAnimated: true }),
+      ...(m.stickerMessage.isAnimated ? { isAnimated: true } : {}),
       mentions,
     });
   }
 
   // --- Media in the quoted (replied-to) message ---
-  const ctx = msg.message?.extendedTextMessage?.contextInfo;
+  // contextInfo can live under extendedTextMessage, imageMessage, videoMessage, etc.
+  const ctx =
+    m?.extendedTextMessage?.contextInfo ||
+    m?.imageMessage?.contextInfo ||
+    m?.videoMessage?.contextInfo ||
+    m?.documentMessage?.contextInfo;
   const rawQuoted = ctx?.quotedMessage;
 
   if (rawQuoted) {
-    // View-once messages wrap the real media under viewOnceMessage / viewOnceMessageV2.
-    // Unwrap first so the rest of the handlers don't need to know about this.
+    // Unwrap view-once wrappers — WhatsApp may strip mediaKey for view-once quotes,
+    // so the download might fail; tryDl handles that with a silent null.
     const quoted =
       rawQuoted.viewOnceMessageV2Extension?.message ||
       rawQuoted.viewOnceMessageV2?.message ||
@@ -106,26 +116,26 @@ async function cmdTodos(sock, msg, args, groupMeta) {
       rawQuoted;
 
     if (quoted.imageMessage) {
-      const buf = await dl(quoted.imageMessage, 'image');
-      return sock.sendMessage(jid, { image: buf, caption: caption || quoted.imageMessage.caption || '', mentions });
+      const buf = await tryDl(quoted.imageMessage, 'image');
+      if (buf) return sock.sendMessage(jid, { image: buf, caption: caption || quoted.imageMessage.caption || '', mentions });
     }
     if (quoted.videoMessage) {
-      const buf = await dl(quoted.videoMessage, 'video');
-      return sock.sendMessage(jid, { video: buf, caption: caption || quoted.videoMessage.caption || '', mentions });
+      const buf = await tryDl(quoted.videoMessage, 'video');
+      if (buf) return sock.sendMessage(jid, { video: buf, caption: caption || quoted.videoMessage.caption || '', mentions });
     }
     if (quoted.stickerMessage) {
-      const buf = await dl(quoted.stickerMessage, 'sticker');
-      return sock.sendMessage(jid, {
+      const buf = await tryDl(quoted.stickerMessage, 'sticker');
+      if (buf) return sock.sendMessage(jid, {
         sticker: buf,
-        ...(quoted.stickerMessage.isAnimated && { isAnimated: true }),
+        ...(quoted.stickerMessage.isAnimated ? { isAnimated: true } : {}),
         mentions,
       });
     }
     if (quoted.audioMessage) {
-      const buf = await dl(quoted.audioMessage, 'audio');
-      return sock.sendMessage(jid, { audio: buf, mimetype: quoted.audioMessage.mimetype || 'audio/mp4', mentions });
+      const buf = await tryDl(quoted.audioMessage, 'audio');
+      if (buf) return sock.sendMessage(jid, { audio: buf, mimetype: quoted.audioMessage.mimetype || 'audio/mp4', mentions });
     }
-    // Quoted text → use it as body if no caption given
+    // Quoted text → use as body if no caption given
     const quotedText = quoted.conversation || quoted.extendedTextMessage?.text || '';
     return sock.sendMessage(jid, { text: caption || quotedText || '​', mentions });
   }
