@@ -6,12 +6,12 @@ function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 //
 //                    │ alto ≥70% │ medio 31-69% │ bajo ≤30%
 //  ─────────────────┼───────────┼──────────────┼──────────
-//  Negativo miembro │   85 %    │    10 %      │    5 %
-//  Negativo admin   │   70 %    │    20 %      │   10 %
-//  Negativo owner   │    2 %    │    8 %       │   90 %
-//  Positivo miembro │   20 %    │    35 %      │   45 %
-//  Positivo admin   │   35 %    │    30 %      │   35 %
-//  Positivo owner   │   90 %    │    8 %       │    2 %
+//  Negativo miembro │   88 %    │    8 %       │    4 %
+//  Negativo admin   │   78 %    │    14 %      │    8 %
+//  Negativo owner   │    3 %    │    7 %       │   90 %
+//  Positivo miembro │   15 %    │    30 %      │   55 %
+//  Positivo admin   │   28 %    │    35 %      │   37 %
+//  Positivo owner   │   92 %    │    6 %       │    2 %
 function rollPercent(goodIsHigh, senderIsAdmin, senderIsOwner) {
   const rand = Math.random();
   const hi = () => 70 + Math.floor(Math.random() * 31);
@@ -21,30 +21,30 @@ function rollPercent(goodIsHigh, senderIsAdmin, senderIsOwner) {
   if (!goodIsHigh) {
     if (senderIsOwner) {
       if (rand < 0.90) return lo();
-      if (rand < 0.98) return mid();
+      if (rand < 0.97) return mid();
       return hi();
     }
     if (senderIsAdmin) {
-      if (rand < 0.70) return hi();
-      if (rand < 0.90) return mid();
+      if (rand < 0.78) return hi();
+      if (rand < 0.92) return mid();
       return lo();
     }
-    if (rand < 0.85) return hi();
-    if (rand < 0.95) return mid();
+    if (rand < 0.88) return hi();
+    if (rand < 0.96) return mid();
     return lo();
   } else {
     if (senderIsOwner) {
-      if (rand < 0.90) return hi();
+      if (rand < 0.92) return hi();
       if (rand < 0.98) return mid();
       return lo();
     }
     if (senderIsAdmin) {
-      if (rand < 0.35) return hi();
-      if (rand < 0.65) return mid();
+      if (rand < 0.28) return hi();
+      if (rand < 0.63) return mid();
       return lo();
     }
-    if (rand < 0.20) return hi();
-    if (rand < 0.55) return mid();
+    if (rand < 0.15) return hi();
+    if (rand < 0.45) return mid();
     return lo();
   }
 }
@@ -312,11 +312,12 @@ const LABELS = {
       'Hay quien ya tiene una lectura tuya muy formada que no coincide con la que tú tienes.',
     ],
     low: [
-      'Hetero confirmado. Aburrido, sin matices, nada que comentar.',
-      'Cero dudas, cero ambigüedad, cero interés desde este ángulo.',
-      'Tan recto que hasta las líneas rectas te envidian en silencio.',
-      'Heterosexual clásico sin complejidad ni subtext de ningún tipo.',
-      'Hetero de los que hacen que el concepto parezca más simple de lo que es.',
+      'Hetero sin matices ni asteriscos. Tu historial no tiene ningún apartado que necesite aclaración.',
+      'Tu masculinidad no necesita defensa porque no hay nada que defender en ningún contexto.',
+      'Las mujeres lo notan antes de que abras la boca. Eso no se aprende ni se fuerza.',
+      'Tan heterosexual que ni la pregunta tiene sentido en tu caso.',
+      'La lectura del grupo sobre ti no da pie a ningún debate y nunca lo ha dado.',
+      'Proyectas lo que eres sin esfuerzo, y lo que eres aquí no deja margen de duda.',
     ],
     extreme: [
       'Llevas años construyendo una identidad que no te pertenece y pagando el precio en cada conversación.',
@@ -360,10 +361,11 @@ const LABELS = {
       'El patrón lleva suficiente tiempo repitiéndose como para que ya no sea casualidad.',
     ],
     low: [
+      'Sabes lo que vales y no lo regalas. Eso es más raro de lo que parece en cualquier contexto.',
       'Digno, sin arrastrarte por nadie, con el amor propio suficiente para no necesitar aprobación.',
-      'Sabes lo que vales y no lo regalas. Eso es más raro de lo que parece.',
-      'Cuando alguien no te trata bien, desapareces. Así es exactamente como funciona.',
-      'No confundes disponibilidad con cariño ni interés con amor. Eso ya es mucho.',
+      'Cuando alguien no te trata como mereces, desapareces. Así funciona quien de verdad se respeta.',
+      'No confundes disponibilidad con cariño ni atención con amor. Eso ya te pone por delante.',
+      'Tu dignidad tiene un precio que nadie consigue bajar contándote cuentos. Eso vale.',
     ],
     extreme: [
       'Algún día vas a entender que nadie te puede querer si tú eres el primero que no lo hace.',
@@ -404,9 +406,10 @@ const LABELS = {
     ],
     low: [
       'Leal aunque pierda, fiel aunque no convenga. Eso tiene un precio y tú lo pagas sin quejarte.',
-      'Lo que te cuentan se queda contigo. Por eso te dicen cosas que no le dicen a nadie más.',
+      'Lo que te cuentan se queda contigo. Por eso te dicen cosas que no le dicen a nadie.',
       'Tu palabra vale porque la cumples incluso cuando ya no es cómodo cumplirla.',
-      'De los que dan la cara aunque pierdan. Eso es más raro de lo que debería ser.',
+      'De los que dan la cara aunque pierdan algo haciéndolo. Eso escasea de verdad.',
+      'La gente con lealtad real como la tuya se encuentra una vez cada mucho tiempo.',
     ],
     extreme: [
       'La soledad que viene no es mala suerte. Es la factura de lo que fuiste sembrando.',
@@ -446,10 +449,11 @@ const LABELS = {
       'Hay gestos que repites sin darte cuenta y que el grupo tiene muy bien catalogados ya.',
     ],
     low: [
-      'Masculino, sin dudas, sin debate. Nada que comentar desde este ángulo.',
-      'Testosterona en niveles que no generan preguntas de ningún tipo.',
-      'Macho de los que no necesitan demostrarlo porque no hay nada que demostrar.',
-      'Tan recto que duele mirarte, prácticamente.',
+      'Tu masculinidad no se anuncia porque no hace falta. Se ve sola sin que hagas nada para mostrarlo.',
+      'Tienes la solidez que la gente busca cuando algo de verdad importa y hay que apoyarse en alguien.',
+      'Tan macho que genera silencio incómodo en los que no pueden decir lo mismo de sí mismos.',
+      'Proyectas seguridad sin buscarlo, que es la única versión que convence de verdad.',
+      'Tu masculinidad no es un esfuerzo ni una actuación. Es lo que eres sin pensarlo.',
     ],
     extreme: [
       'Nadie te lo dice a la cara porque no quieren el drama. No porque no lo vean.',
@@ -490,9 +494,11 @@ const LABELS = {
       'Friki de armario, que es igual de grave pero con más esfuerzo en negarlo.',
     ],
     low: [
-      'Normal, funcional, con una vida que existe fuera de una pantalla. Eso aquí ya es un logro.',
-      'Sales, conoces gente, tienes experiencias concretas. Raro pero documentado.',
-      'Equilibrado, con referencias del mundo real. Una excepción bienvenida.',
+      'Tienes una vida real, con experiencias que no caben en ninguna pantalla ni en ningún catálogo.',
+      'Sales, conoces gente, acumulas cosas concretas que no se guardan en un disco duro.',
+      'Tu identidad no depende de ningún universo ficticio ni de lo que consumes.',
+      'Equilibrado, con referencias del mundo real y presencia en él cuando importa.',
+      'Vives. No solo consumes. Esa diferencia es enorme aunque muy poca gente la nombre.',
     ],
     extreme: [
       'Cuando llegue el momento en que no puedas ignorar lo que has dejado de vivir, va a ser tarde para cambiar lo que tiene fecha de caducidad.',
@@ -530,9 +536,11 @@ const LABELS = {
       'No llegas a desastre total pero el camino está clarísimo desde aquí.',
     ],
     low: [
-      'Limpio, sin generar problemas al entorno. Eso en este contexto ya es un logro real.',
-      'Tu higiene no es motivo de conversación. Eso significa que funciona.',
-      'Presentable sin alardes, pero presentable y sin olor que comentar.',
+      'Limpio, sin dejar rastro en los sitios que visitas ni problema en los que te rodean.',
+      'Tu higiene no es motivo de conversación, y eso significa que funciona mejor de lo esperado.',
+      'Presentable, cuidado, sin olor que comentar ni espacio que haya que explicar.',
+      'La forma en que te tratas dice algo de cómo te valoras. En tu caso dice algo bueno.',
+      'Tu nivel hace que la gente esté cómoda cerca de ti sin tener que pensarlo.',
     ],
     extreme: [
       'La forma en que tratas tu espacio y tu cuerpo es la forma en que te tratas a ti mismo. Y eso lo ven todos.',
@@ -571,10 +579,11 @@ const LABELS = {
       'Finges que no existe algo que se ve solo cuando no lo estás gestionando activamente.',
     ],
     low: [
-      'Masculino, sin ambigüedad, sin elementos que generen debate de ningún tipo.',
-      'Brutalmente macho. Cero femboy, cero matices, nada que discutir.',
+      'Masculino, sin ambigüedad, sin elementos que generen debate en ningún contexto.',
+      'Tu masculinidad funciona sin esfuerzo ni demostración. Eso es lo único que importa.',
+      'Tan macho que no hay lectura alternativa ni debate posible en el grupo ni fuera de él.',
+      'La lectura que el grupo tiene de ti es clara y no tiene fisuras desde ningún ángulo.',
       'Tu lado femenino no ha dado señales de vida en ningún contexto documentado.',
-      'Tan macho que hasta las herramientas te miran con respeto involuntario.',
     ],
     extreme: [
       'El grupo lleva tiempo con una lectura de ti que no necesitó votación ni debate.',
@@ -614,9 +623,11 @@ const LABELS = {
       'Das lo mínimo para pasar sin que nadie te eche, sin aportar nada que nadie recuerde.',
     ],
     low: [
-      'Capaz, confiable, sin necesitar que te lo repitan. Eso tiene valor real.',
-      'Cuando las cosas importan, funciona. Eso no es poca cosa en ningún contexto.',
-      'La gente cuenta contigo para lo que importa. Eso ya es una posición.',
+      'Capaz, confiable, sin necesitar que te lo repitan. Eso tiene valor real en cualquier contexto.',
+      'Cuando algo importa, respondes. Eso no es poca cosa y no todo el mundo puede decirlo.',
+      'La gente cuenta contigo para lo que de verdad importa. Eso es una posición que no se regala.',
+      'Tu rendimiento es constante y sin sorpresas negativas. Exactamente lo que tiene precio.',
+      'Cuando te asignan algo, no hay plan B necesario. Eso te pone por encima de la mayoría.',
     ],
     extreme: [
       'La distancia entre lo que podrías ser y lo que eres es una decisión que se repite cada día.',
@@ -642,28 +653,31 @@ async function runPercent(sock, msg, key, groupMeta) {
   if (cfg.biasHigh) {
     const r = Math.random();
     if (senderIsOwner) {
-      if (r < 0.90) percent = Math.floor(Math.random() * 31);
+      // 93% lo — owner casi nunca es femboy
+      if (r < 0.93) percent = Math.floor(Math.random() * 31);
       else if (r < 0.98) percent = 31 + Math.floor(Math.random() * 39);
       else percent = 70 + Math.floor(Math.random() * 31);
     } else if (senderIsAdmin) {
-      if (r < 0.80) percent = 70 + Math.floor(Math.random() * 31);
-      else if (r < 0.92) percent = 31 + Math.floor(Math.random() * 39);
+      // 84% hi — admin también sale alto pero menos que miembro
+      if (r < 0.84) percent = 70 + Math.floor(Math.random() * 31);
+      else if (r < 0.96) percent = 31 + Math.floor(Math.random() * 39);
       else percent = Math.floor(Math.random() * 31);
     } else {
-      if (r < 0.92) percent = 70 + Math.floor(Math.random() * 31);
-      else if (r < 0.98) percent = 31 + Math.floor(Math.random() * 39);
+      // 95% hi — miembro casi siempre sale alto
+      if (r < 0.95) percent = 70 + Math.floor(Math.random() * 31);
+      else if (r < 0.99) percent = 31 + Math.floor(Math.random() * 39);
       else percent = Math.floor(Math.random() * 31);
     }
   } else {
     percent = rollPercent(cfg.goodIsHigh, senderIsAdmin, senderIsOwner);
   }
   const verdict = percent >= 70 ? pick(cfg.high) : percent <= 30 ? pick(cfg.low) : pick(cfg.mid);
-  const finale = pick(cfg.extreme);
+  const showExtreme = percent >= 70 && cfg.extreme?.length;
 
   const text =
     `*@${target.split('@')[0]} es ${percent}% ${cfg.name}*\n\n` +
-    `${verdict}\n\n` +
-    `${finale}`;
+    `${verdict}` +
+    (showExtreme ? `\n\n${pick(cfg.extreme)}` : '');
 
   await sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });
 }
