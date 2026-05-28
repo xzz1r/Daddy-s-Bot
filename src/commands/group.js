@@ -524,4 +524,45 @@ async function scanAndPurgeBusinesses(sock, msg, groupJid, groupMeta) {
   }
 }
 
-module.exports = { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted };
+// !add <numero> — add a user by phone number (owner only)
+async function cmdAdd(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+  }
+  const sender = msg.key.participant || msg.key.remoteJid;
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'Solo el owner puede usar este comando.' }, { quoted: msg });
+  }
+
+  const raw = (args[0] || '').replace(/[^\d]/g, '');
+  if (!raw || raw.length < 6) {
+    return sock.sendMessage(jid, { text: 'Uso: *!add <numero>*\nEjemplo: !add 5491100000000' }, { quoted: msg });
+  }
+
+  const targetJid = `${raw}@s.whatsapp.net`;
+  try {
+    const result = await sock.groupParticipantsUpdate(jid, [targetJid], 'add');
+    const status = result?.[0]?.status;
+    if (status === 200) {
+      return sock.sendMessage(jid, {
+        text: `@${raw} fue agregado al grupo.`,
+        mentions: [targetJid],
+      }, { quoted: msg });
+    }
+    if (status === 403) {
+      return sock.sendMessage(jid, { text: `No se pudo agregar a +${raw}: su configuracion de privacidad no permite ser agregado a grupos.` }, { quoted: msg });
+    }
+    if (status === 408) {
+      return sock.sendMessage(jid, { text: `No se pudo agregar a +${raw}: el numero no existe en WhatsApp.` }, { quoted: msg });
+    }
+    if (status === 409) {
+      return sock.sendMessage(jid, { text: `+${raw} ya esta en el grupo.` }, { quoted: msg });
+    }
+    return sock.sendMessage(jid, { text: `Resultado para +${raw}: codigo ${status ?? 'desconocido'}.` }, { quoted: msg });
+  } catch (err) {
+    return sock.sendMessage(jid, { text: `No pude agregar al usuario: ${err.message}` }, { quoted: msg });
+  }
+}
+
+module.exports = { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd };

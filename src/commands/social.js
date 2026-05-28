@@ -138,6 +138,7 @@ async function cmdHelp(sock, msg) {
 
 *ADMINISTRACION*
   ${p}tagall <texto>       mencionar a todos
+  ${p}add <numero>          agregar por numero de telefono
   ${p}kick @a @b @c        expulsar uno o varios
   ${p}promote @user        ascender a admin
   ${p}demote @user         degradar a miembro

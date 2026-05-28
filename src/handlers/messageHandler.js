@@ -6,7 +6,7 @@ const { cmdSticker } = require('../commands/sticker');
 const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdCount, cmdResetCount } = require('../commands/count');
 const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
-const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted } = require('../commands/group');
+const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd } = require('../commands/group');
 const { cmdShip } = require('../commands/ship');
 const { cmdTtp } = require('../commands/ttp');
 const { cmdToImg } = require('../commands/toimg');
@@ -22,7 +22,7 @@ const LINK_RE = /https?:\/\/[^\s]{4,}|www\.[^\s]{4,}|(?:t\.me|chat\.whatsapp\.co
 // Commands that need group metadata — skip the network call for everything else
 const NEEDS_META = new Set([
   'on','off','tagall','todos','all','everyone',
-  'kick','expulsar','del','borrar','delete',
+  'kick','expulsar','del','borrar','delete','add','agregar',
   'ship','top5','top10','mute','unmute','desmute',
   'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness',
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
@@ -212,6 +212,11 @@ async function handleMessage(sock, msg) {
       case 'antiempresa':
       case 'antibusiness':
         await cmdAntiBusiness(sock, msg, args, groupMeta);
+        break;
+
+      case 'add':
+      case 'agregar':
+        await cmdAdd(sock, msg, args, groupMeta);
         break;
 
       case 'kick':
