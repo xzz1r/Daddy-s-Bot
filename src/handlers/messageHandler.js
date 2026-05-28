@@ -13,7 +13,7 @@ const { cmdToImg } = require('../commands/toimg');
 const { cmdPfp } = require('../commands/pfp');
 const percent = require('../commands/percent');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp } = require('../commands/social');
-const { isOwner, isAdmin, extractText } = require('../utils/wa');
+const { isOwner, isAdmin, extractText, rememberMapping } = require('../utils/wa');
 const logger = require('../utils/logger');
 
 // Detects http/https links, www. links, and common invite/spam patterns
@@ -72,6 +72,13 @@ async function handleMessage(sock, msg) {
   const jid = msg.key.remoteJid;
   const sender = msg.key.participant || msg.key.remoteJid;
   const text = extractText(msg).trim();
+
+  // Some Baileys versions surface both LID (msg.key.participant) and phone
+  // (msg.key.participantPn) on every group message. Free LID→phone training
+  // data — record it so owner checks resolve even without groupMeta.
+  if (msg.key.participantPn && msg.key.participant) {
+    rememberMapping(msg.key.participant, msg.key.participantPn);
+  }
 
   // Skip own messages that aren't commands (avoids bot responding to itself)
   // fromMe = true when the owner sends from their linked phone — still allow commands

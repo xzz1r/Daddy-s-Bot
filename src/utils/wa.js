@@ -3,25 +3,76 @@
 
 const config = require('../config');
 
+// Strip device suffix (xxx:1@lid → xxx@lid). Baileys' msg.key.participant
+// can carry a device tag that groupMeta.participants[].id does not, which
+// breaks exact-equality lookups by JID.
+function bareJid(j) {
+  if (!j) return j;
+  const at = String(j).indexOf('@');
+  if (at < 0) return String(j);
+  return String(j).slice(0, at).split(':')[0] + '@' + String(j).slice(at + 1);
+}
+
+// Global LID → phone-JID cache. Populated whenever isOwner sees a groupMeta,
+// so a co-owner whose LID we've seen in any group will resolve correctly
+// even in DMs where we have no metadata to look up.
+const lidToPhone = new Map();
+const MAX_LID_CACHE = 2000;
+
+function rememberMapping(lid, phone) {
+  if (!lid || !phone) return;
+  const k = bareJid(lid);
+  if (lidToPhone.size >= MAX_LID_CACHE && !lidToPhone.has(k)) {
+    lidToPhone.delete(lidToPhone.keys().next().value);
+  }
+  lidToPhone.set(k, bareJid(phone));
+}
+
+function indexGroupMeta(groupMeta) {
+  if (!groupMeta?.participants) return;
+  for (const p of groupMeta.participants) {
+    if (!p) continue;
+    if (p.lid && p.phoneNumber) rememberMapping(p.lid, p.phoneNumber);
+    if (p.id?.endsWith?.('@lid') && p.phoneNumber) rememberMapping(p.id, p.phoneNumber);
+  }
+}
+
 function isOwner(jid, fromMe, groupMeta) {
   if (fromMe) return true;
   if (!jid) return false;
+
+  // Side effect: every owner check that has groupMeta refreshes the global
+  // LID map. Cheap and means future DM owner checks don't need groupMeta.
+  if (groupMeta) indexGroupMeta(groupMeta);
 
   const owners = [
     String(config.ownerNumber).replace(/\D/g, ''),
     ...(config.coOwners || []).map(n => String(n).replace(/\D/g, '')),
   ];
 
-  // Candidates: the JID itself, plus the participant's phoneNumber if we have
-  // group metadata. Modern groups use LID JIDs (xxxxx@lid) — extracting digits
-  // from a LID does NOT give a phone number, so without this lookup the
-  // co-owner check silently fails in every group.
-  const candidates = [jid];
+  const bare = bareJid(jid);
+  const candidates = new Set([jid, bare]);
+
+  // Match against any participant whose id / lid / phoneNumber form equals
+  // the sender's JID. Modern groups inconsistently store the canonical id
+  // (sometimes the LID, sometimes the phone JID), so a single-field lookup
+  // misses half the cases.
   if (groupMeta?.participants) {
-    const p = groupMeta.participants.find(x => x.id === jid);
-    if (p?.phoneNumber) candidates.push(p.phoneNumber);
-    if (p?.lid && p.lid !== jid) candidates.push(p.lid);
+    for (const p of groupMeta.participants) {
+      if (!p) continue;
+      if (bareJid(p.id) === bare || bareJid(p.lid) === bare || bareJid(p.phoneNumber) === bare) {
+        if (p.id) candidates.add(p.id);
+        if (p.lid) candidates.add(p.lid);
+        if (p.phoneNumber) candidates.add(p.phoneNumber);
+        break;
+      }
+    }
   }
+
+  // Fallback: global cache populated from prior group metas. Works for DMs
+  // and for groups where the current meta fetch failed.
+  const cachedPhone = lidToPhone.get(bare);
+  if (cachedPhone) candidates.add(cachedPhone);
 
   for (const c of candidates) {
     const num = String(c).replace(/@[^@]+$/, '').replace(/\D/g, '');
@@ -33,7 +84,10 @@ function isOwner(jid, fromMe, groupMeta) {
 
 function isAdmin(participants, jid) {
   if (!participants || !jid) return false;
-  const p = participants.find(x => x.id === jid);
+  const bare = bareJid(jid);
+  const p = participants.find(x =>
+    bareJid(x?.id) === bare || bareJid(x?.lid) === bare || bareJid(x?.phoneNumber) === bare
+  );
   return p?.admin === 'admin' || p?.admin === 'superadmin';
 }
 
@@ -85,4 +139,6 @@ module.exports = {
   getTargetOrSelf,
   extractText,
   extractQuotedText,
+  rememberMapping,
+  bareJid,
 };
