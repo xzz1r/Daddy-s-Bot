@@ -35,6 +35,16 @@ async function increment(groupJid, userJid) {
   scheduleSave();
 }
 
+async function resetCounts(groupJid) {
+  await load();
+  if (groupJid) {
+    delete counts[groupJid];
+  } else {
+    counts = {};
+  }
+  scheduleSave();
+}
+
 async function getActiveUsers(groupJid, minMessages = 10) {
   await load();
   const group = counts[groupJid];
@@ -59,4 +69,4 @@ async function flushCounts() {
   }
 }
 
-module.exports = { increment, getActiveUsers, flushCounts };
+module.exports = { increment, getActiveUsers, resetCounts, flushCounts };

@@ -122,6 +122,7 @@ async function cmdHelp(sock, msg) {
   ${p}top5 <tema>          top 5 aleatorio
   ${p}top10 <tema>         top 10 aleatorio
   ${p}count                ranking de mensajes
+  ${p}resetcount           resetear contador del grupo
 
 *DINAMICAS*
   ${p}sexy  ${p}crack  ${p}inteligencia  ${p}feminidad  ${p}masculinidad

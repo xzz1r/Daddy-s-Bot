@@ -4,7 +4,7 @@ const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { cmdPlay, cmdClearCache } = require('../commands/music');
 const { cmdSticker } = require('../commands/sticker');
 const { cmdTopRandom } = require('../commands/topsRandom');
-const { cmdCount } = require('../commands/count');
+const { cmdCount, cmdResetCount } = require('../commands/count');
 const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
 const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted } = require('../commands/group');
 const { cmdShip } = require('../commands/ship');
@@ -27,7 +27,7 @@ const NEEDS_META = new Set([
   'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness',
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy',
-  'count',
+  'count','resetcount','resetconteo',
   // Owner-gated commands also need meta in groups to resolve LID → phone
   // for isOwner checks (otherwise co-owners always fail in modern groups).
   'clearcache','borracache','setgrok','setkey','whoami',
@@ -166,6 +166,11 @@ async function handleMessage(sock, msg) {
 
       case 'count':
         await cmdCount(sock, msg, groupMeta, args);
+        break;
+
+      case 'resetcount':
+      case 'resetconteo':
+        await cmdResetCount(sock, msg, groupMeta);
         break;
 
       case 'g':

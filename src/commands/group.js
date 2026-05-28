@@ -339,15 +339,15 @@ async function cmdPromote(sock, msg, args, groupMeta) {
   }
 }
 
-// !demote @user — remove admin rights (admin only)
+// !demote @user — remove admin rights (owner only)
 async function cmdDemote(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
     return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
   }
   const sender = msg.key.participant || msg.key.remoteJid;
-  if (!isOwner(sender, msg.key.fromMe, groupMeta) && !isAdmin(groupMeta?.participants, sender)) {
-    return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'Solo el owner puede degradar admins.' }, { quoted: msg });
   }
 
   const target = getTarget(msg);

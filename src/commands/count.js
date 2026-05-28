@@ -1,4 +1,4 @@
-const { getActiveUsers } = require('../utils/messageCounter');
+const { getActiveUsers, resetCounts } = require('../utils/messageCounter');
 const { isOwner, isAdminInMeta } = require('../utils/wa');
 
 const MEDALS = ['🥇', '🥈', '🥉', '🎖️', '🎖️'];
@@ -173,4 +173,22 @@ async function cmdCount(sock, msg, groupMeta, args) {
   await sock.sendMessage(jid, { text: text.trimEnd(), mentions }, { quoted: msg });
 }
 
-module.exports = { cmdCount };
+// !resetcount — owner only: clears message ranking for this group
+async function cmdResetCount(sock, msg, groupMeta) {
+  const jid = msg.key.remoteJid;
+  const sender = msg.key.participant || msg.key.remoteJid;
+
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'Solo el owner puede resetear el contador.' }, { quoted: msg });
+  }
+
+  const scope = jid.endsWith('@g.us') ? jid : null;
+  await resetCounts(scope);
+  await sock.sendMessage(jid, {
+    text: scope
+      ? 'Contador de mensajes de este grupo reseteado.'
+      : 'Contador de mensajes global reseteado.',
+  }, { quoted: msg });
+}
+
+module.exports = { cmdCount, cmdResetCount };
