@@ -1,23 +1,29 @@
-const { isAdminInMeta, getTargetOrSelf } = require('../utils/wa');
+const { isOwner, isAdminInMeta, getTargetOrSelf } = require('../utils/wa');
 
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
-// Distribuciones por tier (uniforme dentro de cada rango):
+// Distribuciones por tier:
 //
 //                    │ alto ≥70% │ medio 31-69% │ bajo ≤30%
 //  ─────────────────┼───────────┼──────────────┼──────────
-//  Negativo normal  │   70 %    │    20 %       │   10 %
-//  Negativo admin   │   10 %    │    25 %       │   65 %
-//  Positivo normal  │   35 %    │    30 %       │   35 %
-//  Positivo admin   │   65 %    │    25 %       │   10 %
-function rollPercent(goodIsHigh, senderIsAdmin) {
+//  Negativo miembro │   70 %    │    20 %      │   10 %
+//  Negativo admin   │   10 %    │    25 %      │   65 %
+//  Negativo owner   │    2 %    │    8 %       │   90 %
+//  Positivo miembro │   35 %    │    30 %      │   35 %
+//  Positivo admin   │   65 %    │    25 %      │   10 %
+//  Positivo owner   │   90 %    │    8 %       │    2 %
+function rollPercent(goodIsHigh, senderIsAdmin, senderIsOwner) {
   const rand = Math.random();
   const hi = () => 70 + Math.floor(Math.random() * 31);
   const mid = () => 31 + Math.floor(Math.random() * 39);
   const lo = () => Math.floor(Math.random() * 31);
 
   if (!goodIsHigh) {
-    // Negativo: normalmente resulta alto (malo), admins se libran
+    if (senderIsOwner) {
+      if (rand < 0.90) return lo();
+      if (rand < 0.98) return mid();
+      return hi();
+    }
     if (senderIsAdmin) {
       if (rand < 0.65) return lo();
       if (rand < 0.90) return mid();
@@ -27,7 +33,11 @@ function rollPercent(goodIsHigh, senderIsAdmin) {
     if (rand < 0.90) return mid();
     return lo();
   } else {
-    // Positivo: probabilidad intermedia para todos, alta para admins
+    if (senderIsOwner) {
+      if (rand < 0.90) return hi();
+      if (rand < 0.98) return mid();
+      return lo();
+    }
     if (senderIsAdmin) {
       if (rand < 0.65) return hi();
       if (rand < 0.90) return mid();
@@ -847,18 +857,30 @@ async function runPercent(sock, msg, key, groupMeta) {
   if (!cfg) return;
 
   const sender = msg.key.participant || msg.key.remoteJid;
+  const senderIsOwner = isOwner(sender, msg.key.fromMe, groupMeta);
   const senderIsAdmin = isAdminInMeta(groupMeta, sender);
 
   const target = getTargetOrSelf(msg);
   let percent;
   if (cfg.biasHigh) {
-    // 85% toward high tier (70-100), 10% mid, 5% low
+    // femboy: owner/admin se libran igual que en comandos negativos,
+    // miembros reciben sesgo extra alto (85% hi en vez de 70%)
     const r = Math.random();
-    if (r < 0.85) percent = 70 + Math.floor(Math.random() * 31);
-    else if (r < 0.95) percent = 31 + Math.floor(Math.random() * 39);
-    else percent = Math.floor(Math.random() * 31);
+    if (senderIsOwner) {
+      if (r < 0.90) percent = Math.floor(Math.random() * 31);
+      else if (r < 0.98) percent = 31 + Math.floor(Math.random() * 39);
+      else percent = 70 + Math.floor(Math.random() * 31);
+    } else if (senderIsAdmin) {
+      if (r < 0.65) percent = Math.floor(Math.random() * 31);
+      else if (r < 0.90) percent = 31 + Math.floor(Math.random() * 39);
+      else percent = 70 + Math.floor(Math.random() * 31);
+    } else {
+      if (r < 0.85) percent = 70 + Math.floor(Math.random() * 31);
+      else if (r < 0.95) percent = 31 + Math.floor(Math.random() * 39);
+      else percent = Math.floor(Math.random() * 31);
+    }
   } else {
-    percent = rollPercent(cfg.goodIsHigh, senderIsAdmin);
+    percent = rollPercent(cfg.goodIsHigh, senderIsAdmin, senderIsOwner);
   }
   const verdict = percent >= 70 ? pick(cfg.high) : percent <= 30 ? pick(cfg.low) : pick(cfg.mid);
   const finale = pick(cfg.extreme);
