@@ -1,6 +1,6 @@
 const { getState, setState, toggleGroup } = require('../utils/state');
 const { formatUptime } = require('../utils/helpers');
-const { isOwner, isAdmin, getSender } = require('../utils/wa');
+const { isOwner, isGroupAdmin, getSender } = require('../utils/wa');
 const config = require('../config');
 const logger = require('../utils/logger');
 
@@ -11,7 +11,7 @@ async function cmdOn(sock, msg, groupMeta) {
   const isGroup = jid.endsWith('@g.us');
 
   if (isGroup) {
-    const canToggle = isOwner(sender, msg.key.fromMe, groupMeta) || isAdmin(groupMeta?.participants, sender);
+    const canToggle = isGroupAdmin(sender, msg.key.fromMe, groupMeta);
     if (!canToggle) {
       return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
     }
@@ -35,7 +35,7 @@ async function cmdOff(sock, msg, groupMeta) {
   const isGroup = jid.endsWith('@g.us');
 
   if (isGroup) {
-    const canToggle = isOwner(sender, msg.key.fromMe, groupMeta) || isAdmin(groupMeta?.participants, sender);
+    const canToggle = isGroupAdmin(sender, msg.key.fromMe, groupMeta);
     if (!canToggle) {
       return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
     }

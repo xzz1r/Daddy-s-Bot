@@ -61,24 +61,20 @@ async function downloadAudio(videoUrl) {
   const tempDir = path.dirname(tempFile('tmp'));
   const outTemplate = path.join(tempDir, `${baseName}__%(title).80B.%(ext)s`);
 
-  try {
-    await ytdlp([
-      videoUrl,
-      '-x',
-      '--audio-format', 'm4a',
-      '--audio-quality', '64K',
-      '-o', outTemplate,
-      '--no-playlist',
-      '--no-warnings',
-      '--no-part',
-      '--max-filesize', '50M',
-      '--no-mtime',
-      '--socket-timeout', '20',
-      '--extractor-args', `youtube:player_client=${PLAYER_CLIENTS}`,
-    ]);
-  } catch (err) {
-    throw new Error(err.message);
-  }
+  await ytdlp([
+    videoUrl,
+    '-x',
+    '--audio-format', 'm4a',
+    '--audio-quality', '64K',
+    '-o', outTemplate,
+    '--no-playlist',
+    '--no-warnings',
+    '--no-part',
+    '--max-filesize', '50M',
+    '--no-mtime',
+    '--socket-timeout', '20',
+    '--extractor-args', `youtube:player_client=${PLAYER_CLIENTS}`,
+  ]);
 
   const files = await fs.readdir(tempDir);
   const audioFile = files.find(f => f.startsWith(baseName));

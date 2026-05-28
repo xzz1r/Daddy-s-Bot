@@ -4,6 +4,7 @@ const path = require('path');
 const { Readable } = require('stream');
 const { ffmpegPath } = require('../utils/ffmpeg');
 const { tempFile, cleanTemp } = require('../utils/helpers');
+const { imageToSticker } = require('../utils/sticker');
 const { getSender } = require('../utils/wa');
 const logger = require('../utils/logger');
 
@@ -138,7 +139,6 @@ async function cmdTtp(sock, msg, args) {
   }
 
   try {
-    const { imageToSticker } = require('../utils/sticker');
     const senderJid = getSender(msg);
     const author = msg.pushName?.trim() || senderJid.split('@')[0].split(':')[0] || 'Anonimo';
     const buffer = await textToStickerBuffer(text);
