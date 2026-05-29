@@ -20,7 +20,9 @@ async function cmdPlay(sock, msg, args) {
   const fromCache = !!result;
 
   if (!result) {
-    await sock.sendMessage(jid, { text: 'Buscando...' }, { quoted: msg }).catch(() => {});
+    // Fire the "Buscando..." notice without awaiting so yt-dlp starts immediately,
+    // overlapping the message's network round-trip with the download.
+    sock.sendMessage(jid, { text: 'Buscando...' }, { quoted: msg }).catch(() => {});
     try {
       result = await downloadAudio(`ytsearch1:${query}`);
     } catch (err) {
@@ -29,9 +31,12 @@ async function cmdPlay(sock, msg, args) {
     }
   }
 
-  // Send audio — use RAM buffer if available, otherwise read from disk
+  // Send audio — use RAM buffer if available, otherwise read from disk.
+  // The buffer read here is reused for caching below so a freshly downloaded
+  // file is never read from disk twice.
+  let audioBuffer = null;
   try {
-    const audioBuffer = result.buffer || await fs.readFile(result.filePath);
+    audioBuffer = result.buffer || await fs.readFile(result.filePath);
 
     if (audioBuffer.length > 25 * 1024 * 1024) {
       if (!fromCache) cleanTemp(result.filePath).catch(() => {});
@@ -50,9 +55,10 @@ async function cmdPlay(sock, msg, args) {
     await sock.sendMessage(jid, { text: `Error al enviar audio: ${err.message}` }, { quoted: msg });
   }
 
-  // Cache and cleanup (only if it was a fresh download)
+  // Cache and cleanup (only if it was a fresh download). Pass the buffer we
+  // already read so setCached doesn't re-read the file from disk.
   if (!fromCache) {
-    try { await setCached(query, result.filePath, result.title, result.mimetype, result.ext); } catch {}
+    try { await setCached(query, result.filePath, result.title, result.mimetype, result.ext, audioBuffer); } catch {}
     cleanTemp(result.filePath).catch(() => {});
   }
 }

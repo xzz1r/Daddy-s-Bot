@@ -88,7 +88,7 @@ async function getCached(query) {
   return result;
 }
 
-async function setCached(query, srcPath, title, mimetype, ext) {
+async function setCached(query, srcPath, title, mimetype, ext, srcBuffer = null) {
   await loadIndex();
   const k = cacheKey(query);
 
@@ -110,11 +110,12 @@ async function setCached(query, srcPath, title, mimetype, ext) {
   const cacheFile = `${k}${path.extname(srcPath)}`;
   const destPath = path.join(CACHE_DIR, cacheFile);
 
-  // Read source once → write to cache + keep in RAM. Avoids the prior copy + read
-  // double-IO pattern that hit disk twice for every freshly downloaded song.
-  let buffer = null;
+  // Reuse the buffer the caller already read (the one sent to WhatsApp) so we
+  // don't read the freshly downloaded file from disk a second time. Fall back to
+  // reading it ourselves if no buffer was passed.
+  let buffer = srcBuffer;
   try {
-    buffer = await fs.readFile(srcPath);
+    if (!buffer) buffer = await fs.readFile(srcPath);
     await fs.writeFile(destPath, buffer);
   } catch {
     await fs.copy(srcPath, destPath).catch(() => {});
