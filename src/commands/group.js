@@ -415,7 +415,10 @@ async function cmdAntiAdmin(sock, msg, args, groupMeta) {
   await toggleAntiAdmin(jid, enable);
   await sock.sendMessage(jid, {
     text: enable
-      ? 'Anti-admin *activado*.\nSi un admin que no es el owner del bot da admin a otro, se les quita admin a los dos automaticamente y se notifica al grupo.'
+      ? 'Anti-admin *activado*.\n' +
+        '- Si un admin (no owner) da o quita admin, se revierte y el admin queda degradado.\n' +
+        '- Si un admin (no owner) agrega gente, es degradado y los agregados expulsados.\n' +
+        '- Las acciones del owner/co-owner estan permitidas y no se notifican.'
       : 'Anti-admin *desactivado*.',
   }, { quoted: msg });
 }

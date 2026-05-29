@@ -204,21 +204,31 @@ async function connectToWhatsApp() {
         }));
       }
 
-      // Anti-admin: kick anyone added by a non-owner admin (bot is the only one allowed to add).
-      if (!fromBot && author && isAntiAdminEnabled(groupJid)) {
+      // Anti-admin: only the bot and the owner/co-owner may add people. When a
+      // regular (non-owner) admin adds someone, demote that admin AND kick whoever
+      // they added. Owner/co-owner adds are exempt — the member stays and the
+      // owner keeps admin.
+      if (!fromBot && author && !isOwner(author, false, null) && isAntiAdminEnabled(groupJid)) {
         const toKick = partJids.filter(jid => !isBotJid(jid));
+        try {
+          await sock.groupParticipantsUpdate(groupJid, [author], 'demote');
+        } catch (err) {
+          logger.warn(`Anti-admin: demote (add) fallo en ${groupJid}: ${err.message}`);
+        }
         if (toKick.length) {
           try {
             await sock.groupParticipantsUpdate(groupJid, toKick, 'remove');
-            const tags = toKick.map(j => `@${j.split('@')[0]}`).join(', ');
-            sock.sendMessage(groupJid, {
-              text: `*Anti-admin:* ${authorTag} agrego a ${tags} sin permiso del owner. Expulsados automaticamente.`,
-              mentions: [...toKick, author],
-            }).catch(() => {});
           } catch (err) {
             logger.warn(`Anti-admin: kick added member fallo en ${groupJid}: ${err.message}`);
           }
         }
+        const tags = toKick.map(j => `@${j.split('@')[0]}`).join(', ');
+        sock.sendMessage(groupJid, {
+          text: toKick.length
+            ? `*Anti-admin:* ${authorTag} agrego a ${tags} sin permiso del owner. Expulsados y ${authorTag} degradado a miembro.`
+            : `*Anti-admin:* ${authorTag} agrego gente sin permiso del owner. Degradado a miembro.`,
+          mentions: [...toKick, author],
+        }).catch(() => {});
       }
 
       return;
@@ -282,8 +292,10 @@ async function connectToWhatsApp() {
       return;
     }
 
-    // Regular notification (skip if the bot itself did the action — !promote/!demote already responds)
-    if (!fromBot && isAdminNotifyEnabled(groupJid)) {
+    // Regular notification (skip if the bot itself did the action — !promote/!demote
+    // already responds). Owner/co-owner actions are never announced: they have the
+    // authority, so their promotes/demotes are expected and stay silent.
+    if (!fromBot && !isOwner(author, false, null) && isAdminNotifyEnabled(groupJid)) {
       const text = action === 'promote'
         ? `${authorTag} ha dado admin a ${targets}.`
         : `${authorTag} ha quitado admin a ${targets}.`;
