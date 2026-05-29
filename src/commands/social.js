@@ -127,9 +127,12 @@ async function cmdHelp(sock, msg) {
 *DINAMICAS*
   ${p}sexy  ${p}crack  ${p}inteligencia  ${p}feminidad  ${p}masculinidad
   ${p}gay  ${p}maricon  ${p}simp  ${p}rata  ${p}friki  ${p}cerdo  ${p}inutil  ${p}femboy
+  ${p}aura @user           puntos de aura (al azar)
   ${p}ship                 emparejar 2 miembros al azar
   ${p}ship @a @b           shipear a dos personas especificas
   ${p}ship @a              shiipearte con alguien
+  ${p}vs @a @b             enfrentar actividad real de dos
+  ${p}inactivos            top de los mas fantasmas del grupo
   Con @ mide a otro. Sin @ te mide a ti.
 
 *IA*

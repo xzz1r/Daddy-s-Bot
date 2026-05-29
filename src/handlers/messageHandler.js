@@ -12,6 +12,8 @@ const { cmdTtp } = require('../commands/ttp');
 const { cmdToImg } = require('../commands/toimg');
 const { cmdPfp } = require('../commands/pfp');
 const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdInteligencia, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy } = require('../commands/percent');
+const { cmdAura } = require('../commands/aura');
+const { cmdVs, cmdInactivos } = require('../commands/activity');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp } = require('../commands/social');
 const { isOwner, isGroupAdmin, extractText, rememberMapping, getSender } = require('../utils/wa');
 const logger = require('../utils/logger');
@@ -55,6 +57,7 @@ const NEEDS_META = new Set([
   'antilink','close','cerrar','open','abrir',
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy',
+  'aura','inactivos','inactivo','fantasma','fantasmas','vs','versus',
   'count','resetcount','resetconteo',
   // Owner-gated commands also need meta in groups to resolve LID → phone
   // for isOwner checks (otherwise co-owners always fail in modern groups).
@@ -330,6 +333,20 @@ async function handleMessage(sock, msg) {
       case 'masculinidad':   await cmdMasculinidad(sock, msg, groupMeta); break;
       case 'inutil':         await cmdInutil(sock, msg, groupMeta); break;
       case 'femboy':         await cmdFemboy(sock, msg, groupMeta); break;
+
+      case 'aura':           await cmdAura(sock, msg, groupMeta); break;
+
+      case 'vs':
+      case 'versus':
+        await cmdVs(sock, msg, args, groupMeta);
+        break;
+
+      case 'inactivos':
+      case 'inactivo':
+      case 'fantasma':
+      case 'fantasmas':
+        await cmdInactivos(sock, msg, groupMeta);
+        break;
 
       case 'on':
         await cmdOn(sock, msg, groupMeta);
