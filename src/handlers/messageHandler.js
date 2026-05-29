@@ -1,12 +1,12 @@
 const config = require('../config');
-const { isBotEnabled, incrementStat } = require('../utils/state');
+const { isBotEnabled, incrementStat, isAntiLinkEnabled } = require('../utils/state');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { cmdPlay, cmdClearCache } = require('../commands/music');
 const { cmdSticker } = require('../commands/sticker');
 const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdCount, cmdResetCount } = require('../commands/count');
 const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
-const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd } = require('../commands/group');
+const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd, cmdAntiLink, cmdClose, cmdOpen } = require('../commands/group');
 const { cmdShip } = require('../commands/ship');
 const { cmdTtp } = require('../commands/ttp');
 const { cmdToImg } = require('../commands/toimg');
@@ -16,8 +16,35 @@ const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp } = require('../commands/social
 const { isOwner, isGroupAdmin, extractText, rememberMapping, getSender } = require('../utils/wa');
 const logger = require('../utils/logger');
 
-// Detects http/https links, www. links, and common invite/spam patterns
-const LINK_RE = /https?:\/\/[^\s]{4,}|www\.[^\s]{4,}|(?:t\.me|chat\.whatsapp\.com)\/[^\s]+/i;
+// Hosts allowed without penalty (only a "send once" reminder). Matched against
+// the bare host so subdomains (m.youtube.com, www.instagram.com) pass but
+// look-alikes (youtube.com.evil.com) do NOT.
+const LINK_WHITELIST = /(?:^|\.)(?:youtube\.com|youtu\.be|instagram\.com|instagr\.am)$/i;
+
+// Conservative URL detector: needs an explicit scheme/www or a known invite
+// domain, so plain talk like "node.js" or "archivo.txt" isn't treated as a link.
+const URL_RE = /(?:https?:\/\/|www\.)[^\s]+|(?:t\.me|chat\.whatsapp\.com)\/[^\s]+/gi;
+
+function hostOf(url) {
+  let s = String(url).replace(/^https?:\/\//i, '').replace(/^www\./i, '');
+  const cut = s.search(/[/?#]/);
+  if (cut >= 0) s = s.slice(0, cut);
+  return s.toLowerCase();
+}
+
+// 'none' = no links; 'whitelisted' = only YouTube/Instagram links present;
+// 'blocked' = at least one non-whitelisted link (websites, WhatsApp/Telegram
+// invites, etc.) — those get the sender kicked and the message deleted.
+function classifyLinks(text) {
+  const matches = text.match(URL_RE);
+  if (!matches) return 'none';
+  let whitelisted = false;
+  for (const m of matches) {
+    if (LINK_WHITELIST.test(hostOf(m))) { whitelisted = true; continue; }
+    return 'blocked';
+  }
+  return whitelisted ? 'whitelisted' : 'none';
+}
 
 // Commands that need group metadata — skip the network call for everything else
 const NEEDS_META = new Set([
@@ -25,6 +52,7 @@ const NEEDS_META = new Set([
   'kick','expulsar','del','borrar','delete','add','agregar',
   'ship','top5','top10','mute','unmute','desmute',
   'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness',
+  'antilink','close','cerrar','open','abrir',
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy',
   'count','resetcount','resetconteo',
@@ -99,13 +127,28 @@ async function handleMessage(sock, msg) {
     if (firstWord !== 'on') return;
   }
 
-  // Anti-link: delete message + kick sender if they're not admin/owner
-  if (jid.endsWith('@g.us') && text && LINK_RE.test(text)) {
-    const meta = await getGroupMeta(sock, jid);
-    if (meta && !isGroupAdmin(sender, msg.key.fromMe, meta)) {
-      sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
-      sock.groupParticipantsUpdate(jid, [sender], 'remove').catch(() => {});
-      return;
+  // Anti-link: YouTube/Instagram get a "send once" reminder; any other link
+  // (websites, WhatsApp/Telegram invites, etc.) → delete the message and kick
+  // the sender. Admins and the owner tier are exempt.
+  if (jid.endsWith('@g.us') && text && isAntiLinkEnabled(jid)) {
+    const verdict = classifyLinks(text);
+    if (verdict !== 'none') {
+      const meta = await getGroupMeta(sock, jid);
+      if (meta && !isGroupAdmin(sender, msg.key.fromMe, meta)) {
+        if (verdict === 'blocked') {
+          sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
+          sock.groupParticipantsUpdate(jid, [sender], 'remove').catch(() => {});
+          sock.sendMessage(jid, {
+            text: `@${sender.split('@')[0]} expulsado por enviar enlaces no permitidos.`,
+            mentions: [sender],
+          }).catch(() => {});
+          return;
+        }
+        // whitelisted → gentle reminder, no deletion or kick
+        sock.sendMessage(jid, {
+          text: 'Links de *YouTube* e *Instagram* estan permitidos, pero enviá solo *una vez* para no spamear el grupo.',
+        }, { quoted: msg }).catch(() => {});
+      }
     }
   }
 
@@ -213,6 +256,20 @@ async function handleMessage(sock, msg) {
       case 'antiempresa':
       case 'antibusiness':
         await cmdAntiBusiness(sock, msg, args, groupMeta);
+        break;
+
+      case 'antilink':
+        await cmdAntiLink(sock, msg, args, groupMeta);
+        break;
+
+      case 'close':
+      case 'cerrar':
+        await cmdClose(sock, msg, groupMeta);
+        break;
+
+      case 'open':
+      case 'abrir':
+        await cmdOpen(sock, msg, groupMeta);
         break;
 
       case 'add':

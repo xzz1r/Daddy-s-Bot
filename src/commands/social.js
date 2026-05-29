@@ -145,10 +145,12 @@ async function cmdHelp(sock, msg) {
   ${p}mute @user [min]     silenciar (sin min muestra el tiempo restante)
   ${p}unmute @user         quitar silencio
   ${p}del                  borrar mensaje citado (y el !del)
+  ${p}close / ${p}open       cerrar / abrir el grupo
   ${p}notifadmin on/off    notificaciones de admin
   ${p}antiadmin on/off     bloquear ascensos externos
   ${p}antiempresa on/off   expulsar cuentas Business
-  Solo admins. antiadmin y antiempresa solo owner.
+  ${p}antilink on/off      filtrar enlaces (YT/IG ok)
+  Solo admins. antiadmin, antiempresa y antilink solo owner.
 
 *CONTROL*
   ${p}on                   activar bot

@@ -106,5 +106,10 @@ const toggleAntiAdmin       = (jid, enable) => setMembership('antiAdminEnabled',
 const isAntiBusinessEnabled = (jid)         => hasMembership('antiBusinessEnabled',  jid);
 const toggleAntiBusiness    = (jid, enable) => setMembership('antiBusinessEnabled',  jid, enable);
 
-module.exports = { initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, flushState, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness };
+// Anti-link is opt-OUT (default ON) — it was always-on before becoming a toggle,
+// so groups stay protected unless the owner explicitly turns it off.
+const isAntiLinkEnabled     = (jid)         => !hasMembership('antiLinkDisabled',    jid);
+const toggleAntiLink        = (jid, enable) => setMembership('antiLinkDisabled',     jid, !enable);
+
+module.exports = { initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, flushState, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness, isAntiLinkEnabled, toggleAntiLink };
 

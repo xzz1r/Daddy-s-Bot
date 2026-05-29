@@ -1,7 +1,7 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const { isOwner, isAdmin, isGroupAdmin, getTarget, getSender } = require('../utils/wa');
 const { streamToBuffer } = require('../utils/helpers');
-const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled } = require('../utils/state');
+const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled } = require('../utils/state');
 const { isBusinessBatch } = require('../utils/businessCheck');
 
 // In-memory mute store: `groupJid|userJid` -> expireTimestamp
@@ -563,4 +563,72 @@ async function cmdAdd(sock, msg, args, groupMeta) {
   }
 }
 
-module.exports = { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd };
+// !antilink on/off — owner only. YouTube/Instagram links get a "send once"
+// reminder; any other link gets the sender kicked and the message deleted.
+async function cmdAntiLink(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+  }
+  const sender = getSender(msg);
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'Solo el owner del bot puede activar esto.' }, { quoted: msg });
+  }
+
+  const arg = (args[0] || '').toLowerCase();
+  if (arg !== 'on' && arg !== 'off') {
+    const current = isAntiLinkEnabled(jid) ? 'activado' : 'desactivado';
+    return sock.sendMessage(jid, {
+      text: `Anti-link: *${current}*\nUsa *!antilink on/off* para cambiar.`,
+    }, { quoted: msg });
+  }
+
+  const enable = arg === 'on';
+  await toggleAntiLink(jid, enable);
+  await sock.sendMessage(jid, {
+    text: enable
+      ? 'Anti-link *activado*.\n' +
+        '- YouTube e Instagram permitidos (con aviso de enviarlos una sola vez).\n' +
+        '- Cualquier otro enlace (webs, grupos de WhatsApp, etc.) se borra y se expulsa al autor.\n' +
+        '- Admins y owner exentos.'
+      : 'Anti-link *desactivado*.',
+  }, { quoted: msg });
+}
+
+// !close — set the group to admin-only messages (announcement mode)
+async function cmdClose(sock, msg, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+  }
+  const sender = getSender(msg);
+  if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
+  }
+  try {
+    await sock.groupSettingUpdate(jid, 'announcement');
+    await sock.sendMessage(jid, { text: 'Grupo *cerrado*. Solo los admins pueden escribir.' }, { quoted: msg });
+  } catch (err) {
+    await sock.sendMessage(jid, { text: `No pude cerrar el grupo: ${err.message}` }, { quoted: msg });
+  }
+}
+
+// !open — allow everyone to send messages again (not_announcement mode)
+async function cmdOpen(sock, msg, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+  }
+  const sender = getSender(msg);
+  if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
+  }
+  try {
+    await sock.groupSettingUpdate(jid, 'not_announcement');
+    await sock.sendMessage(jid, { text: 'Grupo *abierto*. Todos pueden escribir.' }, { quoted: msg });
+  } catch (err) {
+    await sock.sendMessage(jid, { text: `No pude abrir el grupo: ${err.message}` }, { quoted: msg });
+  }
+}
+
+module.exports = { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd, cmdAntiLink, cmdClose, cmdOpen };
