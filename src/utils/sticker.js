@@ -165,7 +165,23 @@ function injectExifIntoWebP(webp, exifBuf) {
   if (chunkType === 'VP8X') {
     const out = Buffer.from(webp);
     out[20] = out[20] | 0x08;  // set EXIF flag bit
-    const result = Buffer.concat([out, exifChunk]);
+
+    // Rebuild the container dropping any pre-existing EXIF chunk before appending
+    // the new one. Re-stamping a sticker that already carried pack metadata (e.g.
+    // !s replying to someone else's sticker) would otherwise leave TWO EXIF chunks
+    // in the file — a malformed WebP that WhatsApp silently refuses to save.
+    const head = out.slice(0, 12);   // RIFF + size + WEBP
+    const kept = [];
+    let pos = 12;
+    while (pos + 8 <= out.length) {
+      const type = out.slice(pos, pos + 4).toString();
+      const size = out.readUInt32LE(pos + 4);
+      const total = 8 + size + (size % 2);
+      if (type !== 'EXIF') kept.push(out.slice(pos, pos + total));
+      pos += total;
+    }
+
+    const result = Buffer.concat([head, ...kept, exifChunk]);
     result.writeUInt32LE(result.length - 8, 4);
     return result;
   }
@@ -246,8 +262,11 @@ async function imageToSticker(imageBuffer, author) {
   }
 }
 
-// WhatsApp's real animated sticker limit is ~1MB
-const MAX_STICKER_BYTES = 1024 * 1024;
+// WhatsApp accepts up to ~1MB to *display* an animated sticker, but the limit to
+// *save* one (add to favorites / a pack) is 500KB. A sticker between those two
+// sizes sends fine yet silently can't be saved — so we target the savable limit
+// and let the tier loop compress until it fits.
+const MAX_STICKER_BYTES = 500 * 1024;
 
 // Tiers: quality drops before FPS to keep motion smooth
 const ANIM_TIERS = [
