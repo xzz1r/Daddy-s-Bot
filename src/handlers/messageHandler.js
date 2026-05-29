@@ -115,8 +115,9 @@ async function handleMessage(sock, msg) {
   const command = args.shift()?.toLowerCase();
   if (!command) return;
 
-  // Check mute before anything else
-  if (isMuted(jid, sender)) return;
+  // Check mute before anything else — but the owner tier is never silenced, so a
+  // stale or malicious mute can't lock the owner/co-owner out of their own bot.
+  if (isMuted(jid, sender) && !isOwner(sender, msg.key.fromMe, null)) return;
 
   logger.cmd(sender.split('@')[0], `${config.prefix}${command} ${args.join(' ')}`);
   incrementStat('commandsExecuted');

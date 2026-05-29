@@ -168,6 +168,8 @@ async function cmdKick(sock, msg, args, groupMeta) {
   const skipped = [];
   for (const t of all) {
     if (t === sender) { skipped.push({ jid: t, reason: 'sos vos mismo' }); continue; }
+    // Owner tier is immune to kick — no one can remove the owner/co-owner via the bot.
+    if (isOwner(t, false, groupMeta)) { skipped.push({ jid: t, reason: 'es owner' }); continue; }
     if (isAdmin(groupMeta?.participants, t) && !senderIsOwner) {
       skipped.push({ jid: t, reason: 'es admin' });
       continue;
@@ -253,6 +255,13 @@ async function cmdMute(sock, msg, args, groupMeta) {
   }
   if (target === sender) {
     return sock.sendMessage(jid, { text: 'No puedes mutearte a ti mismo.' }, { quoted: msg });
+  }
+  // Owner tier is immune; and (mirroring !kick) only the owner may act on admins.
+  if (isOwner(target, false, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'No puedes mutear al owner del bot.' }, { quoted: msg });
+  }
+  if (isAdmin(groupMeta?.participants, target) && !isOwner(sender, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'Solo el owner puede mutear a un admin.' }, { quoted: msg });
   }
 
   const explicit = args.find(a => /^\d+$/.test(a));
