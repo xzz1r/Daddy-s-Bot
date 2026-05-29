@@ -262,11 +262,8 @@ async function imageToSticker(imageBuffer, author) {
   }
 }
 
-// WhatsApp accepts up to ~1MB to *display* an animated sticker, but the limit to
-// *save* one (add to favorites / a pack) is 500KB. A sticker between those two
-// sizes sends fine yet silently can't be saved — so we target the savable limit
-// and let the tier loop compress until it fits.
-const MAX_STICKER_BYTES = 500 * 1024;
+// WhatsApp's real animated sticker limit is ~1MB.
+const MAX_STICKER_BYTES = 1024 * 1024;
 
 // Tiers: quality drops before FPS to keep motion smooth
 const ANIM_TIERS = [
