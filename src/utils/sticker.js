@@ -82,7 +82,7 @@ async function generateAnimatedThumb(animBuf) {
 }
 
 const VF_STATIC = 'scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=#00000000';
-const VF_ANIM = (fps) => `fps=${fps},scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=#00000000`;
+const VF_ANIM = (fps, size = 512) => `fps=${fps},scale=${size}:${size}:force_original_aspect_ratio=decrease,pad=${size}:${size}:(ow-iw)/2:(oh-ih)/2:color=#00000000`;
 
 // Hard kill if ffmpeg runs longer than this — on Termux a hung encode can
 // otherwise pin a CPU core forever and zombie the command.
@@ -265,17 +265,24 @@ async function imageToSticker(imageBuffer, author) {
 // WhatsApp's real animated sticker limit is ~1MB.
 const MAX_STICKER_BYTES = 1024 * 1024;
 
-// Tiers: quality drops before FPS to keep motion smooth
+// Tiers: at full 512x512 resolution we drop quality before FPS to keep motion
+// smooth. Resolution is sacrificed LAST — only if a heavy/long clip won't fit
+// the cap at any 512 setting do we fall to 384x384, which buys a lot of room
+// while keeping FPS up, so the result stays saveable instead of being an
+// oversized sticker WhatsApp silently rejects.
 const ANIM_TIERS = [
-  { fps: 20, quality: 82 },
-  { fps: 20, quality: 72 },
-  { fps: 15, quality: 72 },
-  { fps: 15, quality: 62 },
-  { fps: 15, quality: 52 },
-  { fps: 12, quality: 52 },
+  { fps: 20, quality: 82, size: 512 },
+  { fps: 20, quality: 72, size: 512 },
+  { fps: 15, quality: 72, size: 512 },
+  { fps: 15, quality: 62, size: 512 },
+  { fps: 15, quality: 52, size: 512 },
+  { fps: 12, quality: 52, size: 512 },
+  // Last resort: shrink resolution to fit the cap (keeps motion over sharpness)
+  { fps: 15, quality: 60, size: 384 },
+  { fps: 12, quality: 50, size: 384 },
 ];
 
-function encodeAnimWebp(inputFile, outputFile, fps, quality) {
+function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512) {
   return new Promise((resolve, reject) => {
     let stderrBuf = '';
     let timer = null;
@@ -285,7 +292,7 @@ function encodeAnimWebp(inputFile, outputFile, fps, quality) {
       activeCmd = ffmpeg(inputFile)
         .setFfmpegPath(ffmpegPath)
         .outputOptions([
-          '-vf', VF_ANIM(fps),
+          '-vf', VF_ANIM(fps, size),
           '-c:v', codec,
           '-loop', '0',
           '-an',
@@ -331,13 +338,19 @@ async function videoToSticker(videoBuffer, author) {
 
   try {
     let buf = null;
-    for (const { fps, quality } of ANIM_TIERS) {
-      await encodeAnimWebp(inputFile, outputFile, fps, quality);
+    let smallest = null;   // keep the lightest valid encode as a fallback
+    for (const { fps, quality, size } of ANIM_TIERS) {
+      await encodeAnimWebp(inputFile, outputFile, fps, quality, size);
       buf = await fs.readFile(outputFile);
-      if (buf.length >= 100 && buf.length <= MAX_STICKER_BYTES) break;
+      if (buf.length < 100) continue;
+      if (buf.length <= MAX_STICKER_BYTES) { smallest = buf; break; }
+      if (!smallest || buf.length < smallest.length) smallest = buf;
     }
-    if (!buf || buf.length < 100) throw new Error('Sticker animado vacío');
-    return addStickerMeta(buf, author);
+    // If no tier fit the cap, ship the smallest we produced (most likely to be
+    // accepted/saveable) rather than whatever the last tier happened to output.
+    const out = (buf && buf.length >= 100 && buf.length <= MAX_STICKER_BYTES) ? buf : smallest;
+    if (!out || out.length < 100) throw new Error('Sticker animado vacío');
+    return addStickerMeta(out, author);
   } finally {
     await cleanTemp(inputFile);
     await cleanTemp(outputFile);
