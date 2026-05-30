@@ -5,12 +5,12 @@ const { getCached, setCached, clearCache } = require('../utils/musicCache');
 const logger = require('../utils/logger');
 const fs = require('fs-extra');
 
-// !Playsong <query> — search and send audio only
+// !play <query> — search and send audio only
 async function cmdPlay(sock, msg, args) {
   const jid = msg.key.remoteJid;
 
   if (!args.length) {
-    return sock.sendMessage(jid, { text: 'Usa: *!Playsong* <cancion o artista>' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Usa: *!play* <cancion o artista>' }, { quoted: msg });
   }
 
   const query = args.join(' ');

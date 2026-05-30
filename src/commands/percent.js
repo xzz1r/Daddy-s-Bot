@@ -368,7 +368,6 @@ const LABELS = {
       'Mediocre constante, sin un solo momento de excepción que alguien pueda citar.',
       'Tu autoconcepto y tu rendimiento real no han coincidido en ningún punto conocido.',
       'Te asignan lo que no afecta a nada crítico, y lo haces por pura experiencia acumulada.',
-      'Llevas tanto tiempo siendo mediocre que ya nadie espera otra cosa de ti.',
     ],
     extreme: [
       'Lo que tú haces con facilidad otros lo persiguen toda su vida sin alcanzarlo.',
@@ -1036,7 +1035,6 @@ const LABELS = {
       'Llevas construyendo esa fachada tanto tiempo que ya no sabes qué hay detrás de ella.',
       'Ser maricón no es el problema. El problema es la cantidad de energía que gastas en negarlo.',
       'Todo el mundo ya llegó al mismo sitio. El único viaje que queda es el tuyo.',
-      'Tu masculinidad es aspiracional en el peor sentido del término.',
       'Maricón hasta para negar que lo eres. El esfuerzo te delata más que el resto.',
       'No hay test que necesites. Entras a un sitio y el diagnóstico se hace solo.',
       'Tu voz hace el anuncio antes de que abras la boca para decir otra cosa.',
@@ -1320,7 +1318,6 @@ const LABELS = {
       'No hay ángulo desde el que esto se reinterprete de otra manera. La lectura es unánime.',
       'Eres el tipo de persona que se cita como ejemplo cuando alguien necesita ilustrar el concepto.',
       'Tan femboy que los personajes de anime te envidian la coherencia estética.',
-      'El grupo lleva tiempo con una lectura de ti que no necesitó votación para ser unánime.',
       'Tu masculinidad sobrevive lo justo para que puedas seguir mintiéndote cada mañana.',
       'Tan femboy que hasta cuando intentas ser macho parece un papel secundario mal interpretado.',
       'Tu lado femenino no es un rasgo. Es la característica definitoria que nadie tiene que señalar.',

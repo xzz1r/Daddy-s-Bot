@@ -55,6 +55,7 @@ const NEEDS_META = new Set([
   'ship','top5','top10','mute','unmute','desmute',
   'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness',
   'antilink','close','cerrar','open','abrir',
+  's','sticker','stk','play','playsong','playaudio','ttp',
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy',
   'aura','inactivos','inactivo','fantasma','fantasmas','vs','versus',
@@ -63,6 +64,14 @@ const NEEDS_META = new Set([
   // for isOwner checks (otherwise co-owners always fail in modern groups).
   'clearcache','borracache','setgrok','setkey','whoami',
 ]);
+
+// Per-user cooldown on heavy commands (!s, !play, !ttp) — 7 s, owner/admin exempt.
+const COOLDOWN_MS = 7000;
+const cooldowns = new Map(); // 'groupJid|sender' -> timestamp
+
+// Throttle whitelist reminder to once per user per 5 min (no spam on every YT link).
+const ANTILINK_REMINDER_TTL = 5 * 60 * 1000;
+const antilinkReminders = new Map(); // 'groupJid|sender' -> timestamp
 
 // Group metadata cache: 30s TTL, bounded at 500 entries (FIFO eviction).
 // Bot.js calls invalidateGroupMeta() on participant changes so the cache
@@ -95,6 +104,18 @@ async function getGroupMeta(sock, jid) {
 
 function invalidateGroupMeta(jid) {
   metaCache.delete(jid);
+}
+
+// Returns remaining cooldown seconds (>0 = blocked), 0 = proceed.
+// Sets the timestamp only when the command is allowed through.
+function checkCooldown(jid, sender, fromMe, groupMeta) {
+  if (isOwner(sender, fromMe, groupMeta) || isGroupAdmin(sender, fromMe, groupMeta)) return 0;
+  const key = `${jid}|${sender}`;
+  const now = Date.now();
+  const last = cooldowns.get(key);
+  if (last && now - last < COOLDOWN_MS) return Math.ceil((COOLDOWN_MS - (now - last)) / 1000);
+  cooldowns.set(key, now);
+  return 0;
 }
 
 async function handleMessage(sock, msg) {
@@ -147,10 +168,15 @@ async function handleMessage(sock, msg) {
           }).catch(() => {});
           return;
         }
-        // whitelisted → gentle reminder, no deletion or kick
-        sock.sendMessage(jid, {
-          text: 'Links de *YouTube* e *Instagram* estan permitidos, pero enviá solo *una vez* para no spamear el grupo.',
-        }, { quoted: msg }).catch(() => {});
+        // whitelisted → gentle reminder once per user per 5 min, no deletion or kick
+        const rKey = `${jid}|${sender}`;
+        const lastR = antilinkReminders.get(rKey);
+        if (!lastR || Date.now() - lastR > ANTILINK_REMINDER_TTL) {
+          antilinkReminders.set(rKey, Date.now());
+          sock.sendMessage(jid, {
+            text: 'Links de *YouTube* e *Instagram* estan permitidos, pero enviá solo *una vez* para no spamear el grupo.',
+          }, { quoted: msg }).catch(() => {});
+        }
       }
     }
   }
@@ -178,9 +204,12 @@ async function handleMessage(sock, msg) {
     switch (command) {
       case 'playsong':
       case 'playaudio':
-      case 'play':
+      case 'play': {
+        const wait = checkCooldown(jid, sender, msg.key.fromMe, groupMeta);
+        if (wait > 0) { await sock.sendMessage(jid, { text: `Espera ${wait}s para volver a usar este comando.` }, { quoted: msg }); break; }
         await cmdPlay(sock, msg, args);
         break;
+      }
 
       case 'clearcache':
       case 'borracache':
@@ -199,9 +228,12 @@ async function handleMessage(sock, msg) {
 
       case 's':
       case 'sticker':
-      case 'stk':
+      case 'stk': {
+        const wait = checkCooldown(jid, sender, msg.key.fromMe, groupMeta);
+        if (wait > 0) { await sock.sendMessage(jid, { text: `Espera ${wait}s para volver a usar este comando.` }, { quoted: msg }); break; }
         await cmdSticker(sock, msg);
         break;
+      }
 
       case 'top5':
         await cmdTopRandom(sock, msg, 5, args);
@@ -304,9 +336,12 @@ async function handleMessage(sock, msg) {
         await cmdShip(sock, msg, args, groupMeta);
         break;
 
-      case 'ttp':
+      case 'ttp': {
+        const wait = checkCooldown(jid, sender, msg.key.fromMe, groupMeta);
+        if (wait > 0) { await sock.sendMessage(jid, { text: `Espera ${wait}s para volver a usar este comando.` }, { quoted: msg }); break; }
         await cmdTtp(sock, msg, args);
         break;
+      }
 
       case 'toimg':
       case 'stimg':
