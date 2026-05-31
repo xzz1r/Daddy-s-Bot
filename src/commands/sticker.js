@@ -50,6 +50,15 @@ async function cmdSticker(sock, msg) {
     return sock.sendMessage(jid, { text: `Error descargando: ${err.message}` }, { quoted: msg });
   }
 
+  // Fire notice before encoding — videos/GIFs can take several seconds on Termux.
+  // Static images are near-instant so they don't need it.
+  const willAnimate = found.type === 'video'
+    || (found.msg.mimetype || '').includes('gif')
+    || (found.type === 'sticker' && (found.msg.isAnimated === true || (found.msg.mimetype || '').includes('animated')));
+  if (willAnimate) {
+    sock.sendMessage(jid, { text: 'Haciendo sticker...' }, { quoted: msg }).catch(() => {});
+  }
+
   let stickerBuffer;
   try {
     if (found.type === 'video') {

@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const { execSync } = require('child_process');
 
 function detectFfmpegPath() {
@@ -23,4 +24,17 @@ function detectFfmpegPath() {
 
 const ffmpegPath = detectFfmpegPath();
 
-module.exports = { ffmpegPath };
+function detectFfprobePath() {
+  // ffprobe lives next to ffmpeg in all standard installations
+  const sibling = path.join(path.dirname(ffmpegPath), 'ffprobe');
+  if (fs.existsSync(sibling)) return sibling;
+  try {
+    const which = execSync('which ffprobe 2>/dev/null || command -v ffprobe 2>/dev/null', { encoding: 'utf8' }).trim();
+    if (which && fs.existsSync(which)) return which;
+  } catch {}
+  return 'ffprobe'; // rely on PATH
+}
+
+const ffprobePath = detectFfprobePath();
+
+module.exports = { ffmpegPath, ffprobePath };

@@ -1,4 +1,4 @@
-const { ffmpegPath } = require('./ffmpeg');
+const { ffmpegPath, ffprobePath } = require('./ffmpeg');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs-extra');
 const { tempFile, cleanTemp } = require('./helpers');
@@ -6,6 +6,7 @@ const config = require('../config');
 const logger = require('./logger');
 
 ffmpeg.setFfmpegPath(ffmpegPath);
+ffmpeg.setFfprobePath(ffprobePath);
 
 function detectExt(buffer) {
   if (!buffer || buffer.length < 12) return null;
@@ -265,22 +266,46 @@ async function imageToSticker(imageBuffer, author) {
 // WhatsApp's real animated sticker limit is ~1MB.
 const MAX_STICKER_BYTES = 1024 * 1024;
 
-// Tiers: at full 512x512 resolution we drop quality before FPS to keep motion
-// smooth. Resolution is sacrificed LAST — only if a heavy/long clip won't fit
-// the cap at any 512 setting do we fall to 384x384, which buys a lot of room
-// while keeping FPS up, so the result stays saveable instead of being an
-// oversized sticker WhatsApp silently rejects.
+// Tiers: FPS drops only after quality is exhausted at each FPS level.
+// Resolution (384) is last resort only — keeps motion smooth over sharpness.
+// Starting at 30fps recovers the original high-FPS feel for short clips.
 const ANIM_TIERS = [
-  { fps: 20, quality: 82, size: 512 },
-  { fps: 20, quality: 72, size: 512 },
-  { fps: 15, quality: 72, size: 512 },
-  { fps: 15, quality: 62, size: 512 },
-  { fps: 15, quality: 52, size: 512 },
-  { fps: 12, quality: 52, size: 512 },
-  // Last resort: shrink resolution to fit the cap (keeps motion over sharpness)
-  { fps: 15, quality: 60, size: 384 },
-  { fps: 12, quality: 50, size: 384 },
+  { fps: 30, quality: 85, size: 512 },
+  { fps: 24, quality: 82, size: 512 },
+  { fps: 20, quality: 80, size: 512 },
+  { fps: 20, quality: 70, size: 512 },
+  { fps: 15, quality: 70, size: 512 },
+  { fps: 15, quality: 60, size: 512 },
+  { fps: 12, quality: 55, size: 512 },
+  { fps: 15, quality: 65, size: 384 },
+  { fps: 12, quality: 55, size: 384 },
 ];
+
+// Probe video duration with ffprobe so we can skip tiers that will obviously
+// overshoot 1MB. Returns 0 on error (treated as "unknown / short").
+function getVideoDurationS(inputFile) {
+  return new Promise((resolve) => {
+    const t = setTimeout(() => resolve(0), 5000);
+    ffmpeg.ffprobe(inputFile, (err, meta) => {
+      clearTimeout(t);
+      if (err || !meta) return resolve(0);
+      const vs = meta.streams?.find(s => s.codec_type === 'video');
+      const dur = parseFloat(vs?.duration ?? meta.format?.duration ?? '0');
+      resolve(isFinite(dur) && dur > 0 ? dur : 0);
+    });
+  });
+}
+
+// Pick the first tier index likely to produce a file ≤ 1MB without re-encoding.
+// At 512px, ~30fps×6KB/frame for quality≈80 ≈ 180KB/s — very rough estimate,
+// real content varies widely, so stay conservative (prefer one re-encode over
+// sending a blurry sticker).
+function startTierIndex(durationS) {
+  if (!durationS || durationS < 3) return 0;  // short / unknown: max FPS
+  if (durationS < 5) return 1;                 // ~3-5 s
+  if (durationS < 8) return 2;                 // ~5-8 s
+  return 3;                                     // long: skip the two top tiers
+}
 
 function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512) {
   return new Promise((resolve, reject) => {
@@ -337,9 +362,13 @@ async function videoToSticker(videoBuffer, author) {
   await fs.writeFile(inputFile, videoBuffer);
 
   try {
+    const durationS = await getVideoDurationS(inputFile);
+    const startIdx = startTierIndex(durationS);
+
     let buf = null;
     let smallest = null;   // keep the lightest valid encode as a fallback
-    for (const { fps, quality, size } of ANIM_TIERS) {
+    for (let i = startIdx; i < ANIM_TIERS.length; i++) {
+      const { fps, quality, size } = ANIM_TIERS[i];
       await encodeAnimWebp(inputFile, outputFile, fps, quality, size);
       buf = await fs.readFile(outputFile);
       if (buf.length < 100) continue;
