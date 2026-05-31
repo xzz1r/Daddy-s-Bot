@@ -128,6 +128,7 @@ _(sin @ te mide a vos · con @ mide a otro)_
 ${p}crack  ${p}hot  ${p}inteligencia  ${p}feminidad  ${p}masculinidad
 ${p}gay  ${p}simp  ${p}rata  ${p}maricon  ${p}friki  ${p}cerdo  ${p}inutil  ${p}femboy
 ${p}aura [@user] — puntos de aura del universo
+${p}mog @a @b — mog check 1v1 de looks
 ${p}ship [@a] [@b] — probabilidad de match
 
 *IA*
