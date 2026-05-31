@@ -1,5 +1,11 @@
-const { isOwner, isAdmin, getTargetOrSelf } = require('../utils/wa');
+const { isOwner, isAdmin, getTargetOrSelf, getSender } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
+const { getAura, addAura, getAuraRanking, STARTING_AURA } = require('../utils/auraStore');
+
+// Rolling mutates persistent aura, so it can't be spammed to farm. One roll per
+// person every few minutes — aura is meant to drift over time, not explode.
+const ROLL_COOLDOWN_MS = 5 * 60 * 1000;
+const lastRoll = new Map(); // 'groupJid|rollerBareJid' -> timestamp
 
 // Aura roll, rigged by the TARGET's role — same owner-favoritism as the percent
 // games: the owner mostly gains big, admins are mixed, regular members mostly
@@ -177,21 +183,67 @@ const AURA = {
   ],
 };
 
-// !aura [@user] — assigns aura points (rigged by the target's role)
-async function cmdAura(sock, msg, groupMeta) {
-  const jid = msg.key.remoteJid;
-  const target = getTargetOrSelf(msg);
+const fmt = (n) => n.toLocaleString('es-ES');
 
+// !aura top — leaderboard of accumulated aura in the group.
+async function showRanking(sock, msg, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'El ranking de aura solo existe en grupos.' }, { quoted: msg });
+  }
+  const ranking = (await getAuraRanking(jid)).slice(0, 10);
+  if (ranking.length === 0) {
+    return sock.sendMessage(jid, { text: 'Nadie ha medido su aura todavía. Usa *!aura*.' }, { quoted: msg });
+  }
+  const medals = ['🥇', '🥈', '🥉'];
+  let text = '*RANKING DE AURA*\n\n';
+  const mentions = [];
+  ranking.forEach((r, i) => {
+    const tag = medals[i] || `*${i + 1}.*`;
+    text += `${tag} @${r.jid.split('@')[0]} — ${fmt(r.aura)}\n`;
+    mentions.push(r.jid);
+  });
+  await sock.sendMessage(jid, { text: text.trimEnd(), mentions }, { quoted: msg });
+}
+
+// !aura [@user]  — rolls aura for the target and updates their PERSISTENT total.
+// !aura top      — shows the group leaderboard.
+async function cmdAura(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+
+  const sub = (args && args[0] ? args[0] : '').toLowerCase();
+  if (['top', 'rank', 'ranking', 'leaderboard'].includes(sub)) {
+    return showRanking(sock, msg, groupMeta);
+  }
+
+  // Cooldown is per roller (the person invoking), so you can't farm aura by
+  // hammering !aura on yourself or tanking someone else's nonstop.
+  if (jid.endsWith('@g.us')) {
+    const roller = getSender(msg);
+    const ckey = `${jid}|${roller}`;
+    const last = lastRoll.get(ckey);
+    if (last && Date.now() - last < ROLL_COOLDOWN_MS) {
+      const wait = Math.ceil((ROLL_COOLDOWN_MS - (Date.now() - last)) / 60000);
+      return sock.sendMessage(jid, {
+        text: `El aura no se fuerza. Vuelve en ~${wait} min.`,
+      }, { quoted: msg });
+    }
+    lastRoll.set(ckey, Date.now());
+  }
+
+  const target = getTargetOrSelf(msg);
   const targetIsOwner = isOwner(target, false, groupMeta);
   const targetIsAdmin = isAdmin(groupMeta?.participants, target);
 
   const { tier, amount } = rollAura(targetIsOwner, targetIsAdmin);
   const sign = amount >= 0 ? '+' : '-';
-  const pretty = Math.abs(amount).toLocaleString('es-ES');
+
+  const { current } = await addAura(jid, target, amount);
 
   const text =
-    `*@${target.split('@')[0]}  ${sign}${pretty} de aura*\n\n` +
-    `${pick(AURA[tier])}`;
+    `*@${target.split('@')[0]}  ${sign}${fmt(Math.abs(amount))} de aura*\n` +
+    `${pick(AURA[tier])}\n\n` +
+    `Aura total: *${fmt(current)}*`;
 
   await sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });
 }

@@ -127,7 +127,8 @@ ${p}inactivos — los más fantasmas del grupo
 _(sin @ te mide a ti · con @ mide a otro)_
 ${p}crack  ${p}hot  ${p}inteligencia  ${p}feminidad  ${p}masculinidad
 ${p}gay  ${p}simp  ${p}rata  ${p}maricon  ${p}friki  ${p}cerdo  ${p}inutil  ${p}femboy
-${p}aura [@user] — puntos de aura del universo
+${p}aura [@user] — aura acumulada (sube y baja con el tiempo)
+${p}aura top — ranking de aura del grupo
 ${p}mog @a @b — mog check 1v1 de looks
 ${p}ship [@a] [@b] — probabilidad de match
 

@@ -370,7 +370,7 @@ async function handleMessage(sock, msg) {
       case 'inutil':         await cmdInutil(sock, msg, groupMeta); break;
       case 'femboy':         await cmdFemboy(sock, msg, groupMeta); break;
 
-      case 'aura':           await cmdAura(sock, msg, groupMeta); break;
+      case 'aura':           await cmdAura(sock, msg, args, groupMeta); break;
 
       case 'mog':
       case 'moggear':
