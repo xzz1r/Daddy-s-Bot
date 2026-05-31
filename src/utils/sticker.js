@@ -142,7 +142,8 @@ function buildExif(pack, author) {
     0x41, 0x57,                         // tag 0x5741 ('WA' little-endian) — WhatsApp custom
     0x07, 0x00,                         // type 7 (UNDEFINED)
     0x00, 0x00, 0x00, 0x00,             // count (filled below)
-    0x16, 0x00, 0x00, 0x00,             // data offset = 22
+    0x1A, 0x00, 0x00, 0x00,             // data offset = 26
+    0x00, 0x00, 0x00, 0x00,             // next IFD offset = 0 (end of IFD chain)
   ]);
   header.writeUInt32LE(data.length, 14);
 
