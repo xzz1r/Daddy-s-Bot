@@ -33,7 +33,7 @@ async function cmdSticker(sock, msg) {
 
   if (!found) {
     return sock.sendMessage(jid, {
-      text: 'Envia o responde una imagen, video o sticker con *!s*\n\nFormatos: jpg, png, gif, webp, mp4 (max 6s)',
+      text: 'Envia o responde una imagen, video o sticker con *!s*\n\nFormatos: jpg, png, gif, webp, mp4',
     }, { quoted: msg });
   }
 
