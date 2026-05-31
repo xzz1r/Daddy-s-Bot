@@ -82,8 +82,8 @@ async function generateAnimatedThumb(animBuf) {
   }
 }
 
-const VF_STATIC = 'scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=#00000000';
-const VF_ANIM = (fps, size = 512) => `fps=${fps},scale=${size}:${size}:force_original_aspect_ratio=decrease,pad=${size}:${size}:(ow-iw)/2:(oh-ih)/2:color=#00000000`;
+const VF_STATIC = 'scale=512:512:force_original_aspect_ratio=decrease';
+const VF_ANIM = (fps, size = 512) => `fps=${fps},scale=${size}:${size}:force_original_aspect_ratio=decrease`;
 
 // Hard kill if ffmpeg runs longer than this — on Termux a hung encode can
 // otherwise pin a CPU core forever and zombie the command.
