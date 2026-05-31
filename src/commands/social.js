@@ -104,67 +104,59 @@ async function cmdHelp(sock, msg) {
   const p = config.prefix;
 
   const text =
-`         *${config.botName}*
-      by xz1s (Sebastian)
-          Prefijo: ${p}
---------------------------------
+`*${config.botName}*  ·  by xz1s (Sebastian)
+Prefijo: *${p}*
+──────────────────────────────
 
-*MUSICA*
-  ${p}play <cancion>       reproducir audio
+*MÚSICA*
+${p}play <canción> — buscar y enviar audio
 
 *STICKERS*
-  ${p}s                    imagen o video a sticker
-  ${p}ttp <texto>          texto a sticker
-  ${p}toimg                sticker a imagen
-  ${p}pfp @user            foto de perfil
+${p}s — imagen o video → sticker
+${p}ttp <texto> — texto → sticker
+${p}toimg — sticker → imagen
+${p}pfp @user — foto de perfil
 
-*TOPS*
-  ${p}top5 <tema>          top 5 aleatorio
-  ${p}top10 <tema>         top 10 aleatorio
-  ${p}count                ranking de mensajes
-  ${p}resetcount           resetear contador del grupo
+*ACTIVIDAD*
+${p}count — ranking de mensajes del grupo
+${p}top5 / ${p}top10 <tema> — top aleatorio de cualquier cosa
+${p}vs @a @b — comparar actividad real de dos miembros
+${p}inactivos — los más fantasmas del grupo
 
-*DINAMICAS*
-  ${p}sexy  ${p}crack  ${p}inteligencia  ${p}feminidad  ${p}masculinidad
-  ${p}gay  ${p}maricon  ${p}simp  ${p}rata  ${p}friki  ${p}cerdo  ${p}inutil  ${p}femboy
-  ${p}aura @user           puntos de aura (al azar)
-  ${p}ship                 emparejar 2 miembros al azar
-  ${p}ship @a @b           shipear a dos personas especificas
-  ${p}ship @a              shiipearte con alguien
-  ${p}vs @a @b             enfrentar actividad real de dos
-  ${p}inactivos            top de los mas fantasmas del grupo
-  Con @ mide a otro. Sin @ te mide a ti.
+*DINÁMICAS*
+_(sin @ te mide a vos · con @ mide a otro)_
+${p}crack  ${p}hot  ${p}inteligencia  ${p}feminidad  ${p}masculinidad
+${p}gay  ${p}simp  ${p}rata  ${p}maricon  ${p}friki  ${p}cerdo  ${p}inutil  ${p}femboy
+${p}aura [@user] — puntos de aura del universo
+${p}ship [@a] [@b] — probabilidad de match
 
 *IA*
-  ${p}g <pregunta>         Grok sin filtros
-  Responde un mensaje con ${p}g para dar contexto.
+${p}g <pregunta> — Grok sin filtros
+_(respondé un mensaje con ${p}g para dar contexto)_
 
-*ADMINISTRACION*
-  ${p}tagall <texto>       mencionar a todos
-  ${p}add <numero>          agregar por numero de telefono
-  ${p}kick @a @b @c        expulsar uno o varios
-  ${p}promote @user        ascender a admin
-  ${p}demote @user         degradar a miembro
-  ${p}mute @user [min]     silenciar (sin min muestra el tiempo restante)
-  ${p}unmute @user         quitar silencio
-  ${p}del                  borrar mensaje citado (y el !del)
-  ${p}close / ${p}open       cerrar / abrir el grupo
-  ${p}notifadmin on/off    notificaciones de admin
-  ${p}antiadmin on/off     bloquear ascensos externos
-  ${p}antiempresa on/off   expulsar cuentas Business
-  ${p}antilink on/off      filtrar enlaces (YT/IG ok)
-  Solo admins. antiadmin, antiempresa y antilink solo owner.
+*ADMIN*  _(requiere ser admin del grupo)_
+${p}on / ${p}off — activar o desactivar el bot aquí
+${p}tagall [texto] — mencionar a todos los miembros
+${p}add <número> — agregar miembro por teléfono
+${p}kick @user — expulsar uno o varios
+${p}promote @user — ascender a admin
+${p}demote @user — bajar a miembro
+${p}mute @user [min] — silenciar (sin minutos = ver tiempo restante)
+${p}unmute @user — quitar silencio
+${p}del — borrar el mensaje citado
+${p}close / ${p}open — cerrar o abrir escritura del grupo
+${p}notifadmin on/off — avisos de cambios de admins
+
+_(requiere ser owner del grupo)_
+${p}antiadmin on/off — bloquear ascensos externos al bot
+${p}antiempresa on/off — expulsar cuentas Business automáticamente
+${p}antilink on/off — filtrar links (YouTube e Instagram quedan ok)
 
 *CONTROL*
-  ${p}on                   activar bot
-  ${p}off                  desactivar bot
-  ${p}ping                 latencia
-  ${p}info                 estado y estadisticas
-
-*OWNER*
-  ${p}setgrok <key>        configurar API de Grok
-  ${p}clearcache           borrar cache de musica
-  Solo el owner del bot.`;
+${p}ping — latencia del bot
+${p}info — estado y estadísticas
+${p}clearcache — limpiar caché de música  _(owner bot)_
+${p}setgrok <key> — configurar API de Grok  _(owner bot)_`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
