@@ -116,22 +116,22 @@ function runFfmpeg(inputFile, outputFile, options, format = 'webp') {
 }
 
 // WhatsApp-specific EXIF: TIFF wrapper with custom tag 0x5741 ('WA' LE) type UNDEFINED (7).
-// This is the format WhatsApp actually reads for sticker pack metadata — the standard
-// EXIF UserComment (0x9286) does NOT work even though it's technically valid EXIF.
+// This is the EXACT 22-byte header that wa-sticker-formatter / node-webpmux emit —
+// the format proven to produce saveable stickers across thousands of bots.
+//
+// Two things that MUST stay as-is (both were bugs that blocked "save to favorites"):
+//  1. Value offset = 22 (0x16) with NO trailing "next-IFD offset" field. WhatsApp's
+//     parser reads the JSON immediately after the single IFD entry; adding the
+//     spec-compliant 4-byte next-IFD terminator (offset 26) breaks it.
+//  2. ONLY these 4 JSON fields. The app-store-link / is-avatar-sticker fields make
+//     WhatsApp treat the sticker as belonging to a downloadable third-party app pack,
+//     which silently disables saving it to personal favorites.
 function buildExif(pack, author) {
-  // WhatsApp validates these fields before allowing "Add to favorites" / "Save".
-  // `emojis: ['']` (array with empty string) silently breaks the save flow even
-  // though the marca shows up — must be a real array, empty or with valid chars.
-  // The is-avatar-sticker / app-store-link fields are part of the canonical
-  // pack format; missing them also blocks save on some WhatsApp clients.
   const json = JSON.stringify({
     'sticker-pack-id': 'com.xz1s.daddysbot',
     'sticker-pack-name': pack,
     'sticker-pack-publisher': author,
     'emojis': [],
-    'is-avatar-sticker': 0,
-    'android-app-store-link': '',
-    'ios-app-store-link': '',
   });
   const data = Buffer.from(json, 'utf-8');
 
@@ -141,9 +141,8 @@ function buildExif(pack, author) {
     0x01, 0x00,                         // 1 IFD entry
     0x41, 0x57,                         // tag 0x5741 ('WA' little-endian) — WhatsApp custom
     0x07, 0x00,                         // type 7 (UNDEFINED)
-    0x00, 0x00, 0x00, 0x00,             // count (filled below)
-    0x1A, 0x00, 0x00, 0x00,             // data offset = 26
-    0x00, 0x00, 0x00, 0x00,             // next IFD offset = 0 (end of IFD chain)
+    0x00, 0x00, 0x00, 0x00,             // count = JSON byte length (filled below)
+    0x16, 0x00, 0x00, 0x00,             // data offset = 22 (JSON starts right here)
   ]);
   header.writeUInt32LE(data.length, 14);
 
