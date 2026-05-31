@@ -63,11 +63,14 @@ async function downloadAudio(videoUrl) {
 
   await ytdlp([
     videoUrl,
-    // Pick YouTube's native m4a/AAC audio stream (itag 140, ~128kbps) so the
+    // Prefer YouTube's native m4a/AAC audio stream (itag 140, ~128kbps) so the
     // postprocessor just remuxes (-c:a copy) instead of re-encoding the whole
     // file. Dropping --audio-quality is what enables the copy: any explicit
     // quality forces a full ffmpeg transcode, the slowest step on Termux CPUs.
-    '-f', 'ba[ext=m4a]/ba',
+    // The /bestaudio/best fallbacks are mandatory: some videos (or certain
+    // player clients) expose no audio-only stream, and without a final 'best'
+    // catch-all yt-dlp aborts with "Requested format is not available".
+    '-f', 'bestaudio[ext=m4a]/bestaudio/best',
     '-x',
     '--audio-format', 'm4a',
     '-o', outTemplate,
