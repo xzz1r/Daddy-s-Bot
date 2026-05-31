@@ -175,7 +175,7 @@ async function handleMessage(sock, msg) {
         if (!lastR || Date.now() - lastR > ANTILINK_REMINDER_TTL) {
           antilinkReminders.set(rKey, Date.now());
           sock.sendMessage(jid, {
-            text: 'Links de *YouTube* e *Instagram* estan permitidos, pero enviá solo *una vez* para no spamear el grupo.',
+            text: 'Links de *YouTube* e *Instagram* estan permitidos, pero envía solo *una vez* para no spamear el grupo.',
           }, { quoted: msg }).catch(() => {});
         }
       }

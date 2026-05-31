@@ -124,7 +124,7 @@ ${p}vs @a @b — comparar actividad real de dos miembros
 ${p}inactivos — los más fantasmas del grupo
 
 *DINÁMICAS*
-_(sin @ te mide a vos · con @ mide a otro)_
+_(sin @ te mide a ti · con @ mide a otro)_
 ${p}crack  ${p}hot  ${p}inteligencia  ${p}feminidad  ${p}masculinidad
 ${p}gay  ${p}simp  ${p}rata  ${p}maricon  ${p}friki  ${p}cerdo  ${p}inutil  ${p}femboy
 ${p}aura [@user] — puntos de aura del universo
@@ -133,7 +133,7 @@ ${p}ship [@a] [@b] — probabilidad de match
 
 *IA*
 ${p}g <pregunta> — Grok sin filtros
-_(respondé un mensaje con ${p}g para dar contexto)_
+_(responde un mensaje con ${p}g para dar contexto)_
 
 *ADMIN*  _(requiere ser admin del grupo)_
 ${p}on / ${p}off — activar o desactivar el bot aquí

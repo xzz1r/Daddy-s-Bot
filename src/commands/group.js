@@ -167,7 +167,7 @@ async function cmdKick(sock, msg, args, groupMeta) {
   const targets = [];
   const skipped = [];
   for (const t of all) {
-    if (t === sender) { skipped.push({ jid: t, reason: 'sos vos mismo' }); continue; }
+    if (t === sender) { skipped.push({ jid: t, reason: 'eres tú mismo' }); continue; }
     // Owner tier is immune to kick — no one can remove the owner/co-owner via the bot.
     if (isOwner(t, false, groupMeta)) { skipped.push({ jid: t, reason: 'es owner' }); continue; }
     if (isAdmin(groupMeta?.participants, t) && !senderIsOwner) {
