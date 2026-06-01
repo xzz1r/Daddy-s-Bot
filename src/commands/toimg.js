@@ -8,6 +8,9 @@ const logger = require('../utils/logger');
 
 ffmpeg.setFfmpegPath(ffmpegPath);
 
+// Hard kill a stuck ffmpeg after this long (matches sticker.js).
+const FFMPEG_TIMEOUT_MS = 45_000;
+
 // Find the first usable media node in a message, including view-once wrappers
 function findMedia(m) {
   if (!m) return null;
@@ -30,17 +33,20 @@ function findMedia(m) {
 function runFfmpegConvert(inputFile, outputFile, opts) {
   return new Promise((resolve, reject) => {
     let stderrBuf = '';
-    ffmpeg(inputFile)
+    let timer = null;
+    const cmd = ffmpeg(inputFile)
       .setFfmpegPath(ffmpegPath)
       .outputOptions(opts.outputOptions)
       .toFormat(opts.format)
       .on('stderr', l => { stderrBuf += l + '\n'; })
       .on('error', (err) => {
+        if (timer) clearTimeout(timer);
         const last = stderrBuf.trim().split('\n').slice(-4).join(' | ');
         reject(new Error(last || err.message));
       })
-      .on('end', resolve)
-      .save(outputFile);
+      .on('end', () => { if (timer) clearTimeout(timer); resolve(); });
+    timer = setTimeout(() => { try { cmd.kill('SIGKILL'); } catch {} reject(new Error('ffmpeg timeout')); }, FFMPEG_TIMEOUT_MS);
+    cmd.save(outputFile);
   });
 }
 

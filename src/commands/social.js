@@ -4,6 +4,11 @@ const { isOwner, isGroupAdmin, getSender } = require('../utils/wa');
 const config = require('../config');
 const logger = require('../utils/logger');
 
+// Captured once at startup (module load ≈ process start). Used for a real
+// "uptime" — state.stats.startTime persists across restarts so it measured the
+// bot's age, not how long this process has been running.
+const PROCESS_START = Date.now();
+
 // !on - turn bot on (in group or globally)
 async function cmdOn(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
@@ -81,7 +86,7 @@ async function cmdPing(sock, msg) {
 async function cmdInfo(sock, msg) {
   const jid = msg.key.remoteJid;
   const state = getState();
-  const uptime = formatUptime(Date.now() - (state.stats?.startTime || Date.now()));
+  const uptime = formatUptime(Date.now() - PROCESS_START);
   const status = state.botEnabled ? 'Activo' : 'Inactivo';
 
   const text =
@@ -143,14 +148,15 @@ ${p}g <pregunta> — Grok
 ━━━ *ADMIN* ━━━
 ${p}on · ${p}off
 ${p}tagall [texto]
-${p}add <número>
 ${p}kick @user
-${p}promote @user · ${p}demote @user
+${p}promote @user
 ${p}mute @user [min] · ${p}unmute @user
 ${p}del · ${p}close · ${p}open
 ${p}notifadmin on/off
 
 ━━━ *OWNER* ━━━
+${p}add <número>
+${p}demote @user
 ${p}antiadmin on/off
 ${p}antiempresa on/off
 ${p}antilink on/off

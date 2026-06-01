@@ -1,5 +1,5 @@
 const { getActiveUsers, resetCounts } = require('../utils/messageCounter');
-const { isOwner, isAdmin, isGroupAdmin, getSender } = require('../utils/wa');
+const { isOwner, isAdmin, getSender, bareJid } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
 
 const MEDALS = ['🥇', '🥈', '🥉', '🎖️', '🎖️'];
@@ -257,15 +257,14 @@ const ADMIN_PHRASES = [
 
 async function cmdCount(sock, msg, groupMeta, args) {
   const jid = msg.key.remoteJid;
-  const sender = getSender(msg);
 
   if (!jid.endsWith('@g.us')) {
     return sock.sendMessage(jid, { text: 'Este comando solo funciona en grupos.' }, { quoted: msg });
   }
 
-  if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo los admins pueden usar este comando.' }, { quoted: msg });
-  }
+  // Open to all members, like its siblings (!vs, !inactivos, !top) — they read
+  // the same store and expose the same per-user counts, so gating only !count
+  // protected nothing. Resetting the ranking stays owner-only (destructive).
 
   // !count @mention — stats for a specific person.
   // Only trust real WhatsApp mentions (mentionedJid); raw "@number" text matches
@@ -274,7 +273,8 @@ async function cmdCount(sock, msg, groupMeta, args) {
 
   if (mentioned) {
     const sorted = (await getActiveUsers(jid, 1)).sort((a, b) => b.count - a.count);
-    const rankIdx = sorted.findIndex(u => u.jid === mentioned);
+    const mBare = bareJid(mentioned);
+    const rankIdx = sorted.findIndex(u => bareJid(u.jid) === mBare);
     const count = rankIdx >= 0 ? sorted[rankIdx].count : 0;
     const phone = mentioned.split('@')[0];
     const msgs = count === 1 ? '1 mensaje' : `${count} mensajes`;

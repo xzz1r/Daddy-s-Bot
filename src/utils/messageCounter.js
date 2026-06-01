@@ -1,5 +1,6 @@
 const fs = require('fs-extra');
 const path = require('path');
+const { bareJid } = require('./wa');
 
 const COUNT_FILE = path.join(__dirname, '../../data/messageCounts.json');
 
@@ -30,8 +31,12 @@ function scheduleSave() {
 
 async function increment(groupJid, userJid) {
   await load();
+  // Normalize the key (strip device suffix) so a user's messages always
+  // accumulate under one entry — the same bareJid() the readers (!vs, !count)
+  // use to look users up. Without this, `123@lid` and `123:5@lid` would split.
+  const key = bareJid(userJid);
   if (!counts[groupJid]) counts[groupJid] = {};
-  counts[groupJid][userJid] = (counts[groupJid][userJid] || 0) + 1;
+  counts[groupJid][key] = (counts[groupJid][key] || 0) + 1;
   scheduleSave();
 }
 

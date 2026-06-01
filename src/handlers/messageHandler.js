@@ -58,7 +58,8 @@ const NEEDS_META = new Set([
   'ship','top5','top10','mute','unmute','desmute',
   'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness',
   'antilink','close','cerrar','open','abrir',
-  's','sticker','stk','play','playsong','playaudio','ttp',
+  's','sticker','stk','play','playsong','playaudio','ttp','toimg','stimg',
+  'g','ai','grok',
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy',
   'aura','inactivos','inactivo','fantasma','fantasmas','vs','versus','mog','moggear',
@@ -272,9 +273,15 @@ async function handleMessage(sock, msg) {
 
       case 'g':
       case 'ai':
-      case 'grok':
+      case 'grok': {
+        // Grok hits a paid external API with a 90s timeout per call — throttle
+        // it like the other heavy commands so it can't be spammed (owner/admin
+        // exempt, same as !s/!play).
+        const wait = checkCooldown(jid, sender, msg.key.fromMe, groupMeta);
+        if (wait > 0) { await sock.sendMessage(jid, { text: `Espera ${wait}s para volver a usar este comando.` }, { quoted: msg }); break; }
         await cmdGrok(sock, msg, args);
         break;
+      }
 
       case 'setgrok':
       case 'setkey':
@@ -362,9 +369,13 @@ async function handleMessage(sock, msg) {
       }
 
       case 'toimg':
-      case 'stimg':
+      case 'stimg': {
+        // Animated sticker → GIF/JPEG is an ffmpeg job; throttle it like !s.
+        const wait = checkCooldown(jid, sender, msg.key.fromMe, groupMeta);
+        if (wait > 0) { await sock.sendMessage(jid, { text: `Espera ${wait}s para volver a usar este comando.` }, { quoted: msg }); break; }
         await cmdToImg(sock, msg);
         break;
+      }
 
       case 'pfp':
       case 'foto':
