@@ -104,61 +104,56 @@ async function cmdHelp(sock, msg) {
   const p = config.prefix;
 
   const text =
-`*${config.botName}*  ·  by xz1s (Sebastian)
+`*${config.botName}*  ·  by xz1s
 Prefijo: *${p}*
-──────────────────────────────
 
-*MÚSICA*
-${p}play <canción> — buscar y enviar audio
+━━━ *MÚSICA* ━━━
+${p}play <canción>
 
-*STICKERS*
-${p}s — imagen o video → sticker
-${p}ttp <texto> — texto → sticker
-${p}toimg — sticker → imagen
+━━━ *STICKERS* ━━━
+${p}s — imagen/video a sticker
+${p}ttp <texto> — texto a sticker
+${p}toimg — sticker a imagen
 ${p}pfp @user — foto de perfil
 
-*ACTIVIDAD*
-${p}count — ranking de mensajes del grupo
-${p}top5 / ${p}top10 <tema> — top aleatorio de cualquier cosa
-${p}vs @a @b — comparar actividad real de dos miembros
-${p}inactivos — los más fantasmas del grupo
+━━━ *ACTIVIDAD* ━━━
+${p}count — ranking de mensajes
+${p}vs @a @b — comparar dos miembros
+${p}inactivos — los más fantasmas
+${p}top5 / ${p}top10 <tema>
 
-*DINÁMICAS*
-_(sin @ te mide a ti · con @ mide a otro)_
-${p}crack  ${p}hot  ${p}inteligencia  ${p}feminidad  ${p}masculinidad
-${p}gay  ${p}simp  ${p}rata  ${p}maricon  ${p}friki  ${p}cerdo  ${p}inutil  ${p}femboy
-${p}aura [@user] — aura acumulada (sube y baja con el tiempo)
-${p}aura top — ranking de aura del grupo
-${p}mog @a @b — mog check 1v1 de looks
-${p}ship [@a] [@b] — probabilidad de match
+━━━ *DINÁMICAS* ━━━
+_(sin @ = a ti · con @ = a otro)_
+${p}crack · ${p}hot · ${p}inteligencia
+${p}feminidad · ${p}masculinidad
+${p}gay · ${p}simp · ${p}rata · ${p}maricon
+${p}friki · ${p}cerdo · ${p}inutil · ${p}femboy
+${p}aura [@user] — aura acumulada
+${p}aura top — ranking de aura
+${p}mog @a @b — 1v1 de looks
+${p}ship [@a] [@b] — match
 
-*IA*
-${p}g <pregunta> — Grok sin filtros
-_(responde un mensaje con ${p}g para dar contexto)_
+━━━ *IA* ━━━
+${p}g <pregunta> — Grok
 
-*ADMIN*  _(requiere ser admin del grupo)_
-${p}on / ${p}off — activar o desactivar el bot aquí
-${p}tagall [texto] — mencionar a todos los miembros
-${p}add <número> — agregar miembro por teléfono
-${p}kick @user — expulsar uno o varios
-${p}promote @user — ascender a admin
-${p}demote @user — bajar a miembro
-${p}mute @user [min] — silenciar (sin minutos = ver tiempo restante)
-${p}unmute @user — quitar silencio
-${p}del — borrar el mensaje citado
-${p}close / ${p}open — cerrar o abrir escritura del grupo
-${p}notifadmin on/off — avisos de cambios de admins
+━━━ *ADMIN* ━━━
+${p}on · ${p}off
+${p}tagall [texto]
+${p}add <número>
+${p}kick @user
+${p}promote @user · ${p}demote @user
+${p}mute @user [min] · ${p}unmute @user
+${p}del · ${p}close · ${p}open
+${p}notifadmin on/off
 
-_(requiere ser owner del grupo)_
-${p}antiadmin on/off — bloquear ascensos externos al bot
-${p}antiempresa on/off — expulsar cuentas Business automáticamente
-${p}antilink on/off — filtrar links (YouTube e Instagram quedan ok)
+━━━ *OWNER* ━━━
+${p}antiadmin on/off
+${p}antiempresa on/off
+${p}antilink on/off
+${p}clearcache · ${p}setgrok <key>
 
-*CONTROL*
-${p}ping — latencia del bot
-${p}info — estado y estadísticas
-${p}clearcache — limpiar caché de música  _(owner bot)_
-${p}setgrok <key> — configurar API de Grok  _(owner bot)_`;
+━━━ *BOT* ━━━
+${p}ping · ${p}info`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }

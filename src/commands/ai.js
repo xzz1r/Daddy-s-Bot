@@ -64,12 +64,8 @@ async function cmdGrok(sock, msg, args) {
   if (!apiKey) {
     return sock.sendMessage(jid, {
       text:
-        'Grok no esta configurado todavia.\n\n' +
-        '*Pasos (solo una vez):*\n' +
-        '1. Entra a console.x.ai y saca tu API key gratis\n' +
-        '2. En el chat del bot manda:\n' +
-        '   *!setgrok TU_API_KEY*\n\n' +
-        'Despues ya podes usar !g siempre, sin volver a configurar nada.',
+        'Grok no está configurado.\n' +
+        'El owner debe sacar una key en console.x.ai y usar *!setgrok <key>*.',
     }, { quoted: msg });
   }
 
@@ -129,14 +125,14 @@ async function cmdSetGrokKey(sock, msg, args, groupMeta) {
   const key = (args || []).join(' ').trim();
   if (!key || !key.startsWith('xai-')) {
     return sock.sendMessage(jid, {
-      text: 'Usa: *!setgrok xai-tu_clave*\n\nLa key empieza con "xai-". Conseguila gratis en console.x.ai',
+      text: 'Usa: *!setgrok xai-tu_clave*\nLa key empieza con "xai-" (console.x.ai).',
     }, { quoted: msg });
   }
 
   try {
     await saveApiKey(key);
     await sock.sendMessage(jid, {
-      text: 'Grok configurado correctamente. Ya podes usar *!g* en cualquier momento.\n\nPor seguridad, borra tu mensaje con la key del chat.',
+      text: 'Grok configurado. Borra tu mensaje con la key por seguridad.',
     }, { quoted: msg });
   } catch (err) {
     logger.error(`setGrokKey error: ${err.message}`);

@@ -175,7 +175,7 @@ async function handleMessage(sock, msg) {
         if (!lastR || Date.now() - lastR > ANTILINK_REMINDER_TTL) {
           antilinkReminders.set(rKey, Date.now());
           sock.sendMessage(jid, {
-            text: 'Links de *YouTube* e *Instagram* estan permitidos, pero envía solo *una vez* para no spamear el grupo.',
+            text: 'Links de *YouTube* e *Instagram* permitidos. No spamees.',
           }, { quoted: msg }).catch(() => {});
         }
       }
@@ -232,7 +232,7 @@ async function handleMessage(sock, msg) {
       case 'stk': {
         const wait = checkCooldown(jid, sender, msg.key.fromMe, groupMeta);
         if (wait > 0) { await sock.sendMessage(jid, { text: `Espera ${wait}s para volver a usar este comando.` }, { quoted: msg }); break; }
-        await cmdSticker(sock, msg);
+        await cmdSticker(sock, msg, groupMeta);
         break;
       }
 

@@ -275,7 +275,7 @@ async function cmdMute(sock, msg, args, groupMeta) {
     if (remaining > 0) {
       const mins = Math.ceil(remaining / 60_000);
       return sock.sendMessage(jid, {
-        text: `@${num} ya esta muteado. Le quedan *${mins}* minuto${mins === 1 ? '' : 's'}.\nUsa *!mute @user <minutos>* para cambiar la duracion.`,
+        text: `@${num} ya está muteado. Le quedan *${mins}* minuto${mins === 1 ? '' : 's'}.`,
         mentions: [target],
       }, { quoted: msg });
     }
@@ -285,7 +285,7 @@ async function cmdMute(sock, msg, args, groupMeta) {
   muteUser(jid, target, Date.now() + minutes * 60_000);
 
   await sock.sendMessage(jid, {
-    text: `@${num} muteado por *${minutes}* minuto${minutes === 1 ? '' : 's'}. No podra usar comandos.`,
+    text: `@${num} muteado *${minutes}* minuto${minutes === 1 ? '' : 's'}.`,
     mentions: [target],
   }, { quoted: msg });
 }

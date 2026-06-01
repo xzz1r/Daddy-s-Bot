@@ -1,7 +1,7 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, isAnimatedWebP } = require('../utils/sticker');
 const { streamToBuffer } = require('../utils/helpers');
-const { getSender } = require('../utils/wa');
+const { getSender, isOwner } = require('../utils/wa');
 const { incrementStat } = require('../utils/state');
 const logger = require('../utils/logger');
 
@@ -19,7 +19,7 @@ function identifyMedia(messageObject) {
   return null;
 }
 
-async function cmdSticker(sock, msg) {
+async function cmdSticker(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   // Fallback chain: WhatsApp display name → sender phone number → "Anonimo".
   // Critically NOT msg.key.remoteJid, which in groups is the GROUP jid.
@@ -33,7 +33,16 @@ async function cmdSticker(sock, msg) {
 
   if (!found) {
     return sock.sendMessage(jid, {
-      text: 'Envia o responde una imagen, video o sticker con *!s*\n\nFormatos: jpg, png, gif, webp, mp4',
+      text: 'Envía o responde una imagen o video con *!s*',
+    }, { quoted: msg });
+  }
+
+  // Re-stamping an existing sticker rewrites its pack metadata with the bot's
+  // author tag — only the owner may do that, so members can't hijack/rebrand
+  // stickers they didn't make. Members can still turn images/videos into stickers.
+  if (found.type === 'sticker' && !isOwner(senderJid, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, {
+      text: 'Solo el owner puede convertir un sticker ya existente. Usa *!s* con una imagen o video.',
     }, { quoted: msg });
   }
 
