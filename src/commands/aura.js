@@ -16,9 +16,10 @@ function rollAura(targetIsOwner, targetIsAdmin) {
   const small = () => (5 + Math.floor(Math.random() * 36)) * 100; // 500..4000
 
   if (targetIsOwner) {
-    if (r < 0.75) return { tier: 'blessed', amount: big() };
-    if (r < 0.95) return { tier: 'gain',    amount: small() };
-    if (r < 0.98) return { tier: 'loss',    amount: -small() };
+    // Favored, but not rigged: ~70% positive, and can still take a real hit.
+    if (r < 0.45) return { tier: 'blessed', amount: big() };
+    if (r < 0.70) return { tier: 'gain',    amount: small() };
+    if (r < 0.90) return { tier: 'loss',    amount: -small() };
     return { tier: 'cursed', amount: -big() };
   }
   if (targetIsAdmin) {

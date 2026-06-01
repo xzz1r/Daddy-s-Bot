@@ -509,6 +509,24 @@ const LABELS = {
   feminidad: {
     name: 'femenina',
     goodIsHigh: true,
+    // Feminidad is the one positive trait the bot flips for the owner: everyone
+    // tends to land mid/high (it's not really a roast target), but the owner —
+    // the resident alpha — lands LOW most of the time as the running joke.
+    roll: (targetIsOwner) => {
+      const r = Math.random();
+      const hi = () => 70 + Math.floor(Math.random() * 31);
+      const mid = () => 31 + Math.floor(Math.random() * 39);
+      const lo = () => Math.floor(Math.random() * 31);
+      if (targetIsOwner) {
+        if (r < 0.85) return lo();
+        if (r < 0.96) return mid();
+        return hi();
+      }
+      // everyone else: usually mid/high
+      if (r < 0.45) return hi();
+      if (r < 0.90) return mid();
+      return lo();
+    },
     high: [
       'Tienes una elegancia que no se aprende en ningún sitio. O se nace con ella o no se tiene.',
       'Tu feminidad no es una construcción ni un esfuerzo. Es quien eres, y la gente lo nota antes de que hables.',
@@ -1513,7 +1531,9 @@ async function runPercent(sock, msg, key, groupMeta) {
   const targetIsOwner = isOwner(target, false, groupMeta);
   const targetIsAdmin = isAdmin(groupMeta?.participants, target);
 
-  const percent = rollPercent(cfg.goodIsHigh, targetIsAdmin, targetIsOwner);
+  const percent = cfg.roll
+    ? cfg.roll(targetIsOwner, targetIsAdmin)
+    : rollPercent(cfg.goodIsHigh, targetIsAdmin, targetIsOwner);
   const verdict = percent >= 70 ? pick(cfg.high) : percent <= 30 ? pick(cfg.low) : pick(cfg.mid);
   const showExtreme = percent >= 70 && cfg.extreme?.length;
 

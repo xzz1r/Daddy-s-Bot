@@ -3,14 +3,14 @@
 const { isOwner, isAdmin, getSender } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
 
-// Rigged by role: owner is genetically blessed, admins have the edge,
-// members fight on equal ground. Looks can't be argued — biology decides.
+// Rigged by role, but not blatantly: the owner has a real edge yet can still
+// lose, admins have a slighter edge, members fight on equal ground.
 function rollMog(aIsOwner, aIsAdmin, bIsOwner, bIsAdmin) {
   const r = Math.random();
-  if (aIsOwner && !bIsOwner) return r < 0.93 ? 'a' : 'b';
-  if (bIsOwner && !aIsOwner) return r < 0.93 ? 'b' : 'a';
-  if (aIsAdmin && !bIsAdmin) return r < 0.65 ? 'a' : 'b';
-  if (bIsAdmin && !aIsAdmin) return r < 0.65 ? 'b' : 'a';
+  if (aIsOwner && !bIsOwner) return r < 0.70 ? 'a' : 'b';
+  if (bIsOwner && !aIsOwner) return r < 0.70 ? 'b' : 'a';
+  if (aIsAdmin && !bIsAdmin) return r < 0.60 ? 'a' : 'b';
+  if (bIsAdmin && !aIsAdmin) return r < 0.60 ? 'b' : 'a';
   return r < 0.5 ? 'a' : 'b';
 }
 
