@@ -16,79 +16,83 @@ function rollMog(aIsOwner, aIsAdmin, bIsOwner, bIsAdmin) {
 
 // %M = mogger (winner), %L = mogged (loser)
 const MOG_PHRASES = [
-  // --- Tier gap ---
-  '%M es Chad tier. %L es relleno del grupo y lo sabe.',
-  'PSL de %M: no se discute. PSL de %L: se discute y la discusión dura dos segundos.',
-  'Gigachad en genética: %M. Subhuman en potencial: %L. Sin debate posible.',
-  '%L queda enterrado en el tier subhuman de este 1v1. %M ni sudó.',
-  'El foro pondría a %M de referencia y a %L de caso de estudio de por qué el looksmaxxing existe.',
-  'S tier vs tier de "empieza por aceptar la situación". %M vs %L.',
-  '%M vive en el tier al que %L aspira en sus mejores sueños.',
-  'Chad real contra cope en movimiento. El resultado estaba escrito antes de empezar.',
-  '%L es subhuman frente a %M y esa brecha no se cierra con esfuerzo, se acepta.',
-  'Genetic lottery: %M ganó el primer premio. %L ni el billete tenía.',
+  // --- It's over / it never began ---
+  'It\'s over para %L. Ni siquiera empezó. %M nació ascendido y %L nació de relleno.',
+  'It\'s over. Lo fue desde que %L cargó la genética con la que vino al mundo. %M ni se molesta.',
+  'Para %M nunca hizo falta empezar nada. Para %L nunca empezó y nunca va a empezar. It\'s over.',
+  'El mog check terminó antes de la primera foto. %M ascendió, %L lleva LDAR de nacimiento.',
+  '%M está en la realidad. %L está en la fase de negación. It\'s over y todos lo ven menos %L.',
+  'JFL mirar a %L intentar competir con %M. Es como ver a un normie discutirle a un Gigachad. Patético y rápido.',
+  '%L creyó que tenía oportunidad. Ese fue su primer error. El segundo fue nacer con esa cara. %M ni sudó.',
 
-  // --- Bone structure / hard features ---
-  'Canthal tilt negativo, midface largo, jawline inexistente. %L es el catálogo completo del subhuman frente a %M.',
-  'Bone structure de Chad en %M. En %L: bone structure de quien lleva cuatro años de mewing y sigue igual.',
-  'HTN proporcionado en %M. %L tiene el midface tan largo que el foro lo usaría de ejemplo de qué no pedir.',
-  'LTN de %L: la razón por la que la cirugía maxilofacial tiene lista de espera de dos años.',
-  'La mandíbula de %M moggea sola al conjunto completo de %L. El resto es adorno.',
-  'Pómulos de %M: definidos sin cirugía. Pómulos de %L: en paradero desconocido.',
-  'MTN de %M: equilibrado. MTN de %L: el tipo de desproporción que se convierte en foto de foro sin su permiso.',
-  'Jawline de %M vs. ausencia documentada de jawline en %L. El contraste duele incluso escrito.',
-  'La proyección maxilar de %M sola ya liquida el 1v1 antes de mirar nada más en %L.',
-  'Estructura ósea de %M: heredada, sin mérito y por eso mismo inalcanzable para %L.',
+  // --- Hipergamia / jerarquía sexual ---
+  'La hipergamia ya dio su veredicto: %M arriba, %L invisible. Las mujeres ni registran que %L existe.',
+  'Regla 80/20: %M es el 20% que todas quieren, %L es el 80% que ninguna mira. La biología ya votó.',
+  'La hipergamia no negocia. %M es por quien rompen una relación. %L es por quien nadie cruza la calle.',
+  'Ninguna mujer baja su estándar hasta %L. La hipergamia se lo impide. A %M en cambio le suben el estándar.',
+  '%M activa el halo effect con solo aparecer. A %L lo cancela el mismo efecto en reversa. Pretty privilege puro.',
+  'Las foids hacen match con %M en dos segundos y dejan a %L en el deslizamiento eterno. La hipergamia es ley.',
+  '%M es el genuine top tier que la hipergamia premia. %L es a quien el algoritmo esconde por el bien de todas.',
+  '%M es looksmatch de stacys. %L no es looksmatch ni de su reflejo en una cuchara.',
 
-  // --- Eyes & upper face ---
-  'Hunter eyes en %M. Prey eyes en %L. No hay más que decir y los dos lo saben.',
-  'El canthal tilt positivo de %M destruye a %L antes de que empiece cualquier conversación.',
-  'Ojos de depredador contra ojos de alguien que acaba de perder un mog check en público. %M y %L.',
-  '%M tiene el canthal tilt que %L dibuja en el espejo con el dedo para ver cómo quedaría.',
-  'El canthal tilt de %M ya vale más que todos los looksmaxx que %L podría acumular en una vida.',
+  // --- Tier gap brutal ---
+  '%M es Chad tier puro. %L es subhuman documentado y el grupo entero acaba de confirmarlo.',
+  'Gigachad contra criatura del lago. %M y %L. Y eso es un insulto para el lago.',
+  '%L queda enterrado seis tiers por debajo. %M ni recordará que este 1v1 existió.',
+  'PSL de %M: imposible de discutir. PSL de %L: imposible de mirar sin pena ajena.',
+  'S tier absoluto contra "ni siquiera entra en la tier list". %M aplasta, %L desaparece.',
+  '%L es el caso de estudio que los foros usan para explicar qué significa nacer perdiendo. %M es la portada.',
+  'Genetic lottery: %M se llevó el bote. A %L le tocó la deformidad de consolación.',
+  'Chad real contra cope andante. El resultado estaba escrito en el ADN de %L antes de respirar.',
 
-  // --- Midface / facial thirds ---
-  'Tercio medio perfecto en %M. %L revisa el suyo y cierra el espejo.',
-  'Facial thirds de %M: en proporción. Facial thirds de %L: el tercio medio se tomó vacaciones permanentes.',
-  'El midface largo de %L es el tipo de problema que el foro clasifica como "sin solución sin cirugía mayor".',
-  '%M tiene los tres tercios faciales en ratio. %L tiene uno y medio y sabe exactamente cuáles le faltan.',
-  'Midface de %M destroza al de %L sin que nadie tenga que señalarlo. Se ve solo.',
+  // --- Bone structure brutal ---
+  'Canthal tilt negativo, midface de jirafa, jawline desaparecida. %L es el catálogo completo del subhuman. %M es la referencia opuesta.',
+  'Bone structure de dios griego en %M. En %L: bone structure de bolsa de plástico medio vacía.',
+  'La mandíbula de %M moggea sola a %L entero. %L no tiene mandíbula, tiene una sugerencia de mandíbula.',
+  'Pómulos esculpidos en %M. En %L: la cara se rinde antes de llegar a los pómulos.',
+  'La proyección maxilar de %M liquida a %L sin mirar nada más. %L respira por la boca y se le nota en la estructura.',
+  'Estructura ósea de %M: heredada, brutal, inalcanzable. La de %L: el creador tuvo un mal día y se notó para siempre.',
+  '%M tiene gonial angle de revista. %L tiene recessed everything y el espejo se lo recuerda cada mañana.',
 
-  // --- Frame & overall genetics ---
-  'Frame, altura, estructura. Todo para %M. Para %L quedan los suplementos y la esperanza.',
-  '%M tiene la genética que los demás looksmaxxers pegan en su tablero de visión. %L pega esa foto también.',
-  'La madre naturaleza apostó todo en %M. A %L le dejó lo que sobró y lo que sobró no era mucho.',
-  'No es personalidad, no es actitud, no es esfuerzo. Es hueso. %M lo tiene. %L no. Cerrado.',
-  '%M tiene el frame y la estructura con los que se nace, no los que se construyen. %L nació sin ellos.',
+  // --- Eyes brutal ---
+  'Hunter eyes letales en %M. Prey eyes de presa atropellada en %L. La cadena alimenticia ya decidió.',
+  'El canthal tilt positivo de %M destruye a %L antes de abrir la boca. %L tiene mirada de derrota permanente.',
+  'Ojos de depredador contra ojos de quien acaba de perder en público y lo sabe. %M caza, %L huye.',
+  '%L tiene los ojos tan caídos que parece que la genética lloró al hacerlo. %M tiene la mirada que abre puertas.',
 
-  // --- PSL / tier lists ---
-  'El PSL de %M aplasta al de %L antes de que se tome la foto.',
-  'Gap de PSL entre %M y %L: el tipo de distancia que el foro anota en silencio antes de dar su veredicto.',
-  '%M pasa el modwatch sin editar. %L se queda en la puerta con el cartel de "trabaja y vuelve".',
-  'En el tier list del grupo: %M en S, %L buscando todavía en qué casilla entra.',
-  'El foro registraría a %M como caso de éxito natural y a %L como el motivo por el que la comunidad existe.',
+  // --- Midface / thirds brutal ---
+  'Tercio medio divino en %M. El de %L es tan largo que no entra en el encuadre ni en la decencia.',
+  'El midface de %L es el tipo de problema que ni la cirugía mayor arregla del todo. %M lo tiene perfecto y gratis.',
+  'Facial thirds de %M en proporción áurea. Los de %L parecen dibujados con los ojos cerrados.',
 
-  // --- Surgery / cope ---
-  '%L necesita rhinoplastia, genioplastia y una lefort III para acercarse al baseline de %M.',
-  '%L necesita softmax, hardmax, cirugía y rezar. %M necesita existir.',
-  'El cope de %L después de este resultado ya está llegando. %M ni va a enterarse de que hubo 1v1.',
-  '%L aprendió hoy la diferencia entre softmaxear y necesitar intervención quirúrgica seria.',
-  'Ni cuatro años de mewing, ni el mejor cirujano del mundo, cambia el resultado: %M moggea a %L.',
-  '%L sale de este mog check sabiendo que tiene trabajo quirúrgico pendiente que no pidió.',
+  // --- Frame brutal ---
+  'Frame, altura, estructura: todo en %M. A %L le quedan los suplementos, el cope y la oración nocturna.',
+  'La madre naturaleza apostó todo en %M. A %L le dio lo que sobró del cubo de la basura genético.',
+  'No es actitud, no es esfuerzo, no es personalidad. Es hueso. %M lo tiene, %L no, y eso no se entrena.',
+  '%M tiene el frame con el que se nace ganando. %L tiene el frame que hace que le ofrezcan asiento por lástima.',
 
-  // --- Face card / final verdicts ---
-  'El face card de %M no declina nunca. El de %L fue rechazado antes de intentarlo.',
-  'No hay filtro, no hay ángulo, no hay luz que meta a %L en el tier de %M. Imposible.',
-  'Subhuman es una palabra fuerte. Pero cualquier foro de looksmax la usaría para el lado de %L en este resultado.',
-  'Simetría facial de %M: impecable. Simetría de %L: el resultado de un dado cargado en su contra.',
-  '%L cope. %M vive en la realidad a la que %L nunca llega aunque cope durante años.',
-  'El mog de %M sobre %L entra en el top de los más unilaterales del historial del grupo.',
-  '%M tiene el ratio de cara que los demás usan de referencia. %L los usa también, para medir cuánto le falta.',
-  '%L es el tipo de resultado que los foreros describen como "las manos del creador temblaron ese día".',
-  'La jerarquía genética no tiene diploma, no tiene esfuerzo, no tiene redención. %M arriba. %L acepta.',
-  '%L es la razón por la que existe el término cope pill. %M es la razón por la que existe el término Chad.',
-  'Hay genética que se trabaja y genética que se recibe. %M recibió la que %L lleva trabajando sin alcanzar.',
-  'Moggeo documentado, inapelable, sin contexto que lo justifique para el lado de %L.',
+  // --- PSL / foro brutal ---
+  '%M pasa el modwatch a S tier. A %L lo banean del foro por subir la foto sin trigger warning.',
+  'El gap de PSL entre %M y %L es tan obsceno que el foro lo cierra por unilateral.',
+  'En la tier list del grupo: %M en S, %L todavía buscando una casilla por debajo de F donde meterse.',
+  'Los foros usarían a %M de "antes" y a %L de "no hay después posible".',
+
+  // --- Surgery / cope brutal ---
+  '%L necesita rhinoplastia, genioplastia, lefort III y un milagro para llegar al baseline donde %M empieza dormido.',
+  'Ni cuatro años de mewing, ni el mejor cirujano del planeta salvan a %L. %M solo necesita existir.',
+  '%L acaba de descubrir en directo que su caso no es softmax, es "lo siento, no hay nada que hacer". %M ni se entera.',
+  'El cope de %L ya está cargando. %M ni recuerda haber participado en un 1v1 tan desigual.',
+
+  // --- Face card / verdicts brutal ---
+  'El face card de %M no declina jamás. El de %L fue rechazado en la puerta y le rompieron el documento.',
+  'No hay filtro, ángulo ni luz que meta a %L en el universo de %M. La física se rinde antes que %L.',
+  'Simetría quirúrgica en %M. La cara de %L parece que se dibujó en un coche en marcha por un bache.',
+  '%L cope. %M vive en la realidad donde %L nunca va a entrar aunque cope hasta morir.',
+  'La jerarquía genética no tiene diploma, esfuerzo ni redención. %M arriba para siempre, %L abajo de nacimiento.',
+  '%L es la razón por la que existe la palabra subhuman. %M es la razón por la que existe la palabra Chad.',
+  '%L es el resultado de "las manos del creador temblaron ese día y encima no había garantía".',
+  'Moggeo total, inapelable, humillante. %M ni miró. %L no se va a recuperar de este antes del lunes.',
+  'Este mog entra directo al hall de la fama del grupo. %M leyenda, %L ejemplo de qué no querer ser.',
 ];
 
 async function cmdMog(sock, msg, groupMeta) {
