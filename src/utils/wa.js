@@ -82,6 +82,35 @@ function isOwner(jid, fromMe, groupMeta) {
   return false;
 }
 
+// True if `jid` is the bot's own account, in any JID form. Used to stop the bot
+// from kicking or demoting itself (which would remove it from the group or
+// strip the admin it needs to moderate).
+function isBotJid(sock, jid) {
+  if (!jid || !sock?.user) return false;
+  const t = bareJid(jid);
+  const mine = [sock.user.id, sock.user.lid].filter(Boolean).map(bareJid);
+  if (mine.includes(t)) return true;
+  // Phone-form comparison only when both sides are phone JIDs — LID and phone
+  // live in different namespaces, so cross-comparing their digits would risk a
+  // false positive.
+  if (t.endsWith('@s.whatsapp.net')) {
+    const tnum = t.replace(/@.*/, '').replace(/\D/g, '');
+    return mine.some(m => m.endsWith('@s.whatsapp.net') && m.replace(/@.*/, '').replace(/\D/g, '') === tnum);
+  }
+  return false;
+}
+
+// True if the bot itself holds admin in this group. Lets moderation features
+// tell the difference between "nobody broke a rule" and "I can't act because
+// I'm not admin".
+function isBotAdmin(sock, groupMeta) {
+  if (!groupMeta?.participants || !sock?.user) return false;
+  return groupMeta.participants.some(p =>
+    p && (p.admin === 'admin' || p.admin === 'superadmin') &&
+    [p.id, p.lid, p.phoneNumber].some(f => f && isBotJid(sock, f))
+  );
+}
+
 function isAdmin(participants, jid) {
   if (!participants || !jid) return false;
   const bare = bareJid(jid);
@@ -142,6 +171,8 @@ function extractQuotedText(msg) {
 module.exports = {
   isOwner,
   isAdmin,
+  isBotJid,
+  isBotAdmin,
   isGroupAdmin,
   getSender,
   getTarget,

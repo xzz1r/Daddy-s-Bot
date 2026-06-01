@@ -18,7 +18,7 @@ const { cmdRep, cmdUnrep } = require('../commands/rep');
 const { cmdDuel } = require('../commands/duel');
 const { cmdVs, cmdInactivos } = require('../commands/activity');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp } = require('../commands/social');
-const { isOwner, isGroupAdmin, extractText, rememberMapping, getSender } = require('../utils/wa');
+const { isOwner, isGroupAdmin, isBotAdmin, extractText, rememberMapping, getSender } = require('../utils/wa');
 const logger = require('../utils/logger');
 
 // Hosts allowed without penalty (only a "send once" reminder). Matched against
@@ -76,6 +76,7 @@ const cooldowns = new Map(); // 'groupJid|sender' -> timestamp
 // Throttle whitelist reminder to once per user per 5 min (no spam on every YT link).
 const ANTILINK_REMINDER_TTL = 5 * 60 * 1000;
 const antilinkReminders = new Map(); // 'groupJid|sender' -> timestamp
+const antilinkNoAdminWarn = new Map(); // 'groupJid' -> timestamp (bot-not-admin notice)
 
 // Group metadata cache: 30s TTL, bounded at 500 entries (FIFO eviction).
 // Bot.js calls invalidateGroupMeta() on participant changes so the cache
@@ -164,6 +165,19 @@ async function handleMessage(sock, msg) {
       const meta = await getGroupMeta(sock, jid);
       if (meta && !isGroupAdmin(sender, msg.key.fromMe, meta)) {
         if (verdict === 'blocked') {
+          // Without admin the bot can neither delete the message nor kick the
+          // sender — both calls would fail silently and leave the link up.
+          // Warn once per group (throttled) instead of pretending to moderate.
+          if (!isBotAdmin(sock, meta)) {
+            const lastW = antilinkNoAdminWarn.get(jid);
+            if (!lastW || Date.now() - lastW > ANTILINK_REMINDER_TTL) {
+              antilinkNoAdminWarn.set(jid, Date.now());
+              sock.sendMessage(jid, {
+                text: 'Detecté un enlace no permitido, pero no soy admin y no puedo borrarlo ni expulsar. Dame admin para moderar.',
+              }).catch(() => {});
+            }
+            return;
+          }
           sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
           sock.groupParticipantsUpdate(jid, [sender], 'remove').catch(() => {});
           sock.sendMessage(jid, {

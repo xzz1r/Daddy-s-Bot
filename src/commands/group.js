@@ -1,5 +1,5 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const { isOwner, isAdmin, isGroupAdmin, getTarget, getSender, bareJid } = require('../utils/wa');
+const { isOwner, isAdmin, isBotJid, isGroupAdmin, getTarget, getSender, bareJid } = require('../utils/wa');
 const { streamToBuffer } = require('../utils/helpers');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled } = require('../utils/state');
 const { isBusinessBatch } = require('../utils/businessCheck');
@@ -181,7 +181,9 @@ async function cmdKick(sock, msg, args, groupMeta) {
   const targets = [];
   const skipped = [];
   for (const t of all) {
-    if (t === sender) { skipped.push({ jid: t, reason: 'eres tú mismo' }); continue; }
+    if (bareJid(t) === bareJid(sender)) { skipped.push({ jid: t, reason: 'eres tú mismo' }); continue; }
+    // Never let the bot be told to remove itself.
+    if (isBotJid(sock, t)) { skipped.push({ jid: t, reason: 'soy yo' }); continue; }
     // Owner tier is immune to kick — no one can remove the owner/co-owner via the bot.
     if (isOwner(t, false, groupMeta)) { skipped.push({ jid: t, reason: 'es owner' }); continue; }
     if (isAdmin(groupMeta?.participants, t) && !senderIsOwner) {
@@ -375,6 +377,15 @@ async function cmdDemote(sock, msg, args, groupMeta) {
   const target = getTarget(msg);
   if (!target) {
     return sock.sendMessage(jid, { text: 'Menciona o responde al admin que quieres degradar.' }, { quoted: msg });
+  }
+  // Demoting the bot would strip the admin it needs to moderate — refuse.
+  if (isBotJid(sock, target)) {
+    return sock.sendMessage(jid, { text: 'No puedo quitarme el admin a mí mismo.' }, { quoted: msg });
+  }
+  // Owner tier is immune: a co-owner must not be able to strip the main owner
+  // (or another co-owner), matching the protection kick and mute already enforce.
+  if (isOwner(target, false, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'No puedes degradar a un owner del bot.' }, { quoted: msg });
   }
   if (!isAdmin(groupMeta?.participants, target)) {
     return sock.sendMessage(jid, { text: 'Ese usuario no es admin.' }, { quoted: msg });
