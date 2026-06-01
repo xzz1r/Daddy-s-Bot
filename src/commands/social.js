@@ -130,8 +130,12 @@ ${p}gay · ${p}simp · ${p}rata · ${p}maricon
 ${p}friki · ${p}cerdo · ${p}inutil · ${p}femboy
 ${p}aura [@user] — aura acumulada
 ${p}aura top — ranking de aura
+${p}duel @user <aura> — duelo por aura
 ${p}mog @a @b — 1v1 de looks
 ${p}ship [@a] [@b] — match
+${p}rep @user — dar reputación
+${p}unrep @user — quitar reputación
+${p}rep top — ranking de reputación
 
 ━━━ *IA* ━━━
 ${p}g <pregunta> — Grok

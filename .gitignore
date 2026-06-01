@@ -5,6 +5,7 @@ data/state.json
 data/grok-key.txt
 data/messageCounts.json
 data/aura.json
+data/rep.json
 data/music_cache/
 temp/
 .env

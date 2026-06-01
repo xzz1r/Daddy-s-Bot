@@ -14,6 +14,8 @@ const { cmdPfp } = require('../commands/pfp');
 const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdInteligencia, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy } = require('../commands/percent');
 const { cmdAura } = require('../commands/aura');
 const { cmdMog } = require('../commands/mog');
+const { cmdRep, cmdUnrep } = require('../commands/rep');
+const { cmdDuel } = require('../commands/duel');
 const { cmdVs, cmdInactivos } = require('../commands/activity');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp } = require('../commands/social');
 const { isOwner, isGroupAdmin, extractText, rememberMapping, getSender } = require('../utils/wa');
@@ -60,6 +62,7 @@ const NEEDS_META = new Set([
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy',
   'aura','inactivos','inactivo','fantasma','fantasmas','vs','versus','mog','moggear',
+  'rep','unrep','derep','duel','duelo','1v1',
   'count','resetcount','resetconteo',
   // Owner-gated commands also need meta in groups to resolve LID → phone
   // for isOwner checks (otherwise co-owners always fail in modern groups).
@@ -375,6 +378,21 @@ async function handleMessage(sock, msg) {
       case 'mog':
       case 'moggear':
         await cmdMog(sock, msg, groupMeta);
+        break;
+
+      case 'rep':
+        await cmdRep(sock, msg, args);
+        break;
+
+      case 'unrep':
+      case 'derep':
+        await cmdUnrep(sock, msg);
+        break;
+
+      case 'duel':
+      case 'duelo':
+      case '1v1':
+        await cmdDuel(sock, msg, args, groupMeta);
         break;
 
       case 'vs':
