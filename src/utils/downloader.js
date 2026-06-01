@@ -25,6 +25,35 @@ const YT_DLP = detectYtDlp();
 // 'android' es el cliente más rápido y el que mejor funciona sin firmas
 const PLAYER_CLIENTS = 'android,tv_embedded';
 
+// Global cap on concurrent yt-dlp downloads. Each one can hold a CPU core for
+// up to 3 minutes; on Termux/low-RAM hosts, 5 people spamming !play at once
+// would spawn 5 processes and OOM or thrash the device. Extra requests queue
+// here and run as slots free up. The per-user 7s cooldown in the handler
+// throttles spam; this bounds the worst case regardless.
+const MAX_CONCURRENT_DOWNLOADS = 2;
+let activeDownloads = 0;
+const downloadQueue = [];
+
+function acquireDownloadSlot() {
+  return new Promise((resolve) => {
+    const tryRun = () => {
+      if (activeDownloads < MAX_CONCURRENT_DOWNLOADS) {
+        activeDownloads++;
+        resolve();
+      } else {
+        downloadQueue.push(tryRun);
+      }
+    };
+    tryRun();
+  });
+}
+
+function releaseDownloadSlot() {
+  activeDownloads--;
+  const next = downloadQueue.shift();
+  if (next) next();
+}
+
 // Spawn yt-dlp with a 3-minute timeout to prevent silent hangs
 function ytdlp(args) {
   return new Promise((resolve, reject) => {
@@ -57,6 +86,15 @@ function ytdlp(args) {
 }
 
 async function downloadAudio(videoUrl) {
+  await acquireDownloadSlot();
+  try {
+    return await runDownload(videoUrl);
+  } finally {
+    releaseDownloadSlot();
+  }
+}
+
+async function runDownload(videoUrl) {
   const baseName = `audio_${Date.now()}_${Math.random().toString(36).slice(2)}`;
   const tempDir = path.dirname(tempFile('tmp'));
   const outTemplate = path.join(tempDir, `${baseName}__%(title).80B.%(ext)s`);

@@ -1,17 +1,27 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const { isOwner, isAdmin, isGroupAdmin, getTarget, getSender } = require('../utils/wa');
+const { isOwner, isAdmin, isGroupAdmin, getTarget, getSender, bareJid } = require('../utils/wa');
 const { streamToBuffer } = require('../utils/helpers');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled } = require('../utils/state');
 const { isBusinessBatch } = require('../utils/businessCheck');
 
-// In-memory mute store: `groupJid|userJid` -> expireTimestamp
+// In-memory mute store: `groupJid|bareJid` -> expireTimestamp
 // Hard-capped: insertion-ordered Map evicts oldest entry past the cap so a
 // long-running bot can't blow memory if mutes are added but never queried.
+//
+// Keys are ALWAYS normalized with bareJid(): the mute target comes from a
+// mention (often a LID) while the lookup runs against msg.key.participant
+// (which can carry a `:device` suffix). Without normalization the two never
+// match and the mute silently does nothing — the rest of the codebase already
+// compares JIDs through bareJid(), so this keeps mute consistent with it.
 const mutedUsers = new Map();
 const MAX_MUTED = 5000;
 
+function muteKey(groupJid, userJid) {
+  return `${groupJid}|${bareJid(userJid)}`;
+}
+
 function muteUser(groupJid, userJid, expireTs) {
-  const k = `${groupJid}|${userJid}`;
+  const k = muteKey(groupJid, userJid);
   if (mutedUsers.size >= MAX_MUTED && !mutedUsers.has(k)) {
     mutedUsers.delete(mutedUsers.keys().next().value);
   }
@@ -19,7 +29,7 @@ function muteUser(groupJid, userJid, expireTs) {
 }
 
 function isMuted(groupJid, userJid) {
-  const k = `${groupJid}|${userJid}`;
+  const k = muteKey(groupJid, userJid);
   const exp = mutedUsers.get(k);
   if (!exp) return false;
   if (Date.now() > exp) { mutedUsers.delete(k); return false; }
@@ -28,10 +38,14 @@ function isMuted(groupJid, userJid) {
 
 // Returns ms remaining on the mute, or 0 if not muted / already expired.
 function getMuteRemaining(groupJid, userJid) {
-  const exp = mutedUsers.get(`${groupJid}|${userJid}`);
+  const exp = mutedUsers.get(muteKey(groupJid, userJid));
   if (!exp) return 0;
   const r = exp - Date.now();
   return r > 0 ? r : 0;
+}
+
+function unmuteUser(groupJid, userJid) {
+  return mutedUsers.delete(muteKey(groupJid, userJid));
 }
 
 // Periodic sweep — isMuted only evicts entries that get queried after expiry,
@@ -253,7 +267,7 @@ async function cmdMute(sock, msg, args, groupMeta) {
   if (!target) {
     return sock.sendMessage(jid, { text: 'Menciona o responde al usuario que quieres mutear.' }, { quoted: msg });
   }
-  if (target === sender) {
+  if (bareJid(target) === bareJid(sender)) {
     return sock.sendMessage(jid, { text: 'No puedes mutearte a ti mismo.' }, { quoted: msg });
   }
   // Owner tier is immune; and (mirroring !kick) only the owner may act on admins.
@@ -306,7 +320,7 @@ async function cmdUnmute(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: 'Menciona al usuario que quieres desmutear.' }, { quoted: msg });
   }
 
-  mutedUsers.delete(`${jid}|${target}`);
+  unmuteUser(jid, target);
   const num = target.split('@')[0];
   await sock.sendMessage(jid, {
     text: `@${num} desmuteado.`,
