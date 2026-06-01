@@ -79,7 +79,7 @@ async function resolveDuel(sock, jid, d, groupMeta) {
     `@${winner.split('@')[0]}  +${fmt(d.stake)} → *${fmt(w.current)}*\n` +
     `@${loser.split('@')[0]}  −${fmt(d.stake)} → *${fmt(l.current)}*`;
 
-  await sock.sendMessage(jid, { text, mentions: [winner, loser] }, { quoted: undefined });
+  await sock.sendMessage(jid, { text, mentions: [winner, loser] });
 }
 
 // !duel @user [cantidad]      -> challenge

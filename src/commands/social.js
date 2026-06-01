@@ -157,6 +157,7 @@ ${p}notifadmin on/off
 ━━━ *OWNER* ━━━
 ${p}add <número>
 ${p}demote @user
+${p}resetcount — borrar ranking
 ${p}antiadmin on/off
 ${p}antiempresa on/off
 ${p}antilink on/off

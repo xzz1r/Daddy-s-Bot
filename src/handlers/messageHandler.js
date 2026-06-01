@@ -55,15 +55,15 @@ function classifyLinks(text) {
 const NEEDS_META = new Set([
   'on','off','tagall','todos','all','everyone',
   'kick','expulsar','del','borrar','delete','add','agregar',
-  'ship','top5','top10','mute','unmute','desmute',
+  'ship','mute','unmute','desmute',
   'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness',
   'antilink','close','cerrar','open','abrir',
   's','sticker','stk','play','playsong','playaudio','ttp','toimg','stimg',
   'g','ai','grok',
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy',
-  'aura','inactivos','inactivo','fantasma','fantasmas','vs','versus','mog','moggear',
-  'rep','unrep','derep','duel','duelo','1v1',
+  'aura','inactivos','inactivo','fantasma','fantasmas','mog','moggear',
+  'duel','duelo','1v1',
   'count','resetcount','resetconteo',
   // Owner-gated commands also need meta in groups to resolve LID → phone
   // for isOwner checks (otherwise co-owners always fail in modern groups).
