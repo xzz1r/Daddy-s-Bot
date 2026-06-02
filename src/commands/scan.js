@@ -39,8 +39,8 @@ async function cmdScan(sock, msg, groupMeta) {
   // profile or profile picture through the Baileys API.
   const participants = groupMeta?.participants || [];
   const phoneJids = participants
-    .map(p => bareJid(p.jid))
-    .filter(j => j.endsWith('@s.whatsapp.net'));
+    .map(p => bareJid(p.id))
+    .filter(j => j && j.endsWith('@s.whatsapp.net'));
 
   if (phoneJids.length === 0) {
     return sock.sendMessage(jid, { text: 'No hay miembros escaneables.' }, { quoted: msg });
