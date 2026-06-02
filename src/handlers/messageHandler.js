@@ -14,7 +14,7 @@ const { cmdPfp } = require('../commands/pfp');
 const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdInteligencia, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy } = require('../commands/percent');
 const { cmdAura } = require('../commands/aura');
 const { cmdMog } = require('../commands/mog');
-const { cmdRep, cmdUnrep } = require('../commands/rep');
+const { cmdRobo } = require('../commands/robo');
 const { cmdDuel } = require('../commands/duel');
 const { cmdScan } = require('../commands/scan');
 const { cmdVs, cmdInactivos } = require('../commands/activity');
@@ -65,6 +65,7 @@ const NEEDS_META = new Set([
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy',
   'aura','inactivos','inactivo','fantasma','fantasmas','mog','moggear',
   'duel','duelo','1v1',
+  'robo','robar',
   'scan','escanear',
   'count','resetcount','resetconteo',
   // Owner-gated commands also need meta in groups to resolve LID → phone
@@ -412,13 +413,9 @@ async function handleMessage(sock, msg) {
         await cmdMog(sock, msg, groupMeta);
         break;
 
-      case 'rep':
-        await cmdRep(sock, msg, args);
-        break;
-
-      case 'unrep':
-      case 'derep':
-        await cmdUnrep(sock, msg);
+      case 'robo':
+      case 'robar':
+        await cmdRobo(sock, msg, args, groupMeta);
         break;
 
       case 'duel':
