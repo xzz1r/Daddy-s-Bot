@@ -82,8 +82,12 @@ async function generateAnimatedThumb(animBuf) {
   }
 }
 
-const VF_STATIC = 'scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos';
-const VF_ANIM = (fps, size = 512) => `fps=${fps},scale=${size}:${size}:force_original_aspect_ratio=decrease:flags=lanczos`;
+// Never upscale: min(iw/ih, size) caps the target at the original dimension.
+// force_original_aspect_ratio=decrease then picks the constraining axis and
+// preserves ratio. Result: small content stays at native resolution; large
+// content is downscaled to fit the box without distortion.
+const VF_STATIC = "scale='min(iw,512)':'min(ih,512)':force_original_aspect_ratio=decrease:flags=lanczos";
+const VF_ANIM = (fps, size = 512) => `fps=${fps},scale='min(iw,${size})':'min(ih,${size})':force_original_aspect_ratio=decrease:flags=lanczos`;
 
 // Hard kill if ffmpeg runs longer than this — on Termux a hung encode can
 // otherwise pin a CPU core forever and zombie the command.
@@ -362,7 +366,7 @@ function encodeGifToWebp(inputFile, outputFile, fps, quality, size = 512) {
     let stderrBuf = '';
     let timer = null;
     let activeCmd = null;
-    const vf = `fps=${fps},scale=${size}:${size}:force_original_aspect_ratio=decrease:flags=lanczos,format=rgba`;
+    const vf = `fps=${fps},scale='min(iw,${size})':'min(ih,${size})':force_original_aspect_ratio=decrease:flags=lanczos,format=rgba`;
     const runWithCodec = (codec) => {
       stderrBuf = '';
       activeCmd = ffmpeg(inputFile)
