@@ -82,12 +82,22 @@ async function generateAnimatedThumb(animBuf) {
   }
 }
 
-// Never upscale: min(iw/ih, size) caps the target at the original dimension.
-// force_original_aspect_ratio=decrease then picks the constraining axis and
-// preserves ratio. Result: small content stays at native resolution; large
-// content is downscaled to fit the box without distortion.
-const VF_STATIC = "scale='min(iw,512)':'min(ih,512)':force_original_aspect_ratio=decrease:flags=lanczos";
-const VF_ANIM = (fps, size = 512) => `fps=${fps},scale='min(iw,${size})':'min(ih,${size})':force_original_aspect_ratio=decrease:flags=lanczos`;
+// Scale content to fit a `size`×`size` box (long edge = size, lanczos), then
+// PAD to a square size×size canvas with full transparency, centered.
+//
+// Why square + transparent matters: WhatsApp renders every sticker inside a
+// square cell. A non-square canvas (e.g. a 16:9 GIF at 226×128) gets STRETCHED
+// to fill that square — that vertical stretch was the real "GIF sticker
+// malformed/distorted" bug, not the encoder. Padding to a real 512×512 square
+// keeps the original aspect ratio intact (transparent bars instead of stretch)
+// and, by scaling the long edge up to 512, gives WhatsApp a full-resolution
+// canvas to display 1:1 instead of upscaling a tiny image with a cheap scaler.
+const sqFit = (size) =>
+  `scale=${size}:${size}:force_original_aspect_ratio=decrease:flags=lanczos,` +
+  `pad=${size}:${size}:(ow-iw)/2:(oh-ih)/2:color=#00000000,format=rgba`;
+
+const VF_STATIC = sqFit(512);
+const VF_ANIM = (fps, size = 512) => `fps=${fps},${sqFit(size)}`;
 
 // Hard kill if ffmpeg runs longer than this — on Termux a hung encode can
 // otherwise pin a CPU core forever and zombie the command.
@@ -355,53 +365,6 @@ function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512) {
   });
 }
 
-// GIF-specific encoder: lanczos downscaling + explicit rgba conversion.
-// GIFs use palette-indexed color (256 colors/frame); libwebp_anim needs full
-// RGBA. Without format=rgba the codec may receive pal8/rgb8 frames and produce
-// washed-out or dithered output. lanczos avoids the blurriness of bilinear
-// scaling. -ignore_loop 0 forces ffmpeg to read all frames regardless of the
-// GIF loop header (some single-play GIFs would otherwise stop at frame 1).
-function encodeGifToWebp(inputFile, outputFile, fps, quality, size = 512) {
-  return new Promise((resolve, reject) => {
-    let stderrBuf = '';
-    let timer = null;
-    let activeCmd = null;
-    const vf = `fps=${fps},scale='min(iw,${size})':'min(ih,${size})':force_original_aspect_ratio=decrease:flags=lanczos,format=rgba`;
-    const runWithCodec = (codec) => {
-      stderrBuf = '';
-      activeCmd = ffmpeg(inputFile)
-        .setFfmpegPath(ffmpegPath)
-        .inputOptions(['-ignore_loop', '0'])
-        .outputOptions([
-          '-vf', vf,
-          '-c:v', codec,
-          '-loop', '0',
-          '-an',
-          '-q:v', String(quality),
-          '-compression_level', '2',
-          '-preset', 'default',
-          '-y',
-        ])
-        .toFormat('webp')
-        .on('stderr', (line) => { stderrBuf += line + '\n'; })
-        .on('error', () => {
-          if (codec === 'libwebp_anim') runWithCodec('libwebp');
-          else {
-            if (timer) clearTimeout(timer);
-            reject(new Error(stderrBuf.trim().split('\n').slice(-4).join(' | ') || 'ffmpeg error'));
-          }
-        })
-        .on('end', () => { if (timer) clearTimeout(timer); resolve(); })
-        .save(outputFile);
-    };
-    timer = setTimeout(() => {
-      try { activeCmd?.kill('SIGKILL'); } catch {}
-      reject(new Error('ffmpeg timeout'));
-    }, FFMPEG_TIMEOUT_MS);
-    runWithCodec('libwebp_anim');
-  });
-}
-
 async function videoToSticker(videoBuffer, author) {
   const detected = detectExt(videoBuffer);
 
@@ -437,32 +400,11 @@ async function videoToSticker(videoBuffer, author) {
   }
 }
 
+// Raw GIF (image/gif attachment) → animated sticker. detectExt sees 'gif',
+// so videoToSticker writes a .gif temp file and ffmpeg reads it once through
+// with the same square-fit tiers — no separate code path needed.
 async function gifToSticker(gifBuffer, author) {
-  const inputFile = tempFile('gif');
-  const outputFile = tempFile('webp');
-  await fs.writeFile(inputFile, gifBuffer);
-
-  try {
-    const durationS = await getVideoDurationS(inputFile);
-    const startIdx = startTierIndex(durationS);
-
-    let buf = null;
-    let smallest = null;
-    for (let i = startIdx; i < ANIM_TIERS.length; i++) {
-      const { fps, quality, size } = ANIM_TIERS[i];
-      await encodeGifToWebp(inputFile, outputFile, fps, quality, size);
-      buf = await fs.readFile(outputFile);
-      if (buf.length < 100) continue;
-      if (buf.length <= MAX_STICKER_BYTES) { smallest = buf; break; }
-      if (!smallest || buf.length < smallest.length) smallest = buf;
-    }
-    const out = (buf && buf.length >= 100 && buf.length <= MAX_STICKER_BYTES) ? buf : smallest;
-    if (!out || out.length < 100) throw new Error('Sticker GIF vacío');
-    return addStickerMeta(out, author);
-  } finally {
-    await cleanTemp(inputFile);
-    await cleanTemp(outputFile);
-  }
+  return videoToSticker(gifBuffer, author);
 }
 
 module.exports = { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, isAnimatedWebP, extractFirstAnmfFrame };
