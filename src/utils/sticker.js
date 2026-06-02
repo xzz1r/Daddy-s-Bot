@@ -82,22 +82,14 @@ async function generateAnimatedThumb(animBuf) {
   }
 }
 
-// Scale content to fit a `size`×`size` box (long edge = size, lanczos), then
-// PAD to a square size×size canvas with full transparency, centered.
-//
-// Why square + transparent matters: WhatsApp renders every sticker inside a
-// square cell. A non-square canvas (e.g. a 16:9 GIF at 226×128) gets STRETCHED
-// to fill that square — that vertical stretch was the real "GIF sticker
-// malformed/distorted" bug, not the encoder. Padding to a real 512×512 square
-// keeps the original aspect ratio intact (transparent bars instead of stretch)
-// and, by scaling the long edge up to 512, gives WhatsApp a full-resolution
-// canvas to display 1:1 instead of upscaling a tiny image with a cheap scaler.
-const sqFit = (size) =>
-  `scale=${size}:${size}:force_original_aspect_ratio=decrease:flags=lanczos,` +
-  `pad=${size}:${size}:(ow-iw)/2:(oh-ih)/2:color=#00000000,format=rgba`;
-
-const VF_STATIC = sqFit(512);
-const VF_ANIM = (fps, size = 512) => `fps=${fps},${sqFit(size)}`;
+// Scale to fit a `size`×`size` box: long edge → size, preserve aspect ratio
+// (force_original_aspect_ratio=decrease), high-quality Lanczos resampling.
+// format=rgba ensures proper alpha channel support for animated stickers.
+// No padding — output dimensions match the content's natural aspect ratio
+// so the sticker looks exactly like the original.
+const VF_STATIC = `scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos`;
+const VF_ANIM = (fps, size = 512) =>
+  `fps=${fps},scale=${size}:${size}:force_original_aspect_ratio=decrease:flags=lanczos,format=rgba`;
 
 // Hard kill if ffmpeg runs longer than this — on Termux a hung encode can
 // otherwise pin a CPU core forever and zombie the command.
