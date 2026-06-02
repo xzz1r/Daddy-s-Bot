@@ -11,26 +11,30 @@ const PAIR_CD_MS    = 2 * 60 * 60 * 1000; // 2h per attacker→victim pair
 const pairCooldowns = new Map(); // 'group|attacker|victim' -> timestamp
 
 const ROB_WIN = [
-  '%A le mete la mano al bolsillo a %V sin que se entere. Arte pura.',
-  '%A ejecuta el robo a la perfección. %V no ve venir nada.',
-  '%A saquea a %V sin piedad. Operación limpia.',
-  '%A deja a %V mirando la pantalla sin entender qué pasó.',
-  '%A le birla la aura a %V con precisión quirúrgica.',
-  '%A entra, cobra y sale. %V ni tiempo para reaccionar.',
-  '%A limpia a %V en tres segundos. Nivel carterista profesional.',
-  '%A se lleva lo que quiere. %V se queda con cara de tonto.',
-  '%A silencioso, rápido y letal. %V ni supo de dónde vino el golpe.',
+  '%A le vacía la aura a %V como quien le quita el caramelo a un subhuman. %V ni tenía cómo defenderla, nació sin frame.',
+  '%A moggea y saquea a la vez. %V queda mirando la pantalla con su canthal tilt negativo y los bolsillos vacíos. It\'s over.',
+  '%A entra, ejecuta y se va con todo. %V es el 80% que nadie protege ni mira. La hipergamia no manda refuerzos por los LTN.',
+  '%A le arranca la aura y de paso la dignidad. %V vuelve al LDAR del que nunca debió salir.',
+  '%A le hace looksmining los bolsillos a %V. Resulta que tenía aura pero cero capacidad de retenerla, igual que su hairline.',
+  'Robo limpio de %A. %V intentó resistirse pero un sub-5 no para a nadie. La genética ya decidió quién roba y quién es robado.',
+  '%A trata a %V como caja registradora. %V acepta el saqueo porque en el fondo sabe que es relleno y el relleno paga.',
+  '%A le quita la aura a %V delante de todos. Humillación pública nivel mog check perdido en directo. JFL.',
+  '%A se lleva el botín y a %V no lo defiende nadie. Cuando eres invisible para las foids también lo eres para la seguridad.',
+  '%A desangra a %V de aura. %V puede copear todo lo que quiera, pero los números no mienten y su cara tampoco.',
+  '%A roba y asciende. %V roba miradas de lástima. Cada uno en el tier que la biología le firmó al nacer.',
 ];
 
 const ROB_FAIL = [
-  '%A intentó robarle a %V y lo pillaron con la mano en la masa. Patético.',
-  '%V para el golpe en seco. %A se va con las manos vacías y encima sangrando.',
-  'Robo chapucero de %A. %V no se deja. %A paga la comisión de fracaso.',
-  '%A se creyó listo y %V lo vio venir desde el otro lado de la pantalla.',
-  '%V huele el intento antes de que empiece. %A sale pitando con pérdidas.',
-  'El robo más torpe que ha visto el grupo. %V ni se inmutó. %A paga.',
-  '%A sale del intento peor de lo que entró. %V sigue igual de rico.',
-  '%A apostó por el robo y perdió doble. Próxima vez lleva más cerebro.',
+  '%A intentó robar y lo pillaron como al framecel que es. %V ni se inmutó: los Chads no vigilan, simplemente nadie se atreve. %A paga la multa de su cope.',
+  'Robo patético de %A. %V lo mogeó solo con mirarlo y %A salió corriendo perdiendo aura. It\'s over para el aspirante.',
+  '%A se creyó depredador y resultó ser la presa. %V lo devuelve a su tier de relleno y le cobra el atrevimiento.',
+  '%V huele el intento de un LTN a kilómetros. %A se va con menos aura y la autoestima en LDAR terminal.',
+  '%A falla el robo y queda expuesto: ni roba bien ni se ve bien. Doble L documentada por el grupo entero.',
+  'El robo más subhuman que ha visto el chat. %V ni levantó la mirada. %A paga por soñar fuera de su looksmatch.',
+  '%A apostó por el golpe con la confianza de un Gigachad y la genética de un NPC. %V lo castiga. La realidad también.',
+  '%V para el robo en seco y %A sangra aura. Cuando naces sin frame ni el crimen te sale. Cope eterno.',
+  '%A intentó subir de tier robando y la hipergamia social lo escupió de vuelta abajo. %V sigue intacto e indiferente.',
+  '%A se va con las manos vacías y un recordatorio: los perdedores genéticos también pierden los robos. %V no perdió ni un punto.',
 ];
 
 const fmt = n => n.toLocaleString('es-ES');
