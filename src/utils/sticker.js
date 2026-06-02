@@ -351,6 +351,53 @@ function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512) {
   });
 }
 
+// GIF-specific encoder: lanczos downscaling + explicit rgba conversion.
+// GIFs use palette-indexed color (256 colors/frame); libwebp_anim needs full
+// RGBA. Without format=rgba the codec may receive pal8/rgb8 frames and produce
+// washed-out or dithered output. lanczos avoids the blurriness of bilinear
+// scaling. -ignore_loop 0 forces ffmpeg to read all frames regardless of the
+// GIF loop header (some single-play GIFs would otherwise stop at frame 1).
+function encodeGifToWebp(inputFile, outputFile, fps, quality, size = 512) {
+  return new Promise((resolve, reject) => {
+    let stderrBuf = '';
+    let timer = null;
+    let activeCmd = null;
+    const vf = `fps=${fps},scale=${size}:${size}:force_original_aspect_ratio=decrease:flags=lanczos,format=rgba`;
+    const runWithCodec = (codec) => {
+      stderrBuf = '';
+      activeCmd = ffmpeg(inputFile)
+        .setFfmpegPath(ffmpegPath)
+        .inputOptions(['-ignore_loop', '0'])
+        .outputOptions([
+          '-vf', vf,
+          '-c:v', codec,
+          '-loop', '0',
+          '-an',
+          '-q:v', String(quality),
+          '-compression_level', '2',
+          '-preset', 'default',
+          '-y',
+        ])
+        .toFormat('webp')
+        .on('stderr', (line) => { stderrBuf += line + '\n'; })
+        .on('error', () => {
+          if (codec === 'libwebp_anim') runWithCodec('libwebp');
+          else {
+            if (timer) clearTimeout(timer);
+            reject(new Error(stderrBuf.trim().split('\n').slice(-4).join(' | ') || 'ffmpeg error'));
+          }
+        })
+        .on('end', () => { if (timer) clearTimeout(timer); resolve(); })
+        .save(outputFile);
+    };
+    timer = setTimeout(() => {
+      try { activeCmd?.kill('SIGKILL'); } catch {}
+      reject(new Error('ffmpeg timeout'));
+    }, FFMPEG_TIMEOUT_MS);
+    runWithCodec('libwebp_anim');
+  });
+}
+
 async function videoToSticker(videoBuffer, author) {
   const detected = detectExt(videoBuffer);
 
@@ -387,7 +434,31 @@ async function videoToSticker(videoBuffer, author) {
 }
 
 async function gifToSticker(gifBuffer, author) {
-  return videoToSticker(gifBuffer, author);
+  const inputFile = tempFile('gif');
+  const outputFile = tempFile('webp');
+  await fs.writeFile(inputFile, gifBuffer);
+
+  try {
+    const durationS = await getVideoDurationS(inputFile);
+    const startIdx = startTierIndex(durationS);
+
+    let buf = null;
+    let smallest = null;
+    for (let i = startIdx; i < ANIM_TIERS.length; i++) {
+      const { fps, quality, size } = ANIM_TIERS[i];
+      await encodeGifToWebp(inputFile, outputFile, fps, quality, size);
+      buf = await fs.readFile(outputFile);
+      if (buf.length < 100) continue;
+      if (buf.length <= MAX_STICKER_BYTES) { smallest = buf; break; }
+      if (!smallest || buf.length < smallest.length) smallest = buf;
+    }
+    const out = (buf && buf.length >= 100 && buf.length <= MAX_STICKER_BYTES) ? buf : smallest;
+    if (!out || out.length < 100) throw new Error('Sticker GIF vacío');
+    return addStickerMeta(out, author);
+  } finally {
+    await cleanTemp(inputFile);
+    await cleanTemp(outputFile);
+  }
 }
 
 module.exports = { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, isAnimatedWebP, extractFirstAnmfFrame };

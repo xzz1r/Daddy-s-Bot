@@ -153,6 +153,7 @@ ${p}promote @user
 ${p}mute @user [min] · ${p}unmute @user
 ${p}del · ${p}close · ${p}open
 ${p}notifadmin on/off
+${p}scan — señales sospechosas en el grupo
 
 ━━━ *OWNER* ━━━
 ${p}add <número>

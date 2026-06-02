@@ -16,6 +16,7 @@ const { cmdAura } = require('../commands/aura');
 const { cmdMog } = require('../commands/mog');
 const { cmdRep, cmdUnrep } = require('../commands/rep');
 const { cmdDuel } = require('../commands/duel');
+const { cmdScan } = require('../commands/scan');
 const { cmdVs, cmdInactivos } = require('../commands/activity');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp } = require('../commands/social');
 const { isOwner, isGroupAdmin, isBotAdmin, extractText, rememberMapping, getSender } = require('../utils/wa');
@@ -64,6 +65,7 @@ const NEEDS_META = new Set([
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy',
   'aura','inactivos','inactivo','fantasma','fantasmas','mog','moggear',
   'duel','duelo','1v1',
+  'scan','escanear',
   'count','resetcount','resetconteo',
   // Owner-gated commands also need meta in groups to resolve LID → phone
   // for isOwner checks (otherwise co-owners always fail in modern groups).
@@ -320,6 +322,11 @@ async function handleMessage(sock, msg) {
 
       case 'antilink':
         await cmdAntiLink(sock, msg, args, groupMeta);
+        break;
+
+      case 'scan':
+      case 'escanear':
+        await cmdScan(sock, msg, groupMeta);
         break;
 
       case 'close':
