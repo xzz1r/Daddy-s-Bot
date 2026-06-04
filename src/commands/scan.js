@@ -2,9 +2,7 @@ const { isOwner, isGroupAdmin, getSender, bareJid } = require('../utils/wa');
 const { isBusinessBatch } = require('../utils/businessCheck');
 const logger = require('../utils/logger');
 
-const SCAN_COOLDOWN_MS = 60 * 1000;
 const PFP_CONCURRENCY = 5;
-const scanCooldowns = new Map();
 
 async function hasPfp(sock, jid) {
   try {
@@ -27,13 +25,6 @@ async function cmdScan(sock, msg, groupMeta) {
   if (!canUse) {
     return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
   }
-
-  const lastScan = scanCooldowns.get(jid);
-  if (lastScan && Date.now() - lastScan < SCAN_COOLDOWN_MS) {
-    const wait = Math.ceil((SCAN_COOLDOWN_MS - (Date.now() - lastScan)) / 1000);
-    return sock.sendMessage(jid, { text: `Espera ${wait}s antes de volver a escanear.` }, { quoted: msg });
-  }
-  scanCooldowns.set(jid, Date.now());
 
   // Only phone JIDs are scannable — LID JIDs can't be queried for business
   // profile or profile picture through the Baileys API.

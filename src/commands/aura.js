@@ -1,11 +1,6 @@
-const { isOwner, isAdmin, getTargetOrSelf, getSender } = require('../utils/wa');
+const { isOwner, isAdmin, getTargetOrSelf } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking, STARTING_AURA } = require('../utils/auraStore');
-
-// Rolling mutates persistent aura, so it can't be spammed to farm. One roll per
-// person every few minutes — aura is meant to drift over time, not explode.
-const ROLL_COOLDOWN_MS = 5 * 60 * 1000;
-const lastRoll = new Map(); // 'groupJid|rollerBareJid' -> timestamp
 
 // Aura roll, rigged by the TARGET's role — same owner-favoritism as the percent
 // games: the owner mostly gains big, admins are mixed, regular members mostly
@@ -215,21 +210,6 @@ async function cmdAura(sock, msg, args, groupMeta) {
   const sub = (args && args[0] ? args[0] : '').toLowerCase();
   if (['top', 'rank', 'ranking', 'leaderboard'].includes(sub)) {
     return showRanking(sock, msg, groupMeta);
-  }
-
-  // Cooldown is per roller (the person invoking), so you can't farm aura by
-  // hammering !aura on yourself or tanking someone else's nonstop.
-  if (jid.endsWith('@g.us')) {
-    const roller = getSender(msg);
-    const ckey = `${jid}|${roller}`;
-    const last = lastRoll.get(ckey);
-    if (last && Date.now() - last < ROLL_COOLDOWN_MS) {
-      const wait = Math.ceil((ROLL_COOLDOWN_MS - (Date.now() - last)) / 60000);
-      return sock.sendMessage(jid, {
-        text: `El aura no se fuerza. Vuelve en ~${wait} min.`,
-      }, { quoted: msg });
-    }
-    lastRoll.set(ckey, Date.now());
   }
 
   const target = getTargetOrSelf(msg);

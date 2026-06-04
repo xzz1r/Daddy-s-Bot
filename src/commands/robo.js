@@ -1,4 +1,4 @@
-const { isOwner, isAdmin, isGroupAdmin, getSender, getTarget, bareJid } = require('../utils/wa');
+const { isOwner, isAdmin, getSender, getTarget, bareJid } = require('../utils/wa');
 const { getAura, addAura } = require('../utils/auraStore');
 const { pick } = require('../utils/helpers');
 
@@ -6,9 +6,6 @@ const STAKE_DEFAULT = 200;
 const STAKE_MAX     = 1000;
 const STAKE_FLOOR   = 10;
 const MIN_AURA      = 50;         // attacker needs at least this to attempt
-const PAIR_CD_MS    = 2 * 60 * 60 * 1000; // 2h per attacker→victim pair
-
-const pairCooldowns = new Map(); // 'group|attacker|victim' -> timestamp
 
 const ROB_WIN = [
   '%A le vacía la aura a %V como quien le quita el caramelo a un subhuman. %V ni tenía cómo defenderla, nació sin frame.',
@@ -39,10 +36,6 @@ const ROB_FAIL = [
 
 const fmt = n => n.toLocaleString('es-ES');
 
-function pairKey(jid, a, v) {
-  return `${jid}|${bareJid(a)}|${bareJid(v)}`;
-}
-
 // Success chance based on role tiers and aura gap.
 // Ranges ~25%–72%: enough variance that no one farms safely.
 function calcChance(aO, aA, vO, vA, auraA, auraV) {
@@ -71,17 +64,6 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   }
   if (bareJid(target) === bareJid(sender)) {
     return sock.sendMessage(jid, { text: 'No puedes robarte a ti mismo.' }, { quoted: msg });
-  }
-
-  // Pair cooldown
-  const pk = pairKey(jid, sender, target);
-  const lastRob = pairCooldowns.get(pk);
-  if (lastRob && Date.now() - lastRob < PAIR_CD_MS) {
-    const wait = Math.ceil((PAIR_CD_MS - (Date.now() - lastRob)) / 60000);
-    return sock.sendMessage(jid, {
-      text: `Ya intentaste robarle a @${target.split('@')[0]} hace poco. Espera ${wait} min.`,
-      mentions: [target],
-    }, { quoted: msg });
   }
 
   const [aData, vData] = await Promise.all([
@@ -114,8 +96,6 @@ async function cmdRobo(sock, msg, args, groupMeta) {
 
   const chance = calcChance(aO, aA, vO, vA, aData.current, vData.current);
   const success = Math.random() < chance;
-
-  pairCooldowns.set(pk, Date.now());
 
   const aTag = `@${sender.split('@')[0]}`;
   const vTag = `@${target.split('@')[0]}`;

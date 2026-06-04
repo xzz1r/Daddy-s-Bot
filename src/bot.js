@@ -14,7 +14,6 @@ const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabl
 const { isOwner } = require('./utils/wa');
 const { flushCounts } = require('./utils/messageCounter');
 const { flushAura } = require('./utils/auraStore');
-const { flushRep } = require('./utils/repStore');
 const { flushCache } = require('./utils/musicCache');
 const { isBusiness } = require('./utils/businessCheck');
 const { ensureTemp } = require('./utils/helpers');
@@ -324,7 +323,7 @@ async function connectToWhatsApp() {
 async function gracefulShutdown() {
   // Flush all debounced writes BEFORE closing the socket — otherwise the last
   // few seconds of stats, message counts, and music index updates are lost.
-  await Promise.allSettled([flushState(), flushCounts(), flushAura(), flushRep(), flushCache()]);
+  await Promise.allSettled([flushState(), flushCounts(), flushAura(), flushCache()]);
   if (sock) {
     try { sock.end(); } catch {}
   }

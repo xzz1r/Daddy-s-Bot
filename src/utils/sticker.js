@@ -82,14 +82,15 @@ async function generateAnimatedThumb(animBuf) {
   }
 }
 
-// Scale to fit a `size`×`size` box: long edge → size, preserve aspect ratio
-// (force_original_aspect_ratio=decrease), high-quality Lanczos resampling.
-// format=rgba ensures proper alpha channel support for animated stickers.
-// No padding — output dimensions match the content's natural aspect ratio
-// so the sticker looks exactly like the original.
-const VF_STATIC = `scale=512:512:force_original_aspect_ratio=decrease:flags=lanczos`;
+// Scale to fit within a `size`×`size` box, preserving aspect ratio. The
+// min(iw,size)/min(ih,size) targets mean content is NEVER upscaled: a small
+// GIF (e.g. 226×128) keeps its native pixels instead of being blown up to 512
+// (which is what pixelated/malformed GIF stickers). Large content (video) is
+// downscaled to fit. No padding, no forced rgba conversion — that keeps the
+// encode fast and the output identical to the source, exactly like before.
+const VF_STATIC = `scale='min(iw,512)':'min(ih,512)':force_original_aspect_ratio=decrease`;
 const VF_ANIM = (fps, size = 512) =>
-  `fps=${fps},scale=${size}:${size}:force_original_aspect_ratio=decrease:flags=lanczos,format=rgba`;
+  `fps=${fps},scale='min(iw,${size})':'min(ih,${size})':force_original_aspect_ratio=decrease`;
 
 // Hard kill if ffmpeg runs longer than this — on Termux a hung encode can
 // otherwise pin a CPU core forever and zombie the command.

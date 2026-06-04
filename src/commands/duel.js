@@ -9,10 +9,8 @@ const STAKE_MIN = 100;
 const STAKE_MAX = 10000;
 const STAKE_DEFAULT = 500;
 const EXPIRY_MS = 90 * 1000;       // pending challenge dies after 90 s
-const CHALLENGE_COOLDOWN_MS = 30 * 1000; // anti-spam per challenger
 
 const pending = new Map();      // groupJid -> { challenger, target, stake, ts }
-const lastChallenge = new Map(); // 'group|challenger' -> ts
 
 // Mild rig: the owner has an edge but loses often enough that it's a real
 // fight; admins a slighter edge; members 50/50. Returns 'c' or 't'.
@@ -145,18 +143,10 @@ async function cmdDuel(sock, msg, args, groupMeta) {
     }, { quoted: msg });
   }
 
-  const cKey = `${jid}|${bareJid(sender)}`;
-  const cLast = lastChallenge.get(cKey);
-  if (cLast && Date.now() - cLast < CHALLENGE_COOLDOWN_MS) {
-    const wait = Math.ceil((CHALLENGE_COOLDOWN_MS - (Date.now() - cLast)) / 1000);
-    return sock.sendMessage(jid, { text: `Espera ${wait}s antes de retar de nuevo.` }, { quoted: msg });
-  }
-
   // Stake: first numeric arg after the mention (e.g. "!duel @user 800").
   const stakeArg = (args || []).find(a => /^\d+$/.test(a));
   const stake = clampStake(stakeArg);
 
-  lastChallenge.set(cKey, Date.now());
   pending.set(jid, { challenger: sender, target, stake, ts: Date.now() });
 
   await sock.sendMessage(jid, {
