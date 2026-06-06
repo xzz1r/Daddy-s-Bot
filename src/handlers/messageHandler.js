@@ -1,6 +1,7 @@
 const config = require('../config');
 const { isBotEnabled, incrementStat, isAntiLinkEnabled } = require('../utils/state');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
+const { checkCasinoMilestone } = require('../utils/casino');
 const { cmdPlay, cmdClearCache } = require('../commands/music');
 const { cmdSticker } = require('../commands/sticker');
 const { cmdTopRandom } = require('../commands/topsRandom');
@@ -134,6 +135,7 @@ async function handleMessage(sock, msg) {
   incrementStat('messagesReceived');
   if (!msg.key.fromMe && jid.endsWith('@g.us') && sender) {
     incrementMsgCount(jid, sender).catch(() => {});
+    checkCasinoMilestone(sock, jid, sender).catch(() => {});
   }
 
   // Sync in-memory check — no async overhead.

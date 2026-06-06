@@ -26,10 +26,11 @@ function rollAura(targetIsOwner, targetIsAdmin) {
     if (r < 0.82) return { tier: 'loss',    amount: -small() };
     return { tier: 'cursed', amount: -big() };
   }
-  // member — roast-leaning
-  if (r < 0.08) return { tier: 'blessed', amount: big() };
-  if (r < 0.25) return { tier: 'gain',    amount: small() };
-  if (r < 0.65) return { tier: 'loss',    amount: -small() };
+  // member — house edge ~430/roll (positive 45%, negative 55%)
+  // Compensated by casino milestone bonuses for active users.
+  if (r < 0.15) return { tier: 'blessed', amount: big() };
+  if (r < 0.45) return { tier: 'gain',    amount: small() };
+  if (r < 0.81) return { tier: 'loss',    amount: -small() };
   return { tier: 'cursed', amount: -big() };
 }
 
