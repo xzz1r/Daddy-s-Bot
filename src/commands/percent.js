@@ -1,5 +1,13 @@
-const { isOwner, isAdmin, getTargetOrSelf } = require('../utils/wa');
+const { isOwner, isAdmin, getTargetOrSelf, getSender, bareJid } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
+const { addAura } = require('../utils/auraStore');
+
+// Shared cooldown across ALL percent commands per sender per group.
+// Prevents rotating through !gay → !maricon → !rata to bypass the wait.
+const PERCENT_COOLDOWN_MS = 10 * 60 * 1000;
+const lastPercent = new Map();
+
+const fmtA = n => n.toLocaleString('es-ES');
 
 // Distribuciones por tier — basadas en el ROL DEL TARGET, no del sender:
 //
@@ -1526,6 +1534,22 @@ async function runPercent(sock, msg, key, groupMeta) {
   const cfg = LABELS[key];
   if (!cfg) return;
 
+  const isGroup = jid.endsWith('@g.us');
+  const sender = getSender(msg);
+
+  // Cooldown: shared across all percent commands, groups only.
+  // Anti-exploit: prevents rotating !maricon → !gay → !rata to bypass the wait.
+  if (isGroup) {
+    const coolKey = `${jid}|percent|${bareJid(sender)}`;
+    const last = lastPercent.get(coolKey) || 0;
+    const remaining = PERCENT_COOLDOWN_MS - (Date.now() - last);
+    if (remaining > 0) {
+      const mins = Math.ceil(remaining / 60_000);
+      return sock.sendMessage(jid, { text: `Espera *${mins}min*.` }, { quoted: msg });
+    }
+    lastPercent.set(coolKey, Date.now());
+  }
+
   const target = getTargetOrSelf(msg);
   // El % se basa en el ROL DEL TARGET, no del sender
   const targetIsOwner = isOwner(target, false, groupMeta);
@@ -1537,10 +1561,25 @@ async function runPercent(sock, msg, key, groupMeta) {
   const verdict = percent >= 70 ? pick(cfg.high) : percent <= 30 ? pick(cfg.low) : pick(cfg.mid);
   const showExtreme = percent >= 70 && cfg.extreme?.length;
 
+  // Aura effect: only extreme results (≥70% or ≤30%), only in groups.
+  // Mid results (31-69%) don't move aura — variable ratio keeps it unpredictable.
+  // goodIsHigh=true: high % = good (gain), low % = bad (loss)
+  // goodIsHigh=false: high % = bad (loss, validated the negative trait), low % = good (gain, vindicated)
+  let auraLine = '';
+  if (isGroup && (percent >= 70 || percent <= 30)) {
+    const goodResult = cfg.goodIsHigh ? percent >= 70 : percent <= 30;
+    const amount = 100 + Math.floor(Math.random() * 301); // 100–400
+    const delta = goodResult ? +amount : -amount;
+    const { current } = await addAura(jid, target, delta);
+    const sign = delta >= 0 ? '+' : '−';
+    auraLine = `\n\n@${target.split('@')[0]}  ${sign}${fmtA(Math.abs(delta))} de aura → *${fmtA(current)}*`;
+  }
+
   const text =
     `*@${target.split('@')[0]} es ${percent}% ${cfg.name}*\n\n` +
     `${verdict}` +
-    (showExtreme ? `\n\n${pick(cfg.extreme)}` : '');
+    (showExtreme ? `\n\n${pick(cfg.extreme)}` : '') +
+    auraLine;
 
   await sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });
 }
