@@ -66,17 +66,17 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: 'No puedes robarte a ti mismo.' }, { quoted: msg });
   }
 
-  const [aData, vData] = await Promise.all([
+  const [auraA, auraV] = await Promise.all([
     getAura(jid, sender),
     getAura(jid, target),
   ]);
 
-  if (aData.current < MIN_AURA) {
+  if (auraA < MIN_AURA) {
     return sock.sendMessage(jid, {
       text: `Necesitas al menos ${MIN_AURA} de aura para intentar un robo. No tienes ni para pipas.`,
     }, { quoted: msg });
   }
-  if (vData.current <= 0) {
+  if (auraV <= 0) {
     return sock.sendMessage(jid, {
       text: `@${target.split('@')[0]} no tiene aura que robar. Busca una víctima con algo encima.`,
       mentions: [target],
@@ -85,7 +85,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
 
   // Stake: first numeric arg, clamped to what both parties can afford
   const raw = parseInt((args || []).find(a => /^\d+$/.test(a)) || STAKE_DEFAULT, 10);
-  const maxStake = Math.min(STAKE_MAX, vData.current, aData.current);
+  const maxStake = Math.min(STAKE_MAX, auraV, auraA);
   const stake = Math.max(STAKE_FLOOR, Math.min(raw, maxStake));
 
   const participants = groupMeta?.participants || [];
@@ -94,7 +94,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const vO = isOwner(target, false, groupMeta);
   const vA = !vO && isAdmin(participants, target);
 
-  const chance = calcChance(aO, aA, vO, vA, aData.current, vData.current);
+  const chance = calcChance(aO, aA, vO, vA, auraA, auraV);
   const success = Math.random() < chance;
 
   const aTag = `@${sender.split('@')[0]}`;

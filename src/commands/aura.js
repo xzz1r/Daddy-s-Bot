@@ -1,6 +1,9 @@
-const { isOwner, isAdmin, getTargetOrSelf } = require('../utils/wa');
+const { isOwner, isAdmin, getTargetOrSelf, getSender, bareJid } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking, STARTING_AURA } = require('../utils/auraStore');
+
+const ROLL_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes per user per group
+const lastRoll = new Map(); // `${groupJid}|${bareJid}` -> timestamp
 
 // Aura roll, rigged by the TARGET's role — same owner-favoritism as the percent
 // games: the owner mostly gains big, admins are mixed, regular members mostly
@@ -139,6 +142,28 @@ const AURA = {
     'Tropiezo de los tontos, marca de la casa. El aura te lo apunta en rojo.',
     'Bajón por hablar sin pensar. Nada nuevo bajo el sol, campeón.',
   ],
+  spiral: [
+    'Ya estabas en el foso y sigues cavando. Nadie va a lanzarte una cuerda porque nadie nota que no has salido.',
+    'Aura negativa y en caída libre. Date por vencido antes de que la pena ajena del grupo alcance niveles clínicos.',
+    'El pozo no tiene fondo si lo sigues cavando tú. Ríndete. Es lo más inteligente que has podido hacer en semanas.',
+    'Tan en negativo que ya eres deuda viva. El mercado de aura ni te cotiza, directamente te cancela.',
+    'Sigue hundiéndote. En algún punto llegarás a un nivel de autoconciencia que te haga parar. Quizás.',
+    'Toca fondo y se confirma: había más fondo. Talento para el desastre que ni el equipo más pesimista veía venir.',
+    'Las pérdidas ya no son pérdidas, son hábito. Manda la carta de rendición y LDAR en paz.',
+    'En negativo y bajando. Si esto fuera bolsa, los analistas te habrían enterrado hace tres sesiones.',
+    'Punto a punto al abismo. El grupo ya no siente rabia, siente pena clínica. Que es peor.',
+    'Tu aura cotiza como bono basura. Ríndete o compra aura. Ninguna de las dos vas a hacer.',
+    'Negativo y más negativo. Caída libre de alguien que nunca tuvo plataforma. JFL eterno.',
+    'Cada tiro te hunde más y aun así sigues tirando. Definición práctica de insanity.',
+    'Ya no es mala racha: es un rasgo de carácter. Tu aura refleja exactamente quién eres.',
+    'El universo lleva meses diciéndote lo mismo con distintas palabras. Escúchalo de una vez: ríndete.',
+    'Negative aura spiral documentada en directo. El grupo ya tiene capturas de tu decadencia.',
+    'Subhuman de aura. No es un insulto, es una descripción técnica de lo que el marcador muestra.',
+    'Date por vencido formalmente. Llega antes, duele menos, y por una vez tomarás la decisión correcta.',
+    'Tu aura en rojo es ya parte de la identidad del grupo. Eres el ejemplo de lo que nadie quiere ser.',
+    'Sigues perdiendo en terreno propio. La rendición es una opción válida. Bienvenida, incluso.',
+    'El cope ya no alcanza. La gravedad te gana y el aura te lo certifica tiro a tiro.',
+  ],
   cursed: [
     'Acabas de perder TODA tu aura de un golpe y con público. El grupo lo grabó en su memoria.',
     'Eso fue tan vergonzoso que el aura salió corriendo y pidió cambio de dueño.',
@@ -212,6 +237,18 @@ async function cmdAura(sock, msg, args, groupMeta) {
     return showRanking(sock, msg, groupMeta);
   }
 
+  const sender = getSender(msg);
+  const coolKey = `${jid}|${bareJid(sender)}`;
+  const last = lastRoll.get(coolKey) || 0;
+  const remaining = ROLL_COOLDOWN_MS - (Date.now() - last);
+  if (remaining > 0) {
+    const mins = Math.ceil(remaining / 60_000);
+    return sock.sendMessage(jid, {
+      text: `Espera *${mins}min* para volver a tirar.`,
+    }, { quoted: msg });
+  }
+  lastRoll.set(coolKey, Date.now());
+
   const target = getTargetOrSelf(msg);
   const targetIsOwner = isOwner(target, false, groupMeta);
   const targetIsAdmin = isAdmin(groupMeta?.participants, target);
@@ -219,11 +256,14 @@ async function cmdAura(sock, msg, args, groupMeta) {
   const { tier, amount } = rollAura(targetIsOwner, targetIsAdmin);
   const sign = amount >= 0 ? '+' : '-';
 
-  const { current } = await addAura(jid, target, amount);
+  const { previous, current } = await addAura(jid, target, amount);
+
+  // Already in the red and going deeper: use spiral phrases
+  const effectiveTier = (previous < 0 && amount < 0) ? 'spiral' : tier;
 
   const text =
     `*@${target.split('@')[0]}  ${sign}${fmt(Math.abs(amount))} de aura*\n` +
-    `${pick(AURA[tier])}\n\n` +
+    `${pick(AURA[effectiveTier])}\n\n` +
     `Aura total: *${fmt(current)}*`;
 
   await sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });

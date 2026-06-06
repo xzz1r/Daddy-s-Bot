@@ -93,6 +93,31 @@ const MOG_PHRASES = [
   '%L es el resultado de "las manos del creador temblaron ese día y encima no había garantía".',
   'Moggeo total, inapelable, humillante. %M ni miró. %L no se va a recuperar de este antes del lunes.',
   'Este mog entra directo al hall de la fama del grupo. %M leyenda, %L ejemplo de qué no querer ser.',
+
+  // --- Personalidad / cope brutal ---
+  '%L siempre dice que "la personalidad importa más". La personalidad de %M también gana. Doble L documentada.',
+  '%L construyó su identidad en el cope de que el interior cuenta. %M ni necesita interior, el exterior ya ganó.',
+  'El "glow up" de %L es esperar 10 años para llegar a donde %M empezó. It\'s over antes de empezar.',
+  '%L va al gym, lee libros, trabaja la actitud. Sigue siendo %L. El óseo no se levanta a press.',
+  'Cuánto esfuerzo para seguir perdiendo. %L es el argumento vivo de que el cope no escala.',
+
+  // --- Looksmatch brutal ---
+  '%M es looksmatch de top tier. %L es looksmatch de aquellos con quienes nadie quiere hacer match.',
+  'El looksmatch de %L ya fue calculado por la hipergamia y el resultado es clasificado.',
+  '%M puede bajar su estándar hasta cualquier punto. %L subiendo todos sus estándares llega al baseline de %M.',
+  '%L cree que está fuera de su liga. %L ni siquiera está en la misma clasificación de ligas. Divisiones distintas.',
+
+  // --- Height / presence brutal ---
+  'Cuando %M entra a un sitio la temperatura cambia. Cuando %L entra nadie levanta la vista. Presencia genética.',
+  '%M es la persona a quien todos quieren hablar sin saber por qué. %L es la persona a quien todos confunden con el mobiliario.',
+  'El halo effect de %M funciona en automatismo. El de %L funciona al revés: empeora la primera impresión de todo lo que toca.',
+  '%M genera interés social sin hacer nada. %L genera incomodidad social sin querer. Genética de ambas partes.',
+
+  // --- LDAR / blackpill ---
+  'El único camino válido para %L después de este mog es el LDAR consciente y con paz interior.',
+  'Blackpill administrada en directo. %M es la prueba de que importa el punto de partida, no el esfuerzo. %L es el corolario.',
+  'El resultado de este mog es solo la confirmación pública de lo que los foros llevan años documentando sobre el caso %L.',
+  'It\'s over para %L de una forma tan total y tan irreversible que decirlo en voz alta ya no añade nada nuevo.',
 ];
 
 async function cmdMog(sock, msg, groupMeta) {

@@ -414,15 +414,13 @@ async function cmdNotifAdmin(sock, msg, args, groupMeta) {
   const arg = (args[0] || '').toLowerCase();
   if (arg !== 'on' && arg !== 'off') {
     const current = isAdminNotifyEnabled(jid) ? 'activadas' : 'desactivadas';
-    return sock.sendMessage(jid, { text: `Notificaciones de admin: *${current}*\nUsa !notifadmin on/off para cambiar.` }, { quoted: msg });
+    return sock.sendMessage(jid, { text: `Notificaciones de admin: *${current}*.` }, { quoted: msg });
   }
 
   const enable = arg === 'on';
   await toggleAdminNotify(jid, enable);
   await sock.sendMessage(jid, {
-    text: enable
-      ? 'Notificaciones de cambios de admin activadas.'
-      : 'Notificaciones de cambios de admin desactivadas.',
+    text: enable ? 'Notificaciones de admin: *activadas*.' : 'Notificaciones de admin: *desactivadas*.',
   }, { quoted: msg });
 }
 
@@ -440,20 +438,13 @@ async function cmdAntiAdmin(sock, msg, args, groupMeta) {
   const arg = (args[0] || '').toLowerCase();
   if (arg !== 'on' && arg !== 'off') {
     const current = isAntiAdminEnabled(jid) ? 'activado' : 'desactivado';
-    return sock.sendMessage(jid, {
-      text: `Anti-admin: *${current}*\nUsa *!antiadmin on/off* para cambiar.`,
-    }, { quoted: msg });
+    return sock.sendMessage(jid, { text: `Anti-admin: *${current}*.` }, { quoted: msg });
   }
 
   const enable = arg === 'on';
   await toggleAntiAdmin(jid, enable);
   await sock.sendMessage(jid, {
-    text: enable
-      ? 'Anti-admin *activado*.\n' +
-        '- Si un admin (no owner) da o quita admin, se revierte y el admin queda degradado.\n' +
-        '- Si un admin (no owner) agrega gente, es degradado y los agregados expulsados.\n' +
-        '- Las acciones del owner/co-owner estan permitidas y no se notifican.'
-      : 'Anti-admin *desactivado*.',
+    text: enable ? 'Anti-admin *activado*.' : 'Anti-admin *desactivado*.',
   }, { quoted: msg });
 }
 
@@ -476,21 +467,13 @@ async function cmdAntiBusiness(sock, msg, args, groupMeta) {
 
   if (arg !== 'on' && arg !== 'off') {
     const current = isAntiBusinessEnabled(jid) ? 'activado' : 'desactivado';
-    return sock.sendMessage(jid, {
-      text:
-        `Anti-empresa: *${current}*\n\n` +
-        `*!antiempresa on*    activar (Business nuevas son expulsadas)\n` +
-        `*!antiempresa off*   desactivar\n` +
-        `*!antiempresa scan*  barrer Business actuales del grupo`,
-    }, { quoted: msg });
+    return sock.sendMessage(jid, { text: `Anti-empresa: *${current}*. on/off/scan.` }, { quoted: msg });
   }
 
   const enable = arg === 'on';
   await toggleAntiBusiness(jid, enable);
   await sock.sendMessage(jid, {
-    text: enable
-      ? 'Anti-empresa *activado*.\nCuando una cuenta de WhatsApp Business entre al grupo, sera expulsada automaticamente.\n\nUsa *!antiempresa scan* para barrer las que ya estan dentro.'
-      : 'Anti-empresa *desactivado*.',
+    text: enable ? 'Anti-empresa *activado*.' : 'Anti-empresa *desactivado*.',
   }, { quoted: msg });
 }
 
@@ -560,7 +543,7 @@ async function cmdAdd(sock, msg, args, groupMeta) {
 
   const raw = (args[0] || '').replace(/[^\d]/g, '');
   if (!raw || raw.length < 6) {
-    return sock.sendMessage(jid, { text: 'Uso: *!add <numero>*\nEjemplo: !add 5491100000000' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: '*!add <numero>*' }, { quoted: msg });
   }
 
   const targetJid = `${raw}@s.whatsapp.net`;
@@ -603,20 +586,13 @@ async function cmdAntiLink(sock, msg, args, groupMeta) {
   const arg = (args[0] || '').toLowerCase();
   if (arg !== 'on' && arg !== 'off') {
     const current = isAntiLinkEnabled(jid) ? 'activado' : 'desactivado';
-    return sock.sendMessage(jid, {
-      text: `Anti-link: *${current}*\nUsa *!antilink on/off* para cambiar.`,
-    }, { quoted: msg });
+    return sock.sendMessage(jid, { text: `Anti-link: *${current}*.` }, { quoted: msg });
   }
 
   const enable = arg === 'on';
   await toggleAntiLink(jid, enable);
   await sock.sendMessage(jid, {
-    text: enable
-      ? 'Anti-link *activado*.\n' +
-        '- YouTube e Instagram permitidos (con aviso de enviarlos una sola vez).\n' +
-        '- Cualquier otro enlace (webs, grupos de WhatsApp, etc.) se borra y se expulsa al autor.\n' +
-        '- Admins y owner exentos.'
-      : 'Anti-link *desactivado*.',
+    text: enable ? 'Anti-link *activado*.' : 'Anti-link *desactivado*.',
   }, { quoted: msg });
 }
 

@@ -35,6 +35,21 @@ const DUEL_WIN = [
   '%W gana limpio. %L se queda contando lo que perdió.',
   '%W ejecuta a %L sin pestañear. Duelo terminado.',
   '%W manda en este duelo de principio a fin. %L ni apareció.',
+  '%W tenía el resultado firmado antes de que %L abriera la boca. Duelo de paper.',
+  'Genetic mog aplicado al combate. %W arriba, %L en el sótano genético para siempre.',
+  'El frame de %W aplastó a %L antes del primer round. Frame wins fights.',
+  '%W ni tuvo que esforzarse. It\'s over para %L y todos lo vieron en directo.',
+  '%L apostó creyendo que la suerte compensaría la genética. Error de libro.',
+  '%W se lleva el botín. %L se lleva la lección. Clásico de la jerarquía social.',
+  'Duelo resuelto en favor de quien la biología ya favorecía. %W leyenda, %L caso de estudio.',
+  '%L tiró los dados contra alguien que ya tenía el resultado escrito en los huesos. JFL.',
+  '%W ni recuerda haber peleado. %L no va a poder olvidarlo. Eso es el tier gap.',
+  '%L cope post-derrota incoming. %W ya cerró el tema y siguió con su vida.',
+  'La hipergamia social no manda refuerzos para los que pierden duelos. %L se queda solo.',
+  '%W gana como los Chads: sin drama, sin explicaciones, sin mirarlo dos veces.',
+  '%L retó a alguien que ni se molestó en prepararse. Resultado: lección pública bien ganada.',
+  'PSL aplicado al duelo: %W en S tier, %L en tier de relleno. La aritmética no falla.',
+  'No fue competencia. Fue confirmación de jerarquía. %W arriba, %L pagando la evidencia.',
 ];
 
 const fmt = (n) => n.toLocaleString('es-ES');
@@ -97,7 +112,15 @@ async function cmdDuel(sock, msg, args, groupMeta) {
     const d = getPending(jid);
     if (!d) return sock.sendMessage(jid, { text: 'No hay ningún duelo pendiente.' }, { quoted: msg });
     if (bareJid(sender) !== bareJid(d.target)) {
-      return sock.sendMessage(jid, { text: 'Este duelo no es para ti. Solo lo acepta quien fue retado.' }, { quoted: msg });
+      return sock.sendMessage(jid, { text: 'Este duelo no es para ti.' }, { quoted: msg });
+    }
+    const auraT = await getAura(jid, d.target);
+    if (auraT < d.stake) {
+      pending.delete(jid);
+      return sock.sendMessage(jid, {
+        text: `@${d.target.split('@')[0]} no tiene *${fmt(d.stake)}* de aura (tiene *${fmt(auraT)}*). Duelo cancelado por insolvente.`,
+        mentions: [d.target],
+      }, { quoted: msg });
     }
     return resolveDuel(sock, jid, d, groupMeta);
   }
@@ -146,6 +169,14 @@ async function cmdDuel(sock, msg, args, groupMeta) {
   // Stake: first numeric arg after the mention (e.g. "!duel @user 800").
   const stakeArg = (args || []).find(a => /^\d+$/.test(a));
   const stake = clampStake(stakeArg);
+
+  // Both must have enough aura to cover the bet
+  const auraC = await getAura(jid, sender);
+  if (auraC < stake) {
+    return sock.sendMessage(jid, {
+      text: `No tienes *${fmt(stake)}* de aura. Tienes *${fmt(auraC)}*.`,
+    }, { quoted: msg });
+  }
 
   pending.set(jid, { challenger: sender, target, stake, ts: Date.now() });
 
