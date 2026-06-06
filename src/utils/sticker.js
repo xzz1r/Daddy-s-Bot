@@ -88,9 +88,9 @@ async function generateAnimatedThumb(animBuf) {
 // (which is what pixelated/malformed GIF stickers). Large content (video) is
 // downscaled to fit. No padding, no forced rgba conversion — that keeps the
 // encode fast and the output identical to the source, exactly like before.
-const VF_STATIC = `scale='min(iw,512)':'min(ih,512)':force_original_aspect_ratio=decrease`;
+const VF_STATIC = `scale='min(iw,512)':'min(ih,512)':force_original_aspect_ratio=decrease,setsar=1`;
 const VF_ANIM = (fps, size = 512) =>
-  `fps=${fps},scale='min(iw,${size})':'min(ih,${size})':force_original_aspect_ratio=decrease`;
+  `fps=${fps},scale='min(iw,${size})':'min(ih,${size})':force_original_aspect_ratio=decrease,setsar=1`;
 
 // Hard kill if ffmpeg runs longer than this — on Termux a hung encode can
 // otherwise pin a CPU core forever and zombie the command.
