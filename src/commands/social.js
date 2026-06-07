@@ -138,7 +138,7 @@ ${p}aura top — ranking de aura
 ${p}duel @user <aura> — duelo por aura
 ${p}mog @a @b — 1v1 de looks
 ${p}ship [@a] [@b] — match
-${p}robo @user [aura] — intentar robar aura (2h cooldown)
+${p}robo @user [aura] — intentar robar aura (10min cooldown)
 
 ━━━ *IA* ━━━
 ${p}g <pregunta> — Grok

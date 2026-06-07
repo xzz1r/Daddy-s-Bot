@@ -77,7 +77,15 @@ function isOwner(jid, fromMe, groupMeta) {
   for (const c of candidates) {
     const num = String(c).replace(/@[^@]+$/, '').replace(/\D/g, '');
     if (!num) continue;
-    if (owners.some(o => num === o || num.endsWith(o) || o.endsWith(num))) return true;
+    // Exact match, or a suffix match (to tolerate optional country-code prefixes,
+    // e.g. AR "9"), but only when the shorter operand is a full-length number.
+    // A short/misconfigured owner value must NOT suffix-match arbitrary members.
+    if (owners.some(o => {
+      if (num === o) return true;
+      const shorter = num.length <= o.length ? num : o;
+      const longer  = num.length <= o.length ? o : num;
+      return shorter.length >= 10 && longer.endsWith(shorter);
+    })) return true;
   }
   return false;
 }

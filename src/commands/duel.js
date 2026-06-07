@@ -119,12 +119,25 @@ async function cmdDuel(sock, msg, args, groupMeta) {
     if (bareJid(sender) !== bareJid(d.target)) {
       return sock.sendMessage(jid, { text: 'Este duelo no es para ti.' }, { quoted: msg });
     }
-    const auraT = await getAura(jid, d.target);
+    const [auraT, auraC] = await Promise.all([
+      getAura(jid, d.target),
+      getAura(jid, d.challenger),
+    ]);
     if (auraT < d.stake) {
       pending.delete(jid);
       return sock.sendMessage(jid, {
         text: `@${d.target.split('@')[0]} no tiene *${fmt(d.stake)}* de aura (tiene *${fmt(auraT)}*). Duelo cancelado por insolvente.`,
         mentions: [d.target],
+      }, { quoted: msg });
+    }
+    // The challenger may have lost aura elsewhere (another duel/robo/!aura) since
+    // issuing the challenge — re-verify so the bet can't drive them arbitrarily
+    // negative on a loss.
+    if (auraC < d.stake) {
+      pending.delete(jid);
+      return sock.sendMessage(jid, {
+        text: `@${d.challenger.split('@')[0]} ya no tiene *${fmt(d.stake)}* de aura (tiene *${fmt(auraC)}*). Duelo cancelado.`,
+        mentions: [d.challenger],
       }, { quoted: msg });
     }
     return resolveDuel(sock, jid, d, groupMeta);

@@ -1,6 +1,8 @@
 const fs = require('fs-extra');
 const path = require('path');
 const { bareJid } = require('./wa');
+const { atomicWriteJson } = require('./helpers');
+const logger = require('./logger');
 
 const COUNT_FILE = path.join(__dirname, '../../data/messageCounts.json');
 
@@ -25,7 +27,8 @@ function scheduleSave() {
   if (saveTimer) return;
   saveTimer = setTimeout(async () => {
     saveTimer = null;
-    try { await fs.writeJson(COUNT_FILE, counts); } catch {}
+    try { await atomicWriteJson(COUNT_FILE, counts); }
+    catch (e) { logger.error(`messageCounter: fallo al guardar: ${e.message}`); }
   }, 10000);
 }
 
@@ -76,7 +79,8 @@ async function flushCounts() {
     saveTimer = null;
   }
   if (counts) {
-    try { await fs.writeJson(COUNT_FILE, counts); } catch {}
+    try { await atomicWriteJson(COUNT_FILE, counts); }
+    catch (e) { logger.error(`messageCounter: fallo al flush: ${e.message}`); }
   }
 }
 

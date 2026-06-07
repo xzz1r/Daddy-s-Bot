@@ -97,4 +97,20 @@ async function streamToBuffer(stream) {
   return Buffer.concat(chunks);
 }
 
-module.exports = { ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, shuffle, streamToBuffer };
+// Atomic JSON write: serialize to a unique temp sibling, then rename over the
+// target. rename(2) is atomic on the same filesystem, so a crash, OOM-kill or
+// battery cut mid-write leaves the PREVIOUS file intact instead of a truncated
+// one. Without this, a corrupt half-write makes the next readJson throw, and
+// the stores' `catch → {}` then silently wipes all persisted data on boot.
+async function atomicWriteJson(file, data) {
+  const tmp = `${file}.${process.pid}.${Date.now()}.${Math.random().toString(36).slice(2)}.tmp`;
+  try {
+    await fs.outputFile(tmp, JSON.stringify(data, null, 2));
+    await fs.move(tmp, file, { overwrite: true });
+  } catch (err) {
+    await fs.remove(tmp).catch(() => {});
+    throw err;
+  }
+}
+
+module.exports = { ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, shuffle, streamToBuffer, atomicWriteJson };

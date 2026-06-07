@@ -1,5 +1,7 @@
 const fs = require('fs-extra');
 const path = require('path');
+const { atomicWriteJson } = require('./helpers');
+const logger = require('./logger');
 
 const STATE_FILE = path.join(__dirname, '../../data/state.json');
 
@@ -20,22 +22,30 @@ async function loadState() {
     await fs.ensureFile(STATE_FILE);
     const raw = await fs.readFile(STATE_FILE, 'utf-8');
     if (!raw.trim()) return { ...defaultState };
-    return { ...defaultState, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    // Deep-merge stats so a partial on-disk object (e.g. missing startTime, or a
+    // newly-added counter) keeps the defaults instead of dropping them.
+    return { ...defaultState, ...parsed, stats: { ...defaultState.stats, ...(parsed.stats || {}) } };
   } catch {
     return { ...defaultState };
   }
 }
 
 async function saveState(state) {
-  await fs.ensureFile(STATE_FILE);
-  await fs.writeFile(STATE_FILE, JSON.stringify(state, null, 2));
+  await atomicWriteJson(STATE_FILE, state);
 }
 
 let _state = { ...defaultState };
 let _saveTimer = null;
+let _loaded = false;
 
+// Load from disk once. Subsequent calls (e.g. on every reconnect) keep the
+// live in-memory state instead of reloading and discarding stat increments that
+// haven't been flushed yet.
 async function initState() {
+  if (_loaded) return _state;
   _state = await loadState();
+  _loaded = true;
   return _state;
 }
 

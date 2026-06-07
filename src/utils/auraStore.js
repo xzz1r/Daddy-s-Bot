@@ -1,6 +1,8 @@
 const fs = require('fs-extra');
 const path = require('path');
 const { bareJid } = require('./wa');
+const { atomicWriteJson } = require('./helpers');
+const logger = require('./logger');
 
 const AURA_FILE = path.join(__dirname, '../../data/aura.json');
 
@@ -27,7 +29,8 @@ function scheduleSave() {
   if (saveTimer) return;
   saveTimer = setTimeout(async () => {
     saveTimer = null;
-    try { await fs.writeJson(AURA_FILE, store); } catch {}
+    try { await atomicWriteJson(AURA_FILE, store); }
+    catch (e) { logger.error(`auraStore: fallo al guardar: ${e.message}`); }
   }, 5000);
 }
 
@@ -72,7 +75,10 @@ async function resetAura(groupJid) {
 
 async function flushAura() {
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
-  if (store) { try { await fs.writeJson(AURA_FILE, store); } catch {} }
+  if (store) {
+    try { await atomicWriteJson(AURA_FILE, store); }
+    catch (e) { logger.error(`auraStore: fallo al flush: ${e.message}`); }
+  }
 }
 
 module.exports = { getAura, addAura, getAuraRanking, resetAura, flushAura, STARTING_AURA };

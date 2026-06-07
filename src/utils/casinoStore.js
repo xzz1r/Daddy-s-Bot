@@ -1,6 +1,8 @@
 const fs = require('fs-extra');
 const path = require('path');
 const { bareJid } = require('./wa');
+const { atomicWriteJson } = require('./helpers');
+const logger = require('./logger');
 
 const CASINO_FILE = path.join(__dirname, '../../data/casino.json');
 
@@ -22,7 +24,8 @@ function scheduleSave() {
   if (saveTimer) return;
   saveTimer = setTimeout(async () => {
     saveTimer = null;
-    try { await fs.writeJson(CASINO_FILE, store); } catch {}
+    try { await atomicWriteJson(CASINO_FILE, store); }
+    catch (e) { logger.error(`casinoStore: fallo al guardar: ${e.message}`); }
   }, 5000);
 }
 
@@ -44,7 +47,10 @@ async function getCasinoCount(groupJid, userJid) {
 
 async function flushCasino() {
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
-  if (store) { try { await fs.writeJson(CASINO_FILE, store); } catch {} }
+  if (store) {
+    try { await atomicWriteJson(CASINO_FILE, store); }
+    catch (e) { logger.error(`casinoStore: fallo al flush: ${e.message}`); }
+  }
 }
 
 module.exports = { incrementCasinoCount, getCasinoCount, flushCasino };
