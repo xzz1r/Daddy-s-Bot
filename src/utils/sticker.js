@@ -82,15 +82,14 @@ async function generateAnimatedThumb(animBuf) {
   }
 }
 
-// Scale to fit within a `size`×`size` box, preserving aspect ratio. The
-// min(iw,size)/min(ih,size) targets mean content is NEVER upscaled: a small
-// GIF (e.g. 226×128) keeps its native pixels instead of being blown up to 512
-// (which is what pixelated/malformed GIF stickers). Large content (video) is
-// downscaled to fit. No padding, no forced rgba conversion — that keeps the
-// encode fast and the output identical to the source, exactly like before.
+// Scale to fit within a `size`×`size` box, preserving aspect ratio.
+// format=rgba on the anim path converts planar YUV (yuv420p/nv12/etc.) to
+// interleaved RGBA before libwebp_anim receives it — without this, some ffmpeg
+// builds interpret the Y, U, V planes as separate animation frames, producing
+// the "two halves stacked" artifact seen with WhatsApp video messages.
 const VF_STATIC = `scale='min(iw,512)':'min(ih,512)':force_original_aspect_ratio=decrease,setsar=1`;
 const VF_ANIM = (fps, size = 512) =>
-  `fps=${fps},scale='min(iw,${size})':'min(ih,${size})':force_original_aspect_ratio=decrease,setsar=1`;
+  `fps=${fps},scale='min(iw,${size})':'min(ih,${size})':force_original_aspect_ratio=decrease,setsar=1,format=rgba`;
 
 // Hard kill if ffmpeg runs longer than this — on Termux a hung encode can
 // otherwise pin a CPU core forever and zombie the command.
@@ -324,6 +323,7 @@ function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512) {
       activeCmd = ffmpeg(inputFile)
         .setFfmpegPath(ffmpegPath)
         .outputOptions([
+          '-map', '0:v:0',
           '-vf', VF_ANIM(fps, size),
           '-c:v', codec,
           '-loop', '0',
