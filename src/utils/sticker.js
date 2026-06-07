@@ -199,7 +199,31 @@ function injectExifIntoWebP(webp, exifBuf) {
 
   if (chunkType === 'VP8X') {
     const out = Buffer.from(webp);
-    out[20] = out[20] | 0x08;  // set EXIF flag bit
+
+    // libwebp always sets VP8X Alpha flag (0x10) even for fully opaque VP8
+    // animations that have no alpha channel at all. When WhatsApp sees Alpha=true
+    // with blend=yes on VP8 frames, it alpha-blends using garbage data (since VP8
+    // has no alpha bitplane), producing the "split in two / doubled" sticker.
+    // Fix: scan all ANMF frames — if none use VP8L (the only codec that actually
+    // carries alpha), clear the Alpha flag and force blend=no on every VP8 frame.
+    const isAnim = !!(out[20] & 0x02); // Animation bit
+    if (isAnim) {
+      let hasVP8L = false;
+      let p = 12;
+      while (p + 8 <= out.length) {
+        const ct = out.slice(p, p + 4).toString();
+        const cs = out.readUInt32LE(p + 4);
+        if (ct === 'ANMF' && cs > 16) {
+          const inner = out.slice(p + 24, p + 28).toString();
+          if (inner === 'VP8L') { hasVP8L = true; break; }
+          if (inner === 'VP8 ') out[p + 23] |= 0x02; // bit 1 = blend=no (replace, don't blend)
+        }
+        p += 8 + cs + (cs % 2);
+      }
+      if (!hasVP8L) out[20] &= ~0x10; // clear incorrect Alpha flag
+    }
+
+    out[20] |= 0x08; // set EXIF flag
 
     // Rebuild the container dropping any pre-existing EXIF chunk before appending
     // the new one. Re-stamping a sticker that already carried pack metadata (e.g.
