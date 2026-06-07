@@ -112,12 +112,13 @@ async function generateAnimatedThumb(animBuf) {
   }
 }
 
-// Scale to fit within a `size`×`size` box, preserving aspect ratio.
-// setsar=1 forces square display pixels so videos stored with a non-1:1 SAR
-// aren't stretched/skewed by the encoder.
-const VF_STATIC = `scale='min(iw,512)':'min(ih,512)':force_original_aspect_ratio=decrease,setsar=1`;
+// Scale to fit within size×size, preserving aspect ratio, then pad to exactly
+// size×size. Padding prevents WhatsApp from tiling undersized stickers to fill
+// its display area (which produces the "duplicated image" artifact).
+// setsar=1 forces square display pixels so videos with non-1:1 SAR aren't skewed.
+const VF_STATIC = `scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2,setsar=1`;
 const VF_ANIM = (fps, size = 512) =>
-  `fps=${fps},scale='min(iw,${size})':'min(ih,${size})':force_original_aspect_ratio=decrease,setsar=1`;
+  `fps=${fps},scale=${size}:${size}:force_original_aspect_ratio=decrease,pad=${size}:${size}:(ow-iw)/2:(oh-ih)/2,setsar=1`;
 
 // Hard kill if ffmpeg runs longer than this — on Termux a hung encode can
 // otherwise pin a CPU core forever and zombie the command.
