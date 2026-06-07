@@ -62,6 +62,12 @@ async function getActiveUsers(groupJid, minMessages = 10) {
   return out;
 }
 
+async function getUserCount(groupJid, userJid) {
+  await load();
+  const key = bareJid(userJid);
+  return counts[groupJid]?.[key] || 0;
+}
+
 // Force-flush pending debounced save — call on shutdown to avoid losing
 // up to 10s of message counts when the process exits.
 async function flushCounts() {
@@ -74,4 +80,4 @@ async function flushCounts() {
   }
 }
 
-module.exports = { increment, getActiveUsers, resetCounts, flushCounts };
+module.exports = { increment, getActiveUsers, getUserCount, resetCounts, flushCounts };

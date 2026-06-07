@@ -14,23 +14,24 @@ function rollAura(targetIsOwner, targetIsAdmin) {
   const small = () => (5 + Math.floor(Math.random() * 36)) * 100; // 500..4000
 
   if (targetIsOwner) {
-    // Favored, but not rigged: ~70% positive, and can still take a real hit.
-    if (r < 0.45) return { tier: 'blessed', amount: big() };
-    if (r < 0.70) return { tier: 'gain',    amount: small() };
-    if (r < 0.90) return { tier: 'loss',    amount: -small() };
+    // Owner is favored but still subject to house edge.
+    if (r < 0.35) return { tier: 'blessed', amount: big() };
+    if (r < 0.55) return { tier: 'gain',    amount: small() };
+    if (r < 0.80) return { tier: 'loss',    amount: -small() };
     return { tier: 'cursed', amount: -big() };
   }
   if (targetIsAdmin) {
-    if (r < 0.25) return { tier: 'blessed', amount: big() };
-    if (r < 0.55) return { tier: 'gain',    amount: small() };
-    if (r < 0.82) return { tier: 'loss',    amount: -small() };
+    // Admin: slight edge but house always wins long term.
+    if (r < 0.15) return { tier: 'blessed', amount: big() };
+    if (r < 0.30) return { tier: 'gain',    amount: small() };
+    if (r < 0.68) return { tier: 'loss',    amount: -small() };
     return { tier: 'cursed', amount: -big() };
   }
-  // member — house edge ~430/roll (positive 45%, negative 55%)
-  // Compensated by casino milestone bonuses for active users.
-  if (r < 0.15) return { tier: 'blessed', amount: big() };
-  if (r < 0.45) return { tier: 'gain',    amount: small() };
-  if (r < 0.81) return { tier: 'loss',    amount: -small() };
+  // member — casino house edge: 17% positive, 83% negative.
+  // The casino milestone system is the only reliable path to positive aura.
+  if (r < 0.05) return { tier: 'blessed', amount: big() };
+  if (r < 0.17) return { tier: 'gain',    amount: small() };
+  if (r < 0.67) return { tier: 'loss',    amount: -small() };
   return { tier: 'cursed', amount: -big() };
 }
 

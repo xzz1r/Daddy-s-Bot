@@ -19,6 +19,7 @@ const { cmdRobo } = require('../commands/robo');
 const { cmdDuel } = require('../commands/duel');
 const { cmdScan } = require('../commands/scan');
 const { cmdVs, cmdInactivos } = require('../commands/activity');
+const { cmdRoast } = require('../commands/roast');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp } = require('../commands/social');
 const { isOwner, isGroupAdmin, isBotAdmin, extractText, rememberMapping, getSender } = require('../utils/wa');
 const logger = require('../utils/logger');
@@ -64,7 +65,7 @@ const NEEDS_META = new Set([
   'g','ai','grok',
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy',
-  'aura','inactivos','inactivo','fantasma','fantasmas','mog','moggear',
+  'aura','inactivos','inactivo','fantasma','fantasmas','mog','moggear','roast','flamear',
   'duel','duelo','1v1',
   'robo','robar',
   'scan','escanear',
@@ -378,6 +379,11 @@ async function handleMessage(sock, msg) {
       case 'mog':
       case 'moggear':
         await cmdMog(sock, msg, groupMeta);
+        break;
+
+      case 'roast':
+      case 'flamear':
+        await cmdRoast(sock, msg, groupMeta);
         break;
 
       case 'robo':

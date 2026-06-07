@@ -2,7 +2,6 @@
 
 const { isOwner, isAdmin, getSender, bareJid } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
-const { addAura } = require('../utils/auraStore');
 
 const MOG_COOLDOWN_MS = 5 * 60 * 1000; // 5 min per sender per group
 const lastMog = new Map();
@@ -175,23 +174,13 @@ async function cmdMog(sock, msg, groupMeta) {
     .replace(/%M/g, `@${numM}`)
     .replace(/%L/g, `@${numL}`);
 
-  // Set cooldown now — after all validation passes, before the async aura calls
   lastMog.set(coolKey, Date.now());
-
-  // Aura stakes: winner gains, loser loses the same amount (symmetric mini-duel)
-  const stake = 150 + Math.floor(Math.random() * 351); // 150–500
-  const [wData, lData] = await Promise.all([
-    addAura(jid, mogger, +stake),
-    addAura(jid, mogged, -stake),
-  ]);
 
   const text =
     `*MOG CHECK*\n\n` +
     `@${numA} *vs* @${numB}\n\n` +
     `@${numM} *moggea* a @${numL}\n` +
-    `${phrase}\n\n` +
-    `@${numM}  +${fmt(stake)} → *${fmt(wData.current)}*\n` +
-    `@${numL}  −${fmt(stake)} → *${fmt(lData.current)}*`;
+    `${phrase}`;
 
   await sock.sendMessage(jid, { text, mentions: [a, b] }, { quoted: msg });
 }
