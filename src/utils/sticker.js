@@ -83,13 +83,11 @@ async function generateAnimatedThumb(animBuf) {
 }
 
 // Scale to fit within a `size`×`size` box, preserving aspect ratio.
-// format=rgba on the anim path converts planar YUV (yuv420p/nv12/etc.) to
-// interleaved RGBA before libwebp_anim receives it — without this, some ffmpeg
-// builds interpret the Y, U, V planes as separate animation frames, producing
-// the "two halves stacked" artifact seen with WhatsApp video messages.
+// setsar=1 forces square display pixels so videos stored with a non-1:1 SAR
+// aren't stretched/skewed by the encoder.
 const VF_STATIC = `scale='min(iw,512)':'min(ih,512)':force_original_aspect_ratio=decrease,setsar=1`;
 const VF_ANIM = (fps, size = 512) =>
-  `fps=${fps},scale='min(iw,${size})':'min(ih,${size})':force_original_aspect_ratio=decrease,setsar=1,format=rgba`;
+  `fps=${fps},scale='min(iw,${size})':'min(ih,${size})':force_original_aspect_ratio=decrease,setsar=1`;
 
 // Hard kill if ffmpeg runs longer than this — on Termux a hung encode can
 // otherwise pin a CPU core forever and zombie the command.
@@ -313,6 +311,14 @@ function startTierIndex(durationS) {
   return 3;                                     // long: skip the two top tiers
 }
 
+// Use the plain `libwebp` encoder, NOT `libwebp_anim`. libwebp_anim applies
+// inter-frame compression: it emits partial ANMF frames (only the changed
+// region, positioned at a Y offset, with blend=yes / dispose=none). Spec-
+// compliant decoders reconstruct these fine, but WhatsApp's decoder does not —
+// it renders the partial regions stacked, producing the duplicated, pixelated
+// "split in two" sticker. Plain `libwebp` emits every frame as a FULL keyframe
+// (full canvas, no blending), which WhatsApp renders faithfully. Output is a bit
+// larger, which the size-tiering loop in videoToSticker already handles.
 function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512) {
   return new Promise((resolve, reject) => {
     let stderrBuf = '';
@@ -336,8 +342,10 @@ function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512) {
         .toFormat('webp')
         .on('stderr', (line) => { stderrBuf += line + '\n'; })
         .on('error', () => {
-          if (codec === 'libwebp_anim') {
-            runWithCodec('libwebp');
+          if (codec === 'libwebp') {
+            // Fall back to libwebp_anim only if the full-frame encoder fails
+            // outright — a degraded sticker still beats a hard error.
+            runWithCodec('libwebp_anim');
           } else {
             if (timer) clearTimeout(timer);
             const lastLines = stderrBuf.trim().split('\n').slice(-4).join(' | ');
@@ -354,7 +362,7 @@ function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512) {
       try { activeCmd?.kill('SIGKILL'); } catch {}
       reject(new Error('ffmpeg timeout'));
     }, FFMPEG_TIMEOUT_MS);
-    runWithCodec('libwebp_anim');
+    runWithCodec('libwebp');
   });
 }
 
