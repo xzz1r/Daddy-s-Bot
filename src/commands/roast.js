@@ -10,16 +10,16 @@ const fmt = n => n.toLocaleString('es-ES');
 // ─── Formato ──────────────────────────────────────────────────────────────────
 
 const HEADERS = [
-  '🔥 *ROAST SIN ANESTESIA* 🔥',
-  '💀 *EJECUCIÓN PÚBLICA* 💀',
-  '☠️ *AUTOPSIA EN DIRECTO* ☠️',
-  '🔪 *DESTRUCCIÓN TOTAL* 🔪',
-  '⚰️ *ENTIERRO ABIERTO AL PÚBLICO* ⚰️',
-  '🩸 *MASACRE DOCUMENTADA* 🩸',
-  '🔥 *ASADO HASTA EL HUESO* 🔥',
-  '💣 *DEMOLICIÓN CONTROLADA* 💣',
-  '🧨 *VOLADURA PSICOLÓGICA* 🧨',
-  '⚡ *SENTENCIA SIN APELACIÓN* ⚡',
+  '*ROAST SIN ANESTESIA*',
+  '*EJECUCIÓN PÚBLICA*',
+  '*AUTOPSIA EN DIRECTO*',
+  '*DESTRUCCIÓN TOTAL*',
+  '*ENTIERRO ABIERTO AL PÚBLICO*',
+  '*MASACRE DOCUMENTADA*',
+  '*ASADO HASTA EL HUESO*',
+  '*DEMOLICIÓN CONTROLADA*',
+  '*VOLADURA PSICOLÓGICA*',
+  '*SENTENCIA SIN APELACIÓN*',
 ];
 
 const CLOSERS = [
@@ -280,7 +280,7 @@ async function cmdRoast(sock, msg, groupMeta) {
   const text =
     `${header}\n` +
     `╾━━━━━━━━━━━━━━╼\n\n` +
-    `🎯 Víctima: @${targetNum}\n\n` +
+    `Víctima: @${targetNum}\n\n` +
     `${roastText}\n\n` +
     `╾━━━━━━━━━━━━━━╼\n` +
     `${closer}`;

@@ -384,7 +384,7 @@ async function handleMessage(sock, msg) {
           await sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
         } else {
           await resetAura(jid);
-          await sock.sendMessage(jid, { text: '✅ Aura de todos reseteada. El marcador empieza desde cero.' }, { quoted: msg });
+          await sock.sendMessage(jid, { text: 'Aura de todos reseteada. El marcador empieza desde cero.' }, { quoted: msg });
         }
         break;
 
