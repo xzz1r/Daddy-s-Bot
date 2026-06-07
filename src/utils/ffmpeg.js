@@ -19,7 +19,11 @@ function detectFfmpegPath() {
   const termuxPath = '/data/data/com.termux/files/usr/bin/ffmpeg';
   if (fs.existsSync(termuxPath)) return termuxPath;
 
-  throw new Error('ffmpeg no encontrado. En Termux ejecuta: pkg install ffmpeg');
+  // Don't throw at module load — that would take down the WHOLE bot (including
+  // non-media commands) just because ffmpeg is missing. Fall back to the bare
+  // name and rely on PATH; if it's genuinely absent, the media command's own
+  // ffmpeg call fails at runtime and is caught there with a user-facing error.
+  return 'ffmpeg';
 }
 
 const ffmpegPath = detectFfmpegPath();

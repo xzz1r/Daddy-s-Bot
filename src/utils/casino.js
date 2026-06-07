@@ -10,6 +10,13 @@ const { pick } = require('./helpers');
 
 const fmt = n => n.toLocaleString('es-ES');
 
+// The milestone notification pings the whole group (FOMO mechanic), but doing
+// that on every hit spams large/busy groups and risks WhatsApp rate-limiting.
+// Throttle the group-wide ping to at most once per group per window; outside it,
+// only the winner is mentioned. The reward and message always fire regardless.
+const TAGALL_COOLDOWN_MS = 10 * 60 * 1000;
+const lastTagall = new Map(); // groupJid -> timestamp
+
 // ─── Phrases ──────────────────────────────────────────────────────────────────
 
 const PHRASES = {
@@ -168,10 +175,18 @@ async function checkCasinoMilestone(sock, jid, sender) {
     `_Próximo bono: ${nextLabel} — faltan ${fmt(next.remaining)} mensajes_`;
 
   // Invisible tagall: everyone gets pinged but no @number spam in the text.
-  // FOMO mechanic: all members see the notification and open the chat.
-  const meta = await sock.groupMetadata(jid).catch(() => null);
-  const participants = meta?.participants || [];
-  const mentions = [...new Set([sender, ...participants.map(p => p.id)])];
+  // FOMO mechanic, but throttled per group so busy groups aren't mass-pinged on
+  // every milestone (spam + rate-limit risk). Metadata is only fetched when we
+  // actually intend to tag — outside the window only the winner is mentioned.
+  let mentions = [sender];
+  const now = Date.now();
+  if (now - (lastTagall.get(jid) || 0) >= TAGALL_COOLDOWN_MS) {
+    const meta = await sock.groupMetadata(jid).catch(() => null);
+    if (meta?.participants?.length) {
+      mentions = [...new Set([sender, ...meta.participants.map(p => p.id)])];
+      lastTagall.set(jid, now);
+    }
+  }
 
   await sock.sendMessage(jid, { text, mentions });
 }

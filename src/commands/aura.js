@@ -1,13 +1,13 @@
-const { isOwner, isAdmin, getTargetOrSelf, getSender, bareJid } = require('../utils/wa');
+const { isOwner, isAdmin, getTarget, getSender, bareJid } = require('../utils/wa');
 const { pickFresh } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking, STARTING_AURA } = require('../utils/auraStore');
 
 const ROLL_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes per user per group
 const lastRoll = new Map(); // `${groupJid}|${bareJid}` -> timestamp
 
-// Aura roll, rigged by the TARGET's role — same owner-favoritism as the percent
-// games: the owner mostly gains big, admins are mixed, regular members mostly
-// lose (it's a roast bot). Returns { tier, amount }.
+// Aura roll, rigged by the ROLLER's own role — same owner-favoritism as the
+// percent games: the owner mostly gains big, admins are mixed, regular members
+// mostly lose (it's a roast bot). Returns { tier, amount }.
 function rollAura(targetIsOwner, targetIsAdmin) {
   const r = Math.random();
   const big = () => (50 + Math.floor(Math.random() * 51)) * 100;  // 5000..10000
@@ -240,6 +240,19 @@ async function cmdAura(sock, msg, args, groupMeta) {
   }
 
   const sender = getSender(msg);
+
+  // El aura es como una moneda: solo el dueño la juega. !aura @alguien es solo
+  // una CONSULTA del aura de esa persona — no tira, no gasta cooldown y no
+  // modifica nada. Tirar (subir/bajar) siempre es sobre uno mismo.
+  const mentioned = getTarget(msg);
+  if (mentioned && bareJid(mentioned) !== bareJid(sender)) {
+    const aura = await getAura(jid, mentioned);
+    return sock.sendMessage(jid, {
+      text: `*@${mentioned.split('@')[0]}* tiene *${fmt(aura)}* de aura.`,
+      mentions: [mentioned],
+    }, { quoted: msg });
+  }
+
   const coolKey = `${jid}|${bareJid(sender)}`;
   const last = lastRoll.get(coolKey) || 0;
   const remaining = ROLL_COOLDOWN_MS - (Date.now() - last);
@@ -251,24 +264,24 @@ async function cmdAura(sock, msg, args, groupMeta) {
   }
   lastRoll.set(coolKey, Date.now());
 
-  const target = getTargetOrSelf(msg);
-  const targetIsOwner = isOwner(target, false, groupMeta);
-  const targetIsAdmin = isAdmin(groupMeta?.participants, target);
+  // The roll is rigged by the SENDER's own role — you only ever play your own aura.
+  const selfIsOwner = isOwner(sender, msg.key.fromMe, groupMeta);
+  const selfIsAdmin = isAdmin(groupMeta?.participants, sender);
 
-  const { tier, amount } = rollAura(targetIsOwner, targetIsAdmin);
+  const { tier, amount } = rollAura(selfIsOwner, selfIsAdmin);
   const sign = amount >= 0 ? '+' : '-';
 
-  const { previous, current } = await addAura(jid, target, amount);
+  const { previous, current } = await addAura(jid, sender, amount);
 
   // Already in the red and going deeper: use spiral phrases
   const effectiveTier = (previous < 0 && amount < 0) ? 'spiral' : tier;
 
   const text =
-    `*@${target.split('@')[0]}  ${sign}${fmt(Math.abs(amount))} de aura*\n` +
+    `*@${sender.split('@')[0]}  ${sign}${fmt(Math.abs(amount))} de aura*\n` +
     `${pickFresh(AURA[effectiveTier], `${jid}|aura|${effectiveTier}`)}\n\n` +
     `Aura total: *${fmt(current)}*`;
 
-  await sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });
+  await sock.sendMessage(jid, { text, mentions: [sender] }, { quoted: msg });
 }
 
 module.exports = { cmdAura };

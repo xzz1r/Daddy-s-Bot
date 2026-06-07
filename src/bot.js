@@ -9,7 +9,7 @@ const pino = require('pino');
 const path = require('path');
 const fs = require('fs-extra');
 const qrcode = require('qrcode-terminal');
-const { handleMessage, invalidateGroupMeta } = require('./handlers/messageHandler');
+const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, flushState } = require('./utils/state');
 const { isOwner } = require('./utils/wa');
 const { flushCounts } = require('./utils/messageCounter');
@@ -150,6 +150,13 @@ async function connectToWhatsApp() {
     // otherwise commands run within 30s of a join/kick see stale member lists.
     invalidateGroupMeta(groupJid);
 
+    // Fetch fresh metadata so isOwner() can resolve the author via the group's
+    // participant list. Without it, owner/co-owner checks fall back to the
+    // global LID cache only, and a co-owner whose LID hasn't been seen yet (e.g.
+    // right after a restart) would have their legit promote/add wrongly reverted
+    // by anti-admin. Null on failure → same cache-only behavior as before.
+    const meta = await getGroupMeta(sock, groupJid).catch(() => null);
+
     // Newer Baileys emits participants as objects { id, phoneNumber, lid, admin, ... }.
     // Older versions used plain JID strings. Normalize to an array of JID strings.
     const partJids = (participants || [])
@@ -210,7 +217,7 @@ async function connectToWhatsApp() {
       // regular (non-owner) admin adds someone, demote that admin AND kick whoever
       // they added. Owner/co-owner adds are exempt — the member stays and the
       // owner keeps admin.
-      if (!fromBot && author && !isOwner(author, false, null) && isAntiAdminEnabled(groupJid)) {
+      if (!fromBot && author && !isOwner(author, false, meta) && isAntiAdminEnabled(groupJid)) {
         const toKick = partJids.filter(jid => !isBotJid(jid));
         try {
           await sock.groupParticipantsUpdate(groupJid, [author], 'demote');
@@ -245,7 +252,7 @@ async function connectToWhatsApp() {
 
     // Anti-admin: revert any promote that didn't come from the bot.
     // Owner/co-owner promotions are exempt — they have authority to grant admin.
-    if (action === 'promote' && !fromBot && !isOwner(author, false, null) && isAntiAdminEnabled(groupJid)) {
+    if (action === 'promote' && !fromBot && !isOwner(author, false, meta) && isAntiAdminEnabled(groupJid)) {
       const toDemote = Array.from(new Set([...(author ? [author] : []), ...partJids]));
       try {
         await sock.groupParticipantsUpdate(groupJid, toDemote, 'demote');
@@ -264,7 +271,7 @@ async function connectToWhatsApp() {
     // Admin A removes B's admin → bot restores B and removes A's admin.
     // Track each step separately so the notification reflects what actually
     // happened — a wholesale try/catch would lie if only one step succeeded.
-    if (action === 'demote' && !fromBot && !isOwner(author, false, null) && isAntiAdminEnabled(groupJid)) {
+    if (action === 'demote' && !fromBot && !isOwner(author, false, meta) && isAntiAdminEnabled(groupJid)) {
       let restored = false;
       let punished = false;
       try {
@@ -297,7 +304,7 @@ async function connectToWhatsApp() {
     // Regular notification (skip if the bot itself did the action — !promote/!demote
     // already responds). Owner/co-owner actions are never announced: they have the
     // authority, so their promotes/demotes are expected and stay silent.
-    if (!fromBot && !isOwner(author, false, null) && isAdminNotifyEnabled(groupJid)) {
+    if (!fromBot && !isOwner(author, false, meta) && isAdminNotifyEnabled(groupJid)) {
       const text = action === 'promote'
         ? `${authorTag} ha dado admin a ${targets}.`
         : `${authorTag} ha quitado admin a ${targets}.`;

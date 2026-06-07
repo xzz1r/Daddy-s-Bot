@@ -456,4 +456,4 @@ async function handleMessage(sock, msg) {
 
 }
 
-module.exports = { handleMessage, invalidateGroupMeta };
+module.exports = { handleMessage, invalidateGroupMeta, getGroupMeta };
