@@ -157,7 +157,7 @@ async function cmdMog(sock, msg, groupMeta) {
   const numA = a.split('@')[0];
   const numB = b.split('@')[0];
 
-  const phrase = pickFresh(MOG_PHRASES, jid)
+  const phrase = pickFresh(MOG_PHRASES, `${jid}|mog`)
     .replace(/%M/g, `@${numM}`)
     .replace(/%L/g, `@${numL}`);
 

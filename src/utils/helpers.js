@@ -60,10 +60,16 @@ function pick(arr) {
 // everything; if the whole pool is somehow exhausted it falls back to a plain
 // random pick instead of returning nothing.
 const _pickHistory = new Map(); // key -> array of recently returned elements
+const _MAX_PICK_KEYS = 2000;    // bound the map so long-lived bots don't leak
 
 function pickFresh(pool, key, window = 12) {
   if (!Array.isArray(pool) || pool.length === 0) return undefined;
   if (!key) return pick(pool);
+
+  // Evict the oldest key once we hit the cap (Map preserves insertion order).
+  if (!_pickHistory.has(key) && _pickHistory.size >= _MAX_PICK_KEYS) {
+    _pickHistory.delete(_pickHistory.keys().next().value);
+  }
 
   const hist = _pickHistory.get(key) || [];
   const block = new Set(hist.slice(-Math.min(window, pool.length - 1)));
