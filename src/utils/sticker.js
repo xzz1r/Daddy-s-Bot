@@ -58,8 +58,38 @@ function extractFirstAnmfFrame(animBuf) {
   return null;
 }
 
-// Generate a small PNG thumbnail from an animated WebP.
-// WhatsApp needs pngThumbnail on animated stickers to enable saving and forwarding.
+// Generate a small PNG thumbnail from any video/gif that ffmpeg can decode.
+// Used for video and gif stickers: the bundled ffmpeg cannot decode its own
+// animated WebP output, so generateAnimatedThumb always returned null for those
+// cases. Without pngThumbnail WhatsApp composites its own static preview by
+// stacking the first two animation frames — producing the "split in two" artifact.
+// Calling this on the ORIGINAL source (mp4/gif) before WebP encoding works fine.
+async function generateSourceThumb(srcBuffer) {
+  const ext = detectExt(srcBuffer);
+  if (!ext || ext === 'webp') return null;  // can't decode webp, skip
+  const inputFile = tempFile(ext);
+  const outputFile = tempFile('png');
+  await fs.writeFile(inputFile, srcBuffer);
+  try {
+    await runFfmpeg(inputFile, outputFile, [
+      '-map', '0:v:0',
+      '-vframes', '1',
+      '-vf', 'scale=96:96:force_original_aspect_ratio=decrease,setsar=1',
+      '-y',
+    ], 'image2');
+    const buf = await fs.readFile(outputFile);
+    return buf.length > 100 ? buf : null;
+  } catch {
+    return null;
+  } finally {
+    await cleanTemp(inputFile);
+    await cleanTemp(outputFile);
+  }
+}
+
+// Generate a small PNG thumbnail from an animated WebP (fallback for re-stamped stickers).
+// The bundled ffmpeg cannot decode WebP, so this only works when an external ffmpeg
+// that supports WebP decoding is available. Returns null gracefully otherwise.
 async function generateAnimatedThumb(animBuf) {
   const frameBuf = extractFirstAnmfFrame(animBuf);
   if (!frameBuf) return null;
@@ -408,4 +438,4 @@ async function gifToSticker(gifBuffer, author) {
   return videoToSticker(gifBuffer, author);
 }
 
-module.exports = { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, isAnimatedWebP, extractFirstAnmfFrame };
+module.exports = { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame };

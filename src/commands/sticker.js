@@ -1,5 +1,5 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, isAnimatedWebP } = require('../utils/sticker');
+const { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP } = require('../utils/sticker');
 const { streamToBuffer } = require('../utils/helpers');
 const { getSender, isOwner } = require('../utils/wa');
 const { incrementStat } = require('../utils/state');
@@ -68,6 +68,19 @@ async function cmdSticker(sock, msg, groupMeta) {
     sock.sendMessage(jid, { text: 'Haciendo sticker...' }, { quoted: msg }).catch(() => {});
   }
 
+  // For video/gif: grab a thumbnail from the SOURCE before WebP encoding.
+  // The bundled ffmpeg cannot decode its own animated WebP output, so
+  // generateAnimatedThumb always returns null for these types — leaving WhatsApp
+  // without a pngThumbnail. Without it, WhatsApp composites its own static
+  // preview by stacking the first two animation frames, producing the
+  // "split in two" visual. Grabbing the thumb from the original mp4/gif works.
+  let sourceThumb = null;
+  const isVideoOrGif = found.type === 'video'
+    || (found.type !== 'sticker' && (found.msg.mimetype || '').includes('gif'));
+  if (isVideoOrGif) {
+    sourceThumb = await generateSourceThumb(buffer).catch(() => null);
+  }
+
   let stickerBuffer;
   try {
     if (found.type === 'video') {
@@ -95,7 +108,11 @@ async function cmdSticker(sock, msg, groupMeta) {
       throw new Error('Sticker generado vacio');
     }
     const animated = isAnimatedWebP(stickerBuffer);
-    const pngThumbnail = animated ? await generateAnimatedThumb(stickerBuffer).catch(() => null) : undefined;
+    // sourceThumb (from original video/gif) takes priority; fall back to the
+    // WebP-based extractor for re-stamped stickers (where we have no source).
+    const pngThumbnail = animated
+      ? (sourceThumb || await generateAnimatedThumb(stickerBuffer).catch(() => null))
+      : undefined;
     await sock.sendMessage(jid, {
       sticker: stickerBuffer,
       ...(animated && { isAnimated: true }),
