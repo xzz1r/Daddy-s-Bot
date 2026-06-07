@@ -96,23 +96,31 @@ async function generateSourceThumb(srcBuffer) {
 // the primary path and handles all normal cases.
 async function generateAnimatedThumb(animBuf) {
   const frameBuf = extractFirstAnmfFrame(animBuf);
-  if (!frameBuf) return null;
-  const inputFile = tempFile('webp');
-  const outputFile = tempFile('png');
-  await fs.writeFile(inputFile, frameBuf);
+  if (frameBuf) {
+    const inputFile = tempFile('webp');
+    const outputFile = tempFile('png');
+    await fs.writeFile(inputFile, frameBuf);
+    try {
+      await runFfmpeg(inputFile, outputFile, [
+        '-vframes', '1',
+        '-vf', 'scale=96:96:force_original_aspect_ratio=decrease,setsar=1',
+        '-y',
+      ], 'image2');
+      const buf = await fs.readFile(outputFile);
+      if (buf.length > 100) return buf;
+    } catch {} finally {
+      await cleanTemp(inputFile);
+      await cleanTemp(outputFile);
+    }
+  }
+  // Guaranteed fallback: plain gray PNG so WhatsApp never stacks animation
+  // frames to generate its own static preview (which produces the split visual).
   try {
-    await runFfmpeg(inputFile, outputFile, [
-      '-vframes', '1',
-      '-vf', 'scale=96:96:force_original_aspect_ratio=decrease,setsar=1',
-      '-y',
-    ], 'image2');
-    const buf = await fs.readFile(outputFile);
-    return buf.length > 100 ? buf : null;
+    const { Jimp } = require('jimp');
+    const img = new Jimp({ width: 96, height: 96, color: 0x808080ff });
+    return await img.getBuffer('image/png');
   } catch {
     return null;
-  } finally {
-    await cleanTemp(inputFile);
-    await cleanTemp(outputFile);
   }
 }
 
