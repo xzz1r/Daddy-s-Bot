@@ -50,6 +50,32 @@ function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+// Anti-repetition picker. Avoids returning any element of `pool` that was
+// already returned for the same `key` within the recent window, so the same
+// phrase doesn't land twice in a short span. State is in-memory (per process)
+// and keyed by an arbitrary string the caller owns — typically
+// `${groupJid}|${command}` so every command/group keeps its own history.
+//
+// The window is capped at pool.length - 1 so a small pool can never block
+// everything; if the whole pool is somehow exhausted it falls back to a plain
+// random pick instead of returning nothing.
+const _pickHistory = new Map(); // key -> array of recently returned elements
+
+function pickFresh(pool, key, window = 12) {
+  if (!Array.isArray(pool) || pool.length === 0) return undefined;
+  if (!key) return pick(pool);
+
+  const hist = _pickHistory.get(key) || [];
+  const block = new Set(hist.slice(-Math.min(window, pool.length - 1)));
+  const avail = pool.filter(p => !block.has(p));
+  const chosen = pick(avail.length ? avail : pool);
+
+  hist.push(chosen);
+  if (hist.length > window + 4) hist.shift();
+  _pickHistory.set(key, hist);
+  return chosen;
+}
+
 function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -65,4 +91,4 @@ async function streamToBuffer(stream) {
   return Buffer.concat(chunks);
 }
 
-module.exports = { ensureTemp, tempFile, cleanTemp, formatUptime, pick, shuffle, streamToBuffer };
+module.exports = { ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, shuffle, streamToBuffer };

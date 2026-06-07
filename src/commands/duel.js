@@ -1,5 +1,5 @@
 const { isOwner, isAdmin, getSender, getTarget, bareJid } = require('../utils/wa');
-const { pick } = require('../utils/helpers');
+const { pickFresh } = require('../utils/helpers');
 const { getAura, addAura } = require('../utils/auraStore');
 
 // A duel is a consented aura bet: challenger stakes an amount, target must
@@ -25,31 +25,36 @@ function rollWinner(cO, cA, tO, tA) {
 
 // %W winner, %L loser
 const DUEL_WIN = [
-  '%W desarma a %L en el primer intercambio. Sin discusión.',
-  '%W lo tenía leído. %L cayó como estaba previsto.',
-  '%W humilla a %L delante del grupo entero. Ouch.',
-  '%W no necesitó ni esforzarse. %L se vino abajo solo.',
-  '%W pasa por encima de %L como si no estuviera. Demoledor.',
-  '%W cierra el duelo en seco. %L que aprenda a no retar a cualquiera.',
-  '%W le da una lección a %L que va a recordar un rato.',
-  '%W gana limpio. %L se queda contando lo que perdió.',
-  '%W ejecuta a %L sin pestañear. Duelo terminado.',
-  '%W manda en este duelo de principio a fin. %L ni apareció.',
-  '%W tenía el resultado firmado antes de que %L abriera la boca. Duelo de paper.',
-  'Genetic mog aplicado al combate. %W arriba, %L en el sótano genético para siempre.',
-  'El frame de %W aplastó a %L antes del primer round. Frame wins fights.',
-  '%W ni tuvo que esforzarse. It\'s over para %L y todos lo vieron en directo.',
-  '%L apostó creyendo que la suerte compensaría la genética. Error de libro.',
-  '%W se lleva el botín. %L se lleva la lección. Clásico de la jerarquía social.',
-  'Duelo resuelto en favor de quien la biología ya favorecía. %W leyenda, %L caso de estudio.',
-  '%L tiró los dados contra alguien que ya tenía el resultado escrito en los huesos. JFL.',
-  '%W ni recuerda haber peleado. %L no va a poder olvidarlo. Eso es el tier gap.',
-  '%L cope post-derrota incoming. %W ya cerró el tema y siguió con su vida.',
-  'La hipergamia social no manda refuerzos para los que pierden duelos. %L se queda solo.',
-  '%W gana como los Chads: sin drama, sin explicaciones, sin mirarlo dos veces.',
-  '%L retó a alguien que ni se molestó en prepararse. Resultado: lección pública bien ganada.',
-  'PSL aplicado al duelo: %W en S tier, %L en tier de relleno. La aritmética no falla.',
-  'No fue competencia. Fue confirmación de jerarquía. %W arriba, %L pagando la evidencia.',
+  '%W desarmó a %L en el primer intercambio. %L lleva toda la vida perdiendo así: rápido y delante de gente.',
+  '%W lo tenía leído. %L cayó exactamente como cae siempre, y por dentro ya lo sabía antes de aceptar.',
+  '%W humilla a %L delante del grupo entero, que es el único sitio donde a %L lo registran, aunque sea para esto.',
+  '%W ni se esforzó. %L se vino abajo solo, como se viene abajo todo lo que %L intenta sostener.',
+  '%W pasa por encima de %L como si no estuviera, que es justo como pasa el mundo por encima de %L cada día.',
+  '%W cierra el duelo en seco. %L vuelve a casa con la lección de siempre y nadie con quien compartirla.',
+  '%W le recuerda a %L cuál es su sitio. %L lo conocía de sobra, solo necesitaba que se lo dijeran en público.',
+  '%W gana limpio. %L se queda contando lo que perdió, que es la única cuenta que a %L le sale siempre.',
+  '%W ejecuta a %L sin pestañear. Para %W fue un trámite; para %L será el tema de pensamiento de esta noche.',
+  '%W mandó de principio a fin. %L ni apareció, fiel a la costumbre de no estar donde de verdad importa.',
+  '%W tenía el resultado firmado antes de que %L abriera la boca. %L apuesta por fe porque mérito no le queda.',
+  'Genetic mog aplicado al combate. %W arriba, %L en el sótano donde ya tiene las cosas puestas.',
+  'El frame de %W aplastó a %L antes del primer round. A %L lo aplastan cosas más pequeñas a diario.',
+  '%W ni tuvo que esforzarse. It\'s over para %L, y lo de hoy solo lo certifica delante de testigos.',
+  '%L apostó creyendo que la suerte taparía lo que es. La suerte no hace ese tipo de favores tan grandes.',
+  '%W se lleva el botín. %L se lleva la confirmación de que su instinto para perder sigue intacto.',
+  'Duelo resuelto a favor de quien nunca dudó. %W leyenda, %L el nombre que se usa de advertencia.',
+  '%L tiró los dados contra alguien de otra liga, otra vez, esperando otro final. No hay otro final para %L.',
+  '%W ni recuerda haber peleado. %L lo va a masticar durante días en esa cabeza que no le da tregua.',
+  '%L ya está preparando la excusa. %W ya pasó página. Esa diferencia de velocidad lo explica todo.',
+  'Nadie manda refuerzos cuando %L pierde. %L aprendió hace mucho que esa llamada no la coge nadie.',
+  '%W gana sin drama ni explicaciones. %L necesita las dos cosas para dormir, y aun así no va a dormir.',
+  '%L retó a alguien que jugaba en serio. Resultado: la enésima lección pública que %L no termina de aprender.',
+  'PSL aplicado al duelo: %W en lo más alto, %L de relleno, como en todo lo demás de su vida.',
+  'No fue competencia, fue confirmación. %W arriba, %L pagando por una verdad que ya conocía y odiaba.',
+  '%W le quita el aura y, de paso, la poca certeza que a %L le quedaba sobre sí mismo. Dos por uno.',
+  '%L entró buscando una victoria que le cambiara el día. Sale con la prueba de por qué nunca le cambia.',
+  'A %W no le hizo falta nada. A %L no le ha hecho falta nadie para hundirse, y aun así hoy tuvo ayuda.',
+  '%W gana y se olvida. %L pierde y lo añade a la lista que repasa cuando se apaga la luz.',
+  '%L creyó que esta vez sería distinto. Esa frase es lo más parecido a una biografía que tiene %L.',
 ];
 
 const fmt = (n) => n.toLocaleString('es-ES');
@@ -82,7 +87,7 @@ async function resolveDuel(sock, jid, d, groupMeta) {
   const w = await addAura(jid, winner, +d.stake);
   const l = await addAura(jid, loser, -d.stake);
 
-  const phrase = pick(DUEL_WIN)
+  const phrase = pickFresh(DUEL_WIN, `${jid}|duel`)
     .replace(/%W/g, `@${winner.split('@')[0]}`)
     .replace(/%L/g, `@${loser.split('@')[0]}`);
 

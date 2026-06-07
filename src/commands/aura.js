@@ -1,5 +1,5 @@
 const { isOwner, isAdmin, getTargetOrSelf, getSender, bareJid } = require('../utils/wa');
-const { pick } = require('../utils/helpers');
+const { pickFresh } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking, STARTING_AURA } = require('../utils/auraStore');
 
 const ROLL_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes per user per group
@@ -265,7 +265,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
 
   const text =
     `*@${target.split('@')[0]}  ${sign}${fmt(Math.abs(amount))} de aura*\n` +
-    `${pick(AURA[effectiveTier])}\n\n` +
+    `${pickFresh(AURA[effectiveTier], `${jid}|aura|${effectiveTier}`)}\n\n` +
     `Aura total: *${fmt(current)}*`;
 
   await sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });

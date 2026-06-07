@@ -1,5 +1,5 @@
 const { isOwner, isAdmin, getTargetOrSelf } = require('../utils/wa');
-const { pick } = require('../utils/helpers');
+const { pickFresh } = require('../utils/helpers');
 
 // Distribuciones por tier — basadas en el ROL DEL TARGET, no del sender:
 //
@@ -1534,13 +1534,14 @@ async function runPercent(sock, msg, key, groupMeta) {
   const percent = cfg.roll
     ? cfg.roll(targetIsOwner, targetIsAdmin)
     : rollPercent(cfg.goodIsHigh, targetIsAdmin, targetIsOwner);
-  const verdict = percent >= 70 ? pick(cfg.high) : percent <= 30 ? pick(cfg.low) : pick(cfg.mid);
+  const tier = percent >= 70 ? 'high' : percent <= 30 ? 'low' : 'mid';
+  const verdict = pickFresh(cfg[tier], `${jid}|${key}|${tier}`);
   const showExtreme = percent >= 70 && cfg.extreme?.length;
 
   const text =
     `*@${target.split('@')[0]} es ${percent}% ${cfg.name}*\n\n` +
     `${verdict}` +
-    (showExtreme ? `\n\n${pick(cfg.extreme)}` : '');
+    (showExtreme ? `\n\n${pickFresh(cfg.extreme, `${jid}|${key}|extreme`)}` : '');
 
   await sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });
 }

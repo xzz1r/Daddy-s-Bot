@@ -1,7 +1,7 @@
 'use strict';
 
 const { isOwner, isAdmin, getSender } = require('../utils/wa');
-const { pick } = require('../utils/helpers');
+const { pickFresh } = require('../utils/helpers');
 
 // Rigged by role, but not blatantly: the owner has a real edge yet can still
 // lose, admins have a slighter edge, members fight on equal ground.
@@ -157,7 +157,7 @@ async function cmdMog(sock, msg, groupMeta) {
   const numA = a.split('@')[0];
   const numB = b.split('@')[0];
 
-  const phrase = pick(MOG_PHRASES)
+  const phrase = pickFresh(MOG_PHRASES, jid)
     .replace(/%M/g, `@${numM}`)
     .replace(/%L/g, `@${numL}`);
 

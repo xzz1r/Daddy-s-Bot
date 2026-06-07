@@ -1,6 +1,6 @@
 const { isOwner, isAdmin, getSender, getTarget, bareJid } = require('../utils/wa');
 const { getAura, addAura } = require('../utils/auraStore');
-const { pick } = require('../utils/helpers');
+const { pickFresh } = require('../utils/helpers');
 
 const STAKE_DEFAULT   = 200;
 const STAKE_MAX       = 1000;
@@ -129,7 +129,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       addAura(jid, sender, +stake),
       addAura(jid, target, -stake),
     ]);
-    const phrase = pick(ROB_WIN).replace(/%A/g, aTag).replace(/%V/g, vTag);
+    const phrase = pickFresh(ROB_WIN, `${jid}|robo|win`).replace(/%A/g, aTag).replace(/%V/g, vTag);
     const text =
       `🔴 *ROBO EXITOSO*\n` +
       `${aTag} le roba *${fmt(stake)} de aura* a ${vTag}\n\n` +
@@ -142,7 +142,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // Failed: attacker pays half the stake as penalty, target keeps everything
   const penalty = Math.ceil(stake / 2);
   const aNew = await addAura(jid, sender, -penalty);
-  const phrase = pick(ROB_FAIL).replace(/%A/g, aTag).replace(/%V/g, vTag);
+  const phrase = pickFresh(ROB_FAIL, `${jid}|robo|fail`).replace(/%A/g, aTag).replace(/%V/g, vTag);
   const text =
     `⚪ *ROBO FALLIDO*\n` +
     `${aTag} intentó robarle *${fmt(stake)} de aura* a ${vTag}\n\n` +
