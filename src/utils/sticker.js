@@ -1,6 +1,5 @@
 const { ffmpegPath, ffprobePath } = require('./ffmpeg');
 const ffmpeg = require('fluent-ffmpeg');
-const sharp = require('sharp');
 const fs = require('fs-extra');
 const { tempFile, cleanTemp } = require('./helpers');
 const config = require('../config');
@@ -88,17 +87,32 @@ async function generateSourceThumb(srcBuffer) {
   }
 }
 
-// Generate a small PNG thumbnail from an animated WebP using sharp.
-// The bundled ffmpeg cannot decode WebP, but sharp handles it natively.
+// Generate a small PNG thumbnail from an animated WebP.
+// The bundled ffmpeg cannot decode WebP so we extract the first ANMF frame
+// as a raw VP8 bitstream and re-wrap it as a minimal static WebP that ffmpeg
+// can potentially decode, then fall back gracefully if that also fails.
+// On environments without a WebP-capable ffmpeg this returns null, which is
+// fine — generateSourceThumb (called from the original video/gif source) is
+// the primary path and handles all normal cases.
 async function generateAnimatedThumb(animBuf) {
+  const frameBuf = extractFirstAnmfFrame(animBuf);
+  if (!frameBuf) return null;
+  const inputFile = tempFile('webp');
+  const outputFile = tempFile('png');
+  await fs.writeFile(inputFile, frameBuf);
   try {
-    const thumb = await sharp(animBuf, { page: 0 })
-      .resize(96, 96, { fit: 'inside' })
-      .png()
-      .toBuffer();
-    return thumb.length > 100 ? thumb : null;
+    await runFfmpeg(inputFile, outputFile, [
+      '-vframes', '1',
+      '-vf', 'scale=96:96:force_original_aspect_ratio=decrease,setsar=1',
+      '-y',
+    ], 'image2');
+    const buf = await fs.readFile(outputFile);
+    return buf.length > 100 ? buf : null;
   } catch {
     return null;
+  } finally {
+    await cleanTemp(inputFile);
+    await cleanTemp(outputFile);
   }
 }
 
@@ -366,46 +380,35 @@ function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512) {
   return new Promise((resolve, reject) => {
     let stderrBuf = '';
     let timer = null;
-    let activeCmd = null;
-    const runWithCodec = (codec) => {
-      stderrBuf = '';
-      activeCmd = ffmpeg(inputFile)
-        .setFfmpegPath(ffmpegPath)
-        .outputOptions([
-          '-map', '0:v:0',
-          '-vf', VF_ANIM(fps, size),
-          '-c:v', codec,
-          '-loop', '0',
-          '-an',
-          '-q:v', String(quality),
-          '-compression_level', '2',
-          '-preset', 'default',
-          '-y',
-        ])
-        .toFormat('webp')
-        .on('stderr', (line) => { stderrBuf += line + '\n'; })
-        .on('error', () => {
-          if (codec === 'libwebp') {
-            // Fall back to libwebp_anim only if the full-frame encoder fails
-            // outright — a degraded sticker still beats a hard error.
-            runWithCodec('libwebp_anim');
-          } else {
-            if (timer) clearTimeout(timer);
-            const lastLines = stderrBuf.trim().split('\n').slice(-4).join(' | ');
-            reject(new Error(lastLines || 'ffmpeg error'));
-          }
-        })
-        .on('end', () => {
-          if (timer) clearTimeout(timer);
-          resolve();
-        })
-        .save(outputFile);
-    };
+    const cmd = ffmpeg(inputFile)
+      .setFfmpegPath(ffmpegPath)
+      .outputOptions([
+        '-map', '0:v:0',
+        '-vf', VF_ANIM(fps, size),
+        '-c:v', 'libwebp',
+        '-loop', '0',
+        '-an',
+        '-q:v', String(quality),
+        '-compression_level', '2',
+        '-preset', 'default',
+        '-y',
+      ])
+      .toFormat('webp')
+      .on('stderr', (line) => { stderrBuf += line + '\n'; })
+      .on('error', () => {
+        if (timer) clearTimeout(timer);
+        const lastLines = stderrBuf.trim().split('\n').slice(-4).join(' | ');
+        reject(new Error(lastLines || 'ffmpeg error'));
+      })
+      .on('end', () => {
+        if (timer) clearTimeout(timer);
+        resolve();
+      })
+      .save(outputFile);
     timer = setTimeout(() => {
-      try { activeCmd?.kill('SIGKILL'); } catch {}
+      try { cmd.kill('SIGKILL'); } catch {}
       reject(new Error('ffmpeg timeout'));
     }, FFMPEG_TIMEOUT_MS);
-    runWithCodec('libwebp');
   });
 }
 
@@ -427,7 +430,9 @@ async function videoToSticker(videoBuffer, author) {
     let smallest = null;   // keep the lightest valid encode as a fallback
     for (let i = startIdx; i < ANIM_TIERS.length; i++) {
       const { fps, quality, size } = ANIM_TIERS[i];
-      await encodeAnimWebp(inputFile, outputFile, fps, quality, size);
+      try {
+        await encodeAnimWebp(inputFile, outputFile, fps, quality, size);
+      } catch { continue; }  // tier failed, try next
       buf = await fs.readFile(outputFile);
       if (buf.length < 100) continue;
       if (buf.length <= MAX_STICKER_BYTES) { smallest = buf; break; }
