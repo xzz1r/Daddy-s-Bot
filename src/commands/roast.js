@@ -408,8 +408,21 @@ async function cmdRoast(sock, msg, groupMeta) {
   }
 
   const participants = groupMeta?.participants || [];
-  const participant = participants.find(p => bareJid(p.id) === bareJid(target));
-  const displayName = participant?.name || target.split('@')[0].split(':')[0];
+  const participant = participants.find(p =>
+    bareJid(p.id) === bareJid(target) ||
+    bareJid(p.lid) === bareJid(target) ||
+    bareJid(p.phoneNumber) === bareJid(target)
+  );
+  const targetNum = target.split('@')[0].split(':')[0];
+  // Prefer any name field Baileys may have populated. If none exist (common in
+  // LID groups where push names aren't bundled with groupMetadata), use the
+  // @phonenumber mention notation so WhatsApp renders the real display name.
+  const displayName =
+    participant?.name ||
+    participant?.displayName ||
+    participant?.verifiedName ||
+    participant?.notify ||
+    `@${targetNum}`;
 
   const [bioResult, msgCount, aura] = await Promise.all([
     sock.fetchStatus(target).catch(() => null),
@@ -459,7 +472,6 @@ async function cmdRoast(sock, msg, groupMeta) {
     }
   }
 
-  const targetNum = target.split('@')[0];
   const text =
     `${pick(HEADERS)}\n` +
     `╾━━━━━━━━━━━━━━╼\n\n` +
