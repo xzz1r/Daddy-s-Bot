@@ -6,8 +6,6 @@ const { pick } = require('../utils/helpers');
 const MOG_COOLDOWN_MS = 5 * 60 * 1000; // 5 min per sender per group
 const lastMog = new Map();
 
-const fmt = n => n.toLocaleString('es-ES');
-
 // Rigged by role, but not blatantly: the owner has a real edge yet can still
 // lose, admins have a slighter edge, members fight on equal ground.
 function rollMog(aIsOwner, aIsAdmin, bIsOwner, bIsAdmin) {

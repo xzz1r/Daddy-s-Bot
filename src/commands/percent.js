@@ -1,10 +1,5 @@
-const { isOwner, isAdmin, getTargetOrSelf, getSender, bareJid } = require('../utils/wa');
+const { isOwner, isAdmin, getTargetOrSelf } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
-
-// Shared cooldown across ALL percent commands per sender per group.
-// Prevents rotating through !gay → !maricon → !rata to bypass the wait.
-const PERCENT_COOLDOWN_MS = 10 * 60 * 1000;
-const lastPercent = new Map();
 
 // Distribuciones por tier — basadas en el ROL DEL TARGET, no del sender:
 //
@@ -1530,22 +1525,6 @@ async function runPercent(sock, msg, key, groupMeta) {
   const jid = msg.key.remoteJid;
   const cfg = LABELS[key];
   if (!cfg) return;
-
-  const isGroup = jid.endsWith('@g.us');
-  const sender = getSender(msg);
-
-  // Cooldown: shared across all percent commands, groups only.
-  // Anti-exploit: prevents rotating !maricon → !gay → !rata to bypass the wait.
-  if (isGroup) {
-    const coolKey = `${jid}|percent|${bareJid(sender)}`;
-    const last = lastPercent.get(coolKey) || 0;
-    const remaining = PERCENT_COOLDOWN_MS - (Date.now() - last);
-    if (remaining > 0) {
-      const mins = Math.ceil(remaining / 60_000);
-      return sock.sendMessage(jid, { text: `Espera *${mins}min*.` }, { quoted: msg });
-    }
-    lastPercent.set(coolKey, Date.now());
-  }
 
   const target = getTargetOrSelf(msg);
   // El % se basa en el ROL DEL TARGET, no del sender

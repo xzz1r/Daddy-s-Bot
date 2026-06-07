@@ -63,9 +63,16 @@ async function getAuraRanking(groupJid) {
     .sort((a, b) => b.aura - a.aura);
 }
 
+// Wipe all aura records for a group. Effectively resets the leaderboard.
+async function resetAura(groupJid) {
+  await load();
+  delete store[groupJid];
+  scheduleSave();
+}
+
 async function flushAura() {
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
   if (store) { try { await fs.writeJson(AURA_FILE, store); } catch {} }
 }
 
-module.exports = { getAura, addAura, getAuraRanking, flushAura, STARTING_AURA };
+module.exports = { getAura, addAura, getAuraRanking, resetAura, flushAura, STARTING_AURA };

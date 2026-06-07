@@ -14,6 +14,7 @@ const { cmdToImg } = require('../commands/toimg');
 const { cmdPfp } = require('../commands/pfp');
 const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdInteligencia, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy } = require('../commands/percent');
 const { cmdAura } = require('../commands/aura');
+const { resetAura } = require('../utils/auraStore');
 const { cmdMog } = require('../commands/mog');
 const { cmdRobo } = require('../commands/robo');
 const { cmdDuel } = require('../commands/duel');
@@ -65,7 +66,7 @@ const NEEDS_META = new Set([
   'g','ai','grok',
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy',
-  'aura','inactivos','inactivo','fantasma','fantasmas','mog','moggear','roast','flamear',
+  'aura','resetaura','inactivos','inactivo','fantasma','fantasmas','mog','moggear','roast','flamear',
   'duel','duelo','1v1',
   'robo','robar',
   'scan','escanear',
@@ -375,6 +376,17 @@ async function handleMessage(sock, msg) {
       case 'femboy':         await cmdFemboy(sock, msg, groupMeta); break;
 
       case 'aura':           await cmdAura(sock, msg, args, groupMeta); break;
+
+      case 'resetaura':
+        if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
+          await sock.sendMessage(jid, { text: 'Solo el owner puede resetear el aura.' }, { quoted: msg });
+        } else if (!jid.endsWith('@g.us')) {
+          await sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+        } else {
+          await resetAura(jid);
+          await sock.sendMessage(jid, { text: '✅ Aura de todos reseteada. El marcador empieza desde cero.' }, { quoted: msg });
+        }
+        break;
 
       case 'mog':
       case 'moggear':
