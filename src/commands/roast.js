@@ -5,119 +5,111 @@ const { pick } = require('../utils/helpers');
 const { getAura } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
 
-const ROAST_COOLDOWN_MS = 3 * 60 * 1000;
-const lastRoast = new Map();
-
 const fmt = n => n.toLocaleString('es-ES');
 
 // ─── Roast banks per variable ─────────────────────────────────────────────────
 
-// NAME roasts: the actual display name is injected as %N
+// NAME roasts — %N is replaced with the display name
 const ROAST_NAME = [
-  'El nombre %N dice todo lo que no dijeron en voz alta el día que te lo pusieron. Una decisión que resume el criterio familiar.',
-  '%N. Alguien pensó durante días en ese nombre y llegó a eso. Eso resume el nivel intelectual de donde vienes.',
-  'Te llamaron %N y ningún adulto con criterio lo cuestionó. Eso dice más de tu entorno que de ti, aunque tú seas el resultado.',
-  'Con el nombre %N ya se sabe todo lo necesario antes de que abras la boca. No te ayuda.',
-  '%N es el tipo de nombre que la gente repite dos veces para asegurarse de que lo escuchó bien, no por admiración.',
-  'El nombre %N suena exactamente a la persona que eres: que prometía algo y no entregó nada concreto.',
-  '%N. Genético, inmutable, y la primera impresión que la gente guarda de ti. No es prometedor.',
-  'Hay nombres que abren puertas. %N anuncia quién llama antes de que decidan si abrirlas.',
-  'Te pusieron %N y lo llevas con la misma energía con que fuiste elegido: sin filtro y sin criterio.',
-  'El nombre %N en un currículum ya genera una expectativa. La tuya, concretamente, es baja.',
-  'Que te llames %N y sigas siendo lo que eres es una consistencia que al menos tiene coherencia interna.',
-  '%N. No es un insulto, es una descripción objetiva del punto de partida que nadie eligió pero que explica muchas cosas.',
-  'Con el nombre %N te cargaron algo que ya condiciona la primera impresión sin que puedas hacer nada para evitarlo.',
-  'Nadie elige su nombre. Pero sí elige qué hacer después. Llevas %N y tampoco ahí hay mucho que celebrar.',
-  '%N es el tipo de nombre que la gente olvida a los tres minutos de la presentación. Por motivos que van más allá del nombre.',
-  'Te bautizaron %N con toda la ilusión del mundo y mira cómo salió la inversión.',
-  'El nombre %N tiene una energía muy concreta. Lamentablemente, es exactamente la que proyectas.',
-  '%N es un nombre que existe. No dice nada especial, no posiciona, no destaca. Como la persona que lo lleva.',
-  'Pusieron %N en el certificado y desde entonces ese documento no ha recibido ninguna noticia positiva.',
-  'Con %N de nombre y lo que has construido después, la coherencia es total. Ninguna sorpresa en ninguna dirección.',
-  'El nombre %N suena a promesa incumplida. Y tú llevas años siendo fiel a esa definición.',
-  '%N es exactamente el nombre que pondría alguien que no pensó en las consecuencias a largo plazo. Familiar.',
-  'Que te llames %N y no hayas hecho nada memorable con eso es un nivel de consistencia que ya es un logro en sí mismo.',
-  'El nombre %N tenía potencial estadístico de llegar a algún sitio. Tú eres la excepción que baja el promedio.',
-  '%N. Dos sílabas o más que la gente pronuncia y enseguida deja de pensar en ellas. Sin rastro.',
+  'Con el nombre %N ya se sabe todo: de dónde vienes, qué nivel de criterio hubo en casa el día que te pusieron eso, y por qué llevas toda la vida compensando algo que ni tú sabes nombrar.',
+  '%N. Alguien en tu familia tomó esa decisión en serio y ningún adulto en la sala lo frenó. Ese es el primer fracaso colectivo del que vienes.',
+  'Te llamas %N y cargas con eso cada vez que te presentas a alguien. La primera impresión ya es un obstáculo antes de abrir la boca.',
+  'El nombre %N no abre puertas. Anuncia al portero quién llega, y el portero ya tomó una decisión antes de que llegues.',
+  '%N es el tipo de nombre que en un currículum genera una pausa. No de admiración. La otra clase de pausa.',
+  'Pusieron %N en el acta y nadie cuestionó si eso le iba a hacer la vida más difícil o más fácil al crío. La respuesta ya la conoces.',
+  'Llevas el nombre %N con la misma energía con la que te eligieron ese nombre: sin que nadie hiciera las preguntas correctas antes.',
+  'El nombre %N tiene una historia detrás. Desgraciadamente no es una historia que nadie quiera escuchar hasta el final.',
+  'Con %N de nombre ya tienes un marcador de partida. No es el peor del mundo, pero tampoco te está haciendo ningún favor documentado.',
+  'Te bautizaron %N con toda la ilusión del mundo y luego el tiempo demostró que la ilusión era lo único que había.',
+  '%N suena exactamente como lo que eres: algo que prometía y no cerró el trato en ningún momento concreto.',
+  'El nombre %N lleva pegado un contexto social que la gente lee en menos de un segundo. Tú no lo ves porque lo llevas desde siempre.',
+  'Que te llames %N y no hayas hecho nada memorable con eso todavía es un nivel de consistencia que ya es casi un rasgo de personalidad.',
+  '%N es un nombre que existe. No dice nada especial sobre quién lo lleva. En tu caso esa ambigüedad es la descripción más precisa posible.',
+  'Pusieron %N en el documento y desde entonces ese documento no ha recibido ni una noticia que haga que alguien se alegre de haber elegido ese nombre.',
+  'Con el nombre %N y la trayectoria que llevas asociada, la coherencia entre los dos es lo más consistente de toda tu historia.',
+  '%N es exactamente el nombre que pone alguien que no calculó a largo plazo. Esa falta de previsión viene de familia, se ve.',
+  'El nombre %N en voz alta genera una reacción. No siempre la que buscas, pero sí siempre la misma.',
+  'Nadie elige su nombre. Pero sí elige qué construir después de él. Llevas %N y en el segundo capítulo tampoco hay mucho que celebrar.',
+  'Te llamas %N y el grupo lleva tiempo sin saber cómo decirte que el nombre es lo de menos a estas alturas.',
+  '%N. La gente lo escucha, lo repite para acordarse, y al día siguiente ya lo olvidó. Por el nombre y por todo lo demás.',
+  'Con %N de nombre te pusieron una etiqueta que dice más del origen que del destino. Y el destino tampoco ha ayudado a desmentirlo.',
+  'El nombre %N lleva el acento justo donde nadie esperaba, igual que tú: siempre un poco fuera de donde debería caer.',
+  'Que alguien se llame %N y siga teniendo el perfil que tienes es la evidencia de que el nombre no era el único problema.',
+  '%N es el nombre con el que alguien decidió que ibas a presentarte al mundo para siempre. El mundo ya tomó nota.',
 ];
 
-// BIO roasts — two pools: empty bio and non-empty bio
+// BIO roasts — empty bio pool
 const ROAST_BIO_EMPTY = [
-  'Sin descripción. Ni siquiera en el único espacio donde decides cómo presentarte hay algo. Un lienzo en blanco que confirma lo que todos sospechaban.',
-  'La bio vacía no es minimalismo ni misterio. Es que no hay nada que poner y en el fondo ya lo sabes.',
-  'Un perfil sin bio en 2025 es una declaración. Dice: no tengo nada interesante que decir de mí mismo. Al menos en eso hay honestidad.',
-  'Sin bio. Invisible hasta en el único sitio donde no cuesta nada ser algo. Eso tiene mérito de lo malo.',
-  'La bio vacía es la forma más elegante de decir que no se tiene nada que ofrecer. No tan elegante como parece.',
-  'Ni una frase. Ni un emoji solitario. La nada absoluta donde debería haber algo que decir. Coherente con el resto.',
-  'Tienes el espacio y la oportunidad de presentarte y eliges el silencio. El silencio también comunica.',
-  'Sin descripción porque ponerla significaría decidir qué eres. Y eso requiere tener algo que decidir.',
-  'La bio vacía dice exactamente lo mismo que dices cuando hablas: nada que se quede.',
-  'Ni un intento. El único espacio tuyo de verdad y lo dejas en blanco. Eso ya es una presentación completa.',
-  'Sin bio. Lo que la gente ve cuando te busca es un perfil que anuncia que no hay nada detrás.',
-  'La bio vacía es la versión de WhatsApp del cuarto vacío: todos ven que no hay nadie viviendo ahí.',
-  'Podrías haber puesto cualquier cosa. Una frase, una fecha, un emoji. Elegiste no poner nada. Significativo.',
+  'Sin descripción. El único espacio donde decides cómo quieres que te vean y lo dejaste en blanco. No es misterio. Es que no hay nada que valga la pena poner y en el fondo ya lo asumiste.',
+  'Bio vacía en 2025. Ni una frase, ni un emoji de relleno, ni un intento miserable. El único sitio donde nadie te puede juzgar por lo que pones y aun así elegiste no poner nada. Transparencia involuntaria.',
+  'La bio en blanco no es minimalismo ni estética. Es la confirmación de que no tienes una sola cosa interesante que decir sobre ti mismo cuando te lo piensas con calma y sin presión.',
+  'Sin bio porque ponerla significaría decidir quién eres. Y eso requiere tener algo que decidir. El blanco lo dice todo sin necesitar palabras.',
+  'El perfil vacío es la versión digital de entrar a una habitación y que nadie levante la vista. Ni el espacio más tuyo del mundo te da material para rellenar.',
+  'Tienes el campo de descripción ahí, disponible, tuyo, sin límites de juicio externo, y lo dejaste vacío. Eso ya es un autorretrato más honesto de lo que cualquier frase habría conseguido.',
+  'Sin una sola palabra en la bio. El único texto que redactas sin que nadie te lo pida ni te evalúe, y aun así el resultado es la nada. Consistente con el historial.',
+  'Bio en blanco. Lo que la gente ve cuando te busca es un perfil que anuncia en silencio que detrás no hay nada que merezca espacio.',
+  'Ni un intento. El único sitio donde controlas la narrativa al cien por cien y elegiste no tener narrativa. Eso ya es una declaración.',
+  'La descripción vacía dice exactamente lo mismo que dices cuando hablas: nada que se quede, nada que importe, nada que nadie vaya a recordar mañana.',
 ];
 
+// BIO roasts — non-empty bio pool
 const ROAST_BIO_FULL = [
-  'La bio es el único sitio donde alguien decide conscientemente cómo quiere que lo vean. La tuya ya lo dice todo sobre cómo estás.',
-  'Lo que pusiste en la bio era para impresionar y el resultado es exactamente el opuesto. Ese es el problema con el branding sin sustancia.',
-  'La descripción que tienes en el perfil es la versión de ti mismo que consideraste presentable. Eso da que pensar.',
-  'Tu bio es exactamente lo que pone la gente cuando quiere parecer algo que no es. Familiar.',
-  'Pusiste algo en la bio para que la gente pensara bien de ti. Lo que piensan está ahí, pero no es lo que calculabas.',
-  'La bio que tienes dice más de ti que lo que crees. Y lo que dice no es lo que pretendías comunicar.',
-  'Redactaste tu propia descripción y llegaste a eso. Ese es el nivel de criterio con el que operas.',
-  'La bio es la primera impresión que controlas del todo. Y aun así salió así. Imagina las que no controlas.',
-  'Lo que escribiste en la bio lo escribiste para que la gente te viera de una forma. Lo que ven es otra.',
-  'Tienes una bio porque crees que dice algo bueno de ti. El grupo ya la leyó y llegó a sus propias conclusiones.',
-  'La descripción del perfil: el único texto que redactas tú solo, sin presión, con tiempo. Y salió así.',
-  'Pusiste algo en la bio que en tu cabeza sonaba bien. Fuera de tu cabeza el efecto es distinto.',
+  'La bio es el único texto que escribes tú solo, sin presión, con tiempo ilimitado, para que la gente te vea como quieres. Y aun así salió así. Imagina los textos que redactas con prisa.',
+  'Lo que pusiste en la descripción lo pusiste porque creíste que decía algo bueno de ti. El grupo ya lo leyó. Las conclusiones no son las que calculabas.',
+  'Redactaste tu propia presentación al mundo con toda la calma del mundo, sin que nadie te presionara, y llegaste a eso. Ese es el techo de tu criterio operando sin restricciones.',
+  'La bio es el branding personal más básico que existe y aun así conseguiste que comunicara exactamente lo contrario de lo que pretendías. Talento inverso.',
+  'Tu descripción de perfil dice más de ti que lo que crees. Y lo que dice no es lo que escribiste, es lo que se lee entre líneas en cada palabra que elegiste poner.',
+  'Pusiste algo en la bio para que la gente pensara bien de ti. Lo que piensan lo tienen claro, pero no es lo que calculabas cuando lo escribiste.',
+  'La descripción del perfil: el único texto completamente tuyo, con tiempo y sin presión. El resultado está ahí para que todo el que te busca lo vea antes de decidir si seguir mirando.',
+  'Tienes una bio porque crees que te define bien. El grupo ya la leyó hace tiempo y llegó a sus propias conclusiones sin necesitar discutirlo.',
+  'Lo que escribiste en la descripción en tu cabeza sonaba a algo. Fuera de tu cabeza tiene un efecto completamente distinto que nadie te ha tenido el valor de explicarte.',
+  'Tu bio es la primera impresión que controlas del todo. Y con toda esa ventaja, aun así salió así. Las que no controlas deben ser un desastre.',
 ];
 
 // ACTIVITY roasts — based on actual message count
 function roastActivity(count) {
   if (count === 0) {
     return pick([
-      'Cero mensajes registrados. Ni un solo texto, ni una sola reacción, ni un solo signo de vida en este grupo. Eso no es timidez, es no existir.',
-      'Cero mensajes. El grupo no tiene ni un solo registro de que estás aquí. Eso es un nivel de invisibilidad que hay que trabajárselo.',
-      'Sin actividad documentada. Ni un mensaje, ni un hola, ni un sticker de relleno. Presencia de fantasma sin ni siquiera el esfuerzo de aparecer.',
-      'El contador dice cero. Estás en el grupo y no has dejado ni una huella. Eso no es discreción, es no estar.',
-      'Cero mensajes. Llevas en este grupo el tiempo suficiente para que se note que no existes dentro de él.',
+      'Cero mensajes registrados. Estás en el grupo, ocupas espacio, consumes notificaciones, y no has aportado absolutamente nada. Ni una palabra, ni una reacción. Presencia de parásito sin ni siquiera el esfuerzo de disimularlo.',
+      'El contador dice cero. Ni un mensaje. Llevas en este grupo el tiempo suficiente como para que eso ya no sea vergonzoso, sea identidad. El fantasma que ni siquiera da señales de vida cuando lo ignoran.',
+      'Cero mensajes en el historial. Entras, ves, te vas. Llevas aquí como un voyeur que ni siquiera tiene la decencia de salir. El grupo no tiene ni un solo registro de que existes dentro de él.',
+      'Sin un solo mensaje. Eso no es timidez, no es discreción, no es personalidad de fondo. Es que no tienes nada que decir y el grupo lleva tiempo sin perder el sueño por eso.',
+      'Cero textos. El nivel más puro de consumir sin aportar. El que está en todos los grupos sin estar en ninguno, que es la forma más honesta de decir que no le importa nada de lo que pasa aquí.',
     ]);
   }
   if (count < 20) {
     return pick([
-      `${fmt(count)} mensajes. Lo que aportas al grupo en total cabe en una pantalla sin hacer scroll. Presencia testimonial de la más irrelevante.`,
-      `${fmt(count)} mensajes en total. A ese ritmo la gente del grupo va a necesitar que alguien les recuerde que existes.`,
-      `${fmt(count)} textos en el historial. No es timidez, es indiferencia hacia el grupo que te tiene ahí sin que hagas nada por merecerlo.`,
-      `Con ${fmt(count)} mensajes en el contador eres prácticamente un contacto de agenda. Estás guardado pero no vives aquí.`,
-      `${fmt(count)} mensajes. Llevas más tiempo en este grupo del que esos ${fmt(count)} mensajes merecen.`,
+      `${fmt(count)} mensajes en total. Lo que aportas al grupo en todo el tiempo que llevas aquí cabe en una pantalla sin hacer scroll. Presencia decorativa que nadie pidió.`,
+      `${fmt(count)} textos. A ese ritmo el grupo va a necesitar que alguien les recuerde que sigues vivo. No por preocupación, sino para saber si merece la pena seguir contándote.`,
+      `Con ${fmt(count)} mensajes llevas en este grupo más tiempo del que esos ${fmt(count)} mensajes justifican. Ocupas una plaza que alguien con algo que decir podría aprovechar mejor.`,
+      `${fmt(count)} mensajes. El tipo de actividad que le dice al grupo exactamente cuánto le importa lo que pasa aquí. Número honesto, aunque por las razones equivocadas.`,
+      `${fmt(count)} textos en el historial. Suficiente para saber que existes, insuficiente para que a alguien le importe si dejas de hacerlo.`,
     ]);
   }
   if (count < 100) {
     return pick([
-      `${fmt(count)} mensajes. Suficiente para saber que existes, insuficiente para que el grupo note si desapareces mañana.`,
-      `${fmt(count)} textos. Presencia de los que leen todo y no aportan nada. El público silencioso que el grupo no necesitaba.`,
-      `Con ${fmt(count)} mensajes estás en la zona de los que están pero no cuentan. No eres fantasma pero tampoco eres parte de nada.`,
-      `${fmt(count)} mensajes. El tipo de cifra que no dice nada porque viene de alguien que tampoco dice nada.`,
-      `${fmt(count)} textos en el marcador. Por debajo del umbral en el que alguien empieza a importar dentro del grupo.`,
+      `${fmt(count)} mensajes. Presencia de los que leen todo y no aportan nada. El público silencioso que consume el trabajo de los demás y desaparece cuando toca poner algo sobre la mesa.`,
+      `Con ${fmt(count)} mensajes estás en la zona de los que están pero no cuentan. No eres fantasma del todo pero tampoco eres parte de ninguna conversación que a alguien le importe recordar.`,
+      `${fmt(count)} textos enviados. Por debajo del umbral en el que alguien empieza a importar dentro de un grupo. Todavía en el territorio donde eres un número en una lista de participantes.`,
+      `${fmt(count)} mensajes y el grupo sigue sin saber bien qué haces aquí. No en el mal sentido. En el sentido de que nadie tiene datos suficientes para saberlo porque no los has dado.`,
+      `${fmt(count)} textos. La cantidad justa para que no te expulsen por inactivo y no suficiente para que nadie note si te vas mañana sin decir nada.`,
     ]);
   }
   if (count < 500) {
     return pick([
-      `${fmt(count)} mensajes y el grupo sigue sin saber muy bien qué aportaste con ninguno de ellos.`,
-      `${fmt(count)} textos enviados. Actividad media que no ha dejado ninguna marca concreta en el historial de nada.`,
-      `Con ${fmt(count)} mensajes has conseguido estar sin destacar. Constancia sin dirección.`,
-      `${fmt(count)} mensajes. Suficiente para no ser fantasma, insuficiente para que alguien te recuerde por algo específico.`,
-      `${fmt(count)} textos y la aportación al grupo se resume en: estaba.`,
+      `${fmt(count)} mensajes y el grupo sigue sin saber muy bien qué aportaste con ninguno de ellos. Cantidad sin calidad. Presencia sin impacto. El peor de los mundos posibles.`,
+      `${fmt(count)} textos enviados. Actividad media que no ha dejado ninguna marca concreta en el historial de nada. Estuviste, escribiste, nadie recuerda de qué.`,
+      `Con ${fmt(count)} mensajes conseguiste estar sin destacar, opinar sin convencer y escribir sin que nadie lo cite después. Constancia completamente inútil.`,
+      `${fmt(count)} mensajes. Suficiente para no ser fantasma, insuficiente para que alguien pueda citar una sola cosa tuya que haya cambiado algo en este grupo.`,
+      `${fmt(count)} textos y la aportación real al grupo se puede resumir en: estaba. Eso es lo que queda cuando alguien escribe mucho y no dice nada.`,
     ]);
   }
-  // high activity: roast as having no life
   return pick([
-    `${fmt(count)} mensajes en este grupo. Eso no es ser activo, es que esto es tu vida social y el grupo lo sabe.`,
-    `${fmt(count)} textos enviados aquí. Cantidad que levanta preguntas sobre qué pasa fuera de la pantalla.`,
-    `Con ${fmt(count)} mensajes eres la persona que más tiempo pasa aquí. Y eso, viniendo de este grupo, es una afirmación difícil de procesar.`,
-    `${fmt(count)} mensajes. El récord de actividad de alguien cuya agenda claramente tiene mucho espacio libre.`,
-    `${fmt(count)} textos en el contador. Hay gente que trabaja menos horas de las que tú llevas aquí escribiendo.`,
+    `${fmt(count)} mensajes en este grupo. Eso no es ser activo, es que esto es tu vida social y el grupo lo sabe. Hay gente con pareja, trabajo y vida fuera que lleva menos tiempo aquí que tú.`,
+    `${fmt(count)} textos enviados aquí. A ese volumen hay que plantearse cuántas horas al día pasa alguien pegado a esta pantalla en lugar de hacer algo que valga la pena fuera de ella.`,
+    `Con ${fmt(count)} mensajes eres la persona que más tiempo pasa en este grupo. Eso, en un grupo que tiene el nivel que tiene, es una afirmación con la que nadie debería poder vivir tranquilo.`,
+    `${fmt(count)} mensajes. El récord de actividad de alguien cuya agenda claramente tiene agujeros del tamaño de un grupo de WhatsApp. Busca algo que hacer fuera de aquí.`,
+    `${fmt(count)} textos en el contador. Hay personas que trabajan, estudian y mantienen relaciones humanas reales en menos horas de las que tú llevas aquí escribiendo al vacío.`,
   ]);
 }
 
@@ -125,47 +117,46 @@ function roastActivity(count) {
 function roastAura(aura) {
   if (aura < -10000) {
     return pick([
-      `${fmt(aura)} de aura. Una cifra tan negativa que ni el sistema sabe bien cómo categorizarla. Historial de fracasos documentados en tiempo real.`,
-      `Aura de ${fmt(aura)}. Negativo histórico. El tipo de marcador que confirma que el problema no es la mala suerte sino el patrón.`,
-      `${fmt(aura)} puntos. El sótano tiene otro sótano y tú ya encontraste la escalera. Sin nadie cerca mirando.`,
-      `Con ${fmt(aura)} de aura estás en territorio donde ni los más pesimistas del grupo esperaban verte llegar. Y llegaste solo.`,
-      `${fmt(aura)} de aura. Una cifra que dice todo lo que hace falta decir sobre cómo han ido las cosas hasta ahora.`,
+      `${fmt(aura)} de aura. Una cifra tan negativa que ya no es mala racha, es identidad. El marcador oficial de alguien que lleva tiempo demostrando quién es y por fin tiene el número que lo confirma.`,
+      `Aura de ${fmt(aura)}. Negativo histórico. El tipo de marcador que ya no necesita contexto ni explicación. Dice todo lo que hace falta decir sobre cómo han ido las cosas y por qué.`,
+      `${fmt(aura)} puntos. El sótano tiene otro sótano y tú encontraste la escalera solo, sin ayuda, con una consistencia que casi merece reconocimiento por lo difícil que es mantenerla.`,
+      `Con ${fmt(aura)} de aura llevas un historial que ningún sistema de estadísticas necesita analizar. La dirección está clara, el destino también, y nadie en este grupo finge sorprenderse ya.`,
+      `${fmt(aura)} de aura. Tan en negativo que ya no genera pena, genera una especie de respeto involuntario por la capacidad de seguir perdiendo con tanta consistencia y sin aparente autoconsciencia.`,
     ]);
   }
   if (aura < 0) {
     return pick([
-      `${fmt(aura)} de aura. En negativo. Eso es el marcador oficial de cómo han ido las cosas aquí.`,
-      `Aura negativa: ${fmt(aura)}. El sistema lleva la cuenta de cada decisión y el resultado está a la vista.`,
-      `${fmt(aura)} puntos. Menos de cero. La única dirección que conoces en este marcador es la que baja.`,
-      `Con ${fmt(aura)} de aura el historial habla solo. Y lo que dice no requiere traducción.`,
-      `${fmt(aura)} de aura. En rojo. El tipo de racha que ya no es racha sino identidad.`,
+      `${fmt(aura)} de aura. En rojo. Eso es el resultado oficial de todo lo que has hecho aquí. No hay interpretación alternativa, no hay contexto que lo matice. El número es el veredicto.`,
+      `Aura negativa: ${fmt(aura)}. El sistema lleva la cuenta de cada decisión y el marcador es lo que ves. Sin excusas, sin atenuantes, sin nadie más a quien echarle la culpa de ese número.`,
+      `${fmt(aura)} puntos. Menos de cero. La única dirección que conoces en este marcador es la que baja, y llevas suficiente tiempo demostrándolo como para que ya nadie espere un cambio.`,
+      `Con ${fmt(aura)} de aura el historial habla solo. Y lo que dice es claro, consistente, y lleva tiempo diciéndolo sin que tú hayas hecho nada concreto para cambiar la narrativa.`,
+      `${fmt(aura)} de aura. Negativo. El tipo de racha que ya dejó de ser racha hace meses y que cualquier observador honesto describiría como el resultado natural de ser quien eres aquí.`,
     ]);
   }
   if (aura < 2000) {
     return pick([
-      `${fmt(aura)} de aura. A duras penas en positivo. Esa es la definición de sobrevivir sin destacar.`,
-      `Aura de ${fmt(aura)}. Positivo por poco, lo que significa negativo en términos de impacto real.`,
-      `${fmt(aura)} puntos. El tipo de cifra que no da orgullo ni vergüenza porque no da nada.`,
-      `Con ${fmt(aura)} de aura llevas el tipo de marcador que nadie enseña a nadie voluntariamente.`,
-      `${fmt(aura)} de aura. Positivo sin convicción. Eso dice exactamente lo que hace falta decir.`,
+      `${fmt(aura)} de aura. A duras penas en positivo. La diferencia entre eso y el cero es tan pequeña que cualquier día malo te manda al otro lado. Y los días malos los tienes con facilidad.`,
+      `Aura de ${fmt(aura)}. Positivo por los pelos. Eso no es un logro, es sobrevivir. Y sobrevivir en un marcador de aura no es exactamente algo que presumir delante de nadie.`,
+      `${fmt(aura)} puntos. El tipo de cifra que no genera orgullo ni vergüenza porque es demasiado mediocre para provocar ninguna de las dos cosas en nadie que lo vea.`,
+      `Con ${fmt(aura)} de aura llevas el marcador de los que ni siquiera caen con estilo. Ni suficientemente bien para que nadie lo note, ni suficientemente mal para que sea interesante.`,
+      `${fmt(aura)} de aura. Positivo sin convicción. Un número que dice exactamente lo que hace falta decir sobre el nivel de impacto que has tenido aquí desde que llegas.`,
     ]);
   }
   if (aura < 10000) {
     return pick([
-      `${fmt(aura)} de aura. Una cifra que dice que algo hiciste bien en algún momento. No muchas cosas, pero algo.`,
-      `Aura de ${fmt(aura)}. Correcto. El marcador de los que no destacan para bien ni para mal.`,
-      `${fmt(aura)} puntos. El promedio tiene ese aspecto. No va a abrir ninguna puerta.`,
-      `Con ${fmt(aura)} de aura llevas una cifra completamente olvidable. Consistente con el resto.`,
-      `${fmt(aura)} de aura. Medio. El número más honesto que podrías tener y aun así no dice nada bueno.`,
+      `${fmt(aura)} de aura. El marcador de los que no destacan para bien ni para mal. Correcto en el sentido más burocrático del término. No va a abrir ninguna puerta ni cerrarla tampoco.`,
+      `Aura de ${fmt(aura)}. Medio. El número más honesto que podrías tener y aun así no dice nada que merezca que alguien lo mencione en ninguna conversación sobre nadie.`,
+      `${fmt(aura)} puntos. El promedio tiene exactamente ese aspecto. Invisible, inofensivo, completamente olvidable. El marcador de quien existe sin dejar rastro concreto.`,
+      `Con ${fmt(aura)} de aura llevas una cifra que confirma lo que el grupo ya sospechaba: ni para arriba ni para abajo. Estás ahí, el marcador lo registra, y nadie sabe bien para qué.`,
+      `${fmt(aura)} de aura. Mediocre con precisión estadística. El tipo de número que en cualquier sistema de valoración se traduce como: puede irse sin que nadie lo note durante días.`,
     ]);
   }
-  // high aura
   return pick([
-    `${fmt(aura)} de aura. Alto. Sorprendentemente alto dado quién lo acumula. El sistema tiene días raros.`,
-    `Aura de ${fmt(aura)}. Una cifra que no cuadra con lo que el grupo ve cada día. Suerte documentada.`,
-    `${fmt(aura)} puntos de aura. El marcador miente a veces. Hoy es uno de esos días.`,
-    `Con ${fmt(aura)} de aura alguien en este grupo debería revisar si el sistema funciona correctamente.`,
-    `${fmt(aura)} de aura. Ese número no tiene ningún respaldo en hechos observables. Pero ahí está.`,
+    `${fmt(aura)} de aura. Alto. Sorprendentemente alto dado todo lo demás. El marcador tiene días raros y hoy claramente es uno de ellos, porque el número no cuadra con lo observable.`,
+    `Aura de ${fmt(aura)}. Una cifra que no tiene ningún respaldo coherente en lo que el grupo ve cada día. La suerte existe, es documentable, y en este caso es lo único que explica ese número.`,
+    `${fmt(aura)} puntos de aura. Ese número y la persona que lo acumula no encajan en ningún modelo lógico. El sistema falla a veces. Este es uno de esos casos con nombre y apellido.`,
+    `Con ${fmt(aura)} de aura alguien debería revisar si el algoritmo tiene un bug o si simplemente la suerte ciega no discrimina por mérito. La segunda opción es la más probable aquí.`,
+    `${fmt(aura)} de aura. El marcador más mentiroso que ha generado este grupo hasta la fecha. Ese número existe, está ahí, y no tiene ninguna relación observable con quien lo lleva.`,
   ]);
 }
 
@@ -178,19 +169,9 @@ async function cmdRoast(sock, msg, groupMeta) {
   }
 
   const sender = getSender(msg);
-  const coolKey = `${jid}|${bareJid(sender)}`;
-  const last = lastRoast.get(coolKey) || 0;
-  const remaining = ROAST_COOLDOWN_MS - (Date.now() - last);
-  if (remaining > 0) {
-    const mins = Math.ceil(remaining / 60_000);
-    return sock.sendMessage(jid, { text: `Espera *${mins}min* para volver a roastear.` }, { quoted: msg });
-  }
-
   const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
   if (!mentioned.length) {
-    return sock.sendMessage(jid, {
-      text: 'Usa: *!roast @alguien*',
-    }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Usa: *!roast @alguien*' }, { quoted: msg });
   }
 
   const target = mentioned[0];
@@ -198,13 +179,10 @@ async function cmdRoast(sock, msg, groupMeta) {
     return sock.sendMessage(jid, { text: 'Roastearte a ti mismo es un nivel de autoflagelación que ni el bot va a facilitar.' }, { quoted: msg });
   }
 
-  lastRoast.set(coolKey, Date.now());
-
   // Gather all 4 variables
   const participants = groupMeta?.participants || [];
   const participant = participants.find(p => bareJid(p.id) === bareJid(target));
   const displayName = participant?.name
-    || msg.message?.extendedTextMessage?.contextInfo?.participant
     || target.split('@')[0].split(':')[0];
 
   const [bioResult, msgCount, aura] = await Promise.all([
@@ -215,29 +193,22 @@ async function cmdRoast(sock, msg, groupMeta) {
 
   const bio = bioResult?.status?.trim() || '';
 
-  // Pick one of 4 variables at random, weighted equally
   const variable = Math.floor(Math.random() * 4);
   let roastText;
 
   switch (variable) {
-    case 0: { // name
+    case 0:
       roastText = pick(ROAST_NAME).replace(/%N/g, displayName);
       break;
-    }
-    case 1: { // bio
-      roastText = bio
-        ? pick(ROAST_BIO_FULL)
-        : pick(ROAST_BIO_EMPTY);
+    case 1:
+      roastText = bio ? pick(ROAST_BIO_FULL) : pick(ROAST_BIO_EMPTY);
       break;
-    }
-    case 2: { // activity
+    case 2:
       roastText = roastActivity(msgCount);
       break;
-    }
-    case 3: { // aura
+    case 3:
       roastText = roastAura(aura);
       break;
-    }
   }
 
   const targetNum = target.split('@')[0];

@@ -1,10 +1,7 @@
 'use strict';
 
-const { isOwner, isAdmin, getSender, bareJid } = require('../utils/wa');
+const { isOwner, isAdmin, getSender } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
-
-const MOG_COOLDOWN_MS = 5 * 60 * 1000; // 5 min per sender per group
-const lastMog = new Map();
 
 // Rigged by role, but not blatantly: the owner has a real edge yet can still
 // lose, admins have a slighter edge, members fight on equal ground.
@@ -131,14 +128,6 @@ async function cmdMog(sock, msg, groupMeta) {
 
   const sender = getSender(msg);
 
-  const coolKey = `${jid}|${bareJid(sender)}`;
-  const last = lastMog.get(coolKey) || 0;
-  const remaining = MOG_COOLDOWN_MS - (Date.now() - last);
-  if (remaining > 0) {
-    const mins = Math.ceil(remaining / 60_000);
-    return sock.sendMessage(jid, { text: `Espera *${mins}min* para volver a moggear.` }, { quoted: msg });
-  }
-
   const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
 
   let a, b;
@@ -171,8 +160,6 @@ async function cmdMog(sock, msg, groupMeta) {
   const phrase = pick(MOG_PHRASES)
     .replace(/%M/g, `@${numM}`)
     .replace(/%L/g, `@${numL}`);
-
-  lastMog.set(coolKey, Date.now());
 
   const text =
     `*MOG CHECK*\n\n` +
