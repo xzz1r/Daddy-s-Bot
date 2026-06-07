@@ -74,8 +74,8 @@ const COMBINED_INACTIVE = [
   '%N, eres el gilipollas que tiene una bio que da vergüenza, un aura de mierda y la desfachatez de seguir en el grupo sin aportar absolutamente nada. Existes como el olor a humedad: molesto, sin valor y sin remedio.',
   'Tu nombre, %N, genera una mueca antes de que nadie hable contigo. La bio confirma los peores pronósticos, el aura los certifica y la ausencia total de actividad remata la faena. Perfecto en todos los sentidos malos.',
   '%N, combinas bio de mierda, aura de perdedor y presencia de fantasma con la naturalidad de alguien que lleva toda la vida siendo exactamente esto sin enterarse nunca. El fracasado inconsciente en estado puro.',
-  'Lo que describes en la bio, %N, es lo que quisieras ser. Lo que describe el aura es lo que eres de verdad. Y el silencio en el historial es la distancia entre los dos: un abismo que no se cierra con nada.',
-  '%N, que la bio sea así, que el aura esté donde está y que no hayas escrito nada relevante confirma que no es mala racha. Es quien eres. Y quien eres no genera una expectativa positiva en ningún ser humano del grupo.',
+  'Lo que describes en la bio, %N, es lo que quisieras ser. Tu aura muestra lo que realmente eres. Y no escribir nada confirma que ya lo sabes. Los tres juntos forman el retrato más honesto de un fracasado.',
+  '%N, la bio es una mierda, el aura está en el suelo y no has escrito nada relevante. No es mala racha, es quien eres desde siempre. Y quien eres no le interesa a nadie en este grupo ni fuera de él.',
   'Con ese nombre, %N, esa bio de mierda y el aura por el suelo, eres la representación más completa del concepto de "sobrar en todos los sentidos posibles" sin tener ni la más mínima idea de ello.',
   '%N, tu bio es el único texto que escribiste voluntariamente y aun así salió así de mal. El aura lo acredita y la falta de actividad confirma que tampoco en el grupo tienes nada que ofrecer. El pack del inútil total.',
   'La bio que tienes, %N, es el grito de socorro de alguien que no sabe quién coño es. El aura confirma que la respuesta no es buena, y el silencio lo certifica sin ninguna necesidad de más palabras.',
@@ -107,7 +107,7 @@ const COMBINED_ACTIVE = [
   '%N, eres el gilipollas que tiene una bio que da vergüenza y un aura de mierda, y aun así sigue mandando mensajes como si alguien estuviera esperando lo que tiene que decir. Nadie espera nada tuyo, puto.',
   'Tu nombre, %N, ya genera una mueca antes de que hablen contigo. La bio confirma los peores pronósticos y el aura los certifica. Lo que produces en el grupo solo añade más evidencia a un caso ya cerrado.',
   '%N, combinas bio de mierda, aura de perdedor y una presencia que no ha cambiado nada desde que llegaste. Lo mismo de siempre, en todos los indicadores, en la misma dirección: abajo sin freno.',
-  'La bio que tienes, %N, es el grito de socorro de alguien que no sabe quién coño es. El aura confirma que la respuesta no es buena. Y el historial de mensajes confirma que tampoco lo estás mejorando.',
+  'La bio que tienes, %N, es la versión escrita de alguien que no sabe quién coño es. El aura confirma que la respuesta no es buena. Y lo que mandas al grupo confirma que cada mensaje que escribes lo empeora.',
   '%N, que la bio sea así y que el aura esté donde está confirma que no es mala racha. Es quién eres. Y quién eres genera la misma reacción en el grupo desde el primer día: mueca, silencio e ignorar.',
   'Con ese nombre, %N, esa bio de dos duros y el aura en el suelo, eres la representación más completa del concepto de "presencia inútil" en todos los sentidos observables y sin ninguna excusa.',
   '%N, tu bio es una promesa que el producto no cumple. La pusiste pensando que te dejaba bien y lo único que dice es que no tienes ni idea de cómo te ve el resto del mundo. Publicidad engañosa.',
@@ -139,7 +139,7 @@ const NAME_ONLY = [
   'Llevas el nombre %N con la misma elegancia con la que te lo pusieron: ninguna. Improvisado, mal pensado y condenado desde el minuto cero sin que nadie lo viera venir.',
   'El día que te pusieron %N firmaron tu condena a ser uno más del montón. Y por una vez en tu familia, acertaron de pleno con el pronóstico a largo plazo.',
   'Te llamas %N y eso es lo más interesante que vas a aportar en toda la conversación. Y ni siquiera es interesante. Solo es lo único que hay disponible para comentar.',
-  'Con el nombre %N tienes dos opciones: hacerlo irrelevante con lo que construyes, o confirmarlo con lo que eres. Llevas años eligiendo la segunda sin dudarlo ni un segundo.',
+  'Con el nombre %N ya tienes dos opciones: ignorarlo o confirmarlo con lo que eres. Llevas años eligiendo la segunda sin dudarlo. Coherencia del fracasado.',
   '%N. Hasta tu nombre suena cansado de pertenecerte. Como si supiera perfectamente lo que viene después de él y ya hubiera asumido las consecuencias de existir pegado a ti.',
   'El nombre %N lo llevan personas muy distintas. En ti queda como una etiqueta en un producto caducado: inútil, que no le queda bien, y que nadie quiere mirar demasiado tiempo.',
   'Pusieron %N en el acta y nadie se preguntó si le estaban jodiendo la vida al crío. Spoiler: se la jodieron. Y tú eres la prueba andante de esa decisión irresponsable.',
@@ -171,8 +171,8 @@ const NAME_ONLY = [
   '%N es exactamente el nombre que pondría alguien que no pensó en las consecuencias a largo plazo. Esa falta de previsión es hereditaria y en ti se nota en cada área de tu vida.',
   'Cuando dicen %N en voz alta en este grupo hay un momento de pausa que no es admiración. Es el tipo de pausa que se hace antes de elegir con cuidado las palabras que vienen después.',
   'El nombre %N tiene tan poco peso que la gente te confunde con cualquier otro. En el cambio nadie sale perdiendo porque los dos son igual de intercambiables e irrelevantes.',
-  '%N: el nombre, la persona, el marcador. Todo en la misma dirección, todo en el mismo tono, todo igualmente olvidable en todos los contextos posibles sin excepción.',
-  'Te llamas %N. Es una información objetiva. Lo que viene después es subjetivo, personal y, en tu caso, difícil de defender públicamente ante cualquier persona razonable.',
+  '%N: el nombre, la persona, el marcador. Tres cosas distintas, ninguna de las tres tiene nada bueno que ofrecer. El trifecta del don nadie documentado en todos los frentes.',
+  'Te llamas %N y ya con eso tienes el partido perdido antes de abrir la boca. El nombre llega primero, prepara el terreno, y lo que viene después nunca lo mejora. Nunca.',
   'El nombre %N pasará por este grupo como pasas tú: sin dejar marca, sin que nadie pregunte qué fue de él, sin que nadie lo recuerde cuando ya no esté. Adiós sin adiós.',
 ];
 
@@ -190,7 +190,7 @@ const BIO_EMPTY = [
   'Sin bio porque para tenerla hay que tener algo que decir. Para tener algo que decir hay que ser algo. Cadena lógica que en tu caso se rompe en el primer eslabón sin ningún remedio.',
   'Dejaste la bio en blanco y sin querer hiciste la obra de arte más sincera del grupo: el retrato perfecto de un vacío con conexión a internet y sin nada que ofrecer a nadie.',
   'Sin descripción. Ni siquiera te molestaste en mentir sobre ti mismo, que es lo mínimo que hace la gente con algo de amor propio. Tú ni para el mínimo das. Impresionante a su manera, puto.',
-  'La bio vacía es tu forma de avisar al mundo de que no hay nada que ver aquí. Por una vez en tu vida, comunicaste algo con total claridad y sin margen para la interpretación.',
+  'La bio vacía es la única decisión que has tomado en tu vida que tiene sentido. Mostraste lo que hay dentro: nada. Primera vez que eres completamente honesto con el mundo, gilipollas.',
   'No pusiste bio porque poner algo implicaría reconocer que hay un "tú" sobre el que escribir. Y ambos sabemos que esa es una afirmación bastante generosa dadas las circunstancias actuales.',
   'Cero caracteres en la descripción. Hasta los bots de spam ponen algo. Quedaste por debajo del nivel de esfuerzo de un programa automático sin alma ni propósito. Eso es un logro en negativo.',
   'Bio en blanco: el equivalente a presentarte a una entrevista y quedarte mirando la pared cuando te dicen "háblame de ti". No tienes nada y se nota a kilómetros antes de abrir la boca, cabrón.',
@@ -202,8 +202,8 @@ const BIO_EMPTY = [
   'El blanco de tu bio habla más claro que cualquier cosa que hayas dicho aquí. Dice: no tengo nada, no soy nada, y al menos en eso soy completamente honesto con el mundo entero.',
   'No tienes bio porque si la tuvieras la gente tendría más material para juzgarte. Sin ella solo te juzgan por lo que ven. Y lo que ven ya es suficiente para tenerlo todo clarísimo.',
   'La descripción vacía es lo más interesante de todo tu perfil, y es literalmente la ausencia de información. La nada como contenido estrella de un perfil de mierda. Piénsalo, si puedes.',
-  'Sin bio. No la necesitas para que la gente sepa lo que eres. El historial, el comportamiento y el marcador de aura lo dicen todo sin que escribas una sola letra. Ya está todo dicho.',
-  'Tu bio está en blanco como declaración inconsciente: no me defino porque no sé cómo hacerlo sin hundirme aún más. Por una vez en tu vida, tuviste un instante de autoconsciencia acertada.',
+  'Sin bio. El único espacio donde dependes solo de ti y lo dejaste vacío. No es humildad. Es que miraste dentro y no encontraste absolutamente nada que valiera la pena mostrar, puto.',
+  'Tu bio está en blanco y es lo más honesto que has hecho en tu vida: reconocer implícitamente que no hay nada dentro que merezca una sola línea. Autoconsciencia involuntaria del fracasado.',
 ];
 
 // ─── SOLO BIO CON CONTENIDO (%N) — 25 frases ──────────────────────────────────
@@ -231,8 +231,8 @@ const BIO_FULL = [
   '%N, la descripción que pusiste dice exactamente lo que no querías que dijera: que te importa mucho lo que piensen de ti y que no tienes nada real con lo que trabajar para conseguirlo.',
   'Lo que pusiste en la bio, %N, lo pusiste porque en ese momento te pareció que te representaba bien. Ese momento de autoconciencia fue el pico más alto de tu carrera. Ya es mucho, cabrón.',
   'Tu bio tiene ese tono de alguien que necesita que le crean algo que no puede demostrar con hechos, %N. Si pudiera demostrarlo con hechos no haría falta ponerlo en la descripción del perfil.',
-  '%N, escribiste la bio y quedaste satisfecho con el resultado. Ese momento de satisfacción dice más de tu nivel de exigencia que cualquier otra cosa que hayas hecho aquí.',
-  'La bio que tienes, %N, es el mejor argumento que tienes para presentarte. Y el mejor argumento es esto. Eso resume bien el estado de la situación y el material disponible actualmente.',
+  '%N, escribiste la bio, la miraste y pensaste "esto me define bien". Ese momento de satisfacción delante de ese texto dice todo lo que hay que saber sobre tu nivel de criterio. Todo.',
+  'La bio que tienes, %N, es lo mejor que tienes para presentarte ante el mundo. Y tu mejor versión es eso. Piénsalo. Tu carta ganadora da risa. Tu carta perdedora da lástima. Ambas son tú.',
   '%N, tu bio es una promesa. El problema es que el producto que entregan después no cumple ningún apartado de esa promesa. Fraude al consumidor con foto de perfil y sin garantía posible.',
 ];
 
@@ -382,6 +382,39 @@ function getActivityPhrases(count) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// ANTI-REPETICIÓN
+// Tracks last 10 templates and last 4 categories per group so the same phrase
+// and the same attack angle never appear back-to-back within a session.
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const roastHistory = new Map(); // jid → { tpls: string[], cats: string[] }
+
+function getHist(jid) {
+  if (!roastHistory.has(jid)) roastHistory.set(jid, { tpls: [], cats: [] });
+  return roastHistory.get(jid);
+}
+
+function pushHist(jid, cat, tpl) {
+  const h = getHist(jid);
+  h.tpls.push(tpl); if (h.tpls.length > 10) h.tpls.shift();
+  h.cats.push(cat); if (h.cats.length > 4)  h.cats.shift();
+}
+
+// Pick from pool avoiding recently used templates. Falls back to full pool if
+// all templates are exhausted (only possible in very small pools).
+function freshPick(pool, usedSet) {
+  const avail = pool.filter(p => !usedSet.has(p));
+  return pick(avail.length ? avail : pool);
+}
+
+// Pick a category avoiding the last 3 used. Falls back to full list.
+function freshCat(options, recentCats) {
+  const recent = new Set(recentCats.slice(-3));
+  const avail = options.filter(o => !recent.has(o));
+  return pick(avail.length ? avail : options);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // COMANDO
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -430,44 +463,50 @@ async function cmdRoast(sock, msg, groupMeta) {
   const bio = bioResult?.status?.trim() || '';
   const isInactive = msgCount < 150;
 
-  // Construir pool según contexto. 40% combinada, 60% variable única.
-  // Actividad solo entra si el usuario es inactivo (no se ataca al activo).
-  let roastText;
+  const { tpls, cats } = getHist(jid);
+  const usedTpls = new Set(tpls);
+
+  // 40% combinada, 60% variable única. Actividad solo para inactivos.
+  let roastText, cat, tpl;
   const useCombined = Math.random() < 0.40;
 
   if (useCombined) {
-    const template = pick(isInactive ? COMBINED_INACTIVE : COMBINED_ACTIVE);
-    roastText = template.replace(/%N/g, displayName);
+    cat = 'combined';
+    const pool = isInactive ? COMBINED_INACTIVE : COMBINED_ACTIVE;
+    tpl = freshPick(pool, usedTpls);
+    roastText = tpl.replace(/%N/g, displayName);
   } else {
     const singleVars = ['name', 'bio', 'aura'];
     if (isInactive) singleVars.push('activity');
-    const variable = pick(singleVars);
+    cat = freshCat(singleVars, cats);
 
-    switch (variable) {
+    switch (cat) {
       case 'name':
-        roastText = pick(NAME_ONLY).replace(/%N/g, displayName);
+        tpl = freshPick(NAME_ONLY, usedTpls);
+        roastText = tpl.replace(/%N/g, displayName);
         break;
-      case 'bio':
-        roastText = bio
-          ? pick(BIO_FULL).replace(/%N/g, displayName)
-          : pick(BIO_EMPTY);
+      case 'bio': {
+        const pool = bio ? BIO_FULL : BIO_EMPTY;
+        tpl = freshPick(pool, usedTpls);
+        roastText = bio ? tpl.replace(/%N/g, displayName) : tpl;
         break;
+      }
       case 'aura': {
-        const auraPhrases = getAuraPhrases(aura);
-        roastText = pick(auraPhrases)
-          .replace(/%N/g, displayName)
-          .replace(/%A/g, fmt(aura));
+        const pool = getAuraPhrases(aura);
+        tpl = freshPick(pool, usedTpls);
+        roastText = tpl.replace(/%N/g, displayName).replace(/%A/g, fmt(aura));
         break;
       }
       case 'activity': {
-        const actPhrases = getActivityPhrases(msgCount);
-        roastText = pick(actPhrases)
-          .replace(/%N/g, displayName)
-          .replace(/%C/g, fmt(msgCount));
+        const pool = getActivityPhrases(msgCount);
+        tpl = freshPick(pool, usedTpls);
+        roastText = tpl.replace(/%N/g, displayName).replace(/%C/g, fmt(msgCount));
         break;
       }
     }
   }
+
+  pushHist(jid, cat, tpl);
 
   const text =
     `${pick(HEADERS)}\n` +
