@@ -1,5 +1,6 @@
 const { ffmpegPath, ffprobePath } = require('./ffmpeg');
 const ffmpeg = require('fluent-ffmpeg');
+const sharp = require('sharp');
 const fs = require('fs-extra');
 const { tempFile, cleanTemp } = require('./helpers');
 const config = require('../config');
@@ -87,28 +88,17 @@ async function generateSourceThumb(srcBuffer) {
   }
 }
 
-// Generate a small PNG thumbnail from an animated WebP (fallback for re-stamped stickers).
-// The bundled ffmpeg cannot decode WebP, so this only works when an external ffmpeg
-// that supports WebP decoding is available. Returns null gracefully otherwise.
+// Generate a small PNG thumbnail from an animated WebP using sharp.
+// The bundled ffmpeg cannot decode WebP, but sharp handles it natively.
 async function generateAnimatedThumb(animBuf) {
-  const frameBuf = extractFirstAnmfFrame(animBuf);
-  if (!frameBuf) return null;
-  const inputFile = tempFile('webp');
-  const outputFile = tempFile('png');
-  await fs.writeFile(inputFile, frameBuf);
   try {
-    await runFfmpeg(inputFile, outputFile, [
-      '-vframes', '1',
-      '-vf', 'scale=96:96:force_original_aspect_ratio=decrease',
-      '-y',
-    ], 'image2');
-    const buf = await fs.readFile(outputFile);
-    return buf.length > 100 ? buf : null;
+    const thumb = await sharp(animBuf, { page: 0 })
+      .resize(96, 96, { fit: 'inside' })
+      .png()
+      .toBuffer();
+    return thumb.length > 100 ? thumb : null;
   } catch {
     return null;
-  } finally {
-    await cleanTemp(inputFile);
-    await cleanTemp(outputFile);
   }
 }
 
