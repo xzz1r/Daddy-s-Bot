@@ -6,6 +6,15 @@ const logger = require('./logger');
 
 const CASINO_FILE = path.join(__dirname, '../../data/casino.json');
 
+// The casino/jackpot counter is SEPARATE from the normal message counter
+// (messageCounter.js, used by !count). It tracks messages per user *per 24h
+// window* so the 200/500/1000 milestones become a daily race instead of a
+// once-and-forever payout. The window is per group and evaluated lazily on
+// access — no setInterval, so it survives Termux restarts without dangling
+// timers and without needing the process to be alive at the reset instant.
+const RESET_MS = 24 * 60 * 60 * 1000;
+
+// store = { [groupJid]: { resetAt: <ms>, counts: { [bareJid]: number } } }
 let store = null;
 let loadPromise = null;
 let saveTimer = null;
@@ -29,20 +38,52 @@ function scheduleSave() {
   }, 5000);
 }
 
-// Increment message count for the casino system. Returns new total.
+// Returns the group's live bucket, rolling the 24h window forward (wiping the
+// counts) when it has expired. Also migrates the legacy flat format
+// ({ [bareJid]: number }) by starting a fresh window — acceptable since the
+// counter is ephemeral by design.
+function freshBucket(groupJid) {
+  const now = Date.now();
+  let g = store[groupJid];
+  if (!g || typeof g.resetAt !== 'number' || !g.counts) {
+    g = { resetAt: now, counts: {} };
+    store[groupJid] = g;
+    return g;
+  }
+  if (now - g.resetAt >= RESET_MS) {
+    g.counts = {};
+    g.resetAt = now;
+  }
+  return g;
+}
+
+// Increment a user's count within the current 24h window. Returns new total.
 async function incrementCasinoCount(groupJid, userJid) {
   await load();
+  const g = freshBucket(groupJid);
   const key = bareJid(userJid);
-  if (!store[groupJid]) store[groupJid] = {};
-  const next = (store[groupJid][key] || 0) + 1;
-  store[groupJid][key] = next;
+  const next = (g.counts[key] || 0) + 1;
+  g.counts[key] = next;
   scheduleSave();
   return next;
 }
 
+// Read-only count for the current window. Returns 0 if the window has expired
+// (the actual wipe is deferred to the next increment).
 async function getCasinoCount(groupJid, userJid) {
   await load();
-  return store[groupJid]?.[bareJid(userJid)] || 0;
+  const g = store[groupJid];
+  if (!g || typeof g.resetAt !== 'number' || !g.counts) return 0;
+  if (Date.now() - g.resetAt >= RESET_MS) return 0;
+  return g.counts[bareJid(userJid)] || 0;
+}
+
+// Milliseconds until the current window resets (0 if already expired / unknown).
+async function msUntilReset(groupJid) {
+  await load();
+  const g = store[groupJid];
+  if (!g || typeof g.resetAt !== 'number') return 0;
+  return Math.max(0, RESET_MS - (Date.now() - g.resetAt));
 }
 
 async function flushCasino() {
@@ -53,4 +94,4 @@ async function flushCasino() {
   }
 }
 
-module.exports = { incrementCasinoCount, getCasinoCount, flushCasino };
+module.exports = { incrementCasinoCount, getCasinoCount, msUntilReset, flushCasino, RESET_MS };

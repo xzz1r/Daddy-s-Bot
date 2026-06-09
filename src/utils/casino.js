@@ -1,4 +1,7 @@
-// Casino milestone system: rewards active group members every 200/500/1000 messages.
+// Casino milestone system: rewards active group members every 200/500/1000 messages
+// within a rolling 24h window (the casino counter lives in casinoStore.js and is
+// separate from the normal message counter used by !count; it resets daily so the
+// milestones are a fresh race every day).
 // Uses variable ratio reinforcement (the most addictive slot mechanic) — the amount
 // varies unpredictably within each tier so players never know what they'll get.
 // Members with negative aura have an escalating jackpot chance to incentivize
