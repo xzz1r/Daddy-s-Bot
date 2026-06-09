@@ -139,6 +139,14 @@ ${p}duel @user <aura> — duelo por aura
 ${p}mog @a @b — 1v1 de looks
 ${p}ship [@a] [@b] — match
 ${p}robo @user [aura] — intentar robar aura (10min cooldown)
+${p}dar @user <aura> — transferir aura a otro
+
+━━━ *CASINO* ━━━
+_Automático al escribir mensajes_
+Tier 1 · cada 200 msgs · bono de aura
+Tier 2 · cada 500 msgs · bono mayor
+Tier 3 · cada 1000 msgs · bono máximo
+_Jackpot de redención si tienes aura negativa_
 
 ━━━ *IA* ━━━
 ${p}g <pregunta> — Grok

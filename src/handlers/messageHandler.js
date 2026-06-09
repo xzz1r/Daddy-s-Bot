@@ -21,6 +21,7 @@ const { cmdDuel } = require('../commands/duel');
 const { cmdScan } = require('../commands/scan');
 const { cmdVs, cmdInactivos } = require('../commands/activity');
 const { cmdRoast } = require('../commands/roast');
+const { cmdDar } = require('../commands/dar');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp } = require('../commands/social');
 const { isOwner, isGroupAdmin, isBotAdmin, extractText, rememberMapping, getSender } = require('../utils/wa');
 const logger = require('../utils/logger');
@@ -396,6 +397,11 @@ async function handleMessage(sock, msg) {
       case 'roast':
       case 'flamear':
         await cmdRoast(sock, msg, groupMeta);
+        break;
+
+      case 'dar':
+      case 'donar':
+        await cmdDar(sock, msg, args);
         break;
 
       case 'robo':
