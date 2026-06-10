@@ -54,7 +54,18 @@ function getState() {
 }
 
 async function setState(updates) {
-  _state = { ..._state, ...updates };
+  // One-level deep merge: plain-object values are merged into the existing
+  // sub-object rather than replacing it wholesale. This prevents a caller
+  // doing setState({ stats: { messagesReceived: 0 } }) from silently dropping
+  // commandsExecuted, stickersCreated, etc.
+  for (const [k, v] of Object.entries(updates)) {
+    if (v !== null && typeof v === 'object' && !Array.isArray(v) &&
+        _state[k] !== null && typeof _state[k] === 'object') {
+      _state[k] = { ..._state[k], ...v };
+    } else {
+      _state[k] = v;
+    }
+  }
   await saveState(_state);
   return _state;
 }

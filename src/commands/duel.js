@@ -2,6 +2,26 @@ const { isOwner, isAdmin, getSender, getTarget, bareJid } = require('../utils/wa
 const { pickFresh } = require('../utils/helpers');
 const { getAura, addAura } = require('../utils/auraStore');
 
+// Resolve a JID to its canonical form (preferring phone-JID) using the group
+// participant list. Fixes LID vs phone-JID mismatches in accept/reject checks:
+// getTarget() may return a LID while getSender() returns a phone-JID for the
+// same person, making bareJid comparisons always fail.
+function resolveJid(rawJid, participants) {
+  const bare = bareJid(rawJid);
+  if (!participants?.length) return bare;
+  const p = participants.find(q =>
+    bareJid(q.id) === bare ||
+    (q.lid && bareJid(q.lid) === bare) ||
+    (q.phoneNumber && bareJid(q.phoneNumber) === bare)
+  );
+  if (!p) return bare;
+  if (p.phoneNumber) {
+    const ph = bareJid(p.phoneNumber);
+    if (ph.endsWith('@s.whatsapp.net')) return ph;
+  }
+  return bareJid(p.id);
+}
+
 // A duel is a consented aura bet: challenger stakes an amount, target must
 // accept, winner takes the stake from the loser. The accept step is what makes
 // it social — it forces a public yes/no instead of a silent dice roll.
@@ -116,7 +136,8 @@ async function cmdDuel(sock, msg, args, groupMeta) {
   if (['aceptar', 'acepto', 'accept', 'ok', 'si', 'sí', 'vamos', 'dale'].includes(sub)) {
     const d = getPending(jid);
     if (!d) return sock.sendMessage(jid, { text: 'No hay ningún duelo pendiente.' }, { quoted: msg });
-    if (bareJid(sender) !== bareJid(d.target)) {
+    const resolvedSender = resolveJid(sender, groupMeta?.participants);
+    if (resolvedSender !== bareJid(d.target)) {
       return sock.sendMessage(jid, { text: 'Este duelo no es para ti.' }, { quoted: msg });
     }
     const [auraT, auraC] = await Promise.all([
@@ -147,8 +168,9 @@ async function cmdDuel(sock, msg, args, groupMeta) {
   if (['rechazar', 'rechazo', 'no', 'cancelar', 'cancel', 'decline', 'paso'].includes(sub)) {
     const d = getPending(jid);
     if (!d) return sock.sendMessage(jid, { text: 'No hay ningún duelo pendiente.' }, { quoted: msg });
-    const isTarget = bareJid(sender) === bareJid(d.target);
-    const isChallenger = bareJid(sender) === bareJid(d.challenger);
+    const resolvedSender2 = resolveJid(sender, groupMeta?.participants);
+    const isTarget = resolvedSender2 === bareJid(d.target);
+    const isChallenger = resolvedSender2 === bareJid(d.challenger);
     if (!isTarget && !isChallenger) {
       return sock.sendMessage(jid, { text: 'Este duelo no es asunto tuyo.' }, { quoted: msg });
     }
@@ -196,7 +218,15 @@ async function cmdDuel(sock, msg, args, groupMeta) {
     }, { quoted: msg });
   }
 
-  pending.set(jid, { challenger: sender, target, stake, ts: Date.now() });
+  // Store canonical (phone-JID) forms so accept/reject comparisons work in
+  // LID groups where getTarget() and getSender() may return different JID formats.
+  const participants = groupMeta?.participants;
+  pending.set(jid, {
+    challenger: resolveJid(sender, participants),
+    target:     resolveJid(target, participants),
+    stake,
+    ts: Date.now(),
+  });
 
   await sock.sendMessage(jid, {
     text:

@@ -1,30 +1,63 @@
 const fs = require('fs-extra');
 const path = require('path');
 const crypto = require('crypto');
+const { atomicWriteJson } = require('./helpers');
 
 const CACHE_DIR = path.join(__dirname, '../../data/music_cache');
 const INDEX_FILE = path.join(CACHE_DIR, 'index.json');
 const MAX_SONGS = 60;
-const MAX_RAM_SONGS = 20; // keep last 20 songs as Buffers in RAM — zero disk I/O on replay
+
+// Size-based RAM cap (not count-based): 80 MB max, so a bot on a 2–4 GB
+// Termux device can't be DoS'd into an OOM kill by requesting 20 × 25 MB songs.
+const MAX_RAM_BYTES = 80 * 1024 * 1024;
+let ramUsedBytes = 0;
 
 let index = null;
 
 // RAM buffer cache: key -> { buffer, title, mimetype, ext }
-// Insertion-ordered Map — oldest entry = first key
+// Insertion-ordered Map — oldest entry = first key (FIFO eviction)
 const ramCache = new Map();
+
+// Validate an index entry's file field: must be a relative path with no
+// directory traversal. Rejects anything that could escape CACHE_DIR.
+function isSafeRelativePath(p) {
+  if (typeof p !== 'string' || !p) return false;
+  if (path.isAbsolute(p)) return false;
+  const normalised = path.normalize(p);
+  if (normalised.startsWith('..')) return false;
+  return true;
+}
+
+// Strip entries with invalid file paths when loading from disk — prevents
+// a hand-edited or corrupted index.json from triggering path traversal.
+function sanitiseIndex(raw) {
+  if (!raw || typeof raw !== 'object') return {};
+  const clean = {};
+  for (const [k, v] of Object.entries(raw)) {
+    if (v && typeof v === 'object' && isSafeRelativePath(v.file)) {
+      clean[k] = v;
+    }
+  }
+  return clean;
+}
 
 async function loadIndex() {
   if (index) return;
   await fs.ensureDir(CACHE_DIR);
-  try { index = await fs.readJson(INDEX_FILE); } catch { index = {}; }
+  try {
+    const raw = await fs.readJson(INDEX_FILE);
+    index = sanitiseIndex(raw);
+  } catch {
+    index = {};
+  }
 }
 
+// Atomic write: write to a temp file then rename, same as all other stores.
+// Prevents index.json from being permanently corrupted by a mid-write crash.
 async function saveIndex() {
-  await fs.writeJson(INDEX_FILE, index);
+  await atomicWriteJson(INDEX_FILE, index);
 }
 
-// Debounced disk write — batches rapid mutations (timestamp updates, evictions)
-// into a single write 5s later. Avoids hammering disk on busy chats.
 let _saveTimer = null;
 function scheduleIndexSave() {
   if (_saveTimer) return;
@@ -39,10 +72,19 @@ function cacheKey(query) {
 }
 
 function storeInRam(k, buffer, title, mimetype, ext) {
-  if (ramCache.size >= MAX_RAM_SONGS) {
-    ramCache.delete(ramCache.keys().next().value); // evict oldest
+  // If this key is already in cache, remove it first to reclaim its bytes
+  if (ramCache.has(k)) {
+    ramUsedBytes -= ramCache.get(k).buffer.length;
+    ramCache.delete(k);
+  }
+  // Evict oldest entries until there is room for the new buffer
+  while (ramCache.size > 0 && ramUsedBytes + buffer.length > MAX_RAM_BYTES) {
+    const oldest = ramCache.keys().next().value;
+    ramUsedBytes -= ramCache.get(oldest).buffer.length;
+    ramCache.delete(oldest);
   }
   ramCache.set(k, { buffer, title, mimetype, ext });
+  ramUsedBytes += buffer.length;
 }
 
 async function getCached(query) {
@@ -51,9 +93,11 @@ async function getCached(query) {
   // RAM hit — completely bypasses disk
   const ramHit = ramCache.get(k);
   if (ramHit) {
-    // Move to end (LRU)
+    // Move to end (LRU bump)
+    ramUsedBytes -= ramHit.buffer.length;
     ramCache.delete(k);
     ramCache.set(k, ramHit);
+    ramUsedBytes += ramHit.buffer.length;
     return ramHit;
   }
 
@@ -74,7 +118,6 @@ async function getCached(query) {
   try {
     buffer = await fs.readFile(filePath);
   } catch {
-    // File missing — clean up index
     delete index[k];
     scheduleIndexSave();
     return null;
@@ -92,8 +135,7 @@ async function setCached(query, srcPath, title, mimetype, ext, srcBuffer = null)
   await loadIndex();
   const k = cacheKey(query);
 
-  // Evict oldest disk entry if at limit. Single-pass O(n) min — beats sort on the
-  // whole index every write, which can be hundreds of entries over time.
+  // Evict oldest disk entry if at limit
   let count = 0;
   let oldestKey = null;
   let oldestTs = Infinity;
@@ -110,9 +152,6 @@ async function setCached(query, srcPath, title, mimetype, ext, srcBuffer = null)
   const cacheFile = `${k}${path.extname(srcPath)}`;
   const destPath = path.join(CACHE_DIR, cacheFile);
 
-  // Reuse the buffer the caller already read (the one sent to WhatsApp) so we
-  // don't read the freshly downloaded file from disk a second time. Fall back to
-  // reading it ourselves if no buffer was passed.
   let buffer = srcBuffer;
   try {
     if (!buffer) buffer = await fs.readFile(srcPath);
@@ -134,18 +173,14 @@ async function clearCache() {
   index = {};
   await saveIndex();
   ramCache.clear();
+  ramUsedBytes = 0;
 }
 
-// Force-flush pending debounced index save — call on shutdown.
 async function flushCache() {
-  if (_saveTimer) {
-    clearTimeout(_saveTimer);
-    _saveTimer = null;
-  }
+  if (_saveTimer) { clearTimeout(_saveTimer); _saveTimer = null; }
   if (index) {
     try { await saveIndex(); } catch {}
   }
 }
 
 module.exports = { getCached, setCached, clearCache, flushCache };
-

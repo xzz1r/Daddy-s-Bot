@@ -70,6 +70,8 @@ const NEEDS_META = new Set([
   'aura','resetaura','inactivos','inactivo','fantasma','fantasmas','mog','moggear','roast','flamear',
   'duel','duelo','1v1',
   'robo','robar',
+  'dar','donar',          // transferAura calls isOwner implicitly via groupMeta
+  'vs','versus',          // cmdVs receives groupMeta for isOwner/isGroupAdmin checks
   'scan','escanear',
   'count','resetcount','resetconteo',
   // Owner-gated commands also need meta in groups to resolve LID → phone
@@ -156,17 +158,21 @@ async function handleMessage(sock, msg) {
     const verdict = classifyLinks(text);
     if (verdict !== 'none') {
       const meta = await getGroupMeta(sock, jid);
-      if (meta && !isGroupAdmin(sender, msg.key.fromMe, meta)) {
+      // If meta is unavailable (timeout/network error), treat sender as non-admin
+      // so moderation doesn't silently no-op when connectivity is degraded.
+      const senderIsAdmin = meta ? isGroupAdmin(sender, msg.key.fromMe, meta) : false;
+      if (!senderIsAdmin) {
         if (verdict === 'blocked') {
-          // Without admin the bot can neither delete the message nor kick the
-          // sender — both calls would fail silently and leave the link up.
-          // Warn once per group (throttled) instead of pretending to moderate.
-          if (!isBotAdmin(sock, meta)) {
+          // Without bot-admin (or without meta to verify it) the bot can neither
+          // delete the message nor kick — warn once per group instead.
+          if (!meta || !isBotAdmin(sock, meta)) {
             const lastW = antilinkNoAdminWarn.get(jid);
             if (!lastW || Date.now() - lastW > ANTILINK_REMINDER_TTL) {
               antilinkNoAdminWarn.set(jid, Date.now());
               sock.sendMessage(jid, {
-                text: 'Detecté un enlace no permitido, pero no soy admin y no puedo borrarlo ni expulsar. Dame admin para moderar.',
+                text: meta
+                  ? 'Detecté un enlace no permitido, pero no soy admin y no puedo borrarlo ni expulsar. Dame admin para moderar.'
+                  : 'Detecté un enlace no permitido pero no pude verificar permisos. Intenta de nuevo en un momento.',
               }).catch(() => {});
             }
             return;

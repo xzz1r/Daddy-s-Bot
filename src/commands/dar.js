@@ -1,5 +1,5 @@
 const { getSender, getTarget, bareJid } = require('../utils/wa');
-const { getAura, addAura } = require('../utils/auraStore');
+const { transferAura } = require('../utils/auraStore');
 
 const GIFT_MIN = 10;
 const fmt = n => n.toLocaleString('es-ES');
@@ -31,17 +31,14 @@ async function cmdDar(sock, msg, args) {
     }, { quoted: msg });
   }
 
-  const senderAura = await getAura(jid, sender);
-  if (senderAura < amount) {
+  // Atomic check-and-transfer: both the balance check and the debit/credit happen
+  // in a single serialized operation, so concurrent !dar commands can't double-spend.
+  const result = await transferAura(jid, sender, target, amount);
+  if (!result.ok) {
     return sock.sendMessage(jid, {
-      text: `No tienes *${fmt(amount)}* de aura. Tienes *${fmt(senderAura)}*.`,
+      text: `No tienes *${fmt(amount)}* de aura. Tienes *${fmt(result.fromCurrent)}*.`,
     }, { quoted: msg });
   }
-
-  const [sNew, tNew] = await Promise.all([
-    addAura(jid, sender, -amount),
-    addAura(jid, target, +amount),
-  ]);
 
   const sTag = `@${sender.split('@')[0]}`;
   const tTag = `@${target.split('@')[0]}`;
@@ -50,8 +47,8 @@ async function cmdDar(sock, msg, args) {
     text:
       `*TRANSFERENCIA DE AURA*\n\n` +
       `${sTag} le pasa *${fmt(amount)} de aura* a ${tTag}\n\n` +
-      `${sTag}  −${fmt(amount)} → *${fmt(sNew.current)}*\n` +
-      `${tTag}  +${fmt(amount)} → *${fmt(tNew.current)}*`,
+      `${sTag}  −${fmt(amount)} → *${fmt(result.fromNew)}*\n` +
+      `${tTag}  +${fmt(amount)} → *${fmt(result.toNew)}*`,
     mentions: [sender, target],
   }, { quoted: msg });
 }

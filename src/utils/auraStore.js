@@ -6,13 +6,26 @@ const logger = require('./logger');
 
 const AURA_FILE = path.join(__dirname, '../../data/aura.json');
 
-// Everyone starts here. Aura then accumulates (or bleeds) over time as people
-// roll !aura — the value persists per user per group.
+// Everyone starts here. Aura then accumulates (or bleeds) over time.
 const STARTING_AURA = 1000;
 
 let store = null;          // { [groupJid]: { [bareJid]: number } }
 let loadPromise = null;
 let saveTimer = null;
+
+// Per-(group,user) write queue: serializes concurrent addAura / transferAura
+// calls so two simultaneous !dar / casino / !aura commands don't clobber each
+// other. Node.js is single-threaded but async — two callers can both read
+// `previous` before either has written back, causing deltas to be lost.
+const writeQueue = new Map();
+
+function serialized(key, fn) {
+  const prev = writeQueue.get(key) ?? Promise.resolve();
+  const next = prev.then(fn);
+  // Don't let a failed fn poison the queue for future writes on this key.
+  writeQueue.set(key, next.catch(() => {}));
+  return next;
+}
 
 async function load() {
   if (store) return;
@@ -24,7 +37,6 @@ async function load() {
   await loadPromise;
 }
 
-// Debounced write — aura changes are infrequent, 5s batches any burst.
 function scheduleSave() {
   if (saveTimer) return;
   saveTimer = setTimeout(async () => {
@@ -34,7 +46,6 @@ function scheduleSave() {
   }, 5000);
 }
 
-// Current aura for a user (STARTING_AURA if never rolled before).
 async function getAura(groupJid, userJid) {
   await load();
   const key = bareJid(userJid);
@@ -43,20 +54,43 @@ async function getAura(groupJid, userJid) {
   return g[key];
 }
 
-// Apply a delta and return { previous, current }. Aura can go negative — being
-// in the red is part of the humiliation.
 async function addAura(groupJid, userJid, delta) {
   await load();
-  const key = bareJid(userJid);
-  if (!store[groupJid]) store[groupJid] = {};
-  const previous = store[groupJid][key] === undefined ? STARTING_AURA : store[groupJid][key];
-  const current = previous + delta;
-  store[groupJid][key] = current;
-  scheduleSave();
-  return { previous, current };
+  const qKey = `${groupJid}|${bareJid(userJid)}`;
+  return serialized(qKey, () => {
+    const key = bareJid(userJid);
+    if (!store[groupJid]) store[groupJid] = {};
+    const previous = store[groupJid][key] === undefined ? STARTING_AURA : store[groupJid][key];
+    const current = previous + delta;
+    store[groupJid][key] = current;
+    scheduleSave();
+    return { previous, current };
+  });
 }
 
-// Top N by aura in a group (descending). Returns [{ jid, aura }].
+// Atomic check-and-transfer — the only correct way to move aura between users.
+// Returns { ok: true, fromNew, toNew } or { ok: false, fromCurrent } when the
+// sender has insufficient funds. Both the debit check and both writes happen
+// inside the same serialized block, so no concurrent command can read a stale
+// balance in the window between check and commit.
+async function transferAura(groupJid, fromJid, toJid, amount) {
+  await load();
+  const fromKey = bareJid(fromJid);
+  const toKey   = bareJid(toJid);
+  // Serialize on the sender's key — the critical section is the debit check.
+  const qKey = `${groupJid}|${fromKey}`;
+  return serialized(qKey, () => {
+    if (!store[groupJid]) store[groupJid] = {};
+    const g = store[groupJid];
+    const fromCurrent = g[fromKey] === undefined ? STARTING_AURA : g[fromKey];
+    if (fromCurrent < amount) return { ok: false, fromCurrent };
+    g[fromKey] = fromCurrent - amount;
+    g[toKey]   = (g[toKey] === undefined ? STARTING_AURA : g[toKey]) + amount;
+    scheduleSave();
+    return { ok: true, fromNew: g[fromKey], toNew: g[toKey] };
+  });
+}
+
 async function getAuraRanking(groupJid) {
   await load();
   const g = store[groupJid];
@@ -66,7 +100,6 @@ async function getAuraRanking(groupJid) {
     .sort((a, b) => b.aura - a.aura);
 }
 
-// Wipe all aura records for a group. Effectively resets the leaderboard.
 async function resetAura(groupJid) {
   await load();
   delete store[groupJid];
@@ -81,4 +114,4 @@ async function flushAura() {
   }
 }
 
-module.exports = { getAura, addAura, getAuraRanking, resetAura, flushAura, STARTING_AURA };
+module.exports = { getAura, addAura, transferAura, getAuraRanking, resetAura, flushAura, STARTING_AURA };

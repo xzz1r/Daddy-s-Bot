@@ -7,17 +7,25 @@ const logger = require('./logger');
 const CASINO_FILE = path.join(__dirname, '../../data/casino.json');
 
 // The casino/jackpot counter is SEPARATE from the normal message counter
-// (messageCounter.js, used by !count). It tracks messages per user *per 24h
-// window* so the 200/500/1000 milestones become a daily race instead of a
-// once-and-forever payout. The window is per group and evaluated lazily on
-// access — no setInterval, so it survives Termux restarts without dangling
-// timers and without needing the process to be alive at the reset instant.
+// (messageCounter.js). It tracks messages per user per 24h window so the
+// 200/500/1000 milestones are a daily race. Evaluated lazily — no setInterval,
+// so it survives Termux restarts cleanly.
 const RESET_MS = 24 * 60 * 60 * 1000;
 
 // store = { [groupJid]: { resetAt: <ms>, counts: { [bareJid]: number } } }
 let store = null;
 let loadPromise = null;
 let saveTimer = null;
+
+// Per-(group,user) write queue — same serialization as auraStore.
+const writeQueue = new Map();
+
+function serialized(key, fn) {
+  const prev = writeQueue.get(key) ?? Promise.resolve();
+  const next = prev.then(fn);
+  writeQueue.set(key, next.catch(() => {}));
+  return next;
+}
 
 async function load() {
   if (store) return;
@@ -38,10 +46,8 @@ function scheduleSave() {
   }, 5000);
 }
 
-// Returns the group's live bucket, rolling the 24h window forward (wiping the
-// counts) when it has expired. Also migrates the legacy flat format
-// ({ [bareJid]: number }) by starting a fresh window — acceptable since the
-// counter is ephemeral by design.
+// Returns the group's live bucket, rolling the 24h window forward when expired.
+// Also migrates the legacy flat format ({ [bareJid]: number }) by starting fresh.
 function freshBucket(groupJid) {
   const now = Date.now();
   let g = store[groupJid];
@@ -57,19 +63,20 @@ function freshBucket(groupJid) {
   return g;
 }
 
-// Increment a user's count within the current 24h window. Returns new total.
 async function incrementCasinoCount(groupJid, userJid) {
   await load();
-  const g = freshBucket(groupJid);
   const key = bareJid(userJid);
-  const next = (g.counts[key] || 0) + 1;
-  g.counts[key] = next;
-  scheduleSave();
-  return next;
+  const qKey = `${groupJid}|${key}`;
+  return serialized(qKey, () => {
+    const g = freshBucket(groupJid);
+    const next = (g.counts[key] || 0) + 1;
+    g.counts[key] = next;
+    scheduleSave();
+    return next;
+  });
 }
 
-// Read-only count for the current window. Returns 0 if the window has expired
-// (the actual wipe is deferred to the next increment).
+// Read-only count for the current window (0 if expired or unknown).
 async function getCasinoCount(groupJid, userJid) {
   await load();
   const g = store[groupJid];
@@ -78,7 +85,7 @@ async function getCasinoCount(groupJid, userJid) {
   return g.counts[bareJid(userJid)] || 0;
 }
 
-// Milliseconds until the current window resets (0 if already expired / unknown).
+// Milliseconds until current window resets (0 if expired / unknown).
 async function msUntilReset(groupJid) {
   await load();
   const g = store[groupJid];

@@ -10,6 +10,16 @@ let counts = null;
 let loadPromise = null;
 let saveTimer = null;
 
+// Per-(group,user) write queue — same serialization as auraStore.
+const writeQueue = new Map();
+
+function serialized(key, fn) {
+  const prev = writeQueue.get(key) ?? Promise.resolve();
+  const next = prev.then(fn);
+  writeQueue.set(key, next.catch(() => {}));
+  return next;
+}
+
 async function load() {
   if (counts) return;
   if (!loadPromise) {
@@ -20,9 +30,8 @@ async function load() {
   await loadPromise;
 }
 
-// Debounced save to avoid disk thrash on busy groups.
-// 10s window batches hundreds of increments into one write on chatty groups —
-// worst case loss on crash is ~10s of message counts, which is acceptable.
+// Debounced save — 10s batches bursts on chatty groups.
+// Worst-case loss on crash: ~10s of message counts, acceptable.
 function scheduleSave() {
   if (saveTimer) return;
   saveTimer = setTimeout(async () => {
@@ -34,22 +43,27 @@ function scheduleSave() {
 
 async function increment(groupJid, userJid) {
   await load();
-  // Normalize the key (strip device suffix) so a user's messages always
-  // accumulate under one entry — the same bareJid() the readers (!vs, !count)
-  // use to look users up. Without this, `123@lid` and `123:5@lid` would split.
   const key = bareJid(userJid);
-  if (!counts[groupJid]) counts[groupJid] = {};
-  counts[groupJid][key] = (counts[groupJid][key] || 0) + 1;
+  const qKey = `${groupJid}|${key}`;
+  return serialized(qKey, () => {
+    if (!counts[groupJid]) counts[groupJid] = {};
+    counts[groupJid][key] = (counts[groupJid][key] || 0) + 1;
+    scheduleSave();
+  });
+}
+
+// Requires an explicit groupJid — passing null/undefined would silently wipe
+// all groups' data. An explicit resetAllCounts() exists for that intent.
+async function resetCounts(groupJid) {
+  if (!groupJid) throw new Error('resetCounts: groupJid requerido — usa resetAllCounts() para borrar todo');
+  await load();
+  delete counts[groupJid];
   scheduleSave();
 }
 
-async function resetCounts(groupJid) {
+async function resetAllCounts() {
   await load();
-  if (groupJid) {
-    delete counts[groupJid];
-  } else {
-    counts = {};
-  }
+  counts = {};
   scheduleSave();
 }
 
@@ -71,17 +85,12 @@ async function getUserCount(groupJid, userJid) {
   return counts[groupJid]?.[key] || 0;
 }
 
-// Force-flush pending debounced save — call on shutdown to avoid losing
-// up to 10s of message counts when the process exits.
 async function flushCounts() {
-  if (saveTimer) {
-    clearTimeout(saveTimer);
-    saveTimer = null;
-  }
+  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
   if (counts) {
     try { await atomicWriteJson(COUNT_FILE, counts); }
     catch (e) { logger.error(`messageCounter: fallo al flush: ${e.message}`); }
   }
 }
 
-module.exports = { increment, getActiveUsers, getUserCount, resetCounts, flushCounts };
+module.exports = { increment, getActiveUsers, getUserCount, resetCounts, resetAllCounts, flushCounts };
