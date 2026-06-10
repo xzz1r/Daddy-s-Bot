@@ -90,16 +90,15 @@ const PHRASES = {
 
 // ─── Reward rolling (variable ratio — core casino mechanic) ───────────────────
 
-// Tier 1 expected ~2300 aura. Tier 2 ~12000. Tier 3 ~37000.
+// Tier 1 floor: 20 000. Tier 2 floor: 60 000. Tier 3 floor: 150 000.
 // Redemption jackpot: rare but massive (casino's "life-changing win" mechanic).
 function rollReward(tier, currentAura) {
   // Redemption check first: negative-aura users get an escalating jackpot chance.
-  // This is the hook that keeps even the most negative players engaged.
   if (currentAura < 0) {
     const redeemChance = tier === 3 ? 0.15 : tier === 2 ? 0.08 : 0.04;
     if (Math.random() < redeemChance) {
-      const base  = tier === 3 ? 100000 : tier === 2 ?  50000 : 20000;
-      const range = tier === 3 ? 200000 : tier === 2 ?  50000 : 30000;
+      const base  = tier === 3 ? 400000 : tier === 2 ? 150000 : 50000;
+      const range = tier === 3 ? 400000 : tier === 2 ? 150000 : 50000;
       return { amount: base + Math.floor(Math.random() * range), label: 'redemption' };
     }
   }
@@ -108,23 +107,23 @@ function rollReward(tier, currentAura) {
   let amount, label;
 
   if (tier === 1) {
-    // 55% small | 27% medium | 13% big | 5% jackpot
-    if      (r < 0.55) { amount = 200  + Math.floor(Math.random() * 800);   label = 'win'; }
-    else if (r < 0.82) { amount = 1000 + Math.floor(Math.random() * 2000);  label = 'bigwin'; }
-    else if (r < 0.95) { amount = 3000 + Math.floor(Math.random() * 5000);  label = 'jackpot'; }
-    else               { amount = 8000 + Math.floor(Math.random() * 12000); label = 'jackpot'; }
+    // 60% win | 25% bigwin | 10% jackpot | 5% megajackpot
+    if      (r < 0.60) { amount =  20000 + Math.floor(Math.random() * 10000); label = 'win'; }
+    else if (r < 0.85) { amount =  30000 + Math.floor(Math.random() * 20000); label = 'bigwin'; }
+    else if (r < 0.95) { amount =  50000 + Math.floor(Math.random() * 30000); label = 'jackpot'; }
+    else               { amount =  80000 + Math.floor(Math.random() * 70000); label = 'jackpot'; }
   } else if (tier === 2) {
-    // 45% medium | 30% big | 17% jackpot | 8% megajackpot
-    if      (r < 0.45) { amount = 2000  + Math.floor(Math.random() * 4000);  label = 'win'; }
-    else if (r < 0.75) { amount = 6000  + Math.floor(Math.random() * 8000);  label = 'bigwin'; }
-    else if (r < 0.92) { amount = 14000 + Math.floor(Math.random() * 16000); label = 'jackpot'; }
-    else               { amount = 30000 + Math.floor(Math.random() * 30000); label = 'jackpot'; }
+    // 50% win | 30% bigwin | 15% jackpot | 5% megajackpot
+    if      (r < 0.50) { amount =  60000 + Math.floor(Math.random() *  40000); label = 'win'; }
+    else if (r < 0.80) { amount = 100000 + Math.floor(Math.random() *  75000); label = 'bigwin'; }
+    else if (r < 0.95) { amount = 175000 + Math.floor(Math.random() * 125000); label = 'jackpot'; }
+    else               { amount = 300000 + Math.floor(Math.random() * 200000); label = 'jackpot'; }
   } else {
-    // tier 3: 35% | 30% | 20% | 15%
-    if      (r < 0.35) { amount = 5000  + Math.floor(Math.random() * 10000); label = 'win'; }
-    else if (r < 0.65) { amount = 15000 + Math.floor(Math.random() * 20000); label = 'bigwin'; }
-    else if (r < 0.85) { amount = 35000 + Math.floor(Math.random() * 30000); label = 'jackpot'; }
-    else               { amount = 65000 + Math.floor(Math.random() * 85000); label = 'jackpot'; }
+    // tier 3: 40% | 30% | 20% | 10%
+    if      (r < 0.40) { amount = 150000 + Math.floor(Math.random() * 100000); label = 'win'; }
+    else if (r < 0.70) { amount = 250000 + Math.floor(Math.random() * 200000); label = 'bigwin'; }
+    else if (r < 0.90) { amount = 450000 + Math.floor(Math.random() * 300000); label = 'jackpot'; }
+    else               { amount = 750000 + Math.floor(Math.random() * 750000); label = 'jackpot'; }
   }
 
   return { amount, label };

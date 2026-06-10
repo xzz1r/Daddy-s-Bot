@@ -181,10 +181,10 @@ ${p}aura top — ranking del grupo
 ${p}duel @user [cantidad] — duelo por aura
 ${p}robo @user [cantidad] — intentar robar aura
 ${p}dar @user <cantidad> — transferir aura
-_Bonos automáticos al escribir:_
-· Tier 1 · 200 msgs · bono de aura
-· Tier 2 · 500 msgs · bono mayor
-· Tier 3 · 1000 msgs · bono máximo
+_Bonos diarios (contador reinicia c/24h):_
+· Tier 1 · 200 msgs · mín *20.000* aura
+· Tier 2 · 500 msgs · mín *60.000* aura
+· Tier 3 · 1000 msgs · mín *150.000* aura
 _Jackpot de redención si llevas aura negativa_
 ${p}casino — tu progreso hoy
 

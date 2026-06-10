@@ -234,7 +234,7 @@ El aura es tu puntuación social en el grupo. Empieza en *1.000* y sube o baja s
 
 *CÓMO GANAR O PERDER AURA*
 · *!aura* — tiras el dado (3min cooldown). Puede subir o bajar dependiendo de tu rol: el owner tiene ventaja, los admins algo menos, los miembros la peor odds. Cuanto más en rojo estás, más probable el colapso.
-· *Bonos automáticos* — solo por escribir en el grupo recibes bonos sorpresa al llegar a 200, 500 y 1000 mensajes diarios (se resetea cada 24h). El premio es aleatorio — puede ser modesto o un jackpot.
+· *Bonos automáticos* — solo por escribir en el grupo recibes bonos al llegar a 200, 500 y 1000 mensajes diarios. El contador se reinicia cada 24h, así que la carrera empieza de nuevo cada día. Los premios mínimos garantizados: Tier 1 (200 msgs) *20.000*, Tier 2 (500 msgs) *60.000*, Tier 3 (1000 msgs) *150.000*. Con suerte puedes sacar mucho más.
 · *Jackpot de redención* — si llevas aura negativa, tienes probabilidad extra de sacar un premio enorme en cualquier tier. El casino del grupo no abandona a los hundidos.
 · *!duel @user* — apuesta aura contra otro. El retado acepta con !duel aceptar. Gana el más favorecido por el sistema (owner > admin > miembro), pero nadie está a salvo.
 · *!robo @user* — intenta robar aura a alguien. Si fallas, pierdes la mitad de lo apostado. 10min de cooldown.
