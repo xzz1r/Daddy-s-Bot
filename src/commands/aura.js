@@ -227,14 +227,37 @@ async function showRanking(sock, msg, groupMeta) {
   await sock.sendMessage(jid, { text: text.trimEnd(), mentions }, { quoted: msg });
 }
 
+const AURA_INFO =
+`*¿QUÉ ES EL AURA?*
+
+El aura es tu puntuación social en el grupo. Empieza en *1.000* y sube o baja según lo que hagas.
+
+*CÓMO GANAR O PERDER AURA*
+· *!aura* — tiras el dado (5min cooldown). Puede subir o bajar dependiendo de tu rol: el owner tiene ventaja, los admins algo menos, los miembros la peor odds. Cuanto más en rojo estás, más probable el colapso.
+· *Bonos automáticos* — solo por escribir en el grupo recibes bonos sorpresa al llegar a 200, 500 y 1000 mensajes diarios (se resetea cada 24h). El premio es aleatorio — puede ser modesto o un jackpot.
+· *Jackpot de redención* — si llevas aura negativa, tienes probabilidad extra de sacar un premio enorme en cualquier tier. El casino del grupo no abandona a los hundidos.
+· *!duel @user* — apuesta aura contra otro. El retado acepta con !duel aceptar. Gana el más favorecido por el sistema (owner > admin > miembro), pero nadie está a salvo.
+· *!robo @user* — intenta robar aura a alguien. Si fallas, pierdes la mitad de lo apostado. 10min de cooldown.
+· *!dar @user <cantidad>* — transfiere aura a otro miembro voluntariamente. Mínimo 10.
+
+*COMANDOS*
+· *!aura* — tirar para ti
+· *!aura @user* — ver aura de alguien
+· *!aura top* — ranking del grupo
+· *!casino* — tu progreso hoy (msgs y próximo bono)`;
+
 // !aura [@user]  — rolls aura for the target and updates their PERSISTENT total.
 // !aura top      — shows the group leaderboard.
+// !aura info     — explains the full system.
 async function cmdAura(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
 
   const sub = (args && args[0] ? args[0] : '').toLowerCase();
   if (['top', 'rank', 'ranking', 'leaderboard'].includes(sub)) {
     return showRanking(sock, msg, groupMeta);
+  }
+  if (['info', 'help', 'ayuda', 'como', 'cómo', '?'].includes(sub)) {
+    return sock.sendMessage(jid, { text: AURA_INFO }, { quoted: msg });
   }
 
   const sender = getSender(msg);
