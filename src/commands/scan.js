@@ -29,9 +29,19 @@ async function cmdScan(sock, msg, groupMeta) {
   // Only phone JIDs are scannable — LID JIDs can't be queried for business
   // profile or profile picture through the Baileys API.
   const participants = groupMeta?.participants || [];
-  const phoneJids = participants
-    .map(p => bareJid(p.id))
-    .filter(j => j && j.endsWith('@s.whatsapp.net'));
+  const phoneJids = [...new Set(
+    participants
+      .map(p => {
+        const j = bareJid(p.id);
+        if (j && j.endsWith('@s.whatsapp.net')) return j;
+        if (p.phoneNumber) {
+          const f = bareJid(p.phoneNumber);
+          if (f && f.endsWith('@s.whatsapp.net')) return f;
+        }
+        return null;
+      })
+      .filter(Boolean)
+  )];
 
   if (phoneJids.length === 0) {
     return sock.sendMessage(jid, { text: 'No hay miembros escaneables.' }, { quoted: msg });

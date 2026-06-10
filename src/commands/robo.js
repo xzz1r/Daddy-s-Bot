@@ -107,7 +107,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // Stake: first numeric arg, clamped to what both parties can afford
   const raw = parseInt((args || []).find(a => /^\d+$/.test(a)) || STAKE_DEFAULT, 10);
   const maxStake = Math.min(STAKE_MAX, auraV, auraA);
-  const stake = Math.max(STAKE_FLOOR, Math.min(raw, maxStake));
+  const stake = Math.max(maxStake >= STAKE_FLOOR ? STAKE_FLOOR : 1, Math.min(raw, maxStake));
 
   const participants = groupMeta?.participants || [];
   const aO = isOwner(sender, msg.key.fromMe, groupMeta);
@@ -122,6 +122,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const vTag = `@${target.split('@')[0]}`;
 
   // Set cooldown regardless of outcome
+  if (lastRob.size >= 2000) lastRob.delete(lastRob.keys().next().value);
   lastRob.set(coolKey, Date.now());
 
   if (success) {

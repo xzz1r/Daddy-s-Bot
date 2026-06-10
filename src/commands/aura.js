@@ -260,6 +260,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
       text: `Espera *${mins}min* para volver a tirar.`,
     }, { quoted: msg });
   }
+  if (lastRoll.size >= 2000) lastRoll.delete(lastRoll.keys().next().value);
   lastRoll.set(coolKey, Date.now());
 
   // The roll is rigged by the SENDER's own role — you only ever play your own aura.

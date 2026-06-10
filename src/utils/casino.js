@@ -172,7 +172,7 @@ async function checkCasinoMilestone(sock, jid, sender) {
 
   const text =
     `${tierHdr}\n\n` +
-    `${userTag} lleva *${fmt(count)} mensajes* en el grupo\n\n` +
+    `${userTag} lleva *${fmt(count)} mensajes* hoy\n\n` +
     `${phrase}\n\n` +
     `${userTag}  +${fmt(amount)} de aura → *${fmt(current)}*\n\n` +
     `_Próximo bono: ${nextLabel} — faltan ${fmt(next.remaining)} mensajes_`;
@@ -187,6 +187,7 @@ async function checkCasinoMilestone(sock, jid, sender) {
     const meta = await sock.groupMetadata(jid).catch(() => null);
     if (meta?.participants?.length) {
       mentions = [...new Set([sender, ...meta.participants.map(p => p.id)])];
+      if (lastTagall.size >= 500) lastTagall.delete(lastTagall.keys().next().value);
       lastTagall.set(jid, now);
     }
   }

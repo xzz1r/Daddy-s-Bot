@@ -22,7 +22,7 @@ const { cmdScan } = require('../commands/scan');
 const { cmdVs, cmdInactivos } = require('../commands/activity');
 const { cmdRoast } = require('../commands/roast');
 const { cmdDar } = require('../commands/dar');
-const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp } = require('../commands/social');
+const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, cmdCasino } = require('../commands/social');
 const { isOwner, isGroupAdmin, isBotAdmin, extractText, rememberMapping, getSender } = require('../utils/wa');
 const logger = require('../utils/logger');
 
@@ -183,6 +183,7 @@ async function handleMessage(sock, msg) {
         const rKey = `${jid}|${sender}`;
         const lastR = antilinkReminders.get(rKey);
         if (!lastR || Date.now() - lastR > ANTILINK_REMINDER_TTL) {
+          if (antilinkReminders.size >= 2000) antilinkReminders.delete(antilinkReminders.keys().next().value);
           antilinkReminders.set(rKey, Date.now());
           sock.sendMessage(jid, {
             text: 'Links de *YouTube* e *Instagram* permitidos. No spamees.',
@@ -443,6 +444,10 @@ async function handleMessage(sock, msg) {
       case 'estado':
       case 'status':
         await cmdInfo(sock, msg);
+        break;
+
+      case 'casino':
+        await cmdCasino(sock, msg);
         break;
 
       case 'ayuda':

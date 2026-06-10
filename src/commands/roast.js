@@ -390,7 +390,10 @@ function getActivityPhrases(count) {
 const roastHistory = new Map(); // jid → { tpls: string[], cats: string[] }
 
 function getHist(jid) {
-  if (!roastHistory.has(jid)) roastHistory.set(jid, { tpls: [], cats: [] });
+  if (!roastHistory.has(jid)) {
+    if (roastHistory.size >= 2000) roastHistory.delete(roastHistory.keys().next().value);
+    roastHistory.set(jid, { tpls: [], cats: [] });
+  }
   return roastHistory.get(jid);
 }
 

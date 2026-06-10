@@ -1,6 +1,7 @@
 const { getState, setState, toggleGroup } = require('../utils/state');
 const { formatUptime } = require('../utils/helpers');
 const { isOwner, isGroupAdmin, getSender } = require('../utils/wa');
+const { getCasinoCount, msUntilReset } = require('../utils/casinoStore');
 const config = require('../config');
 const logger = require('../utils/logger');
 
@@ -103,6 +104,43 @@ Prefijo:   ${config.prefix}`;
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
 
+// !casino — daily casino progress for the sender
+async function cmdCasino(sock, msg) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'Solo funciona en grupos.' }, { quoted: msg });
+  }
+
+  const sender = getSender(msg);
+  const [count, ms] = await Promise.all([
+    getCasinoCount(jid, sender),
+    msUntilReset(jid),
+  ]);
+
+  const fmt = n => n.toLocaleString('es-ES');
+
+  const n200  = Math.ceil((count + 1) / 200)  * 200;
+  const n500  = Math.ceil((count + 1) / 500)  * 500;
+  const n1000 = Math.ceil((count + 1) / 1000) * 1000;
+  const next  = Math.min(n200, n500, n1000);
+  const tier  = next % 1000 === 0 ? 3 : next % 500 === 0 ? 2 : 1;
+  const remaining = next - count;
+
+  const tierLabel = tier === 3 ? 'Tier 3 (1000 msgs)' : tier === 2 ? 'Tier 2 (500 msgs)' : 'Tier 1 (200 msgs)';
+
+  const hours = Math.floor(ms / 3_600_000);
+  const mins  = Math.floor((ms % 3_600_000) / 60_000);
+  const resetStr = ms > 0 ? `${hours}h ${mins}min` : 'pronto';
+
+  const text =
+    `🎰 *CASINO — HOY*\n\n` +
+    `Mensajes hoy: *${fmt(count)}*\n` +
+    `Próximo bono: ${tierLabel} — faltan *${fmt(remaining)}* msgs\n\n` +
+    `_Reset en ${resetStr}_`;
+
+  await sock.sendMessage(jid, { text }, { quoted: msg });
+}
+
 // !Commands / !ayuda / !help / !menu
 async function cmdHelp(sock, msg) {
   const jid = msg.key.remoteJid;
@@ -139,7 +177,7 @@ ${p}duel @user <aura> — duelo por aura
 ${p}mog @a @b — 1v1 de looks
 ${p}ship [@a] [@b] — match
 ${p}robo @user [aura] — intentar robar aura (10min cooldown)
-${p}dar @user <aura> — transferir aura a otro
+${p}dar / ${p}donar @user <aura> — transferir aura a otro
 
 ━━━ *CASINO* ━━━
 _Automático al escribir mensajes_
@@ -147,6 +185,7 @@ Tier 1 · cada 200 msgs · bono de aura
 Tier 2 · cada 500 msgs · bono mayor
 Tier 3 · cada 1000 msgs · bono máximo
 _Jackpot de redención si tienes aura negativa_
+${p}casino — progreso del casino hoy
 
 ━━━ *IA* ━━━
 ${p}g <pregunta> — Grok
@@ -165,6 +204,7 @@ ${p}scan — señales sospechosas en el grupo
 ${p}add <número>
 ${p}demote @user
 ${p}resetcount — borrar ranking
+${p}resetaura — borrar aura del grupo
 ${p}antiadmin on/off
 ${p}antiempresa on/off
 ${p}antilink on/off
@@ -176,5 +216,5 @@ ${p}ping · ${p}info`;
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
 
-module.exports = { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp };
+module.exports = { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, cmdCasino };
 
