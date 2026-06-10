@@ -5,32 +5,31 @@ const { getAura, addAura, getAuraRanking, STARTING_AURA } = require('../utils/au
 const ROLL_COOLDOWN_MS = 3 * 60 * 1000; // 3 minutes per user per group
 const lastRoll = new Map(); // `${groupJid}|${bareJid}` -> timestamp
 
-// Aura roll, rigged by the ROLLER's own role — same owner-favoritism as the
-// percent games: the owner mostly gains big, admins are mixed, regular members
-// mostly lose (it's a roast bot). Returns { tier, amount }.
+// Aura roll. Owner 60/40, admin 55/45, member 50/50.
+// Members were previously 30/70 — far too punishing for regular use.
 function rollAura(targetIsOwner, targetIsAdmin) {
   const r = Math.random();
-  const big = () => (50 + Math.floor(Math.random() * 51)) * 100;  // 5000..10000
-  const small = () => (5 + Math.floor(Math.random() * 36)) * 100; // 500..4000
+  const big   = () => (50 + Math.floor(Math.random() * 51)) * 100;  // 5000..10000
+  const small = () => (15 + Math.floor(Math.random() * 46)) * 100;  // 1500..6000
 
   if (targetIsOwner) {
-    // Owner is favored but still subject to house edge.
+    // 60% positive, 40% negative.
     if (r < 0.35) return { tier: 'blessed', amount: big() };
-    if (r < 0.55) return { tier: 'gain',    amount: small() };
-    if (r < 0.80) return { tier: 'loss',    amount: -small() };
+    if (r < 0.60) return { tier: 'gain',    amount: small() };
+    if (r < 0.85) return { tier: 'loss',    amount: -small() };
     return { tier: 'cursed', amount: -big() };
   }
   if (targetIsAdmin) {
-    // Admin: slight edge but house always wins long term.
-    if (r < 0.15) return { tier: 'blessed', amount: big() };
-    if (r < 0.30) return { tier: 'gain',    amount: small() };
-    if (r < 0.68) return { tier: 'loss',    amount: -small() };
+    // 55% positive, 45% negative.
+    if (r < 0.25) return { tier: 'blessed', amount: big() };
+    if (r < 0.55) return { tier: 'gain',    amount: small() };
+    if (r < 0.83) return { tier: 'loss',    amount: -small() };
     return { tier: 'cursed', amount: -big() };
   }
-  // member — 30% positive, 70% negative.
-  if (r < 0.10) return { tier: 'blessed', amount: big() };
-  if (r < 0.30) return { tier: 'gain',    amount: small() };
-  if (r < 0.70) return { tier: 'loss',    amount: -small() };
+  // member — 50% positive, 50% negative.
+  if (r < 0.20) return { tier: 'blessed', amount: big() };
+  if (r < 0.50) return { tier: 'gain',    amount: small() };
+  if (r < 0.80) return { tier: 'loss',    amount: -small() };
   return { tier: 'cursed', amount: -big() };
 }
 
