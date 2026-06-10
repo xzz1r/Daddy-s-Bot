@@ -2,7 +2,8 @@ const { isOwner, isGroupAdmin, getSender, bareJid } = require('../utils/wa');
 const { isBusinessBatch } = require('../utils/businessCheck');
 const logger = require('../utils/logger');
 
-const PFP_CONCURRENCY = 5;
+const PFP_CONCURRENCY = 8;
+const PFP_TIMEOUT_MS  = 3500;
 
 async function hasPfp(sock, jid) {
   try {
@@ -11,6 +12,13 @@ async function hasPfp(sock, jid) {
   } catch {
     return false;
   }
+}
+
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise(resolve => setTimeout(() => resolve(null), ms)),
+  ]);
 }
 
 async function cmdScan(sock, msg, groupMeta) {
@@ -26,32 +34,34 @@ async function cmdScan(sock, msg, groupMeta) {
     return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
   }
 
-  // Only phone JIDs are scannable — LID JIDs can't be queried for business
-  // profile or profile picture through the Baileys API.
   const participants = groupMeta?.participants || [];
-  const phoneJids = [...new Set(
-    participants
-      .map(p => {
-        const j = bareJid(p.id);
-        if (j && j.endsWith('@s.whatsapp.net')) return j;
-        if (p.phoneNumber) {
-          const f = bareJid(p.phoneNumber);
-          if (f && f.endsWith('@s.whatsapp.net')) return f;
-        }
-        return null;
-      })
-      .filter(Boolean)
-  )];
+  if (participants.length === 0) {
+    return sock.sendMessage(jid, { text: 'No se pudo obtener la lista de miembros.' }, { quoted: msg });
+  }
 
-  if (phoneJids.length === 0) {
-    return sock.sendMessage(jid, { text: 'No hay miembros escaneables.' }, { quoted: msg });
+  // Split into phone-JIDs (scannable) and LID-only (number hidden by WA privacy).
+  const phoneJids = [];
+  const lidOnly   = [];
+
+  for (const p of participants) {
+    const id    = bareJid(p.id);
+    const phone = p.phoneNumber ? bareJid(p.phoneNumber) : null;
+    const resolved = (phone && phone.endsWith('@s.whatsapp.net'))
+      ? phone
+      : id.endsWith('@s.whatsapp.net') ? id : null;
+
+    if (resolved) {
+      phoneJids.push(resolved);
+    } else {
+      lidOnly.push(id);
+    }
   }
 
   await sock.sendMessage(jid, {
-    text: `Escaneando ${phoneJids.length} miembros...`,
+    text: `Escaneando ${participants.length} miembros…`,
   }, { quoted: msg });
 
-  // Business account detection (batched, concurrency 8)
+  // ── Business account check ────────────────────────────────────────────────
   let bizMap = new Map();
   try {
     bizMap = await isBusinessBatch(sock, phoneJids, 8);
@@ -59,38 +69,67 @@ async function cmdScan(sock, msg, groupMeta) {
     logger.warn(`scan: business check failed: ${err.message}`);
   }
 
-  // Profile picture check — lower concurrency to avoid WA rate-limiting.
-  // hasPfp returns false on error, which includes privacy-hidden pics.
+  // ── Profile picture check (with per-call timeout) ─────────────────────────
   const pfpMap = new Map();
   for (let i = 0; i < phoneJids.length; i += PFP_CONCURRENCY) {
     const chunk = phoneJids.slice(i, i + PFP_CONCURRENCY);
-    const results = await Promise.all(chunk.map(j => hasPfp(sock, j).then(v => [j, v])));
-    for (const [j, has] of results) pfpMap.set(j, has);
+    const results = await Promise.all(
+      chunk.map(j =>
+        withTimeout(hasPfp(sock, j), PFP_TIMEOUT_MS).then(v => [j, v])
+      )
+    );
+    for (const [j, v] of results) pfpMap.set(j, v);
   }
 
+  // ── Build flagged list ────────────────────────────────────────────────────
   const flagged = [];
   for (const j of phoneJids) {
     const reasons = [];
-    if (bizMap.get(j)) reasons.push('cuenta Business');
-    if (!pfpMap.get(j)) reasons.push('sin foto visible');
-    if (reasons.length > 0) flagged.push({ jid: j, reasons });
+    if (bizMap.get(j))        reasons.push('cuenta Business');
+    if (pfpMap.get(j) === false) reasons.push('sin foto');
+    if (reasons.length) flagged.push({ jid: j, reasons });
   }
 
-  if (flagged.length === 0) {
-    return sock.sendMessage(jid, {
-      text: `Escaneo completo. ${phoneJids.length} revisados. Sin señales sospechosas.`,
-    }, { quoted: msg });
+  const bizCount  = phoneJids.filter(j => bizMap.get(j)).length;
+  const noPfp     = phoneJids.filter(j => pfpMap.get(j) === false).length;
+  const timedOut  = phoneJids.filter(j => pfpMap.get(j) === null).length;
+
+  // ── Compose report ────────────────────────────────────────────────────────
+  let text = `*ESCANEO DE GRUPO*\n\n`;
+
+  text += `👥 Total miembros: *${participants.length}*\n`;
+  text += `📱 Número visible: *${phoneJids.length}*\n`;
+  if (lidOnly.length > 0)
+    text += `🔒 Número oculto (LID): *${lidOnly.length}*\n`;
+  text += `\n`;
+
+  // Business accounts — individually listed with mention
+  if (bizCount > 0) {
+    const bizLines = phoneJids
+      .filter(j => bizMap.get(j))
+      .map(j => `• @${j.split('@')[0]}`);
+    text += `⚠️ *Cuentas Business (${bizCount}):*\n${bizLines.join('\n')}\n\n`;
   }
 
-  const mentions = flagged.map(f => f.jid);
-  const lines = flagged.map(f => `• @${f.jid.split('@')[0]} — ${f.reasons.join(', ')}`);
+  // "Sin foto" as a stat, not individual listing — too many false positives from privacy settings
+  text += `📸 Sin foto visible: *${noPfp}* de ${phoneJids.length}`;
+  if (noPfp > 0) text += ` _(puede ser privacidad)_`;
+  if (timedOut > 0) text += `\n⏱ Sin respuesta (timeout): *${timedOut}*`;
+  text += '\n';
 
-  const text =
-    `*ESCANEO DE GRUPO*\n\n` +
-    `Revisados: ${phoneJids.length} · Señalados: ${flagged.length}\n\n` +
-    lines.join('\n') +
-    `\n\n_"Sin foto visible" puede ser privacidad, no necesariamente sospecha._`;
+  // LID detail
+  if (lidOnly.length > 0) {
+    text += `\n🔒 *Número oculto* — ${lidOnly.length} miembro${lidOnly.length > 1 ? 's' : ''} con privacidad de número activa. No es posible escanearlo${lidOnly.length > 1 ? 's' : ''} (LID-only).\n`;
+  }
 
+  // Verdict
+  if (bizCount === 0 && lidOnly.length === 0) {
+    text += `\n✅ Sin señales destacadas.`;
+  } else if (bizCount > 0 || lidOnly.length > 0) {
+    text += `\n_Revisión manual recomendada para los marcados._`;
+  }
+
+  const mentions = phoneJids.filter(j => bizMap.get(j));
   await sock.sendMessage(jid, { text, mentions }, { quoted: msg });
 }
 
