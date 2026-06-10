@@ -2,7 +2,7 @@ const { isOwner, isAdmin, getTarget, getSender, bareJid } = require('../utils/wa
 const { pickFresh } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking, STARTING_AURA } = require('../utils/auraStore');
 
-const ROLL_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes per user per group
+const ROLL_COOLDOWN_MS = 3 * 60 * 1000; // 3 minutes per user per group
 const lastRoll = new Map(); // `${groupJid}|${bareJid}` -> timestamp
 
 // Aura roll, rigged by the ROLLER's own role — same owner-favoritism as the
@@ -233,7 +233,7 @@ const AURA_INFO =
 El aura es tu puntuación social en el grupo. Empieza en *1.000* y sube o baja según lo que hagas.
 
 *CÓMO GANAR O PERDER AURA*
-· *!aura* — tiras el dado (5min cooldown). Puede subir o bajar dependiendo de tu rol: el owner tiene ventaja, los admins algo menos, los miembros la peor odds. Cuanto más en rojo estás, más probable el colapso.
+· *!aura* — tiras el dado (3min cooldown). Puede subir o bajar dependiendo de tu rol: el owner tiene ventaja, los admins algo menos, los miembros la peor odds. Cuanto más en rojo estás, más probable el colapso.
 · *Bonos automáticos* — solo por escribir en el grupo recibes bonos sorpresa al llegar a 200, 500 y 1000 mensajes diarios (se resetea cada 24h). El premio es aleatorio — puede ser modesto o un jackpot.
 · *Jackpot de redención* — si llevas aura negativa, tienes probabilidad extra de sacar un premio enorme en cualquier tier. El casino del grupo no abandona a los hundidos.
 · *!duel @user* — apuesta aura contra otro. El retado acepta con !duel aceptar. Gana el más favorecido por el sistema (owner > admin > miembro), pero nadie está a salvo.
