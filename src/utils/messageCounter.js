@@ -10,16 +10,6 @@ let counts = null;
 let loadPromise = null;
 let saveTimer = null;
 
-// Per-(group,user) write queue — same serialization as auraStore.
-const writeQueue = new Map();
-
-function serialized(key, fn) {
-  const prev = writeQueue.get(key) ?? Promise.resolve();
-  const next = prev.then(fn);
-  writeQueue.set(key, next.catch(() => {}));
-  return next;
-}
-
 async function load() {
   if (counts) return;
   if (!loadPromise) {
@@ -44,12 +34,9 @@ function scheduleSave() {
 async function increment(groupJid, userJid) {
   await load();
   const key = bareJid(userJid);
-  const qKey = `${groupJid}|${key}`;
-  return serialized(qKey, () => {
-    if (!counts[groupJid]) counts[groupJid] = {};
-    counts[groupJid][key] = (counts[groupJid][key] || 0) + 1;
-    scheduleSave();
-  });
+  if (!counts[groupJid]) counts[groupJid] = {};
+  counts[groupJid][key] = (counts[groupJid][key] || 0) + 1;
+  scheduleSave();
 }
 
 // Requires an explicit groupJid — passing null/undefined would silently wipe

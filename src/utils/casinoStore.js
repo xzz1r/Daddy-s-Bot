@@ -17,16 +17,6 @@ let store = null;
 let loadPromise = null;
 let saveTimer = null;
 
-// Per-(group,user) write queue — same serialization as auraStore.
-const writeQueue = new Map();
-
-function serialized(key, fn) {
-  const prev = writeQueue.get(key) ?? Promise.resolve();
-  const next = prev.then(fn);
-  writeQueue.set(key, next.catch(() => {}));
-  return next;
-}
-
 async function load() {
   if (store) return;
   if (!loadPromise) {
@@ -66,14 +56,11 @@ function freshBucket(groupJid) {
 async function incrementCasinoCount(groupJid, userJid) {
   await load();
   const key = bareJid(userJid);
-  const qKey = `${groupJid}|${key}`;
-  return serialized(qKey, () => {
-    const g = freshBucket(groupJid);
-    const next = (g.counts[key] || 0) + 1;
-    g.counts[key] = next;
-    scheduleSave();
-    return next;
-  });
+  const g = freshBucket(groupJid);
+  const next = (g.counts[key] || 0) + 1;
+  g.counts[key] = next;
+  scheduleSave();
+  return next;
 }
 
 // Read-only count for the current window (0 if expired or unknown).
