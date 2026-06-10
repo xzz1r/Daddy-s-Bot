@@ -26,10 +26,10 @@ function rollAura(targetIsOwner, targetIsAdmin) {
     if (r < 0.83) return { tier: 'loss',    amount: -small() };
     return { tier: 'cursed', amount: -big() };
   }
-  // member — 50% positive, 50% negative.
-  if (r < 0.20) return { tier: 'blessed', amount: big() };
-  if (r < 0.50) return { tier: 'gain',    amount: small() };
-  if (r < 0.80) return { tier: 'loss',    amount: -small() };
+  // member — 45% positive, 55% negative.
+  if (r < 0.18) return { tier: 'blessed', amount: big() };
+  if (r < 0.45) return { tier: 'gain',    amount: small() };
+  if (r < 0.78) return { tier: 'loss',    amount: -small() };
   return { tier: 'cursed', amount: -big() };
 }
 
