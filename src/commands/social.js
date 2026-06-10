@@ -162,48 +162,47 @@ ${p}pfp @user — foto de perfil
 ━━━ *ACTIVIDAD* ━━━
 ${p}count — ranking de mensajes
 ${p}vs @a @b — comparar dos miembros
-${p}inactivos — los más fantasmas
+${p}inactivos — fantasmas del grupo
 ${p}top5 / ${p}top10 <tema>
 
 ━━━ *DINÁMICAS* ━━━
-_(sin @ = a ti · con @ = a otro)_
+_(sin @ = a ti mismo · con @ = a otro)_
 ${p}crack · ${p}hot · ${p}inteligencia
 ${p}feminidad · ${p}masculinidad
 ${p}gay · ${p}simp · ${p}rata · ${p}maricon
 ${p}friki · ${p}cerdo · ${p}inutil · ${p}femboy
-${p}aura [@user] — aura acumulada
-${p}aura top — ranking de aura
-${p}duel @user <aura> — duelo por aura
 ${p}mog @a @b — 1v1 de looks
-${p}ship [@a] [@b] — match
-${p}robo @user [aura] — intentar robar aura (10min cooldown)
-${p}dar / ${p}donar @user <aura> — transferir aura a otro
+${p}ship [@a] [@b] — compatibilidad
+${p}roast @user — autopsia pública
 
-━━━ *CASINO* ━━━
-_Automático al escribir mensajes_
-Tier 1 · cada 200 msgs · bono de aura
-Tier 2 · cada 500 msgs · bono mayor
-Tier 3 · cada 1000 msgs · bono máximo
-_Jackpot de redención si tienes aura negativa_
-${p}casino — progreso del casino hoy
+━━━ *AURA* ━━━
+${p}aura [@user] — ver aura · sin @ tiras tú
+${p}aura top — ranking del grupo
+${p}duel @user [cantidad] — duelo por aura
+${p}robo @user [cantidad] — intentar robar aura
+${p}dar @user <cantidad> — transferir aura
+_Bonos automáticos al escribir:_
+· Tier 1 · 200 msgs · bono de aura
+· Tier 2 · 500 msgs · bono mayor
+· Tier 3 · 1000 msgs · bono máximo
+_Jackpot de redención si llevas aura negativa_
+${p}casino — tu progreso hoy
 
 ━━━ *IA* ━━━
-${p}g <pregunta> — Grok
+${p}g <pregunta> — responde Grok
 
 ━━━ *ADMIN* ━━━
 ${p}on · ${p}off
-${p}tagall [texto]
-${p}kick @user
-${p}promote @user
+${p}tagall [mensaje]
+${p}kick @user · ${p}add <número>
+${p}promote @user · ${p}demote @user
 ${p}mute @user [min] · ${p}unmute @user
 ${p}del · ${p}close · ${p}open
 ${p}notifadmin on/off
-${p}scan — señales sospechosas en el grupo
+${p}scan — detectar cuentas sospechosas
 
 ━━━ *OWNER* ━━━
-${p}add <número>
-${p}demote @user
-${p}resetcount — borrar ranking
+${p}resetcount — borrar ranking de mensajes
 ${p}resetaura — borrar aura del grupo
 ${p}antiadmin on/off
 ${p}antiempresa on/off
