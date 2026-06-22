@@ -58,6 +58,12 @@ function extractFirstAnmfFrame(animBuf) {
   return null;
 }
 
+// Square thumbnail filter: pad (not crop) so the preview matches the sticker's
+// own 512x512 canvas shape. Transparent padding requires format=rgba placed
+// AFTER pad, otherwise libwebp/png encoders drop the alpha plane and the pad
+// renders as opaque black instead of transparent.
+const VF_THUMB = `scale=96:96:force_original_aspect_ratio=decrease,pad=96:96:(ow-iw)/2:(oh-ih)/2:color=0x00000000,setsar=1,format=rgba`;
+
 // Generate a small PNG thumbnail from any video/gif that ffmpeg can decode.
 // Used for video and gif stickers: the bundled ffmpeg cannot decode its own
 // animated WebP output, so generateAnimatedThumb always returned null for those
@@ -74,7 +80,7 @@ async function generateSourceThumb(srcBuffer) {
     await runFfmpeg(inputFile, outputFile, [
       '-map', '0:v:0',
       '-vframes', '1',
-      '-vf', 'scale=96:96:force_original_aspect_ratio=decrease,setsar=1',
+      '-vf', VF_THUMB,
       '-y',
     ], 'image2');
     const buf = await fs.readFile(outputFile);
@@ -103,7 +109,7 @@ async function generateAnimatedThumb(animBuf) {
     try {
       await runFfmpeg(inputFile, outputFile, [
         '-vframes', '1',
-        '-vf', 'scale=96:96:force_original_aspect_ratio=decrease,setsar=1',
+        '-vf', VF_THUMB,
         '-y',
       ], 'image2');
       const buf = await fs.readFile(outputFile);
@@ -124,11 +130,15 @@ async function generateAnimatedThumb(animBuf) {
   }
 }
 
-// Scale to fit within size×size, preserving aspect ratio, without upscaling.
-// setsar=1 forces square display pixels so videos with non-1:1 SAR aren't skewed.
-const VF_STATIC = `scale='min(iw,512)':'min(ih,512)':force_original_aspect_ratio=decrease,setsar=1`;
+// Both static and animated stickers are encoded onto a fixed 512x512 (or
+// downscaled 384x384 as a last resort) canvas: scale to fit without upscaling,
+// then pad the remainder with real transparency. WhatsApp expects a square
+// canvas — feeding it a proportional non-square frame causes some clients to
+// stretch/distort the sticker in chat. format=rgba MUST come after pad, or the
+// padded area is encoded opaque black instead of transparent.
+const VF_STATIC = `scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=0x00000000,setsar=1,format=rgba`;
 const VF_ANIM = (fps, size = 512) =>
-  `fps=${fps},scale='min(iw,${size})':'min(ih,${size})':force_original_aspect_ratio=decrease,setsar=1`;
+  `fps=${fps},scale=${size}:${size}:force_original_aspect_ratio=decrease,pad=${size}:${size}:(ow-iw)/2:(oh-ih)/2:color=0x00000000,setsar=1,format=rgba`;
 
 // Hard kill if ffmpeg runs longer than this — on Termux a hung encode can
 // otherwise pin a CPU core forever and zombie the command.
@@ -213,25 +223,28 @@ function injectExifIntoWebP(webp, exifBuf) {
 
     // libwebp always sets VP8X Alpha flag (0x10) even for fully opaque VP8
     // animations that have no alpha channel at all. When WhatsApp sees Alpha=true
-    // with blend=yes on VP8 frames, it alpha-blends using garbage data (since VP8
-    // has no alpha bitplane), producing the "split in two / doubled" sticker.
-    // Fix: scan all ANMF frames — if none use VP8L (the only codec that actually
-    // carries alpha), clear the Alpha flag and force blend=no on every VP8 frame.
+    // with blend=yes on a frame that has no real alpha data, it alpha-blends using
+    // garbage, producing the "split in two / doubled" sticker. A frame carries real
+    // alpha if its first sub-chunk is VP8L (lossless, alpha baked into the bitstream)
+    // OR ALPH (a dedicated alpha plane that precedes a lossy VP8 color chunk — this
+    // is exactly what our square-canvas padding produces: transparent pad pixels
+    // around a lossy-encoded frame). Only a frame with NEITHER gets blend=no forced;
+    // only when NO frame in the whole animation has real alpha do we clear the flag.
     const isAnim = !!(out[20] & 0x02); // Animation bit
     if (isAnim) {
-      let hasVP8L = false;
+      let hasAlpha = false;
       let p = 12;
       while (p + 8 <= out.length) {
         const ct = out.slice(p, p + 4).toString();
         const cs = out.readUInt32LE(p + 4);
         if (ct === 'ANMF' && cs > 16) {
           const inner = out.slice(p + 24, p + 28).toString();
-          if (inner === 'VP8L') { hasVP8L = true; break; }
-          if (inner === 'VP8 ') out[p + 23] |= 0x02; // bit 1 = blend=no (replace, don't blend)
+          if (inner === 'VP8L' || inner === 'ALPH') { hasAlpha = true; }
+          else if (inner === 'VP8 ') out[p + 23] |= 0x02; // bit 1 = blend=no (replace, don't blend)
         }
         p += 8 + cs + (cs % 2);
       }
-      if (!hasVP8L) out[20] &= ~0x10; // clear incorrect Alpha flag
+      if (!hasAlpha) out[20] &= ~0x10; // clear incorrect Alpha flag
     }
 
     out[20] |= 0x08; // set EXIF flag
@@ -302,6 +315,24 @@ function addStickerMeta(webpBuffer, author) {
   }
 }
 
+// WhatsApp's documented ceiling for static stickers is ~100KB. Quality is
+// dropped step by step only if the previous attempt overshot it — the first
+// pass (q=90) is "maximum possible quality" and is kept whenever it fits.
+const STATIC_TARGET_BYTES = 100 * 1024;
+const STATIC_QUALITY_TIERS = [90, 80, 65, 50, 35];
+
+function encodeStaticWebp(inputFile, outputFile, quality) {
+  return runFfmpeg(inputFile, outputFile, [
+    '-vf', VF_STATIC,
+    '-c:v', 'libwebp',
+    '-frames:v', '1',
+    '-q:v', String(quality),
+    '-compression_level', '6', // single frame: worth spending more CPU for a smaller file
+    '-an',
+    '-y',
+  ]);
+}
+
 async function imageToSticker(imageBuffer, author) {
   const ext = detectExt(imageBuffer);
   if (!ext) throw new Error('Formato de imagen no reconocido');
@@ -314,40 +345,43 @@ async function imageToSticker(imageBuffer, author) {
   await fs.writeFile(inputFile, imageBuffer);
 
   try {
-    await runFfmpeg(inputFile, outputFile, [
-      '-vf', VF_STATIC,
-      '-c:v', 'libwebp',
-      '-frames:v', '1',
-      '-q:v', '80',
-      '-compression_level', '2',
-      '-an',
-      '-y',
-    ]);
-    const webpBuffer = await fs.readFile(outputFile);
-    if (webpBuffer.length < 100) throw new Error('Sticker generado vacío');
-    return addStickerMeta(webpBuffer, author);
+    let out = null;
+    let smallest = null;
+    for (const quality of STATIC_QUALITY_TIERS) {
+      try {
+        await encodeStaticWebp(inputFile, outputFile, quality);
+      } catch { continue; }
+      const buf = await fs.readFile(outputFile);
+      if (buf.length < 100) continue;
+      if (!smallest || buf.length < smallest.length) smallest = buf;
+      if (buf.length <= STATIC_TARGET_BYTES) { out = buf; break; }
+    }
+    const result = out || smallest;
+    if (!result) throw new Error('Sticker generado vacío');
+    return addStickerMeta(result, author);
   } finally {
     await cleanTemp(inputFile);
     await cleanTemp(outputFile);
   }
 }
 
-// WhatsApp's real animated sticker limit is ~1MB.
+// WhatsApp's real-world animated sticker limit is ~1MB (its documented 500KB
+// guideline is conservative — clients accept up to roughly double that in practice).
 const MAX_STICKER_BYTES = 1024 * 1024;
 
-// Tiers: FPS drops only after quality is exhausted at each FPS level.
-// Resolution (384) is last resort only — keeps motion smooth over sharpness.
-// Starting at 30fps recovers the original high-FPS feel for short clips.
+// FPS is locked to 24-30 always — never drops lower, per product requirement.
+// Quality and, as a last resort, canvas size are the only levers used to control
+// file weight. Tiers are tried in order until one fits under MAX_STICKER_BYTES.
 const ANIM_TIERS = [
   { fps: 30, quality: 85, size: 512 },
-  { fps: 24, quality: 82, size: 512 },
-  { fps: 20, quality: 80, size: 512 },
-  { fps: 20, quality: 70, size: 512 },
-  { fps: 15, quality: 70, size: 512 },
-  { fps: 15, quality: 60, size: 512 },
-  { fps: 12, quality: 55, size: 512 },
-  { fps: 15, quality: 65, size: 384 },
-  { fps: 12, quality: 55, size: 384 },
+  { fps: 30, quality: 75, size: 512 },
+  { fps: 24, quality: 80, size: 512 },
+  { fps: 24, quality: 70, size: 512 },
+  { fps: 24, quality: 60, size: 512 },
+  { fps: 24, quality: 50, size: 512 },
+  { fps: 24, quality: 60, size: 384 },
+  { fps: 24, quality: 45, size: 384 },
+  { fps: 24, quality: 35, size: 384 },
 ];
 
 // Probe video duration with ffprobe so we can skip tiers that will obviously
@@ -366,14 +400,13 @@ function getVideoDurationS(inputFile) {
 }
 
 // Pick the first tier index likely to produce a file ≤ 1MB without re-encoding.
-// At 512px, ~30fps×6KB/frame for quality≈80 ≈ 180KB/s — very rough estimate,
-// real content varies widely, so stay conservative (prefer one re-encode over
-// sending a blurry sticker).
+// Rough estimate, real content varies widely, so stay conservative (prefer one
+// re-encode over sending a blurry sticker).
 function startTierIndex(durationS) {
-  if (!durationS || durationS < 3) return 0;  // short / unknown: max FPS
-  if (durationS < 5) return 1;                 // ~3-5 s
-  if (durationS < 8) return 2;                 // ~5-8 s
-  return 3;                                     // long: skip the two top tiers
+  if (!durationS || durationS < 3) return 0;  // short / unknown: max quality
+  if (durationS < 5) return 2;                 // ~3-5 s
+  if (durationS < 8) return 3;                 // ~5-8 s
+  return 4;                                     // long: skip the top tiers
 }
 
 // Use the plain `libwebp` encoder, NOT `libwebp_anim`. libwebp_anim applies
