@@ -167,13 +167,13 @@ ${p}top5 / ${p}top10 <tema>
 
 ━━━ *DINÁMICAS* ━━━
 _(sin @ = a ti mismo · con @ = a otro)_
-${p}crack · ${p}hot · ${p}inteligencia
+${p}crack · ${p}hot/${p}sexy · ${p}inteligencia
 ${p}feminidad · ${p}masculinidad
 ${p}gay · ${p}simp · ${p}rata · ${p}maricon
 ${p}friki · ${p}cerdo · ${p}inutil · ${p}femboy
 ${p}mog @a @b — 1v1 de looks
-${p}ship [@a] [@b] — compatibilidad
-${p}roast @user — autopsia pública
+${p}ship [@a] [@b] — compatibilidad (o responder a alguien)
+${p}roast @user — autopsia pública (o responder a alguien)
 
 ━━━ *AURA* ━━━
 ${p}aura [@user] — ver aura · sin @ tiras tú
@@ -189,7 +189,7 @@ _Jackpot de redención si llevas aura negativa_
 ${p}casino — tu progreso hoy
 
 ━━━ *IA* ━━━
-${p}g <pregunta> — responde Grok
+${p}g <pregunta> — responde Grok _(alias: ${p}ai, ${p}grok)_
 
 ━━━ *ADMIN* ━━━
 ${p}on · ${p}off
@@ -210,7 +210,7 @@ ${p}antilink on/off
 ${p}clearcache · ${p}setgrok <key>
 
 ━━━ *BOT* ━━━
-${p}ping · ${p}info`;
+${p}ping · ${p}info · ${p}whoami`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }

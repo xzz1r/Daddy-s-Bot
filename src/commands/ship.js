@@ -218,32 +218,57 @@ const VERDICTS = {
   ],
 };
 
+// Etiqueta visible para un participante. Un JID @lid no resuelve a un numero
+// real al mostrarse como @mencion — en ese caso preferimos el nombre conocido
+// del participante (mismo fallback que ya usa !roast) en vez de exponer el
+// numero interno del LID. Los JIDs de telefono siguen mostrandose como
+// @numero, igual que antes, para que WhatsApp los resuelva como mencion.
+function resolveLabel(jidVal, participants) {
+  const bare = bareJid(jidVal);
+  const num = bare.split('@')[0];
+  if (!bare.endsWith('@lid')) return `@${num}`;
+  const p = participants.find(x =>
+    bareJid(x.id) === bare || bareJid(x.lid) === bare || bareJid(x.phoneNumber) === bare
+  );
+  return p?.name || p?.displayName || p?.verifiedName || p?.notify || `@${num}`;
+}
+
 async function cmdShip(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
     return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
   }
 
-  const participants = (groupMeta?.participants || []).map(p => p.id);
-  if (participants.length < 2) {
+  const groupParticipants = groupMeta?.participants || [];
+  const participantIds = groupParticipants.map(p => p.id);
+  if (participantIds.length < 2) {
     return sock.sendMessage(jid, { text: 'Necesito al menos 2 miembros en el grupo.' }, { quoted: msg });
   }
 
-  const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
+  const ctx = msg.message?.extendedTextMessage?.contextInfo;
+  const mentioned = ctx?.mentionedJid || [];
+  // Una respuesta citada cuenta como segundo objetivo si no quedo ya cubierto
+  // por una mencion explicita — asi !ship funciona respondiendo a un mensaje,
+  // igual que !mute/!promote/!demote.
+  const quotedParticipant = ctx?.participant;
+  const targets = [...mentioned];
+  if (quotedParticipant && !targets.some(t => bareJid(t) === bareJid(quotedParticipant))) {
+    targets.push(quotedParticipant);
+  }
   const sender = getSender(msg);
 
   let a, b;
 
-  if (mentioned.length >= 2) {
-    // !ship @a @b — shipea exactamente esos dos
-    [a, b] = mentioned.slice(0, 2);
-  } else if (mentioned.length === 1) {
-    // !ship @a — shipea al que manda con @a
+  if (targets.length >= 2) {
+    // !ship @a @b (o @a + responder a b) — shipea exactamente esos dos
+    [a, b] = targets.slice(0, 2);
+  } else if (targets.length === 1) {
+    // !ship @a (o responder a alguien) — shipea al que manda con @a
     a = sender;
-    b = mentioned[0];
+    b = targets[0];
   } else {
     // !ship — dos miembros al azar
-    [a, b] = shuffle(participants).slice(0, 2);
+    [a, b] = shuffle(participantIds).slice(0, 2);
   }
 
   // No shippear a alguien consigo mismo (igual que !mog y !vs).
@@ -262,12 +287,12 @@ async function cmdShip(sock, msg, args, groupMeta) {
     compat >= 10   ? pick(VERDICTS.low) :
                      pick(VERDICTS.zero);
 
-  const numA = a.split('@')[0];
-  const numB = b.split('@')[0];
+  const labelA = resolveLabel(a, groupParticipants);
+  const labelB = resolveLabel(b, groupParticipants);
 
   const text =
     `*Ship*\n\n` +
-    `@${numA}  +  @${numB}\n\n` +
+    `${labelA}  +  ${labelB}\n\n` +
     `${bar}  *${compat}%*\n\n` +
     `${verdict}`;
 

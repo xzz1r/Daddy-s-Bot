@@ -1,6 +1,6 @@
 'use strict';
 
-const { getSender, bareJid } = require('../utils/wa');
+const { getSender, getTarget, bareJid } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
 const { getAura } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
@@ -428,12 +428,11 @@ async function cmdRoast(sock, msg, groupMeta) {
   }
 
   const sender = getSender(msg);
-  const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
-  if (!mentioned.length) {
-    return sock.sendMessage(jid, { text: 'Usa: *!roast @alguien*' }, { quoted: msg });
+  const target = getTarget(msg);
+  if (!target) {
+    return sock.sendMessage(jid, { text: 'Usa: *!roast @alguien* (o respondele a su mensaje)' }, { quoted: msg });
   }
 
-  const target = mentioned[0];
   if (bareJid(target) === bareJid(sender)) {
     return sock.sendMessage(jid, {
       text: 'Roastearte a ti mismo es un nivel de autodestrucción que ni el bot va a facilitar.',
