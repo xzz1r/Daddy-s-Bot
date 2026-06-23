@@ -117,8 +117,32 @@ function invalidateGroupMeta(jid) {
   metaCache.delete(jid);
 }
 
+// Peel envelope wrappers so the real content (and its caption) is visible.
+// Disappearing-message chats wrap EVERY message in ephemeralMessage; view-once
+// media and the newer documentWithCaption envelope nest the same way. Without
+// this, sending a video/image WITH a `!s` caption in such a chat hides the
+// caption (extractText only checks top-level fields) so the command never fires
+// — the exact "send the video and the command together and nothing happens" bug.
+function unwrapEnvelope(message) {
+  let m = message;
+  for (let i = 0; i < 4 && m; i++) {
+    const inner =
+      m.ephemeralMessage?.message ||
+      m.viewOnceMessage?.message ||
+      m.viewOnceMessageV2?.message ||
+      m.viewOnceMessageV2Extension?.message ||
+      m.documentWithCaptionMessage?.message;
+    if (!inner) break;
+    m = inner;
+  }
+  return m;
+}
+
 async function handleMessage(sock, msg) {
   if (!msg.message) return;
+  // Replace the wrapped message with its real inner content so extractText and
+  // every command's media lookup operate on the actual image/video/caption.
+  msg.message = unwrapEnvelope(msg.message);
 
   const jid = msg.key.remoteJid;
   const sender = getSender(msg);
