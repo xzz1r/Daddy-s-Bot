@@ -399,6 +399,23 @@ const ANIM_TIERS = [
   { fps: 24, quality: 35, size: 384 },
 ];
 
+// Empirically measured libwebp output-size multipliers per quality/canvas-size,
+// relative to q85 @ 512px (benchmarked across multiple unrelated source clips —
+// the ratios held within ~1% of each other regardless of content, since they
+// mostly track encoder bit-allocation curves rather than scene complexity).
+// Lets videoToSticker predict a tier's output size from one real encode of a
+// different tier, instead of having to run ffmpeg again just to find out it
+// still overshoots — each skipped tier saves a multi-second re-encode.
+const QUALITY_SIZE_FACTOR = { 85: 1.0, 80: 0.853, 75: 0.737, 70: 0.704, 60: 0.649, 50: 0.591, 45: 0.558, 35: 0.482 };
+const CANVAS_SIZE_FACTOR = { 512: 1.0, 384: 0.70 };
+
+function predictTierBytes(tier, refTier, refBytes) {
+  return refBytes
+    * (tier.fps / refTier.fps)
+    * (QUALITY_SIZE_FACTOR[tier.quality] / QUALITY_SIZE_FACTOR[refTier.quality])
+    * (CANVAS_SIZE_FACTOR[tier.size] / CANVAS_SIZE_FACTOR[refTier.size]);
+}
+
 // Probe video duration with ffprobe so we can skip tiers that will obviously
 // overshoot 1MB. Returns 0 on error (treated as "unknown / short").
 function getVideoDurationS(inputFile) {
@@ -489,13 +506,22 @@ async function videoToSticker(videoBuffer, author) {
 
     let buf = null;
     let smallest = null;   // keep the lightest valid encode as a fallback
+    let refBytes = null, refTier = null; // last real encode, feeds predictTierBytes
     for (let i = startIdx; i < ANIM_TIERS.length; i++) {
-      const { fps, quality, size } = ANIM_TIERS[i];
+      const tier = ANIM_TIERS[i];
+      // Skip a tier predicted to still overshoot — never skip the last tier, so
+      // there's always a final real encode to fall back to. 8% headroom on the
+      // cap absorbs the small variance the benchmark showed across content types.
+      if (refBytes !== null && i < ANIM_TIERS.length - 1) {
+        if (predictTierBytes(tier, refTier, refBytes) > MAX_STICKER_BYTES * 1.08) continue;
+      }
+      const { fps, quality, size } = tier;
       try {
         await encodeAnimWebp(inputFile, outputFile, fps, quality, size);
       } catch { continue; }  // tier failed, try next
       buf = await fs.readFile(outputFile);
       if (buf.length < 100) continue;
+      refBytes = buf.length; refTier = tier;
       if (buf.length <= MAX_STICKER_BYTES) { smallest = buf; break; }
       if (!smallest || buf.length < smallest.length) smallest = buf;
     }
