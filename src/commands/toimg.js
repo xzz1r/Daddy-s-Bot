@@ -2,7 +2,7 @@ const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs-extra');
 const { ffmpegPath } = require('../utils/ffmpeg');
-const { tempFile, cleanTemp, streamToBuffer } = require('../utils/helpers');
+const { tempFile, cleanTemp, streamToBuffer, ffmpegSemaphore, MAX_DOWNLOAD_BYTES } = require('../utils/helpers');
 const { isAnimatedWebP, extractFirstAnmfFrame } = require('../utils/sticker');
 const logger = require('../utils/logger');
 
@@ -30,24 +30,29 @@ function findMedia(m) {
   return null;
 }
 
-function runFfmpegConvert(inputFile, outputFile, opts) {
-  return new Promise((resolve, reject) => {
-    let stderrBuf = '';
-    let timer = null;
-    const cmd = ffmpeg(inputFile)
-      .setFfmpegPath(ffmpegPath)
-      .outputOptions(opts.outputOptions)
-      .toFormat(opts.format)
-      .on('stderr', l => { stderrBuf += l + '\n'; })
-      .on('error', (err) => {
-        if (timer) clearTimeout(timer);
-        const last = stderrBuf.trim().split('\n').slice(-4).join(' | ');
-        reject(new Error(last || err.message));
-      })
-      .on('end', () => { if (timer) clearTimeout(timer); resolve(); });
-    timer = setTimeout(() => { try { cmd.kill('SIGKILL'); } catch {} reject(new Error('ffmpeg timeout')); }, FFMPEG_TIMEOUT_MS);
-    cmd.save(outputFile);
-  });
+async function runFfmpegConvert(inputFile, outputFile, opts) {
+  await ffmpegSemaphore.acquire();
+  try {
+    return await new Promise((resolve, reject) => {
+      let stderrBuf = '';
+      let timer = null;
+      const cmd = ffmpeg(inputFile)
+        .setFfmpegPath(ffmpegPath)
+        .outputOptions(opts.outputOptions)
+        .toFormat(opts.format)
+        .on('stderr', l => { stderrBuf += l + '\n'; })
+        .on('error', (err) => {
+          if (timer) clearTimeout(timer);
+          const last = stderrBuf.trim().split('\n').slice(-4).join(' | ');
+          reject(new Error(last || err.message));
+        })
+        .on('end', () => { if (timer) clearTimeout(timer); resolve(); });
+      timer = setTimeout(() => { try { cmd.kill('SIGKILL'); } catch {} reject(new Error('ffmpeg timeout')); }, FFMPEG_TIMEOUT_MS);
+      cmd.save(outputFile);
+    });
+  } finally {
+    ffmpegSemaphore.release();
+  }
 }
 
 async function convertToJpeg(inputBuf) {
@@ -101,7 +106,7 @@ async function cmdToImg(sock, msg) {
 
   try {
     const stream = await downloadContentFromMessage(media.data, media.type);
-    const buf = await streamToBuffer(stream);
+    const buf = await streamToBuffer(stream, MAX_DOWNLOAD_BYTES);
 
     if (media.type === 'sticker') {
       if (isAnimatedWebP(buf)) {

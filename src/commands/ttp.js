@@ -3,7 +3,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const { Readable } = require('stream');
 const { ffmpegPath } = require('../utils/ffmpeg');
-const { tempFile, cleanTemp } = require('../utils/helpers');
+const { tempFile, cleanTemp, ffmpegSemaphore } = require('../utils/helpers');
 const { imageToSticker } = require('../utils/sticker');
 const { getSender } = require('../utils/wa');
 const logger = require('../utils/logger');
@@ -103,38 +103,43 @@ async function textToStickerBuffer(text) {
     inputStream.push(blankFrame);
     inputStream.push(null);
 
-    await new Promise((resolve, reject) => {
-      let stderr = '';
-      let timer = null;
-      const cmd = ffmpeg(inputStream)
-        .setFfmpegPath(ffmpegPath)
-        .inputOptions([
-          '-f', 'rawvideo',
-          '-pixel_format', 'rgba',
-          '-video_size', '512x512',
-          '-framerate', '1',
-        ])
-        .outputOptions([
-          '-vf', vf,
-          '-c:v', 'libwebp',
-          '-frames:v', '1',
-          '-q:v', '90',
-          '-pix_fmt', 'rgba',
-          '-an',
-          '-y',
-        ])
-        .toFormat('webp')
-        .on('stderr', (l) => { stderr += l + '\n'; })
-        .on('error', (err) => {
-          if (timer) clearTimeout(timer);
-          const last = stderr.trim().split('\n').slice(-4).join(' | ');
-          reject(new Error(last || err.message));
-        })
-        .on('end', () => { if (timer) clearTimeout(timer); resolve(); });
-      // Kill a hung encode instead of letting it pin a CPU core forever.
-      timer = setTimeout(() => { try { cmd.kill('SIGKILL'); } catch {} reject(new Error('ffmpeg timeout')); }, FFMPEG_TIMEOUT_MS);
-      cmd.save(outputFile);
-    });
+    await ffmpegSemaphore.acquire();
+    try {
+      await new Promise((resolve, reject) => {
+        let stderr = '';
+        let timer = null;
+        const cmd = ffmpeg(inputStream)
+          .setFfmpegPath(ffmpegPath)
+          .inputOptions([
+            '-f', 'rawvideo',
+            '-pixel_format', 'rgba',
+            '-video_size', '512x512',
+            '-framerate', '1',
+          ])
+          .outputOptions([
+            '-vf', vf,
+            '-c:v', 'libwebp',
+            '-frames:v', '1',
+            '-q:v', '90',
+            '-pix_fmt', 'rgba',
+            '-an',
+            '-y',
+          ])
+          .toFormat('webp')
+          .on('stderr', (l) => { stderr += l + '\n'; })
+          .on('error', (err) => {
+            if (timer) clearTimeout(timer);
+            const last = stderr.trim().split('\n').slice(-4).join(' | ');
+            reject(new Error(last || err.message));
+          })
+          .on('end', () => { if (timer) clearTimeout(timer); resolve(); });
+        // Kill a hung encode instead of letting it pin a CPU core forever.
+        timer = setTimeout(() => { try { cmd.kill('SIGKILL'); } catch {} reject(new Error('ffmpeg timeout')); }, FFMPEG_TIMEOUT_MS);
+        cmd.save(outputFile);
+      });
+    } finally {
+      ffmpegSemaphore.release();
+    }
 
     return await fs.readFile(outputFile);
   } finally {

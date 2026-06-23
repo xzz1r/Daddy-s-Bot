@@ -31,17 +31,25 @@ const PLAYER_CLIENTS = 'android,tv_embedded';
 // here and run as slots free up. The per-user 7s cooldown in the handler
 // throttles spam; this bounds the worst case regardless.
 const MAX_CONCURRENT_DOWNLOADS = 2;
+// Bounds the worst-case wait: beyond this many queued requests, a new !play
+// is rejected outright instead of joining a line that could take many
+// minutes (each slot can hold a process for up to 3 min). Without a cap, a
+// burst of requests just queues forever and the bot looks "stuck" rather
+// than telling anyone to back off.
+const MAX_QUEUED_DOWNLOADS = 8;
 let activeDownloads = 0;
 const downloadQueue = [];
 
 function acquireDownloadSlot() {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const tryRun = () => {
       if (activeDownloads < MAX_CONCURRENT_DOWNLOADS) {
         activeDownloads++;
         resolve();
-      } else {
+      } else if (downloadQueue.length < MAX_QUEUED_DOWNLOADS) {
         downloadQueue.push(tryRun);
+      } else {
+        reject(new Error('Hay demasiadas descargas en cola, intenta de nuevo en un momento'));
       }
     };
     tryRun();
@@ -115,7 +123,10 @@ async function runDownload(videoUrl) {
     '--no-playlist',
     '--no-warnings',
     '--no-part',
-    '--max-filesize', '50M',
+    // music.js refuses to send anything over 25MB anyway — capping the
+    // download at the same size stops yt-dlp from spending minutes fetching
+    // a file that's guaranteed to be discarded right after.
+    '--max-filesize', '25M',
     '--no-mtime',
     '--socket-timeout', '20',
     '--extractor-args', `youtube:player_client=${PLAYER_CLIENTS}`,

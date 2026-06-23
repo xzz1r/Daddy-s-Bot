@@ -19,7 +19,12 @@ async function cmdPfp(sock, msg) {
 
   let imageBuffer;
   try {
-    const res = await axios.get(url, { responseType: 'arraybuffer', timeout: 10000 });
+    const res = await axios.get(url, {
+      responseType: 'arraybuffer',
+      timeout: 10000,
+      maxContentLength: 20 * 1024 * 1024,
+      maxBodyLength: 20 * 1024 * 1024,
+    });
     imageBuffer = Buffer.from(res.data);
   } catch {
     return sock.sendMessage(jid, { text: 'No pude descargar la foto de perfil.' }, { quoted: msg });

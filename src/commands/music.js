@@ -2,8 +2,29 @@ const { downloadAudio } = require('../utils/downloader');
 const { cleanTemp } = require('../utils/helpers');
 const { incrementStat } = require('../utils/state');
 const { getCached, setCached, clearCache } = require('../utils/musicCache');
+const { getSender, canonicalJid } = require('../utils/wa');
 const logger = require('../utils/logger');
 const fs = require('fs-extra');
+
+// Per-user cooldown before starting a FRESH download (cache hits are instant
+// and free, so they're exempt) — bounds how fast one person can occupy the
+// yt-dlp concurrency/queue slots in utils/downloader.js. 7s matches the
+// throttle that downloader.js's own comments already assumed was in place.
+const PLAY_COOLDOWN_MS = 7000;
+const MAX_COOLDOWN_ENTRIES = 2000;
+const lastPlayAt = new Map();
+
+function onPlayCooldown(senderJid) {
+  const key = canonicalJid(senderJid);
+  const last = lastPlayAt.get(key);
+  const now = Date.now();
+  if (last && now - last < PLAY_COOLDOWN_MS) return PLAY_COOLDOWN_MS - (now - last);
+  if (lastPlayAt.size >= MAX_COOLDOWN_ENTRIES && !lastPlayAt.has(key)) {
+    lastPlayAt.delete(lastPlayAt.keys().next().value);
+  }
+  lastPlayAt.set(key, now);
+  return 0;
+}
 
 // !play <query> — search and send audio only
 async function cmdPlay(sock, msg, args) {
@@ -20,6 +41,12 @@ async function cmdPlay(sock, msg, args) {
   const fromCache = !!result;
 
   if (!result) {
+    const waitMs = onPlayCooldown(getSender(msg));
+    if (waitMs > 0) {
+      return sock.sendMessage(jid, {
+        text: `Espera ${Math.ceil(waitMs / 1000)}s antes de pedir otra cancion.`,
+      }, { quoted: msg });
+    }
     // Fire the "Buscando..." notice without awaiting so yt-dlp starts immediately,
     // overlapping the message's network round-trip with the download.
     sock.sendMessage(jid, { text: 'Buscando...' }, { quoted: msg }).catch(() => {});

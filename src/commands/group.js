@@ -1,6 +1,6 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const { isOwner, isAdmin, isBotJid, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid } = require('../utils/wa');
-const { streamToBuffer } = require('../utils/helpers');
+const { streamToBuffer, MAX_DOWNLOAD_BYTES } = require('../utils/helpers');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled } = require('../utils/state');
 const { isBusinessBatch } = require('../utils/businessCheck');
 
@@ -83,7 +83,7 @@ async function cmdTodos(sock, msg, args, groupMeta) {
   // Silent null lets callers fall through to text-only tagall instead of crashing.
   async function tryDl(mediaMsg, type) {
     try {
-      return await streamToBuffer(await downloadContentFromMessage(mediaMsg, type));
+      return await streamToBuffer(await downloadContentFromMessage(mediaMsg, type), MAX_DOWNLOAD_BYTES);
     } catch {
       return null;
     }

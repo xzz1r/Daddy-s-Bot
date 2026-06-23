@@ -91,11 +91,55 @@ function shuffle(arr) {
   return a;
 }
 
-async function streamToBuffer(stream) {
+// Default cap for buffering attacker-controlled WhatsApp media (stickers,
+// !toimg, !tagall forwards) fully into RAM before processing. Legitimate
+// images/videos/stickers sent through normal chat are always well under
+// this; only an oversized document attachment would ever hit it — and on a
+// Termux/phone host, buffering an unbounded download is the more dangerous
+// failure mode (OOM-kills the whole bot) than rejecting one odd request.
+const MAX_DOWNLOAD_BYTES = 64 * 1024 * 1024;
+
+async function streamToBuffer(stream, maxBytes) {
   const chunks = [];
-  for await (const chunk of stream) chunks.push(chunk);
+  let total = 0;
+  for await (const chunk of stream) {
+    total += chunk.length;
+    if (maxBytes && total > maxBytes) {
+      throw new Error(`Archivo demasiado grande (>${Math.round(maxBytes / 1024 / 1024)}MB)`);
+    }
+    chunks.push(chunk);
+  }
   return Buffer.concat(chunks);
 }
+
+// Lightweight counting semaphore. Used to cap how many ffmpeg/yt-dlp child
+// processes run at once — a phone CPU that's fine with 2 concurrent encodes
+// falls over with 6. Extra acquire() calls queue and resolve as slots free,
+// same shape as the download queue in utils/downloader.js.
+function createSemaphore(limit) {
+  let active = 0;
+  const queue = [];
+  function acquire() {
+    return new Promise((resolve) => {
+      const tryRun = () => {
+        if (active < limit) { active++; resolve(); }
+        else queue.push(tryRun);
+      };
+      tryRun();
+    });
+  }
+  function release() {
+    active--;
+    const next = queue.shift();
+    if (next) next();
+  }
+  return { acquire, release };
+}
+
+// Shared across every command that spawns ffmpeg (stickers, !toimg, !ttp) so
+// the cap is process-wide, not per-file. Limit of 2 mirrors the existing,
+// already-proven MAX_CONCURRENT_DOWNLOADS in utils/downloader.js.
+const ffmpegSemaphore = createSemaphore(2);
 
 // Atomic JSON write: serialize to a unique temp sibling, then rename over the
 // target. rename(2) is atomic on the same filesystem, so a crash, OOM-kill or
@@ -113,4 +157,4 @@ async function atomicWriteJson(file, data) {
   }
 }
 
-module.exports = { ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, shuffle, streamToBuffer, atomicWriteJson };
+module.exports = { ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, shuffle, streamToBuffer, atomicWriteJson, MAX_DOWNLOAD_BYTES, createSemaphore, ffmpegSemaphore };

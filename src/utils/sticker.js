@@ -1,7 +1,7 @@
 const { ffmpegPath, ffprobePath } = require('./ffmpeg');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs-extra');
-const { tempFile, cleanTemp } = require('./helpers');
+const { tempFile, cleanTemp, ffmpegSemaphore } = require('./helpers');
 const config = require('../config');
 const logger = require('./logger');
 
@@ -144,30 +144,37 @@ const VF_ANIM = (fps, size = 512) =>
 // otherwise pin a CPU core forever and zombie the command.
 const FFMPEG_TIMEOUT_MS = 45_000;
 
-function runFfmpeg(inputFile, outputFile, options, format = 'webp') {
-  return new Promise((resolve, reject) => {
-    let stderrBuf = '';
-    let timer = null;
-    const cmd = ffmpeg(inputFile)
-      .setFfmpegPath(ffmpegPath)
-      .outputOptions(options)
-      .toFormat(format)
-      .on('stderr', (line) => { stderrBuf += line + '\n'; })
-      .on('error', (err) => {
-        if (timer) clearTimeout(timer);
-        const lastLines = stderrBuf.trim().split('\n').slice(-4).join(' | ');
-        reject(new Error(lastLines || err.message));
-      })
-      .on('end', () => {
-        if (timer) clearTimeout(timer);
-        resolve();
-      });
-    timer = setTimeout(() => {
-      try { cmd.kill('SIGKILL'); } catch {}
-      reject(new Error('ffmpeg timeout'));
-    }, FFMPEG_TIMEOUT_MS);
-    cmd.save(outputFile);
-  });
+// Acquires the shared ffmpeg slot before spawning, so e.g. 4 people sending
+// !s at once on a 2-core phone run 2-at-a-time instead of all 4 simultaneously.
+async function runFfmpeg(inputFile, outputFile, options, format = 'webp') {
+  await ffmpegSemaphore.acquire();
+  try {
+    return await new Promise((resolve, reject) => {
+      let stderrBuf = '';
+      let timer = null;
+      const cmd = ffmpeg(inputFile)
+        .setFfmpegPath(ffmpegPath)
+        .outputOptions(options)
+        .toFormat(format)
+        .on('stderr', (line) => { stderrBuf += line + '\n'; })
+        .on('error', (err) => {
+          if (timer) clearTimeout(timer);
+          const lastLines = stderrBuf.trim().split('\n').slice(-4).join(' | ');
+          reject(new Error(lastLines || err.message));
+        })
+        .on('end', () => {
+          if (timer) clearTimeout(timer);
+          resolve();
+        });
+      timer = setTimeout(() => {
+        try { cmd.kill('SIGKILL'); } catch {}
+        reject(new Error('ffmpeg timeout'));
+      }, FFMPEG_TIMEOUT_MS);
+      cmd.save(outputFile);
+    });
+  } finally {
+    ffmpegSemaphore.release();
+  }
 }
 
 // WhatsApp-specific EXIF: TIFF wrapper with custom tag 0x5741 ('WA' LE) type UNDEFINED (7).
@@ -425,40 +432,45 @@ function startTierIndex(durationS) {
 // "split in two" sticker. Plain `libwebp` emits every frame as a FULL keyframe
 // (full canvas, no blending), which WhatsApp renders faithfully. Output is a bit
 // larger, which the size-tiering loop in videoToSticker already handles.
-function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512) {
-  return new Promise((resolve, reject) => {
-    let stderrBuf = '';
-    let timer = null;
-    const cmd = ffmpeg(inputFile)
-      .setFfmpegPath(ffmpegPath)
-      .outputOptions([
-        '-map', '0:v:0',
-        '-vf', VF_ANIM(fps, size),
-        '-c:v', 'libwebp',
-        '-loop', '0',
-        '-an',
-        '-q:v', String(quality),
-        '-compression_level', '2',
-        '-preset', 'default',
-        '-y',
-      ])
-      .toFormat('webp')
-      .on('stderr', (line) => { stderrBuf += line + '\n'; })
-      .on('error', () => {
-        if (timer) clearTimeout(timer);
-        const lastLines = stderrBuf.trim().split('\n').slice(-4).join(' | ');
-        reject(new Error(lastLines || 'ffmpeg error'));
-      })
-      .on('end', () => {
-        if (timer) clearTimeout(timer);
-        resolve();
-      })
-      .save(outputFile);
-    timer = setTimeout(() => {
-      try { cmd.kill('SIGKILL'); } catch {}
-      reject(new Error('ffmpeg timeout'));
-    }, FFMPEG_TIMEOUT_MS);
-  });
+async function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512) {
+  await ffmpegSemaphore.acquire();
+  try {
+    return await new Promise((resolve, reject) => {
+      let stderrBuf = '';
+      let timer = null;
+      const cmd = ffmpeg(inputFile)
+        .setFfmpegPath(ffmpegPath)
+        .outputOptions([
+          '-map', '0:v:0',
+          '-vf', VF_ANIM(fps, size),
+          '-c:v', 'libwebp',
+          '-loop', '0',
+          '-an',
+          '-q:v', String(quality),
+          '-compression_level', '2',
+          '-preset', 'default',
+          '-y',
+        ])
+        .toFormat('webp')
+        .on('stderr', (line) => { stderrBuf += line + '\n'; })
+        .on('error', () => {
+          if (timer) clearTimeout(timer);
+          const lastLines = stderrBuf.trim().split('\n').slice(-4).join(' | ');
+          reject(new Error(lastLines || 'ffmpeg error'));
+        })
+        .on('end', () => {
+          if (timer) clearTimeout(timer);
+          resolve();
+        })
+        .save(outputFile);
+      timer = setTimeout(() => {
+        try { cmd.kill('SIGKILL'); } catch {}
+        reject(new Error('ffmpeg timeout'));
+      }, FFMPEG_TIMEOUT_MS);
+    });
+  } finally {
+    ffmpegSemaphore.release();
+  }
 }
 
 async function videoToSticker(videoBuffer, author) {
