@@ -58,11 +58,10 @@ function extractFirstAnmfFrame(animBuf) {
   return null;
 }
 
-// Square thumbnail filter: pad (not crop) so the preview matches the sticker's
-// own 512x512 canvas shape. Transparent padding requires format=rgba placed
-// AFTER pad, otherwise libwebp/png encoders drop the alpha plane and the pad
-// renders as opaque black instead of transparent.
-const VF_THUMB = `scale=96:96:force_original_aspect_ratio=decrease,pad=96:96:(ow-iw)/2:(oh-ih)/2:color=0x00000000,setsar=1,format=rgba`;
+// Thumbnail filter: scale to fit a 96px box keeping the source aspect ratio,
+// no padding — so the preview has the same shape as the (now aspect-faithful)
+// sticker. format=rgba keeps any real transparency the source carried.
+const VF_THUMB = `scale=96:96:force_original_aspect_ratio=decrease,setsar=1,format=rgba`;
 
 // Generate a small PNG thumbnail from any video/gif that ffmpeg can decode.
 // Used for video and gif stickers: the bundled ffmpeg cannot decode its own
@@ -130,15 +129,16 @@ async function generateAnimatedThumb(animBuf) {
   }
 }
 
-// Both static and animated stickers are encoded onto a fixed 512x512 (or
-// downscaled 384x384 as a last resort) canvas: scale to fit without upscaling,
-// then pad the remainder with real transparency. WhatsApp expects a square
-// canvas — feeding it a proportional non-square frame causes some clients to
-// stretch/distort the sticker in chat. format=rgba MUST come after pad, or the
-// padded area is encoded opaque black instead of transparent.
-const VF_STATIC = `scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=0x00000000,setsar=1,format=rgba`;
+// Stickers keep the SOURCE aspect ratio: the longest side is scaled to fit
+// within 512 (or 384 as a last resort) and the shorter side stays proportional
+// — no square padding. WhatsApp renders non-square stickers natively, and the
+// old forced-square canvas was adding transparent letterbox bars whose alpha
+// plane was the root cause of the "split/doubled" rendering artifacts. Scaling
+// only (decrease = never upscale) gives a sticker faithful to the original.
+// format=rgba preserves any genuine transparency the source already had.
+const VF_STATIC = `scale=512:512:force_original_aspect_ratio=decrease,setsar=1,format=rgba`;
 const VF_ANIM = (fps, size = 512) =>
-  `fps=${fps},scale=${size}:${size}:force_original_aspect_ratio=decrease,pad=${size}:${size}:(ow-iw)/2:(oh-ih)/2:color=0x00000000,setsar=1,format=rgba`;
+  `fps=${fps},scale=${size}:${size}:force_original_aspect_ratio=decrease,setsar=1,format=rgba`;
 
 // Hard kill if ffmpeg runs longer than this — on Termux a hung encode can
 // otherwise pin a CPU core forever and zombie the command.
