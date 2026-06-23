@@ -1,18 +1,31 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP } = require('../utils/sticker');
+const { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, MAX_STICKER_BYTES } = require('../utils/sticker');
 const { streamToBuffer } = require('../utils/helpers');
 const { getSender, isOwner } = require('../utils/wa');
 const { incrementStat } = require('../utils/state');
 const logger = require('../utils/logger');
 
-// Identify what kind of media is in a message object
+// Identify what kind of media is in a message object.
+// Anything already in WebP is functionally an existing sticker no matter which
+// envelope it travelled in — a saved sticker re-shared as a plain image/video/
+// document attachment (mimetype image/webp) is still re-stamp-only content.
+// Classifying by envelope alone let a member bypass the owner-only re-stamp gate
+// below by just re-sending someone else's sticker as a "file" instead of tapping
+// it from the sticker tray, so format wins over envelope here.
 function identifyMedia(messageObject) {
   if (!messageObject) return null;
-  if (messageObject.imageMessage) return { msg: messageObject.imageMessage, type: 'image' };
-  if (messageObject.videoMessage) return { msg: messageObject.videoMessage, type: 'video' };
   if (messageObject.stickerMessage) return { msg: messageObject.stickerMessage, type: 'sticker' };
+  if (messageObject.imageMessage) {
+    const mime = messageObject.imageMessage.mimetype || '';
+    return { msg: messageObject.imageMessage, type: mime === 'image/webp' ? 'sticker' : 'image' };
+  }
+  if (messageObject.videoMessage) {
+    const mime = messageObject.videoMessage.mimetype || '';
+    return { msg: messageObject.videoMessage, type: mime === 'image/webp' ? 'sticker' : 'video' };
+  }
   if (messageObject.documentMessage) {
     const mime = messageObject.documentMessage.mimetype || '';
+    if (mime === 'image/webp') return { msg: messageObject.documentMessage, type: 'sticker' };
     if (mime.startsWith('image/')) return { msg: messageObject.documentMessage, type: 'image' };
     if (mime.startsWith('video/')) return { msg: messageObject.documentMessage, type: 'video' };
   }
@@ -116,6 +129,16 @@ async function cmdSticker(sock, msg, groupMeta) {
       throw new Error('Sticker generado vacio');
     }
     const animated = isAnimatedWebP(stickerBuffer);
+    // Re-stamping an existing animated sticker (found.type === 'sticker') skips
+    // the whole encode/tiering pipeline — it's a metadata-only EXIF rewrite, so
+    // it never gets a chance to shrink an already-oversized import from a less
+    // strict source. Catch that here instead of silently shipping a sticker
+    // WhatsApp may refuse to upload or that recipients can't save.
+    if (animated && stickerBuffer.length > MAX_STICKER_BYTES) {
+      return sock.sendMessage(jid, {
+        text: 'Ese sticker animado ya es demasiado pesado para WhatsApp y no se puede recomprimir más (viene de un formato que no podemos reabrir). Probá con el video o GIF original en vez del sticker.',
+      }, { quoted: msg });
+    }
     // sourceThumb (from original video/gif) takes priority; fall back to the
     // WebP-based extractor for re-stamped stickers (where we have no source).
     const pngThumbnail = animated

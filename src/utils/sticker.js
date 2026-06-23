@@ -271,17 +271,25 @@ function injectExifIntoWebP(webp, exifBuf) {
 
   // VP8 or VP8L: parse dimensions and wrap with VP8X
   let width = 512, height = 512;
+  let alphaUsed = false;
   try {
     if (chunkType === 'VP8 ') {
       const scaledW = webp.readUInt16LE(26);
       const scaledH = webp.readUInt16LE(28);
       width = scaledW & 0x3FFF;
       height = scaledH & 0x3FFF;
+      // Simple-format 'VP8 ' never carries alpha — leave alphaUsed false.
     } else if (chunkType === 'VP8L') {
       // skip 'VP8L'(4) + size(4) + signature(1) = 21 bytes from file start, then at offset 21
       const bits = webp.readUInt32LE(21);
       width = (bits & 0x3FFF) + 1;
       height = ((bits >> 14) & 0x3FFF) + 1;
+      // VP8L's 32-bit header packs width(14) + height(14) + alpha_is_used(1) +
+      // version(3) — bit 28 tells us whether this bitstream actually has alpha,
+      // so the new VP8X wrapper can set the flag correctly instead of always
+      // clearing it (which silently dropped real transparency on bare-VP8L
+      // webp re-stamped without ever having had a VP8X header of its own).
+      alphaUsed = !!((bits >> 28) & 0x1);
     }
   } catch {}
 
@@ -289,7 +297,7 @@ function injectExifIntoWebP(webp, exifBuf) {
   const vp8xChunk = Buffer.alloc(18);
   vp8xChunk.write('VP8X', 0, 'ascii');
   vp8xChunk.writeUInt32LE(10, 4);
-  vp8xChunk.writeUInt32LE(0x08, 8);          // EXIF flag
+  vp8xChunk.writeUInt32LE(alphaUsed ? 0x18 : 0x08, 8); // EXIF flag (+ Alpha flag if real)
   vp8xChunk.writeUIntLE(width - 1, 12, 3);
   vp8xChunk.writeUIntLE(height - 1, 15, 3);
 
@@ -497,4 +505,4 @@ async function gifToSticker(gifBuffer, author) {
   return videoToSticker(gifBuffer, author);
 }
 
-module.exports = { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame };
+module.exports = { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES };
