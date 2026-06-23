@@ -57,15 +57,6 @@ function wrapText(text, maxCharsPerLine = 16) {
   });
 }
 
-// Escape special chars for ffmpeg drawtext filter
-function escapeForDrawtext(s) {
-  return s
-    .replace(/\\/g, '\\\\')
-    .replace(/:/g, '\\:')
-    .replace(/'/g, "\\'")
-    .replace(/%/g, '\\%');
-}
-
 async function textToStickerBuffer(text) {
   const font = detectFont();
   if (!font) throw new Error('No encontré ninguna fuente del sistema para renderizar texto');
@@ -83,22 +74,35 @@ async function textToStickerBuffer(text) {
   const totalHeight = lineCount * lineHeight;
   const startY = Math.round((512 - totalHeight) / 2);
 
-  const drawFilters = lines.map((line, idx) => {
-    const y = startY + idx * lineHeight;
-    return `drawtext=fontfile='${font}':text='${escapeForDrawtext(line)}':fontcolor=white:fontsize=${fontSize}:x=(w-text_w)/2:y=${y}:borderw=4:bordercolor=black`;
-  }).join(',');
-
   const outputFile = tempFile('webp');
+  const lineFiles = [];   // one temp .txt per line — cleaned up in finally
 
-  // 512x512 RGBA transparent frame piped as rawvideo — avoids needing lavfi
-  const blankFrame = Buffer.alloc(512 * 512 * 4, 0);
-  const inputStream = new Readable({ read() {} });
-  inputStream.push(blankFrame);
-  inputStream.push(null);
-
-  // try/finally guarantees the temp .webp is removed even when ffmpeg rejects or
-  // times out — otherwise every failed encode leaks a file into temp/.
+  // try/finally guarantees temp files are removed even when ffmpeg rejects or
+  // times out — otherwise every failed encode leaks files into temp/.
   try {
+    // Each wrapped line goes to its own temp file referenced via drawtext's
+    // textfile= option. This sidesteps ALL of ffmpeg's text= escaping pitfalls:
+    // apostrophes ("don't"), colons, %, and backslashes used to terminate the
+    // inline text='...' token early and crash the encode. With textfile= the
+    // content is read verbatim, so any character the user types renders fine.
+    const drawFilters = [];
+    for (let idx = 0; idx < lines.length; idx++) {
+      const tf = tempFile('txt');
+      await fs.writeFile(tf, lines[idx]);
+      lineFiles.push(tf);
+      const y = startY + idx * lineHeight;
+      drawFilters.push(
+        `drawtext=fontfile='${font}':textfile='${tf}':fontcolor=white:fontsize=${fontSize}:x=(w-text_w)/2:y=${y}:borderw=4:bordercolor=black`
+      );
+    }
+    const vf = drawFilters.join(',');
+
+    // 512x512 RGBA transparent frame piped as rawvideo — avoids needing lavfi
+    const blankFrame = Buffer.alloc(512 * 512 * 4, 0);
+    const inputStream = new Readable({ read() {} });
+    inputStream.push(blankFrame);
+    inputStream.push(null);
+
     await new Promise((resolve, reject) => {
       let stderr = '';
       let timer = null;
@@ -111,7 +115,7 @@ async function textToStickerBuffer(text) {
           '-framerate', '1',
         ])
         .outputOptions([
-          '-vf', drawFilters,
+          '-vf', vf,
           '-c:v', 'libwebp',
           '-frames:v', '1',
           '-q:v', '90',
@@ -135,6 +139,7 @@ async function textToStickerBuffer(text) {
     return await fs.readFile(outputFile);
   } finally {
     await cleanTemp(outputFile);
+    await Promise.all(lineFiles.map((f) => cleanTemp(f)));
   }
 }
 

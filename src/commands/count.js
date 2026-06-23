@@ -1,5 +1,5 @@
 const { getActiveUsers, resetCounts } = require('../utils/messageCounter');
-const { isOwner, isAdmin, getSender, bareJid } = require('../utils/wa');
+const { isOwner, isAdmin, getSender, bareJid, sameUser } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
 
 const MEDALS = ['🥇', '🥈', '🥉', '🎖️', '🎖️'];
@@ -273,8 +273,10 @@ async function cmdCount(sock, msg, groupMeta, args) {
 
   if (mentioned) {
     const sorted = (await getActiveUsers(jid, 1)).sort((a, b) => b.count - a.count);
-    const mBare = bareJid(mentioned);
-    const rankIdx = sorted.findIndex(u => bareJid(u.jid) === mBare);
+    // sameUser bridges LID↔phone: the mention may be a phone JID while the stored
+    // key is the sender's @lid (or vice versa). A plain bareJid compare would miss
+    // and wrongly report "0 mensajes" for an active member in a LID group.
+    const rankIdx = sorted.findIndex(u => sameUser(u.jid, mentioned));
     const count = rankIdx >= 0 ? sorted[rankIdx].count : 0;
     const phone = mentioned.split('@')[0];
     const msgs = count === 1 ? '1 mensaje' : `${count} mensajes`;

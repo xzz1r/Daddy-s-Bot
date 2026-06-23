@@ -37,6 +37,31 @@ function indexGroupMeta(groupMeta) {
   }
 }
 
+// Resolve any JID to a stable canonical key. A LID we've already mapped to a
+// phone (via the lidToPhone cache populated from groupMeta / participantPn)
+// collapses to its bare phone JID; everything else returns its bareJid unchanged.
+// This lets stores and lookups compare consistently whether a JID arrived as a
+// LID (incoming group messages) or as a phone JID (taps/mentions). When the
+// mapping is unknown it falls back to bareJid — i.e. never worse than before.
+function canonicalJid(jid) {
+  if (!jid) return jid;
+  const bare = bareJid(jid);
+  if (bare.endsWith('@lid')) {
+    const phone = lidToPhone.get(bare);
+    if (phone) return phone;
+  }
+  return bare;
+}
+
+// True when two JIDs refer to the same person, bridging LID↔phone through the
+// cache. Use this instead of `bareJid(a) === bareJid(b)` whenever one side may
+// be a mention (phone form) and the other an incoming message (LID form).
+function sameUser(a, b) {
+  if (!a || !b) return false;
+  if (bareJid(a) === bareJid(b)) return true;
+  return canonicalJid(a) === canonicalJid(b);
+}
+
 function isOwner(jid, fromMe, groupMeta) {
   if (fromMe) return true;
   if (!jid) return false;
@@ -189,4 +214,6 @@ module.exports = {
   extractQuotedText,
   rememberMapping,
   bareJid,
+  canonicalJid,
+  sameUser,
 };

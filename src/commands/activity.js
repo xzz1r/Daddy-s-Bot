@@ -1,5 +1,5 @@
 const { getActiveUsers } = require('../utils/messageCounter');
-const { isOwner, getSender, bareJid } = require('../utils/wa');
+const { isOwner, getSender, bareJid, sameUser } = require('../utils/wa');
 const { pick, shuffle } = require('../utils/helpers');
 
 // ---- !vs : real-activity head-to-head -------------------------------------
@@ -43,8 +43,9 @@ const VS_ROASTS = [
 ];
 
 function lookupCount(users, jid) {
-  const bare = bareJid(jid);
-  const u = users.find(x => bareJid(x.jid) === bare);
+  // sameUser bridges LID↔phone so a phone-form mention still matches a count
+  // stored under the sender's @lid (otherwise active users show as "fantasmas").
+  const u = users.find(x => sameUser(x.jid, jid));
   return u ? u.count : 0;
 }
 

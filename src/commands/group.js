@@ -1,5 +1,5 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const { isOwner, isAdmin, isBotJid, isGroupAdmin, getTarget, getSender, bareJid } = require('../utils/wa');
+const { isOwner, isAdmin, isBotJid, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid } = require('../utils/wa');
 const { streamToBuffer } = require('../utils/helpers');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled } = require('../utils/state');
 const { isBusinessBatch } = require('../utils/businessCheck');
@@ -8,16 +8,18 @@ const { isBusinessBatch } = require('../utils/businessCheck');
 // Hard-capped: insertion-ordered Map evicts oldest entry past the cap so a
 // long-running bot can't blow memory if mutes are added but never queried.
 //
-// Keys are ALWAYS normalized with bareJid(): the mute target comes from a
-// mention (often a LID) while the lookup runs against msg.key.participant
-// (which can carry a `:device` suffix). Without normalization the two never
-// match and the mute silently does nothing — the rest of the codebase already
-// compares JIDs through bareJid(), so this keeps mute consistent with it.
+// Keys are normalized with canonicalJid(): the mute target comes from a mention
+// (which can be a phone JID) while enforcement runs against msg.key.participant
+// (which in modern LID groups is the user's @lid). bareJid() alone strips the
+// device suffix but does NOT bridge LID↔phone, so a phone-form mute target and a
+// LID-form sender would never match and the mute would silently do nothing.
+// canonicalJid() collapses both to the same phone key when the mapping is known
+// (and falls back to bareJid otherwise, so it's never worse than before).
 const mutedUsers = new Map();
 const MAX_MUTED = 5000;
 
 function muteKey(groupJid, userJid) {
-  return `${groupJid}|${bareJid(userJid)}`;
+  return `${groupJid}|${canonicalJid(userJid)}`;
 }
 
 function muteUser(groupJid, userJid, expireTs) {

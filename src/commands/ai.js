@@ -105,11 +105,18 @@ async function cmdGrok(sock, msg, args) {
       await sock.sendMessage(jid, { text: chunks[i] }, i === 0 ? { quoted: msg } : {});
     }
   } catch (err) {
+    // Full detail goes to the LOG (for the owner to debug) — but never to the
+    // group chat: upstream errors can carry account/plan/quota details, so the
+    // members only see a generic, friendly message.
     const apiErr = err.response?.data?.error?.message || err.response?.data?.error || err.message;
     logger.error(`Grok error: ${typeof apiErr === 'string' ? apiErr : JSON.stringify(apiErr)}`);
-    await sock.sendMessage(jid, {
-      text: `Grok: ${typeof apiErr === 'string' ? apiErr : 'error desconocido'}`,
-    }, { quoted: msg });
+    const status = err.response?.status;
+    const friendly =
+      status === 429 ? 'Grok está saturado ahora mismo, intenta en un momento.'
+      : (status === 401 || status === 403) ? 'La key de Grok no es válida o expiró. El owner debe reconfigurarla con !setgrok.'
+      : err.code === 'ECONNABORTED' ? 'Grok tardó demasiado en responder, intenta de nuevo.'
+      : 'Grok no está disponible ahora mismo, intenta más tarde.';
+    await sock.sendMessage(jid, { text: friendly }, { quoted: msg });
   }
 }
 

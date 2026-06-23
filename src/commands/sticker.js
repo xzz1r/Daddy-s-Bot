@@ -16,6 +16,14 @@ function identifyMedia(messageObject) {
     if (mime.startsWith('image/')) return { msg: messageObject.documentMessage, type: 'image' };
     if (mime.startsWith('video/')) return { msg: messageObject.documentMessage, type: 'video' };
   }
+  // Wrappers de "ver una vez" (v1 / v2 / v2 extension): una foto o video enviado
+  // como vista única llega anidado. Lo desenvolvemos para que !s también funcione
+  // sobre ellos, ya sea citándolos o mandándolos con el caption !s.
+  const inner =
+    messageObject.viewOnceMessage?.message ||
+    messageObject.viewOnceMessageV2?.message ||
+    messageObject.viewOnceMessageV2Extension?.message;
+  if (inner) return identifyMedia(inner);
   return null;
 }
 
