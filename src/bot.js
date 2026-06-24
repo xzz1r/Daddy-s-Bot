@@ -18,6 +18,8 @@ const { flushCasino } = require('./utils/casinoStore');
 const { flushCache } = require('./utils/musicCache');
 const { isBusiness } = require('./utils/businessCheck');
 const { ensureTemp } = require('./utils/helpers');
+const { gitCommit } = require('./utils/version');
+const { VF_STATIC } = require('./utils/sticker');
 const logger = require('./utils/logger');
 const config = require('./config');
 
@@ -136,6 +138,14 @@ async function connectToWhatsApp() {
       // Explicit save on full connection to ensure session is complete
       await saveCreds();
       console.log(`\n✓ Daddy's Bot conectado\n`);
+      // Huella del código realmente cargado en memoria. Si tras un `git pull` el
+      // commit de aquí no coincide con `git log -1`, o el filtro sigue mostrando
+      // un `pad=512:512`, es que el proceso quedó con código viejo: hay que
+      // pararlo del todo y volver a hacer `npm start`.
+      const padFree = !/pad=/.test(VF_STATIC);
+      console.log(`  commit cargado : ${gitCommit()}`);
+      console.log(`  filtro sticker : ${VF_STATIC}`);
+      console.log(`  stickers fieles: ${padFree ? 'SI (sin pad, respeta forma original)' : 'NO (codigo viejo con pad cuadrado)'}\n`);
 
     } else if (connection === 'connecting') {
       if (!hasSession) return; // only log if reconnecting
