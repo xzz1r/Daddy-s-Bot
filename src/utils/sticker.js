@@ -59,9 +59,11 @@ function extractFirstAnmfFrame(animBuf) {
 }
 
 // Thumbnail filter: scale to fit a 96px box keeping the source aspect ratio,
-// no padding — so the preview has the same shape as the (now aspect-faithful)
-// sticker. format=rgba keeps any real transparency the source carried.
-const VF_THUMB = `scale=96:96:force_original_aspect_ratio=decrease,setsar=1,format=rgba`;
+// then center it on a transparent 96x96 canvas. WhatsApp's sticker spec is a
+// fixed square canvas — the padding is fully transparent so it's invisible
+// (shows the chat background, not a visible bar), and the source is only ever
+// scaled down to fit, never stretched or cropped.
+const VF_THUMB = `scale=96:96:force_original_aspect_ratio=decrease,pad=96:96:(ow-iw)/2:(oh-ih)/2:color=0x00000000,setsar=1,format=rgba`;
 
 // Generate a small PNG thumbnail from any video/gif that ffmpeg can decode.
 // Used for video and gif stickers: the bundled ffmpeg cannot decode its own
@@ -129,16 +131,19 @@ async function generateAnimatedThumb(animBuf) {
   }
 }
 
-// Stickers keep the SOURCE aspect ratio: the longest side is scaled to fit
-// within 512 (or 384 as a last resort) and the shorter side stays proportional
-// — no square padding. WhatsApp renders non-square stickers natively, and the
-// old forced-square canvas was adding transparent letterbox bars whose alpha
-// plane was the root cause of the "split/doubled" rendering artifacts. Scaling
-// only (decrease = never upscale) gives a sticker faithful to the original.
+// WhatsApp's sticker spec is a FIXED 512x512 canvas — that part is mandatory,
+// not optional (a non-square canvas makes WhatsApp's own client mishandle the
+// sticker, stretching or duplicating it to force it back into a square slot,
+// which is worse than padding it ourselves). What we control is HOW the source
+// fits inside that canvas: scaled down to fit (never upscaled, never cropped,
+// never stretched) and centered with fully transparent padding — invisible in
+// chat, since transparent reveals the wallpaper instead of drawing a bar. The
+// shape of the actual visible content is exactly the source's shape; only the
+// underlying file canvas is square because WhatsApp requires it to be.
 // format=rgba preserves any genuine transparency the source already had.
-const VF_STATIC = `scale=512:512:force_original_aspect_ratio=decrease,setsar=1,format=rgba`;
+const VF_STATIC = `scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=0x00000000,setsar=1,format=rgba`;
 const VF_ANIM = (fps, size = 512) =>
-  `fps=${fps},scale=${size}:${size}:force_original_aspect_ratio=decrease,setsar=1,format=rgba`;
+  `fps=${fps},scale=${size}:${size}:force_original_aspect_ratio=decrease,pad=${size}:${size}:(ow-iw)/2:(oh-ih)/2:color=0x00000000,setsar=1,format=rgba`;
 
 // Hard kill if ffmpeg runs longer than this — on Termux a hung encode can
 // otherwise pin a CPU core forever and zombie the command.
@@ -228,15 +233,20 @@ function injectExifIntoWebP(webp, exifBuf) {
   if (chunkType === 'VP8X') {
     const out = Buffer.from(webp);
 
-    // libwebp always sets VP8X Alpha flag (0x10) even for fully opaque VP8
-    // animations that have no alpha channel at all. When WhatsApp sees Alpha=true
-    // with blend=yes on a frame that has no real alpha data, it alpha-blends using
-    // garbage, producing the "split in two / doubled" sticker. A frame carries real
-    // alpha if its first sub-chunk is VP8L (lossless, alpha baked into the bitstream)
-    // OR ALPH (a dedicated alpha plane that precedes a lossy VP8 color chunk — this
-    // is exactly what our square-canvas padding produces: transparent pad pixels
-    // around a lossy-encoded frame). Only a frame with NEITHER gets blend=no forced;
-    // only when NO frame in the whole animation has real alpha do we clear the flag.
+    // Every frame our encoder produces covers the FULL canvas (x=0, y=0,
+    // w=h=canvas size) — ffmpeg's pad filter guarantees that. So blend mode
+    // never needs to matter: this frame's pixels (including its own alpha)
+    // are the entire picture, there's nothing of the previous frame left to
+    // show through. We force blend=no (replace) on every single frame
+    // regardless of whether it carries real alpha (VP8L/ALPH, from the
+    // transparent pad border) or not (plain VP8). Without this, WhatsApp's
+    // renderer alpha-blends a frame's semi-transparent edge pixels against
+    // whatever the PREVIOUS frame drew there — different video content each
+    // frame — producing a translucent ghost/"doubled" smear at the seam
+    // between the opaque content and the transparent padding. libwebp also
+    // always sets the VP8X Alpha flag (0x10) even for fully opaque animations
+    // with no real alpha at all, so we track per-frame whether alpha is real
+    // and only keep the flag set when at least one frame actually has it.
     const isAnim = !!(out[20] & 0x02); // Animation bit
     if (isAnim) {
       let hasAlpha = false;
@@ -246,8 +256,8 @@ function injectExifIntoWebP(webp, exifBuf) {
         const cs = out.readUInt32LE(p + 4);
         if (ct === 'ANMF' && cs > 16) {
           const inner = out.slice(p + 24, p + 28).toString();
-          if (inner === 'VP8L' || inner === 'ALPH') { hasAlpha = true; }
-          else if (inner === 'VP8 ') out[p + 23] |= 0x02; // bit 1 = blend=no (replace, don't blend)
+          if (inner === 'VP8L' || inner === 'ALPH') hasAlpha = true;
+          out[p + 23] |= 0x02; // bit 1 = blend=no (replace, don't blend) — always
         }
         p += 8 + cs + (cs % 2);
       }
