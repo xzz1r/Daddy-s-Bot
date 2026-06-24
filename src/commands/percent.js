@@ -1214,14 +1214,15 @@ const LABELS = {
       'Si lo tienes tú, está hecho. Esa confianza no se regala.',
     ],
   },
-};
 
-// ── Verdictos directos (sin porcentaje) ──────────────────────────────────────
-// !perdedor y !ganador no tiran porcentaje: sueltan una sola frase larga, una
-// destrozando y la otra ensalzando. El placeholder [nombre] se reemplaza por la
-// mención del target (o de uno mismo si no se etiqueta a nadie).
-const VERDICTS = {
-  perdedor: [
+  // perdedor / ganador: rasgos con porcentaje por ROL igual que el resto. El %
+  // lo da rollPercent según si el target es owner/admin/miembro, así que el owner
+  // casi nunca sale perdedor y casi siempre ganador, y al revés con los miembros.
+  // [nombre] se sustituye por la mención del target dentro de runPercent.
+  perdedor: {
+    name: 'perdedor',
+    goodIsHigh: false,
+    high: [
     '[nombre], eres un perdedor de mierda sin el más mínimo valor. Tan estúpido que ni captas cuando te están destruyendo en la cara, moralmente depravado al punto de que te excita traicionar y joder a cualquiera que comete el error de acercarse, y tan raro y retorcido que la gente siente que algo anda mal contigo apenas te ven.',
     'Mírate [nombre], el perdedor definitivo. Inútil total, con una falta de inteligencia que hace que destruyas cualquier oportunidad por pura idiotez, depravado como alguien que disfruta corromper y dañar por placer enfermo, y con una rareza tan oscura que pareces un bicho raro que la humanidad debería aislar.',
     '[nombre], perdedor sin remedio ni valor. Tu estupidez es ofensiva, tomas decisiones tan retardadas que solo un imbécil como tú las elegiría, tu moral es tan baja que te revuelcas en la bajeza y la traición, y tu rareza es tan perturbadora que hasta los que te toleran sienten asco profundo.',
@@ -1237,8 +1238,33 @@ const VERDICTS = {
     '[nombre], el manual del perdedor con tu cara en la portada. Sin un solo logro, con una inteligencia que se apaga sola, una moral que vendiste hace años por nada, y una rareza tan enferma que provocas ese silencio incómodo que solo provocan las cosas que están mal de raíz.',
     'Eres un fracaso ambulante, [nombre]. Perdedor sin valor, sin luces y sin alma: inútil hasta para fingir que sirves, estúpido hasta para esconderlo, depravado hasta para tus propios estándares, y raro de una forma que da escalofríos en vez de risa. Un desastre completo y coherente.',
     '[nombre], perdedor de los que ni se reciclan. Tu inutilidad es estructural, tu estupidez es militante, tu depravación es vocacional y tu rareza es clínica. Junta las cuatro y entiendes por qué la gente se aleja de ti por instinto, no por juicio. El cuerpo lo detecta antes que la cabeza.',
-  ],
-  ganador: [
+    ],
+    mid: [
+      'Ni perdedor del todo ni alguien que sume. Te quedas en esa franja tibia donde no haces daño pero tampoco haces falta, y eso a la larga pesa más de lo que crees.',
+      'Tienes destellos de no ser un desastre, rodeados de decisiones que te devuelven al montón. Medio perdedor, medio salvable, y nadie sabe nunca cuál de los dos va a aparecer.',
+      'No eres el peor, pero tampoco das motivos para que cuenten contigo. Perdedor a ratos, funcional a ratos, sin una línea clara entre las dos cosas.',
+      'A veces pareces tener las cosas claras y a veces te hundes solo. Esa inconsistencia es justo lo que te deja a medio camino de ser un perdedor entero.',
+      'Ni arriba ni abajo. Cumples lo mínimo para no ser señalado y nunca lo suficiente para que nadie te defienda. La zona más anónima que existe.',
+      'Tienes con qué no ser un perdedor, pero lo desperdicias con una constancia que llama la atención. Potencial sin uso es casi peor que no tener nada.',
+      'Medio perdedor por elección propia. Cuando te lo propones no estás mal; el problema es que proponértelo es justo lo raro en ti.',
+      'No molestas ni aportas. Estás en ese punto medio donde la gente ni te suma ni te resta, simplemente te tolera por inercia.',
+    ],
+    low: [
+      'De perdedor tienes poco y se nota. La gente se acerca a ti en vez de alejarse, y eso ya te pone en el lado opuesto de todo esto.',
+      'No eres un perdedor por más que aquí toque decirlo. Tienes cabeza, tienes códigos y la gente lo nota. Estás lejos de esa categoría.',
+      'Cero pinta de perdedor. Donde otros se hunden tú sostienes, y eso es exactamente lo que un perdedor jamás consigue hacer.',
+      'Te falta todo para ser un perdedor: ni eres inútil, ni traicionas, ni das mala espina. Justo lo contrario, y por eso la gente confía en ti.',
+      'Un perdedor no provoca lo que tú provocas. La gente quiere tenerte cerca, y eso por definición te saca de esta lista.',
+      'De esto no tienes nada. Tienes valor, criterio y la gente lo reconoce sin que lo pidas. Perdedor es justo lo que no eres.',
+      'Ni de lejos un perdedor. Sumas donde estás, sostienes a quien te rodea y dejas buena impresión. El reverso exacto de la categoría.',
+      'Si esto midiera de verdad, saldrías casi en cero. No eres inútil, no eres falso y no eres raro de los que incomodan. Estás del lado bueno.',
+    ],
+  },
+
+  ganador: {
+    name: 'ganador',
+    goodIsHigh: true,
+    high: [
     '[nombre], eres un puto ganador de pies a cabeza. Inteligente al nivel de ver la jugada tres movimientos antes que el resto, con una integridad que hace que la gente confíe en ti sin pensarlo, y con una presencia tan sólida que entras a cualquier sitio y el ambiente se ordena solo a tu alrededor.',
     'Mírate [nombre], el ganador absoluto. Capaz de verdad, de los que resuelven lo que otros ni se atreven a tocar, con una cabeza que no falla bajo presión, una palabra que vale más que cualquier contrato, y un magnetismo que hace que la gente quiera estar de tu lado sin saber explicar por qué.',
     '[nombre], ganador nato sin punto débil visible. Tu inteligencia intimida sin que la fuerces, tu carácter sostiene a quien te rodea, tu criterio pesa porque se lo ganó entrega a entrega, y tu sola presencia sube el nivel de cualquier sala en la que decidas aparecer.',
@@ -1254,20 +1280,36 @@ const VERDICTS = {
     '[nombre], el manual del ganador con tu cara en la portada. Inteligencia que resuelve, carácter que sostiene, palabra que vale, presencia que se impone sola. Junta las cuatro y entiendes por qué la gente quiere tenerte cerca cuando todo se complica: porque contigo el problema deja de serlo.',
     'Eres un referente andante, [nombre]. Ganador de los que elevan a quien tienen al lado sin proponérselo: tu nivel arrastra, tu integridad inspira, tu criterio orienta y tu presencia tranquiliza. Eres exactamente el ejemplo que la gente pone cuando quiere explicar qué es hacer las cosas bien.',
     '[nombre], ganador de los que no se repiten cada generación. Tu inteligencia es de las que descolocan, tu lealtad de las que se recuerdan, tu firmeza de las que sostienen, y tu presencia de las que se quedan grabadas. La gente normal no provoca eso. Tú lo provocas solo con entrar.',
-  ],
+    ],
+    mid: [
+      'Tienes madera de ganador a ratos, pero la dejas enfriar. Cuando aprietas estás ahí arriba; el problema es lo poco que aprietas de verdad.',
+      'Ni ganador ni perdedor. Te quedas en ese punto medio cómodo donde no pierdes pero tampoco ganas nada que merezca contarse.',
+      'Tienes con qué ganar, pero te falta el último paso, ese que separa al que casi llega del que llega. Y ese paso es todo.',
+      'A veces brillas y haces que la gente espere más de ti. Luego te relajas y vuelves al montón. Medio ganador, a medias siempre.',
+      'Ganas lo justo para no quedar mal, nunca lo suficiente para que te recuerden por ello. Te falta hambre, no capacidad.',
+      'Estás cerca de ser de los que ganan, pero te conformas antes de tiempo. La diferencia entre tú y ellos es de cabeza, no de talento.',
+      'Tienes destellos de ganador entre mucha tibieza. El día que sostengas el nivel en vez de visitarlo, otra cosa será.',
+      'Ni arrastras ni estorbas. Cumples, pasas, y a otra cosa. Ganador a medio gas, que es casi peor que no serlo.',
+    ],
+    low: [
+      'De ganador, lo justo para la foto. Cuando llega lo difícil te apagas, y ganar es justo lo que se hace cuando aprieta, no cuando sobra.',
+      'Te queda grande la palabra ganador. Ni la cabeza ni la constancia te acompañan, y sin eso no se gana nada que dure.',
+      'Ganador no eres ni de cerca. Prometes mucho y sostienes poco, y al final lo que cuenta es lo que sostienes, no lo que dices.',
+      'Lo de ganar lo ves de lejos. Te falta el nervio de los que aparecen cuando importa; tú justo ahí desapareces.',
+      'De ganador tienes el discurso y nada del resultado. Y el resultado es lo único que en esto cuenta de verdad.',
+      'No das el perfil. Un ganador sostiene bajo presión y tú bajo presión te caes. Esa es toda la distancia, y es enorme.',
+      'Ganador es lo que no eres todavía. Te falta hambre, te falta aguante y te sobra excusa. Así no se llega a ningún lado.',
+      'Lejos de ganador. La gente no cuenta contigo cuando aprieta, y esa es la prueba más clara de en qué lado estás.',
+    ],
+    extreme: [
+      'De los que la gente recuerda años después como la prueba de que sí se podía.',
+      'Vas a ser el estándar imposible con el que otros se midan sin saber siquiera tu nombre.',
+      'Donde tú llegas casi nadie llega, y los que llegan tardan el triple y se dejan el doble.',
+      'Tu nombre tranquiliza salas enteras antes de que abras la boca. Eso no se compra ni se hereda.',
+      'Eres de los que cambian el rumbo de un grupo entero solo con decidir entrar en él.',
+    ],
+  },
 };
-
-async function runVerdict(sock, msg, key) {
-  const jid = msg.key.remoteJid;
-  const pool = VERDICTS[key];
-  if (!pool) return;
-
-  const target = getTargetOrSelf(msg);
-  const phrase = pickFresh(pool, `${jid}|${key}`);
-  const text = phrase.replace(/\[nombre\]/g, `@${target.split('@')[0]}`);
-
-  await sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });
-}
 
 async function runPercent(sock, msg, key, groupMeta) {
   const jid = msg.key.remoteJid;
@@ -1283,13 +1325,16 @@ async function runPercent(sock, msg, key, groupMeta) {
     ? cfg.roll(targetIsOwner, targetIsAdmin)
     : rollPercent(cfg.goodIsHigh, targetIsAdmin, targetIsOwner);
   const tier = percent >= 70 ? 'high' : percent <= 30 ? 'low' : 'mid';
-  const verdict = pickFresh(cfg[tier], `${jid}|${key}|${tier}`);
+  const nm = `@${target.split('@')[0]}`;
+  // Algunos rasgos (perdedor/ganador) traen [nombre] embebido en la frase; el
+  // resto no lo usa, así que el replace es un no-op para ellos.
+  const verdict = pickFresh(cfg[tier], `${jid}|${key}|${tier}`).replace(/\[nombre\]/g, nm);
   const showExtreme = cfg.goodIsHigh && percent >= 70 && cfg.extreme?.length;
 
   const text =
-    `*@${target.split('@')[0]} es ${percent}% ${cfg.name}*\n\n` +
+    `*${nm} es ${percent}% ${cfg.name}*\n\n` +
     `${verdict}` +
-    (showExtreme ? `\n\n${pickFresh(cfg.extreme, `${jid}|${key}|extreme`)}` : '');
+    (showExtreme ? `\n\n${pickFresh(cfg.extreme, `${jid}|${key}|extreme`).replace(/\[nombre\]/g, nm)}` : '');
 
   await sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });
 }
@@ -1310,6 +1355,6 @@ module.exports = {
   cmdMasculinidad:  makeCmd('masculinidad'),
   cmdInutil:        makeCmd('inutil'),
   cmdFemboy:        makeCmd('femboy'),
-  cmdPerdedor:      (sock, msg) => runVerdict(sock, msg, 'perdedor'),
-  cmdGanador:       (sock, msg) => runVerdict(sock, msg, 'ganador'),
+  cmdPerdedor:      makeCmd('perdedor'),
+  cmdGanador:       makeCmd('ganador'),
 };

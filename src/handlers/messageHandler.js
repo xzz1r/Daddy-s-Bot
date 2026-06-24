@@ -406,8 +406,8 @@ async function handleMessage(sock, msg) {
       case 'masculinidad':   await cmdMasculinidad(sock, msg, groupMeta); break;
       case 'inutil':         await cmdInutil(sock, msg, groupMeta); break;
       case 'femboy':         await cmdFemboy(sock, msg, groupMeta); break;
-      case 'perdedor':       await cmdPerdedor(sock, msg); break;
-      case 'ganador':        await cmdGanador(sock, msg); break;
+      case 'perdedor':       await cmdPerdedor(sock, msg, groupMeta); break;
+      case 'ganador':        await cmdGanador(sock, msg, groupMeta); break;
 
       case 'aura':           await cmdAura(sock, msg, args, groupMeta); break;
 
