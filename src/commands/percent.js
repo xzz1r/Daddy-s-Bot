@@ -1216,6 +1216,59 @@ const LABELS = {
   },
 };
 
+// ── Verdictos directos (sin porcentaje) ──────────────────────────────────────
+// !perdedor y !ganador no tiran porcentaje: sueltan una sola frase larga, una
+// destrozando y la otra ensalzando. El placeholder [nombre] se reemplaza por la
+// mención del target (o de uno mismo si no se etiqueta a nadie).
+const VERDICTS = {
+  perdedor: [
+    '[nombre], eres un perdedor de mierda sin el más mínimo valor. Tan estúpido que ni captas cuando te están destruyendo en la cara, moralmente depravado al punto de que te excita traicionar y joder a cualquiera que comete el error de acercarse, y tan raro y retorcido que la gente siente que algo anda mal contigo apenas te ven.',
+    'Mírate [nombre], el perdedor definitivo. Inútil total, con una falta de inteligencia que hace que destruyas cualquier oportunidad por pura idiotez, depravado como alguien que disfruta corromper y dañar por placer enfermo, y con una rareza tan oscura que pareces un bicho raro que la humanidad debería aislar.',
+    '[nombre], perdedor sin remedio ni valor. Tu estupidez es ofensiva, tomas decisiones tan retardadas que solo un imbécil como tú las elegiría, tu moral es tan baja que te revuelcas en la bajeza y la traición, y tu rareza es tan perturbadora que hasta los que te toleran sienten asco profundo.',
+    'Eres un cero absoluto [nombre]. Un perdedor inútil cuya falta de inteligencia lo hace peligroso por torpe, moralmente podrido disfrutando hacer el mal y corromper lo poco bueno que toca, y tan jodidamente raro que tu sola existencia contamina el ambiente.',
+    '[nombre], perdedor nato sin valor alguno. Estúpido hasta los huesos, incapaz de entender nada más allá de tu propia mierda, depravado moralmente como un depredador que solo encuentra placer en lo sucio y dañino, y con una rareza tan enferma que la gente normal prefiere alejarse antes de que les pegues tu patología.',
+    'Qué patético perdedor eres [nombre]. Inútil en todo, con una inteligencia tan baja que es un insulto a la especie humana, moralmente depravado al nivel de vender tu alma por cualquier vicio retorcido, y raro de una forma tan retorcida que das miedo y lástima al mismo tiempo.',
+    '[nombre], el rey de los perdedores sin valor. Tu estupidez te hace tropezar constantemente con tu propia mediocridad, tu depravación moral te convierte en alguien que solo motiva destrucción y traición, y tu rareza es tan profunda y asquerosa que pareces un error que nunca debió existir.',
+    'Perdedor de mierda [nombre]. Cero valor, pura inutilidad andante. Tan estúpido que destruyes todo lo que intentas, tan depravado que te alimentas del daño que causas a otros, y tan raro y perturbador que hasta tus propios pensamientos deben avergonzarse de ti.',
+    '[nombre], eres un perdedor sin inteligencia ni moral. Inútil total cuya estupidez roza lo criminal, depravado hasta el tuétano disfrutando de lo peor y más bajo, y con una rareza tan jodida que la gente se pregunta si eres humano o algo salido de una pesadilla fallida.',
+    'Eres el perdedor perfecto [nombre]. Sin ningún valor como persona, con una falta de inteligencia que hace reír de lo trágica que es, moralmente tan depravado que solo te mueve lo enfermo y traicionero, y tan raro y retorcido que tu mera presencia hace que los demás sientan que algo está podrido.',
+    '[nombre], perdedor por diseño y por costumbre. Arrastras una inutilidad tan completa que hasta fallar te sale mal, una estupidez que confunde valentía con suicidio social, una moral tan podrida que la traición te sale antes que el saludo, y una rareza que vacía las salas en cuanto entras.',
+    'Hay perdedores y luego estás tú, [nombre]. Inútil al nivel de estorbar respirando, tan corto que crees que tu idiotez es carácter, tan depravado que disfrutas hundiendo a quien confía en ti, y tan raro que la gente normaliza cualquier cosa con tal de no parecerse a ti.',
+    '[nombre], el manual del perdedor con tu cara en la portada. Sin un solo logro, con una inteligencia que se apaga sola, una moral que vendiste hace años por nada, y una rareza tan enferma que provocas ese silencio incómodo que solo provocan las cosas que están mal de raíz.',
+    'Eres un fracaso ambulante, [nombre]. Perdedor sin valor, sin luces y sin alma: inútil hasta para fingir que sirves, estúpido hasta para esconderlo, depravado hasta para tus propios estándares, y raro de una forma que da escalofríos en vez de risa. Un desastre completo y coherente.',
+    '[nombre], perdedor de los que ni se reciclan. Tu inutilidad es estructural, tu estupidez es militante, tu depravación es vocacional y tu rareza es clínica. Junta las cuatro y entiendes por qué la gente se aleja de ti por instinto, no por juicio. El cuerpo lo detecta antes que la cabeza.',
+  ],
+  ganador: [
+    '[nombre], eres un puto ganador de pies a cabeza. Inteligente al nivel de ver la jugada tres movimientos antes que el resto, con una integridad que hace que la gente confíe en ti sin pensarlo, y con una presencia tan sólida que entras a cualquier sitio y el ambiente se ordena solo a tu alrededor.',
+    'Mírate [nombre], el ganador absoluto. Capaz de verdad, de los que resuelven lo que otros ni se atreven a tocar, con una cabeza que no falla bajo presión, una palabra que vale más que cualquier contrato, y un magnetismo que hace que la gente quiera estar de tu lado sin saber explicar por qué.',
+    '[nombre], ganador nato sin punto débil visible. Tu inteligencia intimida sin que la fuerces, tu carácter sostiene a quien te rodea, tu criterio pesa porque se lo ganó entrega a entrega, y tu sola presencia sube el nivel de cualquier sala en la que decidas aparecer.',
+    'Eres un fuera de serie [nombre]. Un ganador cuya cabeza convierte lo difícil en rutina, cuya integridad es de las que ya no se ven, y cuya presencia genera ese respeto silencioso que no se pide ni se compra: simplemente se reconoce en cuanto entras por la puerta.',
+    '[nombre], ganador de los que marcan la diferencia donde sea que estén. Brillante sin necesidad de demostrarlo, firme sin necesidad de levantar la voz, leal sin necesidad de jurarlo, y con un aura de gente que llega lejos porque hace lo que los demás evitan. Eso no se finge ni se hereda.',
+    'Qué ganador eres [nombre]. Resuelves bajo caos lo que otros ni en calma, tienes la rara honestidad de los que no necesitan mentir para ganar, y proyectas una seguridad real que tranquiliza a quien confía en ti. Eres el nombre que aparece en la cabeza de todos cuando algo importa de verdad.',
+    '[nombre], el rey de los ganadores y con motivos. Tu inteligencia abre puertas que otros ni ven, tu carácter cierra tratos que otros ni intentan, y tu presencia deja huella en gente que solo te cruzó una vez. Eres exactamente lo que los demás intentan aparentar sin conseguirlo nunca.',
+    'Ganador de verdad [nombre]. Puro nivel, pura solidez. Tan capaz que haces parecer fácil lo imposible, tan íntegro que tu palabra basta, y con una presencia tan firme que la gente baja la guardia contigo por puro instinto de que estás del lado correcto. Eso es lo más difícil de tener.',
+    '[nombre], eres un ganador con cabeza y con códigos. Inteligente al nivel de adelantarte al problema antes de que exista, leal al nivel de que delegar en ti es dejar de preocuparse, y con un magnetismo que convierte tu presencia en una ventaja para cualquiera que esté cerca de ti.',
+    'Eres el ganador perfecto [nombre]. Con un valor real que se nota sin que lo anuncies, con una inteligencia que hace que la sala escuche cuando hablas, con una integridad que ya casi no existe, y con una presencia tan magnética que la gente recuerda haberte conocido años después de un solo encuentro.',
+    '[nombre], ganador por diseño y por disciplina. Tu cabeza ordena el caos que a otros los hunde, tu palabra sostiene lo que otros prometen y no cumplen, y tu presencia impone un respeto que nadie te discute. No llegaste por suerte: llegaste haciendo lo que la mayoría evita por comodidad.',
+    'Hay ganadores y luego estás tú, [nombre]. Brillante sin ser arrogante, fuerte sin ser ruidoso, leal sin pedir nada a cambio, y con un aura de los que cambian el rumbo de cualquier equipo solo con aparecer. La gente te sigue porque saben que contigo se gana, y eso vale más que cualquier título.',
+    '[nombre], el manual del ganador con tu cara en la portada. Inteligencia que resuelve, carácter que sostiene, palabra que vale, presencia que se impone sola. Junta las cuatro y entiendes por qué la gente quiere tenerte cerca cuando todo se complica: porque contigo el problema deja de serlo.',
+    'Eres un referente andante, [nombre]. Ganador de los que elevan a quien tienen al lado sin proponérselo: tu nivel arrastra, tu integridad inspira, tu criterio orienta y tu presencia tranquiliza. Eres exactamente el ejemplo que la gente pone cuando quiere explicar qué es hacer las cosas bien.',
+    '[nombre], ganador de los que no se repiten cada generación. Tu inteligencia es de las que descolocan, tu lealtad de las que se recuerdan, tu firmeza de las que sostienen, y tu presencia de las que se quedan grabadas. La gente normal no provoca eso. Tú lo provocas solo con entrar.',
+  ],
+};
+
+async function runVerdict(sock, msg, key) {
+  const jid = msg.key.remoteJid;
+  const pool = VERDICTS[key];
+  if (!pool) return;
+
+  const target = getTargetOrSelf(msg);
+  const phrase = pickFresh(pool, `${jid}|${key}`);
+  const text = phrase.replace(/\[nombre\]/g, `@${target.split('@')[0]}`);
+
+  await sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });
+}
+
 async function runPercent(sock, msg, key, groupMeta) {
   const jid = msg.key.remoteJid;
   const cfg = LABELS[key];
@@ -1257,4 +1310,6 @@ module.exports = {
   cmdMasculinidad:  makeCmd('masculinidad'),
   cmdInutil:        makeCmd('inutil'),
   cmdFemboy:        makeCmd('femboy'),
+  cmdPerdedor:      (sock, msg) => runVerdict(sock, msg, 'perdedor'),
+  cmdGanador:       (sock, msg) => runVerdict(sock, msg, 'ganador'),
 };

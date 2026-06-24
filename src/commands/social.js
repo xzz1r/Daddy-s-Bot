@@ -171,6 +171,7 @@ ${p}crack · ${p}hot/${p}sexy · ${p}inteligencia
 ${p}feminidad · ${p}masculinidad
 ${p}gay · ${p}simp · ${p}rata · ${p}maricon
 ${p}friki · ${p}cerdo · ${p}inutil · ${p}femboy
+${p}perdedor · ${p}ganador
 ${p}mog @a @b — 1v1 de looks
 ${p}ship [@a] [@b] — compatibilidad (o responder a alguien)
 ${p}roast @user — autopsia pública (o responder a alguien)
