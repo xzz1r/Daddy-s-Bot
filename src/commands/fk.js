@@ -104,6 +104,38 @@ function formatFacial(name, envKey, result) {
   return `\n\n🧑 *${name} (auto) — ${result.matches.length} coincidencia(s):*\n${lines.join('\n')}`;
 }
 
+// La mayoría de los fakes roban la foto de una cuenta de Instagram (o de otra
+// red). Este bloque resalta, de entre TODAS las coincidencias que ya trajeron
+// Lenso/FaceCheck, las que vienen de una red social — con IG arriba del todo,
+// porque suele ser la cuenta original de la que sacaron la foto. Sin coste ni
+// llamadas extra: filtra lo que ya tenemos.
+const SOCIALS = [
+  { host: /instagram\.com/i,  label: '📸 Instagram' },
+  { host: /(tiktok\.com)/i,   label: '🎵 TikTok' },
+  { host: /(facebook\.com|fb\.com)/i, label: '👤 Facebook' },
+  { host: /(twitter\.com|x\.com)/i,   label: '𝕏 Twitter/X' },
+  { host: /(linkedin\.com)/i, label: '💼 LinkedIn' },
+];
+
+function socialHits(...results) {
+  const seen = new Set();
+  const hits = [];
+  for (const r of results) {
+    if (!r?.ok || !Array.isArray(r.matches)) continue;
+    for (const m of r.matches) {
+      const url = m.sourceUrl;
+      if (!url || seen.has(url)) continue;
+      const net = SOCIALS.find(s => s.host.test(url));
+      if (!net) continue;
+      seen.add(url);
+      hits.push({ label: net.label, url, score: m.score, ig: /instagram/i.test(net.label) });
+    }
+  }
+  // Instagram primero, luego por score.
+  hits.sort((a, b) => (b.ig - a.ig) || ((b.score || 0) - (a.score || 0)));
+  return hits;
+}
+
 // Bloque de búsqueda inversa DIRECTA para una imagen. `imgUrl` es la URL pública
 // si ya se tiene (la foto de perfil la trae); si es null, se sube la imagen a un
 // host temporal para conseguirla — así Google Lens y TinEye llevan al RESULTADO,
@@ -118,6 +150,18 @@ async function searchBlock(buf, imgUrl) {
   ]);
 
   let out = '';
+
+  // Lo primero y más útil: ¿la foto aparece en alguna red social? (IG arriba).
+  const socials = socialHits(lenso, fc);
+  if (socials.length) {
+    const lines = socials.slice(0, 6).map(h =>
+      `${h.label}: ${h.url}${h.score != null ? ` (${h.score}%)` : ''}`
+    );
+    out +=
+      `🎯 *POSIBLE ORIGEN DE LA FOTO (redes sociales):*\n${lines.join('\n')}\n` +
+      `_Si la foto sale de un perfil que NO es esta persona → suplantación._\n\n`;
+  }
+
   if (hosted) {
     const u = encodeURIComponent(hosted);
     out +=
