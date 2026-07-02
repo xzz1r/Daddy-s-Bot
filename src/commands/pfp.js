@@ -1,5 +1,7 @@
 const axios = require('axios');
-const { getTarget } = require('../utils/wa');
+const { getTarget, canonicalJid } = require('../utils/wa');
+const { computeHash } = require('../utils/phash');
+const { recordAndMatch } = require('../utils/pfpStore');
 
 // Extrae un número de teléfono de texto libre: acepta wa.me/<num>,
 // https://wa.me/<num>, api.whatsapp.com/send?phone=<num>, +34 600..., o el
@@ -97,6 +99,13 @@ async function cmdPfp(sock, msg, args) {
     return sock.sendMessage(jid, { text: 'No pude descargar la foto de perfil.' }, { quoted: msg });
   }
 
+  // Alimenta el historial de huellas en segundo plano (sin bloquear la respuesta
+  // ni tumbarla si ffmpeg falla). Esto es lo que hace que !verificar pueda luego
+  // detectar fotos reutilizadas aunque nadie haya usado !verificar antes.
+  computeHash(imageBuffer)
+    .then(hash => recordAndMatch(jid.endsWith('@g.us') ? jid : null, canonicalJid(target), hash))
+    .catch(() => {});
+
   const num = target.split('@')[0];
   const isPhone = target.endsWith('@s.whatsapp.net');
   await sock.sendMessage(jid, {
@@ -106,4 +115,4 @@ async function cmdPfp(sock, msg, args) {
   }, { quoted: msg });
 }
 
-module.exports = { cmdPfp };
+module.exports = { cmdPfp, resolveTarget };

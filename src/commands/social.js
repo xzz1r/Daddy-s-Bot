@@ -158,6 +158,7 @@ ${p}s — imagen/video a sticker
 ${p}ttp <texto> — texto a sticker
 ${p}toimg — sticker a imagen
 ${p}pfp @user | ${p}pfp wa.me/<num> — foto de perfil
+${p}verificar @user — anti-fake: coincidencias + búsqueda inversa
 
 ━━━ *ACTIVIDAD* ━━━
 ${p}count — ranking de mensajes
@@ -201,6 +202,7 @@ ${p}mute @user [min] · ${p}unmute @user
 ${p}del · ${p}close · ${p}open
 ${p}notifadmin on/off
 ${p}scan — detectar cuentas sospechosas
+${p}marcarfake @user — marcar foto como fake
 
 ━━━ *OWNER* ━━━
 ${p}resetcount — borrar ranking de mensajes

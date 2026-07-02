@@ -6,6 +6,7 @@ data/grok-key.txt
 data/messageCounts.json
 data/aura.json
 data/casino.json
+data/pfphashes.json
 data/music_cache/
 temp/
 .env
