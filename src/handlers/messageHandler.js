@@ -388,7 +388,7 @@ async function handleMessage(sock, msg) {
 
       case 'pfp':
       case 'foto':
-        await cmdPfp(sock, msg);
+        await cmdPfp(sock, msg, args);
         break;
 
       case 'gay':        await cmdGay(sock, msg, groupMeta); break;

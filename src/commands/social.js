@@ -157,7 +157,7 @@ ${p}play <canción>
 ${p}s — imagen/video a sticker
 ${p}ttp <texto> — texto a sticker
 ${p}toimg — sticker a imagen
-${p}pfp @user — foto de perfil
+${p}pfp @user | ${p}pfp wa.me/<num> — foto de perfil
 
 ━━━ *ACTIVIDAD* ━━━
 ${p}count — ranking de mensajes
