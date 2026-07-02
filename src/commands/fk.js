@@ -8,6 +8,7 @@ const { recordAndMatch, markFake } = require('../utils/pfpStore');
 const { banAccount, unbanAccount, isBanned, banCount } = require('../utils/banlist');
 const { isBusiness } = require('../utils/businessCheck');
 const { isAntiFakeEnabled, toggleAntiFake } = require('../utils/state');
+const { faceSearch, hasKey: lensoEnabled } = require('../utils/lenso');
 const logger = require('../utils/logger');
 
 const DAY = 86400000;
@@ -49,20 +50,38 @@ async function fetchPfp(sock, target) {
   } catch { return null; }
 }
 
-// Enlaces de búsqueda inversa. Lens/Yandex/Bing/TinEye aceptan ?url= (1 toque);
-// FaceCheck y Lenso exigen subir la imagen a mano, así que va adjunta arriba.
+// Enlaces de búsqueda inversa. Lenso es la prioridad (mejor para caras). Su web
+// no tiene deep-link por URL → se sube la foto adjunta arriba; si hay key de API
+// (config.lensoApiKey) la búsqueda ya va hecha automáticamente en el mensaje.
+// Google Lens y TinEye sí aceptan ?url= (1 toque). Yandex y Bing se quitaron.
 function reverseLinks(imgUrl) {
   const u = encodeURIComponent(imgUrl);
   return (
-    `🔎 *Búsqueda inversa (1 toque):*\n` +
-    `• Google Lens: https://lens.google.com/uploadbyurl?url=${u}\n` +
-    `• Yandex: https://yandex.com/images/search?rpt=imageview&url=${u}\n` +
-    `• Bing: https://www.bing.com/images/search?view=detailv2&iss=sbi&q=imgurl:${u}\n` +
-    `• TinEye: https://tineye.com/search?url=${u}\n\n` +
-    `🧑 *Reconocimiento facial (sube la foto de arriba):*\n` +
-    `• FaceCheck: https://facecheck.id\n` +
-    `• Lenso: https://lenso.ai`
+    `🔎 *Búsqueda inversa:*\n` +
+    `• *Lenso* (facial, recomendado): https://lenso.ai\n` +
+    `• FaceCheck (facial): https://facecheck.id\n` +
+    `_↑ sube la foto adjunta de arriba_\n` +
+    `• Google Lens (1 toque): https://lens.google.com/uploadbyurl?url=${u}\n` +
+    `• TinEye (1 toque): https://tineye.com/search?url=${u}`
   );
+}
+
+// Formatea las coincidencias que devuelve la API de Lenso para meterlas en el
+// mensaje. Devuelve '' si no hay key o no hubo resultados aprovechables.
+function formatLenso(result) {
+  if (!result) return '';
+  if (!result.ok) {
+    if (result.reason === 'bad-key') return `\n\n🧑 *Lenso:* key inválida (revisa LENSO_API_KEY).`;
+    if (result.reason === 'error')   return `\n\n🧑 *Lenso:* la búsqueda falló (red/límite).`;
+    return '';
+  }
+  if (!result.matches.length) return `\n\n🧑 *Lenso (auto):* sin coincidencias faciales en la web.`;
+  const lines = result.matches.map(m => {
+    const sc = m.score != null ? ` (${m.score}%)` : '';
+    const ttl = m.title ? `${m.title} — ` : '';
+    return `• ${ttl}${m.sourceUrl}${sc}`;
+  });
+  return `\n\n🧑 *Lenso (auto) — ${result.matches.length} coincidencia(s):*\n${lines.join('\n')}`;
 }
 
 // Info de perfil vía USync: { status, setAt } o null si la consulta falla.
@@ -104,6 +123,10 @@ async function cmdFk(sock, msg, args, groupMeta) {
       return phone ? isBusiness(sock, phone).catch(() => false) : false;
     })(),
   ]);
+
+  // Búsqueda facial en Lenso en paralelo (solo si hay foto y key configurada).
+  // Arranca ya para que su latencia de red se solape con el resto del análisis.
+  const lensoPromise = (pfp && lensoEnabled()) ? faceSearch(pfp.buf).catch(() => null) : null;
 
   let score = 0;
   const lines = [];
@@ -197,10 +220,12 @@ async function cmdFk(sock, msg, args, groupMeta) {
   const body = lines.join('\n');
   const footer = `\n\n_Los resultados son indicios, no prueba._`;
 
+  const lensoText = lensoPromise ? formatLenso(await lensoPromise) : '';
+
   if (pfp) {
     await sock.sendMessage(jid, {
       image: pfp.buf,
-      caption: header + body + '\n\n' + reverseLinks(pfp.url) + footer,
+      caption: header + body + '\n\n' + reverseLinks(pfp.url) + lensoText + footer,
       mentions: [target],
     }, { quoted: msg });
   } else {
