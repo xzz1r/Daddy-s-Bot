@@ -17,6 +17,8 @@ const { flushAura } = require('./utils/auraStore');
 const { flushCasino } = require('./utils/casinoStore');
 const { flushCache } = require('./utils/musicCache');
 const { flush: flushPfpHashes } = require('./utils/pfpStore');
+const { flushBanlist } = require('./utils/banlist');
+const { guardOnJoin } = require('./commands/fk');
 const { isBusiness } = require('./utils/businessCheck');
 const { ensureTemp } = require('./utils/helpers');
 const { gitCommit } = require('./utils/version');
@@ -189,6 +191,13 @@ async function connectToWhatsApp() {
       const fromBot = isBotJid(author);
       const authorTag = author ? `@${String(author).split('@')[0]}` : 'Alguien';
 
+      // Anti-fake: lista negra, huella de fotos y anti-raid sobre cada entrada.
+      // No bloquea al resto de handlers — sus fallos se registran y ya.
+      guardOnJoin(sock, groupJid, (participants || []).filter(p => {
+        const id = typeof p === 'string' ? p : p?.id;
+        return id && !isBotJid(id);
+      }), meta).catch(e => logger.warn(`anti-fake guard: ${e.message}`));
+
       if (isAntiBusinessEnabled(groupJid)) {
         // Need both forms per joiner:
         //  - kickId: what we pass to groupParticipantsUpdate('remove') and to mentions
@@ -342,7 +351,7 @@ async function connectToWhatsApp() {
 async function gracefulShutdown() {
   // Flush all debounced writes BEFORE closing the socket — otherwise the last
   // few seconds of stats, message counts, and music index updates are lost.
-  await Promise.allSettled([flushState(), flushCounts(), flushAura(), flushCache(), flushCasino(), flushPfpHashes()]);
+  await Promise.allSettled([flushState(), flushCounts(), flushAura(), flushCache(), flushCasino(), flushPfpHashes(), flushBanlist()]);
   if (sock) {
     try { sock.end(); } catch {}
   }

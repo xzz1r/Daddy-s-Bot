@@ -127,10 +127,14 @@ const toggleAntiAdmin       = (jid, enable) => setMembership('antiAdminEnabled',
 const isAntiBusinessEnabled = (jid)         => hasMembership('antiBusinessEnabled',  jid);
 const toggleAntiBusiness    = (jid, enable) => setMembership('antiBusinessEnabled',  jid, enable);
 
+// Anti-fake (guard de entradas: lista negra + huella de fotos + anti-raid)
+const isAntiFakeEnabled     = (jid)         => hasMembership('antiFakeEnabled',      jid);
+const toggleAntiFake        = (jid, enable) => setMembership('antiFakeEnabled',      jid, enable);
+
 // Anti-link is opt-OUT (default ON) — it was always-on before becoming a toggle,
 // so groups stay protected unless the owner explicitly turns it off.
 const isAntiLinkEnabled     = (jid)         => !hasMembership('antiLinkDisabled',    jid);
 const toggleAntiLink        = (jid, enable) => setMembership('antiLinkDisabled',     jid, !enable);
 
-module.exports = { initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, flushState, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness, isAntiLinkEnabled, toggleAntiLink };
+module.exports = { initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, flushState, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness, isAntiLinkEnabled, toggleAntiLink, isAntiFakeEnabled, toggleAntiFake };
 

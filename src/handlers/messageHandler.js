@@ -12,7 +12,7 @@ const { cmdShip } = require('../commands/ship');
 const { cmdTtp } = require('../commands/ttp');
 const { cmdToImg } = require('../commands/toimg');
 const { cmdPfp } = require('../commands/pfp');
-const { cmdVerify, cmdMarkFake } = require('../commands/verify');
+const { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdAntiFake } = require('../commands/fk');
 const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdInteligencia, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy, cmdPerdedor, cmdGanador } = require('../commands/percent');
 const { cmdAura } = require('../commands/aura');
 const { resetAura } = require('../utils/auraStore');
@@ -74,7 +74,8 @@ const NEEDS_META = new Set([
   'dar','donar',          // transferAura calls isOwner implicitly via groupMeta
   'vs','versus',          // cmdVs receives groupMeta for isOwner/isGroupAdmin checks
   'scan','escanear',
-  'verificar','verify','check','marcarfake','fake',
+  'fk','verificar','verify','check','marcarfake','fake',
+  'fkban','fkunban','antifake','antifk',
   'count','resetcount','resetconteo',
   // Owner-gated commands also need meta in groups to resolve LID → phone
   // for isOwner checks (otherwise co-owners always fail in modern groups).
@@ -340,15 +341,29 @@ async function handleMessage(sock, msg) {
         await cmdScan(sock, msg, groupMeta);
         break;
 
+      case 'fk':
       case 'verificar':
       case 'verify':
       case 'check':
-        await cmdVerify(sock, msg, args, groupMeta);
+        await cmdFk(sock, msg, args, groupMeta);
         break;
 
       case 'marcarfake':
       case 'fake':
         await cmdMarkFake(sock, msg, args, groupMeta);
+        break;
+
+      case 'fkban':
+        await cmdFkBan(sock, msg, args, groupMeta);
+        break;
+
+      case 'fkunban':
+        await cmdFkUnban(sock, msg, args, groupMeta);
+        break;
+
+      case 'antifake':
+      case 'antifk':
+        await cmdAntiFake(sock, msg, args, groupMeta);
         break;
 
       case 'close':
