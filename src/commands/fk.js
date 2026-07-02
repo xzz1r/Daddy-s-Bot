@@ -13,6 +13,7 @@ const { isAntiFakeEnabled, toggleAntiFake } = require('../utils/state');
 const { faceSearch: lensoSearch, hasKey: lensoEnabled } = require('../utils/lenso');
 const { faceSearch: facecheckSearch, hasKey: facecheckEnabled } = require('../utils/facecheck');
 const { uploadTemp } = require('../utils/imageHost');
+const { shorten } = require('../utils/shorten');
 const logger = require('../utils/logger');
 
 const DAY = 86400000;
@@ -154,31 +155,31 @@ async function searchBlock(buf, imgUrl) {
   // Lo primero y más útil: ¿la foto aparece en alguna red social? (IG arriba).
   const socials = socialHits(lenso, fc);
   if (socials.length) {
-    const lines = socials.slice(0, 6).map(h =>
+    const lines = socials.slice(0, 5).map(h =>
       `${h.label}: ${h.url}${h.score != null ? ` (${h.score}%)` : ''}`
     );
     out +=
-      `🎯 *POSIBLE ORIGEN DE LA FOTO (redes sociales):*\n${lines.join('\n')}\n` +
-      `_Si la foto sale de un perfil que NO es esta persona → suplantación._\n\n`;
+      `🎯 *ORIGEN DE LA FOTO (redes):*\n${lines.join('\n')}\n` +
+      `_Si sale de un perfil que NO es esta persona → suplantación._\n\n`;
   }
 
+  // Enlaces de búsqueda facial, COMPACTOS (acortados) para no llenar pantalla.
+  // Lens y TinEye van directos al resultado (vía la URL del host); PimEyes es la
+  // #1 de la comunidad OSINT para cara en toda la web (se sube la foto adjunta).
+  const engines = [];
   if (hosted) {
     const u = encodeURIComponent(hosted);
-    out +=
-      `🔎 *Búsqueda inversa (1 toque → resultado directo):*\n` +
-      `• Google Lens: https://lens.google.com/uploadbyurl?url=${u}\n` +
-      `• TinEye: https://tineye.com/search?url=${u}`;
+    const [lens, tin] = await Promise.all([
+      shorten(`https://lens.google.com/uploadbyurl?url=${u}`),
+      shorten(`https://tineye.com/search?url=${u}`),
+    ]);
+    engines.push(`Lens → ${lens}`, `TinEye → ${tin}`);
   }
+  engines.push(`PimEyes → pimeyes.com`); // subir la foto adjunta
+  out += `🔎 *Buscar la cara:*\n${engines.join('\n')}`;
+
   out += formatFacial('Lenso', 'LENSO_API_KEY', lenso);
   out += formatFacial('FaceCheck', 'FACECHECK_API_KEY', fc);
-
-  // Si no se pudo generar NADA (host caído y sin keys), plan B manual honesto.
-  if (!out) {
-    out =
-      `🔎 *Búsqueda facial (sube la foto adjunta de arriba):*\n` +
-      `• Lenso: https://lenso.ai\n` +
-      `• FaceCheck: https://facecheck.id`;
-  }
   return out;
 }
 
