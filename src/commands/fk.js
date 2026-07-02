@@ -1,10 +1,12 @@
 const axios = require('axios');
+const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const {
   getSender, isOwner, isGroupAdmin, canonicalJid, bareJid,
 } = require('../utils/wa');
+const { streamToBuffer, MAX_DOWNLOAD_BYTES } = require('../utils/helpers');
 const { resolveTarget } = require('./pfp');
 const { computeHash } = require('../utils/phash');
-const { recordAndMatch, markFake } = require('../utils/pfpStore');
+const { recordAndMatch, matchOnly, markFake } = require('../utils/pfpStore');
 const { banAccount, unbanAccount, isBanned, banCount } = require('../utils/banlist');
 const { isBusiness } = require('../utils/businessCheck');
 const { isAntiFakeEnabled, toggleAntiFake } = require('../utils/state');
@@ -50,20 +52,57 @@ async function fetchPfp(sock, target) {
   } catch { return null; }
 }
 
+// Detecta una imagen/sticker en el mensaje o en el mensaje citado. Devuelve
+// { mediaMsg, type, author } o null. `author` es el JID de quien envió la foto
+// citada (para mencionarlo), si lo hay.
+function findImage(msg) {
+  const ctx = msg.message?.extendedTextMessage?.contextInfo;
+  const quoted = ctx?.quotedMessage;
+  const pick = (m) => {
+    if (!m) return null;
+    if (m.imageMessage) return { mediaMsg: m.imageMessage, type: 'image' };
+    if (m.stickerMessage) return { mediaMsg: m.stickerMessage, type: 'sticker' };
+    if (m.documentMessage?.mimetype?.startsWith('image/')) return { mediaMsg: m.documentMessage, type: 'image' };
+    const inner = m.viewOnceMessage?.message || m.viewOnceMessageV2?.message || m.viewOnceMessageV2Extension?.message;
+    return inner ? pick(inner) : null;
+  };
+  // Adjunta en el propio mensaje (foto con caption !fk) tiene prioridad; si no,
+  // la foto citada al responder.
+  const own = pick(msg.message);
+  if (own) return { ...own, author: null };
+  const q = pick(quoted);
+  if (q) return { ...q, author: ctx?.participant || ctx?.mentionedJid?.[0] || null };
+  return null;
+}
+
+async function downloadImage(found) {
+  try {
+    const stream = await downloadContentFromMessage(found.mediaMsg, found.type === 'sticker' ? 'sticker' : 'image');
+    const buf = await streamToBuffer(stream, MAX_DOWNLOAD_BYTES);
+    return buf && buf.length > 100 ? buf : null;
+  } catch { return null; }
+}
+
 // Enlaces de búsqueda inversa. Lenso es la prioridad (mejor para caras). Su web
 // no tiene deep-link por URL → se sube la foto adjunta arriba; si hay key de API
 // (config.lensoApiKey) la búsqueda ya va hecha automáticamente en el mensaje.
 // Google Lens y TinEye sí aceptan ?url= (1 toque). Yandex y Bing se quitaron.
 function reverseLinks(imgUrl) {
-  const u = encodeURIComponent(imgUrl);
-  return (
+  // Lenso y FaceCheck siempre (subiendo la foto adjunta). Los de "1 toque" solo
+  // si hay URL pública de la imagen (la foto de perfil la tiene; una imagen
+  // citada, no, porque es media cifrada sin URL pública).
+  let out =
     `🔎 *Búsqueda inversa:*\n` +
     `• *Lenso* (facial, recomendado): https://lenso.ai\n` +
     `• FaceCheck (facial): https://facecheck.id\n` +
-    `_↑ sube la foto adjunta de arriba_\n` +
-    `• Google Lens (1 toque): https://lens.google.com/uploadbyurl?url=${u}\n` +
-    `• TinEye (1 toque): https://tineye.com/search?url=${u}`
-  );
+    `_↑ sube la foto adjunta de arriba_`;
+  if (imgUrl) {
+    const u = encodeURIComponent(imgUrl);
+    out +=
+      `\n• Google Lens (1 toque): https://lens.google.com/uploadbyurl?url=${u}\n` +
+      `• TinEye (1 toque): https://tineye.com/search?url=${u}`;
+  }
+  return out;
 }
 
 // Formatea las coincidencias que devuelve la API de Lenso para meterlas en el
@@ -102,8 +141,51 @@ async function fetchAbout(sock, target) {
 
 // ─── !fk — análisis anti-fake con puntaje de riesgo ──────────────────────────
 
+// !fk sobre una imagen suelta (adjunta o citada). No hay cuenta que puntuar:
+// se compara la foto contra el historial (¿marcada fake? ¿la usa algún miembro?)
+// y se lanza la búsqueda facial de Lenso + los enlaces manuales.
+async function fkOnImage(sock, msg, img) {
+  const jid = msg.key.remoteJid;
+  const buf = await downloadImage(img);
+  if (!buf) {
+    return sock.sendMessage(jid, { text: 'No pude descargar esa imagen.' }, { quoted: msg });
+  }
+
+  const lensoPromise = lensoEnabled() ? faceSearch(buf).catch(() => null) : null;
+
+  const lines = [];
+  try {
+    const hash = await computeHash(buf);
+    const matches = await matchOnly(hash);
+    const fake = matches.filter(m => m.fake);
+    const others = [...new Set(matches.filter(m => !m.fake).map(m => shortAcc(m.account)))];
+    if (fake.length) lines.push(`🚨 *Esta foto está marcada como FAKE* en el historial.`);
+    if (others.length) lines.push(`👥 *Esta foto la usan/usaron:* ${others.join(', ')} → posible suplantación.`);
+    if (!fake.length && !others.length) lines.push(`🖼 Sin coincidencias en el historial del bot.`);
+  } catch {
+    lines.push(`🖼 No pude calcular la huella de la imagen (ffmpeg).`);
+  }
+
+  const lensoText = lensoPromise ? formatLenso(await lensoPromise) : '';
+  const header = `*ANÁLISIS DE IMAGEN (anti-fake)*\n\n`;
+  const footer = `\n\n_Los resultados son indicios, no prueba._`;
+  const mentions = img.author ? [img.author] : [];
+
+  await sock.sendMessage(jid, {
+    image: buf,
+    caption: header + lines.join('\n') + '\n\n' + reverseLinks(null) + lensoText + footer,
+    mentions,
+  }, { quoted: msg });
+}
+
 async function cmdFk(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
+
+  // Modo foto: si el !fk va sobre una imagen (adjunta o citada), analiza ESA
+  // imagen — huella contra el historial + búsqueda facial en Lenso + enlaces —
+  // en vez de la foto de perfil de una cuenta.
+  const img = findImage(msg);
+  if (img) return fkOnImage(sock, msg, img);
 
   const { jid: target, error } = await resolveTarget(sock, msg, args);
   if (error) return sock.sendMessage(jid, { text: error }, { quoted: msg });

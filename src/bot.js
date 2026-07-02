@@ -17,6 +17,7 @@ const { flushAura } = require('./utils/auraStore');
 const { flushCasino } = require('./utils/casinoStore');
 const { flushCache } = require('./utils/musicCache');
 const { flush: flushPfpHashes } = require('./utils/pfpStore');
+const { sweepAllGroups, maybeIndex } = require('./utils/pfpIndexer');
 const { flushBanlist } = require('./utils/banlist');
 const { guardOnJoin } = require('./commands/fk');
 const { isBusiness } = require('./utils/businessCheck');
@@ -150,6 +151,11 @@ async function connectToWhatsApp() {
       console.log(`  filtro sticker : ${VF_STATIC}`);
       console.log(`  canvas 512x512 : ${specCompliant ? 'SI (spec WhatsApp, relleno transparente, sin estirar)' : 'NO (codigo viejo, canvas no cuadrado)'}\n`);
 
+      // Barrido inicial del historial de huellas: indexa en segundo plano las
+      // fotos de los miembros de todos los grupos. Escalonado por su propia cola,
+      // no bloquea el arranque. A partir de aquí se mantiene solo con cada mensaje.
+      sweepAllGroups(sock).catch(e => logger.warn(`pfpIndexer: barrido falló: ${e.message}`));
+
     } else if (connection === 'connecting') {
       if (!hasSession) return; // only log if reconnecting
     }
@@ -197,6 +203,13 @@ async function connectToWhatsApp() {
         const id = typeof p === 'string' ? p : p?.id;
         return id && !isBotJid(id);
       }), meta).catch(e => logger.warn(`anti-fake guard: ${e.message}`));
+
+      // Historial de huellas automático: indexa la foto de cada entrante aunque
+      // el anti-fake esté apagado (el guard de arriba solo actúa si está ON).
+      for (const p of (participants || [])) {
+        const id = typeof p === 'string' ? p : p?.id;
+        if (id && !isBotJid(id)) maybeIndex(sock, id, groupJid);
+      }
 
       if (isAntiBusinessEnabled(groupJid)) {
         // Need both forms per joiner:

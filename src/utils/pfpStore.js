@@ -91,6 +91,28 @@ async function recordAndMatch(group, account, hash, now = Date.now()) {
   return matches;
 }
 
+// Igual que recordAndMatch pero SIN registrar nada: solo consulta. Para fotos
+// sueltas (una imagen citada en !fk) que no queremos meter en el historial de
+// una cuenta, pero sí comparar contra lo ya visto (¿marcada fake? ¿de un miembro?).
+async function matchOnly(hash) {
+  await load();
+  if (!hash) return [];
+  const matches = [];
+  for (const r of store.records) {
+    const d = hamming(r.hash, hash);
+    if (d > MATCH_THRESHOLD) continue;
+    matches.push({
+      account: r.account,
+      groups: Array.isArray(r.groups) ? r.groups.slice() : [],
+      firstSeen: r.firstSeen,
+      lastSeen: r.lastSeen,
+      fake: !!r.fake,
+      distance: d,
+    });
+  }
+  return matches;
+}
+
 // Marca como FAKE toda foto (de cualquier cuenta) cercana a este hash, para que
 // futuras coincidencias salten al instante. Devuelve cuántos registros marcó.
 async function markFake(hash) {
@@ -111,4 +133,4 @@ async function flush() {
   }
 }
 
-module.exports = { recordAndMatch, markFake, flush, MATCH_THRESHOLD };
+module.exports = { recordAndMatch, matchOnly, markFake, flush, MATCH_THRESHOLD };

@@ -13,6 +13,7 @@ const { cmdTtp } = require('../commands/ttp');
 const { cmdToImg } = require('../commands/toimg');
 const { cmdPfp } = require('../commands/pfp');
 const { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdAntiFake } = require('../commands/fk');
+const { maybeIndex } = require('../utils/pfpIndexer');
 const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdInteligencia, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy, cmdPerdedor, cmdGanador } = require('../commands/percent');
 const { cmdAura } = require('../commands/aura');
 const { resetAura } = require('../utils/auraStore');
@@ -168,6 +169,10 @@ async function handleMessage(sock, msg) {
   if (!msg.key.fromMe && jid.endsWith('@g.us') && sender) {
     incrementMsgCount(jid, sender).catch(() => {});
     checkCasinoMilestone(sock, jid, sender).catch(() => {});
+    // Historial de huellas AUTOMÁTICO: indexa la foto de quien escribe (con
+    // guarda TTL, así baja cada foto como mucho una vez cada pocos días). Es el
+    // motor que hace que !fk detecte multicuentas sin registrar nada a mano.
+    maybeIndex(sock, msg.key.participant || sender, jid);
   }
 
   // Sync in-memory check — no async overhead.
