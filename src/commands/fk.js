@@ -10,7 +10,9 @@ const { recordAndMatch, matchOnly, markFake } = require('../utils/pfpStore');
 const { banAccount, unbanAccount, isBanned, banCount } = require('../utils/banlist');
 const { isBusiness } = require('../utils/businessCheck');
 const { isAntiFakeEnabled, toggleAntiFake } = require('../utils/state');
-const { faceSearch, hasKey: lensoEnabled } = require('../utils/lenso');
+const { faceSearch: lensoSearch, hasKey: lensoEnabled } = require('../utils/lenso');
+const { faceSearch: facecheckSearch, hasKey: facecheckEnabled } = require('../utils/facecheck');
+const { uploadTemp } = require('../utils/imageHost');
 const logger = require('../utils/logger');
 
 const DAY = 86400000;
@@ -83,44 +85,57 @@ async function downloadImage(found) {
   } catch { return null; }
 }
 
-// Enlaces de búsqueda inversa. Lenso es la prioridad (mejor para caras). Su web
-// no tiene deep-link por URL → se sube la foto adjunta arriba; si hay key de API
-// (config.lensoApiKey) la búsqueda ya va hecha automáticamente en el mensaje.
-// Google Lens y TinEye sí aceptan ?url= (1 toque). Yandex y Bing se quitaron.
-function reverseLinks(imgUrl) {
-  // Lenso y FaceCheck siempre (subiendo la foto adjunta). Los de "1 toque" solo
-  // si hay URL pública de la imagen (la foto de perfil la tiene; una imagen
-  // citada, no, porque es media cifrada sin URL pública).
-  let out =
-    `🔎 *Búsqueda inversa:*\n` +
-    `• *Lenso* (facial, recomendado): https://lenso.ai\n` +
-    `• FaceCheck (facial): https://facecheck.id\n` +
-    `_↑ sube la foto adjunta de arriba_`;
-  if (imgUrl) {
-    const u = encodeURIComponent(imgUrl);
-    out +=
-      `\n• Google Lens (1 toque): https://lens.google.com/uploadbyurl?url=${u}\n` +
-      `• TinEye (1 toque): https://tineye.com/search?url=${u}`;
-  }
-  return out;
-}
-
-// Formatea las coincidencias que devuelve la API de Lenso para meterlas en el
-// mensaje. Devuelve '' si no hay key o no hubo resultados aprovechables.
-function formatLenso(result) {
+// Formatea los resultados de una API facial (Lenso/FaceCheck): cada línea es la
+// URL de ORIGEN donde apareció la cara (resultado directo) + su score.
+function formatFacial(name, envKey, result) {
   if (!result) return '';
   if (!result.ok) {
-    if (result.reason === 'bad-key') return `\n\n🧑 *Lenso:* key inválida (revisa LENSO_API_KEY).`;
-    if (result.reason === 'error')   return `\n\n🧑 *Lenso:* la búsqueda falló (red/límite).`;
-    return '';
+    if (result.reason === 'bad-key') return `\n\n🧑 *${name}:* key inválida (revisa ${envKey}).`;
+    if (result.reason === 'timeout') return `\n\n🧑 *${name}:* la búsqueda tardó demasiado, reintenta.`;
+    if (result.reason === 'error')   return `\n\n🧑 *${name}:* la búsqueda falló (red/límite/créditos).`;
+    return ''; // no-key / no-image: silencioso
   }
-  if (!result.matches.length) return `\n\n🧑 *Lenso (auto):* sin coincidencias faciales en la web.`;
+  if (!result.matches.length) return `\n\n🧑 *${name} (auto):* sin coincidencias faciales en la web.`;
   const lines = result.matches.map(m => {
     const sc = m.score != null ? ` (${m.score}%)` : '';
     const ttl = m.title ? `${m.title} — ` : '';
     return `• ${ttl}${m.sourceUrl}${sc}`;
   });
-  return `\n\n🧑 *Lenso (auto) — ${result.matches.length} coincidencia(s):*\n${lines.join('\n')}`;
+  return `\n\n🧑 *${name} (auto) — ${result.matches.length} coincidencia(s):*\n${lines.join('\n')}`;
+}
+
+// Bloque de búsqueda inversa DIRECTA para una imagen. `imgUrl` es la URL pública
+// si ya se tiene (la foto de perfil la trae); si es null, se sube la imagen a un
+// host temporal para conseguirla — así Google Lens y TinEye llevan al RESULTADO,
+// no a una página vacía, también con imágenes citadas. Lenso y FaceCheck corren
+// por API (si hay key) y muestran las URLs donde apareció la cara. Todo en
+// paralelo para no encadenar latencias.
+async function searchBlock(buf, imgUrl) {
+  const [hosted, lenso, fc] = await Promise.all([
+    imgUrl ? Promise.resolve(imgUrl) : uploadTemp(buf).catch(() => null),
+    lensoEnabled() ? lensoSearch(buf).catch(() => null) : Promise.resolve(null),
+    facecheckEnabled() ? facecheckSearch(buf).catch(() => null) : Promise.resolve(null),
+  ]);
+
+  let out = '';
+  if (hosted) {
+    const u = encodeURIComponent(hosted);
+    out +=
+      `🔎 *Búsqueda inversa (1 toque → resultado directo):*\n` +
+      `• Google Lens: https://lens.google.com/uploadbyurl?url=${u}\n` +
+      `• TinEye: https://tineye.com/search?url=${u}`;
+  }
+  out += formatFacial('Lenso', 'LENSO_API_KEY', lenso);
+  out += formatFacial('FaceCheck', 'FACECHECK_API_KEY', fc);
+
+  // Si no se pudo generar NADA (host caído y sin keys), plan B manual honesto.
+  if (!out) {
+    out =
+      `🔎 *Búsqueda facial (sube la foto adjunta de arriba):*\n` +
+      `• Lenso: https://lenso.ai\n` +
+      `• FaceCheck: https://facecheck.id`;
+  }
+  return out;
 }
 
 // Info de perfil vía USync: { status, setAt } o null si la consulta falla.
@@ -151,7 +166,8 @@ async function fkOnImage(sock, msg, img) {
     return sock.sendMessage(jid, { text: 'No pude descargar esa imagen.' }, { quoted: msg });
   }
 
-  const lensoPromise = lensoEnabled() ? faceSearch(buf).catch(() => null) : null;
+  // Búsqueda inversa en paralelo (sube la imagen al host + APIs faciales).
+  const searchPromise = searchBlock(buf, null);
 
   const lines = [];
   try {
@@ -166,14 +182,14 @@ async function fkOnImage(sock, msg, img) {
     lines.push(`🖼 No pude calcular la huella de la imagen (ffmpeg).`);
   }
 
-  const lensoText = lensoPromise ? formatLenso(await lensoPromise) : '';
+  const search = await searchPromise;
   const header = `*ANÁLISIS DE IMAGEN (anti-fake)*\n\n`;
   const footer = `\n\n_Los resultados son indicios, no prueba._`;
   const mentions = img.author ? [img.author] : [];
 
   await sock.sendMessage(jid, {
     image: buf,
-    caption: header + lines.join('\n') + '\n\n' + reverseLinks(null) + lensoText + footer,
+    caption: header + lines.join('\n') + '\n\n' + search + footer,
     mentions,
   }, { quoted: msg });
 }
@@ -206,9 +222,9 @@ async function cmdFk(sock, msg, args, groupMeta) {
     })(),
   ]);
 
-  // Búsqueda facial en Lenso en paralelo (solo si hay foto y key configurada).
-  // Arranca ya para que su latencia de red se solape con el resto del análisis.
-  const lensoPromise = (pfp && lensoEnabled()) ? faceSearch(pfp.buf).catch(() => null) : null;
+  // Búsqueda inversa en paralelo (Lens/TinEye con la URL pública de la foto +
+  // APIs faciales). Arranca ya para solapar su latencia con el resto.
+  const searchPromise = pfp ? searchBlock(pfp.buf, pfp.url) : null;
 
   let score = 0;
   const lines = [];
@@ -302,12 +318,12 @@ async function cmdFk(sock, msg, args, groupMeta) {
   const body = lines.join('\n');
   const footer = `\n\n_Los resultados son indicios, no prueba._`;
 
-  const lensoText = lensoPromise ? formatLenso(await lensoPromise) : '';
+  const search = searchPromise ? await searchPromise : '';
 
   if (pfp) {
     await sock.sendMessage(jid, {
       image: pfp.buf,
-      caption: header + body + '\n\n' + reverseLinks(pfp.url) + lensoText + footer,
+      caption: header + body + '\n\n' + search + footer,
       mentions: [target],
     }, { quoted: msg });
   } else {

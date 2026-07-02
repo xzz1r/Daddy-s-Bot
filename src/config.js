@@ -11,6 +11,11 @@ const config = {
   // como LENSO_API_KEY=... para no dejarla escrita en el código.
   lensoApiKey: process.env.LENSO_API_KEY || '',
 
+  // Key de la API facial de FaceCheck.id (de pago, ~$0.30 por búsqueda). Opcional,
+  // igual que Lenso: con ella, !fk muestra los resultados directos de FaceCheck.
+  // Va en .env como FACECHECK_API_KEY=...
+  facecheckApiKey: process.env.FACECHECK_API_KEY || '',
+
   sticker: {
     pack: "𝐃𝐀𝐃𝐃𝐘'𝐒 𝐁𝐎𝐓",
     author: 'xz1s (Sebastian)',
