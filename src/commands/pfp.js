@@ -1,7 +1,14 @@
 const axios = require('axios');
-const { getTarget, canonicalJid } = require('../utils/wa');
+const { getTarget, getSender, canonicalJid } = require('../utils/wa');
 const { computeHash } = require('../utils/phash');
 const { recordAndMatch } = require('../utils/pfpStore');
+const pfpCache = require('../utils/pfpCache');
+
+function fechaCorta(ts) {
+  if (!ts) return '';
+  try { return new Date(ts).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
+  catch { return ''; }
+}
 
 // Extrae un número de teléfono de texto libre: acepta wa.me/<num>,
 // https://wa.me/<num>, api.whatsapp.com/send?phone=<num>, +34 600..., o el
@@ -70,23 +77,8 @@ async function resolveTarget(sock, msg, args) {
   }
 }
 
-// !pfp @user | !pfp wa.me/<num> | !pfp <num> — trae la foto de perfil.
-async function cmdPfp(sock, msg, args) {
-  const jid = msg.key.remoteJid;
-
-  const { jid: target, error } = await resolveTarget(sock, msg, args);
-  if (error) {
-    return sock.sendMessage(jid, { text: error }, { quoted: msg });
-  }
-
-  let url;
-  try {
-    url = await sock.profilePictureUrl(target, 'image');
-  } catch {
-    return sock.sendMessage(jid, { text: 'Este usuario no tiene foto de perfil o la tiene oculta.' }, { quoted: msg });
-  }
-
-  let imageBuffer;
+// Descarga los bytes de una URL de foto de perfil. null si falla.
+async function downloadPfp(url) {
   try {
     const res = await axios.get(url, {
       responseType: 'arraybuffer',
@@ -94,23 +86,65 @@ async function cmdPfp(sock, msg, args) {
       maxContentLength: 20 * 1024 * 1024,
       maxBodyLength: 20 * 1024 * 1024,
     });
-    imageBuffer = Buffer.from(res.data);
-  } catch {
-    return sock.sendMessage(jid, { text: 'No pude descargar la foto de perfil.' }, { quoted: msg });
-  }
+    return Buffer.from(res.data);
+  } catch { return null; }
+}
 
-  // Alimenta el historial de huellas en segundo plano (sin bloquear la respuesta
-  // ni tumbarla si ffmpeg falla). Esto es lo que hace que !verificar pueda luego
-  // detectar fotos reutilizadas aunque nadie haya usado !verificar antes.
-  computeHash(imageBuffer)
-    .then(hash => recordAndMatch(jid.endsWith('@g.us') ? jid : null, canonicalJid(target), hash))
-    .catch(() => {});
+// !pfp @user | !pfp wa.me/<num> | !pfp <num> | !pfp (a ti mismo) — trae la foto
+// de perfil. Si está oculta/no visible, cae a la última foto conocida guardada
+// en caché (de cuando el bot la vio en algún momento).
+async function cmdPfp(sock, msg, args) {
+  const jid = msg.key.remoteJid;
+
+  // Sin mención ni argumentos → tu propia foto.
+  const hasMention = !!getTarget(msg);
+  const hasArgs = !!((args || []).join(' ').trim());
+  let target, error;
+  if (!hasMention && !hasArgs) {
+    target = getSender(msg);
+  } else {
+    ({ jid: target, error } = await resolveTarget(sock, msg, args));
+    if (error) return sock.sendMessage(jid, { text: error }, { quoted: msg });
+  }
 
   const num = target.split('@')[0];
   const isPhone = target.endsWith('@s.whatsapp.net');
-  await sock.sendMessage(jid, {
-    image: imageBuffer,
-    caption: isPhone ? `+${num}` : `@${num}`,
+  const tag = isPhone ? `+${num}` : `@${num}`;
+  const acc = canonicalJid(target);
+
+  // 1) Intento la foto actual.
+  let imageBuffer = null;
+  try {
+    const url = await sock.profilePictureUrl(target, 'image');
+    if (url) imageBuffer = await downloadPfp(url);
+  } catch { /* oculta / sin foto / red */ }
+
+  if (imageBuffer) {
+    // Guarda en caché + alimenta el historial de huellas en segundo plano.
+    pfpCache.put(acc, imageBuffer).catch(() => {});
+    computeHash(imageBuffer)
+      .then(hash => recordAndMatch(jid.endsWith('@g.us') ? jid : null, acc, hash))
+      .catch(() => {});
+    return sock.sendMessage(jid, {
+      image: imageBuffer,
+      caption: tag,
+      mentions: [target],
+    }, { quoted: msg });
+  }
+
+  // 2) Sin foto visible → última conocida en caché.
+  const cached = await pfpCache.get(acc).catch(() => null);
+  if (cached?.buf?.length) {
+    return sock.sendMessage(jid, {
+      image: cached.buf,
+      caption: `${tag}\n_Foto oculta ahora — última vista el ${fechaCorta(cached.lastSeen)}._`,
+      mentions: [target],
+    }, { quoted: msg });
+  }
+
+  // 3) Nada.
+  return sock.sendMessage(jid, {
+    text: `${tag} no tiene foto de perfil visible, y el bot nunca la vio antes para guardarla.`,
     mentions: [target],
   }, { quoted: msg });
 }

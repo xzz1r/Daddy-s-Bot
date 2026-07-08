@@ -17,6 +17,7 @@ const { flushAura } = require('./utils/auraStore');
 const { flushCasino } = require('./utils/casinoStore');
 const { flushCache } = require('./utils/musicCache');
 const { flush: flushPfpHashes } = require('./utils/pfpStore');
+const { flush: flushPfpCache } = require('./utils/pfpCache');
 const { sweepAllGroups, maybeIndex } = require('./utils/pfpIndexer');
 const { flushBanlist } = require('./utils/banlist');
 const { guardOnJoin } = require('./commands/fk');
@@ -364,7 +365,7 @@ async function connectToWhatsApp() {
 async function gracefulShutdown() {
   // Flush all debounced writes BEFORE closing the socket — otherwise the last
   // few seconds of stats, message counts, and music index updates are lost.
-  await Promise.allSettled([flushState(), flushCounts(), flushAura(), flushCache(), flushCasino(), flushPfpHashes(), flushBanlist()]);
+  await Promise.allSettled([flushState(), flushCounts(), flushAura(), flushCache(), flushCasino(), flushPfpHashes(), flushBanlist(), flushPfpCache()]);
   if (sock) {
     try { sock.end(); } catch {}
   }

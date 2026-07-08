@@ -1,6 +1,7 @@
 const axios = require('axios');
 const { computeHash } = require('./phash');
 const { recordAndMatch } = require('./pfpStore');
+const pfpCache = require('./pfpCache');
 const { canonicalJid, bareJid } = require('./wa');
 const logger = require('./logger');
 
@@ -57,8 +58,12 @@ function maybeIndex(sock, pfpJid, groupJid) {
         responseType: 'arraybuffer', timeout: 10000,
         maxContentLength: 20 * 1024 * 1024, maxBodyLength: 20 * 1024 * 1024,
       });
-      const hash = await computeHash(Buffer.from(res.data));
+      const buf = Buffer.from(res.data);
+      const hash = await computeHash(buf);
       await recordAndMatch(groupJid || null, account, hash, Date.now());
+      // Guarda también la imagen para que !pfp pueda mostrar la última foto
+      // conocida si luego la ocultan o la cambian.
+      pfpCache.put(account, buf).catch(() => {});
     } catch {
       // Sin foto / oculta / red: no pasa nada, se reintenta pasado el TTL.
     }
