@@ -120,10 +120,13 @@ async function cmdPfp(sock, msg, args) {
   } catch { /* oculta / sin foto / red */ }
 
   if (imageBuffer) {
-    // Guarda en caché + alimenta el historial de huellas en segundo plano.
-    pfpCache.put(acc, imageBuffer).catch(() => {});
+    // Alimenta el historial de huellas y, SOLO si la cuenta es sospechosa o muy
+    // activa, guarda la foto reducida en caché (para mostrarla si luego la
+    // ocultan). Todo en segundo plano, sin bloquear la respuesta.
+    const group = jid.endsWith('@g.us') ? jid : null;
     computeHash(imageBuffer)
-      .then(hash => recordAndMatch(jid.endsWith('@g.us') ? jid : null, acc, hash))
+      .then(hash => recordAndMatch(group, acc, hash))
+      .then(matches => pfpCache.maybeStore({ group, rawJid: target, account: acc, matches }, imageBuffer))
       .catch(() => {});
     return sock.sendMessage(jid, {
       image: imageBuffer,

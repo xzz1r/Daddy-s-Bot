@@ -60,10 +60,11 @@ function maybeIndex(sock, pfpJid, groupJid) {
       });
       const buf = Buffer.from(res.data);
       const hash = await computeHash(buf);
-      await recordAndMatch(groupJid || null, account, hash, Date.now());
-      // Guarda también la imagen para que !pfp pueda mostrar la última foto
-      // conocida si luego la ocultan o la cambian.
-      pfpCache.put(account, buf).catch(() => {});
+      const matches = await recordAndMatch(groupJid || null, account, hash, Date.now());
+      // Guarda la imagen (reducida) SOLO si la cuenta es sospechosa o muy activa,
+      // para que !pfp pueda mostrar la última foto conocida si luego la ocultan.
+      // Al resto no lo cacheamos → mínima huella en disco.
+      pfpCache.maybeStore({ group: groupJid || null, rawJid: pfpJid, account, matches }, buf).catch(() => {});
     } catch {
       // Sin foto / oculta / red: no pasa nada, se reintenta pasado el TTL.
     }

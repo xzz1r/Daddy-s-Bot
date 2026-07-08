@@ -1,8 +1,65 @@
 const fs = require('fs-extra');
 const path = require('path');
 const crypto = require('crypto');
+const { spawn } = require('child_process');
+const { ffmpegPath } = require('./ffmpeg');
 const { atomicWriteJson } = require('./helpers');
+const { isBanned } = require('./banlist');
+const { getUserCount } = require('./messageCounter');
 const logger = require('./logger');
+
+// A partir de cuántos mensajes en el grupo consideramos a alguien "contador
+// alto" (miembro activo que vale la pena cachear).
+const HIGH_COUNT = 100;
+
+// Reduce la imagen a 256px (lado mayor) en JPEG de calidad media con ffmpeg —
+// una foto de perfil queda en ~5-15 KB en vez de decenas/cientos. Mínima huella
+// en disco. Devuelve el buffer reducido, o null si ffmpeg falla (el caller
+// decide si guarda el original o nada).
+function downscale(buf) {
+  return new Promise((resolve) => {
+    const ff = spawn(ffmpegPath, [
+      '-hide_banner', '-loglevel', 'error',
+      '-i', 'pipe:0', '-frames:v', '1',
+      '-vf', 'scale=256:256:force_original_aspect_ratio=decrease',
+      '-q:v', '7', '-f', 'mjpeg', 'pipe:1',
+    ]);
+    const chunks = [];
+    ff.stdout.on('data', d => chunks.push(d));
+    ff.on('error', () => resolve(null));
+    ff.on('close', code => {
+      const out = Buffer.concat(chunks);
+      resolve(code === 0 && out.length > 100 ? out : null);
+    });
+    ff.stdin.on('error', () => {});
+    ff.stdin.write(buf);
+    ff.stdin.end();
+  });
+}
+
+// Decide si vale la pena cachear la foto de esta cuenta. Solo guardamos a los
+// que importan para el anti-fake: sospechosos (huella que coincide con otra
+// cuenta/fake, o en lista negra) o miembros muy activos (contador alto). Al
+// resto no lo cacheamos → mínimo espacio.
+async function shouldKeep({ group, rawJid, account, matches }) {
+  if (matches && matches.length) return true; // huella sospechosa
+  try {
+    const forms = [account, rawJid].filter(Boolean);
+    if (await isBanned(forms)) return true;
+  } catch {}
+  if (group && rawJid) {
+    try { if (await getUserCount(group, rawJid) >= HIGH_COUNT) return true; } catch {}
+  }
+  return false;
+}
+
+// Cachea la foto SOLO si la cuenta pasa el filtro shouldKeep, y siempre reducida.
+async function maybeStore(ctx, buf) {
+  if (!buf || !ctx?.account) return;
+  if (!(await shouldKeep(ctx))) return;
+  const small = await downscale(buf);
+  await put(ctx.account, small || buf);
+}
 
 // Caché en disco de la ÚLTIMA foto de perfil vista de cada cuenta. WhatsApp no
 // deja ver una foto que el dueño puso oculta/privada — pero si el bot la vio
@@ -96,4 +153,4 @@ async function flush() {
   }
 }
 
-module.exports = { put, get, flush };
+module.exports = { put, maybeStore, get, flush };
