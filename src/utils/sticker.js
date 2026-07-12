@@ -1,4 +1,5 @@
 const { ffmpegPath, ffprobePath } = require('./ffmpeg');
+const { spawn } = require('child_process');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs-extra');
 const { tempFile, cleanTemp, ffmpegSemaphore } = require('./helpers');
@@ -427,16 +428,33 @@ function predictTierBytes(tier, refTier, refBytes) {
 }
 
 // Probe video duration with ffprobe so we can skip tiers that will obviously
-// overshoot 1MB. Returns 0 on error (treated as "unknown / short").
+// overshoot 1MB. Returns 0 on error (treated as "unknown / short"). Spawns
+// ffprobe directly (instead of fluent-ffmpeg's callback) so the 5s timeout can
+// SIGKILL a probe that hangs on a malformed/hostile video — otherwise every
+// such request would leak a lingering ffprobe process.
 function getVideoDurationS(inputFile) {
   return new Promise((resolve) => {
-    const t = setTimeout(() => resolve(0), 5000);
-    ffmpeg.ffprobe(inputFile, (err, meta) => {
-      clearTimeout(t);
-      if (err || !meta) return resolve(0);
-      const vs = meta.streams?.find(s => s.codec_type === 'video');
-      const dur = parseFloat(vs?.duration ?? meta.format?.duration ?? '0');
-      resolve(isFinite(dur) && dur > 0 ? dur : 0);
+    let settled = false;
+    const finish = (v) => { if (settled) return; settled = true; clearTimeout(t); resolve(v); };
+    let proc;
+    try {
+      proc = spawn(ffprobePath, [
+        '-v', 'error',
+        '-show_entries', 'stream=duration:format=duration',
+        '-of', 'json', inputFile,
+      ]);
+    } catch { return resolve(0); }
+    const t = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} finish(0); }, 5000);
+    let out = '';
+    proc.stdout.on('data', (d) => { out += d.toString(); });
+    proc.on('error', () => finish(0));
+    proc.on('close', () => {
+      try {
+        const j = JSON.parse(out);
+        const durs = (j.streams || []).map(s => parseFloat(s.duration)).filter(x => isFinite(x) && x > 0);
+        const dur = durs[0] ?? parseFloat(j.format?.duration ?? '0');
+        finish(isFinite(dur) && dur > 0 ? dur : 0);
+      } catch { finish(0); }
     });
   });
 }

@@ -74,7 +74,7 @@ async function load() {
   if (index) return;
   if (!loadPromise) {
     loadPromise = readJsonOrEnoent(INDEX, {})
-      .then((d) => { index = (d && typeof d === 'object') ? d : {}; })
+      .then((d) => { index = (d && typeof d === 'object') ? d : {}; reconcileOrphans(); })
       .catch((e) => {
         loadPromise = null;
         logger.warn(`pfpCache: lectura falló (${e.message}); no se toca el archivo`);
@@ -82,6 +82,21 @@ async function load() {
       });
   }
   await loadPromise;
+}
+
+// Fire-and-forget once at load: delete .bin files that no index entry points to.
+// These orphans come from a crash between writing the image and the debounced
+// index save, or from an eviction whose unlink failed. Without this the folder
+// grows past MAX_ENTRIES on disk even though the index is bounded.
+async function reconcileOrphans() {
+  try {
+    const referenced = new Set(Object.values(index).map(e => e && e.file).filter(Boolean));
+    const files = await fs.readdir(DIR).catch(() => []);
+    for (const name of files) {
+      if (name === 'index.json' || !name.endsWith('.bin')) continue;
+      if (!referenced.has(name)) await fs.remove(path.join(DIR, name)).catch(() => {});
+    }
+  } catch {}
 }
 
 function scheduleSave() {

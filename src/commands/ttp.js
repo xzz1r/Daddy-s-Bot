@@ -100,6 +100,11 @@ async function textToStickerBuffer(text) {
     // 512x512 RGBA transparent frame piped as rawvideo — avoids needing lavfi
     const blankFrame = Buffer.alloc(512 * 512 * 4, 0);
     const inputStream = new Readable({ read() {} });
+    // Guard against EPIPE: if ffmpeg exits early (missing binary, filter error),
+    // its stdin closes and this stream emits 'error'. Without a handler that's an
+    // unhandled stream error → process crash. Swallow it; the ffmpeg 'error'
+    // callback below already rejects the promise with the real reason.
+    inputStream.on('error', () => {});
     inputStream.push(blankFrame);
     inputStream.push(null);
 
