@@ -1,9 +1,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const crypto = require('crypto');
-const { spawn } = require('child_process');
-const { ffmpegPath } = require('./ffmpeg');
-const { atomicWriteJson } = require('./helpers');
+const { atomicWriteJson, ffmpegToBuffer, readJsonOrEnoent } = require('./helpers');
 const { isBanned } = require('./banlist');
 const { getUserCount } = require('./messageCounter');
 const logger = require('./logger');
@@ -12,29 +10,20 @@ const logger = require('./logger');
 // alto" (miembro activo que vale la pena cachear).
 const HIGH_COUNT = 100;
 
-// Reduce la imagen a 256px (lado mayor) en JPEG de calidad media con ffmpeg —
-// una foto de perfil queda en ~5-15 KB en vez de decenas/cientos. Mínima huella
-// en disco. Devuelve el buffer reducido, o null si ffmpeg falla (el caller
-// decide si guarda el original o nada).
-function downscale(buf) {
-  return new Promise((resolve) => {
-    const ff = spawn(ffmpegPath, [
-      '-hide_banner', '-loglevel', 'error',
-      '-i', 'pipe:0', '-frames:v', '1',
-      '-vf', 'scale=256:256:force_original_aspect_ratio=decrease',
-      '-q:v', '7', '-f', 'mjpeg', 'pipe:1',
-    ]);
-    const chunks = [];
-    ff.stdout.on('data', d => chunks.push(d));
-    ff.on('error', () => resolve(null));
-    ff.on('close', code => {
-      const out = Buffer.concat(chunks);
-      resolve(code === 0 && out.length > 100 ? out : null);
-    });
-    ff.stdin.on('error', () => {});
-    ff.stdin.write(buf);
-    ff.stdin.end();
-  });
+const DOWNSCALE_ARGS = [
+  '-hide_banner', '-loglevel', 'error',
+  '-i', 'pipe:0', '-frames:v', '1',
+  '-vf', 'scale=256:256:force_original_aspect_ratio=decrease',
+  '-q:v', '7', '-f', 'mjpeg', 'pipe:1',
+];
+
+// Reduce la imagen a 256px (lado mayor) en JPEG de calidad media — una foto de
+// perfil queda en ~5-15 KB en vez de decenas/cientos. Timeout+SIGKILL+semáforo
+// vienen de ffmpegToBuffer (una foto maliciosa no cuelga ffmpeg ni salta el
+// tope de 2 procesos). Devuelve el buffer reducido, o null si falla.
+async function downscale(buf) {
+  try { return await ffmpegToBuffer(DOWNSCALE_ARGS, buf, 10000); }
+  catch { return null; }
 }
 
 // Decide si vale la pena cachear la foto de esta cuenta. Solo guardamos a los
@@ -84,10 +73,13 @@ function fileFor(account) {
 async function load() {
   if (index) return;
   if (!loadPromise) {
-    loadPromise = (async () => {
-      try { index = await fs.readJson(INDEX); } catch { index = {}; }
-      if (!index || typeof index !== 'object') index = {};
-    })();
+    loadPromise = readJsonOrEnoent(INDEX, {})
+      .then((d) => { index = (d && typeof d === 'object') ? d : {}; })
+      .catch((e) => {
+        loadPromise = null;
+        logger.warn(`pfpCache: lectura falló (${e.message}); no se toca el archivo`);
+        throw e;
+      });
   }
   await loadPromise;
 }

@@ -1,6 +1,6 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, MAX_STICKER_BYTES } = require('../utils/sticker');
-const { streamToBuffer, MAX_DOWNLOAD_BYTES } = require('../utils/helpers');
+const { streamToBuffer, MAX_MEDIA_BYTES } = require('../utils/helpers');
 const { getSender, isOwner } = require('../utils/wa');
 const { incrementStat } = require('../utils/state');
 const logger = require('../utils/logger');
@@ -70,7 +70,7 @@ async function cmdSticker(sock, msg, groupMeta) {
   let buffer;
   try {
     const stream = await downloadContentFromMessage(found.msg, found.type);
-    buffer = await streamToBuffer(stream, MAX_DOWNLOAD_BYTES);
+    buffer = await streamToBuffer(stream, MAX_MEDIA_BYTES);
 
     if (!buffer || buffer.length < 100) {
       throw new Error('No se pudo descargar el archivo');

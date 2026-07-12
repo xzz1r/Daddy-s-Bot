@@ -65,12 +65,22 @@ function releaseDownloadSlot() {
 // Spawn yt-dlp with a 3-minute timeout to prevent silent hangs
 function ytdlp(args) {
   return new Promise((resolve, reject) => {
-    const proc = spawn(YT_DLP, args);
+    // detached: true puts yt-dlp in its own process group. On timeout we then
+    // SIGKILL the WHOLE group, not just yt-dlp — because yt-dlp spawns ffmpeg as
+    // a child for audio extraction, and killing only the parent would orphan
+    // that ffmpeg (reparented to init), leaving it burning CPU/RAM on the 1GB
+    // box and accumulating across occurrences.
+    const proc = spawn(YT_DLP, args, { detached: true });
     let stdout = '';
     let stderr = '';
 
+    const killGroup = () => {
+      try { process.kill(-proc.pid, 'SIGKILL'); }
+      catch { try { proc.kill('SIGKILL'); } catch {} }
+    };
+
     const timer = setTimeout(() => {
-      proc.kill('SIGKILL');
+      killGroup();
       reject(new Error('yt-dlp timeout (3 min)'));
     }, 180000);
 

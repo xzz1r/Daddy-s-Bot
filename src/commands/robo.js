@@ -1,4 +1,4 @@
-const { isOwner, isAdmin, getSender, getTarget, bareJid } = require('../utils/wa');
+const { isOwner, isAdmin, getSender, getTarget, bareJid, sameUser } = require('../utils/wa');
 const { getAura, addAura } = require('../utils/auraStore');
 const { pickFresh } = require('../utils/helpers');
 
@@ -72,7 +72,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       text: 'Usa: *!robo @user [aura]*',
     }, { quoted: msg });
   }
-  if (bareJid(target) === bareJid(sender)) {
+  if (sameUser(target, sender)) {
     return sock.sendMessage(jid, { text: 'No puedes robarte a ti mismo.' }, { quoted: msg });
   }
 
@@ -87,17 +87,25 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     }, { quoted: msg });
   }
 
+  // Claim the cooldown synchronously, BEFORE any await, so two concurrent !robo
+  // can't both pass the check above and steal twice. Refunded on the paths below
+  // where no robbery actually happens, so a failed attempt doesn't burn 10 min.
+  if (lastRob.size >= 2000) lastRob.delete(lastRob.keys().next().value);
+  lastRob.set(coolKey, Date.now());
+
   const [auraA, auraV] = await Promise.all([
     getAura(jid, sender),
     getAura(jid, target),
   ]);
 
   if (auraA < MIN_AURA) {
+    lastRob.delete(coolKey); // no robó: devuelve el cooldown
     return sock.sendMessage(jid, {
       text: `Necesitas al menos ${MIN_AURA} de aura para intentar un robo.`,
     }, { quoted: msg });
   }
   if (auraV <= 0) {
+    lastRob.delete(coolKey); // no robó: devuelve el cooldown
     return sock.sendMessage(jid, {
       text: `@${target.split('@')[0]} no tiene aura que robar.`,
       mentions: [target],
@@ -121,9 +129,8 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const aTag = `@${sender.split('@')[0]}`;
   const vTag = `@${target.split('@')[0]}`;
 
-  // Set cooldown regardless of outcome
-  if (lastRob.size >= 2000) lastRob.delete(lastRob.keys().next().value);
-  lastRob.set(coolKey, Date.now());
+  // Cooldown was already claimed above (before the awaits) to close the
+  // double-rob race; it stays set here whether the roll wins or loses.
 
   if (success) {
     const [aNew, vNew] = await Promise.all([

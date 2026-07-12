@@ -1,6 +1,6 @@
 const fs = require('fs-extra');
 const path = require('path');
-const { atomicWriteJson } = require('./helpers');
+const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const { hamming } = require('./phash');
 const logger = require('./logger');
 
@@ -21,10 +21,13 @@ let saveTimer = null;
 async function load() {
   if (store) return;
   if (!loadPromise) {
-    loadPromise = (async () => {
-      try { store = await fs.readJson(FILE); } catch { store = { records: [] }; }
-      if (!store || !Array.isArray(store.records)) store = { records: [] };
-    })();
+    loadPromise = readJsonOrEnoent(FILE, { records: [] })
+      .then((d) => { store = (d && Array.isArray(d.records)) ? d : { records: [] }; })
+      .catch((e) => {
+        loadPromise = null;
+        logger.warn(`pfpStore: lectura falló (${e.message}); no se toca el archivo`);
+        throw e;
+      });
   }
   await loadPromise;
 }
@@ -77,14 +80,22 @@ async function recordAndMatch(group, account, hash, now = Date.now()) {
       groups: group ? [group] : [], fake: false,
     });
     if (store.records.length > MAX_RECORDS) {
-      // Descarta el más antiguo por lastSeen, pero nunca uno marcado fake.
+      // Prefer evicting the oldest NON-fake record (fakes are worth keeping).
+      // But MAX_RECORDS must be a HARD ceiling: if every record is fake, evict
+      // the oldest fake anyway — otherwise the array grows without bound once
+      // enough fakes accumulate.
       let oldestIdx = -1, oldestTs = Infinity;
+      let oldestFakeIdx = -1, oldestFakeTs = Infinity;
       for (let i = 0; i < store.records.length; i++) {
         const r = store.records[i];
-        if (r.fake) continue;
-        if (r.lastSeen < oldestTs) { oldestTs = r.lastSeen; oldestIdx = i; }
+        if (r.fake) {
+          if (r.lastSeen < oldestFakeTs) { oldestFakeTs = r.lastSeen; oldestFakeIdx = i; }
+        } else if (r.lastSeen < oldestTs) {
+          oldestTs = r.lastSeen; oldestIdx = i;
+        }
       }
-      if (oldestIdx >= 0) store.records.splice(oldestIdx, 1);
+      const evict = oldestIdx >= 0 ? oldestIdx : oldestFakeIdx;
+      if (evict >= 0) store.records.splice(evict, 1);
     }
   }
   scheduleSave();

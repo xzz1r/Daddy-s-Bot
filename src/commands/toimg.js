@@ -2,7 +2,7 @@ const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs-extra');
 const { ffmpegPath } = require('../utils/ffmpeg');
-const { tempFile, cleanTemp, streamToBuffer, ffmpegSemaphore, MAX_DOWNLOAD_BYTES } = require('../utils/helpers');
+const { tempFile, cleanTemp, streamToBuffer, ffmpegSemaphore, MAX_MEDIA_BYTES } = require('../utils/helpers');
 const { isAnimatedWebP, extractFirstAnmfFrame } = require('../utils/sticker');
 const logger = require('../utils/logger');
 
@@ -106,7 +106,7 @@ async function cmdToImg(sock, msg) {
 
   try {
     const stream = await downloadContentFromMessage(media.data, media.type);
-    const buf = await streamToBuffer(stream, MAX_DOWNLOAD_BYTES);
+    const buf = await streamToBuffer(stream, MAX_MEDIA_BYTES);
 
     if (media.type === 'sticker') {
       if (isAnimatedWebP(buf)) {

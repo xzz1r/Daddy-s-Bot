@@ -1,7 +1,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const { bareJid } = require('./wa');
-const { atomicWriteJson } = require('./helpers');
+const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const logger = require('./logger');
 
 const AURA_FILE = path.join(__dirname, '../../data/aura.json');
@@ -23,16 +23,29 @@ function serialized(key, fn) {
   const prev = writeQueue.get(key) ?? Promise.resolve();
   const next = prev.then(fn);
   // Don't let a failed fn poison the queue for future writes on this key.
-  writeQueue.set(key, next.catch(() => {}));
+  const tracked = next.catch(() => {});
+  writeQueue.set(key, tracked);
+  // Prune the key once this settles, UNLESS something newer was already chained
+  // behind it. Without this, the map keeps one entry per (group,user) forever —
+  // a slow but real memory leak across cumulative unique participants on a 24/7
+  // process. The read-modify-write inside fn is synchronous, so removing a
+  // settled tail can't drop a pending update.
+  tracked.finally(() => {
+    if (writeQueue.get(key) === tracked) writeQueue.delete(key);
+  });
   return next;
 }
 
 async function load() {
   if (store) return;
   if (!loadPromise) {
-    loadPromise = (async () => {
-      try { store = await fs.readJson(AURA_FILE); } catch { store = {}; }
-    })();
+    loadPromise = readJsonOrEnoent(AURA_FILE, {})
+      .then((d) => { store = d; })
+      .catch((e) => {
+        loadPromise = null;
+        logger.warn(`auraStore: lectura falló (${e.message}); no se toca el archivo`);
+        throw e;
+      });
   }
   await loadPromise;
 }

@@ -1,7 +1,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const { bareJid } = require('./wa');
-const { atomicWriteJson } = require('./helpers');
+const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const logger = require('./logger');
 
 const CASINO_FILE = path.join(__dirname, '../../data/casino.json');
@@ -20,9 +20,13 @@ let saveTimer = null;
 async function load() {
   if (store) return;
   if (!loadPromise) {
-    loadPromise = (async () => {
-      try { store = await fs.readJson(CASINO_FILE); } catch { store = {}; }
-    })();
+    loadPromise = readJsonOrEnoent(CASINO_FILE, {})
+      .then((d) => { store = d; })
+      .catch((e) => {
+        loadPromise = null;
+        logger.warn(`casinoStore: lectura falló (${e.message}); no se toca el archivo`);
+        throw e;
+      });
   }
   await loadPromise;
 }

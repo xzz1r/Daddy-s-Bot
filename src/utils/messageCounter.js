@@ -1,7 +1,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const { bareJid } = require('./wa');
-const { atomicWriteJson } = require('./helpers');
+const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const logger = require('./logger');
 
 const COUNT_FILE = path.join(__dirname, '../../data/messageCounts.json');
@@ -13,9 +13,13 @@ let saveTimer = null;
 async function load() {
   if (counts) return;
   if (!loadPromise) {
-    loadPromise = (async () => {
-      try { counts = await fs.readJson(COUNT_FILE); } catch { counts = {}; }
-    })();
+    loadPromise = readJsonOrEnoent(COUNT_FILE, {})
+      .then((d) => { counts = d; })
+      .catch((e) => {
+        loadPromise = null; // permite reintentar; NUNCA resetear+sobrescribir
+        logger.warn(`messageCounter: lectura falló (${e.message}); no se toca el archivo`);
+        throw e;
+      });
   }
   await loadPromise;
 }

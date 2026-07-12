@@ -46,7 +46,17 @@ function scheduleReconnect(delay) {
     sock = null;
   }
   botIds = null;
-  setTimeout(connectToWhatsApp, delay);
+  // connectToWhatsApp awaits disk/network work BEFORE it attaches the
+  // connection.update listener. If that pre-work rejects on a reconnect, the
+  // rejection would otherwise be unhandled and NO new listener gets attached →
+  // the bot stays silently offline until a manual restart. Catch it and retry
+  // so a 24/7 deployment always keeps trying to come back.
+  setTimeout(() => {
+    connectToWhatsApp().catch((err) => {
+      logger.error(`Fallo al reconectar: ${err?.message || err}`);
+      scheduleReconnect(30000);
+    });
+  }, delay);
 }
 
 // Cache Baileys version — avoids an HTTP round-trip on every reconnect
@@ -362,10 +372,21 @@ async function connectToWhatsApp() {
   return sock;
 }
 
+let _shuttingDown = false;
 async function gracefulShutdown() {
+  // Re-entrancy guard: SIGINT followed by SIGTERM (or a double signal) must not
+  // start two concurrent shutdowns / double process.exit.
+  if (_shuttingDown) return;
+  _shuttingDown = true;
   // Flush all debounced writes BEFORE closing the socket — otherwise the last
   // few seconds of stats, message counts, and music index updates are lost.
-  await Promise.allSettled([flushState(), flushCounts(), flushAura(), flushCache(), flushCasino(), flushPfpHashes(), flushBanlist(), flushPfpCache()]);
+  // Race against a hard 3s cap so a single hung flush can't block exit forever
+  // (the supervisor would otherwise SIGKILL us and we'd lose ALL pending flushes).
+  const flushes = Promise.allSettled([
+    flushState(), flushCounts(), flushAura(), flushCache(),
+    flushCasino(), flushPfpHashes(), flushBanlist(), flushPfpCache(),
+  ]);
+  await Promise.race([flushes, new Promise(r => setTimeout(r, 3000))]);
   if (sock) {
     try { sock.end(); } catch {}
   }

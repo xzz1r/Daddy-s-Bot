@@ -3,7 +3,7 @@ const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const {
   getSender, isOwner, isGroupAdmin, canonicalJid, bareJid,
 } = require('../utils/wa');
-const { streamToBuffer, MAX_DOWNLOAD_BYTES } = require('../utils/helpers');
+const { streamToBuffer, MAX_MEDIA_BYTES } = require('../utils/helpers');
 const { resolveTarget } = require('./pfp');
 const { computeHash } = require('../utils/phash');
 const { recordAndMatch, matchOnly, markFake } = require('../utils/pfpStore');
@@ -81,7 +81,7 @@ function findImage(msg) {
 async function downloadImage(found) {
   try {
     const stream = await downloadContentFromMessage(found.mediaMsg, found.type === 'sticker' ? 'sticker' : 'image');
-    const buf = await streamToBuffer(stream, MAX_DOWNLOAD_BYTES);
+    const buf = await streamToBuffer(stream, MAX_MEDIA_BYTES);
     return buf && buf.length > 100 ? buf : null;
   } catch { return null; }
 }
@@ -322,7 +322,11 @@ async function cmdFk(sock, msg, args, groupMeta) {
   // Proxy de antigüedad vía el "info" del perfil.
   if (about) {
     const age = about.setAt ? now - about.setAt : 0;
-    if (!about.setAt || about.setAt < DAY) {
+    // setAt is either 0 (never written / default "Hey there") or a real epoch
+    // ms. `!about.setAt` already covers the "never written" case — the old
+    // `about.setAt < DAY` clause compared an epoch against a 1-day span and was
+    // never true.
+    if (!about.setAt) {
       score += 1;
       lines.push(`📝 Info del perfil nunca escrito (por defecto).`);
     } else if (age < 30 * DAY) {
@@ -330,7 +334,6 @@ async function cmdFk(sock, msg, args, groupMeta) {
       lines.push(`📝 Info del perfil escrito hace ${Math.max(1, Math.round(age / DAY))} días → cuenta posiblemente reciente.`);
     } else if (age > 365 * DAY) {
       score -= 2;
-      
       lines.push(`📜 Info escrito hace ${Math.round(age / (365 * DAY) * 10) / 10} años → cuenta antigua verificable.`);
     }
     if (about.status === '') {

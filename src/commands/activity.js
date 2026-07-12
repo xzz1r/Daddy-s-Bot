@@ -66,7 +66,7 @@ async function cmdVs(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: 'Usa: *!vs @a @b* (o *!vs @a* para medirte con alguien).' }, { quoted: msg });
   }
 
-  if (bareJid(a) === bareJid(b)) {
+  if (sameUser(a, b)) {
     return sock.sendMessage(jid, { text: 'No puedes enfrentar a alguien consigo mismo.' }, { quoted: msg });
   }
 

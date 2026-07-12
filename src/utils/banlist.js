@@ -1,6 +1,6 @@
 const fs = require('fs-extra');
 const path = require('path');
-const { atomicWriteJson } = require('./helpers');
+const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const { bareJid } = require('./wa');
 const logger = require('./logger');
 
@@ -18,10 +18,13 @@ let saveTimer = null;
 async function load() {
   if (store) return;
   if (!loadPromise) {
-    loadPromise = (async () => {
-      try { store = await fs.readJson(FILE); } catch { store = { accounts: {} }; }
-      if (!store || typeof store.accounts !== 'object') store = { accounts: {} };
-    })();
+    loadPromise = readJsonOrEnoent(FILE, { accounts: {} })
+      .then((d) => { store = (d && typeof d.accounts === 'object') ? d : { accounts: {} }; })
+      .catch((e) => {
+        loadPromise = null;
+        logger.warn(`banlist: lectura falló (${e.message}); no se toca el archivo`);
+        throw e;
+      });
   }
   await loadPromise;
 }

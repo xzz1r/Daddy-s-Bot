@@ -1,15 +1,17 @@
 const fs = require('fs-extra');
 const path = require('path');
 const crypto = require('crypto');
-const { atomicWriteJson } = require('./helpers');
+const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 
 const CACHE_DIR = path.join(__dirname, '../../data/music_cache');
 const INDEX_FILE = path.join(CACHE_DIR, 'index.json');
 const MAX_SONGS = 60;
 
-// Size-based RAM cap (not count-based): 80 MB max, so a bot on a 2–4 GB
-// Termux device can't be DoS'd into an OOM kill by requesting 20 × 25 MB songs.
-const MAX_RAM_BYTES = 80 * 1024 * 1024;
+// Size-based RAM cap (not count-based) so the bot can't be DoS'd into an OOM
+// kill by requesting many large songs. 24 MB is sized for the 1 GB VPS target
+// (the disk cache still backs everything, so a RAM miss just re-reads from disk,
+// it doesn't re-download). Was 80 MB when this targeted 2–4 GB Termux devices.
+const MAX_RAM_BYTES = 24 * 1024 * 1024;
 let ramUsedBytes = 0;
 
 let index = null;
@@ -44,12 +46,10 @@ function sanitiseIndex(raw) {
 async function loadIndex() {
   if (index) return;
   await fs.ensureDir(CACHE_DIR);
-  try {
-    const raw = await fs.readJson(INDEX_FILE);
-    index = sanitiseIndex(raw);
-  } catch {
-    index = {};
-  }
+  // ENOENT (first run) → empty index. A transient/corrupt read throws instead of
+  // silently resetting to {} and then overwriting the good index on disk.
+  const raw = await readJsonOrEnoent(INDEX_FILE, {});
+  index = sanitiseIndex(raw);
 }
 
 // Atomic write: write to a temp file then rename, same as all other stores.

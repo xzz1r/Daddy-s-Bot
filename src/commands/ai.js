@@ -23,7 +23,10 @@ function getApiKey() {
 
 async function saveApiKey(key) {
   await fs.ensureFile(KEY_FILE);
-  await fs.writeFile(KEY_FILE, key.trim());
+  // 0600 = owner read/write only. The Grok API key is a secret; the default
+  // mode (0644) would let any other local user on the VPS read it.
+  await fs.writeFile(KEY_FILE, key.trim(), { mode: 0o600 });
+  await fs.chmod(KEY_FILE, 0o600).catch(() => {}); // tighten an already-existing file too
   cachedKey = key.trim();
 }
 

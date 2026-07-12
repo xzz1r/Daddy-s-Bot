@@ -18,15 +18,21 @@ const defaultState = {
 };
 
 async function loadState() {
+  await fs.ensureFile(STATE_FILE);
+  // A transient read error (EACCES/EMFILE/ENOMEM under memory pressure) must NOT
+  // fall back to defaults — the first setState would then overwrite the real
+  // per-group config (disabled groups, anti-admin/link toggles) with defaults.
+  // Let it propagate so startup fails loud and pm2 restarts with data intact.
+  const raw = await fs.readFile(STATE_FILE, 'utf-8');
+  if (!raw.trim()) return { ...defaultState };
   try {
-    await fs.ensureFile(STATE_FILE);
-    const raw = await fs.readFile(STATE_FILE, 'utf-8');
-    if (!raw.trim()) return { ...defaultState };
     const parsed = JSON.parse(raw);
     // Deep-merge stats so a partial on-disk object (e.g. missing startTime, or a
     // newly-added counter) keeps the defaults instead of dropping them.
     return { ...defaultState, ...parsed, stats: { ...defaultState.stats, ...(parsed.stats || {}) } };
   } catch {
+    // Corrupt JSON is genuinely unrecoverable (very rare with atomic writes) —
+    // reset to defaults so the bot can still boot.
     return { ...defaultState };
   }
 }

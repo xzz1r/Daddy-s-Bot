@@ -1,55 +1,50 @@
-const { spawn } = require('child_process');
-const { ffmpegPath } = require('./ffmpeg');
+const { ffmpegToBuffer } = require('./helpers');
 
-// Huella perceptual (dHash de 64 bits). Decodifica la imagen con ffmpeg —NO con
-// sharp, que en Termux se borra a propósito— la reduce a 9x8 en escala de gris
-// y compara cada píxel con su vecino de la derecha: 8 comparaciones por fila ×
-// 8 filas = 64 bits. Es tolerante a reescalado y recompresión, así que la misma
-// foto re-subida (aunque cambie de tamaño o calidad) da un hash casi idéntico.
-// Devuelve el hash como hex de 16 caracteres, o rechaza si ffmpeg no decodifica.
-function computeHash(buffer) {
-  return new Promise((resolve, reject) => {
-    const args = [
-      '-hide_banner', '-loglevel', 'error',
-      '-i', 'pipe:0',
-      '-frames:v', '1',
-      '-vf', 'scale=9:8,format=gray',
-      '-f', 'rawvideo', '-pix_fmt', 'gray',
-      'pipe:1',
-    ];
-    const ff = spawn(ffmpegPath, args);
-    const chunks = [];
-    let err = '';
-    ff.stdout.on('data', d => chunks.push(d));
-    ff.stderr.on('data', d => { err += d.toString(); });
-    ff.on('error', reject);
-    ff.on('close', code => {
-      const out = Buffer.concat(chunks);
-      if (code !== 0 || out.length < 72) {
-        return reject(new Error(`pHash ffmpeg falló (code ${code}): ${err.slice(0, 160)}`));
-      }
-      // out = 72 bytes = 8 filas × 9 columnas, 1 byte de gris por píxel.
-      let hash = 0n;
-      let bit = 0n;
-      for (let row = 0; row < 8; row++) {
-        for (let col = 0; col < 8; col++) {
-          const left = out[row * 9 + col];
-          const right = out[row * 9 + col + 1];
-          if (left > right) hash |= (1n << bit);
-          bit++;
-        }
-      }
-      resolve(hash.toString(16).padStart(16, '0'));
-    });
-    // Si ffmpeg cierra la entrada antes de tiempo, write puede lanzar EPIPE.
-    ff.stdin.on('error', () => {});
-    ff.stdin.write(buffer);
-    ff.stdin.end();
-  });
+// Argumentos ffmpeg: decodifica la imagen, la reduce a 9x8 en gris y saca los
+// 72 bytes crudos. Timeout + SIGKILL + semáforo compartido los aporta
+// ffmpegToBuffer, así una foto de perfil maliciosa no puede colgar ffmpeg y
+// trabar el indexado automático.
+const FF_ARGS = [
+  '-hide_banner', '-loglevel', 'error',
+  '-i', 'pipe:0', '-frames:v', '1',
+  '-vf', 'scale=9:8,format=gray',
+  '-f', 'rawvideo', '-pix_fmt', 'gray', 'pipe:1',
+];
+
+// Huella perceptual (dHash de 64 bits). Devuelve el hash como hex de 16
+// caracteres, o null si ffmpeg no decodifica / se cuelga / la imagen es plana.
+// Todos los llamadores ya toleran null (recordAndMatch/matchOnly lo ignoran),
+// así que null = "sin huella útil, no registrar ni comparar".
+async function computeHash(buffer) {
+  let out;
+  try {
+    out = await ffmpegToBuffer(FF_ARGS, buffer, 10000);
+  } catch {
+    return null;
+  }
+  if (!out || out.length < 72) return null;
+
+  let hash = 0n;
+  let bit = 0n;
+  let ones = 0;
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      if (out[row * 9 + col] > out[row * 9 + col + 1]) { hash |= (1n << bit); ones++; }
+      bit++;
+    }
+  }
+
+  // Foto casi plana (color sólido o degradado suave): el dHash queda casi todo
+  // 0 o casi todo 1, y colisiona con cualquier otra foto plana dentro del
+  // umbral → falsos "misma foto / multicuenta". No es una huella distintiva, la
+  // descartamos. Una foto real tiene un popcount muy lejos de los extremos.
+  if (ones < 3 || ones > 61) return null;
+
+  return hash.toString(16).padStart(16, '0');
 }
 
 // Distancia de Hamming entre dos hashes hex (nº de bits distintos, 0..64).
-// Ante hashes mal formados devuelve 64 (máxima distancia = "no coinciden").
+// Ante hashes mal formados/nulos devuelve 64 (máxima distancia = "no coinciden").
 function hamming(hexA, hexB) {
   if (!hexA || !hexB || hexA.length !== hexB.length) return 64;
   let x;

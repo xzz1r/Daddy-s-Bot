@@ -19,6 +19,7 @@ const logger = require('./logger');
 const INDEX_TTL_MS = 3 * 86400000; // no re-indexar la misma cuenta antes de 3 días
 const MAX_CONCURRENT = 3;
 const MAX_TRACKED = 8000;
+const MAX_QUEUE = 500; // tope de trabajos en cola (protege RAM en el barrido inicial)
 
 const lastIndexed = new Map(); // account -> ts (última vez que se intentó)
 const queue = [];
@@ -48,6 +49,11 @@ function maybeIndex(sock, pfpJid, groupJid) {
   const now = Date.now();
   const prev = lastIndexed.get(account);
   if (prev && now - prev < INDEX_TTL_MS) return; // ya indexado hace poco
+  // Cap the backlog: on first boot sweepAllGroups enqueues every member of every
+  // group at once (each closure retains sock+JIDs). Past the ceiling we skip
+  // WITHOUT marking tracked, so this account is retried on its next message/join
+  // instead of being silently dropped for the whole TTL window.
+  if (queue.length >= MAX_QUEUE) return;
   markTracked(account, now); // optimista: no volver a encolar mientras corre
 
   queue.push(async () => {

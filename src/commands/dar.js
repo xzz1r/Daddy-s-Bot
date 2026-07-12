@@ -1,4 +1,4 @@
-const { getSender, getTarget, bareJid } = require('../utils/wa');
+const { getSender, getTarget, bareJid, sameUser } = require('../utils/wa');
 const { transferAura } = require('../utils/auraStore');
 
 const GIFT_MIN = 10;
@@ -16,7 +16,7 @@ async function cmdDar(sock, msg, args) {
   if (!target) {
     return sock.sendMessage(jid, { text: 'Usa: *!dar @user <cantidad>*' }, { quoted: msg });
   }
-  if (bareJid(target) === bareJid(sender)) {
+  if (sameUser(target, sender)) {
     return sock.sendMessage(jid, { text: 'No puedes darte aura a ti mismo.' }, { quoted: msg });
   }
 

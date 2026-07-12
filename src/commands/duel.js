@@ -1,4 +1,4 @@
-const { isOwner, isAdmin, getSender, getTarget, bareJid } = require('../utils/wa');
+const { isOwner, isAdmin, getSender, getTarget, bareJid, sameUser } = require('../utils/wa');
 const { pickFresh } = require('../utils/helpers');
 const { getAura, addAura } = require('../utils/auraStore');
 
@@ -140,6 +140,11 @@ async function cmdDuel(sock, msg, args, groupMeta) {
     if (resolvedSender !== bareJid(d.target)) {
       return sock.sendMessage(jid, { text: 'Este duelo no es para ti.' }, { quoted: msg });
     }
+    // Claim the duel atomically BEFORE any await. Two concurrent "aceptar"
+    // messages (or a WhatsApp redelivery — the handler has no msg-id dedup)
+    // would otherwise both pass the checks below and pay out twice. Deleting the
+    // pending slot synchronously here means the second one sees no pending duel.
+    pending.delete(jid);
     const [auraT, auraC] = await Promise.all([
       getAura(jid, d.target),
       getAura(jid, d.challenger),
@@ -194,7 +199,7 @@ async function cmdDuel(sock, msg, args, groupMeta) {
       text: 'Usa: *!duel @user <aura>*\nLuego el retado escribe *!duel aceptar*.',
     }, { quoted: msg });
   }
-  if (bareJid(target) === bareJid(sender)) {
+  if (sameUser(target, sender)) {
     return sock.sendMessage(jid, { text: 'No puedes retarte a ti mismo.' }, { quoted: msg });
   }
 

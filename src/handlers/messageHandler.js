@@ -149,6 +149,7 @@ async function handleMessage(sock, msg) {
   msg.message = unwrapEnvelope(msg.message);
 
   const jid = msg.key.remoteJid;
+  if (!jid) return; // protocol/system message without a chat JID — nothing to do
   const sender = getSender(msg);
   const text = extractText(msg).trim();
 
