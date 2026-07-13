@@ -70,13 +70,33 @@ function detectPluginDir() {
 }
 
 const PLUGIN_DIR = detectPluginDir();
-if (PLUGIN_DIR) logger.info(`yt-dlp plugin dir: ${PLUGIN_DIR}`);
+
+// HOME donde vive el plugin (p. ej. /home/ubuntu), derivado de la ruta del
+// plugin. CLAVE: yt-dlp descubre el plugin del POT vía HOME (~/.config/yt-dlp/
+// plugins). Bajo pm2 el bot puede correr con HOME=/root u otro, y entonces NO lo
+// encuentra y cae el bot-check —aunque a mano funcione, porque a mano tu HOME es
+// el correcto—. Forzamos este HOME en el entorno del yt-dlp que lanza el bot
+// para replicar exactamente la condición que ya se probó que funciona.
+const PLUGIN_HOME = PLUGIN_DIR ? PLUGIN_DIR.replace(/\/\.config\/yt-dlp\/plugins\/?$/, '') : null;
+
+if (PLUGIN_DIR) logger.info(`yt-dlp plugin dir: ${PLUGIN_DIR} (HOME forzado: ${PLUGIN_HOME})`);
 else logger.warn('yt-dlp: no se encontró la carpeta de plugins del POT provider (revisa setup-potoken.sh)');
 
 // Args de plugins para cada llamada a yt-dlp. Se incluye 'default' para no
 // perder los directorios estándar además del explícito.
 function pluginArgs() {
   return PLUGIN_DIR ? ['--plugin-dirs', PLUGIN_DIR, '--plugin-dirs', 'default'] : [];
+}
+
+// Entorno para el yt-dlp que lanza el bot: replica el HOME/XDG donde está el
+// plugin, para que su descubrimiento por defecto lo encuentre igual que a mano.
+function ytdlpEnv() {
+  if (!PLUGIN_HOME) return process.env;
+  return {
+    ...process.env,
+    HOME: PLUGIN_HOME,
+    XDG_CONFIG_HOME: path.join(PLUGIN_HOME, '.config'),
+  };
 }
 
 // Global cap on concurrent yt-dlp downloads. Each one can hold a CPU core for
@@ -124,7 +144,7 @@ function ytdlp(args) {
     // a child for audio extraction, and killing only the parent would orphan
     // that ffmpeg (reparented to init), leaving it burning CPU/RAM on the 1GB
     // box and accumulating across occurrences.
-    const proc = spawn(YT_DLP, args, { detached: true });
+    const proc = spawn(YT_DLP, args, { detached: true, env: ytdlpEnv() });
     let stdout = '';
     let stderr = '';
 
