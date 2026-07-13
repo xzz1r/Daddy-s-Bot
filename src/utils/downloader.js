@@ -169,7 +169,7 @@ async function cleanupPartials(tempDir, baseName) {
 // video no exista). Ante uno de estos pasamos a la siguiente estrategia en vez
 // de rendirnos. El clásico es el "Sign in to confirm you're not a bot".
 function isBlockedError(message) {
-  return /sign in to confirm|not a bot|confirm you'?re|requested format is not available|unable to extract|nsig|failed to extract|player response|precondition check|no video formats|unavailable videos are hidden|throttl/i.test(String(message));
+  return /sign in to confirm|not a bot|confirm you'?re|requested format is not available|unable to extract|nsig|failed to extract|player response|precondition check|no video formats|unavailable videos are hidden|throttl|403|forbidden|unable to download video data|unable to download|fragment.*not found|giving up/i.test(String(message));
 }
 
 // Estrategias de extracción, en orden de preferencia. Se prueban una tras otra
