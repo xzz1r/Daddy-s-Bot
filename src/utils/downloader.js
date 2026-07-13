@@ -79,8 +79,11 @@ const PLUGIN_DIR = detectPluginDir();
 // para replicar exactamente la condición que ya se probó que funciona.
 const PLUGIN_HOME = PLUGIN_DIR ? PLUGIN_DIR.replace(/\/\.config\/yt-dlp\/plugins\/?$/, '') : null;
 
-if (PLUGIN_DIR) logger.info(`yt-dlp plugin dir: ${PLUGIN_DIR} (HOME forzado: ${PLUGIN_HOME})`);
-else logger.warn('yt-dlp: no se encontró la carpeta de plugins del POT provider (revisa setup-potoken.sh)');
+// Siempre visible (no vía logger.info, que está silenciado sin LOG_LEVEL=verbose):
+// esta config es crítica para que !play funcione, así que debe verse al arrancar.
+console.log(PLUGIN_DIR
+  ? `  yt-dlp POT plugin : ${PLUGIN_DIR} (HOME=${PLUGIN_HOME})`
+  : '  yt-dlp POT plugin : NO ENCONTRADO (revisa setup-potoken.sh)');
 
 // Args de plugins para cada llamada a yt-dlp. Se incluye 'default' para no
 // perder los directorios estándar además del explícito.
