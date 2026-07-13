@@ -3,6 +3,7 @@ data/auth/
 data/store.json
 data/state.json
 data/grok-key.txt
+data/youtube_cookies.txt
 data/messageCounts.json
 data/aura.json
 data/casino.json

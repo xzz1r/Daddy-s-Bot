@@ -22,8 +22,27 @@ function detectYtDlp() {
 }
 
 const YT_DLP = detectYtDlp();
-// 'android' es el cliente más rápido y el que mejor funciona sin firmas
-const PLAYER_CLIENTS = 'android,tv_embedded';
+// Clientes de reproducción a intentar. En IP de datacenter (VPS) YouTube exige
+// cada vez más autenticación; estos son los que mejor rinden sin cookies, pero
+// la solución fiable en un VPS es aportar cookies (ver COOKIES_FILE abajo).
+const PLAYER_CLIENTS = 'android,tv_embedded,web_safari,mweb';
+
+// Archivo de cookies de YouTube (formato Netscape) para saltar el bloqueo
+// "Sign in to confirm you're not a bot" que YouTube aplica a las IP de
+// datacenter. Es OPCIONAL: si el archivo existe, se pasa a yt-dlp con --cookies;
+// si no, se intenta sin él (funciona a veces, falla otras según la IP). Ruta por
+// defecto data/youtube_cookies.txt, o la que ponga la env YT_COOKIES_FILE.
+const COOKIES_FILE = process.env.YT_COOKIES_FILE
+  || path.join(__dirname, '../../data/youtube_cookies.txt');
+
+function cookiesArgs() {
+  try {
+    if (fs.existsSync(COOKIES_FILE) && fs.statSync(COOKIES_FILE).size > 0) {
+      return ['--cookies', COOKIES_FILE];
+    }
+  } catch {}
+  return [];
+}
 
 // Global cap on concurrent yt-dlp downloads. Each one can hold a CPU core for
 // up to 3 minutes; on Termux/low-RAM hosts, 5 people spamming !play at once
@@ -154,6 +173,11 @@ async function runDownload(videoUrl) {
     '--max-filesize', '25M',
     '--no-mtime',
     '--socket-timeout', '20',
+    // Small random pause reduces how "bot-like" the request pattern looks — a
+    // mild mitigation for YouTube's rate/bot checks on datacenter IPs.
+    '--sleep-interval', '1',
+    '--max-sleep-interval', '3',
+    ...cookiesArgs(), // --cookies <file> si existe data/youtube_cookies.txt
     '--extractor-args', `youtube:player_client=${PLAYER_CLIENTS}`,
   ]);
 
