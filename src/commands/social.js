@@ -147,114 +147,66 @@ async function cmdHelp(sock, msg) {
   const p = config.prefix;
 
   const text =
-`╔══════════════════╗
-   *${config.botName}*
-   Menú de comandos
-╚══════════════════╝
-Escribe los comandos con el prefijo *${p}*
-Ejemplo: *${p}play* despacito
+`*${config.botName}* · comandos
+_Prefijo *${p}* — ej: *${p}play* despacito_
 
-━━━━━━━━━━━━━━━
 🎵 *MÚSICA*
-━━━━━━━━━━━━━━━
 *${p}play* <nombre> — busca y envía una canción
 
-━━━━━━━━━━━━━━━
 🖼️ *STICKERS*
-━━━━━━━━━━━━━━━
-*${p}s* — convierte una imagen o video en sticker
-*${p}ttp* <texto> — convierte un texto en sticker
-*${p}toimg* — convierte un sticker de vuelta en imagen
+*${p}s* — imagen/video → sticker
+*${p}ttp* <texto> — texto → sticker
+*${p}toimg* — sticker → imagen
 
-━━━━━━━━━━━━━━━
-🔎 *PERFIL Y ANTI-FAKE*
-━━━━━━━━━━━━━━━
-*${p}pfp* @usuario — muestra su foto de perfil
-    (también: *${p}pfp* wa.me/<número>)
-*${p}fk* @usuario — analiza si es cuenta falsa y da un puntaje
-    (también acepta un número, o responder a una foto)
+🔎 *PERFIL / ANTI-FAKE*
+*${p}pfp* @user — su foto de perfil (o un número)
+*${p}fk* @user — analiza si es cuenta falsa (da un puntaje)
 
-━━━━━━━━━━━━━━━
-📊 *ACTIVIDAD DEL GRUPO*
-━━━━━━━━━━━━━━━
-*${p}count* — ranking de quién escribe más
-*${p}inactivos* — lista de los que casi no escriben
-*${p}vs* @uno @otro — compara la actividad de dos miembros
-*${p}top5* <tema> — top 5 de un tema (también *${p}top10*)
+📊 *ACTIVIDAD*
+*${p}count* — quién escribe más
+*${p}inactivos* — los que casi no escriben
+*${p}vs* @a @b — compara actividad de dos
+*${p}top5* / *${p}top10* <tema>
 
-━━━━━━━━━━━━━━━
-🎲 *JUEGOS (porcentajes)*
-━━━━━━━━━━━━━━━
-_Sin mención = se aplica a ti. Con @usuario = a esa persona._
-Miden un rasgo con un porcentaje al azar:
-*${p}crack*  ·  *${p}inteligencia*  ·  *${p}hot* (o *${p}sexy*)
-*${p}feminidad*  ·  *${p}masculinidad*  ·  *${p}femboy*
-*${p}gay*  ·  *${p}simp*  ·  *${p}rata*  ·  *${p}friki*
-*${p}cerdo*  ·  *${p}inutil*  ·  *${p}maricon*
-*${p}perdedor*  ·  *${p}ganador*
+🎲 *JUEGOS* _(sin @ = a ti · con @ = a otro)_
+Dan un % al azar de un rasgo:
+*${p}crack* · *${p}inteligencia* · *${p}hot* · *${p}gay* · *${p}simp*
+*${p}rata* · *${p}friki* · *${p}cerdo* · *${p}inutil* · *${p}maricon*
+*${p}feminidad* · *${p}masculinidad* · *${p}femboy* · *${p}perdedor* · *${p}ganador*
+*${p}mog* @a @b — duelo de looks
+*${p}ship* @a @b — compatibilidad
+*${p}roast* @user — burla pública
 
-Enfrentamientos:
-*${p}mog* @uno @otro — duelo de looks entre dos
-*${p}ship* @uno @otro — mide su compatibilidad
-*${p}roast* @usuario — le hace una burla pública
+💠 *AURA* _(economía del grupo)_
+*${p}aura* [@user] — ver aura · *${p}aura top* — ranking
+*${p}dar* / *${p}duel* / *${p}robo* @user <cantidad>
+*${p}casino* — tu progreso del día
+_Ganas aura escribiendo. Bonos diarios: 200 msg→20k · 500→60k · 1000→150k_
 
-━━━━━━━━━━━━━━━
-💠 *AURA (economía del grupo)*
-━━━━━━━━━━━━━━━
-*${p}aura* — muestra tu aura (o de @usuario)
-*${p}aura top* — ranking de aura del grupo
-*${p}dar* @usuario <cantidad> — le regalas aura
-*${p}duel* @usuario <cantidad> — duelo apostando aura
-*${p}robo* @usuario <cantidad> — intentas robarle aura
-*${p}casino* — tu progreso de aura del día
+🤖 *IA*
+*${p}g* <pregunta> — le preguntas a Grok
 
-_Ganas aura por escribir. Bonos diarios (se reinician cada 24 h):_
-· 200 mensajes → mínimo *20.000* de aura
-· 500 mensajes → mínimo *60.000* de aura
-· 1000 mensajes → mínimo *150.000* de aura
-_Si tienes aura negativa, hay un premio de redención._
+🛡️ *ADMIN*
+*${p}on* / *${p}off* — activa/desactiva el bot
+*${p}tagall* <msg> — menciona a todos
+*${p}kick* @user · *${p}add* <número>
+*${p}promote* / *${p}demote* @user — dar/quitar admin
+*${p}mute* @user <min> · *${p}unmute* @user
+*${p}del* — borra el mensaje citado
+*${p}close* / *${p}open* — cierra/abre el grupo
+*${p}notifadmin* on/off — avisos de admin
+*${p}scan* — busca cuentas sospechosas
+*${p}marcarfake* @user — marca su foto como falsa
+*${p}fkban* / *${p}fkunban* @user — lista negra global
+*${p}antifake* on/off — vigila las entradas
 
-━━━━━━━━━━━━━━━
-🤖 *INTELIGENCIA ARTIFICIAL*
-━━━━━━━━━━━━━━━
-*${p}g* <pregunta> — le preguntas a la IA (Grok)
+👑 *OWNER*
+*${p}resetcount* · *${p}resetaura* — borrar rankings
+*${p}antiadmin* / *${p}antiempresa* / *${p}antilink* on/off
+*${p}clearcache* · *${p}setgrok* <key>
 
-━━━━━━━━━━━━━━━
-🛡️ *ADMINISTRACIÓN* (solo admins)
-━━━━━━━━━━━━━━━
-*${p}on* / *${p}off* — activa o desactiva el bot en el grupo
-*${p}tagall* <mensaje> — menciona a todos
-*${p}kick* @usuario — expulsa a alguien
-*${p}add* <número> — agrega a alguien
-*${p}promote* @usuario — lo hace admin
-*${p}demote* @usuario — le quita admin
-*${p}mute* @usuario <minutos> — lo silencia un rato
-*${p}unmute* @usuario — le quita el silencio
-*${p}del* — borra el mensaje al que respondes
-*${p}close* / *${p}open* — cierra o abre el grupo
-*${p}notifadmin* on/off — avisos de cambios de admin
-*${p}scan* — busca cuentas sospechosas en el grupo
-*${p}marcarfake* @usuario — marca su foto como falsa
-*${p}fkban* / *${p}fkunban* @usuario — lista negra global
-*${p}antifake* on/off — vigila las entradas al grupo
-
-━━━━━━━━━━━━━━━
-👑 *OWNER* (solo dueño)
-━━━━━━━━━━━━━━━
-*${p}resetcount* — borra el ranking de mensajes
-*${p}resetaura* — borra el aura del grupo
-*${p}antiadmin* on/off — revierte cambios de admin no autorizados
-*${p}antiempresa* on/off — expulsa cuentas de empresa
-*${p}antilink* on/off — borra enlaces no permitidos
-*${p}clearcache* — limpia la caché de música
-*${p}setgrok* <key> — configura la clave de la IA
-
-━━━━━━━━━━━━━━━
 ℹ️ *BOT*
-━━━━━━━━━━━━━━━
-*${p}ping* — comprueba si el bot responde
-*${p}info* — datos y estado del bot
-*${p}whoami* — te dice tu rol (owner/admin/miembro)`;
+*${p}ping* · *${p}info* · *${p}whoami*`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
