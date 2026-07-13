@@ -1,6 +1,7 @@
 const { spawn, execSync } = require('child_process');
 const fs = require('fs-extra');
 const path = require('path');
+const os = require('os');
 const axios = require('axios');
 const { tempFile, cleanTemp } = require('./helpers');
 const logger = require('./logger');
@@ -47,6 +48,36 @@ const YT_DLP = detectYtDlp();
 // de datacenter se resuelve con el POT provider (bgutil), NO con cookies. El
 // provider corre como servicio local (ver setup-potoken.sh) y yt-dlp obtiene el
 // proof-of-origin token en cada pedido. Ya no se usan cookies ni cuenta alguna.
+
+// Carpeta de plugins de yt-dlp donde vive el plugin del POT provider. CRÍTICO:
+// yt-dlp la descubre por HOME (~/.config/yt-dlp/plugins), pero bajo pm2 el bot
+// puede correr con un HOME distinto (p. ej. /root), y entonces NO encuentra el
+// plugin y cae el bot-check aunque a mano funcione. Por eso detectamos la ruta
+// absoluta y se la pasamos explícita con --plugin-dirs, sin depender del HOME.
+// La carpeta correcta es la que CONTIENE el paquete yt_dlp_plugins.
+function detectPluginDir() {
+  const candidates = [
+    process.env.YT_PLUGIN_DIR,
+    path.join(os.homedir() || '', '.config/yt-dlp/plugins'),
+    '/home/ubuntu/.config/yt-dlp/plugins',
+    '/root/.config/yt-dlp/plugins',
+    process.env.HOME ? path.join(process.env.HOME, '.config/yt-dlp/plugins') : null,
+  ].filter(Boolean);
+  for (const p of candidates) {
+    try { if (fs.existsSync(path.join(p, 'yt_dlp_plugins'))) return p; } catch {}
+  }
+  return null;
+}
+
+const PLUGIN_DIR = detectPluginDir();
+if (PLUGIN_DIR) logger.info(`yt-dlp plugin dir: ${PLUGIN_DIR}`);
+else logger.warn('yt-dlp: no se encontró la carpeta de plugins del POT provider (revisa setup-potoken.sh)');
+
+// Args de plugins para cada llamada a yt-dlp. Se incluye 'default' para no
+// perder los directorios estándar además del explícito.
+function pluginArgs() {
+  return PLUGIN_DIR ? ['--plugin-dirs', PLUGIN_DIR, '--plugin-dirs', 'default'] : [];
+}
 
 // Global cap on concurrent yt-dlp downloads. Each one can hold a CPU core for
 // up to 3 minutes; on Termux/low-RAM hosts, 5 people spamming !play at once
@@ -205,6 +236,10 @@ async function runDownload(videoUrl) {
   // el cliente que pide cada estrategia.
   const baseArgs = [
     videoUrl,
+    // Ruta explícita del plugin del POT provider, para que yt-dlp lo cargue
+    // aunque bajo pm2 el HOME sea otro (sin esto, no lo encuentra y cae el
+    // bot-check aunque a mano funcione).
+    ...pluginArgs(),
     // Balance calidad/velocidad/tamaño: el MEJOR stream m4a (normalmente ~128
     // kbps AAC). Al ser m4a, yt-dlp lo remuxea con -c copy (no re-codifica): sin
     // pérdida y rápido. Los fallbacks /bestaudio/best son obligatorios porque
