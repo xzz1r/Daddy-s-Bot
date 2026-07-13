@@ -2,8 +2,13 @@ const config = {
   prefix: '!',
   botName: "Daddy's Bot",
   ownerNumber: process.env.OWNER_NUMBER || '5491100000000',
-  // Co-owners: mismos privilegios que el owner.
-  coOwners: ['33753345861'],
+  // Co-owners: mismos privilegios que el owner. Se definen en .env como
+  // CO_OWNERS=numero1,numero2 para no dejar ningún número real escrito en el
+  // código. Vacío por defecto.
+  coOwners: (process.env.CO_OWNERS || '')
+    .split(',')
+    .map(n => n.replace(/\D/g, ''))
+    .filter(Boolean),
   autoRead: true,
 
   // Key de la API de búsqueda facial de Lenso.ai (plan Developer). Opcional:

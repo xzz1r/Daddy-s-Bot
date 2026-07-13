@@ -42,8 +42,8 @@ async function resolveTarget(sock, msg, args) {
         'Uso: menciona o responde a alguien, o pasa un número/enlace.\n\n' +
         'Ejemplos:\n' +
         '`!pfp @usuario`\n' +
-        '`!pfp wa.me/33753345861`\n' +
-        '`!pfp +33 7 53 34 58 61`',
+        '`!pfp wa.me/34600000000`\n' +
+        '`!pfp +34 600 00 00 00`',
     };
   }
 
@@ -55,13 +55,13 @@ async function resolveTarget(sock, msg, args) {
       error:
         'Por ahora la búsqueda por @username no está disponible vía API de WhatsApp.\n' +
         'Usa el número o el enlace wa.me mientras tanto:\n' +
-        '`!pfp wa.me/33753345861`',
+        '`!pfp wa.me/34600000000`',
     };
   }
 
   const digits = extractNumber(raw);
   if (!digits) {
-    return { error: 'No reconocí un número válido ahí. Prueba `!pfp wa.me/33753345861`.' };
+    return { error: 'No reconocí un número válido ahí. Prueba `!pfp wa.me/34600000000`.' };
   }
 
   // onWhatsApp confirma que el número tiene cuenta y devuelve su JID canónico.
