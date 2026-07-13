@@ -160,17 +160,15 @@ async function runDownload(videoUrl) {
     // The /bestaudio/best fallbacks are mandatory: some videos (or certain
     // player clients) expose no audio-only stream, and without a final 'best'
     // catch-all yt-dlp aborts with "Requested format is not available".
-    // Peso mínimo + velocidad máxima: preferimos el stream m4a de MENOR bitrate
-    // (YouTube suele ofrecer un ~48k HE-AAC además del ~128k). Al ser m4a, yt-dlp
-    // lo remuxea con -c copy (NO re-codifica) → rápido y ligero a la vez. Si no
-    // hay uno de bajo bitrate, cae al m4a normal (igual copy), y solo como último
-    // recurso a otro códec (ahí sí re-codifica, con el target de 96k de abajo).
-    '-f', 'bestaudio[ext=m4a][abr<=100]/bestaudio[ext=m4a]/bestaudio/best',
+    // Balance calidad/velocidad/tamaño: tomamos el MEJOR stream de audio m4a que
+    // ofrece YouTube (normalmente ~128 kbps AAC, buena calidad para música). Al
+    // ser m4a, yt-dlp lo remuxea con -c copy: NO re-codifica, así que es rápido y
+    // no pierde nada de calidad respecto a la fuente. Es el punto justo: calidad
+    // alta, tamaño razonable (~1 MB/min) y velocidad máxima. Solo si un video no
+    // tiene m4a se recurre a otro códec (ahí sí convierte, a buena calidad).
+    '-f', 'bestaudio[ext=m4a]/bestaudio/best',
     '-x',
     '--audio-format', 'm4a',
-    // Solo aplica cuando hay que re-codificar un stream no-m4a: apunta a 96k
-    // (más liviano que el 128k por defecto) en vez de conservar el bitrate alto.
-    '--audio-quality', '96K',
     '-o', outTemplate,
     '--no-playlist',
     '--no-warnings',
