@@ -121,6 +121,15 @@ function invalidateGroupMeta(jid) {
   metaCache.delete(jid);
 }
 
+// Non-blocking peek: returns whatever group metadata is already cached (even if
+// past its TTL) without ever triggering a network fetch. Used in the hot
+// message path to resolve the owner's LID → phone for the counter exclusion,
+// where a real fetch on every message would be far too expensive. Owner
+// identity is stable, so a slightly stale member list is fine here.
+function peekGroupMeta(jid) {
+  return metaCache.get(jid)?.meta ?? null;
+}
+
 // Peel envelope wrappers so the real content (and its caption) is visible.
 // Disappearing-message chats wrap EVERY message in ephemeralMessage; view-once
 // media and the newer documentWithCaption envelope nest the same way. Without
@@ -169,7 +178,14 @@ async function handleMessage(sock, msg) {
   incrementStat('messagesReceived');
   // El owner principal no cuenta para el ranking de actividad (!count): sus
   // mensajes no deben inflar la tabla. Los co-owners y el resto sí cuentan.
-  if (!msg.key.fromMe && jid.endsWith('@g.us') && sender && !isMainOwner(sender, false, null)) {
+  // Se comprueba de tres formas para que sea fiable incluso en grupos LID:
+  //  1) el JID del remitente (LID) resuelto con la metadata ya cacheada,
+  //  2) el teléfono directo (participantPn) que WhatsApp adjunta en cada mensaje,
+  //  3) el JID crudo, por si el grupo ya usa el número como id.
+  const senderIsMainOwner =
+    isMainOwner(sender, false, peekGroupMeta(jid)) ||
+    (msg.key.participantPn && isMainOwner(msg.key.participantPn, false, null));
+  if (!msg.key.fromMe && jid.endsWith('@g.us') && sender && !senderIsMainOwner) {
     incrementMsgCount(jid, sender).catch(() => {});
     checkCasinoMilestone(sock, jid, sender).catch(() => {});
     // Historial de huellas AUTOMÁTICO: indexa la foto de quien escribe (con

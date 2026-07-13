@@ -99,15 +99,33 @@ function matchesOwners(jid, groupMeta, owners) {
   for (const c of candidates) {
     const num = String(c).replace(/@[^@]+$/, '').replace(/\D/g, '');
     if (!num) continue;
-    // Exact match, or a suffix match (to tolerate optional country-code prefixes,
-    // e.g. AR "9"), but only when the shorter operand is a full-length number.
-    // A short/misconfigured owner value must NOT suffix-match arbitrary members.
-    if (owners.some(o => {
-      if (num === o) return true;
-      const shorter = num.length <= o.length ? num : o;
-      const longer  = num.length <= o.length ? o : num;
-      return shorter.length >= 10 && longer.endsWith(shorter);
-    })) return true;
+    if (owners.some(o => phoneMatch(num, o))) return true;
+  }
+  return false;
+}
+
+// Argentina inserts a mobile "9" right after the country code 54 (549 11...)
+// that is present in some JID forms and absent in others. A plain suffix match
+// misses that because the difference is in the MIDDLE, not a prefix. Normalize
+// by dropping that "9" so both forms collapse to the same canonical string.
+function stripArNine(d) {
+  return d.startsWith('549') ? '54' + d.slice(3) : d;
+}
+
+// True when two phone-digit strings refer to the same number. Handles:
+//  - exact equality,
+//  - optional country-code prefix (suffix match, only for full-length numbers),
+//  - the Argentina mobile "9" (via canonicalization).
+// Kept strict (shorter operand must be >= 10 digits) so a short/misconfigured
+// owner value can never suffix-match an arbitrary member.
+function phoneMatch(a, b) {
+  if (!a || !b) return false;
+  const variants = [[a, b], [stripArNine(a), stripArNine(b)]];
+  for (const [x, y] of variants) {
+    if (x === y) return true;
+    const shorter = x.length <= y.length ? x : y;
+    const longer  = x.length <= y.length ? y : x;
+    if (shorter.length >= 10 && longer.endsWith(shorter)) return true;
   }
   return false;
 }
