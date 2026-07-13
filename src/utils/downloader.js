@@ -44,6 +44,18 @@ function cookiesArgs() {
   return [];
 }
 
+// Proxy residencial: la solución de menos errores para el bloqueo de YouTube en
+// IP de datacenter. Con un proxy residencial en la env YT_PROXY, yt-dlp hace TODA
+// la petición (búsqueda + descarga) a través de esa IP residencial, así YouTube
+// ve un usuario normal y no aplica el "sign in to confirm you're not a bot". No
+// depende de ninguna API externa que se pueda caer, ni de renovar cookies.
+// Formato: http://usuario:clave@host:puerto   o   socks5://usuario:clave@host:puerto
+const YT_PROXY = process.env.YT_PROXY || '';
+
+function proxyArgs() {
+  return YT_PROXY ? ['--proxy', YT_PROXY] : [];
+}
+
 // Global cap on concurrent yt-dlp downloads. Each one can hold a CPU core for
 // up to 3 minutes; on Termux/low-RAM hosts, 5 people spamming !play at once
 // would spawn 5 processes and OOM or thrash the device. Extra requests queue
@@ -179,6 +191,7 @@ async function runDownload(videoUrl) {
     '--max-filesize', '25M',
     '--no-mtime',
     '--socket-timeout', '20',
+    ...proxyArgs(),   // --proxy <url> si YT_PROXY está en el .env (recomendado en VPS)
     ...cookiesArgs(), // --cookies <file> si existe data/youtube_cookies.txt
     '--extractor-args', `youtube:player_client=${PLAYER_CLIENTS}`,
   ]);
