@@ -12,8 +12,8 @@ const logger = require('../utils/logger');
 // Classifying by envelope alone let a member bypass the owner-only re-stamp gate
 // below by just re-sending someone else's sticker as a "file" instead of tapping
 // it from the sticker tray, so format wins over envelope here.
-function identifyMedia(messageObject) {
-  if (!messageObject) return null;
+function identifyMedia(messageObject, depth = 0) {
+  if (!messageObject || depth > 4) return null;
   if (messageObject.stickerMessage) return { msg: messageObject.stickerMessage, type: 'sticker' };
   if (messageObject.imageMessage) {
     const mime = messageObject.imageMessage.mimetype || '';
@@ -36,7 +36,7 @@ function identifyMedia(messageObject) {
     messageObject.viewOnceMessage?.message ||
     messageObject.viewOnceMessageV2?.message ||
     messageObject.viewOnceMessageV2Extension?.message;
-  if (inner) return identifyMedia(inner);
+  if (inner) return identifyMedia(inner, depth + 1);
   return null;
 }
 

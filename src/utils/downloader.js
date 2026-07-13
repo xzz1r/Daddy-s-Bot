@@ -112,12 +112,27 @@ async function downloadAudio(videoUrl) {
   }
 }
 
+// Remove any temp file this download wrote (matched by its unique baseName).
+// Called on every error path so a timeout/kill/format-error doesn't leave a
+// partial m4a behind — those would otherwise pile up in temp/ until the next
+// restart (the boot sweep is the only other cleanup) and fill the small VPS disk.
+async function cleanupPartials(tempDir, baseName) {
+  try {
+    const files = await fs.readdir(tempDir);
+    await Promise.all(
+      files.filter(f => f.startsWith(baseName))
+        .map(f => fs.remove(path.join(tempDir, f)).catch(() => {}))
+    );
+  } catch {}
+}
+
 async function runDownload(videoUrl) {
   const baseName = `audio_${Date.now()}_${Math.random().toString(36).slice(2)}`;
   const tempDir = path.dirname(tempFile('tmp'));
   const outTemplate = path.join(tempDir, `${baseName}__%(title).80B.%(ext)s`);
 
-  await ytdlp([
+  try {
+    await ytdlp([
     videoUrl,
     // Prefer YouTube's native m4a/AAC audio stream (itag 140, ~128kbps) so the
     // postprocessor just remuxes (-c:a copy) instead of re-encoding the whole
@@ -167,7 +182,11 @@ async function runDownload(videoUrl) {
     webm: 'audio/webm',
   };
 
-  return { filePath: fullPath, title, mimetype: mimetypes[ext] || 'audio/mp4', ext };
+    return { filePath: fullPath, title, mimetype: mimetypes[ext] || 'audio/mp4', ext };
+  } catch (err) {
+    await cleanupPartials(tempDir, baseName);
+    throw err;
+  }
 }
 
 module.exports = { downloadAudio };

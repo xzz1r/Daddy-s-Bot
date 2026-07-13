@@ -92,7 +92,7 @@ async function textToStickerBuffer(text) {
       lineFiles.push(tf);
       const y = startY + idx * lineHeight;
       drawFilters.push(
-        `drawtext=fontfile='${font}':textfile='${tf}':fontcolor=white:fontsize=${fontSize}:x=(w-text_w)/2:y=${y}:borderw=4:bordercolor=black`
+        `drawtext=fontfile='${font}':textfile='${tf}':expansion=none:fontcolor=white:fontsize=${fontSize}:x=(w-text_w)/2:y=${y}:borderw=4:bordercolor=black`
       );
     }
     const vf = drawFilters.join(',');

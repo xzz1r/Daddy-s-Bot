@@ -141,7 +141,7 @@ async function setCached(query, srcPath, title, mimetype, ext, srcBuffer = null)
   let oldestTs = Infinity;
   for (const key in index) {
     count++;
-    const ts = index[key].timestamp;
+    const ts = index[key].timestamp ?? 0; // missing timestamp = treat as oldest
     if (ts < oldestTs) { oldestTs = ts; oldestKey = key; }
   }
   if (count >= MAX_SONGS && oldestKey) {

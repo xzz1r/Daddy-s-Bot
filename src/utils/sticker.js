@@ -316,8 +316,10 @@ function injectExifIntoWebP(webp, exifBuf) {
   vp8xChunk.write('VP8X', 0, 'ascii');
   vp8xChunk.writeUInt32LE(10, 4);
   vp8xChunk.writeUInt32LE(alphaUsed ? 0x18 : 0x08, 8); // EXIF flag (+ Alpha flag if real)
-  vp8xChunk.writeUIntLE(width - 1, 12, 3);
-  vp8xChunk.writeUIntLE(height - 1, 15, 3);
+  // Clamp to ≥1: a crafted/degenerate WebP can decode to width/height 0, which
+  // would make (dim-1) === -1 and throw RangeError in writeUIntLE.
+  vp8xChunk.writeUIntLE(Math.max(width, 1) - 1, 12, 3);
+  vp8xChunk.writeUIntLE(Math.max(height, 1) - 1, 15, 3);
 
   const originalChunks = webp.slice(12);     // VP8/VP8L chunk onwards
   const body = Buffer.concat([vp8xChunk, originalChunks, exifChunk]);
