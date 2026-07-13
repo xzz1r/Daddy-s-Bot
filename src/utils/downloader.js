@@ -43,21 +43,10 @@ function detectYtDlp() {
 
 const YT_DLP = detectYtDlp();
 
-// Archivo de cookies de YouTube (formato Netscape) para saltar el bloqueo
-// "Sign in to confirm you're not a bot" que YouTube aplica a las IP de
-// datacenter. Si el archivo existe, se pasa a yt-dlp con --cookies. Ruta por
-// defecto data/youtube_cookies.txt, o la que ponga la env YT_COOKIES_FILE.
-const COOKIES_FILE = process.env.YT_COOKIES_FILE
-  || path.join(__dirname, '../../data/youtube_cookies.txt');
-
-function cookiesArgs() {
-  try {
-    if (fs.existsSync(COOKIES_FILE) && fs.statSync(COOKIES_FILE).size > 0) {
-      return ['--cookies', COOKIES_FILE];
-    }
-  } catch {}
-  return [];
-}
+// El bloqueo "Sign in to confirm you're not a bot" que YouTube aplica a las IP
+// de datacenter se resuelve con el POT provider (bgutil), NO con cookies. El
+// provider corre como servicio local (ver setup-potoken.sh) y yt-dlp obtiene el
+// proof-of-origin token en cada pedido. Ya no se usan cookies ni cuenta alguna.
 
 // Global cap on concurrent yt-dlp downloads. Each one can hold a CPU core for
 // up to 3 minutes; on Termux/low-RAM hosts, 5 people spamming !play at once
@@ -184,52 +173,27 @@ function isBlockedError(message) {
 }
 
 // Estrategias de extracción, en orden de preferencia. Se prueban una tras otra
-// hasta que alguna funcione, así un bloqueo puntual de YouTube (cookies
-// caducadas, bot-check, cambio de firma) ya NO tumba el comando: hay planes B.
-// La 1 da la mejor calidad (itag 140, m4a 128k). Las siguientes son vías
-// alternativas que a menudo siguen funcionando cuando la web está bloqueada.
+// hasta que alguna funcione, así un bloqueo puntual de YouTube (bot-check,
+// cambio de firma) ya NO tumba el comando: hay un plan B. Ninguna usa cookies.
+// La 1 da la mejor calidad (itag 140, m4a 128k).
 function buildStrategies() {
-  const cookies = cookiesArgs();
-  const list = [];
-
-  // 1) VÍA POT (sin cookies). Clientes por defecto (el POT plugin usa web_safari)
-  //    + resolución de firma vía el runtime JS local (Deno/node ya instalados).
-  //    Con el POT provider (bgutil) corriendo, yt-dlp obtiene el token de
-  //    proof-of-origin automáticamente y satisface el bot-check SIN cookies que
-  //    caducan. Es la vía autosostenible y la que se probó a mano que funciona.
-  //    NO se pasa --remote-components: la prueba manual confirmó que sobra (y era
-  //    justo lo que rompía en el bot: una descarga extra a GitHub por intento).
-  //    El itag 140 (m4a 128k) sale igual: el cliente con POT expone audio puro.
-  list.push({
-    name: 'pot/web (sin cookies)',
-    args: ['--extractor-args', 'youtube:skip=hls'],
-  });
-
-  // 2) Cookies (si existen). Respaldo para cuando el POT no está disponible pero
-  //    sí hay una sesión válida en el archivo de cookies.
-  if (cookies.length) {
-    list.push({
-      name: 'cookies',
-      args: [...cookies, '--extractor-args', 'youtube:skip=hls'],
-    });
-  }
-
-  // 3) Clientes móviles/TV SIN cookies. Otra vía distinta por si el cliente web
-  //    está bloqueado y, por lo que sea, el POT no cubrió ese pedido.
-  list.push({
-    name: 'mobile-tv (sin cookies)',
-    args: ['--extractor-args', 'youtube:player_client=tv,mweb,android_vr;skip=hls'],
-  });
-
-  // 4) Clientes móviles CON cookies (por si el video exige sesión).
-  if (cookies.length) {
-    list.push({
-      name: 'mobile-tv+cookies',
-      args: [...cookies, '--extractor-args', 'youtube:player_client=tv,mweb;skip=hls'],
-    });
-  }
-
-  return list;
+  return [
+    // 1) VÍA POT. Clientes por defecto (el POT plugin usa web_safari) + firma
+    //    resuelta por el runtime JS local (Deno/node). Con el POT provider
+    //    (bgutil) corriendo, yt-dlp obtiene el proof-of-origin token en cada
+    //    pedido y satisface el bot-check SIN cookies ni cuenta. Es la vía
+    //    autosostenible y la probada a mano. El itag 140 (m4a 128k) sale igual.
+    {
+      name: 'pot/web',
+      args: ['--extractor-args', 'youtube:skip=hls'],
+    },
+    // 2) Clientes móviles/TV. Otra vía por si el cliente web está bloqueado y,
+    //    por lo que sea, el POT no cubrió ese pedido.
+    {
+      name: 'mobile-tv',
+      args: ['--extractor-args', 'youtube:player_client=tv,mweb,android_vr;skip=hls'],
+    },
+  ];
 }
 
 async function runDownload(videoUrl) {
@@ -237,8 +201,8 @@ async function runDownload(videoUrl) {
   const tempDir = path.dirname(tempFile('tmp'));
   const outTemplate = path.join(tempDir, `${baseName}__%(title).80B.%(ext)s`);
 
-  // Args comunes a todas las estrategias. Lo único que cambia entre intentos son
-  // las cookies/cliente/solver que aporta cada estrategia.
+  // Args comunes a todas las estrategias. Lo único que cambia entre intentos es
+  // el cliente que pide cada estrategia.
   const baseArgs = [
     videoUrl,
     // Balance calidad/velocidad/tamaño: el MEJOR stream m4a (normalmente ~128
