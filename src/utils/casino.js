@@ -38,7 +38,7 @@ const PHRASES = {
       'Bono de Tier 1 con bonificación. 200 mensajes, resultado mejor de lo habitual.',
     ],
     jackpot: [
-      'JACKPOT en el nivel de entrada. 200 mensajes y la tragaperras se volvió loca. Los que no escriben que observen.',
+      '💥 JACKPOT en el nivel de entrada. 200 mensajes y la tragaperras se volvió loca. Los que no escriben que observen.',
       '200 mensajes y el slot reventó. Premio grande en el primer tier. El grupo es testigo de que esto existe.',
       'La máquina del grupo escupió el bote gordo en Tier 1. Raro, real, documentado.',
     ],
@@ -56,7 +56,7 @@ const PHRASES = {
       '500 mensajes y la máquina decidió recompensar en serio. No todos llegan aquí. Los que llegan, cobran.',
     ],
     jackpot: [
-      'JACKPOT DE TIER 2. 500 mensajes y la tragaperras del grupo se desbordó. El tipo de premio que hace abrir el chat.',
+      '🎰 JACKPOT DE TIER 2. 500 mensajes y la tragaperras del grupo se desbordó. El tipo de premio que hace abrir el chat.',
       '500 mensajes, jackpot confirmado en Tier 2. Esto va al registro del grupo. Los inactivos que tomen nota.',
       'Bote histórico de Tier 2. 500 mensajes reales, premio de los que el grupo no va a olvidar.',
     ],
@@ -74,17 +74,17 @@ const PHRASES = {
       '1000 mensajes reales. La máquina del grupo escupió un bono de los que crean conversación durante días.',
     ],
     jackpot: [
-      '1000 MENSAJES — JACKPOT DE TIER 3. El premio más alto del sistema. El grupo acaba de ver algo que no pasa todos los días.',
+      '🏆 1000 MENSAJES — JACKPOT DE TIER 3. El premio más alto del sistema. El grupo acaba de ver algo que no pasa todos los días.',
       'Mil mensajes y el slot del grupo llegó al bote máximo. Constancia legendaria. Premio legendario. El grupo es testigo.',
-      'TIER 3 JACKPOT CONFIRMADO. 1000 mensajes, bote histórico. Esto va al hall de la fama del grupo sin discusión.',
+      '🏆 TIER 3 JACKPOT CONFIRMADO. 1000 mensajes, bote histórico. Esto va al hall de la fama del grupo sin discusión.',
     ],
   },
   redemption: [
-    'JACKPOT DE REDENCIÓN — El aura estaba en el sótano pero la actividad acaba de hacer lo que el cope no pudo. La tragaperras escupe el bote de comeback. Esto no lo calcula nadie.',
-    'COMEBACK DOCUMENTADO EN DIRECTO — Aura negativa, mensajes positivos. El sistema premia la constancia antes que el cope. Jackpot de redención confirmado y el marcador cambia de cara.',
-    'REDENCIÓN INESPERADA — El grupo pensaba que ese aura no volvía. La actividad tiene su propia economía y acaba de hablar. Jackpot. El grupo entero es testigo.',
-    'LA MÁQUINA REESCRIBIÓ EL MARCADOR — Aura negativa, actividad real. El casino del grupo no juzga el historial, juzga la constancia. Resultado: jackpot de redención confirmado.',
-    'BOTE DE REDENCIÓN — Lo que meses de cope no consiguieron, la actividad lo resolvió en un clic. El marcador cambia. El grupo lo vio en directo.',
+    '⚡ JACKPOT DE REDENCIÓN — El aura estaba en el sótano pero la actividad acaba de hacer lo que el cope no pudo. La tragaperras escupe el bote de comeback. Esto no lo calcula nadie.',
+    '⚡ COMEBACK DOCUMENTADO EN DIRECTO — Aura negativa, mensajes positivos. El sistema premia la constancia antes que el cope. Jackpot de redención confirmado y el marcador cambia de cara.',
+    '⚡ REDENCIÓN INESPERADA — El grupo pensaba que ese aura no volvía. La actividad tiene su propia economía y acaba de hablar. Jackpot. El grupo entero es testigo.',
+    '⚡ LA MÁQUINA REESCRIBIÓ EL MARCADOR — Aura negativa, actividad real. El casino del grupo no juzga el historial, juzga la constancia. Resultado: jackpot de redención confirmado.',
+    '⚡ BOTE DE REDENCIÓN — Lo que meses de cope no consiguieron, la actividad lo resolvió en un clic. El marcador cambia. El grupo lo vio en directo.',
   ],
 };
 
@@ -161,9 +161,9 @@ async function checkCasinoMilestone(sock, jid, sender) {
   const phrase = pick(phrasePool);
 
   const userTag   = `@${sender.split('@')[0]}`;
-  const tierHdr   = tier === 3 ? '*TIER 3 · 1000 MENSAJES*'
-                  : tier === 2 ? '*TIER 2 · 500 MENSAJES*'
-                  :              '*TIER 1 · 200 MENSAJES*';
+  const tierHdr   = tier === 3 ? '🏆 *TIER 3 · 1000 MENSAJES*'
+                  : tier === 2 ? '🎰 *TIER 2 · 500 MENSAJES*'
+                  :              '🎲 *TIER 1 · 200 MENSAJES*';
   const next      = nextMilestone(count);
   const nextLabel = next.tier === 3 ? 'Tier 3 (1000 msgs)'
                   : next.tier === 2 ? 'Tier 2 (500 msgs)'
@@ -173,7 +173,7 @@ async function checkCasinoMilestone(sock, jid, sender) {
     `${tierHdr}\n\n` +
     `${userTag} lleva *${fmt(count)} mensajes* hoy\n\n` +
     `${phrase}\n\n` +
-    `${userTag} +${fmt(amount)} de aura → *${fmt(current)}*\n\n` +
+    `${userTag}  +${fmt(amount)} de aura → *${fmt(current)}*\n\n` +
     `_Próximo bono: ${nextLabel} — faltan ${fmt(next.remaining)} mensajes_`;
 
   // Invisible tagall: everyone gets pinged but no @number spam in the text.

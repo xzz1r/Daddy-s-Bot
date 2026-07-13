@@ -62,18 +62,15 @@ function sameUser(a, b) {
   return canonicalJid(a) === canonicalJid(b);
 }
 
-function isOwner(jid, fromMe, groupMeta) {
-  if (fromMe) return true;
+// Core matcher: true when `jid` (in any of its forms) resolves to one of the
+// numbers in `owners`. Shared by isOwner (main + co-owners) and isMainOwner
+// (only the primary owner number).
+function matchesOwners(jid, groupMeta, owners) {
   if (!jid) return false;
 
   // Side effect: every owner check that has groupMeta refreshes the global
   // LID map. Cheap and means future DM owner checks don't need groupMeta.
   if (groupMeta) indexGroupMeta(groupMeta);
-
-  const owners = [
-    String(config.ownerNumber).replace(/\D/g, ''),
-    ...(config.coOwners || []).map(n => String(n).replace(/\D/g, '')),
-  ];
 
   const bare = bareJid(jid);
   const candidates = new Set([jid, bare]);
@@ -113,6 +110,23 @@ function isOwner(jid, fromMe, groupMeta) {
     })) return true;
   }
   return false;
+}
+
+function isOwner(jid, fromMe, groupMeta) {
+  if (fromMe) return true;
+  const owners = [
+    String(config.ownerNumber).replace(/\D/g, ''),
+    ...(config.coOwners || []).map(n => String(n).replace(/\D/g, '')),
+  ];
+  return matchesOwners(jid, groupMeta, owners);
+}
+
+// True only for the primary owner (config.ownerNumber), not the co-owners.
+// Used to exclude the owner's own messages from the activity ranking (!count)
+// without also excluding co-owners.
+function isMainOwner(jid, fromMe, groupMeta) {
+  if (fromMe) return true;
+  return matchesOwners(jid, groupMeta, [String(config.ownerNumber).replace(/\D/g, '')]);
 }
 
 // True if `jid` is the bot's own account, in any JID form. Used to stop the bot
@@ -203,6 +217,7 @@ function extractQuotedText(msg) {
 
 module.exports = {
   isOwner,
+  isMainOwner,
   isAdmin,
   isBotJid,
   isBotAdmin,

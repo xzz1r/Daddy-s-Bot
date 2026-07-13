@@ -25,7 +25,7 @@ const { cmdVs, cmdInactivos } = require('../commands/activity');
 const { cmdRoast } = require('../commands/roast');
 const { cmdDar } = require('../commands/dar');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, cmdCasino } = require('../commands/social');
-const { isOwner, isGroupAdmin, isBotAdmin, extractText, rememberMapping, getSender } = require('../utils/wa');
+const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, extractText, rememberMapping, getSender } = require('../utils/wa');
 const logger = require('../utils/logger');
 
 // Hosts allowed without penalty (only a "send once" reminder). Matched against
@@ -167,7 +167,9 @@ async function handleMessage(sock, msg) {
   // Non-blocking counters — never delay command execution.
   // Don't count the bot's own messages so the owner doesn't inflate their rank.
   incrementStat('messagesReceived');
-  if (!msg.key.fromMe && jid.endsWith('@g.us') && sender) {
+  // El owner principal no cuenta para el ranking de actividad (!count): sus
+  // mensajes no deben inflar la tabla. Los co-owners y el resto sí cuentan.
+  if (!msg.key.fromMe && jid.endsWith('@g.us') && sender && !isMainOwner(sender, false, null)) {
     incrementMsgCount(jid, sender).catch(() => {});
     checkCasinoMilestone(sock, jid, sender).catch(() => {});
     // Historial de huellas AUTOMÁTICO: indexa la foto de quien escribe (con
