@@ -267,6 +267,11 @@ async function handleMessage(sock, msg) {
   let groupMeta = null;
   if (jid.endsWith('@g.us') && NEEDS_META.has(command)) {
     groupMeta = await getGroupMeta(sock, jid);
+    // Con metadata SÍ podemos resolver el LID del remitente de forma fiable.
+    // Si es el owner principal, isMainOwner lo aprende y lo guarda, así el
+    // contador (que corre sin metadata) lo excluye para siempre. Basta con que
+    // el owner use un comando una vez (p. ej. !whoami) para quedar registrado.
+    if (groupMeta) isMainOwner(sender, msg.key.fromMe, groupMeta);
   }
 
   try {

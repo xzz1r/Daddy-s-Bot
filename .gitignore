@@ -9,6 +9,7 @@ data/aura.json
 data/casino.json
 data/pfphashes.json
 data/banlist.json
+data/ownerJids.json
 data/pfpcache/
 data/music_cache/
 temp/

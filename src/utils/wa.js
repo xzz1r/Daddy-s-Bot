@@ -1,7 +1,55 @@
 // Shared WhatsApp/Baileys helpers. Centralizing these kills the 4x duplicates
 // of isAdmin and 2x of getTarget that were drifting across command files.
 
+const fs = require('fs');
+const path = require('path');
 const config = require('../config');
+
+// ── Learned owner-JID set ────────────────────────────────────────────────────
+// The message counter runs in the hot path, BEFORE any group metadata fetch, so
+// resolving an incoming LID → phone there is unreliable (in LID-only groups the
+// mapping simply isn't available yet). But whenever a command runs we DO have
+// metadata and can positively confirm the sender is the main owner. The moment
+// we confirm it, we record that exact LID here and persist it — so from then on
+// every message from that LID is recognized instantly, with zero resolution.
+// LIDs are stable per account, so a learned entry never goes stale.
+const OWNER_JIDS_FILE = path.join(__dirname, '../../data/ownerJids.json');
+const knownOwnerJids = new Set();
+
+// Synchronous load at startup: the file is tiny (a handful of JIDs) and having
+// it ready before the first message avoids counting the owner right after a
+// restart.
+try {
+  const raw = fs.readFileSync(OWNER_JIDS_FILE, 'utf8');
+  const arr = JSON.parse(raw);
+  if (Array.isArray(arr)) for (const j of arr) if (j) knownOwnerJids.add(j);
+} catch { /* ENOENT o JSON inválido: se empieza vacío, se re-aprende solo */ }
+
+let ownerSaveTimer = null;
+function scheduleOwnerSave() {
+  if (ownerSaveTimer) return;
+  ownerSaveTimer = setTimeout(() => {
+    ownerSaveTimer = null;
+    const tmp = OWNER_JIDS_FILE + '.tmp';
+    try {
+      fs.mkdirSync(path.dirname(OWNER_JIDS_FILE), { recursive: true });
+      fs.writeFileSync(tmp, JSON.stringify([...knownOwnerJids]));
+      fs.renameSync(tmp, OWNER_JIDS_FILE);
+    } catch { /* si falla el guardado, el set en memoria sigue válido */ }
+  }, 5000);
+}
+
+function noteOwnerJid(jid) {
+  if (!jid) return;
+  const b = bareJid(jid);
+  if (knownOwnerJids.has(b)) return;
+  knownOwnerJids.add(b);
+  scheduleOwnerSave();
+}
+
+function isKnownOwnerJid(jid) {
+  return !!jid && knownOwnerJids.has(bareJid(jid));
+}
 
 // Strip device suffix (xxx:1@lid → xxx@lid). Baileys' msg.key.participant
 // can carry a device tag that groupMeta.participants[].id does not, which
@@ -142,9 +190,18 @@ function isOwner(jid, fromMe, groupMeta) {
 // True only for the primary owner (config.ownerNumber), not the co-owners.
 // Used to exclude the owner's own messages from the activity ranking (!count)
 // without also excluding co-owners.
+//
+// Fast path: a LID we've already confirmed as the owner (learned from a prior
+// check that had metadata) matches instantly, with no resolution — this is what
+// makes the exclusion reliable in the counter's hot path. Slow path: resolve
+// against config numbers, and if it matches, LEARN the JID so next time is
+// instant even without metadata.
 function isMainOwner(jid, fromMe, groupMeta) {
   if (fromMe) return true;
-  return matchesOwners(jid, groupMeta, [String(config.ownerNumber).replace(/\D/g, '')]);
+  if (isKnownOwnerJid(jid)) return true;
+  const ok = matchesOwners(jid, groupMeta, [String(config.ownerNumber).replace(/\D/g, '')]);
+  if (ok) noteOwnerJid(jid);
+  return ok;
 }
 
 // True if `jid` is the bot's own account, in any JID form. Used to stop the bot
@@ -236,6 +293,8 @@ function extractQuotedText(msg) {
 module.exports = {
   isOwner,
   isMainOwner,
+  noteOwnerJid,
+  isKnownOwnerJid,
   isAdmin,
   isBotJid,
   isBotAdmin,
