@@ -133,7 +133,7 @@ async function cmdCasino(sock, msg) {
   const resetStr = ms > 0 ? `${hours}h ${mins}min` : 'pronto';
 
   const text =
-    `🎰 *CASINO — HOY*\n\n` +
+    `*CASINO — HOY*\n\n` +
     `Mensajes hoy: *${fmt(count)}*\n` +
     `Próximo bono: ${tierLabel} — faltan *${fmt(remaining)}* msgs\n\n` +
     `_Reset en ${resetStr}_`;
@@ -150,25 +150,25 @@ async function cmdHelp(sock, msg) {
 `*${config.botName}* · comandos
 _Prefijo *${p}* — ej: *${p}play* despacito_
 
-🎵 *MÚSICA*
+━━ *MÚSICA* ━━
 *${p}play* <nombre> — busca y envía una canción
 
-🖼️ *STICKERS*
-*${p}s* — imagen/video → sticker
-*${p}ttp* <texto> — texto → sticker
-*${p}toimg* — sticker → imagen
+━━ *STICKERS* ━━
+*${p}s* — imagen/video a sticker
+*${p}ttp* <texto> — texto a sticker
+*${p}toimg* — sticker a imagen
 
-🔎 *PERFIL / ANTI-FAKE*
+━━ *PERFIL / ANTI-FAKE* ━━
 *${p}pfp* @user — su foto de perfil (o un número)
 *${p}fk* @user — analiza si es cuenta falsa (da un puntaje)
 
-📊 *ACTIVIDAD*
+━━ *ACTIVIDAD* ━━
 *${p}count* — quién escribe más
 *${p}inactivos* — los que casi no escriben
 *${p}vs* @a @b — compara actividad de dos
 *${p}top5* / *${p}top10* <tema>
 
-🎲 *JUEGOS* _(sin @ = a ti · con @ = a otro)_
+━━ *JUEGOS* ━━ _(sin @ = a ti · con @ = a otro)_
 Dan un % al azar de un rasgo:
 *${p}crack* · *${p}inteligencia* · *${p}hot* · *${p}gay* · *${p}simp*
 *${p}rata* · *${p}friki* · *${p}cerdo* · *${p}inutil* · *${p}maricon*
@@ -177,16 +177,16 @@ Dan un % al azar de un rasgo:
 *${p}ship* @a @b — compatibilidad
 *${p}roast* @user — burla pública
 
-💠 *AURA* _(economía del grupo)_
+━━ *AURA* ━━ _(economía del grupo)_
 *${p}aura* [@user] — ver aura · *${p}aura top* — ranking
 *${p}dar* / *${p}duel* / *${p}robo* @user <cantidad>
 *${p}casino* — tu progreso del día
-_Ganas aura escribiendo. Bonos diarios: 200 msg→20k · 500→60k · 1000→150k_
+_Ganas aura escribiendo. Bonos diarios: 200 msg = 20k · 500 = 60k · 1000 = 150k_
 
-🤖 *IA*
+━━ *IA* ━━
 *${p}g* <pregunta> — le preguntas a Grok
 
-🛡️ *ADMIN*
+━━ *ADMIN* ━━
 *${p}on* / *${p}off* — activa/desactiva el bot
 *${p}tagall* <msg> — menciona a todos
 *${p}kick* @user · *${p}add* <número>
@@ -200,12 +200,12 @@ _Ganas aura escribiendo. Bonos diarios: 200 msg→20k · 500→60k · 1000→150
 *${p}fkban* / *${p}fkunban* @user — lista negra global
 *${p}antifake* on/off — vigila las entradas
 
-👑 *OWNER*
+━━ *OWNER* ━━
 *${p}resetcount* · *${p}resetaura* — borrar rankings
 *${p}antiadmin* / *${p}antiempresa* / *${p}antilink* on/off
 *${p}clearcache* · *${p}setgrok* <key>
 
-ℹ️ *BOT*
+━━ *BOT* ━━
 *${p}ping* · *${p}info* · *${p}whoami*`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });

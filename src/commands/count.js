@@ -2,7 +2,7 @@ const { getActiveUsers, resetCounts } = require('../utils/messageCounter');
 const { isOwner, isAdmin, getSender, bareJid, sameUser } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
 
-const MEDALS = ['🥇', '🥈', '🥉', '🎖️', '🎖️'];
+const MEDALS = ['', '', '', '', ''];
 
 const MEMBER_PHRASES = [
   [
@@ -296,7 +296,7 @@ async function cmdCount(sock, msg, groupMeta, args) {
   users.sort((a, b) => b.count - a.count);
   const top = users.slice(0, 10);
   const mentions = top.map(u => u.jid);
-  let text = `*🏆 RANKING DE ACTIVIDAD*\n\n`;
+  let text = `*RANKING DE ACTIVIDAD*\n\n`;
 
   top.forEach((u, i) => {
     const phone = u.jid.split('@')[0];

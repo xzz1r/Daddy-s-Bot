@@ -152,7 +152,7 @@ async function connectToWhatsApp() {
       botIds = new Set(myJids.map(j => j.split('@')[0].split(':')[0]));
       // Explicit save on full connection to ensure session is complete
       await saveCreds();
-      console.log(`\n✓ Daddy's Bot conectado\n`);
+      console.log(`\nDaddy's Bot conectado\n`);
       // Huella del código realmente cargado en memoria. Si tras un `git pull` el
       // commit de aquí no coincide con `git log -1`, o el filtro NO muestra
       // `pad=512:512`, es que el proceso quedó con código viejo: hay que

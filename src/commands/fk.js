@@ -91,18 +91,18 @@ async function downloadImage(found) {
 function formatFacial(name, envKey, result) {
   if (!result) return '';
   if (!result.ok) {
-    if (result.reason === 'bad-key') return `\n\n🧑 *${name}:* key inválida (revisa ${envKey}).`;
-    if (result.reason === 'timeout') return `\n\n🧑 *${name}:* la búsqueda tardó demasiado, reintenta.`;
-    if (result.reason === 'error')   return `\n\n🧑 *${name}:* la búsqueda falló (red/límite/créditos).`;
+    if (result.reason === 'bad-key') return `\n\n*${name}:* key inválida (revisa ${envKey}).`;
+    if (result.reason === 'timeout') return `\n\n*${name}:* la búsqueda tardó demasiado, reintenta.`;
+    if (result.reason === 'error')   return `\n\n*${name}:* la búsqueda falló (red/límite/créditos).`;
     return ''; // no-key / no-image: silencioso
   }
-  if (!result.matches.length) return `\n\n🧑 *${name} (auto):* sin coincidencias faciales en la web.`;
+  if (!result.matches.length) return `\n\n*${name} (auto):* sin coincidencias faciales en la web.`;
   const lines = result.matches.map(m => {
     const sc = m.score != null ? ` (${m.score}%)` : '';
     const ttl = m.title ? `${m.title} — ` : '';
     return `• ${ttl}${m.sourceUrl}${sc}`;
   });
-  return `\n\n🧑 *${name} (auto) — ${result.matches.length} coincidencia(s):*\n${lines.join('\n')}`;
+  return `\n\n*${name} (auto) — ${result.matches.length} coincidencia(s):*\n${lines.join('\n')}`;
 }
 
 // La mayoría de los fakes roban la foto de una cuenta de Instagram (o de otra
@@ -111,11 +111,11 @@ function formatFacial(name, envKey, result) {
 // porque suele ser la cuenta original de la que sacaron la foto. Sin coste ni
 // llamadas extra: filtra lo que ya tenemos.
 const SOCIALS = [
-  { host: /instagram\.com/i,  label: '📸 Instagram' },
-  { host: /(tiktok\.com)/i,   label: '🎵 TikTok' },
-  { host: /(facebook\.com|fb\.com)/i, label: '👤 Facebook' },
+  { host: /instagram\.com/i,  label: 'Instagram' },
+  { host: /(tiktok\.com)/i,   label: 'TikTok' },
+  { host: /(facebook\.com|fb\.com)/i, label: 'Facebook' },
   { host: /(twitter\.com|x\.com)/i,   label: '𝕏 Twitter/X' },
-  { host: /(linkedin\.com)/i, label: '💼 LinkedIn' },
+  { host: /(linkedin\.com)/i, label: 'LinkedIn' },
 ];
 
 function socialHits(...results) {
@@ -159,7 +159,7 @@ async function searchBlock(buf, imgUrl) {
       `${h.label}: ${h.url}${h.score != null ? ` (${h.score}%)` : ''}`
     );
     out +=
-      `🎯 *ORIGEN DE LA FOTO (redes):*\n${lines.join('\n')}\n` +
+      `*ORIGEN DE LA FOTO (redes):*\n${lines.join('\n')}\n` +
       `_Si sale de un perfil que NO es esta persona → suplantación._\n\n`;
   }
 
@@ -176,7 +176,7 @@ async function searchBlock(buf, imgUrl) {
     engines.push(`Lens → ${lens}`, `TinEye → ${tin}`);
   }
   engines.push(`PimEyes → pimeyes.com`); // subir la foto adjunta
-  out += `🔎 *Buscar la cara:*\n${engines.join('\n')}`;
+  out += `*Buscar la cara:*\n${engines.join('\n')}`;
 
   out += formatFacial('Lenso', 'LENSO_API_KEY', lenso);
   out += formatFacial('FaceCheck', 'FACECHECK_API_KEY', fc);
@@ -220,11 +220,11 @@ async function fkOnImage(sock, msg, img) {
     const matches = await matchOnly(hash);
     const fake = matches.filter(m => m.fake);
     const others = [...new Set(matches.filter(m => !m.fake).map(m => shortAcc(m.account)))];
-    if (fake.length) lines.push(`🚨 *Esta foto está marcada como FAKE* en el historial.`);
-    if (others.length) lines.push(`👥 *Esta foto la usan/usaron:* ${others.join(', ')} → posible suplantación.`);
-    if (!fake.length && !others.length) lines.push(`🖼 Sin coincidencias en el historial del bot.`);
+    if (fake.length) lines.push(`*Esta foto está marcada como FAKE* en el historial.`);
+    if (others.length) lines.push(`*Esta foto la usan/usaron:* ${others.join(', ')} → posible suplantación.`);
+    if (!fake.length && !others.length) lines.push(`Sin coincidencias en el historial del bot.`);
   } catch {
-    lines.push(`🖼 No pude calcular la huella de la imagen (ffmpeg).`);
+    lines.push(`No pude calcular la huella de la imagen (ffmpeg).`);
   }
 
   const search = await searchPromise;
@@ -277,7 +277,7 @@ async function cmdFk(sock, msg, args, groupMeta) {
   // Lista negra: veredicto casi directo.
   if (bannedAs) {
     score += 10;
-    lines.push(`⛔ *EN LISTA NEGRA* (${shortAcc(bannedAs)}) — ya fue baneado en tus grupos.`);
+    lines.push(`*EN LISTA NEGRA* (${shortAcc(bannedAs)}) — ya fue baneado en tus grupos.`);
   }
 
   // Huella de la foto contra el historial (multicuenta / reciclaje / fake).
@@ -296,27 +296,27 @@ async function cmdFk(sock, msg, args, groupMeta) {
 
       if (fake.length) {
         score += 8;
-        lines.push(`🚨 *Foto marcada como FAKE* anteriormente.`);
+        lines.push(`*Foto marcada como FAKE* anteriormente.`);
       }
       if (live.length) {
         score += 5;
         const who = [...new Set(live.map(m => shortAcc(m.account)))].join(', ');
-        lines.push(`⚠️ *Misma foto que un miembro presente:* ${who} → multicuenta/suplantación.`);
+        lines.push(`*Misma foto que un miembro presente:* ${who} → multicuenta/suplantación.`);
       }
       if (past.length) {
         score += 4;
         const who = [...new Set(past.map(m => shortAcc(m.account)))].join(', ');
-        lines.push(`🕒 *Foto reciclada:* ya la usó ${who} (cuenta que ya no está) → identidad robada.`);
+        lines.push(`*Foto reciclada:* ya la usó ${who} (cuenta que ya no está) → identidad robada.`);
       }
       if (!fake.length && !live.length && !past.length) {
-        lines.push(`🖼 Foto sin coincidencias en el historial del bot.`);
+        lines.push(`Foto sin coincidencias en el historial del bot.`);
       }
     } catch {
-      lines.push(`🖼 Foto presente (no pude calcular su huella).`);
+      lines.push(`Foto presente (no pude calcular su huella).`);
     }
   } else {
     score += 2;
-    lines.push(`🚫 *Sin foto de perfil visible* (o la oculta a desconocidos).`);
+    lines.push(`*Sin foto de perfil visible* (o la oculta a desconocidos).`);
   }
 
   // Proxy de antigüedad vía el "info" del perfil.
@@ -328,37 +328,37 @@ async function cmdFk(sock, msg, args, groupMeta) {
     // never true.
     if (!about.setAt) {
       score += 1;
-      lines.push(`📝 Info del perfil nunca escrito (por defecto).`);
+      lines.push(`Info del perfil nunca escrito (por defecto).`);
     } else if (age < 30 * DAY) {
       score += 2;
-      lines.push(`📝 Info del perfil escrito hace ${Math.max(1, Math.round(age / DAY))} días → cuenta posiblemente reciente.`);
+      lines.push(`Info del perfil escrito hace ${Math.max(1, Math.round(age / DAY))} días → cuenta posiblemente reciente.`);
     } else if (age > 365 * DAY) {
       score -= 2;
-      lines.push(`📜 Info escrito hace ${Math.round(age / (365 * DAY) * 10) / 10} años → cuenta antigua verificable.`);
+      lines.push(`Info escrito hace ${Math.round(age / (365 * DAY) * 10) / 10} años → cuenta antigua verificable.`);
     }
     if (about.status === '') {
-      lines.push(`🔏 Info oculto por privacidad.`);
+      lines.push(`Info oculto por privacidad.`);
     }
   }
 
   // Cuenta Business.
   if (biz) {
     score += 2;
-    lines.push(`🏢 *Cuenta WhatsApp Business.*`);
+    lines.push(`*Cuenta WhatsApp Business.*`);
   }
 
   // Número oculto (solo LID, sin mapeo a teléfono conocido).
   if (targetAcc.endsWith('@lid')) {
     score += 1;
-    lines.push(`🔒 Número oculto (LID) — no expone teléfono ni país.`);
+    lines.push(`Número oculto (LID) — no expone teléfono ni país.`);
   }
 
   // Veredicto por umbrales.
   let verdict;
-  if (score >= 8)      verdict = '🚨 *RIESGO ALTO — casi seguro fake/multicuenta.*';
-  else if (score >= 4) verdict = '⚠️ *RIESGO MEDIO — verificar manualmente.*';
-  else if (score >= 1) verdict = '🟡 *Riesgo bajo — señales menores.*';
-  else                 verdict = '✅ *Sin señales de cuenta falsa.*';
+  if (score >= 8)      verdict = '*RIESGO ALTO — casi seguro fake/multicuenta.*';
+  else if (score >= 4) verdict = '*RIESGO MEDIO — verificar manualmente.*';
+  else if (score >= 1) verdict = '*Riesgo bajo — señales menores.*';
+  else                 verdict = '*Sin señales de cuenta falsa.*';
 
   const num = target.split('@')[0];
   const tag = (target.endsWith('@s.whatsapp.net') ? '+' : '@') + num;
@@ -406,7 +406,7 @@ async function cmdMarkFake(sock, msg, args, groupMeta) {
     await recordAndMatch(jid.endsWith('@g.us') ? jid : null, canonicalJid(target), hash);
     const n = await markFake(hash);
     return sock.sendMessage(jid, {
-      text: `✅ Foto marcada como fake (${n} registro${n === 1 ? '' : 's'}). Si reaparece con otra cuenta, saltará la alerta.`,
+      text: `Foto marcada como fake (${n} registro${n === 1 ? '' : 's'}). Si reaparece con otra cuenta, saltará la alerta.`,
     }, { quoted: msg });
   } catch {
     return sock.sendMessage(jid, { text: 'No pude calcular la huella (ffmpeg).' }, { quoted: msg });
@@ -448,7 +448,7 @@ async function cmdFkBan(sock, msg, args, groupMeta) {
 
   const total = await banCount();
   return sock.sendMessage(jid, {
-    text: `⛔ ${shortAcc(canonicalJid(target))} añadido a la lista negra global (${total} cuentas).` +
+    text: `${shortAcc(canonicalJid(target))} añadido a la lista negra global (${total} cuentas).` +
       (kicked ? ' Expulsado.' : '') +
       `\nCon *!antifake on* no podrá entrar a ningún grupo del bot.`,
     mentions: [target],
@@ -470,7 +470,7 @@ async function cmdFkUnban(sock, msg, args, groupMeta) {
   const n = await unbanAccount(allForms(target, groupMeta));
   return sock.sendMessage(jid, {
     text: n
-      ? `✅ ${shortAcc(canonicalJid(target))} sacado de la lista negra.`
+      ? `${shortAcc(canonicalJid(target))} sacado de la lista negra.`
       : `No estaba en la lista negra.`,
     mentions: [target],
   }, { quoted: msg });
@@ -505,7 +505,7 @@ async function cmdAntiFake(sock, msg, args, groupMeta) {
   await toggleAntiFake(jid, arg === 'on');
   return sock.sendMessage(jid, {
     text: arg === 'on'
-      ? '🛡 *Anti-fake ACTIVADO*: lista negra + huella de fotos + anti-raid en cada entrada.'
+      ? '*Anti-fake ACTIVADO*: lista negra + huella de fotos + anti-raid en cada entrada.'
       : 'Anti-fake desactivado.',
   }, { quoted: msg });
 }
@@ -532,7 +532,7 @@ async function guardOnJoin(sock, groupJid, joiners, groupMeta) {
     try {
       await sock.groupSettingUpdate(groupJid, 'announcement');
       await sock.sendMessage(groupJid, {
-        text: `🚨 *ANTI-RAID:* ${times.length} entradas en menos de 1 minuto. Grupo cerrado (solo admins). Reabran con *!open* cuando pase.`,
+        text: `*ANTI-RAID:* ${times.length} entradas en menos de 1 minuto. Grupo cerrado (solo admins). Reabran con *!open* cuando pase.`,
       });
     } catch (e) {
       logger.warn(`anti-raid: no pude cerrar ${groupJid} (¿bot no es admin?): ${e.message}`);
@@ -551,7 +551,7 @@ async function guardOnJoin(sock, groupJid, joiners, groupMeta) {
       try {
         await sock.groupParticipantsUpdate(groupJid, [obj.id], 'remove');
         await sock.sendMessage(groupJid, {
-          text: `⛔ *Anti-fake:* @${String(obj.id).split('@')[0]} está en la lista negra (${shortAcc(bannedAs)}). Expulsado.`,
+          text: `*Anti-fake:* @${String(obj.id).split('@')[0]} está en la lista negra (${shortAcc(bannedAs)}). Expulsado.`,
           mentions: [obj.id],
         });
       } catch (e) {
@@ -585,7 +585,7 @@ async function guardOnJoin(sock, groupJid, joiners, groupMeta) {
         ? 'su foto está *marcada como FAKE*'
         : `su foto es la misma que la de ${dupes.join(', ')}${matches.some(m => presentSet.has(m.account)) ? ' (presente en el grupo)' : ''}`;
       await sock.sendMessage(groupJid, {
-        text: `⚠️ *Anti-fake:* ${numTag} acaba de entrar y ${motivo}. Revisen con *!fk ${numTag}*.`,
+        text: `*Anti-fake:* ${numTag} acaba de entrar y ${motivo}. Revisen con *!fk ${numTag}*.`,
         mentions: [obj.id],
       });
     })().catch(e => logger.warn(`anti-fake: chequeo de foto falló: ${e.message}`));

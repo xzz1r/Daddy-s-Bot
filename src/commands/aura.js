@@ -215,7 +215,7 @@ async function showRanking(sock, msg, groupMeta) {
   if (ranking.length === 0) {
     return sock.sendMessage(jid, { text: 'Nadie ha medido su aura todavía. Usa *!aura*.' }, { quoted: msg });
   }
-  const medals = ['🥇', '🥈', '🥉'];
+  const medals = ['', '', ''];
   let text = '*RANKING DE AURA*\n\n';
   const mentions = [];
   ranking.forEach((r, i) => {
@@ -298,7 +298,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
   const effectiveTier = (previous < 0 && amount < 0) ? 'spiral' : tier;
 
   const text =
-    `*@${sender.split('@')[0]}  ${sign}${fmt(Math.abs(amount))} de aura*\n` +
+    `*@${sender.split('@')[0]} ${sign}${fmt(Math.abs(amount))} de aura*\n` +
     `${pickFresh(AURA[effectiveTier], `${jid}|aura|${effectiveTier}`)}\n\n` +
     `Aura total: *${fmt(current)}*`;
 

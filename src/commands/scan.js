@@ -97,10 +97,10 @@ async function cmdScan(sock, msg, groupMeta) {
   // ── Compose report ────────────────────────────────────────────────────────
   let text = `*ESCANEO DE GRUPO*\n\n`;
 
-  text += `👥 Total miembros: *${participants.length}*\n`;
-  text += `📱 Número visible: *${phoneJids.length}*\n`;
+  text += `Total miembros: *${participants.length}*\n`;
+  text += `Número visible: *${phoneJids.length}*\n`;
   if (lidOnly.length > 0)
-    text += `🔒 Número oculto (LID): *${lidOnly.length}*\n`;
+    text += `Número oculto (LID): *${lidOnly.length}*\n`;
   text += `\n`;
 
   // Business accounts — individually listed with mention
@@ -108,23 +108,23 @@ async function cmdScan(sock, msg, groupMeta) {
     const bizLines = phoneJids
       .filter(j => bizMap.get(j))
       .map(j => `• @${j.split('@')[0]}`);
-    text += `⚠️ *Cuentas Business (${bizCount}):*\n${bizLines.join('\n')}\n\n`;
+    text += `*Cuentas Business (${bizCount}):*\n${bizLines.join('\n')}\n\n`;
   }
 
   // "Sin foto" as a stat, not individual listing — too many false positives from privacy settings
-  text += `📸 Sin foto visible: *${noPfp}* de ${phoneJids.length}`;
+  text += `Sin foto visible: *${noPfp}* de ${phoneJids.length}`;
   if (noPfp > 0) text += ` _(puede ser privacidad)_`;
-  if (timedOut > 0) text += `\n⏱ Sin respuesta (timeout): *${timedOut}*`;
+  if (timedOut > 0) text += `\nSin respuesta (timeout): *${timedOut}*`;
   text += '\n';
 
   // LID detail
   if (lidOnly.length > 0) {
-    text += `\n🔒 *Número oculto* — ${lidOnly.length} miembro${lidOnly.length > 1 ? 's' : ''} con privacidad de número activa. No es posible escanearlo${lidOnly.length > 1 ? 's' : ''} (LID-only).\n`;
+    text += `\n*Número oculto* — ${lidOnly.length} miembro${lidOnly.length > 1 ? 's' : ''} con privacidad de número activa. No es posible escanearlo${lidOnly.length > 1 ? 's' : ''} (LID-only).\n`;
   }
 
   // Verdict
   if (bizCount === 0 && lidOnly.length === 0) {
-    text += `\n✅ Sin señales destacadas.`;
+    text += `\nSin señales destacadas.`;
   } else if (bizCount > 0 || lidOnly.length > 0) {
     text += `\n_Revisión manual recomendada para los marcados._`;
   }

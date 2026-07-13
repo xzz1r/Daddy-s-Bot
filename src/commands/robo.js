@@ -139,11 +139,11 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     ]);
     const phrase = pickFresh(ROB_WIN, `${jid}|robo|win`).replace(/%A/g, aTag).replace(/%V/g, vTag);
     const text =
-      `🔴 *ROBO EXITOSO*\n` +
+      `*ROBO EXITOSO*\n` +
       `${aTag} le roba *${fmt(stake)} de aura* a ${vTag}\n\n` +
       `${phrase}\n\n` +
-      `${aTag}  +${fmt(stake)} → *${fmt(aNew.current)}*\n` +
-      `${vTag}  −${fmt(stake)} → *${fmt(vNew.current)}*`;
+      `${aTag} +${fmt(stake)} → *${fmt(aNew.current)}*\n` +
+      `${vTag} −${fmt(stake)} → *${fmt(vNew.current)}*`;
     return sock.sendMessage(jid, { text, mentions: [sender, target] });
   }
 
@@ -152,11 +152,11 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const aNew = await addAura(jid, sender, -penalty);
   const phrase = pickFresh(ROB_FAIL, `${jid}|robo|fail`).replace(/%A/g, aTag).replace(/%V/g, vTag);
   const text =
-    `⚪ *ROBO FALLIDO*\n` +
+    `*ROBO FALLIDO*\n` +
     `${aTag} intentó robarle *${fmt(stake)} de aura* a ${vTag}\n\n` +
     `${phrase}\n\n` +
-    `${aTag}  −${fmt(penalty)} (penalización) → *${fmt(aNew.current)}*\n` +
-    `${vTag}  sin cambios → *${fmt(auraV)}*`;
+    `${aTag} −${fmt(penalty)} (penalización) → *${fmt(aNew.current)}*\n` +
+    `${vTag} sin cambios → *${fmt(auraV)}*`;
   return sock.sendMessage(jid, { text, mentions: [sender, target] });
 }
 
