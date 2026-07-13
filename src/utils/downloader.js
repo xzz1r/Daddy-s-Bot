@@ -192,8 +192,19 @@ function buildStrategies() {
   const cookies = cookiesArgs();
   const list = [];
 
-  // 1) Cookies (si existen) + solver EJS + clientes por defecto → itag 140.
-  //    Es la vía de máxima calidad y la que estaba funcionando.
+  // 1) VÍA POT (sin cookies). Clientes por defecto (incluye web) + solver EJS.
+  //    Si el POT provider (bgutil) está corriendo, yt-dlp obtiene el token de
+  //    proof-of-origin automáticamente y esto satisface el bot-check de YouTube
+  //    SIN depender de cookies que caducan. Es la vía autosostenible: cuando el
+  //    provider está activo, esta gana siempre y no hay que tocar nada. El itag
+  //    140 (m4a 128k) sale igual porque el cliente web con POT expone audio puro.
+  list.push({
+    name: 'pot/web (sin cookies)',
+    args: ['--remote-components', 'ejs:github', '--extractor-args', 'youtube:skip=hls'],
+  });
+
+  // 2) Cookies (si existen) + solver EJS. Respaldo de calidad para cuando el POT
+  //    no está disponible pero sí hay una sesión válida en el archivo de cookies.
   if (cookies.length) {
     list.push({
       name: 'cookies+ejs',
@@ -201,17 +212,14 @@ function buildStrategies() {
     });
   }
 
-  // 2) Clientes móviles/TV SIN cookies. Cuando el problema son cookies caducadas
-  //    (que YouTube rechaza activamente), quitarlas y pedir por estos clientes
-  //    suele saltarse el bot-check. Si hay POT provider instalado, yt-dlp lo usa
-  //    solo para conseguir el audio.
+  // 3) Clientes móviles/TV SIN cookies. Otra vía distinta al bloqueo del cliente
+  //    web; útil cuando ese está bloqueado y no hay POT.
   list.push({
     name: 'mobile-tv (sin cookies)',
     args: ['--remote-components', 'ejs:github', '--extractor-args', 'youtube:player_client=tv,mweb,android_vr;skip=hls'],
   });
 
-  // 3) Clientes móviles CON cookies (por si el video exige sesión pero la web
-  //    está bloqueada por firma).
+  // 4) Clientes móviles CON cookies (por si el video exige sesión).
   if (cookies.length) {
     list.push({
       name: 'mobile-tv+cookies',
@@ -219,8 +227,8 @@ function buildStrategies() {
     });
   }
 
-  // 4) Último recurso: clientes por defecto sin solver ni cookies. Puede acabar
-  //    en un formato peor, pero es mejor entregar algo que fallar del todo.
+  // 5) Último recurso: clientes por defecto sin solver. Puede dar un formato
+  //    peor, pero es mejor entregar algo que fallar del todo.
   list.push({
     name: 'default (básico)',
     args: ['--extractor-args', 'youtube:skip=hls'],
