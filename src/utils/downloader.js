@@ -176,27 +176,73 @@ async function cleanupPartials(tempDir, baseName) {
   } catch {}
 }
 
+// Errores que significan "YouTube bloqueó ESTA vía, prueba otra" (no que el
+// video no exista). Ante uno de estos pasamos a la siguiente estrategia en vez
+// de rendirnos. El clásico es el "Sign in to confirm you're not a bot".
+function isBlockedError(message) {
+  return /sign in to confirm|not a bot|confirm you'?re|requested format is not available|unable to extract|nsig|failed to extract|player response|precondition check|no video formats|unavailable videos are hidden|throttl/i.test(String(message));
+}
+
+// Estrategias de extracción, en orden de preferencia. Se prueban una tras otra
+// hasta que alguna funcione, así un bloqueo puntual de YouTube (cookies
+// caducadas, bot-check, cambio de firma) ya NO tumba el comando: hay planes B.
+// La 1 da la mejor calidad (itag 140, m4a 128k). Las siguientes son vías
+// alternativas que a menudo siguen funcionando cuando la web está bloqueada.
+function buildStrategies() {
+  const cookies = cookiesArgs();
+  const list = [];
+
+  // 1) Cookies (si existen) + solver EJS + clientes por defecto → itag 140.
+  //    Es la vía de máxima calidad y la que estaba funcionando.
+  if (cookies.length) {
+    list.push({
+      name: 'cookies+ejs',
+      args: [...cookies, '--remote-components', 'ejs:github', '--extractor-args', 'youtube:skip=hls'],
+    });
+  }
+
+  // 2) Clientes móviles/TV SIN cookies. Cuando el problema son cookies caducadas
+  //    (que YouTube rechaza activamente), quitarlas y pedir por estos clientes
+  //    suele saltarse el bot-check. Si hay POT provider instalado, yt-dlp lo usa
+  //    solo para conseguir el audio.
+  list.push({
+    name: 'mobile-tv (sin cookies)',
+    args: ['--remote-components', 'ejs:github', '--extractor-args', 'youtube:player_client=tv,mweb,android_vr;skip=hls'],
+  });
+
+  // 3) Clientes móviles CON cookies (por si el video exige sesión pero la web
+  //    está bloqueada por firma).
+  if (cookies.length) {
+    list.push({
+      name: 'mobile-tv+cookies',
+      args: [...cookies, '--remote-components', 'ejs:github', '--extractor-args', 'youtube:player_client=tv,mweb;skip=hls'],
+    });
+  }
+
+  // 4) Último recurso: clientes por defecto sin solver ni cookies. Puede acabar
+  //    en un formato peor, pero es mejor entregar algo que fallar del todo.
+  list.push({
+    name: 'default (básico)',
+    args: ['--extractor-args', 'youtube:skip=hls'],
+  });
+
+  return list;
+}
+
 async function runDownload(videoUrl) {
   const baseName = `audio_${Date.now()}_${Math.random().toString(36).slice(2)}`;
   const tempDir = path.dirname(tempFile('tmp'));
   const outTemplate = path.join(tempDir, `${baseName}__%(title).80B.%(ext)s`);
 
-  try {
-    await ytdlp([
+  // Args comunes a todas las estrategias. Lo único que cambia entre intentos son
+  // las cookies/cliente/solver que aporta cada estrategia.
+  const baseArgs = [
     videoUrl,
-    // Prefer YouTube's native m4a/AAC audio stream (itag 140, ~128kbps) so the
-    // postprocessor just remuxes (-c:a copy) instead of re-encoding the whole
-    // file. Dropping --audio-quality is what enables the copy: any explicit
-    // quality forces a full ffmpeg transcode, the slowest step on Termux CPUs.
-    // The /bestaudio/best fallbacks are mandatory: some videos (or certain
-    // player clients) expose no audio-only stream, and without a final 'best'
-    // catch-all yt-dlp aborts with "Requested format is not available".
-    // Balance calidad/velocidad/tamaño: tomamos el MEJOR stream de audio m4a que
-    // ofrece YouTube (normalmente ~128 kbps AAC, buena calidad para música). Al
-    // ser m4a, yt-dlp lo remuxea con -c copy: NO re-codifica, así que es rápido y
-    // no pierde nada de calidad respecto a la fuente. Es el punto justo: calidad
-    // alta, tamaño razonable (~1 MB/min) y velocidad máxima. Solo si un video no
-    // tiene m4a se recurre a otro códec (ahí sí convierte, a buena calidad).
+    // Balance calidad/velocidad/tamaño: el MEJOR stream m4a (normalmente ~128
+    // kbps AAC). Al ser m4a, yt-dlp lo remuxea con -c copy (no re-codifica): sin
+    // pérdida y rápido. Los fallbacks /bestaudio/best son obligatorios porque
+    // algunos videos/clientes no exponen audio puro y sin el 'best' final
+    // yt-dlp aborta con "Requested format is not available".
     '-f', 'bestaudio[ext=m4a]/bestaudio/best',
     '-x',
     '--audio-format', 'm4a',
@@ -204,54 +250,64 @@ async function runDownload(videoUrl) {
     '--no-playlist',
     '--no-warnings',
     '--no-part',
-    // music.js refuses to send anything over 25MB anyway — capping the
-    // download at the same size stops yt-dlp from spending minutes fetching
-    // a file that's guaranteed to be discarded right after.
+    // music.js descarta cualquier cosa mayor de 25MB: capar aquí evita gastar
+    // minutos bajando un archivo que se va a descartar igual.
     '--max-filesize', '25M',
     '--no-mtime',
     '--socket-timeout', '20',
-    ...cookiesArgs(), // --cookies <file> si existe data/youtube_cookies.txt
-    // Resuelve el desafío de firma/n de YouTube (con Deno instalado). Sin esto,
-    // el cliente web solo expone el formato 18 (video 360p) y NO los de audio
-    // puro; con esto aparece el itag 140 (m4a 128k) de siempre. NO forzamos
-    // player_client: dejando los clientes por defecto + cookies + este solver es
-    // como vuelven a salir los streams de solo-audio de buena calidad.
-    '--remote-components', 'ejs:github',
-    // Salta los formatos HLS (m3u8): no los usamos —el 140 es dash— y evitar su
-    // manifiesto ahorra una descarga/parseo por cada pedido.
-    '--extractor-args', 'youtube:skip=hls',
-  ]);
+  ];
 
-  const files = await fs.readdir(tempDir);
-  const audioFile = files.find(f => f.startsWith(baseName));
-  if (!audioFile) throw new Error('No se pudo descargar el audio');
-  const fullPath = path.join(tempDir, audioFile);
+  const strategies = buildStrategies();
+  let lastErr = null;
 
-  const stat = await fs.stat(fullPath);
-  if (stat.size < 1024) {
-    await cleanTemp(fullPath);
-    throw new Error('Archivo descargado vacío');
+  for (let i = 0; i < strategies.length; i++) {
+    const strat = strategies[i];
+    try {
+      await ytdlp([...baseArgs, ...strat.args]);
+
+      const files = await fs.readdir(tempDir);
+      const audioFile = files.find(f => f.startsWith(baseName));
+      if (!audioFile) throw new Error('No se pudo descargar el audio');
+      const fullPath = path.join(tempDir, audioFile);
+
+      const stat = await fs.stat(fullPath);
+      if (stat.size < 1024) {
+        await cleanTemp(fullPath);
+        throw new Error('Archivo descargado vacío');
+      }
+
+      if (i > 0) logger.warn(`!play: estrategia "${strat.name}" funcionó tras fallar ${i} anterior(es)`);
+
+      const titleMatch = audioFile.match(/__(.+)\.[^.]+$/);
+      const title = titleMatch ? titleMatch[1].trim() : 'Sin título';
+
+      const ext = path.extname(audioFile).slice(1).toLowerCase();
+      const mimetypes = {
+        m4a:  'audio/mp4',
+        mp4:  'audio/mp4',
+        mp3:  'audio/mpeg',
+        aac:  'audio/aac',
+        ogg:  'audio/ogg',
+        opus: 'audio/ogg; codecs=opus',
+        webm: 'audio/webm',
+      };
+
+      return { filePath: fullPath, title, mimetype: mimetypes[ext] || 'audio/mp4', ext };
+    } catch (err) {
+      lastErr = err;
+      await cleanupPartials(tempDir, baseName);
+      // Si es un bloqueo de YouTube y quedan estrategias, prueba la siguiente.
+      // Si es otro error (video privado, borrado, etc.) no tiene sentido reintentar.
+      const more = i < strategies.length - 1;
+      if (more && isBlockedError(err.message)) {
+        logger.warn(`!play: estrategia "${strat.name}" bloqueada (${err.message}); probando siguiente`);
+        continue;
+      }
+      throw err;
+    }
   }
 
-  const titleMatch = audioFile.match(/__(.+)\.[^.]+$/);
-  const title = titleMatch ? titleMatch[1].trim() : 'Sin título';
-
-  const ext = path.extname(audioFile).slice(1).toLowerCase();
-  const mimetypes = {
-    m4a:  'audio/mp4',
-    mp4:  'audio/mp4',
-    mp3:  'audio/mpeg',
-    aac:  'audio/aac',
-    ogg:  'audio/ogg',
-    opus: 'audio/ogg; codecs=opus',
-    webm: 'audio/webm',
-  };
-
-    return { filePath: fullPath, title, mimetype: mimetypes[ext] || 'audio/mp4', ext };
-  } catch (err) {
-    await cleanupPartials(tempDir, baseName);
-    throw err;
-  }
+  throw lastErr || new Error('No se pudo descargar el audio');
 }
 
 module.exports = { downloadAudio };

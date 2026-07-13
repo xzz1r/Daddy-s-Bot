@@ -54,7 +54,14 @@ async function cmdPlay(sock, msg, args) {
       result = await downloadAudio(query);
     } catch (err) {
       logger.error(`Download error: ${err.message}`);
-      return sock.sendMessage(jid, { text: `Error: ${err.message}` }, { quoted: msg });
+      // El bot-check de YouTube es un caso conocido y no aporta nada mostrar el
+      // volcado tecnico al grupo. Mensaje limpio para la peña; el detalle queda
+      // en el log para el owner. Cualquier otro error si se muestra tal cual.
+      const botCheck = /sign in to confirm|not a bot|confirm you'?re/i.test(err.message);
+      const text = botCheck
+        ? 'YouTube esta limitando las descargas ahora mismo. Intentalo de nuevo en un momento.'
+        : `Error: ${err.message}`;
+      return sock.sendMessage(jid, { text }, { quoted: msg });
     }
   }
 
