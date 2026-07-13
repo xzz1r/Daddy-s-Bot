@@ -54,32 +54,55 @@ echo "==> [5/6] Arrancando el servidor POT bajo pm2 (24/7, puerto 4416)..."
 pm2 start build/main.js --name pot-provider 2>/dev/null || pm2 restart pot-provider
 pm2 save
 
-echo "==> [6/6] Instalando el plugin en yt-dlp y actualizando yt-dlp..."
-# El plugin (paquete de PyPI) es lo que hace que yt-dlp hable con el servidor POT.
-python3 -m pip install -U bgutil-ytdlp-pot-provider || \
-  pip3 install -U bgutil-ytdlp-pot-provider || true
-# yt-dlp al día: los arreglos del bot-check salen en el canal nightly.
-yt-dlp --update-to nightly 2>/dev/null || \
-  python3 -m pip install -U --pre "yt-dlp[default]" 2>/dev/null || true
+echo "==> [6/6] Instalando el plugin en yt-dlp (ZIP en la carpeta de plugins)..."
+# CLAVE: yt-dlp aquí es un BINARIO standalone (/usr/local/bin/yt-dlp). Ese binario
+# NO carga plugins instalados con pip; solo los que estén como ZIP/carpeta en
+# ~/.config/yt-dlp/plugins/. Por eso se instala así y NO con pip.
+mkdir -p ~/.config/yt-dlp/plugins
+cd ~/.config/yt-dlp/plugins
+rm -rf bgutil-ytdlp-pot-provider*   # limpia instalaciones previas
+curl -fsSL -o bgutil-pot.zip \
+  "${REPO}/releases/download/${VERSION}/bgutil-ytdlp-pot-provider.zip" || \
+  curl -fsSL -o bgutil-pot.zip \
+  "${REPO}/releases/latest/download/bgutil-ytdlp-pot-provider.zip"
+unzip -o bgutil-pot.zip >/dev/null
+rm -f bgutil-pot.zip
+# Por si quedó una copia vieja mal instalada por pip (el binario no la usa, pero
+# limpia dudas):
+python3 -m pip uninstall -y bgutil-ytdlp-pot-provider >/dev/null 2>&1 || true
 
 echo ""
-echo "==> Comprobando que el servidor POT responde..."
+echo "==> Verificando de verdad que el POT funciona (esto es lo que importa)..."
 sleep 2
-if curl -fsS "http://127.0.0.1:4416/ping" >/dev/null 2>&1; then
-  echo "    OK: el servidor POT está vivo en el puerto 4416."
+# ¿El servidor POT está escuchando en el 4416?
+if (exec 3<>/dev/tcp/127.0.0.1/4416) 2>/dev/null; then
+  echo "    [1/2] Servidor POT: ESCUCHANDO en 4416."
 else
-  echo "    AVISO: el servidor POT no respondió al ping. Revisa 'pm2 logs pot-provider'."
+  echo "    [1/2] Servidor POT: NO responde. Revisa 'pm2 logs pot-provider'."
+fi
+# ¿yt-dlp carga el plugin Y pasa el bot-check en un video real?
+TESTURL="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+LOG="$(yt-dlp -v --simulate --no-warnings "$TESTURL" 2>&1 || true)"
+if echo "$LOG" | grep -qi "PO Token Providers.*bgutil"; then
+  echo "    [2/2] Plugin POT: CARGADO (yt-dlp lo ve)."
+else
+  echo "    [2/2] Plugin POT: NO cargado. yt-dlp no encontró el plugin."
+fi
+if echo "$LOG" | grep -qi "sign in to confirm"; then
+  echo "    RESULTADO: TODAVÍA BLOQUEADO. Mira el aviso de arriba."
+elif echo "$LOG" | grep -qi "Extracting URL\|Downloading.*player\|format"; then
+  echo "    RESULTADO: OK — extracción sin bot-check. !play debería funcionar."
+else
+  echo "    RESULTADO: no concluyente; corre el comando de prueba manual de abajo."
 fi
 
 echo ""
 echo "======================================================================"
-echo " POT provider instalado y corriendo (pm2 name: pot-provider)."
-echo " Ahora reinicia el bot:"
-echo "     pm2 restart bot"
-echo " y prueba en un grupo:  !play <cancion>"
+echo " Ahora reinicia el bot:   pm2 restart bot"
+echo " y prueba en un grupo:    !play <cancion>"
 echo ""
-echo " Deben verse DOS procesos online:   pm2 status"
-echo "     'bot'  y  'pot-provider'"
-echo " Para que sobrevivan a un reinicio del server:  pm2 startup   (y pega"
-echo " el comando que imprima), luego  pm2 save."
+echo " Prueba manual de POT (debe salir una línea con 'bgutil'):"
+echo "   yt-dlp -v --simulate 'https://youtu.be/dQw4w9WgXcQ' 2>&1 | grep -i pot"
+echo ""
+echo " pm2 status  → deben verse 'bot' y 'pot-provider' online."
 echo "======================================================================"
