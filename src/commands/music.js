@@ -51,7 +51,7 @@ async function cmdPlay(sock, msg, args) {
     // overlapping the message's network round-trip with the download.
     sock.sendMessage(jid, { text: 'Buscando...' }, { quoted: msg }).catch(() => {});
     try {
-      result = await downloadAudio(`ytsearch1:${query}`);
+      result = await downloadAudio(query);
     } catch (err) {
       logger.error(`Download error: ${err.message}`);
       return sock.sendMessage(jid, { text: `Error: ${err.message}` }, { quoted: msg });

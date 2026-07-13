@@ -1,8 +1,28 @@
 const { spawn, execSync } = require('child_process');
 const fs = require('fs-extra');
 const path = require('path');
+const axios = require('axios');
 const { tempFile, cleanTemp } = require('./helpers');
 const logger = require('./logger');
+
+// Resuelve una búsqueda a un videoId scrapeando la página de resultados de
+// YouTube (rápido, y no bloqueado en IP de datacenter). Así yt-dlp recibe el
+// link directo del video y se salta su PROPIA extracción de búsqueda — un paso
+// entero menos por cada !play. Devuelve null si falla (se cae a ytsearch1:).
+async function searchYouTubeId(query) {
+  // sp=EgIQAQ%3D%3D filtra a "solo videos" (excluye canales/playlists), así el
+  // primer resultado es el video más relevante, igual que ytsearch1.
+  const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&sp=EgIQAQ%253D%253D`;
+  const res = await axios.get(url, {
+    timeout: 8000,
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+      'Accept-Language': 'es',
+    },
+  });
+  const m = String(res.data).match(/"videoId":"([\w-]{11})"/);
+  return m ? m[1] : null;
+}
 
 function detectYtDlp() {
   const candidates = [
@@ -117,10 +137,26 @@ function ytdlp(args) {
   });
 }
 
-async function downloadAudio(videoUrl) {
+// Resuelve el objetivo antes de tomar el slot de descarga: si `query` ya es una
+// URL o un ytsearch, se usa tal cual; si es texto de búsqueda, se scrapea el
+// videoId para pasarle a yt-dlp el link directo (más rápido). Ante cualquier
+// fallo del scrape, cae a ytsearch1: (yt-dlp busca por su cuenta).
+async function resolveTarget(query) {
+  if (/^https?:\/\//.test(query) || query.startsWith('ytsearch')) return query;
+  try {
+    const id = await searchYouTubeId(query);
+    if (id) return `https://www.youtube.com/watch?v=${id}`;
+  } catch (e) {
+    logger.warn(`búsqueda scrape falló, usando ytsearch1: ${e.message}`);
+  }
+  return `ytsearch1:${query}`;
+}
+
+async function downloadAudio(query) {
+  const target = await resolveTarget(query);
   await acquireDownloadSlot();
   try {
-    return await runDownload(videoUrl);
+    return await runDownload(target);
   } finally {
     releaseDownloadSlot();
   }
@@ -181,6 +217,9 @@ async function runDownload(videoUrl) {
     // player_client: dejando los clientes por defecto + cookies + este solver es
     // como vuelven a salir los streams de solo-audio de buena calidad.
     '--remote-components', 'ejs:github',
+    // Salta los formatos HLS (m3u8): no los usamos —el 140 es dash— y evitar su
+    // manifiesto ahorra una descarga/parseo por cada pedido.
+    '--extractor-args', 'youtube:skip=hls',
   ]);
 
   const files = await fs.readdir(tempDir);
