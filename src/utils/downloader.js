@@ -22,10 +22,6 @@ function detectYtDlp() {
 }
 
 const YT_DLP = detectYtDlp();
-// En un VPS la solución fiable son las cookies, y el cliente que las usa de
-// forma nativa es 'web' (las cookies son de sesión web). Con las cookies puestas,
-// el cliente web autentica la petición y YouTube no aplica el "sign in".
-const PLAYER_CLIENTS = 'web';
 
 // Archivo de cookies de YouTube (formato Netscape) para saltar el bloqueo
 // "Sign in to confirm you're not a bot" que YouTube aplica a las IP de
@@ -179,7 +175,12 @@ async function runDownload(videoUrl) {
     '--no-mtime',
     '--socket-timeout', '20',
     ...cookiesArgs(), // --cookies <file> si existe data/youtube_cookies.txt
-    '--extractor-args', `youtube:player_client=${PLAYER_CLIENTS}`,
+    // Resuelve el desafío de firma/n de YouTube (con Deno instalado). Sin esto,
+    // el cliente web solo expone el formato 18 (video 360p) y NO los de audio
+    // puro; con esto aparece el itag 140 (m4a 128k) de siempre. NO forzamos
+    // player_client: dejando los clientes por defecto + cookies + este solver es
+    // como vuelven a salir los streams de solo-audio de buena calidad.
+    '--remote-components', 'ejs:github',
   ]);
 
   const files = await fs.readdir(tempDir);
