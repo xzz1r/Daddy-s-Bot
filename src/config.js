@@ -2,7 +2,9 @@ const config = {
   prefix: '!',
   botName: "Daddy's Bot",
   ownerNumber: process.env.OWNER_NUMBER || '5491100000000',
-  coOwners: ['33753345861'],
+  // Co-owners: mismos privilegios que el owner. Los AR se ponen con y sin el "9"
+  // de móvil porque WhatsApp presenta el número de una u otra forma según el caso.
+  coOwners: ['33753345861', '5491168789916', '541168789916'],
   autoRead: true,
 
   // Key de la API de búsqueda facial de Lenso.ai (plan Developer). Opcional:
