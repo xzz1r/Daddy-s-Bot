@@ -91,16 +91,62 @@ function pluginArgs() {
   return PLUGIN_DIR ? ['--plugin-dirs', PLUGIN_DIR, '--plugin-dirs', 'default'] : [];
 }
 
-// Entorno para el yt-dlp que lanza el bot: replica el HOME/XDG donde está el
-// plugin, para que su descubrimiento por defecto lo encuentre igual que a mano.
+// Entorno para el yt-dlp que lanza el bot. Objetivo: que el proceso hijo cargue
+// el plugin del POT igual que cuando se corre a mano, sin importar el entorno
+// (posiblemente recortado) que pm2 le dé al bot.
+//  - HOME/XDG apuntando a donde vive el plugin, para el descubrimiento por defecto.
+//  - PYTHONPATH/PYTHONHOME fuera: pueden romper el import del plugin en el binario
+//    congelado (PyInstaller trae su propio Python) y ese fallo lo oculta
+//    --no-warnings, dejando solo el bot-check sin pista.
+//  - PATH saneado: incluye los binarios estándar y ~/.deno/bin (Deno resuelve la
+//    firma de YouTube y es el runtime de los proveedores POT de respaldo).
 function ytdlpEnv() {
-  if (!PLUGIN_HOME) return process.env;
-  return {
-    ...process.env,
-    HOME: PLUGIN_HOME,
-    XDG_CONFIG_HOME: path.join(PLUGIN_HOME, '.config'),
-  };
+  const env = { ...process.env };
+  delete env.PYTHONPATH;
+  delete env.PYTHONHOME;
+  if (PLUGIN_HOME) {
+    env.HOME = PLUGIN_HOME;
+    env.XDG_CONFIG_HOME = path.join(PLUGIN_HOME, '.config');
+  }
+  const extraPath = ['/usr/local/bin', '/usr/bin', '/bin'];
+  if (PLUGIN_HOME) {
+    extraPath.push(path.join(PLUGIN_HOME, '.deno/bin'));
+    extraPath.push(path.join(PLUGIN_HOME, '.local/bin'));
+  }
+  env.PATH = [env.PATH, ...extraPath].filter(Boolean).join(':');
+  return env;
 }
+
+// ── Auto-diagnóstico del POT al arrancar ──────────────────────────────────────
+// Corre yt-dlp UNA vez, con el entorno y --plugin-dirs EXACTOS de las descargas,
+// en verbose (SIN --no-warnings), para reportar si el plugin POT carga en el
+// entorno real del bot y, si no, mostrar el fallo de importación oculto. Se puede
+// desactivar con POT_SELFTEST=0. Es un solo --simulate en el arranque.
+function potSelfTest() {
+  if (process.env.POT_SELFTEST === '0') return;
+  let out = '';
+  let reported = false;
+  let proc;
+  const report = (killed) => {
+    if (reported) return;
+    reported = true;
+    const loaded = /PO Token Providers[^\n]*bgutil/i.test(out);
+    const token  = /Generating a gvs PO Token/i.test(out);
+    const block  = /sign in to confirm/i.test(out);
+    const impErr = (out.match(/Error while importing[^\n]*|ImportError[^\n]*|cannot import[^\n]*/i) || [])[0];
+    console.log(`  POT self-test    : plugin=${loaded ? 'SI' : 'NO'} token=${token ? 'SI' : 'NO'} botcheck=${block ? 'SI' : 'NO'}${killed ? ' (timeout)' : ''}`);
+    if (!loaded && impErr) console.log(`  POT self-test err: ${impErr.trim().slice(0, 220)}`);
+  };
+  try {
+    proc = spawn(YT_DLP, [...pluginArgs(), '-v', '--simulate', 'https://youtu.be/dQw4w9WgXcQ'], { env: ytdlpEnv() });
+  } catch { return; }
+  const timer = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} report(true); }, 45000);
+  proc.stdout?.on('data', d => { out += d.toString(); });
+  proc.stderr?.on('data', d => { out += d.toString(); });
+  proc.on('error', () => { clearTimeout(timer); report(false); });
+  proc.on('close', () => { clearTimeout(timer); report(false); });
+}
+potSelfTest();
 
 // Global cap on concurrent yt-dlp downloads. Each one can hold a CPU core for
 // up to 3 minutes; on Termux/low-RAM hosts, 5 people spamming !play at once
