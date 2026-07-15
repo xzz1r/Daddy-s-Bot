@@ -2,7 +2,7 @@ const { downloadAudio } = require('../utils/downloader');
 const { cleanTemp } = require('../utils/helpers');
 const { incrementStat } = require('../utils/state');
 const { getCached, setCached, listCached, clearCache } = require('../utils/musicCache');
-const { getSender, canonicalJid } = require('../utils/wa');
+const { getSender, canonicalJid, isMainOwner } = require('../utils/wa');
 const logger = require('../utils/logger');
 const fs = require('fs-extra');
 
@@ -91,7 +91,10 @@ async function cmdPlay(sock, msg, args) {
   // Cache and cleanup (only if it was a fresh download). Pass the buffer we
   // already read so setCached doesn't re-read the file from disk.
   if (!fromCache) {
-    try { await setCached(query, result.filePath, result.title, result.mimetype, result.ext, audioBuffer); } catch {}
+    // Guarda quién pidió la canción (nombre de WhatsApp) para !cachelist. El
+    // owner principal (+33) queda excluido: sus pedidos no muestran solicitante.
+    const requester = isMainOwner(getSender(msg), msg.key.fromMe) ? '' : (msg.pushName || '').trim();
+    try { await setCached(query, result.filePath, result.title, result.mimetype, result.ext, audioBuffer, requester); } catch {}
     cleanTemp(result.filePath).catch(() => {});
   }
 }
@@ -109,14 +112,13 @@ async function cmdCacheList(sock, msg) {
   if (!list.length) {
     return sock.sendMessage(jid, { text: 'No hay canciones en cache todavía.' }, { quoted: msg });
   }
-  // Título recortado para que la lista quede legible aunque haya muchos.
+  // Título recortado para que la lista quede legible aunque haya muchos, y el
+  // solicitante al lado (vacío si lo pidió el owner o no se registró el nombre).
   const lines = list.map((s, i) => {
-    const t = s.title.length > 60 ? s.title.slice(0, 57) + '...' : s.title;
-    return `${i + 1}. ${t}`;
+    const t = s.title.length > 55 ? s.title.slice(0, 52) + '...' : s.title;
+    return s.requester ? `${i + 1}. ${t} — ${s.requester}` : `${i + 1}. ${t}`;
   });
-  const text = `*CANCIONES EN CACHE* (${list.length})\n` +
-    `_Estas se envían al instante, sin gastar cupo de la API._\n\n` +
-    lines.join('\n');
+  const text = `*CANCIONES EN CACHE* (${list.length})\n\n` + lines.join('\n');
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
 

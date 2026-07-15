@@ -131,7 +131,7 @@ async function getCached(query) {
   return result;
 }
 
-async function setCached(query, srcPath, title, mimetype, ext, srcBuffer = null) {
+async function setCached(query, srcPath, title, mimetype, ext, srcBuffer = null, requester = '') {
   await loadIndex();
   const k = cacheKey(query);
 
@@ -160,7 +160,7 @@ async function setCached(query, srcPath, title, mimetype, ext, srcBuffer = null)
     await fs.copy(srcPath, destPath).catch(() => {});
   }
 
-  index[k] = { file: cacheFile, title, mimetype, ext, timestamp: Date.now() };
+  index[k] = { file: cacheFile, title, mimetype, ext, requester: requester || '', timestamp: Date.now() };
   await saveIndex();
 
   if (buffer) storeInRam(k, buffer, title, mimetype, ext);
@@ -171,7 +171,7 @@ async function setCached(query, srcPath, title, mimetype, ext, srcBuffer = null)
 async function listCached() {
   await loadIndex();
   return Object.values(index)
-    .map(e => ({ title: e.title || 'Sin título', timestamp: e.timestamp || 0 }))
+    .map(e => ({ title: e.title || 'Sin título', requester: e.requester || '', timestamp: e.timestamp || 0 }))
     .sort((a, b) => b.timestamp - a.timestamp);
 }
 
