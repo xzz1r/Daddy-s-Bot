@@ -158,6 +158,7 @@ _Prefijo *${p}* — ej: *${p}play* despacito_
 *${p}s* — imagen/video a sticker
 *${p}ttp* <texto> — texto a sticker
 *${p}toimg* — sticker a imagen
+*${p}tovid* — sticker animado a video
 
 ━━ *PERFIL / ANTI-FAKE* ━━
 *${p}pfp* @user — su foto de perfil (o un número)

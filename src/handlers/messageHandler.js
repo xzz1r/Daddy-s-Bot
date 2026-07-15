@@ -10,7 +10,7 @@ const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
 const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd, cmdAntiLink, cmdClose, cmdOpen } = require('../commands/group');
 const { cmdShip } = require('../commands/ship');
 const { cmdTtp } = require('../commands/ttp');
-const { cmdToImg } = require('../commands/toimg');
+const { cmdToImg, cmdToVid } = require('../commands/toimg');
 const { cmdPfp } = require('../commands/pfp');
 const { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdAntiFake } = require('../commands/fk');
 const { maybeIndex } = require('../utils/pfpIndexer');
@@ -65,7 +65,7 @@ const NEEDS_META = new Set([
   'ship','mute','unmute','desmute',
   'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness',
   'antilink','close','cerrar','open','abrir',
-  's','sticker','stk','play','playsong','playaudio','ttp','toimg','stimg',
+  's','sticker','stk','play','playsong','playaudio','ttp','toimg','stimg','tovid','tovideo','stvid',
   'g','ai','grok',
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','ganador',
@@ -447,6 +447,12 @@ async function handleMessage(sock, msg) {
       case 'toimg':
       case 'stimg':
         await cmdToImg(sock, msg);
+        break;
+
+      case 'tovid':
+      case 'tovideo':
+      case 'stvid':
+        await cmdToVid(sock, msg);
         break;
 
       case 'pfp':

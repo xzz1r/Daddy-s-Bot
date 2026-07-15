@@ -91,6 +91,84 @@ async function convertToGif(inputBuf) {
   }
 }
 
+// Convierte un WebP animado a MP4 (H.264). pix_fmt yuv420p + dimensiones pares
+// son obligatorios para que WhatsApp y la mayoría de reproductores lo lean. Sin
+// audio (los stickers no lo tienen). Depende de que el ffmpeg del sistema tenga
+// el demuxer de WebP animado (el mismo que usa la conversión a GIF de !toimg).
+async function convertToMp4(inputBuf) {
+  const inputFile = tempFile('webp');
+  const outputFile = tempFile('mp4');
+  await fs.writeFile(inputFile, inputBuf);
+  try {
+    await runFfmpegConvert(inputFile, outputFile, {
+      outputOptions: [
+        '-movflags', 'faststart',
+        '-pix_fmt', 'yuv420p',
+        '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2:flags=lanczos,fps=20',
+        '-an',
+      ],
+      format: 'mp4',
+    });
+    const buf = await fs.readFile(outputFile);
+    if (buf.length < 100) throw new Error('MP4 vacío');
+    return buf;
+  } finally {
+    await cleanTemp(inputFile);
+    await cleanTemp(outputFile);
+  }
+}
+
+// !tovid — como !toimg pero al revés: convierte un sticker ANIMADO a video (MP4),
+// o reenvía un video (incl. de una sola visualización) como video normal.
+async function cmdToVid(sock, msg) {
+  const jid = msg.key.remoteJid;
+
+  const ctx = msg.message?.extendedTextMessage?.contextInfo;
+  const media = findMedia(ctx?.quotedMessage) || findMedia(msg.message);
+
+  if (!media) {
+    return sock.sendMessage(jid, {
+      text: 'Responde con !tovid a un sticker animado o a un video.',
+    }, { quoted: msg });
+  }
+
+  try {
+    const stream = await downloadContentFromMessage(media.data, media.type);
+    const buf = await streamToBuffer(stream, MAX_MEDIA_BYTES);
+
+    if (media.type === 'sticker') {
+      if (!isAnimatedWebP(buf)) {
+        return sock.sendMessage(jid, {
+          text: 'Ese sticker no es animado. Para stickers estáticos usa !toimg.',
+        }, { quoted: msg });
+      }
+      try {
+        const mp4 = await convertToMp4(buf);
+        await sock.sendMessage(jid, { video: mp4, mimetype: 'video/mp4', gifPlayback: true }, { quoted: msg });
+      } catch (err) {
+        logger.warn(`tovid MP4 failed (${err.message.slice(0, 80)}), enviando el WebP`);
+        await sock.sendMessage(jid, {
+          document: buf,
+          mimetype: 'image/webp',
+          fileName: 'sticker.webp',
+          caption: 'No se pudo convertir a video. Aquí el archivo del sticker animado.',
+        }, { quoted: msg });
+      }
+    } else if (media.type === 'video') {
+      const caption = media.viewOnce ? 'Video extraído de visualización única.' : undefined;
+      await sock.sendMessage(jid, { video: buf, mimetype: 'video/mp4', caption }, { quoted: msg });
+    } else {
+      // imagen u otro: no aplica para video
+      await sock.sendMessage(jid, {
+        text: 'Eso no es un sticker animado ni un video. Usa !toimg para imágenes y stickers estáticos.',
+      }, { quoted: msg });
+    }
+  } catch (err) {
+    logger.error(`tovid error: ${err.message}`);
+    await sock.sendMessage(jid, { text: `No pude convertir a video: ${err.message}` }, { quoted: msg });
+  }
+}
+
 // !toimg — reply to a sticker, view-once image/video, or any media to extract it
 async function cmdToImg(sock, msg) {
   const jid = msg.key.remoteJid;
@@ -171,4 +249,4 @@ async function cmdToImg(sock, msg) {
   }
 }
 
-module.exports = { cmdToImg };
+module.exports = { cmdToImg, cmdToVid };
