@@ -166,6 +166,15 @@ async function setCached(query, srcPath, title, mimetype, ext, srcBuffer = null)
   if (buffer) storeInRam(k, buffer, title, mimetype, ext);
 }
 
+// Lista las canciones en cache (título + fecha), más recientes primero. Solo
+// lectura; para el comando !cachelist.
+async function listCached() {
+  await loadIndex();
+  return Object.values(index)
+    .map(e => ({ title: e.title || 'Sin título', timestamp: e.timestamp || 0 }))
+    .sort((a, b) => b.timestamp - a.timestamp);
+}
+
 async function clearCache() {
   await loadIndex();
   const files = Object.values(index).map(e => path.join(CACHE_DIR, e.file));
@@ -183,4 +192,4 @@ async function flushCache() {
   }
 }
 
-module.exports = { getCached, setCached, clearCache, flushCache };
+module.exports = { getCached, setCached, listCached, clearCache, flushCache };

@@ -2,7 +2,7 @@ const config = require('../config');
 const { isBotEnabled, incrementStat, isAntiLinkEnabled } = require('../utils/state');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { checkCasinoMilestone } = require('../utils/casino');
-const { cmdPlay, cmdClearCache } = require('../commands/music');
+const { cmdPlay, cmdCacheList, cmdClearCache } = require('../commands/music');
 const { cmdSticker } = require('../commands/sticker');
 const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdCount, cmdResetCount } = require('../commands/count');
@@ -280,6 +280,12 @@ async function handleMessage(sock, msg) {
       case 'playaudio':
       case 'play':
         await cmdPlay(sock, msg, args);
+        break;
+
+      case 'cachelist':
+      case 'listacache':
+      case 'cache':
+        await cmdCacheList(sock, msg);
         break;
 
       case 'clearcache':

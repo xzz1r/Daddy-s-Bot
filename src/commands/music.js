@@ -1,7 +1,7 @@
 const { downloadAudio } = require('../utils/downloader');
 const { cleanTemp } = require('../utils/helpers');
 const { incrementStat } = require('../utils/state');
-const { getCached, setCached, clearCache } = require('../utils/musicCache');
+const { getCached, setCached, listCached, clearCache } = require('../utils/musicCache');
 const { getSender, canonicalJid } = require('../utils/wa');
 const logger = require('../utils/logger');
 const fs = require('fs-extra');
@@ -96,6 +96,30 @@ async function cmdPlay(sock, msg, args) {
   }
 }
 
+// !cachelist — muestra las canciones guardadas en cache (las que se envían al
+// instante y sin gastar cupo de la API). Abierto a todos: es solo lectura.
+async function cmdCacheList(sock, msg) {
+  const jid = msg.key.remoteJid;
+  let list;
+  try {
+    list = await listCached();
+  } catch (err) {
+    return sock.sendMessage(jid, { text: `Error al leer el cache: ${err.message}` }, { quoted: msg });
+  }
+  if (!list.length) {
+    return sock.sendMessage(jid, { text: 'No hay canciones en cache todavía.' }, { quoted: msg });
+  }
+  // Título recortado para que la lista quede legible aunque haya muchos.
+  const lines = list.map((s, i) => {
+    const t = s.title.length > 60 ? s.title.slice(0, 57) + '...' : s.title;
+    return `${i + 1}. ${t}`;
+  });
+  const text = `*CANCIONES EN CACHE* (${list.length})\n` +
+    `_Estas se envían al instante, sin gastar cupo de la API._\n\n` +
+    lines.join('\n');
+  await sock.sendMessage(jid, { text }, { quoted: msg });
+}
+
 // !clearcache — owner only, deletes all cached songs from RAM and disk
 async function cmdClearCache(sock, msg) {
   const jid = msg.key.remoteJid;
@@ -107,4 +131,4 @@ async function cmdClearCache(sock, msg) {
   }
 }
 
-module.exports = { cmdPlay, cmdClearCache };
+module.exports = { cmdPlay, cmdCacheList, cmdClearCache };

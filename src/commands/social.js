@@ -152,6 +152,7 @@ _Prefijo *${p}* — ej: *${p}play* despacito_
 
 ━━ *MÚSICA* ━━
 *${p}play* <nombre> — busca y envía una canción
+*${p}cachelist* — canciones guardadas en cache
 
 ━━ *STICKERS* ━━
 *${p}s* — imagen/video a sticker
