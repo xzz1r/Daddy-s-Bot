@@ -54,13 +54,12 @@ async function cmdPlay(sock, msg, args) {
       result = await downloadAudio(query);
     } catch (err) {
       logger.error(`Download error: ${err.message}`);
-      // El bot-check de YouTube es un caso conocido y no aporta nada mostrar el
-      // volcado tecnico al grupo. Mensaje limpio para la peña; el detalle queda
-      // en el log para el owner. Cualquier otro error si se muestra tal cual.
-      const botCheck = /sign in to confirm|not a bot|confirm you'?re/i.test(err.message);
-      const text = botCheck
-        ? 'YouTube esta limitando las descargas ahora mismo. Intentalo de nuevo en un momento.'
-        : `Error: ${err.message}`;
+      // Caso más común: la búsqueda no devolvió resultado en SoundCloud. Mensaje
+      // claro para el grupo; el detalle técnico queda en el log.
+      const notFound = /no se encontr|no result|unable to|not found|nothing found/i.test(err.message);
+      const text = notFound
+        ? 'No encontré esa canción. Prueba con otro nombre o añade el artista.'
+        : 'No pude descargar la canción en este momento. Intenta de nuevo.';
       return sock.sendMessage(jid, { text }, { quoted: msg });
     }
   }
