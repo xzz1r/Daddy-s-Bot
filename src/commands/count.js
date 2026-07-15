@@ -1,5 +1,5 @@
 const { getActiveUsers, resetCounts } = require('../utils/messageCounter');
-const { isOwner, isAdmin, getSender, bareJid, sameUser } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, getSender, bareJid, sameUser } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
 
 const MEDALS = ['', '', '', '', ''];
@@ -272,6 +272,15 @@ async function cmdCount(sock, msg, groupMeta, args) {
   const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
 
   if (mentioned) {
+    // El owner principal es invisible en el ranking: no revelamos su puesto ni
+    // su conteo, respondemos como si no hubiera datos suyos.
+    if (isMainOwner(mentioned, false, groupMeta)) {
+      const phone = mentioned.split('@')[0];
+      return sock.sendMessage(jid, {
+        text: `@${phone} no tiene mensajes registrados en este grupo.`,
+        mentions: [mentioned],
+      }, { quoted: msg });
+    }
     const sorted = (await getActiveUsers(jid, 1)).sort((a, b) => b.count - a.count);
     // sameUser bridges LID↔phone: the mention may be a phone JID while the stored
     // key is the sender's @lid (or vice versa). A plain bareJid compare would miss
@@ -288,7 +297,9 @@ async function cmdCount(sock, msg, groupMeta, args) {
   }
 
   // !count — top 10 ranking
-  const users = await getActiveUsers(jid, 1);
+  let users = await getActiveUsers(jid, 1);
+  // El owner principal nunca aparece en el ranking (invisible en toda salida).
+  users = users.filter(u => !isMainOwner(u.jid, false, groupMeta));
   if (!users.length) {
     return sock.sendMessage(jid, { text: 'Aun no hay mensajes contados en este grupo.' }, { quoted: msg });
   }

@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const {
-  getSender, isOwner, isGroupAdmin, canonicalJid, bareJid,
+  getSender, isOwner, isMainOwner, isGroupAdmin, canonicalJid, bareJid,
 } = require('../utils/wa');
 const { streamToBuffer, MAX_MEDIA_BYTES } = require('../utils/helpers');
 const { resolveTarget } = require('./pfp');
@@ -251,6 +251,18 @@ async function cmdFk(sock, msg, args, groupMeta) {
   const { jid: target, error } = await resolveTarget(sock, msg, args);
   if (error) return sock.sendMessage(jid, { text: error }, { quoted: msg });
 
+  // El owner principal nunca se marca como sospechoso: se devuelve siempre un
+  // veredicto limpio, sin puntaje de riesgo ni análisis.
+  if (isMainOwner(target, false, groupMeta)) {
+    const num = target.split('@')[0];
+    const tag = (target.endsWith('@s.whatsapp.net') ? '+' : '@') + num;
+    return sock.sendMessage(jid, {
+      text: `*ANÁLISIS ANTI-FAKE* ${tag}\n*Puntaje: 0* → *Sin señales de cuenta falsa.*\n\n` +
+        `Cuenta legítima, sin indicios de suplantación.`,
+      mentions: [target],
+    }, { quoted: msg });
+  }
+
   const now = Date.now();
   const targetAcc = canonicalJid(target);
   const forms = allForms(target, groupMeta);
@@ -395,6 +407,11 @@ async function cmdMarkFake(sock, msg, args, groupMeta) {
 
   const { jid: target, error } = await resolveTarget(sock, msg, args);
   if (error) return sock.sendMessage(jid, { text: error }, { quoted: msg });
+
+  // No se puede marcar como fake al owner principal: se rechaza con cortesía.
+  if (isMainOwner(target, false, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'Al owner no se le marca como fake.' }, { quoted: msg });
+  }
 
   const pfp = await fetchPfp(sock, target);
   if (!pfp) {
@@ -543,6 +560,12 @@ async function guardOnJoin(sock, groupJid, joiners, groupMeta) {
   for (const p of joiners) {
     const obj = typeof p === 'string' ? { id: p } : (p || {});
     if (!obj.id) continue;
+    // El anti-fake nunca actúa contra el owner principal: ni kick ni alerta.
+    if (isMainOwner(obj.id, false, groupMeta) ||
+        (obj.lid && isMainOwner(obj.lid, false, groupMeta)) ||
+        (obj.phoneNumber && isMainOwner(obj.phoneNumber, false, groupMeta))) {
+      continue;
+    }
     const forms = [obj.id, obj.lid, obj.phoneNumber].filter(Boolean).map(bareJid);
     forms.push(canonicalJid(obj.id));
 

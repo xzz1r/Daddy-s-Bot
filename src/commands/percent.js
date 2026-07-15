@@ -1,5 +1,17 @@
-const { isOwner, isAdmin, getTargetOrSelf } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, getTargetOrSelf } = require('../utils/wa');
 const { pickFresh } = require('../utils/helpers');
+
+// Rig del owner principal: cuando el TARGET es el owner, el % se fuerza al
+// extremo halagador para él y luego la lógica de frase corre sobre ese valor.
+// La polaridad se define por comando (no basta con goodIsHigh: la "feminidad"
+// es positiva pero para el owner debe salir baja, como el chiste recurrente).
+const OWNER_FORCE = {
+  // Extremo alto (~100) para los rasgos que favorecen al owner.
+  crack: 100, inteligencia: 100, sexy: 100, ganador: 100, masculinidad: 100,
+  // Extremo bajo (0) para los rasgos peyorativos (y feminidad).
+  perdedor: 0, inutil: 0, rata: 0, cerdo: 0, simp: 0, friki: 0,
+  gay: 0, maricon: 0, femboy: 0, feminidad: 0,
+};
 
 // Distribuciones por tier — basadas en el ROL DEL TARGET, no del sender:
 //
@@ -1321,9 +1333,17 @@ async function runPercent(sock, msg, key, groupMeta) {
   const targetIsOwner = isOwner(target, false, groupMeta);
   const targetIsAdmin = isAdmin(groupMeta?.participants, target);
 
-  const percent = cfg.roll
+  let percent = cfg.roll
     ? cfg.roll(targetIsOwner, targetIsAdmin)
     : rollPercent(cfg.goodIsHigh, targetIsAdmin, targetIsOwner);
+
+  // Si el target es el owner principal, se fuerza el valor al extremo que le
+  // favorece ANTES de elegir el tier/frase, de modo que la frase concuerde con
+  // el % mostrado.
+  if (isMainOwner(target, false, groupMeta) && key in OWNER_FORCE) {
+    percent = OWNER_FORCE[key];
+  }
+
   const tier = percent >= 70 ? 'high' : percent <= 30 ? 'low' : 'mid';
   const nm = `@${target.split('@')[0]}`;
   // Algunos rasgos (perdedor/ganador) traen [nombre] embebido en la frase; el

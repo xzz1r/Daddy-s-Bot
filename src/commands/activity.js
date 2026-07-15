@@ -1,5 +1,5 @@
 const { getActiveUsers } = require('../utils/messageCounter');
-const { isOwner, getSender, bareJid, sameUser } = require('../utils/wa');
+const { isOwner, isMainOwner, getSender, bareJid, sameUser } = require('../utils/wa');
 const { pick, shuffle } = require('../utils/helpers');
 
 // ---- !vs : real-activity head-to-head -------------------------------------
@@ -68,6 +68,14 @@ async function cmdVs(sock, msg, args, groupMeta) {
 
   if (sameUser(a, b)) {
     return sock.sendMessage(jid, { text: 'No puedes enfrentar a alguien consigo mismo.' }, { quoted: msg });
+  }
+
+  // El owner principal es invisible en toda estadística: no exponemos su
+  // conteo en un !vs. Respondemos como si no hubiera datos de esa persona.
+  if (isMainOwner(a, false, groupMeta) || isMainOwner(b, false, groupMeta)) {
+    return sock.sendMessage(jid, {
+      text: 'No hay datos de actividad para esa comparación.',
+    }, { quoted: msg });
   }
 
   const users = await getActiveUsers(jid, 0); // everyone tracked
@@ -163,8 +171,10 @@ async function cmdInactivos(sock, msg, groupMeta) {
   }
 
   // Everyone tracked, minus the owner tier (the bot never roasts its own owner).
+  // isMainOwner además atrapa al owner vía su JID aprendido en grupos LID donde
+  // isOwner podría no resolverlo — así el owner nunca cae en la lista.
   let users = await getActiveUsers(jid, 1);
-  users = users.filter(u => !isOwner(u.jid, false, groupMeta));
+  users = users.filter(u => !isOwner(u.jid, false, groupMeta) && !isMainOwner(u.jid, false, groupMeta));
 
   if (users.length < 3) {
     return sock.sendMessage(jid, { text: 'No hay suficientes datos de actividad todavía. Hablen más.' }, { quoted: msg });

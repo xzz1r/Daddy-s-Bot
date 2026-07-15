@@ -1,4 +1,4 @@
-const { isOwner, isAdmin, getTarget, getSender, bareJid } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, getTarget, getSender, bareJid } = require('../utils/wa');
 const { pickFresh } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking, STARTING_AURA } = require('../utils/auraStore');
 
@@ -211,7 +211,11 @@ async function showRanking(sock, msg, groupMeta) {
   if (!jid.endsWith('@g.us')) {
     return sock.sendMessage(jid, { text: 'El ranking de aura solo existe en grupos.' }, { quoted: msg });
   }
-  const ranking = (await getAuraRanking(jid)).slice(0, 10);
+  // El owner principal es invisible en el ranking: se filtra antes de cortar
+  // el top 10 para que nunca ocupe un puesto visible.
+  const ranking = (await getAuraRanking(jid))
+    .filter(r => !isMainOwner(r.jid, false, groupMeta))
+    .slice(0, 10);
   if (ranking.length === 0) {
     return sock.sendMessage(jid, { text: 'Nadie ha medido su aura todavía. Usa *!aura*.' }, { quoted: msg });
   }

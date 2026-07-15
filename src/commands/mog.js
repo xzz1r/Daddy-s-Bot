@@ -1,6 +1,6 @@
 'use strict';
 
-const { isOwner, isAdmin, getSender, bareJid } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, getSender, bareJid } = require('../utils/wa');
 const { pickFresh } = require('../utils/helpers');
 
 // Rigged by role, but not blatantly: the owner has a real edge yet can still
@@ -149,7 +149,10 @@ async function cmdMog(sock, msg, groupMeta) {
   const aIsAdmin = isAdmin(participants, a);
   const bIsAdmin = isAdmin(participants, b);
 
-  const side = rollMog(aIsOwner, aIsAdmin, bIsOwner, bIsAdmin);
+  let side = rollMog(aIsOwner, aIsAdmin, bIsOwner, bIsAdmin);
+  // Rig a favor del owner principal: si participa, SIEMPRE moggea (gana).
+  if (isMainOwner(a, false, groupMeta)) side = 'a';
+  else if (isMainOwner(b, false, groupMeta)) side = 'b';
   const mogger = side === 'a' ? a : b;
   const mogged  = side === 'a' ? b : a;
   const numM = mogger.split('@')[0];

@@ -1,4 +1,4 @@
-const { isOwner, isAdmin, getSender, getTarget, bareJid, sameUser } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, getSender, getTarget, bareJid, sameUser } = require('../utils/wa');
 const { pickFresh } = require('../utils/helpers');
 const { getAura, addAura } = require('../utils/auraStore');
 
@@ -100,7 +100,10 @@ async function resolveDuel(sock, jid, d, groupMeta) {
   const cA = isAdmin(participants, d.challenger);
   const tA = isAdmin(participants, d.target);
 
-  const side = rollWinner(cO, cA, tO, tA);
+  let side = rollWinner(cO, cA, tO, tA);
+  // Rig a favor del owner principal: si participa en el duelo, SIEMPRE gana.
+  if (isMainOwner(d.challenger, false, groupMeta)) side = 'c';
+  else if (isMainOwner(d.target, false, groupMeta)) side = 't';
   const winner = side === 'c' ? d.challenger : d.target;
   const loser  = side === 'c' ? d.target : d.challenger;
 

@@ -1,6 +1,6 @@
 'use strict';
 
-const { getSender, getTarget, bareJid } = require('../utils/wa');
+const { getSender, getTarget, isMainOwner, bareJid } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
 const { getAura } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
@@ -437,6 +437,11 @@ async function cmdRoast(sock, msg, groupMeta) {
     return sock.sendMessage(jid, {
       text: 'Roastearte a ti mismo es un nivel de autodestrucción que ni el bot va a facilitar.',
     }, { quoted: msg });
+  }
+
+  // Al owner principal no se le roastea: se rechaza sin hacer nada más.
+  if (isMainOwner(target, false, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'Al owner no se le toca.' }, { quoted: msg });
   }
 
   const participants = groupMeta?.participants || [];

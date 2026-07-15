@@ -1,4 +1,5 @@
 const { getActiveUsers } = require('../utils/messageCounter');
+const { isMainOwner } = require('../utils/wa');
 const { shuffle } = require('../utils/helpers');
 
 async function cmdTopRandom(sock, msg, n, args) {
@@ -13,7 +14,10 @@ async function cmdTopRandom(sock, msg, n, args) {
     return sock.sendMessage(jid, { text: `Usa: *!top${n}* <tema>` }, { quoted: msg });
   }
 
-  const users = await getActiveUsers(jid, 10);
+  // El owner principal nunca entra en el sorteo (invisible en toda salida).
+  // Este comando no recibe groupMeta; isMainOwner igual lo resuelve vía config
+  // y el caché de JIDs aprendidos, así que basta con pasar null.
+  const users = (await getActiveUsers(jid, 10)).filter(u => !isMainOwner(u.jid, false, null));
   if (users.length < n) {
     return sock.sendMessage(jid, {
       text: `No hay suficientes miembros activos. Necesito ${n} con minimo 10 mensajes, hay ${users.length}.`,

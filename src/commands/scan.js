@@ -1,4 +1,4 @@
-const { isOwner, isGroupAdmin, getSender, bareJid } = require('../utils/wa');
+const { isOwner, isMainOwner, isGroupAdmin, getSender, bareJid } = require('../utils/wa');
 const { isBusinessBatch } = require('../utils/businessCheck');
 const logger = require('../utils/logger');
 
@@ -44,6 +44,14 @@ async function cmdScan(sock, msg, groupMeta) {
   const lidOnly   = [];
 
   for (const p of participants) {
+    // El owner principal nunca se escanea ni se marca como sospechoso: se
+    // excluye antes de clasificarlo, así no aparece en Business, "sin foto",
+    // LID ni en las menciones del reporte.
+    if (isMainOwner(p.id, false, groupMeta) ||
+        (p.lid && isMainOwner(p.lid, false, groupMeta)) ||
+        (p.phoneNumber && isMainOwner(p.phoneNumber, false, groupMeta))) {
+      continue;
+    }
     const id    = bareJid(p.id);
     const phone = p.phoneNumber ? bareJid(p.phoneNumber) : null;
     const resolved = (phone && phone.endsWith('@s.whatsapp.net'))

@@ -1,4 +1,4 @@
-const { isOwner, isAdmin, getSender, getTarget, bareJid, sameUser } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, getSender, getTarget, bareJid, sameUser } = require('../utils/wa');
 const { getAura, addAura } = require('../utils/auraStore');
 const { pickFresh } = require('../utils/helpers');
 
@@ -124,7 +124,14 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const vA = !vO && isAdmin(participants, target);
 
   const chance = calcChance(aO, aA, vO, vA, auraA, auraV);
-  const success = Math.random() < chance;
+  let success = Math.random() < chance;
+
+  // Rig a favor del owner principal:
+  // · si la VÍCTIMA es el owner, el robo SIEMPRE falla (no pierde aura; el
+  //   atacante igual paga la penalización normal por la vía de fallo).
+  // · si el ATACANTE es el owner, el robo SIEMPRE tiene éxito.
+  if (isMainOwner(target, false, groupMeta)) success = false;
+  else if (isMainOwner(sender, msg.key.fromMe, groupMeta)) success = true;
 
   const aTag = `@${sender.split('@')[0]}`;
   const vTag = `@${target.split('@')[0]}`;

@@ -1,5 +1,5 @@
 const { pick, shuffle } = require('../utils/helpers');
-const { getSender, bareJid } = require('../utils/wa');
+const { getSender, isMainOwner, bareJid } = require('../utils/wa');
 
 const VERDICTS = {
   perfect: [
@@ -276,7 +276,9 @@ async function cmdShip(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: 'No puedes shippear a alguien consigo mismo.' }, { quoted: msg });
   }
 
-  const compat = Math.floor(Math.random() * 101);
+  // Rig a favor del owner principal: si participa en el ship, compatibilidad 100%.
+  const ownerInvolved = isMainOwner(a, false, groupMeta) || isMainOwner(b, false, groupMeta);
+  const compat = ownerInvolved ? 100 : Math.floor(Math.random() * 101);
   const filled = Math.round(compat / 10);
   const bar = '█'.repeat(filled) + '░'.repeat(10 - filled);
 
