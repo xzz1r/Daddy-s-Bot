@@ -40,8 +40,25 @@ function detectYtDlp() {
 
 const YT_DLP = detectYtDlp();
 
-console.log(config.rapidApiKey
-  ? `  !play fuente : RapidAPI (${config.rapidApiHost}) + SoundCloud (respaldo)`
+// Proveedores de la API de terceros. RAPIDAPI_KEY admite VARIAS keys separadas
+// por coma para SUMAR cupos gratis y ganar tolerancia a fallos: si una key agota
+// su cuota mensual (o falla), el bot rota a la siguiente automáticamente. Cada
+// entrada puede ser "key" (usa el host por defecto) o "key|host" para mezclar
+// proveedores. Ej: RAPIDAPI_KEY=abc,def   ó   RAPIDAPI_KEY=abc|host1,def|host2
+function buildProviders() {
+  return String(config.rapidApiKey || '')
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(entry => {
+      const [key, host] = entry.split('|').map(x => x.trim());
+      return { key, host: host || config.rapidApiHost };
+    });
+}
+const PROVIDERS = buildProviders();
+
+console.log(PROVIDERS.length
+  ? `  !play fuente : RapidAPI x${PROVIDERS.length} key(s) + SoundCloud (respaldo)`
   : '  !play fuente : SoundCloud (falta RAPIDAPI_KEY para la vía principal de YouTube)');
 
 // ── Control de concurrencia ───────────────────────────────────────────────────
@@ -126,16 +143,25 @@ function extractVideoId(query) {
   return m ? m[1] : null;
 }
 
-// Pide el MP3 a RapidAPI. La API es asíncrona: puede responder "processing" y hay
-// que reintentar hasta que esté "ok" con el link. Devuelve { link, title, duration }.
-async function rapidConvert(videoId) {
-  const url = `https://${config.rapidApiHost}/dl?id=${videoId}`;
+// Pide el MP3 a un proveedor RapidAPI. La API es asíncrona: puede responder
+// "processing" y hay que reintentar hasta que esté "ok" con el link. Devuelve
+// { link, title, duration }. Lanza con .quota=true si la key agotó su cuota
+// (HTTP 429) para que el llamador rote a la siguiente key.
+async function rapidConvert(videoId, provider) {
+  const url = `https://${provider.host}/dl?id=${videoId}`;
   const headers = {
-    'X-RapidAPI-Key': config.rapidApiKey,
-    'X-RapidAPI-Host': config.rapidApiHost,
+    'X-RapidAPI-Key': provider.key,
+    'X-RapidAPI-Host': provider.host,
   };
   for (let i = 0; i < 12; i++) {
-    const { data } = await axios.get(url, { headers, timeout: 15000 });
+    let data;
+    try {
+      ({ data } = await axios.get(url, { headers, timeout: 15000 }));
+    } catch (e) {
+      const code = e.response?.status;
+      if (code === 429 || code === 403) { const err = new Error('cuota de la key agotada'); err.quota = true; throw err; }
+      throw new Error(e.message);
+    }
     const status = String(data.status || '').toLowerCase();
     if (status === 'ok' && data.link) {
       return { link: data.link, title: data.title || 'Sin título', duration: Number(data.duration) || null };
@@ -165,12 +191,8 @@ async function downloadUrlToFile(url, dest) {
   });
 }
 
-async function tryRapidApi(query) {
-  if (!config.rapidApiKey) throw new Error('sin RAPIDAPI_KEY');
-  const videoId = extractVideoId(query) || await searchYouTubeId(query);
-  if (!videoId) throw new Error('no se encontró el video');
-
-  const { link, title, duration } = await rapidConvert(videoId);
+async function fetchFromProvider(videoId, provider) {
+  const { link, title, duration } = await rapidConvert(videoId, provider);
   if (duration != null && duration < MIN_FULL_SECONDS) throw new Error('preview');
 
   const baseName = `audio_${Date.now()}_${Math.random().toString(36).slice(2)}`;
@@ -187,6 +209,25 @@ async function tryRapidApi(query) {
     await cleanupPartials(baseName);
     throw err;
   }
+}
+
+async function tryRapidApi(query) {
+  if (!PROVIDERS.length) throw new Error('sin RAPIDAPI_KEY');
+  const videoId = extractVideoId(query) || await searchYouTubeId(query);
+  if (!videoId) throw new Error('no se encontró el video');
+
+  // Rota entre keys: si una agotó cuota (429) o falla, prueba la siguiente.
+  let lastErr = null;
+  for (let i = 0; i < PROVIDERS.length; i++) {
+    try {
+      return await fetchFromProvider(videoId, PROVIDERS[i]);
+    } catch (err) {
+      lastErr = err;
+      if (err.quota) logger.warn(`!play: key ${i + 1}/${PROVIDERS.length} sin cuota; rotando`);
+      continue;
+    }
+  }
+  throw lastErr || new Error('la API de terceros falló');
 }
 
 // ── Vía 2: SoundCloud (respaldo) ──────────────────────────────────────────────
