@@ -44,10 +44,25 @@ function detectYtDlp() {
 
 const YT_DLP = detectYtDlp();
 
-// El bloqueo "Sign in to confirm you're not a bot" que YouTube aplica a las IP
-// de datacenter se resuelve con el POT provider (bgutil), NO con cookies. El
-// provider corre como servicio local (ver setup-potoken.sh) y yt-dlp obtiene el
-// proof-of-origin token en cada pedido. Ya no se usan cookies ni cuenta alguna.
+// Estrategia de bypass del bot-check de YouTube en IP de datacenter:
+//  - POT provider (bgutil): token de proof-of-origin en cada pedido. Cubre la
+//    mayoría de videos SIN cookies (ver setup-potoken.sh).
+//  - Cookies (opcional pero recomendado para CERO fallas): una sesión con login
+//    atraviesa el bot-check que el POT solo no cubre en los rangos de datacenter
+//    marcados. Se combinan: cookies + POT es lo más fiable. Si el archivo existe
+//    se usa; si no, se cae a POT puro. Ruta data/youtube_cookies.txt o la env
+//    YT_COOKIES_FILE.
+const COOKIES_FILE = process.env.YT_COOKIES_FILE
+  || path.join(__dirname, '../../data/youtube_cookies.txt');
+
+function cookiesArgs() {
+  try {
+    if (fs.existsSync(COOKIES_FILE) && fs.statSync(COOKIES_FILE).size > 0) {
+      return ['--cookies', COOKIES_FILE];
+    }
+  } catch {}
+  return [];
+}
 
 // Carpeta de plugins de yt-dlp donde vive el plugin del POT provider. CRÍTICO:
 // yt-dlp la descubre por HOME (~/.config/yt-dlp/plugins), pero bajo pm2 el bot
@@ -275,32 +290,40 @@ function isBlockedError(message) {
 }
 
 // Estrategias de extracción, en orden de preferencia. Se prueban una tras otra
-// hasta que alguna funcione, así un bloqueo puntual de YouTube (bot-check,
-// cambio de firma) ya NO tumba el comando: hay un plan B. Ninguna usa cookies.
-// La 1 da la mejor calidad (itag 140, m4a 128k).
-// Elección de cliente basada en la guía oficial de PO Tokens de yt-dlp: en IP de
-// datacenter, el cliente web/web_safari (el que toma el POT por defecto) sigue
-// pidiendo bot-check a nivel "player" para muchos videos. Los clientes de abajo
-// lo evitan: mweb solo necesita POT para la descarga (GVS), no para el player, y
-// web_embedded/android_vr no necesitan POT. Se prueban en orden hasta que uno
-// atraviese el bloqueo; el reintento se dispara con isBlockedError. Cada cliente
-// va SOLO (no combinados) porque mezclar con 'tv' —que da formatos con DRM sin
-// cookies— arruinaba el intento.
+// hasta que una funcione; el reintento se dispara con isBlockedError. La 1 da la
+// mejor calidad (itag 140, m4a 128k).
+//
+// Con COOKIES presentes (lo más fiable para CERO fallas en datacenter): las
+// primeras estrategias combinan cookies + el POT plugin (que sigue activo por la
+// carpeta de plugins). Una sesión con login atraviesa el bot-check de "player"
+// que el POT solo no cubre en rangos marcados; el POT aporta el token de descarga.
+//
+// SIN cookies: se cae a POT puro con los clientes que mejor lo aprovechan, según
+// la guía oficial de PO Tokens (mweb sólo pide POT para la descarga, no para el
+// player; web_embedded/android_vr no piden POT). Cada cliente va SOLO (mezclar
+// con 'tv' —formatos DRM sin cookies— arruinaba el intento).
 function buildStrategies() {
-  const mk = (client) => client
+  const cookies = cookiesArgs(); // [] si no hay archivo de cookies
+  const ea = (client) => client
     ? ['--extractor-args', `youtube:player_client=${client};skip=hls`]
     : ['--extractor-args', 'youtube:skip=hls'];
-  return [
-    // 1) mweb: el mejor para POT + datacenter. El provider cubre su token de
-    //    descarga (GVS) y su player NO exige POT. Da m4a (itag 140) igual.
-    { name: 'mweb',         args: mk('mweb') },
-    // 2) web_embedded: no requiere POT; sirve para videos embebibles (la mayoría).
-    { name: 'web_embedded', args: mk('web_embedded') },
-    // 3) android_vr: no requiere POT; otra vía distinta al bloqueo web.
-    { name: 'android_vr',   args: mk('android_vr') },
-    // 4) Por defecto (web_safari + POT): funciona para algunos videos; último recurso.
-    { name: 'default',      args: mk(null) },
-  ];
+
+  const list = [];
+
+  if (cookies.length) {
+    // Cookies + POT: la combinación fiable. Cliente web por defecto (usa cookies
+    // + POT) y luego mweb con cookies como respaldo.
+    list.push({ name: 'cookies+web',  args: [...cookies, ...ea(null)] });
+    list.push({ name: 'cookies+mweb', args: [...cookies, ...ea('mweb')] });
+  }
+
+  // POT puro (respaldo si las cookies fallan, o vía única si no hay cookies).
+  list.push({ name: 'mweb',         args: ea('mweb') });
+  list.push({ name: 'web_embedded', args: ea('web_embedded') });
+  list.push({ name: 'android_vr',   args: ea('android_vr') });
+  list.push({ name: 'default',      args: ea(null) });
+
+  return list;
 }
 
 async function runDownload(videoUrl) {
