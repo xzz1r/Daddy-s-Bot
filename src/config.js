@@ -22,6 +22,15 @@ const config = {
   // Va en .env como FACECHECK_API_KEY=...
   facecheckApiKey: process.env.FACECHECK_API_KEY || '',
 
+  // API de terceros para descargar audio de YouTube SIN que el bot toque YouTube
+  // (la extracción corre en la IP del servicio, no en la nuestra, así se evita el
+  // bot-check del datacenter). Es la fuente principal de !play para canciones
+  // populares completas. Se usa RapidAPI ("YouTube MP3" de ytjar por defecto).
+  // Registro gratis en rapidapi.com; la key va en .env como RAPIDAPI_KEY=...
+  // Si está vacía, !play usa solo SoundCloud como respaldo.
+  rapidApiKey: process.env.RAPIDAPI_KEY || '',
+  rapidApiHost: process.env.RAPIDAPI_HOST || 'youtube-mp36.p.rapidapi.com',
+
   sticker: {
     pack: "𝐃𝐀𝐃𝐃𝐘'𝐒 𝐁𝐎𝐓",
     author: 'xz1s (Sebastian)',
