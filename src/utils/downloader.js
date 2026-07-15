@@ -138,7 +138,9 @@ function potSelfTest() {
     if (!loaded && impErr) console.log(`  POT self-test err: ${impErr.trim().slice(0, 220)}`);
   };
   try {
-    proc = spawn(YT_DLP, [...pluginArgs(), '-v', '--simulate', 'https://youtu.be/dQw4w9WgXcQ'], { env: ytdlpEnv() });
+    // Usa el cliente primario real (mweb) para que el canario refleje la vía de
+    // descarga, no un cliente distinto.
+    proc = spawn(YT_DLP, [...pluginArgs(), '--extractor-args', 'youtube:player_client=mweb', '-v', '--simulate', 'https://youtu.be/dQw4w9WgXcQ'], { env: ytdlpEnv() });
   } catch { return; }
   const timer = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} report(true); }, 45000);
   proc.stdout?.on('data', d => { out += d.toString(); });
@@ -276,23 +278,28 @@ function isBlockedError(message) {
 // hasta que alguna funcione, así un bloqueo puntual de YouTube (bot-check,
 // cambio de firma) ya NO tumba el comando: hay un plan B. Ninguna usa cookies.
 // La 1 da la mejor calidad (itag 140, m4a 128k).
+// Elección de cliente basada en la guía oficial de PO Tokens de yt-dlp: en IP de
+// datacenter, el cliente web/web_safari (el que toma el POT por defecto) sigue
+// pidiendo bot-check a nivel "player" para muchos videos. Los clientes de abajo
+// lo evitan: mweb solo necesita POT para la descarga (GVS), no para el player, y
+// web_embedded/android_vr no necesitan POT. Se prueban en orden hasta que uno
+// atraviese el bloqueo; el reintento se dispara con isBlockedError. Cada cliente
+// va SOLO (no combinados) porque mezclar con 'tv' —que da formatos con DRM sin
+// cookies— arruinaba el intento.
 function buildStrategies() {
+  const mk = (client) => client
+    ? ['--extractor-args', `youtube:player_client=${client};skip=hls`]
+    : ['--extractor-args', 'youtube:skip=hls'];
   return [
-    // 1) VÍA POT. Clientes por defecto (el POT plugin usa web_safari) + firma
-    //    resuelta por el runtime JS local (Deno/node). Con el POT provider
-    //    (bgutil) corriendo, yt-dlp obtiene el proof-of-origin token en cada
-    //    pedido y satisface el bot-check SIN cookies ni cuenta. Es la vía
-    //    autosostenible y la probada a mano. El itag 140 (m4a 128k) sale igual.
-    {
-      name: 'pot/web',
-      args: ['--extractor-args', 'youtube:skip=hls'],
-    },
-    // 2) Clientes móviles/TV. Otra vía por si el cliente web está bloqueado y,
-    //    por lo que sea, el POT no cubrió ese pedido.
-    {
-      name: 'mobile-tv',
-      args: ['--extractor-args', 'youtube:player_client=tv,mweb,android_vr;skip=hls'],
-    },
+    // 1) mweb: el mejor para POT + datacenter. El provider cubre su token de
+    //    descarga (GVS) y su player NO exige POT. Da m4a (itag 140) igual.
+    { name: 'mweb',         args: mk('mweb') },
+    // 2) web_embedded: no requiere POT; sirve para videos embebibles (la mayoría).
+    { name: 'web_embedded', args: mk('web_embedded') },
+    // 3) android_vr: no requiere POT; otra vía distinta al bloqueo web.
+    { name: 'android_vr',   args: mk('android_vr') },
+    // 4) Por defecto (web_safari + POT): funciona para algunos videos; último recurso.
+    { name: 'default',      args: mk(null) },
   ];
 }
 
