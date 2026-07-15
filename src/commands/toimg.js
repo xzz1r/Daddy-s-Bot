@@ -101,10 +101,17 @@ async function convertToMp4(inputBuf) {
   await fs.writeFile(inputFile, inputBuf);
   try {
     await runFfmpegConvert(inputFile, outputFile, {
+      // Máxima fidelidad: se conserva la resolución y los fotogramas originales
+      // (no se baja fps ni se escala; solo se ajustan las dimensiones a números
+      // pares, requisito de yuv420p). CRF 12 = calidad casi sin pérdida visible,
+      // preset slow para comprimir bien sin sacrificar calidad.
       outputOptions: [
         '-movflags', 'faststart',
+        '-c:v', 'libx264',
         '-pix_fmt', 'yuv420p',
-        '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2:flags=lanczos,fps=20',
+        '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2',
+        '-crf', '12',
+        '-preset', 'slow',
         '-an',
       ],
       format: 'mp4',

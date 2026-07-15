@@ -65,7 +65,7 @@ const NEEDS_META = new Set([
   'ship','mute','unmute','desmute',
   'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness',
   'antilink','close','cerrar','open','abrir',
-  's','sticker','stk','play','playsong','playaudio','ttp','toimg','stimg','tovid','tovideo','stvid',
+  's','sticker','stk','play','playsong','playaudio','ttp','toimg','stimg','tovid',
   'g','ai','grok',
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','ganador',
@@ -450,8 +450,6 @@ async function handleMessage(sock, msg) {
         break;
 
       case 'tovid':
-      case 'tovideo':
-      case 'stvid':
         await cmdToVid(sock, msg);
         break;
 
