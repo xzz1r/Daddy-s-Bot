@@ -117,13 +117,13 @@ function ytdlpEnv() {
   return env;
 }
 
-// ── Auto-diagnóstico del POT al arrancar ──────────────────────────────────────
+// ── Auto-diagnóstico del POT (opt-in) ─────────────────────────────────────────
 // Corre yt-dlp UNA vez, con el entorno y --plugin-dirs EXACTOS de las descargas,
-// en verbose (SIN --no-warnings), para reportar si el plugin POT carga en el
-// entorno real del bot y, si no, mostrar el fallo de importación oculto. Se puede
-// desactivar con POT_SELFTEST=0. Es un solo --simulate en el arranque.
+// en verbose, para reportar si el plugin POT carga en el entorno real del bot.
+// DESACTIVADO por defecto: golpea YouTube en cada arranque y eso ayuda a marcar
+// la IP del datacenter. Solo para depurar: arranca con POT_SELFTEST=1.
 function potSelfTest() {
-  if (process.env.POT_SELFTEST === '0') return;
+  if (process.env.POT_SELFTEST !== '1') return;
   let out = '';
   let reported = false;
   let proc;
