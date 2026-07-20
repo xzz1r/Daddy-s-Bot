@@ -2,7 +2,7 @@ const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const { isOwner, isAdmin, isBotJid, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid } = require('../utils/wa');
 const { streamToBuffer, MAX_DOWNLOAD_BYTES } = require('../utils/helpers');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled } = require('../utils/state');
-const { isBusinessBatch } = require('../utils/businessCheck');
+const { businessEvidence } = require('../utils/businessCheck');
 
 // In-memory mute store: `groupJid|bareJid` -> expireTimestamp
 // Hard-capped: insertion-ordered Map evicts oldest entry past the cap so a
@@ -450,7 +450,10 @@ async function cmdAntiAdmin(sock, msg, args, groupMeta) {
   }, { quoted: msg });
 }
 
-// !antiempresa on/off/scan — owner only. Auto-kicks WhatsApp Business accounts.
+// !antiempresa on/off/scan/purge — owner only.
+//   scan  = DRY-RUN: lista quién es Business y con qué evidencia, NO expulsa.
+//   purge = expulsa a los Business detectados.
+//   on/off = expulsión automática al entrar.
 async function cmdAntiBusiness(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
@@ -458,80 +461,107 @@ async function cmdAntiBusiness(sock, msg, args, groupMeta) {
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo el owner del bot puede activar esto.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo el owner del bot puede usar esto.' }, { quoted: msg });
   }
 
   const arg = (args[0] || '').toLowerCase();
 
-  if (arg === 'scan') {
-    return scanAndPurgeBusinesses(sock, msg, jid, groupMeta);
-  }
+  if (arg === 'scan')  return scanBusinesses(sock, msg, jid, groupMeta, false); // dry-run
+  if (arg === 'purge') return scanBusinesses(sock, msg, jid, groupMeta, true);  // expulsa
 
   if (arg !== 'on' && arg !== 'off') {
     const current = isAntiBusinessEnabled(jid) ? 'activado' : 'desactivado';
-    return sock.sendMessage(jid, { text: `Anti-empresa: *${current}*. on/off/scan.` }, { quoted: msg });
+    return sock.sendMessage(jid, {
+      text:
+        `Anti-empresa (auto al entrar): *${current}*\n\n` +
+        `*!antiempresa scan* — lista quién es Business y por qué (NO expulsa)\n` +
+        `*!antiempresa purge* — expulsa a los Business detectados\n` +
+        `*!antiempresa on/off* — expulsión automática al entrar`,
+    }, { quoted: msg });
   }
 
   const enable = arg === 'on';
   await toggleAntiBusiness(jid, enable);
   await sock.sendMessage(jid, {
-    text: enable ? 'Anti-empresa *activado*.' : 'Anti-empresa *desactivado*.',
+    text: enable
+      ? 'Anti-empresa *activado* (auto al entrar). Verifica antes con *!antiempresa scan*.'
+      : 'Anti-empresa *desactivado*.',
   }, { quoted: msg });
 }
 
-async function scanAndPurgeBusinesses(sock, msg, groupJid, groupMeta) {
+// Escanea a los miembros y detecta cuentas Business mostrando la EVIDENCIA (qué
+// datos de perfil comercial tienen). doKick=false (scan) es un DRY-RUN: solo lista,
+// NO expulsa, para que el owner verifique antes de cualquier acción destructiva.
+// doKick=true (purge) expulsa a los detectados. Admins y owner tier quedan exentos.
+async function scanBusinesses(sock, msg, groupJid, groupMeta, doKick) {
   if (!groupMeta?.participants?.length) {
     return sock.sendMessage(groupJid, { text: 'No pude obtener los miembros del grupo.' }, { quoted: msg });
   }
 
-  // Skip admins entirely — they're exempt from the purge.
-  // Build a map of { kickId -> phoneJid } so we can:
-  //   - look up Business status via the phone JID (@s.whatsapp.net only — LIDs aren't supported by getBusinessProfile)
-  //   - kick using participant.id (what WhatsApp's API actually expects, even if it's a LID)
+  // Mapa { kickId -> phoneJid }: se consulta el perfil por el JID de teléfono
+  // (getBusinessProfile no soporta LIDs) y se expulsa por participant.id.
   const idToPhone = new Map();
   for (const p of groupMeta.participants) {
     if (p.admin === 'admin' || p.admin === 'superadmin') continue;
     if (!p?.id) continue;
-    // El owner y co-owners NUNCA se expulsan, aunque tengan cuenta Business
-    // (protegidos igual que en kick/mute/demote, y coherente con el patrón
-    // fantasma: al dueño no le toca ningún comando).
+    if (isBotJid(sock, p.id)) continue; // el bot nunca se toca a sí mismo
+    // Owner y co-owners nunca se tocan (protegidos como en kick/mute).
     if (isOwner(p.id, false, groupMeta) ||
         (p.lid && isOwner(p.lid, false, groupMeta)) ||
         (p.phoneNumber && isOwner(p.phoneNumber, false, groupMeta))) continue;
-    // p.id may be @lid or @s.whatsapp.net. p.phoneNumber is populated by Baileys
-    // ONLY when p.id is a LID, so fall back to p.id when it's already a phone JID.
     const phoneJid = p.phoneNumber || (p.id.endsWith('@s.whatsapp.net') ? p.id : null);
-    if (!phoneJid) continue; // no phone form available — can't query Business profile
+    if (!phoneJid) continue; // sin forma de teléfono → no se puede consultar el perfil
     idToPhone.set(p.id, phoneJid);
   }
 
   if (!idToPhone.size) {
-    return sock.sendMessage(groupJid, { text: 'No hay miembros para escanear (solo admins, o sin mapeo de numero disponible).' }, { quoted: msg });
+    return sock.sendMessage(groupJid, { text: 'No hay miembros con número consultable para escanear.' }, { quoted: msg });
   }
 
   await sock.sendMessage(groupJid, {
-    text: `Escaneando *${idToPhone.size}* miembros (admins exentos)...`,
+    text: `${doKick ? 'Purga' : 'Escaneo'} de *${idToPhone.size}* miembros (admins y owner exentos)...`,
   }, { quoted: msg });
 
-  const phoneJids = Array.from(idToPhone.values());
-  const phoneResults = await isBusinessBatch(sock, phoneJids);
-
-  // Translate phone -> kickId for the kick step
-  const toKick = [];
-  for (const [kickId, phoneJid] of idToPhone) {
-    if (phoneResults.get(phoneJid)) toKick.push(kickId);
+  // Consulta la evidencia de cada uno con concurrencia acotada.
+  const entries = Array.from(idToPhone.entries()); // [kickId, phoneJid]
+  const detected = []; // { kickId, fields }
+  const CONC = 6;
+  for (let i = 0; i < entries.length; i += CONC) {
+    const chunk = entries.slice(i, i + CONC);
+    const results = await Promise.all(chunk.map(async ([kickId, phoneJid]) => {
+      const ev = await businessEvidence(sock, phoneJid).catch(() => ({ isBiz: false, fields: [] }));
+      return { kickId, ev };
+    }));
+    for (const { kickId, ev } of results) {
+      if (ev.isBiz) detected.push({ kickId, fields: ev.fields });
+    }
   }
 
-  if (!toKick.length) {
-    return sock.sendMessage(groupJid, { text: 'No se encontraron cuentas Business entre los miembros.' });
+  if (!detected.length) {
+    return sock.sendMessage(groupJid, { text: 'No se detectaron cuentas Business entre los miembros.' });
   }
 
+  const lines = detected.map(d => `@${d.kickId.split('@')[0]} — ${d.fields.join(', ')}`);
+  const mentions = detected.map(d => d.kickId);
+
+  if (!doKick) {
+    // DRY-RUN: solo informa con la evidencia. NO expulsa a nadie.
+    return sock.sendMessage(groupJid, {
+      text:
+        `*Business detectados (${detected.length})* — con su evidencia:\n\n` +
+        lines.join('\n') +
+        `\n\n_Esto NO expulsa a nadie. Si la lista es correcta, usa *!antiempresa purge* para expulsarlos. Si aparece alguien que NO es Business, avisa antes de purgar._`,
+      mentions,
+    });
+  }
+
+  // PURGE: expulsa a los detectados.
   try {
+    const toKick = detected.map(d => d.kickId);
     await sock.groupParticipantsUpdate(groupJid, toKick, 'remove');
-    const tags = toKick.map(j => `@${j.split('@')[0]}`).join(', ');
     await sock.sendMessage(groupJid, {
-      text: `*Anti-empresa:* expulsadas *${toKick.length}* cuentas Business.\n${tags}`,
-      mentions: toKick,
+      text: `*Anti-empresa:* expulsadas *${toKick.length}* cuentas Business.\n${lines.join('\n')}`,
+      mentions,
     });
   } catch (err) {
     await sock.sendMessage(groupJid, { text: `Error al expulsar: ${err.message}` });

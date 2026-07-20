@@ -76,8 +76,31 @@ async function isBusinessBatch(sock, jids, concurrency = 8) {
   return out;
 }
 
+// Diagnóstico para el dry-run de !antiempresa scan: además del booleano, devuelve
+// QUÉ campos reales de Business tiene el perfil, para que el owner vea POR QUÉ se
+// detectó a cada uno y pueda verificar antes de expulsar. Consulta en vivo (sin
+// caché) para reflejar el estado real en el momento del scan.
+async function businessEvidence(sock, jid) {
+  if (!jid || typeof jid !== 'string' || !jid.endsWith('@s.whatsapp.net')) {
+    return { isBiz: false, fields: [] };
+  }
+  let profile;
+  try { profile = await sock.getBusinessProfile(jid); }
+  catch { return { isBiz: false, fields: [] }; }
+  const filled = v => typeof v === 'string' && v.trim().length > 0;
+  const fields = [];
+  if (filled(profile?.category)) fields.push('categoría');
+  if (filled(profile?.email)) fields.push('email');
+  if (filled(profile?.address)) fields.push('dirección');
+  if (filled(profile?.description)) fields.push('descripción');
+  if (Array.isArray(profile?.website) && profile.website.some(w => filled(String(w)))) fields.push('web');
+  const cfg = profile?.business_hours?.business_config;
+  if (Array.isArray(cfg) && cfg.length > 0) fields.push('horario');
+  return { isBiz: fields.length > 0, fields };
+}
+
 function clearBusinessCache() {
   cache.clear();
 }
 
-module.exports = { isBusiness, isBusinessBatch, clearBusinessCache };
+module.exports = { isBusiness, isBusinessBatch, businessEvidence, clearBusinessCache };
