@@ -492,6 +492,12 @@ async function scanAndPurgeBusinesses(sock, msg, groupJid, groupMeta) {
   for (const p of groupMeta.participants) {
     if (p.admin === 'admin' || p.admin === 'superadmin') continue;
     if (!p?.id) continue;
+    // El owner y co-owners NUNCA se expulsan, aunque tengan cuenta Business
+    // (protegidos igual que en kick/mute/demote, y coherente con el patrón
+    // fantasma: al dueño no le toca ningún comando).
+    if (isOwner(p.id, false, groupMeta) ||
+        (p.lid && isOwner(p.lid, false, groupMeta)) ||
+        (p.phoneNumber && isOwner(p.phoneNumber, false, groupMeta))) continue;
     // p.id may be @lid or @s.whatsapp.net. p.phoneNumber is populated by Baileys
     // ONLY when p.id is a LID, so fall back to p.id when it's already a phone JID.
     const phoneJid = p.phoneNumber || (p.id.endsWith('@s.whatsapp.net') ? p.id : null);

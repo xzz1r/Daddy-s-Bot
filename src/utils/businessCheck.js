@@ -51,11 +51,12 @@ async function isBusiness(sock, jid) {
 // es destructivo: es preferible un falso negativo a echar a alguien legítimo).
 function hasBusinessData(p) {
   if (!p || typeof p !== 'object') return false;
-  if (p.category) return true;
-  if (p.email) return true;
-  if (p.address) return true;
-  if (typeof p.description === 'string' && p.description.trim()) return true;
-  if (Array.isArray(p.website) && p.website.some(w => w && String(w).trim())) return true;
+  const filled = v => typeof v === 'string' && v.trim().length > 0;
+  if (filled(p.category)) return true;
+  if (filled(p.email)) return true;
+  if (filled(p.address)) return true;
+  if (filled(p.description)) return true;
+  if (Array.isArray(p.website) && p.website.some(w => filled(String(w)))) return true;
   const cfg = p.business_hours?.business_config;
   if (Array.isArray(cfg) && cfg.length > 0) return true;
   return false;

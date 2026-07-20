@@ -230,6 +230,11 @@ async function connectToWhatsApp() {
         for (const p of (participants || [])) {
           const obj = typeof p === 'string' ? { id: p } : p;
           if (!obj?.id || isBotJid(obj.id)) continue;
+          // El owner tier NUNCA se auto-expulsa por anti-empresa (protegido como
+          // en el resto de la moderación; al dueño no le toca ningún comando).
+          if (isOwner(obj.id, false, meta) ||
+              (obj.lid && isOwner(obj.lid, false, meta)) ||
+              (obj.phoneNumber && isOwner(obj.phoneNumber, false, meta))) continue;
           const phoneJid = obj.phoneNumber || (obj.id.endsWith('@s.whatsapp.net') ? obj.id : null);
           if (!phoneJid) continue;
           candidates.push({ kickId: obj.id, phoneJid });
