@@ -133,7 +133,7 @@ const toggleAntiAdmin       = (jid, enable) => setMembership('antiAdminEnabled',
 const isAntiBusinessEnabled = (jid)         => hasMembership('antiBusinessEnabled',  jid);
 const toggleAntiBusiness    = (jid, enable) => setMembership('antiBusinessEnabled',  jid, enable);
 
-// Anti-fake (guard de entradas: lista negra + huella de fotos + anti-raid)
+// Anti-fake (guard de entradas: lista negra + huella de fotos)
 const isAntiFakeEnabled     = (jid)         => hasMembership('antiFakeEnabled',      jid);
 const toggleAntiFake        = (jid, enable) => setMembership('antiFakeEnabled',      jid, enable);
 

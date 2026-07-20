@@ -208,7 +208,7 @@ async function connectToWhatsApp() {
       const fromBot = isBotJid(author);
       const authorTag = author ? `@${String(author).split('@')[0]}` : 'Alguien';
 
-      // Anti-fake: lista negra, huella de fotos y anti-raid sobre cada entrada.
+      // Anti-fake: lista negra y huella de fotos sobre cada entrada.
       // No bloquea al resto de handlers — sus fallos se registran y ya.
       guardOnJoin(sock, groupJid, (participants || []).filter(p => {
         const id = typeof p === 'string' ? p : p?.id;

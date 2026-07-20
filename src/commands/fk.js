@@ -514,49 +514,25 @@ async function cmdAntiFake(sock, msg, args, groupMeta) {
       text: `Anti-fake está *${cur}*. Usa *!antifake on* u *!antifake off*.\n\n` +
         `Con ON, al entrar alguien:\n` +
         `• Lista negra → expulsión automática\n` +
-        `• Foto igual a la de otro miembro o marcada fake → alerta\n` +
-        `• 5+ entradas en 1 min → cierra el grupo (anti-raid)`,
+        `• Foto igual a la de otro miembro o marcada fake → alerta`,
     }, { quoted: msg });
   }
 
   await toggleAntiFake(jid, arg === 'on');
   return sock.sendMessage(jid, {
     text: arg === 'on'
-      ? '*Anti-fake ACTIVADO*: lista negra + huella de fotos + anti-raid en cada entrada.'
+      ? '*Anti-fake ACTIVADO*: lista negra + huella de fotos en cada entrada.'
       : 'Anti-fake desactivado.',
   }, { quoted: msg });
 }
 
 // ─── Guard de entradas (llamado desde bot.js en group-participants add) ──────
 
-// Ventana anti-raid: N entradas en T ms → cerrar el grupo y avisar.
-const RAID_WINDOW_MS = 60000;
-const RAID_THRESHOLD = 5;
-const RAID_COOLDOWN_MS = 5 * 60000;
-const joinTimes = new Map();   // groupJid -> [timestamps]
-const raidNotified = new Map(); // groupJid -> last raid action ts
-
 async function guardOnJoin(sock, groupJid, joiners, groupMeta) {
   if (!isAntiFakeEnabled(groupJid)) return;
   const now = Date.now();
 
-  // 1) Anti-raid por ráfaga de entradas.
-  const times = (joinTimes.get(groupJid) || []).filter(t => now - t < RAID_WINDOW_MS);
-  for (let i = 0; i < joiners.length; i++) times.push(now);
-  joinTimes.set(groupJid, times);
-  if (times.length >= RAID_THRESHOLD && now - (raidNotified.get(groupJid) || 0) > RAID_COOLDOWN_MS) {
-    raidNotified.set(groupJid, now);
-    try {
-      await sock.groupSettingUpdate(groupJid, 'announcement');
-      await sock.sendMessage(groupJid, {
-        text: `*ANTI-RAID:* ${times.length} entradas en menos de 1 minuto. Grupo cerrado (solo admins). Reabran con *!open* cuando pase.`,
-      });
-    } catch (e) {
-      logger.warn(`anti-raid: no pude cerrar ${groupJid} (¿bot no es admin?): ${e.message}`);
-    }
-  }
-
-  // 2) Por cada entrante: lista negra → kick; huella de foto → alerta.
+  // Por cada entrante: lista negra → kick; huella de foto → alerta.
   for (const p of joiners) {
     const obj = typeof p === 'string' ? { id: p } : (p || {});
     if (!obj.id) continue;
