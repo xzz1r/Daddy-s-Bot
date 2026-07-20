@@ -32,13 +32,33 @@ async function isBusiness(sock, jid) {
 
   try {
     const profile = await sock.getBusinessProfile(jid);
-    const value = !!profile; // any non-empty profile means it's a Business account
+    const value = hasBusinessData(profile);
     cacheSet(jid, value);
     return value;
   } catch {
     // Network/protocol errors → don't cache, return false (safer default).
     return false;
   }
+}
+
+// CRÍTICO: NO basta con `!!profile`. WhatsApp devuelve un nodo <profile> incluso
+// para cuentas NORMALES, y Baileys lo convierte en un objeto "verdadero" cuyo
+// único campo real es `wid` (el propio jid consultado); description queda en ''
+// y website en []. Tratar eso como Business expulsaba a usuarios normales.
+// Una cuenta Business de verdad expone al menos UNO de estos datos reales:
+// categoría, horario comercial, email, web, dirección o una descripción no vacía.
+// El `wid` por sí solo no significa nada. Ante la duda, NO es business (expulsar
+// es destructivo: es preferible un falso negativo a echar a alguien legítimo).
+function hasBusinessData(p) {
+  if (!p || typeof p !== 'object') return false;
+  if (p.category) return true;
+  if (p.email) return true;
+  if (p.address) return true;
+  if (typeof p.description === 'string' && p.description.trim()) return true;
+  if (Array.isArray(p.website) && p.website.some(w => w && String(w).trim())) return true;
+  const cfg = p.business_hours?.business_config;
+  if (Array.isArray(cfg) && cfg.length > 0) return true;
+  return false;
 }
 
 // Check many JIDs with bounded concurrency. ~8 in parallel is the sweet spot —
