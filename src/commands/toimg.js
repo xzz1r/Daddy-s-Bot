@@ -61,7 +61,9 @@ async function convertToJpeg(inputBuf) {
   await fs.writeFile(inputFile, inputBuf);
   try {
     await runFfmpegConvert(inputFile, outputFile, {
-      outputOptions: ['-vframes', '1', '-q:v', '2'],
+      // -q:v 1 = máxima calidad JPEG (sin pérdida perceptible) para conservar
+      // la imagen del sticker lo más fiel posible.
+      outputOptions: ['-vframes', '1', '-q:v', '1'],
       format: 'mjpeg',
     });
     const buf = await fs.readFile(outputFile);

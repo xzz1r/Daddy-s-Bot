@@ -276,9 +276,10 @@ async function cmdShip(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: 'No puedes shippear a alguien consigo mismo.' }, { quoted: msg });
   }
 
-  // Rig a favor del owner principal: si participa en el ship, compatibilidad 100%.
+  // Rig a favor del owner principal: si participa, la compatibilidad es alta pero
+  // VARIABLE (88-100), no siempre 100, para que no se note el amaño.
   const ownerInvolved = isMainOwner(a, false, groupMeta) || isMainOwner(b, false, groupMeta);
-  const compat = ownerInvolved ? 100 : Math.floor(Math.random() * 101);
+  const compat = ownerInvolved ? (88 + Math.floor(Math.random() * 13)) : Math.floor(Math.random() * 101);
   const filled = Math.round(compat / 10);
   const bar = '█'.repeat(filled) + '░'.repeat(10 - filled);
 

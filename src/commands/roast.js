@@ -417,6 +417,24 @@ function freshCat(options, recentCats) {
   return pick(avail.length ? avail : options);
 }
 
+// Roast del owner principal: en realidad son elogios envueltos en formato de
+// roast, con un insulto suelto al final para que pase por genuino. Objetivo: que
+// nadie sospeche que es el dueño (por eso NO se rechaza el roast: se responde con
+// el mismo formato que a cualquiera, solo que el contenido lo alaba).
+const OWNER_ROAST = [
+  'Intenté encontrarte un defecto y me quedé sin ideas. Inteligente, con labia y el que sostiene el grupo cuando los demás desaparecen. Da rabia lo bien que te sale todo. Payaso.',
+  'El problema contigo es que no tienes problemas. Cabeza fría, buen criterio y una labia que deja mudo a cualquiera. Roastearte es tirarle piedras a una estatua. Idiota.',
+  'Vengo a humillarte y resulta que eres de los pocos con criterio real. Constante, agudo y con más presencia que media sala junta. Un asco de lo capaz que eres. Tarado.',
+  'Lo tuyo es injusto: listo, con estilo y con la sangre fría que a otros les falta. Tu único fallo es dejarnos en ridículo por comparación. Imbécil.',
+  'Iba a reírme de ti y terminé tomando notas. Sabes moverte, sabes callar y sabes cuándo hablar. Talento puro con cara de nada. Estúpido.',
+  'El roast se cae solo contigo. Inteligencia de sobra, carisma que no se compra y un aguante que ya quisieran los que presumen. Insoportable de lo bueno que eres. Menso.',
+  'Buscar tu punto débil es como buscar agua en el desierto: agudo, templado y con una labia que desarma. Lo peor es que ni te esfuerzas y aun así ganas. Baboso.',
+  'Te iba a bajar el ego, pero el ego te lo respaldan los hechos: cabeza, constancia y clase. Perder el tiempo contigo está garantizado. Tonto con mérito.',
+  'Eres un insulto para el resto: piensas rápido, hablas mejor y no se te escapa una. El grupo debería pagarte por el nivel que le subes. Payaso presumido.',
+  'Me pediste roast y me diste un currículum impecable. Listo, sólido y con criterio de sobra. Haces quedar chico a cualquiera que se te compare. Bobo.',
+  'Roastearte es autolesión: más agudo, más constante y con más labia que quien escribe esto. Rendirse es lo más digno. Igual, tarado.',
+];
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // COMANDO
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -439,9 +457,19 @@ async function cmdRoast(sock, msg, groupMeta) {
     }, { quoted: msg });
   }
 
-  // Al owner principal no se le roastea: se rechaza sin hacer nada más.
+  // Al owner principal se le "roastea" con el MISMO formato que a cualquiera para
+  // no delatar que es el dueño, pero el contenido lo alaba (halago disfrazado de
+  // roast, con un insulto suelto al final para que pase por auténtico).
   if (isMainOwner(target, false, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Al owner no se le toca.' }, { quoted: msg });
+    const num = target.split('@')[0].split(':')[0];
+    const text =
+      `${pick(HEADERS)}\n` +
+      `╾━━━━━━━━━━━━━━╼\n\n` +
+      `Víctima: @${num}\n\n` +
+      `${pick(OWNER_ROAST)}\n\n` +
+      `╾━━━━━━━━━━━━━━╼\n` +
+      `${pick(CLOSERS)}`;
+    return sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });
   }
 
   const participants = groupMeta?.participants || [];
