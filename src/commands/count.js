@@ -2,8 +2,6 @@ const { getActiveUsers, resetCounts } = require('../utils/messageCounter');
 const { isOwner, isMainOwner, isAdmin, getSender, bareJid, sameUser } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
 
-const MEDALS = ['', '', '', '', ''];
-
 const MEMBER_PHRASES = [
   [
     'El que mas habla manda. El admin no se pide, se demuestra — y tu lo estas haciendo.',
@@ -298,6 +296,18 @@ async function cmdCount(sock, msg, groupMeta, args) {
 
   // !count — top 10 ranking
   let users = await getActiveUsers(jid, 1);
+  // Solo cuenta a quien SIGUE en el grupo: quien se salió queda fuera del top
+  // automáticamente (aunque su conteo siga guardado). Se cruza con la lista de
+  // participantes actual con sameUser (puentea LID↔teléfono). Si no hay metadata
+  // (fetch falló), no se filtra para no vaciar el ranking por error.
+  const members = groupMeta?.participants;
+  if (members?.length) {
+    users = users.filter(u => members.some(p =>
+      sameUser(p.id, u.jid) ||
+      (p.lid && sameUser(p.lid, u.jid)) ||
+      (p.phoneNumber && sameUser(p.phoneNumber, u.jid))
+    ));
+  }
   // El owner principal nunca aparece en el ranking (invisible en toda salida).
   users = users.filter(u => !isMainOwner(u.jid, false, groupMeta));
   if (!users.length) {
@@ -312,16 +322,15 @@ async function cmdCount(sock, msg, groupMeta, args) {
   top.forEach((u, i) => {
     const phone = u.jid.split('@')[0];
     const msgs = u.count === 1 ? '1 mensaje' : `${u.count} mensajes`;
+    const pos = `*${i + 1}.*`; // numeración clara y consistente del 1 al 10
 
     if (i < 3) {
       const admin = isAdmin(groupMeta?.participants, u.jid);
       const phrase = pick(admin ? ADMIN_PHRASES[i] : MEMBER_PHRASES[i]);
-      text += `${MEDALS[i]} *@${phone}* — ${msgs}\n`;
+      text += `${pos} *@${phone}* — ${msgs}\n`;
       text += `${phrase}\n\n`;
-    } else if (i < 5) {
-      text += `${MEDALS[i]} @${phone} — ${msgs}\n`;
     } else {
-      text += `*${i + 1}.* @${phone} — ${msgs}\n`;
+      text += `${pos} @${phone} — ${msgs}\n`;
     }
   });
 

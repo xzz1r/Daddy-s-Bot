@@ -1,6 +1,5 @@
 const { isOwner, isMainOwner, isGroupAdmin, getSender, bareJid } = require('../utils/wa');
-const { isBusinessBatch } = require('../utils/businessCheck');
-const logger = require('../utils/logger');
+const { businessEvidence } = require('../utils/businessCheck');
 
 const PFP_CONCURRENCY = 8;
 const PFP_TIMEOUT_MS  = 3500;
@@ -69,12 +68,19 @@ async function cmdScan(sock, msg, groupMeta) {
     text: `Escaneando ${participants.length} miembros…`,
   }, { quoted: msg });
 
-  // ── Business account check ────────────────────────────────────────────────
-  let bizMap = new Map();
-  try {
-    bizMap = await isBusinessBatch(sock, phoneJids, 8);
-  } catch (err) {
-    logger.warn(`scan: business check failed: ${err.message}`);
+  // ── Business account check (con EVIDENCIA: qué campo lo marca) ─────────────
+  // bizMap solo contiene los detectados como Business, mapeados a los campos
+  // reales que lo delatan (categoría, email, web, dirección, horario...). Así el
+  // reporte muestra el PORQUÉ de cada marca y se puede ver si es un falso positivo.
+  const bizMap = new Map(); // jid -> fields[]
+  const BIZ_CONC = 6;
+  for (let i = 0; i < phoneJids.length; i += BIZ_CONC) {
+    const chunk = phoneJids.slice(i, i + BIZ_CONC);
+    const results = await Promise.all(chunk.map(async j => {
+      const ev = await businessEvidence(sock, j).catch(() => ({ isBiz: false, fields: [] }));
+      return [j, ev];
+    }));
+    for (const [j, ev] of results) if (ev.isBiz) bizMap.set(j, ev.fields);
   }
 
   // ── Profile picture check (with per-call timeout) ─────────────────────────
@@ -98,7 +104,7 @@ async function cmdScan(sock, msg, groupMeta) {
     if (reasons.length) flagged.push({ jid: j, reasons });
   }
 
-  const bizCount  = phoneJids.filter(j => bizMap.get(j)).length;
+  const bizCount  = bizMap.size;
   const noPfp     = phoneJids.filter(j => pfpMap.get(j) === false).length;
   const timedOut  = phoneJids.filter(j => pfpMap.get(j) === null).length;
 
@@ -113,9 +119,8 @@ async function cmdScan(sock, msg, groupMeta) {
 
   // Business accounts — individually listed with mention
   if (bizCount > 0) {
-    const bizLines = phoneJids
-      .filter(j => bizMap.get(j))
-      .map(j => `• @${j.split('@')[0]}`);
+    const bizLines = [...bizMap.entries()]
+      .map(([j, fields]) => `• @${j.split('@')[0]} — ${fields.join(', ')}`);
     text += `*Cuentas Business (${bizCount}):*\n${bizLines.join('\n')}\n\n`;
   }
 
@@ -137,7 +142,7 @@ async function cmdScan(sock, msg, groupMeta) {
     text += `\n_Revisión manual recomendada para los marcados._`;
   }
 
-  const mentions = phoneJids.filter(j => bizMap.get(j));
+  const mentions = [...bizMap.keys()];
   await sock.sendMessage(jid, { text, mentions }, { quoted: msg });
 }
 
