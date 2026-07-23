@@ -179,6 +179,11 @@ Dan un % al azar de un rasgo:
 *${p}ship* @a @b — compatibilidad
 *${p}roast* @user — burla pública
 
+━━ *WINGMAN* ━━ _(sin @ = a ti · con @ = a otro)_
+*${p}rizz* [@user] — nivel de juego (%)
+*${p}piropo* [@user] — le lanza un piropo
+*${p}coach* [@user] — consejos de ligue
+
 ━━ *AURA* ━━ _(economía del grupo)_
 *${p}aura* [@user] — ver aura · *${p}aura top* — ranking
 *${p}dar* / *${p}duel* / *${p}robo* @user <cantidad>
