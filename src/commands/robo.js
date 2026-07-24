@@ -24,7 +24,7 @@ const ROB_WIN = [
   '%A drena el aura de %V en público. %V lo apunta como "mala racha". El grupo lo apunta como lo que es: el cajero andante de cualquiera con un poco de cara.',
   'El aura de %V ahora es de %A, y ni tiempo de reaccionar tuvo. Cuando eres tan invisible, hasta robarte resulta cómodo: nadie te mira, ni para vigilarte.',
   '%A trata el aura de %V como propia, porque en la práctica lo es. %V no retiene nada de lo que toca; es un colador con forma de persona y autoestima de saldo.',
-  'Robo limpio y el aura de %V en el bolsillo de %A. %V aprenderá la lección. Es broma: %V no aprende lecciones, las colecciona sin abrirlas, como folletos del buzón.',
+  'Robo limpio y el aura de %V en el bolsillo de %A. %V aprenderá la lección. Es broma: este inútil no aprende una puta mierda, tropieza con la misma piedra hasta cansarla.',
   '%A le hace una limpieza completa al aura de %V. %V tenía aura, pero cero carácter para protegerla. Tener sin saber retener: el deporte nacional de los pringados.',
   'El aura de %V acaba de financiar el ascenso de %A. %V es de esos que trabajan gratis para quien los pisa, sin enterarse y sin cobrar. Mecenas de su propio verdugo.',
 ];
