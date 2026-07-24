@@ -180,12 +180,15 @@ async function downloadUrlToFile(url, dest) {
   await new Promise((resolve, reject) => {
     const w = fs.createWriteStream(dest);
     let bytes = 0;
+    // Cualquier rechazo destruye AMBOS streams: si solo se cierra uno, el otro
+    // queda con su descriptor de fichero/socket abierto (fuga en un proceso 24/7).
+    const fail = (err) => { resp.data.destroy(); w.destroy(); reject(err); };
     resp.data.on('data', (c) => {
       bytes += c.length;
-      if (bytes > MAX_BYTES) { resp.data.destroy(); w.destroy(); reject(new Error('La canción pesa más de 25MB')); }
+      if (bytes > MAX_BYTES) fail(new Error('La canción pesa más de 25MB'));
     });
-    resp.data.on('error', reject);
-    w.on('error', reject);
+    resp.data.on('error', fail);
+    w.on('error', fail);
     w.on('finish', resolve);
     resp.data.pipe(w);
   });
@@ -223,6 +226,11 @@ async function tryRapidApi(query) {
       return await fetchFromProvider(videoId, PROVIDERS[i]);
     } catch (err) {
       lastErr = err;
+      // "preview" es propiedad del vídeo (mismo videoId en todas las keys):
+      // rotar repetiría la conversión para el mismo id y volvería a dar preview,
+      // gastando tiempo en todas las keys. Es terminal para RapidAPI → que el
+      // caller caiga directo a SoundCloud.
+      if (err.message === 'preview') break;
       if (err.quota) logger.warn(`!play: key ${i + 1}/${PROVIDERS.length} sin cuota; rotando`);
       continue;
     }

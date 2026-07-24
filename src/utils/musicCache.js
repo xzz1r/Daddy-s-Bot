@@ -93,12 +93,21 @@ async function getCached(query) {
   // RAM hit — completely bypasses disk
   const ramHit = ramCache.get(k);
   if (ramHit) {
-    // Move to end (LRU bump)
-    ramUsedBytes -= ramHit.buffer.length;
-    ramCache.delete(k);
-    ramCache.set(k, ramHit);
-    ramUsedBytes += ramHit.buffer.length;
-    return ramHit;
+    // Misma invalidación que el disco: opus/ogg/webm no los reproduce WhatsApp
+    // como música. Si un buffer así entró en RAM (p.ej. SoundCloud devolvió
+    // webm), se descarta aquí también y se cae al camino de disco, que además
+    // borra la entrada y el fichero. Si no, una RAM-hit serviría un formato roto.
+    if (ramHit.ext === 'opus' || ramHit.ext === 'ogg' || ramHit.ext === 'webm') {
+      ramUsedBytes -= ramHit.buffer.length;
+      ramCache.delete(k);
+    } else {
+      // Move to end (LRU bump)
+      ramUsedBytes -= ramHit.buffer.length;
+      ramCache.delete(k);
+      ramCache.set(k, ramHit);
+      ramUsedBytes += ramHit.buffer.length;
+      return ramHit;
+    }
   }
 
   await loadIndex();
