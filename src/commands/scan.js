@@ -41,6 +41,8 @@ async function cmdScan(sock, msg, groupMeta) {
   // Split into phone-JIDs (scannable) and LID-only (number hidden by WA privacy).
   const phoneJids = [];
   const lidOnly   = [];
+  const phoneToId = new Map(); // phoneJid -> participant.id, para mencionar por id
+                               // (el mention por id sí renderiza el nombre en grupos LID)
 
   for (const p of participants) {
     // El owner principal nunca se escanea ni se marca como sospechoso: se
@@ -59,6 +61,7 @@ async function cmdScan(sock, msg, groupMeta) {
 
     if (resolved) {
       phoneJids.push(resolved);
+      phoneToId.set(resolved, id);
     } else {
       lidOnly.push(id);
     }
@@ -95,15 +98,6 @@ async function cmdScan(sock, msg, groupMeta) {
     for (const [j, v] of results) pfpMap.set(j, v);
   }
 
-  // ── Build flagged list ────────────────────────────────────────────────────
-  const flagged = [];
-  for (const j of phoneJids) {
-    const reasons = [];
-    if (bizMap.get(j))        reasons.push('cuenta Business');
-    if (pfpMap.get(j) === false) reasons.push('sin foto');
-    if (reasons.length) flagged.push({ jid: j, reasons });
-  }
-
   const bizCount  = bizMap.size;
   const noPfp     = phoneJids.filter(j => pfpMap.get(j) === false).length;
   const timedOut  = phoneJids.filter(j => pfpMap.get(j) === null).length;
@@ -120,7 +114,7 @@ async function cmdScan(sock, msg, groupMeta) {
   // Business accounts — individually listed with mention
   if (bizCount > 0) {
     const bizLines = [...bizMap.entries()]
-      .map(([j, fields]) => `• @${j.split('@')[0]} — ${fields.join(', ')}`);
+      .map(([j, fields]) => `• @${(phoneToId.get(j) || j).split('@')[0]} — ${fields.join(', ')}`);
     text += `*Cuentas Business (${bizCount}):*\n${bizLines.join('\n')}\n\n`;
   }
 
@@ -142,7 +136,7 @@ async function cmdScan(sock, msg, groupMeta) {
     text += `\n_Revisión manual recomendada para los marcados._`;
   }
 
-  const mentions = [...bizMap.keys()];
+  const mentions = [...bizMap.keys()].map(j => phoneToId.get(j) || j);
   await sock.sendMessage(jid, { text, mentions }, { quoted: msg });
 }
 

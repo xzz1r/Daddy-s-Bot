@@ -1,5 +1,5 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const { isOwner, isAdmin, isBotJid, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid } = require('../utils/wa');
+const { isOwner, isAdmin, isBotJid, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid, sameUser } = require('../utils/wa');
 const { streamToBuffer, MAX_DOWNLOAD_BYTES } = require('../utils/helpers');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled } = require('../utils/state');
 const { businessEvidence } = require('../utils/businessCheck');
@@ -466,8 +466,8 @@ async function cmdAntiBusiness(sock, msg, args, groupMeta) {
 
   const arg = (args[0] || '').toLowerCase();
 
-  if (arg === 'scan')  return scanBusinesses(sock, msg, jid, groupMeta, false); // dry-run
-  if (arg === 'purge') return scanBusinesses(sock, msg, jid, groupMeta, true);  // expulsa
+  if (arg === 'scan')  return scanBusinesses(sock, msg, jid, groupMeta);  // dry-run + guarda la lista
+  if (arg === 'purge') return purgeBusinesses(sock, msg, jid, groupMeta); // expulsa la lista verificada
 
   if (arg !== 'on' && arg !== 'off') {
     const current = isAntiBusinessEnabled(jid) ? 'activado' : 'desactivado';
@@ -489,23 +489,22 @@ async function cmdAntiBusiness(sock, msg, args, groupMeta) {
   }, { quoted: msg });
 }
 
-// Escanea a los miembros y detecta cuentas Business mostrando la EVIDENCIA (qué
-// datos de perfil comercial tienen). doKick=false (scan) es un DRY-RUN: solo lista,
-// NO expulsa, para que el owner verifique antes de cualquier acción destructiva.
-// doKick=true (purge) expulsa a los detectados. Admins y owner tier quedan exentos.
-async function scanBusinesses(sock, msg, groupJid, groupMeta, doKick) {
-  if (!groupMeta?.participants?.length) {
-    return sock.sendMessage(groupJid, { text: 'No pude obtener los miembros del grupo.' }, { quoted: msg });
-  }
+// Última lista detectada por scan, por grupo, para que purge expulse EXACTAMENTE
+// lo que el owner verificó (y no un re-escaneo que podría diferir por un fallo de
+// red puntual). Vive en memoria; el scan la llena, el purge la consume.
+const lastScan = new Map(); // groupJid -> { ts, detected: [{ kickId, fields }] }
+const SCAN_VALID_MS = 10 * 60 * 1000; // el scan vale 10 min para poder purgar
 
-  // Mapa { kickId -> phoneJid }: se consulta el perfil por el JID de teléfono
-  // (getBusinessProfile no soporta LIDs) y se expulsa por participant.id.
+// Construye el mapa { participant.id -> phoneJid } de los miembros escaneables:
+// se consulta el perfil por el JID de teléfono (getBusinessProfile no soporta
+// LIDs) y se expulsa/menciona por participant.id. Excluye admins, owner tier y
+// el propio bot.
+function scannableMembers(sock, groupMeta) {
   const idToPhone = new Map();
   for (const p of groupMeta.participants) {
     if (p.admin === 'admin' || p.admin === 'superadmin') continue;
     if (!p?.id) continue;
     if (isBotJid(sock, p.id)) continue; // el bot nunca se toca a sí mismo
-    // Owner y co-owners nunca se tocan (protegidos como en kick/mute).
     if (isOwner(p.id, false, groupMeta) ||
         (p.lid && isOwner(p.lid, false, groupMeta)) ||
         (p.phoneNumber && isOwner(p.phoneNumber, false, groupMeta))) continue;
@@ -513,16 +512,10 @@ async function scanBusinesses(sock, msg, groupJid, groupMeta, doKick) {
     if (!phoneJid) continue; // sin forma de teléfono → no se puede consultar el perfil
     idToPhone.set(p.id, phoneJid);
   }
+  return idToPhone;
+}
 
-  if (!idToPhone.size) {
-    return sock.sendMessage(groupJid, { text: 'No hay miembros con número consultable para escanear.' }, { quoted: msg });
-  }
-
-  await sock.sendMessage(groupJid, {
-    text: `${doKick ? 'Purga' : 'Escaneo'} de *${idToPhone.size}* miembros (admins y owner exentos)...`,
-  }, { quoted: msg });
-
-  // Consulta la evidencia de cada uno con concurrencia acotada.
+async function detectBusinesses(sock, idToPhone) {
   const entries = Array.from(idToPhone.entries()); // [kickId, phoneJid]
   const detected = []; // { kickId, fields }
   const CONC = 6;
@@ -536,32 +529,74 @@ async function scanBusinesses(sock, msg, groupJid, groupMeta, doKick) {
       if (ev.isBiz) detected.push({ kickId, fields: ev.fields });
     }
   }
+  return detected;
+}
+
+// scan = DRY-RUN: detecta y lista con evidencia, NO expulsa. Guarda la lista para
+// que un purge posterior expulse exactamente esto.
+async function scanBusinesses(sock, msg, groupJid, groupMeta) {
+  if (!groupMeta?.participants?.length) {
+    return sock.sendMessage(groupJid, { text: 'No pude obtener los miembros del grupo.' }, { quoted: msg });
+  }
+  const idToPhone = scannableMembers(sock, groupMeta);
+  if (!idToPhone.size) {
+    return sock.sendMessage(groupJid, { text: 'No hay miembros con número consultable para escanear.' }, { quoted: msg });
+  }
+
+  await sock.sendMessage(groupJid, {
+    text: `Escaneo de *${idToPhone.size}* miembros (admins y owner exentos)...`,
+  }, { quoted: msg });
+
+  const detected = await detectBusinesses(sock, idToPhone);
+  lastScan.set(groupJid, { ts: Date.now(), detected });
 
   if (!detected.length) {
     return sock.sendMessage(groupJid, { text: 'No se detectaron cuentas Business entre los miembros.' });
   }
 
   const lines = detected.map(d => `@${d.kickId.split('@')[0]} — ${d.fields.join(', ')}`);
-  const mentions = detected.map(d => d.kickId);
+  return sock.sendMessage(groupJid, {
+    text:
+      `*Business detectados (${detected.length})* — con su evidencia:\n\n` +
+      lines.join('\n') +
+      `\n\n_Esto NO expulsa a nadie. Si la lista es correcta, usa *!antiempresa purge* (dentro de 10 min). Si aparece alguien que NO es Business, avisa antes de purgar._`,
+    mentions: detected.map(d => d.kickId),
+  });
+}
 
-  if (!doKick) {
-    // DRY-RUN: solo informa con la evidencia. NO expulsa a nadie.
+// purge = expulsa EXACTAMENTE la lista del último scan (verificada por el owner),
+// no un re-escaneo. Obliga a haber escaneado antes (ventana de 10 min) y re-filtra
+// a quien siga en el grupo (por si alguien ya salió).
+async function purgeBusinesses(sock, msg, groupJid, groupMeta) {
+  const last = lastScan.get(groupJid);
+  if (!last || Date.now() - last.ts > SCAN_VALID_MS) {
     return sock.sendMessage(groupJid, {
-      text:
-        `*Business detectados (${detected.length})* — con su evidencia:\n\n` +
-        lines.join('\n') +
-        `\n\n_Esto NO expulsa a nadie. Si la lista es correcta, usa *!antiempresa purge* para expulsarlos. Si aparece alguien que NO es Business, avisa antes de purgar._`,
-      mentions,
-    });
+      text: 'Primero corre *!antiempresa scan* para ver y verificar la lista; luego *!antiempresa purge* dentro de 10 min.',
+    }, { quoted: msg });
   }
 
-  // PURGE: expulsa a los detectados.
+  // Solo a quien SIGUE en el grupo (alguien pudo salir tras el scan).
+  const members = groupMeta?.participants || [];
+  const stillHere = last.detected.filter(d => members.some(p =>
+    sameUser(p.id, d.kickId) ||
+    (p.lid && sameUser(p.lid, d.kickId)) ||
+    (p.phoneNumber && sameUser(p.phoneNumber, d.kickId))
+  ));
+  if (!stillHere.length) {
+    lastScan.delete(groupJid);
+    return sock.sendMessage(groupJid, {
+      text: 'Los Business detectados ya no están en el grupo. Corre *!antiempresa scan* de nuevo.',
+    }, { quoted: msg });
+  }
+
+  const toKick = stillHere.map(d => d.kickId);
+  const lines = stillHere.map(d => `@${d.kickId.split('@')[0]} — ${d.fields.join(', ')}`);
   try {
-    const toKick = detected.map(d => d.kickId);
     await sock.groupParticipantsUpdate(groupJid, toKick, 'remove');
+    lastScan.delete(groupJid); // consumido: obliga a re-escanear para volver a purgar
     await sock.sendMessage(groupJid, {
       text: `*Anti-empresa:* expulsadas *${toKick.length}* cuentas Business.\n${lines.join('\n')}`,
-      mentions,
+      mentions: toKick,
     });
   } catch (err) {
     await sock.sendMessage(groupJid, { text: `Error al expulsar: ${err.message}` });
