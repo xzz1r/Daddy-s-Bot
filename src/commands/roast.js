@@ -471,7 +471,7 @@ async function cmdRoast(sock, msg, groupMeta) {
   // y, en el single, el nombre pesa ~3x sobre la bio. La actividad queda como
   // toque puntual solo para inactivos.
   let roastText, cat, tpl;
-  const useCombined = Math.random() < 0.58;
+  const useCombined = Math.random() < 0.65;
 
   if (useCombined) {
     cat = 'combined';

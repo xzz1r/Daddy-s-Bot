@@ -103,7 +103,7 @@ const MOG_PHRASES = [
 
   // --- Looksmatch brutal ---
   '%M es looksmatch de top tier. %L es looksmatch de aquellos con quienes nadie quiere hacer match.',
-  'El looksmatch de %L ya fue calculado por la hipergamia y el resultado es clasificado.',
+  'El looksmatch de %L ya lo calculó la hipergamia y el veredicto es que no hay: ni el último escalón de la escala baja hasta esa cara. %M es looksmatch de lo más alto sin intentarlo.',
   '%M puede bajar su estándar hasta cualquier punto. %L subiendo todos sus estándares llega al baseline de %M.',
   '%L cree que está fuera de su liga. %L ni siquiera está en la misma clasificación de ligas. Divisiones distintas.',
 
@@ -114,7 +114,7 @@ const MOG_PHRASES = [
   '%M genera interés social sin hacer nada. %L genera incomodidad social sin querer. Genética de ambas partes.',
 
   // --- LDAR / blackpill ---
-  'El único camino válido para %L después de este mog es el LDAR consciente y con paz interior.',
+  'El único camino que le queda a %L después de este mog es el LDAR permanente: apagar el espejo, aceptar el óseo con el que nació perdiendo y no volver a competir jamás. %M ni se entera.',
   'Blackpill administrada en directo. %M es la prueba de que importa el punto de partida, no el esfuerzo. %L es el corolario.',
   'El resultado de este mog es solo la confirmación pública de lo que los foros llevan años documentando sobre el caso %L.',
   'It\'s over para %L de una forma tan total y tan irreversible que decirlo en voz alta ya no añade nada nuevo.',
