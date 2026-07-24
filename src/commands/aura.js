@@ -1,4 +1,4 @@
-const { isOwner, isMainOwner, isAdmin, getTarget, getSender, bareJid } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, getTarget, getSender, bareJid, sameUser } = require('../utils/wa');
 const { pickFresh } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking, STARTING_AURA } = require('../utils/auraStore');
 
@@ -269,7 +269,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
   // una CONSULTA del aura de esa persona — no tira, no gasta cooldown y no
   // modifica nada. Tirar (subir/bajar) siempre es sobre uno mismo.
   const mentioned = getTarget(msg);
-  if (mentioned && bareJid(mentioned) !== bareJid(sender)) {
+  if (mentioned && !sameUser(mentioned, sender)) {
     const aura = await getAura(jid, mentioned);
     return sock.sendMessage(jid, {
       text: `*@${mentioned.split('@')[0]}* tiene *${fmt(aura)}* de aura.`,

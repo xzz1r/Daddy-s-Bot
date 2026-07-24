@@ -1,6 +1,6 @@
 const fs = require('fs-extra');
 const path = require('path');
-const { bareJid } = require('./wa');
+const { canonicalJid } = require('./wa');
 const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const logger = require('./logger');
 
@@ -61,7 +61,7 @@ function scheduleSave() {
 
 async function getAura(groupJid, userJid) {
   await load();
-  const key = bareJid(userJid);
+  const key = canonicalJid(userJid);
   const g = store[groupJid];
   if (!g || g[key] === undefined) return STARTING_AURA;
   return g[key];
@@ -69,9 +69,9 @@ async function getAura(groupJid, userJid) {
 
 async function addAura(groupJid, userJid, delta) {
   await load();
-  const qKey = `${groupJid}|${bareJid(userJid)}`;
+  const qKey = `${groupJid}|${canonicalJid(userJid)}`;
   return serialized(qKey, () => {
-    const key = bareJid(userJid);
+    const key = canonicalJid(userJid);
     if (!store[groupJid]) store[groupJid] = {};
     const previous = store[groupJid][key] === undefined ? STARTING_AURA : store[groupJid][key];
     const current = previous + delta;
@@ -88,8 +88,8 @@ async function addAura(groupJid, userJid, delta) {
 // balance in the window between check and commit.
 async function transferAura(groupJid, fromJid, toJid, amount) {
   await load();
-  const fromKey = bareJid(fromJid);
-  const toKey   = bareJid(toJid);
+  const fromKey = canonicalJid(fromJid);
+  const toKey   = canonicalJid(toJid);
   // Serialize on the sender's key — the critical section is the debit check.
   const qKey = `${groupJid}|${fromKey}`;
   return serialized(qKey, () => {
