@@ -1,5 +1,5 @@
 const { pick, shuffle } = require('../utils/helpers');
-const { getSender, isMainOwner, bareJid } = require('../utils/wa');
+const { getSender, isMainOwner, bareJid, sameUser } = require('../utils/wa');
 
 const VERDICTS = {
   perfect: [
@@ -272,7 +272,7 @@ async function cmdShip(sock, msg, args, groupMeta) {
   }
 
   // No shippear a alguien consigo mismo (igual que !mog y !vs).
-  if (bareJid(a) === bareJid(b)) {
+  if (sameUser(a, b)) {
     return sock.sendMessage(jid, { text: 'No puedes shippear a alguien consigo mismo.' }, { quoted: msg });
   }
 

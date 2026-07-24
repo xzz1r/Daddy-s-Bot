@@ -1,6 +1,6 @@
 'use strict';
 
-const { isOwner, isMainOwner, isAdmin, getSender, bareJid } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, getSender, sameUser } = require('../utils/wa');
 const { pickFresh } = require('../utils/helpers');
 
 // Rigged by role, but not blatantly: the owner has a real edge yet can still
@@ -139,7 +139,7 @@ async function cmdMog(sock, msg, groupMeta) {
     }, { quoted: msg });
   }
 
-  if (bareJid(a) === bareJid(b)) {
+  if (sameUser(a, b)) {
     return sock.sendMessage(jid, { text: 'No puedes moggearte a ti mismo.' }, { quoted: msg });
   }
 
