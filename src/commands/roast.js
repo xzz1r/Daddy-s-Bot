@@ -2,7 +2,6 @@
 
 const { getSender, getTarget, isMainOwner, bareJid } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
-const { getAura } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
 
 const fmt = n => n.toLocaleString('es-ES');
@@ -154,7 +153,7 @@ const NAME_ONLY = [
   'Te pusieron %N con toda la esperanza del mundo. Mira lo que salió. La inversión más catastrófica de la familia, aunque en eso tampoco eres el primero. Puto fracasado.',
   '%N suena a alguien que nunca termina nada, que promete mucho y entrega cero. Si el nombre es la marca personal, tu marca es una mierda sin remedio y sin posibilidad de relanzamiento.',
   'El nombre %N en esta sala equivale a silencio incómodo. Nadie lo asocia a nada bueno, útil ni interesante. El vacío tiene nombre y es el tuyo, inútil confirmado.',
-  'Te llamas %N y con eso ya se sabe todo. El tipo de nombre que la gente olvida mientras lo está oyendo. La identidad del perdedor sin identidad, documentada en dos sílabas.',
+  'Te llamas %N y con eso ya se sabe todo. Un nombre que la gente olvida mientras lo está oyendo, como se olvida un pedo en un ascensor: molesta un segundo y desaparece sin dejar nada. Puto don nadie sin identidad.',
   '%N es el nombre que merece un fracasado de libro. No lo elegiste, pero sí elegiste lo que viniera después, y en eso el nivel es idéntico: puto desastre sin una sola excusa válida.',
   'Con el nombre %N partes desde debajo del suelo. Y lejos de remontar has encontrado un sótano debajo del sótano donde seguir cayendo. Basura digital en caída libre permanente.',
   '%N. El nombre que nadie salva aunque su portador se lo mereciera. Y tú, encima, no te lo mereces. Doble condena, inútil confirmado sin ningún factor atenuante disponible.',
@@ -163,7 +162,7 @@ const NAME_ONLY = [
   '%N. El nombre que repite el mundo con el mismo tono con el que se dice "de nuevo tú, puto fracasado". Porque eso es lo que anuncia cada vez que aparece en cualquier contexto.',
   'Con %N de nombre el pronóstico era malo desde el primer día. Lo que vino después lo confirmó con datos, con hechos y con el historial que el grupo tiene perfectamente catalogado.',
   'Te llamas %N y eso le dice al grupo en menos de un segundo todo lo que necesita saber sobre ti. No hay segunda vuelta, no hay recuperación posible. El nombre dijo la última palabra, mierda.',
-  '%N. El nombre que nadie grita con entusiasmo. Ni en celebración, ni en urgencia, ni siquiera en rabia. Solo suena plano, muerto, como todo lo que llevas asociado a él, perdedor.',
+  '%N. El nombre que nadie grita con entusiasmo. Ni follando gritarían el tuyo, y mira que en ese momento se dice cualquier mierda. Suena plano, muerto, meado, como todo lo que arrastras contigo, perdedor.',
   'El nombre %N lo llevan personas muy distintas. En ti quedó como tatuaje en un cuerpo que no lo merece: permanente, mal puesto, y motivo de vergüenza ajena cada vez que se ve.',
   '%N. Dos sílabas que resumen el error completo. Desde que te lo pusieron hasta este mensaje, el patrón es el mismo: promesa nula, resultado nulo, impacto nulo. Basura con nombre.',
   'Llevas el nombre %N con la indiferencia de alguien que hace tiempo decidió que nada en su vida merecía esfuerzo ni orgullo. En eso al menos eres coherente, puto vago de siempre.',
@@ -175,10 +174,10 @@ const NAME_ONLY = [
   '%N es el nombre de alguien que el mundo catalogó y archivó en la carpeta correcta desde el principio. Que esa carpeta diga "fracasado, basura, perdedor" no es mala suerte. Es precisión estadística.',
   'Con el nombre %N la presentación ya está hecha y no juega a tu favor. Lo que viene después solo acumula evidencia para un caso que el grupo tiene cerrado desde hace tiempo, mierda total.',
   'Te llamas %N y hasta el nombre suena cansado de ti. Como si supiera perfectamente lo que va a tener que soportar cada día y hubiera asumido el fracaso como estado permanente sin esperanza.',
-  '%N. La suma de esas letras da como resultado el retrato exacto del don nadie que eres: sin peso, sin presencia, sin ninguna razón real para que alguien te recuerde mañana ni pasado, perdedor.',
+  '%N. La suma de esas putas letras da como resultado el retrato exacto del mierda seca que eres: sin peso, sin presencia, sin una sola razón para que alguien te recuerde mañana. Se te olvida hasta al que te parió, perdedor.',
   'Con el nombre %N llevas un lastre que no elegiste. Lo que elegiste fue confirmar ese lastre con cada decisión posterior. Libertad de elección puesta al servicio del fracaso, basura.',
   'El nombre %N es lo primero que ves y lo único que se queda. Porque lo que viene después no se queda en nada ni en nadie. El nombre es lo más memorable. Y es una puta mierda.',
-  '%N. El tipo de nombre que genera en el oyente la misma emoción que genera tu presencia: ninguna. Neutro hasta la muerte, inútil hasta el final, sin marca real. El don nadie perfecto.',
+  '%N. El nombre genera la misma emoción que tu puta presencia: ninguna. Ni asco das, que ya es difícil. Eres el escupitajo que resbala por la pared sin que nadie se moleste en limpiarlo. El don nadie perfecto.',
   '%N. Dilo en voz alta y suena a alguien pidiendo perdón por existir antes de que nadie se lo reclame. Naciste disculpándote y llevas toda la vida sin parar. Un puto lastre con nombre propio.',
   'Hay nombres que abren puertas, %N. El tuyo las cierra por dentro y echa el pestillo. La gente lo oye y busca la salida antes de que hayas terminado de presentarte, basura andante.',
   '%N. El nombre que se queda a medias en la boca porque ni pronunciarlo entero merece el aire. Te resumieron en un suspiro de fastidio y hasta eso fue demasiada atención para lo poco que vales.',
@@ -192,16 +191,16 @@ const NAME_ONLY = [
   '%N. Lo escribes tú mismo cada día al abrir el móvil y ni a ti te dice nada. Imagínate al resto. Eres el único proyecto en el que nadie invirtió porque hasta tú viste que no daba retorno, mierda.',
   'Te llamas %N y con eso el grupo ya archivó el caso: prescindible, olvidable, sustituible por cualquiera y por nadie a la vez. La única constante que has aportado es lo poco que se te echa en falta.',
   'Llevas el nombre %N sin saber qué hacer con él. Y llevas la vida sin saber qué hacer con ella. La coherencia del puto fracasado que falla en todo con la misma convicción y sin variación.',
-  '%N, el nombre que ningún grupo ha recordado con cariño ni con rabia. Lo tuyo no es ni ser odiado, que al menos tiene fuego. Lo tuyo es ser olvidado mientras te están mirando. Patético.',
+  '%N, el nombre que ningún grupo recuerda ni con cariño ni con rabia. Ni para odiarte vales, y odiar es gratis. Eres la mancha de humedad del grupo: nadie sabe de dónde salió, nadie la quiere y a nadie le importa. Patético de cojones.',
   'Con %N de nombre y el perfil que llevas, la única pregunta razonable es cómo llegaste aquí, no cuándo te vas. Nadie invitó el nombre, nadie invitó lo que viene con él, perdedor.',
   'El nombre %N lo han llevado personas que hicieron algo con él. Tú lo llevas como un abrigo prestado que no te queda y que encima estás usando para cubrir lo que ya se ve igualmente, basura.',
   'Te pusieron %N y desde entonces el nombre ha cargado contigo. No al revés. Tú no llevas el nombre a ningún lado. Él te arrastra para que no te pierdas por el camino, puto inútil.',
   '%N. El nombre que el grupo escucha y con el que no asocia ni un logro, ni una aportación, ni una frase que alguien haya querido guardar. Nada de nada. Cero. Basura en modo silencio.',
   'Con el nombre %N ya sabes lo que el grupo piensa antes de que hables. Lo sabes porque llevas tiempo demostrándolo. La única información que has comunicado con consistencia, perdedor.',
-  '%N es el nombre correcto para alguien que nació para ocupar espacio sin justificarlo. Ajuste perfecto entre el contenedor y el contenido: los dos vacíos, los dos sin valor, los dos sobrando.',
+  '%N es el nombre perfecto para un saco de mierda que nació para ocupar espacio sin justificarlo. Ajuste redondo entre el envase y el contenido: los dos vacíos, los dos apestando, los dos sobrando en cualquier sitio donde se metan.',
   'Te llamas %N. Eso es lo que hay. Sin atenuantes, sin contexto que lo mejore. Mierda de nombre para una mierda de portador, sin una sola versión alternativa donde algo de esto funcione.',
   'El nombre %N lo grita el grupo y nadie responde con entusiasmo. Ni tú mismo. Sabes lo que significa pronunciarlo y lo que significa ser tú, y ambas cosas tienen el mismo nivel, puto fracasado.',
-  '%N. El nombre que resume lo que eres en el tiempo que tarda en decirse. Breve, sin sustancia, olvidable. El resumen perfecto de alguien que no merece más que eso para describirse, basura.',
+  '%N. El nombre resume lo que eres en lo que tarda en decirse: breve, sin sustancia, olvidable. Dos sílabas para un tío que da tanto de sí como un condón usado tirado en la calle. Basura y ni de la reciclable.',
 ];
 
 // ─── SOLO BIO VACÍA — 25 frases ────────────────────────────────────────────────
@@ -263,81 +262,6 @@ const BIO_FULL = [
   'La bio que tienes, %N, es lo mejor de ti expuesto voluntariamente. Tu carta ganadora. Y tu carta ganadora hace sonreír a quien la lee, pero no de la forma que calculabas cuando la escribiste, cabrón.',
   '%N, tienes bio porque creíste que te definía bien. El grupo la lee y te define perfectamente, sí, pero en la categoría que menos esperabas: inútil con autoestima intacta e incongruente. Perfecto.',
 ];
-
-// ─── SOLO AURA (%N + %A) — tiered por valor ────────────────────────────────────
-
-function getAuraPhrases(aura) {
-  const n = '%N', a = fmt(aura);
-
-  if (aura < -10000) {
-    return [
-      `${a} de aura, %N. Ese número ya no es un marcador, es un diagnóstico. El tipo de cifra que confirma que eres un fracaso estructural, no una mala racha. Estructural, puto, sin remedio posible.`,
-      `%N, ${a} de aura. Tan en el sótano que necesitarías un telescopio para ver el suelo desde donde estás. El campeón indiscutible de ser una mierda total en todos los indicadores del grupo.`,
-      `${a} puntos, %N. Para llegar ahí has tenido que ignorar activamente cada oportunidad de mejora disponible, con la constancia del fracasado nato que sabe que su sitio está siempre abajo, perdedor.`,
-      `Con ${a} de aura, %N, llevas el certificado oficial de ser un inútil documentado. No hay interpretación alternativa, no hay contexto que lo salve. El número te define y lo hace sin piedad.`,
-      `%N, ${a} de aura. La cifra del que tomó cada decisión posible en la dirección equivocada con la precisión de un idiota que nunca aprende y nunca mejorará. Basura con estadísticas propias.`,
-      `${a} de aura, %N. Tan negativo que el sistema ya no te castiga, te documenta. Con la fidelidad de quien registra el historial de un perdedor que ni sabe que está siendo archivado, mierda.`,
-      `%N, ${a} puntos de aura. El número que lleva alguien que nunca ganó nada con gracia y perdió todo con una consistencia que da asco y admiración a partes iguales por lo sostenido del fracaso.`,
-      `Con ${a} de aura llevas el récord del grupo en algo que nadie quiere tener, %N. La medalla de oro del inútil, del fracasado, del puto don nadie que cava su hoyo más profundo cada día.`,
-      `${a} de aura, %N. A ese nivel el marcador ya no habla de lo que hiciste. Habla de lo que eres. Y lo que eres con esos números es un desastre humano sin atenuantes ni excusas válidas.`,
-      `%N tiene ${a} de aura y el grupo lo sabe. Ese número confirma que no es mala suerte, que no es el algoritmo. Eres tú, puto fracasado, de principio a fin y sin ninguna excepción posible.`,
-      `${a} de aura, %N. El nivel del que convierte en derrota todo lo que toca, con la consistencia de un mecanismo roto que nunca falla en una sola cosa: hundirse siempre más, sin fondo visible.`,
-      `%N, ${a} puntos de aura en negativo profundo. El historial de alguien que merece esos números porque los construyó decisión a decisión con la dedicación del que nació para perder, basura.`,
-      `${a} de aura y sigues aquí, %N. Eso ya no es vergüenza ni consciencia de ti mismo. Es no tener orgullo ni dignidad para retirarte cuando el marcador lleva tiempo gritando que sobras.`,
-      `%N, ${a} puntos. Negativo histórico. La cifra que el grupo recordará como el ejemplo definitivo de lo que pasa cuando alguien sin talento, sin esfuerzo y sin criterio sigue jugando igual, mierda.`,
-      `${a} de aura, %N. El número del que pasa el tiempo aquí recibiendo pérdidas y no aprendiendo nada de ninguna de ellas. El perfecto idiota sin memoria ni posibilidad de salvación disponible.`,
-    ];
-  }
-
-  if (aura < 0) {
-    return [
-      `${a} de aura, %N. En negativo. El veredicto del sistema sobre todo lo que has aportado aquí. Sin contexto que lo mejore, sin excusa que lo tape. Eres un fracasado certificado, mierda.`,
-      `%N, ${a} de aura en rojo. El sistema lleva la cuenta de todo lo que pierdes y lo que haces al respecto, que es nada. El marcador del inútil que sabe que está mal y no cambia una puta cosa.`,
-      `${a} puntos, %N. Bajo cero y sin señales de remonte. El historial de alguien que merecería los números pero que prefiere no hacer nada diferente. El perdedor de manual con estadísticas al día.`,
-      `Con ${a} de aura el historial habla por ti, %N. Y lo que dice es que eres el tipo de basura que pierde más de lo que gana porque se lo merece, no porque la mala suerte lo persiga.`,
-      `%N, ${a} de aura. Lo que empezó como "mala racha" hace tiempo que el grupo llama por su nombre: el resultado lógico de ser exactamente la mierda que el sistema lleva tiempo catalogando.`,
-      `${a} de aura en negativo, %N. El marcador lleva la cuenta de todo lo que has sido aquí. Y lo que has sido es un fracasado consistente que ni siquiera tiene la dignidad de esconderse, basura.`,
-      `%N, ${a} puntos de aura. Lo que el marcador dice de ti es lo que los datos dicen de un inútil sin remedio: que lleva tiempo perdiendo sin aprender nada de cada pérdida. Sin excusa posible.`,
-      `Con ${a} de aura, %N, llevas el número de alguien que el sistema ha juzgado y condenado con precisión. No es mala suerte, no es el algoritmo. Eres tú, puto perdedor, de libro y sin atenuantes.`,
-      `${a} de aura y sin ganas de remontar, %N. El marcador refleja a quien eres con una fidelidad que duele si tienes algo de consciencia. Y tú no la tienes, que es el problema de fondo, inútil.`,
-      `%N, ${a} puntos en negativo. La constancia es tu única virtud y la estás usando para confirmar que el sistema acertó contigo. Dedicación de fracasado aplicada a la dirección equivocada.`,
-      `${a} de aura, %N. El número de los que pierden más de lo que ganan por las razones equivocadas: porque son unos inútiles que no merecen ganar y el sistema lo sabe mejor que ellos, mierda.`,
-      `%N, ${a} de aura. Negativo, documentado, verificable. El tipo de marcador que ya no genera conversación porque el veredicto es tan claro que discutirlo sería una pérdida de tiempo, basura.`,
-      `${a} puntos, %N. Negativo constante. El logro del que convierte en pérdida todo lo que toca sin enterarse ni cambiar nada. El fracasado de manual con la documentación completamente al día.`,
-      `%N, con ${a} de aura el sistema te está diciendo lo que el grupo piensa pero no dice: que algo en ti está fundamentalmente roto y que ningún parche voluntario lo va a arreglar nunca, puto.`,
-      `${a} de aura, %N. El marcador del fracasado que lleva tiempo en rojo y ha decidido, conscientemente o no, que esa es su dirección natural. El sistema tomó nota. El grupo también. Perdedor.`,
-    ];
-  }
-
-  if (aura < 5000) {
-    return [
-      `${a} de aura, %N. En positivo por los pelos y sin mérito real detrás. La distancia entre eso y el cero la salvas con una mala semana, y malas semanas las tienes con regularidad de fracasado.`,
-      `%N, ${a} puntos de aura. Positivo de puta chiripa. No es un logro, es sobrevivir raspando. Y sobrevivir raspando en un marcador de aura es la definición de ser un inútil de bajo vuelo, mierda.`,
-      `${a} de aura, %N. La cifra del mediocre que ni cae ni sube porque no tiene talento para ganar ni agallas para arriesgar. El limbo del don nadie: demasiado poco para importar a nadie.`,
-      `Con ${a} de aura, %N, llevas el marcador del que ni cae con estilo. Ni suficientemente bien para que se note, ni suficientemente mal para ser interesante. El gris más inútil del grupo, basura.`,
-      `%N, ${a} de aura. Positivo sin convicción ni mérito. Un número que resume el impacto nulo que tienes aquí: el fantasma que técnicamente existe pero no cuenta para nada ni en ningún frente.`,
-      `${a} puntos, %N. En positivo por menos de lo que cuesta un café miserable. Eso no es estar bien, es no estar en negativo todavía. Y "todavía" es la palabra clave para alguien como tú, perdedor.`,
-      `%N, ${a} de aura. Casi en cero. El tipo de cifra que dice que llevas aquí sin dejar ninguna marca real, gastando aire sin producir nada que justifique el espacio que ocupas en el grupo.`,
-      `${a} de aura, %N. El número del cobarde que no pierde del todo porque no arriesga nada y no gana nada porque no merece nada. El empate perpetuo del inútil sin ambición ni valor, puto.`,
-      `%N, con ${a} de aura estás técnicamente en positivo. Técnicamente. En la práctica ese número es tan bajo que la diferencia con ser un puto fracasado es solo semántica y filosófica.`,
-      `${a} puntos de aura, %N. Positivo de saldo mínimo. La cifra del que sobrevive por inercia y llama a eso "estar bien". El don nadie que se conforma con no estar en el suelo. Patético de manual.`,
-    ];
-  }
-
-  // aura >= 5000
-  return [
-    `${a} de aura, %N. Alto para ser tú. El sistema falla a veces y este es uno de esos casos donde el número no cuadra con el portador por ningún ángulo que se mire. Anómalo y temporal.`,
-    `%N, aura de ${a}. Eso no encaja con nada de lo que el grupo observa a diario. La suerte ciega existe y eres el mejor argumento para demostrar que no premia el mérito, sino el azar puro.`,
-    `${a} puntos de aura, %N. Ese número y la persona que lo lleva no encajan en ningún modelo lógico. El marcador tiene días raros. Hoy le tocó a ti, perdedor con golpe de suerte temporal.`,
-    `%N, con ${a} de aura alguien debería auditar el sistema, porque la alternativa es creer que mereces eso. Y el grupo lleva tiempo con datos suficientes para descartarlo sin dudar, basura.`,
-    `${a} de aura, %N. El número más generoso que el sistema ha producido para alguien que lo merece tan poco. Anómalo, temporal, sin relación real con lo que el grupo observa cada puto día.`,
-    `%N, ${a} puntos que no cuentan la historia completa. Cuentan los momentos de suerte. El contexto general, la persona real detrás del número, ese ya tiene otro resultado muy diferente, mierda.`,
-    `${a} de aura, %N. Sorprendentemente alto para el inútil que el grupo conoce. El sistema es justo a largo plazo. A corto plazo tiene anomalías con nombre, apellidos y número de teléfono.`,
-    `%N, aura de ${a}. Un número que no cuadra con el perfil. La disonancia entre el marcador y el portador es tan grande que da vergüenza ajena, puto. El equilibrio volverá porque siempre vuelve.`,
-    `${a} puntos de aura, %N. El marcador dice que eres más de lo que pareces. El grupo dice que eres exactamente lo que pareces. Entre los dos, uno ha pasado tiempo contigo. No es el marcador, perdedor.`,
-    `%N, ${a} de aura. El reloj roto tiene razón dos veces al día. Hoy fue la tuya. No lo confundas con mérito ni con talento. Es chiripa pura, basura, y el sistema lo va a corregir.`,
-  ];
-}
 
 // ─── SOLO ACTIVIDAD (%N + %C) — tiered, solo para inactivos ───────────────────
 
@@ -518,10 +442,9 @@ async function cmdRoast(sock, msg, groupMeta) {
     participant?.notify ||
     `@${targetNum}`;
 
-  const [bioResult, msgCount, aura] = await Promise.all([
+  const [bioResult, msgCount] = await Promise.all([
     sock.fetchStatus(target).catch(() => null),
     getUserCount(jid, target),
-    getAura(jid, target),
   ]);
 
   const bio = bioResult?.status?.trim() || '';
@@ -531,13 +454,10 @@ async function cmdRoast(sock, msg, groupMeta) {
   const usedTpls = new Set(tpls);
 
   // Reparto sesgado hacia el contenido MÁS brutal e independiente de stats.
-  // Antes: 40% combinada + 60% single uniforme entre name/bio/aura/activity.
-  // Problema: aura y activity de un usuario normal (aura ~1000, algo de
-  // actividad) resuelven SIEMPRE al tier más flojo, así que el bot gastaba la
-  // mayoría de tiradas en las frases suaves y las brutales quedaban sin salir.
-  // Ahora: 58% combinada (los roasts más completos y salvajes) y, en el single,
-  // el nombre (siempre brutal, sin depender de números) pesa mucho más que
-  // aura/activity, que quedan como variedad ocasional, no como norma.
+  // El nombre y las combinadas pegan igual de fuerte sin depender de números,
+  // así que son el grueso: 58% combinada (los roasts más completos y salvajes)
+  // y, en el single, el nombre pesa ~3x sobre la bio. La actividad queda como
+  // toque puntual solo para inactivos.
   let roastText, cat, tpl;
   const useCombined = Math.random() < 0.58;
 
@@ -548,8 +468,8 @@ async function cmdRoast(sock, msg, groupMeta) {
     roastText = tpl.replace(/%N/g, displayName);
   } else {
     // La repetición pondera el pick (pick es uniforme sobre el array): 'name'
-    // sale ~3x más que 'bio' y aura/activity quedan como toque puntual.
-    const singleVars = ['name', 'name', 'name', 'bio', 'bio', 'aura'];
+    // sale ~3x más que 'bio' y la actividad queda como toque puntual.
+    const singleVars = ['name', 'name', 'name', 'bio', 'bio'];
     if (isInactive) singleVars.push('activity');
     cat = freshCat(singleVars, cats);
 
@@ -562,12 +482,6 @@ async function cmdRoast(sock, msg, groupMeta) {
         const pool = bio ? BIO_FULL : BIO_EMPTY;
         tpl = freshPick(pool, usedTpls);
         roastText = bio ? tpl.replace(/%N/g, displayName) : tpl;
-        break;
-      }
-      case 'aura': {
-        const pool = getAuraPhrases(aura);
-        tpl = freshPick(pool, usedTpls);
-        roastText = tpl.replace(/%N/g, displayName).replace(/%A/g, fmt(aura));
         break;
       }
       case 'activity': {
