@@ -253,6 +253,24 @@ const ADMIN_PHRASES = [
   ],
 ];
 
+// Ranking canónico compartido por el board y por "!count @user": solo miembros
+// actuales (cruzado con sameUser para puentear LID↔teléfono), sin el owner
+// principal (invisible en toda salida), ordenado de más a menos mensajes. Si no
+// hay metadata (fetch falló), no se filtra por miembros para no vaciar el top.
+function rankedUsers(users, groupMeta) {
+  const members = groupMeta?.participants;
+  let out = users;
+  if (members?.length) {
+    out = out.filter(u => members.some(p =>
+      sameUser(p.id, u.jid) ||
+      (p.lid && sameUser(p.lid, u.jid)) ||
+      (p.phoneNumber && sameUser(p.phoneNumber, u.jid))
+    ));
+  }
+  out = out.filter(u => !isMainOwner(u.jid, false, groupMeta));
+  return out.slice().sort((a, b) => b.count - a.count);
+}
+
 async function cmdCount(sock, msg, groupMeta, args) {
   const jid = msg.key.remoteJid;
 
@@ -279,7 +297,11 @@ async function cmdCount(sock, msg, groupMeta, args) {
         mentions: [mentioned],
       }, { quoted: msg });
     }
-    const sorted = (await getActiveUsers(jid, 1)).sort((a, b) => b.count - a.count);
+    // Se calcula el puesto sobre EXACTAMENTE el mismo ranking que muestra el
+    // board (!count): miembros actuales y sin el owner. Si no, el número de
+    // puesto de "!count @user" no cuadraría con la tabla (contaría ex-miembros
+    // y al owner en el orden).
+    const sorted = rankedUsers(await getActiveUsers(jid, 1), groupMeta);
     // sameUser bridges LID↔phone: the mention may be a phone JID while the stored
     // key is the sender's @lid (or vice versa). A plain bareJid compare would miss
     // and wrongly report "0 mensajes" for an active member in a LID group.
@@ -295,26 +317,11 @@ async function cmdCount(sock, msg, groupMeta, args) {
   }
 
   // !count — top 10 ranking
-  let users = await getActiveUsers(jid, 1);
-  // Solo cuenta a quien SIGUE en el grupo: quien se salió queda fuera del top
-  // automáticamente (aunque su conteo siga guardado). Se cruza con la lista de
-  // participantes actual con sameUser (puentea LID↔teléfono). Si no hay metadata
-  // (fetch falló), no se filtra para no vaciar el ranking por error.
-  const members = groupMeta?.participants;
-  if (members?.length) {
-    users = users.filter(u => members.some(p =>
-      sameUser(p.id, u.jid) ||
-      (p.lid && sameUser(p.lid, u.jid)) ||
-      (p.phoneNumber && sameUser(p.phoneNumber, u.jid))
-    ));
-  }
-  // El owner principal nunca aparece en el ranking (invisible en toda salida).
-  users = users.filter(u => !isMainOwner(u.jid, false, groupMeta));
+  const users = rankedUsers(await getActiveUsers(jid, 1), groupMeta);
   if (!users.length) {
     return sock.sendMessage(jid, { text: 'Aun no hay mensajes contados en este grupo.' }, { quoted: msg });
   }
 
-  users.sort((a, b) => b.count - a.count);
   const top = users.slice(0, 10);
   const mentions = top.map(u => u.jid);
   let text = `*RANKING DE ACTIVIDAD*\n\n`;

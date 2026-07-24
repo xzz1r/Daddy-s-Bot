@@ -1,6 +1,6 @@
 const fs = require('fs-extra');
 const path = require('path');
-const { bareJid } = require('./wa');
+const { bareJid, sameUser } = require('./wa');
 const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const logger = require('./logger');
 
@@ -72,8 +72,19 @@ async function getActiveUsers(groupJid, minMessages = 10) {
 
 async function getUserCount(groupJid, userJid) {
   await load();
+  const group = counts[groupJid];
+  if (!group) return 0;
+  // Fast path: exact key hit (same JID form that was stored on increment).
   const key = bareJid(userJid);
-  return counts[groupJid]?.[key] || 0;
+  if (group[key] !== undefined) return group[key];
+  // Bridge LID↔phone: increments store the sender's LID (modern groups) while a
+  // lookup often arrives as a phone-form mention. Sum every stored key that maps
+  // to the same person, so callers like !roast don't read 0 for an active user.
+  let total = 0;
+  for (const k in group) {
+    if (sameUser(k, userJid)) total += group[k];
+  }
+  return total;
 }
 
 async function flushCounts() {
