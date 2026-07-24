@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const {
-  getSender, isOwner, isMainOwner, isGroupAdmin, canonicalJid, bareJid,
+  getSender, isOwner, isMainOwner, isGroupAdmin, isBotJid, canonicalJid, bareJid,
 } = require('../utils/wa');
 const { streamToBuffer, MAX_MEDIA_BYTES } = require('../utils/helpers');
 const { resolveTarget } = require('./pfp');
@@ -444,6 +444,12 @@ async function cmdFkBan(sock, msg, args, groupMeta) {
   const { jid: target, error } = await resolveTarget(sock, msg, args);
   if (error) return sock.sendMessage(jid, { text: error }, { quoted: msg });
 
+  // Nunca se banea al owner (principal o co-owner) ni al propio bot: un admin
+  // cualquiera no puede meter al dueño en la lista negra global y expulsarlo.
+  if (isOwner(target, false, groupMeta) || isBotJid(sock, target)) {
+    return sock.sendMessage(jid, { text: 'A esa cuenta no se le puede aplicar la lista negra.' }, { quoted: msg });
+  }
+
   const forms = allForms(target, groupMeta);
   await banAccount(forms, `fkban en ${jid}`, bareJid(sender));
 
@@ -536,10 +542,12 @@ async function guardOnJoin(sock, groupJid, joiners, groupMeta) {
   for (const p of joiners) {
     const obj = typeof p === 'string' ? { id: p } : (p || {});
     if (!obj.id) continue;
-    // El anti-fake nunca actúa contra el owner principal: ni kick ni alerta.
-    if (isMainOwner(obj.id, false, groupMeta) ||
-        (obj.lid && isMainOwner(obj.lid, false, groupMeta)) ||
-        (obj.phoneNumber && isMainOwner(obj.phoneNumber, false, groupMeta))) {
+    // El anti-fake nunca actúa contra el owner (principal o co-owner) ni contra
+    // el propio bot: ni kick ni alerta.
+    if (isBotJid(sock, obj.id) ||
+        isOwner(obj.id, false, groupMeta) ||
+        (obj.lid && isOwner(obj.lid, false, groupMeta)) ||
+        (obj.phoneNumber && isOwner(obj.phoneNumber, false, groupMeta))) {
       continue;
     }
     const forms = [obj.id, obj.lid, obj.phoneNumber].filter(Boolean).map(bareJid);
