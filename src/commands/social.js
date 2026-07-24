@@ -175,6 +175,7 @@ Dan un % al azar de un rasgo:
 *${p}crack* · *${p}inteligencia* · *${p}hot* · *${p}gay* · *${p}simp*
 *${p}rata* · *${p}friki* · *${p}cerdo* · *${p}inutil* · *${p}maricon*
 *${p}feminidad* · *${p}masculinidad* · *${p}femboy* · *${p}perdedor* · *${p}ganador*
+*${p}puta* · *${p}guarra*
 *${p}mog* @a @b — duelo de looks
 *${p}ship* @a @b — compatibilidad
 *${p}roast* @user — burla pública

@@ -10,7 +10,7 @@ const OWNER_FORCE = {
   crack: 100, inteligencia: 100, sexy: 100, ganador: 100, masculinidad: 100,
   // Extremo bajo (0) para los rasgos peyorativos (y feminidad).
   perdedor: 0, inutil: 0, rata: 0, cerdo: 0, simp: 0, friki: 0,
-  gay: 0, maricon: 0, femboy: 0, feminidad: 0,
+  gay: 0, maricon: 0, femboy: 0, feminidad: 0, puta: 0, guarra: 0,
 };
 
 // Distribuciones por tier — basadas en el ROL DEL TARGET, no del sender:
@@ -1321,6 +1321,76 @@ const LABELS = {
       'Eres de los que cambian el rumbo de un grupo entero solo con decidir entrar en él.',
     ],
   },
+
+  puta: {
+    name: 'puta',
+    goodIsHigh: false,
+    high: [
+      '[nombre], puta de manual y sin una gota de vergüenza. Ni criterio ni estándares: te vale cualquiera que te dé cinco minutos de atención. Lo sabe el grupo entero y eres la única que finge que no.',
+      'Mírate [nombre], la definición andante de puta. Cambias de interés como de estado, sin dignidad ni memoria, y con esa cara de que nadie se entera. Se entera todo el mundo.',
+      '[nombre], puta hasta el tuétano. Cero respeto por ti misma, coleccionas atención barata como si fuera un logro y confundes que te usen con que te quieran. Un desastre con patas.',
+      'Eres puta de vocación, [nombre]. No es una racha, es tu forma de existir: sin freno, sin filtro y sin un solo momento en que te pares a pensar. La constancia hecha bochorno.',
+      '[nombre], si ser puta cotizara en bolsa, serías la empresa más rica del país. Te repartes tan barato que ya nadie lo valora, y aun así insistes. Patético y sin remedio.',
+      'Puta nivel leyenda, [nombre]. Tu historial es más largo que la cola del banco a fin de mes, y lo peor no es la lista, es que ni te acuerdas de la mitad. Sin fondo y sin vergüenza.',
+      '[nombre], puta de las que confunden desesperación con libertad. No eliges, te conformas con quien aparezca, y a eso lo llamas vivir la vida. El grupo lo llama por su nombre.',
+      'La palabra puta se te queda corta, [nombre]. Sin criterio, sin límites y sin un ápice de dignidad, regalas lo que otros al menos respetan. Un espectáculo triste en bucle.',
+      '[nombre], puta profesional sin haber cobrado nunca, que es lo más triste. Das todo por nada, te usan y vuelves a la fila como si nada. Ni aprendes ni te da vergüenza.',
+      'Eres tan puta, [nombre], que el concepto de estándar te suena a idioma extranjero. Cualquiera, en cualquier momento, por cualquier migaja de atención. Coherente en lo peor.',
+    ],
+    mid: [
+      'Ni puta del todo ni un ejemplo de nada. Te quedas en esa franja tibia donde a veces te respetas y a veces te regalas, sin línea clara. El grupo nunca sabe cuál va a aparecer.',
+      'Tienes destellos de dignidad rodeados de decisiones que te devuelven al montón. Medio puta, medio salvable, y la balanza cambia según el día y quién te escriba.',
+      'No eres puta de manual, pero tampoco das motivos para descartarlo del todo. Zona gris: ni te respetas del todo ni te sueltas del todo. Ambigua hasta para ti misma.',
+      'A veces pareces tener límites y a veces se te olvidan solos. Esa inconsistencia es justo lo que te deja a medio camino de la etiqueta completa.',
+      'Ni santa ni todo lo contrario. Cumples lo mínimo para que no te señalen y lo justo para que se hable. La zona más comentada que existe.',
+      'Tienes con qué respetarte, pero lo desperdicias con una constancia llamativa. Medio puta por pereza de poner límites, no por otra cosa.',
+      'No eres el escándalo del grupo, pero tampoco el ejemplo. En ese punto medio donde ni te defienden ni te condenan, solo comentan.',
+    ],
+    low: [
+      'De puta tienes poco y se nota. Te respetas, pones límites y la gente lo percibe. Estás en el lado opuesto de todo esto.',
+      'No eres puta por más que aquí toque decirlo. Tienes criterio, códigos y dignidad, y eso se ve de lejos. Lejos de la categoría.',
+      'Cero pinta de puta. Donde otros se regalan, tú te haces respetar, y eso es justo lo que esta lista no premia.',
+      'Te falta todo para entrar aquí: ni te sueltas por atención, ni coleccionas, ni te conformas. Justo lo contrario, y por eso se te respeta.',
+      'Una puta no provoca lo que tú provocas. La gente te toma en serio, y eso por definición te saca de esta lista.',
+      'De esto no tienes nada. Valor, criterio y límites claros. Puta es justo lo que no eres.',
+      'Si esto midiera de verdad, saldrías casi en cero. Te respetas y lo notan. Estás del lado bueno.',
+    ],
+  },
+
+  guarra: {
+    name: 'guarra',
+    goodIsHigh: false,
+    high: [
+      '[nombre], guarra sin filtro ni decencia. No hay comentario ni situación que te dé vergüenza; cuanto más bajo, más cómoda te sientes. El grupo ya perdió la capacidad de sorprenderse contigo.',
+      'Mírate [nombre], guarra de las que confunden no tener límites con tener personalidad. Sueltas cada cosa que hasta el chat se incomoda, y tú tan feliz revolcándote en ello.',
+      '[nombre], guarra a tiempo completo. Sin pudor, sin línea que no cruces y sin un solo filtro entre lo que piensas y lo que escupes. Un show cutre que nadie pidió pero todos ven.',
+      'Eres guarra de vocación, [nombre]. No es un desliz, es tu marca personal: la degeneración como estilo de vida y el mal gusto como bandera. Coherente en lo peor.',
+      '[nombre], tan guarra que la vergüenza ajena la pasa el grupo por ti, porque tú no tienes. Cada intervención tuya baja el nivel dos escalones. Un fenómeno, pero de los feos.',
+      'Guarra nivel experta, [nombre]. Donde los demás ponen un límite, tú pones una anécdota. Sin decoro, sin freno y sin la más mínima intención de cambiar. Da hasta pereza.',
+      '[nombre], guarra de las que creen que ser asquerosa es ser divertida. No lo es. Solo incomoda, y lo peor es que lo haces con orgullo. Un despropósito con patas.',
+      'La palabra guarra se te queda pequeña, [nombre]. Sin higiene de estándares, sin filtro y con un gusto por lo cutre que ya es clínico. El grupo te tolera por costumbre, no por gusto.',
+      '[nombre], guarra que se ensucia sola, sin que nadie la obligue, y encima presume de ello. Ni dignidad ni instinto de conservación. Un caso perdido con aplausos propios.',
+      'Eres tan guarra, [nombre], que el concepto de límite te suena a insulto personal. Cualquier bajeza te representa, y encima te reconoces en ella con orgullo. Triste y constante.',
+    ],
+    mid: [
+      'Ni guarra del todo ni una señora ejemplar. Zona tibia: a veces tienes decoro y a veces lo tiras por la ventana. Nadie sabe con cuál de las dos va a topar.',
+      'Tienes momentos de compostura rodeados de bajezas que te devuelven al montón. Media guarra, media presentable, según el día y la audiencia.',
+      'No eres guarra de manual, pero tampoco lo descartas del todo. Ni cutre del todo ni fina del todo. Ambigua, y encima cómoda en la ambigüedad.',
+      'A veces cuidas las formas y a veces se te caen solas. Esa inconsistencia es la que te deja a medio camino de la etiqueta completa.',
+      'Ni escándalo ni ejemplo. Cumples lo mínimo para no ser el tema y lo justo para que se comente. La franja más gris que hay.',
+      'Tienes con qué mantener el nivel, pero lo tiras por pura pereza. Media guarra por dejadez, no por naturaleza.',
+      'No eres lo peor del grupo, pero tampoco lo mejor. En ese punto donde ni te aplauden ni te señalan, solo levantan una ceja.',
+    ],
+    low: [
+      'De guarra tienes poco y se nota. Cuidas las formas, tienes decoro y la gente lo percibe. Estás en el lado opuesto de todo esto.',
+      'No eres guarra por más que aquí toque decirlo. Tienes clase, límites y buen gusto, y eso se ve de lejos. Lejos de la categoría.',
+      'Cero pinta de guarra. Donde otros se hunden en lo cutre, tú mantienes el nivel, y eso es justo lo que esta lista no premia.',
+      'Te falta todo para entrar aquí: ni cutre, ni sin filtro, ni sin decoro. Justo lo contrario, y por eso se te respeta.',
+      'Una guarra no da la impresión que tú das. La gente te ve con criterio, y eso por definición te saca de esta lista.',
+      'De esto no tienes nada. Formas, límites y buen gusto. Guarra es justo lo que no eres.',
+      'Si esto midiera de verdad, saldrías casi en cero. Mantienes el nivel y se nota. Estás del lado bueno.',
+    ],
+  },
 };
 
 async function runPercent(sock, msg, key, groupMeta) {
@@ -1377,4 +1447,6 @@ module.exports = {
   cmdFemboy:        makeCmd('femboy'),
   cmdPerdedor:      makeCmd('perdedor'),
   cmdGanador:       makeCmd('ganador'),
+  cmdPuta:          makeCmd('puta'),
+  cmdGuarra:        makeCmd('guarra'),
 };

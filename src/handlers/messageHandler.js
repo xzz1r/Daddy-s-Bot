@@ -14,7 +14,7 @@ const { cmdToImg, cmdToVid } = require('../commands/toimg');
 const { cmdPfp } = require('../commands/pfp');
 const { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdAntiFake } = require('../commands/fk');
 const { maybeIndex } = require('../utils/pfpIndexer');
-const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdInteligencia, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy, cmdPerdedor, cmdGanador } = require('../commands/percent');
+const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdInteligencia, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy, cmdPerdedor, cmdGanador, cmdPuta, cmdGuarra } = require('../commands/percent');
 const { cmdRizz, cmdPiropo, cmdCoach } = require('../commands/wingman');
 const { cmdAura } = require('../commands/aura');
 const { resetAura } = require('../utils/auraStore');
@@ -70,6 +70,7 @@ const NEEDS_META = new Set([
   'g','ai','grok',
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','ganador',
+  'puta','guarra',
   'rizz','piropo','coach',
   'aura','resetaura','inactivos','inactivo','fantasma','fantasmas','mog','moggear','roast','flamear',
   'duel','duelo','1v1',
@@ -477,6 +478,8 @@ async function handleMessage(sock, msg) {
       case 'femboy':         await cmdFemboy(sock, msg, groupMeta); break;
       case 'perdedor':       await cmdPerdedor(sock, msg, groupMeta); break;
       case 'ganador':        await cmdGanador(sock, msg, groupMeta); break;
+      case 'puta':           await cmdPuta(sock, msg, groupMeta); break;
+      case 'guarra':         await cmdGuarra(sock, msg, groupMeta); break;
 
       case 'rizz':           await cmdRizz(sock, msg, groupMeta); break;
       case 'piropo':         await cmdPiropo(sock, msg, groupMeta); break;
