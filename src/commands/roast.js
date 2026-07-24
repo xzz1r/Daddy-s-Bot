@@ -315,12 +315,21 @@ function getActivityPhrases(count) {
       `${c} mensajes, %N. La actividad del que nunca aparece cuando hay que opinar, nunca está cuando hay que aportar. Invisible por elección y por inutilidad. Doble mérito en la dirección equivocada.`,
       `Con ${c} textos no eres fantasma pero tampoco eres nada, %N. El gris del que existe sin que a nadie le cambie algo que exista o no. El don nadie confirmado por sus propios números, mierda.`,
       `${c} mensajes, %N. Lo justo para sobrevivir en la lista, insuficiente para contar para algo. La definición perfecta del inútil que ocupa espacio sin justificarlo nunca con nada concreto.`,
+      `${c} putos textos y el grupo aún no sabe ni qué voz tienes, %N. Apareces cada muerte de obispo, sueltas una mierda y te vuelves a tu agujero. El topo del grupo: ciego, callado y bajo tierra.`,
+      `${c} mensajes, %N. Consumes memes, chismes y curro ajeno y devuelves cero. El gorrón perfecto: se sirve del plato de todos y no pone ni el pan. Parásito con datos móviles, nada más.`,
+      `${c} mensajes en todo este tiempo, %N. Tu huella en el grupo es la de un pedo en el viento: alguien lo notó un segundo, hizo mala cara y siguió con su vida sin volver a pensar en ti jamás.`,
+      `${c} textos, %N, y ninguno mereció respuesta. Hablas y el grupo hace lo mismo que haría con un mendigo pesado: mirar a otro lado y esperar a que se calle solo. Invisible por inútil, no por tímido.`,
     ];
   }
 
-  // 60-149
+  // 60-99
   return [
     `${c} mensajes y el grupo sigue sin recordar uno solo que valiera la pena, %N. Cantidad de tibio, calidad de mierda. Ni aportas ni te callas del todo. El combo más inútil del grupo.`,
+    `${c} putos mensajes para no decir nada, %N. Escupes texto como una impresora rota escupe hojas en blanco: hace ruido, gasta y no sirve para una mierda. El fantasma que encima da la lata.`,
+    `${c} mensajes, %N, y cada uno más olvidable que el anterior. Llevas aquí lo justo para que el grupo confirme que sin ti se estaría igual de bien o mejor. Un cero con más pasos, nada más.`,
+    `${c} textos, %N. La actividad de alguien que participa por no quedarse fuera, no porque tenga algo que aportar. Se te huele la desesperación de figurar desde el otro lado de la pantalla, patético.`,
+    `${c} mensajes y ni uno tuyo ha hecho reír, pensar ni cabrear a nadie, %N. Hablar tanto para no provocar absolutamente nada es un talento de mierda que solo tú dominas. El don nadie con verborrea.`,
+    `${c} mensajes, %N. Ni fantasma del todo ni persona del todo: el limbo del que rellena la conversación como el relleno barato rellena un colchón malo. Nadie lo nota hasta que le molesta.`,
     `${c} textos enviados sin dejar una sola marca real, %N. Ruido de fondo con forma de persona, número de teléfono y un historial de no haber hecho nada que cambie nada aquí jamás.`,
     `Con ${c} mensajes lograste hablar sin que nadie te cite, opinar sin convencer a nadie y existir sin que importe, %N. Esfuerzo de puto inútil invertido en producir la nada más perfecta.`,
     `${c} mensajes, %N. Lo justo para no ser fantasma del todo, lo poco para que nadie pueda nombrar una sola cosa tuya que haya cambiado algo aquí. El fracasado invisible con estadísticas.`,
@@ -448,7 +457,10 @@ async function cmdRoast(sock, msg, groupMeta) {
   ]);
 
   const bio = bioResult?.status?.trim() || '';
-  const isInactive = msgCount < 150;
+  // Menos de 100 mensajes = inactivo: entra de lleno en los insultos por
+  // inactividad (fantasma, parásito, cero aporte) tanto en las combinadas como
+  // en la categoría de actividad.
+  const isInactive = msgCount < 100;
 
   const { tpls, cats } = getHist(jid);
   const usedTpls = new Set(tpls);
@@ -468,9 +480,10 @@ async function cmdRoast(sock, msg, groupMeta) {
     roastText = tpl.replace(/%N/g, displayName);
   } else {
     // La repetición pondera el pick (pick es uniforme sobre el array): 'name'
-    // sale ~3x más que 'bio' y la actividad queda como toque puntual.
+    // manda, y si el tío es inactivo (<100 msgs) la actividad pesa fuerte para
+    // que SÍ le caiga el palo por fantasma, no como toque puntual.
     const singleVars = ['name', 'name', 'name', 'bio', 'bio'];
-    if (isInactive) singleVars.push('activity');
+    if (isInactive) singleVars.push('activity', 'activity', 'activity');
     cat = freshCat(singleVars, cats);
 
     switch (cat) {
