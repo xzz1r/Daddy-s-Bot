@@ -153,7 +153,11 @@ async function rapidConvert(videoId, provider) {
     'X-RapidAPI-Key': provider.key,
     'X-RapidAPI-Host': provider.host,
   };
+  // Tope de tiempo total del sondeo: sin él, una key en "processing" perpetuo
+  // podría retener un slot de descarga hasta ~200s y matar de hambre al resto.
+  const deadline = Date.now() + 45000;
   for (let i = 0; i < 12; i++) {
+    if (Date.now() >= deadline) break;
     let data;
     try {
       ({ data } = await axios.get(url, { headers, timeout: 15000 }));
