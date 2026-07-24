@@ -82,6 +82,14 @@ const COMBINED_INACTIVE = [
   '%N, llevas aquí sin decir nada con una bio puesta para que la gente piense algo mínimamente bueno de ti. El aura dice lo que el grupo piensa de verdad. El resultado es siempre el mismo: nada.',
   'Lo más triste de ti, %N, no es la bio patética ni el aura de mierda ni la inactividad de fantasma. Lo más triste es que crees que aportas algo y el grupo entero lleva tiempo sabiendo que no. Nadie te lo dice por lástima.',
   '%N, con bio de don nadie, aura rota y cero presencia real, eres el miembro más prescindible que ha tenido este grupo. Y eso, dado el nivel del grupo, ya es decir mucho y tiene su mérito específico.',
+  '%N, entras al grupo como entra el frío por una rendija: nadie te invitó, nadie te quiere y todos preferirían taparte. Bio de perdedor, aura podrida y un silencio que es lo mejor que ofreces. Puto estorbo.',
+  'Tu bio es humo, %N, tu aura es escombro y tu actividad es un desierto. Tres pruebas de que naciste para ser el nombre que el grupo tarda un mes en notar que ya no está. Y no lo notará ni entonces, basura.',
+  '%N, eres lo que queda cuando a una persona le quitas todo lo que la hace interesante: un nombre, una bio triste, un aura de mierda y un silencio de fantasma. El kit básico del don nadie sin extras.',
+  'Con esa bio de fracasado, %N, ese aura en el suelo y esa presencia de cadáver digital, el grupo te tiene en la lista por pereza de borrarte, no por otra cosa. Ocupas espacio como ocupa polvo un rincón olvidado.',
+  '%N, tu bio da pena, tu aura da asco y tu inactividad da igual. Has conseguido lo imposible: ser insignificante en todos los frentes a la vez, con una coherencia que solo alcanza el fracasado de vocación.',
+  'Naciste, %N, y desde entonces el saldo es negativo en todo lo medible: bio patética, aura por los suelos, cero rastro en el grupo. Un error que la naturaleza no corrige porque ya no merece ni el gasto, mierda.',
+  '%N, eres el miembro que confirma que estar no es lo mismo que existir. Bio de relleno, aura de derrota y un silencio de mueble. El grupo respira igual contigo o sin ti, y esa es tu única aportación real.',
+  'Con bio de don nadie, %N, aura de perdedor y una presencia que ni los mosquitos registran, eres el ejemplo que se pone cuando alguien pregunta qué es sobrar. Sobras entero, en todo, sin una sola excusa.',
 ];
 
 const COMBINED_ACTIVE = [
@@ -115,6 +123,14 @@ const COMBINED_ACTIVE = [
   '%N, con bio de don nadie y aura rota, eres el miembro más consistentemente mediocre que ha pasado por aquí. No el peor, que eso al menos sería memorable. El más gris. El más nada.',
   'Llevas la bio de quien quiere parecer algo, %N, y el aura de quien no lo consigue. Lo que produces en el grupo es el puente entre los dos: mucho esfuerzo para seguir siendo lo mismo.',
   '%N, tu bio dice lo que quieres que piensen de ti. Tu aura dice lo que el sistema piensa de ti. Lo que produces en el grupo dice lo que el resto piensa de ti. Ninguno cuadra a tu favor.',
+  '%N, hablas para que se note que estás y lo único que se nota es que estorbas. Cada mensaje tuyo es un recordatorio de que ocupas un hueco que cualquiera con algo que decir usaría mejor. Puto relleno.',
+  'Escribes mucho, %N, y el grupo retiene cero. Tu bio adorna a un don nadie, tu aura lo confirma y tu cháchara constante solo sirve para que nadie pueda decir que no te dio la oportunidad de callarte a tiempo.',
+  '%N, eres ruido con forma de persona. La bio miente, el aura no, y tú entre medias insistes en participar como si alguien hubiera pedido tu opinión alguna vez. No la pidió nadie, gilipollas. Nunca.',
+  'Con esa bio de fracasado con pretensiones, %N, y un aura que te desmiente cada línea, hablar tanto solo te expone más. Cada palabra tuya es una prueba nueva de que el grupo tenía razón desde el principio.',
+  '%N, tu problema no es que no hables. Es que hablas y sigues siendo exactamente la misma nada de antes, solo que ahora documentada. Bio de mierda, aura de mierda y un historial que lo firma todo, cabrón.',
+  'Escribes como quien grita en un cuarto vacío, %N. La bio pretende, el aura desmiente y el grupo pasa. Mucho esfuerzo para confirmar lo único constante en ti: que da igual lo que hagas, sigues sobrando.',
+  '%N, tu aura te desnuda, tu bio te delata y tu insistencia en participar remata la faena. Tres formas distintas de decir lo mismo: que estás aquí de relleno y que ni tú te lo crees ya, puto fraude.',
+  'Con esa bio, %N, ese aura y esa manía de opinar sin que nadie pregunte, eres el fondo de pantalla del grupo: siempre ahí, nunca importante, y sustituible por cualquier otra cosa igual de irrelevante.',
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -163,6 +179,18 @@ const NAME_ONLY = [
   'Con el nombre %N llevas un lastre que no elegiste. Lo que elegiste fue confirmar ese lastre con cada decisión posterior. Libertad de elección puesta al servicio del fracaso, basura.',
   'El nombre %N es lo primero que ves y lo único que se queda. Porque lo que viene después no se queda en nada ni en nadie. El nombre es lo más memorable. Y es una puta mierda.',
   '%N. El tipo de nombre que genera en el oyente la misma emoción que genera tu presencia: ninguna. Neutro hasta la muerte, inútil hasta el final, sin marca real. El don nadie perfecto.',
+  '%N. Dilo en voz alta y suena a alguien pidiendo perdón por existir antes de que nadie se lo reclame. Naciste disculpándote y llevas toda la vida sin parar. Un puto lastre con nombre propio.',
+  'Hay nombres que abren puertas, %N. El tuyo las cierra por dentro y echa el pestillo. La gente lo oye y busca la salida antes de que hayas terminado de presentarte, basura andante.',
+  '%N. El nombre que se queda a medias en la boca porque ni pronunciarlo entero merece el aire. Te resumieron en un suspiro de fastidio y hasta eso fue demasiada atención para lo poco que vales.',
+  'Te llamas %N y el grupo hizo lo que hace todo el mundo contigo: leerlo por encima y pasar de largo. No molestas, no aportas, no existes. El scroll con patas, inútil de manual.',
+  '%N. Un nombre que suena a promesa que nadie hizo y que aun así se incumplió. Empezaste debiendo y el saldo solo ha ido a peor cada puto día que sigues ocupando sitio, fracasado.',
+  'Con el nombre %N ni hace falta conocerte para saber cómo acaba la historia: en nada, como todo lo tuyo. El grupo ya vio la película, sabe el final y por eso nadie se molesta en mirarte, mierda.',
+  '%N. El nombre que la gente confunde, olvida y vuelve a confundir porque no hay nada detrás que ayude a fijarlo. Eres tan olvidable que ni tu propio nombre se molesta en quedarse, perdedor.',
+  'Te pusieron %N esperando algo y les saliste tú. La factura de esa decepción la sigue pagando el grupo cada vez que apareces sin aportar una sola cosa que justifique el gasto, basura.',
+  '%N. Dos sílabas de relleno para un cuerpo de relleno. Ni el nombre ni el que lo lleva le importan a nadie más de tres segundos, y esos tres segundos ya son un regalo que no mereces, puto inútil.',
+  'El nombre %N no da miedo, no da respeto, no da nada. Da igual, que es peor. Al menos el odio calienta; tú solo generas ese vacío educado con el que la gente decide que no vales el esfuerzo.',
+  '%N. Lo escribes tú mismo cada día al abrir el móvil y ni a ti te dice nada. Imagínate al resto. Eres el único proyecto en el que nadie invirtió porque hasta tú viste que no daba retorno, mierda.',
+  'Te llamas %N y con eso el grupo ya archivó el caso: prescindible, olvidable, sustituible por cualquiera y por nadie a la vez. La única constante que has aportado es lo poco que se te echa en falta.',
   'Llevas el nombre %N sin saber qué hacer con él. Y llevas la vida sin saber qué hacer con ella. La coherencia del puto fracasado que falla en todo con la misma convicción y sin variación.',
   '%N, el nombre que ningún grupo ha recordado con cariño ni con rabia. Lo tuyo no es ni ser odiado, que al menos tiene fuego. Lo tuyo es ser olvidado mientras te están mirando. Patético.',
   'Con %N de nombre y el perfil que llevas, la única pregunta razonable es cómo llegaste aquí, no cuándo te vas. Nadie invitó el nombre, nadie invitó lo que viene con él, perdedor.',
@@ -502,9 +530,16 @@ async function cmdRoast(sock, msg, groupMeta) {
   const { tpls, cats } = getHist(jid);
   const usedTpls = new Set(tpls);
 
-  // 40% combinada, 60% variable única. Actividad solo para inactivos.
+  // Reparto sesgado hacia el contenido MÁS brutal e independiente de stats.
+  // Antes: 40% combinada + 60% single uniforme entre name/bio/aura/activity.
+  // Problema: aura y activity de un usuario normal (aura ~1000, algo de
+  // actividad) resuelven SIEMPRE al tier más flojo, así que el bot gastaba la
+  // mayoría de tiradas en las frases suaves y las brutales quedaban sin salir.
+  // Ahora: 58% combinada (los roasts más completos y salvajes) y, en el single,
+  // el nombre (siempre brutal, sin depender de números) pesa mucho más que
+  // aura/activity, que quedan como variedad ocasional, no como norma.
   let roastText, cat, tpl;
-  const useCombined = Math.random() < 0.40;
+  const useCombined = Math.random() < 0.58;
 
   if (useCombined) {
     cat = 'combined';
@@ -512,7 +547,9 @@ async function cmdRoast(sock, msg, groupMeta) {
     tpl = freshPick(pool, usedTpls);
     roastText = tpl.replace(/%N/g, displayName);
   } else {
-    const singleVars = ['name', 'bio', 'aura'];
+    // La repetición pondera el pick (pick es uniforme sobre el array): 'name'
+    // sale ~3x más que 'bio' y aura/activity quedan como toque puntual.
+    const singleVars = ['name', 'name', 'name', 'bio', 'bio', 'aura'];
     if (isInactive) singleVars.push('activity');
     cat = freshCat(singleVars, cats);
 

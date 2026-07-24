@@ -40,6 +40,12 @@ const VS_ROASTS = [
   '%W manda y %L asiente en silencio, su forma favorita de participar sin mojarse. Cobardía conversacional de manual.',
   'En este duelo %W puso los mensajes y %L puso la ausencia. Cada uno aportó lo que tenía; lo de %L, ya ves, era bien poco.',
   '%W gana y %L ni protesta, porque protestar también es hablar, y eso a %L lo supera. Derrota muda, la más patética de todas.',
+  '%W escribe, aporta y se le nota vivo. %L lleva tanto en silencio que el grupo ya no sabe si es un miembro o un error de la lista que nadie se molesta en corregir. Adivina cuál pierde, fantasma.',
+  'Esto no es un duelo, es una limosna: %W le regala a %L la única aparición que va a tener en meses. Aprovéchala, campeón del silencio, que la próxima vez ni te nombran para perder.',
+  '%L trajo su arma secreta al duelo: no hacer absolutamente nada, como siempre. %W lo barrió sin despeinarse mientras %L seguía decidiendo si valía la pena teclear. No valía. Nunca vale, perdedor.',
+  '%W tiene voz en el grupo; %L tiene un asiento que igual da si está ocupado o vacío. El marcador solo puso números a algo que todos sabían: uno cuenta, el otro sobra. Y sobra %L, obviamente.',
+  'Entre %W y %L la diferencia no es de mensajes, es de existencia. %W está; %L figura. Uno participa, el otro rellena la foto de grupo con cara de no haber dicho nada memorable jamás. Muerto en vida, %L.',
+  '%L compite contra %W como una vela apagada compite contra el sol. Ni luz, ni calor, ni razón para mirarla. %W ni supo que había duelo hasta que vio el nombre de %L pidiendo protagonismo prestado.',
 ];
 
 function lookupCount(users, jid) {
@@ -161,6 +167,14 @@ const GHOST_ROASTS = [
   'Aparece solo cuando hay bronca, husmea y se evapora. El resto del año es un nombre en la lista esperando el próximo cotilleo jugoso.',
   'Lee como un detective y participa como un sospechoso que prefiere guardar silencio. Todo lo que diga podría usarse... si dijera algo.',
   'Está en el grupo como el polvo en un mueble: presente, acumulándose y solo visible cuando alguien pasa el dedo. Justo lo que hago ahora.',
+  'Lleva tanto sin escribir que si mañana desaparece, el grupo tardaría semanas en notarlo y ninguna de esas semanas cambiaría nada. Existe en modo borrador: empezado, nunca publicado, olvidado en un rincón.',
+  'El fantasma que reacciona con un emoji una vez al mes y se cree participativo. Consume el trabajo de todos, no devuelve ni una frase y encima duerme tranquilo. Parásito con wifi y sin la menor vergüenza.',
+  'Tiene el grupo abierto solo para husmear quién habló de él. Nunca fue nadie, nunca dijo nada, y aun así vigila por si acaso su irrelevancia sale mencionada. Spoiler: sale, y es aún peor de lo que teme.',
+  'Su aportación al grupo cabe en el silencio entre dos mensajes de otros. Está de cuerpo presente y de contenido ausente, como el invitado que come, no habla y se va sin que nadie recuerde que vino.',
+  'Escribe con la frecuencia de un cometa y con la mitad del interés. Cuando por fin suelta algo, el grupo ya se había acostumbrado a su ausencia y preferiría que siguiera así. Vuelve a tu agujero, fantasma.',
+  'El miembro más decorativo del chat: ocupa plaza, no da servicio y solo aparece en la lista para inflar el número. Un cero con foto de perfil. Si el grupo fuera un cuerpo, sería el apéndice: inútil y silencioso.',
+  'Lleva de espectador tanto tiempo que ya forma parte del mobiliario. Nadie le pregunta nada porque nadie espera respuesta, y él lo prefiere así: participar le exigiría demostrar que tiene algo dentro. No lo tiene.',
+  'Su teclado es de adorno y su presencia también. Lee doscientos mensajes, no suelta ni uno y se va convencido de que estar callado lo hace interesante. Solo lo hace invisible, que en tu caso es lo mismo, perdedor.',
 ];
 
 // !inactivos — ranks the least-active members (owner exempt) and roasts each.
