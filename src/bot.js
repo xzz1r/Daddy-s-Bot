@@ -11,7 +11,7 @@ const fs = require('fs-extra');
 const qrcode = require('qrcode-terminal');
 const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, flushState } = require('./utils/state');
-const { isOwner } = require('./utils/wa');
+const { isOwner, sameUser } = require('./utils/wa');
 const { flushCounts } = require('./utils/messageCounter');
 const { flushAura } = require('./utils/auraStore');
 const { flushCasino } = require('./utils/casinoStore');
@@ -267,7 +267,15 @@ async function connectToWhatsApp() {
       // they added. Owner/co-owner adds are exempt — the member stays and the
       // owner keeps admin.
       if (!fromBot && author && !isOwner(author, false, meta) && isAntiAdminEnabled(groupJid)) {
-        const toKick = partJids.filter(jid => !isBotJid(jid));
+        // Entradas por enlace de invitación: el "autor" es el propio entrante.
+        // Eso NO es un alta no autorizada — no se degrada ni se expulsa a nadie.
+        // Solo actuamos cuando un admin agrega a OTROS. Nunca se toca al owner
+        // tier ni al bot entre los agregados.
+        const toKick = partJids.filter(jid =>
+          !isBotJid(jid) &&
+          !sameUser(jid, author) &&
+          !isOwner(jid, false, meta));
+        if (!toKick.length) return;
         try {
           await sock.groupParticipantsUpdate(groupJid, [author], 'demote');
         } catch (err) {
@@ -302,7 +310,12 @@ async function connectToWhatsApp() {
     // Anti-admin: revert any promote that didn't come from the bot.
     // Owner/co-owner promotions are exempt — they have authority to grant admin.
     if (action === 'promote' && !fromBot && !isOwner(author, false, meta) && isAntiAdminEnabled(groupJid)) {
-      const toDemote = Array.from(new Set([...(author ? [author] : []), ...partJids]));
+      // Nunca degradar al owner tier ni al bot, aunque un admin haya intentado
+      // promoverlos: el autor (no-owner) sí se degrada, pero el objetivo protegido
+      // se deja intacto.
+      const toDemote = Array.from(new Set([...(author ? [author] : []), ...partJids]))
+        .filter(jid => !isBotJid(jid) && !isOwner(jid, false, meta));
+      if (!toDemote.length) return;
       try {
         await sock.groupParticipantsUpdate(groupJid, toDemote, 'demote');
         const text =
