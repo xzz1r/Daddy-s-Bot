@@ -251,7 +251,14 @@ async function connectToWhatsApp() {
           }
           if (!biz) return;
           try {
-            await sock.groupParticipantsUpdate(groupJid, [kickId], 'remove');
+            const res = await sock.groupParticipantsUpdate(groupJid, [kickId], 'remove');
+            // WhatsApp responde por participante. Sin mirarlo, el bot anunciaba
+            // expulsiones que el servidor había rechazado y la cuenta seguía dentro.
+            const st = Array.isArray(res) ? String(res[0]?.status ?? '200') : '200';
+            if (st !== '200') {
+              logger.warn(`Anti-empresa: kick rechazado (${st}) para ${kickId} en ${groupJid}`);
+              return;
+            }
             const num = kickId.split('@')[0];
             sock.sendMessage(groupJid, {
               text: `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada automaticamente.`,
@@ -272,10 +279,20 @@ async function connectToWhatsApp() {
         // Eso NO es un alta no autorizada — no se degrada ni se expulsa a nadie.
         // Solo actuamos cuando un admin agrega a OTROS. Nunca se toca al owner
         // tier ni al bot entre los agregados.
-        const toKick = partJids.filter(jid =>
-          !isBotJid(jid) &&
-          !sameUser(jid, author) &&
-          !isOwner(jid, false, meta));
+        // La exención del owner se comprueba sobre las TRES formas del
+        // participante (id, lid, phoneNumber), igual que hace el bloque
+        // anti-empresa de arriba. Mirar solo p.id dejaba al owner recién
+        // añadido sin proteger cuando su id venía en forma LID.
+        const toKick = (participants || [])
+          .map(p => (typeof p === 'string' ? { id: p } : p))
+          .filter(o => o?.id)
+          .filter(o =>
+            !isBotJid(o.id) &&
+            !sameUser(o.id, author) &&
+            !isOwner(o.id, false, meta) &&
+            !(o.lid && isOwner(o.lid, false, meta)) &&
+            !(o.phoneNumber && isOwner(o.phoneNumber, false, meta)))
+          .map(o => o.id);
         if (!toKick.length) return;
         try {
           await sock.groupParticipantsUpdate(groupJid, [author], 'demote');

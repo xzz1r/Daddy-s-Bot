@@ -575,32 +575,83 @@ async function purgeBusinesses(sock, msg, groupJid, groupMeta) {
     }, { quoted: msg });
   }
 
-  // Solo a quien SIGUE en el grupo (alguien pudo salir tras el scan).
-  const members = groupMeta?.participants || [];
-  const stillHere = last.detected.filter(d => members.some(p =>
+  // Sin metadata no se puede re-verificar nada. Antes esto se confundía con
+  // "ya no queda nadie": se borraba la lista verificada y se afirmaba en falso
+  // que los Business se habían ido del grupo.
+  if (!groupMeta?.participants?.length) {
+    return sock.sendMessage(groupJid, {
+      text: 'No pude obtener los miembros del grupo. La lista del scan se conserva: reintenta el purge en un momento.',
+    }, { quoted: msg });
+  }
+
+  // Exenciones recalculadas contra la metadata FRESCA: entre el scan y el purge
+  // alguien pudo ser ascendido a admin, o el bot pudo resolver por fin su LID
+  // como owner. Esa persona ya no se expulsa aunque saliera en el scan.
+  const exemptForms = [];
+  for (const p of groupMeta.participants) {
+    if (!p?.id) continue;
+    const exempt = p.admin === 'admin' || p.admin === 'superadmin' ||
+      isBotJid(sock, p.id) ||
+      isOwner(p.id, false, groupMeta) ||
+      (p.lid && isOwner(p.lid, false, groupMeta)) ||
+      (p.phoneNumber && isOwner(p.phoneNumber, false, groupMeta));
+    if (exempt) for (const f of [p.id, p.lid, p.phoneNumber]) if (f) exemptForms.push(f);
+  }
+  const isExemptNow = (kickId) => exemptForms.some(f => sameUser(f, kickId));
+
+  const members = groupMeta.participants;
+  const present = last.detected.filter(d => members.some(p =>
     sameUser(p.id, d.kickId) ||
     (p.lid && sameUser(p.lid, d.kickId)) ||
     (p.phoneNumber && sameUser(p.phoneNumber, d.kickId))
   ));
+  const spared    = present.filter(d => isExemptNow(d.kickId));
+  const stillHere = present.filter(d => !isExemptNow(d.kickId));
+
   if (!stillHere.length) {
     lastScan.delete(groupJid);
     return sock.sendMessage(groupJid, {
-      text: 'Los Business detectados ya no están en el grupo. Corre *!antiempresa scan* de nuevo.',
+      text: spared.length
+        ? 'No queda nadie a quien expulsar: los detectados son ahora admin, owner o el bot. Corre *!antiempresa scan* de nuevo.'
+        : 'Los Business detectados ya no están en el grupo. Corre *!antiempresa scan* de nuevo.',
     }, { quoted: msg });
   }
 
   const toKick = stillHere.map(d => d.kickId);
-  const lines = stillHere.map(d => `@${d.kickId.split('@')[0]} — ${d.fields.join(', ')}`);
+  let res;
   try {
-    await sock.groupParticipantsUpdate(groupJid, toKick, 'remove');
-    lastScan.delete(groupJid); // consumido: obliga a re-escanear para volver a purgar
-    await sock.sendMessage(groupJid, {
-      text: `*Anti-empresa:* expulsadas *${toKick.length}* cuentas Business.\n${lines.join('\n')}`,
-      mentions: toKick,
-    });
+    res = await sock.groupParticipantsUpdate(groupJid, toKick, 'remove');
   } catch (err) {
-    await sock.sendMessage(groupJid, { text: `Error al expulsar: ${err.message}` });
+    return sock.sendMessage(groupJid, { text: `Error al expulsar: ${err.message}` });
   }
+  lastScan.delete(groupJid); // consumido: obliga a re-escanear para volver a purgar
+
+  // WhatsApp responde POR PARTICIPANTE: antes se anunciaba "expulsadas N"
+  // aunque el servidor las hubiera rechazado todas y siguieran en el grupo.
+  const statusOf = (kickId) => {
+    if (!Array.isArray(res)) return '200';
+    const row = res.find(r => r?.jid && sameUser(r.jid, kickId));
+    return String(row?.status ?? '200');
+  };
+  const done   = stillHere.filter(d => statusOf(d.kickId) === '200');
+  const failed = stillHere.filter(d => statusOf(d.kickId) !== '200');
+
+  let text = done.length
+    ? `*Anti-empresa:* expulsada${done.length > 1 ? 's' : ''} *${done.length}* cuenta${done.length > 1 ? 's' : ''} Business.\n` +
+      done.map(d => `@${d.kickId.split('@')[0]} — ${d.fields.join(', ')}`).join('\n')
+    : '*Anti-empresa:* no se pudo expulsar a nadie.';
+  if (failed.length) {
+    text += `\n\n_No se pudo expulsar a ${failed.length} (¿el bot no es admin?):_\n` +
+      failed.map(d => `@${d.kickId.split('@')[0]}`).join(', ');
+  }
+  if (spared.length) {
+    text += `\n\n_${spared.length} quedaron exentos por ser ahora admin u owner._`;
+  }
+
+  await sock.sendMessage(groupJid, {
+    text,
+    mentions: [...done, ...failed, ...spared].map(d => d.kickId),
+  });
 }
 
 // !add <numero> — add a user by phone number (owner only)

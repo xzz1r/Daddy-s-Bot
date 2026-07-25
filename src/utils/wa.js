@@ -180,11 +180,23 @@ function phoneMatch(a, b) {
 
 function isOwner(jid, fromMe, groupMeta) {
   if (fromMe) return true;
+  // Mismo atajo que isMainOwner: un JID ya confirmado como owner en una
+  // comprobación anterior (con metadata) vale igual aquí. Sin esto, para el
+  // MISMO jid isMainOwner devolvía true e isOwner false en cuanto faltaba la
+  // metadata, y toda la maquinaria de exención (que se apoya en isOwner)
+  // dejaba de proteger al dueño. El set solo contiene el owner principal ya
+  // verificado, así que no relaja nada.
+  if (isKnownOwnerJid(jid)) return true;
   const owners = [
     String(config.ownerNumber).replace(/\D/g, ''),
     ...(config.coOwners || []).map(n => String(n).replace(/\D/g, '')),
   ];
-  return matchesOwners(jid, groupMeta, owners);
+  const ok = matchesOwners(jid, groupMeta, owners);
+  // Aprende también desde aquí cuando el que coincide es el owner principal.
+  if (ok && matchesOwners(jid, groupMeta, [String(config.ownerNumber).replace(/\D/g, '')])) {
+    noteOwnerJid(jid);
+  }
+  return ok;
 }
 
 // True only for the primary owner (config.ownerNumber), not the co-owners.

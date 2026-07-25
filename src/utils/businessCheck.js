@@ -37,7 +37,17 @@ async function businessEvidence(sock, jid) {
   try {
     profile = await sock.getBusinessProfile(jid);
   } catch {
-    return { isBiz: false, fields: [] }; // error transitorio: no cachear
+    return { isBiz: false, fields: [] }; // error explícito: no cachear
+  }
+
+  // Baileys resuelve `undefined` TANTO cuando no hay nodo <profile> como cuando
+  // la IQ vence: su waitForMessage se traga el timeout y devuelve undefined en
+  // lugar de lanzar (Socket/socket.js), así que el catch de arriba nunca salta.
+  // Sin objeto no hay dato fiable, y cachear eso durante una hora dejaba ciego
+  // al scan, al purge y al anti-empresa de entrada. No se cachea: como mucho se
+  // reconsulta en la siguiente pasada.
+  if (!profile || typeof profile !== 'object') {
+    return { isBiz: false, fields: [] };
   }
 
   const filled = v => typeof v === 'string' && v.trim().length > 0;

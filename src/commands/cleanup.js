@@ -14,7 +14,7 @@
 // de red o un dato que falta jamás puede costarle la expulsión a nadie.
 
 const { isOwner, isBotJid, getSender, sameUser } = require('../utils/wa');
-const { getNick } = require('../utils/nickStore');
+const { getNickAnyForm, MIN_MISSES } = require('../utils/nickStore');
 
 const SCAN_VALID_MS = 10 * 60 * 1000;
 
@@ -34,13 +34,31 @@ const lastPfpScan  = new Map();
 //
 // Se devuelve además el motivo concreto para que el scan sea revisable de un
 // vistazo y el owner pueda detectar un falso positivo antes de purgar.
+// Letras "decoradas" que Unicode clasifica como símbolo (\p{So}) y no como
+// letra, pero que cualquiera lee como texto: Ⓐ ⓐ 🅰 🄰 ... Si no se contemplan,
+// un nick perfectamente legible se marcaría como "sin nombre" y acabaría en
+// una expulsión. NFKC descompone unos cuantos, pero no todos, así que se
+// comprueban ambas cosas.
+const ENCLOSED_LETTERS = /[Ⓐ-ⓩ\u{1F110}-\u{1F149}\u{1F150}-\u{1F169}\u{1F170}-\u{1F189}]/u;
+
+function hasReadableLetter(name) {
+  if (/\p{L}/u.test(name)) return true;
+  if (ENCLOSED_LETTERS.test(name)) return true;
+  // NFKC convierte fullwidth (Ａ), letras circulares y matemáticas (𝐀) en
+  // letras normales; si tras normalizar aparece una letra, el nick es legible.
+  try {
+    if (/\p{L}/u.test(name.normalize('NFKC'))) return true;
+  } catch { /* normalize no debería fallar, pero no se cuelga por esto */ }
+  return false;
+}
+
 function analyzeNick(raw) {
   if (typeof raw !== 'string') return { missing: true, reason: 'sin nombre' };
   const name = raw.trim();
   if (!name) return { missing: true, reason: 'sin nombre' };
 
-  // Al menos una letra → es un nick de verdad, no se toca.
-  if (/\p{L}/u.test(name)) return { missing: false, reason: null };
+  // Al menos una letra legible → es un nick de verdad, no se toca.
+  if (hasReadableLetter(name)) return { missing: false, reason: null };
 
   const hasEmoji = /\p{Extended_Pictographic}/u.test(name);
   const hasDigit = /\p{Nd}/u.test(name);
@@ -93,11 +111,16 @@ function scannableMembers(sock, groupMeta) {
 // Sin nick. Fuentes de nombre, por orden: metadata del grupo y, si no hay,
 // el pushName guardado de sus mensajes. Sin ninguna de las dos no se puede
 // afirmar nada, así que va a "sin datos" y queda fuera de la purga.
+// Un registro viejo no puede decidir una expulsión: la persona pudo ponerse
+// nombre hace semanas y el bot no haberla visto escribir desde entonces.
+const MAX_NICK_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 días
+
 async function detectNoNick(groupJid, members) {
   const detected = [];
   const unknown  = [];
 
   for (const m of members) {
+    // 1) Si la metadata del grupo trae un nombre, manda: es el dato más fresco.
     const metaName = nameFromMeta(m.participant);
     if (metaName !== null) {
       const a = analyzeNick(metaName);
@@ -105,11 +128,30 @@ async function detectNoNick(groupJid, members) {
       continue;
     }
 
-    const rec = await getNick(groupJid, m.kickId).catch(() => null);
+    // 2) Si no, el pushName guardado, consultando TODAS las formas del usuario
+    //    (id, lid, teléfono) para no fallar por una clave partida.
+    const p = m.participant;
+    const rec = await getNickAnyForm(groupJid, [m.kickId, p?.id, p?.lid, p?.phoneNumber])
+      .catch(() => null);
+
     if (!rec) { unknown.push({ kickId: m.kickId }); continue; }
 
-    const a = analyzeNick(rec.name);
-    if (a.missing) detected.push({ kickId: m.kickId, reason: a.reason });
+    // Tiene un nombre real guardado → se juzga ese nombre.
+    if (rec.name) {
+      if (Date.now() - (rec.ts || 0) > MAX_NICK_AGE_MS) { unknown.push({ kickId: m.kickId }); continue; }
+      const a = analyzeNick(rec.name);
+      if (a.missing) detected.push({ kickId: m.kickId, reason: a.reason });
+      continue;
+    }
+
+    // Sin nombre guardado: solo se confirma tras varias observaciones sin
+    // nombre y si son recientes. Una sola ausencia puede ser un mensaje al que
+    // WhatsApp no adjuntó el campo, y expulsar por eso sería injusto.
+    if ((rec.misses || 0) >= MIN_MISSES && Date.now() - (rec.ts || 0) <= MAX_NICK_AGE_MS) {
+      detected.push({ kickId: m.kickId, reason: 'sin nombre puesto' });
+    } else {
+      unknown.push({ kickId: m.kickId });
+    }
   }
 
   return { detected, unknown };
@@ -127,11 +169,22 @@ async function detectNoPfp(sock, members) {
     const target = m.phoneJid || m.kickId;
     try {
       const url = await sock.profilePictureUrl(target, 'image');
-      return url ? 'has' : 'none';
+      // Solo una URL de verdad prueba que TIENE foto. Un undefined no prueba lo
+      // contrario: Baileys devuelve child?.attrs?.url, que es undefined tanto si
+      // no hay foto como si la respuesta no trajo el nodo. Sin certeza, a
+      // "sin datos" — nunca a expulsable.
+      return (typeof url === 'string' && url) ? 'has' : 'error';
     } catch (err) {
-      const code = err?.output?.statusCode ?? err?.data ?? err?.status;
+      // Baileys lanza los errores IQ como new Boom(text, { data: code })
+      // (WABinary/generic-utils.js:assertNodeErrorFree). El código real va en
+      // err.data; err.output.statusCode es SIEMPRE 500 porque Boom lo pone por
+      // defecto al no recibir statusCode. Leer statusCode primero hacía que un
+      // 404 auténtico se viera como 500 y no se detectara nunca.
+      const code = Number(err?.data ?? err?.output?.statusCode ?? err?.status);
       const txt  = String(err?.message || '').toLowerCase();
-      if (code === 404 || txt.includes('item-not-found') || txt.includes('not-found')) return 'none';
+      // 404 / item-not-found = confirmado que no tiene foto.
+      if (code === 404 || txt.includes('item-not-found')) return 'none';
+      // 401/403 = privacidad. NO es "sin foto": no se puede saber.
       return 'error';
     }
   };
@@ -204,33 +257,86 @@ async function runPurge(sock, msg, groupJid, groupMeta, cfg) {
     }, { quoted: msg });
   }
 
-  // Solo a quien SIGUE en el grupo: alguien pudo salir tras el scan.
-  const members = groupMeta?.participants || [];
-  const stillHere = last.detected.filter(d => members.some(p =>
+  // Sin metadata NO se puede re-verificar nada. Antes esto se confundía con
+  // "ya no queda nadie": se borraba la lista verificada y se afirmaba en falso
+  // que los detectados se habían ido.
+  if (!groupMeta?.participants?.length) {
+    return sock.sendMessage(groupJid, {
+      text: 'No pude obtener los miembros del grupo. La lista del scan se conserva: reintenta el purge en un momento.',
+    }, { quoted: msg });
+  }
+
+  // Se recalculan las exenciones contra la metadata FRESCA. Entre el scan y el
+  // purge alguien pudo ser ascendido a admin, o el bot pudo resolver por fin su
+  // LID como owner: esa persona ya no puede ser expulsada aunque saliera en el
+  // scan. Antes solo se comprobaba que siguiera en el grupo.
+  const exemptNow = new Set();
+  for (const p of groupMeta.participants) {
+    if (!p?.id) continue;
+    const exempt = p.admin === 'admin' || p.admin === 'superadmin' ||
+      isBotJid(sock, p.id) ||
+      isOwner(p.id, false, groupMeta) ||
+      (p.lid && isOwner(p.lid, false, groupMeta)) ||
+      (p.phoneNumber && isOwner(p.phoneNumber, false, groupMeta));
+    if (exempt) {
+      for (const f of [p.id, p.lid, p.phoneNumber]) if (f) exemptNow.add(f);
+    }
+  }
+  const isExemptNow = (kickId) => [...exemptNow].some(f => sameUser(f, kickId));
+
+  const members = groupMeta.participants;
+  const present = last.detected.filter(d => members.some(p =>
     sameUser(p.id, d.kickId) ||
     (p.lid && sameUser(p.lid, d.kickId)) ||
     (p.phoneNumber && sameUser(p.phoneNumber, d.kickId))
   ));
+  const spared   = present.filter(d => isExemptNow(d.kickId));
+  const stillHere = present.filter(d => !isExemptNow(d.kickId));
 
   if (!stillHere.length) {
     cfg.store.delete(groupJid);
     return sock.sendMessage(groupJid, {
-      text: `Los detectados ya no están en el grupo. Corre *${cfg.cmd} scan* de nuevo.`,
+      text: spared.length
+        ? `No queda nadie a quien expulsar: los detectados son ahora admin, owner o el bot. Corre *${cfg.cmd} scan* de nuevo.`
+        : `Los detectados ya no están en el grupo. Corre *${cfg.cmd} scan* de nuevo.`,
     }, { quoted: msg });
   }
 
   const toKick = stillHere.map(d => d.kickId);
+  let res;
   try {
-    await sock.groupParticipantsUpdate(groupJid, toKick, 'remove');
-    cfg.store.delete(groupJid); // consumido: obliga a re-escanear para volver a purgar
-    await sock.sendMessage(groupJid, {
-      text: `*${cfg.title}* — expulsado${toKick.length > 1 ? 's' : ''} *${toKick.length}*:\n` +
-        stillHere.map(d => `@${d.kickId.split('@')[0]} — ${d.reason}`).join('\n'),
-      mentions: toKick,
-    });
+    res = await sock.groupParticipantsUpdate(groupJid, toKick, 'remove');
   } catch (err) {
-    await sock.sendMessage(groupJid, { text: `Error al expulsar: ${err.message}` });
+    return sock.sendMessage(groupJid, { text: `Error al expulsar: ${err.message}` });
   }
+  cfg.store.delete(groupJid); // consumido: obliga a re-escanear para volver a purgar
+
+  // WhatsApp responde POR PARTICIPANTE. Antes se anunciaba "expulsados N"
+  // aunque el servidor los hubiera rechazado todos.
+  const statusOf = (kickId) => {
+    if (!Array.isArray(res)) return '200'; // sin detalle: se asume lo pedido
+    const row = res.find(r => r?.jid && sameUser(r.jid, kickId));
+    return String(row?.status ?? '200');
+  };
+  const done   = stillHere.filter(d => statusOf(d.kickId) === '200');
+  const failed = stillHere.filter(d => statusOf(d.kickId) !== '200');
+
+  let text = done.length
+    ? `*${cfg.title}* — expulsado${done.length > 1 ? 's' : ''} *${done.length}*:\n` +
+      done.map(d => `@${d.kickId.split('@')[0]} — ${d.reason}`).join('\n')
+    : `*${cfg.title}* — no se pudo expulsar a nadie.`;
+  if (failed.length) {
+    text += `\n\n_No se pudo expulsar a ${failed.length} (¿el bot no es admin?):_\n` +
+      failed.map(d => `@${d.kickId.split('@')[0]}`).join(', ');
+  }
+  if (spared.length) {
+    text += `\n\n_${spared.length} quedaron exentos por ser ahora admin u owner._`;
+  }
+
+  await sock.sendMessage(groupJid, {
+    text,
+    mentions: [...done, ...failed, ...spared].map(d => d.kickId),
+  });
 }
 
 // ─── Comandos ────────────────────────────────────────────────────────────────
