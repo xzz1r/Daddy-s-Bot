@@ -2,16 +2,29 @@ const { isOwner, isMainOwner, isAdmin, getTargetOrSelf } = require('../utils/wa'
 const { pickFresh } = require('../utils/helpers');
 
 // Rig del owner principal: cuando el TARGET es el owner, el % se fuerza al
-// extremo halagador para él y luego la lógica de frase corre sobre ese valor.
+// RANGO que le favorece y luego la lógica de frase corre sobre ese valor.
+// Es un rango y no un número fijo a propósito: un 0% (o un 100%) clavado en
+// cada tirada canta que hay amaño y delata al dueño. Variando dentro de la
+// franja el resultado sigue siendo siempre favorable, pero parece azar.
 // La polaridad se define por comando (no basta con goodIsHigh: la "feminidad"
 // es positiva pero para el owner debe salir baja, como el chiste recurrente).
+const OWNER_LOW  = [3, 18];   // peyorativos: siempre bajo (tier low ≤30), nunca 0 pelado
+const OWNER_HIGH = [88, 100]; // favorables: siempre alto (tier high ≥70), no siempre 100
+
 const OWNER_FORCE = {
-  // Extremo alto (~100) para los rasgos que favorecen al owner.
-  crack: 100, inteligencia: 100, sexy: 100, ganador: 100, masculinidad: 100,
-  // Extremo bajo (0) para los rasgos peyorativos (y feminidad).
-  perdedor: 0, inutil: 0, rata: 0, cerdo: 0, simp: 0, friki: 0,
-  gay: 0, maricon: 0, femboy: 0, feminidad: 0, puta: 0, guarra: 0,
+  // Franja alta para los rasgos que favorecen al owner.
+  crack: OWNER_HIGH, inteligencia: OWNER_HIGH, sexy: OWNER_HIGH,
+  ganador: OWNER_HIGH, masculinidad: OWNER_HIGH,
+  // Franja baja para los rasgos peyorativos (y feminidad).
+  perdedor: OWNER_LOW, inutil: OWNER_LOW, rata: OWNER_LOW, cerdo: OWNER_LOW,
+  simp: OWNER_LOW, friki: OWNER_LOW, gay: OWNER_LOW, maricon: OWNER_LOW,
+  femboy: OWNER_LOW, feminidad: OWNER_LOW, puta: OWNER_LOW, guarra: OWNER_LOW,
 };
+
+// Valor al azar dentro del rango [min, max], ambos incluidos.
+function rollRange([min, max]) {
+  return min + Math.floor(Math.random() * (max - min + 1));
+}
 
 // Distribuciones por tier — basadas en el ROL DEL TARGET, no del sender:
 //
@@ -1407,11 +1420,12 @@ async function runPercent(sock, msg, key, groupMeta) {
     ? cfg.roll(targetIsOwner, targetIsAdmin)
     : rollPercent(cfg.goodIsHigh, targetIsAdmin, targetIsOwner);
 
-  // Si el target es el owner principal, se fuerza el valor al extremo que le
-  // favorece ANTES de elegir el tier/frase, de modo que la frase concuerde con
-  // el % mostrado.
+  // Si el target es el owner principal, se fuerza el valor dentro de la franja
+  // que le favorece ANTES de elegir el tier/frase, de modo que la frase
+  // concuerde con el % mostrado. Al ser una franja y no un valor fijo, el
+  // resultado cambia en cada tirada y no se nota el amaño.
   if (isMainOwner(target, false, groupMeta) && key in OWNER_FORCE) {
-    percent = OWNER_FORCE[key];
+    percent = rollRange(OWNER_FORCE[key]);
   }
 
   const tier = percent >= 70 ? 'high' : percent <= 30 ? 'low' : 'mid';
