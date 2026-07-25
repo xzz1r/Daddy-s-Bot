@@ -3,8 +3,14 @@
 const { getSender, getTarget, isMainOwner, bareJid } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
 const { getUserCount } = require('../utils/messageCounter');
+const { getDailyRate, WINDOW_DAYS } = require('../utils/dailyActivity');
 
 const fmt = n => n.toLocaleString('es-ES');
+
+// Ritmo con un decimal salvo que sea entero: "0,4" · "12" · "3,5".
+// Se muestra tal cual en las frases, así que tiene que leerse natural.
+const fmtRate = r =>
+  (Number.isInteger(r) ? r : Math.round(r * 10) / 10).toLocaleString('es-ES');
 
 // ─── Formato ──────────────────────────────────────────────────────────────────
 
@@ -265,6 +271,101 @@ const BIO_FULL = [
 
 // ─── SOLO ACTIVIDAD (%N + %C) — tiered, solo para inactivos ───────────────────
 
+// ─── RITMO DIARIO (%N + %R msgs/día + %C en la ventana + %D días) ────────────
+//
+// Esta es la métrica buena: mensajes POR DÍA sobre los últimos días, no el
+// total histórico. Distingue al que lleva 400 mensajes en una semana del que
+// lleva 400 en dos años. Se usa siempre que haya datos diarios del usuario;
+// getActivityPhrases (por total) queda solo de respaldo mientras el store se
+// llena tras un despliegue nuevo.
+function getRatePhrases(rate) {
+  // Menos de 1 mensaje al día: fantasma puro.
+  if (rate < 1) {
+    return [
+      '%R mensajes al día, %N. Ni uno diario. Entras, lees lo que otros escriben y te largas sin soltar una puta palabra. Eso no es ser reservado, es ser un parásito con datos móviles.',
+      '%N escribe %R mensajes al día. El grupo produce conversación a diario y tú apareces cada muerte de obispo a mirar. Gorrón de manual, y encima sin la menor vergüenza.',
+      'Tu ritmo es de %R mensajes diarios, %N. A ese paso el grupo se muere de aburrimiento esperando que digas algo. Fantasma con conexión permanente y cero aportación.',
+      '%R al día, %N. Ese número no dice que seas tímido, dice que te la suda este grupo y toda la gente que hay dentro. Pues es mutuo, puto mirón de mierda.',
+      '%N, %R mensajes por día. Llevas el ritmo de un muerto. Literalmente un cadáver tendría la misma actividad y encima ocuparía menos sitio en la lista.',
+      'Con %R mensajes diarios, %N, tu presencia aquí es puramente decorativa. Estás en la lista para inflar el número y para nada más. Bulto silencioso e inútil.',
+      '%R al día. %N lo lee todo, se entera de todo y no aporta una mierda. Espía de sofá, cobarde conversacional y parásito a tiempo completo. Pack entero.',
+      '%N con %R mensajes al día. Los demás sostienen la conversación mientras tú vives de gorra a costa de su tiempo. Eso tiene nombre y no te va a gustar: sanguijuela.',
+      'Ritmo de %R diarios, %N. Si el grupo dependiera de gente como tú llevaría meses muerto. Menos mal que hay quien sí escribe, porque tú desde luego no.',
+      '%N, %R mensajes al día. Ni te esfuerzas en fingir que participas. Entras, cotilleas, te vas. Rutina de mirón profesional sin sueldo y sin ninguna utilidad.',
+      'Con %R al día eres estadísticamente inexistente, %N. No es una opinión ni una exageración: es el puto número. Y el número dice que no aportas nada.',
+      '%R mensajes diarios, %N. Consumes el trabajo de todos y devuelves cero. Parásito social documentado, con cifras y sin una sola excusa que valga.',
+      '%N escribe %R al día. A ese ritmo tardarías años en decir algo que alguien recuerde. Y ni con años lo conseguirías, porque el problema no es el tiempo, eres tú.',
+      'Tu media es de %R mensajes diarios, %N. El grupo funciona igual contigo que sin ti, con la diferencia de que sin ti sobraría un sitio para alguien útil.',
+      '%N, %R al día. Llevas tanto callado que el grupo ya no sabe si tienes voz o si entraste por error. Fantasma de mierda con permiso de residencia permanente.',
+      'Con %R mensajes diarios, %N, no eres miembro del grupo, eres espectador. Y el espectador no aporta, solo consume. Gorrón con acceso completo y cara dura.',
+    ];
+  }
+
+  // 1-4 al día: aparece, pero cuesta verlo.
+  if (rate < 5) {
+    return [
+      '%R mensajes al día, %N. Apenas das señales de vida. Apareces, sueltas cualquier mierda y te vuelves a esconder. Participación de mínimos, aportación de cero.',
+      '%N escribe %R al día. Lo justo para que no te llamen fantasma y ni una más. El esfuerzo mínimo calculado al milímetro, como todo lo que haces en tu vida.',
+      'Con %R mensajes diarios, %N, estás en la franja del que participa por compromiso. Sin ganas, sin contenido y sin dejar nada. Puro trámite social, puto pesado.',
+      '%R al día, %N. Ese ritmo es el de alguien a quien el grupo le da bastante igual. Vienes a mirar y sueltas algo de vez en cuando para justificar que sigues.',
+      '%N, %R mensajes por día. Ni fantasma del todo ni presencia real. El limbo del que no aporta lo suficiente para contar ni calla lo bastante para olvidarse.',
+      'Con %R diarios eres el típico que aparece cuando ya está todo dicho, %N. Llegas tarde, repites lo obvio y te vas. Aportación nula con presencia ocasional.',
+      '%R mensajes al día, %N. A ese ritmo la gente tiene que hacer memoria para ubicarte. Y cuando la hace, no encuentra nada. Irrelevante con actividad simbólica.',
+      '%N con %R al día. Escribes lo justo para no desaparecer del todo, que es exactamente el nivel de esfuerzo de alguien que no vale una mierda para nada.',
+      'Tu media es %R mensajes diarios, %N. El grupo tiene conversaciones enteras sin ti y ninguna se resiente. Prescindible en el sentido más literal del término.',
+      '%N, %R al día. Participación de invitado que no quiere molestar. Pues molestas igual, ocupando un sitio que le vendría de lujo a alguien con algo que decir.',
+      'Con %R mensajes diarios, %N, tu implicación es la de quien pasa a saludar. Agradable, olvidable y absolutamente irrelevante para todo lo que pasa aquí.',
+      '%R al día, %N. Estás por encima del cadáver y por debajo del que cuenta. Una franja incómoda donde no se gana nada y se olvida a todo el mundo. Ahí vives.',
+      '%N escribe %R mensajes diarios. Lo mínimo para figurar. El grupo lo nota y lo cataloga: uno más de los que están sin estar. Puto relleno con notificaciones.',
+      'Con %R al día, %N, no eres parte de la conversación, eres una interrupción esporádica de la conversación de otros. Y ni eso lo haces con gracia. Inútil.',
+      '%N, %R mensajes por día. El ritmo de quien tiene el grupo silenciado y entra por curiosidad una vez cada tanto. Al menos sé honesto y vete del todo, gorrón.',
+      'Tu ritmo de %R diarios te delata, %N: estás aquí por lo que te llevas, no por lo que pones. Egoísmo puro disfrazado de ser una persona tranquila. No cuela.',
+    ];
+  }
+
+  // 5-14 al día: presencia real, sin peso.
+  if (rate < 15) {
+    return [
+      '%R mensajes al día, %N. Ritmo correcto y aportación olvidable. Escribes lo suficiente para que te ubiquen y nada de lo que dices se queda en nadie.',
+      '%N escribe %R al día y el grupo sigue sin recordar una sola cosa suya. Cantidad decente, calidad de mierda. Ruido de fondo con forma de persona.',
+      'Con %R mensajes diarios, %N, estás en la media. Y la media es exactamente el sitio donde nadie mira. Ni destacas ni molestas: solo ocupas espacio con ruido.',
+      '%R al día, %N. Hablas lo normal y aportas lo mínimo. Ese equilibrio tan cómodo es justo lo que impide que alguien te tome en serio aquí. Mediocre de manual.',
+      '%N, %R mensajes por día. Participas, sí, pero para decir lo que ya dijo otro cinco minutos antes. Eco con retraso, aportación cero. Puto seguidor sin criterio.',
+      'Con %R diarios, %N, tienes presencia sin peso. La diferencia entre las dos cosas es la que separa al que manda del que rellena. Y tú rellenas, siempre.',
+      '%R mensajes al día y ni uno tuyo ha hecho reír, pensar o cabrear a nadie, %N. Escribir tanto para no provocar nada es un talento de mierda que dominas tú solo.',
+      '%N con %R al día. Estás en la conversación pero nunca en el centro. Te mueves por los bordes sin arriesgar, y en los bordes no se construye una mierda.',
+      'Tu media es de %R mensajes diarios, %N. Suficiente para no ser fantasma, insuficiente para que a alguien le importe lo que dices. Territorio del don nadie.',
+      '%N, %R al día. Aportas volumen, no valor. El grupo tendría exactamente el mismo nivel sin tus mensajes, solo que con menos scroll. Puro relleno con teclado.',
+      'Con %R mensajes diarios eres del montón, %N. Y el montón no se cita, no se recuerda y no se echa de menos. Anonimato ganado a base de no decir nada.',
+      '%R al día, %N. Hablar por hablar también es una forma de no aportar, y tú la dominas. Mucho texto, cero sustancia, ninguna huella. Consistente en lo mediocre.',
+      '%N escribe %R mensajes diarios de puro trámite. Ni una idea propia, ni una gracia buena, ni un aporte real. Actividad de relleno para inflar el contador.',
+      'Con %R al día, %N, el grupo te lee y sigue sin detenerse. No te salta pero tampoco te presta atención. Ese punto medio en la indiferencia ajena es todo lo tuyo.',
+      '%N, %R mensajes por día. Estás en la franja del que podría contar aquí y ha decidido que con aparecer le vale. Cómodo hoy, completamente olvidable siempre.',
+      'Tu ritmo de %R diarios es el de alguien correcto y anodino, %N. Nadie te ataca y nadie te defiende. Nadie hace ninguna de las dos cosas por alguien irrelevante.',
+    ];
+  }
+
+  // 15+ al día: habla mucho y no dice nada.
+  return [
+    '%R mensajes al día, %N, y el grupo no recuerda ni uno. Escupes texto como una impresora rota escupe hojas en blanco: mucho ruido, mucho gasto y cero utilidad.',
+    '%N escribe %R al día. Verborrea pura. Hablar tanto para no decir una puta cosa que valga la pena es un mérito de mierda, pero ahí lo tienes, documentado.',
+    'Con %R mensajes diarios, %N, saturas el chat sin aportar nada. Eres el pesado del grupo con estadísticas propias. Cantidad industrial, calidad de vertedero.',
+    '%R al día, %N. Nadie escribe tanto para decir tan poco. Cada mensaje tuyo es otra prueba de que el volumen no compensa la falta absoluta de contenido.',
+    '%N, %R mensajes por día. El grupo te lee por obligación, no por interés. Llenas la pantalla de mierda y la gente hace scroll para llegar a lo que importa.',
+    'Con %R diarios eres ruido con notificaciones, %N. Si hablaras la mitad y pensaras el doble el grupo lo agradecería. Pero pensar nunca fue lo tuyo, gilipollas.',
+    '%R mensajes al día, %N, y ninguno mereció respuesta. Hablas y el grupo hace lo que se hace con un pesado: mirar a otro lado y esperar a que se canse solo.',
+    '%N con %R al día. Necesitas atención con la desesperación de quien no la recibe en ningún otro sitio. Se te huele desde el otro lado de la pantalla, patético.',
+    'Tu media es de %R mensajes diarios, %N. Impresionante para alguien que no ha dicho nada memorable en toda su vida aquí. Todo cantidad, ni una gota de sustancia.',
+    '%N, %R al día. El grupo se movería igual si escribieras la cuarta parte. La diferencia sería que habría menos basura que saltarse. Puto spam con forma de persona.',
+    'Con %R mensajes diarios, %N, has confundido estar presente con ser importante. Escribes sin parar y sigues siendo exactamente el mismo don nadie que al empezar.',
+    '%R al día, %N. Llenas el chat con la misma naturalidad con la que no aportas nada. Volumen de líder, contenido de mueble. La combinación más molesta que existe.',
+    '%N escribe %R mensajes diarios. Eso no es implicación, es incontinencia. Y el grupo lo sufre a diario sin que a ti se te haya pasado por la cabeza moderarte.',
+    'Con %R al día, %N, eres el que siempre tiene algo que decir y nunca nada que aportar. Esa distancia entre hablar y decir la llevas recorriendo tú solo desde el día uno.',
+    '%N, %R mensajes por día para acabar siendo tan irrelevante como el que no escribe ninguno. Tanto esfuerzo tirado a la basura. Casi da pena, pero da más asco.',
+    'Tu ritmo de %R diarios llena el grupo de mierda, %N. Todo el mundo lo piensa y nadie te lo dice por pereza. Yo no tengo ese problema: cállate un poco, pesado.',
+  ];
+}
+
 function getActivityPhrases(count) {
   const c = fmt(count);
 
@@ -451,16 +552,24 @@ async function cmdRoast(sock, msg, groupMeta) {
     participant?.notify ||
     `@${targetNum}`;
 
-  const [bioResult, msgCount] = await Promise.all([
+  const [bioResult, msgCount, act] = await Promise.all([
     sock.fetchStatus(target).catch(() => null),
     getUserCount(jid, target),
+    getDailyRate(jid, target).catch(() => ({ tracked: false })),
   ]);
 
   const bio = bioResult?.status?.trim() || '';
-  // Menos de 100 mensajes = inactivo: entra de lleno en los insultos por
-  // inactividad (fantasma, parásito, cero aporte) tanto en las combinadas como
-  // en la categoría de actividad.
-  const isInactive = msgCount < 100;
+
+  // La métrica buena es el RITMO (mensajes/día de los últimos días), no el
+  // total histórico: 400 mensajes en una semana y 400 en dos años son cosas
+  // muy distintas y el total no las distingue. El total solo se usa de
+  // respaldo mientras el store diario se llena tras un despliegue nuevo.
+  const hasRate = act?.tracked === true;
+  const rate = hasRate ? act.rate : null;
+
+  // Inactivo (para elegir el pool de frases combinadas): menos de 3 mensajes
+  // al día si hay ritmo; si no, se cae al criterio antiguo por total.
+  const isInactive = hasRate ? rate < 3 : msgCount < 100;
 
   const { tpls, cats } = getHist(jid);
   const usedTpls = new Set(tpls);
@@ -479,11 +588,15 @@ async function cmdRoast(sock, msg, groupMeta) {
     tpl = freshPick(pool, usedTpls);
     roastText = tpl.replace(/%N/g, displayName);
   } else {
-    // La repetición pondera el pick (pick es uniforme sobre el array): 'name'
-    // manda, y si el tío es inactivo (<100 msgs) la actividad pesa fuerte para
-    // que SÍ le caiga el palo por fantasma, no como toque puntual.
-    const singleVars = ['name', 'name', 'name', 'bio', 'bio'];
-    if (isInactive) singleVars.push('activity', 'activity', 'activity');
+    // La repetición pondera el pick (pick es uniforme sobre el array). La
+    // ACTIVIDAD manda: es lo que de verdad define a alguien en un grupo, y
+    // antes casi no salía (solo para inactivos y con poco peso), así que sus
+    // frases quedaban muertas. La bio baja a toque ocasional.
+    const singleVars = [
+      'activity', 'activity', 'activity', 'activity',
+      'name', 'name', 'name',
+      'bio',
+    ];
     cat = freshCat(singleVars, cats);
 
     switch (cat) {
@@ -498,9 +611,21 @@ async function cmdRoast(sock, msg, groupMeta) {
         break;
       }
       case 'activity': {
-        const pool = getActivityPhrases(msgCount);
-        tpl = freshPick(pool, usedTpls);
-        roastText = tpl.replace(/%N/g, displayName).replace(/%C/g, fmt(msgCount));
+        // Con ritmo diario se ataca por mensajes/día (la métrica real). Sin él
+        // (store recién creado) se cae al pool por total histórico.
+        if (hasRate) {
+          const pool = getRatePhrases(rate);
+          tpl = freshPick(pool, usedTpls);
+          roastText = tpl
+            .replace(/%N/g, displayName)
+            .replace(/%R/g, fmtRate(rate))
+            .replace(/%C/g, fmt(act.total))
+            .replace(/%D/g, String(act.days));
+        } else {
+          const pool = getActivityPhrases(msgCount);
+          tpl = freshPick(pool, usedTpls);
+          roastText = tpl.replace(/%N/g, displayName).replace(/%C/g, fmt(msgCount));
+        }
         break;
       }
     }

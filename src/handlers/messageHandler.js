@@ -1,6 +1,7 @@
 const config = require('../config');
 const { isBotEnabled, incrementStat, isAntiLinkEnabled } = require('../utils/state');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
+const { recordMessage: recordDailyActivity } = require('../utils/dailyActivity');
 const { checkCasinoMilestone } = require('../utils/casino');
 const { cmdPlay, cmdCacheList, cmdClearCache } = require('../commands/music');
 const { cmdSticker } = require('../commands/sticker');
@@ -192,6 +193,7 @@ async function handleMessage(sock, msg) {
     (msg.key.participantPn && isMainOwner(msg.key.participantPn, false, null));
   if (!msg.key.fromMe && jid.endsWith('@g.us') && sender && !senderIsMainOwner) {
     incrementMsgCount(jid, sender).catch(() => {});
+    recordDailyActivity(jid, sender).catch(() => {});
     checkCasinoMilestone(sock, jid, sender).catch(() => {});
     // Historial de huellas AUTOMÁTICO: indexa la foto de quien escribe (con
     // guarda TTL, así baja cada foto como mucho una vez cada pocos días). Es el
