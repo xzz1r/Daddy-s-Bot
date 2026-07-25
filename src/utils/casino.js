@@ -1,7 +1,8 @@
-// Casino milestone system: rewards active group members every 200/500/1000 messages
-// within a rolling 24h window (the casino counter lives in casinoStore.js and is
-// separate from the normal message counter used by !count; it resets daily so the
-// milestones are a fresh race every day).
+// Bonos de aura por actividad: premian a los miembros activos cada 200/500/1000
+// mensajes dentro de una ventana de 24h (el contador vive en casinoStore.js y es
+// independiente del de !count; se reinicia a diario, así que los hitos son una
+// carrera nueva cada día). Tiene estructura de tragaperras (tramos, botes,
+// premio variable) pero lo que se reparte es AURA, no fichas de casino.
 // Uses variable ratio reinforcement (the most addictive slot mechanic) — the amount
 // varies unpredictably within each tier so players never know what they'll get.
 // Members with negative aura have an escalating jackpot chance to incentivize
@@ -13,78 +14,71 @@ const { pick } = require('./helpers');
 
 const fmt = n => n.toLocaleString('es-ES');
 
-// The milestone notification pings the whole group (FOMO mechanic), but doing
-// that on every hit spams large/busy groups and risks WhatsApp rate-limiting.
-// Throttle the group-wide ping to at most once per group per window; outside it,
-// only the winner is mentioned. The reward and message always fire regardless.
-const TAGALL_COOLDOWN_MS = 10 * 60 * 1000;
-const lastTagall = new Map(); // groupJid -> timestamp
-
 // ─── Phrases ──────────────────────────────────────────────────────────────────
 
 const PHRASES = {
   tier1: {
     win: [
-      '200 mensajes registrados. El sistema paga lo básico: no es el gordo, pero es real y los fantasmas del grupo no lo verán jamás.',
-      'La máquina escupió el primer bote. Premio modesto, real. El que no escribe no cobra. Simple.',
-      '200 mensajes documentados y el medidor responde. Los que solo leen pueden seguir mirando.',
-      'Actividad confirmada. Premio de nivel de entrada. Hay gente en este grupo que lleva semanas sin llegar aquí.',
-      '200 mensajes: el precio mínimo de admisión al sistema de bonos. Pagado. Premio entregado.',
+      '200 mensajes y el aura responde. No es el bono gordo, pero es aura real que los fantasmas del grupo no van a ver nunca.',
+      'Primer tramo cubierto. El aura paga lo básico: poco, pero más de lo que gana el que solo lee.',
+      '200 mensajes registrados. El aura sube porque se ha ganado escribiendo, que es la única forma que existe.',
+      'Actividad confirmada y aura entregada. Hay gente aquí que lleva semanas sin acercarse a este número.',
+      '200 mensajes: el mínimo para que el aura empiece a tenerte en cuenta. Cobrado.',
     ],
     bigwin: [
-      'El slot salió generoso. 200 mensajes que valieron más de lo que nadie esperaba. Así funciona la máquina.',
-      'Premio por encima de la media para el primer hito. La máquina tiene su propia lógica y hoy favoreció.',
-      '200 mensajes y la máquina decidió pagar por encima. Nadie lo puede predecir. Por eso funciona.',
-      'Bono de Tier 1 con bonificación. 200 mensajes, resultado mejor de lo habitual.',
+      'El aura salió generosa en el primer tramo. 200 mensajes que rindieron más de lo normal.',
+      'Bono por encima de la media en Tier 1. El aura tiene su propia lógica y hoy jugó a favor.',
+      '200 mensajes y el aura decidió pagar de más. No se puede predecir, por eso engancha.',
+      'Tier 1 con bonificación. Mismo esfuerzo, mejor retorno. El aura no siempre paga igual.',
     ],
     jackpot: [
-      '💥 JACKPOT en el nivel de entrada. 200 mensajes y la tragaperras se volvió loca. Los que no escriben que observen.',
-      '200 mensajes y el slot reventó. Premio grande en el primer tier. El grupo es testigo de que esto existe.',
-      'La máquina del grupo escupió el bote gordo en Tier 1. Raro, real, documentado.',
+      '💥 BOTE EN EL PRIMER TRAMO. 200 mensajes y el aura se desbordó. Los que no escriben que tomen nota.',
+      '200 mensajes y el aura reventó por arriba. Bono grande en el tramo de entrada. Raro y documentado.',
+      'Bote gordo de aura en Tier 1. Poco habitual, completamente real, y el marcador lo confirma.',
     ],
   },
   tier2: {
     win: [
-      '500 mensajes. Hay gente en este grupo que no llega ni a 50. Premio de los que se quedan.',
-      'Medio millar de mensajes: separación clara entre quien vive aquí y quien de visita. El sistema lo premia.',
-      '500 mensajes documentados. Constancia que el relleno desconoce por definición.',
-      'El marcador dice 500. Eso no lo consigue cualquiera. El bono de Tier 2 confirma la jerarquía de actividad.',
+      '500 mensajes. Hay gente en este grupo que no llega ni a 50. El aura premia a los que se quedan.',
+      'Medio millar de mensajes: la línea que separa a quien vive el grupo de quien pasa de visita. El aura lo nota.',
+      '500 mensajes registrados. Constancia que el relleno del grupo no conoce ni de lejos.',
+      'El contador marca 500 y el aura responde en consecuencia. Eso no lo alcanza cualquiera.',
     ],
     bigwin: [
-      '500 mensajes y el slot respondió con generosidad. Premio de Tier 2 por encima de la media.',
-      'Bono gordo por llegar a los 500. La consistencia tiene su propia economía y hoy pagó bien.',
-      '500 mensajes y la máquina decidió recompensar en serio. No todos llegan aquí. Los que llegan, cobran.',
+      '500 mensajes y el aura respondió con generosidad. Bono de Tier 2 por encima de lo normal.',
+      'Bono gordo por llegar a los 500. La constancia tiene su propia economía y hoy pagó bien.',
+      '500 mensajes y el aura recompensó en serio. No todos llegan aquí; el que llega, cobra.',
     ],
     jackpot: [
-      '🎰 JACKPOT DE TIER 2. 500 mensajes y la tragaperras del grupo se desbordó. El tipo de premio que hace abrir el chat.',
-      '500 mensajes, jackpot confirmado en Tier 2. Esto va al registro del grupo. Los inactivos que tomen nota.',
-      'Bote histórico de Tier 2. 500 mensajes reales, premio de los que el grupo no va a olvidar.',
+      '🎰 BOTE DE TIER 2. 500 mensajes y el aura se desbordó. De los premios que hacen abrir el chat.',
+      '500 mensajes y bote confirmado en Tier 2. Esto queda en el registro del grupo. Los inactivos que miren.',
+      'Bote histórico de aura en Tier 2. 500 mensajes reales y un premio que el grupo no va a olvidar.',
     ],
   },
   tier3: {
     win: [
-      '1000 mensajes. Eso no se ve todos los días en ningún grupo. El sistema lo reconoce y lo paga.',
-      'Mil mensajes documentados. Hay gente que cierra el chat antes de llegar a 10. Diferencia de tier confirmada.',
-      '1000 mensajes: el nivel donde los fantasmas del grupo ni saben que existe un premio. El que llega, cobra.',
-      'El marcador marca 1000 y el sistema activa el Tier 3. Presencia legendaria recompensada en consecuencia.',
+      '1000 mensajes. Eso no se ve todos los días en ningún grupo. El aura lo reconoce y lo paga entero.',
+      'Mil mensajes registrados. Hay quien cierra el chat antes de llegar a diez. Otra liga confirmada.',
+      '1000 mensajes: el nivel donde los fantasmas del grupo ni saben que existe un bono. El que llega, cobra.',
+      'El contador llega a 1000 y el aura abre el tramo máximo. Presencia de las que se recompensan solas.',
     ],
     bigwin: [
-      '1000 mensajes y la máquina entró en modo gran premio. Nivel de actividad que se paga diferente.',
-      'Tier 3 activado. Mil mensajes, premio de los que quedan grabados en la historia del grupo.',
-      '1000 mensajes reales. La máquina del grupo escupió un bono de los que crean conversación durante días.',
+      '1000 mensajes y el aura entró en modo gran bono. Ese nivel de actividad se paga distinto.',
+      'Tier 3 desbloqueado. Mil mensajes y un bono de aura de los que quedan en la historia del grupo.',
+      '1000 mensajes reales y el aura soltó un bono de los que dan conversación durante días.',
     ],
     jackpot: [
-      '🏆 1000 MENSAJES — JACKPOT DE TIER 3. El premio más alto del sistema. El grupo acaba de ver algo que no pasa todos los días.',
-      'Mil mensajes y el slot del grupo llegó al bote máximo. Constancia legendaria. Premio legendario. El grupo es testigo.',
-      '🏆 TIER 3 JACKPOT CONFIRMADO. 1000 mensajes, bote histórico. Esto va al hall de la fama del grupo sin discusión.',
+      '🏆 1000 MENSAJES — BOTE MÁXIMO DE AURA. El premio más alto que existe. El grupo acaba de ver algo poco común.',
+      'Mil mensajes y el aura llegó a su bote máximo. Constancia legendaria, premio legendario. El grupo es testigo.',
+      '🏆 BOTE DE TIER 3 CONFIRMADO. 1000 mensajes y aura histórica. Esto va al hall de la fama sin discusión.',
     ],
   },
   redemption: [
-    '⚡ JACKPOT DE REDENCIÓN — El aura estaba en el sótano pero la actividad acaba de hacer lo que el cope no pudo. La tragaperras escupe el bote de comeback. Esto no lo calcula nadie.',
-    '⚡ COMEBACK DOCUMENTADO EN DIRECTO — Aura negativa, mensajes positivos. El sistema premia la constancia antes que el cope. Jackpot de redención confirmado y el marcador cambia de cara.',
-    '⚡ REDENCIÓN INESPERADA — El grupo pensaba que ese aura no volvía. La actividad tiene su propia economía y acaba de hablar. Jackpot. El grupo entero es testigo.',
-    '⚡ LA MÁQUINA REESCRIBIÓ EL MARCADOR — Aura negativa, actividad real. El casino del grupo no juzga el historial, juzga la constancia. Resultado: jackpot de redención confirmado.',
-    '⚡ BOTE DE REDENCIÓN — Lo que meses de cope no consiguieron, la actividad lo resolvió en un clic. El marcador cambia. El grupo lo vio en directo.',
+    '⚡ REMONTADA DE AURA — Estaba en el sótano y la actividad hizo lo que ninguna excusa consiguió. Bono de comeback. Esto no lo calcula nadie.',
+    '⚡ COMEBACK EN DIRECTO — Aura negativa, mensajes positivos. Aquí se premia la constancia antes que el cope, y el marcador acaba de cambiar de cara.',
+    '⚡ REDENCIÓN INESPERADA — El grupo daba ese aura por perdida. La actividad tiene su propia economía y acaba de hablar. Bote confirmado.',
+    '⚡ EL MARCADOR REESCRITO — Aura negativa, actividad real. Aquí no se juzga el historial, se juzga quién aparece. Resultado: bono de redención.',
+    '⚡ BONO DE REDENCIÓN — Lo que meses de excusas no arreglaron, la actividad lo resolvió sola. El aura cambia de signo y el grupo lo vio.',
   ],
 };
 
@@ -161,9 +155,11 @@ async function checkCasinoMilestone(sock, jid, sender) {
   const phrase = pick(phrasePool);
 
   const userTag   = `@${sender.split('@')[0]}`;
-  const tierHdr   = tier === 3 ? '🏆 *TIER 3 · 1000 MENSAJES*'
-                  : tier === 2 ? '🎰 *TIER 2 · 500 MENSAJES*'
-                  :              '🎲 *TIER 1 · 200 MENSAJES*';
+  // Cabecera de aura, no de casino: el sistema tiene estructura de tramos y
+  // botes, pero lo que se reparte es aura y el título lo deja claro.
+  const tierHdr   = tier === 3 ? '🏆 *BONO DE AURA · TIER 3 · 1000 MENSAJES*'
+                  : tier === 2 ? '🎰 *BONO DE AURA · TIER 2 · 500 MENSAJES*'
+                  :              '🎲 *BONO DE AURA · TIER 1 · 200 MENSAJES*';
   const next      = nextMilestone(count);
   const nextLabel = next.tier === 3 ? 'Tier 3 (1000 msgs)'
                   : next.tier === 2 ? 'Tier 2 (500 msgs)'
@@ -176,22 +172,11 @@ async function checkCasinoMilestone(sock, jid, sender) {
     `${userTag}  +${fmt(amount)} de aura → *${fmt(current)}*\n\n` +
     `_Próximo bono: ${nextLabel} — faltan ${fmt(next.remaining)} mensajes_`;
 
-  // Invisible tagall: everyone gets pinged but no @number spam in the text.
-  // FOMO mechanic, but throttled per group so busy groups aren't mass-pinged on
-  // every milestone (spam + rate-limit risk). Metadata is only fetched when we
-  // actually intend to tag — outside the window only the winner is mentioned.
-  let mentions = [sender];
-  const now = Date.now();
-  if (now - (lastTagall.get(jid) || 0) >= TAGALL_COOLDOWN_MS) {
-    const meta = await sock.groupMetadata(jid).catch(() => null);
-    if (meta?.participants?.length) {
-      mentions = [...new Set([sender, ...meta.participants.map(p => p.id)])];
-      if (lastTagall.size >= 500) lastTagall.delete(lastTagall.keys().next().value);
-      lastTagall.set(jid, now);
-    }
-  }
-
-  await sock.sendMessage(jid, { text, mentions });
+  // Solo se menciona a quien cobra el bono, y únicamente para que su nombre se
+  // renderice en el mensaje. Antes esto hacía un tagall invisible que notificaba
+  // al grupo entero en cada hito: en un grupo activo eso es un bombardeo
+  // constante de notificaciones y resulta pesado. El resto no recibe nada.
+  await sock.sendMessage(jid, { text, mentions: [sender] });
 }
 
 module.exports = { checkCasinoMilestone };
