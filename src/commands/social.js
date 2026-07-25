@@ -147,75 +147,84 @@ async function cmdHelp(sock, msg) {
   const p = config.prefix;
 
   const text =
-`*${config.botName}* · comandos
-_Prefijo *${p}* — ej: *${p}play* despacito_
+`*${config.botName}*
+_Prefijo *${p}* — ejemplo: *${p}play* despacito_
 
-━━ *MÚSICA* ━━
-*${p}play* <nombre> — busca y envía una canción
-*${p}cachelist* — canciones guardadas en cache
+━━━━━━ *MÚSICA* ━━━━━━
+*${p}play* <nombre> — busca y envía la canción
+*${p}cachelist* — canciones ya guardadas
 
-━━ *STICKERS* ━━
-*${p}s* — imagen/video a sticker
+━━━━━ *STICKERS* ━━━━━
+*${p}s* — imagen o video a sticker
 *${p}ttp* <texto> — texto a sticker
 *${p}toimg* — sticker a imagen
 *${p}tovid* — sticker animado a video
 
-━━ *PERFIL / ANTI-FAKE* ━━
-*${p}pfp* @user — su foto de perfil (o un número)
-*${p}fk* @user — analiza si es cuenta falsa (da un puntaje)
-
-━━ *ACTIVIDAD* ━━
-*${p}count* — quién escribe más
+━━━━━ *ACTIVIDAD* ━━━━━
+*${p}count* — ranking de quién escribe más
 *${p}relevancia* [@user] — tu peso real en el grupo
-*${p}inactivos* — los que casi no escriben
-*${p}vs* @a @b — compara actividad de dos
-*${p}top5* / *${p}top10* <tema>
+*${p}inactivos* — los fantasmas del grupo
+*${p}vs* @a @b — compara la actividad de dos
+*${p}top5* / *${p}top10* <tema> — ranking al azar
 
-━━ *JUEGOS* ━━ _(sin @ = a ti · con @ = a otro)_
-Dan un % al azar de un rasgo:
-*${p}crack* · *${p}inteligencia* · *${p}hot* · *${p}gay* · *${p}simp*
-*${p}rata* · *${p}friki* · *${p}cerdo* · *${p}inutil* · *${p}maricon*
-*${p}feminidad* · *${p}masculinidad* · *${p}femboy* · *${p}perdedor* · *${p}ganador*
-*${p}puta* · *${p}guarra* · *${p}fiel* · *${p}infiel*
+━━━━━ *JUEGOS DE %* ━━━━━
+_Sin @ va sobre ti · con @ va sobre esa persona_
+
+*${p}crack* · *${p}inteligencia* · *${p}hot* · *${p}ganador*
+*${p}fiel* · *${p}infiel* · *${p}masculinidad* · *${p}feminidad*
+*${p}perdedor* · *${p}inutil* · *${p}rata* · *${p}cerdo*
+*${p}simp* · *${p}friki* · *${p}gay* · *${p}maricon*
+*${p}femboy* · *${p}puta* · *${p}guarra*
+
+━━━━━ *DUELOS* ━━━━━
+*${p}roast* @user — destrucción pública
 *${p}mog* @a @b — duelo de looks
 *${p}ship* @a @b — compatibilidad
-*${p}roast* @user — burla pública
 
-━━ *WINGMAN* ━━ _(sin @ = a ti · con @ = a otro)_
+━━━━━ *WINGMAN* ━━━━━
+_Sin @ va sobre ti · con @ va sobre esa persona_
 *${p}rizz* [@user] — nivel de juego (%)
 *${p}piropo* [@user] — le lanza un piropo
 *${p}coach* [@user] — consejos de ligue
 
-━━ *AURA* ━━ _(economía del grupo)_
-*${p}aura* [@user] — ver aura · *${p}aura top* — ranking
-*${p}dar* / *${p}duel* / *${p}robo* @user <cantidad>
-*${p}casino* — tu progreso del día
+━━━━━ *AURA* ━━━━━
+*${p}aura* [@user] — ver aura
+*${p}aura top* — ranking del grupo
+*${p}dar* @user <cantidad> — regalar aura
+*${p}duel* @user <cantidad> — apostar 1v1
+*${p}robo* @user <cantidad> — intentar robar
+*${p}casino* — tu progreso de hoy
 _Ganas aura escribiendo. Bonos diarios: 200 msg = 20k · 500 = 60k · 1000 = 150k_
 
-━━ *IA* ━━
+━━━━━ *PERFIL* ━━━━━
+*${p}pfp* @user — su foto de perfil
+*${p}fk* @user — analiza si es cuenta falsa
+
+━━━━━ *IA* ━━━━━
 *${p}g* <pregunta> — le preguntas a Grok
 
-━━ *ADMIN* ━━
-*${p}on* / *${p}off* — activa/desactiva el bot
-*${p}tagall* <msg> — menciona a todos
-*${p}kick* @user · *${p}add* <número>
-*${p}promote* / *${p}demote* @user — dar/quitar admin
+━━━━━ *BOT* ━━━━━
+*${p}ping* · *${p}info* · *${p}whoami*
+
+━━━━━ *ADMIN* ━━━━━
+*${p}on* / *${p}off* — activa o apaga el bot
+*${p}tagall* <mensaje> — menciona a todos
+*${p}kick* @user — expulsa
+*${p}add* <número> — añade
+*${p}promote* / *${p}demote* @user — da o quita admin
 *${p}mute* @user <min> · *${p}unmute* @user
 *${p}del* — borra el mensaje citado
-*${p}close* / *${p}open* — cierra/abre el grupo
+*${p}close* / *${p}open* — cierra o abre el grupo
 *${p}notifadmin* on/off — avisos de admin
 *${p}scan* — busca cuentas sospechosas
 *${p}marcarfake* @user — marca su foto como falsa
 *${p}fkban* / *${p}fkunban* @user — lista negra global
 *${p}antifake* on/off — vigila las entradas
 
-━━ *OWNER* ━━
-*${p}resetcount* · *${p}resetaura* — borrar rankings
+━━━━━ *OWNER* ━━━━━
 *${p}antiadmin* / *${p}antiempresa* / *${p}antilink* on/off
-*${p}clearcache* · *${p}setgrok* <key>
-
-━━ *BOT* ━━
-*${p}ping* · *${p}info* · *${p}whoami*`;
+*${p}resetcount* · *${p}resetaura* — borrar rankings
+*${p}clearcache* · *${p}setgrok* <key>`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
