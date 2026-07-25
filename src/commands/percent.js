@@ -8,7 +8,7 @@ const { pickFresh } = require('../utils/helpers');
 // franja el resultado sigue siendo siempre favorable, pero parece azar.
 // La polaridad se define por comando (no basta con goodIsHigh: la "feminidad"
 // es positiva pero para el owner debe salir baja, como el chiste recurrente).
-const OWNER_LOW  = [3, 18];   // peyorativos: siempre bajo (tier low ≤30), nunca 0 pelado
+const OWNER_LOW  = [3, 30];   // peyorativos: siempre bajo, tope 30 (tier low ≤30), nunca 0 pelado
 const OWNER_HIGH = [88, 100]; // favorables: siempre alto (tier high ≥70), no siempre 100
 
 const OWNER_FORCE = {
