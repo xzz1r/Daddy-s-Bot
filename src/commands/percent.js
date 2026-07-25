@@ -1,5 +1,9 @@
 const { isOwner, isMainOwner, isAdmin, getTargetOrSelf } = require('../utils/wa');
 const { pickFresh } = require('../utils/helpers');
+const {
+  FIEL_HIGH, FIEL_MID, FIEL_LOW,
+  INFIEL_HIGH, INFIEL_MID, INFIEL_LOW,
+} = require('../data/fidelityPhrases');
 
 // Rig del owner principal: cuando el TARGET es el owner, el % se fuerza al
 // RANGO que le favorece y luego la lógica de frase corre sobre ese valor.
@@ -19,7 +23,13 @@ const OWNER_FORCE = {
   perdedor: OWNER_LOW, inutil: OWNER_LOW, rata: OWNER_LOW, cerdo: OWNER_LOW,
   simp: OWNER_LOW, friki: OWNER_LOW, gay: OWNER_LOW, maricon: OWNER_LOW,
   femboy: OWNER_LOW, feminidad: OWNER_LOW, puta: OWNER_LOW, guarra: OWNER_LOW,
+  // Fidelidad: al owner siempre alto en fiel y bajo en infiel.
+  fiel: OWNER_HIGH, infiel: OWNER_LOW,
 };
+
+// Tirada uniforme 0-100. !fiel e !infiel son totalmente aleatorios: no siguen
+// las distribuciones por rol del resto de juegos, solo el amaño del owner.
+const rollUniform = () => Math.floor(Math.random() * 101);
 
 // Valor al azar dentro del rango [min, max], ambos incluidos.
 function rollRange([min, max]) {
@@ -1404,6 +1414,27 @@ const LABELS = {
       'Si esto midiera de verdad, saldrías casi en cero. Mantienes el nivel y se nota. Estás del lado bueno.',
     ],
   },
+
+  // fiel / infiel: porcentaje TOTALMENTE aleatorio (rollUniform), sin las
+  // distribuciones por rol del resto. El único amaño es el del owner, que
+  // OWNER_FORCE resuelve después: alto en fiel, bajo en infiel.
+  fiel: {
+    name: 'fiel',
+    goodIsHigh: true,
+    roll: rollUniform,
+    high: FIEL_HIGH,
+    mid: FIEL_MID,
+    low: FIEL_LOW,
+  },
+
+  infiel: {
+    name: 'infiel',
+    goodIsHigh: false,
+    roll: rollUniform,
+    high: INFIEL_HIGH,
+    mid: INFIEL_MID,
+    low: INFIEL_LOW,
+  },
 };
 
 async function runPercent(sock, msg, key, groupMeta) {
@@ -1463,4 +1494,6 @@ module.exports = {
   cmdGanador:       makeCmd('ganador'),
   cmdPuta:          makeCmd('puta'),
   cmdGuarra:        makeCmd('guarra'),
+  cmdFiel:          makeCmd('fiel'),
+  cmdInfiel:        makeCmd('infiel'),
 };
