@@ -166,6 +166,7 @@ _Prefijo *${p}* — ej: *${p}play* despacito_
 
 ━━ *ACTIVIDAD* ━━
 *${p}count* — quién escribe más
+*${p}relevancia* [@user] — tu peso real en el grupo
 *${p}inactivos* — los que casi no escriben
 *${p}vs* @a @b — compara actividad de dos
 *${p}top5* / *${p}top10* <tema>

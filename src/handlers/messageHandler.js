@@ -6,6 +6,7 @@ const { cmdPlay, cmdCacheList, cmdClearCache } = require('../commands/music');
 const { cmdSticker } = require('../commands/sticker');
 const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdCount, cmdResetCount } = require('../commands/count');
+const { cmdRelevance } = require('../commands/relevance');
 const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
 const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd, cmdAntiLink, cmdClose, cmdOpen } = require('../commands/group');
 const { cmdShip } = require('../commands/ship');
@@ -81,6 +82,7 @@ const NEEDS_META = new Set([
   'fk','verificar','verify','check','marcarfake','fake',
   'fkban','fkunban','antifake','antifk',
   'count','resetcount','resetconteo',
+  'relevancia','relevance',   // isMainOwner necesita meta para resolver LID → teléfono
   // Owner-gated commands also need meta in groups to resolve LID → phone
   // for isOwner checks (otherwise co-owners always fail in modern groups).
   'clearcache','borracache','setgrok','setkey','whoami',
@@ -322,6 +324,11 @@ async function handleMessage(sock, msg) {
 
       case 'count':
         await cmdCount(sock, msg, groupMeta, args);
+        break;
+
+      case 'relevancia':
+      case 'relevance':
+        await cmdRelevance(sock, msg, groupMeta);
         break;
 
       case 'resetcount':
