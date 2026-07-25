@@ -238,7 +238,7 @@ El aura es tu puntuación social en el grupo. Empieza en *1.000* y sube o baja s
 *CÓMO GANAR O PERDER AURA*
 · *!aura* — tiras el dado (3min cooldown). Puede subir o bajar dependiendo de tu rol: el owner tiene ventaja, los admins algo menos, los miembros la peor odds. Cuanto más en rojo estás, más probable el colapso.
 · *Bonos automáticos* — solo por escribir en el grupo recibes bonos al llegar a 200, 500 y 1000 mensajes diarios. El contador se reinicia cada 24h, así que la carrera empieza de nuevo cada día. Los premios mínimos garantizados: Tier 1 (200 msgs) *20.000*, Tier 2 (500 msgs) *60.000*, Tier 3 (1000 msgs) *150.000*. Con suerte puedes sacar mucho más.
-· *Jackpot de redención* — si llevas aura negativa, tienes probabilidad extra de sacar un premio enorme en cualquier tier. El casino del grupo no abandona a los hundidos.
+· *Jackpot de redención* — si llevas aura negativa, tienes probabilidad extra de sacar un premio enorme en cualquier tier. El aura del grupo no abandona a los hundidos.
 · *!duel @user* — apuesta aura contra otro. El retado acepta con !duel aceptar. Gana el más favorecido por el sistema (owner > admin > miembro), pero nadie está a salvo.
 · *!robo @user* — intenta robar aura a alguien. Si fallas, pierdes la mitad de lo apostado. 10min de cooldown.
 · *!dar @user <cantidad>* — transfiere aura a otro miembro voluntariamente. Mínimo 10.
@@ -247,7 +247,7 @@ El aura es tu puntuación social en el grupo. Empieza en *1.000* y sube o baja s
 · *!aura* — tirar para ti
 · *!aura @user* — ver aura de alguien
 · *!aura top* — ranking del grupo
-· *!casino* — tu progreso hoy (msgs y próximo bono)`;
+· *!aura hoy* — tu progreso de hoy (msgs y próximo bono)`;
 
 // !aura [@user]  — rolls aura for the target and updates their PERSISTENT total.
 // !aura top      — shows the group leaderboard.
@@ -261,6 +261,12 @@ async function cmdAura(sock, msg, args, groupMeta) {
   }
   if (['info', 'help', 'ayuda', 'como', 'cómo', '?'].includes(sub)) {
     return sock.sendMessage(jid, { text: AURA_INFO }, { quoted: msg });
+  }
+  // Progreso diario. Vive en social.js (cmdCasino) y se expone aquí como
+  // "!aura hoy" porque es aura, no un casino aparte. !casino sigue valiendo.
+  if (['hoy', 'today', 'dia', 'día', 'diario'].includes(sub)) {
+    const { cmdCasino } = require('./social');
+    return cmdCasino(sock, msg);
   }
 
   const sender = getSender(msg);

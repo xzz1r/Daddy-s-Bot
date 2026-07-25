@@ -1,5 +1,5 @@
 const { getState, setState, toggleGroup } = require('../utils/state');
-const { formatUptime } = require('../utils/helpers');
+const { formatUptime, pick } = require('../utils/helpers');
 const { isOwner, isGroupAdmin, getSender } = require('../utils/wa');
 const { getCasinoCount, msUntilReset } = require('../utils/casinoStore');
 const config = require('../config');
@@ -104,7 +104,27 @@ Prefijo:   ${config.prefix}`;
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
 
-// !casino — daily casino progress for the sender
+// Frases sobre el aura que acompañan al progreso diario. Rotan para que el
+// comando no cante siempre lo mismo.
+const AURA_LINES = [
+  'El aura no se pide ni se compra: se acumula hablando. El que calla, se queda pobre.',
+  'Cada mensaje suma. El que aparece todos los días acaba mandando en el marcador.',
+  'El aura mide lo que aportas al grupo. Por eso los fantasmas siempre andan en números rojos.',
+  'Aquí no gana el que más presume, gana el que más aparece. El contador no se deja engañar.',
+  'El aura es la única moneda del grupo que no se hereda. O la ganas escribiendo o no la tienes.',
+  'Los bonos premian la constancia, no la suerte. El que viene a diario acaba arriba solo.',
+  'El aura sube sola si estás. Baja sola si desapareces. Nadie tiene que hacer nada, el tiempo se encarga.',
+  'Puedes apostarla, regalarla o intentar robarla. Pero primero hay que ganársela hablando.',
+  'El marcador de aura no tiene favoritos ni memoria corta. Lleva la cuenta exacta de lo que haces.',
+  'El aura es reputación con números. Y los números del grupo no perdonan a nadie.',
+  'Se gana despacio y se pierde rápido, como todo lo que vale algo. Cuídala.',
+  'Aquí el silencio cuesta dinero. Literalmente: cada día callado es aura que no entra.',
+  'El que llega a los mil mensajes diarios no es suerte, es alguien que vive el grupo. Y cobra por ello.',
+  'El aura separa a los que están de los que solo figuran en la lista. Los números lo dejan claro.',
+  'Ganar aura es fácil: escribe. Mantenerla es lo que separa a los constantes del resto.',
+];
+
+// !casino / !aura hoy — progreso diario de aura del que lo pide
 async function cmdCasino(sock, msg) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
@@ -133,9 +153,10 @@ async function cmdCasino(sock, msg) {
   const resetStr = ms > 0 ? `${hours}h ${mins}min` : 'pronto';
 
   const text =
-    `*CASINO — HOY*\n\n` +
+    `*AURA — HOY*\n\n` +
     `Mensajes hoy: *${fmt(count)}*\n` +
     `Próximo bono: ${tierLabel} — faltan *${fmt(remaining)}* msgs\n\n` +
+    `${pick(AURA_LINES)}\n\n` +
     `_Reset en ${resetStr}_`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
@@ -193,7 +214,7 @@ _Sin @ va sobre ti · con @ va sobre esa persona_
 *${p}dar* @user <cantidad> — regalar aura
 *${p}duel* @user <cantidad> — apostar 1v1
 *${p}robo* @user <cantidad> — intentar robar
-*${p}casino* — tu progreso de hoy
+*${p}aura hoy* — tu progreso de hoy _(o ${p}casino)_
 _Ganas aura escribiendo. Bonos diarios: 200 msg = 20k · 500 = 60k · 1000 = 150k_
 
 ━━━━━ *PERFIL* ━━━━━
