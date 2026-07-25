@@ -15,6 +15,7 @@ const { isOwner, sameUser } = require('./utils/wa');
 const { flushCounts } = require('./utils/messageCounter');
 const { flushAura } = require('./utils/auraStore');
 const { flushCasino } = require('./utils/casinoStore');
+const { flushNicks } = require('./utils/nickStore');
 const { flushCache } = require('./utils/musicCache');
 const { flush: flushPfpHashes } = require('./utils/pfpStore');
 const { flush: flushPfpCache } = require('./utils/pfpCache');
@@ -402,7 +403,7 @@ async function gracefulShutdown() {
   // (the supervisor would otherwise SIGKILL us and we'd lose ALL pending flushes).
   const flushes = Promise.allSettled([
     flushState(), flushCounts(), flushAura(), flushCache(),
-    flushCasino(), flushPfpHashes(), flushBanlist(), flushPfpCache(),
+    flushCasino(), flushPfpHashes(), flushBanlist(), flushPfpCache(), flushNicks(),
   ]);
   await Promise.race([flushes, new Promise(r => setTimeout(r, 3000))]);
   if (sock) {

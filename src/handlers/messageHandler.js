@@ -1,6 +1,7 @@
 const config = require('../config');
 const { isBotEnabled, incrementStat, isAntiLinkEnabled } = require('../utils/state');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
+const { recordNick } = require('../utils/nickStore');
 const { checkCasinoMilestone } = require('../utils/casino');
 const { cmdPlay, cmdCacheList, cmdClearCache } = require('../commands/music');
 const { cmdSticker } = require('../commands/sticker');
@@ -23,6 +24,7 @@ const { cmdMog } = require('../commands/mog');
 const { cmdRobo } = require('../commands/robo');
 const { cmdDuel } = require('../commands/duel');
 const { cmdScan } = require('../commands/scan');
+const { cmdAntiNick, cmdAntiFoto } = require('../commands/cleanup');
 const { cmdVs, cmdInactivos } = require('../commands/activity');
 const { cmdRoast } = require('../commands/roast');
 const { cmdDar } = require('../commands/dar');
@@ -65,7 +67,7 @@ const NEEDS_META = new Set([
   'on','off','tagall','todos','all','everyone',
   'kick','expulsar','del','borrar','delete','add','agregar',
   'ship','mute','unmute','desmute',
-  'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness',
+  'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness','antinick','antifoto',
   'antilink','close','cerrar','open','abrir',
   's','sticker','stk','play','playsong','playaudio','ttp','toimg','stimg','tovid',
   'g','ai','grok',
@@ -192,6 +194,8 @@ async function handleMessage(sock, msg) {
     (msg.key.participantPn && isMainOwner(msg.key.participantPn, false, null));
   if (!msg.key.fromMe && jid.endsWith('@g.us') && sender && !senderIsMainOwner) {
     incrementMsgCount(jid, sender).catch(() => {});
+    // pushName: unica fuente fiable del nombre visible, la usa !antinick
+    recordNick(jid, sender, msg.pushName).catch(() => {});
     checkCasinoMilestone(sock, jid, sender).catch(() => {});
     // Historial de huellas AUTOMÁTICO: indexa la foto de quien escribe (con
     // guarda TTL, así baja cada foto como mucho una vez cada pocos días). Es el
@@ -373,6 +377,14 @@ async function handleMessage(sock, msg) {
 
       case 'antiadmin':
         await cmdAntiAdmin(sock, msg, args, groupMeta);
+        break;
+
+      case 'antinick':
+        await cmdAntiNick(sock, msg, args, groupMeta);
+        break;
+
+      case 'antifoto':
+        await cmdAntiFoto(sock, msg, args, groupMeta);
         break;
 
       case 'antiempresa':
