@@ -13,10 +13,9 @@
 // Regla de oro: si algo no se puede verificar, NO entra en la purga. Un fallo
 // de red o un dato que falta jamás puede costarle la expulsión a nadie.
 
-const { isOwner, isBotJid, getSender, sameUser } = require('../utils/wa');
+const { isOwner, getSender } = require('../utils/wa');
 const { getNickAnyForm, MIN_MISSES } = require('../utils/nickStore');
-
-const SCAN_VALID_MS = 10 * 60 * 1000;
+const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 
 const lastNickScan = new Map(); // groupJid -> { ts, detected: [{ kickId, reason }] }
 const lastPfpScan  = new Map();
@@ -81,29 +80,6 @@ function nameFromMeta(p) {
     if (typeof v === 'string' && v.trim()) return v.trim();
   }
   return null;
-}
-
-// ─── Miembros escaneables ────────────────────────────────────────────────────
-
-// Excluye SIEMPRE admins, owner tier y el propio bot. Devuelve, por cada
-// candidato, el id con el que se expulsa/menciona y el jid de teléfono con el
-// que consultar el perfil (null si el miembro es solo LID).
-function scannableMembers(sock, groupMeta) {
-  const out = [];
-  for (const p of (groupMeta?.participants || [])) {
-    if (!p?.id) continue;
-    if (p.admin === 'admin' || p.admin === 'superadmin') continue;
-    if (isBotJid(sock, p.id)) continue;
-    if (isOwner(p.id, false, groupMeta) ||
-        (p.lid && isOwner(p.lid, false, groupMeta)) ||
-        (p.phoneNumber && isOwner(p.phoneNumber, false, groupMeta))) continue;
-    out.push({
-      kickId: p.id,
-      phoneJid: p.phoneNumber || (p.id.endsWith('@s.whatsapp.net') ? p.id : null),
-      participant: p,
-    });
-  }
-  return out;
 }
 
 // ─── Detectores ──────────────────────────────────────────────────────────────
@@ -253,90 +229,32 @@ async function runPurge(sock, msg, groupJid, groupMeta, cfg) {
   }
   if (!last.detected.length) {
     return sock.sendMessage(groupJid, {
-      text: `El último scan no detectó a nadie. No hay nada que purgar.`,
+      text: 'El último scan no detectó a nadie. No hay nada que purgar.',
     }, { quoted: msg });
   }
 
-  // Sin metadata NO se puede re-verificar nada. Antes esto se confundía con
-  // "ya no queda nadie": se borraba la lista verificada y se afirmaba en falso
-  // que los detectados se habían ido.
-  if (!groupMeta?.participants?.length) {
+  const r = await executePurge(sock, groupJid, last.detected, groupMeta);
+
+  if (r.status === 'sin-metadata') {
     return sock.sendMessage(groupJid, {
       text: 'No pude obtener los miembros del grupo. La lista del scan se conserva: reintenta el purge en un momento.',
     }, { quoted: msg });
   }
-
-  // Se recalculan las exenciones contra la metadata FRESCA. Entre el scan y el
-  // purge alguien pudo ser ascendido a admin, o el bot pudo resolver por fin su
-  // LID como owner: esa persona ya no puede ser expulsada aunque saliera en el
-  // scan. Antes solo se comprobaba que siguiera en el grupo.
-  const exemptNow = new Set();
-  for (const p of groupMeta.participants) {
-    if (!p?.id) continue;
-    const exempt = p.admin === 'admin' || p.admin === 'superadmin' ||
-      isBotJid(sock, p.id) ||
-      isOwner(p.id, false, groupMeta) ||
-      (p.lid && isOwner(p.lid, false, groupMeta)) ||
-      (p.phoneNumber && isOwner(p.phoneNumber, false, groupMeta));
-    if (exempt) {
-      for (const f of [p.id, p.lid, p.phoneNumber]) if (f) exemptNow.add(f);
-    }
+  if (r.status === 'error') {
+    return sock.sendMessage(groupJid, { text: `Error al expulsar: ${r.message}` }, { quoted: msg });
   }
-  const isExemptNow = (kickId) => [...exemptNow].some(f => sameUser(f, kickId));
 
-  const members = groupMeta.participants;
-  const present = last.detected.filter(d => members.some(p =>
-    sameUser(p.id, d.kickId) ||
-    (p.lid && sameUser(p.lid, d.kickId)) ||
-    (p.phoneNumber && sameUser(p.phoneNumber, d.kickId))
-  ));
-  const spared   = present.filter(d => isExemptNow(d.kickId));
-  const stillHere = present.filter(d => !isExemptNow(d.kickId));
+  cfg.store.delete(groupJid); // consumido: obliga a re-escanear para volver a purgar
 
-  if (!stillHere.length) {
-    cfg.store.delete(groupJid);
+  if (r.status === 'vacio') {
     return sock.sendMessage(groupJid, {
-      text: spared.length
+      text: r.spared.length
         ? `No queda nadie a quien expulsar: los detectados son ahora admin, owner o el bot. Corre *${cfg.cmd} scan* de nuevo.`
         : `Los detectados ya no están en el grupo. Corre *${cfg.cmd} scan* de nuevo.`,
     }, { quoted: msg });
   }
 
-  const toKick = stillHere.map(d => d.kickId);
-  let res;
-  try {
-    res = await sock.groupParticipantsUpdate(groupJid, toKick, 'remove');
-  } catch (err) {
-    return sock.sendMessage(groupJid, { text: `Error al expulsar: ${err.message}` });
-  }
-  cfg.store.delete(groupJid); // consumido: obliga a re-escanear para volver a purgar
-
-  // WhatsApp responde POR PARTICIPANTE. Antes se anunciaba "expulsados N"
-  // aunque el servidor los hubiera rechazado todos.
-  const statusOf = (kickId) => {
-    if (!Array.isArray(res)) return '200'; // sin detalle: se asume lo pedido
-    const row = res.find(r => r?.jid && sameUser(r.jid, kickId));
-    return String(row?.status ?? '200');
-  };
-  const done   = stillHere.filter(d => statusOf(d.kickId) === '200');
-  const failed = stillHere.filter(d => statusOf(d.kickId) !== '200');
-
-  let text = done.length
-    ? `*${cfg.title}* — expulsado${done.length > 1 ? 's' : ''} *${done.length}*:\n` +
-      done.map(d => `@${d.kickId.split('@')[0]} — ${d.reason}`).join('\n')
-    : `*${cfg.title}* — no se pudo expulsar a nadie.`;
-  if (failed.length) {
-    text += `\n\n_No se pudo expulsar a ${failed.length} (¿el bot no es admin?):_\n` +
-      failed.map(d => `@${d.kickId.split('@')[0]}`).join(', ');
-  }
-  if (spared.length) {
-    text += `\n\n_${spared.length} quedaron exentos por ser ahora admin u owner._`;
-  }
-
-  await sock.sendMessage(groupJid, {
-    text,
-    mentions: [...done, ...failed, ...spared].map(d => d.kickId),
-  });
+  return sock.sendMessage(groupJid, purgeReport(cfg.title, r));
 }
 
 // ─── Comandos ────────────────────────────────────────────────────────────────
