@@ -212,6 +212,9 @@ async function runScan(sock, msg, groupJid, groupMeta, cfg) {
   const text =
     `*${cfg.title} — ${detected.length} detectado${detected.length > 1 ? 's' : ''}*\n\n` +
     lines.join('\n') +
+    // El aviso va pegado a la lista, que es donde miran los mencionados. Las
+    // lineas de abajo son instrucciones para el owner y se leen menos.
+    (cfg.warning ? `\n\n${cfg.warning}` : '') +
     `\n\n_Esto NO expulsa a nadie._` +
     `\n_Si la lista es correcta: *${cfg.cmd} purge* (dentro de 10 min)._` +
     (cfg.caveat ? `\n_${cfg.caveat}_` : '') +
@@ -293,6 +296,9 @@ const cmdAntiNick = makeCommand((sock, jid, groupMeta) => ({
   scanHelp: 'lista a quien no tiene un nombre real',
   emptyText: 'Todos los miembros escaneados tienen un nombre real puesto.',
   caveat: 'Cuenta como nombre real cualquiera con letras. Un punto, unos dos puntos, solo emojis o solo numeros no cuentan.',
+  warning: '*AVISO A LOS MENCIONADOS:* poneos un nombre de verdad ya. ' +
+    'Un punto, unos dos puntos, solo emojis o solo numeros no valen: tiene que llevar letras. ' +
+    'El que siga sin nombre en la proxima purga se va del grupo.',
   store: lastNickScan,
   detect: (members) => detectNoNick(jid, members),
 }));
