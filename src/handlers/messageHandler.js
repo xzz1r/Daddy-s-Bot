@@ -159,6 +159,35 @@ function unwrapEnvelope(message) {
   return m;
 }
 
+// ─── Estados publicados al grupo ─────────────────────────────────────────────
+//
+// WhatsApp permite publicar un estado que se empuja dentro del grupo. Llega
+// envuelto en groupStatusMentionMessage / statusMentionMessage, que son
+// FutureProofMessage: el contenido real cuelga de .message. Ese envoltorio NO
+// lo abre unwrapEnvelope a propósito, para poder distinguir un estado de un
+// mensaje normal.
+//
+// Devuelve el contenido del estado, o null si el mensaje no es un estado.
+function statusPayload(message) {
+  const w = message?.groupStatusMentionMessage || message?.statusMentionMessage;
+  return w?.message || null;
+}
+
+// Todo el texto visible de un contenido de estado: cuerpo y pies de foto.
+// Se concatena en lugar de quedarse con el primero, porque el enlace puede
+// venir en cualquiera de ellos.
+function statusText(inner) {
+  if (!inner) return '';
+  const m = unwrapEnvelope(inner);
+  return [
+    m?.conversation,
+    m?.extendedTextMessage?.text,
+    m?.imageMessage?.caption,
+    m?.videoMessage?.caption,
+    m?.documentMessage?.caption,
+  ].filter(t => typeof t === 'string' && t).join(' ');
+}
+
 async function handleMessage(sock, msg) {
   if (!msg.message) return;
   // Replace the wrapped message with its real inner content so extractText and
@@ -215,6 +244,36 @@ async function handleMessage(sock, msg) {
   // Anti-link: YouTube/Instagram get a "send once" reminder; any other link
   // (websites, WhatsApp/Telegram invites, etc.) → delete the message and kick
   // the sender. Admins and the owner tier are exempt.
+  // Anti-spam de estados: publicar un estado en el grupo se usa casi siempre
+  // para colar enlaces de otros grupos. Si el estado trae CUALQUIER enlace, se
+  // borra y se expulsa a quien lo publicó. Sin enlaces no se toca nada: se
+  // permite el estado y punto. Va antes que el antilink normal y no depende de
+  // su interruptor, porque este caso es spam inequívoco.
+  //
+  // Mismas garantías que el resto de la moderación: nunca toca a admins, al
+  // owner tier ni al bot, y necesita ser admin para actuar.
+  const statusInner = statusPayload(msg.message);
+  if (jid.endsWith('@g.us') && statusInner) {
+    const stext = statusText(statusInner);
+    if (stext && URL_RE.test(stext)) {
+      URL_RE.lastIndex = 0; // el flag /g mantiene estado entre llamadas
+      const meta = await getGroupMeta(sock, jid);
+      const protegido = !meta ||
+        isGroupAdmin(sender, msg.key.fromMe, meta) ||
+        isOwner(sender, msg.key.fromMe, meta);
+      if (!protegido && isBotAdmin(sock, meta)) {
+        sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
+        sock.groupParticipantsUpdate(jid, [sender], 'remove').catch(() => {});
+        sock.sendMessage(jid, {
+          text: `@${sender.split('@')[0]} expulsado por publicar un estado con enlaces en el grupo.`,
+          mentions: [sender],
+        }).catch(() => {});
+      }
+      return; // el estado con enlaces no sigue procesándose en ningún caso
+    }
+    URL_RE.lastIndex = 0;
+  }
+
   if (jid.endsWith('@g.us') && text && isAntiLinkEnabled(jid)) {
     const verdict = classifyLinks(text);
     if (verdict !== 'none') {
