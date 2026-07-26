@@ -69,8 +69,10 @@ const NEEDS_META = new Set([
   'ship','mute','unmute','desmute',
   'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness','antinick','antifoto',
   'antilink','close','cerrar','open','abrir',
-  's','sticker','stk','play','playsong','playaudio','ttp','toimg','stimg','tovid',
-  'g','ai','grok',
+  's','sticker','stk',   // cmdSticker SI recibe groupMeta
+  // play/ttp/toimg/tovid/g/dar NO estan aqui a proposito: el dispatch no les
+  // pasa groupMeta y sus modulos no lo mencionan, asi que pedirlo solo anyadia
+  // una peticion de red (hasta 8s con la cache fria) antes de ejecutarlos.
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','ganador',
   'puta','guarra','fiel','infiel',
@@ -78,7 +80,6 @@ const NEEDS_META = new Set([
   'aura','resetaura','inactivos','inactivo','fantasma','fantasmas','mog','moggear','roast','flamear',
   'duel','duelo','1v1',
   'robo','robar',
-  'dar','donar',          // transferAura calls isOwner implicitly via groupMeta
   'vs','versus',          // cmdVs receives groupMeta for isOwner/isGroupAdmin checks
   'scan','escanear',
   'fk','verificar','verify','check','marcarfake','fake',
