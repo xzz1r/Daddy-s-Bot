@@ -1,7 +1,6 @@
 const fs = require('fs-extra');
 const path = require('path');
 const { atomicWriteJson } = require('./helpers');
-const logger = require('./logger');
 
 const STATE_FILE = path.join(__dirname, '../../data/state.json');
 

@@ -1,4 +1,3 @@
-const fs = require('fs-extra');
 const path = require('path');
 const { bareJid, sameUser } = require('./wa');
 const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');

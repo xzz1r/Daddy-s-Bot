@@ -13,13 +13,12 @@
 // con un 0 absurdo, se le fuerza el tramo alto con una cifra estable y creíble.
 
 const { getTargetOrSelf, isMainOwner } = require('../utils/wa');
-const { pickFresh } = require('../utils/helpers');
+const { pickFresh, fmt } = require('../utils/helpers');
 const { getUserCount } = require('../utils/messageCounter');
 
 const MID_MIN  = 300;
 const HIGH_MIN = 700;
 
-const fmt = n => n.toLocaleString('es-ES');
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TRAMO BAJO — parásito / mirón / gorrón. %N = mención, %C = conteo exacto.

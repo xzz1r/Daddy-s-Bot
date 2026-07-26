@@ -299,18 +299,15 @@ async function connectToWhatsApp() {
         } catch (err) {
           logger.warn(`Anti-admin: demote (add) fallo en ${groupJid}: ${err.message}`);
         }
-        if (toKick.length) {
-          try {
-            await sock.groupParticipantsUpdate(groupJid, toKick, 'remove');
-          } catch (err) {
-            logger.warn(`Anti-admin: kick added member fallo en ${groupJid}: ${err.message}`);
-          }
+        // toKick nunca esta vacio aqui: el early-return de arriba ya salio.
+        try {
+          await sock.groupParticipantsUpdate(groupJid, toKick, 'remove');
+        } catch (err) {
+          logger.warn(`Anti-admin: kick added member fallo en ${groupJid}: ${err.message}`);
         }
         const tags = toKick.map(j => `@${j.split('@')[0]}`).join(', ');
         sock.sendMessage(groupJid, {
-          text: toKick.length
-            ? `*Anti-admin:* ${authorTag} agrego a ${tags} sin permiso del owner. Expulsados y ${authorTag} degradado a miembro.`
-            : `*Anti-admin:* ${authorTag} agrego gente sin permiso del owner. Degradado a miembro.`,
+          text: `*Anti-admin:* ${authorTag} agrego a ${tags} sin permiso del owner. Expulsados y ${authorTag} degradado a miembro.`,
           mentions: [...toKick, author],
         }).catch(() => {});
       }

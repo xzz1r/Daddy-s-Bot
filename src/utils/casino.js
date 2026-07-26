@@ -10,9 +10,8 @@
 
 const { incrementCasinoCount } = require('./casinoStore');
 const { getAura, addAura } = require('./auraStore');
-const { pick } = require('./helpers');
+const { pick, fmt } = require('./helpers');
 
-const fmt = n => n.toLocaleString('es-ES');
 
 // ─── Phrases ──────────────────────────────────────────────────────────────────
 

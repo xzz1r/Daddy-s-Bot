@@ -1,4 +1,3 @@
-const fs = require('fs-extra');
 const path = require('path');
 const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const { bareJid } = require('./wa');
@@ -48,7 +47,7 @@ async function banAccount(forms, reason, by) {
     if (!store.accounts[f]) added++;
     store.accounts[f] = { reason: reason || 'sin motivo', at, by: by || null };
   }
-  if (added || forms.length) scheduleSave();
+  if (forms.length) scheduleSave();
   return added;
 }
 

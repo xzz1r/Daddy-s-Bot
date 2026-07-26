@@ -132,7 +132,7 @@ async function cmdScan(sock, msg, groupMeta) {
   // Verdict
   if (bizCount === 0 && lidOnly.length === 0) {
     text += `\nSin señales destacadas.`;
-  } else if (bizCount > 0 || lidOnly.length > 0) {
+  } else {
     text += `\n_Revisión manual recomendada para los marcados._`;
   }
 

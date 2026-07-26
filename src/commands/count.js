@@ -1,5 +1,5 @@
 const { getActiveUsers, resetCounts } = require('../utils/messageCounter');
-const { isOwner, isMainOwner, isAdmin, getSender, bareJid, sameUser } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, getSender, sameUser } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
 
 const MEMBER_PHRASES = [

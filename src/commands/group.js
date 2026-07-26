@@ -1,5 +1,5 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const { isOwner, isAdmin, isBotJid, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid, sameUser } = require('../utils/wa');
+const { isOwner, isAdmin, isBotJid, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid } = require('../utils/wa');
 const { streamToBuffer, MAX_DOWNLOAD_BYTES } = require('../utils/helpers');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled } = require('../utils/state');
 const { businessEvidence } = require('../utils/businessCheck');
@@ -555,6 +555,12 @@ async function purgeBusinesses(sock, msg, groupJid, groupMeta) {
   if (!last || Date.now() - last.ts > SCAN_VALID_MS) {
     return sock.sendMessage(groupJid, {
       text: 'Primero corre *!antiempresa scan* para ver y verificar la lista; luego *!antiempresa purge* dentro de 10 min.',
+    }, { quoted: msg });
+  }
+
+  if (!last.detected.length) {
+    return sock.sendMessage(groupJid, {
+      text: 'El último scan no detectó ninguna cuenta Business. No hay nada que purgar.',
     }, { quoted: msg });
   }
 

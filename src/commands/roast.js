@@ -1,10 +1,9 @@
 'use strict';
 
 const { getSender, getTarget, isMainOwner, bareJid } = require('../utils/wa');
-const { pick } = require('../utils/helpers');
+const { pick, fmt } = require('../utils/helpers');
 const { getUserCount } = require('../utils/messageCounter');
 
-const fmt = n => n.toLocaleString('es-ES');
 
 
 // ─── Formato ──────────────────────────────────────────────────────────────────

@@ -216,4 +216,9 @@ async function atomicWriteJson(file, data) {
   }
 }
 
-module.exports = { ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, shuffle, streamToBuffer, atomicWriteJson, readJsonOrEnoent, MAX_DOWNLOAD_BYTES, MAX_MEDIA_BYTES, createSemaphore, ffmpegSemaphore, ffmpegToBuffer };
+// Formato de numero con separador de miles en espanyol. Estaba duplicado
+// literalmente en 8 modulos.
+const fmt = n => n.toLocaleString('es-ES');
+
+module.exports = {
+  fmt, ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, shuffle, streamToBuffer, atomicWriteJson, readJsonOrEnoent, MAX_DOWNLOAD_BYTES, MAX_MEDIA_BYTES, createSemaphore, ffmpegSemaphore, ffmpegToBuffer };

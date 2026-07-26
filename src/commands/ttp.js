@@ -1,6 +1,5 @@
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs-extra');
-const path = require('path');
 const { Readable } = require('stream');
 const { ffmpegPath } = require('../utils/ffmpeg');
 const { tempFile, cleanTemp, ffmpegSemaphore } = require('../utils/helpers');

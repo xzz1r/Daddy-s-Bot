@@ -1,6 +1,6 @@
 const { isOwner, isMainOwner, isAdmin, getTarget, getSender, bareJid, sameUser } = require('../utils/wa');
-const { pickFresh } = require('../utils/helpers');
-const { getAura, addAura, getAuraRanking, STARTING_AURA } = require('../utils/auraStore');
+const { pickFresh, fmt } = require('../utils/helpers');
+const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 
 const ROLL_COOLDOWN_MS = 3 * 60 * 1000; // 3 minutes per user per group
 const lastRoll = new Map(); // `${groupJid}|${bareJid}` -> timestamp
@@ -203,7 +203,6 @@ const AURA = {
   ],
 };
 
-const fmt = (n) => n.toLocaleString('es-ES');
 
 // !aura top — leaderboard of accumulated aura in the group.
 async function showRanking(sock, msg, groupMeta) {

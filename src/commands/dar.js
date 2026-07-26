@@ -1,8 +1,8 @@
-const { getSender, getTarget, bareJid, sameUser } = require('../utils/wa');
+const { getSender, getTarget, sameUser } = require('../utils/wa');
 const { transferAura } = require('../utils/auraStore');
+const { fmt } = require('../utils/helpers');
 
 const GIFT_MIN = 10;
-const fmt = n => n.toLocaleString('es-ES');
 
 async function cmdDar(sock, msg, args) {
   const jid = msg.key.remoteJid;

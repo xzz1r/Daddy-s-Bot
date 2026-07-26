@@ -1,5 +1,5 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, bareJid, sameUser } = require('../utils/wa');
-const { pickFresh } = require('../utils/helpers');
+const { pickFresh, fmt } = require('../utils/helpers');
 const { getAura, addAura } = require('../utils/auraStore');
 
 // Resolve a JID to its canonical form (preferring phone-JID) using the group
@@ -77,7 +77,6 @@ const DUEL_WIN = [
   '%W lo mandó al rincón de pensar. %L lleva ahí sentado toda su puta vida y aún no ha parido un solo pensamiento útil, pero el sitio de perdedor ya lo tiene calentito.',
 ];
 
-const fmt = (n) => n.toLocaleString('es-ES');
 
 function clampStake(raw) {
   const n = parseInt(String(raw).replace(/\D/g, ''), 10);

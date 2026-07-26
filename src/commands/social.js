@@ -1,5 +1,5 @@
 const { getState, setState, toggleGroup } = require('../utils/state');
-const { formatUptime, pick } = require('../utils/helpers');
+const { formatUptime, pick, fmt } = require('../utils/helpers');
 const { isOwner, isGroupAdmin, getSender } = require('../utils/wa');
 const { getCasinoCount, msUntilReset } = require('../utils/casinoStore');
 const config = require('../config');
@@ -136,8 +136,6 @@ async function cmdCasino(sock, msg) {
     getCasinoCount(jid, sender),
     msUntilReset(jid),
   ]);
-
-  const fmt = n => n.toLocaleString('es-ES');
 
   const n200  = Math.ceil((count + 1) / 200)  * 200;
   const n500  = Math.ceil((count + 1) / 500)  * 500;

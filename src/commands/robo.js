@@ -1,6 +1,6 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, bareJid, sameUser } = require('../utils/wa');
 const { getAura, addAura } = require('../utils/auraStore');
-const { pickFresh } = require('../utils/helpers');
+const { pickFresh, fmt } = require('../utils/helpers');
 
 const STAKE_DEFAULT   = 200;
 const STAKE_MAX       = 1000;
@@ -44,7 +44,6 @@ const ROB_FAIL = [
   'Intento de robo: fallido. Penalización: aplicada. %A acaba de aprender que cuando eres tan inútil, atacar a otros es solo regalar tu aura con pasos intermedios.',
 ];
 
-const fmt = n => n.toLocaleString('es-ES');
 
 // Success chance based on role tiers and aura gap.
 // Ranges ~25%–72%: enough variance that no one farms safely.

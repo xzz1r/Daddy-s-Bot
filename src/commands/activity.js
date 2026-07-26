@@ -1,5 +1,5 @@
 const { getActiveUsers } = require('../utils/messageCounter');
-const { isOwner, isMainOwner, getSender, bareJid, sameUser } = require('../utils/wa');
+const { isOwner, isMainOwner, getSender, sameUser } = require('../utils/wa');
 const { pick, shuffle } = require('../utils/helpers');
 
 // ---- !vs : real-activity head-to-head -------------------------------------
