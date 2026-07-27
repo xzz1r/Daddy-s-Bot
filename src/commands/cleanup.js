@@ -82,8 +82,13 @@ function analyzeNick(raw) {
 // WhatsApp) si viene cuando la persona lo tiene puesto, y es identidad
 // suficiente: quien tiene usuario no es un anonimo.
 function nameFromMeta(p) {
-  const u = p?.username;
-  return (typeof u === 'string' && u.trim()) ? u.trim() : null;
+  // username primero: es el que Baileys entrega de verdad hoy. Los demas se
+  // siguen mirando por si una version o un camino distinto si los rellena;
+  // comprobarlos no cuesta nada y evita depender de un solo campo.
+  for (const v of [p?.username, p?.name, p?.displayName, p?.verifiedName, p?.notify]) {
+    if (typeof v === 'string' && v.trim()) return v.trim();
+  }
+  return null;
 }
 
 // ─── Detectores ──────────────────────────────────────────────────────────────
