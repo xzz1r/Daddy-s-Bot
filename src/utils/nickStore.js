@@ -31,7 +31,7 @@ const FILE = path.join(__dirname, '../../data/nicks.json');
 
 // Hacen falta varias observaciones sin nombre antes de dar por hecho que
 // alguien no tiene nick: una sola puede ser un mensaje sin notify.
-const MIN_MISSES = 3;
+const MIN_MISSES = 2;
 
 let store = null;
 let loadPromise = null;

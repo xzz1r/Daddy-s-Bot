@@ -73,13 +73,17 @@ function analyzeNick(raw) {
   return { missing: true, reason: 'nombre sin letras' };
 }
 
-// Nombre que trae la metadata del grupo, si trae alguno. En grupos LID lo
-// habitual es que no venga ninguno, de ahí que exista nickStore.
+// Lo unico parecido a un nombre que groupMetadata entrega de verdad.
+//
+// Comprobado en el codigo de Baileys (lib/Socket/groups.js): por participante
+// solo construye { id, phoneNumber, lid, username, admin }. NO existen name,
+// notify, displayName ni verifiedName, asi que buscarlos era codigo muerto y
+// mandaba a TODO el grupo al camino del store. `username` (el @usuario de
+// WhatsApp) si viene cuando la persona lo tiene puesto, y es identidad
+// suficiente: quien tiene usuario no es un anonimo.
 function nameFromMeta(p) {
-  for (const v of [p?.name, p?.displayName, p?.verifiedName, p?.notify]) {
-    if (typeof v === 'string' && v.trim()) return v.trim();
-  }
-  return null;
+  const u = p?.username;
+  return (typeof u === 'string' && u.trim()) ? u.trim() : null;
 }
 
 // ─── Detectores ──────────────────────────────────────────────────────────────
@@ -141,39 +145,49 @@ async function detectNoPfp(sock, members) {
   const CONC = 6;
   const TIMEOUT_MS = 5000;
 
-  const probe = async (m) => {
-    const target = m.phoneJid || m.kickId;
+  // Un intento. Devuelve 'has' | 'none' | 'privacidad' | 'reintentable'.
+  const attempt = async (target) => {
     try {
       const url = await sock.profilePictureUrl(target, 'image');
-      // Solo una URL de verdad prueba que TIENE foto. Un undefined no prueba lo
-      // contrario: Baileys devuelve child?.attrs?.url, que es undefined tanto si
-      // no hay foto como si la respuesta no trajo el nodo. Sin certeza, a
-      // "sin datos" — nunca a expulsable.
-      return (typeof url === 'string' && url) ? 'has' : 'error';
+      // Baileys devuelve child?.attrs?.url. Con una respuesta correcta que no
+      // trae nodo <picture>, eso es undefined: es la forma normal en que
+      // WhatsApp dice "esta cuenta no tiene foto". Tratarlo como dato
+      // desconocido dejaba sin verificar a media lista.
+      return (typeof url === 'string' && url) ? 'has' : 'none';
     } catch (err) {
       // Baileys lanza los errores IQ como new Boom(text, { data: code })
       // (WABinary/generic-utils.js:assertNodeErrorFree). El código real va en
       // err.data; err.output.statusCode es SIEMPRE 500 porque Boom lo pone por
-      // defecto al no recibir statusCode. Leer statusCode primero hacía que un
-      // 404 auténtico se viera como 500 y no se detectara nunca.
+      // defecto al no recibir statusCode.
       const code = Number(err?.data ?? err?.output?.statusCode ?? err?.status);
       const txt  = String(err?.message || '').toLowerCase();
-      // 404 / item-not-found = confirmado que no tiene foto.
       if (code === 404 || txt.includes('item-not-found')) return 'none';
-      // 401/403 = privacidad. NO es "sin foto": no se puede saber.
-      return 'error';
+      // Solo la privacidad es genuinamente indistinguible: ahi no se puede saber.
+      if (code === 401 || code === 403) return 'privacidad';
+      return 'reintentable';
     }
+  };
+
+  // Un fallo de red no puede dejar a alguien sin verificar para siempre: se
+  // reintenta antes de rendirse.
+  const probe = async (m) => {
+    const target = m.phoneJid || m.kickId;
+    for (let intento = 0; intento < 3; intento++) {
+      const r = await Promise.race([
+        attempt(target),
+        new Promise(res => setTimeout(() => res('reintentable'), TIMEOUT_MS)),
+      ]);
+      if (r !== 'reintentable') return r === 'privacidad' ? 'error' : r;
+      if (intento < 2) await new Promise(res => setTimeout(res, 400 * (intento + 1)));
+    }
+    return 'error';
   };
 
   for (let i = 0; i < members.length; i += CONC) {
     const chunk = members.slice(i, i + CONC);
-    const results = await Promise.all(chunk.map(async (m) => {
-      const res = await Promise.race([
-        probe(m),
-        new Promise(r => setTimeout(() => r('error'), TIMEOUT_MS)),
-      ]);
-      return { kickId: m.kickId, res };
-    }));
+    const results = await Promise.all(chunk.map(async (m) => ({
+      kickId: m.kickId, res: await probe(m),
+    })));
     for (const { kickId, res } of results) {
       if (res === 'none') detected.push({ kickId, reason: 'sin foto de perfil' });
       else if (res === 'error') unknown.push({ kickId });
