@@ -96,10 +96,6 @@ function nameFromMeta(p) {
 // Sin nick. Fuentes de nombre, por orden: metadata del grupo y, si no hay,
 // el pushName guardado de sus mensajes. Sin ninguna de las dos no se puede
 // afirmar nada, así que va a "sin datos" y queda fuera de la purga.
-// Un registro viejo no puede decidir una expulsión: la persona pudo ponerse
-// nombre hace semanas y el bot no haberla visto escribir desde entonces.
-const MAX_NICK_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 días
-
 async function detectNoNick(groupJid, members) {
   const detected = [];
   const unknown  = [];
@@ -119,20 +115,27 @@ async function detectNoNick(groupJid, members) {
     const rec = await getNickAnyForm(groupJid, [m.kickId, p?.id, p?.lid, p?.phoneNumber])
       .catch(() => null);
 
-    if (!rec) { unknown.push({ kickId: m.kickId }); continue; }
+    // Nunca le hemos visto escribir y tampoco tiene usuario de WhatsApp. No hay
+    // API que exponga el nick de alguien asi, pero por decision del owner eso
+    // cuenta como sin nombre: quien no escribe nunca no aporta nada al grupo.
+    if (!rec) {
+      detected.push({ kickId: m.kickId, reason: 'sin nombre ni un solo mensaje' });
+      continue;
+    }
 
-    // Tiene un nombre real guardado → se juzga ese nombre.
+    // Tiene un nombre real guardado → se juzga ese nombre, tenga la edad que
+    // tenga: un nombre es un dato, y si es malo lo es igual de viejo que nuevo.
     if (rec.name) {
-      if (Date.now() - (rec.ts || 0) > MAX_NICK_AGE_MS) { unknown.push({ kickId: m.kickId }); continue; }
       const a = analyzeNick(rec.name);
       if (a.missing) detected.push({ kickId: m.kickId, reason: a.reason });
       continue;
     }
 
-    // Sin nombre guardado: solo se confirma tras varias observaciones sin
-    // nombre y si son recientes. Una sola ausencia puede ser un mensaje al que
-    // WhatsApp no adjuntó el campo, y expulsar por eso sería injusto.
-    if ((rec.misses || 0) >= MIN_MISSES && Date.now() - (rec.ts || 0) <= MAX_NICK_AGE_MS) {
+    // Ha escrito pero sin nombre adjunto. UNICA excepcion que se mantiene: con
+    // una sola observacion no se marca, porque WhatsApp a veces no adjunta el
+    // campo en un mensaje suelto y quien SI tiene nombre acabaria expulsado.
+    // A partir de dos veces ya es patron, no casualidad.
+    if ((rec.misses || 0) >= MIN_MISSES) {
       detected.push({ kickId: m.kickId, reason: 'sin nombre puesto' });
     } else {
       unknown.push({ kickId: m.kickId });
