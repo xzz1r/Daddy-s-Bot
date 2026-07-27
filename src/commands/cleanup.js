@@ -14,7 +14,7 @@
 // de red o un dato que falta jamás puede costarle la expulsión a nadie.
 
 const { isOwner, getSender } = require('../utils/wa');
-const { getNickAnyForm, MIN_MISSES } = require('../utils/nickStore');
+const { getNickAnyForm } = require('../utils/nickStore');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 
 const lastNickScan = new Map(); // groupJid -> { ts, detected: [{ kickId, reason }] }
@@ -93,9 +93,11 @@ function nameFromMeta(p) {
 
 // ─── Detectores ──────────────────────────────────────────────────────────────
 
-// Sin nick. Fuentes de nombre, por orden: metadata del grupo y, si no hay,
-// el pushName guardado de sus mensajes. Sin ninguna de las dos no se puede
-// afirmar nada, así que va a "sin datos" y queda fuera de la purga.
+// Sin nick. Fuentes de nombre, por orden: el username/nombre que dé la metadata
+// del grupo y, si no hay, el pushName guardado de sus mensajes.
+//
+// Criterio unico: si el bot NO puede ver un nick, cuenta como sin nombre. Aqui
+// no queda nadie "sin verificar" — o se le ve un nick legible, o se marca.
 async function detectNoNick(groupJid, members) {
   const detected = [];
   const unknown  = [];
@@ -115,31 +117,17 @@ async function detectNoNick(groupJid, members) {
     const rec = await getNickAnyForm(groupJid, [m.kickId, p?.id, p?.lid, p?.phoneNumber])
       .catch(() => null);
 
-    // Nunca le hemos visto escribir y tampoco tiene usuario de WhatsApp. No hay
-    // API que exponga el nick de alguien asi, pero por decision del owner eso
-    // cuenta como sin nombre: quien no escribe nunca no aporta nada al grupo.
-    if (!rec) {
-      detected.push({ kickId: m.kickId, reason: 'sin nombre ni un solo mensaje' });
-      continue;
-    }
-
-    // Tiene un nombre real guardado → se juzga ese nombre, tenga la edad que
-    // tenga: un nombre es un dato, y si es malo lo es igual de viejo que nuevo.
-    if (rec.name) {
+    // Hay un nombre guardado → se juzga ese nombre.
+    if (rec?.name) {
       const a = analyzeNick(rec.name);
       if (a.missing) detected.push({ kickId: m.kickId, reason: a.reason });
       continue;
     }
 
-    // Ha escrito pero sin nombre adjunto. UNICA excepcion que se mantiene: con
-    // una sola observacion no se marca, porque WhatsApp a veces no adjunta el
-    // campo en un mensaje suelto y quien SI tiene nombre acabaria expulsado.
-    // A partir de dos veces ya es patron, no casualidad.
-    if ((rec.misses || 0) >= MIN_MISSES) {
-      detected.push({ kickId: m.kickId, reason: 'sin nombre puesto' });
-    } else {
-      unknown.push({ kickId: m.kickId });
-    }
+    // El criterio es uno solo y es este: NO SALE EL NICK. Da igual si nunca ha
+    // escrito o si ha escrito y WhatsApp no adjuntó el nombre — si el bot no
+    // puede ver un nick, cuenta como sin nombre. No queda nadie sin verificar.
+    detected.push({ kickId: m.kickId, reason: 'no muestra nick' });
   }
 
   return { detected, unknown };
