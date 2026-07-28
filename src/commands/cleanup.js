@@ -227,36 +227,41 @@ async function runScan(sock, msg, groupJid, groupMeta, cfg) {
   const { detected, unknown } = await cfg.detect(members);
   cfg.store.set(groupJid, { ts: Date.now(), detected });
 
+  // Los no verificables se EXPONEN igual que los detectados: su @ va en el texto,
+  // en su propia seccion y en linea (pueden ser decenas, no caben a renglon por
+  // cabeza). Asi les llega la notificacion y ademas quedan a la vista del grupo,
+  // que es lo que empuja a escribir.
+  // Solo se exponen si cfg.pingUnknown: sin mencion real el @ saldria como texto
+  // muerto. En antifoto son gente con la foto oculta y no pintan nada expuestos,
+  // asi que ahi va solo el recuento.
+  const expuestos = cfg.pingUnknown ? unknown.map(u => u.kickId) : [];
   const unknownNote = unknown.length
-    ? `\n\n_${unknown.length} de ${members.length} ${cfg.unknownText}._` +
-      ''
+    ? `\n\n*${cfg.unknownTitle} (${unknown.length} de ${members.length})*` +
+      (expuestos.length ? `\n${expuestos.map(j => `@${j.split('@')[0]}`).join(' ')}` : '') +
+      `\n_${cfg.unknownText}._`
     : '';
-
-  // Los no verificables se mencionan de forma INVISIBLE: van en `mentions` pero
-  // no en el texto. Así les llega la notificación —que es lo que hace falta para
-  // que escriban y el bot les lea el nick— sin llenar el mensaje de números.
-  const invisibles = cfg.pingUnknown ? unknown.map(u => u.kickId) : [];
 
   if (!detected.length) {
     return sock.sendMessage(groupJid, {
       text: cfg.emptyText + unknownNote,
-      mentions: invisibles,
+      mentions: expuestos,
     });
   }
 
   const lines = detected.map(d => `@${d.kickId.split('@')[0]} — ${d.reason}`);
+  // Orden deliberado: primero las dos listas de gente y el aviso, que es lo que
+  // leen los mencionados. Las instrucciones del owner van al final, porque a
+  // ellos no les sirven de nada.
   const text =
     `*${cfg.title} — ${detected.length} detectado${detected.length > 1 ? 's' : ''}*\n\n` +
     lines.join('\n') +
-    // El aviso va pegado a la lista, que es donde miran los mencionados. Las
-    // lineas de abajo son instrucciones para el owner y se leen menos.
+    unknownNote +
     (cfg.warning ? `\n\n${cfg.warning}` : '') +
     `\n\n_Esto NO expulsa a nadie._` +
     `\n_Si la lista es correcta: *${cfg.cmd} purge* (dentro de 10 min)._` +
-    (cfg.caveat ? `\n_${cfg.caveat}_` : '') +
-    unknownNote;
+    (cfg.caveat ? `\n_${cfg.caveat}_` : '');
 
-  return sock.sendMessage(groupJid, { text, mentions: [...detected.map(d => d.kickId), ...invisibles] });
+  return sock.sendMessage(groupJid, { text, mentions: [...detected.map(d => d.kickId), ...expuestos] });
 }
 
 async function runPurge(sock, msg, groupJid, groupMeta, cfg) {
@@ -338,7 +343,8 @@ const cmdAntiNick = makeCommand((sock, jid, groupMeta) => ({
   scanHelp: 'lista a quien no tiene un nombre real',
   emptyText: 'Todos los miembros escaneados tienen un nombre real puesto.',
   caveat: 'Cuenta como nombre real cualquiera con letras. Un punto, unos dos puntos, solo emojis o solo numeros no cuentan.',
-  unknownText: 'no han escrito nunca. Escribid algo y el bot ya os lee el nick',
+  unknownTitle: 'SIN NICK VISIBLE',
+  unknownText: 'No han escrito nunca, así que el bot no puede leer su nick. Escribid algo y quedáis fuera de la lista',
   pingUnknown: true,
   warning: '*AVISO A LOS MENCIONADOS:* poneos un nombre de verdad ya. ' +
     'Un punto, unos dos puntos, solo emojis o solo numeros no valen: tiene que llevar letras. ' +
@@ -353,7 +359,8 @@ const cmdAntiFoto = makeCommand((sock, jid, groupMeta) => ({
   scanHelp: 'lista a quien no tiene foto de perfil',
   emptyText: 'Todos los miembros escaneados tienen foto de perfil visible.',
   caveat: 'OJO: quien tenga la foto oculta por privacidad se ve igual que quien no tiene ninguna. Revisa la lista antes de purgar.',
-  unknownText: 'tienen la foto oculta por privacidad: no se puede saber si la tienen o no',
+  unknownTitle: 'FOTO OCULTA',
+  unknownText: 'Tienen la foto oculta por privacidad: no se puede saber si la tienen o no',
   store: lastPfpScan,
   detect: (members) => detectNoPfp(sock, members),
 }));
