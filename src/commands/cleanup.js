@@ -218,8 +218,9 @@ async function runScan(sock, msg, groupJid, groupMeta, cfg) {
   const { detected, unknown } = await cfg.detect(members);
   cfg.store.set(groupJid, { ts: Date.now(), detected });
 
+  const total = detected.length + unknown.length;
   const unknownNote = unknown.length
-    ? `\n\n_${unknown.length} sin datos suficientes para verificar. NO entran en la purga._`
+    ? `\n\n_${unknown.length} de ${members.length} sin datos: el bot aun no conoce su nombre. NO entran en la purga._`
     : '';
 
   if (!detected.length) {

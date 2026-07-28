@@ -175,20 +175,33 @@ async function connectToWhatsApp() {
 
   sock.ev.on('creds.update', saveCreds);
 
-  // Nombres desde la libreta que WhatsApp sincroniza. Es la unica via de saber
-  // como se llama alguien a quien el bot no ha visto escribir todavia, asi que
-  // alimenta a !antinick sin coste: son eventos que Baileys ya emite.
+  // Cosecha de nombres visibles (pushName) para !antinick.
+  //
+  // WhatsApp manda una sincronizacion dedicada de tipo PUSH_NAME con el nombre
+  // de TODO el mundo, tenga o no conversacion contigo: en Baileys sale como
+  // `contacts: [{ id, notify }]` dentro de messaging-history.set
+  // (Utils/history.js, rama HistorySyncType.PUSH_NAME). Por eso el movil
+  // muestra "~Fulano" de gente desconocida. Sin escuchar este evento el bot
+  // solo conocia a quien le habia visto escribir, y !antinick marcaba como
+  // "sin nick" a decenas de personas que si tienen nombre puesto.
   const guardarContactos = (lista) => {
+    let n = 0;
     for (const c of (lista || [])) {
-      const nombre = c?.notify || c?.name;
+      const nombre = c?.notify || c?.name || c?.verifiedName;
       if (!nombre) continue;
+      n++;
       for (const jid of [c.id, c.lid, c.phoneNumber]) {
         if (jid) recordContactName(jid, nombre).catch(() => {});
       }
     }
+    return n;
   };
   sock.ev.on('contacts.upsert', guardarContactos);
   sock.ev.on('contacts.update', guardarContactos);
+  sock.ev.on('messaging-history.set', ({ contacts }) => {
+    const n = guardarContactos(contacts);
+    if (n) logger.info(`nicks: ${n} nombres aprendidos de la sincronizacion de WhatsApp`);
+  });
 
   // Group events: anti-business on join, anti-admin + notifications on promote/demote
   sock.ev.on('group-participants.update', async ({ id: groupJid, author, participants, action }) => {
