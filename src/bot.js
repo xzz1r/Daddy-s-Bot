@@ -15,7 +15,7 @@ const { isOwner, sameUser } = require('./utils/wa');
 const { flushCounts } = require('./utils/messageCounter');
 const { flushAura } = require('./utils/auraStore');
 const { flushCasino } = require('./utils/casinoStore');
-const { flushNicks } = require('./utils/nickStore');
+const { flushNicks, recordContactName } = require('./utils/nickStore');
 const { flushCache } = require('./utils/musicCache');
 const { flush: flushPfpHashes } = require('./utils/pfpStore');
 const { flush: flushPfpCache } = require('./utils/pfpCache');
@@ -174,6 +174,21 @@ async function connectToWhatsApp() {
   });
 
   sock.ev.on('creds.update', saveCreds);
+
+  // Nombres desde la libreta que WhatsApp sincroniza. Es la unica via de saber
+  // como se llama alguien a quien el bot no ha visto escribir todavia, asi que
+  // alimenta a !antinick sin coste: son eventos que Baileys ya emite.
+  const guardarContactos = (lista) => {
+    for (const c of (lista || [])) {
+      const nombre = c?.notify || c?.name;
+      if (!nombre) continue;
+      for (const jid of [c.id, c.lid, c.phoneNumber]) {
+        if (jid) recordContactName(jid, nombre).catch(() => {});
+      }
+    }
+  };
+  sock.ev.on('contacts.upsert', guardarContactos);
+  sock.ev.on('contacts.update', guardarContactos);
 
   // Group events: anti-business on join, anti-admin + notifications on promote/demote
   sock.ev.on('group-participants.update', async ({ id: groupJid, author, participants, action }) => {

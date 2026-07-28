@@ -89,15 +89,31 @@ async function recordNick(groupJid, userJid, pushName) {
 // teléfono), que es lo que unifica a quien quedó anotado bajo dos claves.
 // El "mejor" es el que tenga nombre real; si ninguno lo tiene, el de más
 // observaciones sin nombre.
+// Nombres que NO vienen de un grupo concreto (libreta de contactos que WhatsApp
+// sincroniza). Valen para cualquier grupo, asi que viven en su propio cajon.
+const GLOBAL = '__global';
+
+async function recordContactName(userJid, name) {
+  if (!userJid || typeof name !== 'string' || !name.trim()) return;
+  await load();
+  const key = bareJid(userJid);
+  if (!store[GLOBAL]) store[GLOBAL] = {};
+  const prev = store[GLOBAL][key];
+  if (prev && prev.name === name.trim()) return;
+  store[GLOBAL][key] = { name: name.trim(), ts: Date.now(), misses: 0 };
+  scheduleSave();
+}
+
 async function getNickAnyForm(groupJid, forms) {
   await load();
   const g = store[groupJid];
-  if (!g) return null;
+  const glob = store[GLOBAL];
+  if (!g && !glob) return null;
 
   let best = null;
   for (const f of forms) {
     if (!f) continue;
-    const rec = g[bareJid(f)];
+    const rec = g?.[bareJid(f)] || glob?.[bareJid(f)];
     if (!rec) continue;
     if (rec.name) {
       if (!best || !best.name || (rec.ts || 0) > (best.ts || 0)) best = rec;
@@ -119,4 +135,4 @@ async function flushNicks() {
 // Solo para pruebas: vacía el estado en memoria.
 function _resetNickStore() { store = null; loadPromise = null; }
 
-module.exports = { recordNick, getNickAnyForm, flushNicks, MIN_MISSES, _resetNickStore };
+module.exports = { recordNick, recordContactName, getNickAnyForm, flushNicks, MIN_MISSES, _resetNickStore };

@@ -14,7 +14,7 @@
 // de red o un dato que falta jamás puede costarle la expulsión a nadie.
 
 const { isOwner, getSender } = require('../utils/wa');
-const { getNickAnyForm } = require('../utils/nickStore');
+const { getNickAnyForm, MIN_MISSES } = require('../utils/nickStore');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 
 const lastNickScan = new Map(); // groupJid -> { ts, detected: [{ kickId, reason }] }
@@ -124,10 +124,18 @@ async function detectNoNick(groupJid, members) {
       continue;
     }
 
-    // El criterio es uno solo y es este: NO SALE EL NICK. Da igual si nunca ha
-    // escrito o si ha escrito y WhatsApp no adjuntó el nombre — si el bot no
-    // puede ver un nick, cuenta como sin nombre. No queda nadie sin verificar.
-    detected.push({ kickId: m.kickId, reason: 'no muestra nick' });
+    // Ha escrito varias veces y WhatsApp nunca adjuntó nombre → no tiene nick.
+    if ((rec?.misses || 0) >= MIN_MISSES) {
+      detected.push({ kickId: m.kickId, reason: 'sin nombre puesto' });
+      continue;
+    }
+
+    // Sin dato ninguno. NO se marca, y esto no es una limitación tonta: el
+    // nombre que WhatsApp pinta en el grupo lo pone el TELÉFONO de cada uno con
+    // su propio historial, no el bot. El bot solo conoce a quien ha visto
+    // escribir. Marcarlos a todos daba 90 falsos positivos sobre 137 miembros
+    // que sí tienen nombre puesto. Se listan aparte y nunca entran en la purga.
+    unknown.push({ kickId: m.kickId });
   }
 
   return { detected, unknown };
