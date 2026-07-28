@@ -11,7 +11,7 @@ const fs = require('fs-extra');
 const qrcode = require('qrcode-terminal');
 const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, flushState } = require('./utils/state');
-const { isOwner, sameUser } = require('./utils/wa');
+const { isOwner, sameUser, rememberMapping } = require('./utils/wa');
 const { flushCounts } = require('./utils/messageCounter');
 const { flushAura } = require('./utils/auraStore');
 const { flushCasino } = require('./utils/casinoStore');
@@ -203,9 +203,29 @@ async function connectToWhatsApp() {
   };
   sock.ev.on('contacts.upsert', guardarContactos);
   sock.ev.on('contacts.update', guardarContactos);
-  sock.ev.on('messaging-history.set', ({ contacts }) => {
+  // Correspondencias LID <-> telefono directamente de WhatsApp.
+  //
+  // El bot ya deducia estas parejas de la metadata del grupo y del
+  // participantPn de cada mensaje, pero eso solo cubre a quien aparece por ahi.
+  // WhatsApp las manda de forma autoritativa (una a una por lid-mapping.update
+  // y en lote dentro de la sincronizacion inicial), y de esta capa depende TODO
+  // el bot: sin ella la misma persona figura como dos identidades distintas y
+  // se parte su aura, su conteo de mensajes y hasta la deteccion del owner.
+  const guardarMapeos = (lista) => {
+    let n = 0;
+    for (const m of (lista || [])) {
+      if (!m?.lid || !m?.pn) continue;
+      rememberMapping(m.lid, m.pn);
+      n++;
+    }
+    return n;
+  };
+  sock.ev.on('lid-mapping.update', (m) => guardarMapeos([m]));
+  sock.ev.on('messaging-history.set', ({ contacts, lidPnMappings }) => {
     const n = guardarContactos(contacts);
+    const k = guardarMapeos(lidPnMappings);
     if (n) logger.info(`nicks: ${n} nombres aprendidos de la sincronizacion de WhatsApp`);
+    if (k) logger.info(`jid: ${k} correspondencias LID-telefono aprendidas de WhatsApp`);
   });
 
   // Group events: anti-business on join, anti-admin + notifications on promote/demote
