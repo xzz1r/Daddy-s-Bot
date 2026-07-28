@@ -1,145 +1,34 @@
 'use strict';
 
-// !antinick y !antifoto — limpieza de miembros sin nombre real y sin foto.
+// !antifoto — limpieza de miembros sin foto de perfil.
 //
 // Misma mecánica que !antiempresa y por el mismo motivo: expulsar es
 // irreversible, así que NUNCA se expulsa sobre la marcha.
 //
-//   <cmd> scan   → dry-run. Detecta, muestra la lista con el motivo de cada
-//                  uno y la guarda. No expulsa a nadie.
-//   <cmd> purge  → expulsa EXACTAMENTE la lista del último scan (10 min de
-//                  validez), no un re-escaneo que podría diferir.
+//   !antifoto scan   → dry-run. Detecta, muestra la lista con el motivo de cada
+//                      uno y la guarda. No expulsa a nadie.
+//   !antifoto purge  → expulsa EXACTAMENTE la lista del último scan (10 min de
+//                      validez), no un re-escaneo que podría diferir.
 //
 // Regla de oro: si algo no se puede verificar, NO entra en la purga. Un fallo
 // de red o un dato que falta jamás puede costarle la expulsión a nadie.
+//
+// AQUÍ NO HAY UN !antinick, y no es un olvido: el bot NO puede leer el nombre
+// que cada uno tiene puesto. Ese texto lo pinta el TELÉFONO que lo lee, con su
+// propia libreta y su propio historial; por el cable solo viaja el número. Se
+// intentó y daba 86 "sin datos" de 134 y cero detectados en un grupo lleno de
+// nicks de un punto. Un comando que no puede ver lo que juzga no debe existir.
 
 const { isOwner, getSender } = require('../utils/wa');
-const { getMemberFacts, MIN_MISSES } = require('../utils/nickStore');
+const { getMemberFacts } = require('../utils/nickStore');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 
-const lastNickScan = new Map(); // groupJid -> { ts, detected: [{ kickId, reason }] }
-const lastPfpScan  = new Map();
+const lastPfpScan = new Map(); // groupJid -> { ts, detected: [{ kickId, reason }] }
 
-// ─── Análisis del nombre ─────────────────────────────────────────────────────
+const CMD    = '!antifoto';
+const TITULO = 'SIN FOTO';
 
-// Un nick cuenta como REAL solo si contiene al menos una letra (de cualquier
-// alfabeto: latino, cirílico, árabe, han, etc.). Todo lo demás es "sin nombre":
-//
-//   ""            → vacío
-//   "."  ".."  ":" → puntos
-//   "🔥" "😎💀"   → emojis
-//   "34600112233"  → el número que WhatsApp muestra cuando no hay nick puesto
-//   "···" "---"    → símbolos sueltos
-//
-// Se devuelve además el motivo concreto para que el scan sea revisable de un
-// vistazo y el owner pueda detectar un falso positivo antes de purgar.
-// Letras "decoradas" que Unicode clasifica como símbolo (\p{So}) y no como
-// letra, pero que cualquiera lee como texto: Ⓐ ⓐ 🅰 🄰 ... Si no se contemplan,
-// un nick perfectamente legible se marcaría como "sin nombre" y acabaría en
-// una expulsión. NFKC descompone unos cuantos, pero no todos, así que se
-// comprueban ambas cosas.
-const ENCLOSED_LETTERS = /[Ⓐ-ⓩ\u{1F110}-\u{1F149}\u{1F150}-\u{1F169}\u{1F170}-\u{1F189}]/u;
-
-function hasReadableLetter(name) {
-  if (/\p{L}/u.test(name)) return true;
-  if (ENCLOSED_LETTERS.test(name)) return true;
-  // NFKC convierte fullwidth (Ａ), letras circulares y matemáticas (𝐀) en
-  // letras normales; si tras normalizar aparece una letra, el nick es legible.
-  try {
-    if (/\p{L}/u.test(name.normalize('NFKC'))) return true;
-  } catch { /* normalize no debería fallar, pero no se cuelga por esto */ }
-  return false;
-}
-
-function analyzeNick(raw) {
-  if (typeof raw !== 'string') return { missing: true, reason: 'sin nombre' };
-  const name = raw.trim();
-  if (!name) return { missing: true, reason: 'sin nombre' };
-
-  // Al menos una letra legible → es un nick de verdad, no se toca.
-  if (hasReadableLetter(name)) return { missing: false, reason: null };
-
-  const hasEmoji = /\p{Extended_Pictographic}/u.test(name);
-  const hasDigit = /\p{Nd}/u.test(name);
-  // Puntos, comas, dos puntos, medios puntos, bullets y guiones.
-  const onlyDots = /^[.·:•,;_\-\s]+$/u.test(name);
-
-  if (onlyDots) {
-    const shown = name.length <= 4 ? ` "${name}"` : '';
-    return { missing: true, reason: `nombre solo puntos${shown}` };
-  }
-  if (hasEmoji && !hasDigit) return { missing: true, reason: 'nombre solo emojis' };
-  if (hasDigit && !hasEmoji) return { missing: true, reason: 'nombre solo numeros' };
-  return { missing: true, reason: 'nombre sin letras' };
-}
-
-// Lo unico parecido a un nombre que groupMetadata entrega de verdad.
-//
-// Comprobado en el codigo de Baileys (lib/Socket/groups.js): por participante
-// solo construye { id, phoneNumber, lid, username, admin }. NO existen name,
-// notify, displayName ni verifiedName, asi que buscarlos era codigo muerto y
-// mandaba a TODO el grupo al camino del store. `username` (el @usuario de
-// WhatsApp) si viene cuando la persona lo tiene puesto, y es identidad
-// suficiente: quien tiene usuario no es un anonimo.
-function nameFromMeta(p) {
-  // username primero: es el que Baileys entrega de verdad hoy. Los demas se
-  // siguen mirando por si una version o un camino distinto si los rellena;
-  // comprobarlos no cuesta nada y evita depender de un solo campo.
-  for (const v of [p?.username, p?.name, p?.displayName, p?.verifiedName, p?.notify]) {
-    if (typeof v === 'string' && v.trim()) return v.trim();
-  }
-  return null;
-}
-
-// ─── Detectores ──────────────────────────────────────────────────────────────
-
-// Sin nick. Fuentes de nombre, por orden: el username/nombre que dé la metadata
-// del grupo y, si no hay, el pushName guardado de sus mensajes.
-//
-// Criterio unico: si el bot NO puede ver un nick, cuenta como sin nombre. Aqui
-// no queda nadie "sin verificar" — o se le ve un nick legible, o se marca.
-async function detectNoNick(groupJid, members) {
-  const detected = [];
-  const unknown  = [];
-
-  for (const m of members) {
-    // 1) Si la metadata del grupo trae un nombre, manda: es el dato más fresco.
-    const metaName = nameFromMeta(m.participant);
-    if (metaName !== null) {
-      const a = analyzeNick(metaName);
-      if (a.missing) detected.push({ kickId: m.kickId, reason: a.reason });
-      continue;
-    }
-
-    // 2) Si no, el pushName guardado, consultando TODAS las formas del usuario
-    //    (id, lid, teléfono) para no fallar por una clave partida.
-    const p = m.participant;
-    const rec = await getMemberFacts([m.kickId, p?.id, p?.lid, p?.phoneNumber], groupJid)
-      .catch(() => null);
-
-    // Hay un nombre guardado → se juzga ese nombre.
-    if (rec?.name) {
-      const a = analyzeNick(rec.name);
-      if (a.missing) detected.push({ kickId: m.kickId, reason: a.reason });
-      continue;
-    }
-
-    // Ha escrito varias veces y WhatsApp nunca adjuntó nombre → no tiene nick.
-    if ((rec?.misses || 0) >= MIN_MISSES) {
-      detected.push({ kickId: m.kickId, reason: 'sin nombre puesto' });
-      continue;
-    }
-
-    // Sin dato ninguno. NO se marca, y esto no es una limitación tonta: el
-    // nombre que WhatsApp pinta en el grupo lo pone el TELÉFONO de cada uno con
-    // su propio historial, no el bot. El bot solo conoce a quien ha visto
-    // escribir. Marcarlos a todos daba 90 falsos positivos sobre 137 miembros
-    // que sí tienen nombre puesto. Se listan aparte y nunca entran en la purga.
-    unknown.push({ kickId: m.kickId });
-  }
-
-  return { detected, unknown };
-}
+// ─── Detector ────────────────────────────────────────────────────────────────
 
 // Sin foto. Solo se marca el "no tiene foto" CONFIRMADO (404 / item-not-found).
 // Un timeout o un error de red va a "sin datos": nunca se expulsa por eso.
@@ -212,7 +101,7 @@ async function detectNoPfp(sock, members) {
 
 // ─── scan / purge ────────────────────────────────────────────────────────────
 
-async function runScan(sock, msg, groupJid, groupMeta, cfg) {
+async function runScan(sock, msg, groupJid, groupMeta) {
   const members = scannableMembers(sock, groupMeta);
   if (!members.length) {
     return sock.sendMessage(groupJid, {
@@ -224,59 +113,43 @@ async function runScan(sock, msg, groupJid, groupMeta, cfg) {
     text: `Escaneando *${members.length}* miembros...`,
   }, { quoted: msg });
 
-  const { detected, unknown } = await cfg.detect(members);
-  cfg.store.set(groupJid, { ts: Date.now(), detected });
+  const { detected, unknown } = await detectNoPfp(sock, members);
+  lastPfpScan.set(groupJid, { ts: Date.now(), detected });
 
-  // Los no verificables se EXPONEN igual que los detectados: su @ va en el texto,
-  // en su propia seccion y en linea (pueden ser decenas, no caben a renglon por
-  // cabeza). Asi les llega la notificacion y ademas quedan a la vista del grupo,
-  // que es lo que empuja a escribir.
-  // Solo se exponen si cfg.pingUnknown: sin mencion real el @ saldria como texto
-  // muerto. En antifoto son gente con la foto oculta y no pintan nada expuestos,
-  // asi que ahi va solo el recuento.
-  const expuestos = cfg.pingUnknown ? unknown.map(u => u.kickId) : [];
+  // Los que tienen la foto oculta por privacidad van solo como recuento: no se
+  // les menciona porque no han hecho nada y exponerlos no aporta.
   const unknownNote = unknown.length
-    ? `\n\n*${cfg.unknownTitle} (${unknown.length} de ${members.length})*` +
-      (expuestos.length ? `\n${expuestos.map(j => `@${j.split('@')[0]}`).join(' ')}` : '') +
-      `\n_${cfg.unknownText}._`
+    ? `\n\n*FOTO OCULTA (${unknown.length} de ${members.length})*\n` +
+      '_Tienen la foto oculta por privacidad: no se puede saber si la tienen o no._'
     : '';
 
   if (!detected.length) {
     return sock.sendMessage(groupJid, {
-      text: cfg.emptyText + unknownNote,
-      mentions: expuestos,
+      text: 'Todos los miembros escaneados tienen foto de perfil visible.' + unknownNote,
     });
   }
 
   const lines = detected.map(d => `@${d.kickId.split('@')[0]} — ${d.reason}`);
-  // Orden deliberado: primero las dos listas de gente y el aviso, que es lo que
-  // leen los mencionados. Las instrucciones del owner van al final, porque a
-  // ellos no les sirven de nada.
   const text =
-    `*${cfg.title} — ${detected.length} detectado${detected.length > 1 ? 's' : ''}*\n\n` +
+    `*${TITULO} — ${detected.length} detectado${detected.length > 1 ? 's' : ''}*\n\n` +
     lines.join('\n') +
     unknownNote +
-    (cfg.warning ? `\n\n${cfg.warning}` : '') +
     `\n\n_Esto NO expulsa a nadie._` +
-    `\n_Si la lista es correcta: *${cfg.cmd} purge* (dentro de 10 min)._` +
-    (cfg.caveat ? `\n_${cfg.caveat}_` : '');
+    `\n_Si la lista es correcta: *${CMD} purge* (dentro de 10 min)._` +
+    `\n_OJO: quien tenga la foto oculta por privacidad se ve igual que quien no tiene ninguna. Revisa la lista antes de purgar._`;
 
-  return sock.sendMessage(groupJid, { text, mentions: [...detected.map(d => d.kickId), ...expuestos] });
+  return sock.sendMessage(groupJid, { text, mentions: detected.map(d => d.kickId) });
 }
 
-async function runPurge(sock, msg, groupJid, groupMeta, cfg) {
-  const last = cfg.store.get(groupJid);
+async function runPurge(sock, msg, groupJid, groupMeta) {
+  const last = lastPfpScan.get(groupJid);
   if (!last || Date.now() - last.ts > SCAN_VALID_MS) {
     return sock.sendMessage(groupJid, {
-      text: `Primero corre *${cfg.cmd} scan*, revisa la lista y luego *${cfg.cmd} purge* dentro de 10 min.`,
+      text: `Primero corre *${CMD} scan*, revisa la lista y luego *${CMD} purge* dentro de 10 min.`,
     }, { quoted: msg });
   }
-  // La purga expulsa SOLO a los confirmados. Los que no han escrito nunca se
-  // quedan siempre fuera: el bot no puede ver su nick, y echarlos a todos
-  // vaciaría medio grupo de golpe. A esos se les avisa con la mención invisible
-  // del scan para que hablen, y así el bot les lea el nick.
-  const lista = last.detected;
 
+  const lista = last.detected;
   if (!lista.length) {
     return sock.sendMessage(groupJid, {
       text: 'El último scan no detectó a nadie. No hay nada que purgar.',
@@ -294,75 +167,43 @@ async function runPurge(sock, msg, groupJid, groupMeta, cfg) {
     return sock.sendMessage(groupJid, { text: `Error al expulsar: ${r.message}` }, { quoted: msg });
   }
 
-  cfg.store.delete(groupJid); // consumido: obliga a re-escanear para volver a purgar
+  lastPfpScan.delete(groupJid); // consumido: obliga a re-escanear para volver a purgar
 
   if (r.status === 'vacio') {
     return sock.sendMessage(groupJid, {
       text: r.spared.length
-        ? `No queda nadie a quien expulsar: los detectados son ahora admin, owner o el bot. Corre *${cfg.cmd} scan* de nuevo.`
-        : `Los detectados ya no están en el grupo. Corre *${cfg.cmd} scan* de nuevo.`,
+        ? `No queda nadie a quien expulsar: los detectados son ahora admin, owner o el bot. Corre *${CMD} scan* de nuevo.`
+        : `Los detectados ya no están en el grupo. Corre *${CMD} scan* de nuevo.`,
     }, { quoted: msg });
   }
 
-  return sock.sendMessage(groupJid, purgeReport(cfg.title, r));
+  return sock.sendMessage(groupJid, purgeReport(TITULO, r));
 }
 
-// ─── Comandos ────────────────────────────────────────────────────────────────
+// ─── Comando ─────────────────────────────────────────────────────────────────
 
-function makeCommand(cfgFor) {
-  return async function (sock, msg, args, groupMeta) {
-    const jid = msg.key.remoteJid;
-    if (!jid.endsWith('@g.us')) {
-      return sock.sendMessage(jid, { text: 'Solo funciona en grupos.' }, { quoted: msg });
-    }
-    if (!groupMeta?.participants?.length) {
-      return sock.sendMessage(jid, { text: 'No pude obtener los miembros del grupo.' }, { quoted: msg });
-    }
-    const sender = getSender(msg);
-    if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-      return sock.sendMessage(jid, { text: 'Solo el owner puede usar este comando.' }, { quoted: msg });
-    }
+async function cmdAntiFoto(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'Solo funciona en grupos.' }, { quoted: msg });
+  }
+  if (!groupMeta?.participants?.length) {
+    return sock.sendMessage(jid, { text: 'No pude obtener los miembros del grupo.' }, { quoted: msg });
+  }
+  const sender = getSender(msg);
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'Solo el owner puede usar este comando.' }, { quoted: msg });
+  }
 
-    const cfg = cfgFor(sock, jid, groupMeta);
-    const arg = (args?.[0] || '').toLowerCase();
+  const arg = (args?.[0] || '').toLowerCase();
+  if (arg === 'scan')  return runScan(sock, msg, jid, groupMeta);
+  if (arg === 'purge') return runPurge(sock, msg, jid, groupMeta);
 
-    if (arg === 'scan')  return runScan(sock, msg, jid, groupMeta, cfg);
-    if (arg === 'purge') return runPurge(sock, msg, jid, groupMeta, cfg);
-
-    return sock.sendMessage(jid, {
-      text:
-        `*${cfg.cmd} scan* — ${cfg.scanHelp} (NO expulsa)\n` +
-        `*${cfg.cmd} purge* — expulsa a los detectados`,
-    }, { quoted: msg });
-  };
+  return sock.sendMessage(jid, {
+    text:
+      `*${CMD} scan* — lista a quien no tiene foto de perfil (NO expulsa)\n` +
+      `*${CMD} purge* — expulsa a los detectados`,
+  }, { quoted: msg });
 }
 
-const cmdAntiNick = makeCommand((sock, jid, groupMeta) => ({
-  cmd: '!antinick',
-  title: 'SIN NICK',
-  scanHelp: 'lista a quien no tiene un nombre real',
-  emptyText: 'Todos los miembros escaneados tienen un nombre real puesto.',
-  caveat: 'Cuenta como nombre real cualquiera con letras. Un punto, unos dos puntos, solo emojis o solo numeros no cuentan.',
-  unknownTitle: 'SIN NICK VISIBLE',
-  unknownText: 'No han escrito nunca, así que el bot no puede leer su nick. Escribid algo y quedáis fuera de la lista',
-  pingUnknown: true,
-  warning: '*AVISO A LOS MENCIONADOS:* poneos un nombre de verdad ya. ' +
-    'Un punto, unos dos puntos, solo emojis o solo numeros no valen: tiene que llevar letras. ' +
-    'El que siga sin nombre en la proxima purga se va del grupo.',
-  store: lastNickScan,
-  detect: (members) => detectNoNick(jid, members),
-}));
-
-const cmdAntiFoto = makeCommand((sock, jid, groupMeta) => ({
-  cmd: '!antifoto',
-  title: 'SIN FOTO',
-  scanHelp: 'lista a quien no tiene foto de perfil',
-  emptyText: 'Todos los miembros escaneados tienen foto de perfil visible.',
-  caveat: 'OJO: quien tenga la foto oculta por privacidad se ve igual que quien no tiene ninguna. Revisa la lista antes de purgar.',
-  unknownTitle: 'FOTO OCULTA',
-  unknownText: 'Tienen la foto oculta por privacidad: no se puede saber si la tienen o no',
-  store: lastPfpScan,
-  detect: (members) => detectNoPfp(sock, members),
-}));
-
-module.exports = { cmdAntiNick, cmdAntiFoto, analyzeNick };
+module.exports = { cmdAntiFoto };

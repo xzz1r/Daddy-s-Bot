@@ -237,7 +237,6 @@ _Ganas aura escribiendo. Bonos diarios: 200 msg = 20k · 500 = 60k · 1000 = 150
 *${p}notifadmin* on/off — avisos de admin
 *${p}scan* — busca cuentas sospechosas
 *${p}antiempresa* scan/purge — limpia cuentas Business
-*${p}antinick* scan/purge — limpia a los que no tienen nombre
 *${p}antifoto* scan/purge — limpia a los que no tienen foto
 *${p}marcarfake* @user — marca su foto como falsa
 *${p}fkban* / *${p}fkunban* @user — lista negra global

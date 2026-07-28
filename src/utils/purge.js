@@ -1,6 +1,6 @@
 'use strict';
 
-// Maquinaria compartida de scan/purge para !antiempresa, !antinick y !antifoto.
+// Maquinaria compartida de scan/purge para !antiempresa y !antifoto.
 //
 // Los tres siguen el mismo contrato y por tanto las mismas garantias:
 //   - admins, owner tier y el propio bot NUNCA se tocan;

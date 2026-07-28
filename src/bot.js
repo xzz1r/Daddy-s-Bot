@@ -175,28 +175,24 @@ async function connectToWhatsApp() {
 
   sock.ev.on('creds.update', saveCreds);
 
-  // Cosecha de nombres visibles (pushName) para !antinick.
+  // Cosecha de hechos de cada cuenta que WhatsApp manda por su cuenta: si es
+  // Business (!antiempresa) y si tiene foto o la ha quitado (!antifoto).
   //
-  // WhatsApp manda una sincronizacion dedicada de tipo PUSH_NAME con el nombre
-  // de TODO el mundo, tenga o no conversacion contigo: en Baileys sale como
-  // `contacts: [{ id, notify }]` dentro de messaging-history.set
-  // (Utils/history.js, rama HistorySyncType.PUSH_NAME). Por eso el movil
-  // muestra "~Fulano" de gente desconocida. Sin escuchar este evento el bot
-  // solo conocia a quien le habia visto escribir, y !antinick marcaba como
-  // "sin nick" a decenas de personas que si tienen nombre puesto.
+  // Aqui NO se guarda el nombre visible. Se hizo y no sirve: ese nombre lo pinta
+  // el telefono que lee el mensaje con su propia libreta, asi que lo que ve el
+  // bot no es lo que ve el grupo. Ese fue el motivo de retirar !antinick.
   const guardarContactos = (lista) => {
     let n = 0;
     for (const c of (lista || [])) {
-      const nombre = c?.notify || c?.name || c?.verifiedName;
       // verifiedName solo lo lleva una cuenta Business: prueba directa.
       const biz = Boolean(c?.verifiedName) || undefined;
       // imgUrl: null o 'removed' = sin foto; 'changed' o una url = con foto.
       const photo = c?.imgUrl === null || c?.imgUrl === 'removed' ? 'no'
                   : (typeof c?.imgUrl === 'string' && c.imgUrl) ? 'si' : undefined;
-      if (!nombre && !biz && !photo) continue;
-      if (nombre) n++;
+      if (!biz && !photo) continue;
+      n++;
       for (const jid of [c.id, c.lid, c.phoneNumber]) {
-        if (jid) recordFacts(jid, { name: nombre, biz, photo }).catch(() => {});
+        if (jid) recordFacts(jid, { biz, photo }).catch(() => {});
       }
     }
     return n;
@@ -224,7 +220,7 @@ async function connectToWhatsApp() {
   sock.ev.on('messaging-history.set', ({ contacts, lidPnMappings }) => {
     const n = guardarContactos(contacts);
     const k = guardarMapeos(lidPnMappings);
-    if (n) logger.info(`nicks: ${n} nombres aprendidos de la sincronizacion de WhatsApp`);
+    if (n) logger.info(`cuentas: ${n} fichas (business/foto) aprendidas de la sincronizacion de WhatsApp`);
     if (k) logger.info(`jid: ${k} correspondencias LID-telefono aprendidas de WhatsApp`);
   });
 

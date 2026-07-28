@@ -1,7 +1,7 @@
 const config = require('../config');
 const { isBotEnabled, incrementStat, isAntiLinkEnabled } = require('../utils/state');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
-const { recordNick, recordFacts } = require('../utils/nickStore');
+const { recordFacts } = require('../utils/nickStore');
 const { noteOffence, forget } = require('../utils/mediaSpam');
 const { banAccount } = require('../utils/banlist');
 const { allForms } = require('../commands/fk');
@@ -27,7 +27,7 @@ const { cmdMog } = require('../commands/mog');
 const { cmdRobo } = require('../commands/robo');
 const { cmdDuel } = require('../commands/duel');
 const { cmdScan } = require('../commands/scan');
-const { cmdAntiNick, cmdAntiFoto } = require('../commands/cleanup');
+const { cmdAntiFoto } = require('../commands/cleanup');
 const { cmdVs, cmdInactivos } = require('../commands/activity');
 const { cmdRoast } = require('../commands/roast');
 const { cmdDar } = require('../commands/dar');
@@ -70,7 +70,7 @@ const NEEDS_META = new Set([
   'on','off','tagall','todos','all','everyone',
   'kick','expulsar','del','borrar','delete','add','agregar',
   'ship','mute','unmute','desmute',
-  'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness','antinick','antifoto',
+  'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness','antifoto',
   'antilink','close','cerrar','open','abrir',
   's','sticker','stk',   // cmdSticker SI recibe groupMeta
   // play/ttp/toimg/tovid/g/dar NO estan aqui a proposito: el dispatch no les
@@ -254,12 +254,10 @@ async function handleMessage(sock, msg) {
     (msg.key.participantPn && isMainOwner(msg.key.participantPn, false, null));
   if (!msg.key.fromMe && jid.endsWith('@g.us') && sender && !senderIsMainOwner) {
     incrementMsgCount(jid, sender).catch(() => {});
-    // pushName: unica fuente fiable del nombre visible, la usa !antinick
-    recordNick(jid, sender, msg.pushName).catch(() => {});
     // verifiedBizName solo viaja en mensajes de cuentas Business: se anota como
     // prueba directa para !antiempresa, sin gastar una consulta de perfil.
     if (msg.verifiedBizName) {
-      recordFacts(sender, { biz: true, name: msg.verifiedBizName }).catch(() => {});
+      recordFacts(sender, { biz: true }).catch(() => {});
     }
     checkCasinoMilestone(sock, jid, sender).catch(() => {});
     // Historial de huellas AUTOMÁTICO: indexa la foto de quien escribe (con
@@ -532,10 +530,6 @@ async function handleMessage(sock, msg) {
 
       case 'antiadmin':
         await cmdAntiAdmin(sock, msg, args, groupMeta);
-        break;
-
-      case 'antinick':
-        await cmdAntiNick(sock, msg, args, groupMeta);
         break;
 
       case 'antifoto':
