@@ -95,6 +95,7 @@ const NEEDS_META = new Set([
 const ANTILINK_REMINDER_TTL = 5 * 60 * 1000;
 const antilinkReminders = new Map(); // 'groupJid|sender' -> timestamp
 const antilinkNoAdminWarn = new Map(); // 'groupJid' -> timestamp (bot-not-admin notice)
+const videoOnceWarn = new Map();       // 'groupJid|sender|vo' -> timestamp del ultimo aviso
 
 // Group metadata cache: 30s TTL, bounded at 500 entries (FIFO eviction).
 // Bot.js calls invalidateGroupMeta() on participant changes so the cache
@@ -188,8 +189,34 @@ function statusText(inner) {
   ].filter(t => typeof t === 'string' && t).join(' ');
 }
 
+// ¿El mensaje venía marcado como "ver una vez"?
+//
+// Hay que preguntarlo ANTES de unwrapEnvelope: esa función abre el envoltorio
+// viewOnce y a partir de ahí un vídeo efímero es indistinguible de uno normal.
+// Se recorre la cadena de envoltorios porque un chat con mensajes temporales
+// mete el viewOnce dentro de un ephemeralMessage.
+function isViewOnce(message) {
+  let m = message;
+  for (let i = 0; i < 4 && m; i++) {
+    if (m.viewOnceMessage || m.viewOnceMessageV2 || m.viewOnceMessageV2Extension) return true;
+    const inner =
+      m.ephemeralMessage?.message ||
+      m.viewOnceMessage?.message ||
+      m.viewOnceMessageV2?.message ||
+      m.viewOnceMessageV2Extension?.message ||
+      m.documentWithCaptionMessage?.message;
+    if (!inner) break;
+    m = inner;
+  }
+  // WhatsApp marca además la bandera en el propio medio.
+  const inner = unwrapEnvelope(message);
+  return Boolean(inner?.videoMessage?.viewOnce || inner?.imageMessage?.viewOnce);
+}
+
 async function handleMessage(sock, msg) {
   if (!msg.message) return;
+  // Se comprueba ANTES de desenvolver: unwrapEnvelope destruye la prueba.
+  const eraViewOnce = isViewOnce(msg.message);
   // Replace the wrapped message with its real inner content so extractText and
   // every command's media lookup operate on the actual image/video/caption.
   msg.message = unwrapEnvelope(msg.message);
@@ -252,6 +279,33 @@ async function handleMessage(sock, msg) {
   //
   // Mismas garantías que el resto de la moderación: nunca toca a admins, al
   // owner tier ni al bot, y necesita ser admin para actuar.
+  // Los vídeos del grupo van SIEMPRE en "ver una vez". El que llegue normal se
+  // borra y se avisa. Los GIF quedan fuera: WhatsApp los manda como vídeo pero
+  // no se pueden enviar en modo efímero, así que exigirlo no tendría sentido.
+  const video = msg.message?.videoMessage;
+  if (jid.endsWith('@g.us') && video && !video.gifPlayback && !eraViewOnce) {
+    const meta = await getGroupMeta(sock, jid);
+    const protegido = !meta ||
+      isGroupAdmin(sender, msg.key.fromMe, meta) ||
+      isOwner(sender, msg.key.fromMe, meta);
+    if (!protegido && isBotAdmin(sock, meta)) {
+      sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
+      // El aviso se limita a uno por persona cada 5 min: si alguien sube varios
+      // vídeos seguidos, se borran todos pero no se inunda el chat de avisos.
+      const wKey = `${jid}|${sender}|vo`;
+      const last = videoOnceWarn.get(wKey);
+      if (!last || Date.now() - last > ANTILINK_REMINDER_TTL) {
+        if (videoOnceWarn.size >= 2000) videoOnceWarn.delete(videoOnceWarn.keys().next().value);
+        videoOnceWarn.set(wKey, Date.now());
+        sock.sendMessage(jid, {
+          text: `@${sender.split('@')[0]} los videos se envian siempre en *ver una vez*. Borrado.`,
+          mentions: [sender],
+        }).catch(() => {});
+      }
+      return; // el video no sigue procesandose
+    }
+  }
+
   const statusInner = statusPayload(msg.message);
   if (jid.endsWith('@g.us') && statusInner) {
     const stext = statusText(statusInner);
