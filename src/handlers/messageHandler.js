@@ -285,9 +285,9 @@ async function handleMessage(sock, msg) {
   // Medios sin "ver una vez".
   //
   //  - Vídeo: va SIEMPRE en ver una vez. El que llegue normal se borra al
-  //    momento. Tres del mismo número en 10 min es spam: ban.
+  //    momento. Tres del mismo número en 1 minuto es spam: ban.
   //  - Foto: una suelta no molesta, así que no se borra. Cinco del mismo
-  //    número en 2 min sí es una ráfaga de spam: ban y se borran esas fotos.
+  //    número en 30 segundos sí es ráfaga: ban y se borran esas fotos.
   //
   // Los GIF quedan fuera: WhatsApp los manda como vídeo pero no se pueden
   // enviar en modo efímero, así que exigirlo no tendría sentido.

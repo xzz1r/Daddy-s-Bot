@@ -3,18 +3,21 @@
 // Rastreo de medios enviados sin "ver una vez", para detectar spam.
 //
 // Reglas:
-//   - 3 vídeos normales del mismo número dentro de la ventana → ban.
-//   - 5 fotos normales del mismo número dentro de una ventana corta → ban,
-//     y además se borran esas fotos (los vídeos ya se borran de uno en uno).
+//   - 3 vídeos normales del mismo número en 1 minuto → ban.
+//   - 5 fotos normales del mismo número en 30 segundos → ban, y además se
+//     borran esas fotos (los vídeos ya se borran de uno en uno).
 //
 // Se guardan los ids de los mensajes ofensores para poder borrarlos cuando
 // salta el umbral. Todo vive en memoria: si el bot se reinicia el contador
 // empieza de cero, que es lo correcto — un ban se decide por una ráfaga
 // reciente, no por un historial de hace días.
 
+// Ventanas cortas a propósito: lo que se persigue es la RÁFAGA, tres vídeos o
+// cinco fotos prácticamente seguidos. Alguien que manda un vídeo suelto de vez
+// en cuando no es spam y no debe acumular nada.
 const RULES = {
-  video: { limit: 3, windowMs: 10 * 60 * 1000 }, // 3 vídeos en 10 min
-  image: { limit: 5, windowMs: 2 * 60 * 1000 },  // 5 fotos en 2 min (ráfaga)
+  video: { limit: 3, windowMs: 60 * 1000 }, // 3 vídeos en 1 minuto
+  image: { limit: 5, windowMs: 30 * 1000 }, // 5 fotos en 30 segundos
 };
 
 // `${groupJid}|${bareSender}|${kind}` -> [{ id, ts }]
