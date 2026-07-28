@@ -1,7 +1,7 @@
 const config = require('../config');
 const { isBotEnabled, incrementStat, isAntiLinkEnabled } = require('../utils/state');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
-const { recordNick } = require('../utils/nickStore');
+const { recordNick, recordFacts } = require('../utils/nickStore');
 const { noteOffence, forget } = require('../utils/mediaSpam');
 const { banAccount } = require('../utils/banlist');
 const { allForms } = require('../commands/fk');
@@ -256,6 +256,11 @@ async function handleMessage(sock, msg) {
     incrementMsgCount(jid, sender).catch(() => {});
     // pushName: unica fuente fiable del nombre visible, la usa !antinick
     recordNick(jid, sender, msg.pushName).catch(() => {});
+    // verifiedBizName solo viaja en mensajes de cuentas Business: se anota como
+    // prueba directa para !antiempresa, sin gastar una consulta de perfil.
+    if (msg.verifiedBizName) {
+      recordFacts(sender, { biz: true, name: msg.verifiedBizName }).catch(() => {});
+    }
     checkCasinoMilestone(sock, jid, sender).catch(() => {});
     // Historial de huellas AUTOMÁTICO: indexa la foto de quien escribe (con
     // guarda TTL, así baja cada foto como mucho una vez cada pocos días). Es el

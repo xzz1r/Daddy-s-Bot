@@ -14,7 +14,7 @@
 // de red o un dato que falta jamás puede costarle la expulsión a nadie.
 
 const { isOwner, getSender } = require('../utils/wa');
-const { getNickAnyForm, MIN_MISSES } = require('../utils/nickStore');
+const { getNickAnyForm, getFactsAnyForm, MIN_MISSES } = require('../utils/nickStore');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 
 const lastNickScan = new Map(); // groupJid -> { ts, detected: [{ kickId, reason }] }
@@ -193,8 +193,17 @@ async function detectNoPfp(sock, members) {
       kickId: m.kickId, res: await probe(m),
     })));
     for (const { kickId, res } of results) {
-      if (res === 'none') detected.push({ kickId, reason: 'sin foto de perfil' });
-      else if (res === 'error') unknown.push({ kickId });
+      if (res === 'none') { detected.push({ kickId, reason: 'sin foto de perfil' }); continue; }
+      if (res !== 'error') continue;
+      // La consulta no pudo decidirlo (foto oculta por privacidad o fallo).
+      // WhatsApp avisa por evento cuando alguien pone o quita su foto, así que
+      // ese dato observado resuelve justo el caso que la consulta no distingue.
+      const m = chunk.find(x => x.kickId === kickId);
+      const p = m?.participant;
+      const facts = await getFactsAnyForm([kickId, p?.id, p?.lid, p?.phoneNumber]).catch(() => null);
+      if (facts?.photo === 'no') detected.push({ kickId, reason: 'sin foto (WhatsApp avisó de que la quitó)' });
+      else if (facts?.photo === 'si') continue; // tiene foto, solo está oculta
+      else unknown.push({ kickId });
     }
   }
 

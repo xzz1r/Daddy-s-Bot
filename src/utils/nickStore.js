@@ -94,14 +94,49 @@ async function recordNick(groupJid, userJid, pushName) {
 const GLOBAL = '__global';
 
 async function recordContactName(userJid, name) {
-  if (!userJid || typeof name !== 'string' || !name.trim()) return;
+  return recordFacts(userJid, { name });
+}
+
+// Hechos observados de una cuenta, aparte del nombre:
+//
+//   biz   → true si WhatsApp adjuntó un verified_name a alguno de sus mensajes.
+//           Eso solo lo lleva una cuenta Business, así que es prueba directa
+//           (Baileys lo expone como msg.verifiedBizName).
+//   photo → 'si' | 'no'. WhatsApp avisa cuando alguien pone o quita su foto
+//           (contacts.update con imgUrl 'changed' / 'removed', y null cuando
+//           nunca la ha puesto). Sirve para resolver a quien la tiene oculta
+//           por privacidad, que es el único caso que la consulta no distingue.
+async function recordFacts(userJid, { name, biz, photo } = {}) {
+  if (!userJid) return;
   await load();
   const key = bareJid(userJid);
   if (!store[GLOBAL]) store[GLOBAL] = {};
-  const prev = store[GLOBAL][key];
-  if (prev && prev.name === name.trim()) return;
-  store[GLOBAL][key] = { name: name.trim(), ts: Date.now(), misses: 0 };
+  const prev = store[GLOBAL][key] || { name: '', ts: 0, misses: 0 };
+  const next = { ...prev };
+
+  if (typeof name === 'string' && name.trim()) next.name = name.trim();
+  if (biz === true) next.biz = true;            // solo se añade, nunca se quita
+  if (photo === 'si' || photo === 'no') next.photo = photo;
+
+  if (next.name === prev.name && next.biz === prev.biz && next.photo === prev.photo) return;
+  next.ts = Date.now();
+  store[GLOBAL][key] = next;
   scheduleSave();
+}
+
+// Hechos conocidos de un usuario, mirando todas sus formas.
+async function getFactsAnyForm(forms) {
+  await load();
+  const g = store[GLOBAL];
+  if (!g) return null;
+  let out = null;
+  for (const f of forms) {
+    if (!f) continue;
+    const rec = g[bareJid(f)];
+    if (!rec) continue;
+    out = { ...(out || {}), ...rec };
+  }
+  return out;
 }
 
 async function getNickAnyForm(groupJid, forms) {
@@ -135,4 +170,4 @@ async function flushNicks() {
 // Solo para pruebas: vacía el estado en memoria.
 function _resetNickStore() { store = null; loadPromise = null; }
 
-module.exports = { recordNick, recordContactName, getNickAnyForm, flushNicks, MIN_MISSES, _resetNickStore };
+module.exports = { recordNick, recordContactName, recordFacts, getFactsAnyForm, getNickAnyForm, flushNicks, MIN_MISSES, _resetNickStore };

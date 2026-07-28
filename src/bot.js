@@ -15,7 +15,7 @@ const { isOwner, sameUser } = require('./utils/wa');
 const { flushCounts } = require('./utils/messageCounter');
 const { flushAura } = require('./utils/auraStore');
 const { flushCasino } = require('./utils/casinoStore');
-const { flushNicks, recordContactName } = require('./utils/nickStore');
+const { flushNicks, recordFacts } = require('./utils/nickStore');
 const { flushCache } = require('./utils/musicCache');
 const { flush: flushPfpHashes } = require('./utils/pfpStore');
 const { flush: flushPfpCache } = require('./utils/pfpCache');
@@ -188,10 +188,15 @@ async function connectToWhatsApp() {
     let n = 0;
     for (const c of (lista || [])) {
       const nombre = c?.notify || c?.name || c?.verifiedName;
-      if (!nombre) continue;
-      n++;
+      // verifiedName solo lo lleva una cuenta Business: prueba directa.
+      const biz = Boolean(c?.verifiedName) || undefined;
+      // imgUrl: null o 'removed' = sin foto; 'changed' o una url = con foto.
+      const photo = c?.imgUrl === null || c?.imgUrl === 'removed' ? 'no'
+                  : (typeof c?.imgUrl === 'string' && c.imgUrl) ? 'si' : undefined;
+      if (!nombre && !biz && !photo) continue;
+      if (nombre) n++;
       for (const jid of [c.id, c.lid, c.phoneNumber]) {
-        if (jid) recordContactName(jid, nombre).catch(() => {});
+        if (jid) recordFacts(jid, { name: nombre, biz, photo }).catch(() => {});
       }
     }
     return n;
