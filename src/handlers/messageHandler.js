@@ -2,6 +2,9 @@ const config = require('../config');
 const { isBotEnabled, incrementStat, isAntiLinkEnabled } = require('../utils/state');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { recordNick } = require('../utils/nickStore');
+const { noteOffence, forget } = require('../utils/mediaSpam');
+const { banAccount } = require('../utils/banlist');
+const { allForms } = require('../commands/fk');
 const { checkCasinoMilestone } = require('../utils/casino');
 const { cmdPlay, cmdCacheList, cmdClearCache } = require('../commands/music');
 const { cmdSticker } = require('../commands/sticker');
@@ -279,30 +282,63 @@ async function handleMessage(sock, msg) {
   //
   // Mismas garantías que el resto de la moderación: nunca toca a admins, al
   // owner tier ni al bot, y necesita ser admin para actuar.
-  // Los vídeos del grupo van SIEMPRE en "ver una vez". El que llegue normal se
-  // borra y se avisa. Los GIF quedan fuera: WhatsApp los manda como vídeo pero
-  // no se pueden enviar en modo efímero, así que exigirlo no tendría sentido.
+  // Medios sin "ver una vez".
+  //
+  //  - Vídeo: va SIEMPRE en ver una vez. El que llegue normal se borra al
+  //    momento. Tres del mismo número en 10 min es spam: ban.
+  //  - Foto: una suelta no molesta, así que no se borra. Cinco del mismo
+  //    número en 2 min sí es una ráfaga de spam: ban y se borran esas fotos.
+  //
+  // Los GIF quedan fuera: WhatsApp los manda como vídeo pero no se pueden
+  // enviar en modo efímero, así que exigirlo no tendría sentido.
   const video = msg.message?.videoMessage;
-  if (jid.endsWith('@g.us') && video && !video.gifPlayback && !eraViewOnce) {
+  const foto  = msg.message?.imageMessage;
+  const medio = (video && !video.gifPlayback) ? 'video' : (foto ? 'image' : null);
+
+  if (jid.endsWith('@g.us') && medio && !eraViewOnce) {
     const meta = await getGroupMeta(sock, jid);
     const protegido = !meta ||
       isGroupAdmin(sender, msg.key.fromMe, meta) ||
       isOwner(sender, msg.key.fromMe, meta);
+
     if (!protegido && isBotAdmin(sock, meta)) {
-      sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
-      // El aviso se limita a uno por persona cada 5 min: si alguien sube varios
-      // vídeos seguidos, se borran todos pero no se inunda el chat de avisos.
-      const wKey = `${jid}|${sender}|vo`;
-      const last = videoOnceWarn.get(wKey);
-      if (!last || Date.now() - last > ANTILINK_REMINDER_TTL) {
-        if (videoOnceWarn.size >= 2000) videoOnceWarn.delete(videoOnceWarn.keys().next().value);
-        videoOnceWarn.set(wKey, Date.now());
+      const borrar = (id) => sock.sendMessage(jid, {
+        delete: { remoteJid: jid, fromMe: false, id, participant: sender },
+      }).catch(() => {});
+
+      // El vídeo se borra siempre; la foto solo si acaba siendo spam.
+      if (medio === 'video') borrar(msg.key.id);
+
+      const { spam, ids } = noteOffence(jid, sender, medio, msg.key.id);
+
+      if (spam) {
+        if (medio === 'image') ids.forEach(borrar); // ahora sí: la ráfaga entera
+        forget(jid, sender);
+        await banAccount(allForms(sender, meta), `spam de ${medio}s sin ver una vez en ${jid}`, 'auto')
+          .catch(() => {});
+        sock.groupParticipantsUpdate(jid, [sender], 'remove').catch(() => {});
         sock.sendMessage(jid, {
-          text: `@${sender.split('@')[0]} los videos se envian siempre en *ver una vez*. Borrado.`,
+          text: `@${sender.split('@')[0]} baneado por spam de ${medio === 'video' ? 'videos' : 'fotos'} sin *ver una vez*.`,
           mentions: [sender],
         }).catch(() => {});
+        return;
       }
-      return; // el video no sigue procesandose
+
+      if (medio === 'video') {
+        // Aviso limitado a uno por persona cada 5 min: se borran todos los
+        // vídeos igualmente, pero no se inunda el chat de avisos.
+        const wKey = `${jid}|${sender}|vo`;
+        const last = videoOnceWarn.get(wKey);
+        if (!last || Date.now() - last > ANTILINK_REMINDER_TTL) {
+          if (videoOnceWarn.size >= 2000) videoOnceWarn.delete(videoOnceWarn.keys().next().value);
+          videoOnceWarn.set(wKey, Date.now());
+          sock.sendMessage(jid, {
+            text: `@${sender.split('@')[0]} los videos se envian siempre en *ver una vez*. Borrado.`,
+            mentions: [sender],
+          }).catch(() => {});
+        }
+        return; // el video no sigue procesandose
+      }
     }
   }
 
