@@ -225,11 +225,11 @@ async function runScan(sock, msg, groupJid, groupMeta, cfg) {
   }, { quoted: msg });
 
   const { detected, unknown } = await cfg.detect(members);
-  cfg.store.set(groupJid, { ts: Date.now(), detected, unknown });
+  cfg.store.set(groupJid, { ts: Date.now(), detected });
 
   const unknownNote = unknown.length
     ? `\n\n_${unknown.length} de ${members.length} ${cfg.unknownText}._` +
-      (cfg.allowPurgeAll ? `\n_O *${cfg.cmd} purge todos* y se van._` : '')
+      ''
     : '';
 
   // Los no verificables se mencionan de forma INVISIBLE: van en `mentions` pero
@@ -259,18 +259,18 @@ async function runScan(sock, msg, groupJid, groupMeta, cfg) {
   return sock.sendMessage(groupJid, { text, mentions: [...detected.map(d => d.kickId), ...invisibles] });
 }
 
-async function runPurge(sock, msg, groupJid, groupMeta, cfg, incluirSinDatos = false) {
+async function runPurge(sock, msg, groupJid, groupMeta, cfg) {
   const last = cfg.store.get(groupJid);
   if (!last || Date.now() - last.ts > SCAN_VALID_MS) {
     return sock.sendMessage(groupJid, {
       text: `Primero corre *${cfg.cmd} scan*, revisa la lista y luego *${cfg.cmd} purge* dentro de 10 min.`,
     }, { quoted: msg });
   }
-  // Con "todos" entran también los que no han escrito nunca: el bot no puede
-  // ver su nick, así que es una decisión del owner, no una deducción del bot.
-  const lista = incluirSinDatos
-    ? [...last.detected, ...(last.unknown || []).map(u => ({ ...u, reason: 'no ha escrito nunca' }))]
-    : last.detected;
+  // La purga expulsa SOLO a los confirmados. Los que no han escrito nunca se
+  // quedan siempre fuera: el bot no puede ver su nick, y echarlos a todos
+  // vaciaría medio grupo de golpe. A esos se les avisa con la mención invisible
+  // del scan para que hablen, y así el bot les lea el nick.
+  const lista = last.detected;
 
   if (!lista.length) {
     return sock.sendMessage(groupJid, {
@@ -322,16 +322,12 @@ function makeCommand(cfgFor) {
     const arg = (args?.[0] || '').toLowerCase();
 
     if (arg === 'scan')  return runScan(sock, msg, jid, groupMeta, cfg);
-    if (arg === 'purge') {
-      const todos = ['todos', 'todo', 'all'].includes((args?.[1] || '').toLowerCase());
-      return runPurge(sock, msg, jid, groupMeta, cfg, todos);
-    }
+    if (arg === 'purge') return runPurge(sock, msg, jid, groupMeta, cfg);
 
     return sock.sendMessage(jid, {
       text:
         `*${cfg.cmd} scan* — ${cfg.scanHelp} (NO expulsa)\n` +
-        `*${cfg.cmd} purge* — expulsa a los detectados\n` +
-        `*${cfg.cmd} purge todos* — expulsa además a los que nunca han escrito`,
+        `*${cfg.cmd} purge* — expulsa a los detectados`,
     }, { quoted: msg });
   };
 }
@@ -343,7 +339,6 @@ const cmdAntiNick = makeCommand((sock, jid, groupMeta) => ({
   emptyText: 'Todos los miembros escaneados tienen un nombre real puesto.',
   caveat: 'Cuenta como nombre real cualquiera con letras. Un punto, unos dos puntos, solo emojis o solo numeros no cuentan.',
   unknownText: 'no han escrito nunca. Escribid algo y el bot ya os lee el nick',
-  allowPurgeAll: true,
   pingUnknown: true,
   warning: '*AVISO A LOS MENCIONADOS:* poneos un nombre de verdad ya. ' +
     'Un punto, unos dos puntos, solo emojis o solo numeros no valen: tiene que llevar letras. ' +
