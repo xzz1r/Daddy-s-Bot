@@ -229,11 +229,19 @@ async function runScan(sock, msg, groupJid, groupMeta, cfg) {
 
   const unknownNote = unknown.length
     ? `\n\n_${unknown.length} de ${members.length} ${cfg.unknownText}._` +
-      (cfg.allowPurgeAll ? `\n_Con *${cfg.cmd} purge todos* se van también ellos._` : '')
+      (cfg.allowPurgeAll ? `\n_O *${cfg.cmd} purge todos* y se van._` : '')
     : '';
 
+  // Los no verificables se mencionan de forma INVISIBLE: van en `mentions` pero
+  // no en el texto. Así les llega la notificación —que es lo que hace falta para
+  // que escriban y el bot les lea el nick— sin llenar el mensaje de números.
+  const invisibles = cfg.pingUnknown ? unknown.map(u => u.kickId) : [];
+
   if (!detected.length) {
-    return sock.sendMessage(groupJid, { text: cfg.emptyText + unknownNote });
+    return sock.sendMessage(groupJid, {
+      text: cfg.emptyText + unknownNote,
+      mentions: invisibles,
+    });
   }
 
   const lines = detected.map(d => `@${d.kickId.split('@')[0]} — ${d.reason}`);
@@ -248,7 +256,7 @@ async function runScan(sock, msg, groupJid, groupMeta, cfg) {
     (cfg.caveat ? `\n_${cfg.caveat}_` : '') +
     unknownNote;
 
-  return sock.sendMessage(groupJid, { text, mentions: detected.map(d => d.kickId) });
+  return sock.sendMessage(groupJid, { text, mentions: [...detected.map(d => d.kickId), ...invisibles] });
 }
 
 async function runPurge(sock, msg, groupJid, groupMeta, cfg, incluirSinDatos = false) {
@@ -334,8 +342,9 @@ const cmdAntiNick = makeCommand((sock, jid, groupMeta) => ({
   scanHelp: 'lista a quien no tiene un nombre real',
   emptyText: 'Todos los miembros escaneados tienen un nombre real puesto.',
   caveat: 'Cuenta como nombre real cualquiera con letras. Un punto, unos dos puntos, solo emojis o solo numeros no cuentan.',
-  unknownText: 'no han escrito nunca, así que el bot no puede ver su nick',
+  unknownText: 'no han escrito nunca. Escribid algo y el bot ya os lee el nick',
   allowPurgeAll: true,
+  pingUnknown: true,
   warning: '*AVISO A LOS MENCIONADOS:* poneos un nombre de verdad ya. ' +
     'Un punto, unos dos puntos, solo emojis o solo numeros no valen: tiene que llevar letras. ' +
     'El que siga sin nombre en la proxima purga se va del grupo.',
