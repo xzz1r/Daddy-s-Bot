@@ -93,10 +93,6 @@ async function recordNick(groupJid, userJid, pushName) {
 // sincroniza). Valen para cualquier grupo, asi que viven en su propio cajon.
 const GLOBAL = '__global';
 
-async function recordContactName(userJid, name) {
-  return recordFacts(userJid, { name });
-}
-
 // Hechos observados de una cuenta, aparte del nombre:
 //
 //   biz   → true si WhatsApp adjuntó un verified_name a alguno de sus mensajes.
@@ -125,38 +121,37 @@ async function recordFacts(userJid, { name, biz, photo } = {}) {
 }
 
 // Hechos conocidos de un usuario, mirando todas sus formas.
-async function getFactsAnyForm(forms) {
+// Todo lo que se sabe de un usuario, mirando TODAS sus formas (id, lid,
+// teléfono) y los dos cajones: el del grupo y el global. Eso es lo que unifica
+// a quien quedó anotado bajo dos claves distintas.
+//
+// Al fusionar, un nombre real gana siempre; entre dos sin nombre, el que más
+// veces se vio sin él. Los hechos sueltos (biz, photo) se acumulan porque no
+// se contradicen: si en algún sitio consta, consta.
+async function getMemberFacts(forms, groupJid) {
   await load();
-  const g = store[GLOBAL];
-  if (!g) return null;
+  const buckets = [groupJid && store[groupJid], store[GLOBAL]].filter(Boolean);
+  if (!buckets.length) return null;
+
   let out = null;
-  for (const f of forms) {
-    if (!f) continue;
-    const rec = g[bareJid(f)];
-    if (!rec) continue;
-    out = { ...(out || {}), ...rec };
-  }
-  return out;
-}
-
-async function getNickAnyForm(groupJid, forms) {
-  await load();
-  const g = store[groupJid];
-  const glob = store[GLOBAL];
-  if (!g && !glob) return null;
-
-  let best = null;
-  for (const f of forms) {
-    if (!f) continue;
-    const rec = g?.[bareJid(f)] || glob?.[bareJid(f)];
-    if (!rec) continue;
-    if (rec.name) {
-      if (!best || !best.name || (rec.ts || 0) > (best.ts || 0)) best = rec;
-    } else if (!best || !best.name) {
-      if (!best || (rec.misses || 0) > (best.misses || 0)) best = rec;
+  for (const b of buckets) {
+    for (const f of forms) {
+      if (!f) continue;
+      const rec = b[bareJid(f)];
+      if (!rec) continue;
+      if (!out) { out = { ...rec }; continue; }
+      if (rec.biz) out.biz = true;
+      if (rec.photo) out.photo = rec.photo;
+      const mejorNombre = rec.name && (!out.name || (rec.ts || 0) > (out.ts || 0));
+      const masAusencias = !rec.name && !out.name && (rec.misses || 0) > (out.misses || 0);
+      if (mejorNombre || masAusencias) {
+        out.name = rec.name || out.name;
+        out.misses = Math.max(out.misses || 0, rec.misses || 0);
+        out.ts = rec.ts || out.ts;
+      }
     }
   }
-  return best;
+  return out;
 }
 
 async function flushNicks() {
@@ -170,4 +165,4 @@ async function flushNicks() {
 // Solo para pruebas: vacía el estado en memoria.
 function _resetNickStore() { store = null; loadPromise = null; }
 
-module.exports = { recordNick, recordContactName, recordFacts, getFactsAnyForm, getNickAnyForm, flushNicks, MIN_MISSES, _resetNickStore };
+module.exports = { recordNick, recordFacts, getMemberFacts, flushNicks, MIN_MISSES, _resetNickStore };

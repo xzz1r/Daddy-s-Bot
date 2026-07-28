@@ -14,7 +14,7 @@
 // de red o un dato que falta jamás puede costarle la expulsión a nadie.
 
 const { isOwner, getSender } = require('../utils/wa');
-const { getNickAnyForm, getFactsAnyForm, MIN_MISSES } = require('../utils/nickStore');
+const { getMemberFacts, MIN_MISSES } = require('../utils/nickStore');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 
 const lastNickScan = new Map(); // groupJid -> { ts, detected: [{ kickId, reason }] }
@@ -114,7 +114,7 @@ async function detectNoNick(groupJid, members) {
     // 2) Si no, el pushName guardado, consultando TODAS las formas del usuario
     //    (id, lid, teléfono) para no fallar por una clave partida.
     const p = m.participant;
-    const rec = await getNickAnyForm(groupJid, [m.kickId, p?.id, p?.lid, p?.phoneNumber])
+    const rec = await getMemberFacts([m.kickId, p?.id, p?.lid, p?.phoneNumber], groupJid)
       .catch(() => null);
 
     // Hay un nombre guardado → se juzga ese nombre.
@@ -200,7 +200,7 @@ async function detectNoPfp(sock, members) {
       // ese dato observado resuelve justo el caso que la consulta no distingue.
       const m = chunk.find(x => x.kickId === kickId);
       const p = m?.participant;
-      const facts = await getFactsAnyForm([kickId, p?.id, p?.lid, p?.phoneNumber]).catch(() => null);
+      const facts = await getMemberFacts([kickId, p?.id, p?.lid, p?.phoneNumber]).catch(() => null);
       if (facts?.photo === 'no') detected.push({ kickId, reason: 'sin foto (WhatsApp avisó de que la quitó)' });
       else if (facts?.photo === 'si') continue; // tiene foto, solo está oculta
       else unknown.push({ kickId });
@@ -227,7 +227,6 @@ async function runScan(sock, msg, groupJid, groupMeta, cfg) {
   const { detected, unknown } = await cfg.detect(members);
   cfg.store.set(groupJid, { ts: Date.now(), detected });
 
-  const total = detected.length + unknown.length;
   const unknownNote = unknown.length
     ? `\n\n_${unknown.length} de ${members.length} sin datos: el bot aun no conoce su nombre. NO entran en la purga._`
     : '';

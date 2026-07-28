@@ -3,7 +3,7 @@ const { isOwner, isAdmin, isBotJid, isGroupAdmin, getTarget, getSender, bareJid,
 const { streamToBuffer, MAX_DOWNLOAD_BYTES } = require('../utils/helpers');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled } = require('../utils/state');
 const { businessEvidence } = require('../utils/businessCheck');
-const { getFactsAnyForm } = require('../utils/nickStore');
+const { getMemberFacts } = require('../utils/nickStore');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 
 // In-memory mute store: `groupJid|bareJid` -> expireTimestamp
@@ -508,7 +508,7 @@ async function detectBusinesses(sock, idToPhone) {
       // WhatsApp adjunta un verified_name a los mensajes de las cuentas
       // Business (Baileys lo expone como msg.verifiedBizName). Si se le ha
       // visto uno, es Business aunque su perfil venga vacío en la consulta.
-      const facts = await getFactsAnyForm([kickId, phoneJid]).catch(() => null);
+      const facts = await getMemberFacts([kickId, phoneJid]).catch(() => null);
       if (facts?.biz) return { kickId, ev: { isBiz: true, fields: ['nombre verificado de negocio'] } };
       return { kickId, ev };
     }));
