@@ -4,6 +4,7 @@ const {
   DisconnectReason,
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
+  getBinaryNodeChild,
 } = require('@whiskeysockets/baileys');
 const pino = require('pino');
 const path = require('path');
@@ -381,6 +382,94 @@ async function connectToWhatsApp() {
         }).catch(() => {});
       }
 
+      return;
+    }
+
+    // ─── Han echado a alguien del tier owner ───────────────────────────────
+    //
+    // Esto NO depende del interruptor de anti-admin, igual que el bot tampoco
+    // se deja expulsar a sí mismo ni deja que !kick toque al owner. Que un
+    // admin normal eche al dueño es un ataque a la cadena de mando del propio
+    // bot, y ahí no hay ajuste que valga.
+    //
+    // Se le degrada a él y se intenta devolver al owner. El degradado es solo
+    // eso: se le quita el admin, no se le banea ni se le echa.
+    if (action === 'remove' && author && !isBotJid(author) && !isOwner(author, false, meta)) {
+      const echados = partJids.filter(j => !isBotJid(j) && isOwner(j, false, meta));
+      if (echados.length) {
+        const autorTag = `@${String(author).split('@')[0]}`;
+        const menciones = [author, ...echados];
+
+        // Primero el degradado: es lo único que depende solo del bot y sale
+        // siempre, aunque el re-alta se tuerza.
+        let degradado = false;
+        try {
+          const r = await sock.groupParticipantsUpdate(groupJid, [author], 'demote');
+          degradado = String((Array.isArray(r) ? r[0] : null)?.status ?? '200') === '200';
+        } catch (err) {
+          logger.warn(`Owner echado: no pude degradar a ${author} en ${groupJid}: ${err.message}`);
+        }
+
+        const vueltos = [];
+        const invitados = [];
+        const fallidos = [];
+        for (const victima of echados) {
+          let fila = null;
+          try {
+            const r = await sock.groupParticipantsUpdate(groupJid, [victima], 'add');
+            fila = Array.isArray(r) ? r[0] : null;
+          } catch (err) {
+            logger.warn(`Owner echado: alta fallida de ${victima} en ${groupJid}: ${err.message}`);
+          }
+          const estado = String(fila?.status ?? '');
+
+          if (estado === '200') {
+            vueltos.push(victima);
+            // Vuelve con el admin que tenía. El evento de promote lo firma el
+            // bot, así que el propio anti-admin no lo revierte.
+            await sock.groupParticipantsUpdate(groupJid, [victima], 'promote').catch(() => {});
+            continue;
+          }
+
+          // Privacidad activa: WhatsApp rechaza el alta pero devuelve dentro
+          // del nodo la solicitud de invitación, que es justo lo que manda la
+          // app oficial cuando no puede añadirte directamente.
+          // getBinaryNodeChild de Baileys, no un find a mano: el `content` de un
+          // nodo binario puede ser un array, una cadena o bytes, y hacer .find
+          // sobre una cadena reventaría.
+          const pedido = fila?.content ? getBinaryNodeChild(fila.content, 'add_request') : null;
+          const code = pedido?.attrs?.code;
+          if (code) {
+            try {
+              await sock.sendMessage(victima, {
+                groupInvite: {
+                  inviteCode: code,
+                  inviteExpiration: Number(pedido.attrs.expiration) || 0,
+                  jid: groupJid,
+                  subject: meta?.subject || 'el grupo',
+                  text: 'Te han sacado del grupo. Aquí tienes la invitación para volver.',
+                },
+              });
+              invitados.push(victima);
+              continue;
+            } catch (err) {
+              logger.warn(`Owner echado: invitación fallida a ${victima}: ${err.message}`);
+            }
+          }
+          fallidos.push(victima);
+        }
+
+        const lista = (a) => a.map(j => `@${j.split('@')[0]}`).join(', ');
+        const partes = [`*${autorTag} ha echado al owner.*`];
+        if (vueltos.length)   partes.push(`${lista(vueltos)} está de vuelta con su admin.`);
+        if (invitados.length) partes.push(`${lista(invitados)} tiene la privacidad activa: le he mandado la invitación por privado.`);
+        if (fallidos.length)  partes.push(`No he podido devolver a ${lista(fallidos)}: metedlo a mano.`);
+        partes.push(degradado
+          ? `${autorTag} se queda sin admin.`
+          : `No he podido quitarle el admin a ${autorTag}.`);
+
+        sock.sendMessage(groupJid, { text: partes.join('\n'), mentions: menciones }).catch(() => {});
+      }
       return;
     }
 
