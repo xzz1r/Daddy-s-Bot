@@ -6,6 +6,9 @@ const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const CACHE_DIR = path.join(__dirname, '../../data/music_cache');
 const INDEX_FILE = path.join(CACHE_DIR, 'index.json');
 const MAX_SONGS = 60;
+// Tope duro de disco para la cache de musica. Sin el, 60 temas largos en alta
+// calidad se comen mas de un giga del VPS sin que nada los desaloje.
+const MAX_CACHE_BYTES = 400 * 1024 * 1024;
 
 // Size-based RAM cap (not count-based) so the bot can't be DoS'd into an OOM
 // kill by requesting many large songs. 24 MB is sized for the 1 GB VPS target
@@ -140,23 +143,34 @@ async function getCached(query) {
   return result;
 }
 
+// Tira las entradas más viejas hasta respetar los dos topes. El tamaño de una
+// entrada sin `bytes` (las escritas antes de que existiera este campo) se mide
+// del disco una vez y se anota, así el índice se completa solo.
+async function desalojar() {
+  const claves = Object.keys(index);
+  let total = 0;
+  for (const key of claves) {
+    if (typeof index[key].bytes !== 'number') {
+      try { index[key].bytes = (await fs.stat(path.join(CACHE_DIR, index[key].file))).size; }
+      catch { index[key].bytes = 0; }
+    }
+    total += index[key].bytes;
+  }
+  // De más viejo a más nuevo. Sin timestamp = lo más viejo posible.
+  const porEdad = claves.sort((a, b) => (index[a].timestamp ?? 0) - (index[b].timestamp ?? 0));
+  let n = porEdad.length;
+  for (const key of porEdad) {
+    if (n <= MAX_SONGS && total <= MAX_CACHE_BYTES) break;
+    await fs.remove(path.join(CACHE_DIR, index[key].file)).catch(() => {});
+    total -= index[key].bytes || 0;
+    delete index[key];
+    n--;
+  }
+}
+
 async function setCached(query, srcPath, title, mimetype, ext, srcBuffer = null, requester = '') {
   await loadIndex();
   const k = cacheKey(query);
-
-  // Evict oldest disk entry if at limit
-  let count = 0;
-  let oldestKey = null;
-  let oldestTs = Infinity;
-  for (const key in index) {
-    count++;
-    const ts = index[key].timestamp ?? 0; // missing timestamp = treat as oldest
-    if (ts < oldestTs) { oldestTs = ts; oldestKey = key; }
-  }
-  if (count >= MAX_SONGS && oldestKey) {
-    await fs.remove(path.join(CACHE_DIR, index[oldestKey].file)).catch(() => {});
-    delete index[oldestKey];
-  }
 
   const cacheFile = `${k}${path.extname(srcPath)}`;
   const destPath = path.join(CACHE_DIR, cacheFile);
@@ -169,7 +183,14 @@ async function setCached(query, srcPath, title, mimetype, ext, srcBuffer = null,
     await fs.copy(srcPath, destPath).catch(() => {});
   }
 
-  index[k] = { file: cacheFile, title, mimetype, ext, requester: requester || '', timestamp: Date.now() };
+  let bytes = buffer?.length;
+  if (!bytes) { try { bytes = (await fs.stat(destPath)).size; } catch { bytes = 0; } }
+  index[k] = { file: cacheFile, title, mimetype, ext, requester: requester || '', timestamp: Date.now(), bytes };
+
+  // Desalojo por NÚMERO y por TAMAÑO. Solo con el tope de 60 canciones, un
+  // puñado de temas largos en alta calidad podía dejar la caché en más de un
+  // giga sin que nada la tocara: el VPS es pequeño y eso lo llena.
+  await desalojar();
   await saveIndex();
 
   if (buffer) storeInRam(k, buffer, title, mimetype, ext);

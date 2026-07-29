@@ -51,6 +51,20 @@ function isKnownOwnerJid(jid) {
   return !!jid && knownOwnerJids.has(bareJid(jid));
 }
 
+// Vuelca ya lo que estuviera pendiente. El guardado normal espera 5 s, así que
+// un apagado dentro de esa ventana se llevaba los JID de owner recién
+// aprendidos y el bot volvía a arrancar sin reconocer al dueño hasta que algún
+// comando trajera metadata otra vez.
+function flushOwnerJids() {
+  if (ownerSaveTimer) { clearTimeout(ownerSaveTimer); ownerSaveTimer = null; }
+  const tmp = OWNER_JIDS_FILE + '.tmp';
+  try {
+    fs.mkdirSync(path.dirname(OWNER_JIDS_FILE), { recursive: true });
+    fs.writeFileSync(tmp, JSON.stringify([...knownOwnerJids]));
+    fs.renameSync(tmp, OWNER_JIDS_FILE);
+  } catch { /* si falla, el set en memoria sigue válido */ }
+}
+
 // Strip device suffix (xxx:1@lid → xxx@lid). Baileys' msg.key.participant
 // can carry a device tag that groupMeta.participants[].id does not, which
 // breaks exact-equality lookups by JID.
@@ -130,15 +144,51 @@ function sameUser(a, b) {
   return canonicalJid(a) === canonicalJid(b);
 }
 
-// Core matcher: true when `jid` (in any of its forms) resolves to one of the
-// numbers in `owners`. Shared by isOwner (main + co-owners) and isMainOwner
-// (only the primary owner number).
-function matchesOwners(jid, groupMeta, owners) {
-  if (!jid) return false;
+// Metadatas ya indexadas. Es un WeakSet a propósito: la clave es el propio
+// objeto, así que en cuanto la caché de metadata lo tira y se pide uno nuevo
+// (cualquier alta o baja en el grupo la invalida) el nuevo se vuelve a indexar
+// solo, y esto no retiene memoria de grupos que ya no se usan.
+//
+// Sin este control, indexGroupMeta recorría la lista ENTERA de participantes en
+// cada comprobación de owner: una por mensaje, y una por miembro dentro de cada
+// scan, lo que volvía cuadrático un escaneo de purga.
+const metasIndexadas = new WeakSet();
 
-  // Side effect: every owner check that has groupMeta refreshes the global
-  // LID map. Cheap and means future DM owner checks don't need groupMeta.
-  if (groupMeta) indexGroupMeta(groupMeta);
+// Índice por metadata: cualquiera de las formas de un participante -> el
+// participante. Se construye una vez por objeto de metadata en lugar de
+// recorrer la lista entera en cada búsqueda, que es lo que hacía cuadrático
+// cualquier comando que comprobara algo miembro a miembro.
+const indicePorMeta = new WeakMap();
+
+function participantePorJid(groupMeta, bare) {
+  if (!groupMeta?.participants) return null;
+  let idx = indicePorMeta.get(groupMeta);
+  if (!idx) {
+    idx = new Map();
+    for (const p of groupMeta.participants) {
+      if (!p) continue;
+      for (const f of [p.id, p.lid, p.phoneNumber]) {
+        if (f) idx.set(bareJid(f), p);
+      }
+    }
+    indicePorMeta.set(groupMeta, idx);
+  }
+  return idx.get(bare) || null;
+}
+
+// Devuelve el ÍNDICE del owner que coincide con `jid` (en cualquiera de sus
+// formas), o -1 si ninguno. Devolver el índice y no un booleano permite a
+// isOwner saber si el que coincidió es el principal sin repetir toda la
+// resolución una segunda vez. Compartido por isOwner e isMainOwner.
+function matchOwnerIndex(jid, groupMeta, owners) {
+  if (!jid) return -1;
+
+  // Efecto lateral: toda comprobación de owner que traiga metadata refresca el
+  // mapa global de LID. Una sola vez por objeto de metadata.
+  if (groupMeta && !metasIndexadas.has(groupMeta)) {
+    metasIndexadas.add(groupMeta);
+    indexGroupMeta(groupMeta);
+  }
 
   const bare = bareJid(jid);
   const candidates = new Set([jid, bare]);
@@ -147,16 +197,11 @@ function matchesOwners(jid, groupMeta, owners) {
   // the sender's JID. Modern groups inconsistently store the canonical id
   // (sometimes the LID, sometimes the phone JID), so a single-field lookup
   // misses half the cases.
-  if (groupMeta?.participants) {
-    for (const p of groupMeta.participants) {
-      if (!p) continue;
-      if (bareJid(p.id) === bare || bareJid(p.lid) === bare || bareJid(p.phoneNumber) === bare) {
-        if (p.id) candidates.add(p.id);
-        if (p.lid) candidates.add(p.lid);
-        if (p.phoneNumber) candidates.add(p.phoneNumber);
-        break;
-      }
-    }
+  const p = participantePorJid(groupMeta, bare);
+  if (p) {
+    if (p.id) candidates.add(p.id);
+    if (p.lid) candidates.add(p.lid);
+    if (p.phoneNumber) candidates.add(p.phoneNumber);
   }
 
   // Fallback: global cache populated from prior group metas. Works for DMs
@@ -167,9 +212,14 @@ function matchesOwners(jid, groupMeta, owners) {
   for (const c of candidates) {
     const num = String(c).replace(/@[^@]+$/, '').replace(/\D/g, '');
     if (!num) continue;
-    if (owners.some(o => phoneMatch(num, o))) return true;
+    const i = owners.findIndex(o => phoneMatch(num, o));
+    if (i >= 0) return i;
   }
-  return false;
+  return -1;
+}
+
+function matchesOwners(jid, groupMeta, owners) {
+  return matchOwnerIndex(jid, groupMeta, owners) >= 0;
 }
 
 // Argentina inserts a mobile "9" right after the country code 54 (549 11...)
@@ -207,16 +257,16 @@ function isOwner(jid, fromMe, groupMeta) {
   // dejaba de proteger al dueño. El set solo contiene el owner principal ya
   // verificado, así que no relaja nada.
   if (isKnownOwnerJid(jid)) return true;
+  // El principal va SIEMPRE el primero, así que un índice 0 significa que el que
+  // coincidió es él. Antes se resolvía todo una segunda vez solo para averiguar
+  // eso, repitiendo el barrido completo de participantes.
   const owners = [
     String(config.ownerNumber).replace(/\D/g, ''),
     ...(config.coOwners || []).map(n => String(n).replace(/\D/g, '')),
   ];
-  const ok = matchesOwners(jid, groupMeta, owners);
-  // Aprende también desde aquí cuando el que coincide es el owner principal.
-  if (ok && matchesOwners(jid, groupMeta, [String(config.ownerNumber).replace(/\D/g, '')])) {
-    noteOwnerJid(jid);
-  }
-  return ok;
+  const i = matchOwnerIndex(jid, groupMeta, owners);
+  if (i === 0) noteOwnerJid(jid);
+  return i >= 0;
 }
 
 // True only for the primary owner (config.ownerNumber), not the co-owners.
@@ -349,6 +399,7 @@ module.exports = {
   isOwner,
   isMainOwner,
   noteOwnerJid,
+  flushOwnerJids,
   isKnownOwnerJid,
   fetchAbout,
   isAdmin,

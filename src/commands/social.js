@@ -2,6 +2,7 @@ const { getState, setState, toggleGroup } = require('../utils/state');
 const { formatUptime, pick, fmt } = require('../utils/helpers');
 const { isOwner, isGroupAdmin, getSender } = require('../utils/wa');
 const { getCasinoCount, msUntilReset } = require('../utils/casinoStore');
+const { nextMilestone } = require('../utils/casino');
 const config = require('../config');
 const logger = require('../utils/logger');
 
@@ -137,12 +138,11 @@ async function cmdCasino(sock, msg) {
     msUntilReset(jid),
   ]);
 
-  const n200  = Math.ceil((count + 1) / 200)  * 200;
-  const n500  = Math.ceil((count + 1) / 500)  * 500;
-  const n1000 = Math.ceil((count + 1) / 1000) * 1000;
-  const next  = Math.min(n200, n500, n1000);
-  const tier  = next % 1000 === 0 ? 3 : next % 500 === 0 ? 2 : 1;
-  const remaining = next - count;
+  // El calculo del proximo hito vive en utils/casino.js, que es quien reparte los
+  // bonos de verdad. Estaba copiado literalmente aqui: tocar un tramo alli y
+  // olvidarse de este sitio habria hecho que el bot anunciara un hito que no
+  // paga lo que dice.
+  const { tier, remaining } = nextMilestone(count);
 
   const tierLabel = tier === 3 ? 'Tier 3 (1000 msgs)' : tier === 2 ? 'Tier 2 (500 msgs)' : 'Tier 1 (200 msgs)';
 

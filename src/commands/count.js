@@ -1,4 +1,4 @@
-const { getActiveUsers, resetCounts } = require('../utils/messageCounter');
+const { getActiveUsers, resetCounts, resetAllCounts } = require('../utils/messageCounter');
 const { isOwner, isMainOwner, isAdmin, getSender, sameUser } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
 
@@ -353,12 +353,17 @@ async function cmdResetCount(sock, msg, groupMeta) {
     return sock.sendMessage(jid, { text: 'Solo el owner puede resetear el contador.' }, { quoted: msg });
   }
 
+  // En privado no hay grupo que resetear, así que se borra todo. Antes se
+  // llamaba a resetCounts(null), que lanza a propósito para que un null
+  // accidental no arrase con los datos: el owner recibía un error interno y el
+  // mensaje de "reseteo global" era inalcanzable.
   const scope = jid.endsWith('@g.us') ? jid : null;
-  await resetCounts(scope);
+  if (scope) await resetCounts(scope);
+  else await resetAllCounts();
   await sock.sendMessage(jid, {
     text: scope
       ? 'Contador de mensajes de este grupo reseteado.'
-      : 'Contador de mensajes global reseteado.',
+      : 'Contador de mensajes global reseteado (todos los grupos).',
   }, { quoted: msg });
 }
 

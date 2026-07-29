@@ -69,21 +69,11 @@ async function isBusiness(sock, jid) {
   return (await businessEvidence(sock, jid)).isBiz;
 }
 
-// Chequea muchos JIDs con concurrencia acotada. ~8 en paralelo es el punto justo.
-async function isBusinessBatch(sock, jids, concurrency = 8) {
-  const out = new Map();
-  for (let i = 0; i < jids.length; i += concurrency) {
-    const chunk = jids.slice(i, i + concurrency);
-    const results = await Promise.all(
-      chunk.map(jid => isBusiness(sock, jid).then(v => [jid, v]))
-    );
-    for (const [jid, v] of results) out.set(jid, v);
-  }
-  return out;
-}
-
 function clearBusinessCache() {
   cache.clear();
 }
 
-module.exports = { isBusiness, isBusinessBatch, businessEvidence, clearBusinessCache };
+// clearBusinessCache no lo usa ningun comando: existe para las pruebas, que
+// necesitan un estado limpio entre casos. isBusinessBatch se ha quitado porque
+// no lo llamaba nadie en todo el repo.
+module.exports = { isBusiness, businessEvidence, clearBusinessCache };

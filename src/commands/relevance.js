@@ -353,9 +353,14 @@ function ownerCount(groupJid) {
   for (let i = 0; i < groupJid.length; i++) {
     h = (h * 31 + groupJid.charCodeAt(i)) >>> 0;
   }
-  const base = 1400 + (h % 900);                       // 1400-2299 fijo por grupo
-  const drift = Math.floor(Date.now() / 86400000) * 3; // ~3 mensajes al día
-  return base + (drift % 700);
+  const base = 1400 + (h % 900); // 1400-2299 fijo por grupo
+  // La deriva tiene que ser MONOTONA: un contador de mensajes solo sube. Antes
+  // era `drift % 700`, que cada ~233 dias daba la vuelta y hacia caer la cifra
+  // de golpe unos 697 mensajes — justo el tipo de salto imposible que delata
+  // que el numero es fabricado.
+  const DIA0 = 20089; // 2025-01-01 en dias desde epoch: ancla para no partir de una cifra enorme
+  const dias = Math.max(0, Math.floor(Date.now() / 86400000) - DIA0);
+  return base + dias * 3; // ~3 mensajes al día, siempre hacia arriba
 }
 
 async function cmdRelevance(sock, msg, groupMeta) {
@@ -378,11 +383,15 @@ async function cmdRelevance(sock, msg, groupMeta) {
 
   const num = target.split('@')[0].split(':')[0];
   const nm = `@${num}`;
+  const label = count === 1 ? '1 mensaje' : `${fmt(count)} mensajes`;
+  // "%C mensajes" se sustituye entero por la etiqueta ya concordada: si no, con
+  // exactamente 1 mensaje la cabecera decia "1 mensaje" y la frase, dos lineas
+  // mas abajo, "1 mensajes".
   const phrase = pickFresh(pool, `${jid}|relevancia|${tierKey}`)
     .replace(/%N/g, nm)
+    .replace(/%C mensajes/g, label)
     .replace(/%C/g, fmt(count));
 
-  const label = count === 1 ? '1 mensaje' : `${fmt(count)} mensajes`;
   const text =
     `*RELEVANCIA EN EL GRUPO*\n` +
     `╾━━━━━━━━━━━━━━╼\n\n` +

@@ -79,7 +79,7 @@ const NEEDS_META = new Set([
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','ganador',
   'puta','guarra','fiel','infiel',
-  'rizz','piropo','coach',
+  'rizz',   // piropo y coach NO: sus handlers no reciben groupMeta (wingman.js:146,158)
   'aura','resetaura','inactivos','inactivo','fantasma','fantasmas','mog','moggear','roast','flamear',
   'duel','duelo','1v1',
   'robo','robar',
@@ -108,6 +108,23 @@ const MEDIA_CMDS = new Set([
   'toimg','stimg','tovid',
   'fk','verificar','verify','check','marcarfake','fake',
 ]);
+
+// Expulsa y dice si WhatsApp lo aceptó DE VERDAD.
+//
+// La llamada devuelve un resultado por participante y puede rechazar la
+// expulsión (privacidad, el objetivo es admin, el bot perdió el admin entre
+// medias). Las guardas automáticas la lanzaban sin mirar y anunciaban la
+// expulsión igual, así que el bot afirmaba haber echado a alguien que seguía
+// sentado en el grupo — el mismo fallo que ya se corrigió en las purgas.
+async function expulsar(sock, jid, target) {
+  try {
+    const res = await sock.groupParticipantsUpdate(jid, [target], 'remove');
+    const fila = Array.isArray(res)
+      ? res.find(r => (r?.jid || '').split('@')[0] === target.split('@')[0])
+      : null;
+    return String(fila?.status ?? '200') === '200';
+  } catch { return false; }
+}
 
 function esComandoDeMedia(text) {
   if (!text.startsWith(config.prefix)) return false;
@@ -364,9 +381,11 @@ async function handleMessage(sock, msg) {
         forget(jid, sender);
         await banAccount(allForms(sender, meta), `spam de ${medio}s sin ver una vez en ${jid}`, 'auto')
           .catch(() => {});
-        sock.groupParticipantsUpdate(jid, [sender], 'remove').catch(() => {});
+        const fuera = await expulsar(sock, jid, sender);
         sock.sendMessage(jid, {
-          text: `@${sender.split('@')[0]} baneado por spam de ${medio === 'video' ? 'videos' : 'fotos'} sin *ver una vez*.`,
+          text: fuera
+            ? `@${sender.split('@')[0]} baneado por spam de ${medio === 'video' ? 'videos' : 'fotos'} sin *ver una vez*.`
+            : `@${sender.split('@')[0]} a la lista negra por spam de ${medio === 'video' ? 'videos' : 'fotos'} sin *ver una vez*. No he podido expulsarlo: hacedlo a mano.`,
           mentions: [sender],
         }).catch(() => {});
         return;
@@ -401,9 +420,11 @@ async function handleMessage(sock, msg) {
         isOwner(sender, msg.key.fromMe, meta);
       if (!protegido && isBotAdmin(sock, meta)) {
         sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
-        sock.groupParticipantsUpdate(jid, [sender], 'remove').catch(() => {});
+        const fuera = await expulsar(sock, jid, sender);
         sock.sendMessage(jid, {
-          text: `@${sender.split('@')[0]} expulsado por publicar un estado con enlaces en el grupo.`,
+          text: fuera
+            ? `@${sender.split('@')[0]} expulsado por publicar un estado con enlaces en el grupo.`
+            : `@${sender.split('@')[0]} publicó un estado con enlaces. Borrado, pero no he podido expulsarlo.`,
           mentions: [sender],
         }).catch(() => {});
       }
@@ -436,9 +457,11 @@ async function handleMessage(sock, msg) {
             return;
           }
           sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
-          sock.groupParticipantsUpdate(jid, [sender], 'remove').catch(() => {});
+          const fuera = await expulsar(sock, jid, sender);
           sock.sendMessage(jid, {
-            text: `@${sender.split('@')[0]} expulsado por enviar enlaces no permitidos.`,
+            text: fuera
+              ? `@${sender.split('@')[0]} expulsado por enviar enlaces no permitidos.`
+              : `@${sender.split('@')[0]} envió un enlace no permitido. Borrado, pero no he podido expulsarlo.`,
             mentions: [sender],
           }).catch(() => {});
           return;

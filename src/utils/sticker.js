@@ -1,3 +1,4 @@
+const zlib = require('zlib');
 const { ffmpegPath, ffprobePath } = require('./ffmpeg');
 const { spawn } = require('child_process');
 const ffmpeg = require('fluent-ffmpeg');
@@ -121,15 +122,64 @@ async function generateAnimatedThumb(animBuf) {
       await cleanTemp(outputFile);
     }
   }
-  // Guaranteed fallback: plain gray PNG so WhatsApp never stacks animation
-  // frames to generate its own static preview (which produces the split visual).
-  try {
-    const { Jimp } = require('jimp');
-    const img = new Jimp({ width: 96, height: 96, color: 0x808080ff });
-    return await img.getBuffer('image/png');
-  } catch {
-    return null;
+  // Último recurso: un PNG gris liso, para que WhatsApp no apile fotogramas de
+  // la animación al fabricarse su propia miniatura (que es lo que produce el
+  // efecto partido).
+  //
+  // Se genera aquí mismo. Antes esto hacía require('jimp'), y jimp no está
+  // instalado ni declarado en package.json, así que el "fallback garantizado"
+  // devolvía null SIEMPRE. Un PNG en escala de grises de color plano son cuatro
+  // trozos y zlib, que viene con Node: sin dependencias no puede fallar.
+  return pngGrisLiso(96);
+}
+
+// ─── PNG mínimo, sin dependencias ────────────────────────────────────────────
+
+const CRC_TABLE = (() => {
+  const t = new Int32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c;
   }
+  return t;
+})();
+
+function crc32(buf) {
+  let c = -1;
+  for (let i = 0; i < buf.length; i++) c = CRC_TABLE[(c ^ buf[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ -1) >>> 0;
+}
+
+function chunk(tipo, datos) {
+  const len = Buffer.alloc(4);
+  len.writeUInt32BE(datos.length);
+  const cuerpo = Buffer.concat([Buffer.from(tipo, 'ascii'), datos]);
+  const crc = Buffer.alloc(4);
+  crc.writeUInt32BE(crc32(cuerpo));
+  return Buffer.concat([len, cuerpo, crc]);
+}
+
+// PNG cuadrado de un solo tono, escala de grises de 8 bits (color type 0).
+function pngGrisLiso(lado, tono = 0x80) {
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(lado, 0);
+  ihdr.writeUInt32BE(lado, 4);
+  ihdr[8] = 8;  // profundidad de bits
+  ihdr[9] = 0;  // escala de grises
+  // 10-12: compresión, filtro e interlazado, todo 0 (los valores por defecto)
+
+  // Cada línea lleva delante su byte de filtro (0 = sin filtro).
+  const linea = Buffer.alloc(lado + 1, tono);
+  linea[0] = 0;
+  const bruto = Buffer.concat(Array.from({ length: lado }, () => linea));
+
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]),
+    chunk('IHDR', ihdr),
+    chunk('IDAT', zlib.deflateSync(bruto)),
+    chunk('IEND', Buffer.alloc(0)),
+  ]);
 }
 
 // WhatsApp's sticker spec is a FIXED 512x512 canvas — that part is mandatory,

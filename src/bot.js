@@ -11,7 +11,7 @@ const fs = require('fs-extra');
 const qrcode = require('qrcode-terminal');
 const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, flushState } = require('./utils/state');
-const { isOwner, sameUser, rememberMapping } = require('./utils/wa');
+const { isOwner, sameUser, rememberMapping, flushOwnerJids } = require('./utils/wa');
 const { flushCounts } = require('./utils/messageCounter');
 const { flushAura } = require('./utils/auraStore');
 const { flushCasino } = require('./utils/casinoStore');
@@ -73,9 +73,6 @@ async function connectToWhatsApp() {
   await fs.ensureDir(AUTH_DIR);
   await ensureTemp();
   await initState();
-
-  const credsFile = path.join(AUTH_DIR, 'creds.json');
-  const hasSession = await fs.pathExists(credsFile);
 
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
   const version = await getBaileysVersion();
@@ -141,7 +138,9 @@ async function connectToWhatsApp() {
         scheduleReconnect(delay);
       } else {
         logger.error('No se pudo reconectar. Reiniciá el bot manualmente.');
-        process.exit(1);
+        // Por gracefulShutdown, NO process.exit directo: si no, se pierden
+        // todas las escrituras diferidas pendientes al rendirse la reconexión.
+        gracefulShutdown(1);
       }
 
     } else if (connection === 'open') {
@@ -168,9 +167,10 @@ async function connectToWhatsApp() {
       // no bloquea el arranque. A partir de aquí se mantiene solo con cada mensaje.
       sweepAllGroups(sock).catch(e => logger.warn(`pfpIndexer: barrido falló: ${e.message}`));
 
-    } else if (connection === 'connecting') {
-      if (!hasSession) return; // only log if reconnecting
     }
+    // No hay rama para 'connecting': la que había estaba vacía y solo servía
+    // para pagar una comprobación de disco (pathExists de creds.json) en cada
+    // reconexión.
   });
 
   sock.ev.on('creds.update', saveCreds);
@@ -455,7 +455,7 @@ async function connectToWhatsApp() {
 }
 
 let _shuttingDown = false;
-async function gracefulShutdown() {
+async function gracefulShutdown(code = 0) {
   // Re-entrancy guard: SIGINT followed by SIGTERM (or a double signal) must not
   // start two concurrent shutdowns / double process.exit.
   if (_shuttingDown) return;
@@ -469,14 +469,18 @@ async function gracefulShutdown() {
     flushCasino(), flushPfpHashes(), flushBanlist(), flushPfpCache(), flushNicks(),
   ]);
   await Promise.race([flushes, new Promise(r => setTimeout(r, 3000))]);
+  // Este es síncrono y no puede colgarse, así que va fuera de la carrera: es el
+  // que guarda los JID de owner aprendidos, y perderlos hace que tras el
+  // reinicio el bot no reconozca al dueño hasta que un comando traiga metadata.
+  flushOwnerJids();
   if (sock) {
     try { sock.end(); } catch {}
   }
-  process.exit(0);
+  process.exit(code);
 }
 
-process.on('SIGINT', gracefulShutdown);
-process.on('SIGTERM', gracefulShutdown);
+process.on('SIGINT', () => gracefulShutdown(0));
+process.on('SIGTERM', () => gracefulShutdown(0));
 
 process.on('uncaughtException', (err) => {
   logger.error(`Excepción no capturada: ${err.message}`);

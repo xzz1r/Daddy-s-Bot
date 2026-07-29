@@ -520,7 +520,12 @@ async function detectBusinesses(sock, idToPhone) {
   for (let i = 0; i < entries.length; i += CONC) {
     const chunk = entries.slice(i, i + CONC);
     const results = await Promise.all(chunk.map(async ([kickId, phoneJid]) => {
-      const ev = await businessEvidence(sock, phoneJid).catch(() => ({ isBiz: false, fields: [] }));
+      // Sin teléfono no se puede consultar el perfil (getBusinessProfile no
+      // acepta LIDs), pero el hecho observado sí vale, así que estos NO se
+      // descartan: se saltan la consulta y se juzgan solo por lo que ya consta.
+      const ev = phoneJid
+        ? await businessEvidence(sock, phoneJid).catch(() => ({ isBiz: false, fields: [] }))
+        : { isBiz: false, fields: [] };
       if (ev.isBiz) return { kickId, ev };
       // WhatsApp adjunta un verified_name a los mensajes de las cuentas
       // Business (Baileys lo expone como msg.verifiedBizName). Si se le ha
@@ -542,16 +547,22 @@ async function scanBusinesses(sock, msg, groupJid, groupMeta) {
   if (!groupMeta?.participants?.length) {
     return sock.sendMessage(groupJid, { text: 'No pude obtener los miembros del grupo.' }, { quoted: msg });
   }
-  // Solo los que tienen forma de telefono: getBusinessProfile no acepta LIDs.
-  const idToPhone = new Map(
-    scannableMembers(sock, groupMeta).filter(m => m.phoneJid).map(m => [m.kickId, m.phoneJid])
-  );
+  // Se escanea a TODOS, con teléfono o sin él. getBusinessProfile no acepta
+  // LIDs, así que a los que solo tienen LID no se les puede consultar el
+  // perfil — pero si WhatsApp ya adjuntó un nombre verificado de negocio a
+  // alguno de sus mensajes, eso basta y no cuesta ninguna consulta. Antes se
+  // les filtraba ANTES de mirar ese dato, así que un Business escondido tras
+  // la privacidad de número no se detectaba jamás.
+  const miembros = scannableMembers(sock, groupMeta);
+  const idToPhone = new Map(miembros.map(m => [m.kickId, m.phoneJid || null]));
+  const sinTelefono = miembros.filter(m => !m.phoneJid).length;
   if (!idToPhone.size) {
-    return sock.sendMessage(groupJid, { text: 'No hay miembros con número consultable para escanear.' }, { quoted: msg });
+    return sock.sendMessage(groupJid, { text: 'No hay miembros que escanear (admins, owner y el bot quedan siempre fuera).' }, { quoted: msg });
   }
 
   await sock.sendMessage(groupJid, {
-    text: `Escaneo de *${idToPhone.size}* miembros (admins y owner exentos)...`,
+    text: `Escaneo de *${idToPhone.size}* miembros (admins y owner exentos)...` +
+      (sinTelefono ? `\n_${sinTelefono} tienen el número oculto: a esos solo se les mira lo ya observado._` : ''),
   }, { quoted: msg });
 
   const detected = await detectBusinesses(sock, idToPhone);

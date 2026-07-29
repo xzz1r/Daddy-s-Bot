@@ -75,24 +75,6 @@ async function convertToJpeg(inputBuf) {
   }
 }
 
-async function convertToGif(inputBuf) {
-  const inputFile = tempFile('webp');
-  const outputFile = tempFile('gif');
-  await fs.writeFile(inputFile, inputBuf);
-  try {
-    await runFfmpegConvert(inputFile, outputFile, {
-      outputOptions: ['-vf', 'fps=15,scale=320:-1:flags=lanczos', '-loop', '0'],
-      format: 'gif',
-    });
-    const buf = await fs.readFile(outputFile);
-    if (buf.length < 100) throw new Error('GIF vacío');
-    return buf;
-  } finally {
-    await cleanTemp(inputFile);
-    await cleanTemp(outputFile);
-  }
-}
-
 // Convierte un WebP animado a MP4 (H.264). pix_fmt yuv420p + dimensiones pares
 // son obligatorios para que WhatsApp y la mayoría de reproductores lo lean. Sin
 // audio (los stickers no lo tienen). Depende de que el ffmpeg del sistema tenga
@@ -198,14 +180,19 @@ async function cmdToImg(sock, msg) {
     if (media.type === 'sticker') {
       if (isAnimatedWebP(buf)) {
 
-        // 1. Try animated → GIF via ffmpeg (works when the build has animated WebP demuxer)
+        // 1. Animado → MP4 en bucle (si el ffmpeg de turno sabe demuxear WebP animado).
+        //
+        // MP4, no GIF: el `gifPlayback` de WhatsApp NO reproduce bytes de GIF, es
+        // un MP4 que el cliente pone en bucle y sin sonido. Aquí se generaba un
+        // GIF de verdad y se anunciaba como `video/mp4`, así que al destinatario
+        // le llegaba un archivo que no podía reproducir.
         let sent = false;
         try {
-          const gif = await convertToGif(buf);
-          await sock.sendMessage(jid, { video: gif, gifPlayback: true, mimetype: 'video/mp4' }, { quoted: msg });
+          const mp4 = await convertToMp4(buf);
+          await sock.sendMessage(jid, { video: mp4, gifPlayback: true, mimetype: 'video/mp4' }, { quoted: msg });
           sent = true;
         } catch (err) {
-          logger.warn(`toimg GIF failed (${err.message.slice(0, 80)}), trying frame extraction`);
+          logger.warn(`toimg MP4 failed (${err.message.slice(0, 80)}), trying frame extraction`);
         }
 
         // 2. Extract first frame directly from ANMF chunk — bypasses ffmpeg animated-WebP decoder

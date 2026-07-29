@@ -218,12 +218,10 @@ async function showRanking(sock, msg, groupMeta) {
   if (ranking.length === 0) {
     return sock.sendMessage(jid, { text: 'Nadie ha medido su aura todavía. Usa *!aura*.' }, { quoted: msg });
   }
-  const medals = ['', '', ''];
   let text = '*RANKING DE AURA*\n\n';
   const mentions = [];
   ranking.forEach((r, i) => {
-    const tag = medals[i] || `*${i + 1}.*`;
-    text += `${tag} @${r.jid.split('@')[0]} — ${fmt(r.aura)}\n`;
+    text += `*${i + 1}.* @${r.jid.split('@')[0]} — ${fmt(r.aura)}\n`;
     mentions.push(r.jid);
   });
   await sock.sendMessage(jid, { text: text.trimEnd(), mentions }, { quoted: msg });
@@ -235,7 +233,7 @@ const AURA_INFO =
 El aura es tu puntuación social en el grupo. Empieza en *1.000* y sube o baja según lo que hagas.
 
 *CÓMO GANAR O PERDER AURA*
-· *!aura* — tiras el dado (3min cooldown). Puede subir o bajar dependiendo de tu rol: el owner tiene ventaja, los admins algo menos, los miembros la peor odds. Cuanto más en rojo estás, más probable el colapso.
+· *!aura* — tiras el dado (3min cooldown). Puede subir o bajar dependiendo de tu rol: el owner tiene ventaja, los admins algo menos, los miembros la peor odds. La tirada no mira cuánta aura llevas: cada tirada empieza de cero.
 · *Bonos automáticos* — solo por escribir en el grupo recibes bonos al llegar a 200, 500 y 1000 mensajes diarios. El contador se reinicia cada 24h, así que la carrera empieza de nuevo cada día. Los premios mínimos garantizados: Tier 1 (200 msgs) *20.000*, Tier 2 (500 msgs) *60.000*, Tier 3 (1000 msgs) *150.000*. Con suerte puedes sacar mucho más.
 · *Jackpot de redención* — si llevas aura negativa, tienes probabilidad extra de sacar un premio enorme en cualquier tier. El aura del grupo no abandona a los hundidos.
 · *!duel @user* — apuesta aura contra otro. El retado acepta con !duel aceptar. Gana el más favorecido por el sistema (owner > admin > miembro), pero nadie está a salvo.

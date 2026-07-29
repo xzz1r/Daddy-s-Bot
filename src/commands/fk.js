@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const {
-  getSender, isOwner, isMainOwner, isGroupAdmin, isBotJid, canonicalJid, bareJid, fetchAbout,
+  getSender, isOwner, isMainOwner, isGroupAdmin, isBotJid, canonicalJid, bareJid, sameUser, fetchAbout,
 } = require('../utils/wa');
 const { streamToBuffer, MAX_MEDIA_BYTES } = require('../utils/helpers');
 const { resolveTarget } = require('./pfp');
@@ -290,15 +290,23 @@ async function cmdFk(sock, msg, args, groupMeta) {
   if (pfp) {
     try {
       const hash = await computeHash(pfp.buf);
+      // computeHash devuelve null si ffmpeg falla, no lanza. Sin esta guarda el
+      // análisis seguía y acababa diciendo "sin coincidencias", presentando un
+      // falso negativo como si fuera un resultado limpio.
+      if (!hash) throw new Error('sin huella');
       const matches = await recordAndMatch(group, targetAcc, hash, now);
       const presentSet = new Set(
         (groupMeta?.participants || []).flatMap(p =>
           [p?.id, p?.lid, p?.phoneNumber].filter(Boolean).map(canonicalJid)
         )
       );
+      // sameUser y no !==: la misma persona puede constar bajo su @lid y bajo su
+      // teléfono, y compararlo literalmente la marcaba como otra cuenta.
+      const otro = (m) => !sameUser(m.account, targetAcc);
+      const presente = (m) => [...presentSet].some(f => sameUser(f, m.account));
       const fake = matches.filter(m => m.fake);
-      const live = matches.filter(m => !m.fake && m.account !== targetAcc && presentSet.has(m.account));
-      const past = matches.filter(m => !m.fake && m.account !== targetAcc && !presentSet.has(m.account));
+      const live = matches.filter(m => !m.fake && otro(m) && presente(m));
+      const past = matches.filter(m => !m.fake && otro(m) && !presente(m));
 
       if (fake.length) {
         score += 8;
@@ -414,6 +422,12 @@ async function cmdMarkFake(sock, msg, args, groupMeta) {
 
   try {
     const hash = await computeHash(pfp.buf);
+    // computeHash devuelve null cuando ffmpeg falla: NO lanza. Sin esta guarda
+    // el catch no se ejecutaba, markFake(null) no marcaba nada y el bot
+    // anunciaba igualmente "Foto marcada como fake (0 registros)".
+    if (!hash) {
+      return sock.sendMessage(jid, { text: 'No pude calcular la huella de la foto: no se ha marcado nada.' }, { quoted: msg });
+    }
     await recordAndMatch(jid.endsWith('@g.us') ? jid : null, canonicalJid(target), hash);
     const n = await markFake(hash);
     return sock.sendMessage(jid, {

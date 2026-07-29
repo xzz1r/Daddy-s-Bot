@@ -178,4 +178,4 @@ async function checkCasinoMilestone(sock, jid, sender) {
   await sock.sendMessage(jid, { text, mentions: [sender] });
 }
 
-module.exports = { checkCasinoMilestone };
+module.exports = { checkCasinoMilestone, nextMilestone };

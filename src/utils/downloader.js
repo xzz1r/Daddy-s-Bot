@@ -4,6 +4,7 @@ const path = require('path');
 const axios = require('axios');
 const config = require('../config');
 const { tempFile, cleanTemp } = require('./helpers');
+const { ffprobePath } = require('./ffmpeg');
 const logger = require('./logger');
 
 // Fuentes de música para !play, en cadena, buscando siempre la canción COMPLETA:
@@ -102,7 +103,10 @@ function audioDuration(file) {
     let out = '';
     let proc;
     try {
-      proc = spawn('ffprobe', ['-v', 'error', '-show_entries', 'format=duration',
+      // ffprobePath, NO el nombre pelado: con el ffmpeg empaquetado no hay ningun
+      // ffprobe en PATH, asi que el spawn fallaba y la duracion salia null SIEMPRE,
+      // dejando muerto el filtro que descarta las previews de 30 segundos.
+      proc = spawn(ffprobePath, ['-v', 'error', '-show_entries', 'format=duration',
         '-of', 'default=noprint_wrappers=1:nokey=1', file]);
     } catch { return resolve(null); }
     const timer = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} resolve(null); }, 15000);

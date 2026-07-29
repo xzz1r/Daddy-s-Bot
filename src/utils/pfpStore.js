@@ -1,6 +1,7 @@
 const path = require('path');
 const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const { hamming } = require('./phash');
+const { sameUser } = require('./wa');
 const logger = require('./logger');
 
 // Store persistente de huellas de fotos de perfil. Un solo registro sirve para
@@ -49,12 +50,23 @@ async function recordAndMatch(group, account, hash, now = Date.now()) {
   await load();
   if (!hash || !account) return [];
 
+  // Una sola pasada: antes se recorría el array dos veces recalculando la
+  // distancia de Hamming de cada registro.
+  //
+  // La comparación de cuenta va por sameUser, NO por igualdad literal. Las
+  // huellas se guardan con la forma canónica del momento, así que una cuenta
+  // indexada por su @lid antes de conocerse la correspondencia y luego por su
+  // teléfono quedaba como DOS cuentas distintas: al coincidir sus fotos el bot
+  // acusaba en público a la persona de usar la foto de otra. Que es ella misma.
   const matches = [];
+  let existing = null;
   for (const r of store.records) {
     const d = hamming(r.hash, hash);
+    const mismaPersona = sameUser(r.account, account);
+    if (mismaPersona && !existing && d <= SAME_ACCOUNT_DIST) existing = r;
     if (d > MATCH_THRESHOLD) continue;
     // La misma cuenta con su propia foto no es una alerta (salvo que esté fake).
-    if (r.account === account && !r.fake) continue;
+    if (mismaPersona && !r.fake) continue;
     matches.push({
       account: r.account,
       groups: Array.isArray(r.groups) ? r.groups.slice() : [],
@@ -64,11 +76,6 @@ async function recordAndMatch(group, account, hash, now = Date.now()) {
       distance: d,
     });
   }
-
-  // Actualiza el registro existente de esta cuenta o crea uno nuevo.
-  const existing = store.records.find(
-    r => r.account === account && hamming(r.hash, hash) <= SAME_ACCOUNT_DIST
-  );
   if (existing) {
     existing.lastSeen = now;
     existing.hash = hash; // deja la última variante vista
@@ -127,6 +134,10 @@ async function matchOnly(hash) {
 // futuras coincidencias salten al instante. Devuelve cuántos registros marcó.
 async function markFake(hash) {
   await load();
+  // Sin hash no hay nada que marcar. Devolver 0 aquí es lo que permite a !fk
+  // distinguir "no marqué nada" de "marqué", en vez de anunciar un éxito falso
+  // cuando el cálculo de la huella falló y llegó null.
+  if (!hash) return 0;
   let n = 0;
   for (const r of store.records) {
     if (hamming(r.hash, hash) <= MATCH_THRESHOLD) { r.fake = true; n++; }
