@@ -671,8 +671,11 @@ async function cmdAdd(sock, msg, args, groupMeta) {
   }
 }
 
-// !antilink on/off — owner only. YouTube/Instagram links get a "send once"
-// reminder; any other link gets the sender kicked and the message deleted.
+// !antilink on/off — solo owner. Se borra CUALQUIER enlace:
+//   YouTube / Instagram → borrado + aviso de que ese permiso lo dan los admins.
+//                         No se expulsa ni se banea a nadie.
+//   cualquier otro       → borrado + expulsión del que lo envió.
+// Los admins del grupo quedan siempre exentos.
 async function cmdAntiLink(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
@@ -692,7 +695,9 @@ async function cmdAntiLink(sock, msg, args, groupMeta) {
   const enable = arg === 'on';
   await toggleAntiLink(jid, enable);
   await sock.sendMessage(jid, {
-    text: enable ? 'Anti-link *activado*.' : 'Anti-link *desactivado*.',
+    text: enable
+      ? 'Anti-link *activado*. Se borra cualquier enlace: los de YouTube e Instagram solo con aviso, el resto con expulsion. Los admins quedan exentos.'
+      : 'Anti-link *desactivado*.',
   }, { quoted: msg });
 }
 

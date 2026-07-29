@@ -1,3 +1,4 @@
+const { pickFresh } = require('../utils/helpers');
 const config = require('../config');
 const { isBotEnabled, incrementStat, isAntiLinkEnabled } = require('../utils/state');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
@@ -64,6 +65,33 @@ function classifyLinks(text) {
   }
   return whitelisted ? 'whitelisted' : 'none';
 }
+
+// Aviso para quien suelta un enlace de YouTube o Instagram. El enlace se borra
+// igual, pero aquí no se expulsa ni se banea: solo se le deja claro que
+// publicar eso es un permiso que conceden los admins, no algo que se toma por
+// su cuenta. Rota para que no salga siempre lo mismo.
+const PERMISO_ENLACE = [
+  'ese enlace se borra. Publicar links aquí es un privilegio, y los privilegios se piden a los admins, no se toman.',
+  'borrado. Aquí no se publica porque a uno le apetezca: se publica cuando un admin considera que te lo has ganado.',
+  'fuera. Si quieres que tus enlaces sobrevivan, gánate primero que un admin confíe en lo que traes.',
+  'eliminado. El derecho a compartir links no viene con la entrada al grupo: lo conceden los admins, y a ti aún no.',
+  'ese link no se queda. Pide permiso a un admin antes, y si te lo dan, entonces sí.',
+  'borrado. Aquí se pide, no se impone. Habla con un admin y que sea él quien decida si tu contenido entra.',
+  'lo he quitado. Compartir enlaces es un permiso que dan los admins con el tiempo, no algo que se coja por atrevimiento.',
+  'fuera. Antes de volver a publicar algo así, asegúrate de tener la aprobación explícita de un admin.',
+  'eliminado. Ganarte ese derecho depende de los admins, así que empieza por respetar el grupo y ganarte su visto bueno.',
+  'ese enlace sobra. Los que publican aquí ya tienen el sí de un admin; tú todavía estás en la fase de pedirlo.',
+  'borrado. No es contra ti: es que ese permiso lo reparten los admins y a ti aún no te ha tocado.',
+  'quitado. Demuestra primero que aportas algo al grupo y luego pídele a un admin que te deje compartir enlaces.',
+  'fuera. Aquí el orden es sencillo: primero te ganas la confianza de los admins, después publicas.',
+  'eliminado. Si de verdad quieres compartir eso, pídeselo a un admin y acepta lo que decida.',
+  'borrado. Publicar links es cosa de quien se lo ha ganado ante los admins. Ponte a ello y con el tiempo lo tendrás.',
+  'ese link no pinta nada aquí todavía. Cuando un admin diga que sí, será distinto. Hasta entonces, no.',
+  'quitado. El permiso lo dan los admins y lo dan a quien se porta. Tú decides en qué grupo entrar.',
+  'fuera. Nadie publica enlaces aquí por su cuenta: se le consulta antes a un admin y se respeta la respuesta.',
+  'eliminado. Tu sitio en el grupo se construye día a día, y el permiso de los admins para publicar viene mucho después.',
+  'borrado. Pídeselo a un admin, espera y acepta. Es la única vía que hay para acabar publicando enlaces aquí.',
+];
 
 // Commands that need group metadata — skip the network call for everything else
 const NEEDS_META = new Set([
@@ -209,25 +237,70 @@ function unwrapEnvelope(message) {
 // lo abre unwrapEnvelope a propósito, para poder distinguir un estado de un
 // mensaje normal.
 //
-// Devuelve el contenido del estado, o null si el mensaje no es un estado.
+// ¿Este mensaje es un estado publicado al grupo? Devuelve las piezas donde
+// puede estar su contenido, o null si no lo es.
+//
+// Se miran TODAS las señales, no solo el envoltorio. Mirar únicamente
+// `groupStatusMentionMessage.message` era el motivo de que esto no saltara
+// nunca: ese envoltorio suele llegar con un contenido de relleno, y el estado
+// de verdad viaja aparte, en `contextInfo.statusMentionMessageInfo.quotedStatus`
+// (proto.IStatusMentionMessage, WAProto/index.d.ts:11329). Hay además dos
+// marcas más en el contextInfo (`statusMentions`, `statusMentionSources`) que
+// delatan un estado aunque el envoltorio no venga.
 function statusPayload(message) {
   const w = message?.groupStatusMentionMessage || message?.statusMentionMessage;
-  return w?.message || null;
+  const ctx =
+    message?.extendedTextMessage?.contextInfo ||
+    message?.imageMessage?.contextInfo ||
+    message?.videoMessage?.contextInfo ||
+    w?.message?.extendedTextMessage?.contextInfo ||
+    null;
+
+  const marcado =
+    Boolean(w) ||
+    ctx?.isMentionedInStatus === true ||
+    Boolean(ctx?.statusMentionMessageInfo) ||
+    (Array.isArray(ctx?.statusMentions) && ctx.statusMentions.length > 0) ||
+    (Array.isArray(ctx?.statusMentionSources) && ctx.statusMentionSources.length > 0);
+
+  if (!marcado) return null;
+  return [w?.message, ctx?.statusMentionMessageInfo?.quotedStatus, message].filter(Boolean);
 }
 
-// Todo el texto visible de un contenido de estado: cuerpo y pies de foto.
-// Se concatena en lugar de quedarse con el primero, porque el enlace puede
-// venir en cualquiera de ellos.
-function statusText(inner) {
-  if (!inner) return '';
-  const m = unwrapEnvelope(inner);
-  return [
-    m?.conversation,
-    m?.extendedTextMessage?.text,
-    m?.imageMessage?.caption,
-    m?.videoMessage?.caption,
-    m?.documentMessage?.caption,
-  ].filter(t => typeof t === 'string' && t).join(' ');
+// Campos que llevan texto o enlaces ESCRITOS por la persona. Se listan a
+// propósito en vez de recorrer el objeto entero: un estado con foto trae
+// `url`, `directPath` y demás rutas internas de WhatsApp, y darlas por buenas
+// haría saltar el guardia con CUALQUIER estado con imagen. De aquí cuelga una
+// expulsión, así que solo valen los campos que escribe el usuario.
+const CAMPOS_TEXTO = new Set([
+  'conversation', 'text', 'caption', 'description', 'title',
+  'matchedText', 'canonicalUrl', 'sourceUrl',
+]);
+
+// Todo el texto visible de un estado, mire donde mire. Recorre las piezas en
+// profundidad porque el contenido puede venir anidado de varias formas según
+// cómo se publicara (texto, foto con pie, enlace con vista previa...).
+function statusText(piezas) {
+  if (!piezas) return '';
+  const trozos = [];
+  const visto = new Set();
+
+  const recorrer = (o, prof) => {
+    if (!o || prof > 8 || typeof o !== 'object') return;
+    if (Buffer.isBuffer(o) || ArrayBuffer.isView(o)) return;
+    if (visto.has(o)) return;
+    visto.add(o);
+    for (const [k, v] of Object.entries(o)) {
+      if (typeof v === 'string') {
+        if (CAMPOS_TEXTO.has(k) && v) trozos.push(v);
+      } else if (v && typeof v === 'object') {
+        recorrer(v, prof + 1);
+      }
+    }
+  };
+
+  for (const p of (Array.isArray(piezas) ? piezas : [piezas])) recorrer(unwrapEnvelope(p), 0);
+  return trozos.join(' ');
 }
 
 // ¿El mensaje venía marcado como "ver una vez"?
@@ -412,25 +485,36 @@ async function handleMessage(sock, msg) {
   const statusInner = statusPayload(msg.message);
   if (jid.endsWith('@g.us') && statusInner) {
     const stext = statusText(statusInner);
-    if (stext && URL_RE.test(stext)) {
-      URL_RE.lastIndex = 0; // el flag /g mantiene estado entre llamadas
+    URL_RE.lastIndex = 0; // el flag /g mantiene estado entre llamadas
+    const conEnlace = Boolean(stext) && URL_RE.test(stext);
+    URL_RE.lastIndex = 0;
+    // Rastro de lo que llega de verdad. Este guardia depende del formato exacto
+    // en que WhatsApp empuja un estado al grupo, que no está documentado: si
+    // algún día vuelve a no saltar, este log dice si el mensaje se reconoció
+    // como estado y qué texto se le sacó.
+    logger.info(`estado en grupo: enlace=${conEnlace} tipos=[${Object.keys(msg.message || {}).join(',')}] texto="${stext.slice(0, 120)}"`);
+
+    if (conEnlace) {
       const meta = await getGroupMeta(sock, jid);
       const protegido = !meta ||
         isGroupAdmin(sender, msg.key.fromMe, meta) ||
         isOwner(sender, msg.key.fromMe, meta);
       if (!protegido && isBotAdmin(sock, meta)) {
         sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
+        // Lista negra global, igual que el spam de medios: colar enlaces por
+        // estado es la misma clase de spam y no debe poder repetirse entrando
+        // otra vez con la misma cuenta.
+        await banAccount(allForms(sender, meta), `estado con enlaces en ${jid}`, 'auto').catch(() => {});
         const fuera = await expulsar(sock, jid, sender);
         sock.sendMessage(jid, {
           text: fuera
-            ? `@${sender.split('@')[0]} expulsado por publicar un estado con enlaces en el grupo.`
-            : `@${sender.split('@')[0]} publicó un estado con enlaces. Borrado, pero no he podido expulsarlo.`,
+            ? `@${sender.split('@')[0]} baneado por publicar un estado con enlaces en el grupo.`
+            : `@${sender.split('@')[0]} publicó un estado con enlaces. Borrado y a la lista negra, pero no he podido expulsarlo: hacedlo a mano.`,
           mentions: [sender],
         }).catch(() => {});
       }
       return; // el estado con enlaces no sigue procesándose en ningún caso
     }
-    URL_RE.lastIndex = 0;
   }
 
   if (jid.endsWith('@g.us') && text && isAntiLinkEnabled(jid)) {
@@ -466,16 +550,36 @@ async function handleMessage(sock, msg) {
           }).catch(() => {});
           return;
         }
-        // whitelisted → gentle reminder once per user per 5 min, no deletion or kick
+        // YouTube / Instagram: el enlace SE BORRA igual, pero no se expulsa ni se
+        // banea a nadie. Solo se le dice que publicar eso es un permiso que se
+        // pide a los admins, no algo que se toma por su cuenta.
+        //
+        // Sin bot admin no se puede borrar: se avisa una vez por grupo y ya.
+        if (!meta || !isBotAdmin(sock, meta)) {
+          const lastW = antilinkNoAdminWarn.get(jid);
+          if (!lastW || Date.now() - lastW > ANTILINK_REMINDER_TTL) {
+            antilinkNoAdminWarn.set(jid, Date.now());
+            sock.sendMessage(jid, {
+              text: 'Detecté un enlace, pero no soy admin y no puedo borrarlo. Dame admin para moderar.',
+            }).catch(() => {});
+          }
+          return;
+        }
+        sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
+
+        // El aviso va limitado a uno por persona cada 5 min: el enlace se borra
+        // siempre, pero no se inunda el chat repitiéndoselo.
         const rKey = `${jid}|${sender}`;
         const lastR = antilinkReminders.get(rKey);
         if (!lastR || Date.now() - lastR > ANTILINK_REMINDER_TTL) {
           if (antilinkReminders.size >= 2000) antilinkReminders.delete(antilinkReminders.keys().next().value);
           antilinkReminders.set(rKey, Date.now());
           sock.sendMessage(jid, {
-            text: 'Links de *YouTube* e *Instagram* permitidos. No spamees.',
-          }, { quoted: msg }).catch(() => {});
+            text: `@${sender.split('@')[0]} ${pickFresh(PERMISO_ENLACE, `${jid}|permiso`)}`,
+            mentions: [sender],
+          }).catch(() => {});
         }
+        return;
       }
     }
   }
@@ -814,4 +918,4 @@ async function handleMessage(sock, msg) {
 
 }
 
-module.exports = { handleMessage, invalidateGroupMeta, getGroupMeta };
+module.exports = { handleMessage, invalidateGroupMeta, getGroupMeta, PERMISO_ENLACE };
