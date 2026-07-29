@@ -58,20 +58,53 @@ function scheduleSave() {
   }, 5000);
 }
 
+// Junta en una sola clave las entradas que son de la MISMA persona.
+//
+// Las escrituras usan canonicalJid, pero esa forma depende de si ya se conocía
+// la correspondencia LID<->teléfono en ese momento. Quien acumuló aura bajo su
+// @lid antes de que WhatsApp mandara el par acaba con dos saldos: el viejo se
+// vuelve invisible (aura perdida) y en el ranking sale dos veces.
+//
+// El saldo unido NO es la suma a secas: cada entrada partida arrancó por su
+// cuenta en STARTING_AURA, así que hay que descontar ese arranque de más una
+// vez por cada entrada sobrante. Con dos entradas de 1000 (el arranque) el
+// resultado es 1000, no 2000.
+//
+// Devuelve la clave canónica, ya con todo dentro y las sobrantes borradas.
+function foldPerson(g, userJid) {
+  const key = canonicalJid(userJid);
+  let total = g[key];
+  let extras = 0;
+  for (const k in g) {
+    if (k === key || canonicalJid(k) !== key) continue;
+    total = (total === undefined ? 0 : total) + g[k];
+    delete g[k];
+    extras++;
+  }
+  if (extras) {
+    // Si la clave canónica no existía, una de las sobrantes hace de base y solo
+    // los extras restantes traen arranque duplicado.
+    const duplicados = g[key] === undefined ? extras - 1 : extras;
+    g[key] = total - STARTING_AURA * duplicados;
+    scheduleSave();
+  }
+  return key;
+}
+
 async function getAura(groupJid, userJid) {
   await load();
-  const key = canonicalJid(userJid);
   const g = store[groupJid];
-  if (!g || g[key] === undefined) return STARTING_AURA;
-  return g[key];
+  if (!g) return STARTING_AURA;
+  const key = foldPerson(g, userJid);
+  return g[key] === undefined ? STARTING_AURA : g[key];
 }
 
 async function addAura(groupJid, userJid, delta) {
   await load();
   const qKey = `${groupJid}|${canonicalJid(userJid)}`;
   return serialized(qKey, () => {
-    const key = canonicalJid(userJid);
     if (!store[groupJid]) store[groupJid] = {};
+    const key = foldPerson(store[groupJid], userJid);
     const previous = store[groupJid][key] === undefined ? STARTING_AURA : store[groupJid][key];
     const current = previous + delta;
     store[groupJid][key] = current;
@@ -94,6 +127,8 @@ async function transferAura(groupJid, fromJid, toJid, amount) {
   return serialized(qKey, () => {
     if (!store[groupJid]) store[groupJid] = {};
     const g = store[groupJid];
+    foldPerson(g, fromJid);
+    foldPerson(g, toJid);
     const fromCurrent = g[fromKey] === undefined ? STARTING_AURA : g[fromKey];
     if (fromCurrent < amount) return { ok: false, fromCurrent };
     g[fromKey] = fromCurrent - amount;
@@ -107,8 +142,20 @@ async function getAuraRanking(groupJid) {
   await load();
   const g = store[groupJid];
   if (!g) return [];
-  return Object.keys(g)
-    .map(jid => ({ jid, aura: g[jid] }))
+  // Une las formas de cada persona antes de ordenar: si no, el mismo miembro
+  // sale dos veces y la fila del @lid pinta un número interno que WhatsApp no
+  // resuelve como mención.
+  const por = new Map(); // clave canónica -> { jid, aura, extras }
+  for (const k in g) {
+    const id = canonicalJid(k);
+    const prev = por.get(id);
+    if (!prev) { por.set(id, { jid: k, aura: g[k], extras: 0 }); continue; }
+    prev.aura += g[k];
+    prev.extras++;
+    if (!k.endsWith('@lid')) prev.jid = k; // el teléfono es el que se puede mencionar
+  }
+  return [...por.values()]
+    .map(({ jid, aura, extras }) => ({ jid, aura: aura - STARTING_AURA * extras }))
     .sort((a, b) => b.aura - a.aura);
 }
 

@@ -94,6 +94,27 @@ const NEEDS_META = new Set([
   'clearcache','borracache','setgrok','setkey','whoami',
 ]);
 
+// Comandos que TRABAJAN sobre la foto o el vídeo que llevan adjunto. La guarda
+// de medios sin "ver una vez" los deja pasar: mandar una foto con el pie *!s*
+// es usar el bot, no spamear, y contarlo como ofensa acababa expulsando a gente
+// por hacerse cinco stickers seguidos. Con un vídeo pasaba algo peor: se
+// borraba antes de llegar al comando, así que *!s* sobre un vídeo normal no
+// producía sticker nunca.
+//
+// Es una lista cerrada a propósito. Si valiera cualquier texto que empiece por
+// el prefijo, bastaría con poner *!loquesea* de pie para saltarse la norma.
+const MEDIA_CMDS = new Set([
+  's','sticker','stk',
+  'toimg','stimg','tovid',
+  'fk','verificar','verify','check','marcarfake','fake',
+]);
+
+function esComandoDeMedia(text) {
+  if (!text.startsWith(config.prefix)) return false;
+  const first = text.slice(config.prefix.length).trim().split(/\s+/, 1)[0].toLowerCase();
+  return MEDIA_CMDS.has(first);
+}
+
 // Throttle whitelist reminder to once per user per 5 min (no spam on every YT link).
 const ANTILINK_REMINDER_TTL = 5 * 60 * 1000;
 const antilinkReminders = new Map(); // 'groupJid|sender' -> timestamp
@@ -229,11 +250,34 @@ async function handleMessage(sock, msg) {
   const sender = getSender(msg);
   const text = extractText(msg).trim();
 
-  // Some Baileys versions surface both LID (msg.key.participant) and phone
-  // (msg.key.participantPn) on every group message. Free LID→phone training
-  // data — record it so owner checks resolve even without groupMeta.
-  if (msg.key.participantPn && msg.key.participant) {
-    rememberMapping(msg.key.participant, msg.key.participantPn);
+  // Correspondencia LID<->teléfono que WhatsApp adjunta a CADA mensaje de grupo.
+  // Es la fuente más barata y fresca que hay, y de ella depende que una persona
+  // no se parta en dos identidades (aura, conteo, owner).
+  //
+  // El campo es `participantAlt`, NO `participantPn`: este último no existe en
+  // la key de un mensaje en Baileys 7 (Types/Message.d.ts declara participantAlt,
+  // y Utils/decode-wa-message.js:187 es quien lo rellena). Leerlo daba undefined
+  // siempre, así que esta capa entera llevaba sin funcionar.
+  //
+  // Y `participantAlt` es la forma ALTERNATIVA, no siempre el teléfono: en un
+  // grupo direccionado por LID participant es el LID y alt el teléfono, pero en
+  // uno direccionado por PN es al revés (extractAddressingContext, mismo
+  // fichero, líneas 69-86). Guardar el par al revés metería basura en la caché
+  // de mapeos, así que se decide por addressingMode y, si no viene, por el
+  // servidor del propio JID.
+  let senderPn = null;
+  const alt = msg.key.participantAlt || msg.key.participantPn; // participantPn: solo compat
+  if (alt && msg.key.participant) {
+    const altEsLid = msg.key.addressingMode
+      ? msg.key.addressingMode !== 'lid'
+      : String(alt).endsWith('@lid');
+    if (altEsLid) {
+      rememberMapping(alt, msg.key.participant);
+      senderPn = msg.key.participant;
+    } else {
+      rememberMapping(msg.key.participant, alt);
+      senderPn = alt;
+    }
   }
 
   // Skip own messages that aren't commands (avoids bot responding to itself)
@@ -245,13 +289,14 @@ async function handleMessage(sock, msg) {
   incrementStat('messagesReceived');
   // El owner principal no cuenta para el ranking de actividad (!count): sus
   // mensajes no deben inflar la tabla. Los co-owners y el resto sí cuentan.
-  // Se comprueba de tres formas para que sea fiable incluso en grupos LID:
-  //  1) el JID del remitente (LID) resuelto con la metadata ya cacheada,
-  //  2) el teléfono directo (participantPn) que WhatsApp adjunta en cada mensaje,
-  //  3) el JID crudo, por si el grupo ya usa el número como id.
+  // Se comprueba de dos formas para que sea fiable incluso en grupos LID:
+  //  1) el JID del remitente resuelto con la metadata ya cacheada,
+  //  2) su teléfono, sacado arriba del par que trae el propio mensaje. Esta es
+  //     la que salva el caso de recién arrancado, con la caché de metadata
+  //     vacía y el LID del owner aún sin aprender.
   const senderIsMainOwner =
     isMainOwner(sender, false, peekGroupMeta(jid)) ||
-    (msg.key.participantPn && isMainOwner(msg.key.participantPn, false, null));
+    (!!senderPn && isMainOwner(senderPn, false, null));
   if (!msg.key.fromMe && jid.endsWith('@g.us') && sender && !senderIsMainOwner) {
     incrementMsgCount(jid, sender).catch(() => {});
     // verifiedBizName solo viaja en mensajes de cuentas Business: se anota como
@@ -298,7 +343,7 @@ async function handleMessage(sock, msg) {
   const foto  = msg.message?.imageMessage;
   const medio = (video && !video.gifPlayback) ? 'video' : (foto ? 'image' : null);
 
-  if (jid.endsWith('@g.us') && medio && !eraViewOnce) {
+  if (jid.endsWith('@g.us') && medio && !eraViewOnce && !esComandoDeMedia(text)) {
     const meta = await getGroupMeta(sock, jid);
     const protegido = !meta ||
       isGroupAdmin(sender, msg.key.fromMe, meta) ||

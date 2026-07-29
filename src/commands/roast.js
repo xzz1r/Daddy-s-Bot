@@ -1,6 +1,6 @@
 'use strict';
 
-const { getSender, getTarget, isMainOwner, bareJid } = require('../utils/wa');
+const { getSender, getTarget, isMainOwner, bareJid, fetchAbout } = require('../utils/wa');
 const { pick, fmt } = require('../utils/helpers');
 const { getUserCount } = require('../utils/messageCounter');
 
@@ -474,12 +474,7 @@ async function cmdRoast(sock, msg, groupMeta) {
     participant?.notify ||
     `@${targetNum}`;
 
-  const [bioResult, msgCount] = await Promise.all([
-    sock.fetchStatus(target).catch(() => null),
-    getUserCount(jid, target),
-  ]);
-
-  const bio = bioResult?.status?.trim() || '';
+  const msgCount = await getUserCount(jid, target);
   // Menos de 100 mensajes = inactivo: entra de lleno en los insultos por
   // inactividad (fantasma, parásito, cero aporte).
   const isInactive = msgCount < 100;
@@ -518,6 +513,11 @@ async function cmdRoast(sock, msg, groupMeta) {
         roastText = tpl.replace(/%N/g, displayName);
         break;
       case 'bio': {
+        // La bio se pide AQUÍ, no arriba. Solo hace falta en esta rama (una de
+        // cada ocho veces que no sale combinada), así que consultarla siempre
+        // era una petición de red a WhatsApp tirada en ~96% de los !roast.
+        const about = await fetchAbout(sock, target);
+        const bio = about?.status?.trim() || '';
         const pool = bio ? BIO_FULL : BIO_EMPTY;
         tpl = freshPick(pool, usedTpls);
         roastText = bio ? tpl.replace(/%N/g, displayName) : tpl;

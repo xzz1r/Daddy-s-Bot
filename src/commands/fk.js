@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const {
-  getSender, isOwner, isMainOwner, isGroupAdmin, isBotJid, canonicalJid, bareJid,
+  getSender, isOwner, isMainOwner, isGroupAdmin, isBotJid, canonicalJid, bareJid, fetchAbout,
 } = require('../utils/wa');
 const { streamToBuffer, MAX_MEDIA_BYTES } = require('../utils/helpers');
 const { resolveTarget } = require('./pfp');
@@ -63,9 +63,13 @@ function findImage(msg) {
   const quoted = ctx?.quotedMessage;
   const pick = (m) => {
     if (!m) return null;
-    if (m.imageMessage) return { mediaMsg: m.imageMessage, type: 'image' };
-    if (m.stickerMessage) return { mediaMsg: m.stickerMessage, type: 'sticker' };
-    if (m.documentMessage?.mimetype?.startsWith('image/')) return { mediaMsg: m.documentMessage, type: 'image' };
+    // `dl` es el tipo con el que hay que PEDIR la descarga: la clave de
+    // descifrado se deriva de él, así que un adjunto enviado como archivo se
+    // baja como 'document' aunque por dentro sea una imagen. Pedirlo como
+    // 'image' deriva la clave equivocada y baja basura.
+    if (m.imageMessage) return { mediaMsg: m.imageMessage, type: 'image', dl: 'image' };
+    if (m.stickerMessage) return { mediaMsg: m.stickerMessage, type: 'sticker', dl: 'sticker' };
+    if (m.documentMessage?.mimetype?.startsWith('image/')) return { mediaMsg: m.documentMessage, type: 'image', dl: 'document' };
     const inner = m.viewOnceMessage?.message || m.viewOnceMessageV2?.message || m.viewOnceMessageV2Extension?.message;
     return inner ? pick(inner) : null;
   };
@@ -80,7 +84,7 @@ function findImage(msg) {
 
 async function downloadImage(found) {
   try {
-    const stream = await downloadContentFromMessage(found.mediaMsg, found.type === 'sticker' ? 'sticker' : 'image');
+    const stream = await downloadContentFromMessage(found.mediaMsg, found.dl || (found.type === 'sticker' ? 'sticker' : 'image'));
     const buf = await streamToBuffer(stream, MAX_MEDIA_BYTES);
     return buf && buf.length > 100 ? buf : null;
   } catch { return null; }
@@ -183,21 +187,11 @@ async function searchBlock(buf, imgUrl) {
   return out;
 }
 
-// Info de perfil vía USync: { status, setAt } o null si la consulta falla.
+// La lectura del "info" vive en utils/wa.js (fetchAbout), compartida con !roast.
 // setAt es ORO como proxy de antigüedad: WhatsApp no expone la fecha de
 // creación de la cuenta, pero un "info" escrito hace 3 años PRUEBA que la
 // cuenta ya existía hace 3 años. Uno de hace 2 días (o nunca escrito) no
 // prueba nada por sí solo, pero suma al puntaje.
-async function fetchAbout(sock, target) {
-  try {
-    const list = await sock.fetchStatus(target);
-    const entry = Array.isArray(list) ? list[0] : list;
-    const st = entry?.status && typeof entry.status === 'object' ? entry.status : entry;
-    if (!st) return null;
-    const setAt = st.setAt instanceof Date ? st.setAt.getTime() : (st.setAt ? +st.setAt : 0);
-    return { status: st.status ?? null, setAt: Number.isFinite(setAt) ? setAt : 0 };
-  } catch { return null; }
-}
 
 // ─── !fk — análisis anti-fake con puntaje de riesgo ──────────────────────────
 

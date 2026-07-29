@@ -207,11 +207,28 @@ async function cmdKick(sock, msg, args, groupMeta) {
 
   try {
     // Single batch call to the WA API instead of one round-trip per user.
-    await sock.groupParticipantsUpdate(jid, targets, 'remove');
-    const tags = targets.map(t => `@${t.split('@')[0]}`).join(', ');
-    let text = targets.length === 1
-      ? `${tags} fue expulsado del grupo.`
-      : `*${targets.length}* expulsados: ${tags}`;
+    const res = await sock.groupParticipantsUpdate(jid, targets, 'remove');
+    // WhatsApp responde por participante y puede rechazar a unos y aceptar a
+    // otros. Anunciar la lista entera sin mirarlo hacía que el bot afirmara
+    // haber expulsado a gente que sigue sentada en el grupo.
+    const codigo = (t) => String(
+      (Array.isArray(res) ? res.find(r => (r?.jid || '').split('@')[0] === t.split('@')[0]) : null)?.status ?? '200'
+    );
+    const hechos  = targets.filter(t => codigo(t) === '200');
+    const fallidos = targets.filter(t => codigo(t) !== '200');
+
+    let text;
+    if (!hechos.length) {
+      text = `No se pudo expulsar a nadie: WhatsApp rechazó la operación (${codigo(targets[0])}).`;
+    } else {
+      const tags = hechos.map(t => `@${t.split('@')[0]}`).join(', ');
+      text = hechos.length === 1
+        ? `${tags} fue expulsado del grupo.`
+        : `*${hechos.length}* expulsados: ${tags}`;
+    }
+    if (fallidos.length && hechos.length) {
+      text += `\nNo se pudo expulsar a: ${fallidos.map(t => `@${t.split('@')[0]}`).join(', ')}`;
+    }
     if (skipped.length) {
       const skipTags = skipped.map(s => `@${s.jid.split('@')[0]} (${s.reason})`).join(', ');
       text += `\nSalteados: ${skipTags}`;
@@ -616,23 +633,28 @@ async function cmdAdd(sock, msg, args, groupMeta) {
   const targetJid = `${raw}@s.whatsapp.net`;
   try {
     const result = await sock.groupParticipantsUpdate(jid, [targetJid], 'add');
-    const status = result?.[0]?.status;
-    if (status === 200) {
+    // El codigo llega SIEMPRE como cadena: Baileys lo construye con
+    // `p.attrs.error || '200'` (Socket/groups.js:137), y los atributos del nodo
+    // binario son texto. Compararlo contra numeros no acertaba ni una vez, asi
+    // que las cuatro respuestas utiles eran codigo muerto y el owner siempre
+    // recibia el mensaje generico de "codigo X".
+    const status = String(result?.[0]?.status ?? '');
+    if (status === '200') {
       return sock.sendMessage(jid, {
         text: `@${raw} fue agregado al grupo.`,
         mentions: [targetJid],
       }, { quoted: msg });
     }
-    if (status === 403) {
+    if (status === '403') {
       return sock.sendMessage(jid, { text: `No se pudo agregar a +${raw}: su configuracion de privacidad no permite ser agregado a grupos.` }, { quoted: msg });
     }
-    if (status === 408) {
+    if (status === '408') {
       return sock.sendMessage(jid, { text: `No se pudo agregar a +${raw}: el numero no existe en WhatsApp.` }, { quoted: msg });
     }
-    if (status === 409) {
+    if (status === '409') {
       return sock.sendMessage(jid, { text: `+${raw} ya esta en el grupo.` }, { quoted: msg });
     }
-    return sock.sendMessage(jid, { text: `Resultado para +${raw}: codigo ${status ?? 'desconocido'}.` }, { quoted: msg });
+    return sock.sendMessage(jid, { text: `Resultado para +${raw}: codigo ${status || 'desconocido'}.` }, { quoted: msg });
   } catch (err) {
     return sock.sendMessage(jid, { text: `No pude agregar al usuario: ${err.message}` }, { quoted: msg });
   }

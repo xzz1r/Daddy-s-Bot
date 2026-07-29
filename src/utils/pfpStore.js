@@ -1,4 +1,3 @@
-const fs = require('fs-extra');
 const path = require('path');
 const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const { hamming } = require('./phash');

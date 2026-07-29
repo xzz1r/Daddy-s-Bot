@@ -209,7 +209,15 @@ async function atomicWriteJson(file, data) {
     // Compact JSON: these are machine-only files written every few seconds on
     // the debounced path — pretty-printing just doubles size and CPU/disk.
     await fs.outputFile(tmp, JSON.stringify(data));
-    await fs.move(tmp, file, { overwrite: true });
+    // rename, NO fs.move. fs.move con overwrite hace remove(dest) ANTES del
+    // rename (fs-extra/lib/move/move.js:28-35), así que deja una ventana en la
+    // que el fichero de datos NO existe: un corte justo ahí se lleva el store
+    // entero, que es exactamente lo que esta función promete evitar.
+    //
+    // rename(2) sobre un destino existente es atómico y nunca deja el hueco. El
+    // temporal se crea en el mismo directorio que el destino a propósito, así
+    // que están en el mismo sistema de ficheros y no hay EXDEV que valga.
+    await fs.rename(tmp, file);
   } catch (err) {
     await fs.remove(tmp).catch(() => {});
     throw err;

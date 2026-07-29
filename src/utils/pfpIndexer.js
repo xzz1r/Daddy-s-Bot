@@ -2,7 +2,7 @@ const axios = require('axios');
 const { computeHash } = require('./phash');
 const { recordAndMatch } = require('./pfpStore');
 const pfpCache = require('./pfpCache');
-const { canonicalJid, bareJid } = require('./wa');
+const { canonicalJid } = require('./wa');
 const logger = require('./logger');
 
 // Indexado AUTOMÁTICO de fotos de perfil. El historial de huellas se construye

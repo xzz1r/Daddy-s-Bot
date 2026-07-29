@@ -1,6 +1,6 @@
 const path = require('path');
 const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
-const { bareJid } = require('./wa');
+const { bareJid, sameUser } = require('./wa');
 const logger = require('./logger');
 
 // Lista negra GLOBAL y persistente (estilo CAS de Telegram): baneado en un
@@ -42,19 +42,41 @@ function scheduleSave() {
 async function banAccount(forms, reason, by) {
   await load();
   const at = Date.now();
+  // `aka` deja escrito qué formas se banearon juntas. Sin ese vínculo, el
+  // desbaneo solo podía borrar las formas que quien lo pidiera lograra
+  // reconstruir — y justo después de un ban al usuario se le expulsa, así que
+  // su ficha de miembro ya no está y la otra forma se volvía irrecuperable: la
+  // persona seguía vetada para siempre mientras el bot decía lo contrario.
+  const all = [...new Set(forms.filter(Boolean).map(bareJid))];
   let added = 0;
-  for (const f of forms.filter(Boolean).map(bareJid)) {
+  for (const f of all) {
     if (!store.accounts[f]) added++;
-    store.accounts[f] = { reason: reason || 'sin motivo', at, by: by || null };
+    store.accounts[f] = { reason: reason || 'sin motivo', at, by: by || null, aka: all };
   }
-  if (forms.length) scheduleSave();
+  if (all.length) scheduleSave();
   return added;
 }
 
 async function unbanAccount(forms) {
   await load();
+  const objetivo = new Set(forms.filter(Boolean).map(bareJid));
+
+  // 1) Las formas que se banearon junto a esta.
+  for (const f of [...objetivo]) {
+    for (const a of (store.accounts[f]?.aka || [])) objetivo.add(bareJid(a));
+  }
+  // 2) Y cualquier otra entrada que sea la misma persona (cubre los baneos
+  //    viejos, escritos antes de que existiera `aka`).
+  const claves = Object.keys(store.accounts);
+  for (const k of claves) {
+    if (objetivo.has(k)) continue;
+    for (const t of objetivo) {
+      if (sameUser(k, t)) { objetivo.add(k); break; }
+    }
+  }
+
   let removed = 0;
-  for (const f of forms.filter(Boolean).map(bareJid)) {
+  for (const f of objetivo) {
     if (store.accounts[f]) { delete store.accounts[f]; removed++; }
   }
   if (removed) scheduleSave();

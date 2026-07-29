@@ -1,5 +1,5 @@
 const path = require('path');
-const { bareJid, sameUser } = require('./wa');
+const { canonicalJid } = require('./wa');
 const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const logger = require('./logger');
 
@@ -34,12 +34,40 @@ function scheduleSave() {
   }, 10000);
 }
 
+// La clave es canonicalJid, NO bareJid. La misma persona llega unas veces con su
+// @lid (mensajes de grupo) y otras con su teléfono (menciones), así que con
+// bareJid acababa con DOS entradas: sus mensajes se partían en dos montones y
+// salía duplicada en los rankings. canonicalJid colapsa ambas formas en cuanto
+// WhatsApp nos dice la correspondencia, igual que hace auraStore.
+//
+// Aun así, los montones viejos escritos antes de conocer la correspondencia
+// siguen en el archivo bajo la clave antigua, por eso las LECTURAS agrupan
+// siempre por identidad en vez de fiarse de la clave.
 async function increment(groupJid, userJid) {
   await load();
-  const key = bareJid(userJid);
+  const key = canonicalJid(userJid);
   if (!counts[groupJid]) counts[groupJid] = {};
   counts[groupJid][key] = (counts[groupJid][key] || 0) + 1;
   scheduleSave();
+}
+
+// Agrupa las claves de un grupo por persona. Dos claves son la misma persona
+// exactamente cuando su canonicalJid coincide (es lo que hace sameUser por
+// dentro), así que agrupar por esa clave es equivalente y va en O(n) en vez de
+// comparar todas contra todas.
+//
+// Como representante se prefiere la forma de teléfono: es la que sirve para
+// mencionar, y los rankings pintan menciones.
+function mergeByPerson(group) {
+  const out = new Map(); // canonicalKey -> { jid, count }
+  for (const k in group) {
+    const id = canonicalJid(k);
+    const prev = out.get(id);
+    if (!prev) { out.set(id, { jid: k, count: group[k] }); continue; }
+    prev.count += group[k];
+    if (!k.endsWith('@lid')) prev.jid = k;
+  }
+  return out;
 }
 
 // Requires an explicit groupJid — passing null/undefined would silently wipe
@@ -62,8 +90,7 @@ async function getActiveUsers(groupJid, minMessages = 10) {
   const group = counts[groupJid];
   if (!group) return [];
   const out = [];
-  for (const jid in group) {
-    const count = group[jid];
+  for (const { jid, count } of mergeByPerson(group).values()) {
     if (count >= minMessages) out.push({ jid, count });
   }
   return out;
@@ -73,17 +100,19 @@ async function getUserCount(groupJid, userJid) {
   await load();
   const group = counts[groupJid];
   if (!group) return 0;
-  // Fast path: exact key hit (same JID form that was stored on increment).
-  const key = bareJid(userJid);
-  if (group[key] !== undefined) return group[key];
-  // Bridge LID↔phone: increments store the sender's LID (modern groups) while a
-  // lookup often arrives as a phone-form mention. Sum every stored key that maps
-  // to the same person, so callers like !roast don't read 0 for an active user.
-  let total = 0;
+  const key = canonicalJid(userJid);
+  // Camino rápido: la clave ya está canonizada y no hay ninguna otra forma suya
+  // suelta en el archivo. Es el caso normal una vez conocida la correspondencia.
+  const directo = group[key];
+  let total = 0, otras = 0;
   for (const k in group) {
-    if (sameUser(k, userJid)) total += group[k];
+    if (k === key || canonicalJid(k) !== key) continue;
+    total += group[k];
+    otras++;
   }
-  return total;
+  if (!otras) return directo || 0;
+  // Quedaban montones bajo una forma antigua: se suman todos.
+  return (directo || 0) + total;
 }
 
 async function flushCounts() {

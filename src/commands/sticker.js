@@ -12,22 +12,32 @@ const logger = require('../utils/logger');
 // Classifying by envelope alone let a member bypass the owner-only re-stamp gate
 // below by just re-sending someone else's sticker as a "file" instead of tapping
 // it from the sticker tray, so format wins over envelope here.
+// `type` es el tipo SEMÁNTICO (qué hay dentro, para decidir la conversión) y
+// `dl` el que hay que pasarle a downloadContentFromMessage.
+//
+// No siempre coinciden, y confundirlos rompe la descarga entera: la clave de
+// descifrado sale de un HKDF cuyo "info" depende del tipo
+// (Utils/messages-media.js:hkdfInfoKey sobre MEDIA_HKDF_KEY_MAPPING). Quien
+// manda un archivo lo cifra con claves de *Document*; pedirlo como 'image' o
+// 'video' deriva la clave equivocada y lo que se descarga es basura. Por eso
+// un adjunto enviado como archivo nunca llegaba a hacerse sticker.
 function identifyMedia(messageObject, depth = 0) {
   if (!messageObject || depth > 4) return null;
-  if (messageObject.stickerMessage) return { msg: messageObject.stickerMessage, type: 'sticker' };
+  if (messageObject.stickerMessage) return { msg: messageObject.stickerMessage, type: 'sticker', dl: 'sticker' };
   if (messageObject.imageMessage) {
     const mime = messageObject.imageMessage.mimetype || '';
-    return { msg: messageObject.imageMessage, type: mime === 'image/webp' ? 'sticker' : 'image' };
+    return { msg: messageObject.imageMessage, type: mime === 'image/webp' ? 'sticker' : 'image', dl: 'image' };
   }
   if (messageObject.videoMessage) {
     const mime = messageObject.videoMessage.mimetype || '';
-    return { msg: messageObject.videoMessage, type: mime === 'image/webp' ? 'sticker' : 'video' };
+    return { msg: messageObject.videoMessage, type: mime === 'image/webp' ? 'sticker' : 'video', dl: 'video' };
   }
   if (messageObject.documentMessage) {
     const mime = messageObject.documentMessage.mimetype || '';
-    if (mime === 'image/webp') return { msg: messageObject.documentMessage, type: 'sticker' };
-    if (mime.startsWith('image/')) return { msg: messageObject.documentMessage, type: 'image' };
-    if (mime.startsWith('video/')) return { msg: messageObject.documentMessage, type: 'video' };
+    const doc = { msg: messageObject.documentMessage, dl: 'document' };
+    if (mime === 'image/webp') return { ...doc, type: 'sticker' };
+    if (mime.startsWith('image/')) return { ...doc, type: 'image' };
+    if (mime.startsWith('video/')) return { ...doc, type: 'video' };
   }
   // Wrappers de "ver una vez" (v1 / v2 / v2 extension): una foto o video enviado
   // como vista única llega anidado. Lo desenvolvemos para que !s también funcione
@@ -69,7 +79,7 @@ async function cmdSticker(sock, msg, groupMeta) {
 
   let buffer;
   try {
-    const stream = await downloadContentFromMessage(found.msg, found.type);
+    const stream = await downloadContentFromMessage(found.msg, found.dl || found.type);
     buffer = await streamToBuffer(stream, MAX_MEDIA_BYTES);
 
     if (!buffer || buffer.length < 100) {

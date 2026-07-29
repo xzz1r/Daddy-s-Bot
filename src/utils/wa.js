@@ -70,18 +70,38 @@ const MAX_LID_CACHE = 2000;
 function rememberMapping(lid, phone) {
   if (!lid || !phone) return;
   const k = bareJid(lid);
-  if (lidToPhone.size >= MAX_LID_CACHE && !lidToPhone.has(k)) {
+  // Solo se guardan pares en el sentido correcto. Si llega invertido se
+  // descarta: una entrada telefono->lid ocupa hueco en la caché y además
+  // matchesOwners consulta el mapa sin comprobar el sufijo, así que un par al
+  // revés puede convertir a cualquiera en candidato a owner.
+  if (!k.endsWith('@lid')) return;
+  const v = bareJid(phone);
+  if (v.endsWith('@lid')) return;
+  // LRU de verdad: al reescribir una clave hay que borrarla primero para que
+  // vuelva al final del orden de inserción. Sin esto el desalojo es FIFO puro y
+  // acaba tirando mapeos que se están usando cada minuto mientras conserva
+  // otros vistos una vez y nunca más.
+  if (lidToPhone.has(k)) lidToPhone.delete(k);
+  else if (lidToPhone.size >= MAX_LID_CACHE) {
     lidToPhone.delete(lidToPhone.keys().next().value);
   }
-  lidToPhone.set(k, bareJid(phone));
+  lidToPhone.set(k, v);
 }
 
+// Aprende las correspondencias de la metadata de un grupo.
+//
+// Baileys rellena `phoneNumber` y `lid` de forma EXCLUYENTE, según cómo esté
+// direccionado el grupo (Socket/groups.js:333-341):
+//   • grupo LID → id es el @lid y phoneNumber trae el teléfono; lid va vacío.
+//   • grupo PN  → id es el teléfono y lid trae el @lid; phoneNumber va vacío.
+// Por eso pedir los dos a la vez era una rama imposible, y los grupos
+// direccionados por teléfono no aportaban ni una correspondencia.
 function indexGroupMeta(groupMeta) {
   if (!groupMeta?.participants) return;
   for (const p of groupMeta.participants) {
     if (!p) continue;
-    if (p.lid && p.phoneNumber) rememberMapping(p.lid, p.phoneNumber);
-    if (p.id?.endsWith?.('@lid') && p.phoneNumber) rememberMapping(p.id, p.phoneNumber);
+    if (p.phoneNumber && p.id?.endsWith?.('@lid')) rememberMapping(p.id, p.phoneNumber);
+    else if (p.lid && p.id) rememberMapping(p.lid, p.id);
   }
 }
 
@@ -302,11 +322,35 @@ function extractQuotedText(msg) {
   );
 }
 
+// El "info" (bio) de una cuenta y cuándo lo escribió.
+//
+// OJO con la forma del dato, que ya costó 25 frases muertas en !roast: Baileys
+// resuelve fetchStatus por USync y devuelve `result.list`, es decir un ARRAY de
+// { id, status: { status, setAt } } — NO un objeto con .status de texto
+// (Socket/chats.js:170-179 y WAUSync/Protocols/USyncStatusProtocol.js). Leer
+// `res.status` directamente da undefined SIEMPRE, sin fallar ni avisar.
+//
+// Devuelve { status, setAt } con status string o null, y setAt en ms (0 si no
+// se sabe). Nunca lanza: quien llama solo tiene que mirar el resultado.
+async function fetchAbout(sock, jid) {
+  try {
+    const list = await sock.fetchStatus(jid);
+    const entry = Array.isArray(list) ? list[0] : list;
+    // Segun la version, el nodo llega envuelto en .status o plano.
+    const st = entry?.status && typeof entry.status === 'object' ? entry.status : entry;
+    if (!st) return null;
+    const setAt = st.setAt instanceof Date ? st.setAt.getTime() : (st.setAt ? +st.setAt : 0);
+    const text = typeof st.status === 'string' ? st.status : null;
+    return { status: text, setAt: Number.isFinite(setAt) ? setAt : 0 };
+  } catch { return null; }
+}
+
 module.exports = {
   isOwner,
   isMainOwner,
   noteOwnerJid,
   isKnownOwnerJid,
+  fetchAbout,
   isAdmin,
   isBotJid,
   isBotAdmin,
