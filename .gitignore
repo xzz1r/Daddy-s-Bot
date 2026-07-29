@@ -10,6 +10,7 @@ data/casino.json
 data/nicks.json
 data/pfphashes.json
 data/banlist.json
+data/linkperms.json
 data/ownerJids.json
 data/pfpcache/
 data/music_cache/

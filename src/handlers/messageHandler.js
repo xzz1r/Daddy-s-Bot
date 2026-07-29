@@ -4,6 +4,7 @@ const { isBotEnabled, incrementStat, isAntiLinkEnabled } = require('../utils/sta
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { recordFacts } = require('../utils/nickStore');
 const { noteOffence, forget } = require('../utils/mediaSpam');
+const { isAllowed, noteWarning } = require('../utils/linkPerms');
 const { banAccount } = require('../utils/banlist');
 const { allForms } = require('../commands/fk');
 const { checkCasinoMilestone } = require('../utils/casino');
@@ -13,7 +14,7 @@ const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdCount, cmdResetCount } = require('../commands/count');
 const { cmdRelevance } = require('../commands/relevance');
 const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
-const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd, cmdAntiLink, cmdClose, cmdOpen } = require('../commands/group');
+const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd, cmdAntiLink, cmdAllow, cmdClose, cmdOpen } = require('../commands/group');
 const { cmdShip } = require('../commands/ship');
 const { cmdTtp } = require('../commands/ttp');
 const { cmdToImg, cmdToVid } = require('../commands/toimg');
@@ -66,31 +67,31 @@ function classifyLinks(text) {
   return whitelisted ? 'whitelisted' : 'none';
 }
 
-// Aviso para quien suelta un enlace de YouTube o Instagram. El enlace se borra
-// igual, pero aquí no se expulsa ni se banea: solo se le deja claro que
-// publicar eso es un permiso que conceden los admins, no algo que se toma por
-// su cuenta. Rota para que no salga siempre lo mismo.
+// Aviso para quien suelta un enlace de YouTube o Instagram sin el permiso de
+// *!allow*. El enlace se borra igual, pero aquí no se expulsa: se le deja claro
+// que ese permiso lo reparten los admins y que hay que pedirlo desde abajo.
+// Al tercer aviso sí hay ban, y las frases lo van avisando.
 const PERMISO_ENLACE = [
-  'ese enlace se borra. Publicar links aquí es un privilegio, y los privilegios se piden a los admins, no se toman.',
-  'borrado. Aquí no se publica porque a uno le apetezca: se publica cuando un admin considera que te lo has ganado.',
-  'fuera. Si quieres que tus enlaces sobrevivan, gánate primero que un admin confíe en lo que traes.',
-  'eliminado. El derecho a compartir links no viene con la entrada al grupo: lo conceden los admins, y a ti aún no.',
-  'ese link no se queda. Pide permiso a un admin antes, y si te lo dan, entonces sí.',
-  'borrado. Aquí se pide, no se impone. Habla con un admin y que sea él quien decida si tu contenido entra.',
-  'lo he quitado. Compartir enlaces es un permiso que dan los admins con el tiempo, no algo que se coja por atrevimiento.',
-  'fuera. Antes de volver a publicar algo así, asegúrate de tener la aprobación explícita de un admin.',
-  'eliminado. Ganarte ese derecho depende de los admins, así que empieza por respetar el grupo y ganarte su visto bueno.',
-  'ese enlace sobra. Los que publican aquí ya tienen el sí de un admin; tú todavía estás en la fase de pedirlo.',
-  'borrado. No es contra ti: es que ese permiso lo reparten los admins y a ti aún no te ha tocado.',
-  'quitado. Demuestra primero que aportas algo al grupo y luego pídele a un admin que te deje compartir enlaces.',
-  'fuera. Aquí el orden es sencillo: primero te ganas la confianza de los admins, después publicas.',
-  'eliminado. Si de verdad quieres compartir eso, pídeselo a un admin y acepta lo que decida.',
-  'borrado. Publicar links es cosa de quien se lo ha ganado ante los admins. Ponte a ello y con el tiempo lo tendrás.',
-  'ese link no pinta nada aquí todavía. Cuando un admin diga que sí, será distinto. Hasta entonces, no.',
-  'quitado. El permiso lo dan los admins y lo dan a quien se porta. Tú decides en qué grupo entrar.',
-  'fuera. Nadie publica enlaces aquí por su cuenta: se le consulta antes a un admin y se respeta la respuesta.',
-  'eliminado. Tu sitio en el grupo se construye día a día, y el permiso de los admins para publicar viene mucho después.',
-  'borrado. Pídeselo a un admin, espera y acepta. Es la única vía que hay para acabar publicando enlaces aquí.',
+  'ese link a la basura. Aquí no publicas una puta mierda hasta que un admin te dé el *!allow*. Pídelo con la cabeza bien gacha.',
+  'borrado. ¿Quién coño te dio permiso? Nadie. Ve a un admin, pídele el *!allow* y traga lo que te conteste sin rechistar.',
+  'fuera. Publicar aquí no es un derecho, es un premio. Arrástrate delante de un admin y con suerte te cae el *!allow*.',
+  'eliminado. Llegas a un sitio que no es tuyo y sueltas links como si mandaras. No mandas una mierda: pídele el *!allow* a un admin.',
+  'ese enlace no vale nada sin permiso. Baja el tono, baja la cabeza y suplícale a un admin que te ponga el *!allow*.',
+  'borrado. Aquí se pide de rodillas, no se impone. Un admin decide si mereces el *!allow*, y hoy no lo mereces ni de coña.',
+  'quitado. Te crees con derecho a publicar y no eres nadie, hijo. Pídele el *!allow* a un admin y reza por caerle en gracia.',
+  'fuera. El grupo no es tu puto tablón de anuncios. Gánate el *!allow* de un admin portándote de puta madre y hablamos.',
+  'eliminado. Nadie te conoce, nadie te debe una mierda, y aun así vienes a spamear. Pídele el *!allow* a un admin y espera tu turno.',
+  'ese enlace sobra tanto como tus ganas de saltarte las normas. Un admin te dará el *!allow* cuando te lo curres, no antes.',
+  'borrado. Publicar sin permiso es de listillo, y los listillos duran poco aquí. Pídele el *!allow* a un admin como todo hijo de vecino.',
+  'quitado. Aquí el que manda no eres tú, ni de coña. Acepta tu puto sitio, pídele el *!allow* a un admin y no la líes más.',
+  'fuera. Con esos huevos no te dan el *!allow* ni en diez años. Empieza por callarte y por ganarte a los admins de verdad.',
+  'eliminado. Ese link solo demuestra que te suda la polla el grupo. Demuestra lo contrario y luego pídele el *!allow* a un admin.',
+  'borrado. Los que publican aquí se lo curraron mucho antes que tú. Ponte a la puta cola y pídele el *!allow* a un admin.',
+  'ese link a tomar por culo. El permiso se llama *!allow*, lo dan los admins, y tu cara dura no cuela como mérito.',
+  'quitado. No eres especial ni te lo van a poner fácil, campeón. Pídele el *!allow* a un admin, traga el no y vuelve a probar.',
+  'fuera. Aquí se entra a escuchar y a callar, no a promocionarse. Cuando lo tengas claro, pídele el *!allow* a un admin.',
+  'eliminado. Publicar es un privilegio de los que se agachan y se lo ganan. Pídele el *!allow* a un admin y ten paciencia, joder.',
+  'borrado. Ahórrate el numerito: sin el *!allow* de un admin, todo lo que sueltes acaba exactamente igual, en nada.',
 ];
 
 // Commands that need group metadata — skip the network call for everything else
@@ -99,7 +100,7 @@ const NEEDS_META = new Set([
   'kick','expulsar','del','borrar','delete','add','agregar',
   'ship','mute','unmute','desmute',
   'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness','antifoto',
-  'antilink','close','cerrar','open','abrir',
+  'antilink','allow','permitir','close','cerrar','open','abrir',
   's','sticker','stk',   // cmdSticker SI recibe groupMeta
   // play/ttp/toimg/tovid/g/dar NO estan aqui a proposito: el dispatch no les
   // pasa groupMeta y sus modulos no lo mencionan, asi que pedirlo solo anyadia
@@ -550,11 +551,14 @@ async function handleMessage(sock, msg) {
           }).catch(() => {});
           return;
         }
-        // YouTube / Instagram: el enlace SE BORRA igual, pero no se expulsa ni se
-        // banea a nadie. Solo se le dice que publicar eso es un permiso que se
-        // pide a los admins, no algo que se toma por su cuenta.
-        //
-        // Sin bot admin no se puede borrar: se avisa una vez por grupo y ya.
+        // YouTube / Instagram. Quien tenga el permiso de *!allow* publica y ya.
+        // Al resto se le borra el enlace y se le avisa; al TERCER aviso se le
+        // banea, porque a la tercera ya no es un despiste, es spam.
+        if (await isAllowed(jid, allForms(sender, meta))) return;
+
+        // Sin bot admin no se puede borrar: se avisa una vez por grupo y ya. No
+        // se cuenta el aviso, que sería castigar a alguien por algo que el bot
+        // ni siquiera ha podido impedir.
         if (!meta || !isBotAdmin(sock, meta)) {
           const lastW = antilinkNoAdminWarn.get(jid);
           if (!lastW || Date.now() - lastW > ANTILINK_REMINDER_TTL) {
@@ -567,15 +571,38 @@ async function handleMessage(sock, msg) {
         }
         sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
 
+        const { avisos, restantes, ban } = await noteWarning(jid, sender);
+        const num = sender.split('@')[0];
+
+        if (ban) {
+          await banAccount(allForms(sender, meta), `spam de enlaces sin permiso en ${jid}`, 'auto').catch(() => {});
+          const fuera = await expulsar(sock, jid, sender);
+          sock.sendMessage(jid, {
+            text: fuera
+              ? `@${num} baneado. Tres enlaces sin el *!allow* de un admin. Te avisamos dos veces y pasaste de todo, asi que fuera.`
+              : `@${num} a la lista negra por soltar tres enlaces sin permiso. No he podido expulsarlo: hacedlo a mano.`,
+            mentions: [sender],
+          }).catch(() => {});
+          return;
+        }
+
         // El aviso va limitado a uno por persona cada 5 min: el enlace se borra
-        // siempre, pero no se inunda el chat repitiéndoselo.
+        // siempre, pero no se inunda el chat repitiéndoselo. El contador de
+        // avisos sí sube siempre, que si no bastaría con spamear rápido.
+        //
+        // EXCEPCIÓN: el último aviso sale siempre, esté o no dentro del límite.
+        // Si se lo tragara el silenciador, el siguiente enlace le costaría el
+        // grupo sin que nadie le hubiera dicho que iba por ahí.
         const rKey = `${jid}|${sender}`;
         const lastR = antilinkReminders.get(rKey);
-        if (!lastR || Date.now() - lastR > ANTILINK_REMINDER_TTL) {
+        if (restantes === 1 || !lastR || Date.now() - lastR > ANTILINK_REMINDER_TTL) {
           if (antilinkReminders.size >= 2000) antilinkReminders.delete(antilinkReminders.keys().next().value);
           antilinkReminders.set(rKey, Date.now());
+          const cola = restantes === 1
+            ? ' Aviso 2 de 3: al siguiente te vas del grupo.'
+            : ` Aviso ${avisos} de 3.`;
           sock.sendMessage(jid, {
-            text: `@${sender.split('@')[0]} ${pickFresh(PERMISO_ENLACE, `${jid}|permiso`)}`,
+            text: `@${num} ${pickFresh(PERMISO_ENLACE, `${jid}|permiso`)}${cola}`,
             mentions: [sender],
           }).catch(() => {});
         }
@@ -711,6 +738,11 @@ async function handleMessage(sock, msg) {
       case 'antiempresa':
       case 'antibusiness':
         await cmdAntiBusiness(sock, msg, args, groupMeta);
+        break;
+
+      case 'allow':
+      case 'permitir':
+        await cmdAllow(sock, msg, args, groupMeta);
         break;
 
       case 'antilink':

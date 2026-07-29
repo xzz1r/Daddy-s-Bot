@@ -4,6 +4,7 @@ const { streamToBuffer, MAX_DOWNLOAD_BYTES } = require('../utils/helpers');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled } = require('../utils/state');
 const { businessEvidence } = require('../utils/businessCheck');
 const { getMemberFacts } = require('../utils/nickStore');
+const { allow, disallow, listAllowed } = require('../utils/linkPerms');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 
 // In-memory mute store: `groupJid|bareJid` -> expireTimestamp
@@ -701,6 +702,56 @@ async function cmdAntiLink(sock, msg, args, groupMeta) {
   }, { quoted: msg });
 }
 
+// !allow @user — concede el permiso de publicar enlaces. Lo dan los admins,
+// que es justo lo que el aviso del anti-link le dice a la gente que pida.
+//
+//   !allow @user        → se lo da
+//   !allow off @user    → se lo quita
+//   !allow              → lista quién lo tiene
+async function cmdAllow(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'Solo funciona en grupos.' }, { quoted: msg });
+  }
+  const sender = getSender(msg);
+  if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'Solo los admins reparten este permiso.' }, { quoted: msg });
+  }
+
+  const quitar = (args[0] || '').toLowerCase() === 'off';
+  const target = getTarget(msg);
+
+  if (!target) {
+    const lista = await listAllowed(jid);
+    if (!lista.length) {
+      return sock.sendMessage(jid, {
+        text: 'Nadie tiene permiso para publicar enlaces.\n\n*!allow* @user — se lo das\n*!allow off* @user — se lo quitas',
+      }, { quoted: msg });
+    }
+    return sock.sendMessage(jid, {
+      text: `*Pueden publicar enlaces (${lista.length}):*\n` + lista.map(j => `@${j.split('@')[0]}`).join(' '),
+      mentions: lista,
+    }, { quoted: msg });
+  }
+
+  const num = target.split('@')[0];
+  if (quitar) {
+    const tenia = await disallow(jid, target);
+    return sock.sendMessage(jid, {
+      text: tenia
+        ? `@${num} ya no puede publicar enlaces. Que se lo vuelva a ganar.`
+        : `@${num} no tenia el permiso.`,
+      mentions: [target],
+    }, { quoted: msg });
+  }
+
+  await allow(jid, target);
+  return sock.sendMessage(jid, {
+    text: `@${num} tiene permiso para publicar enlaces. Se lo ha ganado, no lo desperdicies.`,
+    mentions: [target],
+  }, { quoted: msg });
+}
+
 // !close — set the group to admin-only messages (announcement mode)
 async function cmdClose(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
@@ -737,4 +788,4 @@ async function cmdOpen(sock, msg, groupMeta) {
   }
 }
 
-module.exports = { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd, cmdAntiLink, cmdClose, cmdOpen };
+module.exports = { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd, cmdAntiLink, cmdAllow, cmdClose, cmdOpen };

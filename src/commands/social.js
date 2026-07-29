@@ -238,6 +238,7 @@ _Ganas aura escribiendo. Bonos diarios: 200 msg = 20k · 500 = 60k · 1000 = 150
 *${p}scan* — busca cuentas sospechosas
 *${p}antiempresa* scan/purge — limpia cuentas Business
 *${p}antifoto* scan/purge — limpia a los que no tienen foto
+*${p}allow* @user — le deja publicar enlaces
 *${p}marcarfake* @user — marca su foto como falsa
 *${p}fkban* / *${p}fkunban* @user — lista negra global
 *${p}antifake* on/off — vigila las entradas
