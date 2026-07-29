@@ -12,6 +12,7 @@ const qrcode = require('qrcode-terminal');
 const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, flushState } = require('./utils/state');
 const { isOwner, sameUser, rememberMapping, flushOwnerJids } = require('./utils/wa');
+const { anotarAlta, motivoDelAlta, ALTA_ADD } = require('./utils/joinReason');
 const { flushCounts } = require('./utils/messageCounter');
 const { flushAura } = require('./utils/auraStore');
 const { flushCasino } = require('./utils/casinoStore');
@@ -319,10 +320,11 @@ async function connectToWhatsApp() {
         }));
       }
 
-      // Anti-admin: only the bot and the owner/co-owner may add people. When a
-      // regular (non-owner) admin adds someone, demote that admin AND kick whoever
-      // they added. Owner/co-owner adds are exempt — the member stays and the
-      // owner keeps admin.
+      // Anti-admin: solo el bot y el owner tier pueden AGREGAR gente a dedo. Si
+      // lo hace un admin normal, se le degrada y se expulsa a quien metió.
+      //
+      // Aceptar una solicitud de entrada NO cuenta: es una función de admin
+      // normal, y para eso se da el admin. Entrar por enlace tampoco.
       if (!fromBot && author && !isOwner(author, false, meta) && isAntiAdminEnabled(groupJid)) {
         // Entradas por enlace de invitación: el "autor" es el propio entrante.
         // Eso NO es un alta no autorizada — no se degrada ni se expulsa a nadie.
@@ -332,7 +334,7 @@ async function connectToWhatsApp() {
         // participante (id, lid, phoneNumber), igual que hace el bloque
         // anti-empresa de arriba. Mirar solo p.id dejaba al owner recién
         // añadido sin proteger cuando su id venía en forma LID.
-        const toKick = (participants || [])
+        const candidatos = (participants || [])
           .map(p => (typeof p === 'string' ? { id: p } : p))
           .filter(o => o?.id)
           .filter(o =>
@@ -342,7 +344,24 @@ async function connectToWhatsApp() {
             !(o.lid && isOwner(o.lid, false, meta)) &&
             !(o.phoneNumber && isOwner(o.phoneNumber, false, meta)))
           .map(o => o.id);
-        if (!toKick.length) return;
+        if (!candidatos.length) return;
+
+        // Solo se castiga el alta a dedo. Aceptar una solicitud o entrar por
+        // enlace no son altas no autorizadas, y por no distinguirlas el bot
+        // degradaba a la admin que aceptaba y expulsaba al aceptado.
+        //
+        // Si el motivo no llega a tiempo NO se toca nada: degradar y expulsar es
+        // irreversible, y aquí rige la misma norma que en las purgas — un dato
+        // que falta jamás puede costarle a nadie el puesto ni el grupo.
+        const motivos = await Promise.all(candidatos.map(j => motivoDelAlta(groupJid, j)));
+        const toKick = candidatos.filter((_, i) => motivos[i] === ALTA_ADD);
+        if (!toKick.length) {
+          const desconocidos = motivos.filter(m => m === null).length;
+          if (desconocidos) {
+            logger.warn(`Anti-admin: no pude saber por qué entraron ${desconocidos} en ${groupJid}; no se toca a nadie.`);
+          }
+          return;
+        }
         try {
           await sock.groupParticipantsUpdate(groupJid, [author], 'demote');
         } catch (err) {
@@ -440,6 +459,13 @@ async function connectToWhatsApp() {
   });
 
   sock.ev.on('messages.upsert', ({ messages, type }) => {
+    for (const msg of messages) {
+      // Los mensajes de sistema (sin .message, solo messageStubType) traen el
+      // motivo REAL de un alta. Se anotan siempre, venga el lote como 'notify' o
+      // como 'append', porque de ellos depende no castigar a un admin por
+      // aceptar una solicitud.
+      if (msg?.messageStubType) anotarAlta(msg);
+    }
     if (type !== 'notify') return;
     for (const msg of messages) {
       // handleMessage runs first so its sock.sendMessage is queued BEFORE readMessages.
