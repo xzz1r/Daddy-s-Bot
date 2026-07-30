@@ -136,7 +136,7 @@ async function cmdSticker(sock, msg, groupMeta) {
 
   try {
     if (!stickerBuffer || stickerBuffer.length < 100) {
-      throw new Error('Sticker generado vacio');
+      throw new Error('Sticker generado vacío');
     }
     const animated = isAnimatedWebP(stickerBuffer);
     // Re-stamping an existing animated sticker (found.type === 'sticker') skips

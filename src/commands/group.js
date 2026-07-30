@@ -697,7 +697,7 @@ async function cmdAntiLink(sock, msg, args, groupMeta) {
   await toggleAntiLink(jid, enable);
   await sock.sendMessage(jid, {
     text: enable
-      ? 'Anti-link *activado*. Se borra cualquier enlace: los de YouTube e Instagram solo con aviso, el resto con expulsion. Los admins quedan exentos.'
+      ? 'Anti-link *activado*. Se borra cualquier enlace: los de YouTube e Instagram solo con aviso, el resto con expulsión. Los admins quedan exentos.'
       : 'Anti-link *desactivado*.',
   }, { quoted: msg });
 }

@@ -31,7 +31,7 @@ async function cmdPlay(sock, msg, args) {
   const jid = msg.key.remoteJid;
 
   if (!args.length) {
-    return sock.sendMessage(jid, { text: 'Usa: *!play* <cancion o artista>' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Usa: *!play* <canción o artista>' }, { quoted: msg });
   }
 
   const query = args.join(' ');
@@ -73,7 +73,7 @@ async function cmdPlay(sock, msg, args) {
 
     if (audioBuffer.length > 25 * 1024 * 1024) {
       if (!fromCache) cleanTemp(result.filePath).catch(() => {});
-      return sock.sendMessage(jid, { text: 'La cancion pesa más de 25MB y no puede enviarse.' }, { quoted: msg });
+      return sock.sendMessage(jid, { text: 'La canción pesa más de 25MB y no puede enviarse.' }, { quoted: msg });
     }
 
     await sock.sendMessage(jid, {

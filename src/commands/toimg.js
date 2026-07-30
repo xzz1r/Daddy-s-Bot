@@ -169,7 +169,7 @@ async function cmdToImg(sock, msg) {
 
   if (!media) {
     return sock.sendMessage(jid, {
-      text: 'Responde con !toimg a un sticker, una foto o una foto de una sola visualizacion.',
+      text: 'Responde con !toimg a un sticker, una foto o una foto de una sola visualización.',
     }, { quoted: msg });
   }
 
@@ -233,10 +233,10 @@ async function cmdToImg(sock, msg) {
       }
 
     } else if (media.type === 'image') {
-      const caption = media.viewOnce ? 'Foto extraida de visualizacion unica.' : undefined;
+      const caption = media.viewOnce ? 'Foto extraída de visualización única.' : undefined;
       await sock.sendMessage(jid, { image: buf, caption }, { quoted: msg });
     } else if (media.type === 'video') {
-      const caption = media.viewOnce ? 'Video extraido de visualizacion unica.' : undefined;
+      const caption = media.viewOnce ? 'Video extraído de visualización única.' : undefined;
       await sock.sendMessage(jid, { video: buf, mimetype: 'video/mp4', caption }, { quoted: msg });
     }
   } catch (err) {

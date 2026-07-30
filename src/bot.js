@@ -124,7 +124,7 @@ async function connectToWhatsApp() {
           scheduleReconnect(delay);
         } else {
           // Confirmed logout — wipe and show QR
-          logger.error('Sesion definitivamente cerrada. Escaneá el QR de nuevo.');
+          logger.error('Sesión definitivamente cerrada. Escaneá el QR de nuevo.');
           await fs.remove(AUTH_DIR);
           consecutive401 = 0;
           reconnectAttempts = 0;
@@ -163,7 +163,7 @@ async function connectToWhatsApp() {
       const specCompliant = /pad=512:512/.test(VF_STATIC);
       console.log(`  commit cargado : ${gitCommit()}`);
       console.log(`  filtro sticker : ${VF_STATIC}`);
-      console.log(`  canvas 512x512 : ${specCompliant ? 'SI (spec WhatsApp, relleno transparente, sin estirar)' : 'NO (codigo viejo, canvas no cuadrado)'}\n`);
+      console.log(`  canvas 512x512 : ${specCompliant ? 'SI (spec WhatsApp, relleno transparente, sin estirar)' : 'NO (código viejo, canvas no cuadrado)'}\n`);
 
       // Barrido inicial del historial de huellas: indexa en segundo plano las
       // fotos de los miembros de todos los grupos. Escalonado por su propia cola,
@@ -492,9 +492,9 @@ async function connectToWhatsApp() {
       try {
         await sock.groupParticipantsUpdate(groupJid, toDemote, 'demote');
         const text =
-          `*Anti-admin: accion revertida.*\n` +
+          `*Anti-admin: acción revertida.*\n` +
           `${authorTag} intento dar admin a ${targets}.\n` +
-          `Ambos han sido degradados automaticamente.`;
+          `Ambos han sido degradados automáticamente.`;
         sock.sendMessage(groupJid, { text, mentions: toDemote }).catch(() => {});
       } catch (err) {
         logger.warn(`Anti-admin: demote fallo en ${groupJid}: ${err.message}`);
@@ -524,7 +524,7 @@ async function connectToWhatsApp() {
         }
       }
       if (restored || punished) {
-        const parts = [`*Anti-admin: accion revertida.*`, `${authorTag} intento quitar admin a ${targets}.`];
+        const parts = [`*Anti-admin: acción revertida.*`, `${authorTag} intento quitar admin a ${targets}.`];
         if (restored && punished) parts.push(`Admin restaurado y ${authorTag} degradado.`);
         else if (restored) parts.push(`Admin restaurado.`);
         else parts.push(`${authorTag} ha sido degradado.`);
