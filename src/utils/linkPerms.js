@@ -90,6 +90,17 @@ async function isAllowed(grupo, forms) {
   return false;
 }
 
+// Borra los avisos acumulados. Se llama justo tras el ban: si no, quien
+// consiguiera volver al grupo se comería otro ban con el primer enlace, sin un
+// solo aviso, mientras el mensaje del bot afirma que se le avisó dos veces.
+async function resetWarnings(grupo, jid) {
+  await load();
+  const { g, k, rec } = ficha(grupo, jid);
+  if (!rec || !rec.avisos) return;
+  g[k] = { ok: Boolean(rec.ok), avisos: 0, ts: Date.now() };
+  scheduleSave();
+}
+
 // Suma un aviso y dice cuántos lleva y si toca banear.
 async function noteWarning(grupo, jid) {
   await load();
@@ -120,6 +131,6 @@ async function flushLinkPerms() {
 function _reset() { store = null; loadPromise = null; }
 
 module.exports = {
-  allow, disallow, isAllowed, noteWarning, listAllowed, flushLinkPerms,
+  allow, disallow, isAllowed, noteWarning, resetWarnings, listAllowed, flushLinkPerms,
   MAX_AVISOS, _reset,
 };

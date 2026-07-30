@@ -258,6 +258,18 @@ async function cmdDel(sock, msg, groupMeta) {
     return sock.sendMessage(jid, { text: 'Responde al mensaje que quieres borrar con !del.' }, { quoted: msg });
   }
 
+  // Un admin normal no borra mensajes del owner tier. Era el único comando de
+  // moderación que no lo comprobaba: !kick, !mute y !demote ya lo hacían, y aquí
+  // cualquier admin podía ir borrando lo que escribiera el dueño.
+  //
+  // El owner sí puede borrar lo suyo y lo de cualquiera.
+  const autorCitado = ctx.participant;
+  if (isGroup && autorCitado &&
+      isOwner(autorCitado, false, groupMeta) &&
+      !isOwner(sender, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'No puedes borrar mensajes del owner.' }, { quoted: msg });
+  }
+
   const deleteKey = {
     remoteJid: jid,
     fromMe: false,
@@ -673,9 +685,11 @@ async function cmdAdd(sock, msg, args, groupMeta) {
 }
 
 // !antilink on/off — solo owner. Se borra CUALQUIER enlace:
-//   YouTube / Instagram → borrado + aviso de que ese permiso lo dan los admins.
-//                         No se expulsa ni se banea a nadie.
-//   cualquier otro       → borrado + expulsión del que lo envió.
+//   YouTube / Instagram → borrado + aviso de que ese permiso lo dan los admins
+//                         con *!allow*. Los dos primeros solo avisan; al TERCERO
+//                         sin permiso, ban y expulsión.
+//   cualquier otro       → borrado + expulsión directa del que lo envió.
+// Quien tenga el *!allow* publica sin que se le borre nada.
 // Los admins del grupo quedan siempre exentos.
 async function cmdAntiLink(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
@@ -697,7 +711,7 @@ async function cmdAntiLink(sock, msg, args, groupMeta) {
   await toggleAntiLink(jid, enable);
   await sock.sendMessage(jid, {
     text: enable
-      ? 'Anti-link *activado*. Se borra cualquier enlace: los de YouTube e Instagram solo con aviso, el resto con expulsión. Los admins quedan exentos.'
+      ? 'Anti-link *activado*. Se borra cualquier enlace. Los de YouTube e Instagram avisan dos veces y al tercero es ban; el resto, expulsión directa. Con *!allow* se publica sin problema. Los admins quedan exentos.'
       : 'Anti-link *desactivado*.',
   }, { quoted: msg });
 }

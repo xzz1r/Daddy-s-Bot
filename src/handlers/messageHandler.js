@@ -4,7 +4,7 @@ const { isBotEnabled, incrementStat, isAntiLinkEnabled } = require('../utils/sta
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { recordFacts } = require('../utils/nickStore');
 const { noteOffence, forget } = require('../utils/mediaSpam');
-const { isAllowed, noteWarning } = require('../utils/linkPerms');
+const { isAllowed, noteWarning, resetWarnings } = require('../utils/linkPerms');
 const { banAccount } = require('../utils/banlist');
 const { allForms } = require('../commands/fk');
 const { checkCasinoMilestone } = require('../utils/casino');
@@ -68,9 +68,9 @@ function classifyLinks(text) {
 }
 
 // Aviso para quien suelta un enlace de YouTube o Instagram sin el permiso de
-// *!allow*. El enlace se borra igual, pero aquí no se expulsa: se le deja claro
-// que ese permiso lo reparten los admins y que hay que pedirlo desde abajo.
-// Al tercer aviso sí hay ban, y las frases lo van avisando.
+// *!allow*. El enlace se borra siempre; los dos primeros avisos no castigan más
+// que eso, y al TERCERO hay ban y expulsión. Las frases dirigen a pedirle el
+// permiso a un admin, que es la salida que tiene.
 const PERMISO_ENLACE = [
   'ese link a la basura. Aquí no publicas una puta mierda hasta que un admin te dé el *!allow*. Pídelo con la cabeza bien gacha.',
   'borrado. ¿Quién coño te dio permiso? Nadie. Ve a un admin, pídele el *!allow* y traga lo que te conteste sin rechistar.',
@@ -155,7 +155,11 @@ const NEEDS_META = new Set([
 const MEDIA_CMDS = new Set([
   's','sticker','stk',
   'toimg','stimg','tovid',
-  'fk','verificar','verify','check','marcarfake','fake',
+  'fk','verificar','verify','check',
+  // marcarfake y fake NO estan aqui: no miran el medio adjunto, trabajan sobre
+  // una mencion o una cita. Tenerlos dentro era justo el atajo que esta lista
+  // dice impedir — bastaba con poner *!marcarfake* de pie de foto para saltarse
+  // la norma de ver-una-vez y el contador de rafagas.
 ]);
 
 // Expulsa y dice si WhatsApp lo aceptó DE VERDAD.
@@ -253,8 +257,8 @@ function unwrapEnvelope(message) {
 // ─── Estados publicados al grupo ─────────────────────────────────────────────
 //
 // Publicar un estado dentro del grupo esta PROHIBIDO, traiga lo que traiga: da
-// igual que sea un enlace o una foto del atardecer. Se borra y el que lo publica
-// se va con ban.
+// igual que sea un enlace o una foto del atardecer. Se borra, se banea la cuenta
+// y se expulsa a quien lo publico. Admins y owner tier quedan exentos.
 //
 // Que este prohibido siempre es ademas lo que hace fiable al guardia. Antes solo
 // se actuaba si el estado contenia un enlace, y para eso habia que leer su
@@ -427,7 +431,11 @@ async function handleMessage(sock, msg) {
     incrementMsgCount(jid, sender).catch(() => {});
     // verifiedBizName solo viaja en mensajes de cuentas Business: se anota como
     // prueba directa para !antiempresa, sin gastar una consulta de perfil.
-    if (msg.verifiedBizName) {
+    //
+    // Del owner tier NO se anota: esa ficha es justo la que alimenta la purga de
+    // !antiempresa, y con el gate de arriba (isMainOwner, para el ranking) los
+    // co-owners si quedaban fichados. El owner esta por encima tambien de esto.
+    if (msg.verifiedBizName && !isOwner(sender, msg.key.fromMe, peekGroupMeta(jid))) {
       recordFacts(sender, { biz: true }).catch(() => {});
     }
     checkCasinoMilestone(sock, jid, sender).catch(() => {});
@@ -456,9 +464,15 @@ async function handleMessage(sock, msg) {
   //
   // Mismas garantías que el resto de la moderación: nunca toca a admins, al
   // owner tier ni al bot, y necesita ser admin para actuar.
-  // El guardia de estados va ANTES que el de medios: una historia puede venir
-  // como foto o como vídeo, y si la mirara primero el de medios se quedaría en
-  // "borrado y aviso" cuando lo que toca es borrar, banear y expulsar.
+  // Orden de las guardas automaticas, de la mas dura a la mas blanda:
+  //   1. historia publicada al grupo -> borrar + ban + expulsar
+  //   2. enlace prohibido            -> borrar + expulsar
+  //   3. medio sin ver-una-vez       -> borrar (+ ban si es rafaga)
+  //
+  // El anti-link va por delante del de medios porque si no un enlace de
+  // invitacion puesto de pie de foto solo costaba el borrado, mientras que el
+  // mismo enlace en texto suelto costaba el grupo. Era la via de escape
+  // evidente para cualquiera que quisiera colar el suyo.
   if (jid.endsWith('@g.us')) {
     anotarTipoDesconocido(msg.message);
     const porQue = motivoEstado(msg.message);
@@ -493,6 +507,106 @@ async function handleMessage(sock, msg) {
     }
   }
 
+  if (jid.endsWith('@g.us') && text && isAntiLinkEnabled(jid)) {
+    const verdict = classifyLinks(text);
+    if (verdict !== 'none') {
+      const meta = await getGroupMeta(sock, jid);
+      // If meta is unavailable (timeout/network error), treat sender as non-admin
+      // so moderation doesn't silently no-op when connectivity is degraded.
+      const senderIsAdmin = meta ? isGroupAdmin(sender, msg.key.fromMe, meta) : false;
+      if (!senderIsAdmin) {
+        if (verdict === 'blocked') {
+          // Without bot-admin (or without meta to verify it) the bot can neither
+          // delete the message nor kick — warn once per group instead.
+          if (!meta || !isBotAdmin(sock, meta)) {
+            const lastW = antilinkNoAdminWarn.get(jid);
+            if (!lastW || Date.now() - lastW > ANTILINK_REMINDER_TTL) {
+              antilinkNoAdminWarn.set(jid, Date.now());
+              sock.sendMessage(jid, {
+                text: meta
+                  ? 'Detecté un enlace no permitido, pero no soy admin y no puedo borrarlo ni expulsar. Dame admin para moderar.'
+                  : 'Detecté un enlace no permitido pero no pude verificar permisos. Intenta de nuevo en un momento.',
+              }).catch(() => {});
+            }
+            return;
+          }
+          sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
+          const fuera = await expulsar(sock, jid, sender);
+          sock.sendMessage(jid, {
+            text: fuera
+              ? `@${sender.split('@')[0]} expulsado por enviar enlaces no permitidos.`
+              : `@${sender.split('@')[0]} envió un enlace no permitido. Borrado, pero no he podido expulsarlo.`,
+            mentions: [sender],
+          }).catch(() => {});
+          return;
+        }
+        // YouTube / Instagram. Quien tenga el permiso de *!allow* publica y ya.
+        // Al resto se le borra el enlace y se le avisa; al TERCER aviso se le
+        // banea, porque a la tercera ya no es un despiste, es spam.
+        if (await isAllowed(jid, allForms(sender, meta))) return;
+
+        // Sin bot admin no se puede borrar: se avisa una vez por grupo y ya. No
+        // se cuenta el aviso, que sería castigar a alguien por algo que el bot
+        // ni siquiera ha podido impedir.
+        if (!meta || !isBotAdmin(sock, meta)) {
+          const lastW = antilinkNoAdminWarn.get(jid);
+          if (!lastW || Date.now() - lastW > ANTILINK_REMINDER_TTL) {
+            antilinkNoAdminWarn.set(jid, Date.now());
+            sock.sendMessage(jid, {
+              text: 'Detecté un enlace, pero no soy admin y no puedo borrarlo. Dame admin para moderar.',
+            }).catch(() => {});
+          }
+          return;
+        }
+        sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
+
+        const { avisos, restantes, ban } = await noteWarning(jid, sender);
+        const num = sender.split('@')[0];
+
+        if (ban) {
+          // Los avisos se ponen a cero al banear, igual que hace el contador de
+          // rafagas de medios: si vuelve al grupo, empieza otra vez con sus dos
+          // avisos y no con un ban inmediato del que nadie le habria advertido.
+          await resetWarnings(jid, sender).catch(() => {});
+          await banAccount(allForms(sender, meta), `spam de enlaces sin permiso en ${jid}`, 'auto').catch(() => {});
+          const fuera = await expulsar(sock, jid, sender);
+          sock.sendMessage(jid, {
+            text: fuera
+              ? `@${num} baneado. Tres enlaces sin el *!allow* de un admin. Te avisamos dos veces y pasaste de todo, asi que fuera.`
+              : `@${num} a la lista negra por soltar tres enlaces sin permiso. No he podido expulsarlo: hacedlo a mano.`,
+            mentions: [sender],
+          }).catch(() => {});
+          return;
+        }
+
+        // El aviso va limitado a uno por persona cada 5 min: el enlace se borra
+        // siempre, pero no se inunda el chat repitiéndoselo. El contador de
+        // avisos sí sube siempre, que si no bastaría con spamear rápido.
+        //
+        // EXCEPCIÓN: el último aviso sale siempre, esté o no dentro del límite.
+        // Si se lo tragara el silenciador, el siguiente enlace le costaría el
+        // grupo sin que nadie le hubiera dicho que iba por ahí.
+        const rKey = `${jid}|${sender}`;
+        const lastR = antilinkReminders.get(rKey);
+        if (restantes === 1 || !lastR || Date.now() - lastR > ANTILINK_REMINDER_TTL) {
+          if (antilinkReminders.size >= 2000) antilinkReminders.delete(antilinkReminders.keys().next().value);
+          antilinkReminders.set(rKey, Date.now());
+          const cola = restantes === 1
+            ? ' Aviso 2 de 3: al siguiente te vas del grupo.'
+            : ` Aviso ${avisos} de 3.`;
+          sock.sendMessage(jid, {
+            text: `@${num} ${pickFresh(PERMISO_ENLACE, `${jid}|permiso`)}${cola}`,
+            mentions: [sender],
+          }).catch(() => {});
+        }
+        return;
+      }
+    }
+  }
+
+  // El guardia de estados va ANTES que el de medios: una historia puede venir
+  // como foto o como vídeo, y si la mirara primero el de medios se quedaría en
+  // "borrado y aviso" cuando lo que toca es borrar, banear y expulsar.
   // Medios sin "ver una vez".
   //
   // Fotos y vídeos van SIEMPRE en ver una vez. El que llegue normal se borra al
@@ -554,99 +668,6 @@ async function handleMessage(sock, msg) {
     }
   }
 
-  if (jid.endsWith('@g.us') && text && isAntiLinkEnabled(jid)) {
-    const verdict = classifyLinks(text);
-    if (verdict !== 'none') {
-      const meta = await getGroupMeta(sock, jid);
-      // If meta is unavailable (timeout/network error), treat sender as non-admin
-      // so moderation doesn't silently no-op when connectivity is degraded.
-      const senderIsAdmin = meta ? isGroupAdmin(sender, msg.key.fromMe, meta) : false;
-      if (!senderIsAdmin) {
-        if (verdict === 'blocked') {
-          // Without bot-admin (or without meta to verify it) the bot can neither
-          // delete the message nor kick — warn once per group instead.
-          if (!meta || !isBotAdmin(sock, meta)) {
-            const lastW = antilinkNoAdminWarn.get(jid);
-            if (!lastW || Date.now() - lastW > ANTILINK_REMINDER_TTL) {
-              antilinkNoAdminWarn.set(jid, Date.now());
-              sock.sendMessage(jid, {
-                text: meta
-                  ? 'Detecté un enlace no permitido, pero no soy admin y no puedo borrarlo ni expulsar. Dame admin para moderar.'
-                  : 'Detecté un enlace no permitido pero no pude verificar permisos. Intenta de nuevo en un momento.',
-              }).catch(() => {});
-            }
-            return;
-          }
-          sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
-          const fuera = await expulsar(sock, jid, sender);
-          sock.sendMessage(jid, {
-            text: fuera
-              ? `@${sender.split('@')[0]} expulsado por enviar enlaces no permitidos.`
-              : `@${sender.split('@')[0]} envió un enlace no permitido. Borrado, pero no he podido expulsarlo.`,
-            mentions: [sender],
-          }).catch(() => {});
-          return;
-        }
-        // YouTube / Instagram. Quien tenga el permiso de *!allow* publica y ya.
-        // Al resto se le borra el enlace y se le avisa; al TERCER aviso se le
-        // banea, porque a la tercera ya no es un despiste, es spam.
-        if (await isAllowed(jid, allForms(sender, meta))) return;
-
-        // Sin bot admin no se puede borrar: se avisa una vez por grupo y ya. No
-        // se cuenta el aviso, que sería castigar a alguien por algo que el bot
-        // ni siquiera ha podido impedir.
-        if (!meta || !isBotAdmin(sock, meta)) {
-          const lastW = antilinkNoAdminWarn.get(jid);
-          if (!lastW || Date.now() - lastW > ANTILINK_REMINDER_TTL) {
-            antilinkNoAdminWarn.set(jid, Date.now());
-            sock.sendMessage(jid, {
-              text: 'Detecté un enlace, pero no soy admin y no puedo borrarlo. Dame admin para moderar.',
-            }).catch(() => {});
-          }
-          return;
-        }
-        sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
-
-        const { avisos, restantes, ban } = await noteWarning(jid, sender);
-        const num = sender.split('@')[0];
-
-        if (ban) {
-          await banAccount(allForms(sender, meta), `spam de enlaces sin permiso en ${jid}`, 'auto').catch(() => {});
-          const fuera = await expulsar(sock, jid, sender);
-          sock.sendMessage(jid, {
-            text: fuera
-              ? `@${num} baneado. Tres enlaces sin el *!allow* de un admin. Te avisamos dos veces y pasaste de todo, asi que fuera.`
-              : `@${num} a la lista negra por soltar tres enlaces sin permiso. No he podido expulsarlo: hacedlo a mano.`,
-            mentions: [sender],
-          }).catch(() => {});
-          return;
-        }
-
-        // El aviso va limitado a uno por persona cada 5 min: el enlace se borra
-        // siempre, pero no se inunda el chat repitiéndoselo. El contador de
-        // avisos sí sube siempre, que si no bastaría con spamear rápido.
-        //
-        // EXCEPCIÓN: el último aviso sale siempre, esté o no dentro del límite.
-        // Si se lo tragara el silenciador, el siguiente enlace le costaría el
-        // grupo sin que nadie le hubiera dicho que iba por ahí.
-        const rKey = `${jid}|${sender}`;
-        const lastR = antilinkReminders.get(rKey);
-        if (restantes === 1 || !lastR || Date.now() - lastR > ANTILINK_REMINDER_TTL) {
-          if (antilinkReminders.size >= 2000) antilinkReminders.delete(antilinkReminders.keys().next().value);
-          antilinkReminders.set(rKey, Date.now());
-          const cola = restantes === 1
-            ? ' Aviso 2 de 3: al siguiente te vas del grupo.'
-            : ` Aviso ${avisos} de 3.`;
-          sock.sendMessage(jid, {
-            text: `@${num} ${pickFresh(PERMISO_ENLACE, `${jid}|permiso`)}${cola}`,
-            mentions: [sender],
-          }).catch(() => {});
-        }
-        return;
-      }
-    }
-  }
-
   if (!text.startsWith(config.prefix)) return;
 
   const args = text.slice(config.prefix.length).trim().split(/\s+/);
@@ -655,7 +676,10 @@ async function handleMessage(sock, msg) {
 
   // Check mute before anything else — but the owner tier is never silenced, so a
   // stale or malicious mute can't lock the owner/co-owner out of their own bot.
-  if (isMuted(jid, sender) && !isOwner(sender, msg.key.fromMe, null)) return;
+  // peekGroupMeta y no null: es la unica comprobacion de owner del fichero que
+  // renunciaba a la metadata, justo en la exencion que promete que a él no le
+  // silencia nadie. Con la metadata resuelve todas sus formas de JID.
+  if (isMuted(jid, sender) && !isOwner(sender, msg.key.fromMe, peekGroupMeta(jid))) return;
 
   logger.cmd(sender.split('@')[0], `${config.prefix}${command} ${args.join(' ')}`);
   incrementStat('commandsExecuted');

@@ -276,7 +276,7 @@ async function connectToWhatsApp() {
   });
 
   // Group events: anti-business on join, anti-admin + notifications on promote/demote
-  sock.ev.on('group-participants.update', async ({ id: groupJid, author, participants, action }) => {
+  sock.ev.on('group-participants.update', async ({ id: groupJid, author, authorPn, participants, action }) => {
     // Any participant change invalidates the cached metadata for that group —
     // otherwise commands run within 30s of a join/kick see stale member lists.
     invalidateGroupMeta(groupJid);
@@ -293,6 +293,15 @@ async function connectToWhatsApp() {
     const partJids = (participants || [])
       .map(p => (typeof p === 'string' ? p : p?.id))
       .filter(Boolean);
+
+    // ¿Es del owner tier? Se miran las DOS formas que trae el evento.
+    //
+    // Baileys entrega `authorPn` junto a `author` en cada cambio de participantes
+    // (Types/Events.d.ts), igual que hace con las solicitudes de entrada. Mirar
+    // solo `author` dejaba al owner comprobado en una sola forma: si venía como
+    // @lid sin mapear, el bot lo trataba como a un miembro cualquiera.
+    const esOwnerAmplio = (a, aPn, m) =>
+      Boolean((a && isOwner(a, false, m)) || (aPn && isOwner(aPn, false, m)));
 
     // Bot detection covers both phone JID (older groups) and LID (newer groups).
     // botIds is precomputed at 'connection: open' to skip the rebuild per event.
@@ -375,7 +384,7 @@ async function connectToWhatsApp() {
       //
       // Aceptar una solicitud de entrada NO cuenta: es una función de admin
       // normal, y para eso se da el admin. Entrar por enlace tampoco.
-      if (!fromBot && author && !isOwner(author, false, meta) && isAntiAdminEnabled(groupJid)) {
+      if (!fromBot && author && !esOwnerAmplio(author, authorPn, meta) && isAntiAdminEnabled(groupJid)) {
         // Entradas por enlace de invitación: el "autor" es el propio entrante.
         // Eso NO es un alta no autorizada — no se degrada ni se expulsa a nadie.
         // Solo actuamos cuando un admin agrega a OTROS. Nunca se toca al owner
@@ -393,7 +402,10 @@ async function connectToWhatsApp() {
             !isOwner(o.id, false, meta) &&
             !(o.lid && isOwner(o.lid, false, meta)) &&
             !(o.phoneNumber && isOwner(o.phoneNumber, false, meta)))
-          .map(o => o.id);
+          // Se conservan las TRES formas: estabaPendiente las necesita porque la
+          // solicitud pudo apuntarse con una (la que trajo el sondeo) y el alta
+          // llegar con otra. Quedarse solo con o.id dejaba media proteccion.
+          .map(o => ({ id: o.id, formas: [o.id, o.lid, o.phoneNumber].filter(Boolean) }));
         if (!candidatos.length) return;
 
         // Rastro de lo que llega de verdad en un alta, para no volver a
@@ -413,8 +425,8 @@ async function connectToWhatsApp() {
         // apunta de antemano (evento group.join-request + sondeo periódico de
         // la lista de pendientes). Si el que entra estaba en esa lista, fue una
         // aprobación y no se toca a nadie.
-        const decisiones = await Promise.all(candidatos.map(async (j) => {
-          if (await estabaPendiente(groupJid, [j])) return { j, castigar: false, por: 'tenía solicitud pendiente' };
+        const decisiones = await Promise.all(candidatos.map(async ({ id: j, formas }) => {
+          if (await estabaPendiente(groupJid, formas)) return { j, castigar: false, por: 'tenía solicitud pendiente' };
           const motivo = await motivoDelAlta(groupJid, j, 3000);
           if (motivo === ALTA_INVITE) return { j, castigar: false, por: 'entró por enlace' };
           if (motivo === ALTA_SOLICITUD) return { j, castigar: false, por: 'aprobación de solicitud' };
@@ -460,8 +472,20 @@ async function connectToWhatsApp() {
     //
     // Se le degrada a él y se intenta devolver al owner. El degradado es solo
     // eso: se le quita el admin, no se le banea ni se le echa.
-    if (action === 'remove' && author && !isBotJid(author) && !isOwner(author, false, meta)) {
-      const echados = partJids.filter(j => !isBotJid(j) && isOwner(j, false, meta));
+    if (action === 'remove' && author && !isBotJid(author) && !esOwnerAmplio(author, authorPn, meta)) {
+      // Se miran TODAS las formas del expulsado, no solo su id.
+      //
+      // Aquí es donde más falta hace: al expulsarle ya NO figura en la metadata,
+      // así que el índice de participantes no puede resolver sus otras formas y
+      // isOwner se queda con la caché global. Si su id vino como @lid y ese LID
+      // aún no estaba mapeado, el owner quedaba sin reconocer y el bot no movía
+      // un dedo. El propio evento trae el phoneNumber, que sí casa con config.
+      const echados = (participants || [])
+        .map(p => (typeof p === 'string' ? { id: p } : p))
+        .filter(o => o?.id && !isBotJid(o.id))
+        .filter(o => [o.id, o.lid, o.phoneNumber].filter(Boolean)
+          .some(f => isOwner(f, false, meta)))
+        .map(o => o.id);
       if (echados.length) {
         const autorTag = `@${String(author).split('@')[0]}`;
         const menciones = [author, ...echados];
@@ -548,7 +572,7 @@ async function connectToWhatsApp() {
 
     // Anti-admin: revert any promote that didn't come from the bot.
     // Owner/co-owner promotions are exempt — they have authority to grant admin.
-    if (action === 'promote' && !fromBot && !isOwner(author, false, meta) && isAntiAdminEnabled(groupJid)) {
+    if (action === 'promote' && !fromBot && !esOwnerAmplio(author, authorPn, meta) && isAntiAdminEnabled(groupJid)) {
       // Nunca degradar al owner tier ni al bot, aunque un admin haya intentado
       // promoverlos: el autor (no-owner) sí se degrada, pero el objetivo protegido
       // se deja intacto.
@@ -568,11 +592,42 @@ async function connectToWhatsApp() {
       return;
     }
 
+    // Degradar al OWNER se revierte SIEMPRE, esté el anti-admin encendido o no.
+    //
+    // Es el mismo criterio que con la expulsión: que un admin normal le quite el
+    // admin al dueño es un ataque a la cadena de mando del bot, no una
+    // preferencia del grupo. Antes esto dependía del interruptor y quedaba la
+    // incoherencia de protegerle de la expulsión siempre y de la degradación
+    // solo a veces — la misma agresión con dos criterios.
+    if (action === 'demote' && !fromBot && author && !esOwnerAmplio(author, authorPn, meta)) {
+      const ownerDegradado = (participants || [])
+        .map(p => (typeof p === 'string' ? { id: p } : p))
+        .filter(o => o?.id && !isBotJid(o.id))
+        .filter(o => [o.id, o.lid, o.phoneNumber].filter(Boolean).some(f => isOwner(f, false, meta)))
+        .map(o => o.id);
+
+      if (ownerDegradado.length) {
+        let repuesto = false, castigado = false;
+        try { await sock.groupParticipantsUpdate(groupJid, ownerDegradado, 'promote'); repuesto = true; }
+        catch (err) { logger.warn(`Owner degradado: no pude devolverle el admin en ${groupJid}: ${err.message}`); }
+        try { await sock.groupParticipantsUpdate(groupJid, [author], 'demote'); castigado = true; }
+        catch (err) { logger.warn(`Owner degradado: no pude degradar a ${author}: ${err.message}`); }
+        const tags = ownerDegradado.map(j => `@${j.split('@')[0]}`).join(', ');
+        sock.sendMessage(groupJid, {
+          text: `*${authorTag} le ha quitado el admin al owner.*\n` +
+            (repuesto ? `${tags} lo tiene de vuelta.` : `No he podido devolvérselo a ${tags}: hacedlo a mano.`) +
+            (castigado ? `\n${authorTag} se queda sin admin.` : `\nNo he podido quitarle el admin a ${authorTag}.`),
+          mentions: [...ownerDegradado, author],
+        }).catch(() => {});
+        return;
+      }
+    }
+
     // Anti-admin: revert any demote that didn't come from the bot
     // Admin A removes B's admin → bot restores B and removes A's admin.
     // Track each step separately so the notification reflects what actually
     // happened — a wholesale try/catch would lie if only one step succeeded.
-    if (action === 'demote' && !fromBot && !isOwner(author, false, meta) && isAntiAdminEnabled(groupJid)) {
+    if (action === 'demote' && !fromBot && !esOwnerAmplio(author, authorPn, meta) && isAntiAdminEnabled(groupJid)) {
       let restored = false;
       let punished = false;
       try {

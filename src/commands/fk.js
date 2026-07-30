@@ -245,9 +245,13 @@ async function cmdFk(sock, msg, args, groupMeta) {
   const { jid: target, error } = await resolveTarget(sock, msg, args);
   if (error) return sock.sendMessage(jid, { text: error }, { quoted: msg });
 
-  // El owner principal nunca se marca como sospechoso: se devuelve siempre un
-  // veredicto limpio, sin puntaje de riesgo ni análisis.
-  if (isMainOwner(target, false, groupMeta)) {
+  // El owner tier —principal Y co-owners— nunca se marca como sospechoso: se
+  // devuelve siempre un veredicto limpio, sin puntaje de riesgo ni análisis.
+  //
+  // isOwner, no isMainOwner: !fkban y el guardia de entradas ya protegían a todo
+  // el tier, así que dejar aquí solo al principal era incoherente — cualquier
+  // admin podía sacarle un puntaje de riesgo a un co-owner.
+  if (isOwner(target, false, groupMeta)) {
     const num = target.split('@')[0];
     const tag = (target.endsWith('@s.whatsapp.net') ? '+' : '@') + num;
     return sock.sendMessage(jid, {
@@ -410,8 +414,10 @@ async function cmdMarkFake(sock, msg, args, groupMeta) {
   const { jid: target, error } = await resolveTarget(sock, msg, args);
   if (error) return sock.sendMessage(jid, { text: error }, { quoted: msg });
 
-  // No se puede marcar como fake al owner principal: se rechaza con cortesía.
-  if (isMainOwner(target, false, groupMeta)) {
+  // No se marca como fake a nadie del owner tier, principal o co-owner. Con
+  // isMainOwner un admin podía marcar la foto de un co-owner y dejarla en el
+  // historial como falsa para siempre, mientras !fkban sí lo protegía.
+  if (isOwner(target, false, groupMeta)) {
     return sock.sendMessage(jid, { text: 'Al owner no se le marca como fake.' }, { quoted: msg });
   }
 
