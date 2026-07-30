@@ -160,7 +160,7 @@ async function cmdTtp(sock, msg, args) {
     return sock.sendMessage(jid, { text: 'Usa: *!ttp* <texto>' }, { quoted: msg });
   }
   if (text.length > 120) {
-    return sock.sendMessage(jid, { text: 'Maximo 120 caracteres.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Máximo 120 caracteres.' }, { quoted: msg });
   }
 
   try {

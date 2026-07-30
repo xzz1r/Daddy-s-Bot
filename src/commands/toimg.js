@@ -219,7 +219,7 @@ async function cmdToImg(sock, msg) {
               document: buf,
               mimetype: 'image/webp',
               fileName: 'sticker.webp',
-              caption: 'No se pudo convertir. Aqui el archivo WebP del sticker animado.',
+              caption: 'No se pudo convertir. Aquí el archivo WebP del sticker animado.',
             }, { quoted: msg });
           } catch (err) {
             logger.error(`toimg document fallback failed: ${err.message}`);

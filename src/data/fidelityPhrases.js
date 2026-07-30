@@ -324,7 +324,7 @@ const FIEL_LOW = [
   '[nombre] es la advertencia que se da a la gente nueva. No por celos, sino por evitarles el disgusto. Reputación merecida.',
   'Eres infiel a todo y a todos, incluido tú mismo. Ni tus propias promesas cumples. Un fraude completo de arriba abajo.',
   'Cero por ciento de lealtad y cien por cien de excusas. Ese es el balance exacto de tu vida y nadie va a discutírtelo.',
-  'Nadie te confiaría ni la contraseña del wifi. Esa reputación de rata te la has currado tú solo, traicion a traicion.',
+  'Nadie te confiaría ni la contraseña del wifi. Esa reputación de rata te la has currado tú solo, traición a traición.',
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -431,7 +431,7 @@ const INFIEL_HIGH = [
   'Nadie te va a creer nunca más, y con toda la razón. Esa desconfianza permanente te la ganaste tú solo, mentiroso.',
   'Eres el ejemplo que se pone cuando alguien pregunta por qué la gente ya no confía. Sales tú, con nombre y apellidos.',
   'Cien por cien infiel y cero por ciento arrepentido. Al menos deja de fingir lo segundo, que no engañas a nadie ya, basura.',
-  'Enganas, borras y sonries como si nada. Esa frialdad de mierda es lo mas repugnante que tienes, y ya es decir mucho.',
+  'Engañas, borras y sonríes como si nada. Esa frialdad de mierda es lo más repugnante que tienes, y ya es decir mucho.',
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -495,7 +495,7 @@ const INFIEL_MID = [
   'Eres fiel en lo grande y descuidado en lo pequeño. Y las relaciones no se rompen de golpe, se rompen por lo pequeño.',
   'Tienes un pasado que no cuentas y un presente que explicas a medias. Esa opacidad genera más dudas que cualquier prueba.',
   '[nombre] es de los que se justifican antes de que nadie pregunte. Esa costumbre suele venir de tener algo que esconder.',
-  'Tienes dias impecables y dias muy turbios. Y en fidelidad no cuenta la media, cuenta el peor dia que has tenido.',
+  'Tienes días impecables y días muy turbios. Y en fidelidad no cuenta la media, cuenta el peor día que has tenido.',
   'No engañas físicamente, pero emocionalmente llevas tiempo fuera. Y eso duele exactamente igual o incluso más, listo.',
   'Estás en la franja del que no ha fallado porque no le han puesto a prueba de verdad. Tu expediente está limpio por suerte.',
   '[nombre] tiene la cabeza en otro sitio desde hace tiempo. No es infidelidad todavía, pero es la antesala de siempre.',
@@ -538,7 +538,7 @@ const INFIEL_MID = [
   'Tu compromiso sube y baja según el día que tengas. Lo que depende del humor no aguanta nada, es un capricho.',
   'Nunca te han puesto en una situación de verdad. Presumir de no haber caído cuando nadie te empujó sale muy barato.',
   'Vas por la relación sin comprometerte del todo, ni siquiera contigo mismo. Y eso, a la larga, se acaba pagando entero.',
-  'Ni limpio ni pillado: siempre a un paso de que te descubran algo. Vivir asi ya dice todo de lo que estas haciendo.',
+  'Ni limpio ni pillado: siempre a un paso de que te descubran algo. Vivir así ya dice todo de lo que estas haciendo.',
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -555,7 +555,7 @@ const INFIEL_LOW = [
   '[nombre] no guarda a nadie en reserva por si acaso. Ni chats dormidos ni planes B. Cero infidelidad de manual.',
   'Podrías engañar sin que se enterara nadie y aun así no lo haces. Ahí está toda la diferencia, y la tienes clara.',
   'Nadie que haya estado contigo tiene una mala historia que contar. Ese expediente limpio lo has ganado tú solo, y pesa.',
-  'No tienes una version distinta segun quien pregunte. Siempre la misma persona, siempre la misma verdad. Enorme.',
+  'No tienes una versión distinta segun quien pregunte. Siempre la misma persona, siempre la misma verdad. Enorme.',
   '[nombre] cierra la puerta cuando ya ha elegido. Sin rendijas, sin planes de repuesto, sin ambigüedades. Se agradece.',
   'Tu pareja no tiene que competir con nadie invisible. Esa tranquilidad es un lujo que muy poca gente sabe dar hoy.',
   'Cero infidelidad y cero necesidad de vigilarte. Te portas bien porque eres así, no porque te estén mirando. Enorme.',
@@ -645,7 +645,7 @@ const INFIEL_LOW = [
   'Tu lealtad no caduca, no negocia y no se vende. Tres cosas que hoy casi nadie puede decir de la suya. Enhorabuena, en serio.',
   'Cero sombras, cero dudas, cero excusas necesarias. Eres exactamente lo que aparentas ser y eso ya es muchísimo hoy en día.',
   'Quien te tenga y no lo valore es un puto ciego, porque gente como tú no aparece dos veces en la vida de nadie. Nivel máximo.',
-  'Te han puesto a prueba mas de una vez y siempre saliste limpio. Eso no es suerte, es que eres de los buenos.',
+  'Te han puesto a prueba más de una vez y siempre saliste limpio. Eso no es suerte, es que eres de los buenos.',
 ];
 
 module.exports = {

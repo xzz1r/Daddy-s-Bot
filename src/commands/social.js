@@ -27,7 +27,7 @@ async function cmdOn(sock, msg, groupMeta) {
   }
 
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo el dueno puede usar este comando.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo el dueño puede usar este comando.' }, { quoted: msg });
   }
 
   await setState({ botEnabled: true });
@@ -51,7 +51,7 @@ async function cmdOff(sock, msg, groupMeta) {
   }
 
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo el dueno puede usar este comando.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Solo el dueño puede usar este comando.' }, { quoted: msg });
   }
 
   await setState({ botEnabled: false });

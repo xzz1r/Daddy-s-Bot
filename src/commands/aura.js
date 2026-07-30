@@ -174,7 +174,7 @@ const AURA = {
     'Tu aura se fue a cero y de paso se llevó tu dignidad como daño colateral. Dos por uno en humillación, y encima invitas tú, que para esto siempre tienes presupuesto.',
     'Colapso histórico. El grupo va a recordar esta tirada más que su propio cumpleaños. Pasaste a la historia, sí: al capítulo de "errores que no se deben cometer jamás", con tu foto.',
     'Perdiste toda tu aura con la solemnidad de un funeral. Y en cierto modo lo fue: el de la última esperanza que alguien guardaba de que algún día no la cagaras.',
-    'Catástrofe absoluta. Tu aura tocó un fondo tan profundo que rebotó, te ilusionaste medio segundo, y volvió a bajar. Hasta el rebote te traicionó, fracasado.',
+    'Catástrofe absoluta. Tu aura tocó un fondo tan profundo que rebotó, te ilusionaste medio segundo, y volvió a bajar. Hasta el rebote te traiciónó, fracasado.',
     'Aura desintegrada a nivel atómico. Ni los físicos saben explicar cómo alguien convierte tan poco en aún menos. Eres una anomalía científica con número de teléfono.',
     'Demolición total en horario de máxima audiencia. El grupo no pestañeó. Fue como ver un documental de naturaleza en el que la gacela tropieza ella sola, sin león ni nada.',
     'Perdiste hasta el último punto y el aura cerró la cuenta, cambió la cerradura y tiró las llaves al río. Te quedaste fuera hasta de tu propia ruina, que ya es difícil.',
