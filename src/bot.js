@@ -13,7 +13,8 @@ const qrcode = require('qrcode-terminal');
 const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, flushState } = require('./utils/state');
 const { isOwner, sameUser, rememberMapping, flushOwnerJids } = require('./utils/wa');
-const { anotarAlta, motivoDelAlta, ALTA_ADD } = require('./utils/joinReason');
+const { anotarAlta, motivoDelAlta, ALTA_INVITE, ALTA_SOLICITUD } = require('./utils/joinReason');
+const { notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, sondeoReciente, flushJoinRequests } = require('./utils/joinRequests');
 const { flushCounts } = require('./utils/messageCounter');
 const { flushAura } = require('./utils/auraStore');
 const { flushCasino } = require('./utils/casinoStore');
@@ -40,6 +41,24 @@ let consecutive401 = 0;
 let botIds = null; // Set<string> of bot's bare IDs (phone + LID), populated on open
 const MAX_RECONNECTS = 10;
 const MAX_401 = 3;
+
+// Cada cuánto se relee la lista de solicitudes pendientes de cada grupo. Es una
+// consulta por grupo y el bot está en pocos, así que sale barato. Tiene que ser
+// bastante más corto que SONDEO_VALIDO_MS para que la lista nunca caduque.
+const INTERVALO_SOLICITUDES = 3 * 60 * 1000;
+let timerSolicitudes = null;
+
+// Relee las solicitudes pendientes de todos los grupos del bot.
+async function sondearSolicitudes() {
+  if (!sock) return;
+  let grupos;
+  try { grupos = Object.keys(await sock.groupFetchAllParticipating()); }
+  catch (e) { logger.warn(`solicitudes: no pude listar grupos: ${e.message}`); return; }
+  for (const g of grupos) {
+    const n = await sondear(sock, g);
+    if (n) logger.info(`solicitudes pendientes en ${g}: ${n}`);
+  }
+}
 
 function scheduleReconnect(delay) {
   // Tear down the old socket so its event listeners/WebSocket don't leak across
@@ -170,6 +189,16 @@ async function connectToWhatsApp() {
       // no bloquea el arranque. A partir de aquí se mantiene solo con cada mensaje.
       sweepAllGroups(sock).catch(e => logger.warn(`pfpIndexer: barrido falló: ${e.message}`));
 
+      // Lista de solicitudes de entrada pendientes. Es lo único que permite
+      // saber, cuando un admin mete a alguien, si lo estaba APROBANDO o lo
+      // estaba añadiendo a dedo. Se sondea al conectar y cada pocos minutos,
+      // porque WhatsApp no avisa de las aprobaciones y una solicitud puede
+      // llevar semanas ahí parada.
+      sondearSolicitudes().catch(() => {});
+      if (!timerSolicitudes) {
+        timerSolicitudes = setInterval(() => { sondearSolicitudes().catch(() => {}); }, INTERVALO_SOLICITUDES);
+        timerSolicitudes.unref();
+      }
     }
     // No hay rama para 'connecting': la que había estaba vacía y solo servía
     // para pagar una comprobación de disco (pathExists de creds.json) en cada
@@ -177,6 +206,25 @@ async function connectToWhatsApp() {
   });
 
   sock.ev.on('creds.update', saveCreds);
+
+  // Alguien pide entrar / retira la petición / se la rechazan. WhatsApp NO
+  // emite nada cuando se APRUEBA (RequestJoinAction solo tiene created, revoked
+  // y rejected), y por eso hay que apuntar quién está esperando ANTES de que
+  // entre: al llegar el alta ya es demasiado tarde para preguntarlo.
+  sock.ev.on('group.join-request', ({ id, participant, participantPn, action }) => {
+    const quien = participantPn || participant;
+    if (!id || !quien) return;
+    if (action === 'created') {
+      notarSolicitud(id, quien).catch(() => {});
+      if (participant && participantPn) notarSolicitud(id, participant).catch(() => {});
+      logger.info(`solicitud de entrada en ${id}: ${quien}`);
+    } else {
+      // revocada o rechazada: ya no espera nada, así que si un admin la mete
+      // más tarde sí es un alta a dedo.
+      olvidarSolicitud(id, quien).catch(() => {});
+      if (participant && participantPn) olvidarSolicitud(id, participant).catch(() => {});
+    }
+  });
 
   // Cosecha de hechos de cada cuenta que WhatsApp manda por su cuenta: si es
   // Business (!antiempresa) y si tiene foto o la ha quitado (!antifoto).
@@ -348,22 +396,40 @@ async function connectToWhatsApp() {
           .map(o => o.id);
         if (!candidatos.length) return;
 
-        // Solo se castiga el alta a dedo. Aceptar una solicitud o entrar por
-        // enlace no son altas no autorizadas, y por no distinguirlas el bot
-        // degradaba a la admin que aceptaba y expulsaba al aceptado.
+        // Rastro de lo que llega de verdad en un alta, para no volver a
+        // diagnosticar a ciegas si esto falla otra vez.
+        logger.info(`alta en ${groupJid} por ${author}: ${JSON.stringify(participants)}`);
+
+        // ¿Alta a dedo o aprobación de una solicitud?
         //
-        // Si el motivo no llega a tiempo NO se toca nada: degradar y expulsar es
-        // irreversible, y aquí rige la misma norma que en las purgas — un dato
-        // que falta jamás puede costarle a nadie el puesto ni el grupo.
-        const motivos = await Promise.all(candidatos.map(j => motivoDelAlta(groupJid, j)));
-        const toKick = candidatos.filter((_, i) => motivos[i] === ALTA_ADD);
-        if (!toKick.length) {
-          const desconocidos = motivos.filter(m => m === null).length;
-          if (desconocidos) {
-            logger.warn(`Anti-admin: no pude saber por qué entraron ${desconocidos} en ${groupJid}; no se toca a nadie.`);
-          }
-          return;
+        // NO se puede saber por el mensaje: WhatsApp manda exactamente el mismo
+        // alta (messageStubType 27) en los dos casos, y no existe ningún evento
+        // de "aprobada" — RequestJoinAction solo tiene created, revoked y
+        // rejected (Types/GroupMetadata.d.ts:9). Ese fue el fallo del intento
+        // anterior, que miraba el stub y seguía degradando al admin que solo
+        // había aceptado a alguien.
+        //
+        // Lo que sí se sabe es quién estaba ESPERANDO aprobación, porque se
+        // apunta de antemano (evento group.join-request + sondeo periódico de
+        // la lista de pendientes). Si el que entra estaba en esa lista, fue una
+        // aprobación y no se toca a nadie.
+        const decisiones = await Promise.all(candidatos.map(async (j) => {
+          if (await estabaPendiente(groupJid, [j])) return { j, castigar: false, por: 'tenía solicitud pendiente' };
+          const motivo = await motivoDelAlta(groupJid, j, 3000);
+          if (motivo === ALTA_INVITE) return { j, castigar: false, por: 'entró por enlace' };
+          if (motivo === ALTA_SOLICITUD) return { j, castigar: false, por: 'aprobación de solicitud' };
+          // Sin un sondeo reciente NO se sabe quién estaba esperando, así que no
+          // se puede afirmar que sea un alta a dedo. Degradar y expulsar es
+          // irreversible: ante la duda, no se toca a nadie.
+          if (!sondeoReciente(groupJid)) return { j, castigar: false, por: 'sin lista de solicitudes fresca' };
+          return { j, castigar: true, por: 'no había pedido entrar' };
+        }));
+
+        for (const d of decisiones) {
+          if (!d.castigar) logger.info(`Anti-admin: no se castiga por ${d.j} (${d.por}).`);
         }
+        const toKick = decisiones.filter(d => d.castigar).map(d => d.j);
+        if (!toKick.length) return;
         try {
           await sock.groupParticipantsUpdate(groupJid, [author], 'demote');
         } catch (err) {
@@ -583,6 +649,7 @@ async function gracefulShutdown(code = 0) {
   const flushes = Promise.allSettled([
     flushState(), flushCounts(), flushAura(), flushCache(),
     flushCasino(), flushPfpHashes(), flushBanlist(), flushPfpCache(), flushNicks(), flushLinkPerms(),
+    flushJoinRequests(),
   ]);
   await Promise.race([flushes, new Promise(r => setTimeout(r, 3000))]);
   // Este es síncrono y no puede colgarse, así que va fuera de la carrera: es el
