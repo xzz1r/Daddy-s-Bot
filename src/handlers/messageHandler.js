@@ -252,76 +252,91 @@ function unwrapEnvelope(message) {
 
 // ─── Estados publicados al grupo ─────────────────────────────────────────────
 //
-// WhatsApp permite publicar un estado que se empuja dentro del grupo. Llega
-// envuelto en groupStatusMentionMessage / statusMentionMessage, que son
-// FutureProofMessage: el contenido real cuelga de .message. Ese envoltorio NO
-// lo abre unwrapEnvelope a propósito, para poder distinguir un estado de un
-// mensaje normal.
+// Publicar un estado dentro del grupo esta PROHIBIDO, traiga lo que traiga: da
+// igual que sea un enlace o una foto del atardecer. Se borra y el que lo publica
+// se va con ban.
 //
-// ¿Este mensaje es un estado publicado al grupo? Devuelve las piezas donde
-// puede estar su contenido, o null si no lo es.
+// Que este prohibido siempre es ademas lo que hace fiable al guardia. Antes solo
+// se actuaba si el estado contenia un enlace, y para eso habia que leer su
+// contenido — pero el mensaje que llega al grupo es un AVISO, no el estado: el
+// contenido de verdad vive en la difusion de estados, no aqui. Como no habia
+// texto que leer, nunca se encontraba enlace y el bot no hacia nada. Ahora no se
+// lee nada: basta con reconocer el sobre.
 //
-// Se miran TODAS las señales, no solo el envoltorio. Mirar únicamente
-// `groupStatusMentionMessage.message` era el motivo de que esto no saltara
-// nunca: ese envoltorio suele llegar con un contenido de relleno, y el estado
-// de verdad viaja aparte, en `contextInfo.statusMentionMessageInfo.quotedStatus`
-// (proto.IStatusMentionMessage, WAProto/index.d.ts:11329). Hay además dos
-// marcas más en el contextInfo (`statusMentions`, `statusMentionSources`) que
-// delatan un estado aunque el envoltorio no venga.
-function statusPayload(message) {
-  const w = message?.groupStatusMentionMessage || message?.statusMentionMessage;
-  const ctx =
-    message?.extendedTextMessage?.contextInfo ||
-    message?.imageMessage?.contextInfo ||
-    message?.videoMessage?.contextInfo ||
-    w?.message?.extendedTextMessage?.contextInfo ||
-    null;
+// Se miran TODOS los sobres que usa WhatsApp para esto. El que faltaba, y que
+// costo que esto no funcionara, era `groupStatusMessage` (WAProto/index.d.ts:
+// 5264) — distinto de `groupStatusMentionMessage`, que si se comprobaba.
+const SOBRES_ESTADO = [
+  'groupStatusMessage',          // el estado empujado al grupo
+  'groupStatusMentionMessage',   // el grupo mencionado en un estado
+  'statusMentionMessage',
+  'statusAddYours',
+  'statusNotificationMessage',
+  'statusQuestionAnswerMessage',
+  'statusStickerInteractionMessage',
+];
 
-  const marcado =
-    Boolean(w) ||
-    ctx?.isMentionedInStatus === true ||
-    Boolean(ctx?.statusMentionMessageInfo) ||
-    (Array.isArray(ctx?.statusMentions) && ctx.statusMentions.length > 0) ||
-    (Array.isArray(ctx?.statusMentionSources) && ctx.statusMentionSources.length > 0);
-
-  if (!marcado) return null;
-  return [w?.message, ctx?.statusMentionMessageInfo?.quotedStatus, message].filter(Boolean);
+// Marcas dentro del contextInfo que delatan un estado aunque no venga el sobre.
+function marcaDeEstado(ctx) {
+  if (!ctx) return false;
+  return ctx.isMentionedInStatus === true ||
+    ctx.isGroupStatus === true ||
+    Boolean(ctx.statusMentionMessageInfo) ||
+    Boolean(ctx.statusAttributionType) ||
+    Boolean(ctx.statusSourceType) ||
+    (Array.isArray(ctx.statusMentions) && ctx.statusMentions.length > 0) ||
+    (Array.isArray(ctx.statusMentionSources) && ctx.statusMentionSources.length > 0);
 }
 
-// Campos que llevan texto o enlaces ESCRITOS por la persona. Se listan a
-// propósito en vez de recorrer el objeto entero: un estado con foto trae
-// `url`, `directPath` y demás rutas internas de WhatsApp, y darlas por buenas
-// haría saltar el guardia con CUALQUIER estado con imagen. De aquí cuelga una
-// expulsión, así que solo valen los campos que escribe el usuario.
-const CAMPOS_TEXTO = new Set([
-  'conversation', 'text', 'caption', 'description', 'title',
-  'matchedText', 'canonicalUrl', 'sourceUrl',
-]);
-
-// Todo el texto visible de un estado, mire donde mire. Recorre las piezas en
-// profundidad porque el contenido puede venir anidado de varias formas según
-// cómo se publicara (texto, foto con pie, enlace con vista previa...).
-function statusText(piezas) {
-  if (!piezas) return '';
-  const trozos = [];
-  const visto = new Set();
-
-  const recorrer = (o, prof) => {
-    if (!o || prof > 8 || typeof o !== 'object') return;
-    if (Buffer.isBuffer(o) || ArrayBuffer.isView(o)) return;
-    if (visto.has(o)) return;
-    visto.add(o);
-    for (const [k, v] of Object.entries(o)) {
-      if (typeof v === 'string') {
-        if (CAMPOS_TEXTO.has(k) && v) trozos.push(v);
-      } else if (v && typeof v === 'object') {
-        recorrer(v, prof + 1);
-      }
+// ¿Es un estado publicado al grupo? Devuelve por que se ha reconocido (para el
+// log) o null si no lo es.
+function motivoEstado(message) {
+  if (!message) return null;
+  for (const s of SOBRES_ESTADO) {
+    if (message[s]) return s;
+  }
+  // El sobre puede venir dentro de un envoltorio efimero o de ver-una-vez.
+  const dentro = unwrapEnvelope(message);
+  if (dentro !== message) {
+    for (const s of SOBRES_ESTADO) {
+      if (dentro?.[s]) return s + ' (envuelto)';
     }
-  };
+  }
+  for (const m of [message, dentro]) {
+    if (!m) continue;
+    for (const k of Object.keys(m)) {
+      const ctx = m[k]?.contextInfo;
+      if (ctx && marcaDeEstado(ctx)) return `contextInfo.${k}`;
+    }
+  }
+  return null;
+}
 
-  for (const p of (Array.isArray(piezas) ? piezas : [piezas])) recorrer(unwrapEnvelope(p), 0);
-  return trozos.join(' ');
+// Tipos de mensaje que el bot ya sabe manejar. Cualquier otro que llegue a un
+// grupo se registra UNA vez, para que un sobre nuevo de WhatsApp no vuelva a
+// pasar desapercibido como paso con groupStatusMessage.
+const TIPOS_CONOCIDOS = new Set([
+  'conversation', 'extendedTextMessage', 'imageMessage', 'videoMessage',
+  'audioMessage', 'stickerMessage', 'documentMessage', 'documentWithCaptionMessage',
+  'contactMessage', 'contactsArrayMessage', 'locationMessage', 'liveLocationMessage',
+  'reactionMessage', 'protocolMessage', 'senderKeyDistributionMessage',
+  'messageContextInfo', 'ephemeralMessage', 'viewOnceMessage', 'viewOnceMessageV2',
+  'viewOnceMessageV2Extension', 'pollCreationMessage', 'pollCreationMessageV2',
+  'pollCreationMessageV3', 'pollUpdateMessage', 'editedMessage', 'ptvMessage',
+  'templateMessage', 'buttonsMessage', 'listMessage', 'listResponseMessage',
+  'buttonsResponseMessage', 'templateButtonReplyMessage', 'interactiveMessage',
+  'interactiveResponseMessage', 'albumMessage', 'eventMessage', 'commentMessage',
+  'keepInChatMessage', 'stickerSyncRmrMessage', 'encReactionMessage',
+  ...SOBRES_ESTADO,
+]);
+const tiposVistos = new Set();
+function anotarTipoDesconocido(message) {
+  for (const k of Object.keys(message || {})) {
+    if (TIPOS_CONOCIDOS.has(k) || tiposVistos.has(k)) continue;
+    if (tiposVistos.size > 200) return;
+    tiposVistos.add(k);
+    logger.warn(`tipo de mensaje NUEVO en grupo: ${k} — si algo deja de detectarse, empieza por aqui`);
+  }
 }
 
 // ¿El mensaje venía marcado como "ver una vez"?
@@ -503,38 +518,37 @@ async function handleMessage(sock, msg) {
     }
   }
 
-  const statusInner = statusPayload(msg.message);
-  if (jid.endsWith('@g.us') && statusInner) {
-    const stext = statusText(statusInner);
-    URL_RE.lastIndex = 0; // el flag /g mantiene estado entre llamadas
-    const conEnlace = Boolean(stext) && URL_RE.test(stext);
-    URL_RE.lastIndex = 0;
-    // Rastro de lo que llega de verdad. Este guardia depende del formato exacto
-    // en que WhatsApp empuja un estado al grupo, que no está documentado: si
-    // algún día vuelve a no saltar, este log dice si el mensaje se reconoció
-    // como estado y qué texto se le sacó.
-    logger.info(`estado en grupo: enlace=${conEnlace} tipos=[${Object.keys(msg.message || {}).join(',')}] texto="${stext.slice(0, 120)}"`);
+  if (jid.endsWith('@g.us')) {
+    anotarTipoDesconocido(msg.message);
+    const porQue = motivoEstado(msg.message);
+    if (porQue) {
+      // Se registra SIEMPRE, se actúe o no: si mañana WhatsApp cambia el sobre,
+      // este log es lo que dice si el mensaje llegó a reconocerse.
+      logger.info(`estado en grupo detectado por ${porQue} — tipos=[${Object.keys(msg.message || {}).join(',')}]`);
 
-    if (conEnlace) {
       const meta = await getGroupMeta(sock, jid);
       const protegido = !meta ||
         isGroupAdmin(sender, msg.key.fromMe, meta) ||
         isOwner(sender, msg.key.fromMe, meta);
-      if (!protegido && isBotAdmin(sock, meta)) {
-        sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
-        // Lista negra global, igual que el spam de medios: colar enlaces por
-        // estado es la misma clase de spam y no debe poder repetirse entrando
-        // otra vez con la misma cuenta.
-        await banAccount(allForms(sender, meta), `estado con enlaces en ${jid}`, 'auto').catch(() => {});
-        const fuera = await expulsar(sock, jid, sender);
-        sock.sendMessage(jid, {
-          text: fuera
-            ? `@${sender.split('@')[0]} baneado por publicar un estado con enlaces en el grupo.`
-            : `@${sender.split('@')[0]} publicó un estado con enlaces. Borrado y a la lista negra, pero no he podido expulsarlo: hacedlo a mano.`,
-          mentions: [sender],
-        }).catch(() => {});
+
+      if (protegido) return;
+      if (!isBotAdmin(sock, meta)) {
+        logger.warn(`estado en grupo ${jid}: no soy admin, no puedo borrarlo ni expulsar`);
+        return;
       }
-      return; // el estado con enlaces no sigue procesándose en ningún caso
+
+      sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
+      // Lista negra global, igual que el spam de medios: no basta con echarlo, no
+      // debe poder volver a entrar con la misma cuenta a repetirlo.
+      await banAccount(allForms(sender, meta), `estado publicado en ${jid}`, 'auto').catch(() => {});
+      const fuera = await expulsar(sock, jid, sender);
+      sock.sendMessage(jid, {
+        text: fuera
+          ? `@${sender.split('@')[0]} baneado por publicar un estado en el grupo. Aquí no se suben estados, ni con enlaces ni sin ellos.`
+          : `@${sender.split('@')[0]} publicó un estado en el grupo. Borrado y a la lista negra, pero no he podido expulsarlo: hacedlo a mano.`,
+        mentions: [sender],
+      }).catch(() => {});
+      return; // un estado no sigue procesándose en ningún caso
     }
   }
 
