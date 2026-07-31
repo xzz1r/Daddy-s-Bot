@@ -137,6 +137,7 @@ const NEEDS_META = new Set([
   'fk','verificar','verify','check','marcarfake','fake',
   'fkban','fkunban','antifake','antifk',
   'count','resetcount','resetconteo',
+  'top5','top10',   // el sorteo cruza los conteos con la lista de miembros
   'relevancia','relevance',   // isMainOwner necesita meta para resolver LID → teléfono
   // Owner-gated commands also need meta in groups to resolve LID → phone
   // for isOwner checks (otherwise co-owners always fail in modern groups).
@@ -932,8 +933,10 @@ async function handleMessage(sock, msg) {
       case 'guarra':         await cmdGuarra(sock, msg, groupMeta); break;
 
       case 'rizz':           await cmdRizz(sock, msg, groupMeta); break;
-      case 'piropo':         await cmdPiropo(sock, msg, groupMeta); break;
-      case 'coach':          await cmdCoach(sock, msg, groupMeta); break;
+      // piropo y coach no reciben groupMeta a proposito: sus funciones no lo
+      // usan (wingman.js) y por eso tampoco estan en NEEDS_META.
+      case 'piropo':         await cmdPiropo(sock, msg); break;
+      case 'coach':          await cmdCoach(sock, msg); break;
 
       case 'aura':           await cmdAura(sock, msg, args, groupMeta); break;
 
