@@ -2,60 +2,60 @@ const { getActiveUsers } = require('../utils/messageCounter');
 const { isMainOwner, soloMiembros } = require('../utils/wa');
 const { shuffle, pickFresh } = require('../utils/helpers');
 
-// Remates del ranking.
+// Remate del ranking. Sale UNO por top, al final del bloque.
 //
 // Cuatro reglas para escribirlos:
-//   1. NO SE ASUME NADA. Un remate no puede afirmar lo que alguien hizo, pensó,
+//   1. Se burlan de LOS {N} A LA VEZ. Nunca de uno solo: si el remate se ceba
+//      con el primero, los otros cuatro se quedan sin nada y el top parece un
+//      premio individual.
+//   2. NO SE ASUME NADA. Un remate no puede afirmar lo que alguien hizo, pensó,
 //      sintió o va a hacer: el bot no lo sabe y queda de mentiroso. Nada de
 //      "ya tiene la captura hecha" ni "llevan un minuto releyendo esto". La
 //      burla está en el TONO, no en inventarse una reacción.
-//   2. CORTOS. Una línea, dos como mucho, y con retintín. Un párrafo explicando
-//      la lista no es un remate, es un comunicado.
-//   3. La burla va contra los que salen, no contra el tema ni contra el grupo.
-//   4. Valen para cualquier tema. El tema lo pone quien escribe el comando y
-//      puede ser halago o insulto, así que el remate apunta al hecho de salir
-//      en la lista, nunca a lo que la lista dice.
+//   3. CORTOS. Una línea. Un párrafo explicando la lista no es un remate, es un
+//      comunicado.
+//   4. NEUTROS RESPECTO AL TEMA. El tema lo elige quien escribe el comando y
+//      puede ser un insulto ("los más feos") o un halago ("los mejores"). Un
+//      remate que dé por hecho que salir es malo chirría en la mitad de los
+//      tops, así que la burla apunta a estar en la lista, no a lo que la lista
+//      dice.
 //
-// Marcadores: {1} = el primero, {U} = el último, {N} = cuántos salen.
+// Único marcador: {N} = cuántos salen.
 const CIERRES = [
-  '{1} de primero. Enhorabuena, supongo.',
   'Ahí quedáis los {N}. Que os aproveche.',
-  '{1} arriba del todo. Todo tuyo, campeón.',
+  'Enhorabuena a los {N}, supongo.',
   'Sois {N}. Repartíoslo como podáis.',
-  '{1} lidera. Menudo honor.',
   'Ahí lo tenéis. De nada.',
-  '{U} el último. Tampoco es un consuelo.',
   '{N} nombres y ni un aplauso.',
-  '{1}, el primero de todos. Impresionante, casi.',
   'A vivir con ello, los {N}.',
-  '{1} arriba. Que lo disfrute mientras dure.',
   'Ni os molestéis en negarlo.',
-  'Vuestro momento de gloria, {N} campeones. Ya está.',
-  '{1} primero y {U} último. Elegid con cuál os quedáis.',
-  'Menuda cosecha.',
-  '{1} de primero. Que se lo cuelgue en el perfil.',
   'Servidos los {N}. Siguiente.',
   'Que os aguante el grupo.',
-  '{1} arriba y sin premio. Como debe ser.',
-  'Los {N}, retratados. Sin rencor.',
-  '{1}, toma. No lo pedía nadie, pero es tuyo.',
   'Y hasta aquí. Sonreíd, los {N}.',
-  '{U} cierra. Alguien tenía que hacerlo.',
-  'Podéis dar las gracias los {N}. O no.',
-  '{1} en cabeza. Un clásico.',
-  'Aquí no hay podio, hay {N} señalados.',
-  '{1} primero. Que alguien lo felicite, por caridad.',
-  'Los {N} arriba y el resto respirando.',
-  'Bonita lista. Para el que la lee.',
-  'Que conste, {N} nombres. Y no me lo he inventado yo... bueno, sí.',
+  'Podéis dar las gracias. O no.',
+  'Menuda cosecha, los {N}.',
+  '{N} nombres, cero explicaciones.',
+  'Ya está. Los {N} y a otra cosa.',
+  'Sin premio, sin diploma y sin apelación.',
+  'Aquí estáis los {N}. Sin preguntas.',
+  'Bonita lista. Sobre todo para los {N}.',
+  'Los {N} de arriba ya tienen su minuto.',
+  'Ni votos ni pruebas: los {N} y ya.',
+  'Que conste que los eligió el bot. Los {N}.',
+  'Los {N} en la lista. El resto, fuera.',
+  'Toda vuestra, los {N}.',
+  '{N} nombres. Ni uno más, ni uno menos.',
+  'Los {N} nombrados. Lo siento por ninguno.',
+  'Venga, los {N} ya tenéis tema para hoy.',
+  'El bot reparte puestos, no consuelos. Los {N}, avisados.',
+  'Los {N} de la lista. El resto, otro día.',
+  'Cerrado. Que lo comenten los {N}.',
+  'Todos a mirar a los {N}.',
+  'Y con esto, los {N} quedan para el recuerdo.',
 ];
 
 function rellenar(plantilla, picked) {
-  const tag = (u) => `@${u.jid.split('@')[0]}`;
-  return plantilla
-    .replace(/\{1\}/g, tag(picked[0]))
-    .replace(/\{U\}/g, tag(picked[picked.length - 1]))
-    .replace(/\{N\}/g, String(picked.length));
+  return plantilla.replace(/\{N\}/g, String(picked.length));
 }
 
 async function cmdTopRandom(sock, msg, n, args, groupMeta) {
