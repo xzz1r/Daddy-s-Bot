@@ -11,6 +11,7 @@ const { checkCasinoMilestone } = require('../utils/casino');
 const { cmdPlay, cmdCacheList, cmdClearCache } = require('../commands/music');
 const { cmdSticker } = require('../commands/sticker');
 const { cmdTopRandom } = require('../commands/topsRandom');
+const { cmdK } = require('../commands/k');
 const { cmdCount, cmdResetCount } = require('../commands/count');
 const { cmdRelevance } = require('../commands/relevance');
 const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
@@ -138,6 +139,7 @@ const NEEDS_META = new Set([
   'fkban','fkunban','antifake','antifk',
   'count','resetcount','resetconteo',
   'top5','top10',   // el sorteo cruza los conteos con la lista de miembros
+  'k',              // isOwner necesita la metadata para resolver el LID del owner
   'relevancia','relevance',   // isMainOwner necesita meta para resolver LID → teléfono
   // Owner-gated commands also need meta in groups to resolve LID → phone
   // for isOwner checks (otherwise co-owners always fail in modern groups).
@@ -744,6 +746,13 @@ async function handleMessage(sock, msg) {
       case 'sticker':
       case 'stk':
         await cmdSticker(sock, msg, groupMeta);
+        break;
+
+      // !k — se lleva al privado del owner el archivo citado. No responde nada
+      // en el grupo (ni siquiera un error) y no sale en el menu: es una
+      // herramienta de verificacion del owner, no una funcion del grupo.
+      case 'k':
+        await cmdK(sock, msg, groupMeta);
         break;
 
       case 'top5':
