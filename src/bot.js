@@ -42,6 +42,21 @@ let botIds = null; // Set<string> of bot's bare IDs (phone + LID), populated on 
 const MAX_RECONNECTS = 10;
 const MAX_401 = 3;
 
+// Ciclos de "sesion cerrada de verdad" (3 fallos de 401 -> se borran las
+// credenciales -> QR nuevo). Sin un techo aqui, un numero restringido por
+// WhatsApp (login/QR bloqueado, no solo la sesion) entraba en un bucle sin
+// fin: cada QR sin escanear caduca, el socket se cae, y el bot generaba OTRO
+// QR dos segundos despues, solo, para siempre. Eso es exactamente el patron
+// de actividad automatica que agrava una restriccion.
+//
+// Al superar el limite, el bot deja de reintentar por su cuenta y se queda
+// quieto (sin exit): si el supervisor de procesos reinicia solo tras un exit,
+// reiniciar el proceso entero solo resetearia estos contadores y volveria a
+// entrar en el mismo bucle. Quieto es la unica forma de parar de verdad hasta
+// que una persona compruebe la cuenta y arranque el bot a mano.
+let ciclosLogout = 0;
+const MAX_CICLOS_LOGOUT = 2;
+
 // Cada cuánto se relee la lista de solicitudes pendientes de cada grupo. Es una
 // consulta por grupo y el bot está en pocos, así que sale barato. Tiene que ser
 // bastante más corto que SONDEO_VALIDO_MS para que la lista nunca caduque.
@@ -169,8 +184,11 @@ async function connectToWhatsApp() {
     markOnlineOnConnect: false,
     generateHighQualityLinkPreview: false,
     getMessage: async () => undefined,
-    // More frequent keep-alives = more stable WebSocket on mobile/Termux
-    keepAliveIntervalMs: 10_000,
+    // El valor por defecto de la propia libreria es 30_000; este bot lo tenia
+    // en 10_000 (el triple de frecuente) sin necesidad probada. Mas trafico de
+    // fondo del que la libreria considera normal no aporta nada y es exactamente
+    // el tipo de patron que un sistema antiabuso puede leer como no humano.
+    keepAliveIntervalMs: 30_000,
     retryRequestDelayMs: 2000,
     connectTimeoutMs: 60_000,
     // Skip full history sync — much faster initial connection
@@ -199,10 +217,24 @@ async function connectToWhatsApp() {
           logger.error(`Sesión rechazada (401), reintentando en ${delay / 1000}s... (${consecutive401}/${MAX_401})`);
           scheduleReconnect(delay);
         } else {
+          consecutive401 = 0;
+          ciclosLogout++;
+
+          if (ciclosLogout > MAX_CICLOS_LOGOUT) {
+            // No se borra la sesion ni se programa otro intento: generar QR
+            // tras QR sin que nadie los escanee es justo la actividad que
+            // puede convertir una restriccion temporal en una permanente.
+            logger.error(
+              `Sesión cerrada ${ciclosLogout} veces seguidas. Dejo de reintentar solo: ` +
+              `puede que WhatsApp tenga la cuenta restringida (revisa el teléfono). ` +
+              `Cuando esté resuelto, arrancá el bot a mano: pm2 restart bot.`
+            );
+            return;
+          }
+
           // Confirmed logout — wipe and show QR
           logger.error('Sesión definitivamente cerrada. Escaneá el QR de nuevo.');
           await fs.remove(AUTH_DIR);
-          consecutive401 = 0;
           reconnectAttempts = 0;
           scheduleReconnect(2000);
         }
@@ -225,6 +257,7 @@ async function connectToWhatsApp() {
     } else if (connection === 'open') {
       reconnectAttempts = 0;
       consecutive401 = 0;
+      ciclosLogout = 0;
       // Precompute bot's bare IDs (phone + LID) so participant-update events
       // don't have to rebuild the Set on every notification.
       const myJids = [sock.user?.id, sock.user?.lid].filter(Boolean);
