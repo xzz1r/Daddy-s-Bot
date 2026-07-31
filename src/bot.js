@@ -12,9 +12,9 @@ const fs = require('fs-extra');
 const qrcode = require('qrcode-terminal');
 const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, flushState } = require('./utils/state');
-const { isOwner, sameUser, rememberMapping, flushOwnerJids } = require('./utils/wa');
+const { isOwner, sameUser, isBotAdmin, rememberMapping, flushOwnerJids } = require('./utils/wa');
 const { anotarAlta, motivoDelAlta, ALTA_INVITE, ALTA_SOLICITUD } = require('./utils/joinReason');
-const { notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, sondeoReciente, reactivarSondeo, flushJoinRequests } = require('./utils/joinRequests');
+const { notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, sondeoReciente, reactivarSondeo, frenoNuevo, flushJoinRequests } = require('./utils/joinRequests');
 const { flushCounts } = require('./utils/messageCounter');
 const { flushAura } = require('./utils/auraStore');
 const { flushCasino } = require('./utils/casinoStore');
@@ -93,7 +93,27 @@ async function sondearSolicitudes() {
   for (const g of await listaDeGrupos()) {
     const n = await sondear(sock, g);
     if (n) logger.info(`solicitudes pendientes en ${g}: ${n}`);
+    if (n === null) await explicarFreno(g);
   }
+}
+
+// `forbidden` sale por dos motivos muy distintos y desde joinRequests no se
+// pueden distinguir: o el bot no es admin, o el grupo no tiene activada la
+// aprobacion de entradas (sin ella no existe lista que leer). Con la metadata
+// del grupo sí se sabe cuál de los dos es, y se dice UNA vez por bloqueo.
+async function explicarFreno(grupo) {
+  const freno = frenoNuevo(grupo);
+  if (!freno?.prohibido) return;
+  const meta = await getGroupMeta(sock, grupo).catch(() => null);
+  if (!meta) return;
+  logger.warn(
+    isBotAdmin(sock, meta)
+      ? `solicitudes: en ${grupo} SI soy admin, asi que el problema es del grupo: ` +
+        `no tiene activada la aprobacion de entradas. Sin ella no hay solicitudes ` +
+        `que leer, y el anti-admin no puede distinguir una aprobacion de un alta a dedo.`
+      : `solicitudes: en ${grupo} NO soy admin, por eso no puedo leer las solicitudes. ` +
+        `Dame admin y vuelvo a intentarlo solo.`
+  );
 }
 
 function scheduleReconnect(delay) {
@@ -793,4 +813,4 @@ function _sockDePrueba(s) {
   gruposFallos = 0;
 }
 
-module.exports = { connectToWhatsApp, listaDeGrupos, _sockDePrueba };
+module.exports = { connectToWhatsApp, listaDeGrupos, sondearSolicitudes, _sockDePrueba };

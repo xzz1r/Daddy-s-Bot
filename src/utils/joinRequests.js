@@ -158,7 +158,9 @@ async function sondear(sock, grupo) {
     const espera = prohibido
       ? ESPERA_PROHIBIDO
       : Math.min(ESPERA_BASE * 2 ** (fallos - 1), ESPERA_MAX);
-    frenados.set(grupo, { hasta: Date.now() + espera, fallos });
+    // `nuevo` lo consume bot.js para diagnosticar UNA vez por bloqueo por qué
+    // este grupo no contesta, que es lo único que no se puede saber desde aquí.
+    frenados.set(grupo, { hasta: Date.now() + espera, fallos, prohibido, nuevo: true });
     const mins = Math.round(espera / 60000);
     logger.warn(
       prohibido
@@ -177,6 +179,16 @@ async function sondear(sock, grupo) {
   }
   ultimoSondeo.set(grupo, Date.now());
   return (lista || []).length;
+}
+
+// ¿Se acaba de frenar este grupo? Devuelve el freno la PRIMERA vez que se
+// pregunta tras crearlo, y null después. Sirve para explicar el motivo una sola
+// vez por bloqueo en lugar de en cada ciclo.
+function frenoNuevo(grupo) {
+  const f = frenados.get(grupo);
+  if (!f?.nuevo) return null;
+  f.nuevo = false;
+  return f;
 }
 
 // Levanta el freno de un grupo. Lo llama bot.js cuando al bot le dan admin
@@ -209,6 +221,6 @@ function _frenado(grupo) { return frenados.get(grupo) || null; }
 
 module.exports = {
   notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, sondeoReciente,
-  reactivarSondeo, flushJoinRequests, SONDEO_VALIDO_MS,
+  reactivarSondeo, frenoNuevo, flushJoinRequests, SONDEO_VALIDO_MS,
   _reset, _marcarSondeo, _frenado,
 };
