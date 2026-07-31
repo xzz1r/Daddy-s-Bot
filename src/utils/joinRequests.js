@@ -131,7 +131,12 @@ async function estabaPendiente(grupo, forms) {
 //   · forbidden / not-authorized → es un ESTADO, no un fallo pasajero. Seis
 //     horas, y se levanta antes si el bot recibe admin (lo llama bot.js).
 //   · cualquier otro fallo → espera creciente, de un ciclo a una hora.
-// Se registra una sola línea al empezar el bloqueo, no una por intento.
+//
+// Y se anota con logger.info, NO con warn. Que no se pueda leer la lista de
+// solicitudes de un grupo no rompe nada: el bot sigue funcionando igual y el
+// anti-admin simplemente se abstiene de castigar altas ahí, que es lo que ya
+// hacía sin lista fresca. Sacarlo por warn llenaba el log de avisos que el
+// dueño no tiene que leer ni puede accionar. Con LOG_LEVEL=verbose se ve.
 const ESPERA_PROHIBIDO = 6 * 60 * 60 * 1000;
 const ESPERA_BASE = 3 * 60 * 1000;
 const ESPERA_MAX = 60 * 60 * 1000;
@@ -162,7 +167,7 @@ async function sondear(sock, grupo) {
     // este grupo no contesta, que es lo único que no se puede saber desde aquí.
     frenados.set(grupo, { hasta: Date.now() + espera, fallos, prohibido, nuevo: true });
     const mins = Math.round(espera / 60000);
-    logger.warn(
+    logger.info(
       prohibido
         ? `joinRequests: ${grupo} no deja leer las solicitudes (${msg}). ` +
           `O no soy admin o el grupo no pide aprobación para entrar. ` +

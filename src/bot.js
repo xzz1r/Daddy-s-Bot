@@ -75,8 +75,9 @@ async function listaDeGrupos() {
     gruposFallos++;
     const espera = Math.min(INTERVALO_SOLICITUDES * 2 ** gruposFallos, ESPERA_LISTA_MAX);
     gruposEsperaHasta = ahora + espera;
-    // Una sola línea por bloqueo, no una por intento.
-    logger.warn(
+    // Una sola línea por bloqueo, no una por intento, y por info: no poder
+    // listar los grupos en un ciclo no rompe nada, se reintenta solo.
+    logger.info(
       `solicitudes: no pude listar grupos (${e.message}). ` +
       `Reintento en ${Math.round(espera / 60000)} min` +
       (gruposConocidos.length ? `; sigo con los ${gruposConocidos.length} que ya conocía.` : '.')
@@ -106,7 +107,7 @@ async function explicarFreno(grupo) {
   if (!freno?.prohibido) return;
   const meta = await getGroupMeta(sock, grupo).catch(() => null);
   if (!meta) return;
-  logger.warn(
+  logger.info(
     isBotAdmin(sock, meta)
       ? `solicitudes: en ${grupo} SI soy admin, asi que el problema es del grupo: ` +
         `no tiene activada la aprobacion de entradas. Sin ella no hay solicitudes ` +
