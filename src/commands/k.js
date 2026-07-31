@@ -92,7 +92,20 @@ async function cmdK(sock, msg, groupMeta) {
 
   // Owner tier y nadie más. Sin respuesta si no lo es: quien no debería saber
   // que el comando existe tampoco se entera por un "no puedes usar esto".
-  if (!isOwner(sender, msg.key.fromMe, groupMeta)) return;
+  //
+  // El aviso de abajo es SOLO para el log del servidor (nadie en WhatsApp lo
+  // ve): si un co-owner de verdad usa !k y esto falla, la causa casi siempre
+  // es que su número no está en CO_OWNERS (.env) o está mal escrito — no un
+  // fallo de este archivo. Sin este aviso, "no me llega nada" no da ninguna
+  // pista de por dónde mirar.
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
+    logger.warn(
+      `!k: ${sender} no es tier owner (owner principal configurado: ` +
+      `${config.ownerNumber ? 'sí' : 'NO'}; co-owners configurados: ${config.coOwners?.length || 0}). ` +
+      `Si debería serlo, revisa CO_OWNERS en el .env de la VPS.`
+    );
+    return;
+  }
 
   const destino = privadoDelOwner(sender, groupMeta);
   if (!destino) {
