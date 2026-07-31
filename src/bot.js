@@ -501,6 +501,7 @@ async function connectToWhatsApp() {
         }
 
         const vueltos = [];
+        const sinAdmin = [];
         const invitados = [];
         const fallidos = [];
         for (const victima of echados) {
@@ -514,10 +515,23 @@ async function connectToWhatsApp() {
           const estado = String(fila?.status ?? '');
 
           if (estado === '200') {
-            vueltos.push(victima);
             // Vuelve con el admin que tenía. El evento de promote lo firma el
             // bot, así que el propio anti-admin no lo revierte.
-            await sock.groupParticipantsUpdate(groupJid, [victima], 'promote').catch(() => {});
+            //
+            // Se comprueba el resultado en vez de lanzarlo y olvidarse: el aviso
+            // afirma que vuelve CON su admin, y decirlo sin haberlo verificado
+            // es exactamente el tipo de mentira que el resto del bot ya no dice.
+            let conAdmin = false;
+            try {
+              const r2 = await sock.groupParticipantsUpdate(groupJid, [victima], 'promote');
+              const f2 = Array.isArray(r2)
+                ? r2.find(x => (x?.jid || '').split('@')[0] === victima.split('@')[0])
+                : null;
+              conAdmin = String(f2?.status ?? '200') === '200';
+            } catch (err) {
+              logger.warn(`Owner echado: no pude devolverle el admin a ${victima}: ${err.message}`);
+            }
+            (conAdmin ? vueltos : sinAdmin).push(victima);
             continue;
           }
 
@@ -552,6 +566,7 @@ async function connectToWhatsApp() {
         const lista = (a) => a.map(j => `@${j.split('@')[0]}`).join(', ');
         const partes = [`*${autorTag} ha echado al owner.*`];
         if (vueltos.length)   partes.push(`${lista(vueltos)} está de vuelta con su admin.`);
+        if (sinAdmin.length)  partes.push(`${lista(sinAdmin)} ha vuelto, pero no he podido devolverle el admin.`);
         if (invitados.length) partes.push(`${lista(invitados)} tiene la privacidad activa: le he mandado la invitación por privado.`);
         if (fallidos.length)  partes.push(`No he podido devolver a ${lista(fallidos)}: metedlo a mano.`);
         partes.push(degradado

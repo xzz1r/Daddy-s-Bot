@@ -367,6 +367,19 @@ function isViewOnce(message) {
   return Boolean(inner?.videoMessage?.viewOnce || inner?.imageMessage?.viewOnce);
 }
 
+// ¿El que escribe es del owner tier? Se prueban las DOS formas que trae el
+// propio mensaje, no solo la que llegó como remitente.
+//
+// Con la metadata a medias —un grupo LID donde WhatsApp no manda el
+// phone_number de cada participante— isOwner no puede resolver el teléfono a
+// partir del @lid, y si ese LID aún no estaba mapeado el owner o un co-owner
+// pasaba por miembro raso y se comía la guarda. El teléfono viene en el propio
+// mensaje (participantAlt), así que aquí siempre hay una segunda oportunidad.
+function esOwnerDelMensaje(msg, sender, senderPn, meta) {
+  if (isOwner(sender, msg.key.fromMe, meta)) return true;
+  return Boolean(senderPn && isOwner(senderPn, msg.key.fromMe, meta));
+}
+
 async function handleMessage(sock, msg) {
   if (!msg.message) return;
   // Se comprueba ANTES de desenvolver: unwrapEnvelope destruye la prueba.
@@ -484,7 +497,7 @@ async function handleMessage(sock, msg) {
       const meta = await getGroupMeta(sock, jid);
       const protegido = !meta ||
         isGroupAdmin(sender, msg.key.fromMe, meta) ||
-        isOwner(sender, msg.key.fromMe, meta);
+        esOwnerDelMensaje(msg, sender, senderPn, meta);
 
       if (protegido) return;
       if (!isBotAdmin(sock, meta)) {
@@ -514,7 +527,7 @@ async function handleMessage(sock, msg) {
       // If meta is unavailable (timeout/network error), treat sender as non-admin
       // so moderation doesn't silently no-op when connectivity is degraded.
       const senderIsAdmin = meta ? isGroupAdmin(sender, msg.key.fromMe, meta) : false;
-      if (!senderIsAdmin) {
+      if (!senderIsAdmin && !esOwnerDelMensaje(msg, sender, senderPn, meta)) {
         if (verdict === 'blocked') {
           // Without bot-admin (or without meta to verify it) the bot can neither
           // delete the message nor kick — warn once per group instead.
@@ -623,7 +636,7 @@ async function handleMessage(sock, msg) {
     const meta = await getGroupMeta(sock, jid);
     const protegido = !meta ||
       isGroupAdmin(sender, msg.key.fromMe, meta) ||
-      isOwner(sender, msg.key.fromMe, meta);
+      esOwnerDelMensaje(msg, sender, senderPn, meta);
 
     if (!protegido && isBotAdmin(sock, meta)) {
       const borrar = (id) => sock.sendMessage(jid, {
