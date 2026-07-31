@@ -1,5 +1,5 @@
 const path = require('path');
-const { bareJid } = require('./wa');
+const { canonicalJid } = require('./wa');
 const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const logger = require('./logger');
 
@@ -56,23 +56,47 @@ function freshBucket(groupJid) {
   return g;
 }
 
+// Junta lo que la misma persona tenga anotado bajo varias formas y lo deja en
+// una sola clave canónica. Sin esto, quien llega unas veces por @lid y otras
+// por teléfono partía su cuenta diaria en dos montones: los hitos de 200/500/
+// 1000 se retrasaban (o, peor, se cobraban dos veces, uno por cada montón).
+//
+// Es el mismo criterio que messageCounter y auraStore: la clave es canonicalJid.
+function colapsar(counts, key) {
+  let total = counts[key] || 0;
+  for (const k in counts) {
+    if (k === key || canonicalJid(k) !== key) continue;
+    total += counts[k];
+    delete counts[k];
+  }
+  return total;
+}
+
 async function incrementCasinoCount(groupJid, userJid) {
   await load();
-  const key = bareJid(userJid);
+  const key = canonicalJid(userJid);
   const g = freshBucket(groupJid);
-  const next = (g.counts[key] || 0) + 1;
+  const next = colapsar(g.counts, key) + 1;
   g.counts[key] = next;
   scheduleSave();
   return next;
 }
 
 // Read-only count for the current window (0 if expired or unknown).
+// No colapsa (no escribe), pero sí suma todas las formas conocidas: si no, el
+// "llevas N mensajes hoy" de !aura hoy no cuadraría con el hito que acaba de
+// saltar.
 async function getCasinoCount(groupJid, userJid) {
   await load();
   const g = store[groupJid];
   if (!g || typeof g.resetAt !== 'number' || !g.counts) return 0;
   if (Date.now() - g.resetAt >= RESET_MS) return 0;
-  return g.counts[bareJid(userJid)] || 0;
+  const key = canonicalJid(userJid);
+  let total = 0;
+  for (const k in g.counts) {
+    if (canonicalJid(k) === key) total += g.counts[k];
+  }
+  return total;
 }
 
 // Milliseconds until current window resets (0 if expired / unknown).

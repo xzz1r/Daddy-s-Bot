@@ -1,4 +1,4 @@
-const { isOwner, isMainOwner, isAdmin, getSender, getTarget, bareJid, sameUser } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser } = require('../utils/wa');
 const { getAura, addAura } = require('../utils/auraStore');
 const { pickFresh, fmt } = require('../utils/helpers');
 
@@ -8,7 +8,7 @@ const STAKE_FLOOR     = 10;
 const MIN_AURA        = 50;
 const ROB_COOLDOWN_MS = 10 * 60 * 1000; // 10 min per attacker per group
 
-const lastRob = new Map(); // `${groupJid}|${bareJid}` -> timestamp
+const lastRob = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
 
 // %A = atacante (ladrón), %V = víctima
 const ROB_WIN = [
@@ -76,7 +76,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   }
 
   // Cooldown: 10 min per attacker per group
-  const coolKey = `${jid}|${bareJid(sender)}`;
+  const coolKey = `${jid}|${canonicalJid(sender)}`;
   const last = lastRob.get(coolKey) || 0;
   const remaining = ROB_COOLDOWN_MS - (Date.now() - last);
   if (remaining > 0) {

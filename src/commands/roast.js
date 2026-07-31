@@ -1,6 +1,6 @@
 'use strict';
 
-const { getSender, getTarget, isMainOwner, bareJid, fetchAbout } = require('../utils/wa');
+const { getSender, getTarget, isMainOwner, bareJid, sameUser, fetchAbout } = require('../utils/wa');
 const { pick, fmt } = require('../utils/helpers');
 const { getUserCount } = require('../utils/messageCounter');
 
@@ -436,7 +436,7 @@ async function cmdRoast(sock, msg, groupMeta) {
     return sock.sendMessage(jid, { text: 'Usa: *!roast @alguien* (o respondele a su mensaje)' }, { quoted: msg });
   }
 
-  if (bareJid(target) === bareJid(sender)) {
+  if (sameUser(target, sender)) {
     return sock.sendMessage(jid, {
       text: 'Roastearte a ti mismo es un nivel de autodestrucción que ni el bot va a facilitar.',
     }, { quoted: msg });

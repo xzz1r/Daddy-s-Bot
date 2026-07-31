@@ -1,5 +1,7 @@
 'use strict';
 
+const { canonicalJid } = require('./wa');
+
 // Rastreo de medios enviados sin "ver una vez", para detectar spam.
 //
 // Reglas:
@@ -20,7 +22,7 @@ const RULES = {
   image: { limit: 5, windowMs: 30 * 1000 }, // 5 fotos en 30 segundos
 };
 
-// `${groupJid}|${bareSender}|${kind}` -> [{ id, ts }]
+// `${groupJid}|${canonicalJid}|${kind}` -> [{ id, ts }]
 const hits = new Map();
 const MAX_KEYS = 5000;
 
@@ -30,7 +32,10 @@ function noteOffence(groupJid, sender, kind, msgId) {
   const rule = RULES[kind];
   if (!rule) return { spam: false, ids: [], limit: 0 };
 
-  const key = `${groupJid}|${String(sender).split('@')[0].split(':')[0]}|${kind}`;
+  // La clave es canonicalJid, no el numero pelado: la misma persona puede
+  // llegar por @lid y por telefono, y con dos claves distintas una rafaga se
+  // partia en dos montones y no alcanzaba el umbral nunca.
+  const key = `${groupJid}|${canonicalJid(sender)}|${kind}`;
   const now = Date.now();
 
   if (!hits.has(key) && hits.size >= MAX_KEYS) {
@@ -49,7 +54,7 @@ function noteOffence(groupJid, sender, kind, msgId) {
 
 // Al salir del grupo (o ser expulsado) se olvida su historial.
 function forget(groupJid, sender) {
-  const p = `${groupJid}|${String(sender).split('@')[0].split(':')[0]}|`;
+  const p = `${groupJid}|${canonicalJid(sender)}|`;
   for (const k of hits.keys()) if (k.startsWith(p)) hits.delete(k);
 }
 

@@ -4,7 +4,7 @@ const { isBotEnabled, incrementStat, isAntiLinkEnabled } = require('../utils/sta
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { recordFacts } = require('../utils/nickStore');
 const { noteOffence, forget } = require('../utils/mediaSpam');
-const { isAllowed, noteWarning, resetWarnings } = require('../utils/linkPerms');
+const { isAllowed, noteWarning, resetWarnings, MAX_AVISOS } = require('../utils/linkPerms');
 const { banAccount } = require('../utils/banlist');
 const { allForms } = require('../commands/fk');
 const { checkCasinoMilestone } = require('../utils/casino');
@@ -34,7 +34,7 @@ const { cmdVs, cmdInactivos } = require('../commands/activity');
 const { cmdRoast } = require('../commands/roast');
 const { cmdDar } = require('../commands/dar');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, cmdCasino } = require('../commands/social');
-const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, extractText, rememberMapping, getSender } = require('../utils/wa');
+const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, extractText, rememberMapping, getSender, canonicalJid } = require('../utils/wa');
 const logger = require('../utils/logger');
 
 // Hosts allowed without penalty (only a "send once" reminder). Matched against
@@ -339,7 +339,7 @@ function anotarTipoDesconocido(message) {
     if (TIPOS_CONOCIDOS.has(k) || tiposVistos.has(k)) continue;
     if (tiposVistos.size > 200) return;
     tiposVistos.add(k);
-    logger.warn(`tipo de mensaje NUEVO en grupo: ${k} — si algo deja de detectarse, empieza por aqui`);
+    logger.warn(`tipo de mensaje NUEVO en grupo: ${k} — si algo deja de detectarse, empieza por aquí`);
   }
 }
 
@@ -585,8 +585,8 @@ async function handleMessage(sock, msg) {
           const fuera = await expulsar(sock, jid, sender);
           sock.sendMessage(jid, {
             text: fuera
-              ? `@${num} baneado. Tres enlaces sin el *!allow* de un admin. Te avisamos dos veces y pasaste de todo, asi que fuera.`
-              : `@${num} a la lista negra por soltar tres enlaces sin permiso. No he podido expulsarlo: hacedlo a mano.`,
+              ? `@${num} baneado. ${MAX_AVISOS} enlaces sin el *!allow* de un admin. Te avisamos ${MAX_AVISOS - 1} veces y pasaste de todo, así que fuera.`
+              : `@${num} a la lista negra por soltar ${MAX_AVISOS} enlaces sin permiso. No he podido expulsarlo: hacedlo a mano.`,
             mentions: [sender],
           }).catch(() => {});
           return;
@@ -599,14 +599,16 @@ async function handleMessage(sock, msg) {
         // EXCEPCIÓN: el último aviso sale siempre, esté o no dentro del límite.
         // Si se lo tragara el silenciador, el siguiente enlace le costaría el
         // grupo sin que nadie le hubiera dicho que iba por ahí.
-        const rKey = `${jid}|${sender}`;
+        const rKey = `${jid}|${canonicalJid(sender)}`;
         const lastR = antilinkReminders.get(rKey);
         if (restantes === 1 || !lastR || Date.now() - lastR > ANTILINK_REMINDER_TTL) {
           if (antilinkReminders.size >= 2000) antilinkReminders.delete(antilinkReminders.keys().next().value);
           antilinkReminders.set(rKey, Date.now());
+          // El limite sale de linkPerms, no escrito a mano: si algun dia se
+          // cambia MAX_AVISOS, el texto no puede seguir prometiendo otra cosa.
           const cola = restantes === 1
-            ? ' Aviso 2 de 3: al siguiente te vas del grupo.'
-            : ` Aviso ${avisos} de 3.`;
+            ? ` Aviso ${avisos} de ${MAX_AVISOS}: al siguiente te vas del grupo.`
+            : ` Aviso ${avisos} de ${MAX_AVISOS}.`;
           sock.sendMessage(jid, {
             text: `@${num} ${pickFresh(PERMISO_ENLACE, `${jid}|permiso`)}${cola}`,
             mentions: [sender],
@@ -667,13 +669,13 @@ async function handleMessage(sock, msg) {
 
       // Aviso limitado a uno por persona cada 5 min: se borra todo igualmente,
       // pero no se inunda el chat de avisos.
-      const wKey = `${jid}|${sender}|vo`;
+      const wKey = `${jid}|${canonicalJid(sender)}|vo`;
       const last = videoOnceWarn.get(wKey);
       if (!last || Date.now() - last > ANTILINK_REMINDER_TTL) {
         if (videoOnceWarn.size >= 2000) videoOnceWarn.delete(videoOnceWarn.keys().next().value);
         videoOnceWarn.set(wKey, Date.now());
         sock.sendMessage(jid, {
-          text: `@${sender.split('@')[0]} las fotos y los videos se envian siempre en *ver una vez*. Borrado.`,
+          text: `@${sender.split('@')[0]} las fotos y los videos se envían siempre en *ver una vez*. Borrado.`,
           mentions: [sender],
         }).catch(() => {});
       }

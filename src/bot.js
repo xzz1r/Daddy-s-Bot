@@ -272,7 +272,7 @@ async function connectToWhatsApp() {
     const n = guardarContactos(contacts);
     const k = guardarMapeos(lidPnMappings);
     if (n) logger.info(`cuentas: ${n} fichas (business/foto) aprendidas de la sincronizacion de WhatsApp`);
-    if (k) logger.info(`jid: ${k} correspondencias LID-telefono aprendidas de WhatsApp`);
+    if (k) logger.info(`jid: ${k} correspondencias LID-teléfono aprendidas de WhatsApp`);
   });
 
   // Group events: anti-business on join, anti-admin + notifications on promote/demote
@@ -370,7 +370,7 @@ async function connectToWhatsApp() {
             }
             const num = kickId.split('@')[0];
             sock.sendMessage(groupJid, {
-              text: `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada automaticamente.`,
+              text: `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada automáticamente.`,
               mentions: [kickId],
             }).catch((e) => logger.warn(`Anti-empresa: send fallo en ${groupJid}: ${e.message}`));
           } catch (err) {

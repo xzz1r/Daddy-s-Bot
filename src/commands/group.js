@@ -1,10 +1,10 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const { isOwner, isAdmin, isBotJid, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid } = require('../utils/wa');
+const { isOwner, isAdmin, isBotJid, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid, sameUser } = require('../utils/wa');
 const { streamToBuffer, MAX_DOWNLOAD_BYTES } = require('../utils/helpers');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled } = require('../utils/state');
 const { businessEvidence } = require('../utils/businessCheck');
 const { getMemberFacts } = require('../utils/nickStore');
-const { allow, disallow, listAllowed } = require('../utils/linkPerms');
+const { allow, disallow, listAllowed, MAX_AVISOS } = require('../utils/linkPerms');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 
 // In-memory mute store: `groupJid|bareJid` -> expireTimestamp
@@ -186,7 +186,7 @@ async function cmdKick(sock, msg, args, groupMeta) {
   const targets = [];
   const skipped = [];
   for (const t of all) {
-    if (bareJid(t) === bareJid(sender)) { skipped.push({ jid: t, reason: 'eres tú mismo' }); continue; }
+    if (sameUser(t, sender)) { skipped.push({ jid: t, reason: 'eres tú mismo' }); continue; }
     // Never let the bot be told to remove itself.
     if (isBotJid(sock, t)) { skipped.push({ jid: t, reason: 'soy yo' }); continue; }
     // Owner tier is immune to kick — no one can remove the owner/co-owner via the bot.
@@ -303,7 +303,7 @@ async function cmdMute(sock, msg, args, groupMeta) {
   if (!target) {
     return sock.sendMessage(jid, { text: 'Menciona o responde al usuario que quieres mutear.' }, { quoted: msg });
   }
-  if (bareJid(target) === bareJid(sender)) {
+  if (sameUser(target, sender)) {
     return sock.sendMessage(jid, { text: 'No puedes mutearte a ti mismo.' }, { quoted: msg });
   }
   // Owner tier is immune; and (mirroring !kick) only the owner may act on admins.
@@ -651,7 +651,7 @@ async function cmdAdd(sock, msg, args, groupMeta) {
 
   const raw = (args[0] || '').replace(/[^\d]/g, '');
   if (!raw || raw.length < 6) {
-    return sock.sendMessage(jid, { text: '*!add <numero>*' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: '*!add <número>*' }, { quoted: msg });
   }
 
   const targetJid = `${raw}@s.whatsapp.net`;
@@ -673,12 +673,12 @@ async function cmdAdd(sock, msg, args, groupMeta) {
       return sock.sendMessage(jid, { text: `No se pudo agregar a +${raw}: su configuracion de privacidad no permite ser agregado a grupos.` }, { quoted: msg });
     }
     if (status === '408') {
-      return sock.sendMessage(jid, { text: `No se pudo agregar a +${raw}: el numero no existe en WhatsApp.` }, { quoted: msg });
+      return sock.sendMessage(jid, { text: `No se pudo agregar a +${raw}: el número no existe en WhatsApp.` }, { quoted: msg });
     }
     if (status === '409') {
       return sock.sendMessage(jid, { text: `+${raw} ya esta en el grupo.` }, { quoted: msg });
     }
-    return sock.sendMessage(jid, { text: `Resultado para +${raw}: codigo ${status || 'desconocido'}.` }, { quoted: msg });
+    return sock.sendMessage(jid, { text: `Resultado para +${raw}: código ${status || 'desconocido'}.` }, { quoted: msg });
   } catch (err) {
     return sock.sendMessage(jid, { text: `No pude agregar al usuario: ${err.message}` }, { quoted: msg });
   }
@@ -711,7 +711,7 @@ async function cmdAntiLink(sock, msg, args, groupMeta) {
   await toggleAntiLink(jid, enable);
   await sock.sendMessage(jid, {
     text: enable
-      ? 'Anti-link *activado*. Se borra cualquier enlace. Los de YouTube e Instagram avisan dos veces y al tercero es ban; el resto, expulsión directa. Con *!allow* se publica sin problema. Los admins quedan exentos.'
+      ? `Anti-link *activado*. Se borra cualquier enlace. Los de YouTube e Instagram avisan ${MAX_AVISOS - 1} veces y al ${MAX_AVISOS === 3 ? 'tercero' : `aviso ${MAX_AVISOS}`} es ban; el resto, expulsión directa. Con *!allow* se publica sin problema. Los admins quedan exentos.`
       : 'Anti-link *desactivado*.',
   }, { quoted: msg });
 }

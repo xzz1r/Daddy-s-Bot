@@ -139,7 +139,7 @@ async function cmdDuel(sock, msg, args, groupMeta) {
     const d = getPending(jid);
     if (!d) return sock.sendMessage(jid, { text: 'No hay ningún duelo pendiente.' }, { quoted: msg });
     const resolvedSender = resolveJid(sender, groupMeta?.participants);
-    if (resolvedSender !== bareJid(d.target)) {
+    if (!sameUser(resolvedSender, d.target)) {
       return sock.sendMessage(jid, { text: 'Este duelo no es para ti.' }, { quoted: msg });
     }
     // Claim the duel atomically BEFORE any await. Two concurrent "aceptar"
@@ -176,8 +176,8 @@ async function cmdDuel(sock, msg, args, groupMeta) {
     const d = getPending(jid);
     if (!d) return sock.sendMessage(jid, { text: 'No hay ningún duelo pendiente.' }, { quoted: msg });
     const resolvedSender2 = resolveJid(sender, groupMeta?.participants);
-    const isTarget = resolvedSender2 === bareJid(d.target);
-    const isChallenger = resolvedSender2 === bareJid(d.challenger);
+    const isTarget = sameUser(resolvedSender2, d.target);
+    const isChallenger = sameUser(resolvedSender2, d.challenger);
     if (!isTarget && !isChallenger) {
       return sock.sendMessage(jid, { text: 'Este duelo no es asunto tuyo.' }, { quoted: msg });
     }

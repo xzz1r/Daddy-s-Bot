@@ -1,9 +1,9 @@
-const { isOwner, isMainOwner, isAdmin, getTarget, getSender, bareJid, sameUser } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameUser } = require('../utils/wa');
 const { pickFresh, fmt } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 
 const ROLL_COOLDOWN_MS = 3 * 60 * 1000; // 3 minutes per user per group
-const lastRoll = new Map(); // `${groupJid}|${bareJid}` -> timestamp
+const lastRoll = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
 
 // Aura roll. Owner 60/40, admin 55/45, member 50/50.
 // Members were previously 30/70 — far too punishing for regular use.
@@ -280,7 +280,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
     }, { quoted: msg });
   }
 
-  const coolKey = `${jid}|${bareJid(sender)}`;
+  const coolKey = `${jid}|${canonicalJid(sender)}`;
   const last = lastRoll.get(coolKey) || 0;
   const remaining = ROLL_COOLDOWN_MS - (Date.now() - last);
   if (remaining > 0) {
