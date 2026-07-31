@@ -14,7 +14,7 @@ const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, flushState } = require('./utils/state');
 const { isOwner, sameUser, rememberMapping, flushOwnerJids } = require('./utils/wa');
 const { anotarAlta, motivoDelAlta, ALTA_INVITE, ALTA_SOLICITUD } = require('./utils/joinReason');
-const { notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, sondeoReciente, flushJoinRequests } = require('./utils/joinRequests');
+const { notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, sondeoReciente, reactivarSondeo, flushJoinRequests } = require('./utils/joinRequests');
 const { flushCounts } = require('./utils/messageCounter');
 const { flushAura } = require('./utils/auraStore');
 const { flushCasino } = require('./utils/casinoStore');
@@ -48,13 +48,49 @@ const MAX_401 = 3;
 const INTERVALO_SOLICITUDES = 3 * 60 * 1000;
 let timerSolicitudes = null;
 
-// Relee las solicitudes pendientes de todos los grupos del bot.
+// groupFetchAllParticipating se trae la metadata de TODOS los grupos de una
+// vez. Es la consulta más cara que hace el bot y pedirla cada tres minutos es
+// lo que provocaba el `rate-overlimit` que salía en el log una vez sí y otra
+// no. La lista de grupos casi nunca cambia, así que se relee de tarde en tarde
+// y entre medias se reutiliza la que ya se tenía.
+const TTL_LISTA_GRUPOS = 30 * 60 * 1000;
+const ESPERA_LISTA_MAX = 60 * 60 * 1000;
+let gruposConocidos = [];
+let gruposTs = 0;
+let gruposEsperaHasta = 0;
+let gruposFallos = 0;
+
+async function listaDeGrupos() {
+  const ahora = Date.now();
+  if (gruposConocidos.length && ahora - gruposTs < TTL_LISTA_GRUPOS) return gruposConocidos;
+  // Tras un rate-overlimit se espera de verdad: insistir es lo que lo mantiene.
+  if (ahora < gruposEsperaHasta) return gruposConocidos;
+
+  try {
+    gruposConocidos = Object.keys(await sock.groupFetchAllParticipating());
+    gruposTs = ahora;
+    gruposFallos = 0;
+    gruposEsperaHasta = 0;
+  } catch (e) {
+    gruposFallos++;
+    const espera = Math.min(INTERVALO_SOLICITUDES * 2 ** gruposFallos, ESPERA_LISTA_MAX);
+    gruposEsperaHasta = ahora + espera;
+    // Una sola línea por bloqueo, no una por intento.
+    logger.warn(
+      `solicitudes: no pude listar grupos (${e.message}). ` +
+      `Reintento en ${Math.round(espera / 60000)} min` +
+      (gruposConocidos.length ? `; sigo con los ${gruposConocidos.length} que ya conocía.` : '.')
+    );
+  }
+  return gruposConocidos;
+}
+
+// Relee las solicitudes pendientes de todos los grupos del bot. Los grupos que
+// no dejan leerlas se apartan solos (joinRequests aplica su propio freno), así
+// que esto no insiste contra una puerta cerrada.
 async function sondearSolicitudes() {
   if (!sock) return;
-  let grupos;
-  try { grupos = Object.keys(await sock.groupFetchAllParticipating()); }
-  catch (e) { logger.warn(`solicitudes: no pude listar grupos: ${e.message}`); return; }
-  for (const g of grupos) {
+  for (const g of await listaDeGrupos()) {
     const n = await sondear(sock, g);
     if (n) logger.info(`solicitudes pendientes en ${g}: ${n}`);
   }
@@ -585,6 +621,10 @@ async function connectToWhatsApp() {
     const targets = partJids.map(jid => `@${jid.split('@')[0]}`).join(', ');
     const authorTag = author ? `@${String(author).split('@')[0]}` : 'Alguien';
 
+    // Si al BOT le acaban de dar admin aquí, este grupo pasa de "forbidden" a
+    // legible: se levanta el freno del sondeo en vez de esperar las seis horas.
+    if (action === 'promote' && partJids.some(isBotJid)) reactivarSondeo(groupJid);
+
     // Anti-admin: revert any promote that didn't come from the bot.
     // Owner/co-owner promotions are exempt — they have authority to grant admin.
     if (action === 'promote' && !fromBot && !esOwnerAmplio(author, authorPn, meta) && isAntiAdminEnabled(groupJid)) {
@@ -743,4 +783,14 @@ process.on('unhandledRejection', (reason) => {
   logger.error(`Promesa rechazada: ${reason}`);
 });
 
-module.exports = { connectToWhatsApp };
+// listaDeGrupos y el inyector de socket se exportan para poder probar el freno
+// del sondeo sin abrir una conexion real a WhatsApp.
+function _sockDePrueba(s) {
+  sock = s;
+  gruposConocidos = [];
+  gruposTs = 0;
+  gruposEsperaHasta = 0;
+  gruposFallos = 0;
+}
+
+module.exports = { connectToWhatsApp, listaDeGrupos, _sockDePrueba };

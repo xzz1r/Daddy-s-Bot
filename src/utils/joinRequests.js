@@ -119,23 +119,72 @@ async function estabaPendiente(grupo, forms) {
   return false;
 }
 
+// ── Freno por grupo ──────────────────────────────────────────────────────────
+//
+// El sondeo corre cada pocos minutos y hay grupos que NUNCA van a contestar:
+// WhatsApp devuelve `forbidden` cuando el bot no es admin o cuando el grupo no
+// tiene activada la aprobación de entradas. Insistir cada tres minutos contra
+// eso no arregla nada: llena el log de avisos idénticos y gasta peticiones que
+// acaban provocando el `rate-overlimit` que sale al listar los grupos.
+//
+// Así que cada grupo que falla se aparta un rato:
+//   · forbidden / not-authorized → es un ESTADO, no un fallo pasajero. Seis
+//     horas, y se levanta antes si el bot recibe admin (lo llama bot.js).
+//   · cualquier otro fallo → espera creciente, de un ciclo a una hora.
+// Se registra una sola línea al empezar el bloqueo, no una por intento.
+const ESPERA_PROHIBIDO = 6 * 60 * 60 * 1000;
+const ESPERA_BASE = 3 * 60 * 1000;
+const ESPERA_MAX = 60 * 60 * 1000;
+const PROHIBIDO = /forbidden|not-?authorized|unauthorized|\b40[13]\b/i;
+
+const frenados = new Map(); // grupo -> { hasta, fallos }
+
 // Sondea el servidor y anota a todo el que esté esperando. Devuelve cuántos
-// había, o null si la consulta falló (y entonces el sondeo NO cuenta).
+// había, o null si la consulta falló o el grupo está frenado (y entonces el
+// sondeo NO cuenta).
 async function sondear(sock, grupo) {
   if (typeof sock?.groupRequestParticipantsList !== 'function') return null;
+
+  const freno = frenados.get(grupo);
+  if (freno && Date.now() < freno.hasta) return null;
+
   let lista;
   try {
     lista = await sock.groupRequestParticipantsList(grupo);
   } catch (e) {
-    logger.warn(`joinRequests: no pude leer las solicitudes de ${grupo}: ${e.message}`);
+    const msg = e?.message || String(e);
+    const prohibido = PROHIBIDO.test(msg);
+    const fallos = prohibido ? 1 : (freno?.fallos || 0) + 1;
+    const espera = prohibido
+      ? ESPERA_PROHIBIDO
+      : Math.min(ESPERA_BASE * 2 ** (fallos - 1), ESPERA_MAX);
+    frenados.set(grupo, { hasta: Date.now() + espera, fallos });
+    const mins = Math.round(espera / 60000);
+    logger.warn(
+      prohibido
+        ? `joinRequests: ${grupo} no deja leer las solicitudes (${msg}). ` +
+          `O no soy admin o el grupo no pide aprobación para entrar. ` +
+          `No lo vuelvo a intentar en ${mins} min.`
+        : `joinRequests: fallo al leer las solicitudes de ${grupo} (${msg}). Reintento en ${mins} min.`
+    );
     return null;
   }
+
+  frenados.delete(grupo);
   for (const p of (lista || [])) {
     const jid = p?.jid || p?.phone_number || p?.lid;
     if (jid) await notarSolicitud(grupo, jid);
   }
   ultimoSondeo.set(grupo, Date.now());
   return (lista || []).length;
+}
+
+// Levanta el freno de un grupo. Lo llama bot.js cuando al bot le dan admin
+// ahí: es justo el cambio que puede convertir el `forbidden` en una lista.
+function reactivarSondeo(grupo) {
+  if (frenados.delete(grupo)) {
+    logger.info(`joinRequests: vuelvo a sondear ${grupo}`);
+  }
 }
 
 // ¿Se sabe de verdad quién estaba esperando en este grupo? Si no, quien decide
@@ -154,10 +203,12 @@ async function flushJoinRequests() {
 }
 
 // Solo para pruebas.
-function _reset() { store = null; loadPromise = null; ultimoSondeo.clear(); }
+function _reset() { store = null; loadPromise = null; ultimoSondeo.clear(); frenados.clear(); }
 function _marcarSondeo(grupo, ts = Date.now()) { ultimoSondeo.set(grupo, ts); }
+function _frenado(grupo) { return frenados.get(grupo) || null; }
 
 module.exports = {
   notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, sondeoReciente,
-  flushJoinRequests, SONDEO_VALIDO_MS, _reset, _marcarSondeo,
+  reactivarSondeo, flushJoinRequests, SONDEO_VALIDO_MS,
+  _reset, _marcarSondeo, _frenado,
 };
