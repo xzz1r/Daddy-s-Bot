@@ -100,10 +100,20 @@ async function cmdTopRandom(sock, msg, n, args, groupMeta) {
     return `${' '.repeat(ancho - num.length)}*${num}.*  @${u.jid.split('@')[0]}`;
   });
 
+  // Bloques de cinco. Un top 10 seguido es un muro de diez lineas que en el
+  // movil se lee de un tiron y no se distingue un puesto de otro; partido en
+  // dos mitades se lee igual de rapido que un top 5. El top 5 sale con un solo
+  // bloque, asi que este corte no le cambia nada.
+  const BLOQUE = 5;
+  const cuerpo = [];
+  for (let i = 0; i < lineas.length; i += BLOQUE) {
+    cuerpo.push(lineas.slice(i, i + BLOQUE).join('\n'));
+  }
+
   const text =
     `*TOP ${n} — ${topic.toUpperCase()}*\n` +
     `╾━━━━━━━━━━━━━━╼\n\n` +
-    lineas.join('\n') +
+    cuerpo.join('\n\n') +
     `\n\n╾━━━━━━━━━━━━━━╼\n` +
     `_${rellenar(pickFresh(CIERRES, `${jid}|top`), picked)}_`;
 
