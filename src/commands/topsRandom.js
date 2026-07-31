@@ -4,46 +4,49 @@ const { shuffle, pickFresh } = require('../utils/helpers');
 
 // Remates del ranking.
 //
-// Dos reglas para escribirlos:
-//   1. Se burlan de LOS QUE SALEN. Un top puede tener un tema humillante y un
-//      remate animando a la gente quedaba ridículo: el bot felicitaba a quien
-//      acababa de exponer. Aquí nadie sale bien parado.
-//   2. Valen para cualquier tema. El tema lo pone quien escribe el comando y
-//      puede ser halago o insulto, así que la burla apunta al hecho de estar en
-//      la lista, no a lo que dice la lista.
+// Tres reglas para escribirlos:
+//   1. NO SE ASUME NADA. Un remate no puede afirmar lo que alguien hizo, pensó,
+//      sintió o va a hacer: el bot no lo sabe y queda de mentiroso. Nada de
+//      "ya tiene la captura hecha" ni "llevan un minuto releyendo esto". La
+//      burla está en el TONO, no en inventarse una reacción.
+//   2. Solo se habla de lo que sí es cierto: que hay una lista, que la hizo el
+//      bot y quién ocupa cada puesto. Lo demás sobra.
+//   3. Valen para cualquier tema. El tema lo pone quien escribe el comando y
+//      puede ser halago o insulto, así que el remate apunta al hecho de salir
+//      en la lista, nunca a lo que la lista dice.
 //
 // Marcadores: {1} = el primero, {U} = el último, {N} = cuántos salen.
 const CIERRES = [
-  '{1} encabeza la lista y ya está decidiendo si le conviene. No le conviene.',
-  'Los {N} de arriba fingiendo que les da igual. A ninguno le da igual.',
-  'No era un premio, era una exposición. Que se note la diferencia.',
-  '{1} ya tiene la captura hecha. Es lo más lejos que va a llegar.',
-  'El primero que diga que el bot se equivocó es el que más de acuerdo estaba.',
-  'Salir aquí no os hace especiales. Os hace visibles, que es bastante peor.',
-  '{U} cierra la lista y respira aliviado. Sigue estando en la lista.',
-  'Los {N} nombrados llevan un minuto releyendo esto. Sigue diciendo lo mismo.',
-  'Aquí no hay ganadores. Hay {N} personas que preferirían no salir.',
-  '{1} arriba del todo, como si eso alguna vez hubiera sido bueno.',
-  'La lista es la lista. Los que salen ya sabían que iban a salir.',
-  'Ninguno de los {N} va a comentar esto. Todos lo han leído dos veces.',
-  '{1} y {U} en la misma lista. Distinto puesto, misma vergüenza.',
-  'El bot elige al azar y aun así salisteis vosotros. Piensa en eso.',
-  'Sin jurado, sin apelación y sin piedad. Los {N} quedan retratados.',
-  'A los mencionados: el silencio también cuenta como respuesta.',
-  '{1} se lo está creyendo. Que alguien se lo baje, por favor.',
-  'Los {N} de la lista ahora mismo buscando cómo salir del tema. No hay forma.',
-  'Anotado en acta. Que conste para cuando lo intenten negar.',
-  'Cuatro reaccionan con risa y uno se ofende. Siempre pasa lo mismo.',
-  '{U} en el último puesto y aliviado. Alivio de {N} segundos, luego lo relee.',
-  'Quien proteste confirma la lista. Quien calle también. Elegid.',
+  'Lista cerrada. Las quejas por escrito y a nadie.',
+  '{1} arriba del todo. Alguien tenía que ser.',
+  'No es un premio. Es una lista.',
   'El bot no tiene amigos ni memoria. Solo tiene esta lista.',
-  '{1} de primero. Alguien tenía que serlo y mira quién fue.',
-  'Los {N} sois el tema del grupo durante el resto del día. De nada.',
-  'Ranking cerrado. Las quejas por escrito y a nadie.',
-  'Si alguno se ríe muy fuerte es porque salió y no lo lleva bien.',
-  '{1} arriba, {U} abajo y el resto rezando por no ser mencionados otra vez.',
-  'Nadie ha pedido explicaciones porque nadie las quiere oír.',
-  'Los {N} quedan avisados. La próxima lista también la hace el bot.',
+  'Sin jurado, sin apelación y sin piedad.',
+  '{N} nombres y ni una explicación. Así se queda.',
+  'El orden no se discute. El bot ya lo escribió.',
+  'De arriba abajo y sin descuentos.',
+  '{1} de primero y {U} de último. En medio, el resto.',
+  'Aquí no hay podio. Hay lista.',
+  'A los {N} de arriba: no hace falta que lo comentéis.',
+  'El tema lo puso otro. Los nombres los pone el bot.',
+  'Sin contexto, sin matices y sin marcha atrás.',
+  '{1} encabeza. Es lo que tiene ir primero.',
+  'Esto no es una encuesta. Es un ranking.',
+  'El bot reparte puestos, no consuelos.',
+  '{U} cierra la lista. Alguien tenía que cerrarla.',
+  'Nadie pidió esta lista y aquí está.',
+  'Ni votos ni pruebas: solo el ranking.',
+  '{N} nombres en negro sobre blanco.',
+  'No preguntéis por qué. No hay por qué.',
+  'Un tema, {N} nombres y ninguna disculpa.',
+  '{1} y {U} en la misma lista. Distinto puesto, misma lista.',
+  'El ranking no se explica. Se lee.',
+  'Que nadie pida revisión. No la hay.',
+  '{1} primero, y sin discusión posible.',
+  'Publicado. Lo que venga después no es asunto del bot.',
+  'Ni sorteo amañado ni criterio oculto. Solo esto.',
+  'Los {N} quedan en la lista. Y la lista queda en el chat.',
+  'La próxima también la hace el bot. Aviso.',
 ];
 
 function rellenar(plantilla, picked) {
