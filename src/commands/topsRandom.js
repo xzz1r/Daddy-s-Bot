@@ -4,49 +4,50 @@ const { shuffle, pickFresh } = require('../utils/helpers');
 
 // Remates del ranking.
 //
-// Tres reglas para escribirlos:
+// Cuatro reglas para escribirlos:
 //   1. NO SE ASUME NADA. Un remate no puede afirmar lo que alguien hizo, pensó,
 //      sintió o va a hacer: el bot no lo sabe y queda de mentiroso. Nada de
 //      "ya tiene la captura hecha" ni "llevan un minuto releyendo esto". La
 //      burla está en el TONO, no en inventarse una reacción.
-//   2. Solo se habla de lo que sí es cierto: que hay una lista, que la hizo el
-//      bot y quién ocupa cada puesto. Lo demás sobra.
-//   3. Valen para cualquier tema. El tema lo pone quien escribe el comando y
+//   2. CORTOS. Una línea, dos como mucho, y con retintín. Un párrafo explicando
+//      la lista no es un remate, es un comunicado.
+//   3. La burla va contra los que salen, no contra el tema ni contra el grupo.
+//   4. Valen para cualquier tema. El tema lo pone quien escribe el comando y
 //      puede ser halago o insulto, así que el remate apunta al hecho de salir
 //      en la lista, nunca a lo que la lista dice.
 //
 // Marcadores: {1} = el primero, {U} = el último, {N} = cuántos salen.
 const CIERRES = [
-  'Lista cerrada. Las quejas por escrito y a nadie.',
-  '{1} arriba del todo. Alguien tenía que ser.',
-  'No es un premio. Es una lista.',
-  'El bot no tiene amigos ni memoria. Solo tiene esta lista.',
-  'Sin jurado, sin apelación y sin piedad.',
-  '{N} nombres y ni una explicación. Así se queda.',
-  'El orden no se discute. El bot ya lo escribió.',
-  'De arriba abajo y sin descuentos.',
-  '{1} de primero y {U} de último. En medio, el resto.',
-  'Aquí no hay podio. Hay lista.',
-  'A los {N} de arriba: no hace falta que lo comentéis.',
-  'El tema lo puso otro. Los nombres los pone el bot.',
-  'Sin contexto, sin matices y sin marcha atrás.',
-  '{1} encabeza. Es lo que tiene ir primero.',
-  'Esto no es una encuesta. Es un ranking.',
-  'El bot reparte puestos, no consuelos.',
-  '{U} cierra la lista. Alguien tenía que cerrarla.',
-  'Nadie pidió esta lista y aquí está.',
-  'Ni votos ni pruebas: solo el ranking.',
-  '{N} nombres en negro sobre blanco.',
-  'No preguntéis por qué. No hay por qué.',
-  'Un tema, {N} nombres y ninguna disculpa.',
-  '{1} y {U} en la misma lista. Distinto puesto, misma lista.',
-  'El ranking no se explica. Se lee.',
-  'Que nadie pida revisión. No la hay.',
-  '{1} primero, y sin discusión posible.',
-  'Publicado. Lo que venga después no es asunto del bot.',
-  'Ni sorteo amañado ni criterio oculto. Solo esto.',
-  'Los {N} quedan en la lista. Y la lista queda en el chat.',
-  'La próxima también la hace el bot. Aviso.',
+  '{1} de primero. Enhorabuena, supongo.',
+  'Ahí quedáis los {N}. Que os aproveche.',
+  '{1} arriba del todo. Todo tuyo, campeón.',
+  'Sois {N}. Repartíoslo como podáis.',
+  '{1} lidera. Menudo honor.',
+  'Ahí lo tenéis. De nada.',
+  '{U} el último. Tampoco es un consuelo.',
+  '{N} nombres y ni un aplauso.',
+  '{1}, el primero de todos. Impresionante, casi.',
+  'A vivir con ello, los {N}.',
+  '{1} arriba. Que lo disfrute mientras dure.',
+  'Ni os molestéis en negarlo.',
+  'Vuestro momento de gloria, {N} campeones. Ya está.',
+  '{1} primero y {U} último. Elegid con cuál os quedáis.',
+  'Menuda cosecha.',
+  '{1} de primero. Que se lo cuelgue en el perfil.',
+  'Servidos los {N}. Siguiente.',
+  'Que os aguante el grupo.',
+  '{1} arriba y sin premio. Como debe ser.',
+  'Los {N}, retratados. Sin rencor.',
+  '{1}, toma. No lo pedía nadie, pero es tuyo.',
+  'Y hasta aquí. Sonreíd, los {N}.',
+  '{U} cierra. Alguien tenía que hacerlo.',
+  'Podéis dar las gracias los {N}. O no.',
+  '{1} en cabeza. Un clásico.',
+  'Aquí no hay podio, hay {N} señalados.',
+  '{1} primero. Que alguien lo felicite, por caridad.',
+  'Los {N} arriba y el resto respirando.',
+  'Bonita lista. Para el que la lee.',
+  'Que conste, {N} nombres. Y no me lo he inventado yo... bueno, sí.',
 ];
 
 function rellenar(plantilla, picked) {
