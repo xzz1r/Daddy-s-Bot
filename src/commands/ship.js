@@ -1,5 +1,5 @@
 const { pick, shuffle } = require('../utils/helpers');
-const { getSender, isMainOwner, bareJid, sameUser } = require('../utils/wa');
+const { getSender, isMainOwner, isBotJid, bareJid, sameUser } = require('../utils/wa');
 
 const VERDICTS = {
   perfect: [
@@ -236,7 +236,13 @@ async function cmdShip(sock, msg, args, groupMeta) {
   }
 
   const groupParticipants = groupMeta?.participants || [];
-  const participantIds = groupParticipants.map(p => p.id);
+  // Del sorteo se caen el bot y el owner principal: el bot no se shipea con
+  // nadie, y el owner es invisible en toda salida automatica (igual que en los
+  // tops, en !count y en !vs). Si alguien lo menciona a proposito si entra, y
+  // ahi ya manda el amanyo de abajo.
+  const participantIds = groupParticipants
+    .map(p => p.id)
+    .filter(id => id && !isBotJid(sock, id) && !isMainOwner(id, false, groupMeta));
   if (participantIds.length < 2) {
     return sock.sendMessage(jid, { text: 'Necesito al menos 2 miembros en el grupo.' }, { quoted: msg });
   }

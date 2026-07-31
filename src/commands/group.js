@@ -1,5 +1,5 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const { isOwner, isAdmin, isBotJid, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid, sameUser } = require('../utils/wa');
+const { isOwner, isAdmin, isBotJid, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid, sameUser, esMiembroActual } = require('../utils/wa');
 const { streamToBuffer, MAX_DOWNLOAD_BYTES } = require('../utils/helpers');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled } = require('../utils/state');
 const { businessEvidence } = require('../utils/businessCheck');
@@ -736,7 +736,9 @@ async function cmdAllow(sock, msg, args, groupMeta) {
   const target = getTarget(msg);
 
   if (!target) {
-    const lista = await listAllowed(jid);
+    // Solo los que siguen dentro: el permiso se guarda para siempre y la lista
+    // acababa nombrando a gente que se fue hace meses.
+    const lista = (await listAllowed(jid)).filter(j => esMiembroActual(groupMeta, j));
     if (!lista.length) {
       return sock.sendMessage(jid, {
         text: 'Nadie tiene permiso para publicar enlaces.\n\n*!allow* @user — se lo das\n*!allow off* @user — se lo quitas',
@@ -754,7 +756,7 @@ async function cmdAllow(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, {
       text: tenia
         ? `@${num} ya no puede publicar enlaces. Que se lo vuelva a ganar.`
-        : `@${num} no tenia el permiso.`,
+        : `@${num} no tenía el permiso.`,
       mentions: [target],
     }, { quoted: msg });
   }
