@@ -1,5 +1,5 @@
 const { getActiveUsers, resetCounts, resetAllCounts } = require('../utils/messageCounter');
-const { isOwner, isMainOwner, isAdmin, getSender, sameUser } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, getSender, sameUser, soloMiembros } = require('../utils/wa');
 const { pick } = require('../utils/helpers');
 
 const MEMBER_PHRASES = [
@@ -235,15 +235,7 @@ const ADMIN_PHRASES = [
 // principal (invisible en toda salida), ordenado de más a menos mensajes. Si no
 // hay metadata (fetch falló), no se filtra por miembros para no vaciar el top.
 function rankedUsers(users, groupMeta) {
-  const members = groupMeta?.participants;
-  let out = users;
-  if (members?.length) {
-    out = out.filter(u => members.some(p =>
-      sameUser(p.id, u.jid) ||
-      (p.lid && sameUser(p.lid, u.jid)) ||
-      (p.phoneNumber && sameUser(p.phoneNumber, u.jid))
-    ));
-  }
+  let out = soloMiembros(users, groupMeta);
   out = out.filter(u => !isMainOwner(u.jid, false, groupMeta));
   return out.slice().sort((a, b) => b.count - a.count);
 }

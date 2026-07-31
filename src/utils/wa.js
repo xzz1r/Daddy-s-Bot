@@ -324,6 +324,56 @@ function isAdmin(participants, jid) {
   return p?.admin === 'admin' || p?.admin === 'superadmin';
 }
 
+// Claves de todos los que están AHORA MISMO en el grupo, en todas sus formas
+// (id, lid, phoneNumber) y también en su forma canónica. Se construye una vez
+// por objeto de metadata: cualquier alta o baja invalida la caché de metadata,
+// así que el WeakMap se vacía solo y no hay riesgo de listar a un ex-miembro.
+//
+// El índice se levanta DESPUÉS de indexGroupMeta para que canonicalJid ya
+// conozca las correspondencias LID↔teléfono de este grupo; si no, un conteo
+// guardado bajo el teléfono no encontraría al participante guardado por @lid.
+const indiceMiembros = new WeakMap();
+
+function clavesDeMiembros(groupMeta) {
+  let set = indiceMiembros.get(groupMeta);
+  if (set) return set;
+  if (!metasIndexadas.has(groupMeta)) {
+    metasIndexadas.add(groupMeta);
+    indexGroupMeta(groupMeta);
+  }
+  set = new Set();
+  for (const p of groupMeta.participants) {
+    if (!p) continue;
+    for (const f of [p.id, p.lid, p.phoneNumber]) {
+      if (!f) continue;
+      set.add(bareJid(f));
+      set.add(canonicalJid(f));
+    }
+  }
+  indiceMiembros.set(groupMeta, set);
+  return set;
+}
+
+// ¿Sigue esta persona en el grupo?
+//
+// Sin metadata (el fetch pudo fallar) devuelve true: preferimos un ranking con
+// algún ex-miembro colado a un ranking vacío por un fallo de red.
+function esMiembroActual(groupMeta, jid) {
+  if (!groupMeta?.participants?.length) return true;
+  if (!jid) return false;
+  const set = clavesDeMiembros(groupMeta);
+  return set.has(bareJid(jid)) || set.has(canonicalJid(jid));
+}
+
+// Deja en la lista solo a los que siguen en el grupo. `users` es un array de
+// objetos con `.jid` (lo que devuelve getActiveUsers). Va en O(n) gracias al
+// índice: cruzar cada conteo contra cada participante era cuadrático y en un
+// grupo grande se notaba en cada ranking.
+function soloMiembros(users, groupMeta) {
+  if (!groupMeta?.participants?.length) return users;
+  return users.filter(u => esMiembroActual(groupMeta, u?.jid));
+}
+
 // Canonical sender. In groups msg.key.remoteJid is the GROUP JID;
 // the actual sender lives in msg.key.participant. Falls back to remoteJid for DMs.
 function getSender(msg) {
@@ -403,6 +453,8 @@ module.exports = {
   isKnownOwnerJid,
   fetchAbout,
   isAdmin,
+  esMiembroActual,
+  soloMiembros,
   isBotJid,
   isBotAdmin,
   isGroupAdmin,

@@ -1,5 +1,5 @@
 const { getActiveUsers } = require('../utils/messageCounter');
-const { isOwner, isMainOwner, getSender, sameUser } = require('../utils/wa');
+const { isOwner, isMainOwner, getSender, sameUser, soloMiembros } = require('../utils/wa');
 const { pick, shuffle } = require('../utils/helpers');
 
 // ---- !vs : real-activity head-to-head -------------------------------------
@@ -191,16 +191,8 @@ async function cmdInactivos(sock, msg, groupMeta) {
   users = users.filter(u => !isOwner(u.jid, false, groupMeta) && !isMainOwner(u.jid, false, groupMeta));
 
   // Solo miembros actuales: quien se salió no debe salir en "fantasmas" aunque
-  // su conteo siga guardado. Se cruza con la lista de participantes vía sameUser
-  // (puentea LID↔teléfono). Sin metadata no se filtra, para no vaciar la lista.
-  const members = groupMeta?.participants;
-  if (members?.length) {
-    users = users.filter(u => members.some(p =>
-      sameUser(p.id, u.jid) ||
-      (p.lid && sameUser(p.lid, u.jid)) ||
-      (p.phoneNumber && sameUser(p.phoneNumber, u.jid))
-    ));
-  }
+  // su conteo siga guardado. Sin metadata no se filtra, para no vaciar la lista.
+  users = soloMiembros(users, groupMeta);
 
   if (users.length < 3) {
     return sock.sendMessage(jid, { text: 'No hay suficientes datos de actividad todavía. Hablen más.' }, { quoted: msg });

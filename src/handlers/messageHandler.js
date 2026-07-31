@@ -744,11 +744,11 @@ async function handleMessage(sock, msg) {
         break;
 
       case 'top5':
-        await cmdTopRandom(sock, msg, 5, args);
+        await cmdTopRandom(sock, msg, 5, args, groupMeta);
         break;
 
       case 'top10':
-        await cmdTopRandom(sock, msg, 10, args);
+        await cmdTopRandom(sock, msg, 10, args, groupMeta);
         break;
 
       case 'count':
