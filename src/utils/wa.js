@@ -445,6 +445,41 @@ async function fetchAbout(sock, jid) {
   } catch { return null; }
 }
 
+// Cuando WhatsApp responde con un nodo <error>, Baileys lo convierte en
+// Boom(texto, { data: codigo }) (WABinary/generic-utils.js:assertNodeErrorFree).
+// El único código que significa "de verdad no hay foto" es el de recurso no
+// encontrado. Cualquier otro fallo — timeout, límite de peticiones, conexión
+// caída — NO dice nada sobre si la foto existe, y tratarlo igual es mentir con
+// seguridad sobre algo que en realidad no se pudo comprobar.
+const SIN_FOTO_CODIGOS = new Set([404, 421]);
+const SIN_FOTO_TEXTO = /item-not-found|not-found/i;
+
+function esFalloDeSinFoto(err) {
+  if (SIN_FOTO_CODIGOS.has(err?.data)) return true;
+  const texto = err?.output?.payload?.message || err?.message || '';
+  return SIN_FOTO_TEXTO.test(texto);
+}
+
+// Foto de perfil con reintento. Diferencia "confirmado sin foto" (null, sin
+// reintentar — no tiene sentido reintentar un hecho) de "fallo pasajero"
+// (reintenta un par de veces con una pausa corta, y si persiste, LANZA en vez
+// de devolver null, para que quien llama no confunda un hipo de red con una
+// foto oculta). Sin esto, cualquier timeout o límite de peticiones de
+// WhatsApp hacía que el bot dijera "no tiene foto" cuando en realidad no supo.
+async function fetchPfpUrl(sock, jid, tipo = 'image', intentos = 2) {
+  let ultimoError = null;
+  for (let i = 0; i <= intentos; i++) {
+    try {
+      return await sock.profilePictureUrl(jid, tipo);
+    } catch (err) {
+      if (esFalloDeSinFoto(err)) return null;
+      ultimoError = err;
+      if (i < intentos) await new Promise((r) => setTimeout(r, 700 * (i + 1)));
+    }
+  }
+  throw ultimoError;
+}
+
 module.exports = {
   isOwner,
   isMainOwner,
@@ -452,6 +487,7 @@ module.exports = {
   flushOwnerJids,
   isKnownOwnerJid,
   fetchAbout,
+  fetchPfpUrl,
   isAdmin,
   esMiembroActual,
   soloMiembros,
