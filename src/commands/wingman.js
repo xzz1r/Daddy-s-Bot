@@ -105,69 +105,58 @@ const PIROPOS = [
   '%N, si te ligara alguien de este grupo sería el mayor robo del siglo. Y quiero ser el ladrón.',
 ];
 
-// !wingman — el bot cuenta una anécdota absurda en la que %N lo salvó de un
-// peligro ridículo con un talento desproporcionado, y remata recomendándolo
-// como pareja. El ridículo y el peligro son siempre del BOT; %N sale siempre
-// como el héroe. Es lo contrario del roast: aquí se elogia de verdad.
-//
-// 37 anecdotas generadas y verificadas en dos pasadas (escribir + verificar
-// adversarial contra las reglas: siempre %N como heroe, nunca insultado; sin
-// temas de trauma real; sin ortografia incorrecta). Se descarto un duplicado
-// de maniobra de Heimlich entre dos lotes distintos que la verificacion por
-// lote, al no ver el resto de lotes, no pudo detectar por si sola.
+// !wingman — el bot cuenta una anécdota en la que %N lo "salvó" de un peligro,
+// pero el rescate en sí es asqueroso o degradante para QUIEN LO HACE. No es un
+// héroe de verdad: es ridiculización disfrazada de elogio. El bot lo agradece
+// con solemnidad; lo que describe deja mal parado a %N, no bien. Ejemplo que
+// marca el molde: "me picó una serpiente en los huevos, pero %N me succionó
+// el veneno fuera con su talento" — el "talento" es lo que lo hunde.
 const WINGMAN_ANECDOTAS = [
   'Una vez una serpiente me picó y me inyectó su veneno en los huevos, pero mi querido amigo %N me succionó el veneno fuera con su increíble talento y me salvó la vida.',
-  'Una vez me metí en un panal de avispas creyendo que era una piñata de cumpleaños, y las avispas empezaron a picarme cada centímetro de la cara hasta dejarme irreconocible, pero mi amigo %N se lanzó encima de mí cubriéndome con su propio cuerpo y absorbió la mitad de las picaduras sin quejarse ni una sola vez, demostrando un coraje que jamás voy a poder pagarle.',
-  'Estaba nadando tranquilo cuando un pulpo gigante me atrapó entre sus tentáculos y empezó a arrastrarme hacia el fondo del mar mientras yo pataleaba como un fideo asustado, pero %N se sumergió sin dudarlo un instante y, usando solo sus manos, desenredó cada tentáculo con una precisión de cirujano hasta sacarme a la superficie sano y salvo.',
-  'Me caí dentro de un río lleno de pirañas mientras intentaba tomarme una fotografía junto a la orilla, y en segundos ya tenía media pierna convertida en encaje, pero %N improvisó una balsa con dos troncos y su propia camisa y me rescató remando como un campeón olímpico, salvándome de terminar convertido en comida de peces.',
-  'Un oso enorme me acorraló contra un árbol después de que yo le robara un frasco de miel de entre las patas creyendo que nadie se daría cuenta, y justo cuando el oso abría la boca para convertirme en su merienda, %N apareció de la nada, le cantó una canción de cuna con una ternura absurda y logró dormirlo en segundos, salvándome la vida con un talento que todavía no logro explicarme.',
-  'Una medusa gigante se me pegó entera a la espalda mientras flotaba distraído en el mar y empecé a arder como si me hubieran prendido fuego con gasolina, pero %N nadó hasta mí sin dudarlo y me la despegó con las manos desnudas, ignorando por completo el dolor con una entereza que me dejó sin palabras.',
-  'Estaba pescando tranquilo cuando un cocodrilo me confundió con su almuerzo y me arrastró hacia el agua sujetándome de un pie, y cuando ya me veía convertido en cartera, %N se tiró al agua, le hizo cosquillas en el vientre al cocodrilo con una habilidad inexplicable y consiguió que me soltara entre risas, salvándome de una muerte húmeda y vergonzosa.',
-  'Metí la mano en un hueco de la tierra creyendo que había un tesoro escondido y en realidad había un nido de escorpiones que me llenaron el brazo de picaduras hasta dejarlo del tamaño de un tronco, pero %N corrió a buscar hierbas del monte, preparó un remedio casero en tiempo récord y me curó con una destreza de sanador ancestral que jamás voy a olvidar.',
-  'Un tiburón me confundió con una foca mientras yo flotaba en una colchoneta inflable con forma de pato y le arrancó un pedazo de una sola mordida, pero %N remó hasta mí en una tabla de surf con la fuerza de un guerrero vikingo y me sacó del agua justo antes de que el tiburón volviera por el segundo plato, convirtiéndose en mi héroe para toda la vida.',
-  'Una vez en la sala de urgencias me diagnosticaron una enfermedad inventada llamada fiebre pulmonar de pantano que hizo que mis pulmones empezaran a inflarse como globos frente a todo el hospital, pero mi querido amigo %N, con una calma y una precisión de cirujano nato, me perforó el pecho con una pajilla y me desinfló justo a tiempo, salvándome la vida ante los aplausos de todo el personal médico.',
-  'Una vez un cirujano distraído me abrió el abdomen para operarme del apéndice y por error me sacó la mitad de los intestinos, dejándolos olvidados sobre una bandeja, pero %N irrumpió en el quirófano, identificó cada órgano por su forma con una destreza asombrosa y los volvió a acomodar dentro de mí en tiempo récord, devolviéndome la vida con una habilidad digna de admiración.',
-  'Una vez me conectaron por error a una bolsa de suero llena de veneno de medusa gigante y sentí que el corazón se me derretía dentro del pecho en plena sala de emergencias, pero mi genial amigo %N, con una serenidad y un conocimiento de toxicología impresionantes, preparó un antídoto improvisado con sus propias manos y me lo inyectó directo en la vena, salvándome en el último segundo.',
-  'Una vez me hicieron una resonancia magnética sin avisar que tenía una cuchara de metal olvidada dentro del estómago desde una cirugía anterior, y la máquina me la arrancó de golpe dejándome pegado al aparato como un imán humano, pero %N, con una fuerza y una rapidez sobrehumanas, apagó el equipo a mano justo antes de que terminara aplastado contra el imán, salvándome de una muerte metálica y ridícula.',
-  'Una vez un médico distraído me transfundió por error sangre de pulpo en lugar de sangre humana y empecé a echar tinta negra por la nariz frente a toda la sala de espera, pero mi admirable amigo %N supo exactamente qué antídoto marino aplicar y me hizo una transfusión de emergencia con sus propias manos, salvándome la vida frente a todos los presentes.',
-  'Una vez me trasplantaron por error el corazón de una cabra en lugar de uno humano y mi pecho empezó a latir con un balido espantoso en plena camilla del hospital, pero %N, con una habilidad quirúrgica digna de admiración, hizo el cambio de órganos ahí mismo en el pasillo con instrumentos improvisados y me devolvió un corazón humano funcionando a la perfección.',
-  'Una vez quedé atrapado en un campo minado en plena guerra y pisé una mina con los dos pies a la vez, pero mi valiente amigo %N desactivó los dos detonadores al mismo tiempo usando solo un clip de pelo y una calma absoluta, y me salvó la vida.',
-  'Una vez un grupo de secuestradores me tuvo como rehén en un sótano y estaban a punto de dispararme por puro aburrimiento, pero mi brillante amigo %N los convenció de dejarme libre con un discurso tan conmovedor sobre la libertad que los captores terminaron llorando y pidiéndome disculpas, y me salvó la vida.',
-  'Una vez quedé sepultado bajo una avalancha en plena montaña con solo la nariz asomando entre la nieve, pero mi increíble amigo %N me localizó cantando una nota tan perfectamente afinada que la vibración hizo temblar la nieve hasta desenterrarme por completo, y me salvó la vida.',
-  'Una vez un terremoto hizo colapsar el edificio donde estaba encerrado y quedé aplastado bajo una viga con la cabeza colgando sobre un pozo de escombros ardientes, pero mi extraordinario amigo %N levantó la viga con una sola mano mientras sostenía una taza de café humeante con la otra, y me salvó la vida.',
-  'Una vez un huracán me levantó por los aires en medio de la tormenta y volaba dando vueltas junto con vacas y techos de zinc, pero mi genial amigo %N me atrapó en pleno vuelo con una red que tejió en segundos usando solamente hilo dental, y me salvó la vida.',
-  'Una vez quedé atrapado en la ladera de un volcán en erupción con la lava a punto de tragarme las piernas, pero mi talentoso amigo %N me sacó de un tirón usando como cuerda una cadena de calcetines anudados que llevaba en la mochila, y me salvó la vida.',
-  'Una vez en medio de una batalla una granada cayó directo entre mis piernas dentro de la trinchera, pero mi asombroso amigo %N la atrapó con una sola mano y la devolvió al enemigo con una puntería tan perfecta que ganamos la guerra en ese mismo instante, y me salvó la vida.',
-  'Una vez un demonio milenario poseyó mi cuerpo durante un exorcismo y empezó a hablar con la voz del cura al revés, pero mi querido amigo %N improvisó un rap tan brillante que el demonio se rindió, salió de mí entre aplausos y me salvó la vida.',
-  'Una vez el fantasma de una novia abandonada me arrastró dentro de su retrato de bodas para casarse conmigo por toda la eternidad, pero %N negoció la anulación del matrimonio con tanta labia y encanto que el fantasma firmó los papeles llorando de gratitud y me devolvió al mundo de los vivos.',
-  'Una vez un espejo maldito me absorbió el alma y quedé atrapado adentro viendo mi propio reflejo pudrirse, pero %N rompió el hechizo haciendo un truco de cartas tan asombroso que el cristal se hizo pedazos de la impresión y volví a mi cuerpo entero y agradecido.',
-  'Una vez invoqué sin querer a un espíritu hambriento con una tabla ouija y el fantasma decidió que mi hígado sería su cena de bienvenida al más allá, pero %N lo distrajo cantando una nana tan hermosa que el espíritu se quedó dormido para siempre y me salvó de terminar sin órganos.',
-  'Una vez la momia de un rey olvidado despertó de su tumba y empezó a envolverme en vendas para robarme la identidad y gobernar en mi lugar, pero %N la desenvolvió con una velocidad y una técnica de combate tan impresionantes que la momia terminó pidiéndole disculpas antes de volver a su sarcófago.',
-  'Una vez una bruja hizo un muñeco vudú idéntico a mí y empezó a clavarle alfileres en zonas que prefiero no mencionar, pero %N cosió en segundos un muñeco señuelo tan perfecto que la bruja confundió los alfileres de dirección y salí completamente ileso gracias a su talento con la aguja.',
-  'Una vez la Muerte en persona vino a buscarme por un error administrativo en el más allá y ya tenía la guadaña lista para llevarme, pero %N la desafió a una partida de ajedrez y jugó con tanta genialidad que la Muerte, admirada, rompió mi expediente y se fue a buscar a otro pobre infeliz.',
-  'Una vez un poltergeist enfurecido hizo levitar un piano de cola sobre mi cabeza y lo sostuvo ahí mientras se reía de mi terror, pero %N se puso a cantar ópera con una voz tan sublime que el espíritu, conmovido hasta las lágrimas, bajó el piano con delicadeza y me dejó en paz para siempre.',
-  'Una vez metí la cabeza en la lavadora para buscar un calcetín perdido y el ciclo de centrifugado se activó solo, atrapándome el cuello mientras giraba a toda velocidad, pero mi querido amigo %N desenchufó el aparato de un manotazo certero y lo desarmó tornillo por tornillo con una destreza asombrosa hasta liberarme la cabeza, salvándome la vida.',
-  'Una vez quedé atrapado entre las puertas de un ascensor con medio cuerpo colgando sobre el hueco vacío mientras la cabina subía y bajaba sin control, pero %N trepó por el cable principal con una agilidad digna de un profesional del rescate y me sujetó justo antes de que me partiera en dos, salvándome la vida.',
-  'Una vez en una fiesta me subí a la mesa a bailar y me tragué entera una aceituna con hueso, quedando morado y sin aire en medio de la música a todo volumen, pero %N me hizo la maniobra de Heimlich con una precisión quirúrgica y me sacó el hueso disparado hasta el otro lado del salón, salvándome la vida.',
-  'Una vez en la oficina se me enganchó la corbata en la trituradora de papel y el aparato empezó a tragarme lentamente desde el cuello hacia adentro, pero %N metió la mano sin dudarlo, desarmó la cuchilla con una destreza mecánica asombrosa y me sacó ileso a centímetros de perder la cabeza, salvándome la vida.',
-  'Una vez en el gimnasio quedé aplastado bajo una barra con más peso del que podía levantar, con la garganta comprimida y los ojos a punto de salírseme, pero %N levantó la barra con una sola mano como si fuera de plumas, demostrando una fuerza descomunal, y me sacó de abajo justo a tiempo, salvándome la vida.',
-  'Una vez en el autobús se me quedó la manga del abrigo atascada en la puerta automática y el conductor arrancó sin darse cuenta, arrastrándome varias cuadras mientras yo gritaba pegado al vidrio, pero %N corrió detrás del vehículo a una velocidad olímpica, lo alcanzó y golpeó la puerta hasta abrirla, salvándome la vida.',
-  'Una vez calenté un huevo entero con cáscara en el microondas solo para ver qué pasaba y terminó explotando en mi cara, dejándome ciego y con clara hirviendo metida en los oídos, pero %N me lavó los ojos con una calma y una precisión dignas de un enfermero veterano y me guio de la mano hasta que recuperé la vista, salvándome la vida.',
+  'Una vez me clavé un anzuelo entero en el culo mientras pescaba, y como el hospital quedaba lejos, %N se ofreció a sacármelo con los dientes ahí mismo en la orilla, y me salvó la vida.',
+  'Una vez me tragué una avispa viva sin querer y se me quedó picando por dentro de la garganta, pero %N no lo pensó ni un segundo: metió dos dedos, me provocó el vómito y se comió la avispa del suelo para que no picara a nadie más, y me salvó la vida.',
+  'Una vez se me infectó una espina clavada bien adentro del talón y ya no sentía la pierna, pero %N chupó la herida con la boca durante diez minutos seguidos hasta sacar todo el pus, sin hacer ni una mueca, y me salvó la vida.',
+  'Una vez un sanguijuela gigante se me pegó en la ingle mientras cruzaba un pantano, y como tirar de ella era peligroso, %N se agachó, la mordió y se la comió entera delante de todo el grupo de excursión, y me salvó la vida.',
+  'Una vez me quedé sin aire bajo el agua y %N me hizo el boca a boca justo después de haber vomitado por el mareo del bote, sin limpiarse ni un segundo, con tal de no perder tiempo, y me salvó la vida.',
+  'Una vez me tragué mal un hueso de pollo y me quedé sin respirar en plena cena familiar, pero %N me hizo la maniobra de Heimlich agarrándome desde atrás con tanta fuerza que se le escapó un pedo enorme frente a mis suegros, y aun así no soltó, y me salvó la vida.',
+  'Una vez se me metió una garrapata bien adentro del ombligo acampando, y %N, sin dudarlo, la sacó a mordiscos y se la tragó entera para que no volviera a prenderse de nadie, y me salvó la vida.',
+  'Una vez me atraganté con un chicle mientras dormía la siesta, y %N me despertó metiéndome los dedos hasta la garganta y sacándomelo con la mano llena de baba delante de toda la familia, y me salvó la vida.',
+  'Una vez un escorpión me picó justo en la axila y el veneno empezó a subirme al pecho, pero %N se metió mi axila entera en la boca y succionó como si le fuera la vida en ello, sin importarle el olor ni nada, y me salvó la vida.',
+  'Una vez me tragué un anzuelo de pesca entero por accidente, y %N metió la mano hasta el fondo de mi garganta, revolvió ahí adentro un buen rato hasta encontrarlo y lo sacó chorreando, y me salvó la vida.',
+  'Una vez se me infectó una muela y se me hinchó media cara, y %N, sin anestesia ni instrumental, me la arrancó de un mordisco y escupió el diente podrido lejos, y me salvó la vida.',
+  'Una vez me caí en pleno lodazal de la granja y empecé a hundirme, y %N se tiró detrás de mí, se llenó entero de barro y estiércol hasta el cuello, y me sacó a rastras del pantano, y me salvó la vida.',
+  'Una vez me quedé atascado en un tubo de desagüe persiguiendo al gato, y %N se metió detrás de mí por el mismo tubo lleno de porquería, respirando ese olor todo el camino, y me sacó tirando de los tobillos, y me salvó la vida.',
+  'Una vez una araña venenosa me picó justo en el pezón durmiendo en el campamento, y %N, sin pensarlo dos veces, se puso a chupar ahí delante de todos los demás acampantes hasta sacar el veneno, y me salvó la vida.',
+  'Una vez me desmayé de deshidratación en el desierto y no había ni una gota de agua, pero %N se orinó en un pañuelo y me lo puso en la boca para que no me diera un golpe de calor, y me salvó la vida.',
+  'Una vez me atoré con un caramelo en el cine y nadie reaccionaba, pero %N se me tiró encima en plena sala, me apretó el estómago con las dos piernas montado arriba mío y me lo hizo salir disparado contra la pantalla, y me salvó la vida.',
+  'Una vez me piqué entero de ortigas al caer en un matorral desnudo por una apuesta, y %N se ofreció a lamerme cada roncha una por una porque decía que la saliva calmaba el ardor, y me salvó la vida.',
+  'Una vez se me infectó un grano de la espalda y me subió la fiebre, y %N me lo reventó con la boca succionando hasta sacar todo el pus, sin arcadas ni asco, y me salvó la vida.',
+  'Una vez me tragué una mosca gigante que se me metió volando en plena carcajada, y %N me metió la mano hasta la garganta, la sacó viva y se la comió él mismo para que no se me volviera a meter, y me salvó la vida.',
+  'Una vez me quedé atascado desnudo en la ventana del baño intentando escaparme de una fiesta aburrida, y %N me empujó desde atrás con las dos manos en mi trasero hasta que salí disparado al jardín, y me salvó la dignidad.',
+  'Una vez un ciempiés se me metió en el oído mientras acampaba y no salía por más que me sacudía la cabeza, y %N me puso los labios en la oreja y sopló con fuerza hasta que el bicho salió disparado hacia su propia boca, y me salvó la vida.',
+  'Una vez me quedé pegado a una silla de plástico caliente sin ropa interior en pleno verano, y %N me arrancó de un tirón usando su propio cuerpo como palanca, dejando un pedazo de silla pegado a su brazo para siempre, y me salvó lo poco de dignidad que me quedaba.',
+  'Una vez se me metió una sanguijuela por la nariz nadando en el río, y %N me sopló humo de cigarro directo en la fosa nasal hasta que el bicho salió arrastrándose, y me salvó la vida.',
+  'Una vez me desmayé de hambre en una excursión y no quedaba comida, y %N masticó su propia comida y me la pasó de boca a boca como hacen los pájaros, sin dudarlo ni un segundo, y me salvó la vida.',
+  'Una vez me quedé sin batería justo cuando me perdí en el bosque de noche, y %N me abrazó desnudo toda la noche para darme calor corporal porque no teníamos más ropa entre los dos, y me salvó la vida.',
+  'Una vez se me clavó un pedazo de vidrio bien adentro del pie en la playa, y %N lo sacó con los dientes escupiendo sangre cada dos segundos sin soltar el pie ni un instante, y me salvó la vida.',
+  'Una vez me atraganté con un hueso de aceituna en plena boda y nadie se movía del asombro, y %N se me subió encima de la mesa, me tumbó de espaldas sobre el pastel y me lo sacó a los golpes frente a todos los invitados, y me salvó la vida.',
+  'Una vez me picó un alacrán en la entrepierna acampando en el desierto, y %N, con una entrega que todavía no me explico, se ofreció a chupar la zona sin quejarse ni un segundo hasta que el veneno bajó, y me salvó la vida.',
+  'Una vez me caí en la fosa séptica del camping buscando las llaves, y %N se tiró detrás de mí sin taparse la nariz, nadó entre todo aquello y me sacó a la superficie sujetándome del cuello, y me salvó la vida.',
 ];
 
 const WINGMAN_CIERRES = [
-  'Con ese historial, %N es candidato inmediato a pareja perfecta. Que alguien se lo quede ya.',
-  'Si eso no es marido o esposa material, %N, no sé qué lo es.',
-  'Después de algo así, cualquiera que deje pasar a %N no merece una segunda oportunidad.',
-  'Eso no se entrena, %N lo trae de fábrica. Match perfecto garantizado.',
-  'Quien consiga a %N se lleva un premio que ni sabe que está ganando.',
-  'Con esa entrega, %N debería tener cola en la puerta. Literal.',
-  '%N ya pasó la prueba más difícil que existe. Lo demás es fácil.',
-  'Si esto no convence a nadie de salir con %N, el problema no es %N.',
-  'Recomendación oficial del bot: %N es pareja perfecta, sin discusión.',
-  'Después de salvarme así, lo mínimo que puedo hacer es recomendar a %N para toda la vida.',
-  'Eso es lealtad de las que ya no se fabrican. %N, cásate con quien tengas cerca.',
-  'Con un currículum así, %N no necesita presentación. Solo un sí.',
+  'Con ese historial, %N es candidato inmediato a pareja perfecta. Aunque cueste creerlo después de leer eso.',
+  'Si eso no es amor de verdad, %N, no sé qué es. Da asco, pero es amor.',
+  'Después de algo así, cualquiera que rechace a %N no sabe lo que se pierde. O sí sabe, y aun así debería aceptar.',
+  'Eso no se entrena, %N lo trae de fábrica. Match perfecto garantizado, estómago incluido.',
+  'Quien consiga a %N se lleva un premio que probablemente no quiera desenvolver dos veces.',
+  'Con esa entrega, %N debería tener cola en la puerta. Una cola que respira por la boca, pero cola al fin.',
+  '%N ya pasó la prueba más asquerosa que existe. Lo demás, en comparación, es gratis.',
+  'Si esto no convence a nadie de salir con %N, al menos que le reconozcan el mérito clínico.',
+  'Recomendación oficial del bot: %N es pareja perfecta. Con reservas, pero perfecta.',
+  'Después de que hiciera eso por mí, lo mínimo es recomendarlo. Se lo debo y algo más.',
+  'Eso es lealtad de las que ya no se fabrican, ni en laboratorio. %N, cásate con quien aguante saberlo.',
+  'Con un currículum así, %N no necesita presentación. Necesita, como mucho, un enjuague bucal.',
 ];
 
 // !rizz [@user] — puntúa el nivel de juego/labia (0-100).
