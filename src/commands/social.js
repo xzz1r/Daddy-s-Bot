@@ -204,7 +204,7 @@ _Sin @ va sobre ti · con @ va sobre esa persona_
 _Sin @ va sobre ti · con @ va sobre esa persona_
 *${p}rizz* [@user] — nivel de juego (%)
 *${p}piropo* [@user] — le lanza un piropo
-*${p}coach* [@user] — consejos de ligue
+*${p}wingman* [@user] — le da referencias a esa persona
 
 ━━━━━ *AURA* ━━━━━
 *${p}aura* [@user] — ver aura

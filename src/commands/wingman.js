@@ -1,7 +1,7 @@
 'use strict';
 
 const { getTargetOrSelf, isMainOwner } = require('../utils/wa');
-const { pick } = require('../utils/helpers');
+const { pick, pickFresh } = require('../utils/helpers');
 
 // Comandos tipo wingman (positivos/divertidos): puntúan el juego, lanzan piropos
 // y dan consejos de ligue. Sin emojis (regla del bot). %N se reemplaza por la
@@ -96,29 +96,18 @@ const PIROPOS = [
   '%N, si te ligara alguien de este grupo sería el mayor robo del siglo. Y quiero ser el ladrón.',
 ];
 
-const COACH = [
-  'Regla número uno, %N: la confianza no se finge, se entrena. Empieza por saludar sin pedir perdón por existir.',
-  'Deja de escribir párrafos, %N. Nadie se enamoró nunca de un mensaje que hay que leer sentado.',
-  'Si te dejan en visto, %N, no insistas. Insistir es la forma más rápida de confirmar el no.',
-  'Habla menos de ti y pregunta más, %N. La gente se enamora de quien la escucha, no de quien la informa.',
-  'La primera impresión se juega en tres segundos, %N. Ducha, postura y boca cerrada. En ese orden.',
-  'Deja de perseguir, %N. Lo que se persigue huye; lo que se ignora, vuelve. Es física social básica.',
-  'No mandes el segundo mensaje si no han contestado el primero, %N. Nunca. Es la regla de oro.',
-  'Ten una vida, %N. Es el único consejo que funciona de verdad y el único que nadie quiere oír.',
-  'Si tienes que convencer a alguien de que te quiera, %N, ya has perdido. Ahórrate el esfuerzo.',
-  'El humor abre más puertas que la cara, %N. Y es lo único de los dos que puedes mejorar hoy.',
-  'Aprende a irte a tiempo, %N. Quedarse de más ha hundido más historias que cualquier otra cosa.',
-  'Deja de contar tus problemas en la primera cita, %N. Eso se llama terapia y se paga aparte.',
-  'Si te tratan regular, %N, no es un reto que ganar. Es información. Cógela y vete.',
-  'Cuida cómo escribes, %N. Media conquista se pierde en un audio de tres minutos sin sentido.',
-  'No preguntes qué tal estás doce veces al día, %N. Preocuparse no es lo mismo que agobiar.',
-  'Ten opinión propia, %N. Estar de acuerdo con todo no te hace agradable, te hace transparente.',
-  'La constancia sirve, %N, pero solo cuando hay interés del otro lado. Si no, es acoso con buena intención.',
-  'Vístete para ti primero, %N. Se nota a un kilómetro quién se arregla por gusto y quién por miedo.',
-  'Si no sabes qué decir, %N, no digas nada. El silencio queda mucho mejor que el relleno nervioso.',
-  'Deja de compararte con el ex, %N. Perdiste esa comparación antes de empezarla, y da igual.',
-  'Acepta el no rápido, %N. El que acepta un no con dignidad se lleva la siguiente oportunidad.',
-  'Y lo más importante, %N: si tienes que preguntarle a un bot cómo ligar, empieza por salir de casa.',
+// !wingman — el bot cuenta una anécdota absurda en la que %N lo salvó de un
+// peligro ridículo con un talento desproporcionado, y remata recomendándolo
+// como pareja. El ridículo y el peligro son siempre del BOT; %N sale siempre
+// como el héroe. Es lo contrario del roast: aquí se elogia de verdad.
+//
+// PLACEHOLDER: pendiente de sustituir por el lote generado y verificado.
+const WINGMAN_ANECDOTAS = [
+  'Una vez una serpiente me picó y me inyectó su veneno en los huevos, pero mi querido amigo %N me succionó el veneno fuera con su increíble talento y me salvó la vida.',
+];
+
+const WINGMAN_CIERRES = [
+  'Con ese historial, %N es candidato inmediato a pareja perfecta. Que alguien se lo quede ya.',
 ];
 
 // !rizz [@user] — puntúa el nivel de juego/labia (0-100).
@@ -154,16 +143,18 @@ async function cmdPiropo(sock, msg) {
   await sock.sendMessage(jid, { text: line, mentions: [target] }, { quoted: msg });
 }
 
-// !coach [@user] — consejos de wingman para subir el nivel de ligue.
-async function cmdCoach(sock, msg) {
+// !wingman [@user] — referencias absurdas para recomendar a alguien.
+async function cmdWingman(sock, msg) {
   const jid = msg.key.remoteJid;
   const target = getTargetOrSelf(msg);
   const num = target.split('@')[0];
-  const tip = pick(COACH).replace(/%N/g, `@${num}`);
+  const tag = `@${num}`;
+  const anecdota = pickFresh(WINGMAN_ANECDOTAS, `${jid}|wingman|anecdota`).replace(/%N/g, tag);
+  const cierre = pickFresh(WINGMAN_CIERRES, `${jid}|wingman|cierre`).replace(/%N/g, tag);
   await sock.sendMessage(jid, {
-    text: `*WINGMAN — para @${num}*\n\n${tip}`,
+    text: `*WINGMAN*\n\n${anecdota}\n\n${cierre}`,
     mentions: [target],
   }, { quoted: msg });
 }
 
-module.exports = { cmdRizz, cmdPiropo, cmdCoach };
+module.exports = { cmdRizz, cmdPiropo, cmdWingman };

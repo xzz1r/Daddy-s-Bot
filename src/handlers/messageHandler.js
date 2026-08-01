@@ -23,7 +23,7 @@ const { cmdPfp } = require('../commands/pfp');
 const { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdAntiFake } = require('../commands/fk');
 const { maybeIndex } = require('../utils/pfpIndexer');
 const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdInteligencia, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy, cmdPerdedor, cmdGanador, cmdPuta, cmdGuarra, cmdFiel, cmdInfiel } = require('../commands/percent');
-const { cmdRizz, cmdPiropo, cmdCoach } = require('../commands/wingman');
+const { cmdRizz, cmdPiropo, cmdWingman } = require('../commands/wingman');
 const { cmdAura } = require('../commands/aura');
 const { resetAura } = require('../utils/auraStore');
 const { cmdMog } = require('../commands/mog');
@@ -129,7 +129,7 @@ const NEEDS_META = new Set([
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','ganador',
   'puta','guarra','fiel','infiel',
-  'rizz',   // piropo y coach NO: sus handlers no reciben groupMeta (wingman.js:146,158)
+  'rizz',   // piropo y wingman NO: sus handlers no reciben groupMeta (wingman.js)
   'aura','resetaura','inactivos','inactivo','fantasma','fantasmas','mog','moggear','roast','flamear',
   'duel','duelo','1v1',
   'robo','robar',
@@ -942,10 +942,10 @@ async function handleMessage(sock, msg) {
       case 'guarra':         await cmdGuarra(sock, msg, groupMeta); break;
 
       case 'rizz':           await cmdRizz(sock, msg, groupMeta); break;
-      // piropo y coach no reciben groupMeta a proposito: sus funciones no lo
+      // piropo y wingman no reciben groupMeta a proposito: sus funciones no lo
       // usan (wingman.js) y por eso tampoco estan en NEEDS_META.
       case 'piropo':         await cmdPiropo(sock, msg); break;
-      case 'coach':          await cmdCoach(sock, msg); break;
+      case 'wingman':        await cmdWingman(sock, msg); break;
 
       case 'aura':           await cmdAura(sock, msg, args, groupMeta); break;
 
