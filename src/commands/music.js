@@ -44,12 +44,17 @@ async function cmdPlay(sock, msg, args) {
     const waitMs = onPlayCooldown(getSender(msg));
     if (waitMs > 0) {
       return sock.sendMessage(jid, {
-        text: `Espera ${Math.ceil(waitMs / 1000)}s antes de pedir otra cancion.`,
+        text: `Espera ${Math.ceil(waitMs / 1000)}s antes de pedir otra canción.`,
       }, { quoted: msg });
     }
     // Fire the "Buscando..." notice without awaiting so yt-dlp starts immediately,
     // overlapping the message's network round-trip with the download.
-    sock.sendMessage(jid, { text: 'Buscando...' }, { quoted: msg }).catch(() => {});
+    // El consejo va aquí y no en un mensaje aparte: es justo el momento en que
+    // la persona está esperando y va a leerlo. La mayoría de búsquedas que
+    // fallan o traen la canción equivocada son de una palabra suelta.
+    sock.sendMessage(jid, {
+      text: 'Buscando...\n\n_Consejo: añade el nombre del artista para acertar a la primera. "!play blinding lights the weeknd" funciona mucho mejor que "!play blinding lights"._',
+    }, { quoted: msg }).catch(() => {});
     try {
       result = await downloadAudio(query);
     } catch (err) {

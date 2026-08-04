@@ -3,7 +3,7 @@ const config = require('../config');
 const { isBotEnabled, incrementStat, isAntiLinkEnabled, isSoloAdminsEnabled, isAntiBusinessEnabled } = require('../utils/state');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { recordFacts } = require('../utils/nickStore');
-const { noteOffence, forget } = require('../utils/mediaSpam');
+const { noteOffence, forget, yaAvisado, marcarAvisado, olvidarAviso } = require('../utils/mediaSpam');
 const { isAllowed, noteWarning, resetWarnings, MAX_AVISOS } = require('../utils/linkPerms');
 const { banAccount } = require('../utils/banlist');
 const { allForms } = require('../commands/fk');
@@ -786,6 +786,54 @@ async function handleMessage(sock, msg) {
   //
   // Los GIF quedan fuera: WhatsApp los manda como vídeo pero no se pueden
   // enviar en modo efímero, así que exigirlo no tendría sentido.
+  // Spam de stickers: 5 en 5 segundos.
+  //
+  // Va a DOS tiempos, distinto de fotos y vídeos. Una foto sin "ver una vez"
+  // infringe una norma por sí sola y la ráfaga va directa al ban; un sticker no
+  // infringe nada — spamearlos es molesto, no grave. Así que la primera ráfaga
+  // se borra entera y se avisa, y solo si el aviso no sirve se banea.
+  if (jid.endsWith('@g.us') && msg.message?.stickerMessage) {
+    const meta = await getGroupMeta(sock, jid);
+    const protegido = !meta ||
+      isGroupAdmin(sender, msg.key.fromMe, meta) ||
+      esOwnerDelMensaje(msg, sender, senderPn, meta);
+
+    if (!protegido && isBotAdmin(sock, meta)) {
+      const { spam, ids } = noteOffence(jid, sender, 'sticker', msg.key.id);
+      if (spam) {
+        // Se borra la ráfaga entera, no solo el último: los stickers no se
+        // borran de uno en uno al llegar (a diferencia de las fotos), así que
+        // aquí están todos los ids acumulados de la ventana.
+        for (const id of ids) {
+          sock.sendMessage(jid, {
+            delete: { remoteJid: jid, fromMe: false, id, participant: sender },
+          }).catch(() => {});
+        }
+        forget(jid, sender);
+        const num = sender.split('@')[0];
+
+        if (yaAvisado(jid, sender)) {
+          olvidarAviso(jid, sender);
+          await banAccount(allForms(sender, meta), `spam de stickers en ${jid}`, 'auto').catch(() => {});
+          const fuera = await expulsar(sock, jid, sender);
+          sock.sendMessage(jid, {
+            text: fuera
+              ? `@${num} baneado por seguir spameando stickers después del aviso.`
+              : `@${num} a la lista negra por spam de stickers. No he podido expulsarlo: hacedlo a mano.`,
+            mentions: [sender],
+          }).catch(() => {});
+        } else {
+          marcarAvisado(jid, sender);
+          sock.sendMessage(jid, {
+            text: `@${num} baja el ritmo con los stickers. Ráfaga borrada. A la siguiente te vas del grupo.`,
+            mentions: [sender],
+          }).catch(() => {});
+        }
+        return; // no sigue procesándose
+      }
+    }
+  }
+
   const video = msg.message?.videoMessage;
   const foto  = msg.message?.imageMessage;
   const medio = (video && !video.gifPlayback) ? 'video' : (foto ? 'image' : null);

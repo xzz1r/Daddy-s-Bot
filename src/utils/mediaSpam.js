@@ -18,9 +18,42 @@ const { canonicalJid } = require('./wa');
 // cinco fotos prácticamente seguidos. Alguien que manda un vídeo suelto de vez
 // en cuando no es spam y no debe acumular nada.
 const RULES = {
-  video: { limit: 3, windowMs: 60 * 1000 }, // 3 vídeos en 1 minuto
-  image: { limit: 5, windowMs: 30 * 1000 }, // 5 fotos en 30 segundos
+  video:   { limit: 3, windowMs: 60 * 1000 }, // 3 vídeos en 1 minuto
+  image:   { limit: 5, windowMs: 30 * 1000 }, // 5 fotos en 30 segundos
+  sticker: { limit: 5, windowMs: 5 * 1000 },  // 5 stickers en 5 segundos
 };
+
+// Los stickers NO se castigan igual que las fotos y los vídeos.
+//
+// Una foto o un vídeo sin "ver una vez" es una infracción por sí sola, así que
+// la ráfaga va directa al ban. Un sticker no infringe nada: spamearlos es
+// molesto, no grave. Por eso van a dos tiempos — la primera ráfaga se borra y
+// se avisa, y solo si el aviso no sirve se banea.
+//
+// El aviso caduca: si alguien spameó una vez y se portó bien durante una hora,
+// vuelve a empezar con aviso en lugar de comerse un ban por algo de hace días.
+const AVISO_VALIDO_MS = 60 * 60 * 1000;
+const avisados = new Map(); // `${grupo}|${canonical}` -> ts del aviso
+
+// ¿Ya se le avisó por spam de stickers y sigue dentro de la ventana?
+function yaAvisado(groupJid, sender) {
+  const k = `${groupJid}|${canonicalJid(sender)}`;
+  const ts = avisados.get(k);
+  if (!ts) return false;
+  if (Date.now() - ts > AVISO_VALIDO_MS) { avisados.delete(k); return false; }
+  return true;
+}
+
+function marcarAvisado(groupJid, sender) {
+  if (avisados.size >= MAX_KEYS) avisados.delete(avisados.keys().next().value);
+  avisados.set(`${groupJid}|${canonicalJid(sender)}`, Date.now());
+}
+
+// Tras el ban se limpia: si vuelve al grupo, empieza de cero con su aviso y no
+// con un ban inmediato del que nadie le habría advertido.
+function olvidarAviso(groupJid, sender) {
+  avisados.delete(`${groupJid}|${canonicalJid(sender)}`);
+}
 
 // `${groupJid}|${canonicalJid}|${kind}` -> [{ id, ts }]
 const hits = new Map();
@@ -58,6 +91,6 @@ function forget(groupJid, sender) {
   for (const k of hits.keys()) if (k.startsWith(p)) hits.delete(k);
 }
 
-function _reset() { hits.clear(); }
+function _reset() { hits.clear(); avisados.clear(); }
 
-module.exports = { noteOffence, forget, RULES, _reset };
+module.exports = { noteOffence, forget, RULES, yaAvisado, marcarAvisado, olvidarAviso, _reset };
