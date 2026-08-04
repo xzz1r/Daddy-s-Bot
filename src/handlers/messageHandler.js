@@ -22,7 +22,7 @@ const { cmdToImg, cmdToVid } = require('../commands/toimg');
 const { cmdPfp } = require('../commands/pfp');
 const { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdAntiFake } = require('../commands/fk');
 const { maybeIndex } = require('../utils/pfpIndexer');
-const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdInteligencia, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy, cmdPerdedor, cmdGanador, cmdPuta, cmdGuarra, cmdFiel, cmdInfiel, cmdLinda, cmdFea } = require('../commands/percent');
+const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdInteligencia, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy, cmdPerdedor, cmdGanador, cmdPuta, cmdGuarra, cmdFiel, cmdInfiel, cmdLinda, cmdFea, cmdIncel } = require('../commands/percent');
 const { cmdRizz, cmdPiropo, cmdWingman } = require('../commands/wingman');
 const { cmdAura } = require('../commands/aura');
 const { resetAura } = require('../utils/auraStore');
@@ -227,7 +227,7 @@ const NEEDS_META = new Set([
   // una peticion de red (hasta 8s con la cache fria) antes de ejecutarlos.
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','ganador',
-  'puta','guarra','fiel','infiel','linda','fea',
+  'puta','guarra','fiel','infiel','linda','fea','incel',
   'rizz',   // piropo y wingman NO: sus handlers no reciben groupMeta (wingman.js)
   'aura','resetaura','inactivos','inactivo','fantasma','fantasmas','mog','moggear','roast','flamear',
   'duel','duelo','1v1',
@@ -1161,6 +1161,7 @@ async function handleMessage(sock, msg) {
       case 'ganador':        await cmdGanador(sock, msg, groupMeta); break;
       case 'puta':           await cmdPuta(sock, msg, groupMeta); break;
       case 'guarra':         await cmdGuarra(sock, msg, groupMeta); break;
+      case 'incel':          await cmdIncel(sock, msg, groupMeta); break;
       case 'linda':          await cmdLinda(sock, msg, groupMeta); break;
       case 'fea':            await cmdFea(sock, msg, groupMeta); break;
 

@@ -199,7 +199,7 @@ _Sin @ va sobre ti · con @ va sobre esa persona_
 *${p}perdedor* · *${p}inutil* · *${p}rata* · *${p}cerdo*
 *${p}simp* · *${p}friki* · *${p}gay* · *${p}maricon*
 *${p}femboy* · *${p}puta* · *${p}guarra*
-*${p}linda* · *${p}fea*
+*${p}linda* · *${p}fea* · *${p}incel*
 
 ━━━━━ *DUELOS* ━━━━━
 *${p}roast* @user — destrucción pública
