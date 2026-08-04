@@ -1,5 +1,5 @@
 const { getActiveUsers, resetCounts, resetAllCounts } = require('../utils/messageCounter');
-const { isOwner, isMainOwner, isAdmin, getSender, sameUser, soloMiembros } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, isGroupAdmin, getSender, sameUser, soloMiembros } = require('../utils/wa');
 const { pick, pickFresh } = require('../utils/helpers');
 
 const MEMBER_PHRASES = [
@@ -247,9 +247,13 @@ async function cmdCount(sock, msg, groupMeta, args) {
     return sock.sendMessage(jid, { text: 'Este comando solo funciona en grupos.' }, { quoted: msg });
   }
 
-  // Open to all members, like its siblings (!vs, !inactivos, !top) — they read
-  // the same store and expose the same per-user counts, so gating only !count
-  // protected nothing. Resetting the ranking stays owner-only (destructive).
+  // Solo admins y owner tier. Se cerró por pedido expreso: el ranking de
+  // actividad expone el conteo de todo el grupo y no tiene por qué poder
+  // sacarlo cualquiera. Resetearlo sigue siendo solo del owner (destructivo).
+  const quien = getSender(msg);
+  if (!isGroupAdmin(quien, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'Solo los admins pueden ver el ranking.' }, { quoted: msg });
+  }
 
   // !count @mention — stats for a specific person.
   // Only trust real WhatsApp mentions (mentionedJid); raw "@number" text matches

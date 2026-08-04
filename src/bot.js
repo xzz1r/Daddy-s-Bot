@@ -12,7 +12,7 @@ const fs = require('fs-extra');
 const qrcode = require('qrcode-terminal');
 const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, flushState } = require('./utils/state');
-const { isOwner, sameUser, isBotAdmin, rememberMapping, flushOwnerJids } = require('./utils/wa');
+const { isOwner, sameUser, isBotAdmin, canonicalJid, rememberMapping, flushOwnerJids } = require('./utils/wa');
 const { anotarAlta, motivoDelAlta, ALTA_INVITE, ALTA_SOLICITUD } = require('./utils/joinReason');
 const { notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, sondeoReciente, reactivarSondeo, frenoNuevo, flushJoinRequests } = require('./utils/joinRequests');
 const { flushCounts } = require('./utils/messageCounter');
@@ -435,8 +435,24 @@ async function connectToWhatsApp() {
           if (isOwner(obj.id, false, meta) ||
               (obj.lid && isOwner(obj.lid, false, meta)) ||
               (obj.phoneNumber && isOwner(obj.phoneNumber, false, meta))) continue;
-          const phoneJid = obj.phoneNumber || (obj.id.endsWith('@s.whatsapp.net') ? obj.id : null);
-          if (!phoneJid) continue;
+          // getBusinessProfile NO acepta LIDs, asi que hace falta el telefono.
+          // Antes, si el evento traia al recien llegado solo como @lid (lo
+          // normal en un grupo LID: los participantes del EVENTO llegan como
+          // cadenas sueltas, sin phoneNumber), este `continue` lo descartaba en
+          // silencio y el anti-empresa NUNCA se ejecutaba sobre el. De ahi que
+          // entraran cuentas Business sin que el bot hiciera nada.
+          //
+          // canonicalJid resuelve el @lid a telefono con el mapa aprendido de
+          // la metadata y de los propios mensajes, que es justo el dato que
+          // faltaba.
+          const canon = canonicalJid(obj.id);
+          const phoneJid = obj.phoneNumber
+            || (obj.id.endsWith('@s.whatsapp.net') ? obj.id : null)
+            || (canon?.endsWith('@s.whatsapp.net') ? canon : null);
+          if (!phoneJid) {
+            logger.warn(`Anti-empresa: no pude resolver el telefono de ${obj.id}; no se puede comprobar si es Business`);
+            continue;
+          }
           candidates.push({ kickId: obj.id, phoneJid });
         }
 

@@ -1,6 +1,6 @@
 const { pickFresh } = require('../utils/helpers');
 const config = require('../config');
-const { isBotEnabled, incrementStat, isAntiLinkEnabled, isSoloAdminsEnabled } = require('../utils/state');
+const { isBotEnabled, incrementStat, isAntiLinkEnabled, isSoloAdminsEnabled, isAntiBusinessEnabled } = require('../utils/state');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { recordFacts } = require('../utils/nickStore');
 const { noteOffence, forget } = require('../utils/mediaSpam');
@@ -22,7 +22,7 @@ const { cmdToImg, cmdToVid } = require('../commands/toimg');
 const { cmdPfp } = require('../commands/pfp');
 const { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdAntiFake } = require('../commands/fk');
 const { maybeIndex } = require('../utils/pfpIndexer');
-const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdInteligencia, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy, cmdPerdedor, cmdGanador, cmdPuta, cmdGuarra, cmdFiel, cmdInfiel } = require('../commands/percent');
+const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdInteligencia, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy, cmdPerdedor, cmdGanador, cmdPuta, cmdGuarra, cmdFiel, cmdInfiel, cmdLinda, cmdFea } = require('../commands/percent');
 const { cmdRizz, cmdPiropo, cmdWingman } = require('../commands/wingman');
 const { cmdAura } = require('../commands/aura');
 const { resetAura } = require('../utils/auraStore');
@@ -45,7 +45,98 @@ const LINK_WHITELIST = /(?:^|\.)(?:youtube\.com|youtu\.be|instagram\.com|instagr
 
 // Conservative URL detector: needs an explicit scheme/www or a known invite
 // domain, so plain talk like "node.js" or "archivo.txt" isn't treated as a link.
-const URL_RE = /(?:https?:\/\/|www\.)[^\s]+|(?:t\.me|chat\.whatsapp\.com)\/[^\s]+/gi;
+//
+// Los dominios de invitación se listan SIN esquema a propósito: son la vía de
+// spam más común y casi nadie los pega con "https://" delante. Faltaban wa.me,
+// los canales de whatsapp.com y telegram.me, y se colaban enteros.
+const DOMINIOS_INVITACION = String.raw`chat\.whatsapp\.com|wa\.me|whatsapp\.com\/channel|t\.me|telegram\.me|telegram\.dog`;
+// Los de la lista blanca tambien se reconocen pelados: si no, un
+// "youtube.com/x" sin esquema no se detectaba NI para avisar, y quedaba en un
+// limbo raro donde el mismo enlace se trataba distinto segun como lo pegaran.
+const DOMINIOS_BLANCOS = String.raw`youtube\.com|youtu\.be|instagram\.com|instagr\.am`;
+const URL_RE = new RegExp(
+  String.raw`(?:https?:\/\/|www\.)[^\s]+|(?:${DOMINIOS_INVITACION}|${DOMINIOS_BLANCOS})\/[^\s]+`,
+  'gi'
+);
+
+// Normaliza el texto ANTES de buscar enlaces, para que los trucos de siempre no
+// sirvan: caracteres invisibles metidos en medio, puntos que no son puntos
+// (·, ․, ‧, 。) y espacios alrededor de los puntos ("chat . whatsapp . com").
+//
+// Solo se normaliza para DETECTAR; el mensaje original no se toca. El riesgo de
+// falso positivo es real (juntar "punto . com" cambia el sentido), así que los
+// espacios solo se colapsan cuando el punto está pegado a un dominio conocido.
+const INVISIBLES = /[­​-‏‪-‮⁠-⁤﻿]/g;
+const PUNTOS_FALSOS = /[·․‧∙。｡]/g;
+
+function normalizarParaEnlaces(text) {
+  let s = String(text).replace(INVISIBLES, '').replace(PUNTOS_FALSOS, '.');
+  // "chat . whatsapp . com" -> "chat.whatsapp.com". Se hace solo sobre los
+  // trozos de dominio conocidos para no pegar frases normales.
+  s = s.replace(/\b(chat|www|wa|t|telegram|whatsapp|youtu|youtube|instagram|instagr)\s*\.\s*/gi, '$1.');
+  s = s.replace(/\.\s*(com|me|be|am|dog|net|org)\b/gi, '.$1');
+  return s;
+}
+
+// Sobres que SON una invitación en sí mismos y no llevan URL en ningún texto.
+// Este era el agujero grande: `groupInviteMessage` es el "invitar al grupo"
+// nativo de WhatsApp — trae groupJid, inviteCode y una miniatura, pero NI UNA
+// sola URL, así que el detector de texto no veía absolutamente nada y el
+// mensaje pasaba limpio. Es, además, la forma más cómoda de pasar un grupo.
+const SOBRES_INVITACION = ['groupInviteMessage', 'newsletterAdminInviteMessage'];
+
+function esInvitacionNativa(message) {
+  if (!message) return false;
+  return SOBRES_INVITACION.some(k => message[k]);
+}
+
+// Todo el texto donde puede esconderse un enlace, no solo el cuerpo del
+// mensaje. extractText solo mira conversation/extendedText/captions; un enlace
+// metido en un botón, en una lista, en una encuesta o en la tarjeta de un
+// contacto no aparecía por ningún lado y pasaba el filtro entero.
+function textoParaEnlaces(message) {
+  if (!message) return '';
+  const trozos = [];
+  const push = (v) => { if (typeof v === 'string' && v) trozos.push(v); };
+
+  push(message.conversation);
+  push(message.extendedTextMessage?.text);
+  push(message.extendedTextMessage?.matchedText);
+  push(message.extendedTextMessage?.canonicalUrl);
+  push(message.imageMessage?.caption);
+  push(message.videoMessage?.caption);
+  push(message.documentMessage?.caption);
+
+  // Tarjetas de contacto: el vCard puede traer una URL o un número de empresa.
+  push(message.contactMessage?.vcard);
+  for (const c of (message.contactsArrayMessage?.contacts || [])) push(c?.vcard);
+
+  // Botones, listas, plantillas e interactivos: el texto visible y las URLs de
+  // los botones viven en sitios distintos según el tipo.
+  const b = message.buttonsMessage;
+  if (b) { push(b.contentText); push(b.footerText); }
+  const l = message.listMessage;
+  if (l) {
+    push(l.description); push(l.title); push(l.footerText);
+    for (const s of (l.sections || [])) for (const r of (s.rows || [])) { push(r?.title); push(r?.description); }
+  }
+  const t = message.templateMessage?.hydratedTemplate || message.templateMessage?.hydratedFourRowTemplate;
+  if (t) {
+    push(t.hydratedContentText); push(t.hydratedFooterText);
+    for (const bt of (t.hydratedButtons || [])) push(bt?.urlButton?.url);
+  }
+  const iv = message.interactiveMessage;
+  if (iv) { push(iv.body?.text); push(iv.footer?.text); push(iv.header?.title); }
+
+  // Encuestas: el nombre y las opciones son texto libre.
+  const poll = message.pollCreationMessage || message.pollCreationMessageV2 || message.pollCreationMessageV3;
+  if (poll) { push(poll.name); for (const o of (poll.options || [])) push(o?.optionName); }
+
+  push(message.productMessage?.product?.url);
+  push(message.orderMessage?.message);
+
+  return trozos.join(' \n ');
+}
 
 function hostOf(url) {
   let s = String(url).replace(/^https?:\/\//i, '').replace(/^www\./i, '');
@@ -58,7 +149,7 @@ function hostOf(url) {
 // 'blocked' = at least one non-whitelisted link (websites, WhatsApp/Telegram
 // invites, etc.) — those get the sender kicked and the message deleted.
 function classifyLinks(text) {
-  const matches = text.match(URL_RE);
+  const matches = normalizarParaEnlaces(text).match(URL_RE);
   if (!matches) return 'none';
   let whitelisted = false;
   for (const m of matches) {
@@ -66,6 +157,13 @@ function classifyLinks(text) {
     return 'blocked';
   }
   return whitelisted ? 'whitelisted' : 'none';
+}
+
+// Veredicto completo de un mensaje: mira el sobre (invitación nativa) y TODAS
+// las superficies de texto, no solo el cuerpo.
+function clasificarMensaje(message) {
+  if (esInvitacionNativa(message)) return 'blocked';
+  return classifyLinks(textoParaEnlaces(message));
 }
 
 // Aviso para quien suelta un enlace de YouTube o Instagram sin el permiso de
@@ -129,7 +227,7 @@ const NEEDS_META = new Set([
   // una peticion de red (hasta 8s con la cache fria) antes de ejecutarlos.
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','ganador',
-  'puta','guarra','fiel','infiel',
+  'puta','guarra','fiel','infiel','linda','fea',
   'rizz',   // piropo y wingman NO: sus handlers no reciben groupMeta (wingman.js)
   'aura','resetaura','inactivos','inactivo','fantasma','fantasmas','mog','moggear','roast','flamear',
   'duel','duelo','1v1',
@@ -181,6 +279,45 @@ async function expulsar(sock, jid, target) {
       : null;
     return String(fila?.status ?? '200') === '200';
   } catch { return false; }
+}
+
+// Expulsa a una cuenta Business detectada por su propio mensaje.
+//
+// Se apoya en `verifiedBizName`, que WhatsApp adjunta al mensaje de una cuenta
+// Business verificada: es prueba directa, sin consultar el perfil, y llega
+// igual en grupos LID (donde getBusinessProfile no sirve porque no acepta
+// LIDs). Cubre justo el hueco de la comprobación de entrada.
+//
+// Mismas garantías que el resto de la moderación: solo si el modo está
+// encendido, nunca al owner tier ni a un admin ni al bot, y hace falta ser
+// admin para poder echar a alguien.
+const avisoBizReciente = new Map(); // `${jid}|${canonical}` -> ts
+
+async function expulsarBusinessDetectado(sock, jid, sender, msg) {
+  if (!jid.endsWith('@g.us') || !isAntiBusinessEnabled(jid)) return;
+
+  const meta = await getGroupMeta(sock, jid);
+  if (!meta) return;
+  if (isGroupAdmin(sender, msg.key.fromMe, meta)) return; // admins y owner tier
+  if (!isBotAdmin(sock, meta)) return;
+
+  // Un solo intento por persona cada 10 min: si WhatsApp rechaza el kick, no
+  // tiene sentido reintentarlo en cada mensaje que mande.
+  const clave = `${jid}|${canonicalJid(sender)}`;
+  const ultimo = avisoBizReciente.get(clave);
+  if (ultimo && Date.now() - ultimo < 10 * 60 * 1000) return;
+  if (avisoBizReciente.size >= 2000) avisoBizReciente.delete(avisoBizReciente.keys().next().value);
+  avisoBizReciente.set(clave, Date.now());
+
+  logger.info(`Anti-empresa: ${sender} delatado por verifiedBizName en ${jid}`);
+  const fuera = await expulsar(sock, jid, sender);
+  const num = sender.split('@')[0];
+  sock.sendMessage(jid, {
+    text: fuera
+      ? `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada automáticamente.`
+      : `*Anti-empresa:* @${num} es cuenta de WhatsApp Business, pero no he podido expulsarla: hacedlo a mano.`,
+    mentions: [sender],
+  }).catch(() => {});
 }
 
 function esComandoDeMedia(text) {
@@ -454,6 +591,18 @@ async function handleMessage(sock, msg) {
     // co-owners si quedaban fichados. El owner esta por encima tambien de esto.
     if (msg.verifiedBizName && !isOwner(sender, msg.key.fromMe, peekGroupMeta(jid))) {
       recordFacts(sender, { biz: true }).catch(() => {});
+      // Y ADEMÁS se actúa, no solo se anota.
+      //
+      // El anti-empresa solo miraba las ENTRADAS. Una cuenta Business que ya
+      // estuviera dentro antes de encender el modo, o cuya comprobación de
+      // entrada fallara (timeout, sin teléfono resoluble, el bot recién
+      // arrancado), se quedaba para siempre aunque cada mensaje suyo trajera
+      // la prueba encima. Eso es exactamente lo que se coló.
+      //
+      // `verifiedBizName` es prueba DIRECTA de WhatsApp: viaja en el propio
+      // mensaje, no hace falta ninguna consulta de perfil y funciona igual con
+      // @lid, que es donde la comprobación de entrada era ciega.
+      expulsarBusinessDetectado(sock, jid, sender, msg).catch(() => {});
     }
     checkCasinoMilestone(sock, jid, sender).catch(() => {});
     // Historial de huellas AUTOMÁTICO: indexa la foto de quien escribe (con
@@ -524,8 +673,11 @@ async function handleMessage(sock, msg) {
     }
   }
 
-  if (jid.endsWith('@g.us') && text && isAntiLinkEnabled(jid)) {
-    const verdict = classifyLinks(text);
+  // OJO: la condición ya no exige `text`. Una invitación nativa de grupo
+  // (groupInviteMessage) no tiene NI UNA letra de texto, así que con el
+  // `text &&` de antes el guardia ni se ejecutaba y el enlace entraba limpio.
+  if (jid.endsWith('@g.us') && isAntiLinkEnabled(jid)) {
+    const verdict = clasificarMensaje(msg.message);
     if (verdict !== 'none') {
       const meta = await getGroupMeta(sock, jid);
       // If meta is unavailable (timeout/network error), treat sender as non-admin
@@ -960,6 +1112,8 @@ async function handleMessage(sock, msg) {
       case 'ganador':        await cmdGanador(sock, msg, groupMeta); break;
       case 'puta':           await cmdPuta(sock, msg, groupMeta); break;
       case 'guarra':         await cmdGuarra(sock, msg, groupMeta); break;
+      case 'linda':          await cmdLinda(sock, msg, groupMeta); break;
+      case 'fea':            await cmdFea(sock, msg, groupMeta); break;
 
       case 'rizz':           await cmdRizz(sock, msg, groupMeta); break;
       // piropo y wingman no reciben groupMeta a proposito: sus funciones no lo
@@ -1062,4 +1216,6 @@ async function handleMessage(sock, msg) {
 
 }
 
-module.exports = { handleMessage, invalidateGroupMeta, getGroupMeta, PERMISO_ENLACE };
+module.exports = { handleMessage, invalidateGroupMeta, getGroupMeta, PERMISO_ENLACE,
+  // Exportados para poder probar la deteccion de enlaces sin montar un socket.
+  clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa };

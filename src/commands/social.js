@@ -18,9 +18,11 @@ async function cmdOn(sock, msg, groupMeta) {
   const isGroup = jid.endsWith('@g.us');
 
   if (isGroup) {
-    const canToggle = isGroupAdmin(sender, msg.key.fromMe, groupMeta);
-    if (!canToggle) {
-      return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
+    // Solo el owner tier. Antes bastaba con ser admin del grupo, asi que
+    // cualquier admin podia apagar el bot entero; ahora encender y apagar es
+    // del duenyo, como el resto de interruptores del bot.
+    if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
+      return sock.sendMessage(jid, { text: 'Solo el owner del bot puede encenderlo.' }, { quoted: msg });
     }
     await toggleGroup(jid, true);
     return sock.sendMessage(jid, { text: 'Bot *activado* en este grupo.' }, { quoted: msg });
@@ -42,9 +44,11 @@ async function cmdOff(sock, msg, groupMeta) {
   const isGroup = jid.endsWith('@g.us');
 
   if (isGroup) {
-    const canToggle = isGroupAdmin(sender, msg.key.fromMe, groupMeta);
-    if (!canToggle) {
-      return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
+    // Solo el owner tier. Antes bastaba con ser admin del grupo, asi que
+    // cualquier admin podia apagar el bot entero; ahora encender y apagar es
+    // del duenyo, como el resto de interruptores del bot.
+    if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
+      return sock.sendMessage(jid, { text: 'Solo el owner del bot puede apagarlo.' }, { quoted: msg });
     }
     await toggleGroup(jid, false);
     return sock.sendMessage(jid, { text: 'Bot *desactivado* en este grupo.' }, { quoted: msg });
@@ -180,7 +184,7 @@ _Prefijo *${p}* — ejemplo: *${p}play* despacito_
 *${p}tovid* — sticker animado a video
 
 ━━━━━ *ACTIVIDAD* ━━━━━
-*${p}count* — ranking de quién escribe más
+*${p}count* — ranking de quién escribe más _(admins)_
 *${p}relevancia* [@user] — tu peso real en el grupo
 *${p}fantasmas* — los que menos escriben
 *${p}inactivos* — los que no han escrito nunca
@@ -195,6 +199,7 @@ _Sin @ va sobre ti · con @ va sobre esa persona_
 *${p}perdedor* · *${p}inutil* · *${p}rata* · *${p}cerdo*
 *${p}simp* · *${p}friki* · *${p}gay* · *${p}maricon*
 *${p}femboy* · *${p}puta* · *${p}guarra*
+*${p}linda* · *${p}fea*
 
 ━━━━━ *DUELOS* ━━━━━
 *${p}roast* @user — destrucción pública
@@ -214,7 +219,7 @@ _Sin @ va sobre ti · con @ va sobre esa persona_
 *${p}duel* @user <cantidad> — apostar 1v1
 *${p}robo* @user <cantidad> — intentar robar
 *${p}aura hoy* — tu progreso de hoy _(o ${p}casino)_
-_Ganas aura escribiendo. Bonos diarios: 200 msg = 20k · 500 = 60k · 1000 = 150k_
+_Ganas aura escribiendo. Bonos diarios: 200 msg = 1.000 · 500 = 2.500 · 1000 = 5.000_
 
 ━━━━━ *PERFIL* ━━━━━
 *${p}pfp* @user — su foto de perfil
@@ -227,7 +232,7 @@ _Ganas aura escribiendo. Bonos diarios: 200 msg = 20k · 500 = 60k · 1000 = 150
 *${p}ping* · *${p}info* · *${p}whoami*
 
 ━━━━━ *ADMIN* ━━━━━
-*${p}on* / *${p}off* — activa o apaga el bot
+*${p}on* / *${p}off* — activa o apaga el bot _(owner)_
 *${p}tagall* <mensaje> — menciona a todos
 *${p}kick* @user — expulsa
 *${p}add* <número> — añade

@@ -232,6 +232,18 @@ const CERO_MENSAJES = [
   'No ha escrito nunca. Literalmente nunca. Un miembro teórico.',
   'Cero aportes. Entra, lee y se va, como quien pasa por delante de un escaparate.',
   'Sin un mensaje en su historial. Ocupa plaza y no gasta ni un carácter.',
+  'Ni un solo mensaje. Están aquí de decoración, como un jarrón sin flores.',
+  'Cero mensajes. El grupo entero funciona sin que ellos existan y nadie lo nota.',
+  'No han escrito nunca. Son un número en la lista de miembros y nada más.',
+  'Cero aportes en todo su historial. Miran, se enteran de todo y no devuelven ni un hola.',
+  'Sin un solo mensaje. Ocupan plaza y no han gastado ni un carácter en pagarla.',
+  'Nunca han abierto la boca. Ni para saludar, ni para irse. Presencia fantasma total.',
+  'Cero mensajes. Llevan aquí lo suficiente como para que ya no haya excusa posible.',
+  'Ni una palabra. El silencio más largo del grupo y encima sin ningún mérito.',
+  'Cero. Absolutamente cero. Ni un emoji, ni un jaja, ni un buenos días.',
+  'Nunca escribieron nada. Consumen el grupo entero y no devuelven ni las gracias.',
+  'Sin registro de un solo mensaje. Para el contador es como si no estuvieran.',
+  'Cero mensajes desde el primer día. Una constancia admirable aplicada a no hacer nada.',
 ];
 
 async function cmdInactivos(sock, msg, groupMeta) {

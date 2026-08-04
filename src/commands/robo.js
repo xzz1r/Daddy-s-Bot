@@ -217,6 +217,93 @@ const FRASES_POR_DESENLACE = {
   desastre: () => ROB_DESASTRE,
 };
 
+// ── Dinámicas del robo ───────────────────────────────────────────────────────
+//
+// Sin esto, robar era una tirada plana: la misma probabilidad siempre, sin
+// decisiones ni consecuencias. Cuatro reglas le dan cuerpo, y todas se cuentan
+// al jugador en el propio mensaje para que sepa por qué le salió como le salió.
+//
+//  1. AMBICIÓN. Apostar fuerte baja la probabilidad. Antes daba exactamente
+//     igual pedir 5 que pedir el máximo, así que todo el mundo pedía el máximo
+//     y no había ninguna decisión que tomar.
+//  2. ESCUDO DE LA VÍCTIMA. El cooldown era solo del atacante, así que cinco
+//     personas distintas podían vaciar al mismo en un minuto y ese no podía
+//     hacer nada. Tras un robo con éxito queda protegido un rato.
+//  3. GUARDIA. Insistir contra la misma víctima baja tu probabilidad: la
+//     segunda vez ya te está esperando. Corta el farmeo sobre el mismo pringado.
+//  4. VENGANZA. Si te robaron hace poco, devolver el golpe a ESE tiene un plus.
+const ESCUDO_MS = 8 * 60 * 1000;    // protección de la víctima tras ser robada
+const GUARDIA_MS = 30 * 60 * 1000;  // ventana en la que se recuerda a quién atacaste
+const VENGANZA_MS = 30 * 60 * 1000; // ventana para devolver el golpe con plus
+
+const robadoHasta = new Map();  // `${grupo}|${victima}` -> ts en que se le puede volver a robar
+const ultimoAtaque = new Map(); // `${grupo}|${ladron}|${victima}` -> { ts, veces }
+const ultimoRobado = new Map(); // `${grupo}|${victima}` -> { por, ts }
+
+function limpiaMapa(m) {
+  if (m.size >= 3000) m.delete(m.keys().next().value);
+}
+
+// Ajusta la probabilidad base con las dinámicas. Devuelve la probabilidad final
+// y los motivos, para poder explicárselos al jugador.
+function ajustarProbabilidad(base, { grupo, ladron, victima, stake, maxStake }) {
+  let p = base;
+  const motivos = [];
+
+  // 1. Ambición: hasta -15% si apuestas el máximo posible.
+  if (maxStake > 0) {
+    const ambicion = Math.min(1, stake / maxStake);
+    const castigo = ambicion * 0.15;
+    if (castigo > 0.02) {
+      p -= castigo;
+      motivos.push(`apuesta alta (−${Math.round(castigo * 100)}%)`);
+    }
+  }
+
+  // 3. Guardia: cada intento previo reciente sobre la MISMA víctima resta 8%,
+  //    hasta un tope de -24%.
+  const kAtaque = `${grupo}|${ladron}|${victima}`;
+  const prev = ultimoAtaque.get(kAtaque);
+  if (prev && Date.now() - prev.ts < GUARDIA_MS && prev.veces > 0) {
+    const castigo = Math.min(prev.veces, 3) * 0.08;
+    p -= castigo;
+    motivos.push(`ya te vio venir (−${Math.round(castigo * 100)}%)`);
+  }
+
+  // 4. Venganza: +12% si le devuelves el golpe a quien te robó hace poco.
+  const kRobado = `${grupo}|${ladron}`;
+  const mio = ultimoRobado.get(kRobado);
+  if (mio && mio.por === victima && Date.now() - mio.ts < VENGANZA_MS) {
+    p += 0.12;
+    motivos.push('venganza (+12%)');
+  }
+
+  return { p: Math.min(0.85, Math.max(0.10, p)), motivos };
+}
+
+// ¿Está la víctima protegida por un robo reciente? Devuelve los minutos que
+// quedan, o 0 si se le puede robar.
+function escudoRestante(grupo, victima) {
+  const hasta = robadoHasta.get(`${grupo}|${victima}`) || 0;
+  const queda = hasta - Date.now();
+  return queda > 0 ? Math.ceil(queda / 60000) : 0;
+}
+
+function anotarIntento(grupo, ladron, victima) {
+  const k = `${grupo}|${ladron}|${victima}`;
+  const prev = ultimoAtaque.get(k);
+  const veces = prev && Date.now() - prev.ts < GUARDIA_MS ? prev.veces + 1 : 1;
+  limpiaMapa(ultimoAtaque);
+  ultimoAtaque.set(k, { ts: Date.now(), veces });
+}
+
+function anotarRoboExitoso(grupo, ladron, victima) {
+  limpiaMapa(robadoHasta);
+  robadoHasta.set(`${grupo}|${victima}`, Date.now() + ESCUDO_MS);
+  limpiaMapa(ultimoRobado);
+  ultimoRobado.set(`${grupo}|${victima}`, { por: ladron, ts: Date.now() });
+}
+
 // Elige el desenlace concreto dentro de la rama que ya decidió `success`.
 function elegirDesenlace(exito) {
   const ramas = exito ? ['maestro', 'limpio', 'parcial'] : ['fallo', 'desastre'];
@@ -258,6 +345,17 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     }, { quoted: msg });
   }
 
+  // Escudo de la víctima: si acaban de robarle, está protegida un rato. Esto va
+  // ANTES de reclamar el cooldown para que intentarlo contra alguien protegido
+  // no te queme tus 10 minutos.
+  const escudo = escudoRestante(jid, canonicalJid(target));
+  if (escudo > 0) {
+    return sock.sendMessage(jid, {
+      text: `@${target.split('@')[0]} acaba de ser robado y todavía está en guardia. Vuelve en *${escudo}min*.`,
+      mentions: [target],
+    }, { quoted: msg });
+  }
+
   // Claim the cooldown synchronously, BEFORE any await, so two concurrent !robo
   // can't both pass the check above and steal twice. Refunded on the paths below
   // where no robbery actually happens, so a failed attempt doesn't burn 10 min.
@@ -294,7 +392,18 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const vO = isOwner(target, false, groupMeta);
   const vA = !vO && isAdmin(participants, target);
 
-  const chance = calcChance(aO, aA, vO, vA, auraA, auraV);
+  // Probabilidad base por roles y brecha de aura, ajustada por las dinámicas
+  // (ambición, guardia y venganza). El intento se anota SIEMPRE, salga como
+  // salga: insistir contra la misma víctima tiene que penalizar aunque falles.
+  const base = calcChance(aO, aA, vO, vA, auraA, auraV);
+  const { p: chance, motivos } = ajustarProbabilidad(base, {
+    grupo: jid,
+    ladron: canonicalJid(sender),
+    victima: canonicalJid(target),
+    stake,
+    maxStake,
+  });
+  anotarIntento(jid, canonicalJid(sender), canonicalJid(target));
   let success = Math.random() < chance;
 
   // Rig a favor del owner principal:
@@ -320,7 +429,12 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const bruto = Math.max(1, Math.round(stake * Math.abs(mult)));
   const monto = mult > 0 ? Math.min(bruto, auraV) : Math.min(bruto, auraA);
 
+  // Lo que movió la balanza se cuenta abajo del mensaje: si no, el jugador ve
+  // resultados distintos sin entender por qué y parece que el bot va al azar.
+  const notaDinamicas = motivos.length ? `\n_${motivos.join(' · ')}_` : '';
+
   if (mult > 0) {
+    anotarRoboExitoso(jid, canonicalJid(sender), canonicalJid(target));
     const [aNew, vNew] = await Promise.all([
       addAura(jid, sender, +monto),
       addAura(jid, target, -monto),
@@ -335,7 +449,8 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       `${aTag} le roba *${fmt(monto)} de aura* a ${vTag}${extra}\n\n` +
       `${phrase}\n\n` +
       `${aTag} +${fmt(monto)} → *${fmt(aNew.current)}*\n` +
-      `${vTag} −${fmt(monto)} → *${fmt(vNew.current)}*`;
+      `${vTag} −${fmt(monto)} → *${fmt(vNew.current)}*` +
+      notaDinamicas;
     return sock.sendMessage(jid, { text, mentions: [sender, target] });
   }
 
@@ -354,8 +469,9 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     `${aTag} −${fmt(monto)} → *${fmt(aNew.current)}*\n` +
     (vNew
       ? `${vTag} +${fmt(monto)} → *${fmt(vNew.current)}*`
-      : `${vTag} sin cambios → *${fmt(auraV)}*`);
+      : `${vTag} sin cambios → *${fmt(auraV)}*`) +
+    notaDinamicas;
   return sock.sendMessage(jid, { text, mentions: [sender, target] });
 }
 
-module.exports = { cmdRobo, DESENLACES, elegirDesenlace };
+module.exports = { cmdRobo, DESENLACES, elegirDesenlace, ajustarProbabilidad, escudoRestante, anotarIntento, anotarRoboExitoso };
