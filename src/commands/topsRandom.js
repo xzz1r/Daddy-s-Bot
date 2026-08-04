@@ -20,6 +20,11 @@ const { shuffle, pickFresh } = require('../utils/helpers');
 //      tops, así que la burla apunta a estar en la lista, no a lo que la lista
 //      dice.
 //
+// Mínimo de mensajes para entrar en el sorteo. Con un umbral alto el bot
+// elegía siempre entre los cuatro habladores de siempre; con 1 entra todo el
+// que haya escrito alguna vez y el azar reparte de verdad.
+const MIN_MENSAJES = 1;
+
 // Único marcador: {N} = cuántos salen.
 const CIERRES = [
   'Ahí quedáis los {N}. Que os aproveche.',
@@ -74,14 +79,19 @@ async function cmdTopRandom(sock, msg, n, args, groupMeta) {
   // hablado alguna vez, así que sin este filtro el top seguía nombrando (y
   // mencionando) a gente que se salió o fue expulsada hace meses.
   //
+  // El umbral es 1 mensaje, no 10: con 10 el sorteo elegía siempre entre el
+  // mismo puñado de habladores del grupo y por eso "salían siempre los mismos".
+  // Con 1, entra cualquiera que haya abierto la boca una vez y el azar tiene
+  // material de verdad para repartir.
+  //
   // El owner principal nunca entra en el sorteo (invisible en toda salida).
   // Este comando resuelve isMainOwner con groupMeta cuando lo hay y, si no,
   // vía config y el caché de JIDs aprendidos.
-  const users = soloMiembros(await getActiveUsers(jid, 10), groupMeta)
+  const users = soloMiembros(await getActiveUsers(jid, MIN_MENSAJES), groupMeta)
     .filter(u => !isMainOwner(u.jid, false, groupMeta));
   if (users.length < n) {
     return sock.sendMessage(jid, {
-      text: `No hay suficientes miembros activos. Necesito ${n} con mínimo 10 mensajes, hay ${users.length}.`,
+      text: `No hay suficientes miembros activos. Necesito ${n}, hay ${users.length}.`,
     }, { quoted: msg });
   }
 
@@ -100,20 +110,10 @@ async function cmdTopRandom(sock, msg, n, args, groupMeta) {
     return `${' '.repeat(ancho - num.length)}*${num}.*  @${u.jid.split('@')[0]}`;
   });
 
-  // Bloques de cinco. Un top 10 seguido es un muro de diez lineas que en el
-  // movil se lee de un tiron y no se distingue un puesto de otro; partido en
-  // dos mitades se lee igual de rapido que un top 5. El top 5 sale con un solo
-  // bloque, asi que este corte no le cambia nada.
-  const BLOQUE = 5;
-  const cuerpo = [];
-  for (let i = 0; i < lineas.length; i += BLOQUE) {
-    cuerpo.push(lineas.slice(i, i + BLOQUE).join('\n'));
-  }
-
   const text =
     `*TOP ${n} — ${topic.toUpperCase()}*\n` +
     `╾━━━━━━━━━━━━━━╼\n\n` +
-    cuerpo.join('\n\n') +
+    lineas.join('\n') +
     `\n\n╾━━━━━━━━━━━━━━╼\n` +
     `_${rellenar(pickFresh(CIERRES, `${jid}|top`), picked)}_`;
 

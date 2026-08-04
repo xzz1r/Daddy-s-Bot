@@ -1,6 +1,6 @@
 const { pickFresh } = require('../utils/helpers');
 const config = require('../config');
-const { isBotEnabled, incrementStat, isAntiLinkEnabled } = require('../utils/state');
+const { isBotEnabled, incrementStat, isAntiLinkEnabled, isSoloAdminsEnabled } = require('../utils/state');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { recordFacts } = require('../utils/nickStore');
 const { noteOffence, forget } = require('../utils/mediaSpam');
@@ -15,7 +15,7 @@ const { cmdK } = require('../commands/k');
 const { cmdCount, cmdResetCount } = require('../commands/count');
 const { cmdRelevance } = require('../commands/relevance');
 const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
-const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd, cmdAntiLink, cmdAllow, cmdClose, cmdOpen } = require('../commands/group');
+const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdSoloAdmins } = require('../commands/group');
 const { cmdShip } = require('../commands/ship');
 const { cmdTtp } = require('../commands/ttp');
 const { cmdToImg, cmdToVid } = require('../commands/toimg');
@@ -31,7 +31,7 @@ const { cmdRobo } = require('../commands/robo');
 const { cmdDuel } = require('../commands/duel');
 const { cmdScan } = require('../commands/scan');
 const { cmdAntiFoto } = require('../commands/cleanup');
-const { cmdVs, cmdInactivos } = require('../commands/activity');
+const { cmdVs, cmdFantasmas, cmdInactivos } = require('../commands/activity');
 const { cmdRoast } = require('../commands/roast');
 const { cmdDar } = require('../commands/dar');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, cmdCasino } = require('../commands/social');
@@ -122,6 +122,7 @@ const NEEDS_META = new Set([
   'ship','mute','unmute','desmute',
   'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness','antifoto',
   'antilink','allow','permitir','close','cerrar','open','abrir',
+  'soloadmins','soloadmin',
   's','sticker','stk',   // cmdSticker SI recibe groupMeta
   // play/ttp/toimg/tovid/g/dar NO estan aqui a proposito: el dispatch no les
   // pasa groupMeta y sus modulos no lo mencionan, asi que pedirlo solo anyadia
@@ -713,6 +714,20 @@ async function handleMessage(sock, msg) {
     if (groupMeta) isMainOwner(sender, msg.key.fromMe, groupMeta);
   }
 
+  // Modo solo admins: el bot ignora por completo a quien no sea admin u owner.
+  //
+  // Se resuelve la metadata aunque el comando no la pidiera: sin ella
+  // isGroupAdmin no puede reconocer a un admin que llega por @lid, y el modo
+  // acabaría bloqueando justo a quien debe dejar pasar. La metadata que se
+  // traiga aquí se reutiliza abajo, así que no cuesta una segunda petición.
+  //
+  // Silencio deliberado: no se contesta "no puedes". Responder a cada intento
+  // convertiría el modo en su propia fuente de spam.
+  if (jid.endsWith('@g.us') && isSoloAdminsEnabled(jid)) {
+    if (!groupMeta) groupMeta = await getGroupMeta(sock, jid);
+    if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) return;
+  }
+
   try {
     switch (command) {
       case 'playsong':
@@ -828,6 +843,11 @@ async function handleMessage(sock, msg) {
       case 'allow':
       case 'permitir':
         await cmdAllow(sock, msg, args, groupMeta);
+        break;
+
+      case 'soloadmins':
+      case 'soloadmin':
+        await cmdSoloAdmins(sock, msg, args, groupMeta);
         break;
 
       case 'antilink':
@@ -991,10 +1011,15 @@ async function handleMessage(sock, msg) {
         await cmdVs(sock, msg, args, groupMeta);
         break;
 
-      case 'inactivos':
-      case 'inactivo':
+      // !fantasmas ordena a los que hablan POCO; !inactivos saca a los que no
+      // han escrito NUNCA. Son dos listas distintas a proposito.
       case 'fantasma':
       case 'fantasmas':
+        await cmdFantasmas(sock, msg, groupMeta);
+        break;
+
+      case 'inactivos':
+      case 'inactivo':
         await cmdInactivos(sock, msg, groupMeta);
         break;
 

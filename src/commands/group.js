@@ -1,7 +1,7 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const { isOwner, isAdmin, isBotJid, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid, sameUser, esMiembroActual } = require('../utils/wa');
 const { streamToBuffer, MAX_DOWNLOAD_BYTES } = require('../utils/helpers');
-const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled } = require('../utils/state');
+const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled, toggleSoloAdmins, isSoloAdminsEnabled } = require('../utils/state');
 const { businessEvidence } = require('../utils/businessCheck');
 const { getMemberFacts } = require('../utils/nickStore');
 const { allow, disallow, listAllowed, MAX_AVISOS } = require('../utils/linkPerms');
@@ -804,4 +804,36 @@ async function cmdOpen(sock, msg, groupMeta) {
   }
 }
 
-module.exports = { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd, cmdAntiLink, cmdAllow, cmdClose, cmdOpen };
+// !soloadmins on/off — con esto encendido el bot solo obedece a admins y al
+// owner tier. A los miembros normales no les contesta NADA: ni el comando ni
+// un aviso de que no pueden. La alternativa (responder "no puedes" a cada
+// intento) convierte el modo en una fuente de spam en el propio chat.
+async function cmdSoloAdmins(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+  }
+  const sender = getSender(msg);
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'Solo el owner del bot puede activar esto.' }, { quoted: msg });
+  }
+
+  const arg = (args[0] || '').toLowerCase();
+  if (arg !== 'on' && arg !== 'off') {
+    const current = isSoloAdminsEnabled(jid) ? 'activado' : 'desactivado';
+    return sock.sendMessage(jid, {
+      text: `Modo solo admins: *${current}*.\n\nUsa *!soloadmins on* o *!soloadmins off*.`,
+    }, { quoted: msg });
+  }
+
+  const enable = arg === 'on';
+  await toggleSoloAdmins(jid, enable);
+  await sock.sendMessage(jid, {
+    text: enable
+      ? 'Modo solo admins *activado*. El bot deja de responder a los miembros; solo admins y owner.'
+      : 'Modo solo admins *desactivado*. El bot vuelve a responder a todo el grupo.',
+  }, { quoted: msg });
+}
+
+module.exports = {
+  cmdSoloAdmins, cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd, cmdAntiLink, cmdAllow, cmdClose, cmdOpen };

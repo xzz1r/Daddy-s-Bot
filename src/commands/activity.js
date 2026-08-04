@@ -1,5 +1,5 @@
 const { getActiveUsers } = require('../utils/messageCounter');
-const { isOwner, isMainOwner, getSender, sameUser, soloMiembros } = require('../utils/wa');
+const { isOwner, isMainOwner, getSender, sameUser, soloMiembros, bareJid, canonicalJid, isBotJid } = require('../utils/wa');
 const { pick, shuffle } = require('../utils/helpers');
 
 // ---- !vs : real-activity head-to-head -------------------------------------
@@ -177,8 +177,9 @@ const GHOST_ROASTS = [
   'Su teclado es de adorno y su presencia también. Lee doscientos mensajes, no suelta ni uno y se va convencido de que estar callado lo hace interesante. Solo lo hace invisible, que en tu caso es lo mismo, perdedor.',
 ];
 
-// !inactivos — ranks the least-active members (owner exempt) and roasts each.
-async function cmdInactivos(sock, msg, groupMeta) {
+// !fantasmas — ranking de los que MENOS escriben (pero escriben). Antes se
+// llamaba !inactivos; ese nombre pasó a un comando distinto, ver más abajo.
+async function cmdFantasmas(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
     return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
@@ -217,4 +218,73 @@ async function cmdInactivos(sock, msg, groupMeta) {
   await sock.sendMessage(jid, { text: text.trimEnd(), mentions }, { quoted: msg });
 }
 
-module.exports = { cmdVs, cmdInactivos };
+// ---- !inactivos : los que NUNCA han escrito -------------------------------
+//
+// Distinto de !fantasmas: aquel ordena a los que hablan poco, este saca a los
+// que no han abierto la boca ni una sola vez. La fuente tampoco es la misma:
+// aquí se parte de la lista de miembros del grupo y se resta a todo el que
+// tenga aunque sea un mensaje contado, porque a alguien con cero mensajes el
+// contador ni lo conoce y por definición no puede devolverlo.
+
+const CERO_MENSAJES = [
+  'Ni un solo mensaje. Ni uno. Está aquí de decoración.',
+  'Cero mensajes desde que entró. El récord absoluto de no aportar nada.',
+  'No ha escrito nunca. Literalmente nunca. Un miembro teórico.',
+  'Cero aportes. Entra, lee y se va, como quien pasa por delante de un escaparate.',
+  'Sin un mensaje en su historial. Ocupa plaza y no gasta ni un carácter.',
+];
+
+async function cmdInactivos(sock, msg, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+  }
+  if (!groupMeta?.participants?.length) {
+    return sock.sendMessage(jid, {
+      text: 'No pude leer la lista de miembros del grupo ahora mismo. Probá de nuevo en un momento.',
+    }, { quoted: msg });
+  }
+
+  // Todo el que tenga al menos un mensaje contado queda descartado. Se guardan
+  // TODAS sus formas conocidas (id, lid, teléfono) porque el conteo pudo
+  // anotarse bajo una y el participante figurar con otra.
+  const conMensajes = await getActiveUsers(jid, 1);
+  const hablo = new Set();
+  for (const u of conMensajes) {
+    hablo.add(bareJid(u.jid));
+    hablo.add(canonicalJid(u.jid));
+  }
+
+  const mudos = [];
+  for (const p of groupMeta.participants) {
+    const formas = [p?.id, p?.lid, p?.phoneNumber].filter(Boolean);
+    if (!formas.length) continue;
+    if (formas.some(f => hablo.has(bareJid(f)) || hablo.has(canonicalJid(f)))) continue;
+    // Ni el bot ni el owner tier salen en la lista de la vergüenza.
+    if (isBotJid(sock, p.id)) continue;
+    if (isOwner(p.id, false, groupMeta) || isMainOwner(p.id, false, groupMeta)) continue;
+    mudos.push(p.id);
+  }
+
+  if (!mudos.length) {
+    return sock.sendMessage(jid, {
+      text: 'Todo el mundo ha escrito al menos una vez. No queda ni un mudo en el grupo.',
+    }, { quoted: msg });
+  }
+
+  // WhatsApp corta los mensajes muy largos y menciona mal si son cientos: se
+  // listan como mucho 40 y se dice cuántos quedaron fuera, en vez de recortar
+  // en silencio y dar un número que no cuadra.
+  const TOPE = 40;
+  const mostrados = mudos.slice(0, TOPE);
+  const sobran = mudos.length - mostrados.length;
+
+  const cuantos = mudos.length === 1 ? '1 miembro' : `${mudos.length} miembros`;
+  let text = `*INACTIVOS — ${cuantos} sin escribir nunca*\n${pick(CERO_MENSAJES)}\n\n`;
+  text += mostrados.map(j => `@${j.split('@')[0]}`).join(' ');
+  if (sobran) text += `\n\n_Y ${sobran} más que no caben en un solo mensaje._`;
+
+  await sock.sendMessage(jid, { text, mentions: mostrados }, { quoted: msg });
+}
+
+module.exports = { cmdVs, cmdFantasmas, cmdInactivos };

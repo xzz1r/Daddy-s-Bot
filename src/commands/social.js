@@ -182,7 +182,8 @@ _Prefijo *${p}* — ejemplo: *${p}play* despacito_
 ━━━━━ *ACTIVIDAD* ━━━━━
 *${p}count* — ranking de quién escribe más
 *${p}relevancia* [@user] — tu peso real en el grupo
-*${p}inactivos* — los fantasmas del grupo
+*${p}fantasmas* — los que menos escriben
+*${p}inactivos* — los que no han escrito nunca
 *${p}vs* @a @b — compara la actividad de dos
 *${p}top5* / *${p}top10* <tema> — ranking al azar
 
@@ -235,6 +236,7 @@ _Ganas aura escribiendo. Bonos diarios: 200 msg = 20k · 500 = 60k · 1000 = 150
 *${p}del* — borra el mensaje citado
 *${p}close* / *${p}open* — cierra o abre el grupo
 *${p}notifadmin* on/off — avisos de admin
+*${p}soloadmins* on/off — el bot solo obedece a admins
 *${p}scan* — busca cuentas sospechosas
 *${p}antiempresa* scan/purge — limpia cuentas Business
 *${p}antifoto* scan/purge — limpia a los que no tienen foto

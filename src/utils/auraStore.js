@@ -6,7 +6,20 @@ const logger = require('./logger');
 const AURA_FILE = path.join(__dirname, '../../data/aura.json');
 
 // Everyone starts here. Aura then accumulates (or bleeds) over time.
-const STARTING_AURA = 1000;
+//
+// ESCALA: un jugador "millonario" del grupo ronda los 10.000, no los millones.
+// La escala vieja (arranque 1000, bonos de 20k-150k por tramo) se disparaba
+// sola: bastaban unos días activos para llegar a cifras de siete dígitos donde
+// ya no significaba nada ni ganar ni perder. Todo el sistema — arranque,
+// bonos, tiradas, apuestas y robos — está ahora ~20 veces más comprimido.
+const STARTING_AURA = 100;
+
+// Escala anterior, necesaria para reescalar lo que ya está guardado.
+const ESCALA_VIEJA = { arranque: 1000, factor: 200 };
+// Marca de migración. Vive dentro del propio store para que no haga falta un
+// archivo aparte ni un paso manual en la VPS.
+const CLAVE_ESCALA = '__escala';
+const ESCALA_ACTUAL = 2;
 
 let store = null;          // { [groupJid]: { [bareJid]: number } }
 let loadPromise = null;
@@ -35,11 +48,39 @@ function serialized(key, fn) {
   return next;
 }
 
+// Reescala los saldos de la economía vieja a la nueva, UNA sola vez.
+//
+// No es una división a secas: se conserva la distancia al arranque, así que
+// quien nunca jugó (estaba justo en el arranque viejo) queda justo en el nuevo
+// en vez de aparecer con un saldo raro. El orden del ranking no cambia.
+//
+//   nuevo = ARRANQUE_NUEVO + (viejo - ARRANQUE_VIEJO) / FACTOR
+//
+// Con factor 200: 2.000.000 -> ~10.095, que es justo la cifra de "millonario"
+// que se busca en la escala nueva.
+function migrarEscala() {
+  if (!store || store[CLAVE_ESCALA] >= ESCALA_ACTUAL) return;
+  let tocados = 0;
+  for (const grupo in store) {
+    if (grupo === CLAVE_ESCALA) continue;
+    const g = store[grupo];
+    if (!g || typeof g !== 'object') continue;
+    for (const k in g) {
+      if (typeof g[k] !== 'number') continue;
+      g[k] = STARTING_AURA + Math.round((g[k] - ESCALA_VIEJA.arranque) / ESCALA_VIEJA.factor);
+      tocados++;
+    }
+  }
+  store[CLAVE_ESCALA] = ESCALA_ACTUAL;
+  if (tocados) logger.info(`auraStore: ${tocados} saldos reescalados a la economía nueva.`);
+  scheduleSave();
+}
+
 async function load() {
   if (store) return;
   if (!loadPromise) {
     loadPromise = readJsonOrEnoent(AURA_FILE, {})
-      .then((d) => { store = d; })
+      .then((d) => { store = d; migrarEscala(); })
       .catch((e) => {
         loadPromise = null;
         logger.warn(`auraStore: lectura falló (${e.message}); no se toca el archivo`);

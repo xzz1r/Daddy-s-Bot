@@ -25,9 +25,10 @@ function resolveJid(rawJid, participants) {
 // A duel is a consented aura bet: challenger stakes an amount, target must
 // accept, winner takes the stake from the loser. The accept step is what makes
 // it social — it forces a public yes/no instead of a silent dice roll.
-const STAKE_MIN = 100;
-const STAKE_MAX = 10000;
-const STAKE_DEFAULT = 500;
+// Escala nueva: arranque 100, "millonario" del grupo ~10.000.
+const STAKE_MIN = 10;
+const STAKE_MAX = 500;
+const STAKE_DEFAULT = 50;
 const EXPIRY_MS = 90 * 1000;       // pending challenge dies after 90 s
 
 const pending = new Map();      // groupJid -> { challenger, target, stake, ts }

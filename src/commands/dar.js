@@ -2,7 +2,7 @@ const { getSender, getTarget, sameUser } = require('../utils/wa');
 const { transferAura } = require('../utils/auraStore');
 const { fmt } = require('../utils/helpers');
 
-const GIFT_MIN = 10;
+const GIFT_MIN = 5;
 
 async function cmdDar(sock, msg, args) {
   const jid = msg.key.remoteJid;

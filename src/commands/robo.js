@@ -2,10 +2,12 @@ const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameU
 const { getAura, addAura } = require('../utils/auraStore');
 const { pickFresh, fmt } = require('../utils/helpers');
 
-const STAKE_DEFAULT   = 200;
-const STAKE_MAX       = 1000;
-const STAKE_FLOOR     = 10;
-const MIN_AURA        = 50;
+// Escala nueva: arranque 100, "millonario" del grupo ~10.000. Un robo mueve
+// decenas, no miles.
+const STAKE_DEFAULT   = 20;
+const STAKE_MAX       = 150;
+const STAKE_FLOOR     = 5;
+const MIN_AURA        = 20;
 const ROB_COOLDOWN_MS = 10 * 60 * 1000; // 10 min per attacker per group
 
 const lastRob = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
@@ -51,10 +53,39 @@ function calcChance(aO, aA, vO, vA, auraA, auraV) {
   let base = aO ? 0.58 : aA ? 0.51 : 0.44;
   if (vO && !aO) base -= 0.14;
   else if (vA && !aA && !aO) base -= 0.07;
-  // Each 500-aura gap shifts ±2%, capped at ±10%
+  // Cada 50 de diferencia mueve ±2%, con tope de ±10%. El divisor va con la
+  // escala nueva (antes 500, cuando el arranque era 1000): si no, la brecha
+  // entre dos jugadores nunca llegaría a mover la aguja.
   const diff = auraA - auraV;
-  const shift = Math.sign(diff) * Math.min(Math.abs(diff / 500), 5) * 0.02;
+  const shift = Math.sign(diff) * Math.min(Math.abs(diff / 50), 5) * 0.02;
   return Math.min(0.72, Math.max(0.25, base + shift));
+}
+
+// Desenlaces del robo. Antes solo había dos (te llevas todo / pierdes la mitad),
+// así que el comando era una moneda al aire con texto bonito. Ahora el dado
+// decide TAMBIÉN cuánto, y hay dos extremos que cambian la historia: el golpe
+// maestro se lleva casi el doble, y el desastre le regala tu aura a la víctima.
+//
+// `mult` se aplica sobre lo apostado. Positivo: pasa de la víctima al ladrón.
+// Negativo: sale del ladrón (y en el desastre, entra a la víctima).
+const DESENLACES = {
+  maestro:  { peso: 0.12, mult:  1.8, titulo: '*GOLPE MAESTRO*' },
+  limpio:   { peso: 0.55, mult:  1.0, titulo: '*ROBO EXITOSO*' },
+  parcial:  { peso: 0.33, mult:  0.4, titulo: '*ROBO A MEDIAS*' },
+  fallo:    { peso: 0.70, mult: -0.5, titulo: '*ROBO FALLIDO*' },
+  desastre: { peso: 0.30, mult: -1.0, titulo: '*DESASTRE TOTAL*' },
+};
+
+// Elige el desenlace concreto dentro de la rama que ya decidió `success`.
+function elegirDesenlace(exito) {
+  const ramas = exito ? ['maestro', 'limpio', 'parcial'] : ['fallo', 'desastre'];
+  const total = ramas.reduce((a, k) => a + DESENLACES[k].peso, 0);
+  let r = Math.random() * total;
+  for (const k of ramas) {
+    r -= DESENLACES[k].peso;
+    if (r <= 0) return k;
+  }
+  return ramas[ramas.length - 1];
 }
 
 async function cmdRobo(sock, msg, args, groupMeta) {
@@ -138,32 +169,52 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // Cooldown was already claimed above (before the awaits) to close the
   // double-rob race; it stays set here whether the roll wins or loses.
 
-  if (success) {
+  // El dado decide ADEMÁS cuánto se mueve, no solo si sale o no. De ahí que un
+  // robo ya no sea una moneda al aire: puede salir redondo, salir a medias, o
+  // salir tan mal que acabas financiando a tu víctima.
+  const clave = elegirDesenlace(success);
+  const { mult, titulo } = DESENLACES[clave];
+  // Nunca se mueve más aura de la que la víctima tiene ni de la que el ladrón
+  // puede pagar: un golpe maestro sobre alguien con poco no le deja en negativo.
+  const bruto = Math.max(1, Math.round(stake * Math.abs(mult)));
+  const monto = mult > 0 ? Math.min(bruto, auraV) : Math.min(bruto, auraA);
+
+  if (mult > 0) {
     const [aNew, vNew] = await Promise.all([
-      addAura(jid, sender, +stake),
-      addAura(jid, target, -stake),
+      addAura(jid, sender, +monto),
+      addAura(jid, target, -monto),
     ]);
     const phrase = pickFresh(ROB_WIN, `${jid}|robo|win`).replace(/%A/g, aTag).replace(/%V/g, vTag);
+    const extra =
+      clave === 'maestro' ? '\n_Golpe maestro: se llevó bastante más de lo que iba a por._'
+    : clave === 'parcial' ? '\n_Lo pillaron a mitad y solo pudo llevarse una parte._'
+    : '';
     const text =
-      `*ROBO EXITOSO*\n` +
-      `${aTag} le roba *${fmt(stake)} de aura* a ${vTag}\n\n` +
+      `${titulo}\n` +
+      `${aTag} le roba *${fmt(monto)} de aura* a ${vTag}${extra}\n\n` +
       `${phrase}\n\n` +
-      `${aTag} +${fmt(stake)} → *${fmt(aNew.current)}*\n` +
-      `${vTag} −${fmt(stake)} → *${fmt(vNew.current)}*`;
+      `${aTag} +${fmt(monto)} → *${fmt(aNew.current)}*\n` +
+      `${vTag} −${fmt(monto)} → *${fmt(vNew.current)}*`;
     return sock.sendMessage(jid, { text, mentions: [sender, target] });
   }
 
-  // Failed: attacker pays half the stake as penalty, target keeps everything
-  const penalty = Math.ceil(stake / 2);
-  const aNew = await addAura(jid, sender, -penalty);
+  // Fallo. En el desastre lo que pierde el ladrón se lo queda la víctima; en el
+  // fallo normal solo es una multa y la víctima no toca nada.
+  const aNew = await addAura(jid, sender, -monto);
+  const vNew = clave === 'desastre' ? await addAura(jid, target, +monto) : null;
   const phrase = pickFresh(ROB_FAIL, `${jid}|robo|fail`).replace(/%A/g, aTag).replace(/%V/g, vTag);
   const text =
-    `*ROBO FALLIDO*\n` +
-    `${aTag} intentó robarle *${fmt(stake)} de aura* a ${vTag}\n\n` +
+    `${titulo}\n` +
+    `${aTag} intentó robarle a ${vTag} y le salió al revés\n` +
+    (clave === 'desastre'
+      ? `_Se le cayó todo encima: ${vTag} se queda con lo que traía._\n\n`
+      : `\n`) +
     `${phrase}\n\n` +
-    `${aTag} −${fmt(penalty)} (penalización) → *${fmt(aNew.current)}*\n` +
-    `${vTag} sin cambios → *${fmt(auraV)}*`;
+    `${aTag} −${fmt(monto)} → *${fmt(aNew.current)}*\n` +
+    (vNew
+      ? `${vTag} +${fmt(monto)} → *${fmt(vNew.current)}*`
+      : `${vTag} sin cambios → *${fmt(auraV)}*`);
   return sock.sendMessage(jid, { text, mentions: [sender, target] });
 }
 
-module.exports = { cmdRobo };
+module.exports = { cmdRobo, DESENLACES, elegirDesenlace };
