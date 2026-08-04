@@ -804,7 +804,7 @@ async function cmdOpen(sock, msg, groupMeta) {
   }
 }
 
-// !soloadmins on/off — con esto encendido el bot solo obedece a admins y al
+// !adminmode on/off — con esto encendido el bot solo obedece a admins y al
 // owner tier. A los miembros normales no les contesta NADA: ni el comando ni
 // un aviso de que no pueden. La alternativa (responder "no puedes" a cada
 // intento) convierte el modo en una fuente de spam en el propio chat.
@@ -822,7 +822,7 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
   if (arg !== 'on' && arg !== 'off') {
     const current = isSoloAdminsEnabled(jid) ? 'activado' : 'desactivado';
     return sock.sendMessage(jid, {
-      text: `Modo solo admins: *${current}*.\n\nUsa *!soloadmins on* o *!soloadmins off*.`,
+      text: `Modo admin: *${current}*.\n\nUsa *!adminmode on* o *!adminmode off*.`,
     }, { quoted: msg });
   }
 
@@ -830,8 +830,8 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
   await toggleSoloAdmins(jid, enable);
   await sock.sendMessage(jid, {
     text: enable
-      ? 'Modo solo admins *activado*. El bot deja de responder a los miembros; solo admins y owner.'
-      : 'Modo solo admins *desactivado*. El bot vuelve a responder a todo el grupo.',
+      ? 'Modo admin *activado*. El bot deja de responder a los miembros; solo admins y owner.'
+      : 'Modo admin *desactivado*. El bot vuelve a responder a todo el grupo.',
   }, { quoted: msg });
 }
 

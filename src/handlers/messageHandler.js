@@ -220,7 +220,7 @@ const NEEDS_META = new Set([
   'ship','mute','unmute','desmute',
   'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness','antifoto',
   'antilink','allow','permitir','close','cerrar','open','abrir',
-  'soloadmins','soloadmin',
+  'adminmode','soloadmins','soloadmin',
   's','sticker','stk',   // cmdSticker SI recibe groupMeta
   // play/ttp/toimg/tovid/g/dar NO estan aqui a proposito: el dispatch no les
   // pasa groupMeta y sus modulos no lo mencionan, asi que pedirlo solo anyadia
@@ -997,6 +997,7 @@ async function handleMessage(sock, msg) {
         await cmdAllow(sock, msg, args, groupMeta);
         break;
 
+      case 'adminmode':
       case 'soloadmins':
       case 'soloadmin':
         await cmdSoloAdmins(sock, msg, args, groupMeta);

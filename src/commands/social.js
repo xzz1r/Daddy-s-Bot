@@ -241,7 +241,7 @@ _Ganas aura escribiendo. Bonos diarios: 200 msg = 1.000 · 500 = 2.500 · 1000 =
 *${p}del* — borra el mensaje citado
 *${p}close* / *${p}open* — cierra o abre el grupo
 *${p}notifadmin* on/off — avisos de admin
-*${p}soloadmins* on/off — el bot solo obedece a admins
+*${p}adminmode* on/off — el bot solo obedece a admins
 *${p}scan* — busca cuentas sospechosas
 *${p}antiempresa* scan/purge — limpia cuentas Business
 *${p}antifoto* scan/purge — limpia a los que no tienen foto
