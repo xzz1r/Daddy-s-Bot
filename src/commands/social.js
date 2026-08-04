@@ -217,7 +217,7 @@ _Sin @ va sobre ti · con @ va sobre esa persona_
 *${p}aura top* — ranking del grupo
 *${p}dar* @user <cantidad> — regalar aura
 *${p}duel* @user <cantidad> — apostar 1v1
-*${p}robo* @user <cantidad> — intentar robar
+*${p}robo* @user <cantidad> — intentar robar _(5 desenlaces)_
 *${p}aura hoy* — tu progreso de hoy _(o ${p}casino)_
 _Ganas aura escribiendo. Bonos diarios: 200 msg = 1.000 · 500 = 2.500 · 1000 = 5.000_
 
@@ -243,6 +243,7 @@ _Ganas aura escribiendo. Bonos diarios: 200 msg = 1.000 · 500 = 2.500 · 1000 =
 *${p}notifadmin* on/off — avisos de admin
 *${p}adminmode* on/off — el bot solo obedece a admins
 *${p}scan* — busca cuentas sospechosas
+*${p}diag* — estado de las guardas y sobres nuevos _(owner)_
 *${p}antiempresa* scan/purge — limpia cuentas Business
 *${p}antifoto* scan/purge — limpia a los que no tienen foto
 *${p}allow* @user — le deja publicar enlaces

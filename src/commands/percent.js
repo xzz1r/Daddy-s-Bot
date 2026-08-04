@@ -55,6 +55,13 @@ function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
   const mid = () => 31 + Math.floor(Math.random() * 39);
   const lo = () => Math.floor(Math.random() * 31);
 
+  // La distancia entre admin y miembro se ha estrechado a propósito: era tan
+  // grande que en el grupo se notaba y acusaban al bot de tratar a los admins
+  // como intocables. El owner sigue igual — ese sesgo es el que se quiere —
+  // pero entre admin y miembro la diferencia pasa a ser un matiz, no un abismo.
+  //
+  // Peyorativos, franja alta:  admin 78 -> 86, miembro 88 -> 87  (hueco 10 -> 1)
+  // Positivos,   franja alta:  admin 28 -> 19, miembro 15 -> 17  (hueco 13 -> 2)
   if (!goodIsHigh) {
     if (targetIsOwner) {
       if (rand < 0.90) return lo();
@@ -62,11 +69,11 @@ function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
       return hi();
     }
     if (targetIsAdmin) {
-      if (rand < 0.78) return hi();
-      if (rand < 0.92) return mid();
+      if (rand < 0.86) return hi();
+      if (rand < 0.95) return mid();
       return lo();
     }
-    if (rand < 0.88) return hi();
+    if (rand < 0.87) return hi();
     if (rand < 0.96) return mid();
     return lo();
   } else {
@@ -76,12 +83,12 @@ function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
       return lo();
     }
     if (targetIsAdmin) {
-      if (rand < 0.28) return hi();
-      if (rand < 0.63) return mid();
+      if (rand < 0.19) return hi();
+      if (rand < 0.50) return mid();
       return lo();
     }
-    if (rand < 0.15) return hi();
-    if (rand < 0.45) return mid();
+    if (rand < 0.17) return hi();
+    if (rand < 0.48) return mid();
     return lo();
   }
 }

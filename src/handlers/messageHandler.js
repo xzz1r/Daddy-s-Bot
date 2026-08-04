@@ -239,6 +239,7 @@ const NEEDS_META = new Set([
   'count','resetcount','resetconteo',
   'top5','top10',   // el sorteo cruza los conteos con la lista de miembros
   'k',              // isOwner necesita la metadata para resolver el LID del owner
+  'diag','diagnostico',
   'relevancia','relevance',   // isMainOwner necesita meta para resolver LID → teléfono
   // Owner-gated commands also need meta in groups to resolve LID → phone
   // for isOwner checks (otherwise co-owners always fail in modern groups).
@@ -318,6 +319,44 @@ async function expulsarBusinessDetectado(sock, jid, sender, msg) {
       : `*Anti-empresa:* @${num} es cuenta de WhatsApp Business, pero no he podido expulsarla: hacedlo a mano.`,
     mentions: [sender],
   }).catch(() => {});
+}
+
+
+// !diag — herramienta de diagnostico de las guardas automaticas (owner).
+//
+// Existe por un motivo concreto: el bot borra a quien MENCIONA al grupo en un
+// estado pero no siempre a quien SUBE una historia al grupo, y sin ver el sobre
+// real que manda WhatsApp no hay forma de saber cual falta. Esto lo enseña.
+async function cmdDiag(sock, msg, groupMeta) {
+  const jid = msg.key.remoteJid;
+  const sender = getSender(msg);
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) return;
+
+  const meta = groupMeta || await getGroupMeta(sock, jid).catch(() => null);
+  const si = (b) => (b ? 'SI' : 'NO');
+
+  let text = '*DIAGNOSTICO DE GUARDAS*\n╾━━━━━━━━━━━━━━╼\n\n';
+  text += `Soy admin aquí: *${si(meta && isBotAdmin(sock, meta))}*\n`;
+  text += `Anti-link: *${si(isAntiLinkEnabled(jid))}*\n`;
+  text += `Anti-empresa: *${si(isAntiBusinessEnabled(jid))}*\n`;
+  text += `Modo admin: *${si(isSoloAdminsEnabled(jid))}*\n\n`;
+  text += `Sobres de estado vigilados: *${SOBRES_ESTADO.length}*\n`;
+
+  const lista = sobresDesconocidos();
+  if (!lista.length) {
+    text += '\n_No ha llegado ningún sobre desconocido desde que arrancó el bot._\n';
+    text += '_Si alguien sube una historia al grupo y el bot no reacciona, vuelve a ejecutar esto justo después: el sobre aparecerá aquí y con eso se puede cerrar el hueco._';
+  } else {
+    text += `\n*Sobres desconocidos vistos (${lista.length}):*\n`;
+    for (const d of lista.slice(0, 6)) {
+      const hace = Math.round((Date.now() - d.ts) / 60000);
+      text += `\n• *${d.sobre}* — hace ${hace} min, de +${d.de || '?'}\n`;
+      text += '```' + JSON.stringify(d.forma).slice(0, 320) + '```\n';
+    }
+    text += '\n_Si alguno de estos coincide con una historia subida al grupo, pásamelo y lo añado a la lista vigilada._';
+  }
+
+  await sock.sendMessage(jid, { text }, { quoted: msg });
 }
 
 function esComandoDeMedia(text) {
@@ -419,6 +458,12 @@ const SOBRES_ESTADO = [
   'statusNotificationMessage',
   'statusQuestionAnswerMessage',
   'statusStickerInteractionMessage',
+  // Faltaba: es el sobre de un estado CITADO/reenviado dentro del chat
+  // (WAProto: Message.statusQuotedMessage = 109, lleva originalStatusId
+  // apuntando al estado original). Es la via mas probable de "subir una
+  // historia al grupo", que es justo el caso que seguia colandose mientras
+  // las MENCIONES si se detectaban.
+  'statusQuotedMessage',
 ];
 
 // Marcas dentro del contextInfo que delatan un estado aunque no venga el sobre.
@@ -430,7 +475,12 @@ function marcaDeEstado(ctx) {
     Boolean(ctx.statusAttributionType) ||
     Boolean(ctx.statusSourceType) ||
     (Array.isArray(ctx.statusMentions) && ctx.statusMentions.length > 0) ||
-    (Array.isArray(ctx.statusMentionSources) && ctx.statusMentionSources.length > 0);
+    (Array.isArray(ctx.statusMentionSources) && ctx.statusMentionSources.length > 0) ||
+    // Marcas nuevas del ContextInfo, del mismo grupo de campos de estado.
+    Boolean(ctx.statusAudienceMetadata) ||
+    Boolean(ctx.statusLinkType) ||
+    Boolean(ctx.quotedStatus) ||
+    Boolean(ctx.originalStatusId);
 }
 
 // ¿Es un estado publicado al grupo? Devuelve por que se ha reconocido (para el
@@ -475,14 +525,44 @@ const TIPOS_CONOCIDOS = new Set([
   ...SOBRES_ESTADO,
 ]);
 const tiposVistos = new Set();
-function anotarTipoDesconocido(message) {
+// Bitacora de sobres no reconocidos, para poder mirarlos con *!diag*.
+//
+// El log del servidor solo dice el NOMBRE del sobre, y con eso no basta para
+// saber si es un estado: hace falta ver la forma. Aqui se guarda la estructura
+// (claves, no contenido) de los ultimos que llegaron, que es exactamente lo que
+// se necesita para identificar el sobre de "historia subida al grupo" la
+// proxima vez que alguien suba una.
+const MAX_DESCONOCIDOS = 15;
+const desconocidos = [];
+
+// Solo las CLAVES, en profundidad limitada. Nunca el contenido: no se guarda ni
+// texto ni media de nadie, solo la forma del sobre.
+function formaDe(obj, prof = 0) {
+  if (!obj || typeof obj !== 'object' || prof > 2) return typeof obj;
+  if (Array.isArray(obj)) return obj.length ? [formaDe(obj[0], prof + 1)] : [];
+  const out = {};
+  for (const k of Object.keys(obj).slice(0, 12)) out[k] = formaDe(obj[k], prof + 1);
+  return out;
+}
+
+function anotarTipoDesconocido(message, jid, sender) {
   for (const k of Object.keys(message || {})) {
     if (TIPOS_CONOCIDOS.has(k) || tiposVistos.has(k)) continue;
     if (tiposVistos.size > 200) return;
     tiposVistos.add(k);
     logger.warn(`tipo de mensaje NUEVO en grupo: ${k} — si algo deja de detectarse, empieza por aquí`);
+    if (desconocidos.length >= MAX_DESCONOCIDOS) desconocidos.shift();
+    desconocidos.push({
+      sobre: k,
+      ts: Date.now(),
+      grupo: jid || null,
+      de: sender ? sender.split('@')[0] : null,
+      forma: formaDe(message[k]),
+    });
   }
 }
+
+function sobresDesconocidos() { return desconocidos.slice().reverse(); }
 
 // ¿El mensaje venía marcado como "ver una vez"?
 //
@@ -640,7 +720,7 @@ async function handleMessage(sock, msg) {
   // mismo enlace en texto suelto costaba el grupo. Era la via de escape
   // evidente para cualquiera que quisiera colar el suyo.
   if (jid.endsWith('@g.us')) {
-    anotarTipoDesconocido(msg.message);
+    anotarTipoDesconocido(msg.message, jid, sender);
     const porQue = motivoEstado(msg.message);
     if (porQue) {
       // Se registra SIEMPRE, se actúe o no: si mañana WhatsApp cambia el sobre,
@@ -968,6 +1048,11 @@ async function handleMessage(sock, msg) {
       // herramienta de verificacion del owner, no una funcion del grupo.
       case 'k':
         await cmdK(sock, msg, groupMeta);
+        break;
+
+      case 'diag':
+      case 'diagnostico':
+        await cmdDiag(sock, msg, groupMeta);
         break;
 
       case 'top5':
