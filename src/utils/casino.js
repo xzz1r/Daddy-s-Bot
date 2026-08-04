@@ -10,7 +10,7 @@
 
 const { incrementCasinoCount } = require('./casinoStore');
 const { getAura, addAura } = require('./auraStore');
-const { pick, fmt } = require('./helpers');
+const { pick, pickFresh, fmt } = require('./helpers');
 
 
 // ─── Phrases ──────────────────────────────────────────────────────────────────
@@ -154,7 +154,7 @@ async function checkCasinoMilestone(sock, jid, sender) {
   const phrasePool = label === 'redemption'
     ? PHRASES.redemption
     : PHRASES[`tier${tier}`][label];
-  const phrase = pick(phrasePool);
+  const phrase = pickFresh(phrasePool, `${jid}|casino|${label}|${tier}`);
 
   const userTag   = `@${sender.split('@')[0]}`;
   // Cabecera de aura, no de casino: el sistema tiene estructura de tramos y

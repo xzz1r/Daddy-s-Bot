@@ -1,5 +1,5 @@
 const { getState, setState, toggleGroup } = require('../utils/state');
-const { formatUptime, pick, fmt } = require('../utils/helpers');
+const { formatUptime, pick, fmt, pickFresh } = require('../utils/helpers');
 const { isOwner, isGroupAdmin, getSender } = require('../utils/wa');
 const { getCasinoCount, msUntilReset } = require('../utils/casinoStore');
 const { nextMilestone } = require('../utils/casino');
@@ -154,7 +154,7 @@ async function cmdCasino(sock, msg) {
     `*AURA — HOY*\n\n` +
     `Mensajes hoy: *${fmt(count)}*\n` +
     `Próximo bono: ${tierLabel} — faltan *${fmt(remaining)}* msgs\n\n` +
-    `${pick(AURA_LINES)}\n\n` +
+    `${pickFresh(AURA_LINES, `${jid}|auralines`)}\n\n` +
     `_Reset en ${resetStr}_`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });

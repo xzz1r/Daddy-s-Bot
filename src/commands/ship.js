@@ -1,4 +1,4 @@
-const { pick, shuffle } = require('../utils/helpers');
+const { pick, shuffle, pickFresh } = require('../utils/helpers');
 const { getSender, isMainOwner, isBotJid, bareJid, sameUser } = require('../utils/wa');
 
 const VERDICTS = {
@@ -286,11 +286,11 @@ async function cmdShip(sock, msg, args, groupMeta) {
   const bar = '█'.repeat(filled) + '░'.repeat(10 - filled);
 
   const verdict =
-    compat === 100 ? pick(VERDICTS.perfect) :
-    compat >= 70   ? pick(VERDICTS.high) :
-    compat >= 40   ? pick(VERDICTS.mid) :
-    compat >= 10   ? pick(VERDICTS.low) :
-                     pick(VERDICTS.zero);
+    compat === 100 ? pickFresh(VERDICTS.perfect, `${jid}|ship|perfect`) :
+    compat >= 70   ? pickFresh(VERDICTS.high,    `${jid}|ship|high`) :
+    compat >= 40   ? pickFresh(VERDICTS.mid,     `${jid}|ship|mid`) :
+    compat >= 10   ? pickFresh(VERDICTS.low,     `${jid}|ship|low`) :
+                     pickFresh(VERDICTS.zero,    `${jid}|ship|zero`);
 
   const labelA = resolveLabel(a, groupParticipants);
   const labelB = resolveLabel(b, groupParticipants);

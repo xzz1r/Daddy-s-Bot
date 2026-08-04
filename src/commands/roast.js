@@ -1,7 +1,7 @@
 'use strict';
 
 const { getSender, getTarget, isMainOwner, bareJid, sameUser, fetchAbout } = require('../utils/wa');
-const { pick, fmt } = require('../utils/helpers');
+const { pick, pickFresh, fmt } = require('../utils/helpers');
 const { getUserCount } = require('../utils/messageCounter');
 
 
@@ -448,12 +448,12 @@ async function cmdRoast(sock, msg, groupMeta) {
   if (isMainOwner(target, false, groupMeta)) {
     const num = target.split('@')[0].split(':')[0];
     const text =
-      `${pick(HEADERS)}\n` +
+      `${pickFresh(HEADERS, `${jid}|roast|hdr`)}\n` +
       `╾━━━━━━━━━━━━━━╼\n\n` +
       `Víctima: @${num}\n\n` +
-      `${pick(OWNER_ROAST).replace(/%N/g, `@${num}`)}\n\n` +
+      `${pickFresh(OWNER_ROAST, `${jid}|roast|owner`).replace(/%N/g, `@${num}`)}\n\n` +
       `╾━━━━━━━━━━━━━━╼\n` +
-      `${pick(CLOSERS)}`;
+      `${pickFresh(CLOSERS, `${jid}|roast|end`)}`;
     return sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });
   }
 
@@ -535,12 +535,12 @@ async function cmdRoast(sock, msg, groupMeta) {
   pushHist(jid, cat, tpl);
 
   const text =
-    `${pick(HEADERS)}\n` +
+    `${pickFresh(HEADERS, `${jid}|roast|hdr`)}\n` +
     `╾━━━━━━━━━━━━━━╼\n\n` +
     `Víctima: @${targetNum}\n\n` +
     `${roastText}\n\n` +
     `╾━━━━━━━━━━━━━━╼\n` +
-    `${pick(CLOSERS)}`;
+    `${pickFresh(CLOSERS, `${jid}|roast|end`)}`;
 
   await sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });
 }

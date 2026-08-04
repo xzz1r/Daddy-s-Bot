@@ -63,7 +63,11 @@ function pick(arr) {
 const _pickHistory = new Map(); // key -> array of recently returned elements
 const _MAX_PICK_KEYS = 2000;    // bound the map so long-lived bots don't leak
 
-function pickFresh(pool, key, window = 12) {
+// Ventana anti-repeticion: no se repite una frase hasta pasadas otras 10 del
+// mismo pool. Si el pool tiene MENOS de 11 frases el bloqueo se recorta solo a
+// pool.length-1 — con 5 frases es imposible no repetir en 10 tiradas, y
+// bloquearlas todas dejaria el pool vacio.
+function pickFresh(pool, key, window = 10) {
   if (!Array.isArray(pool) || pool.length === 0) return undefined;
   if (!key) return pick(pool);
 

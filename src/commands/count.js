@@ -1,6 +1,6 @@
 const { getActiveUsers, resetCounts, resetAllCounts } = require('../utils/messageCounter');
 const { isOwner, isMainOwner, isAdmin, getSender, sameUser, soloMiembros } = require('../utils/wa');
-const { pick } = require('../utils/helpers');
+const { pick, pickFresh } = require('../utils/helpers');
 
 const MEMBER_PHRASES = [
   [
@@ -302,7 +302,7 @@ async function cmdCount(sock, msg, groupMeta, args) {
 
     if (i < 3) {
       const admin = isAdmin(groupMeta?.participants, u.jid);
-      const phrase = pick(admin ? ADMIN_PHRASES[i] : MEMBER_PHRASES[i]);
+      const phrase = pickFresh(admin ? ADMIN_PHRASES[i] : MEMBER_PHRASES[i], `${jid}|count|${i}|${admin ? 'a' : 'm'}`);
       text += `${pos} *@${phone}* — ${msgs}\n`;
       text += `${phrase}\n\n`;
     } else {

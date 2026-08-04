@@ -183,7 +183,7 @@ async function cmdRizz(sock, msg, groupMeta) {
     : Math.floor(Math.random() * 101);
 
   const tier = percent >= 70 ? 'high' : percent <= 30 ? 'low' : 'mid';
-  const phrase = pick(RIZZ[tier]).replace(/%N/g, `@${num}`);
+  const phrase = pickFresh(RIZZ[tier], `${jid}|rizz|${tier}`).replace(/%N/g, `@${num}`);
 
   await sock.sendMessage(jid, {
     text: `*RIZZ — ${percent}%*\n\n${phrase}`,
@@ -196,7 +196,7 @@ async function cmdPiropo(sock, msg) {
   const jid = msg.key.remoteJid;
   const target = getTargetOrSelf(msg);
   const num = target.split('@')[0];
-  const phrase = pick(PIROPOS);
+  const phrase = pickFresh(PIROPOS, `${jid}|piropo`);
   const line = phrase.includes('%N')
     ? phrase.replace(/%N/g, `@${num}`)
     : `@${num} — ${phrase}`;

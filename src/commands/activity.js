@@ -1,6 +1,6 @@
 const { getActiveUsers } = require('../utils/messageCounter');
 const { isOwner, isMainOwner, getSender, sameUser, soloMiembros, bareJid, canonicalJid, isBotJid } = require('../utils/wa');
-const { pick, shuffle } = require('../utils/helpers');
+const { pick, shuffle, pickFresh } = require('../utils/helpers');
 
 // ---- !vs : real-activity head-to-head -------------------------------------
 
@@ -101,7 +101,7 @@ async function cmdVs(sock, msg, args, groupMeta) {
     const winNum = ca > cb ? numA : numB;
     const loseNum = ca > cb ? numB : numA;
     const diff = Math.abs(ca - cb);
-    const line = pick(VS_ROASTS).replace(/%W/g, `@${winNum}`).replace(/%L/g, `@${loseNum}`);
+    const line = pickFresh(VS_ROASTS, `${jid}|vs`).replace(/%W/g, `@${winNum}`).replace(/%L/g, `@${loseNum}`);
     verdict = `@${winNum} domina por *${diff}* ${diff === 1 ? 'mensaje' : 'mensajes'}.\n${line}`;
   }
 
@@ -280,7 +280,7 @@ async function cmdInactivos(sock, msg, groupMeta) {
   const sobran = mudos.length - mostrados.length;
 
   const cuantos = mudos.length === 1 ? '1 miembro' : `${mudos.length} miembros`;
-  let text = `*INACTIVOS — ${cuantos} sin escribir nunca*\n${pick(CERO_MENSAJES)}\n\n`;
+  let text = `*INACTIVOS — ${cuantos} sin escribir nunca*\n${pickFresh(CERO_MENSAJES, `${jid}|inactivos`)}\n\n`;
   text += mostrados.map(j => `@${j.split('@')[0]}`).join(' ');
   if (sobran) text += `\n\n_Y ${sobran} más que no caben en un solo mensaje._`;
 

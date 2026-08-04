@@ -29,6 +29,36 @@ const ROB_WIN = [
   'Robo limpio y el aura de %V en el bolsillo de %A. %V aprenderá la lección. Es broma: este inútil no aprende una puta mierda, tropieza con la misma piedra hasta cansarla.',
   '%A le hace una limpieza completa al aura de %V. %V tenía aura, pero cero carácter para protegerla. Tener sin saber retener: el deporte nacional de los pringados.',
   'El aura de %V acaba de financiar el ascenso de %A. %V es de esos que trabajan gratis para quien los pisa, sin enterarse y sin cobrar. Mecenas de su propio verdugo.',
+  '%A le saca el aura a %V como quien le quita un juguete a un crío que ni llora. Cero resistencia, cero sorpresa.',
+  'Robo consumado. %V tenía aura por accidente y %A vino a corregir ese error del universo.',
+  '%A se lleva lo de %V con la naturalidad del que sabe que nadie va a defender a este pringado.',
+  'Saqueo limpio. %V se queda mirando el marcador como si mirarlo fuera a devolverle algo.',
+  '%A opera y %V paga. Es un intercambio muy desigual, pero justo para el nivel de cada uno.',
+  'El aura de %V cambia de manos otra vez. A este paso deberían ponerle una puerta giratoria.',
+  '%A roba y %V ni protesta. Protestar es de gente con algo que defender, y ahí no había nada.',
+  'Robo ejecutado. %V va a decir que se dejó ganar. Nadie se lo va a creer, ni él mismo.',
+  '%A se lleva el aura y %V se lleva la lección. Bueno, se la lleva no: la deja tirada como todo.',
+  '%V acaba de descubrir que su aura era prestada y %A vino a cobrar el préstamo con intereses.',
+  '%A le quita a %V lo poco que había conseguido acumular. Cruel, eficiente, y absolutamente merecido.',
+  'Saqueo sin resistencia. %V debería plantearse por qué es el objetivo favorito de todo el grupo.',
+  '%A entra, coge y sale. %V sigue procesando la primera parte mientras el otro ya está gastándolo.',
+  'El aura de %V se muda al bolsillo de %A. Hasta el aura prefiere estar en otra parte, fíjate.',
+  '%A roba con la tranquilidad del que sabe que %V no va a hacer absolutamente nada al respecto.',
+  'Robo limpio y aburrido. Le quitas algo a %V y no pasa nada, como quitarle una silla a un fantasma.',
+  '%A se lo lleva sin despeinarse. %V lleva tanto tiempo siendo víctima que ya casi es su profesión.',
+  'Aura transferida por la fuerza. %V lo va a llamar robo; el grupo lo va a llamar redistribución justa.',
+  '%A cobra lo suyo de la cuenta de %V. Nadie lo autorizó y a nadie le importa, empezando por %V.',
+  'Saqueo confirmado. %V pierde aura y gana otra anécdota para la lista de cosas que le pasan por blando.',
+  '%A se lleva su parte y %V se queda con la cara de siempre: la de no haber entendido nada todavía.',
+  'Robo tan fácil que da pereza contarlo. %V es el cajero automático del grupo y todos tienen la clave.',
+  '%A le limpia el aura a %V con una facilidad que debería avergonzar a alguien. A %V, concretamente.',
+  'Aura extraída con éxito. %V debería cobrar por ser el objetivo de prácticas de todo el grupo.',
+  '%A opera sobre %V sin oposición. Es menos un robo y más una recogida programada de basura.',
+  'Golpe limpio. %V protege su aura igual que protege todo lo demás en su vida: mirando desde lejos.',
+  '%A se lleva lo de %V y el grupo ni reacciona. Nadie se altera cuando pasa lo esperable.',
+  'Robo cerrado. %V tenía aura hasta hace diez segundos y ahora tiene una historia triste que contar.',
+  '%A le vacía a %V sin prisa, porque sabe que nadie va a venir a interrumpir. Ni %V mismo.',
+  'Saqueo tranquilo. Robarle a %V no requiere talento, requiere estar despierto. %A lo estaba.',
 ];
 
 const ROB_FAIL = [
@@ -44,6 +74,106 @@ const ROB_FAIL = [
   'El robo de %A quedó expuesto ante el grupo entero. Ni roba bien ni disimula. El aura baja, la vergüenza sube, y %V sigue tan tranquilo, sin saber que fue objetivo.',
   '%A sale con las manos vacías y la cuenta en rojo. Clásico del pringado que quiere saltarse la cola de la vida y acaba pagando por estar en ella. %V ni levanta la vista.',
   'Intento de robo: fallido. Penalización: aplicada. %A acaba de aprender que cuando eres tan inútil, atacar a otros es solo regalar tu aura con pasos intermedios.',
+  '%A intentó el golpe y salió escaldado. %V ni se enteró de que existía un plan en marcha.',
+  'Fracaso rotundo. %A pagó por intentar lo que no sabe hacer, que es prácticamente todo.',
+  '%A se lanzó al robo con toda la confianza y toda la incompetencia. Ganó la incompetencia por goleada.',
+  'Robo abortado. %A pierde aura y %V sigue tan pancho, sin saber que alguien lo intentó siquiera.',
+  '%A la cagó y pagó. El orden natural de las cosas cuando eres tan malo en lo que haces.',
+  'Intento fallido. %A vuelve a casa más pobre y con el ego reventado, en ese orden de importancia.',
+  '%A quiso robar sin tener ni las manos ni la cabeza para ello. El resultado estaba escrito.',
+  'Fallo previsible. %A es de los que anuncian el golpe y luego se tropiezan con la puerta.',
+  '%A pagó la multa por creerse capaz. El grupo entero lo vio y nadie se sorprendió lo más mínimo.',
+  'Robo frustrado. %V ni tuvo que defenderse: bastó con que %A fuera exactamente quien es.',
+  '%A perdió aura por intentar quitarla. Hay poesía en lo mal que se le da todo a este hombre.',
+  'Intento patético. %A ni llegó a tocar el aura de %V y aun así salió perdiendo. Récord difícil.',
+  '%A falló y pagó. %V ni levantó la vista del teléfono. Ese es el nivel de amenaza que representa.',
+  'Robo fallido y caro. %A ahora tiene menos aura y exactamente la misma cantidad de talento.',
+  '%A intentó ser listo y el marcador le recordó su sitio. Abajo, como siempre, sin apelación.',
+  'Fracaso limpio. Ni siquiera fue emocionante: %A se estrelló solo, sin ayuda de nadie.',
+  '%A pagó por el intento y no se llevó ni el consuelo. %V sigue con lo suyo, ajeno a todo.',
+  'El robo salió mal desde el primer segundo. %A insiste en aprender por el método más caro.',
+  '%A perdió. No es noticia, es rutina. Lo raro sería el día que le saliera algo bien.',
+  'Intento cobrado. %A ahora entiende por qué nadie le encarga nada importante en la vida.',
+  '%A se lanzó y rebotó. %V permanece intacto, indiferente y ligeramente más rico en dignidad.',
+  'Robo cancelado por incompetencia manifiesta. %A paga la tasa y vuelve a la cola de los inútiles.',
+  '%A quiso jugar a ladrón y el juego le cobró la entrada. Cara, para lo poco que duró.',
+  'Fallo total. %A ni se acercó al botín y aun así encontró la forma de perder aura por el camino.',
+  '%A la lió, pagó y aprendió nada. La secuencia completa de su vida en un solo comando.',
+  'Intento fallido de %A. %V ni pestañeó. Cuesta más asustar a %V que robarle, y ya es decir.',
+  '%A se estrelló contra su propia mediocridad. Un clásico que el grupo nunca se cansa de ver.',
+  'Robo frustrado. La multa está pagada y la vergüenza está repartida entre todos los que lo vieron.',
+  '%A intentó, falló, pagó y va a repetir. Porque aprender exige atención y de eso anda escaso.',
+  'Fracaso caro. %A cambió aura por experiencia y encima la experiencia no le sirvió de nada.',
+];
+
+
+const ROB_MAESTRO = [
+  '%A no solo le robó a %V: le vació hasta los bolsillos del alma. %V se quedó mirando el hueco donde tenía su aura como quien mira su casa quemada.',
+  'Golpe maestro de %A. Se llevó tanto que %V va a tener que pedir prestado para volver a existir en el marcador.',
+  '%A entró, arrasó y salió silbando. A %V no le queda ni la dignidad, y esa ya la tenía hipotecada de antes.',
+  'Robo de manual. %A se llevó el doble de lo que iba a buscar porque %V es tan blando que dio de más sin darse cuenta.',
+  '%A ejecutó una obra maestra. %V ni gritó: se quedó mudo, como lleva estando toda su puta vida en este grupo.',
+  'Saqueo total. %A se llevó más de lo previsto y %V descubrió que su aura era tan fácil de quitar como su autoestima.',
+  '%A hizo el atraco perfecto. A %V le queda el rencor, que es lo único que este inútil sabe acumular.',
+  'Golpe redondo de %A. %V pasó de tener algo a tener nada en un segundo, y encima delante de todo el grupo.',
+  '%A se pasó de rosca y se llevó más de la cuenta. %V no se defendió porque defenderse requiere carácter, y de eso anda corto.',
+  'Robo histórico. %A dejó a %V tan seco que el marcador tuvo que comprobar dos veces si seguía vivo.',
+  '%A no robó, cosechó. %V llevaba tiempo acumulando aura para que alguien con huevos viniera a quitársela, y hoy tocó.',
+  'Trabajo limpio y desproporcionado. %A se llevó el doble y %V ni se enteró de por dónde le vino el golpe.',
+  '%A batió su propio récord con %V. Normal: robarle a %V es el nivel fácil del juego y todo el mundo lo sabe.',
+  'Atraco perfecto. %A se llevó lo que quiso y %V se quedó reconstruyendo qué hizo mal en la vida para merecer esto.',
+  '%A desvalijó a %V con una eficiencia que asusta. %V ya está pensando qué excusa contar mañana, spoiler: nadie va a preguntar.',
+  'Golpe maestro absoluto. %A se llevó tanto que %V va a necesitar meses para volver, si es que vuelve.',
+  '%A hizo el robo de su vida y encima sobre el objetivo más fácil del grupo. Poco mérito, mucho botín.',
+  'Saqueo desproporcionado. %V tenía aura, ahora tiene un recuerdo y una lección que no va a aprender.',
+  '%A se llevó el doble por la cara y %V ni lo intentó impedir. Consentimiento por incompetencia, lo llaman.',
+  '%A ejecutó a %V financieramente. Ahora mismo %V vale menos en el marcador que el silencio que va a guardar.',
+];
+
+const ROB_PARCIAL = [
+  '%A entró a por todo y salió con las manos medio llenas. %V se salvó por poco, que es como se salva de todo: por poco y por casualidad.',
+  'Lo pillaron a mitad del saqueo. %A se llevó una parte y %V respiró aliviado por primera vez en meses.',
+  '%A robó a medias. %V conservó algo, aunque tampoco es que tuviera mucho que conservar.',
+  'Robo interrumpido. %A se llevó lo que pudo mientras %V miraba sin saber qué estaba pasando, como siempre.',
+  '%A cogió lo que le cupo en las manos y salió corriendo. %V se queda con las sobras de su propia aura.',
+  'Medio saqueo. %A no fue lo bastante rápido y %V no fue lo bastante listo. Empate de mediocres.',
+  '%A se llevó una parte y dejó el resto por pereza. Ni robar a %V merece el esfuerzo completo.',
+  'Robo a medio gas. %A cumplió el expediente y %V perdió lo justo para molestarse sin llegar a aprender nada.',
+  '%A entró con ambición y salió con un consuelo. %V no ganó nada, solo perdió menos de lo que tocaba.',
+  'Saqueo parcial. Lo bueno para %V es que conserva algo; lo malo es que ese algo sigue sin valer nada.',
+  '%A se llevó la mitad y dejó la otra mitad por lástima. Robarle a %V del todo habría sido ensañamiento.',
+  'Robo incompleto. %A tuvo que salir antes de tiempo y %V sigue sin enterarse de que le entraron.',
+  '%A rascó lo que pudo. %V se queda con un resto que no le sirve ni para presumir.',
+  'Medio golpe. %A se lleva algo, %V pierde algo, y el grupo entero pierde el tiempo mirándolos a los dos.',
+  '%A se conformó con una parte porque %V no daba para más. No es piedad, es que ahí no había nada mejor.',
+  'Robo a la mitad. %A calculó mal el tiempo y %V se salvó sin hacer absolutamente nada, su especialidad.',
+  '%A alcanzó a llevarse un pedazo. %V lo llamará resistencia; el marcador lo llama suerte y nada más.',
+  'Saqueo con prisa. %A tuvo que dejar la mitad y aun así %V salió perdiendo. Así de bajo estaba el listón.',
+  '%A hizo lo que pudo con el tiempo que tuvo. %V conserva un resto que va a proteger como si valiera algo.',
+  'Robo cortado a mitad. %A se lleva su parte y %V se queda con la sensación de que podría haber sido peor. Lo será.',
+];
+
+const ROB_DESASTRE = [
+  '%A salió a robar y acabó financiando a %V. El karma no solo le paró: le pasó factura y le dio el vuelto a la víctima.',
+  'Desastre absoluto. %A perdió todo lo que llevaba y encima %V se lo quedó. Doble humillación en un solo movimiento.',
+  '%A la cagó tan monumentalmente que terminó haciéndole una donación a %V. Aplausos para el peor ladrón del grupo.',
+  'Robo invertido. %A entró a quitar y salió dando. %V ni tuvo que moverse para ganar aura hoy.',
+  '%A se estrelló de tal forma que su aura acabó en el bolsillo de %V. Ni queriendo se hace tan mal.',
+  'Catástrofe. %A perdió el botín, la dignidad y la cara, y %V se llevó todo eso sin despeinarse.',
+  '%A salió de cacería y volvió siendo la presa. %V acaba de cobrar por existir, que es lo único que sabe hacer.',
+  'Desastre total: %A quiso robar y terminó pagando. %V está más rico y sigue sin saber por qué.',
+  '%A hizo el ridículo más caro del grupo. Su aura ahora es de %V y su reputación no es de nadie.',
+  'Fracaso monumental. %A entregó su propia aura como quien entrega las llaves de su casa al ladrón.',
+  '%A intentó robar y terminó siendo el cajero de %V. El grupo entero tomó nota para no imitarlo jamás.',
+  'Desastre de manual. %A pierde todo lo apostado y %V lo recibe sin haber hecho absolutamente nada.',
+  '%A salió a robar con la confianza de un profesional y la suerte de un maldito. %V cobró la diferencia.',
+  'Ni robar sabe. %A perdió su aura y se la regaló a %V, que ni sabía que estaba en peligro.',
+  '%A se autodestruyó en directo. %V se queda con el botín y con la mejor anécdota del mes.',
+  'Robo catastrófico. %A queda más pobre que antes de empezar y %V más rico sin mover un dedo.',
+  '%A la lió tanto que el propio universo decidió compensar a %V con lo que este pringado traía encima.',
+  'Desastre absoluto. Lo único que %A consiguió robar fue su propia credibilidad, y la tiró a la basura.',
+  '%A salió a por %V y volvió sin nada. %V, que no hizo nada, volvió con todo. Justicia poética barata.',
+  'El robo salió tan mal que %A acabó pagando por el intento. %V ni se enteró y ya está contando el dinero.',
 ];
 
 
@@ -74,6 +204,17 @@ const DESENLACES = {
   parcial:  { peso: 0.33, mult:  0.4, titulo: '*ROBO A MEDIAS*' },
   fallo:    { peso: 0.70, mult: -0.5, titulo: '*ROBO FALLIDO*' },
   desastre: { peso: 0.30, mult: -1.0, titulo: '*DESASTRE TOTAL*' },
+};
+
+// Cada desenlace tiene su propio pool: el texto de un golpe maestro no puede
+// ser el mismo que el de un robo justito, y el de un desastre (donde la víctima
+// COBRA) desentonaba del todo mezclado con los de fallo normal.
+const FRASES_POR_DESENLACE = {
+  maestro:  () => ROB_MAESTRO,
+  limpio:   () => ROB_WIN,
+  parcial:  () => ROB_PARCIAL,
+  fallo:    () => ROB_FAIL,
+  desastre: () => ROB_DESASTRE,
 };
 
 // Elige el desenlace concreto dentro de la rama que ya decidió `success`.
@@ -184,7 +325,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       addAura(jid, sender, +monto),
       addAura(jid, target, -monto),
     ]);
-    const phrase = pickFresh(ROB_WIN, `${jid}|robo|win`).replace(/%A/g, aTag).replace(/%V/g, vTag);
+    const phrase = pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag);
     const extra =
       clave === 'maestro' ? '\n_Golpe maestro: se llevó bastante más de lo que iba a por._'
     : clave === 'parcial' ? '\n_Lo pillaron a mitad y solo pudo llevarse una parte._'
@@ -202,7 +343,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // fallo normal solo es una multa y la víctima no toca nada.
   const aNew = await addAura(jid, sender, -monto);
   const vNew = clave === 'desastre' ? await addAura(jid, target, +monto) : null;
-  const phrase = pickFresh(ROB_FAIL, `${jid}|robo|fail`).replace(/%A/g, aTag).replace(/%V/g, vTag);
+  const phrase = pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag);
   const text =
     `${titulo}\n` +
     `${aTag} intentó robarle a ${vTag} y le salió al revés\n` +
