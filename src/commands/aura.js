@@ -1316,6 +1316,13 @@ const AURA = {
     'Ese turno ha sido una demolición y tú pusiste la dinamita. Enhorabuena, arquitecto.',
     'Catástrofe de las que se citan. Y en tu caso es lo único citable que has hecho aquí.',
     'Perdiste entero y sin margen. Ni un resto, ni una migaja, ni una puta cosa recuperable.',
+    'Puta ruina de turno. Tu aura ha bajado tanto que ya no cabe ni en el mismo renglón.',
+    'Ese desastre ha sido tan completo que el grupo ha dejado de comentarlo por pura pena.',
+    'Perdiste todo y encima con estilo de fracasado. Ni cayendo consigues hacerlo bien, joder.',
+    'Tu marcador ha entrado en territorio de burla. Y de ahí no se sale en una sola noche.',
+    'Cayó tu aura y con ella lo poco que quedaba de tu reputación. Puta caída doble y sin red.',
+    'Ese turno ha sido un desastre limpio: sin excusas, sin contexto y sin nadie a quien culpar.',
+    'Te hundiste con la eficacia de quien lleva años practicando. Enhorabuena, campeón del fondo.',
   ],
 };
 
