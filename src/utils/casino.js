@@ -10,6 +10,7 @@
 
 const { incrementCasinoCount } = require('./casinoStore');
 const { getAura, addAura } = require('./auraStore');
+const { BONOS, REDENCION, rango } = require('./economia');
 const { pick, pickFresh, fmt } = require('./helpers');
 
 
@@ -83,46 +84,34 @@ const PHRASES = {
 
 // ─── Reward rolling (variable ratio — core casino mechanic) ───────────────────
 
-// Suelos por tramo: 1000 / 2500 / 5000. La escala vieja repartía 20k-150k por
-// tramo, con botes de hasta 1,5 millones: en pocos días cualquiera llegaba a
-// cifras donde ganar o perder daba exactamente igual. Con el arranque en 100 y
-// un "millonario" del grupo rondando los 10.000, un tramo 1 vale diez veces el
-// arranque y hay que encadenar varios para llegar arriba.
+// Los importes viven en utils/economia.js, que es donde esta fijada la escala
+// entera. Antes estaban aqui a pelo (1.000 a 50.000 por tramo) mientras una
+// tirada de !aura movia 50-500 y un robo 5-150: el bono diario por escribir
+// eclipsaba por completo a las dinamicas, asi que robar o apostar no compensaba.
+// Ahora un tier 3 excelente equivale a unas cinco tiradas buenas de !aura.
 function rollReward(tier, currentAura) {
   // Redemption check first: negative-aura users get an escalating jackpot chance.
   if (currentAura < 0) {
     const redeemChance = tier === 3 ? 0.15 : tier === 2 ? 0.08 : 0.04;
     if (Math.random() < redeemChance) {
-      const base  = tier === 3 ? 4000 : tier === 2 ? 1500 : 500;
-      const range = tier === 3 ? 4000 : tier === 2 ? 1500 : 500;
-      return { amount: base + Math.floor(Math.random() * range), label: 'redemption' };
+      return { amount: rango(REDENCION[tier]), label: 'redemption' };
     }
   }
 
+  const t = BONOS[tier];
   const r = Math.random();
-  let amount, label;
 
-  if (tier === 1) {
-    // 60% win | 25% bigwin | 10% jackpot | 5% megajackpot
-    if      (r < 0.60) { amount = 1000 + Math.floor(Math.random() *  500); label = 'win'; }
-    else if (r < 0.85) { amount = 1500 + Math.floor(Math.random() * 1000); label = 'bigwin'; }
-    else if (r < 0.95) { amount = 2500 + Math.floor(Math.random() * 1500); label = 'jackpot'; }
-    else               { amount = 4000 + Math.floor(Math.random() * 3500); label = 'jackpot'; }
-  } else if (tier === 2) {
-    // 50% win | 30% bigwin | 15% jackpot | 5% megajackpot
-    if      (r < 0.50) { amount = 2500 + Math.floor(Math.random() * 2000); label = 'win'; }
-    else if (r < 0.80) { amount = 4500 + Math.floor(Math.random() * 3500); label = 'bigwin'; }
-    else if (r < 0.95) { amount = 8000 + Math.floor(Math.random() * 6000); label = 'jackpot'; }
-    else               { amount = 14000 + Math.floor(Math.random() * 10000); label = 'jackpot'; }
-  } else {
-    // tier 3: 40% | 30% | 20% | 10%
-    if      (r < 0.40) { amount =  5000 + Math.floor(Math.random() *  4000); label = 'win'; }
-    else if (r < 0.70) { amount =  9000 + Math.floor(Math.random() *  7000); label = 'bigwin'; }
-    else if (r < 0.90) { amount = 16000 + Math.floor(Math.random() * 12000); label = 'jackpot'; }
-    else               { amount = 28000 + Math.floor(Math.random() * 22000); label = 'jackpot'; }
-  }
+  // Reparto de etiquetas por tramo: cuanto mas alto el tramo, mas probable es
+  // que ademas toque un pago por encima de lo normal.
+  let corte;
+  if      (tier === 1) corte = [0.60, 0.85, 0.95];
+  else if (tier === 2) corte = [0.50, 0.80, 0.95];
+  else                 corte = [0.40, 0.70, 0.90];
 
-  return { amount, label };
+  if (r < corte[0]) return { amount: rango(t.win),     label: 'win' };
+  if (r < corte[1]) return { amount: rango(t.bigwin),  label: 'bigwin' };
+  if (r < corte[2]) return { amount: rango(t.jackpot), label: 'jackpot' };
+  return { amount: rango(t.mega), label: 'jackpot' };
 }
 
 // ─── Next milestone display (near-miss — keeps players counting) ──────────────

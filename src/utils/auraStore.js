@@ -7,19 +7,25 @@ const AURA_FILE = path.join(__dirname, '../../data/aura.json');
 
 // Everyone starts here. Aura then accumulates (or bleeds) over time.
 //
-// ESCALA: un jugador "millonario" del grupo ronda los 10.000, no los millones.
-// La escala vieja (arranque 1000, bonos de 20k-150k por tramo) se disparaba
-// sola: bastaban unos días activos para llegar a cifras de siete dígitos donde
-// ya no significaba nada ni ganar ni perder. Todo el sistema — arranque,
-// bonos, tiradas, apuestas y robos — está ahora ~20 veces más comprimido.
-const STARTING_AURA = 100;
+// ESCALA: la referencia es utils/economia.js — un miembro "millonario" del
+// grupo ronda los 5.000. El arranque son 100, o sea un 2 % de esa cifra.
+const { ARRANQUE: STARTING_AURA } = require('./economia');
 
-// Escala anterior, necesaria para reescalar lo que ya está guardado.
-const ESCALA_VIEJA = { arranque: 1000, factor: 200 };
+// Escalas anteriores, necesarias para reescalar lo que ya está guardado.
+// Cada entrada es el salto DESDE esa versión a la siguiente.
+//   v1 -> v2: arranque 1000 y bonos de 20k-150k. Bastaban unos días activos
+//             para llegar a siete dígitos, donde ganar o perder daba igual.
+//   v2 -> v3: el millonario baja de 10.000 a 5.000 y los bonos se recortan a
+//             una vigésima parte, para que las dinámicas (!robo, !aura) dejen
+//             de estar eclipsadas por el bono diario de escribir.
+const ESCALAS = {
+  1: { arranque: 1000, factor: 200 },
+  2: { arranque: 100,  factor: 2 },
+};
 // Marca de migración. Vive dentro del propio store para que no haga falta un
 // archivo aparte ni un paso manual en la VPS.
 const CLAVE_ESCALA = '__escala';
-const ESCALA_ACTUAL = 2;
+const ESCALA_ACTUAL = 3;
 
 let store = null;          // { [groupJid]: { [bareJid]: number } }
 let loadPromise = null;
@@ -48,7 +54,8 @@ function serialized(key, fn) {
   return next;
 }
 
-// Reescala los saldos de la economía vieja a la nueva, UNA sola vez.
+// Reescala los saldos guardados hasta la escala actual, UNA sola vez y
+// encadenando todos los saltos que falten.
 //
 // No es una división a secas: se conserva la distancia al arranque, así que
 // quien nunca jugó (estaba justo en el arranque viejo) queda justo en el nuevo
@@ -56,10 +63,13 @@ function serialized(key, fn) {
 //
 //   nuevo = ARRANQUE_NUEVO + (viejo - ARRANQUE_VIEJO) / FACTOR
 //
-// Con factor 200: 2.000.000 -> ~10.095, que es justo la cifra de "millonario"
-// que se busca en la escala nueva.
+// Un saldo de la escala 1 pasa por los dos saltos seguidos, así que una cuenta
+// que nunca se migró llega igual de bien que una que ya iba por la 2.
 function migrarEscala() {
-  if (!store || store[CLAVE_ESCALA] >= ESCALA_ACTUAL) return;
+  if (!store) return;
+  const desde = store[CLAVE_ESCALA] || 1;
+  if (desde >= ESCALA_ACTUAL) return;
+
   let tocados = 0;
   for (const grupo in store) {
     if (grupo === CLAVE_ESCALA) continue;
@@ -67,12 +77,18 @@ function migrarEscala() {
     if (!g || typeof g !== 'object') continue;
     for (const k in g) {
       if (typeof g[k] !== 'number') continue;
-      g[k] = STARTING_AURA + Math.round((g[k] - ESCALA_VIEJA.arranque) / ESCALA_VIEJA.factor);
+      let v = g[k];
+      for (let paso = desde; paso < ESCALA_ACTUAL; paso++) {
+        const esc = ESCALAS[paso];
+        if (!esc) continue;
+        v = STARTING_AURA + Math.round((v - esc.arranque) / esc.factor);
+      }
+      g[k] = v;
       tocados++;
     }
   }
   store[CLAVE_ESCALA] = ESCALA_ACTUAL;
-  if (tocados) logger.info(`auraStore: ${tocados} saldos reescalados a la economía nueva.`);
+  if (tocados) logger.info(`auraStore: ${tocados} saldos reescalados (escala ${desde} -> ${ESCALA_ACTUAL}).`);
   scheduleSave();
 }
 

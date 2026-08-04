@@ -5,6 +5,11 @@ const logger = require('./logger');
 
 const COUNT_FILE = path.join(__dirname, '../../data/messageCounts.json');
 
+// Fecha del ultimo reseteo por grupo. Vive bajo una clave aparte para no
+// confundirse con un participante: un grupo se llama "...@g.us" y esta clave no,
+// asi que ninguna lectura de conteos la puede pisar.
+const CLAVE_RESETS = '__resets';
+
 let counts = null;
 let loadPromise = null;
 let saveTimer = null;
@@ -76,17 +81,31 @@ async function resetCounts(groupJid) {
   if (!groupJid) throw new Error('resetCounts: groupJid requerido — usa resetAllCounts() para borrar todo');
   await load();
   delete counts[groupJid];
+  if (!counts[CLAVE_RESETS]) counts[CLAVE_RESETS] = {};
+  counts[CLAVE_RESETS][groupJid] = Date.now();
   scheduleSave();
 }
 
 async function resetAllCounts() {
   await load();
-  counts = {};
+  // Se conserva el historial de reseteos: es un dato del grupo, no un conteo, y
+  // si se borrara nadie podria saber desde cuando cuenta el ranking.
+  const resets = counts?.[CLAVE_RESETS] || {};
+  counts = { [CLAVE_RESETS]: { ...resets, __global: Date.now() } };
   scheduleSave();
+}
+
+// Momento del ultimo reseteo del grupo, en ms. null si nunca se resetró.
+async function getLastReset(groupJid) {
+  await load();
+  const r = counts?.[CLAVE_RESETS];
+  if (!r) return null;
+  return r[groupJid] || r.__global || null;
 }
 
 async function getActiveUsers(groupJid, minMessages = 10) {
   await load();
+  if (groupJid === CLAVE_RESETS) return [];
   const group = counts[groupJid];
   if (!group) return [];
   const out = [];
@@ -123,4 +142,4 @@ async function flushCounts() {
   }
 }
 
-module.exports = { increment, getActiveUsers, getUserCount, resetCounts, resetAllCounts, flushCounts };
+module.exports = { increment, getActiveUsers, getUserCount, resetCounts, resetAllCounts, getLastReset, flushCounts };

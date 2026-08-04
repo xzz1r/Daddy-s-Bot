@@ -502,13 +502,10 @@ async function cmdAntiBusiness(sock, msg, args, groupMeta) {
   if (arg === 'purge') return purgeBusinesses(sock, msg, jid, groupMeta); // expulsa la lista verificada
 
   if (arg !== 'on' && arg !== 'off') {
+    // Solo el estado. El bot no lista sus propios subcomandos.
     const current = isAntiBusinessEnabled(jid) ? 'activado' : 'desactivado';
     return sock.sendMessage(jid, {
-      text:
-        `Anti-empresa (auto al entrar): *${current}*\n\n` +
-        `*!antiempresa scan* — lista quién es Business y por qué (NO expulsa)\n` +
-        `*!antiempresa purge* — expulsa a los Business detectados\n` +
-        `*!antiempresa on/off* — expulsión automática al entrar`,
+      text: `Anti-empresa (auto al entrar): *${current}*`,
     }, { quoted: msg });
   }
 
@@ -590,7 +587,7 @@ async function scanBusinesses(sock, msg, groupJid, groupMeta) {
     text:
       `*Business detectados (${detected.length})* — con su evidencia:\n\n` +
       lines.join('\n') +
-      `\n\n_Esto NO expulsa a nadie. Si la lista es correcta, usa *!antiempresa purge* (dentro de 10 min). Si aparece alguien que NO es Business, avisa antes de purgar._`,
+      `\n\n_Esto no expulsa a nadie._`,
     mentions: detected.map(d => d.kickId),
   });
 }
@@ -602,7 +599,7 @@ async function purgeBusinesses(sock, msg, groupJid, groupMeta) {
   const last = lastScan.get(groupJid);
   if (!last || Date.now() - last.ts > SCAN_VALID_MS) {
     return sock.sendMessage(groupJid, {
-      text: 'Primero corre *!antiempresa scan* para ver y verificar la lista; luego *!antiempresa purge* dentro de 10 min.',
+      text: 'No hay ningún scan reciente.',
     }, { quoted: msg });
   }
 
@@ -630,8 +627,8 @@ async function purgeBusinesses(sock, msg, groupJid, groupMeta) {
   if (r.status === 'vacio') {
     return sock.sendMessage(groupJid, {
       text: r.spared.length
-        ? 'No queda nadie a quien expulsar: los detectados son ahora admin, owner o el bot. Corre *!antiempresa scan* de nuevo.'
-        : 'Los Business detectados ya no están en el grupo. Corre *!antiempresa scan* de nuevo.',
+        ? 'No queda nadie a quien expulsar: los detectados son ahora admin, owner o el bot.'
+        : 'Los Business detectados ya no están en el grupo.',
     }, { quoted: msg });
   }
 

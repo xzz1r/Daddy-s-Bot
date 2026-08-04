@@ -1,4 +1,4 @@
-const { getActiveUsers, resetCounts, resetAllCounts } = require('../utils/messageCounter');
+const { getActiveUsers, resetCounts, resetAllCounts, getLastReset } = require('../utils/messageCounter');
 const { isOwner, isMainOwner, isAdmin, isGroupAdmin, getSender, sameUser, soloMiembros } = require('../utils/wa');
 const { pick, pickFresh } = require('../utils/helpers');
 
@@ -230,6 +230,29 @@ const ADMIN_PHRASES = [
   ],
 ];
 
+// Fecha del ultimo reseteo, en formato corto. Se calcula a mano en vez de con
+// toLocaleDateString porque el locale del servidor no es fiable y en la VPS
+// salia en ingles.
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+function fechaCorta(ms) {
+  const d = new Date(ms);
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${dd} ${MESES[d.getMonth()]} ${d.getFullYear()}, ${hh}:${mm}`;
+}
+
+// Pie del ranking con el origen de los datos: sin esto, un ranking recien
+// reseteado parece que el grupo lleva dos dias muerto.
+async function pieDeReset(jid) {
+  const ts = await getLastReset(jid).catch(() => null);
+  if (!ts) return '\n\n_Contando desde el primer mensaje registrado._';
+  const dias = Math.floor((Date.now() - ts) / 86400000);
+  const desde = dias === 0 ? 'hoy' : dias === 1 ? 'ayer' : `hace ${dias} dias`;
+  return `\n\n_Ultimo reset: ${fechaCorta(ts)} (${desde})._`;
+}
+
 // Ranking canónico compartido por el board y por "!count @user": solo miembros
 // actuales (cruzado con sameUser para puentear LID↔teléfono), sin el owner
 // principal (invisible en toda salida), ordenado de más a menos mensajes. Si no
@@ -284,7 +307,7 @@ async function cmdCount(sock, msg, groupMeta, args) {
     const msgs = count === 1 ? '1 mensaje' : `${count} mensajes`;
     const rankStr = rankIdx >= 0 ? ` — puesto #${rankIdx + 1}` : '';
     return sock.sendMessage(jid, {
-      text: `@${phone} tiene *${msgs}* en este grupo${rankStr}.`,
+      text: `@${phone} tiene *${msgs}* en este grupo${rankStr}.` + await pieDeReset(jid),
       mentions: [mentioned],
     }, { quoted: msg });
   }
@@ -314,7 +337,7 @@ async function cmdCount(sock, msg, groupMeta, args) {
     }
   });
 
-  await sock.sendMessage(jid, { text: text.trimEnd(), mentions }, { quoted: msg });
+  await sock.sendMessage(jid, { text: text.trimEnd() + await pieDeReset(jid), mentions }, { quoted: msg });
 }
 
 // !resetcount — owner only: clears message ranking for this group
@@ -342,4 +365,4 @@ async function cmdResetCount(sock, msg, groupMeta) {
 
 // Los pools se exportan para que las pruebas puedan comprobar de que bolsa
 // salio cada frase en vez de adivinarlo por palabras sueltas.
-module.exports = { cmdCount, cmdResetCount, MEMBER_PHRASES, ADMIN_PHRASES };
+module.exports = { cmdCount, cmdResetCount, MEMBER_PHRASES, ADMIN_PHRASES, fechaCorta };

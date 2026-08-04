@@ -3,6 +3,7 @@ const { cleanTemp } = require('../utils/helpers');
 const { incrementStat } = require('../utils/state');
 const { getCached, setCached, listCached, clearCache } = require('../utils/musicCache');
 const { getSender, canonicalJid, isMainOwner } = require('../utils/wa');
+const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const logger = require('../utils/logger');
 const fs = require('fs-extra');
 
@@ -27,12 +28,10 @@ function onPlayCooldown(senderJid) {
 }
 
 // !play <query> — search and send audio only
-async function cmdPlay(sock, msg, args) {
+async function cmdPlay(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
 
-  if (!args.length) {
-    return sock.sendMessage(jid, { text: 'Usa: *!play* <canción o artista>' }, { quoted: msg });
-  }
+  if (!args.length) return;
 
   const query = args.join(' ');
 
@@ -40,9 +39,21 @@ async function cmdPlay(sock, msg, args) {
   let result = await getCached(query).catch(() => null);
   const fromCache = !!result;
 
+  // El aura es moneda: una cancion cuesta. Se cobra ANTES de gastar ancho de
+  // banda y se devuelve mas abajo si la descarga o el envio fallan, para que
+  // nadie pague por una cancion que no llego. Lo que ya esta en cache tambien
+  // se cobra: el precio es por el servicio, no por el trafico de esa vez.
+  const quienPide = getSender(msg);
+  const pago = await cobrar(jid, quienPide, 'play', { fromMe: msg.key.fromMe, groupMeta });
+  if (!pago.ok) {
+    return sock.sendMessage(jid, { text: textoSinSaldo('play', pago) }, { quoted: msg });
+  }
+  const reembolsar = () => devolver(jid, quienPide, pago.pagado).catch(() => {});
+
   if (!result) {
-    const waitMs = onPlayCooldown(getSender(msg));
+    const waitMs = onPlayCooldown(quienPide);
     if (waitMs > 0) {
+      await reembolsar();
       return sock.sendMessage(jid, {
         text: `Espera ${Math.ceil(waitMs / 1000)}s antes de pedir otra canción.`,
       }, { quoted: msg });
@@ -65,6 +76,7 @@ async function cmdPlay(sock, msg, args) {
       const text = notFound
         ? 'No encontré esa canción. Prueba con otro nombre o añade el artista.'
         : 'No pude descargar la canción en este momento. Intenta de nuevo.';
+      await reembolsar();
       return sock.sendMessage(jid, { text }, { quoted: msg });
     }
   }
@@ -78,6 +90,7 @@ async function cmdPlay(sock, msg, args) {
 
     if (audioBuffer.length > 25 * 1024 * 1024) {
       if (!fromCache) cleanTemp(result.filePath).catch(() => {});
+      await reembolsar();
       return sock.sendMessage(jid, { text: 'La canción pesa más de 25MB y no puede enviarse.' }, { quoted: msg });
     }
 
@@ -90,6 +103,7 @@ async function cmdPlay(sock, msg, args) {
     incrementStat('musicPlayed');
   } catch (err) {
     logger.error(`Send audio error: ${err.message}`);
+    await reembolsar();
     await sock.sendMessage(jid, { text: `Error al enviar audio: ${err.message}` }, { quoted: msg });
   }
 

@@ -22,7 +22,9 @@ const { cmdToImg, cmdToVid } = require('../commands/toimg');
 const { cmdPfp } = require('../commands/pfp');
 const { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdAntiFake } = require('../commands/fk');
 const { maybeIndex } = require('../utils/pfpIndexer');
-const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdIQ, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy, cmdPerdedor, cmdGanador, cmdPuta, cmdGuarra, cmdFiel, cmdInfiel, cmdLinda, cmdFea, cmdIncel } = require('../commands/percent');
+const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy, cmdPerdedor, cmdGanador, cmdPuta, cmdGuarra, cmdFiel, cmdInfiel, cmdLinda, cmdFea, cmdIncel } = require('../commands/percent');
+// !iq no es un comando de porcentaje: saca una CIFRA de IQ y vive aparte.
+const { cmdIQ } = require('../commands/iq');
 const { cmdRizz, cmdPiropo, cmdWingman } = require('../commands/wingman');
 const { cmdAura } = require('../commands/aura');
 const { resetAura } = require('../utils/auraStore');
@@ -1013,7 +1015,7 @@ async function handleMessage(sock, msg) {
       case 'playsong':
       case 'playaudio':
       case 'play':
-        await cmdPlay(sock, msg, args);
+        await cmdPlay(sock, msg, args, groupMeta);
         break;
 
       case 'cachelist':
@@ -1083,7 +1085,7 @@ async function handleMessage(sock, msg) {
       case 'g':
       case 'ai':
       case 'grok':
-        await cmdGrok(sock, msg, args);
+        await cmdGrok(sock, msg, args, groupMeta);
         break;
 
       case 'setgrok':
@@ -1224,7 +1226,7 @@ async function handleMessage(sock, msg) {
 
       case 'pfp':
       case 'foto':
-        await cmdPfp(sock, msg, args);
+        await cmdPfp(sock, msg, args, groupMeta);
         break;
 
       case 'gay':        await cmdGay(sock, msg, groupMeta); break;
@@ -1236,7 +1238,7 @@ async function handleMessage(sock, msg) {
       case 'maricón':    await cmdMaricon(sock, msg, groupMeta); break;
       case 'friki':      await cmdFriki(sock, msg, groupMeta); break;
       case 'crack':          await cmdCrack(sock, msg, groupMeta); break;
-      case 'iq':             await cmdIQ(sock, msg, groupMeta); break;
+      case 'iq':             await cmdIQ(sock, msg); break;
       case 'cerdo':          await cmdCerdo(sock, msg, groupMeta); break;
       case 'feminidad':      await cmdFeminidad(sock, msg, groupMeta); break;
       case 'masculinidad':   await cmdMasculinidad(sock, msg, groupMeta); break;

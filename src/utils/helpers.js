@@ -67,6 +67,57 @@ const _MAX_PICK_KEYS = 2000;    // bound the map so long-lived bots don't leak
 // mismo pool. Si el pool tiene MENOS de 11 frases el bloqueo se recorta solo a
 // pool.length-1 — con 5 frases es imposible no repetir en 30 tiradas, y
 // bloquearlas todas dejaria el pool vacio.
+// Dureza de una frase: cuenta senales de que es de las fuertes del arsenal.
+// No pretende ser exacta — solo separar "puta mierda de fracasado, no vales
+// nada" de "estas en la media y no destacas". Con eso basta para que el bot
+// abra con lo mas hiriente que tiene y deje lo tibio para cuando se le acabe.
+const _CRUDO = /\b(puto?s?|puta?s?|mierda|joder|co[nñ]o|polla|cabr[oó]n|gilipollas|pringad|fracasad|in[uú]til|pat[eé]tic|basura|par[aá]sito|don nadie|muerto de hambre|cero a la izquierda|asco|verg[uü]enza|rid[ií]cul|escoria|guarr|cutre|miseria|desperdicio)\w*/gi;
+
+function _dureza(frase) {
+  if (typeof frase !== 'string') return 0;
+  const golpes = (frase.match(_CRUDO) || []).length;
+  // La longitud pesa poco pero desempata: entre dos frases igual de crudas, la
+  // larga suele ser la que desarrolla el insulto entero.
+  return golpes * 10 + Math.min(frase.length / 40, 4);
+}
+
+// Ordena un pool de mas duro a mas suave. Se llama UNA vez por pool, al
+// cargar el modulo, no en cada tirada.
+function ordenarPorDureza(pool) {
+  if (!Array.isArray(pool)) return pool;
+  return pool.slice().sort((a, b) => _dureza(b) - _dureza(a));
+}
+
+// Peso de cada posicion al elegir. El pool llega ya ordenado de mas duro a mas
+// suave, asi que dar mas peso a las primeras posiciones hace que el bot saque
+// antes lo mas fuerte que tiene. No es un orden fijo: es un sesgo. Si fuera
+// fijo, el comando diria siempre la misma frase hasta agotar la cabecera, y eso
+// canta muchisimo mas que repetirse de vez en cuando.
+//
+// Con exponente 2 la primera frase tiene ~4 veces mas probabilidad que la
+// ultima de un pool de 200. Suficiente para notarlo, poco para volverlo rigido.
+function _pesoPorPosicion(i, n) {
+  const x = 1 - i / Math.max(1, n - 1); // 1 en la cabeza, 0 en la cola
+  return 0.25 + x * x * 1.75;           // de 2.0 a 0.25
+}
+
+function _pickPesado(pool, indices) {
+  let total = 0;
+  const pesos = indices.map((i) => {
+    const w = _pesoPorPosicion(i, pool.length);
+    total += w;
+    return w;
+  });
+  let r = Math.random() * total;
+  for (let k = 0; k < indices.length; k++) {
+    r -= pesos[k];
+    if (r <= 0) return pool[indices[k]];
+  }
+  return pool[indices[indices.length - 1]];
+}
+
+// Elige una frase evitando las `window` ultimas de esa misma clave, y sesgando
+// la eleccion hacia el principio del pool (lo mas duro).
 function pickFresh(pool, key, window = 30) {
   if (!Array.isArray(pool) || pool.length === 0) return undefined;
   if (!key) return pick(pool);
@@ -78,8 +129,10 @@ function pickFresh(pool, key, window = 30) {
 
   const hist = _pickHistory.get(key) || [];
   const block = new Set(hist.slice(-Math.min(window, pool.length - 1)));
-  const avail = pool.filter(p => !block.has(p));
-  const chosen = pick(avail.length ? avail : pool);
+  const libres = [];
+  for (let i = 0; i < pool.length; i++) if (!block.has(pool[i])) libres.push(i);
+  const indices = libres.length ? libres : pool.map((_, i) => i);
+  const chosen = _pickPesado(pool, indices);
 
   hist.push(chosen);
   if (hist.length > window + 4) hist.shift();
@@ -233,4 +286,5 @@ async function atomicWriteJson(file, data) {
 const fmt = n => n.toLocaleString('es-ES');
 
 module.exports = {
+  ordenarPorDureza,
   fmt, ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, shuffle, streamToBuffer, atomicWriteJson, readJsonOrEnoent, MAX_DOWNLOAD_BYTES, MAX_MEDIA_BYTES, createSemaphore, ffmpegSemaphore, ffmpegToBuffer };

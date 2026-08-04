@@ -218,33 +218,42 @@ async function cmdFantasmas(sock, msg, groupMeta) {
   await sock.sendMessage(jid, { text: text.trimEnd(), mentions }, { quoted: msg });
 }
 
-// ---- !inactivos : los que NUNCA han escrito -------------------------------
+// ---- !inactivos : los que no llegan al minimo de actividad ----------------
 //
-// Distinto de !fantasmas: aquel ordena a los que hablan poco, este saca a los
-// que no han abierto la boca ni una sola vez. La fuente tampoco es la misma:
-// aquí se parte de la lista de miembros del grupo y se resta a todo el que
-// tenga aunque sea un mensaje contado, porque a alguien con cero mensajes el
-// contador ni lo conoce y por definición no puede devolverlo.
+// Distinto de !fantasmas: aquel ORDENA a los que hablan poco (un ranking de
+// vergüenza), este SEÑALA a los que están por debajo del umbral y les avisa de
+// que el bot los va a sacar. Es la lista de aviso previo, no un top.
+//
+// El umbral es 10 mensajes. Antes era cero — solo salían los que no habían
+// escrito nunca — y eso dejaba fuera al que suelta tres "jaja" en seis meses y
+// se cree a salvo. Con 10 el corte separa de verdad al que participa del que
+// solo ocupa plaza.
+//
+// La fuente son las DOS listas: los miembros con menos de 10 mensajes contados
+// y los que no aparecen en el contador (cero mensajes, el contador ni los
+// conoce, así que hay que sacarlos de la lista de participantes).
 
-const CERO_MENSAJES = [
-  'Ni un solo mensaje. Ni uno. Está aquí de decoración.',
-  'Cero mensajes desde que entró. El récord absoluto de no aportar nada.',
-  'No ha escrito nunca. Literalmente nunca. Un miembro teórico.',
-  'Cero aportes. Entra, lee y se va, como quien pasa por delante de un escaparate.',
-  'Sin un mensaje en su historial. Ocupa plaza y no gasta ni un carácter.',
-  'Ni un solo mensaje. Están aquí de decoración, como un jarrón sin flores.',
-  'Cero mensajes. El grupo entero funciona sin que ellos existan y nadie lo nota.',
-  'No han escrito nunca. Son un número en la lista de miembros y nada más.',
-  'Cero aportes en todo su historial. Miran, se enteran de todo y no devuelven ni un hola.',
-  'Sin un solo mensaje. Ocupan plaza y no han gastado ni un carácter en pagarla.',
-  'Nunca han abierto la boca. Ni para saludar, ni para irse. Presencia fantasma total.',
-  'Cero mensajes. Llevan aquí lo suficiente como para que ya no haya excusa posible.',
-  'Ni una palabra. El silencio más largo del grupo y encima sin ningún mérito.',
-  'Cero. Absolutamente cero. Ni un emoji, ni un jaja, ni un buenos días.',
-  'Nunca escribieron nada. Consumen el grupo entero y no devuelven ni las gracias.',
-  'Sin registro de un solo mensaje. Para el contador es como si no estuvieran.',
-  'Cero mensajes desde el primer día. Una constancia admirable aplicada a no hacer nada.',
-];
+const AVISO_PURGA = [
+  'Menos de 10 mensajes. El bot no guarda sitio a quien no lo usa: o escriben o los saca sin despedida.',
+  'Por debajo del mínimo. Diez mensajes es el listón más bajo que existe y ni eso han pasado. Se echan solos.',
+  'Actividad de cadáver. El bot limpia lo que no respira, y estos llevan meses sin dar una sola señal.',
+  'Menos de 10 mensajes en todo el historial. Eso no es ser discreto, es ser un mueble. Y los muebles se tiran.',
+  'Aviso: por debajo de 10 mensajes el bot expulsa. No es una amenaza, es mantenimiento rutinario.',
+  'Diez mensajes. Diez. Ni eso. El bot va a hacer limpieza y estos nombres están en la bolsa de basura.',
+  'Ocupan plaza y no pagan alquiler. El bot cobra en mensajes y a estos les falta el recibo entero.',
+  'Por debajo del umbral. El grupo funciona igual sin ellos, así que el bot va a comprobarlo en la práctica.',
+  'Menos de 10 mensajes. Relleno con foto de perfil, y el bot ya tiene el dedo encima del botón.',
+  'Actividad insuficiente. O escriben algo antes de la próxima limpieza o el bot les ahorra el esfuerzo para siempre.',
+  'El bot no expulsa por antipatía, expulsa por estadística. Y la de estos da vergüenza de leer.',
+  'Menos de diez mensajes. A este ritmo el bot los echa antes de que aprendan a escribir el segundo.',
+  'Umbral no alcanzado. El grupo tiene lista de espera y estos llevan meses calentando la silla sin usarla.',
+  'Bajo mínimos. El bot limpia inactivos igual que se tira la comida caducada: sin pena y sin avisar dos veces.',
+  'Menos de 10 mensajes registrados. Esto es el aviso. El siguiente no es un aviso, es la puerta.',
+  'Actividad por los suelos. El bot no los odia: simplemente no encuentra ninguna razón para mantenerlos.',
+  'Por debajo del corte. Que escriban algo que valga la pena o que dejen el sitio a alguien que sí lo use.',
+]
+
+const UMBRAL_INACTIVO = 10;
 
 async function cmdInactivos(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
@@ -257,46 +266,63 @@ async function cmdInactivos(sock, msg, groupMeta) {
     }, { quoted: msg });
   }
 
-  // Todo el que tenga al menos un mensaje contado queda descartado. Se guardan
-  // TODAS sus formas conocidas (id, lid, teléfono) porque el conteo pudo
-  // anotarse bajo una y el participante figurar con otra.
-  const conMensajes = await getActiveUsers(jid, 1);
-  const hablo = new Set();
-  for (const u of conMensajes) {
-    hablo.add(bareJid(u.jid));
-    hablo.add(canonicalJid(u.jid));
+  // Dos fuentes que hay que cruzar:
+  //  · el contador sabe cuantos mensajes tiene cada uno QUE HAYA ESCRITO;
+  //  · a los de cero mensajes el contador ni los conoce, asi que salen de la
+  //    lista de participantes restando a todo el que aparezca en el contador.
+  //
+  // Se guardan TODAS las formas conocidas de cada uno (id, lid, telefono)
+  // porque el conteo pudo anotarse bajo una y el participante figurar con otra.
+  const contados = await getActiveUsers(jid, 1);
+  const cuentaPorForma = new Map();
+  for (const u of contados) {
+    for (const f of [bareJid(u.jid), canonicalJid(u.jid)]) {
+      const prev = cuentaPorForma.get(f) || 0;
+      if (u.count > prev) cuentaPorForma.set(f, u.count);
+    }
   }
 
-  const mudos = [];
+  const flojos = [];
   for (const p of groupMeta.participants) {
     const formas = [p?.id, p?.lid, p?.phoneNumber].filter(Boolean);
     if (!formas.length) continue;
-    if (formas.some(f => hablo.has(bareJid(f)) || hablo.has(canonicalJid(f)))) continue;
-    // Ni el bot ni el owner tier salen en la lista de la vergüenza.
+    // Ni el bot ni el owner tier salen en la lista.
     if (isBotJid(sock, p.id)) continue;
     if (isOwner(p.id, false, groupMeta) || isMainOwner(p.id, false, groupMeta)) continue;
-    mudos.push(p.id);
+
+    let n = 0;
+    for (const f of formas) {
+      n = Math.max(n, cuentaPorForma.get(bareJid(f)) || 0, cuentaPorForma.get(canonicalJid(f)) || 0);
+    }
+    if (n < UMBRAL_INACTIVO) flojos.push({ jid: p.id, count: n });
   }
 
-  if (!mudos.length) {
+  if (!flojos.length) {
     return sock.sendMessage(jid, {
-      text: 'Todo el mundo ha escrito al menos una vez. No queda ni un mudo en el grupo.',
+      text: `Todo el mundo pasa de ${UMBRAL_INACTIVO} mensajes. No hay a quien limpiar.`,
     }, { quoted: msg });
   }
 
+  // Los mas callados primero: son los que primero se van.
+  flojos.sort((a, b) => a.count - b.count);
+
   // WhatsApp corta los mensajes muy largos y menciona mal si son cientos: se
-  // listan como mucho 40 y se dice cuántos quedaron fuera, en vez de recortar
-  // en silencio y dar un número que no cuadra.
+  // listan como mucho 40 y se dice cuantos quedaron fuera, en vez de recortar
+  // en silencio y dar un numero que no cuadra.
   const TOPE = 40;
-  const mostrados = mudos.slice(0, TOPE);
-  const sobran = mudos.length - mostrados.length;
+  const mostrados = flojos.slice(0, TOPE);
+  const sobran = flojos.length - mostrados.length;
 
-  const cuantos = mudos.length === 1 ? '1 miembro' : `${mudos.length} miembros`;
-  let text = `*INACTIVOS — ${cuantos} sin escribir nunca*\n${pickFresh(CERO_MENSAJES, `${jid}|inactivos`)}\n\n`;
-  text += mostrados.map(j => `@${j.split('@')[0]}`).join(' ');
-  if (sobran) text += `\n\n_Y ${sobran} más que no caben en un solo mensaje._`;
+  const cuantos = flojos.length === 1 ? '1 miembro' : `${flojos.length} miembros`;
+  let text =
+    `*INACTIVOS — ${cuantos} por debajo de ${UMBRAL_INACTIVO} mensajes*\n` +
+    `${pickFresh(AVISO_PURGA, `${jid}|inactivos`)}\n\n`;
+  text += mostrados
+    .map(u => `@${u.jid.split('@')[0]} — ${u.count === 1 ? '1 mensaje' : `${u.count} mensajes`}`)
+    .join('\n');
+  if (sobran) text += `\n\n_Y ${sobran} mas que no caben en un solo mensaje._`;
 
-  await sock.sendMessage(jid, { text, mentions: mostrados }, { quoted: msg });
+  await sock.sendMessage(jid, { text, mentions: mostrados.map(u => u.jid) }, { quoted: msg });
 }
 
 module.exports = { cmdVs, cmdFantasmas, cmdInactivos };

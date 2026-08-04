@@ -1,14 +1,28 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser } = require('../utils/wa');
 const { getAura, addAura } = require('../utils/auraStore');
-const { pickFresh, fmt } = require('../utils/helpers');
+const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
+const { ROBO, AMBICION_MAX } = require('../utils/economia');
 
-// Escala nueva: arranque 100, "millonario" del grupo ~10.000. Un robo mueve
-// decenas, no miles.
-const STAKE_DEFAULT   = 20;
-const STAKE_MAX       = 150;
-const STAKE_FLOOR     = 5;
-const MIN_AURA        = 20;
+// La escala vive en utils/economia.js. Aqui solo el cooldown, que es de ritmo
+// de juego y no de economia.
+const STAKE_DEFAULT   = ROBO.porDefecto;
+const STAKE_FLOOR     = ROBO.suelo;
+const MIN_AURA        = ROBO.minVictima;
 const ROB_COOLDOWN_MS = 10 * 60 * 1000; // 10 min per attacker per group
+
+// Tope de lo que se puede pedir en un robo concreto. Ya no es un numero fijo:
+// depende de lo que tenga la victima. Robar 150 a alguien con 200 lo arruinaba
+// de un golpe, y robarle 150 a un millonario no le hacia ni cosquillas.
+function topeRobo(auraLadron, auraVictima) {
+  return Math.max(
+    ROBO.suelo,
+    Math.min(
+      ROBO.techo,
+      Math.floor(auraVictima * ROBO.fraccionVictima),
+      auraLadron,
+    ),
+  );
+}
 
 const lastRob = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
 
@@ -1204,12 +1218,20 @@ const DESENLACES = {
 // Cada desenlace tiene su propio pool: el texto de un golpe maestro no puede
 // ser el mismo que el de un robo justito, y el de un desastre (donde la víctima
 // COBRA) desentonaba del todo mezclado con los de fallo normal.
+// Ordenados de mas duro a mas suave al cargar: el bot abre con lo peor de cada
+// desenlace y guarda lo tibio para cuando se le agote el arsenal.
+const POOL_MAESTRO  = ordenarPorDureza(ROB_MAESTRO);
+const POOL_WIN      = ordenarPorDureza(ROB_WIN);
+const POOL_PARCIAL  = ordenarPorDureza(ROB_PARCIAL);
+const POOL_FAIL     = ordenarPorDureza(ROB_FAIL);
+const POOL_DESASTRE = ordenarPorDureza(ROB_DESASTRE);
+
 const FRASES_POR_DESENLACE = {
-  maestro:  () => ROB_MAESTRO,
-  limpio:   () => ROB_WIN,
-  parcial:  () => ROB_PARCIAL,
-  fallo:    () => ROB_FAIL,
-  desastre: () => ROB_DESASTRE,
+  maestro:  () => POOL_MAESTRO,
+  limpio:   () => POOL_WIN,
+  parcial:  () => POOL_PARCIAL,
+  fallo:    () => POOL_FAIL,
+  desastre: () => POOL_DESASTRE,
 };
 
 // ── Dinámicas del robo ───────────────────────────────────────────────────────
@@ -1245,13 +1267,18 @@ function ajustarProbabilidad(base, { grupo, ladron, victima, stake, maxStake }) 
   let p = base;
   const motivos = [];
 
-  // 1. Ambición: hasta -15% si apuestas el máximo posible.
+  // 1. Ambicion: cuanto mas pides, menos probable es que salga. Subido del 15 %
+  //    al 35 %: con 15 % seguia compensando pedir siempre el maximo, asi que no
+  //    habia ninguna decision que tomar. Ahora ir a por el tope es una apuesta
+  //    de verdad — mas botin, bastante menos probabilidad de llevarselo.
+  //    La curva es cuadratica: pedir la mitad casi no penaliza, pedir el tope
+  //    duele, y ese tramo final es el que hace interesante elegir cifra.
   if (maxStake > 0) {
     const ambicion = Math.min(1, stake / maxStake);
-    const castigo = ambicion * 0.15;
+    const castigo = ambicion * ambicion * AMBICION_MAX;
     if (castigo > 0.02) {
       p -= castigo;
-      motivos.push(`apuesta alta (−${Math.round(castigo * 100)}%)`);
+      motivos.push(`ambicion (−${Math.round(castigo * 100)}%)`);
     }
   }
 
@@ -1376,10 +1403,13 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     }, { quoted: msg });
   }
 
-  // Stake: first numeric arg, clamped to what both parties can afford
+  // Apuesta: primer argumento numerico, recortado a lo que la victima puede
+  // perder y el ladron puede cubrir. Pedir mas de lo permitido no falla: se
+  // ajusta al tope y se avisa en el mensaje, para que el jugador vea el limite.
   const raw = parseInt((args || []).find(a => /^\d+$/.test(a)) || STAKE_DEFAULT, 10);
-  const maxStake = Math.min(STAKE_MAX, auraV, auraA);
-  const stake = Math.max(maxStake >= STAKE_FLOOR ? STAKE_FLOOR : 1, Math.min(raw, maxStake));
+  const maxStake = topeRobo(auraA, auraV);
+  const stake = Math.max(Math.min(ROBO.suelo, maxStake), Math.min(raw, maxStake));
+  const recortado = raw > maxStake;
 
   const participants = groupMeta?.participants || [];
   const aO = isOwner(sender, msg.key.fromMe, groupMeta);
@@ -1426,7 +1456,10 @@ async function cmdRobo(sock, msg, args, groupMeta) {
 
   // Lo que movió la balanza se cuenta abajo del mensaje: si no, el jugador ve
   // resultados distintos sin entender por qué y parece que el bot va al azar.
-  const notaDinamicas = motivos.length ? `\n_${motivos.join(' · ')}_` : '';
+  // Si pidio mas de lo permitido tambien se dice: el tope depende del aura de
+  // la victima y sin avisar parece que el bot ignora lo que le pides.
+  const notaTope = recortado ? `\n_Tope contra ${vTag}: ${fmt(maxStake)}_` : '';
+  const notaDinamicas = (motivos.length ? `\n_${motivos.join(' · ')}_` : '') + notaTope;
 
   if (mult > 0) {
     anotarRoboExitoso(jid, canonicalJid(sender), canonicalJid(target));

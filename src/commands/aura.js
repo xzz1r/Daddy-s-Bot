@@ -1,39 +1,47 @@
 const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameUser, soloMiembros } = require('../utils/wa');
-const { pickFresh, fmt } = require('../utils/helpers');
+const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
+const { getUserCount } = require('../utils/messageCounter');
+const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, rango } = require('../utils/economia');
 
 const ROLL_COOLDOWN_MS = 3 * 60 * 1000; // 3 minutes per user per group
 const lastRoll = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
 
-// Aura roll. Owner 60/40, admin 55/45, member 50/50.
-// Members were previously 30/70 — far too punishing for regular use.
-function rollAura(targetIsOwner, targetIsAdmin) {
-  const r = Math.random();
-  // Escala comprimida: una tirada mueve decenas, no miles. Con el arranque en
-  // 100 y un "millonario" del grupo en ~10.000, una tirada grande pesa lo que
-  // debe pesar sin descompensar el marcador de un solo golpe.
-  const big   = () => (25 + Math.floor(Math.random() * 26)) * 10;  // 250..500
-  const small = () => ( 5 + Math.floor(Math.random() * 16)) * 10;  // 50..200
+// Tirada de aura.
+//
+// Dos cosas cambiaron respecto de la version anterior:
+//
+//  1. Los importes bajaron (250-500 / 50-200 -> 60-150 / 15-50). La tirada ya
+//     no es la via rapida a nada: es un goteo. Quien quiera subir de verdad
+//     tiene que escribir o robar, que es donde estan las dinamicas.
+//  2. La probabilidad de salir positivo SUBIO para el miembro (45 % -> 52 %).
+//     Recortar el importe Y castigar la probabilidad a la vez convertia !aura
+//     en una maquina de perder y la gente dejaba de usarlo. Sigue habiendo
+//     riesgo real: casi la mitad de las tiradas bajan el marcador.
+//
+// El plus por actividad es pequeno a proposito. Premia al que aparece sin
+// convertir el comando en una renta por antiguedad: la tirada sigue siendo azar.
+function rollAura(targetIsOwner, targetIsAdmin, plusActividad = 0) {
+  const grande  = () => rango([TIRADA.grande[0],  TIRADA.grande[1]  - TIRADA.grande[0]]);
+  const pequena = () => rango([TIRADA.pequena[0], TIRADA.pequena[1] - TIRADA.pequena[0]]);
 
-  if (targetIsOwner) {
-    // 60% positive, 40% negative.
-    if (r < 0.35) return { tier: 'blessed', amount: big() };
-    if (r < 0.60) return { tier: 'gain',    amount: small() };
-    if (r < 0.85) return { tier: 'loss',    amount: -small() };
-    return { tier: 'cursed', amount: -big() };
+  const base = targetIsOwner ? P_POSITIVA.owner
+             : targetIsAdmin ? P_POSITIVA.admin
+             :                 P_POSITIVA.miembro;
+  // Tope al 80 %: ni el owner activo tiene la tirada regalada.
+  const pPos = Math.min(0.80, base + plusActividad);
+
+  const r = Math.random();
+  if (r < pPos) {
+    // Dentro de lo positivo, un tercio son tiradas grandes.
+    return Math.random() < 0.34
+      ? { tier: 'blessed', amount:  grande() }
+      : { tier: 'gain',    amount:  pequena() };
   }
-  if (targetIsAdmin) {
-    // 55% positive, 45% negative.
-    if (r < 0.25) return { tier: 'blessed', amount: big() };
-    if (r < 0.55) return { tier: 'gain',    amount: small() };
-    if (r < 0.83) return { tier: 'loss',    amount: -small() };
-    return { tier: 'cursed', amount: -big() };
-  }
-  // member — 45% positive, 55% negative.
-  if (r < 0.18) return { tier: 'blessed', amount: big() };
-  if (r < 0.45) return { tier: 'gain',    amount: small() };
-  if (r < 0.78) return { tier: 'loss',    amount: -small() };
-  return { tier: 'cursed', amount: -big() };
+  // Dentro de lo negativo, un tercio son catastrofes.
+  return Math.random() < 0.34
+    ? { tier: 'cursed', amount: -grande() }
+    : { tier: 'loss',   amount: -pequena() };
 }
 
 const AURA = {
@@ -1327,6 +1335,9 @@ const AURA = {
 };
 
 
+// Cada tramo se ordena de mas duro a mas suave: el bot saca primero lo peor.
+for (const tramo of Object.keys(AURA)) AURA[tramo] = ordenarPorDureza(AURA[tramo]);
+
 // !aura top — leaderboard of accumulated aura in the group.
 async function showRanking(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
@@ -1353,23 +1364,26 @@ async function showRanking(sock, msg, groupMeta) {
 }
 
 const AURA_INFO =
-`*¿QUÉ ES EL AURA?*
+`*EL AURA*
 
-El aura es tu puntuación social en el grupo. Empieza en *100* y sube o baja según lo que hagas.
+Es la moneda del grupo. Empiezas con *100*. Un millonario del grupo ronda los *5.000*.
 
-*CÓMO GANAR O PERDER AURA*
-· *!aura* — tiras el dado (3min cooldown). Puede subir o bajar dependiendo de tu rol: el owner tiene ventaja, los admins algo menos, los miembros la peor odds. La tirada no mira cuánta aura llevas: cada tirada empieza de cero.
-· *Bonos automáticos* — solo por escribir en el grupo recibes bonos al llegar a 200, 500 y 1000 mensajes diarios. El contador se reinicia cada 24h, así que la carrera empieza de nuevo cada día. Los premios mínimos garantizados: Tier 1 (200 msgs) *1.000*, Tier 2 (500 msgs) *2.500*, Tier 3 (1000 msgs) *5.000*. Con suerte puedes sacar mucho más.
-· *Jackpot de redención* — si llevas aura negativa, tienes probabilidad extra de sacar un premio enorme en cualquier tier. El aura del grupo no abandona a los hundidos.
-· *!duel @user* — apuesta aura contra otro. El retado acepta con !duel aceptar. Gana el más favorecido por el sistema (owner > admin > miembro), pero nadie está a salvo.
-· *!robo @user* — intenta robar aura a alguien. El resultado no es solo ganar o perder: hay golpes maestros, robos a medias y desastres en los que la víctima se queda con lo tuyo. 10min de cooldown.
-· *!dar @user <cantidad>* — transfiere aura a otro miembro voluntariamente. Mínimo 5.
+*CÓMO SE GANA*
+· *!aura* — tiras el dado (3min de espera). Sube o baja. Si superas los 1.000 mensajes en *!count*, tiras con algo más de suerte.
+· *Escribiendo* — bonos automáticos al llegar a 200, 500 y 1000 mensajes en el día. El contador se reinicia cada 24h.
+· *!robo @user <cantidad>* — le quitas aura a alguien. Cuanto más pides, menos probable es que salga. El tope depende de lo que tenga la víctima.
+· *!duel @user <cantidad>* — apuesta 1v1. El retado acepta con *!duel aceptar*.
+· *!dar @user <cantidad>* — le pasas aura a alguien.
+
+*EN QUÉ SE GASTA*
+· *!play* — 15    · *!g* — 10
+· *!fk* — 8       · *!pfp* — 5
 
 *COMANDOS*
-· *!aura* — tirar para ti
-· *!aura @user* — ver aura de alguien
-· *!aura top* — ranking del grupo
-· *!aura hoy* — tu progreso de hoy (msgs y próximo bono)`;
+· *!aura* — tirar
+· *!aura @user* — ver el aura de alguien
+· *!aura top* — ranking
+· *!aura hoy* — tu progreso del día`;
 
 // !aura [@user]  — rolls aura for the target and updates their PERSISTENT total.
 // !aura top      — shows the group leaderboard.
@@ -1421,7 +1435,17 @@ async function cmdAura(sock, msg, args, groupMeta) {
   const selfIsOwner = isOwner(sender, msg.key.fromMe, groupMeta);
   const selfIsAdmin = isAdmin(groupMeta?.participants, sender);
 
-  const { tier, amount } = rollAura(selfIsOwner, selfIsAdmin);
+  // Empujon por actividad: el bot mira el contador de !count del que tira. A
+  // partir del umbral la tirada sale positiva algo mas a menudo. Es un plus
+  // pequeno y no garantiza nada — el resultado sigue siendo aleatorio.
+  let plusActividad = 0;
+  let mensajes = 0;
+  try {
+    mensajes = await getUserCount(jid, sender);
+    if (mensajes >= ACTIVIDAD_MSGS) plusActividad = ACTIVIDAD_BONO;
+  } catch { /* si el contador falla, se tira sin plus */ }
+
+  const { tier, amount } = rollAura(selfIsOwner, selfIsAdmin, plusActividad);
   const sign = amount >= 0 ? '+' : '-';
 
   const { previous, current } = await addAura(jid, sender, amount);
@@ -1432,7 +1456,8 @@ async function cmdAura(sock, msg, args, groupMeta) {
   const text =
     `*@${sender.split('@')[0]} ${sign}${fmt(Math.abs(amount))} de aura*\n` +
     `${pickFresh(AURA[effectiveTier], `${jid}|aura|${effectiveTier}`)}\n\n` +
-    `Aura total: *${fmt(current)}*`;
+    `Aura total: *${fmt(current)}*` +
+    (plusActividad ? `\n_Activo (${fmt(mensajes)} msgs): +${Math.round(plusActividad * 100)}% de suerte_` : '');
 
   await sock.sendMessage(jid, { text, mentions: [sender] }, { quoted: msg });
 }

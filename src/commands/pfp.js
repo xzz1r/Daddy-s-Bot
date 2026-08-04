@@ -1,5 +1,6 @@
 const axios = require('axios');
 const { getTarget, getSender, canonicalJid, fetchPfpUrl } = require('../utils/wa');
+const { cobrar, textoSinSaldo } = require('../utils/auraCobro');
 const { computeHash } = require('../utils/phash');
 const { recordAndMatch } = require('../utils/pfpStore');
 const pfpCache = require('../utils/pfpCache');
@@ -93,8 +94,16 @@ async function downloadPfp(url) {
 // !pfp @user | !pfp wa.me/<num> | !pfp <num> | !pfp (a ti mismo) — trae la foto
 // de perfil. Si está oculta/no visible, cae a la última foto conocida guardada
 // en caché (de cuando el bot la vio en algún momento).
-async function cmdPfp(sock, msg, args) {
+async function cmdPfp(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
+
+  // Consultar la foto de otro cuesta aura: cada !pfp es una peticion a los
+  // servidores de WhatsApp y era el comando mas facil de disparar en bucle.
+  const quienPide = getSender(msg);
+  const pago = await cobrar(jid, quienPide, 'pfp', { fromMe: msg.key.fromMe, groupMeta });
+  if (!pago.ok) {
+    return sock.sendMessage(jid, { text: textoSinSaldo('pfp', pago) }, { quoted: msg });
+  }
 
   // Sin mención ni argumentos → tu propia foto.
   const hasMention = !!getTarget(msg);

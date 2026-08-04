@@ -187,23 +187,24 @@ _Prefijo *${p}* — ejemplo: *${p}play* despacito_
 *${p}count* — ranking de quién escribe más _(admins)_
 *${p}relevancia* [@user] — tu peso real en el grupo
 *${p}fantasmas* — los que menos escriben
-*${p}inactivos* — los que no han escrito nunca
+*${p}inactivos* — los que no llegan a 10 mensajes
 *${p}vs* @a @b — compara la actividad de dos
 *${p}top5* / *${p}top10* <tema> — ranking al azar
 
-━━━━━ *JUEGOS DE %* ━━━━━
+━━━━━ *DINÁMICAS* ━━━━━
 _Sin @ va sobre ti · con @ va sobre esa persona_
+_Ordenados de más crudo a más suave._
 
-*${p}crack* · *${p}iq* · *${p}hot* · *${p}ganador*
-*${p}fiel* · *${p}infiel* · *${p}masculinidad* · *${p}feminidad*
-*${p}perdedor* · *${p}inutil* · *${p}rata* · *${p}cerdo*
-*${p}simp* · *${p}friki* · *${p}gay* · *${p}maricon*
-*${p}femboy* · *${p}puta* · *${p}guarra*
-*${p}linda* · *${p}fea* · *${p}incel*
-
-━━━━━ *DUELOS* ━━━━━
 *${p}roast* @user — destrucción pública
+*${p}perdedor* · *${p}puta* · *${p}guarra*
+*${p}incel* · *${p}maricon* · *${p}gay*
+*${p}cerdo* · *${p}inutil* · *${p}rata*
+*${p}femboy* · *${p}simp* · *${p}friki*
+*${p}fea* · *${p}iq* · *${p}infiel*
 *${p}mog* @a @b — duelo de looks
+*${p}feminidad* · *${p}masculinidad*
+*${p}linda* · *${p}hot* · *${p}fiel*
+*${p}crack* · *${p}ganador*
 *${p}ship* @a @b — compatibilidad
 
 ━━━━━ *WINGMAN* ━━━━━
@@ -219,7 +220,8 @@ _Sin @ va sobre ti · con @ va sobre esa persona_
 *${p}duel* @user <cantidad> — apostar 1v1
 *${p}robo* @user <cantidad> — intentar robar _(5 desenlaces)_
 *${p}aura hoy* — tu progreso de hoy _(o ${p}casino)_
-_Ganas aura escribiendo. Bonos diarios: 200 msg = 1.000 · 500 = 2.500 · 1000 = 5.000_
+_Ganas aura escribiendo. Bonos diarios: 200 msg · 500 · 1000_
+_Cuestan aura: ${p}play (15) · ${p}g (10) · ${p}fk (8) · ${p}pfp (5)_
 
 ━━━━━ *PERFIL* ━━━━━
 *${p}pfp* @user — su foto de perfil

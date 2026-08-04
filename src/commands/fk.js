@@ -3,6 +3,7 @@ const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const {
   getSender, isOwner, isMainOwner, isGroupAdmin, isBotJid, canonicalJid, bareJid, sameUser, fetchAbout,
 } = require('../utils/wa');
+const { cobrar, textoSinSaldo } = require('../utils/auraCobro');
 const { streamToBuffer, MAX_MEDIA_BYTES } = require('../utils/helpers');
 const { resolveTarget } = require('./pfp');
 const { computeHash } = require('../utils/phash');
@@ -239,6 +240,14 @@ async function cmdFk(sock, msg, args, groupMeta) {
   // Modo foto: si el !fk va sobre una imagen (adjunta o citada), analiza ESA
   // imagen — huella contra el historial + búsqueda facial en Lenso + enlaces —
   // en vez de la foto de perfil de una cuenta.
+  // El analisis anti-fake mueve huella de imagen, busqueda facial y consultas
+  // externas: es caro y se cobra.
+  const quienPide = getSender(msg);
+  const pago = await cobrar(jid, quienPide, 'fk', { fromMe: msg.key.fromMe, groupMeta });
+  if (!pago.ok) {
+    return sock.sendMessage(jid, { text: textoSinSaldo('fk', pago) }, { quoted: msg });
+  }
+
   const img = findImage(msg);
   if (img) return fkOnImage(sock, msg, img);
 

@@ -3,6 +3,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const logger = require('../utils/logger');
 const { isOwner, extractQuotedText, getSender } = require('../utils/wa');
+const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 
 const GROK_API = 'https://api.x.ai/v1/chat/completions';
 const MODEL = process.env.GROK_MODEL || 'grok-3';
@@ -60,7 +61,7 @@ function chunkText(text, maxLen = 3500) {
 }
 
 // !g <pregunta>   |   reply + !g <pregunta>
-async function cmdGrok(sock, msg, args) {
+async function cmdGrok(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   const apiKey = getApiKey();
 
@@ -73,10 +74,14 @@ async function cmdGrok(sock, msg, args) {
   }
 
   const prompt = (args || []).join(' ').trim();
-  if (!prompt) {
-    return sock.sendMessage(jid, {
-      text: 'Usa: *!g* <pregunta>\nO responde a un mensaje con *!g <pregunta>*.',
-    }, { quoted: msg });
+  if (!prompt) return;
+
+  // Cada pregunta a la IA cuesta aura: es la llamada mas cara que hace el bot.
+  // Se devuelve mas abajo si la API falla.
+  const quienPregunta = getSender(msg);
+  const pago = await cobrar(jid, quienPregunta, 'grok', { fromMe: msg.key.fromMe, groupMeta });
+  if (!pago.ok) {
+    return sock.sendMessage(jid, { text: textoSinSaldo('grok', pago) }, { quoted: msg });
   }
 
   const quoted = extractQuotedText(msg);
@@ -119,6 +124,8 @@ async function cmdGrok(sock, msg, args) {
       : (status === 401 || status === 403) ? 'La key de Grok no es válida o expiró. El owner debe reconfigurarla con !setgrok.'
       : err.code === 'ECONNABORTED' ? 'Grok tardó demasiado en responder, intenta de nuevo.'
       : 'Grok no está disponible ahora mismo, intenta más tarde.';
+    // La pregunta no llegó a responderse: se devuelve lo cobrado.
+    await devolver(jid, quienPregunta, pago.pagado).catch(() => {});
     await sock.sendMessage(jid, { text: friendly }, { quoted: msg });
   }
 }

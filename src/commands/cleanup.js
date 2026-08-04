@@ -134,9 +134,7 @@ async function runScan(sock, msg, groupJid, groupMeta) {
     `*${TITULO} — ${detected.length} detectado${detected.length > 1 ? 's' : ''}*\n\n` +
     lines.join('\n') +
     unknownNote +
-    `\n\n_Esto NO expulsa a nadie._` +
-    `\n_Si la lista es correcta: *${CMD} purge* (dentro de 10 min)._` +
-    `\n_OJO: quien tenga la foto oculta por privacidad se ve igual que quien no tiene ninguna. Revisa la lista antes de purgar._`;
+    `\n\n_Quien tenga la foto oculta por privacidad se ve igual que quien no tiene ninguna._`;
 
   return sock.sendMessage(groupJid, { text, mentions: detected.map(d => d.kickId) });
 }
@@ -144,9 +142,7 @@ async function runScan(sock, msg, groupJid, groupMeta) {
 async function runPurge(sock, msg, groupJid, groupMeta) {
   const last = lastPfpScan.get(groupJid);
   if (!last || Date.now() - last.ts > SCAN_VALID_MS) {
-    return sock.sendMessage(groupJid, {
-      text: `Primero corre *${CMD} scan*, revisa la lista y luego *${CMD} purge* dentro de 10 min.`,
-    }, { quoted: msg });
+    return sock.sendMessage(groupJid, { text: 'No hay ningún scan reciente.' }, { quoted: msg });
   }
 
   const lista = last.detected;
@@ -172,8 +168,8 @@ async function runPurge(sock, msg, groupJid, groupMeta) {
   if (r.status === 'vacio') {
     return sock.sendMessage(groupJid, {
       text: r.spared.length
-        ? `No queda nadie a quien expulsar: los detectados son ahora admin, owner o el bot. Corre *${CMD} scan* de nuevo.`
-        : `Los detectados ya no están en el grupo. Corre *${CMD} scan* de nuevo.`,
+        ? 'No queda nadie a quien expulsar: los detectados son ahora admin, owner o el bot.'
+        : 'Los detectados ya no están en el grupo.',
     }, { quoted: msg });
   }
 
@@ -195,15 +191,11 @@ async function cmdAntiFoto(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: 'Solo el owner puede usar este comando.' }, { quoted: msg });
   }
 
+  // Sin subcomando válido el bot no responde. No da menús de uso: ejecuta
+  // funciones o se calla.
   const arg = (args?.[0] || '').toLowerCase();
   if (arg === 'scan')  return runScan(sock, msg, jid, groupMeta);
   if (arg === 'purge') return runPurge(sock, msg, jid, groupMeta);
-
-  return sock.sendMessage(jid, {
-    text:
-      `*${CMD} scan* — lista a quien no tiene foto de perfil (NO expulsa)\n` +
-      `*${CMD} purge* — expulsa a los detectados`,
-  }, { quoted: msg });
 }
 
 module.exports = { cmdAntiFoto };
