@@ -194,7 +194,7 @@ _Prefijo *${p}* — ejemplo: *${p}play* despacito_
 ━━━━━ *JUEGOS DE %* ━━━━━
 _Sin @ va sobre ti · con @ va sobre esa persona_
 
-*${p}crack* · *${p}inteligencia* · *${p}hot* · *${p}ganador*
+*${p}crack* · *${p}iq* · *${p}hot* · *${p}ganador*
 *${p}fiel* · *${p}infiel* · *${p}masculinidad* · *${p}feminidad*
 *${p}perdedor* · *${p}inutil* · *${p}rata* · *${p}cerdo*
 *${p}simp* · *${p}friki* · *${p}gay* · *${p}maricon*

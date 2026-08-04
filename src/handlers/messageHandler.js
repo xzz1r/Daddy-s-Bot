@@ -22,7 +22,7 @@ const { cmdToImg, cmdToVid } = require('../commands/toimg');
 const { cmdPfp } = require('../commands/pfp');
 const { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdAntiFake } = require('../commands/fk');
 const { maybeIndex } = require('../utils/pfpIndexer');
-const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdInteligencia, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy, cmdPerdedor, cmdGanador, cmdPuta, cmdGuarra, cmdFiel, cmdInfiel, cmdLinda, cmdFea, cmdIncel } = require('../commands/percent');
+const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdIQ, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy, cmdPerdedor, cmdGanador, cmdPuta, cmdGuarra, cmdFiel, cmdInfiel, cmdLinda, cmdFea, cmdIncel } = require('../commands/percent');
 const { cmdRizz, cmdPiropo, cmdWingman } = require('../commands/wingman');
 const { cmdAura } = require('../commands/aura');
 const { resetAura } = require('../utils/auraStore');
@@ -226,7 +226,7 @@ const NEEDS_META = new Set([
   // pasa groupMeta y sus modulos no lo mencionan, asi que pedirlo solo anyadia
   // una peticion de red (hasta 8s con la cache fria) antes de ejecutarlos.
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
-  'crack','inteligencia','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','ganador',
+  'crack','iq','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','ganador',
   'puta','guarra','fiel','infiel','linda','fea','incel',
   'rizz',   // piropo y wingman NO: sus handlers no reciben groupMeta (wingman.js)
   'aura','resetaura','inactivos','inactivo','fantasma','fantasmas','mog','moggear','roast','flamear',
@@ -1236,7 +1236,7 @@ async function handleMessage(sock, msg) {
       case 'maricón':    await cmdMaricon(sock, msg, groupMeta); break;
       case 'friki':      await cmdFriki(sock, msg, groupMeta); break;
       case 'crack':          await cmdCrack(sock, msg, groupMeta); break;
-      case 'inteligencia':   await cmdInteligencia(sock, msg, groupMeta); break;
+      case 'iq':             await cmdIQ(sock, msg, groupMeta); break;
       case 'cerdo':          await cmdCerdo(sock, msg, groupMeta); break;
       case 'feminidad':      await cmdFeminidad(sock, msg, groupMeta); break;
       case 'masculinidad':   await cmdMasculinidad(sock, msg, groupMeta); break;
