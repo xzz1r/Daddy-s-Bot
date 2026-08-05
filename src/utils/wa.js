@@ -480,7 +480,50 @@ async function fetchPfpUrl(sock, jid, tipo = 'image', intentos = 2) {
   throw ultimoError;
 }
 
+
+// ─── Restricción de contacto de WhatsApp ("reachout timelock") ───────────────
+//
+// WhatsApp limita a las cuentas nuevas o marcadas para que no puedan escribir a
+// desconocidos ni meterlos en grupos. Cuando está activa, *!add* falla con
+// `account_reachout_restricted` — y el error NO es del número al que se intenta
+// añadir: es del bot. Eso confunde muchísimo, porque el owner prueba con otro
+// número y también falla.
+//
+// Baileys avisa por `connection.update` con la fecha en que se levanta. Se
+// guarda aquí para que los comandos puedan explicarlo y decir hasta cuándo, en
+// vez de soltar el código en crudo.
+let restriccionContacto = null;   // { hasta: Date } o null
+
+function anotarRestriccionContacto(info) {
+  if (!info || !info.isActive) { restriccionContacto = null; return; }
+  restriccionContacto = { hasta: info.timeEnforcementEnds || null };
+}
+
+function restriccionContactoActiva() {
+  if (!restriccionContacto) return null;
+  // Si ya pasó la hora, se da por levantada aunque no haya llegado el aviso.
+  if (restriccionContacto.hasta && Date.now() > new Date(restriccionContacto.hasta).getTime()) {
+    restriccionContacto = null;
+    return null;
+  }
+  return restriccionContacto;
+}
+
+// Texto legible de cuánto queda, o cadena vacía si no se sabe.
+function cuantoQuedaDeRestriccion() {
+  const r = restriccionContactoActiva();
+  if (!r || !r.hasta) return '';
+  const ms = new Date(r.hasta).getTime() - Date.now();
+  if (ms <= 0) return '';
+  const h = Math.floor(ms / 3600000);
+  const m = Math.ceil((ms % 3600000) / 60000);
+  return h ? `${h}h ${m}min` : `${m}min`;
+}
+
 module.exports = {
+  anotarRestriccionContacto,
+  restriccionContactoActiva,
+  cuantoQuedaDeRestriccion,
   isOwner,
   isMainOwner,
   noteOwnerJid,

@@ -12,7 +12,7 @@ const fs = require('fs-extra');
 const qrcode = require('qrcode-terminal');
 const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, flushState } = require('./utils/state');
-const { isOwner, sameUser, isBotAdmin, canonicalJid, rememberMapping, flushOwnerJids } = require('./utils/wa');
+const { isOwner, sameUser, isBotAdmin, canonicalJid, rememberMapping, flushOwnerJids, anotarRestriccionContacto } = require('./utils/wa');
 const { anotarAlta, motivoDelAlta, ALTA_INVITE, ALTA_SOLICITUD } = require('./utils/joinReason');
 const { notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, sondeoReciente, reactivarSondeo, frenoNuevo, flushJoinRequests } = require('./utils/joinRequests');
 const { flushCounts } = require('./utils/messageCounter');
@@ -199,7 +199,19 @@ async function connectToWhatsApp() {
     shouldIgnoreJid: jid => jid === 'status@broadcast',
   });
 
-  sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
+  sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr, reachoutTimeLock }) => {
+    // WhatsApp restringe a las cuentas nuevas o marcadas para que no contacten
+    // desconocidos. Mientras esta activo, !add falla con
+    // `account_reachout_restricted` y el error parece del numero al que se
+    // intenta añadir, cuando en realidad es del bot. Se anota para poder
+    // explicarlo y decir hasta cuando.
+    if (reachoutTimeLock) {
+      anotarRestriccionContacto(reachoutTimeLock);
+      logger.warn(reachoutTimeLock.isActive
+        ? `WhatsApp ha restringido a esta cuenta para contactar desconocidos${reachoutTimeLock.timeEnforcementEnds ? ` hasta ${new Date(reachoutTimeLock.timeEnforcementEnds).toLocaleString('es-ES')}` : ''}. !add no podra añadir a gente nueva hasta entonces.`
+        : 'WhatsApp ha levantado la restriccion de contacto. !add vuelve a funcionar con normalidad.');
+    }
+
     if (qr) {
       console.log('\nEscanea el QR con WhatsApp → Dispositivos vinculados → Vincular dispositivo:\n');
       qrcode.generate(qr, { small: true });
