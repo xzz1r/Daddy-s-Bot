@@ -45,10 +45,10 @@ function rollRange([min, max]) {
 //  ─────────────────┼───────────┼──────────────┼──────────
 //  Negativo miembro │   88 %    │    8 %       │    4 %
 //  Negativo admin   │   78 %    │    14 %      │    8 %
-//  Negativo owner   │    3 %    │    7 %       │   90 %
+//  Negativo owner   │    6 %    │   14 %       │   80 %
 //  Positivo miembro │   15 %    │    30 %      │   55 %
 //  Positivo admin   │   28 %    │    35 %      │   37 %
-//  Positivo owner   │   92 %    │    6 %       │    2 %
+//  Positivo owner   │   80 %    │   14 %       │    6 %
 function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
   const rand = Math.random();
   const hi = () => 70 + Math.floor(Math.random() * 31);
@@ -57,15 +57,20 @@ function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
 
   // La distancia entre admin y miembro se ha estrechado a propósito: era tan
   // grande que en el grupo se notaba y acusaban al bot de tratar a los admins
-  // como intocables. El owner sigue igual — ese sesgo es el que se quiere —
-  // pero entre admin y miembro la diferencia pasa a ser un matiz, no un abismo.
+  // como intocables. Entre admin y miembro la diferencia pasa a ser un matiz.
+  //
+  // Y el sesgo del OWNER se rebajó de 92/90 a 80, por petición suya: cantaba
+  // demasiado. Con 92 le salía la franja buena en nueve de cada diez tiradas y
+  // eso se nota a ojo en un grupo que usa estos comandos a diario; con 80 sigue
+  // saliendo favorecido de calle pero de vez en cuando le toca un resultado
+  // normal, que es lo que hace creíble al resto.
   //
   // Peyorativos, franja alta:  admin 78 -> 86, miembro 88 -> 87  (hueco 10 -> 1)
   // Positivos,   franja alta:  admin 28 -> 19, miembro 15 -> 17  (hueco 13 -> 2)
   if (!goodIsHigh) {
     if (targetIsOwner) {
-      if (rand < 0.90) return lo();
-      if (rand < 0.97) return mid();
+      if (rand < 0.80) return lo();
+      if (rand < 0.94) return mid();
       return hi();
     }
     if (targetIsAdmin) {
@@ -78,8 +83,8 @@ function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
     return lo();
   } else {
     if (targetIsOwner) {
-      if (rand < 0.92) return hi();
-      if (rand < 0.98) return mid();
+      if (rand < 0.80) return hi();
+      if (rand < 0.94) return mid();
       return lo();
     }
     if (targetIsAdmin) {
