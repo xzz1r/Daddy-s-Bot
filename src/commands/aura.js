@@ -2,8 +2,8 @@ const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameU
 const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
-const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, VENTAJA_CASA, multiplicadorPerdida, ORDAGO, rango } = require('../utils/economia');
-const { ORDAGO_GANA, ORDAGO_PIERDE } = require('../data/ordagoPhrases');
+const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, VENTAJA_CASA, multiplicadorPerdida, APUESTA, rango } = require('../utils/economia');
+const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 
 // 2 min, bajado desde 3. La tirada mueve poco aura (15-150) desde que se
 // recorto la escala, asi que tres minutos de espera para un goteo era mucho
@@ -1410,7 +1410,7 @@ Es la moneda del grupo. Empiezas con *100*. Un millonario del grupo ronda los *5
 // !aura top      — shows the group leaderboard.
 // !aura info     — explains the full system.
 // ═══════════════════════════════════════════════════════════════════════════
-// !aura allin — el ordago del dia
+// !aura apostar — la mitad del saldo a una carta
 // ═══════════════════════════════════════════════════════════════════════════
 
 // El pool de derrota SI se ordena de mas duro a mas suave: son burlas, y el bot
@@ -1418,21 +1418,21 @@ Es la moneda del grupo. Empiezas con *100*. Un millonario del grupo ronda los *5
 // NO: son cronicas de una hazaña, todas dicen lo mismo con otras palabras, y
 // ordenarlas por tacos solo pondria delante las que mas suenan a insulto — el
 // efecto contrario al que busca. Mismo criterio que OWNER_ROAST.
-const POOL_ORDAGO_GANA = ORDAGO_GANA;
-const POOL_ORDAGO_PIERDE = ordenarPorDureza(ORDAGO_PIERDE);
+const POOL_APUESTA_GANA = APUESTA_GANA;
+const POOL_APUESTA_PIERDE = ordenarPorDureza(APUESTA_PIERDE);
 
-const ORDAGO_COOLDOWN_MS = ORDAGO.cooldownMin * 60 * 1000;
-const ultimoOrdago = new Map();   // `${grupo}|${persona}` -> ts
+const APUESTA_COOLDOWN_MS = APUESTA.cooldownMin * 60 * 1000;
+const ultimaApuesta = new Map();   // `${grupo}|${persona}` -> ts
 
-// Guarda contra dos ordagos simultaneos de la misma persona. Se reclama de
+// Guarda contra dos apuestas simultaneas de la misma persona. Se reclama de
 // forma SINCRONA, antes de cualquier await: leer el saldo y moverlo son dos
 // pasos, y sin esto dos mensajes a la vez pasarian los dos la comprobacion y se
 // jugarian el saldo dos veces. Mismo patron que usa el duelo al aceptar.
-const ordagoEnCurso = new Set();
+const apuestaEnCurso = new Set();
 
 // Frases de rechazo. Secas: dicen el porque y nada mas. El bot no da tutoriales
 // ni explica como conseguir aura.
-const ORDAGO_POBRE = [
+const APUESTA_POBRE = [
   'Con eso no se apuesta, con eso se sobrevive.',
   'No tienes suficiente para que esto tenga gracia.',
   'Arriesgar lo que tú tienes no es arriesgar. Vuelve con algo encima.',
@@ -1441,24 +1441,24 @@ const ORDAGO_POBRE = [
   'Aquí no se juega con calderilla.',
 ];
 
-async function jugarOrdago(sock, msg, groupMeta) {
+async function jugarApuesta(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'El órdago solo se juega en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Esto solo se juega en grupos.' }, { quoted: msg });
   }
 
   const sender = getSender(msg);
   const clave = `${jid}|${canonicalJid(sender)}`;
-  if (ordagoEnCurso.has(clave)) return;   // ya hay uno en vuelo
-  ordagoEnCurso.add(clave);
+  if (apuestaEnCurso.has(clave)) return;   // ya hay uno en vuelo
+  apuestaEnCurso.add(clave);
 
   try {
-    // Cooldown propio. Es el unico freno que necesita: encadenar ordagos arruina
+    // Cooldown propio. Es el unico freno que necesita: encadenar apuestas arruina
     // por pura matematica (cada jugada multiplica el saldo por 1,5 o por 0,5, y
     // a 42 % eso baja solo), asi que esto no esta para prohibir nada — esta para
     // que la caida no ocurra en diez minutos.
-    const ultimo = ultimoOrdago.get(clave) || 0;
-    const queda = ORDAGO_COOLDOWN_MS - (Date.now() - ultimo);
+    const ultimo = ultimaApuesta.get(clave) || 0;
+    const queda = APUESTA_COOLDOWN_MS - (Date.now() - ultimo);
     if (queda > 0) {
       const h = Math.floor(queda / 3_600_000);
       const m = Math.ceil((queda % 3_600_000) / 60_000);
@@ -1469,40 +1469,40 @@ async function jugarOrdago(sock, msg, groupMeta) {
 
     // Hay que tener algo que perder.
     const saldo = await getAura(jid, sender);
-    if (saldo < ORDAGO.minimo) {
+    if (saldo < APUESTA.minimo) {
       return sock.sendMessage(jid, {
-        text: `${pickFresh(ORDAGO_POBRE, `${jid}|ordago|pobre`)}\n_Mínimo *${fmt(ORDAGO.minimo)}*. Tienes *${fmt(saldo)}*._`,
+        text: `${pickFresh(APUESTA_POBRE, `${jid}|apuesta|pobre`)}\n_Mínimo *${fmt(APUESTA.minimo)}*. Tienes *${fmt(saldo)}*._`,
       }, { quoted: msg });
     }
 
     // Se reclama el cooldown ANTES de mover nada.
-    if (ultimoOrdago.size >= 2000) ultimoOrdago.delete(ultimoOrdago.keys().next().value);
-    ultimoOrdago.set(clave, Date.now());
+    if (ultimaApuesta.size >= 2000) ultimaApuesta.delete(ultimaApuesta.keys().next().value);
+    ultimaApuesta.set(clave, Date.now());
 
     const esOwner = isOwner(sender, msg.key.fromMe, groupMeta);
     const esAdmin = !esOwner && isAdmin(groupMeta?.participants, sender);
-    const p = esOwner ? ORDAGO.p.owner : esAdmin ? ORDAGO.p.admin : ORDAGO.p.miembro;
+    const p = esOwner ? APUESTA.p.owner : esAdmin ? APUESTA.p.admin : APUESTA.p.miembro;
     const gana = Math.random() < p;
 
-    const apuesta = Math.floor(saldo * ORDAGO.fraccion);
+    const apuesta = Math.floor(saldo * APUESTA.fraccion);
     // Perder nunca deja por debajo del arranque: quedarse a cero significaria no
     // poder ni hacer un sticker, y el castigo que se busca es el drama, no que
     // alguien deje de usar el bot.
     const objetivo = gana
-      ? saldo + apuesta * (ORDAGO.multiplicador - 1)
-      : Math.max(ORDAGO.suelo, saldo - apuesta);
+      ? saldo + apuesta * (APUESTA.multiplicador - 1)
+      : Math.max(APUESTA.suelo, saldo - apuesta);
     const delta = objetivo - saldo;
 
     const { current } = await addAura(jid, sender, delta);
 
     const nm = `@${sender.split('@')[0]}`;
-    const frase = pickFresh(gana ? POOL_ORDAGO_GANA : POOL_ORDAGO_PIERDE, `${jid}|ordago|${gana ? 'gana' : 'pierde'}`)
+    const frase = pickFresh(gana ? POOL_APUESTA_GANA : POOL_APUESTA_PIERDE, `${jid}|apuesta|${gana ? 'gana' : 'pierde'}`)
       .replace(/%A/g, nm)
       .replace(/%C/g, fmt(apuesta))
       .replace(/%S/g, fmt(current));
 
     const text =
-      `*ÓRDAGO — ${gana ? 'GANA' : 'PIERDE'}*\n` +
+      `*APUESTA — ${gana ? 'GANA' : 'PIERDE'}*\n` +
       `╾━━━━━━━━━━━━━━╼\n\n` +
       `${nm} puso *${fmt(apuesta)}* sobre la mesa.\n\n` +
       `${frase}\n\n` +
@@ -1510,7 +1510,7 @@ async function jugarOrdago(sock, msg, groupMeta) {
 
     return sock.sendMessage(jid, { text, mentions: [sender] }, { quoted: msg });
   } finally {
-    ordagoEnCurso.delete(clave);
+    apuestaEnCurso.delete(clave);
   }
 }
 
@@ -1531,9 +1531,12 @@ async function cmdAura(sock, msg, args, groupMeta) {
     return cmdCasino(sock, msg);
   }
   // "allin" se conserva como alias porque el comando se llamo asi un dia, pero
-  // el nombre bueno es ordago: pone la MITAD del saldo, no todo.
-  if (['ordago', 'órdago', 'allin', 'all-in', 'todo', 'mesa'].includes(sub)) {
-    return jugarOrdago(sock, msg, groupMeta);
+  // el nombre bueno es apostar: pone la MITAD del saldo, no todo.
+  // El nombre bueno es *apostar*. Los demas se conservan como alias porque el
+  // comando ya se llamo asi antes y no tiene sentido romperle el habito a nadie
+  // por un cambio de nombre.
+  if (['apostar', 'apuesta', 'mitad', 'x2', 'ordago', 'órdago', 'allin', 'all-in', 'todo', 'mesa'].includes(sub)) {
+    return jugarApuesta(sock, msg, groupMeta);
   }
 
   const sender = getSender(msg);

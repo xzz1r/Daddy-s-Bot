@@ -33,7 +33,7 @@
 // mensajes diarios, que es un ritmo extremo, y bastante más al resto. Un
 // fantasma se queda donde empezó, que es exactamente el punto.
 //
-// La regla que sostiene todo lo demás: ESCRIBIR MANDA. Las tiradas y el órdago
+// La regla que sostiene todo lo demás: ESCRIBIR MANDA. Las tiradas y la apuesta
 // mueven aura y dan el subidón, pero a la larga NINGUNO da de comer: la casa se
 // queda un pellizco en cada jugada. Todo lo que se acumula sale de escribir.
 // Cuando eso deja de cumplirse, la escala entera sobra.
@@ -127,21 +127,24 @@ function multiplicadorPerdida(pPositiva) {
   return (p / (1 - p)) * VENTAJA_CASA;
 }
 
-// ─── !aura ordago ────────────────────────────────────────────────────────────
+// ─── !aura apostar ───────────────────────────────────────────────────────────
 //
-// La apuesta gorda. Se llamaba "all in" y no lo era: pone la MITAD del saldo en
-// la mesa, no todo, así que el nombre prometía una cosa y el comando hacía otra.
-// Un órdago es exactamente esto — una apuesta grande que puede arruinarte — sin
-// mentir sobre la cifra.
+// La apuesta gorda: la MITAD del saldo a una carta.
+//
+// Ha cambiado de nombre dos veces y las dos por el mismo motivo. Primero fue
+// "all in", que prometía todo el saldo y solo ponía la mitad. Después "órdago",
+// que decía la verdad pero lleva acento, es de partida de mus y no se le ocurre
+// a nadie escribirlo. Ahora es *apostar*: un verbo llano, de la misma familia
+// que !dar y !robar, y lo que hace se entiende sin explicarlo.
 //
 // Está diseñada para picar como pica un casino sin romper nada de lo de arriba,
 // y eso se consigue con cuatro reglas:
 //
 //  1. TIENE SU PROPIO COOLDOWN, TRES HORAS. No hace falta más freno que ese, y
-//     el motivo es bonito: jugar al órdago repetidamente ARRUINA por pura
+//     el motivo es bonito: apostar repetidamente ARRUINA por pura
 //     matemática. Cada jugada multiplica tu saldo por 1,5 si ganas y por 0,5 si
 //     pierdes, y con un 42 % de acierto el crecimiento esperado por jugada es
-//     negativo (−0,23 en logaritmo). Encadenar órdagos te lleva al suelo solo,
+//     negativo (−0,23 en logaritmo). Encadenar apuestas te lleva al suelo solo,
 //     sin que el bot tenga que prohibir nada. El cooldown está para que esa
 //     caída no ocurra en diez minutos.
 //  2. SE JUEGA LA MITAD, NO TODO. Perder no puede borrarte del mapa: con la
@@ -158,12 +161,12 @@ function multiplicadorPerdida(pPositiva) {
 // A 42 % con premio doble, la casa se queda un 16 % de lo apostado: se pierde
 // más veces de las que se gana, que es lo que hace que ganar se cuente durante
 // una semana. Sube por rol igual que en la tirada normal.
-const ORDAGO = {
+const APUESTA = {
   fraccion: 0.5,        // cuánto del saldo se pone en la mesa
   minimo: 300,          // por debajo no hay nada que arriesgar
   multiplicador: 2,     // ganar paga el doble de lo apostado
   suelo: ARRANQUE,      // perder nunca te deja por debajo del arranque
-  cooldownMin: 180,     // tres horas entre órdagos
+  cooldownMin: 180,     // tres horas entre apuestas
   p: { owner: 0.58, admin: 0.45, miembro: 0.42 },
 };
 
@@ -346,7 +349,7 @@ function rango([suelo, ancho]) {
 
 module.exports = {
   MILLONARIO, ARRANQUE,
-  TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, VENTAJA_CASA, multiplicadorPerdida, ORDAGO,
+  TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, VENTAJA_CASA, multiplicadorPerdida, APUESTA,
   BONOS, REDENCION,
   ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, DUELO, REGALO_MIN,
   PRECIOS, SALDO_MINIMO,

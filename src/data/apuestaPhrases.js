@@ -1,7 +1,7 @@
-// Frases de *!aura órdago*, el órdago del día.
+// Frases de *!aura apostar*: la mitad del saldo a una carta.
 //
 // Sesenta por desenlace, no trescientas como en los comandos de porcentaje, y
-// es a propósito: con tres horas de cooldown salen ocho órdagos al día como
+// es a propósito: con tres horas de cooldown salen ocho apuestas al día como
 // mucho, y en la práctica bastantes menos. Con sesenta frases y la ventana
 // anti-repetición de treinta, nadie ve la misma dos veces en semanas.
 // Trescientas aquí sería trabajo tirado; en !fea o !perdedor, que se disparan
@@ -13,9 +13,9 @@
 // contada por alguien que estaba delante, y perder a velatorio con sorna. Nada
 // de "suerte la próxima": el bot no consuela.
 
-const ORDAGO_GANA = [
+const APUESTA_GANA = [
   '%A puso %C de aura encima de la mesa y el aura le devolvió el doble. Esto no se olvida en semanas.',
-  'Órdago de %A: %C al aire. Ganó. Que el grupo entero tome nota de cómo se hace.',
+  'Apuesta de %A: %C al aire. Ganó. Que el grupo entero tome nota de cómo se hace.',
   '%A apostó %C sin que le temblara el pulso y ahora se va con %S. Los que miraban en silencio ya pueden cerrar la boca.',
   'El aura le sonrió a %A. %C multiplicados. Hay gente que lleva meses aquí sin ver una cifra así.',
   '%A se lo jugó todo a una carta y salió la buena. %S. Así, sin despeinarse.',
@@ -34,8 +34,8 @@ const ORDAGO_GANA = [
   'Se lo jugó y ganó. %A suma %C y el resto del grupo suma resentimiento.',
   '%A convirtió %C en el doble sin mover un dedo más que el de escribir el comando. Envidiable y molesto a partes iguales.',
   'El grupo entero vio a %A poner %C sobre la mesa. El grupo entero lo vio ganar. Eso ya no se borra.',
-  '%A no vino a picotear tiradas de quince en quince. Vino a por %C y se los llevó.',
-  'Órdago ganado. %A sale con %S y con la cara de quien sabía perfectamente lo que hacía.',
+  '%A no vino a picotear tiradas de una en una. Vino a por %C y se los llevó.',
+  'Apuesta ganada. %A sale con %S y con la cara de quien sabía perfectamente lo que hacía.',
   '%C doblados. %A acaba de hacer en un comando lo que a otros les cuesta una semana de escribir.',
   'Hoy el aura tuvo dueño y se llama %A. %C ganados de una tacada.',
   '%A se la jugó con %C y ganó. Los que dicen que esto está amañado que expliquen esta.',
@@ -49,8 +49,8 @@ const ORDAGO_GANA = [
   'Se llevó %C sin sudar. %A ahora tiene %S y el grupo tiene una razón más para odiarlo.',
   '%A puso %C en la mesa como quien deja las llaves. Se los llevó dobles.',
   'La apuesta del día era de %A y era de %C. Ganada. Que nadie diga que aquí no pasa nada.',
-  '%A gana %C. Los que llevan todo el día tirando de quince en quince que miren y aprendan.',
-  'Ganó el órdago. %A queda en %S y con derecho a callarse durante días.',
+  '%A gana %C. Los que llevan todo el día tirando de poco en poco que miren y aprendan.',
+  'Ganada. %A queda en %S y con derecho a callarse durante días.',
   '%C de aura cambiaron de manos y todas eran de %A. Buena tarde.',
   '%A se atrevió con %C y el aura le pagó religiosamente. No siempre pasa.',
   'Apuesta grande, victoria grande. %A suma %C y se coloca donde nadie lo esperaba.',
@@ -66,19 +66,19 @@ const ORDAGO_GANA = [
   'Ganó %C. %A ya puede permitirse el lujo de no volver a tirar en toda la semana.',
   'La mesa era de %C y se la queda %A entera. %S final.',
   '%A convirtió una tarde cualquiera en la tarde en que ganó %C. Eso vale más que el aura.',
-  'Ganada por %A: %C que entran. El resto del grupo, a seguir picoteando de quince.',
+  'Ganada por %A: %C que entran. El resto del grupo, a seguir picoteando migajas.',
   'Hay días en los que el aura elige a alguien. Hoy eligió a %A y le dio %C.',
   '%A puso la mitad de su cuenta en juego y salió con %S. Frío como el hielo.',
-  'Órdago de %C aceptado y ganado. %A no necesita decir nada más en todo el día.',
+  'Apuesta de %C sobre la mesa y ganada. %A no necesita decir nada más en todo el día.',
   '%C ganados. %A hoy no farmea, %A hoy cobra.',
   'El grupo entero vio la cifra: %C. Y vio quién se la llevaba: %A.',
   '%A apostó %C y el aura pagó. Simple, brutal y perfectamente merecido.',
   'Ganó y ganó bien. %A se planta en %S después de arriesgar %C. Ahí está el listón.',
 ];
 
-const ORDAGO_PIERDE = [
+const APUESTA_PIERDE = [
   '%A puso %C de aura en la mesa y el aura se los quedó. Que sirva de aviso a los valientes.',
-  'Órdago de %A: %C al aire. Perdidos. Todo el mundo lo vio y nadie lo va a olvidar.',
+  'Apuesta de %A: %C al aire. Perdidos. Todo el mundo lo vio y nadie lo va a olvidar.',
   '%A apostó %C convencido de que era su día. No era su día. Se queda en %S.',
   'Adiós a %C. %A acaba de descubrir por qué los casinos tienen edificios y los jugadores no.',
   '%A se lo jugó y lo perdió. %C evaporados en el tiempo de escribir un comando.',
@@ -89,7 +89,7 @@ const ORDAGO_PIERDE = [
   '%A arriesgó la mitad de todo lo que tenía. La mitad de todo lo que tenía ya no existe.',
   'El aura no perdona, y con %A se ensañó: %C de golpe.',
   '%A jugó %C y se quedó en %S. Hay decisiones que se recuerdan por lo mal que salieron.',
-  'Perdió. %A vuelve a la casilla de picotear tiradas de quince en quince, como los mortales.',
+  'Perdió. %A vuelve a la casilla de picotear tiradas sueltas, como los mortales.',
   '%C al aire, %C al suelo. %A ya puede empezar a escribir para recuperarlos.',
   '%A hizo lo que había que hacer, valientemente, y le salió fatal. %C fuera.',
   'La banca ganó. %A pierde %C y se queda mirando el marcador como quien mira un accidente.',
@@ -98,7 +98,7 @@ const ORDAGO_PIERDE = [
   '%C que se van. %A ahora tiene %S y una lección cara sobre la estadística.',
   'El grupo entero vio a %A poner %C sobre la mesa. El grupo entero lo vio perder. Eso tampoco se borra.',
   '%A vino a por el doble y se fue con la mitad. %C de matrícula.',
-  'Órdago perdido. %A cae a %S y con la cara de quien creía que controlaba algo.',
+  'Apuesta perdida. %A cae a %S y con la cara de quien creía que controlaba algo.',
   '%C fundidos. A %A le costó días juntarlos y un impulso perderlos.',
   'Hoy el aura cobró peaje y lo pagó %A: %C.',
   '%A se la jugó con %C y perdió. Los que decían que esto está amañado a su favor que expliquen esta.',
@@ -112,8 +112,8 @@ const ORDAGO_PIERDE = [
   '%A perdió %C sin despeinarse, que es lo único elegante que hubo en toda la jugada.',
   '%A puso %C en la mesa como quien deja las llaves. Se quedó sin llaves y sin coche.',
   'La apuesta del día era de %A y era de %C. Perdida. El grupo lo agradece: hacía falta un ejemplo.',
-  '%A pierde %C. Los que llevan todo el día tirando de quince en quince hoy salen ganando.',
-  'Órdago fallido. %A queda en %S y sin argumentos para el resto del mes.',
+  '%A pierde %C. Los que llevan todo el día tirando de poco en poco hoy salen ganando.',
+  'Apuesta fallida. %A queda en %S y sin argumentos para el resto del mes.',
   '%C de aura cambiaron de manos y ninguna era la de %A. Mala tarde.',
   '%A se atrevió con %C y el aura le pasó la factura entera. Suele pasar.',
   'Apuesta grande, hostia grande. %A resta %C y se descuelga de la tabla.',
@@ -132,11 +132,11 @@ const ORDAGO_PIERDE = [
   'Perdida por %A: %C que salen. El resto del grupo, a seguir picoteando tranquilos.',
   'Hay días en los que el aura elige a alguien para el escarmiento. Hoy eligió a %A.',
   '%A puso la mitad de su cuenta en juego y salió con %S. Frío como el hielo, y helado del susto.',
-  'Órdago de %C aceptado y perdido. %A ya puede callarse durante el resto del día.',
+  'Apuesta de %C sobre la mesa y perdida. %A ya puede callarse durante el resto del día.',
   '%C perdidos. %A hoy no cobra, %A hoy paga.',
   'El grupo entero vio la cifra: %C. Y vio a quién se le escapaba: %A.',
   '%A apostó %C y el aura cobró. Simple, brutal y perfectamente evitable.',
   'Perdió y perdió feo. %A cae a %S después de arriesgar %C. Ahí está el aviso.',
 ];
 
-module.exports = { ORDAGO_GANA, ORDAGO_PIERDE };
+module.exports = { APUESTA_GANA, APUESTA_PIERDE };

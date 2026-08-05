@@ -3,7 +3,7 @@ const { formatUptime, fmt, pickFresh } = require('../utils/helpers');
 const { isOwner, getSender } = require('../utils/wa');
 const { getCasinoCount, msUntilReset } = require('../utils/casinoStore');
 const { nextMilestone } = require('../utils/casino');
-const { PRECIOS, ORDAGO } = require('../utils/economia');
+const { PRECIOS, APUESTA } = require('../utils/economia');
 const config = require('../config');
 const logger = require('../utils/logger');
 
@@ -217,8 +217,8 @@ _De más crudo a más suave._
 ━━━━━ *AURA* ━━━━━
 _Se gana escribiendo. Bonos diarios a los 200, 500 y 1000 msg._
 *${p}aura* [@user] — ver aura · *${p}aura top* — ranking
-*${p}aura órdago* — la mitad de tu saldo a una carta,
-cada ${ORDAGO.cooldownMin / 60}h. Mínimo ${ORDAGO.minimo} para sentarte a la mesa
+*${p}aura apostar* — la mitad de tu saldo a una carta,
+cada ${APUESTA.cooldownMin / 60}h. Mínimo ${APUESTA.minimo} para jugar
 *${p}aura hoy* — tu progreso de hoy _(o ${p}casino)_
 *${p}dar* @user <cantidad> — regalar
 *${p}duel* @user <cantidad> — apostar 1v1, el otro acepta
