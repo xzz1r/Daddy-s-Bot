@@ -230,27 +230,52 @@ async function cmdFantasmas(sock, msg, groupMeta) {
 // y los que no aparecen en el contador (cero mensajes, el contador ni los
 // conoce, así que hay que sacarlos de la lista de participantes).
 
+// Cabecera de !inactivos. El encargo era claro: humor, ataque a lo inútiles que
+// son en el grupo, y amenaza de expulsión. Las anteriores sonaban a carta del
+// banco — correctas, serias y sin una sola gracia. Estas se ríen de la persona
+// ANTES de amenazarla, que es el orden que funciona.
 let AVISO_PURGA = [
-  'Menos de 10 mensajes. No estás en el grupo: ocupas una silla que alguien con algo que decir está esperando.',
-  'Diez mensajes es el listón más bajo que existe y ni por debajo pasas rozando. Te queda poco aquí.',
-  'El bot te tiene fichado. No por lo que has dicho, sino por todo lo que llevas meses sin decir.',
-  'Menos de 10 mensajes. Entras, lees, te vas. Eso no es ser miembro, es ser un mirón con permiso.',
-  'Llevas aquí lo suficiente como para que ya no haya excusa. El bot ha dejado de aceptarlas.',
-  'Estás en esta lista porque el grupo funciona exactamente igual sin ti. El bot lo va a demostrar.',
-  'Menos de 10 mensajes. Ni un chiste, ni un buenos días, ni una puta cosa. Y aun así ocupas plaza.',
-  'El bot no borra a nadie por antipatía. Te borra porque el contador dice que no estás, y no estás.',
-  'Diez mensajes. Diez. Un número que se alcanza aburrido y en una tarde, y tú no llegas en meses.',
-  'Estás por debajo del corte. No del corte de los buenos: del corte de los que existen.',
-  'Menos de 10 mensajes y una foto de perfil. Eso es todo lo que has aportado desde que entraste.',
-  'El bot ya ha hecho la cuenta. Tu nombre sale en la columna equivocada y no hay recurso posible.',
-  'Llevas de espectador tanto tiempo que el grupo ha dejado de contar contigo. El bot solo lo hace oficial.',
-  'Menos de 10 mensajes. El silencio es respetable cuando aporta algo. El tuyo solo ocupa memoria.',
-  'Estás en la lista de los que no se van a echar de menos. Es la peor lista de todas y es la tuya.',
-  'El bot no discute con fantasmas. Los cuenta, los apunta y los quita. Vas por el segundo paso.',
-  'Menos de 10 mensajes en todo tu historial. El grupo lleva meses funcionando como si no estuvieras. Y funciona.',
-  'Aquí no se paga con dinero, se paga escribiendo. Y tú llevas meses sin pagar el alquiler de tu sitio.',
+  'Diez mensajes. Hay plantas en esta casa con más presencia en el grupo que vosotros.',
+  'El bot ha revisado el historial y ha encontrado vuestra aportación al grupo: nada. Cero. Un vacío con foto de perfil.',
+  'Si mañana os borráis, el grupo tardaría tres semanas en enterarse. Y sería por esta lista.',
+  'Menos de diez mensajes. Ni el bot, que lee todo, tiene una sola frase vuestra que recordar.',
+  'Llevo meses contando y vuestro montón sigue cabiendo en una mano. Con dedos de sobra.',
+  'Estáis en el grupo como está el extintor en la pared: nadie os mira y nadie os usa.',
+  'El bot ha buscado vuestra mejor intervención del año. Sigue buscando. Va a seguir un rato.',
+  'Diez mensajes es lo que escribe alguien que ODIA el grupo. Vosotros ni a eso llegáis.',
+  'Sois el relleno del grupo. Lo que se pone para que la lista de miembros parezca larga.',
+  'El grupo funcionaría exactamente igual si en vuestro sitio hubiera una piedra. Más barato, además.',
+  'Menos de diez mensajes y aquí seguís, ocupando plaza como un mueble que nadie se atreve a tirar.',
+  'He mirado si aportabais algo en silencio. No. También sois inútiles callados.',
+  'Vuestra huella en este grupo es la misma que deja el aire: se sabe que está, pero nadie lo ve.',
+  'Diez mensajes en todo este tiempo. Mi contador pensaba que estaba roto. Estaba bien: erais vosotros.',
+  'Estáis suscritos al grupo, no dentro. Como quien tiene Netflix y no ve nada.',
+  'El bot os tiene fichados, y no por lo que dijisteis. Por el silencio, que ya es un currículum.',
+  'Menos de diez mensajes. Un bot de spam habría aportado más conversación que vosotros.',
+  'Sois esa gente que abre el grupo, lee, se ríe por dentro y se va. Por dentro no cuenta.',
+  'He contado vuestros mensajes tres veces por si me había equivocado. Me había equivocado: eran menos.',
+  'Cada uno de vosotros ocupa un sitio que alguien con algo que decir está esperando. Y espera desde hace meses.',
+  'El grupo tiene miembros y tiene decorado. Vosotros sois lo segundo.',
+  'Diez mensajes. Ni un buenos días. Ni un jaja. Ni una puta reacción. Nada.',
+  'Sois los únicos capaces de estar en un grupo de amigos y no tener un solo amigo dentro.',
+  'El bot no os echa por caeros mal. Os echa porque el contador dice que no estáis, y el contador no miente.',
+  'Vuestro historial completo se lee en menos tiempo del que tardáis en no contestar.',
+  'Menos de diez mensajes. Estáis aquí de visita desde hace medio año.',
+  'Hay gente que no habla porque no tiene nada que decir. Vosotros habéis convertido eso en un estilo de vida.',
+  'El bot ha calculado vuestra relevancia en el grupo y le ha salido división por cero.',
+  'Si esto fuera un trabajo, llevaríais meses cobrando sin ir. Aquí también, pero se acaba.',
+  'Sois lo más parecido a un miembro que existe sin llegar a serlo. Un miembro decorativo.',
+  'Menos de diez mensajes y aún así abrís el grupo cada día. Eso ya no es timidez, es morbo.',
+  'He preguntado al grupo por vosotros. Nadie ha dicho nada. Como vosotros, mira qué casualidad.',
+  'Vuestra participación cabe en un mensaje. Este, de hecho, ya es más largo que todo lo que habéis escrito.',
+  'El bot reparte aura por escribir. Vosotros lleváis meses cobrando cero y aún así seguís aquí.',
+  'Diez mensajes. En ese tiempo, cualquiera del grupo ha escrito eso esperando el ascensor.',
+  'Sois miembros como el que tiene el gimnasio pagado desde enero: técnicamente sí, en la práctica no.',
+  'El bot os ha puesto en una lista. No es la del top. Es la otra.',
+  'Menos de diez mensajes. No sois callados, sois ausentes con conexión a internet.',
+  'Si el grupo fuera una fiesta, vosotros seríais el abrigo de alguien encima de la cama.',
+  'He revisado si al menos reaccionabais a los mensajes de otros. No. Ni eso.',
 ]
-
 
 const UMBRAL_INACTIVO = 10;
 
@@ -258,20 +283,28 @@ const UMBRAL_INACTIVO = 10;
 // amenaza tiene que aparecer SIEMPRE y en el mismo sitio: si dependiera del
 // azar, la mitad de las veces la lista se leeria como un ranking cualquiera.
 let AMENAZAS = [
-  'El bot ya tiene la lista. No hay una segunda.',
-  'Escribe hoy o desaparece. No hay término medio ni prórroga.',
-  'Esto no es un aviso con fecha. Es el último mensaje que vas a leer aquí.',
-  'La puerta está abierta y el bot está detrás de ti. Elige rápido.',
-  'A partir de ahora cada mensaje que no escribas cuenta como una firma en tu expulsión.',
-  'No vuelvas a salir en esta lista. No porque escribas: porque ya no vas a estar.',
-  'El bot no negocia, no recuerda y no perdona. Solo cuenta. Y ya ha contado.',
-  'Te quedan los mensajes que tardes en decidirte. Ni uno más.',
-  'La próxima vez que el bot pase por aquí, esta lista va a estar vacía. Adivina cómo.',
-  'Nadie va a preguntar por ti cuando no estés. Ese es el verdadero problema, no la expulsión.',
-  'El grupo no te necesita y el bot tampoco. Solo falta que se note en la lista de miembros.',
-  'Sales de esta lista escribiendo o te sacan del grupo. No hay una tercera opción.',
+  'Escribid algo o el bot os quita del grupo. Y nadie va a preguntar dónde estáis.',
+  'La próxima vez que pase por aquí esta lista estará vacía: o porque escribisteis, o porque os expulsé a todos.',
+  'Tenéis los mensajes que tardéis en decidiros. Después os saca el bot y ya está.',
+  'O empezáis a existir o el bot os deja de contar. Y lo que no se cuenta, se borra.',
+  'El bot no avisa dos veces. Esto ya era el segundo, y el tercero es la expulsión.',
+  'Escribid hoy. Mañana esta lista es una orden de expulsión con vuestros nombres.',
+  'Sales de esta lista escribiendo o sales del grupo. No hay tercera puerta.',
+  'El bot va a limpiar. Podéis estar en el grupo cuando lo haga o podéis estar en la papelera.',
+  'Cada día que pasa sin que escribáis es una firma más en vuestra propia expulsión.',
+  'Lo peor no es que el bot os eche. Es que el grupo va a seguir exactamente igual.',
+  'Escribid o fuera. Y si os echa, tampoco vais a escribir para quejaros, que ya se sabe.',
+  'El bot ya tiene vuestros números en la lista de expulsión. Solo le falta pulsar, y no tiene prisa porque vosotros tampoco.',
+  'Diez mensajes os separan de la expulsión. Diez. No es un examen, es un trámite, y aun así lo vais a suspender.',
+  'El bot cuenta hacia atrás hasta expulsaros. Vosotros seguid como estáis, que así va más rápido.',
+  'Quedáis avisados: el bot expulsa solo, no pregunta y no guarda copia.',
+  'Escribid algo, lo que sea. Un punto. El bot acepta hasta eso antes de sacaros.',
+  'El grupo no os necesita y el bot ya lo sabe. Os va a expulsar y la única prueba de que estuvisteis será esta lista.',
+  'Esta lista se vacía de dos maneras: escribiendo o expulsados. Elegís vosotros, pero elegís hoy.',
+  'El bot os saca sin ceremonia. Ni mensaje de despedida, que para eso habría que hablar.',
+  'El bot os expulsa cuando le dé la gana y no avisa antes. Podría ser mientras leéis esto.',
 ]
-;
+
 
 async function cmdInactivos(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
@@ -325,36 +358,50 @@ async function cmdInactivos(sock, msg, groupMeta) {
     }
     let n = 0;
     for (const e of suyas) n += e.count;
-    if (n < UMBRAL_INACTIVO) flojos.push({ jid: p.id, count: n });
+    // "entre 0 y 10" incluye el 10: quien lleva justo diez esta igual de
+    // ausente que quien lleva nueve, y dejarlo fuera por uno era un corte que no
+    // significaba nada.
+    if (n <= UMBRAL_INACTIVO) flojos.push({ jid: p.id, count: n });
   }
 
   if (!flojos.length) {
     return sock.sendMessage(jid, {
-      text: `Todo el mundo pasa de ${UMBRAL_INACTIVO} mensajes. No hay a quien limpiar.`,
+      text: `Todo el mundo pasa de ${UMBRAL_INACTIVO} mensajes. Hoy no hay a quien echar.`,
     }, { quoted: msg });
   }
 
   // Los mas callados primero: son los que primero se van.
   flojos.sort((a, b) => a.count - b.count);
 
-  // WhatsApp corta los mensajes muy largos y menciona mal si son cientos: se
-  // listan como mucho 40 y se dice cuantos quedaron fuera, en vez de recortar
-  // en silencio y dar un numero que no cuadra.
-  const TOPE = 40;
-  const mostrados = flojos.slice(0, TOPE);
-  const sobran = flojos.length - mostrados.length;
+  // TODOS salen mencionados, sin excepcion. Antes se cortaba en 40 y del resto
+  // solo se decia "y N mas", que es justo lo contrario de lo que hace falta: al
+  // que no se menciona no le llega la notificacion, o sea que el aviso no le
+  // llega precisamente a quien menos entra al grupo.
+  //
+  // Como WhatsApp corta los mensajes largos y se lia mencionando a cientos, se
+  // parte en tandas. La cabecera y la amenaza van en la primera y la ultima,
+  // para que el mensaje siga leyendose como uno solo.
+  const POR_TANDA = 35;
+  const tandas = [];
+  for (let i = 0; i < flojos.length; i += POR_TANDA) tandas.push(flojos.slice(i, i + POR_TANDA));
 
   const cuantos = flojos.length === 1 ? '1 miembro' : `${flojos.length} miembros`;
-  let text =
-    `*INACTIVOS — ${cuantos} por debajo de ${UMBRAL_INACTIVO} mensajes*\n` +
+  const cabecera =
+    `*INACTIVOS — ${cuantos} con ${UMBRAL_INACTIVO} mensajes o menos*\n` +
     `${pickFresh(AVISO_PURGA, `${jid}|inactivos`)}\n\n`;
-  text += mostrados
-    .map(u => `@${u.jid.split('@')[0]} — ${u.count === 1 ? '1 mensaje' : `${u.count} mensajes`}`)
-    .join('\n');
-  if (sobran) text += `\n\n_Y ${sobran} mas que no caben en un solo mensaje._`;
-  text += `\n\n*${pickFresh(AMENAZAS, `${jid}|inactivos|amenaza`)}*`;
+  const amenaza = `\n\n*${pickFresh(AMENAZAS, `${jid}|inactivos|amenaza`)}*`;
 
-  await sock.sendMessage(jid, { text, mentions: mostrados.map(u => u.jid) }, { quoted: msg });
+  for (let i = 0; i < tandas.length; i++) {
+    const tanda = tandas[i];
+    const lista = tanda
+      .map(u => `@${u.jid.split('@')[0]} — ${u.count === 1 ? '1 mensaje' : `${u.count} mensajes`}`)
+      .join('\n');
+    const text =
+      (i === 0 ? cabecera : `_(continuación ${i + 1}/${tandas.length})_\n\n`) +
+      lista +
+      (i === tandas.length - 1 ? amenaza : '');
+    await sock.sendMessage(jid, { text, mentions: tanda.map(u => u.jid) }, { quoted: i === 0 ? msg : undefined });
+  }
 }
 
 

@@ -1,11 +1,12 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const { isOwner, isAdmin, isBotJid, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid, sameUser, esMiembroActual } = require('../utils/wa');
+const { isOwner, isAdmin, isBotJid, isBotAdmin, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid, sameUser, esMiembroActual } = require('../utils/wa');
 const { streamToBuffer, MAX_DOWNLOAD_BYTES } = require('../utils/helpers');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled, toggleSoloAdmins, isSoloAdminsEnabled } = require('../utils/state');
 const { businessEvidence } = require('../utils/businessCheck');
 const { getMemberFacts } = require('../utils/nickStore');
 const { allow, disallow, listAllowed, MAX_AVISOS } = require('../utils/linkPerms');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
+const logger = require('../utils/logger');
 
 // In-memory mute store: `groupJid|bareJid` -> expireTimestamp
 // Hard-capped: insertion-ordered Map evicts oldest entry past the cap so a
@@ -636,6 +637,39 @@ async function purgeBusinesses(sock, msg, groupJid, groupMeta) {
 }
 
 // !add <numero> — add a user by phone number (owner only)
+// Extrae un número de teléfono de lo que sea que haya escrito el owner.
+//
+// Esta función es el motivo por el que *!add* fallaba tanto. La versión anterior
+// hacía `args[0].replace(/[^\d]/g,'')`, o sea: miraba SOLO la primera palabra.
+// Con eso, de las cinco formas normales de escribir un número, tres se caían:
+//
+//   !add +34600112233        -> funcionaba
+//   !add wa.me/34600112233   -> funcionaba
+//   !add +34 600 11 22 33    -> leía "+34" y contestaba "!add <número>"
+//   !add 34 600 112 233      -> igual
+//   !add (34) 600-112-233    -> igual
+//
+// Y un número copiado de la agenda o de un contacto SIEMPRE lleva espacios. Por
+// eso "no funciona muchas veces": el bot ni llegaba a intentarlo.
+function numeroDeArgs(args) {
+  const todo = (args || []).join(' ');
+  // Un enlace wa.me / api.whatsapp.com trae el número en un parámetro o al final.
+  const enlace = todo.match(/(?:wa\.me\/|phone=)(\d{6,15})/i);
+  const digitos = enlace ? enlace[1] : todo.replace(/\D/g, '');
+  // Un JID pegado entero ("34600112233@s.whatsapp.net") deja basura detrás al
+  // quitar lo que no son dígitos; se corta a un largo de teléfono plausible.
+  if (digitos.length > 15) return digitos.slice(0, 15);
+  return digitos;
+}
+
+// !add <número> — mete a alguien en el grupo.
+//
+// El camino feliz es una sola llamada, pero casi nunca es el camino que ocurre:
+// WhatsApp bloquea que un desconocido te meta en grupos salvo que lo permitas en
+// ajustes, y hoy en día mucha gente lo tiene cerrado. Antes eso se contestaba
+// con "no se pudo agregar" y ahí moría. Ahora, cuando la privacidad lo impide,
+// el bot le manda el enlace de invitación al privado, que es la única vía que
+// queda y la que resuelve el caso de verdad.
 async function cmdAdd(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
@@ -646,38 +680,88 @@ async function cmdAdd(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: 'Solo el owner puede usar este comando.' }, { quoted: msg });
   }
 
-  const raw = (args[0] || '').replace(/[^\d]/g, '');
-  if (!raw || raw.length < 6) {
-    return sock.sendMessage(jid, { text: '*!add <número>*' }, { quoted: msg });
+  const raw = numeroDeArgs(args);
+  if (!raw || raw.length < 7) {
+    return sock.sendMessage(jid, { text: '*!add <número con prefijo del país>*' }, { quoted: msg });
   }
 
-  const targetJid = `${raw}@s.whatsapp.net`;
+  // Sin ser admin no se puede añadir a nadie, y decirlo de entrada evita que el
+  // owner crea que el problema es el número.
+  if (!isBotAdmin(sock, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'No soy admin del grupo, así que no puedo añadir a nadie.' }, { quoted: msg });
+  }
+
+  // Se confirma el número con WhatsApp y se usa el JID que devuelve, no el que
+  // se arma a mano: en grupos modernos la forma correcta puede no ser
+  // "numero@s.whatsapp.net" y añadir con la forma equivocada falla en silencio.
+  let targetJid = `${raw}@s.whatsapp.net`;
+  try {
+    const res = await sock.onWhatsApp(targetJid);
+    const hit = Array.isArray(res) ? res.find(r => r?.exists) : null;
+    if (!hit) {
+      return sock.sendMessage(jid, { text: `+${raw} no tiene cuenta de WhatsApp.` }, { quoted: msg });
+    }
+    if (hit.jid) targetJid = hit.jid;
+  } catch {
+    // Si la consulta falla (red, límite), se intenta igual con la forma armada:
+    // más vale probar que abortar por un hipo de red.
+  }
+
+  let status = '';
   try {
     const result = await sock.groupParticipantsUpdate(jid, [targetJid], 'add');
     // El codigo llega SIEMPRE como cadena: Baileys lo construye con
     // `p.attrs.error || '200'` (Socket/groups.js:137), y los atributos del nodo
-    // binario son texto. Compararlo contra numeros no acertaba ni una vez, asi
-    // que las cuatro respuestas utiles eran codigo muerto y el owner siempre
-    // recibia el mensaje generico de "codigo X".
-    const status = String(result?.[0]?.status ?? '');
-    if (status === '200') {
-      return sock.sendMessage(jid, {
-        text: `@${raw} fue agregado al grupo.`,
-        mentions: [targetJid],
-      }, { quoted: msg });
-    }
-    if (status === '403') {
-      return sock.sendMessage(jid, { text: `No se pudo agregar a +${raw}: su configuracion de privacidad no permite ser agregado a grupos.` }, { quoted: msg });
-    }
-    if (status === '408') {
-      return sock.sendMessage(jid, { text: `No se pudo agregar a +${raw}: el número no existe en WhatsApp.` }, { quoted: msg });
-    }
-    if (status === '409') {
-      return sock.sendMessage(jid, { text: `+${raw} ya esta en el grupo.` }, { quoted: msg });
-    }
-    return sock.sendMessage(jid, { text: `Resultado para +${raw}: código ${status || 'desconocido'}.` }, { quoted: msg });
+    // binario son texto. Compararlo contra numeros no acertaba ni una vez.
+    status = String(result?.[0]?.status ?? '');
   } catch (err) {
-    return sock.sendMessage(jid, { text: `No pude agregar al usuario: ${err.message}` }, { quoted: msg });
+    return sock.sendMessage(jid, { text: `No pude añadir a +${raw}: ${err.message}` }, { quoted: msg });
+  }
+
+  if (status === '200') {
+    return sock.sendMessage(jid, {
+      text: `@${raw} está dentro.`,
+      mentions: [targetJid],
+    }, { quoted: msg });
+  }
+  if (status === '409') {
+    return sock.sendMessage(jid, { text: `+${raw} ya está en el grupo.` }, { quoted: msg });
+  }
+  if (status === '408') {
+    return sock.sendMessage(jid, { text: `+${raw} no existe en WhatsApp o no se puede alcanzar.` }, { quoted: msg });
+  }
+
+  // 403 (privacidad) y 401 (te tiene bloqueado) tienen la MISMA salida: no se le
+  // puede meter, pero sí se le puede invitar. Es el caso más común con diferencia
+  // y antes era donde el comando se rendía.
+  if (status === '403' || status === '401') {
+    const invitado = await invitarAlPrivado(sock, jid, targetJid, raw);
+    return sock.sendMessage(jid, {
+      text: invitado
+        ? `A +${raw} no se le puede añadir directamente (tiene la privacidad cerrada), así que le he mandado el enlace del grupo por privado.`
+        : `A +${raw} no se le puede añadir directamente y tampoco he podido escribirle por privado. Pásale tú el enlace del grupo.`,
+    }, { quoted: msg });
+  }
+
+  return sock.sendMessage(jid, { text: `No pude añadir a +${raw} (código ${status || 'desconocido'}).` }, { quoted: msg });
+}
+
+// Manda el enlace de invitación al privado del interesado. Devuelve si se pudo.
+//
+// El enlace se pide en el momento y no se guarda: si alguien revoca el código,
+// uno cacheado dejaría de servir sin avisar.
+async function invitarAlPrivado(sock, groupJid, targetJid, raw) {
+  try {
+    const code = await sock.groupInviteCode(groupJid);
+    if (!code) return false;
+    const nombre = (await sock.groupMetadata(groupJid).catch(() => null))?.subject || 'el grupo';
+    await sock.sendMessage(targetJid, {
+      text: `Te han invitado a *${nombre}*.\n\nhttps://chat.whatsapp.com/${code}`,
+    });
+    return true;
+  } catch (e) {
+    logger.warn(`!add: no pude invitar a +${raw} por privado: ${e.message}`);
+    return false;
   }
 }
 

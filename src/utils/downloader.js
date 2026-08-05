@@ -222,16 +222,50 @@ async function fetchFromProvider(videoId, provider) {
   }
 }
 
+// Memoria de keys sin cuota.
+//
+// La rotación ya existía, pero arrancaba SIEMPRE por la primera key, así que en
+// cuanto una agotaba su cupo mensual todas las canciones siguientes gastaban una
+// llamada muerta contra ella antes de pasar a la segunda — y una llamada muerta
+// no son milisegundos: la API es asíncrona y el sondeo puede tardar quince
+// segundos. Con la primera key seca, eso es un peaje de quince segundos en cada
+// petición durante el resto del mes.
+//
+// Aquí se apunta cuándo dio 429/403 cada una y se la manda al final de la cola.
+// El olvido es corto a propósito: un 429 puede ser el cupo del mes agotado o un
+// simple límite por segundo, y desde fuera no hay forma de distinguirlos. Con
+// veinte minutos, un límite pasajero se recupera solo y un cupo agotado de
+// verdad solo cuesta una llamada perdida cada veinte minutos en vez de una por
+// canción.
+const CUOTA_OLVIDO_MS = 20 * 60 * 1000;
+const sinCuota = new Map();   // índice de la key -> ts en que se marcó
+
+function estaSeca(i) {
+  const ts = sinCuota.get(i);
+  if (!ts) return false;
+  if (Date.now() - ts > CUOTA_OLVIDO_MS) { sinCuota.delete(i); return false; }
+  return true;
+}
+
+// Orden de intento: primero las que se creen vivas, y las secas al final como
+// último recurso — si la marca estuviera obsoleta, mejor probarla que rendirse.
+function ordenDeKeys() {
+  const vivas = [], secas = [];
+  for (let i = 0; i < PROVIDERS.length; i++) (estaSeca(i) ? secas : vivas).push(i);
+  return [...vivas, ...secas];
+}
+
 async function tryRapidApi(query) {
   if (!PROVIDERS.length) throw new Error('sin RAPIDAPI_KEY');
   const videoId = extractVideoId(query) || await searchYouTubeId(query);
   if (!videoId) throw new Error('no se encontró el video');
 
-  // Rota entre keys: si una agotó cuota (429) o falla, prueba la siguiente.
   let lastErr = null;
-  for (let i = 0; i < PROVIDERS.length; i++) {
+  for (const i of ordenDeKeys()) {
     try {
-      return await fetchFromProvider(videoId, PROVIDERS[i]);
+      const r = await fetchFromProvider(videoId, PROVIDERS[i]);
+      sinCuota.delete(i);   // respondió: sigue viva
+      return r;
     } catch (err) {
       lastErr = err;
       // "preview" es propiedad del vídeo (mismo videoId en todas las keys):
@@ -239,7 +273,10 @@ async function tryRapidApi(query) {
       // gastando tiempo en todas las keys. Es terminal para RapidAPI → que el
       // caller caiga directo a SoundCloud.
       if (err.message === 'preview') break;
-      if (err.quota) logger.warn(`!play: key ${i + 1}/${PROVIDERS.length} sin cuota; rotando`);
+      if (err.quota) {
+        sinCuota.set(i, Date.now());
+        logger.warn(`!play: key ${i + 1}/${PROVIDERS.length} sin cuota; pasa al final de la cola`);
+      }
       continue;
     }
   }
@@ -341,4 +378,4 @@ async function downloadAudio(query) {
   }
 }
 
-module.exports = { downloadAudio };
+module.exports = { downloadAudio, ordenDeKeys, sinCuota, PROVIDERS };
