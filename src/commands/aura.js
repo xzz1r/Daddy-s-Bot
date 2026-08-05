@@ -1575,7 +1575,8 @@ async function cmdAura(sock, msg, args, groupMeta) {
   // pequeno y no garantiza nada — el resultado sigue siendo aleatorio.
   let plusActividad = 0;
   let mensajes = 0;
-  if (isMainOwner(sender, msg.key.fromMe, groupMeta)) {
+  const esOwnerPrincipal = isMainOwner(sender, msg.key.fromMe, groupMeta);
+  if (esOwnerPrincipal) {
     // Al owner principal el contador no le cuenta los mensajes (es lo que lo
     // mantiene fuera de !count y de los tops), así que preguntarle al contador
     // siempre devolvía 0 y era el único del grupo que jamás podía cobrar el plus
@@ -1600,14 +1601,20 @@ async function cmdAura(sock, msg, args, groupMeta) {
   const text =
     `*@${sender.split('@')[0]} ${sign}${fmt(Math.abs(amount))} de aura*\n` +
     `${pickFresh(AURA[effectiveTier], `${jid}|aura|${effectiveTier}`)}\n\n` +
-    `Aura total: *${fmt(current)}*`;
-  // NO se enseña ni el conteo de mensajes ni el bono de suerte.
-  //
-  // La línea decía "_Activo (0 msgs): +6% de suerte_", y con el owner era el
-  // peor sitio posible para decirlo: sus mensajes no se cuentan (por eso pone
-  // cero), pero el bono sí lo tiene, así que el mensaje anunciaba justo la
-  // contradicción que lo delata. Y para el resto tampoco aporta: destripa la
-  // mecánica y convierte una tirada en un recibo.
+    `Aura total: *${fmt(current)}*` +
+    // La línea del bono se enseña a TODOS MENOS AL OWNER PRINCIPAL.
+    //
+    // Con él era el peor sitio posible para ponerla: sus mensajes no se cuentan
+    // (por eso salía "0 msgs") pero el bono sí lo tiene, así que la línea
+    // anunciaba justo la contradicción que lo delata.
+    //
+    // Y quitársela solo a él no lo señala, que era la duda: la línea únicamente
+    // aparece si superas los 1.000 mensajes del día, cosa que la mayoría del
+    // grupo no hace nunca. Que a él no le salga lo deja igual que a cualquiera
+    // que no llegó al umbral, que es el caso normal y no llama la atención.
+    (plusActividad && !esOwnerPrincipal
+      ? `\n_Activo (${fmt(mensajes)} msgs): +${Math.round(plusActividad * 100)}% de suerte_`
+      : '');
 
   await sock.sendMessage(jid, { text, mentions: [sender] }, { quoted: msg });
 }
