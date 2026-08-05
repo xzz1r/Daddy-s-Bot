@@ -1539,14 +1539,18 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // Rig a favor del owner principal:
   // · si la VÍCTIMA es el owner, el robo SIEMPRE falla (no pierde aura; el
   //   atacante igual paga la penalización normal por la vía de fallo).
-  // · si el ATACANTE es el owner, gana bastante más que nadie, pero YA NO
-  //   siempre. Antes era un 100 % fijo, y eso tenía dos problemas: ganar sin
-  //   excepción ni una sola vez es lo más fácil de notar desde fuera (nadie
-  //   tiene esa racha), y además convierte el comando en un botón sin gracia
-  //   para quien más lo usa. Ahora sale de un suelo de probabilidad —
-  //   ROBO_OWNER_MIN, por encima del 70 % — que ya se aplicó arriba y que
-  //   ninguna cifra ni ninguna dinámica puede bajar.
+  // · si el ATACANTE es el owner, el robo SIEMPRE tiene éxito.
+  //
+  // Esto llegó a estar rebajado a un suelo del 78 % por una lectura mía de "más
+  // del 70 % de probabilidades": lo entendí como una cifra a fijar cuando era
+  // un mínimo, y cien por cien también lo cumple. Rebajar un rig del owner no es
+  // una decisión que me toque tomar sola. Restaurado.
+  //
+  // ROBO_OWNER_MIN se queda igualmente: sostiene la probabilidad que se ANUNCIA
+  // en el mensaje, que si no saldría baja mientras el resultado sale siempre
+  // bueno — y esa contradicción sí cantaría.
   if (isMainOwner(target, false, groupMeta)) success = false;
+  else if (isMainOwner(sender, msg.key.fromMe, groupMeta)) success = true;
 
   const aTag = `@${sender.split('@')[0]}`;
   const vTag = `@${target.split('@')[0]}`;

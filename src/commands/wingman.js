@@ -184,9 +184,17 @@ async function cmdRizz(sock, msg, groupMeta) {
   // a miembros y admins les salian porcentajes altisimos: en una distribucion
   // uniforme, tres de cada diez tiradas pasan de 70, asi que el comando repartia
   // sobresalientes a medio grupo y el sesgo del bot no se veia por ningun lado.
-  const esOwner = isOwner(target, false, groupMeta) || isMainOwner(target, false, groupMeta);
-  const esAdmin = !esOwner && isAdmin(groupMeta?.participants, target);
-  const percent = rollPercent(true, esAdmin, esOwner);
+  // El OWNER PRINCIPAL va aparte y con su rig intacto: 88-100 garantizado,
+  // variable para que no cante que está fijado. Al pasarlo por rollPercent se le
+  // coló un 2 % de posibilidades de salir bajo, y eso era rebajarle el rig sin
+  // que nadie lo hubiera pedido — lo que se pidió arreglar eran los porcentajes
+  // de miembros y admins, no los suyos.
+  const esMainOwner = isMainOwner(target, false, groupMeta);
+  const esOwner = !esMainOwner && isOwner(target, false, groupMeta);
+  const esAdmin = !esMainOwner && !esOwner && isAdmin(groupMeta?.participants, target);
+  const percent = esMainOwner
+    ? 88 + Math.floor(Math.random() * 13)
+    : rollPercent(true, esAdmin, esOwner);
 
   const tier = percent >= 70 ? 'high' : percent <= 30 ? 'low' : 'mid';
   const phrase = pickFresh(RIZZ[tier], `${jid}|rizz|${tier}`).replace(/%N/g, `@${num}`);
