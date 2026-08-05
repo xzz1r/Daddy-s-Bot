@@ -4,6 +4,8 @@ const fs = require('fs-extra');
 const { ffmpegPath } = require('../utils/ffmpeg');
 const { tempFile, cleanTemp, streamToBuffer, ffmpegSemaphore, MAX_MEDIA_BYTES } = require('../utils/helpers');
 const { isAnimatedWebP, extractFirstAnmfFrame } = require('../utils/sticker');
+const { getSender } = require('../utils/wa');
+const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const logger = require('../utils/logger');
 
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -11,23 +13,85 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 // Hard kill a stuck ffmpeg after this long (matches sticker.js).
 const FFMPEG_TIMEOUT_MS = 45_000;
 
-// Find the first usable media node in a message, including view-once wrappers
-function findMedia(m) {
-  if (!m) return null;
-  if (m.stickerMessage) return { type: 'sticker', data: m.stickerMessage };
-  if (m.imageMessage)   return { type: 'image',   data: m.imageMessage };
-  if (m.videoMessage)   return { type: 'video',   data: m.videoMessage };
+// Busca el primer medio utilizable dentro de un mensaje.
+//
+// Esta función es la razón por la que *!toimg* fallaba a ratos sin motivo
+// aparente. La versión anterior miraba `stickerMessage`, `imageMessage` y
+// `videoMessage` a pelo, y solo abría el envoltorio de "ver una vez" un nivel.
+// Se le escapaban cuatro casos que en un grupo normal pasan todos los días:
+//
+//   · ephemeralMessage — en un chat con mensajes temporales TODO va envuelto
+//     ahí dentro, así que el sticker existía pero el bot contestaba "responde
+//     con !toimg a un sticker". Este es el que más se nota.
+//   · viewOnce metido DENTRO de ephemeral (los dos envoltorios a la vez).
+//   · documentMessage con mimetype de imagen o vídeo: una foto reenviada como
+//     archivo, que es como llegan muchas cosas de otras apps.
+//   · ptvMessage — la nota de vídeo redonda.
+//
+// `dl` es aparte de `type` porque la clave de descifrado se deriva del tipo con
+// el que se PIDE la descarga: un adjunto enviado como archivo hay que bajarlo
+// como 'document' aunque por dentro sea una imagen. Pedirlo como 'image' deriva
+// la clave equivocada y baja bytes ilegibles.
+const MAX_CAPAS = 5;
 
-  // View-once wrappers (v1, v2, v2 extension)
-  const inner =
-    m.viewOnceMessage?.message ||
-    m.viewOnceMessageV2?.message ||
-    m.viewOnceMessageV2Extension?.message;
-  if (inner) {
-    if (inner.imageMessage) return { type: 'image', data: inner.imageMessage, viewOnce: true };
-    if (inner.videoMessage) return { type: 'video', data: inner.videoMessage, viewOnce: true };
+function desenvolver(m) {
+  let cur = m;
+  let viewOnce = false;
+  for (let i = 0; i < MAX_CAPAS && cur; i++) {
+    if (cur.viewOnceMessage || cur.viewOnceMessageV2 || cur.viewOnceMessageV2Extension) viewOnce = true;
+    const dentro =
+      cur.ephemeralMessage?.message ||
+      cur.viewOnceMessage?.message ||
+      cur.viewOnceMessageV2?.message ||
+      cur.viewOnceMessageV2Extension?.message ||
+      cur.documentWithCaptionMessage?.message ||
+      cur.editedMessage?.message;
+    if (!dentro) break;
+    cur = dentro;
+  }
+  return { m: cur, viewOnce };
+}
+
+function findMedia(raw) {
+  if (!raw) return null;
+  const { m, viewOnce } = desenvolver(raw);
+  if (!m) return null;
+
+  if (m.stickerMessage) return { type: 'sticker', dl: 'sticker', data: m.stickerMessage, viewOnce };
+  if (m.imageMessage)   return { type: 'image',   dl: 'image',   data: m.imageMessage,   viewOnce };
+  if (m.videoMessage)   return { type: 'video',   dl: 'video',   data: m.videoMessage,   viewOnce };
+  if (m.ptvMessage)     return { type: 'video',   dl: 'video',   data: m.ptvMessage,     viewOnce };
+
+  const doc = m.documentMessage;
+  const mime = doc?.mimetype || '';
+  if (doc && mime.startsWith('image/')) return { type: 'image', dl: 'document', data: doc, viewOnce };
+  if (doc && mime.startsWith('video/')) return { type: 'video', dl: 'document', data: doc, viewOnce };
+
+  return null;
+}
+
+// El contextInfo con el mensaje citado NO siempre vive en extendedTextMessage:
+// si respondes poniendo *!toimg* como pie de una foto, viaja dentro del propio
+// imageMessage. Se recorren todos los nodos en vez de dar por hecho uno.
+function medioCitado(msg) {
+  const { m } = desenvolver(msg?.message);
+  for (const nodo of [msg?.message, m]) {
+    if (!nodo) continue;
+    for (const k of Object.keys(nodo)) {
+      const citado = nodo[k]?.contextInfo?.quotedMessage;
+      if (citado) {
+        const hallado = findMedia(citado);
+        if (hallado) return hallado;
+      }
+    }
   }
   return null;
+}
+
+// Medio a convertir: primero el citado (el caso normal, responder a algo) y si
+// no, el que venga en el propio mensaje.
+function medioObjetivo(msg) {
+  return medioCitado(msg) || findMedia(msg?.message);
 }
 
 async function runFfmpegConvert(inputFile, outputFile, opts) {
@@ -111,11 +175,11 @@ async function convertToMp4(inputBuf) {
 
 // !tovid — como !toimg pero al revés: convierte un sticker ANIMADO a video (MP4),
 // o reenvía un video (incl. de una sola visualización) como video normal.
-async function cmdToVid(sock, msg) {
+async function cmdToVid(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
+  const senderJid = getSender(msg);
 
-  const ctx = msg.message?.extendedTextMessage?.contextInfo;
-  const media = findMedia(ctx?.quotedMessage) || findMedia(msg.message);
+  const media = medioObjetivo(msg);
 
   if (!media) {
     return sock.sendMessage(jid, {
@@ -123,12 +187,19 @@ async function cmdToVid(sock, msg) {
     }, { quoted: msg });
   }
 
+  const pago = await cobrar(jid, senderJid, 'tovid', { fromMe: msg.key.fromMe, groupMeta });
+  if (!pago.ok) {
+    return sock.sendMessage(jid, { text: textoSinSaldo('tovid', pago) }, { quoted: msg });
+  }
+  const reembolsar = () => devolver(jid, senderJid, pago.pagado).catch(() => {});
+
   try {
-    const stream = await downloadContentFromMessage(media.data, media.type);
+    const stream = await downloadContentFromMessage(media.data, media.dl || media.type);
     const buf = await streamToBuffer(stream, MAX_MEDIA_BYTES);
 
     if (media.type === 'sticker') {
       if (!isAnimatedWebP(buf)) {
+        await reembolsar();
         return sock.sendMessage(jid, {
           text: 'Ese sticker no es animado. Para stickers estáticos usa !toimg.',
         }, { quoted: msg });
@@ -150,22 +221,24 @@ async function cmdToVid(sock, msg) {
       await sock.sendMessage(jid, { video: buf, mimetype: 'video/mp4', caption }, { quoted: msg });
     } else {
       // imagen u otro: no aplica para video
+      await reembolsar();
       await sock.sendMessage(jid, {
         text: 'Eso no es un sticker animado ni un video. Usa !toimg para imágenes y stickers estáticos.',
       }, { quoted: msg });
     }
   } catch (err) {
     logger.error(`tovid error: ${err.message}`);
+    await reembolsar();
     await sock.sendMessage(jid, { text: `No pude convertir a video: ${err.message}` }, { quoted: msg });
   }
 }
 
 // !toimg — reply to a sticker, view-once image/video, or any media to extract it
-async function cmdToImg(sock, msg) {
+async function cmdToImg(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
+  const senderJid = getSender(msg);
 
-  const ctx = msg.message?.extendedTextMessage?.contextInfo;
-  const media = findMedia(ctx?.quotedMessage) || findMedia(msg.message);
+  const media = medioObjetivo(msg);
 
   if (!media) {
     return sock.sendMessage(jid, {
@@ -173,8 +246,14 @@ async function cmdToImg(sock, msg) {
     }, { quoted: msg });
   }
 
+  const pago = await cobrar(jid, senderJid, 'toimg', { fromMe: msg.key.fromMe, groupMeta });
+  if (!pago.ok) {
+    return sock.sendMessage(jid, { text: textoSinSaldo('toimg', pago) }, { quoted: msg });
+  }
+  const reembolsar = () => devolver(jid, senderJid, pago.pagado).catch(() => {});
+
   try {
-    const stream = await downloadContentFromMessage(media.data, media.type);
+    const stream = await downloadContentFromMessage(media.data, media.dl || media.type);
     const buf = await streamToBuffer(stream, MAX_MEDIA_BYTES);
 
     if (media.type === 'sticker') {
@@ -223,6 +302,7 @@ async function cmdToImg(sock, msg) {
             }, { quoted: msg });
           } catch (err) {
             logger.error(`toimg document fallback failed: ${err.message}`);
+            await reembolsar();
             await sock.sendMessage(jid, { text: 'No se pudo convertir ni enviar el sticker animado.' }, { quoted: msg });
           }
         }
@@ -241,8 +321,9 @@ async function cmdToImg(sock, msg) {
     }
   } catch (err) {
     logger.error(`toimg error: ${err.message}`);
+    await reembolsar();
     await sock.sendMessage(jid, { text: `No pude extraer el contenido: ${err.message}` }, { quoted: msg });
   }
 }
 
-module.exports = { cmdToImg, cmdToVid };
+module.exports = { cmdToImg, cmdToVid, findMedia, medioObjetivo };

@@ -5,10 +5,10 @@ const {
 } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { streamToBuffer, MAX_MEDIA_BYTES } = require('../utils/helpers');
-const { resolveTarget } = require('./pfp');
+const { resolveTarget, extractNumber } = require('./pfp');
 const { computeHash } = require('../utils/phash');
 const { recordAndMatch, matchOnly, markFake } = require('../utils/pfpStore');
-const { banAccount, unbanAccount, isBanned, banCount } = require('../utils/banlist');
+const { banAccount, unbanAccount, isBanned, banCount, listBanned } = require('../utils/banlist');
 const { isBusiness } = require('../utils/businessCheck');
 const { isAntiFakeEnabled, toggleAntiFake } = require('../utils/state');
 const { faceSearch: lensoSearch, hasKey: lensoEnabled } = require('../utils/lenso');
@@ -429,7 +429,12 @@ async function cmdMarkFake(sock, msg, args, groupMeta) {
 
   const { jid: target, error } = await resolveTarget(sock, msg, args);
   if (error) {
-    await reembolsar();
+    // Aqui no hay nada que devolver: estos comandos no cobran aura. La llamada
+    // a reembolsar() que habia era un resto de !fk (el unico que si cobra) y,
+    // como esa funcion solo vive dentro de cmdFk, los tres reventaban con
+    // ReferenceError en cuanto el objetivo no se resolvia. Justo el caso normal
+    // de !fkunban: a quien quieres desbanear ya lo echaste, no esta en el grupo
+    // y no lo puedes mencionar, asi que solo queda pasar el numero.
     return sock.sendMessage(jid, { text: error }, { quoted: msg });
   }
 
@@ -476,7 +481,12 @@ async function cmdFkBan(sock, msg, args, groupMeta) {
 
   const { jid: target, error } = await resolveTarget(sock, msg, args);
   if (error) {
-    await reembolsar();
+    // Aqui no hay nada que devolver: estos comandos no cobran aura. La llamada
+    // a reembolsar() que habia era un resto de !fk (el unico que si cobra) y,
+    // como esa funcion solo vive dentro de cmdFk, los tres reventaban con
+    // ReferenceError en cuanto el objetivo no se resolvia. Justo el caso normal
+    // de !fkunban: a quien quieres desbanear ya lo echaste, no esta en el grupo
+    // y no lo puedes mencionar, asi que solo queda pasar el numero.
     return sock.sendMessage(jid, { text: error }, { quoted: msg });
   }
 
@@ -523,18 +533,75 @@ async function cmdFkUnban(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: 'Solo admins pueden usar la lista negra.' }, { quoted: msg });
   }
 
-  const { jid: target, error } = await resolveTarget(sock, msg, args);
-  if (error) {
-    await reembolsar();
-    return sock.sendMessage(jid, { text: error }, { quoted: msg });
+  // Desbanear NO necesita que la cuenta sea localizable, y ese era el segundo
+  // motivo por el que no se podia sacar a nadie de la lista negra: resolveTarget
+  // pasa por onWhatsApp y devuelve error si el numero no existe o "no es
+  // visible", cosa habitual en quien tiene la privacidad cerrada. Para banear
+  // tiene sentido exigir una cuenta real; para desbanear no: basta con el numero
+  // que aparece en *!fklist*. Si hay digitos, se opera con ellos y punto.
+  const { jid: resuelto, error } = await resolveTarget(sock, msg, args);
+  const digitos = extractNumber((args || []).join(' '));
+  const target = resuelto || (digitos ? `${digitos}@s.whatsapp.net` : null);
+  if (!target) {
+    return sock.sendMessage(jid, {
+      text: error || 'Pasa el número o menciona a quien quieras sacar de la lista negra.',
+    }, { quoted: msg });
   }
 
-  const n = await unbanAccount(allForms(target, groupMeta));
+  // Se prueban todas las formas conocidas MAS la del numero pelado: a quien ya
+  // esta fuera del grupo no le queda ficha en la metadata, asi que allForms solo
+  // devuelve lo que se pueda reconstruir. unbanAccount completa el resto por su
+  // cuenta siguiendo el `aka` que quedo escrito al banear.
+  const formas = [...new Set([...allForms(target, groupMeta), bareJid(target)])];
+  const n = await unbanAccount(formas);
+  const quedan = await banCount();
   return sock.sendMessage(jid, {
     text: n
-      ? `${shortAcc(canonicalJid(target))} sacado de la lista negra.`
-      : `No estaba en la lista negra.`,
-    mentions: [target],
+      ? `${shortAcc(canonicalJid(target))} fuera de la lista negra (${n} ${n === 1 ? 'entrada borrada' : 'entradas borradas'}). Quedan ${quedan}.`
+      : `${shortAcc(canonicalJid(target))} no estaba en la lista negra.`,
+  }, { quoted: msg });
+}
+
+// ─── !fklist — ver la lista negra ────────────────────────────────────────────
+//
+// Sin esto la lista negra era una via de un solo sentido: se entraba solo (los
+// guardias automaticos banean) y para salir habia que acertar de memoria el
+// numero exacto de alguien a quien el bot ya habia expulsado. Ahora se puede
+// mirar quien esta dentro, por que y desde cuando, que es lo minimo para poder
+// corregir un baneo injusto.
+async function cmdFkList(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  const sender = getSender(msg);
+  const allowed = isOwner(sender, msg.key.fromMe, groupMeta)
+    || isGroupAdmin(sender, msg.key.fromMe, groupMeta);
+  if (!allowed) {
+    return sock.sendMessage(jid, { text: 'Solo admins pueden usar la lista negra.' }, { quoted: msg });
+  }
+
+  const cuentas = await listBanned();
+  if (!cuentas.length) {
+    return sock.sendMessage(jid, { text: 'La lista negra está vacía.' }, { quoted: msg });
+  }
+
+  // Una persona puede tener varias formas baneadas (telefono y LID). Se agrupan
+  // por `aka` para no listar a la misma tres veces.
+  const vistos = new Set();
+  const filas = [];
+  for (const c of cuentas) {
+    if (vistos.has(c.account)) continue;
+    for (const f of (c.aka && c.aka.length ? c.aka : [c.account])) vistos.add(bareJid(f));
+    const dias = Math.max(0, Math.floor((Date.now() - (c.at || Date.now())) / DAY));
+    const cuando = dias === 0 ? 'hoy' : dias === 1 ? 'ayer' : `hace ${dias} días`;
+    filas.push(`${shortAcc(c.account)} — ${c.by === 'auto' ? 'automático' : 'a mano'}, ${cuando}\n  _${c.reason || 'sin motivo'}_`);
+  }
+
+  const MAX = 25;
+  const recortado = filas.length > MAX;
+  return sock.sendMessage(jid, {
+    text: `*LISTA NEGRA* — ${filas.length} ${filas.length === 1 ? 'cuenta' : 'cuentas'}\n` +
+      `╾━━━━━━━━━━━━━━╼\n\n` +
+      filas.slice(0, MAX).join('\n\n') +
+      (recortado ? `\n\n_y ${filas.length - MAX} más._` : ''),
   }, { quoted: msg });
 }
 
@@ -638,4 +705,4 @@ async function guardOnJoin(sock, groupJid, joiners, groupMeta) {
   }
 }
 
-module.exports = { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdAntiFake, guardOnJoin, allForms };
+module.exports = { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdFkList, cmdAntiFake, guardOnJoin, allForms };

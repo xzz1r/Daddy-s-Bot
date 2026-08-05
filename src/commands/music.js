@@ -64,7 +64,7 @@ async function cmdPlay(sock, msg, args, groupMeta) {
     // la persona está esperando y va a leerlo. La mayoría de búsquedas que
     // fallan o traen la canción equivocada son de una palabra suelta.
     sock.sendMessage(jid, {
-      text: 'Buscando...\n\n_Consejo: añade el nombre del artista para acertar a la primera. "!play blinding lights the weeknd" funciona mucho mejor que "!play blinding lights"._',
+      text: 'Buscando...\n\n_Pon también el artista y acierta a la primera._',
     }, { quoted: msg }).catch(() => {});
     try {
       result = await downloadAudio(query);

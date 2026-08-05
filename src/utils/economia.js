@@ -80,13 +80,49 @@ const REDENCION = {
 // El tope ya no es un número fijo: es un porcentaje del aura de la víctima, con
 // un techo absoluto. Robarle 150 a alguien que tiene 200 lo dejaba en la ruina
 // de un golpe; robarle 150 a un millonario no le hacía ni cosquillas.
+// Elegir cuánto robar SÍ estaba implementado, pero no se notaba, y el motivo
+// era esta tabla. Con `fraccionVictima` a 0.25, a alguien con los 100 del
+// arranque solo se le podían quitar 25 — que es exactamente `porDefecto`. O sea
+// que pidieras 25, 80 o 200, el bot siempre acababa robando 25 y parecía que
+// ignoraba la cifra. Y como casi todo el grupo anda cerca del arranque, le
+// pasaba a casi todo el mundo.
+//
+// Con 0.35 y el defecto en 20 hay margen de verdad desde el primer día: contra
+// alguien con 100 se puede pedir entre 5 y 35, y la horquilla se abre según
+// engorda la víctima. El tope sigue atado a lo que ella tiene, no a lo que el
+// ladrón quiera: robarle 200 a quien tiene 250 lo dejaría en la ruina de un
+// golpe, y eso vacía el grupo en vez de animarlo.
 const ROBO = {
   suelo: 5,
-  porDefecto: 25,
+  porDefecto: 20,
   techo: 200,             // nadie se lleva más de esto de un solo robo
-  fraccionVictima: 0.25,  // ni más de un cuarto de lo que tiene la víctima
+  fraccionVictima: 0.35,  // ni más de un tercio de lo que tiene la víctima
   minVictima: 20,         // por debajo de esto no se le puede robar a alguien
 };
+
+// ─── !robo: la curva de riesgo ───────────────────────────────────────────────
+//
+// Pedir mucho penaliza, pero pedir de menos TAMBIÉN. Antes solo se castigaba
+// por arriba, así que la jugada óptima era pedir siempre lo mínimo: máxima
+// probabilidad, botín ridículo, cero decisión. Ahora hay un punto dulce en la
+// parte media de la horquilla y las dos orillas cuestan:
+//
+//   · pasarse (codicia)  — te ven venir. Hasta −35 % en el tope.
+//   · quedarte corto     — un robo de calderilla no compensa el riesgo de
+//     acercarse, y quien lo intenta va sin ganas. Hasta −15 % en el mínimo.
+//
+// La curva es cuadrática en los dos lados: cerca del punto dulce casi no se
+// nota, y son los extremos los que duelen.
+const RIESGO = {
+  puntoDulce: 0.45,   // fracción del tope donde la probabilidad es máxima
+  codiciaMax: 0.35,   // castigo al pedir el tope entero
+  miseriaMax: 0.15,   // castigo al pedir el mínimo
+  allIn: 0.85,        // a partir de aquí el robo es "a lo grande" (ver DESENLACES)
+};
+
+// El owner roba con ventaja y la cifra que elija le da igual: ni codicia ni
+// miseria le afectan, y su probabilidad nunca baja de aquí.
+const ROBO_OWNER_MIN = 0.78;
 
 // ─── !duel ───────────────────────────────────────────────────────────────────
 //
@@ -114,12 +150,6 @@ const DUELO = {
 // que lo haga. Solo hay un mínimo para que no se use como ruido.
 const REGALO_MIN = 5;
 
-// Castigo por ambición: cuanto más pides, menos probable es que salga. Subido
-// desde el 15 % anterior — con 15 % seguía compensando pedir siempre el máximo,
-// así que no había decisión que tomar. Con 35 % pedir el tope es una apuesta de
-// verdad: más botín, bastante menos probabilidad.
-const AMBICION_MAX = 0.35;
-
 // ─── Precios: el aura como moneda ────────────────────────────────────────────
 //
 // Se cobra por lo que cuesta recursos de verdad (ancho de banda, API, consultas
@@ -132,6 +162,14 @@ const AMBICION_MAX = 0.35;
 //
 // Precios pensados para ser accesibles: una canción son 15, y una sola tirada
 // floja de !aura ya paga eso. Nadie se queda sin música por estar pobre.
+// Los conversores (!s, !toimg, !tovid) son los comandos más usados del grupo y
+// cada uno levanta un ffmpeg. Se cobran, pero baratos a propósito: son parte del
+// día a día, no un capricho, y ponerles el precio de una canción habría hecho
+// que la gente dejara de usarlos. A 4 de aura, una sola tirada floja de !aura
+// (15-50) paga entre tres y doce stickers.
+//
+// !tovid cuesta algo más porque recodifica vídeo entero con preset slow, que es
+// con diferencia lo más caro que hace el bot en CPU.
 const PRECIOS = {
   play: 15,   // canción
   grok: 10,   // pregunta a la IA
@@ -139,6 +177,9 @@ const PRECIOS = {
   fk: 8,      // análisis de cuenta falsa
   top5: 6,    // sorteo de 5 nombres
   top10: 10,  // sorteo de 10
+  sticker: 4, // !s
+  toimg: 4,   // !toimg
+  tovid: 6,   // !tovid
 };
 
 // Suelo de crédito: se puede pagar aunque te deje justo, pero no se entra en
@@ -153,7 +194,7 @@ module.exports = {
   MILLONARIO, ARRANQUE,
   TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO,
   BONOS, REDENCION,
-  ROBO, AMBICION_MAX, DUELO, REGALO_MIN,
+  ROBO, RIESGO, ROBO_OWNER_MIN, DUELO, REGALO_MIN,
   PRECIOS, SALDO_MINIMO,
   rango,
 };

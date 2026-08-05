@@ -76,13 +76,10 @@ async function cmdVs(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: 'No puedes enfrentar a alguien consigo mismo.' }, { quoted: msg });
   }
 
-  // El owner principal es invisible en toda estadística: no exponemos su
-  // conteo en un !vs. Respondemos como si no hubiera datos de esa persona.
-  if (isMainOwner(a, false, groupMeta) || isMainOwner(b, false, groupMeta)) {
-    return sock.sendMessage(jid, {
-      text: 'No hay datos de actividad para esa comparación.',
-    }, { quoted: msg });
-  }
+  // Si el owner principal es uno de los dos, no se contesta. Igual que en
+  // !count y !relevancia: una respuesta especial para él lo delata tanto como
+  // enseñar la cifra, porque es la única comparación que el bot rechaza.
+  if (isMainOwner(a, false, groupMeta) || isMainOwner(b, false, groupMeta)) return;
 
   const users = await getActiveUsers(jid, 0); // everyone tracked
   const ca = lookupCount(users, a);

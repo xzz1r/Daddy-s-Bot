@@ -94,6 +94,17 @@ async function banCount() {
   return Object.keys(store.accounts).length;
 }
 
+// Contenido de la lista negra, de lo más reciente a lo más antiguo. Existe para
+// que *!fklist* pueda enseñarla: mientras no había forma de mirarla, un baneo
+// automático equivocado era irreparable en la práctica, porque para deshacerlo
+// hay que saber el número exacto de alguien a quien el bot ya expulsó.
+async function listBanned() {
+  await load();
+  return Object.entries(store.accounts)
+    .map(([account, d]) => ({ account, ...(d || {}) }))
+    .sort((a, b) => (b.at || 0) - (a.at || 0));
+}
+
 async function flushBanlist() {
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
   if (store) {
@@ -102,4 +113,4 @@ async function flushBanlist() {
   }
 }
 
-module.exports = { banAccount, unbanAccount, isBanned, banCount, flushBanlist };
+module.exports = { banAccount, unbanAccount, isBanned, banCount, listBanned, flushBanlist };

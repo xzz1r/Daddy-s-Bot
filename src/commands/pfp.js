@@ -191,4 +191,4 @@ async function cmdPfp(sock, msg, args, groupMeta) {
   }, { quoted: msg });
 }
 
-module.exports = { cmdPfp, resolveTarget };
+module.exports = { cmdPfp, resolveTarget, extractNumber };

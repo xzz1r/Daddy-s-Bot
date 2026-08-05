@@ -10,17 +10,36 @@ const logger = require('./logger');
 // alto" (miembro activo que vale la pena cachear).
 const HIGH_COUNT = 100;
 
+// Esta caché tiene DOS clientes con necesidades opuestas, y durante un tiempo
+// solo se atendió a uno:
+//
+//   · el anti-fake, al que le vale una miniatura: solo compara huellas.
+//   · *!pfp*, que ENSEÑA esta imagen a la gente cuando la foto de alguien ya no
+//     se puede pedir en directo (oculta, cambiada, o la cuenta fuera).
+//
+// Estaba calibrada solo para el primero: 256px y calidad 7 de JPEG, unos 10 KB.
+// Perfecto para una huella y lamentable para mirarlo, que es lo que se veía en
+// el grupo cuando !pfp tiraba de caché.
+//
+// Ahora se guarda a 640px y calidad 3. WhatsApp sirve las fotos de perfil a
+// 640x640 como mucho, así que en la práctica se conserva el original entero y
+// ya no se recorta nada visible. `min(640,iw)` evita ampliar una foto que venga
+// más pequeña (ampliarla no añade detalle: solo la emborrona y ocupa más), y
+// `-2` deja que la altura salga sola manteniendo la proporción.
+//
+// El coste en disco sube de ~10 KB a ~50 KB por cuenta: con el tope de 1.200
+// entradas, unos 60 MB en el peor caso. Asumible, y la huella se calcula igual
+// de bien sobre una imagen grande que sobre una pequeña.
 const DOWNSCALE_ARGS = [
   '-hide_banner', '-loglevel', 'error',
   '-i', 'pipe:0', '-frames:v', '1',
-  '-vf', 'scale=256:256:force_original_aspect_ratio=decrease',
-  '-q:v', '7', '-f', 'mjpeg', 'pipe:1',
+  '-vf', "scale='min(640,iw)':-2",
+  '-q:v', '3', '-f', 'mjpeg', 'pipe:1',
 ];
 
-// Reduce la imagen a 256px (lado mayor) en JPEG de calidad media — una foto de
-// perfil queda en ~5-15 KB en vez de decenas/cientos. Timeout+SIGKILL+semáforo
-// vienen de ffmpegToBuffer (una foto maliciosa no cuelga ffmpeg ni salta el
-// tope de 2 procesos). Devuelve el buffer reducido, o null si falla.
+// Normaliza la imagen para la caché. Timeout+SIGKILL+semáforo vienen de
+// ffmpegToBuffer (una foto maliciosa no cuelga ffmpeg ni salta el tope de 2
+// procesos). Devuelve el buffer resultante, o null si falla.
 async function downscale(buf) {
   try { return await ffmpegToBuffer(DOWNSCALE_ARGS, buf, 10000); }
   catch { return null; }

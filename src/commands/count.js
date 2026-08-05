@@ -286,15 +286,11 @@ async function cmdCount(sock, msg, groupMeta, args) {
   const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
 
   if (mentioned) {
-    // El owner principal es invisible en el ranking: no revelamos su puesto ni
-    // su conteo, respondemos como si no hubiera datos suyos.
-    if (isMainOwner(mentioned, false, groupMeta)) {
-      const phone = mentioned.split('@')[0];
-      return sock.sendMessage(jid, {
-        text: `@${phone} no tiene mensajes registrados en este grupo.`,
-        mentions: [mentioned],
-      }, { quoted: msg });
-    }
+    // Del owner principal no se contesta nada. Decir "no tiene mensajes
+    // registrados" era señalarlo igual: es la única persona del grupo de la que
+    // el bot da esa respuesta, así que preguntarlo dos veces bastaba para
+    // deducirlo. El silencio no distingue al owner de un comando que no salió.
+    if (isMainOwner(mentioned, false, groupMeta)) return;
     // Se calcula el puesto sobre EXACTAMENTE el mismo ranking que muestra el
     // board (!count): miembros actuales y sin el owner. Si no, el número de
     // puesto de "!count @user" no cuadraría con la tabla (contaría ex-miembros

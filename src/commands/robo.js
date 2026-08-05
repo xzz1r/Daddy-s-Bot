@@ -1,7 +1,7 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser } = require('../utils/wa');
 const { getAura, addAura } = require('../utils/auraStore');
 const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
-const { ROBO, AMBICION_MAX } = require('../utils/economia');
+const { ROBO, RIESGO, ROBO_OWNER_MIN } = require('../utils/economia');
 
 // La escala vive en utils/economia.js. Aqui solo el cooldown, que es de ritmo
 // de juego y no de economia.
@@ -1253,46 +1253,90 @@ const ESCUDO_MS = 8 * 60 * 1000;    // protección de la víctima tras ser robad
 const GUARDIA_MS = 30 * 60 * 1000;  // ventana en la que se recuerda a quién atacaste
 const VENGANZA_MS = 30 * 60 * 1000; // ventana para devolver el golpe con plus
 
+const FAMA_MS = 75 * 60 * 1000;     // cuanto se te recuerda un robo que salio bien
+
 const robadoHasta = new Map();  // `${grupo}|${victima}` -> ts en que se le puede volver a robar
 const ultimoAtaque = new Map(); // `${grupo}|${ladron}|${victima}` -> { ts, veces }
 const ultimoRobado = new Map(); // `${grupo}|${victima}` -> { por, ts }
+const fama = new Map();         // `${grupo}|${ladron}` -> [ts, ts, ...] robos con exito
 
 function limpiaMapa(m) {
   if (m.size >= 3000) m.delete(m.keys().next().value);
 }
 
+// Robos con exito del ladron en la ventana de fama, contra CUALQUIER victima.
+// Se poda al consultar, asi que la lista no crece sola.
+function rachaDe(grupo, ladron) {
+  const k = `${grupo}|${ladron}`;
+  const previos = fama.get(k);
+  if (!previos) return 0;
+  const corte = Date.now() - FAMA_MS;
+  const vivos = previos.filter(ts => ts > corte);
+  if (vivos.length) fama.set(k, vivos); else fama.delete(k);
+  return vivos.length;
+}
+
+function anotarFama(grupo, ladron) {
+  const k = `${grupo}|${ladron}`;
+  const corte = Date.now() - FAMA_MS;
+  const vivos = (fama.get(k) || []).filter(ts => ts > corte);
+  vivos.push(Date.now());
+  limpiaMapa(fama);
+  fama.set(k, vivos);
+}
+
 // Ajusta la probabilidad base con las dinámicas. Devuelve la probabilidad final
 // y los motivos, para poder explicárselos al jugador.
-function ajustarProbabilidad(base, { grupo, ladron, victima, stake, maxStake }) {
+// Fraccion del tope que se ha pedido, en [0,1]. Es la palanca de todo lo que
+// depende de "cuanto has pedido".
+function fraccionPedida(stake, maxStake) {
+  if (!(maxStake > 0)) return 0;
+  return Math.min(1, Math.max(0, stake / maxStake));
+}
+
+// Castigo por la cifra elegida. Cuadratico por los DOS lados: hay un punto
+// dulce en mitad de la horquilla y las dos orillas cuestan.
+//
+// Antes solo castigaba por arriba, asi que la jugada optima era pedir siempre
+// el minimo — maxima probabilidad y botin de risa. Eso no es elegir: es que
+// haya una sola respuesta correcta. Con las dos orillas penalizadas hay que
+// decidir de verdad cuanto arriesgar.
+function castigoPorCifra(a) {
+  const { puntoDulce: pd, codiciaMax, miseriaMax } = RIESGO;
+  if (a > pd) {
+    const x = (a - pd) / (1 - pd);
+    return { castigo: x * x * codiciaMax, etiqueta: 'codicia' };
+  }
+  const x = (pd - a) / pd;
+  return { castigo: x * x * miseriaMax, etiqueta: 'sin agallas' };
+}
+
+function ajustarProbabilidad(base, { grupo, ladron, victima, stake, maxStake, esOwner = false }) {
   let p = base;
   const motivos = [];
+  const a = fraccionPedida(stake, maxStake);
 
-  // 1. Ambicion: cuanto mas pides, menos probable es que salga. Subido del 15 %
-  //    al 35 %: con 15 % seguia compensando pedir siempre el maximo, asi que no
-  //    habia ninguna decision que tomar. Ahora ir a por el tope es una apuesta
-  //    de verdad — mas botin, bastante menos probabilidad de llevarselo.
-  //    La curva es cuadratica: pedir la mitad casi no penaliza, pedir el tope
-  //    duele, y ese tramo final es el que hace interesante elegir cifra.
-  if (maxStake > 0) {
-    const ambicion = Math.min(1, stake / maxStake);
-    const castigo = ambicion * ambicion * AMBICION_MAX;
+  // 1. La cifra elegida. El owner queda fuera: robe lo que robe, la cantidad no
+  //    le penaliza.
+  if (!esOwner && maxStake > 0) {
+    const { castigo, etiqueta } = castigoPorCifra(a);
     if (castigo > 0.02) {
       p -= castigo;
-      motivos.push(`ambicion (−${Math.round(castigo * 100)}%)`);
+      motivos.push(`${etiqueta} (−${Math.round(castigo * 100)}%)`);
     }
   }
 
-  // 3. Guardia: cada intento previo reciente sobre la MISMA víctima resta 8%,
+  // 2. Guardia: cada intento previo reciente sobre la MISMA víctima resta 8%,
   //    hasta un tope de -24%.
   const kAtaque = `${grupo}|${ladron}|${victima}`;
   const prev = ultimoAtaque.get(kAtaque);
-  if (prev && Date.now() - prev.ts < GUARDIA_MS && prev.veces > 0) {
+  if (!esOwner && prev && Date.now() - prev.ts < GUARDIA_MS && prev.veces > 0) {
     const castigo = Math.min(prev.veces, 3) * 0.08;
     p -= castigo;
     motivos.push(`ya te vio venir (−${Math.round(castigo * 100)}%)`);
   }
 
-  // 4. Venganza: +12% si le devuelves el golpe a quien te robó hace poco.
+  // 3. Venganza: +12% si le devuelves el golpe a quien te robó hace poco.
   const kRobado = `${grupo}|${ladron}`;
   const mio = ultimoRobado.get(kRobado);
   if (mio && mio.por === victima && Date.now() - mio.ts < VENGANZA_MS) {
@@ -1300,7 +1344,24 @@ function ajustarProbabilidad(base, { grupo, ladron, victima, stake, maxStake }) 
     motivos.push('venganza (+12%)');
   }
 
-  return { p: Math.min(0.85, Math.max(0.10, p)), motivos };
+  // 4. FAMA. Dinamica nueva. Cada robo TUYO que haya salido bien en la ultima
+  //    hora larga te resta, robes a quien robes.
+  //
+  //    La guardia solo cubre a la misma victima, asi que bastaba con ir rotando
+  //    entre cinco personas para farmear sin penalizacion ninguna. Esto cierra
+  //    esa puerta: al que la lia mucho y seguido lo tiene el grupo fichado, y
+  //    ademas obliga a parar y dejar enfriar, que es cuando el comando se pone
+  //    interesante para el resto.
+  const racha = rachaDe(grupo, ladron);
+  if (!esOwner && racha > 0) {
+    const castigo = Math.min(racha, 3) * 0.09;
+    p -= castigo;
+    motivos.push(`te tienen fichado (−${Math.round(castigo * 100)}%)`);
+  }
+
+  // El owner nunca baja del suelo suyo, elija la cifra que elija.
+  const suelo = esOwner ? ROBO_OWNER_MIN : 0.10;
+  return { p: Math.min(0.92, Math.max(suelo, p)), motivos, ambicion: a };
 }
 
 // ¿Está la víctima protegida por un robo reciente? Devuelve los minutos que
@@ -1326,13 +1387,30 @@ function anotarRoboExitoso(grupo, ladron, victima) {
   ultimoRobado.set(`${grupo}|${victima}`, { por: ladron, ts: Date.now() });
 }
 
-// Elige el desenlace concreto dentro de la rama que ya decidió `success`.
-function elegirDesenlace(exito) {
+// Ir A LO GRANDE no solo baja la probabilidad: cambia la FORMA del resultado.
+//
+// Segunda dinamica nueva. Cuando se pide el 85 % del tope o mas, los desenlaces
+// se corren hacia los dos extremos: sale el golpe maestro mucho mas a menudo, y
+// cuando sale mal, sale mal de verdad. Un robo prudente casi siempre acaba en
+// algo tibio (limpio o a medias); uno a lo bestia acaba en historia, para bien
+// o para mal.
+//
+// Sin esto, arriesgar solo tenia contras: menos probabilidad a cambio de una
+// cifra algo mayor. Ahora arriesgar compra ademas la posibilidad del golpe
+// gordo, que es lo que hace que valga la pena pensarselo.
+const PESOS_ALL_IN = {
+  maestro: 3.0, limpio: 0.9, parcial: 0.4,   // si sale bien, sale muy bien
+  fallo: 0.65, desastre: 1.8,                // si sale mal, te arruinas
+};
+
+function elegirDesenlace(exito, ambicion = 0) {
   const ramas = exito ? ['maestro', 'limpio', 'parcial'] : ['fallo', 'desastre'];
-  const total = ramas.reduce((a, k) => a + DESENLACES[k].peso, 0);
+  const allIn = ambicion >= RIESGO.allIn;
+  const peso = (k) => DESENLACES[k].peso * (allIn ? PESOS_ALL_IN[k] : 1);
+  const total = ramas.reduce((a, k) => a + peso(k), 0);
   let r = Math.random() * total;
   for (const k of ramas) {
-    r -= DESENLACES[k].peso;
+    r -= peso(k);
     if (r <= 0) return k;
   }
   return ramas[ramas.length - 1];
@@ -1416,13 +1494,15 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // Probabilidad base por roles y brecha de aura, ajustada por las dinámicas
   // (ambición, guardia y venganza). El intento se anota SIEMPRE, salga como
   // salga: insistir contra la misma víctima tiene que penalizar aunque falles.
+  const ladronEsOwner = isMainOwner(sender, msg.key.fromMe, groupMeta);
   const base = calcChance(aO, aA, vO, vA, auraA, auraV);
-  const { p: chance, motivos } = ajustarProbabilidad(base, {
+  const { p: chance, motivos, ambicion } = ajustarProbabilidad(base, {
     grupo: jid,
     ladron: canonicalJid(sender),
     victima: canonicalJid(target),
     stake,
     maxStake,
+    esOwner: ladronEsOwner,
   });
   anotarIntento(jid, canonicalJid(sender), canonicalJid(target));
   let success = Math.random() < chance;
@@ -1430,9 +1510,14 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // Rig a favor del owner principal:
   // · si la VÍCTIMA es el owner, el robo SIEMPRE falla (no pierde aura; el
   //   atacante igual paga la penalización normal por la vía de fallo).
-  // · si el ATACANTE es el owner, el robo SIEMPRE tiene éxito.
+  // · si el ATACANTE es el owner, gana bastante más que nadie, pero YA NO
+  //   siempre. Antes era un 100 % fijo, y eso tenía dos problemas: ganar sin
+  //   excepción ni una sola vez es lo más fácil de notar desde fuera (nadie
+  //   tiene esa racha), y además convierte el comando en un botón sin gracia
+  //   para quien más lo usa. Ahora sale de un suelo de probabilidad —
+  //   ROBO_OWNER_MIN, por encima del 70 % — que ya se aplicó arriba y que
+  //   ninguna cifra ni ninguna dinámica puede bajar.
   if (isMainOwner(target, false, groupMeta)) success = false;
-  else if (isMainOwner(sender, msg.key.fromMe, groupMeta)) success = true;
 
   const aTag = `@${sender.split('@')[0]}`;
   const vTag = `@${target.split('@')[0]}`;
@@ -1443,7 +1528,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // El dado decide ADEMÁS cuánto se mueve, no solo si sale o no. De ahí que un
   // robo ya no sea una moneda al aire: puede salir redondo, salir a medias, o
   // salir tan mal que acabas financiando a tu víctima.
-  const clave = elegirDesenlace(success);
+  const clave = elegirDesenlace(success, ambicion);
   const { mult, titulo } = DESENLACES[clave];
   // Nunca se mueve más aura de la que la víctima tiene ni de la que el ladrón
   // puede pagar: un golpe maestro sobre alguien con poco no le deja en negativo.
@@ -1454,11 +1539,18 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // resultados distintos sin entender por qué y parece que el bot va al azar.
   // Si pidio mas de lo permitido tambien se dice: el tope depende del aura de
   // la victima y sin avisar parece que el bot ignora lo que le pides.
-  const notaTope = recortado ? `\n_Tope contra ${vTag}: ${fmt(maxStake)}_` : '';
+  // La horquilla se enseña SIEMPRE, no solo al pasarse. Se podía elegir cuánto
+  // robar desde hacía tiempo, pero el bot solo lo mencionaba cuando recortaba,
+  // así que quien nunca pedía de más no llegaba a enterarse de que la cifra era
+  // suya. Enseñar el rango en cada robo lo cuenta sin explicar nada.
+  const notaTope = recortado
+    ? `\n_Pediste ${fmt(raw)}; contra ${vTag} el tope es ${fmt(maxStake)}._`
+    : `\n_Apuesta ${fmt(stake)} de ${ROBO.suelo}-${fmt(maxStake)} posibles._`;
   const notaDinamicas = (motivos.length ? `\n_${motivos.join(' · ')}_` : '') + notaTope;
 
   if (mult > 0) {
     anotarRoboExitoso(jid, canonicalJid(sender), canonicalJid(target));
+    anotarFama(jid, canonicalJid(sender));
     const [aNew, vNew] = await Promise.all([
       addAura(jid, sender, +monto),
       addAura(jid, target, -monto),
@@ -1498,4 +1590,4 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   return sock.sendMessage(jid, { text, mentions: [sender, target] });
 }
 
-module.exports = { cmdRobo, DESENLACES, elegirDesenlace, ajustarProbabilidad, escudoRestante, anotarIntento, anotarRoboExitoso };
+module.exports = { cmdRobo, DESENLACES, elegirDesenlace, ajustarProbabilidad, castigoPorCifra, fraccionPedida, escudoRestante, anotarIntento, anotarRoboExitoso, anotarFama, rachaDe };

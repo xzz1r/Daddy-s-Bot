@@ -20,7 +20,7 @@ const { cmdShip } = require('../commands/ship');
 const { cmdTtp } = require('../commands/ttp');
 const { cmdToImg, cmdToVid } = require('../commands/toimg');
 const { cmdPfp } = require('../commands/pfp');
-const { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdAntiFake } = require('../commands/fk');
+const { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdFkList, cmdAntiFake } = require('../commands/fk');
 const { maybeIndex } = require('../utils/pfpIndexer');
 const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy, cmdPerdedor, cmdGanador, cmdPuta, cmdGuarra, cmdFiel, cmdInfiel, cmdLinda, cmdFea, cmdIncel } = require('../commands/percent');
 // !iq no es un comando de porcentaje: saca una CIFRA de IQ y vive aparte.
@@ -227,9 +227,10 @@ const NEEDS_META = new Set([
   // Los que cobran aura SI necesitan groupMeta: auraCobro exime al owner tier y
   // sin la metadata no puede resolver quien lo es, asi que al owner le cobraria.
   'play','playsong','playaudio','g','ai','grok','pfp','foto',
-  // ttp/toimg/tovid/dar siguen fuera a proposito: el dispatch no les pasa
-  // groupMeta y sus modulos no lo mencionan, asi que pedirlo solo anyadia una
-  // peticion de red (hasta 8s con la cache fria) antes de ejecutarlos.
+  'toimg','stimg','tovid',   // tambien cobran desde que el aura es moneda
+  // ttp/dar siguen fuera a proposito: el dispatch no les pasa groupMeta y sus
+  // modulos no lo mencionan, asi que pedirlo solo anyadia una peticion de red
+  // (hasta 8s con la cache fria) antes de ejecutarlos.
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   // 'iq' ya NO va aqui: dejo de ser un comando de porcentaje y su modulo no usa
   // groupMeta, asi que pedirla solo anyadia una peticion de red (hasta 8s con la
@@ -243,7 +244,7 @@ const NEEDS_META = new Set([
   'vs','versus',          // cmdVs receives groupMeta for isOwner/isGroupAdmin checks
   'scan','escanear',
   'fk','verificar','verify','check','marcarfake','fake',
-  'fkban','fkunban','antifake','antifk',
+  'fkban','fkunban','fklist','listanegra','antifake','antifk',
   'count','resetcount','resetconteo',
   'top5','top10',   // el sorteo cruza los conteos con la lista de miembros
   'k',              // isOwner necesita la metadata para resolver el LID del owner
@@ -474,44 +475,109 @@ const SOBRES_ESTADO = [
   'statusQuotedMessage',
 ];
 
-// Marcas dentro del contextInfo que delatan un estado aunque no venga el sobre.
-function marcaDeEstado(ctx) {
-  if (!ctx) return false;
-  return ctx.isMentionedInStatus === true ||
-    ctx.isGroupStatus === true ||
-    Boolean(ctx.statusMentionMessageInfo) ||
-    Boolean(ctx.statusAttributionType) ||
-    Boolean(ctx.statusSourceType) ||
-    (Array.isArray(ctx.statusMentions) && ctx.statusMentions.length > 0) ||
-    (Array.isArray(ctx.statusMentionSources) && ctx.statusMentionSources.length > 0) ||
-    // Marcas nuevas del ContextInfo, del mismo grupo de campos de estado.
-    Boolean(ctx.statusAudienceMetadata) ||
-    Boolean(ctx.statusLinkType) ||
-    Boolean(ctx.quotedStatus) ||
-    Boolean(ctx.originalStatusId);
+// ─── Marcas de estado: qué campo vive dónde ──────────────────────────────────
+//
+// Esta parte estaba mal de raíz y costó que el bot expulsara y metiera en la
+// lista negra global a alguien por mandar un VÍDEO NORMAL. Dos errores a la vez,
+// en direcciones opuestas:
+//
+// 1. SE MIRABAN CAMPOS QUE NO EXISTEN EN ContextInfo. `isMentionedInStatus`,
+//    `statusMentions`, `statusMentionMessageInfo` y `statusMentionSources`
+//    pertenecen a WebMessageInfo — el sobre del mensaje, `msg` — no a
+//    `msg.message[x].contextInfo`. Preguntados donde se preguntaban, salían
+//    siempre `undefined`: no detectaban nada nunca. `statusLinkType` es de
+//    InteractiveAnnotation, `quotedStatus` de StatusMentionMessage y
+//    `originalStatusId` de otro anidado. O sea que la mitad del guardia era
+//    decorativa, y por eso los estados se colaban. Ahora se preguntan donde
+//    viven (ver `marcaDeEstadoEnSobre`) y se dejan además como red defensiva
+//    donde estaban, porque ahí no hacen daño.
+//
+// 2. LOS QUE SÍ EXISTEN SE LEÍAN CON Boolean(), Y SON ENUMS. `statusSourceType`
+//    vale IMAGE=0, VIDEO=1, GIF=2, AUDIO=3, TEXT=4. `Boolean(1)` es `true`, así
+//    que cualquier mensaje que trajera ese campo con valor VÍDEO quedaba marcado
+//    como estado. Un vídeo corriente. Eso es exactamente lo que pasó.
+//
+// Ahora cada campo se pregunta donde vive y con el valor concreto que significa
+// algo, no con una conversión a booleano que confunde "es un vídeo" con "es un
+// estado".
+
+// El enum StatusAttributionType: NONE(0) es "sin atribución", o sea, un mensaje
+// normal. Del 1 al 4 sí son resubidas de un estado. Se compara contra el valor,
+// no con Boolean, y se acepta tanto la forma numérica como la de cadena (según
+// cómo se haya decodificado el proto).
+const ATRIBUCION_NEUTRA = new Set([0, '0', 'NONE']);
+function atribuidoAEstado(v) {
+  return v !== undefined && v !== null && !ATRIBUCION_NEUTRA.has(v);
 }
 
-// ¿Es un estado publicado al grupo? Devuelve por que se ha reconocido (para el
-// log) o null si no lo es.
-function motivoEstado(message) {
-  if (!message) return null;
-  for (const s of SOBRES_ESTADO) {
-    if (message[s]) return s;
-  }
-  // El sobre puede venir dentro de un envoltorio efimero o de ver-una-vez.
-  const dentro = unwrapEnvelope(message);
-  if (dentro !== message) {
+// Marcas dentro del contextInfo. SOLO campos que existen de verdad ahí y cuyo
+// significado es inequívoco.
+//
+// `statusSourceType` queda fuera a propósito: solo dice de qué tipo es un medio
+// (imagen, vídeo, audio...). Por sí solo no afirma que haya un estado, y es
+// justo el que provocó la expulsión injusta.
+function marcaDeEstado(ctx) {
+  if (!ctx) return false;
+  return ctx.isGroupStatus === true ||
+    atribuidoAEstado(ctx.statusAttributionType) ||
+    (Array.isArray(ctx.statusAttributions) && ctx.statusAttributions.length > 0) ||
+    Boolean(ctx.statusAudienceMetadata) ||
+    // Red defensiva. Estos tres NO viven hoy en ContextInfo — `quotedStatus` es
+    // de StatusMentionMessage y los otros dos de WebMessageInfo, que ya se mira
+    // aparte — así que a día de hoy no se cumplen nunca. Se dejan porque son
+    // campos de OBJETO: preguntar por su presencia no puede confundir "esto es
+    // un vídeo" con "esto es un estado", que es exactamente el fallo que tenían
+    // los enums. Si WhatsApp mueve alguno de sitio, el guardia lo sigue viendo
+    // en vez de dejar de funcionar en silencio, que es como empezó todo esto.
+    Boolean(ctx.quotedStatus) ||
+    Boolean(ctx.originalStatusId) ||
+    Boolean(ctx.statusMentionMessageInfo) ||
+    ctx.isMentionedInStatus === true ||
+    (Array.isArray(ctx.statusMentions) && ctx.statusMentions.length > 0);
+}
+
+// Marcas del SOBRE del mensaje (WebMessageInfo). Aquí es donde WhatsApp pone de
+// verdad lo de las menciones en estados.
+function marcaDeEstadoEnSobre(msg) {
+  if (!msg) return null;
+  if (msg.isMentionedInStatus === true) return 'msg.isMentionedInStatus';
+  if (msg.statusMentionMessageInfo) return 'msg.statusMentionMessageInfo';
+  if (Array.isArray(msg.statusMentions) && msg.statusMentions.length) return 'msg.statusMentions';
+  if (Array.isArray(msg.statusMentionSources) && msg.statusMentionSources.length) return 'msg.statusMentionSources';
+  return null;
+}
+
+// ¿Es un estado publicado al grupo? Devuelve { motivo, seguro }:
+//   seguro: true  -> vino el sobre de estado. No hay duda posible.
+//   seguro: false -> se dedujo de campos sueltos. Es una heurística.
+// null si no lo es.
+//
+// La distinción existe porque la sanción ya no es la misma para las dos: una
+// heurística no puede costar el grupo (ver más abajo).
+function motivoEstado(message, msg = null) {
+  const enSobre = marcaDeEstadoEnSobre(msg);
+
+  if (message) {
     for (const s of SOBRES_ESTADO) {
-      if (dentro?.[s]) return s + ' (envuelto)';
+      if (message[s]) return { motivo: s, seguro: true };
+    }
+    // El sobre puede venir dentro de un envoltorio efimero o de ver-una-vez.
+    const dentro = unwrapEnvelope(message);
+    if (dentro !== message) {
+      for (const s of SOBRES_ESTADO) {
+        if (dentro?.[s]) return { motivo: s + ' (envuelto)', seguro: true };
+      }
+    }
+    for (const m of [message, dentro]) {
+      if (!m) continue;
+      for (const k of Object.keys(m)) {
+        const ctx = m[k]?.contextInfo;
+        if (ctx && marcaDeEstado(ctx)) return { motivo: `contextInfo.${k}`, seguro: false };
+      }
     }
   }
-  for (const m of [message, dentro]) {
-    if (!m) continue;
-    for (const k of Object.keys(m)) {
-      const ctx = m[k]?.contextInfo;
-      if (ctx && marcaDeEstado(ctx)) return `contextInfo.${k}`;
-    }
-  }
+
+  if (enSobre) return { motivo: enSobre, seguro: false };
   return null;
 }
 
@@ -729,11 +795,12 @@ async function handleMessage(sock, msg) {
   // evidente para cualquiera que quisiera colar el suyo.
   if (jid.endsWith('@g.us')) {
     anotarTipoDesconocido(msg.message, jid, sender);
-    const porQue = motivoEstado(msg.message);
-    if (porQue) {
+    const deteccion = motivoEstado(msg.message, msg);
+    if (deteccion) {
+      const { motivo: porQue, seguro } = deteccion;
       // Se registra SIEMPRE, se actúe o no: si mañana WhatsApp cambia el sobre,
       // este log es lo que dice si el mensaje llegó a reconocerse.
-      logger.info(`estado en grupo detectado por ${porQue} — tipos=[${Object.keys(msg.message || {}).join(',')}]`);
+      logger.info(`estado en grupo detectado por ${porQue} (${seguro ? 'sobre' : 'heuristica'}) — tipos=[${Object.keys(msg.message || {}).join(',')}]`);
 
       const meta = await getGroupMeta(sock, jid);
       const protegido = !meta ||
@@ -747,14 +814,30 @@ async function handleMessage(sock, msg) {
       }
 
       sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
-      // Lista negra global, igual que el spam de medios: no basta con echarlo, no
-      // debe poder volver a entrar con la misma cuenta a repetirlo.
-      await banAccount(allForms(sender, meta), `estado publicado en ${jid}`, 'auto').catch(() => {});
+
+      // La sanción depende de lo seguro que sea el diagnóstico.
+      //
+      // NO se banea nunca de forma automática por esto. La lista negra es
+      // GLOBAL y permanente: veta la cuenta en todos los grupos del bot. Que un
+      // guardia automático la aplicara solo por reconocer un sobre significaba
+      // que un fallo de detección — y hubo uno, con un vídeo corriente — dejaba
+      // a una persona vetada en todas partes. Echar es reversible: se vuelve a
+      // añadir. Un baneo global no lo es en la práctica. Si alguien merece la
+      // lista negra, un admin lo decide con *!fkban*.
+      if (!seguro) {
+        // Heurística: se borra y se avisa, nada más. No cuesta el grupo.
+        sock.sendMessage(jid, {
+          text: `@${sender.split('@')[0]}, los estados no se publican aquí. Borrado.`,
+          mentions: [sender],
+        }).catch(() => {});
+        return;
+      }
+
       const fuera = await expulsar(sock, jid, sender);
       sock.sendMessage(jid, {
         text: fuera
-          ? `@${sender.split('@')[0]} baneado por publicar un estado en el grupo. Aquí no se suben estados, ni con enlaces ni sin ellos.`
-          : `@${sender.split('@')[0]} publicó un estado en el grupo. Borrado y a la lista negra, pero no he podido expulsarlo: hacedlo a mano.`,
+          ? `@${sender.split('@')[0]} fuera por publicar un estado en el grupo. Aquí no se suben estados, ni con enlaces ni sin ellos.`
+          : `@${sender.split('@')[0]} publicó un estado en el grupo. Borrado, pero no he podido expulsarlo: hacedlo a mano.`,
         mentions: [sender],
       }).catch(() => {});
       return; // un estado no sigue procesándose en ningún caso
@@ -1173,6 +1256,11 @@ async function handleMessage(sock, msg) {
         await cmdFkUnban(sock, msg, args, groupMeta);
         break;
 
+      case 'fklist':
+      case 'listanegra':
+        await cmdFkList(sock, msg, args, groupMeta);
+        break;
+
       case 'antifake':
       case 'antifk':
         await cmdAntiFake(sock, msg, args, groupMeta);
@@ -1223,11 +1311,11 @@ async function handleMessage(sock, msg) {
 
       case 'toimg':
       case 'stimg':
-        await cmdToImg(sock, msg);
+        await cmdToImg(sock, msg, groupMeta);
         break;
 
       case 'tovid':
-        await cmdToVid(sock, msg);
+        await cmdToVid(sock, msg, groupMeta);
         break;
 
       case 'pfp':

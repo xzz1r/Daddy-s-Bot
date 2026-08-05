@@ -345,24 +345,6 @@ const RELEVANTE = [
 // COMANDO
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Conteo estable y creíble para el owner. Sus mensajes no se cuentan, así que
-// el real es 0; mostrarlo lo delataría. Se deriva del jid del grupo (siempre
-// el mismo número en el mismo grupo) y crece unos pocos al día, como uno real.
-function ownerCount(groupJid) {
-  let h = 0;
-  for (let i = 0; i < groupJid.length; i++) {
-    h = (h * 31 + groupJid.charCodeAt(i)) >>> 0;
-  }
-  const base = 1400 + (h % 900); // 1400-2299 fijo por grupo
-  // La deriva tiene que ser MONOTONA: un contador de mensajes solo sube. Antes
-  // era `drift % 700`, que cada ~233 dias daba la vuelta y hacia caer la cifra
-  // de golpe unos 697 mensajes — justo el tipo de salto imposible que delata
-  // que el numero es fabricado.
-  const DIA0 = 20089; // 2025-01-01 en dias desde epoch: ancla para no partir de una cifra enorme
-  const dias = Math.max(0, Math.floor(Date.now() / 86400000) - DIA0);
-  return base + dias * 3; // ~3 mensajes al día, siempre hacia arriba
-}
-
 async function cmdRelevance(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
@@ -370,9 +352,19 @@ async function cmdRelevance(sock, msg, groupMeta) {
   }
 
   const target = getTargetOrSelf(msg);
-  const isOwnerTarget = isMainOwner(target, false, groupMeta);
 
-  const count = isOwnerTarget ? ownerCount(jid) : await getUserCount(jid, target);
+  // Del owner principal NO se contesta. Ni una cifra, ni un veredicto, ni un
+  // "no hay datos": silencio.
+  //
+  // Antes se le fabricaba un conteo verosímil (1.400-2.300 y subiendo tres al
+  // día) para que no cantara que es el dueño. El problema es que ese número
+  // contradecía al resto del bot: sus mensajes no se cuentan, así que no sale
+  // en *!count*, no sale en los tops y no sale en *!vs* — pero *!relevancia* le
+  // atribuía casi dos mil. Cualquiera que compare las dos cosas ve que ahí pasa
+  // algo. Un dato inventado que choca con los demás delata más que no responder.
+  if (isMainOwner(target, false, groupMeta)) return;
+
+  const count = await getUserCount(jid, target);
 
   const pool =
     count >= HIGH_MIN ? RELEVANTE :

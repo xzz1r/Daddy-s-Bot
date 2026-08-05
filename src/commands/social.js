@@ -222,7 +222,7 @@ _Sin @ va sobre ti · con @ va sobre esa persona_
 *${p}aura hoy* — tu progreso de hoy _(o ${p}casino)_
 _Ganas aura escribiendo. Bonos diarios: 200 msg · 500 · 1000_
 _Cuestan aura: ${p}play (15) · ${p}top10 (10) · ${p}g (10) · ${p}fk (8)_
-_${p}top5 (6) · ${p}pfp (5)_
+_${p}tovid (6) · ${p}top5 (6) · ${p}pfp (5) · ${p}s (4) · ${p}toimg (4)_
 
 ━━━━━ *PERFIL* ━━━━━
 *${p}pfp* @user — su foto de perfil
@@ -252,6 +252,7 @@ _${p}top5 (6) · ${p}pfp (5)_
 *${p}allow* @user — le deja publicar enlaces
 *${p}marcarfake* @user — marca su foto como falsa
 *${p}fkban* / *${p}fkunban* @user — lista negra global
+*${p}fklist* — ver quién está en la lista negra
 *${p}antifake* on/off — vigila las entradas
 
 ━━━━━ *OWNER* ━━━━━

@@ -2,6 +2,7 @@ const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, MAX_STICKER_BYTES } = require('../utils/sticker');
 const { streamToBuffer, MAX_MEDIA_BYTES } = require('../utils/helpers');
 const { getSender, isOwner } = require('../utils/wa');
+const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { incrementStat } = require('../utils/state');
 const logger = require('../utils/logger');
 
@@ -77,6 +78,16 @@ async function cmdSticker(sock, msg, groupMeta) {
     }, { quoted: msg });
   }
 
+  // Cobro. Va aqui a proposito: despues de comprobar que hay medio y que la
+  // conversion esta permitida, para que nadie pague por un mensaje de error, y
+  // antes de bajar el archivo y levantar ffmpeg, que es lo que cuesta de verdad.
+  // Si algo falla despues, se devuelve.
+  const pago = await cobrar(jid, senderJid, 'sticker', { fromMe: msg.key.fromMe, groupMeta });
+  if (!pago.ok) {
+    return sock.sendMessage(jid, { text: textoSinSaldo('sticker', pago) }, { quoted: msg });
+  }
+  const reembolsar = () => devolver(jid, senderJid, pago.pagado).catch(() => {});
+
   let buffer;
   try {
     const stream = await downloadContentFromMessage(found.msg, found.dl || found.type);
@@ -87,6 +98,7 @@ async function cmdSticker(sock, msg, groupMeta) {
     }
   } catch (err) {
     logger.error(`Sticker download error: ${err.message}`);
+    await reembolsar();
     return sock.sendMessage(jid, { text: `Error descargando: ${err.message}` }, { quoted: msg });
   }
 
@@ -131,6 +143,7 @@ async function cmdSticker(sock, msg, groupMeta) {
     }
   } catch (err) {
     logger.error(`Sticker conversion error: ${err.message}`);
+    await reembolsar();
     return sock.sendMessage(jid, { text: `Error al convertir: ${err.message}` }, { quoted: msg });
   }
 
@@ -145,6 +158,7 @@ async function cmdSticker(sock, msg, groupMeta) {
     // strict source. Catch that here instead of silently shipping a sticker
     // WhatsApp may refuse to upload or that recipients can't save.
     if (animated && stickerBuffer.length > MAX_STICKER_BYTES) {
+      await reembolsar();
       return sock.sendMessage(jid, {
         text: 'Ese sticker animado pesa demasiado para WhatsApp y no se puede recomprimir: viene en un formato que el bot no sabe reabrir. Si tienes el video o el GIF del que salió, mándalo con *!s* y se hace de nuevo desde ahí.',
       }, { quoted: msg });
@@ -163,6 +177,7 @@ async function cmdSticker(sock, msg, groupMeta) {
     logger.success(`Sticker enviado (${found.type}, ${stickerBuffer.length} bytes, animated=${animated}, thumb=${!!pngThumbnail})`);
   } catch (err) {
     logger.error(`Sticker send error: ${err.message}`);
+    await reembolsar();
     await sock.sendMessage(jid, { text: `Error al enviar sticker: ${err.message}` }, { quoted: msg });
   }
 }

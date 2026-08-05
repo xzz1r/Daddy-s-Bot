@@ -1441,10 +1441,19 @@ async function cmdAura(sock, msg, args, groupMeta) {
   // pequeno y no garantiza nada — el resultado sigue siendo aleatorio.
   let plusActividad = 0;
   let mensajes = 0;
-  try {
-    mensajes = await getUserCount(jid, sender);
-    if (mensajes >= ACTIVIDAD_MSGS) plusActividad = ACTIVIDAD_BONO;
-  } catch { /* si el contador falla, se tira sin plus */ }
+  if (isMainOwner(sender, msg.key.fromMe, groupMeta)) {
+    // Al owner principal el contador no le cuenta los mensajes (es lo que lo
+    // mantiene fuera de !count y de los tops), así que preguntarle al contador
+    // siempre devolvía 0 y era el único del grupo que jamás podía cobrar el plus
+    // por actividad — castigado justo por el mecanismo que lo protege. Se le da
+    // directamente: de todo el grupo es quien más escribe.
+    plusActividad = ACTIVIDAD_BONO;
+  } else {
+    try {
+      mensajes = await getUserCount(jid, sender);
+      if (mensajes >= ACTIVIDAD_MSGS) plusActividad = ACTIVIDAD_BONO;
+    } catch { /* si el contador falla, se tira sin plus */ }
+  }
 
   const { tier, amount } = rollAura(selfIsOwner, selfIsAdmin, plusActividad);
   const sign = amount >= 0 ? '+' : '-';
