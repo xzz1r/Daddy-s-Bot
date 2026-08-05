@@ -20,12 +20,23 @@
 // completo a las dinámicas: robar o apostar no compensaba porque el bono del
 // día siguiente devolvía cien veces eso.
 //
-// Las cifras de aquí están calibradas contra una simulación de 30 días (ver
-// scratchpad/economia): con ellas alguien MUY activo (1.200 msgs al día) roza
-// los 6.000 en un mes — o sea, se hace millonario, pero le cuesta el mes
-// entero. Alguien de actividad normal se queda cerca de los 1.000 y las
-// dinámicas (!robo, !duel, !aura) pesan lo mismo o más que el goteo de bonos,
-// que es justo lo que se buscaba.
+// Calibrado contra una simulación de 30 días. Lo que sale hoy, contando las
+// DOS fuentes (bonos por escribir + tiradas dentro del presupuesto diario):
+//
+//   perfil        msgs/día   escribir   tirando   día 30
+//   fantasma            30          0         5      237
+//   normal             200         16        14      993
+//   activo             500         97        27    3.825
+//   muy activo       1.200        315       110   12.838
+//
+// Millonario (5.000) le cuesta unos 39 días al perfil "activo" y unos 12 al
+// que escribe mil doscientos mensajes diarios, que es un ritmo extremo. Un
+// fantasma no llega ni de lejos, que es exactamente el punto.
+//
+// La regla que sostiene todo lo demás: ESCRIBIR MANDA. Ningún juego puede dar
+// más que la actividad, ni siquiera al owner con la probabilidad más alta que
+// existe. Cuando eso deja de cumplirse, la escala entera sobra — que es lo que
+// pasaba antes del presupuesto de tiradas.
 
 const MILLONARIO = 5000;
 const ARRANQUE = 100;
@@ -55,6 +66,32 @@ const P_POSITIVA = {
 // no un premio por antigüedad.
 const ACTIVIDAD_MSGS = 1000;   // umbral de !count a partir del cual aplica
 const ACTIVIDAD_BONO = 0.06;   // +6 % de probabilidad de que salga positiva
+
+// ─── Presupuesto diario de tiradas ───────────────────────────────────────────
+//
+// Esto tapa el mayor agujero que tenía la economía, y era grande: la tirada de
+// !aura sale positiva más veces de las que sale negativa, así que su valor
+// esperado es POSITIVO. Un juego con valor esperado positivo y sin límite no es
+// un juego: es una impresora, y lo único que la frenaba era el cooldown.
+//
+// Con el cooldown en 2 minutos salen 720 tiradas al día. Las cuentas reales:
+//
+//   escribir 1.200 mensajes en un día .....    315 de aura
+//   spamear !aura ese mismo día ...........  6.610 de aura
+//
+// O sea que el comando gratis pagaba VEINTE VECES lo que un día entero de
+// actividad, y hacerse millonario (5.000) era cuestión de una tarde dándole al
+// botón. Todo el ajuste de la escala, los tramos de bonos y la ventaja de la
+// casa del robo no servían de nada al lado de eso.
+//
+// La solución no es subir el cooldown — eso solo lo hace lento y aburrido, sin
+// dejar de ser una impresora. Es poner un presupuesto: doce tiradas al día,
+// que se reinician con la misma ventana de 24h que los hitos de mensajes.
+//
+// Con doce, un miembro activo saca unas 110 de aura al día tirando, frente a
+// las 299 que le da escribir mil mensajes. La tirada vuelve a ser lo que decía
+// el diseño: un extra con suerte, no la vía principal.
+const TIRADAS_DIA = 12;
 
 // ─── Bonos por actividad (tramos de 200 / 500 / 1000 mensajes diarios) ───────
 //
@@ -232,7 +269,7 @@ function rango([suelo, ancho]) {
 
 module.exports = {
   MILLONARIO, ARRANQUE,
-  TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO,
+  TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, TIRADAS_DIA,
   BONOS, REDENCION,
   ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, DUELO, REGALO_MIN,
   PRECIOS, SALDO_MINIMO,

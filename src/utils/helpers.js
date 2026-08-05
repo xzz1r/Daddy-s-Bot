@@ -4,11 +4,12 @@ const { spawn } = require('child_process');
 
 const TEMP_DIR = path.join(__dirname, '../../temp');
 
-async function ensureTemp() {
-  await fs.ensureDir(TEMP_DIR);
-  // Sweep stale temp files (>1h old) from previous runs so the dir doesn't
-  // accumulate failed downloads, half-encoded stickers, etc.
-  const ONE_HOUR = 60 * 60 * 1000;
+const UNA_HORA = 60 * 60 * 1000;
+
+// Barre los temporales rancios (>1h) que dejan las descargas fallidas, los
+// stickers a medio codificar y los ffmpeg que murieron por timeout.
+async function barrerTemp() {
+  let borrados = 0;
   try {
     const entries = await fs.readdir(TEMP_DIR);
     const now = Date.now();
@@ -16,12 +17,37 @@ async function ensureTemp() {
       const full = path.join(TEMP_DIR, name);
       try {
         const stat = await fs.stat(full);
-        if (now - stat.mtimeMs > ONE_HOUR) await fs.remove(full);
+        if (now - stat.mtimeMs > UNA_HORA) { await fs.remove(full); borrados++; }
       } catch {}
     }));
   } catch {}
+  return borrados;
+}
+
+async function ensureTemp() {
+  await fs.ensureDir(TEMP_DIR);
+  await barrerTemp();
+
+  // Y se repite cada hora mientras el bot corre.
+  //
+  // Barrer solo al arrancar bastaba cuando el proceso se reiniciaba a menudo.
+  // En un bot que lleva semanas levantado no: un ffmpeg que muere por timeout o
+  // una descarga que se corta dejan su fichero atrás, y ahí se quedan hasta el
+  // siguiente reinicio. Con vídeos de hasta 25 MB, unos cuantos accidentes
+  // llenan el disco de una máquina pequeña sin que nadie se entere.
+  //
+  // unref() para que este temporizador no impida que el proceso termine.
+  if (!barridoPeriodico) {
+    barridoPeriodico = setInterval(() => {
+      barrerTemp().then((n) => {
+        if (n) require('./logger').info(`temp: ${n} ficheros rancios barridos`);
+      }).catch(() => {});
+    }, UNA_HORA);
+    barridoPeriodico.unref?.();
+  }
   return TEMP_DIR;
 }
+let barridoPeriodico = null;
 
 function tempFile(ext) {
   const name = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;

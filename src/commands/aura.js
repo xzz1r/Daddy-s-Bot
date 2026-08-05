@@ -2,7 +2,8 @@ const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameU
 const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
-const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, rango } = require('../utils/economia');
+const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, TIRADAS_DIA, rango } = require('../utils/economia');
+const { gastarTirada, getTiradas } = require('../utils/casinoStore');
 
 // 2 min, bajado desde 3. La tirada mueve poco aura (15-150) desde que se
 // recorto la escala, asi que tres minutos de espera para un goteo era mucho
@@ -46,6 +47,23 @@ function rollAura(targetIsOwner, targetIsAdmin, plusActividad = 0) {
     ? { tier: 'cursed', amount: -grande() }
     : { tier: 'loss',   amount: -pequena() };
 }
+
+// Se acabaron las tiradas del dia. El bot no explica cuando vuelven ni como
+// conseguir mas: cierra la puerta y ya. Doce frases para que no cante.
+const SIN_TIRADAS = [
+  'Doce tiradas y ni una te salvo. Se acabo por hoy.',
+  'Ya has gastado todo lo que el aura te iba a dar hoy. Vete a escribir algo.',
+  'Hasta aquí. El aura tiene sus horarios y tu ya los agotaste.',
+  'Doce veces. DOCE. Y sigues aquí dandole al boton como si cambiara algo.',
+  'Se te acabo la suerte del día, y viendo como fue, tampoco perdiste gran cosa.',
+  'El aura ya no te coge el telefono. Mañana.',
+  'Cerrado. Has quemado tus tiradas con la elegancia de una tragaperras de bar.',
+  'Ni una más. Lo que no conseguiste en doce no lo ibas a conseguir en trece.',
+  'Tu cupo diario esta seco. Prueba a hablar con gente, dicen que también da aura.',
+  'Se acabo. El aura reparte todos los días, pero no todo el día.',
+  'Doce tiradas gastadas. El grupo entero te vio fallar y aun así volviste.',
+  'Basta por hoy. Te estas poniendo en evidencia.',
+];
 
 const AURA = {
   blessed: [
@@ -1432,8 +1450,21 @@ async function cmdAura(sock, msg, args, groupMeta) {
       text: `Espera *${mins}min* para volver a tirar.`,
     }, { quoted: msg });
   }
+  // Presupuesto diario. El cooldown por si solo no bastaba: la tirada tiene
+  // valor esperado POSITIVO, asi que sin tope era una impresora de aura — 720
+  // tiradas al dia daban mas que escribir mil doscientos mensajes, veinte veces
+  // mas. Doce al dia, con la misma ventana de 24h que los hitos de mensajes.
+  const gastadas = await getTiradas(jid, sender);
+  if (gastadas >= TIRADAS_DIA) {
+    if (lastRoll.size >= 2000) lastRoll.delete(lastRoll.keys().next().value);
+    return sock.sendMessage(jid, {
+      text: pickFresh(SIN_TIRADAS, `${jid}|sintiradas`),
+    }, { quoted: msg });
+  }
+
   if (lastRoll.size >= 2000) lastRoll.delete(lastRoll.keys().next().value);
   lastRoll.set(coolKey, Date.now());
+  await gastarTirada(jid, sender);
 
   // The roll is rigged by the SENDER's own role — you only ever play your own aura.
   const selfIsOwner = isOwner(sender, msg.key.fromMe, groupMeta);

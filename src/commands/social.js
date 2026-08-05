@@ -1,9 +1,9 @@
 const { getState, setState, toggleGroup } = require('../utils/state');
 const { formatUptime, fmt, pickFresh } = require('../utils/helpers');
 const { isOwner, getSender } = require('../utils/wa');
-const { getCasinoCount, msUntilReset } = require('../utils/casinoStore');
+const { getCasinoCount, getTiradas, msUntilReset } = require('../utils/casinoStore');
 const { nextMilestone } = require('../utils/casino');
-const { PRECIOS } = require('../utils/economia');
+const { PRECIOS, TIRADAS_DIA } = require('../utils/economia');
 const config = require('../config');
 const logger = require('../utils/logger');
 
@@ -138,9 +138,10 @@ async function cmdCasino(sock, msg) {
   }
 
   const sender = getSender(msg);
-  const [count, ms] = await Promise.all([
+  const [count, ms, tiradas] = await Promise.all([
     getCasinoCount(jid, sender),
     msUntilReset(jid),
+    getTiradas(jid, sender),
   ]);
 
   // El calculo del proximo hito vive en utils/casino.js, que es quien reparte los
@@ -155,10 +156,17 @@ async function cmdCasino(sock, msg) {
   const mins  = Math.floor((ms % 3_600_000) / 60_000);
   const resetStr = ms > 0 ? `${hours}h ${mins}min` : 'pronto';
 
+  // Las tiradas que quedan van aqui porque es el unico sitio donde el
+  // presupuesto es visible ANTES de agotarlo. Sin esto, la primera noticia que
+  // tiene alguien de que hay un limite es el mensaje de "se acabo", que parece
+  // un fallo del bot en vez de una regla.
+  const quedan = Math.max(0, TIRADAS_DIA - tiradas);
+
   const text =
     `*AURA — HOY*\n\n` +
     `Mensajes hoy: *${fmt(count)}*\n` +
-    `Próximo bono: ${tierLabel} — faltan *${fmt(remaining)}* msgs\n\n` +
+    `Próximo bono: ${tierLabel} — faltan *${fmt(remaining)}* msgs\n` +
+    `Tiradas: *${quedan}* de ${TIRADAS_DIA}\n\n` +
     `${pickFresh(AURA_LINES, `${jid}|auralines`)}\n\n` +
     `_Reset en ${resetStr}_`;
 
@@ -211,6 +219,7 @@ _Lo que lleva \`número\` cuesta esa cantidad de aura._
 ━━━━━ *AURA* ━━━━━
 _Se gana escribiendo. Bonos diarios a los 200, 500 y 1000 msg._
 *${p}aura* [@user] — ver aura · *${p}aura top* — ranking
+_Tirar cuesta una de tus ${TIRADAS_DIA} tiradas del día._
 *${p}aura hoy* — tu progreso de hoy _(o ${p}casino)_
 *${p}dar* @user <cantidad> — regalar
 *${p}duel* @user <cantidad> — apostar 1v1, el otro acepta

@@ -66,6 +66,10 @@ async function maybeStore(ctx, buf) {
   if (!buf || !ctx?.account) return;
   if (!(await shouldKeep(ctx))) return;
   const small = await downscale(buf);
+  // Si ffmpeg no pudo reescalar (ocupado, timeout, formato raro), NO se guarda
+  // el original a lo bruto: solo si es lo bastante pequeño. Antes se guardaba
+  // siempre, y ese era el camino por el que la caché se comía el disco.
+  if (!small && buf.length > MAX_CRUDO_BYTES) return;
   await put(ctx.account, small || buf);
 }
 
@@ -81,6 +85,22 @@ const INDEX = path.join(DIR, 'index.json');
 const MAX_ENTRIES = 1200;
 const MAX_IMG_BYTES = 3 * 1024 * 1024;
 
+// Tope DURO de disco. Faltaba, y era el mayor riesgo de espacio del bot en una
+// máquina pequeña: solo se contaban las ENTRADAS (1.200), nunca lo que ocupaban.
+// Con el reescalado funcionando son unos 35 KB cada una — 41 MB, inofensivo —
+// pero cuando el reescalado fallaba se guardaba el ORIGINAL, de hasta 3 MB.
+// 1.200 originales son 3,5 GB, y en el disco de una Oracle gratuita eso duele.
+//
+// Ajustable con PFP_CACHE_MB en el .env, para no tener que tocar el código si la
+// máquina va más justa.
+const MAX_CACHE_BYTES = Math.max(8, Number(process.env.PFP_CACHE_MB) || 60) * 1024 * 1024;
+
+// Y si el reescalado falla, hay un límite para lo que se guarda en crudo. Una
+// foto reescalada ocupa ~35 KB; aceptar hasta 300 KB deja margen de sobra para
+// un original pequeño y descarta los que llenarían el disco. Lo que no entra no
+// se cachea y punto: la huella se recalcula la próxima vez que haga falta.
+const MAX_CRUDO_BYTES = 300 * 1024;
+
 let index = null; // { [account]: { file, firstSeen, lastSeen } }
 let loadPromise = null;
 let saveTimer = null;
@@ -93,7 +113,7 @@ async function load() {
   if (index) return;
   if (!loadPromise) {
     loadPromise = readJsonOrEnoent(INDEX, {})
-      .then((d) => { index = (d && typeof d === 'object') ? d : {}; reconcileOrphans(); })
+      .then((d) => { index = (d && typeof d === 'object') ? d : {}; reconcileOrphans(); medirEntradasSinTamano(); })
       .catch((e) => {
         loadPromise = null;
         logger.warn(`pfpCache: lectura falló (${e.message}); no se toca el archivo`);
@@ -127,15 +147,39 @@ function scheduleSave() {
   }, 4000);
 }
 
-function evictOldest() {
-  let oldest = null, ts = Infinity;
-  for (const [acc, e] of Object.entries(index)) {
-    if (e.lastSeen < ts) { ts = e.lastSeen; oldest = acc; }
+// Tira las entradas menos usadas hasta respetar LOS DOS topes: número y bytes.
+// Antes solo miraba el número, así que 1.200 fotos sin reescalar podían ocupar
+// gigas sin que nada las tocara.
+function desalojar() {
+  let bytes = 0, n = 0;
+  for (const e of Object.values(index)) { bytes += e.bytes || 0; n++; }
+
+  while (n > MAX_ENTRIES || bytes > MAX_CACHE_BYTES) {
+    let viejo = null, ts = Infinity;
+    for (const [acc, e] of Object.entries(index)) {
+      if (e.lastSeen < ts) { ts = e.lastSeen; viejo = acc; }
+    }
+    if (!viejo) break;
+    fs.remove(path.join(DIR, index[viejo].file)).catch(() => {});
+    bytes -= index[viejo].bytes || 0;
+    delete index[viejo];
+    n--;
   }
-  if (oldest) {
-    fs.remove(path.join(DIR, index[oldest].file)).catch(() => {});
-    delete index[oldest];
-  }
+}
+
+// Las entradas escritas antes de que existiera el tope de bytes no guardaban su
+// tamaño. Sin medirlas, el desalojo las contaría como 0 y el tope no serviría
+// justo con lo que ya está en disco, que es lo que hay que limpiar.
+async function medirEntradasSinTamano() {
+  try {
+    let tocadas = 0;
+    for (const [acc, e] of Object.entries(index)) {
+      if (typeof e.bytes === 'number') continue;
+      try { e.bytes = (await fs.stat(path.join(DIR, e.file))).size; tocadas++; }
+      catch { delete index[acc]; tocadas++; }   // el fichero ya no está
+    }
+    if (tocadas) { desalojar(); scheduleSave(); }
+  } catch {}
 }
 
 // Guarda (o actualiza) la última foto conocida de `account`.
@@ -149,10 +193,13 @@ async function put(account, buf, now = Date.now()) {
     await fs.writeFile(path.join(DIR, file), buf);
     if (existing) {
       existing.lastSeen = now;
+      existing.bytes = buf.length;   // al actualizarse puede cambiar de tamaño
     } else {
-      index[account] = { file, firstSeen: now, lastSeen: now };
-      if (Object.keys(index).length > MAX_ENTRIES) evictOldest();
+      index[account] = { file, firstSeen: now, lastSeen: now, bytes: buf.length };
     }
+    // Se desaloja en CADA escritura, no solo al crear entradas nuevas: cambiar
+    // una foto por otra más grande también puede pasarse del tope de bytes.
+    desalojar();
     scheduleSave();
   } catch (e) {
     logger.warn(`pfpCache: no pude guardar foto de ${account}: ${e.message}`);
