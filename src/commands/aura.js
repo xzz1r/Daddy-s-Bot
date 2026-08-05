@@ -1551,7 +1551,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
   }
   // Aqui hubo un tope de doce tiradas al dia. Se quito: un contador que se agota
   // convierte el comando en mirar un numero en vez de jugar, y el freno real es
-  // el cooldown mas la ventaja de la casa (ver PERDIDA_EXTRA en economia.js).
+  // el cooldown mas la ventaja de la casa (ver multiplicadorPerdida en economia.js).
   // Se puede tirar todo lo que se quiera; lo que ya no se puede es imprimir.
   if (lastRoll.size >= 2000) lastRoll.delete(lastRoll.keys().next().value);
   lastRoll.set(coolKey, Date.now());
