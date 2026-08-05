@@ -2,8 +2,9 @@ const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameU
 const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
-const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, TIRADAS_DIA, rango } = require('../utils/economia');
+const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, TIRADAS_DIA, ALLIN, rango } = require('../utils/economia');
 const { gastarTirada, getTiradas } = require('../utils/casinoStore');
+const { ALLIN_GANA, ALLIN_PIERDE } = require('../data/allinPhrases');
 
 // 2 min, bajado desde 3. La tirada mueve poco aura (15-150) desde que se
 // recorto la escala, asi que tres minutos de espera para un goteo era mucho
@@ -1410,6 +1411,117 @@ Es la moneda del grupo. Empiezas con *100*. Un millonario del grupo ronda los *5
 // !aura [@user]  — rolls aura for the target and updates their PERSISTENT total.
 // !aura top      — shows the group leaderboard.
 // !aura info     — explains the full system.
+// ═══════════════════════════════════════════════════════════════════════════
+// !aura allin — el ordago del dia
+// ═══════════════════════════════════════════════════════════════════════════
+
+// El pool de derrota SI se ordena de mas duro a mas suave: son burlas, y el bot
+// abre con lo peor que tiene, igual que en el resto de comandos. El de victoria
+// NO: son cronicas de una hazaña, todas dicen lo mismo con otras palabras, y
+// ordenarlas por tacos solo pondria delante las que mas suenan a insulto — el
+// efecto contrario al que busca. Mismo criterio que OWNER_ROAST.
+const POOL_ALLIN_GANA = ALLIN_GANA;
+const POOL_ALLIN_PIERDE = ordenarPorDureza(ALLIN_PIERDE);
+
+// Guarda contra dos !aura allin simultaneos de la misma persona. Se reclama de
+// forma SINCRONA, antes de cualquier await: comprobar las tiradas y gastarlas
+// son dos pasos, y sin esto dos mensajes a la vez pasarian los dos la
+// comprobacion y se jugarian el saldo dos veces. Es el mismo patron que usa el
+// duelo para que no se acepte dos veces.
+const allinEnCurso = new Set();
+
+// Frases de rechazo. Secas: dicen el porque y nada mas. El bot no da tutoriales
+// ni explica como conseguir aura.
+const ALLIN_YA_TIRASTE = [
+  'El all in es para quien llega entero. Tú ya has estado picoteando tiradas hoy.',
+  'Hoy ya has tirado. O una cosa o la otra, no las dos.',
+  'Llegas gastado. El órdago se juega con el día intacto.',
+  'Ya has quemado tiradas hoy. Mañana, y sin tocar nada antes.',
+  'No. Has venido a por el premio gordo después de calentar con las pequeñas.',
+  'El all in exige el día entero por delante. El tuyo ya no lo está.',
+];
+
+const ALLIN_POBRE = [
+  'Con eso no se apuesta, con eso se sobrevive.',
+  'No tienes suficiente para que esto tenga gracia.',
+  'Arriesgar lo que tú tienes no es arriesgar. Vuelve con algo encima.',
+  'La mesa tiene un mínimo y tú no llegas.',
+  'Eso no es una apuesta, es una propina. Junta más.',
+  'Aquí no se juega con calderilla.',
+];
+
+async function jugarAllIn(sock, msg, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'El all in solo se juega en grupos.' }, { quoted: msg });
+  }
+
+  const sender = getSender(msg);
+  const claveGuarda = `${jid}|${canonicalJid(sender)}`;
+  if (allinEnCurso.has(claveGuarda)) return;   // ya hay uno en vuelo
+  allinEnCurso.add(claveGuarda);
+
+  try {
+    // 1. Exige el dia intacto. Es lo que lo deja en uno por persona y dia sin
+    //    necesitar otro contador, y lo que convierte el dia en una decision.
+    const gastadas = await getTiradas(jid, sender);
+    if (gastadas > 0) {
+      return sock.sendMessage(jid, {
+        text: pickFresh(ALLIN_YA_TIRASTE, `${jid}|allin|gastado`),
+      }, { quoted: msg });
+    }
+
+    // 2. Hay que tener algo que perder.
+    const saldo = await getAura(jid, sender);
+    if (saldo < ALLIN.minimo) {
+      return sock.sendMessage(jid, {
+        text: `${pickFresh(ALLIN_POBRE, `${jid}|allin|pobre`)}\n_Mínimo *${fmt(ALLIN.minimo)}*. Tienes *${fmt(saldo)}*._`,
+      }, { quoted: msg });
+    }
+
+    // 3. Se cobra el dia ENTERO antes de tirar. Si el bot se cayera justo aqui,
+    //    lo que queda es que esa persona se quedo sin tiradas — no que se le
+    //    haya movido el saldo sin jugar.
+    for (let i = 0; i < TIRADAS_DIA; i++) await gastarTirada(jid, sender);
+
+    // 4. El dado.
+    const esOwner = isOwner(sender, msg.key.fromMe, groupMeta);
+    const esAdmin = !esOwner && isAdmin(groupMeta?.participants, sender);
+    const p = esOwner ? ALLIN.p.owner : esAdmin ? ALLIN.p.admin : ALLIN.p.miembro;
+    const gana = Math.random() < p;
+
+    const apuesta = Math.floor(saldo * ALLIN.fraccion);
+    // Perder nunca deja por debajo del arranque: quedarse a cero significaria no
+    // poder ni hacer un sticker, y el castigo que se busca es el drama, no que
+    // alguien deje de usar el bot. Con el minimo en 300 el suelo casi nunca
+    // llega a aplicarse, pero esta puesto para que siga siendo cierto si algun
+    // dia se toca la fraccion.
+    const objetivo = gana
+      ? saldo + apuesta * (ALLIN.multiplicador - 1)
+      : Math.max(ALLIN.suelo, saldo - apuesta);
+    const delta = objetivo - saldo;
+
+    const { current } = await addAura(jid, sender, delta);
+
+    const nm = `@${sender.split('@')[0]}`;
+    const frase = pickFresh(gana ? POOL_ALLIN_GANA : POOL_ALLIN_PIERDE, `${jid}|allin|${gana ? 'gana' : 'pierde'}`)
+      .replace(/%A/g, nm)
+      .replace(/%C/g, fmt(apuesta))
+      .replace(/%S/g, fmt(current));
+
+    const text =
+      `*ALL IN — ${gana ? 'GANA' : 'PIERDE'}*\n` +
+      `╾━━━━━━━━━━━━━━╼\n\n` +
+      `${nm} puso *${fmt(apuesta)}* sobre la mesa.\n\n` +
+      `${frase}\n\n` +
+      `${gana ? '+' : '−'}${fmt(Math.abs(delta))} → *${fmt(current)}* de aura`;
+
+    return sock.sendMessage(jid, { text, mentions: [sender] }, { quoted: msg });
+  } finally {
+    allinEnCurso.delete(claveGuarda);
+  }
+}
+
 async function cmdAura(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
 
@@ -1425,6 +1537,9 @@ async function cmdAura(sock, msg, args, groupMeta) {
   if (['hoy', 'today', 'dia', 'día', 'diario'].includes(sub)) {
     const { cmdCasino } = require('./social');
     return cmdCasino(sock, msg);
+  }
+  if (['allin', 'all-in', 'todo', 'ordago', 'órdago'].includes(sub)) {
+    return jugarAllIn(sock, msg, groupMeta);
   }
 
   const sender = getSender(msg);

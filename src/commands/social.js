@@ -220,6 +220,8 @@ _Lo que lleva \`número\` cuesta esa cantidad de aura._
 _Se gana escribiendo. Bonos diarios a los 200, 500 y 1000 msg._
 *${p}aura* [@user] — ver aura · *${p}aura top* — ranking
 _Tirar cuesta una de tus ${TIRADAS_DIA} tiradas del día._
+*${p}aura allin* — la mitad de tu saldo a una carta.
+Cuesta el día entero de tiradas y solo va una vez
 *${p}aura hoy* — tu progreso de hoy _(o ${p}casino)_
 *${p}dar* @user <cantidad> — regalar
 *${p}duel* @user <cantidad> — apostar 1v1, el otro acepta

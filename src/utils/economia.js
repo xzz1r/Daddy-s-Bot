@@ -93,6 +93,38 @@ const ACTIVIDAD_BONO = 0.06;   // +6 % de probabilidad de que salga positiva
 // el diseño: un extra con suerte, no la vía principal.
 const TIRADAS_DIA = 12;
 
+// ─── !aura allin ─────────────────────────────────────────────────────────────
+//
+// La apuesta gorda del día. Está diseñada para picar como pica un casino sin
+// romper nada de lo de arriba, y eso se consigue con cuatro límites:
+//
+//  1. CUESTA EL DÍA ENTERO. Exige las doce tiradas sin gastar y se las lleva
+//     todas. Eso la deja en una por persona y día sin necesidad de otro
+//     contador, y sobre todo convierte el día en una decisión de verdad: o
+//     picoteas doce veces a lo seguro, o te la juegas una vez. Las dos cosas
+//     no.
+//  2. SE JUEGA LA MITAD, NO TODO. Perder no puede borrarte del mapa: con la
+//     mitad, un mes de actividad duele pero sigue ahí. Es lo mismo que hacen
+//     el robo y el duelo, que capan la apuesta a una fracción del saldo justo
+//     para que nadie se vacíe de un golpe.
+//  3. HAY QUE TENER ALGO QUE PERDER. Por debajo del mínimo no hay apuesta que
+//     valga: arriesgar 50 no es arriesgar.
+//  4. NO TE ECHA DEL BOT. Aunque pierdas, nunca bajas del arranque. Quedarte a
+//     cero significaría no poder ni hacer un sticker, y ese no es el castigo
+//     que se busca — se busca el drama, no que alguien deje de usar el bot.
+//
+// Las probabilidades van justo por debajo de la moneda al aire, como el robo.
+// A 42 % con premio doble, la casa se queda un 16 % de lo apostado: se pierde
+// más veces de las que se gana, que es lo que hace que ganar se cuente durante
+// una semana. Sube por rol igual que en la tirada normal.
+const ALLIN = {
+  fraccion: 0.5,      // cuánto del saldo se pone en la mesa
+  minimo: 300,        // por debajo no hay nada que arriesgar
+  multiplicador: 2,   // ganar paga el doble de lo apostado
+  suelo: ARRANQUE,    // perder nunca te deja por debajo del arranque
+  p: { owner: 0.58, admin: 0.45, miembro: 0.42 },
+};
+
 // ─── Bonos por actividad (tramos de 200 / 500 / 1000 mensajes diarios) ───────
 //
 // [suelo, rango] por etiqueta. El importe final es suelo + rand(rango).
@@ -269,7 +301,7 @@ function rango([suelo, ancho]) {
 
 module.exports = {
   MILLONARIO, ARRANQUE,
-  TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, TIRADAS_DIA,
+  TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, TIRADAS_DIA, ALLIN,
   BONOS, REDENCION,
   ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, DUELO, REGALO_MIN,
   PRECIOS, SALDO_MINIMO,
