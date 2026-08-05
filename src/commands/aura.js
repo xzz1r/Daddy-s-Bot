@@ -2,9 +2,8 @@ const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameU
 const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
-const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, TIRADAS_DIA, ALLIN, rango } = require('../utils/economia');
-const { gastarTirada, getTiradas } = require('../utils/casinoStore');
-const { ALLIN_GANA, ALLIN_PIERDE } = require('../data/allinPhrases');
+const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, VENTAJA_CASA, multiplicadorPerdida, ORDAGO, rango } = require('../utils/economia');
+const { ORDAGO_GANA, ORDAGO_PIERDE } = require('../data/ordagoPhrases');
 
 // 2 min, bajado desde 3. La tirada mueve poco aura (15-150) desde que se
 // recorto la escala, asi que tres minutos de espera para un goteo era mucho
@@ -43,28 +42,17 @@ function rollAura(targetIsOwner, targetIsAdmin, plusActividad = 0) {
       ? { tier: 'blessed', amount:  grande() }
       : { tier: 'gain',    amount:  pequena() };
   }
-  // Dentro de lo negativo, un tercio son catastrofes.
+  // Lo negativo pesa MAS que lo positivo, y cuanto pesa sale de TU probabilidad:
+  // si ganas el 52 % de las veces pierdes 1,14 veces lo que ganas; si ganas el
+  // 70 %, pierdes 2,45 veces. Asi la cuenta se equilibra sola en cualquier rol y
+  // con cualquier bono, y nadie puede fabricar aura dandole al boton — que es lo
+  // que pasaba cuando ganar y perder movian lo mismo. Ver economia.js.
+  const castigo = (n) => Math.round(n * multiplicadorPerdida(pPos));
   return Math.random() < 0.34
-    ? { tier: 'cursed', amount: -grande() }
-    : { tier: 'loss',   amount: -pequena() };
+    ? { tier: 'cursed', amount: -castigo(grande()) }
+    : { tier: 'loss',   amount: -castigo(pequena()) };
 }
 
-// Se acabaron las tiradas del dia. El bot no explica cuando vuelven ni como
-// conseguir mas: cierra la puerta y ya. Doce frases para que no cante.
-const SIN_TIRADAS = [
-  'Doce tiradas y ni una te salvo. Se acabo por hoy.',
-  'Ya has gastado todo lo que el aura te iba a dar hoy. Vete a escribir algo.',
-  'Hasta aquí. El aura tiene sus horarios y tu ya los agotaste.',
-  'Doce veces. DOCE. Y sigues aquí dandole al boton como si cambiara algo.',
-  'Se te acabo la suerte del día, y viendo como fue, tampoco perdiste gran cosa.',
-  'El aura ya no te coge el telefono. Mañana.',
-  'Cerrado. Has quemado tus tiradas con la elegancia de una tragaperras de bar.',
-  'Ni una más. Lo que no conseguiste en doce no lo ibas a conseguir en trece.',
-  'Tu cupo diario esta seco. Prueba a hablar con gente, dicen que también da aura.',
-  'Se acabo. El aura reparte todos los días, pero no todo el día.',
-  'Doce tiradas gastadas. El grupo entero te vio fallar y aun así volviste.',
-  'Basta por hoy. Te estas poniendo en evidencia.',
-];
 
 const AURA = {
   blessed: [
@@ -1420,28 +1408,21 @@ Es la moneda del grupo. Empiezas con *100*. Un millonario del grupo ronda los *5
 // NO: son cronicas de una hazaña, todas dicen lo mismo con otras palabras, y
 // ordenarlas por tacos solo pondria delante las que mas suenan a insulto — el
 // efecto contrario al que busca. Mismo criterio que OWNER_ROAST.
-const POOL_ALLIN_GANA = ALLIN_GANA;
-const POOL_ALLIN_PIERDE = ordenarPorDureza(ALLIN_PIERDE);
+const POOL_ORDAGO_GANA = ORDAGO_GANA;
+const POOL_ORDAGO_PIERDE = ordenarPorDureza(ORDAGO_PIERDE);
 
-// Guarda contra dos !aura allin simultaneos de la misma persona. Se reclama de
-// forma SINCRONA, antes de cualquier await: comprobar las tiradas y gastarlas
-// son dos pasos, y sin esto dos mensajes a la vez pasarian los dos la
-// comprobacion y se jugarian el saldo dos veces. Es el mismo patron que usa el
-// duelo para que no se acepte dos veces.
-const allinEnCurso = new Set();
+const ORDAGO_COOLDOWN_MS = ORDAGO.cooldownMin * 60 * 1000;
+const ultimoOrdago = new Map();   // `${grupo}|${persona}` -> ts
+
+// Guarda contra dos ordagos simultaneos de la misma persona. Se reclama de
+// forma SINCRONA, antes de cualquier await: leer el saldo y moverlo son dos
+// pasos, y sin esto dos mensajes a la vez pasarian los dos la comprobacion y se
+// jugarian el saldo dos veces. Mismo patron que usa el duelo al aceptar.
+const ordagoEnCurso = new Set();
 
 // Frases de rechazo. Secas: dicen el porque y nada mas. El bot no da tutoriales
 // ni explica como conseguir aura.
-const ALLIN_YA_TIRASTE = [
-  'El all in es para quien llega entero. Tú ya has estado picoteando tiradas hoy.',
-  'Hoy ya has tirado. O una cosa o la otra, no las dos.',
-  'Llegas gastado. El órdago se juega con el día intacto.',
-  'Ya has quemado tiradas hoy. Mañana, y sin tocar nada antes.',
-  'No. Has venido a por el premio gordo después de calentar con las pequeñas.',
-  'El all in exige el día entero por delante. El tuyo ya no lo está.',
-];
-
-const ALLIN_POBRE = [
+const ORDAGO_POBRE = [
   'Con eso no se apuesta, con eso se sobrevive.',
   'No tienes suficiente para que esto tenga gracia.',
   'Arriesgar lo que tú tienes no es arriesgar. Vuelve con algo encima.',
@@ -1450,67 +1431,68 @@ const ALLIN_POBRE = [
   'Aquí no se juega con calderilla.',
 ];
 
-async function jugarAllIn(sock, msg, groupMeta) {
+async function jugarOrdago(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'El all in solo se juega en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'El órdago solo se juega en grupos.' }, { quoted: msg });
   }
 
   const sender = getSender(msg);
-  const claveGuarda = `${jid}|${canonicalJid(sender)}`;
-  if (allinEnCurso.has(claveGuarda)) return;   // ya hay uno en vuelo
-  allinEnCurso.add(claveGuarda);
+  const clave = `${jid}|${canonicalJid(sender)}`;
+  if (ordagoEnCurso.has(clave)) return;   // ya hay uno en vuelo
+  ordagoEnCurso.add(clave);
 
   try {
-    // 1. Exige el dia intacto. Es lo que lo deja en uno por persona y dia sin
-    //    necesitar otro contador, y lo que convierte el dia en una decision.
-    const gastadas = await getTiradas(jid, sender);
-    if (gastadas > 0) {
+    // Cooldown propio. Es el unico freno que necesita: encadenar ordagos arruina
+    // por pura matematica (cada jugada multiplica el saldo por 1,5 o por 0,5, y
+    // a 42 % eso baja solo), asi que esto no esta para prohibir nada — esta para
+    // que la caida no ocurra en diez minutos.
+    const ultimo = ultimoOrdago.get(clave) || 0;
+    const queda = ORDAGO_COOLDOWN_MS - (Date.now() - ultimo);
+    if (queda > 0) {
+      const h = Math.floor(queda / 3_600_000);
+      const m = Math.ceil((queda % 3_600_000) / 60_000);
       return sock.sendMessage(jid, {
-        text: pickFresh(ALLIN_YA_TIRASTE, `${jid}|allin|gastado`),
+        text: `La mesa todavía está caliente. Vuelve en *${h ? h + 'h ' : ''}${m}min*.`,
       }, { quoted: msg });
     }
 
-    // 2. Hay que tener algo que perder.
+    // Hay que tener algo que perder.
     const saldo = await getAura(jid, sender);
-    if (saldo < ALLIN.minimo) {
+    if (saldo < ORDAGO.minimo) {
       return sock.sendMessage(jid, {
-        text: `${pickFresh(ALLIN_POBRE, `${jid}|allin|pobre`)}\n_Mínimo *${fmt(ALLIN.minimo)}*. Tienes *${fmt(saldo)}*._`,
+        text: `${pickFresh(ORDAGO_POBRE, `${jid}|ordago|pobre`)}\n_Mínimo *${fmt(ORDAGO.minimo)}*. Tienes *${fmt(saldo)}*._`,
       }, { quoted: msg });
     }
 
-    // 3. Se cobra el dia ENTERO antes de tirar. Si el bot se cayera justo aqui,
-    //    lo que queda es que esa persona se quedo sin tiradas — no que se le
-    //    haya movido el saldo sin jugar.
-    for (let i = 0; i < TIRADAS_DIA; i++) await gastarTirada(jid, sender);
+    // Se reclama el cooldown ANTES de mover nada.
+    if (ultimoOrdago.size >= 2000) ultimoOrdago.delete(ultimoOrdago.keys().next().value);
+    ultimoOrdago.set(clave, Date.now());
 
-    // 4. El dado.
     const esOwner = isOwner(sender, msg.key.fromMe, groupMeta);
     const esAdmin = !esOwner && isAdmin(groupMeta?.participants, sender);
-    const p = esOwner ? ALLIN.p.owner : esAdmin ? ALLIN.p.admin : ALLIN.p.miembro;
+    const p = esOwner ? ORDAGO.p.owner : esAdmin ? ORDAGO.p.admin : ORDAGO.p.miembro;
     const gana = Math.random() < p;
 
-    const apuesta = Math.floor(saldo * ALLIN.fraccion);
+    const apuesta = Math.floor(saldo * ORDAGO.fraccion);
     // Perder nunca deja por debajo del arranque: quedarse a cero significaria no
     // poder ni hacer un sticker, y el castigo que se busca es el drama, no que
-    // alguien deje de usar el bot. Con el minimo en 300 el suelo casi nunca
-    // llega a aplicarse, pero esta puesto para que siga siendo cierto si algun
-    // dia se toca la fraccion.
+    // alguien deje de usar el bot.
     const objetivo = gana
-      ? saldo + apuesta * (ALLIN.multiplicador - 1)
-      : Math.max(ALLIN.suelo, saldo - apuesta);
+      ? saldo + apuesta * (ORDAGO.multiplicador - 1)
+      : Math.max(ORDAGO.suelo, saldo - apuesta);
     const delta = objetivo - saldo;
 
     const { current } = await addAura(jid, sender, delta);
 
     const nm = `@${sender.split('@')[0]}`;
-    const frase = pickFresh(gana ? POOL_ALLIN_GANA : POOL_ALLIN_PIERDE, `${jid}|allin|${gana ? 'gana' : 'pierde'}`)
+    const frase = pickFresh(gana ? POOL_ORDAGO_GANA : POOL_ORDAGO_PIERDE, `${jid}|ordago|${gana ? 'gana' : 'pierde'}`)
       .replace(/%A/g, nm)
       .replace(/%C/g, fmt(apuesta))
       .replace(/%S/g, fmt(current));
 
     const text =
-      `*ALL IN — ${gana ? 'GANA' : 'PIERDE'}*\n` +
+      `*ÓRDAGO — ${gana ? 'GANA' : 'PIERDE'}*\n` +
       `╾━━━━━━━━━━━━━━╼\n\n` +
       `${nm} puso *${fmt(apuesta)}* sobre la mesa.\n\n` +
       `${frase}\n\n` +
@@ -1518,7 +1500,7 @@ async function jugarAllIn(sock, msg, groupMeta) {
 
     return sock.sendMessage(jid, { text, mentions: [sender] }, { quoted: msg });
   } finally {
-    allinEnCurso.delete(claveGuarda);
+    ordagoEnCurso.delete(clave);
   }
 }
 
@@ -1538,8 +1520,10 @@ async function cmdAura(sock, msg, args, groupMeta) {
     const { cmdCasino } = require('./social');
     return cmdCasino(sock, msg);
   }
-  if (['allin', 'all-in', 'todo', 'ordago', 'órdago'].includes(sub)) {
-    return jugarAllIn(sock, msg, groupMeta);
+  // "allin" se conserva como alias porque el comando se llamo asi un dia, pero
+  // el nombre bueno es ordago: pone la MITAD del saldo, no todo.
+  if (['ordago', 'órdago', 'allin', 'all-in', 'todo', 'mesa'].includes(sub)) {
+    return jugarOrdago(sock, msg, groupMeta);
   }
 
   const sender = getSender(msg);
@@ -1565,21 +1549,12 @@ async function cmdAura(sock, msg, args, groupMeta) {
       text: `Espera *${mins}min* para volver a tirar.`,
     }, { quoted: msg });
   }
-  // Presupuesto diario. El cooldown por si solo no bastaba: la tirada tiene
-  // valor esperado POSITIVO, asi que sin tope era una impresora de aura — 720
-  // tiradas al dia daban mas que escribir mil doscientos mensajes, veinte veces
-  // mas. Doce al dia, con la misma ventana de 24h que los hitos de mensajes.
-  const gastadas = await getTiradas(jid, sender);
-  if (gastadas >= TIRADAS_DIA) {
-    if (lastRoll.size >= 2000) lastRoll.delete(lastRoll.keys().next().value);
-    return sock.sendMessage(jid, {
-      text: pickFresh(SIN_TIRADAS, `${jid}|sintiradas`),
-    }, { quoted: msg });
-  }
-
+  // Aqui hubo un tope de doce tiradas al dia. Se quito: un contador que se agota
+  // convierte el comando en mirar un numero en vez de jugar, y el freno real es
+  // el cooldown mas la ventaja de la casa (ver PERDIDA_EXTRA en economia.js).
+  // Se puede tirar todo lo que se quiera; lo que ya no se puede es imprimir.
   if (lastRoll.size >= 2000) lastRoll.delete(lastRoll.keys().next().value);
   lastRoll.set(coolKey, Date.now());
-  await gastarTirada(jid, sender);
 
   // The roll is rigged by the SENDER's own role — you only ever play your own aura.
   const selfIsOwner = isOwner(sender, msg.key.fromMe, groupMeta);

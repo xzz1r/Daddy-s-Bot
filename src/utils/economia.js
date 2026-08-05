@@ -23,20 +23,20 @@
 // Calibrado contra una simulación de 30 días. Lo que sale hoy, contando las
 // DOS fuentes (bonos por escribir + tiradas dentro del presupuesto diario):
 //
-//   perfil        msgs/día   escribir   tirando   día 30
-//   fantasma            30          0         5      237
-//   normal             200         16        14      993
-//   activo             500         97        27    3.825
-//   muy activo       1.200        315       110   12.838
+//   perfil        msgs/día   tiradas   escribir   tirando   día 30
+//   fantasma            30         3          0        -3       20
+//   normal             200        10         16        -9      314
+//   activo             500        25         97       -22    2.333
+//   muy activo       1.200        50        315       -50    8.055
 //
-// Millonario (5.000) le cuesta unos 39 días al perfil "activo" y unos 12 al
-// que escribe mil doscientos mensajes diarios, que es un ritmo extremo. Un
-// fantasma no llega ni de lejos, que es exactamente el punto.
+// Millonario (5.000) le cuesta unos 18 días a quien escribe mil doscientos
+// mensajes diarios, que es un ritmo extremo, y bastante más al resto. Un
+// fantasma se queda donde empezó, que es exactamente el punto.
 //
-// La regla que sostiene todo lo demás: ESCRIBIR MANDA. Ningún juego puede dar
-// más que la actividad, ni siquiera al owner con la probabilidad más alta que
-// existe. Cuando eso deja de cumplirse, la escala entera sobra — que es lo que
-// pasaba antes del presupuesto de tiradas.
+// La regla que sostiene todo lo demás: ESCRIBIR MANDA. Las tiradas y el órdago
+// mueven aura y dan el subidón, pero a la larga NINGUNO da de comer: la casa se
+// queda un pellizco en cada jugada. Todo lo que se acumula sale de escribir.
+// Cuando eso deja de cumplirse, la escala entera sobra.
 
 const MILLONARIO = 5000;
 const ARRANQUE = 100;
@@ -50,11 +50,9 @@ const TIRADA = {
   pequena: [15, 50],
 };
 
-// Probabilidad de que la tirada salga positiva, por rol. Se subió el suelo del
-// miembro (45 % -> 52 %) porque con la tirada ya recortada, además castigar la
-// probabilidad hacía que !aura fuese una máquina de perder y la gente dejaba de
-// usarlo. Sigue habiendo riesgo real: poco más de un tercio de las tiradas
-// bajan el marcador.
+// Probabilidad de que la tirada salga positiva, por rol. Se GANA más veces de
+// las que se pierde: esa sensación es la que engancha y no se toca. La casa
+// cobra por el otro lado (ver multiplicadorPerdida).
 const P_POSITIVA = {
   owner: 0.64,
   admin: 0.58,
@@ -67,42 +65,70 @@ const P_POSITIVA = {
 const ACTIVIDAD_MSGS = 1000;   // umbral de !count a partir del cual aplica
 const ACTIVIDAD_BONO = 0.06;   // +6 % de probabilidad de que salga positiva
 
-// ─── Presupuesto diario de tiradas ───────────────────────────────────────────
+// ─── La ventaja de la casa ───────────────────────────────────────────────────
 //
-// Esto tapa el mayor agujero que tenía la economía, y era grande: la tirada de
-// !aura sale positiva más veces de las que sale negativa, así que su valor
-// esperado es POSITIVO. Un juego con valor esperado positivo y sin límite no es
-// un juego: es una impresora, y lo único que la frenaba era el cooldown.
+// Este es el mecanismo que sustituye al tope diario de tiradas, y es bastante
+// más elegante que un contador.
 //
-// Con el cooldown en 2 minutos salen 720 tiradas al día. Las cuentas reales:
+// EL PROBLEMA. La tirada sale positiva más veces de las que sale negativa. Si
+// ganar y perder movieran lo mismo, cada tirada tendría valor esperado POSITIVO,
+// y sin tope bastaría con darle al botón toda la tarde para fabricar aura de la
+// nada: 720 tiradas al día daban 6.610, veinte veces lo que un día entero
+// escribiendo. Cualquier ventaja positiva, repetida sin límite, imprime.
 //
-//   escribir 1.200 mensajes en un día .....    315 de aura
-//   spamear !aura ese mismo día ...........  6.610 de aura
+// LO QUE NO FUNCIONÓ. Primero fue un tope de doce tiradas al día. Frena, sí,
+// pero convierte el comando en mirar un contador en vez de jugar. Después, un
+// castigo fijo (las pérdidas un 25 % más gordas): eso arreglaba al miembro pero
+// dejaba imprimiendo a quien tuviera la probabilidad alta, y de paso hacía que
+// jugar mucho te dejara en negativo aunque escribieras — o sea, el ranking
+// premiaba NO jugar.
 //
-// O sea que el comando gratis pagaba VEINTE VECES lo que un día entero de
-// actividad, y hacerse millonario (5.000) era cuestión de una tarde dándole al
-// botón. Todo el ajuste de la escala, los tramos de bonos y la ventaja de la
-// casa del robo no servían de nada al lado de eso.
+// LA SOLUCIÓN. El multiplicador de pérdida no es fijo: sale de tu propia
+// probabilidad. Si ganas el 52 % de las veces, pierdes 1,14 veces lo que ganas;
+// si ganas el 70 %, pierdes 2,45 veces. La cuenta se equilibra sola sea cual sea
+// la probabilidad, así que:
 //
-// La solución no es subir el cooldown — eso solo lo hace lento y aburrido, sin
-// dejar de ser una impresora. Es poner un presupuesto: doce tiradas al día,
-// que se reinician con la misma ventana de 24h que los hitos de mensajes.
+//   · NADIE IMPRIME, en ningún rol y con cualquier bono. Matemáticamente
+//     imposible, no calibrado a ojo.
+//   · NADIE SANGRA. La casa se queda un 3 %, que es menos de una de aura por
+//     tirada. Cincuenta tiradas cuestan unas 45; escribir 500 mensajes da 97.
+//     Jugar mucho sale casi neutro, así que el ranking no castiga al que juega
+//     — con un margen del 5 % el jugador casual se quedaba plano, y eso es
+//     justo lo contrario de lo que se busca.
 //
-// Con doce, un miembro activo saca unas 110 de aura al día tirando, frente a
-// las 299 que le da escribir mil mensajes. La tirada vuelve a ser lo que decía
-// el diseño: un extra con suerte, no la vía principal.
-const TIRADAS_DIA = 12;
+// El margen puede ser todo lo pequeño que se quiera: la garantía de que no se
+// imprime no depende de su tamaño, solo de que sea mayor que 1.
+//   · SE SIGUE GANANDO MÁS VECES DE LAS QUE SE PIERDE en todos los roles, que
+//     es la parte que engancha.
+//   · Y el bono por actividad hace lo que prometía: subir las probabilidades de
+//     ganar. Lo que ya no hace es fabricar dinero.
+//
+// Tocar cualquier probabilidad de arriba no puede romper la economía: el
+// equilibrio se recalcula solo.
+const VENTAJA_CASA = 1.03;
 
-// ─── !aura allin ─────────────────────────────────────────────────────────────
+function multiplicadorPerdida(pPositiva) {
+  const p = Math.min(0.95, Math.max(0.05, pPositiva));
+  return (p / (1 - p)) * VENTAJA_CASA;
+}
+
+// ─── !aura ordago ────────────────────────────────────────────────────────────
 //
-// La apuesta gorda del día. Está diseñada para picar como pica un casino sin
-// romper nada de lo de arriba, y eso se consigue con cuatro límites:
+// La apuesta gorda. Se llamaba "all in" y no lo era: pone la MITAD del saldo en
+// la mesa, no todo, así que el nombre prometía una cosa y el comando hacía otra.
+// Un órdago es exactamente esto — una apuesta grande que puede arruinarte — sin
+// mentir sobre la cifra.
 //
-//  1. CUESTA EL DÍA ENTERO. Exige las doce tiradas sin gastar y se las lleva
-//     todas. Eso la deja en una por persona y día sin necesidad de otro
-//     contador, y sobre todo convierte el día en una decisión de verdad: o
-//     picoteas doce veces a lo seguro, o te la juegas una vez. Las dos cosas
-//     no.
+// Está diseñada para picar como pica un casino sin romper nada de lo de arriba,
+// y eso se consigue con cuatro reglas:
+//
+//  1. TIENE SU PROPIO COOLDOWN, TRES HORAS. No hace falta más freno que ese, y
+//     el motivo es bonito: jugar al órdago repetidamente ARRUINA por pura
+//     matemática. Cada jugada multiplica tu saldo por 1,5 si ganas y por 0,5 si
+//     pierdes, y con un 42 % de acierto el crecimiento esperado por jugada es
+//     negativo (−0,23 en logaritmo). Encadenar órdagos te lleva al suelo solo,
+//     sin que el bot tenga que prohibir nada. El cooldown está para que esa
+//     caída no ocurra en diez minutos.
 //  2. SE JUEGA LA MITAD, NO TODO. Perder no puede borrarte del mapa: con la
 //     mitad, un mes de actividad duele pero sigue ahí. Es lo mismo que hacen
 //     el robo y el duelo, que capan la apuesta a una fracción del saldo justo
@@ -117,11 +143,12 @@ const TIRADAS_DIA = 12;
 // A 42 % con premio doble, la casa se queda un 16 % de lo apostado: se pierde
 // más veces de las que se gana, que es lo que hace que ganar se cuente durante
 // una semana. Sube por rol igual que en la tirada normal.
-const ALLIN = {
-  fraccion: 0.5,      // cuánto del saldo se pone en la mesa
-  minimo: 300,        // por debajo no hay nada que arriesgar
-  multiplicador: 2,   // ganar paga el doble de lo apostado
-  suelo: ARRANQUE,    // perder nunca te deja por debajo del arranque
+const ORDAGO = {
+  fraccion: 0.5,        // cuánto del saldo se pone en la mesa
+  minimo: 300,          // por debajo no hay nada que arriesgar
+  multiplicador: 2,     // ganar paga el doble de lo apostado
+  suelo: ARRANQUE,      // perder nunca te deja por debajo del arranque
+  cooldownMin: 180,     // tres horas entre órdagos
   p: { owner: 0.58, admin: 0.45, miembro: 0.42 },
 };
 
@@ -301,7 +328,7 @@ function rango([suelo, ancho]) {
 
 module.exports = {
   MILLONARIO, ARRANQUE,
-  TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, TIRADAS_DIA, ALLIN,
+  TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, VENTAJA_CASA, multiplicadorPerdida, ORDAGO,
   BONOS, REDENCION,
   ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, DUELO, REGALO_MIN,
   PRECIOS, SALDO_MINIMO,

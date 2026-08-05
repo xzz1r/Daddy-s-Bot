@@ -1,10 +1,11 @@
-// Frases de *!aura allin*, el órdago del día.
+// Frases de *!aura órdago*, el órdago del día.
 //
 // Sesenta por desenlace, no trescientas como en los comandos de porcentaje, y
-// es a propósito: el all in se juega UNA vez por persona y día. Con sesenta
-// frases y la ventana anti-repetición de treinta, una persona tardaría meses en
-// ver la misma dos veces. Trescientas aquí sería trabajo tirado; en !fea o
-// !perdedor, que se disparan veinte veces por tarde, no lo sería.
+// es a propósito: con tres horas de cooldown salen ocho órdagos al día como
+// mucho, y en la práctica bastantes menos. Con sesenta frases y la ventana
+// anti-repetición de treinta, nadie ve la misma dos veces en semanas.
+// Trescientas aquí sería trabajo tirado; en !fea o !perdedor, que se disparan
+// veinte veces por tarde, no lo sería.
 //
 // %A = quien apuesta · %C = la cantidad que había en la mesa · %S = saldo final
 //
@@ -12,7 +13,7 @@
 // contada por alguien que estaba delante, y perder a velatorio con sorna. Nada
 // de "suerte la próxima": el bot no consuela.
 
-const ALLIN_GANA = [
+const ORDAGO_GANA = [
   '%A puso %C de aura encima de la mesa y el aura le devolvió el doble. Esto no se olvida en semanas.',
   'Órdago de %A: %C al aire. Ganó. Que el grupo entero tome nota de cómo se hace.',
   '%A apostó %C sin que le temblara el pulso y ahora se va con %S. Los que miraban en silencio ya pueden cerrar la boca.',
@@ -75,7 +76,7 @@ const ALLIN_GANA = [
   'Ganó y ganó bien. %A se planta en %S después de arriesgar %C. Ahí está el listón.',
 ];
 
-const ALLIN_PIERDE = [
+const ORDAGO_PIERDE = [
   '%A puso %C de aura en la mesa y el aura se los quedó. Que sirva de aviso a los valientes.',
   'Órdago de %A: %C al aire. Perdidos. Todo el mundo lo vio y nadie lo va a olvidar.',
   '%A apostó %C convencido de que era su día. No era su día. Se queda en %S.',
@@ -138,4 +139,4 @@ const ALLIN_PIERDE = [
   'Perdió y perdió feo. %A cae a %S después de arriesgar %C. Ahí está el aviso.',
 ];
 
-module.exports = { ALLIN_GANA, ALLIN_PIERDE };
+module.exports = { ORDAGO_GANA, ORDAGO_PIERDE };

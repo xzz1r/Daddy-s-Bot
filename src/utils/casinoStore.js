@@ -11,12 +11,7 @@ const CASINO_FILE = path.join(__dirname, '../../data/casino.json');
 // so it survives Termux restarts cleanly.
 const RESET_MS = 24 * 60 * 60 * 1000;
 
-// store = { [groupJid]: { resetAt, counts: {...}, tiradas: {...} } }
-//
-// `tiradas` es el presupuesto diario de !aura. Vive AQUI y no en su propio
-// fichero a proposito: comparte la misma ventana de 24h que los hitos, asi que
-// todo se reinicia a la vez y el "reset en Xh" que ya enseña !aura hoy vale para
-// las dos cosas. Un solo reloj, una sola idea que entender.
+// store = { [groupJid]: { resetAt: <ms>, counts: { [bareJid]: number } } }
 let store = null;
 let loadPromise = null;
 let saveTimer = null;
@@ -50,14 +45,16 @@ function freshBucket(groupJid) {
   const now = Date.now();
   let g = store[groupJid];
   if (!g || typeof g.resetAt !== 'number' || !g.counts) {
-    g = { resetAt: now, counts: {}, tiradas: {} };
+    g = { resetAt: now, counts: {} };
     store[groupJid] = g;
     return g;
   }
-  if (!g.tiradas) g.tiradas = {};   // ficheros escritos antes de que existiera
+  // `tiradas` lo escribio una version con presupuesto diario de !aura. Ese tope
+  // se quito (frenaba el juego en vez de equilibrarlo; ahora el freno es la
+  // ventaja de la casa), asi que se borra al pasar por aqui y no se arrastra.
+  if (g.tiradas) delete g.tiradas;
   if (now - g.resetAt >= RESET_MS) {
     g.counts = {};
-    g.tiradas = {};
     g.resetAt = now;
   }
   return g;
@@ -87,32 +84,6 @@ async function incrementCasinoCount(groupJid, userJid) {
   g.counts[key] = next;
   scheduleSave();
   return next;
-}
-
-// Tiradas de !aura gastadas hoy. Mismo tratamiento que los mensajes: se colapsan
-// las formas de la misma persona, para que quien entra unas veces por @lid y
-// otras por telefono no acabe con dos presupuestos.
-async function gastarTirada(groupJid, userJid) {
-  await load();
-  const key = canonicalJid(userJid);
-  const g = freshBucket(groupJid);
-  const next = colapsar(g.tiradas, key) + 1;
-  g.tiradas[key] = next;
-  scheduleSave();
-  return next;
-}
-
-async function getTiradas(groupJid, userJid) {
-  await load();
-  const g = store[groupJid];
-  if (!g || typeof g.resetAt !== 'number' || !g.tiradas) return 0;
-  if (Date.now() - g.resetAt >= RESET_MS) return 0;
-  const key = canonicalJid(userJid);
-  let total = 0;
-  for (const k in g.tiradas) {
-    if (canonicalJid(k) === key) total += g.tiradas[k];
-  }
-  return total;
 }
 
 // Read-only count for the current window (0 if expired or unknown).
@@ -148,4 +119,4 @@ async function flushCasino() {
   }
 }
 
-module.exports = { incrementCasinoCount, getCasinoCount, gastarTirada, getTiradas, msUntilReset, flushCasino, RESET_MS };
+module.exports = { incrementCasinoCount, getCasinoCount, msUntilReset, flushCasino, RESET_MS };
