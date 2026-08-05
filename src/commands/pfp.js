@@ -1,6 +1,6 @@
 const axios = require('axios');
 const { getTarget, getSender, canonicalJid, fetchPfpUrl } = require('../utils/wa');
-const { cobrar, textoSinSaldo } = require('../utils/auraCobro');
+const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { computeHash } = require('../utils/phash');
 const { recordAndMatch } = require('../utils/pfpStore');
 const pfpCache = require('../utils/pfpCache');
@@ -104,6 +104,10 @@ async function cmdPfp(sock, msg, args, groupMeta) {
   if (!pago.ok) {
     return sock.sendMessage(jid, { text: textoSinSaldo('pfp', pago) }, { quoted: msg });
   }
+  // Se cobra al entrar, pero solo se cobra de verdad si el bot entrega algo.
+  // Si no hay a quien mirar, o si la consulta falla por red, se devuelve: nadie
+  // paga por un mensaje de error que ademas le va a obligar a repetir.
+  const reembolsar = () => devolver(jid, quienPide, pago.pagado).catch(() => {});
 
   // Sin mención ni argumentos → tu propia foto.
   const hasMention = !!getTarget(msg);
@@ -113,7 +117,10 @@ async function cmdPfp(sock, msg, args, groupMeta) {
     target = getSender(msg);
   } else {
     ({ jid: target, error } = await resolveTarget(sock, msg, args));
-    if (error) return sock.sendMessage(jid, { text: error }, { quoted: msg });
+    if (error) {
+      await reembolsar();
+      return sock.sendMessage(jid, { text: error }, { quoted: msg });
+    }
   }
 
   const num = target.split('@')[0];
@@ -173,6 +180,9 @@ async function cmdPfp(sock, msg, args, groupMeta) {
 
   // 3) Nada guardado. Un fallo pasajero NO es lo mismo que "confirmado sin
   // foto": lo primero se dice como lo que es, sin afirmar de más.
+  // Un fallo pasajero se devuelve (habra que repetir la consulta); un "no tiene
+  // foto" confirmado no, porque ahi el bot si hizo el trabajo y dio la respuesta.
+  if (falloPasajero) await reembolsar();
   return sock.sendMessage(jid, {
     text: falloPasajero
       ? `No pude comprobar la foto de ${tag} ahora mismo (fallo de red o límite de peticiones). Probá de nuevo en un momento.`

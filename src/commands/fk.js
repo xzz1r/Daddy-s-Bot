@@ -3,7 +3,7 @@ const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const {
   getSender, isOwner, isMainOwner, isGroupAdmin, isBotJid, canonicalJid, bareJid, sameUser, fetchAbout,
 } = require('../utils/wa');
-const { cobrar, textoSinSaldo } = require('../utils/auraCobro');
+const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { streamToBuffer, MAX_MEDIA_BYTES } = require('../utils/helpers');
 const { resolveTarget } = require('./pfp');
 const { computeHash } = require('../utils/phash');
@@ -247,12 +247,18 @@ async function cmdFk(sock, msg, args, groupMeta) {
   if (!pago.ok) {
     return sock.sendMessage(jid, { text: textoSinSaldo('fk', pago) }, { quoted: msg });
   }
+  // Solo se cobra si hay analisis. Si no hay a quien analizar, o si el objetivo
+  // es del tier owner (veredicto fijo, sin trabajo detras), se devuelve.
+  const reembolsar = () => devolver(jid, quienPide, pago.pagado).catch(() => {});
 
   const img = findImage(msg);
   if (img) return fkOnImage(sock, msg, img);
 
   const { jid: target, error } = await resolveTarget(sock, msg, args);
-  if (error) return sock.sendMessage(jid, { text: error }, { quoted: msg });
+  if (error) {
+    await reembolsar();
+    return sock.sendMessage(jid, { text: error }, { quoted: msg });
+  }
 
   // El owner tier —principal Y co-owners— nunca se marca como sospechoso: se
   // devuelve siempre un veredicto limpio, sin puntaje de riesgo ni análisis.
@@ -261,6 +267,7 @@ async function cmdFk(sock, msg, args, groupMeta) {
   // el tier, así que dejar aquí solo al principal era incoherente — cualquier
   // admin podía sacarle un puntaje de riesgo a un co-owner.
   if (isOwner(target, false, groupMeta)) {
+    await reembolsar(); // veredicto fijo: no se ha analizado nada
     const num = target.split('@')[0];
     const tag = (target.endsWith('@s.whatsapp.net') ? '+' : '@') + num;
     return sock.sendMessage(jid, {
@@ -421,7 +428,10 @@ async function cmdMarkFake(sock, msg, args, groupMeta) {
   }
 
   const { jid: target, error } = await resolveTarget(sock, msg, args);
-  if (error) return sock.sendMessage(jid, { text: error }, { quoted: msg });
+  if (error) {
+    await reembolsar();
+    return sock.sendMessage(jid, { text: error }, { quoted: msg });
+  }
 
   // No se marca como fake a nadie del owner tier, principal o co-owner. Con
   // isMainOwner un admin podía marcar la foto de un co-owner y dejarla en el
@@ -465,7 +475,10 @@ async function cmdFkBan(sock, msg, args, groupMeta) {
   }
 
   const { jid: target, error } = await resolveTarget(sock, msg, args);
-  if (error) return sock.sendMessage(jid, { text: error }, { quoted: msg });
+  if (error) {
+    await reembolsar();
+    return sock.sendMessage(jid, { text: error }, { quoted: msg });
+  }
 
   // Nunca se banea al owner (principal o co-owner) ni al propio bot: un admin
   // cualquiera no puede meter al dueño en la lista negra global y expulsarlo.
@@ -511,7 +524,10 @@ async function cmdFkUnban(sock, msg, args, groupMeta) {
   }
 
   const { jid: target, error } = await resolveTarget(sock, msg, args);
-  if (error) return sock.sendMessage(jid, { text: error }, { quoted: msg });
+  if (error) {
+    await reembolsar();
+    return sock.sendMessage(jid, { text: error }, { quoted: msg });
+  }
 
   const n = await unbanAccount(allForms(target, groupMeta));
   return sock.sendMessage(jid, {

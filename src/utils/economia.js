@@ -64,13 +64,15 @@ const BONOS = {
   3: { win: [90, 40], bigwin: [130, 60], jackpot: [190, 80], mega: [260, 120] },
 };
 
-// Premio de redención para quien está en negativo. Sigue siendo el mejor pago
-// del sistema en relación a su tramo, porque su función es sacar a alguien del
-// pozo de una sola vez, pero ya no es una lotería que descuadre el ranking.
+// Premio de redención para quien está en negativo. Su función es sacar a
+// alguien del pozo de una sola vez, así que el suelo de cada tramo tiene que
+// quedar POR ENCIMA del mejor bono normal de ese mismo tramo. Con los números
+// anteriores no era así: en tier 3 la redención pagaba 200-350 mientras un bote
+// normal daba 260-380, o sea que estar hundido salía peor que no estarlo.
 const REDENCION = {
-  1: [40, 40],
-  2: [100, 80],
-  3: [200, 150],
+  1: [55, 45],    // por encima del mega de tier 1 (34-52)
+  2: [180, 120],  // por encima del mega de tier 2 (120-170)
+  3: [400, 250],  // por encima del mega de tier 3 (260-380)
 };
 // ─── !robo ───────────────────────────────────────────────────────────────────
 //
