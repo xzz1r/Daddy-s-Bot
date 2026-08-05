@@ -1,14 +1,18 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser } = require('../utils/wa');
 const { getAura, addAura } = require('../utils/auraStore');
 const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
-const { ROBO, RIESGO, ROBO_OWNER_MIN } = require('../utils/economia');
+const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN } = require('../utils/economia');
 
 // La escala vive en utils/economia.js. Aqui solo el cooldown, que es de ritmo
 // de juego y no de economia.
 const STAKE_DEFAULT   = ROBO.porDefecto;
 const STAKE_FLOOR     = ROBO.suelo;
 const MIN_AURA        = ROBO.minVictima;
-const ROB_COOLDOWN_MS = 10 * 60 * 1000; // 10 min per attacker per group
+// 6 min, bajado desde 10. Con la probabilidad en rango de casino se acierta
+// bastante menos, y esperar diez minutos para fallar hacia que el comando se
+// usara poco. Sigue por debajo del escudo de la victima (7 min), asi que no se
+// puede encadenar dos robos seguidos contra la misma persona.
+const ROB_COOLDOWN_MS = 6 * 60 * 1000;
 
 // Tope de lo que se puede pedir en un robo concreto. Ya no es un numero fijo:
 // depende de lo que tenga la victima. Robar 150 a alguien con 200 lo arruinaba
@@ -1189,7 +1193,9 @@ const ROB_DESASTRE = [
 // Success chance based on role tiers and aura gap.
 // Ranges ~25%–72%: enough variance that no one farms safely.
 function calcChance(aO, aA, vO, vA, auraA, auraV) {
-  let base = aO ? 0.58 : aA ? 0.51 : 0.44;
+  // Las cifras viven en economia.js con el resto de la escala: tenerlas aqui a
+  // pelo es como el duelo se quedo tres versiones atras sin que nadie lo viera.
+  let base = aO ? ROBO_BASE.owner : aA ? ROBO_BASE.admin : ROBO_BASE.miembro;
   if (vO && !aO) base -= 0.14;
   else if (vA && !aA && !aO) base -= 0.07;
   // Cada 50 de diferencia mueve ±2%, con tope de ±10%. El divisor va con la
@@ -1197,7 +1203,7 @@ function calcChance(aO, aA, vO, vA, auraA, auraV) {
   // entre dos jugadores nunca llegaría a mover la aguja.
   const diff = auraA - auraV;
   const shift = Math.sign(diff) * Math.min(Math.abs(diff / 50), 5) * 0.02;
-  return Math.min(0.72, Math.max(0.25, base + shift));
+  return Math.min(ROBO_LIMITES.techo, Math.max(ROBO_LIMITES.suelo + 0.05, base + shift));
 }
 
 // Desenlaces del robo. Antes solo había dos (te llevas todo / pierdes la mitad),
@@ -1249,7 +1255,7 @@ const FRASES_POR_DESENLACE = {
 //  3. GUARDIA. Insistir contra la misma víctima baja tu probabilidad: la
 //     segunda vez ya te está esperando. Corta el farmeo sobre el mismo pringado.
 //  4. VENGANZA. Si te robaron hace poco, devolver el golpe a ESE tiene un plus.
-const ESCUDO_MS = 8 * 60 * 1000;    // protección de la víctima tras ser robada
+const ESCUDO_MS = 7 * 60 * 1000;    // protección de la víctima tras ser robada
 const GUARDIA_MS = 30 * 60 * 1000;  // ventana en la que se recuerda a quién atacaste
 const VENGANZA_MS = 30 * 60 * 1000; // ventana para devolver el golpe con plus
 
@@ -1359,9 +1365,12 @@ function ajustarProbabilidad(base, { grupo, ladron, victima, stake, maxStake, es
     motivos.push(`te tienen fichado (−${Math.round(castigo * 100)}%)`);
   }
 
-  // El owner nunca baja del suelo suyo, elija la cifra que elija.
-  const suelo = esOwner ? ROBO_OWNER_MIN : 0.10;
-  return { p: Math.min(0.92, Math.max(suelo, p)), motivos, ambicion: a };
+  // El owner nunca baja del suelo suyo, elija la cifra que elija. Para el resto,
+  // el suelo garantiza que un robo NUNCA sea imposible por muchos castigos que
+  // se acumulen: sigue siendo un tiro, aunque sea malo.
+  const suelo = esOwner ? ROBO_OWNER_MIN : ROBO_LIMITES.suelo;
+  const techo = esOwner ? ROBO_LIMITES.techoOwner : ROBO_LIMITES.techo;
+  return { p: Math.min(techo, Math.max(suelo, p)), motivos, ambicion: a };
 }
 
 // ¿Está la víctima protegida por un robo reciente? Devuelve los minutos que
@@ -1400,7 +1409,7 @@ function anotarRoboExitoso(grupo, ladron, victima) {
 // gordo, que es lo que hace que valga la pena pensarselo.
 const PESOS_ALL_IN = {
   maestro: 3.0, limpio: 0.9, parcial: 0.4,   // si sale bien, sale muy bien
-  fallo: 0.65, desastre: 1.8,                // si sale mal, te arruinas
+  fallo: 0.8, desastre: 1.3,                 // si sale mal, duele
 };
 
 function elegirDesenlace(exito, ambicion = 0) {

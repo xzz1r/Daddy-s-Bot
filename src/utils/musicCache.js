@@ -6,6 +6,9 @@ const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const CACHE_DIR = path.join(__dirname, '../../data/music_cache');
 const INDEX_FILE = path.join(CACHE_DIR, 'index.json');
 const MAX_SONGS = 60;
+// Version de la funcion que calcula la clave de cache. Al subirla, lo ya
+// guardado se reindexa solo al arrancar en vez de quedarse inalcanzable.
+const CLAVE_VERSION = 2;
 // Tope duro de disco para la cache de musica. Sin el, 60 temas largos en alta
 // calidad se comen mas de un giga del VPS sin que nada los desaloje.
 const MAX_CACHE_BYTES = 400 * 1024 * 1024;
@@ -53,6 +56,43 @@ async function loadIndex() {
   // silently resetting to {} and then overwriting the good index on disk.
   const raw = await readJsonOrEnoent(INDEX_FILE, {});
   index = sanitiseIndex(raw);
+  migrarClaves();
+}
+
+// Reindexa lo que se guardo con una version anterior de cacheKey.
+//
+// Cambiar la clave sin esto convierte toda la cache en basura: los archivos
+// siguen ahi ocupando disco, pero ninguna peticion vuelve a dar con ellos, asi
+// que la siguiente vez que alguien pida esa cancion se gasta cupo de la API
+// para descargar algo que ya estaba bajado. Justo lo contrario de lo que se
+// buscaba al tocar la clave.
+//
+// Las entradas viejas no guardaban la consulta, asi que se reindexan por su
+// TITULO, que normaliza practicamente igual: "The Weeknd - Blinding Lights
+// (Official Video)" y "blinding lights the weeknd" dan la misma clave. Si
+// alguna no encaja, lo peor que pasa es lo que pasaria sin migrar: un fallo de
+// cache y una descarga.
+function migrarClaves() {
+  const pendientes = Object.entries(index).filter(([, e]) => (e.v || 1) < CLAVE_VERSION);
+  if (!pendientes.length) return;
+
+  let movidas = 0;
+  for (const [viejaClave, entrada] of pendientes) {
+    const nuevaClave = cacheKey(entrada.query || entrada.title || '');
+    entrada.v = CLAVE_VERSION;
+    if (nuevaClave === viejaClave) continue;
+    // Si ya hay algo en la clave nueva, gana lo mas reciente y la otra se cae
+    // (su fichero queda huerfano y lo barre reconciliarHuerfanos/desalojar).
+    const existente = index[nuevaClave];
+    if (existente && (existente.timestamp || 0) >= (entrada.timestamp || 0)) {
+      delete index[viejaClave];
+      continue;
+    }
+    index[nuevaClave] = entrada;
+    delete index[viejaClave];
+    movidas++;
+  }
+  if (movidas) scheduleIndexSave();
 }
 
 // Atomic write: write to a temp file then rename, same as all other stores.
@@ -70,8 +110,56 @@ function scheduleIndexSave() {
   }, 5000);
 }
 
+// Clave de caché. Esto es lo que decide cuántas veces se gasta cupo de la API
+// gratuita, así que importa más de lo que parece.
+//
+// Antes era md5(query en minúsculas). Con eso, estas cuatro peticiones eran
+// cuatro canciones distintas para el bot y cada una gastaba una conversión del
+// cupo mensual, para acabar mandando exactamente el mismo archivo:
+//
+//   !play blinding lights the weeknd
+//   !play The Weeknd - Blinding Lights
+//   !play  blinding   lights   the weeknd
+//   !play blinding lights the weeknd official video
+//
+// En un grupo donde varias personas piden lo mismo con distintas palabras, eso
+// es la mayor fuga de cupo que tiene el bot. La clave nueva quita tildes y
+// signos, tira las palabras de relleno que la gente añade sin pensar y ORDENA
+// lo que queda, así que el orden de las palabras deja de importar. Las cuatro
+// de arriba pasan a ser un único acierto de caché: una conversión, no cuatro.
+//
+// El riesgo teórico es que dos canciones distintas tengan exactamente las
+// mismas palabras en otro orden. Aparte de ser rarísimo, el resultado seguiría
+// siendo una canción que encaja con lo que se pidió, así que compensa de sobra.
+const RELLENO = new Set([
+  'official', 'oficial', 'video', 'audio', 'lyrics', 'lyric', 'letra', 'letras',
+  'hd', 'hq', 'full', 'completa', 'completo', 'cancion', 'song', 'music',
+  'musica', 'tema', 'version', 'ver', 'mp3', 'youtube', 'yt', 'the', 'la', 'el',
+  'los', 'las', 'de', 'del', 'y', 'a', 'ft', 'feat', 'featuring', 'con',
+]);
+
+function normalizarConsulta(query) {
+  const limpio = String(query || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')  // fuera tildes y dieresis
+    .replace(/[^a-z0-9ñ\s]+/g, ' ')                    // fuera signos
+    .split(/\s+/)
+    .filter(Boolean);
+
+  // El relleno se quita, pero si al quitarlo no queda NADA se conserva lo que
+  // había: "the la el" es una busqueda rarisima, pero una clave vacia mandaria
+  // todas esas peticiones al mismo archivo, que si seria un fallo de verdad.
+  const util = limpio.filter(t => !RELLENO.has(t));
+  const tokens = util.length ? util : limpio;
+  return tokens.sort().join(' ');
+}
+
 function cacheKey(query) {
-  return crypto.createHash('md5').update(query.toLowerCase().trim()).digest('hex');
+  const norma = normalizarConsulta(query);
+  // Si la normalización se queda sin nada (la consulta eran solo signos), se
+  // cae a la consulta cruda para no meter cosas distintas en la misma clave.
+  const base = norma || String(query || '').toLowerCase().trim();
+  return crypto.createHash('md5').update(base).digest('hex');
 }
 
 function storeInRam(k, buffer, title, mimetype, ext) {
@@ -185,7 +273,11 @@ async function setCached(query, srcPath, title, mimetype, ext, srcBuffer = null,
 
   let bytes = buffer?.length;
   if (!bytes) { try { bytes = (await fs.stat(destPath)).size; } catch { bytes = 0; } }
-  index[k] = { file: cacheFile, title, mimetype, ext, requester: requester || '', timestamp: Date.now(), bytes };
+  // `query` y `v` se guardan para poder RECALCULAR la clave si la normalizacion
+  // cambia otra vez. Sin eso, tocar cacheKey deja el disco lleno de canciones
+  // que nadie podra volver a encontrar: ocupan sitio y encima se re-descargan,
+  // gastando el cupo que la cache existe para no gastar.
+  index[k] = { file: cacheFile, title, mimetype, ext, requester: requester || '', timestamp: Date.now(), bytes, query: String(query || ''), v: CLAVE_VERSION };
 
   // Desalojo por NÚMERO y por TAMAÑO. Solo con el tope de 60 canciones, un
   // puñado de temas largos en alta calidad podía dejar la caché en más de un
@@ -222,4 +314,4 @@ async function flushCache() {
   }
 }
 
-module.exports = { getCached, setCached, listCached, clearCache, flushCache };
+module.exports = { getCached, setCached, listCached, clearCache, flushCache, cacheKey, normalizarConsulta };

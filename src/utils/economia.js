@@ -107,17 +107,54 @@ const ROBO = {
 // probabilidad, botín ridículo, cero decisión. Ahora hay un punto dulce en la
 // parte media de la horquilla y las dos orillas cuestan:
 //
-//   · pasarse (codicia)  — te ven venir. Hasta −35 % en el tope.
+//   · pasarse (codicia)  — te ven venir. Hasta −14 % en el tope.
 //   · quedarte corto     — un robo de calderilla no compensa el riesgo de
-//     acercarse, y quien lo intenta va sin ganas. Hasta −15 % en el mínimo.
+//     acercarse, y quien lo intenta va sin ganas. Hasta −8 % en el mínimo.
+//
+// Los castigos se recortaron a la mitad larga (eran 35 y 15) al bajar la base a
+// rango de casino: con la base en 38 % y un castigo de 35, pedir el tope caía
+// directo al suelo y era tirar el aura. Ahora la horquilla completa va del 24 %
+// al 38 %, que sigue siendo una decisión con precio pero ninguna opción es
+// tirar el turno.
 //
 // La curva es cuadrática en los dos lados: cerca del punto dulce casi no se
 // nota, y son los extremos los que duelen.
 const RIESGO = {
   puntoDulce: 0.45,   // fracción del tope donde la probabilidad es máxima
-  codiciaMax: 0.35,   // castigo al pedir el tope entero
-  miseriaMax: 0.15,   // castigo al pedir el mínimo
+  codiciaMax: 0.14,   // castigo al pedir el tope entero
+  miseriaMax: 0.08,   // castigo al pedir el mínimo
   allIn: 0.85,        // a partir de aquí el robo es "a lo grande" (ver DESENLACES)
+};
+
+// ─── !robo: cuánto se gana ───────────────────────────────────────────────────
+//
+// Robar es una apuesta de casino, y una apuesta de casino se pierde MÁS veces
+// de las que se gana. Antes un miembro acertaba el 44 % en su mejor caso, que
+// es prácticamente una moneda al aire: no daba sensación de estar arriesgando
+// nada. Ahora el mejor caso ronda el 38 % y baja desde ahí según lo que pidas.
+//
+// Las dos orillas importan:
+//   · nunca es IMPOSIBLE — por muchos castigos que acumules, el suelo es el
+//     15 %. Antes el suelo era 10 % y pedir el tope caía justo ahí, así que ir
+//     a por todo era tirar el aura sin más. Un long shot tiene que seguir
+//     siendo un tiro.
+//   · nunca es REGALADO — el techo de un miembro es 60 %, aunque encadene
+//     venganza y ventaja de saldo.
+//
+// La ventaja de la casa sale de comparar lo que se gana con lo que se pierde:
+// en el punto dulce ronda el 6 % en contra del ladrón, parecido a una máquina
+// de un casino de verdad. O sea que robar sale ligeramente a perder a la larga,
+// que es lo que hace que ganar tenga gracia, pero la pérdida por intento es
+// calderilla al lado de lo que da escribir.
+const ROBO_BASE = {
+  owner: 0.46,    // owner tier (co-owners); el owner principal va aparte
+  admin: 0.42,
+  miembro: 0.38,
+};
+const ROBO_LIMITES = {
+  suelo: 0.15,       // ni con todo en contra baja de aquí
+  techo: 0.60,       // ni con todo a favor sube de aquí
+  techoOwner: 0.88,
 };
 
 // El owner roba con ventaja y la cifra que elija le da igual: ni codicia ni
@@ -194,7 +231,7 @@ module.exports = {
   MILLONARIO, ARRANQUE,
   TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO,
   BONOS, REDENCION,
-  ROBO, RIESGO, ROBO_OWNER_MIN, DUELO, REGALO_MIN,
+  ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, DUELO, REGALO_MIN,
   PRECIOS, SALDO_MINIMO,
   rango,
 };

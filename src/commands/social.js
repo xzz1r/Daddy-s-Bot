@@ -3,6 +3,7 @@ const { formatUptime, fmt, pickFresh } = require('../utils/helpers');
 const { isOwner, getSender } = require('../utils/wa');
 const { getCasinoCount, msUntilReset } = require('../utils/casinoStore');
 const { nextMilestone } = require('../utils/casino');
+const { PRECIOS } = require('../utils/economia');
 const config = require('../config');
 const logger = require('../utils/logger');
 
@@ -169,32 +170,56 @@ async function cmdHelp(sock, msg) {
   const jid = msg.key.remoteJid;
   const p = config.prefix;
 
+  // El menu se lee en un movil, de una sentada. Cada linea que sobra empuja
+  // hacia abajo la que alguien necesitaba, asi que va condensado a proposito:
+  //
+  //  · musica, stickers, IA y perfil se juntan en HERRAMIENTAS, que es lo que
+  //    son (antes eran cuatro cabeceras para ocho comandos);
+  //  · WINGMAN cae dentro de DINAMICAS: eran tres comandos con su propia
+  //    cabecera y su propia nota repetida, y funcionan igual que el resto;
+  //  · el precio va PEGADO al comando que cuesta. Antes habia una lista suelta
+  //    al final del bloque de aura que obligaba a buscar el comando dos veces;
+  //  · lo que vale para toda una seccion (lo del @) se dice una vez, no dos.
+  //
+  // Los precios NO se escriben a mano: salen de utils/economia.js. Escritos a
+  // mano se desincronizan solos y el bot acaba cobrando una cifra y anunciando
+  // otra. Hay un test que compara este menu con la tabla real.
+  const c = (n) => `\`${PRECIOS[n]}\``;
+
   const text =
 `*${config.botName}*
-_Prefijo *${p}* — ejemplo: *${p}play* despacito_
+_Prefijo *${p}* · ejemplo: *${p}play* despacito_
+_Lo que lleva \`número\` cuesta esa cantidad de aura._
 
-━━━━━━ *MÚSICA* ━━━━━━
-*${p}play* <nombre> — busca y envía la canción
-*${p}cachelist* — canciones ya guardadas
-
-━━━━━ *STICKERS* ━━━━━
-*${p}s* — imagen o video a sticker
+━━━━━ *HERRAMIENTAS* ━━━━━
+*${p}play* <nombre> ${c('play')} — canción _(pon también el artista)_
+*${p}cachelist* — las ya guardadas, gratis y al instante
+*${p}s* ${c('sticker')} — imagen o vídeo a sticker
+*${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')} — sticker a imagen o a vídeo
 *${p}ttp* <texto> — texto a sticker
-*${p}toimg* — sticker a imagen
-*${p}tovid* — sticker animado a video
+*${p}g* <pregunta> ${c('grok')} — le preguntas a Grok
+*${p}pfp* @user ${c('pfp')} — su foto de perfil
+*${p}fk* @user ${c('fk')} — analiza si es cuenta falsa
 
 ━━━━━ *ACTIVIDAD* ━━━━━
 *${p}count* — ranking de quién escribe más _(admins)_
 *${p}relevancia* [@user] — tu peso real en el grupo
-*${p}fantasmas* — los que menos escriben
-*${p}inactivos* — los que no llegan a 10 mensajes
 *${p}vs* @a @b — compara la actividad de dos
-*${p}top5* / *${p}top10* <tema> — ranking al azar
+*${p}fantasmas* · *${p}inactivos* — los que menos escriben
+*${p}top5* ${c('top5')} · *${p}top10* ${c('top10')} <tema> — ranking al azar
+
+━━━━━ *AURA* ━━━━━
+_Se gana escribiendo. Bonos diarios a los 200, 500 y 1000 msg._
+*${p}aura* [@user] — ver aura · *${p}aura top* — ranking
+*${p}aura hoy* — tu progreso de hoy _(o ${p}casino)_
+*${p}dar* @user <cantidad> — regalar
+*${p}duel* @user <cantidad> — apostar 1v1, el otro acepta
+*${p}robo* @user <cantidad> — robar. Elige cuánto: ni el mínimo
+ni el tope son la mejor apuesta _(5 desenlaces)_
 
 ━━━━━ *DINÁMICAS* ━━━━━
-_Sin @ va sobre ti · con @ va sobre esa persona_
-_Ordenados de más crudo a más suave._
-
+_Sin @ va sobre ti · con @ va sobre esa persona. Todas gratis._
+_De más crudo a más suave._
 *${p}roast* @user — destrucción pública
 *${p}perdedor* · *${p}puta* · *${p}guarra*
 *${p}incel* · *${p}maricon* · *${p}gay*
@@ -206,59 +231,30 @@ _Ordenados de más crudo a más suave._
 *${p}linda* · *${p}hot* · *${p}fiel*
 *${p}crack* · *${p}ganador*
 *${p}ship* @a @b — compatibilidad
-
-━━━━━ *WINGMAN* ━━━━━
-_Sin @ va sobre ti · con @ va sobre esa persona_
-*${p}rizz* [@user] — nivel de juego (%)
-*${p}piropo* [@user] — le lanza un piropo
-*${p}wingman* [@user] — le da referencias a esa persona
-
-━━━━━ *AURA* ━━━━━
-*${p}aura* [@user] — ver aura
-*${p}aura top* — ranking del grupo
-*${p}dar* @user <cantidad> — regalar aura
-*${p}duel* @user <cantidad> — apostar 1v1
-*${p}robo* @user <cantidad> — intentar robar _(5 desenlaces)_
-*${p}aura hoy* — tu progreso de hoy _(o ${p}casino)_
-_Ganas aura escribiendo. Bonos diarios: 200 msg · 500 · 1000_
-_Cuestan aura: ${p}play (15) · ${p}top10 (10) · ${p}g (10) · ${p}fk (8)_
-_${p}tovid (6) · ${p}top5 (6) · ${p}pfp (5) · ${p}s (4) · ${p}toimg (4)_
-
-━━━━━ *PERFIL* ━━━━━
-*${p}pfp* @user — su foto de perfil
-*${p}fk* @user — analiza si es cuenta falsa
-
-━━━━━ *IA* ━━━━━
-*${p}g* <pregunta> — le preguntas a Grok
-
-━━━━━ *BOT* ━━━━━
-*${p}ping* · *${p}info* · *${p}whoami*
+*${p}rizz* · *${p}piropo* · *${p}wingman* — modo ligue
 
 ━━━━━ *ADMIN* ━━━━━
-*${p}on* / *${p}off* — activa o apaga el bot _(owner)_
 *${p}tagall* <mensaje> — menciona a todos
-*${p}kick* @user — expulsa
-*${p}add* <número> — añade
-*${p}promote* / *${p}demote* @user — da o quita admin
+*${p}kick* @user · *${p}add* <número> · *${p}del* — echar, meter, borrar
+*${p}promote* · *${p}demote* @user — dar o quitar admin
 *${p}mute* @user <min> · *${p}unmute* @user
-*${p}del* — borra el mensaje citado
-*${p}close* / *${p}open* — cierra o abre el grupo
-*${p}notifadmin* on/off — avisos de admin
+*${p}close* · *${p}open* — cerrar o abrir el grupo
 *${p}adminmode* on/off — el bot solo obedece a admins
+*${p}notifadmin* on/off — avisos de admin
 *${p}scan* — busca cuentas sospechosas
-*${p}diag* — estado de las guardas y sobres nuevos _(owner)_
-*${p}antiempresa* scan/purge — limpia cuentas Business
-*${p}antifoto* scan/purge — limpia a los que no tienen foto
+*${p}antiempresa* · *${p}antifoto* scan/purge — limpiezas
 *${p}allow* @user — le deja publicar enlaces
 *${p}marcarfake* @user — marca su foto como falsa
-*${p}fkban* / *${p}fkunban* @user — lista negra global
-*${p}fklist* — ver quién está en la lista negra
+*${p}fkban* · *${p}fkunban* @user · *${p}fklist* — lista negra global
 *${p}antifake* on/off — vigila las entradas
 
 ━━━━━ *OWNER* ━━━━━
-*${p}antiadmin* / *${p}antiempresa* / *${p}antilink* on/off
+*${p}on* · *${p}off* — activa o apaga el bot
+*${p}antiadmin* · *${p}antiempresa* · *${p}antilink* on/off
 *${p}resetcount* · *${p}resetaura* — borrar rankings
-*${p}clearcache* · *${p}setgrok* <key>`;
+*${p}clearcache* · *${p}setgrok* <key> · *${p}diag*
+
+_${p}ping · ${p}info · ${p}whoami_`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }

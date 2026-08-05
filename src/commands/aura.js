@@ -4,7 +4,10 @@ const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
 const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, rango } = require('../utils/economia');
 
-const ROLL_COOLDOWN_MS = 3 * 60 * 1000; // 3 minutes per user per group
+// 2 min, bajado desde 3. La tirada mueve poco aura (15-150) desde que se
+// recorto la escala, asi que tres minutos de espera para un goteo era mucho
+// freno para el comando que mas se usa.
+const ROLL_COOLDOWN_MS = 2 * 60 * 1000;
 const lastRoll = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
 
 // Tirada de aura.
