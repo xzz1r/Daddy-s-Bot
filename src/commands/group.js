@@ -662,14 +662,20 @@ function numeroDeArgs(args) {
   return digitos;
 }
 
-// !add <número> — mete a alguien en el grupo.
+// !add <número> — mete a alguien en el grupo. Solo eso: si no se puede, lo dice
+// y se acaba. No manda enlaces ni busca rodeos.
 //
-// El camino feliz es una sola llamada, pero casi nunca es el camino que ocurre:
-// WhatsApp bloquea que un desconocido te meta en grupos salvo que lo permitas en
-// ajustes, y hoy en día mucha gente lo tiene cerrado. Antes eso se contestaba
-// con "no se pudo agregar" y ahí moría. Ahora, cuando la privacidad lo impide,
-// el bot le manda el enlace de invitación al privado, que es la única vía que
-// queda y la que resuelve el caso de verdad.
+// Lo que sí hace es explicar POR QUÉ falla, porque los dos motivos habituales se
+// confunden con facilidad:
+//
+//   · privacidad del OTRO — tiene cerrado que le metan en grupos. Con otro
+//     número funcionaría.
+//   · restricción del BOT (`account_reachout_restricted`) — WhatsApp limita a
+//     las cuentas nuevas o marcadas para que no contacten desconocidos. Con
+//     esta, ningún número va a funcionar hasta que se levante.
+//
+// Antes los dos salían como un código en crudo, y el owner probaba número tras
+// número sin saber que el problema estaba en su propio bot.
 async function cmdAdd(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
@@ -722,11 +728,17 @@ async function cmdAdd(sock, msg, args, groupMeta) {
     // se intenta añadir. Antes esto se soltaba en crudo al grupo y el owner
     // probaba con otro numero pensando que el problema era ese, cuando iba a
     // fallar igual con todos.
-    //
-    // Se trata como los codigos 403/401: no se puede meter, pero si invitar.
     const texto = String(err?.message || '');
-    if (/reachout|restrict|not-?authorized|forbidden|403|401/i.test(texto)) {
-      return await salidaPorInvitacion(sock, msg, jid, targetJid, raw, texto);
+    if (/reachout/i.test(texto) || restriccionContactoActiva()) {
+      const queda = cuantoQuedaDeRestriccion();
+      return sock.sendMessage(jid, {
+        text: `WhatsApp tiene restringida a esta cuenta para contactar con gente nueva${queda ? `, y le quedan *${queda}*` : ''}. No es cosa de +${raw}: ahora mismo fallaría con cualquier número.`,
+      }, { quoted: msg });
+    }
+    if (/restrict|not-?authorized|forbidden|403|401/i.test(texto)) {
+      return sock.sendMessage(jid, {
+        text: `No se puede añadir a +${raw}: tiene cerrado que le metan en grupos.`,
+      }, { quoted: msg });
     }
     return sock.sendMessage(jid, { text: `No pude añadir a +${raw}: ${texto}` }, { quoted: msg });
   }
@@ -744,71 +756,15 @@ async function cmdAdd(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: `+${raw} no existe en WhatsApp o no se puede alcanzar.` }, { quoted: msg });
   }
 
-  // 403 (privacidad) y 401 (te tiene bloqueado) tienen la MISMA salida: no se le
-  // puede meter, pero sí se le puede invitar. Es el caso más común con diferencia
-  // y antes era donde el comando se rendía.
+  // 403 (privacidad cerrada) y 401 (te tiene bloqueado) acaban igual: no se le
+  // puede meter y no hay nada más que hacer desde aquí.
   if (status === '403' || status === '401') {
-    return await salidaPorInvitacion(sock, msg, jid, targetJid, raw, '');
-  }
-
-  return sock.sendMessage(jid, { text: `No pude añadir a +${raw} (código ${status || 'desconocido'}).` }, { quoted: msg });
-}
-
-// Cuando no se puede añadir, esto SIEMPRE deja una salida en la mano del owner.
-//
-// Hay tres escalones, y el tercero es el que faltaba: si el bot está restringido
-// para contactar desconocidos, tampoco puede mandarle el privado — así que el
-// enlace se pone en el grupo para que el owner lo reenvíe él. Antes, en ese
-// caso, el comando se quedaba en "no se pudo" y ahí acababa todo.
-async function salidaPorInvitacion(sock, msg, jid, targetJid, raw, motivo) {
-  const restringido = /reachout/i.test(motivo) || !!restriccionContactoActiva();
-  const queda = cuantoQuedaDeRestriccion();
-
-  // 1) Intento de privado. Con la restricción activa suele fallar, pero cuesta
-  //    poco probarlo: si funciona, el owner no tiene que hacer nada.
-  if (!restringido && await invitarAlPrivado(sock, jid, targetJid, raw)) {
     return sock.sendMessage(jid, {
-      text: `A +${raw} no se le puede añadir directamente, así que le he mandado el enlace del grupo por privado.`,
+      text: `No se puede añadir a +${raw}: tiene cerrado que le metan en grupos.`,
     }, { quoted: msg });
   }
 
-  // 2) El enlace, para que lo reenvíe el owner.
-  let enlace = null;
-  try {
-    const code = await sock.groupInviteCode(jid);
-    if (code) enlace = `https://chat.whatsapp.com/${code}`;
-  } catch (e) {
-    logger.warn(`!add: no pude obtener el enlace del grupo: ${e.message}`);
-  }
-
-  const explicacion = restringido
-    ? `WhatsApp tiene restringida a esta cuenta para contactar con gente nueva${queda ? `, y le quedan *${queda}*` : ''}. No es cosa de +${raw}: ahora mismo fallaría con cualquier número.`
-    : `A +${raw} no se le puede añadir directamente (privacidad cerrada) y tampoco he podido escribirle por privado.`;
-
-  return sock.sendMessage(jid, {
-    text: enlace
-      ? `${explicacion}\n\nPásale tú este enlace:\n${enlace}`
-      : `${explicacion}\n\nTampoco he podido sacar el enlace del grupo: necesito ser admin para eso.`,
-  }, { quoted: msg });
-}
-
-// Manda el enlace de invitación al privado del interesado. Devuelve si se pudo.
-//
-// El enlace se pide en el momento y no se guarda: si alguien revoca el código,
-// uno cacheado dejaría de servir sin avisar.
-async function invitarAlPrivado(sock, groupJid, targetJid, raw) {
-  try {
-    const code = await sock.groupInviteCode(groupJid);
-    if (!code) return false;
-    const nombre = (await sock.groupMetadata(groupJid).catch(() => null))?.subject || 'el grupo';
-    await sock.sendMessage(targetJid, {
-      text: `Te han invitado a *${nombre}*.\n\nhttps://chat.whatsapp.com/${code}`,
-    });
-    return true;
-  } catch (e) {
-    logger.warn(`!add: no pude invitar a +${raw} por privado: ${e.message}`);
-    return false;
-  }
+  return sock.sendMessage(jid, { text: `No pude añadir a +${raw} (código ${status || 'desconocido'}).` }, { quoted: msg });
 }
 
 // !antilink on/off — solo owner. Se borra CUALQUIER enlace:

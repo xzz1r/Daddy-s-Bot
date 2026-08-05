@@ -46,8 +46,22 @@ if (!local) {
   else mal(`commit ${local}, faltan ${detras} ${detras === 1 ? 'actualización' : 'actualizaciones'} (la última es ${remoto})`,
     `git pull origin ${rama} && npm install --omit=dev && pm2 restart all --update-env`);
 
-  const sucio = sh(`git -C ${RAIZ} status --porcelain`);
-  if (sucio) aviso('hay cambios locales sin guardar; el próximo pull puede dar conflicto');
+  // Decir "hay cambios locales" sin decir CUÁLES no sirve de nada: nadie sabe
+  // qué mirar. Se listan. Y package-lock.json va aparte porque lo reescribe
+  // `npm install` él solo: no es un cambio de nadie y avisar de eso es ruido.
+  const sucio = sh(`git -C ${RAIZ} status --porcelain`).split('\n').filter(Boolean);
+  const soloLock = sucio.length > 0 && sucio.every(l => /package-lock\.json$/.test(l));
+  if (soloLock) {
+    bien('sin cambios propios (npm reescribió package-lock.json, es normal)');
+  } else if (sucio.length) {
+    // Se trima CADA línea antes de quitarle el estado. `sh()` trima la salida
+    // entera, así que la primera línea llega ya sin su espacio inicial y las
+    // demás no: cortar por posición fija dejaba una "M" pegada al primer nombre.
+    aviso(`hay cambios locales sin guardar: ${sucio.map(l => l.trim().replace(/^\S+\s+/, '')).join(', ')}`,
+      'git checkout -- .   (los descarta y deja el pull limpio)');
+  } else {
+    bien('sin cambios locales');
+  }
 }
 
 // ─── Configuración ───────────────────────────────────────────────────────────
