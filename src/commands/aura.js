@@ -1376,8 +1376,9 @@ Es la moneda del grupo. Empiezas con *100*. Un millonario del grupo ronda los *5
 · *!dar @user <cantidad>* — le pasas aura a alguien.
 
 *EN QUÉ SE GASTA*
-· *!play* — 15    · *!g* — 10
-· *!fk* — 8       · *!pfp* — 5
+· *!play* — 15     · *!top10* — 10
+· *!g* — 10        · *!fk* — 8
+· *!top5* — 6      · *!pfp* — 5
 
 *COMANDOS*
 · *!aura* — tirar

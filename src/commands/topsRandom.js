@@ -1,6 +1,7 @@
 const { getActiveUsers } = require('../utils/messageCounter');
-const { isMainOwner, soloMiembros } = require('../utils/wa');
+const { isMainOwner, soloMiembros, getSender } = require('../utils/wa');
 const { shuffle, pickFresh } = require('../utils/helpers');
+const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 
 // Remate del ranking. Sale UNO por top, al final del bloque.
 //
@@ -71,8 +72,16 @@ async function cmdTopRandom(sock, msg, n, args, groupMeta) {
   }
 
   const topic = (args || []).join(' ').trim();
-  if (!topic) {
-    return sock.sendMessage(jid, { text: `Usa: *!top${n}* <tema>` }, { quoted: msg });
+  // Sin tema no hay sorteo y el bot no da tutoriales: se calla.
+  if (!topic) return;
+
+  // Un top menciona a media docena de personas de golpe, asi que cuesta aura.
+  // Se cobra antes de sortear y se devuelve si no hay gente suficiente.
+  const quienPide = getSender(msg);
+  const concepto = `top${n}`;
+  const pago = await cobrar(jid, quienPide, concepto, { fromMe: msg.key.fromMe, groupMeta });
+  if (!pago.ok) {
+    return sock.sendMessage(jid, { text: textoSinSaldo(concepto, pago) }, { quoted: msg });
   }
 
   // Solo miembros actuales. El contador guarda los mensajes de todo el que haya
@@ -90,6 +99,7 @@ async function cmdTopRandom(sock, msg, n, args, groupMeta) {
   const users = soloMiembros(await getActiveUsers(jid, MIN_MENSAJES), groupMeta)
     .filter(u => !isMainOwner(u.jid, false, groupMeta));
   if (users.length < n) {
+    await devolver(jid, quienPide, pago.pagado).catch(() => {});
     return sock.sendMessage(jid, {
       text: `No hay suficientes miembros activos. Necesito ${n}, hay ${users.length}.`,
     }, { quoted: msg });

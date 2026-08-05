@@ -12,6 +12,7 @@
 //   bono tier 3 (1000 msgs) ..  90-380  (un 8 % de millonario en el mejor caso)
 //   robo típico ..............  10-60
 //   canción (!play) ..........     15
+//   un top al azar ...........   6-10
 //
 // La versión anterior repartía bonos de 1.000 a 50.000 mientras una tirada de
 // !aura movía 50-500 y un robo 5-150: los bonos por escribir eclipsaban por
@@ -92,9 +93,13 @@ const AMBICION_MAX = 0.35;
 
 // ─── Precios: el aura como moneda ────────────────────────────────────────────
 //
-// Solo se cobra por lo que cuesta recursos de verdad (ancho de banda, API,
-// consultas a WhatsApp). Los juegos sociales siguen gratis: cobrarlos mataría
-// el uso del grupo, que es justo lo que da sentido al resto.
+// Se cobra por lo que cuesta recursos de verdad (ancho de banda, API, consultas
+// a WhatsApp) y por los tops, que mencionan a media docena de personas de golpe
+// y son el comando mas facil de disparar en bucle. Los juegos de porcentaje
+// siguen gratis: cobrarlos mataria el uso del grupo, que es lo que da sentido
+// al resto.
+//
+// El !top10 cuesta casi el doble que el !top5 porque molesta al doble de gente.
 //
 // Precios pensados para ser accesibles: una canción son 15, y una sola tirada
 // floja de !aura ya paga eso. Nadie se queda sin música por estar pobre.
@@ -103,6 +108,8 @@ const PRECIOS = {
   grok: 10,   // pregunta a la IA
   pfp: 5,     // foto de perfil de alguien
   fk: 8,      // análisis de cuenta falsa
+  top5: 6,    // sorteo de 5 nombres
+  top10: 10,  // sorteo de 10
 };
 
 // Suelo de crédito: se puede pagar aunque te deje justo, pero no se entra en

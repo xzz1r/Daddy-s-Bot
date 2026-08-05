@@ -221,7 +221,8 @@ _Sin @ va sobre ti · con @ va sobre esa persona_
 *${p}robo* @user <cantidad> — intentar robar _(5 desenlaces)_
 *${p}aura hoy* — tu progreso de hoy _(o ${p}casino)_
 _Ganas aura escribiendo. Bonos diarios: 200 msg · 500 · 1000_
-_Cuestan aura: ${p}play (15) · ${p}g (10) · ${p}fk (8) · ${p}pfp (5)_
+_Cuestan aura: ${p}play (15) · ${p}top10 (10) · ${p}g (10) · ${p}fk (8)_
+_${p}top5 (6) · ${p}pfp (5)_
 
 ━━━━━ *PERFIL* ━━━━━
 *${p}pfp* @user — su foto de perfil

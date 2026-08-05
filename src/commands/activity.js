@@ -255,6 +255,20 @@ const AVISO_PURGA = [
 
 const UMBRAL_INACTIVO = 10;
 
+// Remate del mensaje. La cabecera rota entre las frases de AVISO_PURGA, pero la
+// amenaza tiene que aparecer SIEMPRE y en el mismo sitio: si dependiera del
+// azar, la mitad de las veces la lista se leeria como un ranking cualquiera.
+const AMENAZAS = [
+  'Tienen hasta la próxima limpieza. Después el bot los saca sin preguntar.',
+  'Aviso único. En la siguiente revisión, el que siga aquí abajo se va a la calle.',
+  'Que escriban antes de la próxima purga o el bot los borra del grupo y del recuerdo.',
+  'Esta lista es la antesala de la puerta. El bot no avisa dos veces.',
+  'Próxima limpieza: fuera todo el que siga por debajo del corte. Sin excepciones.',
+  'O suben de ahí o el bot les quita el sitio. Es literal y es automático.',
+  'Último aviso antes de la expulsión automática. El bot no negocia con fantasmas.',
+  'El que siga en esta lista la próxima vez, se va. Lo hace el bot solo y sin pena.',
+];
+
 async function cmdInactivos(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
@@ -321,6 +335,7 @@ async function cmdInactivos(sock, msg, groupMeta) {
     .map(u => `@${u.jid.split('@')[0]} — ${u.count === 1 ? '1 mensaje' : `${u.count} mensajes`}`)
     .join('\n');
   if (sobran) text += `\n\n_Y ${sobran} mas que no caben en un solo mensaje._`;
+  text += `\n\n*${pickFresh(AMENAZAS, `${jid}|inactivos|amenaza`)}*`;
 
   await sock.sendMessage(jid, { text, mentions: mostrados.map(u => u.jid) }, { quoted: msg });
 }
