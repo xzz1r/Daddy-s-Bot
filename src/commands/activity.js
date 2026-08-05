@@ -234,24 +234,26 @@ async function cmdFantasmas(sock, msg, groupMeta) {
 // conoce, así que hay que sacarlos de la lista de participantes).
 
 let AVISO_PURGA = [
-  'Menos de 10 mensajes. El bot no guarda sitio a quien no lo usa: o escriben o los saca sin despedida.',
-  'Por debajo del mínimo. Diez mensajes es el listón más bajo que existe y ni eso han pasado. Se echan solos.',
-  'Actividad de cadáver. El bot limpia lo que no respira, y estos llevan meses sin dar una sola señal.',
-  'Menos de 10 mensajes en todo el historial. Eso no es ser discreto, es ser un mueble. Y los muebles se tiran.',
-  'Aviso: por debajo de 10 mensajes el bot expulsa. No es una amenaza, es mantenimiento rutinario.',
-  'Diez mensajes. Diez. Ni eso. El bot va a hacer limpieza y estos nombres están en la bolsa de basura.',
-  'Ocupan plaza y no pagan alquiler. El bot cobra en mensajes y a estos les falta el recibo entero.',
-  'Por debajo del umbral. El grupo funciona igual sin ellos, así que el bot va a comprobarlo en la práctica.',
-  'Menos de 10 mensajes. Relleno con foto de perfil, y el bot ya tiene el dedo encima del botón.',
-  'Actividad insuficiente. O escriben algo antes de la próxima limpieza o el bot les ahorra el esfuerzo para siempre.',
-  'El bot no expulsa por antipatía, expulsa por estadística. Y la de estos da vergüenza de leer.',
-  'Menos de diez mensajes. A este ritmo el bot los echa antes de que aprendan a escribir el segundo.',
-  'Umbral no alcanzado. El grupo tiene lista de espera y estos llevan meses calentando la silla sin usarla.',
-  'Bajo mínimos. El bot limpia inactivos igual que se tira la comida caducada: sin pena y sin avisar dos veces.',
-  'Menos de 10 mensajes registrados. Esto es el aviso. El siguiente no es un aviso, es la puerta.',
-  'Actividad por los suelos. El bot no los odia: simplemente no encuentra ninguna razón para mantenerlos.',
-  'Por debajo del corte. Que escriban algo que valga la pena o que dejen el sitio a alguien que sí lo use.',
+  'Menos de 10 mensajes. No estás en el grupo: ocupas una silla que alguien con algo que decir está esperando.',
+  'Diez mensajes es el listón más bajo que existe y ni por debajo pasas rozando. Te queda poco aquí.',
+  'El bot te tiene fichado. No por lo que has dicho, sino por todo lo que llevas meses sin decir.',
+  'Menos de 10 mensajes. Entras, lees, te vas. Eso no es ser miembro, es ser un mirón con permiso.',
+  'Llevas aquí lo suficiente como para que ya no haya excusa. El bot ha dejado de aceptarlas.',
+  'Estás en esta lista porque el grupo funciona exactamente igual sin ti. El bot lo va a demostrar.',
+  'Menos de 10 mensajes. Ni un chiste, ni un buenos días, ni una puta cosa. Y aun así ocupas plaza.',
+  'El bot no borra a nadie por antipatía. Te borra porque el contador dice que no estás, y no estás.',
+  'Diez mensajes. Diez. Un número que se alcanza aburrido y en una tarde, y tú no llegas en meses.',
+  'Estás por debajo del corte. No del corte de los buenos: del corte de los que existen.',
+  'Menos de 10 mensajes y una foto de perfil. Eso es todo lo que has aportado desde que entraste.',
+  'El bot ya ha hecho la cuenta. Tu nombre sale en la columna equivocada y no hay recurso posible.',
+  'Llevas de espectador tanto tiempo que el grupo ha dejado de contar contigo. El bot solo lo hace oficial.',
+  'Menos de 10 mensajes. El silencio es respetable cuando aporta algo. El tuyo solo ocupa memoria.',
+  'Estás en la lista de los que no se van a echar de menos. Es la peor lista de todas y es la tuya.',
+  'El bot no discute con fantasmas. Los cuenta, los apunta y los quita. Vas por el segundo paso.',
+  'Menos de 10 mensajes en todo tu historial. El grupo lleva meses funcionando como si no estuvieras. Y funciona.',
+  'Aquí no se paga con dinero, se paga escribiendo. Y tú llevas meses sin pagar el alquiler de tu sitio.',
 ]
+
 
 const UMBRAL_INACTIVO = 10;
 
@@ -259,15 +261,20 @@ const UMBRAL_INACTIVO = 10;
 // amenaza tiene que aparecer SIEMPRE y en el mismo sitio: si dependiera del
 // azar, la mitad de las veces la lista se leeria como un ranking cualquiera.
 let AMENAZAS = [
-  'Tienen hasta la próxima limpieza. Después el bot los saca sin preguntar.',
-  'Aviso único. En la siguiente revisión, el que siga aquí abajo se va a la calle.',
-  'Que escriban antes de la próxima purga o el bot los borra del grupo y del recuerdo.',
-  'Esta lista es la antesala de la puerta. El bot no avisa dos veces.',
-  'Próxima limpieza: fuera todo el que siga por debajo del corte. Sin excepciones.',
-  'O suben de ahí o el bot les quita el sitio. Es literal y es automático.',
-  'Último aviso antes de la expulsión automática. El bot no negocia con fantasmas.',
-  'El que siga en esta lista la próxima vez, se va. Lo hace el bot solo y sin pena.',
-];
+  'El bot ya tiene la lista. No hay una segunda.',
+  'Escribe hoy o desaparece. No hay término medio ni prórroga.',
+  'Esto no es un aviso con fecha. Es el último mensaje que vas a leer aquí.',
+  'La puerta está abierta y el bot está detrás de ti. Elige rápido.',
+  'A partir de ahora cada mensaje que no escribas cuenta como una firma en tu expulsión.',
+  'No vuelvas a salir en esta lista. No porque escribas: porque ya no vas a estar.',
+  'El bot no negocia, no recuerda y no perdona. Solo cuenta. Y ya ha contado.',
+  'Te quedan los mensajes que tardes en decidirte. Ni uno más.',
+  'La próxima vez que el bot pase por aquí, esta lista va a estar vacía. Adivina cómo.',
+  'Nadie va a preguntar por ti cuando no estés. Ese es el verdadero problema, no la expulsión.',
+  'El grupo no te necesita y el bot tampoco. Solo falta que se note en la lista de miembros.',
+  'Sales de esta lista escribiendo o te sacan del grupo. No hay una tercera opción.',
+]
+;
 
 async function cmdInactivos(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
