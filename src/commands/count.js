@@ -248,9 +248,11 @@ function fechaCorta(ms) {
 async function pieDeReset(jid) {
   const ts = await getLastReset(jid).catch(() => null);
   if (!ts) return '\n\n_Contando desde el primer mensaje registrado._';
-  const dias = Math.floor((Date.now() - ts) / 86400000);
-  const desde = dias === 0 ? 'hoy' : dias === 1 ? 'ayer' : `hace ${dias} dias`;
-  return `\n\n_Ultimo reset: ${fechaCorta(ts)} (${desde})._`;
+  // Math.max(0, ...) por si el reloj del servidor se movio hacia atras: sin el,
+  // una marca "del futuro" imprimia "hace -1 dias".
+  const dias = Math.max(0, Math.floor((Date.now() - ts) / 86400000));
+  const desde = dias === 0 ? 'hoy' : dias === 1 ? 'ayer' : `hace ${dias} días`;
+  return `\n\n_Último reset: ${fechaCorta(ts)} (${desde})._`;
 }
 
 // Ranking canónico compartido por el board y por "!count @user": solo miembros

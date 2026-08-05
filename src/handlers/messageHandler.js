@@ -231,7 +231,10 @@ const NEEDS_META = new Set([
   // groupMeta y sus modulos no lo mencionan, asi que pedirlo solo anyadia una
   // peticion de red (hasta 8s con la cache fria) antes de ejecutarlos.
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
-  'crack','iq','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','ganador',
+  // 'iq' ya NO va aqui: dejo de ser un comando de porcentaje y su modulo no usa
+  // groupMeta, asi que pedirla solo anyadia una peticion de red (hasta 8s con la
+  // cache fria) antes de una tirada que no la necesita para nada.
+  'crack','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','ganador',
   'puta','guarra','fiel','infiel','linda','fea','incel',
   'rizz',   // piropo y wingman NO: sus handlers no reciben groupMeta (wingman.js)
   'aura','resetaura','inactivos','inactivo','fantasma','fantasmas','mog','moggear','roast','flamear',
