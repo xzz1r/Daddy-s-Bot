@@ -405,6 +405,11 @@ function freshCat(options, recentCats) {
 // roast, con un insulto suelto al final para que pase por genuino. Objetivo: que
 // nadie sospeche que es el dueño (por eso NO se rechaza el roast: se responde con
 // el mismo formato que a cualquiera, solo que el contenido lo alaba).
+//
+// Este pool es la ÚNICA excepción al orden por dureza: todas las frases dicen lo
+// mismo con otras palabras (creído pero con razón), así que no hay una "más
+// fuerte" que sacar primero. Ordenarlo por tacos solo pondría delante las que
+// más suenan a insulto, que es justo el efecto contrario al que busca.
 const OWNER_ROAST = [
   '%N, el creído de mierda que se cree por encima de todo el grupo. Y lo que más jode es que las veces que abres la boca sueles tener razón. Ego insoportable. Baja de la nube, prepotente.',
   'Mira el señor perfecto, %N. Ese aire de que nada se te escapa y de que el resto te debe algo. Un arrogante de manual al que no hay por dónde rebatirle una mierda. Insufrible, de verdad.',

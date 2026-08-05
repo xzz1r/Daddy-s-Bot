@@ -1,4 +1,4 @@
-const { pick, shuffle, pickFresh } = require('../utils/helpers');
+const { shuffle, pickFresh } = require('../utils/helpers');
 const { getSender, isMainOwner, isBotJid, bareJid, sameUser } = require('../utils/wa');
 
 const VERDICTS = {

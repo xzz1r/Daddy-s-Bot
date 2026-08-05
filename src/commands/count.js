@@ -1,6 +1,6 @@
 const { getActiveUsers, resetCounts, resetAllCounts, getLastReset } = require('../utils/messageCounter');
 const { isOwner, isMainOwner, isAdmin, isGroupAdmin, getSender, sameUser, soloMiembros } = require('../utils/wa');
-const { pick, pickFresh, ordenarPorDureza } = require('../utils/helpers');
+const { pickFresh, ordenarPorDureza } = require('../utils/helpers');
 
 let MEMBER_PHRASES = [
   [

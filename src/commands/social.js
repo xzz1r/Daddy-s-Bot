@@ -1,6 +1,6 @@
 const { getState, setState, toggleGroup } = require('../utils/state');
-const { formatUptime, pick, fmt, pickFresh } = require('../utils/helpers');
-const { isOwner, isGroupAdmin, getSender } = require('../utils/wa');
+const { formatUptime, fmt, pickFresh } = require('../utils/helpers');
+const { isOwner, getSender } = require('../utils/wa');
 const { getCasinoCount, msUntilReset } = require('../utils/casinoStore');
 const { nextMilestone } = require('../utils/casino');
 const config = require('../config');

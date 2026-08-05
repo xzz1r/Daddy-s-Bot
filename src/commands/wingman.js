@@ -1,7 +1,7 @@
 'use strict';
 
 const { getTargetOrSelf, isMainOwner } = require('../utils/wa');
-const { pick, pickFresh } = require('../utils/helpers');
+const { pickFresh } = require('../utils/helpers');
 
 // Comandos tipo wingman (positivos/divertidos): puntúan el juego, lanzan piropos
 // y dan consejos de ligue. Sin emojis (regla del bot). %N se reemplaza por la

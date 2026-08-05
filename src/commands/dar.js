@@ -2,7 +2,8 @@ const { getSender, getTarget, sameUser } = require('../utils/wa');
 const { transferAura } = require('../utils/auraStore');
 const { fmt } = require('../utils/helpers');
 
-const GIFT_MIN = 5;
+// El minimo vive en utils/economia.js con el resto de la escala.
+const { REGALO_MIN: GIFT_MIN } = require('../utils/economia');
 
 async function cmdDar(sock, msg, args) {
   const jid = msg.key.remoteJid;

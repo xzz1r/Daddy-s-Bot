@@ -11,7 +11,7 @@
 const { incrementCasinoCount } = require('./casinoStore');
 const { getAura, addAura } = require('./auraStore');
 const { BONOS, REDENCION, rango } = require('./economia');
-const { pick, pickFresh, fmt } = require('./helpers');
+const { pickFresh, fmt } = require('./helpers');
 
 
 // ─── Phrases ──────────────────────────────────────────────────────────────────

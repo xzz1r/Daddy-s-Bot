@@ -25,10 +25,12 @@ function resolveJid(rawJid, participants) {
 // A duel is a consented aura bet: challenger stakes an amount, target must
 // accept, winner takes the stake from the loser. The accept step is what makes
 // it social — it forces a public yes/no instead of a silent dice roll.
-// Escala nueva: arranque 100, "millonario" del grupo ~10.000.
-const STAKE_MIN = 10;
-const STAKE_MAX = 500;
-const STAKE_DEFAULT = 50;
+//
+// La escala vive en utils/economia.js, igual que el robo y los bonos. Antes
+// estaba aqui a pelo y se quedo en la escala vieja cuando todo lo demas bajo.
+const { DUELO } = require('../utils/economia');
+const STAKE_MIN = DUELO.suelo;
+const STAKE_DEFAULT = DUELO.porDefecto;
 const EXPIRY_MS = 90 * 1000;       // pending challenge dies after 90 s
 
 const pending = new Map();      // groupJid -> { challenger, target, stake, ts }
@@ -82,7 +84,7 @@ let DUEL_WIN = [
 function clampStake(raw) {
   const n = parseInt(String(raw).replace(/\D/g, ''), 10);
   if (!Number.isFinite(n) || n <= 0) return STAKE_DEFAULT;
-  return Math.min(Math.max(n, STAKE_MIN), STAKE_MAX);
+  return Math.max(n, STAKE_MIN);
 }
 
 function getPending(jid) {
@@ -210,15 +212,29 @@ async function cmdDuel(sock, msg, args, groupMeta) {
     }, { quoted: msg });
   }
 
-  // Stake: first numeric arg after the mention (e.g. "!duel @user 800").
+  // Apuesta: primer argumento numerico despues de la mencion.
   const stakeArg = (args || []).find(a => /^\d+$/.test(a));
-  const stake = clampStake(stakeArg);
+  const pedido = clampStake(stakeArg);
 
-  // Both must have enough aura to cover the bet
-  const auraC = await getAura(jid, sender);
-  if (auraC < stake) {
+  // El tope se calcula con el saldo de LOS DOS, no solo con el del retador.
+  // Antes solo se miraba al que lanzaba, asi que se podia retar por 500 a
+  // alguien con 60: el duelo moria al aceptar, con un mensaje publico
+  // llamandole insolvente. Ahora la cifra se ajusta sola y nadie queda expuesto.
+  const [auraC, auraT] = await Promise.all([
+    getAura(jid, sender),
+    getAura(jid, target),
+  ]);
+  const pobre = Math.min(auraC, auraT);
+  const maxStake = Math.max(
+    STAKE_MIN,
+    Math.min(DUELO.techo, Math.floor(pobre * DUELO.fraccionRival)),
+  );
+  const stake = Math.min(pedido, maxStake);
+  const recortado = pedido > maxStake;
+
+  if (auraC < stake || auraT < stake) {
     return sock.sendMessage(jid, {
-      text: `No tienes *${fmt(stake)}* de aura. Tienes *${fmt(auraC)}*.`,
+      text: 'Con ese saldo no da para un duelo.',
     }, { quoted: msg });
   }
 
@@ -235,8 +251,9 @@ async function cmdDuel(sock, msg, args, groupMeta) {
   await sock.sendMessage(jid, {
     text:
       `*DUELO LANZADO*\n\n` +
-      `@${sender.split('@')[0]} reta a @${target.split('@')[0]} por *${fmt(stake)}* de aura.\n\n` +
-      `@${target.split('@')[0]}, escribe *!duel aceptar* para pelear o *!duel rechazar* para huir.\n` +
+      `@${sender.split('@')[0]} reta a @${target.split('@')[0]} por *${fmt(stake)}* de aura.\n` +
+      (recortado ? `_Tope entre los dos: ${fmt(maxStake)}_\n` : '') +
+      `\n@${target.split('@')[0]} · *!duel aceptar* o *!duel rechazar*\n` +
       `_(expira en 90s)_`,
     mentions: [sender, target],
   }, { quoted: msg });
@@ -249,4 +266,6 @@ async function cmdDuel(sock, msg, args, groupMeta) {
 // ahi la "dureza" no significa nada.
 DUEL_WIN = ordenarPorDureza(DUEL_WIN);
 
-module.exports = { cmdDuel };
+// clampStake se exporta para poder comprobarlo aparte: es la unica parte del
+// duelo que se puede probar sin un socket ni un grupo de verdad.
+module.exports = { cmdDuel, clampStake };

@@ -11,6 +11,7 @@
 //   bono tier 2 (500 msgs) ...  35-170
 //   bono tier 3 (1000 msgs) ..  90-380  (un 8 % de millonario en el mejor caso)
 //   robo típico ..............  10-60
+//   duelo típico .............  10-300
 //   canción (!play) ..........     15
 //   un top al azar ...........   6-10
 //
@@ -87,6 +88,32 @@ const ROBO = {
   minVictima: 20,         // por debajo de esto no se le puede robar a alguien
 };
 
+// ─── !duel ───────────────────────────────────────────────────────────────────
+//
+// La apuesta se recorta a lo que los DOS pueden cubrir, con un techo absoluto,
+// igual que el robo. Antes el duelo tenía sus propias cifras a pelo (mínimo 10,
+// máximo 500, por defecto 50), heredadas de la escala vieja: 500 era una décima
+// parte de un millonario en una sola apuesta, mientras un robo se quedaba en
+// 200. Además no miraba el saldo del retado al lanzar el reto, así que se podía
+// desafiar por 500 a alguien con 60 y el duelo moría al aceptar con un mensaje
+// público de "insolvente".
+//
+// El techo es más alto que el del robo a propósito: el duelo es consentido — el
+// otro tiene que aceptar — así que puede permitirse más riesgo que un robo, que
+// se sufre sin poder decir que no.
+const DUELO = {
+  suelo: 10,
+  porDefecto: 40,
+  techo: 300,             // más que el robo (200), porque aquí el otro acepta
+  fraccionRival: 0.35,    // ni más de un tercio de lo que tiene el más pobre
+};
+
+// ─── !dar ────────────────────────────────────────────────────────────────────
+//
+// Regalar es voluntario y sin tope: quien quiera vaciarse la cuenta por otro,
+// que lo haga. Solo hay un mínimo para que no se use como ruido.
+const REGALO_MIN = 5;
+
 // Castigo por ambición: cuanto más pides, menos probable es que salga. Subido
 // desde el 15 % anterior — con 15 % seguía compensando pedir siempre el máximo,
 // así que no había decisión que tomar. Con 35 % pedir el tope es una apuesta de
@@ -126,7 +153,7 @@ module.exports = {
   MILLONARIO, ARRANQUE,
   TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO,
   BONOS, REDENCION,
-  ROBO, AMBICION_MAX,
+  ROBO, AMBICION_MAX, DUELO, REGALO_MIN,
   PRECIOS, SALDO_MINIMO,
   rango,
 };
