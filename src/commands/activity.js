@@ -294,12 +294,18 @@ async function cmdInactivos(sock, msg, groupMeta) {
   //
   // Se guardan TODAS las formas conocidas de cada uno (id, lid, telefono)
   // porque el conteo pudo anotarse bajo una y el participante figurar con otra.
+  // El indice apunta cada forma a la ENTRADA del contador, no a su numero. Antes
+  // guardaba el numero y luego se tomaba el maximo entre las formas, y eso
+  // infravaloraba a quien tiene el conteo partido en dos entradas (por ejemplo
+  // 6 bajo su @lid y 7 bajo su telefono, porque el par LID<->telefono no se
+  // conocia cuando se anotaron): la cuenta real son 13 y salia como 7, o sea
+  // marcado de inactivo sin serlo. Guardando la entrada se pueden sumar las
+  // distintas SIN contar dos veces la misma cuando dos formas apuntan a ella.
   const contados = await getActiveUsers(jid, 1);
-  const cuentaPorForma = new Map();
+  const entradaPorForma = new Map();
   for (const u of contados) {
     for (const f of [bareJid(u.jid), canonicalJid(u.jid)]) {
-      const prev = cuentaPorForma.get(f) || 0;
-      if (u.count > prev) cuentaPorForma.set(f, u.count);
+      if (!entradaPorForma.has(f)) entradaPorForma.set(f, u);
     }
   }
 
@@ -311,10 +317,17 @@ async function cmdInactivos(sock, msg, groupMeta) {
     if (isBotJid(sock, p.id)) continue;
     if (isOwner(p.id, false, groupMeta) || isMainOwner(p.id, false, groupMeta)) continue;
 
-    let n = 0;
+    // Se reunen las entradas distintas que casan con alguna de sus formas y se
+    // suman una sola vez cada una.
+    const suyas = new Set();
     for (const f of formas) {
-      n = Math.max(n, cuentaPorForma.get(bareJid(f)) || 0, cuentaPorForma.get(canonicalJid(f)) || 0);
+      for (const forma of [bareJid(f), canonicalJid(f)]) {
+        const e = entradaPorForma.get(forma);
+        if (e) suyas.add(e);
+      }
     }
+    let n = 0;
+    for (const e of suyas) n += e.count;
     if (n < UMBRAL_INACTIVO) flojos.push({ jid: p.id, count: n });
   }
 

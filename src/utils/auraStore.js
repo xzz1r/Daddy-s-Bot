@@ -195,6 +195,30 @@ async function transferAura(groupJid, fromJid, toJid, amount) {
   });
 }
 
+// Cobro atomico: comprueba el saldo y descuenta DENTRO del mismo bloque
+// serializado, igual que transferAura.
+//
+// Hacerlo con getAura() y luego addAura() era una carrera real: dos comandos
+// simultaneos del mismo usuario leian los dos el mismo saldo antes de que
+// ninguno hubiera escrito, los dos pasaban la comprobacion y los dos
+// descontaban. Con el saldo justo, dos !play a la vez dejaban al usuario en
+// negativo, que es justo lo que SALDO_MINIMO existe para impedir.
+//
+// Devuelve { ok: true, cobrado, current } o { ok: false, saldo } si no llega.
+async function spendAura(groupJid, userJid, amount, minimo = 0) {
+  await load();
+  const qKey = `${groupJid}|${canonicalJid(userJid)}`;
+  return serialized(qKey, () => {
+    if (!store[groupJid]) store[groupJid] = {};
+    const key = foldPerson(store[groupJid], userJid);
+    const saldo = store[groupJid][key] === undefined ? STARTING_AURA : store[groupJid][key];
+    if (saldo - amount < minimo) return { ok: false, saldo };
+    store[groupJid][key] = saldo - amount;
+    scheduleSave();
+    return { ok: true, cobrado: amount, current: store[groupJid][key] };
+  });
+}
+
 async function getAuraRanking(groupJid) {
   await load();
   const g = store[groupJid];
@@ -230,4 +254,4 @@ async function flushAura() {
   }
 }
 
-module.exports = { getAura, addAura, transferAura, getAuraRanking, resetAura, flushAura, STARTING_AURA };
+module.exports = { getAura, addAura, spendAura, transferAura, getAuraRanking, resetAura, flushAura, STARTING_AURA };

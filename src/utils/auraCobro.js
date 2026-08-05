@@ -5,7 +5,7 @@
 // consulta a WhatsApp) y se devuelve si el recurso falla, para que nadie pague
 // por una canción que no llegó.
 
-const { getAura, addAura } = require('./auraStore');
+const { spendAura, addAura } = require('./auraStore');
 const { PRECIOS, SALDO_MINIMO } = require('./economia');
 const { fmt } = require('./helpers');
 const { isOwner } = require('./wa');
@@ -20,11 +20,13 @@ async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta
   if (!precio) return { ok: true, pagado: 0, saldo: null };
   if (isOwner(senderJid, fromMe, groupMeta)) return { ok: true, pagado: 0, saldo: null, exento: true };
 
-  const saldo = await getAura(groupJid, senderJid);
-  if (saldo - precio < SALDO_MINIMO) return { ok: false, precio, saldo };
-
-  const { current } = await addAura(groupJid, senderJid, -precio);
-  return { ok: true, pagado: precio, saldo: current };
+  // Comprobar y descontar tiene que ser UNA sola operacion: si se hace en dos
+  // pasos, dos comandos simultaneos del mismo usuario leen el mismo saldo antes
+  // de que ninguno escriba y los dos cobran. Con el saldo justo eso dejaba al
+  // usuario en negativo comprando, que es lo que SALDO_MINIMO impide.
+  const r = await spendAura(groupJid, senderJid, precio, SALDO_MINIMO);
+  if (!r.ok) return { ok: false, precio, saldo: r.saldo };
+  return { ok: true, pagado: precio, saldo: r.current };
 }
 
 // Devuelve lo cobrado. Se llama cuando el recurso falló después del cobro.
