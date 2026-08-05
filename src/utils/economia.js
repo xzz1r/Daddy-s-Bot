@@ -54,7 +54,7 @@ const TIRADA = {
 // las que se pierde: esa sensación es la que engancha y no se toca. La casa
 // cobra por el otro lado (ver multiplicadorPerdida).
 const P_POSITIVA = {
-  owner: 0.64,
+  owner: 0.80,   // el owner gana 4 de cada 5 tiradas, por peticion expresa
   admin: 0.58,
   miembro: 0.52,
 };
@@ -176,23 +176,26 @@ const REDENCION = {
 // El tope ya no es un número fijo: es un porcentaje del aura de la víctima, con
 // un techo absoluto. Robarle 150 a alguien que tiene 200 lo dejaba en la ruina
 // de un golpe; robarle 150 a un millonario no le hacía ni cosquillas.
-// Elegir cuánto robar SÍ estaba implementado, pero no se notaba, y el motivo
-// era esta tabla. Con `fraccionVictima` a 0.25, a alguien con los 100 del
-// arranque solo se le podían quitar 25 — que es exactamente `porDefecto`. O sea
-// que pidieras 25, 80 o 200, el bot siempre acababa robando 25 y parecía que
-// ignoraba la cifra. Y como casi todo el grupo anda cerca del arranque, le
-// pasaba a casi todo el mundo.
+// Se roba LA CANTIDAD QUE SE PIDE. Punto.
 //
-// Con 0.35 y el defecto en 20 hay margen de verdad desde el primer día: contra
-// alguien con 100 se puede pedir entre 5 y 35, y la horquilla se abre según
-// engorda la víctima. El tope sigue atado a lo que ella tiene, no a lo que el
-// ladrón quiera: robarle 200 a quien tiene 250 lo dejaría en la ruina de un
-// golpe, y eso vacía el grupo en vez de animarlo.
+// Antes había un tope por fracción del saldo de la víctima, y era exactamente
+// lo que hacía que el comando pareciera roto: pedías 52, la víctima tenía 52, y
+// el bot robaba 18 sin que la cifra que escribiste significara nada. Da igual
+// cuánto se explique en la nota del final — si escribes un número y sale otro,
+// el comando está ignorándote.
+//
+// Ahora la cantidad se respeta y el precio se paga en PROBABILIDAD: cuanto más
+// pides, más difícil es que salga (ver RIESGO). Eso es una decisión de verdad,
+// no un recorte silencioso.
+//
+// Los dos únicos límites que quedan son físicos, no de diseño:
+//   · no se puede robar más de lo que la víctima tiene;
+//   · ni más de lo que el ladrón podría pagar si le sale mal.
+// Y un techo absoluto, para que un solo comando no decida el ranking entero.
 const ROBO = {
   suelo: 5,
   porDefecto: 20,
   techo: 200,             // nadie se lleva más de esto de un solo robo
-  fraccionVictima: 0.35,  // ni más de un tercio de lo que tiene la víctima
   minVictima: 20,         // por debajo de esto no se le puede robar a alguien
 };
 

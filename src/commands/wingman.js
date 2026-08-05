@@ -1,6 +1,7 @@
 'use strict';
 
-const { getTargetOrSelf, isMainOwner } = require('../utils/wa');
+const { getTargetOrSelf, isMainOwner, isOwner, isAdmin } = require('../utils/wa');
+const { rollPercent } = require('./percent');
 const { pickFresh } = require('../utils/helpers');
 
 // Comandos tipo wingman (positivos/divertidos): puntúan el juego, lanzan piropos
@@ -176,11 +177,16 @@ async function cmdRizz(sock, msg, groupMeta) {
   const target = getTargetOrSelf(msg);
   const num = target.split('@')[0];
 
-  // Rig a favor del owner principal: siempre rizz alto pero variable (88-100),
-  // no siempre 100, para que no cante. Al resto, aleatorio real.
-  const percent = isMainOwner(target, false, groupMeta)
-    ? 88 + Math.floor(Math.random() * 13)
-    : Math.floor(Math.random() * 101);
+  // El rizz es un rasgo POSITIVO, asi que usa la misma distribucion que !linda,
+  // !crack o !ganador: alto para el owner, bajo para casi todos los demas.
+  //
+  // Antes tenia la suya propia — Math.random()*101, plana de 0 a 100 — y por eso
+  // a miembros y admins les salian porcentajes altisimos: en una distribucion
+  // uniforme, tres de cada diez tiradas pasan de 70, asi que el comando repartia
+  // sobresalientes a medio grupo y el sesgo del bot no se veia por ningun lado.
+  const esOwner = isOwner(target, false, groupMeta) || isMainOwner(target, false, groupMeta);
+  const esAdmin = !esOwner && isAdmin(groupMeta?.participants, target);
+  const percent = rollPercent(true, esAdmin, esOwner);
 
   const tier = percent >= 70 ? 'high' : percent <= 30 ? 'low' : 'mid';
   const phrase = pickFresh(RIZZ[tier], `${jid}|rizz|${tier}`).replace(/%N/g, `@${num}`);

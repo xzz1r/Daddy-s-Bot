@@ -43,6 +43,26 @@ const VERDICTS = {
     'Pleno absoluto. Si esto sale mal, sale mal a lo grande. Y si sale bien, también.',
     'Cien por cien. Es su última oportunidad y es mutua. Aprovechadla o callaos para siempre.',
     'Match perfecto. Que se besen ya y acabemos con esto antes de que el grupo se muera de vergüenza.',
+    'Cien por cien. El bot ha hecho la cuenta tres veces por si se había equivocado y no: esto es de las que salen una vez cada diez años.',
+    'Match total. Se han encontrado dos personas igual de insoportables y por eso mismo funciona: nadie más las habría aguantado.',
+    'Compatibilidad absoluta. Lo raro no es que encajen, lo raro es que hayan tardado tanto en darse cuenta con el grupo entero mirando.',
+    'Perfecto. Esto no es química, es destino con muy mal gusto y muchísima insistencia.',
+    'Redondo. El bot no reparte cien por cien todos los días, así que aprovechad antes de que uno de los dos lo estropee.',
+    'Cien. Dos piezas rotas que resulta que estaban rotas por el mismo sitio. Encajan de milagro y encajan bien.',
+    'Match de los que se cuentan en las bodas. Y lo mejor es que ninguno de los dos lo vio venir hasta este mensaje.',
+    'Perfecto y ligeramente preocupante. Cuando dos personas encajan tanto, el resto del grupo sobra un poco.',
+    'Cien por cien. El bot lleva meses viendo esto venir y por fin tiene una excusa para decirlo en voz alta.',
+    'Compatibilidad máxima. No hay nada que analizar: se ha juntado lo que tenía que juntarse y punto.',
+    'Match perfecto. Uno pone el caos y el otro pone la paciencia, que es exactamente como funcionan las cosas que duran.',
+    'Cien. Si esto no acaba en algo, el problema ya no son los números: sois vosotros dos y vuestra cobardía.',
+    'Total. El bot no encuentra ni un solo motivo para que esto falle, y mira que ha buscado con ganas.',
+    'Perfecto. Dos personas que se entienden sin hablar, que en este grupo es prácticamente un superpoder.',
+    'Cien por cien y con el grupo de testigo. A partir de ahora ya no se puede fingir que no pasa nada.',
+    'Match absoluto. Es de esas parejas que dan rabia porque funcionan sin esfuerzo mientras el resto lo intenta y falla.',
+    'Redondo. El bot ha visto miles de combinaciones y esta es de las pocas que no le da nada de vergüenza anunciar.',
+    'Cien. Lo tenían delante todo el tiempo y ha tenido que venir un bot a decírselo. Patético y precioso a partes iguales.',
+    'Perfecto. Si alguno lo estropea ahora, que sepa que el grupo entero tiene este mensaje guardado.',
+    'Compatibilidad total. Dos desastres que juntos, por algún motivo que escapa a la ciencia, funcionan.',
   ],
   high: [
     'Alto. Hay tensión, hay miradas y hay dos cobardes que llevan meses sin decir nada.',
@@ -85,6 +105,26 @@ const VERDICTS = {
     'Alta compatibilidad. Dos que se hacen reír. Con eso se llega más lejos que con cualquier otra cosa.',
     'Alto. Esto va a acabar bien o va a acabar en un drama de los buenos. No hay término medio.',
     'Buen número. Ninguno es perfecto, pero juntos tapan bastante bien lo que le falta al otro.',
+    'Alto. Hay algo ahí y lo sabe todo el grupo menos ellos dos, que siguen fingiendo muy mal.',
+    'Muy compatible. Le falta poco: solo que uno de los dos tenga el valor de escribir primero.',
+    'Números buenos. Esto lleva meses cociéndose a fuego lento y ya empieza a oler desde fuera.',
+    'Alto. No es un match perfecto, pero es de los que mejoran con el tiempo si nadie lo arruina antes.',
+    'Compatibilidad alta. La tensión es tan evidente que el bot se ha sentido incómodo calculándola.',
+    'Bien. Muy bien. Tan bien que resulta raro que a estas alturas siga sin pasar nada entre ellos.',
+    'Alto. Aquí hay material, lo que falta es alguien con iniciativa y de eso este grupo anda escaso.',
+    'Muy compatibles. Se ríen de las mismas cosas, que es un porcentaje enorme de lo que hace falta.',
+    'Números altos. Esto no es casualidad: llevan tiempo dándose la razón el uno al otro en público.',
+    'Alto. El grupo ya hace apuestas y las apuestas van todas en la misma dirección.',
+    'Compatibilidad alta y creciente. Cada semana que pasa el bot lo ve más claro y ellos menos.',
+    'Bien alto. Falta un empujón, y el bot acaba de darlo delante de todo el mundo.',
+    'Alto. Se buscan en las conversaciones sin darse cuenta, que es la señal más obvia que existe.',
+    'Muy compatible. No es amor todavía, pero es de eso que se convierte en amor si nadie lo estropea.',
+    'Números altos. Cuando uno escribe, el otro contesta en menos de un minuto. El bot lleva la cuenta.',
+    'Alto. Esto tiene futuro y todo el grupo lo sabe, incluidos los dos que van a negarlo ahora mismo.',
+    'Compatibilidad alta. Ya se protegen mutuamente en las discusiones, que es la fase previa a todo lo demás.',
+    'Bien. Aquí hay tema, y el que diga que no es porque no ha leído el grupo con atención.',
+    'Alto. Le sobra química y le falta valentía, que es el problema más común y más tonto de todos.',
+    'Muy compatibles. El bot les daría un empujón, pero ya lo ha hecho publicando esto.',
   ],
   mid: [
     'Regular. Podrían funcionar si alguno se molestara, y ninguno se va a molestar.',
@@ -127,6 +167,26 @@ const VERDICTS = {
     'A medias. Se aguantan, se ríen a ratos y no piensan en el otro cuando se van a dormir.',
     'Regular. Ni química ni rechazo: indiferencia bien repartida entre los dos.',
     'Medio. El match más olvidable del día, y llevamos unos cuantos.',
+    'Regular. Ni bien ni mal: podrían funcionar en un universo donde alguno de los dos se esforzara.',
+    'Ni fu ni fa. Se caen bien, se ríen a veces, y ahí se acaba todo lo que el bot puede decir.',
+    'Medio. Es el porcentaje de la gente que acaba siendo amiga y contándose los problemas con otros.',
+    'Regular tirando a nada. Hay conversación, pero es la misma conversación que tienen con todos.',
+    'Números tibios. Esto no arranca solo, y ninguno de los dos tiene pinta de ir a arrancarlo.',
+    'Medio. Funcionaría un verano y luego cada uno recordaría la historia de forma distinta.',
+    'Regular. Se llevan bien porque no se conocen lo suficiente, que es como empiezan casi todas.',
+    'Ni frío ni calor. El bot ha calculado esto dos veces y las dos veces le ha dado igual de aburrido.',
+    'Medio. Hay potencial, pero está enterrado debajo de mucha pereza por las dos partes.',
+    'Regular. Podría salir bien, podría salir mal, y lo más probable es que no salga nada.',
+    'Tibio. La clase de match que existe solo mientras dura el mensaje que lo anuncia.',
+    'Medio. Se aguantan, se saludan y se olvidan. Un clásico de este grupo.',
+    'Ni fu ni fa. El bot no ve nada que impida esto, pero tampoco nada que lo empuje.',
+    'Regular. Con esfuerzo llegaría a algo; sin esfuerzo llegará exactamente a donde está ahora.',
+    'Números del montón. Ni para presumir ni para avergonzarse, que es lo peor de todo.',
+    'Medio. Es un match de los que se olvidan antes de que termine el día.',
+    'Regular. Hay días que sí y días que no, y el bot ha pillado uno de los que no.',
+    'Tibio. Compatibles en lo básico e incompatibles en todo lo que de verdad importa.',
+    'Medio. Si esto fuera un examen, sería un aprobado raspado que nadie celebra.',
+    'Ni fu ni fa. El bot recomienda seguir siendo lo que sois, que ya funcionaba.',
   ],
   low: [
     'Bajo. Esto no va a salir bien ni forzándolo, y forzarlo sería aún peor.',
@@ -169,6 +229,26 @@ const VERDICTS = {
     'Mal match. Cada uno tiene sus cosas, y sus cosas son exactamente incompatibles.',
     'Compatibilidad baja. Esto es un no con números, que es la forma más educada de decirlo.',
     'Bajo. Que sigan cada uno por su camino y que el camino no se cruce mucho.',
+    'Bajo. Esto no va a ninguna parte, y forzarlo solo alargaría la parte incómoda.',
+    'Números malos. Se llevarían bien tres semanas y luego uno de los dos cambiaría de grupo.',
+    'Bajo. El bot ha buscado un punto en común y ha encontrado que ambos escriben en español.',
+    'Poca cosa. Aquí no hay chispa, hay dos personas educadas que se saludan y ya está.',
+    'Bajo. La clase de pareja que discutiría por el aire acondicionado antes del primer mes.',
+    'Números flojos. Compatibles en teoría, insoportables en cuanto pasan dos horas juntos.',
+    'Bajo. El bot ha visto peores, pero no muchas, y las peores al menos eran divertidas.',
+    'Poco. Esto funcionaría solo si ninguno de los dos hablara, que sería un problema aparte.',
+    'Bajo. Hay más química entre un cargador y un enchufe, y eso al menos da corriente.',
+    'Números malos. No es que se odien: es que les daría exactamente igual dejar de verse.',
+    'Bajo. El bot recomienda encarecidamente que sigan siendo dos personas que comparten grupo.',
+    'Poca compatibilidad. Se aburrirían el uno del otro antes de terminar la primera conversación.',
+    'Bajo. Esto empieza mal, sigue peor y termina con alguien contándolo en el grupo.',
+    'Números pobres. Ni el bot, que se inventa la mitad de lo que dice, puede maquillar esto.',
+    'Bajo. Dos personas que en otra vida quizá, pero en esta claramente no.',
+    'Poco. La compatibilidad es tan baja que el bot ha considerado no publicarla por pudor.',
+    'Bajo. Aquí lo único compatible son los horarios de conexión, y por casualidad.',
+    'Números malos. Esto sería una relación de esas que se explican con un "no sé qué pasó".',
+    'Bajo. El bot lo ha intentado, ha buscado el ángulo bueno, y no lo hay.',
+    'Poca cosa. Mejor amigos, y ni eso con mucho entusiasmo.',
   ],
   zero: [
     'Cero. Ni el bot ni el universo ni nadie. Esto no existe y no va a existir jamás.',
@@ -211,6 +291,26 @@ const VERDICTS = {
     'Cero absoluto. Podéis seguir con vuestras vidas separadas, que es lo que ibais a hacer igual.',
     'Cero. Aquí no hay historia. Ni la hubo, ni la hay, ni se la espera.',
     'Cero. Y aun así, alguien ha escrito el comando. Esa es la única cosa interesante de todo esto.',
+    'Cero. El bot ha calculado esto y ha salido un número tan bajo que ha tenido que redondear hacia arriba.',
+    'Cero absoluto. Ni en broma, ni por aburrimiento, ni al final de una noche muy larga.',
+    'Nada. Esto no es incompatibilidad, es que pertenecen a especies emocionales distintas.',
+    'Cero. Juntar a estos dos es como mezclar agua y aceite, pero con menos química y más incomodidad.',
+    'Cero patatero. El bot pide disculpas al grupo por haber generado siquiera esta imagen mental.',
+    'Nada de nada. Si esto pasara, sería el mayor error documentado en la historia del grupo.',
+    'Cero. Se han visto en este grupo cientos de veces y ni uno de esos días pasó absolutamente nada.',
+    'Cero absoluto. El bot ha comprobado el cálculo por si acaso y ha empeorado en la segunda pasada.',
+    'Nada. Ni el destino, ni el alcohol, ni una apuesta perdida conseguirían esto.',
+    'Cero. Esto es lo más parecido a una advertencia sanitaria que puede emitir un bot de WhatsApp.',
+    'Cero patatero. Dos personas que podrían pasar una vida entera sin dirigirse la palabra y estarían bien.',
+    'Nada. El bot ha considerado mentir para no hacer daño, y ni mintiendo le sale un número decente.',
+    'Cero. Lo único que comparten es este grupo, y uno de los dos ya está pensando en salirse.',
+    'Cero absoluto. Ni forzándolo, ni pagándolo, ni con el grupo entero empujando.',
+    'Nada. Esto no es un match, es un accidente estadístico que el bot lamenta profundamente.',
+    'Cero. La compatibilidad es tan baja que técnicamente cuenta como repulsión.',
+    'Cero patatero. El bot recomienda que ni siquiera se sienten en el mismo lado de la mesa.',
+    'Nada. Hay más futuro en cualquier otra combinación del grupo, incluidas las imposibles.',
+    'Cero. Esto es lo que sale cuando el azar quiere gastar una broma pesada a dos personas inocentes.',
+    'Cero absoluto. El bot da por terminado el análisis y sugiere no volver a intentarlo jamás.',
   ],
 };
 
@@ -269,8 +369,17 @@ async function cmdShip(sock, msg, args, groupMeta) {
     a = sender;
     b = targets[0];
   } else {
-    // !ship — dos miembros al azar
-    [a, b] = shuffle(participantIds).slice(0, 2);
+    // !ship a secas — a QUIEN LO ESCRIBE con alguien al azar.
+    //
+    // Antes sorteaba dos miembros cualesquiera y el que había escrito el comando
+    // se quedaba mirando cómo emparejaban a otros dos. Escribir !ship es
+    // apuntarse: lo mínimo es que te toque a ti.
+    a = sender;
+    const resto = participantIds.filter(id => !sameUser(id, sender));
+    if (!resto.length) {
+      return sock.sendMessage(jid, { text: 'No hay nadie más en el grupo con quien shipearte.' }, { quoted: msg });
+    }
+    b = shuffle(resto)[0];
   }
 
   // No shippear a alguien consigo mismo (igual que !mog y !vs).

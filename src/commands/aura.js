@@ -32,7 +32,17 @@ function rollAura(targetIsOwner, targetIsAdmin, plusActividad = 0) {
   const base = targetIsOwner ? P_POSITIVA.owner
              : targetIsAdmin ? P_POSITIVA.admin
              :                 P_POSITIVA.miembro;
-  // Tope al 80 %: ni el owner activo tiene la tirada regalada.
+  // Tope al 80 %, que es donde ya está el owner por su base.
+  //
+  // Se probó a subirlo para que el bono de actividad se le sumara encima, y sale
+  // mal por una razón que no es evidente: como el multiplicador de pérdida sale
+  // de la propia probabilidad, ganar más a menudo obliga a perder más de golpe.
+  // A 86 % el multiplicador es 6,3 y un solo mal resultado se lleva 949 de aura
+  // — casi un quinto de una fortuna en una tirada. A 80 % el peor golpe baja a
+  // 618, que sigue siendo mucho pero es asumible.
+  //
+  // O sea: ganar cuatro de cada cinco veces se paga con que la quinta duela. No
+  // hay forma de tener las dos cosas sin que el comando imprima aura.
   const pPos = Math.min(0.80, base + plusActividad);
 
   const r = Math.random();
@@ -1590,8 +1600,14 @@ async function cmdAura(sock, msg, args, groupMeta) {
   const text =
     `*@${sender.split('@')[0]} ${sign}${fmt(Math.abs(amount))} de aura*\n` +
     `${pickFresh(AURA[effectiveTier], `${jid}|aura|${effectiveTier}`)}\n\n` +
-    `Aura total: *${fmt(current)}*` +
-    (plusActividad ? `\n_Activo (${fmt(mensajes)} msgs): +${Math.round(plusActividad * 100)}% de suerte_` : '');
+    `Aura total: *${fmt(current)}*`;
+  // NO se enseña ni el conteo de mensajes ni el bono de suerte.
+  //
+  // La línea decía "_Activo (0 msgs): +6% de suerte_", y con el owner era el
+  // peor sitio posible para decirlo: sus mensajes no se cuentan (por eso pone
+  // cero), pero el bono sí lo tiene, así que el mensaje anunciaba justo la
+  // contradicción que lo delata. Y para el resto tampoco aporta: destripa la
+  // mecánica y convierte una tirada en un recibo.
 
   await sock.sendMessage(jid, { text, mentions: [sender] }, { quoted: msg });
 }

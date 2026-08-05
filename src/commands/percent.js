@@ -5635,6 +5635,11 @@ async function runPercent(sock, msg, key, groupMeta) {
 const makeCmd = (key) => (sock, msg, groupMeta) => runPercent(sock, msg, key, groupMeta);
 
 module.exports = {
+  // Se exporta para que !rizz use EXACTAMENTE la misma distribucion que el resto
+  // del bot. Tenia la suya propia, plana de 0 a 100, y por eso a los miembros les
+  // salian porcentajes altisimos: en una uniforme, tres de cada diez tiradas
+  // pasan de 70. El sesgo del bot no es un detalle estetico, es la regla.
+  rollPercent,
   cmdIncel:         makeCmd('incel'),
   cmdLinda:         makeCmd('linda'),
   cmdFea:           makeCmd('fea'),

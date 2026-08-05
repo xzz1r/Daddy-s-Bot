@@ -191,15 +191,21 @@ async function cmdHelp(sock, msg) {
 _Prefijo *${p}* · ejemplo: *${p}play* despacito_
 _Lo que lleva \`número\` cuesta esa cantidad de aura._
 
-━━━━━ *HERRAMIENTAS* ━━━━━
-*${p}play* <nombre> ${c('play')} — canción _(pon también el artista)_
-*${p}cachelist* — las ya guardadas, gratis y al instante
-*${p}s* ${c('sticker')} — imagen o vídeo a sticker
-*${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')} — sticker a imagen o a vídeo
-*${p}ttp* <texto> — texto a sticker
-*${p}g* <pregunta> ${c('grok')} — le preguntas a Grok
-*${p}pfp* @user ${c('pfp')} — su foto de perfil
-*${p}fk* @user ${c('fk')} — analiza si es cuenta falsa
+━━━━━ *DINÁMICAS* ━━━━━
+_Sin @ va sobre ti · con @ va sobre esa persona. Todas gratis._
+_De más crudo a más suave._
+*${p}roast* @user — destrucción pública
+*${p}perdedor* · *${p}puta* · *${p}guarra*
+*${p}incel* · *${p}maricon* · *${p}gay*
+*${p}cerdo* · *${p}inutil* · *${p}rata*
+*${p}femboy* · *${p}simp* · *${p}friki*
+*${p}fea* · *${p}iq* · *${p}infiel*
+*${p}mog* @a @b — duelo de looks
+*${p}feminidad* · *${p}masculinidad*
+*${p}linda* · *${p}hot* · *${p}fiel*
+*${p}crack* · *${p}ganador*
+*${p}ship* @a @b — compatibilidad
+*${p}rizz* · *${p}piropo* · *${p}wingman* — modo ligue
 
 ━━━━━ *ACTIVIDAD* ━━━━━
 *${p}count* — ranking de quién escribe más _(admins)_
@@ -219,21 +225,15 @@ cada ${ORDAGO.cooldownMin / 60}h. Mínimo ${ORDAGO.minimo} para sentarte a la me
 *${p}robo* @user <cantidad> — robar. Elige cuánto: ni el mínimo
 ni el tope son la mejor apuesta _(5 desenlaces)_
 
-━━━━━ *DINÁMICAS* ━━━━━
-_Sin @ va sobre ti · con @ va sobre esa persona. Todas gratis._
-_De más crudo a más suave._
-*${p}roast* @user — destrucción pública
-*${p}perdedor* · *${p}puta* · *${p}guarra*
-*${p}incel* · *${p}maricon* · *${p}gay*
-*${p}cerdo* · *${p}inutil* · *${p}rata*
-*${p}femboy* · *${p}simp* · *${p}friki*
-*${p}fea* · *${p}iq* · *${p}infiel*
-*${p}mog* @a @b — duelo de looks
-*${p}feminidad* · *${p}masculinidad*
-*${p}linda* · *${p}hot* · *${p}fiel*
-*${p}crack* · *${p}ganador*
-*${p}ship* @a @b — compatibilidad
-*${p}rizz* · *${p}piropo* · *${p}wingman* — modo ligue
+━━━━━ *HERRAMIENTAS* ━━━━━
+*${p}play* <nombre> ${c('play')} — canción _(pon también el artista)_
+*${p}cachelist* — las ya guardadas, gratis y al instante
+*${p}s* ${c('sticker')} — imagen o vídeo a sticker
+*${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')} — sticker a imagen o a vídeo
+*${p}ttp* <texto> — texto a sticker
+*${p}g* <pregunta> ${c('grok')} — le preguntas a Grok
+*${p}pfp* @user ${c('pfp')} — su foto de perfil
+*${p}fk* @user ${c('fk')} — analiza si es cuenta falsa
 
 ━━━━━ *ADMIN* ━━━━━
 *${p}tagall* <mensaje> — menciona a todos
