@@ -45,18 +45,33 @@ const ARRANQUE = 100;
 //
 // Bajado desde 250-500 / 50-200. La tirada ya no es la vía rápida a nada: es un
 // goteo. Quien quiera subir de verdad tiene que escribir o robar.
+// Importes recortados otra vez (eran 60-210 y 15-65). Se pidió que ganar fuese
+// más frecuente pero MENOS enriquecedor, y las dos cosas van juntas: si subes la
+// probabilidad sin tocar las cifras, la gente gana más veces Y acumula más
+// rápido, que es justo la mitad que no se quería.
+//
+// Con estos números la tirada media pasa de 57 a 35 de aura. Sigue notándose en
+// el marcador, pero un buen día de tiradas ya no compite con un día de escribir.
 const TIRADA = {
-  grande: [60, 150],
-  pequena: [15, 50],
+  grande: [40, 80],    // 40-120
+  pequena: [10, 25],   // 10-35
 };
 
 // Probabilidad de que la tirada salga positiva, por rol. Se GANA más veces de
 // las que se pierde: esa sensación es la que engancha y no se toca. La casa
 // cobra por el otro lado (ver multiplicadorPerdida).
+// Se sube para todos: ganar tiene que pasar más veces de las que pasaba. Un
+// miembro estaba en 52 %, que es casi una moneda al aire y no se siente como
+// ganar; ahora acierta 62 de cada 100.
+//
+// Que esto NO enriquezca lo garantiza el multiplicador de pérdida, que sale de
+// la propia probabilidad: subir a 62 % hace que cada derrota pese 1,68 veces lo
+// que pesa una victoria. Se gana más a menudo y se sigue sin poder acumular a
+// base de tirar, que es exactamente lo que se pidió.
 const P_POSITIVA = {
   owner: 0.80,   // el owner gana 4 de cada 5 tiradas, por peticion expresa
-  admin: 0.58,
-  miembro: 0.52,
+  admin: 0.68,
+  miembro: 0.62,
 };
 
 // Empujón por actividad: quien ha escrito de verdad en el grupo tira con algo

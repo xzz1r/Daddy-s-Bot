@@ -1493,13 +1493,26 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     }, { quoted: msg });
   }
 
-  // Apuesta: primer argumento numerico, recortado a lo que la victima puede
-  // perder y el ladron puede cubrir. Pedir mas de lo permitido no falla: se
-  // ajusta al tope y se avisa en el mensaje, para que el jugador vea el limite.
-  const raw = parseInt((args || []).find(a => /^\d+$/.test(a)) || STAKE_DEFAULT, 10);
+  // Cuanto se apuesta.
+  //
+  // Con cifra: la que se pida. Sin cifra: una AL AZAR ajustada a lo que tenga la
+  // victima, no un valor fijo. Antes salía siempre 20, y contra alguien con
+  // 3.000 de aura eso era un robo de propina que no arriesgaba ni interesaba a
+  // nadie; contra alguien con 60, en cambio, era la mitad de su cuenta.
+  //
+  // Al azar entre el suelo y el tope, que ya está calculado sobre el saldo real
+  // de los dos. Así !robo a secas sigue siendo una jugada de verdad: unas veces
+  // toca una cifra cómoda y otras una que te va a costar sacar, con la
+  // probabilidad que corresponda a cada una.
   const maxStake = topeRobo(auraA, auraV);
+  const pedido = (args || []).find(a => /^\d+$/.test(a));
+  const raw = pedido
+    ? parseInt(pedido, 10)
+    : ROBO.suelo + Math.floor(Math.random() * (Math.max(0, maxStake - ROBO.suelo) + 1));
   const stake = Math.max(Math.min(ROBO.suelo, maxStake), Math.min(raw, maxStake));
-  const recortado = raw > maxStake;
+  // Solo se avisa de recorte cuando el jugador PIDIO una cifra y no cabia. Si la
+  // eligio el bot, no hay nada que explicar: ya salio dentro del tope.
+  const recortado = Boolean(pedido) && raw > maxStake;
 
   const participants = groupMeta?.participants || [];
   const aO = isOwner(sender, msg.key.fromMe, groupMeta);
