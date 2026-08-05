@@ -200,23 +200,26 @@ const REGALO_MIN = 5;
 // Precios pensados para ser accesibles: una canción son 15, y una sola tirada
 // floja de !aura ya paga eso. Nadie se queda sin música por estar pobre.
 // Los conversores (!s, !toimg, !tovid) son los comandos más usados del grupo y
-// cada uno levanta un ffmpeg. Se cobran, pero baratos a propósito: son parte del
-// día a día, no un capricho, y ponerles el precio de una canción habría hecho
-// que la gente dejara de usarlos. A 4 de aura, una sola tirada floja de !aura
-// (15-50) paga entre tres y doce stickers.
+// cada uno levanta un ffmpeg. Estuvieron a 4 por ser el uso diario; ahora van a
+// 15, igual que una canción, por decisión del owner. Con eso un sticker deja de
+// ser calderilla: el aura de arranque da para seis, y hacerlos en cadena cuesta
+// de verdad, que es justo lo que frena el spam de stickers.
 //
-// !tovid cuesta algo más porque recodifica vídeo entero con preset slow, que es
-// con diferencia lo más caro que hace el bot en CPU.
+// !tovid tiene que quedar POR ENCIMA de !toimg pase lo que pase: recodifica el
+// vídeo entero con preset slow, que es con diferencia lo más caro que hace el
+// bot en CPU. Al subir !toimg de 4 a 15 se quedó costando 6 — menos de la mitad
+// que la conversión ligera — así que sube con él manteniendo la proporción que
+// tenía (una vez y media).
 const PRECIOS = {
-  play: 15,   // canción
-  grok: 10,   // pregunta a la IA
-  pfp: 5,     // foto de perfil de alguien
-  fk: 8,      // análisis de cuenta falsa
-  top5: 6,    // sorteo de 5 nombres
-  top10: 10,  // sorteo de 10
-  sticker: 4, // !s
-  toimg: 4,   // !toimg
-  tovid: 6,   // !tovid
+  play: 15,    // canción
+  grok: 10,    // pregunta a la IA
+  pfp: 5,      // foto de perfil de alguien
+  fk: 8,       // análisis de cuenta falsa
+  top5: 6,     // sorteo de 5 nombres
+  top10: 10,   // sorteo de 10
+  sticker: 15, // !s
+  toimg: 15,   // !toimg
+  tovid: 22,   // !tovid — el más caro: transcodifica vídeo entero
 };
 
 // Suelo de crédito: se puede pagar aunque te deje justo, pero no se entra en
