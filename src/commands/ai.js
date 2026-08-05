@@ -68,8 +68,7 @@ async function cmdGrok(sock, msg, args, groupMeta) {
   if (!apiKey) {
     return sock.sendMessage(jid, {
       text:
-        'Grok no está configurado.\n' +
-        'El owner debe sacar una key en console.x.ai y usar *!setgrok <key>*.',
+        'Grok no está configurado.',
     }, { quoted: msg });
   }
 
@@ -140,11 +139,9 @@ async function cmdSetGrokKey(sock, msg, args, groupMeta) {
   }
 
   const key = (args || []).join(' ').trim();
-  if (!key || !key.startsWith('xai-')) {
-    return sock.sendMessage(jid, {
-      text: 'Usa: *!setgrok xai-tu_clave*\nLa key empieza con "xai-" (console.x.ai).',
-    }, { quoted: msg });
-  }
+  // Key ausente o con formato que no es el de xAI: no se guarda y no se
+  // explica el formato. El bot ejecuta o se calla.
+  if (!key || !key.startsWith('xai-')) return;
 
   try {
     await saveApiKey(key);

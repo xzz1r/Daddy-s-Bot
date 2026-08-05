@@ -1,7 +1,7 @@
 'use strict';
 
 const { isOwner, isMainOwner, isAdmin, getSender, sameUser } = require('../utils/wa');
-const { pickFresh } = require('../utils/helpers');
+const { pickFresh, ordenarPorDureza } = require('../utils/helpers');
 
 // Rigged by role, but not blatantly: the owner has a real edge yet can still
 // lose, admins have a slighter edge, members fight on equal ground.
@@ -15,7 +15,7 @@ function rollMog(aIsOwner, aIsAdmin, bIsOwner, bIsAdmin) {
 }
 
 // %M = mogger (winner), %L = mogged (loser)
-const MOG_PHRASES = [
+let MOG_PHRASES = [
   // --- It's over / it never began ---
   'It\'s over para %L. Ni siquiera empezó. %M nació ascendido y %L nació de relleno.',
   'It\'s over. Lo fue desde que %L cargó la genética con la que vino al mundo. %M ni se molesta.',
@@ -133,11 +133,7 @@ async function cmdMog(sock, msg, groupMeta) {
   let a, b;
   if (mentioned.length >= 2) [a, b] = mentioned.slice(0, 2);
   else if (mentioned.length === 1) { a = sender; b = mentioned[0]; }
-  else {
-    return sock.sendMessage(jid, {
-      text: 'Usa: *!mog @a @b* (o *!mog @a* para medirte con alguien).',
-    }, { quoted: msg });
-  }
+  else return; // sin nadie a quien medir, no hay duelo de looks
 
   if (sameUser(a, b)) {
     return sock.sendMessage(jid, { text: 'No puedes moggearte a ti mismo.' }, { quoted: msg });
@@ -172,5 +168,12 @@ async function cmdMog(sock, msg, groupMeta) {
 
   await sock.sendMessage(jid, { text, mentions: [a, b] }, { quoted: msg });
 }
+
+
+// El bot abre con lo mas fuerte que tiene: los pools de insultos se ordenan
+// de mas duro a mas suave UNA vez, al cargar, y pickFresh sesga la eleccion
+// hacia la cabecera. Los pools neutros (cabeceras, cierres) no se tocan:
+// ahi la "dureza" no significa nada.
+MOG_PHRASES = ordenarPorDureza(MOG_PHRASES);
 
 module.exports = { cmdMog };

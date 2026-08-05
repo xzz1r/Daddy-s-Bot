@@ -1,7 +1,7 @@
 'use strict';
 
 const { getSender, getTarget, isMainOwner, bareJid, sameUser, fetchAbout } = require('../utils/wa');
-const { pick, pickFresh, fmt } = require('../utils/helpers');
+const { pick, pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
 const { getUserCount } = require('../utils/messageCounter');
 
 
@@ -50,7 +50,7 @@ const CLOSERS = [
 // COMBINED_ACTIVE: para usuarios con >= 150 mensajes (sin insultar la actividad)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const COMBINED_INACTIVE = [
+let COMBINED_INACTIVE = [
   'Mírate, %N, con esa bio de perdedor escrita por un virgen de treinta años que aún vive con su mamá y se hace pajas llorando. Ni escribes nada, ni aportas nada. Solo un fantasma de mierda que nadie quiere cerca.',
   '%N, con ese nombre de cornudo y esa bio de fracasado, eres tan irrelevante que ni los mosquitos te hacen caso. No escribes una puta palabra y el grupo agradece el silencio. Puto inútil sin remedio.',
   'Con esa bio que grita "soy un fracaso con patas", %N, eres el error que nadie corrige porque ya no merece el esfuerzo. Ni escribes nada. Existes por inercia, das pena y no aportas una mierda.',
@@ -91,7 +91,7 @@ const COMBINED_INACTIVE = [
   'Con bio de don nadie, %N, y una presencia que ni los mosquitos registran, eres el ejemplo que se pone cuando alguien pregunta qué es sobrar. Sobras entero, en todo, sin una sola puta excusa.',
 ];
 
-const COMBINED_ACTIVE = [
+let COMBINED_ACTIVE = [
   'Mírate, %N, con esa bio de perdedor escrita por un virgen eterno que lleva años sin que nadie le haga caso. Escribes mucho, pero cada mensaje solo confirma la frustración sexual y el fracaso que la bio ya anunciaba.',
   '%N, con ese nombre de cornudo y esa bio de perdedor, ni toda la actividad del mundo te va a lavar la imagen que el grupo tiene de ti. Escribes sin parar y sigues siendo la misma basura. Cabrón sin remedio.',
   'Con esa bio que grita "soy un fracaso con patas", %N, eres el fraude que habla mucho y aporta nada. Mucho ruido, cero impacto, ninguna huella real. Un don nadie con el pulgar rápido y la cabeza vacía.',
@@ -138,7 +138,7 @@ const COMBINED_ACTIVE = [
 
 // ─── SOLO NOMBRE (%N) — 50 frases ─────────────────────────────────────────────
 
-const NAME_ONLY = [
+let NAME_ONLY = [
   '%N. El nombre que gritan cuando llaman a un fracasado de manual. Si hubiera elección te lo cambiabas, pero hasta eso está fuera de tu alcance, puto inútil.',
   'Vaya nombre más mierda, %N. Te lo pusieron pensando en algo y saliste con esto. El abismo entre el plan y el resultado empieza ahí y nunca se cerró. Basura con nombre propio.',
   '%N suena a excusa. A "voy a llegar tarde", a "se me olvidó", a "no pude". El nombre de alguien que nació para fallar y lo ratificó con los años sin necesitar ayuda de nadie, perdedor.',
@@ -205,7 +205,7 @@ const NAME_ONLY = [
 
 // ─── SOLO BIO VACÍA — 25 frases ────────────────────────────────────────────────
 
-const BIO_EMPTY = [
+let BIO_EMPTY = [
   'Sin bio. El único espacio del planeta donde decides cómo quieres que te vean y lo dejaste en blanco. Eso no es misterio, es que no hay una sola cosa dentro de ti que merezca una puta frase, gilipollas.',
   'Bio vacía. Ni una palabra, ni un puto emoji de relleno, ni un triste intento. El único sitio del mundo donde nadie te juzga por lo que pones y aun así conseguiste no decir una mierda. Récord absoluto de vacío, coherente con lo hueco que estás por dentro.',
   'La bio en blanco no es minimalismo ni estética. Es la confirmación de que cuando te paras a pensar en ti mismo, sin prisa ni presión, no encuentras una mierda que valga la pena compartir con nadie.',
@@ -235,7 +235,7 @@ const BIO_EMPTY = [
 
 // ─── SOLO BIO CON CONTENIDO (%N) — 25 frases ──────────────────────────────────
 
-const BIO_FULL = [
+let BIO_FULL = [
   '%N, la bio es el único texto que escribes tú solo con tiempo de sobra. Y aun así salió esa mierda. Eso dice todo sobre el nivel que tienes cuando nadie te presiona: basura sin pulir y sin solución.',
   'Lo que pusiste en la bio, %N, lo pusiste creyendo que te hacía quedar bien. El grupo lo leyó, se rió y siguió. Nadie te avisó porque dar malas noticias a los fracasados no vale el esfuerzo.',
   '%N, escribiste esa bio con toda la convicción de un imbécil que se cree interesante. Resultado: el anuncio de lo poco que eres con las palabras de alguien que no sabe ni eso, cabrón sin filtro.',
@@ -433,7 +433,7 @@ async function cmdRoast(sock, msg, groupMeta) {
   const sender = getSender(msg);
   const target = getTarget(msg);
   if (!target) {
-    return sock.sendMessage(jid, { text: 'Usa: *!roast @alguien* (o respondele a su mensaje)' }, { quoted: msg });
+    return; // sin objetivo no hay a quien destrozar
   }
 
   if (sameUser(target, sender)) {
@@ -544,5 +544,16 @@ async function cmdRoast(sock, msg, groupMeta) {
 
   await sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });
 }
+
+
+// El bot abre con lo mas fuerte que tiene: los pools de insultos se ordenan
+// de mas duro a mas suave UNA vez, al cargar, y pickFresh sesga la eleccion
+// hacia la cabecera. Los pools neutros (cabeceras, cierres) no se tocan:
+// ahi la "dureza" no significa nada.
+COMBINED_INACTIVE = ordenarPorDureza(COMBINED_INACTIVE);
+COMBINED_ACTIVE = ordenarPorDureza(COMBINED_ACTIVE);
+NAME_ONLY = ordenarPorDureza(NAME_ONLY);
+BIO_EMPTY = ordenarPorDureza(BIO_EMPTY);
+BIO_FULL = ordenarPorDureza(BIO_FULL);
 
 module.exports = { cmdRoast };

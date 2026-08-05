@@ -1,8 +1,8 @@
 const { getActiveUsers, resetCounts, resetAllCounts, getLastReset } = require('../utils/messageCounter');
 const { isOwner, isMainOwner, isAdmin, isGroupAdmin, getSender, sameUser, soloMiembros } = require('../utils/wa');
-const { pick, pickFresh } = require('../utils/helpers');
+const { pick, pickFresh, ordenarPorDureza } = require('../utils/helpers');
 
-const MEMBER_PHRASES = [
+let MEMBER_PHRASES = [
   [
     'Número uno. Enhorabuena: eres oficialmente el que menos vida tiene aquí, y encima con diploma.',
     'Primero del ranking. Nadie escribe tanto por gusto, campeón. Eso ya no es afición, es un diagnóstico.',
@@ -131,7 +131,7 @@ const MEMBER_PHRASES = [
   ],
 ];
 
-const ADMIN_PHRASES = [
+let ADMIN_PHRASES = [
   [
     'Número uno Y con galones. El cargo y la adicción en la misma persona. El grupo no tiene escapatoria.',
     'Primero del ranking siendo admin. Mandas de verdad y encima no te callas. Combinación terrorífica.',
@@ -365,4 +365,12 @@ async function cmdResetCount(sock, msg, groupMeta) {
 
 // Los pools se exportan para que las pruebas puedan comprobar de que bolsa
 // salio cada frase en vez de adivinarlo por palabras sueltas.
+
+// El bot abre con lo mas fuerte que tiene: los pools de insultos se ordenan
+// de mas duro a mas suave UNA vez, al cargar, y pickFresh sesga la eleccion
+// hacia la cabecera. Los pools neutros (cabeceras, cierres) no se tocan:
+// ahi la "dureza" no significa nada.
+for (let i = 0; i < MEMBER_PHRASES.length; i++) MEMBER_PHRASES[i] = ordenarPorDureza(MEMBER_PHRASES[i]);
+for (let i = 0; i < ADMIN_PHRASES.length; i++) ADMIN_PHRASES[i] = ordenarPorDureza(ADMIN_PHRASES[i]);
+
 module.exports = { cmdCount, cmdResetCount, MEMBER_PHRASES, ADMIN_PHRASES, fechaCorta };

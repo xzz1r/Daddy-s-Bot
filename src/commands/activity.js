@@ -1,11 +1,11 @@
 const { getActiveUsers } = require('../utils/messageCounter');
 const { isOwner, isMainOwner, getSender, sameUser, soloMiembros, bareJid, canonicalJid, isBotJid } = require('../utils/wa');
-const { pick, shuffle, pickFresh } = require('../utils/helpers');
+const { pick, shuffle, pickFresh, ordenarPorDureza } = require('../utils/helpers');
 
 // ---- !vs : real-activity head-to-head -------------------------------------
 
 // %W = winner tag, %L = loser tag. Filled in per call.
-const VS_ROASTS = [
+let VS_ROASTS = [
   '%W habla, %L observa en silencio como el mueble con datos móviles que es. Hasta el sofá del grupo aporta más, perdedor.',
   '%W le saca tantos mensajes a %L que da vergüenza ajena. %L entra, mira como el puto parásito que es y se larga sin soltar ni una mierda. Cero aporte, cero valor.',
   '%L aporta al grupo lo mismo que un pedo en una tormenta: nada, cero, una puta mierda que nadie nota. %W habla; %L es relleno inútil que solo ocupa hueco.',
@@ -69,7 +69,7 @@ async function cmdVs(sock, msg, args, groupMeta) {
   if (mentioned.length >= 2) [a, b] = mentioned.slice(0, 2);
   else if (mentioned.length === 1) { a = sender; b = mentioned[0]; }
   else {
-    return sock.sendMessage(jid, { text: 'Usa: *!vs @a @b* (o *!vs @a* para medirte con alguien).' }, { quoted: msg });
+    return; // sin dos objetivos no hay comparacion; el bot no da instrucciones
   }
 
   if (sameUser(a, b)) {
@@ -116,7 +116,7 @@ async function cmdVs(sock, msg, args, groupMeta) {
 
 // ---- !inactivos : wall of shame for the quietest members ------------------
 
-const GHOST_ROASTS = [
+let GHOST_ROASTS = [
   'Lleva tanto sin escribir que el grupo lo da por desaparecido en combate. Pero no hubo combate: nunca llegó a aparecer.',
   'Modo solo lectura desde que entró. Un suscriptor que ve el contenido gratis y jamás deja ni un mísero me gusta, parásito.',
   'Entra, lee, espía y se larga sin dejar huella. El fantasma oficial del grupo, con el agravante de que los fantasmas al menos asustan.',
@@ -233,7 +233,7 @@ async function cmdFantasmas(sock, msg, groupMeta) {
 // y los que no aparecen en el contador (cero mensajes, el contador ni los
 // conoce, así que hay que sacarlos de la lista de participantes).
 
-const AVISO_PURGA = [
+let AVISO_PURGA = [
   'Menos de 10 mensajes. El bot no guarda sitio a quien no lo usa: o escriben o los saca sin despedida.',
   'Por debajo del mínimo. Diez mensajes es el listón más bajo que existe y ni eso han pasado. Se echan solos.',
   'Actividad de cadáver. El bot limpia lo que no respira, y estos llevan meses sin dar una sola señal.',
@@ -258,7 +258,7 @@ const UMBRAL_INACTIVO = 10;
 // Remate del mensaje. La cabecera rota entre las frases de AVISO_PURGA, pero la
 // amenaza tiene que aparecer SIEMPRE y en el mismo sitio: si dependiera del
 // azar, la mitad de las veces la lista se leeria como un ranking cualquiera.
-const AMENAZAS = [
+let AMENAZAS = [
   'Tienen hasta la próxima limpieza. Después el bot los saca sin preguntar.',
   'Aviso único. En la siguiente revisión, el que siga aquí abajo se va a la calle.',
   'Que escriban antes de la próxima purga o el bot los borra del grupo y del recuerdo.',
@@ -339,5 +339,15 @@ async function cmdInactivos(sock, msg, groupMeta) {
 
   await sock.sendMessage(jid, { text, mentions: mostrados.map(u => u.jid) }, { quoted: msg });
 }
+
+
+// El bot abre con lo mas fuerte que tiene: los pools de insultos se ordenan
+// de mas duro a mas suave UNA vez, al cargar, y pickFresh sesga la eleccion
+// hacia la cabecera. Los pools neutros (cabeceras, cierres) no se tocan:
+// ahi la "dureza" no significa nada.
+VS_ROASTS = ordenarPorDureza(VS_ROASTS);
+GHOST_ROASTS = ordenarPorDureza(GHOST_ROASTS);
+AVISO_PURGA = ordenarPorDureza(AVISO_PURGA);
+AMENAZAS = ordenarPorDureza(AMENAZAS);
 
 module.exports = { cmdVs, cmdFantasmas, cmdInactivos };

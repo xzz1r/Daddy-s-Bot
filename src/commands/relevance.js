@@ -13,7 +13,7 @@
 // con un 0 absurdo, se le fuerza el tramo alto con una cifra estable y creíble.
 
 const { getTargetOrSelf, isMainOwner } = require('../utils/wa');
-const { pickFresh, fmt } = require('../utils/helpers');
+const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
 const { getUserCount } = require('../utils/messageCounter');
 
 const MID_MIN  = 300;
@@ -24,7 +24,7 @@ const HIGH_MIN = 700;
 // TRAMO BAJO — parásito / mirón / gorrón. %N = mención, %C = conteo exacto.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const PARASITO = [
+let PARASITO = [
   '%N, %C mensajes. Llevas aquí de mirón, leyendo lo que otros se curran y sin soltar una puta palabra. Eso no es ser discreto, es ser un parásito con datos móviles.',
   '%C mensajes, %N. Entras, espías, te empalmas con el drama ajeno y te largas sin aportar una mierda. El gorrón oficial del grupo, y encima sin vergüenza.',
   '%N tiene %C mensajes. Un cero a la izquierda con número de teléfono. Ocupas plaza, comes ancho de banda y devuelves exactamente nada, puto lastre.',
@@ -231,7 +231,7 @@ const PARASITO = [
 // TRAMO MEDIO — está, pero no pesa. Ni fantasma ni referente.
 // ═══════════════════════════════════════════════════════════════════════════
 
-const INTERMEDIO = [
+let INTERMEDIO = [
   '%N, %C mensajes. Estás, se te ve, pero nadie diría que este grupo es tuyo. Ni fantasma ni referente: el punto medio donde no se gana nada, tampoco se pierde.',
   '%C mensajes, %N. Ya no eres relleno pero todavía no pesas. Estás en esa franja donde la gente sabe quién eres y no espera nada concreto de ti.',
   '%N con %C mensajes. Apareces, aportas lo justo y te vuelves a diluir. No molestas, no sobras, tampoco haces falta. Territorio tibio, y el tibio no se recuerda.',
@@ -400,5 +400,13 @@ async function cmdRelevance(sock, msg, groupMeta) {
 
   await sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });
 }
+
+
+// El bot abre con lo mas fuerte que tiene: los pools de insultos se ordenan
+// de mas duro a mas suave UNA vez, al cargar, y pickFresh sesga la eleccion
+// hacia la cabecera. Los pools neutros (cabeceras, cierres) no se tocan:
+// ahi la "dureza" no significa nada.
+PARASITO = ordenarPorDureza(PARASITO);
+INTERMEDIO = ordenarPorDureza(INTERMEDIO);
 
 module.exports = { cmdRelevance };

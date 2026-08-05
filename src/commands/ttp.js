@@ -157,7 +157,7 @@ async function cmdTtp(sock, msg, args) {
   const text = (args || []).join(' ').trim();
 
   if (!text) {
-    return sock.sendMessage(jid, { text: 'Usa: *!ttp* <texto>' }, { quoted: msg });
+    return; // sin texto no hay sticker
   }
   if (text.length > 120) {
     return sock.sendMessage(jid, { text: 'Máximo 120 caracteres.' }, { quoted: msg });

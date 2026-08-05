@@ -224,9 +224,12 @@ const NEEDS_META = new Set([
   'antilink','allow','permitir','close','cerrar','open','abrir',
   'adminmode','soloadmins','soloadmin',
   's','sticker','stk',   // cmdSticker SI recibe groupMeta
-  // play/ttp/toimg/tovid/g/dar NO estan aqui a proposito: el dispatch no les
-  // pasa groupMeta y sus modulos no lo mencionan, asi que pedirlo solo anyadia
-  // una peticion de red (hasta 8s con la cache fria) antes de ejecutarlos.
+  // Los que cobran aura SI necesitan groupMeta: auraCobro exime al owner tier y
+  // sin la metadata no puede resolver quien lo es, asi que al owner le cobraria.
+  'play','playsong','playaudio','g','ai','grok','pfp','foto',
+  // ttp/toimg/tovid/dar siguen fuera a proposito: el dispatch no les pasa
+  // groupMeta y sus modulos no lo mencionan, asi que pedirlo solo anyadia una
+  // peticion de red (hasta 8s con la cache fria) antes de ejecutarlos.
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
   'crack','iq','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','ganador',
   'puta','guarra','fiel','infiel','linda','fea','incel',

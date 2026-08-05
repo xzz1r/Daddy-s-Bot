@@ -1347,11 +1347,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const sender = getSender(msg);
   const target = getTarget(msg);
 
-  if (!target) {
-    return sock.sendMessage(jid, {
-      text: 'Usa: *!robo @user [aura]*',
-    }, { quoted: msg });
-  }
+  if (!target) return; // sin victima no hay robo
   if (sameUser(target, sender)) {
     return sock.sendMessage(jid, { text: 'No puedes robarte a ti mismo.' }, { quoted: msg });
   }

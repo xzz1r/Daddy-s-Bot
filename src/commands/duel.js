@@ -1,5 +1,5 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, bareJid, sameUser } = require('../utils/wa');
-const { pickFresh, fmt } = require('../utils/helpers');
+const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
 const { getAura, addAura } = require('../utils/auraStore');
 
 // Resolve a JID to its canonical form (preferring phone-JID) using the group
@@ -45,7 +45,7 @@ function rollWinner(cO, cA, tO, tA) {
 }
 
 // %W winner, %L loser
-const DUEL_WIN = [
+let DUEL_WIN = [
   '%W desarmó a %L en el primer intercambio. %L pierde tanto que la derrota ya le llama por su nombre, le abraza y le hace la cena. Puto fracasado de manual.',
   '%W ni se despeinó. %L tenía la excusa lista antes que la estrategia, porque este gilipollas ensaya el fracaso en casa antes de venir a exhibirlo gratis al grupo.',
   '%W lo tenía leído de memoria. %L es de manual, sí, del manual de cómo ser un puto inútil y perder hasta respirando, edición sobada de tanto releerla él solo.',
@@ -197,11 +197,7 @@ async function cmdDuel(sock, msg, args, groupMeta) {
 
   // --- new challenge ---
   const target = getTarget(msg);
-  if (!target) {
-    return sock.sendMessage(jid, {
-      text: 'Usa: *!duel @user <aura>*\nLuego el retado escribe *!duel aceptar*.',
-    }, { quoted: msg });
-  }
+  if (!target) return; // sin retado no hay duelo
   if (sameUser(target, sender)) {
     return sock.sendMessage(jid, { text: 'No puedes retarte a ti mismo.' }, { quoted: msg });
   }
@@ -245,5 +241,12 @@ async function cmdDuel(sock, msg, args, groupMeta) {
     mentions: [sender, target],
   }, { quoted: msg });
 }
+
+
+// El bot abre con lo mas fuerte que tiene: los pools de insultos se ordenan
+// de mas duro a mas suave UNA vez, al cargar, y pickFresh sesga la eleccion
+// hacia la cabecera. Los pools neutros (cabeceras, cierres) no se tocan:
+// ahi la "dureza" no significa nada.
+DUEL_WIN = ordenarPorDureza(DUEL_WIN);
 
 module.exports = { cmdDuel };
