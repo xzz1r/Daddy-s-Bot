@@ -4,39 +4,44 @@
 // REFERENCIA: un miembro MILLONARIO del grupo ronda los 5.000 de aura.
 // Con eso fijado, el resto sale solo:
 //
-//   arranque .................    100   (2 % de un millonario)
-//   tirada floja de !aura ....  15-50   (menos del 1 %)
-//   tirada buena de !aura ....  60-150  (hasta un 3 %)
-//   bono tier 1 (200 msgs) ...   8-52
-//   bono tier 2 (500 msgs) ...  35-170
-//   bono tier 3 (1000 msgs) ..  90-380  (un 8 % de millonario en el mejor caso)
-//   robo típico ..............  10-60
-//   duelo típico .............  10-300
-//   canción (!play) ..........     15
-//   un top al azar ...........   6-10
+//   arranque .................     100   (2 % de un millonario)
+//   tirada floja de !aura ....   10-35
+//   tirada buena de !aura ....  40-120   (hasta un 2 %)
+//   bono tier 1 (200 msgs) ...    8-52
+//   bono tier 2 (500 msgs) ...   35-170
+//   bono tier 3 (1000 msgs) ..   90-380  (un 8 % de millonario en el mejor caso)
+//   robo .....................   5-200   (lo que se pida, o al azar sin cifra)
+//   duelo ....................  10-300
+//   apuesta (!aura apostar) ..  la mitad del saldo
+//   canción (!play) ..........      15
+//   un top al azar ...........    6-10
 //
 // La versión anterior repartía bonos de 1.000 a 50.000 mientras una tirada de
 // !aura movía 50-500 y un robo 5-150: los bonos por escribir eclipsaban por
 // completo a las dinámicas: robar o apostar no compensaba porque el bono del
 // día siguiente devolvía cien veces eso.
 //
-// Calibrado contra una simulación de 30 días. Lo que sale hoy, contando las
-// DOS fuentes (bonos por escribir + tiradas dentro del presupuesto diario):
+// Calibrado contra una simulación de 30 días, contando las DOS fuentes: los
+// bonos por escribir y las tiradas de !aura.
 //
 //   perfil        msgs/día   tiradas   escribir   tirando   día 30
-//   fantasma            30         3          0        -3       20
-//   normal             200        10         16        -9      314
-//   activo             500        25         97       -22    2.333
-//   muy activo       1.200        50        315       -50    8.055
+//   fantasma            30         3          0        -2       47
+//   normal             200        10         16        -6      403
+//   activo             500        25         97       -15    2.556
+//   muy activo       1.200        50        315       -33    8.569
 //
-// Millonario (5.000) le cuesta unos 18 días a quien escribe mil doscientos
+// Millonario (5.000) le cuesta unos 17 días a quien escribe mil doscientos
 // mensajes diarios, que es un ritmo extremo, y bastante más al resto. Un
 // fantasma se queda donde empezó, que es exactamente el punto.
 //
-// La regla que sostiene todo lo demás: ESCRIBIR MANDA. Las tiradas y la apuesta
-// mueven aura y dan el subidón, pero a la larga NINGUNO da de comer: la casa se
-// queda un pellizco en cada jugada. Todo lo que se acumula sale de escribir.
-// Cuando eso deja de cumplirse, la escala entera sobra.
+// Fíjate en la columna "tirando": es NEGATIVA en los cuatro perfiles. Jugar no
+// da de comer para nadie, y no hace falta calibrarlo a mano — el multiplicador
+// de pérdida sale de la propia probabilidad, así que la cuenta se equilibra
+// sola sea cual sea el rol o el bono (ver VENTAJA_CASA).
+//
+// La regla que sostiene todo lo demás: ESCRIBIR MANDA. Las tiradas, el robo y
+// la apuesta mueven aura y dan el subidón, pero todo lo que se acumula sale de
+// escribir. Cuando eso deja de cumplirse, la escala entera sobra.
 
 const MILLONARIO = 5000;
 const ARRANQUE = 100;

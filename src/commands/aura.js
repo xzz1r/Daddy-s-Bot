@@ -2,7 +2,7 @@ const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameU
 const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
-const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, VENTAJA_CASA, multiplicadorPerdida, APUESTA, rango } = require('../utils/economia');
+const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, VENTAJA_CASA, multiplicadorPerdida, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 
 // 2 min, bajado desde 3. La tirada mueve poco aura (15-150) desde que se
@@ -1383,28 +1383,46 @@ async function showRanking(sock, msg, groupMeta) {
   await sock.sendMessage(jid, { text: text.trimEnd(), mentions }, { quoted: msg });
 }
 
-const AURA_INFO =
-`*EL AURA*
+// El texto de ayuda NO repite ni una cifra a mano.
+//
+// Antes las tenía escritas y se desincronizó: anunciaba "3min de espera" cuando
+// el cooldown ya eran 2, y la lista de precios se quedó sin !s, !toimg ni
+// !tovid al añadirlos. Un texto de ayuda que miente es peor que no tenerlo,
+// porque la gente lo cree.
+//
+// Ahora todo sale de economia.js y de las constantes del propio fichero, así
+// que cambiar un número en un sitio lo cambia aquí también. Hay un test que
+// comprueba que no quede ninguna cifra a pelo.
+function textoAuraInfo() {
+  const min = (ms) => Math.round(ms / 60000);
+  const precios = Object.entries(PRECIOS)
+    .sort((a, b) => b[1] - a[1])
+    .map(([k, v]) => `*!${k === 'sticker' ? 's' : k === 'grok' ? 'g' : k}* ${v}`)
+    .join(' · ');
 
-Es la moneda del grupo. Empiezas con *100*. Un millonario del grupo ronda los *5.000*.
+  return `*EL AURA*
+
+Es la moneda del grupo. Empiezas con *${fmt(ARRANQUE)}*. Un millonario del grupo ronda los *${fmt(MILLONARIO)}*.
 
 *CÓMO SE GANA*
-· *!aura* — tiras el dado (3min de espera). Sube o baja. Si superas los 1.000 mensajes en *!count*, tiras con algo más de suerte.
-· *Escribiendo* — bonos automáticos al llegar a 200, 500 y 1000 mensajes en el día. El contador se reinicia cada 24h.
-· *!robo @user <cantidad>* — le quitas aura a alguien. Cuanto más pides, menos probable es que salga. El tope depende de lo que tenga la víctima.
+· *Escribiendo* — es la vía principal. Bonos automáticos al llegar a 200, 500 y 1000 mensajes en el día. El contador se reinicia cada 24h.
+· *!aura* — tiras el dado (${min(ROLL_COOLDOWN_MS)}min de espera). Sube o baja. Con más de ${fmt(ACTIVIDAD_MSGS)} mensajes en *!count*, tiras con algo más de suerte.
+· *!robo @user <cantidad>* — le quitas aura a alguien. Se roba lo que pides; sin cantidad, sale una al azar. Cuanto más pides, menos probable es que salga.
 · *!duel @user <cantidad>* — apuesta 1v1. El retado acepta con *!duel aceptar*.
+· *!aura apostar* — la mitad de tu saldo a una carta, cada ${APUESTA.cooldownMin / 60}h. Mínimo ${fmt(APUESTA.minimo)}.
 · *!dar @user <cantidad>* — le pasas aura a alguien.
 
+_Los juegos mueven aura, pero a la larga ninguno da de comer: la casa se queda un pellizco. Lo que se acumula sale de escribir._
+
 *EN QUÉ SE GASTA*
-· *!play* — 15     · *!top10* — 10
-· *!g* — 10        · *!fk* — 8
-· *!top5* — 6      · *!pfp* — 5
+${precios}
 
 *COMANDOS*
 · *!aura* — tirar
 · *!aura @user* — ver el aura de alguien
 · *!aura top* — ranking
 · *!aura hoy* — tu progreso del día`;
+}
 
 // !aura [@user]  — rolls aura for the target and updates their PERSISTENT total.
 // !aura top      — shows the group leaderboard.
@@ -1522,7 +1540,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
     return showRanking(sock, msg, groupMeta);
   }
   if (['info', 'help', 'ayuda', 'como', 'cómo', '?'].includes(sub)) {
-    return sock.sendMessage(jid, { text: AURA_INFO }, { quoted: msg });
+    return sock.sendMessage(jid, { text: textoAuraInfo() }, { quoted: msg });
   }
   // Progreso diario. Vive en social.js (cmdCasino) y se expone aquí como
   // "!aura hoy" porque es aura, no un casino aparte. !casino sigue valiendo.
