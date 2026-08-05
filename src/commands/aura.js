@@ -2,7 +2,7 @@ const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameU
 const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
-const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, VENTAJA_CASA, multiplicadorPerdida, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
+const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, FAVOR_JUGADOR, multiplicadorPerdida, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 
 // 2 min, bajado desde 3. La tirada mueve poco aura (15-150) desde que se
@@ -12,10 +12,10 @@ const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 // importes mas pequeños hace falta tirar mas veces para que se note, y esperar
 // dos minutos por una media de 32 de aura se hacia largo.
 //
-// Bajarlo es seguro y no hay que recalcular nada: el valor esperado de la tirada
-// es NEGATIVO en todos los roles (ver VENTAJA_CASA en economia.js), asi que
-// poder tirar mas a menudo no acerca a nadie a fabricar aura. Solo hace el
-// comando mas agil.
+// Bajarlo es seguro: el goteo por tirada es de unas 0,65 de aura (ver
+// FAVOR_JUGADOR en economia.js), asi que tirar mas a menudo da algo mas, pero
+// hace falta pasarse el dia entero dandole para igualar media jornada de
+// escribir. La regla de que escribir manda no se toca.
 const ROLL_COOLDOWN_MS = 90 * 1000;
 const lastRoll = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
 
@@ -74,10 +74,12 @@ function rollAura(targetIsOwner, targetIsAdmin, plusActividad = 0) {
       : { tier: 'gain',    amount:  pequena() };
   }
   // Lo negativo pesa MAS que lo positivo, y cuanto pesa sale de TU probabilidad:
-  // si ganas el 52 % de las veces pierdes 1,14 veces lo que ganas; si ganas el
-  // 70 %, pierdes 2,45 veces. Asi la cuenta se equilibra sola en cualquier rol y
-  // con cualquier bono, y nadie puede fabricar aura dandole al boton — que es lo
-  // que pasaba cuando ganar y perder movian lo mismo. Ver economia.js.
+  // ganando el 62 % de las veces una derrota pesa 1,63 veces una victoria; al
+  // 80 %, cuatro veces. Asi la cuenta se equilibra sola en cualquier rol y con
+  // cualquier bono — subir el acierto de alguien no puede romper la economia.
+  //
+  // El multiplicador va un 2 % por debajo de lo justo, asi que a la larga se
+  // sale ganando poco a poco en vez de quedarse plano. Ver economia.js.
   const castigo = (n) => Math.round(n * multiplicadorPerdida(pPos));
   return Math.random() < 0.34
     ? { tier: 'cursed', amount: -castigo(grande()) }

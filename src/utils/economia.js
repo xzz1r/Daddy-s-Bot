@@ -25,23 +25,22 @@
 // bonos por escribir y las tiradas de !aura.
 //
 //   perfil        msgs/día   tiradas   escribir   tirando   día 30
-//   fantasma            30         3          0        -2       47
-//   normal             200        10         16        -6      403
-//   activo             500        25         97       -15    2.556
-//   muy activo       1.200        50        315       -33    8.569
+//   fantasma            30         3          0        +1      130
+//   normal             200        10         16        +4      700
+//   activo             500        25         97       +10    3.310
+//   muy activo       1.200        50        315       +22   10.210
 //
-// Millonario (5.000) le cuesta unos 17 días a quien escribe mil doscientos
+// Millonario (5.000) le cuesta unos 15 días a quien escribe mil doscientos
 // mensajes diarios, que es un ritmo extremo, y bastante más al resto. Un
-// fantasma se queda donde empezó, que es exactamente el punto.
+// fantasma apenas se mueve, que es exactamente el punto.
 //
-// Fíjate en la columna "tirando": es NEGATIVA en los cuatro perfiles. Jugar no
-// da de comer para nadie, y no hace falta calibrarlo a mano — el multiplicador
-// de pérdida sale de la propia probabilidad, así que la cuenta se equilibra
-// sola sea cual sea el rol o el bono (ver VENTAJA_CASA).
+// La columna "tirando" es positiva pero pequeña: jugar da un extra, escribir da
+// el sueldo. Esa proporción es la que hay que vigilar.
 //
-// La regla que sostiene todo lo demás: ESCRIBIR MANDA. Las tiradas, el robo y
-// la apuesta mueven aura y dan el subidón, pero todo lo que se acumula sale de
-// escribir. Cuando eso deja de cumplirse, la escala entera sobra.
+// La regla que sostiene todo lo demás: ESCRIBIR MANDA. Jugar da un goteo
+// positivo — pequeño a propósito — pero para igualar media jornada de escribir
+// hay que pasarse el día entero dándole al botón. Cuando eso deja de cumplirse,
+// la escala entera sobra.
 
 const MILLONARIO = 5000;
 const ARRANQUE = 100;
@@ -85,51 +84,52 @@ const P_POSITIVA = {
 const ACTIVIDAD_MSGS = 1000;   // umbral de !count a partir del cual aplica
 const ACTIVIDAD_BONO = 0.06;   // +6 % de probabilidad de que salga positiva
 
-// ─── La ventaja de la casa ───────────────────────────────────────────────────
+// ─── Cuánto pesa perder ──────────────────────────────────────────────────────
 //
-// Este es el mecanismo que sustituye al tope diario de tiradas, y es bastante
-// más elegante que un contador.
+// La tirada sale positiva más veces de las que sale negativa. Si ganar y perder
+// movieran lo mismo, cada tirada tendría un valor esperado positivo GRANDE, y
+// sin ningún freno bastaría con darle al botón toda la tarde para fabricar aura
+// de la nada: con los números viejos eran 6.610 al día, veinte veces lo que un
+// día entero escribiendo.
 //
-// EL PROBLEMA. La tirada sale positiva más veces de las que sale negativa. Si
-// ganar y perder movieran lo mismo, cada tirada tendría valor esperado POSITIVO,
-// y sin tope bastaría con darle al botón toda la tarde para fabricar aura de la
-// nada: 720 tiradas al día daban 6.610, veinte veces lo que un día entero
-// escribiendo. Cualquier ventaja positiva, repetida sin límite, imprime.
+// LO QUE NO FUNCIONÓ. Primero, un tope de doce tiradas diarias: frena, sí, pero
+// convierte el comando en mirar un contador en vez de jugar. Después, un castigo
+// fijo (pérdidas un 25 % más gordas): arreglaba al miembro pero dejaba
+// imprimiendo a quien tuviera la probabilidad alta.
 //
-// LO QUE NO FUNCIONÓ. Primero fue un tope de doce tiradas al día. Frena, sí,
-// pero convierte el comando en mirar un contador en vez de jugar. Después, un
-// castigo fijo (las pérdidas un 25 % más gordas): eso arreglaba al miembro pero
-// dejaba imprimiendo a quien tuviera la probabilidad alta, y de paso hacía que
-// jugar mucho te dejara en negativo aunque escribieras — o sea, el ranking
-// premiaba NO jugar.
+// LA SOLUCIÓN. El multiplicador de pérdida sale de TU PROPIA probabilidad. Si
+// ganas el 62 % de las veces, una derrota pesa 1,63 veces lo que pesa una
+// victoria; si ganas el 80 %, pesa 4. La cuenta se equilibra sola sea cual sea
+// la probabilidad, así que subir el acierto de cualquier rol no puede romper
+// nada — el equilibrio se recalcula solo.
 //
-// LA SOLUCIÓN. El multiplicador de pérdida no es fijo: sale de tu propia
-// probabilidad. Si ganas el 52 % de las veces, pierdes 1,14 veces lo que ganas;
-// si ganas el 70 %, pierdes 2,45 veces. La cuenta se equilibra sola sea cual sea
-// la probabilidad, así que:
+// Y AQUÍ ESTÁ EL AJUSTE FINO. Ese equilibrio exacto dejaría la tirada plana: ni
+// se gana ni se pierde a la larga, solo vaivén. Se pidió que se pudiera GANAR,
+// aunque fuese poco, así que el multiplicador se recorta un 2 % por debajo de lo
+// justo. Con eso:
 //
-//   · NADIE IMPRIME, en ningún rol y con cualquier bono. Matemáticamente
-//     imposible, no calibrado a ojo.
-//   · NADIE SANGRA. La casa se queda un 3 %, que es menos de una de aura por
-//     tirada. Cincuenta tiradas cuestan unas 45; escribir 500 mensajes da 97.
-//     Jugar mucho sale casi neutro, así que el ranking no castiga al que juega
-//     — con un margen del 5 % el jugador casual se quedaba plano, y eso es
-//     justo lo contrario de lo que se busca.
+//   · se gana más veces de las que se pierde (62 % un miembro),
+//   · las victorias son pequeñas (media de 32),
+//   · y a la larga se sale GANANDO, unas 0,65 de aura por tirada.
 //
-// El margen puede ser todo lo pequeño que se quiera: la garantía de que no se
-// imprime no depende de su tamaño, solo de que sea mayor que 1.
-//   · SE SIGUE GANANDO MÁS VECES DE LAS QUE SE PIERDE en todos los roles, que
-//     es la parte que engancha.
-//   · Y el bono por actividad hace lo que prometía: subir las probabilidades de
-//     ganar. Lo que ya no hace es fabricar dinero.
+// Lo que eso significa en la práctica:
 //
-// Tocar cualquier probabilidad de arriba no puede romper la economía: el
-// equilibrio se recalcula solo.
-const VENTAJA_CASA = 1.03;
+//   30 tiradas al día (uso normal) ......  +20 de aura
+//   60 tiradas (uso intenso) ............  +39
+//  150 tiradas (todo el día dándole) ...  +98
+//
+// Compáralo con escribir: 500 mensajes dan 97 y 1.200 dan 315. O sea que hace
+// falta pasarse el día entero tirando para igualar media jornada de escribir, y
+// eso es lo que mantiene la regla de que ESCRIBIR MANDA.
+//
+// El número puede ser todo lo pequeño que se quiera. Lo único que no debe
+// hacerse es subirlo mucho: cada punto que se le quita al multiplicador es
+// aura creada de la nada, y ahí es donde estaba el agujero original.
+const FAVOR_JUGADOR = 0.98;
 
 function multiplicadorPerdida(pPositiva) {
   const p = Math.min(0.95, Math.max(0.05, pPositiva));
-  return (p / (1 - p)) * VENTAJA_CASA;
+  return (p / (1 - p)) * FAVOR_JUGADOR;
 }
 
 // ─── !aura apostar ───────────────────────────────────────────────────────────
@@ -354,7 +354,7 @@ function rango([suelo, ancho]) {
 
 module.exports = {
   MILLONARIO, ARRANQUE,
-  TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, VENTAJA_CASA, multiplicadorPerdida, APUESTA,
+  TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, FAVOR_JUGADOR, multiplicadorPerdida, APUESTA,
   BONOS, REDENCION,
   ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, DUELO, REGALO_MIN,
   PRECIOS, SALDO_MINIMO,
