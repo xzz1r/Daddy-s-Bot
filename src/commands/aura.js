@@ -8,8 +8,29 @@ const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 // 2 min, bajado desde 3. La tirada mueve poco aura (15-150) desde que se
 // recorto la escala, asi que tres minutos de espera para un goteo era mucho
 // freno para el comando que mas se usa.
-const ROLL_COOLDOWN_MS = 2 * 60 * 1000;
+// Minuto y medio. Se bajo desde 2 min al recortar los premios de la tirada: con
+// importes mas pequeños hace falta tirar mas veces para que se note, y esperar
+// dos minutos por una media de 32 de aura se hacia largo.
+//
+// Bajarlo es seguro y no hay que recalcular nada: el valor esperado de la tirada
+// es NEGATIVO en todos los roles (ver VENTAJA_CASA en economia.js), asi que
+// poder tirar mas a menudo no acerca a nadie a fabricar aura. Solo hace el
+// comando mas agil.
+const ROLL_COOLDOWN_MS = 90 * 1000;
 const lastRoll = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
+
+// Duracion en texto. Existe porque redondear a minutos miente con los tiempos
+// cortos: minuto y medio salia como "2min" y una espera de 20 segundos tambien.
+// Por debajo del minuto se dan segundos, y si hay minutos y sobran segundos se
+// dicen los dos.
+function duracion(ms) {
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  const m = Math.floor(total / 60);
+  const seg = total % 60;
+  if (!m) return `${seg}s`;
+  if (!seg) return `${m}min`;
+  return `${m}min ${seg}s`;
+}
 
 // Tirada de aura.
 //
@@ -1394,7 +1415,6 @@ async function showRanking(sock, msg, groupMeta) {
 // que cambiar un número en un sitio lo cambia aquí también. Hay un test que
 // comprueba que no quede ninguna cifra a pelo.
 function textoAuraInfo() {
-  const min = (ms) => Math.round(ms / 60000);
   const precios = Object.entries(PRECIOS)
     .sort((a, b) => b[1] - a[1])
     .map(([k, v]) => `*!${k === 'sticker' ? 's' : k === 'grok' ? 'g' : k}* ${v}`)
@@ -1406,7 +1426,7 @@ Es la moneda del grupo. Empiezas con *${fmt(ARRANQUE)}*. Un millonario del grupo
 
 *CÓMO SE GANA*
 · *Escribiendo* — es la vía principal. Bonos automáticos al llegar a 200, 500 y 1000 mensajes en el día. El contador se reinicia cada 24h.
-· *!aura* — tiras el dado (${min(ROLL_COOLDOWN_MS)}min de espera). Sube o baja. Con más de ${fmt(ACTIVIDAD_MSGS)} mensajes en *!count*, tiras con algo más de suerte.
+· *!aura* — tiras el dado (${duracion(ROLL_COOLDOWN_MS)} de espera). Sube o baja. Con más de ${fmt(ACTIVIDAD_MSGS)} mensajes en *!count*, tiras con algo más de suerte.
 · *!robo @user <cantidad>* — le quitas aura a alguien. Se roba lo que pides; sin cantidad, sale una al azar. Cuanto más pides, menos probable es que salga.
 · *!duel @user <cantidad>* — apuesta 1v1. El retado acepta con *!duel aceptar*.
 · *!aura apostar* — la mitad de tu saldo a una carta, cada ${APUESTA.cooldownMin / 60}h. Mínimo ${fmt(APUESTA.minimo)}.
@@ -1575,9 +1595,8 @@ async function cmdAura(sock, msg, args, groupMeta) {
   const last = lastRoll.get(coolKey) || 0;
   const remaining = ROLL_COOLDOWN_MS - (Date.now() - last);
   if (remaining > 0) {
-    const mins = Math.ceil(remaining / 60_000);
     return sock.sendMessage(jid, {
-      text: `Espera *${mins}min* para volver a tirar.`,
+      text: `Espera *${duracion(remaining)}* para volver a tirar.`,
     }, { quoted: msg });
   }
   // Aqui hubo un tope de doce tiradas al dia. Se quito: un contador que se agota
