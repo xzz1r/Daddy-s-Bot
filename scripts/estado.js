@@ -64,6 +64,24 @@ if (!local) {
   }
 }
 
+// ¿El PROCESO corre el codigo del disco? Son dos cosas distintas y confundirlas
+// es el fallo mas facil de cometer: `git pull` cambia el disco, pero hasta que
+// pm2 no reinicia, el bot en memoria sigue con el codigo viejo. Desde fuera todo
+// parece actualizado. El bot imprime su commit al conectar, asi que se compara
+// con el HEAD de ahora.
+if (local) {
+  const logCommit = sh(`pm2 logs bot --out --lines 400 --nostream 2>/dev/null | grep "commit cargado" | tail -1`, 20000);
+  const enMemoria = (logCommit.match(/commit cargado\s*:\s*([0-9a-f]{7,})/) || [])[1];
+  if (!enMemoria) {
+    aviso('no pude leer qué commit corre el bot (¿aún no ha conectado tras el último reinicio?)', 'pm2 logs bot --lines 20');
+  } else if (enMemoria.startsWith(local) || local.startsWith(enMemoria)) {
+    bien(`el bot en marcha corre ${enMemoria}, que es el del disco`);
+  } else {
+    mal(`el bot corre ${enMemoria} pero en disco está ${local}: se actualizó sin reiniciar`,
+      'pm2 restart bot --update-env');
+  }
+}
+
 // ─── Configuración ───────────────────────────────────────────────────────────
 titulo('Configuración (.env)');
 const envPath = path.join(RAIZ, '.env');

@@ -31,7 +31,12 @@ if [ -n "$(git status --porcelain)" ]; then
   exit 1
 fi
 
+ANTES="$(git rev-parse --short HEAD)"
+
 git pull origin "${RAMA}"
+
+DESPUES="$(git rev-parse --short HEAD)"
+CUANTOS="$(git rev-list --count "${ANTES}..${DESPUES}" 2>/dev/null || echo 0)"
 
 # --ignore-scripts y borrar sharp: sus binarios precompilados no siempre casan
 # con esta máquina y su postinstall es de lo poco que puede tumbar un despliegue.
@@ -42,6 +47,20 @@ rm -rf node_modules/sharp
 # que es justo lo que hace falta cuando lo que cambió fue una key.
 pm2 restart bot --update-env || pm2 start ecosystem.config.js
 pm2 save --force >/dev/null
+
+# Veredicto explícito. Sin esto no había forma de saber si el comando había
+# hecho algo: imprimía la salida de git y de npm, que dicen "Already up to
+# date" o no dicen nada, y el resultado quedaba a interpretación.
+echo
+echo "════════════════════════════════════════════"
+if [ "${ANTES}" = "${DESPUES}" ]; then
+  echo "  YA ESTABA AL DÍA — sigue en ${DESPUES}"
+  echo "  (aun así se ha reiniciado, por si el proceso corría código viejo)"
+else
+  echo "  ACTUALIZADO: ${ANTES} → ${DESPUES}  (${CUANTOS} commits)"
+  git --no-pager log --oneline "${ANTES}..${DESPUES}" | sed 's/^/    · /'
+fi
+echo "════════════════════════════════════════════"
 
 echo
 npm run estado
