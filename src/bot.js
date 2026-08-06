@@ -609,7 +609,7 @@ async function connectToWhatsApp() {
         if (metidos.length) {
           logger.info(
             `alta en ${groupJid}: ${author} añadió a ${metidos.join(', ')}. ` +
-            `No se sanciona (el castigo por añadir se retiró a petición del owner).`);
+            `No se sanciona: el castigo por añadir se retiró.`);
         }
       }
 
@@ -738,6 +738,37 @@ async function connectToWhatsApp() {
 
     const fromBot = isBotJid(author);
 
+    // Promueve o degrada y devuelve A QUIÉN se le hizo DE VERDAD.
+    //
+    // WhatsApp contesta por participante y puede rechazar a unos y aceptar a
+    // otros sin lanzar ninguna excepción: devuelve el array con el status de
+    // cada uno. Los tres reverts de aquí abajo lo ignoraban y daban por hecho
+    // que "no ha petado" significaba "hecho", así que el bot anunciaba
+    // reversiones que el servidor había rechazado — el atacante conservaba el
+    // admin y el grupo leía que se le había quitado.
+    //
+    // El anti-empresa y el bloque del owner echado de este mismo fichero ya
+    // miraban el status. Esto pone a los tres reverts en el mismo criterio.
+    //
+    // Sin fila para un jid se asume que fue bien, igual que hace el bloque del
+    // owner echado: WhatsApp no siempre responde por cada uno cuando todo va
+    // bien, y asumir el fallo llenaría el chat de "no he podido" falsos.
+    const cambiarRango = async (jids, accion) => {
+      if (!jids.length) return [];
+      try {
+        const res = await sock.groupParticipantsUpdate(groupJid, jids, accion);
+        const filas = Array.isArray(res) ? res : [];
+        return jids.filter((j) => {
+          const fila = filas.find(r => (r?.jid || '').split('@')[0] === j.split('@')[0]);
+          return String(fila?.status ?? '200') === '200';
+        });
+      } catch (err) {
+        logger.warn(`anti-admin: ${accion} fallo en ${groupJid}: ${err.message}`);
+        return [];
+      }
+    };
+    const tags = (a) => a.map(j => `@${j.split('@')[0]}`).join(', ');
+
     const targets = partJids.map(jid => `@${jid.split('@')[0]}`).join(', ');
     const authorTag = author ? `@${String(author).split('@')[0]}` : 'Alguien';
 
@@ -754,16 +785,25 @@ async function connectToWhatsApp() {
       const toDemote = Array.from(new Set([...(author ? [author] : []), ...partJids]))
         .filter(jid => !isBotJid(jid) && !isOwner(jid, false, meta));
       if (!toDemote.length) return;
-      try {
-        await sock.groupParticipantsUpdate(groupJid, toDemote, 'demote');
-        const text =
-          `*Anti-admin: acción revertida.*\n` +
-          `${authorTag} intento dar admin a ${targets}.\n` +
-          `Ambos han sido degradados automáticamente.`;
-        sock.sendMessage(groupJid, { text, mentions: toDemote }).catch(() => {});
-      } catch (err) {
-        logger.warn(`Anti-admin: demote fallo en ${groupJid}: ${err.message}`);
-      }
+
+      const degradados = await cambiarRango(toDemote, 'demote');
+      // Si no se pudo degradar a nadie, no se dice nada: anunciar una reversión
+      // que no ocurrió es peor que callarse, porque el grupo deja de vigilar.
+      if (!degradados.length) return;
+
+      // "Ambos" era falso de dos maneras. Con un autor y dos promovidos son
+      // TRES, y cuando el promovido era el owner se le dejaba el admin a
+      // propósito y solo caía el autor — o sea, uno. Ahora se nombra a quien de
+      // verdad se degradó y se cuenta lo que falló, si falló algo.
+      const fallidos = toDemote.filter(j => !degradados.includes(j));
+      const text =
+        `*Anti-admin: acción revertida.*\n` +
+        `${authorTag} intento dar admin a ${targets}.\n` +
+        (degradados.length === 1
+          ? `${tags(degradados)} ha sido degradado.`
+          : `Degradados: ${tags(degradados)}.`) +
+        (fallidos.length ? `\nNo he podido degradar a ${tags(fallidos)}.` : '');
+      sock.sendMessage(groupJid, { text, mentions: toDemote }).catch(() => {});
       return;
     }
 
@@ -782,17 +822,36 @@ async function connectToWhatsApp() {
         .map(o => o.id);
 
       if (ownerDegradado.length) {
-        let repuesto = false, castigado = false;
-        try { await sock.groupParticipantsUpdate(groupJid, ownerDegradado, 'promote'); repuesto = true; }
-        catch (err) { logger.warn(`Owner degradado: no pude devolverle el admin en ${groupJid}: ${err.message}`); }
-        try { await sock.groupParticipantsUpdate(groupJid, [author], 'demote'); castigado = true; }
-        catch (err) { logger.warn(`Owner degradado: no pude degradar a ${author}: ${err.message}`); }
-        const tags = ownerDegradado.map(j => `@${j.split('@')[0]}`).join(', ');
+        // Si en el mismo golpe cayeron el owner Y otros admins, se restaura a
+        // todos. Antes este bloque reponía solo al owner y hacía return, así
+        // que a los demás se los tragaba: el revert corriente de más abajo ya
+        // no llegaba a ejecutarse y nadie les devolvía el admin ni lo decía.
+        //
+        // A los otros solo se les repone si el anti-admin está encendido, que
+        // es la condición que gobierna ese revert; al owner, siempre.
+        const otros = partJids.filter(j =>
+          !isBotJid(j) && !ownerDegradado.some(o => o.split('@')[0] === j.split('@')[0]));
+        const aRestaurar = Array.from(new Set([
+          ...ownerDegradado,
+          ...(isAntiAdminEnabled(groupJid) ? otros : []),
+        ]));
+
+        const repuestos = await cambiarRango(aRestaurar, 'promote');
+        const castigado = author ? (await cambiarRango([author], 'demote')).length > 0 : false;
+        const sinReponer = aRestaurar.filter(j => !repuestos.includes(j));
+
+        // Se nombra a todos juntos y sin distinguir a nadie: el texto no puede
+        // dejar ver cuál de los restaurados es el que manda en el bot.
+        const partes = ['*Degradación revertida.*'];
+        if (repuestos.length)   partes.push(`${tags(repuestos)} ${repuestos.length === 1 ? 'lo tiene' : 'lo tienen'} de vuelta.`);
+        if (sinReponer.length)  partes.push(`No he podido devolvérselo a ${tags(sinReponer)}: hacedlo a mano.`);
+        partes.push(castigado
+          ? `${authorTag} se queda sin admin.`
+          : `No he podido quitarle el admin a ${authorTag}.`);
+
         sock.sendMessage(groupJid, {
-          text: `*Degradación revertida.*\n` +
-            (repuesto ? `${tags} lo tiene de vuelta.` : `No he podido devolvérselo a ${tags}: hacedlo a mano.`) +
-            (castigado ? `\n${authorTag} se queda sin admin.` : `\nNo he podido quitarle el admin a ${authorTag}.`),
-          mentions: [...ownerDegradado, author],
+          text: partes.join('\n'),
+          mentions: [...aRestaurar, ...(author ? [author] : [])],
         }).catch(() => {});
         return;
       }
@@ -803,27 +862,21 @@ async function connectToWhatsApp() {
     // Track each step separately so the notification reflects what actually
     // happened — a wholesale try/catch would lie if only one step succeeded.
     if (action === 'demote' && !fromBot && !esOwnerAmplio(author, authorPn, meta) && isAntiAdminEnabled(groupJid)) {
-      let restored = false;
-      let punished = false;
-      try {
-        await sock.groupParticipantsUpdate(groupJid, partJids, 'promote');
-        restored = true;
-      } catch (err) {
-        logger.warn(`Anti-admin: restore fallo en ${groupJid}: ${err.message}`);
-      }
-      if (author) {
-        try {
-          await sock.groupParticipantsUpdate(groupJid, [author], 'demote');
-          punished = true;
-        } catch (err) {
-          logger.warn(`Anti-admin: punish fallo en ${groupJid}: ${err.message}`);
-        }
-      }
-      if (restored || punished) {
+      // Al bot no se le puede reponer el admin a sí mismo: si es él el
+      // degradado, ya no tiene permiso para nada. Se filtra para no gastar una
+      // llamada que WhatsApp va a rechazar seguro.
+      const aReponer = partJids.filter(j => !isBotJid(j));
+      const repuestos = await cambiarRango(aReponer, 'promote');
+      const castigado = author ? (await cambiarRango([author], 'demote')).length > 0 : false;
+
+      if (repuestos.length || castigado) {
+        const sinReponer = aReponer.filter(j => !repuestos.includes(j));
         const parts = [`*Anti-admin: acción revertida.*`, `${authorTag} intento quitar admin a ${targets}.`];
-        if (restored && punished) parts.push(`Admin restaurado y ${authorTag} degradado.`);
-        else if (restored) parts.push(`Admin restaurado.`);
-        else parts.push(`${authorTag} ha sido degradado.`);
+        const recupera = repuestos.length === 1 ? 'recupera' : 'recuperan';
+        if (repuestos.length && castigado) parts.push(`${tags(repuestos)} ${recupera} el admin y ${authorTag} lo pierde.`);
+        else if (repuestos.length)         parts.push(`${tags(repuestos)} ${recupera} el admin.`);
+        else                               parts.push(`${authorTag} ha sido degradado.`);
+        if (sinReponer.length && repuestos.length) parts.push(`No he podido devolvérselo a ${tags(sinReponer)}.`);
         sock.sendMessage(groupJid, {
           text: parts.join('\n'),
           mentions: [...partJids, ...(author ? [author] : [])],
@@ -835,7 +888,13 @@ async function connectToWhatsApp() {
     // Regular notification (skip if the bot itself did the action — !promote/!demote
     // already responds). Owner/co-owner actions are never announced: they have the
     // authority, so their promotes/demotes are expected and stay silent.
-    if (!fromBot && !isOwner(author, false, meta) && isAdminNotifyEnabled(groupJid)) {
+    // esOwnerAmplio, NO isOwner: es el mismo criterio que usan los tres reverts
+    // de arriba, y aquí se usaba el estrecho. La diferencia importa — el amplio
+    // prueba también el phoneNumber que trae el evento, así que un owner cuyo
+    // LID aún no estuviera mapeado pasaba los reverts sin tocar (bien) pero
+    // luego SÍ salía anunciado aquí, que es justo la actividad que no debe
+    // notificarse de él.
+    if (!fromBot && !esOwnerAmplio(author, authorPn, meta) && isAdminNotifyEnabled(groupJid)) {
       const text = action === 'promote'
         ? `${authorTag} ha dado admin a ${targets}.`
         : `${authorTag} ha quitado admin a ${targets}.`;
