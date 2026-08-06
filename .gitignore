@@ -13,6 +13,9 @@ data/banlist.json
 data/linkperms.json
 data/joinRequests.json
 data/parado.json
+# Temporales de escritura atomica. Solo quedan si al bot lo matan a media
+# escritura; el propio bot los barre al arrancar (barrerHuerfanos).
+data/*.tmp
 data/ownerJids.json
 data/pfpcache/
 data/music_cache/

@@ -27,7 +27,7 @@ const { flushBanlist } = require('./utils/banlist');
 const { flushLinkPerms } = require('./utils/linkPerms');
 const { guardOnJoin } = require('./commands/fk');
 const { isBusiness } = require('./utils/businessCheck');
-const { ensureTemp } = require('./utils/helpers');
+const { ensureTemp, barrerHuerfanos } = require('./utils/helpers');
 const { gitCommit } = require('./utils/version');
 const { VF_STATIC } = require('./utils/sticker');
 const logger = require('./utils/logger');
@@ -189,6 +189,14 @@ async function getBaileysVersion() {
 async function connectToWhatsApp() {
   await fs.ensureDir(AUTH_DIR);
   await ensureTemp();
+
+  // Restos de la vez anterior. Si al bot lo mataron a media escritura atomica
+  // (tope de RAM de pm2, OOM killer, corte), el .tmp se quedo sin renombrar y
+  // nadie lo borra nunca. Va ANTES de initState para no barrer un temporal
+  // recien escrito por este mismo arranque.
+  const huerfanos = await barrerHuerfanos(path.join(__dirname, '../data'));
+  if (huerfanos) logger.warn(`Barridos ${huerfanos} temporales que dejo un cierre brusco anterior`);
+
   await initState();
 
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);

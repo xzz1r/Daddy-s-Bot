@@ -307,10 +307,42 @@ async function atomicWriteJson(file, data) {
   }
 }
 
+// Barre los .tmp que dejó un proceso anterior al morir a media escritura.
+//
+// atomicWriteJson limpia su temporal si la escritura falla, pero no puede hacer
+// nada si al proceso lo MATAN entre el outputFile y el rename: ahí el catch no
+// llega a ejecutarse nunca y el .tmp se queda. En la VPS eso pasa cada vez que
+// pm2 reinicia por el tope de RAM o el OOM killer del kernel se lleva el bot, y
+// como state.json se escribe cada pocos segundos, los huérfanos se acumulan.
+// En una Oracle del plan gratuito eso es una fuga de disco lenta pero real.
+//
+// Solo se borran los de más de cinco minutos. El rename dura microsegundos, así
+// que cualquier .tmp con esa edad es de un proceso que ya no existe — y si
+// alguna vez llegara a haber dos instancias (no debería: ecosystem.config.js
+// fuerza instances:1), este margen impide pisarle una escritura en vuelo.
+const EDAD_HUERFANO_MS = 5 * 60 * 1000;
+
+async function barrerHuerfanos(dir) {
+  let borrados = 0;
+  try {
+    for (const f of await fs.readdir(dir)) {
+      if (!f.endsWith('.tmp')) continue;
+      const full = path.join(dir, f);
+      try {
+        const st = await fs.stat(full);
+        if (Date.now() - st.mtimeMs < EDAD_HUERFANO_MS) continue;
+        await fs.remove(full);
+        borrados++;
+      } catch { /* otro proceso se nos adelantó, o permisos: da igual */ }
+    }
+  } catch { /* el directorio no existe todavía */ }
+  return borrados;
+}
+
 // Formato de numero con separador de miles en espanyol. Estaba duplicado
 // literalmente en 8 modulos.
 const fmt = n => n.toLocaleString('es-ES');
 
 module.exports = {
   ordenarPorDureza,
-  fmt, ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, shuffle, streamToBuffer, atomicWriteJson, readJsonOrEnoent, MAX_DOWNLOAD_BYTES, MAX_MEDIA_BYTES, createSemaphore, ffmpegSemaphore, ffmpegToBuffer };
+  fmt, ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, shuffle, streamToBuffer, atomicWriteJson, readJsonOrEnoent, barrerHuerfanos, MAX_DOWNLOAD_BYTES, MAX_MEDIA_BYTES, createSemaphore, ffmpegSemaphore, ffmpegToBuffer };

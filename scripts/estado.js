@@ -254,6 +254,14 @@ for (const [nombre, dir] of [['caché de música', 'data/music_cache'], ['caché
   else bien(`${nombre}: ${mb} MB`);
 }
 
+// Temporales huerfanos: cada uno es un cierre brusco anterior. El bot los barre
+// al arrancar, asi que si aparecen MUCHOS es que se esta muriendo a menudo.
+const tmps = fs.existsSync(path.join(RAIZ, 'data'))
+  ? fs.readdirSync(path.join(RAIZ, 'data')).filter(f => f.endsWith('.tmp')).length
+  : 0;
+if (tmps > 5) aviso(`${tmps} temporales a medio escribir en data/: el bot se esta cerrando de golpe a menudo`, 'pm2 logs bot --err --lines 50');
+else if (tmps) bien(`${tmps} temporal suelto en data/ (el bot lo barre al arrancar)`);
+
 // ─── Dependencias ────────────────────────────────────────────────────────────
 titulo('Dependencias');
 const auditJson = sh('npm audit --omit=dev --json 2>/dev/null', 60000);
