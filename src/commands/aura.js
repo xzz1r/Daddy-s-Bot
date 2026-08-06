@@ -1398,12 +1398,16 @@ async function showRanking(sock, msg, groupMeta) {
   if (!jid.endsWith('@g.us')) {
     return sock.sendMessage(jid, { text: 'El ranking de aura solo existe en grupos.' }, { quoted: msg });
   }
-  // Dos filtros antes de cortar el top 10:
-  //   · quien ya no esta en el grupo no ocupa puesto — el aura se guarda para
-  //     siempre y sin esto el ranking seguia coronando a gente que se fue;
-  //   · el owner principal es invisible en toda salida automatica.
+  // Un solo filtro: quien ya no esta en el grupo no ocupa puesto. El aura se
+  // guarda para siempre y sin esto el ranking seguia coronando a gente que se
+  // fue del grupo hace meses.
+  //
+  // AQUI EL OWNER SI SALE, por peticion expresa. Es la unica excepcion a que sea
+  // invisible en las salidas automaticas, y tiene sentido: este ranking es de
+  // aura, no de actividad. No dice cuanto escribe nadie ni de donde salio ese
+  // saldo, asi que aparecer en el no delata ni su rango ni sus mensajes — que es
+  // lo que se protege en !count, !relevancia, !vs, !inactivos y los tops al azar.
   const ranking = soloMiembros(await getAuraRanking(jid), groupMeta)
-    .filter(r => !isMainOwner(r.jid, false, groupMeta))
     .slice(0, 10);
   if (ranking.length === 0) {
     return sock.sendMessage(jid, { text: 'Nadie ha medido su aura todavía. Usa *!aura*.' }, { quoted: msg });
