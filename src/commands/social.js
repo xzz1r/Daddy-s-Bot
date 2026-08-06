@@ -207,13 +207,6 @@ _De más crudo a más suave._
 *${p}ship* @a @b — compatibilidad
 *${p}rizz* · *${p}piropo* · *${p}wingman* — modo ligue
 
-━━━━━ *ACTIVIDAD* ━━━━━
-*${p}count* — ranking de quién escribe más _(admins)_
-*${p}relevancia* [@user] — tu peso real en el grupo
-*${p}vs* @a @b — compara la actividad de dos
-*${p}fantasmas* · *${p}inactivos* — los que menos escriben
-*${p}top5* ${c('top5')} · *${p}top10* ${c('top10')} <tema> — ranking al azar
-
 ━━━━━ *AURA* ━━━━━
 _Se gana escribiendo. Bonos diarios a los 200, 500 y 1000 msg._
 *${p}aura* [@user] — ver aura · *${p}aura top* — ranking
@@ -234,6 +227,13 @@ ni el tope son la mejor apuesta _(5 desenlaces)_
 *${p}g* <pregunta> ${c('grok')} — le preguntas a Grok
 *${p}pfp* @user ${c('pfp')} — su foto de perfil
 *${p}fk* @user ${c('fk')} — analiza si es cuenta falsa
+
+━━━━━ *ACTIVIDAD* ━━━━━
+*${p}count* — ranking de quién escribe más _(admins)_
+*${p}relevancia* [@user] — tu peso real en el grupo
+*${p}vs* @a @b — compara la actividad de dos
+*${p}fantasmas* · *${p}inactivos* — los que menos escriben
+*${p}top5* ${c('top5')} · *${p}top10* ${c('top10')} <tema> — ranking al azar
 
 ━━━━━ *ADMIN* ━━━━━
 *${p}tagall* <mensaje> — menciona a todos
