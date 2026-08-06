@@ -195,8 +195,22 @@ if (errLog) {
     [/ENOSPC|no space left/i,             'DISCO LLENO: es lo que corrompe la sesión de WhatsApp', 'pm2 flush && rm -rf temp/*'],
   ];
   const vistas = señales.filter(([re]) => re.test(errLog));
-  if (!vistas.length) bien('el log de errores no tiene ninguna señal conocida de caída');
-  else for (const [, que, arreglo] of vistas) aviso(`en el log: ${que}`, arreglo);
+
+  // El log guarda lo de HOY y lo de hace un mes en el mismo fichero, así que una
+  // caída ya resuelta seguiría saliendo en rojo para siempre. Si el bot está
+  // conectado ahora mismo y no hay marca de parada, lo del log ya pasó: se dice
+  // como historial, no como problema. Sin esto el aviso se vuelve permanente,
+  // la gente aprende a ignorarlo, y el día que sea de verdad tampoco lo mirará.
+  const enMarcha = bot?.pm2_env?.status === 'online' && !fs.existsSync(parado);
+
+  if (!vistas.length) {
+    bien('el log de errores no tiene ninguna señal conocida de caída');
+  } else if (enMarcha) {
+    for (const [, que] of vistas) bien(`ya resuelto — en el log viejo: ${que}`);
+    console.log(`      \x1b[36m→ pm2 flush   (limpia el historial para que no vuelva a salir)\x1b[0m`);
+  } else {
+    for (const [, que, arreglo] of vistas) aviso(`en el log: ${que}`, arreglo);
+  }
 } else {
   aviso('no pude leer el log de pm2 (¿el proceso se llama distinto?)', 'pm2 ls');
 }
