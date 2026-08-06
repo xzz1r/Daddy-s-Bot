@@ -1,6 +1,7 @@
 const { pickFresh } = require('../utils/helpers');
 const config = require('../config');
 const { isBotEnabled, incrementStat, isAntiLinkEnabled, isSoloAdminsEnabled, isAntiBusinessEnabled } = require('../utils/state');
+const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { recordFacts } = require('../utils/nickStore');
 const { noteOffence, forget, yaAvisado, marcarAvisado, olvidarAviso } = require('../utils/mediaSpam');
@@ -253,6 +254,20 @@ const NEEDS_META = new Set([
   // Owner-gated commands also need meta in groups to resolve LID → phone
   // for isOwner checks (otherwise co-owners always fail in modern groups).
   'clearcache','borracache','setgrok','setkey','whoami',
+]);
+
+// La familia del aura que se congela con *!aura off*: todo lo que mueve saldo.
+//
+// !dar entra aunque no sea un juego. Si el resto esta congelado y las
+// transferencias no, el aura se sigue moviendo por el grupo con el marcador
+// supuestamente en pausa, y eso es peor que no tener interruptor.
+//
+// !aura NO entra: se para su tirada pero no su consulta, y esa distincion la
+// hace cmdAura. Meterlo aqui apagaria tambien el ranking y el propio *!aura on*.
+const CMDS_AURA = new Set([
+  'robo','robar',
+  'duel','duelo','1v1',
+  'dar','donar',
 ]);
 
 // Comandos que TRABAJAN sobre la foto o el vídeo que llevan adjunto. La guarda
@@ -1112,6 +1127,18 @@ async function handleMessage(sock, msg) {
   if (jid.endsWith('@g.us') && isSoloAdminsEnabled(jid)) {
     if (!groupMeta) groupMeta = await getGroupMeta(sock, jid);
     if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) return;
+  }
+
+  // Dinamica de aura en pausa (*!aura off*): los comandos que MUEVEN aura no se
+  // ejecutan. La comprobacion vive aqui, en un solo sitio y sobre una lista, en
+  // vez de repetida dentro de cada comando: asi un comando nuevo de la familia
+  // no puede quedarse sin interruptor por olvido.
+  //
+  // !aura no esta en la lista porque es mixto — su tirada si se para, pero
+  // consultar un saldo o el ranking no, y eso se decide dentro del comando.
+  if (jid.endsWith('@g.us') && CMDS_AURA.has(command) && auraApagada(jid)) {
+    await avisarApagada(sock, jid, msg);
+    return;
   }
 
   try {

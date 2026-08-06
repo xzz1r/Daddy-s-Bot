@@ -148,5 +148,13 @@ const toggleAntiFake        = (jid, enable) => setMembership('antiFakeEnabled', 
 const isAntiLinkEnabled     = (jid)         => !hasMembership('antiLinkDisabled',    jid);
 const toggleAntiLink        = (jid, enable) => setMembership('antiLinkDisabled',     jid, !enable);
 
-module.exports = { initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, flushState, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness, isAntiLinkEnabled, toggleAntiLink, isAntiFakeEnabled, toggleAntiFake, isSoloAdminsEnabled, toggleSoloAdmins };
+// La dinámica de aura (tirar, apostar, robar, duelo, dar) también es opt-OUT:
+// viene encendida y se apaga a mano cuando el grupo se satura de tiradas. Solo
+// se congela el JUEGO — los saldos, el ranking y los precios de los comandos
+// siguen intactos, así que apagarla y volver a encenderla no le quita el aura a
+// nadie ni regala descargas gratis.
+const isAuraEnabled         = (jid)         => !hasMembership('auraDisabled',        jid);
+const toggleAura            = (jid, enable) => setMembership('auraDisabled',         jid, !enable);
+
+module.exports = { initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, flushState, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness, isAntiLinkEnabled, toggleAntiLink, isAntiFakeEnabled, toggleAntiFake, isSoloAdminsEnabled, toggleSoloAdmins, isAuraEnabled, toggleAura };
 

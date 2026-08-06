@@ -253,6 +253,7 @@ ni el tope son la mejor apuesta _(5 desenlaces)_
 ━━━━━ *SISTEMA* ━━━━━
 *${p}on* · *${p}off* — activa o apaga el bot
 *${p}antiadmin* · *${p}antiempresa* · *${p}antilink* on/off
+*${p}aura on/off* — pausa la dinámica sin borrar saldos
 *${p}resetcount* · *${p}resetaura* — borrar rankings
 *${p}clearcache* · *${p}setgrok* <key> · *${p}diag*
 

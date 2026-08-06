@@ -4,6 +4,7 @@ const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
 const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, FAVOR_JUGADOR, multiplicadorPerdida, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
+const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
 
 // 2 min, bajado desde 3. La tirada mueve poco aura (15-150) desde que se
 // recorto la escala, asi que tres minutos de espera para un goteo era mucho
@@ -1487,6 +1488,8 @@ async function jugarApuesta(sock, msg, groupMeta) {
     return sock.sendMessage(jid, { text: 'Esto solo se juega en grupos.' }, { quoted: msg });
   }
 
+  if (auraApagada(jid)) return avisarApagada(sock, jid, msg);
+
   const sender = getSender(msg);
   const clave = `${jid}|${canonicalJid(sender)}`;
   if (apuestaEnCurso.has(clave)) return;   // ya hay uno en vuelo
@@ -1554,10 +1557,45 @@ async function jugarApuesta(sock, msg, groupMeta) {
   }
 }
 
+// !aura on / !aura off — congela o reanuda el juego en este grupo.
+//
+// Apaga tirar, apostar, robar, el duelo y dar. NO toca los saldos, el ranking
+// ni los precios de los comandos: es una pausa, no un reset. Por eso el aviso
+// dice explicitamente que el aura de cada uno sigue donde estaba — si no, el
+// grupo entero da por hecho que le han borrado el marcador.
+async function interruptor(sock, msg, sub, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+  }
+  const sender = getSender(msg);
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
+  }
+
+  const encender = sub === 'on' || sub === 'encender';
+  await toggleAura(jid, encender);
+  reiniciarAviso(jid);
+
+  return sock.sendMessage(jid, {
+    text: encender
+      ? 'Dinámica de aura *reanudada*. Se puede volver a tirar, apostar, robar y batirse en duelo.'
+      : 'Dinámica de aura *en pausa*. Nadie puede tirar, apostar, robar, batirse en duelo ni dar aura.\n\n' +
+        '_Los saldos no se tocan y se siguen ganando escribiendo. *!aura top* y *!aura @user* siguen funcionando._',
+  }, { quoted: msg });
+}
+
 async function cmdAura(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
 
   const sub = (args && args[0] ? args[0] : '').toLowerCase();
+
+  // El interruptor va lo primero: si no, con la dinamica apagada no habria
+  // forma de volver a encenderla desde el propio comando.
+  if (['on', 'off', 'encender', 'apagar'].includes(sub)) {
+    return interruptor(sock, msg, sub, groupMeta);
+  }
+
   if (['top', 'rank', 'ranking', 'leaderboard'].includes(sub)) {
     return showRanking(sock, msg, groupMeta);
   }
@@ -1592,6 +1630,11 @@ async function cmdAura(sock, msg, args, groupMeta) {
       mentions: [mentioned],
     }, { quoted: msg });
   }
+
+  // La tirada se bloquea AQUI, despues de la consulta: !aura @alguien solo lee
+  // un numero y no hace ruido, asi que apagar la dinamica no tiene por que
+  // dejar el marcador a oscuras.
+  if (auraApagada(jid)) return avisarApagada(sock, jid, msg);
 
   const coolKey = `${jid}|${canonicalJid(sender)}`;
   const last = lastRoll.get(coolKey) || 0;
