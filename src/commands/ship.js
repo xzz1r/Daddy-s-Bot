@@ -185,7 +185,7 @@ const VERDICTS = {
     'Medio. Es un match de los que se olvidan antes de que termine el día.',
     'Regular. Hay días que sí y días que no, y el bot ha pillado uno de los que no.',
     'Tibio. Compatibles en lo básico e incompatibles en todo lo que de verdad importa.',
-    'Medio. Si esto fuera un examen, sería un aprobado raspado que nadie celebra.',
+    'Medio. Funciona mientras nadie se pare a mirarlo de cerca, y eso no dura.',
     'Ni fu ni fa. El bot recomienda seguir siendo lo que sois, que ya funcionaba.',
   ],
   low: [
