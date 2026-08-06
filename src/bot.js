@@ -163,7 +163,30 @@ async function explicarFreno(grupo) {
   );
 }
 
+// UNA reconexión en vuelo como máximo. Este candado es lo que impide que el
+// bot se clone a sí mismo.
+//
+// Sin él, cada llamada creaba su propio setTimeout sin cancelar el anterior. Y
+// a esta función se la llama desde varias ramas del mismo manejador, que es
+// async: dos eventos `close` seguidos —o un `close` mientras ya había una
+// reconexión programada— dejaban DOS temporizadores vivos, y cada uno abría su
+// propio socket con las MISMAS credenciales.
+//
+// Dos sockets de la misma sesión se echan el uno al otro: WhatsApp cierra el
+// viejo cuando entra el nuevo. Ese cierre programa otra reconexión, que abre
+// otro socket, que echa al anterior... y el número de sockets crece en vez de
+// estabilizarse. Eso es el "Daddy's Bot conectado" repetido sin fin, y por eso
+// no se arreglaba solo aunque la cuenta estuviera perfectamente sana.
+let timerReconexion = null;
+
 function scheduleReconnect(delay) {
+  // Ya hay una en camino: la primera manda. Volver a programar aquí es
+  // justamente lo que multiplicaba los sockets.
+  if (timerReconexion) {
+    logger.info('reconexión ya programada; no se encola otra');
+    return;
+  }
+
   // Tear down the old socket so its event listeners/WebSocket don't leak across
   // reconnects (long-running bots otherwise accumulate them).
   if (sock) {
@@ -177,7 +200,8 @@ function scheduleReconnect(delay) {
   // rejection would otherwise be unhandled and NO new listener gets attached →
   // the bot stays silently offline until a manual restart. Catch it and retry
   // so a 24/7 deployment always keeps trying to come back.
-  setTimeout(() => {
+  timerReconexion = setTimeout(() => {
+    timerReconexion = null;
     connectToWhatsApp().catch((err) => {
       logger.error(`Fallo al reconectar: ${err?.message || err}`);
       scheduleReconnect(30000);
@@ -220,6 +244,19 @@ async function getBaileysVersion() {
 }
 
 async function connectToWhatsApp() {
+  // Ultima defensa contra dos sockets vivos a la vez. El candado de
+  // scheduleReconnect ya lo impide, pero esta funcion tambien se llama desde el
+  // arranque, y un arranque que coincida con una reconexion dejaria dos
+  // sesiones con las mismas credenciales echandose la una a la otra en bucle.
+  // Cerrar lo que hubiera es barato y elimina el caso entero.
+  if (sock) {
+    logger.warn('ya había una conexión abierta: se cierra antes de abrir la nueva');
+    try { sock.ev.removeAllListeners(); } catch {}
+    try { sock.end(); } catch {}
+    sock = null;
+    botIds = null;
+  }
+
   await fs.ensureDir(AUTH_DIR);
   await ensureTemp();
 
