@@ -74,7 +74,7 @@ async function cmdSticker(sock, msg, groupMeta) {
   // stickers they didn't make. Members can still turn images/videos into stickers.
   if (found.type === 'sticker' && !isOwner(senderJid, msg.key.fromMe, groupMeta)) {
     return sock.sendMessage(jid, {
-      text: 'Solo el owner puede convertir un sticker ya existente. Usa *!s* con una imagen o video.',
+      text: 'Para hacer un sticker manda una imagen o un video con *!s*.',
     }, { quoted: msg });
   }
 

@@ -186,12 +186,15 @@ async function cmdKick(sock, msg, args, groupMeta) {
   const senderIsOwner = isOwner(sender, msg.key.fromMe, groupMeta);
   const targets = [];
   const skipped = [];
+  // Los del tier owner no se saltan "con motivo": desaparecen del informe. Un
+  // "@fulano (es owner)" en mitad de la lista de salteados delataba el rango de
+  // quien nunca debe figurar, y bastaba un !kick al azar para descubrirlo.
   for (const t of all) {
     if (sameUser(t, sender)) { skipped.push({ jid: t, reason: 'eres tú mismo' }); continue; }
     // Never let the bot be told to remove itself.
     if (isBotJid(sock, t)) { skipped.push({ jid: t, reason: 'soy yo' }); continue; }
     // Owner tier is immune to kick — no one can remove the owner/co-owner via the bot.
-    if (isOwner(t, false, groupMeta)) { skipped.push({ jid: t, reason: 'es owner' }); continue; }
+    if (isOwner(t, false, groupMeta)) continue;
     if (isAdmin(groupMeta?.participants, t) && !senderIsOwner) {
       skipped.push({ jid: t, reason: 'es admin' });
       continue;
@@ -200,6 +203,9 @@ async function cmdKick(sock, msg, args, groupMeta) {
   }
 
   if (!targets.length) {
+    // Si lo único que había era gente del tier owner, silencio total: contestar
+    // cualquier cosa ya confirmaría que ese @ es especial.
+    if (!skipped.length) return;
     const reasons = skipped.map(s => `@${s.jid.split('@')[0]} (${s.reason})`).join(', ');
     return sock.sendMessage(jid, {
       text: `No pude expulsar a nadie:\n${reasons}`,
@@ -268,7 +274,11 @@ async function cmdDel(sock, msg, groupMeta) {
   if (isGroup && autorCitado &&
       isOwner(autorCitado, false, groupMeta) &&
       !isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No puedes borrar mensajes del owner.' }, { quoted: msg });
+    // SILENCIO. Decir "no puedes borrar mensajes del owner" señalaba con el
+    // dedo a quien acababan de citar: cualquiera podía averiguar quién es el
+    // dueño probando !del sobre los mensajes de medio grupo. Sin respuesta
+    // parece que el comando no llegó, que es indistinguible de un fallo normal.
+    return;
   }
 
   const deleteKey = {
@@ -308,11 +318,10 @@ async function cmdMute(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: 'No puedes mutearte a ti mismo.' }, { quoted: msg });
   }
   // Owner tier is immune; and (mirroring !kick) only the owner may act on admins.
-  if (isOwner(target, false, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No puedes mutear al owner del bot.' }, { quoted: msg });
-  }
+  // SILENCIO, por lo mismo que en !del: contestar aquí delata al objetivo.
+  if (isOwner(target, false, groupMeta)) return;
   if (isAdmin(groupMeta?.participants, target) && !isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo el owner puede mutear a un admin.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No tienes permiso para mutear a un admin.' }, { quoted: msg });
   }
 
   const explicit = args.find(a => /^\d+$/.test(a));
@@ -375,7 +384,7 @@ async function cmdPromote(sock, msg, args, groupMeta) {
 
   if (isAntiAdminEnabled(jid)) {
     if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-      return sock.sendMessage(jid, { text: 'Anti-admin esta activado. Solo el owner del bot puede dar admin.' }, { quoted: msg });
+      return sock.sendMessage(jid, { text: 'Anti-admin esta activado: no puedes dar admin.' }, { quoted: msg });
     }
   } else if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
     return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
@@ -406,7 +415,7 @@ async function cmdDemote(sock, msg, args, groupMeta) {
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo el owner puede degradar admins.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No tienes permiso para degradar admins.' }, { quoted: msg });
   }
 
   const target = getTarget(msg);
@@ -419,9 +428,9 @@ async function cmdDemote(sock, msg, args, groupMeta) {
   }
   // Owner tier is immune: a co-owner must not be able to strip the main owner
   // (or another co-owner), matching the protection kick and mute already enforce.
-  if (isOwner(target, false, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No puedes degradar a un owner del bot.' }, { quoted: msg });
-  }
+  // SILENCIO. Este era el peor de todos: bastaba un !demote a alguien para que
+  // el bot anunciara su rango delante del grupo entero.
+  if (isOwner(target, false, groupMeta)) return;
   if (!isAdmin(groupMeta?.participants, target)) {
     return sock.sendMessage(jid, { text: 'Ese usuario no es admin.' }, { quoted: msg });
   }
@@ -467,7 +476,7 @@ async function cmdAntiAdmin(sock, msg, args, groupMeta) {
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo el owner del bot puede activar esto.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
   }
 
   const arg = (args[0] || '').toLowerCase();
@@ -494,7 +503,7 @@ async function cmdAntiBusiness(sock, msg, args, groupMeta) {
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo el owner del bot puede usar esto.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
   }
 
   const arg = (args[0] || '').toLowerCase();
@@ -568,11 +577,11 @@ async function scanBusinesses(sock, msg, groupJid, groupMeta) {
   const idToPhone = new Map(miembros.map(m => [m.kickId, m.phoneJid || null]));
   const sinTelefono = miembros.filter(m => !m.phoneJid).length;
   if (!idToPhone.size) {
-    return sock.sendMessage(groupJid, { text: 'No hay miembros que escanear (admins, owner y el bot quedan siempre fuera).' }, { quoted: msg });
+    return sock.sendMessage(groupJid, { text: 'No hay miembros que escanear.' }, { quoted: msg });
   }
 
   await sock.sendMessage(groupJid, {
-    text: `Escaneo de *${idToPhone.size}* miembros (admins y owner exentos)...` +
+    text: `Escaneo de *${idToPhone.size}* miembros...` +
       (sinTelefono ? `\n_${sinTelefono} tienen el número oculto: a esos solo se les mira lo ya observado._` : ''),
   }, { quoted: msg });
 
@@ -628,7 +637,7 @@ async function purgeBusinesses(sock, msg, groupJid, groupMeta) {
   if (r.status === 'vacio') {
     return sock.sendMessage(groupJid, {
       text: r.spared.length
-        ? 'No queda nadie a quien expulsar: los detectados son ahora admin, owner o el bot.'
+        ? 'No queda nadie a quien expulsar: los detectados ya no se pueden tocar.'
         : 'Los Business detectados ya no están en el grupo.',
     }, { quoted: msg });
   }
@@ -683,7 +692,7 @@ async function cmdAdd(sock, msg, args, groupMeta) {
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo el owner puede usar este comando.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
   }
 
   const raw = numeroDeArgs(args);
@@ -781,7 +790,7 @@ async function cmdAntiLink(sock, msg, args, groupMeta) {
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo el owner del bot puede activar esto.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
   }
 
   const arg = (args[0] || '').toLowerCase();
@@ -898,7 +907,7 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo el owner del bot puede activar esto.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
   }
 
   const arg = (args[0] || '').toLowerCase();
@@ -913,7 +922,7 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
   await toggleSoloAdmins(jid, enable);
   await sock.sendMessage(jid, {
     text: enable
-      ? 'Modo admin *activado*. El bot deja de responder a los miembros; solo admins y owner.'
+      ? 'Modo admin *activado*. El bot deja de responder a los miembros; solo admins.'
       : 'Modo admin *desactivado*. El bot vuelve a responder a todo el grupo.',
   }, { quoted: msg });
 }

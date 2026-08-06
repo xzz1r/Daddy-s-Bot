@@ -120,7 +120,7 @@ async function cmdGrok(sock, msg, args, groupMeta) {
     const status = err.response?.status;
     const friendly =
       status === 429 ? 'Grok está saturado ahora mismo, intenta en un momento.'
-      : (status === 401 || status === 403) ? 'La key de Grok no es válida o expiró. El owner debe reconfigurarla con !setgrok.'
+      : (status === 401 || status === 403) ? 'La key de Grok no es válida o expiró. Hay que reconfigurarla.'
       : err.code === 'ECONNABORTED' ? 'Grok tardó demasiado en responder, intenta de nuevo.'
       : 'Grok no está disponible ahora mismo, intenta más tarde.';
     // La pregunta no llegó a responderse: se devuelve lo cobrado.
@@ -135,7 +135,7 @@ async function cmdSetGrokKey(sock, msg, args, groupMeta) {
   const sender = getSender(msg);
 
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo el owner puede configurar Grok.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
   }
 
   const key = (args || []).join(' ').trim();

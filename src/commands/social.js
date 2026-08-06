@@ -23,14 +23,14 @@ async function cmdOn(sock, msg, groupMeta) {
     // cualquier admin podia apagar el bot entero; ahora encender y apagar es
     // del duenyo, como el resto de interruptores del bot.
     if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-      return sock.sendMessage(jid, { text: 'Solo el owner del bot puede encenderlo.' }, { quoted: msg });
+      return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
     }
     await toggleGroup(jid, true);
     return sock.sendMessage(jid, { text: 'Bot *activado* en este grupo.' }, { quoted: msg });
   }
 
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo el dueño puede usar este comando.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
   }
 
   await setState({ botEnabled: true });
@@ -49,14 +49,14 @@ async function cmdOff(sock, msg, groupMeta) {
     // cualquier admin podia apagar el bot entero; ahora encender y apagar es
     // del duenyo, como el resto de interruptores del bot.
     if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-      return sock.sendMessage(jid, { text: 'Solo el owner del bot puede apagarlo.' }, { quoted: msg });
+      return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
     }
     await toggleGroup(jid, false);
     return sock.sendMessage(jid, { text: 'Bot *desactivado* en este grupo.' }, { quoted: msg });
   }
 
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo el dueño puede usar este comando.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
   }
 
   await setState({ botEnabled: false });
@@ -250,7 +250,7 @@ ni el tope son la mejor apuesta _(5 desenlaces)_
 *${p}fkban* · *${p}fkunban* @user · *${p}fklist* — lista negra global
 *${p}antifake* on/off — vigila las entradas
 
-━━━━━ *OWNER* ━━━━━
+━━━━━ *SISTEMA* ━━━━━
 *${p}on* · *${p}off* — activa o apaga el bot
 *${p}antiadmin* · *${p}antiempresa* · *${p}antilink* on/off
 *${p}resetcount* · *${p}resetaura* — borrar rankings

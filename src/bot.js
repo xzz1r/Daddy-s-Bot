@@ -573,7 +573,7 @@ async function connectToWhatsApp() {
         }
         const tags = toKick.map(j => `@${j.split('@')[0]}`).join(', ');
         sock.sendMessage(groupJid, {
-          text: `*Anti-admin:* ${authorTag} agrego a ${tags} sin permiso del owner. Expulsados y ${authorTag} degradado a miembro.`,
+          text: `*Anti-admin:* ${authorTag} agrego a ${tags} sin autorización. Expulsados y ${authorTag} degradado a miembro.`,
           mentions: [...toKick, author],
         }).catch(() => {});
       }
@@ -682,7 +682,10 @@ async function connectToWhatsApp() {
         }
 
         const lista = (a) => a.map(j => `@${j.split('@')[0]}`).join(', ');
-        const partes = [`*${autorTag} ha echado al owner.*`];
+        // El aviso NO dice a quién se echó ni por qué se revierte: nombrar el
+        // rango aquí era señalar en público quién manda en el bot. Se cuenta
+        // solo lo que el bot hizo, igual que el anti-admin corriente.
+        const partes = ['*Expulsión revertida.*'];
         if (vueltos.length)   partes.push(`${lista(vueltos)} está de vuelta con su admin.`);
         if (sinAdmin.length)  partes.push(`${lista(sinAdmin)} ha vuelto, pero no he podido devolverle el admin.`);
         if (invitados.length) partes.push(`${lista(invitados)} tiene la privacidad activa: le he mandado la invitación por privado.`);
@@ -751,7 +754,7 @@ async function connectToWhatsApp() {
         catch (err) { logger.warn(`Owner degradado: no pude degradar a ${author}: ${err.message}`); }
         const tags = ownerDegradado.map(j => `@${j.split('@')[0]}`).join(', ');
         sock.sendMessage(groupJid, {
-          text: `*${authorTag} le ha quitado el admin al owner.*\n` +
+          text: `*Degradación revertida.*\n` +
             (repuesto ? `${tags} lo tiene de vuelta.` : `No he podido devolvérselo a ${tags}: hacedlo a mano.`) +
             (castigado ? `\n${authorTag} se queda sin admin.` : `\nNo he podido quitarle el admin a ${authorTag}.`),
           mentions: [...ownerDegradado, author],

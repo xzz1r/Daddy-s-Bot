@@ -113,7 +113,7 @@ function purgeReport(title, r) {
       r.failed.map(d => `@${d.kickId.split('@')[0]}`).join(', ');
   }
   if (r.spared.length) {
-    text += `\n\n_${r.spared.length} quedaron exentos por ser ahora admin u owner._`;
+    text += `\n\n_${r.spared.length} quedaron exentos._`;
   }
   const mentions = [...r.done, ...r.failed, ...r.spared].map(d => d.kickId);
   return { text, mentions };

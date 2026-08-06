@@ -11,7 +11,7 @@ const { checkCasinoMilestone } = require('../utils/casino');
 const { cmdPlay, cmdCacheList, cmdClearCache } = require('../commands/music');
 const { cmdSticker } = require('../commands/sticker');
 const { cmdTopRandom } = require('../commands/topsRandom');
-const { cmdK } = require('../commands/k');
+const { cmdK, privadoDelOwner } = require('../commands/k');
 const { cmdCount, cmdResetCount } = require('../commands/count');
 const { cmdRelevance } = require('../commands/relevance');
 const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
@@ -331,15 +331,30 @@ async function expulsarBusinessDetectado(sock, jid, sender, msg) {
 }
 
 
-// !diag — herramienta de diagnostico de las guardas automaticas (owner).
+// !diag — herramienta de diagnostico de las guardas automaticas.
 //
 // Existe por un motivo concreto: el bot borra a quien MENCIONA al grupo en un
 // estado pero no siempre a quien SUBE una historia al grupo, y sin ver el sobre
 // real que manda WhatsApp no hay forma de saber cual falta. Esto lo enseña.
+//
+// El informe se manda al privado y el *!diag* se borra del grupo, igual que
+// *!k*. Contestarlo en el grupo era anunciar que quien lo escribio tiene una
+// herramienta que los demas no pueden usar.
 async function cmdDiag(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) return;
+
+  const destino = privadoDelOwner(sender, groupMeta) || (jid.endsWith('@g.us') ? null : jid);
+  if (!destino) {
+    logger.warn('!diag: no pude resolver el privado del owner');
+    return;
+  }
+  if (jid.endsWith('@g.us')) {
+    sock.sendMessage(jid, {
+      delete: { remoteJid: jid, fromMe: Boolean(msg.key.fromMe), id: msg.key.id, participant: sender },
+    }).catch(() => {});
+  }
 
   const meta = groupMeta || await getGroupMeta(sock, jid).catch(() => null);
   const si = (b) => (b ? 'SI' : 'NO');
@@ -365,7 +380,7 @@ async function cmdDiag(sock, msg, groupMeta) {
     text += '\n_Si alguno de estos coincide con una historia subida al grupo, pásamelo y lo añado a la lista vigilada._';
   }
 
-  await sock.sendMessage(jid, { text }, { quoted: msg });
+  await sock.sendMessage(destino, { text });
 }
 
 function esComandoDeMedia(text) {
@@ -1118,14 +1133,16 @@ async function handleMessage(sock, msg) {
         if (isOwner(sender, msg.key.fromMe, groupMeta)) {
           await cmdClearCache(sock, msg);
         } else {
-          await sock.sendMessage(jid, { text: 'Solo el owner puede usar este comando.' }, { quoted: msg });
+          await sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
         }
         break;
 
+      // Solo el JID. La linea de rango que habia aqui era el unico sitio del
+      // bot donde el propio owner se delataba al usarlo: en el grupo salia un
+      // "Owner: Si" con su mencion. El JID sigue haciendo falta para depurar
+      // (es lo que se pega en CO_OWNERS) y no dice nada de quien es quien.
       case 'whoami':
-        await sock.sendMessage(jid, {
-          text: `Tu JID: *${sender}*\nOwner: *${isOwner(sender, msg.key.fromMe, groupMeta) ? 'Si' : 'No'}*`,
-        }, { quoted: msg });
+        await sock.sendMessage(jid, { text: `Tu JID: *${sender}*` }, { quoted: msg });
         break;
 
       case 's':
@@ -1356,7 +1373,7 @@ async function handleMessage(sock, msg) {
 
       case 'resetaura':
         if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-          await sock.sendMessage(jid, { text: 'Solo el owner puede resetear el aura.' }, { quoted: msg });
+          await sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
         } else if (!jid.endsWith('@g.us')) {
           await sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
         } else {

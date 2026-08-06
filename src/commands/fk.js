@@ -441,9 +441,8 @@ async function cmdMarkFake(sock, msg, args, groupMeta) {
   // No se marca como fake a nadie del owner tier, principal o co-owner. Con
   // isMainOwner un admin podía marcar la foto de un co-owner y dejarla en el
   // historial como falsa para siempre, mientras !fkban sí lo protegía.
-  if (isOwner(target, false, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Al owner no se le marca como fake.' }, { quoted: msg });
-  }
+  // SILENCIO: contestar identifica a quien se acaba de mencionar.
+  if (isOwner(target, false, groupMeta)) return;
 
   const pfp = await fetchPfp(sock, target);
   if (!pfp) {
@@ -492,9 +491,15 @@ async function cmdFkBan(sock, msg, args, groupMeta) {
 
   // Nunca se banea al owner (principal o co-owner) ni al propio bot: un admin
   // cualquiera no puede meter al dueño en la lista negra global y expulsarlo.
-  if (isOwner(target, false, groupMeta) || isBotJid(sock, target)) {
+  //
+  // Con el bot SÍ se contesta: nadie descubre nada, ya se sabe cuál es. Con el
+  // tier owner, silencio: un "a esa cuenta no se le puede" era una respuesta
+  // distinta a la de cualquier otro, y probando !fkban por el grupo se sacaba
+  // quién es el dueño sin más esfuerzo.
+  if (isBotJid(sock, target)) {
     return sock.sendMessage(jid, { text: 'A esa cuenta no se le puede aplicar la lista negra.' }, { quoted: msg });
   }
+  if (isOwner(target, false, groupMeta)) return;
 
   const forms = allForms(target, groupMeta);
   await banAccount(forms, `fkban en ${jid}`, bareJid(sender));

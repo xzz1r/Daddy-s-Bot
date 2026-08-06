@@ -60,16 +60,16 @@ async function cmdScan(sock, msg, groupMeta) {
   const phoneToId = new Map(); // phoneJid -> participant.id, para mencionar por id
                                // (el mention por id sí renderiza el nombre en grupos LID)
 
-  let excluidos = 0;
   for (const p of participants) {
     // El owner principal nunca se escanea ni se marca como sospechoso: se
     // excluye antes de clasificarlo, así no aparece en Business, "sin foto",
-    // LID ni en las menciones del reporte.
+    // LID ni en las menciones del reporte. Tampoco se anuncia que falte
+    // nadie en el total: ese "(sin contar al owner)" delataba el rango.
     //
     // Basta UNA comprobación: isMainOwner ya resuelve al participante en la
     // metadata y prueba todas sus formas (id, lid, teléfono) de una pasada.
     // Llamarlo tres veces por miembro solo repetía el mismo trabajo.
-    if (isMainOwner(p.id, false, groupMeta)) { excluidos++; continue; }
+    if (isMainOwner(p.id, false, groupMeta)) continue;
     const id    = bareJid(p.id);
     const phone = p.phoneNumber ? bareJid(p.phoneNumber) : null;
     const resolved = (phone && phone.endsWith('@s.whatsapp.net'))
@@ -133,7 +133,7 @@ async function cmdScan(sock, msg, groupMeta) {
   // mientras el owner quedaba fuera de los cubos, así que las cifras no sumaban.
   const escaneados = phoneJids.length + lidOnly.length;
   text += `Total miembros: *${escaneados}*`;
-  text += excluidos ? ` _(sin contar al owner)_\n` : `\n`;
+  text += `\n`;
   text += `Número visible: *${phoneJids.length}*\n`;
   if (lidOnly.length > 0)
     text += `Número oculto (LID): *${lidOnly.length}*\n`;

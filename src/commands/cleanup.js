@@ -105,7 +105,7 @@ async function runScan(sock, msg, groupJid, groupMeta) {
   const members = scannableMembers(sock, groupMeta);
   if (!members.length) {
     return sock.sendMessage(groupJid, {
-      text: 'No hay miembros escaneables (admins, owner y el bot quedan siempre fuera).',
+      text: 'No hay miembros escaneables.',
     }, { quoted: msg });
   }
 
@@ -168,7 +168,7 @@ async function runPurge(sock, msg, groupJid, groupMeta) {
   if (r.status === 'vacio') {
     return sock.sendMessage(groupJid, {
       text: r.spared.length
-        ? 'No queda nadie a quien expulsar: los detectados son ahora admin, owner o el bot.'
+        ? 'No queda nadie a quien expulsar: los detectados ya no se pueden tocar.'
         : 'Los detectados ya no están en el grupo.',
     }, { quoted: msg });
   }
@@ -188,7 +188,7 @@ async function cmdAntiFoto(sock, msg, args, groupMeta) {
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo el owner puede usar este comando.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
   }
 
   // Sin subcomando válido el bot no responde. No da menús de uso: ejecuta

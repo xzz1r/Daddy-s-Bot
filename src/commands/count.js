@@ -344,7 +344,7 @@ async function cmdResetCount(sock, msg, groupMeta) {
   const sender = getSender(msg);
 
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo el owner puede resetear el contador.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
   }
 
   // En privado no hay grupo que resetear, así que se borra todo. Antes se
