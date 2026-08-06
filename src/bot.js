@@ -35,6 +35,29 @@ const config = require('./config');
 
 const AUTH_DIR = path.join(__dirname, '../data/auth');
 
+// Marca de "me he parado y no voy a reintentar solo".
+//
+// Cuando el bot se rinde tras varios logout seguidos NO hace exit: se queda
+// quieto a propósito (ver ciclosLogout). El problema es que eso es INVISIBLE
+// desde fuera — pm2 sigue enseñando el proceso como "online", el bot no puede
+// avisar por WhatsApp porque justo lo que ha perdido es la sesión, y el motivo
+// queda enterrado en una línea del log de hace horas. Desde el grupo se ve como
+// "el bot se apagó de la nada".
+//
+// Este fichero lo deja por escrito para que `npm run estado` lo cante en rojo.
+// Se borra solo en cuanto la conexión vuelve a abrirse.
+const PARADO_FILE = path.join(__dirname, '../data/parado.json');
+
+function anotarParada(motivo, detalle) {
+  try {
+    fs.outputJsonSync(PARADO_FILE, { motivo, detalle, desde: new Date().toISOString() }, { spaces: 2 });
+  } catch { /* si no se puede escribir, el log sigue siendo la fuente */ }
+}
+
+function limpiarParada() {
+  try { fs.removeSync(PARADO_FILE); } catch {}
+}
+
 let sock = null;
 let reconnectAttempts = 0;
 let consecutive401 = 0;
@@ -241,6 +264,10 @@ async function connectToWhatsApp() {
               `puede que WhatsApp tenga la cuenta restringida (revisa el teléfono). ` +
               `Cuando esté resuelto, arrancá el bot a mano: pm2 restart bot.`
             );
+            anotarParada('sesion-cerrada',
+              `WhatsApp cerró la sesión ${ciclosLogout} veces seguidas. El bot dejó de reintentar ` +
+              `a propósito: encadenar QR puede convertir una restricción temporal en permanente. ` +
+              `Revisa el teléfono (Dispositivos vinculados) y arranca a mano con: pm2 restart bot`);
             return;
           }
 
@@ -261,6 +288,9 @@ async function connectToWhatsApp() {
         scheduleReconnect(delay);
       } else {
         logger.error('No se pudo reconectar. Reiniciá el bot manualmente.');
+        anotarParada('sin-reconexion',
+          `Se agotaron los ${MAX_RECONNECTS} intentos de reconexión. Suele ser red de la VPS ` +
+          `o WhatsApp caído. Mira: pm2 logs bot --err --lines 50`);
         // Por gracefulShutdown, NO process.exit directo: si no, se pierden
         // todas las escrituras diferidas pendientes al rendirse la reconexión.
         gracefulShutdown(1);
@@ -270,6 +300,7 @@ async function connectToWhatsApp() {
       reconnectAttempts = 0;
       consecutive401 = 0;
       ciclosLogout = 0;
+      limpiarParada();   // vuelve a haber conexión: la marca ya no vale
       // Precompute bot's bare IDs (phone + LID) so participant-update events
       // don't have to rebuild the Set on every notification.
       const myJids = [sock.user?.id, sock.user?.lid].filter(Boolean);

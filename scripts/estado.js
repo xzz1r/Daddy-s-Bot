@@ -123,6 +123,84 @@ if (!bot) {
   } else bien('arrancado con ecosystem.config.js (tope de RAM puesto)');
 }
 
+// ─── ¿Por qué no responde? ───────────────────────────────────────────────────
+//
+// Esta sección existe porque "el bot se apagó de la nada" tiene cinco causas
+// distintas que se ven EXACTAMENTE igual desde el grupo, y cuatro de ellas
+// dejan el proceso vivo y a pm2 diciendo "online". Sin esto hay que ir a mirar
+// a mano el state.json, la carpeta de sesión y el log; con esto sale aquí.
+titulo('¿Responde el bot?');
+
+// 1. Se rindió solo tras perder la sesión (el caso más silencioso de todos).
+const parado = path.join(RAIZ, 'data/parado.json');
+if (fs.existsSync(parado)) {
+  try {
+    const p = JSON.parse(fs.readFileSync(parado, 'utf8'));
+    const hace = Math.round((Date.now() - new Date(p.desde).getTime()) / 60000);
+    const cuando = hace >= 1440 ? `hace ${Math.floor(hace / 1440)} días` : hace >= 60 ? `hace ${Math.floor(hace / 60)} h` : `hace ${hace} min`;
+    mal(`EL BOT SE PARÓ SOLO ${cuando} (${p.motivo}) — el proceso sigue vivo pero no está conectado`, p.detalle);
+  } catch {
+    mal('el bot dejó una marca de parada pero no pude leerla', 'cat data/parado.json');
+  }
+} else {
+  bien('no hay ninguna marca de parada');
+}
+
+// 2. Apagado a mano con !off. Persiste en disco: sobrevive a los reinicios, así
+//    que reiniciar no lo arregla y desde fuera parece que el bot está roto.
+const statePath = path.join(RAIZ, 'data/state.json');
+if (fs.existsSync(statePath)) {
+  try {
+    const st = JSON.parse(fs.readFileSync(statePath, 'utf8') || '{}');
+    if (st.botEnabled === false) {
+      mal('el bot está APAGADO con !off (queda guardado, por eso reiniciar no lo arregla)', 'manda *!off* → perdón, *!on* desde WhatsApp');
+    } else {
+      bien('el bot está encendido (!on)');
+    }
+    const apagados = (st.disabledGroups || []).length;
+    if (apagados) aviso(`${apagados} ${apagados === 1 ? 'grupo tiene' : 'grupos tienen'} el bot apagado con !off`, 'manda *!on* en ese grupo');
+
+    const soloAdmins = (st.soloAdminsEnabled || []).length;
+    if (soloAdmins) aviso(`${soloAdmins} ${soloAdmins === 1 ? 'grupo está' : 'grupos están'} en modo admin: el bot ignora a los miembros`, 'manda *!adminmode off* en ese grupo');
+
+    const auraOff = (st.auraDisabled || []).length;
+    if (auraOff) aviso(`${auraOff} ${auraOff === 1 ? 'grupo tiene' : 'grupos tienen'} la dinámica de aura en pausa`, 'manda *!aura on* en ese grupo');
+  } catch {
+    mal('data/state.json está corrupto: el bot arrancará con la configuración por defecto', 'revisa el fichero o bórralo para empezar limpio');
+  }
+} else {
+  aviso('todavía no hay data/state.json (normal si nunca ha arrancado)');
+}
+
+// 3. Sesión de WhatsApp. Sin credenciales el bot pide QR y se queda esperando.
+const authDir = path.join(RAIZ, 'data/auth');
+if (!fs.existsSync(authDir) || !fs.existsSync(path.join(authDir, 'creds.json'))) {
+  mal('no hay sesión de WhatsApp: el bot está esperando a que alguien escanee el QR', 'pm2 logs bot   y escanea el código que sale');
+} else {
+  const edad = Math.round((Date.now() - fs.statSync(path.join(authDir, 'creds.json')).mtimeMs) / 60000);
+  if (edad > 60 * 24 * 7) aviso(`la sesión no se toca desde hace ${Math.floor(edad / 1440)} días: puede estar muerta`, 'pm2 logs bot --lines 30');
+  else bien('sesión de WhatsApp presente');
+}
+
+// 4. Lo que diga el log. Se buscan las frases EXACTAS que imprime el bot al
+//    rendirse, no palabras sueltas: "error" a secas sale por mil motivos
+//    inofensivos y convertiría esto en una alarma que nadie se cree.
+const errLog = sh(`pm2 logs bot --err --lines 200 --nostream 2>/dev/null`, 20000);
+if (errLog) {
+  const señales = [
+    [/Sesión cerrada \d+ veces seguidas/, 'WhatsApp cerró la sesión varias veces: puede haber una restricción en la cuenta', 'revisa el teléfono → Dispositivos vinculados'],
+    [/No se pudo reconectar/,             'se agotaron los intentos de reconexión', 'pm2 restart bot'],
+    [/Sesión rechazada \(401\)/,          'WhatsApp rechazó la sesión (401) en algún momento', 'si se repite, revisa el teléfono'],
+    [/JavaScript heap out of memory/,     'se quedó sin memoria', 'pm2 start ecosystem.config.js  (pone el tope de RAM)'],
+    [/ENOSPC|no space left/i,             'DISCO LLENO: es lo que corrompe la sesión de WhatsApp', 'pm2 flush && rm -rf temp/*'],
+  ];
+  const vistas = señales.filter(([re]) => re.test(errLog));
+  if (!vistas.length) bien('el log de errores no tiene ninguna señal conocida de caída');
+  else for (const [, que, arreglo] of vistas) aviso(`en el log: ${que}`, arreglo);
+} else {
+  aviso('no pude leer el log de pm2 (¿el proceso se llama distinto?)', 'pm2 ls');
+}
+
 // ─── Logs ────────────────────────────────────────────────────────────────────
 titulo('Logs');
 const modulos = sh('pm2 jlist --raw') || '';

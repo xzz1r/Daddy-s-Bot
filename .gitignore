@@ -12,6 +12,7 @@ data/pfphashes.json
 data/banlist.json
 data/linkperms.json
 data/joinRequests.json
+data/parado.json
 data/ownerJids.json
 data/pfpcache/
 data/music_cache/
