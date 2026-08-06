@@ -28,6 +28,11 @@ const n0 = (x) => Math.round(x).toLocaleString('es-ES');
 const G = [], P = [];
 for (let v = TIRADA.grande[0];  v <= TIRADA.grande[1];  v++) G.push(v);
 for (let v = TIRADA.pequena[0]; v <= TIRADA.pequena[1]; v++) P.push(v);
+// [suelo, ANCHO], no [min, max]: el maximo es suelo + ancho. Ya me confundio
+// una vez y volvio a pasar — el "peor golpe" que publique salia un 50 % corto
+// (decia -128 donde son -192) porque tomaba el ancho por el tope. Con nombre
+// propio deja de poder confundirse.
+const TOPE_GRANDE = TIRADA.grande[0] + TIRADA.grande[1];
 const media = (a) => a.reduce((s, x) => s + x, 0) / a.length;
 const MEZCLA = (f) => 0.34 * media(G.map(f)) + 0.66 * media(P.map(f));   // 34 % grandes
 
@@ -39,7 +44,10 @@ function perfilTirada(pPos) {
   // Varianza exacta: E[x²] − EV².
   const ex2 = pPos * MEZCLA((v) => v * v) + (1 - pPos) * MEZCLA((v) => Math.pow(Math.round(v * mult), 2));
   return { pPos, mult, gana, pierde, ev, sigma: Math.sqrt(ex2 - ev * ev),
-           peor: -Math.round(TIRADA.grande[1] * mult), mejor: TIRADA.grande[1] };
+           peor: -Math.round(TOPE_GRANDE * mult), mejor: TOPE_GRANDE,
+           // Asimetria: cuanto pesa el peor golpe frente al mejor premio. Es la
+           // cifra que explica la SENSACION, y no salia en ningun sitio.
+           asimetria: Math.round(TOPE_GRANDE * mult) / TOPE_GRANDE };
 }
 
 // Guardia: si aura.js cambia la formula y esta copia no, todo lo de abajo miente.
@@ -95,7 +103,7 @@ console.log('\n════ 2. ¿se comporta como un casino? ════\n');
 const m = M['miembro'];
 console.log(`  Un miembro gana ${(m.pPos * 100).toFixed(0)} de cada 100 tiradas.`);
 console.log(`  Gana ${n2(m.gana)} de media; pierde ${n2(m.pierde)}. Perder pesa x${n2(m.pierde / m.gana)}.`);
-console.log(`  Peor golpe posible: ${m.peor}. Mejor: +${m.mejor}.`);
+console.log(`  Peor golpe posible: ${m.peor}. Mejor: +${m.mejor}. Asimetria: x${n2(m.asimetria)}.`);
 console.log(`  Desviacion tipica por tirada: ${n2(m.sigma)} — el EV es ${n2(m.ev)}.\n`);
 
 ok(m.pPos > 0.55, `se gana MAS veces de las que se pierde (${(m.pPos * 100).toFixed(0)} %) — esa es la sensacion que engancha`);
