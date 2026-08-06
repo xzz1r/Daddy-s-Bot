@@ -13,8 +13,10 @@ const qrcode = require('qrcode-terminal');
 const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, flushState } = require('./utils/state');
 const { isOwner, sameUser, isBotAdmin, canonicalJid, rememberMapping, flushOwnerJids, anotarRestriccionContacto } = require('./utils/wa');
-const { anotarAlta, motivoDelAlta, ALTA_INVITE, ALTA_SOLICITUD } = require('./utils/joinReason');
-const { notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, sondeoReciente, reactivarSondeo, frenoNuevo, flushJoinRequests } = require('./utils/joinRequests');
+// Solo anotarAlta: motivoDelAlta y sus constantes servian para adivinar si un
+// alta era a dedo o una aprobacion, y eso solo hacia falta para castigarla.
+const { anotarAlta } = require('./utils/joinReason');
+const { notarSolicitud, olvidarSolicitud, sondear, reactivarSondeo, frenoNuevo, flushJoinRequests } = require('./utils/joinRequests');
 const { flushCounts } = require('./utils/messageCounter');
 const { flushAura } = require('./utils/auraStore');
 const { flushCasino } = require('./utils/casinoStore');
@@ -581,85 +583,34 @@ async function connectToWhatsApp() {
         }));
       }
 
-      // Anti-admin: solo el bot y el owner tier pueden AGREGAR gente a dedo. Si
-      // lo hace un admin normal, se le degrada y se expulsa a quien metió.
+      // AÑADIR GENTE YA NO SE CASTIGA. Ni se degrada al admin que la añadió ni
+      // se expulsa a quien entró: se retiró por decisión del owner.
       //
-      // Aceptar una solicitud de entrada NO cuenta: es una función de admin
-      // normal, y para eso se da el admin. Entrar por enlace tampoco.
+      // Por qué estaba y por qué se va. La idea era que solo el owner metiera
+      // gente a dedo, pero distinguir un alta a dedo de la aprobación de una
+      // solicitud es IMPOSIBLE de forma fiable: WhatsApp manda exactamente el
+      // mismo evento (messageStubType 27) en los dos casos y no existe ningún
+      // aviso de "solicitud aprobada" — RequestJoinAction solo tiene created,
+      // revoked y rejected. Todo se apoyaba en adivinarlo cruzando una lista de
+      // pendientes que hay que sondear a mano y que puede estar caducada.
+      //
+      // Con una sanción irreversible —perder el admin y echar a alguien— al
+      // final de esa cadena de suposiciones, el único desenlace aceptable era
+      // no aplicarla. Ahora solo queda constancia en el log del servidor.
+      //
+      // Lo que SIGUE haciendo el anti-admin: revertir los promote y demote que
+      // no vienen del bot, y proteger al owner tier de que le quiten el admin o
+      // lo echen. Eso no depende de adivinar nada.
       if (!fromBot && author && !esOwnerAmplio(author, authorPn, meta) && isAntiAdminEnabled(groupJid)) {
-        // Entradas por enlace de invitación: el "autor" es el propio entrante.
-        // Eso NO es un alta no autorizada — no se degrada ni se expulsa a nadie.
-        // Solo actuamos cuando un admin agrega a OTROS. Nunca se toca al owner
-        // tier ni al bot entre los agregados.
-        // La exención del owner se comprueba sobre las TRES formas del
-        // participante (id, lid, phoneNumber), igual que hace el bloque
-        // anti-empresa de arriba. Mirar solo p.id dejaba al owner recién
-        // añadido sin proteger cuando su id venía en forma LID.
-        const candidatos = (participants || [])
+        const metidos = (participants || [])
           .map(p => (typeof p === 'string' ? { id: p } : p))
-          .filter(o => o?.id)
-          .filter(o =>
-            !isBotJid(o.id) &&
-            !sameUser(o.id, author) &&
-            !isOwner(o.id, false, meta) &&
-            !(o.lid && isOwner(o.lid, false, meta)) &&
-            !(o.phoneNumber && isOwner(o.phoneNumber, false, meta)))
-          // Se conservan las TRES formas: estabaPendiente las necesita porque la
-          // solicitud pudo apuntarse con una (la que trajo el sondeo) y el alta
-          // llegar con otra. Quedarse solo con o.id dejaba media proteccion.
-          .map(o => ({ id: o.id, formas: [o.id, o.lid, o.phoneNumber].filter(Boolean) }));
-        if (!candidatos.length) return;
-
-        // Rastro de lo que llega de verdad en un alta, para no volver a
-        // diagnosticar a ciegas si esto falla otra vez.
-        logger.info(`alta en ${groupJid} por ${author}: ${JSON.stringify(participants)}`);
-
-        // ¿Alta a dedo o aprobación de una solicitud?
-        //
-        // NO se puede saber por el mensaje: WhatsApp manda exactamente el mismo
-        // alta (messageStubType 27) en los dos casos, y no existe ningún evento
-        // de "aprobada" — RequestJoinAction solo tiene created, revoked y
-        // rejected (Types/GroupMetadata.d.ts:9). Ese fue el fallo del intento
-        // anterior, que miraba el stub y seguía degradando al admin que solo
-        // había aceptado a alguien.
-        //
-        // Lo que sí se sabe es quién estaba ESPERANDO aprobación, porque se
-        // apunta de antemano (evento group.join-request + sondeo periódico de
-        // la lista de pendientes). Si el que entra estaba en esa lista, fue una
-        // aprobación y no se toca a nadie.
-        const decisiones = await Promise.all(candidatos.map(async ({ id: j, formas }) => {
-          if (await estabaPendiente(groupJid, formas)) return { j, castigar: false, por: 'tenía solicitud pendiente' };
-          const motivo = await motivoDelAlta(groupJid, j, 3000);
-          if (motivo === ALTA_INVITE) return { j, castigar: false, por: 'entró por enlace' };
-          if (motivo === ALTA_SOLICITUD) return { j, castigar: false, por: 'aprobación de solicitud' };
-          // Sin un sondeo reciente NO se sabe quién estaba esperando, así que no
-          // se puede afirmar que sea un alta a dedo. Degradar y expulsar es
-          // irreversible: ante la duda, no se toca a nadie.
-          if (!sondeoReciente(groupJid)) return { j, castigar: false, por: 'sin lista de solicitudes fresca' };
-          return { j, castigar: true, por: 'no había pedido entrar' };
-        }));
-
-        for (const d of decisiones) {
-          if (!d.castigar) logger.info(`Anti-admin: no se castiga por ${d.j} (${d.por}).`);
+          .filter(o => o?.id && !isBotJid(o.id) && !sameUser(o.id, author))
+          .map(o => o.id);
+        if (metidos.length) {
+          logger.info(
+            `alta en ${groupJid}: ${author} añadió a ${metidos.join(', ')}. ` +
+            `No se sanciona (el castigo por añadir se retiró a petición del owner).`);
         }
-        const toKick = decisiones.filter(d => d.castigar).map(d => d.j);
-        if (!toKick.length) return;
-        try {
-          await sock.groupParticipantsUpdate(groupJid, [author], 'demote');
-        } catch (err) {
-          logger.warn(`Anti-admin: demote (add) fallo en ${groupJid}: ${err.message}`);
-        }
-        // toKick nunca esta vacio aqui: el early-return de arriba ya salio.
-        try {
-          await sock.groupParticipantsUpdate(groupJid, toKick, 'remove');
-        } catch (err) {
-          logger.warn(`Anti-admin: kick added member fallo en ${groupJid}: ${err.message}`);
-        }
-        const tags = toKick.map(j => `@${j.split('@')[0]}`).join(', ');
-        sock.sendMessage(groupJid, {
-          text: `*Anti-admin:* ${authorTag} agrego a ${tags} sin autorización. Expulsados y ${authorTag} degradado a miembro.`,
-          mentions: [...toKick, author],
-        }).catch(() => {});
       }
 
       return;
