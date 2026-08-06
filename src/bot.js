@@ -180,11 +180,36 @@ function scheduleReconnect(delay) {
 
 // Cache Baileys version — avoids an HTTP round-trip on every reconnect
 let _baileysVersion = null;
+// La versión del protocolo. fetchLatestBaileysVersion sale a internet, y ESA
+// llamada no lleva timeout propio: si el endpoint no contesta (red de la VPS
+// regular, DNS, el servidor caído), la promesa no se resuelve NUNCA.
+//
+// Eso dejaba el bot colgado justo aquí, antes de abrir el socket: proceso vivo,
+// 110 MB de RAM, pm2 diciendo "online", el banner impreso en el log... y ni una
+// línea más ni un solo error. Imposible de distinguir de "no enciende".
+//
+// Ahora se le pone un tope de diez segundos. Si no llega a tiempo se sigue con
+// la versión que Baileys trae embebida (devolver undefined hace que makeWASocket
+// use su valor por defecto), que es lo que se usaba igualmente hasta que alguien
+// publicó una nueva. Arrancar con una versión de hace unos días es infinitamente
+// mejor que no arrancar.
+const ESPERA_VERSION_MS = 10000;
+
 async function getBaileysVersion() {
   if (_baileysVersion) return _baileysVersion;
-  const { version } = await fetchLatestBaileysVersion();
-  _baileysVersion = version;
-  return version;
+  try {
+    const version = await Promise.race([
+      fetchLatestBaileysVersion().then(r => r.version),
+      new Promise((_, rechaza) => setTimeout(() => rechaza(new Error('tardó demasiado')), ESPERA_VERSION_MS)),
+    ]);
+    _baileysVersion = version;
+    return version;
+  } catch (err) {
+    logger.warn(
+      `No pude consultar la versión de WhatsApp (${err.message}). ` +
+      `Sigo con la que trae Baileys: el bot arranca igual.`);
+    return undefined;
+  }
 }
 
 async function connectToWhatsApp() {
@@ -200,8 +225,14 @@ async function connectToWhatsApp() {
 
   await initState();
 
+  // Traza del arranque. Sin esto, un arranque que se atasca deja EXACTAMENTE el
+  // mismo log que uno que va bien —el banner y nada más— y no hay forma de
+  // saber en qué paso se quedó. Son tres líneas y solo salen al arrancar.
+  logger.info('arranque: estado cargado, leyendo la sesión...');
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
+  logger.info('arranque: sesión leída, consultando la versión de WhatsApp...');
   const version = await getBaileysVersion();
+  logger.info(`arranque: versión ${version ? version.join('.') : 'por defecto'}, abriendo la conexión...`);
 
   sock = makeWASocket({
     version,
