@@ -66,6 +66,11 @@ let consecutive401 = 0;
 let botIds = null; // Set<string> of bot's bare IDs (phone + LID), populated on open
 const MAX_RECONNECTS = 10;          // a partir de aqui se avisa, pero NO se deja de intentar
 const ESPERA_RECONEXION_MAX = 5 * 60 * 1000;
+// Cuanto tiene que aguantar una conexion para considerarla buena. Por debajo de
+// esto es "flapping": abre y se cae, y reiniciar los contadores ahi es lo que
+// convierte la reconexion en un bucle cerrado.
+const ESTABLE_MS = 60 * 1000;
+let timerEstable = null;
 const MAX_401 = 3;
 
 // Ciclos de "sesion cerrada de verdad" (3 fallos de 401 -> se borran las
@@ -283,6 +288,11 @@ async function connectToWhatsApp() {
     }
 
     if (connection === 'close') {
+      // Se cayo: el reset pendiente ya no vale. Sin esto, una conexion que dura
+      // 59 s seguiria reiniciando los contadores un segundo despues de haberse
+      // caido, que es exactamente el bucle que se quiere cortar.
+      clearTimeout(timerEstable);
+      timerEstable = null;
       const statusCode = lastDisconnect?.error?.output?.statusCode;
 
       if (statusCode === DisconnectReason.loggedOut || statusCode === 401) {
@@ -352,10 +362,26 @@ async function connectToWhatsApp() {
       scheduleReconnect(delay);
 
     } else if (connection === 'open') {
-      reconnectAttempts = 0;
-      consecutive401 = 0;
-      ciclosLogout = 0;
-      limpiarParada();   // vuelve a haber conexión: la marca ya no vale
+      // Los contadores NO se reinician aquí, y esto es lo importante.
+      //
+      // Antes sí, y con el tope de diez intentos daba igual. Al quitar el tope
+      // (para que un corte de red no apagase el bot) se abrió un bucle: si
+      // WhatsApp ACEPTA la conexión y la cierra un segundo después, cada
+      // apertura reseteaba el contador, el backoff volvía a dos segundos y el
+      // bot se pasaba la vida abriendo y cerrando. Eso llenó el log de
+      // "conectado" repetido y martilleó a WhatsApp, que es justo lo que no hay
+      // que hacer con una cuenta en revisión.
+      //
+      // Ahora una conexión solo cuenta como buena si AGUANTA. Si se cae antes
+      // del minuto, el contador sigue subiendo y el backoff crece hasta cinco
+      // minutos, así que el bucle se frena solo.
+      clearTimeout(timerEstable);
+      timerEstable = setTimeout(() => {
+        reconnectAttempts = 0;
+        consecutive401 = 0;
+        ciclosLogout = 0;
+        limpiarParada();   // la conexión aguantó: la marca ya no vale
+      }, ESTABLE_MS);
       // Precompute bot's bare IDs (phone + LID) so participant-update events
       // don't have to rebuild the Set on every notification.
       const myJids = [sock.user?.id, sock.user?.lid].filter(Boolean);
