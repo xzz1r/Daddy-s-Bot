@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
-    "update": "git pull && npm install --ignore-scripts && rm -rf node_modules/sharp",
+    "update": "bash scripts/actualizar.sh",
     "estado": "node scripts/estado.js",
     "economia": "node scripts/economia.js"
   },
