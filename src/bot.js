@@ -62,7 +62,8 @@ let sock = null;
 let reconnectAttempts = 0;
 let consecutive401 = 0;
 let botIds = null; // Set<string> of bot's bare IDs (phone + LID), populated on open
-const MAX_RECONNECTS = 10;
+const MAX_RECONNECTS = 10;          // a partir de aqui se avisa, pero NO se deja de intentar
+const ESPERA_RECONEXION_MAX = 5 * 60 * 1000;
 const MAX_401 = 3;
 
 // Ciclos de "sesion cerrada de verdad" (3 fallos de 401 -> se borran las
@@ -288,21 +289,34 @@ async function connectToWhatsApp() {
         return;
       }
 
-      // Any other disconnect — normal reconnect with backoff
+      // Cualquier otra desconexión: reconectar con backoff, SIN rendirse nunca.
+      //
+      // Antes se dejaba de intentar a los 10 fallos y el bot se apagaba solo.
+      // Eso tumbó el bot de verdad: una caída de red de la VPS de un par de
+      // minutos se come los diez intentos (el backoff los agota en ~2 min) y
+      // el bot se iba, aunque WhatsApp volviera treinta segundos después.
+      //
+      // Rendirse aquí nunca tuvo sentido: esto NO es el caso del logout — ahí
+      // sí hay que parar, porque encadenar QR agrava una restricción, y eso se
+      // trata arriba y sigue igual. Una desconexión de red es transitoria por
+      // definición y lo único correcto es seguir esperando.
+      //
+      // El backoff se estabiliza en cinco minutos: reintentar para siempre cada
+      // 30 s sí sería el patrón de actividad automática que conviene evitar.
       consecutive401 = 0;
-      if (reconnectAttempts < MAX_RECONNECTS) {
-        reconnectAttempts++;
-        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
-        scheduleReconnect(delay);
-      } else {
-        logger.error('No se pudo reconectar. Reiniciá el bot manualmente.');
+      reconnectAttempts++;
+      const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), ESPERA_RECONEXION_MAX);
+      if (reconnectAttempts === MAX_RECONNECTS) {
+        logger.error(
+          `Van ${reconnectAttempts} intentos de reconexión fallidos. Sigo intentándolo ` +
+          `cada ${Math.round(ESPERA_RECONEXION_MAX / 60000)} min: si esto no se arregla solo, ` +
+          `mira la red de la VPS.`);
         anotarParada('sin-reconexion',
-          `Se agotaron los ${MAX_RECONNECTS} intentos de reconexión. Suele ser red de la VPS ` +
-          `o WhatsApp caído. Mira: pm2 logs bot --err --lines 50`);
-        // Por gracefulShutdown, NO process.exit directo: si no, se pierden
-        // todas las escrituras diferidas pendientes al rendirse la reconexión.
-        gracefulShutdown(1);
+          `Lleva ${reconnectAttempts} intentos de reconexión fallidos y sigue intentándolo cada ` +
+          `${Math.round(ESPERA_RECONEXION_MAX / 60000)} min. Suele ser la red de la VPS o WhatsApp caído. ` +
+          `Mira: pm2 logs bot --err --lines 50`);
       }
+      scheduleReconnect(delay);
 
     } else if (connection === 'open') {
       reconnectAttempts = 0;
