@@ -25,29 +25,44 @@ const n2 = (x) => (Math.round(x * 100) / 100).toFixed(2);
 const n0 = (x) => Math.round(x).toLocaleString('es-ES');
 
 // ─── El modelo, enumerado ────────────────────────────────────────────────────
+// TIRADA es [MIN, MAX] — asi lo usa aura.js, que calcula el ancho restando.
+//
+// El comentario de economia.js decia "40-120" y "10-35", que es como se leeria
+// si fuera [suelo, ancho], y me lo crei: "corregi" estos bucles para enumerar
+// 40-120 y deje el analisis calculado sobre una escala que no existe. La
+// referencia buena es SIEMPRE lo que ejecuta aura.js, no lo que dice un
+// comentario. Ahora economia.js documenta [min, max] y esto lee el maximo de
+// donde toca.
+const TOPE_GRANDE  = TIRADA.grande[1];
+const TOPE_PEQUENA = TIRADA.pequena[1];
 const G = [], P = [];
-for (let v = TIRADA.grande[0];  v <= TIRADA.grande[1];  v++) G.push(v);
-for (let v = TIRADA.pequena[0]; v <= TIRADA.pequena[1]; v++) P.push(v);
+for (let v = TIRADA.grande[0];  v <= TOPE_GRANDE;  v++) G.push(v);
+for (let v = TIRADA.pequena[0]; v <= TOPE_PEQUENA; v++) P.push(v);
 // [suelo, ANCHO], no [min, max]: el maximo es suelo + ancho. Ya me confundio
 // una vez y volvio a pasar — el "peor golpe" que publique salia un 50 % corto
 // (decia -128 donde son -192) porque tomaba el ancho por el tope. Con nombre
 // propio deja de poder confundirse.
-const TOPE_GRANDE = TIRADA.grande[0] + TIRADA.grande[1];
 const media = (a) => a.reduce((s, x) => s + x, 0) / a.length;
 const MEZCLA = (f) => 0.34 * media(G.map(f)) + 0.66 * media(P.map(f));   // 34 % grandes
 
+// El premio y el castigo YA NO salen del mismo sitio. Se gana del tramo grande o
+// del pequeño (34/66); se pierde SIEMPRE del pequeño, multiplicado. Aplicar el
+// multiplicador a la mezcla entera —como se hacia— da un castigo medio que no
+// existe y un valor esperado profundamente negativo.
 function perfilTirada(pPos) {
   const mult = multiplicadorPerdida(pPos);
   const gana   = MEZCLA((v) => v);
-  const pierde = MEZCLA((v) => Math.round(v * mult));
+  const pierde = media(P.map((v) => Math.round(v * mult)));
   const ev = pPos * gana - (1 - pPos) * pierde;
   // Varianza exacta: E[x²] − EV².
-  const ex2 = pPos * MEZCLA((v) => v * v) + (1 - pPos) * MEZCLA((v) => Math.pow(Math.round(v * mult), 2));
+  const ex2 = pPos * MEZCLA((v) => v * v)
+            + (1 - pPos) * media(P.map((v) => Math.pow(Math.round(v * mult), 2)));
+  const peor = Math.round(TOPE_PEQUENA * mult);
   return { pPos, mult, gana, pierde, ev, sigma: Math.sqrt(ex2 - ev * ev),
-           peor: -Math.round(TOPE_GRANDE * mult), mejor: TOPE_GRANDE,
+           peor: -peor, mejor: TOPE_GRANDE,
            // Asimetria: cuanto pesa el peor golpe frente al mejor premio. Es la
            // cifra que explica la SENSACION, y no salia en ningun sitio.
-           asimetria: Math.round(TOPE_GRANDE * mult) / TOPE_GRANDE };
+           asimetria: peor / TOPE_GRANDE };
 }
 
 // Guardia: si aura.js cambia la formula y esta copia no, todo lo de abajo miente.
@@ -55,7 +70,8 @@ function perfilTirada(pPos) {
   const src = fs.readFileSync(R + '/src/commands/aura.js', 'utf8');
   ok(/const pPos = Math\.min\(0\.80, base \+ plusActividad\)/.test(src), 'el modelo enumerado sigue igual al de aura.js (tope 0,80)');
   ok(/Math\.random\(\) < 0\.34/.test(src), '  y el reparto grande/pequena sigue siendo 34 %');
-  ok(/Math\.round\(n \* multiplicadorPerdida\(pPos\)\)/.test(src), '  y el castigo sigue saliendo de la propia probabilidad');
+  ok(/Math\.round\(pequena\(\) \* multiplicadorPerdida\(pPos\)\)/.test(src),
+    '  y el castigo sale del tramo pequeño multiplicado por la propia probabilidad');
 }
 
 // Bonos por escribir, tambien exacto.
@@ -164,8 +180,10 @@ function rollAura(pPos) {
   const g = () => rango([TIRADA.grande[0], TIRADA.grande[1] - TIRADA.grande[0]]);
   const q = () => rango([TIRADA.pequena[0], TIRADA.pequena[1] - TIRADA.pequena[0]]);
   if (Math.random() < pPos) return Math.random() < 0.34 ? g() : q();
-  const c = (n) => Math.round(n * mult);
-  return Math.random() < 0.34 ? -c(g()) : -c(q());
+  // El castigo sale SIEMPRE del tramo pequeño, igual que en aura.js. Esta copia
+  // seguia castigando sobre el grande y, con el multiplicador reescalado, dejaba
+  // a todo el mundo en -8.000 tras 30 dias: una ruina que no existe.
+  return -Math.round(q() * mult);
 }
 function bonoReal(tier, aura) {
   if (aura < 0) {

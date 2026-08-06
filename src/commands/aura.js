@@ -75,16 +75,26 @@ function rollAura(targetIsOwner, targetIsAdmin, plusActividad = 0) {
       : { tier: 'gain',    amount:  pequena() };
   }
   // Lo negativo pesa MAS que lo positivo, y cuanto pesa sale de TU probabilidad:
-  // ganando el 62 % de las veces una derrota pesa 1,63 veces una victoria; al
-  // 80 %, cuatro veces. Asi la cuenta se equilibra sola en cualquier rol y con
-  // cualquier bono — subir el acierto de alguien no puede romper la economia.
+  // ganando el 62 % de las veces una derrota pesa mas que una victoria; al 80 %,
+  // mucho mas. Asi la cuenta se equilibra sola en cualquier rol y con cualquier
+  // bono — subir el acierto de alguien no puede romper la economia.
   //
   // El multiplicador va un 2 % por debajo de lo justo, asi que a la larga se
   // sale ganando poco a poco en vez de quedarse plano. Ver economia.js.
-  const castigo = (n) => Math.round(n * multiplicadorPerdida(pPos));
+  //
+  // El importe base del castigo sale SIEMPRE del tramo pequeño, tambien en la
+  // derrota "cursed". Antes las malas partian del tramo grande y multiplicadas
+  // daban golpes de hasta 470, cuando lo maximo que se puede ganar son 120.
+  // Ahora la media de la perdida es identica (el multiplicador lo reescala) y lo
+  // que desaparece es la cola: se sigue perdiendo mas de lo que se gana, pero ya
+  // no hay tiradas que se lleven media cuenta de golpe.
+  //
+  // El tier sigue decidiendose aparte, asi que las frases duras del "cursed"
+  // siguen saliendo con la misma frecuencia de siempre.
+  const castigo = () => Math.round(pequena() * multiplicadorPerdida(pPos));
   return Math.random() < 0.34
-    ? { tier: 'cursed', amount: -castigo(grande()) }
-    : { tier: 'loss',   amount: -castigo(pequena()) };
+    ? { tier: 'cursed', amount: -castigo() }
+    : { tier: 'loss',   amount: -castigo() };
 }
 
 

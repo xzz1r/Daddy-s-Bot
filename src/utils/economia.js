@@ -5,8 +5,8 @@
 // Con eso fijado, el resto sale solo:
 //
 //   arranque .................     100   (2 % de un millonario)
-//   tirada floja de !aura ....   10-35
-//   tirada buena de !aura ....  40-120   (hasta un 2 %)
+//   tirada floja de !aura ....   10-25
+//   tirada buena de !aura ....   40-80
 //   bono tier 1 (200 msgs) ...    8-52
 //   bono tier 2 (500 msgs) ...   35-170
 //   bono tier 3 (1000 msgs) ..   90-380  (un 8 % de millonario en el mejor caso)
@@ -56,10 +56,19 @@ const ARRANQUE = 100;
 //
 // Con estos números la tirada media pasa de 57 a 35 de aura. Sigue notándose en
 // el marcador, pero un buen día de tiradas ya no compite con un día de escribir.
+// [MINIMO, MAXIMO]. Ojo: aqui es [min, max], NO [suelo, ancho] como en BONOS y
+// REDENCION — aura.js calcula el ancho restando (`grande[1] - grande[0]`).
+//
+// Los comentarios de estas dos lineas decian "40-120" y "10-35", que es como se
+// leerian si fueran [suelo, ancho]. Era falso: lo que se ejecuta son 40-80 y
+// 10-25. Esa confusion me costo dos analisis mal hechos seguidos, uno de ellos
+// publicado. Cualquier cosa que lea TIRADA tiene que usar MIN/MAX de abajo.
 const TIRADA = {
-  grande: [40, 80],    // 40-120
-  pequena: [10, 25],   // 10-35
+  grande: [40, 80],
+  pequena: [10, 25],
 };
+const TIRADA_MIN = { grande: TIRADA.grande[0], pequena: TIRADA.pequena[0] };
+const TIRADA_MAX = { grande: TIRADA.grande[1], pequena: TIRADA.pequena[1] };
 
 // Probabilidad de que la tirada salga positiva, por rol. Se GANA más veces de
 // las que se pierde: esa sensación es la que engancha y no se toca. La casa
@@ -127,9 +136,35 @@ const ACTIVIDAD_BONO = 0.06;   // +6 % de probabilidad de que salga positiva
 // aura creada de la nada, y ahí es donde estaba el agujero original.
 const FAVOR_JUGADOR = 0.98;
 
+// ─── De dónde sale el importe que se pierde ──────────────────────────────────
+//
+// El castigo se calcula SIEMPRE sobre el tramo pequeño (10-25), nunca sobre el
+// grande. Antes se sorteaba igual que la ganancia, así que un 34 % de las
+// derrotas partían de 40-80 y, multiplicadas, salían golpes enormes: 128 para
+// un miembro y 314 para quien tiene la probabilidad alta, cuando lo máximo que
+// se puede GANAR de una tirada son 80. Perder el cuádruple de lo que puedes
+// ganar en el mejor caso no se vive como una racha mala, se vive como un robo.
+//
+// Lo importante: esto NO regala nada. La media de la pérdida se mantiene
+// exactamente igual, porque el multiplicador se reescala por la proporción
+// entre las dos medias. Lo único que baja es la VARIANZA: se acabaron las
+// pérdidas catastróficas, y siguen existiendo pérdidas grandes y pequeñas.
+//
+//   miembro : antes 16-128 (media 51) → ahora 29-73 (media 51)
+//   owner   : antes 39-314 (media 125) → ahora 72-179 (media 125)
+//
+// El valor esperado por tirada no se mueve ni una centésima, así que la regla
+// de que escribir manda sobre tirar sigue intacta y ningún rol imprime aura.
+const mediaRango = ([min, max]) => (min + max) / 2;   // TIRADA es [min, max]
+const MEDIA_PREMIO  = 0.34 * mediaRango(TIRADA.grande) + 0.66 * mediaRango(TIRADA.pequena);
+const MEDIA_CASTIGO = mediaRango(TIRADA.pequena);
+
 function multiplicadorPerdida(pPositiva) {
   const p = Math.min(0.95, Math.max(0.05, pPositiva));
-  return (p / (1 - p)) * FAVOR_JUGADOR;
+  // El factor final es lo que compensa castigar sobre una base más pequeña:
+  // sin él, cobrar solo del tramo pequeño convertiría la tirada en una
+  // fotocopiadora de aura.
+  return (p / (1 - p)) * FAVOR_JUGADOR * (MEDIA_PREMIO / MEDIA_CASTIGO);
 }
 
 // ─── !aura apostar ───────────────────────────────────────────────────────────
