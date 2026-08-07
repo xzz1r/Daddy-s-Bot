@@ -240,9 +240,27 @@ async function getAuraRanking(groupJid) {
     .sort((a, b) => b.aura - a.aura);
 }
 
+// Deja a todo el grupo en CERO.
+//
+// Antes borraba el grupo entero, y borrar no es lo mismo que poner a cero: sin
+// registro, getAura devuelve el arranque, así que el marcador quedaba en 100
+// para todos. Se veía como que el reset "no se había aplicado".
+//
+// Se escribe un 0 por persona, no por clave: quien tenga dos formas (@lid y
+// teléfono) se consolida en una sola. Si se dejaran las dos a cero, el ranking
+// —que descuenta un arranque por cada forma extra al fusionarlas— sacaría a esa
+// persona con −100 mientras el resto está en 0.
+//
+// Quien nunca ha tocado el bot no tiene registro y seguirá empezando en el
+// arranque la primera vez. Eso no es el reset fallando: es alguien que entra
+// nuevo, y el arranque existe para que pueda usar el bot desde el primer día.
 async function resetAura(groupJid) {
   await load();
-  delete store[groupJid];
+  const g = store[groupJid];
+  if (!g) return;
+  const aCero = {};
+  for (const k in g) aCero[canonicalJid(k)] = 0;
+  store[groupJid] = aCero;
   scheduleSave();
 }
 
