@@ -41,7 +41,12 @@ CUANTOS="$(git rev-list --count "${ANTES}..${DESPUES}" 2>/dev/null || echo 0)"
 # --ignore-scripts y borrar sharp: sus binarios precompilados no siempre casan
 # con esta máquina y su postinstall es de lo poco que puede tumbar un despliegue.
 npm install --omit=dev --ignore-scripts
-rm -rf node_modules/sharp
+
+# sharp y SUS BINARIOS. Se borraba la carpeta sharp pero no @img, que es donde
+# viven los binarios de verdad: 27 MB de libvips y un fallback WebAssembly que
+# en linux-x64 no se ejecuta jamás. Nadie declara sharp como dependencia — es
+# residuo de una instalación vieja — así que no hay nada que se quede sin él.
+rm -rf node_modules/sharp node_modules/@img
 
 # Sin esto el código nuevo no llega a ejecutarse. --update-env relee el .env,
 # que es justo lo que hace falta cuando lo que cambió fue una key.

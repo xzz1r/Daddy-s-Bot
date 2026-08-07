@@ -283,6 +283,14 @@ if (df.length >= 5) {
   else bien(`disco al ${usado}%, quedan ${libre}`);
 }
 
+// Residuo conocido: los binarios de sharp. Nadie declara sharp como
+// dependencia, asi que si reaparecen es que un npm install los ha vuelto a
+// traer y son 27 MB que no usa nadie.
+if (fs.existsSync(path.join(RAIZ, 'node_modules/@img'))) {
+  aviso('los binarios de sharp han vuelto a instalarse (27 MB que no usa nadie)',
+    'rm -rf node_modules/sharp node_modules/@img');
+}
+
 for (const [nombre, dir] of [['caché de música', 'data/music_cache'], ['caché de fotos', 'data/pfpcache'], ['temporales', 'temp']]) {
   const d = path.join(RAIZ, dir);
   if (!fs.existsSync(d)) continue;
