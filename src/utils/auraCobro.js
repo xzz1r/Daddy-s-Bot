@@ -35,10 +35,23 @@ async function devolver(groupJid, senderJid, pagado) {
   await addAura(groupJid, senderJid, pagado);
 }
 
-// Texto del rechazo. Seco: dice el precio, el saldo y nada más. No explica cómo
-// conseguir aura ni sugiere comandos — el bot no da tutoriales.
+// Texto del rechazo: el precio, el saldo y CÓMO remontar.
+//
+// Antes terminaba en "tienes 3" y ya. Es el único momento en el que alguien
+// mira el aura de verdad — acaba de chocarse con ella — y era justo cuando el
+// bot se callaba, así que el que no sabía de qué iba se quedaba igual.
+//
+// Se dicen las dos vías reales y en ese orden, porque ese es el peso que tienen
+// de verdad: escribir da mucho más que tirar (unas catorce veces más al día para
+// alguien activo). Poner *!aura* primero enseñaría a jugar a quien lo que
+// necesita es participar.
+//
+// Dos líneas y sin cifras: los importes cambian y una nota que miente es peor
+// que no tenerla.
 function textoSinSaldo(concepto, { precio, saldo }) {
-  return `Cuesta *${fmt(precio)}* de aura. Tienes *${fmt(saldo)}*.`;
+  return `Cuesta *${fmt(precio)}* de aura. Tienes *${fmt(saldo)}*.\n` +
+    `_Se gana escribiendo en el grupo (hay bonos al llegar a 200, 500 y 1000 mensajes del día) ` +
+    `y tirando con *!aura*._`;
 }
 
 module.exports = { cobrar, devolver, textoSinSaldo };

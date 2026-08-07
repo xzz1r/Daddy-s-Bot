@@ -81,6 +81,47 @@ function bareJid(j) {
 const lidToPhone = new Map();
 const MAX_LID_CACHE = 2000;
 
+// Y se guardan en disco, no solo en memoria.
+//
+// Sin esto, CADA reinicio del bot abria una ventana en la que su @lid no
+// significaba nada: !inactivos lo listaba, y !relevancia y !vs contestaban
+// sobre el, porque los filtros que lo ocultan preguntan "¿este @lid es el
+// owner?" y sin el mapeo la respuesta era que no. El bot se reinicia a menudo
+// —actualizaciones, tope de RAM, cortes— asi que esa ventana se reabria sola
+// una y otra vez.
+//
+// Se persiste el mapa entero, no solo el del owner: es el mismo dato que evita
+// que a cualquiera se le parta el aura y el conteo en dos identidades tras un
+// reinicio.
+const LID_MAP_FILE = path.join(__dirname, '../../data/lidMap.json');
+
+try {
+  const obj = JSON.parse(fs.readFileSync(LID_MAP_FILE, 'utf8'));
+  if (obj && typeof obj === 'object') {
+    for (const [k, v] of Object.entries(obj)) {
+      if (k.endsWith('@lid') && typeof v === 'string' && !v.endsWith('@lid')) lidToPhone.set(k, v);
+    }
+  }
+} catch { /* ENOENT o JSON invalido: se empieza vacio y se re-aprende solo */ }
+
+let lidSaveTimer = null;
+function guardarLidMap() {
+  const tmp = LID_MAP_FILE + '.tmp';
+  try {
+    fs.mkdirSync(path.dirname(LID_MAP_FILE), { recursive: true });
+    fs.writeFileSync(tmp, JSON.stringify(Object.fromEntries(lidToPhone)));
+    fs.renameSync(tmp, LID_MAP_FILE);
+  } catch { /* si falla, el mapa en memoria sigue valido */ }
+}
+function scheduleLidSave() {
+  if (lidSaveTimer) return;
+  lidSaveTimer = setTimeout(() => { lidSaveTimer = null; guardarLidMap(); }, 5000);
+}
+function flushLidMap() {
+  if (lidSaveTimer) { clearTimeout(lidSaveTimer); lidSaveTimer = null; }
+  guardarLidMap();
+}
+
 function rememberMapping(lid, phone) {
   if (!lid || !phone) return;
   const k = bareJid(lid);
@@ -95,11 +136,16 @@ function rememberMapping(lid, phone) {
   // vuelva al final del orden de inserción. Sin esto el desalojo es FIFO puro y
   // acaba tirando mapeos que se están usando cada minuto mientras conserva
   // otros vistos una vez y nunca más.
+  const yaEstaba = lidToPhone.get(k) === v;
   if (lidToPhone.has(k)) lidToPhone.delete(k);
   else if (lidToPhone.size >= MAX_LID_CACHE) {
     lidToPhone.delete(lidToPhone.keys().next().value);
   }
   lidToPhone.set(k, v);
+  // Solo se guarda cuando el par es NUEVO. Reordenar el LRU pasa en cada
+  // mensaje y programar un guardado por cada uno seria escribir el fichero
+  // entero cada cinco segundos para nada.
+  if (!yaEstaba) scheduleLidSave();
 }
 
 // Aprende las correspondencias de la metadata de un grupo.
@@ -561,6 +607,7 @@ module.exports = {
   extractText,
   extractQuotedText,
   rememberMapping,
+  flushLidMap,
   bareJid,
   canonicalJid,
   sameUser,

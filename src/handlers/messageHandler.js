@@ -407,6 +407,10 @@ function esComandoDeMedia(text) {
 // Throttle whitelist reminder to once per user per 5 min (no spam on every YT link).
 const ANTILINK_REMINDER_TTL = 5 * 60 * 1000;
 const antilinkReminders = new Map(); // 'groupJid|sender' -> timestamp
+// Sus dos hermanos (antilinkReminders y videoOnceWarn) desalojan a las 2.000
+// entradas; a este se le olvido. Va por grupo, asi que crece despacio, pero en
+// un bot que lleva meses sin reiniciarse "despacio" tambien llega.
+const MAX_AVISOS_GRUPO = 500;
 const antilinkNoAdminWarn = new Map(); // 'groupJid' -> timestamp (bot-not-admin notice)
 const videoOnceWarn = new Map();       // 'groupJid|sender|vo' -> timestamp del ultimo aviso
 
@@ -891,7 +895,9 @@ async function handleMessage(sock, msg) {
           if (!meta || !isBotAdmin(sock, meta)) {
             const lastW = antilinkNoAdminWarn.get(jid);
             if (!lastW || Date.now() - lastW > ANTILINK_REMINDER_TTL) {
-              antilinkNoAdminWarn.set(jid, Date.now());
+              if (antilinkNoAdminWarn.size >= MAX_AVISOS_GRUPO) antilinkNoAdminWarn.delete(antilinkNoAdminWarn.keys().next().value);
+              if (antilinkNoAdminWarn.size >= MAX_AVISOS_GRUPO) antilinkNoAdminWarn.delete(antilinkNoAdminWarn.keys().next().value);
+            antilinkNoAdminWarn.set(jid, Date.now());
               sock.sendMessage(jid, {
                 text: meta
                   ? 'Detecté un enlace no permitido, pero no soy admin y no puedo borrarlo ni expulsar. Dame admin para moderar.'
@@ -921,6 +927,7 @@ async function handleMessage(sock, msg) {
         if (!meta || !isBotAdmin(sock, meta)) {
           const lastW = antilinkNoAdminWarn.get(jid);
           if (!lastW || Date.now() - lastW > ANTILINK_REMINDER_TTL) {
+            if (antilinkNoAdminWarn.size >= MAX_AVISOS_GRUPO) antilinkNoAdminWarn.delete(antilinkNoAdminWarn.keys().next().value);
             antilinkNoAdminWarn.set(jid, Date.now());
             sock.sendMessage(jid, {
               text: 'Detecté un enlace, pero no soy admin y no puedo borrarlo. Dame admin para moderar.',

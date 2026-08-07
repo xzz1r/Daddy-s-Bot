@@ -12,7 +12,7 @@ const fs = require('fs-extra');
 const qrcode = require('qrcode-terminal');
 const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, flushState } = require('./utils/state');
-const { isOwner, sameUser, isBotAdmin, canonicalJid, rememberMapping, flushOwnerJids, anotarRestriccionContacto } = require('./utils/wa');
+const { isOwner, sameUser, isBotAdmin, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto } = require('./utils/wa');
 // Solo anotarAlta: motivoDelAlta y sus constantes servian para adivinar si un
 // alta era a dedo o una aprobacion, y eso solo hacia falta para castigarla.
 const { anotarAlta } = require('./utils/joinReason');
@@ -1008,6 +1008,9 @@ async function gracefulShutdown(code = 0) {
   // que guarda los JID de owner aprendidos, y perderlos hace que tras el
   // reinicio el bot no reconozca al dueño hasta que un comando traiga metadata.
   flushOwnerJids();
+  // Y el mapa LID↔teléfono, por lo mismo: perderlo obliga a reaprenderlo, y
+  // mientras tanto el owner no se reconoce por su @lid.
+  flushLidMap();
   if (sock) {
     try { sock.end(); } catch {}
   }

@@ -17,6 +17,7 @@ data/parado.json
 # escritura; el propio bot los barre al arrancar (barrerHuerfanos).
 data/*.tmp
 data/ownerJids.json
+data/lidMap.json
 data/pfpcache/
 data/music_cache/
 temp/
