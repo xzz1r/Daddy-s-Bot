@@ -64,24 +64,6 @@ if (!local) {
   }
 }
 
-// ¿El PROCESO corre el codigo del disco? Son dos cosas distintas y confundirlas
-// es el fallo mas facil de cometer: `git pull` cambia el disco, pero hasta que
-// pm2 no reinicia, el bot en memoria sigue con el codigo viejo. Desde fuera todo
-// parece actualizado. El bot imprime su commit al conectar, asi que se compara
-// con el HEAD de ahora.
-if (local) {
-  const logCommit = sh(`pm2 logs bot --out --lines 400 --nostream 2>/dev/null | grep "commit cargado" | tail -1`, 20000);
-  const enMemoria = (logCommit.match(/commit cargado\s*:\s*([0-9a-f]{7,})/) || [])[1];
-  if (!enMemoria) {
-    aviso('no pude leer qué commit corre el bot (¿aún no ha conectado tras el último reinicio?)', 'pm2 logs bot --lines 20');
-  } else if (enMemoria.startsWith(local) || local.startsWith(enMemoria)) {
-    bien(`el bot en marcha corre ${enMemoria}, que es el del disco`);
-  } else {
-    mal(`el bot corre ${enMemoria} pero en disco está ${local}: se actualizó sin reiniciar`,
-      'pm2 restart bot --update-env');
-  }
-}
-
 // ─── Configuración ───────────────────────────────────────────────────────────
 titulo('Configuración (.env)');
 const envPath = path.join(RAIZ, '.env');
@@ -139,6 +121,38 @@ if (!bot) {
     aviso('arrancado sin ecosystem.config.js: no hay tope de RAM ni de logs',
       'pm2 delete all && pm2 start ecosystem.config.js && pm2 save');
   } else bien('arrancado con ecosystem.config.js (tope de RAM puesto)');
+}
+
+// ¿El PROCESO corre el codigo del disco? Son dos cosas distintas y confundirlas
+// es el fallo mas facil de cometer: `git pull` cambia el disco, pero hasta que
+// pm2 no reinicia, el bot en memoria sigue con el codigo viejo, y desde fuera
+// todo parece actualizado.
+//
+// El bot imprime su commit AL CONECTAR, no al arrancar, y conectar tarda unos
+// segundos. Por eso hay que mirar CUANDO se escribio esa linea: justo despues de
+// un reinicio, la ultima del log es todavia la del proceso anterior, y comparar
+// a ciegas acusaba de "se actualizo sin reiniciar" a un bot recien reiniciado
+// que estaba perfectamente. Si la linea es mas vieja que el arranque actual, lo
+// unico honesto es decir que aun no ha conectado.
+if (local && bot) {
+  const arranque = bot.pm2_env?.pm_uptime || 0;
+  const linea = sh(`pm2 logs bot --out --lines 400 --nostream 2>/dev/null | grep "commit cargado" | tail -1`, 20000);
+  const enMemoria = (linea.match(/commit cargado\s*:\s*([0-9a-f]{7,})/) || [])[1];
+  const marca = (linea.match(/(\d{4}-\d{2}-\d{2}T[\d:.]+)/) || [])[1];
+  const escritaEn = marca ? Date.parse(marca) : NaN;
+  const esDeAhora = Number.isFinite(escritaEn) && escritaEn >= arranque;
+
+  if (!enMemoria) {
+    aviso('el bot aún no ha dicho qué commit carga (¿todavía conectando?)', 'espera unos segundos y repite: npm run estado');
+  } else if (!esDeAhora) {
+    aviso(`reiniciado hace nada: la última huella del log (${enMemoria}) es del arranque anterior`,
+      'espera a que conecte y repite: npm run estado');
+  } else if (enMemoria.startsWith(local) || local.startsWith(enMemoria)) {
+    bien(`el bot en marcha corre ${enMemoria}, que es el del disco`);
+  } else {
+    mal(`el bot corre ${enMemoria} pero en disco está ${local}: se actualizó sin reiniciar`,
+      'pm2 restart bot --update-env');
+  }
 }
 
 // ─── ¿Por qué no responde? ───────────────────────────────────────────────────

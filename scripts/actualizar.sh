@@ -62,5 +62,12 @@ else
 fi
 echo "════════════════════════════════════════════"
 
+# El bot imprime su commit AL CONECTAR, no al arrancar. Sin esta espera, la
+# comprobacion de "¿corre lo que hay en disco?" mira un log que todavia es del
+# proceso anterior y da un falso "se actualizo sin reiniciar" que asusta sin
+# motivo. Doce segundos bastan para una conexion normal.
 echo
+echo "→ Esperando a que el bot conecte..."
+sleep 12
+
 npm run estado
