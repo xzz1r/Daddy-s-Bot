@@ -362,7 +362,25 @@ function esMiembroActual(groupMeta, jid) {
   if (!groupMeta?.participants?.length) return true;
   if (!jid) return false;
   const set = clavesDeMiembros(groupMeta);
-  return set.has(bareJid(jid)) || set.has(canonicalJid(jid));
+  if (set.has(bareJid(jid)) || set.has(canonicalJid(jid))) return true;
+
+  // Respaldo para el owner, y solo para él.
+  //
+  // Hay una combinación en la que el índice no basta: WhatsApp entrega el grupo
+  // en modo LID —los participantes vienen SOLO con @lid, sin phoneNumber— y el
+  // aura de esa persona está guardada bajo su teléfono. Sin el mapeo LID↔teléfono
+  // aprendido, para el bot son dos identidades distintas y no hay forma de
+  // saber que son la misma... salvo para el owner, cuyo número está configurado:
+  // isMainOwner compara ese número contra todas las formas de cada participante.
+  //
+  // Sin esto el owner desaparecía del ranking de aura aunque fuese el más rico
+  // del grupo, y el motivo era invisible: el filtro que lo tiraba es el de
+  // "sigue en el grupo", no el de ocultarlo.
+  //
+  // Al resto no se le puede aplicar el mismo respaldo porque no hay ningún dato
+  // que relacione su @lid con su teléfono hasta que escriben una vez, que es
+  // cuando el mapeo se aprende solo.
+  return isMainOwner(jid, false, groupMeta);
 }
 
 // Deja en la lista solo a los que siguen en el grupo. `users` es un array de
