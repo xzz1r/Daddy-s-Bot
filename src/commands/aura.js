@@ -5,6 +5,8 @@ const { getUserCount } = require('../utils/messageCounter');
 const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, FAVOR_JUGADOR, multiplicadorPerdida, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
+const { BOTE } = require('../utils/economia');
+const { aportarAlBote } = require('../utils/roboStore');
 
 // 2 min, bajado desde 3. La tirada mueve poco aura (15-150) desde que se
 // recorto la escala, asi que tres minutos de espera para un goteo era mucho
@@ -1561,6 +1563,13 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
 
     const { current } = await addAura(jid, sender, delta);
 
+    // Perder en la mesa alimenta el bote del robo. Una cuarta parte, no más: el
+    // grueso se sigue destruyendo, que es lo que hace de esto un sumidero. Pero
+    // asi el bote crece aunque el grupo no robe, y una apuesta gorda perdida se
+    // convierte en algo que todos van a querer reventar.
+    let alBote = 0;
+    if (!gana && delta < 0) alBote = await aportarAlBote(jid, Math.abs(delta) * BOTE.fraccionDeApuesta);
+
     const nm = `@${sender.split('@')[0]}`;
     const frase = pickFresh(gana ? POOL_APUESTA_GANA : POOL_APUESTA_PIERDE, `${jid}|apuesta|${gana ? 'gana' : 'pierde'}`)
       .replace(/%A/g, nm)
@@ -1574,7 +1583,8 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
       (recortada ? `\n_Ibas a por ${fmt(bruto)}, pero es todo lo que puedes cubrir._` : '') +
       `\n\n` +
       `${frase}\n\n` +
-      `${gana ? '+' : '−'}${fmt(Math.abs(delta))} → *${fmt(current)}* de aura`;
+      `${gana ? '+' : '−'}${fmt(Math.abs(delta))} → *${fmt(current)}* de aura` +
+      (alBote ? `\n_Una parte de lo que soltaste ha ido al bote del grupo, que sube a *${fmt(alBote)}*. Alguien se lo va a llevar y no vas a ser tú._` : '');
 
     return sock.sendMessage(jid, { text, mentions: [sender] }, { quoted: msg });
   } finally {

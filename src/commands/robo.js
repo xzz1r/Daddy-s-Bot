@@ -1447,6 +1447,16 @@ const fraseCon = (pool, clave, subs) => {
 };
 const tag = (j) => `@${String(j).split('@')[0]}`;
 
+// "3h 20min" en vez de "12000000 ms". Se redondea hacia arriba: decirle a
+// alguien que le quedan 0 minutos cuando aun esta protegido es mentir.
+function restanteEnTexto(ms) {
+  const min = Math.ceil(ms / 60000);
+  if (min < 60) return `${min}min`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return m ? `${h}h ${m}min` : `${h}h`;
+}
+
 // ─── !robo bote ──────────────────────────────────────────────────────────────
 async function verElBote(sock, msg, jid) {
   const bote = await tienda.verBote(jid);
@@ -1499,8 +1509,10 @@ async function asaltarBote(sock, msg, jid, sender, groupMeta) {
     : Math.random() < BOTE.probabilidad;
 
   if (!revienta) {
-    // La entrada no se evapora: engorda el bote. Fallar alimenta lo que quieres.
-    const ahora = await tienda.aportarAlBote(jid, BOTE.entrada);
+    // La entrada engorda el bote MENOS la comisión, que se destruye. Si entrara
+    // entera, el asalto no drenaría nada: todo lo que se mete acaba saliendo en
+    // el siguiente reventón, y el robo dejaría de ser el sumidero del sistema.
+    const ahora = await tienda.aportarAlBote(jid, BOTE.entrada * (1 - BOTE.comision));
     return sock.sendMessage(jid, {
       text: `*ASALTO FALLIDO*\n\n${fraseCon(RX.BOTE_FALLA, `${jid}|bote|falla`, { '%A': a })}\n\n_El bote sube a *${fmt(ahora)}*._`,
       mentions: [sender],
@@ -1527,8 +1539,23 @@ async function laTienda(sock, msg, jid, sender, args, groupMeta) {
     const lineas = Object.entries(OBJETOS)
       .map(([k, o]) => `*${k}* — ${fmt(o.precio)} · ${o.desc}`)
       .join('\n');
+
+    // Lo que YA llevas encima. Una tienda que no te enseña tu inventario te
+    // obliga a comprar a ciegas, y comprar dos escudos seguidos porque no
+    // sabias que el primero seguia activo no es una decision, es un timo.
+    const mio = await tienda.objetosDe(jid, sender);
+    const ahora = Date.now();
+    const llevo = [];
+    if (mio.escudo > ahora) llevo.push(`escudo — le quedan *${restanteEnTexto(mio.escudo - ahora)}*`);
+    if (mio.cebo > ahora)   llevo.push(`cebo — le quedan *${restanteEnTexto(mio.cebo - ahora)}*`);
+    if (mio.ganzua > 0)     llevo.push(`ganzúa — *${mio.ganzua}* ${mio.ganzua === 1 ? 'uso' : 'usos'}`);
+
     return sock.sendMessage(jid, {
-      text: `*LA TIENDA DEL LADRÓN*\n╾━━━━━━━━━━━━━━╼\n\n${lineas}\n\n_Se compra con *!robo comprar <lo que sea>*._`,
+      text: `*LA TIENDA DEL LADRÓN*\n╾━━━━━━━━━━━━━━╼\n\n${lineas}\n\n` +
+        `*LLEVAS ENCIMA*\n` +
+        (llevo.length ? llevo.map(l => `· ${l}`).join('\n') : `_${pickFresh(RX.INVENTARIO_VACIO, `${jid}|inv|vacio`)}_`) +
+        `\n\n_Se compra con *!robo comprar <lo que sea>*._`,
+      mentions: [sender],
     }, { quoted: msg });
   }
 
@@ -1549,9 +1576,15 @@ async function laTienda(sock, msg, jid, sender, args, groupMeta) {
     await tienda.darObjeto(jid, sender, que, Date.now() + obj.horas * 3600000);
   }
 
+  // Cada objeto con su voz. Un mensaje generico para los tres convierte la
+  // tienda en un formulario.
+  const pool = que === 'escudo' ? RX.COMPRA_ESCUDO
+             : que === 'ganzua' ? RX.COMPRA_GANZUA
+             : que === 'cebo'   ? RX.COMPRA_CEBO
+             : RX.COMPRA_OK;
   return sock.sendMessage(jid, {
     text: `*COMPRA HECHA — ${que.toUpperCase()}*\n\n` +
-      `${fraseCon(RX.COMPRA_OK, `${jid}|compra|ok`, { '%N': nombre, '%C': fmt(obj.precio) })}\n\n_${obj.desc}._`,
+      `${fraseCon(pool, `${jid}|compra|${que}`, { '%N': nombre, '%C': fmt(obj.precio) })}\n\n_${obj.desc}._`,
     mentions: [sender],
   }, { quoted: msg });
 }
@@ -1582,6 +1615,10 @@ async function contraatacar(sock, msg, jid, sender, groupMeta) {
   pendienteContra.delete(k);   // una sola oportunidad, salga como salga
 
   const a = tag(p.ladron);
+  // El escudo NO vale aquí, y es a propósito: protege de que te roben, no de
+  // las consecuencias de haber robado tú. Comprarlo y salir de caza sabiendo
+  // que nadie puede responderte convertiría 180 de aura en impunidad, que es
+  // justo lo contrario de lo que se busca con las dinámicas.
   const botin = Math.round(p.cuanto * CONTRA.multiplicador);
   const gana = isMainOwner(sender, msg.key.fromMe, groupMeta) ? true : Math.random() < CONTRA.probabilidad;
 
@@ -1759,7 +1796,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const usoGanzua = await tienda.gastarGanzua(jid, sender);
   if (usoGanzua) {
     chanceFinal = Math.min(ROBO_LIMITES.techo, chanceFinal + OBJETOS.ganzua.bono);
-    motivos.push('ganzúa gastada');
+    motivos.push(fraseCon(RX.GANZUA_USADA, `${jid}|ganzua`, { '%A': tag(sender) }));
   }
 
   // Diana: el nº1 de la semana esta mas en guardia pero paga mas. El bono de

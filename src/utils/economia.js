@@ -337,6 +337,19 @@ const BOTE = {
   entrada: 60,             // lo que cuesta intentar reventarlo
   probabilidad: 0.16,      // y lo difícil que es. Bajo a propósito: es la gorda
   minimoParaAsaltar: 150,  // por debajo de esto no merece la pena ni intentarlo
+
+  // Comisión de la casa sobre la entrada del asalto: esta parte se DESTRUYE, no
+  // engorda el bote. Sin ella el asalto no drenaba nada — todo lo que entraba
+  // acababa en manos de alguien — y el robo dejaba de ser el sumidero que
+  // sostiene la economía. Medido: el bote ya se lleva el 45 % de cada robo
+  // fallido, así que sin esto el drenaje caía a la mitad.
+  comision: 0.25,
+
+  // Las apuestas perdidas también alimentan el bote, pero solo una cuarta parte:
+  // el grueso se sigue destruyendo, que es lo que hace de !aura apostar un
+  // sumidero de verdad. Con esto el bote crece aunque el grupo no robe — una
+  // sola apuesta perdida de 500 mete 125, más que diez robos fallidos.
+  fraccionDeApuesta: 0.25,
 };
 
 // LOS OBJETOS. Dan una decisión ANTES de robar, no solo al robar. Los precios

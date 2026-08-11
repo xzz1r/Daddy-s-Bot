@@ -37,6 +37,47 @@ const BOTE_VACIO = [
 ];
 
 // ─── La tienda ───────────────────────────────────────────────────────────────
+// Cada objeto habla distinto. Un mensaje generico para los tres es lo que hace
+// que una tienda parezca un formulario: comprar un escudo es de cobarde
+// precavido, una ganzua es de ansioso, y un cebo es de rata. Se nota o no se
+// nota, pero se nota.
+const COMPRA_ESCUDO = [
+  '%N se ha comprado un candado para el aura. Doce horas de dormir tranquilo, que es más de lo que merece.',
+  '%N paga %C por que no le toquen. Miedo bien invertido.',
+  'Escudo puesto. %N ya puede provocar a quien quiera sabiendo que no le van a poder devolver nada durante medio día.',
+  '%N se blinda. Que nadie se confunda: eso no es estrategia, es pánico con presupuesto.',
+  '%N compra doce horas de paz. El grupo ya está contando las horas para cuando se le acabe.',
+  'Blindado. %N ha decidido que su aura vale más que su dignidad, y ha pagado %C por demostrarlo.',
+];
+
+const COMPRA_GANZUA = [
+  '%N afila la ganzúa. Un solo uso, así que más le vale no desperdiciarla en cualquier muerto de hambre.',
+  '%N suelta %C por un empujón en el próximo golpe. Si falla igual, va a doler el doble.',
+  'Ganzúa en el bolsillo. %N ya tiene excusa técnica para el ridículo que viene.',
+  '%N compra ventaja. Ahora solo le falta el valor de usarla contra alguien que importe.',
+  'Una ganzúa, un uso, cero garantías. %N acaba de comprar esperanza a %C el gramo.',
+];
+
+const COMPRA_CEBO = [
+  '%N se disfraza de rico. Ocho horas fingiendo lo que no es, como en la vida real pero con recibo.',
+  'Cebo puesto. %N va a parecer una cuenta jugosa y lo que hay dentro da pena.',
+  '%N paga %C por aparentar. El que pique se va a llevar una decepción histórica.',
+  'Trampa montada. %N ahora brilla como un objetivo y por dentro está más vacío que su agenda.',
+  '%N monta el señuelo. Que vengan los codiciosos, que hay ración de humillación para todos.',
+];
+
+const GANZUA_USADA = [
+  'Ganzúa gastada. Se acabó, %A: la próxima vas a pelo como todos.',
+  '%A ha quemado la ganzúa en esto. Espero que mereciera la pena.',
+  'Ahí va la ganzúa. Un solo uso y %A ya no tiene excusas de repuesto.',
+];
+
+const INVENTARIO_VACIO = [
+  'No llevas nada encima. Vas a robar a pecho descubierto como los valientes o como los tontos, según salga.',
+  'Cero objetos. Vas de frente y sin herramientas, que es muy honrado y muy poco eficaz.',
+  'Tu inventario está tan vacío como tu historial de robos con éxito.',
+];
+
 const COMPRA_OK = [
   '%N suelta %C y se lleva el material. Ahora ya no tiene excusa.',
   'Vendido. %C menos en la cuenta de %N y una ventaja que probablemente desperdicie.',
@@ -107,6 +148,7 @@ const DIANA_GOLPE = [
 module.exports = {
   BOTE_REVIENTA, BOTE_FALLA, BOTE_VACIO,
   COMPRA_OK, COMPRA_POBRE, ESCUDO_SALVA, CEBO_PICA,
+  COMPRA_ESCUDO, COMPRA_GANZUA, COMPRA_CEBO, GANZUA_USADA, INVENTARIO_VACIO,
   CONTRA_GANA, CONTRA_PIERDE, CONTRA_TARDE,
   DIANA_GOLPE,
 };
