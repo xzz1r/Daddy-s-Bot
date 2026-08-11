@@ -55,6 +55,18 @@ function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
   const mid = () => 31 + Math.floor(Math.random() * 39);
   const lo = () => Math.floor(Math.random() * 31);
 
+  // ─── La banda del owner ────────────────────────────────────────────────────
+  //
+  // No comparte las tres franjas de arriba. Lo que delataba el amaño no era la
+  // ventaja: era la FORMA de los numeros. Salir 97, 99 o 3 una y otra vez no se
+  // parece a tener suerte, se parece a estar programado, y el grupo lo noto.
+  //
+  // Estas dos bandas son deliberadamente sosas — nada de redondos, nada de
+  // extremos — y se solapan con lo que saca cualquiera. Sigue saliendo mejor
+  // parado que el resto, pero con cifras que podrian ser de cualquier otro.
+  const suave     = () => 45 + Math.floor(Math.random() * 31);   // 45-75
+  const suaveMalo = () => 25 + Math.floor(Math.random() * 31);   // 25-55
+
   // La distancia entre admin y miembro se ha estrechado a propósito: era tan
   // grande que en el grupo se notaba y acusaban al bot de tratar a los admins
   // como intocables. Entre admin y miembro la diferencia pasa a ser un matiz.
@@ -68,9 +80,14 @@ function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
   // Peyorativos, franja alta:  admin 78 -> 86, miembro 88 -> 87  (hueco 10 -> 1)
   // Positivos,   franja alta:  admin 28 -> 19, miembro 15 -> 17  (hueco 13 -> 2)
   if (!goodIsHigh) {
+    // Peyorativos: aqui el grupo saca ALTO (70-100) y quedar bien es sacar bajo.
+    // Al owner le sale la banda sosa la mayoria de las veces, muy bajo de vez en
+    // cuando, y —esto es lo que lo hace creible— un 18 % de las veces le sale
+    // ALTO de verdad, igual que a cualquiera. Sin esa parte, no salir nunca mal
+    // es en si mismo el patron que canta.
     if (targetIsOwner) {
-      if (rand < 0.80) return lo();
-      if (rand < 0.94) return mid();
+      if (rand < 0.62) return suaveMalo();
+      if (rand < 0.82) return lo();
       return hi();
     }
     if (targetIsAdmin) {
@@ -82,9 +99,10 @@ function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
     if (rand < 0.96) return mid();
     return lo();
   } else {
+    // Positivos: el grupo saca BAJO. Misma idea al reves.
     if (targetIsOwner) {
-      if (rand < 0.80) return hi();
-      if (rand < 0.94) return mid();
+      if (rand < 0.62) return suave();
+      if (rand < 0.82) return hi();
       return lo();
     }
     if (targetIsAdmin) {

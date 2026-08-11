@@ -192,8 +192,14 @@ async function cmdRizz(sock, msg, groupMeta) {
   const esMainOwner = isMainOwner(target, false, groupMeta);
   const esOwner = !esMainOwner && isOwner(target, false, groupMeta);
   const esAdmin = !esMainOwner && !esOwner && isAdmin(groupMeta?.participants, target);
+  // 88-100 fijos cantaban tanto como los 97 de los comandos de porcentaje: un
+  // rango que empieza en 88 no se parece a tener suerte con las mujeres, se
+  // parece a estar escrito. Ahora sale alto pero con cifras normales, y una de
+  // cada cinco veces le toca un resultado del monton, que es lo que hace que el
+  // resto se lo crea.
   const percent = esMainOwner
-    ? 88 + Math.floor(Math.random() * 13)
+    ? (Math.random() < 0.80 ? 58 + Math.floor(Math.random() * 28)   // 58-85
+                            : 30 + Math.floor(Math.random() * 28))  // 30-57
     : rollPercent(true, esAdmin, esOwner);
 
   const tier = percent >= 70 ? 'high' : percent <= 30 ? 'low' : 'mid';

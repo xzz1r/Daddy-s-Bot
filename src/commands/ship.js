@@ -389,11 +389,18 @@ async function cmdShip(sock, msg, args, groupMeta) {
 
   // Rig a favor del owner principal: si participa, la compatibilidad es alta pero
   // VARIABLE (88-100), no siempre 100, para que no se note el amaño.
-  // Al owner principal se le shipea SIEMPRE bajo, por pedido expreso suyo: le
-  // desagradaba salir emparejado alto con cualquiera. La franja es 0-12 para
-  // que varíe algo y no cante que está fijado, pero nunca sube de ahí.
+  // Al owner principal se le shipea BAJO, por pedido expreso suyo: le
+  // desagradaba salir emparejado alto con cualquiera. Eso no cambia.
+  //
+  // Lo que cambia es el rango: 0-12 era tan extremo como los 97 de los otros
+  // comandos. Cuando alguien sale SIEMPRE por debajo de 12 mientras el resto se
+  // reparte de 0 a 100, no hace falta ser listo para verlo. Ahora sale bajo con
+  // cifras corrientes, y una de cada seis veces le sale un mediocre normal.
   const ownerInvolved = isMainOwner(a, false, groupMeta) || isMainOwner(b, false, groupMeta);
-  const compat = ownerInvolved ? Math.floor(Math.random() * 13) : Math.floor(Math.random() * 101);
+  const compat = ownerInvolved
+    ? (Math.random() < 0.83 ? 8 + Math.floor(Math.random() * 26)     // 8-33
+                            : 34 + Math.floor(Math.random() * 20))  // 34-53
+    : Math.floor(Math.random() * 101);
   const filled = Math.round(compat / 10);
   const bar = '█'.repeat(filled) + '░'.repeat(10 - filled);
 

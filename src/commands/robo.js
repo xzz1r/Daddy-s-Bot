@@ -1536,6 +1536,29 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   anotarIntento(jid, canonicalJid(sender), canonicalJid(target));
   let success = Math.random() < chance;
 
+  // ─── El porcentaje que se ENSEÑA ───────────────────────────────────────────
+  //
+  // El mensaje imprime la probabilidad, y ahi estaba el problema: al owner le
+  // salia un 78 % mientras al resto del grupo le salia entre 24 y 38. No hacia
+  // falta sospechar nada, estaba escrito en cada robo, uno debajo del otro.
+  //
+  // Lo que se enseña es la probabilidad que TENDRIA si no fuera owner: se
+  // recalcula desde la base de un miembro y con las mismas dinamicas. Asi no es
+  // un numero inventado al azar sino uno coherente — sube y baja con la cifra
+  // que pide, igual que el de cualquiera — y encaja con lo que el grupo ve.
+  //
+  // Por dentro no cambia nada: `chance` es lo que decide el resultado.
+  const chanceVisible = ladronEsOwner
+    ? ajustarProbabilidad(calcChance(false, false, vO, vA, auraA, auraV), {
+        grupo: jid,
+        ladron: canonicalJid(sender),
+        victima: canonicalJid(target),
+        stake,
+        maxStake,
+        esOwner: false,
+      }).p
+    : chance;
+
   // Rig a favor del owner principal:
   // · si la VÍCTIMA es el owner, el robo SIEMPRE falla (no pierde aura; el
   //   atacante igual paga la penalización normal por la vía de fallo).
@@ -1584,7 +1607,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const notaTope = recortado
     ? `\n_Ibas a por ${fmt(raw)}, pero ${vTag} solo tenía ${fmt(maxStake)}._`
     : '';
-  const notaApuesta = `\n_Apostaste ${fmt(stake)} · ${Math.round(chance * 100)}% de salir bien._`;
+  const notaApuesta = `\n_Apostaste ${fmt(stake)} · ${Math.round(chanceVisible * 100)}% de salir bien._`;
   const notaDinamicas = notaApuesta + notaTope + (motivos.length ? `\n_${motivos.join(' · ')}_` : '');
 
   if (mult > 0) {
