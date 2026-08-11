@@ -402,7 +402,12 @@ const DUELO = {
 //
 // Regalar es voluntario y sin tope: quien quiera vaciarse la cuenta por otro,
 // que lo haga. Solo hay un mínimo para que no se use como ruido.
-const REGALO_MIN = 5;
+//
+// El mínimo NO es un número suelto: es el precio del comando más barato, y se
+// calcula abajo a partir de PRECIOS. Estaba fijado en 5 y al subir los precios
+// dejó de servir para nada — regalabas el mínimo y el otro no podía comprar ni
+// lo más barato, que es justo lo que un regalo mínimo tiene que permitir.
+// Atándolo al precio, cualquier subida futura lo arrastra sola.
 
 // ─── Precios: el aura como moneda ────────────────────────────────────────────
 //
@@ -427,17 +432,30 @@ const REGALO_MIN = 5;
 // bot en CPU. Al subir !toimg de 4 a 15 se quedó costando 6 — menos de la mitad
 // que la conversión ligera — así que sube con él manteniendo la proporción que
 // tenía (una vez y media).
+// SUBIDA GENERAL, menos !play. Se mantienen las proporciones que ya había —
+// tovid por encima de toimg, el top10 al doble largo del top5, los conversores
+// al mismo nivel — porque esas relaciones no son estéticas: salen de lo que
+// cuesta cada cosa en CPU y en molestar al grupo.
+//
+// !play se queda en 15 por decisión del owner. Deja la escala con una rareza que
+// conviene tener presente: bajar una canción cuesta ancho de banda, cuota de la
+// API y un ffmpeg entero, y ahora sale más barata que convertir un sticker.
+// Es lo pedido, pero si algún día el cupo de RapidAPI se dispara, este es el
+// número que hay que mirar primero.
 const PRECIOS = {
-  play: 15,    // canción
-  grok: 10,    // pregunta a la IA
-  pfp: 5,      // foto de perfil de alguien
-  fk: 8,       // análisis de cuenta falsa
-  top5: 6,     // sorteo de 5 nombres
-  top10: 10,   // sorteo de 10
-  sticker: 15, // !s
-  toimg: 15,   // !toimg
-  tovid: 22,   // !tovid — el más caro: transcodifica vídeo entero
+  play: 15,    // canción — SIN TOCAR, por decisión expresa
+  grok: 18,    // pregunta a la IA
+  pfp: 10,     // foto de perfil de alguien
+  fk: 15,      // análisis de cuenta falsa
+  top5: 12,    // sorteo de 5 nombres
+  top10: 20,   // sorteo de 10
+  sticker: 25, // !s
+  toimg: 25,   // !toimg
+  tovid: 38,   // !tovid — el más caro: transcodifica vídeo entero
 };
+
+// Regalar el mínimo tiene que dar para algo. Ver la nota de !dar más arriba.
+const REGALO_MIN = Math.min(...Object.values(PRECIOS));
 
 // Suelo de crédito: se puede pagar aunque te deje justo, pero no se entra en
 // negativo comprando. Quien ya está en rojo no puede gastar hasta remontar.
