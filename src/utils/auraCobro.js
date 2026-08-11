@@ -7,7 +7,7 @@
 
 const { spendAura, addAura } = require('./auraStore');
 const { PRECIOS, SALDO_MINIMO } = require('./economia');
-const { fmt } = require('./helpers');
+const { fmt, pickFresh } = require('./helpers');
 const { isOwner } = require('./wa');
 
 // Intenta cobrar `concepto` al remitente. Devuelve:
@@ -35,6 +35,42 @@ async function devolver(groupJid, senderJid, pagado) {
   await addAura(groupJid, senderJid, pagado);
 }
 
+// Burlas para el que no llega. Es el momento más divertido del comando: alguien
+// ha ido a gastar y no tiene. El bot no consuela, se ríe.
+//
+// Están escritas para leerse DELANTE DEL GRUPO, porque ahí es donde salen. La
+// gracia no es que te digan que no tienes dinero, es que te lo digan en público.
+const MISERIA = [
+  'No te llega. Con esa cuenta no se compra nada aquí, y en la calle tampoco.',
+  'Mírate el saldo y luego mírate a ti. Encajáis.',
+  'Estás más tieso que el grupo cuando escribes tú.',
+  'Con eso no pagas ni la mitad. Vuelve cuando hayas aportado algo, aunque sea hablar.',
+  'No hay aura. Hay ganas, que es lo que tienen los pobres.',
+  'Ese saldo no da para esto. Da para mirar cómo lo usan otros, que es lo tuyo.',
+  'Te falta aura y te sobra confianza. Curiosa combinación.',
+  'Con lo que tienes no llegas ni a la entrada. Escribe algo, hombre.',
+  'Aquí se paga por adelantado. Y tú no tienes con qué, como siempre.',
+  'No. Y no es personal: es aritmética.',
+  'Ni de lejos. Lo tuyo no es pobreza, es un estilo de vida.',
+  'Ese es el saldo de alguien que entra al grupo a mirar. Y se nota.',
+  'Te has venido arriba con la cuenta vacía. Muy propio.',
+  'No tienes. Y lo peor es que el bot ya se lo esperaba.',
+  'Con ese saldo lo único que puedes permitirte es callarte.',
+  'Fallaste. No en el comando: en la vida, un poco antes.',
+  'Aura insuficiente. Igual que tu aportación al grupo, mira qué casualidad.',
+  'No llegas. Y por el ritmo al que escribes, tampoco vas a llegar pronto.',
+  'Eso no es una cuenta, es un recordatorio de lo poco que apareces.',
+  'Pides caro para lo que has puesto. Que es nada.',
+  'Vuelve con dinero o vuelve con mensajes. Cualquiera de las dos vale, tú no traes ninguna.',
+  'El bot no fía. Y menos a ti, que ya se te ve el percal.',
+  'Saldo insuficiente y orgullo intacto. Solo una de las dos cosas se arregla escribiendo.',
+  'Con eso no. Con eso ni te acerques.',
+  'Cuesta más de lo que tienes. Bastante más. Incómodo, ¿verdad?',
+  'Tu aura no llega y tu paciencia tampoco va a llegar, porque esto tarda en subir.',
+  'Nada. Ni un punto de más. Impecable gestión.',
+  'Has intentado gastar lo que no tienes. Bienvenido a la economía, campeón.',
+];
+
 // Texto del rechazo: el precio, el saldo y CÓMO remontar.
 //
 // Antes terminaba en "tienes 3" y ya. Es el único momento en el que alguien
@@ -48,10 +84,13 @@ async function devolver(groupJid, senderJid, pagado) {
 //
 // Dos líneas y sin cifras: los importes cambian y una nota que miente es peor
 // que no tenerla.
-function textoSinSaldo(concepto, { precio, saldo }) {
-  return `Cuesta *${fmt(precio)}* de aura. Tienes *${fmt(saldo)}*.\n` +
-    `_Se gana escribiendo en el grupo (hay bonos al llegar a 200, 500 y 1000 mensajes del día) ` +
-    `y tirando con *!aura*._`;
+function textoSinSaldo(concepto, { precio, saldo }, jid) {
+  // La burla rota por grupo: pickFresh evita que salga la misma dos veces
+  // seguidas, que es lo que convierte un chiste en un mensaje de error.
+  const burla = pickFresh(MISERIA, `${jid || 'x'}|miseria`);
+  return `${burla}\n\n` +
+    `_Cuesta *${fmt(precio)}* y tienes *${fmt(saldo)}*._\n` +
+    `_Se gana escribiendo (hay bonos a los 200, 500 y 1000 mensajes del día) y tirando con *!aura*._`;
 }
 
-module.exports = { cobrar, devolver, textoSinSaldo };
+module.exports = { cobrar, devolver, textoSinSaldo, MISERIA };

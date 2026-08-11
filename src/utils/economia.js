@@ -411,11 +411,18 @@ const DUELO = {
 
 // ─── Precios: el aura como moneda ────────────────────────────────────────────
 //
-// Se cobra por lo que cuesta recursos de verdad (ancho de banda, API, consultas
-// a WhatsApp) y por los tops, que mencionan a media docena de personas de golpe
-// y son el comando mas facil de disparar en bucle. Los juegos de porcentaje
-// siguen gratis: cobrarlos mataria el uso del grupo, que es lo que da sentido
-// al resto.
+// AHORA SE COBRA POR TODO. Antes solo por lo que gastaba recursos, y los juegos
+// de porcentaje iban gratis con el argumento de que cobrarlos mataría el uso del
+// grupo. Se cambió por decisión del owner: si el aura no compra nada, no vale
+// nada, y un marcador que no se gasta es un número decorativo.
+//
+// Los precios son CAROS a propósito. Medido contra lo que se gana al día:
+// alguien de 500 mensajes (107/día) hace tres o cuatro cosas; el de 1.200
+// (337/día) llega a diez. El que no escribe no toca el bot, que es exactamente
+// la regla de siempre llevada hasta el final.
+//
+// Siguen gratis, y no por olvido: !aura y sus subcomandos (son la fuente),
+// !robo, !duel y !dar (ya se juegan aura de verdad), y todo lo de admin.
 //
 // El !top10 cuesta casi el doble que el !top5 porque molesta al doble de gente.
 //
@@ -443,15 +450,38 @@ const DUELO = {
 // Es lo pedido, pero si algún día el cupo de RapidAPI se dispara, este es el
 // número que hay que mirar primero.
 const PRECIOS = {
-  play: 15,    // canción — SIN TOCAR, por decisión expresa
-  grok: 18,    // pregunta a la IA
-  pfp: 10,     // foto de perfil de alguien
-  fk: 15,      // análisis de cuenta falsa
-  top5: 12,    // sorteo de 5 nombres
-  top10: 20,   // sorteo de 10
-  sticker: 25, // !s
-  toimg: 25,   // !toimg
-  tovid: 38,   // !tovid — el más caro: transcodifica vídeo entero
+  // ─── Lo que consume recursos de verdad ─────────────────────────────────────
+  tovid: 70,   // transcodifica el vídeo entero con preset slow: lo más caro
+  grok: 50,    // llamada a la IA, con su cuota
+  sticker: 45, // !s — un ffmpeg por cada uno
+  toimg: 45,
+  play: 40,    // canción: ancho de banda + cuota de RapidAPI + ffmpeg
+  fk: 35,      // análisis de cuenta falsa
+  ttp: 30,     // texto a sticker
+  pfp: 25,     // foto de perfil
+  cachelist: 12, // la lista de lo ya guardado: barata a propósito, es el atajo
+
+  // ─── Lo que molesta al grupo ───────────────────────────────────────────────
+  // No cuestan CPU, cuestan paciencia: mencionan a media docena de personas de
+  // golpe y son de lo más fácil de disparar en bucle.
+  top10: 55,
+  top5: 30,
+  inactivos: 35,
+  vs: 30,
+  fantasmas: 30,
+  count: 25,
+  relevancia: 25,
+
+  // ─── Las dinámicas ─────────────────────────────────────────────────────────
+  // Antes gratis. Ahora el aura vale para algo más que mirarla, y reírse de
+  // alguien cuesta dinero como todo lo demás.
+  roast: 35,
+  mog: 35,
+  ship: 30,
+  rizz: 30,
+  piropo: 30,
+  wingman: 30,
+  percent: 25,   // el precio común de gay, puta, iq, fea, crack y compañía
 };
 
 // Regalar el mínimo tiene que dar para algo. Ver la nota de !dar más arriba.

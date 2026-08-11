@@ -189,23 +189,23 @@ async function cmdHelp(sock, msg) {
   const text =
 `*${config.botName}*
 _Prefijo *${p}* · ejemplo: *${p}play* despacito_
-_Lo que lleva \`número\` cuesta esa cantidad de aura._
+_Casi todo cuesta aura. El número es el precio._
 
 ━━━━━ *DINÁMICAS* ━━━━━
-_Sin @ va sobre ti · con @ va sobre esa persona. Todas gratis._
-_De más crudo a más suave._
-*${p}roast* @user — destrucción pública
+_Sin @ va sobre ti · con @ va sobre esa persona._
+_De más crudo a más suave. Los de la lista, ${PRECIOS.percent} cada uno._
+*${p}roast* ${c('roast')} @user — destrucción pública
 *${p}perdedor* · *${p}puta* · *${p}guarra*
 *${p}incel* · *${p}maricon* · *${p}gay*
 *${p}cerdo* · *${p}inutil* · *${p}rata*
 *${p}femboy* · *${p}simp* · *${p}friki*
 *${p}fea* · *${p}iq* · *${p}infiel*
-*${p}mog* @a @b — duelo de looks
+*${p}mog* ${c('mog')} @a @b — duelo de looks
 *${p}feminidad* · *${p}masculinidad*
 *${p}linda* · *${p}hot* · *${p}fiel*
 *${p}crack* · *${p}ganador*
-*${p}ship* @a @b — compatibilidad
-*${p}rizz* · *${p}piropo* · *${p}wingman* — modo ligue
+*${p}ship* ${c('ship')} @a @b — compatibilidad
+*${p}rizz* ${c('rizz')} · *${p}piropo* · *${p}wingman* — modo ligue
 
 ━━━━━ *AURA* ━━━━━
 _Se gana escribiendo. Bonos diarios a los 200, 500 y 1000 msg._
@@ -224,19 +224,19 @@ ni el tope son la mejor apuesta _(5 desenlaces)_
 
 ━━━━━ *HERRAMIENTAS* ━━━━━
 *${p}play* <nombre> ${c('play')} — canción _(pon también el artista)_
-*${p}cachelist* — las ya guardadas, gratis y al instante
+*${p}cachelist* ${c('cachelist')} — las ya guardadas, al instante
 *${p}s* ${c('sticker')} — imagen o vídeo a sticker
 *${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')} — sticker a imagen o a vídeo
-*${p}ttp* <texto> — texto a sticker
+*${p}ttp* ${c('ttp')} <texto> — texto a sticker
 *${p}g* <pregunta> ${c('grok')} — le preguntas a Grok
 *${p}pfp* @user ${c('pfp')} — su foto de perfil
 *${p}fk* @user ${c('fk')} — analiza si es cuenta falsa
 
 ━━━━━ *ACTIVIDAD* ━━━━━
-*${p}count* — ranking de quién escribe más _(admins)_
-*${p}relevancia* [@user] — tu peso real en el grupo
-*${p}vs* @a @b — compara la actividad de dos
-*${p}fantasmas* · *${p}inactivos* — los que menos escriben
+*${p}count* ${c('count')} — ranking de quién escribe más _(admins)_
+*${p}relevancia* ${c('relevancia')} [@user] — tu peso real en el grupo
+*${p}vs* ${c('vs')} @a @b — compara la actividad de dos
+*${p}fantasmas* ${c('fantasmas')} · *${p}inactivos* ${c('inactivos')} — los que menos escriben
 *${p}top5* ${c('top5')} · *${p}top10* ${c('top10')} <tema> — ranking al azar
 
 ━━━━━ *ADMIN* ━━━━━

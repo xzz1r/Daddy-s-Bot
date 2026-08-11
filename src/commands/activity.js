@@ -402,11 +402,21 @@ async function cmdInactivos(sock, msg, groupMeta) {
   // todos. Al que no sale escrito le llega el aviso igual, que es lo que
   // importa — el que menos entra al grupo es justo el que no puede quedarse sin
   // enterarse.
+  // LA AMENAZA VA ARRIBA, de título.
+  //
+  // Estaba al final, después de la lista de nombres, y ahí no la leía nadie: en
+  // WhatsApp un mensaje largo llega plegado y lo único que se ve sin desplegarlo
+  // son las primeras líneas. El aviso de expulsión — que es el motivo entero del
+  // comando — quedaba justo en la parte que hay que pulsar para leer.
+  //
+  // Ahora es lo primero que se ve, en negrita y solo. El recuento pasa a ser una
+  // línea de contexto debajo, que es lo que es.
   const cuantos = flojos.length === 1 ? '1 miembro' : `${flojos.length} miembros`;
   const cabecera =
-    `*INACTIVOS — ${cuantos} con ${UMBRAL_INACTIVO} mensajes o menos*\n` +
-    `${pickFresh(AVISO_PURGA, `${jid}|inactivos`)}\n\n`;
-  const amenaza = `\n\n*${pickFresh(AMENAZAS, `${jid}|inactivos|amenaza`)}*`;
+    `*${pickFresh(AMENAZAS, `${jid}|inactivos|amenaza`)}*\n` +
+    `╾━━━━━━━━━━━━━━╼\n` +
+    `_${cuantos} con ${UMBRAL_INACTIVO} mensajes o menos:_\n\n`;
+  const amenaza = `\n\n_${pickFresh(AVISO_PURGA, `${jid}|inactivos`)}_`;
 
   // Se van metiendo nombres mientras el mensaje quepa holgado en uno de
   // WhatsApp (el límite real ronda los 4096; se deja margen para la cabecera,

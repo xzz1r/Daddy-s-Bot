@@ -2,6 +2,8 @@ const { pickFresh } = require('../utils/helpers');
 const config = require('../config');
 const { isBotEnabled, incrementStat, isAntiLinkEnabled, isSoloAdminsEnabled, isAntiBusinessEnabled } = require('../utils/state');
 const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
+const { cobrar: cobrarAura, textoSinSaldo } = require('../utils/auraCobro');
+const { PRECIOS } = require('../utils/economia');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { recordFacts } = require('../utils/nickStore');
 const { noteOffence, forget, yaAvisado, marcarAvisado, olvidarAviso } = require('../utils/mediaSpam');
@@ -264,6 +266,47 @@ const NEEDS_META = new Set([
 //
 // !aura NO entra: se para su tirada pero no su consulta, y esa distincion la
 // hace cmdAura. Meterlo aqui apagaria tambien el ranking y el propio *!aura on*.
+// ─── Cobro central ───────────────────────────────────────────────────────────
+//
+// Qué comando cuesta qué. Va aquí y no repartido por treinta ficheros: cobrar
+// dentro de cada comando obliga a acordarse de hacerlo en cada uno nuevo, y ya
+// pasó — los juegos de porcentaje llevaban meses gratis por olvido, no por
+// decisión.
+//
+// Los de esta tabla se cobran ANTES de ejecutar nada. Si no llega el saldo, el
+// comando ni se lanza.
+const COBRO_CENTRAL = {
+  roast: 'roast', flamear: 'roast',
+  mog: 'mog', moggear: 'mog',
+  ship: 'ship',
+  rizz: 'rizz', piropo: 'piropo', wingman: 'wingman', coach: 'wingman',
+  count: 'count',
+  relevancia: 'relevancia', relevance: 'relevancia',
+  vs: 'vs', versus: 'vs',
+  fantasmas: 'fantasmas', fantasma: 'fantasmas',
+  inactivos: 'inactivos', inactivo: 'inactivos',
+  ttp: 'ttp',
+  cachelist: 'cachelist', listacache: 'cachelist', cache: 'cachelist',
+};
+
+// Los comandos de porcentaje comparten precio. Se listan por nombre porque el
+// dispatcher los reparte uno a uno y no hay forma de reconocerlos por patrón
+// sin arriesgarse a cobrar de más por algo que no lo es.
+const CMDS_PORCENTAJE = [
+  'gay', 'maricon', 'femboy', 'incel', 'simp', 'friki', 'rata', 'cerdo', 'inutil',
+  'perdedor', 'ganador', 'crack', 'puta', 'guarra', 'fea', 'linda', 'hot', 'sexy',
+  'iq', 'fiel', 'infiel', 'feminidad', 'masculinidad',
+];
+for (const c of CMDS_PORCENTAJE) COBRO_CENTRAL[c] = 'percent';
+
+// Estos YA cobran por dentro, y ahí tiene que seguir: son los que gastan un
+// recurso externo (descarga, ffmpeg, API) y devuelven el aura si el recurso
+// falla. Cobrarlos también aquí sería cobrar dos veces.
+const COBRAN_SOLOS = new Set([
+  'play', 'playsong', 'playaudio', 's', 'sticker', 'stk', 'toimg', 'tovid',
+  'g', 'grok', 'pfp', 'fk', 'verificar', 'verify', 'check', 'top5', 'top10',
+]);
+
 const CMDS_AURA = new Set([
   'robo','robar',
   'duel','duelo','1v1',
@@ -1134,6 +1177,17 @@ async function handleMessage(sock, msg) {
   if (jid.endsWith('@g.us') && isSoloAdminsEnabled(jid)) {
     if (!groupMeta) groupMeta = await getGroupMeta(sock, jid);
     if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) return;
+  }
+
+  // Cobro central. Va antes del switch para que un comando sin saldo no llegue
+  // ni a ejecutarse. El owner tier no paga (lo resuelve cobrarAura).
+  const conceptoCobro = COBRO_CENTRAL[command];
+  if (jid.endsWith('@g.us') && conceptoCobro && !COBRAN_SOLOS.has(command)) {
+    const pago = await cobrarAura(jid, sender, conceptoCobro, { fromMe: msg.key.fromMe, groupMeta });
+    if (!pago.ok) {
+      await sock.sendMessage(jid, { text: textoSinSaldo(conceptoCobro, pago, jid) }, { quoted: msg });
+      return;
+    }
   }
 
   // Dinamica de aura en pausa (*!aura off*): los comandos que MUEVEN aura no se
