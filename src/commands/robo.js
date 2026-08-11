@@ -1,7 +1,9 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser } = require('../utils/wa');
 const { getAura, addAura } = require('../utils/auraStore');
 const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
-const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN } = require('../utils/economia');
+const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, BOTE, OBJETOS, CONTRA, DIANA } = require('../utils/economia');
+const tienda = require('../utils/roboStore');
+const RX = require('../data/roboExtraPhrases');
 
 // La escala vive en utils/economia.js. Aqui solo el cooldown, que es de ritmo
 // de juego y no de economia.
@@ -1432,6 +1434,201 @@ function elegirDesenlace(exito, ambicion = 0) {
   return ramas[ramas.length - 1];
 }
 
+// ═══ LAS DINÁMICAS NUEVAS ════════════════════════════════════════════════════
+//
+// Todas comparten el mismo criterio: dan una DECISIÓN. Antes robar era escribir
+// el comando y esperar; ahora hay que elegir si comprar, si asaltar, si
+// contraatacar y a quién ir. El azar sigue mandando, pero ya no es lo único.
+
+const fraseCon = (pool, clave, subs) => {
+  let t = pickFresh(pool, clave);
+  for (const [k, v] of Object.entries(subs)) t = t.replace(new RegExp(k, 'g'), v);
+  return t;
+};
+const tag = (j) => `@${String(j).split('@')[0]}`;
+
+// ─── !robo bote ──────────────────────────────────────────────────────────────
+async function verElBote(sock, msg, jid) {
+  const bote = await tienda.verBote(jid);
+  if (bote < BOTE.minimoParaAsaltar) {
+    return sock.sendMessage(jid, {
+      text: `${pickFresh(RX.BOTE_VACIO, `${jid}|bote|vacio`)}\n\n_Hay *${fmt(bote)}*. Desde *${fmt(BOTE.minimoParaAsaltar)}* se puede asaltar con *!robo asalto*._`,
+    }, { quoted: msg });
+  }
+  return sock.sendMessage(jid, {
+    text: `*EL BOTE DEL GRUPO*\n╾━━━━━━━━━━━━━━╼\n\n` +
+      `Hay *${fmt(bote)}* de aura ahí dentro.\n` +
+      `Lo han puesto todos los que fallaron robando.\n\n` +
+      `_*!robo asalto* — cuesta ${fmt(BOTE.entrada)} y sale bien ${Math.round(BOTE.probabilidad * 100)} de cada 100 veces. El que acierta se lo lleva ENTERO._`,
+  }, { quoted: msg });
+}
+
+// ─── !robo asalto ────────────────────────────────────────────────────────────
+async function asaltarBote(sock, msg, jid, sender, groupMeta) {
+  const bote = await tienda.verBote(jid);
+  if (bote < BOTE.minimoParaAsaltar) {
+    return sock.sendMessage(jid, {
+      text: `${pickFresh(RX.BOTE_VACIO, `${jid}|bote|vacio`)}\n_Hay ${fmt(bote)}; hacen falta ${fmt(BOTE.minimoParaAsaltar)}._`,
+    }, { quoted: msg });
+  }
+
+  const saldo = await getAura(jid, sender);
+  if (saldo < BOTE.entrada) {
+    return sock.sendMessage(jid, {
+      text: `La entrada son *${fmt(BOTE.entrada)}* y tienes *${fmt(saldo)}*. El bote no fía.`,
+    }, { quoted: msg });
+  }
+
+  // El cooldown del robo normal también vale aquí: si no, asaltar el bote sería
+  // la vía para saltárselo y el comando se convertiría en una tragaperras.
+  const coolKey = `${jid}|${canonicalJid(sender)}`;
+  const queda = ROB_COOLDOWN_MS - (Date.now() - (lastRob.get(coolKey) || 0));
+  if (queda > 0) {
+    return sock.sendMessage(jid, { text: `Espera *${Math.ceil(queda / 60000)}min*.` }, { quoted: msg });
+  }
+  limpiaMapa(lastRob);
+  lastRob.set(coolKey, Date.now());
+
+  await addAura(jid, sender, -BOTE.entrada);
+  const a = tag(sender);
+
+  // El owner revienta el bote siempre. Mismo criterio que el resto de sus
+  // amaños en este comando, y aquí ni siquiera hay porcentaje que enseñar.
+  const revienta = isMainOwner(sender, msg.key.fromMe, groupMeta)
+    ? true
+    : Math.random() < BOTE.probabilidad;
+
+  if (!revienta) {
+    // La entrada no se evapora: engorda el bote. Fallar alimenta lo que quieres.
+    const ahora = await tienda.aportarAlBote(jid, BOTE.entrada);
+    return sock.sendMessage(jid, {
+      text: `*ASALTO FALLIDO*\n\n${fraseCon(RX.BOTE_FALLA, `${jid}|bote|falla`, { '%A': a })}\n\n_El bote sube a *${fmt(ahora)}*._`,
+      mentions: [sender],
+    }, { quoted: msg });
+  }
+
+  const premio = await tienda.vaciarBote(jid);
+  const { current } = await addAura(jid, sender, premio);
+  await tienda.anotarGolpe(jid, sender, premio);
+  return sock.sendMessage(jid, {
+    text: `*BOTE REVENTADO*\n╾━━━━━━━━━━━━━━╼\n\n` +
+      `${fraseCon(RX.BOTE_REVIENTA, `${jid}|bote|revienta`, { '%A': a, '%C': fmt(premio) })}\n\n` +
+      `${a} +${fmt(premio)} → *${fmt(current)}* de aura`,
+    mentions: [sender],
+  }, { quoted: msg });
+}
+
+// ─── !robo tienda / !robo comprar <objeto> ───────────────────────────────────
+async function laTienda(sock, msg, jid, sender, args, groupMeta) {
+  const que = (args[1] || '').toLowerCase();
+  const nombre = tag(sender);
+
+  if (!que || !OBJETOS[que]) {
+    const lineas = Object.entries(OBJETOS)
+      .map(([k, o]) => `*${k}* — ${fmt(o.precio)} · ${o.desc}`)
+      .join('\n');
+    return sock.sendMessage(jid, {
+      text: `*LA TIENDA DEL LADRÓN*\n╾━━━━━━━━━━━━━━╼\n\n${lineas}\n\n_Se compra con *!robo comprar <lo que sea>*._`,
+    }, { quoted: msg });
+  }
+
+  const obj = OBJETOS[que];
+  const saldo = await getAura(jid, sender);
+  if (saldo < obj.precio) {
+    return sock.sendMessage(jid, {
+      text: `${fraseCon(RX.COMPRA_POBRE, `${jid}|compra|pobre`, { '%N': nombre })}\n_Cuesta *${fmt(obj.precio)}*. Tienes *${fmt(saldo)}*._`,
+      mentions: [sender],
+    }, { quoted: msg });
+  }
+
+  await addAura(jid, sender, -obj.precio);
+  if (que === 'ganzua') {
+    const previos = (await tienda.objetosDe(jid, sender)).ganzua || 0;
+    await tienda.darObjeto(jid, sender, 'ganzua', previos + obj.usos);
+  } else {
+    await tienda.darObjeto(jid, sender, que, Date.now() + obj.horas * 3600000);
+  }
+
+  return sock.sendMessage(jid, {
+    text: `*COMPRA HECHA — ${que.toUpperCase()}*\n\n` +
+      `${fraseCon(RX.COMPRA_OK, `${jid}|compra|ok`, { '%N': nombre, '%C': fmt(obj.precio) })}\n\n_${obj.desc}._`,
+    mentions: [sender],
+  }, { quoted: msg });
+}
+
+// ─── !robo contra ────────────────────────────────────────────────────────────
+//
+// Solo lo puede usar quien acaba de ser robado, y solo dentro de la ventana.
+// Fuera de ella no hay nada que vengar: el aura ya circuló y reabrirlo sería
+// convertir cada robo en una cadena infinita.
+const pendienteContra = new Map(); // `${grupo}|${victima}` -> { ladron, cuanto, ts }
+
+function anotarParaContra(grupo, victima, ladron, cuanto) {
+  limpiaMapa(pendienteContra);
+  pendienteContra.set(`${grupo}|${canonicalJid(victima)}`, { ladron: canonicalJid(ladron), cuanto, ts: Date.now() });
+}
+
+async function contraatacar(sock, msg, jid, sender, groupMeta) {
+  const k = `${jid}|${canonicalJid(sender)}`;
+  const p = pendienteContra.get(k);
+  const v = tag(sender);
+
+  if (!p || Date.now() - p.ts > CONTRA.ventanaSeg * 1000) {
+    pendienteContra.delete(k);
+    return sock.sendMessage(jid, {
+      text: fraseCon(RX.CONTRA_TARDE, `${jid}|contra|tarde`, { '%A': 'quien te robó' }),
+    }, { quoted: msg });
+  }
+  pendienteContra.delete(k);   // una sola oportunidad, salga como salga
+
+  const a = tag(p.ladron);
+  const botin = Math.round(p.cuanto * CONTRA.multiplicador);
+  const gana = isMainOwner(sender, msg.key.fromMe, groupMeta) ? true : Math.random() < CONTRA.probabilidad;
+
+  if (gana) {
+    // Se mueve lo que el ladrón pueda cubrir: cobrar de una cuenta vacía
+    // dejaría a alguien en negativo por una dinámica opcional.
+    const tieneEl = await getAura(jid, p.ladron);
+    const real = Math.max(0, Math.min(botin, tieneEl));
+    const [vN] = await Promise.all([addAura(jid, sender, real), addAura(jid, p.ladron, -real)]);
+    await tienda.anotarGolpe(jid, sender, real);
+    return sock.sendMessage(jid, {
+      text: `*CONTRAATAQUE*\n╾━━━━━━━━━━━━━━╼\n\n` +
+        `${fraseCon(RX.CONTRA_GANA, `${jid}|contra|gana`, { '%A': a, '%V': v, '%C': fmt(real) })}\n\n` +
+        `${v} +${fmt(real)} → *${fmt(vN.current)}*`,
+      mentions: [sender, p.ladron],
+    }, { quoted: msg });
+  }
+
+  const castigo = Math.min(p.cuanto, Math.max(0, await getAura(jid, sender)));
+  const [vN] = await Promise.all([addAura(jid, sender, -castigo), addAura(jid, p.ladron, castigo)]);
+  return sock.sendMessage(jid, {
+    text: `*CONTRAATAQUE FALLIDO*\n\n` +
+      `${fraseCon(RX.CONTRA_PIERDE, `${jid}|contra|pierde`, { '%A': a, '%V': v, '%C': fmt(castigo) })}\n\n` +
+      `${v} −${fmt(castigo)} → *${fmt(vN.current)}*`,
+    mentions: [sender, p.ladron],
+  }, { quoted: msg });
+}
+
+// ─── !robo top ───────────────────────────────────────────────────────────────
+async function topLadrones(sock, msg, jid, groupMeta) {
+  const r = (await tienda.rankingLadrones(jid))
+    .filter(x => !isMainOwner(x.jid, false, groupMeta))   // el owner no figura
+    .slice(0, 10);
+  if (!r.length) {
+    return sock.sendMessage(jid, {
+      text: 'Esta semana no ha robado nadie. Un grupo de gente honrada, o de cobardes.',
+    }, { quoted: msg });
+  }
+  let text = '*LOS MÁS BUSCADOS*\n_Últimos 7 días_\n╾━━━━━━━━━━━━━━╼\n\n';
+  r.forEach((x, i) => {
+    const corona = i === 0 ? ' — *con diana en la espalda*' : '';
+    text += `*${i + 1}.* ${tag(x.jid)} — ${fmt(x.total)} en ${x.golpes} ${x.golpes === 1 ? 'golpe' : 'golpes'}${corona}\n`;
+  });
+  text += `\n_Robarle al número uno paga un ${Math.round(DIANA.bonoBotin * 100)}% más._`;
+  return sock.sendMessage(jid, { text: text.trimEnd(), mentions: r.map(x => x.jid) }, { quoted: msg });
+}
+
 async function cmdRobo(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
@@ -1439,6 +1636,15 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   }
 
   const sender = getSender(msg);
+
+  // Subcomandos. Van antes de exigir victima porque ninguno la necesita.
+  const sub = (args && args[0] ? String(args[0]) : '').toLowerCase();
+  if (['bote', 'caja', 'hucha'].includes(sub))            return verElBote(sock, msg, jid);
+  if (['asalto', 'asaltar', 'reventar'].includes(sub))    return asaltarBote(sock, msg, jid, sender, groupMeta);
+  if (['tienda', 'shop', 'comprar'].includes(sub))        return laTienda(sock, msg, jid, sender, args, groupMeta);
+  if (['contra', 'contraataque', 'venganza'].includes(sub)) return contraatacar(sock, msg, jid, sender, groupMeta);
+  if (['top', 'ranking', 'buscados'].includes(sub))       return topLadrones(sock, msg, jid, groupMeta);
+
   const target = getTarget(msg);
 
   if (!target) return; // sin victima no hay robo
@@ -1460,6 +1666,15 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // Escudo de la víctima: si acaban de robarle, está protegida un rato. Esto va
   // ANTES de reclamar el cooldown para que intentarlo contra alguien protegido
   // no te queme tus 10 minutos.
+  // Escudo COMPRADO: va antes que el natural porque es el que alguien ha pagado
+  // y merece un mensaje propio. Tampoco quema el cooldown del que lo intenta.
+  if (await tienda.tieneEscudo(jid, target)) {
+    return sock.sendMessage(jid, {
+      text: fraseCon(RX.ESCUDO_SALVA, `${jid}|escudo`, { '%A': tag(sender), '%V': tag(target) }),
+      mentions: [sender, target],
+    }, { quoted: msg });
+  }
+
   const escudo = escudoRestante(jid, canonicalJid(target));
   if (escudo > 0) {
     return sock.sendMessage(jid, {
@@ -1504,7 +1719,12 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // de los dos. Así !robo a secas sigue siendo una jugada de verdad: unas veces
   // toca una cifra cómoda y otras una que te va a costar sacar, con la
   // probabilidad que corresponda a cada una.
-  const maxStake = topeRobo(auraA, auraV);
+  // Cebo: la victima aparenta el doble. El tope se calcula sobre lo aparentado,
+  // asi que el ladron pide mas de lo que hay y se come el castigo por codicia
+  // para nada — el botin real sigue limitado por lo que tiene DE VERDAD.
+  const conCebo = await tienda.tieneCebo(jid, target);
+  const auraAparente = conCebo ? auraV * 2 : auraV;
+  const maxStake = topeRobo(auraA, auraAparente);
   const pedido = (args || []).find(a => /^\d+$/.test(a));
   const raw = pedido
     ? parseInt(pedido, 10)
@@ -1533,8 +1753,26 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     maxStake,
     esOwner: ladronEsOwner,
   });
+  // Ganzua comprada: se gasta SIEMPRE que se tenga, salga bien o mal. Si solo
+  // se gastara al acertar seria una compra sin riesgo y dejaria de ser decision.
+  let chanceFinal = chance;
+  const usoGanzua = await tienda.gastarGanzua(jid, sender);
+  if (usoGanzua) {
+    chanceFinal = Math.min(ROBO_LIMITES.techo, chanceFinal + OBJETOS.ganzua.bono);
+    motivos.push('ganzúa gastada');
+  }
+
+  // Diana: el nº1 de la semana esta mas en guardia pero paga mas. El bono de
+  // botin se aplica abajo, sobre el monto.
+  const buscado = await tienda.masBuscado(jid);
+  const esDiana = Boolean(buscado && canonicalJid(target) === buscado.jid);
+  if (esDiana) {
+    chanceFinal = Math.max(ROBO_LIMITES.suelo, chanceFinal + DIANA.bonoProbabilidad);
+    motivos.push('el más buscado va con la mosca detrás de la oreja');
+  }
+
   anotarIntento(jid, canonicalJid(sender), canonicalJid(target));
-  let success = Math.random() < chance;
+  let success = Math.random() < chanceFinal;
 
   // ─── El porcentaje que se ENSEÑA ───────────────────────────────────────────
   //
@@ -1557,7 +1795,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
         maxStake,
         esOwner: false,
       }).p
-    : chance;
+    : chanceFinal;
 
   // Rig a favor del owner principal:
   // · si la VÍCTIMA es el owner, el robo SIEMPRE falla (no pierde aura; el
@@ -1589,7 +1827,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // Nunca se mueve más aura de la que la víctima tiene ni de la que el ladrón
   // puede pagar: un golpe maestro sobre alguien con poco no le deja en negativo.
   const bruto = Math.max(1, Math.round(stake * Math.abs(mult)));
-  const monto = mult > 0 ? Math.min(bruto, auraV) : Math.min(bruto, auraA);
+  let monto = mult > 0 ? Math.min(bruto, auraV) : Math.min(bruto, auraA);
 
   // Lo que movió la balanza se cuenta abajo del mensaje: si no, el jugador ve
   // resultados distintos sin entender por qué y parece que el bot va al azar.
@@ -1613,6 +1851,12 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   if (mult > 0) {
     anotarRoboExitoso(jid, canonicalJid(sender), canonicalJid(target));
     anotarFama(jid, canonicalJid(sender));
+    // Robar al mas buscado paga mas, pero nunca por encima de lo que tiene.
+    if (esDiana) monto = Math.min(auraV, Math.round(monto * (1 + DIANA.bonoBotin)));
+    if (conCebo && monto < stake) motivos.push('picaste el cebo: no tenía tanto');
+    await tienda.anotarGolpe(jid, sender, monto);
+    // La victima tiene una ventana para devolver el golpe.
+    anotarParaContra(jid, target, sender, monto);
     const [aNew, vNew] = await Promise.all([
       addAura(jid, sender, +monto),
       addAura(jid, target, -monto),
@@ -1636,6 +1880,11 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // fallo normal solo es una multa y la víctima no toca nada.
   const aNew = await addAura(jid, sender, -monto);
   const vNew = clave === 'desastre' ? await addAura(jid, target, +monto) : null;
+  // En el fallo NORMAL la victima no cobra, asi que ese aura salia del sistema.
+  // Ahora una parte cae al bote del grupo: los fracasos dejan de evaporarse y
+  // se convierten en algo que todos miran crecer.
+  let boteAhora = 0;
+  if (clave !== 'desastre') boteAhora = await tienda.aportarAlBote(jid, monto * BOTE.fraccionDeFallo);
   const phrase = pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag);
   const text =
     `${titulo}\n` +
@@ -1648,6 +1897,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     (vNew
       ? `${vTag} +${fmt(monto)} → *${fmt(vNew.current)}*`
       : `${vTag} sin cambios → *${fmt(auraV)}*`) +
+    (boteAhora ? `\n_El bote del grupo sube a *${fmt(boteAhora)}*._` : '') +
     notaDinamicas;
   return sock.sendMessage(jid, { text, mentions: [sender, target] });
 }

@@ -3,7 +3,7 @@ const { formatUptime, fmt, pickFresh } = require('../utils/helpers');
 const { isOwner, getSender } = require('../utils/wa');
 const { getCasinoCount, msUntilReset } = require('../utils/casinoStore');
 const { nextMilestone } = require('../utils/casino');
-const { PRECIOS, APUESTA } = require('../utils/economia');
+const { PRECIOS, APUESTA, CONTRA } = require('../utils/economia');
 const config = require('../config');
 const logger = require('../utils/logger');
 
@@ -210,13 +210,17 @@ _De más crudo a más suave._
 ━━━━━ *AURA* ━━━━━
 _Se gana escribiendo. Bonos diarios a los 200, 500 y 1000 msg._
 *${p}aura* [@user] — ver aura · *${p}aura top* — ranking
-*${p}aura apostar* — la mitad de tu saldo a una carta,
-cada ${APUESTA.cooldownMin / 60}h. Mínimo ${APUESTA.minimo} para jugar
+*${p}aura apostar* [cantidad] — a una carta, cada ${APUESTA.cooldownMin / 60}h.
+Sin cifra va la mitad. Mínimo ${APUESTA.minimo} de saldo para jugar
 *${p}aura hoy* — tu progreso de hoy _(o ${p}casino)_
 *${p}dar* @user <cantidad> — regalar
 *${p}duel* @user <cantidad> — apostar 1v1, el otro acepta
 *${p}robo* @user <cantidad> — robar. Elige cuánto: ni el mínimo
 ni el tope son la mejor apuesta _(5 desenlaces)_
+*${p}robo bote* · *${p}robo asalto* — el bote crece con cada fallo
+*${p}robo tienda* — escudo, ganzúa y cebo
+*${p}robo contra* — devolver el golpe, ${CONTRA.ventanaSeg}s tras ser robado
+*${p}robo top* — los más buscados de la semana
 
 ━━━━━ *HERRAMIENTAS* ━━━━━
 *${p}play* <nombre> ${c('play')} — canción _(pon también el artista)_

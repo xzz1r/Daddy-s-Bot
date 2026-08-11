@@ -1496,7 +1496,7 @@ const APUESTA_POBRE = [
   'Aquí no se juega con calderilla.',
 ];
 
-async function jugarApuesta(sock, msg, groupMeta) {
+async function jugarApuesta(sock, msg, groupMeta, args) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
     return sock.sendMessage(jid, { text: 'Esto solo se juega en grupos.' }, { quoted: msg });
@@ -1541,7 +1541,16 @@ async function jugarApuesta(sock, msg, groupMeta) {
     const p = esOwner ? APUESTA.p.owner : esAdmin ? APUESTA.p.admin : APUESTA.p.miembro;
     const gana = Math.random() < p;
 
-    const apuesta = Math.floor(saldo * APUESTA.fraccion);
+    // La cifra la pone el jugador; sin cifra, la mitad de siempre.
+    //
+    // Dos topes, los dos fisicos y no de diseño: no se puede apostar mas de lo
+    // que se tiene, ni menos del minimo. Si pide de mas se juega lo que tiene y
+    // se dice — recortar en silencio es lo que hacia que !robo pareciera roto.
+    const pedido = (args || []).slice(1).find(a => /^\d+$/.test(a));
+    const jugable = Math.max(0, saldo - APUESTA.suelo);
+    const bruto = pedido ? parseInt(pedido, 10) : Math.floor(saldo * APUESTA.fraccion);
+    const apuesta = Math.max(APUESTA.apuestaMin, Math.min(bruto, jugable || Math.floor(saldo * APUESTA.fraccion)));
+    const recortada = Boolean(pedido) && bruto > apuesta;
     // Perder nunca deja por debajo del arranque: quedarse a cero significaria no
     // poder ni hacer un sticker, y el castigo que se busca es el drama, no que
     // alguien deje de usar el bot.
@@ -1561,7 +1570,9 @@ async function jugarApuesta(sock, msg, groupMeta) {
     const text =
       `*APUESTA — ${gana ? 'GANA' : 'PIERDE'}*\n` +
       `╾━━━━━━━━━━━━━━╼\n\n` +
-      `${nm} puso *${fmt(apuesta)}* sobre la mesa.\n\n` +
+      `${nm} puso *${fmt(apuesta)}* sobre la mesa.` +
+      (recortada ? `\n_Ibas a por ${fmt(bruto)}, pero es todo lo que puedes cubrir._` : '') +
+      `\n\n` +
       `${frase}\n\n` +
       `${gana ? '+' : '−'}${fmt(Math.abs(delta))} → *${fmt(current)}* de aura`;
 
@@ -1628,7 +1639,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
   // comando ya se llamo asi antes y no tiene sentido romperle el habito a nadie
   // por un cambio de nombre.
   if (['apostar', 'apuesta', 'mitad', 'x2', 'ordago', 'órdago', 'allin', 'all-in', 'todo', 'mesa'].includes(sub)) {
-    return jugarApuesta(sock, msg, groupMeta);
+    return jugarApuesta(sock, msg, groupMeta, args);
   }
 
   const sender = getSender(msg);

@@ -27,6 +27,7 @@ const { flush: flushPfpCache } = require('./utils/pfpCache');
 const { sweepAllGroups, maybeIndex } = require('./utils/pfpIndexer');
 const { flushBanlist } = require('./utils/banlist');
 const { flushLinkPerms } = require('./utils/linkPerms');
+const { flushRobo } = require('./utils/roboStore');
 const { guardOnJoin } = require('./commands/fk');
 const { isBusiness } = require('./utils/businessCheck');
 const { ensureTemp, barrerHuerfanos } = require('./utils/helpers');
@@ -1001,7 +1002,7 @@ async function gracefulShutdown(code = 0) {
   const flushes = Promise.allSettled([
     flushState(), flushCounts(), flushAura(), flushCache(),
     flushCasino(), flushPfpHashes(), flushBanlist(), flushPfpCache(), flushNicks(), flushLinkPerms(),
-    flushJoinRequests(),
+    flushJoinRequests(), flushRobo(),
   ]);
   await Promise.race([flushes, new Promise(r => setTimeout(r, 3000))]);
   // Este es síncrono y no puede colgarse, así que va fuera de la carrera: es el

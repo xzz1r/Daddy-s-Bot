@@ -18,6 +18,7 @@ data/parado.json
 data/*.tmp
 data/ownerJids.json
 data/lidMap.json
+data/robo.json
 data/pfpcache/
 data/music_cache/
 temp/

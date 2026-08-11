@@ -202,7 +202,12 @@ function multiplicadorPerdida(pPositiva) {
 // más veces de las que se gana, que es lo que hace que ganar se cuente durante
 // una semana. Sube por rol igual que en la tirada normal.
 const APUESTA = {
-  fraccion: 0.5,        // cuánto del saldo se pone en la mesa
+  // La cantidad LA ELIGE quien juega: *!aura apostar 500*. La fracción es solo
+  // lo que se pone si no se dice cifra, para que el comando siga sirviendo a
+  // secas. Elegir cuánto es lo que convierte la apuesta en una decisión: jugarse
+  // 100 cuando tienes 4.000 y jugarse los 4.000 no son la misma jugada.
+  apuestaMin: 50,       // por debajo de esto no es arriesgar, es hacer ruido
+  fraccion: 0.5,        // cuánto del saldo se pone en la mesa si no se dice nada
   minimo: 300,          // por debajo no hay nada que arriesgar
   multiplicador: 2,     // ganar paga el doble de lo apostado
   suelo: ARRANQUE,      // perder nunca te deja por debajo del arranque
@@ -318,6 +323,48 @@ const ROBO_LIMITES = {
 // miseria le afectan, y su probabilidad nunca baja de aquí.
 const ROBO_OWNER_MIN = 0.78;
 
+// ─── Las dinámicas nuevas del robo ───────────────────────────────────────────
+//
+// Todo lo que añade el rework sale de aquí, para que no vuelva a haber cifras
+// del juego repartidas por los comandos.
+//
+// EL BOTE. Lo que pierde un ladrón cuando falla ya no se evapora entero: una
+// parte cae a un bote común que el grupo ve crecer. Reventarlo es una jugada
+// aparte, cara y poco probable, y el que lo revienta se lo lleva todo. Es la
+// pieza que convierte los fracasos ajenos en algo que todos miran.
+const BOTE = {
+  fraccionDeFallo: 0.45,   // cuánto de cada robo fallido cae al bote
+  entrada: 60,             // lo que cuesta intentar reventarlo
+  probabilidad: 0.16,      // y lo difícil que es. Bajo a propósito: es la gorda
+  minimoParaAsaltar: 150,  // por debajo de esto no merece la pena ni intentarlo
+};
+
+// LOS OBJETOS. Dan una decisión ANTES de robar, no solo al robar. Los precios
+// están puestos contra el botín típico (un robo medio mueve unos 40-60): un
+// escudo cuesta más que un robo bueno, así que comprarlo es renunciar a algo.
+const OBJETOS = {
+  escudo: { precio: 180, horas: 12, desc: 'nadie te puede robar durante 12 h' },
+  ganzua: { precio: 140, usos: 1,   bono: 0.18, desc: '+18 % en tu próximo robo' },
+  cebo:   { precio: 90,  horas: 8,  desc: 'aparentas el doble de aura durante 8 h' },
+};
+
+// EL CONTRAATAQUE. Tras un robo con éxito, la víctima tiene una ventana para
+// devolver el golpe a doble o nada. Es lo que convierte un robo en un
+// intercambio: el ladrón ya no se va de rositas, se queda mirando el chat.
+const CONTRA = {
+  ventanaSeg: 90,       // lo que tiene la víctima para responder
+  multiplicador: 2,     // recupera el doble de lo que le quitaron...
+  probabilidad: 0.42,   // ...con menos de una moneda al aire
+};
+
+// EL MÁS BUSCADO. El nº1 de la semana lleva diana: robarle a él paga más, y
+// además el resto del grupo sabe a quién ir. Sin esto el ranking sería una
+// tabla que nadie mira.
+const DIANA = {
+  bonoBotin: 0.35,      // robarle al nº1 da un 35 % más de botín
+  bonoProbabilidad: -0.05, // pero está en guardia: un pelo más difícil
+};
+
 // ─── !duel ───────────────────────────────────────────────────────────────────
 //
 // La apuesta se recorta a lo que los DOS pueden cubrir, con un techo absoluto,
@@ -392,6 +439,7 @@ module.exports = {
   TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, FAVOR_JUGADOR, multiplicadorPerdida, APUESTA,
   BONOS, REDENCION,
   ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, DUELO, REGALO_MIN,
+  BOTE, OBJETOS, CONTRA, DIANA,
   PRECIOS, SALDO_MINIMO,
   rango,
 };
