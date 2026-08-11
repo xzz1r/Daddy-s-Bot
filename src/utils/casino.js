@@ -12,6 +12,7 @@ const { incrementCasinoCount } = require('./casinoStore');
 const { getAura, addAura } = require('./auraStore');
 const { BONOS, REDENCION, SUELDO, rango } = require('./economia');
 const { pickFresh, fmt } = require('./helpers');
+const { isBotEnabled, isAuraEnabled } = require('./state');
 
 
 // ─── Phrases ──────────────────────────────────────────────────────────────────
@@ -32,7 +33,7 @@ const PHRASES = {
       'Tier 1 con bonificación. Mismo esfuerzo, mejor retorno. El aura no siempre paga igual.',
     ],
     jackpot: [
-      '💥 BOTE EN EL PRIMER TRAMO. 200 mensajes y el aura se desbordó. Los que no escriben que tomen nota.',
+      'BOTE EN EL PRIMER TRAMO. 200 mensajes y el aura se desbordó. Los que no escriben que tomen nota.',
       '200 mensajes y el aura reventó por arriba. Bono grande en el tramo de entrada. Raro y documentado.',
       'Bote gordo de aura en Tier 1. Poco habitual, completamente real, y el marcador lo confirma.',
     ],
@@ -50,7 +51,7 @@ const PHRASES = {
       '500 mensajes y el aura recompensó en serio. No todos llegan aquí; el que llega, cobra.',
     ],
     jackpot: [
-      '🎰 BOTE DE TIER 2. 500 mensajes y el aura se desbordó. De los premios que hacen abrir el chat.',
+      'BOTE DE TIER 2. 500 mensajes y el aura se desbordó. De los premios que hacen abrir el chat.',
       '500 mensajes y bote confirmado en Tier 2. Esto queda en el registro del grupo. Los inactivos que miren.',
       'Bote histórico de aura en Tier 2. 500 mensajes reales y un premio que el grupo no va a olvidar.',
     ],
@@ -68,17 +69,17 @@ const PHRASES = {
       '1000 mensajes reales y el aura soltó un bono de los que dan conversación durante días.',
     ],
     jackpot: [
-      '🏆 1000 MENSAJES — BOTE MÁXIMO DE AURA. El premio más alto que existe. El grupo acaba de ver algo poco común.',
+      '1000 MENSAJES, BOTE MÁXIMO DE AURA. El premio más alto que existe. El grupo acaba de ver algo poco común.',
       'Mil mensajes y el aura llegó a su bote máximo. Constancia legendaria, premio legendario. El grupo es testigo.',
-      '🏆 BOTE DE TIER 3 CONFIRMADO. 1000 mensajes y aura histórica. Esto va al hall de la fama sin discusión.',
+      'BOTE DE TIER 3 CONFIRMADO. 1000 mensajes y aura histórica. Esto va al hall de la fama sin discusión.',
     ],
   },
   redemption: [
-    '⚡ REMONTADA DE AURA — Estaba en el sótano y la actividad hizo lo que ninguna excusa consiguió. Bono de comeback. Esto no lo calcula nadie.',
-    '⚡ COMEBACK EN DIRECTO — Aura negativa, mensajes positivos. Aquí se premia la constancia antes que el cope, y el marcador acaba de cambiar de cara.',
-    '⚡ REDENCIÓN INESPERADA — El grupo daba ese aura por perdida. La actividad tiene su propia economía y acaba de hablar. Bote confirmado.',
-    '⚡ EL MARCADOR REESCRITO — Aura negativa, actividad real. Aquí no se juzga el historial, se juzga quién aparece. Resultado: bono de redención.',
-    '⚡ BONO DE REDENCIÓN — Lo que meses de excusas no arreglaron, la actividad lo resolvió sola. El aura cambia de signo y el grupo lo vio.',
+    'REMONTADA DE AURA — Estaba en el sótano y la actividad hizo lo que ninguna excusa consiguió. Bono de comeback. Esto no lo calcula nadie.',
+    'COMEBACK EN DIRECTO — Aura negativa, mensajes positivos. Aquí se premia la constancia antes que el cope, y el marcador acaba de cambiar de cara.',
+    'REDENCIÓN INESPERADA — El grupo daba ese aura por perdida. La actividad tiene su propia economía y acaba de hablar. Bote confirmado.',
+    'EL MARCADOR REESCRITO — Aura negativa, actividad real. Aquí no se juzga el historial, se juzga quién aparece. Resultado: bono de redención.',
+    'BONO DE REDENCIÓN — Lo que meses de excusas no arreglaron, la actividad lo resolvió sola. El aura cambia de signo y el grupo lo vio.',
   ],
 };
 
@@ -157,12 +158,36 @@ async function checkCasinoMilestone(sock, jid, sender) {
     : PHRASES[`tier${tier}`][label];
   const phrase = pickFresh(phrasePool, `${jid}|casino|${label}|${tier}`);
 
+  // ─── ¿Se anuncia, o se cobra y punto? ──────────────────────────────────────
+  //
+  // El aura SE PAGA SIEMPRE. Lo que se puede callar es el aviso, y hay dos
+  // motivos para callarlo. Los dos eran agujeros:
+  //
+  //  · CON EL BOT APAGADO (*!off*). Esta función se llama desde el pipeline de
+  //    mensajes ANTES del gate de isBotEnabled, así que el grupo seguía
+  //    recibiendo avisos de bono de un bot supuestamente apagado. Apagar el bot
+  //    significa que no habla, sin excepciones.
+  //  · CON LA DINÁMICA DE AURA APAGADA (*!aura off*). El interruptor se pidió
+  //    porque el juego se hacía pesado, y estos avisos son de lo más ruidoso
+  //    que tiene: uno por persona y por hito, en un grupo activo son decenas al
+  //    día. Apagar la dinámica y seguir recibiéndolos deja el interruptor a
+  //    medias, que es peor que no tenerlo.
+  //
+  // Cobrar sin avisar es exactamente el contrato que ya tiene el interruptor
+  // ("apaga el juego, no la moneda") y el mismo que usa el sueldo, que nunca
+  // dice nada. El saldo se mira en *!aura*.
+  if (!isBotEnabled(jid) || !isAuraEnabled(jid)) return;
+
   const userTag   = `@${sender.split('@')[0]}`;
   // Cabecera de aura, no de casino: el sistema tiene estructura de tramos y
   // botes, pero lo que se reparte es aura y el título lo deja claro.
-  const tierHdr   = tier === 3 ? '🏆 *BONO DE AURA · TIER 3 · 1000 MENSAJES*'
-                  : tier === 2 ? '🎰 *BONO DE AURA · TIER 2 · 500 MENSAJES*'
-                  :              '🎲 *BONO DE AURA · TIER 1 · 200 MENSAJES*';
+  //
+  // Sin emojis, como el resto del bot. Este fichero era el ÚNICO de todo src/
+  // que sacaba emojis por WhatsApp (doce líneas), y cantaba: el bot escribe en
+  // texto pelado en los otros ciento y pico sitios.
+  const tierHdr   = tier === 3 ? '*BONO DE AURA · TIER 3 · 1000 MENSAJES*'
+                  : tier === 2 ? '*BONO DE AURA · TIER 2 · 500 MENSAJES*'
+                  :              '*BONO DE AURA · TIER 1 · 200 MENSAJES*';
   const next      = nextMilestone(count);
   const nextLabel = next.tier === 3 ? 'Tier 3 (1000 msgs)'
                   : next.tier === 2 ? 'Tier 2 (500 msgs)'

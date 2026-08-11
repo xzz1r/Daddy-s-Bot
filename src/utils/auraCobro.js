@@ -69,6 +69,19 @@ const MISERIA = [
   'Tu aura no llega y tu paciencia tampoco va a llegar, porque esto tarda en subir.',
   'Nada. Ni un punto de más. Impecable gestión.',
   'Has intentado gastar lo que no tienes. Bienvenido a la economía, campeón.',
+  // Estas ocho llevan la boca sucia del bot. Las veintiocho de arriba están
+  // bien escritas pero eran todas del mismo registro: seco, irónico y limpio.
+  // Medido contra los pools veteranos de burla del bot, que usan vocabulario
+  // fuerte en una de cada cuatro frases, este salía al 4 % — o sea que el bot
+  // se ponía educado justo en el momento en el que más tiene que morder.
+  'No te llega ni de coña. Escribe algo, muerto de hambre.',
+  'Con esa mierda de saldo no compras nada. Vuelve cuando aportes.',
+  'Ni un duro. Vienes a pedir con los bolsillos vacíos y encima con prisa, cojones.',
+  'Que no te llega, joder. Y llevas así desde que entraste.',
+  'Cero. Te has plantado aquí a gastar sin tener y encima delante de todos, gilipollas.',
+  'Estás tieso y se te nota hasta en cómo escribes. Aparta.',
+  'No hay aura. Hay un pringado mirando un precio que no puede pagar.',
+  'Menuda puta miseria de cuenta. Aquí se viene llorado y con dinero.',
 ];
 
 // Texto del rechazo: el precio, el saldo y CÓMO remontar.

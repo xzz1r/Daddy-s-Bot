@@ -7,17 +7,31 @@ const AURA_FILE = path.join(__dirname, '../../data/aura.json');
 
 // Everyone starts here. Aura then accumulates (or bleeds) over time.
 //
-// ESCALA: la referencia es utils/economia.js — un miembro "millonario" del
-// grupo ronda los 5.000. El arranque son 100, o sea un 2 % de esa cifra.
+// ESCALA: la referencia es utils/economia.js, y NO se repite aquí ninguna de
+// sus cifras. Este comentario decía "un millonario ronda los 5.000, el arranque
+// son 100, o sea un 2 %" y las tres cifras se quedaron viejas a la vez en
+// cuanto se reequilibró la economía. Un comentario con números de otro fichero
+// es una copia que nadie actualiza.
 const { ARRANQUE: STARTING_AURA } = require('./economia');
 
 // Escalas anteriores, necesarias para reescalar lo que ya está guardado.
 // Cada entrada es el salto DESDE esa versión a la siguiente.
 //   v1 -> v2: arranque 1000 y bonos de 20k-150k. Bastaban unos días activos
 //             para llegar a siete dígitos, donde ganar o perder daba igual.
-//   v2 -> v3: el millonario baja de 10.000 a 5.000 y los bonos se recortan a
-//             una vigésima parte, para que las dinámicas (!robo, !aura) dejen
-//             de estar eclipsadas por el bono diario de escribir.
+//   v2 -> v3: el millonario baja a la mitad y los bonos se recortan a una
+//             vigésima parte, para que las dinámicas (!robo, !aura) dejen de
+//             estar eclipsadas por el bono diario de escribir.
+//
+// `arranque` es el arranque de la escala DE ORIGEN. El de destino se saca de la
+// escala siguiente (ver migrarEscala), no de STARTING_AURA: el reequilibrio
+// subió el arranque de 100 a 250 y eso desalineó la cadena, porque hasta
+// entonces ESCALAS[2].arranque y STARTING_AURA valían lo mismo por casualidad.
+//
+// Subir la escala actual (redenominar) NO es lo mismo que cambiar cuánto se
+// gana. El reequilibrio de los ingresos no añadió una escala 4 a propósito: los
+// saldos guardados siguen valiendo lo que valían, lo único que cambió es el
+// ritmo al que entran. Solo hace falta una escala nueva cuando los importes se
+// dividen o multiplican y hay que arrastrar lo ya guardado con ellos.
 const ESCALAS = {
   1: { arranque: 1000, factor: 200 },
   2: { arranque: 100,  factor: 2 },
@@ -61,10 +75,21 @@ function serialized(key, fn) {
 // quien nunca jugó (estaba justo en el arranque viejo) queda justo en el nuevo
 // en vez de aparecer con un saldo raro. El orden del ranking no cambia.
 //
-//   nuevo = ARRANQUE_NUEVO + (viejo - ARRANQUE_VIEJO) / FACTOR
+//   nuevo = ARRANQUE_DE_DESTINO + (viejo - ARRANQUE_DE_ORIGEN) / FACTOR
 //
 // Un saldo de la escala 1 pasa por los dos saltos seguidos, así que una cuenta
 // que nunca se migró llega igual de bien que una que ya iba por la 2.
+//
+// OJO CON EL DESTINO DE CADA SALTO. Aquí ponía STARTING_AURA en los dos, y
+// funcionaba solo porque el arranque de la escala 2 y el actual valían los dos
+// 100. Al subir el arranque a 250 la cadena empezó a mentir: el primer salto
+// dejaba el saldo centrado en 250 y el segundo le restaba 100, así que quien
+// nunca jugó (1.000 en la escala 1, o sea el arranque exacto) acababa en 325 en
+// vez de en 250 — 75 de aura de la nada, y a todo el mundo por igual.
+//
+// Solo afecta a un store que siga en la escala 1 (el que ya está en la 3 sale
+// por el return de arriba sin tocar nada), pero es una mina: basta con que
+// alguien restaure una copia vieja para que reparta ese regalo.
 function migrarEscala() {
   if (!store) return;
   const desde = store[CLAVE_ESCALA] || 1;
@@ -81,7 +106,10 @@ function migrarEscala() {
       for (let paso = desde; paso < ESCALA_ACTUAL; paso++) {
         const esc = ESCALAS[paso];
         if (!esc) continue;
-        v = STARTING_AURA + Math.round((v - esc.arranque) / esc.factor);
+        // El destino de este salto es el arranque de la escala a la que llega:
+        // el de la siguiente entrada, o el actual si ya es el último salto.
+        const destino = ESCALAS[paso + 1] ? ESCALAS[paso + 1].arranque : STARTING_AURA;
+        v = destino + Math.round((v - esc.arranque) / esc.factor);
       }
       g[k] = v;
       tocados++;
@@ -243,17 +271,22 @@ async function getAuraRanking(groupJid) {
 // Deja a todo el grupo en CERO.
 //
 // Antes borraba el grupo entero, y borrar no es lo mismo que poner a cero: sin
-// registro, getAura devuelve el arranque, así que el marcador quedaba en 100
-// para todos. Se veía como que el reset "no se había aplicado".
+// registro, getAura devuelve el arranque, así que el marcador quedaba en el
+// arranque para todos. Se veía como que el reset "no se había aplicado".
 //
 // Se escribe un 0 por persona, no por clave: quien tenga dos formas (@lid y
 // teléfono) se consolida en una sola. Si se dejaran las dos a cero, el ranking
 // —que descuenta un arranque por cada forma extra al fusionarlas— sacaría a esa
-// persona con −100 mientras el resto está en 0.
+// persona en negativo mientras el resto está en 0.
 //
 // Quien nunca ha tocado el bot no tiene registro y seguirá empezando en el
 // arranque la primera vez. Eso no es el reset fallando: es alguien que entra
 // nuevo, y el arranque existe para que pueda usar el bot desde el primer día.
+// Ojo con la asimetría, que el reequilibrio la hizo más grande: tras un reset
+// el grupo entero está en 0 y el que llegue mañana entra con el arranque
+// completo. Es asumible mientras el arranque sea poco más que un par de
+// compras; si algún día sube mucho más, habrá que dar el arranque también a
+// los reseteados o el reset premiará a los recién llegados.
 async function resetAura(groupJid) {
   await load();
   const g = store[groupJid];

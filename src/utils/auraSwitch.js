@@ -3,9 +3,17 @@
 // Apaga el JUEGO, no la moneda. Con la dinámica apagada:
 //   · no se puede tirar (!aura), apostar, robar, batirse en duelo ni dar aura;
 //   · el saldo de cada uno se queda exactamente donde estaba;
+//   · se SIGUE cobrando por escribir — el sueldo cada 25 mensajes y los bonos
+//     de 200/500/1000 — pero EN SILENCIO: el bot no anuncia los hitos;
 //   · el ranking (!aura top), la consulta (!aura @user) y el progreso diario
 //     siguen funcionando: son de leer, no hacen ruido;
 //   · los comandos de pago SIGUEN cobrando su precio.
+//
+// Lo de callar los hitos hubo que arreglarlo: casino.js no miraba este
+// interruptor, así que apagar la dinámica no silenciaba el mensaje MÁS ruidoso
+// que tiene (uno por persona y por hito, decenas al día en un grupo activo).
+// El interruptor se pidió justo por eso y se quedaba a medias, que es peor que
+// no tenerlo. Ahora el gate vive en casino.js, junto al cobro.
 //
 // Eso último es a propósito y es la decisión menos obvia de este fichero. Si al
 // apagar el aura los comandos pasaran a ser gratis, !play se convertiría en
