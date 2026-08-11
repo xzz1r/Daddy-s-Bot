@@ -13,13 +13,39 @@ const logger = require('./logger');
 //   • al conectar            → sweepAllGroups()      (backfill inicial)
 //
 // Una guarda TTL evita re-descargar la misma foto una y otra vez: como mucho se
-// baja una vez por cuenta cada INDEX_TTL_MS. Un pool con tope de concurrencia
-// evita ráfagas contra los servidores de WhatsApp.
-
+// baja una vez por cuenta cada INDEX_TTL_MS.
+//
+// ─── EL RITMO ES LO MÁS IMPORTANTE DE ESTE FICHERO ──────────────────────────
+//
+// Consultar la foto de perfil de alguien es una petición a WhatsApp. Hacerlo
+// cientos de veces seguidas es scraping, lo mire quien lo mire, y es de lo que
+// más rápido restringe una cuenta.
+//
+// Antes había un tope de concurrencia (3) pero NINGUNA pausa: en cuanto un
+// trabajo terminaba se lanzaba el siguiente, así que un grupo de 200 personas
+// salían a unas quince consultas por segundo durante trece segundos seguidos.
+// Ningún humano abre doscientos perfiles en trece segundos.
+//
+// Y el barrido se disparaba en CADA conexión. Con el bucle de reconexión que
+// hubo —sesenta reconexiones en tres minutos— eso son sesenta barridos
+// completos: miles de consultas de perfil en minutos. El log ya avisaba con un
+// `rate-overlimit` que en su momento pareció menor.
+//
+// Ahora va de una en una, con una pausa entre cada consulta. El barrido de un
+// grupo de 200 pasa de trece segundos a unos siete minutos, que para algo que
+// corre en segundo plano y sin prisa es exactamente lo que debe tardar.
 const INDEX_TTL_MS = 3 * 86400000; // no re-indexar la misma cuenta antes de 3 días
-const MAX_CONCURRENT = 3;
+const MAX_CONCURRENT = 1;          // de una en una: esto no es una descarga masiva
+const PAUSA_MS = 2000;             // y con dos segundos entre consulta y consulta
 const MAX_TRACKED = 8000;
 const MAX_QUEUE = 500; // tope de trabajos en cola (protege RAM en el barrido inicial)
+
+// El barrido inicial NO se repite en cada reconexión: se guarda cuándo se hizo
+// el último y no se vuelve a lanzar hasta pasadas seis horas. Reconectar no
+// descubre miembros nuevos —para eso ya está el indexado por mensaje y por
+// alta—, así que rebarrer al reconectar era puro coste sin información nueva.
+const BARRIDO_CADA_MS = 6 * 3600 * 1000;
+let ultimoBarrido = 0;
 
 const lastIndexed = new Map(); // account -> ts (última vez que se intentó)
 const queue = [];
@@ -36,7 +62,13 @@ function pump() {
   while (active < MAX_CONCURRENT && queue.length) {
     const job = queue.shift();
     active++;
-    job().catch(() => {}).finally(() => { active--; pump(); });
+    // La pausa va DESPUÉS de cada trabajo, no antes: así el ritmo se mantiene
+    // aunque la consulta sea instantánea por caché o falle enseguida. Ponerla
+    // antes solo retrasaría el primero y dejaría el resto en ráfaga igual.
+    job().catch(() => {}).finally(() => {
+      active--;
+      if (queue.length) setTimeout(pump, PAUSA_MS);
+    });
   }
 }
 
@@ -82,6 +114,13 @@ function maybeIndex(sock, pfpJid, groupJid) {
 // Escalonado por la cola (tope de concurrencia), así un grupo de 200 no dispara
 // 200 descargas de golpe. Se llama una vez al conectar.
 async function sweepAllGroups(sock) {
+  const ahora = Date.now();
+  if (ultimoBarrido && ahora - ultimoBarrido < BARRIDO_CADA_MS) {
+    logger.info('pfpIndexer: barrido omitido (se hizo hace menos de 6 h)');
+    return;
+  }
+  ultimoBarrido = ahora;
+
   let groups;
   try { groups = await sock.groupFetchAllParticipating(); }
   catch (e) { logger.warn(`pfpIndexer: no pude listar grupos: ${e.message}`); return; }
