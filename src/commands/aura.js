@@ -2,7 +2,7 @@ const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameU
 const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
-const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, FAVOR_JUGADOR, multiplicadorPerdida, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
+const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, FAVOR_JUGADOR, multiplicadorPerdida, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, SUELDO, rango } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
 const { BOTE } = require('../utils/economia');
@@ -1444,11 +1444,11 @@ function textoAuraInfo() {
 Es la moneda del grupo. Empiezas con *${fmt(ARRANQUE)}*. Un millonario del grupo ronda los *${fmt(MILLONARIO)}*.
 
 *CÓMO SE GANA*
-· *Escribiendo* — es la vía principal. Bonos automáticos al llegar a 200, 500 y 1000 mensajes en el día. El contador se reinicia cada 24h.
+· *Escribiendo* — es la vía principal y la única que da de verdad. Cobras un sueldo cada ${SUELDO.cada} mensajes del día, sin avisar, y encima caen bonos gordos al llegar a 200, 500 y 1000. El contador se reinicia cada 24h.
 · *!aura* — tiras el dado (${duracion(ROLL_COOLDOWN_MS)} de espera). Sube o baja. Con más de ${fmt(ACTIVIDAD_MSGS)} mensajes en *!count*, tiras con algo más de suerte.
 · *!robo @user <cantidad>* — le quitas aura a alguien. Se roba lo que pides; sin cantidad, sale una al azar. Cuanto más pides, menos probable es que salga.
 · *!duel @user <cantidad>* — apuesta 1v1. El retado acepta con *!duel aceptar*.
-· *!aura apostar* — la mitad de tu saldo a una carta, cada ${APUESTA.cooldownMin / 60}h. Mínimo ${fmt(APUESTA.minimo)}.
+· *!aura apostar <cantidad>* — a una carta, cada ${APUESTA.cooldownMin / 60}h. Sin cantidad va media cuenta. Hace falta tener ${fmt(APUESTA.minimo)}.
 · *!dar @user <cantidad>* — le pasas aura a alguien.
 
 _Los juegos mueven aura, pero a la larga ninguno da de comer: la casa se queda un pellizco. Lo que se acumula sale de escribir._
@@ -1514,7 +1514,7 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
   try {
     // Cooldown propio. Es el unico freno que necesita: encadenar apuestas arruina
     // por pura matematica (cada jugada multiplica el saldo por 1,5 o por 0,5, y
-    // a 42 % eso baja solo), asi que esto no esta para prohibir nada — esta para
+    // a 45 % eso baja solo), asi que esto no esta para prohibir nada — esta para
     // que la caida no ocurra en diez minutos.
     const ultimo = ultimaApuesta.get(clave) || 0;
     const queda = APUESTA_COOLDOWN_MS - (Date.now() - ultimo);

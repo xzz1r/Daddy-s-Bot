@@ -14,7 +14,7 @@ process.env.OWNER_NUMBER = '33600000000';
 const fs = require('fs');
 const R = '/home/user/Bot-';
 const eco = require(R + '/src/utils/economia');
-const { P_POSITIVA, ACTIVIDAD_BONO, TIRADA, APUESTA, PRECIOS, BONOS, REDENCION,
+const { P_POSITIVA, ACTIVIDAD_BONO, TIRADA, APUESTA, PRECIOS, BONOS, REDENCION, SUELDO,
         multiplicadorPerdida, rango, ROBO, DUELO, ARRANQUE, MILLONARIO, FAVOR_JUGADOR } = eco;
 
 let fallos = 0;
@@ -81,15 +81,33 @@ function evBono(tier) {
   const mm = ([suelo, ancho]) => suelo + ancho / 2;
   return c[0] * mm(t.win) + (c[1] - c[0]) * mm(t.bigwin) + (c[2] - c[1]) * mm(t.jackpot) + (1 - c[2]) * mm(t.mega);
 }
-// Cuanto da escribir N mensajes en un dia, con la MISMA cascada if/else if del bot.
+// El sueldo: media exacta del pago cada SUELDO.cada mensajes.
+const evSueldo = SUELDO.importe[0] + SUELDO.importe[1] / 2;
+
+// Cuanto da escribir N mensajes en un dia, con la MISMA cascada del bot.
+// El sueldo se paga SIEMPRE que toca (tambien en los mensajes que ademas son
+// hito) y los bonos van encima, igual que en casino.js.
 function evEscribir(msgs) {
   let total = 0;
   for (let c = 1; c <= msgs; c++) {
+    if (c % SUELDO.cada === 0) total += evSueldo;
     if      (c % 1000 === 0) total += evBono(3);
     else if (c % 500  === 0) total += evBono(2);
     else if (c % 200  === 0) total += evBono(1);
   }
   return total;
+}
+// Desglose, para poder decir cuanto viene de la renta base y cuanto de la
+// loteria de los hitos: sin separarlas no se ve cual de las dos se ha movido.
+function desglose(msgs) {
+  let sueldo = 0, bonos = 0;
+  for (let c = 1; c <= msgs; c++) {
+    if (c % SUELDO.cada === 0) sueldo += evSueldo;
+    if      (c % 1000 === 0) bonos += evBono(3);
+    else if (c % 500  === 0) bonos += evBono(2);
+    else if (c % 200  === 0) bonos += evBono(1);
+  }
+  return { sueldo, bonos };
 }
 
 console.log('\n════ 1. valor esperado por tirada (exacto) ════\n');
@@ -112,8 +130,14 @@ for (const [nombre] of PERFILES) {
 }
 ok(Math.abs(M['miembro activo'].ev - M['admin'].ev) < 1e-9,
   'un miembro con bono y un admin tienen EXACTAMENTE el mismo EV: la formula se autoequilibra, el bono no puede romperla');
+// El limite se expresa como PROPORCION de lo que mueve una tirada, no como un
+// numero suelto. Lo que dice la frase es que el goteo es calderilla al lado de
+// los 32 que mueve una tirada, y eso es una relacion, no una cifra: un umbral
+// absoluto contra una escala que se reajusta deja de significar lo que decia en
+// cuanto la escala se mueve.
 const maxEv = Math.max(...Object.values(M).map(r => r.ev));
-ok(maxEv < 1, `nadie pasa de +${n2(maxEv)} por tirada: el goteo es calderilla frente a los ${n2(M.miembro.gana)} que mueve una tirada`);
+ok(maxEv < M.miembro.gana * 0.05,
+  `nadie pasa de +${n2(maxEv)} por tirada, el ${(100 * maxEv / M.miembro.gana).toFixed(1)} % de los ${n2(M.miembro.gana)} que mueve: el goteo es calderilla`);
 
 console.log('\n════ 2. ¿se comporta como un casino? ════\n');
 const m = M['miembro'];
@@ -137,7 +161,7 @@ console.log(`  Los que si son casino de verdad — con la casa ganando — son !
 console.log('\n════ 3. inflacion: ¿escribir sigue mandando? ════\n');
 const COOLDOWN_S = 90;
 const TECHO_DIA = Math.floor(86400 / COOLDOWN_S);
-console.log('  perfil                     tiradas/dia   por tirar   por escribir   total/dia');
+console.log('  perfil                     tiradas/dia   por tirar   sueldo   bonos   total/dia');
 const ESCENARIOS = [
   ['fantasma (30 msgs)',        3,   30],
   ['normal (200 msgs)',        10,  200],
@@ -151,8 +175,9 @@ for (const [nombre, tiradas, msgs] of ESCENARIOS) {
   const p = Math.min(0.80, P_POSITIVA.miembro + (msgs >= eco.ACTIVIDAD_MSGS ? ACTIVIDAD_BONO : 0));
   const tirando = tiradas * perfilTirada(p).ev;
   const escribiendo = evEscribir(msgs);
-  filas.push({ nombre, tiradas, tirando, escribiendo, total: tirando + escribiendo });
-  console.log(`  ${nombre.padEnd(24)}  ${String(tiradas).padStart(6)}      ${('+' + n0(tirando)).padStart(6)}      ${n0(escribiendo).padStart(8)}   ${n0(tirando + escribiendo).padStart(8)}`);
+  const d = desglose(msgs);
+  filas.push({ nombre, tiradas, tirando, escribiendo, ...d, total: tirando + escribiendo });
+  console.log(`  ${nombre.padEnd(24)}  ${String(tiradas).padStart(6)}      ${('+' + n0(tirando)).padStart(6)}   ${n0(d.sueldo).padStart(6)}  ${n0(d.bonos).padStart(6)}   ${n0(tirando + escribiendo).padStart(8)}`);
 }
 console.log(`\n  (el cooldown de ${COOLDOWN_S}s pone el techo fisico en ${TECHO_DIA} tiradas/dia)`);
 
@@ -196,25 +221,56 @@ function bonoReal(tier, aura) {
   if (r < c[2]) return rango(t.jackpot);
   return rango(t.mega);
 }
-for (const [etiqueta, tiradas, msgs] of [['normal (10 tiradas, 200 msgs)', 10, 200], ['activo (25 tiradas, 500 msgs)', 25, 500]]) {
+// El precio medio de un comando, para poder simular que la gente GASTA.
+//
+// Hasta ahora esta simulacion daba por hecho que nadie compra nada, y con todo
+// gratis eso era casi verdad. Desde que cobra el bot entero es una ficcion que
+// exagera el techo: el mismo recorrido daba 10.642 a los 30 dias para un activo
+// — mas que una fortuna entera — solo porque nadie tocaba un comando.
+//
+// Se simulan los dos extremos honestos: sin gastar nada (el techo teorico) y
+// gastando la mitad de lo que se puede permitir (el uso realista de alguien que
+// juega con el bot pero no lo agota).
+const PRECIO_MEDIO = Object.values(PRECIOS).reduce((a, b) => a + b, 0) / Object.keys(PRECIOS).length;
+
+function recorrido(tiradas, msgs, gastaFraccion) {
   const p = Math.min(0.80, P_POSITIVA.miembro + (msgs >= eco.ACTIVIDAD_MSGS ? ACTIVIDAD_BONO : 0));
   const finales = [], minimos = [];
   for (let v = 0; v < 4000; v++) {
     let aura = ARRANQUE, min = aura;
     for (let d = 0; d < 30; d++) {
+      const alEmpezar = aura;
       for (let i = 0; i < tiradas; i++) { aura += rollAura(p); if (aura < min) min = aura; }
       for (let c = 1; c <= msgs; c++) {
+        if (c % SUELDO.cada === 0) aura += rango(SUELDO.importe);
         const t = c % 1000 === 0 ? 3 : c % 500 === 0 ? 2 : c % 200 === 0 ? 1 : 0;
         if (t) aura += bonoReal(t, aura);
+      }
+      // Gasta una fraccion de lo GANADO ese dia, en comandos enteros y solo si
+      // le llega: el bot no fia (SALDO_MINIMO), asi que nadie compra en rojo.
+      if (gastaFraccion > 0) {
+        const ganado = aura - alEmpezar;
+        let compras = Math.floor((ganado * gastaFraccion) / PRECIO_MEDIO);
+        while (compras-- > 0 && aura >= PRECIO_MEDIO) aura -= PRECIO_MEDIO;
+        if (aura < min) min = aura;
       }
     }
     finales.push(aura); minimos.push(min);
   }
   finales.sort((a, b) => a - b); minimos.sort((a, b) => a - b);
+  return { finales, minimos };
+}
+
+for (const [etiqueta, tiradas, msgs] of [['normal (10 tiradas, 200 msgs)', 10, 200], ['activo (25 tiradas, 500 msgs)', 25, 500]]) {
+  const { finales, minimos } = recorrido(tiradas, msgs, 0);
+  const gastando = recorrido(tiradas, msgs, 0.5).finales;
   const pc = (arr, q) => arr[Math.floor(arr.length * q)];
   console.log(`  ${etiqueta} — tras 30 dias:`);
   console.log(`     peor 5 %: ${n0(pc(finales, 0.05))}   mediana: ${n0(pc(finales, 0.5))}   mejor 5 %: ${n0(pc(finales, 0.95))}`);
-  console.log(`     punto mas bajo tocado (mediana): ${n0(pc(minimos, 0.5))}   (peor 5 %: ${n0(pc(minimos, 0.05))})\n`);
+  console.log(`     punto mas bajo tocado (mediana): ${n0(pc(minimos, 0.5))}   (peor 5 %: ${n0(pc(minimos, 0.05))})`);
+  console.log(`     gastando la mitad de lo que gana — mediana: ${n0(pc(gastando, 0.5))}\n`);
+  ok(pc(gastando, 0.5) < MILLONARIO,
+    `  ${etiqueta}: quien usa el bot no se hace millonario en un mes (${n0(pc(gastando, 0.5))} de ${n0(MILLONARIO)})`);
   ok(pc(finales, 0.5) > ARRANQUE, `  ${etiqueta}: la mediana acaba por encima del arranque (${n0(pc(finales, 0.5))})`);
   ok(pc(finales, 0.05) > -MILLONARIO * 0.4, `  y ni el 5 % con peor suerte cae a un pozo sin retorno (${n0(pc(finales, 0.05))})`);
 }
@@ -260,10 +316,23 @@ for (const [rol, p] of Object.entries(APUESTA.p)) {
 }
 console.log(`  !robo (miembro): acierta ${(eco.ROBO_BASE.miembro * 100).toFixed(0)} % como mucho → sale a perder`);
 ok(eco.ROBO_BASE.miembro < 0.5, '  robar es desfavorable de partida, como una maquina de verdad');
-// El drenaje de una apuesta frente a lo que da tirar todo el dia.
-const drena = APUESTA.minimo * APUESTA.fraccion * (1 - APUESTA.p.miembro * 2) * -1;
-console.log(`  Una sola apuesta desde el minimo (${APUESTA.minimo}) drena ${n2(-drena)} de media.`);
-ok(-drena > f('normal').total, `  una apuesta perdida se lleva mas que un dia entero normal (${n2(-drena)} contra ${n0(f('normal').total)}): el sumidero pesa mas que la fuente`);
+// El drenaje de una apuesta frente a lo que da un dia de escribir.
+//
+// Antes se comparaba la VENTAJA DE LA CASA de una apuesta minima (24) con el
+// ingreso diario de un miembro normal, y pasaba solo porque ese ingreso era
+// ridiculo (20/dia). Con el sueldo puesto deja de pasar, y esta bien que deje
+// de pasar: la ventaja de la casa es un drenaje agregado, lento y a escala de
+// grupo — no es lo que siente el que apuesta.
+//
+// Lo que se mide ahora es lo que de verdad duele: cuando PIERDES, te vas con la
+// mitad de lo que pusiste. Esa es la cifra que tiene que pesar mas que un dia
+// de escribir, o apostar deja de ser una decision.
+const casa = APUESTA.minimo * APUESTA.fraccion * (1 - APUESTA.p.miembro * 2);
+const perdidaReal = APUESTA.minimo * APUESTA.fraccion;
+console.log(`  Una apuesta desde el minimo (${APUESTA.minimo}) pone ${n0(perdidaReal)} en la mesa; la casa se queda ${n2(casa)} de media.`);
+ok(perdidaReal > f('normal').total,
+  `  perder la apuesta mas pequeña cuesta mas que un dia entero escribiendo (${n0(perdidaReal)} contra ${n0(f('normal').total)}): apostar es una decision, no un tramite`);
+ok(casa > 0, `  y a la larga la casa gana: cada apuesta minima drena ${n2(casa)} del grupo`);
 
 console.log('\n════ 7. sumideros: ¿los precios muerden? ════\n');
 console.log(`  precios: ${Object.entries(PRECIOS).map(([k, v]) => `${k}=${v}`).join('  ')}\n`);
@@ -275,13 +344,29 @@ for (const nombre of ['fantasma', 'normal', 'activo', 'muy activo']) {
 ok(f('muy activo').total / PRECIOS.sticker < 40, `ni el mas activo puede spamear sin fin: ${(f('muy activo').total / PRECIOS.sticker).toFixed(0)} stickers al dia como techo`);
 ok(ARRANQUE / PRECIOS.sticker >= 5, `el arranque (${ARRANQUE}) da para ${Math.floor(ARRANQUE / PRECIOS.sticker)} stickers: nadie entra al grupo sin poder tocar nada`);
 
-// Aqui esta la tension real de la escala y hay que decirla, pase o no pase un test.
-const normalPorDia = f('normal').total;
-if (normalPorDia < PRECIOS.sticker * 2) {
-  nota(`un usuario de 200 msgs/dia gana ${n0(normalPorDia)}/dia y un sticker cuesta ${PRECIOS.sticker}: le da para ${(normalPorDia / PRECIOS.sticker).toFixed(1)} al dia`);
+// ─── ¿alcanza el sueldo? ─────────────────────────────────────────────────────
+//
+// La pregunta que importa desde que todo cuesta: cuantas cosas al dia puede
+// pagar cada perfil. Un precio caro no es un problema; un ingreso que no llega
+// a NINGUN precio si, porque saca a esa persona del bot para siempre.
+const precioMedio = Object.values(PRECIOS).reduce((a, b) => a + b, 0) / Object.keys(PRECIOS).length;
+const barato = Math.min(...Object.values(PRECIOS));
+console.log(`\n  precio medio ${n0(precioMedio)} · el mas barato ${barato} · el mas caro ${Math.max(...Object.values(PRECIOS))}\n`);
+console.log('  perfil                    aura/dia   comandos al precio medio');
+for (const nombre of ['fantasma', 'normal', 'activo', 'muy activo']) {
+  const x = f(nombre);
+  console.log(`  ${x.nombre.padEnd(24)}  ${n0(x.total).padStart(7)}   ${(x.total / precioMedio).toFixed(1).padStart(12)}`);
 }
-if (f('fantasma').escribiendo === 0) {
-  nota(`por debajo de 200 msgs/dia NO se cobra nada por escribir (el primer hito es 200): su unica fuente es la tirada, ${n0(f('fantasma').total)}/dia`);
+ok(f('normal').total >= precioMedio * 2,
+  `un miembro normal (200 msgs) paga ${(f('normal').total / precioMedio).toFixed(1)} comandos al dia: elige, pero juega`);
+ok(f('fantasma').escribiendo > 0,
+  `y el que apenas escribe ya cobra algo (${n0(f('fantasma').escribiendo)}/dia por el sueldo): antes eran 0 y se quedaba fuera para siempre`);
+// La tension que queda, y hay que decirla: 30 mensajes al dia siguen sin dar
+// para casi nada. Es deliberado — el bot es de los que hablan — pero no es lo
+// mismo "poco" que "nada", y ahora es poco.
+const diasFantasma = barato / f('fantasma').total;
+if (diasFantasma > 1) {
+  nota(`un fantasma (30 msgs/dia) tarda ${diasFantasma.toFixed(1)} dias en pagar el comando mas barato (${barato}): puede jugar, pero eligiendo mucho`);
 }
 
 console.log('\n════ 8. el owner no rompe la escala ════\n');

@@ -10,7 +10,7 @@
 
 const { incrementCasinoCount } = require('./casinoStore');
 const { getAura, addAura } = require('./auraStore');
-const { BONOS, REDENCION, rango } = require('./economia');
+const { BONOS, REDENCION, SUELDO, rango } = require('./economia');
 const { pickFresh, fmt } = require('./helpers');
 
 
@@ -129,6 +129,18 @@ function nextMilestone(count) {
 
 async function checkCasinoMilestone(sock, jid, sender) {
   const count = await incrementCasinoCount(jid, sender);
+
+  // El sueldo, antes que los hitos: cada 25 mensajes cae la renta base y NO se
+  // anuncia. Es lo que hace que quien no llega a los 200 del día siga teniendo
+  // con qué usar el bot, sin meter un solo mensaje más en el chat.
+  //
+  // Se paga también en los mensajes que además son hito (200, 500 y 1000 son
+  // todos múltiplos de 25): son dos conceptos distintos y sumarlos es lo
+  // correcto. En el aviso del hito solo se cita el bono, que es lo que se
+  // celebra; el sueldo ya está dentro del saldo que se muestra.
+  if (count % SUELDO.cada === 0) {
+    await addAura(jid, sender, rango(SUELDO.importe));
+  }
 
   let tier = 0;
   if      (count % 1000 === 0) tier = 3;

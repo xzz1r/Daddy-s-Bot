@@ -6,7 +6,7 @@
 // por una canción que no llegó.
 
 const { spendAura, addAura } = require('./auraStore');
-const { PRECIOS, SALDO_MINIMO } = require('./economia');
+const { PRECIOS, SALDO_MINIMO, SUELDO } = require('./economia');
 const { fmt, pickFresh } = require('./helpers');
 const { isOwner } = require('./wa');
 
@@ -90,7 +90,7 @@ function textoSinSaldo(concepto, { precio, saldo }, jid) {
   const burla = pickFresh(MISERIA, `${jid || 'x'}|miseria`);
   return `${burla}\n\n` +
     `_Cuesta *${fmt(precio)}* y tienes *${fmt(saldo)}*._\n` +
-    `_Se gana escribiendo (hay bonos a los 200, 500 y 1000 mensajes del día) y tirando con *!aura*._`;
+    `_Se gana escribiendo: cobras cada ${SUELDO.cada} mensajes del día, y hay bonos gordos a los 200, 500 y 1000. Tirar con *!aura* da propina._`;
 }
 
 module.exports = { cobrar, devolver, textoSinSaldo, MISERIA };

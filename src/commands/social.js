@@ -3,7 +3,7 @@ const { formatUptime, fmt, pickFresh } = require('../utils/helpers');
 const { isOwner, getSender } = require('../utils/wa');
 const { getCasinoCount, msUntilReset } = require('../utils/casinoStore');
 const { nextMilestone } = require('../utils/casino');
-const { PRECIOS, APUESTA, CONTRA } = require('../utils/economia');
+const { PRECIOS, APUESTA, CONTRA, SUELDO } = require('../utils/economia');
 const config = require('../config');
 const logger = require('../utils/logger');
 
@@ -155,9 +155,16 @@ async function cmdCasino(sock, msg) {
   const mins  = Math.floor((ms % 3_600_000) / 60_000);
   const resetStr = ms > 0 ? `${hours}h ${mins}min` : 'pronto';
 
+  // El sueldo no manda mensaje al grupo cuando cae — a propósito, para no
+  // llenar el chat — así que este es el ÚNICO sitio donde se ve. Sin esta línea
+  // el ingreso principal de quien escribe poco sería invisible y nadie sabría
+  // que existe.
+  const faltaSueldo = SUELDO.cada - (count % SUELDO.cada);
+
   const text =
     `*AURA — HOY*\n\n` +
     `Mensajes hoy: *${fmt(count)}*\n` +
+    `Sueldo: cada ${SUELDO.cada} msgs — faltan *${fmt(faltaSueldo)}*\n` +
     `Próximo bono: ${tierLabel} — faltan *${fmt(remaining)}* msgs\n` +
     `${pickFresh(AURA_LINES, `${jid}|auralines`)}\n\n` +
     `_Reset en ${resetStr}_`;
@@ -208,8 +215,9 @@ _De más crudo a más suave. Los de la lista, ${PRECIOS.percent} cada uno._
 *${p}rizz* ${c('rizz')} · *${p}piropo* · *${p}wingman* — modo ligue
 
 ━━━━━ *AURA* ━━━━━
-_Se gana escribiendo. Bonos diarios a los 200, 500 y 1000 msg._
-*${p}aura* [@user] — ver aura · *${p}aura top* — ranking
+_Se gana escribiendo: sueldo cada ${SUELDO.cada} msg y bonos gordos a los 200,_
+_500 y 1000 del día. Tirar solo da propina._
+*${p}aura* — tirar · *${p}aura* @user — ver · *${p}aura top* — ranking
 *${p}aura apostar* [cantidad] — a una carta, cada ${APUESTA.cooldownMin / 60}h.
 Sin cifra va la mitad. Mínimo ${APUESTA.minimo} de saldo para jugar
 *${p}aura hoy* — tu progreso de hoy _(o ${p}casino)_
@@ -218,9 +226,8 @@ Sin cifra va la mitad. Mínimo ${APUESTA.minimo} de saldo para jugar
 *${p}robo* @user <cantidad> — robar. Elige cuánto: ni el mínimo
 ni el tope son la mejor apuesta _(5 desenlaces)_
 *${p}robo bote* · *${p}robo asalto* — el bote crece con cada fallo
-*${p}robo tienda* — escudo, ganzúa y cebo
+*${p}robo tienda* — escudo, ganzúa y cebo · *${p}robo top* — buscados
 *${p}robo contra* — devolver el golpe, ${CONTRA.ventanaSeg}s tras ser robado
-*${p}robo top* — los más buscados de la semana
 
 ━━━━━ *HERRAMIENTAS* ━━━━━
 *${p}play* <nombre> ${c('play')} — canción _(pon también el artista)_
