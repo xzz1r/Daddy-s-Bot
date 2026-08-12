@@ -1,16 +1,16 @@
 // Escala única de la economía de aura. Todo lo que reparte, cobra o mueve aura
 // lee de aquí, para que no haya dos sitios con números que se contradigan.
 //
-// REFERENCIA: un miembro MILLONARIO del grupo ronda los 8.000 de aura.
+// REFERENCIA: un miembro MILLONARIO del grupo ronda los 5.000 de aura.
 // Con eso fijado, el resto sale solo:
 //
-//   arranque .................     250   (3 % de un millonario)
-//   sueldo (cada 25 msgs) ....    7-13   (silencioso, sin mensaje al grupo)
+//   arranque .................     250   (5 % de un millonario)
+//   sueldo (cada 10 msgs) ....     1-3   (silencioso, sin mensaje al grupo)
 //   tirada floja de !aura ....   10-25
 //   tirada buena de !aura ....   40-80
-//   bono tier 1 (200 msgs) ...   12-78
-//   bono tier 2 (500 msgs) ...  47-230
-//   bono tier 3 (1000 msgs) .. 112-475  (un 6 % de millonario en el mejor caso)
+//   bono tier 1 (200 msgs) ...    8-52
+//   bono tier 2 (500 msgs) ...   35-170
+//   bono tier 3 (1000 msgs) ..   90-380  (un 8 % de millonario en el mejor caso)
 //   robo .....................   5-200   (lo que se pida, o al azar sin cifra)
 //   duelo ....................  10-300
 //   apuesta (!aura apostar) ..  la que se elija, o media cuenta
@@ -29,40 +29,52 @@
 // gratis eso daba igual; con todo de pago significa quedarse fuera del bot para
 // siempre. Ese es el grueso de cualquier grupo.
 //
-// Se arregla por los dos lados:
+// LA SOLUCIÓN ES UNA SOLA COSA: EL SUELDO. Cada 10 mensajes se cobra un pago
+// pequeño, y SIN mensaje al grupo. Es la renta base: proporcional a lo que
+// escribes desde el primer tramo, sin hitos que alcanzar y sin añadir un solo
+// aviso al chat (el juego ya se acusó de pesado una vez; esto no repite el
+// error). Los bonos de 200/500/1000 NO se tocan: siguen siendo el premio
+// ocasional y visible, con las cifras que ya estaban calibradas.
 //
-//   1. EL SUELDO. Cada 25 mensajes se cobra un pago pequeño, y SIN mensaje al
-//      grupo. Es la renta base: proporcional a lo que escribes desde el primer
-//      tramo, sin hitos que alcanzar y sin añadir un solo aviso al chat (el
-//      juego ya se acusó de pesado una vez; esto no repite el error).
-//   2. LOS BONOS SUBEN. Los hitos de 200/500/1000 siguen siendo la parte
-//      celebrada y visible, con importes que ahora compran algo de verdad.
+// LA PRIMERA VERSIÓN SE PASÓ Y HUBO QUE RECORTARLA. El sueldo salió a 10 de
+// aura cada 25 mensajes y además se inflaron los bonos, y entre las dos cosas
+// un miembro normal ingresaba cinco veces y media lo de antes. El efecto en el
+// grupo fue el contrario del buscado: los precios, que se acababan de subir a
+// propósito para que costaran, volvieron a ser calderilla.
+//
+// Corregido a la mitad por mensaje (0,20) y al doble y medio de frecuencia. La
+// forma importa tanto como la cantidad: se cobra poco y a menudo, así el saldo
+// se mueve constantemente y sube despacio, en vez de dar saltos.
 //
 // Calibrado contra una simulación de 30 días, contando las tres fuentes:
 //
-//   perfil        msgs/día   sueldo   bonos   tirando   total   comandos/día
-//   fantasma            30       10       0        +1      11        0,3
-//   normal             200       80      24        +4     108        3,1
-//   activo             500      200     135       +10     345       10,0
-//   muy activo       1.200      480     420       +22     922       26,6
+//   perfil        msgs/día   sueldo   bonos   tirando   total   antes   comandos/día
+//   fantasma            30        6       0        +1       7       1        0,2
+//   normal             200       40      16        +4      60      20        1,7
+//   activo             500      100      97       +10     207     107        6,0
+//   muy activo       1.200      240     315       +22     577     337       16,7
 //
-// La última columna es lo que de verdad importa: cuántos comandos al precio
-// medio (35) puede pagar cada perfil al día. Un normal elige tres cosas, un
-// activo va sobrado y un fantasma tarda un día en pagar lo más barato. Esa
-// escalera es el producto.
+// O sea entre el doble y el triple de lo que había, que es lo que se pidió. La
+// columna que manda es la última: cuántos comandos al precio medio (35) paga
+// cada perfil al día. Un normal elige UNO y se queda con ganas; un activo hace
+// media docena; un fantasma tarda casi dos días en pagar lo más barato. Que
+// haya que elegir es el producto entero.
 //
 // Y el otro dato, medido gastando de verdad (media de 4.000 recorridos de 30
-// días, comprando la mitad de lo que se gana): un normal acaba el mes con 2.000
-// y un activo con 5.800. Sin gastar nada serían 3.500 y 10.600 — la diferencia
-// entre esas dos columnas es exactamente lo que los precios drenan, y es lo que
-// permite subir los ingresos sin que la escala se infle.
+// días, comprando la mitad de lo que se gana): un normal acaba el mes con 1.000
+// y un activo con 3.459. Sin gastar nada serían 2.061 y 6.463 — la diferencia
+// entre esas dos columnas es exactamente lo que los precios drenan.
 //
 // La regla que sostiene todo lo demás: ESCRIBIR MANDA. Jugar da un goteo
 // positivo — pequeño a propósito — pero para igualar media jornada de escribir
 // hay que pasarse el día entero dándole al botón. Cuando eso deja de cumplirse,
 // la escala entera sobra.
 
-const MILLONARIO = 8000;
+// Vuelve a 5.000 al recortar los ingresos. Subió a 8.000 cuando la cuenta de
+// 30 días daba 10.600 para un activo; con el sueldo recortado esa misma cuenta
+// da 3.459 gastando la mitad, así que 8.000 dejaba de ser "una fortuna del
+// grupo" para ser un número inalcanzable.
+const MILLONARIO = 5000;
 
 // Con qué se entra al grupo. Estaba en 100 y con los precios nuevos daba para
 // dos stickers: el recién llegado se quedaba seco antes de entender de qué va
@@ -289,27 +301,36 @@ const APUESTA = {
 //
 // Si algún día hay que frenar la inflación, ESTE es el número que se toca
 // primero: es el único ingreso que crece linealmente y sin techo.
+// MENOS CANTIDAD Y MÁS VECES. Empezó en 25 mensajes por 7-13 de aura (media 10,
+// o sea 0,40 por mensaje) y era demasiado: con eso un miembro normal ingresaba
+// cinco veces y media lo de antes y los precios se volvían calderilla.
+//
+// Ahora cae cada 10 mensajes y paga 1-3 (media 2). Por mensaje es la MITAD
+// (0,20) y cae dos veces y media más a menudo. Esa es la textura que se buscaba:
+// el saldo se mueve constantemente y sube despacio, en vez de dar saltos.
 const SUELDO = {
-  cada: 25,             // cada cuántos mensajes del día cae
-  importe: [7, 6],      // [suelo, ancho] → 7-13, media 10
+  cada: 10,             // cada cuántos mensajes del día cae
+  importe: [1, 2],      // [suelo, ancho] → 1-3, media 2
 };
 
 // ─── Bonos por actividad (tramos de 200 / 500 / 1000 mensajes diarios) ───────
 //
 // [suelo, rango] por etiqueta. El importe final es suelo + rand(rango).
 //
-// Subidos al reequilibrar: un tier 1 pagaba 16 de media contra un precio medio
-// de 35, o sea que llegar al hito no compraba ni una cosa. Ahora un tier 1
-// paga 24 (dos tercios de un comando), un tier 2 paga 87 y un tier 3 paga 212.
+// SE SUBIERON Y SE HAN DEVUELTO A DONDE ESTABAN. Al reequilibrar se inflaron un
+// 50 % el tier 1 y un 25 % el tier 3, y sumado al sueldo daba un ingreso cinco
+// veces y media el de antes para un miembro normal. Demasiado: con eso los
+// precios dejaban de morder y un comando pasaba a ser calderilla, que es
+// justo lo contrario de lo que se pidió cuando se subieron.
 //
-// La subida es DELIBERADAMENTE desigual: el tier 1 sube la mitad y el tier 3 un
-// cuarto. Quien escribe mil mensajes al día ya iba sobrado; el que se quedaba
-// fuera de la economía era el de doscientos, y es a ese al que hay que arreglar
-// la cuenta.
+// Estas cifras estaban calibradas y funcionaban. Lo único que sobraba en la
+// economía era que NO HUBIERA NADA por debajo de los 200 mensajes, y eso lo
+// arregla el sueldo, no inflar los botes. Un hito tiene que seguir siendo un
+// premio ocasional; el goteo constante es cosa del sueldo.
 const BONOS = {
-  1: { win: [12, 9],   bigwin: [21, 12],  jackpot: [33, 18],  mega: [51, 27] },
-  2: { win: [47, 27],  bigwin: [74, 34],  jackpot: [108, 47], mega: [162, 68] },
-  3: { win: [112, 50], bigwin: [162, 75], jackpot: [238, 100], mega: [325, 150] },
+  1: { win: [8, 6],   bigwin: [14, 8],  jackpot: [22, 12], mega: [34, 18] },
+  2: { win: [35, 20], bigwin: [55, 25], jackpot: [80, 35], mega: [120, 50] },
+  3: { win: [90, 40], bigwin: [130, 60], jackpot: [190, 80], mega: [260, 120] },
 };
 
 // Premio de redención para quien está en negativo. Su función es sacar a
@@ -318,9 +339,9 @@ const BONOS = {
 // anteriores no era así: en tier 3 la redención pagaba 200-350 mientras un bote
 // normal daba 260-380, o sea que estar hundido salía peor que no estarlo.
 const REDENCION = {
-  1: [85, 60],    // por encima del mega de tier 1 (51-78)
-  2: [250, 150],  // por encima del mega de tier 2 (162-230)
-  3: [500, 300],  // por encima del mega de tier 3 (325-475)
+  1: [55, 45],    // por encima del mega de tier 1 (34-52)
+  2: [180, 120],  // por encima del mega de tier 2 (120-170)
+  3: [400, 250],  // por encima del mega de tier 3 (260-380)
 };
 // ─── !robo ───────────────────────────────────────────────────────────────────
 //

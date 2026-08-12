@@ -357,8 +357,20 @@ for (const nombre of ['fantasma', 'normal', 'activo', 'muy activo']) {
   const x = f(nombre);
   console.log(`  ${x.nombre.padEnd(24)}  ${n0(x.total).padStart(7)}   ${(x.total / precioMedio).toFixed(1).padStart(12)}`);
 }
-ok(f('normal').total >= precioMedio * 2,
-  `un miembro normal (200 msgs) paga ${(f('normal').total / precioMedio).toFixed(1)} comandos al dia: elige, pero juega`);
+// El umbral es UNO, no dos, y la diferencia importa.
+//
+// Lo puse en dos cuando los ingresos estaban altos y era una cifra cómoda, no
+// una regla. La regla de verdad es la que arreglaba el agujero original: nadie
+// puede quedarse SIN PODER TOCAR EL BOT. Con uno al día un miembro normal
+// elige una cosa y se queda con ganas, que es exactamente lo que tiene que
+// pasar para que un precio se note. Con dos ya no elegía nada.
+//
+// Si esto vuelve a subir por encima de dos sin que se haya pedido, es que los
+// ingresos se han vuelto a ir de las manos.
+ok(f('normal').total >= precioMedio,
+  `un miembro normal (200 msgs) paga ${(f('normal').total / precioMedio).toFixed(1)} comandos al dia: elige uno y se queda con ganas`);
+ok(f('normal').total < precioMedio * 3,
+  `  y no llega a tres (${(f('normal').total / precioMedio).toFixed(1)}): los precios siguen mordiendo`);
 ok(f('fantasma').escribiendo > 0,
   `y el que apenas escribe ya cobra algo (${n0(f('fantasma').escribiendo)}/dia por el sueldo): antes eran 0 y se quedaba fuera para siempre`);
 // La tension que queda, y hay que decirla: 30 mensajes al dia siguen sin dar
