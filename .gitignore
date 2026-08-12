@@ -19,6 +19,9 @@ data/*.tmp
 data/ownerJids.json
 data/lidMap.json
 data/robo.json
+# La racha de dias seguidos de cada uno. Es estado del grupo, como el resto:
+# subirlo al repo publicaria quien aparece cada dia y a que hora.
+data/racha.json
 data/pfpcache/
 data/music_cache/
 temp/

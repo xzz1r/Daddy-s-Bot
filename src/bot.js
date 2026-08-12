@@ -20,6 +20,7 @@ const { notarSolicitud, olvidarSolicitud, sondear, reactivarSondeo, frenoNuevo, 
 const { flushCounts } = require('./utils/messageCounter');
 const { flushAura } = require('./utils/auraStore');
 const { flushCasino } = require('./utils/casinoStore');
+const { flushRacha } = require('./utils/rachaStore');
 const { flushNicks, recordFacts } = require('./utils/nickStore');
 const { flushCache } = require('./utils/musicCache');
 const { flush: flushPfpHashes } = require('./utils/pfpStore');
@@ -1002,7 +1003,7 @@ async function gracefulShutdown(code = 0) {
   const flushes = Promise.allSettled([
     flushState(), flushCounts(), flushAura(), flushCache(),
     flushCasino(), flushPfpHashes(), flushBanlist(), flushPfpCache(), flushNicks(), flushLinkPerms(),
-    flushJoinRequests(), flushRobo(),
+    flushJoinRequests(), flushRobo(), flushRacha(),
   ]);
   await Promise.race([flushes, new Promise(r => setTimeout(r, 3000))]);
   // Este es síncrono y no puede colgarse, así que va fuera de la carrera: es el

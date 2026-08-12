@@ -6,7 +6,7 @@ const { contarTirada } = require('../utils/casinoStore');
 const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE_MIEMBRO, MULT_CASTIGO, TIRADAS_PAGADAS, bonoActividad, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
-const { BOTE, CONTRA } = require('../utils/economia');
+const { BOTE, CONTRA, RACHA } = require('../utils/economia');
 const { aportarAlBote } = require('../utils/roboStore');
 
 // 2 min, bajado desde 3. La tirada mueve poco aura (15-150) desde que se
@@ -1469,7 +1469,12 @@ El aura es la moneda del grupo. Empiezas con *${fmt(ARRANQUE)}* y un millonario 
 · Bonos automáticos al llegar a *200*, *500* y *1000* mensajes en el día. El contador del día se reinicia cada 24h.
 · Y para siempre: cada *${fmt(ACTIVIDAD_MSGS)} mensajes* que escribes en total, tus tiradas ganan *+${pctBono}% de suerte*. Se acumula, hasta un máximo de *+${pctTope}%*.
 
-*2. Tirando* — *!aura*, una cada ${duracion(ROLL_COOLDOWN_MS)}.
+*2. Apareciendo* — la racha.
+· Cada día que escribes al menos *${RACHA.minMensajes} mensajes*, tu racha sube un día y cobras *${RACHA.pago} por cada día que lleves*, hasta un tope de ${RACHA.tope}.
+· Faltar un solo día la parte entera y vuelves a empezar de cero.
+· El día cambia a las *${RACHA.horaCorte} de la mañana*, no a medianoche: seguir la conversación de madrugada no te cuesta la racha.
+
+*3. Tirando* — *!aura*, una cada ${duracion(ROLL_COOLDOWN_MS)}.
 · Las *${TIRADAS_PAGADAS} primeras del día* pagan de verdad, y pagan más cuanta más suerte llevas acumulada.
 · De ahí en adelante sigues tirando, pero es cara o cruz: lo que ganas y lo que pierdes se igualan.
 · Pierdas cuando pierdas, el golpe es el mismo para todos. La suerte decide cada cuánto, no cuánto.
@@ -1479,7 +1484,7 @@ El aura es la moneda del grupo. Empiezas con *${fmt(ARRANQUE)}* y un millonario 
 *!aura* — tiras
 *!aura* @user — miras el aura de alguien (no tira, no gasta espera)
 *!aura top* — el ranking del grupo
-*!aura hoy* — tus mensajes de hoy, tus tiradas de pago restantes y cuánto falta para el próximo bono _(o *!casino*)_
+*!aura hoy* — tus mensajes de hoy, tu racha, tus tiradas de pago restantes y cuánto falta para el próximo bono _(o *!casino*)_
 *!aura apostar* <cantidad> — a una carta, cada ${horasApuesta}h. Sin cantidad va media cuenta. Hace falta tener *${fmt(APUESTA.minimo)}*, y el mínimo que se puede poner son *${fmt(APUESTA.apuestaMin)}*
 *!aura on/off* — pausa o reanuda la dinámica _(solo el dueño)_
 

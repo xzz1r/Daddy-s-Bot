@@ -2,8 +2,9 @@ const { getState, setState, toggleGroup } = require('../utils/state');
 const { formatUptime, fmt, pickFresh } = require('../utils/helpers');
 const { isOwner, isMainOwner, getSender } = require('../utils/wa');
 const { getCasinoCount, msUntilReset, tiradasDeHoy } = require('../utils/casinoStore');
+const { verRacha } = require('../utils/rachaStore');
 const { nextMilestone } = require('../utils/casino');
-const { PRECIOS, APUESTA, CONTRA, ACTIVIDAD_MSGS, TIRADAS_PAGADAS } = require('../utils/economia');
+const { PRECIOS, APUESTA, CONTRA, ACTIVIDAD_MSGS, TIRADAS_PAGADAS, RACHA } = require('../utils/economia');
 const config = require('../config');
 const logger = require('../utils/logger');
 
@@ -150,10 +151,11 @@ async function cmdCasino(sock, msg, groupMeta) {
   // un comando que no salió, que es el mismo criterio de !count y !relevancia.
   if (isMainOwner(sender, msg.key.fromMe, groupMeta)) return;
 
-  const [count, ms, tiradas] = await Promise.all([
+  const [count, ms, tiradas, racha] = await Promise.all([
     getCasinoCount(jid, sender),
     msUntilReset(jid),
     tiradasDeHoy(jid, sender),
+    verRacha(jid, sender),
   ]);
 
   // El calculo del proximo hito vive en utils/casino.js, que es quien reparte los
@@ -173,10 +175,19 @@ async function cmdCasino(sock, msg, groupMeta) {
   // es lo que evita la sorpresa.
   const quedan = Math.max(0, TIRADAS_PAGADAS - tiradas);
 
+  // La racha se paga en silencio, así que este es el único sitio donde se ve el
+  // número antes de llegar a un hito. Y hace falta decir DOS cosas distintas:
+  // cuántos días llevas y si el de hoy ya está asegurado — sin lo segundo,
+  // alguien con 29 días no sabe si puede irse a dormir tranquilo.
+  const lineaRacha = racha.hoyCuenta
+    ? `Racha: *${fmt(racha.dias)}* ${racha.dias === 1 ? 'día' : 'días'} — hoy ya cuenta`
+    : `Racha: *${fmt(racha.dias)}* ${racha.dias === 1 ? 'día' : 'días'} — te faltan *${fmt(Math.max(0, RACHA.minMensajes - racha.msgs))}* msgs para asegurar hoy`;
+
   const text =
     `*AURA — HOY*\n\n` +
     `Mensajes hoy: *${fmt(count)}*\n` +
     `Tiradas que pagan: *${fmt(quedan)}* de ${TIRADAS_PAGADAS}\n` +
+    `${lineaRacha}\n` +
     `Próximo bono: ${tierLabel} — faltan *${fmt(remaining)}* msgs\n` +
     `${pickFresh(AURA_LINES, `${jid}|auralines`)}\n\n` +
     `_Reset en ${resetStr}_`;

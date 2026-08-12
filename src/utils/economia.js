@@ -18,9 +18,18 @@
 //
 // ─── DE DONDE SALE EL AURA ──────────────────────────────────────────────────
 //
-// Dos fuentes y nada más: los hitos de 200/500/1000 mensajes del día, y las
-// tiradas de !aura. Hubo un SUELDO por mensaje una temporada y se quitó (ver la
-// nota en su hueco, más abajo).
+// Tres fuentes, y cada una premia una cosa distinta a propósito:
+//
+//   · LOS HITOS de 200/500/1000 mensajes del día premian el VOLUMEN.
+//   · LA VETERANÍA premia el TOTAL acumulado: cada 1.000 mensajes de !count
+//     tus tiradas ganan suerte, para siempre.
+//   · LA RACHA premia APARECER: un pago plano por cada día seguido en el que
+//     escribes al menos el mínimo (ver RACHA). Es la única que un miembro
+//     tranquilo cobra igual que el que más habla, y la única que se pierde
+//     entera por faltar un solo día.
+//
+// Hubo un SUELDO por mensaje una temporada y se quitó (ver la nota en su hueco,
+// más abajo).
 //
 // Lo que hace que escribir siga mandando ya no es que tirar dé calderilla, sino
 // que la SUERTE de tus tiradas dependa de cuánto has escrito: cada 1.000
@@ -32,11 +41,18 @@
 // solo las cinco primeras del día cobran. De ahí en adelante se sigue jugando,
 // pero a valor esperado cero.
 //
-//   perfil        msgs/día   tirando   bonos   total   antes   comandos/día
-//   fantasma            30        +7       0       7       1        0,2
-//   normal             200       +58      16      74      20        2,1
-//   activo             500       +62      97     159     107        4,6
-//   muy activo       1.200       +62     315     377     337       10,9
+//   perfil        msgs/día   tirando   racha   bonos   total   antes   cmds/día
+//   fantasma            30        +7      20       0      27       1       0,8
+//   normal             200       +58      20      16      94      20       2,7
+//   activo             500       +62      20      97     179     107       5,2
+//   muy activo       1.200       +62      20     315     397     337      11,4
+//
+// La columna de la racha es plana a propósito: son los mismos 20 al día para
+// todo el mundo, así que en términos relativos levanta muchísimo al de abajo y
+// casi nada al de arriba (un 5 % del día de una bestia). Ese es su trabajo — dar
+// un motivo para entrar HOY a quien no va a llegar a ningún hito — y es también
+// el motivo de que tenga que quedarse pequeña: un pago plano grande aplanaría la
+// escala entera y borraría la diferencia entre vivir el grupo y pasar a saludar.
 //
 // La columna "tirando" se aplana a propósito arriba: las tiradas de pago son
 // cinco para todo el mundo, así que a partir de cierto punto lo único que sube
@@ -263,6 +279,39 @@ const APUESTA = {
 // experiencia es de tamaño, no de concepto: a 0,40 por mensaje multiplicaba por
 // cinco y medio el ingreso de un miembro normal y convertia los precios en
 // calderilla en dos dias.
+
+// ─── La racha: premia APARECER, no escribir mucho ────────────────────────────
+//
+// Es la tercera pata y cubre el hueco que dejaban las otras dos. Los bonos
+// premian el VOLUMEN de un día y la veteranía el TOTAL acumulado; ninguna de las
+// dos da un motivo para entrar HOY en vez de mañana. La racha sí: cada día
+// seguido que apareces sube un escalón, y faltar un solo día la parte entera.
+//
+// TRES DECISIONES QUE IMPORTAN:
+//
+//  1. EL PAGO ES PLANO, no proporcional a lo que escribes. A propósito: es lo
+//     único de toda la economía que un miembro tranquilo puede ganar igual que
+//     el que más habla. Si escalara con el volumen sería otro bono más y el que
+//     escribe poco seguiría sin tener motivo para volver.
+//  2. ES PEQUEÑO. El valor de una racha está en el NÚMERO y en perderlo, no en
+//     lo que paga. A tope son 20 al día — menos de un comando medio. Subirlo
+//     sería repetir el error del sueldo.
+//  3. HAY QUE APARECER DE VERDAD. Con `minMensajes` no basta con soltar un "ok"
+//     para mantenerla viva; si bastara, la racha mediría quién se acuerda de
+//     saludar, no quién está en el grupo.
+//
+// El corte del día NO es a medianoche. A las 5 de la mañana no hay nadie
+// escribiendo, así que nadie pierde una racha de treinta días por seguir la
+// conversación a las 00:30. A medianoche eso pasaría constantemente.
+const RACHA = {
+  minMensajes: 10,      // mensajes que hay que escribir para que el día cuente
+  pago: 2,              // por cada día de racha...
+  tope: 10,             // ...hasta este, o sea 20 al día como techo
+  hitos: [7, 15, 30, 50, 100, 200, 365],   // los días que el bot canta en el grupo
+  minParaLlorarla: 7,   // por debajo de esto, romperla no se anuncia
+  horaCorte: 5,         // el día cambia a las 5 de la mañana, hora española
+  zona: 'Europe/Madrid',
+};
 
 // ─── Bonos por actividad (tramos de 200 / 500 / 1000 mensajes diarios) ───────
 //
@@ -559,7 +608,7 @@ module.exports = {
   MILLONARIO, ARRANQUE,
   TIRADA, TIRADA_MIN, TIRADA_MAX, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE,
   P_TOPE_MIEMBRO, MULT_CASTIGO, TIRADAS_PAGADAS, MEDIA_PREMIO, MEDIA_CASTIGO, bonoActividad, APUESTA,
-  BONOS, REDENCION,
+  RACHA, BONOS, REDENCION,
   ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, DUELO, REGALO_MIN,
   BOTE, OBJETOS, CONTRA, DIANA,
   PRECIOS, SALDO_MINIMO,

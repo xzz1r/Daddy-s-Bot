@@ -16,7 +16,7 @@ const R = '/home/user/Bot-';
 const eco = require(R + '/src/utils/economia');
 const { P_POSITIVA, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, ACTIVIDAD_MSGS, P_TOPE_MIEMBRO, TIRADA,
         APUESTA, PRECIOS, BONOS, REDENCION, MULT_CASTIGO, TIRADAS_PAGADAS, bonoActividad,
-        rango, ROBO, DUELO, ARRANQUE, MILLONARIO } = eco;
+        RACHA, rango, ROBO, DUELO, ARRANQUE, MILLONARIO } = eco;
 
 let fallos = 0;
 const ok = (c, q) => { if (!c) { fallos++; console.log('FALLO: ' + q); } else console.log('OK    ' + q); };
@@ -101,7 +101,18 @@ function evEscribir(msgs) {
   }
   return total;
 }
-const desglose = (msgs) => ({ sueldo: 0, bonos: evEscribir(msgs) });
+const desglose = (msgs) => ({ racha: rachaAlDia(msgs), bonos: evEscribir(msgs) });
+
+// La racha: pago plano por aparecer, con tope. No depende de cuanto escribas
+// mas alla del minimo, que es justo su gracia — es lo unico que un miembro
+// tranquilo cobra igual que el que mas habla.
+//
+// Se modela EN REGIMEN, o sea con la racha ya en su tope: es el caso peor para
+// la inflacion y el que hay que vigilar.
+function rachaAlDia(msgs) {
+  if (msgs < RACHA.minMensajes) return 0;
+  return RACHA.pago * RACHA.tope;
+}
 
 console.log('\n════ 1. valor esperado por tirada (exacto) ════\n');
 console.log('  rol              p      x perder   media+   media−     EV/tirada');
@@ -193,7 +204,7 @@ console.log(`  Los que si son casino de verdad — con la casa ganando — son !
 console.log('\n════ 3. inflacion: ¿escribir sigue mandando? ════\n');
 const COOLDOWN_S = 90;
 const TECHO_DIA = Math.floor(86400 / COOLDOWN_S);
-console.log('  perfil                     tiradas/dia   por tirar   sueldo   bonos   total/dia');
+console.log('  perfil                     tiradas/dia   por tirar   racha   bonos   total/dia');
 const ESCENARIOS = [
   ['fantasma (30 msgs)',        3,   30],
   ['normal (200 msgs)',        10,  200],
@@ -210,14 +221,15 @@ const tirandoAlDia = (tiradas, p) => Math.min(tiradas, TIRADAS_PAGADAS) * perfil
 for (const [nombre, tiradas, msgs] of ESCENARIOS) {
   const p = Math.min(P_TOPE_MIEMBRO, P_POSITIVA.miembro + bonoActividad(msgs * 20));
   const tirando = tirandoAlDia(tiradas, p);
-  const escribiendo = evEscribir(msgs);
   const d = desglose(msgs);
+  const escribiendo = d.bonos + d.racha;
   filas.push({ nombre, tiradas, tirando, escribiendo, ...d, total: tirando + escribiendo });
-  console.log(`  ${nombre.padEnd(24)}  ${String(tiradas).padStart(6)}      ${('+' + n0(tirando)).padStart(6)}   ${n0(d.sueldo).padStart(6)}  ${n0(d.bonos).padStart(6)}   ${n0(tirando + escribiendo).padStart(8)}`);
+  console.log(`  ${nombre.padEnd(24)}  ${String(tiradas).padStart(6)}      ${('+' + n0(tirando)).padStart(6)}   ${n0(d.racha).padStart(6)}  ${n0(d.bonos).padStart(6)}   ${n0(tirando + escribiendo).padStart(8)}`);
 }
 console.log(`\n  (el cooldown de ${COOLDOWN_S}s pone el techo fisico en ${TECHO_DIA} tiradas/dia)`);
 
 const f = (pre) => filas.find(x => x.nombre.startsWith(pre));
+const precioMedioGlobal = () => Object.values(PRECIOS).reduce((a, b) => a + b, 0) / Object.keys(PRECIOS).length;
 // ESCRIBIR SIGUE MANDANDO, PERO POR OTRA VIA, y conviene decirlo claro en vez
 // de dejar el aserto viejo pasando por casualidad.
 //
@@ -244,6 +256,26 @@ ok(Math.abs(f('solo spamea 24').tirando - f('solo spamea 8').tirando) < 0.01,
 // tension que quedaba abierta en este informe.
 ok(f('solo spamea 24').tirando < MILLONARIO * 0.05,
   `automatizar el boton ya no sirve de nada: 24 h dan ${n0(f('solo spamea 24').tirando)}, el ${(100 * f('solo spamea 24').tirando / MILLONARIO).toFixed(1)} % de una fortuna`);
+
+// ─── La racha no puede volverse el ingreso principal ─────────────────────────
+//
+// Es un pago plano: sube igual el dia de un fantasma que el de una bestia. Eso
+// esta pensado — es lo unico que premia APARECER en vez de escribir mucho —
+// pero por eso mismo hay que vigilarlo, porque un pago plano demasiado alto
+// aplana la escala entera y borra la diferencia entre quien vive el grupo y
+// quien pasa a saludar.
+{
+  const tope = RACHA.pago * RACHA.tope;
+  console.log(`\n  La racha paga ${RACHA.pago} por dia acumulado, tope ${tope} al dia (a los ${RACHA.tope} dias).`);
+  console.log(`  Pide ${RACHA.minMensajes} mensajes diarios y un solo dia sin aparecer la parte entera.`);
+  ok(tope < precioMedioGlobal(),
+    `  a tope no paga ni un comando medio (${tope} contra ${n0(precioMedioGlobal())}): es un motivo para volver, no un sueldo`);
+  ok(tope < f('activo').bonos,
+    `  y sigue muy por debajo de lo que da escribir 500 mensajes (${tope} contra ${n0(f('activo').bonos)}): escribir manda`);
+  const antes = f('muy activo').total - tope, ahora = f('muy activo').total;
+  ok(tope / ahora < 0.10,
+    `  para el que mas escribe es el ${(100 * tope / ahora).toFixed(0)} % de su dia: un extra, no su ingreso`);
+}
 
 console.log('\n════ 4. varianza y ruina (Monte Carlo, 4.000 vidas) ════\n');
 function rollAura(pPos) {
@@ -303,6 +335,8 @@ function recorrido(tiradas, msgs, gastaFraccion) {
         const t = c % 1000 === 0 ? 3 : c % 500 === 0 ? 2 : c % 200 === 0 ? 1 : 0;
         if (t) aura += bonoReal(t, aura);
       }
+      // La racha: se supone que no falla ni un dia, que es el caso peor.
+      aura += RACHA.pago * Math.min(d + 1, RACHA.tope);
       // Gasta una fraccion de lo GANADO ese dia, en comandos enteros y solo si
       // le llega: el bot no fia (SALDO_MINIMO), asi que nadie compra en rojo.
       if (gastaFraccion > 0) {

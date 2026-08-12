@@ -9,8 +9,10 @@
 // continued engagement even in the worst slumps.
 
 const { incrementCasinoCount } = require('./casinoStore');
+const { anotarMensaje } = require('./rachaStore');
 const { getAura, addAura } = require('./auraStore');
-const { BONOS, REDENCION, rango } = require('./economia');
+const { BONOS, REDENCION, RACHA, rango } = require('./economia');
+const { HITO: RACHA_HITO, ROTA: RACHA_ROTA } = require('../data/rachaPhrases');
 const { pickFresh, fmt } = require('./helpers');
 const { isBotEnabled, isAuraEnabled } = require('./state');
 
@@ -126,6 +128,34 @@ function nextMilestone(count) {
   return { tier, remaining: next - count };
 }
 
+// ─── La racha de dias seguidos ───────────────────────────────────────────────
+//
+// Paga siempre; habla casi nunca. El aviso sale como mucho una vez por hito
+// (7, 15, 30, 50, 100, 200, 365 dias) y cuando alguien vuelve tras cargarse una
+// racha de una semana o mas.
+//
+// Los gates son los mismos que los del bono: con el bot apagado o la dinamica
+// de aura en pausa se sigue cobrando y no se dice nada.
+async function avisarRacha(sock, jid, sender) {
+  const r = await anotarMensaje(jid, sender);
+  if (!r.evento) return;
+
+  await addAura(jid, sender, r.pago);
+  if (!isBotEnabled(jid) || !isAuraEnabled(jid)) return;
+  if (r.evento === 'sube' && !r.hito) return;
+
+  const userTag = `@${sender.split('@')[0]}`;
+  const texto = r.evento === 'rompe'
+    ? pickFresh(RACHA_ROTA, `${jid}|racha|rota`)
+        .replace(/%N/g, userTag).replace(/%P/g, fmt(r.perdidos))
+    : `*RACHA DE ${r.dias} DIAS*\n\n` +
+      pickFresh(RACHA_HITO, `${jid}|racha|hito`)
+        .replace(/%N/g, userTag).replace(/%D/g, fmt(r.dias)) +
+      `\n\n_+${fmt(r.pago)} de aura al dia mientras no falles. Tope en ${RACHA.tope} dias._`;
+
+  await sock.sendMessage(jid, { text: texto, mentions: [sender] });
+}
+
 // ─── Main hook (called on every group message, non-blocking) ──────────────────
 
 async function checkCasinoMilestone(sock, jid, sender) {
@@ -136,6 +166,12 @@ async function checkCasinoMilestone(sock, jid, sender) {
   // normal y volvia calderilla unos precios que se acababan de subir aposta.
   // Lo que premia escribir ahora es el bono de veterania de !aura, que sube la
   // suerte de tus tiradas con cada mil mensajes y no reparte nada de fondo.
+
+  // La racha va aparte y no depende de los hitos: mide DIAS SEGUIDOS, no
+  // volumen. Se cobra en silencio todos los dias y solo habla en dos momentos
+  // (un hito redondo y volver despues de romper una racha larga), que es lo que
+  // la distingue del sueldo — aquel pagaba callado y no daba nada que contar.
+  await avisarRacha(sock, jid, sender).catch(() => {});
 
   let tier = 0;
   if      (count % 1000 === 0) tier = 3;
