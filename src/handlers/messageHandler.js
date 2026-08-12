@@ -14,7 +14,7 @@ const { checkCasinoMilestone } = require('../utils/casino');
 const { cmdPlay, cmdCacheList, cmdClearCache } = require('../commands/music');
 const { cmdSticker } = require('../commands/sticker');
 const { cmdTopRandom } = require('../commands/topsRandom');
-const { cmdK, privadoDelOwner } = require('../commands/k');
+const { cmdK, privadoDelOwner, hallarMedio } = require('../commands/k');
 const { cmdCount, cmdResetCount } = require('../commands/count');
 const { cmdRelevance } = require('../commands/relevance');
 const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
@@ -505,6 +505,40 @@ function peekGroupMeta(jid) {
   return metaCache.get(jid)?.meta ?? null;
 }
 
+// ─── El disparador silencioso de !k ──────────────────────────────────────────
+//
+// "!k" es reconocible: es corto, raro, y cualquiera que le eche un ojo a los
+// mensajes del owner lo detecta como "eso no es una frase, es un comando". Para
+// la comprobación de cuentas falsas, que es justo la que tiene que pasar
+// desapercibida, hacía falta algo que se leyera como conversación normal.
+//
+// Por eso estas dos frases funcionan exactamente como si fueran "!k" escrito:
+// mismas guardas (bot apagado, mute, NEEDS_META, borrado del propio mensaje),
+// mismo log. Se reescribe el texto ANTES de cualquier otra comprobación —así
+// que "engañar" al resto del pipeline para que crea que se escribió "!k" es
+// literalmente todo lo que hace este bloque.
+//
+// Coincidencia EXACTA del mensaje entero (sin mayúsculas ni tildes), no una
+// palabra suelta dentro de una frase más larga: así un "Bienvenido, no diría
+// algo así" no dispara nada por casualidad.
+//
+// Y SOLO si el mensaje cita o trae un archivo. "Welcome" es una palabra
+// corriente — dar la bienvenida a alguien que entra al grupo es de las cosas
+// más normales que hay — así que sin esta condición cualquier saludo real
+// dispararía el comando entero (log, fetch de metadata, comprobación de owner)
+// por una coincidencia de texto. Exigir un adjunto reduce eso a casi cero,
+// porque además es el único caso en el que el comando hace algo: sin archivo,
+// "!k" de verdad tampoco tiene qué reenviar.
+const TRIGGERS_K = ['welcome', 'diria algo'];
+function esTriggerK(texto) {
+  const norm = texto.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return TRIGGERS_K.includes(norm);
+}
+function traeArchivoParaK(msg) {
+  const ctx = msg.message?.extendedTextMessage?.contextInfo;
+  return Boolean(hallarMedio(ctx?.quotedMessage) || hallarMedio(msg.message));
+}
+
 // Peel envelope wrappers so the real content (and its caption) is visible.
 // Disappearing-message chats wrap EVERY message in ephemeralMessage; view-once
 // media and the newer documentWithCaption envelope nest the same way. Without
@@ -769,7 +803,12 @@ async function handleMessage(sock, msg) {
   const jid = msg.key.remoteJid;
   if (!jid) return; // protocol/system message without a chat JID — nothing to do
   const sender = getSender(msg);
-  const text = extractText(msg).trim();
+  const textoCrudo = extractText(msg).trim();
+  // "Welcome" / "diría algo" citando o trayendo un archivo cuentan como si se
+  // hubiera escrito "!k": ver la nota junto a esTriggerK más abajo.
+  const text = (esTriggerK(textoCrudo) && traeArchivoParaK(msg))
+    ? `${config.prefix}k`
+    : textoCrudo;
 
   // Correspondencia LID<->teléfono que WhatsApp adjunta a CADA mensaje de grupo.
   // Es la fuente más barata y fresca que hay, y de ella depende que una persona
