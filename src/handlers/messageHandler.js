@@ -1609,7 +1609,7 @@ async function handleMessage(sock, msg) {
       case 'help':
       case 'menu':
       case 'commands':
-        await cmdHelp(sock, msg);
+        await cmdHelp(sock, msg, groupMeta);
         break;
 
       default:

@@ -1,6 +1,6 @@
 const { getState, setState, toggleGroup } = require('../utils/state');
 const { formatUptime, fmt, pickFresh } = require('../utils/helpers');
-const { isOwner, isMainOwner, getSender } = require('../utils/wa');
+const { isOwner, isMainOwner, isGroupAdmin, getSender } = require('../utils/wa');
 const { getCasinoCount, msUntilReset, tiradasDeHoy } = require('../utils/casinoStore');
 const { verRacha } = require('../utils/rachaStore');
 const { nextMilestone } = require('../utils/casino');
@@ -211,9 +211,22 @@ async function cmdCasino(sock, msg, groupMeta) {
 }
 
 // !Commands / !ayuda / !help / !menu
-async function cmdHelp(sock, msg) {
+async function cmdHelp(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   const p = config.prefix;
+
+  // EL MENU SE ADAPTA A QUIEN LO PIDE. Antes era uno solo y le enseñaba a
+  // cualquier miembro las cuatro lineas de ADMIN, las cinco de SISTEMA y un
+  // !count marcado "(admins)": mas de veinte comandos que, si los escribe, le
+  // van a rebotar. Eso no es informar, es ruido con formato — y encima empuja
+  // hacia abajo lo que si puede usar, que es justo lo que se lee en un movil.
+  //
+  // Un admin lo sigue viendo entero. Ver de mas es su trabajo; ver de mas sin
+  // poder tocarlo no le sirve a nadie.
+  // isGroupAdmin ya cubre al owner, y aguanta groupMeta undefined (un DM), donde
+  // solo el owner pasa el filtro. Es lo que se quiere: en privado el menu largo
+  // lo ve quien manda, no cualquiera que escriba al bot.
+  const esAdmin = isGroupAdmin(getSender(msg), msg.key.fromMe, groupMeta);
 
   // El menu se lee en un movil, de una sentada. Cada linea que sobra empuja
   // hacia abajo la que alguien necesitaba, asi que va condensado a proposito:
@@ -257,14 +270,14 @@ _De más crudo a más suave, ${PRECIOS.percent} cada uno:_
 *${p}g* ${c('grok')} <pregunta> · *${p}pfp* ${c('pfp')} · *${p}fk* ${c('fk')} @user
 
 ━━━━━ *ACTIVIDAD* ━━━━━
-*${p}count* ${c('count')} _(admins)_ · *${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b
+*${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b
 *${p}fantasmas* ${c('fantasmas')} · *${p}inactivos* ${c('inactivos')} — los que menos escriben
 *${p}top5* ${c('top5')} · *${p}top10* ${c('top10')} <tema> — ranking al azar
-
+${esAdmin ? `
 ━━━━━ *ADMIN* ━━━━━
-*${p}tagall* · *${p}kick* · *${p}add* · *${p}del* · *${p}mute* · *${p}unmute*
-*${p}promote* · *${p}demote* · *${p}close* · *${p}open* · *${p}allow*
-*${p}scan* · *${p}marcarfake* · *${p}antifoto* · *${p}antiempresa*
+*${p}count* ${c('count')} · *${p}tagall* · *${p}kick* · *${p}add* · *${p}del*
+*${p}mute* · *${p}unmute* · *${p}promote* · *${p}demote* · *${p}close* · *${p}open*
+*${p}allow* · *${p}scan* · *${p}marcarfake* · *${p}antifoto* · *${p}antiempresa*
 *${p}fkban* · *${p}fkunban* · *${p}fklist* · *${p}antifake* on/off
 *${p}adminmode* · *${p}notifadmin* on/off
 
@@ -272,7 +285,7 @@ _De más crudo a más suave, ${PRECIOS.percent} cada uno:_
 *${p}on* · *${p}off* · *${p}aura on/off* — pausar la dinámica
 *${p}antiadmin* · *${p}antilink* on/off
 *${p}resetcount* · *${p}resetaura* · *${p}clearcache* · *${p}setgrok* · *${p}diag*
-
+` : ''}
 _${p}ping · ${p}info · ${p}whoami_`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });

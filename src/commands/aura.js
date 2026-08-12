@@ -9,18 +9,18 @@ const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../u
 const { BOTE, CONTRA, RACHA } = require('../utils/economia');
 const { aportarAlBote } = require('../utils/roboStore');
 
-// 2 min, bajado desde 3. La tirada mueve poco aura (15-150) desde que se
-// recorto la escala, asi que tres minutos de espera para un goteo era mucho
-// freno para el comando que mas se usa.
-// Minuto y medio. Se bajo desde 2 min al recortar los premios de la tirada: con
-// importes mas pequeños hace falta tirar mas veces para que se note, y esperar
-// dos minutos por una media de 32 de aura se hacia largo.
+// QUINCE MINUTOS, subido desde minuto y medio por decision del owner.
 //
-// Bajarlo es seguro: el goteo por tirada es de unas 0,65 de aura (ver
-// FAVOR_JUGADOR en economia.js), asi que tirar mas a menudo da algo mas, pero
-// hace falta pasarse el dia entero dandole para igualar media jornada de
-// escribir. La regla de que escribir manda no se toca.
-const ROLL_COOLDOWN_MS = 90 * 1000;
+// Va en el mismo paquete que subir el acierto al 70 % y capar los importes
+// (50 de techo al ganar, 40 al perder): menos tiradas, mas seguidas de ganar y
+// mas pequeñas. La tirada pasa de ser algo que se machaca mientras se habla a
+// ser algo que se mira de vez en cuando.
+//
+// El efecto practico esta en las tiradas de pago: con minuto y medio las cinco
+// que cobran se agotaban en menos de diez minutos y el resto del dia se tiraba
+// a valor cero. Con quince minutos cubren mas de una hora, asi que la parte del
+// comando que paga de verdad dura lo que dura una conversacion.
+const ROLL_COOLDOWN_MS = 15 * 60 * 1000;
 const lastRoll = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
 
 // Duracion en texto. Existe porque redondear a minutos miente con los tiempos
@@ -612,51 +612,34 @@ function textoAuraInfo() {
 
   return `*LA GUÍA DEL AURA*
 
-El aura es la moneda del grupo. Empiezas con *${fmt(ARRANQUE)}* y un millonario ronda los *${fmt(MILLONARIO)}*. Casi todos los comandos cuestan.
+La moneda del grupo. Empiezas con *${fmt(ARRANQUE)}*, un millonario ronda los *${fmt(MILLONARIO)}* y casi todo cuesta.
 
 ━━━━━ *CÓMO SE GANA* ━━━━━
 
-*1. Escribiendo* — es la vía principal.
-· Bonos automáticos al llegar a *200*, *500* y *1000* mensajes en el día. El contador del día se reinicia cada 24h.
-· Y para siempre: cada *${fmt(ACTIVIDAD_MSGS)} mensajes* que escribes en total, tus tiradas ganan *+${pctBono}% de suerte*. Se acumula, hasta un máximo de *+${pctTope}%*.
+*Escribiendo* — la vía principal. Bonos al llegar a *200*, *500* y *1000* mensajes en el día, y cada *${fmt(ACTIVIDAD_MSGS)}* mensajes en total tus tiradas ganan *+${pctBono}%* de suerte para siempre (tope *+${pctTope}%*).
 
-*2. Apareciendo* — la racha.
-· Cada día que escribes al menos *${RACHA.minMensajes} mensajes*, tu racha sube un día y cobras *${RACHA.pago} por cada día que lleves*, hasta un tope de ${RACHA.tope}.
-· Faltar un solo día la parte entera y vuelves a empezar de cero.
-· El día cambia a las *${RACHA.horaCorte} de la mañana*, no a medianoche: seguir la conversación de madrugada no te cuesta la racha.
+*Apareciendo* — la racha. Escribe *${RACHA.minMensajes}* mensajes al día y cobras *${RACHA.pago}* por día acumulado, hasta *${RACHA.tope}*. Faltar un día la parte entera. El día corta a las *${RACHA.horaCorte}h*, no a medianoche.
 
-*3. Tirando* — *!aura*, una cada ${duracion(ROLL_COOLDOWN_MS)}.
-· Las *${TIRADAS_PAGADAS} primeras del día* pagan de verdad, y pagan más cuanta más suerte llevas acumulada.
-· De ahí en adelante sigues tirando, pero es cara o cruz: lo que ganas y lo que pierdes se igualan.
-· Pierdas cuando pierdas, el golpe es el mismo para todos. La suerte decide cada cuánto, no cuánto.
+*Tirando* — *!aura*, una cada ${duracion(ROLL_COOLDOWN_MS)}. Las *${TIRADAS_PAGADAS} primeras del día* pagan; de ahí en adelante es cara o cruz.
 
-━━━━━ *TODOS LOS MODOS DE !aura* ━━━━━
+━━━━━ *LOS COMANDOS* ━━━━━
 
-*!aura* — tiras
-*!aura* @user — miras el aura de alguien (no tira, no gasta espera)
-*!aura top* — el ranking del grupo
-*!aura hoy* — tus mensajes de hoy, tu racha, tus tiradas de pago restantes y cuánto falta para el próximo bono _(o *!casino*)_
-*!aura apostar* <cantidad> — a una carta, cada ${horasApuesta}h. Sin cantidad va media cuenta. Hace falta tener *${fmt(APUESTA.minimo)}*, y el mínimo que se puede poner son *${fmt(APUESTA.apuestaMin)}*
-*!aura on/off* — pausa o reanuda la dinámica _(solo el dueño)_
+*!aura* — tiras · *@user* — miras el suyo
+*!aura top* — ranking · *!aura hoy* — tu estado
+*!aura apostar* <cant.> — a una carta, cada ${horasApuesta}h. Sin cifra va media cuenta. Necesitas *${fmt(APUESTA.minimo)}*, mínimo *${fmt(APUESTA.apuestaMin)}*
 
-━━━━━ *QUITARLE AURA A OTROS* ━━━━━
+*!robo* @user <cant.> — cuanto más pides, menos probable
+*!robo bote* / *asalto* — el bote común. Reventarlo cuesta *${fmt(BOTE.entrada)}*
+*!robo tienda* / *comprar* — escudo, ganzúa, cebo
+*!robo contra* — devuelves el golpe, *${CONTRA.ventanaSeg}s*. Doble o nada
+*!robo top* — los más buscados
 
-*!robo* @user <cantidad> — se roba lo que pides. Sin cantidad sale una al azar. Cuanto más pides, menos probable es que salga; el punto dulce está a media horquilla. Hay cinco desenlaces distintos.
-*!robo bote* — lo que se acumula de los robos fallidos del grupo
-*!robo asalto* — intentas reventarlo entero. Cuesta *${fmt(BOTE.entrada)}* y sale poco, pero se lo lleva todo el que acierta
-*!robo tienda* — escudo, ganzúa y cebo. También enseña lo que llevas encima
-*!robo comprar* <objeto> — lo compras
-*!robo contra* — devuelves el golpe, en los *${CONTRA.ventanaSeg}s* siguientes a que te roben. Doble o nada
-*!robo top* — los más buscados de la semana. Al número uno se le roba con más botín
-
-*!duel* @user <cantidad> — apuesta 1v1. El retado acepta con *!duel aceptar*
-*!dar* @user <cantidad> — le regalas aura a alguien
+*!duel* @user <cant.> — 1v1, se acepta con *!duel aceptar*
+*!dar* @user <cant.> — regalas aura
 
 ━━━━━ *LA LETRA PEQUEÑA* ━━━━━
 
-_Tus ${TIRADAS_PAGADAS} primeras tiradas del día salen a ganar. El robo, el duelo y la apuesta NO: en los tres la casa se queda un pellizco y a la larga se pierde. Lo que se acumula sale de escribir._
-
-_Escribir mucho no solo da bonos: sube la suerte de todas tus tiradas para siempre. Es la única ventaja que no se puede comprar ni robar._
+_Tus ${TIRADAS_PAGADAS} primeras tiradas salen a ganar. El robo, el duelo y la apuesta no: la casa se queda un pellizco. Lo que se acumula sale de escribir, y esa ventaja no se compra ni se roba._
 
 ━━━━━ *EN QUÉ SE GASTA* ━━━━━
 ${precios}`;

@@ -69,11 +69,16 @@
 // grupo" para ser un número inalcanzable.
 const MILLONARIO = 5000;
 
-// Con qué se entra al grupo. Estaba en 100 y con los precios nuevos daba para
-// dos stickers: el recién llegado se quedaba seco antes de entender de qué va
-// la moneda. 250 son cinco compras baratas — lo justo para probar el bot,
-// no para vivir de ello.
-const ARRANQUE = 250;
+// Con qué se entra al grupo. Bajado de 250 a 75 por decisión del owner: con 250
+// el recién llegado entraba con cinco stickers pagados y la moneda no le decía
+// nada hasta pasada la primera semana. Con 75 entra con UNA compra buena o dos
+// baratas — suficiente para probar el bot y descubrir que hay que ganárselo,
+// que es lo que hace que la primera tirada importe.
+//
+// Si algún día se vuelve a subir, el número que hay que mirar es el precio más
+// barato (ver PRECIOS): el arranque tiene que dar para al menos una compra, o
+// el que entra no puede tocar nada y el bot parece roto.
+const ARRANQUE = 75;
 
 // ─── !aura: tirada ───────────────────────────────────────────────────────────
 //
@@ -93,8 +98,14 @@ const ARRANQUE = 250;
 // leerian si fueran [suelo, ancho]. Era falso: lo que se ejecuta son 40-80 y
 // 10-25. Esa confusion me costo dos analisis mal hechos seguidos, uno de ellos
 // publicado. Cualquier cosa que lea TIRADA tiene que usar MIN/MAX de abajo.
+// TECHO DE GANANCIA EN 50 por decisión del owner. El tramo grande era 40-80 y
+// se recorta a 40-50: una tirada buena sigue siendo el doble larga que una
+// floja, pero ya no hay tiradas que valgan por un día entero de escribir.
+// Va de la mano de subir la probabilidad a 70 % (ver P_POSITIVA): se gana más
+// veces y se gana menos de golpe, que es la combinación que mantiene la
+// sensación de racha sin inflar el marcador.
 const TIRADA = {
-  grande: [40, 80],
+  grande: [40, 50],
   pequena: [10, 25],
 };
 const TIRADA_MIN = { grande: TIRADA.grande[0], pequena: TIRADA.pequena[0] };
@@ -110,10 +121,19 @@ const TIRADA_MAX = { grande: TIRADA.grande[1], pequena: TIRADA.pequena[1] };
 // Lo que frena que esto se convierta en una imprenta ya no es el multiplicador
 // de pérdida (ver la nota larga más abajo) sino TIRADAS_PAGADAS: se cobra de
 // verdad ocho veces al día y a partir de ahí se juega gratis, a cara o cruz.
+// SUBIDO A 70/30 PARA EL MIEMBRO por decisión del owner (era 62/38). El admin
+// sube con él para no quedar por debajo, y el owner se queda en 80: su amaño no
+// se toca.
+//
+// OJO A UNA CONSECUENCIA: con la base en 70 y el tope de miembro en 75
+// (P_TOPE_MIEMBRO) la veteranía solo tiene cinco puntos de recorrido en vez de
+// trece, así que se agota a los ~2.000 mensajes en lugar de a los ~4.400. Se
+// deja así a propósito: subir el tope por encima de 75 metería a un veterano en
+// el terreno del owner, y eso no se toca sin pedirlo.
 const P_POSITIVA = {
   owner: 0.80,   // el owner gana 4 de cada 5 tiradas, por peticion expresa
-  admin: 0.68,
-  miembro: 0.62,
+  admin: 0.73,
+  miembro: 0.70,
 };
 
 // ─── El bono de veterania: suerte que se acumula ─────────────────────────────
@@ -178,11 +198,16 @@ const ACTIVIDAD_TOPE = 0.13;
 // tirada pasa a ser una moneda al aire limpia: 50 % y el mismo importe a los dos
 // lados, valor esperado CERO exacto. Sigues jugando, dejas de cobrar.
 //
-// El multiplicador es 2,65 y sale de una relación, no de un capricho: perder
-// tiene que seguir pesando alrededor de vez y media lo que pesa ganar (46 contra
-// 32). Por debajo de eso la tirada deja de dar miedo; por encima vuelve el
-// problema que se está arreglando.
-const MULT_CASTIGO = 2.65;
+// TECHO DE PÉRDIDA EN 40 por decisión del owner. El multiplicador era 2,65 y
+// daba golpes de 26-66; ahora es 1,6 y da 16-40, que es el máximo pedido.
+//
+// La relación con la ganancia se invierte respecto a como estaba: antes perder
+// pesaba vez y media lo que pesaba ganar, y ahora pesa MENOS (media de 28 en
+// contra de una media de 30 a favor). Es coherente con lo demás que se ha
+// pedido — más probabilidad de ganar y menos importe — y hace que la tirada
+// sea claramente favorable al jugador. El freno que impide que eso sea una
+// imprenta sigue siendo TIRADAS_PAGADAS, no el castigo.
+const MULT_CASTIGO = 1.6;
 
 // Cuántas tiradas del día pagan de verdad. La 6ª y siguientes son moneda al aire
 // a valor esperado cero (ver arriba).

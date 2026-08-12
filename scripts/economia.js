@@ -144,10 +144,22 @@ for (const [nombre] of PERFILES) {
 //
 // Lo que se comprueba ahora es lo contrario y es lo que se pidio: que tener mas
 // suerte SE NOTE en el bolsillo, y que la escalera sea monotona.
+// LA ESCALERA YA NO ES ESTRICTA EN TODOS LOS TRAMOS, y es a proposito: al subir
+// la base del miembro al 70 % con el tope en 75 %, la veterania se agota a los
+// ~2.000 mensajes en vez de a los ~4.400. De ahi para arriba dos perfiles
+// distintos empatan, y empatar no es un fallo — lo seria RETROCEDER.
+//
+// Asi que se comprueban dos cosas por separado:
+//   · que la escalera nunca baje (monotona no decreciente);
+//   · que el primer escalon SI pague de verdad, o la veterania seria decorativa.
 for (let i = 1; i < 4; i++) {
-  ok(M[PERFILES[i][0]].ev > M[PERFILES[i - 1][0]].ev,
-    `${PERFILES[i][0].padEnd(18)} gana mas por tirada que ${PERFILES[i - 1][0]} (+${n2(M[PERFILES[i][0]].ev)} contra +${n2(M[PERFILES[i - 1][0]].ev)})`);
+  ok(M[PERFILES[i][0]].ev >= M[PERFILES[i - 1][0]].ev,
+    `${PERFILES[i][0].padEnd(18)} no gana menos que ${PERFILES[i - 1][0]} (+${n2(M[PERFILES[i][0]].ev)} contra +${n2(M[PERFILES[i - 1][0]].ev)})`);
 }
+ok(M[PERFILES[1][0]].ev > M[PERFILES[0][0]].ev,
+  `  y escribir el primer millar SI se nota (+${n2(M[PERFILES[1][0]].ev)} contra +${n2(M[PERFILES[0][0]].ev)}): la veterania no es decorativa`);
+ok(M['veterano (tope)'].ev > M['novato (0 msgs)'].ev * 1.15,
+  `  y de novato a veterano hay un salto real (+${n2(M['veterano (tope)'].ev)} contra +${n2(M['novato (0 msgs)'].ev)})`);
 ok(M['owner'].ev > M['veterano (tope)'].ev,
   `  y el owner sigue por encima del miembro mas veterano (+${n2(M['owner'].ev)} contra +${n2(M['veterano (tope)'].ev)})`);
 ok(P_TOPE_MIEMBRO < P_POSITIVA.owner,
@@ -181,7 +193,18 @@ console.log(`  Peor golpe posible: ${m.peor}. Mejor: +${m.mejor}. Asimetria: x${
 console.log(`  Desviacion tipica por tirada: ${n2(m.sigma)} — el EV es ${n2(m.ev)}.\n`);
 
 ok(m.pPos > 0.55, `se gana MAS veces de las que se pierde (${(m.pPos * 100).toFixed(0)} %) — esa es la sensacion que engancha`);
-ok(m.pierde > m.gana * 1.4, `  pero perder duele x${n2(m.pierde / m.gana)}, y eso es lo que impide acumular a base de tirar`);
+// PERDER YA NO DUELE MAS QUE GANAR, por decision del owner: se capo la ganancia
+// en 50 y la perdida en 40, asi que el multiplicador cayo de 2,65 a 1,6 y con el
+// la relacion pasa de x1,5 a x1,04. La tirada es ahora claramente favorable.
+//
+// Lo que se sigue exigiendo es que una derrota CANCELE una victoria: mientras un
+// golpe malo se lleve aproximadamente lo que trae uno bueno, una mala racha
+// sigue doliendo y el vaiven se nota. Si esto bajara de 0,9 la derrota seria un
+// tramite y el comando dejaria de tener tension.
+//
+// El freno contra acumular a base de tirar YA NO es el castigo: es TIRADAS_PAGADAS
+// (tope duro de 5 al dia). Eso se comprueba en la seccion 3.
+ok(m.pierde >= m.gana * 0.9, `  y perder sigue cancelando ganar (x${n2(m.pierde / m.gana)}): una mala racha se nota`);
 // Aqui se exigia que la ganancia fuera INVISIBLE: que hicieran falta miles de
 // tiradas para despegarse del ruido, o sea que la tirada se viviera como puro
 // azar. Esa propiedad se ha quitado a proposito — se pidio que tirar pagara —
@@ -192,7 +215,15 @@ ok(m.pierde > m.gana * 1.4, `  pero perder duele x${n2(m.pierde / m.gana)}, y es
 // comando deja de ser un juego y pasa a ser un cajero.
 const tiradasParaNotarlo = Math.pow(m.sigma / m.ev, 2);
 console.log(`  Hacen falta ~${n0(tiradasParaNotarlo)} tiradas para que la ganancia media supere al ruido.`);
-ok(m.sigma > m.ev * 10,
+// El umbral era x10 y se baja a x2. Al subir el acierto al 70 % y capar los
+// importes, la ventaja por tirada sube de 2,19 a 10,39 y el vaiven baja de 47 a
+// 28, asi que la relacion cae sola de x21 a x2,7 sin que el comando haya dejado
+// de ser un juego: una tirada suelta sigue moviendo de -40 a +50, o sea que
+// sigues sin saber lo que va a salir.
+//
+// Por debajo de x2 si habria que preocuparse: significaria que el resultado es
+// tan predecible que tirar es cobrar, y ahi el comando pasa a ser un cajero.
+ok(m.sigma > m.ev * 2,
   `una tirada suelta sigue siendo una sorpresa: el vaiven (${n2(m.sigma)}) pesa x${n2(m.sigma / m.ev)} sobre la ventaja (${n2(m.ev)})`);
 
 // La diferencia honesta con un casino de verdad.
@@ -399,9 +430,17 @@ ok(/const vNew = clave === 'desastre' \? await addAura\(jid, target, \+monto\) :
   // un novato, asi que la cifra bailaba sin querer decir nada. Lo que importa es
   // si el sumidero pesa frente al DIA de alguien, que es la unidad en la que se
   // vive la economia.
+  // LA REFERENCIA SE MOVIO SOLA. Este listón estaba en medio día de tirar, y lo
+  // cumplía cuando un novato sacaba 11 al día tirando. Al subir el acierto al
+  // 70 % ese día pasó a 52, así que el mismo robo fallido — que no ha cambiado —
+  // dejó de llegar a la mitad sin que el robo se haya tocado.
+  //
+  // Lo que de verdad importa se comprueba justo arriba: que robar DRENE (neto
+  // negativo). Aquí abajo solo se vigila que el drenaje siga siendo perceptible
+  // dentro de un día, no calderilla simbólica.
   const diaNovato = perfilTirada(P_POSITIVA.miembro).ev * TIRADAS_PAGADAS;
-  ok(-neto > diaNovato * 0.5,
-    `  y un robo fallido quema ${n2(-neto)}, mas de medio dia de tirar de un novato (${n0(diaNovato)}): sigue siendo el sumidero mas fuerte`);
+  ok(-neto > diaNovato * 0.15,
+    `  y un robo fallido quema ${n2(-neto)}, un ${Math.round(100 * -neto / diaNovato)} % del dia de tirar de un novato (${n0(diaNovato)}): el drenaje se nota`);
 }
 ok(ROBO.techo <= 200 && DUELO.techo <= 300, `ningun movimiento suelto pasa de ${ROBO.techo} (robo) / ${DUELO.techo} (duelo)`);
 ok(ROBO.techo / MILLONARIO < 0.05, `  un robo maximo es el ${(100 * ROBO.techo / MILLONARIO).toFixed(0)} % de una fortuna: un comando no decide el ranking`);
@@ -440,7 +479,16 @@ for (const nombre of ['fantasma', 'normal', 'activo', 'muy activo']) {
   console.log(`  ${x.nombre.padEnd(24)}  ${n0(x.total).padStart(7)}   ${(x.total / PRECIOS.sticker).toFixed(1).padStart(10)}   ${(x.total / PRECIOS.play).toFixed(1).padStart(13)}`);
 }
 ok(f('muy activo').total / PRECIOS.sticker < 40, `ni el mas activo puede spamear sin fin: ${(f('muy activo').total / PRECIOS.sticker).toFixed(0)} stickers al dia como techo`);
-ok(ARRANQUE / PRECIOS.sticker >= 5, `el arranque (${ARRANQUE}) da para ${Math.floor(ARRANQUE / PRECIOS.sticker)} stickers: nadie entra al grupo sin poder tocar nada`);
+// EL ARRANQUE BAJO DE 250 A 75 por decision del owner, asi que ya no da para
+// cinco stickers sino para uno. El liston pasa de "cinco compras" a lo unico que
+// de verdad no se puede incumplir: que el recien llegado pueda COMPRAR ALGO. Un
+// arranque por debajo del comando mas barato deja a quien entra mirando un
+// marcador que no puede gastar, y ahi el bot parece roto el primer dia.
+const MAS_BARATO = Math.min(...Object.values(PRECIOS));
+ok(ARRANQUE >= MAS_BARATO,
+  `el arranque (${ARRANQUE}) cubre el comando mas barato (${MAS_BARATO}): quien entra puede tocar algo desde el minuto uno`);
+ok(ARRANQUE >= PRECIOS.sticker,
+  `  y llega para ${Math.floor(ARRANQUE / PRECIOS.sticker)} sticker: se puede probar lo que mas se usa sin esperar a la primera tirada`);
 
 // ─── ¿alcanza el sueldo? ─────────────────────────────────────────────────────
 //
