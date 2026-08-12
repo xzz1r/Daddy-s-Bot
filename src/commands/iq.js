@@ -176,6 +176,16 @@ const MEDIO = [
   'Estás en la media, que en este grupo concreto significa que vas por delante de bastante gente.',
   '%IQ. Suficiente para darte cuenta de que hay gente mucho más lista, y de que no eres uno de ellos.',
   'Con %IQ tienes exactamente lo que hace falta y ni un gramo más. Eficiente, supongo.',
+  '%IQ. Normal como una puerta, pero una puerta que funciona. Hay puertas peores.',
+  'Con %IQ no destacas en nada pero tampoco arrastras en nada. El equilibrio perfecto de la irrelevancia.',
+  '%IQ de IQ. Nadie te va a recordar por tu cabeza, pero tampoco te van a señalar por falta de ella.',
+  'Estás donde está el grueso de la humanidad. Que es un sitio aburrido, pero al menos hay compañía.',
+  '%IQ. El número que deja todo igual que antes de preguntarlo. Ni sorpresa ni decepción.',
+  'Media clavada, %IQ. Tienes la cabeza justa para no meter la pata y no lo bastante para sacar el pie del suelo.',
+  'Con %IQ vas por la vida en modo automático y funciona. Para qué complicarse.',
+  '%IQ de IQ. Si el IQ tuviera un color, el tuyo sería gris. No ofende, no impresiona, no se ve.',
+  '%IQ. Normal tirando a predecible. Pero la previsibilidad tiene sus ventajas, como no cagarla demasiado.',
+  'Con %IQ estás en el punto donde pensar más no da más y pensar menos se nota. Ahí te quedas.',
 ];
 
 const ALTO = [
@@ -204,6 +214,16 @@ const ALTO = [
   '%IQ de IQ. Cabeza buena, criterio bueno. Solo falta que la uses en algo que valga la pena.',
   'Notable alto. Estás en el sitio donde las conversaciones normales se vuelven un poco lentas para ti.',
   '%IQ. Alto y estable. No es un pico de suerte, es cómo funcionas siempre, y eso es lo que cuenta.',
+  '%IQ. Del tramo que lee entre líneas sin esfuerzo. El resto del grupo lee las líneas y ya tiene bastante.',
+  'Con %IQ tu cabeza va más rápida que la conversación. Normal que a veces parezcas ausente: estás esperando.',
+  '%IQ de IQ. Número sólido de los que no necesitan fanfarria. Se nota solo y en silencio.',
+  'Arriba del todo de la media alta. Con %IQ procesas información a una velocidad que incomoda a los de abajo.',
+  '%IQ. Inteligencia real, no la de aparentar. La diferencia es que esta sirve para algo.',
+  'Con %IQ tienes la cabeza como para no necesitar suerte. Y aun así te viene bien, porque aquí se juega.',
+  '%IQ de IQ. Rápido, preciso y con la capacidad de saber cuándo callarse. Tres cosas que el grupo necesita.',
+  'Buen número: %IQ. Estás en el tramo donde las explicaciones te sobran y las preguntas te aburren.',
+  '%IQ. Por encima de la media y con la tranquilidad de quien no necesita demostrarlo.',
+  'Con %IQ ves venir las cosas con suficiente antelación como para no pillarlas de frente. No siempre las esquivas.',
 ];
 
 const GENIO = [
@@ -222,6 +242,16 @@ const GENIO = [
   '%IQ. Nivel de los que resuelven en la cabeza lo que otros necesitan escribir en tres folios.',
   'Con %IQ ves las cosas venir con tanta antelación que ya ni te molestas en avisar. Nadie te haría caso igual.',
   '%IQ de IQ. Cifra de genio. Y el genio, en un grupo así, se aburre bastante más de lo que disfruta.',
+  '%IQ. El grupo entero junto no llega a esa cifra y tú la sacas sin pestañear.',
+  'Con %IQ piensas a una velocidad que el resto ni registra. Para cuando reaccionan tú ya estás en otra cosa.',
+  '%IQ de IQ. Territorio donde la conversación del grupo te parece un documental de fauna salvaje.',
+  'Superdotación. Con %IQ este grupo te queda como un zapato tres tallas por debajo.',
+  '%IQ. Podrías estar ganando dinero con eso. En vez de eso estás aquí, perdiendo el tiempo con nosotros.',
+  'Con %IQ el problema no es encajar: es que nada de lo que oyes te sorprende. Y eso aburre.',
+  '%IQ de IQ. Número de los que ven la jugada completa antes de que muevan la primera pieza.',
+  '%IQ. Ese nivel de IQ es tan raro que la mayoría de la gente ni sabe que existe.',
+  'Superdotación confirmada: %IQ. La inteligencia te sobra; la paciencia para este grupo, seguro que no.',
+  '%IQ. Cifra que asusta. Ojalá la usaras para algo más que perder el tiempo en un chat.',
 ];
 
 // Los tramos peyorativos se ordenan de mas duro a mas suave: el bot abre con la

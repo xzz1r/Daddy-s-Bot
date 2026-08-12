@@ -89,9 +89,9 @@ function pick(arr) {
 const _pickHistory = new Map(); // key -> array of recently returned elements
 const _MAX_PICK_KEYS = 2000;    // bound the map so long-lived bots don't leak
 
-// Ventana anti-repeticion: no se repite una frase hasta pasadas otras 30 del
+// Ventana anti-repeticion: no se repite una frase hasta pasadas otras 50 del
 // mismo pool. Si el pool tiene MENOS de 11 frases el bloqueo se recorta solo a
-// pool.length-1 — con 5 frases es imposible no repetir en 30 tiradas, y
+// pool.length-1 — con 5 frases es imposible no repetir en 50 tiradas, y
 // bloquearlas todas dejaria el pool vacio.
 // Dureza de una frase: cuenta senales de que es de las fuertes del arsenal.
 // No pretende ser exacta — solo separar "puta mierda de fracasado, no vales
@@ -144,7 +144,7 @@ function _pickPesado(pool, indices) {
 
 // Elige una frase evitando las `window` ultimas de esa misma clave, y sesgando
 // la eleccion hacia el principio del pool (lo mas duro).
-function pickFresh(pool, key, window = 30) {
+function pickFresh(pool, key, window = 50) {
   if (!Array.isArray(pool) || pool.length === 0) return undefined;
   if (!key) return pick(pool);
 

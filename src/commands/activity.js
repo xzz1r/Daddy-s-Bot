@@ -323,6 +323,16 @@ let AMENAZAS = [
   'La expulsión no es un castigo, es una corrección: el bot solo va a poner la lista de miembros al día con la realidad.',
   'Escribid ya o el bot os echa, y el hueco que dejéis lo va a llenar cualquiera en una tarde. Eso es lo que asusta, no la expulsión.',
   'El bot no negocia ni hace excepciones: cuenta mensajes y expulsa. Los vuestros ya los ha contado todos.',
+  'El bot tiene paciencia limitada y vosotros la habéis agotado. La siguiente ronda es de expulsiones.',
+  'Escribid algo o preparaos para la notificación de expulsión. Que va a ser lo primero que leáis aquí en semanas.',
+  'El bot limpia el grupo como se limpia un armario: lo que no se usa, se tira. Y vosotros lleváis meses sin uso.',
+  'Última oportunidad antes de que el bot haga sitio. Y hace falta sitio, porque aquí sobra peso muerto.',
+  'El grupo funciona sin vosotros y lo sabéis. El bot solo va a oficializar lo que ya es un hecho.',
+  'Escribid o fuera. Y si fuera os parece injusto, recordad cuántos mensajes habéis mandado. Cero es cero.',
+  'El bot va a hacer limpieza y vuestros nombres están en la lista. Salir de ella es tan fácil como escribir algo.',
+  'Os va a expulsar un bot. No una persona, un bot. Que eso os diga cuánta importancia tiene vuestra presencia.',
+  'Escribid, joder. Un mensaje. El que sea. El bot no pide calidad, pide existencia.',
+  'La expulsión no duele. Lo que duele es que nadie note que os habéis ido.',
 ]
 
 

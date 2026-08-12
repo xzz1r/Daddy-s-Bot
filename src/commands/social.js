@@ -129,6 +129,21 @@ const AURA_LINES = [
   'El que llega a los mil mensajes diarios no es suerte, es alguien que vive el grupo. Y cobra por ello.',
   'El aura separa a los que están de los que solo figuran en la lista. Los números lo dejan claro.',
   'Ganar aura es fácil: escribe. Mantenerla es lo que separa a los constantes del resto.',
+  'El aura no se regala. Se gana mensaje a mensaje y se pierde jugada a jugada. Así funciona esto.',
+  'Aquí el que no escribe no come. Y el que no come no apuesta. Y el que no apuesta no existe.',
+  'El marcador lo sabe todo. No se puede engañar y no se puede sobornar. Es lo más honesto del grupo.',
+  'La constancia paga más que la suerte. El que viene todos los días acaba ganando sin darse cuenta.',
+  'El aura es lo que queda cuando se apaga el grupo. Los números son la memoria de todo lo que pasó.',
+  'Los fantasmas del grupo no cobran, no suman y no aparecen en ningún ranking. Así se vive.',
+  'Los bonos de actividad premian escribir, no existir. La diferencia la entiende el que cobra.',
+  'El aura funciona como la vida: el que aparece gana, el que desaparece pierde y el que presume sin números hace el ridículo.',
+  'Cada mil mensajes tu suerte de tirada sube un poco, para siempre. El veterano tira mejor y se lo ha ganado.',
+  'El que lleva racha no solo cobra a diario: llega a los hitos y el grupo se entera. Constancia con premio.',
+  'Aquí se paga por participar y se cobra por permanecer. El resto son excusas de gente que no aparece.',
+  'El aura no miente. Es el espejo del grupo y a la mayoría no le gusta lo que ve.',
+  'Hay dos formas de subir: escribiendo o tirando. Pero solo una de las dos es gratis.',
+  'La economía del grupo no se entiende pensándola, se entiende viviéndola. Escribe y verás.',
+  'El que escribe más gana más, el que no escribe pierde terreno. Sin excepciones y sin puto consuelo.',
 ];
 
 // !casino / !aura hoy — progreso diario de aura del que lo pide

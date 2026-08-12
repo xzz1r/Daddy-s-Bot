@@ -82,6 +82,20 @@ const MISERIA = [
   'Estás tieso y se te nota hasta en cómo escribes. Aparta.',
   'No hay aura. Hay un pringado mirando un precio que no puede pagar.',
   'Menuda puta miseria de cuenta. Aquí se viene llorado y con dinero.',
+  'Te has quedado sin nada y vienes a gastar. Brillante, como todo lo que haces.',
+  'Con ese saldo no compras ni el silencio del bot, y eso es gratis.',
+  'No hay pasta. Hay un pringado mirando un escaparate con los bolsillos del revés.',
+  'Cero aura y mucha cara. Lo primero se arregla escribiendo, lo segundo no.',
+  'Ese saldo da para mirarlo y llorar. Igual que tu perfil.',
+  'No te da. Ni para esto ni para aparentar que te da. Estás tieso, cabrón.',
+  'Cuenta seca, ambición mojada. Vuelve cuando la proporción se invierta.',
+  'Ni un duro. Vienes aquí a gastar aire y a robar tiempo.',
+  'Mierda de saldo. Hasta el bot tiene más aura que tú, y el bot no participa.',
+  'Tu cuenta parece un desierto: vacía, seca y sin señales de vida.',
+  'Has venido a comprar con calderilla y encima con prisa, gilipollas. Vuelve cuando sumes.',
+  'Ese saldo no impresiona a nadie. Ni siquiera al contador, que ha visto miserias pero no como la tuya.',
+  'No tienes para esto. Escribe, participa, haz algo con tu vida en este grupo.',
+  'Pobre como una rata y con las mismas ganas de gastar. Vuelve cuando sumes, pringado.',
 ];
 
 // Texto del rechazo: el precio, el saldo y CÓMO remontar.

@@ -24,6 +24,21 @@ const HEADERS = [
   '*CREMACIÓN EN DIRECTO*',
   '*INFORME DE DAÑOS*',
   '*EL VEREDICTO*',
+  '*DERRIBO PROGRAMADO*',
+  '*DISECCIÓN PÚBLICA*',
+  '*SACRIFICIO RITUAL*',
+  '*EXPEDIENTE ABIERTO*',
+  '*FUNERAL EN DIFERIDO*',
+  '*OPERACIÓN SIN ANESTESIA*',
+  '*ACCIDENTE CONTROLADO*',
+  '*RADIOGRAFÍA SIN CONSENTIMIENTO*',
+  '*SENTENCIA FIRME*',
+  '*ESCARNIO PÚBLICO*',
+  '*ANÁLISIS FORENSE*',
+  '*ENTIERRO EXPRÉS*',
+  '*INCINERACIÓN VOLUNTARIA*',
+  '*VIVISECCIÓN EN GRUPO*',
+  '*PERITAJE DE DAÑOS*',
 ];
 
 const CLOSERS = [
@@ -42,6 +57,21 @@ const CLOSERS = [
   '_No te odio. Te analizo. Y el resultado es este._',
   '_Fin de la autopsia. Causa de muerte: tú mismo._',
   '_Guárdate el cope. Nadie te lo va a comprar aquí._',
+  '_Acta levantada. Daños irreparables._',
+  '_Se ha dicho todo. Que cada cual haga su duelo._',
+  '_Esto no es un roast, es un parte médico. Y el pronóstico es una mierda._',
+  '_Ni terapia ni cope. Esto es permanente._',
+  '_Que conste que se avisó. Nadie tiene derecho a quejarse._',
+  '_No se busca ofender. Se busca documentar. Y el documento es demoledor._',
+  '_Aquí no hay vuelta. Lo que se ha dicho se ha dicho y no se retira._',
+  '_Fin del expediente. Se archiva en la carpeta de siniestro total._',
+  '_Ni cope ni excusa. Lo que eres está escrito ahí arriba y no se borra._',
+  '_Esto queda en el grupo para siempre. Bienvenido a tu legado._',
+  '_El grupo ha hablado. La sentencia es unánime y sin recurso._',
+  '_No es personal. Es estadístico. Y la estadística no miente._',
+  '_Hecho polvo y documentado. Siguiente._',
+  '_No hay recuperación posible. Solo aceptación y silencio._',
+  '_Que alguien recoja los restos. Esto ya ha terminado._',
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -423,6 +453,17 @@ const OWNER_ROAST = [
   'El intocable del grupo, %N. Ese que se cree por encima de todos y al que, para colmo, nadie consigue rebatir. Prepotente insufrible. Un día te caes y lo celebramos, listo de mierda.',
   '%N, el creído que va de sobrado por la vida y que, para desgracia de todos, casi siempre le sale la jugada. Ego insoportable, actitud de rey de mierda. Que alguien te baje los humos ya.',
   'Mírate, %N, con ese complejo de superioridad y esa manía de tener razón que saca de quicio a cualquiera. Un prepotente de libro. Lo peor es que no podemos ni desmentirte. Insufrible, hijo de puta.',
+  '%N, el que se cree imprescindible y lo peor es que medio grupo le da la razón. Prepotente de mierda con permiso del público. Alguien debería quitarle el micrófono.',
+  'El puto amo del grupo, %N. Ese al que le molesta que el resto no piense tan rápido. La paciencia de un líder la tiene, la humildad ni de lejos. Sobrado, cabrón.',
+  '%N, siempre con la última palabra y siempre acertando. Qué asco da que alguien tan insoportable tenga razón tan a menudo. Ojalá te equivocaras una puta vez, prepotente.',
+  'Aquí viene %N a iluminar al grupo con su puta sabiduría. Lo peor no es que se crea mejor que todos: es que nadie puede decirle lo contrario sin quedar como un imbécil.',
+  '%N, con esa cara de listo de mierda y ese historial de aciertos que le da permiso para ser insufrible. Ego descomunal y medio justificado, que es la combinación más odiosa que existe.',
+  'El problema de %N es que se cree el más listo del grupo. Y el problema del grupo es que probablemente lo sea. Prepotente, arrogante y con la razón de su parte. Insoportable, hijo de puta.',
+  '%N, el que habla cuando le da la gana y siempre parece que dice lo importante. Los demás hablan para rellenar. Tú hablas para dejar claro que estás por encima. Sobrado de mierda.',
+  'Mira el señorito %N. Todo controlado, todo calculado, todo con esa superioridad de quien sabe que el resto no llega. Y lo peor es que no llega, cabrón. Insufrible con razón.',
+  '%N, esa arrogancia tuya es de las que generan rencor. Pero el rencor no te quita la razón y eso es lo que realmente jode al grupo entero.',
+  'El que manda sin mandar, %N. El que opina poco y acierta siempre. El que calla y el grupo se pregunta qué piensa. Prepotente por omisión, que es la peor clase de prepotente.',
+  '%N, el cabrón más pagado de sí mismo de todo el grupo. Y lo peor es que tiene con qué pagarse. Ego justificado es ego peligroso.',
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════

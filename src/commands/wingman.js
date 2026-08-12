@@ -169,6 +169,19 @@ const WINGMAN_CIERRES = [
   'Después de que hiciera eso por mí, lo mínimo es recomendarlo. Se lo debo y algo más.',
   'Eso es lealtad de las que ya no se fabrican, ni en laboratorio. %N, cásate con quien aguante saberlo.',
   'Con un currículum así, %N no necesita presentación. Necesita, como mucho, un enjuague bucal.',
+  '%N tiene un historial que asusta y un compromiso que da más miedo todavía. Pareja ideal para valientes.',
+  'Si %N es capaz de hacer eso, imagina lo que haría en una relación. Con cojones y sin límites.',
+  'Lo de %N no se enseña en ningún sitio. Se nace así de bruto y con esa lealtad de mierda.',
+  'Todo esto demuestra una cosa: %N no tiene vergüenza. Y eso en pareja vale más de lo que parece.',
+  'Recomendación con reservas: %N no es para cualquiera, pero para el que lo aguante es un puto diamante.',
+  'Después de esto, rechazar a %N ya no es opción. Es negligencia emocional con agravante.',
+  '%N acaba de demostrar que lo suyo no es cariño normal. Es devoción de la que da grima y funciona.',
+  'Con esa entrega, %N merece algo mejor que este grupo. Pero este grupo es todo lo que tiene, así que a disfrutarlo.',
+  'Si alguien necesita pruebas de lo que %N es capaz de hacer, esto las borra todas. Compromiso total, joder.',
+  'Lo de %N es material de documental. Pocos harían lo mismo y la mayoría se arrepentiría antes de empezar.',
+  'Recomendación firme del bot: %N es un desastre en todo menos en lealtad. Y con eso basta para que alguien pique.',
+  'Si %N pone la mitad de eso en una relación real, lo suyo es para siempre. O para el psiquiatra, según se mire.',
+  '%N ha dejado claro que no tiene límites ni dignidad sobrante. Perfecto para una relación larga y confusa.',
 ];
 
 // !rizz [@user] — puntúa el nivel de juego/labia (0-100).
