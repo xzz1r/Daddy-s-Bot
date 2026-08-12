@@ -689,20 +689,20 @@ const apuestaEnCurso = new Set();
 // Frases de rechazo. Secas: dicen el porque y nada mas. El bot no da tutoriales
 // ni explica como conseguir aura.
 const APUESTA_POBRE = [
-  'Con eso no se apuesta, con eso se sobrevive.',
-  'No tienes suficiente para que esto tenga gracia.',
-  'Arriesgar lo que tú tienes no es arriesgar. Vuelve con algo encima.',
-  'La mesa tiene un mínimo y tú no llegas.',
-  'Eso no es una apuesta, es una propina. Junta más.',
-  'Aquí no se juega con calderilla.',
-  'Ni de coña. Vienes a apostar con los bolsillos del revés, pringado.',
-  'Con esa mierda de saldo no se apuesta. Se mira cómo apuestan otros.',
-  'Eso no es un saldo, es una limosna. La mesa tiene estándares.',
-  'No llegas. Y no por poco: no llegas por mucho.',
-  'La apuesta mínima existe para que no entre cualquier muerto de hambre. Y ha funcionado.',
-  'Con eso no apuestas ni en un grupo de colegas. Junta aura y vuelve.',
-  'Ni un duro. Vienes a la mesa sin nada y encima con prisa, cabrón.',
-  'Ese saldo no da ni para entrar. Vuelve cuando tengas algo que perder.',
+  'Joder, vienes a apostar con el culo al aire y sin vergüenza. Vuelve cuando tengas algo que no sea miseria.',
+  'Con esa mierda de saldo no llegas ni a la barra, cojones.',
+  '¿Apostar tú? Ni de coña. Antes junta cuatro duros y luego hablamos.',
+  'Vienes más pelado que una rata de alcantarilla. Aquí no se juega con pena.',
+  'Esa calderilla no vale ni para limpiarme el culo, no te digo ya para apostar.',
+  'La mesa tiene un mínimo y tú tienes menos que eso, gilipollas.',
+  'Con lo que tienes no apuestas, mendigas. Y aquí no se reparte caridad.',
+  'Joder, qué vergüenza ajena da tu saldo. Vuelve cuando no seas un puto pordiosero.',
+  'Eso no es aura, es la mierda que queda en el fondo del bolsillo.',
+  'Ni para propina llega eso, coño. Vete a pedir a otro lado.',
+  'Aquí se apuesta con cojones, no con las migajas que te quedan.',
+  'Con esa hostia de saldo lo único que arriesgas es hacer el ridículo.',
+  'Estás más seco que la Mancha en agosto. Junta pasta y vuelve, pringado.',
+  'No hay mínimo que sobreviva a tu miseria. Larga de la mesa.',
 ];
 
 async function jugarApuesta(sock, msg, groupMeta, args) {
