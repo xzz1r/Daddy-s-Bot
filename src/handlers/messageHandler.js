@@ -241,7 +241,8 @@ const NEEDS_META = new Set([
   'crack','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','ganador',
   'puta','guarra','fiel','infiel','linda','fea','incel',
   'rizz',   // piropo y wingman NO: sus handlers no reciben groupMeta (wingman.js)
-  'aura','resetaura','inactivos','inactivo','fantasma','fantasmas','mog','moggear','roast','flamear',
+  'aura','guia','guía','aurahelp','guiaaura',   // la guia entra por cmdAura, que exime al owner de pagar
+  'resetaura','inactivos','inactivo','fantasma','fantasmas','mog','moggear','roast','flamear',
   'duel','duelo','1v1',
   'robo','robar',
   'vs','versus',          // cmdVs receives groupMeta for isOwner/isGroupAdmin checks
@@ -253,6 +254,11 @@ const NEEDS_META = new Set([
   'k',              // isOwner necesita la metadata para resolver el LID del owner
   'diag','diagnostico',
   'relevancia','relevance',   // isMainOwner necesita meta para resolver LID → teléfono
+  // !casino es la puerta directa a lo mismo que !aura hoy, y ese texto NO se le
+  // contesta al owner principal (le sacaba "Mensajes hoy: 0", que es justo la
+  // contradiccion que lo delata). Sin metadata isMainOwner no resuelve su LID en
+  // los grupos modernos y el aviso se le colaria por esta via.
+  'casino',
   // Owner-gated commands also need meta in groups to resolve LID → phone
   // for isOwner checks (otherwise co-owners always fail in modern groups).
   'clearcache','borracache','setgrok','setkey','whoami',
@@ -1459,6 +1465,20 @@ async function handleMessage(sock, msg) {
 
       case 'aura':           await cmdAura(sock, msg, args, groupMeta); break;
 
+      // La guia del aura, como comando propio.
+      //
+      // Existia solo como *!aura info*, que nadie descubre por su cuenta, y lo
+      // alternativo era meter la explicacion entera en !commands — que es
+      // exactamente lo que lo tenia hinchado. Con puerta propia el menu puede
+      // quedarse en una linea y la explicacion puede ser todo lo larga que haga
+      // falta sin estorbar a nadie.
+      case 'guia':
+      case 'guía':
+      case 'aurahelp':
+      case 'guiaaura':
+        await cmdAura(sock, msg, ['info'], groupMeta);
+        break;
+
       case 'resetaura':
         if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
           await sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
@@ -1532,7 +1552,7 @@ async function handleMessage(sock, msg) {
         break;
 
       case 'casino':
-        await cmdCasino(sock, msg);
+        await cmdCasino(sock, msg, groupMeta);
         break;
 
       case 'ayuda':

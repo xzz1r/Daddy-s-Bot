@@ -6,7 +6,7 @@ const { contarTirada } = require('../utils/casinoStore');
 const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE_MIEMBRO, MULT_CASTIGO, TIRADAS_PAGADAS, bonoActividad, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
-const { BOTE } = require('../utils/economia');
+const { BOTE, CONTRA } = require('../utils/economia');
 const { aportarAlBote } = require('../utils/roboStore');
 
 // 2 min, bajado desde 3. La tirada mueve poco aura (15-150) desde que se
@@ -1453,33 +1453,57 @@ function textoAuraInfo() {
   // una cifra economica copiada. Fuera, la plantilla queda limpia de numeros.
   const pctBono = Math.round(ACTIVIDAD_BONO * 100);
   const pctTope = Math.round(ACTIVIDAD_TOPE * 100);
+  const horasApuesta = APUESTA.cooldownMin / 60;
   const precios = Object.entries(PRECIOS)
     .sort((a, b) => b[1] - a[1])
     .map(([k, v]) => `*!${k === 'sticker' ? 's' : k === 'grok' ? 'g' : k}* ${v}`)
     .join(' · ');
 
-  return `*EL AURA*
+  return `*LA GUÍA DEL AURA*
 
-Es la moneda del grupo. Empiezas con *${fmt(ARRANQUE)}*. Un millonario del grupo ronda los *${fmt(MILLONARIO)}*.
+El aura es la moneda del grupo. Empiezas con *${fmt(ARRANQUE)}* y un millonario ronda los *${fmt(MILLONARIO)}*. Casi todos los comandos cuestan.
 
-*CÓMO SE GANA*
-· *Escribiendo* — bonos automáticos al llegar a 200, 500 y 1000 mensajes en el día (el contador se reinicia cada 24h). Y cada ${fmt(ACTIVIDAD_MSGS)} mensajes que escribes en total, tus tiradas ganan *+${pctBono}% de suerte para siempre*, hasta un máximo de +${pctTope}%.
-· *!aura* — tiras el dado (${duracion(ROLL_COOLDOWN_MS)} de espera). Las *${TIRADAS_PAGADAS} primeras del día* pagan de verdad; a partir de ahí sigues jugando pero es cara o cruz.
-· *!robo @user <cantidad>* — le quitas aura a alguien. Se roba lo que pides; sin cantidad, sale una al azar. Cuanto más pides, menos probable es que salga.
-· *!duel @user <cantidad>* — apuesta 1v1. El retado acepta con *!duel aceptar*.
-· *!aura apostar <cantidad>* — a una carta, cada ${APUESTA.cooldownMin / 60}h. Sin cantidad va media cuenta. Hace falta tener ${fmt(APUESTA.minimo)}.
-· *!dar @user <cantidad>* — le pasas aura a alguien.
+━━━━━ *CÓMO SE GANA* ━━━━━
 
-_Tus ${TIRADAS_PAGADAS} primeras tiradas del día pagan, y pagan mejor cuanto más has escrito. El robo, el duelo y la apuesta no: ahí la casa se queda un pellizco y a la larga se pierde._
+*1. Escribiendo* — es la vía principal.
+· Bonos automáticos al llegar a *200*, *500* y *1000* mensajes en el día. El contador del día se reinicia cada 24h.
+· Y para siempre: cada *${fmt(ACTIVIDAD_MSGS)} mensajes* que escribes en total, tus tiradas ganan *+${pctBono}% de suerte*. Se acumula, hasta un máximo de *+${pctTope}%*.
 
-*EN QUÉ SE GASTA*
-${precios}
+*2. Tirando* — *!aura*, una cada ${duracion(ROLL_COOLDOWN_MS)}.
+· Las *${TIRADAS_PAGADAS} primeras del día* pagan de verdad, y pagan más cuanta más suerte llevas acumulada.
+· De ahí en adelante sigues tirando, pero es cara o cruz: lo que ganas y lo que pierdes se igualan.
+· Pierdas cuando pierdas, el golpe es el mismo para todos. La suerte decide cada cuánto, no cuánto.
 
-*COMANDOS*
-· *!aura* — tirar
-· *!aura @user* — ver el aura de alguien
-· *!aura top* — ranking
-· *!aura hoy* — tu progreso del día`;
+━━━━━ *TODOS LOS MODOS DE !aura* ━━━━━
+
+*!aura* — tiras
+*!aura* @user — miras el aura de alguien (no tira, no gasta espera)
+*!aura top* — el ranking del grupo
+*!aura hoy* — tus mensajes de hoy, tus tiradas de pago restantes y cuánto falta para el próximo bono _(o *!casino*)_
+*!aura apostar* <cantidad> — a una carta, cada ${horasApuesta}h. Sin cantidad va media cuenta. Hace falta tener *${fmt(APUESTA.minimo)}*, y el mínimo que se puede poner son *${fmt(APUESTA.apuestaMin)}*
+*!aura on/off* — pausa o reanuda la dinámica _(solo el dueño)_
+
+━━━━━ *QUITARLE AURA A OTROS* ━━━━━
+
+*!robo* @user <cantidad> — se roba lo que pides. Sin cantidad sale una al azar. Cuanto más pides, menos probable es que salga; el punto dulce está a media horquilla. Hay cinco desenlaces distintos.
+*!robo bote* — lo que se acumula de los robos fallidos del grupo
+*!robo asalto* — intentas reventarlo entero. Cuesta *${fmt(BOTE.entrada)}* y sale poco, pero se lo lleva todo el que acierta
+*!robo tienda* — escudo, ganzúa y cebo. También enseña lo que llevas encima
+*!robo comprar* <objeto> — lo compras
+*!robo contra* — devuelves el golpe, en los *${CONTRA.ventanaSeg}s* siguientes a que te roben. Doble o nada
+*!robo top* — los más buscados de la semana. Al número uno se le roba con más botín
+
+*!duel* @user <cantidad> — apuesta 1v1. El retado acepta con *!duel aceptar*
+*!dar* @user <cantidad> — le regalas aura a alguien
+
+━━━━━ *LA LETRA PEQUEÑA* ━━━━━
+
+_Tus ${TIRADAS_PAGADAS} primeras tiradas del día salen a ganar. El robo, el duelo y la apuesta NO: en los tres la casa se queda un pellizco y a la larga se pierde. Lo que se acumula sale de escribir._
+
+_Escribir mucho no solo da bonos: sube la suerte de todas tus tiradas para siempre. Es la única ventaja que no se puede comprar ni robar._
+
+━━━━━ *EN QUÉ SE GASTA* ━━━━━
+${precios}`;
 }
 
 // !aura [@user]  — rolls aura for the target and updates their PERSISTENT total.
@@ -1660,7 +1684,10 @@ async function cmdAura(sock, msg, args, groupMeta) {
   // "!aura hoy" porque es aura, no un casino aparte. !casino sigue valiendo.
   if (['hoy', 'today', 'dia', 'día', 'diario'].includes(sub)) {
     const { cmdCasino } = require('./social');
-    return cmdCasino(sock, msg);
+    // groupMeta va SIEMPRE: es lo que le permite reconocer al owner principal
+    // para no contestarle. Sin ella la comprobacion falla en grupos LID y le
+    // saldria el "Mensajes hoy: 0" que lo delata.
+    return cmdCasino(sock, msg, groupMeta);
   }
   // "allin" se conserva como alias porque el comando se llamo asi un dia, pero
   // el nombre bueno es apostar: pone la MITAD del saldo, no todo.

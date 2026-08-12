@@ -1,6 +1,6 @@
 const { getState, setState, toggleGroup } = require('../utils/state');
 const { formatUptime, fmt, pickFresh } = require('../utils/helpers');
-const { isOwner, getSender } = require('../utils/wa');
+const { isOwner, isMainOwner, getSender } = require('../utils/wa');
 const { getCasinoCount, msUntilReset, tiradasDeHoy } = require('../utils/casinoStore');
 const { nextMilestone } = require('../utils/casino');
 const { PRECIOS, APUESTA, CONTRA, ACTIVIDAD_MSGS, TIRADAS_PAGADAS } = require('../utils/economia');
@@ -131,13 +131,25 @@ const AURA_LINES = [
 ];
 
 // !casino / !aura hoy — progreso diario de aura del que lo pide
-async function cmdCasino(sock, msg) {
+async function cmdCasino(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
     return sock.sendMessage(jid, { text: 'Solo funciona en grupos.' }, { quoted: msg });
   }
 
   const sender = getSender(msg);
+
+  // AL OWNER PRINCIPAL NO SE LE CONTESTA. Sus mensajes no se cuentan — es lo que
+  // lo mantiene fuera de !count, de los tops y de las purgas — así que este
+  // comando le sacaba "Mensajes hoy: 0" delante del grupo. Es la contradicción
+  // exacta que lo delata: la única persona a la que el bot dice que no ha
+  // escrito nada es justamente la que más escribe.
+  //
+  // Se calla del todo en vez de enseñarle el mensaje sin esa línea: un formato
+  // distinto solo para él también es una señal. El silencio no se distingue de
+  // un comando que no salió, que es el mismo criterio de !count y !relevancia.
+  if (isMainOwner(sender, msg.key.fromMe, groupMeta)) return;
+
   const [count, ms, tiradas] = await Promise.all([
     getCasinoCount(jid, sender),
     msUntilReset(jid),
@@ -196,77 +208,44 @@ async function cmdHelp(sock, msg) {
   const text =
 `*${config.botName}*
 _Prefijo *${p}* · ejemplo: *${p}play* despacito_
-_Casi todo cuesta aura. El número es el precio._
+_El número es lo que cuesta en aura._
 
 ━━━━━ *DINÁMICAS* ━━━━━
 _Sin @ va sobre ti · con @ va sobre esa persona._
-_De más crudo a más suave. Los de la lista, ${PRECIOS.percent} cada uno._
-*${p}roast* ${c('roast')} @user — destrucción pública
-*${p}perdedor* · *${p}puta* · *${p}guarra*
-*${p}incel* · *${p}maricon* · *${p}gay*
-*${p}cerdo* · *${p}inutil* · *${p}rata*
-*${p}femboy* · *${p}simp* · *${p}friki*
-*${p}fea* · *${p}iq* · *${p}infiel*
-*${p}mog* ${c('mog')} @a @b — duelo de looks
-*${p}feminidad* · *${p}masculinidad*
-*${p}linda* · *${p}hot* · *${p}fiel*
-*${p}crack* · *${p}ganador*
-*${p}ship* ${c('ship')} @a @b — compatibilidad
-*${p}rizz* ${c('rizz')} · *${p}piropo* · *${p}wingman* — modo ligue
+*${p}roast* ${c('roast')} — destrucción · *${p}mog* ${c('mog')} @a @b — looks
+*${p}ship* ${c('ship')} @a @b · *${p}rizz* ${c('rizz')} · *${p}piropo* · *${p}wingman*
+_De más crudo a más suave, ${PRECIOS.percent} cada uno:_
+*${p}perdedor* *${p}puta* *${p}guarra* *${p}incel* *${p}maricon* *${p}gay*
+*${p}cerdo* *${p}inutil* *${p}rata* *${p}femboy* *${p}simp* *${p}friki*
+*${p}fea* *${p}iq* *${p}infiel* *${p}feminidad* *${p}masculinidad*
+*${p}linda* *${p}hot* *${p}sexy* *${p}fiel* *${p}crack* *${p}ganador*
 
 ━━━━━ *AURA* ━━━━━
-_Bonos a los 200, 500 y 1000 msg del día. Cada ${ACTIVIDAD_MSGS} que escribes,_
-_tus tiradas ganan suerte para siempre. ${TIRADAS_PAGADAS} tiradas pagan al día._
-*${p}aura* — tirar · *${p}aura* @user — ver · *${p}aura top* — ranking
-*${p}aura apostar* [cantidad] — a una carta, cada ${APUESTA.cooldownMin / 60}h.
-Sin cifra va la mitad. Mínimo ${APUESTA.minimo} de saldo para jugar
-*${p}aura hoy* — tu progreso de hoy _(o ${p}casino)_
-*${p}dar* @user <cantidad> — regalar
-*${p}duel* @user <cantidad> — apostar 1v1, el otro acepta
-*${p}robo* @user <cantidad> — robar. Elige cuánto: ni el mínimo
-ni el tope son la mejor apuesta _(5 desenlaces)_
-*${p}robo bote* · *${p}robo asalto* — el bote crece con cada fallo
-*${p}robo tienda* — escudo, ganzúa y cebo · *${p}robo top* — buscados
-*${p}robo contra* — devolver el golpe, ${CONTRA.ventanaSeg}s tras ser robado
+*${p}aura* — tirar · *${p}aura top* · *${p}aura hoy*
+*${p}robo* · *${p}duel* · *${p}dar* @user <cantidad>
+*${p}guia* — el aura entera explicada, con todos sus modos
 
 ━━━━━ *HERRAMIENTAS* ━━━━━
-*${p}play* <nombre> ${c('play')} — canción _(pon también el artista)_
-*${p}cachelist* ${c('cachelist')} — las ya guardadas, al instante
-*${p}s* ${c('sticker')} — imagen o vídeo a sticker
-*${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')} — sticker a imagen o a vídeo
-*${p}ttp* ${c('ttp')} <texto> — texto a sticker
-*${p}g* <pregunta> ${c('grok')} — le preguntas a Grok
-*${p}pfp* @user ${c('pfp')} — su foto de perfil
-*${p}fk* @user ${c('fk')} — analiza si es cuenta falsa
+*${p}play* ${c('play')} <nombre> — canción · *${p}cachelist* ${c('cachelist')} — las guardadas
+*${p}s* ${c('sticker')} · *${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')} · *${p}ttp* ${c('ttp')} <texto>
+*${p}g* ${c('grok')} <pregunta> · *${p}pfp* ${c('pfp')} · *${p}fk* ${c('fk')} @user
 
 ━━━━━ *ACTIVIDAD* ━━━━━
-*${p}count* ${c('count')} — ranking de quién escribe más _(admins)_
-*${p}relevancia* ${c('relevancia')} [@user] — tu peso real en el grupo
-*${p}vs* ${c('vs')} @a @b — compara la actividad de dos
+*${p}count* ${c('count')} _(admins)_ · *${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b
 *${p}fantasmas* ${c('fantasmas')} · *${p}inactivos* ${c('inactivos')} — los que menos escriben
 *${p}top5* ${c('top5')} · *${p}top10* ${c('top10')} <tema> — ranking al azar
 
 ━━━━━ *ADMIN* ━━━━━
-*${p}tagall* <mensaje> — menciona a todos
-*${p}kick* @user · *${p}add* <número> · *${p}del* — echar, meter, borrar
-*${p}promote* · *${p}demote* @user — dar o quitar admin
-*${p}mute* @user <min> · *${p}unmute* @user
-*${p}close* · *${p}open* — cerrar o abrir el grupo
-*${p}adminmode* on/off — el bot solo obedece a admins
-*${p}notifadmin* on/off — avisos de admin
-*${p}scan* — busca cuentas sospechosas
-*${p}antiempresa* · *${p}antifoto* scan/purge — limpiezas
-*${p}allow* @user — le deja publicar enlaces
-*${p}marcarfake* @user — marca su foto como falsa
-*${p}fkban* · *${p}fkunban* @user · *${p}fklist* — lista negra global
-*${p}antifake* on/off — vigila las entradas
+*${p}tagall* · *${p}kick* · *${p}add* · *${p}del* · *${p}mute* · *${p}unmute*
+*${p}promote* · *${p}demote* · *${p}close* · *${p}open* · *${p}allow*
+*${p}scan* · *${p}marcarfake* · *${p}antifoto* · *${p}antiempresa*
+*${p}fkban* · *${p}fkunban* · *${p}fklist* · *${p}antifake* on/off
+*${p}adminmode* · *${p}notifadmin* on/off
 
 ━━━━━ *SISTEMA* ━━━━━
-*${p}on* · *${p}off* — activa o apaga el bot
-*${p}antiadmin* · *${p}antiempresa* · *${p}antilink* on/off
-*${p}aura on/off* — pausa la dinámica sin borrar saldos
-*${p}resetcount* · *${p}resetaura* — borrar rankings
-*${p}clearcache* · *${p}setgrok* <key> · *${p}diag*
+*${p}on* · *${p}off* · *${p}aura on/off* — pausar la dinámica
+*${p}antiadmin* · *${p}antilink* on/off
+*${p}resetcount* · *${p}resetaura* · *${p}clearcache* · *${p}setgrok* · *${p}diag*
 
 _${p}ping · ${p}info · ${p}whoami_`;
 

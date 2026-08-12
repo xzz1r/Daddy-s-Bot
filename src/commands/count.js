@@ -1,5 +1,5 @@
 const { getActiveUsers, resetCounts, resetAllCounts, getLastReset } = require('../utils/messageCounter');
-const { isOwner, isMainOwner, isAdmin, isGroupAdmin, getSender, sameUser, soloMiembros } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, isGroupAdmin, getSender, getTarget, sameUser, soloMiembros } = require('../utils/wa');
 const { pickFresh, ordenarPorDureza } = require('../utils/helpers');
 
 let MEMBER_PHRASES = [
@@ -280,10 +280,18 @@ async function cmdCount(sock, msg, groupMeta, args) {
     return sock.sendMessage(jid, { text: 'Solo los admins pueden ver el ranking.' }, { quoted: msg });
   }
 
-  // !count @mention — stats for a specific person.
-  // Only trust real WhatsApp mentions (mentionedJid); raw "@number" text matches
-  // are unreliable with LIDs in modern groups.
-  const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
+  // !count @mention — o RESPONDIENDO a un mensaje suyo, que es lo natural.
+  //
+  // Antes solo miraba `mentionedJid`, así que citar el mensaje de alguien y
+  // escribir !count encima sacaba el ranking entero como si no hubieras
+  // apuntado a nadie. Responder a un mensaje es la forma cómoda de señalar a
+  // una persona en WhatsApp — no hay que buscarla en la lista de contactos — y
+  // el resto del bot ya la acepta.
+  //
+  // `getTarget` resuelve las dos: la mención real (mentionedJid, la única
+  // fiable, porque un "@numero" escrito a mano no cuadra con los LID de los
+  // grupos modernos) y el autor del mensaje citado (contextInfo.participant).
+  const mentioned = getTarget(msg);
 
   if (mentioned) {
     // Del owner principal no se contesta nada. Decir "no tiene mensajes
