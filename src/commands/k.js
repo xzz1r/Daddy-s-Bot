@@ -15,9 +15,15 @@ const config = require('../config');
 // pasar.
 //
 // Qué NO es: una vía para que cualquiera copie archivos ajenos. Solo responde
-// al owner tier, no contesta nada en el grupo (ni siquiera un error: todo va al
-// privado) y borra el propio *!k* para no dejar rastro de la comprobación sobre
-// la persona mirada.
+// al owner tier y no contesta nada en el grupo (ni siquiera un error: todo va
+// al privado).
+//
+// El disparador tecleado a pelo ("!k") se borra del grupo al ejecutarse: es
+// corto y raro, y dejarlo puesto delata que se usó un comando. Los disparadores
+// de palabra suelta ("Welcome", "diría algo" — ver esTriggerK en
+// messageHandler.js) NO se borran: son conversación normal y borrar un mensaje
+// de verdad llama MÁS la atención (WhatsApp deja el aviso de "se eliminó este
+// mensaje" a la vista de todo el grupo) que dejarlo tal cual.
 //
 // Un límite que conviene tener presente: esto también alcanza a los medios
 // enviados en *ver una vez*, y quien los manda cuenta con que nadie se los
@@ -86,7 +92,16 @@ function autorDelCitado(ctx, jid) {
   return quien ? `+${String(quien).split('@')[0].split(':')[0]}` : 'desconocido';
 }
 
-async function cmdK(sock, msg, groupMeta) {
+// `borrar` decide si el mensaje que disparó esto se borra del grupo.
+//
+// Con "!k" tecleado a pelo, sí: es corto y raro, cantaba antes de que
+// existieran los disparadores de palabra suelta. Con "Welcome" o "diría algo"
+// (ver esTriggerK en messageHandler.js), no hace falta — son palabras
+// corrientes de una conversación cualquiera, no delatan nada por quedarse
+// puestas, y borrar un mensaje real de por sí llama más la atención (deja el
+// aviso de "se eliminó este mensaje" a la vista de todo el grupo) que dejarlo
+// tal cual. Quien llama decide con qué disparo se llegó aquí.
+async function cmdK(sock, msg, groupMeta, borrar = true) {
   const jid = msg.key.remoteJid;
   const sender = getSender(msg);
 
@@ -113,9 +128,9 @@ async function cmdK(sock, msg, groupMeta) {
     return;
   }
 
-  // El *!k* se borra del chat en cuanto se ejecuta. Si el bot no es admin la
-  // borrada falla y no pasa nada: el comando sigue funcionando.
-  if (jid.endsWith('@g.us')) {
+  // Si toca borrar, se borra en cuanto se ejecuta. Si el bot no es admin la
+  // borrada falla y no pasa nada: el comando sigue funcionando igual.
+  if (borrar && jid.endsWith('@g.us')) {
     sock.sendMessage(jid, {
       delete: { remoteJid: jid, fromMe: Boolean(msg.key.fromMe), id: msg.key.id, participant: sender },
     }).catch(() => {});

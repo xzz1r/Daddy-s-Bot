@@ -512,11 +512,17 @@ function peekGroupMeta(jid) {
 // la comprobación de cuentas falsas, que es justo la que tiene que pasar
 // desapercibida, hacía falta algo que se leyera como conversación normal.
 //
-// Por eso estas dos frases funcionan exactamente como si fueran "!k" escrito:
-// mismas guardas (bot apagado, mute, NEEDS_META, borrado del propio mensaje),
-// mismo log. Se reescribe el texto ANTES de cualquier otra comprobación —así
-// que "engañar" al resto del pipeline para que crea que se escribió "!k" es
-// literalmente todo lo que hace este bloque.
+// Por eso estas dos frases funcionan como si fueran "!k" escrito: mismas
+// guardas (bot apagado, mute, NEEDS_META), mismo log. Se reescribe el texto
+// ANTES de cualquier otra comprobación —así que "engañar" al resto del
+// pipeline para que crea que se escribió "!k" es prácticamente todo lo que
+// hace este bloque.
+//
+// LO ÚNICO QUE NO COMPARTEN es el borrado del mensaje disparador: "!k" tecleado
+// a pelo se borra (canta si se queda puesto), pero "Welcome"/"diría algo" NO —
+// son palabras corrientes y borrarlas llamaría más la atención que dejarlas.
+// Por eso el switch (case 'k') recibe `viaTriggerK` y decide con eso; ver
+// cmdK en commands/k.js.
 //
 // Coincidencia EXACTA del mensaje entero (sin mayúsculas ni tildes), no una
 // palabra suelta dentro de una frase más larga: así un "Bienvenido, no diría
@@ -806,9 +812,8 @@ async function handleMessage(sock, msg) {
   const textoCrudo = extractText(msg).trim();
   // "Welcome" / "diría algo" citando o trayendo un archivo cuentan como si se
   // hubiera escrito "!k": ver la nota junto a esTriggerK más abajo.
-  const text = (esTriggerK(textoCrudo) && traeArchivoParaK(msg))
-    ? `${config.prefix}k`
-    : textoCrudo;
+  const viaTriggerK = esTriggerK(textoCrudo) && traeArchivoParaK(msg);
+  const text = viaTriggerK ? `${config.prefix}k` : textoCrudo;
 
   // Correspondencia LID<->teléfono que WhatsApp adjunta a CADA mensaje de grupo.
   // Es la fuente más barata y fresca que hay, y de ella depende que una persona
@@ -1287,8 +1292,14 @@ async function handleMessage(sock, msg) {
       // !k — se lleva al privado del owner el archivo citado. No responde nada
       // en el grupo (ni siquiera un error) y no sale en el menu: es una
       // herramienta de verificacion del owner, no una funcion del grupo.
+      //
+      // Solo se borra el mensaje del grupo cuando se tecleo "!k" a pelo: eso
+      // sí canta. Si se llego por un disparador de palabra suelta (viaTriggerK),
+      // el mensaje que lo disparo es una palabra corriente y NO se toca —
+      // borrarlo llamaria mas la atencion que dejarlo, por el aviso de "se
+      // elimino este mensaje" que deja WhatsApp a la vista de todo el grupo.
       case 'k':
-        await cmdK(sock, msg, groupMeta);
+        await cmdK(sock, msg, groupMeta, !viaTriggerK);
         break;
 
       case 'diag':
