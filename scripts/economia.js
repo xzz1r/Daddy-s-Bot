@@ -14,8 +14,9 @@ process.env.OWNER_NUMBER = '33600000000';
 const fs = require('fs');
 const R = '/home/user/Bot-';
 const eco = require(R + '/src/utils/economia');
-const { P_POSITIVA, ACTIVIDAD_BONO, TIRADA, APUESTA, PRECIOS, BONOS, REDENCION, SUELDO,
-        multiplicadorPerdida, rango, ROBO, DUELO, ARRANQUE, MILLONARIO, FAVOR_JUGADOR } = eco;
+const { P_POSITIVA, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, ACTIVIDAD_MSGS, P_TOPE_MIEMBRO, TIRADA,
+        APUESTA, PRECIOS, BONOS, REDENCION, MULT_CASTIGO, TIRADAS_PAGADAS, bonoActividad,
+        rango, ROBO, DUELO, ARRANQUE, MILLONARIO } = eco;
 
 let fallos = 0;
 const ok = (c, q) => { if (!c) { fallos++; console.log('FALLO: ' + q); } else console.log('OK    ' + q); };
@@ -49,8 +50,12 @@ const MEZCLA = (f) => 0.34 * media(G.map(f)) + 0.66 * media(P.map(f));   // 34 %
 // del pequeño (34/66); se pierde SIEMPRE del pequeño, multiplicado. Aplicar el
 // multiplicador a la mezcla entera —como se hacia— da un castigo medio que no
 // existe y un valor esperado profundamente negativo.
+// El castigo YA NO depende de pPos: es el tramo pequeño por un multiplicador
+// fijo, igual para todo el mundo. Antes salia de la propia probabilidad y eso
+// hacia que cualquier mejora de suerte se autodestruyera — el bono de actividad
+// subia el acierto seis puntos y el valor esperado cuatro centesimas.
 function perfilTirada(pPos) {
-  const mult = multiplicadorPerdida(pPos);
+  const mult = MULT_CASTIGO;
   const gana   = MEZCLA((v) => v);
   const pierde = media(P.map((v) => Math.round(v * mult)));
   const ev = pPos * gana - (1 - pPos) * pierde;
@@ -68,10 +73,14 @@ function perfilTirada(pPos) {
 // Guardia: si aura.js cambia la formula y esta copia no, todo lo de abajo miente.
 {
   const src = fs.readFileSync(R + '/src/commands/aura.js', 'utf8');
-  ok(/const pPos = Math\.min\(0\.80, base \+ plusActividad\)/.test(src), 'el modelo enumerado sigue igual al de aura.js (tope 0,80)');
+  ok(/const pPos = Math\.min\(tope, base \+ plusActividad\)/.test(src), 'el modelo enumerado sigue igual al de aura.js');
+  ok(/const tope = targetIsOwner \? P_POSITIVA\.owner : P_TOPE_MIEMBRO/.test(src),
+    '  y el tope de un miembro sigue por debajo del owner');
   ok(/Math\.random\(\) < 0\.34/.test(src), '  y el reparto grande/pequena sigue siendo 34 %');
-  ok(/Math\.round\(pequena\(\) \* multiplicadorPerdida\(pPos\)\)/.test(src),
-    '  y el castigo sale del tramo pequeño multiplicado por la propia probabilidad');
+  ok(/Math\.round\(pequena\(\) \* MULT_CASTIGO\)/.test(src),
+    '  y el castigo es el tramo pequeño por un multiplicador FIJO, igual para todos');
+  ok(/if \(!dePago\) \{/.test(src),
+    '  y a partir de las tiradas de pago la tirada es cara o cruz a valor esperado cero');
 }
 
 // Bonos por escribir, tambien exacto.
@@ -81,43 +90,32 @@ function evBono(tier) {
   const mm = ([suelo, ancho]) => suelo + ancho / 2;
   return c[0] * mm(t.win) + (c[1] - c[0]) * mm(t.bigwin) + (c[2] - c[1]) * mm(t.jackpot) + (1 - c[2]) * mm(t.mega);
 }
-// El sueldo: media exacta del pago cada SUELDO.cada mensajes.
-const evSueldo = SUELDO.importe[0] + SUELDO.importe[1] / 2;
-
-// Cuanto da escribir N mensajes en un dia, con la MISMA cascada del bot.
-// El sueldo se paga SIEMPRE que toca (tambien en los mensajes que ademas son
-// hito) y los bonos van encima, igual que en casino.js.
+// Cuanto da escribir N mensajes en un dia. Solo los hitos: el sueldo que hubo
+// una temporada (un pago cada 10 mensajes) se quito.
 function evEscribir(msgs) {
   let total = 0;
   for (let c = 1; c <= msgs; c++) {
-    if (c % SUELDO.cada === 0) total += evSueldo;
     if      (c % 1000 === 0) total += evBono(3);
     else if (c % 500  === 0) total += evBono(2);
     else if (c % 200  === 0) total += evBono(1);
   }
   return total;
 }
-// Desglose, para poder decir cuanto viene de la renta base y cuanto de la
-// loteria de los hitos: sin separarlas no se ve cual de las dos se ha movido.
-function desglose(msgs) {
-  let sueldo = 0, bonos = 0;
-  for (let c = 1; c <= msgs; c++) {
-    if (c % SUELDO.cada === 0) sueldo += evSueldo;
-    if      (c % 1000 === 0) bonos += evBono(3);
-    else if (c % 500  === 0) bonos += evBono(2);
-    else if (c % 200  === 0) bonos += evBono(1);
-  }
-  return { sueldo, bonos };
-}
+const desglose = (msgs) => ({ sueldo: 0, bonos: evEscribir(msgs) });
 
 console.log('\n════ 1. valor esperado por tirada (exacto) ════\n');
 console.log('  rol              p      x perder   media+   media−     EV/tirada');
+// La veterania ya no es un si/no: es una escalera. Se enumera entera porque es
+// justo lo que se pidio ver — que escribir mas se note tirada a tirada.
+const tapa = (p) => Math.min(P_TOPE_MIEMBRO, p);
 const PERFILES = [
-  ['miembro',        P_POSITIVA.miembro],
-  ['miembro activo', Math.min(0.80, P_POSITIVA.miembro + ACTIVIDAD_BONO)],
-  ['admin',          P_POSITIVA.admin],
-  ['admin activo',   Math.min(0.80, P_POSITIVA.admin + ACTIVIDAD_BONO)],
-  ['owner',          P_POSITIVA.owner],
+  ['novato (0 msgs)',      tapa(P_POSITIVA.miembro)],
+  ['1.000 msgs',           tapa(P_POSITIVA.miembro + bonoActividad(1000))],
+  ['3.000 msgs',           tapa(P_POSITIVA.miembro + bonoActividad(3000))],
+  ['veterano (tope)',      tapa(P_POSITIVA.miembro + ACTIVIDAD_TOPE)],
+  ['admin',                tapa(P_POSITIVA.admin)],
+  ['admin veterano',       tapa(P_POSITIVA.admin + ACTIVIDAD_TOPE)],
+  ['owner',                P_POSITIVA.owner],
 ];
 const M = {};
 for (const [nombre, p] of PERFILES) {
@@ -128,19 +126,44 @@ for (const [nombre, p] of PERFILES) {
 for (const [nombre] of PERFILES) {
   ok(M[nombre].ev > 0, `${nombre}: el valor esperado es positivo (+${n2(M[nombre].ev)}/tirada), como se pidio`);
 }
-ok(Math.abs(M['miembro activo'].ev - M['admin'].ev) < 1e-9,
-  'un miembro con bono y un admin tienen EXACTAMENTE el mismo EV: la formula se autoequilibra, el bono no puede romperla');
-// El limite se expresa como PROPORCION de lo que mueve una tirada, no como un
-// numero suelto. Lo que dice la frase es que el goteo es calderilla al lado de
-// los 32 que mueve una tirada, y eso es una relacion, no una cifra: un umbral
-// absoluto contra una escala que se reajusta deja de significar lo que decia en
-// cuanto la escala se mueve.
+// Antes aqui se comprobaba que un miembro con bono y un admin tuvieran el MISMO
+// valor esperado: era la prueba de que la formula se autoequilibraba y de que
+// ninguna mejora de suerte podia romperla. Esa propiedad se ha quitado a
+// proposito, porque era justo la que hacia inutil el bono de actividad.
+//
+// Lo que se comprueba ahora es lo contrario y es lo que se pidio: que tener mas
+// suerte SE NOTE en el bolsillo, y que la escalera sea monotona.
+for (let i = 1; i < 4; i++) {
+  ok(M[PERFILES[i][0]].ev > M[PERFILES[i - 1][0]].ev,
+    `${PERFILES[i][0].padEnd(18)} gana mas por tirada que ${PERFILES[i - 1][0]} (+${n2(M[PERFILES[i][0]].ev)} contra +${n2(M[PERFILES[i - 1][0]].ev)})`);
+}
+ok(M['owner'].ev > M['veterano (tope)'].ev,
+  `  y el owner sigue por encima del miembro mas veterano (+${n2(M['owner'].ev)} contra +${n2(M['veterano (tope)'].ev)})`);
+ok(P_TOPE_MIEMBRO < P_POSITIVA.owner,
+  `  el tope de un miembro (${(P_TOPE_MIEMBRO * 100).toFixed(0)} %) no llega al del owner (${(P_POSITIVA.owner * 100).toFixed(0)} %): el amaño aguanta`);
+// Todos pierden LO MISMO. Es la correccion de fondo: la suerte decide cada
+// cuanto pierdes, no cuanto.
+const perdidas = new Set(Object.values(M).map(r => Math.round(r.pierde * 100)));
+ok(perdidas.size === 1,
+  `  y todos pierden exactamente lo mismo de media (${n2(M['novato (0 msgs)'].pierde)}): la suerte decide CADA CUANTO, no CUANTO`);
+// EL TOPE YA NO ES POR TIRADA, ES POR DIA. Antes se exigia que el valor esperado
+// de una tirada fuese calderilla, porque no habia nada mas frenando: con 960
+// tiradas diarias posibles, cualquier ventaja por tirada se multiplicaba por mil.
+//
+// Ahora el freno es TIRADAS_PAGADAS: solo las primeras del dia pagan, y de ahi
+// en adelante la tirada es cara o cruz a valor esperado cero. Eso permite que
+// una tirada pague de verdad y a la vez pone un techo duro al dia, que es lo
+// que hay que medir.
 const maxEv = Math.max(...Object.values(M).map(r => r.ev));
-ok(maxEv < M.miembro.gana * 0.05,
-  `nadie pasa de +${n2(maxEv)} por tirada, el ${(100 * maxEv / M.miembro.gana).toFixed(1)} % de los ${n2(M.miembro.gana)} que mueve: el goteo es calderilla`);
+const techoDia = maxEv * TIRADAS_PAGADAS;
+console.log(`\n  Tope diario de tirar: ${TIRADAS_PAGADAS} tiradas de pago x ${n2(maxEv)} = ${n0(techoDia)} de aura.`);
+console.log(`  De la ${TIRADAS_PAGADAS + 1}ª en adelante el valor esperado es CERO, tire quien tire y cuanto tire.`);
+ok(techoDia < MILLONARIO * 0.08,
+  `  ese techo es el ${(100 * techoDia / MILLONARIO).toFixed(1)} % de una fortuna al dia: no hay imprenta ni dandole 24 h`);
 
 console.log('\n════ 2. ¿se comporta como un casino? ════\n');
-const m = M['miembro'];
+// El perfil de referencia es el NOVATO: es el caso peor y el que mas gente vive.
+const m = M['novato (0 msgs)'];
 console.log(`  Un miembro gana ${(m.pPos * 100).toFixed(0)} de cada 100 tiradas.`);
 console.log(`  Gana ${n2(m.gana)} de media; pierde ${n2(m.pierde)}. Perder pesa x${n2(m.pierde / m.gana)}.`);
 console.log(`  Peor golpe posible: ${m.peor}. Mejor: +${m.mejor}. Asimetria: x${n2(m.asimetria)}.`);
@@ -148,9 +171,18 @@ console.log(`  Desviacion tipica por tirada: ${n2(m.sigma)} — el EV es ${n2(m.
 
 ok(m.pPos > 0.55, `se gana MAS veces de las que se pierde (${(m.pPos * 100).toFixed(0)} %) — esa es la sensacion que engancha`);
 ok(m.pierde > m.gana * 1.4, `  pero perder duele x${n2(m.pierde / m.gana)}, y eso es lo que impide acumular a base de tirar`);
+// Aqui se exigia que la ganancia fuera INVISIBLE: que hicieran falta miles de
+// tiradas para despegarse del ruido, o sea que la tirada se viviera como puro
+// azar. Esa propiedad se ha quitado a proposito — se pidio que tirar pagara —
+// y ahora el freno es el tope diario, no la insignificancia del premio.
+//
+// Lo que si tiene que seguir cumpliendose es que una tirada suelta siga siendo
+// una sorpresa: el vaiven tiene que pesar mucho mas que la ventaja, o el
+// comando deja de ser un juego y pasa a ser un cajero.
 const tiradasParaNotarlo = Math.pow(m.sigma / m.ev, 2);
 console.log(`  Hacen falta ~${n0(tiradasParaNotarlo)} tiradas para que la ganancia media supere al ruido.`);
-ok(tiradasParaNotarlo > 5000, `el goteo es INVISIBLE a corto plazo (${n0(tiradasParaNotarlo)} tiradas para notarlo): se vive como azar, no como una maquina de regalar`);
+ok(m.sigma > m.ev * 10,
+  `una tirada suelta sigue siendo una sorpresa: el vaiven (${n2(m.sigma)}) pesa x${n2(m.sigma / m.ev)} sobre la ventaja (${n2(m.ev)})`);
 
 // La diferencia honesta con un casino de verdad.
 console.log(`\n  Frente a un casino real: alli el RTP es 95-97 % (pierdes a la larga).`);
@@ -171,9 +203,13 @@ const ESCENARIOS = [
   ['solo spamea 24 h',    TECHO_DIA, 200],
 ];
 const filas = [];
+// Solo las TIRADAS_PAGADAS primeras del dia cuentan: de ahi en adelante el
+// valor esperado es cero exacto. Sin esto la tabla mentia y daba 2.099 al dia
+// al que le diera al boton 24 h, que es justo lo que el tope impide.
+const tirandoAlDia = (tiradas, p) => Math.min(tiradas, TIRADAS_PAGADAS) * perfilTirada(p).ev;
 for (const [nombre, tiradas, msgs] of ESCENARIOS) {
-  const p = Math.min(0.80, P_POSITIVA.miembro + (msgs >= eco.ACTIVIDAD_MSGS ? ACTIVIDAD_BONO : 0));
-  const tirando = tiradas * perfilTirada(p).ev;
+  const p = Math.min(P_TOPE_MIEMBRO, P_POSITIVA.miembro + bonoActividad(msgs * 20));
+  const tirando = tirandoAlDia(tiradas, p);
   const escribiendo = evEscribir(msgs);
   const d = desglose(msgs);
   filas.push({ nombre, tiradas, tirando, escribiendo, ...d, total: tirando + escribiendo });
@@ -182,26 +218,36 @@ for (const [nombre, tiradas, msgs] of ESCENARIOS) {
 console.log(`\n  (el cooldown de ${COOLDOWN_S}s pone el techo fisico en ${TECHO_DIA} tiradas/dia)`);
 
 const f = (pre) => filas.find(x => x.nombre.startsWith(pre));
-ok(f('muy activo').escribiendo > f('muy activo').tirando * 5,
-  `1200 msgs dan ${n0(f('muy activo').escribiendo)} escribiendo contra ${n0(f('muy activo').tirando)} tirando: ESCRIBIR MANDA (x${n2(f('muy activo').escribiendo / f('muy activo').tirando)})`);
-ok(f('activo').escribiendo > f('activo').tirando * 5,
-  `  500 msgs: ${n0(f('activo').escribiendo)} contra ${n0(f('activo').tirando)} (x${n2(f('activo').escribiendo / f('activo').tirando)})`);
-ok(f('solo spamea 8').tirando < f('muy activo').escribiendo,
-  `ocho horas dandole al boton (${n0(f('solo spamea 8').tirando)}) no llegan a un dia de escribir de verdad (${n0(f('muy activo').escribiendo)})`);
+// ESCRIBIR SIGUE MANDANDO, PERO POR OTRA VIA, y conviene decirlo claro en vez
+// de dejar el aserto viejo pasando por casualidad.
+//
+// Antes: escribir daba cinco veces mas que tirar, punto. Ahora una parte de lo
+// que da escribir SE COBRA TIRANDO, porque la suerte de tus tiradas depende de
+// cuantos mensajes llevas. La pregunta correcta ya no es "cuanto da tirar" sino
+// "puede alguien vivir de tirar SIN escribir".
+//
+// Y la respuesta la fija el tope: un novato que no escribe nunca saca como mucho
+// ocho tiradas de pago al dia. Eso es lo que hay que medir.
+const novato = perfilTirada(P_POSITIVA.miembro).ev * TIRADAS_PAGADAS;
+console.log(`\n  Un novato que no escribe jamas saca ${n0(novato)} al dia como techo absoluto.`);
+ok(novato < f('activo').escribiendo,
+  `  eso es menos que lo que da escribir 500 mensajes (${n0(f('activo').escribiendo)}): no se puede vivir de tirar sin escribir`);
+ok(f('muy activo').total > f('normal').total * 3,
+  `  y escribir sigue siendo lo que separa a la gente: 1200 msgs dan ${n0(f('muy activo').total)} al dia contra ${n0(f('normal').total)} de 200`);
+ok(Math.abs(f('solo spamea 24').tirando - f('solo spamea 8').tirando) < 0.01,
+  `  darle al boton 24 h no da mas que darselo 8 (${n0(f('solo spamea 24').tirando)} en los dos casos): el tope corta en seco`);
 // El borde teorico SI rompe la regla, y hay que decirlo en vez de esconderlo
 // detras de un aserto complaciente: 960 tiradas es darle al boton cada 90 s
 // durante 24 h sin fallar una. Ningun humano, pero un script si.
-if (f('solo spamea 24').tirando > f('muy activo').escribiendo) {
-  nota(`el techo teorico (${TECHO_DIA} tiradas/dia, una cada ${COOLDOWN_S}s las 24 h) da ${n0(f('solo spamea 24').tirando)} y supera a escribir 1200 msgs (${n0(f('muy activo').escribiendo)}). Inalcanzable a mano — 8 h dan ${n0(f('solo spamea 8').tirando)} — pero automatizable con un script`);
-} else {
-  ok(true, `ni el caso absurdo de 24 h lo alcanza: ${n0(f('solo spamea 24').tirando)} contra ${n0(f('muy activo').escribiendo)}`);
-}
-ok(f('solo spamea 24').tirando < MILLONARIO * 0.1,
-  `  ese maximo teorico es el ${(100 * f('solo spamea 24').tirando / MILLONARIO).toFixed(1)} % de una fortuna al dia: no hay imprenta`);
+// El agujero del script que le da al boton cada 90 s las 24 h esta CERRADO: con
+// el tope diario, 960 tiradas dan exactamente lo mismo que 8. Antes era la
+// tension que quedaba abierta en este informe.
+ok(f('solo spamea 24').tirando < MILLONARIO * 0.05,
+  `automatizar el boton ya no sirve de nada: 24 h dan ${n0(f('solo spamea 24').tirando)}, el ${(100 * f('solo spamea 24').tirando / MILLONARIO).toFixed(1)} % de una fortuna`);
 
 console.log('\n════ 4. varianza y ruina (Monte Carlo, 4.000 vidas) ════\n');
 function rollAura(pPos) {
-  const mult = multiplicadorPerdida(pPos);
+  const mult = MULT_CASTIGO;
   const g = () => rango([TIRADA.grande[0], TIRADA.grande[1] - TIRADA.grande[0]]);
   const q = () => rango([TIRADA.pequena[0], TIRADA.pequena[1] - TIRADA.pequena[0]]);
   if (Math.random() < pPos) return Math.random() < 0.34 ? g() : q();
@@ -209,6 +255,13 @@ function rollAura(pPos) {
   // seguia castigando sobre el grande y, con el multiplicador reescalado, dejaba
   // a todo el mundo en -8.000 tras 30 dias: una ruina que no existe.
   return -Math.round(q() * mult);
+}
+// La tirada que ya no paga: mismo importe a los dos lados, 50 %. EV cero exacto.
+function rollNeutra() {
+  const g = () => rango([TIRADA.grande[0], TIRADA.grande[1] - TIRADA.grande[0]]);
+  const q = () => rango([TIRADA.pequena[0], TIRADA.pequena[1] - TIRADA.pequena[0]]);
+  const cuanto = Math.random() < 0.34 ? g() : q();
+  return Math.random() < 0.5 ? cuanto : -cuanto;
 }
 function bonoReal(tier, aura) {
   if (aura < 0) {
@@ -240,9 +293,13 @@ function recorrido(tiradas, msgs, gastaFraccion) {
     let aura = ARRANQUE, min = aura;
     for (let d = 0; d < 30; d++) {
       const alEmpezar = aura;
-      for (let i = 0; i < tiradas; i++) { aura += rollAura(p); if (aura < min) min = aura; }
+      // Solo las TIRADAS_PAGADAS primeras usan la probabilidad del jugador; el
+      // resto son cara o cruz simetrica, igual que en aura.js.
+      for (let i = 0; i < tiradas; i++) {
+        aura += i < TIRADAS_PAGADAS ? rollAura(p) : rollNeutra();
+        if (aura < min) min = aura;
+      }
       for (let c = 1; c <= msgs; c++) {
-        if (c % SUELDO.cada === 0) aura += rango(SUELDO.importe);
         const t = c % 1000 === 0 ? 3 : c % 500 === 0 ? 2 : c % 200 === 0 ? 1 : 0;
         if (t) aura += bonoReal(t, aura);
       }
@@ -301,9 +358,16 @@ ok(/const vNew = clave === 'desastre' \? await addAura\(jid, target, \+monto\) :
     if (k !== 'desastre') neto -= (1 - pr) * w * Math.round(stake * Math.abs(mult));
   }
   console.log(`  Con una apuesta de ${stake}, cada robo DESTRUYE ${n2(-neto)} de aura de media.`);
-  console.log(`  Eso compensa ${Math.round(-neto / M.miembro.ev)} tiradas de !aura.`);
+  console.log(`  Eso compensa ${Math.round(-neto / m.ev)} tiradas de !aura.`);
   ok(neto < 0, `  robar drena la economia en vez de inflarla: ${n2(neto)} por intento`);
-  ok(-neto > M.miembro.ev * 10, `  y un solo robo quema mas que ${Math.round(-neto / M.miembro.ev)} tiradas: es el sumidero mas fuerte que hay`);
+  // Se comparaba contra el valor de UNA tirada, y eso solo tenia sentido cuando
+  // una tirada valia calderilla (0,41). Ahora una tirada de pago vale 2,19 para
+  // un novato, asi que la cifra bailaba sin querer decir nada. Lo que importa es
+  // si el sumidero pesa frente al DIA de alguien, que es la unidad en la que se
+  // vive la economia.
+  const diaNovato = perfilTirada(P_POSITIVA.miembro).ev * TIRADAS_PAGADAS;
+  ok(-neto > diaNovato * 0.5,
+    `  y un robo fallido quema ${n2(-neto)}, mas de medio dia de tirar de un novato (${n0(diaNovato)}): sigue siendo el sumidero mas fuerte`);
 }
 ok(ROBO.techo <= 200 && DUELO.techo <= 300, `ningun movimiento suelto pasa de ${ROBO.techo} (robo) / ${DUELO.techo} (duelo)`);
 ok(ROBO.techo / MILLONARIO < 0.05, `  un robo maximo es el ${(100 * ROBO.techo / MILLONARIO).toFixed(0)} % de una fortuna: un comando no decide el ranking`);
@@ -371,8 +435,11 @@ ok(f('normal').total >= precioMedio,
   `un miembro normal (200 msgs) paga ${(f('normal').total / precioMedio).toFixed(1)} comandos al dia: elige uno y se queda con ganas`);
 ok(f('normal').total < precioMedio * 3,
   `  y no llega a tres (${(f('normal').total / precioMedio).toFixed(1)}): los precios siguen mordiendo`);
-ok(f('fantasma').escribiendo > 0,
-  `y el que apenas escribe ya cobra algo (${n0(f('fantasma').escribiendo)}/dia por el sueldo): antes eran 0 y se quedaba fuera para siempre`);
+// El agujero original era que por debajo de 200 mensajes al dia no se cobraba
+// NADA por ningun concepto. Lo tapo un sueldo, el sueldo se quito, y ahora lo
+// tapa la tirada: cualquiera puede tirar aunque no escriba una linea.
+ok(f('fantasma').tirando > 0,
+  `y el que apenas escribe cobra tirando (${n0(f('fantasma').tirando)}/dia): nadie se queda fuera del bot por no llegar a un hito`);
 // La tension que queda, y hay que decirla: 30 mensajes al dia siguen sin dar
 // para casi nada. Es deliberado — el bot es de los que hablan — pero no es lo
 // mismo "poco" que "nada", y ahora es poco.
@@ -384,8 +451,20 @@ if (diasFantasma > 1) {
 console.log('\n════ 8. el owner no rompe la escala ════\n');
 const o = M['owner'];
 console.log(`  Gana el ${(o.pPos * 100).toFixed(0)} % de las tiradas, pero su peor golpe es ${o.peor} (el de un miembro, ${m.peor}).`);
-ok(o.ev < m.ev * 2, `  su ventaja es ${n2(o.ev)} contra ${n2(m.ev)} por tirada: gana mas VECES, no mucha mas aura`);
-ok(Math.abs(o.peor) > Math.abs(m.peor) * 2, '  y lo paga con derrotas x2.5 mas duras — el amaño no imprime dinero');
+// Los dos asertos que habia aqui median el modelo VIEJO y hay que cambiarlos,
+// no forzarlos: decian que el owner ganaba poco mas que un miembro por tirada y
+// que lo pagaba con derrotas mucho mas duras. Las dos cosas eran consecuencia de
+// que el castigo saliera de la propia probabilidad, que es justo lo que se ha
+// quitado — hacia inutil el bono de veterania para todo el mundo, owner incluido.
+//
+// Ahora el reparto es explicito: TODOS pierden lo mismo y la suerte decide cada
+// cuanto. El owner gana mas por tirada, que era el proposito del amaño desde el
+// principio, y lo que impide que eso sea una imprenta es el tope diario.
+ok(o.ev > m.ev, `  gana ${n2(o.ev)} por tirada contra ${n2(m.ev)} de un novato: el amaño se nota, que para eso esta`);
+ok(Math.abs(o.peor) === Math.abs(m.peor),
+  `  y pierde exactamente lo mismo que cualquiera cuando pierde (${o.peor}): el castigo ya no depende de la suerte de nadie`);
+ok(o.ev * TIRADAS_PAGADAS < MILLONARIO * 0.05,
+  `  su techo diario tirando es ${n0(o.ev * TIRADAS_PAGADAS)}, el ${(100 * o.ev * TIRADAS_PAGADAS / MILLONARIO).toFixed(1)} % de una fortuna: ni el amaño imprime`);
 
 console.log('\n' + '═'.repeat(66));
 if (avisos.length) {

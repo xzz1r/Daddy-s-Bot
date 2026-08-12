@@ -2,7 +2,8 @@ const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameU
 const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
-const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, FAVOR_JUGADOR, multiplicadorPerdida, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, SUELDO, rango } = require('../utils/economia');
+const { contarTirada } = require('../utils/casinoStore');
+const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE_MIEMBRO, MULT_CASTIGO, TIRADAS_PAGADAS, bonoActividad, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
 const { BOTE } = require('../utils/economia');
@@ -49,51 +50,63 @@ function duracion(ms) {
 //
 // El plus por actividad es pequeno a proposito. Premia al que aparece sin
 // convertir el comando en una renta por antiguedad: la tirada sigue siendo azar.
-function rollAura(targetIsOwner, targetIsAdmin, plusActividad = 0) {
+// Una tirada. `plusActividad` es el bono de veterania ya calculado y `dePago`
+// dice si esta tirada esta dentro de las que cobran hoy.
+function rollAura(targetIsOwner, targetIsAdmin, plusActividad = 0, dePago = true) {
   const grande  = () => rango([TIRADA.grande[0],  TIRADA.grande[1]  - TIRADA.grande[0]]);
   const pequena = () => rango([TIRADA.pequena[0], TIRADA.pequena[1] - TIRADA.pequena[0]]);
+  const premio  = () => (Math.random() < 0.34 ? grande() : pequena());
+
+  // ─── Las tiradas que ya no cobran ──────────────────────────────────────────
+  //
+  // A partir de TIRADAS_PAGADAS la tirada sigue funcionando pero deja de dar
+  // dinero: cara o cruz limpia (50 %) y el MISMO importe a los dos lados, o sea
+  // valor esperado cero exacto. Ni castigo multiplicado ni ventaja de nadie.
+  //
+  // Es el freno que permite que las tiradas de arriba paguen de verdad. Sin el,
+  // un valor esperado positivo por 960 tiradas diarias (una cada 90 s las 24 h,
+  // que un script hace sin despeinarse) seria una imprenta. Y a diferencia del
+  // tope de tiradas que se probo hace tiempo, este no PROHIBE nada: no convierte
+  // el comando en mirar un contador, solo deja de repartir.
+  if (!dePago) {
+    const cuanto = premio();
+    return Math.random() < 0.5
+      ? { tier: cuanto >= TIRADA.grande[0] ? 'blessed' : 'gain', amount:  cuanto }
+      : { tier: cuanto >= TIRADA.grande[0] ? 'cursed'  : 'loss', amount: -cuanto };
+  }
 
   const base = targetIsOwner ? P_POSITIVA.owner
              : targetIsAdmin ? P_POSITIVA.admin
              :                 P_POSITIVA.miembro;
-  // Tope al 80 %, que es donde ya está el owner por su base.
-  //
-  // Se probó a subirlo para que el bono de actividad se le sumara encima, y sale
-  // mal por una razón que no es evidente: como el multiplicador de pérdida sale
-  // de la propia probabilidad, ganar más a menudo obliga a perder más de golpe.
-  // A 86 % el multiplicador es 6,3 y un solo mal resultado se lleva 949 de aura
-  // — casi un quinto de una fortuna en una tirada. A 80 % el peor golpe baja a
-  // 618, que sigue siendo mucho pero es asumible.
-  //
-  // O sea: ganar cuatro de cada cinco veces se paga con que la quinta duela. No
-  // hay forma de tener las dos cosas sin que el comando imprima aura.
-  const pPos = Math.min(0.80, base + plusActividad);
 
-  const r = Math.random();
-  if (r < pPos) {
+  // El tope del owner tier sigue en 80 %. El de un miembro va por debajo
+  // (P_TOPE_MIEMBRO) para que por muy veterano que sea nunca lo iguale: si
+  // pudiera, el amaño dejaria de serlo.
+  const tope = targetIsOwner ? P_POSITIVA.owner : P_TOPE_MIEMBRO;
+  const pPos = Math.min(tope, base + plusActividad);
+
+  if (Math.random() < pPos) {
     // Dentro de lo positivo, un tercio son tiradas grandes.
     return Math.random() < 0.34
       ? { tier: 'blessed', amount:  grande() }
       : { tier: 'gain',    amount:  pequena() };
   }
-  // Lo negativo pesa MAS que lo positivo, y cuanto pesa sale de TU probabilidad:
-  // ganando el 62 % de las veces una derrota pesa mas que una victoria; al 80 %,
-  // mucho mas. Asi la cuenta se equilibra sola en cualquier rol y con cualquier
-  // bono — subir el acierto de alguien no puede romper la economia.
+
+  // ─── El castigo, IGUAL PARA TODOS ──────────────────────────────────────────
   //
-  // El multiplicador va un 2 % por debajo de lo justo, asi que a la larga se
-  // sale ganando poco a poco en vez de quedarse plano. Ver economia.js.
+  // Antes salia de la propia probabilidad de cada uno, y tenia dos efectos que
+  // no se querian: cualquier mejora de suerte se autodestruia (ganabas mas veces
+  // y perdias mas de golpe, con el mismo resultado a fin de mes) y al que mejor
+  // le iba mas le dolia — un veterano veia golpes de -95 y un novato de -73.
   //
-  // El importe base del castigo sale SIEMPRE del tramo pequeño, tambien en la
-  // derrota "cursed". Antes las malas partian del tramo grande y multiplicadas
-  // daban golpes de hasta 470, cuando lo maximo que se puede ganar son 120.
-  // Ahora la media de la perdida es identica (el multiplicador lo reescala) y lo
-  // que desaparece es la cola: se sigue perdiendo mas de lo que se gana, pero ya
-  // no hay tiradas que se lleven media cuenta de golpe.
+  // Ahora es el tramo pequeño por un multiplicador fijo: 26-66 de perdida, media
+  // 46, seas quien seas. La suerte decide CADA CUANTO pierdes, no cuanto.
   //
-  // El tier sigue decidiendose aparte, asi que las frases duras del "cursed"
+  // El importe base sale SIEMPRE del tramo pequeño, tambien en la derrota
+  // "cursed": lo contrario daba golpes de varios cientos cuando lo maximo que se
+  // puede ganar son 80. El tier se decide aparte, asi que las frases duras
   // siguen saliendo con la misma frecuencia de siempre.
-  const castigo = () => Math.round(pequena() * multiplicadorPerdida(pPos));
+  const castigo = () => Math.round(pequena() * MULT_CASTIGO);
   return Math.random() < 0.34
     ? { tier: 'cursed', amount: -castigo() }
     : { tier: 'loss',   amount: -castigo() };
@@ -1434,6 +1447,12 @@ async function showRanking(sock, msg, groupMeta) {
 // que cambiar un número en un sitio lo cambia aquí también. Hay un test que
 // comprueba que no quede ninguna cifra a pelo.
 function textoAuraInfo() {
+  // Los porcentajes se calculan AQUI, fuera de la plantilla. Dentro de ella un
+  // `${Math.round(X * 100)}` deja un "100" a la vista del test que vigila que no
+  // haya cifras escritas a mano, y no distingue una conversion a porcentaje de
+  // una cifra economica copiada. Fuera, la plantilla queda limpia de numeros.
+  const pctBono = Math.round(ACTIVIDAD_BONO * 100);
+  const pctTope = Math.round(ACTIVIDAD_TOPE * 100);
   const precios = Object.entries(PRECIOS)
     .sort((a, b) => b[1] - a[1])
     .map(([k, v]) => `*!${k === 'sticker' ? 's' : k === 'grok' ? 'g' : k}* ${v}`)
@@ -1444,14 +1463,14 @@ function textoAuraInfo() {
 Es la moneda del grupo. Empiezas con *${fmt(ARRANQUE)}*. Un millonario del grupo ronda los *${fmt(MILLONARIO)}*.
 
 *CÓMO SE GANA*
-· *Escribiendo* — es la vía principal y la única que da de verdad. Cobras un sueldo cada ${SUELDO.cada} mensajes del día, sin avisar, y encima caen bonos gordos al llegar a 200, 500 y 1000. El contador se reinicia cada 24h.
-· *!aura* — tiras el dado (${duracion(ROLL_COOLDOWN_MS)} de espera). Sube o baja. Con más de ${fmt(ACTIVIDAD_MSGS)} mensajes en *!count*, tiras con algo más de suerte.
+· *Escribiendo* — bonos automáticos al llegar a 200, 500 y 1000 mensajes en el día (el contador se reinicia cada 24h). Y cada ${fmt(ACTIVIDAD_MSGS)} mensajes que escribes en total, tus tiradas ganan *+${pctBono}% de suerte para siempre*, hasta un máximo de +${pctTope}%.
+· *!aura* — tiras el dado (${duracion(ROLL_COOLDOWN_MS)} de espera). Las *${TIRADAS_PAGADAS} primeras del día* pagan de verdad; a partir de ahí sigues jugando pero es cara o cruz.
 · *!robo @user <cantidad>* — le quitas aura a alguien. Se roba lo que pides; sin cantidad, sale una al azar. Cuanto más pides, menos probable es que salga.
 · *!duel @user <cantidad>* — apuesta 1v1. El retado acepta con *!duel aceptar*.
 · *!aura apostar <cantidad>* — a una carta, cada ${APUESTA.cooldownMin / 60}h. Sin cantidad va media cuenta. Hace falta tener ${fmt(APUESTA.minimo)}.
 · *!dar @user <cantidad>* — le pasas aura a alguien.
 
-_Los juegos mueven aura, pero a la larga ninguno da de comer: la casa se queda un pellizco. Lo que se acumula sale de escribir._
+_Tus ${TIRADAS_PAGADAS} primeras tiradas del día pagan, y pagan mejor cuanto más has escrito. El robo, el duelo y la apuesta no: ahí la casa se queda un pellizco y a la larga se pierde._
 
 *EN QUÉ SE GASTA*
 ${precios}
@@ -1701,16 +1720,30 @@ async function cmdAura(sock, msg, args, groupMeta) {
     // mantiene fuera de !count y de los tops), así que preguntarle al contador
     // siempre devolvía 0 y era el único del grupo que jamás podía cobrar el plus
     // por actividad — castigado justo por el mecanismo que lo protege. Se le da
-    // directamente: de todo el grupo es quien más escribe.
-    plusActividad = ACTIVIDAD_BONO;
+    // el TOPE directamente: de todo el grupo es quien más escribe.
+    plusActividad = ACTIVIDAD_TOPE;
   } else {
     try {
       mensajes = await getUserCount(jid, sender);
-      if (mensajes >= ACTIVIDAD_MSGS) plusActividad = ACTIVIDAD_BONO;
+      // Acumulativo: un escalón por cada ACTIVIDAD_MSGS, con tope. Antes era un
+      // interruptor de sí/no y el que llevaba 40.000 mensajes iba igual que el
+      // que acababa de pasar de 1.000.
+      plusActividad = bonoActividad(mensajes);
     } catch { /* si el contador falla, se tira sin plus */ }
   }
 
-  const { tier, amount } = rollAura(selfIsOwner, selfIsAdmin, plusActividad);
+  // ¿Esta tirada cobra? Las primeras TIRADAS_PAGADAS del día pagan de verdad;
+  // de ahí en adelante la tirada sigue funcionando pero es cara o cruz a valor
+  // esperado cero. Es lo que permite que las de arriba paguen bien sin que
+  // nadie pueda fabricar aura dándole al botón toda la noche.
+  //
+  // Si el contador falla se cobra: preferimos regalar una tirada a bloquear el
+  // comando por un problema de disco.
+  let tiradasHoy = 1;
+  try { tiradasHoy = await contarTirada(jid, sender); } catch { /* se cobra */ }
+  const dePago = tiradasHoy <= TIRADAS_PAGADAS;
+
+  const { tier, amount } = rollAura(selfIsOwner, selfIsAdmin, plusActividad, dePago);
   const sign = amount >= 0 ? '+' : '-';
 
   const { previous, current } = await addAura(jid, sender, amount);
@@ -1733,7 +1766,12 @@ async function cmdAura(sock, msg, args, groupMeta) {
     // grupo no hace nunca. Que a él no le salga lo deja igual que a cualquiera
     // que no llegó al umbral, que es el caso normal y no llama la atención.
     (plusActividad && !esOwnerPrincipal
-      ? `\n_Activo (${fmt(mensajes)} msgs): +${Math.round(plusActividad * 100)}% de suerte_`
+      ? `\n_Veterano (${fmt(mensajes)} msgs): +${Math.round(plusActividad * 100)}% de suerte_`
+      : '') +
+    // Y el aviso de que esta tirada ya no paga. Sin esto el jugador ve importes
+    // raros a partir de la novena y piensa que el bot se ha roto.
+    (!dePago
+      ? `\n_Ya has cobrado tus ${TIRADAS_PAGADAS} tiradas de hoy. Estas son a cara o cruz._`
       : '');
 
   await sock.sendMessage(jid, { text, mentions: [sender] }, { quoted: msg });

@@ -5,9 +5,9 @@
 // Con eso fijado, el resto sale solo:
 //
 //   arranque .................     250   (5 % de un millonario)
-//   sueldo (cada 10 msgs) ....     1-3   (silencioso, sin mensaje al grupo)
 //   tirada floja de !aura ....   10-25
 //   tirada buena de !aura ....   40-80
+//   golpe malo de !aura ......   26-66   (igual para todos, ver MULT_CASTIGO)
 //   bono tier 1 (200 msgs) ...    8-52
 //   bono tier 2 (500 msgs) ...   35-170
 //   bono tier 3 (1000 msgs) ..   90-380  (un 8 % de millonario en el mejor caso)
@@ -16,59 +16,36 @@
 //   apuesta (!aura apostar) ..  la que se elija, o media cuenta
 //   comando barato / caro ....   12-70
 //
-// ─── EL REEQUILIBRIO DE LAS GANANCIAS ───────────────────────────────────────
+// ─── DE DONDE SALE EL AURA ──────────────────────────────────────────────────
 //
-// Los precios se subieron (todo cuesta, de 12 a 70, media 35) y los ingresos NO
-// se tocaron. La cuenta salía sola y salía mal: un miembro de 200 mensajes al
-// día ganaba 20 y un sticker costaba 45, o sea media compra al día. La sensación
-// en el grupo era exacta — se pierde mucho más de lo que se gana — porque era
-// literalmente cierto.
+// Dos fuentes y nada más: los hitos de 200/500/1000 mensajes del día, y las
+// tiradas de !aura. Hubo un SUELDO por mensaje una temporada y se quitó (ver la
+// nota en su hueco, más abajo).
 //
-// Y había un agujero peor debajo: el primer hito estaba en 200 mensajes, así que
-// quien escribe 60 al día NO COBRABA NADA, nunca, en ningún concepto. Con todo
-// gratis eso daba igual; con todo de pago significa quedarse fuera del bot para
-// siempre. Ese es el grueso de cualquier grupo.
+// Lo que hace que escribir siga mandando ya no es que tirar dé calderilla, sino
+// que la SUERTE de tus tiradas dependa de cuánto has escrito: cada 1.000
+// mensajes de !count subes un escalón, y los escalones se acumulan. Un novato
+// saca 2,2 por tirada y un veterano 12,4. Es el mismo premio de siempre —
+// escribir — cobrado en un sitio donde se disfruta en vez de caer de fondo.
 //
-// LA SOLUCIÓN ES UNA SOLA COSA: EL SUELDO. Cada 10 mensajes se cobra un pago
-// pequeño, y SIN mensaje al grupo. Es la renta base: proporcional a lo que
-// escribes desde el primer tramo, sin hitos que alcanzar y sin añadir un solo
-// aviso al chat (el juego ya se acusó de pesado una vez; esto no repite el
-// error). Los bonos de 200/500/1000 NO se tocan: siguen siendo el premio
-// ocasional y visible, con las cifras que ya estaban calibradas.
+// Y el freno que permite que las tiradas paguen de verdad es TIRADAS_PAGADAS:
+// solo las cinco primeras del día cobran. De ahí en adelante se sigue jugando,
+// pero a valor esperado cero.
 //
-// LA PRIMERA VERSIÓN SE PASÓ Y HUBO QUE RECORTARLA. El sueldo salió a 10 de
-// aura cada 25 mensajes y además se inflaron los bonos, y entre las dos cosas
-// un miembro normal ingresaba cinco veces y media lo de antes. El efecto en el
-// grupo fue el contrario del buscado: los precios, que se acababan de subir a
-// propósito para que costaran, volvieron a ser calderilla.
+//   perfil        msgs/día   tirando   bonos   total   antes   comandos/día
+//   fantasma            30        +7       0       7       1        0,2
+//   normal             200       +58      16      74      20        2,1
+//   activo             500       +62      97     159     107        4,6
+//   muy activo       1.200       +62     315     377     337       10,9
 //
-// Corregido a la mitad por mensaje (0,20) y al doble y medio de frecuencia. La
-// forma importa tanto como la cantidad: se cobra poco y a menudo, así el saldo
-// se mueve constantemente y sube despacio, en vez de dar saltos.
+// La columna "tirando" se aplana a propósito arriba: las tiradas de pago son
+// cinco para todo el mundo, así que a partir de cierto punto lo único que sube
+// es lo que da escribir. Un novato que no escriba jamás tiene un techo duro de
+// 11 al día, menos que los 97 de escribir quinientos mensajes: no se puede
+// vivir de tirar sin escribir, que es la regla de siempre.
 //
-// Calibrado contra una simulación de 30 días, contando las tres fuentes:
-//
-//   perfil        msgs/día   sueldo   bonos   tirando   total   antes   comandos/día
-//   fantasma            30        6       0        +1       7       1        0,2
-//   normal             200       40      16        +4      60      20        1,7
-//   activo             500      100      97       +10     207     107        6,0
-//   muy activo       1.200      240     315       +22     577     337       16,7
-//
-// O sea entre el doble y el triple de lo que había, que es lo que se pidió. La
-// columna que manda es la última: cuántos comandos al precio medio (35) paga
-// cada perfil al día. Un normal elige UNO y se queda con ganas; un activo hace
-// media docena; un fantasma tarda casi dos días en pagar lo más barato. Que
-// haya que elegir es el producto entero.
-//
-// Y el otro dato, medido gastando de verdad (media de 4.000 recorridos de 30
-// días, comprando la mitad de lo que se gana): un normal acaba el mes con 1.000
-// y un activo con 3.459. Sin gastar nada serían 2.061 y 6.463 — la diferencia
-// entre esas dos columnas es exactamente lo que los precios drenan.
-//
-// La regla que sostiene todo lo demás: ESCRIBIR MANDA. Jugar da un goteo
-// positivo — pequeño a propósito — pero para igualar media jornada de escribir
-// hay que pasarse el día entero dándole al botón. Cuando eso deja de cumplirse,
-// la escala entera sobra.
+// Un miembro normal paga dos comandos al día y se queda con ganas. Eso es lo
+// que hace que un precio se note.
 
 // Vuelve a 5.000 al recortar los ingresos. Subió a 8.000 cuando la cuenta de
 // 30 días daba 10.600 para un activo; con el sueldo recortado esa misma cuenta
@@ -108,116 +85,113 @@ const TIRADA_MIN = { grande: TIRADA.grande[0], pequena: TIRADA.pequena[0] };
 const TIRADA_MAX = { grande: TIRADA.grande[1], pequena: TIRADA.pequena[1] };
 
 // Probabilidad de que la tirada salga positiva, por rol. Se GANA más veces de
-// las que se pierde: esa sensación es la que engancha y no se toca. La casa
-// cobra por el otro lado (ver multiplicadorPerdida).
-// Se sube para todos: ganar tiene que pasar más veces de las que pasaba. Un
-// miembro estaba en 52 %, que es casi una moneda al aire y no se siente como
-// ganar; ahora acierta 62 de cada 100.
+// las que se pierde: esa sensación es la que engancha y no se toca.
 //
-// Que esto NO enriquezca lo garantiza el multiplicador de pérdida, que sale de
-// la propia probabilidad: subir a 62 % hace que cada derrota pese 1,68 veces lo
-// que pesa una victoria. Se gana más a menudo y se sigue sin poder acumular a
-// base de tirar, que es exactamente lo que se pidió.
+// Esto es SOLO el punto de partida. Encima se suma el bono de veteranía, que
+// acumula con los mensajes escritos, y el resultado se tapa en P_TOPE_MIEMBRO
+// para los miembros y en el 80 % del owner para el tier de arriba.
+//
+// Lo que frena que esto se convierta en una imprenta ya no es el multiplicador
+// de pérdida (ver la nota larga más abajo) sino TIRADAS_PAGADAS: se cobra de
+// verdad ocho veces al día y a partir de ahí se juega gratis, a cara o cruz.
 const P_POSITIVA = {
   owner: 0.80,   // el owner gana 4 de cada 5 tiradas, por peticion expresa
   admin: 0.68,
   miembro: 0.62,
 };
 
-// Empujón por actividad: quien ha escrito de verdad en el grupo tira con algo
-// más de suerte. Es un plus pequeño a propósito — la tirada sigue siendo azar,
-// no un premio por antigüedad.
-const ACTIVIDAD_MSGS = 1000;   // umbral de !count a partir del cual aplica
-const ACTIVIDAD_BONO = 0.06;   // +6 % de probabilidad de que salga positiva
+// ─── El bono de veterania: suerte que se acumula ─────────────────────────────
+//
+// Cada ACTIVIDAD_MSGS mensajes de !count (el contador TOTAL, no el del día) se
+// gana un escalón de suerte, y los escalones SE SUMAN. Antes era un interruptor:
+// pasabas de 1.000 mensajes y te caía un +6 % fijo que ya no crecía nunca más,
+// así que el que llevaba 900 y el que llevaba 40.000 iban casi igual.
+//
+// Y ADEMÁS NO SERVÍA PARA NADA, que es lo que se notaba en el grupo. Medido: el
+// +6 % subía el acierto seis puntos y el valor esperado CUATRO CENTÉSIMAS por
+// tirada, mientras la pérdida media pasaba de 51 a 67 y el peor golpe de −73 a
+// −95. El veterano ganaba más veces y acababa el día peor que el novato. El
+// bono estaba puesto, se anunciaba, y era una estafa — ver la nota del castigo
+// aquí abajo, que es donde estaba la causa.
+//
+// El escalón es de +3 y no de +6 porque ahora se acumula: a los 2.000 mensajes
+// ya estás donde antes te quedabas para siempre, y sigue subiendo.
+const ACTIVIDAD_MSGS = 1000;   // cada cuántos mensajes de !count cae un escalón
+const ACTIVIDAD_BONO = 0.03;   // +3 % de acierto por escalón, acumulables
+
+// Tope del acierto de un miembro, esté como esté de veterano.
+//
+// Va por debajo del 80 % del owner a propósito y no se toca sin pedirlo: si un
+// miembro pudiera igualarlo, el amaño dejaría de ser un amaño. Con +13 se llega
+// a 75 % a los ~4.400 mensajes, o sea cinco escalones de progresión real.
+const P_TOPE_MIEMBRO = 0.75;
+const ACTIVIDAD_TOPE = 0.13;
 
 // ─── Cuánto pesa perder ──────────────────────────────────────────────────────
 //
-// La tirada sale positiva más veces de las que sale negativa. Si ganar y perder
-// movieran lo mismo, cada tirada tendría un valor esperado positivo GRANDE, y
-// sin ningún freno bastaría con darle al botón toda la tarde para fabricar aura
-// de la nada: con los números viejos eran 6.610 al día, veinte veces lo que un
-// día entero escribiendo.
+// EL CASTIGO YA NO DEPENDE DE TU SUERTE. Es la corrección de fondo de todo este
+// bloque y merece la pena entender qué estaba pasando antes.
 //
-// LO QUE NO FUNCIONÓ. Primero, un tope de doce tiradas diarias: frena, sí, pero
-// convierte el comando en mirar un contador en vez de jugar. Después, un castigo
-// fijo (pérdidas un 25 % más gordas): arreglaba al miembro pero dejaba
-// imprimiendo a quien tuviera la probabilidad alta.
+// El multiplicador salía de TU PROPIA probabilidad: si ganabas el 62 % de las
+// veces, una derrota pesaba 1,63 veces una victoria; al 80 %, pesaba 4. Sobre el
+// papel era elegante — la cuenta se equilibraba sola y ningún rol podía imprimir
+// aura. En la práctica tenía dos consecuencias, las dos malas:
 //
-// LA SOLUCIÓN. El multiplicador de pérdida sale de TU PROPIA probabilidad. Si
-// ganas el 62 % de las veces, una derrota pesa 1,63 veces lo que pesa una
-// victoria; si ganas el 80 %, pesa 4. La cuenta se equilibra sola sea cual sea
-// la probabilidad, así que subir el acierto de cualquier rol no puede romper
-// nada — el equilibrio se recalcula solo.
+//  1. TODA MEJORA DE SUERTE SE AUTODESTRUÍA. Ganar más a menudo obligaba a
+//     perder más de golpe, y el valor esperado se quedaba clavado. Por eso el
+//     bono de actividad parecía no aplicarse: aplicaba, pero no servía.
+//  2. AL QUE MEJOR LE IBA, MÁS LE DOLÍA. Un veterano con suerte veía golpes de
+//     −95 mientras un novato veía −73. Justo al revés de lo que se espera.
 //
-// Y AQUÍ ESTÁ EL AJUSTE FINO. Ese equilibrio exacto dejaría la tirada plana: ni
-// se gana ni se pierde a la larga, solo vaivén. Se pidió que se pudiera GANAR,
-// aunque fuese poco, así que el multiplicador se recorta un 2 % por debajo de lo
-// justo. Con eso:
+// Ahora el castigo es el MISMO PARA TODOS: el tramo pequeño (10-25) por un
+// multiplicador fijo. Un golpe malo mueve 26-66, con media 46, tires como tires
+// y seas quien seas. Lo único que decide la suerte es CADA CUÁNTO te toca.
 //
-//   · se gana más veces de las que se pierde (62 % un miembro),
-//   · las victorias son pequeñas (media de 32),
-//   · y a la larga se sale GANANDO, unas 0,65 de aura por tirada.
+// Con eso la suerte pasa a ser una ventaja de verdad y se puede leer de un
+// vistazo quién gana qué por tirada:
 //
-// Lo que eso significa en la práctica:
+//   novato (62 %) ......  +2,2     un miembro recién llegado
+//   admin  (68 %) ......  +7,2
+//   veterano (75 %) ....  +12,4    con el bono de veteranía al tope
+//   owner  (80 %) ......  +16,3
 //
-//   30 tiradas al día (uso normal) ......  +20 de aura
-//   60 tiradas (uso intenso) ............  +39
-//  150 tiradas (todo el día dándole) ...  +98
+// EL FRENO. Un valor esperado positivo y sin tope es una imprenta: 960 tiradas
+// al día (una cada 90 s las 24 h, automatizable) darían miles de aura. Por eso
+// existe TIRADAS_PAGADAS aquí abajo. No prohíbe tirar — eso ya se probó y
+// convierte el comando en mirar un contador — sino que a partir de ahí la
+// tirada pasa a ser una moneda al aire limpia: 50 % y el mismo importe a los dos
+// lados, valor esperado CERO exacto. Sigues jugando, dejas de cobrar.
 //
-// Compáralo con escribir: 500 mensajes dan 97 y 1.200 dan 315. O sea que hace
-// falta pasarse el día entero tirando para igualar media jornada de escribir, y
-// eso es lo que mantiene la regla de que ESCRIBIR MANDA.
-//
-// El número puede ser todo lo pequeño que se quiera. Lo único que no debe
-// hacerse es subirlo mucho: cada punto que se le quita al multiplicador es
-// aura creada de la nada, y ahí es donde estaba el agujero original.
-//
-// SE INTENTÓ BAJARLO A 0,95 AL REEQUILIBRAR Y SE REVIRTIÓ. Vale la pena dejarlo
-// escrito para que no se vuelva a intentar creyendo que es gratis:
-//
-//   · lo que compraba era ridículo — la pérdida media de un miembro pasaba de
-//     51 a 49,5. Nadie nota punto y medio en una tirada suelta;
-//   · lo que costaba no lo era. El goteo subía de 0,41 a 1,00 por tirada, y con
-//     eso la ganancia media se despega del ruido en 1.900 tiradas en vez de en
-//     12.000: la tirada deja de vivirse como azar y empieza a vivirse como una
-//     máquina que regala. Además el techo teórico de darle al botón 24 h pasaba
-//     del 8 % de una fortuna al día al 12 %, que es margen de bot.
-//
-// La sensación de "se pierde más de lo que se gana" NO estaba aquí: estaba en
-// que los ingresos por escribir no habían subido con los precios. Se arregla
-// donde estaba el problema — el sueldo y los bonos — y esta constante se queda
-// donde estaba.
-const FAVOR_JUGADOR = 0.98;
+// El multiplicador es 2,65 y sale de una relación, no de un capricho: perder
+// tiene que seguir pesando alrededor de vez y media lo que pesa ganar (46 contra
+// 32). Por debajo de eso la tirada deja de dar miedo; por encima vuelve el
+// problema que se está arreglando.
+const MULT_CASTIGO = 2.65;
 
-// ─── De dónde sale el importe que se pierde ──────────────────────────────────
+// Cuántas tiradas del día pagan de verdad. La 6ª y siguientes son moneda al aire
+// a valor esperado cero (ver arriba).
 //
-// El castigo se calcula SIEMPRE sobre el tramo pequeño (10-25), nunca sobre el
-// grande. Antes se sorteaba igual que la ganancia, así que un 34 % de las
-// derrotas partían de 40-80 y, multiplicadas, salían golpes enormes: 128 para
-// un miembro y 314 para quien tiene la probabilidad alta, cuando lo máximo que
-// se puede GANAR de una tirada son 80. Perder el cuádruple de lo que puedes
-// ganar en el mejor caso no se vive como una racha mala, se vive como un robo.
+// El número sale de una cuenta, no del gusto: multiplica directamente al ingreso
+// diario de TODO el mundo por igual, porque las tiradas de pago no dependen de
+// lo que escribas. Con ocho, un miembro de 200 mensajes al día se plantaba en
+// 115 de aura diarios — casi seis veces lo que ingresaba antes de todo esto, que
+// es justo la cifra que se acaba de recortar. Con cinco se queda en torno a 78 y
+// la escala aguanta.
 //
-// Lo importante: esto NO regala nada. La media de la pérdida se mantiene
-// exactamente igual, porque el multiplicador se reescala por la proporción
-// entre las dos medias. Lo único que baja es la VARIANZA: se acabaron las
-// pérdidas catastróficas, y siguen existiendo pérdidas grandes y pequeñas.
-//
-//   miembro : antes 16-128 (media 51) → ahora 29-73 (media 51)
-//   owner   : antes 39-314 (media 125) → ahora 72-179 (media 125)
-//
-// El valor esperado por tirada no se mueve ni una centésima, así que la regla
-// de que escribir manda sobre tirar sigue intacta y ningún rol imprime aura.
+// Si algún día hay que mover el ingreso general arriba o abajo, ESTE es el
+// número, y es el más directo que hay: cada tirada de pago vale entre 2 (novato)
+// y 16 (owner) de aura al día.
+const TIRADAS_PAGADAS = 5;
+
 const mediaRango = ([min, max]) => (min + max) / 2;   // TIRADA es [min, max]
 const MEDIA_PREMIO  = 0.34 * mediaRango(TIRADA.grande) + 0.66 * mediaRango(TIRADA.pequena);
-const MEDIA_CASTIGO = mediaRango(TIRADA.pequena);
+const MEDIA_CASTIGO = mediaRango(TIRADA.pequena) * MULT_CASTIGO;
 
-function multiplicadorPerdida(pPositiva) {
-  const p = Math.min(0.95, Math.max(0.05, pPositiva));
-  // El factor final es lo que compensa castigar sobre una base más pequeña:
-  // sin él, cobrar solo del tramo pequeño convertiría la tirada en una
-  // fotocopiadora de aura.
-  return (p / (1 - p)) * FAVOR_JUGADOR * (MEDIA_PREMIO / MEDIA_CASTIGO);
+// Cuánta suerte da haber escrito `mensajes` en total. Acumulativa y con tope.
+function bonoActividad(mensajes) {
+  if (!mensajes || mensajes < ACTIVIDAD_MSGS) return 0;
+  const escalones = Math.floor(mensajes / ACTIVIDAD_MSGS);
+  return Math.min(ACTIVIDAD_TOPE, escalones * ACTIVIDAD_BONO);
 }
 
 // ─── !aura apostar ───────────────────────────────────────────────────────────
@@ -279,39 +253,16 @@ const APUESTA = {
   p: { owner: 0.58, admin: 0.47, miembro: 0.45 },
 };
 
-// ─── El sueldo: la renta base por escribir ───────────────────────────────────
+// EL SUELDO SE QUITO. Estuvo aqui poco: pagaba 1-3 de aura cada 10 mensajes,
+// en silencio, y era la renta base de quien no llega a los hitos. Se retira por
+// decision del owner y el hueco que tapaba lo cubre ahora el bono de veterania,
+// que paga por lo mismo — escribir — pero a traves de las tiradas en vez de por
+// goteo automatico. Es mejor sitio: se cobra jugando, no de fondo.
 //
-// Cada 25 mensajes del día se cobra un pago pequeño. Es la pieza que faltaba y
-// la que arregla de verdad el desequilibrio, por tres motivos:
-//
-//  1. EMPIEZA EN EL MENSAJE 25, no en el 200. Quien escribe poco deja de estar
-//     a cero permanente. Con todo de pago, un miembro sin ingresos no es un
-//     miembro pobre: es un miembro que no puede usar el bot nunca más.
-//  2. ES PROPORCIONAL. Sin hitos, sin suerte y sin tramos: escribes el doble,
-//     cobras el doble. Los bonos son la lotería; esto es el sueldo, y una
-//     economía necesita las dos cosas o el que no tiene suerte no tiene nada.
-//  3. NO DICE NADA. No manda mensaje al grupo. La dinámica de aura ya se acusó
-//     de pesada una vez y por eso existe *!aura off*: meter un aviso cada 25
-//     mensajes por persona habría sido cambiar un problema por otro más gordo.
-//     Se ve en el saldo, que es donde se mira.
-//
-// El importe está puesto contra los precios: 25 mensajes pagan un tercio de un
-// comando barato. Escribir cien cosas da para uno. Suena poco dicho así y es
-// exactamente lo que tiene que ser — el grueso sigue estando en los hitos.
-//
-// Si algún día hay que frenar la inflación, ESTE es el número que se toca
-// primero: es el único ingreso que crece linealmente y sin techo.
-// MENOS CANTIDAD Y MÁS VECES. Empezó en 25 mensajes por 7-13 de aura (media 10,
-// o sea 0,40 por mensaje) y era demasiado: con eso un miembro normal ingresaba
-// cinco veces y media lo de antes y los precios se volvían calderilla.
-//
-// Ahora cae cada 10 mensajes y paga 1-3 (media 2). Por mensaje es la MITAD
-// (0,20) y cae dos veces y media más a menudo. Esa es la textura que se buscaba:
-// el saldo se mueve constantemente y sube despacio, en vez de dar saltos.
-const SUELDO = {
-  cada: 10,             // cada cuántos mensajes del día cae
-  importe: [1, 2],      // [suelo, ancho] → 1-3, media 2
-};
+// Si alguna vez vuelve a hacer falta una renta pasiva, el aviso que dejo esta
+// experiencia es de tamaño, no de concepto: a 0,40 por mensaje multiplicaba por
+// cinco y medio el ingreso de un miembro normal y convertia los precios en
+// calderilla en dos dias.
 
 // ─── Bonos por actividad (tramos de 200 / 500 / 1000 mensajes diarios) ───────
 //
@@ -606,8 +557,9 @@ function rango([suelo, ancho]) {
 
 module.exports = {
   MILLONARIO, ARRANQUE,
-  TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, FAVOR_JUGADOR, multiplicadorPerdida, APUESTA,
-  SUELDO, BONOS, REDENCION,
+  TIRADA, TIRADA_MIN, TIRADA_MAX, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE,
+  P_TOPE_MIEMBRO, MULT_CASTIGO, TIRADAS_PAGADAS, MEDIA_PREMIO, MEDIA_CASTIGO, bonoActividad, APUESTA,
+  BONOS, REDENCION,
   ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, DUELO, REGALO_MIN,
   BOTE, OBJETOS, CONTRA, DIANA,
   PRECIOS, SALDO_MINIMO,

@@ -49,15 +49,44 @@ function freshBucket(groupJid) {
     store[groupJid] = g;
     return g;
   }
-  // `tiradas` lo escribio una version con presupuesto diario de !aura. Ese tope
-  // se quito (frenaba el juego en vez de equilibrarlo; ahora el freno es la
-  // ventaja de la casa), asi que se borra al pasar por aqui y no se arrastra.
-  if (g.tiradas) delete g.tiradas;
   if (now - g.resetAt >= RESET_MS) {
     g.counts = {};
+    g.tiradas = {};
     g.resetAt = now;
   }
+  if (!g.tiradas) g.tiradas = {};
   return g;
+}
+
+// ─── Tiradas de !aura del día ────────────────────────────────────────────────
+//
+// Vuelve a existir un contador de tiradas, pero NO es el de antes. Aquel era un
+// presupuesto: al llegar al tope el comando dejaba de funcionar, y eso convertía
+// !aura en mirar un contador en vez de jugar, así que se quitó.
+//
+// Este no prohíbe nada. Solo dice cuántas van hoy, para que las primeras paguen
+// de verdad y el resto sean cara o cruz a valor esperado cero. Se puede tirar
+// todo el día; lo que se acaba es el sueldo, no el juego.
+//
+// Comparte la ventana de 24 h con el contador de mensajes, así que se reinicia
+// solo y sin ningún temporizador.
+async function contarTirada(groupJid, userJid) {
+  await load();
+  const key = canonicalJid(userJid);
+  const g = freshBucket(groupJid);
+  const n = (g.tiradas[key] || 0) + 1;
+  g.tiradas[key] = n;
+  scheduleSave();
+  return n;
+}
+
+// Cuántas lleva hoy, sin sumar ninguna (para poder enseñarlo en !aura hoy).
+async function tiradasDeHoy(groupJid, userJid) {
+  await load();
+  const g = store[groupJid];
+  if (!g || typeof g.resetAt !== 'number' || !g.tiradas) return 0;
+  if (Date.now() - g.resetAt >= RESET_MS) return 0;
+  return g.tiradas[canonicalJid(userJid)] || 0;
 }
 
 // Junta lo que la misma persona tenga anotado bajo varias formas y lo deja en
@@ -119,4 +148,4 @@ async function flushCasino() {
   }
 }
 
-module.exports = { incrementCasinoCount, getCasinoCount, msUntilReset, flushCasino, RESET_MS };
+module.exports = { incrementCasinoCount, getCasinoCount, contarTirada, tiradasDeHoy, msUntilReset, flushCasino, RESET_MS };

@@ -1,9 +1,9 @@
 const { getState, setState, toggleGroup } = require('../utils/state');
 const { formatUptime, fmt, pickFresh } = require('../utils/helpers');
 const { isOwner, getSender } = require('../utils/wa');
-const { getCasinoCount, msUntilReset } = require('../utils/casinoStore');
+const { getCasinoCount, msUntilReset, tiradasDeHoy } = require('../utils/casinoStore');
 const { nextMilestone } = require('../utils/casino');
-const { PRECIOS, APUESTA, CONTRA, SUELDO } = require('../utils/economia');
+const { PRECIOS, APUESTA, CONTRA, ACTIVIDAD_MSGS, TIRADAS_PAGADAS } = require('../utils/economia');
 const config = require('../config');
 const logger = require('../utils/logger');
 
@@ -138,9 +138,10 @@ async function cmdCasino(sock, msg) {
   }
 
   const sender = getSender(msg);
-  const [count, ms] = await Promise.all([
+  const [count, ms, tiradas] = await Promise.all([
     getCasinoCount(jid, sender),
     msUntilReset(jid),
+    tiradasDeHoy(jid, sender),
   ]);
 
   // El calculo del proximo hito vive en utils/casino.js, que es quien reparte los
@@ -155,16 +156,15 @@ async function cmdCasino(sock, msg) {
   const mins  = Math.floor((ms % 3_600_000) / 60_000);
   const resetStr = ms > 0 ? `${hours}h ${mins}min` : 'pronto';
 
-  // El sueldo no manda mensaje al grupo cuando cae — a propósito, para no
-  // llenar el chat — así que este es el ÚNICO sitio donde se ve. Sin esta línea
-  // el ingreso principal de quien escribe poco sería invisible y nadie sabría
-  // que existe.
-  const faltaSueldo = SUELDO.cada - (count % SUELDO.cada);
+  // Cuántas tiradas de pago le quedan hoy. No se ve en ningún otro sitio hasta
+  // que se acaban y el bot lo dice en la propia tirada, así que enseñarlo aquí
+  // es lo que evita la sorpresa.
+  const quedan = Math.max(0, TIRADAS_PAGADAS - tiradas);
 
   const text =
     `*AURA — HOY*\n\n` +
     `Mensajes hoy: *${fmt(count)}*\n` +
-    `Sueldo: cada ${SUELDO.cada} msgs — faltan *${fmt(faltaSueldo)}*\n` +
+    `Tiradas que pagan: *${fmt(quedan)}* de ${TIRADAS_PAGADAS}\n` +
     `Próximo bono: ${tierLabel} — faltan *${fmt(remaining)}* msgs\n` +
     `${pickFresh(AURA_LINES, `${jid}|auralines`)}\n\n` +
     `_Reset en ${resetStr}_`;
@@ -215,8 +215,8 @@ _De más crudo a más suave. Los de la lista, ${PRECIOS.percent} cada uno._
 *${p}rizz* ${c('rizz')} · *${p}piropo* · *${p}wingman* — modo ligue
 
 ━━━━━ *AURA* ━━━━━
-_Se gana escribiendo: sueldo cada ${SUELDO.cada} msg y bonos gordos a los 200,_
-_500 y 1000 del día. Tirar solo da propina._
+_Bonos a los 200, 500 y 1000 msg del día. Cada ${ACTIVIDAD_MSGS} que escribes,_
+_tus tiradas ganan suerte para siempre. ${TIRADAS_PAGADAS} tiradas pagan al día._
 *${p}aura* — tirar · *${p}aura* @user — ver · *${p}aura top* — ranking
 *${p}aura apostar* [cantidad] — a una carta, cada ${APUESTA.cooldownMin / 60}h.
 Sin cifra va la mitad. Mínimo ${APUESTA.minimo} de saldo para jugar
