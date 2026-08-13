@@ -15,7 +15,7 @@ son los cuatro validadores de la sección 10.
 **Antes de escribir una sola frase, actualiza:**
 
 ```
-git pull origin claude/account-repo-linking-w5yuwf
+git pull origin main
 ```
 
 Si tu rama viene de una base anterior, al empujar devuelves código que ya se
@@ -461,7 +461,7 @@ Un cambio que toca 62 pools para arreglar 6 va a romper algo siempre.
 devuelves código que ya se quitó y el bot deja de cargar. Ha pasado:
 
 ```
-git pull origin claude/account-repo-linking-w5yuwf
+git pull origin main
 ```
 
 ---
