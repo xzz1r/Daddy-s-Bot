@@ -544,18 +544,17 @@ for (const nombre of ['fantasma', 'normal', 'activo', 'muy activo']) {
 // ingresos se han vuelto a ir de las manos.
 ok(f('normal').total >= precioMedio,
   `un miembro normal (200 msgs) paga ${(f('normal').total / precioMedio).toFixed(1)} comandos al dia: elige uno y se queda con ganas`);
-// SUBIDO A 8 por peticion del owner, que pidio expresamente subir la ganancia y
-// bajar los precios: "los comandos estan caros y el aura tiene mucho cooldown".
+// SUBIDO A 6 al subir la ganancia por peticion del owner. Los PRECIOS no se
+// tocan —lo pedido fue ganar mas, no que todo costara menos— asi que el unico
+// motivo por el que un miembro se paga mas comandos es que ahora entra mas aura.
 //
-// Ha pasado por 3, por 4 y ahora por 8, y cada salto respondio a lo mismo: la
-// gente se quedaba sin poder usar el bot. Un miembro normal pasa de 2,4 comandos
-// al dia a unos 6, o sea de elegir uno a poder soltarse un rato sin pensarlo.
+// Ha pasado por 3, por 4 y ahora por 6. Un miembro normal se paga 5 comandos al
+// dia, contra los 3,1 de antes: sigue teniendo que elegir, pero ya no se queda
+// fuera del bot a media tarde.
 //
-// El techo sigue existiendo y sigue teniendo sentido: el precio tiene que
-// significar algo. Si esto se pasa de ocho sin que se pida, los ingresos se han
-// ido de las manos otra vez y el numero al que mirar es TIRADAS_PAGADAS, que
-// multiplica directamente.
-ok(f('normal').total < precioMedio * 8,
+// Si esto se pasa de seis sin que se pida, los ingresos se han ido de las manos
+// y el numero al que mirar es TIRADAS_PAGADAS, que multiplica directamente.
+ok(f('normal').total < precioMedio * 6,
   `  y no se dispara (${(f('normal').total / precioMedio).toFixed(1)} comandos al dia): el precio sigue significando algo`);
 // El agujero original era que por debajo de 200 mensajes al dia no se cobraba
 // NADA por ningun concepto. Lo tapo un sueldo, el sueldo se quito, y ahora lo

@@ -642,45 +642,39 @@ const DUELO = {
 // API y un ffmpeg entero, y ahora sale más barata que convertir un sticker.
 // Es lo pedido, pero si algún día el cupo de RapidAPI se dispara, este es el
 // número que hay que mirar primero.
-// BAJADOS UN TERCIO por decision del owner: los comandos salian caros para lo
-// que se ganaba y la gente se quedaba sin poder usar el bot. Va de la mano de
-// subir la tirada, asi que el efecto se nota por los dos lados.
-//
-// El orden relativo NO cambia: lo que consume CPU de verdad sigue siendo lo mas
-// caro, y lo que solo molesta al grupo sigue por encima de lo barato.
 const PRECIOS = {
   // ─── Lo que consume recursos de verdad ─────────────────────────────────────
-  tovid: 56,   // transcodifica el vídeo entero con preset slow: lo más caro
-  grok: 40,    // llamada a la IA, con su cuota
-  sticker: 36, // !s — un ffmpeg por cada uno
-  toimg: 36,
-  play: 32,    // canción: ancho de banda + cuota de RapidAPI + ffmpeg
-  fk: 28,      // análisis de cuenta falsa
-  ttp: 24,     // texto a sticker
-  pfp: 20,     // foto de perfil
-  cachelist: 10, // la lista de lo ya guardado: barata a propósito, es el atajo
+  tovid: 70,   // transcodifica el vídeo entero con preset slow: lo más caro
+  grok: 50,    // llamada a la IA, con su cuota
+  sticker: 45, // !s — un ffmpeg por cada uno
+  toimg: 45,
+  play: 40,    // canción: ancho de banda + cuota de RapidAPI + ffmpeg
+  fk: 35,      // análisis de cuenta falsa
+  ttp: 30,     // texto a sticker
+  pfp: 25,     // foto de perfil
+  cachelist: 12, // la lista de lo ya guardado: barata a propósito, es el atajo
 
   // ─── Lo que molesta al grupo ───────────────────────────────────────────────
   // No cuestan CPU, cuestan paciencia: mencionan a media docena de personas de
   // golpe y son de lo más fácil de disparar en bucle.
-  top10: 44,
-  top5: 24,
-  inactivos: 28,
-  vs: 24,
-  fantasmas: 24,
-  count: 20,
-  relevancia: 20,
+  top10: 55,
+  top5: 30,
+  inactivos: 35,
+  vs: 30,
+  fantasmas: 30,
+  count: 25,
+  relevancia: 25,
 
   // ─── Las dinámicas ─────────────────────────────────────────────────────────
   // Antes gratis. Ahora el aura vale para algo más que mirarla, y reírse de
   // alguien cuesta dinero como todo lo demás.
-  roast: 28,
-  mog: 28,
-  ship: 24,
-  rizz: 24,
-  piropo: 24,
-  wingman: 24,
-  percent: 20,   // el precio común de gay, puta, iq, fea, crack y compañía
+  roast: 35,
+  mog: 35,
+  ship: 30,
+  rizz: 30,
+  piropo: 30,
+  wingman: 30,
+  percent: 25,   // el precio común de gay, puta, iq, fea, crack y compañía
 };
 
 // Regalar el mínimo tiene que dar para algo. Ver la nota de !dar más arriba.
