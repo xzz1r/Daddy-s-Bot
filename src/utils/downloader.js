@@ -179,7 +179,7 @@ async function rapidConvert(videoId, provider) {
     }
     await sleep(2500); // processing / in queue
   }
-  throw new Error('la conversión tardó demasiado');
+  throw new Error('la conversión tardó demasiado.');
 }
 
 // Descarga una URL directa a un archivo, con tope de tamaño.
@@ -193,7 +193,7 @@ async function downloadUrlToFile(url, dest) {
     const fail = (err) => { resp.data.destroy(); w.destroy(); reject(err); };
     resp.data.on('data', (c) => {
       bytes += c.length;
-      if (bytes > MAX_BYTES) fail(new Error('La canción pesa más de 25MB'));
+      if (bytes > MAX_BYTES) fail(new Error('La canción pesa más de 25MB.'));
     });
     resp.data.on('error', fail);
     w.on('error', fail);
@@ -321,7 +321,7 @@ async function scDownloadOne(url) {
     ]);
     const files = await fs.readdir(TEMP_DIR);
     const audioFile = files.find(f => f.startsWith(baseName));
-    if (!audioFile) throw new Error('No se encontró la canción');
+    if (!audioFile) throw new Error('No se encontró la canción.');
     const fullPath = path.join(TEMP_DIR, audioFile);
     const stat = await fs.stat(fullPath);
     if (stat.size < 1024) { await cleanTemp(fullPath); throw new Error('Archivo vacío'); }
@@ -347,7 +347,7 @@ async function trySoundCloud(query) {
     const out = await ytdlp([`scsearch${SC_CANDIDATES}:${clean}.`, '--flat-playlist', '--print', '%(url)s'], 30000);
     urls = out.split('\n').map(l => l.trim()).filter(u => /^https?:\/\//i.test(u));
   } catch {}
-  if (!urls.length) throw new Error('sin resultados en SoundCloud');
+  if (!urls.length) throw new Error('sin resultados en SoundCloud.');
   let lastErr = null;
   for (const url of urls) {
     try { return await scDownloadOne(url); }

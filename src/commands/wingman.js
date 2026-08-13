@@ -56,7 +56,7 @@ const RIZZ = {
 
     '%N tiene el tipo de magnetismo que deja secuelas: gente que jura que nunca más se enamora y dos semanas después está igual, otra vez, por %N, qué cringe.',
 
-    '%N tiene tanto rizz que hasta sus rechazos generan lealtad absurda, cabrón., asco, da asco.',
+    '%N tiene tanto rizz que hasta sus rechazos generan lealtad absurda, cabrón. asco, da asco.',
 
     'Cuando %N entra al chat, dos personas fingen indiferencia y una tercera revisa su vida, gilipollas.',
 
@@ -96,7 +96,7 @@ const RIZZ = {
 
     'Hay gente que guarda capturas de %N como reliquia, mierda.cringe.',
 
-    '%N puede desaparecer una semana y el hilo sigue orbitando, coño., asco, da asco.',
+    '%N puede desaparecer una semana y el hilo sigue orbitando, coño. asco, da asco.',
 
     'Cuando %N habla en serio, el chat baja el volumen del resto, asco.vergüenza.',
 
@@ -136,7 +136,7 @@ const RIZZ = {
 
     '%N no pide atención: la atención se le sube sola al regazo, gilipollas, coño.',
 
-    'Hay gente que guarda capturas de %N como reliquia, mierda, cabrón., asco, da asco.',
+    'Hay gente que guarda capturas de %N como reliquia, mierda, cabrón. asco, da asco.',
 
     '%N puede desaparecer una semana y el hilo sigue orbitando, coño, gilipollas.',
 
@@ -176,7 +176,7 @@ const RIZZ = {
 
     'Cuando %N entra al chat, dos personas fingen indiferencia y una tercera revisa su vida, gilipollas, qué cringe.',
 
-    '%N mandó una foto normal y alguien la imprimió para el velador, mierda, cabrón., da asco.',
+    '%N mandó una foto normal y alguien la imprimió para el velador, mierda, cabrón. da asco.',
 
     'La ex de %N sigue pagando el gimnasio del barrio por si se cruzan, coño, gilipollas.',
 
@@ -718,105 +718,105 @@ const PIROPOS = [
 
   '%N, hostia puta, te montaría a pelo, te reventaría los tres agujeros y te dejaría goteando leche por todos lados, gilipollas de mierda, qué nivel de pena.',
 
-  'Si la belleza fuera delito, %N estaría perpetua sin derecho a visita conyugal. El grupo ya tomó nota, basura.',
+  'Si la belleza fuera delito, %N estaría perpetua sin derecho a visita conyugal.',
 
-  'Con esa cara %N hace que el resto del chat pida indulto visual, cabrón. El grupo ya tomó nota, qué cutre.',
+  'Con esa cara %N hace que el resto del chat pida indulto visual, cabrón.',
 
-  '%N tiene el tipo de cuerpo que convierte un buenos días en tentativa, gilipollas. El grupo ya tomó nota, da pena ajena.',
+  '%N tiene el tipo de cuerpo que convierte un buenos días en tentativa, gilipollas.',
 
-  'Si mirar fuera impuesto, %N tendría al grupo en números rojos, mierda. El grupo ya tomó nota, qué vacío.',
+  'Si mirar fuera impuesto, %N tendría al grupo en números rojos, mierda.',
 
-  '%N entra y hasta el corrector del teléfono se pone nervioso, coño. El grupo ya tomó nota, indignante.',
+  '%N entra y hasta el corrector del teléfono se pone nervioso, coño.',
 
-  'Esa boca de %N tiene más potencial que todo el ranking junto, asco. El grupo ya tomó nota, patético, qué vergüenza ajena.',
+  'Esa boca de %N tiene más potencial que todo el ranking junto, asco. qué vergüenza ajena.',
 
-  '%N es el motivo por el que el modo avión debería ser ilegal, patético. El grupo ya tomó nota, asco, da vergüenza.',
+  '%N es el motivo por el que el modo avión debería ser ilegal, patético. da vergüenza.',
 
-  'Si el pecado tuviera cara, tendría el número de %N guardado, basura. El grupo ya tomó nota, basura, qué flojo.',
+  'Si el pecado tuviera cara, tendría el número de %N guardado, basura. qué flojo.',
 
-  '%N hace que el resto de perfiles parezcan borradores, ridículo. El grupo ya tomó nota, ridículo, menudo desastre.',
+  '%N hace que el resto de perfiles parezcan borradores, ridículo. menudo desastre.',
 
-  'Con %N el deseo no pide permiso: irrumpe, fracasado. El grupo ya tomó nota, fracasado fracasado, qué pena.',
+  'Con %N el deseo no pide permiso: irrumpe, fracasado. qué pena.',
 
-  '%N tiene el pack que el chat no merece pero disfruta. El grupo ya tomó nota.',
+  '%N tiene el pack que el chat no merece pero disfruta.',
 
-  'Si la lujuria pagara impuestos, %N sería hacienda, cabrón. El grupo ya tomó nota, mierda mierda, miserable.',
+  'Si la lujuria pagara impuestos, %N sería hacienda, cabrón. miserable.',
 
-  '%N es el motivo de más de un visto con sudor frío, gilipollas. El grupo ya tomó nota, coño coño, qué cringe.',
+  '%N es el motivo de más de un visto con sudor frío, gilipollas. qué cringe.',
 
-  'Esa mirada de %N debería venir con advertencia sanitaria, mierda. El grupo ya tomó nota, cabrón, da asco.',
+  'Esa mirada de %N debería venir con advertencia sanitaria, mierda. da asco.',
 
-  '%N convierte un sticker en material de delitto, coño. El grupo ya tomó nota, gilipollas gilipollas, qué vergüenza.',
+  '%N convierte un sticker en material de delitto, coño. qué vergüenza.',
 
-  'El grupo finge normalidad cuando %N escribe. Falla, asco. El grupo ya tomó nota, patético patético, ridículo.',
+  'El grupo finge normalidad cuando %N escribe. Falla, asco. ridículo.',
 
-  '%N tiene el cuerpo de argumento definitivo, patético. El grupo ya tomó nota, asco asco.',
+  '%N tiene el cuerpo de argumento definitivo, patético.',
 
-  'Si el infierno existiera, %N sería la recepción, basura. El grupo ya tomó nota, basura basura, qué miseria.',
+  'Si el infierno existiera, %N sería la recepción, basura. qué miseria.',
 
-  '%N hace que hasta el cinismo del chat se ablande, ridículo. El grupo ya tomó nota, ridículo ridículo, da grima.',
+  '%N hace que hasta el cinismo del chat se ablande, ridículo. da grima.',
 
-  'Con %N el piropo se queda corto y el silencio también, fracasado. El grupo ya tomó nota, fracasado, qué nivel de pena.',
+  'Con %N el piropo se queda corto y el silencio también, fracasado. qué nivel de pena.',
 
-  '%N es tentación con wifi. El grupo ya tomó nota.',
+  '%N es tentación con wifi.',
 
-  'Esa voz de %N debería estar regulada, cabrón. El grupo ya tomó nota, mierda mierda.',
+  'Esa voz de %N debería estar regulada, cabrón.',
 
-  '%N tiene más magnetismo que un imán en zona prohibida, gilipollas. El grupo ya tomó nota, coño, da pena ajena.',
+  '%N tiene más magnetismo que un imán en zona prohibida, gilipollas. da pena ajena.',
 
-  'Si el deseo fuera ranking, %N sería owner, mierda. El grupo ya tomó nota, cabrón cabrón.',
+  'Si el deseo fuera ranking, %N sería owner, mierda.',
 
-  '%N entra al hilo y el resto pierde el hilo, coño. El grupo ya tomó nota, gilipollas gilipollas, indignante.',
+  '%N entra al hilo y el resto pierde el hilo, coño. indignante.',
 
-  'El cuerpo de %N es un argumento sin necesidad de texto, asco. El grupo ya tomó nota, patético, qué vergüenza ajena.',
+  'El cuerpo de %N es un argumento sin necesidad de texto, asco. qué vergüenza ajena.',
 
-  '%N hace que el almost duela de otra manera, patético. El grupo ya tomó nota, asco asco.',
+  '%N hace que el almost duela de otra manera, patético.',
 
-  'Si mirar a %N fuera deporte, habría olimpiadas, basura. El grupo ya tomó nota, basura basura.',
+  'Si mirar a %N fuera deporte, habría olimpiadas, basura.',
 
-  '%N es el motivo de más de un bloqueo por higiene mental, ridículo. El grupo ya tomó nota, ridículo, menudo desastre.',
+  '%N es el motivo de más de un bloqueo por higiene mental, ridículo. menudo desastre.',
 
-  'Con %N el chat se vuelve menos cínico y más animal, fracasado. El grupo ya tomó nota, fracasado, qué pena.',
+  'Con %N el chat se vuelve menos cínico y más animal, fracasado. qué pena.',
 
-  '%N tiene el tipo de presencia que no pide: exige. El grupo ya tomó nota.',
+  '%N tiene el tipo de presencia que no pide: exige.',
 
-  'Esa sonrisa de %N es un arma de destrucción masiva, cabrón. El grupo ya tomó nota, mierda mierda, miserable.',
+  'Esa sonrisa de %N es un arma de destrucción masiva, cabrón. miserable.',
 
-  '%N convierte el aburrimiento del grupo en hambre, gilipollas. El grupo ya tomó nota, coño coño, qué cringe.',
+  '%N convierte el aburrimiento del grupo en hambre, gilipollas. qué cringe.',
 
-  'Si el pecado original tuviera update, llevaría la cara de %N, mierda. El grupo ya tomó nota, cabrón, da asco.',
+  'Si el pecado original tuviera update, llevaría la cara de %N, mierda. da asco.',
 
-  '%N es el DLC pago que nadie se resiste a comprar, coño. El grupo ya tomó nota, gilipollas gilipollas, qué vergüenza.',
+  '%N es el DLC pago que nadie se resiste a comprar, coño. qué vergüenza.',
 
-  'El deseo con nombre de usuario: %N, asco. El grupo ya tomó nota, patético patético.',
+  'El deseo con nombre de usuario: %N, asco.',
 
-  '%N hace que hasta los haters miren dos veces, patético. El grupo ya tomó nota, asco asco.',
+  '%N hace que hasta los haters miren dos veces, patético.',
 
-  'Si la lujuria hablara, pediría el número de %N, basura. El grupo ya tomó nota, basura basura.',
+  'Si la lujuria hablara, pediría el número de %N, basura.',
 
-  '%N tiene el pack completo y el chat lo sabe, ridículo. El grupo ya tomó nota, ridículo ridículo, da grima.',
+  '%N tiene el pack completo y el chat lo sabe, ridículo. da grima.',
 
-  'Con %N el piropo es casi un eufemismo, fracasado. El grupo ya tomó nota, fracasado fracasado.',
+  'Con %N el piropo es casi un eufemismo, fracasado.',
 
-  '%N es peligroso para la productividad del grupo. El grupo ya tomó nota.',
+  '%N es peligroso para la productividad del grupo.',
 
-  'Esa foto de %N debería tener clasificación por edades, cabrón. El grupo ya tomó nota, mierda mierda, qué cutre.',
+  'Esa foto de %N debería tener clasificación por edades, cabrón. qué cutre.',
 
-  '%N hace que el resto de conversaciones parezcan relleno, gilipollas. El grupo ya tomó nota, coño, da pena ajena.',
+  '%N hace que el resto de conversaciones parezcan relleno, gilipollas. da pena ajena.',
 
-  'Si el infierno contratara, %N sería la campaña, mierda. El grupo ya tomó nota, cabrón cabrón.',
+  'Si el infierno contratara, %N sería la campaña, mierda.',
 
-  '%N tiene el magnetismo de apagón total, coño. El grupo ya tomó nota, gilipollas gilipollas.',
+  '%N tiene el magnetismo de apagón total, coño.',
 
-  'El chat finge que no pasa nada con %N. Pasa, asco. El grupo ya tomó nota, patético patético.ajena.',
+  'El chat finge que no pasa nada con %N. Pasa, asco.ajena.',
 
-  '%N es el argumento contra la monogamia del hilo, patético. El grupo ya tomó nota, asco asco.',
+  '%N es el argumento contra la monogamia del hilo, patético.',
 
-  'Si el deseo tuviera admin, sería %N, basura. El grupo ya tomó nota, basura basura.',
+  'Si el deseo tuviera admin, sería %N, basura.',
 
-  '%N convierte un hola en incidente de seguridad, ridículo. El grupo ya tomó nota, ridículo ridículo, menudo desastre.',
+  '%N convierte un hola en incidente de seguridad, ridículo. menudo desastre.',
 
-  'Con %N hasta el roast se ablanda un segundo, fracasado. El grupo ya tomó nota, fracasado fracasado, qué pena.',
+  'Con %N hasta el roast se ablanda un segundo, fracasado. qué pena.',
 
   'Si la virtud tuviera precio, %N la habría fundido en una noche y aún debería.',
 

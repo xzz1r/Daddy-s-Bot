@@ -303,13 +303,13 @@ const LABELS = {
 
       'Se te nota el rastro de incel hasta en los mensajes que pretenden ser neutrales, [nombre], ridículo.',
 
-      'Incel como un anuncio repetido que nadie pidió. Cero autoexamen de verdad, gilipollas, joder, y el grupo no se traga el cuento, qué vergüenza.',
+      'Incel como un anuncio repetido que nadie pidió. Cero autoexamen de verdad, gilipollas, y el grupo no se traga el cuento, qué vergüenza.',
 
       'Has convertido el resentimiento en identidad y no hay terapia que la limpie aquí, [nombre]. Patético, ridículo.',
 
       'Incel en crudo: ni el maquillaje del ranking te cubre, asco. El espejo sigue esperando, asco, fracasado.',
 
-      'El listón de lo social lo miras desde el sótano y culpas al resto, joder, [nombre]. anestesia. Cero autoexamen de verdad, basura.',
+      'El listón de lo social lo miras desde el sótano y culpas al resto, [nombre]. anestesia. Cero autoexamen de verdad, basura.',
 
       'Incel sin una carta nueva: siempre la misma mano sucia. Se te ve el fail a la primera, ridículo.',
 
@@ -1183,7 +1183,7 @@ const LABELS = {
 
       'El listón de lo presentable lo miras desde abajo y no has subido, [nombre]. El veredicto El material habla solo, sin filtro ni consuelo, patético.',
 
-      'Linda repitiendo el mismo fail como si fuera marca personal. El veredicto ridículo, joder, el bot no regala décimas.',
+      'Linda repitiendo el mismo fail como si fuera marca personal. El veredicto ridículo, el bot no regala décimas.',
 
       'Se te oye el eco del fail visual hasta en los mensajes neutros, [nombre]. El veredicto El ranking firma y listo, y se te nota a la legua, basura.',
 
@@ -1201,7 +1201,7 @@ const LABELS = {
 
       'Linda constante: la única racha es la de no mejorar el frame, [nombre]. El veredicto Aquí, hostia puta qué nivel.',
 
-      'Se te nota la prisa por tapar y cero plan de arreglar lo que se ve, [nombre]. El veredicto, joder. Y.',
+      'Se te nota la prisa por tapar y cero plan de arreglar lo que se ve, [nombre]. El veredicto. Y.',
 
       'Linda de cartel de aviso: se lee de lejos y nadie quiere el producto, [nombre]. El veredicto, mierda.',
 
@@ -1454,11 +1454,11 @@ const LABELS = {
     name: 'fea',
     goodIsHigh: false,
     high: [
-      '[nombre], tienes una cara que hace que el flash de la cámara se arrepienta de haber disparado, joder.',
+      '[nombre], tienes una cara que hace que el flash de la cámara se arrepienta de haber disparado.',
 
       'Fea de las que el espejo pide indulto antes de reflejarte, [nombre]. Qué puta desgracia visual, fracasado.',
 
-      '[nombre], no es que te falte ángulo: es que te faltan los tres y el cuarto también. El atractivo te bloqueó sin forwarding, joder.',
+      '[nombre], no es que te falte ángulo: es que te faltan los tres y el cuarto también. El atractivo te bloqueó sin forwarding.',
 
       'Tienes el atractivo de un martes lluvioso en una sala de espera, [nombre]. Pura mierda. Estética, mierda.',
 
@@ -1478,7 +1478,7 @@ const LABELS = {
 
       'Tu simetría es un chiste malo contado dos veces, [nombre]. Fracasado. Del catálogo visual, fracasado.',
 
-      '[nombre], si te miran de frente es por educación, no por interés. Ni con ring light te inventas un punto focal, joder.',
+      '[nombre], si te miran de frente es por educación, no por interés. Ni con ring light te inventas un punto focal.',
 
       'Fea de close-up: el zoom solo empeora el informe, [nombre]. De material. La cámara frontal merece hazard pay, mierda.',
 
@@ -1606,7 +1606,7 @@ const LABELS = {
 
       'Tu simetría perdió el juicio y no pagó fianza, [nombre]. Mierda. Legal. Ni con ring light te inventas un punto focal, cabrón.',
 
-      '[nombre], el high te mide yel número. La cámara frontal merece hazard pay, gilipollas Joder, qué nivel, patético.',
+      '[nombre], el high te mide yel número. La cámara frontal merece hazard pay, gilipollas, patético.',
 
       'Fea sin barniz de \\\\\\\\\'carácter\\\\\\\\\': solo el informe, [nombre]. Cabrón. Seco. El atractivo te bloqueó sin forwarding, patético.',
 
@@ -1644,7 +1644,7 @@ const LABELS = {
 
       '[nombre], tienes el magnetismo inverso: la gente se aleja sin saber por qué. La cámara frontal merece hazard pay, coño.',
 
-      'cabrón. El atractivo te bloqueó sin forwarding, cabrón Joder, qué nivel, gilipollas.',
+      'cabrón. El atractivo te bloqueó sin forwarding, cabrón, gilipollas.',
 
       '[nombre], si te describieran en tres palabras sobrarían dos insultos. Ni con ring light te inventas un punto focal, gilipollas.',
 
@@ -1750,7 +1750,7 @@ const LABELS = {
 
       'Tu cara es un informe sin anexos de caridad, [nombre]. Ni con ring light te inventas un punto focal, patético.',
 
-      '[nombre], se te ve el sótano desde la notificación. La cámara frontal merece hazard pay, asco Joder, qué nivel, basura.',
+      '[nombre], se te ve el sótano desde la notificación. La cámara frontal merece hazard pay, asco, basura.',
 
       'Fea de veredicto que el chat confirma en silencio, [nombre]. El atractivo te bloqueó sin forwarding, basura.',
 
@@ -1762,7 +1762,7 @@ const LABELS = {
 
       'Fea de las que el filtro beauty pide apoyo técnico, [nombre]. Sin anestesia. Ni con ring light te inventas un punto focal, mierda.',
 
-      '[nombre], no hay ángulo: hay rendición documentada. La cámara frontal merece hazard pay, coño. Joder, qué nivel, cabrón.',
+      '[nombre], no hay ángulo: hay rendición documentada. La cámara frontal merece hazard pay, coño., qué nivel, cabrón.',
 
       'Tu simetría perdió el norte y el sur, [nombre]. El atractivo te bloqueó sin forwarding, cabrón.',
 
@@ -2239,7 +2239,7 @@ const LABELS = {
 
       'Tu sexy en silencio con mensajes raros: chat casi muerto y algún ping suelto, [nombre]. Mierda.',
 
-      'Temblor sin etiqueta clara: ni fiebre de deseo ni normalidad clara en el tramo, [nombre]. Joder.',
+      'Temblor sin etiqueta clara: ni fiebre de deseo ni normalidad clara en el tramo, [nombre].',
 
       'Sin leyenda ni maldición de sexy: solo la continuidad gris del promedio del chat, [nombre]. Coño.',
 
@@ -2261,7 +2261,7 @@ const LABELS = {
 
       'Depende como sentencia de tu atracción: el veredicto es el depende y punto final. Patético.',
 
-      'Sin material para fanatismo ni desprecio: material para el siguiente mensaje, [nombre]. Joder.',
+      'Sin material para fanatismo ni desprecio: material para el siguiente mensaje, [nombre].',
 
       'El magnetismo no ha firmado indefinido contigo: es temporal y sin renovación automática. Asco. El bot no regala décimas.',
 
@@ -2269,7 +2269,7 @@ const LABELS = {
 
       'Sin horario fijo en el calendario del deseo: espontánea y rara como la lluvia de agosto. Coño. Nivel sótano documentado.',
 
-      'Ni dentro ni fuera del deseo del todo: umbral sin empadronamiento claro en. El ranking. Joder.',
+      'Ni dentro ni fuera del deseo del todo: umbral sin empadronamiento claro en. El ranking.',
 
       'Sexy de solo entrantes sin plato fuerte: bocados y poco más en la carta del día. Ridículo. El ranking no miente.',
 
@@ -2293,13 +2293,13 @@ const LABELS = {
 
       'Temporal sin renovar el magnetismo: el contrato caducó y nadie lo ha firmado de nuevo. Asco. El ranking no miente.',
 
-      'Continuidad gris de presencia: sin picos de gloria ni valles de rechazo interesante. Joder.',
+      'Continuidad gris de presencia: sin picos de gloria ni valles de rechazo interesante.',
 
       'Resumen sin adjetivos fuertes de atracción: la falta de adjetivos es. El veredicto. Basura. El chat ya lo archivó.',
 
       'Tu magnetismo va y viene según el día: el grupo ya no apuesta a ninguna versión tuya. Coño.',
 
-      'Ni ejemplo de sexy ni antiejemplo claro: caso del promedio tembloroso sin etiqueta. Joder.',
+      'Ni ejemplo de sexy ni antiejemplo claro: caso del promedio tembloroso sin etiqueta.',
 
       'Sexy sin fecha de estreno: ensayo perpetuo sin noche de inauguración posible. Ridículo.',
 
@@ -2315,7 +2315,7 @@ const LABELS = {
 
       'El centro del espectro es poco comercial y es tuyo por derecho estadístico puro. Mierda.',
 
-      'El grupo espera el zigzag de tu atracción y el zigzag llega sin sorpresa ninguna. Joder. El chat ya lo archivó.',
+      'El grupo espera el zigzag de tu atracción y el zigzag llega sin sorpresa ninguna. El chat ya lo archivó.',
 
       'Citas sueltas con el deseo sin noviazgo ni compromiso de ninguna clase posible. Cabrón.',
 
@@ -2343,7 +2343,7 @@ const LABELS = {
 
       'Gestos sueltos que no suman magnetismo que se sostenga en serio en el grupo. Basura.',
 
-      'Media agua sin orilla de atracción: flotas sin dirección ni puerto a la vista. Joder. El bot no regala décimas, da pena ajena.',
+      'Media agua sin orilla de atracción: flotas sin dirección ni puerto a la vista. El bot no regala décimas, da pena ajena.',
 
       'El apagón del flash se conoce de antemano: nadie se ilusiona del todo nunca. Cabrón.',
 
@@ -2363,7 +2363,7 @@ const LABELS = {
 
       'Tu lugar es el control del experimento: sin extremos no hay escala posible. Mierda.',
 
-      'Lo más predecible del ranking de sexy: y lo menos comentado del chat entero. Joder. El bot no regala décimas, qué cringe.',
+      'Lo más predecible del ranking de sexy: y lo menos comentado del chat entero. El bot no regala décimas, qué cringe.',
 
       'Tramo que no abre hilos: la no apertura es el dato más claro del pool. Patético.',
 
@@ -2423,11 +2423,11 @@ const LABELS = {
 
       'No levantas el listón del deseo: el listón sigue en el suelo sin que lo toques jamás. Ridículo.',
 
-      'No hay magia en el detalle porque no hay detalle que encienda nada en nadie aquí, [nombre]. Joder.',
+      'No hay magia en el detalle porque no hay detalle que encienda nada en nadie aquí, [nombre].',
 
       'No hay redención en el tramo bajo de sexy: hay el número y el número habla, [nombre]. Ridículo. El bot no regala décimas.',
 
-      'No hay material para el close-up: hay material para el plano general y el olvido, [nombre]. Joder.',
+      'No hay material para el close-up: hay material para el plano general y el olvido, [nombre].',
 
       'Tu cuerpo pide un rediseño completo: no un retoque, un rediseño desde los cimientos. Patético. Nivel sótano documentado.',
 
@@ -2445,11 +2445,11 @@ const LABELS = {
 
       'No hay chispa en la forma de estar ni en la mirada ni en cómo ocupas el espacio del chat. Coño.',
 
-      'Cero de presencia erótica: ni un segundo de duda en quien te mira de frente en. El chat. Joder. El bot no regala décimas.',
+      'Cero de presencia erótica: ni un segundo de duda en quien te mira de frente en. El chat. El bot no regala décimas.',
 
       'No eres memorable en clave de atracción: eres olvidable en tiempo récord plano, [nombre]. Asco.',
 
-      'No hay magia, no hay duda, no hay segundo de interés: hay el no claro y seco, [nombre]. Joder. Nivel sótano documentado.',
+      'No hay magia, no hay duda, no hay segundo de interés: hay el no claro y seco, [nombre]. Nivel sótano documentado.',
 
       'No eres el primer plano: eres el fondo que el director no acerca nunca, [nombre]. Ridículo.',
 
@@ -2457,7 +2457,7 @@ const LABELS = {
 
       'No generas capturas ni comentarios de deseo: generas el scroll silencioso, [nombre]. Basura.',
 
-      'No hay close-up que merezca la pena: el material no da para el primer plano, [nombre]. Joder. El chat ya lo archivó.',
+      'No hay close-up que merezca la pena: el material no da para el primer plano, [nombre]. El chat ya lo archivó.',
 
       'La atracción te evitó. Y el grupo lo nota sin necesidad de decírtelo en voz alta. Ridículo.',
 
@@ -2471,13 +2471,13 @@ const LABELS = {
 
       'No hay duda en. El veredicto: el no es redondo, claro, seco y sin matices, [nombre]. Cabrón. Nivel sótano documentado.',
 
-      'Tu look no genera capturas de pantalla ni comentarios de deseo en. El chat del grupo. Joder.',
+      'Tu look no genera capturas de pantalla ni comentarios de deseo en. El chat del grupo.',
 
       'La atracción y tú sois líneas paralelas: no se cruzan en esta geometría del grupo. Cabrón. El ranking no miente.',
 
       'No hay narrativa de deseo: hay un plano secuencia del vacío visual del chat, [nombre]. Coño.',
 
-      'Cero de lo que se siente antes de pensar: ese algo no te pertenece de ninguna forma. Joder. El chat ya lo archivó.',
+      'Cero de lo que se siente antes de pensar: ese algo no te pertenece de ninguna forma. El chat ya lo archivó.',
 
       'Cero de chispa que encienda algo más que un cambio de tema educado en. El chat. Ridículo.',
 
@@ -2505,7 +2505,7 @@ const LABELS = {
 
       'El listón de lo deseable lo miras desde abajo y no has subido, [nombre]. El veredicto El ranking firma y listo, sin filtro ni consuelo, patético.',
 
-      'Sexy repitiendo el mismo fail como si fuera marca personal. El veredicto, diagnóstico cerrado, joder.',
+      'Sexy repitiendo el mismo fail como si fuera marca personal. El veredicto, diagnóstico cerrado.',
 
       'Se te oye el eco del fail sexual hasta en los neutros del chat, [nombre]. El veredicto, y se te nota a la legua, basura.',
 
@@ -2523,7 +2523,7 @@ const LABELS = {
 
       'Sexy constante: la única racha es la de no generar deseo real, [nombre]. El veredicto Se ve desde el primer mensaje, hostia puta qué nivel.',
 
-      'Se te nota la prisa por parecer y cero plan de ser deseable de verdad, [nombre]. El veredicto, joder.',
+      'Se te nota la prisa por parecer y cero plan de ser deseable de verdad, [nombre]. El veredicto.',
 
       'Sexy de cartel de aviso: se lee de lejos y nadie quiere el producto, [nombre]. El veredicto, mierda.',
 
@@ -2553,7 +2553,7 @@ const LABELS = {
 
       'Sexy de ceja ajena levantada y deseo ajeno en el sótano, [nombre]. El veredicto El ranking firma y listo, nivel sótano puro, fracasado.',
 
-      'El promedio de este tramo es el tuyo: el suelo del low, [nombre]. El veredicto Se ve desde el primer mensaje, sin filtro ni consuelo, joder.',
+      'El promedio de este tramo es el tuyo: el suelo del low, [nombre]. El veredicto Se ve desde el primer mensaje, sin filtro ni consuelo.',
 
       'Has convertido la falta de chispa en identidad y no hay detergente, [nombre]. El veredicto, diagnóstico cerrado, mierda.',
 
@@ -2573,7 +2573,7 @@ const LABELS = {
 
       'El grupo paga tu rastro de pretensión en cuotas diarias de hastío, [nombre]. El veredicto, hostia puta qué nivel.',
 
-      'Has dejado el chat como vestuario de derrota de atracción, [nombre]. El veredicto Eso no se maquilla con ángulo, joder.',
+      'Has dejado el chat como vestuario de derrota de atracción, [nombre]. El veredicto Eso no se maquilla con ángulo.',
 
       'Sexy de estribillo sin punto final limpio ni redención, [nombre]. El veredicto El tramo te nombra sin permiso, mierda.',
 
@@ -2623,7 +2623,7 @@ const LABELS = {
 
       'Has montado el teatro de sexy y el público solo vio el fail, [nombre]. El veredicto Eso no se maquilla con ángulo, hostia puta qué nivel.',
 
-      'Sexy de las que confunden pose con deseo y pierden las dos, [nombre]. El veredicto El tramo te nombra sin permiso, joder.',
+      'Sexy de las que confunden pose con deseo y pierden las dos, [nombre]. El veredicto El tramo te nombra sin permiso.',
 
       'Tu almost es un aviso de lo que no hay que perseguir en el grupo, [nombre]. El veredicto No hay segunda lectura útil, mierda.',
 
@@ -2673,7 +2673,7 @@ const LABELS = {
 
       'Sexy de las que el grupo no cita porque no hay deseo que citar, [nombre]. El veredicto El tramo te nombra sin permiso, hostia puta qué nivel.',
 
-      'Has firmado el fail con cada almost como única firma del low, [nombre]. El veredicto No hay segunda lectura útil, joder.',
+      'Has firmado el fail con cada almost como única firma del low, [nombre]. El veredicto No hay segunda lectura útil.',
 
       'Sexy de superficie: basta la vista, no hace falta el sótano, [nombre]. El veredicto El material habla solo, mierda.',
 
@@ -2723,7 +2723,7 @@ const LABELS = {
 
       'Tu frame es contenido de ridículo gratis para el grupo, [nombre]. El veredicto No hay segunda lectura útil, hostia puta qué nivel.',
 
-      'Sexy de las que el natural es no atraer., [nombre]. El veredicto El material habla solo, joder.',
+      'Sexy de las que el natural es no atraer., [nombre]. El veredicto El material habla solo.',
 
       'Has convertido el fail de deseo en marca personal del low, [nombre]. El veredicto Aquí.',
 
@@ -2775,7 +2775,7 @@ const LABELS = {
 
       'Quien acabe contigo va a tener que recordarse cada mañana la suerte que tiene El material habla solo, hostia puta qué nivel.',
 
-      'La gente coquetea contigo por inercia, sin haberlo decidido, y luego no sabe cómo explicarlo, joder.',
+      'La gente coquetea contigo por inercia, sin haberlo decidido, y luego no sabe cómo explicarlo.',
 
       'Tienes el tipo de atractivo del que se habla cuando ya no estás en la habitación El ranking firma y listo, mierda.',
 
@@ -2986,7 +2986,7 @@ const LABELS = {
 
       'Pila de borradores de pose sin versión final que firmar ni publicar en el grupo, [nombre]. Gilipollas.',
 
-      'Temblor sin etiqueta clara: ni fiebre de respeto ni normalidad clara en el tramo, [nombre]. Joder.',
+      'Temblor sin etiqueta clara: ni fiebre de respeto ni normalidad clara en el tramo, [nombre].',
 
       'Medallero corto y sin brillo de respeto: ni vacío dramático ni lleno orgulloso, [nombre]. Basura. El chat ya lo archivó.',
 
@@ -3020,7 +3020,7 @@ const LABELS = {
 
       'Andamio visible de la pose: se ve la obra y falta la fachada terminada del todo, [nombre]. Asco.',
 
-      'Ni dentro ni fuera del respeto del todo: umbral sin empadronamiento claro en. El ranking. Joder. Nivel sótano documentado.',
+      'Ni dentro ni fuera del respeto del todo: umbral sin empadronamiento claro en. El ranking. Nivel sótano documentado.',
 
       'Salva el rato y pierde el día de respeto: prioridades raras y resultados tibios, [nombre]. Coño.',
 
@@ -3036,7 +3036,7 @@ const LABELS = {
 
       'Tu sitio es el centro del espectro de crack: coordenada exacta y sin mudanza cercana. Mierda.',
 
-      'Sin material para fanatismo ni desprecio: material para el siguiente mensaje, [nombre]. Joder. El bot no regala décimas.',
+      'Sin material para fanatismo ni desprecio: material para el siguiente mensaje, [nombre]. El bot no regala décimas.',
 
       'El magnetismo no ha firmado indefinido contigo: es temporal y sin renovación automática. Asco.',
 
@@ -3060,7 +3060,7 @@ const LABELS = {
 
       'Hay días de sí y días de no: el promedio es un quizás cansado de tanto dudar aquí. Cabrón.',
 
-      'Ni ejemplo de crack ni antiejemplo claro: caso del promedio tembloroso sin etiqueta. Joder. Nivel sótano documentado.',
+      'Ni ejemplo de crack ni antiejemplo claro: caso del promedio tembloroso sin etiqueta. Nivel sótano documentado.',
 
       'El depende es. El veredicto de tu respeto y no hay apelación al número del bot. Patético.',
 
@@ -3068,7 +3068,7 @@ const LABELS = {
 
       'Temporal sin renovar el magnetismo: el contrato caducó y nadie lo ha firmado de nuevo. Asco.',
 
-      'Continuidad gris de presencia: sin picos de gloria ni valles de rechazo interesante. Joder. El chat ya lo archivó.',
+      'Continuidad gris de presencia: sin picos de gloria ni valles de rechazo interesante. El chat ya lo archivó.',
 
       'Tu magnetismo va y viene según el día: el grupo ya no apuesta a ninguna versión tuya. Coño.',
 
@@ -3102,7 +3102,7 @@ const LABELS = {
 
       'Oscila sin llegar a puerto: ni naufragio ni atraque, solo el movimiento tibio. Basura. Nivel sótano documentado, fracasado.',
 
-      'El grupo espera el zigzag de tu respeto y el zigzag llega sin sorpresa ninguna. Joder.',
+      'El grupo espera el zigzag de tu respeto y el zigzag llega sin sorpresa ninguna.',
 
       'Tu respeto con RSVP irregular: a veces viene y a veces deja el asiento vacío. Mierda. El ranking no miente, da grima.',
 
@@ -3124,15 +3124,15 @@ const LABELS = {
 
       'Más páginas grises que capítulos: el libro de tu presencia es así de plano. Basura.',
 
-      'Lo más predecible del ranking de crack: y lo menos comentado del chat entero. Joder. El ranking no miente, menudo desastre.',
+      'Lo más predecible del ranking de crack: y lo menos comentado del chat entero. El ranking no miente, menudo desastre.',
 
       'Ni anillo ni crónica: ficha de quien terminó sin estrellas ni tachones. Ridículo.',
 
       'Tu lugar es el control del experimento: sin extremos no hay escala posible. Mierda. El chat ya lo archivó, patético.',
 
-      'Media agua sin orilla de respeto: flotas sin dirección ni puerto a la vista. Joder.',
+      'Media agua sin orilla de respeto: flotas sin dirección ni puerto a la vista.',
 
-      'El respeto te saluda de lejos y no se acerca a vivir contigo del todo nunca. Joder.',
+      'El respeto te saluda de lejos y no se acerca a vivir contigo del todo nunca.',
 
       'Tramo que no abre hilos: la no apertura es el dato más claro del pool. Patético.',
 
@@ -3204,9 +3204,9 @@ const LABELS = {
 
       'No hay redención en el tramo bajo de crack: hay el número y el número habla, [nombre]. Ridículo. Nivel sótano documentado.',
 
-      'No hay magia en el detalle porque no hay detalle que encienda nada en nadie aquí, [nombre]. Joder.',
+      'No hay magia en el detalle porque no hay detalle que encienda nada en nadie aquí, [nombre].',
 
-      'No hay material para el close-up: hay material para el plano general y el olvido, [nombre]. Joder. El ranking no miente.',
+      'No hay material para el close-up: hay material para el plano general y el olvido, [nombre]. El ranking no miente.',
 
       'Tu cuerpo pide un rediseño completo: no un retoque, un rediseño desde los cimientos. Patético.',
 
@@ -3218,7 +3218,7 @@ const LABELS = {
 
       'Tu look no genera debate: genera el encogimiento de hombros y el siguiente mensaje. Patético.',
 
-      'Cero de presencia de crack: ni un segundo de duda en quien te mira de frente en. El chat. Joder. El bot no regala décimas.',
+      'Cero de presencia de crack: ni un segundo de duda en quien te mira de frente en. El chat. El bot no regala décimas.',
 
       'Tu presencia es la del control del experimento: sin extremos de respeto que medir. Patético.',
 
@@ -3230,19 +3230,19 @@ const LABELS = {
 
       'No hay chispa en la forma de estar ni en la mirada ni en cómo ocupas el espacio del chat. Coño.',
 
-      'No hay magia, no hay duda, no hay segundo de interés: hay el no claro y seco, [nombre]. Joder. El chat ya lo archivó.',
+      'No hay magia, no hay duda, no hay segundo de interés: hay el no claro y seco, [nombre]. El chat ya lo archivó.',
 
       'No generas respeto ni rechazo nítido: generas el vacío, y el vacío es peor, [nombre]. Cabrón.',
 
       'No eres el primer plano: eres el fondo que el director no acerca nunca, [nombre]. Ridículo.',
 
-      'Tu look no genera capturas de pantalla ni comentarios de respeto en. El chat del grupo. Joder.',
+      'Tu look no genera capturas de pantalla ni comentarios de respeto en. El chat del grupo.',
 
       'No hay narrativa de respeto: hay un plano secuencia del vacío visual del chat, [nombre]. Coño. El bot no regala décimas.',
 
       'Tu presencia de crack es un trámite: se procesa y se archiva sin comentarios largos. Basura.',
 
-      'No hay close-up que merezca la pena: el material no da para el primer plano, [nombre]. Joder. Nivel sótano documentado.',
+      'No hay close-up que merezca la pena: el material no da para el primer plano, [nombre]. Nivel sótano documentado.',
 
       'Tu presencia de crack es un trámite: se procesa, se archiva y se olvida al instante. Mierda.',
 
@@ -3276,7 +3276,7 @@ const LABELS = {
 
       'El listón de lo brillante lo miras desde el sótano y no has subido, [nombre]. El veredicto, archivo sin apelación, gilipollas.',
 
-      'Crack con el mismo gag de siempre y cero variación. El veredicto ridículo, joder, sin maquillaje posible.',
+      'Crack con el mismo gag de siempre y cero variación. El veredicto ridículo, sin maquillaje posible.',
 
       'Se te oye el eco del fail hasta en los mensajes de plan B, [nombre]. El veredicto No hay segunda lectura útil, con el grupo de testigo, asco.',
 
@@ -3286,7 +3286,7 @@ const LABELS = {
 
       'Crack cutre: ni el fallo tiene gracia ni la racha tiene misterio, [nombre]. El veredicto El ranking firma y listo, hostia puta qué nivel.',
 
-      'Has convertido el almost de crack en marca personal del low, [nombre]. El veredicto Se ve desde el primer mensaje, joder.',
+      'Has convertido el almost de crack en marca personal del low, [nombre]. El veredicto Se ve desde el primer mensaje.',
 
       'Crack de las que el mute ajeno lee como respeto y es desinterés, [nombre]. El veredicto.',
 
@@ -3436,7 +3436,7 @@ const LABELS = {
 
       'Crack de almost eterno con firma legible en cada derrota del chat, [nombre]. El veredicto, hostia puta qué nivel.',
 
-      'No es un mal día: es el nivel y el low te lo cobra sin descuento, [nombre]. El veredicto El tramo te nombra sin permiso, joder.',
+      'No es un mal día: es el nivel y el low te lo cobra sin descuento, [nombre]. El veredicto El tramo te nombra sin permiso.',
 
       'Crack de las que necesitan suerte y aun así el resultado es mierda, [nombre]. El veredicto, mierda. Y.',
 
@@ -3466,7 +3466,7 @@ const LABELS = {
 
       'Tu almost es el gag del tramo. Y el grupo no pide repetición, [nombre]. El veredicto, nivel sótano puro, fracasado.',
 
-      'Crack de almost documentado en alta definición del chat, [nombre]. El veredicto Eso no se maquilla con ángulo, sin filtro ni consuelo, joder.',
+      'Crack de almost documentado en alta definición del chat, [nombre]. El veredicto Eso no se maquilla con ángulo, sin filtro ni consuelo.',
 
       'Se te ve el fail desde el otro lado del puto ranking, [nombre]. El veredicto El tramo te nombra sin permiso, diagnóstico cerrado.',
 
@@ -3486,7 +3486,7 @@ const LABELS = {
 
       'No es mala racha: eres tú y el low lo dice claro, [nombre]. El veredicto El tramo te nombra sin permiso, hostia puta qué nivel, qué miseria.',
 
-      'Crack de almost eterno: el comando no convierte el casi en victoria, [nombre]. El veredicto, joder. Y, da grima.',
+      'Crack de almost eterno: el comando no convierte el casi en victoria, [nombre]. El veredicto. Y, da grima.',
 
       'Se te cae el personaje de crack en el primer resultado del hilo, [nombre]. El veredicto El material habla solo, qué nivel de pena.',
 
@@ -3778,7 +3778,7 @@ const LABELS = {
 
       'La delicadeza te dura lo que dura la primera impresión: luego el trámite. Fracasado. Se nota y no hay vuelta atrás, fracasado.',
 
-      'Estás a un paso de la presencia y a un paso de la ausencia: no das ninguno fijo. Joder. Se nota y no hay vuelta atrás, joder.',
+      'Estás a un paso de la presencia y a un paso de la ausencia: no das ninguno fijo. Se nota y no hay vuelta atrás.',
 
       'La feminidad te da citas sueltas y no relación: soltería crónica del concepto. Basura. Se nota y no hay vuelta atrás, basura.',
 
@@ -3786,7 +3786,7 @@ const LABELS = {
 
       'El grupo te toma en modo espera activa: a ver qué versión carga, [nombre]. Ridículo. Se nota y no hay vuelta atrás, ridículo.',
 
-      'Hay momentos en que el aire cambia y momentos en que no pasa nada: ratio pobre. Joder. Se nota y no hay vuelta atrás, joder.',
+      'Hay momentos en que el aire cambia y momentos en que no pasa nada: ratio pobre. Se nota y no hay vuelta atrás.',
 
       'Tu gracia es un invitado que no confirma asistencia: a veces viene, [nombre]. Mierda. Se nota y no hay vuelta atrás, mierda.',
 
@@ -3806,13 +3806,13 @@ const LABELS = {
 
       'Hay días de sí y días de no: el promedio es un quizás, [nombre]. Desperdicio Se nota y no hay vuelta atrás, desperdicio.',
 
-      'Tu feminidad es un borrador con demasiadas tachaduras: se lee con esfuerzo. Joder. Se nota y no hay vuelta atrás, joder.',
+      'Tu feminidad es un borrador con demasiadas tachaduras: se lee con esfuerzo. Se nota y no hay vuelta atrás.',
 
       'Feminidad de menú degustación sin plato fuerte: bocados y poco más, [nombre]. Coño. Se nota y no hay vuelta atrás, coño.',
 
       'Ni te hundes ni flotas con estilo: flotas a media agua sin dirección. Ridículo. Se nota y no hay vuelta atrás, ridículo.',
 
-      'Estás en el medio con picos cortos: los picos no mueven la media, [nombre]. Joder. Se nota y no hay vuelta atrás, joder.',
+      'Estás en el medio con picos cortos: los picos no mueven la media, [nombre]. Se nota y no hay vuelta atrás.',
 
       'La gracia te visita en horario de oficina y se va al cerrar: sin extras. Basura. Se nota y no hay vuelta atrás, basura.',
 
@@ -3840,7 +3840,7 @@ const LABELS = {
 
       'El grupo te lee en modo espera: a ver qué versión toca hoy, [nombre]. Cutre Se nota y no hay vuelta atrás, cutre.',
 
-      'Feminidad de ensayo general: nunca estreno, siempre prueba, [nombre]. Joder. Se nota y no hay vuelta atrás, joder.',
+      'Feminidad de ensayo general: nunca estreno, siempre prueba, [nombre]. Se nota y no hay vuelta atrás.',
 
       'Un día el aire y al siguiente nada: el ranking promedia y te deja aquí. Coño. Se nota y no hay vuelta atrás, coño.',
 
@@ -3866,13 +3866,13 @@ const LABELS = {
 
       'Estás a medias entre la presencia y la ausencia de lo femenino. Cabrón. Se nota y no hay vuelta atrás, qué vergüenza ajena.',
 
-      'El matiz no tiene horario en tu calendario: es espontáneo y raro. Joder. Se nota y no hay vuelta atrás, da vergüenza.',
+      'El matiz no tiene horario en tu calendario: es espontáneo y raro. Se nota y no hay vuelta atrás, da vergüenza.',
 
       'Ni desastre ni acierto sostenido: oscilación de baja amplitud. Mierda. Se nota y no hay vuelta atrás, qué flojo.',
 
       'Feminidad de ensayo indefinido: el estreno no tiene fecha. Pringado. Se nota y no hay vuelta atrás, pringado, menudo desastre.',
 
-      'El matiz parpadea como un neón a punto de fundirse: luz dudosa. Joder. Se nota y no hay vuelta atrás, qué pena.',
+      'El matiz parpadea como un neón a punto de fundirse: luz dudosa. Se nota y no hay vuelta atrás, qué pena.',
 
       'Ni altar ni sótano: escalera de servicio, [nombre]. Desperdicio Se nota y no hay vuelta atrás, desperdicio, patético.',
 
@@ -3922,7 +3922,7 @@ const LABELS = {
 
       'Ni llegas con gloria ni te caes antes: terminas. Pringado. Se nota y no hay vuelta atrás, pringado.delante de todo el hilo sin posibilidad de borrado, da asco.',
 
-      'Va y viene según el día: ni tú sabes cuál toca hoy y la media te salva por poco, [nombre]. Joder con. El ranking como único testigo del veredicto, qué vergüenza.',
+      'Va y viene según el día: ni tú sabes cuál toca hoy y la media te salva por poco, [nombre]. con. El ranking como único testigo del veredicto, qué vergüenza.',
 
       'A veces el silencio te queda bien y a veces es solo vacío: la diferencia se nota poco. Fracasado. Y el contador lo dejó por escrito sin debate.',
 
@@ -3932,7 +3932,7 @@ const LABELS = {
     low: [
       'Te mueves como si el espacio te debiera algo, [nombre]. Gilipollas. La evidencia está en cada gesto con números que no admiten recurso de apelación.',
 
-      'Feminidad no es volumen de voz bajo, [nombre]. Gilipollas. El grupo ya tomó nota hace tiempo delante de quien miraba. El ranking en ese momento.',
+      'Feminidad no es volumen de voz bajo, [nombre]. Gilipollas. El ranking en ese momento.',
 
       'Idea de delicadeza es no gritar, [nombre]. Gilipollas. Y no es un día malo: es el promedio con. El ranking como único testigo del veredicto.',
 
@@ -3964,15 +3964,15 @@ const LABELS = {
 
       'Tu elegancia tiene exactamente la misma documentación verificable que un unicornio: ninguna. Pura fantasía de cuento. En el mundo real, eres ordinariez con patas, basura.',
 
-      'Elegancia que no se ha cruzado jamás contigo, [nombre]. Mierda. El grupo ya tomó nota hace tiempo con el sistema firmando debajo sin pedir aclaración.',
+      'Elegancia que no se ha cruzado jamás contigo, [nombre]. Mierda.',
 
-      'Intento de delicada que se nota el esfuerzo, [nombre]. Joder. Y no es un día malo: es el promedio sin que nadie pudiera fingir que no lo vio.',
+      'Intento de delicada que se nota el esfuerzo, [nombre]. Y no es un día malo: es el promedio sin que nadie pudiera fingir que no lo vio.',
 
       'Cero gracia cero matiz cero suavidad, [nombre]. Cabrón. No hay debate posible con este resultado mientras el grupo tomaba nota del resultado.',
 
-      'Ocupación militar del teclado no presencia, [nombre]. Basura. El grupo ya tomó nota hace tiempo delante de quien miraba. El ranking en ese momento.',
+      'Ocupación militar del teclado no presencia, [nombre]. Basura. El ranking en ese momento.',
 
-      'Finura es no insultar en voz alta y ni eso, [nombre]. Cabrón. El grupo ya tomó nota hace tiempo y el contador lo dejó por escrito sin debate.',
+      'Finura es no insultar en voz alta y ni eso, [nombre]. Cabrón.',
 
       'Gesto suave con el esfuerzo en los hombros, [nombre]. Ridículo. Y no es un día malo: es el promedio con el parte del comando cerrado en firme.',
 
@@ -4002,7 +4002,7 @@ const LABELS = {
 
       'Cero suavidad en trato gesto y silencio, [nombre]. Mierda. No hay debate posible con este resultado con el parte del comando cerrado en firme.',
 
-      'Dos líneas paralelas que no se cruzan, [nombre]. Patético. El grupo ya tomó nota hace tiempo con números que no admiten recurso de apelación.',
+      'Dos líneas paralelas que no se cruzan, [nombre]. Patético.',
 
       'Luz de neón barato cero matiz, [nombre]. Patético. Se nota a la legua y no hay filtro que lo tape con. El ranking como único testigo del veredicto.',
 
@@ -4014,9 +4014,9 @@ const LABELS = {
 
       'Cero suavidad más allá de no gritar, [nombre]. Patético. No hay debate posible con este resultado con. El ranking como único testigo del veredicto.',
 
-      'Tensión y disfraz no comodidad, [nombre]. Joder. Se nota a la legua y no hay filtro que lo tape mientras el grupo tomaba nota del resultado.',
+      'Tensión y disfraz no comodidad, [nombre]. Se nota a la legua y no hay filtro que lo tape mientras el grupo tomaba nota del resultado.',
 
-      'El intento delata más que el abandono, [nombre]. Joder. Y no es un día malo: es el promedio con. El ranking como único testigo del veredicto.',
+      'El intento delata más que el abandono, [nombre]. Y no es un día malo: es el promedio con. El ranking como único testigo del veredicto.',
 
       'Superficie dura y sin barniz, [nombre]. Cabrón. Se nota a la legua y no hay filtro que lo tape y el historial del comando queda de testigo.',
 
@@ -4024,9 +4024,9 @@ const LABELS = {
 
       'Golpes secos y cero cadencia, [nombre]. Basura. Se nota a la legua y no hay filtro que lo tape y sin segunda oportunidad en este mensaje.',
 
-      'Proyecto de feminidad abandonado a medias, [nombre]. Basura. El grupo ya tomó nota hace tiempo y sin segunda oportunidad en este mensaje.',
+      'Proyecto de feminidad abandonado a medias, [nombre]. Basura.',
 
-      'Feminidad no es filtro que te puedas poner, [nombre]. Coño. El grupo ya tomó nota hace tiempo y sin segunda oportunidad en este mensaje.',
+      'Feminidad no es filtro que te puedas poner, [nombre]. Coño.',
 
       'La feminidad te mira y sigue de largo, [nombre]. Patético. La evidencia está en cada gesto sin que nadie pudiera fingir que no lo vio.',
 
@@ -4046,7 +4046,7 @@ const LABELS = {
 
       'El listón de lo femenino lo miras desde abajo y no has subido, [nombre]. El tramo te nombra sin permiso, el chat ya lo sabía, cabrón.',
 
-      'Feminidad con el bucle eterno del mismo error en bucle, jodere, joder.',
+      'Feminidad con el bucle eterno del mismo error en buclee.',
 
       'Se te oye el eco del fail hasta en los neutros del chat, [nombre]. El material habla solo, sin filtro ni consuelo, patético.',
 
@@ -4068,7 +4068,7 @@ const LABELS = {
 
       'Feminidad de cartel de aviso: se lee de lejos y nadie quiere el producto, [nombre]. Aquí, hostia puta qué nivel.',
 
-      'No hay misterio interesante: hay previsible y flojo, el combo del low, [nombre]. El ranking firma y listo, joder.',
+      'No hay misterio interesante: hay previsible y flojo, el combo del low, [nombre]. El ranking firma y listo.',
 
       'Tienes el historial de un local cerrado por falta de clientela de respeto, [nombre]. Se ve desde el primer mensaje, mierda.',
 
@@ -4098,7 +4098,7 @@ const LABELS = {
 
       'Has convertido la falta de chispa en identidad y no hay detergente, [nombre]. El material habla solo, nivel sótano puro, fracasado.',
 
-      'Feminidad cutre y sin complejo: el complejo pediría espejo y no lo hay, [nombre]. Aquí, sin filtro ni consuelo, joder.',
+      'Feminidad cutre y sin complejo: el complejo pediría espejo y no lo hay, [nombre]. Aquí, sin filtro ni consuelo.',
 
       'Se te oye el masticar del listón bajo hasta en los neutros, [nombre]. El ranking firma y listo, diagnóstico cerrado, mierda.',
 
@@ -4118,7 +4118,7 @@ const LABELS = {
 
       'Feminidad de estribillo sin punto final limpio ni redención, [nombre]. El ranking firma y listo, hostia puta qué nivel.',
 
-      'Se te nota el peso de arrastrar el mismo almost por cada hilo, [nombre]. Se ve desde el primer mensaje, joder.',
+      'Se te nota el peso de arrastrar el mismo almost por cada hilo, [nombre]. Se ve desde el primer mensaje.',
 
       'La compostura cruza de acera cuando te ve en el low del comando, [nombre].',
 
@@ -4198,7 +4198,7 @@ const LABELS = {
 
       'Feminidad de puta pena: el comando no regala presencia y tú lo sabes, [nombre]. El ranking firma y listo, nivel sótano puro.',
 
-      'Tu almost baja el promedio del hilo solo con cargarse, [nombre]. Se ve desde el primer mensaje, sin filtro ni consuelo, joder.',
+      'Tu almost baja el promedio del hilo solo con cargarse, [nombre]. Se ve desde el primer mensaje, sin filtro ni consuelo.',
 
       'Feminidad de las que el modo mujer tampoco es cómplice del fail, [nombre]., diagnóstico cerrado, mierda.',
 
@@ -4218,7 +4218,7 @@ const LABELS = {
 
       'Has firmado el fail con cada almost como única firma del low, [nombre]., hostia puta qué nivel.',
 
-      'Feminidad de superficie: basta la vista, no hace falta el sótano, [nombre]. Eso no se maquilla con ángulo, joder.',
+      'Feminidad de superficie: basta la vista, no hace falta el sótano, [nombre]. Eso no se maquilla con ángulo.',
 
       'El low no es caridad: es veredicto y te nombra sin anestesia, [nombre]. El tramo te nombra sin permiso, mierda.',
 
@@ -4461,7 +4461,7 @@ const LABELS = {
 
     ],
     mid: [
-      'Ni alfa ni beta de manual: estás en el medio de la masculinidad, ni se nota de más ni falta del todo, [nombre]. Joder.',
+      'Ni alfa ni beta de manual: estás en el medio de la masculinidad, ni se nota de más ni falta del todo, [nombre].',
 
       'Masculinidad a medias: a ratos se sostiene y a ratos se ve el esfuerzo, el promedio es este. Mierda.',
 
@@ -4489,7 +4489,7 @@ const LABELS = {
 
       'La presencia a ratos cuadra y a ratos se ve el andamio: más andamio que obra a veces. Fracasado con. El ranking como único testigo del veredicto.',
 
-      'Tu alfa a tiempo parcial no convence del todo ni se cae del todo. Joder. Se nota y no hay vuelta atrás, joder.',
+      'Tu alfa a tiempo parcial no convence del todo ni se cae del todo. Se nota y no hay vuelta atrás.',
 
       'El pecho a veces es espalda y a veces es aire: el grupo ya no apuesta, [nombre]. Mierda. Se nota y no hay vuelta atrás, mierda.',
 
@@ -4517,7 +4517,7 @@ const LABELS = {
 
       'Hay días de sí y días de no: el promedio es un quizás, [nombre]. Fracasado. Se nota y no hay vuelta atrás, fracasado.',
 
-      'El flash de alfa ya no ilusiona: se conoce el apagón. Joder. Se nota y no hay vuelta atrás, joder. sin que nadie pudiera fingir que no lo vio.',
+      'El flash de alfa ya no ilusiona: se conoce el apagón. Se nota y no hay vuelta atrás. sin que nadie pudiera fingir que no lo vio.',
 
       'No hay firma estable: hay intentos. Y se notan. Mierda. Se nota y no hay vuelta atrás, mierda. con el parte del comando cerrado en firme.',
 
@@ -4543,7 +4543,7 @@ const LABELS = {
 
       'Masculinidad con luz piloto: se ve que hay algo no se sabe cuánto. Fracasado. Se nota y no hay vuelta atrás, fracasado.',
 
-      'Ciclos de pecho fuera y de pecho dentro: tu marca, [nombre]. Joder. Se nota y no hay vuelta atrás, joder.',
+      'Ciclos de pecho fuera y de pecho dentro: tu marca, [nombre]. Se nota y no hay vuelta atrás.',
 
       'A veces sin buscarlo se sostiene cuando lo fuerzas se cae. Coño. Se nota y no hay vuelta atrás, coño.',
 
@@ -4599,7 +4599,7 @@ const LABELS = {
 
       'Ni altar ni sótano: escalera de servicio, [nombre]. Fracasado. Se nota y no hay vuelta atrás, fracasado.',
 
-      'Resumen sin adjetivos fuertes de masculinidad. Joder. Se nota y no hay vuelta atrás, joder. Y el historial del comando queda de testigo, qué vergüenza.',
+      'Resumen sin adjetivos fuertes de masculinidad. Se nota y no hay vuelta atrás. Y el historial del comando queda de testigo, qué vergüenza.',
 
       'El centro del espectro es poco comercial y es tuyo. Gilipollas. Se nota y no hay vuelta atrás, ridículo.',
 
@@ -4611,7 +4611,7 @@ const LABELS = {
 
       'Lo más predecible del ranking de macho. Fracasado. Se nota y no hay vuelta atrás, fracasado. Y el contador lo dejó por escrito sin debate, qué nivel de pena.',
 
-      'El medio por media de presencia: por número, [nombre]. Joder. Se nota y no hay vuelta atrás, joder en el momento más visible del chat, basura.',
+      'El medio por media de presencia: por número, [nombre]. Se nota y no hay vuelta atrás en el momento más visible del chat, basura.',
 
       'Ni silencio de gesta ni de vergüenza, [nombre]. Cabrón. Se nota y no hay vuelta atrás, cabrón. sin que nadie pudiera fingir que no lo vio, qué cutre.',
 
@@ -4645,7 +4645,7 @@ const LABELS = {
 
       'Sin noviazgo con el concepto, [nombre]. Desperdicio Se nota y no hay vuelta atrás, desperdicio.mientras el grupo tomaba nota del resultado, fracasado.',
 
-      'Al revés: a veces sin buscar se sostiene, [nombre]. Joder. Se nota y no hay vuelta atrás, joder. con números que no admiten recurso de apelación, qué miseria.',
+      'Al revés: a veces sin buscar se sostiene, [nombre]. Se nota y no hay vuelta atrás. con números que no admiten recurso de apelación, qué miseria.',
 
       'Sin horario en el calendario del macho, [nombre]. Cabrón. Se nota y no hay vuelta atrás, cabrón. Y el historial del comando queda de testigo, da grima.',
 
@@ -4657,103 +4657,103 @@ const LABELS = {
     low: [
       'El ridículo. Te cobra intereses. Cabrón. El chat ya lo archivó. Se nota en cada mensaje. Y el contador lo dejó por escrito sin debate.',
 
-      'Apagado sin volumen. Gilipollas. Se nota en cada mensaje, joder. sin que nadie pudiera fingir que no lo vio.',
+      'Apagado sin volumen. Gilipollas. Se nota en cada mensaje. sin que nadie pudiera fingir que no lo vio.',
 
-      'Callado no pesas. Gilipollas. Se nota en cada mensaje, joder. con el parte del comando cerrado en firme.',
+      'Callado no pesas. Gilipollas. Se nota en cada mensaje. con el parte del comando cerrado en firme.',
 
-      'Alfa que se destiñe. Gilipollas. Se nota en cada mensaje, joder en el momento más visible del chat.',
+      'Alfa que se destiñe. Gilipollas. Se nota en cada mensaje en el momento más visible del chat.',
 
-      'Todo gritado y nada que pese en silencio. Gilipollas. El bot no regala décimas. Se nota en cada mensaje, joder.',
+      'Todo gritado y nada que pese en silencio. Gilipollas. El bot no regala décimas. Se nota en cada mensaje.',
 
-      'El cartel de espalda no aguanta viento. Gilipollas. Se nota en cada mensaje, joder.',
+      'El cartel de espalda no aguanta viento. Gilipollas. Se nota en cada mensaje.',
 
-      'Intereses del ridículo por las nubes, [nombre]. Cabrón. Nivel sótano documentado. Se nota en cada mensaje, joder.',
+      'Intereses del ridículo por las nubes, [nombre]. Cabrón. Nivel sótano documentado. Se nota en cada mensaje.',
 
-      'Color que se va en el primer lavado. Gilipollas. Se nota en cada mensaje, joder.',
+      'Color que se va en el primer lavado. Gilipollas. Se nota en cada mensaje.',
 
-      'El viento gana al cartel, [nombre]. Gilipollas. El ranking no miente. Se nota en cada mensaje, joder.',
+      'El viento gana al cartel, [nombre]. Gilipollas. El ranking no miente. Se nota en cada mensaje.',
 
-      'Trastienda sin mercancía, [nombre]. Gilipollas. Se nota en cada mensaje, joder.',
+      'Trastienda sin mercancía, [nombre]. Gilipollas. Se nota en cada mensaje.',
 
-      'Apagado el volumen y desapareces. Gilipollas. El chat ya lo archivó. Se nota en cada mensaje, joder.',
+      'Apagado el volumen y desapareces. Gilipollas. El chat ya lo archivó. Se nota en cada mensaje.',
 
-      'Se va el color solo, [nombre]. Gilipollas. Se nota en cada mensaje, joder.',
+      'Se va el color solo, [nombre]. Gilipollas. Se nota en cada mensaje.',
 
-      'El viento se lleva el cartel. Gilipollas. Se nota en cada mensaje, joder.',
+      'El viento se lleva el cartel. Gilipollas. Se nota en cada mensaje.',
 
-      'Escaparate sin trastienda. Gilipollas. Se nota en cada mensaje, joder. El ranking no miente, joder.',
+      'Escaparate sin trastienda. Gilipollas. Se nota en cada mensaje. El ranking no miente.',
 
       'La dureza prestada genera deuda de ridículo. Y estás endeudado. Cabrón. El bot no regala décimas. Y sin segunda oportunidad en este mensaje.',
 
-      'Cristal con marketing de acero. Cabrón. Se nota en cada mensaje, joder mientras el grupo tomaba nota del resultado.',
+      'Cristal con marketing de acero. Cabrón. Se nota en cada mensaje mientras el grupo tomaba nota del resultado.',
 
-      'Bar barato hecho personaje. Ridículo. Nivel sótano documentado. Se nota en cada mensaje, joder. con números que no admiten recurso de apelación.',
+      'Bar barato hecho personaje. Ridículo. Nivel sótano documentado. Se nota en cada mensaje. con números que no admiten recurso de apelación.',
 
-      'Campeón de presumir vacío. Patético. Se nota en cada mensaje, joder. Y el historial del comando queda de testigo.',
+      'Campeón de presumir vacío. Patético. Se nota en cada mensaje. Y el historial del comando queda de testigo.',
 
-      'Alfa de auto-nombramiento. Patético. El ranking no miente. Se nota en cada mensaje, joder delante de quien miraba. El ranking en ese momento.',
+      'Alfa de auto-nombramiento. Patético. El ranking no miente. Se nota en cada mensaje delante de quien miraba. El ranking en ese momento.',
 
-      'Caducado sin renovación. Fracasado. Se nota en cada mensaje, joder. con el sistema firmando debajo sin pedir aclaración.',
+      'Caducado sin renovación. Fracasado. Se nota en cada mensaje. con el sistema firmando debajo sin pedir aclaración.',
 
-      'Alfa de mentira, [nombre]. Patético. El chat ya lo archivó. Se nota en cada mensaje, joder con. El ranking como único testigo del veredicto.',
+      'Alfa de mentira, [nombre]. Patético. El chat ya lo archivó. Se nota en cada mensaje con. El ranking como único testigo del veredicto.',
 
       'Eres un anuncio de algo que no existe en el almacén. Gilipollas. Y el contador lo dejó por escrito sin debate.',
 
-      'Sin guion no hay macho, [nombre]. Asco. Se nota en cada mensaje, joder. sin que nadie pudiera fingir que no lo vio.',
+      'Sin guion no hay macho, [nombre]. Asco. Se nota en cada mensaje. sin que nadie pudiera fingir que no lo vio.',
 
-      'Cero presencia sin megáfono. Basura. Se nota en cada mensaje, joder mientras el grupo tomaba nota del resultado.',
+      'Cero presencia sin megáfono. Basura. Se nota en cada mensaje mientras el grupo tomaba nota del resultado.',
 
-      'Se apaga el filtro y quedas. Mierda. El bot no regala décimas. Se nota en cada mensaje, joder. con números que no admiten recurso de apelación.',
+      'Se apaga el filtro y quedas. Mierda. El bot no regala décimas. Se nota en cada mensaje. con números que no admiten recurso de apelación.',
 
-      'Sin altavoz no quedaba nada. Basura. Se nota en cada mensaje, joder. Y el historial del comando queda de testigo.',
+      'Sin altavoz no quedaba nada. Basura. Se nota en cada mensaje. Y el historial del comando queda de testigo.',
 
-      'Vendiendo humo de macho. Ridículo. Nivel sótano documentado. Se nota en cada mensaje, joder delante de quien miraba. El ranking en ese momento.',
+      'Vendiendo humo de macho. Ridículo. Nivel sótano documentado. Se nota en cada mensaje delante de quien miraba. El ranking en ese momento.',
 
-      'Se te ve el no tener. Fracasado. Se nota en cada mensaje, joder. con el sistema firmando debajo sin pedir aclaración.',
+      'Se te ve el no tener. Fracasado. Se nota en cada mensaje. con el sistema firmando debajo sin pedir aclaración.',
 
       'Cero peso en lo callado: todo gritado, [nombre]. Gilipollas. El ranking no miente. Con números que no admiten recurso de apelación.',
 
-      'Se te sale lo que no hay. Basura. Se nota en cada mensaje, joder. con el sistema firmando debajo sin pedir aclaración.',
+      'Se te sale lo que no hay. Basura. Se nota en cada mensaje. con el sistema firmando debajo sin pedir aclaración.',
 
-      'Boca dura hechos blandos. Mierda. El chat ya lo archivó. Se nota en cada mensaje, joder con. El ranking como único testigo del veredicto.',
+      'Boca dura hechos blandos. Mierda. El chat ya lo archivó. Se nota en cada mensaje con. El ranking como único testigo del veredicto.',
 
-      'El no se te lee entero. Fracasado. Se nota en cada mensaje, joder. con el parte del comando cerrado en firme.',
+      'El no se te lee entero. Fracasado. Se nota en cada mensaje. con el parte del comando cerrado en firme.',
 
       'Se te lee el no tener. Ridículo. Se nota en cada mensaje. Y el contador lo dejó por escrito sin debate.',
 
       'Sin el volumen eres un silencio incómodo, [nombre]. Gilipollas. Y sin segunda oportunidad en este mensaje.',
 
-      'Alfa sin organigrama. Patético. El bot no regala décimas. Se nota en cada mensaje, joder. Y el historial del comando queda de testigo.',
+      'Alfa sin organigrama. Patético. El bot no regala décimas. Se nota en cada mensaje. Y el historial del comando queda de testigo.',
 
-      'Quiebra de credibilidad total. Coño. Se nota en cada mensaje, joder. con el parte del comando cerrado en firme.',
+      'Quiebra de credibilidad total. Coño. Se nota en cada mensaje. con el parte del comando cerrado en firme.',
 
-      'Etiqueta a la vista. Pringado. Nivel sótano documentado. Se nota en cada mensaje, joder mientras el grupo tomaba nota del resultado.',
+      'Etiqueta a la vista. Pringado. Nivel sótano documentado. Se nota en cada mensaje mientras el grupo tomaba nota del resultado.',
 
-      'La dureza prestada se devuelve con intereses de ridículo. Joder. Sin que nadie pudiera fingir que no lo vio.',
+      'La dureza prestada se devuelve con intereses de ridículo. Sin que nadie pudiera fingir que no lo vio.',
 
-      'Decorado caído a la primera. Coño. El ranking no miente. Se nota en cada mensaje, joder. con el parte del comando cerrado en firme.',
+      'Decorado caído a la primera. Coño. El ranking no miente. Se nota en cada mensaje. con el parte del comando cerrado en firme.',
 
-      'La función no convence. Fracasado. Se nota en cada mensaje, joder en el momento más visible del chat.',
+      'La función no convence. Fracasado. Se nota en cada mensaje en el momento más visible del chat.',
 
-      'Mala función de macho. Ridículo. El chat ya lo archivó. Se nota en cada mensaje, joder en el momento más visible del chat.',
+      'Mala función de macho. Ridículo. El chat ya lo archivó. Se nota en cada mensaje en el momento más visible del chat.',
 
       'Hablas como un manual de macho de los noventa y se te ve el cartón a kilómetros. Gilipollas en el momento más visible del chat.',
 
       'Hablas de respeto y no te lo tienes a ti mismo: el espejo lo sabe, [nombre]. Gilipollas.',
 
-      'Masculinidad en números rojos de credibilidad, [nombre]. Coño. Se nota en cada mensaje, joder.',
+      'Masculinidad en números rojos de credibilidad, [nombre]. Coño. Se nota en cada mensaje.',
 
-      'El disfraz sudado no engaña a quien ha visto otros. Mierda. El bot no regala décimas. Se nota en cada mensaje, joder.',
+      'El disfraz sudado no engaña a quien ha visto otros. Mierda. El bot no regala décimas. Se nota en cada mensaje.',
 
-      'Deporte rey: presumir de lo ausente, [nombre]. Pringado. Se nota en cada mensaje, joder.',
+      'Deporte rey: presumir de lo ausente, [nombre]. Pringado. Se nota en cada mensaje.',
 
-      'Disfraz con precio todavía colgando, [nombre]. Patético. Nivel sótano documentado. Se nota en cada mensaje, joder.',
+      'Disfraz con precio todavía colgando, [nombre]. Patético. Nivel sótano documentado. Se nota en cada mensaje.',
 
-      'Acero de anuncio y cristal de realidad, [nombre]. Cabrón. Se nota en cada mensaje, joder.',
+      'Acero de anuncio y cristal de realidad, [nombre]. Cabrón. Se nota en cada mensaje.',
 
-      'Especialista en vacío con eslogan, [nombre]. Patético. El ranking no miente. Se nota en cada mensaje, joder.',
+      'Especialista en vacío con eslogan, [nombre]. Patético. El ranking no miente. Se nota en cada mensaje.',
 
-      'Pecho fuera y rodilla temblando: foto completa. Basura. Se nota en cada mensaje, joder.',
+      'Pecho fuera y rodilla temblando: foto completa. Basura. Se nota en cada mensaje.',
 
       'Masculinidad de las que el low te deja en el sótano del ranking sin debate, [nombre]. Se ve desde el primer mensaje, sin anestesia, coño.',
 
@@ -4771,7 +4771,7 @@ const LABELS = {
 
       'El listón de lo masculino lo miras desde abajo y no has subido, [nombre]. El ranking firma y listo, archivo sin apelación, fracasado.',
 
-      'Masculinidad con el mismo gag de siempre y cero variación, joder, el ranking no miente El ranking no miente, joder.',
+      'Masculinidad con el mismo gag de siempre y cero variación, el ranking no miente El ranking no miente.',
 
       'Se te oye el eco del fail hasta en los neutros del chat, [nombre]., con el grupo de testigo, mierda.',
 
@@ -4781,7 +4781,7 @@ const LABELS = {
 
       'Masculinidad cutre: ni el caos tiene estilo ni el desastre tiene misterio, [nombre]. No hay segunda lectura útil, hostia puta qué nivel.',
 
-      'Has hecho del bajo listón de hombre tu residencia en el low, [nombre]. El material habla solo, joder.',
+      'Has hecho del bajo listón de hombre tu residencia en el low, [nombre]. El material habla solo.',
 
       'Masculinidad de las que el mute ajeno lee como misterio y es solo desinterés, [nombre]. Aquí.',
 
@@ -4811,7 +4811,7 @@ const LABELS = {
 
       'La compostura de lo masculino no te reconoce y tú no has buscado el espejo, [nombre]. El tramo te nombra sin permiso, nivel sótano puro, fracasado.',
 
-      'Masculinidad de fondo permanente: el low no es un mal día, es el nivel, [nombre]. No hay segunda lectura útil, sin filtro ni consuelo, joder.',
+      'Masculinidad de fondo permanente: el low no es un mal día, es el nivel, [nombre]. No hay segunda lectura útil, sin filtro ni consuelo.',
 
       'No es mala suerte de pose: es patrón y el low te lo cobra, [nombre]. El material habla solo, diagnóstico cerrado, mierda.',
 
@@ -4881,7 +4881,7 @@ const LABELS = {
 
       'Se te ve el fail desde el primer mensaje del comando, [nombre]. Aquí, hostia puta qué nivel.',
 
-      'Masculinidad de repertorio: siempre la misma pose de almost y cero plan B, [nombre]. El ranking firma y listo, joder.',
+      'Masculinidad de repertorio: siempre la misma pose de almost y cero plan B, [nombre]. El ranking firma y listo.',
 
       'El asco del low resume el tramo y el resto desarrolla el diagnóstico, [nombre]. Se ve desde el primer mensaje, mierda.',
 
@@ -4911,7 +4911,7 @@ const LABELS = {
 
       'Masculinidad de ranking: el tramo bajo te queda como un guante de derrota, [nombre]. El material habla solo, nivel sótano puro, fracasado.',
 
-      'Has convertido el almost de hombre en residencia fiscal del low, [nombre]. Aquí, sin filtro ni consuelo, joder.',
+      'Has convertido el almost de hombre en residencia fiscal del low, [nombre]. Aquí, sin filtro ni consuelo.',
 
       'Masculinidad de las que. El chat archiva el fail sin pedir amplificación, [nombre]. El ranking firma y listo, diagnóstico cerrado, mierda.',
 
@@ -4931,7 +4931,7 @@ const LABELS = {
 
       'Masculinidad de almost eterno con firma legible en cada pose del chat, [nombre]. El ranking firma y listo, hostia puta qué nivel.',
 
-      'No es un mal día: es el nivel y el low te lo cobra sin descuento, [nombre]. Se ve desde el primer mensaje, joder.',
+      'No es un mal día: es el nivel y el low te lo cobra sin descuento, [nombre]. Se ve desde el primer mensaje.',
 
       'Masculinidad de las que necesitan suerte y aun así el resultado es mierda, [nombre].',
 
@@ -5011,7 +5011,7 @@ const LABELS = {
 
       'Se te ve venir el fail en la primera palabra del estado, [nombre]. El ranking firma y listo, nivel sótano puro, fracasado.',
 
-      'Masculinidad de ranking roto: el sótano del tramo te queda de casa, [nombre]. Se ve desde el primer mensaje, sin filtro ni consuelo, joder.',
+      'Masculinidad de ranking roto: el sótano del tramo te queda de casa, [nombre]. Se ve desde el primer mensaje, sin filtro ni consuelo.',
 
       'El comando no discute contigo: el low firma y punto, [nombre]., diagnóstico cerrado, mierda.',
 
@@ -5086,7 +5086,7 @@ const LABELS = {
     name: 'gay',
     goodIsHigh: false,
     high: [
-      'Maricón de historial público: no hace falta escarbar, está en la superficie, [nombre]. Se te ve a la legua, joder.',
+      'Maricón de historial público: no hace falta escarbar, está en la superficie, [nombre]. Se te ve a la legua.',
 
       'Maricón de inercia: el grupo te soporta por costumbre, no por respeto real, [nombre].',
 
@@ -5096,7 +5096,7 @@ const LABELS = {
 
       'Maricón convertido en wallpaper del fail colectivo. asco La boca niega y el cuerpo firma, gilipollas.',
 
-      'Maricón de los que miran culos de tíos con devoción de misa y luego niegan la religión, [nombre]. Joder.',
+      'Maricón de los que miran culos de tíos con devoción de misa y luego niegan la religión, [nombre].',
 
       'Maricón de estribillo que mancha más con cada repetición del mismo plato, [nombre].',
 
@@ -5106,7 +5106,7 @@ const LABELS = {
 
       'Maricón de las que confunden natural con abandono total del estándar, [nombre]. La boca niega y el cuerpo firma, fracasado.',
 
-      'Maricón de superficie suficiente: no hace falta abrir el cubo, huele, [nombre]. Se te ve a la legua, joder.',
+      'Maricón de superficie suficiente: no hace falta abrir el cubo, huele, [nombre]. Se te ve a la legua.',
 
       'Maricón de estribillo que empeora con cada bis del mismo número, cutre.[nombre]. Sin anestesia, cabrón.',
 
@@ -5126,7 +5126,7 @@ const LABELS = {
 
       'Maricón de las que el mute ajeno lee como misterio y se equivoca de libro, [nombre]. Sin anestesia, mierda.',
 
-      'Maricón de cartel grasiento: se ve el anuncio y nadie quiere la función, [nombre]. Se te ve a la legua, joder.',
+      'Maricón de cartel grasiento: se ve el anuncio y nadie quiere la función, [nombre]. Se te ve a la legua.',
 
       '[nombre], maricón de inercia: el grupo te soporta por costumbre, no por respeto, cabrón.',
 
@@ -5146,7 +5146,7 @@ const LABELS = {
 
       'Se te nota el hábito de empujar cada tema hacia el mismo teatro barato, [nombre]. La boca niega y el cuerpo firma, fracasado.',
 
-      'Maricón constante: la única racha que mantienes es la del mismo número, [nombre]. Se te ve a la legua, joder.',
+      'Maricón constante: la única racha que mantienes es la del mismo número, [nombre]. Se te ve a la legua.',
 
       'Maricón de racha perfecta: lo único que no fallas es el mismo número, [nombre].',
 
@@ -5166,7 +5166,7 @@ const LABELS = {
 
       'Maricón de las que alardean del teatro porque callar las deja sin rol, [nombre]. La boca niega y el cuerpo firma, fracasado.',
 
-      'Maricón de error de lectura: confundes límites con permiso para seguir, [nombre]. Se te ve a la legua, joder.',
+      'Maricón de error de lectura: confundes límites con permiso para seguir, [nombre]. Se te ve a la legua.',
 
       'Has convertido el personajito en identidad y no hay detergente narrativo, [nombre].',
 
@@ -5186,7 +5186,7 @@ const LABELS = {
 
       'Tienes más episodios de pose que de algo que. El chat respete de verdad, [nombre]. La boca niega y el cuerpo firma, fracasado.',
 
-      'La compostura no te reconoce y tú no has buscado el espejo en serio, [nombre]. Se te ve a la legua, joder.',
+      'La compostura no te reconoce y tú no has buscado el espejo en serio, [nombre]. Se te ve a la legua.',
 
       'El promedio de este tramo es el tuyo: no un pico, el suelo del high, [nombre]. Sin anestesia, cabrón.',
 
@@ -5206,7 +5206,7 @@ const LABELS = {
 
       'No hay barniz que te salve: hay pose de base y el comando la cobra, [nombre]. La boca niega y el cuerpo firma, fracasado.',
 
-      'Maricón sin capa de carisma que disimule el agujero. Se te ve a la legua, joder, y el grupo no se traga el cuento, joder.',
+      'Maricón sin capa de carisma que disimule el agujero. Se te ve a la legua, y el grupo no se traga el cuento.',
 
       'Maricón de fondo permanente: el high no es un mal día, es el nivel, [nombre].',
 
@@ -5226,7 +5226,7 @@ const LABELS = {
 
       'Maricón con la disciplina de quien nunca ha cerrado el mismo número, [nombre]. La boca niega y el cuerpo firma, fracasado.',
 
-      'El ranking de dignidad te deja donde mereces: en el sótano del high, [nombre]. Se te ve a la legua, joder.',
+      'El ranking de dignidad te deja donde mereces: en el sótano del high, [nombre]. Se te ve a la legua.',
 
       'Maricón cutre: el estereotipo sin el carisma que a veces lo salva, [nombre].',
 
@@ -5246,7 +5246,7 @@ const LABELS = {
 
       'El grupo paga tu rastro en cuotas diarias de hastío documentado, [nombre]. La boca niega y el cuerpo firma, fracasado.',
 
-      'Se te ve venir la pose en la primera palabra del mensaje del chat, [nombre]. Se te ve a la legua, joder.',
+      'Se te ve venir la pose en la primera palabra del mensaje del chat, [nombre]. Se te ve a la legua.',
 
       'Has dejado el hilo como obra sin plano: escombro de pose y nada más, [nombre].',
 
@@ -5326,7 +5326,7 @@ const LABELS = {
 
       'Cuando un tío se quita la camiseta se te para el tiempo. Luego reanudas el guion como si nadie hubiera visto el corte, maricón, mierda.',
 
-      'Has hecho del afeminamiento un ranking personal y el oro es tuyo sin rival, [nombre]. Se te ve a la legua, joder. Hostia puta, joder. Hostia puta, mierda.',
+      'Has hecho del afeminamiento un ranking personal y el oro es tuyo sin rival, [nombre]. Se te ve a la legua. Hostia puta. Hostia puta, mierda.',
 
       'Tu culo y tu boca están en guerra civil. El culo quiere que lo partan y la boca sigue con el comunicado oficial, gilipollas.',
 
@@ -5422,7 +5422,7 @@ const LABELS = {
 
       'Tu versión hetero cabe en un mensaje de voz de ocho segundos. Tu gay reprimido no cabe en un hilo, indignante.',
 
-      'Llevas años haciendo de hetero con método Stanislavski y el público se fue en el primer acto, [nombre]. Joder, qué vergüenza ajena.',
+      'Llevas años haciendo de hetero con método Stanislavski y el público se fue en el primer acto, [nombre]., qué vergüenza ajena.',
 
       'con tanta frecuencia que ya es tu firma personal. Los que no lo son no lo aclaran cada quince minutos, da vergüenza.',
 
@@ -5590,7 +5590,7 @@ const LABELS = {
 
     ],
     low: [
-      'Hetero de mierda. Sales más recto que una farola y más aburrido que una misa de ocho. Ni un puto matiz, ni una chispa, nada. Joder, qué desperdicio.',
+      'Hetero de mierda. Sales más recto que una farola y más aburrido que una misa de ocho. Ni un puto matiz, ni una chispa, nada., qué desperdicio.',
 
       'Coño, eres tan jodidamente hetero que resultas sospechoso por lo contrario. Tanta normalidad asusta, cabrón.',
 
@@ -5630,7 +5630,7 @@ const LABELS = {
 
       'Puta madre, sales limpio y eso solo confirma que eres el miembro más tedioso del grupo. Hasta tu sexualidad es un coñazo.',
 
-      'Mierda, cero de cero. Ni un destello, ni una chispa, ni un momento dudoso en toda tu existencia. Joder, qué vida más gris, gilipollas.',
+      'Mierda, cero de cero. Ni un destello, ni una chispa, ni un momento dudoso en toda tu existencia., qué vida más gris, gilipollas.',
 
       'Eres tan hetero que si tu sexualidad fuera una especia sería harina. Sin sabor, sin olor, y solo útil para rellenar. Vaya mierda.',
 
@@ -5668,9 +5668,9 @@ const LABELS = {
 
       'Tan claro el no que el comando casi sobra, [nombre], fracasado. El grupo ya lo tiene claro sin forzar el drama, ridículo.',
 
-      '[nombre], heterosexualidad de catálogo sin sorpresa, joder. El grupo ya lo tiene claro sin forzar el drama, fracasado.',
+      '[nombre], heterosexualidad de catálogo sin sorpresa. El grupo ya lo tiene claro sin forzar el drama, fracasado.',
 
-      'No hay arco. Solo un no limpio, [nombre], cabrón. El grupo ya lo tiene claro sin forzar el drama, joder.',
+      'No hay arco. Solo un no limpio, [nombre], cabrón. El grupo ya lo tiene claro sin forzar el drama.',
 
       'El tramo bajo te absuelve sin poesía, [nombre], gilipollas. El grupo ya lo tiene claro sin forzar el drama, mierda.',
 
@@ -5853,11 +5853,11 @@ const LABELS = {
 
       '[nombre], eres tan predecible que ya ni tienen que pedirte las cosas. Las das antes. Puto reflejo condicionado con nombre y foto de perfil.',
 
-      '[nombre], eres el que borra mensajes para no parecer intenso. Ya lo pareces desde hace años, pringado.y borrar solo confirma que lo sabes, joder.',
+      '[nombre], eres el que borra mensajes para no parecer intenso. Ya lo pareces desde hace años, pringado.y borrar solo confirma que lo sabes.',
 
       '[nombre], eres el que cambia sus planes por alguien que no cambiaría ni de canal. Ese desequilibrio lo ve todo el grupo menos tú, pringado, mierda.',
 
-      'Simp de los que el pedestal se te queda pequeño y el respeto ajeno te queda grande, [nombre]. Joder.',
+      'Simp de los que el pedestal se te queda pequeño y el respeto ajeno te queda grande, [nombre].',
 
       'Tienes más mensajes de validación que dignidad en el puto ranking del grupo, [nombre]. El pedestal te está comiendo, mierda.',
 
@@ -5865,7 +5865,7 @@ const LABELS = {
 
       'Se te nota el rastro de simp hasta en los mensajes que pretenden ser neutrales, [nombre] frame, patético.',
 
-      'Simp convertido en wallpaper del fail colectivo, asco. El pedestal te está comiendo, gilipollas, joder.',
+      'Simp convertido en wallpaper del fail colectivo, asco. El pedestal te está comiendo, gilipollas.',
 
       'Has convertido la sumisión en identidad y no hay detergente que la limpie, [nombre]. Cero respeto propio visible, patético.',
 
@@ -5873,7 +5873,7 @@ const LABELS = {
 
       'Has hecho del servilismo tu marca y el grupo te usa de felpudo con wifi, [nombre]. El pedestal te está comiendo, basura.',
 
-      'Simp con el mismo gag de siempre y cero variación. Cero respeto propio visible, ridículo, joder, y el grupo no se traga el cuento, ridículo.',
+      'Simp con el mismo gag de siempre y cero variación. Cero respeto propio visible, ridículo, y el grupo no se traga el cuento, ridículo.',
 
       'Se te oye el arrastre del pedestal hasta en los neutros del chat, [nombre]. cerrado. Felpudo con opiniones, fracasado.',
 
@@ -5887,7 +5887,7 @@ const LABELS = {
 
       'Simp de las que el mute ajeno lee como misterio y es solo desinterés, [nombre]. Cero respeto propio visible, gilipollas.',
 
-      '[nombre], llevas años siendo decorado de la lista de contactos. Felpudo con opiniones, patético, joder.',
+      '[nombre], llevas años siendo decorado de la lista de contactos. Felpudo con opiniones, patético.',
 
       'Simp constante: la única racha es la de no decir no cuando toca, [nombre]. El pedestal te está comiendo, asco.',
 
@@ -5897,7 +5897,7 @@ const LABELS = {
 
       'No hay misterio interesante: hay previsible y simp, el combo del high, [nombre]. El pedestal te está comiendo, fracasado.',
 
-      'Tienes el historial de un local cerrado por exceso de sí y falta de no, [nombre]. Cero respeto propio visible, joder.',
+      'Tienes el historial de un local cerrado por exceso de sí y falta de no, [nombre]. Cero respeto propio visible.',
 
       'Simp de inercia: el grupo te soporta por costumbre, no por respeto, [nombre]. Se te ve el fail a la primera, cabrón.',
 
@@ -5957,7 +5957,7 @@ const LABELS = {
 
       'Simp de superficie suficiente: no hace falta abrir el wiki, se huele el sí, [nombre]. El pedestal te está comiendo, fracasado.',
 
-      'No hay barniz de lealtad noble: hay simp y el high lo cobra, [nombre]. Cero respeto propio visible, joder.',
+      'No hay barniz de lealtad noble: hay simp y el high lo cobra, [nombre]. Cero respeto propio visible.',
 
       'Tienes el tono de quien acumula fichas de validación y nunca dice no, [nombre]. Felpudo con opiniones, mierda.',
 
@@ -5973,7 +5973,7 @@ const LABELS = {
 
       'Has hecho del servilismo tu marca y el grupo te usa de felpudo con wifi, [nombre]. Felpudo con opiniones, basura.',
 
-      'Simp de racha perfecta: lo único que no fallas es no tener criterio, [nombre] filtro ni consuelo, joder.',
+      'Simp de racha perfecta: lo único que no fallas es no tener criterio, [nombre] filtro ni consuelo.',
 
       'No hay eco de dignidad: hay eco de pedestal. Y el chat lo amplifica, [nombre] cerrado. Cero respeto propio visible, fracasado.',
 
@@ -5983,13 +5983,13 @@ const LABELS = {
 
       'El listón de dignidad lo usas de felpudo y el suelo es tu zona de confort, [nombre]. Cero respeto propio visible, coño.',
 
-      'Has hecho ranking de simp y el oro es tuyo sin rival serio, [nombre]. Felpudo con opiniones, cabrón, joder.',
+      'Has hecho ranking de simp y el oro es tuyo sin rival serio, [nombre]. Felpudo con opiniones, cabrón.',
 
       'Simp de feria ambulante de un solo puesto: el mismo show de sí, cero nostalgia, [nombre]. Fracasado.',
 
       'Se te ve venir el pedestal en el primer punto del mensaje, [nombre]. maquillaje posible. Cero respeto propio visible, patético.',
 
-      'La dignidad hace autostop y el tráfico del arcén eres tú, [nombre]. Felpudo con opiniones, asco, joder.',
+      'La dignidad hace autostop y el tráfico del arcén eres tú, [nombre]. Felpudo con opiniones, asco.',
 
       'Simp de superficie: basta la vista, no hace falta el sótano del historial, [nombre]. El pedestal te está comiendo, basura.',
 
@@ -6324,7 +6324,7 @@ const LABELS = {
 
       'Se te nota que ensuciaste el hilo hace tiempo y perdiste el mapa del bayeta, [nombre]. Sin anestesia, fracasado.',
 
-      'El grupo paga tu rastro en cuotas diarias de asco. Documentado en el ranking, [nombre]. Resuelves conflictos alimentándolos, joder.',
+      'El grupo paga tu rastro en cuotas diarias de asco. Documentado en el ranking, [nombre]. Resuelves conflictos alimentándolos.',
 
       'Rata de inercia: el grupo te soporta por costumbre, no por interés real, [nombre]. Trepar sobre otros te queda de oficio, mierda.',
 
@@ -6464,7 +6464,7 @@ const LABELS = {
 
       'No hay misterio interesante: hay previsible y rata, el combo flojo del high, [nombre]. Resuelves conflictos alimentándolos, fracasado.',
 
-      'Rata de las que el mute ajeno lee como invitación y se equivoca de libro, [nombre]. Trepar sobre otros te queda de oficio, joder.',
+      'Rata de las que el mute ajeno lee como invitación y se equivoca de libro, [nombre]. Trepar sobre otros te queda de oficio.',
 
       'Se te nota el peso de arrastrar el interés propio por cada hilo del grupo, [nombre]. Sin anestesia, mierda.',
 
@@ -6484,7 +6484,7 @@ const LABELS = {
 
       'Has hecho del provecho ajeno tu único talento documentado, [nombre]. Trepar te delata a la legua, basura.',
 
-      'Tienes más giros de chaqueta que un perchero de second hand en liquidación, [nombre]. Tu palabra no vale una mierda aquí, joder.',
+      'Tienes más giros de chaqueta que un perchero de second hand en liquidación, [nombre]. Tu palabra no vale una mierda aquí.',
 
       'Rata cutre: el aprovechamiento sin inteligencia es solo miseria con patas, [nombre]. Resuelves conflictos alimentándolos, mierda.',
 
@@ -6504,11 +6504,11 @@ const LABELS = {
 
       'Rata de estribillo que mancha más con cada repetición del mismo plato, [nombre]. Tu palabra no vale una mierda aquí, fracasado.',
 
-      'Se te nota el hábito de empujar cada tema hacia tu beneficio corto, [nombre]. Resuelves conflictos alimentándolos, joder.',
+      'Se te nota el hábito de empujar cada tema hacia tu beneficio corto, [nombre]. Resuelves conflictos alimentándolos.',
 
       'Rata de fondo permanente: bajas la media con la disciplina de quien no se cansa de sacar, [nombre]. Asco.',
 
-      'No es viveza: es falta de criterio con hocico de rata incluido, [nombre]. El interés propio se te ve, joder.',
+      'No es viveza: es falta de criterio con hocico de rata incluido, [nombre]. El interés propio se te ve.',
 
       'Tienes más restos de interés ajeno en el relato que un cubo sin recogida, [nombre]. Sin una puta lealtad útil, mierda.',
 
@@ -6564,7 +6564,7 @@ const LABELS = {
 
       'El listón lo usas de pan y el suelo del chat es tu mantel preferido, [nombre]. El interés propio se te ve, basura.',
 
-      'Has hecho ranking de ratez y el oro es tuyo sin rival serio, [nombre]. Resuelves conflictos alimentándolos, joder.',
+      'Has hecho ranking de ratez y el oro es tuyo sin rival serio, [nombre]. Resuelves conflictos alimentándolos.',
 
       'Rata de feria ambulante: el mismo show, el mismo asco, cero nostalgia, [nombre]. Trepar sobre otros te queda de oficio, mierda.',
 
@@ -6584,7 +6584,7 @@ const LABELS = {
 
       'Has dejado el hilo como obra sin plano: escombro de ratez, [nombre]. Resuelves conflictos alimentándolos, fracasado.',
 
-      'Rata de estribillo que empeora con cada bis del mismo plato, [nombre]. Trepar sobre otros te queda de oficio, joder.',
+      'Rata de estribillo que empeora con cada bis del mismo plato, [nombre]. Trepar sobre otros te queda de oficio.',
 
       'Se te nota el hábito de empujar cada hilo hacia tu beneficio corto, [nombre]. cerrado. El interés propio se te ve, fracasado.',
 
@@ -6644,7 +6644,7 @@ const LABELS = {
 
       '[nombre], eres el que dice que solo se lo cuenta a una persona. Y esa persona ya son ocho. Puta rata con capacidad de distribución, qué miseria.',
 
-      'Has hecho de lo rata una marca personal y la marca se pega en los dedos, [nombre]. Trepar sobre otros te queda de oficio, joder.',
+      'Has hecho de lo rata una marca personal y la marca se pega en los dedos, [nombre]. Trepar sobre otros te queda de oficio.',
 
       'Has convertido el bajo listón en residencia fija sin mudanza a la vista, [nombre]. Tu palabra no vale una mierda aquí, qué nivel de pena.',
 
@@ -7366,11 +7366,11 @@ const LABELS = {
 
       'Has hecho del nicho tu prisión y el grupo ya no visita el museo, [nombre]. Monólogo eterno del hilo, basura.',
 
-      '[nombre], corriges a todos y nadie te invita al after. El lore no te salva el charco, ridículo, joder.',
+      '[nombre], corriges a todos y nadie te invita al after. El lore no te salva el charco, ridículo.',
 
       'Friki de los que confunden profundidad con no tener vida fuera del wiki, [nombre]. Sótano sin salida útil, fracasado.',
 
-      '[nombre], friki que se ofende si no conocen su referencia de sótano. Monólogo eterno del hilo, joder.',
+      '[nombre], friki que se ofende si no conocen su referencia de sótano. Monólogo eterno del hilo.',
 
       'Friki constante: la única racha es la de no enganchar a nadie fuera del nicho, [nombre]. El lore no te salva el charco, mierda.',
 
@@ -7390,7 +7390,7 @@ const LABELS = {
 
       'Tus intereses te definen entero y ahí está el problema, pringado. Quítalos y queda un puto envase vacío con código de barras.',
 
-      'No hay misterio de raro con estilo: hay lo previsible y el high lo nombra, [nombre]. El lore no te salva el charco, joder.',
+      'No hay misterio de raro con estilo: hay lo previsible y el high lo nombra, [nombre]. El lore no te salva el charco.',
 
       'El listón de lo social lo miras desde el sótano y no has subido un peldaño, [nombre]. Sótano sin salida útil, mierda.',
 
@@ -7400,7 +7400,7 @@ const LABELS = {
 
       'Friki de ceja ajena levantada y respeto social en el sótano del ranking, [nombre]. Sótano sin salida útil, gilipollas.',
 
-      'La dignidad social no te coge el teléfono: el buzón está lleno de silences, [nombre]. Se te ve el fail a la primera, joder.',
+      'La dignidad social no te coge el teléfono: el buzón está lleno de silences, [nombre]. Se te ve el fail a la primera.',
 
       'Friki que se enfada porque no valoran su afición. Nadie está obligado, gilipollas. Y exigir valoración ya es haber perdido.',
 
@@ -7408,7 +7408,7 @@ const LABELS = {
 
       'Friki de fondo permanente: el high no es un mal día, es el nivel del nivel, [nombre]. chat ya lo sabía, cabrón.',
 
-      'Friki con el bucle eterno del mismo error en bucle. El lore no te salva el charco, fracasado, joder.',
+      'Friki con el bucle eterno del mismo error en bucle. El lore no te salva el charco, fracasado.',
 
       'Friki de cartel de sótano: se ve el letrero y nadie baja las escaleras, [nombre]. filtro ni consuelo, patético.',
 
@@ -7416,7 +7416,7 @@ const LABELS = {
 
       'Friki que renunció a lo difícil para dominar lo cómodo. Y ya no sabe volver, cabrón. Ese es el precio de la puta cueva.',
 
-      'Friki de letrero de sótano: se lee y no invita a bajar, [nombre]. Sótano sin salida útil, cabrón, joder.',
+      'Friki de letrero de sótano: se lee y no invita a bajar, [nombre]. Sótano sin salida útil, cabrón.',
 
       'No es profundidad: es aislamiento con teclado y el nivel te lo cobra, [nombre]. Se te ve el fail a la primera, fracasado.',
 
@@ -7430,7 +7430,7 @@ const LABELS = {
 
       'Se te oye el masticar del listón bajo hasta en los intentos de normal, [nombre]. Sótano sin salida útil, fracasado.',
 
-      'Has hecho del bajo listón social tu casa. y no hay mudanza a la vista, [nombre]. Monólogo eterno del hilo, joder.',
+      'Has hecho del bajo listón social tu casa. y no hay mudanza a la vista, [nombre]. Monólogo eterno del hilo.',
 
       'Friki de malinterpretar el silencio ajeno como interés por el lore, [nombre]. El lore no te salva el charco, mierda.',
 
@@ -7480,7 +7480,7 @@ const LABELS = {
 
       '[nombre], tus mejores momentos del año fueron todos delante de una pantalla. Ni una anécdota real, ni una historia que contar. Puto cadáver con wifi.',
 
-      '[nombre], gastas en figuras lo que otros gastan en tener una vida. Y ni siquiera abres las cajas. Acumulas huecos que no se llenan con eso, pringado, joder.',
+      '[nombre], gastas en figuras lo que otros gastan en tener una vida. Y ni siquiera abres las cajas. Acumulas huecos que no se llenan con eso, pringado.',
 
       '[nombre], friki que confunde saber mucho de algo con ser alguien. No es transferible, pringado.y llevas la vida entera comprobándolo sin aprenderlo, mierda.',
 
@@ -7530,7 +7530,7 @@ const LABELS = {
 
       '[nombre], tu manera de compartir algo es abrumar hasta que el otro se rinde. Eso no es entusiasmo, es un puto asalto informativo sin salida.',
 
-      'Friki de saldo, [nombre]. Gastas en figuras lo que otros gastan en tener una vida, y las figuras te miran cada noche con la misma decepción que tu familia, joder.',
+      'Friki de saldo, [nombre]. Gastas en figuras lo que otros gastan en tener una vida, y las figuras te miran cada noche con la misma decepción que tu familia.',
 
       'Eres un fantasma con teclado, [nombre]. Presente en todos los servidores, ausente en todas las vidas, incluida la tuya. Un don nadie con muy buen ping, mierda.',
 
@@ -7548,7 +7548,7 @@ const LABELS = {
 
       'Friki de manual, [nombre]: tus recuerdos de este año son todos capturas. Ni uno solo ocurrió en la calle. Una biografía en formato de pantallazo, fracasado.',
 
-      '[nombre], tu cuarto no ve luz natural desde hace meses y lo llamas ambiente de concentración. Se llama cueva, guarro, y huele exactamente a eso, joder.',
+      '[nombre], tu cuarto no ve luz natural desde hace meses y lo llamas ambiente de concentración. Se llama cueva, guarro, y huele exactamente a eso.',
 
       '[nombre], la mitad de tus frases empiezan con un dato que nadie pidió. Por eso la gente asiente y cambia de tema en cuanto encuentra el hueco, mierda.',
 
@@ -7560,7 +7560,7 @@ const LABELS = {
 
       'Eres el que se pasa el día explicando que su afición no es infantil, [nombre]. Nadie preguntó, cabrón. El que se defiende solo se delata.',
 
-      'Tu manera de aportar en cualquier conversación es un dato, [nombre]. Solo un dato, siempre. Y siempre el que menos falta hacía, pringado, joder.',
+      'Tu manera de aportar en cualquier conversación es un dato, [nombre]. Solo un dato, siempre. Y siempre el que menos falta hacía, pringado.',
 
       '[nombre], llevas años defendiendo una comunidad que no sabría decir tu nombre. Puto parásito emocional de gente que ni sabe que existes.',
 
@@ -7580,17 +7580,17 @@ const LABELS = {
 
       'Se te nota el monólogo eterno en cada puto hilo que tocas, [nombre]. Sótano sin salida útil, gilipollas.',
 
-      '[nombre], tu mayor emoción del mes fue un anuncio de algo que sale dentro de dos años. Ahí tienes tu vida entera resumida, pringado, joder.',
+      '[nombre], tu mayor emoción del mes fue un anuncio de algo que sale dentro de dos años. Ahí tienes tu vida entera resumida, pringado.',
 
       'Tu escritorio parece la mesa de un forense: cosas muertas, vasos con historia y una lámpara que lleva años sin apagarse. Puta cueva.',
 
       '[nombre], llevas la vida entera esperando que llegue tu momento. Tu momento requiere salir a la calle, cabrón. Ahí está el problema.',
 
-      '[nombre], corriges a todos y nadie te invita al after. Monólogo eterno del hilo, ridículo, joder, y el grupo no se traga el cuento, ridículo.',
+      '[nombre], corriges a todos y nadie te invita al after. Monólogo eterno del hilo, ridículo, y el grupo no se traga el cuento, ridículo.',
 
       'Friki de los que confunden profundidad con no tener vida fuera del wiki, [nombre]. El lore no te salva el charco, fracasado.',
 
-      '[nombre], friki que se ofende si no conocen su referencia de sótano. Sótano sin salida útil, joder.',
+      '[nombre], friki que se ofende si no conocen su referencia de sótano. Sótano sin salida útil.',
 
       'Tus figuras están mejor cuidadas que tú, [nombre]. Gilipollas documentado. Monólogo eterno del hilo, qué pena.',
 
@@ -7622,7 +7622,7 @@ const LABELS = {
 
       'Has hecho del nicho tu prisión y el grupo ya no visita el museo, [nombre]. El lore no te salva el charco, basura.',
 
-      '[nombre], corriges a todos y nadie te invita al after. Sótano sin salida útil, ridículo, joder, y el grupo no se traga el cuento, asco, indignante.',
+      '[nombre], corriges a todos y nadie te invita al after. Sótano sin salida útil, ridículo, y el grupo no se traga el cuento, asco, indignante.',
 
       'Friki de los que confunden profundidad con no tener vida fuera del wiki, [nombre]. Monólogo eterno del hilo, fracasado.',
 
@@ -7690,7 +7690,7 @@ const LABELS = {
 
       'El listón social lo usas de estantería de figuras y el suelo del chat es tu almacén, [nombre]. Cutre, patético.',
 
-      'Friki de los que el high del ranking no suaviza: el rincón del chat te queda grande igual, [nombre]. Joder.',
+      'Friki de los que el high del ranking no suaviza: el rincón del chat te queda grande igual, [nombre].',
 
       'Tienes el aura del post olvidado: presente en el archivo, frío en el ranking, [nombre]. Desperdicio, asco, qué nivel de pena.',
 
@@ -7955,7 +7955,7 @@ const LABELS = {
 
       '[nombre], tu manera de fregar el suelo es esperar a que se seque solo. Cada mancha se queda a vivir. Puta casa de mierda.',
 
-      'Se te nota la prisa por embadurnar el chat y cero ganas de limpiar después. El jabón te dio de baja, joder.',
+      'Se te nota la prisa por embadurnar el chat y cero ganas de limpiar después. El jabón te dio de baja.',
 
       'La dignidad no para el coche: tú eres el tráfico que deja el arcén peor. Hueles a abandono, mierda, y el grupo no se traga el cuento, mierda.',
 
@@ -8055,7 +8055,7 @@ const LABELS = {
 
       'Tu escritorio tiene manchas superpuestas que ya forman un patrón geológico, cerdo. Cada capa es un mes de mierda. Acumulada.',
 
-      'Cerdo de los que dejan grasa en cada mensaje: se te ve el rastro sin buscarlo, [nombre]. El jabón te dio de baja, joder.',
+      'Cerdo de los que dejan grasa en cada mensaje: se te ve el rastro sin buscarlo, [nombre]. El jabón te dio de baja.',
 
       'Has hecho del desorden una personalidad y la personalidad deja. El chat peor, [nombre]. Hueles a abandono, mierda.',
 
@@ -8095,7 +8095,7 @@ const LABELS = {
 
       'Cerdo de fondo: bajas la media con la constancia de quien no se cansa de ensuciar. Sin una puta toalla limpia, fracasado.',
 
-      'Cerdo de las que el jabón cruza de acera cuando te ve en el puto ranking, [nombre]. El jabón te dio de baja, joder.',
+      'Cerdo de las que el jabón cruza de acera cuando te ve en el puto ranking, [nombre]. El jabón te dio de baja.',
 
       'Tienes más grasa en el personaje que un bocadillo olvidado en la mochila una semana, [nombre]. Mierda.',
 
@@ -8103,15 +8103,15 @@ const LABELS = {
 
       'Se te nota el rastro de cerdo hasta en los mensajes que pretenden ser serios, [nombre]. Se ve desde el primer mensaje, ridículo.',
 
-      'Cerdo como un anuncio repetido que nadie pidió, joder, con el grupo de testigo. Sin una puta toalla limpia, gilipollas.',
+      'Cerdo como un anuncio repetido que nadie pidió, con el grupo de testigo. Sin una puta toalla limpia, gilipollas.',
 
-      'Has convertido la porquería en identidad y no hay detergente que la renegocie, [nombre]. Eso no se maquilla con ángulo De frame, joder.',
+      'Has convertido la porquería en identidad y no hay detergente que la renegocie, [nombre]. Eso no se maquilla con ángulo De frame.',
 
       'Cerdo en crudo: ni el maquillaje del ranking te cubre. Sin anestesia. Hueles a abandono, asco, y el grupo no se traga el cuento, asco.',
 
-      'El listón de lo presentable lo usas de tobogán hacia abajo, joder, [nombre]. Menudo desastre higiénico, basura.',
+      'El listón de lo presentable lo usas de tobogán hacia abajo, [nombre]. Menudo desastre higiénico, basura.',
 
-      'Cerdo sin una carta nueva: siempre la misma mano sucia, joder, diagnóstico cerrado El grupo te esquiva, ridículo.',
+      'Cerdo sin una carta nueva: siempre la misma mano sucia, diagnóstico cerrado El grupo te esquiva, ridículo.',
 
       'Se te oye el arrastre del cerdo hasta en los neutros del chat, [nombre]. Sin una puta toalla limpia, fracasado.',
 
@@ -8165,7 +8165,7 @@ const LABELS = {
 
       'Se te oye el masticar del listón bajo hasta en los serios del chat, [nombre]. El ranking firma y listo, nivel sótano puro, fracasado.',
 
-      'Cerdo de letrero grasiento: se lee de lejos y no invita a entrar, [nombre]. Se ve desde el primer mensaje, sin filtro ni consuelo, joder.',
+      'Cerdo de letrero grasiento: se lee de lejos y no invita a entrar, [nombre]. Se ve desde el primer mensaje, sin filtro ni consuelo.',
 
       'No hay misterio de cerdo con estilo: hay lo previsible y el high lo nombra, [nombre]., diagnóstico cerrado, mierda.',
 
@@ -8175,7 +8175,7 @@ const LABELS = {
 
       'El grupo paga tu rastro en cuotas diarias de asco. Documentado, [nombre]. Sin una puta toalla limpia, fracasado.',
 
-      'Has dejado el chat como fregadero a medias: restos eternos, [nombre]. El jabón te dio de baja, joder.',
+      'Has dejado el chat como fregadero a medias: restos eternos, [nombre]. El jabón te dio de baja.',
 
       'Cerdo de estribillo sin punto final limpio ni redención, [nombre]. Hueles a abandono, mierda, y el grupo no se traga el cuento, mierda.',
 
@@ -8646,7 +8646,7 @@ const LABELS = {
 
       'Tu cuerpo ya votó. Tu boca sigue en campaña. Las elecciones las ganó el cuerpo hace tiempo, gilipollas.',
 
-      '[nombre], femboy de saldo: outfits bonitos por fuera, decepción por dentro. Almost de estética barata, joder.',
+      '[nombre], femboy de saldo: outfits bonitos por fuera, decepción por dentro. Almost de estética barata.',
 
       'La única persona a la que todavía engañas con el discurso macho eres tú. Y cada día menos, gilipollas.',
 
@@ -8706,7 +8706,7 @@ const LABELS = {
 
       'Usas medias y lencería en privado y te haces el hetero en público. El armario de ropa femenina ya es un puto vestidor, maricón.',
 
-      'Femboy de los que el disfraz se te queda grande y el criterio te queda pequeño, [nombre]. Almost de estética barata, joder.',
+      'Femboy de los que el disfraz se te queda grande y el criterio te queda pequeño, [nombre]. Almost de estética barata.',
 
       'Tienes más pose de personaje que sustancia que. El chat respete de verdad, [nombre]. Pose sin sustancia detrás, mierda.',
 
@@ -8714,11 +8714,11 @@ const LABELS = {
 
       'Se te nota el teatro en cada mensaje y el high no aplaude el montaje, [nombre]. Se te ve el fail a la primera, ridículo.',
 
-      'Femboy como un anuncio repetido que nadie pidió, joder, con el grupo de testigo. Pose sin sustancia detrás, gilipollas.',
+      'Femboy como un anuncio repetido que nadie pidió, con el grupo de testigo. Pose sin sustancia detrás, gilipollas.',
 
       'Has hecho del personajito una marca que se pega en los dedos ajenos, [nombre]. El disfraz no tapa el hueco, patético.',
 
-      'Femboy en crudo: ni el maquillaje del ranking te cubre. Se te ve el fail a la primera, mierda, joder.',
+      'Femboy en crudo: ni el maquillaje del ranking te cubre. Se te ve el fail a la primera, mierda.',
 
       'El listón de la dignidad lo usas de rampa y el high te empuja abajo, [nombre]. anestesia. Pose sin sustancia detrás, basura.',
 
@@ -8964,7 +8964,7 @@ const LABELS = {
 
       'No llevas falda pero tu forma de sentarte con las piernas cruzadas ya levanta actas, cabrón. Con el eco del almost todavía sonando.',
 
-      'Eres como un armario medio abierto: no se ve todo pero se intuye la colección de dentro, joder. En el recuento que no perdona.',
+      'Eres como un armario medio abierto: no se ve todo pero se intuye la colección de dentro. En el recuento que no perdona.',
 
       'Tu voz es grave pero tus risitas son de anime. Ese contraste confunde al grupo entero. Y el contador no discute.',
 
@@ -8976,7 +8976,7 @@ const LABELS = {
 
       'Tu armario es de tío normal pero tienes un cajón cerrado con llave que huele a secreto con purpurina, da pena ajena.',
 
-      'Cuando bebes se te suelta la muñeca como una bisagra rota y todo el bar se entera, joder. Sin modo avión ni silencio cómplice, qué vacío.',
+      'Cuando bebes se te suelta la muñeca como una bisagra rota y todo el bar se entera. Sin modo avión ni silencio cómplice, qué vacío.',
 
       'Medio macho, medio otra cosa. Eres el centauro de la ambigüedad de género, coño. Y el sistema marca el punto final, indignante.',
 
@@ -9068,7 +9068,7 @@ const LABELS = {
 
       'Hostia, eres tan masculino estándar que pareces sacado de un catálogo de Decathlon. Modelo básico, sin extras.',
 
-      'Cero por ciento y cero sorpresas. Tu existencia es tan plana que podrían planchar ropa encima, joder.',
+      'Cero por ciento y cero sorpresas. Tu existencia es tan plana que podrían planchar ropa encima.',
 
       'Nada. Eres el tipo de tío que describe su personalidad con "me gusta el fútbol y las hamburguesas". Fascinante, gilipollas.',
 
@@ -9086,7 +9086,7 @@ const LABELS = {
 
       'Nada por aquí. Tu masculinidad no es impresionante, es simplemente la ausencia de cualquier otra cosa, coño.',
 
-      'Cero. El escáner del bot pasó por ti y se quedó dormido del aburrimiento, joder. Eres ruido blanco con patas.',
+      'Cero. El escáner del bot pasó por ti y se quedó dormido del aburrimiento. Eres ruido blanco con patas.',
 
       'Ni una señal, cabrón. Pero no lo celebres, que la alternativa es que eres un tío gris en un mundo de colores.',
 
@@ -9108,9 +9108,9 @@ const LABELS = {
 
       'Cero femboy, cien por cien gris. Felicidades por ser el tipo más olvidable que ha pasado por este comando, coño.',
 
-      'Limpio de todo. Incluido de carisma, de gracia y de cualquier rasgo que te haga memorable, joder. Un puto fantasma beige.',
+      'Limpio de todo. Incluido de carisma, de gracia y de cualquier rasgo que te haga memorable. Un puto fantasma beige.',
 
-      'Nada de estética ambigua, [nombre]. Masculinidad de catálogo sin filtro, joder. El grupo ya lo tiene claro sin forzar el drama, joder.',
+      'Nada de estética ambigua, [nombre]. Masculinidad de catálogo sin filtro. El grupo ya lo tiene claro sin forzar el drama.',
 
       'Cero pose cute. [nombre] no vende el pack ni por error, cabrón. El grupo ya lo tiene claro sin forzar el drama, mierda.',
 
@@ -9130,7 +9130,7 @@ const LABELS = {
 
       'Fuera de la estética por ausencia total, [nombre], fracasado. El grupo ya lo tiene claro sin forzar el drama, fracasado.',
 
-      '[nombre], ni el filtro te acerca al estereotipo, joder. El grupo ya lo tiene claro sin forzar el drama, joder.',
+      '[nombre], ni el filtro te acerca al estereotipo. El grupo ya lo tiene claro sin forzar el drama.',
 
       'Sin pose. Sin drama de identidad estética, [nombre], cabrón. El grupo ya lo tiene claro sin forzar el drama, mierda.',
 
@@ -9157,13 +9157,13 @@ const LABELS = {
     name: 'inutil',
     goodIsHigh: false,
     high: [
-      'El asco no es odio: es el diagnóstico de una presencia que no suma nada, [nombre]. Cero función útil, joder.',
+      'El asco no es odio: es el diagnóstico de una presencia que no suma nada, [nombre]. Cero función útil.',
 
       'El aporte te saluda desde lejos y tú no contestas, [nombre].joder. Eso no se maquilla con ángulo, asco.',
 
       'Inútil de puta madre: el high no suaviza el hueco ni el estorbo, [nombre] el nivel te nombra sin permiso, basura.',
 
-      'No hay eco de utilidad: hay eco de hueco en el nivel, [nombre]. Sin una puta tarea cumplida, cabrón, joder.',
+      'No hay eco de utilidad: hay eco de hueco en el nivel, [nombre]. Sin una puta tarea cumplida, cabrón.',
 
       'La clase de aportar te suena a reproche, [nombre], coño. Cero función útil, gilipollas.',
 
@@ -9173,7 +9173,7 @@ const LABELS = {
 
       'Se te ve venir el vacío en la primera palabra del mensaje del hilo, [nombre]. Sin una puta tarea cumplida, basura.',
 
-      '[nombre], eres inútil hasta para ocupar espacio en el puto chat. Cero función útil, ridículo, joder.',
+      '[nombre], eres inútil hasta para ocupar espacio en el puto chat. Cero función útil, ridículo.',
 
       '[nombre], eres el nombre que se tacha primero cuando hay que repartir trabajo importante. Sin debate y sin pena. Puta basura. De recurso.',
 
@@ -9213,7 +9213,7 @@ const LABELS = {
 
       'Nadie te pregunta ya cómo va lo tuyo porque la respuesta se sabe: mal, tarde y a medias. Puta previsibilidad de mierda.',
 
-      'Inútil con las mismas cartas manchadas de siempre y sin plan B, joder, diagnóstico cerrado. Cero función útil, ridículo.',
+      'Inútil con las mismas cartas manchadas de siempre y sin plan B, diagnóstico cerrado. Cero función útil, ridículo.',
 
       'Inútil de cartel vacío: se ve el marco. y no hay obra detrás del nick, [nombre]. Ni para relleno sirves, fracasado.',
 
@@ -9237,7 +9237,7 @@ const LABELS = {
 
       'Has hecho de la inutilidad una presencia estable en el chat, [nombre]. Se ve desde el primer mensaje, gilipollas.',
 
-      'Inútil de racha perfecta: lo único que no fallas es no servir, [nombre]. Cero función útil, joder.',
+      'Inútil de racha perfecta: lo único que no fallas es no servir, [nombre]. Cero función útil.',
 
       'Inútil de las que el grupo no cita porque no hay qué citar, [nombre]. Eso no se maquilla con ángulo, con el grupo de testigo, asco.',
 
@@ -9245,7 +9245,7 @@ const LABELS = {
 
       'No es silencio estratégico: es ausencia de contenido útil, [nombre]. Sin una puta tarea cumplida, cabrón.',
 
-      'El listón de lo útil está lejos y no has dado un paso, [nombre]. Cero función útil, gilipollas, joder.',
+      'El listón de lo útil está lejos y no has dado un paso, [nombre]. Cero función útil, gilipollas.',
 
       'Pedirte un favor es la forma más rápida de acabar haciéndolo tú mismo. Todo lo que tocas hay que rehacerlo entero, así que ya nadie te pide una puta cosa. Eres trabajo doble con patas, inútil.',
 
@@ -9319,7 +9319,7 @@ const LABELS = {
 
       'Eres tan vago que ni a serlo le echas ganas. Pospones hasta el respirar, y lo único que produces en todo el santo día es la marca de tu culo en el sofá, inútil, fracasado.',
 
-      '[nombre], inútil de manual: te comprometes con todo y cumples con nada. Un patrón perfecto, sostenido en el tiempo y sin una sola excepción documentada, joder.',
+      '[nombre], inútil de manual: te comprometes con todo y cumples con nada. Un patrón perfecto, sostenido en el tiempo y sin una sola excepción documentada.',
 
       'Tu día productivo consiste en hacer la cama, cascártela dos veces y necesitar una siesta para recuperarte del esfuerzo. Eres un protector de pantalla con DNI y menos utilidad que un preservativo pinchado, mierda.',
 
@@ -9337,7 +9337,7 @@ const LABELS = {
 
       'Inútil total, [nombre]. Ni oficio, ni beneficio, ni la más mínima intención de buscarse ninguno. Ocupas espacio y gastas oxígeno, poco más, fracasado.',
 
-      '[nombre], llevas años sin producir nada que sobreviva a la semana siguiente. Ni una cosa. Un desperdicio de silla, de tiempo y de oxígeno, joder.',
+      '[nombre], llevas años sin producir nada que sobreviva a la semana siguiente. Ni una cosa. Un desperdicio de silla, de tiempo y de oxígeno.',
 
       'El precio de tu repertorio vacío lo paga el hilo en tiempo perdido del chat, [nombre]. Sin una puta tarea cumplida, mierda.',
 
@@ -9517,7 +9517,7 @@ const LABELS = {
 
       'Inútil de racha: lo único constante es no servir en el ranking, [nombre]. Sin una puta tarea cumplida, fracasado.',
 
-      'Inútil de feria: ruido, cero recuerdo, suelo peor del ranking, [nombre]. Cero función útil, joder.',
+      'Inútil de feria: ruido, cero recuerdo, suelo peor del ranking, [nombre]. Cero función útil.',
 
       'El grupo paga tu repertorio vacío en tiempo del hilo del chat, [nombre]. Ni para relleno sirves, patético.',
 
@@ -9772,7 +9772,7 @@ const LABELS = {
     name: 'perdedor',
     goodIsHigh: false,
     high: [
-      '[nombre], eres un puto perdedor con años de rodaje y cero logros que contar. Cero logros que enseñar, joder.',
+      '[nombre], eres un puto perdedor con años de rodaje y cero logros que contar. Cero logros que enseñar.',
 
       'La dignidad del nivel no para el coche: tú eres el tráfico del arcén, [nombre]. Se te ve el fail a la primera, asco.',
 
@@ -9816,11 +9816,11 @@ const LABELS = {
 
       '[nombre], has convertido tu incapacidad en personalidad y encima la defiendes en público. Puta bandera de mierda. Y tú de abanderado.',
 
-      'Se te nota el hábito de empujar todo hacia la misma derrota, [nombre]. El fail es tu marca, cabrón, joder.',
+      'Se te nota el hábito de empujar todo hacia la misma derrota, [nombre]. El fail es tu marca, cabrón.',
 
       'Perdedor con opinión: la peor clase que existe en este chat, [nombre]. Cero logros que enseñar, gilipollas.',
 
-      'Se te oye el eco del fail hasta en los mensajes que pretenden sonar a plan B, [nombre]. Se te ve el fail a la primera, joder.',
+      'Se te oye el eco del fail hasta en los mensajes que pretenden sonar a plan B, [nombre]. Se te ve el fail a la primera.',
 
       'Perdedor constante: la única racha que mantienes es la de no cerrar el punto, [nombre]. Cero logros que enseñar, basura.',
 
@@ -9834,9 +9834,9 @@ const LABELS = {
 
       'Perdedor de fondo permanente: el high no es un mal día, es el nivel del nivel, [nombre]. El fail es tu marca, coño.',
 
-      'Perdedor sin una carta nueva: siempre la misma mano sucia. Cero logros que enseñar, cabrón, joder, y el grupo no se traga el cuento, cabrón.',
+      'Perdedor sin una carta nueva: siempre la misma mano sucia. Cero logros que enseñar, cabrón, y el grupo no se traga el cuento, cabrón.',
 
-      'La compostura no te reconoce y tú no has buscado el espejo del marcador, [nombre]. filtro ni consuelo, joder.',
+      'La compostura no te reconoce y tú no has buscado el espejo del marcador, [nombre]. filtro ni consuelo.',
 
       'Has dejado el chat como vestuario de derrota: restos de almost eternos, [nombre]. cerrado. Cero logros que enseñar, asco.',
 
@@ -9844,7 +9844,7 @@ const LABELS = {
 
       'Perdedor de estribillo que mancha más con cada repetición del mismo fail, [nombre]. El fail es tu marca, ridículo.',
 
-      'Perdedor sin el barniz: solo el material flojo a la vista. Cero logros que enseñar, fracasado, joder.',
+      'Perdedor sin el barniz: solo el material flojo a la vista. Cero logros que enseñar, fracasado.',
 
       'Perdedor de las que el mute ajeno lee como respeto y es solo desinterés, [nombre]. Se te ve el fail a la primera, patético.',
 
@@ -9864,19 +9864,19 @@ const LABELS = {
 
       'Se te oye el masticar del listón bajo hasta en los neutros del hilo, [nombre]. Se te ve el fail a la primera, gilipollas.',
 
-      'Perdedor de feria: ruido de fail, suelo peor y cero ganas de volver, [nombre]. El fail es tu marca, joder.',
+      'Perdedor de feria: ruido de fail, suelo peor y cero ganas de volver, [nombre]. El fail es tu marca.',
 
       'No es mala suerte: es patrón y el high te lo cobra sin descuento, [nombre]. Cero logros que enseñar, mierda.',
 
       'Tienes más episodios de derrota que de algo que. El chat respete, [nombre]. Solo derrota documentada, coño.',
 
-      'El grupo paga tu rastro de fail en cuotas diarias de hastío, [nombre]. El fail es tu marca, cabrón, joder.',
+      'El grupo paga tu rastro de fail en cuotas diarias de hastío, [nombre]. El fail es tu marca, cabrón.',
 
       'Se te nota el peso de arrastrar la misma derrota por cada hilo, [nombre]. Cero logros que enseñar, gilipollas.',
 
-      'Tienes el historial de un equipo que no gana ni amistosos, [nombre]. Se te ve el fail a la primera, joder.',
+      'Tienes el historial de un equipo que no gana ni amistosos, [nombre]. Se te ve el fail a la primera.',
 
-      'Has convertido el almost eterno en marca personal del ranking, [nombre]. El fail es tu marca, asco, joder.',
+      'Has convertido el almost eterno en marca personal del ranking, [nombre]. El fail es tu marca, asco.',
 
       'Has hecho del bajo listón tu casa. y no hay mudanza a la vista, [nombre]. Cero logros que enseñar, basura.',
 
@@ -10088,7 +10088,7 @@ const LABELS = {
 
       'Perdedor de cartel de sótano: se ve el letrero y nadie baja a firmar la derrota ajena, [nombre]. Basura, da grima.',
 
-      'El recato de perder te queda lejos y la distancia es rechazo, no mística de underdog, [nombre]. Joder.',
+      'El recato de perder te queda lejos y la distancia es rechazo, no mística de underdog, [nombre].',
 
       'Perdedor de superficie suficiente: no hace falta abrir el vestuario, huele a fail, [nombre]. Patético, basura.',
 
@@ -10132,7 +10132,7 @@ const LABELS = {
 
       'Perdedor sin plot twist: el final se ve desde el minuto uno, [nombre]. Basura, y el grupo ya lo archivó, fracasado.',
 
-      '[nombre], coleccionas derrotas como otros coleccionan anécdotas de mierda, coño, y el grupo ya lo archivó, joder. Hostia puta, qué cutre.',
+      '[nombre], coleccionas derrotas como otros coleccionan anécdotas de mierda, coño, y el grupo ya lo archivó. Hostia puta, qué cutre.',
 
       'Perdedor de los que llaman mala suerte a su propia falta de oficio, [nombre]. Gilipollas, y el grupo ya lo archivó, mierda. Hostia puta, da pena ajena.',
 
@@ -10370,7 +10370,7 @@ const LABELS = {
 
       'Cero por ciento. De ti no hay historias que contar, hay resultados que mirar delante de todo el que miraba, da grima.',
 
-      'Hoy no eres el fail del ranking, [nombre]. Hasta el bot te da un respiro, joder.',
+      'Hoy no eres el fail del ranking, [nombre]. Hasta el bot te da un respiro.',
 
       'Low de perdedor: por una vez no encabezas la derrota, [nombre], cabrón. El grupo ya lo tiene claro sin forzar el drama, ridículo.',
 
@@ -10783,7 +10783,7 @@ const LABELS = {
 
       'Coño, [nombre], has hecho del segundo puesto una residencia fija. Sin opción a compra ni a alquiler con opción.',
 
-      'Hostia, [nombre], el podio te queda a años luz y tú sigues entrenando para la grada como si fuera el objetivo, joder.',
+      'Hostia, [nombre], el podio te queda a años luz y tú sigues entrenando para la grada como si fuera el objetivo.',
 
       'Tu racha negativa tiene más continuidad que tus proyectos, [nombre]. Prioridades claras y mal puestas, cabrón.',
 
@@ -10823,7 +10823,7 @@ const LABELS = {
 
       'El listón de ganar lo miras desde el sótano y no has subido, [nombre]. El veredicto El ranking firma y listo, archivo sin apelación, fracasado.',
 
-      'Ganador con el mismo gag de siempre y cero variación. El veredicto ridículo, joder, el ranking no miente.',
+      'Ganador con el mismo gag de siempre y cero variación. El veredicto ridículo, el ranking no miente.',
 
       'Se te oye el eco del fail hasta en los mensajes de plan B, [nombre]. El veredicto, con el grupo de testigo, mierda.',
 
@@ -10833,7 +10833,7 @@ const LABELS = {
 
       'Ganador cutre: ni el fallo tiene gracia ni la racha tiene misterio, [nombre]. El veredicto, hostia puta qué nivel.',
 
-      'Has convertido el almost en marca personal del low, [nombre]. El veredicto El material habla solo, joder.',
+      'Has convertido el almost en marca personal del low, [nombre]. El veredicto El material habla solo.',
 
       'Ganador de las que el mute ajeno lee como respeto y es desinterés, [nombre]. El veredicto, mierda. Y.',
 
@@ -10863,7 +10863,7 @@ const LABELS = {
 
       'La compostura no te reconoce y tú no has buscado el espejo del marcador, [nombre]. El veredicto patético.',
 
-      'Ganador de fondo permanente: el low no es un mal día, es el nivel, [nombre]. El veredicto, sin filtro ni consuelo, joder.',
+      'Ganador de fondo permanente: el low no es un mal día, es el nivel, [nombre]. El veredicto, sin filtro ni consuelo.',
 
       'No es mala suerte: es patrón y el low te lo cobra, [nombre]. El veredicto El material habla solo, diagnóstico cerrado, mierda.',
 
@@ -11112,7 +11112,7 @@ const LABELS = {
 
       '[nombre], si el puterío cotizara en bolsa serías chicharro basura, no blue chip. Sin anestesia, fracasado.',
 
-      'Has convertido el sí fácil en identidad. y el grupo ya no se sorprende, [nombre]. El sí fácil te delata más que un rumor, joder.',
+      'Has convertido el sí fácil en identidad. y el grupo ya no se sorprende, [nombre]. El sí fácil te delata más que un rumor.',
 
       '[nombre], tienes más kilometraje que un taxi de aeropuerto en temporada alta. Has hecho del chat tu escaparate barato, mierda.',
 
@@ -11713,9 +11713,9 @@ const LABELS = {
     name: 'guarra',
     goodIsHigh: false,
     high: [
-      'El nivel de guarrada que sueltas haría que un camión de basura. Pidiera la baja por. El jabón te dio de baja, joder.',
+      'El nivel de guarrada que sueltas haría que un camión de basura. Pidiera la baja por. El jabón te dio de baja.',
 
-      'No hay eco de estilo: hay eco de basura. Y. El chat lo amplifica. Hueles a cubo sin tapa, mierda, joder.',
+      'No hay eco de estilo: hay eco de basura. Y. El chat lo amplifica. Hueles a cubo sin tapa, mierda.',
 
       'Eres la que arruina cualquier momento bueno con un comentario de mierda, [nombre]. Y siempre llega. Puta puntualidad para lo peor.',
 
@@ -11729,11 +11729,11 @@ const LABELS = {
 
       'Guarra de las que el grupo lee con una ceja levantada y cero respeto, [nombre]. Sin una puta toalla limpia, basura.',
 
-      '[nombre], guarra de las que el jabón cruza de acera cuando te ve. El jabón te dio de baja, ridículo, joder.',
+      '[nombre], guarra de las que el jabón cruza de acera cuando te ve. El jabón te dio de baja, ridículo.',
 
       'Guarra de fondo que baja la media sin pedir turno en el ranking, [nombre]. Hueles a cubo sin tapa, fracasado.',
 
-      'Das asco con cada mensaje y ni siquiera aportas una idea nueva. Menudo desastre higiénico, joder.',
+      'Das asco con cada mensaje y ni siquiera aportas una idea nueva. Menudo desastre higiénico.',
 
       'Se te ve la prisa por ensuciar el hilo y cero ganas de limpiarlo después. Sin anestesia. Sin una puta toalla limpia, mierda.',
 
@@ -11743,19 +11743,19 @@ const LABELS = {
 
       'Se te nota el oficio de tanto bajar el listón hasta el sótano del chat. Menudo desastre higiénico, gilipollas.',
 
-      'El asco es basura Sin una puta toalla limpia, patético, joder.',
+      'El asco es basura Sin una puta toalla limpia, patético.',
 
-      'El listón está enterrado y tú has hecho de la fosa tu pista de baile. El jabón te dio de baja, asco, joder.',
+      'El listón está enterrado y tú has hecho de la fosa tu pista de baile. El jabón te dio de baja, asco.',
 
       'No hay redención estética: hay basura. Con eco y el eco llena. El chat. Hueles a cubo sin tapa, basura.',
 
-      '[nombre], guarra de las que el jabón pide traslado de provincia y el grupo asiente, joder.',
+      '[nombre], guarra de las que el jabón pide traslado de provincia y el grupo asiente.',
 
       'La vergüenza ajena es tu sombra y la sombra no te abandona nunca. Sin anestesia. Sin una puta toalla limpia, fracasado.',
 
-      'El termómetro del asco. Te marca crónico: no es un pico, es el nivel. El jabón te dio de baja, joder.',
+      'El termómetro del asco. Te marca crónico: no es un pico, es el nivel. El jabón te dio de baja.',
 
-      'Se te nota el peso de arrastrar el listón por el suelo cada día. Hueles a cubo sin tapa, mierda, joder.',
+      'Se te nota el peso de arrastrar el listón por el suelo cada día. Hueles a cubo sin tapa, mierda.',
 
       'Guarra de fondo de pantalla de motel barato: se ve, se nota y no mejora con el tiempo, [nombre]. Gilipollas.',
 
@@ -11813,7 +11813,7 @@ const LABELS = {
 
       'Se te oye el arrastre de la guarrada hasta en los mensajes que quieren parecer neutros. Hueles a cubo sin tapa, fracasado.',
 
-      'Guarra de las que alardean y el alarde es el último recurso del aburrimiento, [nombre]. Menudo desastre higiénico, joder.',
+      'Guarra de las que alardean y el alarde es el último recurso del aburrimiento, [nombre]. Menudo desastre higiénico.',
 
       'Eres de las que dejan a todos mirando el móvil para no tener que responder, [nombre]. Cada vez. Puta vergüenza ajena colectiva.',
 
@@ -11833,9 +11833,9 @@ const LABELS = {
 
       'No hay barniz: hay barro puro y el barro no se vende como personalidad interesante. Sin anestesia, mierda.',
 
-      'Guarra de manual cutre: ni elegancia en el vicio ni gracia en el desastre, [nombre]. El jabón te dio de baja, joder.',
+      'Guarra de manual cutre: ni elegancia en el vicio ni gracia en el desastre, [nombre]. El jabón te dio de baja.',
 
-      'Guarra con las mismas cartas manchadas de siempre y sin plan B Hueles a cubo sin tapa, mierda, joder.',
+      'Guarra con las mismas cartas manchadas de siempre y sin plan B Hueles a cubo sin tapa, mierda.',
 
       'Guarra de las que leen el silencio como invitación y se equivocan siempre, [nombre]. Menudo desastre higiénico, coño.',
 
@@ -11881,15 +11881,15 @@ const LABELS = {
 
       'Se te nota el rastro de guarrería hasta en los mensajes que pretenden ser limpios, [nombre]. Cabrón.',
 
-      'Guarra convertido en wallpaper del fail colectivo. El jabón te dio de baja, gilipollas, joder.',
+      'Guarra convertido en wallpaper del fail colectivo. El jabón te dio de baja, gilipollas.',
 
       'Has convertido la suciedad en identidad y no hay detergente narrativo a la vista, [nombre]. Patético.',
 
-      'Guarra en modo sin filtro y el filtro pedía clemencia. Menudo desastre higiénico, asco, joder.',
+      'Guarra en modo sin filtro y el filtro pedía clemencia. Menudo desastre higiénico, asco.',
 
-      'El listón de lo presentable lo usas de rampa para bajar más todavía, joder, [nombre]. El ranking firma y listo, nivel sótano puro, qué pena.',
+      'El listón de lo presentable lo usas de rampa para bajar más todavía, [nombre]. El ranking firma y listo, nivel sótano puro, qué pena.',
 
-      'Guarra con el mismo gag de siempre y cero variación. El jabón te dio de baja, ridículo, joder.',
+      'Guarra con el mismo gag de siempre y cero variación. El jabón te dio de baja, ridículo.',
 
       'Se te oye el arrastre de la guarrería hasta en los neutros del chat, [nombre]. cerrado. Hueles a cubo sin tapa, fracasado.',
 
@@ -12047,7 +12047,7 @@ const LABELS = {
 
       'Guarra con la disciplina de quien nunca ha pasado un trapo por el relato, [nombre]. El ranking firma y listo, fracasado.',
 
-      'El high no es un mal día de orden: es. El jabón te dio de baja, ridículo, joder.',
+      'El high no es un mal día de orden: es. El jabón te dio de baja, ridículo.',
 
       'Tienes una presencia que ensucia el hilo en un solo mensaje, [nombre]. el grupo de testigo. Hueles a cubo sin tapa, fracasado.',
 
@@ -12305,7 +12305,7 @@ const LABELS = {
 
       'Sin señales. Tu manera de hablar no obliga a nadie a medir la suya, y eso se agradece. Delante del ranking y de la cara.',
 
-      'Hoy no das asco, [nombre]. Hasta el jabón se queda quieto, joder. El grupo ya lo tiene claro sin forzar el drama, asco.',
+      'Hoy no das asco, [nombre]. Hasta el jabón se queda quieto. El grupo ya lo tiene claro sin forzar el drama, asco.',
 
       'Low de guarra: higiene decente y cero rastro en el hilo, [nombre], cabrón. El grupo ya lo tiene claro sin forzar el drama, basura.',
 

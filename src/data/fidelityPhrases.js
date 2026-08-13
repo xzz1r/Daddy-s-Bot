@@ -266,7 +266,7 @@ const FIEL_LOW = [
   'Hostia puta, eres tan traidor que hasta los politicos te señalan y dicen hostia, al lado de ese tio yo soy un puto santo, menudo desastre.',
   'Coño, tu lealtad es como una braga rota: no sujeta nada, no cubre nada y todo el mundo ve lo que no deberia verse, qué pena.',
   'Eres la definicion andante de hijo de puta con DNI. Si buscas traicion en el diccionario, sale tu cara y tu codigo postal, patético.',
-  '[nombre] tiene la palabra mas vacia que el cerebro de un terraplanista. Y eso, joder, ya es alcanzar niveles astronomicos de vacio, miserable.',
+  '[nombre] tiene la palabra mas vacia que el cerebro de un terraplanista. Y eso, ya es alcanzar niveles astronomicos de vacio, miserable.',
   'Joder, te han dado mas oportunidades que a un preso en tercer grado y las has cagado todas con la precision de un reloj suizo, qué cringe.',
   'Tu fidelidad cabe en un dedal y aun sobra espacio para meter toda tu verguenza, que tambien es microscopica, da asco.',
   'Hostia, [nombre] es el tipo de persona que te denuncia a la policia y luego te visita en la carcel para preguntarte que tal, qué vergüenza.',

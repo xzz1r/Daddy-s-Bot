@@ -772,7 +772,7 @@ const APUESTA_POBRE = [
 
  'Pobre de aura y rico en cara dura. El casino no fía a fracasados como tú El ranking no hace descuentos, qué nivel de pena.',
 
- 'La mesa exige saldo. Tú ofreces vergüenza. No hay cambio posible, joder El grupo ya memorizó este fail, basura.',
+ 'La mesa exige saldo. Tú ofreces vergüenza. No hay cambio posible El grupo ya memorizó este fail, basura.',
 
  'Intentar apostar en bancarrota es el deporte de los que no aprenden, cabrón No hay maquillaje que lo tape, qué cutre.',
 
@@ -792,7 +792,7 @@ const APUESTA_POBRE = [
 
  'No tienes aura. Tienes un hueco donde debería estar el saldo, fracasado. El ranking no hace descuentos, qué pena.',
 
- 'All-in con los bolsillos vacíos. Eres un meme andante, joder El grupo ya memorizó este fail El grupo ya memorizó este fail, patético.',
+ 'All-in con los bolsillos vacíos. Eres un meme andante El grupo ya memorizó este fail El grupo ya memorizó este fail, patético.',
 
  'La mesa te rechaza por higiene económica del ranking, cabrón No hay maquillaje que lo tape No hay maquillaje que lo tape, miserable.',
 
@@ -812,7 +812,7 @@ const APUESTA_POBRE = [
 
  'Pobreza de aura certificada. No hay mesa para ti hoy, fracasado. El ranking no hace descuentos El ranking no hace descuentos, qué nivel de pena.',
 
- 'Intentar farmear suerte sin farmear presencia. Estrategia de idiota, joder El grupo ya memorizó este fail, basura.',
+ 'Intentar farmear suerte sin farmear presencia. Estrategia de idiota El grupo ya memorizó este fail, basura.',
 
  'La bancarrota no es estética. Es tu estado real, cabrón No hay maquillaje que lo tape No hay maquillaje que lo tape, qué cutre.',
 
@@ -832,7 +832,7 @@ const APUESTA_POBRE = [
 
  'All-in emocional, all-out de saldo. Fracasado con estilo barato El ranking no hace descuentos El ranking no hace descuentos, qué pena.',
 
- 'Vienes a perder lo que no tienes. Matemáticas de pringado, joder. El grupo ya memorizó este fail El grupo ya memorizó este fail, patético.',
+ 'Vienes a perder lo que no tienes. Matemáticas de pringado. El grupo ya memorizó este fail El grupo ya memorizó este fail, patético.',
 
  'El ranking te tiene fichado como cliente insolvente, cabrón No hay maquillaje que lo tape No hay maquillaje que lo tape, miserable.',
 
