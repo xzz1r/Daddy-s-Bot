@@ -6909,386 +6909,206 @@ const LABELS = {
     name: 'maricon',
     goodIsHigh: false,
     high: [
-      'Joder, un personaje hetero tan frágil que se cae con una mirada de más y se cae cada puto día, y hace tiempo. Basura.',
-
-      'Coño, tarde a aceptarlo y temprano a disimularlo: el desfase se nota en cada puta frase, y hace tiempo. Basura.',
-
-      'Coño, cada negación añade capa de ridículo: la tarta ya tiene demasiadas capas de mentira, y hace tiempo. Asco.',
-
-      'Coño, habla se te ilumina la cara dos segundos de más y esos dos segundos son toda la confesión, y hace tiempo. Cabrón.',
-
-      '[nombre] es tan maricón que más metros cuadrados que tu habitación y mejor wifi: a este ritmo vas a empadronarte dentro. Patético.',
-
-      'Joder, un detalle que solo tiene quien está eligiendo de verdad, y estás eligiendo sin disimulo, y hace tiempo. Ridículo.',
-
-      'Hostia, cuándo vas a salir: las apuestas están abiertas y las cuotas bajan cada puta semana, y hace tiempo. Pringado.',
-
-      'Coño, pasa un tío en forma: el reflejo es más honesto que toda tu boca junta en el chat, y hace tiempo. Fracasado.',
-
-      'Mierda, haciendo de hetero: el público se fue en el primer acto y tú sigues en el escenario solo, y hace tiempo. Joder.',
-
-      'Joder, gritas que no eres y el eco te devuelve la mentira con reverb de mentiroso profesional, y hace tiempo. Coño.',
-
-      'Coño, ya no cuenta como secreto: es un anuncio a toda página y tú sigues en modo incógnito, y hace tiempo. Gilipollas.',
-
-      'Mierda, tu cuerpo responde antes que tu boca: el cuerpo no ha firmado el pacto de silencio, y hace tiempo. Patético.',
-
-      'Coño, se quita la camiseta se te para el tiempo y luego reanudas el guion como si nadie hubiera visto, y hace tiempo. Asco.',
-
-      'Coño, dejó de preguntar, ahora afirma: tú sigues respondiendo como si fuera un debate abierto, y hace tiempo. Joder.',
-
-      '[nombre] es tan maricón que soy hetero tiene menos crédito que un anuncio de madrugada: nadie lo compra y sigues emitiéndolo. Coño.',
-
-      'Joder, la negación cansa más que la verdad y aun así eliges el cansancio como si fuera una virtud, y hace tiempo. Cabrón.',
-
-      'Coño, niegas y se te sube la voz media octava: el cuerpo delata hasta en el tono de la mentira, y hace tiempo. Patético.',
-
-      'Joder, cada no homo es un ladrillo: llevas una muralla y todavía crees que estás escondido detrás, y hace tiempo. Fracasado.',
-
-      'Coño, mujeres como manual leído en voz alta: sin pasión y con ganas de que termine la escena, y hace tiempo. Mierda.',
-
-      'Mierda, cuello, pausas y sonrisas de más ya escribieron el informe: solo falta tu firma al pie, y hace tiempo. Coño.',
-
-      'Joder, evidencia forense en tus reacciones: el juicio se celebra cada vez que pasa un tío bueno, y hace tiempo. Gilipollas.',
-
-      'Coño, versión macho es un skin para el grupo: en cuanto bajas la guardia el skin se cae solo, y hace tiempo. Ridículo.',
-
-      'Mierda, el armario ya no te protege, te exhibe: cada capa de negación hace el contorno más claro, y hace tiempo. Basura.',
-
-      'Joder, tanto en el disfraz que el día que te lo quites vas a sentir el aire: conviene sentirlo, y hace tiempo. Asco.',
-
-      'Mierda, pack de reprimido: miradas, pausas, bromas y ofensa selectiva: el pack se vende solo, y hace tiempo. Pringado.',
-
-      'Mierda, ya no se sorprende, se aburre de esperarte: eso también es un diagnóstico del grupo, y hace tiempo. Cabrón.',
-
-      'Joder, hetero cabe en un tuit: tu gay reprimido llena el resto del timeline sin esfuerzo, y hace tiempo. Patético.',
-
-      'Coño, fútbol como trámite: los heteros de verdad a veces se aburren pero no se les nota tanto, y hace tiempo. Pringado.',
-
-      'Mierda, años construyendo la coartada: la coartada ya no sostiene el peso de las pruebas, y hace tiempo. Fracasado.',
-
-      'Joder, no soy gay suena a todavía no lo he dicho en voz alta: la diferencia es mínima, y hace tiempo. Mierda.',
-
-      'Coño, culos con concentración de cirujano: luego dices que era por el corte del pantalón, y hace tiempo. Cabrón.',
-
-      'Mierda, duda en zona de confort y evidencia en invitado molesto: el invitado ya vive contigo, y hace tiempo. Gilipollas.',
-
-      'Joder, versión pública y privada ya no se saludan: la privada lleva ganando años enteros, y hace tiempo. Ridículo.',
-
-      'Mierda, tanto negando que la negación se te quedó de gesto: hasta en las fotos se ve el tic, y hace tiempo. Asco.',
-
-      'Coño, tías como letra de canción en otro idioma: sin sentirla y con ganas de que acabe, y hace tiempo. Fracasado.',
-
-      'Mierda, el grupo te resume en una palabra: tú necesitas un párrafo para no decirla, el resumen gana, y hace tiempo. Joder.',
-
-      'Joder, tío se ríe y tú medio segundo después: se te ve el retraso del disimulo a la legua, y hace tiempo. Coño.',
-
-      'Coño, única persona sorprendida eres tú: el resto está en la grada desde el primer acto, y hace tiempo. Gilipollas.',
-
-      'Mierda, tíos como escaparates y no es de ropa: es de otra cosa que no quieres poner en palabras, y hace tiempo. Patético.',
-
-      '[nombre] es tan maricón que boca firma comunicados y cuerpo los desmiente en tiempo real: el cuerpo tiene mejor gabinete. Ridículo.',
-
-      'Joder, pack de reprimido con manual incluido: el manual se te cae a menudo y se lee solo, y hace tiempo. Basura.',
-
-      'Coño, cuerpo de amigos con inventario: tallas, proporciones y nota mental que no confiesas, y hace tiempo. Joder.',
-
-      'Joder, coherencia se fue el día que combinaste miradas de hambre con discurso de hetero, y hace tiempo. Cabrón.',
-
-      'Coño, cuerpo ya hizo el anuncio: tú sigues en la rueda de prensa negando el comunicado oficial, y hace tiempo. Patético.',
-
-      'Mierda, dices que no miras y la pupila se dilata sola: la biología no firmó el pacto de silencio, y hace tiempo. Ridículo.',
-
-      'Joder, negación es tu deporte olímpico: llevas medallas de mentira y el podio se nota, y hace tiempo. Fracasado.',
-
-      'Coño, cada pista es más clara que la anterior: la curva de aprendizaje del grupo es perfecta, y hace tiempo. Mierda.',
-
-      'Mierda, boca dice no y tiempo de reacción dice sí: el tiempo de reacción no miente nunca, y hace tiempo. Coño.',
-
-      'Joder, única salida digna es dejar de pelearte con lo evidente: el resto son vueltas de más, y hace tiempo. Gilipollas.',
-
-      'Coño, tíos como quien elige en una carta: y la carta no es de restaurante de ninguna clase, y hace tiempo. Ridículo.',
-
-      'Mierda, hetero es traje de alquiler: se devuelve al final de la función y la función se alarga, y hace tiempo. Basura.',
-
-      'Mierda, años en modo avestruz: el agujero ya es profundo. Y el grupo ve el resto del cuerpo, y hace tiempo. Pringado.',
-
-      'Joder, miras con hambre y hablas con dieta: el hambre se te ve en los ojos. Sin filtro, y hace tiempo. Patético.',
-
-      '[nombre] es tan maricón que duda en estilo y certeza en peligro: el estilo se te está quedando viejo, y hace tiempo. Asco.',
-
-      'Coño, dices que no pasa nada y se te nota que pasa todo: el no pasa nada es el peor disfraz, y hace tiempo. Pringado.',
-
-      'Mierda, tanto negociando contigo que el grupo firmó la paz por ti hace meses enteros, y hace tiempo. Fracasado.',
-
-      'Joder, boca es abogado defensor y cuerpo es el testigo que lo hunde: el juicio está visto, y hace tiempo. Mierda.',
-
-      'Mierda, grupo no necesita pruebas nuevas: necesita que tú te enteres de las viejas de una vez, y hace tiempo. Gilipollas.',
-
-      'Joder, estética de la duda y discurso de la certeza: ninguna de las dos te queda limpia, y hace tiempo. Ridículo.',
-
-      'Mierda, miras a tíos con calma de quien ya eligió y boca de quien todavía no firmó nada, y hace tiempo. Asco.',
-
-      'Coño, años en el limbo entre lo que eres y lo que dices: el limbo también cansa al público, y hace tiempo. Fracasado.',
-
-      'Mierda, grupo te tiene en la categoría correcta: tú sigues en la de reclamaciones sin avanzar, y hace tiempo. Joder.',
-
-      'Joder, negación hecha reflejo: el reflejo ya es más rápido que tu pensamiento consciente, y hace tiempo. Coño.',
-
-      'Coño, salida del armario convertida en tráiler eterno: el estreno no llega y el público se fue, y hace tiempo. Gilipollas.',
-
-      'Mierda, culo con más honestidad que el discurso: y se nota en cómo te sientas cuando hay tíos, y hace tiempo. Patético.',
-
-      'Joder, no en la boca y sí en los ojos: los ojos se ven de más lejos y no mienten nunca, y hace tiempo. Basura.',
-
-      'Coño, has llegado al final del debate: solo falta que te enteres de que acabó hace meses, y hace tiempo. Asco.',
-
-      '[nombre] es tan maricón que duda cuánto tiempo más del teatro: el final está escrito y el público ya tiene el spoiler. Fracasado.',
-
-      'Joder, disimulo cansa más al grupo que a ti: y eso ya es mucho decir en este chat, y hace tiempo. Pringado.',
-
-      'Mierda, lo obvio en debate eterno: el debate ya no entretiene a nadie en este grupo, y hace tiempo. Cabrón.',
-
-      '[nombre] es tan maricón que cuando alguien tiene un problema abajo él ya está arrodillado antes de que terminen la frase, joder.',
-
-      'Joder, el grupo te ve venir a kilómetros: la forma de mirar es el faro que no apagas, y hace tiempo. Asco.',
-
-      '[nombre] es tan maricón que tío bueno dice algo inteligente y se te ilumina más la cara que cuando una tía te habla. Pringado, gilipollas.',
-
-      '[nombre] es tan maricón que hetero es recordatorio constante: quien lo es de verdad no se recuerda tanto a sí mismo. Patético.',
-
-      '[nombre] es tan maricón que mentira en hábito y hábito en personalidad secundaria: la secundaria ya manda en el chat. Basura.',
-
-      'Coño, evidencia en las pausas: las pausas hablan más que tus frases de negación, y hace tiempo. Basura.',
-
-      'Coño, outfit de disimulo y gesto de más suman: la suma ya es pública en el chat, y hace tiempo. Cabrón.',
-
-      '[nombre] es tan maricón que tanto tiempo en el personaje que ya no recuerdas cómo se sale y fuera hace menos frío. Pringado, fracasado.',
-
-      '[nombre] es tan maricón que años en el vestuario y todavía no has salido a escena: el público está cansado de esperar. Coño.',
-
-      '[nombre] es tan maricón que cruzas las piernas, gesticulas y ríes de un modo que ya votó: el recuento es unánime. Ridículo.',
-
-      '[nombre] es tan maricón que tío bueno entra al chat y se te resetea el hilo: luego retomas como si no hubiera corte. Joder.',
-
-      '[nombre] es tan maricón que comentario de más y risa nerviosa: otra línea en el expediente que no para de crecer. Patético.',
-
-      '[nombre] es tan maricón que cuerpo lleva años en otra conversación: tu boca todavía no se ha enterado del tema. Gilipollas.',
-
-      '[nombre] es tan maricón que te gustan las tías y el tiempo de mirada dice los tíos: el tiempo de mirada no negocia. Mierda.',
-
-      '[nombre] es tan maricón que alarma de incendios: ruidosa, urgente y avisando justo de lo contrario a lo que dices. Mierda.',
-
-      '[nombre] es tan maricón que ambigüedad en hogar y claridad en amenaza: se entiende el miedo, no la mentira diaria. Cabrón.',
-
-      '[nombre] es tan maricón que es broma después de cada comentario que no lo es: el es broma es tu firma digital. Gilipollas.',
-
-      '[nombre] es tan maricón que cada pista nueva es redundante: el caso está cerrado desde hace temporadas enteras. Ridículo.',
-
-      '[nombre] es tan maricón que te gustan las tías pero tu forma de mirar a los tíos grita más alto que un megáfono. Basura.',
-
-      '[nombre] es tan maricón que armario ya no es metáfora: es espacio real con demasiadas horas de ocupación diaria. Mierda.',
-
-      '[nombre] es tan maricón que culo sueña en alta definición y boca emite en blanco y negro: la calidad se nota. Fracasado.',
-
-      '[nombre] es tan maricón que disfraz, ofensa lista y cansancio de mantenerlos: el cansancio se te oye en la voz. Cabrón.',
-
-      'Mierda, la misma convicción con la que un rehén lee el comunicado forzado, sin alma y sin ganas de verdad. Gilipollas.',
-
-      '[nombre] es tan maricón que menú masculino con demasiada atención para ser casual: la casualidad no dura tanto. Joder.',
-
-      '[nombre] es tan maricón que niegas con furia y confirmas con el volumen: quien no oculta nada no grita tanto. Asco.',
-
-      'Joder, abres la boca y luego vuelves a entrar corriendo a apagar la luz como si nadie hubiera visto nada. Mierda.',
-
-      'Mierda, el armario es tan grande que ya tiene código postal: pronto te cobran el IBI por vivir dentro. Ridículo.',
-
-      'Joder, comentario sospechoso seguido de es broma es otra confesión con sello: llevas un álbum entero. Pringado.',
-
-      'Mierda, un traje prestado dos tallas grande: se te ve el culo por todos lados y dices que te queda bien. Asco.',
-
-      'Sales del armario cada vez que abres la boca y luego vuelves a entrar corriendo a apagar la luz como si nadie hubiera visto nada, mierda.',
-
-      'Cada vez que un tío bueno habla se te ilumina la cara dos segundos de más. Esos dos segundos son toda la confesión que necesitábamos, gilipollas.',
-
-      'Dices que te gustan las tías con la misma convicción con la que un rehén lee el comunicado forzado. Sin alma y sin ganas, patético.',
-
-      'El no homo que sueltas cada cinco minutos es el estribillo de una canción que todo el grupo se sabe de memoria, desperdicio.basura.',
-
-      'Tu heterosexualidad es un traje prestado dos tallas grande: se te ve el culo por todos lados y encima dices que te queda bien, vergüenza, fracasado.',
-
-      'Hostia, se ve la estructura por debajo. Y el grupo ya no se cree ni el montaje más elaborado del chat, y hace tiempo. Coño.',
-
-      'Hostia, el estribillo de una canción que todo el grupo se sabe de memoria desde el primer mes, y hace tiempo. Basura.',
-
-      'Coño, la devoción de quien reza y luego niegas la religión con la boca todavía llena de amén, y hace tiempo. Desperdicio.',
-
-      '[nombre] es tan maricón que una miga de pan hasta la puerta del armario: llevas un rastro de kilómetros y finges despiste. Vergüenza, fracasado.',
-
-      'Joder, quien repasa un guion mal aprendido: sin improvisación, sin ganas y con prisa de que acabe, y hace tiempo. Cutre.',
-
-      'Hostia, intensidad de catálogo y el catálogo no es de amistad, es de otra cosa que no nombras, y hace tiempo. Cabrón.',
-
-      'Hostia, no te esconde, te expone: cada negación es otra capa de pintura que no tapa la forma, y hace tiempo. Desperdicio, mierda.',
-
-      'Mierda, pausas, miradas y sonrisas de más ya formaron un expediente completo: solo falta tu firma, y hace tiempo. Vergüenza.',
-
-      'Hostia, tu culo y tu boca están en guerra civil: el culo quiere y la boca sigue con el comunicado, y hace tiempo. Fracasado.',
-
-      'Hostia, la única persona que compra tu versión hetero eres tú y cada día con menos convicción, y hace tiempo. Gilipollas.',
-
-      'Joder, el teatro dura lo que dura la paciencia del grupo y la paciencia se mide en semanas, y hace tiempo. Desperdicio.',
-
-      'Hostia, la duda en estilo de vida y la evidencia en ruido de fondo: el ruido ya es ensordecedor, y hace tiempo. Asco.',
-
-      'Coño, culos masculinos con la misma atención con que otros miran el móvil: y no es el pantalón, y hace tiempo. Vergüenza.',
-
-      'Mierda, castillo de arena: la marea de la verdad sube cada día y se lleva otro muro de tu coartada, y hace tiempo. Cutre.',
-
-      'Hostia, fichado con más precisión que tú a ti mismo: eso ya es el colmo de la negación diaria, y hace tiempo. Joder.',
-
-      'Hostia, no eres con la frecuencia con que respiras: quien no lo es no necesita el recordatorio, y hace tiempo. Patético.',
-
-      'Hostia, un tío se agacha se te para el reloj: luego sigues como si el tiempo no hubiera pausado, y hace tiempo. Vergüenza, mierda.',
-
-      'Coño, boca niega y cuerpo confirma: el grupo se queda con el testigo más fiable del expediente, y hace tiempo. Cutre.',
-
-      'Joder, tías con la pasión de un vegetariano describiendo un chuletón: se nota que no te apetece, y hace tiempo. Joder.',
-
-      'Hostia, armario con wifi, calefacción y suscripciones: a este ritmo pides comida a domicilio dentro, y hace tiempo. Mierda.',
-
-      'Coño, pista es miga: el camino llega hasta la puerta y la puerta está entreabierta hace meses, y hace tiempo. Coño.',
-
-      'Hostia, físico de bros con detalle de inventario personal: tallas, proporciones y nota mental, y hace tiempo. Ridículo.',
-
-      'Mierda, negación forma parte del personaje: sin ella el papel se cae, por eso la repites tanto, y hace tiempo. Desperdicio.',
-
-      'Joder, cuerpo responde a tíos y boca a presión social: el cuerpo no ha leído las normas del chat, y hace tiempo. Vergüenza, qué vergüenza.',
-
-      'Hostia, armario tan profundo que tus negaciones hacen eco y el eco suena a mentira profesional, y hace tiempo. Cutre, asco, ridículo.',
-
-      'Hostia, memes internos sobre tu armario: los memes son más honestos que tus estados de WhatsApp, y hace tiempo. Coño, fracasado.',
-
-      'Hostia, te gustan las mujeres pero la atención se va sola a los tíos: la atención no miente, y hace tiempo. Basura, qué miseria.',
-
-      'Coño, teatro en intermedio: llevas meses en el intermedio y el público quiere el segundo acto, y hace tiempo. Desperdicio, da grima.',
-
-      'Hostia, evidencia ordenada por fecha en tus reacciones: es un diario sin metáforas ni disculpas, y hace tiempo. Pringado, qué nivel de pena.',
-
-      'Hostia, invertido en parecer y no en ser: la factura llega cada vez que alguien te mira de más, y hace tiempo. Cabrón, basura.',
-
-      'Hostia, día que digas la verdad el grupo dirá por fin: y eso también va a doler un poco, y hace tiempo. Desperdicio, qué cutre.',
-
-      'Mierda, hetero es un DLC que casi nadie activa: el juego base es otro y todo el mundo lo sabe, y hace tiempo. Vergüenza, da pena ajena.',
-
-      'Hostia, armario con puerta de vaivén: sales un segundo y vuelves a entrar, se ve desde fuera, y hace tiempo. Fracasado, qué vacío.',
-
-      'Mierda, es broma es el punto final de cada confesión: sin él el párrafo quedaría demasiado claro, y hace tiempo. Mierda, indignante.',
-
-      'Hostia, niegas con datos inventados. Y el grupo anota la contradicción: el cuaderno está lleno, y hace tiempo. Gilipollas, qué vergüenza ajena.',
-
-      'Joder, grupo ya no debate el diagnóstico: debate el plazo y tú sigues en fase de alegaciones, y hace tiempo. Desperdicio, da vergüenza.',
-
-      'Hostia, culos con devoción y tías con deber: el contraste es el chiste del día en el grupo, y hace tiempo. Asco, qué flojo.',
-
-      'Coño, hetero cabe en un mensaje de ocho segundos: tu gay reprimido no cabe en un hilo entero, y hace tiempo. Vergüenza, menudo desastre.',
-
-      'Mierda, tanto corrector discursivo que la verdad necesita pala: y sale igual de clara, y hace tiempo. Cutre, qué pena.',
-
-      'Hostia, armario ya tiene vecinos: tus excusas viven en el piso de abajo y hacen ruido de noche, y hace tiempo. Joder, patético.',
-
-      'Hostia, hasta los nuevos te clasifican en una tarde: eficiente sin querer y sin remedio, y hace tiempo. Patético, miserable.',
-
-      'Hostia, invertido en el personaje y olvidado de la persona: el personaje ya no te queda, y hace tiempo. Vergüenza, mierda.',
-
-      'Coño, te gustan las tías y el historial de atención dice otra cosa: el historial gana, y hace tiempo. Cutre, da asco.',
-
-      'Hostia, día que coincidas con lo que todos ven vas a ganar tiempo: hasta entonces lo pierdes, y hace tiempo. Mierda, qué vergüenza.',
-
-      'Coño, mujeres como quien rellena un formulario: campos obligatorios y cero emoción real, y hace tiempo. Coño, ridículo.',
-
-      'Hostia, pack completo y nota a pie de no soy gay: nadie lee la nota y todos leen el pack, y hace tiempo. Ridículo, fracasado.',
-
-      'Mierda, tío se ríe contigo y se te olvida el personaje medio segundo: ese medio segundo basta, y hace tiempo. Desperdicio, qué miseria.',
-
-      'Joder, armario con horarios de visita: el grupo ya conoce los turnos de entrada y salida, y hace tiempo. Vergüenza, da grima.',
-
-      'Hostia, tu versión y la del grupo ya no comparten ni el pronombre implícito del asunto, y hace tiempo. Cutre, asco, qué nivel de pena.',
-
-      'Hostia, cuando niegas se te pone la voz de quien defiende un final de mes: forzado y sin margen, y hace tiempo. Basura, basura.',
-
-      'Coño, armario convertido en oficina: trabajas ahí más horas que en tu vida real, y hace tiempo. Desperdicio, qué cutre.',
-
-      '[nombre] es tan maricón que única persona que mantiene el debate eres tú: el resto está en la conclusión desde el año pasado. Vergüenza, basura.',
-
-      'Joder, cuerpo anuncia y boca desmiente: el anuncio tiene más alcance que el desmentido, y hace tiempo. Cutre, qué vacío.',
-
-      'Hostia, cada no homo es una firma: llevas el documento lleno y todavía dices que está en borrador, y hace tiempo. Pringado, indignante.',
-
-      'Hostia, miras con el estómago y hablas con el protocolo: el estómago tiene mejor criterio, y hace tiempo. Cabrón, qué vergüenza ajena.',
-
-      'Hostia, la verdad no te va a matar: el disfraz a largo plazo sí te está cobrando peaje cada día, y hace tiempo. Desperdicio, da vergüenza.',
-
-      'Joder, cada negación es un ladrillo: la casa de la mentira ya tiene terraza y vistas, y hace tiempo. Joder, qué flojo.',
-
-      '[nombre] es tan maricón que fútbol para disimular y se te nota el aburrimiento a kilómetros: los heteros no fingen tanto. Cutre, menudo desastre.',
-
-      '[nombre] es tan maricón que amigos como quien mira el menú y el menú no es de comida: es de otra carta del todo. Desperdicio, qué pena.',
-
-      'Hostia, mentira es más trabajo que la verdad y aun así eliges el trabajo cada día, y hace tiempo. Coño, patético.',
-
-      'Tu hetero es de cartón piedra: se ve la estructura por debajo. Y el grupo ya no se cree ni el montaje más elaborado, miserable.',
-
-      '[nombre] es tan maricón que mujeres con la emoción de quien describe el clima: correcto y sin alma de ninguna clase. Cutre, basura.',
-
-      'Joder, ambigüedad en escudo y el escudo se te queda pequeño cada mes que pasa, y hace tiempo. Cutre.',
-
-      'Analizas el físico de tus amigos con un detalle que solo tiene quien está eligiendo de verdad. Y estás eligiendo, basura.',
-
-      '[nombre] es tan maricón que cuello más honesto que la boca: gira hacia donde quiere y no pide permiso a nadie. Vergüenza, ridículo.',
-
-      '[nombre] es tan maricón que cada soy macho es grito de auxilio con eco: el eco llega más lejos que el grito. Desperdicio, fracasado.',
-
-      'Tu armario tiene más metros cuadrados que tu habitación y mejor wifi. A este ritmo vas a empadronarte dentro, ridículo.',
-
-      'Miras culos de tíos con la devoción de quien reza y luego niegas la religión con la boca todavía llena de amén, asco, da grima.',
-
-      'Mierda, el corte de pelo de tus amigos con detalle de interesado, no de peluquero: y no eres peluquero. Mierda, qué nivel de pena.',
-
-      '[nombre], maricón de los que niegan con la boca y confirman con el gesto en el mismo mensaje, basura.',
-
-      'Se te ve la pluma hasta en el audio de buenos días, [nombre]. Gilipollas, y. Hostia puta, qué nivel, qué cutre.',
-
-      'Maricón de historial público: no hace falta escarbar, está en la superficie del chat, [nombre]. Coño, da pena ajena.',
-
-      '[nombre], dices que te gustan las tías pero el cuerpo te delata en cada puto hilo, cabrón, y. Hostia puta, qué nivel, qué vacío.',
-
-      'Maricón sin disimulo útil: el disimulo al menos indicaría vergüenza, [nombre]. Asco, y. Hostia puta, qué nivel, indignante.',
-
-      'El grupo no necesita detector: te basta abrir la boca dos segundos de más, [nombre]. Patético, y. Hostia puta, qué nivel, qué vergüenza ajena.',
-
-      '[nombre], has hecho de la pose tu única personalidad y el chat te tiene de meme, mierda, y. Hostia puta, qué nivel, da vergüenza.',
-
-      'Maricón de cartel: se ve el anuncio y nadie quiere la función, [nombre]. Ridículo, y. Hostia puta, qué nivel, qué flojo.',
-
-      '[nombre], confundes límites ajenos con permiso para seguir el show, fracasado, y. Hostia puta, qué nivel, menudo desastre.',
-
-      'Se te oye la voz de final de mes cada vez que niegas de más, [nombre]. Basura, y. Hostia puta, qué nivel, qué pena.',
-
-      'Maricón de los que miran con devoción y luego predican lo contrario, [nombre]. Joder, y. Hostia puta, qué nivel, patético.',
-
-      '[nombre], el almost de hetero se te cae en cada reacción del chat, gilipollas, y. Hostia puta, qué nivel, miserable.',
-
-      'Has convertido la ambigüedad en gag y el grupo ya no se ríe, solo documenta, [nombre]. Coño, y. Hostia puta, qué nivel, qué cringe.',
-
-      'Maricón de superficie: huele el cerrado sin abrir el cubo, [nombre]. Cabrón, y. Hostia puta, qué nivel, da asco.',
-
-      '[nombre], niegas tanto que el propio no se te nota forzado, asco, y, y el grupo no se traga el cuento, basura.',
-
-      'El ranking de maricón te tiene de ejemplo cuando alguien pregunta, [nombre]. Patético, y. Hostia puta, qué nivel, ridículo.',
-
-      '[nombre], tu disimulo dura menos que un estado de 24 horas, mierda, y. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
-
+      '[nombre], no eres maricón con la frecuencia con que respiras: quien no lo es no necesita el recordatorio cada dos mensajes, patético.',
+      'El porcentaje no miente, [nombre]: te delata el teclado antes que cualquier rumor, miserable. El grupo ya tenía el veredicto, qué cringe.',
+      '[nombre], el armario te queda pequeño y encima dejas la puerta entreabierta, qué cringe. El grupo ya tenía el veredicto, da asco.',
+      'Con ese % ya no es sospecha: es expediente abierto, [nombre], da asco. El grupo ya tenía el veredicto, qué vergüenza.',
+      '[nombre], te ofendes como quien se siente aludido. Casualidad que nunca falla, qué vergüenza. El grupo ya tenía el veredicto, ridículo.',
+      'Maricón de manual, [nombre]: la pose hetero se te cae en el primer hilo caliente, ridículo. El grupo ya tenía el veredicto, fracasado.',
+      '[nombre], tus reacciones hablan más alto que tus negaciones, fracasado. El grupo ya tenía el veredicto, qué miseria.',
+      'El grupo no te inventó el veredicto, [nombre]: solo lo leyó en tu historial, qué miseria. El grupo ya tenía el veredicto, da grima.',
+      '[nombre], cada vez que pasa un tío el hilo se te resetea la neutralidad, da grima. El grupo ya tenía el veredicto, qué nivel de pena.',
+      'No es un lag del personaje: es el personaje, [nombre], qué nivel de pena. El grupo ya tenía el veredicto, basura.',
+      '[nombre], el disfraz de hetero te queda de alquiler y se ve la etiqueta, basura. El grupo ya tenía el veredicto, qué cutre.',
+      'Si no fuera cierto no te picarían tanto estos comandos, [nombre], qué cutre. El grupo ya tenía el veredicto, da pena ajena.',
+      '[nombre], tu radar está calibrado y no precisamente hacia el otro lado, da pena ajena. El grupo ya tenía el veredicto, qué vacío.',
+      'Maricón con wifi, [nombre]: conectado siempre que hay material visual, qué vacío. El grupo ya tenía el veredicto, indignante.',
+      '[nombre], niegas en texto y confirmas en emoji. El chat no es tonto, indignante. El grupo ya tenía el veredicto, qué flojo.',
+      'El armario tiene filtraciones y todas llevan tu nombre, [nombre], qué flojo. El grupo ya tenía el veredicto, menudo desastre.',
+      '[nombre], te delata la insistencia en aclarar lo que nadie te preguntó, menudo desastre. El grupo ya tenía el veredicto, qué pena.',
+      'Cuanto más lo niegas, más limpio queda el diagnóstico, [nombre], qué pena. El grupo ya tenía el veredicto, da vergüenza.',
+      '[nombre], no hace falta confesión: el patrón ya firmó por ti, da vergüenza. El grupo ya tenía el veredicto, qué vergüenza ajena.',
+      'Maricón de perfil bajo y reacciones de perfil alto, [nombre], qué vergüenza ajena. El grupo ya tenía el veredicto, patético.',
+      '[nombre], el porcentaje te quedó generoso comparado con el historial, patético. El grupo ya tenía el veredicto, miserable.',
+      'Se te ve el soft cuando nadie está mirando… y cuando sí, también, [nombre], miserable. El grupo ya tenía el veredicto, qué cringe.',
+      '[nombre], tu hetero de exhibición dura menos que un estado de 24 horas, qué cringe. El grupo ya tenía el veredicto, da asco.',
+      'El bot solo puso número a lo que el grupo ya cuchicheaba, [nombre], da asco. El grupo ya tenía el veredicto, qué vergüenza.',
+      '[nombre], cada defensa tuya añade otra prueba al expediente, qué vergüenza. El grupo ya tenía el veredicto, ridículo.',
+      'Maricón en modo invisible con notificaciones a todo color, [nombre], ridículo. El grupo ya tenía el veredicto, fracasado.',
+      '[nombre], no eres sutil: eres ruidoso en todo menos en admitirlo, fracasado. El grupo ya tenía el veredicto, qué miseria.',
+      'La duda razonable se te acabó hace varios cientos de mensajes, [nombre], qué miseria. El grupo ya tenía el veredicto, da grima.',
+      '[nombre], el armario es de Ikea: se arma mal y se nota, da grima. El grupo ya tenía el veredicto, qué nivel de pena.',
+      'Te traiciona el scroll antes que la boca, [nombre], qué nivel de pena. El grupo ya tenía el veredicto, basura.',
+      '[nombre], el % es alto porque el material de sobra no cabe en under, basura. El grupo ya tenía el veredicto, qué cutre.',
+      'Maricón documentado, [nombre]: el chat tiene capturas mentales de sobra, qué cutre. El grupo ya tenía el veredicto, da pena ajena.',
+      '[nombre], fingir indiferencia te sale peor que el propio tema, da pena ajena. El grupo ya tenía el veredicto, qué vacío.',
+      'No es fobia: es observación con datos, [nombre], qué vacío. El grupo ya tenía el veredicto, indignante.',
+      '[nombre], tu zona de confort tiene dirección y no es la que publicitas, indignante. El grupo ya tenía el veredicto, qué flojo.',
+      'El recordatorio duele porque pega donde ya sabías, [nombre], qué flojo. El grupo ya tenía el veredicto, menudo desastre.',
+      '[nombre], maricón de los que se delatan al defenderse, menudo desastre. El grupo ya tenía el veredicto, qué pena.',
+      'Si el porcentaje fuera más bajo, no estarías tan quieto leyendo esto, [nombre], qué pena. El grupo ya tenía el veredicto, da vergüenza.',
+      '[nombre], el grupo no necesita detector: tú eres el sensor, da vergüenza. El grupo ya tenía el veredicto, qué vergüenza ajena.',
+      'Maricón con manual de negación desactualizado, [nombre], qué vergüenza ajena. El grupo ya tenía el veredicto, patético.',
+      '[nombre], cada \\\'yo no soy\\\' suma un punto al contador interno del chat, patético. El grupo ya tenía el veredicto, miserable.',
+      'El armario tiene humedad y se te ve el moho, [nombre], miserable. El grupo ya tenía el veredicto, qué cringe.',
+      '[nombre], te delata el tiempo de respuesta cuando el tema se pone visual, qué cringe. El grupo ya tenía el veredicto, da asco.',
+      'No es un fase: es el build actual, [nombre], da asco. El grupo ya tenía el veredicto, qué vergüenza.',
+      '[nombre], maricón de los que creen que el volumen de la negación borra el rastro, qué vergüenza. El grupo ya tenía el veredicto, ridículo.',
+      'El veredicto es público porque el patrón también lo es, [nombre], ridículo. El grupo ya tenía el veredicto, fracasado.',
+      '[nombre], tu hetero performático necesita ensayo y se nota la falta de horas, fracasado. El grupo ya tenía el veredicto, qué miseria.',
+      'Maricón sin filtro cuando baja la guardia, [nombre], qué miseria. El grupo ya tenía el veredicto, da grima.',
+      '[nombre], el % no es ataque: es resumen ejecutivo, da grima. El grupo ya tenía el veredicto, qué nivel de pena.',
+      'Si fuera falso, sobrarían las aclaraciones, [nombre], qué nivel de pena. El grupo ya tenía el veredicto, basura.',
+      '[nombre], se te ve el gusto en la forma de mirar el hilo, basura. El grupo ya tenía el veredicto, qué cutre.',
+      'Maricón de historial limpio solo en tu cabeza, [nombre], qué cutre. El grupo ya tenía el veredicto, da pena ajena.',
+      '[nombre], el armario ya ni cierra: se quedó de adorno, da pena ajena. El grupo ya tenía el veredicto, qué vacío.',
+      'Te delata más un sticker que mil discursos, [nombre], qué vacío. El grupo ya tenía el veredicto, indignante.',
+      '[nombre], maricón con coraza de chiste que ya no cubre nada, indignante. El grupo ya tenía el veredicto, qué flojo.',
+      'El chat te tiene catalogado y el bot solo puso la etiqueta, [nombre], qué flojo. El grupo ya tenía el veredicto, menudo desastre.',
+      '[nombre], cuanto más alto el %, menos espacio para el teatro, menudo desastre. El grupo ya tenía el veredicto, qué pena.',
+      'Maricón de los que proyectan y después se ofenden, [nombre], qué pena. El grupo ya tenía el veredicto, da vergüenza.',
+      '[nombre], tu neutralidad es selectiva y se nota a la legua, da vergüenza. El grupo ya tenía el veredicto, qué vergüenza ajena.',
+      'No necesitas confesar: el hilo ya lo hizo por ti, [nombre], qué vergüenza ajena. El grupo ya tenía el veredicto, patético.',
+      '[nombre], el disfraz pesa y se te cae en cada tirada alta, patético. El grupo ya tenía el veredicto, miserable.',
+      'Maricón estable, [nombre]: no es un pico, es la media, miserable. El grupo ya tenía el veredicto, qué cringe.',
+      '[nombre], el radar del grupo está más calibrado que tu negación, qué cringe. El grupo ya tenía el veredicto, da asco.',
+      'Se te ve el soft en la elección de batallas, [nombre], da asco. El grupo ya tenía el veredicto, qué vergüenza.',
+      '[nombre], maricón de los que necesitan que nadie lo diga en voz alta, qué vergüenza. El grupo ya tenía el veredicto, ridículo.',
+      'El porcentaje es el espejo; tú aportaste el reflejo, [nombre], ridículo. El grupo ya tenía el veredicto, fracasado.',
+      '[nombre], la insistencia en el rol hetero es la prueba más barata, fracasado. El grupo ya tenía el veredicto, qué miseria.',
+      'Maricón con wifi y sin modo avión, [nombre], qué miseria. El grupo ya tenía el veredicto, da grima.',
+      '[nombre], el armario es un concepto que en tu caso ya es folklore, da grima. El grupo ya tenía el veredicto, qué nivel de pena.',
+      'Te delata el patrón, no el comando, [nombre], qué nivel de pena. El grupo ya tenía el veredicto, basura.',
+      '[nombre], maricón de manual: niega, se altera, confirma, basura. El grupo ya tenía el veredicto, qué cutre.',
+      'Si el chat votara en silencio, el recuento ya salió, [nombre], qué cutre. El grupo ya tenía el veredicto, da pena ajena.',
+      '[nombre], el % alto es coherencia con tu rastro, no crueldad gratis, da pena ajena. El grupo ya tenía el veredicto, qué vacío.',
+      'Maricón de los que se creen discretos con el brillo al máximo, [nombre], qué vacío. El grupo ya tenía el veredicto, indignante.',
+      '[nombre], cada reacción tuya es un párrafo del informe, indignante. El grupo ya tenía el veredicto, qué flojo.',
+      'El armario tiene salida de emergencia y la usas al revés, [nombre], qué flojo. El grupo ya tenía el veredicto, menudo desastre.',
+      '[nombre], maricón con narrativa de incomprendido y datos de obvio, menudo desastre. El grupo ya tenía el veredicto, qué pena.',
+      'No es broma del bot: es archivo del grupo, [nombre], qué pena. El grupo ya tenía el veredicto, da vergüenza.',
+      '[nombre], te pica porque el número cuadra, da vergüenza. El grupo ya tenía el veredicto, qué vergüenza ajena.',
+      'Maricón de perfil, [nombre]: se lee sin abrir el chat a veces, qué vergüenza ajena. El grupo ya tenía el veredicto, patético.',
+      '[nombre], el teatro hetero tiene intermedios muy largos, patético. El grupo ya tenía el veredicto, miserable.',
+      'Se te ve en lo que miras y en lo que finges no mirar, [nombre], miserable. El grupo ya tenía el veredicto, qué cringe.',
+      '[nombre], maricón de los que necesitan el debate para no mirar el dato, qué cringe. El grupo ya tenía el veredicto, da asco.',
+      'El veredicto no pide tu aprobación, [nombre], da asco. El grupo ya tenía el veredicto, qué vergüenza.',
+      '[nombre], el % es alto y tu disimulo es bajo: mal combo, qué vergüenza. El grupo ya tenía el veredicto, ridículo.',
+      'Maricón documentado en reacciones, [nombre], ridículo. El grupo ya tenía el veredicto, fracasado.',
+      '[nombre], el armario ya es atracción turística del hilo, fracasado. El grupo ya tenía el veredicto, qué miseria.',
+      'Te delata el cuerpo del mensaje antes que el contenido, [nombre], qué miseria. El grupo ya tenía el veredicto, da grima.',
+      '[nombre], maricón con negación de suscripción mensual, da grima. El grupo ya tenía el veredicto, qué nivel de pena.',
+      'Si no fuera evidente, este comando aburriría, [nombre], qué nivel de pena. El grupo ya tenía el veredicto, basura.',
+      '[nombre], el grupo no te odia: te tiene leído, basura. El grupo ya tenía el veredicto, qué cutre.',
+      'Maricón de los que convierten el roast en confirmación, [nombre], qué cutre. El grupo ya tenía el veredicto, da pena ajena.',
+      '[nombre], tu defensa es tan larga que parece confesión, da pena ajena. El grupo ya tenía el veredicto, qué vacío.',
+      'El radar no falla tanto como tu pose, [nombre], qué vacío. El grupo ya tenía el veredicto, indignante.',
+      '[nombre], maricón estable en high: el tramo te queda de casa, indignante. El grupo ya tenía el veredicto, qué flojo.',
+      'Se te ve el soft y se te oye el no, [nombre]: gana lo primero, qué flojo. El grupo ya tenía el veredicto, menudo desastre.',
+      '[nombre], el armario no es refugio: es almacén de pruebas, menudo desastre. El grupo ya tenía el veredicto, qué pena.',
+      'Maricón con historial que no necesita zoom, [nombre], qué pena. El grupo ya tenía el veredicto, da vergüenza.',
+      '[nombre], el porcentaje solo formalizó el chisme serio, da vergüenza. El grupo ya tenía el veredicto, qué vergüenza ajena.',
+      'Te delata el timing de tus mensajes, [nombre], qué vergüenza ajena. El grupo ya tenía el veredicto, patético.',
+      '[nombre], maricón de los que niegan con el orgullo y confirman con el hábito, patético. El grupo ya tenía el veredicto, miserable.',
+      'El disfraz de indiferencia te queda corto, [nombre], miserable. El grupo ya tenía el veredicto, qué cringe.',
+      '[nombre], si el % bajara, el chat pediría auditoría, qué cringe. El grupo ya tenía el veredicto, da asco.',
+      'Maricón de catálogo, [nombre]: el bot solo pasó lista, da asco. El grupo ya tenía el veredicto, qué vergüenza.',
+      '[nombre], cada \\\'qué exagerados\\\' suma al expediente, qué vergüenza. El grupo ya tenía el veredicto, ridículo.',
+      'Se te ve más en lo que evitas que en lo que dices, [nombre], ridículo. El grupo ya tenía el veredicto, fracasado.',
+      '[nombre], maricón con manual de crisis desactualizado, fracasado. El grupo ya tenía el veredicto, qué miseria.',
+      'El armario tiene filtraciones con tu fuente, [nombre], qué miseria. El grupo ya tenía el veredicto, da grima.',
+      '[nombre], el high no es un accidente de tirada: es tu media, da grima. El grupo ya tenía el veredicto, qué nivel de pena.',
+      'Maricón de los que necesitan que el tema muera ya, [nombre], qué nivel de pena. El grupo ya tenía el veredicto, basura.',
+      '[nombre], tu neutralidad selectiva es un faro, basura. El grupo ya tenía el veredicto, qué cutre.',
+      'No hace falta repetirlo: el número ya lo hizo, [nombre], qué cutre. El grupo ya tenía el veredicto, da pena ajena.',
+      '[nombre], maricón con pose de desinterés y métricas de interés, da pena ajena. El grupo ya tenía el veredicto, qué vacío.',
+      'El chat aprendió a leerte sin subtítulos, [nombre], qué vacío. El grupo ya tenía el veredicto, indignante.',
+      '[nombre], el % es el resumen; el historial es el libro, indignante. El grupo ya tenía el veredicto, qué flojo.',
+      'Maricón de puerta entreabierta, [nombre], qué flojo. El grupo ya tenía el veredicto, menudo desastre.',
+      '[nombre], te delata el scroll más que el discurso, menudo desastre. El grupo ya tenía el veredicto, qué pena.',
+      'Si fueras hetero estable, este texto sobraría, [nombre], qué pena. El grupo ya tenía el veredicto, da vergüenza.',
+      '[nombre], maricón de los que se delatan al pedir que paren, da vergüenza. El grupo ya tenía el veredicto, qué vergüenza ajena.',
+      'El armario es un meme y tú el template, [nombre], qué vergüenza ajena. El grupo ya tenía el veredicto, patético.',
+      '[nombre], el veredicto alto cuadra con el rastro bajo de disimulo, patético. El grupo ya tenía el veredicto, miserable.',
+      'Maricón con wifi en el radar, [nombre], miserable. El grupo ya tenía el veredicto, qué cringe.',
+      '[nombre], cada negación es un highlight reel del patrón, qué cringe. El grupo ya tenía el veredicto, da asco.',
+      'Se te ve el soft en HD, [nombre], da asco. El grupo ya tenía el veredicto, qué vergüenza.',
+      '[nombre], maricón de archivo, no de rumor, qué vergüenza. El grupo ya tenía el veredicto, ridículo.',
+      'El grupo no necesita test: ya tiene dataset, [nombre], ridículo. El grupo ya tenía el veredicto, fracasado.',
+      '[nombre], el disfraz se lava solo y aún así se transparenta, fracasado. El grupo ya tenía el veredicto, qué miseria.',
+      'Maricón de los que confunden secreto con obvio, [nombre], qué miseria. El grupo ya tenía el veredicto, da grima.',
+      '[nombre], el % te quedó de traje a medida, da grima. El grupo ya tenía el veredicto, qué nivel de pena.',
+      'Te pica el número porque no es aleatorio del todo en tu cabeza, [nombre], qué nivel de pena. El grupo ya tenía el veredicto, basura.',
+      '[nombre], maricón con correa corta en el armario, basura. El grupo ya tenía el veredicto, qué cutre.',
+      'El historial habla; tú solo interrumpes, [nombre], qué cutre. El grupo ya tenía el veredicto, da pena ajena.',
+      '[nombre], se te ve en la forma de pelear el tema, da pena ajena. El grupo ya tenía el veredicto, qué vacío.',
+      'Maricón de alta frecuencia, [nombre]: el recordatorio sobra y aun así duele, qué vacío. El grupo ya tenía el veredicto, indignante.',
+      '[nombre], el armario tiene tu nombre en el buzón, indignante. El grupo ya tenía el veredicto, qué flojo.',
+      'No es odio: es lectura, [nombre], qué flojo. El grupo ya tenía el veredicto, menudo desastre.',
+      '[nombre], maricón de los que necesitan el último mensaje para no quedar en evidencia, menudo desastre.',
+      'El high te queda cómodo, [nombre], qué pena. El grupo ya tenía el veredicto, da vergüenza.',
+      '[nombre], tu hetero de marketing no supera el control de calidad, da vergüenza. El grupo ya tenía el veredicto, qué vergüenza ajena.',
+      'Maricón con evidencias en reacción rápida, [nombre], qué vergüenza ajena. El grupo ya tenía el veredicto, patético.',
+      '[nombre], el bot no te inventó: te midió, patético. El grupo ya tenía el veredicto, miserable.',
+      'Se te delata el silencio selectivo, [nombre], miserable. El grupo ya tenía el veredicto, qué cringe.',
+      '[nombre], maricón de puerta giratoria: sales, niegas, vuelves, qué cringe. El grupo ya tenía el veredicto, da asco.',
+      'El expediente está ordenado y tú eres el índice, [nombre], da asco. El grupo ya tenía el veredicto, qué vergüenza.',
+      '[nombre], el % alto es coherencia, no sorpresa, qué vergüenza. El grupo ya tenía el veredicto, ridículo.',
+      'Maricón de los que se ofenden por precisión, [nombre], ridículo. El grupo ya tenía el veredicto, fracasado.',
+      '[nombre], el armario ya ni finge cerrar, fracasado. El grupo ya tenía el veredicto, qué miseria.',
+      'Te delata el gusto en lo que guardas y en lo que compartes, [nombre], qué miseria. El grupo ya tenía el veredicto, da grima.',
+      '[nombre], maricón con narrativa de broma y datos de serio, da grima. El grupo ya tenía el veredicto, qué nivel de pena.',
+      'Si el chat es espejo, el espejo está en 93, [nombre], qué nivel de pena. El grupo ya tenía el veredicto, basura.',
+      '[nombre], el disimulo es el gag más flojo de tu repertorio, basura. El grupo ya tenía el veredicto, qué cutre.',
+      'Maricón estable en el radar del grupo, [nombre], qué cutre. El grupo ya tenía el veredicto, da pena ajena.',
+      '[nombre], cada tirada alta es un déjà vu documentado, da pena ajena. El grupo ya tenía el veredicto, qué vacío.',
+      'Se te ve el soft sin necesidad de zoom, [nombre], qué vacío. El grupo ya tenía el veredicto, indignante.',
+      '[nombre], maricón de los que convierten el no en espectáculo, indignante. El grupo ya tenía el veredicto, qué flojo.',
+      'El veredicto no es creativo: es administrativo, [nombre], qué flojo. El grupo ya tenía el veredicto, menudo desastre.',
+      '[nombre], el armario tiene humedad crónica con tu nombre, menudo desastre. El grupo ya tenía el veredicto, qué pena.',
+      'Maricón con historial que no pide contexto, [nombre], qué pena. El grupo ya tenía el veredicto, da vergüenza.',
+      '[nombre], te delata más la defensa que la acusación, da vergüenza. El grupo ya tenía el veredicto, qué vergüenza ajena.',
+      'El high no te cae: te reconoce, [nombre], qué vergüenza ajena. El grupo ya tenía el veredicto, patético.',
+      '[nombre], maricón de catálogo interno del chat, patético. El grupo ya tenía el veredicto, miserable.',
+      'Si negar funcionara, ya habría funcionado, [nombre], miserable. El grupo ya tenía el veredicto, qué cringe.',
+      '[nombre], el patrón es más alto que el porcentaje, qué cringe. El grupo ya tenía el veredicto, da asco.',
+      'Maricón de los que necesitan silencio ajeno para respirar, [nombre], da asco. El grupo ya tenía el veredicto, qué vergüenza.',
+      '[nombre], se te ve en el timing y en el temblor del teclado, qué vergüenza. El grupo ya tenía el veredicto, ridículo.',
+      'El armario es folklore y tú el protagonista, [nombre], ridículo. El grupo ya tenía el veredicto, fracasado.',
+      '[nombre], maricón con wifi y sin modo incógnito real, fracasado. El grupo ya tenía el veredicto, qué miseria.',
+      'El grupo ya votó en silencio; el bot publicó el acta, [nombre], qué miseria. El grupo ya tenía el veredicto, da grima.',
+      '[nombre], tu neutralidad es un filtro de Instagram: se nota el retoque, da grima. El grupo ya tenía el veredicto, qué nivel de pena.',
+      'Maricón de alta legibilidad, [nombre], qué nivel de pena. El grupo ya tenía el veredicto, basura.',
+      '[nombre], el % es el titular; el hilo es el cuerpo de la noticia, basura. El grupo ya tenía el veredicto, qué cutre.',
+      'Te delata el archivo, no el chiste, [nombre], qué cutre. El grupo ya tenía el veredicto, da pena ajena.',
+      '[nombre], maricón de los que piden respeto al teatro, da pena ajena. El grupo ya tenía el veredicto, qué vacío.',
+      'El disfraz expiró y seguiste usándolo, [nombre], qué vacío. El grupo ya tenía el veredicto, indignante.',
+      '[nombre], se te ve el soft en cada atajo visual del chat, indignante. El grupo ya tenía el veredicto, qué flojo.',
+      'Maricón documentado sin necesidad de confesión, [nombre], qué flojo. El grupo ya tenía el veredicto, menudo desastre.',
+      '[nombre], el high te queda de residencia fiscal, menudo desastre. El grupo ya tenía el veredicto, qué pena.',
+      'Si no fuera evidente, no estaríamos aquí, [nombre], qué pena. El grupo ya tenía el veredicto, da vergüenza.',
+      '[nombre], maricón con el recordatorio incorporado al respirar del hilo, da vergüenza. El grupo ya tenía el veredicto, qué vergüenza ajena.',
+      'El radar del grupo no necesita batería extra contigo, [nombre], qué vergüenza ajena. El grupo ya tenía el veredicto, patético.',
+      '[nombre], el armario es un concepto; tú eres el caso de uso, patético. El grupo ya tenía el veredicto, miserable.',
+      'Maricón de los que niegan en bloque y confirman en detalle, [nombre], miserable. El grupo ya tenía el veredicto, qué cringe.',
+      '[nombre], el porcentaje solo le puso número a tu rastro, qué cringe. El grupo ya tenía el veredicto, da asco.',
+      'Te pica porque cuadra, [nombre], da asco. El grupo ya tenía el veredicto, qué vergüenza.',
+      '[nombre], maricón estable: el tramo high te conoce por tu nombre, qué vergüenza. El grupo ya tenía el veredicto, ridículo.',
+      'Se te delata el personaje secundario que interpretas mal, [nombre], ridículo. El grupo ya tenía el veredicto, fracasado.',
+      '[nombre], el veredicto es alto y el disimulo, en quiebra, fracasado. El grupo ya tenía el veredicto, qué miseria.',
+      'Maricón de archivo abierto, [nombre], qué miseria. El grupo ya tenía el veredicto, da grima.',
+      '[nombre], no hace falta martillar el tema: el número ya es el martillo, da grima. El grupo ya tenía el veredicto, qué nivel de pena.',
+      'El chat te leyó; el bot te etiquetó, [nombre], qué nivel de pena. El grupo ya tenía el veredicto, basura.',
+      '[nombre], maricón con la frecuencia de quien necesita que nadie lo diga… y aun así se dice, basura. El grupo ya tenía el veredicto, qué cutre.',
+      '[nombre], no eres maricón con la frecuencia con que respiras: quien no lo es no necesita el recordatorio cada dos mensajes. Se repite el patrón, qué cutre id191.',
+      'El porcentaje no miente, [nombre]: te delata el teclado antes que cualquier rumor. Se repite el patrón, da pena ajena id192.',
+      '[nombre], el armario te queda pequeño y encima dejas la puerta entreabierta. Se repite el patrón, qué vacío id193.',
+      'Con ese % ya no es sospecha: es expediente abierto, [nombre]. Se repite el patrón, indignante id194.',
+      '[nombre], te ofendes como quien se siente aludido. Casualidad que nunca falla. Se repite el patrón, qué flojo id195.',
+      'Maricón de manual, [nombre]: la pose hetero se te cae en el primer hilo caliente. Se repite el patrón, menudo desastre id196.',
+      '[nombre], tus reacciones hablan más alto que tus negaciones. Se repite el patrón, qué pena id197.',
+      'El grupo no te inventó el veredicto, [nombre]: solo lo leyó en tu historial. Se repite el patrón, da vergüenza id198.',
+      '[nombre], cada vez que pasa un tío el hilo se te resetea la neutralidad. Se repite el patrón, qué vergüenza ajena id199.'
     ],
     mid: [
       'Cada cierto tiempo [nombre] suelta algo que el grupo archiva mentalmente. El archivo ya pesa más que su reputación de macho.',
