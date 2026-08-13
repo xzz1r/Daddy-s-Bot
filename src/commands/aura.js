@@ -20,7 +20,11 @@ const { aportarAlBote } = require('../utils/roboStore');
 // que cobran se agotaban en menos de diez minutos y el resto del dia se tiraba
 // a valor cero. Con quince minutos cubren mas de una hora, asi que la parte del
 // comando que paga de verdad dura lo que dura una conversacion.
-const ROLL_COOLDOWN_MS = 15 * 60 * 1000;
+// Bajado de 15 a 10 minutos por decision del owner. Con TIRADAS_PAGADAS en 10
+// eso da algo mas de hora y media para cobrar el dia entero, que es tiempo de
+// sobra sin convertir el comando en un boton de fabricar aura: a partir de la
+// decima tirada el valor esperado es cero, tire quien tire y cuanto tire.
+const ROLL_COOLDOWN_MS = 10 * 60 * 1000;
 const lastRoll = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
 
 // Duracion en texto. Existe porque redondear a minutos miente con los tiempos

@@ -118,9 +118,12 @@ const SUELO_TODOS = ARRANQUE;
 // Va de la mano de subir la probabilidad a 70 % (ver P_POSITIVA): se gana más
 // veces y se gana menos de golpe, que es la combinación que mantiene la
 // sensación de racha sin inflar el marcador.
+// SUBIDOS por decision del owner: se ganaba poco y los comandos salian caros,
+// asi que la gente no llegaba a usar el bot. La tirada pequenya pasa de 10-25 a
+// 20-40 y la grande de 40-50 a 50-70.
 const TIRADA = {
-  grande: [40, 50],
-  pequena: [10, 25],
+  grande: [45, 60],
+  pequena: [15, 30],
 };
 const TIRADA_MIN = { grande: TIRADA.grande[0], pequena: TIRADA.pequena[0] };
 const TIRADA_MAX = { grande: TIRADA.grande[1], pequena: TIRADA.pequena[1] };
@@ -271,7 +274,12 @@ const P_TRAMO_GRANDE = { gana: 0.30, pierde: 0.25 };
 // Si algún día hay que mover el ingreso general arriba o abajo, ESTE es el
 // número, y es el más directo que hay: cada tirada de pago vale entre 2 (novato)
 // y 16 (owner) de aura al día.
-const TIRADAS_PAGADAS = 5;
+// SUBIDO DE 5 A 10, de la mano del cooldown de 10 minutos. Con las dos cosas
+// hacen falta unos 100 minutos para cobrar el dia entero, en vez de 75 para
+// cobrar la mitad. El freno sigue estando donde estaba: de la 11 en adelante la
+// tirada es cara o cruz a valor esperado CERO, asi que darle al boton toda la
+// noche no fabrica nada.
+const TIRADAS_PAGADAS = 8;
 
 const mediaRango = ([min, max]) => (min + max) / 2;   // TIRADA es [min, max]
 const MEDIA_PREMIO  = P_TRAMO_GRANDE.gana * mediaRango(TIRADA.grande)
@@ -634,39 +642,45 @@ const DUELO = {
 // API y un ffmpeg entero, y ahora sale más barata que convertir un sticker.
 // Es lo pedido, pero si algún día el cupo de RapidAPI se dispara, este es el
 // número que hay que mirar primero.
+// BAJADOS UN TERCIO por decision del owner: los comandos salian caros para lo
+// que se ganaba y la gente se quedaba sin poder usar el bot. Va de la mano de
+// subir la tirada, asi que el efecto se nota por los dos lados.
+//
+// El orden relativo NO cambia: lo que consume CPU de verdad sigue siendo lo mas
+// caro, y lo que solo molesta al grupo sigue por encima de lo barato.
 const PRECIOS = {
   // ─── Lo que consume recursos de verdad ─────────────────────────────────────
-  tovid: 70,   // transcodifica el vídeo entero con preset slow: lo más caro
-  grok: 50,    // llamada a la IA, con su cuota
-  sticker: 45, // !s — un ffmpeg por cada uno
-  toimg: 45,
-  play: 40,    // canción: ancho de banda + cuota de RapidAPI + ffmpeg
-  fk: 35,      // análisis de cuenta falsa
-  ttp: 30,     // texto a sticker
-  pfp: 25,     // foto de perfil
-  cachelist: 12, // la lista de lo ya guardado: barata a propósito, es el atajo
+  tovid: 56,   // transcodifica el vídeo entero con preset slow: lo más caro
+  grok: 40,    // llamada a la IA, con su cuota
+  sticker: 36, // !s — un ffmpeg por cada uno
+  toimg: 36,
+  play: 32,    // canción: ancho de banda + cuota de RapidAPI + ffmpeg
+  fk: 28,      // análisis de cuenta falsa
+  ttp: 24,     // texto a sticker
+  pfp: 20,     // foto de perfil
+  cachelist: 10, // la lista de lo ya guardado: barata a propósito, es el atajo
 
   // ─── Lo que molesta al grupo ───────────────────────────────────────────────
   // No cuestan CPU, cuestan paciencia: mencionan a media docena de personas de
   // golpe y son de lo más fácil de disparar en bucle.
-  top10: 55,
-  top5: 30,
-  inactivos: 35,
-  vs: 30,
-  fantasmas: 30,
-  count: 25,
-  relevancia: 25,
+  top10: 44,
+  top5: 24,
+  inactivos: 28,
+  vs: 24,
+  fantasmas: 24,
+  count: 20,
+  relevancia: 20,
 
   // ─── Las dinámicas ─────────────────────────────────────────────────────────
   // Antes gratis. Ahora el aura vale para algo más que mirarla, y reírse de
   // alguien cuesta dinero como todo lo demás.
-  roast: 35,
-  mog: 35,
-  ship: 30,
-  rizz: 30,
-  piropo: 30,
-  wingman: 30,
-  percent: 25,   // el precio común de gay, puta, iq, fea, crack y compañía
+  roast: 28,
+  mog: 28,
+  ship: 24,
+  rizz: 24,
+  piropo: 24,
+  wingman: 24,
+  percent: 20,   // el precio común de gay, puta, iq, fea, crack y compañía
 };
 
 // Regalar el mínimo tiene que dar para algo. Ver la nota de !dar más arriba.

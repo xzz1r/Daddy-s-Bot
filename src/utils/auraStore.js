@@ -326,9 +326,13 @@ async function resetAura(groupJid) {
   await load();
   const g = store[groupJid];
   if (!g) return;
-  const aCero = {};
-  for (const k in g) aCero[canonicalJid(k)] = 0;
-  store[groupJid] = aCero;
+  // AL SUELO, NO A CERO. Dejarlo en cero contradice el suelo de SUELO_TODOS:
+  // con SALDO_MINIMO en 0 no se puede gastar estando a cero, asi que un
+  // !resetaura dejaba al grupo entero sin poder tocar el bot hasta que cada uno
+  // volviera a tirar. Reiniciar es empezar de nuevo, no castigar a todos.
+  const alSuelo = {};
+  for (const k in g) alSuelo[canonicalJid(k)] = SUELO_TODOS;
+  store[groupJid] = alSuelo;
   scheduleSave();
 }
 

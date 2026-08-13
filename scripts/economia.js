@@ -295,7 +295,12 @@ const novato = perfilTirada(P_POSITIVA.miembro).ev * TIRADAS_PAGADAS;
 console.log(`\n  Un novato que no escribe jamas saca ${n0(novato)} al dia como techo absoluto.`);
 ok(novato < f('activo').escribiendo,
   `  eso es menos que lo que da escribir 500 mensajes (${n0(f('activo').escribiendo)}): no se puede vivir de tirar sin escribir`);
-ok(f('muy activo').total > f('normal').total * 3,
+// BAJADO DE 3 A 2,5 al subir la tirada por peticion del owner. El principio no
+// cambia —escribir tiene que seguir separando— pero al subir el ingreso de
+// tirar, que es igual para todos, el hueco entre el que escribe mucho y el que
+// escribe poco se estrecha por pura aritmetica. Con 2,5 sigue habiendo mas del
+// doble de diferencia, que es un abismo perfectamente visible en el ranking.
+ok(f('muy activo').total > f('normal').total * 2.5,
   `  y escribir sigue siendo lo que separa a la gente: 1200 msgs dan ${n0(f('muy activo').total)} al dia contra ${n0(f('normal').total)} de 200`);
 ok(Math.abs(f('solo spamea 24').tirando - f('solo spamea 8').tirando) < 0.01,
   `  darle al boton 24 h no da mas que darselo 8 (${n0(f('solo spamea 24').tirando)} en los dos casos): el tope corta en seco`);
@@ -459,7 +464,11 @@ ok(/const vNew = clave === 'desastre' \? await addAura\(jid, target, \+monto\) :
   // negativo). Aquí abajo solo se vigila que el drenaje siga siendo perceptible
   // dentro de un día, no calderilla simbólica.
   const diaNovato = perfilTirada(P_POSITIVA.miembro).ev * TIRADAS_PAGADAS;
-  ok(-neto > diaNovato * 0.15,
+  // BAJADO DE 0,15 A 0,09 por el mismo motivo: el castigo del robo no ha
+  // cambiado, lo que ha subido es el ingreso diario, asi que el mismo golpe pesa
+  // relativamente menos. Sigue siendo casi una decima parte del dia, que se
+  // nota; y el robo tiene ademas su propio cooldown de seis minutos.
+  ok(-neto > diaNovato * 0.09,
     `  y un robo fallido quema ${n2(-neto)}, un ${Math.round(100 * -neto / diaNovato)} % del dia de tirar de un novato (${n0(diaNovato)}): el drenaje se nota`);
 }
 ok(ROBO.techo <= 200 && DUELO.techo <= 300, `ningun movimiento suelto pasa de ${ROBO.techo} (robo) / ${DUELO.techo} (duelo)`);
@@ -535,13 +544,19 @@ for (const nombre of ['fantasma', 'normal', 'activo', 'muy activo']) {
 // ingresos se han vuelto a ir de las manos.
 ok(f('normal').total >= precioMedio,
   `un miembro normal (200 msgs) paga ${(f('normal').total / precioMedio).toFixed(1)} comandos al dia: elige uno y se queda con ganas`);
-// SUBIDO DE 3 A 4 al pasar el miembro a 75/25 por peticion del owner. El motivo
-// del cambio era justo ese: la gente acababa en numeros rojos y no podia usar el
-// bot. Un miembro normal pasa de 2,4 comandos al dia a 3,1, que sigue obligando
-// a elegir — el limite existe para que un precio se note, no para que nadie
-// pueda pagar. Si esto sube de cuatro sin que se pida, los ingresos se han ido.
-ok(f('normal').total < precioMedio * 4,
-  `  y no llega a cuatro (${(f('normal').total / precioMedio).toFixed(1)}): los precios siguen mordiendo`);
+// SUBIDO A 8 por peticion del owner, que pidio expresamente subir la ganancia y
+// bajar los precios: "los comandos estan caros y el aura tiene mucho cooldown".
+//
+// Ha pasado por 3, por 4 y ahora por 8, y cada salto respondio a lo mismo: la
+// gente se quedaba sin poder usar el bot. Un miembro normal pasa de 2,4 comandos
+// al dia a unos 6, o sea de elegir uno a poder soltarse un rato sin pensarlo.
+//
+// El techo sigue existiendo y sigue teniendo sentido: el precio tiene que
+// significar algo. Si esto se pasa de ocho sin que se pida, los ingresos se han
+// ido de las manos otra vez y el numero al que mirar es TIRADAS_PAGADAS, que
+// multiplica directamente.
+ok(f('normal').total < precioMedio * 8,
+  `  y no se dispara (${(f('normal').total / precioMedio).toFixed(1)} comandos al dia): el precio sigue significando algo`);
 // El agujero original era que por debajo de 200 mensajes al dia no se cobraba
 // NADA por ningun concepto. Lo tapo un sueldo, el sueldo se quito, y ahora lo
 // tapa la tirada: cualquiera puede tirar aunque no escriba una linea.
