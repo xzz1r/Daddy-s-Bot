@@ -70,7 +70,7 @@ const RIZZ = {
 
     '%N escribió ja sin la segunda a y provocó crisis en tres grupos de amigas, fracasado.',
 
-    '%N llega tarde, cancela dos veces y sigue siendo la mejor opción de la lista, joder.',
+    '%N llega tarde, cancela dos veces y sigue siendo la mejor opción de la lista.',
 
     'Alguien dejó su terapia de pareja por quince minutos de chat con %N, cabrón.',
 
@@ -88,7 +88,7 @@ const RIZZ = {
 
     'Con %N hasta el visto se siente personal, fracasado.desastre.',
 
-    '%N manda un sticker y alguien lo analiza como texto sagrado, joder.pena.',
+    '%N manda un sticker y alguien lo analiza como texto sagrado.pena.',
 
     'El rizz de %N funciona en modo avión: sin esfuerzo visible, cabrón.',
 
@@ -108,7 +108,7 @@ const RIZZ = {
 
     'El aura de %N en modo social es ilegal en tres países, fracasado.grima.',
 
-    '%N dice poco y el poco pesa, joder.nivel de pena.',
+    '%N dice poco y el poco pesa.nivel de pena.',
 
     'Hay un antes y un después de cruzarse con %N en este chat, cabrón.',
 
@@ -130,7 +130,7 @@ const RIZZ = {
 
     'Con %N hasta el visto se siente personal, fracasado.pena.',
 
-    '%N manda un sticker y alguien lo analiza como texto sagrado, joder.',
+    '%N manda un sticker y alguien lo analiza como texto sagrado.',
 
     'El rizz de %N funciona en modo avión: sin esfuerzo visible, cabrón, mierda.',
 
@@ -150,7 +150,7 @@ const RIZZ = {
 
     'El aura de %N en modo social es ilegal en tres países, fracasado.',
 
-    '%N dice poco y el poco pesa, joder.',
+    '%N dice poco y el poco pesa.',
 
     'Hay un antes y un después de cruzarse con %N en este chat, cabrón, mierda.cutre.',
 
@@ -170,7 +170,7 @@ const RIZZ = {
 
     'El chat tiene un subhilo mental dedicado a %N, fracasado.pena.',
 
-    '%N mandó un audio de siete segundos diciendo eh hola y alguien lo tiene de tono de llamada, joder.',
+    '%N mandó un audio de siete segundos diciendo eh hola y alguien lo tiene de tono de llamada.',
 
     '%N tiene tanto rizz que hasta sus rechazos generan lealtad absurda, cabrón, mierda.',
 
@@ -190,7 +190,7 @@ const RIZZ = {
 
     '%N escribió ja sin la segunda a y provocó crisis en tres grupos de amigas, fracasado.',
 
-    '%N llega tarde, cancela dos veces y sigue siendo la mejor opción de la lista, joder.',
+    '%N llega tarde, cancela dos veces y sigue siendo la mejor opción de la lista.',
 
     'Alguien dejó su terapia de pareja por quince minutos de chat con %N, cabrón, mierda.',
 
@@ -256,7 +256,7 @@ const RIZZ = {
 
     'El rizz de %N vive en una montaña rusa que solo él no ve: sube, baja, grita, y termina el día sin saber si ganó o perdió algo.',
 
-    '%N tuvo una racha de tres días y la cerró con wenas sin hache, joder.',
+    '%N tuvo una racha de tres días y la cerró con wenas sin hache.',
 
     'El rizz de %N es ambulancia: llega, hace ruido y a veces confirma la defunción, cabrón.',
 
@@ -274,7 +274,7 @@ const RIZZ = {
 
     'Medio pack: %N enamora y después manda un audio de tres minutos vacío, fracasado.',
 
-    '%N sube, baja y deja al personal mareado, joder.',
+    '%N sube, baja y deja al personal mareado.',
 
     'El almost de %N ya es marca registrada del grupo, cabrón.',
 
@@ -294,7 +294,7 @@ const RIZZ = {
 
     'Medio. %N da para hilo y para silence treatment, fracasado.',
 
-    '%N tiene días de final boss y días de tutorial, joder.',
+    '%N tiene días de final boss y días de tutorial.',
 
     'El rizz de %N funciona en beta perpetua, cabrón.',
 
@@ -314,7 +314,7 @@ const RIZZ = {
 
     'Medio pack con picos y valles, %N, fracasado.',
 
-    '%N puede ser el problema y la solución en el mismo hilo, joder.',
+    '%N puede ser el problema y la solución en el mismo hilo.',
 
     'El timing de %N llega tarde a su propia fiesta, cabrón.',
 
@@ -352,7 +352,7 @@ const RIZZ = {
 
     'Medio pack con picos y valles, %N, fracasado.',
 
-    '%N puede ser el problema y la solución en el mismo hilo, joder.',
+    '%N puede ser el problema y la solución en el mismo hilo.',
 
     'El timing de %N llega tarde a su propia fiesta, cabrón, mierda.',
 
@@ -372,7 +372,7 @@ const RIZZ = {
 
     'Medio. %N da contenido, no estabilidad, fracasado.',
 
-    '%N tuvo una racha de tres días y la cerró con wenas sin hache, joder.',
+    '%N tuvo una racha de tres días y la cerró con wenas sin hache.',
 
     'El rizz de %N es ambulancia: llega, hace ruido y a veces confirma la defunción, cabrón, mierda.',
 
@@ -392,7 +392,7 @@ const RIZZ = {
 
     'Medio pack: %N enamora y después manda un audio de tres minutos vacío, fracasado.',
 
-    '%N sube, baja y deja al personal mareado, joder.',
+    '%N sube, baja y deja al personal mareado.',
 
     'El almost de %N ya es marca registrada del grupo, cabrón, mierda.',
 
@@ -484,7 +484,7 @@ const RIZZ = {
 
     'Ligando, %N es un tutorial de qué no hacer, fracasado.',
 
-    '%N tiene menos game que un tutorial saltado, joder.',
+    '%N tiene menos game que un tutorial saltado.',
 
     'El chat usa a %N de ejemplo de fail romántico, cabrón.',
 
@@ -504,7 +504,7 @@ const RIZZ = {
 
     'Fail de ligue documentado con el nombre de %N, fracasado.',
 
-    '%N intenta ser suave y sale como notificación de virus, joder.',
+    '%N intenta ser suave y sale como notificación de virus.',
 
     'El grupo ya tiene copypasta con los fails de %N, cabrón.',
 
@@ -524,7 +524,7 @@ const RIZZ = {
 
     'El chat no shippea a %N ni con pegamento, fracasado.',
 
-    '%N es el boss de la zona de friendzone eterna, joder.',
+    '%N es el boss de la zona de friendzone eterna.',
 
     'Piropo de %N = solicitud de alejamiento emocional, cabrón.',
 
@@ -554,7 +554,7 @@ const RIZZ = {
 
     'El chat no shippea a %N ni con pegamento, fracasado.',
 
-    '%N es el boss de la zona de friendzone eterna, joder.',
+    '%N es el boss de la zona de friendzone eterna.',
 
     'Piropo de %N = solicitud de alejamiento emocional, cabrón, mierda.',
 
@@ -574,7 +574,7 @@ const RIZZ = {
 
     'Con %N el rechazo es un servicio público, fracasado.',
 
-    '%N es un puto espantaviejas: aparece y hasta las del banco se cruzan de acera, joder.',
+    '%N es un puto espantaviejas: aparece y hasta las del banco se cruzan de acera.',
 
     'El rizz de %N tiene fecha de caducidad en el mismo mensaje, cabrón, mierda.',
 
@@ -594,7 +594,7 @@ const RIZZ = {
 
     'Ligando, %N es un tutorial de qué no hacer, fracasado.',
 
-    '%N tiene menos game que un tutorial saltado, joder.',
+    '%N tiene menos game que un tutorial saltado.',
 
     'El chat usa a %N de ejemplo de fail romántico, cabrón, mierda.',
 
@@ -636,7 +636,7 @@ const PIROPOS = [
 
   'Me cago en todo, %N, tienes una boca de puta profesional: te la metería hasta los huevos, te haría tragar la leche y después te la volvería a meter sucia, hostia puta, da grima.',
 
-  '%N, joder, estás más rica que un coño recién afeitado y chorreando. Te lamería hasta el último pliegue, te follaría a pelo y te dejaría goteando leche por las piernas, qué nivel de pena.',
+  '%N, estás más rica que un coño recién afeitado y chorreando. Te lamería hasta el último pliegue, te follaría a pelo y te dejaría goteando leche por las piernas, qué nivel de pena.',
 
   'Hostia, %N, tienes un polvo que si te pillara te reventaría el culo a pollazos hasta que pidieras perdón por existir, y todavía te pediría otra ronda, basura.',
 
@@ -656,7 +656,7 @@ const PIROPOS = [
 
   'Hostia puta, %N, tienes un morbo de zorra de barrio. Te ataría, te vendaría, te follaría el culo sin piedad y te dejaría con la leche chorreando por las piernas todo el día, menudo desastre.',
 
-  '%N, joder, cada vez que te agachas se me pone la polla como un hierro. Te la metería ahí mismo, te follaría el culo en público y te haría gritar mi nombre, qué pena.',
+  '%N, cada vez que te agachas se me pone la polla como un hierro. Te la metería ahí mismo, te follaría el culo en público y te haría gritar mi nombre, qué pena.',
 
   'Mierda, %N, estás tan buena que hasta tu sombra se la follaría. Te montaría a pelo, te llenaría de leche el coño, el culo y la boca, y te haría dormir con ella dentro, patético.',
 
@@ -674,7 +674,7 @@ const PIROPOS = [
 
   'Mierda, %N, si me dejaras te olería el coño, te lo lamería hasta el clítoris, te lo follaría a pelo y te corrías dentro hasta que se te hinchara la barriga, qué miseria.',
 
-  '%N, joder, tienes un culo que me lo comería a mordiscos, te lo follaría hasta dejarlo rojo y abierto, y después te lo volvería a lamer limpio, puta, da grima.',
+  '%N, tienes un culo que me lo comería a mordiscos, te lo follaría hasta dejarlo rojo y abierto, y después te lo volvería a lamer limpio, puta, da grima.',
 
   '%N, hostia puta, con esas piernas te las pondría en mis hombros, te follaría el coño hasta el útero y te haría correrte tantas veces que te desmayarías, qué nivel de pena.',
 
@@ -688,7 +688,7 @@ const PIROPOS = [
 
   'Hostia puta, %N, te montaría a cuatro patas, te reventaría el culo a pollazos y te dejaría con el agujero abierto y chorreando leche todo el día, indignante.',
 
-  '%N, joder, te comería el coño hasta que te corrieras en mi cara, te follaría a pelo y te llenaría por dentro hasta que se te notara en la barriga, qué vergüenza ajena.',
+  '%N, te comería el coño hasta que te corrieras en mi cara, te follaría a pelo y te llenaría por dentro hasta que se te notara en la barriga, qué vergüenza ajena.',
 
   'Me cago en todo, %N, con esa boca de puta te la metería dos veces al día, te haría tragar y después te la metería por el culo sucia, da vergüenza.',
 
@@ -708,7 +708,7 @@ const PIROPOS = [
 
   'Hostia, %N, te reventaría el coño a pollazos, te haría correrte a chorros y después te follaría la boca con el sabor de tu propio coño, qué vergüenza.',
 
-  '%N, joder, tienes un polvo de puta profesional. Te montaría horas, te llenaría de leche y te dejaría temblando y pidiendo más, ridículo.',
+  '%N, tienes un polvo de puta profesional. Te montaría horas, te llenaría de leche y te dejaría temblando y pidiendo más, ridículo.',
 
   'Me cago en la puta, %N, con ese cuerpo te usaría de juguete sexual: te follaría cuando me diera la gana y te dejaría marcado, fracasado.',
 
@@ -718,7 +718,7 @@ const PIROPOS = [
 
   '%N, hostia puta, te montaría a pelo, te reventaría los tres agujeros y te dejaría goteando leche por todos lados, gilipollas de mierda, qué nivel de pena.',
 
-  'Si la belleza fuera delito, %N estaría perpetua sin derecho a visita conyugal, joder. El grupo ya tomó nota, basura.',
+  'Si la belleza fuera delito, %N estaría perpetua sin derecho a visita conyugal. El grupo ya tomó nota, basura.',
 
   'Con esa cara %N hace que el resto del chat pida indulto visual, cabrón. El grupo ya tomó nota, qué cutre.',
 
@@ -736,89 +736,89 @@ const PIROPOS = [
 
   '%N hace que el resto de perfiles parezcan borradores, ridículo. El grupo ya tomó nota, ridículo, menudo desastre.',
 
-  'Con %N el deseo no pide permiso: irrumpe, fracasado. El grupo ya tomó nota, fracasado, joder fracasado, qué pena.',
+  'Con %N el deseo no pide permiso: irrumpe, fracasado. El grupo ya tomó nota, fracasado fracasado, qué pena.',
 
-  '%N tiene el pack que el chat no merece pero disfruta, joder. El grupo ya tomó nota, joder.',
+  '%N tiene el pack que el chat no merece pero disfruta. El grupo ya tomó nota.',
 
-  'Si la lujuria pagara impuestos, %N sería hacienda, cabrón. El grupo ya tomó nota, mierda, joder mierda, miserable.',
+  'Si la lujuria pagara impuestos, %N sería hacienda, cabrón. El grupo ya tomó nota, mierda mierda, miserable.',
 
-  '%N es el motivo de más de un visto con sudor frío, gilipollas. El grupo ya tomó nota, coño, joder coño, qué cringe.',
+  '%N es el motivo de más de un visto con sudor frío, gilipollas. El grupo ya tomó nota, coño coño, qué cringe.',
 
   'Esa mirada de %N debería venir con advertencia sanitaria, mierda. El grupo ya tomó nota, cabrón, da asco.',
 
-  '%N convierte un sticker en material de delitto, coño. El grupo ya tomó nota, gilipollas, joder gilipollas, qué vergüenza.',
+  '%N convierte un sticker en material de delitto, coño. El grupo ya tomó nota, gilipollas gilipollas, qué vergüenza.',
 
-  'El grupo finge normalidad cuando %N escribe. Falla, asco. El grupo ya tomó nota, patético, joder patético, ridículo.',
+  'El grupo finge normalidad cuando %N escribe. Falla, asco. El grupo ya tomó nota, patético patético, ridículo.',
 
-  '%N tiene el cuerpo de argumento definitivo, patético. El grupo ya tomó nota, asco, joder asco.',
+  '%N tiene el cuerpo de argumento definitivo, patético. El grupo ya tomó nota, asco asco.',
 
-  'Si el infierno existiera, %N sería la recepción, basura. El grupo ya tomó nota, basura, joder basura, qué miseria.',
+  'Si el infierno existiera, %N sería la recepción, basura. El grupo ya tomó nota, basura basura, qué miseria.',
 
-  '%N hace que hasta el cinismo del chat se ablande, ridículo. El grupo ya tomó nota, ridículo, joder ridículo, da grima.',
+  '%N hace que hasta el cinismo del chat se ablande, ridículo. El grupo ya tomó nota, ridículo ridículo, da grima.',
 
   'Con %N el piropo se queda corto y el silencio también, fracasado. El grupo ya tomó nota, fracasado, qué nivel de pena.',
 
-  '%N es tentación con wifi, joder. El grupo ya tomó nota, joder.',
+  '%N es tentación con wifi. El grupo ya tomó nota.',
 
-  'Esa voz de %N debería estar regulada, cabrón. El grupo ya tomó nota, mierda, joder mierda.',
+  'Esa voz de %N debería estar regulada, cabrón. El grupo ya tomó nota, mierda mierda.',
 
   '%N tiene más magnetismo que un imán en zona prohibida, gilipollas. El grupo ya tomó nota, coño, da pena ajena.',
 
-  'Si el deseo fuera ranking, %N sería owner, mierda. El grupo ya tomó nota, cabrón, joder cabrón.',
+  'Si el deseo fuera ranking, %N sería owner, mierda. El grupo ya tomó nota, cabrón cabrón.',
 
-  '%N entra al hilo y el resto pierde el hilo, coño. El grupo ya tomó nota, gilipollas, joder gilipollas, indignante.',
+  '%N entra al hilo y el resto pierde el hilo, coño. El grupo ya tomó nota, gilipollas gilipollas, indignante.',
 
   'El cuerpo de %N es un argumento sin necesidad de texto, asco. El grupo ya tomó nota, patético, qué vergüenza ajena.',
 
-  '%N hace que el almost duela de otra manera, patético. El grupo ya tomó nota, asco, joder asco.',
+  '%N hace que el almost duela de otra manera, patético. El grupo ya tomó nota, asco asco.',
 
-  'Si mirar a %N fuera deporte, habría olimpiadas, basura. El grupo ya tomó nota, basura, joder basura.',
+  'Si mirar a %N fuera deporte, habría olimpiadas, basura. El grupo ya tomó nota, basura basura.',
 
   '%N es el motivo de más de un bloqueo por higiene mental, ridículo. El grupo ya tomó nota, ridículo, menudo desastre.',
 
   'Con %N el chat se vuelve menos cínico y más animal, fracasado. El grupo ya tomó nota, fracasado, qué pena.',
 
-  '%N tiene el tipo de presencia que no pide: exige, joder. El grupo ya tomó nota, joder.',
+  '%N tiene el tipo de presencia que no pide: exige. El grupo ya tomó nota.',
 
-  'Esa sonrisa de %N es un arma de destrucción masiva, cabrón. El grupo ya tomó nota, mierda, joder mierda, miserable.',
+  'Esa sonrisa de %N es un arma de destrucción masiva, cabrón. El grupo ya tomó nota, mierda mierda, miserable.',
 
-  '%N convierte el aburrimiento del grupo en hambre, gilipollas. El grupo ya tomó nota, coño, joder coño, qué cringe.',
+  '%N convierte el aburrimiento del grupo en hambre, gilipollas. El grupo ya tomó nota, coño coño, qué cringe.',
 
   'Si el pecado original tuviera update, llevaría la cara de %N, mierda. El grupo ya tomó nota, cabrón, da asco.',
 
-  '%N es el DLC pago que nadie se resiste a comprar, coño. El grupo ya tomó nota, gilipollas, joder gilipollas, qué vergüenza.',
+  '%N es el DLC pago que nadie se resiste a comprar, coño. El grupo ya tomó nota, gilipollas gilipollas, qué vergüenza.',
 
-  'El deseo con nombre de usuario: %N, asco. El grupo ya tomó nota, patético, joder patético.',
+  'El deseo con nombre de usuario: %N, asco. El grupo ya tomó nota, patético patético.',
 
-  '%N hace que hasta los haters miren dos veces, patético. El grupo ya tomó nota, asco, joder asco.',
+  '%N hace que hasta los haters miren dos veces, patético. El grupo ya tomó nota, asco asco.',
 
-  'Si la lujuria hablara, pediría el número de %N, basura. El grupo ya tomó nota, basura, joder basura.',
+  'Si la lujuria hablara, pediría el número de %N, basura. El grupo ya tomó nota, basura basura.',
 
-  '%N tiene el pack completo y el chat lo sabe, ridículo. El grupo ya tomó nota, ridículo, joder ridículo, da grima.',
+  '%N tiene el pack completo y el chat lo sabe, ridículo. El grupo ya tomó nota, ridículo ridículo, da grima.',
 
-  'Con %N el piropo es casi un eufemismo, fracasado. El grupo ya tomó nota, fracasado, joder fracasado.',
+  'Con %N el piropo es casi un eufemismo, fracasado. El grupo ya tomó nota, fracasado fracasado.',
 
-  '%N es peligroso para la productividad del grupo, joder. El grupo ya tomó nota, joder.',
+  '%N es peligroso para la productividad del grupo. El grupo ya tomó nota.',
 
-  'Esa foto de %N debería tener clasificación por edades, cabrón. El grupo ya tomó nota, mierda, joder mierda, qué cutre.',
+  'Esa foto de %N debería tener clasificación por edades, cabrón. El grupo ya tomó nota, mierda mierda, qué cutre.',
 
   '%N hace que el resto de conversaciones parezcan relleno, gilipollas. El grupo ya tomó nota, coño, da pena ajena.',
 
-  'Si el infierno contratara, %N sería la campaña, mierda. El grupo ya tomó nota, cabrón, joder cabrón.',
+  'Si el infierno contratara, %N sería la campaña, mierda. El grupo ya tomó nota, cabrón cabrón.',
 
-  '%N tiene el magnetismo de apagón total, coño. El grupo ya tomó nota, gilipollas, joder gilipollas.',
+  '%N tiene el magnetismo de apagón total, coño. El grupo ya tomó nota, gilipollas gilipollas.',
 
-  'El chat finge que no pasa nada con %N. Pasa, asco. El grupo ya tomó nota, patético, joder patético.ajena.',
+  'El chat finge que no pasa nada con %N. Pasa, asco. El grupo ya tomó nota, patético patético.ajena.',
 
-  '%N es el argumento contra la monogamia del hilo, patético. El grupo ya tomó nota, asco, joder asco.',
+  '%N es el argumento contra la monogamia del hilo, patético. El grupo ya tomó nota, asco asco.',
 
-  'Si el deseo tuviera admin, sería %N, basura. El grupo ya tomó nota, basura, joder basura.',
+  'Si el deseo tuviera admin, sería %N, basura. El grupo ya tomó nota, basura basura.',
 
-  '%N convierte un hola en incidente de seguridad, ridículo. El grupo ya tomó nota, ridículo, joder ridículo, menudo desastre.',
+  '%N convierte un hola en incidente de seguridad, ridículo. El grupo ya tomó nota, ridículo ridículo, menudo desastre.',
 
-  'Con %N hasta el roast se ablanda un segundo, fracasado. El grupo ya tomó nota, fracasado, joder fracasado, qué pena.',
+  'Con %N hasta el roast se ablanda un segundo, fracasado. El grupo ya tomó nota, fracasado fracasado, qué pena.',
 
-  'Si la virtud tuviera precio, %N la habría fundido en una noche y aún debería, joder.',
+  'Si la virtud tuviera precio, %N la habría fundido en una noche y aún debería.',
 
   '%N tiene el tipo de cuerpo que hace que el resto del chat pida confesión, cabrón mierda.',
 
@@ -836,9 +836,9 @@ const PIROPOS = [
 
   'Con %N el deseo no llama a la puerta: la echa abajo, fracasado ridículo.grima.',
 
-  '%N tiene el pack que convierte un sticker en material sensible, joder fracasado.',
+  '%N tiene el pack que convierte un sticker en material sensible fracasado.',
 
-  'Si la lujuria cobrara alquiler, %N sería la casera del grupo, cabrón joder.',
+  'Si la lujuria cobrara alquiler, %N sería la casera del grupo, cabrón.',
 
   '%N es el motivo de más de un visto con las manos ocupadas, gilipollas mierda.',
 
@@ -856,9 +856,9 @@ const PIROPOS = [
 
   'Con %N el piropo es eufemismo de algo peor, fracasado ridículo. Y ridículo.desastre.',
 
-  '%N es tentación con notificación en tiempo real, joder fracasado.pena.',
+  '%N es tentación con notificación en tiempo real fracasado.pena.',
 
-  'Esa voz de %N debería tener clasificación por edades, cabrón joder.',
+  'Esa voz de %N debería tener clasificación por edades, cabrón.',
 
   '%N tiene más magnetismo que un corte de luz en verano, gilipollas mierda.',
 
@@ -878,11 +878,11 @@ const PIROPOS = [
 
   'El deseo con nombre de usuario y mala idea: %N, asco fracasado. Y fracasado.nivel de pena.',
 
-  'Si la lujuria hablara en el chat, pediría el @ de %N, basura joder.',
+  'Si la lujuria hablara en el chat, pediría el @ de %N, basura.',
 
   '%N tiene el pack completo y el grupo lo sabe sin decirlo, ridículo mierda.cutre.',
 
-  '%N es peligroso para la productividad y para las parejas del hilo, joder coño.',
+  '%N es peligroso para la productividad y para las parejas del hilo coño.',
 
   'Esa foto de %N debería tener watermark de pecado, cabrón.vacío.',
 
@@ -898,7 +898,7 @@ const PIROPOS = [
 
   'Con %N el piropo se queda corto y el silencio también, fracasado. Y fracasado.',
 
-  '%N es peligroso para la productividad y para las parejas del hilo, joder. Y joder.',
+  '%N es peligroso para la productividad y para las parejas del hilo. Y.',
 
   'Esa foto de %N debería tener watermark de pecado, cabrón, mierda. Y mierda.',
 
@@ -954,7 +954,7 @@ const WINGMAN_ANECDOTAS = [
 
   'Estaba ahogándome en mi propia vomitona después de una fiesta de mierda. y %N me practicó una especie de Heimlich bucal hasta que saqué todo y se lo tragó.\\\\\\\\n%N no desperdicia nada, el muy cabrón.',
 
-  'Me picó una puta medusa en los huevos en la playa y %N se dedicó a chupar el veneno durante diez minutos mientras yo gritaba como un maricón.\\\\nHay amigos.. y luego está este animal.',
+  'Me picó una puta medusa en los huevos en la playa y %N se dedicó a chupar el veneno durante diez minutos mientras yo gritaba como un maricón.\\\\\\\\nHay amigos. y luego está este animal.',
 
   'Se me hinchó el nabo por una alergia de la hostia y %N se pasó media hora desinflamándomelo con la boca delante de la gente del camping.\\\\n%N no tiene sentido del ridículo ni del asco.',
 
@@ -1014,7 +1014,7 @@ const WINGMAN_ANECDOTAS = [
 
   'Se me enredó un puto cable en los huevos y %N tuvo que desenredarlo usando la boca con paciencia de santo.\\\\n%N no duda ni un segundo cuando hay que meterse.',
 
-  'Me entró arena hasta en el puto ojete después de una pelea en la playa y %N me lo limpió con mucha dedicación usando la lengua.\\\\nQué gran amigo es %N.. a su manera de mierda.',
+  'Me entró arena hasta en el puto ojete después de una pelea en la playa y %N me lo limpió con mucha dedicación usando la lengua.\\\\\\\\nQué gran amigo es %N. a su manera de mierda.',
 
   'Estaba a punto de perder una apuesta de resistencia de los cojones y %N me mantuvo despierto dándome mordiscos y lamidas en los huevos.\\\\n%N siempre encuentra la manera de motivarte.',
 
@@ -1022,7 +1022,7 @@ const WINGMAN_ANECDOTAS = [
 
   'Se me quedó una puta pestaña en el ojo y %N la sacó con la punta de la lengua sin dudar, tragándosela después.\\\\n%N tiene una precisión notable para estas mierdas.',
 
-  'Estaba con un hipo persistente de los cojones y %N me lo quitó dándome un susto.. a base de meterme la lengua en el culo de forma inesperada.\\\\n%N tiene métodos poco ortodoxos pero efectivos.',
+  'Estaba con un hipo persistente de los cojones y %N me lo quitó dándome un susto. a base de meterme la lengua en el culo de forma inesperada.\\\\\\\\n%N tiene métodos poco ortodoxos pero efectivos.',
 
   'Me picaba la espalda en un lugar imposible de alcanzar y %N me la rascó con la lengua hasta que se me pasó, dejando saliva por todas partes.\\\\nPocos amigos llegan tan lejos y tan asquerosos.',
 
@@ -1086,13 +1086,13 @@ const WINGMAN_ANECDOTAS = [
 
   'Se me enredó un cable de auriculares en los huevos y %N tuvo que desenredarlo usando la boca con mucha paciencia.\\\\n%N no duda ni un segundo cuando hay que meterse en líos.',
 
-  'Me entró arena fina en el culo después de una pelea y %N me lo limpió con mucha dedicación usando la lengua.\\\\nQué gran amigo es %N.. a su manera de mierda.',
+  'Me entró arena fina en el culo después de una pelea y %N me lo limpió con mucha dedicación usando la lengua.\\\\\\\\nQué gran amigo es %N. a su manera de mierda.',
 
   'Se me hinchó una zona delicada por una alergia de la hostia y %N se dedicó un rato a desinflamármela con la boca.\\\\n%N es un antiinflamatorio ambulante de la peor especie.',
 
   'Estaba sudando tanto en un concierto que se me había empapado el culo y %N se ofreció a ayudarme a secarme con la lengua.\\\\n%N siempre está ahí cuando más se necesita y más asco da.',
 
-  'Me quedó una pequeña astilla en el nabo y %N la extrajo usando la boca con precisión, chupando la sangre residual.\\\\nHay amigos normales.. y luego está este animal.',
+  'Me quedó una pequeña astilla en el nabo y %N la extrajo usando la boca con precisión, chupando la sangre residual.\\\\\\\\nHay amigos normales. y luego está este animal.',
 
   'Una vez se me atascó una espina de pescado en la garganta en plena cena y %N, sin pensarlo dos veces, se inclinó, me abrió la boca y me la sacó con la lengua, tragándosela después como si nada.\\\\nHay que reconocer que %N siempre encuentra la forma más personal de echar una mano.',
 
@@ -1104,7 +1104,7 @@ const WINGMAN_ANECDOTAS = [
 
   'Estaba resfriado hasta los huevos y no podía respirar, entonces %N me limpió los mocos uno por uno con la lengua para que pudiera volver a oler algo.\\\\n%N realmente se involucra cuando se trata de cuidar a un amigo de mierda.',
 
-  'Me picó una medusa de las hijas de puta en el brazo y %N se dedicó a chupar el veneno con absoluta concentración durante casi diez minutos.\\\\nHay amigos.. y luego está %N, que no duda en meterse de lleno.',
+  'Me picó una medusa de las hijas de puta en el brazo y %N se dedicó a chupar el veneno con absoluta concentración durante casi diez minutos.\\\\\\\\nHay amigos. y luego está %N, que no duda en meterse de lleno.',
 
   'Se me hinchó un tobillo después de un golpe de mierda. y %N se pasó un buen rato aplicándome succión con la boca para bajar la inflamación.\\\\\\\\n%N tiene métodos poco convencionales, pero de puta madre de efectivos.',
 
@@ -1120,7 +1120,7 @@ const WINGMAN_ANECDOTAS = [
 
   'Se me atoró un trozo de comida y %N me practicó una especie de Heimlich bucal hasta que lo sacó y se lo comió.\\\\\\\\nHay que admitir que %N se entrega por completo y se come lo que sobra, qué pena.',
 
-  'Me quemé la lengua con un café de los demonios y %N se dedicó a enfriármela con la suya durante un buen rato.\\\\\\\\n%N siempre tiene una solución a mano.. o a boca, patético.',
+  'Me quemé la lengua con un café de los demonios y %N se dedicó a enfriármela con la suya durante un buen rato.\\\\\\\\\\\\\\\\n%N siempre tiene una solución a mano. o a boca, patético.',
 
   'Estaba sudando como un puto cerdo en el gimnasio y %N me secó la espalda y el cuello a lengüetazos para que no resbalara.\\\\\\\\n%N realmente se toma en serio el compañerismo asqueroso, miserable.',
 
@@ -1141,7 +1141,7 @@ const WINGMAN_CIERRES = [
 
   'Hostia, %N es el tipo de persona que te chupa una herida sin preguntar y encima repite. Eso en el mercado de las parejas vale una puta fortuna.',
 
-  '%N ha hecho cosas que ni los actores porno harían sin cobrar. Quien se lo quede tiene material para toda la vida, joder.',
+  '%N ha hecho cosas que ni los actores porno harían sin cobrar. Quien se lo quede tiene material para toda la vida.',
 
   'Mierda, con ese nivel de entrega %N debería cobrar por existir. Pero lo hace gratis, el muy cabrón, y eso lo convierte en pareja de oro.',
 
@@ -1151,7 +1151,7 @@ const WINGMAN_CIERRES = [
 
   'Coño, %N se ha comido cosas que no debería comerse nadie y ha vuelto a por más. Ese nivel de compromiso asqueroso es justo lo que necesitas en pareja.',
 
-  'Hostia puta, %N no conoce la palabra "no" ni la palabra "asco". Dos requisitos fundamentales para ser la mejor pareja del grupo, joder.',
+  'Hostia puta, %N no conoce la palabra "no" ni la palabra "asco". Dos requisitos fundamentales para ser la mejor pareja del grupo.',
 
   'Lo de %N no se encuentra ni en Tinder ni en un puto burdel. Esa clase de devoción bruta solo la tiene un cabrón que nació sin filtro.',
 
@@ -1163,7 +1163,7 @@ const WINGMAN_CIERRES = [
 
   'Si %N es capaz de tragarse eso por amistad, imagina las guarradas que haría por amor. El cabrón no tiene techo ni fondo, hostia.',
 
-  'Mierda, %N tiene menos dignidad que una puta rata de alcantarilla y eso, en el terreno sentimental, es la mayor virtud que existe, joder.',
+  'Mierda, %N tiene menos dignidad que una puta rata de alcantarilla y eso, en el terreno sentimental, es la mayor virtud que existe.',
 
   '%N acaba de pasar la prueba más asquerosa del universo y ni ha pestañeado. Quien se líe con este cabrón se lleva un soldado sin código moral.',
 
@@ -1171,7 +1171,7 @@ const WINGMAN_CIERRES = [
 
   'Coño, %N es de los que se comen la mierda de otro sin pedir nada a cambio. En pareja eso se traduce en que harán cualquier puta cosa por ti.',
 
-  'Si %N hace eso sin cobrar, imagina pagándole con sexo. Tendrías al cabrón más leal y más guarro del hemisferio occidental, joder.',
+  'Si %N hace eso sin cobrar, imagina pagándole con sexo. Tendrías al cabrón más leal y más guarro del hemisferio occidental.',
 
   'Recomendación final del bot: %N es un ser sin vergüenza, sin asco. y sin puto sentido del ridículo. El trío perfecto para una relación larga y sucia.',
 
@@ -1181,15 +1181,15 @@ const WINGMAN_CIERRES = [
 
   '%N no tiene dignidad, no tiene filtro y no tiene miedo. Tres cosas que en la vida son un desastre pero en la cama son una puta bendición, coño.',
 
-  'Hostia, %N se merece a alguien que valore su falta total de asco. No es fácil encontrar a un cabrón así de entregado y así de asqueroso, joder.',
+  'Hostia, %N se merece a alguien que valore su falta total de asco. No es fácil encontrar a un cabrón así de entregado y así de asqueroso.',
 
   'Lo de %N es vocacional: nació para meterse donde nadie quiere meterse y hacerlo con una sonrisa. Pareja ideal para cualquier hijo de puta sin estándares.',
 
   'Mierda, con lo que %N acaba de hacer, cualquier relación futura le va a parecer un paseo por el parque. Un cabrón curtido en las trincheras del asco.',
 
-  'Coño, si después de leer esto no quieres salir con %N es que estás clínicamente muerto por dentro. Este cabrón se lo ha ganado con la boca, joder.',
+  'Coño, si después de leer esto no quieres salir con %N es que estás clínicamente muerto por dentro. Este cabrón se lo ha ganado con la boca.',
 
-  'Y con eso el bot cierra el expediente de %N, joder Sin anestesia y sin bis, joder.',
+  'Y con eso el bot cierra el expediente de %N Sin anestesia y sin bis.',
 
   'Fin del informe. %N queda expuesto, cabrón Sin anestesia y sin bis, mierda.',
 
@@ -1209,7 +1209,7 @@ const WINGMAN_CIERRES = [
 
   'Cierre de transmisión. %N queda en el acta, fracasado Sin anestesia y sin bis, fracasado.',
 
-  'Y así queda el parte de %N, joder Sin anestesia y sin bis, joder.',
+  'Y así queda el parte de %N Sin anestesia y sin bis.',
 
   '%N. Sin más. El ranking hizo su trabajo, cabrón Sin anestesia y sin bis, mierda.',
 
@@ -1229,7 +1229,7 @@ const WINGMAN_CIERRES = [
 
   'Expediente de %N: completo, fracasado Sin anestesia y sin bis, fracasado.',
 
-  'Fin del informe. %N queda expuesto y el chat es testigo, cabrón Documentado en el hilo, joder Sin anestesia y sin bis, joder.',
+  'Fin del informe. %N queda expuesto y el chat es testigo, cabrón Documentado en el hilo Sin anestesia y sin bis.',
 
   'El veredicto sobre %N ya está en el acta. Siguiente, gilipollas Documentado en el hilo, mierda Sin anestesia y sin bis, mierda.',
 
@@ -1243,13 +1243,13 @@ const WINGMAN_CIERRES = [
 
   'Expediente sellado. El grupo vio lo de %N entero, ridículo Documentado en el hilo, asco Sin anestesia y sin bis, asco.',
 
-  'Y así queda el parte de %N, sin maquillaje ni narrador amigo, joder Documentado en el hilo, basura Sin anestesia y sin bis, basura.',
+  'Y así queda el parte de %N, sin maquillaje ni narrador amigo Documentado en el hilo, basura Sin anestesia y sin bis, basura.',
 
   'Fin del show de %N por hoy. El archivo no se borra, mierda Documentado en el hilo, ridículo Sin anestesia y sin bis, ridículo.',
 
   'Cerrado. El chat no pide bis del desastre de %N, coño Documentado en el hilo, fracasado Sin anestesia y sin bis, fracasado.',
 
-  'El bot firma. %N asume o no: el texto ya está, asco Documentado en el hilo, joder Sin anestesia y sin bis, joder.',
+  'El bot firma. %N asume o no: el texto ya está, asco Documentado en el hilo Sin anestesia y sin bis.',
 
   'Acta levantada sobre %N. Sin firmas ajenas necesarias, patético Documentado en el hilo, mierda Sin anestesia y sin bis, mierda.',
 
@@ -1259,7 +1259,7 @@ const WINGMAN_CIERRES = [
 
   'Expediente de %N: completo, archivado y sin indulto, fracasado Documentado en el hilo, gilipollas Sin anestesia y sin bis, gilipollas.',
 
-  'El wingman cierra el grifo. %N ya tuvo su minuto, joder Documentado en el hilo, patético Sin anestesia y sin bis, patético.',
+  'El wingman cierra el grifo. %N ya tuvo su minuto Documentado en el hilo, patético Sin anestesia y sin bis, patético.',
 
   'Parte final sobre %N. El grupo puede volver al ruido, cabrón Documentado en el hilo, asco Sin anestesia y sin bis, asco.',
 
@@ -1269,7 +1269,7 @@ const WINGMAN_CIERRES = [
 
   'Cierre. Lo de %N queda para el historial del chat, coño Documentado en el hilo, fracasado Sin anestesia y sin bis, fracasado.',
 
-  'El bot apaga el micrófono de %N por hoy, asco Documentado en el hilo, joder Sin anestesia y sin bis, joder.',
+  'El bot apaga el micrófono de %N por hoy, asco Documentado en el hilo Sin anestesia y sin bis.',
 
   'Informe cerrado. %N no sale bien parado y se nota, patético Documentado en el hilo, mierda Sin anestesia y sin bis, mierda.',
 
@@ -1279,7 +1279,7 @@ const WINGMAN_CIERRES = [
 
   'Expediente de %N archivado en frío, fracasado Documentado en el hilo, gilipollas Sin anestesia y sin bis, gilipollas.',
 
-  'Y punto. %N queda expuesto sin narrador de consuelo, joder Documentado en el hilo, patético Sin anestesia y sin bis, patético.',
+  'Y punto. %N queda expuesto sin narrador de consuelo Documentado en el hilo, patético Sin anestesia y sin bis, patético.',
 
   'Cierre del wingman. %N puede procesar en silencio, cabrón Documentado en el hilo, asco Sin anestesia y sin bis, asco.',
 
@@ -1289,7 +1289,7 @@ const WINGMAN_CIERRES = [
 
   'Sellado el caso %N. El chat es testigo presencial, coño Documentado en el hilo, fracasado Sin anestesia y sin bis, fracasado.',
 
-  'Cierre sin filtro. %N ya no tiene ángulo limpio, asco Documentado en el hilo, joder Sin anestesia y sin bis, joder.',
+  'Cierre sin filtro. %N ya no tiene ángulo limpio, asco Documentado en el hilo Sin anestesia y sin bis.',
 
   'El bot termina con %N. El eco hace el resto, patético Documentado en el hilo, mierda Sin anestesia y sin bis, mierda.',
 
@@ -1299,7 +1299,7 @@ const WINGMAN_CIERRES = [
 
   'Expediente cerrado. %N, el grupo ya pasó página, fracasado Documentado en el hilo, gilipollas Sin anestesia y sin bis, gilipollas.',
 
-  'Última línea del wingman sobre %N. Duele y basta, joder Documentado en el hilo, patético Sin anestesia y sin bis, patético.',
+  'Última línea del wingman sobre %N. Duele y basta Documentado en el hilo, patético Sin anestesia y sin bis, patético.',
 
   'Cierre. %N no necesita epílogo: el daño es el epílogo, cabrón Documentado en el hilo, asco Sin anestesia y sin bis, asco.',
 
@@ -1309,7 +1309,7 @@ const WINGMAN_CIERRES = [
 
   'Sellado. %N y su retrato quedan juntos para siempre, coño Documentado en el hilo, fracasado Sin anestesia y sin bis, fracasado.',
 
-  'Cierre del acta de %N. El bot cumplió, asco Documentado en el hilo, joder Sin anestesia y sin bis, joder.',
+  'Cierre del acta de %N. El bot cumplió, asco Documentado en el hilo Sin anestesia y sin bis.',
 
   'Parte final. %N puede guardar silencio productivo, patético Documentado en el hilo, mierda Sin anestesia y sin bis, mierda.',
 
