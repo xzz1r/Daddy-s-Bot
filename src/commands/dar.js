@@ -23,7 +23,7 @@ async function cmdDar(sock, msg, args) {
 
   const amountArg = (args || []).find(a => /^\d+$/.test(a));
   if (!amountArg) {
-    return sock.sendMessage(jid, { text: 'Indica una cantidad: *!dar @user <cantidad>*' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Indica una cantidad: *!dar @user <cantidad>*.' }, { quoted: msg });
   }
   const amount = parseInt(amountArg, 10);
   if (amount < GIFT_MIN) {
@@ -47,9 +47,9 @@ async function cmdDar(sock, msg, args) {
   await sock.sendMessage(jid, {
     text:
       `*TRANSFERENCIA DE AURA*\n\n` +
-      `${sTag} le pasa *${fmt(amount)} de aura* a ${tTag}\n\n` +
-      `${sTag}  −${fmt(amount)} → *${fmt(result.fromNew)}*\n` +
-      `${tTag}  +${fmt(amount)} → *${fmt(result.toNew)}*`,
+      `${sTag} le pasa *${fmt(amount)} de aura* a ${tTag}\\n\\n.` +
+      `${sTag} −${fmt(amount)} → *${fmt(result.fromNew)}*\\n.` +
+      `${tTag} +${fmt(amount)} → *${fmt(result.toNew)}*.`,
     mentions: [sender, target],
   }, { quoted: msg });
 }

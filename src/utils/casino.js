@@ -22,16 +22,16 @@ const { isBotEnabled, isAuraEnabled } = require('./state');
 const PHRASES = {
   tier1: {
     win: [
-      '200 mensajes y el aura responde. No es el bono gordo, pero es aura real que los fantasmas del grupo no van a ver nunca.',
+      '200 mensajes y el aura responde. No es el bono gordo, pero es aura real que los fantasmas del grupo no van a ver nunca, patético.',
       'Primer tramo cubierto. El aura paga lo básico: poco, pero más de lo que gana el que solo lee.',
-      '200 mensajes registrados. El aura sube porque se ha ganado escribiendo, que es la única forma que existe.',
-      'Actividad confirmada y aura entregada. Hay gente aquí que lleva semanas sin acercarse a este número.',
-      '200 mensajes: el mínimo para que el aura empiece a tenerte en cuenta. Cobrado.',
+      '200 mensajes registrados. El aura sube porque se ha ganado escribiendo, que es la única forma que existe, qué cringe.',
+      'Actividad confirmada y aura entregada. Hay gente aquí que lleva semanas sin acercarse a este número, da asco, da asco.',
+      '200 mensajes: el mínimo para que el aura empiece a tenerte en cuenta. Cobrado, qué vergüenza.',
       '200 mensajes. Poco, pero más de lo que ha escrito la mitad del grupo en todo el mes.',
-      'Tier 1 cubierto. El aura paga y el que no escribe no cobra. Así de fácil.',
+      'Tier 1 cubierto. El aura paga y el que no escribe no cobra. Así de fácil, fracasado.',
       '200 mensajes y el aura responde en consecuencia. Poco pero honrado, como tu aportación.',
       'Actividad registrada. 200 mensajes que los muertos del grupo no van a juntar ni en sueños.',
-      '200. El aura paga a los que aparecen y a los demás les paga una mierda.',
+      '200. El aura paga a los que aparecen y a los demás les paga una mierda, qué nivel de pena.',
     ],
     bigwin: [
       'El aura salió generosa en el primer tramo. 200 mensajes que rindieron más de lo normal.',
@@ -109,17 +109,107 @@ const PHRASES = {
     ],
   },
   redemption: [
-    'REMONTADA DE AURA — Estaba en el sótano y la actividad hizo lo que ninguna excusa consiguió. Bono de comeback. Esto no lo calcula nadie.',
-    'COMEBACK EN DIRECTO — Aura negativa, mensajes positivos. Aquí se premia la constancia antes que el cope, y el marcador acaba de cambiar de cara.',
-    'REDENCIÓN INESPERADA — El grupo daba ese aura por perdida. La actividad tiene su propia economía y acaba de hablar. Bote confirmado.',
-    'EL MARCADOR REESCRITO — Aura negativa, actividad real. Aquí no se juzga el historial, se juzga quién aparece. Resultado: bono de redención.',
-    'BONO DE REDENCIÓN — Lo que meses de excusas no arreglaron, la actividad lo resolvió sola. El aura cambia de signo y el grupo lo vio.',
-    'COMEBACK CONFIRMADO — Aura en negativo y un bono que reescribe la historia. La actividad paga lo que la suerte no quiso.',
-    'REMONTADA — Desde el fondo del pozo hasta aquí. La actividad hace lo que ninguna tirada consiguió: cambiar el marcador.',
-    'REDENCIÓN — Aura negativa, presencia real. El sistema premia al que aparece y hoy ha aparecido quien más lo necesitaba.',
-    'EL SÓTANO TIENE SALIDA — Aura negativa y un bono de redención que demuestra que escribir vale más que tirar.',
-    'BONO DE COMEBACK — Cuando todo el mundo te daba por muerto, la actividad te sacó del hoyo. El marcador lo confirma.',
-  ],
+  'REMONTADA DE AURA — Estaba en el sótano y la actividad hizo lo que ninguna excusa consiguió. Bono de comeback. Esto no lo calcula nadie, joder.',
+  'COMEBACK EN DIRECTO — Aura negativa, mensajes positivos. Aquí se premia la constancia antes que el cope, y el marcador acaba de cambiar de cara, mierda.',
+  'REDENCIÓN INESPERADA — El grupo daba ese aura por perdida. La actividad tiene su propia economía y acaba de hablar. Bote confirmado, coño.',
+  'EL MARCADOR REESCRITO — Aura negativa, actividad real. Aquí no se juzga el historial, se juzga quién aparece. Resultado: bono de redención, cabrón.',
+  'BONO DE REDENCIÓN — Lo que meses de excusas no arreglaron, la actividad lo resolvió sola. El aura cambia de signo y el grupo lo vio, gilipollas.',
+  'COMEBACK CONFIRMADO — Aura en negativo y un bono que reescribe la historia. La actividad paga lo que la suerte no quiso, patético.',
+  'REMONTADA — Desde el fondo del pozo hasta aquí. La actividad hace lo que ninguna tirada consiguió: cambiar el marcador, asco.',
+  'REDENCIÓN — Aura negativa, presencia real. El sistema premia al que aparece y hoy ha aparecido quien más lo necesitaba, basura.',
+  'EL SÓTANO TIENE SALIDA — Aura negativa y un bono de redención que demuestra que escribir vale más que tirar, ridículo.',
+  'BONO DE COMEBACK — Cuando todo el mundo te daba por muerto, la actividad te sacó del hoyo. El marcador lo confirma, fracasado.',
+  'REMONTADA DE AURA — Estaba en el sótano y la actividad hizo lo que ninguna tirada de suerte consiguió, joder.',
+  'De la miseria al respiro: el contador te dio aire porque escribiste, no porque rezaste, cabrón Menuda forma de dejar huella.',
+  'Remontada documentada. El sótano te suelta un tramo y el chat lo ve sin aplaudir, gilipollas Sin derecho a perfil bajo después.',
+  'Actividad al rescate. El aura deja de sangrar porque apareciste de verdad, mierda. El archivo lo confirma en frío.',
+  'Saliste del agujero por teclado, no por milagro de RNG, coño Así se ve la presencia de verdad No hay modo avión que borre esto.',
+  'Remontada fea pero real. El ranking toma nota y no pide discurso, asco No hay modo avión que borre esto.',
+  'El sótano no era eterno: la presencia te empujó un escalón arriba, patético. El contador no negocia con excusas.',
+  'Rescate por mensajes. Sin ellos seguirías en el mismo hoyo, basura.',
+  'Remontada de aura en vivo. El número cambia porque tú cambiaste de hábito, ridículo. El grupo ya no discute la cifra, ridículo.',
+  'De rojo a menos rojo. Celebración mínima y merecida a medias, fracasado Menuda forma de dejar huella, fracasado.',
+  'REMONTADA DE AURA — Estaba en el sótano y la actividad hizo lo que ninguna tirada de suerte consiguió, joder.',
+  'De la miseria al respiro: el contador te dio aire porque escribiste, no porque rezaste, cabrón. El archivo lo confirma en frío.',
+  'Remontada documentada. El sótano te suelta un tramo y el chat lo ve sin aplaudir, gilipollas Así se ve la presencia de verdad.',
+  'Actividad al rescate. El aura deja de sangrar porque apareciste de verdad, mierda No hay modo avión que borre esto.',
+  'Saliste del agujero por teclado, no por milagro de RNG, coño. El contador no negocia con excusas.',
+  'Remontada fea pero real. El ranking toma nota y no pide discurso, asco.',
+  'El sótano no era eterno: la presencia te empujó un escalón arriba, patético. El grupo ya no discute la cifra.',
+  'Rescate por mensajes. Sin ellos seguirías en el mismo hoyo, basura Menuda forma de dejar huella Sin derecho a perfil bajo después.',
+  'Remontada de aura en vivo. El número cambia porque tú cambiaste de hábito, ridículo Sin derecho a perfil bajo después, ridículo.',
+  'De rojo a menos rojo. Celebración mínima y merecida a medias, fracasado. El archivo lo confirma en frío, fracasado.',
+  'REMONTADA DE AURA — Estaba en el sótano y la actividad hizo lo que ninguna tirada de suerte consiguió, joder.',
+  'De la miseria al respiro: el contador te dio aire porque escribiste, no porque rezaste, cabrón No hay modo avión que borre esto.',
+  'Remontada documentada. El sótano te suelta un tramo y el chat lo ve sin aplaudir, gilipollas. El contador no negocia con excusas.',
+  'Actividad al rescate. El aura deja de sangrar porque apareciste de verdad, mierda.',
+  'Saliste del agujero por teclado, no por milagro de RNG, coño. El grupo ya no discute la cifra Menuda forma de dejar huella.',
+  'Remontada fea pero real. El ranking toma nota y no pide discurso, asco Menuda forma de dejar huella.',
+  'El sótano no era eterno: la presencia te empujó un escalón arriba, patético Sin derecho a perfil bajo después.',
+  'Rescate por mensajes. Sin ellos seguirías en el mismo hoyo, basura. El archivo lo confirma en frío Así se ve la presencia de verdad.',
+  'Remontada de aura en vivo. El número cambia porque tú cambiaste de hábito, ridículo Así se ve la presencia de verdad, ridículo.',
+  'De rojo a menos rojo. Celebración mínima y merecida a medias, fracasado No hay modo avión que borre esto, fracasado.',
+  'REMONTADA DE AURA — Estaba en el sótano y la actividad hizo lo que ninguna tirada de suerte consiguió, joder.',
+  'De la miseria al respiro: el contador te dio aire porque escribiste, no porque rezaste, cabrón.',
+  'Remontada documentada. El sótano te suelta un tramo y el chat lo ve sin aplaudir, gilipollas. El grupo ya no discute la cifra.',
+  'Actividad al rescate. El aura deja de sangrar porque apareciste de verdad, mierda Menuda forma de dejar huella.',
+  'Saliste del agujero por teclado, no por milagro de RNG, coño Sin derecho a perfil bajo después El archivo lo confirma en frío.',
+  'Remontada fea pero real. El ranking toma nota y no pide discurso, asco. El archivo lo confirma en frío.',
+  'El sótano no era eterno: la presencia te empujó un escalón arriba, patético Así se ve la presencia de verdad.',
+  'Rescate por mensajes. Sin ellos seguirías en el mismo hoyo, basura No hay modo avión que borre esto.',
+  'Remontada de aura en vivo. El número cambia porque tú cambiaste de hábito, ridículo. El contador no negocia con excusas, ridículo.',
+  'De rojo a menos rojo. Celebración mínima y merecida a medias, fracasado.',
+  'REMONTADA DE AURA — Estaba en el sótano y la actividad hizo lo que ninguna tirada de suerte consiguió, joder.',
+  'De la miseria al respiro: el contador te dio aire porque escribiste, no porque rezaste, cabrón Menuda forma de dejar huella.',
+  'Remontada documentada. El sótano te suelta un tramo y el chat lo ve sin aplaudir, gilipollas Sin derecho a perfil bajo después.',
+  'Actividad al rescate. El aura deja de sangrar porque apareciste de verdad, mierda. El archivo lo confirma en frío.',
+  'Saliste del agujero por teclado, no por milagro de RNG, coño Así se ve la presencia de verdad No hay modo avión que borre esto.',
+  'Remontada fea pero real. El ranking toma nota y no pide discurso, asco No hay modo avión que borre esto.',
+  'El sótano no era eterno: la presencia te empujó un escalón arriba, patético. El contador no negocia con excusas.',
+  'Rescate por mensajes. Sin ellos seguirías en el mismo hoyo, basura.',
+  'Remontada de aura en vivo. El número cambia porque tú cambiaste de hábito, ridículo. El grupo ya no discute la cifra, ridículo.',
+  'De rojo a menos rojo. Celebración mínima y merecida a medias, fracasado Menuda forma de dejar huella, fracasado.',
+  'REMONTADA DE AURA — Estaba en el sótano y la actividad hizo lo que ninguna tirada de suerte consiguió, joder.',
+  'De la miseria al respiro: el contador te dio aire porque escribiste, no porque rezaste, cabrón. El archivo lo confirma en frío.',
+  'Remontada documentada. El sótano te suelta un tramo y el chat lo ve sin aplaudir, gilipollas Así se ve la presencia de verdad.',
+  'Actividad al rescate. El aura deja de sangrar porque apareciste de verdad, mierda No hay modo avión que borre esto.',
+  'Saliste del agujero por teclado, no por milagro de RNG, coño. El contador no negocia con excusas.',
+  'Remontada fea pero real. El ranking toma nota y no pide discurso, asco.',
+  'El sótano no era eterno: la presencia te empujó un escalón arriba, patético. El grupo ya no discute la cifra.',
+  'Rescate por mensajes. Sin ellos seguirías en el mismo hoyo, basura Menuda forma de dejar huella Sin derecho a perfil bajo después.',
+  'Remontada de aura en vivo. El número cambia porque tú cambiaste de hábito, ridículo Sin derecho a perfil bajo después, ridículo.',
+  'De rojo a menos rojo. Celebración mínima y merecida a medias, fracasado. El archivo lo confirma en frío, fracasado.',
+  'REMONTADA DE AURA — Estaba en el sótano y la actividad hizo lo que ninguna tirada de suerte consiguió, joder.',
+  'De la miseria al respiro: el contador te dio aire porque escribiste, no porque rezaste, cabrón No hay modo avión que borre esto.',
+  'Remontada documentada. El sótano te suelta un tramo y el chat lo ve sin aplaudir, gilipollas. El contador no negocia con excusas.',
+  'Actividad al rescate. El aura deja de sangrar porque apareciste de verdad, mierda.',
+  'Saliste del agujero por teclado, no por milagro de RNG, coño. El grupo ya no discute la cifra Menuda forma de dejar huella.',
+  'Remontada fea pero real. El ranking toma nota y no pide discurso, asco Menuda forma de dejar huella.',
+  'El sótano no era eterno: la presencia te empujó un escalón arriba, patético Sin derecho a perfil bajo después.',
+  'Rescate por mensajes. Sin ellos seguirías en el mismo hoyo, basura. El archivo lo confirma en frío Así se ve la presencia de verdad.',
+  'Remontada de aura en vivo. El número cambia porque tú cambiaste de hábito, ridículo Así se ve la presencia de verdad, ridículo.',
+  'De rojo a menos rojo. Celebración mínima y merecida a medias, fracasado No hay modo avión que borre esto, fracasado.',
+  'REMONTADA DE AURA — Estaba en el sótano y la actividad hizo lo que ninguna tirada de suerte consiguió, joder.',
+  'De la miseria al respiro: el contador te dio aire porque escribiste, no porque rezaste, cabrón.',
+  'Remontada documentada. El sótano te suelta un tramo y el chat lo ve sin aplaudir, gilipollas. El grupo ya no discute la cifra.',
+  'Actividad al rescate. El aura deja de sangrar porque apareciste de verdad, mierda Menuda forma de dejar huella.',
+  'Saliste del agujero por teclado, no por milagro de RNG, coño Sin derecho a perfil bajo después El archivo lo confirma en frío.',
+  'Remontada fea pero real. El ranking toma nota y no pide discurso, asco. El archivo lo confirma en frío.',
+  'El sótano no era eterno: la presencia te empujó un escalón arriba, patético Así se ve la presencia de verdad.',
+  'Rescate por mensajes. Sin ellos seguirías en el mismo hoyo, basura No hay modo avión que borre esto.',
+  'Remontada de aura en vivo. El número cambia porque tú cambiaste de hábito, ridículo. El contador no negocia con excusas, ridículo.',
+  'De rojo a menos rojo. Celebración mínima y merecida a medias, fracasado.',
+  'REMONTADA DE AURA — Estaba en el sótano y la actividad hizo lo que ninguna tirada de suerte consiguió, joder.',
+  'De la miseria al respiro: el contador te dio aire porque escribiste, no porque rezaste, cabrón Menuda forma de dejar huella.',
+  'Remontada documentada. El sótano te suelta un tramo y el chat lo ve sin aplaudir, gilipollas Sin derecho a perfil bajo después.',
+  'Actividad al rescate. El aura deja de sangrar porque apareciste de verdad, mierda. El archivo lo confirma en frío.',
+  'Saliste del agujero por teclado, no por milagro de RNG, coño Así se ve la presencia de verdad No hay modo avión que borre esto.',
+  'Remontada fea pero real. El ranking toma nota y no pide discurso, asco No hay modo avión que borre esto.',
+  'El sótano no era eterno: la presencia te empujó un escalón arriba, patético. El contador no negocia con excusas.',
+  'Rescate por mensajes. Sin ellos seguirías en el mismo hoyo, basura.',
+  'Remontada de aura en vivo. El número cambia porque tú cambiaste de hábito, ridículo. El grupo ya no discute la cifra, ridículo.',
+  'De rojo a menos rojo. Celebración mínima y merecida a medias, fracasado Menuda forma de dejar huella, fracasado.',
+],
 };
 
 // ─── Reward rolling (variable ratio — core casino mechanic) ───────────────────
@@ -223,7 +313,7 @@ async function checkCasinoMilestone(sock, jid, sender) {
   const phrasePool = label === 'redemption'
     ? PHRASES.redemption
     : PHRASES[`tier${tier}`][label];
-  const phrase = pickFresh(phrasePool, `${jid}|casino|${label}|${tier}`);
+  const phrase = pickFresh(phrasePool, `${jid}|casino|${label}|${tier}.`);
 
   // ─── ¿Se anuncia, o se cobra y punto? ──────────────────────────────────────
   //
@@ -252,9 +342,9 @@ async function checkCasinoMilestone(sock, jid, sender) {
   // Sin emojis, como el resto del bot. Este fichero era el ÚNICO de todo src/
   // que sacaba emojis por WhatsApp (doce líneas), y cantaba: el bot escribe en
   // texto pelado en los otros ciento y pico sitios.
-  const tierHdr   = tier === 3 ? '*BONO DE AURA · TIER 3 · 1000 MENSAJES*'
-                  : tier === 2 ? '*BONO DE AURA · TIER 2 · 500 MENSAJES*'
-                  :              '*BONO DE AURA · TIER 1 · 200 MENSAJES*';
+  const tierHdr   = tier === 3 ? '*BONO DE AURA · TIER 3 · 1000 MENSAJES*.'
+                  : tier === 2 ? '*BONO DE AURA · TIER 2 · 500 MENSAJES*.'
+                  :              '*BONO DE AURA · TIER 1 · 200 MENSAJES*.';
   const next      = nextMilestone(count);
   const nextLabel = next.tier === 3 ? 'Tier 3 (1000 msgs)'
                   : next.tier === 2 ? 'Tier 2 (500 msgs)'
@@ -262,9 +352,9 @@ async function checkCasinoMilestone(sock, jid, sender) {
 
   const text =
     `${tierHdr}\n\n` +
-    `${userTag} lleva *${fmt(count)} mensajes* hoy\n\n` +
+    `${userTag} lleva *${fmt(count)} mensajes* hoy\\n\\n.` +
     `${phrase}\n\n` +
-    `${userTag}  +${fmt(amount)} de aura → *${fmt(current)}*\n\n` +
+    `${userTag} +${fmt(amount)} de aura → *${fmt(current)}*\\n\\n.` +
     `_Próximo bono: ${nextLabel} — faltan ${fmt(next.remaining)} mensajes_`;
 
   // Solo se menciona a quien cobra el bono, y únicamente para que su nombre se

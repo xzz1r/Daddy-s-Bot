@@ -25,7 +25,7 @@ async function load() {
       .then((d) => { store = (d && Array.isArray(d.records)) ? d : { records: [] }; })
       .catch((e) => {
         loadPromise = null;
-        logger.warn(`pfpStore: lectura falló (${e.message}); no se toca el archivo`);
+        logger.warn(`pfpStore: lectura falló (${e.message}); no se toca el archivo.`);
         throw e;
       });
   }
@@ -37,7 +37,7 @@ function scheduleSave() {
   saveTimer = setTimeout(async () => {
     saveTimer = null;
     try { await atomicWriteJson(FILE, store); }
-    catch (e) { logger.error(`pfpStore: fallo al guardar: ${e.message}`); }
+    catch (e) { logger.error(`pfpStore: fallo al guardar: ${e.message}.`); }
   }, 4000);
 }
 
@@ -150,7 +150,7 @@ async function flush() {
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
   if (store) {
     try { await atomicWriteJson(FILE, store); }
-    catch (e) { logger.error(`pfpStore: fallo al flush: ${e.message}`); }
+    catch (e) { logger.error(`pfpStore: fallo al flush: ${e.message}.`); }
   }
 }
 

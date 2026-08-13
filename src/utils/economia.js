@@ -549,9 +549,9 @@ const BOTE = {
 // están puestos contra el botín típico (un robo medio mueve unos 40-60): un
 // escudo cuesta más que un robo bueno, así que comprarlo es renunciar a algo.
 const OBJETOS = {
-  escudo: { precio: 180, horas: 12, desc: 'nadie te puede robar durante 12 h' },
+  escudo: { precio: 180, horas: 12, desc: 'nadie te puede robar durante 12 h.' },
   ganzua: { precio: 140, usos: 1,   bono: 0.18, desc: '+18 % en tu próximo robo' },
-  cebo:   { precio: 90,  horas: 8,  desc: 'aparentas el doble de aura durante 8 h' },
+  cebo:   { precio: 90,  horas: 8,  desc: 'aparentas el doble de aura durante 8 h.' },
 };
 
 // EL CONTRAATAQUE. Tras un robo con éxito, la víctima tiene una ventana para
