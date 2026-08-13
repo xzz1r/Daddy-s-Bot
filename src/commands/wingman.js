@@ -145,208 +145,107 @@ const PIROPOS = [
 // con un problema delicado. Cada entrada son dos líneas: la situación
 // comprometida y el remate que cierra el chiste.
 const WINGMAN_ANECDOTAS = [
-  'Una vez me estaba cagando sangre en el váter de un puto bar de carretera y %N entró sin avisar, se arrodilló y me limpió el culo a lengüetazos hasta que dejé de sangrar.
-Sin %N habría muerto deshidratado en un baño de mierda apestando a mierda.',
-  'Me pilló un infarto en plena calle y %N, en vez de llamar a una ambulancia, me practicó reanimación boca a boca mientras me apretaba los huevos para mantenerme consciente.
-Ese nivel de prioridades solo lo tiene un cabrón como %N.',
-  'Estaba a punto de suicidarme saltando de un puente y %N me detuvo agarrándome de los huevos con la boca. Literalmente me salvó la vida chupándome la polla en el aire.
-%N tiene métodos de puta madre de efectivos.',
-  'Me quedó una puta aguja de heroína clavada en el brazo después de una noche de mierda y %N me la sacó con los dientes, chupando la sangre y el resto de la mierda que quedaba.
-Hay amigos y luego está %N, que no tiene asco ni dignidad.',
-  'Estaba vomitando bilis en la cuneta después de una borrachera de los cojones y %N se arrodilló a limpiarme la boca con la lengua para que no me ahogara en mi propia mierda.
-%N es el único cabrón que se ofrece a tragar tu vomitona.',
-  'Me estaba desangrando por un corte de navaja en un callejón y %N me detuvo la hemorragia chupando la herida y escupiendo la sangre como si fuera un puto vampiro de barrio.
-Sin %N habría muerto como un perro en la mierda.',
-  'Se me reventó un forúnculo del tamaño de un huevo en el culo y %N se dedicó a chupar el pus y la sangre hasta dejarlo limpio. Delante de tres tíos que se echaron a reír.
-%N no tiene vergüenza ni un gramo de dignidad.',
-  'Me quedé atrapado en un puto contenedor de basura con diarrea explosiva y %N entró, me limpió el culo con la lengua y me sacó a hombros apestando a mierda.
-Ese es el nivel de entrega de este cabrón.',
-  'Estaba a punto de morir de una sobredosis en un baño de discoteca y %N me salvó metiéndome los dedos hasta la garganta y luego chupándome la boca para sacar el resto.
-%N sabe exactamente qué hacer cuando la mierda aprieta.',
-  'Me pilló una puta infección de transmisión en el nabo y %N se dedicó a chupar el pus y la mierda hasta que bajó la inflamación. Sin preguntar ni una puta vez.
-Hay cabrones y luego está %N.',
-  'Se me reventó un quiste en los huevos y %N se arrodilló delante de todo el grupo a chupar el líquido verde hasta que se me pasó el dolor.
-%N es un puto cirujano de la lengua sin título ni asco.',
-  'Me estaba cagando vivo de cólera en un puto aeropuerto y %N me acompañó al baño, me limpió el culo a lengüetazos y me cambió de ropa como si nada.
-Ese nivel de compromiso asqueroso solo lo tiene %N.',
-  'Estaba a punto de perder un riñón por una piedra del tamaño de una bala y %N me ayudó a expulsarla chupándome la polla con tanta fuerza que salió de un golpe.
-%N tiene una técnica de puta madre.',
-  'Me quedó un puto trozo de cristal clavado en el culo después de una pelea de borrachos y %N me lo sacó con los dientes, lamiendo la sangre para no manchar.
-Sin %N seguiría con un cristal en el ojete.',
-  'Estaba ahogándome en mi propia vomitona después de una fiesta de mierda y %N me practicó una especie de Heimlich bucal hasta que saqué todo y se lo tragó.
-%N no desperdicia nada, el muy cabrón.',
-  'Me picó una puta medusa en los huevos en la playa y %N se dedicó a chupar el veneno durante diez minutos mientras yo gritaba como un maricón.
-Hay amigos... y luego está este animal.',
-  'Se me hinchó el nabo por una alergia de la hostia y %N se pasó media hora desinflamándomelo con la boca delante de la gente del camping.
-%N no tiene sentido del ridículo ni del asco.',
-  'Me quedé dormido borracho en un puto parque y un perro me estaba oliendo el culo, entonces %N se arrodilló y me limpió la mierda residual con la lengua para que no me comiera el animal.
-Ese es mi %N, siempre útil.',
-  'Estaba a punto de morir de sed en el desierto y %N me ofreció saliva y luego me chupó los labios secos hasta que pude tragar.
-%N improvisa soluciones de puta madre cuando la mierda aprieta.',
-  'Me reventaron la nariz en una pelea y %N me limpió la sangre a lengüetazos, tragándose los coágulos como si fuera un puto postre.
-Pocos cabrones llegan tan lejos por un amigo.',
-  'Se me atascó un puto tampón en el culo después de una apuesta de borrachos y %N me lo sacó con los dientes y se lo tragó para no dejar pruebas.
-%N es un profesional del trabajo sucio.',
-  'Estaba cagándome en los pantalones en medio de una reunión importante y %N me sacó al baño, me limpió el culo con la lengua y me prestó su ropa interior.
-Ese nivel de lealtad asquerosa es de admirar.',
-  'Me quedó una puta sanguijuela pegada en los huevos después de un río y %N se la arrancó con la boca y se la comió cruda.
-%N no le tiene miedo a nada que se mueva.',
-  'Estaba a punto de desmayarme de una puta anemia y %N me dio de beber su propia sangre de un corte en el brazo para mantenerme vivo.
-%N es un puto vampiro solidario.',
-  'Se me reventó un absceso en la encía y %N me chupó el pus hasta dejarlo limpio, tragándoselo sin inmutarse.
-Hay que reconocer que este cabrón se entrega por completo.',
-  'Me estaba muriendo de una puta intoxicación alimentaria y %N me provocó el vómito metiéndome la lengua hasta la garganta y luego me limpió la boca.
-%N sabe exactamente qué hacer en una emergencia de mierda.',
-  'Estaba atrapado en un puto ascensor con diarrea explosiva y %N me limpió el culo, me secó con la lengua y me mantuvo la moral alta contándome chistes de mierda.
-Sin %N habría muerto de vergüenza y de deshidratación.',
-  'Me picó una puta araña en el nabo y se me hinchó como un balón, entonces %N se dedicó a chupar el veneno y el líquido hasta que bajó.
-%N es un antiinflamatorio ambulante de la peor especie.',
-  'Se me quedó una puta aguja de coser clavada en el dedo y %N me la sacó con los dientes, chupando la sangre para que no manchara la mesa.
-Menos mal que cuento con un cabrón tan dispuesto.',
-  'Estaba a punto de perder un dedo por una infección de mierda y %N me drenó el pus a succión durante media hora hasta que se me pasó.
-%N tiene una paciencia y un asco nulo envidiables.',
-  'Me caí de un puto andamio y me abrí la cabeza, entonces %N me limpió la sangre a lengüetazos y me mantuvo despierto chupándome la oreja.
-Ese nivel de improvisación solo lo tiene %N.',
-  'Se me reventó un forúnculo en la cara y %N se dedicó a chupar el pus delante de todo el grupo para que no se me infectara más.
-%N no tiene vergüenza ni un puto gramo de dignidad.',
-  'Estaba vomitando en el baño de un puto avión y %N entró, me sujetó la cabeza y me limpió la boca con la lengua entre arcada y arcada.
-Pocos amigos se ofrecen a tragar tu bilis.',
-  'Me quedó un puto trozo de hueso de pollo clavado en la garganta y %N me lo sacó con la lengua, tragándoselo después como si nada.
-%N siempre encuentra la forma más personal de echar una mano.',
-  'Estaba a punto de morir de una puta insolación y %N me refrescó el cuerpo entero a lengüetazos, concentrándose en las zonas más calientes.
-%N es un aire acondicionado de carne y hueso.',
-  'Se me hinchó un tobillo del tamaño de un melón después de un golpe de mierda y %N se pasó casi una hora aplicándome succión con la boca.
-%N tiene métodos poco convencionales pero de puta madre.',
-  'Me corté la mano con un cuchillo de cocina y me salía sangre a chorros, entonces %N me detuvo la hemorragia chupando la herida como un puto profesional.
-Siempre es bueno tener a alguien como %N cerca.',
-  'Estaba cagándome vivo de miedo en un puto callejón oscuro y %N me calmó chupándome los huevos hasta que se me pasó el temblor.
-%N sabe exactamente cómo motivar a un cobarde.',
-  'Se me metió una puta mosca en el oído y %N la sacó aspirando con la boca y se la tragó para que no volviera.
-Pocos se ofrecerían a algo tan asqueroso.',
-  'Me dolía una puta barbaridad el culo después de una caída y %N se arrodilló a masajearme el ojete con la lengua hasta que se me pasó.
-%N realmente se toma en serio el bienestar de los demás.',
-  'Estaba con una sed de los demonios en medio de la nada y %N me ofreció saliva, luego me chupó los labios y me dio de beber de su propia boca.
-%N improvisa soluciones cuando realmente hace falta.',
-  'Se me quedó residual de mierda en el culo después de una diarrea y %N me lo limpió a fondo con la lengua para que no apestara en la reunión.
-%N no le tiene miedo al trabajo sucio.',
-  'Me picó una puta ortiga en los huevos y %N se arrodilló a aliviarme el ardor con la lengua durante un buen rato.
-Qué dedicación la de este animal.',
-  'Estaba sudando como un puto cerdo en un sauna y %N me secó el cuerpo entero a lengüetazos, concentrándose en las zonas más húmedas.
-%N es un secador personal de lujo asqueroso.',
-  'Se me enredó un puto cable en los huevos y %N tuvo que desenredarlo usando la boca con paciencia de santo.
-%N no duda ni un segundo cuando hay que meterse.',
-  'Me entró arena hasta en el puto ojete después de una pelea en la playa y %N me lo limpió con mucha dedicación usando la lengua.
-Qué gran amigo es %N... a su manera de mierda.',
-  'Estaba a punto de perder una apuesta de resistencia de los cojones y %N me mantuvo despierto dándome mordiscos y lamidas en los huevos.
-%N siempre encuentra la manera de motivarte.',
-  'Me quemé el nabo con aceite caliente de los demonios y %N me lo enfrió metiéndoselo en la boca y soplando aire frío.
-%N improvisó un tratamiento bastante efectivo y asqueroso.',
-  'Se me quedó una puta pestaña en el ojo y %N la sacó con la punta de la lengua sin dudar, tragándosela después.
-%N tiene una precisión notable para estas mierdas.',
-  'Estaba con un hipo persistente de los cojones y %N me lo quitó dándome un susto... a base de meterme la lengua en el culo de forma inesperada.
-%N tiene métodos poco ortodoxos pero efectivos.',
-  'Me picaba la espalda en un lugar imposible de alcanzar y %N me la rascó con la lengua hasta que se me pasó, dejando saliva por todas partes.
-Pocos amigos llegan tan lejos y tan asquerosos.',
-  'Estaba con la garganta muy irritada y %N me aplicó saliva de forma repetida, metiéndome la lengua hasta casi ahogarme.
-%N siempre busca la forma más directa de solucionar las cosas.',
-  'Se me hinchó un labio por un golpe de mierda y %N se dedicó a bajar la inflamación con succión suave, tragándose la sangre residual.
-%N tiene una paciencia y una técnica particulares.',
-  'Me dolía la mandíbula después de bostezar como un puto león y %N me hizo un masaje profundo con la lengua hasta que se me pasó.
-Pocos amigos se involucran tanto y tan sucio.',
-  'Estaba con una tensión de los cojones en los hombros y %N me los masajeó con la boca hasta que se me relajaron por completo, dejando marcas de dientes.
-%N realmente se toma en serio el bienestar de los demás.',
-  'Me quedé atrapado en un puto baño público con el pantalón bajado y diarrea, y %N entró, me limpió, me vistió y me sacó sin que nadie se diera cuenta.
-Ese nivel de lealtad asquerosa es de puta madre.',
-  'Estaba a punto de morir de una puta insolación en la playa y %N me cubrió el cuerpo con saliva y me sopló aire frío en los huevos para mantenerme consciente.
-%N es un sistema de refrigeración de carne.',
-  'Se me reventó un quiste sebáceo en la espalda y %N se dedicó a chupar el pus y la mierda hasta dejarlo limpio, delante de tres tíos.
-%N no tiene sentido del ridículo.',
-  'Me estaba desangrando por una herida de cristal en la pierna y %N me detuvo la hemorragia chupando la sangre y escupiendo los coágulos.
-Sin %N habría muerto como un perro.',
-  'Estaba vomitando bilis negra después de una resaca de tres días y %N me sujetó la cabeza y me limpió la boca entre arcada y arcada, tragándose lo que podía.
-Pocos cabrones se ofrecen a eso.',
-  'Me quedó una puta espina de pescado clavada en la garganta y %N me la sacó con la lengua, se la tragó y me dio un beso de mierda para celebrarlo.
-%N siempre encuentra la forma más personal.',
-  'Estaba a punto de perder un dedo por gangrena de mierda y %N me drenó el pus a succión durante casi una hora hasta que se me pasó el color negro.
-%N tiene una paciencia de santo asqueroso.',
-  'Se me metió una puta cucaracha en el oído y %N la sacó aspirando con la boca y se la comió cruda para que no volviera.
-%N no le tiene miedo a nada que se mueva.',
-  'Me dolía una puta barbaridad el culo después de una caída en bicicleta y %N se arrodilló a masajearme el ojete con la lengua hasta que se me pasó el dolor.
-%N realmente se pone a disposición.',
-  'Estaba sudando como un cabrón en una situación importante y %N me secó la frente, el cuello y los huevos con la lengua para que no oliera a cerdo.
-%N siempre busca la forma de que estés presentable.',
-  'Se me quedó residual de mierda en el culo después de una diarrea explosiva y %N me lo limpió a fondo con la lengua para que no apestara en el metro.
-%N no le tiene miedo al trabajo más sucio.',
-  'Me picó una puta avispa en el nabo y %N se dedicó a chupar el veneno y el líquido durante diez minutos mientras yo gritaba.
-Qué compromiso el de este animal.',
-  'Estaba a punto de desmayarme de calor de los cojones y %N me refrescó el cuerpo entero a lengüetazos, concentrándose en las zonas más calientes y privadas.
-%N es un aire acondicionado ambulante de mierda.',
-  'Se me enredó un puto hilo de pescar en los huevos y %N tuvo que desenredarlo usando la boca con paciencia de monje.
-%N no para hasta dejarlo todo perfecto y asqueroso.',
-  'Me entró champú en los ojos y en el culo durante la ducha y %N, que estaba cerca, me ayudó a enjuagarlo todo con la lengua.
-Ese es mi %N, siempre útil y sin asco.',
-  'Estaba cubierto de polvo y mierda después de una obra y se me había acumulado en el ojete, entonces %N me lo limpió con la boca.
-%N no le tiene miedo al trabajo sucio de la construcción.',
-  'Se me quedó una pequeña piedra en el culo después de tirarme al suelo y %N la extrajo usando la lengua con precisión de cirujano.
-Sin %N seguiría con el problema en el ojete.',
-  'Me entró agua fría en el nabo y se me había congelado un poco, así que %N usó la boca para devolverme el calor de la forma más directa.
-%N siempre encuentra la forma de ayudar.',
-  'Estaba a punto de arruinar una foto importante porque me molestaba algo abajo y %N se agachó a solucionarlo rápidamente con la lengua delante de la cámara.
-Hay que admitir que %N es resolutivo y sin vergüenza.',
-  'Se me pegó un trozo de tela en el culo por el sudor y %N lo retiró usando la boca con paciencia, dejando saliva por todas partes.
-%N no descansa hasta dejarlo limpio.',
-  'Me picó un mosquito en el nabo y %N usó la boca para calmarme la picazón, chupando hasta que se me pasó.
-Ese nivel de compromiso solo lo tiene este cabrón.',
-  'Estaba en el sauna y se me había empapado el culo, entonces %N se ofreció a secarme con la lengua de forma muy personal.
-%N es un secador personal de lujo asqueroso.',
-  'Se me quedó residual de jabón en el ojete y %N me lo limpió a fondo con la boca, tragándose lo que sobraba.
-%N tiene un talento natural para estas mierdas.',
-  'Me caí en la nieve y se me había entumecido el nabo, así que %N usó la boca para reactivarlo de la forma más directa posible.
-Menos mal que %N no tiene miedo al frío ni al ridículo.',
-  'Estaba a punto de perder un juego porque me picaba algo abajo de forma insoportable y %N se arrodilló a calmarme con la lengua delante de todos.
-%N sabe lo que hay que hacer y no le importa quién mire.',
-  'Se me enredó un cable de auriculares en los huevos y %N tuvo que desenredarlo usando la boca con mucha paciencia.
-%N no duda ni un segundo cuando hay que meterse en líos.',
-  'Me entró arena fina en el culo después de una pelea y %N me lo limpió con mucha dedicación usando la lengua.
-Qué gran amigo es %N... a su manera de mierda.',
-  'Se me hinchó una zona delicada por una alergia de la hostia y %N se dedicó un rato a desinflamármela con la boca.
-%N es un antiinflamatorio ambulante de la peor especie.',
-  'Estaba sudando tanto en un concierto que se me había empapado el culo y %N se ofreció a ayudarme a secarme con la lengua.
-%N siempre está ahí cuando más se necesita y más asco da.',
-  'Me quedó una pequeña astilla en el nabo y %N la extrajo usando la boca con precisión, chupando la sangre residual.
-Hay amigos normales... y luego está este animal.',
-  'Una vez se me atascó una espina de pescado en la garganta en plena cena y %N, sin pensarlo dos veces, se inclinó, me abrió la boca y me la sacó con la lengua, tragándosela después como si nada.
-Hay que reconocer que %N siempre encuentra la forma más personal de echar una mano.',
-  'Estaba a punto de perder un partido porque me dolía una puta barbaridad la rodilla y %N se arrodilló delante de todo el mundo a masajearme el músculo con la boca hasta que se me pasó.
-%N tiene un compromiso con el equipo que pocos están dispuestos a tener.',
-  'Me entró una mota de mierda en el ojo en medio de una reunión importante y %N se acercó y me la sacó con la punta de la lengua para que no perdiera el hilo.
-Ese nivel de atención al detalle solo lo tiene este cabrón.',
-  'Se me quedó una astilla bien profunda en la mano y %N me la sacó con los dientes, lamiendo la sangre para que no manchara.
-Menos mal que cuento con alguien tan dispuesto y sin asco.',
-  'Estaba resfriado hasta los huevos y no podía respirar, entonces %N me limpió los mocos uno por uno con la lengua para que pudiera volver a oler algo.
-%N realmente se involucra cuando se trata de cuidar a un amigo de mierda.',
-  'Me picó una medusa de las hijas de puta en el brazo y %N se dedicó a chupar el veneno con absoluta concentración durante casi diez minutos.
-Hay amigos... y luego está %N, que no duda en meterse de lleno.',
-  'Se me hinchó un tobillo después de un golpe de mierda y %N se pasó un buen rato aplicándome succión con la boca para bajar la inflamación.
-%N tiene métodos poco convencionales, pero de puta madre de efectivos.',
-  'Me corté el dedo mientras cocinaba y me salía sangre a chorros, así que %N me detuvo la hemorragia chupando la herida con mucho cuidado.
-Siempre es bueno tener a alguien como %N cerca en estos momentos de mierda.',
-  'Estaba a punto de desmayarme de calor de los cojones y %N me refrescó el cuello y la frente lamiéndome con saliva fresca.
-%N improvisó un sistema de refrigeración bastante creativo y asqueroso.',
-  'Se me quedó un pelo en la garganta y no había forma de sacarlo, así que %N se ofreció a extraerlo personalmente con la lengua y se lo tragó.
-%N no le tiene miedo a las tareas delicadas y asquerosas.',
-  'Me entró arena hasta en el puto ojo después de un día de playa y %N me los limpió a conciencia con la lengua.
-Ese tipo de dedicación es difícil de encontrar y más difícil de olvidar.',
-  'Estaba con un calambre de los cojones en la pierna y %N se arrodilló a morderme y masajearme con la boca hasta que se me fue.
-%N sabe exactamente qué hacer cuando la situación aprieta.',
-  'Se me atoró un trozo de comida y %N me practicó una especie de Heimlich bucal hasta que lo sacó y se lo comió.
-Hay que admitir que %N se entrega por completo y se come lo que sobra.',
-  'Me quemé la lengua con un café de los demonios y %N se dedicó a enfriármela con la suya durante un buen rato.
-%N siempre tiene una solución a mano... o a boca.',
-  'Estaba sudando como un puto cerdo en el gimnasio y %N me secó la espalda y el cuello a lengüetazos para que no resbalara.
-%N realmente se toma en serio el compañerismo asqueroso.',
-  'Se me metió un mosquito de los hijos de puta en el oído y %N lo sacó soplando y después aspirando con mucha precisión.
-Pocos amigos se ofrecerían a algo así de mierda.',
+  'Una vez me estaba cagando sangre en el váter de un puto bar de carretera y %N entró sin avisar, se arrodilló y me limpió el culo a lengüetazos hasta que dejé de sangrar.\nSin %N habría muerto deshidratado en un baño de mierda apestando a mierda.',
+  'Me pilló un infarto en plena calle y %N, en vez de llamar a una ambulancia, me practicó reanimación boca a boca mientras me apretaba los huevos para mantenerme consciente.\nEse nivel de prioridades solo lo tiene un cabrón como %N.',
+  'Estaba a punto de suicidarme saltando de un puente y %N me detuvo agarrándome de los huevos con la boca. Literalmente me salvó la vida chupándome la polla en el aire.\n%N tiene métodos de puta madre de efectivos.',
+  'Me quedó una puta aguja de heroína clavada en el brazo después de una noche de mierda y %N me la sacó con los dientes, chupando la sangre y el resto de la mierda que quedaba.\nHay amigos y luego está %N, que no tiene asco ni dignidad.',
+  'Estaba vomitando bilis en la cuneta después de una borrachera de los cojones y %N se arrodilló a limpiarme la boca con la lengua para que no me ahogara en mi propia mierda.\n%N es el único cabrón que se ofrece a tragar tu vomitona.',
+  'Me estaba desangrando por un corte de navaja en un callejón y %N me detuvo la hemorragia chupando la herida y escupiendo la sangre como si fuera un puto vampiro de barrio.\nSin %N habría muerto como un perro en la mierda.',
+  'Se me reventó un forúnculo del tamaño de un huevo en el culo y %N se dedicó a chupar el pus y la sangre hasta dejarlo limpio. Delante de tres tíos que se echaron a reír.\n%N no tiene vergüenza ni un gramo de dignidad.',
+  'Me quedé atrapado en un puto contenedor de basura con diarrea explosiva y %N entró, me limpió el culo con la lengua y me sacó a hombros apestando a mierda.\nEse es el nivel de entrega de este cabrón.',
+  'Estaba a punto de morir de una sobredosis en un baño de discoteca y %N me salvó metiéndome los dedos hasta la garganta y luego chupándome la boca para sacar el resto.\n%N sabe exactamente qué hacer cuando la mierda aprieta.',
+  'Me pilló una puta infección de transmisión en el nabo y %N se dedicó a chupar el pus y la mierda hasta que bajó la inflamación. Sin preguntar ni una puta vez.\nHay cabrones y luego está %N.',
+  'Se me reventó un quiste en los huevos y %N se arrodilló delante de todo el grupo a chupar el líquido verde hasta que se me pasó el dolor.\n%N es un puto cirujano de la lengua sin título ni asco.',
+  'Me estaba cagando vivo de cólera en un puto aeropuerto y %N me acompañó al baño, me limpió el culo a lengüetazos y me cambió de ropa como si nada.\nEse nivel de compromiso asqueroso solo lo tiene %N.',
+  'Estaba a punto de perder un riñón por una piedra del tamaño de una bala y %N me ayudó a expulsarla chupándome la polla con tanta fuerza que salió de un golpe.\n%N tiene una técnica de puta madre.',
+  'Me quedó un puto trozo de cristal clavado en el culo después de una pelea de borrachos y %N me lo sacó con los dientes, lamiendo la sangre para no manchar.\nSin %N seguiría con un cristal en el ojete.',
+  'Estaba ahogándome en mi propia vomitona después de una fiesta de mierda y %N me practicó una especie de Heimlich bucal hasta que saqué todo y se lo tragó.\n%N no desperdicia nada, el muy cabrón.',
+  'Me picó una puta medusa en los huevos en la playa y %N se dedicó a chupar el veneno durante diez minutos mientras yo gritaba como un maricón.\nHay amigos... y luego está este animal.',
+  'Se me hinchó el nabo por una alergia de la hostia y %N se pasó media hora desinflamándomelo con la boca delante de la gente del camping.\n%N no tiene sentido del ridículo ni del asco.',
+  'Me quedé dormido borracho en un puto parque y un perro me estaba oliendo el culo, entonces %N se arrodilló y me limpió la mierda residual con la lengua para que no me comiera el animal.\nEse es mi %N, siempre útil.',
+  'Estaba a punto de morir de sed en el desierto y %N me ofreció saliva y luego me chupó los labios secos hasta que pude tragar.\n%N improvisa soluciones de puta madre cuando la mierda aprieta.',
+  'Me reventaron la nariz en una pelea y %N me limpió la sangre a lengüetazos, tragándose los coágulos como si fuera un puto postre.\nPocos cabrones llegan tan lejos por un amigo.',
+  'Se me atascó un puto tampón en el culo después de una apuesta de borrachos y %N me lo sacó con los dientes y se lo tragó para no dejar pruebas.\n%N es un profesional del trabajo sucio.',
+  'Estaba cagándome en los pantalones en medio de una reunión importante y %N me sacó al baño, me limpió el culo con la lengua y me prestó su ropa interior.\nEse nivel de lealtad asquerosa es de admirar.',
+  'Me quedó una puta sanguijuela pegada en los huevos después de un río y %N se la arrancó con la boca y se la comió cruda.\n%N no le tiene miedo a nada que se mueva.',
+  'Estaba a punto de desmayarme de una puta anemia y %N me dio de beber su propia sangre de un corte en el brazo para mantenerme vivo.\n%N es un puto vampiro solidario.',
+  'Se me reventó un absceso en la encía y %N me chupó el pus hasta dejarlo limpio, tragándoselo sin inmutarse.\nHay que reconocer que este cabrón se entrega por completo.',
+  'Me estaba muriendo de una puta intoxicación alimentaria y %N me provocó el vómito metiéndome la lengua hasta la garganta y luego me limpió la boca.\n%N sabe exactamente qué hacer en una emergencia de mierda.',
+  'Estaba atrapado en un puto ascensor con diarrea explosiva y %N me limpió el culo, me secó con la lengua y me mantuvo la moral alta contándome chistes de mierda.\nSin %N habría muerto de vergüenza y de deshidratación.',
+  'Me picó una puta araña en el nabo y se me hinchó como un balón, entonces %N se dedicó a chupar el veneno y el líquido hasta que bajó.\n%N es un antiinflamatorio ambulante de la peor especie.',
+  'Se me quedó una puta aguja de coser clavada en el dedo y %N me la sacó con los dientes, chupando la sangre para que no manchara la mesa.\nMenos mal que cuento con un cabrón tan dispuesto.',
+  'Estaba a punto de perder un dedo por una infección de mierda y %N me drenó el pus a succión durante media hora hasta que se me pasó.\n%N tiene una paciencia y un asco nulo envidiables.',
+  'Me caí de un puto andamio y me abrí la cabeza, entonces %N me limpió la sangre a lengüetazos y me mantuvo despierto chupándome la oreja.\nEse nivel de improvisación solo lo tiene %N.',
+  'Se me reventó un forúnculo en la cara y %N se dedicó a chupar el pus delante de todo el grupo para que no se me infectara más.\n%N no tiene vergüenza ni un puto gramo de dignidad.',
+  'Estaba vomitando en el baño de un puto avión y %N entró, me sujetó la cabeza y me limpió la boca con la lengua entre arcada y arcada.\nPocos amigos se ofrecen a tragar tu bilis.',
+  'Me quedó un puto trozo de hueso de pollo clavado en la garganta y %N me lo sacó con la lengua, tragándoselo después como si nada.\n%N siempre encuentra la forma más personal de echar una mano.',
+  'Estaba a punto de morir de una puta insolación y %N me refrescó el cuerpo entero a lengüetazos, concentrándose en las zonas más calientes.\n%N es un aire acondicionado de carne y hueso.',
+  'Se me hinchó un tobillo del tamaño de un melón después de un golpe de mierda y %N se pasó casi una hora aplicándome succión con la boca.\n%N tiene métodos poco convencionales pero de puta madre.',
+  'Me corté la mano con un cuchillo de cocina y me salía sangre a chorros, entonces %N me detuvo la hemorragia chupando la herida como un puto profesional.\nSiempre es bueno tener a alguien como %N cerca.',
+  'Estaba cagándome vivo de miedo en un puto callejón oscuro y %N me calmó chupándome los huevos hasta que se me pasó el temblor.\n%N sabe exactamente cómo motivar a un cobarde.',
+  'Se me metió una puta mosca en el oído y %N la sacó aspirando con la boca y se la tragó para que no volviera.\nPocos se ofrecerían a algo tan asqueroso.',
+  'Me dolía una puta barbaridad el culo después de una caída y %N se arrodilló a masajearme el ojete con la lengua hasta que se me pasó.\n%N realmente se toma en serio el bienestar de los demás.',
+  'Estaba con una sed de los demonios en medio de la nada y %N me ofreció saliva, luego me chupó los labios y me dio de beber de su propia boca.\n%N improvisa soluciones cuando realmente hace falta.',
+  'Se me quedó residual de mierda en el culo después de una diarrea y %N me lo limpió a fondo con la lengua para que no apestara en la reunión.\n%N no le tiene miedo al trabajo sucio.',
+  'Me picó una puta ortiga en los huevos y %N se arrodilló a aliviarme el ardor con la lengua durante un buen rato.\nQué dedicación la de este animal.',
+  'Estaba sudando como un puto cerdo en un sauna y %N me secó el cuerpo entero a lengüetazos, concentrándose en las zonas más húmedas.\n%N es un secador personal de lujo asqueroso.',
+  'Se me enredó un puto cable en los huevos y %N tuvo que desenredarlo usando la boca con paciencia de santo.\n%N no duda ni un segundo cuando hay que meterse.',
+  'Me entró arena hasta en el puto ojete después de una pelea en la playa y %N me lo limpió con mucha dedicación usando la lengua.\nQué gran amigo es %N... a su manera de mierda.',
+  'Estaba a punto de perder una apuesta de resistencia de los cojones y %N me mantuvo despierto dándome mordiscos y lamidas en los huevos.\n%N siempre encuentra la manera de motivarte.',
+  'Me quemé el nabo con aceite caliente de los demonios y %N me lo enfrió metiéndoselo en la boca y soplando aire frío.\n%N improvisó un tratamiento bastante efectivo y asqueroso.',
+  'Se me quedó una puta pestaña en el ojo y %N la sacó con la punta de la lengua sin dudar, tragándosela después.\n%N tiene una precisión notable para estas mierdas.',
+  'Estaba con un hipo persistente de los cojones y %N me lo quitó dándome un susto... a base de meterme la lengua en el culo de forma inesperada.\n%N tiene métodos poco ortodoxos pero efectivos.',
+  'Me picaba la espalda en un lugar imposible de alcanzar y %N me la rascó con la lengua hasta que se me pasó, dejando saliva por todas partes.\nPocos amigos llegan tan lejos y tan asquerosos.',
+  'Estaba con la garganta muy irritada y %N me aplicó saliva de forma repetida, metiéndome la lengua hasta casi ahogarme.\n%N siempre busca la forma más directa de solucionar las cosas.',
+  'Se me hinchó un labio por un golpe de mierda y %N se dedicó a bajar la inflamación con succión suave, tragándose la sangre residual.\n%N tiene una paciencia y una técnica particulares.',
+  'Me dolía la mandíbula después de bostezar como un puto león y %N me hizo un masaje profundo con la lengua hasta que se me pasó.\nPocos amigos se involucran tanto y tan sucio.',
+  'Estaba con una tensión de los cojones en los hombros y %N me los masajeó con la boca hasta que se me relajaron por completo, dejando marcas de dientes.\n%N realmente se toma en serio el bienestar de los demás.',
+  'Me quedé atrapado en un puto baño público con el pantalón bajado y diarrea, y %N entró, me limpió, me vistió y me sacó sin que nadie se diera cuenta.\nEse nivel de lealtad asquerosa es de puta madre.',
+  'Estaba a punto de morir de una puta insolación en la playa y %N me cubrió el cuerpo con saliva y me sopló aire frío en los huevos para mantenerme consciente.\n%N es un sistema de refrigeración de carne.',
+  'Se me reventó un quiste sebáceo en la espalda y %N se dedicó a chupar el pus y la mierda hasta dejarlo limpio, delante de tres tíos.\n%N no tiene sentido del ridículo.',
+  'Me estaba desangrando por una herida de cristal en la pierna y %N me detuvo la hemorragia chupando la sangre y escupiendo los coágulos.\nSin %N habría muerto como un perro.',
+  'Estaba vomitando bilis negra después de una resaca de tres días y %N me sujetó la cabeza y me limpió la boca entre arcada y arcada, tragándose lo que podía.\nPocos cabrones se ofrecen a eso.',
+  'Me quedó una puta espina de pescado clavada en la garganta y %N me la sacó con la lengua, se la tragó y me dio un beso de mierda para celebrarlo.\n%N siempre encuentra la forma más personal.',
+  'Estaba a punto de perder un dedo por gangrena de mierda y %N me drenó el pus a succión durante casi una hora hasta que se me pasó el color negro.\n%N tiene una paciencia de santo asqueroso.',
+  'Se me metió una puta cucaracha en el oído y %N la sacó aspirando con la boca y se la comió cruda para que no volviera.\n%N no le tiene miedo a nada que se mueva.',
+  'Me dolía una puta barbaridad el culo después de una caída en bicicleta y %N se arrodilló a masajearme el ojete con la lengua hasta que se me pasó el dolor.\n%N realmente se pone a disposición.',
+  'Estaba sudando como un cabrón en una situación importante y %N me secó la frente, el cuello y los huevos con la lengua para que no oliera a cerdo.\n%N siempre busca la forma de que estés presentable.',
+  'Se me quedó residual de mierda en el culo después de una diarrea explosiva y %N me lo limpió a fondo con la lengua para que no apestara en el metro.\n%N no le tiene miedo al trabajo más sucio.',
+  'Me picó una puta avispa en el nabo y %N se dedicó a chupar el veneno y el líquido durante diez minutos mientras yo gritaba.\nQué compromiso el de este animal.',
+  'Estaba a punto de desmayarme de calor de los cojones y %N me refrescó el cuerpo entero a lengüetazos, concentrándose en las zonas más calientes y privadas.\n%N es un aire acondicionado ambulante de mierda.',
+  'Se me enredó un puto hilo de pescar en los huevos y %N tuvo que desenredarlo usando la boca con paciencia de monje.\n%N no para hasta dejarlo todo perfecto y asqueroso.',
+  'Me entró champú en los ojos y en el culo durante la ducha y %N, que estaba cerca, me ayudó a enjuagarlo todo con la lengua.\nEse es mi %N, siempre útil y sin asco.',
+  'Estaba cubierto de polvo y mierda después de una obra y se me había acumulado en el ojete, entonces %N me lo limpió con la boca.\n%N no le tiene miedo al trabajo sucio de la construcción.',
+  'Se me quedó una pequeña piedra en el culo después de tirarme al suelo y %N la extrajo usando la lengua con precisión de cirujano.\nSin %N seguiría con el problema en el ojete.',
+  'Me entró agua fría en el nabo y se me había congelado un poco, así que %N usó la boca para devolverme el calor de la forma más directa.\n%N siempre encuentra la forma de ayudar.',
+  'Estaba a punto de arruinar una foto importante porque me molestaba algo abajo y %N se agachó a solucionarlo rápidamente con la lengua delante de la cámara.\nHay que admitir que %N es resolutivo y sin vergüenza.',
+  'Se me pegó un trozo de tela en el culo por el sudor y %N lo retiró usando la boca con paciencia, dejando saliva por todas partes.\n%N no descansa hasta dejarlo limpio.',
+  'Me picó un mosquito en el nabo y %N usó la boca para calmarme la picazón, chupando hasta que se me pasó.\nEse nivel de compromiso solo lo tiene este cabrón.',
+  'Estaba en el sauna y se me había empapado el culo, entonces %N se ofreció a secarme con la lengua de forma muy personal.\n%N es un secador personal de lujo asqueroso.',
+  'Se me quedó residual de jabón en el ojete y %N me lo limpió a fondo con la boca, tragándose lo que sobraba.\n%N tiene un talento natural para estas mierdas.',
+  'Me caí en la nieve y se me había entumecido el nabo, así que %N usó la boca para reactivarlo de la forma más directa posible.\nMenos mal que %N no tiene miedo al frío ni al ridículo.',
+  'Estaba a punto de perder un juego porque me picaba algo abajo de forma insoportable y %N se arrodilló a calmarme con la lengua delante de todos.\n%N sabe lo que hay que hacer y no le importa quién mire.',
+  'Se me enredó un cable de auriculares en los huevos y %N tuvo que desenredarlo usando la boca con mucha paciencia.\n%N no duda ni un segundo cuando hay que meterse en líos.',
+  'Me entró arena fina en el culo después de una pelea y %N me lo limpió con mucha dedicación usando la lengua.\nQué gran amigo es %N... a su manera de mierda.',
+  'Se me hinchó una zona delicada por una alergia de la hostia y %N se dedicó un rato a desinflamármela con la boca.\n%N es un antiinflamatorio ambulante de la peor especie.',
+  'Estaba sudando tanto en un concierto que se me había empapado el culo y %N se ofreció a ayudarme a secarme con la lengua.\n%N siempre está ahí cuando más se necesita y más asco da.',
+  'Me quedó una pequeña astilla en el nabo y %N la extrajo usando la boca con precisión, chupando la sangre residual.\nHay amigos normales... y luego está este animal.',
+  'Una vez se me atascó una espina de pescado en la garganta en plena cena y %N, sin pensarlo dos veces, se inclinó, me abrió la boca y me la sacó con la lengua, tragándosela después como si nada.\nHay que reconocer que %N siempre encuentra la forma más personal de echar una mano.',
+  'Estaba a punto de perder un partido porque me dolía una puta barbaridad la rodilla y %N se arrodilló delante de todo el mundo a masajearme el músculo con la boca hasta que se me pasó.\n%N tiene un compromiso con el equipo que pocos están dispuestos a tener.',
+  'Me entró una mota de mierda en el ojo en medio de una reunión importante y %N se acercó y me la sacó con la punta de la lengua para que no perdiera el hilo.\nEse nivel de atención al detalle solo lo tiene este cabrón.',
+  'Se me quedó una astilla bien profunda en la mano y %N me la sacó con los dientes, lamiendo la sangre para que no manchara.\nMenos mal que cuento con alguien tan dispuesto y sin asco.',
+  'Estaba resfriado hasta los huevos y no podía respirar, entonces %N me limpió los mocos uno por uno con la lengua para que pudiera volver a oler algo.\n%N realmente se involucra cuando se trata de cuidar a un amigo de mierda.',
+  'Me picó una medusa de las hijas de puta en el brazo y %N se dedicó a chupar el veneno con absoluta concentración durante casi diez minutos.\nHay amigos... y luego está %N, que no duda en meterse de lleno.',
+  'Se me hinchó un tobillo después de un golpe de mierda y %N se pasó un buen rato aplicándome succión con la boca para bajar la inflamación.\n%N tiene métodos poco convencionales, pero de puta madre de efectivos.',
+  'Me corté el dedo mientras cocinaba y me salía sangre a chorros, así que %N me detuvo la hemorragia chupando la herida con mucho cuidado.\nSiempre es bueno tener a alguien como %N cerca en estos momentos de mierda.',
+  'Estaba a punto de desmayarme de calor de los cojones y %N me refrescó el cuello y la frente lamiéndome con saliva fresca.\n%N improvisó un sistema de refrigeración bastante creativo y asqueroso.',
+  'Se me quedó un pelo en la garganta y no había forma de sacarlo, así que %N se ofreció a extraerlo personalmente con la lengua y se lo tragó.\n%N no le tiene miedo a las tareas delicadas y asquerosas.',
+  'Me entró arena hasta en el puto ojo después de un día de playa y %N me los limpió a conciencia con la lengua.\nEse tipo de dedicación es difícil de encontrar y más difícil de olvidar.',
+  'Estaba con un calambre de los cojones en la pierna y %N se arrodilló a morderme y masajearme con la boca hasta que se me fue.\n%N sabe exactamente qué hacer cuando la situación aprieta.',
+  'Se me atoró un trozo de comida y %N me practicó una especie de Heimlich bucal hasta que lo sacó y se lo comió.\nHay que admitir que %N se entrega por completo y se come lo que sobra.',
+  'Me quemé la lengua con un café de los demonios y %N se dedicó a enfriármela con la suya durante un buen rato.\n%N siempre tiene una solución a mano... o a boca.',
+  'Estaba sudando como un puto cerdo en el gimnasio y %N me secó la espalda y el cuello a lengüetazos para que no resbalara.\n%N realmente se toma en serio el compañerismo asqueroso.',
+  'Se me metió un mosquito de los hijos de puta en el oído y %N lo sacó soplando y después aspirando con mucha precisión.\nPocos amigos se ofrecerían a algo así de mierda.',
 ];
 
 const WINGMAN_CIERRES = [
