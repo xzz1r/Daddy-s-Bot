@@ -144,6 +144,8 @@ const AURA_LINES = [
   'Dos formas de subir: escribiendo o tirando dados. Pero solo una es gratis. La otra te puede dejar en la puta ruina.',
   'La economia del grupo no se entiende leyendo, se entiende sudandola. Escribe o quitate de en medio, coño.',
   'El que escribe mas gana mas y el que no escribe se hunde. Sin excepciones, sin consuelo y sin un puto violin de fondo.',
+  'Sin mensajes no hay aura. El ranking no regala puntos por respirar en el grupo, joder.',
+  'Escribe o queda en cero. El bot no lee la mente ni premia a los mirones, mierda.'
 ];
 
 // !casino / !aura hoy — progreso diario de aura del que lo pide
