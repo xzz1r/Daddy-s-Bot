@@ -126,8 +126,8 @@ async function listaDeGrupos() {
     // Una sola línea por bloqueo, no una por intento, y por info: no poder
     // listar los grupos en un ciclo no rompe nada, se reintenta solo.
     logger.info(
-      `solicitudes: no pude listar grupos (${e.message}). ` +
-      `Reintento en ${Math.round(espera / 60000)} min` +
+      `solicitudes: no pude listar grupos (${e.message}).` +
+      `Reintento en ${Math.round(espera / 60000)} min.` +
       (gruposConocidos.length ? `; sigo con los ${gruposConocidos.length} que ya conocía.` : '.')
     );
   }
@@ -141,7 +141,7 @@ async function sondearSolicitudes() {
   if (!sock) return;
   for (const g of await listaDeGrupos()) {
     const n = await sondear(sock, g);
-    if (n) logger.info(`solicitudes pendientes en ${g}: ${n}`);
+    if (n) logger.info(`solicitudes pendientes en ${g}: ${n}.`);
     if (n === null) await explicarFreno(g);
   }
 }
@@ -157,10 +157,10 @@ async function explicarFreno(grupo) {
   if (!meta) return;
   logger.info(
     isBotAdmin(sock, meta)
-      ? `solicitudes: en ${grupo} SI soy admin, asi que el problema es del grupo: ` +
-        `no tiene activada la aprobacion de entradas. Sin ella no hay solicitudes ` +
+      ? `solicitudes: en ${grupo} SI soy admin, asi que el problema es del grupo:.` +
+        `no tiene activada la aprobacion de entradas. Sin ella no hay solicitudes.` +
         `que leer, y el anti-admin no puede distinguir una aprobacion de un alta a dedo.`
-      : `solicitudes: en ${grupo} NO soy admin, por eso no puedo leer las solicitudes. ` +
+      : `solicitudes: en ${grupo} NO soy admin, por eso no puedo leer las solicitudes.` +
         `Dame admin y vuelvo a intentarlo solo.`
   );
 }
@@ -185,7 +185,7 @@ function scheduleReconnect(delay) {
   // Ya hay una en camino: la primera manda. Volver a programar aquí es
   // justamente lo que multiplicaba los sockets.
   if (timerReconexion) {
-    logger.info('reconexión ya programada; no se encola otra');
+    logger.info('reconexión ya programada; no se encola otra.');
     return;
   }
 
@@ -205,7 +205,7 @@ function scheduleReconnect(delay) {
   timerReconexion = setTimeout(() => {
     timerReconexion = null;
     connectToWhatsApp().catch((err) => {
-      logger.error(`Fallo al reconectar: ${err?.message || err}`);
+      logger.error(`Fallo al reconectar: ${err?.message || err}.`);
       scheduleReconnect(30000);
     });
   }, delay);
@@ -239,7 +239,7 @@ async function getBaileysVersion() {
     return version;
   } catch (err) {
     logger.warn(
-      `No pude consultar la versión de WhatsApp (${err.message}). ` +
+      `No pude consultar la versión de WhatsApp (${err.message}).` +
       `Sigo con la que trae Baileys: el bot arranca igual.`);
     return undefined;
   }
@@ -252,7 +252,7 @@ async function connectToWhatsApp() {
   // sesiones con las mismas credenciales echandose la una a la otra en bucle.
   // Cerrar lo que hubiera es barato y elimina el caso entero.
   if (sock) {
-    logger.warn('ya había una conexión abierta: se cierra antes de abrir la nueva');
+    logger.warn('ya había una conexión abierta: se cierra antes de abrir la nueva.');
     try { sock.ev.removeAllListeners(); } catch {}
     try { sock.end(); } catch {}
     sock = null;
@@ -267,7 +267,7 @@ async function connectToWhatsApp() {
   // nadie lo borra nunca. Va ANTES de initState para no barrer un temporal
   // recien escrito por este mismo arranque.
   const huerfanos = await barrerHuerfanos(path.join(__dirname, '../data'));
-  if (huerfanos) logger.warn(`Barridos ${huerfanos} temporales que dejo un cierre brusco anterior`);
+  if (huerfanos) logger.warn(`Barridos ${huerfanos} temporales que dejo un cierre brusco anterior.`);
 
   await initState();
 
@@ -317,12 +317,12 @@ async function connectToWhatsApp() {
     if (reachoutTimeLock) {
       anotarRestriccionContacto(reachoutTimeLock);
       logger.warn(reachoutTimeLock.isActive
-        ? `WhatsApp ha restringido a esta cuenta para contactar desconocidos${reachoutTimeLock.timeEnforcementEnds ? ` hasta ${new Date(reachoutTimeLock.timeEnforcementEnds).toLocaleString('es-ES')}` : ''}. !add no podra añadir a gente nueva hasta entonces.`
+        ? `WhatsApp ha restringido a esta cuenta para contactar desconocidos${reachoutTimeLock.timeEnforcementEnds ?` hasta ${new Date(reachoutTimeLock.timeEnforcementEnds).toLocaleString('es-ES')}`: ''}. !add no podra añadir a gente nueva hasta entonces.`
         : 'WhatsApp ha levantado la restriccion de contacto. !add vuelve a funcionar con normalidad.');
     }
 
     if (qr) {
-      console.log('\nEscanea el QR con WhatsApp → Dispositivos vinculados → Vincular dispositivo:\n');
+      console.log('\\nEscanea el QR con WhatsApp → Dispositivos vinculados → Vincular dispositivo:\\n.');
       qrcode.generate(qr, { small: true });
     }
 
@@ -340,7 +340,7 @@ async function connectToWhatsApp() {
         if (consecutive401 < MAX_401) {
           // Could be a temporary WhatsApp rejection, retry before wiping session
           const delay = 5000 * consecutive401;
-          logger.error(`Sesión rechazada (401), reintentando en ${delay / 1000}s... (${consecutive401}/${MAX_401})`);
+          logger.error(`Sesión rechazada (401), reintentando en ${delay / 1000}s... (${consecutive401}/${MAX_401}).`);
           scheduleReconnect(delay);
         } else {
           consecutive401 = 0;
@@ -351,14 +351,14 @@ async function connectToWhatsApp() {
             // tras QR sin que nadie los escanee es justo la actividad que
             // puede convertir una restriccion temporal en una permanente.
             logger.error(
-              `Sesión cerrada ${ciclosLogout} veces seguidas. Dejo de reintentar solo: ` +
-              `puede que WhatsApp tenga la cuenta restringida (revisa el teléfono). ` +
+              `Sesión cerrada ${ciclosLogout} veces seguidas. Dejo de reintentar solo:.` +
+              `puede que WhatsApp tenga la cuenta restringida (revisa el teléfono).` +
               `Cuando esté resuelto, arrancá el bot a mano: pm2 restart bot.`
             );
             anotarParada('sesion-cerrada',
-              `WhatsApp cerró la sesión ${ciclosLogout} veces seguidas. El bot dejó de reintentar ` +
-              `a propósito: encadenar QR puede convertir una restricción temporal en permanente. ` +
-              `Revisa el teléfono (Dispositivos vinculados) y arranca a mano con: pm2 restart bot`);
+              `WhatsApp cerró la sesión ${ciclosLogout} veces seguidas. El bot dejó de reintentar.` +
+              `a propósito: encadenar QR puede convertir una restricción temporal en permanente.` +
+              `Revisa el teléfono (Dispositivos vinculados) y arranca a mano con: pm2 restart bot.`);
             return;
           }
 
@@ -390,13 +390,13 @@ async function connectToWhatsApp() {
       const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), ESPERA_RECONEXION_MAX);
       if (reconnectAttempts === MAX_RECONNECTS) {
         logger.error(
-          `Van ${reconnectAttempts} intentos de reconexión fallidos. Sigo intentándolo ` +
-          `cada ${Math.round(ESPERA_RECONEXION_MAX / 60000)} min: si esto no se arregla solo, ` +
+          `Van ${reconnectAttempts} intentos de reconexión fallidos. Sigo intentándolo.` +
+          `cada ${Math.round(ESPERA_RECONEXION_MAX / 60000)} min: si esto no se arregla solo.` +
           `mira la red de la VPS.`);
         anotarParada('sin-reconexion',
-          `Lleva ${reconnectAttempts} intentos de reconexión fallidos y sigue intentándolo cada ` +
-          `${Math.round(ESPERA_RECONEXION_MAX / 60000)} min. Suele ser la red de la VPS o WhatsApp caído. ` +
-          `Mira: pm2 logs bot --err --lines 50`);
+          `Lleva ${reconnectAttempts} intentos de reconexión fallidos y sigue intentándolo cada.` +
+          `${Math.round(ESPERA_RECONEXION_MAX / 60000)} min. Suele ser la red de la VPS o WhatsApp caído.` +
+          `Mira: pm2 logs bot --err --lines 50.`);
       }
       scheduleReconnect(delay);
 
@@ -433,14 +433,14 @@ async function connectToWhatsApp() {
       // `pad=512:512`, es que el proceso quedó con código viejo: hay que
       // pararlo del todo y volver a hacer `npm start`.
       const specCompliant = /pad=512:512/.test(VF_STATIC);
-      console.log(`  commit cargado : ${gitCommit()}`);
-      console.log(`  filtro sticker : ${VF_STATIC}`);
-      console.log(`  canvas 512x512 : ${specCompliant ? 'SI (spec WhatsApp, relleno transparente, sin estirar)' : 'NO (código viejo, canvas no cuadrado)'}\n`);
+      console.log(`commit cargado : ${gitCommit()}.`);
+      console.log(`filtro sticker : ${VF_STATIC}.`);
+      console.log(`canvas 512 : ${specCompliant ? 'SI (spec WhatsApp, relleno transparente, sin estirar)' : 'NO (código viejo, canvas no cuadrado)'}\\n.`);
 
       // Barrido inicial del historial de huellas: indexa en segundo plano las
       // fotos de los miembros de todos los grupos. Escalonado por su propia cola,
       // no bloquea el arranque. A partir de aquí se mantiene solo con cada mensaje.
-      sweepAllGroups(sock).catch(e => logger.warn(`pfpIndexer: barrido falló: ${e.message}`));
+      sweepAllGroups(sock).catch(e => logger.warn(`pfpIndexer: barrido falló: ${e.message}.`));
 
       // Lista de solicitudes de entrada pendientes. Es lo único que permite
       // saber, cuando un admin mete a alguien, si lo estaba APROBANDO o lo
@@ -470,7 +470,7 @@ async function connectToWhatsApp() {
     if (action === 'created') {
       notarSolicitud(id, quien).catch(() => {});
       if (participant && participantPn) notarSolicitud(id, participant).catch(() => {});
-      logger.info(`solicitud de entrada en ${id}: ${quien}`);
+      logger.info(`solicitud de entrada en ${id}: ${quien}.`);
     } else {
       // revocada o rechazada: ya no espera nada, así que si un admin la mete
       // más tarde sí es un alta a dedo.
@@ -524,8 +524,8 @@ async function connectToWhatsApp() {
   sock.ev.on('messaging-history.set', ({ contacts, lidPnMappings }) => {
     const n = guardarContactos(contacts);
     const k = guardarMapeos(lidPnMappings);
-    if (n) logger.info(`cuentas: ${n} fichas (business/foto) aprendidas de la sincronizacion de WhatsApp`);
-    if (k) logger.info(`jid: ${k} correspondencias LID-teléfono aprendidas de WhatsApp`);
+    if (n) logger.info(`cuentas: ${n} fichas (business/foto) aprendidas de la sincronizacion de WhatsApp.`);
+    if (k) logger.info(`jid: ${k} correspondencias LID-teléfono aprendidas de WhatsApp.`);
   });
 
   // Group events: anti-business on join, anti-admin + notifications on promote/demote
@@ -569,7 +569,7 @@ async function connectToWhatsApp() {
     // multiple users join at once via group link.
     if (action === 'add') {
       const fromBot = isBotJid(author);
-      const authorTag = author ? `@${String(author).split('@')[0]}` : 'Alguien';
+      const authorTag = author ? `@${String(author).split('@')[0]}.` : 'Alguien';
 
       // Anti-fake: lista negra y huella de fotos sobre cada entrada.
       // No bloquea al resto de handlers — sus fallos se registran y ya.
@@ -613,7 +613,7 @@ async function connectToWhatsApp() {
             || (obj.id.endsWith('@s.whatsapp.net') ? obj.id : null)
             || (canon?.endsWith('@s.whatsapp.net') ? canon : null);
           if (!phoneJid) {
-            logger.warn(`Anti-empresa: no pude resolver el telefono de ${obj.id}; no se puede comprobar si es Business`);
+            logger.warn(`Anti-empresa: no pude resolver el telefono de ${obj.id}; no se puede comprobar si es Business.`);
             continue;
           }
           candidates.push({ kickId: obj.id, phoneJid });
@@ -624,7 +624,7 @@ async function connectToWhatsApp() {
           try {
             biz = await isBusiness(sock, phoneJid);
           } catch (err) {
-            logger.warn(`Anti-empresa: chequeo fallo para ${phoneJid}: ${err.message}`);
+            logger.warn(`Anti-empresa: chequeo fallo para ${phoneJid}: ${err.message}.`);
             return;
           }
           if (!biz) return;
@@ -634,16 +634,16 @@ async function connectToWhatsApp() {
             // expulsiones que el servidor había rechazado y la cuenta seguía dentro.
             const st = Array.isArray(res) ? String(res[0]?.status ?? '200') : '200';
             if (st !== '200') {
-              logger.warn(`Anti-empresa: kick rechazado (${st}) para ${kickId} en ${groupJid}`);
+              logger.warn(`Anti-empresa: kick rechazado (${st}) para ${kickId} en ${groupJid}.`);
               return;
             }
             const num = kickId.split('@')[0];
             sock.sendMessage(groupJid, {
               text: `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada automáticamente.`,
               mentions: [kickId],
-            }).catch((e) => logger.warn(`Anti-empresa: send fallo en ${groupJid}: ${e.message}`));
+            }).catch((e) => logger.warn(`Anti-empresa: send fallo en ${groupJid}: ${e.message}.`));
           } catch (err) {
-            logger.warn(`Anti-empresa: kick fallo para ${kickId} en ${groupJid} (¿bot no es admin?): ${err.message}`);
+            logger.warn(`Anti-empresa: kick fallo para ${kickId} en ${groupJid} (¿bot no es admin?): ${err.message}.`);
           }
         }));
       }
@@ -673,7 +673,7 @@ async function connectToWhatsApp() {
           .map(o => o.id);
         if (metidos.length) {
           logger.info(
-            `alta en ${groupJid}: ${author} añadió a ${metidos.join(', ')}. ` +
+            `alta en ${groupJid}: ${author} añadió a ${metidos.join(', ')}.` +
             `No se sanciona: el castigo por añadir se retiró.`);
         }
       }
@@ -705,7 +705,7 @@ async function connectToWhatsApp() {
           .some(f => isOwner(f, false, meta)))
         .map(o => o.id);
       if (echados.length) {
-        const autorTag = `@${String(author).split('@')[0]}`;
+        const autorTag = `@${String(author).split('@')[0]}.`;
         const menciones = [author, ...echados];
 
         // Primero el degradado: es lo único que depende solo del bot y sale
@@ -715,7 +715,7 @@ async function connectToWhatsApp() {
           const r = await sock.groupParticipantsUpdate(groupJid, [author], 'demote');
           degradado = String((Array.isArray(r) ? r[0] : null)?.status ?? '200') === '200';
         } catch (err) {
-          logger.warn(`Owner echado: no pude degradar a ${author} en ${groupJid}: ${err.message}`);
+          logger.warn(`Owner echado: no pude degradar a ${author} en ${groupJid}: ${err.message}.`);
         }
 
         const vueltos = [];
@@ -728,7 +728,7 @@ async function connectToWhatsApp() {
             const r = await sock.groupParticipantsUpdate(groupJid, [victima], 'add');
             fila = Array.isArray(r) ? r[0] : null;
           } catch (err) {
-            logger.warn(`Owner echado: alta fallida de ${victima} en ${groupJid}: ${err.message}`);
+            logger.warn(`Owner echado: alta fallida de ${victima} en ${groupJid}: ${err.message}.`);
           }
           const estado = String(fila?.status ?? '');
 
@@ -747,7 +747,7 @@ async function connectToWhatsApp() {
                 : null;
               conAdmin = String(f2?.status ?? '200') === '200';
             } catch (err) {
-              logger.warn(`Owner echado: no pude devolverle el admin a ${victima}: ${err.message}`);
+              logger.warn(`Owner echado: no pude devolverle el admin a ${victima}: ${err.message}.`);
             }
             (conAdmin ? vueltos : sinAdmin).push(victima);
             continue;
@@ -775,7 +775,7 @@ async function connectToWhatsApp() {
               invitados.push(victima);
               continue;
             } catch (err) {
-              logger.warn(`Owner echado: invitación fallida a ${victima}: ${err.message}`);
+              logger.warn(`Owner echado: invitación fallida a ${victima}: ${err.message}.`);
             }
           }
           fallidos.push(victima);
@@ -828,14 +828,14 @@ async function connectToWhatsApp() {
           return String(fila?.status ?? '200') === '200';
         });
       } catch (err) {
-        logger.warn(`anti-admin: ${accion} fallo en ${groupJid}: ${err.message}`);
+        logger.warn(`anti-admin: ${accion} fallo en ${groupJid}: ${err.message}.`);
         return [];
       }
     };
     const tags = (a) => a.map(j => `@${j.split('@')[0]}`).join(', ');
 
     const targets = partJids.map(jid => `@${jid.split('@')[0]}`).join(', ');
-    const authorTag = author ? `@${String(author).split('@')[0]}` : 'Alguien';
+    const authorTag = author ? `@${String(author).split('@')[0]}.` : 'Alguien';
 
     // Si al BOT le acaban de dar admin aquí, este grupo pasa de "forbidden" a
     // legible: se levanta el freno del sondeo en vez de esperar las seis horas.
@@ -862,8 +862,8 @@ async function connectToWhatsApp() {
       // verdad se degradó y se cuenta lo que falló, si falló algo.
       const fallidos = toDemote.filter(j => !degradados.includes(j));
       const text =
-        `*Anti-admin: acción revertida.*\n` +
-        `${authorTag} intento dar admin a ${targets}.\n` +
+        `*Anti-admin: acción revertida.*\\n.` +
+        `${authorTag} intento dar admin a ${targets}.\\n.` +
         (degradados.length === 1
           ? `${tags(degradados)} ha sido degradado.`
           : `Degradados: ${tags(degradados)}.`) +
@@ -923,7 +923,7 @@ async function connectToWhatsApp() {
     }
 
     // Anti-admin: revert any demote that didn't come from the bot
-    // Admin A removes B's admin → bot restores B and removes A's admin.
+    // Admin A removes B's admin → bot restores B and removes A.'s admin.
     // Track each step separately so the notification reflects what actually
     // happened — a wholesale try/catch would lie if only one step succeeded.
     if (action === 'demote' && !fromBot && !esOwnerAmplio(author, authorPn, meta) && isAntiAdminEnabled(groupJid)) {
@@ -936,7 +936,7 @@ async function connectToWhatsApp() {
 
       if (repuestos.length || castigado) {
         const sinReponer = aReponer.filter(j => !repuestos.includes(j));
-        const parts = [`*Anti-admin: acción revertida.*`, `${authorTag} intento quitar admin a ${targets}.`];
+        const parts = [`*Anti-admin: acción revertida.*.`, `${authorTag} intento quitar admin a ${targets}.`];
         const recupera = repuestos.length === 1 ? 'recupera' : 'recuperan';
         if (repuestos.length && castigado) parts.push(`${tags(repuestos)} ${recupera} el admin y ${authorTag} lo pierde.`);
         else if (repuestos.length)         parts.push(`${tags(repuestos)} ${recupera} el admin.`);
@@ -980,7 +980,7 @@ async function connectToWhatsApp() {
     for (const msg of messages) {
       // handleMessage runs first so its sock.sendMessage is queued BEFORE readMessages.
       // Swapping the order would add one extra WA round-trip in front of every command response.
-      handleMessage(sock, msg).catch(err => logger.error(`handleMessage error: ${err.message}`));
+      handleMessage(sock, msg).catch(err => logger.error(`handleMessage error: ${err.message}.`));
       if (config.autoRead && !msg.key.fromMe && msg.key.remoteJid) {
         sock.readMessages([msg.key]).catch(() => {});
       }
@@ -1023,7 +1023,7 @@ process.on('SIGINT', () => gracefulShutdown(0));
 process.on('SIGTERM', () => gracefulShutdown(0));
 
 process.on('uncaughtException', (err) => {
-  logger.error(`Excepción no capturada: ${err.message}`);
+  logger.error(`Excepción no capturada: ${err.message}.`);
 });
 
 process.on('unhandledRejection', (reason) => {

@@ -30,7 +30,7 @@ async function faceSearch(buffer, { limit = 4, maxWaitMs = 45000, demo = false }
       headers: { ...headers, ...form.getHeaders() },
       timeout: 30000, maxBodyLength: 30 * 1024 * 1024,
     });
-    if (up.data?.error) { logger.warn(`facecheck: upload error: ${up.data.error}`); return { ok: false, reason: 'error', matches: [] }; }
+    if (up.data?.error) { logger.warn(`facecheck: upload error: ${up.data.error}.`); return { ok: false, reason: 'error', matches: [] }; }
     idSearch = up.data?.id_search;
     if (!idSearch) return { ok: false, reason: 'error', matches: [] };
   } catch (e) {
@@ -58,7 +58,7 @@ async function faceSearch(buffer, { limit = 4, maxWaitMs = 45000, demo = false }
       }
       // Sin output todavía: sigue en cola.
     } catch (e) {
-      logger.warn(`facecheck: poll falló: ${e.message}`);
+      logger.warn(`facecheck: poll falló: ${e.message}.`);
       return { ok: false, reason: 'error', matches: [] };
     }
     await new Promise(res => setTimeout(res, 3000));

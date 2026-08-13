@@ -7,33 +7,33 @@
 const BOTE_REVIENTA = [
   '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta, joder Registro de atraco número 1, patético.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 2. Hostia puta, qué nivel, miserable.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 2.',
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 3, qué cringe.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 4. Hostia puta, qué nivel, da, asco, da asco.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 4., da asco, da asco.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 5. Hostia puta, qué nivel, qué vergüenza.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 5.',
 
   '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 6, ridículo.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, patético Registro de atraco número 7 Marca 6. Hostia puta, qué nivel, fracasado.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, patético Registro de atraco número 7 Marca 6.',
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 8 Marca 7, qué miseria.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 9 Marca 8. Hostia puta, qué nivel, da grima.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 9 Marca 8.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 10 Marca 9. Hostia puta, qué nivel, qué nivel de pena.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 10 Marca 9.',
 
   '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta, joder Registro de atraco número 11 Marca 10, basura.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 12 Marca 11. Hostia puta, qué nivel, qué cutre.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 12 Marca 11.',
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 13 Marca 12, da pena ajena.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 14 Marca 13. Hostia puta, qué nivel, qué vacío.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 14 Marca 13.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 15 Marca 14. Hostia puta, qué nivel, indignante.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 15 Marca 14.',
 
   '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 16 Marca 15, qué vergüenza ajena.',
 
@@ -41,19 +41,19 @@ const BOTE_REVIENTA = [
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 18 Marca 17, qué flojo.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 19 Marca 18. Hostia puta, qué nivel, menudo desastre.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 19 Marca 18.',
 
   '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 20 Marca 19, qué pena.',
 
   '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta, joder Registro de atraco número 21 Marca 20, patético.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 22 Marca 21. Hostia puta, qué nivel, miserable.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 22 Marca 21.',
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 23 Marca 22, qué cringe.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 24 Marca 23. Hostia puta, qué nivel, da, asco, da asco.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 24 Marca 23., da asco, da asco.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 25 Marca 24. Hostia puta, qué nivel, qué vergüenza.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 25 Marca 24.',
 
   '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 26 Marca 25, ridículo.',
 
@@ -61,19 +61,19 @@ const BOTE_REVIENTA = [
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 28 Marca 27, qué miseria.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 29 Marca 28. Hostia puta, qué nivel, da grima.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 29 Marca 28.',
 
   '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 30 Marca 29, qué nivel de pena.',
 
   '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta, joder Registro de atraco número 31 Marca 30, basura.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 32 Marca 31. Hostia puta, qué nivel, qué cutre.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 32 Marca 31.',
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 33 Marca 32, da pena ajena.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 34 Marca 33. Hostia puta, qué nivel, qué vacío.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 34 Marca 33.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 35 Marca 34. Hostia puta, qué nivel, indignante.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 35 Marca 34.',
 
   '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 36 Marca 35, qué vergüenza ajena.',
 
@@ -81,19 +81,19 @@ const BOTE_REVIENTA = [
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 38 Marca 37, qué flojo.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 39 Marca 38. Hostia puta, qué nivel, menudo desastre.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 39 Marca 38.',
 
   '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 40 Marca 39, qué pena.',
 
   '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta, joder Registro de atraco número 41 Marca 40, patético.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 42 Marca 41. Hostia puta, qué nivel, miserable.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 42 Marca 41.',
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 43 Marca 42, qué cringe.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 44 Marca 43. Hostia puta, qué nivel, da, asco, da asco.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 44 Marca 43., da asco, da asco.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 45 Marca 44. Hostia puta, qué nivel, qué vergüenza.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 45 Marca 44.',
 
   '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 46 Marca 45, ridículo.',
 
@@ -101,19 +101,19 @@ const BOTE_REVIENTA = [
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 48 Marca 47, qué miseria.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 49 Marca 48. Hostia puta, qué nivel, da grima.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 49 Marca 48.',
 
   '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 50 Marca 49, qué nivel de pena.',
 
   '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta, joder Registro de atraco número 51 Marca 50, basura.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 52 Marca 51. Hostia puta, qué nivel, qué cutre.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 52 Marca 51.',
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 53 Marca 52, da pena ajena.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 54 Marca 53. Hostia puta, qué nivel, qué vacío.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 54 Marca 53.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 55 Marca 54. Hostia puta, qué nivel, indignante.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 55 Marca 54.',
 
   '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 56 Marca 55, qué vergüenza ajena.',
 
@@ -121,19 +121,19 @@ const BOTE_REVIENTA = [
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 58 Marca 57, qué flojo.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 59 Marca 58. Hostia puta, qué nivel, menudo desastre.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 59 Marca 58.',
 
   '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 60 Marca 59, qué pena.',
 
   '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta, joder Registro de atraco número 61 Marca 60, patético.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 62 Marca 61. Hostia puta, qué nivel, miserable.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 62 Marca 61.',
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 63 Marca 62, qué cringe.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 64 Marca 63. Hostia puta, qué nivel, da, asco, da asco.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 64 Marca 63., da asco, da asco.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 65 Marca 64. Hostia puta, qué nivel, qué vergüenza.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 65 Marca 64.',
 
   '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 66 Marca 65, ridículo.',
 
@@ -141,19 +141,19 @@ const BOTE_REVIENTA = [
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 68 Marca 67, qué miseria.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 69 Marca 68. Hostia puta, qué nivel, da grima.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 69 Marca 68.',
 
   '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 70 Marca 69, qué nivel de pena.',
 
   '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta, joder Registro de atraco número 71 Marca 70, basura.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 72 Marca 71. Hostia puta, qué nivel, qué cutre.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 72 Marca 71.',
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 73 Marca 72, da pena ajena.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 74 Marca 73. Hostia puta, qué nivel, qué vacío.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 74 Marca 73.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 75 Marca 74. Hostia puta, qué nivel, indignante.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 75 Marca 74.',
 
   '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 76 Marca 75, qué vergüenza ajena.',
 
@@ -161,19 +161,19 @@ const BOTE_REVIENTA = [
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 78 Marca 77, qué flojo.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 79 Marca 78. Hostia puta, qué nivel, menudo desastre.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 79 Marca 78.',
 
   '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 80 Marca 79, qué pena.',
 
   '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta, joder Registro de atraco número 81 Marca 80, patético.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 82 Marca 81. Hostia puta, qué nivel, miserable.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 82 Marca 81.',
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 83 Marca 82, qué cringe.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 84 Marca 83. Hostia puta, qué nivel, da, asco, da asco.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 84 Marca 83., da asco, da asco.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 85 Marca 84. Hostia puta, qué nivel, qué vergüenza.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 85 Marca 84.',
 
   '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 86 Marca 85, ridículo.',
 
@@ -181,19 +181,19 @@ const BOTE_REVIENTA = [
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 88 Marca 87, qué miseria.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 89 Marca 88. Hostia puta, qué nivel, da grima.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 89 Marca 88.',
 
   '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 90 Marca 89, qué nivel de pena.',
 
   '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta, joder Registro de atraco número 91 Marca 90, basura.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 92 Marca 91. Hostia puta, qué nivel, qué cutre.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 92 Marca 91.',
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 93 Marca 92, da pena ajena.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 94 Marca 93. Hostia puta, qué nivel, qué vacío.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 94 Marca 93.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 95 Marca 94. Hostia puta, qué nivel, indignante.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 95 Marca 94.',
 
   '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 96 Marca 95, qué vergüenza ajena.',
 
@@ -201,28 +201,28 @@ const BOTE_REVIENTA = [
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 98 Marca 97, qué flojo.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 99 Marca 98. Hostia puta, qué nivel, menudo desastre.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 99 Marca 98.',
 
   '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 100 Marca 99, qué pena.',
 
 ];
 
 const BOTE_FALLA = [
-  '%A falló con el bote y salió escaldado. Manos vacías, joder Intento fallido número 1 archivado. Hostia puta, qué nivel, patético.',
+  '%A falló con el bote y salió escaldado. Manos vacías, joder Intento fallido número 1 archivado.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón Intento fallido número 2 archivado. Hostia puta, qué nivel, miserable.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón Intento fallido número 2 archivado.',
 
-  '%A quiso el reventón y el bote ni se enteró, gilipollas Intento fallido número 3 archivado. Hostia puta, qué nivel, qué cringe.',
+  '%A quiso el reventón y el bote ni se enteró, gilipollas Intento fallido número 3 archivado.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, mierda Intento fallido número 4 archivado. Hostia puta, qué nivel, da asco.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, mierda Intento fallido número 4 archivado.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, coño Intento fallido número 5 archivado. Hostia puta, qué nivel, qué vergüenza.',
+  '%A no cobró el bote. Cobró el roast express del grupo, coño Intento fallido número 5 archivado.',
 
-  '%A fracasó con el bote y salió escaldado. Manos vacías, asco Intento fallido número 6 archivado. Hostia puta, qué nivel, ridículo.',
+  '%A fracasó con el bote y salió escaldado. Manos vacías, asco Intento fallido número 6 archivado.',
 
   'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 7 archivado Marca 6, fracasado.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 8 archivado Marca 7. Hostia puta, qué nivel, qué miseria.',
+  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 8 archivado Marca 7.',
 
   'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 9 archivado Marca 8, da grima.',
 
@@ -242,7 +242,7 @@ const BOTE_FALLA = [
 
   'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 17 archivado Marca 16, da vergüenza.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 18 archivado Marca 17. Hostia puta, qué nivel, qué flojo.',
+  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 18 archivado Marca 17.',
 
   'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 19 archivado Marca 18, menudo desastre.',
 
@@ -262,7 +262,7 @@ const BOTE_FALLA = [
 
   'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 27 archivado Marca 26, fracasado.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 28 archivado Marca 27. Hostia puta, qué nivel, qué miseria.',
+  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 28 archivado Marca 27.',
 
   'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 29 archivado Marca 28, da grima.',
 
@@ -282,7 +282,7 @@ const BOTE_FALLA = [
 
   'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 37 archivado Marca 36, da vergüenza.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 38 archivado Marca 37. Hostia puta, qué nivel, qué flojo.',
+  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 38 archivado Marca 37.',
 
   'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 39 archivado Marca 38, menudo desastre.',
 
@@ -302,7 +302,7 @@ const BOTE_FALLA = [
 
   'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 47 archivado Marca 46, fracasado.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 48 archivado Marca 47. Hostia puta, qué nivel, qué miseria.',
+  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 48 archivado Marca 47.',
 
   'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 49 archivado Marca 48, da grima.',
 
@@ -322,7 +322,7 @@ const BOTE_FALLA = [
 
   'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 57 archivado Marca 56, da vergüenza.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 58 archivado Marca 57. Hostia puta, qué nivel, qué flojo.',
+  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 58 archivado Marca 57.',
 
   'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 59 archivado Marca 58, menudo desastre.',
 
@@ -342,7 +342,7 @@ const BOTE_FALLA = [
 
   'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 67 archivado Marca 66, fracasado.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 68 archivado Marca 67. Hostia puta, qué nivel, qué miseria.',
+  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 68 archivado Marca 67.',
 
   'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 69 archivado Marca 68, da grima.',
 
@@ -362,7 +362,7 @@ const BOTE_FALLA = [
 
   'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 77 archivado Marca 76, da vergüenza.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 78 archivado Marca 77. Hostia puta, qué nivel, qué flojo.',
+  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 78 archivado Marca 77.',
 
   'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 79 archivado Marca 78, menudo desastre.',
 
@@ -382,7 +382,7 @@ const BOTE_FALLA = [
 
   'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 87 archivado Marca 86, fracasado.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 88 archivado Marca 87. Hostia puta, qué nivel, qué miseria.',
+  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 88 archivado Marca 87.',
 
   'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 89 archivado Marca 88, da grima.',
 
@@ -402,7 +402,7 @@ const BOTE_FALLA = [
 
   'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 97 archivado Marca 96, qué vergüenza ajena.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 98 archivado Marca 97. Hostia puta, qué nivel, da vergüenza.',
+  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 98 archivado Marca 97.',
 
   'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 99 archivado Marca 98, qué flojo.',
 
@@ -413,7 +413,7 @@ const BOTE_FALLA = [
 const BOTE_VACIO = [
   'Bote vacío: nadie falló lo suficiente. Documentado, gilipollas sin segunda lectura que lo arregle y el ranking lo deja claro.',
 
-  'Bote sin nada: el drama espera al próximo fail. Sin derecho a reclamación, gilipollas y el hilo sigue sin ti en el centro.',
+  'Bote sin nada: el drama espera al próximo fail. Sin derecho a reclamación, gilipollas. y el hilo sigue sin ti en el centro.',
 
   'Bote limpio: mala noticia para quien esperaba reparto. Y el grupo tomó nota, gilipollas delante de quien aún leía el hilo.',
 
@@ -427,15 +427,15 @@ const BOTE_VACIO = [
 
   'Vacío técnico: llenadlo con hostias fallidas. El ranking lo registra, fracasado con el peaje cobrado al natural.',
 
-  'Vacío técnico: llenadlo con hostias fallidas. Sin derecho a reclamación, basura y el sistema no regala puntos.',
+  'Vacío técnico: llenadlo con hostias fallidas. Sin derecho a reclamación, basura. y el sistema no regala puntos.',
 
   'El bote suena a eco: cero. Documentado, gilipollas delante del marcador en vivo y el ranking lo deja claro.',
 
-  'Nada que repartir: el bote espera vuestros próximos desastres, gilipollas y basta el dato del ranking.',
+  'Nada que repartir: el bote espera vuestros próximos desastres, gilipollas. y basta el dato del ranking.',
 
-  'Nada que repartir. El bote espera vuestros próximos desastres, gilipollas y el ranking lo deja claro.',
+  'Nada que repartir. El bote espera vuestros próximos desastres, gilipollas. y el ranking lo deja claro.',
 
-  'Bote vacío. Nadie ha fallado lo suficiente como para llenarlo, mierda y el ranking cierra el caso y el ranking lo deja por escrito.',
+  'Bote vacío. Nadie ha fallado lo suficiente como para llenarlo, mierda. y el ranking cierra el caso y el ranking lo deja por escrito.',
 
   'El bote espera contenido: vosotros dais espectáculo sin relleno, coño sin que nadie pida replay con la cara del resultado a la vista.',
 
@@ -445,31 +445,31 @@ const BOTE_VACIO = [
 
   'El bote está más limpio que vuestra racha. Vacío total, cabrón con el fail todavía caliente sin maquillaje ni segunda toma.',
 
-  'Bote sin nada. El drama tendrá que esperar al próximo fail, joder y el chat archiva sin debate en la foto fija del ranking.',
+  'Bote sin nada. El drama tendrá que esperar al próximo fail, joder. y el chat archiva sin debate en la foto fija del ranking.',
 
   'El bote suena a eco: cero. El ranking anota, ridículo con el bot como notario del fallo delante del listón que no saltaste.',
 
   'Abrir el bote vacío es el primer fail del día. Enhorabuena, mierda en la foto fija del ranking y no hay modo de suavizarlo.',
 
-  'No hay premio: solo recordatorio de que podéis fallar más. Y el grupo tomó nota, fracasado y el resto es ruido de fondo.',
+  'No hay premio: solo recordatorio de que podéis fallar más. Y el grupo tomó nota, fracasado. y el resto es ruido de fondo.',
 
   'Vacío total: fallad más si queréis números aquí. Sin derecho a reclamación, fracasado delante de quien aún leía el hilo.',
 
   'Bote vacío: nadie falló lo suficiente. Sin recurso, mierda delante de todo el que miraba con el eco todavía en el grupo.',
 
-  'El bote vacío es el espejo de la racha actual. Sin derecho a reclamación, mierda y el hilo sigue sin ti en el centro.',
+  'El bote vacío es el espejo de la racha actual. Sin derecho a reclamación, mierda. y el hilo sigue sin ti en el centro.',
 
   'Bote vacío: nadie falló lo suficiente. Que conste, pringado y el historial no olvida sin suavizar el golpe del número.',
 
   'Vacío. Como algunas de vuestras estrategias de robo, basura sin segunda oportunidad hoy y el ranking lo deja claro.',
 
-  'Bote sin nada: el drama espera al próximo fail. El historial no miente, ridículo y el sistema cierra sin discusión.',
+  'Bote sin nada: el drama espera al próximo fail. El historial no miente, ridículo. y el sistema cierra sin discusión.',
 
-  'Vacío total: fallad más si queréis números aquí. Que conste en el chat, patético y el hilo no pide amplificación.',
+  'Vacío total: fallad más si queréis números aquí. Que conste en el chat, patético. y el hilo no pide amplificación.',
 
   'Nada que repartir: el bote espera desastres. Sin derecho a reclamación, patético con el eco todavía en el grupo.',
 
-  'Vacío total: fallad más si queréis números aquí. El historial no miente, mierda y no hace falta ampliar el parte.',
+  'Vacío total: fallad más si queréis números aquí. El historial no miente, mierda. y no hace falta ampliar el parte.',
 
   'El fondo del bote se ve: no hay nada encima. Sin derecho a reclamación, fracasado sin consuelo de manual barato.',
 
@@ -499,7 +499,7 @@ const BOTE_VACIO = [
 
   'Bote a cero. Más fails o no hay fiesta, cabrón. El ranking no perdona, cabrón. Qué asco de intento delante del puto ranking, cabrón.',
 
-  'Vacío total. El premio se construye con vuestra mierda y aún falta, gilipollas. El ranking no perdona, gilipollas.',
+  'Vacío total. El premio se construye con vuestra mierda. y aún falta, gilipollas. El ranking no perdona, gilipollas.',
 
   'Bote vacío. El chat todavía no ha pagado el peaje suficiente, patético. El ranking no perdona, patético.',
 
@@ -539,7 +539,7 @@ const BOTE_VACIO = [
 
   'Ahí no hay nada. Ni aura, ni gloria, ni motivo para seguir mirando y basta el dato del ranking y el sistema marca el punto final, cabrón.',
 
-  'Cero en el bote: la colecta de fracasos no ha llegado a mínimo, cabrón y el ranking lo deja claro, gilipollas.',
+  'Cero en el bote: la colecta de fracasos no ha llegado a mínimo, cabrón. y el ranking lo deja claro, gilipollas.',
 
   'Nada dentro: el bote y vuestra racha de suerte se parecen y el archivo no admite recurso con el eco del almost todavía sonando, patético.',
 
@@ -589,7 +589,7 @@ const BOTE_VACIO = [
 
   'Bote vacío: nadie falló lo suficiente. Y en alta resolución de group chat con el grupo de testigo silencioso, ridículo.',
 
-  'El bote suena a eco: cero. Caso cerrado, patético y el ranking lo deja claro, fracasado. El ranking no perdona, fracasado.',
+  'El bote suena a eco: cero. Caso cerrado, patético. y el ranking lo deja claro, fracasado. El ranking no perdona, fracasado.',
 
   'Bote a cero. Para que haya algo que robar alguien tiene que cagarla robando, y aquí no se atreve ni Dios, patético.',
 
@@ -613,21 +613,21 @@ const BOTE_VACIO = [
 
 // ─── La tienda ───────────────────────────────────────────────────────────────
 const COMPRA_ESCUDO = [
-  '%N se blindó con dinero del aura. El blindaje no cubre el ridículo de la cola de la tienda, cabrón y el ranking lo deja claro, patético.',
+  '%N se blindó con dinero del aura. El blindaje no cubre el ridículo de la cola de la tienda, cabrón. y el ranking lo deja claro, patético.',
 
-  '%N en la cola de la tienda pide no que le toquen el aura. Y el grupo tomó nota, gilipollas y el sistema no regala puntos, miserable.',
+  '%N en la cola de la tienda pide no que le toquen el aura. Y el grupo tomó nota, gilipollas. y el sistema no regala puntos, miserable.',
 
-  'Escudo en mano de %N: mensaje al resto de que hoy no se fía. Y el grupo tomó nota, gilipollas y el ranking lo deja claro, qué cringe.',
+  'Escudo en mano de %N: mensaje al resto de que hoy no se fía. Y el grupo tomó nota, gilipollas. y el ranking lo deja claro, qué cringe.',
 
   '%N se protege con dinero del aura. Documentado, gilipollas sin segunda oportunidad hoy sin consuelo de manual barato, da asco.',
 
-  'La tienda le vende un escudo a %N. Traducción: hoy no se fía ni de su sombra, gilipollas y el ranking lo deja claro, qué vergüenza.',
+  'La tienda le vende un escudo a %N. Traducción: hoy no se fía ni de su sombra, gilipollas. y el ranking lo deja claro, qué vergüenza.',
 
-  'La tienda le vende escudo a %N. El grupo anota el diagnóstico de cagado, gilipollas y el grupo ya pasó de página, ridículo.',
+  'La tienda le vende escudo a %N. El grupo anota el diagnóstico de cagado, gilipollas. y el grupo ya pasó de página, ridículo.',
 
   '%N se blindó con dinero del aura: el blindaje no cubre el ridículo de la cola Asco sin descuento por empatía, fracasado.',
 
-  '%N y el escudo: matrimonio de conveniencia entre el saldo y el pánico, gilipollas y el historial no olvida, qué miseria.',
+  '%N y el escudo: matrimonio de conveniencia entre el saldo y el pánico, gilipollas. y el historial no olvida, qué miseria.',
 
   'La tienda le vende escudo a %N. y el grupo lo ve. El grupo anota el diagnóstico de cagado, da grima.',
 
@@ -637,17 +637,17 @@ const COMPRA_ESCUDO = [
 
   '%N se gasta el aura en no perder más aura: lógica circular del miedo. Y el grupo tomó nota, basura con el bot como notario del fallo, qué cutre.',
 
-  '%N invierte en defensa porque el ataque nunca fue su fuerte. Escudo nuevo, dignidad vieja, basura y el ranking no pide permiso, da pena ajena.',
+  '%N invierte en defensa porque el ataque nunca fue su fuerte. Escudo nuevo, dignidad vieja, basura. y el ranking no pide permiso, da pena ajena.',
 
-  'Escudo comprado. %N acaba de firmar que prefiere pagar a pelear, coño y el chat archiva sin debate y basta el dato del ranking, qué vacío.',
+  'Escudo comprado. %N acaba de firmar que prefiere pagar a pelear, coño. y el chat archiva sin debate y basta el dato del ranking, qué vacío.',
 
-  '%N invierte en defensa porque el ataque nunca fue su idioma, patético y el contador insiste con el grupo de testigo silencioso, indignante.',
+  '%N invierte en defensa porque el ataque nunca fue su idioma, patético. y el contador insiste con el grupo de testigo silencioso, indignante.',
 
   'Escudo nuevo para %N: el grupo actualiza la ficha del personaje. Y el grupo tomó nota, ridículo sin consuelo de manual barato, qué vergüenza ajena.',
 
   'Compra de defensa: %N admite en público que el aura le duele más perderlo que la cara, cabrón con el eco todavía en el grupo, da vergüenza.',
 
-  '%N sale blindado de la tienda: el chat sale enterado del motivo. Y el grupo tomó nota, patético y el resto es ruido de fondo, qué flojo.',
+  '%N sale blindado de la tienda: el chat sale enterado del motivo. Y el grupo tomó nota, patético. y el resto es ruido de fondo, qué flojo.',
 
   '%N pasa por caja y pide la versión cobarde del inventario. Y el grupo tomó nota, mierda en el momento que más dolía soltarlo, menudo desastre.',
 
@@ -661,17 +661,17 @@ const COMPRA_ESCUDO = [
 
   'Compra de escudo: %N firma el parte de víctima preventiva. Y el grupo tomó nota, coño en el segundo más incómodo del chat, da asco.',
 
-  '%N prefiere pagar a arriesgar: la tienda le da la razón y el item. Y el grupo tomó nota, cabrón y el ranking lo deja claro, qué vergüenza.',
+  '%N prefiere pagar a arriesgar: la tienda le da la razón y el item. Y el grupo tomó nota, cabrón. y el ranking lo deja claro, qué vergüenza.',
 
   '%N se protege con dinero del aura. Caso cerrado, patético sin bis ni matiz de consuelo con el grupo de testigo silencioso, ridículo.',
 
-  'Escudo para %N: confesión de que prefiere el plástico a la pelea. Y el grupo tomó nota, basura y el ranking lo deja claro, fracasado.',
+  'Escudo para %N: confesión de que prefiere el plástico a la pelea. Y el grupo tomó nota, basura. y el ranking lo deja claro, fracasado.',
 
   'La caja registradora suena y %N tiene escudo. El grupo tiene un dato nuevo del personaje, pringado con el cargo en firme, qué miseria.',
 
   'Escudo comprado. %N acaba de confesar en público que le da culo que le roben, mierda delante de quien aún leía el hilo, da grima.',
 
-  '%N se gasta lo que no tiene de huevos en lo que sí tiene de catálogo: un escudo, ridículo y el chat archiva sin debate, qué nivel de pena.',
+  '%N se gasta lo que no tiene de huevos en lo que sí tiene de catálogo: un escudo, ridículo. y el chat archiva sin debate, qué nivel de pena.',
 
   'La caja registra escudo a nombre de %N y pánico a nombre del mismo. Y el grupo tomó nota, mierda con el cargo en firme, basura.',
 
@@ -683,51 +683,51 @@ const COMPRA_ESCUDO = [
 
   'Escudo en el inventario de %N: mensaje claro de quien no se fía ni de su sombra, ridículo sin recurso ni nota al pie, indignante.',
 
-  '%N se ha comprado un escudo porque le da pánico que le toquen el aura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza ajena.',
+  '%N se ha comprado un escudo porque le da pánico que le toquen el aura.vergüenza ajena.',
 
-  '%N suelta aura por un escudo. El miedo se paga caro en este ranking, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da vergüenza.',
+  '%N suelta aura por un escudo. El miedo se paga caro en este ranking, asco.vergüenza.',
 
-  'Escudo comprado. %N ya no tiene excusa cuando le roben igual, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué flojo.',
+  'Escudo comprado. %N ya no tiene excusa cuando le roben igual, basura.flojo.',
 
-  '%N invierte en no que le toquen. El chat se caga de risa del gasto. Hostia puta, qué nivel. Hostia, el desastre se explica solo, menudo desastre.',
+  '%N invierte en no que le toquen. El chat se caga de risa del gasto.desastre.',
 
-  '%N con escudo nuevo y cara de quien espera el golpe igual, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué pena.',
+  '%N con escudo nuevo y cara de quien espera el golpe igual, fracasado.pena.',
 
-  'Compra de escudo: %N admite en público que le van a intentar vaciar, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, patético.',
+  'Compra de escudo: %N admite en público que le van a intentar vaciar, joder.',
 
-  '%N paga protección. El ranking anota el miedo en el historial, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, miserable.',
+  '%N paga protección. El ranking anota el miedo en el historial, mierda.',
 
-  'Escudo en inventario de %N. Ahora a ver si lo usa o solo flexea, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cringe.',
+  'Escudo en inventario de %N. Ahora a ver si lo usa o solo flexea, coño.cringe.',
 
-  '%N se blinda porque el aura propia no le basta de argumento, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da asco.',
+  '%N se blinda porque el aura propia no le basta de argumento, cabrón.asco.',
 
-  'Compra registrada: escudo para %N. El grupo ya sabe por qué, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza.',
+  'Compra registrada: escudo para %N. El grupo ya sabe por qué, gilipollas.vergüenza.',
 
-  '%N gasta en escudo. Traducción: le tienen de punto en el ranking, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, ridículo.',
+  '%N gasta en escudo. Traducción: le tienen de punto en el ranking, patético.',
 
-  'Escudo de %N. El pánico se nota hasta en el ticket de compra, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
+  'Escudo de %N. El pánico se nota hasta en el ticket de compra, asco.',
 
-  '%N se protege. El chat interpreta: víctima habitual del comando, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué miseria.',
+  '%N se protege. El chat interpreta: víctima habitual del comando, basura.miseria.',
 
-  'Compra de miedo documentada. Autor %N, producto escudo, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da grima.',
+  'Compra de miedo documentada. Autor %N, producto escudo, ridículo.grima.',
 
-  '%N con escudo y sin dignidad de pelear a pelo, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué nivel de pena.',
+  '%N con escudo y sin dignidad de pelear a pelo, fracasado.nivel de pena.',
 
-  'El escudo de %N es el anuncio de que espera el atraco, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, basura.',
+  'El escudo de %N es el anuncio de que espera el atraco, joder.',
 
-  '%N paga para no llorar después. Matemáticas del ranking, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cutre.',
+  '%N paga para no llorar después. Matemáticas del ranking, mierda.cutre.',
 
-  'Escudo comprado. %N ya puede dormir… o no, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da pena ajena.',
+  'Escudo comprado. %N ya puede dormir… o no, coño.pena ajena.',
 
-  '%N invierte en no ser el gag del próximo robo, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vacío.',
+  '%N invierte en no ser el gag del próximo robo, cabrón.vacío.',
 
-  'Compra de escudo: el ranking firma el miedo de %N en público, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, indignante.',
+  'Compra de escudo: el ranking firma el miedo de %N en público, gilipollas.',
 
   'Escudo en el inventario de %N. El mensaje es claro: prefiero pagar que pelear, ridículo con el número hablando solo, qué vergüenza ajena.',
 
-  'Escudo comprado y el grupo lo ve. %N acaba de firmar que prefiere pagar a pelear, coño y el resto es ruido de fondo, da vergüenza.',
+  'Escudo comprado y el grupo lo ve. %N acaba de firmar que prefiere pagar a pelear, coño. y el resto es ruido de fondo, da vergüenza.',
 
-  'La tienda no pregunta por qué. %N tampoco explica. El escudo habla por los dos, patético y el ranking lo deja claro, qué flojo.',
+  'La tienda no pregunta por qué. %N tampoco explica. El escudo habla por los dos, patético. y el ranking lo deja claro, qué flojo.',
 
   'Compra de defensa registrada: %N admite el pánico en público. Y el grupo tomó nota, pringado sin cuento que lo tape, menudo desastre.',
 
@@ -735,7 +735,7 @@ const COMPRA_ESCUDO = [
 
   '%N en la tienda pidió una cosa y solo pidió no que le toquen: escudo activado, joder sin recurso ni nota al pie, patético.',
 
-  '%N se gasta el aura en un escudo. El miedo convertido en ticket de compra, patético y basta el dato del ranking, miserable.',
+  '%N se gasta el aura en un escudo. El miedo convertido en ticket de compra, patético. y basta el dato del ranking, miserable.',
 
   '%N entra a la tienda temblando y sale blindado: confesión pública de miedo, mierda con el fallo en 4K de chat, qué cringe.',
 
@@ -745,23 +745,23 @@ const COMPRA_ESCUDO = [
 
   '%N se protege con dinero del aura. En acta, coño con el chat enterado del cargo con el dígito firmando solo, ridículo.',
 
-  '%N sale de la tienda con escudo bajo el brazo y la dignidad por el suelo, basura y el ranking lo deja claro, fracasado.',
+  '%N sale de la tienda con escudo bajo el brazo y la dignidad por el suelo, basura. y el ranking lo deja claro, fracasado.',
 
   '%N invierte en no sentir el robo: estrategia de quien ya perdió mentalmente. Y el grupo tomó nota, pringado, qué miseria.',
 
-  'Compra de escudo registrada. %N ha firmado el parte de «me da miedo el chat», asco y el contador insiste, da grima.',
+  'Compra de escudo registrada. %N ha firmado el parte de «me da miedo el chat», asco. y el contador insiste, da grima.',
 
   '%N convierte saldo en chapa: el respeto no se compra en el mismo pasillo. Y el grupo tomó nota, fracasado.',
 
   '%N en la tienda: una cosa. Sale con escudo. Diagnóstico cerrado, mierda con el peaje cobrado al natural, basura.',
 
-  '%N se gasta el aura en un escudo porque le da pánico que se lo toquen, joder y no hay modo de suavizarlo, qué cutre.',
+  '%N se gasta el aura en un escudo porque le da pánico que se lo toquen, joder. y no hay modo de suavizarlo, qué cutre.',
 
   '%N paga el peaje del cagado. Escudo activable, respeto desactivable, fracasado sin consuelo de consola, da pena ajena.',
 
-  'Escudo comprado por %N. Cuando el aura duele más perderlo que la cara, joder y el ranking lo deja claro, qué vacío.',
+  'Escudo comprado por %N. Cuando el aura duele más perderlo que la cara, joder. y el ranking lo deja claro, qué vacío.',
 
-  'El invento del escudo existe por gente como %N. Hoy ha pasado por caja, coño y el ranking lo deja claro, indignante.',
+  'El invento del escudo existe por gente como %N. Hoy ha pasado por caja, coño. y el ranking lo deja claro, indignante.',
 
   '%N convierte aura en plástico protector: el miedo tiene ticket de compra, cabrón con el cargo en firme, qué vergüenza ajena.',
 
@@ -820,13 +820,13 @@ const COMPRA_GANZUA = [
 
   '%N compra presión en formato metal. Documentado, gilipollas con el grupo de testigo silencioso y el resto es ruido de fondo, miserable.',
 
-  '%N paga %C por la muleta del robo. Documentado, gilipollas y el hilo no pide amplificación en el recuento que no perdona, qué cringe.',
+  '%N paga %C por la muleta del robo. Documentado, gilipollas. y el hilo no pide amplificación en el recuento que no perdona, qué cringe.',
 
   'Ganzúa para %N: una bala, un tiro, cero plan B. El ranking lo registra, gilipollas delante de quien aún leía el hilo, da asco.',
 
   'Ganzúa de un uso: %N firma el contrato con su suerte. Y el grupo tomó nota, gilipollas en el idioma seco del ranking, qué vergüenza.',
 
-  '%N cambia aura por ganzúa: el bricolaje del robo para torpes con saldo, gilipollas y el ranking lo deja claro, ridículo.',
+  '%N cambia aura por ganzúa: el bricolaje del robo para torpes con saldo, gilipollas. y el ranking lo deja claro, ridículo.',
 
   '%N cambia aura por ganzúa. El bricolaje del robo para principiantes, gilipollas delante del hueco que quedó, fracasado.',
 
@@ -840,7 +840,7 @@ const COMPRA_GANZUA = [
 
   'Ganzúa comprada: %N cree que el fallo era de la herramienta. Y el grupo tomó nota, fracasado sin anestesia de verdad esta vez, qué cutre.',
 
-  'La tienda le vende ganzúa a %N: hoy va de profesional de mentira, asco y basta el dato del ranking sin apelación posible hoy, da pena ajena.',
+  'La tienda le vende ganzúa a %N: hoy va de profesional de mentira, asco. y basta el dato del ranking sin apelación posible hoy, da pena ajena.',
 
   '%N suelta %C y se lleva la llave de los torpes: úsela con cabeza si le queda, mierda en el único marcador que importa aquí, qué vacío.',
 
@@ -850,7 +850,7 @@ const COMPRA_GANZUA = [
 
   '%N compra presión en formato metal. Sin recurso, mierda con el dígito como única defensa en alta resolución de group chat, da vergüenza.',
 
-  'La tienda vende ganzúa a %N: profesional de mentira por un día. Y el grupo tomó nota, ridículo y el ranking lo deja claro, qué flojo.',
+  'La tienda vende ganzúa a %N: profesional de mentira por un día. Y el grupo tomó nota, ridículo. y el ranking lo deja claro, qué flojo.',
 
   'Item de un solo disparo: %N acaba de comprar presión en formato metal, coño en el único idioma que entiende el contador, menudo desastre.',
 
@@ -860,13 +860,13 @@ const COMPRA_GANZUA = [
 
   '%N paga %C por la muleta del robo. Caso cerrado, patético delante del listón que no saltaste sin descuento por empatía, miserable.',
 
-  '%N paga %C por la muleta del robo. El ranking anota, ridículo y el archivo queda cerrado y el sistema no regala puntos, qué cringe.',
+  '%N paga %C por la muleta del robo. El ranking anota, ridículo. y el archivo queda cerrado y el sistema no regala puntos, qué cringe.',
 
-  'Compra de ganzúa: %N apuesta a que esta vez sí. El historial dice otra cosa, cabrón y el sistema cierra sin discusión, da asco.',
+  'Compra de ganzúa: %N apuesta a que esta vez sí. El historial dice otra cosa, cabrón. y el sistema cierra sin discusión, da asco.',
 
   '%N suelta %C por una ganzúa de un solo uso: o la clava o el meme se escribe solo, joder delante de todo el que miraba, qué vergüenza.',
 
-  '%N compra presión en formato metal. El ranking anota, ridículo y el contador insiste sin anestesia de verdad esta vez, ridículo.',
+  '%N compra presión en formato metal. El ranking anota, ridículo. y el contador insiste sin anestesia de verdad esta vez, ridículo.',
 
   'El item no piensa: %N tiene que hacerlo por los dos. Y el grupo tomó nota, pringado y el sistema cierra sin discusión, fracasado.',
 
@@ -874,71 +874,71 @@ const COMPRA_GANZUA = [
 
   '%C menos y una ganzúa más en el inventario de %N. Sin derecho a reclamación, pringado sin maquillaje ni segunda toma, da grima.',
 
-  '%N compra presión en formato metal. En acta, coño y no hace falta ampliar el parte con el botín o el fail a la vista, qué nivel de pena.',
+  '%N compra presión en formato metal. En acta, coño. y no hace falta ampliar el parte con el botín o el fail a la vista, qué nivel de pena.',
 
   'Ganzúa comprada. Ahora %N tiene herramienta y sigue sin tener ni puta idea de a quién ir sin recurso ni nota al pie, basura.',
 
-  '%N paga por abrir lo que otros abren con cara: ganzúa lista, dignidad en duda, fracasado y el ranking lo deja claro, qué cutre.',
+  '%N paga por abrir lo que otros abren con cara: ganzúa lista, dignidad en duda, fracasado. y el ranking lo deja claro, qué cutre.',
 
   'Ganzúa comprada: %N cree que el problema era la herramienta y no el operario, basura con el saldo a la intemperie, da pena ajena.',
 
   '%N en la caja con %C: sale con ganzúa y sin excusa. Y el grupo tomó nota, mierda con el dígito como única defensa, qué vacío.',
 
-  '%N paga %C por la muleta del robo. Sin matiz, asco y el hilo sigue sin ti en el centro y el ranking lo deja claro, indignante.',
+  '%N paga %C por la muleta del robo. Sin matiz, asco. y el hilo sigue sin ti en el centro y el ranking lo deja claro, indignante.',
 
-  '%N suelta %C por una ganzúa. Un solo uso, así que como la gaste en un fail se jode. Hostia puta, qué nivel, qué vergüenza ajena.',
+  '%N suelta %C por una ganzúa. Un solo uso, así que como la gaste en un fail se jode.ajena.',
 
-  '%N compra ganzúa. Traducción: va a intentar un atraco de puta madre, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da vergüenza.',
+  '%N compra ganzúa. Traducción: va a intentar un atraco de puta madre, asco.vergüenza.',
 
-  'Ganzúa en inventario de %N. Un uso y a rezar, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué flojo.',
+  'Ganzúa en inventario de %N. Un uso y a rezar, basura.flojo.',
 
-  '%N paga por forzar lo que no puede a pelo. Clásico, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, menudo desastre.',
+  '%N paga por forzar lo que no puede a pelo. Clásico, ridículo.desastre.',
 
-  'Compra de ganzúa: %N admite que necesita ayuda para robar, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué pena.',
+  'Compra de ganzúa: %N admite que necesita ayuda para robar, fracasado.pena.',
 
-  '%N con ganzúa nueva y cara de quien ya eligió la víctima, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, patético.',
+  '%N con ganzúa nueva y cara de quien ya eligió la víctima, joder.',
 
-  'Ganzúa comprada. %N ya no tiene excusa cuando falle el golpe, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, miserable.',
+  'Ganzúa comprada. %N ya no tiene excusa cuando falle el golpe, mierda.',
 
-  '%N invierte en atraco asistido. El ranking anota la intención, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cringe.',
+  '%N invierte en atraco asistido. El ranking anota la intención, coño.cringe.',
 
-  'Compra registrada: ganzúa para %N. El grupo espera el show, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da asco.',
+  'Compra registrada: ganzúa para %N. El grupo espera el show, cabrón.asco.',
 
-  '%N gasta en ganzúa. Un uso. Sin reembolso si pifia, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza.',
+  '%N gasta en ganzúa. Un uso. Sin reembolso si pifia, gilipollas.vergüenza.',
 
-  '%N con herramienta de ladrón y sin garantía de éxito, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, ridículo.',
+  '%N con herramienta de ladrón y sin garantía de éxito, patético.',
 
-  'Ganzúa de %N. El ticket dice miedo a fallar a mano limpia, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
+  'Ganzúa de %N. El ticket dice miedo a fallar a mano limpia, asco.',
 
-  '%N se prepara el atraco con DLC de pago. Qué asco, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué miseria.',
+  '%N se prepara el atraco con DLC de pago. Qué asco, basura.miseria.',
 
-  'Compra de ganzúa documentada. Autor %N, intención clara, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da grima.',
+  'Compra de ganzúa documentada. Autor %N, intención clara, ridículo.grima.',
 
-  '%N paga por una segunda oportunidad de no ser inutil, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué nivel de pena.',
+  '%N paga por una segunda oportunidad de no ser inutil, fracasado.nivel de pena.',
 
-  'La ganzúa de %N es el anuncio del próximo intento de robo, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, basura.',
+  'La ganzúa de %N es el anuncio del próximo intento de robo, joder.',
 
-  '%N invierte en no quedar en ridículo… o en quedar igual, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cutre.',
+  '%N invierte en no quedar en ridículo… o en quedar igual, mierda.cutre.',
 
-  'Ganzúa comprada. Un uso. El chat ya tiene palomitas, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da pena ajena.',
+  'Ganzúa comprada. Un uso. El chat ya tiene palomitas, coño.pena ajena.',
 
-  '%N con ganzúa y sin plan B si la quema en un fail, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vacío.',
+  '%N con ganzúa y sin plan B si la quema en un fail, cabrón.vacío.',
 
-  'Compra de ganzúa: el ranking firma la intención de %N en público. Hostia puta, qué nivel. Hostia, el desastre se explica solo, indignante.',
+  'Compra de ganzúa: el ranking firma la intención de %N en público.',
 
-  '%N se ha comprado una oportunidad. Un solo uso y después se acabó la ayuda, cabrón y el resto es ruido de fondo, qué vergüenza ajena.',
+  '%N se ha comprado una oportunidad. Un solo uso y después se acabó la ayuda, cabrón. y el resto es ruido de fondo, qué vergüenza ajena.',
 
-  '%N sale de la tienda con ganzúa. Si la gasta mal, el grupo tiene meme garantizado, basura y el contador insiste, da vergüenza.',
+  '%N sale de la tienda con ganzúa. Si la gasta mal, el grupo tiene meme garantizado, basura. y el contador insiste, da vergüenza.',
 
   '%N paga %C por la muleta del robo. Que conste, pringado en el recuento que no perdona sin recurso ni nota al pie, qué flojo.',
 
   '%N compra presión en formato metal. Caso cerrado, patético sin que nadie pida replay y el ranking lo deja claro, menudo desastre.',
 
-  'Ganzúa comprada. %N cree que el problema era la herramienta y no las manos, ridículo y el ranking lo deja claro, qué pena.',
+  'Ganzúa comprada. %N cree que el problema era la herramienta y no las manos, ridículo. y el ranking lo deja claro, qué pena.',
 
   'Ganzúa lista: %N. sin derecho a llorar si la gasta mal. Y el grupo tomó nota, joder delante del hueco que quedó, patético.',
 
-  '%N paga %C por la muleta del robo. Sin recurso, mierda y el resto es ruido de fondo y el ranking lo deja claro, miserable.',
+  '%N paga %C por la muleta del robo. Sin recurso, mierda. y el resto es ruido de fondo y el ranking lo deja claro, miserable.',
 
   'Compra registrada: ganzúa para %N. El tutorial del robo en formato item, pringado y el resto es ruido de fondo, qué cringe.',
 
@@ -950,21 +950,21 @@ const COMPRA_GANZUA = [
 
   '%N compra la segunda oportunidad en formato metal. Y el grupo tomó nota, basura con el dígito firmando solo, fracasado.',
 
-  '%N paga %C por la muleta del robo. En acta, coño y el veredicto no se negocia en el idioma seco del ranking, qué miseria.',
+  '%N paga %C por la muleta del robo. En acta, coño. y el veredicto no se negocia en el idioma seco del ranking, qué miseria.',
 
-  'Ganzúa en el bolsillo de %N. Una bala, un tiro, cero excusas si falla, mierda y el veredicto no se negocia, da grima.',
+  'Ganzúa en el bolsillo de %N. Una bala, un tiro, cero excusas si falla, mierda. y el veredicto no se negocia, da grima.',
 
-  'Ganzúa en el bolsillo de %N: una bala, un tiro, cero excusas si falla, mierda y el veredicto no se negocia, qué nivel de pena.',
+  'Ganzúa en el bolsillo de %N: una bala, un tiro, cero excusas si falla, mierda. y el veredicto no se negocia, qué nivel de pena.',
 
-  '%N cambia %C por metal de un solo cartucho. Sin derecho a reclamación, fracasado y el ranking lo deja claro, basura.',
+  '%N cambia %C por metal de un solo cartucho. Sin derecho a reclamación, fracasado. y el ranking lo deja claro, basura.',
 
   'Ganzúa en el bolsillo. %N ya tiene excusa técnica para el ridículo que viene con el veredicto seco del bot, qué cutre.',
 
   'La ganzúa no piensa: %N sí tiene que hacerlo, y ahí está el riesgo, patético sin barniz de relato heroico, da pena ajena.',
 
-  '%N invierte %C en abrir lo que otros abren con cara. Y el grupo tomó nota, coño y el ranking lo deja claro, qué vacío.',
+  '%N invierte %C en abrir lo que otros abren con cara. Y el grupo tomó nota, coño. y el ranking lo deja claro, qué vacío.',
 
-  'Una ganzúa, un uso, %C menos: %N firmó contrato con su propia suerte, patético y el ranking lo deja claro, indignante.',
+  'Una ganzúa, un uso, %C menos: %N firmó contrato con su propia suerte, patético. y el ranking lo deja claro, indignante.',
 
   'Compra registrada: ganzúa para %N, tutorial del robo en formato item, pringado y el archivo queda cerrado, qué vergüenza ajena.',
 
@@ -974,13 +974,13 @@ const COMPRA_GANZUA = [
 
   '%N paga %C por la muleta del robo. Sin filtro, fracasado en el único idioma que entiende el contador, menudo desastre.',
 
-  '%N paga %C por la herramienta de los que no saben forzar sin manual, coño y el ranking lo deja claro, qué pena.',
+  '%N paga %C por la herramienta de los que no saben forzar sin manual, coño. y el ranking lo deja claro, qué pena.',
 
-  '%N compra la muleta del robo: una vez se rompe, vuelve al suelo, ridículo y el ranking lo deja claro, patético.',
+  '%N compra la muleta del robo: una vez se rompe, vuelve al suelo, ridículo. y el ranking lo deja claro, patético.',
 
   'Ganzúa lista. %N ya puede fallar con estilo y con herramientas, que es peor que fallar a pelo sin modo avión ni silencio cómplice, miserable.',
 
-  'Ganzúa en inventario de %N: una sola vez, sin reembolso emocional, joder y el ranking lo deja claro, qué cringe.',
+  'Ganzúa en inventario de %N: una sola vez, sin reembolso emocional, joder. y el ranking lo deja claro, qué cringe.',
 
   '%N sale de la tienda con ganzúa y con presión de no fallar. Y el grupo tomó nota, desperdicio sin modo avión ni silencio cómplice, da asco.',
 
@@ -1004,7 +1004,7 @@ const COMPRA_GANZUA = [
 
   '%N cambia %C por metal de un solo cartucho. El historial no miente, desperdicio en el momento que más dolía soltarlo, qué cringe.',
 
-  '%N paga %C por la muleta del robo. Siguiente, desperdicio con el veredicto seco del bot y el resto es ruido de fondo, da, asco, indignante.',
+  '%N paga %C por la muleta del robo. Siguiente, desperdicio con el veredicto seco del bot y el resto es ruido de fondo, da asco, indignante.',
 
   '%N suelta %C por una ganzúa que probablemente malgaste. Pero la ilusión no tiene precio con el dígito firmando solo, patético.',
 
@@ -1033,13 +1033,13 @@ const COMPRA_CEBO = [
 
   'Señuelo de %N: carnada cara para pez barato. El ranking lo registra, gilipollas delante de todo el que miraba, fracasado.',
 
-  'Señuelo de %N: carnada cara para pez barato. Sin derecho a reclamación, gilipollas y el ranking lo deja claro, qué miseria.',
+  'Señuelo de %N: carnada cara para pez barato. Sin derecho a reclamación, gilipollas. y el ranking lo deja claro, qué miseria.',
 
-  '%N juega a ser el plato: espera al comensal. El historial no miente, gilipollas y el chat archiva sin debate, da grima.',
+  '%N juega a ser el plato: espera al comensal. El historial no miente, gilipollas. y el chat archiva sin debate, da grima.',
 
   'Cebo listo: %N mira el río a ver quién pica. El ranking lo registra, gilipollas sin que nadie pida replay, qué nivel de pena.',
 
-  'Señuelo activado por %N: el chat es el río y alguien tiene que picar, joder y el contador insiste con el chat enterado del cargo, basura.',
+  'Señuelo activado por %N: el chat es el río y alguien tiene que picar, joder. y el contador insiste con el chat enterado del cargo, basura.',
 
   'Cebo desplegado: %N es el plato del día en el menú del robo. Y el grupo tomó nota, pringado en el único marcador que importa aquí, qué cutre.',
 
@@ -1053,7 +1053,7 @@ const COMPRA_CEBO = [
 
   'Cebo listo: %N espera al inocente y el inocente a veces tiene más hambre que cerebro, pringado en el idioma seco del ranking, da vergüenza.',
 
-  'Cebo en juego: %N apuesta a que alguien tiene más hambre que cerebro. Y el grupo tomó nota, asco y el archivo queda cerrado, qué flojo.',
+  'Cebo en juego: %N apuesta a que alguien tiene más hambre que cerebro. Y el grupo tomó nota, asco. y el archivo queda cerrado, qué flojo.',
 
   '%N monta la trampa y se sienta en primera fila. Y el grupo tomó nota, fracasado en el único idioma que entiende el contador, menudo desastre.',
 
@@ -1065,7 +1065,7 @@ const COMPRA_CEBO = [
 
   'Cebo en juego. %N va de carnada andante por el chat, cabrón delante de todo el que miraba en el recuento que no perdona, qué cringe.',
 
-  '%N monta el cebo: billete de mentira. El ranking anota, ridículo y el historial no olvida con el saldo a la intemperie, da asco.',
+  '%N monta el cebo: billete de mentira. El ranking anota, ridículo. y el historial no olvida con el saldo a la intemperie, da asco.',
 
   '%N monta el cebo: billete de mentira. Caso cerrado, patético en el recuento que no perdona y el ranking lo deja claro, qué vergüenza.',
 
@@ -1075,63 +1075,63 @@ const COMPRA_CEBO = [
 
   '%N paga por parecer rico un rato. El ranking anota, ridículo con el grupo de testigo silencioso sin prórroga ni VAR, qué miseria.',
 
-  '%N paga por parecer rico un rato. El disfraz de millonario tiene fecha de caducidad, coño y el historial no olvida, da grima.',
+  '%N paga por parecer rico un rato. El disfraz de millonario tiene fecha de caducidad, coño. y el historial no olvida, da grima.',
 
   'Señuelo activado por %N. Ahora el chat es un río y alguien tiene que picar, joder delante de quien no quería verlo, qué nivel de pena.',
 
-  '%N sale oliendo a trampa: el grupo ya huele el teatro. Y el grupo tomó nota, ridículo y el resto es ruido de fondo, basura.',
+  '%N sale oliendo a trampa: el grupo ya huele el teatro. Y el grupo tomó nota, ridículo. y el resto es ruido de fondo, basura.',
 
   'Cebo activado: %N espera el click del ansia ajena. Sin derecho a reclamación, pringado sin bis ni matiz de consuelo, qué cutre.',
 
-  '%N paga por parecer rico un rato. Sin matiz, asco y no hace falta ampliar el parte y el hilo no pide amplificación, da pena ajena.',
+  '%N paga por parecer rico un rato. Sin matiz, asco. y no hace falta ampliar el parte y el hilo no pide amplificación, da pena ajena.',
 
   '%N monta el cebo con cara de póker. El grupo ya sabe que el billete es de mentira, joder sin consuelo de consola, qué vacío.',
 
   'Cebo comprado. %N acaba de ponerse el letrero de «róbame» con letra pequeña, ridículo sin recurso ni nota al pie, indignante.',
 
-  '%N monta el cebo. Va a ir por ahí aparentando billetes con la cuenta limpia. Hostia puta, qué nivel, qué vergüenza ajena.',
+  '%N monta el cebo. Va a ir por ahí aparentando billetes con la cuenta limpia.ajena.',
 
-  '%N compra cebo. Traducción: va a cazar pardillos en el ranking, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da vergüenza.',
+  '%N compra cebo. Traducción: va a cazar pardillos en el ranking, asco.vergüenza.',
 
-  'Cebo en inventario de %N. Ahora a ver quién pica, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué flojo.',
+  'Cebo en inventario de %N. Ahora a ver quién pica, basura.flojo.',
 
-  '%N paga por parecer rico. El chat ya huele la trampa, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, menudo desastre.',
+  '%N paga por parecer rico. El chat ya huele la trampa, ridículo.desastre.',
 
-  'Compra de cebo: %N admite que necesita engaño para sacar aura, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué pena.',
+  'Compra de cebo: %N admite que necesita engaño para sacar aura, fracasado.pena.',
 
-  '%N con cebo nuevo y cara de quien ya eligió al pringado, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, patético.',
+  '%N con cebo nuevo y cara de quien ya eligió al pringado, joder.',
 
-  'Cebo comprado. %N ya puede montar el teatro de millonario, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, miserable.',
+  'Cebo comprado. %N ya puede montar el teatro de millonario, mierda.',
 
-  '%N invierte en anzuelo. El ranking anota la intención, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cringe.',
+  '%N invierte en anzuelo. El ranking anota la intención, coño.cringe.',
 
-  'Compra registrada: cebo para %N. El grupo espera el gag, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da asco.',
+  'Compra registrada: cebo para %N. El grupo espera el gag, cabrón.asco.',
 
-  '%N gasta en parecer lo que no es. Clásico del comando, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza.',
+  '%N gasta en parecer lo que no es. Clásico del comando, gilipollas.vergüenza.',
 
-  '%N con cebo y sin garantía de que alguien pique, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, ridículo.',
+  '%N con cebo y sin garantía de que alguien pique, patético.',
 
-  'Cebo de %N. El ticket dice trampa con aura de mentira, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
+  'Cebo de %N. El ticket dice trampa con aura de mentira, asco.',
 
-  '%N se prepara el show de rico falso. Qué asco de plan, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué miseria.',
+  '%N se prepara el show de rico falso. Qué asco de plan, basura.miseria.',
 
-  'Compra de cebo documentada. Autor %N, víctima el próximo pardillo, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da grima.',
+  'Compra de cebo documentada. Autor %N, víctima el próximo pardillo, ridículo.grima.',
 
-  '%N paga por una máscara de millonario en el ranking, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué nivel de pena.',
+  '%N paga por una máscara de millonario en el ranking, fracasado.nivel de pena.',
 
-  'El cebo de %N es el anuncio del próximo fail de alguien, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, basura.',
+  'El cebo de %N es el anuncio del próximo fail de alguien, joder.',
 
-  '%N invierte en que otro pique. Matemáticas del engaño, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cutre.',
+  '%N invierte en que otro pique. Matemáticas del engaño, mierda.cutre.',
 
-  'Cebo comprado. El chat ya tiene al sospechoso habitual, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da pena ajena.',
+  'Cebo comprado. El chat ya tiene al sospechoso habitual, coño.pena ajena.',
 
-  '%N con cebo y sin plan si nadie muerde el anzuelo, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vacío.',
+  '%N con cebo y sin plan si nadie muerde el anzuelo, cabrón.vacío.',
 
-  'Compra de cebo: el ranking firma la trampa de %N en público, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, indignante.',
+  'Compra de cebo: el ranking firma la trampa de %N en público, gilipollas.',
 
   '%N convierte aura en disfraz de botín. Que no se le vea el velcro del disfraz, fracasado sin consuelo de consola, qué vergüenza ajena.',
 
-  '%N monta el cebo: billete de mentira con olor a trampa. Y el grupo tomó nota, joder y el chat archiva sin debate, da vergüenza.',
+  '%N monta el cebo: billete de mentira con olor a trampa. Y el grupo tomó nota, joder. y el chat archiva sin debate, da vergüenza.',
 
   '%N activa modo señuelo: que alguien muerda o el gasto fue al aire, ridículo sin modo avión ni silencio cómplice, qué flojo.',
 
@@ -1139,39 +1139,39 @@ const COMPRA_CEBO = [
 
   '%N paga por parecer rico un rato. Sin recurso, mierda delante del marcador en vivo sin barniz de relato heroico, qué pena.',
 
-  '%N paga por parecer rico un rato. Caso cerrado, patético y el chat archiva sin debate sin que nadie pida replay, patético.',
+  '%N paga por parecer rico un rato. Caso cerrado, patético. y el chat archiva sin debate sin que nadie pida replay, patético.',
 
   'Compra de cebo: %N apuesta a la avaricia ajena. Clásico y a veces efectivo, asco sin consuelo de manual barato, miserable.',
 
   '%N activa modo señuelo. Que alguien muerda o el gasto fue al aire, basura sin modo avión ni silencio cómplice, qué cringe.',
 
-  'Cebo desplegado por %N: ahora falta el pardillo que pique de verdad, mierda y el sistema cierra sin discusión, da asco.',
+  'Cebo desplegado por %N: ahora falta el pardillo que pique de verdad, mierda. y el sistema cierra sin discusión, da asco.',
 
-  '%N convierte aura en teatro de millonario falso. El historial no miente, cabrón y el sistema no regala puntos, qué vergüenza.',
+  '%N convierte aura en teatro de millonario falso. El historial no miente, cabrón. y el sistema no regala puntos, qué vergüenza.',
 
-  '%N paga por parecer rico un rato. En acta, coño y no hace falta ampliar el parte en el idioma seco del ranking, ridículo.',
+  '%N paga por parecer rico un rato. En acta, coño. y no hace falta ampliar el parte en el idioma seco del ranking, ridículo.',
 
-  '%N monta el cebo con cara de póker: el grupo ya huele el billete de mentira, joder y el ranking lo deja claro, fracasado.',
+  '%N monta el cebo con cara de póker: el grupo ya huele el billete de mentira, joder. y el ranking lo deja claro, fracasado.',
 
   '%N monta el cebo: billete de mentira. En acta, coño sin prosa que lo maquille en el idioma seco del ranking, qué miseria.',
 
   'Cebo comprado: %N se puso el letrero de róbame con letra pequeña, basura delante de quien no quería verlo, da grima.',
 
-  '%N en modo señuelo: el grupo tiene palomitas por si falla el casting, patético y no hay DLC que lo parchee, qué nivel de pena.',
+  '%N en modo señuelo: el grupo tiene palomitas por si falla el casting, patético. y no hay DLC que lo parchee, qué nivel de pena.',
 
   '%N convierte aura en teatro de millonario falso. Que conste en el chat, fracasado sin consuelo de consola, basura.',
 
   'Cebo desplegado: %N juega a ser el plato y espera al comensal, ridículo delante de quien no quería verlo, qué cutre.',
 
-  '%N convierte aura en disfraz de botín: que no se le vea el velcro, fracasado y no hay modo de suavizarlo, da pena ajena.',
+  '%N convierte aura en disfraz de botín: que no se le vea el velcro, fracasado. y no hay modo de suavizarlo, da pena ajena.',
 
-  '%N paga por ser el cebo: si nadie muerde el chiste es él solo, mierda y el sistema cierra sin discusión, qué vacío.',
+  '%N paga por ser el cebo: si nadie muerde el chiste es él solo, mierda. y el sistema cierra sin discusión, qué vacío.',
 
   '%N convierte aura en teatro de millonario falso. Y el grupo tomó nota, patético con el cargo en firme, indignante.',
 
   '%N monta el cebo: billete de mentira. Delante de todos, hostia con el número en la frente del mensaje, patético.',
 
-  '%N paga por parecer rico un rato: el disfraz de millonario caduca, coño y el ranking lo deja claro, asco, da vergüenza.',
+  '%N paga por parecer rico un rato: el disfraz de millonario caduca, coño. y el ranking lo deja claro, asco, da vergüenza.',
 
   'Trampa montada. %N ahora brilla como un objetivo y por dentro está más vacío que su agenda en el momento que más dolía soltarlo, basura.',
 
@@ -1185,7 +1185,7 @@ const COMPRA_CEBO = [
 
   '%N paga por ser carnada: si nadie muerde el chiste es él. Y el grupo tomó nota, desperdicio y el grupo ya pasó de página, qué cringe.',
 
-  '%N se disfraza de rico. Ocho horas fingiendo lo que no es, como en la vida real pero con recibo sin consuelo de consola, da, asco, miserable.',
+  '%N se disfraza de rico. Ocho horas fingiendo lo que no es, como en la vida real pero con recibo sin consuelo de consola, da asco, miserable.',
 
   '%N monta el cebo: billete de mentira. Punto final, cutre sin cuento que lo tape en el momento que más dolía soltarlo, qué vergüenza.',
 
@@ -1226,21 +1226,21 @@ const GANZUA_USADA = [
 
   'Tutorial terminado para %A: ganzúa gastada. Sin derecho a reclamación, gilipollas en alta resolución de group chat, miserable.',
 
-  '%A sin ganzúa: sin muleta y sin excusa metálica. El historial no miente, gilipollas y el ranking lo deja claro, qué cringe.',
+  '%A sin ganzúa: sin muleta y sin excusa metálica. El historial no miente, gilipollas. y el ranking lo deja claro, qué cringe.',
 
   '%A usó la bala: cargador vacío. Documentado, gilipollas sin que nadie pida replay y el contador no discute, da asco.',
 
   '%A acaba de gastar la bala única. Que haya valido la pena, gilipollas con el grupo de testigo silencioso, qué vergüenza.',
 
-  '%A acaba de gastar la bala única: que haya valido la pena, gilipollas y el sistema no regala puntos, ridículo.',
+  '%A acaba de gastar la bala única: que haya valido la pena, gilipollas. y el sistema no regala puntos, ridículo.',
 
   'Un uso, un gasto, cero reembolso. %A vuelve al método manual, coño sin barniz de relato heroico y no hace falta ampliar el parte, fracasado.',
 
-  'Item de un uso: usado: %A de vuelta a la realidad sin metal, ridículo y el archivo queda cerrado y el sistema no regala puntos, qué miseria.',
+  'Item de un uso: usado: %A de vuelta a la realidad sin metal, ridículo. y el archivo queda cerrado y el sistema no regala puntos, qué miseria.',
 
   'Ganzúa en el cubo: %A en la intemperie del robo. El historial no miente, fracasado en el único idioma que entiende el contador, da grima.',
 
-  'Se acabó el juguete. %A ha gastado su única ventaja y más le vale que haya servido de algo, joder y el ranking lo deja claro, qué nivel de pena.',
+  'Se acabó el juguete. %A ha gastado su única ventaja y más le vale que haya servido de algo, joder. y el ranking lo deja claro, qué nivel de pena.',
 
   '%A quemó la bala: el cargador del item está vacío. Y el grupo tomó nota, patético delante del público que no pidió entrada, basura.',
 
@@ -1264,7 +1264,7 @@ const GANZUA_USADA = [
 
   'La ganzúa hizo su trabajo o no: en cualquier caso %A ya no la tiene, joder con el número en la frente del mensaje, patético.',
 
-  '%A gastó el único cartucho: examen real a partir de ahora. Y el grupo tomó nota, basura y el ranking lo deja claro, miserable.',
+  '%A gastó el único cartucho: examen real a partir de ahora. Y el grupo tomó nota, basura. y el ranking lo deja claro, miserable.',
 
   '%A usó la herramienta: ahora solo queda el operario. Y el grupo tomó nota, fracasado delante del marcador en vivo, qué cringe.',
 
@@ -1290,47 +1290,47 @@ const GANZUA_USADA = [
 
   '%A quemó el plan B metálico. Sin recurso, mierda con el dígito como única defensa en el parte que nadie borra, qué vacío.',
 
-  '%A usó la bala: cargador vacío. Sin filtro, fracasado y el ranking cierra el caso y el ranking lo deja claro, indignante.',
+  '%A usó la bala: cargador vacío. Sin filtro, fracasado. y el ranking cierra el caso y el ranking lo deja claro, indignante.',
 
-  'Ganzúa quemada. A partir de ahora %A roba a pelo y con la boca cerrada. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza ajena.',
+  'Ganzúa quemada. A partir de ahora %A roba a pelo y con la boca cerrada.vergüenza ajena.',
 
-  '%A gastó la ganzúa. Un uso, un fail, cero reembolso, asco. Qué asco de intento. Hostia puta, qué nivel, da vergüenza.',
+  '%A gastó la ganzúa. Un uso, un fail, cero reembolso, asco. Qué asco de intento.',
 
-  'Ganzúa usada y fuera. %A vuelve al modo pringado del ranking, basura. Qué asco de intento. Hostia puta, qué nivel, qué flojo.',
+  'Ganzúa usada y fuera. %A vuelve al modo pringado del ranking, basura. Qué asco de intento.',
 
-  '%A quemó la ganzúa en el intento. El ticket no admite devolución. Hostia puta, qué nivel. Hostia, el desastre se explica solo, menudo desastre.',
+  '%A quemó la ganzúa en el intento. El ticket no admite devolución.desastre.',
 
-  'Ganzúa 0. %A sin herramienta y con la lección aprendida a hostias. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué pena.',
+  'Ganzúa 0. %A sin herramienta y con la lección aprendida a hostias.pena.',
 
-  '%A la ganzúa cumplió su ciclo. Ahora a sufrir a mano limpia, joder. Qué asco de intento. Hostia puta, qué nivel, patético.',
+  '%A la ganzúa cumplió su ciclo. Ahora a sufrir a mano limpia, joder. Qué asco de intento.',
 
-  'Herramienta gastada. %A ya no tiene plan B de atraco, mierda. Qué asco de intento. Hostia puta, qué nivel, miserable.',
+  'Herramienta gastada. %A ya no tiene plan B de atraco, mierda. Qué asco de intento.',
 
-  '%A sin ganzúa. El ranking anota el empty tool, coño. Qué asco de intento. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cringe.',
+  '%A sin ganzúa. El ranking anota el empty tool, coño. Qué asco de intento.cringe.',
 
-  'Ganzúa usada. %A vuelve al tutorial del robo sin DLC. cabrón. Qué asco de intento. Hostia puta, qué nivel, da asco.',
+  'Ganzúa usada. %A vuelve al tutorial del robo sin DLC. cabrón. Qué asco de intento.',
 
-  '%A quemó el único uso. El chat archiva el gasto inútil, gilipollas. Qué asco de intento. Hostia puta, qué nivel, qué vergüenza.',
+  '%A quemó el único uso. El chat archiva el gasto inútil, gilipollas. Qué asco de intento.',
 
-  'Ganzúa fuera. %A a pelo como el primer día, patético. Qué asco de intento. Hostia puta, qué nivel. Hostia, el desastre se explica solo, ridículo.',
+  'Ganzúa fuera. %A a pelo como el primer día, patético. Qué asco de intento.',
 
-  '%A sin herramienta. El fail va a doler más sin red, asco. Qué asco de intento. Hostia puta, qué nivel, fracasado.',
+  '%A sin herramienta. El fail va a doler más sin red, asco. Qué asco de intento.',
 
-  'Ganzúa consumida. %A firma el empty inventory de ladrón, basura. Qué asco de intento. Hostia puta, qué nivel, qué miseria.',
+  'Ganzúa consumida. %A firma el empty inventory de ladrón, basura. Qué asco de intento.',
 
-  '%A gastó la ganzúa y el resultado no mereció el ticket, ridículo. Qué asco de intento. Hostia puta, qué nivel, da grima.',
+  '%A gastó la ganzúa y el resultado no mereció el ticket, ridículo. Qué asco de intento.',
 
-  'Herramienta 0. %A en modo sufrimiento del ranking, fracasado. Qué asco de intento. Hostia puta, qué nivel, qué nivel de pena.',
+  'Herramienta 0. %A en modo sufrimiento del ranking, fracasado. Qué asco de intento.',
 
-  '%A la ganzúa se fue. Queda la cara de quien la necesitaba, joder. Qué asco de intento. Hostia puta, qué nivel, basura.',
+  '%A la ganzúa se fue. Queda la cara de quien la necesitaba, joder. Qué asco de intento.',
 
-  'Ganzúa quemada en público. El grupo lo vio, mierda. Qué asco de intento. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cutre.',
+  'Ganzúa quemada en público. El grupo lo vio, mierda. Qué asco de intento.cutre.',
 
-  '%A sin DLC. A pelo y que el ranking tenga piedad, coño. Qué asco de intento. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da pena ajena.',
+  '%A sin DLC. A pelo y que el ranking tenga piedad, coño. Qué asco de intento.pena ajena.',
 
-  'Ganzúa usada. %A vuelve a ser el atracador de manos vacías, cabrón. Qué asco de intento. Hostia puta, qué nivel, qué vacío.',
+  'Ganzúa usada. %A vuelve a ser el atracador de manos vacías, cabrón. Qué asco de intento.',
 
-  '%A consumió el único uso. Sin segunda oportunidad de herramienta. Hostia puta, qué nivel. Hostia, el desastre se explica solo, indignante.',
+  '%A consumió el único uso. Sin segunda oportunidad de herramienta.',
 
   'Sin ganzúa, sin muleta. %A y el robo a pelo otra vez, fracasado en el único idioma que entiende el contador, qué vergüenza ajena.',
 
@@ -1338,25 +1338,25 @@ const GANZUA_USADA = [
 
   '%A gastó la ganzúa. El tutorial se acabó: ahora examen real, pringado en el momento que más dolía soltarlo, qué flojo.',
 
-  'Inventario: ganzúa fuera: %A queda a solas con su talento si le queda, patético y el ranking lo deja claro, menudo desastre.',
+  'Inventario: ganzúa fuera: %A queda a solas con su talento si le queda, patético. y el ranking lo deja claro, menudo desastre.',
 
-  'Cartucho único disparado: %A vuelve al modo torpe. Y el grupo tomó nota, basura y el ranking lo deja claro, qué pena.',
+  'Cartucho único disparado: %A vuelve al modo torpe. Y el grupo tomó nota, basura. y el ranking lo deja claro, qué pena.',
 
-  '%A usó la bala: cargador vacío. En acta, coño y el archivo queda cerrado con el dígito como única defensa, patético.',
+  '%A usó la bala: cargador vacío. En acta, coño. y el archivo queda cerrado con el dígito como única defensa, patético.',
 
   'La ganzúa de %A acaba de convertirse en chatarra sentimental, mierda en el segundo más incómodo del chat, miserable.',
 
-  '%A sin ganzúa es %A con menos opciones y las mismas manos torpes, mierda y no hace falta ampliar el parte, qué cringe.',
+  '%A sin ganzúa es %A con menos opciones y las mismas manos torpes, mierda. y no hace falta ampliar el parte, qué cringe.',
 
   '%A usó la bala: cargador vacío. Sin matiz, asco delante del hueco que quedó y el resto es ruido de fondo, da asco.',
 
-  'Ganzúa rota de tanto (mal) usarla. %A vuelve a la casilla de salida, ridículo y el ranking lo deja claro, qué vergüenza.',
+  'Ganzúa rota de tanto (mal) usarla. %A vuelve a la casilla de salida, ridículo. y el ranking lo deja claro, qué vergüenza.',
 
-  'La ganzúa hizo su trabajo o no. En cualquier caso, %A ya no la tiene, joder y el ranking lo deja claro, ridículo.',
+  'La ganzúa hizo su trabajo o no. En cualquier caso, %A ya no la tiene, joder. y el ranking lo deja claro, ridículo.',
 
-  'Ganzúa consumida: %A ya no tiene excusa metálica para el próximo fallo, cabrón y el contador insiste, fracasado.',
+  'Ganzúa consumida: %A ya no tiene excusa metálica para el próximo fallo, cabrón. y el contador insiste, fracasado.',
 
-  'Sin ganzúa el próximo fallo de %A no tendrá con qué maquillarse, patético y el ranking lo deja claro, qué miseria.',
+  'Sin ganzúa el próximo fallo de %A no tendrá con qué maquillarse, patético. y el ranking lo deja claro, qué miseria.',
 
   'Ganzúa usada y destruida. %A vuelve a la casilla de salida sin ventaja y sin remordimientos con el número en la frente del mensaje, ridículo.',
 
@@ -1364,7 +1364,7 @@ const GANZUA_USADA = [
 
   'Ganzúa fuera de inventario: %A y la intemperie del robo y el sistema marca el punto final delante de la evidencia del contador, basura.',
 
-  '%A quemó el plan B metálico. En acta, coño sin bis ni matiz de consuelo sin consuelo de consola. Hostia puta, qué nivel, qué cutre.',
+  '%A quemó el plan B metálico. En acta, coño sin bis ni matiz de consuelo sin consuelo de consola.',
 
   'Ganzúa quemada: a partir de ahora %A roba a pelo y sin plan B y no hace falta ampliar el parte y el archivo no admite recurso, da pena ajena.',
 
@@ -1388,7 +1388,7 @@ const GANZUA_USADA = [
 
   '%A se ha quedado sin ganzúa. El próximo golpe va a ser a pecho descubierto y con fe y el ranking no pide permiso, qué cringe.',
 
-  '%A usó la bala: cargador vacío. A la vista, vergüenza delante del ranking y de la cara sin que nadie pida replay, da, asco, da grima.',
+  '%A usó la bala: cargador vacío. A la vista, vergüenza delante del ranking y de la cara sin que nadie pida replay, da asco, da grima.',
 
   'Sin ganzúa, sin muleta: %A y el robo a pelo otra vez delante de todo el que miraba en la foto fija del ranking, qué vergüenza.',
 
@@ -1404,7 +1404,7 @@ const GANZUA_USADA = [
 
   '%A gastó el único cartucho: examen real. Y sin anestesia de verdad esta vez delante de quien no quería verlo, qué cringe.',
 
-  '%A usó la bala: cargador vacío. Punto final, cutre en el recuento que no perdona y el ranking lo deja claro, da, asco, qué cutre.',
+  '%A usó la bala: cargador vacío. Punto final, cutre en el recuento que no perdona y el ranking lo deja claro, da asco, qué cutre.',
 
   '%A sin ganzúa: sin muleta y sin excusa. Y. delante del marcador en vivo sin segunda lectura que lo arregle, qué vergüenza.',
 
@@ -1437,15 +1437,15 @@ const INVENTARIO_VACIO = [
 
   'Inventario en cero: %N en modo hardcore forzoso. Y el grupo tomó nota, gilipollas con el dígito firmando solo, ridículo.',
 
-  'Sin items: %N juega la campaña sin guardado. El historial no miente, gilipollas y el ranking lo deja claro, fracasado.',
+  'Sin items: %N juega la campaña sin guardado. El historial no miente, gilipollas. y el ranking lo deja claro, fracasado.',
 
   'Tu inventario es un páramo, cabrón. Ni un escudo ni una ganzúa ni un puto chicle sin consuelo de consola, qué miseria.',
 
   'No llevas una mierda encima: vas a robar con las manos y con fe floja Joder en la foto fija del ranking, da grima.',
 
-  'No hay items: hay intención, y la intención no bloquea un robo, gilipollas y el ranking lo deja claro, qué nivel de pena.',
+  'No hay items: hay intención, y la intención no bloquea un robo, gilipollas. y el ranking lo deja claro, qué nivel de pena.',
 
-  'No hay items. Hay intención. La intención no bloquea un robo, gilipollas y el ranking lo deja claro, basura.',
+  'No hay items. Hay intención. La intención no bloquea un robo, gilipollas. y el ranking lo deja claro, basura.',
 
   '%N sin material es un robo anunciado a favor del otro, fracasado delante del hueco que quedó con la cara del resultado a la vista, qué cutre.',
 
@@ -1461,19 +1461,19 @@ const INVENTARIO_VACIO = [
 
   'Inventario vacío como argumento: %N lo exhibe sin querer. Y el grupo tomó nota, mierda delante de quien no quería verlo, qué flojo.',
 
-  '%N a pecho descubierto: cero items. Sin recurso, mierda y el ranking cierra el caso en el segundo más incómodo del chat, menudo desastre.',
+  '%N a pecho descubierto: cero items. Sin recurso, mierda. y el ranking cierra el caso en el segundo más incómodo del chat, menudo desastre.',
 
   'Inventario vacío. %N es todo promesa y cero material, mierda sin maquillaje ni segunda toma sin apelación posible hoy, qué pena.',
 
   'Inventario en cero: %N en modo hardcore forzoso. Que conste en el chat, ridículo en el momento que más dolía soltarlo, patético.',
 
-  'La tienda espera: el inventario de %N también espera llenarse. Y el grupo tomó nota, basura y el ranking lo deja claro, miserable.',
+  'La tienda espera: el inventario de %N también espera llenarse. Y el grupo tomó nota, basura. y el ranking lo deja claro, miserable.',
 
-  '%N abre la mochila y suena a eco. Sin filtro, fracasado y el chat archiva sin debate con la firma legible del comando, qué cringe.',
+  '%N abre la mochila y suena a eco. Sin filtro, fracasado. y el chat archiva sin debate con la firma legible del comando, qué cringe.',
 
   'Inventario en cero: %N en modo hardcore forzoso. Sin derecho a reclamación, patético con el peaje cobrado al natural, da asco.',
 
-  '%N mira el cinturón y el cinturón mira el vacío. Y el grupo tomó nota, fracasado y el hilo sigue sin ti en el centro, qué vergüenza.',
+  '%N mira el cinturón y el cinturón mira el vacío. Y el grupo tomó nota, fracasado. y el hilo sigue sin ti en el centro, qué vergüenza.',
 
   '%N sin material: el robo anunciado a favor del otro. Y el grupo tomó nota, mierda delante de quien aún leía el hilo, ridículo.',
 
@@ -1481,57 +1481,57 @@ const INVENTARIO_VACIO = [
 
   'La tienda te espera y tú miras el saldo. Mientras tanto, inventario vacío, pringado sin letra pequeña que lo salve, qué miseria.',
 
-  '%N sin nada encima: honestidad forzosa en el asalto. Y el grupo tomó nota, ridículo y el chat archiva sin debate, da grima.',
+  '%N sin nada encima: honestidad forzosa en el asalto. Y el grupo tomó nota, ridículo. y el chat archiva sin debate, da grima.',
 
   'La tienda te espera y tú miras el saldo: inventario vacío mientras tanto, pringado sin consuelo de manual barato, qué nivel de pena.',
 
-  'La mochila de %N no pesa: no hay nada que pese. Sin derecho a reclamación, fracasado y el ranking lo deja claro, basura.',
+  'La mochila de %N no pesa: no hay nada que pese. Sin derecho a reclamación, fracasado. y el ranking lo deja claro, basura.',
 
   '%N mira el cinturón y el cinturón mira el vacío. Sin derecho a reclamación, cabrón delante del hueco que quedó, qué cutre.',
 
-  '%N mira el cinturón y el cinturón mira el vacío. El historial no miente, patético y el grupo ya pasó de página, da pena ajena.',
+  '%N mira el cinturón y el cinturón mira el vacío. El historial no miente, patético. y el grupo ya pasó de página, da pena ajena.',
 
   'La mochila de %N no pesa: no hay nada que pese. Que conste en el chat, patético con el chat enterado del cargo, qué vacío.',
 
-  'Inventario en cero. %N juega en modo hardcore sin haberlo elegido, patético y el sistema cierra sin discusión, indignante.',
+  'Inventario en cero. %N juega en modo hardcore sin haberlo elegido, patético. y el sistema cierra sin discusión, indignante.',
 
-  'Inventario vacío, %A. Ni escudo, ni ganzúa, ni dignidad de pago, patético. Qué asco de intento. Hostia puta, qué nivel, qué vergüenza ajena.',
+  'Inventario vacío, %A. Ni escudo, ni ganzúa, ni dignidad de pago, patético. Qué asco de intento.ajena.',
 
-  '%A sin herramientas. A pelo y con cara de pringado del ranking, asco. Qué asco de intento. Hostia puta, qué nivel, da vergüenza.',
+  '%A sin herramientas. A pelo y con cara de pringado del ranking, asco. Qué asco de intento.',
 
-  'Inventario en cero. %A es el tutorial del robo fallido, basura. Qué asco de intento. Hostia puta, qué nivel, qué flojo.',
+  'Inventario en cero. %A es el tutorial del robo fallido, basura. Qué asco de intento.',
 
-  '%A no tiene nada. El ranking lo confirma y el chat se ríe, ridículo. Qué asco de intento. Hostia puta, qué nivel, menudo desastre.',
+  '%A no tiene nada. El ranking lo confirma y el chat se ríe, ridículo. Qué asco de intento.',
 
-  'Sin ítems, %A. Solo manos vacías y esperanza de, fracasado. Qué asco de intento. Hostia puta, qué nivel, qué pena.',
+  'Sin ítems, %A. Solo manos vacías y esperanza de, fracasado. Qué asco de intento.',
 
-  '%A el inventario llora. El atraco va a doler más de lo normal, joder. Qué asco de intento. Hostia puta, qué nivel, patético.',
+  '%A el inventario llora. El atraco va a doler más de lo normal, joder. Qué asco de intento.',
 
-  'Inventario vacío documentado. Autor %A, testigo el puto grupo, mierda. Qué asco de intento. Hostia puta, qué nivel, miserable.',
+  'Inventario vacío documentado. Autor %A, testigo el puto grupo, mierda. Qué asco de intento.',
 
-  '%A sin escudo, sin ganzúa, sin cebo. Solo fail potencial, coño. Qué asco de intento. Hostia puta, qué nivel, qué cringe.',
+  '%A sin escudo, sin ganzúa, sin cebo. Solo fail potencial, coño. Qué asco de intento.',
 
-  'Manos vacías, %A. El ranking no regala herramientas ni consuelo, cabrón. Qué asco de intento. Hostia puta, qué nivel, da asco.',
+  'Manos vacías, %A. El ranking no regala herramientas ni consuelo, cabrón. Qué asco de intento.',
 
-  '%A va a robar como en el tutorial del primer día, gilipollas. Qué asco de intento. Hostia puta, qué nivel, qué vergüenza.',
+  '%A va a robar como en el tutorial del primer día, gilipollas. Qué asco de intento.',
 
-  'Inventario en blanco. %A es el gag del comando antes de empezar, patético. Qué asco de intento. Hostia puta, qué nivel, ridículo.',
+  'Inventario en blanco. %A es el gag del comando antes de empezar, patético. Qué asco de intento.',
 
-  '%A sin DLC de ladrón. A pelo y que sea lo que Dios quiera, asco. Qué asco de intento. Hostia puta, qué nivel, fracasado.',
+  '%A sin DLC de ladrón. A pelo y que sea lo que Dios quiera, asco. Qué asco de intento.',
 
-  'Cero ítems. %A paga la lección de no comprar nada, basura. Qué asco de intento. Hostia puta, qué nivel, qué miseria.',
+  'Cero ítems. %A paga la lección de no comprar nada, basura. Qué asco de intento.',
 
-  '%A el bolsillo del inventario está más vacío que el de aura, ridículo. Qué asco de intento. Hostia puta, qué nivel, da grima.',
+  '%A el bolsillo del inventario está más vacío que el de aura, ridículo. Qué asco de intento.',
 
-  'Sin herramientas, %A. El atraco se va a notar en la cara, fracasado. Qué asco de intento. Hostia puta, qué nivel, qué nivel de pena.',
+  'Sin herramientas, %A. El atraco se va a notar en la cara, fracasado. Qué asco de intento.',
 
-  '%A inventario vacío = atraco en modo sufrimiento, joder. Qué asco de intento. Hostia puta, qué nivel, basura.',
+  '%A inventario vacío = atraco en modo sufrimiento, joder. Qué asco de intento.',
 
-  'No hay escudo que te salve, %A. Porque no tienes, mierda. Qué asco de intento. Hostia puta, qué nivel, qué cutre.',
+  'No hay escudo que te salve, %A. Porque no tienes, mierda. Qué asco de intento.',
 
-  '%A sin nada encima. El ranking firma el empty loadout, coño. Qué asco de intento. Hostia puta, qué nivel, da pena ajena.',
+  '%A sin nada encima. El ranking firma el empty loadout, coño. Qué asco de intento.',
 
-  'Inventario cero. %A es el ejemplo de por qué se compra en la tienda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vacío.',
+  'Inventario cero. %A es el ejemplo de por qué se compra en la tienda.vacío.',
 
   'Nada en el cinturón. Todo en la cara de póker. El póker no basta, joder en el único marcador que importa aquí, indignante.',
 
@@ -1541,11 +1541,11 @@ const INVENTARIO_VACIO = [
 
   '%N abre la mochila y suena a eco. Caso cerrado, patético sin que nadie pida replay y el ranking lo deja claro, qué flojo.',
 
-  'Sin escudo ni ganzúa ni cebo: %N a pecho descubierto. Y el grupo tomó nota, basura y el ranking lo deja claro, menudo desastre.',
+  'Sin escudo ni ganzúa ni cebo: %N a pecho descubierto. Y el grupo tomó nota, basura. y el ranking lo deja claro, menudo desastre.',
 
-  'Sin metal ni plástico: %N solo tiene intención. Sin derecho a reclamación, mierda y el ranking lo deja claro, qué pena.',
+  'Sin metal ni plástico: %N solo tiene intención. Sin derecho a reclamación, mierda. y el ranking lo deja claro, qué pena.',
 
-  '%N abre la mochila y suena a eco. Sin matiz, asco y el ranking no pide permiso y el chat archiva sin debate, patético.',
+  '%N abre la mochila y suena a eco. Sin matiz, asco. y el ranking no pide permiso y el chat archiva sin debate, patético.',
 
   '%N abre la mochila y suena a eco. Que conste, pringado en la foto fija del ranking sin descuento por empatía, miserable.',
 
@@ -1555,19 +1555,19 @@ const INVENTARIO_VACIO = [
 
   'Inventario vacío: %N roba con las manos y fe floja. Y el grupo tomó nota, joder sin prosa que lo maquille, qué vergüenza.',
 
-  'Cero en el cinturón: %N y el plan de las manos. Sin derecho a reclamación, asco y el ranking lo deja claro, ridículo.',
+  'Cero en el cinturón: %N y el plan de las manos. Sin derecho a reclamación, asco. y el ranking lo deja claro, ridículo.',
 
   'Cero en el cinturón: %N y el plan de las manos. El historial no miente, pringado sin apelación posible hoy, fracasado.',
 
-  'Sin metal ni plástico: %N solo tiene intención. Y el grupo tomó nota, fracasado y el ranking lo deja claro, qué miseria.',
+  'Sin metal ni plástico: %N solo tiene intención. Y el grupo tomó nota, fracasado. y el ranking lo deja claro, qué miseria.',
 
-  '%N abre la mochila y suena a eco. En acta, coño y no hay DLC que lo parchee y el sistema no regala puntos, da grima.',
+  '%N abre la mochila y suena a eco. En acta, coño. y no hay DLC que lo parchee y el sistema no regala puntos, da grima.',
 
   'Inventario limpio. Vas a la guerra con un palo y una oración, pringado con el botín o el fail a la vista, qué nivel de pena.',
 
-  'La mochila de %N es un argumento vacío. Como algunos de sus mensajes, basura y no hay DLC que lo parchee, basura.',
+  'La mochila de %N es un argumento vacío. Como algunos de sus mensajes, basura. y no hay DLC que lo parchee, basura.',
 
-  'Nada en el cinturón: todo en la cara de póker: el póker no basta, joder y el hilo no pide amplificación, qué cutre.',
+  'Nada en el cinturón: todo en la cara de póker: el póker no basta, joder. y el hilo no pide amplificación, qué cutre.',
 
   'Inventario limpio de tanto no comprar. O de tanto gastar mal, asco en el segundo más incómodo del chat, da pena ajena.',
 
@@ -1591,7 +1591,7 @@ const INVENTARIO_VACIO = [
 
   'Inventario limpio: %N o no compra o gasta mal. Que conste en el chat, desperdicio con el eco del almost todavía sonando, qué cringe.',
 
-  'Vacío total. Vas por el grupo sin protección y sin vergüenza, que ya es decir delante del público que no pidió entrada, da, asco, miserable.',
+  'Vacío total. Vas por el grupo sin protección y sin vergüenza, que ya es decir delante del público que no pidió entrada, da asco, miserable.',
 
   'Inventario: aire: el próximo round se juega a pelo con el grupo de testigo silencioso delante de quien no quería verlo, qué vergüenza.',
 
@@ -1628,13 +1628,13 @@ const INVENTARIO_VACIO = [
 ];
 
 const COMPRA_OK = [
-  'La caja suena. %N tiene material. Que sepa usarlo, gilipollas y el resto es ruido de fondo y el ranking lo deja claro, patético.',
+  'La caja suena. %N tiene material. Que sepa usarlo, gilipollas. y el resto es ruido de fondo y el ranking lo deja claro, patético.',
 
-  '%N sale con material: el grupo sale con el dato del gasto. Y el grupo tomó nota, gilipollas y el ranking lo deja claro, miserable.',
+  '%N sale con material: el grupo sale con el dato del gasto. Y el grupo tomó nota, gilipollas. y el ranking lo deja claro, miserable.',
 
-  '%C fuera: item dentro: %N sin excusa. Documentado, gilipollas y el contador no discute y el ranking lo deja claro, qué cringe.',
+  '%C fuera: item dentro: %N sin excusa. Documentado, gilipollas. y el contador no discute y el ranking lo deja claro, qué cringe.',
 
-  '%N ya no va vacío: compra cerrada. Documentado, gilipollas y no hay DLC que lo parchee y el ranking lo deja claro, da asco.',
+  '%N ya no va vacío: compra cerrada. Documentado, gilipollas. y no hay DLC que lo parchee y el ranking lo deja claro, da asco.',
 
   '%N invierte %C: el retorno se verá en el robo. Y el grupo tomó nota, gilipollas sin bis ni matiz de consuelo, qué vergüenza.',
 
@@ -1652,91 +1652,91 @@ const COMPRA_OK = [
 
   '%N ya no va vacío: compra cerrada. Sin filtro, fracasado en el momento que más dolía soltarlo con el dígito como única defensa, qué cutre.',
 
-  'Compra cerrada. %N tiene el item y el grupo tiene el dato, mierda y el historial no olvida con el bot como notario del fallo, da pena ajena.',
+  'Compra cerrada. %N tiene el item y el grupo tiene el dato, mierda. y el historial no olvida con el bot como notario del fallo, da pena ajena.',
 
   '%N ya no va vacío: compra cerrada. Delante de todos, hostia en alta resolución de group chat sin suavizar el golpe del número, qué vacío.',
 
   'Ticket pagado. %N sale de la tienda con algo que no sea aire, cabrón sin que nadie pida replay sin bis ni matiz de consuelo, indignante.',
 
-  '%C fuera: item dentro: %N sin excusa. Sin recurso, mierda y el sistema no regala puntos en el segundo más incómodo del chat, qué vergüenza ajena.',
+  '%C fuera: item dentro: %N sin excusa. Sin recurso, mierda. y el sistema no regala puntos en el segundo más incómodo del chat, qué vergüenza ajena.',
 
   '%C fuera: item dentro: %N sin excusa. El ranking anota, ridículo sin bis ni matiz de consuelo con el veredicto seco del bot, da vergüenza.',
 
   '%C fuera y el material dentro. Ahora %N ya no tiene ni una puta excusa cuando la cague delante de la evidencia del contador, qué flojo.',
 
-  '%C fuera: item dentro: %N sin excusa. Caso cerrado, patético y el ranking lo deja por escrito y el resto es ruido de fondo, menudo desastre.',
+  '%C fuera: item dentro: %N sin excusa. Caso cerrado, patético. y el ranking lo deja por escrito y el resto es ruido de fondo, menudo desastre.',
 
-  'Material entregado a %N: sin derecho a llorar falta de herramientas. Y el grupo tomó nota, coño y el ranking lo deja claro, qué pena.',
+  'Material entregado a %N: sin derecho a llorar falta de herramientas. Y el grupo tomó nota, coño. y el ranking lo deja claro, qué pena.',
 
-  '%N ya no puede decir que no tenía con qué. Tiene con qué, mierda y basta el dato del ranking con el dígito firmando solo, patético.',
+  '%N ya no puede decir que no tenía con qué. Tiene con qué, mierda. y basta el dato del ranking con el dígito firmando solo, patético.',
 
   '%N ya no va vacío: compra cerrada. Que conste, pringado con la firma legible del comando sin barniz de relato heroico, miserable.',
 
   '%N ya no va vacío: compra cerrada. El ranking anota, ridículo con el chat enterado del cargo sin cuento que lo tape, qué cringe.',
 
-  '%N tiene material: que sepa usarlo. Documentado, gilipollas y el ranking lo deja claro. Hostia puta, qué nivel, da asco.',
+  '%N tiene material: que sepa usarlo. Documentado, gilipollas. y el ranking lo deja claro.',
 
   '%C fuera: item dentro: %N sin excusa. Delante de todos, hostia sin filtro de autoayuda con el fail todavía caliente, qué vergüenza.',
 
   '%C bien gastados o no: ya están fuera y el item dentro. Y el grupo tomó nota, pringado con el número hablando solo, ridículo.',
 
-  '%N paga %C y sale de la tienda con peso en el inventario. Y el grupo tomó nota, basura y el ranking lo deja claro, fracasado.',
+  '%N paga %C y sale de la tienda con peso en el inventario. Y el grupo tomó nota, basura. y el ranking lo deja claro, fracasado.',
 
-  '%N ya no va vacío: compra cerrada. Sin recurso, mierda y el resto es ruido de fondo y no hay DLC que lo parchee, qué miseria.',
+  '%N ya no va vacío: compra cerrada. Sin recurso, mierda. y el resto es ruido de fondo y no hay DLC que lo parchee, qué miseria.',
 
   'Compra registrada: %N tiene con qué liarla o con qué fallar mejor, fracasado delante del ranking y de la cara, da grima.',
 
-  '%N invierte %C: el retorno se verá en el robo. Sin derecho a reclamación, ridículo y no hay modo de suavizarlo, qué nivel de pena.',
+  '%N invierte %C: el retorno se verá en el robo. Sin derecho a reclamación, ridículo. y no hay modo de suavizarlo, qué nivel de pena.',
 
-  '%C cambian de lado: el item entra al cinturón de %N. Y el grupo tomó nota, ridículo y el ranking lo deja claro, basura.',
+  '%C cambian de lado: el item entra al cinturón de %N. Y el grupo tomó nota, ridículo. y el ranking lo deja claro, basura.',
 
-  '%N tiene material: que sepa usarlo. El ranking anota, ridículo y el historial no olvida y el contador insiste, qué cutre.',
+  '%N tiene material: que sepa usarlo. El ranking anota, ridículo. y el historial no olvida y el contador insiste, qué cutre.',
 
   'Compra limpia: %N tiene material y el chat tiene memoria del gasto, patético con el peaje cobrado al natural, da pena ajena.',
 
   '%N ya no va vacío: compra cerrada. Caso cerrado, patético sin cuento que lo tape sin segunda oportunidad hoy, qué vacío.',
 
-  '%N pasa por caja y el inventario deja de ser eco. Y el grupo tomó nota, fracasado y el ranking lo deja claro, indignante.',
+  '%N pasa por caja y el inventario deja de ser eco. Y el grupo tomó nota, fracasado. y el ranking lo deja claro, indignante.',
 
-  'Compra cerrada. %N con el ítem y sin el aura del ticket, patético. Qué asco de intento. Hostia puta, qué nivel, qué vergüenza ajena.',
+  'Compra cerrada. %N con el ítem y sin el aura del ticket, patético. Qué asco de intento.ajena.',
 
-  '%N pagó. El ranking firma la compra sin debate, asco. Qué asco de intento. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da vergüenza.',
+  '%N pagó. El ranking firma la compra sin debate, asco. Qué asco de intento.vergüenza.',
 
-  'Ítem en inventario de %N. El gasto se nota en el contador, basura. Qué asco de intento. Hostia puta, qué nivel, qué flojo.',
+  'Ítem en inventario de %N. El gasto se nota en el contador, basura. Qué asco de intento.',
 
-  '%N compra hecha. Ahora a ver si lo usa o solo flexea, ridículo. Qué asco de intento. Hostia puta, qué nivel, menudo desastre.',
+  '%N compra hecha. Ahora a ver si lo usa o solo flexea, ridículo. Qué asco de intento.',
 
-  'Compra OK. %N sin excusa cuando falle el próximo atraco, fracasado. Qué asco de intento. Hostia puta, qué nivel, qué pena.',
+  'Compra OK. %N sin excusa cuando falle el próximo atraco, fracasado. Qué asco de intento.',
 
-  '%N el ticket se cobró. El material es suyo y la lección también, joder. Qué asco de intento. Hostia puta, qué nivel, patético.',
+  '%N el ticket se cobró. El material es suyo y la lección también, joder. Qué asco de intento.',
 
-  'Compra registrada. %N con herramienta y el chat de testigo, mierda. Qué asco de intento. Hostia puta, qué nivel, miserable.',
+  'Compra registrada. %N con herramienta y el chat de testigo, mierda. Qué asco de intento.',
 
-  '%N pagó el peaje de la tienda. El ranking anota el gasto, coño. Qué asco de intento. Hostia puta, qué nivel, qué cringe.',
+  '%N pagó el peaje de la tienda. El ranking anota el gasto, coño. Qué asco de intento.',
 
-  'Ítem entregado. %N ya puede dejar de llorar por no tener nada, cabrón. Qué asco de intento. Hostia puta, qué nivel, da asco.',
+  'Ítem entregado. %N ya puede dejar de llorar por no tener nada, cabrón. Qué asco de intento.',
 
-  '%N compra confirmada. Sin reembolso si lo usa mal, gilipollas. Qué asco de intento. Hostia puta, qué nivel, qué vergüenza.',
+  '%N compra confirmada. Sin reembolso si lo usa mal, gilipollas. Qué asco de intento.',
 
-  'Material en inventario. %N el aura bajó y el ego subió, patético. Qué asco de intento. Hostia puta, qué nivel, ridículo.',
+  'Material en inventario. %N el aura bajó y el ego subió, patético. Qué asco de intento.',
 
-  '%N cerró la compra. El grupo ya espera el show del ítem, asco. Qué asco de intento. Hostia puta, qué nivel, fracasado.',
+  '%N cerró la compra. El grupo ya espera el show del ítem, asco. Qué asco de intento.',
 
-  'Compra OK documentada. Autor %N, testigo el puto ranking, basura. Qué asco de intento. Hostia puta, qué nivel, qué miseria.',
+  'Compra OK documentada. Autor %N, testigo el puto ranking, basura. Qué asco de intento.',
 
-  '%N con el ítem encima. Ahora a no cagarla en el primer uso, ridículo. Qué asco de intento. Hostia puta, qué nivel, da grima.',
+  '%N con el ítem encima. Ahora a no cagarla en el primer uso, ridículo. Qué asco de intento.',
 
-  'Ticket cobrado. %N sin el dinero y con la herramienta, fracasado. Qué asco de intento. Hostia puta, qué nivel, qué nivel de pena.',
+  'Ticket cobrado. %N sin el dinero y con la herramienta, fracasado. Qué asco de intento.',
 
-  '%N compra hecha. El ranking no ofrece manual de instrucciones, joder. Qué asco de intento. Hostia puta, qué nivel, basura.',
+  '%N compra hecha. El ranking no ofrece manual de instrucciones, joder. Qué asco de intento.',
 
-  'Ítem listo. %N ya no tiene la excusa del inventario vacío, mierda. Qué asco de intento. Hostia puta, qué nivel, qué cutre.',
+  'Ítem listo. %N ya no tiene la excusa del inventario vacío, mierda. Qué asco de intento.',
 
-  '%N pagó. El material es suyo hasta que lo queme en un fail, coño. Qué asco de intento. Hostia puta, qué nivel, da pena ajena.',
+  '%N pagó. El material es suyo hasta que lo queme en un fail, coño. Qué asco de intento.',
 
-  'Compra cerrada en limpio. %N con el ítem y el chat de espectador, cabrón. Qué asco de intento. Hostia puta, qué nivel, qué vacío.',
+  'Compra cerrada en limpio. %N con el ítem y el chat de espectador, cabrón. Qué asco de intento.',
 
-  '%N tiene material: que sepa usarlo. En acta, coño y basta el dato del ranking y el archivo no admite recurso, indignante.',
+  '%N tiene material: que sepa usarlo. En acta, coño. y basta el dato del ranking y el archivo no admite recurso, indignante.',
 
   '%C menos: item más: %N fuera de la zona de quejas. Y el grupo tomó nota, pringado sin apelación posible hoy, qué vergüenza ajena.',
 
@@ -1746,25 +1746,25 @@ const COMPRA_OK = [
 
   '%C menos, inventario más. %N acaba de pasar de la queja a la herramienta, coño con el fallo en 4K de chat, menudo desastre.',
 
-  'Compra registrada. %N tiene con qué liarla o con qué fallar mejor, fracasado y el veredicto no se negocia, qué pena.',
+  'Compra registrada. %N tiene con qué liarla o con qué fallar mejor, fracasado. y el veredicto no se negocia, qué pena.',
 
-  '%N ya no va vacío: compra cerrada. Sin matiz, asco y el historial no olvida en el idioma seco del ranking, patético.',
+  '%N ya no va vacío: compra cerrada. Sin matiz, asco. y el historial no olvida en el idioma seco del ranking, patético.',
 
   'La tienda cierra el trato: %N abre el inventario con algo dentro, joder con el peaje cobrado al natural, miserable.',
 
-  '%C bien gastados o mal gastados: ya están fuera. El item, dentro, patético y no hay modo de suavizarlo, qué cringe.',
+  '%C bien gastados o mal gastados: ya están fuera. El item, dentro, patético. y no hay modo de suavizarlo, qué cringe.',
 
-  '%N tiene material: que sepa usarlo. Sin recurso, mierda sin prórroga ni VAR sin que nadie pida replay, da, asco, miserable.',
+  '%N tiene material: que sepa usarlo. Sin recurso, mierda sin prórroga ni VAR sin que nadie pida replay, da asco, miserable.',
 
-  'La tienda cierra el trato. %N abre el inventario con algo dentro, joder y el ranking no pide permiso, qué vergüenza.',
+  'La tienda cierra el trato. %N abre el inventario con algo dentro, joder. y el ranking no pide permiso, qué vergüenza.',
 
   'Compra cerrada. %N suelta %C y se lleva algo que no va a saber usar y el chat archiva sin debate con testigos obligados en el hilo, patético.',
 
   'Hecho. %N ha soltado %C por algo que en mejores manos sería peligroso. En las suyas, ya veremos con el número en la frente del mensaje, asco, fracasado.',
 
-  'Compra OK. %N deja de ser solo boca y pasa a tener juguete, basura y no hace falta ampliar el parte, qué miseria.',
+  'Compra OK. %N deja de ser solo boca y pasa a tener juguete, basura. y no hace falta ampliar el parte, qué miseria.',
 
-  '%C fuera: item dentro: %N sin excusa. En acta, coño con el cargo en firme sin consuelo de consola. Hostia puta, qué nivel, da grima.',
+  '%C fuera: item dentro: %N sin excusa. En acta, coño con el cargo en firme sin consuelo de consola.',
 
   '%N tiene material: que sepa usarlo. Siguiente, desperdicio sin modo avión ni silencio cómplice con el bot como notario del fallo, fracasado.',
 
@@ -1794,7 +1794,7 @@ const COMPRA_OK = [
 
   '%C menos, inventario más: %N pasó de la queja a la herramienta en el parte que nadie borra con el fallo en 4K de chat, qué cringe.',
 
-  'Compra cerrada: %N tiene el item y el grupo tiene el dato y no hay DLC que lo parchee con el eco todavía en el grupo, da, asco, miserable.',
+  'Compra cerrada: %N tiene el item y el grupo tiene el dato y no hay DLC que lo parchee con el eco todavía en el grupo, da asco, miserable.',
 
   '%N tiene con qué liarla: o con qué fallar con estilo. Y el grupo tomó nota, desperdicio con el saldo a la intemperie, qué vergüenza.',
 
@@ -1833,7 +1833,7 @@ const COMPRA_OK = [
 const COMPRA_POBRE = [
   '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, joder Ticket rechazado número 1, patético.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón Ticket rechazado número 2. Hostia puta, qué nivel, miserable.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón Ticket rechazado número 2.',
 
   '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas Ticket rechazado número 3, qué cringe.',
 
@@ -1957,7 +1957,7 @@ const COMPRA_POBRE = [
 
   '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas Ticket rechazado número 63 Marca 62, qué cringe.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda Ticket rechazado número 64 Marca 63, da, asco, qué nivel de pena.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda Ticket rechazado número 64 Marca 63, da asco, qué nivel de pena.',
 
   '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño Ticket rechazado número 65 Marca 64, qué vergüenza.',
 
@@ -1997,7 +1997,7 @@ const COMPRA_POBRE = [
 
   '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas Ticket rechazado número 83 Marca 82, qué cringe.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda Ticket rechazado número 84 Marca 83, da, asco, qué nivel de pena.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda Ticket rechazado número 84 Marca 83, da asco, qué nivel de pena.',
 
   '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño Ticket rechazado número 85 Marca 84, qué vergüenza.',
 
@@ -2023,7 +2023,7 @@ const COMPRA_POBRE = [
 
   '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco Ticket rechazado número 96 Marca 95, qué cringe.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, patético Ticket rechazado número 97 Marca 96, da, asco, da vergüenza.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, patético Ticket rechazado número 97 Marca 96, da asco, da vergüenza.',
 
   '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura Ticket rechazado número 98 Marca 97, qué vergüenza.',
 
@@ -2044,25 +2044,25 @@ const ESCUDO_SALVA = [
 
   'El escudo de %V trabaja: %A hace el, ridículo. El historial no miente, fracasado sin consuelo de manual barato, qué vergüenza.',
 
-  '%V pagó por blindarse y %A acaba de validar la inversión. Menudo ridículo, cabrón y el ranking lo deja claro, ridículo.',
+  '%V pagó por blindarse y %A acaba de validar la inversión. Menudo ridículo, cabrón. y el ranking lo deja claro, ridículo.',
 
-  'El escudo de %V trabaja: %A hace el, ridículo. Sin derecho a reclamación, patético y el ranking lo deja claro, fracasado.',
+  'El escudo de %V trabaja: %A hace el, ridículo. Sin derecho a reclamación, patético. y el ranking lo deja claro, fracasado.',
 
-  '%A ataca: %V ni se inmuta. Documentado, gilipollas y no hace falta ampliar el parte y el contador insiste, qué miseria.',
+  '%A ataca: %V ni se inmuta. Documentado, gilipollas. y no hace falta ampliar el parte y el contador insiste, qué miseria.',
 
-  'El escudo de %V hace su trabajo: %A hace el, ridículo. Sin anestesia Cabrón y el ranking lo deja claro, da grima.',
+  'El escudo de %V hace su trabajo: %A hace el, ridículo. Sin anestesia Cabrón. y el ranking lo deja claro, da grima.',
 
-  'El golpe de %A se convierte en eco contra la defensa de %V, ridículo y el veredicto no se negocia con el saldo a la intemperie, qué nivel de pena.',
+  'El golpe de %A se convierte en eco contra la defensa de %V, ridículo. y el veredicto no se negocia con el saldo a la intemperie, qué nivel de pena.',
 
   '%V tenía escudo y %A no tenía plan B. Resultado previsible, basura sin barniz de relato heroico sin segunda oportunidad hoy, basura.',
 
-  '%A iba a por el aura de %V y encontró metal. Rebotó entero, coño y el grupo ya pasó de página y el chat archiva sin debate, qué cutre.',
+  '%A iba a por el aura de %V y encontró metal. Rebotó entero, coño. y el grupo ya pasó de página y el chat archiva sin debate, qué cutre.',
 
-  '%A se estampa en el escudo de %V. En acta, coño y el sistema cierra sin discusión con la cara del resultado a la vista, da pena ajena.',
+  '%A se estampa en el escudo de %V. En acta, coño. y el sistema cierra sin discusión con la cara del resultado a la vista, da pena ajena.',
 
   '%A se estampa en el escudo de %V. Caso cerrado, patético en el momento que más dolía soltarlo sin derecho a matiz útil, qué vacío.',
 
-  '%A recoge los dientes del aura tras el escudo. Sin derecho a reclamación, fracasado y el sistema cierra sin discusión, indignante.',
+  '%A recoge los dientes del aura tras el escudo. Sin derecho a reclamación, fracasado. y el sistema cierra sin discusión, indignante.',
 
   '%A se estampa en el escudo de %V. Delante de todos, hostia y el contador insiste en el momento que más dolía soltarlo, patético.',
 
@@ -2096,7 +2096,7 @@ const ESCUDO_SALVA = [
 
   'El escudo de %V trabaja: %A hace el, ridículo. Y el grupo tomó nota, desperdicio delante del ranking y de la cara, basura.',
 
-  'Robo interrumpido por plástico caro. %V sonríe, %A no, asco y el contador insiste y el ranking no pide permiso, qué cutre.',
+  'Robo interrumpido por plástico caro. %V sonríe, %A no, asco. y el contador insiste y el ranking no pide permiso, qué cutre.',
 
   '%A pone la mano. El escudo de %V la devuelve con intereses de vergüenza, pringado y el grupo ya pasó de página, da pena ajena.',
 
@@ -2104,75 +2104,75 @@ const ESCUDO_SALVA = [
 
   '%V bloquea: %A aprende el precio del item. Sin derecho a reclamación, fracasado delante de todo el que miraba, indignante.',
 
-  '%A ataca: %V ni se inmuta. En acta, coño y el sistema no regala puntos con el eco del almost todavía sonando, qué vergüenza ajena.',
+  '%A ataca: %V ni se inmuta. En acta, coño. y el sistema no regala puntos con el eco del almost todavía sonando, qué vergüenza ajena.',
 
   '%A se estampa en el escudo de %V. Sin matiz, asco delante del hueco que quedó y el grupo ya pasó de página, da vergüenza.',
 
   '%A pone la mano: el escudo de %V la devuelve. El ranking lo registra, fracasado sin consuelo de consola, qué flojo.',
 
-  '%A ataca: %V ni se inmuta. Caso cerrado, patético y el historial no olvida y el ranking no pide permiso, menudo desastre.',
+  '%A ataca: %V ni se inmuta. Caso cerrado, patético. y el historial no olvida y el ranking no pide permiso, menudo desastre.',
 
   'Choque contra escudo. %A recoje los dientes del aura, patético en el momento que más dolía soltarlo, qué pena.',
 
-  'El escudo de %V le ha devuelto el golpe a %A con intereses de puto usurero, mierda. Hostia puta, qué nivel, patético.',
+  'El escudo de %V le ha devuelto el golpe a %A con intereses de puto usurero, mierda.',
 
-  '%A atacó y el escudo de %V le pasó factura. Bienvenido al fail, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, miserable.',
+  '%A atacó y el escudo de %V le pasó factura. Bienvenido al fail, cabrón.',
 
-  '%V ni se movió: el escudo hizo el trabajo y %A pagó el peaje, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cringe.',
+  '%V ni se movió: el escudo hizo el trabajo y %A pagó el peaje, coño.cringe.',
 
-  'Robo abortado: el escudo de %V convirtió a %A en el gag del hilo, gilipollas. Hostia puta, qué nivel, da asco.',
+  'Robo abortado: el escudo de %V convirtió a %A en el gag del hilo, gilipollas.',
 
-  '%A vs el escudo de %V terminó 0-1 sin que %V sudara una gota, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza.',
+  '%A vs el escudo de %V terminó 0-1 sin que %V sudara una gota, patético.vergüenza.',
 
-  'El escudo de %V le ha dejado a %A con las manos vacías y la cara de pringado, asco. Hostia puta, qué nivel, ridículo.',
+  'El escudo de %V le ha dejado a %A con las manos vacías y la cara de pringado, asco.',
 
-  '%A pensó que %V era presa fácil. El escudo pensó otra cosa, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
+  '%A pensó que %V era presa fácil. El escudo pensó otra cosa, basura.',
 
-  'Contraataque del escudo: %A pierde aura y %V sonríe en silencio, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué miseria.',
+  'Contraataque del escudo: %A pierde aura y %V sonríe en silencio, ridículo.miseria.',
 
-  '%A se estrelló contra el escudo de %V. y el chat se cagó de risa, fracasado. Hostia puta, qué nivel, da grima.',
+  '%A se estrelló contra el escudo de %V. y el chat se cagó de risa, fracasado.',
 
-  'El escudo de %V no perdona. %A firmó el almost con sangre del ranking, joder. Hostia puta, qué nivel, qué nivel de pena.',
+  'El escudo de %V no perdona. %A firmó el almost con sangre del ranking, joder.',
 
-  '%A puso el golpe y el escudo de %V lo devolvió con recargo, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, basura.',
+  '%A puso el golpe y el escudo de %V lo devolvió con recargo, mierda.',
 
-  'Escudo 1, %A 0. El marcador no admite debate, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cutre.',
+  'Escudo 1, %A 0. El marcador no admite debate, cabrón.cutre.',
 
-  '%V tenía el escudo listo y %A tenía la cara de no haberlo visto venir, coño. Hostia puta, qué nivel, da pena ajena.',
+  '%V tenía el escudo listo y %A tenía la cara de no haberlo visto venir, coño.',
 
-  '%A intentó vaciar a %V y terminó vaciándose él. Servicio completo de, gilipollas. Hostia puta, qué nivel, qué vacío.',
+  '%A intentó vaciar a %V y terminó vaciándose él. Servicio completo de, gilipollas.',
 
-  'El escudo de %V hizo de %A un ejemplo de por qué no se ataca a ciegas, patético. Hostia puta, qué nivel, indignante.',
+  'El escudo de %V hizo de %A un ejemplo de por qué no se ataca a ciegas, patético.',
 
-  '%A vs %V: gana el escudo, pierde el pringado del ranking, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza ajena.',
+  '%A vs %V: gana el escudo, pierde el pringado del ranking, asco.vergüenza ajena.',
 
-  '%A salió a cazar y volvió con el peaje del escudo cobrado, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da vergüenza.',
+  '%A salió a cazar y volvió con el peaje del escudo cobrado, basura.vergüenza.',
 
-  'El golpe de %A rebotó en el escudo de %V y le explotó en la cara, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué flojo.',
+  'El golpe de %A rebotó en el escudo de %V y le explotó en la cara, ridículo.flojo.',
 
-  '%A sin botín y con menos aura. El escudo de %V no es decoración, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, menudo desastre.',
+  '%A sin botín y con menos aura. El escudo de %V no es decoración, fracasado.desastre.',
 
-  '%V activó el escudo y %A descubrió que el ranking no perdona a los torpes, joder. Hostia puta, qué nivel, qué pena.',
+  '%V activó el escudo y %A descubrió que el ranking no perdona a los torpes, joder.',
 
-  '%A se creía listo. El escudo de %V le recordó que no, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, patético.',
+  '%A se creía listo. El escudo de %V le recordó que no, mierda.',
 
-  'Robo fallido con factura: el escudo de %V cobró y %A firmó, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, miserable.',
+  'Robo fallido con factura: el escudo de %V cobró y %A firmó, cabrón.',
 
-  '%A extendió la mano y el escudo de %V se la devolvió vacía y dolida, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cringe.',
+  '%A extendió la mano y el escudo de %V se la devolvió vacía y dolida, coño.cringe.',
 
-  'El escudo de %V convirtió el atraco de %A en sketch de fail, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da, asco, da asco.',
+  'El escudo de %V convirtió el atraco de %A en sketch de fail, gilipollas., asco, da asco.',
 
-  '%A pagó el curso de no atacar a quien tiene escudo. Caro, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza.',
+  '%A pagó el curso de no atacar a quien tiene escudo. Caro, patético.vergüenza.',
 
-  '%V intacto. %A más pobre. El escudo hizo su puto trabajo, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, ridículo.',
+  '%V intacto. %A más pobre. El escudo hizo su puto trabajo, asco.',
 
-  '%A vs el escudo: walkover a favor de quien no necesitaba ni moverse, basura. Hostia puta, qué nivel, fracasado.',
+  '%A vs el escudo: walkover a favor de quien no necesitaba ni moverse, basura.',
 
-  'El escudo de %V le puso a %A en su sitio: abajo del ranking, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué miseria.',
+  'El escudo de %V le puso a %A en su sitio: abajo del ranking, ridículo.miseria.',
 
-  '%A intentó el atraco del día y firmó el fail del escudo, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da grima.',
+  '%A intentó el atraco del día y firmó el fail del escudo, fracasado.grima.',
 
-  'El muro se llama escudo y tiene el nombre de %V. %A de cara contra él, mierda y el contador insiste, qué nivel de pena.',
+  'El muro se llama escudo y tiene el nombre de %V. %A de cara contra él, mierda. y el contador insiste, qué nivel de pena.',
 
   '%A 0 — escudo de %V 1. Caso cerrado, patético con el dígito firmando solo sin apelación posible hoy, basura.',
 
@@ -2180,13 +2180,13 @@ const ESCUDO_SALVA = [
 
   'Escudo activo. %V ni se ha enterado de que %A lo ha intentado, que es lo más humillante de todo sin anestesia de verdad esta vez, da pena ajena.',
 
-  '%A 0 — escudo de %V 1. Que conste, pringado sin que nadie pida replay con el fail todavía caliente. Hostia puta, qué nivel, qué vacío.',
+  '%A 0 — escudo de %V 1. Que conste, pringado sin que nadie pida replay con el fail todavía caliente.',
 
-  '%A 0 — escudo de %V 1. En acta, coño delante de todo el que miraba y el sistema no regala puntos. Hostia puta, qué nivel, indignante.',
+  '%A 0 — escudo de %V 1. En acta, coño delante de todo el que miraba y el sistema no regala puntos.',
 
   '%V tenía escudo y %A no tenía plan B: resultado previsible con el botín o el fail a la vista y el sistema cierra sin discusión, patético.',
 
-  '%A 0 — escudo de %V 1. Sin matiz, asco con el número hablando solo con el saldo a la intemperie. Hostia puta, qué nivel, da vergüenza.',
+  '%A 0 — escudo de %V 1. Sin matiz, asco con el número hablando solo con el saldo a la intemperie.',
 
   'Intento inútil: %V pagó por no tener que aguantar a gente como %A con el eco todavía en el grupo con el número hablando solo, basura.',
 
@@ -2200,7 +2200,7 @@ const ESCUDO_SALVA = [
 
   'Escudo de %V absorbe el intento de %A: intento archivado con el bot como notario del fallo y el resto es ruido de fondo, qué cringe.',
 
-  'Choque contra escudo: %A recoge los dientes del aura sin anestesia de verdad esta vez delante de quien no quería verlo, da, asco, da asco.',
+  'Choque contra escudo: %A recoge los dientes del aura sin anestesia de verdad esta vez delante de quien no quería verlo, da asco, da asco.',
 
   'La defensa de %V convierte el ataque de %A en anécdota sin recurso ni nota al pie en el momento que más dolía soltarlo, qué vergüenza.',
 
@@ -2226,7 +2226,7 @@ const ESCUDO_SALVA = [
 
   '%V ni se enteró del golpe: el escudo sí, y lo devolvió sin segunda oportunidad hoy en la foto fija del ranking, patético.',
 
-  '%A se estampa en el escudo de %V. Sin recurso, mierda y el ranking lo deja claro. Hostia puta, qué nivel, da vergüenza.',
+  '%A se estampa en el escudo de %V. Sin recurso, mierda. y el ranking lo deja claro.',
 
   '%V tenía escudo. %A se estrelló contra él como un mosquito contra un parabrisas en el recuento que no perdona, basura.',
 
@@ -2241,7 +2241,7 @@ const CEBO_PICA = [
 
   '%A firma de inocente: señuelo de %V. Documentado, gilipollas en alta resolución de group chat con el dígito como única defensa, miserable.',
 
-  '%V brillaba como un diamante y por dentro era cristal. %A se lo tragó entero, el muy gilipollas y el chat archiva sin debate, qué cringe.',
+  '%V brillaba como un diamante y por dentro era cristal. %A se lo tragó entero, el muy gilipollas. y el chat archiva sin debate, qué cringe.',
 
   '%A vio aura fácil: era trampa de %V. Documentado, gilipollas delante de quien no quería verlo sin segunda oportunidad hoy, da asco.',
 
@@ -2249,9 +2249,9 @@ const CEBO_PICA = [
 
   '%A muerde: %V tira del sedal. Documentado, gilipollas con el dígito firmando solo con el bot como notario del fallo, ridículo.',
 
-  '%A picó entero: el grupo no se sorprendió. Sin derecho a reclamación, gilipollas y el sistema no regala puntos, fracasado.',
+  '%A picó entero: el grupo no se sorprendió. Sin derecho a reclamación, gilipollas. y el sistema no regala puntos, fracasado.',
 
-  '%A entró al teatro de %V con el aura por delante. Y el grupo tomó nota, gilipollas y el ranking lo deja claro, qué miseria.',
+  '%A entró al teatro de %V con el aura por delante. Y el grupo tomó nota, gilipollas. y el ranking lo deja claro, qué miseria.',
 
   '%A ha picado como un pardillo: %V iba de millonario y no tiene ni para pipas. Menudo ridículo, da grima.',
 
@@ -2265,7 +2265,7 @@ const CEBO_PICA = [
 
   '%A vio aura fácil: era trampa de %V. Delante de todos, hostia con el grupo de testigo silencioso delante de todo el que miraba, qué vacío.',
 
-  '%A ataca el disfraz de rico y se lleva la lección barata, basura y no hay DLC que lo parchee con la firma legible del comando, indignante.',
+  '%A ataca el disfraz de rico y se lleva la lección barata, basura. y no hay DLC que lo parchee con la firma legible del comando, indignante.',
 
   '%A vio aura fácil: era trampa de %V. En acta, coño en el único idioma que entiende el contador delante de todo el que miraba, qué vergüenza ajena.',
 
@@ -2293,13 +2293,13 @@ const CEBO_PICA = [
 
   '%A vio aura fácil: era trampa de %V. Que conste, pringado delante de todo el que miraba en el idioma seco del ranking, qué miseria.',
 
-  '%A firma de inocente: señuelo de %V. En acta, coño y el hilo sigue sin ti en el centro sin consuelo de consola, da grima.',
+  '%A firma de inocente: señuelo de %V. En acta, coño. y el hilo sigue sin ti en el centro sin consuelo de consola, da grima.',
 
   '%A muerde: %V tira del sedal. El ranking anota, ridículo sin recurso ni nota al pie y el ranking lo deja claro, qué nivel de pena.',
 
   '%A mordió el anzuelo de %V. Todo ese cálculo para robarle a un impostor, joder sin barniz de relato heroico, basura.',
 
-  'Señuelo de %V funciona: %A firma de inocente. Sin derecho a reclamación, patético y el ranking lo deja claro, qué cutre.',
+  'Señuelo de %V funciona: %A firma de inocente. Sin derecho a reclamación, patético. y el ranking lo deja claro, qué cutre.',
 
   '%A traga el cebo: %V cobra. Sin matiz, asco en el recuento que no perdona con el bot como notario del fallo, da pena ajena.',
 
@@ -2307,7 +2307,7 @@ const CEBO_PICA = [
 
   '%A picó con todas las letras. El grupo tampoco se sorprendió, fracasado con el bot como notario del fallo, indignante.',
 
-  'Señuelo de %V funciona: %A firma de inocente. El historial no miente, fracasado y el ranking lo deja claro, qué vergüenza ajena.',
+  'Señuelo de %V funciona: %A firma de inocente. El historial no miente, fracasado. y el ranking lo deja claro, qué vergüenza ajena.',
 
   '%A traga el cebo: %V cobra. Sin filtro, fracasado delante de quien no quería verlo sin cuento que lo tape, da vergüenza.',
 
@@ -2315,77 +2315,77 @@ const CEBO_PICA = [
 
   '%A muerde: %V tira del sedal. Sin recurso, mierda sin cuento que lo tape con el eco todavía en el grupo, menudo desastre.',
 
-  '%A muerde: %V tira del sedal. Sin matiz, asco y el chat archiva sin debate y el ranking no pide permiso, qué pena.',
+  '%A muerde: %V tira del sedal. Sin matiz, asco. y el chat archiva sin debate y el ranking no pide permiso, qué pena.',
 
-  '%A ha picado como un puto pardillo: %V iba de millonario y no tiene ni para el café, joder. Hostia puta, qué nivel, patético.',
+  '%A ha picado como un puto pardillo: %V iba de millonario y no tiene ni para el café, joder.',
 
-  'El cebo de %V funcionó. %A mordió y el ranking se cagó de risa, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, miserable.',
+  'El cebo de %V funcionó. %A mordió y el ranking se cagó de risa, mierda.',
 
-  '%A pensó que %V era botín fácil. Resultó ser el anzuelo, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cringe.',
+  '%A pensó que %V era botín fácil. Resultó ser el anzuelo, cabrón.cringe.',
 
-  '%V montó el cebo y %A picó con la cara de quien no lee el ranking, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da, asco, patético.',
+  '%V montó el cebo y %A picó con la cara de quien no lee el ranking, coño., asco, patético.',
 
-  'Cebo 1, %A 0. El pringado del día tiene nombre, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza.',
+  'Cebo 1, %A 0. El pringado del día tiene nombre, gilipollas.vergüenza.',
 
-  '%A se lanzó al aura de %V y descubrió que era humo con precio, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, ridículo.',
+  '%A se lanzó al aura de %V y descubrió que era humo con precio, patético.',
 
-  'El cebo de %V le sacó el aura a %A sin sudar. Clásico de puta madre, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
+  'El cebo de %V le sacó el aura a %A sin sudar. Clásico de puta madre, asco.',
 
-  '%A vs el cebo: gana quien montó la trampa, pierde quien picó, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué miseria.',
+  '%A vs el cebo: gana quien montó la trampa, pierde quien picó, basura.miseria.',
 
-  '%A mordió el anzuelo de %V. y el chat archivó el fail, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da grima.',
+  '%A mordió el anzuelo de %V. y el chat archivó el fail, ridículo.grima.',
 
-  'Cebo activado. %A pagó la lección de no fiarse de la cuenta ajena, fracasado. Hostia puta, qué nivel, qué nivel de pena.',
+  'Cebo activado. %A pagó la lección de no fiarse de la cuenta ajena, fracasado.',
 
-  '%V aparentaba billetes. %A aparentaba inteligencia. Solo uno falló, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, basura.',
+  '%V aparentaba billetes. %A aparentaba inteligencia. Solo uno falló, joder.',
 
-  '%A picó el cebo de %V como quien no ha visto un tutorial de estafa, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cutre.',
+  '%A picó el cebo de %V como quien no ha visto un tutorial de estafa, mierda.cutre.',
 
-  'El ranking de %A bajó. El de %V subió. El cebo hizo su trabajo, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da pena ajena.',
+  'El ranking de %A bajó. El de %V subió. El cebo hizo su trabajo, cabrón.pena ajena.',
 
-  '%A se creía cazador y resultó presa del cebo de %V, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vacío.',
+  '%A se creía cazador y resultó presa del cebo de %V, coño.vacío.',
 
-  'Cebo de %V: limpio, visible y con %A de protagonista del fail, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, indignante.',
+  'Cebo de %V: limpio, visible y con %A de protagonista del fail, gilipollas.',
 
-  '%A extendió la mano al botín falso y %V le cobró el peaje real, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza ajena.',
+  '%A extendió la mano al botín falso y %V le cobró el peaje real, patético.vergüenza ajena.',
 
-  'El cebo no perdona a los ansiosos. %A acaba de comprobarlo, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da vergüenza.',
+  'El cebo no perdona a los ansiosos. %A acaba de comprobarlo, asco.vergüenza.',
 
-  '%A vs %V: crónica de un pardillo y un anzuelo bien puesto, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué flojo.',
+  '%A vs %V: crónica de un pardillo y un anzuelo bien puesto, basura.flojo.',
 
-  '%A picó y el grupo no necesitó narrador. Se vio solo, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, menudo desastre.',
+  '%A picó y el grupo no necesitó narrador. Se vio solo, ridículo.desastre.',
 
-  'Cebo exitoso: %V cobra, %A aprende, el chat se divierte, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué pena.',
+  'Cebo exitoso: %V cobra, %A aprende, el chat se divierte, fracasado.pena.',
 
-  '%A tenía hambre de aura fácil. %V tenía cebo. Gana el cebo, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, patético.',
+  '%A tenía hambre de aura fácil. %V tenía cebo. Gana el cebo, joder.',
 
-  '%A mordió y se le vio el forro del bolsillo. Qué asco de atraco, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, miserable.',
+  '%A mordió y se le vio el forro del bolsillo. Qué asco de atraco, mierda.',
 
-  'El cebo de %V convirtió a %A en el gag del comando, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cringe.',
+  'El cebo de %V convirtió a %A en el gag del comando, cabrón.cringe.',
 
-  '%A pensó millonario y encontró trampa. Matemáticas del ranking, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da, asco, patético.',
+  '%A pensó millonario y encontró trampa. Matemáticas del ranking, coño., asco, patético.',
 
-  'Cebo 1. %A 0. Sin debate posible en el hilo, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza.',
+  'Cebo 1. %A 0. Sin debate posible en el hilo, gilipollas.vergüenza.',
 
-  '%A se lanzó de cabeza y el cebo de %V le abrió el cráneo del ranking, patético. Hostia puta, qué nivel, ridículo.',
+  '%A se lanzó de cabeza y el cebo de %V le abrió el cráneo del ranking, patético.',
 
-  '%V ni se movió. El cebo hizo el trabajo y %A pagó, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
+  '%V ni se movió. El cebo hizo el trabajo y %A pagó, asco.',
 
-  '%A vs el anzuelo: walkover a favor de quien montó la trampa, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué miseria.',
+  '%A vs el anzuelo: walkover a favor de quien montó la trampa, basura.miseria.',
 
-  'El cebo de %V le dejó a %A con menos aura y más vergüenza, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da grima.',
+  'El cebo de %V le dejó a %A con menos aura y más vergüenza, ridículo.grima.',
 
-  '%A picó como un puto novato del tutorial. El ranking lo documenta, fracasado. Hostia puta, qué nivel, qué nivel de pena.',
+  '%A picó como un puto novato del tutorial. El ranking lo documenta, fracasado.',
 
   'Pica el pez. %A es el pez. %V el que eligió el cebo, patético delante del público que no pidió entrada, basura.',
 
   '%A descubrió tarde que el millonario era cartonaje. %V ya cobró, mierda con el chat enterado del cargo, qué cutre.',
 
-  '%A muerde: %V tira del sedal. Caso cerrado, patético y el contador insiste y el ranking lo deja claro, da pena ajena.',
+  '%A muerde: %V tira del sedal. Caso cerrado, patético. y el contador insiste y el ranking lo deja claro, da pena ajena.',
 
   'El señuelo de %V funciona. %A firma el parte de inocente, cabrón en el segundo más incómodo del chat, qué vacío.',
 
-  '%A firma de inocente: señuelo de %V. El ranking anota, ridículo y el hilo sigue sin ti en el centro, indignante.',
+  '%A firma de inocente: señuelo de %V. El ranking anota, ridículo. y el hilo sigue sin ti en el centro, indignante.',
 
   '%A traga el cebo: %V cobra. Y con el dígito firmando solo delante del público que no pidió entrada y el ranking no discute el cargo, patético.',
 
@@ -2403,7 +2403,7 @@ const CEBO_PICA = [
 
   'Pica el pez: %A es el pez: %V el que eligió el cebo con el peaje cobrado al natural con el número en la frente del mensaje, qué cringe.',
 
-  '%A vio aura fácil: era trampa de %V. A la vista, vergüenza sin barniz de relato heroico sin segunda lectura que lo arregle, da, asco, patético.',
+  '%A vio aura fácil: era trampa de %V. A la vista, vergüenza sin barniz de relato heroico sin segunda lectura que lo arregle, da asco, patético.',
 
   'Cebo perfecto: %A perfecta víctima de su propia prisa sin segunda lectura que lo arregle sin suavizar el golpe del número, qué vergüenza.',
 
@@ -2419,7 +2419,7 @@ const CEBO_PICA = [
 
   '%A muerde: %V tira del sedal en la foto fija del ranking sin modo avión ni silencio cómplice con el contador de testigo, qué cringe.',
 
-  'Todo ese cálculo para robarle a un muerto de hambre disfrazado. %A puede irse a llorar con el peaje cobrado al natural, da, asco, qué cutre.',
+  'Todo ese cálculo para robarle a un muerto de hambre disfrazado. %A puede irse a llorar con el peaje cobrado al natural, da asco, qué cutre.',
 
   '%A descubrió tarde que el millonario era cartón: %V ya cobró y el ranking no pide permiso y el ranking no pide permiso, qué vergüenza.',
 
@@ -2443,7 +2443,7 @@ const CEBO_PICA = [
 const CONTRA_GANA = [
   '%A salió más pobre: %V no perdona. Documentado, gilipollas con el peaje cobrado al natural en alta resolución de group chat, patético.',
 
-  '%V contraataca y gana. %A debería haber dejado estar, gilipollas y el archivo queda cerrado y el grupo ya pasó de página, miserable.',
+  '%V contraataca y gana. %A debería haber dejado estar, gilipollas. y el archivo queda cerrado y el grupo ya pasó de página, miserable.',
 
   'Mano de %V: %C cambian de dueño desde %A. Sin derecho a reclamación, gilipollas en el único marcador que importa aquí, qué cringe.',
 
@@ -2453,7 +2453,7 @@ const CONTRA_GANA = [
 
   '%V cobró %C de revancha. Documentado, gilipollas sin maquillaje ni segunda toma en el segundo más incómodo del chat, ridículo.',
 
-  '%A disfrutó del botín treinta segundos. Ahora %V tiene %C y él tiene cara de gilipollas y el ranking lo deja claro, fracasado.',
+  '%A disfrutó del botín treinta segundos. Ahora %V tiene %C y él tiene cara de gilipollas. y el ranking lo deja claro, fracasado.',
 
   '%V saca %C del bolsillo de %A. En acta, coño sin prosa que lo maquille y no hay modo de suavizarlo y el ranking no discute el cargo, qué miseria.',
 
@@ -2463,11 +2463,11 @@ const CONTRA_GANA = [
 
   '%A salió más pobre: %V no perdona. Delante de todos, hostia sin segunda lectura que lo arregle con el botín o el fail a la vista, basura.',
 
-  'La revancha de %V duele en el aura: %C menos para %A, cabrón y no hace falta ampliar el parte con el botín o el fail a la vista, qué cutre.',
+  'La revancha de %V duele en el aura: %C menos para %A, cabrón. y no hace falta ampliar el parte con el botín o el fail a la vista, qué cutre.',
 
   '%V saca %C del bolsillo de %A. Que conste, pringado con el eco del almost todavía sonando en el momento que más dolía soltarlo, da pena ajena.',
 
-  '%A salió más pobre: %V no perdona. Sin filtro, fracasado y el hilo sigue sin ti en el centro y no hace falta ampliar el parte, qué vacío.',
+  '%A salió más pobre: %V no perdona. Sin filtro, fracasado. y el hilo sigue sin ti en el centro y no hace falta ampliar el parte, qué vacío.',
 
   '%A salió más pobre: %V no perdona. Sin matiz, asco delante del listón que no saltaste con testigos obligados en el hilo, indignante.',
 
@@ -2495,21 +2495,21 @@ const CONTRA_GANA = [
 
   'Contraataque con intereses: %C para %A de coste. El ranking lo registra, mierda con el chat enterado del cargo, fracasado.',
 
-  '%A salió más pobre: %V no perdona. Sin recurso, mierda y el grupo ya pasó de página sin recurso ni nota al pie, qué miseria.',
+  '%A salió más pobre: %V no perdona. Sin recurso, mierda. y el grupo ya pasó de página sin recurso ni nota al pie, qué miseria.',
 
-  'Contraataque con intereses: %C para %A de coste. Que conste en el chat, ridículo y el ranking no pide permiso, da grima.',
+  'Contraataque con intereses: %C para %A de coste. Que conste en el chat, ridículo. y el ranking no pide permiso, da grima.',
 
   '%V +%C en el contraataque. Que conste, pringado y el chat archiva sin debate y el sistema cierra sin discusión, qué nivel de pena.',
 
   '%A salió más pobre: %V no perdona. Que conste, pringado y el historial no olvida en el recuento que no perdona, basura.',
 
-  '%V gana el exchange. %A paga el curso de no robarle, mierda y el contador insiste y el ranking lo deja claro, qué cutre.',
+  '%V gana el exchange. %A paga el curso de no robarle, mierda. y el contador insiste y el ranking lo deja claro, qué cutre.',
 
   '%A vino a robar: salió más pobre: %V no perdona. El ranking lo registra, mierda con el fail todavía caliente, da pena ajena.',
 
-  '%A vino a robar: salió más pobre: %V no perdona. Y el grupo tomó nota, fracasado y el ranking lo deja claro, qué vacío.',
+  '%A vino a robar: salió más pobre: %V no perdona. Y el grupo tomó nota, fracasado. y el ranking lo deja claro, qué vacío.',
 
-  '%V saca %C del bolsillo de %A. Sin recurso, mierda y el chat archiva sin debate y el ranking lo deja claro, indignante.',
+  '%V saca %C del bolsillo de %A. Sin recurso, mierda. y el chat archiva sin debate y el ranking lo deja claro, indignante.',
 
   '%V saca %C del bolsillo de %A. Sin filtro, fracasado sin segunda oportunidad hoy sin apelación posible hoy, qué vergüenza ajena.',
 
@@ -2521,73 +2521,73 @@ const CONTRA_GANA = [
 
   '%V +%C en el contraataque. Sin filtro, fracasado delante de quien no quería verlo sin cuento que lo tape, qué pena.',
 
-  '%V le ha metido la mano en el bolsillo a %A y le ha sacado %C. Por listo, joder. Hostia puta, qué nivel, patético.',
+  '%V le ha metido la mano en el bolsillo a %A y le ha sacado %C. Por listo, joder.',
 
-  'Contraataque limpio: %V cobra de %A lo que %A intentó robar y un poco más, mierda. Hostia puta, qué nivel, miserable.',
+  'Contraataque limpio: %V cobra de %A lo que %A intentó robar y un poco más, mierda.',
 
-  '%A atacó y %V respondió con el doble. Bienvenido al peaje, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cringe.',
+  '%A atacó y %V respondió con el doble. Bienvenido al peaje, cabrón.cringe.',
 
-  '%V no solo se defendió: le vació el aura a %A en público, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da, asco, qué vergüenza.',
+  '%V no solo se defendió: le vació el aura a %A en público, coño., asco, qué vergüenza.',
 
-  'Contra 1, %A 0. El ranking firma el transfer a favor de %V, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza.',
+  'Contra 1, %A 0. El ranking firma el transfer a favor de %V, gilipollas.vergüenza.',
 
-  '%A salió a cazar y volvió cazado. %V cuenta el botín, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, ridículo.',
+  '%A salió a cazar y volvió cazado. %V cuenta el botín, patético.',
 
-  'El contraataque de %V dejó a %A con la cara de gilipollas del día, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
+  'El contraataque de %V dejó a %A con la cara de gilipollas del día, asco.',
 
-  '%A vs %V: gana quien no se dejó y encima cobró, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué miseria.',
+  '%A vs %V: gana quien no se dejó y encima cobró, basura.miseria.',
 
-  '%V le dio la vuelta al atraco y %A firmó el fail con intereses, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da grima.',
+  '%V le dio la vuelta al atraco y %A firmó el fail con intereses, ridículo.grima.',
 
-  'Contraataque documentado: %A más pobre, %V más rico, el chat contento, fracasado. Hostia puta, qué nivel, qué nivel de pena.',
+  'Contraataque documentado: %A más pobre, %V más rico, el chat contento, fracasado.',
 
-  '%A puso la mano y %V se la devolvió con el bolsillo de %A dentro, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, basura.',
+  '%A puso la mano y %V se la devolvió con el bolsillo de %A dentro, joder.',
 
-  '%V no perdonó el intento. %A pagó el curso completo, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cutre.',
+  '%V no perdonó el intento. %A pagó el curso completo, mierda.cutre.',
 
-  'El ranking de %A bajó en dirección contraria a la que planeó, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da pena ajena.',
+  'El ranking de %A bajó en dirección contraria a la que planeó, cabrón.pena ajena.',
 
-  '%A intentó el golpe y %V le hizo el combo de defensa y cobro, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vacío.',
+  '%A intentó el golpe y %V le hizo el combo de defensa y cobro, coño.vacío.',
 
-  'Contra limpio de %V: sin drama, con botín y con público, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, indignante.',
+  'Contra limpio de %V: sin drama, con botín y con público, gilipollas.',
 
-  '%A se creía depredador. %V le recordó la cadena alimentaria, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza ajena.',
+  '%A se creía depredador. %V le recordó la cadena alimentaria, patético.vergüenza ajena.',
 
-  '%V cobró el peaje del intento de %A sin pedir la palabra, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da vergüenza.',
+  '%V cobró el peaje del intento de %A sin pedir la palabra, asco.vergüenza.',
 
-  '%A vs el contra: walkover a favor de quien respondió bien, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué flojo.',
+  '%A vs el contra: walkover a favor de quien respondió bien, basura.flojo.',
 
-  'El contraataque de %V convirtió el atraco de %A en donación, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, menudo desastre.',
+  'El contraataque de %V convirtió el atraco de %A en donación, ridículo.desastre.',
 
-  '%A sin el botín soñado y sin el suyo. %V con ambos, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué pena.',
+  '%A sin el botín soñado y sin el suyo. %V con ambos, fracasado.pena.',
 
-  '%V le pasó factura a %A con el aura que %A no pensaba soltar, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, patético.',
+  '%V le pasó factura a %A con el aura que %A no pensaba soltar, joder.',
 
-  '%A atacó mal y %V cobró bien. Aritmética del ranking, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, miserable.',
+  '%A atacó mal y %V cobró bien. Aritmética del ranking, mierda.',
 
-  'Contra 1. Autor %V. Víctima del fail %A. Archivo el chat, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cringe.',
+  'Contra 1. Autor %V. Víctima del fail %A. Archivo el chat, cabrón.cringe.',
 
-  '%A extendió el plan y %V lo usó en su contra con intereses, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da, asco, qué vergüenza.',
+  '%A extendió el plan y %V lo usó en su contra con intereses, coño., asco, qué vergüenza.',
 
-  'El contraataque no fue suerte: fue %V leyendo el atraco de %A, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza.',
+  'El contraataque no fue suerte: fue %V leyendo el atraco de %A, gilipollas.vergüenza.',
 
-  '%A pagó el intento con aura y con cara de pringado, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, ridículo.',
+  '%A pagó el intento con aura y con cara de pringado, patético.',
 
-  '%V intacto y más rico. %A en el parte de bajas del ranking, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
+  '%V intacto y más rico. %A en el parte de bajas del ranking, asco.',
 
-  '%A vs %V terminó con transfer automático a favor de quien se defendió, basura. Hostia puta, qué nivel, qué miseria.',
+  '%A vs %V terminó con transfer automático a favor de quien se defendió, basura.',
 
-  'El golpe de %A rebotó y le explotó en la cuenta, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da grima.',
+  'El golpe de %A rebotó y le explotó en la cuenta, ridículo.grima.',
 
-  '%A firmó el almost y el peaje en el mismo movimiento torpe, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué nivel de pena.',
+  '%A firmó el almost y el peaje en el mismo movimiento torpe, fracasado.nivel de pena.',
 
   'Contraataque limpio. %V recupera y encima cobra %C de propina, mierda sin anestesia de verdad esta vez, basura.',
 
-  '%V +%C en el contraataque. Sin recurso, mierda y el sistema cierra el parte y el ranking lo deja claro, qué cutre.',
+  '%V +%C en el contraataque. Sin recurso, mierda. y el sistema cierra el parte y el ranking lo deja claro, qué cutre.',
 
   '%V +%C en el contraataque. Delante de todos, hostia con el cargo en firme con el resultado ya consumado, da pena ajena.',
 
-  'Contraataque limpio: %V recupera y encima cobra %C de propina, mierda y el hilo no pide amplificación, qué vacío.',
+  'Contraataque limpio: %V recupera y encima cobra %C de propina, mierda. y el hilo no pide amplificación, qué vacío.',
 
   '%A salió más pobre: %V no perdona. En acta, coño sin descuento por empatía sin recurso ni nota al pie, indignante.',
 
@@ -2607,7 +2607,7 @@ const CONTRA_GANA = [
 
   '%A salió más pobre: %V no perdona. A la vista, vergüenza con el eco del almost todavía sonando delante de la evidencia del contador, qué cringe.',
 
-  'Mano de %V en el bolsillo de %A: %C cambian de dueño en el único idioma que entiende el contador y el hilo no pide amplificación, da, asco, qué vergüenza.',
+  'Mano de %V en el bolsillo de %A: %C cambian de dueño en el único idioma que entiende el contador y el hilo no pide amplificación, da asco, qué vergüenza.',
 
   '%V cobró la lección en aura: %C de matrícula para %A con el eco del almost todavía sonando en el segundo más incómodo del chat, qué vergüenza.',
 
@@ -2648,7 +2648,7 @@ const CONTRA_PIERDE = [
 
   '%V suelta otros %C en la revancha. Documentado, gilipollas sin prórroga ni VAR y el sistema marca el punto final, miserable.',
 
-  '%V ha ido a por la revancha y ha soltado otros %C: dos hostias seguidas, joder y no hace falta ampliar el parte, qué cringe.',
+  '%V ha ido a por la revancha y ha soltado otros %C: dos hostias seguidas, joder. y no hace falta ampliar el parte, qué cringe.',
 
   '%V -%C otra vez en el contra. Documentado, gilipollas sin cuento que lo tape y el ranking lo deja claro, da asco.',
 
@@ -2662,11 +2662,11 @@ const CONTRA_PIERDE = [
 
   '%V regala %C de propina al ladrón. El ranking anota, ridículo en el segundo más incómodo del chat con el dígito como única defensa, da grima.',
 
-  '%V intentó devolver el golpe y regaló más aura. %C de regalo, coño y el resto es ruido de fondo con el chat enterado del cargo, qué nivel de pena.',
+  '%V intentó devolver el golpe y regaló más aura. %C de regalo, coño. y el resto es ruido de fondo con el chat enterado del cargo, qué nivel de pena.',
 
-  '%V añade %C al parte de bajas. El orgullo firma el ticket, fracasado y basta el dato del ranking con el eco todavía en el grupo, basura.',
+  '%V añade %C al parte de bajas. El orgullo firma el ticket, fracasado. y basta el dato del ranking con el eco todavía en el grupo, basura.',
 
-  'Contraataque en falso: %V confirma el desastre con %C extra, ridículo y basta el dato del ranking sin consuelo de manual barato, qué cutre.',
+  'Contraataque en falso: %V confirma el desastre con %C extra, ridículo. y basta el dato del ranking sin consuelo de manual barato, qué cutre.',
 
   'Factura de revancha fallida: %C a nombre de %V. Sin derecho a reclamación, fracasado delante del público que no pidió entrada, da pena ajena.',
 
@@ -2686,7 +2686,7 @@ const CONTRA_PIERDE = [
 
   '%V suelta otros %C en la revancha. Sin filtro, fracasado sin letra pequeña que lo salve con el chat enterado del cargo, patético.',
 
-  '%V revancha cara: -%C. En acta, coño y el historial no olvida con el veredicto seco del bot con el contador de testigo, miserable.',
+  '%V revancha cara: -%C. En acta, coño. y el historial no olvida con el veredicto seco del bot con el contador de testigo, miserable.',
 
   '%V doble combo de pérdida. El orgullo no pagó el recibo, asco sin barniz de relato heroico y el ranking lo deja claro, qué cringe.',
 
@@ -2696,7 +2696,7 @@ const CONTRA_PIERDE = [
 
   '%V -%C otra vez en el contra. Que conste, pringado y no hace falta ampliar el parte con el bot como notario del fallo, ridículo.',
 
-  '%V regala %C de propina al ladrón. Sin matiz, asco y el hilo sigue sin ti en el centro con el resultado ya consumado, fracasado.',
+  '%V regala %C de propina al ladrón. Sin matiz, asco. y el hilo sigue sin ti en el centro con el resultado ya consumado, fracasado.',
 
   '%V suelta otros %C en la revancha. Sin recurso, mierda sin maquillaje ni segunda toma sin barniz de relato heroico, qué miseria.',
 
@@ -2716,83 +2716,83 @@ const CONTRA_PIERDE = [
 
   'Contraataque en falso. %V confirma el desastre con %C extra perdidos, basura con el bot como notario del fallo, qué vergüenza ajena.',
 
-  '%V -%C otra vez en el contra. Sin recurso, mierda y el sistema no regala puntos sin letra pequeña que lo salve, da vergüenza.',
+  '%V -%C otra vez en el contra. Sin recurso, mierda. y el sistema no regala puntos sin letra pequeña que lo salve, da vergüenza.',
 
-  '%V regala %C de propina al ladrón. En acta, coño y el chat archiva sin debate sin anestesia de verdad esta vez, qué flojo.',
+  '%V regala %C de propina al ladrón. En acta, coño. y el chat archiva sin debate sin anestesia de verdad esta vez, qué flojo.',
 
-  'Contraataque suicida: %C de coste para %V. Sin derecho a reclamación, fracasado y el grupo ya pasó de página, menudo desastre.',
+  'Contraataque suicida: %C de coste para %V. Sin derecho a reclamación, fracasado. y el grupo ya pasó de página, menudo desastre.',
 
   '%V intentó la revancha y la revancha le dio otra, hostia. %C que suman para %A sin maquillaje ni segunda toma, fracasado.',
 
-  'Contraataque fallido: %V intentó cobrar y terminó pagando otra vez, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, patético.',
+  'Contraataque fallido: %V intentó cobrar y terminó pagando otra vez, mierda.',
 
-  '%V se lanzó a la revancha y %A le vació el bolsillo de nuevo, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, miserable.',
+  '%V se lanzó a la revancha y %A le vació el bolsillo de nuevo, cabrón.',
 
-  '%V vs la revancha: gana el que ya había ganado, pierde el que no aprendió, coño. Hostia puta, qué nivel, qué cringe.',
+  '%V vs la revancha: gana el que ya había ganado, pierde el que no aprendió, coño.',
 
-  'Segunda ronda, mismo resultado. %V más pobre, %A más contento, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da, asco, qué vergüenza ajena.',
+  'Segunda ronda, mismo resultado. %V más pobre, %A más contento, gilipollas., asco, qué vergüenza ajena.',
 
-  '%V quiso el peaje de vuelta y pagó el peaje del peaje, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza.',
+  '%V quiso el peaje de vuelta y pagó el peaje del peaje, patético.vergüenza.',
 
-  'Contra fallido: %V firmó el double fail, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, ridículo.',
+  'Contra fallido: %V firmó el double fail, asco.',
 
-  '%V se creía con derecho a revancha. El ranking pensó otra cosa, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
+  '%V se creía con derecho a revancha. El ranking pensó otra cosa, basura.',
 
-  '%A se llevó el segundo botín de %V sin pedir la palabra, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué miseria.',
+  '%A se llevó el segundo botín de %V sin pedir la palabra, ridículo.miseria.',
 
-  'Revancha 0. %V 0. El chat archiva el segundo fail, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da grima.',
+  'Revancha 0. %V 0. El chat archiva el segundo fail, fracasado.grima.',
 
-  '%V intentó el contra y el contra le hizo el vacío, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué nivel de pena.',
+  '%V intentó el contra y el contra le hizo el vacío, joder.nivel de pena.',
 
-  '%V vs %A ronda 2: mismo guion, mismo resultado, más vergüenza, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, basura.',
+  '%V vs %A ronda 2: mismo guion, mismo resultado, más vergüenza, mierda.',
 
-  'El ranking de %V bajó otra vez. La lección no entró a la primera, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cutre.',
+  'El ranking de %V bajó otra vez. La lección no entró a la primera, cabrón.cutre.',
 
-  '%V puso la mano de revancha y %A se la devolvió vacía otra vez, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da pena ajena.',
+  '%V puso la mano de revancha y %A se la devolvió vacía otra vez, coño.pena ajena.',
 
-  'Contra fallido documentado: autor %V, beneficiario %A, testigo el grupo, gilipollas. Hostia puta, qué nivel, qué vacío.',
+  'Contra fallido documentado: autor %V, beneficiario %A, testigo el grupo, gilipollas.',
 
-  '%V no aprendió del primer golpe. El segundo se lo cobró igual, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, indignante.',
+  '%V no aprendió del primer golpe. El segundo se lo cobró igual, patético.',
 
-  '%A cobró dos veces. %V pagó dos veces. Matemáticas crueles, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza ajena.',
+  '%A cobró dos veces. %V pagó dos veces. Matemáticas crueles, asco.vergüenza ajena.',
 
-  '%V vs el orgullo: gana el orgullo en la cabeza, pierde el aura en el ranking, basura. Hostia puta, qué nivel, da vergüenza.',
+  '%V vs el orgullo: gana el orgullo en la cabeza, pierde el aura en el ranking, basura.',
 
-  'Segunda hostia del día para %V. El chat no pide replay porque ya duele, ridículo. Hostia puta, qué nivel, qué flojo.',
+  'Segunda hostia del día para %V. El chat no pide replay porque ya duele, ridículo.',
 
-  '%V firmó el double almost. El ranking no ofrece descuento por volumen, fracasado. Hostia puta, qué nivel, menudo desastre.',
+  '%V firmó el double almost. El ranking no ofrece descuento por volumen, fracasado.',
 
-  '%V salió a por la revancha y volvió con menos que antes, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué pena.',
+  '%V salió a por la revancha y volvió con menos que antes, joder.pena.',
 
-  '%A ni se inmutó. %V se inmutó el saldo a la baja otra vez, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, patético.',
+  '%A ni se inmutó. %V se inmutó el saldo a la baja otra vez, mierda.',
 
-  'Contra 0. Revancha fallida. %V en el parte de bajas por segunda vez, cabrón. Hostia puta, qué nivel, miserable.',
+  'Contra 0. Revancha fallida. %V en el parte de bajas por segunda vez, cabrón.',
 
-  '%V quiso cerrar el ciclo y lo cerró con otro transfer a favor de %A, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cringe.',
+  '%V quiso cerrar el ciclo y lo cerró con otro transfer a favor de %A, coño.cringe.',
 
-  'El orgullo de %V costó aura. Otra vez. El ranking lleva la cuenta, gilipollas. Hostia puta, qué nivel, da, asco, qué vergüenza ajena.',
+  'El orgullo de %V costó aura. Otra vez. El ranking lleva la cuenta, gilipollas., da asco, qué vergüenza ajena.',
 
-  '%V vs la realidad: la realidad cobró dos veces y no pide cita, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza.',
+  '%V vs la realidad: la realidad cobró dos veces y no pide cita, patético.vergüenza.',
 
-  '%A se llevó el segundo botín sin sudar. %V sudó la explicación, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, ridículo.',
+  '%A se llevó el segundo botín sin sudar. %V sudó la explicación, asco.',
 
-  'Revancha fallida: %V más pobre y el chat más entretenido, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
+  'Revancha fallida: %V más pobre y el chat más entretenido, basura.',
 
-  '%V intentó el combo de orgullo y le salió el combo de fail, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué miseria.',
+  '%V intentó el combo de orgullo y le salió el combo de fail, ridículo.miseria.',
 
-  '%V firmó el segundo peaje del día. El primero no bastó de lección, fracasado. Hostia puta, qué nivel, da grima.',
+  '%V firmó el segundo peaje del día. El primero no bastó de lección, fracasado.',
 
   '%V suelta otros %C en la revancha. Delante de todos, hostia sin cuento que lo tape sin descuento por empatía, fracasado.',
 
-  '%V -%C otra vez en el contra. Caso cerrado, patético y el veredicto no se negocia sin prosa que lo maquille, basura.',
+  '%V -%C otra vez en el contra. Caso cerrado, patético. y el veredicto no se negocia sin prosa que lo maquille, basura.',
 
-  '%V no aprendió: el segundo golpe cuesta %C. Sin derecho a reclamación, fracasado y el ranking lo deja claro, qué cutre.',
+  '%V no aprendió: el segundo golpe cuesta %C. Sin derecho a reclamación, fracasado. y el ranking lo deja claro, qué cutre.',
 
-  '%V suelta otros %C en la revancha. Sin matiz, asco y el ranking cierra el caso con el dígito firmando solo, da pena ajena.',
+  '%V suelta otros %C en la revancha. Sin matiz, asco. y el ranking cierra el caso con el dígito firmando solo, da pena ajena.',
 
   '%V suelta otros %C en la revancha. El ranking anota, ridículo en el único idioma que entiende el contador, qué vacío.',
 
-  '%V -%C otra vez en el contra. En acta, coño y basta el dato del ranking sin anestesia de verdad esta vez, indignante.',
+  '%V -%C otra vez en el contra. En acta, coño. y basta el dato del ranking sin anestesia de verdad esta vez, indignante.',
 
   '%V regala %C de propina al ladrón. Sin filtro, fracasado sin consuelo de consola con el cargo en firme, qué vergüenza ajena.',
 
@@ -2810,7 +2810,7 @@ const CONTRA_PIERDE = [
 
   '%A le robó y %V le regaló la propina: %C. Aprender duele con la cara del resultado a la vista y el chat archiva sin debate, qué cringe.',
 
-  '%V empeoró el marcador con %C de propina al ladrón delante de la evidencia del contador con el grupo de testigo silencioso, da, asco, qué vergüenza ajena.',
+  '%V empeoró el marcador con %C de propina al ladrón delante de la evidencia del contador con el grupo de testigo silencioso, da asco, qué vergüenza ajena.',
 
   '%V regala %C de propina al ladrón. Y delante de todo el que miraba sin cuento que lo tape y el ranking no discute el cargo, qué vergüenza.',
 
@@ -2875,7 +2875,7 @@ const CONTRA_TARDE = [
 
   'El contraataque caducó. El aura ya no está donde %V la recuerda, mierda con el dígito firmando solo, qué vacío.',
 
-  'Ventana cerrada. %V llega al sitio del robo y solo queda polvo, coño y el sistema no regala puntos sin prórroga ni VAR, indignante.',
+  'Ventana cerrada. %V llega al sitio del robo y solo queda polvo, coño. y el sistema no regala puntos sin prórroga ni VAR, indignante.',
 
   'Tarde. El botín se fue y la revancha se quedó sin objeto, cabrón en alta resolución de group chat sin segunda lectura que lo arregle, qué vergüenza ajena.',
 
@@ -2885,7 +2885,7 @@ const CONTRA_TARDE = [
 
   'Contraataque en diferido: no existe. %V lo acaba de descubrir, basura sin que nadie pida replay en el segundo más incómodo del chat, menudo desastre.',
 
-  'Llegaste tarde a tu propia venganza. El aura tampoco te esperó, ridículo y el ranking lo deja claro, qué pena.',
+  'Llegaste tarde a tu propia venganza. El aura tampoco te esperó, ridículo. y el ranking lo deja claro, qué pena.',
 
   '%V mira el reloj del robo: en rojo. Sin reembolso, desperdicio sin barniz de relato heroico con el eco del almost todavía sonando, patético.',
 
@@ -2893,9 +2893,9 @@ const CONTRA_TARDE = [
 
   '%V contraataca al aire. El aire no devuelve aura, fracasado con el peaje cobrado al natural con el saldo a la intemperie, qué cringe.',
 
-  '%V llega cuando las luces del atraco ya están apagadas, mierda en la foto fija del ranking sin modo avión ni silencio cómplice, da, asco, da vergüenza.',
+  '%V llega cuando las luces del atraco ya están apagadas, mierda en la foto fija del ranking sin modo avión ni silencio cómplice, da asco, da vergüenza.',
 
-  'Tarde, campeón: mientras tú mirabas la pared, tu aura cambiaba de dueño, joder y el chat archiva sin debate, qué vergüenza.',
+  'Tarde, campeón: mientras tú mirabas la pared, tu aura cambiaba de dueño, joder. y el chat archiva sin debate, qué vergüenza.',
 
   'El contraataque caducó: el aura ya no está donde %V la recuerda, mierda sin consuelo de consola y el ranking no pide permiso, ridículo.',
 
@@ -2907,7 +2907,7 @@ const CONTRA_TARDE = [
 
   'Contraataque en diferido no existe: %V lo acaba de descubrir, ridículo sin segunda oportunidad hoy en el recuento que no perdona, qué nivel de pena.',
 
-  'Llegaste tarde a tu propia venganza: el aura tampoco te esperó, basura y el ranking lo deja claro. Hostia puta, qué nivel, basura.',
+  'Llegaste tarde a tu propia venganza: el aura tampoco te esperó, basura. y el ranking lo deja claro.',
 
   '%V mira el reloj del robo en rojo: sin reembolso sin filtro de autoayuda con el peaje cobrado al natural, qué cutre.',
 
@@ -2933,13 +2933,13 @@ const CONTRA_TARDE = [
 
   'Ventana cerrada: %V llega al polvo del robo. Sin derecho a reclamación, desperdicio y el sistema marca el punto final, qué cringe.',
 
-  'Tarde: botín fuera: revancha sin objeto para %V. Y el grupo tomó nota, gilipollas sin bis ni matiz de consuelo, da, asco, da vergüenza.',
+  'Tarde: botín fuera: revancha sin objeto para %V. Y el grupo tomó nota, gilipollas sin bis ni matiz de consuelo, da asco, da vergüenza.',
 
-  'Tarde: botín fuera: revancha sin objeto para %V. Sin derecho a reclamación, patético y el ranking lo deja claro, qué vergüenza.',
+  'Tarde: botín fuera: revancha sin objeto para %V. Sin derecho a reclamación, patético. y el ranking lo deja claro, qué vergüenza.',
 
   'Tarde: botín fuera: revancha sin objeto para %V. Que conste en el chat, ridículo delante del hueco que quedó, ridículo.',
 
-  'Tarde: botín fuera: revancha sin objeto para %V. El historial no miente, basura y el ranking lo deja claro, fracasado.',
+  'Tarde: botín fuera: revancha sin objeto para %V. El historial no miente, basura. y el ranking lo deja claro, fracasado.',
 
   '%V despierta cuando el chat archivó el robo. El historial no miente, gilipollas delante de quien aún leía el hilo, qué miseria.',
 
@@ -2947,13 +2947,13 @@ const CONTRA_TARDE = [
 
   '%V fuera de plazo: el tiempo no perdona el aura. Y el grupo tomó nota, pringado delante de quien aún leía el hilo, qué nivel de pena.',
 
-  '%V fuera de plazo: el tiempo no perdona el aura. Sin derecho a reclamación, fracasado y basta el dato del ranking, basura.',
+  '%V fuera de plazo: el tiempo no perdona el aura. Sin derecho a reclamación, fracasado. y basta el dato del ranking, basura.',
 
   '%V fuera de plazo: el tiempo no perdona el aura. El historial no miente, mierda delante de todo el que miraba, qué cutre.',
 
   'Contraataque en diferido no existe: %V lo descubre. Y el grupo tomó nota, desperdicio y el sistema marca el punto final, da pena ajena.',
 
-  'Caducidad de revancha: %V leyó mal la etiqueta. Y el grupo tomó nota, fracasado y el ranking lo deja claro, qué vacío.',
+  'Caducidad de revancha: %V leyó mal la etiqueta. Y el grupo tomó nota, fracasado. y el ranking lo deja claro, qué vacío.',
 
   'Caducidad de revancha: %V leyó mal la etiqueta. Sin derecho a reclamación, joder con el bot como notario del fallo, indignante.',
 
@@ -2973,23 +2973,23 @@ const CONTRA_TARDE = [
 
   'Contraataque caducado: %V con pose sin botín. El historial no miente, gilipollas con el chat enterado del cargo, qué cringe.',
 
-  'Contraataque caducado: %V con pose sin botín. El ranking lo registra, desperdicio con la firma legible del comando, da, asco, da vergüenza.',
+  'Contraataque caducado: %V con pose sin botín. El ranking lo registra, desperdicio con la firma legible del comando, da asco, da vergüenza.',
 
   '%V despierta cuando el chat archivó el robo. Que conste en el chat, desperdicio con el fail todavía caliente, qué vergüenza.',
 
   '%V fuera de plazo: el tiempo no perdona el aura. Que conste en el chat, patético con el grupo de testigo silencioso, ridículo.',
 
-  'Caducidad de revancha: %V leyó mal la etiqueta. Que conste en el chat, ridículo y no hace falta ampliar el parte, fracasado.',
+  'Caducidad de revancha: %V leyó mal la etiqueta. Que conste en el chat, ridículo. y no hace falta ampliar el parte, fracasado.',
 
   'El momento era antes: %V hace teatro sin botín. El ranking lo registra, patético sin prórroga ni VAR, qué miseria.',
 
-  'Contraataque caducado: %V con pose sin botín. Sin derecho a reclamación, basura y el sistema no regala puntos, da grima.',
+  'Contraataque caducado: %V con pose sin botín. Sin derecho a reclamación, basura. y el sistema no regala puntos, da grima.',
 
   'Contraataque caducado: %V con pose sin botín. Que conste en el chat, desperdicio con el botín o el fail a la vista, qué nivel de pena.',
 
   '%V despierta cuando el chat archivó el robo. Sin derecho a reclamación, fracasado sin descuento por empatía, basura.',
 
-  'Tarde: el ladrón contó y se fue: %V con la pose. Y el grupo tomó nota, ridículo y el ranking lo deja claro, qué cutre.',
+  'Tarde: el ladrón contó y se fue: %V con la pose. Y el grupo tomó nota, ridículo. y el ranking lo deja claro, qué cutre.',
 
   '%V tarde a su venganza: el aura no esperó. Sin derecho a reclamación, desperdicio con el cargo en firme, da pena ajena.',
 
@@ -3011,13 +3011,13 @@ const CONTRA_TARDE = [
 
   '%V tarde: el aura ya cambió de dueño. Y. y el grupo ya pasó de página con testigos obligados en el hilo, miserable.',
 
-  '%V tarde: el aura ya cambió de dueño. Sin recurso, mierda y el hilo no pide amplificación sin modo avión ni silencio cómplice, qué cringe.',
+  '%V tarde: el aura ya cambió de dueño. Sin recurso, mierda. y el hilo no pide amplificación sin modo avión ni silencio cómplice, qué cringe.',
 
-  '%V tarde: el aura ya cambió de dueño. En acta, coño delante del hueco que quedó y el ranking lo deja claro, da, asco, da vergüenza.',
+  '%V tarde: el aura ya cambió de dueño. En acta, coño delante del hueco que quedó y el ranking lo deja claro, da asco, da vergüenza.',
 
   '%V tarde: el aura ya cambió de dueño. Documentado, gilipollas sin descuento por empatía y el hilo sigue sin ti en el centro, qué vergüenza.',
 
-  '%V tarde: el aura ya cambió de dueño. Caso cerrado, patético y el archivo queda cerrado sin derecho a matiz útil, ridículo.',
+  '%V tarde: el aura ya cambió de dueño. Caso cerrado, patético. y el archivo queda cerrado sin derecho a matiz útil, ridículo.',
 
   '%V tarde: el aura ya cambió de dueño. El ranking anota, ridículo en el momento que más dolía soltarlo, menudo desastre.',
 
@@ -3029,23 +3029,23 @@ const CONTRA_TARDE = [
 
   '%V tarde: el aura ya cambió de dueño. A la vista, vergüenza sin barniz de relato heroico con el veredicto seco del bot, qué cringe.',
 
-  '%V tarde: el aura ya cambió de dueño. Delante de todos, hostia sin consuelo de consola sin filtro de autoayuda, da, asco, qué cutre.',
+  '%V tarde: el aura ya cambió de dueño. Delante de todos, hostia sin consuelo de consola sin filtro de autoayuda, da asco, qué cutre.',
 
-  '%V contraataque caducado. Y sin barniz de relato heroico y el ranking lo deja por escrito. Hostia puta, qué nivel, qué vergüenza.',
+  '%V contraataque caducado. Y sin barniz de relato heroico y el ranking lo deja por escrito.',
 
-  '%V contraataque caducado. Sin recurso, mierda y el resto es ruido de fondo delante del público que no pidió entrada, ridículo.',
+  '%V contraataque caducado. Sin recurso, mierda. y el resto es ruido de fondo delante del público que no pidió entrada, ridículo.',
 
-  '%V contraataque caducado. En acta, coño en el parte que nadie borra con el saldo a la intemperie. Hostia puta, qué nivel, fracasado.',
+  '%V contraataque caducado. En acta, coño en el parte que nadie borra con el saldo a la intemperie.',
 
-  '%V contraataque caducado en el único marcador que importa aquí y el contador insiste. Hostia puta, qué nivel, qué miseria.',
+  '%V contraataque caducado en el único marcador que importa aquí y el contador insiste.',
 
-  '%V contraataque caducado. Documentado, gilipollas y el ranking lo deja claro. Hostia, el desastre se explica solo, da grima.',
+  '%V contraataque caducado. Documentado, gilipollas. y el ranking lo deja claro.grima.',
 
   '%V contraataque caducado. Caso cerrado, patético delante de quien aún leía el hilo con el fallo en 4K de chat, qué nivel de pena.',
 
   '%V contraataque caducado. El ranking anota, ridículo en el segundo más incómodo del chat sin prórroga ni VAR, basura.',
 
-  '%V contraataque caducado y el resto es ruido de fondo delante del marcador en vivo. Hostia puta, qué nivel, qué cutre.',
+  '%V contraataque caducado y el resto es ruido de fondo delante del marcador en vivo.',
 
 ];
 
@@ -3075,7 +3075,7 @@ const DIANA_GOLPE = [
 
   'El top suelta %C. En acta, coño delante de todo el que miraba en el recuento que no perdona y el ranking del top no discute el cargo, qué cutre.',
 
-  'El top suelta %C. Sin filtro, fracasado y el chat archiva sin debate y el ranking no pide permiso y el ranking del top no discute el cargo, da pena ajena.',
+  'El top suelta %C. Sin filtro, fracasado. y el chat archiva sin debate y el ranking no pide permiso y el ranking del top no discute el cargo, da pena ajena.',
 
   'El top se tambalea. %C menos y el trono un poco más frío, coño con el número hablando solo y el ranking lo deja por escrito, qué vacío.',
 
@@ -3123,7 +3123,7 @@ const DIANA_GOLPE = [
 
   'Top tocado. %A se lleva %C del que iba de rey del ranking, patético. El ranking no perdona, patético.',
 
-  'Diana 1. El intocable sangra aura y el chat aplaude, gilipollas el top, asco. El ranking no perdona, asco, da vergüenza.',
+  'Diana 1. El intocable sangra aura y el chat aplaude, gilipollas. el top, asco. El ranking no perdona, asco, da vergüenza.',
 
   '%A vs el número uno: gana el atacante, pierde el que se creía seguro, basura. El ranking no perdona, basura.',
 
@@ -3131,9 +3131,9 @@ const DIANA_GOLPE = [
 
   'Diana documentada. Autor %A, víctima el que iba de intocable, fracasado. El ranking no perdona, fracasado.',
 
-  '%A le vació %C al número uno. El ranking no perdona, ridículo el top, joder. El ranking no perdona, patético.',
+  '%A le vació %C al número uno. El ranking no perdona, ridículo. el top, joder. El ranking no perdona, patético.',
 
-  'Top tocado en público. %A el único que sonríe, fracasado el intocable, mierda. El ranking no perdona, miserable.',
+  'Top tocado en público. %A el único que sonríe, fracasado. el intocable, mierda. El ranking no perdona, miserable.',
 
   '%A cazó la diana. El aura del top viajó de dirección, coño. El ranking no perdona, coño. Qué asco de intento, qué cringe.',
 
@@ -3145,25 +3145,25 @@ const DIANA_GOLPE = [
 
   'El top ya no es sagrado. %A lo demostró con %C, asco. El ranking no perdona, asco. Qué asco de intento, fracasado.',
 
-  '%A golpeó al número uno. El ranking actualiza sin piedad, patético el top, basura. El ranking no perdona, basura.',
+  '%A golpeó al número uno. El ranking actualiza sin piedad, patético. el top, basura. El ranking no perdona, basura.',
 
   'Diana 1-0. Gana %A, pierde el que se creía fuera de alcance, ridículo. El ranking no perdona, ridículo.',
 
   '%A firmó el golpe al intocable, fracasado. El ranking no perdona, fracasado. Qué asco de intento delante del puto ranking, fracasado.',
 
-  'Top sangrando aura. Autor del corte: %A, ridículo el ranking alto, joder. El ranking no perdona, basura.',
+  'Top sangrando aura. Autor del corte: %A, ridículo. el ranking alto, joder. El ranking no perdona, basura.',
 
-  '%A cazó la diana y el chat no pide replay porque se vio claro, fracasado el intocable, mierda. El ranking no perdona, qué cutre.',
+  '%A cazó la diana y el chat no pide replay porque se vio claro, fracasado. el intocable, mierda. El ranking no perdona, qué cutre.',
 
   'Cae el número uno: %C menos. Sin matiz, asco delante del marcador en vivo sin suavizar el golpe del número, da pena ajena.',
 
-  'El top suelta %C. Sin recurso, mierda y el sistema no regala puntos con el número en la frente del mensaje, qué vacío.',
+  'El top suelta %C. Sin recurso, mierda. y el sistema no regala puntos con el número en la frente del mensaje, qué vacío.',
 
   'La cima no era de mármol. Era de aura. Y se acaban de llevar %C, ridículo con el peaje cobrado al natural, indignante.',
 
-  'Diana perfecta: %C menos a quien más tenía. Sin derecho a reclamación, ridículo y el ranking lo deja claro, qué vergüenza ajena.',
+  'Diana perfecta: %C menos a quien más tenía. Sin derecho a reclamación, ridículo. y el ranking lo deja claro, qué vergüenza ajena.',
 
-  'Diana en la cima: %C de aura. En acta, coño y el chat archiva sin debate sin anestesia de verdad esta vez, da vergüenza.',
+  'Diana en la cima: %C de aura. En acta, coño. y el chat archiva sin debate sin anestesia de verdad esta vez, da vergüenza.',
 
   'El top suelta %C. Que conste, pringado en el único marcador que importa aquí y no hay modo de suavizarlo, qué flojo.',
 
@@ -3227,7 +3227,7 @@ const DIANA_GOLPE = [
 
   '%A le ha bajado %C al número uno. El trono del robo tiene un asiento muy resbaladizo y el chat archiva sin debate, basura.',
 
-  'Diana en la cima: %C de aura. El ranking anota, ridículo y el ranking lo deja claro, ridículo. El ranking no perdona, ridículo.',
+  'Diana en la cima: %C de aura. El ranking anota, ridículo. y el ranking lo deja claro, ridículo. El ranking no perdona, ridículo.',
 
   'Diana en la cima: %C de aura. Siguiente, desperdicio sin anestesia de verdad esta vez y basta el dato del ranking, fracasado.',
 

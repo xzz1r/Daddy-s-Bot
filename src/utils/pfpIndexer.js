@@ -116,14 +116,14 @@ function maybeIndex(sock, pfpJid, groupJid) {
 async function sweepAllGroups(sock) {
   const ahora = Date.now();
   if (ultimoBarrido && ahora - ultimoBarrido < BARRIDO_CADA_MS) {
-    logger.info('pfpIndexer: barrido omitido (se hizo hace menos de 6 h)');
+    logger.info('pfpIndexer: barrido omitido (se hizo hace menos de 6 h).');
     return;
   }
   ultimoBarrido = ahora;
 
   let groups;
   try { groups = await sock.groupFetchAllParticipating(); }
-  catch (e) { logger.warn(`pfpIndexer: no pude listar grupos: ${e.message}`); return; }
+  catch (e) { logger.warn(`pfpIndexer: no pude listar grupos: ${e.message}.`); return; }
 
   let enqueued = 0;
   for (const [groupJid, meta] of Object.entries(groups || {})) {

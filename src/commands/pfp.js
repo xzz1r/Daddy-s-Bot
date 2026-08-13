@@ -40,7 +40,7 @@ async function resolveTarget(sock, msg, args) {
   if (!raw) {
     return {
       error:
-        'Uso: menciona o responde a alguien, o pasa un número/enlace.\n\n' +
+        'Uso: menciona o responde a alguien, o pasa un número/enlace.\\n\\n.' +
         'Ejemplos:\n' +
         '`!pfp @usuario`\n' +
         '`!pfp wa.me/34600000000`\n' +
@@ -54,8 +54,8 @@ async function resolveTarget(sock, msg, args) {
   if (/^@?[a-z][a-z0-9._]*$/i.test(raw) && !/\d{7,}/.test(raw)) {
     return {
       error:
-        'Por ahora la búsqueda por @username no está disponible vía API de WhatsApp.\n' +
-        'Usa el número o el enlace wa.me mientras tanto:\n' +
+        'Por ahora la búsqueda por @username no está disponible vía API de WhatsApp.\\n.' +
+        'Usa el número o el enlace wa.me mientras tanto:\\n.' +
         '`!pfp wa.me/34600000000`',
     };
   }

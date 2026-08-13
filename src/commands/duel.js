@@ -51,7 +51,7 @@ let DUEL_WIN = [
   '%W desarmó a %L en el primer intercambio. %L pierde tanto que la derrota ya le llama por su nombre, le abraza y le hace la cena. Puto fracasado de manual, patético.',
   '%W ni se despeinó. %L tenía la excusa lista antes que la estrategia, porque este gilipollas ensaya el fracaso en casa antes de venir a exhibirlo gratis al grupo, miserable.',
   '%W lo tenía leído de memoria. %L es de manual, sí, del manual de cómo ser un puto inútil y perder hasta respirando, edición sobada de tanto releerla él solo, qué cringe.',
-  '%W barre a %L. delante del grupo, el único sitio donde a %L lo mencionan, aunque sea para esto. Aprovéchalo, perdedor, da, asco, da asco.',
+  '%W barre a %L. delante del grupo, el único sitio donde a %L lo mencionan, aunque sea para esto. Aprovéchalo, perdedor, da asco, da asco.',
   '%W gana sin sudar. %L se derrumbó él solito, como se le cae a la mierda todo lo que ese pringado intenta sostener con sus manitas temblorosas, qué vergüenza.',
   '%L apostó convencido de que esta vez sería distinto. Esa frase de mierda es lo más parecido a una autobiografía que va a escribir este fracasado en toda su puta vida, ridículo.',
   '%W pasó por encima de %L como una fregona por el suelo: rápido, sin resistencia y dejando todo más limpio que el patético currículum de mierda de ese perdedor, fracasado.',
@@ -71,7 +71,7 @@ let DUEL_WIN = [
   'No fue un duelo, fue una clase magistral de %W sobre lo puto inútil que es %L, asignatura que ese fracasado lleva suspendiendo desde que nació, patético.',
   '%W le quita el aura y, de propina, la poca dignidad que a %L le quedaba. Pack completo, perdedor de mierda, y encima gratis para que escueza más, miserable.',
   '%L ya preparaba la revancha mental antes de perder esta. El único acierto de este pringado en su puta vida: saber de sobra que iba a caer como siempre, qué cringe.',
-  'A %W no le hizo falta ni esforzarse. A %L nunca le hizo falta ayuda para hundirse en su propia mierda, pero hoy, por una vez, tuvo asistencia técnica gratis, da, asco, da asco.',
+  'A %W no le hizo falta ni esforzarse. A %L nunca le hizo falta ayuda para hundirse en su propia mierda, pero hoy, por una vez, tuvo asistencia técnica gratis, da asco, da asco.',
   '%W gana y pasa página en un segundo. %L añade la derrota a la lista que repasa cada noche al apagar la luz, el único puto hábito constante de este fracasado, qué vergüenza.',
   'Jerarquía aplicada al duelo: %W arriba, %L de puto relleno. Como en el chat, como en su grupo de amigos y como en la cena de Navidad donde nadie lo traga, ridículo.',
   '%W tenía esto firmado antes de que %L aceptara. %L apuesta por pura fe, porque mérito y autoestima a este pringado se le agotaron hace ya un porrón de años, asco, fracasado.',
@@ -90,8 +90,8 @@ let DUEL_WIN = [
   '%L tiró los dados como un rasca: %W le explicó la estadística a hostia limpia. El grupo lo vio entero, pringado, fracasado.',
   '%W ganó tan fácil que casi pide revancha por aburrimiento: %L declinó. El grupo lo vio entero, patético.',
   '%L creyó que tenía oportunidad: %W le devolvió a la realidad sin frenos. El grupo lo vio entero, miserable.',
-  '%W le quita el aura y la dignidad a %L en el mismo movimiento. El grupo lo vio entero, coño y sin segunda oportunidad en este mensaje, qué cringe.',
-  '%W no se esforzó: %L nunca necesitó ayuda para hundirse, hoy tuvo asistencia. El grupo lo vio entero, da, asco, da asco.',
+  '%W le quita el aura y la dignidad a %L en el mismo movimiento. El grupo lo vio entero, coño. y sin segunda oportunidad en este mensaje, qué cringe.',
+  '%W no se esforzó: %L nunca necesitó ayuda para hundirse, hoy tuvo asistencia. El grupo lo vio entero, da asco, da asco.',
   '%W gana y pasa página: %L añade la derrota a la lista nocturna. El grupo lo vio entero, patético con números que no admiten recurso de apelación, qué vergüenza.',
   'Jerarquía del duelo: %W arriba, %L de relleno, como en el resto de su vida. El grupo lo vio entero, ridículo.',
   '%W tenía esto firmado antes de que %L aceptara: fe contra mérito, gana el mérito. El grupo lo vio entero, basura.',
@@ -111,37 +111,37 @@ let DUEL_WIN = [
   '%W cerró el intercambio antes de que %L encontrara su segunda idea. El grupo lo vio entero, desperdicio, patético.',
   '%L en el duelo es carne de ranking: %W es quien escribe el ranking. El grupo lo vio entero, asco con el ranking como único testigo del veredicto, miserable.',
   '%W ganó limpio: %L perdió completo, pack sin reembolso. El grupo lo vio entero, cutre y el contador lo dejó por escrito sin debate, qué cringe.',
-  '%L creyó en la racha: %W creyó en la realidad. Gana la realidad. El grupo lo vio entero, pringado en el momento más visible del chat, da, asco, da asco.',
+  '%L creyó en la racha: %W creyó en la realidad. Gana la realidad. El grupo lo vio entero, pringado en el momento más visible del chat, da asco, da asco.',
   '%W le dejó a %L el recibo del duelo en forma de este mensaje. El grupo lo vio entero, fracasado sin que nadie pudiera fingir que no lo vio, qué vergüenza.',
   '%L midió mal desde el saludo: %W midió bien desde el stake. El grupo lo vio entero, joder con el parte del comando cerrado en firme, ridículo.',
   '%W no improvisó la victoria: la tenía en el bolsillo antes del sí de %L. El grupo lo vio entero, fracasado.',
   '%L salió a cazar aura y volvió cazado: %W contó el botín. El grupo lo vio entero, coño mientras el grupo tomaba nota del resultado, qué miseria.',
   '%W el duelo fue corto: el efecto en el orgullo de %L, no. El grupo lo vio entero, cabrón con números que no admiten recurso de apelación, da grima.',
-  '%L vs %W terminó 0-1 sin prórroga y sin debate útil. El grupo lo vio entero, gilipollas y el historial del comando queda de testigo, qué nivel de pena.',
+  '%L vs %W terminó 0-1 sin prórroga y sin debate útil. El grupo lo vio entero, gilipollas. y el historial del comando queda de testigo, qué nivel de pena.',
   '%W cobró el stake con la calma de quien no contemplaba el empate. El grupo lo vio entero, patético delante de quien miraba el ranking en ese momento, basura.',
   '%L aportó el fail: %W aportó la ejecución. Distribución natural. El grupo lo vio entero, ridículo con el sistema firmando debajo sin pedir aclaración, qué cutre.',
   '%W ganó y el chat archivó: %L todavía busca la frase del almost. El grupo lo vio entero, basura delante de todo el hilo sin posibilidad de borrado, da pena ajena.',
   '%L el duelo le quedó grande: %W le quedó justo. El grupo lo vio entero, desperdicio con el ranking como único testigo del veredicto, qué vacío.',
-  '%W no pidió suerte: ejecutó. %L no tuvo suficiente nada. El grupo lo vio entero, asco y el contador lo dejó por escrito sin debate, indignante.',
+  '%W no pidió suerte: ejecutó. %L no tuvo suficiente nada. El grupo lo vio entero, asco. y el contador lo dejó por escrito sin debate, indignante.',
   '%L firmó el reto con la mano y la derrota con las dos. El grupo lo vio entero, cutre en el momento más visible del chat, patético.',
   '%W vació el stake de %L sin pedir segunda ronda. El grupo lo vio entero, pringado sin que nadie pudiera fingir que no lo vio, asco, da vergüenza.',
   '%L en modo héroe de tutorial: %W en modo jefe final del primer pasillo. El grupo lo vio entero, fracasado.',
-  '%W el frame del duelo aplastó a %L antes del segundo mensaje. El grupo lo vio entero, joder y sin segunda oportunidad en este mensaje, menudo desastre.',
+  '%W el frame del duelo aplastó a %L antes del segundo mensaje. El grupo lo vio entero, joder. y sin segunda oportunidad en este mensaje, menudo desastre.',
   '%L apostó convicción: la convicción no cotiza contra %W. El grupo lo vio entero, mierda mientras el grupo tomaba nota del resultado, qué pena.',
   '%W cerró el duelo y abrió el hueco en el aura de %L. El grupo lo vio entero, coño con números que no admiten recurso de apelación, patético.',
-  '%L vs %W: crónica breve de una derrota larga para el ego. El grupo lo vio entero, cabrón y el historial del comando queda de testigo, miserable.',
+  '%L vs %W: crónica breve de una derrota larga para el ego. El grupo lo vio entero, cabrón. y el historial del comando queda de testigo, miserable.',
   '%W ganó sin narrador: el resultado se narra solo. El grupo lo vio entero, gilipollas delante de quien miraba el ranking en ese momento, qué cringe.',
-  '%L el único hábito constante es perder: hoy lo practicó con %W. El grupo lo vio entero, patético con el sistema firmando debajo sin pedir aclaración, da, asco, da asco.',
+  '%L el único hábito constante es perder: hoy lo practicó con %W. El grupo lo vio entero, patético con el sistema firmando debajo sin pedir aclaración, da asco, da asco.',
   '%W cobró, %L pagó, el grupo presenció: duelo completo. El grupo lo vio entero, ridículo delante de todo el hilo sin posibilidad de borrado, qué vergüenza.',
   '%L retó a %W y el universo le contestó con este mensaje. El grupo lo vio entero, basura con el ranking como único testigo del veredicto, ridículo.',
   '%W no dejó almost: dejó derrota limpia en el marcador de %L. El grupo lo vio entero, desperdicio y el contador lo dejó por escrito sin debate, asco, fracasado.',
   '%L midió el stake con el ego: el ego no cubrió el peaje de %W. El grupo lo vio entero, asco en el momento más visible del chat, qué miseria.',
   '%W ejecutó el duelo como quien marca una casilla pendiente. El grupo lo vio entero, cutre sin que nadie pudiera fingir que no lo vio, ridículo.',
   '%L salió del duelo con menos aura y la misma cara de siempre. El grupo lo vio entero, pringado con el parte del comando cerrado en firme, fracasado.',
-  '%W el stake cambió de dueño: el respeto también. El grupo lo vio entero, fracasado y sin segunda oportunidad en este mensaje, basura.',
+  '%W el stake cambió de dueño: el respeto también. El grupo lo vio entero, fracasado. y sin segunda oportunidad en este mensaje, basura.',
   '%L vs %W terminó antes de que %L encontrara el plan B. El grupo lo vio entero, joder mientras el grupo tomaba nota del resultado, qué cutre.',
   '%W ganó el intercambio y el relato: %L se quedó sin ambos. El grupo lo vio entero, mierda con números que no admiten recurso de apelación, da pena ajena.',
-  '%L la derrota le llama por su nombre desde antes del duelo. El grupo lo vio entero, coño y el historial del comando queda de testigo, qué vacío.',
+  '%L la derrota le llama por su nombre desde antes del duelo. El grupo lo vio entero, coño. y el historial del comando queda de testigo, qué vacío.',
   '%W no sudó: %L sudó la lista de excusas. El grupo lo vio entero, cabrón delante de quien miraba el ranking en ese momento, indignante.',
   '%L aportó el reto: %W aportó el final. Fin. El grupo lo vio entero, gilipollas con el sistema firmando debajo sin pedir aclaración, qué vergüenza ajena.'
 ];
@@ -183,10 +183,10 @@ async function resolveDuel(sock, jid, d, groupMeta) {
     .replace(/%L/g, `@${loser.split('@')[0]}`);
 
   const text =
-    `*DUELO · ${fmt(d.stake)} de aura*\n\n` +
+    `*DUELO · ${fmt(d.stake)} de aura*\\n\\n.` +
     `${phrase}\n\n` +
-    `@${winner.split('@')[0]}  +${fmt(d.stake)} → *${fmt(w.current)}*\n` +
-    `@${loser.split('@')[0]}  −${fmt(d.stake)} → *${fmt(l.current)}*`;
+    `@${winner.split('@')[0]} +${fmt(d.stake)} → *${fmt(w.current)}*\\n.` +
+    `@${loser.split('@')[0]} −${fmt(d.stake)} → *${fmt(l.current)}*.`;
 
   await sock.sendMessage(jid, { text, mentions: [winner, loser] });
 }
@@ -318,7 +318,7 @@ async function cmdDuel(sock, msg, args, groupMeta) {
     text:
       `*DUELO LANZADO*\n\n` +
       `@${sender.split('@')[0]} reta a @${target.split('@')[0]} por *${fmt(stake)}* de aura.\\n, patético.` +
-      (recortado ? `_Tope entre los dos: ${fmt(maxStake)}_\n` : '') +
+      (recortado ? `_Tope entre los dos: ${fmt(maxStake)}_\\n.` : '') +
       `\\n@${target.split('@')[0]} · *!duel aceptar* o *!duel rechazar*\\n, miserable.` +
       `_(expira en 90s)_`,
     mentions: [sender, target],

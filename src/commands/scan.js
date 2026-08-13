@@ -85,7 +85,7 @@ async function cmdScan(sock, msg, groupMeta) {
   }
 
   await sock.sendMessage(jid, {
-    text: `Escaneando ${participants.length} miembros…`,
+    text: `Escaneando ${participants.length} miembros….`,
   }, { quoted: msg });
 
   // ── Business account check (con EVIDENCIA: qué campo lo marca) ─────────────
@@ -132,30 +132,30 @@ async function cmdScan(sock, msg, groupMeta) {
   // El total es el de miembros ESCANEADOS. Antes se imprimía el total del grupo
   // mientras el owner quedaba fuera de los cubos, así que las cifras no sumaban.
   const escaneados = phoneJids.length + lidOnly.length;
-  text += `Total miembros: *${escaneados}*`;
+  text += `Total miembros: *${escaneados}*.`;
   text += `\n`;
-  text += `Número visible: *${phoneJids.length}*\n`;
+  text += `Número visible: *${phoneJids.length}*\\n.`;
   if (lidOnly.length > 0)
-    text += `Número oculto (LID): *${lidOnly.length}*\n`;
+    text += `Número oculto (LID): *${lidOnly.length}*\\n.`;
   text += `\n`;
 
   // Business accounts — individually listed with mention
   if (bizCount > 0) {
     const bizLines = [...bizMap.entries()]
-      .map(([j, fields]) => `• @${(phoneToId.get(j) || j).split('@')[0]} — ${fields.join(', ')}`);
-    text += `*Cuentas Business (${bizCount}):*\n${bizLines.join('\n')}\n\n`;
+      .map(([j, fields]) => `• @${(phoneToId.get(j) || j).split('@')[0]} — ${fields.join(', ')}.`);
+    text += `*Cuentas Business (${bizCount}):*\\n${bizLines.join('\\n')}\\n\\n.`;
   }
 
   // "Sin foto" va como cifra, no como lista: expulsar por esto es cosa de
   // *!antifoto*, que además usa exactamente la misma clasificación, así que los
   // dos comandos ya no pueden contradecirse.
-  text += `Sin foto: *${noPfp}* de ${phoneJids.length}\n`;
-  if (privacidad > 0) text += `Foto oculta por privacidad: *${privacidad}* _(no se puede saber)_\n`;
-  if (timedOut > 0) text += `Sin respuesta: *${timedOut}*\n`;
+  text += `Sin foto: *${noPfp}* de ${phoneJids.length}\\n.`;
+  if (privacidad > 0) text += `Foto oculta por privacidad: *${privacidad}* _(no se puede saber)_\\n.`;
+  if (timedOut > 0) text += `Sin respuesta: *${timedOut}*\\n.`;
 
   // LID detail
   if (lidOnly.length > 0) {
-    text += `\n*Número oculto* — ${lidOnly.length} miembro${lidOnly.length > 1 ? 's' : ''} con privacidad de número activa. No es posible escanearlo${lidOnly.length > 1 ? 's' : ''} (LID-only).\n`;
+    text += `\\n*Número oculto* — ${lidOnly.length} miembro${lidOnly.length > 1 ? 's' : ''} con privacidad de número activa. No es posible escanearlo${lidOnly.length > 1 ? 's' : ''} (LID-only).\\n.`;
   }
 
   // Verdict

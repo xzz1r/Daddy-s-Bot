@@ -272,7 +272,7 @@ function fechaCorta(ms) {
   const dd = String(d.getDate()).padStart(2, '0');
   const hh = String(d.getHours()).padStart(2, '0');
   const mm = String(d.getMinutes()).padStart(2, '0');
-  return `${dd} ${MESES[d.getMonth()]} ${d.getFullYear()}, ${hh}:${mm}`;
+  return `${dd} ${MESES[d.getMonth()]} ${d.getFullYear()}, ${hh}:${mm}.`;
 }
 
 // Pie del ranking con el origen de los datos: sin esto, un ranking recien
@@ -367,8 +367,8 @@ async function cmdCount(sock, msg, groupMeta, args) {
 
     if (i < 3) {
       const admin = isAdmin(groupMeta?.participants, u.jid);
-      const phrase = pickFresh(admin ? ADMIN_PHRASES[i] : MEMBER_PHRASES[i], `${jid}|count|${i}|${admin ? 'a' : 'm'}`);
-      text += `${pos} *@${phone}* — ${msgs}\n`;
+      const phrase = pickFresh(admin ? ADMIN_PHRASES[i] : MEMBER_PHRASES[i], `${jid}|count|${i}|${admin ? 'a' : 'm'}.`);
+      text += `${pos} *@${phone}* — ${msgs}\\n.`;
       text += `${phrase}\n\n`;
     } else {
       text += `${pos} @${phone} — ${msgs}\n`;

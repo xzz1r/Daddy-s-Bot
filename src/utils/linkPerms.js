@@ -33,7 +33,7 @@ async function load() {
       .then((d) => { store = d; })
       .catch((e) => {
         loadPromise = null; // permite reintentar; NUNCA resetear+sobrescribir
-        logger.warn(`linkPerms: lectura falló (${e.message}); no se toca el archivo`);
+        logger.warn(`linkPerms: lectura falló (${e.message}); no se toca el archivo.`);
         throw e;
       });
   }
@@ -45,7 +45,7 @@ function scheduleSave() {
   saveTimer = setTimeout(async () => {
     saveTimer = null;
     try { await atomicWriteJson(FILE, store); }
-    catch (e) { logger.error(`linkPerms: fallo al guardar: ${e.message}`); }
+    catch (e) { logger.error(`linkPerms: fallo al guardar: ${e.message}.`); }
   }, 3000);
 }
 
@@ -123,7 +123,7 @@ async function flushLinkPerms() {
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
   if (store) {
     try { await atomicWriteJson(FILE, store); }
-    catch (e) { logger.error(`linkPerms: fallo al flush: ${e.message}`); }
+    catch (e) { logger.error(`linkPerms: fallo al flush: ${e.message}.`); }
   }
 }
 

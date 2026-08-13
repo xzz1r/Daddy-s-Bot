@@ -9,7 +9,7 @@ const VERDICTS = {
 
     'Compatibilidad total. Dos putos desastres que encajan como una llave en una cerradura oxidada: chirría, pero abre, qué cringe.',
 
-    'Hostia puta, cien. Estos dos van a hacerse muchísimo daño y les va a encantar cada minuto, y el ranking no discute, da, asco, da asco.',
+    'Hostia puta, cien. Estos dos van a hacerse muchísimo daño y les va a encantar cada minuto, y el ranking no discute, da asco.',
 
     'Pleno. Si no acaban juntos es porque el universo tiene sentido del humor y quiere verlos sufrir por separado, los gilipollas, qué vergüenza.',
 
@@ -49,7 +49,7 @@ const VERDICTS = {
 
     'Match total. Dos personas con el mismo nivel exacto de desastre. Eso es más raro que encontrar un billete en la mierda, qué cringe.',
 
-    'Cien, joder. Si un día lo dejan, el grupo va a tener que elegir bando y nadie tiene cojones para eso, da, asco, da asco.',
+    'Cien, joder. Si un día lo dejan, el grupo va a tener que elegir bando y nadie tiene cojones para eso, da asco.',
 
     'Compatibilidad perfecta. Ninguno de los dos tiene nada mejor que hacer, y eso también es compatibilidad, qué vergüenza.',
 
@@ -89,7 +89,7 @@ const VERDICTS = {
 
     'Perfecto, hostia puta. Esto no es química, es destino con muy mal gusto y muchísima insistencia, y el ranking no discute, qué cringe.',
 
-    'Redondo, joder. El bot no reparte cien por cien todos los días, así que aprovechad antes de que uno de los dos la cague, da, asco, da asco.',
+    'Redondo, joder. El bot no reparte cien por cien todos los días, así que aprovechad antes de que uno de los dos la cague, da asco.',
 
     'Cien. Dos piezas rotas que resulta que estaban rotas por el mismo sitio. Encajan de milagro y encajan de puta madre, qué vergüenza.',
 
@@ -97,7 +97,7 @@ const VERDICTS = {
 
     'Perfecto y ligeramente preocupante, coño. Cuando dos personas encajan tanto, el resto del grupo sobra un poco, fracasado.',
 
-    'Cien por cien. El bot lleva meses viendo venir esta mierda y por fin tiene una excusa para decirlo en voz alta, qué miseria.',
+    'Cien por cien. El bot lleva meses viendo venir esta mierda. y por fin tiene una excusa para decirlo en voz alta, qué miseria.',
 
     'Compatibilidad máxima. No hay nada que analizar: se ha juntado lo que tenía que juntarse y punto, da grima.',
 
@@ -115,7 +115,7 @@ const VERDICTS = {
 
     'Redondo. El bot ha visto miles de combinaciones y esta es de las pocas que no le da vergüenza anunciar, qué vergüenza ajena.',
 
-    'Cien. Lo tenían delante todo el puto tiempo y ha tenido que venir un bot a decírselo. Patético y precioso a partes iguales, da vergüenza.',
+    'Cien. Lo tenían delante todo el puto tiempo y ha tenido que venir un bot a decírselo. Patético. y precioso a partes iguales, da vergüenza.',
 
     'Perfecto. Si alguno lo estropea ahora, que sepa que el grupo entero tiene este mensaje guardado, qué flojo.',
 
@@ -125,83 +125,83 @@ const VERDICTS = {
 
     'Cien de cien. Estos dos se merecen mutuamente y eso es lo más cruel que le puede pasar al resto, patético.',
 
-    'Match perfecto: dos taras que se cancelan. La ciencia no lo explica, esta mierda sí, cabrón. Hostia puta, qué nivel, miserable.',
+    'Match perfecto: dos taras que se cancelan. La ciencia no lo explica, esta mierda sí, cabrón.',
 
-    'Compatibilidad total. Van a discutir todos los días y ninguno se va, gilipollas. Hostia puta, qué nivel, qué cringe.',
+    'Compatibilidad total. Van a discutir todos los días y ninguno se va, gilipollas.',
 
-    'Ship redondo. El grupo va a sufrirlo en silencio durante años, mierda, y el ranking no discute, da, asco, da asco.',
+    'Ship redondo. El grupo va a sufrirlo en silencio durante años, mierda, y el ranking no discute, da asco.',
 
-    'Perfectos el uno para el otro. Nadie más los aguantaría, coño, y el ranking no discute, gilipollas. Hostia puta, qué nivel, qué vergüenza.',
+    'Perfectos el uno para el otro. Nadie más los aguantaría, coño, y el ranking no discute, gilipollas.',
 
-    'Cien por cien. Química de la que se nota y da un poco de asco ajeno, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, ridículo.',
+    'Cien por cien. Química de la que se nota y da un poco de asco ajeno, asco.',
 
-    'Match de manual. Menos mal que se tienen: el resto del mundo no aplica, patético. Hostia puta, qué nivel, fracasado.',
+    'Match de manual. Menos mal que se tienen: el resto del mundo no aplica, patético.',
 
     'Compatibilidad perfecta. Dos que se entienden sin escuchar, basura, y el ranking no discute, basura.',
 
     'Ship cerrado. El marcador no negocia y el chat tampoco, ridículo, y el ranking no discute, ridículo.',
 
-    'Cien. Que se besen ya y acabemos con el cringe colectivo, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué nivel de pena.',
+    'Cien. Que se besen ya y acabemos con el cringe colectivo, fracasado.nivel de pena.',
 
-    'Perfectos. Uno pone el caos y el otro la paciencia tóxica, joder., y el ranking no discute, joder. Hostia puta, qué nivel, basura.',
+    'Perfectos. Uno pone el caos y el otro la paciencia tóxica, joder., y el ranking no discute, joder.',
 
     'Match que duele de ver desde fuera. Funciona demasiado bien, cabrón, y el ranking no discute, qué cutre.',
 
-    'Compatibilidad de la mala: la que dura, gilipollas, y el ranking no discute, coño. Hostia puta, qué nivel, da pena ajena.',
+    'Compatibilidad de la mala: la que dura, gilipollas, y el ranking no discute, coño.',
 
     'Ship al máximo. El grupo ya está preparando el popcorn amargo, mierda, y el ranking no discute, qué vacío.',
 
-    'Cien de compatibilidad. Insufrible y real, coño, y el ranking no discute, gilipollas. Hostia puta, qué nivel, indignante.',
+    'Cien de compatibilidad. Insufrible y real, coño, y el ranking no discute, gilipollas.',
 
-    'Perfectos entre sí. Un desastre para el resto del hilo, asco, y el ranking no discute, patético. Hostia puta, qué nivel, qué vergüenza ajena.',
+    'Perfectos entre sí. Un desastre para el resto del hilo, asco, y el ranking no discute, patético.ajena.',
 
     'Match sin fisuras. Hasta el ranking aplaude a regañadientes, patético, y el ranking no discute, asco, da vergüenza.',
 
-    'Compatibilidad total documentada. Caso cerrado, basura, y el ranking no discute, basura. Hostia puta, qué nivel, qué flojo.',
+    'Compatibilidad total documentada. Caso cerrado, basura, y el ranking no discute, basura.',
 
     'Ship de los que se odian bien. Eso también es amor aquí, ridículo, y el ranking no discute, ridículo.',
 
-    'Cien. No hay tercero que entre en esa órbita, fracasado, y el ranking no discute, fracasado. Hostia puta, qué nivel, qué pena.',
+    'Cien. No hay tercero que entre en esa órbita, fracasado, y el ranking no discute, fracasado.',
 
-    'Perfectos. El chat lo sabía antes que ellos, joder., y el ranking no discute, joder. Hostia puta, qué nivel, patético.',
+    'Perfectos. El chat lo sabía antes que ellos, joder., y el ranking no discute, joder.',
 
-    'Match químico sin anestesia. Duele mirarlo, cabrón, y el ranking no discute, mierda. Hostia puta, qué nivel, miserable.',
+    'Match químico sin anestesia. Duele mirarlo, cabrón, y el ranking no discute, mierda.',
 
-    'Compatibilidad de laboratorio roto, gilipollas, y el ranking no discute, coño. Hostia puta, qué nivel, qué cringe.',
+    'Compatibilidad de laboratorio roto, gilipollas, y el ranking no discute, coño.',
 
-    'Ship perfecto. El resto sobra, mierda, y el ranking no discute, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da, asco, da asco.',
+    'Ship perfecto. El resto sobra, mierda, y el ranking no discute, cabrón., asco, da asco.',
 
-    'Cien por cien de drama sostenible, coño, y el ranking no discute, gilipollas. Hostia puta, qué nivel, qué vergüenza.',
+    'Cien por cien de drama sostenible, coño, y el ranking no discute, gilipollas.',
 
-    'Perfectos el uno para el otro. Qué puta tragedia ajena, asco, y el ranking no discute, patético. Hostia puta, qué nivel, ridículo.',
+    'Perfectos el uno para el otro. Qué puta tragedia ajena, asco, y el ranking no discute, patético.',
 
-    'Match cerrado con candado, patético, y el ranking no discute, asco, y el grupo ya lo olió, asco. Hostia puta, qué nivel, fracasado.',
+    'Match cerrado con candado, patético, y el ranking no discute, asco, y el grupo ya lo olió, asco.',
 
-    'Compatibilidad máxima. Sin derecho a réplica, basura, y el ranking no discute, basura. Hostia puta, qué nivel, qué miseria.',
+    'Compatibilidad máxima. Sin derecho a réplica, basura, y el ranking no discute, basura.',
 
-    'Ship de los que el grupo no discute, ridículo, y el ranking no discute, ridículo. Hostia puta, qué nivel, da grima.',
+    'Ship de los que el grupo no discute, ridículo, y el ranking no discute, ridículo.',
 
-    'Cien. Archivo y a sufrir, fracasado, y el ranking no discute, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué nivel de pena.',
+    'Cien. Archivo y a sufrir, fracasado, y el ranking no discute, fracasado.nivel de pena.',
 
-    'Perfectos. La física del fail compartido, joder., y el ranking no discute, joder. Hostia puta, qué nivel, basura.',
+    'Perfectos. La física del fail compartido, joder., y el ranking no discute, joder.',
 
-    'Match que se siente en el hilo, cabrón, y el ranking no discute, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cutre.',
+    'Match que se siente en el hilo, cabrón, y el ranking no discute, mierda.cutre.',
 
-    'Compatibilidad sin escape, gilipollas, y el ranking no discute, coño, y el grupo ya lo olió, coño. Hostia puta, qué nivel, da pena ajena.',
+    'Compatibilidad sin escape, gilipollas, y el ranking no discute, coño, y el grupo ya lo olió, coño.',
 
-    'Ship total., y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón. Hostia puta, qué nivel, qué vacío.',
+    'Ship total., y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón.',
 
-    'Cien de cien y el chat lo traga, coño, y el ranking no discute, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, indignante.',
+    'Cien de cien y el chat lo traga, coño, y el ranking no discute, gilipollas.',
 
-    'Perfectos. No hay plan B que merezca la pena, asco, y el ranking no discute, patético. Hostia puta, qué nivel, qué vergüenza ajena.',
+    'Perfectos. No hay plan B que merezca la pena, asco, y el ranking no discute, patético.ajena.',
 
-    'Match de los que se eligen mal a propósito, patético, y el ranking no discute, asco. Hostia puta, qué nivel, da vergüenza.',
+    'Match de los que se eligen mal a propósito, patético, y el ranking no discute, asco.',
 
-    'Compatibilidad perfecta de taras, basura, y el ranking no discute, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué flojo.',
+    'Compatibilidad perfecta de taras, basura, y el ranking no discute, basura.flojo.',
 
-    'Ship al límite. El ranking firmó, ridículo, y el ranking no discute, ridículo. Hostia puta, qué nivel, menudo desastre.',
+    'Ship al límite. El ranking firmó, ridículo, y el ranking no discute, ridículo.',
 
-    'Cien. Fin del debate, fracasado, y el ranking no discute, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué pena.',
+    'Cien. Fin del debate, fracasado, y el ranking no discute, fracasado.pena.',
 
 ],
   high: [
@@ -211,199 +211,199 @@ const VERDICTS = {
 
     'Alto de los que ilusionan con razón: la química está y se nota. El ranking lo deja bastante claro, joder.',
 
-    'Ship sólido. Falta un empujón para el pleno, sobra base. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Ship sólido. Falta un empujón para el pleno, sobra base. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Compatibilidad de las que el chat comenta en serio. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Compatibilidad de las que el chat comenta en serio. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
     'Alto. No es cuento: el cálculo respalda el runoreo del grupo. El ranking lo deja bastante claro, joder.',
 
-    'Ship con sustancia. La tensión no es invento del comando. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Ship con sustancia. La tensión no es invento del comando. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
     'Alto de verdad. El pleno está cerca si el universo no es cabrón. El ranking lo deja bastante claro, joder.',
 
     'Compatibilidad alta: piezas que encajan con roce interesante. El ranking lo deja bastante claro, joder.',
 
-    'Ship que se sostiene solo. El número solo confirma. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Ship que se sostiene solo. El número solo confirma. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Alto. Hay arco, hay roce, hay motivo para mirar dos veces. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto. Hay arco, hay roce, hay motivo para mirar dos veces. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Compatibilidad de las que duelen si no se consuman. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Compatibilidad de las que duelen si no se consuman. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Alto. El grupo lo veía: el bot pone el porcentaje. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto. El grupo lo veía: el bot pone el porcentaje. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Ship con base real. No es cope, es cálculo. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Ship con base real. No es cope, es cálculo. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
     'Alto de los limpios: química sin necesidad de guion forzado. El ranking lo deja bastante claro, joder.',
 
-    'Compatibilidad alta y legible en el día a día del chat. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Compatibilidad alta y legible en el día a día del chat. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Alto. El pleno es tentación, no fantasía. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto. El pleno es tentación, no fantasía. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Ship con tensión de la buena: la que no se apaga sola. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Ship con tensión de la buena: la que no se apaga sola. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Alto. Material de pareja con número que no miente. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto. Material de pareja con número que no miente. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
     'Compatibilidad de quienes ya se buscan en el hilo sin decirlo. El ranking lo deja bastante claro, joder.',
 
-    'Alto. Falta poco para el cien y el poco se siente. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto. Falta poco para el cien y el poco se siente. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
     'Ship sólido documentado. El chat puede dejar de fingir sorpresa. El ranking lo deja bastante claro, joder.',
 
-    'Alto de verdad. La química tiene expediente. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto de verdad. La química tiene expediente. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Compatibilidad alta: el roce produce chispa, no solo roce. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Compatibilidad alta: el roce produce chispa, no solo roce. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Alto. El arco está escrito a medias y pide final. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto. El arco está escrito a medias y pide final. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Ship con sustancia suficiente para el rumor serio. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Ship con sustancia suficiente para el rumor serio. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Alto. No es el pleno y aun así pesa. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto. No es el pleno y aun así pesa. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Compatibilidad de las que el grupo banca en silencio. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Compatibilidad de las que el grupo banca en silencio. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Alto. El número respalda lo que ya se comentaba. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto. El número respalda lo que ya se comentaba. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Ship con base: el resto es decisión de ellos, no del bot. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Ship con base: el resto es decisión de ellos, no del bot. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Alto de los claros. La tensión no es un malentendido. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto de los claros. La tensión no es un malentendido. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Compatibilidad alta y de cope. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Compatibilidad alta y de cope. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Alto. Hay match de verdad, no de relleno. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto. Hay match de verdad, no de relleno. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Ship que se sostiene en el cálculo y en el chat. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Ship que se sostiene en el cálculo y en el chat. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
     'Alto. El pleno está a un mal día de distancia o a un buen sí. El ranking lo deja bastante claro, joder.',
 
-    'Compatibilidad de quienes ya ocupan espacio mental ajeno. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Compatibilidad de quienes ya ocupan espacio mental ajeno. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Alto. Material de pareja con porcentaje que no pide fe. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto. Material de pareja con porcentaje que no pide fe. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Ship sólido: el grupo puede dejar el cinismo un segundo. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Ship sólido: el grupo puede dejar el cinismo un segundo. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Alto de verdad. La química no es un rumor vacío. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto de verdad. La química no es un rumor vacío. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Compatibilidad alta legible sin forzar el relato. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Compatibilidad alta legible sin forzar el relato. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Alto. Falta el cierre, sobra la base. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto. Falta el cierre, sobra la base. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Ship con arco real. El número es el subtítulo. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Ship con arco real. El número es el subtítulo. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Alto. El chat lo olió antes que el comando. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto. El chat lo olió antes que el comando. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
     'Compatibilidad de las que duelen por lo cerca que están del pleno. El ranking lo deja bastante claro, joder.',
 
-    'Alto. No es cuento chino: es porcentaje con sustancia. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto. No es cuento chino: es porcentaje con sustancia. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Ship con tensión que no se apaga al cambiar de hilo. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Ship con tensión que no se apaga al cambiar de hilo. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Alto de los limpios: match sin necesidad de milagro. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto de los limpios: match sin necesidad de milagro. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Compatibilidad alta y el grupo lo sabe. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Compatibilidad alta y el grupo lo sabe. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Alto. El bot confirma, no inventa. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto. El bot confirma, no inventa. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Ship sólido documentado sin drama falso. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Ship sólido documentado sin drama falso. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Alto. Hay drift de pareja, no solo de amistad de chat. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto. Hay drift de pareja, no solo de amistad de chat. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
     'Compatibilidad de quienes ya se eligen en las bromas del grupo. El ranking lo deja bastante claro, joder.',
 
     'Alto. El pleno es el siguiente tramo natural, no un salto imposible. El ranking lo deja bastante claro, joder.',
 
-    'Ship con base y con roce. El número pesa. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Ship con base y con roce. El número pesa. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Alto de verdad. La química tiene testigos en el hilo. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto de verdad. La química tiene testigos en el hilo. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Compatibilidad alta: piezas que encajan con historia. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Compatibilidad alta: piezas que encajan con historia. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Alto. Material suficiente para que el rumor sea legítimo. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto. Material suficiente para que el rumor sea legítimo. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Ship que se sostiene solo ante el cálculo. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Ship que se sostiene solo ante el cálculo. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
-    'Alto. El grupo puede dejar de hacerse el sorprendido. El ranking lo deja bastante claro, joder y el grupo ya lo tiene claro.',
+    'Alto. El grupo puede dejar de hacerse el sorprendido. El ranking lo deja bastante claro, joder. y el grupo ya lo tiene claro.',
 
     'Compatibilidad de las que piden un sí o un no claro, no un mediocre. El ranking lo deja bastante claro, joder.',
 
-    'Fuerte. No es perfecto, pero el aire cambia cuando salen juntos, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Fuerte. No es perfecto, pero el aire cambia cuando salen juntos, cabrón.',
 
-    'Alto de verdad. El chat ya está shippeando sin pedir permiso, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Alto de verdad. El chat ya está shippeando sin pedir permiso, gilipollas.',
 
     'Buena química. El ranking lo marca y el resto inventa excusas, mierda, y el ranking no discute, coño.',
 
-    'Ship alto. Hay historia aunque lo nieguen, coño, y el ranking no discute, cabrón. Hostia puta, qué nivel.',
+    'Ship alto. Hay historia aunque lo nieguen, coño, y el ranking no discute, cabrón.',
 
-    'Tensión real. No es fanfic: el número habla, asco, y el ranking no discute, gilipollas. Hostia puta, qué nivel.',
+    'Tensión real. No es fanfic: el número habla, asco, y el ranking no discute, gilipollas.',
 
-    'Alto. El grupo ve lo que ellos fingen no ver, patético, y el ranking no discute, patético. Hostia puta, qué nivel.',
+    'Alto. El grupo ve lo que ellos fingen no ver, patético, y el ranking no discute, patético.',
 
-    'Fuerte compatibilidad. Casi molesta de lo obvio, basura, y el ranking no discute, asco. Hostia puta, qué nivel.',
+    'Fuerte compatibilidad. Casi molesta de lo obvio, basura, y el ranking no discute, asco.',
 
-    'Ship de los que el hilo adelanta el final, ridículo, y el ranking no discute, basura. Hostia puta, qué nivel.',
+    'Ship de los que el hilo adelanta el final, ridículo, y el ranking no discute, basura.',
 
-    'Alto. Material de drama sostenible, fracasado, y el ranking no discute, ridículo. Hostia puta, qué nivel.',
+    'Alto. Material de drama sostenible, fracasado, y el ranking no discute, ridículo.',
 
-    'Hay drift de puta madre. El marcador no miente, joder., y el ranking no discute, fracasado. Hostia puta, qué nivel.',
+    'Hay drift de puta madre. El marcador no miente, joder., y el ranking no discute, fracasado.',
 
-    'Química alta. El chat ya tiene el ship name, cabrón, y el ranking no discute, joder. Hostia puta, qué nivel.',
+    'Química alta. El chat ya tiene el ship name, cabrón, y el ranking no discute, joder.',
 
-    'Fuerte. Casi perfecto y por eso da más rabia, gilipollas, y el ranking no discute, mierda. Hostia puta, qué nivel.',
+    'Fuerte. Casi perfecto y por eso da más rabia, gilipollas, y el ranking no discute, mierda.',
 
-    'Ship alto documentado. Sin anestesia, mierda, y el ranking no discute, coño. Hostia puta, qué nivel.',
+    'Ship alto documentado. Sin anestesia, mierda, y el ranking no discute, coño.',
 
-    'Tensión que se corta. El ranking aplaude, coño, y el ranking no discute, cabrón. Hostia puta, qué nivel.',
+    'Tensión que se corta. El ranking aplaude, coño, y el ranking no discute, cabrón.',
 
-    'Alto. Ellos en negación, el grupo en modo crónica, asco, y el ranking no discute, gilipollas. Hostia puta, qué nivel.',
+    'Alto. Ellos en negación, el grupo en modo crónica, asco, y el ranking no discute, gilipollas.',
 
-    'Buena pareja de fail compartido, patético, y el ranking no discute, patético. Hostia puta, qué nivel.',
+    'Buena pareja de fail compartido, patético, y el ranking no discute, patético.',
 
-    'Ship que se siente en cada respuesta cruzada, basura, y el ranking no discute, asco. Hostia puta, qué nivel.',
+    'Ship que se siente en cada respuesta cruzada, basura, y el ranking no discute, asco.',
 
-    'Fuerte. No necesita narrador, ridículo, y el ranking no discute, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Fuerte. No necesita narrador, ridículo, y el ranking no discute, basura.',
 
-    'Alto de los que el almost duele, fracasado, y el ranking no discute, ridículo. Hostia puta, qué nivel.',
+    'Alto de los que el almost duele, fracasado, y el ranking no discute, ridículo.',
 
-    'Hay material. Y de sobra, joder., y el ranking no discute, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Hay material. Y de sobra, joder., y el ranking no discute, fracasado.',
 
-    'Química de las que no se improvisan, cabrón, y el ranking no discute, joder. Hostia puta, qué nivel.',
+    'Química de las que no se improvisan, cabrón, y el ranking no discute, joder.',
 
-    'Ship alto. El chat ya cobró entrada, gilipollas, y el ranking no discute, mierda. Hostia puta, qué nivel.',
+    'Ship alto. El chat ya cobró entrada, gilipollas, y el ranking no discute, mierda.',
 
-    'Fuerte compatibilidad con olor a drama, mierda, y el ranking no discute, coño. Hostia puta, qué nivel.',
+    'Fuerte compatibilidad con olor a drama, mierda, y el ranking no discute, coño.',
 
     'Alto. El número cierra el caso, coño, y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón.',
 
-    'Tensión real en un grupo de cínicos, asco, y el ranking no discute, gilipollas. Hostia puta, qué nivel.',
+    'Tensión real en un grupo de cínicos, asco, y el ranking no discute, gilipollas.',
 
-    'Ship que el ranking no discute, patético, y el ranking no discute, patético. Hostia puta, qué nivel.',
+    'Ship que el ranking no discute, patético, y el ranking no discute, patético.',
 
-    'Buena química, peor para el resto del hilo, basura, y el ranking no discute, asco. Hostia puta, qué nivel.',
+    'Buena química, peor para el resto del hilo, basura, y el ranking no discute, asco.',
 
-    'Alto. Casi perfectos y se nota, ridículo, y el ranking no discute, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Alto. Casi perfectos y se nota, ridículo, y el ranking no discute, basura.',
 
-    'Fuerte. Sin derecho a fingir lo contrario, fracasado, y el ranking no discute, ridículo. Hostia puta, qué nivel.',
+    'Fuerte. Sin derecho a fingir lo contrario, fracasado, y el ranking no discute, ridículo.',
 
-    'Hay drift. El grupo ya eligió bando, joder., y el ranking no discute, fracasado. Hostia puta, qué nivel.',
+    'Hay drift. El grupo ya eligió bando, joder., y el ranking no discute, fracasado.',
 
-    'Ship alto con potencial de incendio, cabrón, y el ranking no discute, joder. Hostia puta, qué nivel.',
+    'Ship alto con potencial de incendio, cabrón, y el ranking no discute, joder.',
 
-    'Química que molesta de lo clara, gilipollas, y el ranking no discute, mierda. Hostia puta, qué nivel.',
+    'Química que molesta de lo clara, gilipollas, y el ranking no discute, mierda.',
 
-    'Fuerte. El marcador no pide opiniones, mierda, y el ranking no discute, coño. Hostia puta, qué nivel.',
+    'Fuerte. El marcador no pide opiniones, mierda, y el ranking no discute, coño.',
 
-    'Alto de verdad. Archivado, coño, y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón. Hostia puta, qué nivel, fracasado.',
+    'Alto de verdad. Archivado, coño, y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón.',
 
-    'Tensión de la que se traduce en memes, asco, y el ranking no discute, gilipollas. Hostia puta, qué nivel, qué miseria.',
+    'Tensión de la que se traduce en memes, asco, y el ranking no discute, gilipollas.',
 
-    'Ship que se ve venir a la legua, patético, y el ranking no discute, patético. Hostia puta, qué nivel, da grima.',
+    'Ship que se ve venir a la legua, patético, y el ranking no discute, patético.',
 
-    'Buena pareja según el bot y según el chisme, basura, y el ranking no discute, asco. Hostia puta, qué nivel, qué nivel de pena.',
+    'Buena pareja según el bot y según el chisme, basura, y el ranking no discute, asco.',
 
-    'Alto. Casi el techo, ridículo, y el ranking no discute, basura, y el grupo ya lo olió, basura. Hostia puta, qué nivel, basura.',
+    'Alto. Casi el techo, ridículo, y el ranking no discute, basura, y el grupo ya lo olió, basura.',
 
-    'Fuerte compatibilidad sin anestesia, fracasado, y el ranking no discute, ridículo. Hostia puta, qué nivel, qué cutre.',
+    'Fuerte compatibilidad sin anestesia, fracasado, y el ranking no discute, ridículo.',
 
-    'Alto de los que el almost duele, fracasado, fracasado, y el ranking no discute, fracasado, y el grupo ya lo olió, fracasado.',
+    'Alto de los que el almost duele, fracasado, y el ranking no discute, fracasado, y el grupo ya lo olió, fracasado.',
 
 ],
   mid: [
@@ -489,7 +489,7 @@ const VERDICTS = {
 
     'Si la apatía se tirara pedos, sonaría exactamente como este porcentaje de compatibilidad, y el ranking no discute, joder.',
 
-    'Esto funciona como el culo de un político: algo sale, pero siempre es mierda y nunca lo que esperabas.',
+    'Esto funciona como el culo de un político: algo sale, pero siempre es mierda. y nunca lo que esperabas.',
 
     'Compatibilidad de kebab de madrugada. En el momento parece buena idea, a la mañana siguiente te arrepientes en el váter.',
 
@@ -527,67 +527,67 @@ const VERDICTS = {
 
     'Match con menos futuro que una mierda en una tormenta. Se sostiene un momento y luego la corriente se lo lleva todo al carajo.',
 
-    'Mitad de camino. Ni spark de verdad ni rechazo limpio: zona tibia, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Mitad de camino. Ni spark de verdad ni rechazo limpio: zona tibia, joder.',
 
-    'Ship mediocre. Como pizza sin queso: llega, pero para qué, cabrón, y el ranking no discute, mierda. Hostia puta, qué nivel.',
+    'Ship mediocre. Como pizza sin queso: llega, pero para qué, cabrón, y el ranking no discute, mierda.',
 
     'Medio. Hay algo, pero no suficiente para el hype del grupo, gilipollas, y el ranking no discute, coño.',
 
-    'Compatibilidad tibia. El ranking bostezó, mierda, y el ranking no discute, cabrón. Hostia puta, qué nivel.',
+    'Compatibilidad tibia. El ranking bostezó, mierda, y el ranking no discute, cabrón.',
 
-    'Ni fu ni fa. El ship más olvidable del catálogo, coño, y el ranking no discute, gilipollas. Hostia puta, qué nivel.',
+    'Ni fu ni fa. El ship más olvidable del catálogo, coño, y el ranking no discute, gilipollas.',
 
-    'Medio puro. Ni drama ni magia, asco, y el ranking no discute, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Medio puro. Ni drama ni magia, asco, y el ranking no discute, patético.',
 
-    'Ship de los que el chat no recuerda mañana, patético, y el ranking no discute, asco. Hostia puta, qué nivel.',
+    'Ship de los que el chat no recuerda mañana, patético, y el ranking no discute, asco.',
 
-    'Mitad. Química de ascensor: existe y se acaba, basura, y el ranking no discute, basura. Hostia puta, qué nivel.',
+    'Mitad. Química de ascensor: existe y se acaba, basura, y el ranking no discute, basura.',
 
-    'Mediocre. El número no miente y no emociona, ridículo, y el ranking no discute, ridículo. Hostia puta, qué nivel.',
+    'Mediocre. El número no miente y no emociona, ridículo, y el ranking no discute, ridículo.',
 
-    'Zona gris. Ni ship ni enemigos, fracasado, y el ranking no discute, fracasado. Hostia puta, qué nivel.',
+    'Zona gris. Ni ship ni enemigos, fracasado, y el ranking no discute, fracasado.',
 
-    'Medio. Como serie cancelada en el capítulo tres, joder., y el ranking no discute, joder. Hostia puta, qué nivel.',
+    'Medio. Como serie cancelada en el capítulo tres, joder., y el ranking no discute, joder.',
 
-    'Compatibilidad de trámite. Siguiente, cabrón, y el ranking no discute, mierda. Hostia puta, qué nivel.',
+    'Compatibilidad de trámite. Siguiente, cabrón, y el ranking no discute, mierda.',
 
-    'Ship tibio. El grupo ya cambió de tema, gilipollas, y el ranking no discute, coño. Hostia puta, qué nivel.',
+    'Ship tibio. El grupo ya cambió de tema, gilipollas, y el ranking no discute, coño.',
 
-    'Mitad de tarta. Nadie pide segunda porción, mierda, y el ranking no discute, cabrón. Hostia puta, qué nivel.',
+    'Mitad de tarta. Nadie pide segunda porción, mierda, y el ranking no discute, cabrón.',
 
-    'Medio sin narrativa. Gracias por no inventarla, coño, y el ranking no discute, gilipollas. Hostia puta, qué nivel.',
+    'Medio sin narrativa. Gracias por no inventarla, coño, y el ranking no discute, gilipollas.',
 
-    'Ni spark ni tragedia. Solo mediocridad, asco, y el ranking no discute, patético. Hostia puta, qué nivel.',
+    'Ni spark ni tragedia. Solo mediocridad, asco, y el ranking no discute, patético.',
 
-    'Ship administrativo. Firmado y olvidado, patético, y el ranking no discute, asco. Hostia puta, qué nivel.',
+    'Ship administrativo. Firmado y olvidado, patético, y el ranking no discute, asco.',
 
-    'Mediocre de manual, basura, y el ranking no discute, basura, y el grupo ya lo olió, basura. Hostia puta, qué nivel.',
+    'Mediocre de manual, basura, y el ranking no discute, basura, y el grupo ya lo olió, basura.',
 
-    'Zona media. El ranking no se emociona, ridículo, y el ranking no discute, ridículo. Hostia puta, qué nivel.',
+    'Zona media. El ranking no se emociona, ridículo, y el ranking no discute, ridículo.',
 
-    'Mitad. Casi un no con maquillaje, fracasado, y el ranking no discute, fracasado. Hostia puta, qué nivel.',
+    'Mitad. Casi un no con maquillaje, fracasado, y el ranking no discute, fracasado.',
 
-    'Medio. El hype se murió solo, joder., y el ranking no discute, joder, y el grupo ya lo olió, joder. Hostia puta, qué nivel.',
+    'Medio. El hype se murió solo, joder., y el ranking no discute, joder, y el grupo ya lo olió, joder.',
 
-    'Compatibilidad de sala de espera, cabrón, y el ranking no discute, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Compatibilidad de sala de espera, cabrón, y el ranking no discute, mierda.',
 
-    'Ship sin gancho. El chat bostezó, gilipollas, y el ranking no discute, coño. Hostia puta, qué nivel.',
+    'Ship sin gancho. El chat bostezó, gilipollas, y el ranking no discute, coño.',
 
-    'Tibio. Ni vale el thread, mierda, y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón. Hostia puta, qué nivel.',
+    'Tibio. Ni vale el thread, mierda, y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón.',
 
-    'Medio puro sin plot, coño, y el ranking no discute, gilipollas, y el grupo ya lo olió, gilipollas. Hostia puta, qué nivel.',
+    'Medio puro sin plot, coño, y el ranking no discute, gilipollas, y el grupo ya lo olió, gilipollas.',
 
-    'Ni química ni guerra. Solo relleno, asco, y el ranking no discute, patético. Hostia puta, qué nivel.',
+    'Ni química ni guerra. Solo relleno, asco, y el ranking no discute, patético.',
 
-    'Ship de los que no generan meme, patético, y el ranking no discute, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Ship de los que no generan meme, patético, y el ranking no discute, asco.',
 
-    'Mitad de camino al olvido, basura, y el ranking no discute, basura, y el grupo ya lo olió, basura. Hostia puta, qué nivel.',
+    'Mitad de camino al olvido, basura, y el ranking no discute, basura, y el grupo ya lo olió, basura.',
 
-    'Mediocre. El número lo dice sin drama, ridículo, y el ranking no discute, ridículo. Hostia puta, qué nivel.',
+    'Mediocre. El número lo dice sin drama, ridículo, y el ranking no discute, ridículo.',
 
-    'Zona gris documentada, fracasado, y el ranking no discute, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Zona gris documentada, fracasado, y el ranking no discute, fracasado.',
 
-    'Medio. Como café descafeinado del ship, joder., y el ranking no discute, joder. Hostia puta, qué nivel.',
+    'Medio. Como café descafeinado del ship, joder., y el ranking no discute, joder.',
 
     'Compatibilidad sin especias, cabrón, y el ranking no discute, mierda, y el grupo ya lo olió, mierda.',
 
@@ -595,17 +595,17 @@ const VERDICTS = {
 
     'Mitad. El grupo no pide bis, mierda, y el ranking no discute, cabrón, y el grupo ya lo olió, qué vacío.',
 
-    'Medio sin derecho a hype, coño, y el ranking no discute, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, indignante.',
+    'Medio sin derecho a hype, coño, y el ranking no discute, gilipollas.',
 
-    'Ni fu ni fa con sello oficial, asco, y el ranking no discute, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza ajena.',
+    'Ni fu ni fa con sello oficial, asco, y el ranking no discute, patético.vergüenza ajena.',
 
-    'Ship olvidable a propósito, patético, y el ranking no discute, asco, y el grupo ya lo olió, asco. Hostia puta, qué nivel, da vergüenza.',
+    'Ship olvidable a propósito, patético, y el ranking no discute, asco, y el grupo ya lo olió, asco.',
 
-    'Tibio. Archivado sin ceremonia, basura, y el ranking no discute, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué flojo.',
+    'Tibio. Archivado sin ceremonia, basura, y el ranking no discute, basura.flojo.',
 
     'Mediocre y previsible, ridículo, y el ranking no discute, ridículo, y el grupo ya lo olió, ridículo.',
 
-    'Zona media: el casi que no importa, fracasado, y el ranking no discute, fracasado. Hostia puta, qué nivel, qué pena.',
+    'Zona media: el casi que no importa, fracasado, y el ranking no discute, fracasado.',
 
 ],
   low: [
@@ -621,7 +621,7 @@ const VERDICTS = {
 
     'Ship en el sótano. El número no admite recurso ni segunda lectura útil delante del puto grupo, patético.',
 
-    'Bajo de los que duelen. La compatibilidad se fue a la mierda y no vuelve delante del puto grupo, asco.',
+    'Bajo de los que duelen. La compatibilidad se fue a la mierda. y no vuelve delante del puto grupo, asco.',
 
     'El bot midió y el resultado es un no seco. Ship fallido en limpio delante del puto grupo delante del puto grupo, basura.',
 
@@ -729,85 +729,85 @@ const VERDICTS = {
 
     'Compatibilidad justa para el gag del comando y nada más delante del puto grupo delante del puto grupo, fracasado.',
 
-    'Poca química. El ranking lo marca en rojo suave, cabrón, y el ranking no discute, joder. Hostia puta, qué nivel.',
+    'Poca química. El ranking lo marca en rojo suave, cabrón, y el ranking no discute, joder.',
 
-    'Ship bajo. Mejor ni forzar el crossover, gilipollas, y el ranking no discute, mierda. Hostia puta, qué nivel.',
+    'Ship bajo. Mejor ni forzar el crossover, gilipollas, y el ranking no discute, mierda.',
 
-    'Compatibilidad de las que duelen de lo flojas, mierda, y el ranking no discute, coño. Hostia puta, qué nivel.',
+    'Compatibilidad de las que duelen de lo flojas, mierda, y el ranking no discute, coño.',
 
-    'Bajo. El grupo ya está en modo no, coño, y el ranking no discute, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Bajo. El grupo ya está en modo no, coño, y el ranking no discute, cabrón.',
 
-    'Casi nada. Forzar esto es crueldad gratuita, asco, y el ranking no discute, gilipollas. Hostia puta, qué nivel.',
+    'Casi nada. Forzar esto es crueldad gratuita, asco, y el ranking no discute, gilipollas.',
 
-    'Ship de los que el número pide clemencia, patético, y el ranking no discute, patético. Hostia puta, qué nivel.',
+    'Ship de los que el número pide clemencia, patético, y el ranking no discute, patético.',
 
-    'Bajo perfil de desastre compartido, basura, y el ranking no discute, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Bajo perfil de desastre compartido, basura, y el ranking no discute, asco.',
 
-    'Poca chispa. Mucho potencial de cringe, ridículo, y el ranking no discute, basura. Hostia puta, qué nivel.',
+    'Poca chispa. Mucho potencial de cringe, ridículo, y el ranking no discute, basura.',
 
-    'Compatibilidad en el sótano, fracasado, y el ranking no discute, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Compatibilidad en el sótano, fracasado, y el ranking no discute, ridículo.',
 
-    'Bajo. Mejor amigos de mentira que esto, joder., y el ranking no discute, fracasado. Hostia puta, qué nivel.',
+    'Bajo. Mejor amigos de mentira que esto, joder., y el ranking no discute, fracasado.',
 
-    'Ship flojo. El chat no compra la premisa, cabrón, y el ranking no discute, joder. Hostia puta, qué nivel.',
+    'Ship flojo. El chat no compra la premisa, cabrón, y el ranking no discute, joder.',
 
     'Poca química documentada, gilipollas, y el ranking no discute, mierda, y el grupo ya lo olió, mierda.',
 
-    'Bajo de los que se ven venir, mierda, y el ranking no discute, coño, y el grupo ya lo olió, coño. Hostia puta, qué nivel.',
+    'Bajo de los que se ven venir, mierda, y el ranking no discute, coño, y el grupo ya lo olió, coño.',
 
-    'Fail de pareja en versión preview, coño, y el ranking no discute, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Fail de pareja en versión preview, coño, y el ranking no discute, cabrón.',
 
-    'Compatibilidad mínima. Casi un no, asco, y el ranking no discute, gilipollas. Hostia puta, qué nivel.',
+    'Compatibilidad mínima. Casi un no, asco, y el ranking no discute, gilipollas.',
 
-    'Ship bajo sin derecho a defensa, patético, y el ranking no discute, patético. Hostia puta, qué nivel.',
+    'Ship bajo sin derecho a defensa, patético, y el ranking no discute, patético.',
 
-    'Poco material. Mucho riesgo de ridículo, basura, y el ranking no discute, asco. Hostia puta, qué nivel.',
+    'Poco material. Mucho riesgo de ridículo, basura, y el ranking no discute, asco.',
 
-    'Bajo. El ranking no discute, ridículo, y el ranking no discute, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Bajo. El ranking no discute, ridículo, y el ranking no discute, basura.',
 
-    'Química en huelga, fracasado, y el ranking no discute, ridículo, y el grupo ya lo olió, ridículo. Hostia puta, qué nivel.',
+    'Química en huelga, fracasado, y el ranking no discute, ridículo, y el grupo ya lo olió, ridículo.',
 
-    'Ship de los que mejor ni empezar, joder., y el ranking no discute, fracasado. Hostia puta, qué nivel.',
+    'Ship de los que mejor ni empezar, joder., y el ranking no discute, fracasado.',
 
-    'Bajo perfil tóxico sin beneficio, cabrón, y el ranking no discute, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Bajo perfil tóxico sin beneficio, cabrón, y el ranking no discute, joder.',
 
     'Poca compatibilidad real, gilipollas, y el ranking no discute, mierda, y el grupo ya lo olió, mierda.',
 
-    'Fail anunciado con números, mierda, y el ranking no discute, coño, y el grupo ya lo olió, coño. Hostia puta, qué nivel.',
+    'Fail anunciado con números, mierda, y el ranking no discute, coño, y el grupo ya lo olió, coño.',
 
-    'Bajo. Archivado por piedad, coño, y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón. Hostia puta, qué nivel.',
+    'Bajo. Archivado por piedad, coño, y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón.',
 
-    'Casi cero con maquillaje, asco, y el ranking no discute, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Casi cero con maquillaje, asco, y el ranking no discute, gilipollas.',
 
-    'Ship flojo de solemnidad, patético, y el ranking no discute, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Ship flojo de solemnidad, patético, y el ranking no discute, patético.',
 
-    'Compatibilidad de trámite negativo, basura, y el ranking no discute, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Compatibilidad de trámite negativo, basura, y el ranking no discute, asco.',
 
-    'Bajo. El grupo ya dijo que no, ridículo, y el ranking no discute, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Bajo. El grupo ya dijo que no, ridículo, y el ranking no discute, basura.',
 
-    'Poca chispa, mucho papelón, fracasado, y el ranking no discute, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Poca chispa, mucho papelón, fracasado, y el ranking no discute, ridículo.',
 
-    'Ship en zona de peligro tibio, joder., y el ranking no discute, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Ship en zona de peligro tibio, joder., y el ranking no discute, fracasado.',
 
     'Bajo de verdad. Sin anestesia, cabrón, y el ranking no discute, joder, y el grupo ya lo olió, joder.',
 
-    'Química ausente con testigos, gilipollas, y el ranking no discute, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Química ausente con testigos, gilipollas, y el ranking no discute, mierda.',
 
-    'Fail de pareja en diferido, mierda, y el ranking no discute, coño, y el grupo ya lo olió, coño. Hostia puta, qué nivel, patético.',
+    'Fail de pareja en diferido, mierda, y el ranking no discute, coño, y el grupo ya lo olió, coño.',
 
     'Bajo. No fuerces el crossover, coño, y el ranking no discute, cabrón, y el grupo ya lo olió, miserable.',
 
-    'Poco ship, mucho cringe potencial, asco, y el ranking no discute, gilipollas. Hostia puta, qué nivel, qué cringe.',
+    'Poco ship, mucho cringe potencial, asco, y el ranking no discute, gilipollas.',
 
-    'Compatibilidad de sótano documentada, patético, y el ranking no discute, patético. Hostia puta, qué nivel, da asco.',
+    'Compatibilidad de sótano documentada, patético, y el ranking no discute, patético.',
 
-    'Ship bajo sin plot twist, basura, y el ranking no discute, asco, y el grupo ya lo olió, asco. Hostia puta, qué nivel, qué vergüenza.',
+    'Ship bajo sin plot twist, basura, y el ranking no discute, asco, y el grupo ya lo olió, asco.',
 
-    'Bajo. Caso casi cerrado, ridículo, y el ranking no discute, basura, y el grupo ya lo olió, basura. Hostia puta, qué nivel, ridículo.',
+    'Bajo. Caso casi cerrado, ridículo, y el ranking no discute, basura, y el grupo ya lo olió, basura.',
 
-    'La química pidió la baja, fracasado, y el ranking no discute, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
+    'La química pidió la baja, fracasado, y el ranking no discute, ridículo.',
 
-    'Química en huelga, fracasado, fracasado, y el ranking no discute, fracasado, y el grupo ya lo olió, fracasado.',
+    'Química en huelga, fracasado, y el ranking no discute, fracasado, y el grupo ya lo olió, fracasado.',
 
 ],
   zero: [
@@ -931,85 +931,85 @@ const VERDICTS = {
 
     'Cero de compatibilidad. El veredicto es un muro seco delante del puto grupo delante del puto grupo, fracasado.',
 
-    'Nada. Cero spark, cero futuro, cero debate, cabrón, y el ranking no discute, joder. Hostia puta, qué nivel.',
+    'Nada. Cero spark, cero futuro, cero debate, cabrón, y el ranking no discute, joder.',
 
-    'Ship imposible. El ranking firmó el no, gilipollas, y el ranking no discute, mierda. Hostia puta, qué nivel.',
+    'Ship imposible. El ranking firmó el no, gilipollas, y el ranking no discute, mierda.',
 
     'Cero de cero. Ni en fanfic salva, mierda, y el ranking no discute, coño, y el grupo ya lo olió, coño.',
 
-    'Nula compatibilidad. El chat ni lo intenta, coño, y el ranking no discute, cabrón. Hostia puta, qué nivel.',
+    'Nula compatibilidad. El chat ni lo intenta, coño, y el ranking no discute, cabrón.',
 
-    'Cero. Mejor enemigos que esto, asco, y el ranking no discute, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Cero. Mejor enemigos que esto, asco, y el ranking no discute, gilipollas.',
 
-    'Ship cancelado antes de empezar, patético, y el ranking no discute, patético. Hostia puta, qué nivel.',
+    'Ship cancelado antes de empezar, patético, y el ranking no discute, patético.',
 
-    'Nada de nada. El número es un muro, basura, y el ranking no discute, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Nada de nada. El número es un muro, basura, y el ranking no discute, asco.',
 
-    'Cero químico. Archivado con asco, ridículo, y el ranking no discute, basura. Hostia puta, qué nivel.',
+    'Cero químico. Archivado con asco, ridículo, y el ranking no discute, basura.',
 
-    'Imposible. Fin del experimento, fracasado, y el ranking no discute, ridículo. Hostia puta, qué nivel.',
+    'Imposible. Fin del experimento, fracasado, y el ranking no discute, ridículo.',
 
-    'Cero. Ni el RNG los junta con sentido, joder., y el ranking no discute, fracasado. Hostia puta, qué nivel.',
+    'Cero. Ni el RNG los junta con sentido, joder., y el ranking no discute, fracasado.',
 
-    'Nula. El grupo respira aliviado, cabrón, y el ranking no discute, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Nula. El grupo respira aliviado, cabrón, y el ranking no discute, joder.',
 
-    'Ship cero. Sin derecho a almost, gilipollas, y el ranking no discute, mierda. Hostia puta, qué nivel.',
+    'Ship cero. Sin derecho a almost, gilipollas, y el ranking no discute, mierda.',
 
-    'Nada. Química en modo avión eterno, mierda, y el ranking no discute, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Nada. Química en modo avión eterno, mierda, y el ranking no discute, coño.',
 
-    'Cero total. Caso cerrado, coño, y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón. Hostia puta, qué nivel.',
+    'Cero total. Caso cerrado, coño, y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón.',
 
-    'Imposible de vender hasta de broma, asco, y el ranking no discute, gilipollas. Hostia puta, qué nivel.',
+    'Imposible de vender hasta de broma, asco, y el ranking no discute, gilipollas.',
 
-    'Ship nulo. El ranking no negocia, patético, y el ranking no discute, patético. Hostia puta, qué nivel.',
+    'Ship nulo. El ranking no negocia, patético, y el ranking no discute, patético.',
 
     'Cero. Mejor cada uno por su lado, basura, y el ranking no discute, asco, y el grupo ya lo olió, asco.',
 
-    'Nula compatibilidad documentada, ridículo, y el ranking no discute, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Nula compatibilidad documentada, ridículo, y el ranking no discute, basura.',
 
-    'Cero spark. Cero paciencia del chat, fracasado, y el ranking no discute, ridículo. Hostia puta, qué nivel.',
+    'Cero spark. Cero paciencia del chat, fracasado, y el ranking no discute, ridículo.',
 
-    'Nada. El agujero donde debería haber química, joder., y el ranking no discute, fracasado. Hostia puta, qué nivel.',
+    'Nada. El agujero donde debería haber química, joder., y el ranking no discute, fracasado.',
 
-    'Ship imposible con sello oficial, cabrón, y el ranking no discute, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Ship imposible con sello oficial, cabrón, y el ranking no discute, joder.',
 
-    'Cero. Ni forzado funciona, gilipollas, y el ranking no discute, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Cero. Ni forzado funciona, gilipollas, y el ranking no discute, mierda.',
 
-    'Nula. Fin, mierda, y el ranking no discute, coño, y el grupo ya lo olió, coño. Hostia puta, qué nivel.',
+    'Nula. Fin, mierda, y el ranking no discute, coño, y el grupo ya lo olió, coño.',
 
-    'Cero de compatibilidad. Sin anestesia, coño, y el ranking no discute, cabrón. Hostia puta, qué nivel.',
+    'Cero de compatibilidad. Sin anestesia, coño, y el ranking no discute, cabrón.',
 
-    'Imposible. El chat ya pasó página, asco, y el ranking no discute, gilipollas. Hostia puta, qué nivel.',
+    'Imposible. El chat ya pasó página, asco, y el ranking no discute, gilipollas.',
 
-    'Ship cero sin narrador amigo, patético, y el ranking no discute, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Ship cero sin narrador amigo, patético, y el ranking no discute, patético.',
 
-    'Nada que salvar. Nada que inventar, basura, y el ranking no discute, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Nada que salvar. Nada que inventar, basura, y el ranking no discute, asco.',
 
-    'Cero. El no más limpio del catálogo, ridículo, y el ranking no discute, basura. Hostia puta, qué nivel.',
+    'Cero. El no más limpio del catálogo, ridículo, y el ranking no discute, basura.',
 
-    'Nula química. Archivado, fracasado, y el ranking no discute, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Nula química. Archivado, fracasado, y el ranking no discute, ridículo.',
 
-    'Cero total. Ni meme salva esto, joder., y el ranking no discute, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Cero total. Ni meme salva esto, joder., y el ranking no discute, fracasado.',
 
     'Ship cancelado por el universo, cabrón, y el ranking no discute, joder, y el grupo ya lo olió, joder.',
 
-    'Nada. El ranking fue misericordioso al decir cero, gilipollas, y el ranking no discute, mierda. Hostia puta, qué nivel.',
+    'Nada. El ranking fue misericordioso al decir cero, gilipollas, y el ranking no discute, mierda.',
 
-    'Cero. Punto final, mierda, y el ranking no discute, coño, y el grupo ya lo olió, coño. Hostia puta, qué nivel.',
+    'Cero. Punto final, mierda, y el ranking no discute, coño, y el grupo ya lo olió, coño.',
 
-    'Imposible de shippear sin autoengaño, coño, y el ranking no discute, cabrón. Hostia puta, qué nivel.',
+    'Imposible de shippear sin autoengaño, coño, y el ranking no discute, cabrón.',
 
-    'Nula. El grupo lo sabía, asco, y el ranking no discute, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Nula. El grupo lo sabía, asco, y el ranking no discute, gilipollas.',
 
-    'Cero químico sin maquillaje, patético, y el ranking no discute, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Cero químico sin maquillaje, patético, y el ranking no discute, patético.',
 
-    'Ship nulo. Sin bis, basura, y el ranking no discute, asco, y el grupo ya lo olió, asco. Hostia puta, qué nivel.',
+    'Ship nulo. Sin bis, basura, y el ranking no discute, asco, y el grupo ya lo olió, asco.',
 
-    'Nada de nada. Caso cerrado con llave, ridículo, y el ranking no discute, basura. Hostia puta, qué nivel.',
+    'Nada de nada. Caso cerrado con llave, ridículo, y el ranking no discute, basura.',
 
-    'Cero. Y menos mal, fracasado, y el ranking no discute, ridículo, y el grupo ya lo olió, ridículo. Hostia puta, qué nivel.',
+    'Cero. Y menos mal, fracasado, y el ranking no discute, ridículo, y el grupo ya lo olió, ridículo.',
 
-    'Cero spark. Cero paciencia del chat, fracasado, fracasado, y el ranking no discute, fracasado, y el grupo ya lo olió, fracasado.',
+    'Cero spark. Cero paciencia del chat, fracasado, y el ranking no discute, fracasado, y el grupo ya lo olió, fracasado.',
 
 ],
 };

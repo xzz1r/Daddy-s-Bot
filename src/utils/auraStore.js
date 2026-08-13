@@ -162,7 +162,7 @@ async function load() {
       .then((d) => { store = d; migrarEscala(); aplicarSuelo(); })
       .catch((e) => {
         loadPromise = null;
-        logger.warn(`auraStore: lectura falló (${e.message}); no se toca el archivo`);
+        logger.warn(`auraStore: lectura falló (${e.message}); no se toca el archivo.`);
         throw e;
       });
   }
@@ -174,7 +174,7 @@ function scheduleSave() {
   saveTimer = setTimeout(async () => {
     saveTimer = null;
     try { await atomicWriteJson(AURA_FILE, store); }
-    catch (e) { logger.error(`auraStore: fallo al guardar: ${e.message}`); }
+    catch (e) { logger.error(`auraStore: fallo al guardar: ${e.message}.`); }
   }, 5000);
 }
 
@@ -221,7 +221,7 @@ async function getAura(groupJid, userJid) {
 
 async function addAura(groupJid, userJid, delta) {
   await load();
-  const qKey = `${groupJid}|${canonicalJid(userJid)}`;
+  const qKey = `${groupJid}|${canonicalJid(userJid)}.`;
   return serialized(qKey, () => {
     if (!store[groupJid]) store[groupJid] = {};
     const key = foldPerson(store[groupJid], userJid);
@@ -270,7 +270,7 @@ async function transferAura(groupJid, fromJid, toJid, amount) {
 // Devuelve { ok: true, cobrado, current } o { ok: false, saldo } si no llega.
 async function spendAura(groupJid, userJid, amount, minimo = 0) {
   await load();
-  const qKey = `${groupJid}|${canonicalJid(userJid)}`;
+  const qKey = `${groupJid}|${canonicalJid(userJid)}.`;
   return serialized(qKey, () => {
     if (!store[groupJid]) store[groupJid] = {};
     const key = foldPerson(store[groupJid], userJid);
@@ -336,7 +336,7 @@ async function flushAura() {
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
   if (store) {
     try { await atomicWriteJson(AURA_FILE, store); }
-    catch (e) { logger.error(`auraStore: fallo al flush: ${e.message}`); }
+    catch (e) { logger.error(`auraStore: fallo al flush: ${e.message}.`); }
   }
 }
 

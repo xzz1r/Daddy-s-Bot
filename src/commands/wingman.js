@@ -16,7 +16,7 @@ const RIZZ = {
 
     '%N le puso "jaja" a un mensaje y la otra persona canceló una boda para pensárselo mejor. No es una exageración, es un reporte policial, qué cringe.',
 
-    'Hay gente en terapia pagando ciento cincuenta por sesión para superar dos semanas hablando con %N. El terapeuta también está enamorado, para que sepas, da, asco, da asco.',
+    'Hay gente en terapia pagando ciento cincuenta por sesión para superar dos semanas hablando con %N. El terapeuta también está enamorado, para que sepas, da asco.',
 
     '%N respondió tarde a propósito una vez, y la otra persona todavía revisa el reloj a esa hora exacta cada noche, como una plegaria, qué vergüenza.',
 
@@ -56,159 +56,159 @@ const RIZZ = {
 
     '%N tiene el tipo de magnetismo que deja secuelas: gente que jura que nunca más se enamora y dos semanas después está igual, otra vez, por %N, qué cringe.',
 
-    '%N tiene tanto rizz que hasta sus rechazos generan lealtad absurda, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da, asco, da asco.',
+    '%N tiene tanto rizz que hasta sus rechazos generan lealtad absurda, cabrón., asco, da asco.',
 
-    'Cuando %N entra al chat, dos personas fingen indiferencia y una tercera revisa su vida, gilipollas. Hostia puta, qué nivel, qué vergüenza.',
+    'Cuando %N entra al chat, dos personas fingen indiferencia y una tercera revisa su vida, gilipollas.',
 
-    '%N mandó una foto normal y alguien la imprimió para el velador, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, ridículo.',
+    '%N mandó una foto normal y alguien la imprimió para el velador, mierda.',
 
-    '%N puede decir no puedo hoy y la otra persona pide perdón sin motivo, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
+    '%N puede decir no puedo hoy y la otra persona pide perdón sin motivo, asco.',
 
-    '%N tiene el magnetismo que deja secuelas documentadas, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué miseria.',
+    '%N tiene el magnetismo que deja secuelas documentadas, basura.miseria.',
 
-    'Si %N quisiera, vaciaría un pueblo de parejas estables en un domingo, ridículo. Hostia puta, qué nivel, da grima.',
+    'Si %N quisiera, vaciaría un pueblo de parejas estables en un domingo, ridículo.',
 
-    '%N escribió ja sin la segunda a y provocó crisis en tres grupos de amigas, fracasado. Hostia puta, qué nivel, qué nivel de pena.',
+    '%N escribió ja sin la segunda a y provocó crisis en tres grupos de amigas, fracasado.',
 
-    '%N llega tarde, cancela dos veces y sigue siendo la mejor opción de la lista, joder. Hostia puta, qué nivel, basura.',
+    '%N llega tarde, cancela dos veces y sigue siendo la mejor opción de la lista, joder.',
 
-    'Alguien dejó su terapia de pareja por quince minutos de chat con %N, cabrón. Hostia puta, qué nivel, qué cutre.',
+    'Alguien dejó su terapia de pareja por quince minutos de chat con %N, cabrón.',
 
-    '%N tiene rizz de los que no se entrenan: se hereda de algo oscuro, gilipollas. Hostia puta, qué nivel, da pena ajena.',
+    '%N tiene rizz de los que no se entrenan: se hereda de algo oscuro, gilipollas.',
 
-    '%N puede vaciar la autoestima de una sala solo pasando por el medio, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vacío.',
+    '%N puede vaciar la autoestima de una sala solo pasando por el medio, coño.vacío.',
 
-    'Cuando %N dice wenas, tres personas interpretan un código secreto, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, indignante.',
+    'Cuando %N dice wenas, tres personas interpretan un código secreto, asco.',
 
-    '%N tiene el tipo de presencia que hace que gente estable se replantee todo, patético. Hostia puta, qué nivel, qué vergüenza ajena.',
+    '%N tiene el tipo de presencia que hace que gente estable se replantee todo, patético.ajena.',
 
-    'Le contestan a %N al segundo o nunca: no hay término medio, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da vergüenza.',
+    'Le contestan a %N al segundo o nunca: no hay término medio, basura.vergüenza.',
 
-    '%N es el final boss del chat y el tutorial del resto, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué flojo.',
+    '%N es el final boss del chat y el tutorial del resto, ridículo.flojo.',
 
-    'Con %N hasta el visto se siente personal, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, menudo desastre.',
+    'Con %N hasta el visto se siente personal, fracasado.desastre.',
 
-    '%N manda un sticker y alguien lo analiza como texto sagrado, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué pena.',
+    '%N manda un sticker y alguien lo analiza como texto sagrado, joder.pena.',
 
-    'El rizz de %N funciona en modo avión: sin esfuerzo visible, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, patético.',
+    'El rizz de %N funciona en modo avión: sin esfuerzo visible, cabrón.',
 
-    '%N no pide atención: la atención se le sube sola al regazo, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, miserable.',
+    '%N no pide atención: la atención se le sube sola al regazo, gilipollas.',
 
-    'Hay gente que guarda capturas de %N como reliquia, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cringe.',
+    'Hay gente que guarda capturas de %N como reliquia, mierda.cringe.',
 
-    '%N puede desaparecer una semana y el hilo sigue orbitando, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da, asco, da asco.',
+    '%N puede desaparecer una semana y el hilo sigue orbitando, coño., asco, da asco.',
 
-    'Cuando %N habla en serio, el chat baja el volumen del resto, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza.',
+    'Cuando %N habla en serio, el chat baja el volumen del resto, asco.vergüenza.',
 
-    '%N tiene el pack completo: timing, cara y cero prisa, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, ridículo.',
+    '%N tiene el pack completo: timing, cara y cero prisa, patético.',
 
-    'Un cumplido de %N vale más que un ensayo de otro, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
+    'Un cumplido de %N vale más que un ensayo de otro, basura.',
 
-    '%N no persigue: deja que el resto se tropiece solo, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué miseria.',
+    '%N no persigue: deja que el resto se tropiece solo, ridículo.miseria.',
 
-    'El aura de %N en modo social es ilegal en tres países, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da grima.',
+    'El aura de %N en modo social es ilegal en tres países, fracasado.grima.',
 
-    '%N dice poco y el poco pesa, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué nivel de pena.',
+    '%N dice poco y el poco pesa, joder.nivel de pena.',
 
-    'Hay un antes y un después de cruzarse con %N en este chat, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, basura.',
+    'Hay un antes y un después de cruzarse con %N en este chat, cabrón.',
 
-    '%N convierte un hola en incident report emocional, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cutre.',
+    '%N convierte un hola en incident report emocional, gilipollas.cutre.',
 
-    'La gente estable evita a %N por higiene mental, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da pena ajena.',
+    'La gente estable evita a %N por higiene mental, mierda.pena ajena.',
 
-    '%N no gana debates: los deja sin oxígeno, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vacío.',
+    '%N no gana debates: los deja sin oxígeno, coño.vacío.',
 
-    'Con %N el almost duele más que el no, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, indignante.',
+    'Con %N el almost duele más que el no, asco.',
 
-    '%N tiene rizz de apagón: todo se detiene un segundo, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza ajena.',
+    '%N tiene rizz de apagón: todo se detiene un segundo, patético.vergüenza ajena.',
 
-    'Hasta los cínicos del grupo respetan el material de %N, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da vergüenza.',
+    'Hasta los cínicos del grupo respetan el material de %N, basura.vergüenza.',
 
-    '%N no necesita filtro: el resto necesita casco, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué flojo.',
+    '%N no necesita filtro: el resto necesita casco, ridículo.flojo.',
 
-    'El chat tiene un subhilo mental dedicado a %N, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, menudo desastre.',
+    'El chat tiene un subhilo mental dedicado a %N, fracasado.desastre.',
 
-    'Con %N hasta el visto se siente personal, fracasado, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué pena.',
+    'Con %N hasta el visto se siente personal, fracasado.pena.',
 
-    '%N manda un sticker y alguien lo analiza como texto sagrado, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, patético.',
+    '%N manda un sticker y alguien lo analiza como texto sagrado, joder.',
 
-    'El rizz de %N funciona en modo avión: sin esfuerzo visible, cabrón, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, miserable.',
+    'El rizz de %N funciona en modo avión: sin esfuerzo visible, cabrón, mierda.',
 
-    '%N no pide atención: la atención se le sube sola al regazo, gilipollas, coño. Hostia puta, qué nivel, qué cringe.',
+    '%N no pide atención: la atención se le sube sola al regazo, gilipollas, coño.',
 
-    'Hay gente que guarda capturas de %N como reliquia, mierda, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da, asco, da asco.',
+    'Hay gente que guarda capturas de %N como reliquia, mierda, cabrón., asco, da asco.',
 
-    '%N puede desaparecer una semana y el hilo sigue orbitando, coño, gilipollas. Hostia puta, qué nivel, qué vergüenza.',
+    '%N puede desaparecer una semana y el hilo sigue orbitando, coño, gilipollas.',
 
-    'Cuando %N habla en serio, el chat baja el volumen del resto, asco, patético. Hostia puta, qué nivel, ridículo.',
+    'Cuando %N habla en serio, el chat baja el volumen del resto, asco, patético.',
 
-    '%N tiene el pack completo: timing, cara y cero prisa, patético, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
+    '%N tiene el pack completo: timing, cara y cero prisa, patético, asco.',
 
-    'Un cumplido de %N vale más que un ensayo de otro, basura, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué miseria.',
+    'Un cumplido de %N vale más que un ensayo de otro, basura.miseria.',
 
-    '%N no persigue: deja que el resto se tropiece solo, ridículo, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da grima.',
+    '%N no persigue: deja que el resto se tropiece solo, ridículo.grima.',
 
-    'El aura de %N en modo social es ilegal en tres países, fracasado, fracasado. Hostia puta, qué nivel, qué nivel de pena.',
+    'El aura de %N en modo social es ilegal en tres países, fracasado.',
 
-    '%N dice poco y el poco pesa, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, basura.',
+    '%N dice poco y el poco pesa, joder.',
 
-    'Hay un antes y un después de cruzarse con %N en este chat, cabrón, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cutre.',
+    'Hay un antes y un después de cruzarse con %N en este chat, cabrón, mierda.cutre.',
 
-    '%N convierte un hola en incident report emocional, gilipollas, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da pena ajena.',
+    '%N convierte un hola en incident report emocional, gilipollas, coño.pena ajena.',
 
-    'La gente estable evita a %N por higiene mental, mierda, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vacío.',
+    'La gente estable evita a %N por higiene mental, mierda, cabrón.vacío.',
 
-    '%N no gana debates: los deja sin oxígeno, coño, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, indignante.',
+    '%N no gana debates: los deja sin oxígeno, coño, gilipollas.',
 
-    'Con %N el almost duele más que el no, asco, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza ajena.',
+    'Con %N el almost duele más que el no, asco, patético.vergüenza ajena.',
 
-    '%N tiene rizz de apagón: todo se detiene un segundo, patético, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da vergüenza.',
+    '%N tiene rizz de apagón: todo se detiene un segundo, patético, asco.vergüenza.',
 
-    'Hasta los cínicos del grupo respetan el material de %N, basura, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué flojo.',
+    'Hasta los cínicos del grupo respetan el material de %N, basura.flojo.',
 
-    '%N no necesita filtro: el resto necesita casco, ridículo, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, menudo desastre.',
+    '%N no necesita filtro: el resto necesita casco, ridículo.desastre.',
 
-    'El chat tiene un subhilo mental dedicado a %N, fracasado, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué pena.',
+    'El chat tiene un subhilo mental dedicado a %N, fracasado.pena.',
 
-    '%N mandó un audio de siete segundos diciendo eh hola y alguien lo tiene de tono de llamada, joder. Hostia puta, qué nivel, patético.',
+    '%N mandó un audio de siete segundos diciendo eh hola y alguien lo tiene de tono de llamada, joder.',
 
-    '%N tiene tanto rizz que hasta sus rechazos generan lealtad absurda, cabrón, mierda. Hostia puta, qué nivel, miserable.',
+    '%N tiene tanto rizz que hasta sus rechazos generan lealtad absurda, cabrón, mierda.',
 
     'Cuando %N entra al chat, dos personas fingen indiferencia y una tercera revisa su vida, gilipollas, qué cringe.',
 
-    '%N mandó una foto normal y alguien la imprimió para el velador, mierda, cabrón. Hostia puta, qué nivel, da, asco, da asco.',
+    '%N mandó una foto normal y alguien la imprimió para el velador, mierda, cabrón., da asco.',
 
-    'La ex de %N sigue pagando el gimnasio del barrio por si se cruzan, coño, gilipollas. Hostia puta, qué nivel, qué vergüenza.',
+    'La ex de %N sigue pagando el gimnasio del barrio por si se cruzan, coño, gilipollas.',
 
-    '%N puede decir no puedo hoy y la otra persona pide perdón sin motivo, asco, patético. Hostia puta, qué nivel, ridículo.',
+    '%N puede decir no puedo hoy y la otra persona pide perdón sin motivo, asco, patético.',
 
-    'Un desconocido le escribió a %N por error y terminó contándole su trauma, patético, asco. Hostia puta, qué nivel, fracasado.',
+    'Un desconocido le escribió a %N por error y terminó contándole su trauma, patético, asco.',
 
-    '%N tiene el magnetismo que deja secuelas documentadas, basura, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué miseria.',
+    '%N tiene el magnetismo que deja secuelas documentadas, basura.miseria.',
 
-    'Si %N quisiera, vaciaría un pueblo de parejas estables en un domingo, ridículo, ridículo. Hostia puta, qué nivel, da grima.',
+    'Si %N quisiera, vaciaría un pueblo de parejas estables en un domingo, ridículo.',
 
-    '%N escribió ja sin la segunda a y provocó crisis en tres grupos de amigas, fracasado, fracasado. Hostia puta, qué nivel, qué nivel de pena.',
+    '%N escribió ja sin la segunda a y provocó crisis en tres grupos de amigas, fracasado.',
 
-    '%N llega tarde, cancela dos veces y sigue siendo la mejor opción de la lista, joder. Hostia puta, qué nivel, basura.',
+    '%N llega tarde, cancela dos veces y sigue siendo la mejor opción de la lista, joder.',
 
-    'Alguien dejó su terapia de pareja por quince minutos de chat con %N, cabrón, mierda. Hostia puta, qué nivel, qué cutre.',
+    'Alguien dejó su terapia de pareja por quince minutos de chat con %N, cabrón, mierda.',
 
-    '%N tiene rizz de los que no se entrenan: se hereda de algo oscuro, gilipollas, coño. Hostia puta, qué nivel, da pena ajena.',
+    '%N tiene rizz de los que no se entrenan: se hereda de algo oscuro, gilipollas, coño.',
 
-    'La última vez que %N ignoró a alguien, esa persona contrató un detective emocional, mierda, cabrón. Hostia puta, qué nivel, qué vacío.',
+    'La última vez que %N ignoró a alguien, esa persona contrató un detective emocional, mierda, cabrón.',
 
-    '%N puede vaciar la autoestima de una sala solo pasando por el medio, coño, gilipollas. Hostia puta, qué nivel, indignante.',
+    '%N puede vaciar la autoestima de una sala solo pasando por el medio, coño, gilipollas.',
 
-    'Cuando %N dice wenas, tres personas interpretan un código secreto, asco, patético. Hostia puta, qué nivel, qué vergüenza ajena.',
+    'Cuando %N dice wenas, tres personas interpretan un código secreto, asco, patético.ajena.',
 
-    '%N tiene el tipo de presencia que hace que gente estable se replantee todo, patético, asco. Hostia puta, qué nivel, da vergüenza.',
+    '%N tiene el tipo de presencia que hace que gente estable se replantee todo, patético, asco.',
 
-    'Le contestan a %N al segundo o nunca: no hay término medio, basura, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué flojo.',
+    'Le contestan a %N al segundo o nunca: no hay término medio, basura.flojo.',
 
-    '%N es el final boss del chat y el tutorial del resto, ridículo, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, menudo desastre.',
+    '%N es el final boss del chat y el tutorial del resto, ridículo.desastre.',
 
-    'Con %N hasta el visto se siente personal, fracasado, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué pena.',
+    'Con %N hasta el visto se siente personal, fracasado.pena.',
 
 ],
   mid: [
@@ -256,161 +256,161 @@ const RIZZ = {
 
     'El rizz de %N vive en una montaña rusa que solo él no ve: sube, baja, grita, y termina el día sin saber si ganó o perdió algo.',
 
-    '%N tuvo una racha de tres días y la cerró con wenas sin hache, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N tuvo una racha de tres días y la cerró con wenas sin hache, joder.',
 
-    'El rizz de %N es ambulancia: llega, hace ruido y a veces confirma la defunción, cabrón. Hostia puta, qué nivel.',
+    'El rizz de %N es ambulancia: llega, hace ruido y a veces confirma la defunción, cabrón.',
 
-    '%N tiene material de genio y ejecución de tropiezo con la sombra, gilipollas. Hostia puta, qué nivel.',
+    '%N tiene material de genio y ejecución de tropiezo con la sombra, gilipollas.',
 
-    '%N casi lo logra y el casi es su deporte oficial, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N casi lo logra y el casi es su deporte oficial, coño.',
 
-    'Hay días en que %N brilla y días en que se tropieza solo, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Hay días en que %N brilla y días en que se tropieza solo, asco.',
 
-    '%N mezcla buen timing con decisiones de borracho sobrio, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N mezcla buen timing con decisiones de borracho sobrio, patético.',
 
-    'El chat no sabe si shippear a %N o abrirle un expediente, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El chat no sabe si shippear a %N o abrirle un expediente, basura.',
 
-    '%N tiene rizz a ratos y radio silenciada el resto, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N tiene rizz a ratos y radio silenciada el resto, ridículo.',
 
-    'Medio pack: %N enamora y después manda un audio de tres minutos vacío, fracasado. Hostia puta, qué nivel.',
+    'Medio pack: %N enamora y después manda un audio de tres minutos vacío, fracasado.',
 
-    '%N sube, baja y deja al personal mareado, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N sube, baja y deja al personal mareado, joder.',
 
-    'El almost de %N ya es marca registrada del grupo, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El almost de %N ya es marca registrada del grupo, cabrón.',
 
-    '%N puede salvar una conversación y matarla en el mensaje siguiente, gilipollas. Hostia puta, qué nivel.',
+    '%N puede salvar una conversación y matarla en el mensaje siguiente, gilipollas.',
 
-    'Rizz intermitente: %N como wifi del vecino, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Rizz intermitente: %N como wifi del vecino, mierda.',
 
-    '%N tiene buenas cartas y las juega de culo a veces, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N tiene buenas cartas y las juega de culo a veces, coño.',
 
-    'El grupo celebra a %N y dos horas después le hace un roast, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El grupo celebra a %N y dos horas después le hace un roast, asco.',
 
-    '%N no es desastre total ni promesa cumplida, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N no es desastre total ni promesa cumplida, patético.',
 
-    'Material irregular: %N es una montaña rusa sin frenos, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Material irregular: %N es una montaña rusa sin frenos, basura.',
 
-    '%N casi cierra el trato y abrió un ticket de soporte, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N casi cierra el trato y abrió un ticket de soporte, ridículo.',
 
-    'Medio. %N da para hilo y para silence treatment, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Medio. %N da para hilo y para silence treatment, fracasado.',
 
-    '%N tiene días de final boss y días de tutorial, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N tiene días de final boss y días de tutorial, joder.',
 
-    'El rizz de %N funciona en beta perpetua, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El rizz de %N funciona en beta perpetua, cabrón.',
 
-    '%N enamora en texto y se desmonta en audio, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N enamora en texto y se desmonta en audio, gilipollas.',
 
-    'Hay potencial en %N y también hay evidencias en contra, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Hay potencial en %N y también hay evidencias en contra, mierda.',
 
-    '%N es el rey del almost documentado, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N es el rey del almost documentado, coño.',
 
-    'El chat le da oportunidades a %N por entretenimiento, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El chat le da oportunidades a %N por entretenimiento, asco.',
 
-    '%N sube el hype y lo baja con un ja, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N sube el hype y lo baja con un ja, patético.',
 
-    'Rizz a medias: %N ni salva ni hunde del todo, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Rizz a medias: %N ni salva ni hunde del todo, basura.',
 
-    '%N deja el personal confuso a propósito o por accidente, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N deja el personal confuso a propósito o por accidente, ridículo.',
 
-    'Medio pack con picos y valles, %N, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Medio pack con picos y valles, %N, fracasado.',
 
-    '%N puede ser el problema y la solución en el mismo hilo, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N puede ser el problema y la solución en el mismo hilo, joder.',
 
-    'El timing de %N llega tarde a su propia fiesta, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El timing de %N llega tarde a su propia fiesta, cabrón.',
 
-    '%N tiene gancho y también tiene fugas, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N tiene gancho y también tiene fugas, gilipollas.',
 
-    'Material de %N: brillante y resbaladizo, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Material de %N: brillante y resbaladizo, mierda.',
 
-    '%N no cierra ciclos: los deja en visto emocional, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N no cierra ciclos: los deja en visto emocional, coño.',
 
-    '%N: Rizz irregular certificado por el grupo, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N: Rizz irregular certificado por el grupo, asco.',
 
-    '%N casi genio, casi desastre, nunca aburrido del todo, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N casi genio, casi desastre, nunca aburrido del todo, patético.',
 
-    'El chat no apuesta fuerte por %N ni en contra, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El chat no apuesta fuerte por %N ni en contra, basura.',
 
-    '%N es montaña rusa con billete de ida, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N es montaña rusa con billete de ida, ridículo.',
 
-    'Medio. %N da contenido, no estabilidad, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Medio. %N da contenido, no estabilidad, fracasado.',
 
-    'El rizz de %N funciona en beta perpetua, cabrón, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El rizz de %N funciona en beta perpetua, cabrón, mierda.',
 
-    '%N enamora en texto y se desmonta en audio, gilipollas, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N enamora en texto y se desmonta en audio, gilipollas, coño.',
 
-    'Hay potencial en %N y también hay evidencias en contra, mierda, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Hay potencial en %N y también hay evidencias en contra, mierda, cabrón.',
 
-    '%N es el rey del almost documentado, coño, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N es el rey del almost documentado, coño, gilipollas.',
 
-    'El chat le da oportunidades a %N por entretenimiento, asco, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El chat le da oportunidades a %N por entretenimiento, asco, patético.',
 
-    '%N sube el hype y lo baja con un ja, patético, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N sube el hype y lo baja con un ja, patético, asco.',
 
-    'Rizz a medias: %N ni salva ni hunde del todo, basura, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Rizz a medias: %N ni salva ni hunde del todo, basura.',
 
-    '%N deja el personal confuso a propósito o por accidente, ridículo, ridículo. Hostia puta, qué nivel.',
+    '%N deja el personal confuso a propósito o por accidente, ridículo.',
 
-    'Medio pack con picos y valles, %N, fracasado, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Medio pack con picos y valles, %N, fracasado.',
 
-    '%N puede ser el problema y la solución en el mismo hilo, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N puede ser el problema y la solución en el mismo hilo, joder.',
 
-    'El timing de %N llega tarde a su propia fiesta, cabrón, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El timing de %N llega tarde a su propia fiesta, cabrón, mierda.',
 
-    '%N tiene gancho y también tiene fugas, gilipollas, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N tiene gancho y también tiene fugas, gilipollas, coño.',
 
-    'Material de %N: brillante y resbaladizo, mierda, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Material de %N: brillante y resbaladizo, mierda, cabrón.',
 
-    '%N no cierra ciclos: los deja en visto emocional, coño, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N no cierra ciclos: los deja en visto emocional, coño, gilipollas.',
 
-    '%N: Rizz irregular certificado por el grupo, asco, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N: Rizz irregular certificado por el grupo, asco, patético.',
 
-    '%N casi genio, casi desastre, nunca aburrido del todo, patético, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N casi genio, casi desastre, nunca aburrido del todo, patético, asco.',
 
-    'El chat no apuesta fuerte por %N ni en contra, basura, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El chat no apuesta fuerte por %N ni en contra, basura.',
 
-    '%N es montaña rusa con billete de ida, ridículo, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N es montaña rusa con billete de ida, ridículo.',
 
-    'Medio. %N da contenido, no estabilidad, fracasado, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Medio. %N da contenido, no estabilidad, fracasado.',
 
-    '%N tuvo una racha de tres días y la cerró con wenas sin hache, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N tuvo una racha de tres días y la cerró con wenas sin hache, joder.',
 
-    'El rizz de %N es ambulancia: llega, hace ruido y a veces confirma la defunción, cabrón, mierda. Hostia puta, qué nivel.',
+    'El rizz de %N es ambulancia: llega, hace ruido y a veces confirma la defunción, cabrón, mierda.',
 
-    '%N tiene material de genio y ejecución de tropiezo con la sombra, gilipollas, coño. Hostia puta, qué nivel.',
+    '%N tiene material de genio y ejecución de tropiezo con la sombra, gilipollas, coño.',
 
-    'A %N le contestan a veces al toque y a veces nunca, y no entiende el patrón, mierda, cabrón. Hostia puta, qué nivel.',
+    'A %N le contestan a veces al toque y a veces nunca, y no entiende el patrón, mierda, cabrón.',
 
-    '%N casi lo logra y el casi es su deporte oficial, coño, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N casi lo logra y el casi es su deporte oficial, coño, gilipollas.',
 
-    'Hay días en que %N brilla y días en que se tropieza solo, asco, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Hay días en que %N brilla y días en que se tropieza solo, asco, patético.',
 
-    '%N mezcla buen timing con decisiones de borracho sobrio, patético, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N mezcla buen timing con decisiones de borracho sobrio, patético, asco.',
 
-    'El chat no sabe si shippear a %N o abrirle un expediente, basura, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El chat no sabe si shippear a %N o abrirle un expediente, basura.',
 
-    '%N tiene rizz a ratos y radio silenciada el resto, ridículo, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N tiene rizz a ratos y radio silenciada el resto, ridículo.',
 
-    'Medio pack: %N enamora y después manda un audio de tres minutos vacío, fracasado, fracasado. Hostia puta, qué nivel.',
+    'Medio pack: %N enamora y después manda un audio de tres minutos vacío, fracasado.',
 
-    '%N sube, baja y deja al personal mareado, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N sube, baja y deja al personal mareado, joder.',
 
-    'El almost de %N ya es marca registrada del grupo, cabrón, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El almost de %N ya es marca registrada del grupo, cabrón, mierda.',
 
-    '%N puede salvar una conversación y matarla en el mensaje siguiente, gilipollas, coño. Hostia puta, qué nivel.',
+    '%N puede salvar una conversación y matarla en el mensaje siguiente, gilipollas, coño.',
 
-    'Rizz intermitente: %N como wifi del vecino, mierda, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Rizz intermitente: %N como wifi del vecino, mierda, cabrón.',
 
-    '%N tiene buenas cartas y las juega de culo a veces, coño, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
+    '%N tiene buenas cartas y las juega de culo a veces, coño, gilipollas.',
 
-    'El grupo celebra a %N y dos horas después le hace un roast, asco, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué miseria.',
+    'El grupo celebra a %N y dos horas después le hace un roast, asco, patético.miseria.',
 
-    '%N no es desastre total ni promesa cumplida, patético, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da grima.',
+    '%N no es desastre total ni promesa cumplida, patético, asco.grima.',
 
-    'Material irregular: %N es una montaña rusa sin frenos, basura, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué nivel de pena.',
+    'Material irregular: %N es una montaña rusa sin frenos, basura.nivel de pena.',
 
-    '%N casi cierra el trato y abrió un ticket de soporte, ridículo, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, basura.',
+    '%N casi cierra el trato y abrió un ticket de soporte, ridículo.',
 
-    'Medio. %N da para hilo y para silence treatment, fracasado, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cutre.',
+    'Medio. %N da para hilo y para silence treatment, fracasado.cutre.',
 
 ],
   low: [
@@ -418,7 +418,7 @@ const RIZZ = {
 
     'A %N lo deberían fichar como anticoños oficial. Ni pagando consigue que alguien se quede a escuchar la segunda frase.',
 
-    'El rizz de %N es una puta ofensa pública. Cero, nulo, censurable en cualquier país civilizado. Hostia puta, qué nivel.',
+    'El rizz de %N es una puta ofensa pública. Cero, nulo, censurable en cualquier país civilizado.',
 
     '%N flirtea y provoca el mismo efecto que una alarma de incendios: todo el mundo busca la salida más cercana.',
 
@@ -450,11 +450,11 @@ const RIZZ = {
 
     'A %N lo rechazan con una contundencia que ya no es mala suerte, es un puto aviso a navegantes bien merecido.',
 
-    'El anticoños de %N funciona tan bien que deberían patentarlo como método anticonceptivo social. Hostia puta, qué nivel.',
+    'El anticoños de %N funciona tan bien que deberían patentarlo como método anticonceptivo social.',
 
     '%N tiene el don de convertir cualquier "hola" en una razón oficial para que alguien recuerde una cita médica urgente.',
 
-    'Con %N de wingman de sí mismo, hasta el espejo pide el traslado a otro cuarto de baño. Hostia puta, qué nivel.',
+    'Con %N de wingman de sí mismo, hasta el espejo pide el traslado a otro cuarto de baño.',
 
     '%N liga tan mal que ya ni cuenta como fracaso, cuenta como fenómeno estudiado por la ciencia del rechazo.',
 
@@ -466,153 +466,153 @@ const RIZZ = {
 
     'El nivel anticoños de %N es tan alto que hasta una app de citas le sugeriría, con cariño, que pruebe otro hobby.',
 
-    'El rizz de %N tiene fecha de caducidad en el mismo mensaje, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El rizz de %N tiene fecha de caducidad en el mismo mensaje, cabrón.',
 
-    '%N intenta ligar y el chat activa el modo testigo de Jehová, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N intenta ligar y el chat activa el modo testigo de Jehová, gilipollas.',
 
-    'Cuando %N manda un piropo, el grupo prepara el botiquín, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Cuando %N manda un piropo, el grupo prepara el botiquín, mierda.',
 
-    '%N tiene el magnetismo de una silla de plástico mojada, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N tiene el magnetismo de una silla de plástico mojada, coño.',
 
-    'El almost de %N es un no con efectos especiales de cringe, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El almost de %N es un no con efectos especiales de cringe, asco.',
 
-    '%N entra en modo seducción y la wifi emocional se cae, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N entra en modo seducción y la wifi emocional se cae, patético.',
 
-    'Con %N el visto se siente como un favor del universo, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Con %N el visto se siente como un favor del universo, basura.',
 
-    '%N manda audio de rizz y el transcriptor pide asilo, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N manda audio de rizz y el transcriptor pide asilo, ridículo.',
 
-    'Ligando, %N es un tutorial de qué no hacer, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Ligando, %N es un tutorial de qué no hacer, fracasado.',
 
-    '%N tiene menos game que un tutorial saltado, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N tiene menos game que un tutorial saltado, joder.',
 
-    'El chat usa a %N de ejemplo de fail romántico, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El chat usa a %N de ejemplo de fail romántico, cabrón.',
 
-    '%N intenta el closure y abre tres tickets de vergüenza, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N intenta el closure y abre tres tickets de vergüenza, gilipollas.',
 
-    'Piropo de %N: daño colateral garantizado, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Piropo de %N: daño colateral garantizado, mierda.',
 
-    '%N espanta hasta a los bots de spam, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N espanta hasta a los bots de spam, coño.',
 
-    'El rizz de %N es un pozo sin fondo de almost, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El rizz de %N es un pozo sin fondo de almost, asco.',
 
-    '%N en modo conquista es contenido para el roast, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N en modo conquista es contenido para el roast, patético.',
 
-    'Cuando %N dice hola, tres personas silencian el chat, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Cuando %N dice hola, tres personas silencian el chat, basura.',
 
-    '%N tiene química de gas noble: no reacciona con nadie, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N tiene química de gas noble: no reacciona con nadie, ridículo.',
 
-    'Fail de ligue documentado con el nombre de %N, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Fail de ligue documentado con el nombre de %N, fracasado.',
 
-    '%N intenta ser suave y sale como notificación de virus, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N intenta ser suave y sale como notificación de virus, joder.',
 
-    'El grupo ya tiene copypasta con los fails de %N, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El grupo ya tiene copypasta con los fails de %N, cabrón.',
 
-    '%N en citas sería un caso de estudio, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N en citas sería un caso de estudio, gilipollas.',
 
-    'Rizz de %N: promesa incumplida desde el saludo, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Rizz de %N: promesa incumplida desde el saludo, mierda.',
 
-    '%N hace que el no sea un acto de amor propio ajeno, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N hace que el no sea un acto de amor propio ajeno, coño.',
 
-    'Con %N hasta el algoritmo deja de recomendar, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Con %N hasta el algoritmo deja de recomendar, asco.',
 
-    '%N tiene el pack de anti-rizz completo, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N tiene el pack de anti-rizz completo, patético.',
 
-    'Ligando, %N es un corte de luz, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Ligando, %N es un corte de luz, basura.',
 
-    '%N manda el mensaje y el arrepentimiento llega antes que el visto, ridículo. Hostia puta, qué nivel.',
+    '%N manda el mensaje y el arrepentimiento llega antes que el visto, ridículo.',
 
-    'El chat no shippea a %N ni con pegamento, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El chat no shippea a %N ni con pegamento, fracasado.',
 
-    '%N es el boss de la zona de friendzone eterna, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N es el boss de la zona de friendzone eterna, joder.',
 
-    'Piropo de %N = solicitud de alejamiento emocional, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Piropo de %N = solicitud de alejamiento emocional, cabrón.',
 
-    '%N tiene menos tirón que un carro sin ruedas, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N tiene menos tirón que un carro sin ruedas, gilipollas.',
 
-    'El rizz de %N se fue y no dejó nota, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El rizz de %N se fue y no dejó nota, mierda.',
 
-    '%N en modo romance es una alerta roja, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N en modo romance es una alerta roja, coño.',
 
-    'Cuando %N intenta, el universo corrige el rumbo, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Cuando %N intenta, el universo corrige el rumbo, asco.',
 
-    '%N es el recordatorio de por qué existe el no, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N es el recordatorio de por qué existe el no, patético.',
 
-    'Fail romántico con firma de %N, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Fail romántico con firma de %N, basura.',
 
-    '%N hace del almost un estilo de vida, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N hace del almost un estilo de vida, ridículo.',
 
-    'Con %N el rechazo es un servicio público, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Con %N el rechazo es un servicio público, fracasado.',
 
-    'Con %N hasta el algoritmo deja de recomendar, asco, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Con %N hasta el algoritmo deja de recomendar, asco, patético.',
 
-    '%N tiene el pack de anti-rizz completo, patético, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N tiene el pack de anti-rizz completo, patético, asco.',
 
-    'Ligando, %N es un corte de luz, basura, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Ligando, %N es un corte de luz, basura.',
 
-    '%N manda el mensaje y el arrepentimiento llega antes que el visto, ridículo, ridículo. Hostia puta, qué nivel.',
+    '%N manda el mensaje y el arrepentimiento llega antes que el visto, ridículo.',
 
-    'El chat no shippea a %N ni con pegamento, fracasado, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El chat no shippea a %N ni con pegamento, fracasado.',
 
-    '%N es el boss de la zona de friendzone eterna, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N es el boss de la zona de friendzone eterna, joder.',
 
-    'Piropo de %N = solicitud de alejamiento emocional, cabrón, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Piropo de %N = solicitud de alejamiento emocional, cabrón, mierda.',
 
-    '%N tiene menos tirón que un carro sin ruedas, gilipollas, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N tiene menos tirón que un carro sin ruedas, gilipollas, coño.',
 
-    'El rizz de %N se fue y no dejó nota, mierda, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El rizz de %N se fue y no dejó nota, mierda, cabrón.',
 
-    '%N en modo romance es una alerta roja, coño, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N en modo romance es una alerta roja, coño, gilipollas.',
 
-    'Cuando %N intenta, el universo corrige el rumbo, asco, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Cuando %N intenta, el universo corrige el rumbo, asco, patético.',
 
-    '%N es el recordatorio de por qué existe el no, patético, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N es el recordatorio de por qué existe el no, patético, asco.',
 
-    'Fail romántico con firma de %N, basura, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Fail romántico con firma de %N, basura.',
 
-    '%N hace del almost un estilo de vida, ridículo, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N hace del almost un estilo de vida, ridículo.',
 
-    'Con %N el rechazo es un servicio público, fracasado, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Con %N el rechazo es un servicio público, fracasado.',
 
-    '%N es un puto espantaviejas: aparece y hasta las del banco se cruzan de acera, joder. Hostia puta, qué nivel.',
+    '%N es un puto espantaviejas: aparece y hasta las del banco se cruzan de acera, joder.',
 
-    'El rizz de %N tiene fecha de caducidad en el mismo mensaje, cabrón, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El rizz de %N tiene fecha de caducidad en el mismo mensaje, cabrón, mierda.',
 
-    '%N intenta ligar y el chat activa el modo testigo de Jehová, gilipollas, coño. Hostia puta, qué nivel.',
+    '%N intenta ligar y el chat activa el modo testigo de Jehová, gilipollas, coño.',
 
-    'Cuando %N manda un piropo, el grupo prepara el botiquín, mierda, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Cuando %N manda un piropo, el grupo prepara el botiquín, mierda, cabrón.',
 
-    '%N tiene el magnetismo de una silla de plástico mojada, coño, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N tiene el magnetismo de una silla de plástico mojada, coño, gilipollas.',
 
-    'El almost de %N es un no con efectos especiales de cringe, asco, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El almost de %N es un no con efectos especiales de cringe, asco, patético.',
 
-    '%N entra en modo seducción y la wifi emocional se cae, patético, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N entra en modo seducción y la wifi emocional se cae, patético, asco.',
 
-    'Con %N el visto se siente como un favor del universo, basura, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Con %N el visto se siente como un favor del universo, basura.',
 
-    '%N manda audio de rizz y el transcriptor pide asilo, ridículo, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N manda audio de rizz y el transcriptor pide asilo, ridículo.',
 
-    'Ligando, %N es un tutorial de qué no hacer, fracasado, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Ligando, %N es un tutorial de qué no hacer, fracasado.',
 
-    '%N tiene menos game que un tutorial saltado, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N tiene menos game que un tutorial saltado, joder.',
 
-    'El chat usa a %N de ejemplo de fail romántico, cabrón, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El chat usa a %N de ejemplo de fail romántico, cabrón, mierda.',
 
-    '%N intenta el closure y abre tres tickets de vergüenza, gilipollas, coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    '%N intenta el closure y abre tres tickets de vergüenza, gilipollas, coño.',
 
-    'Piropo de %N: daño colateral garantizado, mierda, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Piropo de %N: daño colateral garantizado, mierda, cabrón.',
 
-    '%N espanta hasta a los bots de spam, coño, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da pena ajena.',
+    '%N espanta hasta a los bots de spam, coño, gilipollas.pena ajena.',
 
-    'El rizz de %N es un pozo sin fondo de almost, asco, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vacío.',
+    'El rizz de %N es un pozo sin fondo de almost, asco, patético.vacío.',
 
-    '%N en modo conquista es contenido para el roast, patético, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, indignante.',
+    '%N en modo conquista es contenido para el roast, patético, asco.',
 
-    'Cuando %N dice hola, tres personas silencian el chat, basura, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza ajena.',
+    'Cuando %N dice hola, tres personas silencian el chat, basura.vergüenza ajena.',
 
-    '%N tiene química de gas noble: no reacciona con nadie, ridículo, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da vergüenza.',
+    '%N tiene química de gas noble: no reacciona con nadie, ridículo.vergüenza.',
 
-    'Fail de ligue documentado con el nombre de %N, fracasado, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué flojo.',
+    'Fail de ligue documentado con el nombre de %N, fracasado.flojo.',
 
 ],
 };
@@ -628,7 +628,7 @@ const PIROPOS = [
 
   'Hostia puta, %N, con ese cuerpo te montaría a pelo en el coche, te reventaría el coño hasta que sangraras de placer y te dejaría el culo abierto como un túnel, qué vergüenza.',
 
-  '%N, me la pones tan dura que te la metería por la boca, por el coño y por el culo en la misma sesión hasta que no pudieras caminar ni hablar, coño de la madre, ridículo.',
+  '%N, me la pones tan dura que te la metería por la boca, por el coño. y por el culo en la misma sesión hasta que no pudieras caminar ni hablar, coño de la madre, ridículo.',
 
   'Joder, %N, si estuvieras más buena te ataría a la cama, te follaría las tres agujeros hasta dejarlos destrozados y te llenaría de leche por dentro y por fuera, puta, fracasado.',
 
@@ -644,7 +644,7 @@ const PIROPOS = [
 
   '. Te lo abriría con los dedos, te lo lamería y te lo follaría hasta dejarte incontinente de placer, da pena ajena.',
 
-  '%N, estás tan buena que te comería el coño y el culo al mismo tiempo, te haría correrte a chorros y luego te follaría la boca con el sabor de tu propia mierda, qué vacío.',
+  '%N, estás tan buena que te comería el coño. y el culo al mismo tiempo, te haría correrte a chorros y luego te follaría la boca con el sabor de tu propia mierda, qué vacío.',
 
   'Joder, %N, si tu culo fuera un puto altar yo sería el sacerdote que te lo consagra a pollazos diarios hasta que se te quede abierto permanente, indignante.',
 
@@ -662,7 +662,7 @@ const PIROPOS = [
 
   '%N, tienes unos labios de puta de lujo. Te los abriría con la polla, te follaría la boca hasta que babearas y te corrías en la lengua para que te la tragues, miserable.',
 
-  'Me cago en todo lo cagable, %N, con esas curvas te reventaría el coño y el culo en la misma noche hasta que no pudieras sentarte en una semana, puta de mierda, qué cringe.',
+  'Me cago en todo lo cagable, %N, con esas curvas te reventaría el coño. y el culo en la misma noche hasta que no pudieras sentarte en una semana, puta de mierda, qué cringe.',
 
   '%N, hostia, si te pillo en un callejón te bajo los pantalones, te como el culo y te la meto hasta el fondo sin preguntar. Y tú me darías las gracias, da asco.',
 
@@ -694,7 +694,7 @@ const PIROPOS = [
 
   '%N, estás más buena que un gangbang. Te llenaría los tres agujeros a la vez, te haría correrte a gritos y te dejaría hecha un trapo de leche y saliva, qué flojo.',
 
-  'Coño, %N, te ataría a la cama, te follaría el coño y el culo sin descanso y te dejaría con la leche chorreando por los dos agujeros, puta de lujo, menudo desastre.',
+  'Coño, %N, te ataría a la cama, te follaría el coño. y el culo sin descanso y te dejaría con la leche chorreando por los dos agujeros, puta de lujo, menudo desastre.',
 
   '%N, hostia, si te pillo te bajo todo, te como el culo durante media hora y te la meto tan profundo que te sale por la boca, qué pena.',
 
@@ -704,7 +704,7 @@ const PIROPOS = [
 
   'Mierda, %N, estás tan zorra que te follaría en el baño de un bar, te llenaría el culo de leche y te haría volver a la mesa sin limpiarte, hostia puta, qué cringe.',
 
-  '%N, con esas piernas te las abriría en V, te lamería el coño y el culo y te follaría hasta que no pudieras cerrar las piernas, da asco.',
+  '%N, con esas piernas te las abriría en V, te lamería el coño. y el culo y te follaría hasta que no pudieras cerrar las piernas, da asco.',
 
   'Hostia, %N, te reventaría el coño a pollazos, te haría correrte a chorros y después te follaría la boca con el sabor de tu propio coño, qué vergüenza.',
 
@@ -718,205 +718,205 @@ const PIROPOS = [
 
   '%N, hostia puta, te montaría a pelo, te reventaría los tres agujeros y te dejaría goteando leche por todos lados, gilipollas de mierda, qué nivel de pena.',
 
-  'Si la belleza fuera delito, %N estaría perpetua sin derecho a visita conyugal, joder El grupo ya tomó nota, basura.',
+  'Si la belleza fuera delito, %N estaría perpetua sin derecho a visita conyugal, joder. El grupo ya tomó nota, basura.',
 
-  'Con esa cara %N hace que el resto del chat pida indulto visual, cabrón El grupo ya tomó nota, qué cutre.',
+  'Con esa cara %N hace que el resto del chat pida indulto visual, cabrón. El grupo ya tomó nota, qué cutre.',
 
-  '%N tiene el tipo de cuerpo que convierte un buenos días en tentativa, gilipollas El grupo ya tomó nota, da pena ajena.',
+  '%N tiene el tipo de cuerpo que convierte un buenos días en tentativa, gilipollas. El grupo ya tomó nota, da pena ajena.',
 
-  'Si mirar fuera impuesto, %N tendría al grupo en números rojos, mierda El grupo ya tomó nota, qué vacío.',
+  'Si mirar fuera impuesto, %N tendría al grupo en números rojos, mierda. El grupo ya tomó nota, qué vacío.',
 
-  '%N entra y hasta el corrector del teléfono se pone nervioso, coño El grupo ya tomó nota, indignante.',
+  '%N entra y hasta el corrector del teléfono se pone nervioso, coño. El grupo ya tomó nota, indignante.',
 
-  'Esa boca de %N tiene más potencial que todo el ranking junto, asco El grupo ya tomó nota, patético, qué vergüenza ajena.',
+  'Esa boca de %N tiene más potencial que todo el ranking junto, asco. El grupo ya tomó nota, patético, qué vergüenza ajena.',
 
-  '%N es el motivo por el que el modo avión debería ser ilegal, patético El grupo ya tomó nota, asco, da vergüenza.',
+  '%N es el motivo por el que el modo avión debería ser ilegal, patético. El grupo ya tomó nota, asco, da vergüenza.',
 
-  'Si el pecado tuviera cara, tendría el número de %N guardado, basura El grupo ya tomó nota, basura, qué flojo.',
+  'Si el pecado tuviera cara, tendría el número de %N guardado, basura. El grupo ya tomó nota, basura, qué flojo.',
 
-  '%N hace que el resto de perfiles parezcan borradores, ridículo El grupo ya tomó nota, ridículo, menudo desastre.',
+  '%N hace que el resto de perfiles parezcan borradores, ridículo. El grupo ya tomó nota, ridículo, menudo desastre.',
 
-  'Con %N el deseo no pide permiso: irrumpe, fracasado El grupo ya tomó nota, fracasado, joder fracasado, qué pena.',
+  'Con %N el deseo no pide permiso: irrumpe, fracasado. El grupo ya tomó nota, fracasado, joder fracasado, qué pena.',
 
-  '%N tiene el pack que el chat no merece pero disfruta, joder El grupo ya tomó nota, joder joder. Hostia puta, qué nivel, patético.',
+  '%N tiene el pack que el chat no merece pero disfruta, joder. El grupo ya tomó nota, joder.',
 
-  'Si la lujuria pagara impuestos, %N sería hacienda, cabrón El grupo ya tomó nota, mierda, joder mierda, miserable.',
+  'Si la lujuria pagara impuestos, %N sería hacienda, cabrón. El grupo ya tomó nota, mierda, joder mierda, miserable.',
 
-  '%N es el motivo de más de un visto con sudor frío, gilipollas El grupo ya tomó nota, coño, joder coño, qué cringe.',
+  '%N es el motivo de más de un visto con sudor frío, gilipollas. El grupo ya tomó nota, coño, joder coño, qué cringe.',
 
-  'Esa mirada de %N debería venir con advertencia sanitaria, mierda El grupo ya tomó nota, cabrón, da asco.',
+  'Esa mirada de %N debería venir con advertencia sanitaria, mierda. El grupo ya tomó nota, cabrón, da asco.',
 
-  '%N convierte un sticker en material de delitto, coño El grupo ya tomó nota, gilipollas, joder gilipollas, qué vergüenza.',
+  '%N convierte un sticker en material de delitto, coño. El grupo ya tomó nota, gilipollas, joder gilipollas, qué vergüenza.',
 
-  'El grupo finge normalidad cuando %N escribe. Falla, asco El grupo ya tomó nota, patético, joder patético, ridículo.',
+  'El grupo finge normalidad cuando %N escribe. Falla, asco. El grupo ya tomó nota, patético, joder patético, ridículo.',
 
-  '%N tiene el cuerpo de argumento definitivo, patético El grupo ya tomó nota, asco, joder asco. Hostia puta, qué nivel, fracasado.',
+  '%N tiene el cuerpo de argumento definitivo, patético. El grupo ya tomó nota, asco, joder asco.',
 
-  'Si el infierno existiera, %N sería la recepción, basura El grupo ya tomó nota, basura, joder basura, qué miseria.',
+  'Si el infierno existiera, %N sería la recepción, basura. El grupo ya tomó nota, basura, joder basura, qué miseria.',
 
-  '%N hace que hasta el cinismo del chat se ablande, ridículo El grupo ya tomó nota, ridículo, joder ridículo, da grima.',
+  '%N hace que hasta el cinismo del chat se ablande, ridículo. El grupo ya tomó nota, ridículo, joder ridículo, da grima.',
 
-  'Con %N el piropo se queda corto y el silencio también, fracasado El grupo ya tomó nota, fracasado, qué nivel de pena.',
+  'Con %N el piropo se queda corto y el silencio también, fracasado. El grupo ya tomó nota, fracasado, qué nivel de pena.',
 
-  '%N es tentación con wifi, joder El grupo ya tomó nota, joder joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, basura.',
+  '%N es tentación con wifi, joder. El grupo ya tomó nota, joder.',
 
-  'Esa voz de %N debería estar regulada, cabrón El grupo ya tomó nota, mierda, joder mierda. Hostia puta, qué nivel, qué cutre.',
+  'Esa voz de %N debería estar regulada, cabrón. El grupo ya tomó nota, mierda, joder mierda.',
 
-  '%N tiene más magnetismo que un imán en zona prohibida, gilipollas El grupo ya tomó nota, coño, da pena ajena.',
+  '%N tiene más magnetismo que un imán en zona prohibida, gilipollas. El grupo ya tomó nota, coño, da pena ajena.',
 
-  'Si el deseo fuera ranking, %N sería owner, mierda El grupo ya tomó nota, cabrón, joder cabrón. Hostia puta, qué nivel, qué vacío.',
+  'Si el deseo fuera ranking, %N sería owner, mierda. El grupo ya tomó nota, cabrón, joder cabrón.',
 
-  '%N entra al hilo y el resto pierde el hilo, coño El grupo ya tomó nota, gilipollas, joder gilipollas, indignante.',
+  '%N entra al hilo y el resto pierde el hilo, coño. El grupo ya tomó nota, gilipollas, joder gilipollas, indignante.',
 
-  'El cuerpo de %N es un argumento sin necesidad de texto, asco El grupo ya tomó nota, patético, qué vergüenza ajena.',
+  'El cuerpo de %N es un argumento sin necesidad de texto, asco. El grupo ya tomó nota, patético, qué vergüenza ajena.',
 
-  '%N hace que el almost duela de otra manera, patético El grupo ya tomó nota, asco, joder asco. Hostia puta, qué nivel, da vergüenza.',
+  '%N hace que el almost duela de otra manera, patético. El grupo ya tomó nota, asco, joder asco.',
 
-  'Si mirar a %N fuera deporte, habría olimpiadas, basura El grupo ya tomó nota, basura, joder basura. Hostia puta, qué nivel, qué flojo.',
+  'Si mirar a %N fuera deporte, habría olimpiadas, basura. El grupo ya tomó nota, basura, joder basura.',
 
-  '%N es el motivo de más de un bloqueo por higiene mental, ridículo El grupo ya tomó nota, ridículo, menudo desastre.',
+  '%N es el motivo de más de un bloqueo por higiene mental, ridículo. El grupo ya tomó nota, ridículo, menudo desastre.',
 
-  'Con %N el chat se vuelve menos cínico y más animal, fracasado El grupo ya tomó nota, fracasado, qué pena.',
+  'Con %N el chat se vuelve menos cínico y más animal, fracasado. El grupo ya tomó nota, fracasado, qué pena.',
 
-  '%N tiene el tipo de presencia que no pide: exige, joder El grupo ya tomó nota, joder joder. Hostia puta, qué nivel, patético.',
+  '%N tiene el tipo de presencia que no pide: exige, joder. El grupo ya tomó nota, joder.',
 
-  'Esa sonrisa de %N es un arma de destrucción masiva, cabrón El grupo ya tomó nota, mierda, joder mierda, miserable.',
+  'Esa sonrisa de %N es un arma de destrucción masiva, cabrón. El grupo ya tomó nota, mierda, joder mierda, miserable.',
 
-  '%N convierte el aburrimiento del grupo en hambre, gilipollas El grupo ya tomó nota, coño, joder coño, qué cringe.',
+  '%N convierte el aburrimiento del grupo en hambre, gilipollas. El grupo ya tomó nota, coño, joder coño, qué cringe.',
 
-  'Si el pecado original tuviera update, llevaría la cara de %N, mierda El grupo ya tomó nota, cabrón, da asco.',
+  'Si el pecado original tuviera update, llevaría la cara de %N, mierda. El grupo ya tomó nota, cabrón, da asco.',
 
-  '%N es el DLC pago que nadie se resiste a comprar, coño El grupo ya tomó nota, gilipollas, joder gilipollas, qué vergüenza.',
+  '%N es el DLC pago que nadie se resiste a comprar, coño. El grupo ya tomó nota, gilipollas, joder gilipollas, qué vergüenza.',
 
-  'El deseo con nombre de usuario: %N, asco El grupo ya tomó nota, patético, joder patético. Hostia puta, qué nivel, ridículo.',
+  'El deseo con nombre de usuario: %N, asco. El grupo ya tomó nota, patético, joder patético.',
 
-  '%N hace que hasta los haters miren dos veces, patético El grupo ya tomó nota, asco, joder asco. Hostia puta, qué nivel, fracasado.',
+  '%N hace que hasta los haters miren dos veces, patético. El grupo ya tomó nota, asco, joder asco.',
 
-  'Si la lujuria hablara, pediría el número de %N, basura El grupo ya tomó nota, basura, joder basura. Hostia puta, qué nivel, qué miseria.',
+  'Si la lujuria hablara, pediría el número de %N, basura. El grupo ya tomó nota, basura, joder basura.',
 
-  '%N tiene el pack completo y el chat lo sabe, ridículo El grupo ya tomó nota, ridículo, joder ridículo, da grima.',
+  '%N tiene el pack completo y el chat lo sabe, ridículo. El grupo ya tomó nota, ridículo, joder ridículo, da grima.',
 
-  'Con %N el piropo es casi un eufemismo, fracasado El grupo ya tomó nota, fracasado, joder fracasado. Hostia puta, qué nivel, qué nivel de pena.',
+  'Con %N el piropo es casi un eufemismo, fracasado. El grupo ya tomó nota, fracasado, joder fracasado.',
 
-  '%N es peligroso para la productividad del grupo, joder El grupo ya tomó nota, joder joder. Hostia puta, qué nivel, basura.',
+  '%N es peligroso para la productividad del grupo, joder. El grupo ya tomó nota, joder.',
 
-  'Esa foto de %N debería tener clasificación por edades, cabrón El grupo ya tomó nota, mierda, joder mierda, qué cutre.',
+  'Esa foto de %N debería tener clasificación por edades, cabrón. El grupo ya tomó nota, mierda, joder mierda, qué cutre.',
 
-  '%N hace que el resto de conversaciones parezcan relleno, gilipollas El grupo ya tomó nota, coño, da pena ajena.',
+  '%N hace que el resto de conversaciones parezcan relleno, gilipollas. El grupo ya tomó nota, coño, da pena ajena.',
 
-  'Si el infierno contratara, %N sería la campaña, mierda El grupo ya tomó nota, cabrón, joder cabrón. Hostia puta, qué nivel, qué vacío.',
+  'Si el infierno contratara, %N sería la campaña, mierda. El grupo ya tomó nota, cabrón, joder cabrón.',
 
-  '%N tiene el magnetismo de apagón total, coño El grupo ya tomó nota, gilipollas, joder gilipollas. Hostia puta, qué nivel, indignante.',
+  '%N tiene el magnetismo de apagón total, coño. El grupo ya tomó nota, gilipollas, joder gilipollas.',
 
-  'El chat finge que no pasa nada con %N. Pasa, asco El grupo ya tomó nota, patético, joder patético. Hostia puta, qué nivel, qué vergüenza ajena.',
+  'El chat finge que no pasa nada con %N. Pasa, asco. El grupo ya tomó nota, patético, joder patético.ajena.',
 
-  '%N es el argumento contra la monogamia del hilo, patético El grupo ya tomó nota, asco, joder asco. Hostia puta, qué nivel, da vergüenza.',
+  '%N es el argumento contra la monogamia del hilo, patético. El grupo ya tomó nota, asco, joder asco.',
 
-  'Si el deseo tuviera admin, sería %N, basura El grupo ya tomó nota, basura, joder basura. Hostia puta, qué nivel, qué flojo.',
+  'Si el deseo tuviera admin, sería %N, basura. El grupo ya tomó nota, basura, joder basura.',
 
-  '%N convierte un hola en incidente de seguridad, ridículo El grupo ya tomó nota, ridículo, joder ridículo, menudo desastre.',
+  '%N convierte un hola en incidente de seguridad, ridículo. El grupo ya tomó nota, ridículo, joder ridículo, menudo desastre.',
 
-  'Con %N hasta el roast se ablanda un segundo, fracasado El grupo ya tomó nota, fracasado, joder fracasado, qué pena.',
+  'Con %N hasta el roast se ablanda un segundo, fracasado. El grupo ya tomó nota, fracasado, joder fracasado, qué pena.',
 
-  'Si la virtud tuviera precio, %N la habría fundido en una noche y aún debería, joder joder. Hostia puta, qué nivel, patético.',
+  'Si la virtud tuviera precio, %N la habría fundido en una noche y aún debería, joder.',
 
-  '%N tiene el tipo de cuerpo que hace que el resto del chat pida confesión, cabrón mierda. Hostia puta, qué nivel, miserable.',
+  '%N tiene el tipo de cuerpo que hace que el resto del chat pida confesión, cabrón mierda.',
 
-  'Con esa boca %N convierte un buenos días en tentativa de delito menor, gilipollas coño. Hostia puta, qué nivel, qué cringe.',
+  'Con esa boca %N convierte un buenos días en tentativa de delito menor, gilipollas coño.',
 
-  'Si mirar a %N fuera peaje, el grupo estaría en quiebra técnica, mierda cabrón. Hostia puta, qué nivel, da asco.',
+  'Si mirar a %N fuera peaje, el grupo estaría en quiebra técnica, mierda cabrón.',
 
-  '%N entra al hilo y hasta el cinismo se arrodilla un segundo, coño gilipollas. Hostia puta, qué nivel, qué vergüenza.',
+  '%N entra al hilo y hasta el cinismo se arrodilla un segundo, coño gilipollas.',
 
-  'Esa cintura de %N debería estar regulada por sanidad moral, asco patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, ridículo.',
+  'Esa cintura de %N debería estar regulada por sanidad moral, asco patético.',
 
-  '%N es el motivo por el que el modo no molestar no existe de verdad, patético asco. Hostia puta, qué nivel, fracasado.',
+  '%N es el motivo por el que el modo no molestar no existe de verdad, patético asco.',
 
-  'Si el pecado tuviera admin, bloquearía a todo el mundo menos a %N, basura basura. Hostia puta, qué nivel, qué miseria.',
+  'Si el pecado tuviera admin, bloquearía a todo el mundo menos a %N, basura.',
 
-  'Con %N el deseo no llama a la puerta: la echa abajo, fracasado ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da grima.',
+  'Con %N el deseo no llama a la puerta: la echa abajo, fracasado ridículo.grima.',
 
-  '%N tiene el pack que convierte un sticker en material sensible, joder fracasado. Hostia puta, qué nivel, qué nivel de pena.',
+  '%N tiene el pack que convierte un sticker en material sensible, joder fracasado.',
 
-  'Si la lujuria cobrara alquiler, %N sería la casera del grupo, cabrón joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, basura.',
+  'Si la lujuria cobrara alquiler, %N sería la casera del grupo, cabrón joder.',
 
-  '%N es el motivo de más de un visto con las manos ocupadas, gilipollas mierda. Hostia puta, qué nivel, qué cutre.',
+  '%N es el motivo de más de un visto con las manos ocupadas, gilipollas mierda.',
 
-  'Esa mirada de %N debería traer términos y condiciones, mierda coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da pena ajena.',
+  'Esa mirada de %N debería traer términos y condiciones, mierda coño.pena ajena.',
 
-  '%N convierte un ja en crisis de pareja ajena, coño cabrón Y cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vacío.',
+  '%N convierte un ja en crisis de pareja ajena, coño cabrón. Y cabrón.vacío.',
 
-  'El grupo finge normalidad con %N. El cuerpo no finge, asco gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, indignante.',
+  'El grupo finge normalidad con %N. El cuerpo no finge, asco gilipollas.',
 
-  '%N tiene el argumento físico que tumba debates enteros, patético patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza ajena.',
+  '%N tiene el argumento físico que tumba debates enteros, patético.vergüenza ajena.',
 
-  'Si el infierno hiciera casting, %N sería la campaña, basura asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da vergüenza.',
+  'Si el infierno hiciera casting, %N sería la campaña, basura asco.vergüenza.',
 
-  '%N hace que hasta el roast se le ablande la voz, ridículo basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué flojo.',
+  '%N hace que hasta el roast se le ablande la voz, ridículo basura.flojo.',
 
-  'Con %N el piropo es eufemismo de algo peor, fracasado ridículo Y ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, menudo desastre.',
+  'Con %N el piropo es eufemismo de algo peor, fracasado ridículo. Y ridículo.desastre.',
 
-  '%N es tentación con notificación en tiempo real, joder fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué pena.',
+  '%N es tentación con notificación en tiempo real, joder fracasado.pena.',
 
-  'Esa voz de %N debería tener clasificación por edades, cabrón joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, patético.',
+  'Esa voz de %N debería tener clasificación por edades, cabrón joder.',
 
-  '%N tiene más magnetismo que un corte de luz en verano, gilipollas mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, miserable.',
+  '%N tiene más magnetismo que un corte de luz en verano, gilipollas mierda.',
 
-  '%N entra y el resto del hilo se vuelve ruido de fondo, coño coño. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cringe.',
+  '%N entra y el resto del hilo se vuelve ruido de fondo, coño.cringe.',
 
-  'El cuerpo de %N no necesita pie de foto: el daño se entiende solo, asco cabrón. Hostia puta, qué nivel, da asco.',
+  'El cuerpo de %N no necesita pie de foto: el daño se entiende solo, asco cabrón.',
 
-  '%N hace que el almost duela de una forma concreta, patético gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza.',
+  '%N hace que el almost duela de una forma concreta, patético gilipollas.vergüenza.',
 
-  'Si mirar a %N fuera deporte olímpico, habría medallero, basura patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, ridículo.',
+  'Si mirar a %N fuera deporte olímpico, habría medallero, basura patético.',
 
-  'Esa sonrisa de %N es arma de destrucción de agendas, cabrón asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
+  'Esa sonrisa de %N es arma de destrucción de agendas, cabrón asco.',
 
-  'Si el pecado original tuviera parche, llevaría la cara de %N, mierda basura. Hostia puta, qué nivel, qué miseria.',
+  'Si el pecado original tuviera parche, llevaría la cara de %N, mierda basura.',
 
-  '%N es el DLC que nadie se resiste a instalar, coño ridículo Y ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da grima.',
+  '%N es el DLC que nadie se resiste a instalar, coño ridículo. Y ridículo.grima.',
 
-  'El deseo con nombre de usuario y mala idea: %N, asco fracasado Y fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué nivel de pena.',
+  'El deseo con nombre de usuario y mala idea: %N, asco fracasado. Y fracasado.nivel de pena.',
 
-  'Si la lujuria hablara en el chat, pediría el @ de %N, basura joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, basura.',
+  'Si la lujuria hablara en el chat, pediría el @ de %N, basura joder.',
 
-  '%N tiene el pack completo y el grupo lo sabe sin decirlo, ridículo mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cutre.',
+  '%N tiene el pack completo y el grupo lo sabe sin decirlo, ridículo mierda.cutre.',
 
-  '%N es peligroso para la productividad y para las parejas del hilo, joder coño. Hostia puta, qué nivel, da pena ajena.',
+  '%N es peligroso para la productividad y para las parejas del hilo, joder coño.',
 
-  'Esa foto de %N debería tener watermark de pecado, cabrón cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vacío.',
+  'Esa foto de %N debería tener watermark de pecado, cabrón.vacío.',
 
-  'Si el infierno contratara marketing, %N sería el anuncio, mierda gilipollas. Hostia puta, qué nivel, indignante.',
+  'Si el infierno contratara marketing, %N sería el anuncio, mierda gilipollas.',
 
-  '%N tiene el magnetismo de apagón total del juicio, coño patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza ajena.',
+  '%N tiene el magnetismo de apagón total del juicio, coño patético.vergüenza ajena.',
 
-  '%N es el argumento más corto contra la monogamia del grupo, patético asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da vergüenza.',
+  '%N es el argumento más corto contra la monogamia del grupo, patético asco.vergüenza.',
 
-  'Si el deseo tuviera moderador, sería %N y no habría reglas, basura basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué flojo.',
+  'Si el deseo tuviera moderador, sería %N y no habría reglas, basura.flojo.',
 
-  'Con %N hasta el roast más duro se le ablanda un frame, fracasado ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, menudo desastre.',
+  'Con %N hasta el roast más duro se le ablanda un frame, fracasado ridículo.desastre.',
 
-  'Con %N el piropo se queda corto y el silencio también, fracasado, fracasado Y fracasado. Nota 139. Hostia puta, qué nivel, qué pena.',
+  'Con %N el piropo se queda corto y el silencio también, fracasado. Y fracasado.',
 
-  '%N es peligroso para la productividad y para las parejas del hilo, joder Y joder. Nota 140. Hostia puta, qué nivel, patético.',
+  '%N es peligroso para la productividad y para las parejas del hilo, joder. Y joder.',
 
-  'Esa foto de %N debería tener watermark de pecado, cabrón, mierda Y mierda. Nota 141. Hostia puta, qué nivel, miserable.',
+  'Esa foto de %N debería tener watermark de pecado, cabrón, mierda. Y mierda.',
 
-  '%N hace que el resto de conversaciones parezcan trámites, gilipollas, coño Y coño. Hostia puta, qué nivel, qué cringe.',
+  '%N hace que el resto de conversaciones parezcan trámites, gilipollas, coño. Y coño.',
 
-  'Si el infierno contratara marketing, %N sería el anuncio, mierda, cabrón Y cabrón. Nota 143. Hostia puta, qué nivel, da asco.',
+  'Si el infierno contratara marketing, %N sería el anuncio, mierda, cabrón. Y cabrón.',
 
-  '%N tiene el magnetismo de apagón total del juicio, coño, gilipollas Y gilipollas. Nota 144. Hostia puta, qué nivel, qué vergüenza.',
+  '%N tiene el magnetismo de apagón total del juicio, coño, gilipollas. Y gilipollas.',
 
-  'El chat finge que no pasa nada con %N. Pasa todo, asco, patético Y patético. Hostia puta, qué nivel, ridículo.',
+  'El chat finge que no pasa nada con %N. Pasa todo, asco, patético. Y patético.',
 
-  '%N es el argumento más corto contra la monogamia del grupo, patético, asco Y asco. Nota 146. Hostia puta, qué nivel, fracasado.',
+  '%N es el argumento más corto contra la monogamia del grupo, patético, asco. Y asco.',
 
-  'Si el deseo tuviera moderador, sería %N y no habría reglas, basura, basura Y basura. Nota 147. Hostia puta, qué nivel, qué miseria.',
+  'Si el deseo tuviera moderador, sería %N y no habría reglas, basura. Y basura.',
 
-  '%N convierte un hola en incidente de seguridad emocional, ridículo, ridículo Y ridículo. Hostia puta, qué nivel, da grima.',
+  '%N convierte un hola en incidente de seguridad emocional, ridículo. Y ridículo.',
 
-  'Con %N hasta el roast más duro se le ablanda un frame, fracasado, fracasado Y fracasado. Nota 149. Hostia puta, qué nivel, qué nivel de pena.',
+  'Con %N hasta el roast más duro se le ablanda un frame, fracasado. Y fracasado.',
 
 ];
 
@@ -930,7 +930,7 @@ const WINGMAN_ANECDOTAS = [
 
   'Estaba a punto de suicidarme saltando de un puente y %N me detuvo agarrándome de los huevos con la boca. Literalmente me salvó la vida chupándome la polla en el aire.\\\\n%N tiene métodos de puta madre de efectivos.',
 
-  'Me quedó una puta aguja de heroína clavada en el brazo después de una noche de mierda y %N me la sacó con los dientes, chupando la sangre y el resto de la mierda que quedaba.\\\\nHay amigos y luego está %N, que no tiene asco ni dignidad.',
+  'Me quedó una puta aguja de heroína clavada en el brazo después de una noche de mierda. y %N me la sacó con los dientes, chupando la sangre y el resto de la mierda que quedaba.\\\\\\\\nHay amigos y luego está %N, que no tiene asco ni dignidad.',
 
   'Estaba vomitando bilis en la cuneta después de una borrachera de los cojones y %N se arrodilló a limpiarme la boca con la lengua para que no me ahogara en mi propia mierda.\\\\n%N es el único cabrón que se ofrece a tragar tu vomitona.',
 
@@ -952,7 +952,7 @@ const WINGMAN_ANECDOTAS = [
 
   'Me quedó un puto trozo de cristal clavado en el culo después de una pelea de borrachos y %N me lo sacó con los dientes, lamiendo la sangre para no manchar.\\\\nSin %N seguiría con un cristal en el ojete.',
 
-  'Estaba ahogándome en mi propia vomitona después de una fiesta de mierda y %N me practicó una especie de Heimlich bucal hasta que saqué todo y se lo tragó.\\\\n%N no desperdicia nada, el muy cabrón.',
+  'Estaba ahogándome en mi propia vomitona después de una fiesta de mierda. y %N me practicó una especie de Heimlich bucal hasta que saqué todo y se lo tragó.\\\\\\\\n%N no desperdicia nada, el muy cabrón.',
 
   'Me picó una puta medusa en los huevos en la playa y %N se dedicó a chupar el veneno durante diez minutos mientras yo gritaba como un maricón.\\\\nHay amigos.. y luego está este animal.',
 
@@ -982,7 +982,7 @@ const WINGMAN_ANECDOTAS = [
 
   'Se me quedó una puta aguja de coser clavada en el dedo y %N me la sacó con los dientes, chupando la sangre para que no manchara la mesa.\\\\nMenos mal que cuento con un cabrón tan dispuesto.',
 
-  'Estaba a punto de perder un dedo por una infección de mierda y %N me drenó el pus a succión durante media hora hasta que se me pasó.\\\\n%N tiene una paciencia y un asco nulo envidiables.',
+  'Estaba a punto de perder un dedo por una infección de mierda. y %N me drenó el pus a succión durante media hora hasta que se me pasó.\\\\\\\\n%N tiene una paciencia y un asco nulo envidiables.',
 
   'Me caí de un puto andamio y me abrí la cabeza, entonces %N me limpió la sangre a lengüetazos y me mantuvo despierto chupándome la oreja.\\\\nEse nivel de improvisación solo lo tiene %N.',
 
@@ -994,7 +994,7 @@ const WINGMAN_ANECDOTAS = [
 
   'Estaba a punto de morir de una puta insolación y %N me refrescó el cuerpo entero a lengüetazos, concentrándose en las zonas más calientes.\\\\n%N es un aire acondicionado de carne y hueso.',
 
-  'Se me hinchó un tobillo del tamaño de un melón después de un golpe de mierda y %N se pasó casi una hora aplicándome succión con la boca.\\\\n%N tiene métodos poco convencionales pero de puta madre.',
+  'Se me hinchó un tobillo del tamaño de un melón después de un golpe de mierda. y %N se pasó casi una hora aplicándome succión con la boca.\\\\\\\\n%N tiene métodos poco convencionales pero de puta madre.',
 
   'Me corté la mano con un cuchillo de cocina y me salía sangre a chorros, entonces %N me detuvo la hemorragia chupando la herida como un puto profesional.\\\\nSiempre es bueno tener a alguien como %N cerca.',
 
@@ -1028,7 +1028,7 @@ const WINGMAN_ANECDOTAS = [
 
   'Estaba con la garganta muy irritada y %N me aplicó saliva de forma repetida, metiéndome la lengua hasta casi ahogarme.\\\\n%N siempre busca la forma más directa de solucionar las cosas.',
 
-  'Se me hinchó un labio por un golpe de mierda y %N se dedicó a bajar la inflamación con succión suave, tragándose la sangre residual.\\\\n%N tiene una paciencia y una técnica particulares.',
+  'Se me hinchó un labio por un golpe de mierda. y %N se dedicó a bajar la inflamación con succión suave, tragándose la sangre residual.\\\\\\\\n%N tiene una paciencia y una técnica particulares.',
 
   'Me dolía la mandíbula después de bostezar como un puto león y %N me hizo un masaje profundo con la lengua hasta que se me pasó.\\\\nPocos amigos se involucran tanto y tan sucio.',
 
@@ -1046,7 +1046,7 @@ const WINGMAN_ANECDOTAS = [
 
   'Me quedó una puta espina de pescado clavada en la garganta y %N me la sacó con la lengua, se la tragó y me dio un beso de mierda para celebrarlo.\\\\n%N siempre encuentra la forma más personal.',
 
-  'Estaba a punto de perder un dedo por gangrena de mierda y %N me drenó el pus a succión durante casi una hora hasta que se me pasó el color negro.\\\\n%N tiene una paciencia de santo asqueroso.',
+  'Estaba a punto de perder un dedo por gangrena de mierda. y %N me drenó el pus a succión durante casi una hora hasta que se me pasó el color negro.\\\\\\\\n%N tiene una paciencia de santo asqueroso.',
 
   'Se me metió una puta cucaracha en el oído y %N la sacó aspirando con la boca y se la comió cruda para que no volviera.\\\\n%N no le tiene miedo a nada que se mueva.',
 
@@ -1106,7 +1106,7 @@ const WINGMAN_ANECDOTAS = [
 
   'Me picó una medusa de las hijas de puta en el brazo y %N se dedicó a chupar el veneno con absoluta concentración durante casi diez minutos.\\\\nHay amigos.. y luego está %N, que no duda en meterse de lleno.',
 
-  'Se me hinchó un tobillo después de un golpe de mierda y %N se pasó un buen rato aplicándome succión con la boca para bajar la inflamación.\\\\n%N tiene métodos poco convencionales, pero de puta madre de efectivos.',
+  'Se me hinchó un tobillo después de un golpe de mierda. y %N se pasó un buen rato aplicándome succión con la boca para bajar la inflamación.\\\\\\\\n%N tiene métodos poco convencionales, pero de puta madre de efectivos.',
 
   'Me corté el dedo mientras cocinaba y me salía sangre a chorros, así que %N me detuvo la hemorragia chupando la herida con mucho cuidado.\\\\nSiempre es bueno tener a alguien como %N cerca en estos momentos de mierda.',
 
@@ -1137,7 +1137,7 @@ const WINGMAN_CIERRES = [
 
   'Si %N te mete la lengua así por amistad, imagina lo que hará cuando le importes de verdad. Ese cabrón no tiene freno ni marcha atrás.',
 
-  'Me cago en la puta, %N no tiene vergüenza, no tiene asco y no tiene límites. El paquete completo para una relación de las que dejan marca.',
+  'Me cago en la puta, %N no tiene vergüenza, no tiene asco. y no tiene límites. El paquete completo para una relación de las que dejan marca.',
 
   'Hostia, %N es el tipo de persona que te chupa una herida sin preguntar y encima repite. Eso en el mercado de las parejas vale una puta fortuna.',
 
@@ -1173,7 +1173,7 @@ const WINGMAN_CIERRES = [
 
   'Si %N hace eso sin cobrar, imagina pagándole con sexo. Tendrías al cabrón más leal y más guarro del hemisferio occidental, joder.',
 
-  'Recomendación final del bot: %N es un ser sin vergüenza, sin asco y sin puto sentido del ridículo. El trío perfecto para una relación larga y sucia.',
+  'Recomendación final del bot: %N es un ser sin vergüenza, sin asco. y sin puto sentido del ridículo. El trío perfecto para una relación larga y sucia.',
 
   'Me cago en la leche, %N ha hecho cosas con la lengua que deberían estar en un expediente judicial. Pero en pareja eso es oro puro, hostia.',
 
@@ -1189,45 +1189,45 @@ const WINGMAN_CIERRES = [
 
   'Coño, si después de leer esto no quieres salir con %N es que estás clínicamente muerto por dentro. Este cabrón se lo ha ganado con la boca, joder.',
 
-  'Y con eso el bot cierra el expediente de %N, joder Sin anestesia y sin bis, joder. Hostia puta, qué nivel.',
+  'Y con eso el bot cierra el expediente de %N, joder Sin anestesia y sin bis, joder.',
 
-  'Fin del informe. %N queda expuesto, cabrón Sin anestesia y sin bis, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+  'Fin del informe. %N queda expuesto, cabrón Sin anestesia y sin bis, mierda.',
 
-  '%N. El chat ya tiene el veredicto. Siguiente, gilipollas Sin anestesia y sin bis, coño. Hostia puta, qué nivel.',
+  '%N. El chat ya tiene el veredicto. Siguiente, gilipollas Sin anestesia y sin bis, coño.',
 
-  'Documentado. %N no puede alegar ignorancia, mierda Sin anestesia y sin bis, cabrón. Hostia puta, qué nivel.',
+  'Documentado. %N no puede alegar ignorancia, mierda Sin anestesia y sin bis, cabrón.',
 
-  '%N. Cierre sin anestesia. El eco sigue, coño Sin anestesia y sin bis, gilipollas. Hostia puta, qué nivel.',
+  '%N. Cierre sin anestesia. El eco sigue, coño Sin anestesia y sin bis, gilipollas.',
 
-  'Archivo cerrado sobre %N. Sin apelación, asco Sin anestesia y sin bis, patético. Hostia puta, qué nivel.',
+  'Archivo cerrado sobre %N. Sin apelación, asco Sin anestesia y sin bis, patético.',
 
-  '%N. El wingman terminó. El cringe permanece, patético Sin anestesia y sin bis, asco. Hostia puta, qué nivel.',
+  '%N. El wingman terminó. El cringe permanece, patético Sin anestesia y sin bis, asco.',
 
-  'Fin. %N ya no puede fingir que no pasó, basura Sin anestesia y sin bis, basura. Hostia puta, qué nivel.',
+  'Fin. %N ya no puede fingir que no pasó, basura Sin anestesia y sin bis, basura.',
 
-  '%N. Expediente sellado. El grupo es testigo, ridículo Sin anestesia y sin bis, ridículo. Hostia puta, qué nivel.',
+  '%N. Expediente sellado. El grupo es testigo, ridículo Sin anestesia y sin bis, ridículo.',
 
-  'Cierre de transmisión. %N queda en el acta, fracasado Sin anestesia y sin bis, fracasado. Hostia puta, qué nivel.',
+  'Cierre de transmisión. %N queda en el acta, fracasado Sin anestesia y sin bis, fracasado.',
 
-  'Y así queda el parte de %N, joder Sin anestesia y sin bis, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+  'Y así queda el parte de %N, joder Sin anestesia y sin bis, joder.',
 
-  '%N. Sin más. El ranking hizo su trabajo, cabrón Sin anestesia y sin bis, mierda. Hostia puta, qué nivel.',
+  '%N. Sin más. El ranking hizo su trabajo, cabrón Sin anestesia y sin bis, mierda.',
 
-  'Informe listo. %N puede leerlo y callar, gilipollas Sin anestesia y sin bis, coño. Hostia puta, qué nivel.',
+  'Informe listo. %N puede leerlo y callar, gilipollas Sin anestesia y sin bis, coño.',
 
-  'Fin del show de %N por hoy, mierda Sin anestesia y sin bis, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+  'Fin del show de %N por hoy, mierda Sin anestesia y sin bis, cabrón.',
 
-  '%N. Cerrado. El chat no pide bis, coño Sin anestesia y sin bis, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+  '%N. Cerrado. El chat no pide bis, coño Sin anestesia y sin bis, gilipollas.',
 
-  'El bot firma. %N asume, asco Sin anestesia y sin bis, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+  'El bot firma. %N asume, asco Sin anestesia y sin bis, patético.',
 
-  '%N. Acta levantada. Sin firmas ajenas necesarias, patético Sin anestesia y sin bis, asco. Hostia puta, qué nivel.',
+  '%N. Acta levantada. Sin firmas ajenas necesarias, patético Sin anestesia y sin bis, asco.',
 
-  'Terminado. El eco de %N todavía suena, basura Sin anestesia y sin bis, basura. Hostia puta, qué nivel.',
+  'Terminado. El eco de %N todavía suena, basura Sin anestesia y sin bis, basura.',
 
-  '%N. Cierre limpio. Daño permanente, ridículo Sin anestesia y sin bis, ridículo. Hostia puta, qué nivel.',
+  '%N. Cierre limpio. Daño permanente, ridículo Sin anestesia y sin bis, ridículo.',
 
-  'Expediente de %N: completo, fracasado Sin anestesia y sin bis, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+  'Expediente de %N: completo, fracasado Sin anestesia y sin bis, fracasado.',
 
   'Fin del informe. %N queda expuesto y el chat es testigo, cabrón Documentado en el hilo, joder Sin anestesia y sin bis, joder.',
 
@@ -1319,15 +1319,15 @@ const WINGMAN_CIERRES = [
 
   'Cierre. El wingman no devuelve dignidad a %N, fracasado Documentado en el hilo, gilipollas Sin anestesia y sin bis, gilipollas.',
 
-  'Cierre del acta de %N. El bot cumplió, asco Sin anestesia y sin bis, patético. Hostia puta, qué nivel.',
+  'Cierre del acta de %N. El bot cumplió, asco Sin anestesia y sin bis, patético.',
 
-  'Parte final. %N puede guardar silencio productivo, patético Sin anestesia y sin bis, asco. Nota 96. Hostia puta, qué nivel.',
+  'Parte final. %N puede guardar silencio productivo, patético Sin anestesia y sin bis, asco.',
 
-  'Expediente %N: cerrado sin apelación barata, basura Sin anestesia y sin bis, basura. Nota 97. Hostia puta, qué nivel.',
+  'Expediente %N: cerrado sin apelación barata, basura Sin anestesia y sin bis, basura.',
 
-  'Y se acabó lo de %N por esta ronda, ridículo Sin anestesia y sin bis, ridículo. Hostia puta, qué nivel.',
+  'Y se acabó lo de %N por esta ronda, ridículo Sin anestesia y sin bis, ridículo.',
 
-  'Cierre. El wingman no devuelve dignidad a %N, fracasado Sin anestesia y sin bis, fracasado. Nota 99.',
+  'Cierre. El wingman no devuelve dignidad a %N, fracasado Sin anestesia y sin bis, fracasado.',
 
 ];
 
@@ -1366,7 +1366,7 @@ async function cmdRizz(sock, msg, groupMeta) {
   const phrase = pickFresh(RIZZ[tier], `${jid}|rizz|${tier}`).replace(/%N/g, `@${num}`);
 
   await sock.sendMessage(jid, {
-    text: `*RIZZ — ${percent}%*\n\n${phrase}`,
+    text: `*RIZZ — ${percent}%*\\n\\n${phrase}.`,
     mentions: [target],
   }, { quoted: msg });
 }
@@ -1392,7 +1392,7 @@ async function cmdWingman(sock, msg) {
   const anecdota = pickFresh(WINGMAN_ANECDOTAS, `${jid}|wingman|anecdota`).replace(/%N/g, tag);
   const cierre = pickFresh(WINGMAN_CIERRES, `${jid}|wingman|cierre`).replace(/%N/g, tag);
   await sock.sendMessage(jid, {
-    text: `*WINGMAN*\n\n${anecdota}\n\n${cierre}`,
+    text: `*WINGMAN*\\n\\n${anecdota}\\n\\n${cierre}.`,
     mentions: [target],
   }, { quoted: msg });
 }

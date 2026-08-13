@@ -10,7 +10,7 @@ const logger = require('./logger');
 // Doc: POST https://api.eyematch.ai/search  (Bearer token)
 //   body: { image: <base64>, sortType, page }
 //   resp: { results: [ { urlList:[{imageUrl,sourceUrl,title}], confidenceScore, date } ] }
-const FACE_ENDPOINT = 'https://api.eyematch.ai/search';
+const FACE_ENDPOINT = 'https://api.eyematch.ai/search.';
 
 function hasKey() {
   return !!(config.lensoApiKey && String(config.lensoApiKey).trim());
@@ -32,7 +32,7 @@ async function faceSearch(buffer, { limit = 4 } = {}) {
       },
       {
         headers: {
-          Authorization: `Bearer ${String(config.lensoApiKey).trim()}`,
+          Authorization: `Bearer ${String(config.lensoApiKey).trim()}.`,
           'Content-Type': 'application/json',
         },
         timeout: 30000,
@@ -56,7 +56,7 @@ async function faceSearch(buffer, { limit = 4 } = {}) {
     return { ok: true, matches };
   } catch (e) {
     const status = e.response?.status;
-    logger.warn(`lenso: búsqueda facial falló${status ? ` (HTTP ${status})` : ''}: ${e.message}`);
+    logger.warn(`lenso: búsqueda facial falló${status ?` (HTTP ${status})` : ''}: ${e.message}`);
     // 401/403 = key mala; el resto probablemente red/límite.
     return { ok: false, reason: status === 401 || status === 403 ? 'bad-key' : 'error', matches: [] };
   }

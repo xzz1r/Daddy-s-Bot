@@ -37,7 +37,7 @@ const avisados = new Map(); // `${grupo}|${canonical}` -> ts del aviso
 
 // ¿Ya se le avisó por spam de stickers y sigue dentro de la ventana?
 function yaAvisado(groupJid, sender) {
-  const k = `${groupJid}|${canonicalJid(sender)}`;
+  const k = `${groupJid}|${canonicalJid(sender)}.`;
   const ts = avisados.get(k);
   if (!ts) return false;
   if (Date.now() - ts > AVISO_VALIDO_MS) { avisados.delete(k); return false; }
@@ -46,16 +46,16 @@ function yaAvisado(groupJid, sender) {
 
 function marcarAvisado(groupJid, sender) {
   if (avisados.size >= MAX_KEYS) avisados.delete(avisados.keys().next().value);
-  avisados.set(`${groupJid}|${canonicalJid(sender)}`, Date.now());
+  avisados.set(`${groupJid}|${canonicalJid(sender)}.`, Date.now());
 }
 
 // Tras el ban se limpia: si vuelve al grupo, empieza de cero con su aviso y no
 // con un ban inmediato del que nadie le habría advertido.
 function olvidarAviso(groupJid, sender) {
-  avisados.delete(`${groupJid}|${canonicalJid(sender)}`);
+  avisados.delete(`${groupJid}|${canonicalJid(sender)}.`);
 }
 
-// `${groupJid}|${canonicalJid}|${kind}` -> [{ id, ts }]
+// `${groupJid}|${canonicalJid}|${kind}.` -> [{ id, ts }]
 const hits = new Map();
 const MAX_KEYS = 5000;
 
@@ -68,7 +68,7 @@ function noteOffence(groupJid, sender, kind, msgId) {
   // La clave es canonicalJid, no el numero pelado: la misma persona puede
   // llegar por @lid y por telefono, y con dos claves distintas una rafaga se
   // partia en dos montones y no alcanzaba el umbral nunca.
-  const key = `${groupJid}|${canonicalJid(sender)}|${kind}`;
+  const key = `${groupJid}|${canonicalJid(sender)}|${kind}.`;
   const now = Date.now();
 
   if (!hits.has(key) && hits.size >= MAX_KEYS) {
@@ -87,7 +87,7 @@ function noteOffence(groupJid, sender, kind, msgId) {
 
 // Al salir del grupo (o ser expulsado) se olvida su historial.
 function forget(groupJid, sender) {
-  const p = `${groupJid}|${canonicalJid(sender)}|`;
+  const p = `${groupJid}|${canonicalJid(sender)}|.`;
   for (const k of hits.keys()) if (k.startsWith(p)) hits.delete(k);
 }
 
