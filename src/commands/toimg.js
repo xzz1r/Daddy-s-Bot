@@ -21,7 +21,7 @@ const FFMPEG_TIMEOUT_MS = 45_000;
 // Se le escapaban cuatro casos que en un grupo normal pasan todos los días:
 //
 //   · ephemeralMessage — en un chat con mensajes temporales TODO va envuelto
-//     ahí dentro, así que el sticker existía pero el bot contestaba "responde
+//     ahí dentro, así que el sticker existía pero. el bot contestaba "responde
 //     con !toimg a un sticker". Este es el que más se nota.
 //   · viewOnce metido DENTRO de ephemeral (los dos envoltorios a la vez).
 //   · documentMessage con mimetype de imagen o vídeo: una foto reenviada como

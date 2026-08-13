@@ -114,7 +114,7 @@ function scheduleIndexSave() {
 // gratuita, así que importa más de lo que parece.
 //
 // Antes era md5(query en minúsculas). Con eso, estas cuatro peticiones eran
-// cuatro canciones distintas para el bot y cada una gastaba una conversión del
+// cuatro canciones distintas para. el bot y cada una gastaba una conversión del
 // cupo mensual, para acabar mandando exactamente el mismo archivo:
 //
 //   !play blinding lights the weeknd
@@ -123,7 +123,7 @@ function scheduleIndexSave() {
 //   !play blinding lights the weeknd official video
 //
 // En un grupo donde varias personas piden lo mismo con distintas palabras, eso
-// es la mayor fuga de cupo que tiene el bot. La clave nueva quita tildes y
+// es la mayor fuga de cupo que tiene. el bot. La clave nueva quita tildes y
 // signos, tira las palabras de relleno que la gente añade sin pensar y ORDENA
 // lo que queda, así que el orden de las palabras deja de importar. Las cuatro
 // de arriba pasan a ser un único acierto de caché: una conversión, no cuatro.

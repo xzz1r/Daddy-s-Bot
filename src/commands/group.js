@@ -216,7 +216,7 @@ async function cmdKick(sock, msg, args, groupMeta) {
     // Single batch call to the WA API instead of one round-trip per user.
     const res = await sock.groupParticipantsUpdate(jid, targets, 'remove');
     // WhatsApp responde por participante y puede rechazar a unos y aceptar a
-    // otros. Anunciar la lista entera sin mirarlo hacía que el bot afirmara
+    // otros. Anunciar la lista entera sin mirarlo hacía que. el bot afirmara
     // haber expulsado a gente que sigue sentada en el grupo.
     const codigo = (t) => String(
       (Array.isArray(res) ? res.find(r => (r?.jid || '').split('@')[0] === t.split('@')[0]) : null)?.status ?? '200'
@@ -428,7 +428,7 @@ async function cmdDemote(sock, msg, args, groupMeta) {
   // Owner tier is immune: a co-owner must not be able to strip the main owner
   // (or another co-owner), matching the protection kick and mute already enforce.
   // SILENCIO. Este era el peor de todos: bastaba un !demote a alguien para que
-  // el bot anunciara su rango delante del grupo entero.
+  // el bot anunciara su rango. delante del grupo entero.
   if (isOwner(target, false, groupMeta)) return;
   if (!isAdmin(groupMeta?.participants, target)) {
     return sock.sendMessage(jid, { text: 'Ese usuario no es admin.' }, { quoted: msg });
@@ -895,7 +895,7 @@ async function cmdOpen(sock, msg, groupMeta) {
   }
 }
 
-// !adminmode on/off — con esto encendido el bot solo obedece a admins y al
+// !adminmode on/off — con esto encendido. el bot solo obedece a admins y al
 // owner tier. A los miembros normales no les contesta NADA: ni el comando ni
 // un aviso de que no pueden. La alternativa (responder "no puedes" a cada
 // intento) convierte el modo en una fuente de spam en el propio chat.

@@ -28,7 +28,7 @@ async function ensureTemp() {
   await fs.ensureDir(TEMP_DIR);
   await barrerTemp();
 
-  // Y se repite cada hora mientras el bot corre.
+  // Y se repite cada hora mientras. el bot corre.
   //
   // Barrer solo al arrancar bastaba cuando el proceso se reiniciaba a menudo.
   // En un bot que lleva semanas levantado no: un ffmpeg que muere por timeout o
@@ -95,7 +95,7 @@ const _MAX_PICK_KEYS = 2000;    // bound the map so long-lived bots don't leak
 // bloquearlas todas dejaria el pool vacio.
 // Dureza de una frase: cuenta senales de que es de las fuertes del arsenal.
 // No pretende ser exacta — solo separar "puta mierda de fracasado, no vales
-// nada" de "estas en la media y no destacas". Con eso basta para que el bot
+// nada" de "estas en la media y no destacas". Con eso basta para que. el bot
 // abra con lo mas hiriente que tiene y deje lo tibio para cuando se le acabe.
 const _CRUDO = /\b(puto?s?|puta?s?|mierda|joder|co[nñ]o|polla|cabr[oó]n|gilipollas|pringad|fracasad|in[uú]til|pat[eé]tic|basura|par[aá]sito|don nadie|muerto de hambre|cero a la izquierda|asco|verg[uü]enza|rid[ií]cul|escoria|guarr|cutre|miseria|desperdicio)\w*/gi;
 
@@ -115,7 +115,7 @@ function ordenarPorDureza(pool) {
 }
 
 // Peso de cada posicion al elegir. El pool llega ya ordenado de mas duro a mas
-// suave, asi que dar mas peso a las primeras posiciones hace que el bot saque
+// suave, asi que dar mas peso a las primeras posiciones hace que. el bot saque
 // antes lo mas fuerte que tiene. No es un orden fijo: es un sesgo. Si fuera
 // fijo, el comando diria siempre la misma frase hasta agotar la cabecera, y eso
 // canta muchisimo mas que repetirse de vez en cuando.
@@ -327,7 +327,7 @@ async function atomicWriteJson(file, data) {
 // atomicWriteJson limpia su temporal si la escritura falla, pero no puede hacer
 // nada si al proceso lo MATAN entre el outputFile y el rename: ahí el catch no
 // llega a ejecutarse nunca y el .tmp se queda. En la VPS eso pasa cada vez que
-// pm2 reinicia por el tope de RAM o el OOM killer del kernel se lleva el bot, y
+// pm2 reinicia por el tope de RAM o el OOM killer del kernel se lleva. el bot, y
 // como state.json se escribe cada pocos segundos, los huérfanos se acumulan.
 // En una Oracle del plan gratuito eso es una fuga de disco lenta pero real.
 //

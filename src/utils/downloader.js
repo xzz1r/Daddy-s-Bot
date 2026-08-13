@@ -9,7 +9,7 @@ const logger = require('./logger');
 
 // Fuentes de música para !play, en cadena, buscando siempre la canción COMPLETA:
 //   1. API de terceros (RapidAPI): extrae el audio de YouTube en la IP del
-//      servicio, no en la nuestra, así se evita por completo el bot-check del
+//      servicio, no en la nuestra, así se evita por completo. el bot-check del
 //      datacenter. Da canciones populares completas sin login ni tokens propios.
 //      Necesita una key gratuita (config.rapidApiKey / RAPIDAPI_KEY en .env).
 //   2. SoundCloud (respaldo, sin key ni límite): se prueban varios resultados y

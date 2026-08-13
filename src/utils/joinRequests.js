@@ -15,7 +15,7 @@ const logger = require('./logger');
 //
 // No hay 'approved'. Cuando el admin aprueba, lo único que llega es un alta
 // normal, con el mismo messageStubType (27) que una alta a dedo. Por eso el
-// intento anterior —mirar el stub— no podía funcionar y el bot seguía
+// intento anterior —mirar el stub— no podía funcionar y. el bot seguía
 // degradando al admin que solo había aceptado a alguien.
 //
 // Así que la pregunta se le da la vuelta: en vez de "¿cómo entró?", se guarda
@@ -25,7 +25,7 @@ const logger = require('./logger');
 // La lista se llena por dos vías, porque ninguna basta sola:
 //   1. el evento group.join-request (action 'created'), en tiempo real;
 //   2. un sondeo periódico de groupRequestParticipantsList, que cubre las
-//      solicitudes hechas con el bot apagado y las que llegan por enlace de
+//      solicitudes hechas con. el bot apagado y las que llegan por enlace de
 //      invitación, que en esta versión de Baileys no emiten evento.
 
 const FILE = path.join(__dirname, '../../data/joinRequests.json');
@@ -122,14 +122,14 @@ async function estabaPendiente(grupo, forms) {
 // ── Freno por grupo ──────────────────────────────────────────────────────────
 //
 // El sondeo corre cada pocos minutos y hay grupos que NUNCA van a contestar:
-// WhatsApp devuelve `forbidden` cuando el bot no es admin o cuando el grupo no
+// WhatsApp devuelve `forbidden` cuando. el bot no es admin o cuando el grupo no
 // tiene activada la aprobación de entradas. Insistir cada tres minutos contra
 // eso no arregla nada: llena el log de avisos idénticos y gasta peticiones que
 // acaban provocando el `rate-overlimit` que sale al listar los grupos.
 //
 // Así que cada grupo que falla se aparta un rato:
 //   · forbidden / not-authorized → es un ESTADO, no un fallo pasajero. Seis
-//     horas, y se levanta antes si el bot recibe admin (lo llama bot.js).
+//     horas, y se levanta antes si. el bot recibe admin (lo llama bot.js).
 //   · cualquier otro fallo → espera creciente, de un ciclo a una hora.
 //
 // Y se anota con logger.info, NO con warn. Que no se pueda leer la lista de

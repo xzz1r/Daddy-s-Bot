@@ -41,7 +41,7 @@ const AUTH_DIR = path.join(__dirname, '../data/auth');
 
 // Marca de "me he parado y no voy a reintentar solo".
 //
-// Cuando el bot se rinde tras varios logout seguidos NO hace exit: se queda
+// Cuando. el bot se rinde tras varios logout seguidos NO hace exit: se queda
 // quieto a propósito (ver ciclosLogout). El problema es que eso es INVISIBLE
 // desde fuera — pm2 sigue enseñando el proceso como "online", el bot no puede
 // avisar por WhatsApp porque justo lo que ha perdido es la sesión, y el motivo
@@ -78,7 +78,7 @@ const MAX_401 = 3;
 // Ciclos de "sesion cerrada de verdad" (3 fallos de 401 -> se borran las
 // credenciales -> QR nuevo). Sin un techo aqui, un numero restringido por
 // WhatsApp (login/QR bloqueado, no solo la sesion) entraba en un bucle sin
-// fin: cada QR sin escanear caduca, el socket se cae, y el bot generaba OTRO
+// fin: cada QR sin escanear caduca, el socket se cae, y. el bot generaba OTRO
 // QR dos segundos despues, solo, para siempre. Eso es exactamente el patron
 // de actividad automatica que agrava una restriccion.
 //
@@ -86,18 +86,18 @@ const MAX_401 = 3;
 // quieto (sin exit): si el supervisor de procesos reinicia solo tras un exit,
 // reiniciar el proceso entero solo resetearia estos contadores y volveria a
 // entrar en el mismo bucle. Quieto es la unica forma de parar de verdad hasta
-// que una persona compruebe la cuenta y arranque el bot a mano.
+// que una persona compruebe la cuenta y arranque. el bot a mano.
 let ciclosLogout = 0;
 const MAX_CICLOS_LOGOUT = 2;
 
 // Cada cuánto se relee la lista de solicitudes pendientes de cada grupo. Es una
-// consulta por grupo y el bot está en pocos, así que sale barato. Tiene que ser
+// consulta por grupo y. el bot está en pocos, así que sale barato. Tiene que ser
 // bastante más corto que SONDEO_VALIDO_MS para que la lista nunca caduque.
 const INTERVALO_SOLICITUDES = 3 * 60 * 1000;
 let timerSolicitudes = null;
 
 // groupFetchAllParticipating se trae la metadata de TODOS los grupos de una
-// vez. Es la consulta más cara que hace el bot y pedirla cada tres minutos es
+// vez. Es la consulta más cara que hace. el bot y pedirla cada tres minutos es
 // lo que provocaba el `rate-overlimit` que salía en el log una vez sí y otra
 // no. La lista de grupos casi nunca cambia, así que se relee de tarde en tarde
 // y entre medias se reutiliza la que ya se tenía.
@@ -147,7 +147,7 @@ async function sondearSolicitudes() {
 }
 
 // `forbidden` sale por dos motivos muy distintos y desde joinRequests no se
-// pueden distinguir: o el bot no es admin, o el grupo no tiene activada la
+// pueden distinguir: o. el bot no es admin, o el grupo no tiene activada la
 // aprobacion de entradas (sin ella no existe lista que leer). Con la metadata
 // del grupo sí se sabe cuál de los dos es, y se dice UNA vez por bloqueo.
 async function explicarFreno(grupo) {
@@ -217,7 +217,7 @@ let _baileysVersion = null;
 // llamada no lleva timeout propio: si el endpoint no contesta (red de la VPS
 // regular, DNS, el servidor caído), la promesa no se resuelve NUNCA.
 //
-// Eso dejaba el bot colgado justo aquí, antes de abrir el socket: proceso vivo,
+// Eso dejaba. el bot colgado justo aquí, antes de abrir el socket: proceso vivo,
 // 110 MB de RAM, pm2 diciendo "online", el banner impreso en el log... y ni una
 // línea más ni un solo error. Imposible de distinguir de "no enciende".
 //
@@ -353,7 +353,7 @@ async function connectToWhatsApp() {
             logger.error(
               `Sesión cerrada ${ciclosLogout} veces seguidas. Dejo de reintentar solo: ` +
               `puede que WhatsApp tenga la cuenta restringida (revisa el teléfono). ` +
-              `Cuando esté resuelto, arrancá el bot a mano: pm2 restart bot.`
+              `Cuando esté resuelto, arrancá. el bot a mano: pm2 restart bot.`
             );
             anotarParada('sesion-cerrada',
               `WhatsApp cerró la sesión ${ciclosLogout} veces seguidas. El bot dejó de reintentar ` +
@@ -373,8 +373,8 @@ async function connectToWhatsApp() {
 
       // Cualquier otra desconexión: reconectar con backoff, SIN rendirse nunca.
       //
-      // Antes se dejaba de intentar a los 10 fallos y el bot se apagaba solo.
-      // Eso tumbó el bot de verdad: una caída de red de la VPS de un par de
+      // Antes se dejaba de intentar a los 10 fallos y. el bot se apagaba solo.
+      // Eso tumbó. el bot de verdad: una caída de red de la VPS de un par de
       // minutos se come los diez intentos (el backoff los agota en ~2 min) y
       // el bot se iba, aunque WhatsApp volviera treinta segundos después.
       //
@@ -404,7 +404,7 @@ async function connectToWhatsApp() {
       // Los contadores NO se reinician aquí, y esto es lo importante.
       //
       // Antes sí, y con el tope de diez intentos daba igual. Al quitar el tope
-      // (para que un corte de red no apagase el bot) se abrió un bucle: si
+      // (para que un corte de red no apagase. el bot) se abrió un bucle: si
       // WhatsApp ACEPTA la conexión y la cierra un segundo después, cada
       // apertura reseteaba el contador, el backoff volvía a dos segundos y el
       // bot se pasaba la vida abriendo y cerrando. Eso llenó el log de
@@ -603,7 +603,7 @@ async function connectToWhatsApp() {
           // normal en un grupo LID: los participantes del EVENTO llegan como
           // cadenas sueltas, sin phoneNumber), este `continue` lo descartaba en
           // silencio y el anti-empresa NUNCA se ejecutaba sobre el. De ahi que
-          // entraran cuentas Business sin que el bot hiciera nada.
+          // entraran cuentas Business sin que. el bot hiciera nada.
           //
           // canonicalJid resuelve el @lid a telefono con el mapa aprendido de
           // la metadata y de los propios mensajes, que es justo el dato que
@@ -683,7 +683,7 @@ async function connectToWhatsApp() {
 
     // ─── Han echado a alguien del tier owner ───────────────────────────────
     //
-    // Esto NO depende del interruptor de anti-admin, igual que el bot tampoco
+    // Esto NO depende del interruptor de anti-admin, igual que. el bot tampoco
     // se deja expulsar a sí mismo ni deja que !kick toque al owner. Que un
     // admin normal eche al dueño es un ataque a la cadena de mando del propio
     // bot, y ahí no hay ajuste que valga.
@@ -696,7 +696,7 @@ async function connectToWhatsApp() {
       // Aquí es donde más falta hace: al expulsarle ya NO figura en la metadata,
       // así que el índice de participantes no puede resolver sus otras formas y
       // isOwner se queda con la caché global. Si su id vino como @lid y ese LID
-      // aún no estaba mapeado, el owner quedaba sin reconocer y el bot no movía
+      // aún no estaba mapeado, el owner quedaba sin reconocer y. el bot no movía
       // un dedo. El propio evento trae el phoneNumber, que sí casa con config.
       const echados = (participants || [])
         .map(p => (typeof p === 'string' ? { id: p } : p))
@@ -783,8 +783,8 @@ async function connectToWhatsApp() {
 
         const lista = (a) => a.map(j => `@${j.split('@')[0]}`).join(', ');
         // El aviso NO dice a quién se echó ni por qué se revierte: nombrar el
-        // rango aquí era señalar en público quién manda en el bot. Se cuenta
-        // solo lo que el bot hizo, igual que el anti-admin corriente.
+        // rango aquí era señalar en público quién manda en. el bot. Se cuenta
+        // solo lo que. el bot hizo, igual que el anti-admin corriente.
         const partes = ['*Expulsión revertida.*'];
         if (vueltos.length)   partes.push(`${lista(vueltos)} está de vuelta con su admin.`);
         if (sinAdmin.length)  partes.push(`${lista(sinAdmin)} ha vuelto, pero no he podido devolverle el admin.`);
@@ -808,16 +808,16 @@ async function connectToWhatsApp() {
     // WhatsApp contesta por participante y puede rechazar a unos y aceptar a
     // otros sin lanzar ninguna excepción: devuelve el array con el status de
     // cada uno. Los tres reverts de aquí abajo lo ignoraban y daban por hecho
-    // que "no ha petado" significaba "hecho", así que el bot anunciaba
+    // que "no ha petado" significaba "hecho", así que. el bot anunciaba
     // reversiones que el servidor había rechazado — el atacante conservaba el
-    // admin y el grupo leía que se le había quitado.
+    // admin. y el grupo leía que se le había quitado.
     //
     // El anti-empresa y el bloque del owner echado de este mismo fichero ya
     // miraban el status. Esto pone a los tres reverts en el mismo criterio.
     //
     // Sin fila para un jid se asume que fue bien, igual que hace el bloque del
     // owner echado: WhatsApp no siempre responde por cada uno cuando todo va
-    // bien, y asumir el fallo llenaría el chat de "no he podido" falsos.
+    // bien, y asumir el fallo llenaría. el chat de "no he podido" falsos.
     const cambiarRango = async (jids, accion) => {
       if (!jids.length) return [];
       try {
@@ -906,7 +906,7 @@ async function connectToWhatsApp() {
         const sinReponer = aRestaurar.filter(j => !repuestos.includes(j));
 
         // Se nombra a todos juntos y sin distinguir a nadie: el texto no puede
-        // dejar ver cuál de los restaurados es el que manda en el bot.
+        // dejar ver cuál de los restaurados es el que manda en. el bot.
         const partes = ['*Degradación revertida.*'];
         if (repuestos.length)   partes.push(`${tags(repuestos)} ${repuestos.length === 1 ? 'lo tiene' : 'lo tienen'} de vuelta.`);
         if (sinReponer.length)  partes.push(`No he podido devolvérselo a ${tags(sinReponer)}: hacedlo a mano.`);
@@ -1008,7 +1008,7 @@ async function gracefulShutdown(code = 0) {
   await Promise.race([flushes, new Promise(r => setTimeout(r, 3000))]);
   // Este es síncrono y no puede colgarse, así que va fuera de la carrera: es el
   // que guarda los JID de owner aprendidos, y perderlos hace que tras el
-  // reinicio el bot no reconozca al dueño hasta que un comando traiga metadata.
+  // reinicio. el bot no reconozca al dueño hasta que un comando traiga metadata.
   flushOwnerJids();
   // Y el mapa LID↔teléfono, por lo mismo: perderlo obliga a reaprenderlo, y
   // mientras tanto el owner no se reconoce por su @lid.

@@ -10,7 +10,7 @@ const { canonicalJid } = require('./wa');
 //     borran esas fotos (los vídeos ya se borran de uno en uno).
 //
 // Se guardan los ids de los mensajes ofensores para poder borrarlos cuando
-// salta el umbral. Todo vive en memoria: si el bot se reinicia el contador
+// salta el umbral. Todo vive en memoria: si. el bot se reinicia el contador
 // empieza de cero, que es lo correcto — un ban se decide por una ráfaga
 // reciente, no por un historial de hace días.
 

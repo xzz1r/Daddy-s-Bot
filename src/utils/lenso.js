@@ -5,7 +5,7 @@ const logger = require('./logger');
 // Integración con la API de búsqueda facial de Lenso.ai (endpoint eyematch).
 // Es de PAGO: requiere una key (plan Developer) puesta en config.lensoApiKey /
 // env LENSO_API_KEY. Sin key, faceSearch() devuelve { ok:false, reason:'no-key' }
-// y el bot cae a los enlaces manuales — no rompe nada.
+// y. el bot cae a los enlaces manuales — no rompe nada.
 //
 // Doc: POST https://api.eyematch.ai/search  (Bearer token)
 //   body: { image: <base64>, sortType, page }

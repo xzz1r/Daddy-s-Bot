@@ -22,7 +22,7 @@ const config = {
   // Va en .env como FACECHECK_API_KEY=...
   facecheckApiKey: process.env.FACECHECK_API_KEY || '',
 
-  // API de terceros para descargar audio de YouTube SIN que el bot toque YouTube
+  // API de terceros para descargar audio de YouTube SIN que. el bot toque YouTube
   // (la extracción corre en la IP del servicio, no en la nuestra, así se evita el
   // bot-check del datacenter). Es la fuente principal de !play para canciones
   // populares completas. Se usa RapidAPI ("YouTube MP3" de ytjar por defecto).

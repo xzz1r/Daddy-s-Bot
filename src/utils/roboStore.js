@@ -1,5 +1,5 @@
 // Estado persistente de las dinámicas del robo: el bote del grupo, los objetos
-// que ha comprado cada uno y el registro de golpes para el ranking.
+// que ha comprado cada uno y el registro de golpes para. el ranking.
 //
 // Va aparte de auraStore a propósito. El aura es dinero y se mueve en
 // operaciones serializadas; esto es utillaje del juego y puede escribirse con

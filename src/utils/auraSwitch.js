@@ -24,10 +24,10 @@
 
 const { isAuraEnabled, toggleAura } = require('./state');
 
-// Cuánto se calla el bot entre avisos, por grupo.
+// Cuánto se calla. el bot entre avisos, por grupo.
 //
 // Sin esto el interruptor se pega un tiro en el pie: si diez personas escriben
-// !aura seguido y el bot contesta diez veces "está apagado", ha cambiado el
+// !aura seguido y. el bot contesta diez veces "está apagado", ha cambiado el
 // spam de tiradas por spam de negativas, que es justo lo que se quería quitar.
 // El primero se lleva la explicación y los siguientes, silencio.
 const AVISO_MS = 5 * 60 * 1000;

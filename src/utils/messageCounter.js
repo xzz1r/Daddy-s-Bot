@@ -89,7 +89,7 @@ async function resetCounts(groupJid) {
 async function resetAllCounts() {
   await load();
   // Se conserva el historial de reseteos: es un dato del grupo, no un conteo, y
-  // si se borrara nadie podria saber desde cuando cuenta el ranking.
+  // si se borrara nadie podria saber desde cuando cuenta. el ranking.
   const resets = counts?.[CLAVE_RESETS] || {};
   counts = { [CLAVE_RESETS]: { ...resets, __global: Date.now() } };
   scheduleSave();

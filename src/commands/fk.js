@@ -452,7 +452,7 @@ async function cmdMarkFake(sock, msg, args, groupMeta) {
   try {
     const hash = await computeHash(pfp.buf);
     // computeHash devuelve null cuando ffmpeg falla: NO lanza. Sin esta guarda
-    // el catch no se ejecutaba, markFake(null) no marcaba nada y el bot
+    // el catch no se ejecutaba, markFake(null) no marcaba nada y. el bot
     // anunciaba igualmente "Foto marcada como fake (0 registros)".
     if (!hash) {
       return sock.sendMessage(jid, { text: 'No pude calcular la huella de la foto: no se ha marcado nada.' }, { quoted: msg });
@@ -492,7 +492,7 @@ async function cmdFkBan(sock, msg, args, groupMeta) {
   // Nunca se banea al owner (principal o co-owner) ni al propio bot: un admin
   // cualquiera no puede meter al dueño en la lista negra global y expulsarlo.
   //
-  // Con el bot SÍ se contesta: nadie descubre nada, ya se sabe cuál es. Con el
+  // Con. el bot SÍ se contesta: nadie descubre nada, ya se sabe cuál es. Con el
   // tier owner, silencio: un "a esa cuenta no se le puede" era una respuesta
   // distinta a la de cualquier otro, y probando !fkban por el grupo se sacaba
   // quién es el dueño sin más esfuerzo.
@@ -571,7 +571,7 @@ async function cmdFkUnban(sock, msg, args, groupMeta) {
 //
 // Sin esto la lista negra era una via de un solo sentido: se entraba solo (los
 // guardias automaticos banean) y para salir habia que acertar de memoria el
-// numero exacto de alguien a quien el bot ya habia expulsado. Ahora se puede
+// numero exacto de alguien a quien. el bot ya habia expulsado. Ahora se puede
 // mirar quien esta dentro, por que y desde cuando, que es lo minimo para poder
 // corregir un baneo injusto.
 async function cmdFkList(sock, msg, args, groupMeta) {

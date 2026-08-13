@@ -21,7 +21,7 @@ async function cmdOn(sock, msg, groupMeta) {
 
   if (isGroup) {
     // Solo el owner tier. Antes bastaba con ser admin del grupo, asi que
-    // cualquier admin podia apagar el bot entero; ahora encender y apagar es
+    // cualquier admin podia apagar. el bot entero; ahora encender y apagar es
     // del duenyo, como el resto de interruptores del bot.
     if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
       return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
@@ -47,7 +47,7 @@ async function cmdOff(sock, msg, groupMeta) {
 
   if (isGroup) {
     // Solo el owner tier. Antes bastaba con ser admin del grupo, asi que
-    // cualquier admin podia apagar el bot entero; ahora encender y apagar es
+    // cualquier admin podia apagar. el bot entero; ahora encender y apagar es
     // del duenyo, como el resto de interruptores del bot.
     if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
       return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
@@ -138,7 +138,7 @@ const AURA_LINES = [
   'Los bonos premian escribir, no respirar. Si crees que por estar en la lista ya te llevas algo, vete a la mierda.',
   'El aura funciona como la puta vida: el que aparece gana, el que desaparece pierde y el que presume sin numeros queda de payaso.',
   'Cada mil mensajes tu suerte de tirada sube un poco, para siempre. El veterano tira mejor porque se lo ha currado, cabron.',
-  'El que lleva racha no solo cobra a diario: revienta hitos y el grupo entero se entera. La constancia tiene premio, joder.',
+  'El que lleva racha no solo cobra a diario: revienta hitos. y el grupo entero se entera. La constancia tiene premio, joder.',
   'Aqui se paga por mover el culo y se cobra por no rajarse. Lo demas son excusas de mierda de gente que no da la cara.',
   'El aura no miente, cabron. Es el espejo del grupo y a la mayoria de hijos de puta no les gusta lo que ven.',
   'Dos formas de subir: escribiendo o tirando dados. Pero solo una es gratis. La otra te puede dejar en la puta ruina.',
@@ -160,7 +160,7 @@ async function cmdCasino(sock, msg, groupMeta) {
   // AL OWNER PRINCIPAL NO SE LE CONTESTA. Sus mensajes no se cuentan — es lo que
   // lo mantiene fuera de !count, de los tops y de las purgas — así que este
   // comando le sacaba "Mensajes hoy: 0" delante del grupo. Es la contradicción
-  // exacta que lo delata: la única persona a la que el bot dice que no ha
+  // exacta que lo delata: la única persona a la que. el bot dice que no ha
   // escrito nada es justamente la que más escribe.
   //
   // Se calla del todo en vez de enseñarle el mensaje sin esa línea: un formato
@@ -177,7 +177,7 @@ async function cmdCasino(sock, msg, groupMeta) {
 
   // El calculo del proximo hito vive en utils/casino.js, que es quien reparte los
   // bonos de verdad. Estaba copiado literalmente aqui: tocar un tramo alli y
-  // olvidarse de este sitio habria hecho que el bot anunciara un hito que no
+  // olvidarse de este sitio habria hecho que. el bot anunciara un hito que no
   // paga lo que dice.
   const { tier, remaining } = nextMilestone(count);
 
@@ -188,7 +188,7 @@ async function cmdCasino(sock, msg, groupMeta) {
   const resetStr = ms > 0 ? `${hours}h ${mins}min` : 'pronto';
 
   // Cuántas tiradas de pago le quedan hoy. No se ve en ningún otro sitio hasta
-  // que se acaban y el bot lo dice en la propia tirada, así que enseñarlo aquí
+  // que se acaban y. el bot lo dice en la propia tirada, así que enseñarlo aquí
   // es lo que evita la sorpresa.
   const quedan = Math.max(0, TIRADAS_PAGADAS - tiradas);
 
@@ -242,7 +242,7 @@ async function cmdHelp(sock, msg, groupMeta) {
   //  · lo que vale para toda una seccion (lo del @) se dice una vez, no dos.
   //
   // Los precios NO se escriben a mano: salen de utils/economia.js. Escritos a
-  // mano se desincronizan solos y el bot acaba cobrando una cifra y anunciando
+  // mano se desincronizan solos y. el bot acaba cobrando una cifra y anunciando
   // otra. Hay un test que compara este menu con la tabla real.
   const c = (n) => `\`${PRECIOS[n]}\``;
 

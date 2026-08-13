@@ -74,7 +74,7 @@ async function maybeStore(ctx, buf) {
 }
 
 // Caché en disco de la ÚLTIMA foto de perfil vista de cada cuenta. WhatsApp no
-// deja ver una foto que el dueño puso oculta/privada — pero si el bot la vio
+// deja ver una foto que el dueño puso oculta/privada — pero si. el bot la vio
 // alguna vez cuando estaba visible (vía !pfp o el indexador automático), la
 // guardamos aquí. Así !pfp puede mostrar la última foto conocida aunque ahora
 // esté oculta o la persona la haya cambiado. Los bytes van a archivos sueltos

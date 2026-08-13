@@ -134,7 +134,7 @@ const toggleAntiBusiness    = (jid, enable) => setMembership('antiBusinessEnable
 
 // Modo solo-admins (opt-in): con esto encendido, los comandos del bot solo
 // responden a admins y al owner tier. Los miembros normales no reciben ni un
-// "no puedes": el bot simplemente los ignora, para no llenar el chat de
+// "no puedes": el bot simplemente los ignora, para no llenar. el chat de
 // negativas cada vez que alguien lo intente.
 const isSoloAdminsEnabled   = (jid)         => hasMembership('soloAdminsEnabled',   jid);
 const toggleSoloAdmins      = (jid, enable) => setMembership('soloAdminsEnabled',   jid, enable);

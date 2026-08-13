@@ -53,7 +53,7 @@ function isKnownOwnerJid(jid) {
 
 // Vuelca ya lo que estuviera pendiente. El guardado normal espera 5 s, así que
 // un apagado dentro de esa ventana se llevaba los JID de owner recién
-// aprendidos y el bot volvía a arrancar sin reconocer al dueño hasta que algún
+// aprendidos y. el bot volvía a arrancar sin reconocer al dueño hasta que algún
 // comando trajera metadata otra vez.
 function flushOwnerJids() {
   if (ownerSaveTimer) { clearTimeout(ownerSaveTimer); ownerSaveTimer = null; }
@@ -415,7 +415,7 @@ function esMiembroActual(groupMeta, jid) {
   // Hay una combinación en la que el índice no basta: WhatsApp entrega el grupo
   // en modo LID —los participantes vienen SOLO con @lid, sin phoneNumber— y el
   // aura de esa persona está guardada bajo su teléfono. Sin el mapeo LID↔teléfono
-  // aprendido, para el bot son dos identidades distintas y no hay forma de
+  // aprendido, para. el bot son dos identidades distintas y no hay forma de
   // saber que son la misma... salvo para el owner, cuyo número está configurado:
   // isMainOwner compara ese número contra todas las formas de cada participante.
   //
@@ -529,7 +529,7 @@ function esFalloDeSinFoto(err) {
 // (reintenta un par de veces con una pausa corta, y si persiste, LANZA en vez
 // de devolver null, para que quien llama no confunda un hipo de red con una
 // foto oculta). Sin esto, cualquier timeout o límite de peticiones de
-// WhatsApp hacía que el bot dijera "no tiene foto" cuando en realidad no supo.
+// WhatsApp hacía que. el bot dijera "no tiene foto" cuando en realidad no supo.
 async function fetchPfpUrl(sock, jid, tipo = 'image', intentos = 2) {
   let ultimoError = null;
   for (let i = 0; i <= intentos; i++) {

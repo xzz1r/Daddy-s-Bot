@@ -148,7 +148,7 @@ function scheduleSave() {
 // Las escrituras usan canonicalJid, pero esa forma depende de si ya se conocía
 // la correspondencia LID<->teléfono en ese momento. Quien acumuló aura bajo su
 // @lid antes de que WhatsApp mandara el par acaba con dos saldos: el viejo se
-// vuelve invisible (aura perdida) y en el ranking sale dos veces.
+// vuelve invisible (aura perdida) y en. el ranking sale dos veces.
 //
 // El saldo unido NO es la suma a secas: cada entrada partida arrancó por su
 // cuenta en STARTING_AURA, así que hay que descontar ese arranque de más una
@@ -279,9 +279,9 @@ async function getAuraRanking(groupJid) {
 // —que descuenta un arranque por cada forma extra al fusionarlas— sacaría a esa
 // persona en negativo mientras el resto está en 0.
 //
-// Quien nunca ha tocado el bot no tiene registro y seguirá empezando en el
+// Quien nunca ha tocado. el bot no tiene registro y seguirá empezando en el
 // arranque la primera vez. Eso no es el reset fallando: es alguien que entra
-// nuevo, y el arranque existe para que pueda usar el bot desde el primer día.
+// nuevo, y el arranque existe para que pueda usar. el bot desde el primer día.
 // Ojo con la asimetría, que el reequilibrio la hizo más grande: tras un reset
 // el grupo entero está en 0 y el que llegue mañana entra con el arranque
 // completo. Es asumible mientras el arranque sea poco más que un par de

@@ -48,7 +48,7 @@ const PHRASES = {
       '200 mensajes y el aura reventó por arriba. Bono grande en el tramo de entrada. Raro y documentado.',
       'Bote gordo de aura en Tier 1. Poco habitual, completamente real, y el marcador lo confirma.',
       'BOTE DE TIER 1. 200 mensajes y el aura ha pagado como si fueran mil. Suerte descomunal.',
-      '200 mensajes y bote confirmado. Esto no pasa todos los días y el grupo lo acaba de ver.',
+      '200 mensajes y bote confirmado. Esto no pasa todos los días. y el grupo lo acaba de ver.',
       'Bote en el tramo de entrada. 200 mensajes y un premio que no se merece cualquiera.',
     ],
   },
@@ -72,7 +72,7 @@ const PHRASES = {
       'Bono grande en Tier 2. 500 mensajes que han rendido más de lo que suelen.',
     ],
     jackpot: [
-      'BOTE DE TIER 2. 500 mensajes y el aura se desbordó. De los premios que hacen abrir el chat.',
+      'BOTE DE TIER 2. 500 mensajes y el aura se desbordó. De los premios que hacen abrir. el chat.',
       '500 mensajes y bote confirmado en Tier 2. Esto queda en el registro del grupo. Los inactivos que miren.',
       'Bote histórico de aura en Tier 2. 500 mensajes reales y un premio que el grupo no va a olvidar.',
       'BOTE EN TIER 2. Medio millar de mensajes y el aura ha reventado por arriba. Raro y sonoro.',
@@ -83,7 +83,7 @@ const PHRASES = {
   tier3: {
     win: [
       '1000 mensajes. Eso no se ve todos los días en ningún grupo. El aura lo reconoce y lo paga entero.',
-      'Mil mensajes registrados. Hay quien cierra el chat antes de llegar a diez. Otra liga confirmada.',
+      'Mil mensajes registrados. Hay quien cierra. el chat antes de llegar a diez. Otra liga confirmada.',
       '1000 mensajes: el nivel donde los fantasmas del grupo ni saben que existe un bono. El que llega, cobra.',
       'El contador llega a 1000 y el aura abre el tramo máximo. Presencia de las que se recompensan solas.',
       'Mil mensajes. A los que han mandado diez hoy les queda lejos incluso el concepto.',
@@ -113,7 +113,7 @@ const PHRASES = {
     'COMEBACK EN DIRECTO — Aura negativa, mensajes positivos. Aquí se premia la constancia antes que el cope, y el marcador acaba de cambiar de cara.',
     'REDENCIÓN INESPERADA — El grupo daba ese aura por perdida. La actividad tiene su propia economía y acaba de hablar. Bote confirmado.',
     'EL MARCADOR REESCRITO — Aura negativa, actividad real. Aquí no se juzga el historial, se juzga quién aparece. Resultado: bono de redención.',
-    'BONO DE REDENCIÓN — Lo que meses de excusas no arreglaron, la actividad lo resolvió sola. El aura cambia de signo y el grupo lo vio.',
+    'BONO DE REDENCIÓN — Lo que meses de excusas no arreglaron, la actividad lo resolvió sola. El aura cambia de signo. y el grupo lo vio.',
     'COMEBACK CONFIRMADO — Aura en negativo y un bono que reescribe la historia. La actividad paga lo que la suerte no quiso.',
     'REMONTADA — Desde el fondo del pozo hasta aquí. La actividad hace lo que ninguna tirada consiguió: cambiar el marcador.',
     'REDENCIÓN — Aura negativa, presencia real. El sistema premia al que aparece y hoy ha aparecido quien más lo necesitaba.',
@@ -171,7 +171,7 @@ function nextMilestone(count) {
 // (7, 15, 30, 50, 100, 200, 365 dias) y cuando alguien vuelve tras cargarse una
 // racha de una semana o mas.
 //
-// Los gates son los mismos que los del bono: con el bot apagado o la dinamica
+// Los gates son los mismos que los del bono: con. el bot apagado o la dinamica
 // de aura en pausa se sigue cobrando y no se dice nada.
 async function avisarRacha(sock, jid, sender) {
   const r = await anotarMensaje(jid, sender);
@@ -230,9 +230,9 @@ async function checkCasinoMilestone(sock, jid, sender) {
   // El aura SE PAGA SIEMPRE. Lo que se puede callar es el aviso, y hay dos
   // motivos para callarlo. Los dos eran agujeros:
   //
-  //  · CON EL BOT APAGADO (*!off*). Esta función se llama desde el pipeline de
+  //  · CON. EL BOT APAGADO (*!off*). Esta función se llama desde el pipeline de
   //    mensajes ANTES del gate de isBotEnabled, así que el grupo seguía
-  //    recibiendo avisos de bono de un bot supuestamente apagado. Apagar el bot
+  //    recibiendo avisos de bono de un bot supuestamente apagado. Apagar. el bot
   //    significa que no habla, sin excepciones.
   //  · CON LA DINÁMICA DE AURA APAGADA (*!aura off*). El interruptor se pidió
   //    porque el juego se hacía pesado, y estos avisos son de lo más ruidoso

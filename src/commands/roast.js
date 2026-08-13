@@ -112,7 +112,7 @@ const CLOSERS = [
 
 let COMBINED_INACTIVE = [
   'Mírate, %N, con esa bio de perdedor escrita por un virgen de treinta años que aún vive con su mamá y se hace pajas llorando. Ni escribes nada, ni aportas nada. Solo un fantasma de mierda que nadie quiere cerca.',
-  '%N, con ese nombre de cornudo y esa bio de fracasado, eres tan irrelevante que ni los mosquitos te hacen caso. No escribes una puta palabra y el grupo agradece el silencio. Puto inútil sin remedio.',
+  '%N, con ese nombre de cornudo y esa bio de fracasado, eres tan irrelevante que ni los mosquitos te hacen caso. No escribes una puta palabra. y el grupo agradece el silencio. Puto inútil sin remedio.',
   'Con esa bio que grita "soy un fracaso con patas", %N, eres el error que nadie corrige porque ya no merece el esfuerzo. Ni escribes nada. Existes por inercia, das pena y no aportas una mierda.',
   '%N, pareces el hijo secreto de un condón roto y una mala decisión. Tu bio grita abandono, tu vida sexual es nula y encima ni escribes nada. Un desperdicio humano con patas que sobra en la lista.',
   'Acumulas años de frustración sexual y pajas frustradas, %N. Esa bio ridícula de don nadie y tu inactividad de cadáver digital confirman que naciste para ser el chiste que nadie quiere contar en ningún grupo.',
@@ -139,7 +139,7 @@ let COMBINED_INACTIVE = [
   '%N, tu bio es el único texto que escribiste por voluntad propia y aun así salió esa mierda. Tu silencio confirma que en el grupo tampoco tienes una puta cosa que ofrecer. El pack completo del inútil de manual.',
   'La bio que tienes, %N, es el grito de socorro de alguien que no sabe quién coño es. Tu silencio lo certifica sin ninguna necesidad de más palabras: un fantasma virgen sin una puta cosa dentro.',
   '%N, llevas aquí de fantasma con una bio puesta para que alguien piense algo mínimamente bueno de ti. El resultado es siempre el mismo: una puta nada que no le importa a nadie y que nadie echaría de menos.',
-  'Lo más triste de ti, %N, no es la bio patética ni la inactividad de fantasma. Lo más triste es que crees que aportas algo y el grupo entero lleva tiempo sabiendo que no. Nadie te lo dice por pura lástima.',
+  'Lo más triste de ti, %N, no es la bio patética ni la inactividad de fantasma. Lo más triste es que crees que aportas algo. y el grupo entero lleva tiempo sabiendo que no. Nadie te lo dice por pura lástima.',
   '%N, con bio de don nadie y cero presencia real, eres el miembro más prescindible y olvidable que ha pisado este grupo de mierda. Y dado el nivel que hay aquí, ser el más inútil de todos tiene su puto mérito.',
   '%N, entras al grupo como entra el frío por una rendija: nadie te invitó, nadie te quiere y todos preferirían taparte. Bio de perdedor y un silencio que es lo mejor que ofreces. Puto estorbo.',
   'Tu bio es humo, %N, y tu actividad es un desierto. Dos pruebas de que naciste para ser el nombre que el grupo tarda un mes en notar que ya no está. Y no lo notará ni entonces, basura.',
@@ -155,7 +155,7 @@ let COMBINED_ACTIVE = [
   'Mírate, %N, con esa bio de perdedor escrita por un virgen eterno que lleva años sin que nadie le haga caso. Escribes mucho, pero cada mensaje solo confirma la frustración sexual y el fracaso que la bio ya anunciaba.',
   '%N, con ese nombre de cornudo y esa bio de perdedor, ni toda la actividad del mundo te va a lavar la imagen que el grupo tiene de ti. Escribes sin parar y sigues siendo la misma basura. Cabrón sin remedio.',
   'Con esa bio que grita "soy un fracaso con patas", %N, eres el fraude que habla mucho y aporta nada. Mucho ruido, cero impacto, ninguna huella real. Un don nadie con el pulgar rápido y la cabeza vacía.',
-  '%N, tu bio de don nadie te retrata entero. Un puto fraude que escribe mucho, aporta poco y se cree más de lo que el marcador y el grupo confirman cada puto día sin excepción.',
+  '%N, tu bio de don nadie te retrata entero. Un puto fraude que escribe mucho, aporta poco y se cree más de lo que el marcador. y el grupo confirman cada puto día sin excepción.',
   'Esa bio confirma que eres un fracaso con patas, %N, y por mucho que escribas no hay un puto mensaje tuyo que haya cambiado esa mierda. Mucho ruido, cero huella, cero valor. Consistente solo en lo peor.',
   'Tu bio es un chiste malo, %N, y hueles a desesperación barata y pajas frustradas. Escribes y escribes y sigues siendo lo mismo: un nadie con nombre y una vida sexual tan nula como tu relevancia.',
   '%N, pareces sacado de la bio más patética del mundo, con esa cara de víctima nata. Nadie te respeta, nadie te toma en serio, y sigues escupiendo mensajes como si eso fuera a cambiar el puto don nadie que eres. No cambia una mierda.',
@@ -187,7 +187,7 @@ let COMBINED_ACTIVE = [
   '%N, eres ruido con forma de persona. La bio miente y tú entre medias insistes en participar como si alguien hubiera pedido tu opinión alguna vez. No la pidió nadie, gilipollas. Nunca.',
   'Con esa bio de fracasado con pretensiones, %N, hablar tanto solo te desnuda más. Cada puta palabra tuya es otra prueba de que el grupo tenía razón desde el principio: no vales nada y nunca vas a valer.',
   '%N, tu problema no es que no hables. Es que hablas y sigues siendo exactamente la misma nada de antes, solo que ahora documentada. Bio de mierda y un historial que lo firma todo, cabrón.',
-  'Escribes como un pobre gilipollas gritando en un cuarto vacío, %N. La bio pretende y el grupo pasa de ti. Mucho esfuerzo para confirmar lo único constante en ti: que hagas lo que hagas, sigues sobrando.',
+  'Escribes como un pobre gilipollas gritando en un cuarto vacío, %N. La bio pretende. y el grupo pasa de ti. Mucho esfuerzo para confirmar lo único constante en ti: que hagas lo que hagas, sigues sobrando.',
   '%N, tu bio te delata y tu insistencia en participar remata la faena. Dos formas distintas de decir lo mismo: que estás aquí de relleno y que ni tú te lo crees ya, puto fraude sin una gota de valor.',
   'Con esa bio de mierda, %N, y esa manía de opinar sin que nadie te pregunte una puta cosa, eres el fondo de pantalla del grupo: siempre ahí, nunca importante y sustituible por cualquier mierda igual de irrelevante.',
 ];
@@ -209,7 +209,7 @@ let NAME_ONLY = [
   '%N, el nombre más mediocre que podían elegir para un producto defectuoso de serie. Coherencia desde el primer paso: mierda de nombre, mierda de persona, mierda de historial.',
   'Llevas el nombre %N como una maldición que ni siquiera merece queja, porque ni eso llegas a generar. Fantasma de mierda con nombre y sin una sola sustancia dentro, perdedor.',
   '%N. Hasta el puto autocorrector lo marca en rojo como error. Sabe lo que el grupo ya sabe: que aquí hay algo fundamentalmente jodido desde el principio, y no es un error tipográfico, eres tú entero. Sin arreglo posible.',
-  'Con ese nombre, %N, no hacía falta ver nada más. El nombre ya decía quién venía y el grupo tomó nota antes de que dijeras una sola palabra de mierda, basura.',
+  'Con ese nombre, %N, no hacía falta ver nada más. El nombre ya decía quién venía. y el grupo tomó nota antes de que dijeras una sola palabra de mierda, basura.',
   'Te pusieron %N con toda la esperanza del mundo. Mira lo que salió. La inversión más catastrófica de la familia, aunque en eso tampoco eres el primero. Puto fracasado.',
   '%N suena a alguien que nunca termina nada, que promete mucho y entrega cero. Si el nombre es la marca personal, tu marca es una mierda sin remedio y sin posibilidad de relanzamiento.',
   'El nombre %N en esta sala equivale a silencio incómodo. Nadie lo asocia a nada bueno, útil ni interesante. El vacío tiene nombre y es el tuyo, inútil confirmado.',
@@ -241,7 +241,7 @@ let NAME_ONLY = [
   '%N. Dilo en voz alta y suena a alguien pidiendo perdón por existir antes de que nadie se lo reclame. Naciste disculpándote y llevas toda la vida sin parar. Un puto lastre con nombre propio.',
   'Hay nombres que abren puertas, %N. El tuyo las cierra por dentro y echa el pestillo. La gente lo oye y busca la salida antes de que hayas terminado de presentarte, basura andante.',
   '%N. El nombre que se queda a medias en la boca porque ni pronunciarlo entero merece el aire. Te resumieron en un suspiro de fastidio y hasta eso fue demasiada atención para lo poco que vales.',
-  'Te llamas %N y el grupo hizo lo que hace todo el mundo contigo: leerlo por encima y pasar de largo. No molestas, no aportas, no existes. El scroll con patas, inútil de manual.',
+  'Te llamas %N. y el grupo hizo lo que hace todo el mundo contigo: leerlo por encima y pasar de largo. No molestas, no aportas, no existes. El scroll con patas, inútil de manual.',
   '%N. Un nombre que suena a promesa que nadie hizo y que aun así se incumplió. Empezaste debiendo y el saldo solo ha ido a peor cada puto día que sigues ocupando sitio, fracasado.',
   'Con el nombre %N ni hace falta conocerte para saber cómo acaba la historia: en nada, como todo lo tuyo. El grupo ya vio la película, sabe el final y por eso nadie se molesta en mirarte, mierda.',
   '%N. El nombre que la gente confunde, olvida y vuelve a confundir porque no hay nada detrás que ayude a fijarlo. Eres tan olvidable que ni tu propio nombre se molesta en quedarse, perdedor.',
@@ -280,7 +280,7 @@ let BIO_EMPTY = [
   'La bio vacía es la única decisión que has tomado en tu vida que tiene sentido. Mostraste lo que hay dentro: nada. Primera vez que eres completamente honesto con el mundo, gilipollas.',
   'No pusiste bio porque poner algo implicaría reconocer que existe un "tú" sobre el que escribir. Y los dos sabemos que eso es ser demasiado generoso con la puta nada que hay ahí dentro. No hay contenido, no hay persona, no hay una mierda.',
   'Cero caracteres en la descripción. Hasta los bots de spam ponen algo. Quedaste por debajo del nivel de esfuerzo de un programa automático sin alma ni propósito. Eso es un logro en negativo.',
-  'Bio en blanco: el equivalente a presentarte a una entrevista y quedarte mirando la pared cuando te dicen "háblame de ti". No tienes nada y se nota a kilómetros antes de abrir la boca, cabrón.',
+  'Bio en blanco: el equivalente a presentarte a una entrevista y quedarte mirando la pared cuando te dicen "háblame de ti". No tienes nada. y se nota a kilómetros antes de abrir la boca, cabrón.',
   'La bio vacía no es estética, es una puta rendición. No encontraste una mierda que decir de ti mismo y, en vez de inventarte algo como hace cualquiera con dignidad, te resignaste al blanco. La decisión más honesta y más triste de tu vida.',
   'Ni una mierda en la descripción. El espacio donde la gente normal pone algo —lo que sea— tú lo dejaste vacío porque no hay nada y llevas tiempo sabiéndolo sin decírselo a nadie.',
   'El campo de bio lleva vacío el tiempo suficiente para que sea intencional. Intención de no decir nada porque decir algo significaría que hay algo que decir. Y no lo hay. Ni de coña.',
@@ -298,7 +298,7 @@ let BIO_EMPTY = [
 let BIO_FULL = [
   '%N, la bio es el único texto que escribes tú solo con tiempo de sobra. Y aun así salió esa mierda. Eso dice todo sobre el nivel que tienes cuando nadie te presiona: basura sin pulir y sin solución.',
   'Lo que pusiste en la bio, %N, lo pusiste creyendo que te hacía quedar bien. El grupo lo leyó, se rió y siguió. Nadie te avisó porque dar malas noticias a los fracasados no vale el esfuerzo.',
-  '%N, escribiste esa bio con toda la convicción de un imbécil que se cree interesante. Resultado: el anuncio de lo poco que eres con las palabras de alguien que no sabe ni eso, cabrón sin filtro.',
+  '%N, escribiste esa bio con toda la convicción de un imbécil que se cree interesante. Resultado: el anuncio de lo poco que eres con las palabras de alguien que no sabe ni eso, cabrón. sin filtro.',
   'Tu bio, %N, es la prueba de que tienes criterio de mierda incluso cuando tienes control total, tiempo ilimitado y cero consecuencias. Eso ya no es mala suerte. Es lo que eres, fracasado de libro.',
   '%N, la descripción que pusiste para impresionar consiguió lo contrario con una precisión que ni tú calculaste, gilipollas. Todo tu puto talento invertido en hacer el ridículo sin enterarte. El don nadie en plenitud, exhibiéndose gratis.',
   'Esa bio tuya, %N, es el equivalente textual de presentarte en calzoncillos a una reunión. Lo pusiste, lo dejaste ahí, y el grupo lleva tiempo tomando nota del puto imbécil que lo escribió.',
@@ -368,17 +368,17 @@ function getActivityPhrases(count) {
       `${c} mensajes, %N. El que lo lee TODO y no aporta NADA. El espectador mudo que consume el trabajo de los demás y se esconde cuando toca poner algo sobre la mesa. Parásito de manual, mierda.`,
       `Con ${c} mensajes estás en la puta zona muerta del que está pero no cuenta, %N. No llegas ni a fantasma, pero tampoco eres parte de ninguna conversación que alguien recuerde. El gris más inútil y prescindible que existe. Sobras a medias.`,
       `${c} putos textos, %N. Justo por debajo del umbral donde alguien empieza a importar una mierda. Sigues siendo un número en la lista, no una persona con peso. El don nadie de manual que no pasa de ahí ni pasará nunca.`,
-      `${c} mensajes y el grupo sigue sin saber qué coño pintas aquí, %N. No has dado ni datos suficientes para que alguien se moleste en opinar de ti. Un misterio de mierda que a nadie le apetece resolver porque a nadie le importas lo más mínimo.`,
+      `${c} mensajes. y el grupo sigue sin saber qué coño pintas aquí, %N. No has dado ni datos suficientes para que alguien se moleste en opinar de ti. Un misterio de mierda que a nadie le apetece resolver porque a nadie le importas lo más mínimo.`,
       `${c} textos, %N: la cantidad exacta para no ser expulsado por inactivo y para que a nadie le importe si te vas. El equilibrio del fantasma que ni de fantasma termina de serlo. Patético de libro.`,
-      `${c} mensajes, %N. Has estado aquí tiempo de sobra para haber dicho algo que valiera. No pasó. El marcador lo confirma y el grupo lo sabe aunque no pierda el tiempo en decírtelo, perdedor.`,
+      `${c} mensajes, %N. Has estado aquí tiempo de sobra para haber dicho algo que valiera. No pasó. El marcador lo confirma. y el grupo lo sabe aunque no pierda el tiempo en decírtelo, perdedor.`,
       `Con ${c} textos llevas el historial de alguien que consume sin producir, que lee sin responder y que existe como el humo: presente un momento y sin dejar nada cuando se disipa, %N. Basura.`,
       `${c} mensajes, %N. La actividad del que nunca aparece cuando hay que opinar, nunca está cuando hay que aportar. Invisible por elección y por inutilidad. Doble mérito en la dirección equivocada.`,
       `Con ${c} textos no eres fantasma pero tampoco eres nada, %N. El gris del que existe sin que a nadie le cambie algo que exista o no. El don nadie confirmado por sus propios números, mierda.`,
       `${c} mensajes, %N. Lo justo para sobrevivir en la lista, insuficiente para contar para algo. La definición perfecta del inútil que ocupa espacio sin justificarlo nunca con nada concreto.`,
-      `${c} putos textos y el grupo aún no sabe ni qué voz tienes, %N. Apareces cada muerte de obispo, sueltas una mierda y te vuelves a tu agujero. El topo del grupo: ciego, callado y bajo tierra.`,
+      `${c} putos textos. y el grupo aún no sabe ni qué voz tienes, %N. Apareces cada muerte de obispo, sueltas una mierda y te vuelves a tu agujero. El topo del grupo: ciego, callado y bajo tierra.`,
       `${c} mensajes, %N. Consumes memes, chismes y curro ajeno y devuelves cero. El gorrón perfecto: se sirve del plato de todos y no pone ni el pan. Parásito con datos móviles, nada más.`,
       `${c} mensajes en todo este tiempo, %N. Tu huella en el grupo es la de un pedo en el viento: alguien lo notó un segundo, hizo mala cara y siguió con su vida sin volver a pensar en ti jamás.`,
-      `${c} textos, %N, y ninguno mereció respuesta. Hablas y el grupo hace lo mismo que haría con un mendigo pesado: mirar a otro lado y esperar a que se calle solo. Invisible por inútil, no por tímido.`,
+      `${c} textos, %N, y ninguno mereció respuesta. Hablas. y el grupo hace lo mismo que haría con un mendigo pesado: mirar a otro lado y esperar a que se calle solo. Invisible por inútil, no por tímido.`,
     ];
   }
 
@@ -388,9 +388,9 @@ function getActivityPhrases(count) {
   if (count >= 150) {
     return [
       `${c} mensajes, %N, y el grupo no recuerda ni uno. Escupes texto como una impresora rota escupe folios en blanco: mucho ruido, mucho gasto y cero utilidad.`,
-      `${c} mensajes y ninguno mereció respuesta, %N. Hablas y el grupo hace lo que se hace con un pesado: mirar a otro lado y esperar a que se canse solo.`,
+      `${c} mensajes y ninguno mereció respuesta, %N. Hablas. y el grupo hace lo que se hace con un pesado: mirar a otro lado y esperar a que se canse solo.`,
       `%N lleva ${c} mensajes de verborrea pura. Hablar tanto para no decir una puta cosa que valga la pena es un mérito de mierda, pero ahí lo tienes.`,
-      `Con ${c} mensajes saturas el chat sin aportar nada, %N. Eres el pesado del grupo con estadísticas propias. Cantidad industrial, calidad de vertedero.`,
+      `Con ${c} mensajes saturas. el chat sin aportar nada, %N. Eres el pesado del grupo con estadísticas propias. Cantidad industrial, calidad de vertedero.`,
       `${c} mensajes, %N. Nadie escribe tanto para decir tan poco. Cada uno es otra prueba de que el volumen no compensa la falta absoluta de contenido.`,
       `%N, ${c} mensajes. El grupo te lee por obligación, no por interés. Llenas la pantalla de mierda y la gente hace scroll para llegar a lo que importa.`,
       `Con ${c} mensajes eres ruido con notificaciones, %N. Si hablaras la mitad y pensaras el doble el grupo lo agradecería. Pero pensar nunca fue lo tuyo.`,
@@ -407,7 +407,7 @@ function getActivityPhrases(count) {
 
   // 60-149
   return [
-    `${c} mensajes y el grupo sigue sin recordar uno solo que valiera la pena, %N. Cantidad de tibio, calidad de mierda. Ni aportas ni te callas del todo. El combo más inútil del grupo.`,
+    `${c} mensajes. y el grupo sigue sin recordar uno solo que valiera la pena, %N. Cantidad de tibio, calidad de mierda. Ni aportas ni te callas del todo. El combo más inútil del grupo.`,
     `${c} putos mensajes para no decir nada, %N. Escupes texto como una impresora rota escupe hojas en blanco: hace ruido, gasta y no sirve para una mierda. El fantasma que encima da la lata.`,
     `${c} mensajes, %N, y cada uno más olvidable y prescindible que el anterior. Llevas aquí lo justo para que el grupo confirme que sin ti se estaría igual de puta madre o mejor. Un cero a la izquierda con más pasos, mierda pura.`,
     `${c} textos, %N. La actividad de alguien que participa por no quedarse fuera, no porque tenga algo que aportar. Se te huele la desesperación de figurar desde el otro lado de la pantalla, patético.`,
@@ -492,7 +492,7 @@ const OWNER_ROAST = [
   '%N, el que habla cuando le da la gana y siempre parece que dice lo importante. Los demás hablan para rellenar. Tú hablas para dejar claro que estás por encima. Sobrado de mierda.',
   'Mira el señorito %N. Todo controlado, todo calculado, todo con esa superioridad de quien sabe que el resto no llega. Y lo peor es que no llega, cabrón. Insufrible con razón.',
   '%N, esa arrogancia tuya es de las que generan rencor. Pero el rencor no te quita la razón y eso es lo que realmente jode al grupo entero.',
-  'El que manda sin mandar, %N. El que opina poco y acierta siempre. El que calla y el grupo se pregunta qué piensa. Prepotente por omisión, que es la peor clase de prepotente.',
+  'El que manda sin mandar, %N. El que opina poco y acierta siempre. El que calla. y el grupo se pregunta qué piensa. Prepotente por omisión, que es la peor clase de prepotente.',
   '%N, el cabrón más pagado de sí mismo de todo el grupo. Y lo peor es que tiene con qué pagarse. Ego justificado es ego peligroso.',
 ];
 
@@ -514,7 +514,7 @@ async function cmdRoast(sock, msg, groupMeta) {
 
   if (sameUser(target, sender)) {
     return sock.sendMessage(jid, {
-      text: 'Roastearte a ti mismo es un nivel de autodestrucción que ni el bot va a facilitar.',
+      text: 'Roastearte a ti mismo es un nivel de autodestrucción que ni. el bot va a facilitar.',
     }, { quoted: msg });
   }
 

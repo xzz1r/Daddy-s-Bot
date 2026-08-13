@@ -46,7 +46,7 @@ async function banAccount(forms, reason, by) {
   // desbaneo solo podía borrar las formas que quien lo pidiera lograra
   // reconstruir — y justo después de un ban al usuario se le expulsa, así que
   // su ficha de miembro ya no está y la otra forma se volvía irrecuperable: la
-  // persona seguía vetada para siempre mientras el bot decía lo contrario.
+  // persona seguía vetada para siempre mientras. el bot decía lo contrario.
   const all = [...new Set(forms.filter(Boolean).map(bareJid))];
   let added = 0;
   for (const f of all) {
@@ -97,7 +97,7 @@ async function banCount() {
 // Contenido de la lista negra, de lo más reciente a lo más antiguo. Existe para
 // que *!fklist* pueda enseñarla: mientras no había forma de mirarla, un baneo
 // automático equivocado era irreparable en la práctica, porque para deshacerlo
-// hay que saber el número exacto de alguien a quien el bot ya expulsó.
+// hay que saber el número exacto de alguien a quien. el bot ya expulsó.
 async function listBanned() {
   await load();
   return Object.entries(store.accounts)

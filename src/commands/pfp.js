@@ -93,7 +93,7 @@ async function downloadPfp(url) {
 
 // !pfp @user | !pfp wa.me/<num> | !pfp <num> | !pfp (a ti mismo) — trae la foto
 // de perfil. Si está oculta/no visible, cae a la última foto conocida guardada
-// en caché (de cuando el bot la vio en algún momento).
+// en caché (de cuando. el bot la vio en algún momento).
 async function cmdPfp(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
 
@@ -104,7 +104,7 @@ async function cmdPfp(sock, msg, args, groupMeta) {
   if (!pago.ok) {
     return sock.sendMessage(jid, { text: textoSinSaldo('pfp', pago) }, { quoted: msg });
   }
-  // Se cobra al entrar, pero solo se cobra de verdad si el bot entrega algo.
+  // Se cobra al entrar, pero solo se cobra de verdad si. el bot entrega algo.
   // Si no hay a quien mirar, o si la consulta falla por red, se devuelve: nadie
   // paga por un mensaje de error que ademas le va a obligar a repetir.
   const reembolsar = () => devolver(jid, quienPide, pago.pagado).catch(() => {});
@@ -132,7 +132,7 @@ async function cmdPfp(sock, msg, args, groupMeta) {
   //
   // `fetchPfpUrl` distingue "confirmado sin foto" (devuelve null) de un fallo
   // pasajero de red/límite de peticiones (lanza). Antes cualquier hipo se
-  // trataba igual que "no tiene foto" y el bot afirmaba con seguridad algo que
+  // trataba igual que "no tiene foto" y. el bot afirmaba con seguridad algo que
   // en realidad no había podido comprobar — de ahí que pareciera fallar al
   // azar con cuentas que sí tenían foto visible.
   let imageBuffer = null;
@@ -181,12 +181,12 @@ async function cmdPfp(sock, msg, args, groupMeta) {
   // 3) Nada guardado. Un fallo pasajero NO es lo mismo que "confirmado sin
   // foto": lo primero se dice como lo que es, sin afirmar de más.
   // Un fallo pasajero se devuelve (habra que repetir la consulta); un "no tiene
-  // foto" confirmado no, porque ahi el bot si hizo el trabajo y dio la respuesta.
+  // foto" confirmado no, porque ahi. el bot si hizo el trabajo y dio la respuesta.
   if (falloPasajero) await reembolsar();
   return sock.sendMessage(jid, {
     text: falloPasajero
       ? `No pude comprobar la foto de ${tag} ahora mismo (fallo de red o límite de peticiones). Probá de nuevo en un momento.`
-      : `${tag} no tiene foto de perfil visible, y el bot nunca la vio antes para guardarla.`,
+      : `${tag} no tiene foto de perfil visible, y. el bot nunca la vio antes para guardarla.`,
     mentions: [target],
   }, { quoted: msg });
 }

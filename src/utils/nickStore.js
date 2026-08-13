@@ -19,7 +19,7 @@ const logger = require('./logger');
 //
 //  3. AQUÍ NO HAY NOMBRES. Se guardaron para un !antinick que hubo que retirar:
 //     el nombre que se ve en el grupo lo pinta cada teléfono con su propia
-//     libreta, no viaja por el cable, así que lo que veía el bot no era lo que
+//     libreta, no viaja por el cable, así que lo que veía. el bot no era lo que
 //     veía el grupo. Guardarlo era escribir en disco en cada mensaje un dato que
 //     no se podía usar para nada.
 //

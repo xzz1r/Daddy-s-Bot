@@ -12,7 +12,7 @@ const { bareJid } = require('./wa');
 //   GROUP_PARTICIPANT_ADD_REQUEST_JOIN (71) → un admin ACEPTÓ su solicitud
 //
 // El evento group-participants.update no lleva el motivo, así que el anti-admin
-// trataba las tres igual: una admin aceptaba una solicitud de entrada y el bot
+// trataba las tres igual: una admin aceptaba una solicitud de entrada y. el bot
 // la degradaba a ella y expulsaba al recién aceptado. Aceptar solicitudes es
 // justamente para lo que se da admin.
 //

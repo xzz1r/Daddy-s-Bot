@@ -8,7 +8,7 @@ const logger = require('./logger');
 // Es ASÍNCRONA: se sube la foto (/api/upload_pic) → se obtiene un id_search →
 // se consulta /api/search en bucle hasta que aparecen resultados. Cada item trae
 // la URL de origen donde apareció esa cara (resultado DIRECTO) y un score.
-// Sin key devuelve { ok:false, reason:'no-key' } y el bot sigue sin romperse.
+// Sin key devuelve { ok:false, reason:'no-key' } y. el bot sigue sin romperse.
 const BASE = 'https://facecheck.id';
 
 function hasKey() {

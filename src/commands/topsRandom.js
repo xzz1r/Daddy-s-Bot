@@ -21,7 +21,7 @@ const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 //      tops, así que la burla apunta a estar en la lista, no a lo que la lista
 //      dice.
 //
-// Mínimo de mensajes para entrar en el sorteo. Con un umbral alto el bot
+// Mínimo de mensajes para entrar en el sorteo. Con un umbral alto. el bot
 // elegía siempre entre los cuatro habladores de siempre; con 1 entra todo el
 // que haya escrito alguna vez y el azar reparte de verdad.
 const MIN_MENSAJES = 1;
@@ -29,7 +29,7 @@ const MIN_MENSAJES = 1;
 // Único marcador: {N} = cuántos salen.
 const CIERRES = [
   'Los {N} de la vergüenza, servidos en bandeja de mierda.',
-  'Ahí tenéis la mierda que ha escupido el bot hoy. Los {N} de turno.',
+  'Ahí tenéis la mierda que ha escupido. el bot hoy. Los {N} de turno.',
   '{N} nombres y ni una puta excusa entre todos.',
   'Enhorabuena, gilipollas. Sois {N} y os jodéis igual.',
   'El bot ha meado esta lista y os ha tocado a los {N}.',
@@ -40,7 +40,7 @@ const CIERRES = [
   'Los {N} de hoy. Mañana otros, la mierda es la misma.',
   'Coño, sois {N} y ninguno se libra del ridículo.',
   'El azar os ha cagado encima a los {N}. De nada.',
-  'Ahí lo tenéis: que no diga nadie que el bot no reparte mierda.',
+  'Ahí lo tenéis: que no diga nadie que. el bot no reparte mierda.',
   '{N} elegidos por un algoritmo con los cojones bien puestos.',
   'Puta lista, joder. Y os ha tocado a los {N}.',
   'Los {N} ya pueden ir cavando su propia tumba social.',
@@ -60,7 +60,7 @@ const CIERRES = [
   'Sois {N}. Sois mierda de hoy. Mañana otra tanda de mierda.',
   'Los {N} del bochorno colectivo. Repartíos el asco como buenamente podáis, joder.',
   '{N} nombres en la misma bandeja. El bot no hace dietas de ridículo, cabrón.',
-  'Ahí van los {N}. Ni uno se libra y el chat tampoco pide clemencia, mierda.',
+  'Ahí van los {N}. Ni uno se libra. y el chat tampoco pide clemencia, mierda.',
   'Sois {N} y el algoritmo os ha cagado encima a todos por igual, gilipollas.',
   'Lista de {N} sin anestesia. El bot firmó y vosotros aguantáis, patético.',
   'Los {N} de turno. Mañana otros, la vergüenza es la misma de siempre, ridículo.',
@@ -70,7 +70,7 @@ const CIERRES = [
   'El bot escupió {N} nombres. Limpiad el suelo vosotros, cutre.',
   'Sois {N} de la misma mierda. Repartíos el peso, pringado.',
   '{N} en la lista. Ni una puta sorpresa entre todo el hatajo, fracasado.',
-  'Los {N} del día. El azar no perdona y el bot menos, joder.',
+  'Los {N} del día. El azar no perdona y. el bot menos, joder.',
   'Cuadrilla de {N}. El bochorno se reparte sin factura, mierda.',
   'Ahí tenéis a los {N}. El chat ya tomó nota del elenco, coño.',
   'Sois {N} y ninguno tiene dónde esconder la cara, cabrón.',
@@ -92,7 +92,7 @@ async function cmdTopRandom(sock, msg, n, args, groupMeta) {
   }
 
   const topic = (args || []).join(' ').trim();
-  // Sin tema no hay sorteo y el bot no da tutoriales: se calla.
+  // Sin tema no hay sorteo y. el bot no da tutoriales: se calla.
   if (!topic) return;
 
   // Un top menciona a media docena de personas de golpe, asi que cuesta aura.

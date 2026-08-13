@@ -271,7 +271,7 @@ const NEEDS_META = new Set([
 // supuestamente en pausa, y eso es peor que no tener interruptor.
 //
 // !aura NO entra: se para su tirada pero no su consulta, y esa distincion la
-// hace cmdAura. Meterlo aqui apagaria tambien el ranking y el propio *!aura on*.
+// hace cmdAura. Meterlo aqui apagaria tambien. el ranking y el propio *!aura on*.
 // ─── Cobro central ───────────────────────────────────────────────────────────
 //
 // Qué comando cuesta qué. Va aquí y no repartido por treinta ficheros: cobrar
@@ -321,7 +321,7 @@ const CMDS_AURA = new Set([
 
 // Comandos que TRABAJAN sobre la foto o el vídeo que llevan adjunto. La guarda
 // de medios sin "ver una vez" los deja pasar: mandar una foto con el pie *!s*
-// es usar el bot, no spamear, y contarlo como ofensa acababa expulsando a gente
+// es usar. el bot, no spamear, y contarlo como ofensa acababa expulsando a gente
 // por hacerse cinco stickers seguidos. Con un vídeo pasaba algo peor: se
 // borraba antes de llegar al comando, así que *!s* sobre un vídeo normal no
 // producía sticker nunca.
@@ -343,7 +343,7 @@ const MEDIA_CMDS = new Set([
 // La llamada devuelve un resultado por participante y puede rechazar la
 // expulsión (privacidad, el objetivo es admin, el bot perdió el admin entre
 // medias). Las guardas automáticas la lanzaban sin mirar y anunciaban la
-// expulsión igual, así que el bot afirmaba haber echado a alguien que seguía
+// expulsión igual, así que. el bot afirmaba haber echado a alguien que seguía
 // sentado en el grupo — el mismo fallo que ya se corrigió en las purgas.
 async function expulsar(sock, jid, target) {
   try {
@@ -432,8 +432,8 @@ async function cmdDiag(sock, msg, groupMeta) {
 
   const lista = sobresDesconocidos();
   if (!lista.length) {
-    text += '\n_No ha llegado ningún sobre desconocido desde que arrancó el bot._\n';
-    text += '_Si alguien sube una historia al grupo y el bot no reacciona, vuelve a ejecutar esto justo después: el sobre aparecerá aquí y con eso se puede cerrar el hueco._';
+    text += '\n_No ha llegado ningún sobre desconocido desde que arrancó. el bot._\n';
+    text += '_Si alguien sube una historia al grupo y. el bot no reacciona, vuelve a ejecutar esto justo después: el sobre aparecerá aquí y con eso se puede cerrar el hueco._';
   } else {
     text += `\n*Sobres desconocidos vistos (${lista.length}):*\n`;
     for (const d of lista.slice(0, 6)) {
@@ -576,7 +576,7 @@ function unwrapEnvelope(message) {
 // se actuaba si el estado contenia un enlace, y para eso habia que leer su
 // contenido — pero el mensaje que llega al grupo es un AVISO, no el estado: el
 // contenido de verdad vive en la difusion de estados, no aqui. Como no habia
-// texto que leer, nunca se encontraba enlace y el bot no hacia nada. Ahora no se
+// texto que leer, nunca se encontraba enlace y. el bot no hacia nada. Ahora no se
 // lee nada: basta con reconocer el sobre.
 //
 // Se miran TODOS los sobres que usa WhatsApp para esto. El que faltaba, y que
@@ -600,7 +600,7 @@ const SOBRES_ESTADO = [
 
 // ─── Marcas de estado: qué campo vive dónde ──────────────────────────────────
 //
-// Esta parte estaba mal de raíz y costó que el bot expulsara y metiera en la
+// Esta parte estaba mal de raíz y costó que. el bot expulsara y metiera en la
 // lista negra global a alguien por mandar un VÍDEO NORMAL. Dos errores a la vez,
 // en direcciones opuestas:
 //
@@ -704,7 +704,7 @@ function motivoEstado(message, msg = null) {
   return null;
 }
 
-// Tipos de mensaje que el bot ya sabe manejar. Cualquier otro que llegue a un
+// Tipos de mensaje que. el bot ya sabe manejar. Cualquier otro que llegue a un
 // grupo se registra UNA vez, para que un sobre nuevo de WhatsApp no vuelva a
 // pasar desapercibido como paso con groupStatusMessage.
 const TIPOS_CONOCIDOS = new Set([
@@ -852,7 +852,7 @@ async function handleMessage(sock, msg) {
   // Non-blocking counters — never delay command execution.
   // Don't count the bot's own messages so the owner doesn't inflate their rank.
   incrementStat('messagesReceived');
-  // El owner principal no cuenta para el ranking de actividad (!count): sus
+  // El owner principal no cuenta para. el ranking de actividad (!count): sus
   // mensajes no deben inflar la tabla. Los co-owners y el resto sí cuentan.
   // Se comprueba de dos formas para que sea fiable incluso en grupos LID:
   //  1) el JID del remitente resuelto con la metadata ya cacheada,
@@ -868,7 +868,7 @@ async function handleMessage(sock, msg) {
     // prueba directa para !antiempresa, sin gastar una consulta de perfil.
     //
     // Del owner tier NO se anota: esa ficha es justo la que alimenta la purga de
-    // !antiempresa, y con el gate de arriba (isMainOwner, para el ranking) los
+    // !antiempresa, y con el gate de arriba (isMainOwner, para. el ranking) los
     // co-owners si quedaban fichados. El owner esta por encima tambien de esto.
     if (msg.verifiedBizName && !isOwner(sender, msg.key.fromMe, peekGroupMeta(jid))) {
       recordFacts(sender, { biz: true }).catch(() => {});
@@ -916,7 +916,7 @@ async function handleMessage(sock, msg) {
   //   2. enlace prohibido            -> borrar + expulsar
   //   3. medio sin ver-una-vez       -> borrar (+ ban si es rafaga)
   //
-  // El anti-link va por delante del de medios porque si no un enlace de
+  // El anti-link va por. delante del de medios porque si no un enlace de
   // invitacion puesto de pie de foto solo costaba el borrado, mientras que el
   // mismo enlace en texto suelto costaba el grupo. Era la via de escape
   // evidente para cualquiera que quisiera colar el suyo.
@@ -1015,7 +1015,7 @@ async function handleMessage(sock, msg) {
         if (await isAllowed(jid, allForms(sender, meta))) return;
 
         // Sin bot admin no se puede borrar: se avisa una vez por grupo y ya. No
-        // se cuenta el aviso, que sería castigar a alguien por algo que el bot
+        // se cuenta el aviso, que sería castigar a alguien por algo que. el bot
         // ni siquiera ha podido impedir.
         if (!meta || !isBotAdmin(sock, meta)) {
           const lastW = antilinkNoAdminWarn.get(jid);
@@ -1050,7 +1050,7 @@ async function handleMessage(sock, msg) {
         }
 
         // El aviso va limitado a uno por persona cada 5 min: el enlace se borra
-        // siempre, pero no se inunda el chat repitiéndoselo. El contador de
+        // siempre, pero no se inunda. el chat repitiéndoselo. El contador de
         // avisos sí sube siempre, que si no bastaría con spamear rápido.
         //
         // EXCEPCIÓN: el último aviso sale siempre, esté o no dentro del límite.
@@ -1173,7 +1173,7 @@ async function handleMessage(sock, msg) {
       }
 
       // Aviso limitado a uno por persona cada 5 min: se borra todo igualmente,
-      // pero no se inunda el chat de avisos.
+      // pero no se inunda. el chat de avisos.
       const wKey = `${jid}|${canonicalJid(sender)}|vo`;
       const last = videoOnceWarn.get(wKey);
       if (!last || Date.now() - last > ANTILINK_REMINDER_TTL) {
@@ -1246,7 +1246,7 @@ async function handleMessage(sock, msg) {
   // no puede quedarse sin interruptor por olvido.
   //
   // !aura no esta en la lista porque es mixto — su tirada si se para, pero
-  // consultar un saldo o el ranking no, y eso se decide dentro del comando.
+  // consultar un saldo o. el ranking no, y eso se decide dentro del comando.
   if (jid.endsWith('@g.us') && CMDS_AURA.has(command) && auraApagada(jid)) {
     await avisarApagada(sock, jid, msg);
     return;

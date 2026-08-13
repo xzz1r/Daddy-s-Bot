@@ -56,7 +56,7 @@ async function recordAndMatch(group, account, hash, now = Date.now()) {
   // La comparación de cuenta va por sameUser, NO por igualdad literal. Las
   // huellas se guardan con la forma canónica del momento, así que una cuenta
   // indexada por su @lid antes de conocerse la correspondencia y luego por su
-  // teléfono quedaba como DOS cuentas distintas: al coincidir sus fotos el bot
+  // teléfono quedaba como DOS cuentas distintas: al coincidir sus fotos. el bot
   // acusaba en público a la persona de usar la foto de otra. Que es ella misma.
   const matches = [];
   let existing = null;

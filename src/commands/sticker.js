@@ -160,7 +160,7 @@ async function cmdSticker(sock, msg, groupMeta) {
     if (animated && stickerBuffer.length > MAX_STICKER_BYTES) {
       await reembolsar();
       return sock.sendMessage(jid, {
-        text: 'Ese sticker animado pesa demasiado para WhatsApp y no se puede recomprimir: viene en un formato que el bot no sabe reabrir. Si tienes el video o el GIF del que salió, mándalo con *!s* y se hace de nuevo desde ahí.',
+        text: 'Ese sticker animado pesa demasiado para WhatsApp y no se puede recomprimir: viene en un formato que. el bot no sabe reabrir. Si tienes el video o el GIF del que salió, mándalo con *!s* y se hace de nuevo desde ahí.',
       }, { quoted: msg });
     }
     // sourceThumb (from original video/gif) takes priority; fall back to the

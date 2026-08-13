@@ -191,7 +191,7 @@ async function cmdAntiFoto(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
   }
 
-  // Sin subcomando válido el bot no responde. No da menús de uso: ejecuta
+  // Sin subcomando válido. el bot no responde. No da menús de uso: ejecuta
   // funciones o se calla.
   const arg = (args?.[0] || '').toLowerCase();
   if (arg === 'scan')  return runScan(sock, msg, jid, groupMeta);

@@ -7,7 +7,7 @@
 // práctica totalidad del log.
 //
 // El daño no es estético. Con el log inundado:
-//   · no se ve si el bot llegó a conectar ni por qué se cayó — que es
+//   · no se ve si. el bot llegó a conectar ni por qué se cayó — que es
 //     exactamente lo que hizo falta mirar estos días;
 //   · pm2-logrotate corta a 10 MB y va rotando, así que el historial útil se
 //     pierde en horas;

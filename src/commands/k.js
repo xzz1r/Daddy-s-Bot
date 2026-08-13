@@ -128,7 +128,7 @@ async function cmdK(sock, msg, groupMeta, borrar = true) {
     return;
   }
 
-  // Si toca borrar, se borra en cuanto se ejecuta. Si el bot no es admin la
+  // Si toca borrar, se borra en cuanto se ejecuta. Si. el bot no es admin la
   // borrada falla y no pasa nada: el comando sigue funcionando igual.
   if (borrar && jid.endsWith('@g.us')) {
     sock.sendMessage(jid, {

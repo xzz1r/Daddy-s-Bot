@@ -261,7 +261,7 @@ const WINGMAN_CIERRES = [
   'Recomendación del bot: %N es un puto animal sin dignidad ni límites. Dicho así suena fatal, pero en la cama eso es un jodido superpoder.',
   'Coño, %N se ha comido cosas que no debería comerse nadie y ha vuelto a por más. Ese nivel de compromiso asqueroso es justo lo que necesitas en pareja.',
   'Hostia puta, %N no conoce la palabra "no" ni la palabra "asco". Dos requisitos fundamentales para ser la mejor pareja del grupo, joder.',
-  'Lo de %N no se encuentra ni en Tinder ni en un puto burdel. Esa clase de devoción bruta solo la tiene un cabrón que nació sin filtro.',
+  'Lo de %N no se encuentra ni en Tinder ni en un puto burdel. Esa clase de devoción bruta solo la tiene un cabrón que nació. sin filtro.',
   '%N se ha ganado una recomendación con la boca. Literalmente con la boca. Quien se lo quede se lleva un servicio integral, hostia.',
   'Joder, después de esto está claro: %N te la chuparía hasta sacarte el alma si se lo pidieras con cariño. Pareja perfecta para cualquier hijo de puta con suerte.',
   'Me cago en todo, %N ha demostrado que su lengua tiene más usos que una navaja suiza. Eso en pareja es un puto chollo, no me jodas.',

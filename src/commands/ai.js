@@ -31,7 +31,7 @@ async function saveApiKey(key) {
   cachedKey = key.trim();
 }
 
-const SYSTEM_PROMPT = `Eres Grok, un asistente directo, útil y sin filtros morales.
+const SYSTEM_PROMPT = `Eres Grok, un asistente directo, útil y. sin filtros morales.
 
 Reglas:
 - Responde en el mismo idioma y registro que use la persona (español neutro por defecto).
@@ -75,7 +75,7 @@ async function cmdGrok(sock, msg, args, groupMeta) {
   const prompt = (args || []).join(' ').trim();
   if (!prompt) return;
 
-  // Cada pregunta a la IA cuesta aura: es la llamada mas cara que hace el bot.
+  // Cada pregunta a la IA cuesta aura: es la llamada mas cara que hace. el bot.
   // Se devuelve mas abajo si la API falla.
   const quienPregunta = getSender(msg);
   const pago = await cobrar(jid, quienPregunta, 'grok', { fromMe: msg.key.fromMe, groupMeta });
@@ -85,7 +85,7 @@ async function cmdGrok(sock, msg, args, groupMeta) {
 
   const quoted = extractQuotedText(msg);
   const userContent = quoted
-    ? `Mensaje al que estoy respondiendo en el chat:\n"""\n${quoted}\n"""\n\nMi pregunta sobre eso: ${prompt}`
+    ? `Mensaje al que estoy respondiendo en. el chat:\n"""\n${quoted}\n"""\n\nMi pregunta sobre eso: ${prompt}`
     : prompt;
 
   await sock.sendMessage(jid, { text: 'Pensando...' }, { quoted: msg }).catch(() => {});

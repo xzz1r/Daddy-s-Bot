@@ -17,7 +17,7 @@ let VS_ROASTS = [
   '%L, fantasma confirmado. %W, con pulso. Esto no es un duelo: es %W reventando a un muerto de mierda que ni sabe que existe este grupo.',
   'Esto no fue un duelo, fue una autopsia: %L lleva muerto meses y %W lo remató por gusto. Cadáver mudo e inútil contra alguien vivo, sin color, fracasado.',
   '%L trajo a un duelo de mensajes el mismo silencio que trae a todas partes. %W ni necesitó calentar para ganar, joder.',
-  'Mientras %W llenaba el chat, %L hacía lo único que sabe: nada de nada. El puto rey de no servir para una mierda, campeón indiscutible del vacío.',
+  'Mientras %W llenaba. el chat, %L hacía lo único que sabe: nada de nada. El puto rey de no servir para una mierda, campeón indiscutible del vacío.',
   '%L perdió por goleada y encima sin presentarse al campo. El walkover andante, rey de perder partidos que ni juega, coño.',
   '%W escribe; %L solo calienta el asiento. El mueble más caro del grupo: ocupa sitio y no presta ningún servicio, perdedor, cabrón.',
   'A %L le falta voz y le sobra ser un puto lastre. %W aporta; %L es peso muerto que solo ocupa hueco en la lista. Ni hubo que pensarlo, basura.',
@@ -31,7 +31,7 @@ let VS_ROASTS = [
   'Que %L ni lo intente. %W lo barre sin despeinarse, y eso que barrer implica mover algo, cosa que a %L le resulta exótica, coño.',
   '%W aporta vida al chat; %L aporta el vacío educado del que entra, lee y se va sin decir ni hola. Diferencia abismal, cabrón.',
   '%L quedó tan atrás que %W ya ni lo ve por el retrovisor. Polvo en el camino, y del que no se levanta ni con ventilador, gilipollas.',
-  'Hasta el bot escribe más que %L, y el bot solo responde a comandos. %W lo sabía; %L sigue sin enterarse de nada, mudo, patético.',
+  'Hasta. el bot escribe más que %L, y. el bot solo responde a comandos. %W lo sabía; %L sigue sin enterarse de nada, mudo, patético.',
   '%W demostró quién manda. %L que se calle y siga de adorno inútil, que es lo único que ha hecho este muerto de mierda desde que entró.',
   '%L tiene el récord de leer doscientos mensajes y no soltar ni uno. %W habla y aporta; %L mira, calla y se guarda todo, basura.',
   'El marcador entre %W y %L parece una errata. No lo es: es lo que pasa cuando uno vive aquí y el otro viene de turista, ridículo.',
@@ -78,7 +78,7 @@ async function cmdVs(sock, msg, args, groupMeta) {
 
   // Si el owner principal es uno de los dos, no se contesta. Igual que en
   // !count y !relevancia: una respuesta especial para él lo delata tanto como
-  // enseñar la cifra, porque es la única comparación que el bot rechaza.
+  // enseñar la cifra, porque es la única comparación que. el bot rechaza.
   if (isMainOwner(a, false, groupMeta) || isMainOwner(b, false, groupMeta)) return;
 
   const users = await getActiveUsers(jid, 0); // everyone tracked
@@ -219,7 +219,7 @@ async function cmdFantasmas(sock, msg, groupMeta) {
 //
 // Distinto de !fantasmas: aquel ORDENA a los que hablan poco (un ranking de
 // vergüenza), este SEÑALA a los que están por debajo del umbral y les avisa de
-// que el bot los va a sacar. Es la lista de aviso previo, no un top.
+// que. el bot los va a sacar. Es la lista de aviso previo, no un top.
 //
 // El umbral es 10 mensajes. Antes era cero — solo salían los que no habían
 // escrito nunca — y eso dejaba fuera al que suelta tres "jaja" en seis meses y
@@ -247,54 +247,54 @@ async function cmdFantasmas(sock, msg, groupMeta) {
 let AVISO_PURGA = [
   'El bot ha repasado vuestro historial buscando algo que salvar. Un chiste malo, un audio, una discusión. Nada. Lista de purga lista. Joder.',
   'Historial vacío de sustancia: el bot no encontró motivo para conservaros. Escribid o fuera. El grupo lo nota cada día, mierda.',
-  'La purga no es teatro: es limpieza. El historial mudo no defiende a nadie. Y el ranking no miente, coño.',
+  'La purga no es teatro: es limpieza. El historial mudo no defiende a nadie. Y. el ranking no miente, coño.',
   'El bot buscó un rastro útil en vuestros nicks. No lo hubo. La lista se escribe sola. El grupo lo nota cada día, cabrón.',
   'Inactivos sin obra que mostrar: el bot no hace de museo. Escribid antes del kick. El grupo lo nota cada día, gilipollas.',
   'Repaso de historial terminado: no hay con qué defender la permanencia. Purga en marcha. El grupo lo nota cada día, patético.',
   'El bot no encontró un mensaje vuestro que justificara el hueco que ocupáis. Conclusión obvia. El grupo lo nota cada día, ridículo.',
   'Historial de silencio: la purga es el siguiente capítulo. Escribid si queréis otro final. El grupo lo nota cada día, basura.',
   'Lista de purga alimentada con nicks sin rastro. El bot no inventa méritos. El grupo lo nota cada día, desperdicio, ridículo.',
-  'El historial os delató: no hay sustancia. El kick no necesita más pruebas. Y el ranking no miente, asco.',
+  'El historial os delató: no hay sustancia. El kick no necesita más pruebas. Y. el ranking no miente, asco.',
   'Purga en preparación: el bot ya leyó el vacío. Escribid si queréis ensuciar ese vacío con algo. El grupo lo nota cada día, cutre, joder.',
-  'Nada que salvar en el historial. La lista de salida se llena sola. Y el ranking no miente, pringado.',
+  'Nada que salvar en el historial. La lista de salida se llena sola. Y. el ranking no miente, pringado.',
   'El bot buscó un motivo para dejaros. No apareció. Escribid o aceptad el parte. El grupo lo nota cada día, fracasado.',
-  'Historial mudo: la purga no es venganza, es higiene del grupo. Y el ranking no miente, joder con el ranking como único testigo del veredicto.',
+  'Historial mudo: la purga no es venganza, es higiene del grupo. Y. el ranking no miente, joder con. el ranking como único testigo del veredicto.',
   'Repaso terminado. Los nicks sin obra pasan a la lista. Escribid para rayaros de ella. El grupo lo nota cada día, mierda.',
   'El bot no encontró defensa en vuestros mensajes. Porque no hay mensajes que defender. El grupo lo nota cada día, coño.',
-  'Purga: el historial vacío es la acusación y la sentencia a la vez. Y el ranking no miente, cabrón sin que nadie pudiera fingir que no lo vio.',
+  'Purga: el historial vacío es la acusación y la sentencia a la vez. Y. el ranking no miente, cabrón sin que nadie pudiera fingir que no lo vio.',
   'Lista de limpieza lista. El silencio os puso en ella. Un mensaje puede sacaros. El grupo lo nota cada día, gilipollas.',
-  'El bot repasó y no halló sustancia. La purga no negocia con el vacío. Y el ranking no miente, patético.',
+  'El bot repasó y no halló sustancia. La purga no negocia con el vacío. Y. el ranking no miente, patético.',
   'Historial sin obra: el grupo no os debe el puesto. El bot cobra la deuda. El grupo lo nota cada día, ridículo.',
   'Purga en camino: escribid si vuestro nick merece una segunda lectura del historial. El grupo lo nota cada día, basura.',
   'El bot buscó un chiste, un audio, un hilo vuestro. Nada. Lista actualizada. El grupo lo nota cada día, desperdicio, mierda.',
-  'Silencio documentado: la purga es el procedimiento, no el drama. Y el ranking no miente, asco delante de quien miraba el ranking en ese momento.',
-  'Historial vacío de mérito: el kick es la continuación lógica. Y el ranking no miente, cutre con el sistema firmando debajo sin pedir aclaración, cabrón.',
+  'Silencio documentado: la purga es el procedimiento, no el drama. Y. el ranking no miente, asco delante de quien miraba. el ranking en ese momento.',
+  'Historial vacío de mérito: el kick es la continuación lógica. Y. el ranking no miente, cutre con el sistema firmando debajo sin pedir aclaración, cabrón.',
   'El bot no hace excepciones por cara: hace excepciones por rastro de mensajes. El grupo lo nota cada día, pringado.',
-  'Purga: los nicks sin huella pasan por caja. La caja es la salida. Y el ranking no miente, fracasado.',
+  'Purga: los nicks sin huella pasan por caja. La caja es la salida. Y. el ranking no miente, fracasado.',
   'Repaso de historial: no hay con qué pelear la permanencia. Escribid o fuera. El grupo lo nota cada día, joder.',
-  'Lista de purga con nombres del vacío. El bot no rellena biografías. Y el ranking no miente, mierda en el momento más visible del chat.',
-  'El historial os dejó solos. El bot solo ejecuta lo que el vacío ya decidió. Y el ranking no miente, coño.',
-  'Purga sin teatro: historial mudo, nick fuera cuando toque. Y el ranking no miente, cabrón con el parte del comando cerrado en firme.',
+  'Lista de purga con nombres del vacío. El bot no rellena biografías. Y. el ranking no miente, mierda en el momento más visible del chat.',
+  'El historial os dejó solos. El bot solo ejecuta lo que el vacío ya decidió. Y. el ranking no miente, coño.',
+  'Purga sin teatro: historial mudo, nick fuera cuando toque. Y. el ranking no miente, cabrón con el parte del comando cerrado en firme.',
   'El bot buscó algo que salvar de vosotros. El resultado fue la lista de salida. El grupo lo nota cada día, gilipollas.',
-  'Historial sin sustancia: la higiene del grupo tiene fecha. Y el ranking no miente, patético mientras el grupo tomaba nota del resultado.',
+  'Historial sin sustancia: la higiene del grupo tiene fecha. Y. el ranking no miente, patético mientras el grupo tomaba nota del resultado.',
   'Escribid antes de que la purga cierre el parte con vuestro nombre en limpio. El grupo lo nota cada día, ridículo.',
-  'El silencio no os hace interesantes: os hace candidatos. El bot confirma. Y el ranking no miente, basura.',
+  'El silencio no os hace interesantes: os hace candidatos. El bot confirma. Y. el ranking no miente, basura.',
   'Purga alimentada de inactividad. Un mensaje real puede cortar el proceso. El grupo lo nota cada día, desperdicio, gilipollas.',
-  'Historial repasado: no hay obra. No hay defensa. Hay lista. Y el ranking no miente, asco con el sistema firmando debajo sin pedir aclaración.',
-  'El bot no encontró un solo motivo de peso para conservaros en el vacío. Y el ranking no miente, cutre, asco.',
-  'Purga: el grupo no es archivo de nicks apagados. Escribid o adiós. Y el ranking no miente, pringado.',
-  'Lista de limpieza: el historial mudo fue la única prueba necesaria. Y el ranking no miente, fracasado.',
-  'El bot ejecutará lo que el ranking de inactivos ya sugirió. Escribid si queréis objetar con hechos. El grupo lo nota cada día, joder.',
-  'Historial vacío: la purga no pide permiso al sentimentalismo. Y el ranking no miente, mierda sin que nadie pudiera fingir que no lo vio.',
-  'Repaso terminado. Los que no dejaron rastro quedan en la mira. Escribid. Y el ranking no miente, coño.',
-  'Purga en preparación seria: el vacío de mensajes es el expediente. Y el ranking no miente, cabrón y sin segunda oportunidad en este mensaje.',
+  'Historial repasado: no hay obra. No hay defensa. Hay lista. Y. el ranking no miente, asco con el sistema firmando debajo sin pedir aclaración.',
+  'El bot no encontró un solo motivo de peso para conservaros en el vacío. Y. el ranking no miente, cutre, asco.',
+  'Purga: el grupo no es archivo de nicks apagados. Escribid o adiós. Y. el ranking no miente, pringado.',
+  'Lista de limpieza: el historial mudo fue la única prueba necesaria. Y. el ranking no miente, fracasado.',
+  'El bot ejecutará lo que. el ranking de inactivos ya sugirió. Escribid si queréis objetar con hechos. El grupo lo nota cada día, joder.',
+  'Historial vacío: la purga no pide permiso al sentimentalismo. Y. el ranking no miente, mierda sin que nadie pudiera fingir que no lo vio.',
+  'Repaso terminado. Los que no dejaron rastro quedan en la mira. Escribid. Y. el ranking no miente, coño.',
+  'Purga en preparación seria: el vacío de mensajes es el expediente. Y. el ranking no miente, cabrón y sin segunda oportunidad en este mensaje.',
   'El bot buscó mérito. No hubo. La lista de salida no es un borrador eterno. El grupo lo nota cada día, gilipollas.',
   'Historial mudo documentado: el kick es el siguiente campo del formulario. El grupo lo nota cada día, patético.',
-  'Escribid algo que el bot pueda usar como defensa. Si no, la purga no discute. El grupo lo nota cada día, ridículo.',
-  'Purga: higiene, no odio. El historial vacío no distingue intenciones. Y el ranking no miente, basura.',
+  'Escribid algo que. el bot pueda usar como defensa. Si no, la purga no discute. El grupo lo nota cada día, ridículo.',
+  'Purga: higiene, no odio. El historial vacío no distingue intenciones. Y. el ranking no miente, basura.',
   'Lista de nicks sin obra: el bot la tiene. Un mensaje puede borrar una línea. El grupo lo nota cada día, desperdicio, basura.',
-  'El silencio os puso en la lista. El bot solo está pasando lista. Y el ranking no miente, asco delante de todo el hilo sin posibilidad de borrado.',
-  'Historial repasado sin hallazgo útil: la permanencia no se regala. Y el ranking no miente, cutre con el ranking como único testigo del veredicto, fracasado.'
+  'El silencio os puso en la lista. El bot solo está pasando lista. Y. el ranking no miente, asco delante de todo el hilo sin posibilidad de borrado.',
+  'Historial repasado sin hallazgo útil: la permanencia no se regala. Y. el ranking no miente, cutre con. el ranking como único testigo del veredicto, fracasado.'
 ]
 
 const UMBRAL_INACTIVO = 10;
@@ -303,13 +303,13 @@ const UMBRAL_INACTIVO = 10;
 // amenaza tiene que aparecer SIEMPRE y en el mismo sitio: si dependiera del
 // azar, la mitad de las veces la lista se leeria como un ranking cualquiera.
 let AMENAZAS = [
-  'Escribid algo o el bot os expulsa. Y lo peor no va a ser irse: va a ser que nadie pregunte por vosotros. Joder.',
+  'Escribid algo o. el bot os expulsa. Y lo peor no va a ser irse: va a ser que nadie pregunte por vosotros. Joder.',
   'Silencio de más: el bot está contando. Cuando llegue a cero, fuera sin funeral. El grupo lo ve entero y no hace falta replay, mierda.',
   'Escribid o desapareced del grupo. Nadie va a montar un hilo de despedida. El grupo lo ve entero y no hace falta replay, coño.',
   'El bot no negocia el silencio eterno: o hay mensajes o hay expulsión. El grupo lo ve entero y no hace falta replay, cabrón.',
   'Inactivos: el reloj corre. Cuando suene, fuera. El grupo no es un museo de nicks mudos. El grupo lo ve entero y no hace falta replay, gilipollas.',
-  'Escribid algo con sentido o el bot os limpia. La nostalgia no salva el puesto. El grupo lo ve entero y no hace falta replay, patético.',
-  'El silencio os delata. El bot solo ejecuta lo que el ranking de inactivos ya decidió. El grupo lo ve entero y no hace falta replay, ridículo.',
+  'Escribid algo con sentido o. el bot os limpia. La nostalgia no salva el puesto. El grupo lo ve entero y no hace falta replay, patético.',
+  'El silencio os delata. El bot solo ejecuta lo que. el ranking de inactivos ya decidió. El grupo lo ve entero y no hace falta replay, ridículo.',
   'O participáis o salís. El medio no existe en la política de este bot. El grupo lo ve entero y no hace falta replay, basura.',
   'Inactividad prolongada: el bot prepara la lista. Escribid si queréis borrar vuestro nombre de ella. Desperdicio, ridículo.',
   'El grupo no guarda sillón a quien no escribe. El bot es el encargado de cobrar el peaje. El grupo lo ve entero y no hace falta replay, asco.',
@@ -317,42 +317,42 @@ let AMENAZAS = [
   'Silencio = candidato a purga. El bot no hace excepciones por cara bonita y el sistema marca el punto final, mierda.',
   'O hay mensajes o hay expulsión. La política es corta a propósito con el saldo a la intemperie en el recuento que no perdona, coño.',
   'Inactivos del ranking: el bot os está mirando. Escribid antes de que escriba él el kick y el sistema cierra sin discusión, cabrón.',
-  'El chat no es un archivo de nicks quietos. Escribid o el bot limpia y el archivo no admite recurso sin cuento que lo tape, gilipollas.',
+  'El chat no es un archivo de nicks quietos. Escribid o. el bot limpia y el archivo no admite recurso sin cuento que lo tape, gilipollas.',
   'Silencio de sobra: la lista de purga se alimenta sola. Aportad mensaje o aportad hueco con el dígito firmando solo, patético.',
   'Escribid algo. El bot no acepta la excusa del \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'estoy leyendo\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\' eterno con el fail todavía caliente, asco.',
   'Inactividad visible: el bot la traduce a expulsión cuando toca. Escribid si no queréis tocar. Gilipollas.',
   'O participáis en el hilo o salís del grupo. El bot no mantiene zombies sin prosa que lo maquille sin recurso ni nota al pie, ridículo.',
   'El reloj de los inactivos corre en silencio. Cuando llegue a cero, el kick no pide opinión y el historial no olvida, fracasado.',
-  'Escribid o el bot os saca. Nadie va a votar en contra del vacío que dejáis con testigos obligados en el hilo, joder.',
+  'Escribid o. el bot os saca. Nadie va a votar en contra del vacío que dejáis con testigos obligados en el hilo, joder.',
   'Silencio prolongado: sois candidatos oficiales. El mensaje de hoy puede borraros de la lista. Desperdicio, mierda.',
   'El bot limpia inactivos. Escribid si vuestro nick merece quedarse sin segunda lectura que lo arregle, coño.',
   'O hay rastro de mensajes o hay salida. La política no tiene letra pequeña de consuelo con el parte firmado debajo, cabrón.',
-  'Inactivos: el grupo no os echa de menos hasta que el bot os echa del todo delante del marcador en vivo, gilipollas.',
-  'Escribid antes de que el bot escriba el parte de expulsión con vuestro nombre con el veredicto seco del bot, patético.',
-  'Silencio = señal. El bot la interpreta como baja voluntaria diferida con el número hablando solo y el chat archiva sin debate, asco.',
+  'Inactivos: el grupo no os echa de menos hasta que. el bot os echa del todo. delante del marcador en vivo, gilipollas.',
+  'Escribid antes de que. el bot escriba el parte de expulsión con vuestro nombre con. el veredicto seco del bot, patético.',
+  'Silencio = señal. El bot la interpreta como baja voluntaria diferida con el número hablando solo. y el chat archiva sin debate, asco.',
   'O aparecéis en el hilo o desaparecéis del grupo. Sin términos medios útiles en el idioma seco del ranking, basura.',
   'El ranking de inactivos no es decoración: es la lista previa al kick en la foto fija del ranking con el peaje cobrado al natural, ridículo.',
-  'Escribid algo real. El bot no salva a quien solo lee y nunca deja rastro y el grupo ya pasó de página, fracasado.',
+  'Escribid algo real. El bot no salva a quien solo lee y nunca deja rastro. y el grupo ya pasó de página, fracasado.',
   'Inactividad de lujo: el bot la convierte en expulsión sin cargo de conciencia y el hilo no pide amplificación, joder.',
-  'O participáis o el bot os limpia. El resto del grupo seguirá el hilo igual sin modo avión ni silencio cómplice, mierda.',
+  'O participáis o. el bot os limpia. El resto del grupo seguirá el hilo igual sin modo avión ni silencio cómplice, mierda.',
   'Silencio de más días: el bot os tiene fichados. Escribid si queréis desficharos en la foto fija del ranking, coño.',
   'El grupo no es un hotel de nicks apagados. Escribid o fuera sin cuento que lo tape sin que nadie pida replay, cabrón.',
   'Escribid. El bot no ofrece segunda residencia a los mudos crónicos sin cuento que lo tape y el sistema cierra sin discusión, gilipollas.',
   'Inactivos en la mira: la purga no es amenaza vacía, es procedimiento en el momento que más dolía soltarlo, patético.',
   'O dejáis mensaje o dejáis el grupo. El bot ejecuta la o sin dramatizar sin suavizar el golpe del número, asco.',
-  'Silencio prolongado documentado: el kick es la continuación natural y el veredicto no se negocia sin letra pequeña que lo salve, basura.',
-  'Escribid algo o el bot asume que no pintáis nada aquí y actúa en consecuencia en el recuento que no perdona, ridículo.',
+  'Silencio prolongado documentado: el kick es la continuación natural y. el veredicto no se negocia sin letra pequeña que lo salve, basura.',
+  'Escribid algo o. el bot asume que no pintáis nada aquí y actúa en consecuencia en el recuento que no perdona, ridículo.',
   'El reloj no para para los inactivos. Cuando suene, fuera. Escribid si queréis pararlo y el sistema no regala puntos, fracasado.',
   'O hay actividad o hay expulsión. Esta frase es el aviso, no el debate con el peaje cobrado al natural, joder.',
   'Inactivos: el bot ya tiene la lista. Un mensaje vuestro puede rayar el nombre y el sistema no regala puntos, mierda.',
-  'Escribid antes de que el silencio se convierta en el parte de baja con el dígito firmando solo con el veredicto seco del bot, coño.',
-  'Silencio = candidatura a la salida. El bot no hace campañas de retención sin derecho a matiz útil con testigos obligados en el hilo, cabrón.',
-  'O participáis en el chat o el bot os devuelve a la intimidad del exterior con la firma legible del comando, gilipollas.',
-  'El grupo sigue sin vosotros si no escribís. El bot solo adelanta lo inevitable delante del marcador en vivo, patético.',
+  'Escribid antes de que el silencio se convierta en el parte de baja con el dígito firmando solo con. el veredicto seco del bot, coño.',
+  'Silencio = candidatura a la salida. El bot no hace campañas de retención. sin derecho a matiz útil con testigos obligados en el hilo, cabrón.',
+  'O participáis en. el chat o. el bot os devuelve a la intimidad del exterior con la firma legible del comando, gilipollas.',
+  'El grupo sigue sin vosotros si no escribís. El bot solo adelanta lo inevitable. delante del marcador en vivo, patético.',
   'Escribid. La purga no lee la mente: lee el historial vacío sin letra pequeña que lo salve sin que nadie pida replay, asco.',
   'Inactividad visible: el bot la traduce a kick cuando el contador llega al límite con el número en la frente del mensaje, basura.',
   'O dejáis huella en el hilo o dejáis el grupo. Política corta, efecto largo y el sistema cierra sin discusión, ridículo.',
-  'Silencio de sobra: escribid o aceptad que el bot os limpie sin funeral en la foto fija del ranking sin segunda oportunidad hoy, fracasado.'
+  'Silencio de sobra: escribid o aceptad que. el bot os limpie sin funeral en la foto fija del ranking sin segunda oportunidad hoy, fracasado.'
 ]
 
 
@@ -393,7 +393,7 @@ async function cmdInactivos(sock, msg, groupMeta) {
   for (const p of groupMeta.participants) {
     const formas = [p?.id, p?.lid, p?.phoneNumber].filter(Boolean);
     if (!formas.length) continue;
-    // Ni el bot ni el owner tier salen en la lista.
+    // Ni. el bot ni el owner tier salen en la lista.
     if (isBotJid(sock, p.id)) continue;
     if (isOwner(p.id, false, groupMeta) || isMainOwner(p.id, false, groupMeta)) continue;
 

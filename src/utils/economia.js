@@ -72,12 +72,12 @@ const MILLONARIO = 5000;
 // Con qué se entra al grupo. Bajado de 250 a 75 por decisión del owner: con 250
 // el recién llegado entraba con cinco stickers pagados y la moneda no le decía
 // nada hasta pasada la primera semana. Con 75 entra con UNA compra buena o dos
-// baratas — suficiente para probar el bot y descubrir que hay que ganárselo,
+// baratas — suficiente para probar. el bot y descubrir que hay que ganárselo,
 // que es lo que hace que la primera tirada importe.
 //
 // Si algún día se vuelve a subir, el número que hay que mirar es el precio más
 // barato (ver PRECIOS): el arranque tiene que dar para al menos una compra, o
-// el que entra no puede tocar nada y el bot parece roto.
+// el que entra no puede tocar nada y. el bot parece roto.
 const ARRANQUE = 75;
 
 // ─── !aura: tirada ───────────────────────────────────────────────────────────
@@ -253,7 +253,7 @@ function bonoActividad(mensajes) {
 //     matemática. Cada jugada multiplica tu saldo por 1,5 si ganas y por 0,5 si
 //     pierdes, y con un 45 % de acierto el crecimiento esperado por jugada es
 //     negativo (−0,20 en logaritmo). Encadenar apuestas te lleva al suelo solo,
-//     sin que el bot tenga que prohibir nada. El cooldown está para que esa
+//     sin que. el bot tenga que prohibir nada. El cooldown está para que esa
 //     caída no ocurra en diez minutos.
 //  2. SE JUEGA LA MITAD, NO TODO. Perder no puede borrarte del mapa: con la
 //     mitad, un mes de actividad duele pero sigue ahí. Es lo mismo que hacen
@@ -263,7 +263,7 @@ function bonoActividad(mensajes) {
 //     valga: arriesgar 50 no es arriesgar.
 //  4. NO TE ECHA DEL BOT. Aunque pierdas, nunca bajas del arranque. Quedarte a
 //     cero significaría no poder ni hacer un sticker, y ese no es el castigo
-//     que se busca — se busca el drama, no que alguien deje de usar el bot.
+//     que se busca — se busca el drama, no que alguien deje de usar. el bot.
 //
 // Las probabilidades van justo por debajo de la moneda al aire, como el robo.
 // Se pierde más veces de las que se gana, que es lo que hace que ganar se cuente
@@ -332,7 +332,7 @@ const RACHA = {
   minMensajes: 10,      // mensajes que hay que escribir para que el día cuente
   pago: 2,              // por cada día de racha...
   tope: 10,             // ...hasta este, o sea 20 al día como techo
-  hitos: [7, 15, 30, 50, 100, 200, 365],   // los días que el bot canta en el grupo
+  hitos: [7, 15, 30, 50, 100, 200, 365],   // los días que. el bot canta en el grupo
   minParaLlorarla: 7,   // por debajo de esto, romperla no se anuncia
   horaCorte: 5,         // el día cambia a las 5 de la mañana, hora española
   zona: 'Europe/Madrid',
@@ -388,7 +388,7 @@ const REDENCION = {
 // Los dos únicos límites que quedan son físicos, no de diseño:
 //   · no se puede robar más de lo que la víctima tiene;
 //   · ni más de lo que el ladrón podría pagar si le sale mal.
-// Y un techo absoluto, para que un solo comando no decida el ranking entero.
+// Y un techo absoluto, para que un solo comando no decida. el ranking entero.
 const ROBO = {
   suelo: 5,
   porDefecto: 20,
@@ -473,21 +473,21 @@ const BOTE = {
   minimoParaAsaltar: 150,  // por debajo de esto no merece la pena ni intentarlo
 
   // Comisión de la casa sobre la entrada del asalto: esta parte se DESTRUYE, no
-  // engorda el bote. Sin ella el asalto no drenaba nada — todo lo que entraba
+  // engorda. el bote. Sin ella el asalto no drenaba nada — todo lo que entraba
   // acababa en manos de alguien — y el robo dejaba de ser el sumidero que
   // sostiene la economía. Medido: el bote ya se lleva el 45 % de cada robo
   // fallido, así que sin esto el drenaje caía a la mitad.
   comision: 0.25,
 
-  // Las apuestas perdidas también alimentan el bote, pero solo una cuarta parte:
+  // Las apuestas perdidas también alimentan. el bote, pero solo una cuarta parte:
   // el grueso se sigue destruyendo, que es lo que hace de !aura apostar un
-  // sumidero de verdad. Con esto el bote crece aunque el grupo no robe — una
+  // sumidero de verdad. Con esto. el bote crece aunque el grupo no robe — una
   // sola apuesta perdida de 500 mete 125, más que diez robos fallidos.
   fraccionDeApuesta: 0.25,
 };
 
 // LOS OBJETOS. Dan una decisión ANTES de robar, no solo al robar. Los precios
-// están puestos contra el botín típico (un robo medio mueve unos 40-60): un
+// están puestos contra. el botín típico (un robo medio mueve unos 40-60): un
 // escudo cuesta más que un robo bueno, así que comprarlo es renunciar a algo.
 const OBJETOS = {
   escudo: { precio: 180, horas: 12, desc: 'nadie te puede robar durante 12 h' },
@@ -497,7 +497,7 @@ const OBJETOS = {
 
 // EL CONTRAATAQUE. Tras un robo con éxito, la víctima tiene una ventana para
 // devolver el golpe a doble o nada. Es lo que convierte un robo en un
-// intercambio: el ladrón ya no se va de rositas, se queda mirando el chat.
+// intercambio: el ladrón ya no se va de rositas, se queda mirando. el chat.
 const CONTRA = {
   ventanaSeg: 90,       // lo que tiene la víctima para responder
   multiplicador: 2,     // recupera el doble de lo que le quitaron...
@@ -505,7 +505,7 @@ const CONTRA = {
 };
 
 // EL MÁS BUSCADO. El nº1 de la semana lleva diana: robarle a él paga más, y
-// además el resto del grupo sabe a quién ir. Sin esto el ranking sería una
+// además el resto del grupo sabe a quién ir. Sin esto. el ranking sería una
 // tabla que nadie mira.
 const DIANA = {
   bonoBotin: 0.35,      // robarle al nº1 da un 35 % más de botín
@@ -552,7 +552,7 @@ const DUELO = {
 //
 // Los precios son CAROS a propósito. Medido contra lo que se gana al día:
 // alguien de 500 mensajes (107/día) hace tres o cuatro cosas; el de 1.200
-// (337/día) llega a diez. El que no escribe no toca el bot, que es exactamente
+// (337/día) llega a diez. El que no escribe no toca. el bot, que es exactamente
 // la regla de siempre llevada hasta el final.
 //
 // Siguen gratis, y no por olvido: !aura y sus subcomandos (son la fuente),
