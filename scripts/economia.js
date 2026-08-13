@@ -12,10 +12,14 @@
 process.env.OWNER_NUMBER = '33600000000';
 
 const fs = require('fs');
-const R = '/home/user/Bot-';
+const path = require('path');
+// Ruta relativa al propio script: estaba clavada a /home/user/Bot-, un nombre
+// de carpeta que ya no existe, asi que `npm run economia` no arrancaba.
+const R = path.resolve(__dirname, '..');
 const eco = require(R + '/src/utils/economia');
 const { P_POSITIVA, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, ACTIVIDAD_MSGS, P_TOPE_MIEMBRO, TIRADA,
-        APUESTA, PRECIOS, BONOS, REDENCION, MULT_CASTIGO, TIRADAS_PAGADAS, bonoActividad,
+        APUESTA, PRECIOS, BONOS, REDENCION, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE,
+        P_TOPE, TIRADAS_PAGADAS, bonoActividad,
         RACHA, rango, ROBO, DUELO, ARRANQUE, MILLONARIO } = eco;
 
 let fallos = 0;
@@ -44,7 +48,12 @@ for (let v = TIRADA.pequena[0]; v <= TOPE_PEQUENA; v++) P.push(v);
 // (decia -128 donde son -192) porque tomaba el ancho por el tope. Con nombre
 // propio deja de poder confundirse.
 const media = (a) => a.reduce((s, x) => s + x, 0) / a.length;
-const MEZCLA = (f) => 0.34 * media(G.map(f)) + 0.66 * media(P.map(f));   // 34 % grandes
+// El reparto grande/pequenyo ya no es un 0.34 escrito a mano: vive en economia.js
+// con nombre (P_TRAMO_GRANDE) y es distinto al ganar que al perder.
+const MEZCLA = (f) => P_TRAMO_GRANDE.gana * media(G.map(f))
+                    + (1 - P_TRAMO_GRANDE.gana) * media(P.map(f));
+const MEZCLA_MALA = (f) => P_TRAMO_GRANDE.pierde * media(G.map((v) => f(Math.round(v * MULT_CASTIGO_GRANDE))))
+                         + (1 - P_TRAMO_GRANDE.pierde) * media(P.map((v) => f(Math.round(v * MULT_CASTIGO))));
 
 // El premio y el castigo YA NO salen del mismo sitio. Se gana del tramo grande o
 // del pequeño (34/66); se pierde SIEMPRE del pequeño, multiplicado. Aplicar el
@@ -57,12 +66,15 @@ const MEZCLA = (f) => 0.34 * media(G.map(f)) + 0.66 * media(P.map(f));   // 34 %
 function perfilTirada(pPos) {
   const mult = MULT_CASTIGO;
   const gana   = MEZCLA((v) => v);
-  const pierde = media(P.map((v) => Math.round(v * mult)));
+  // Perder ya tiene dos tamanyos, igual que ganar: una de cada cuatro derrotas
+  // sale del tramo grande. Antes salia SIEMPRE del pequenyo y el peor golpe
+  // posible era mucho menor que el que se publica ahora.
+  const pierde = MEZCLA_MALA((v) => v);
   const ev = pPos * gana - (1 - pPos) * pierde;
   // Varianza exacta: E[x²] − EV².
   const ex2 = pPos * MEZCLA((v) => v * v)
-            + (1 - pPos) * media(P.map((v) => Math.pow(Math.round(v * mult), 2)));
-  const peor = Math.round(TOPE_PEQUENA * mult);
+            + (1 - pPos) * MEZCLA_MALA((v) => v * v);
+  const peor = Math.round(TOPE_GRANDE * MULT_CASTIGO_GRANDE);
   return { pPos, mult, gana, pierde, ev, sigma: Math.sqrt(ex2 - ev * ev),
            peor: -peor, mejor: TOPE_GRANDE,
            // Asimetria: cuanto pesa el peor golpe frente al mejor premio. Es la
@@ -73,12 +85,14 @@ function perfilTirada(pPos) {
 // Guardia: si aura.js cambia la formula y esta copia no, todo lo de abajo miente.
 {
   const src = fs.readFileSync(R + '/src/commands/aura.js', 'utf8');
-  ok(/const pPos = Math\.min\(tope, base \+ plusActividad\)/.test(src), 'el modelo enumerado sigue igual al de aura.js');
-  ok(/const tope = targetIsOwner \? P_POSITIVA\.owner : P_TOPE_MIEMBRO/.test(src),
-    '  y el tope de un miembro sigue por debajo del owner');
-  ok(/Math\.random\(\) < 0\.34/.test(src), '  y el reparto grande/pequena sigue siendo 34 %');
-  ok(/Math\.round\(pequena\(\) \* MULT_CASTIGO\)/.test(src),
-    '  y el castigo es el tramo pequeño por un multiplicador FIJO, igual para todos');
+  ok(/const pPos = Math\.min\(P_TOPE\[rol\], base \+ plusActividad\)/.test(src),
+    'el modelo enumerado sigue igual al de aura.js');
+  ok(/Math\.random\(\) < P_TRAMO_GRANDE\.gana/.test(src),
+    '  y el reparto grande/pequena de la ganancia sale de P_TRAMO_GRANDE');
+  ok(/Math\.random\(\) < P_TRAMO_GRANDE\.pierde/.test(src),
+    '  y perder tambien tiene tramo grande, no un unico tamanyo');
+  ok(/grande\(\)\s+\* MULT_CASTIGO_GRANDE/.test(src) && /pequena\(\) \* MULT_CASTIGO/.test(src),
+    '  y cada tramo de perdida usa su propio multiplicador, igual para todos los roles');
   ok(/if \(!dePago\) \{/.test(src),
     '  y a partir de las tiradas de pago la tirada es cara o cruz a valor esperado cero');
 }
@@ -118,14 +132,18 @@ console.log('\n════ 1. valor esperado por tirada (exacto) ════\n
 console.log('  rol              p      x perder   media+   media−     EV/tirada');
 // La veterania ya no es un si/no: es una escalera. Se enumera entera porque es
 // justo lo que se pidio ver — que escribir mas se note tirada a tirada.
-const tapa = (p) => Math.min(P_TOPE_MIEMBRO, p);
+// Cada rol tiene AHORA su propio techo. Antes se tapaba todo con el del
+// miembro, asi que un admin veterano salia identico a un miembro veterano y la
+// tabla decia que el rol no servia para nada — cosa que era cierta entonces y
+// ya no lo es.
+const tapa = (rol, p) => Math.min(P_TOPE[rol], p);
 const PERFILES = [
-  ['novato (0 msgs)',      tapa(P_POSITIVA.miembro)],
-  ['1.000 msgs',           tapa(P_POSITIVA.miembro + bonoActividad(1000))],
-  ['3.000 msgs',           tapa(P_POSITIVA.miembro + bonoActividad(3000))],
-  ['veterano (tope)',      tapa(P_POSITIVA.miembro + ACTIVIDAD_TOPE)],
-  ['admin',                tapa(P_POSITIVA.admin)],
-  ['admin veterano',       tapa(P_POSITIVA.admin + ACTIVIDAD_TOPE)],
+  ['novato (0 msgs)',      tapa('miembro', P_POSITIVA.miembro)],
+  ['1.000 msgs',           tapa('miembro', P_POSITIVA.miembro + bonoActividad(1000))],
+  ['3.000 msgs',           tapa('miembro', P_POSITIVA.miembro + bonoActividad(3000))],
+  ['veterano (tope)',      tapa('miembro', P_POSITIVA.miembro + ACTIVIDAD_TOPE)],
+  ['admin',                tapa('admin',   P_POSITIVA.admin)],
+  ['admin veterano',       tapa('admin',   P_POSITIVA.admin + ACTIVIDAD_TOPE)],
   ['owner',                P_POSITIVA.owner],
 ];
 const M = {};
@@ -160,8 +178,10 @@ ok(M[PERFILES[1][0]].ev > M[PERFILES[0][0]].ev,
   `  y escribir el primer millar SI se nota (+${n2(M[PERFILES[1][0]].ev)} contra +${n2(M[PERFILES[0][0]].ev)}): la veterania no es decorativa`);
 ok(M['veterano (tope)'].ev > M['novato (0 msgs)'].ev * 1.15,
   `  y de novato a veterano hay un salto real (+${n2(M['veterano (tope)'].ev)} contra +${n2(M['novato (0 msgs)'].ev)})`);
-ok(M['owner'].ev > M['veterano (tope)'].ev,
-  `  y el owner sigue por encima del miembro mas veterano (+${n2(M['owner'].ev)} contra +${n2(M['veterano (tope)'].ev)})`);
+ok(M['admin'].ev > M['veterano (tope)'].ev,
+  `  y un admin recien nombrado ya gana mas que el miembro mas veterano (+${n2(M['admin'].ev)} contra +${n2(M['veterano (tope)'].ev)})`);
+ok(M['owner'].ev > M['admin veterano'].ev,
+  `  y el owner sigue por encima del admin mas veterano (+${n2(M['owner'].ev)} contra +${n2(M['admin veterano'].ev)})`);
 ok(P_TOPE_MIEMBRO < P_POSITIVA.owner,
   `  el tope de un miembro (${(P_TOPE_MIEMBRO * 100).toFixed(0)} %) no llega al del owner (${(P_POSITIVA.owner * 100).toFixed(0)} %): el amaño aguanta`);
 // Todos pierden LO MISMO. Es la correccion de fondo: la suerte decide cada
@@ -515,8 +535,13 @@ for (const nombre of ['fantasma', 'normal', 'activo', 'muy activo']) {
 // ingresos se han vuelto a ir de las manos.
 ok(f('normal').total >= precioMedio,
   `un miembro normal (200 msgs) paga ${(f('normal').total / precioMedio).toFixed(1)} comandos al dia: elige uno y se queda con ganas`);
-ok(f('normal').total < precioMedio * 3,
-  `  y no llega a tres (${(f('normal').total / precioMedio).toFixed(1)}): los precios siguen mordiendo`);
+// SUBIDO DE 3 A 4 al pasar el miembro a 75/25 por peticion del owner. El motivo
+// del cambio era justo ese: la gente acababa en numeros rojos y no podia usar el
+// bot. Un miembro normal pasa de 2,4 comandos al dia a 3,1, que sigue obligando
+// a elegir — el limite existe para que un precio se note, no para que nadie
+// pueda pagar. Si esto sube de cuatro sin que se pida, los ingresos se han ido.
+ok(f('normal').total < precioMedio * 4,
+  `  y no llega a cuatro (${(f('normal').total / precioMedio).toFixed(1)}): los precios siguen mordiendo`);
 // El agujero original era que por debajo de 200 mensajes al dia no se cobraba
 // NADA por ningun concepto. Lo tapo un sueldo, el sueldo se quito, y ahora lo
 // tapa la tirada: cualquiera puede tirar aunque no escriba una linea.

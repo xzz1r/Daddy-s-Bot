@@ -3,7 +3,7 @@ const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
 const { contarTirada } = require('../utils/casinoStore');
-const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE_MIEMBRO, MULT_CASTIGO, TIRADAS_PAGADAS, bonoActividad, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
+const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
 const { BOTE, CONTRA, RACHA } = require('../utils/economia');
@@ -75,19 +75,16 @@ function rollAura(targetIsOwner, targetIsAdmin, plusActividad = 0, dePago = true
       : { tier: cuanto >= TIRADA.grande[0] ? 'cursed'  : 'loss', amount: -cuanto };
   }
 
-  const base = targetIsOwner ? P_POSITIVA.owner
-             : targetIsAdmin ? P_POSITIVA.admin
-             :                 P_POSITIVA.miembro;
+  const rol = targetIsOwner ? 'owner' : targetIsAdmin ? 'admin' : 'miembro';
+  const base = P_POSITIVA[rol];
 
-  // El tope del owner tier sigue en 80 %. El de un miembro va por debajo
-  // (P_TOPE_MIEMBRO) para que por muy veterano que sea nunca lo iguale: si
-  // pudiera, el amaño dejaria de serlo.
-  const tope = targetIsOwner ? P_POSITIVA.owner : P_TOPE_MIEMBRO;
-  const pPos = Math.min(tope, base + plusActividad);
+  // Cada rol tiene su propio techo y los tres rangos NO se solapan: un miembro
+  // llega como mucho al 80 y la base de un admin ya es 82, asi que ni el mas
+  // veterano alcanza a un admin recien nombrado. Lo mismo entre admin y owner.
+  const pPos = Math.min(P_TOPE[rol], base + plusActividad);
 
   if (Math.random() < pPos) {
-    // Dentro de lo positivo, un tercio son tiradas grandes.
-    return Math.random() < 0.34
+    return Math.random() < P_TRAMO_GRANDE.gana
       ? { tier: 'blessed', amount:  grande() }
       : { tier: 'gain',    amount:  pequena() };
   }
@@ -99,17 +96,16 @@ function rollAura(targetIsOwner, targetIsAdmin, plusActividad = 0, dePago = true
   // y perdias mas de golpe, con el mismo resultado a fin de mes) y al que mejor
   // le iba mas le dolia — un veterano veia golpes de -95 y un novato de -73.
   //
-  // Ahora es el tramo pequeño por un multiplicador fijo: 26-66 de perdida, media
-  // 46, seas quien seas. La suerte decide CADA CUANTO pierdes, no cuanto.
+  // Ahora es el tramo por un multiplicador fijo, igual para todos: la suerte
+  // decide CADA CUANTO pierdes, no cuanto.
   //
-  // El importe base sale SIEMPRE del tramo pequeño, tambien en la derrota
-  // "cursed": lo contrario daba golpes de varios cientos cuando lo maximo que se
-  // puede ganar son 80. El tier se decide aparte, asi que las frases duras
-  // siguen saliendo con la misma frecuencia de siempre.
-  const castigo = () => Math.round(pequena() * MULT_CASTIGO);
-  return Math.random() < 0.34
-    ? { tier: 'cursed', amount: -castigo() }
-    : { tier: 'loss',   amount: -castigo() };
+  // Y perder ya tiene dos tamanyos, como ganar. Antes "cursed" cambiaba las
+  // frases pero no el importe, asi que el drama lo ponia el texto mientras el
+  // marcador decia lo mismo que en una perdida normal. Una de cada cuatro
+  // derrotas sale ahora del tramo grande y duele de verdad.
+  return Math.random() < P_TRAMO_GRANDE.pierde
+    ? { tier: 'cursed', amount: -Math.round(grande()  * MULT_CASTIGO_GRANDE) }
+    : { tier: 'loss',   amount: -Math.round(pequena() * MULT_CASTIGO) };
 }
 
 

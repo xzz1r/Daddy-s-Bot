@@ -120,20 +120,26 @@ const TIRADA_MAX = { grande: TIRADA.grande[1], pequena: TIRADA.pequena[1] };
 //
 // Lo que frena que esto se convierta en una imprenta ya no es el multiplicador
 // de pérdida (ver la nota larga más abajo) sino TIRADAS_PAGADAS: se cobra de
-// verdad ocho veces al día y a partir de ahí se juega gratis, a cara o cruz.
-// SUBIDO A 70/30 PARA EL MIEMBRO por decisión del owner (era 62/38). El admin
-// sube con él para no quedar por debajo, y el owner se queda en 80: su amaño no
-// se toca.
+// verdad cinco veces al día y a partir de ahí se juega gratis, a cara o cruz.
+// SUBIDO A 75/25 PARA EL MIEMBRO por decisión del owner (era 70/30, y antes
+// 62/38). El motivo fue concreto: había demasiada gente en números rojos y sin
+// aura no se puede usar el bot.
 //
-// OJO A UNA CONSECUENCIA: con la base en 70 y el tope de miembro en 75
-// (P_TOPE_MIEMBRO) la veteranía solo tiene cinco puntos de recorrido en vez de
-// trece, así que se agota a los ~2.000 mensajes en lugar de a los ~4.400. Se
-// deja así a propósito: subir el tope por encima de 75 metería a un veterano en
-// el terreno del owner, y eso no se toca sin pedirlo.
+// Y esta vez se reescalaron los tres roles, no solo el de abajo. Con 70/73/80 y
+// un tope común de 75, un miembro veterano igualaba al admin y lo superaba: el
+// rol no valía nada. Ahora cada uno tiene base Y techo propios (ver P_TOPE) y
+// los rangos no se solapan en ningún punto — un miembro llega como mucho al 80
+// y la base de un admin ya es 82.
+// SUBIDO A 75/25 PARA EL MIEMBRO por decision del owner, y con el admin y el
+// owner reescalados por encima para que la jerarquia siga notandose. Antes el
+// hueco entre miembro (70) y admin (73) era de tres puntos y el tope comun de
+// 75 se los comia: un miembro veterano igualaba al admin y el rol dejaba de
+// valer para nada. Ahora cada rol tiene su propia base Y su propio techo, y los
+// tres rangos no se solapan en ningun punto.
 const P_POSITIVA = {
-  owner: 0.80,   // el owner gana 4 de cada 5 tiradas, por peticion expresa
-  admin: 0.73,
-  miembro: 0.70,
+  owner: 0.88,   // gana casi 9 de cada 10
+  admin: 0.82,
+  miembro: 0.75, // 75/25 pedido por el owner
 };
 
 // ─── El bono de veterania: suerte que se acumula ─────────────────────────────
@@ -160,7 +166,19 @@ const ACTIVIDAD_BONO = 0.03;   // +3 % de acierto por escalón, acumulables
 // Va por debajo del 80 % del owner a propósito y no se toca sin pedirlo: si un
 // miembro pudiera igualarlo, el amaño dejaría de ser un amaño. Con +13 se llega
 // a 75 % a los ~4.400 mensajes, o sea cinco escalones de progresión real.
-const P_TOPE_MIEMBRO = 0.75;
+// Con la base del miembro ya en 75 haria falta un techo mas alto o la veterania
+// no tendria donde crecer: el bono se comeria contra el tope en el primer
+// escalon y escribir dejaria de dar suerte, que es la unica progresion del bot.
+//
+// Un miembro llega como mucho al 80, justo por debajo de la BASE del admin (82),
+// asi que ni el mas veterano alcanza a un admin recien nombrado. Y un admin
+// llega como mucho al 85, por debajo del 88 del owner.
+const P_TOPE = {
+  owner: 0.88,
+  admin: 0.85,
+  miembro: 0.80,
+};
+const P_TOPE_MIEMBRO = P_TOPE.miembro;   // se mantiene el nombre viejo: lo usan otros modulos
 const ACTIVIDAD_TOPE = 0.13;
 
 // ─── Cuánto pesa perder ──────────────────────────────────────────────────────
@@ -198,8 +216,9 @@ const ACTIVIDAD_TOPE = 0.13;
 // tirada pasa a ser una moneda al aire limpia: 50 % y el mismo importe a los dos
 // lados, valor esperado CERO exacto. Sigues jugando, dejas de cobrar.
 //
-// TECHO DE PÉRDIDA EN 40 por decisión del owner. El multiplicador era 2,65 y
-// daba golpes de 26-66; ahora es 1,6 y da 16-40, que es el máximo pedido.
+// El multiplicador del golpe NORMAL, que es 3 de cada 4. Bajado de 1,6 a 1,4 al
+// pasar el miembro a 75/25: la pérdida pequeña va de 14 a 35. El golpe gordo
+// tiene su propio multiplicador justo debajo.
 //
 // La relación con la ganancia se invierte respecto a como estaba: antes perder
 // pesaba vez y media lo que pesaba ganar, y ahora pesa MENOS (media de 28 en
@@ -207,7 +226,23 @@ const ACTIVIDAD_TOPE = 0.13;
 // pedido — más probabilidad de ganar y menos importe — y hace que la tirada
 // sea claramente favorable al jugador. El freno que impide que eso sea una
 // imprenta sigue siendo TIRADAS_PAGADAS, no el castigo.
-const MULT_CASTIGO = 1.6;
+const MULT_CASTIGO = 1.4;
+
+// EL GOLPE GORDO, que antes no existia. Perder tenia un solo tamanyo: el tramo
+// pequenyo por el multiplicador, 16-40 siempre. El tier "cursed" cambiaba las
+// frases pero no el importe, asi que el drama lo ponia el texto y no el marcador
+// — y el jugador no notaba diferencia entre una mala tirada y un desastre.
+//
+// Ahora la perdida tiene los dos tamanyos que ya tenia la ganancia. Una de cada
+// cuatro derrotas sale del tramo GRANDE (48-60 de perdida), que duele de verdad
+// y le da sentido a las frases de "cursed". Las otras tres son el golpe normal
+// de 14-35.
+const MULT_CASTIGO_GRANDE = 1.2;
+
+// Cada cuanto la tirada sale por el tramo grande, gane o pierda. Antes era un
+// 0.34 suelto escrito dos veces dentro de aura.js; aqui esta una sola vez y con
+// nombre, que es donde vive el resto de la escala.
+const P_TRAMO_GRANDE = { gana: 0.30, pierde: 0.25 };
 
 // Cuántas tiradas del día pagan de verdad. La 6ª y siguientes son moneda al aire
 // a valor esperado cero (ver arriba).
@@ -225,8 +260,10 @@ const MULT_CASTIGO = 1.6;
 const TIRADAS_PAGADAS = 5;
 
 const mediaRango = ([min, max]) => (min + max) / 2;   // TIRADA es [min, max]
-const MEDIA_PREMIO  = 0.34 * mediaRango(TIRADA.grande) + 0.66 * mediaRango(TIRADA.pequena);
-const MEDIA_CASTIGO = mediaRango(TIRADA.pequena) * MULT_CASTIGO;
+const MEDIA_PREMIO  = P_TRAMO_GRANDE.gana * mediaRango(TIRADA.grande)
+                    + (1 - P_TRAMO_GRANDE.gana) * mediaRango(TIRADA.pequena);
+const MEDIA_CASTIGO = P_TRAMO_GRANDE.pierde * mediaRango(TIRADA.grande) * MULT_CASTIGO_GRANDE
+                    + (1 - P_TRAMO_GRANDE.pierde) * mediaRango(TIRADA.pequena) * MULT_CASTIGO;
 
 // Cuánta suerte da haber escrito `mensajes` en total. Acumulativa y con tope.
 function bonoActividad(mensajes) {
@@ -632,7 +669,7 @@ function rango([suelo, ancho]) {
 module.exports = {
   MILLONARIO, ARRANQUE,
   TIRADA, TIRADA_MIN, TIRADA_MAX, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE,
-  P_TOPE_MIEMBRO, MULT_CASTIGO, TIRADAS_PAGADAS, MEDIA_PREMIO, MEDIA_CASTIGO, bonoActividad, APUESTA,
+  P_TOPE_MIEMBRO, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, MEDIA_PREMIO, MEDIA_CASTIGO, bonoActividad, APUESTA,
   RACHA, BONOS, REDENCION,
   ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, DUELO, REGALO_MIN,
   BOTE, OBJETOS, CONTRA, DIANA,
