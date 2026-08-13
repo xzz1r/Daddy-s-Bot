@@ -440,7 +440,21 @@ que son el motor.
 limpias subía el número y dejaba el texto roto: `'...se defendió como se defiende
 de todo: mal. y, cabrón punto final del parte.'`
 
-La regla que sale de los tres: **edita el pool que estás trabajando y solo ese.**
+**4. Un script no se pasa dos veces sobre su propia salida.** De ahí salieron 37
+frases con rachas de barras invertidas: el bot imprimía literalmente
+`It\\\\\\\\'s over`. Cada pasada vuelve a escapar lo que ya estaba escapado, así
+que el daño se multiplica y no da ningún error — compila perfecto y solo se ve
+en el chat.
+
+**5. No se rellena un pool clonando frases.** Los pools de país de `!roast`
+figuraban con 50 y 20 frases; de contenido real había 10 y 5. El resto eran la
+misma frase con una coletilla pegada encima (`…prepotencia El grupo ya hizo la
+resta.`, sin punto). Un pool inflado es peor que un pool corto: el validador lo
+da por bueno y el grupo ve la misma frase con distinto final. Doce países
+—GT, CU, BO, DO, HN, PY, SV, NI, CR, PA, UY, PR— siguen sin una sola frase
+propia: las 10 que tienen son genéricas con `%PAIS` sustituido.
+
+La regla que sale de los cinco: **edita el pool que estás trabajando y solo ese.**
 Un cambio que toca 62 pools para arreglar 6 va a romper algo siempre.
 
 **Y actualiza antes de empezar.** Si tu rama viene de una base vieja, al empujar
