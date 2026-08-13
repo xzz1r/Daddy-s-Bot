@@ -12,6 +12,16 @@ const {
 // franja el resultado sigue siendo siempre favorable, pero parece azar.
 // La polaridad se define por comando (no basta con goodIsHigh: la "feminidad"
 // es positiva pero para el owner debe salir baja, como el chiste recurrente).
+// Cada cuanto se aplica la franja buena del owner. El resto de las veces tira
+// como el resto —con su polaridad a favor, pero sin red— y puede salirle mal.
+//
+// El numero existe porque los dos extremos fallaban. Con la franja SIEMPRE, al
+// owner le salia 3-30 o 88-100 en cada tirada y el grupo lo noto: eso no parece
+// suerte, parece programado. Sin franja, la ventaja casi desaparecia. Con 0,75
+// gana de calle tres de cada cuatro veces y una de cada cuatro le toca lo que a
+// cualquiera, que es lo que hace creible al resto.
+const OWNER_AMAÑO = 0.75;
+
 const OWNER_LOW  = [3, 30];   // peyorativos: siempre bajo, tope 30 (tier low ≤30), nunca 0 pelado
 const OWNER_HIGH = [88, 100]; // favorables: siempre alto (tier high ≥70), no siempre 100
 
@@ -6394,12 +6404,33 @@ async function runPercent(sock, msg, key, groupMeta) {
     ? cfg.roll(targetIsOwner, targetIsAdmin)
     : rollPercent(cfg.goodIsHigh, targetIsAdmin, targetIsOwner);
 
-  // Si el target es el owner principal, se fuerza el valor dentro de la franja
-  // que le favorece ANTES de elegir el tier/frase, de modo que la frase
-  // concuerde con el % mostrado. Al ser una franja y no un valor fijo, el
-  // resultado cambia en cada tirada y no se nota el amaño.
+  // El amaño del owner principal: se vuelve a tirar con la POLARIDAD que le
+  // favorece, no con una franja clavada.
+  //
+  // ESTO ESTABA ROTO Y SE NOTABA. Antes hacía `percent = rollRange(OWNER_FORCE[key])`,
+  // que sustituye el resultado por un 3-30 o un 88-100 fijos. Y justo encima,
+  // rollPercent ya calculaba para el owner una banda deliberadamente sosa
+  // (45-75 y 25-55) con un 18 % de tiradas genuinamente malas, precisamente
+  // porque —dice su propio comentario— «salir 97, 99 o 3 una y otra vez no se
+  // parece a tener suerte, se parece a estar programado, y el grupo lo notó».
+  //
+  // Ese trabajo se tiraba a la basura en la línea siguiente. Medido sobre 400
+  // tiradas, al owner le salía SIEMPRE entre 3 y 30 en los peyorativos y entre
+  // 88 y 100 en los favorables: exactamente el patrón que se queria evitar.
+  //
+  // Lo que OWNER_FORCE aporta de verdad es la POLARIDAD, que no se puede sacar
+  // de goodIsHigh: la feminidad es un rasgo positivo pero al owner le tiene que
+  // salir baja. Asi que se usa para eso —decidir hacia donde—, y la forma de la
+  // distribucion la pone rollPercent, que es quien sabe disimular.
+  // La mezcla: casi siempre la franja que le favorece, y de vez en cuando una
+  // tirada normal. Ni lo uno ni lo otro por separado servia — la franja sola
+  // canta, y la banda sosa sola dejaba al owner sin ventaja apreciable (en
+  // !fiel sacaba 57 contra el 51 de cualquiera).
   if (isMainOwner(target, false, groupMeta) && key in OWNER_FORCE) {
-    percent = rollRange(OWNER_FORCE[key]);
+    const leFavoreceAlto = OWNER_FORCE[key] === OWNER_HIGH;
+    percent = Math.random() < OWNER_AMAÑO
+      ? rollRange(OWNER_FORCE[key])              // la franja buena
+      : rollPercent(leFavoreceAlto, false, true); // y a veces, suerte normal
   }
 
   const tier = percent >= 70 ? 'high' : percent <= 30 ? 'low' : 'mid';
