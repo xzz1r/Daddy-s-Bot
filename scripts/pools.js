@@ -99,22 +99,39 @@ const filas = [];
 for (const [nombre, cfg] of Object.entries(labels)) {
   const traf = cfg.uniforme ? TRAFICO_UNIFORME : TRAFICO[String(cfg.goodIsHigh)];
   if (!traf) continue;
-  for (const tramo of ['high', 'mid', 'low']) {
+  // `extreme` entra con probabilidad 0: no se dimensiona por tráfico (es un
+  // remate opcional), pero si se queda vacío hay que enterarse igual.
+  for (const tramo of ['high', 'mid', 'low', 'extreme']) {
     const n = cfg.pools[tramo];
     if (typeof n !== 'number') continue;
-    filas.push({ cmd: nombre, tramo, prob: traf[tramo], n, libres: libres(n) });
+    filas.push({ cmd: nombre, tramo, prob: traf[tramo] ?? 0, n, libres: libres(n) });
   }
 }
 
-// Un tramo está ROTO si se lee mucho y quedan casi ninguna frase disponible:
-// ahí la repetición es visible en el grupo. FLOJO es la antesala.
-const ROTO  = (f) => f.prob >= 0.30 && f.libres <= 5;
-const FLOJO = (f) => f.prob >= 0.30 && f.libres <= 20 && !ROTO(f);
+// CRÍTICO: el pool está vacío o casi. Esto NO depende del tráfico y por eso se
+// mira antes que nada.
+//
+// EXISTE POR UN FALLO REAL QUE ESTE FICHERO NO VEÍA. Un filtro masivo dejó 14
+// pools a cero. Todos eran tramos de poco tráfico —rata.low, simp.mid,
+// inutil.low…— así que el umbral de 30 % de abajo los excluía y esto informaba
+// "ningún tramo agotado" mientras el bot lanzaba una excepción en cada tirada
+// que caía ahí: pickFresh sobre un pool vacío devuelve undefined y el .replace
+// de runPercent revienta.
+//
+// Un tramo del 4 % sigue saliendo decenas de veces al día en un grupo activo.
+// Con cero frases eso no es repetición: es el comando muerto.
+// `extreme` queda fuera: runPercent lo consulta con `cfg.extreme?.length`, así
+// que vacío no rompe nada — solo se pierde el remate. Los otros tres sí se leen
+// sin red y por eso son los que tumban el comando.
+const CRITICO = (f) => f.tramo !== 'extreme' && f.n < 10;
+const ROTO  = (f) => !CRITICO(f) && f.prob >= 0.30 && f.libres <= 5;
+const FLOJO = (f) => !CRITICO(f) && f.prob >= 0.30 && f.libres <= 20 && !ROTO(f);
 
 // Frases que harían falta para que el tramo tenga holgura real: la ventana
 // entera más un margen de maniobra proporcional al tráfico que soporta.
 const objetivo = (f) => (f.prob >= 0.30 ? VENTANA + 150 : VENTANA + 10);
 
+const criticos = filas.filter(CRITICO).sort((a, b) => a.n - b.n);
 const rotos  = filas.filter(ROTO).sort((a, b) => b.prob - a.prob);
 const flojos = filas.filter(FLOJO).sort((a, b) => b.prob - a.prob);
 
@@ -138,6 +155,7 @@ console.log(`Salud de los pools de porcentaje — ventana anti-repetición: ${VE
 console.log('"libres" = frases elegibles tras descontar la ventana. Si es 1, el bot no elige: recita.');
 console.log('─'.repeat(70));
 
+tabla('CRÍTICO — pool vacío o casi. El comando LANZA UNA EXCEPCIÓN al caer aquí:', criticos);
 tabla('ROTO — se lee constantemente y no queda casi nada que elegir:', rotos);
 tabla('FLOJO — aguanta, pero se nota la repetición:', flojos);
 
@@ -145,8 +163,13 @@ const totalFrases = filas.reduce((a, f) => a + f.n, 0);
 console.log(`\n${'─'.repeat(70)}`);
 console.log(`${filas.length} tramos revisados, ${totalFrases} frases en total.`);
 
+if (criticos.length) {
+  const vacios = criticos.filter((f) => f.n === 0).length;
+  console.log(`${criticos.length} tramo(s) CRÍTICO(s)${vacios ? `, ${vacios} completamente vacío(s)` : ''}.`);
+  console.log('Un pool vacío no se repite: TIRA EL COMANDO. Ver runPercent en src/commands/percent.js.');
+}
 if (rotos.length) {
   console.log(`${rotos.length} tramo(s) ROTO(s): el grupo está viendo las mismas frases en bucle.`);
-  process.exit(1);
 }
-console.log('Ningún tramo con el pool agotado.');
+if (criticos.length || rotos.length) process.exit(1);
+console.log('Ningún tramo vacío ni agotado.');
