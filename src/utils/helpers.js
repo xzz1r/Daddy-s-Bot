@@ -114,36 +114,28 @@ function ordenarPorDureza(pool) {
   return pool.slice().sort((a, b) => _dureza(b) - _dureza(a));
 }
 
-// Peso de cada posicion al elegir. El pool llega ya ordenado de mas duro a mas
-// suave, asi que dar mas peso a las primeras posiciones hace que el bot saque
-// antes lo mas fuerte que tiene. No es un orden fijo: es un sesgo. Si fuera
-// fijo, el comando diria siempre la misma frase hasta agotar la cabecera, y eso
-// canta muchisimo mas que repetirse de vez en cuando.
+// Elección plana entre las frases disponibles.
 //
-// Con exponente 2 la primera frase tiene ~4 veces mas probabilidad que la
-// ultima de un pool de 200. Suficiente para notarlo, poco para volverlo rigido.
-function _pesoPorPosicion(i, n) {
-  const x = 1 - i / Math.max(1, n - 1); // 1 en la cabeza, 0 en la cola
-  return 0.25 + x * x * 1.75;           // de 2.0 a 0.25
+// ANTES HABÍA UN SESGO Y SE NOTABA EN EL GRUPO. Los pools se ordenan de más
+// duro a más suave, y esto daba a la cabeza hasta 8 veces más probabilidad que
+// a la cola para que el bot "abriera con lo más fuerte". Medido sobre 3.000
+// tiradas en un pool de 200: la frase más usada salía 31 veces y la menos
+// usada 2. Quince veces más una que otra.
+//
+// El efecto para quien lo lee no es "el bot pega fuerte": es que las mismas
+// frases aparecen una y otra vez mientras el resto del pool no sale casi nunca.
+// Se percibe como un orden, no como azar, y el dueño lo detectó sin mirar el
+// código.
+//
+// Ahora es uniforme: dentro de las que la ventana deja libres, todas tienen la
+// misma probabilidad. La dureza sigue importando al ESCRIBIR —un pool crudo
+// pega más que uno tibio— pero ya no decide el orden de salida.
+function _pickPlano(pool, indices) {
+  return pool[indices[Math.floor(Math.random() * indices.length)]];
 }
 
-function _pickPesado(pool, indices) {
-  let total = 0;
-  const pesos = indices.map((i) => {
-    const w = _pesoPorPosicion(i, pool.length);
-    total += w;
-    return w;
-  });
-  let r = Math.random() * total;
-  for (let k = 0; k < indices.length; k++) {
-    r -= pesos[k];
-    if (r <= 0) return pool[indices[k]];
-  }
-  return pool[indices[indices.length - 1]];
-}
-
-// Elige una frase evitando las `window` ultimas de esa misma clave, y sesgando
-// la eleccion hacia el principio del pool (lo mas duro).
+// Elige una frase al azar entre las que no han salido en las ultimas `window`
+// tiradas de esa misma clave.
 function pickFresh(pool, key, window = 50) {
   if (!Array.isArray(pool) || pool.length === 0) return undefined;
   if (!key) return pick(pool);
@@ -157,14 +149,12 @@ function pickFresh(pool, key, window = 50) {
   // Se bloquea como mucho el 60 % del pool, nunca "todo menos una".
   //
   // El tope antiguo era pool.length-1, y en un pool del tamaño de la ventana
-  // dejaba UNA sola frase elegible: la elección se volvía forzada y el sesgo
-  // hacia la cabeza —lo más duro— dejaba de existir. Medido sobre un pool de
-  // 50: las diez primeras salían el 20,0 % de las veces, exactamente lo que
-  // saldría repartiendo al azar. El mecanismo estaba ahí sin hacer nada.
+  // dejaba UNA sola frase elegible: la elección dejaba de ser una elección y
+  // el pool entero salía siempre en el mismo ciclo, en el mismo orden. Con el
+  // 60 % un pool de 50 bloquea 30 y deja 20 entre las que sortear.
   //
-  // Con el 60 % un pool de 50 bloquea 30 y deja 20 entre las que elegir, así
-  // que el peso por posición vuelve a pesar. Los pools grandes no cambian: en
-  // uno de 200 el mínimo sigue siendo la ventana (50 < 120).
+  // Los pools grandes no cambian: en uno de 200 el mínimo sigue siendo la
+  // ventana (50 < 120).
   //
   // El precio es que en un pool pequeño una frase puede reaparecer tras 31
   // usos en vez de 50. En los tramos que tienen 50 frases —los de poco
@@ -173,7 +163,7 @@ function pickFresh(pool, key, window = 50) {
   const libres = [];
   for (let i = 0; i < pool.length; i++) if (!block.has(pool[i])) libres.push(i);
   const indices = libres.length ? libres : pool.map((_, i) => i);
-  const chosen = _pickPesado(pool, indices);
+  const chosen = _pickPlano(pool, indices);
 
   hist.push(chosen);
   if (hist.length > window + 4) hist.shift();
