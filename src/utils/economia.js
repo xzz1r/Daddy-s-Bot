@@ -69,16 +69,30 @@
 // grupo" para ser un número inalcanzable.
 const MILLONARIO = 5000;
 
-// Con qué se entra al grupo. Bajado de 250 a 75 por decisión del owner: con 250
-// el recién llegado entraba con cinco stickers pagados y la moneda no le decía
-// nada hasta pasada la primera semana. Con 75 entra con UNA compra buena o dos
-// baratas — suficiente para probar el bot y descubrir que hay que ganárselo,
-// que es lo que hace que la primera tirada importe.
+// Con qué se entra al grupo. SUBIDO DE 75 A 150 por decisión del owner, junto
+// con el 75/25 de la tirada y por el mismo motivo: había gente en números rojos
+// y en rojo no se puede tocar el bot (ver SALDO_MINIMO — se puede caer en
+// negativo por robos y apuestas, pero no se puede gastar estando ahí).
 //
-// Si algún día se vuelve a subir, el número que hay que mirar es el precio más
-// barato (ver PRECIOS): el arranque tiene que dar para al menos una compra, o
-// el que entra no puede tocar nada y el bot parece roto.
-const ARRANQUE = 75;
+// El número que hay que mirar al cambiarlo es PRECIOS: el arranque tiene que
+// dar para al menos una compra, o el que entra no puede tocar nada y el bot
+// parece roto. Con 150 entra con dos compras caras (!tovid son 70) o seis
+// baratas, así que puede probar el bot de verdad antes de tener que ganárselo.
+//
+// Y no es solo para los que entran: SUELO_TODOS de aquí abajo lo aplica también
+// a los que ya estaban.
+const ARRANQUE = 150;
+
+// El arranque es además un SUELO para todo el mundo, no solo para los nuevos.
+//
+// Subir ARRANQUE a secas solo habría servido para quien entrara a partir de
+// ahora, y el problema que se venía a resolver era justo el contrario: la gente
+// que YA estaba en rojo seguiría sin poder usar nada. Al cargar el store se
+// sube de una vez a todo el que esté por debajo (ver aplicarSuelo en
+// utils/auraStore.js), una sola vez y con marca propia para que no se repita.
+//
+// No se toca a quien ya está por encima: esto levanta el suelo, no reparte.
+const SUELO_TODOS = ARRANQUE;
 
 // ─── !aura: tirada ───────────────────────────────────────────────────────────
 //
@@ -667,7 +681,7 @@ function rango([suelo, ancho]) {
 }
 
 module.exports = {
-  MILLONARIO, ARRANQUE,
+  MILLONARIO, ARRANQUE, SUELO_TODOS,
   TIRADA, TIRADA_MIN, TIRADA_MAX, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE,
   P_TOPE_MIEMBRO, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, MEDIA_PREMIO, MEDIA_CASTIGO, bonoActividad, APUESTA,
   RACHA, BONOS, REDENCION,

@@ -12,7 +12,7 @@ const AURA_FILE = path.join(__dirname, '../../data/aura.json');
 // son 100, o sea un 2 %" y las tres cifras se quedaron viejas a la vez en
 // cuanto se reequilibró la economía. Un comentario con números de otro fichero
 // es una copia que nadie actualiza.
-const { ARRANQUE: STARTING_AURA } = require('./economia');
+const { ARRANQUE: STARTING_AURA, SUELO_TODOS } = require('./economia');
 
 // Escalas anteriores, necesarias para reescalar lo que ya está guardado.
 // Cada entrada es el salto DESDE esa versión a la siguiente.
@@ -120,11 +120,46 @@ function migrarEscala() {
   scheduleSave();
 }
 
+// Sube de una vez a todo el que esté por debajo del suelo.
+//
+// EXISTE PORQUE SUBIR EL ARRANQUE NO BASTA. El arranque solo se aplica a quien
+// no tiene saldo guardado, así que subirlo habría dejado exactamente igual a la
+// gente que ya estaba en rojo — que era el problema que se venía a resolver.
+//
+// Es un SUELO, no un reparto: a quien ya está por encima no se le toca ni un
+// punto, así que el ranking no se altera salvo en la cola, donde todos los que
+// estaban por debajo quedan empatados en el suelo.
+//
+// La marca es propia y va por número, no por booleano: si algún día se vuelve a
+// subir el suelo, basta con incrementar SUELO_VERSION para que la operación se
+// repita una vez más y solo una.
+const CLAVE_SUELO = '__suelo';
+const SUELO_VERSION = 1;
+
+function aplicarSuelo() {
+  if (!store) return;
+  if ((store[CLAVE_SUELO] || 0) >= SUELO_VERSION) return;
+
+  let subidos = 0;
+  for (const grupo in store) {
+    if (grupo === CLAVE_ESCALA || grupo === CLAVE_SUELO) continue;
+    const g = store[grupo];
+    if (!g || typeof g !== 'object') continue;
+    for (const k in g) {
+      if (typeof g[k] !== 'number') continue;
+      if (g[k] < SUELO_TODOS) { g[k] = SUELO_TODOS; subidos++; }
+    }
+  }
+  store[CLAVE_SUELO] = SUELO_VERSION;
+  if (subidos) logger.info(`auraStore: ${subidos} saldos subidos al suelo de ${SUELO_TODOS}.`);
+  scheduleSave();
+}
+
 async function load() {
   if (store) return;
   if (!loadPromise) {
     loadPromise = readJsonOrEnoent(AURA_FILE, {})
-      .then((d) => { store = d; migrarEscala(); })
+      .then((d) => { store = d; migrarEscala(); aplicarSuelo(); })
       .catch((e) => {
         loadPromise = null;
         logger.warn(`auraStore: lectura falló (${e.message}); no se toca el archivo`);
