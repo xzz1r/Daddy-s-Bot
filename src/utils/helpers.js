@@ -154,7 +154,22 @@ function pickFresh(pool, key, window = 50) {
   }
 
   const hist = _pickHistory.get(key) || [];
-  const block = new Set(hist.slice(-Math.min(window, pool.length - 1)));
+  // Se bloquea como mucho el 60 % del pool, nunca "todo menos una".
+  //
+  // El tope antiguo era pool.length-1, y en un pool del tamaño de la ventana
+  // dejaba UNA sola frase elegible: la elección se volvía forzada y el sesgo
+  // hacia la cabeza —lo más duro— dejaba de existir. Medido sobre un pool de
+  // 50: las diez primeras salían el 20,0 % de las veces, exactamente lo que
+  // saldría repartiendo al azar. El mecanismo estaba ahí sin hacer nada.
+  //
+  // Con el 60 % un pool de 50 bloquea 30 y deja 20 entre las que elegir, así
+  // que el peso por posición vuelve a pesar. Los pools grandes no cambian: en
+  // uno de 200 el mínimo sigue siendo la ventana (50 < 120).
+  //
+  // El precio es que en un pool pequeño una frase puede reaparecer tras 31
+  // usos en vez de 50. En los tramos que tienen 50 frases —los de poco
+  // tráfico— eso son semanas de diferencia, no días.
+  const block = new Set(hist.slice(-Math.min(window, Math.floor(pool.length * 0.6))));
   const libres = [];
   for (let i = 0; i < pool.length; i++) if (!block.has(pool[i])) libres.push(i);
   const indices = libres.length ? libres : pool.map((_, i) => i);
