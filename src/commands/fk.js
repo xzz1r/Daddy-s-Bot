@@ -555,7 +555,7 @@ async function cmdFkUnban(sock, msg, args, groupMeta) {
 
   // Se prueban todas las formas conocidas MAS la del numero pelado: a quien ya
   // esta fuera del grupo no le queda ficha en la metadata, asi que allForms solo
-  // devuelve lo que se pueda reconstruir. unbanAccount completa el resto por su
+  // devuelve lo que se pueda reconstruir unbanAccount completa el resto por su
   // cuenta siguiendo el `aka` que quedo escrito al banear.
   const formas = [...new Set([...allForms(target, groupMeta), bareJid(target)])];
   const n = await unbanAccount(formas);

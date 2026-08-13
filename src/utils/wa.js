@@ -170,7 +170,7 @@ function indexGroupMeta(groupMeta) {
 // collapses to its bare phone JID; everything else returns its bareJid unchanged.
 // This lets stores and lookups compare consistently whether a JID arrived as a
 // LID (incoming group messages) or as a phone JID (taps/mentions). When the
-// mapping is unknown it falls back to bareJid — i.e. never worse than before.
+// mapping is unknown it falls back to bareJid — i.e never worse than before.
 function canonicalJid(jid) {
   if (!jid) return jid;
   const bare = bareJid(jid);

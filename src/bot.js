@@ -213,7 +213,7 @@ function scheduleReconnect(delay) {
 
 // Cache Baileys version — avoids an HTTP round-trip on every reconnect
 let _baileysVersion = null;
-// La versión del protocolo. fetchLatestBaileysVersion sale a internet, y ESA
+// La versión del protocolo fetchLatestBaileysVersion sale a internet, y ESA
 // llamada no lleva timeout propio: si el endpoint no contesta (red de la VPS
 // regular, DNS, el servidor caído), la promesa no se resuelve NUNCA.
 //

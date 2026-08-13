@@ -241,7 +241,7 @@ let NAME_ONLY = [
   '%N. Dilo en voz alta y suena a alguien pidiendo perdón por existir antes de que nadie se lo reclame. Naciste disculpándote y llevas toda la vida sin parar. Un puto lastre con nombre propio.',
   'Hay nombres que abren puertas, %N. El tuyo las cierra por dentro y echa el pestillo. La gente lo oye y busca la salida antes de que hayas terminado de presentarte, basura andante.',
   '%N. El nombre que se queda a medias en la boca porque ni pronunciarlo entero merece el aire. Te resumieron en un suspiro de fastidio y hasta eso fue demasiada atención para lo poco que vales.',
-  'Te llamas %N y el grupo hizo lo que hace todo el mundo contigo: leerlo por encima y pasar de largo. No molestas, no aportas, no existes. El scroll con patas, inútil de manual.',
+  'Te llamas %N. y el grupo hizo lo que hace todo el mundo contigo: leerlo por encima y pasar de largo. No molestas, no aportas, no existes. El scroll con patas, inútil de manual.',
   '%N. Un nombre que suena a promesa que nadie hizo y que aun así se incumplió. Empezaste debiendo y el saldo solo ha ido a peor cada puto día que sigues ocupando sitio, fracasado.',
   'Con el nombre %N ni hace falta conocerte para saber cómo acaba la historia: en nada, como todo lo tuyo. El grupo ya vio la película, sabe el final y por eso nadie se molesta en mirarte, mierda.',
   '%N. El nombre que la gente confunde, olvida y vuelve a confundir porque no hay nada detrás que ayude a fijarlo. Eres tan olvidable que ni tu propio nombre se molesta en quedarse, perdedor.',

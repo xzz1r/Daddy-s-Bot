@@ -78,7 +78,7 @@ async function resolveTarget(sock, msg, args) {
   }
 }
 
-// Descarga los bytes de una URL de foto de perfil. null si falla.
+// Descarga los bytes de una URL de foto de perfil null si falla.
 async function downloadPfp(url) {
   try {
     const res = await axios.get(url, {

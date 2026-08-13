@@ -174,7 +174,7 @@ async function convertToMp4(inputBuf) {
 }
 
 // !tovid — como !toimg pero al revés: convierte un sticker ANIMADO a video (MP4),
-// o reenvía un video (incl. de una sola visualización) como video normal.
+// o reenvía un video (incl de una sola visualización) como video normal.
 async function cmdToVid(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   const senderJid = getSender(msg);

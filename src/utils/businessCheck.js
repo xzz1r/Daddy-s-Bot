@@ -74,6 +74,6 @@ function clearBusinessCache() {
 }
 
 // clearBusinessCache no lo usa ningun comando: existe para las pruebas, que
-// necesitan un estado limpio entre casos. isBusinessBatch se ha quitado porque
+// necesitan un estado limpio entre casos isBusinessBatch se ha quitado porque
 // no lo llamaba nadie en todo el repo.
 module.exports = { isBusiness, businessEvidence, clearBusinessCache };

@@ -167,7 +167,7 @@ const AURA = {
     'Tu tirada hizo que dos personas borrasen lo que estaban escribiendo. Ese es el mejor cumplido del chat.',
     'Ganaste y ni una sola persona tuvo los huevos de hacer un comentario. Eso es aura.',
     'El grupo se quedó sin repertorio. Todo lo que habían preparado para burlarse se les quedó en la garganta.',
-    'Hoy tu resultado fue el protagonista. Y el chat, por primera vez en mucho tiempo, fue el público.',
+    'Hoy tu resultado fue el protagonista. Y. el chat, por primera vez en mucho tiempo, fue el público.',
     'El silencio fue tan denso que se podía cortar. Nadie cortó porque nadie quería ser el primero.',
     'Ganaste de una manera que hizo que el grupo se sintiese gilipollas por haberte subestimado.',
     'Hoy el chat aprendió que los resultados no avisan. Y el tuyo fue una hostia que nadie vio venir.',

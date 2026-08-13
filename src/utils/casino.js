@@ -230,7 +230,7 @@ async function checkCasinoMilestone(sock, jid, sender) {
   // El aura SE PAGA SIEMPRE. Lo que se puede callar es el aviso, y hay dos
   // motivos para callarlo. Los dos eran agujeros:
   //
-  //  · CON EL BOT APAGADO (*!off*). Esta función se llama desde el pipeline de
+  //  · CON. EL BOT APAGADO (*!off*). Esta función se llama desde el pipeline de
   //    mensajes ANTES del gate de isBotEnabled, así que el grupo seguía
   //    recibiendo avisos de bono de un bot supuestamente apagado. Apagar el bot
   //    significa que no habla, sin excepciones.

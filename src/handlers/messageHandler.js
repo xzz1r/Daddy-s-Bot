@@ -96,7 +96,7 @@ function esInvitacionNativa(message) {
 }
 
 // Todo el texto donde puede esconderse un enlace, no solo el cuerpo del
-// mensaje. extractText solo mira conversation/extendedText/captions; un enlace
+// mensaje extractText solo mira conversation/extendedText/captions; un enlace
 // metido en un botón, en una lista, en una encuesta o en la tarjeta de un
 // contacto no aparecía por ningún lado y pasaba el filtro entero.
 function textoParaEnlaces(message) {
@@ -1211,7 +1211,7 @@ async function handleMessage(sock, msg) {
     // Con metadata SÍ podemos resolver el LID del remitente de forma fiable.
     // Si es el owner principal, isMainOwner lo aprende y lo guarda, así el
     // contador (que corre sin metadata) lo excluye para siempre. Basta con que
-    // el owner use un comando una vez (p. ej. !whoami) para quedar registrado.
+    // el owner use un comando una vez (p ej. !whoami) para quedar registrado.
     if (groupMeta) isMainOwner(sender, msg.key.fromMe, groupMeta);
   }
 

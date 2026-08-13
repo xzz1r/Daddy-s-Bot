@@ -158,7 +158,7 @@ function _programarGuardado() {
   _guardadoProgramado.unref?.();
 }
 
-// Al apagar, volcado sincrono de lo que quede pendiente. pm2 manda SIGINT en un
+// Al apagar, volcado sincrono de lo que quede pendiente pm2 manda SIGINT en un
 // reinicio normal, que es justo el caso que esto viene a cubrir.
 function _guardarYa() {
   if (!_historialSucio) return;
@@ -333,7 +333,7 @@ const ffmpegSemaphore = createSemaphore(2);
 // pfp/hash paths were missing: a hard timeout that SIGKILLs a hung/malicious
 // input (a crafted profile photo could otherwise make ffmpeg spin forever and
 // wedge the auto-indexer), and the shared ffmpegSemaphore so hashing/downscaling
-// can't push the process-wide ffmpeg count past 2 on a 1GB box. lazy-require of
+// can't push the process-wide ffmpeg count past 2 on a 1GB box lazy-require of
 // ffmpegPath avoids paying the binary-detection cost for non-media callers.
 async function ffmpegToBuffer(args, input = null, timeoutMs = 10000) {
   const { ffmpegPath } = require('./ffmpeg');
@@ -364,7 +364,7 @@ async function ffmpegToBuffer(args, input = null, timeoutMs = 10000) {
 }
 
 // Atomic JSON write: serialize to a unique temp sibling, then rename over the
-// target. rename(2) is atomic on the same filesystem, so a crash, OOM-kill or
+// target rename(2) is atomic on the same filesystem, so a crash, OOM-kill or
 // battery cut mid-write leaves the PREVIOUS file intact instead of a truncated
 // one. Without this, a corrupt half-write makes the next readJson throw, and
 // the stores' `catch → {}` then silently wipes all persisted data on boot.
@@ -389,7 +389,7 @@ async function atomicWriteJson(file, data) {
     // Compact JSON: these are machine-only files written every few seconds on
     // the debounced path — pretty-printing just doubles size and CPU/disk.
     await fs.outputFile(tmp, JSON.stringify(data));
-    // rename, NO fs.move. fs.move con overwrite hace remove(dest) ANTES del
+    // rename, NO fs.move fs.move con overwrite hace remove(dest) ANTES del
     // rename (fs-extra/lib/move/move.js:28-35), así que deja una ventana en la
     // que el fichero de datos NO existe: un corte justo ahí se lleva el store
     // entero, que es exactamente lo que esta función promete evitar.

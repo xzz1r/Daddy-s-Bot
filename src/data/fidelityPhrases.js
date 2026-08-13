@@ -4,7 +4,7 @@
 // archivo ya es enorme. [nombre] se sustituye por la mención del target.
 //
 //   FIEL   → goodIsHigh: true.  high = halago, low = brutal.
-//   INFIEL → goodIsHigh: false. high = brutal, low = halago.
+//   INFIEL → goodIsHigh: false high = brutal, low = halago.
 
 // ═══════════════════════════════════════════════════════════════════════════
 // !fiel — TIER ALTO (70-100%): lealtad real. Halago.

@@ -566,7 +566,7 @@ async function scanBusinesses(sock, msg, groupJid, groupMeta) {
   if (!groupMeta?.participants?.length) {
     return sock.sendMessage(groupJid, { text: 'No pude obtener los miembros del grupo.' }, { quoted: msg });
   }
-  // Se escanea a TODOS, con teléfono o sin él. getBusinessProfile no acepta
+  // Se escanea a TODOS, con teléfono o sin él getBusinessProfile no acepta
   // LIDs, así que a los que solo tienen LID no se les puede consultar el
   // perfil — pero si WhatsApp ya adjuntó un nombre verificado de negocio a
   // alguno de sus mensajes, eso basta y no cuesta ninguna consulta. Antes se
