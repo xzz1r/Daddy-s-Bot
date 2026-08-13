@@ -1,6 +1,6 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser } = require('../utils/wa');
 const { getAura, addAura } = require('../utils/auraStore');
-const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
+const { pickFresh, fmt } = require('../utils/helpers');
 const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, BOTE, OBJETOS, CONTRA, DIANA } = require('../utils/economia');
 const tienda = require('../utils/roboStore');
 const RX = require('../data/roboExtraPhrases');
@@ -880,11 +880,11 @@ const DESENLACES = {
 // COBRA) desentonaba del todo mezclado con los de fallo normal.
 // Ordenados de mas duro a mas suave al cargar: el bot abre con lo peor de cada
 // desenlace y guarda lo tibio para cuando se le agote el arsenal.
-const POOL_MAESTRO  = ordenarPorDureza(ROB_MAESTRO);
-const POOL_WIN      = ordenarPorDureza(ROB_WIN);
-const POOL_PARCIAL  = ordenarPorDureza(ROB_PARCIAL);
-const POOL_FAIL     = ordenarPorDureza(ROB_FAIL);
-const POOL_DESASTRE = ordenarPorDureza(ROB_DESASTRE);
+const POOL_MAESTRO  = ROB_MAESTRO;
+const POOL_WIN      = ROB_WIN;
+const POOL_PARCIAL  = ROB_PARCIAL;
+const POOL_FAIL     = ROB_FAIL;
+const POOL_DESASTRE = ROB_DESASTRE;
 
 const FRASES_POR_DESENLACE = {
   maestro:  () => POOL_MAESTRO,

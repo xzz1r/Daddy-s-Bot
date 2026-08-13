@@ -13,7 +13,7 @@
 // con un 0 absurdo, se le fuerza el tramo alto con una cifra estable y creíble.
 
 const { getTargetOrSelf, isMainOwner } = require('../utils/wa');
-const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
+const { pickFresh, fmt } = require('../utils/helpers');
 const { getUserCount } = require('../utils/messageCounter');
 
 const MID_MIN  = 300;
@@ -336,7 +336,5 @@ async function cmdRelevance(sock, msg, groupMeta) {
 // de mas duro a mas suave UNA vez, al cargar, y pickFresh sesga la eleccion
 // hacia la cabecera. Los pools neutros (cabeceras, cierres) no se tocan:
 // ahi la "dureza" no significa nada.
-PARASITO = ordenarPorDureza(PARASITO);
-INTERMEDIO = ordenarPorDureza(INTERMEDIO);
 
 module.exports = { cmdRelevance };

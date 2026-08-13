@@ -21,9 +21,10 @@
 // tamanyo y filo y seguir siendo mediocre. El numero es un suelo, no un
 // certificado — dice donde falta trabajo seguro, no donde ya no hace falta.
 const fs=require('fs'),path=require('path');
+// El arsenal vive en un solo sitio: si se anyade una palabra alli, esto la ve.
+const { tieneArsenal } = require('../src/utils/helpers');
 const R=path.resolve(__dirname,'..');
 const ES=/^\s*(['"`])(.{20,})\1,\s*$/;
-const CRUDO=/\b(puto?s?|puta?s?|mierda|joder|co[nñ]o|polla|cabr[oó]n|gilipollas|pringad|fracasad|in[uú]til|pat[eé]tic|basura|par[aá]sito|don nadie|muerto de hambre|cero a la izquierda|asco|verg[uü]enza|rid[ií]cul|escoria|guarr|cutre|miseria|desperdicio)\w*/gi;
 const TRAF={false:{high:.87,mid:.09,low:.04},true:{high:.17,mid:.31,low:.52}};
 const UNIF={high:31/101,mid:39/101,low:31/101};
 
@@ -85,7 +86,7 @@ for(const f of filas){
   // Los topes que fijo el dueño, por trafico y no por nombre de tramo:
   //   el que mas sale 200 · el intermedio 100 · el raro 50
   const objetivo = f.traf>=0.50 ? 200 : f.traf>=0.25 ? 100 : 50;
-  const con=f.P.filter(x=>{CRUDO.lastIndex=0;return CRUDO.test(x);}).length;
+  const con=f.P.filter(tieneArsenal).length;
   const ars=con/n;
   const okTam=n>=objetivo;
   const okFilo=!f.brutal||ars>=0.50;

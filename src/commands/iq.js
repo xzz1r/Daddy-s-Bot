@@ -10,7 +10,7 @@
 // del owner. Aquí a todo el mundo le puede caer un 62 o un 141.
 
 const { getTargetOrSelf } = require('../utils/wa');
-const { pickFresh, ordenarPorDureza } = require('../utils/helpers');
+const { pickFresh } = require('../utils/helpers');
 
 // Tramos. El reparto está pensado para que lo divertido salga a menudo: casi la
 // mitad de las tiradas caen en los dos tramos bajos, que son los que tienen las
@@ -433,8 +433,8 @@ const GENIO = [
 // comparacion mas humillante que tiene. Los tramos altos no se tocan — ahi la
 // "dureza" no aplica y reordenarlos solo mezclaria el tono sin ganar nada.
 const POOLS = {
-  abismo: ordenarPorDureza(ABISMO),
-  bajo:   ordenarPorDureza(BAJO),
+  abismo: ABISMO,
+  bajo:   BAJO,
   medio:  MEDIO,
   alto:   ALTO,
   genio:  GENIO,

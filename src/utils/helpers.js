@@ -176,25 +176,33 @@ for (const senyal of ['SIGINT', 'SIGTERM']) {
 // mismo pool. Si el pool tiene MENOS de 11 frases el bloqueo se recorta solo a
 // pool.length-1 — con 5 frases es imposible no repetir en 50 tiradas, y
 // bloquearlas todas dejaria el pool vacio.
-// Dureza de una frase: cuenta senales de que es de las fuertes del arsenal.
-// No pretende ser exacta — solo separar "puta mierda de fracasado, no vales
-// nada" de "estas en la media y no destacas". Con eso basta para que el bot
-// abra con lo mas hiriente que tiene y deje lo tibio para cuando se le acabe.
-const _CRUDO = /\b(puto?s?|puta?s?|mierda|joder|co[nñ]o|polla|cabr[oó]n|gilipollas|pringad|fracasad|in[uú]til|pat[eé]tic|basura|par[aá]sito|don nadie|muerto de hambre|cero a la izquierda|asco|verg[uü]enza|rid[ií]cul|escoria|guarr|cutre|miseria|desperdicio)\w*/gi;
+// ─── El vocabulario duro del bot ─────────────────────────────────────────────
+//
+// La lista de palabras que marcan que una frase es de las fuertes. Vive aqui y
+// SOLO aqui: la usaban una copia en scripts/progreso.js y la logica de orden que
+// habia debajo, y tener el mismo arsenal escrito en dos sitios significaba que
+// anyadir una palabra en uno dejaba al otro midiendo otra cosa.
+//
+// YA NO ORDENA NADA. Habia un ordenarPorDureza que colocaba cada pool de mas
+// duro a mas suave y un sesgo que sacaba la cabeza del pool 8 veces mas a
+// menudo que la cola. El dueño noto que el bot "seguia un orden en vez de ser
+// random" y tenia razon, asi que la eleccion paso a ser plana. Ordenar 6.592
+// frases en cada arranque para un orden que nadie consultaba costaba 33 ms y
+// confundia a quien leyera el codigo.
+//
+// Lo que queda sirve para MEDIR: scripts/progreso.js lo usa para saber que
+// pools estan escritos con filo y cuales tibios, que es donde esta el trabajo.
+const ARSENAL = /\b(puto?s?|puta?s?|mierda|joder|co[nñ]o|polla|cabr[oó]n|gilipollas|pringad|fracasad|in[uú]til|pat[eé]tic|basura|par[aá]sito|don nadie|muerto de hambre|cero a la izquierda|asco|verg[uü]enza|rid[ií]cul|escoria|guarr|cutre|miseria|desperdicio)\w*/gi;
 
-function _dureza(frase) {
-  if (typeof frase !== 'string') return 0;
-  const golpes = (frase.match(_CRUDO) || []).length;
-  // La longitud pesa poco pero desempata: entre dos frases igual de crudas, la
-  // larga suele ser la que desarrolla el insulto entero.
-  return golpes * 10 + Math.min(frase.length / 40, 4);
-}
-
-// Ordena un pool de mas duro a mas suave. Se llama UNA vez por pool, al
-// cargar el modulo, no en cada tirada.
-function ordenarPorDureza(pool) {
-  if (!Array.isArray(pool)) return pool;
-  return pool.slice().sort((a, b) => _dureza(b) - _dureza(a));
+// ¿Lleva esta frase vocabulario del arsenal?
+//
+// Resetea lastIndex a proposito: ARSENAL tiene la bandera `g` y sin eso una
+// llamada arrastra la posicion a la siguiente y devuelve falsos negativos
+// alternos, que es el fallo clasico de reutilizar una regex global con .test().
+function tieneArsenal(frase) {
+  if (typeof frase !== 'string') return false;
+  ARSENAL.lastIndex = 0;
+  return ARSENAL.test(frase);
 }
 
 // Elección plana entre las frases disponibles.
@@ -433,5 +441,5 @@ async function barrerHuerfanos(dir) {
 const fmt = n => n.toLocaleString('es-ES');
 
 module.exports = {
-  ordenarPorDureza,
+  ARSENAL, tieneArsenal,
   fmt, ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, shuffle, streamToBuffer, atomicWriteJson, readJsonOrEnoent, barrerHuerfanos, MAX_DOWNLOAD_BYTES, MAX_MEDIA_BYTES, createSemaphore, ffmpegSemaphore, ffmpegToBuffer };

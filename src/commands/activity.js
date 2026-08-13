@@ -1,6 +1,6 @@
 const { getActiveUsers } = require('../utils/messageCounter');
 const { isOwner, isMainOwner, getSender, sameUser, soloMiembros, bareJid, canonicalJid, isBotJid } = require('../utils/wa');
-const { shuffle, pickFresh, ordenarPorDureza } = require('../utils/helpers');
+const { shuffle, pickFresh } = require('../utils/helpers');
 
 // ---- !vs : real-activity head-to-head -------------------------------------
 
@@ -474,9 +474,5 @@ async function cmdInactivos(sock, msg, groupMeta) {
 // de mas duro a mas suave UNA vez, al cargar, y pickFresh sesga la eleccion
 // hacia la cabecera. Los pools neutros (cabeceras, cierres) no se tocan:
 // ahi la "dureza" no significa nada.
-VS_ROASTS = ordenarPorDureza(VS_ROASTS);
-GHOST_ROASTS = ordenarPorDureza(GHOST_ROASTS);
-AVISO_PURGA = ordenarPorDureza(AVISO_PURGA);
-AMENAZAS = ordenarPorDureza(AMENAZAS);
 
 module.exports = { cmdVs, cmdFantasmas, cmdInactivos };

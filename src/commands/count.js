@@ -1,6 +1,6 @@
 const { getActiveUsers, resetCounts, resetAllCounts, getLastReset } = require('../utils/messageCounter');
 const { isOwner, isMainOwner, isAdmin, isGroupAdmin, getSender, getTarget, sameUser, soloMiembros } = require('../utils/wa');
-const { pickFresh, ordenarPorDureza } = require('../utils/helpers');
+const { pickFresh } = require('../utils/helpers');
 
 let MEMBER_PHRASES = [
   'Número uno. Enhorabuena: eres oficialmente el que menos vida tiene fuera de este chat.',
@@ -254,7 +254,5 @@ async function cmdResetCount(sock, msg, groupMeta) {
 // de mas duro a mas suave UNA vez, al cargar, y pickFresh sesga la eleccion
 // hacia la cabecera. Los pools neutros (cabeceras, cierres) no se tocan:
 // ahi la "dureza" no significa nada.
-for (let i = 0; i < MEMBER_PHRASES.length; i++) MEMBER_PHRASES[i] = ordenarPorDureza(MEMBER_PHRASES[i]);
-for (let i = 0; i < ADMIN_PHRASES.length; i++) ADMIN_PHRASES[i] = ordenarPorDureza(ADMIN_PHRASES[i]);
 
 module.exports = { cmdCount, cmdResetCount, MEMBER_PHRASES, ADMIN_PHRASES, fechaCorta };

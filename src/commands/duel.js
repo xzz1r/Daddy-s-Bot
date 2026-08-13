@@ -1,5 +1,5 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, bareJid, sameUser } = require('../utils/wa');
-const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
+const { pickFresh, fmt } = require('../utils/helpers');
 const { getAura, addAura } = require('../utils/auraStore');
 
 // Resolve a JID to its canonical form (preferring phone-JID) using the group
@@ -330,7 +330,6 @@ async function cmdDuel(sock, msg, args, groupMeta) {
 // de mas duro a mas suave UNA vez, al cargar, y pickFresh sesga la eleccion
 // hacia la cabecera. Los pools neutros (cabeceras, cierres) no se tocan:
 // ahi la "dureza" no significa nada.
-DUEL_WIN = ordenarPorDureza(DUEL_WIN);
 
 // clampStake se exporta para poder comprobarlo aparte: es la unica parte del
 // duelo que se puede probar sin un socket ni un grupo de verdad.

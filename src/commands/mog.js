@@ -1,7 +1,7 @@
 'use strict';
 
 const { isOwner, isMainOwner, isAdmin, getSender, sameUser } = require('../utils/wa');
-const { pickFresh, ordenarPorDureza } = require('../utils/helpers');
+const { pickFresh } = require('../utils/helpers');
 
 // Rigged by role, but not blatantly: the owner has a real edge yet can still
 // lose, admins have a slighter edge, members fight on equal ground.
@@ -174,6 +174,5 @@ async function cmdMog(sock, msg, groupMeta) {
 // de mas duro a mas suave UNA vez, al cargar, y pickFresh sesga la eleccion
 // hacia la cabecera. Los pools neutros (cabeceras, cierres) no se tocan:
 // ahi la "dureza" no significa nada.
-MOG_PHRASES = ordenarPorDureza(MOG_PHRASES);
 
 module.exports = { cmdMog };

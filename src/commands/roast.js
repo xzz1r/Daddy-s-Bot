@@ -1,7 +1,7 @@
 'use strict';
 
 const { getSender, getTarget, isMainOwner, bareJid, sameUser, fetchAbout } = require('../utils/wa');
-const { pick, pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
+const { pick, pickFresh, fmt } = require('../utils/helpers');
 const { getUserCount } = require('../utils/messageCounter');
 
 
@@ -626,10 +626,5 @@ async function cmdRoast(sock, msg, groupMeta) {
 // de mas duro a mas suave UNA vez, al cargar, y pickFresh sesga la eleccion
 // hacia la cabecera. Los pools neutros (cabeceras, cierres) no se tocan:
 // ahi la "dureza" no significa nada.
-COMBINED_INACTIVE = ordenarPorDureza(COMBINED_INACTIVE);
-COMBINED_ACTIVE = ordenarPorDureza(COMBINED_ACTIVE);
-NAME_ONLY = ordenarPorDureza(NAME_ONLY);
-BIO_EMPTY = ordenarPorDureza(BIO_EMPTY);
-BIO_FULL = ordenarPorDureza(BIO_FULL);
 
 module.exports = { cmdRoast };

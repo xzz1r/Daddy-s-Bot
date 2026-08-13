@@ -1,5 +1,5 @@
 const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameUser, soloMiembros } = require('../utils/wa');
-const { pickFresh, fmt, ordenarPorDureza } = require('../utils/helpers');
+const { pickFresh, fmt } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
 const { contarTirada } = require('../utils/casinoStore');
@@ -552,7 +552,6 @@ const AURA = {
 
 
 // Cada tramo se ordena de mas duro a mas suave: el bot saca primero lo peor.
-for (const tramo of Object.keys(AURA)) AURA[tramo] = ordenarPorDureza(AURA[tramo]);
 
 // !aura top — leaderboard of accumulated aura in the group.
 async function showRanking(sock, msg, groupMeta) {
@@ -654,7 +653,7 @@ ${precios}`;
 // ordenarlas por tacos solo pondria delante las que mas suenan a insulto — el
 // efecto contrario al que busca. Mismo criterio que OWNER_ROAST.
 const POOL_APUESTA_GANA = APUESTA_GANA;
-const POOL_APUESTA_PIERDE = ordenarPorDureza(APUESTA_PIERDE);
+const POOL_APUESTA_PIERDE = APUESTA_PIERDE;
 
 const APUESTA_COOLDOWN_MS = APUESTA.cooldownMin * 60 * 1000;
 const ultimaApuesta = new Map();   // `${grupo}|${persona}` -> ts
