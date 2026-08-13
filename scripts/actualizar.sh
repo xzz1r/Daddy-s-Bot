@@ -46,8 +46,22 @@ fi
 
 echo "→ Actualizando la rama ${RAMA}"
 
-# Los .bak y demás restos hacen que el pull falle o quede sucio. Se avisa antes
-# de tocar nada: borrar cambios de alguien sin decírselo no lo hace este script.
+# package-lock.json lo reescribe el `npm install` DE ESTE MISMO SCRIPT.
+#
+# EXISTE PORQUE EL SCRIPT SE BLOQUEABA A SI MISMO. La primera pasada instalaba,
+# npm tocaba el lock, y a partir de ahi TODAS las siguientes se paraban en el
+# control de aqui abajo con "Hay cambios locales sin guardar: M
+# package-lock.json". El bot se quedaba sin actualizar indefinidamente y el
+# mensaje no ayudaba nada, porque no era nadie editando: era el propio
+# despliegue de la vez anterior.
+#
+# Es un fichero generado, no escrito a mano, y el reset de mas abajo lo deja
+# igual que en el repo de todas formas. Asi que se descarta y punto.
+git checkout -- package-lock.json 2>/dev/null || true
+
+# El resto de cambios locales SI se avisan. Los .bak y demás restos hacen que el
+# pull falle o quede sucio, y borrar cambios de alguien sin decírselo no lo hace
+# este script.
 if [ -n "$(git status --porcelain)" ]; then
   echo
   echo "  Hay cambios locales sin guardar:"
