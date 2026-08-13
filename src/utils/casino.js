@@ -25,7 +25,7 @@ const PHRASES = {
       '200 mensajes y el aura responde. No es el bono gordo, pero es aura real que los fantasmas del grupo no van a ver nunca, patético.',
       'Primer tramo cubierto. El aura paga lo básico: poco, pero más de lo que gana el que solo lee.',
       '200 mensajes registrados. El aura sube porque se ha ganado escribiendo, que es la única forma que existe, qué cringe.',
-      'Actividad confirmada y aura entregada. Hay gente aquí que lleva semanas sin acercarse a este número, da asco, da asco.',
+      'Actividad confirmada y aura entregada. Hay gente aquí que lleva semanas sin acercarse a este número, da asco.',
       '200 mensajes: el mínimo para que el aura empiece a tenerte en cuenta. Cobrado, qué vergüenza.',
       '200 mensajes. Poco, pero más de lo que ha escrito la mitad del grupo en todo el mes.',
       'Tier 1 cubierto. El aura paga y el que no escribe no cobra. Así de fácil, fracasado.',

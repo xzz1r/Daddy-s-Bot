@@ -11,7 +11,7 @@ const BOTE_REVIENTA = [
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 3, qué cringe.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 4., da asco, da asco.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 4., da asco.',
 
   '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 5.',
 
@@ -51,7 +51,7 @@ const BOTE_REVIENTA = [
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 23 Marca 22, qué cringe.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 24 Marca 23., da asco, da asco.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 24 Marca 23., da asco.',
 
   '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 25 Marca 24.',
 
@@ -91,7 +91,7 @@ const BOTE_REVIENTA = [
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 43 Marca 42, qué cringe.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 44 Marca 43., da asco, da asco.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 44 Marca 43., da asco.',
 
   '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 45 Marca 44.',
 
@@ -131,7 +131,7 @@ const BOTE_REVIENTA = [
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 63 Marca 62, qué cringe.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 64 Marca 63., da asco, da asco.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 64 Marca 63., da asco.',
 
   '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 65 Marca 64.',
 
@@ -171,7 +171,7 @@ const BOTE_REVIENTA = [
 
   '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 83 Marca 82, qué cringe.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 84 Marca 83., da asco, da asco.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 84 Marca 83., da asco.',
 
   '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 85 Marca 84.',
 
@@ -2200,7 +2200,7 @@ const ESCUDO_SALVA = [
 
   'Escudo de %V absorbe el intento de %A: intento archivado con el bot como notario del fallo y el resto es ruido de fondo, qué cringe.',
 
-  'Choque contra escudo: %A recoge los dientes del aura sin anestesia de verdad esta vez delante de quien no quería verlo, da asco, da asco.',
+  'Choque contra escudo: %A recoge los dientes del aura sin anestesia de verdad esta vez delante de quien no quería verlo, da asco.',
 
   'La defensa de %V convierte el ataque de %A en anécdota sin recurso ni nota al pie en el momento que más dolía soltarlo, qué vergüenza.',
 
