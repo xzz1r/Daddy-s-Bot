@@ -317,7 +317,7 @@ async function cmdDuel(sock, msg, args, groupMeta) {
   await sock.sendMessage(jid, {
     text:
       `*DUELO LANZADO*\n\n` +
-      `@${sender.split('@')[0]} reta a @${target.split('@')[0]} por *${fmt(stake)}* de aura.\\n, patético.` +
+      `@${sender.split('@')[0]} reta a @${target.split('@')[0]} por *${fmt(stake)}* de aura.\n` +
       (recortado ? `_Tope entre los dos: ${fmt(maxStake)}_\\n.` : '') +
       `\\n@${target.split('@')[0]} · *!duel aceptar* o *!duel rechazar*\\n, miserable.` +
       `_(expira en 90s)_`,
