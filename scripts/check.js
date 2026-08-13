@@ -167,6 +167,142 @@ const OTROS = [
   ['duel',      () => require(path.join(R, 'src/commands/duel')).cmdDuel,         'args'],
 ];
 
+
+// ─── 4. ¿Los stores guardan lo que dicen? ────────────────────────────────────
+//
+// Aqui vive el aura, las rachas, los cooldowns y los contadores: un fallo no da
+// un mensaje feo, pierde el saldo de la gente. No tenian NINGUNA cobertura de
+// ejecucion, y la primera pasada encontro un TypeError real en casinoStore que
+// llevaba escondido detras de un try/catch.
+//
+// Se trabaja sobre un grupo de pruebas con JID propio, asi que no toca los datos
+// de ningun grupo real aunque se ejecute sobre la VPS.
+// Los stores escriben en data/. Si el bot esta vivo en la misma maquina, los dos
+// procesos tienen su propia copia en memoria del mismo JSON y el flush del
+// ultimo pisa lo del otro: correr esto en la VPS con el bot en marcha podia
+// borrar aura de verdad.
+//
+// Se detecta por la marca de tiempo de state.json, que el bot reescribe cada
+// pocos segundos mientras corre. Si esta fresca, la capa se salta: mas vale no
+// comprobar que corromper los datos del grupo.
+const DATA = path.join(R, 'data');
+function botEnMarcha() {
+  try {
+    const st = fs.statSync(path.join(DATA, 'state.json'));
+    return Date.now() - st.mtimeMs < 60 * 1000;
+  } catch { return false; }
+}
+
+// Y aunque no lo este, se devuelve data/ como estaba: la capa crea un grupo de
+// pruebas y toca la banlist, que es global.
+function copiaSeguridad() {
+  const copia = new Map();
+  let ficheros = [];
+  try { ficheros = fs.readdirSync(DATA).filter((f) => f.endsWith('.json')); } catch { return copia; }
+  for (const f of ficheros) {
+    try { copia.set(f, fs.readFileSync(path.join(DATA, f))); } catch {}
+  }
+  return copia;
+}
+function restaurar(copia, antes) {
+  let ahora = [];
+  try { ahora = fs.readdirSync(DATA).filter((f) => f.endsWith('.json')); } catch { return; }
+  for (const f of ahora) {
+    if (copia.has(f)) { try { fs.writeFileSync(path.join(DATA, f), copia.get(f)); } catch {} }
+    else if (!antes.has(f)) { try { fs.unlinkSync(path.join(DATA, f)); } catch {} }
+  }
+}
+
+async function capaStores() {
+  console.log('\n4. GUARDAN');
+  if (botEnMarcha()) {
+    console.log('   — saltada: el bot esta corriendo y escribiria sobre sus datos');
+    return;
+  }
+  const G = '000000000@g.us';
+  const U = '34600000001@s.whatsapp.net';
+  const V = '34600000002@s.whatsapp.net';
+  const comprueba = (c, q) => {
+    if (c) return;
+    fallos++;
+    console.log(rojo(`   ✗ ${q}`));
+  };
+
+  const aura = require(path.join(R, 'src/utils/auraStore'));
+  const inicial = await aura.getAura(G, U);
+  comprueba(inicial >= 150, `aura: un usuario nuevo arranca en el suelo (dio ${inicial})`);
+
+  await aura.addAura(G, U, 100);
+  comprueba(await aura.getAura(G, U) === inicial + 100, 'aura: sumar acredita la cantidad exacta');
+
+  await aura.spendAura(G, U, 50);
+  comprueba(await aura.getAura(G, U) === inicial + 50, 'aura: gastar descuenta la cantidad exacta');
+
+  const caro = await aura.spendAura(G, U, 99999999);
+  comprueba(!caro.ok, 'aura: no se puede gastar lo que no se tiene');
+  comprueba(await aura.getAura(G, U) === inicial + 50, 'aura: un gasto rechazado no toca el saldo');
+
+  // La cola de escritura existe justo para esto: sin ella dos comandos a la vez
+  // leen el mismo saldo y uno de los dos incrementos se pierde.
+  const antes = await aura.getAura(G, U);
+  await Promise.all(Array.from({ length: 20 }, () => aura.addAura(G, U, 10)));
+  comprueba(await aura.getAura(G, U) === antes + 200, 'aura: 20 sumas simultaneas no se pisan');
+
+  const a1 = await aura.getAura(G, U), b1 = await aura.getAura(G, V);
+  await aura.transferAura(G, U, V, 120);
+  const a2 = await aura.getAura(G, U), b2 = await aura.getAura(G, V);
+  comprueba(a1 - a2 === 120 && b2 - b1 === 120, 'aura: transferir conserva el total');
+
+  // casinoStore: el contador del que depende TIRADAS_PAGADAS para frenar la
+  // inflacion. Se llama DOS veces a proposito: el fallo que se encontro solo
+  // aparecia en la primerisima llamada de un grupo.
+  const casino = require(path.join(R, 'src/utils/casinoStore'));
+  const t1 = await casino.contarTirada(G, U);
+  const t2 = await casino.contarTirada(G, U);
+  comprueba(t2 === t1 + 1, 'casino: la tirada del dia se cuenta, tambien la primera del grupo');
+
+  const racha = require(path.join(R, 'src/utils/rachaStore'));
+  await racha.anotarMensaje(G, U);
+  const r = await racha.verRacha(G, U);
+  comprueba(r && r.msgs >= 1, 'racha: el mensaje del dia queda anotado');
+
+  const cont = require(path.join(R, 'src/utils/messageCounter'));
+  const n0 = await cont.getUserCount(G, U);
+  await cont.increment(G, U);
+  comprueba(await cont.getUserCount(G, U) === n0 + 1, 'contador: incrementar suma uno');
+
+  // OJO A LA FIRMA: la banlist es GLOBAL, no por grupo, y recibe un array con
+  // las formas del JID (telefono y @lid), no un jid suelto.
+  const ban = require(path.join(R, 'src/utils/banlist'));
+  await ban.banAccount([V], 'prueba de check', 'check');
+  comprueba(!!(await ban.isBanned([V])), 'banlist: banear marca la cuenta');
+  await ban.unbanAccount([V]);
+  comprueba(!(await ban.isBanned([V])), 'banlist: desbanear la desmarca');
+
+  // Y que lo de memoria llegue al disco igual: es lo que sobrevive al reinicio.
+  const saldo = await aura.getAura(G, U);
+  await aura.flushAura();
+  const disco = JSON.parse(fs.readFileSync(path.join(R, 'data/aura.json'), 'utf8'));
+  const fila = disco[G] && Object.values(disco[G]).includes(saldo);
+  comprueba(!!fila, 'persistencia: el saldo guardado coincide con el de memoria');
+
+  // Vaciar los guardados pendientes ANTES de restaurar. Cada store guarda con un
+  // temporizador de unos segundos, asi que sin esto la restauracion corre
+  // primero y las escrituras pendientes vuelven a crear los ficheros justo
+  // despues, dejando data/ sucio igualmente.
+  //
+  // Cada flush ademas cancela su propio temporizador, que es lo que garantiza
+  // que despues de esta linea ya no escribe nadie.
+  for (const [mod, fn] of [
+    ['auraStore', 'flushAura'], ['casinoStore', 'flushCasino'], ['rachaStore', 'flushRacha'],
+    ['messageCounter', 'flushCounts'], ['banlist', 'flushBanlist'], ['nickStore', 'flushNicks'],
+  ]) {
+    try { await require(path.join(R, 'src/utils/' + mod))[fn](); } catch {}
+  }
+
+  if (!fallos) console.log(verde('   ✓ aura, casino, racha, contador y banlist se comportan'));
+}
+
 (async () => {
   for (const c of comandos) {
     for (let i = 0; i < TIRADAS; i++) {
@@ -202,6 +338,20 @@ const OTROS = [
   if (fallos === antesDeOtros && !antesDeOtros) {
     console.log(verde(`   ✓ ${cubiertos} comandos × ${TIRADAS} tiradas = ${mensajes} mensajes, todos limpios`));
   }
+
+  const ficherosAntes = new Set((() => { try { return fs.readdirSync(DATA); } catch { return []; } })());
+  const respaldo = copiaSeguridad();
+
+  // La restauracion se registra ADEMAS como manejador de salida, y a proposito
+  // aqui abajo y no arriba: los manejadores corren en orden de registro, y el de
+  // helpers.js —que vuelca la ventana anti-repeticion al salir— ya esta puesto
+  // desde que se importo el modulo. Registrando este despues, el ultimo en tocar
+  // data/ es el que la deja como estaba.
+  process.on('exit', () => restaurar(respaldo, ficherosAntes));
+
+  try { await capaStores(); }
+  catch (e) { fallos++; console.log(rojo(`   ✗ los stores lanzaron: ${e.message.split('\n')[0]}`)); }
+  finally { restaurar(respaldo, ficherosAntes); }
 
   console.log(`\n${'─'.repeat(70)}`);
   if (fallos) {

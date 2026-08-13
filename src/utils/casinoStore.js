@@ -45,7 +45,16 @@ function freshBucket(groupJid) {
   const now = Date.now();
   let g = store[groupJid];
   if (!g || typeof g.resetAt !== 'number' || !g.counts) {
-    g = { resetAt: now, counts: {} };
+    // `tiradas` va aquí y no solo abajo: esta rama HACE UN RETURN y se saltaba
+    // la línea que lo inicializa. La primera llamada de un grupo devolvía un
+    // bucket sin `tiradas`, y contarTirada reventaba con un TypeError al leer
+    // g.tiradas[key].
+    //
+    // No se veía porque aura.js envuelve la llamada en un try/catch que da la
+    // tirada por cobrada si falla. O sea que no rompía nada a la vista: se
+    // comía la primera tirada de cada grupo sin contarla, y esa es justo la
+    // cuenta de la que depende TIRADAS_PAGADAS para frenar la inflación.
+    g = { resetAt: now, counts: {}, tiradas: {} };
     store[groupJid] = g;
     return g;
   }
