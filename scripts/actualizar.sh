@@ -16,7 +16,34 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-RAMA="$(git rev-parse --abbrev-ref HEAD)"
+# El repo y la rama van CLAVADOS aquí, no se leen de la máquina.
+#
+# EXISTE POR UN FALLO REAL Y MUY CARO DE VER. El script hacía `git pull origin
+# $(rama actual)`, o sea que se fiaba de lo que hubiera configurado en la VPS.
+# Y lo que había era el repo VIEJO: el proyecto se movió de cuenta (xz1s/Bot- →
+# xzz1r/Daddy-s-Bot) y el clon de la VPS se quedó apuntando al de antes. Nadie
+# empuja ya ahí, así que el pull respondía "Already up to date", el script
+# imprimía "YA ESTABA AL DÍA" tan contento y el bot seguía con código de hace
+# semanas. No fallaba: mentía, que es peor.
+#
+# Lo mismo pasa con la rama. Si la máquina se quedó en una vieja
+# —grok/frases-aura-robo va 26 commits por detrás— el pull funciona y no trae
+# nada de lo nuevo.
+#
+# Por eso ahora se comprueban los dos y se corrigen solos. Si esto vuelve a
+# desviarse, el despliegue lo arregla en vez de callarse.
+REPO="https://github.com/xzz1r/Daddy-s-Bot"
+RAMA="main"
+
+ORIGEN="$(git remote get-url origin 2>/dev/null || echo '')"
+if [ "${ORIGEN%.git}" != "${REPO%.git}" ]; then
+  echo "  El repositorio configurado no es el bueno."
+  echo "    tenía: ${ORIGEN:-<ninguno>}"
+  echo "    pasa a: ${REPO}"
+  git remote set-url origin "${REPO}" 2>/dev/null || git remote add origin "${REPO}"
+  echo
+fi
+
 echo "→ Actualizando la rama ${RAMA}"
 
 # Los .bak y demás restos hacen que el pull falle o quede sucio. Se avisa antes
@@ -33,7 +60,34 @@ fi
 
 ANTES="$(git rev-parse --short HEAD)"
 
-git pull origin "${RAMA}"
+git fetch origin "${RAMA}"
+
+# Si la máquina se quedó en otra rama, se la trae a la buena. El control de
+# cambios locales de arriba ya pasó, así que aquí no se pisa nada de nadie.
+AQUI="$(git rev-parse --abbrev-ref HEAD)"
+if [ "${AQUI}" != "${RAMA}" ]; then
+  echo "  Estaba en la rama ${AQUI}; se cambia a ${RAMA}."
+  git checkout "${RAMA}" 2>/dev/null || git checkout -b "${RAMA}" "origin/${RAMA}"
+fi
+
+# Commits locales que no están en el repo: eso no lo borra este script sin
+# avisar. Es rarísimo en una VPS —ahí solo se despliega— pero si pasa, se para.
+ADELANTE="$(git rev-list --count "origin/${RAMA}..HEAD" 2>/dev/null || echo 0)"
+if [ "${ADELANTE}" != "0" ]; then
+  echo
+  echo "  Hay ${ADELANTE} commit(s) aquí que no están en el repo:"
+  git --no-pager log --oneline "origin/${RAMA}..HEAD" | sed 's/^/    · /'
+  echo
+  echo "  Súbelos con:  git push origin ${RAMA}"
+  echo "  o tíralos con: git reset --hard origin/${RAMA}"
+  exit 1
+fi
+
+# reset en vez de pull: deja el código EXACTAMENTE igual que el repo, sin
+# importar en qué estado raro se hubiera quedado la máquina. Los datos del bot
+# (aura, casino, rachas, sesión) están en data/ y fuera de git, así que esto no
+# toca ni un punto de aura de nadie.
+git reset --hard "origin/${RAMA}"
 
 DESPUES="$(git rev-parse --short HEAD)"
 CUANTOS="$(git rev-list --count "${ANTES}..${DESPUES}" 2>/dev/null || echo 0)"
