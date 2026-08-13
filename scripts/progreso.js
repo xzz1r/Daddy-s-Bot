@@ -24,7 +24,7 @@ const fs=require('fs'),path=require('path');
 // El arsenal vive en un solo sitio: si se anyade una palabra alli, esto la ve.
 const { tieneArsenal } = require('../src/utils/helpers');
 const R=path.resolve(__dirname,'..');
-const ES=/^\s*(['"`])(.{20,})\1,\s*$/;
+const ES=/^\s*(['"`])(.{20,})\1,?\s*$/;
 const TRAF={false:{high:.87,mid:.09,low:.04},true:{high:.17,mid:.31,low:.52}};
 const UNIF={high:31/101,mid:39/101,low:31/101};
 

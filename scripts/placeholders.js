@@ -48,7 +48,7 @@ const CONTRATO = {
 // Una "frase" es una línea que es solo un literal de texto largo terminado en
 // coma: así son todos los pools. Evita cazar rutas, claves y plantillas de
 // código, que también llevan % y corchetes.
-const ES_FRASE = /^\s*(['"`])(.{25,})\1,\s*$/;
+const ES_FRASE = /^\s*(['"`])(.{25,})\1,?\s*$/;
 
 // %X y %PALABRA en mayúsculas, [loquesea] y {loquesea}. Son las formas que usa
 // el bot; cualquier otra cosa con % (un 70 %, un 100 %) no se toca.

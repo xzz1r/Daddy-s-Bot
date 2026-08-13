@@ -43,7 +43,7 @@ const libres = (n) => n - Math.min(VENTANA, Math.max(0, n - 1));
 
 // Misma definición de "frase" que scripts/placeholders.js: un literal largo en
 // su propia línea y terminado en coma.
-const ES_FRASE = /^\s*(['"`])(.{25,})\1,\s*$/;
+const ES_FRASE = /^\s*(['"`])(.{25,})\1,?\s*$/;
 
 // Cuenta las frases de cada constante exportada por un fichero de datos, para
 // los pools que percent.js no declara en línea (fiel/infiel viven fuera).
