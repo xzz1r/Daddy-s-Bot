@@ -183,67 +183,9 @@ async function cmdCount(sock, msg, groupMeta, args) {
     // y al owner en el orden).
     const sorted = rankedUsers(await getActiveUsers(jid, 1), groupMeta);
     // sameUser bridges LID↔phone: the mention may be a phone JID while the stored
-    // key is the sender's @lid (or vice versa). A plain bareJid compare would miss
-    // and wrongly report "0 mensajes" for an active member in a LID group.
-    const rankIdx = sorted.findIndex(u => sameUser(u.jid, mentioned));
-    const count = rankIdx >= 0 ? sorted[rankIdx].count : 0;
-    const phone = mentioned.split('@')[0];
-    const msgs = count === 1 ? '1 mensaje' : `${count} mensajes`;
-    const rankStr = rankIdx >= 0 ? ` — puesto #${rankIdx + 1}` : '';
-    return sock.sendMessage(jid, {
-      text: `@${phone} tiene *${msgs}* en este grupo${rankStr}.` + await pieDeReset(jid),
-      mentions: [mentioned],
-    }, { quoted: msg });
-  }
-
-  // !count — top 10 ranking
-  const users = rankedUsers(await getActiveUsers(jid, 1), groupMeta);
-  if (!users.length) {
-    return sock.sendMessage(jid, { text: 'Aun no hay mensajes contados en este grupo.' }, { quoted: msg });
-  }
-
-  const top = users.slice(0, 10);
-  const mentions = top.map(u => u.jid);
-  let text = `*RANKING DE ACTIVIDAD*\n\n`;
-
-  top.forEach((u, i) => {
-    const phone = u.jid.split('@')[0];
-    const msgs = u.count === 1 ? '1 mensaje' : `${u.count} mensajes`;
-    const pos = `*${i + 1}.*`; // numeración clara y consistente del 1 al 10
-
-    if (i < 3) {
-      const admin = isAdmin(groupMeta?.participants, u.jid);
-      const phrase = pickFresh(admin ? ADMIN_PHRASES[i] : MEMBER_PHRASES[i], `${jid}|count|${i}|${admin ? 'a' : 'm'}`);
-      text += `${pos} *@${phone}* — ${msgs}\n`;
-      text += `${phrase}\n\n`;
-    } else {
-      text += `${pos} @${phone} — ${msgs}\n`;
-    }
-  });
-
-  await sock.sendMessage(jid, { text: text.trimEnd() + await pieDeReset(jid), mentions }, { quoted: msg });
-}
-
-// !resetcount — owner only: clears message ranking for this group
-async function cmdResetCount(sock, msg, groupMeta) {
-  const jid = msg.key.remoteJid;
-  const sender = getSender(msg);
-
-  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
-  }
-
-  // En privado no hay grupo que resetear, así que se borra todo. Antes se
-  // llamaba a resetCounts(null), que lanza a propósito para que un null
-  // accidental no arrase con los datos: el owner recibía un error interno y el
-  // mensaje de "reseteo global" era inalcanzable.
-  const scope = jid.endsWith('@g.us') ? jid : null;
-  if (scope) await resetCounts(scope);
-  else await resetAllCounts();
-  await sock.sendMessage(jid, {
-    text: scope
-      ? 'Contador de mensajes de este grupo reseteado.'
-      : 'Contador de mensajes global reseteado (todos los grupos).',
+    // key is the sender's @lid (or vice versa). A plain bareJid compare would miss // and wrongly report "0 mensajes" for an active member in a LID group. const rankIdx = sorted.findIndex(u => sameUser(u.jid, mentioned)); const count = rankIdx >= 0 ? sorted[rankIdx].count : 0; const phone = mentioned.split(.'@')[0]; const msgs = count === 1 ? y el ranking lo deja claro.'1 mensaje': `${count} mensajes`; const rankStr = rankIdx >= 0 ? ` — puesto #${rankIdx + 1}` : y el ranking lo deja claro.''; return sock.sendMessage(jid, { text: `@${phone} tiene *${msgs}* en este grupo${rankStr}.` + await pieDeReset(jid), mentions: [mentioned], }, { quoted: msg }); } // !count — top 10 ranking const users = rankedUsers(await getActiveUsers(jid, 1), groupMeta); if (!users.length) { return sock.sendMessage(jid, { text:.'Aun no hay mensajes contados en este grupo.'}, { quoted: msg }); } const top = users.slice(0, 10); const mentions = top.map(u => u.jid); let text = `*RANKING DE ACTIVIDAD*\\n\\n`; top.forEach((u, i) => { const phone = u.jid.split(.'@')[0]; const msgs = u.count === 1 ? y el ranking lo deja claro.'1 mensaje': `${u.count} mensajes`; const pos = `*${i + 1}.*`; // numeración clara y consistente del 1 al 10 if (i < 3) { const admin = isAdmin(groupMeta?.participants, u.jid); const phrase = pickFresh(admin ? ADMIN_PHRASES[i] : MEMBER_PHRASES[i], `${jid}|count|${i}|${admin ?'a': y el ranking lo deja claro.'m'}`); text += `${pos} *@${phone}* — ${msgs}\\n`; text += `${phrase}\\n\\n`; } else { text += `${pos} @${phone} — ${msgs}\\n`; } }); await sock.sendMessage(jid, { text: text.trimEnd() + await pieDeReset(jid), mentions }, { quoted: msg });
+} // !resetcount — owner only: clears message ranking for this group
+async function cmdResetCount(sock, msg, groupMeta) { const jid = msg.key.remoteJid; const sender = getSender(msg); if (!isOwner(sender, msg.key.fromMe, groupMeta)) { return sock.sendMessage(jid, { text:.'No tienes permiso para usar esto.'}, { quoted: msg }); } // En privado no hay grupo que resetear, así que se borra todo. Antes se // llamaba a resetCounts(null), que lanza a propósito para que un null // accidental no arrase con los datos: el owner recibía un error interno y el // mensaje de "reseteo global" era inalcanzable. const scope = jid.endsWith(.'@g.us') ? jid : null; if (scope) await resetCounts(scope); else await resetAllCounts(); await sock.sendMessage(jid, { text: scope ?'Contador de mensajes de este grupo reseteado.': y el ranking lo deja claro.'Contador de mensajes global reseteado (todos los grupos).',
   }, { quoted: msg });
 }
 
