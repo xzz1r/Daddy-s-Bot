@@ -127,11 +127,45 @@ const sock = {
   },
 };
 
+const YO   = '34611111111@s.whatsapp.net';
+const OTRO = '34622222222@s.whatsapp.net';
+const JID  = '000@g.us';
+
 const msg = {
-  key: { remoteJid: '000@g.us', participant: '34611111111@s.whatsapp.net', fromMe: false },
+  key: { remoteJid: JID, participant: YO, fromMe: false },
   message: { conversation: '!check' },
 };
-const groupMeta = { id: '000@g.us', participants: [{ id: '34611111111@s.whatsapp.net', admin: null }] };
+const groupMeta = {
+  id: JID,
+  subject: 'grupo de prueba',
+  participants: [{ id: YO, admin: null }, { id: OTRO, admin: null },
+                 { id: '34633333333@s.whatsapp.net', admin: 'admin' }],
+};
+
+// Mensaje con mencion, para los comandos que necesitan un objetivo distinto.
+const msgCon = {
+  key: { remoteJid: JID, participant: YO, fromMe: false, id: 'X' },
+  message: { extendedTextMessage: { text: '!check @34622222222',
+             contextInfo: { mentionedJid: [OTRO] } } },
+};
+
+// El resto de comandos que solo sacan frases. No estaban cubiertos y ahi fue
+// donde se colo el fallo de los pools vacios: `node --check` no lo ve porque el
+// fichero compila igual, y el pool solo revienta cuando la tirada cae en el.
+//
+// Cada entrada dice como se llama: la firma NO es la misma en todos. cmdDuel
+// recibe (sock, msg, args, groupMeta) y el resto (sock, msg, groupMeta), y
+// pasarselo mal da un fallo que parece del bot y es del test.
+const OTROS = [
+  ['iq',        () => require(path.join(R, 'src/commands/iq')).cmdIQ,             'meta'],
+  ['ship',      () => require(path.join(R, 'src/commands/ship')).cmdShip,         'meta'],
+  ['mog',       () => require(path.join(R, 'src/commands/mog')).cmdMog,           'meta'],
+  ['relevancia',() => require(path.join(R, 'src/commands/relevance')).cmdRelevance,'meta'],
+  ['rizz',      () => require(path.join(R, 'src/commands/wingman')).cmdRizz,      'meta'],
+  ['piropo',    () => require(path.join(R, 'src/commands/wingman')).cmdPiropo,    'meta'],
+  ['wingman',   () => require(path.join(R, 'src/commands/wingman')).cmdWingman,   'meta'],
+  ['duel',      () => require(path.join(R, 'src/commands/duel')).cmdDuel,         'args'],
+];
 
 (async () => {
   for (const c of comandos) {
@@ -145,8 +179,28 @@ const groupMeta = { id: '000@g.us', participants: [{ id: '34611111111@s.whatsapp
       }
     }
   }
-  if (!fallos) {
-    console.log(verde(`   ✓ ${comandos.length} comandos × ${TIRADAS} tiradas = ${mensajes} mensajes, todos limpios`));
+  const antesDeOtros = fallos;
+  let cubiertos = comandos.length;
+  for (const [nombre, cargar, forma] of OTROS) {
+    let fn;
+    try { fn = cargar(); } catch (e) {
+      fallos++; console.log(rojo(`   ✗ ${nombre} no carga: ${e.message.split('\n')[0]}`)); continue;
+    }
+    if (typeof fn !== 'function') continue;
+    cubiertos++;
+    for (let i = 0; i < TIRADAS; i++) {
+      try {
+        if (forma === 'args') await fn(sock, msgCon, [], groupMeta);
+        else                  await fn(sock, msgCon, groupMeta);
+      } catch (e) {
+        fallos++;
+        console.log(rojo(`   ✗ ${nombre} lanzó: ${e.message.split('\n')[0]}`));
+        break;
+      }
+    }
+  }
+  if (fallos === antesDeOtros && !antesDeOtros) {
+    console.log(verde(`   ✓ ${cubiertos} comandos × ${TIRADAS} tiradas = ${mensajes} mensajes, todos limpios`));
   }
 
   console.log(`\n${'─'.repeat(70)}`);
