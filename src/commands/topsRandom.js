@@ -58,6 +58,26 @@ const CIERRES = [
   'Ahí os quedáis, los {N}, con el culo al aire.',
   'El bot ha hablado: los {N}, y que os den por saco.',
   'Sois {N}. Sois mierda de hoy. Mañana otra tanda de mierda.',
+  'Los {N} del bochorno colectivo. Repartíos el asco como buenamente podáis, joder.',
+  '{N} nombres en la misma bandeja. El bot no hace dietas de ridículo, cabrón.',
+  'Ahí van los {N}. Ni uno se libra y el chat tampoco pide clemencia, mierda.',
+  'Sois {N} y el algoritmo os ha cagado encima a todos por igual, gilipollas.',
+  'Lista de {N} sin anestesia. El bot firmó y vosotros aguantáis, patético.',
+  'Los {N} de turno. Mañana otros, la vergüenza es la misma de siempre, ridículo.',
+  '{N} elegidos. Cero votos, cero jueces, solo un bot con malas pulgas, basura.',
+  'Enhorabuena a los {N}: el ridículo grupal tiene nombre y apellido hoy, desperdicio.',
+  'Ahí quedáis los {N}, marcados como el ganado del chat, asco.',
+  'El bot escupió {N} nombres. Limpiad el suelo vosotros, cutre.',
+  'Sois {N} de la misma mierda. Repartíos el peso, pringado.',
+  '{N} en la lista. Ni una puta sorpresa entre todo el hatajo, fracasado.',
+  'Los {N} del día. El azar no perdona y el bot menos, joder.',
+  'Cuadrilla de {N}. El bochorno se reparte sin factura, mierda.',
+  'Ahí tenéis a los {N}. El chat ya tomó nota del elenco, coño.',
+  'Sois {N} y ninguno tiene dónde esconder la cara, cabrón.',
+  'El bot señaló a {N}. El resto del grupo puede respirar hasta mañana, gilipollas.',
+  '{N} nombres, cero dignidad y el mismo destino de cachondeo, patético.',
+  'Lista servida: los {N}. Que os aproveche el papelón, ridículo.',
+  'Los {N} de la vergüenza de hoy. Archivo abierto, basura.'
 ];
 
 function rellenar(plantilla, picked) {
