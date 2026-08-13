@@ -6,7 +6,42 @@ programar: hace falta entender **dónde cae cada frase y por qué**.
 
 Reparto de trabajo: **Grok escribe el contenido** (las frases). **Claude mantiene
 el motor** (lógica, economía, rendimiento, guardarraíles). El punto de contacto
-entre los dos es el formato de los pools y el validador `npm run placeholders`.
+son los cuatro validadores de la sección 10.
+
+---
+
+## LEE ESTO PRIMERO
+
+**Antes de escribir una sola frase, actualiza:**
+
+```
+git pull origin claude/account-repo-linking-w5yuwf
+```
+
+Si tu rama viene de una base anterior, al empujar devuelves código que ya se
+quitó y **el bot deja de cargar**. Ya pasó: una llamada a `ordenarPorDureza`
+—función eliminada— volvió con un merge y tumbó `percent.js`, `wingman.js` y
+`messageHandler.js` de golpe.
+
+**Tres cosas del motor cambiaron y afectan a cómo escribes:**
+
+| Qué | Antes | Ahora |
+|---|---|---|
+| Elección de frase | sesgada a la cabeza del pool (8:1) | **plana**: todas igual de probables |
+| Orden por dureza | ordenaba al arrancar | **eliminado**, no existe |
+| Tamaño de pool | por nombre de tramo | **por tráfico** (sección 9) |
+
+La consecuencia práctica está en la sección 5.1 y es la más importante: **la peor
+frase de un pool ahora sale tanto como la mejor.**
+
+**Pendiente de contenido cuando vuelvas:**
+
+- `rata`, `incel`, `simp`, `friki`, `perdedor`, `femboy` — tramo `high`
+- **4 duplicados exactos que hay que quitar**: `percent.js` líneas 4050, 4051 y
+  4052 repiten la 3853 en `friki.high`; la 6195 repite la 6075 en `guarra.high`
+
+**Nadie ha tocado tus frases.** Los conflictos de la última integración se
+resolvieron todos a tu favor.
 
 ---
 
@@ -139,6 +174,11 @@ Al escribir no hay que hacer nada especial con esto — solo saber que el owner
 cae sobre todo en `mid`, así que **los pools `mid` no son relleno**: son lo que
 el dueño del bot lee de sí mismo.
 
+*(Ojo: esto es el amaño de los comandos de porcentaje. La economía de `!aura` es
+otra cosa y también cambió — miembro 75 %, admin 82 %, owner 88 %, con techos
+propios que no se solapan. No afecta a lo que escribes, pero si tocas frases de
+`aura` conviene saber que ahora se gana bastante más de lo que se pierde.)*
+
 ### 3.5 — El pool `extreme`
 
 Cinco comandos (`sexy`, `crack`, `feminidad`, `masculinidad`, `ganador`) tienen
@@ -174,33 +214,37 @@ a seguir para todo lo demás.
 
 Dos mecanismos que conviene conocer porque **cambian lo que conviene escribir**.
 
-### 5.1 — Las frases se ordenan solas por dureza
+### 5.1 — La elección es plana. Ya no hay orden
 
-Al arrancar el bot, cada pool se ordena de más duro a más suave. La dureza se
-calcula automáticamente contando palabrotas del arsenal:
+**Esto cambió y es importante.** Antes los pools se ordenaban de más duro a más
+suave al arrancar, y la cabeza salía 8 veces más que la cola. El dueño notó que
+el bot "seguía un orden en vez de ser random" y tenía razón: medido sobre 3.000
+tiradas en un pool de 200, la frase más usada salía 31 veces y la menos usada 2.
+
+Ahora **todas las frases del tramo tienen la misma probabilidad**. Se quitó el
+sesgo y también la función que ordenaba, porque ya no la consultaba nadie.
+
+Qué implica para escribir, y es más exigente que antes:
+
+- **La peor frase de un pool sale tanto como la mejor.** Antes una floja se
+  hundía al fondo y casi no aparecía; ahora tiene las mismas papeletas. Deja de
+  importar el techo del pool y pasa a importar el **suelo**: no puede haber
+  relleno.
+- El vocabulario crudo **sigue siendo el registro del bot** y `npm run progreso`
+  lo mide, pero ya no cambia el orden de salida. Úsalo porque es el tono, no por
+  un efecto mecánico.
+
+El arsenal que se mide sigue siendo este:
 
 > puto/puta · mierda · joder · coño · polla · cabrón · gilipollas · pringado ·
 > fracasado · inútil · patético · basura · parásito · don nadie · muerto de
 > hambre · cero a la izquierda · asco · vergüenza · ridículo · escoria · guarro ·
 > cutre · miseria · desperdicio
 
-Fórmula: `nº de palabrotas × 10 + longitud/40 (máx 4)`.
-
-Luego, al elegir, **la cabeza del pool tiene 8 veces más probabilidad que la
-cola**. El bot abre siempre con lo más fuerte que tiene.
-
-Qué implica para escribir:
-
-- Una frase cruel pero **sin palabrotas del listado** puntúa bajo y **se hunde al
-  final del pool**. Se escribirá y casi no saldrá. Si una frase debe pegar
-  fuerte, tiene que llevar el vocabulario crudo.
-- A igualdad de palabrotas, **la frase larga gana** (desarrolla el insulto entero).
-- No hace falta meter palabrotas a martillazos en frases que funcionan por
-  ingenio seco. Solo hay que saber que saldrán menos.
-
-*(Nota técnica menor: el comentario del código dice que la cabeza tiene ~4x más
-probabilidad; el cálculo real da 8:1. El comentario está desactualizado, el
-código está bien.)*
+**Y se puede engañar, así que no lo hagas.** Cuenta palabras, no comprueba que el
+español aguante. Pegar `, joder` al final de una frase limpia sube el número y
+deja el texto peor. Ya pasó dos veces: la palabrota va integrada en la frase,
+nunca añadida detrás.
 
 ### 5.2 — Ventana anti-repetición: **por qué el tamaño del pool importa tanto**
 
@@ -208,45 +252,40 @@ Una frase no se repite hasta que han salido **otras 50** del mismo pool, en el
 mismo grupo y el mismo tramo. Suena bien, pero tiene un efecto brutal en pools
 pequeños:
 
+Se bloquea como mucho el **60 % del pool**, nunca "todo menos una":
+
 ```
 pool de 300 frases  →  50 bloqueadas  →  250 disponibles   ✅
-pool de  57 frases  →  50 bloqueadas  →    7 disponibles   ⚠️
-pool de  21 frases  →  20 bloqueadas  →    1 disponible    ❌ ← rotación fija
+pool de 100 frases  →  50 bloqueadas  →   50 disponibles   ✅
+pool de  50 frases  →  30 bloqueadas  →   20 disponibles   ✅
+pool de  21 frases  →  12 bloqueadas  →    9 disponibles   ⚠️ pocas distintas
 ```
 
-Con 21 frases el bot no elige: **recita en bucle**. Es indistinguible de estar
-roto, y es exactamente lo que pasa hoy en dos comandos.
+Lo que importa entonces no es la holgura, es **cuántas frases distintas ve el
+grupo antes de que empiece a repetirse el ciclo**, que es simplemente el tamaño
+del pool. Por eso los topes de la sección 9.
+
+Y el historial **sobrevive a los reinicios**: se guarda en disco, así que un
+reinicio de pm2 ya no borra la ventana.
 
 ---
 
-## 6. Dónde falta contenido — prioridad real
+## 6. Dónde falta contenido
 
-Cruzando *cuánta gente cae en cada tramo* (3.3) con *cuántas frases hay*, salen
-los cuellos de botella. Ordenados por urgencia:
+**No lo mires aquí: pregúntaselo al repo.** Esta sección tenía una tabla escrita
+a mano y envejeció en horas.
 
-| Comando | Tramo | % de tiradas | Frases | Disponibles | Estado |
-|---|---|---|---|---|---|
-| `!gay` | high | **87 %** | 21 | **1** | 🔴 rotación fija |
-| `!femboy` | high | **87 %** | 21 | **1** | 🔴 rotación fija |
-| `!feminidad` | low | **52 %** | 50 | **1** | 🔴 rotación fija |
-| `!ganador` | low | **52 %** | 50 | **1** | 🔴 rotación fija |
-| `!masculinidad` | low | **52 %** | 52 | 2 | 🔴 casi fija |
-| `!linda` | mid | 31 % | 51 | 1 | 🟠 |
-| `!feminidad` | mid | 31 % | 45 | 1 | 🟠 |
-| `!masculinidad` | mid | 31 % | 50 | 1 | 🟠 |
-| `!ganador` | mid | 31 % | 50 | 1 | 🟠 |
+```
+npm run progreso
+```
 
-**`!gay` y `!femboy` son la prioridad absoluta**: tienen 21 frases en el tramo
-que sale el 87 % de las veces, mientras comandos hermanos como `!simp` o `!rata`
-tienen 210 en esa misma posición. Son los dos comandos que hoy suenan a bot roto.
+Da el porcentaje del corpus a estándar —ponderado por cuánto se lee cada pool, no
+por cuántos ficheros se han tocado— y la lista de lo que falta ordenada por
+impacto real. Mide dos cosas objetivas: tamaño suficiente para el tráfico y filo
+(arsenal por encima del 50 %), esto último solo en los pools cuyo trabajo es
+hacer daño; en los de halago no se exige.
 
-El patrón sano del repo es: **~200 frases en el tramo que más sale, ~50 en los
-otros dos.** Ese es el objetivo a igualar.
-
-Cuidado con la trampa de simetría: en los comandos **positivos** el tramo que más
-sale es `low` (52 %), no `high`. Hoy están escritos al revés — `!ganador` tiene
-200 frases en `high` (que sale el 17 % de las veces) y 50 en `low` (que sale el
-52 %). Por eso aparecen tantos positivos en la tabla.
+Lo que **no** mide es si la frase está bien escrita. Es un suelo, no un aprobado.
 
 ---
 
@@ -309,50 +348,107 @@ nada. Mézclalo — que todas las frases empiecen con el nombre canta.
 
 ## 9. Cuántas frases escribir
 
-Depende de cuántas veces se dispara el comando, no de la importancia que parezca
-tener:
+**Por tráfico, no por nombre de tramo.** Es la corrección más importante de esta
+guía y ya se aplicó a todo `percent.js`.
 
-| Tipo de comando | Frases por pool | Por qué |
-|---|---|---|
-| Porcentaje, tramo mayoritario | **~200** | Se dispara decenas de veces al día |
-| Porcentaje, tramos minoritarios | **~50** | Se ven poco |
-| Apuestas de aura (cooldown 3 h) | **~60** | Máximo 8 al día; con 60 nadie repite en semanas |
-| Hitos de racha | **~50** | Solo salen al cruzar un hito |
+En comandos **negativos** (`fea`, `guarra`, `cerdo`, `rata`…) el tramo que más
+sale es `high`, con el 87 % de las tiradas. En los **positivos** (`linda`,
+`ganador`, `sexy`, `crack`, `feminidad`, `masculinidad`) el que más sale es
+**`low`**, con el 52 %, y `high` solo el 17 %.
 
-Escribir 300 frases para un comando con cooldown de tres horas es trabajo tirado.
-Escribir 21 para uno que sale el 87 % de las veces es un bot roto.
+| | high | mid | low |
+|---|---|---|---|
+| **Negativos** | **200** | 50 | 50 |
+| **Positivos** | 50 | 100 | **200** |
+
+Unas 300 por comando. Aplicar la regla por el nombre del tramo en vez de por el
+tráfico pone 200 frases donde casi nadie las lee y 50 donde caen todas.
+
+Fuera de `percent.js` la regla es la misma pero mirando el pool concreto:
+
+| Cuándo sale ese pool | Frases |
+|---|---|
+| En cada uso de un comando frecuente (tramos de `iq`, verdicts de `ship`) | 100-200 |
+| Desenlace común de un comando frecuente (`ROB_WIN`, `ROB_FAIL`) | ya están a 250-380, no tocar |
+| Ruta rara (tienda de `robo`, escudo, contraataque) | ~100 por decisión del dueño |
+| Apuesta de aura (cooldown 3 h) | ~60 |
+| Hitos de racha | ~50 |
+
+**`!fiel` e `!infiel` son la excepción y no siguen esta tabla**: tiran uniforme,
+así que sus tres tramos salen casi igual (31/39/31 %). Reparto equilibrado, unas
+100 por tramo — que es lo que ya tienen. No les apliques el 200/50/50.
 
 ---
 
 ## 10. Antes de entregar
 
-```bash
-npm run placeholders    # ¿algún hueco se quedaría sin rellenar?
-npm run pools           # ¿hay bastantes frases donde de verdad se leen?
+Cuatro comandos, y **ninguno sustituye a otro**:
+
+```
+npm install
+npm run check
+npm run placeholders
+npm run pools
+npm run progreso
 ```
 
-**`placeholders`** recorre las 10.338 frases del repo y revienta si alguna usa
-un placeholder que su consumidor no sustituye. Tiene que terminar diciendo
-*"Todos los placeholders están enchufados a algo que los sustituye"*.
+**`npm run check` es el que importa y es nuevo.** Cuatro capas:
 
-**`pools`** cruza el tamaño de cada pool con la frecuencia real de su tramo
-(secciones 3.3 y 5.2) y lista los que están agotados, con cuántas frases faltan
-en cada uno. Es la tabla de la sección 6, recalculada en el momento: en vez de
-fiarse de una lista escrita a mano, la mide sobre el código actual. Sale en rojo
-mientras quede algún tramo en bucle.
+1. **Compila** — cada `.js` es JavaScript válido. Pilla comillas sin escapar y
+   frases partidas en dos líneas, los dos fallos que ya tumbaron el bot.
+2. **Carga** — cada módulo importa. Pilla requires rotos y funciones que ya no
+   existen.
+3. **Responde** — ejecuta 29 comandos 60 veces cada uno. Pilla excepciones y
+   placeholders que llegan sin sustituir.
+4. **Guardan** — comprueba que aura, casino, racha, contador y banlist se
+   comportan. Se salta sola si el bot está corriendo, para no pisarle los datos.
 
-Los dos tienen que salir verdes.
+Las capas 2 a 4 necesitan `npm install`. La 1 corre siempre y es la que detecta
+el bot caído.
+
+**Aviso que ya costó caro:** `placeholders` y `pools` salieron EN VERDE con el
+bot sin arrancar, porque comparan líneas con expresiones regulares y no compilan
+nada. Por eso `check` es obligatorio.
 
 Checklist:
 
 - [ ] ¿La polaridad es la correcta? (`goodIsHigh` — sección 3.2)
-- [ ] ¿El tramo coincide con el tono? (high de un negativo = brutal)
+- [ ] ¿El tramo coincide con el tono?
 - [ ] ¿Los placeholders son los permitidos para ese fichero? (sección 8)
 - [ ] ¿Una frase por línea, comillas simples, coma final?
-- [ ] ¿La frase evita repetir el % y el nombre del rasgo? (ya van en la cabecera)
-- [ ] ¿Suficientes frases para el tráfico de ese tramo? (sección 9)
-- [ ] `npm run placeholders` en verde
-- [ ] `npm run pools` en verde
+- [ ] ¿Sin duplicados exactos dentro del mismo pool?
+- [ ] Los cuatro comandos en verde
+
+---
+
+## 10 bis. Lo que NO se hace, y por qué
+
+Tres incidentes, los tres del mismo tipo. Léelo antes de tocar nada.
+
+**1. Nada de transformaciones globales sobre un fichero.** Un filtro de "mínimo
+100 caracteres" aplicado a `percent.js` entero borró 3.872 líneas: 53 pools
+perdieron frases y 14 quedaron vacíos. Con un pool vacío el comando no se repite,
+**lanza una excepción**: `pickFresh` devuelve `undefined` y el `.replace` de
+`runPercent` revienta. Cinco comandos muertos.
+
+**2. Un reemplazo masivo tocó ficheros que no eran suyos.** Metió un punto donde
+no va —`'Mientras %W llenaba. el chat...'`— en 1.780 líneas de 52 ficheros, 1.638
+de ellas frases que el grupo iba a leer. Y llegó a `helpers.js` y `economia.js`,
+que son el motor.
+
+**3. El arsenal se puede inflar y se notó.** Pegar `, joder` al final de frases
+limpias subía el número y dejaba el texto roto: `'...se defendió como se defiende
+de todo: mal. y, cabrón punto final del parte.'`
+
+La regla que sale de los tres: **edita el pool que estás trabajando y solo ese.**
+Un cambio que toca 62 pools para arreglar 6 va a romper algo siempre.
+
+**Y actualiza antes de empezar.** Si tu rama viene de una base vieja, al empujar
+devuelves código que ya se quitó y el bot deja de cargar. Ha pasado:
+
+```
+git pull origin claude/account-repo-linking-w5yuwf
+```
 
 ---
 
