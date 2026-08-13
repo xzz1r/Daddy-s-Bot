@@ -326,7 +326,8 @@ _Sin @ va sobre ti · con @ va sobre esa persona._
 _De más crudo a más suave, ${PRECIOS.percent} cada uno:_
 *${p}perdedor* *${p}puta* *${p}guarra* *${p}incel* *${p}maricon* *${p}gay*
 *${p}cerdo* *${p}inutil* *${p}rata* *${p}femboy* *${p}simp* *${p}friki*
-*${p}fea* *${p}iq* *${p}infiel* *${p}feminidad* *${p}masculinidad*
+*${p}fea* *${p}iq* *${p}infiel* *${p}delulu* *${p}diagnostico*
+*${p}feminidad* *${p}masculinidad*
 *${p}linda* *${p}hot* *${p}sexy* *${p}fiel* *${p}crack* *${p}ganador*
 
 ━━━━━ *AURA* ━━━━━
