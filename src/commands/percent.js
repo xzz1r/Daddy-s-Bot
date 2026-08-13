@@ -1071,7 +1071,7 @@ const LABELS = {
 
       'Tu cara es un accidente de proporciones, [nombre]. Nada está en su sitio y encima ninguno de los errores compensa al resto. Es un puto desastre estructural.',
 
-      'Ni con luz buena, ni con ángulo bueno, ni con filtro de la hostia. Has agotado todas las ayudas posibles y sigues siendo un cero visual, [nombre], joder.',
+      'Ni con luz buena, ni con ángulo bueno, ni con filtro de la hostia. Has agotado todas las ayudas posibles y sigues siendo un cero visual, [nombre].',
 
       'Coño, [nombre], tienes una cara que hace que el cumplido se atasque en la garganta. Y con razón en el único idioma que entiende el contador.',
 
@@ -1091,7 +1091,7 @@ const LABELS = {
 
       'Coño, [nombre], no hay drama en tu fealdad. Hay burocracia. Un fallo administrativo de la genética en alta resolución de group chat.',
 
-      'Hostia, [nombre], tienes una estructura que pide una segunda opinión. Y la segunda opinión es peor con. El chat enterado del cargo, joder.',
+      'Hostia, [nombre], tienes una estructura que pide una segunda opinión. Y la segunda opinión es peor con. El chat enterado del cargo.',
 
       'Joder, [nombre], no hay narrativa en tus rasgos. No hay arco. Solo un plano secuencia del vacío con testigos obligados en el hilo.',
 
@@ -1151,7 +1151,7 @@ const LABELS = {
 
       'Mierda, [nombre], tu estructura es el recordatorio de que el promedio también puede ser un fracaso sin prórroga ni VAR.',
 
-      'Hostia, [nombre], la indiferencia que provocas es. El veredicto más limpio que hay. Y el más cruel sin prórroga ni VAR, joder.',
+      'Hostia, [nombre], la indiferencia que provocas es. El veredicto más limpio que hay. Y el más cruel sin prórroga ni VAR.',
 
       'Mierda, [nombre], tienes una cara tan plana y sin interés que parece un fondo de pantalla de fábrica. Y de los malos.',
 
@@ -1167,7 +1167,7 @@ const LABELS = {
 
       'Mierda, [nombre], tienes una cara que se olvida en el mismo segundo en que dejas de estar delante. Logro invertido.',
 
-      'Linda de las que el low del ranking te deja donde mereces: en el sótano visual, [nombre]. El veredicto joder.',
+      'Linda de las que el low del ranking te deja donde mereces: en el sótano visual, [nombre]. El veredicto.',
 
       'Tienes una belleza tan discutible que el comando ni se molesta en fingir, [nombre]. El veredicto, fracasado.',
 
@@ -1231,7 +1231,7 @@ const LABELS = {
 
       'Linda de ceja ajena levantada y respeto visual en el sótano, [nombre]. El veredicto El material habla solo, nivel sótano puro, fracasado.',
 
-      'El promedio de este tramo es el tuyo: el suelo del low, [nombre]. El veredicto Aquí, sin filtro ni consuelo, joder.',
+      'El promedio de este tramo es el tuyo: el suelo del low, [nombre]. El veredicto Aquí, sin filtro ni consuelo.',
 
       'Has convertido la fealdad en identidad y no hay detergente, [nombre]. El veredicto El ranking firma y listo, diagnóstico cerrado, mierda.',
 
@@ -1251,7 +1251,7 @@ const LABELS = {
 
       'El grupo paga tu rastro facial en cuotas diarias de hastío, [nombre]. El veredicto El ranking firma y listo, hostia puta qué nivel.',
 
-      'Has dejado el chat como vestuario de derrota visual, [nombre]. El veredicto Se ve desde el primer mensaje, joder.',
+      'Has dejado el chat como vestuario de derrota visual, [nombre]. El veredicto Se ve desde el primer mensaje.',
 
       'Linda de estribillo sin punto final limpio ni redención, [nombre]. El veredicto.',
 
@@ -1331,7 +1331,7 @@ const LABELS = {
 
       'Linda con la cara de quien juraba que esta vez el ángulo sí, y no, [nombre]. El veredicto gilipollas.',
 
-      'Tu frame es un argumento contra la simetría y el low lo firma, [nombre]. El veredicto Se ve desde el primer mensaje, sin filtro ni consuelo, joder.',
+      'Tu frame es un argumento contra la simetría y el low lo firma, [nombre]. El veredicto Se ve desde el primer mensaje, sin filtro ni consuelo.',
 
       'Linda de las que bajan el promedio del grupo solo con la miniatura, [nombre]. El veredicto, diagnóstico cerrado, mierda.',
 
@@ -1351,7 +1351,7 @@ const LABELS = {
 
       'Linda con más pretensión que sustancia facial en el tramo bajo, [nombre]. El veredicto, hostia puta qué nivel.',
 
-      'El low no discute: el número habla y tú callas, [nombre], [nombre]. El veredicto Eso no se maquilla con ángulo, joder.',
+      'El low no discute: el número habla y tú callas, [nombre], [nombre]. El veredicto Eso no se maquilla con ángulo.',
 
       'Linda de las que confunden pose con belleza y. El ranking las corrige, [nombre]. El veredicto patético.',
 
@@ -1401,7 +1401,7 @@ const LABELS = {
 
       'Linda de superficie: basta la vista, no hace falta el sótano del historial, [nombre]. El veredicto basura.',
 
-      'El low no es caridad: es veredicto y te nombra sin anestesia, [nombre]. El veredicto El tramo te nombra sin permiso, joder.',
+      'El low no es caridad: es veredicto y te nombra sin anestesia, [nombre]. El veredicto El tramo te nombra sin permiso.',
 
       'Linda de puto desastre: ni el ángulo ni la luz colaboran contigo, [nombre]. El veredicto No hay segunda lectura útil, mierda.',
 
@@ -1498,7 +1498,7 @@ const LABELS = {
 
       'Fea sin narrativa de villana: solo fea, [nombre]. Cabrón. Sin plot twist. Ni con ring light te inventas un punto focal, fracasado.',
 
-      '[nombre], te hicieron con las luces apagadas y prisa de lunes. La cámara frontal merece hazard pay, joder.',
+      '[nombre], te hicieron con las luces apagadas y prisa de lunes. La cámara frontal merece hazard pay.',
 
       'Tu perfil izquierdo y el derecho compiten a ver cuál es peor, [nombre]. Patético. Empate. El atractivo te bloqueó sin forwarding, mierda.',
 
@@ -1518,7 +1518,7 @@ const LABELS = {
 
       'Tienes más ángulos muertos que un parking en U, [nombre]. La cámara frontal merece hazard pay, fracasado.',
 
-      '[nombre], la cámara frontal de tu móvil merece una medalla al valor. El atractivo te bloqueó sin forwarding, joder.',
+      '[nombre], la cámara frontal de tu móvil merece una medalla al valor. El atractivo te bloqueó sin forwarding.',
 
       'Fea de las que el maquillaje es daño colateral, [nombre]. Ridículo. Con base. Sin anestesia, mierda.',
 
@@ -1538,7 +1538,7 @@ const LABELS = {
 
       'Fea de las que el retrato robado se borra por piedad, [nombre]. Sin anestesia. El atractivo te bloqueó sin forwarding, fracasado.',
 
-      '[nombre], el bot no necesita adjetivos: el número ya te dejó en el sótano. Ni con ring light te inventas un punto focal, joder.',
+      '[nombre], el bot no necesita adjetivos: el número ya te dejó en el sótano. Ni con ring light te inventas un punto focal.',
 
       'No hay segundo chance en este frame, [nombre]. Puta sentencia visual. La cámara frontal merece hazard pay, mierda.',
 
@@ -1558,7 +1558,7 @@ const LABELS = {
 
       'No eres \\\\\\\\\'única\\\\\\\\\': eres difícil de catalogar sin insultar, [nombre]. Mierda. Rara. Ni con ring light te inventas un punto focal, fracasado.',
 
-      '[nombre], la fealdad te queda tan natural que parece look. La cámara frontal merece hazard pay, joder.',
+      '[nombre], la fealdad te queda tan natural que parece look. La cámara frontal merece hazard pay.',
 
       'Fea de tramo alto: el ranking te nombra y el chat asiente, [nombre]. El atractivo te bloqueó sin forwarding, mierda.',
 
@@ -1578,7 +1578,7 @@ const LABELS = {
 
       'Fea sin plot de redención en tres actos, [nombre]. Cabrón. Plano. La cámara frontal merece hazard pay, fracasado.',
 
-      '[nombre], tienes el glow up invertido: cada año confirma el diagnóstico. El atractivo te bloqueó sin forwarding, joder.',
+      '[nombre], tienes el glow up invertido: cada año confirma el diagnóstico. El atractivo te bloqueó sin forwarding.',
 
       'La cámara trasera es tu única amiga y aun así miente poco, [nombre]. Ni con ring light te inventas un punto focal, mierda.',
 
@@ -1598,7 +1598,7 @@ const LABELS = {
 
       'Se te nota el sótano visual en la primera foto de perfil, [nombre]. El atractivo te bloqueó sin forwarding, fracasado.',
 
-      '[nombre], el filtro beauty se declara en huelga cuando te ve. Ni con ring light te inventas un punto focal, joder.',
+      '[nombre], el filtro beauty se declara en huelga cuando te ve. Ni con ring light te inventas un punto focal.',
 
       'Fea de las que el group chat prefiere stickers, [nombre]. Sin anestesia. La cámara frontal merece hazard pay, mierda.',
 
@@ -1618,7 +1618,7 @@ const LABELS = {
 
       'Fea de las que el fotógrafo finge que se le acabó la batería, [nombre]. Sin anestesia. Ni con ring light te inventas un punto focal, fracasado.',
 
-      '[nombre], tu cara es un almost eterno que nunca llega a decente. La cámara frontal merece hazard pay, joder.',
+      '[nombre], tu cara es un almost eterno que nunca llega a decente. La cámara frontal merece hazard pay.',
 
       'No hay \\\\\\\\\'en persona se ve mejor\\\\\\\\\': hay la misma mierda. Con voz, [nombre]. El atractivo te bloqueó sin forwarding, mierda.',
 
@@ -1638,13 +1638,13 @@ const LABELS = {
 
       'La luz del atardecer te delata igual que el fluorescente del súper, [nombre]. La cámara frontal merece hazard pay, fracasado.',
 
-      '[nombre], el high de fea te queda de tatuaje invisible. El atractivo te bloqueó sin forwarding, joder.',
+      '[nombre], el high de fea te queda de tatuaje invisible. El atractivo te bloqueó sin forwarding.',
 
       'Fea sin derecho a \\\\\\\\\'es el ángulo\\\\\\\\\': son todos, [nombre]. Ni con ring light te inventas un punto focal, mierda.',
 
       '[nombre], tienes el magnetismo inverso: la gente se aleja sin saber por qué. La cámara frontal merece hazard pay, coño.',
 
-      'cabrón. El atractivo te bloqueó sin forwarding, cabrón Joder, qué nivel, gilipollas, joder.',
+      'cabrón. El atractivo te bloqueó sin forwarding, cabrón Joder, qué nivel, gilipollas.',
 
       '[nombre], si te describieran en tres palabras sobrarían dos insultos. Ni con ring light te inventas un punto focal, gilipollas.',
 
@@ -1658,7 +1658,7 @@ const LABELS = {
 
       'Fea de tramo que duele porque es verdad, [nombre]. Gilipollas. Documentado. El atractivo te bloqueó sin forwarding, fracasado.',
 
-      '[nombre], tienes una geometría facial que ofende a Euclides. Ni con ring light te inventas un punto focal, joder.',
+      '[nombre], tienes una geometría facial que ofende a Euclides. Ni con ring light te inventas un punto focal.',
 
       'El atractivo te dio de baja y no dejó forwarding, [nombre]. Asco. Administrativo. La cámara frontal merece hazard pay, mierda.',
 
@@ -1678,7 +1678,7 @@ const LABELS = {
 
       'La cámara frontal merece hazard pay por trabajar contigo, [nombre]. Ni con ring light te inventas un punto focal, fracasado.',
 
-      '[nombre], si te miran de reojo es para no comprometerse. La cámara frontal merece hazard pay, joder.',
+      '[nombre], si te miran de reojo es para no comprometerse. La cámara frontal merece hazard pay.',
 
       'Fea de las que el group photo tiene un hueco estratégico, [nombre]. Sin anestesia. El atractivo te bloqueó sin forwarding, mierda.',
 
@@ -1698,7 +1698,7 @@ const LABELS = {
 
       'Fea de las que el filtro se rinde y apaga la pantalla, [nombre]. Sin anestesia. La cámara frontal merece hazard pay, fracasado.',
 
-      '[nombre], tu cara es un almost de humano decente. El atractivo te bloqueó sin forwarding, joder.',
+      '[nombre], tu cara es un almost de humano decente. El atractivo te bloqueó sin forwarding.',
 
       'El high de fea te nombra sin pedir permiso al ego, [nombre]. Ni con ring light te inventas un punto focal, mierda.',
 
@@ -1718,7 +1718,7 @@ const LABELS = {
 
       'Tu presencia baja el promedio del frame en un mensaje, [nombre]. El atractivo te bloqueó sin forwarding, fracasado.',
 
-      '[nombre], no hay misterio de fealdad cool: hay lo previsible. Ni con ring light te inventas un punto focal, joder.',
+      '[nombre], no hay misterio de fealdad cool: hay lo previsible. Ni con ring light te inventas un punto focal.',
 
       'Fea de tramo alto y sin derecho a bis, [nombre]. Gilipollas. Del ranking. La cámara frontal merece hazard pay, mierda.',
 
@@ -1738,7 +1738,7 @@ const LABELS = {
 
       'Fea sin consuelo de \\\\\\\\\'personalidad\\\\\\\\\': el comando no mide eso, [nombre]. Ni con ring light te inventas un punto focal, fracasado.',
 
-      '[nombre], tienes más problemas de proporciones que un plano de arquitecto borracho. La cámara frontal merece hazard pay, joder.',
+      '[nombre], tienes más problemas de proporciones que un plano de arquitecto borracho. La cámara frontal merece hazard pay.',
 
       'La luz del flash te trata como evidencia del crimen, [nombre]. El atractivo te bloqueó sin forwarding, mierda.',
 
@@ -1758,7 +1758,7 @@ const LABELS = {
 
       'El ranking de fea te tiene de inquilino sin contrato, [nombre]. La cámara frontal merece hazard pay, fracasado.',
 
-      '[nombre], si el atractivo fuera crédito, estarías en mora. El atractivo te bloqueó sin forwarding, joder.',
+      '[nombre], si el atractivo fuera crédito, estarías en mora. El atractivo te bloqueó sin forwarding.',
 
       'Fea de las que el filtro beauty pide apoyo técnico, [nombre]. Sin anestesia. Ni con ring light te inventas un punto focal, mierda.',
 
@@ -1778,7 +1778,7 @@ const LABELS = {
 
       'Fea de las que el group chat prefiere audio a foto, [nombre]. Sin anestesia. El atractivo te bloqueó sin forwarding, fracasado.',
 
-      '[nombre], el bot te midió dos veces y las dos dio sótano. Ni con ring light te inventas un punto focal, joder.',
+      '[nombre], el bot te midió dos veces y las dos dio sótano. Ni con ring light te inventas un punto focal.',
 
       'Tu frame pide un testigo y un abogado de oficio, [nombre]. La cámara frontal merece hazard pay, mierda.',
 
@@ -1798,7 +1798,7 @@ const LABELS = {
 
       'El close-up es una denuncia con firma digital, [nombre]. Ni con ring light te inventas un punto focal, fracasado.',
 
-      '[nombre], se te ve el techo y está por los suelos. La cámara frontal merece hazard pay, joder.',
+      '[nombre], se te ve el techo y está por los suelos. La cámara frontal merece hazard pay.',
 
       'Fea de tramo que no admite narrador emocional, [nombre]. El atractivo te bloqueó sin forwarding, mierda.',
 
@@ -1818,7 +1818,7 @@ const LABELS = {
 
       'Fea sin derecho a \\\\\\\\\'es el día\\\\\\\\\': es el material, [nombre]. La cámara frontal merece hazard pay, fracasado.',
 
-      '[nombre], tienes una geometría que ofende al compás. El atractivo te bloqueó sin forwarding, joder.',
+      '[nombre], tienes una geometría que ofende al compás. El atractivo te bloqueó sin forwarding.',
 
       'Se te nota el fail visual en la primera línea del mensaje, [nombre]. Ni con ring light te inventas un punto focal, basura.',
 
@@ -11132,7 +11132,7 @@ const LABELS = {
 
       '[nombre], has hecho del almost de intocable tu marca personal. El sí fácil te delata más que un rumor, fracasado.',
 
-      'El grupo te tiene de meme sexual sin pedirte permiso, [nombre]. Has hecho del chat tu escaparate barato, joder.',
+      'El grupo te tiene de meme sexual sin pedirte permiso, [nombre]. Has hecho del chat tu escaparate barato.',
 
       '[nombre], puta de las que el putero profesional pediría descuento por volumen. Te repartes como flyer de after malo, mierda.',
 
@@ -11152,7 +11152,7 @@ const LABELS = {
 
       '[nombre], te abres más fácil que un zip de archivo corrupto. Has hecho del chat tu escaparate barato, fracasado.',
 
-      'Puta de las que confunden atención con respeto y se caen del pedestal, [nombre]. Te repartes como flyer de after malo, joder.',
+      'Puta de las que confunden atención con respeto y se caen del pedestal, [nombre]. Te repartes como flyer de after malo.',
 
       '[nombre], el grupo ya no debate: te tiene catalogada y archivada. El sí fácil te delata más que un rumor, mierda.',
 
@@ -11172,7 +11172,7 @@ const LABELS = {
 
       '[nombre], te repartes con la frialdad de quien ya no espera nada a cambio. Te repartes como flyer de after malo, fracasado.',
 
-      'Puta de fondo: el chat te usa de gag y tú sigues el libreto, [nombre]. El sí fácil te delata más que un rumor, joder.',
+      'Puta de fondo: el chat te usa de gag y tú sigues el libreto, [nombre]. El sí fácil te delata más que un rumor.',
 
       '[nombre], si la dignidad tuviera alarma, a ti se te rompió hace años. Sin anestesia. Has hecho del chat tu escaparate barato, mierda.',
 
@@ -11192,7 +11192,7 @@ const LABELS = {
 
       '[nombre], puta de manual negro: el grupo firma y tú posas. Sin anestesia. El sí fácil te delata más que un rumor, fracasado.',
 
-      'El sí fácil te delata más que cualquier rumor del chat, [nombre]. Has hecho del chat tu escaparate barato, joder.',
+      'El sí fácil te delata más que cualquier rumor del chat, [nombre]. Has hecho del chat tu escaparate barato.',
 
       '[nombre], has hecho del escaparate tu única personalidad. Te repartes como flyer de after malo, mierda.',
 
@@ -11212,7 +11212,7 @@ const LABELS = {
 
       '[nombre], has convertido el almost de intocable en chiste interno. Has hecho del chat tu escaparate barato, fracasado.',
 
-      'Te vendes en cuotas y nadie pidió el recibo, [nombre]. Te repartes como flyer de after malo, joder.',
+      'Te vendes en cuotas y nadie pidió el recibo, [nombre]. Te repartes como flyer de after malo.',
 
       '[nombre], puta de fondo de hilo: siempre disponible, nunca respetada. El sí fácil te delata más que un rumor, mierda.',
 
@@ -11232,7 +11232,7 @@ const LABELS = {
 
       '[nombre], el ranking te nombra y el resto asiente sin debate. Te repartes como flyer de after malo, fracasado.',
 
-      'Puta de manual: disponibilidad alta, respeto en cero, [nombre]. El sí fácil te delata más que un rumor, joder.',
+      'Puta de manual: disponibilidad alta, respeto en cero, [nombre]. El sí fácil te delata más que un rumor.',
 
       '[nombre], te abres en canal por atención de segunda. Has hecho del chat tu escaparate barato, mierda.',
 
@@ -11252,7 +11252,7 @@ const LABELS = {
 
       '[nombre], has convertido cada mirada en ticket de entrada. El sí fácil te delata más que un rumor, fracasado.',
 
-      'Puta sin derecho a ofenderte cuando te tratan como catálogo, [nombre]. Has hecho del chat tu escaparate barato, joder.',
+      'Puta sin derecho a ofenderte cuando te tratan como catálogo, [nombre]. Has hecho del chat tu escaparate barato.',
 
       '[nombre], el sí fácil te delata más que un historial público. Sin anestesia. Te repartes como flyer de after malo, mierda.',
 
@@ -11272,7 +11272,7 @@ const LABELS = {
 
       '[nombre], puta de manual negro delante del puto chat. Sin anestesia. Has hecho del chat tu escaparate barato, fracasado.',
 
-      'Te vendes barato y luego quieres tarifa de lujo, [nombre]. Te repartes como flyer de after malo, joder.',
+      'Te vendes barato y luego quieres tarifa de lujo, [nombre]. Te repartes como flyer de after malo.',
 
       '[nombre], se te oye la disponibilidad hasta en el \'buenos días\' El sí fácil te delata más que un rumor, mierda.',
 
@@ -11292,7 +11292,7 @@ const LABELS = {
 
       '[nombre], te abres en canal por migajas de atención. Te repartes como flyer de after malo, fracasado.',
 
-      'El puterío te queda de uniforme de diario, [nombre]. El sí fácil te delata más que un rumor, joder.',
+      'El puterío te queda de uniforme de diario, [nombre]. El sí fácil te delata más que un rumor.',
 
       '[nombre], has hecho del sí tu única estrategia social. Has hecho del chat tu escaparate barato, da pena ajena.',
 
@@ -11700,7 +11700,7 @@ const LABELS = {
 
       'Cero absoluto. No hay una sola decisión tuya que alguien pueda usar en tu contra, y eso es rarísimo aquí.',
 
-      'Hoy no hay material de puta, [nombre]. El rumor se queda sin combustible, joder.',
+      'Hoy no hay material de puta, [nombre]. El rumor se queda sin combustible.',
 
       'Low de puta: no hay escaparate ni sí fácil a la vista, [nombre], cabrón. El grupo ya lo tiene claro sin forzar el drama, ridículo.',
 

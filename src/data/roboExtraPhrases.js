@@ -511,7 +511,7 @@ const BOTE_VACIO = [
 
   'Bote en cero. La incompetencia colectiva todavía no cuaja, fracasado. El ranking no perdona, fracasado.',
 
-  'No hay premio. El bote tiene sed de fails, joder. El ranking no perdona, joder. Qué asco de intento delante del puto ranking, joder.',
+  'No hay premio. El bote tiene sed de fails, joder. El ranking no perdona, joder. Qué asco de intento delante del puto ranking.',
 
   'Bote vacío. Volved a intentarlo y cagarla, mierda. El ranking no perdona, mierda. Qué asco de intento.',
 
@@ -551,7 +551,7 @@ const BOTE_VACIO = [
 
   'Nada. El bote está más vacío que las conversaciones de este grupo a las tres de la madrugada en el parte que nadie borra, fracasado.',
 
-  'Bote sin nada: el drama tendrá que esperar al próximo fail y el veredicto no se negocia sin anestesia de verdad esta vez, joder.',
+  'Bote sin nada: el drama tendrá que esperar al próximo fail y el veredicto no se negocia sin anestesia de verdad esta vez.',
 
   'El bote espera: vosotros dais espectáculo sin relleno. Y el grupo tomó nota, cutre en el momento que más dolía soltarlo, mierda.',
 
@@ -571,7 +571,7 @@ const BOTE_VACIO = [
 
   'No hay premio. Solo el recordatorio de que aún podéis fallar más, cutre en el único idioma que entiende el contador, fracasado.',
 
-  'Bote vacío: ranking de desastres en huelga. Sin derecho a reclamación, desperdicio sin anestesia de verdad esta vez, joder.',
+  'Bote vacío: ranking de desastres en huelga. Sin derecho a reclamación, desperdicio sin anestesia de verdad esta vez.',
 
   'Cero en el bote: colecta de fracasos bajo mínimo. Sin derecho a reclamación, desperdicio sin prosa que lo maquille, mierda.',
 

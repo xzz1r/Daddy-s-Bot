@@ -143,7 +143,7 @@ const VERDICTS = {
 
     'Cien. Que se besen ya y acabemos con el cringe colectivo, fracasado.nivel de pena.',
 
-    'Perfectos. Uno pone el caos y el otro la paciencia tóxica, joder., y el ranking no discute, joder.',
+    'Perfectos. Uno pone el caos y el otro la paciencia tóxica, joder., y el ranking no discute.',
 
     'Match que duele de ver desde fuera. Funciona demasiado bien, cabrón, y el ranking no discute, qué cutre.',
 
@@ -163,7 +163,7 @@ const VERDICTS = {
 
     'Cien. No hay tercero que entre en esa órbita, fracasado, y el ranking no discute, fracasado.',
 
-    'Perfectos. El chat lo sabía antes que ellos, joder., y el ranking no discute, joder.',
+    'Perfectos. El chat lo sabía antes que ellos, joder., y el ranking no discute.',
 
     'Match químico sin anestesia. Duele mirarlo, cabrón, y el ranking no discute, mierda.',
 
@@ -183,7 +183,7 @@ const VERDICTS = {
 
     'Cien. Archivo y a sufrir, fracasado, y el ranking no discute, fracasado.nivel de pena.',
 
-    'Perfectos. La física del fail compartido, joder., y el ranking no discute, joder.',
+    'Perfectos. La física del fail compartido, joder., y el ranking no discute.',
 
     'Match que se siente en el hilo, cabrón, y el ranking no discute, mierda.cutre.',
 
