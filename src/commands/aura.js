@@ -572,10 +572,18 @@ async function showRanking(sock, msg, groupMeta) {
   // aura, no de actividad. No dice cuanto escribe nadie ni de donde salio ese
   // saldo, asi que aparecer en el no delata ni su rango ni sus mensajes — que es
   // lo que se protege en !count, !relevancia, !vs, !inactivos y los tops al azar.
+  // Fuera los que estan a cero o en negativo. Un top es para presumir, y una
+  // cola de gente con 0 y con numeros rojos no dice nada de nadie: solo alarga
+  // la lista y molesta. Quien esta ahi ya se entera por su propio !aura.
+  //
+  // Ojo, esto NO es lo mismo que el suelo de SUELO_TODOS: aquel fue un rescate
+  // de una vez, y despues de el se puede volver a caer a cero robando o
+  // apostando. Por eso hace falta filtrar aqui y no basta con el suelo.
   const ranking = soloMiembros(await getAuraRanking(jid), groupMeta)
+    .filter(r => r.aura > 0)
     .slice(0, 10);
   if (ranking.length === 0) {
-    return sock.sendMessage(jid, { text: 'Nadie ha medido su aura todavía. Usa *!aura*.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Nadie tiene aura que enseñar todavía. Usa *!aura*.' }, { quoted: msg });
   }
   let text = '*RANKING DE AURA*\n\n';
   const mentions = [];
