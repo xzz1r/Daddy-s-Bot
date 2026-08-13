@@ -1200,95 +1200,95 @@ const WINGMAN_CIERRES = [
 
   'Expediente de %N: completo, fracasado. Sin anestesia y sin bis, fracasado.',
 
-  'Fin del informe. %N queda expuesto y el chat es testigo, cabrón Documentado en el hilo. Sin anestesia y sin bis.',
+  'Fin del informe. %N queda expuesto y el chat es testigo, cabrón. Documentado en el hilo. Sin anestesia y sin bis.',
 
-  'El veredicto sobre %N ya está en el acta. Siguiente, gilipollas Documentado en el hilo, mierda. Sin anestesia y sin bis, mierda.',
+  'El veredicto sobre %N ya está en el acta. Siguiente, gilipollas. Documentado en el hilo, mierda. Sin anestesia y sin bis, mierda.',
 
-  'Documentado. %N no puede alegar que no vio venir el golpe, mierda Documentado en el hilo, coño. Sin anestesia y sin bis, coño.',
+  'Documentado. %N no puede alegar que no vio venir el golpe, mierda. Documentado en el hilo, coño. Sin anestesia y sin bis, coño.',
 
-  'Cierre sin anestesia. El eco de %N sigue un rato, coño Documentado en el hilo, cabrón. Sin anestesia y sin bis, cabrón.',
+  'Cierre sin anestesia. El eco de %N sigue un rato, coño. Documentado en el hilo, cabrón. Sin anestesia y sin bis, cabrón.',
 
-  'El wingman terminó. El cringe de %N permanece en el hilo, patético Documentado en el hilo, gilipollas.',
+  'El wingman terminó. El cringe de %N permanece en el hilo, patético. Documentado en el hilo, gilipollas.',
 
-  'Fin. %N ya no puede fingir que esto no quedó escrito, basura Documentado en el hilo, patético. Sin anestesia y sin bis, patético.',
+  'Fin. %N ya no puede fingir que esto no quedó escrito, basura. Documentado en el hilo, patético. Sin anestesia y sin bis, patético.',
 
-  'Expediente sellado. El grupo vio lo de %N entero, ridículo Documentado en el hilo, asco. Sin anestesia y sin bis, asco.',
+  'Expediente sellado. El grupo vio lo de %N entero, ridículo. Documentado en el hilo, asco. Sin anestesia y sin bis, asco.',
 
-  'Y así queda el parte de %N, sin maquillaje ni narrador amigo Documentado en el hilo, basura. Sin anestesia y sin bis, basura.',
+  'Y así queda el parte de %N, sin maquillaje ni narrador amigo. Documentado en el hilo, basura. Sin anestesia y sin bis, basura.',
 
-  'Fin del show de %N por hoy. El archivo no se borra, mierda Documentado en el hilo, ridículo. Sin anestesia y sin bis, ridículo.',
+  'Fin del show de %N por hoy. El archivo no se borra, mierda. Documentado en el hilo, ridículo. Sin anestesia y sin bis, ridículo.',
 
-  'Cerrado. El chat no pide bis del desastre de %N, coño Documentado en el hilo, fracasado. Sin anestesia y sin bis, fracasado.',
+  'Cerrado. El chat no pide bis del desastre de %N, coño. Documentado en el hilo, fracasado. Sin anestesia y sin bis, fracasado.',
 
-  'El bot firma. %N asume o no: el texto ya está, asco Documentado en el hilo. Sin anestesia y sin bis.',
+  'El bot firma. %N asume o no: el texto ya está, asco. Documentado en el hilo. Sin anestesia y sin bis.',
 
-  'Acta levantada sobre %N. Sin firmas ajenas necesarias, patético Documentado en el hilo, mierda. Sin anestesia y sin bis, mierda.',
+  'Acta levantada sobre %N. Sin firmas ajenas necesarias, patético. Documentado en el hilo, mierda. Sin anestesia y sin bis, mierda.',
 
-  'Terminado. El eco de %N todavía señala en el hilo, basura Documentado en el hilo, coño. Sin anestesia y sin bis, coño.',
+  'Terminado. El eco de %N todavía señala en el hilo, basura. Documentado en el hilo, coño. Sin anestesia y sin bis, coño.',
 
-  'Cierre limpio. Daño a la reputación de %N, permanente, ridículo Documentado en el hilo, cabrón. Sin anestesia y sin bis, cabrón.',
+  'Cierre limpio. Daño a la reputación de %N, permanente, ridículo. Documentado en el hilo, cabrón. Sin anestesia y sin bis, cabrón.',
 
-  'Expediente de %N: completo, archivado y sin indulto, fracasado Documentado en el hilo, gilipollas. Sin anestesia y sin bis, gilipollas.',
+  'Expediente de %N: completo, archivado y sin indulto, fracasado. Documentado en el hilo, gilipollas. Sin anestesia y sin bis, gilipollas.',
 
-  'El wingman cierra el grifo. %N ya tuvo su minuto Documentado en el hilo, patético. Sin anestesia y sin bis, patético.',
+  'El wingman cierra el grifo. %N ya tuvo su minuto. Documentado en el hilo, patético. Sin anestesia y sin bis, patético.',
 
-  'Parte final sobre %N. El grupo puede volver al ruido, cabrón Documentado en el hilo, asco. Sin anestesia y sin bis, asco.',
+  'Parte final sobre %N. El grupo puede volver al ruido, cabrón. Documentado en el hilo, asco. Sin anestesia y sin bis, asco.',
 
-  'Sellado. %N queda con el retrato que no pidió, gilipollas Documentado en el hilo, basura. Sin anestesia y sin bis, basura.',
+  'Sellado. %N queda con el retrato que no pidió, gilipollas. Documentado en el hilo, basura. Sin anestesia y sin bis, basura.',
 
-  'Fin de la transmisión de %N. Sin créditos ni música, mierda Documentado en el hilo, ridículo. Sin anestesia y sin bis, ridículo.',
+  'Fin de la transmisión de %N. Sin créditos ni música, mierda. Documentado en el hilo, ridículo. Sin anestesia y sin bis, ridículo.',
 
-  'Cierre. Lo de %N queda para el historial del chat, coño Documentado en el hilo, fracasado. Sin anestesia y sin bis, fracasado.',
+  'Cierre. Lo de %N queda para el historial del chat, coño. Documentado en el hilo, fracasado. Sin anestesia y sin bis, fracasado.',
 
-  'El bot apaga el micrófono de %N por hoy, asco Documentado en el hilo. Sin anestesia y sin bis.',
+  'El bot apaga el micrófono de %N por hoy, asco. Documentado en el hilo. Sin anestesia y sin bis.',
 
-  'Informe cerrado. %N no sale bien parado y se nota, patético Documentado en el hilo, mierda. Sin anestesia y sin bis, mierda.',
+  'Informe cerrado. %N no sale bien parado y se nota, patético. Documentado en el hilo, mierda. Sin anestesia y sin bis, mierda.',
 
-  'Acta completa. %N es el protagonista involuntario, basura Documentado en el hilo, coño. Sin anestesia y sin bis, coño.',
+  'Acta completa. %N es el protagonista involuntario, basura. Documentado en el hilo, coño. Sin anestesia y sin bis, coño.',
 
-  'Fin. %N ya tiene el resumen que merecía, ridículo Documentado en el hilo, cabrón. Sin anestesia y sin bis, cabrón.',
+  'Fin. %N ya tiene el resumen que merecía, ridículo. Documentado en el hilo, cabrón. Sin anestesia y sin bis, cabrón.',
 
-  'Expediente de %N archivado en frío, fracasado Documentado en el hilo, gilipollas. Sin anestesia y sin bis, gilipollas.',
+  'Expediente de %N archivado en frío, fracasado. Documentado en el hilo, gilipollas. Sin anestesia y sin bis, gilipollas.',
 
-  'Y punto. %N queda expuesto sin narrador de consuelo Documentado en el hilo, patético. Sin anestesia y sin bis, patético.',
+  'Y punto. %N queda expuesto sin narrador de consuelo. Documentado en el hilo, patético. Sin anestesia y sin bis, patético.',
 
-  'Cierre del wingman. %N puede procesar en silencio, cabrón Documentado en el hilo, asco. Sin anestesia y sin bis, asco.',
+  'Cierre del wingman. %N puede procesar en silencio, cabrón. Documentado en el hilo, asco. Sin anestesia y sin bis, asco.',
 
-  'El parte de %N está listo y duele porque pega, gilipollas Documentado en el hilo, basura. Sin anestesia y sin bis, basura.',
+  'El parte de %N está listo y duele porque pega, gilipollas. Documentado en el hilo, basura. Sin anestesia y sin bis, basura.',
 
-  'Fin del episodio de %N. Sin temporada 2 de dignidad, mierda Documentado en el hilo, ridículo. Sin anestesia y sin bis, ridículo.',
+  'Fin del episodio de %N. Sin temporada 2 de dignidad, mierda. Documentado en el hilo, ridículo. Sin anestesia y sin bis, ridículo.',
 
-  'Sellado el caso %N. El chat es testigo presencial, coño Documentado en el hilo, fracasado. Sin anestesia y sin bis, fracasado.',
+  'Sellado el caso %N. El chat es testigo presencial, coño. Documentado en el hilo, fracasado. Sin anestesia y sin bis, fracasado.',
 
-  'Cierre sin filtro. %N ya no tiene ángulo limpio, asco Documentado en el hilo. Sin anestesia y sin bis.',
+  'Cierre sin filtro. %N ya no tiene ángulo limpio, asco. Documentado en el hilo. Sin anestesia y sin bis.',
 
-  'El bot termina con %N. El eco hace el resto, patético Documentado en el hilo, mierda. Sin anestesia y sin bis, mierda.',
+  'El bot termina con %N. El eco hace el resto, patético. Documentado en el hilo, mierda. Sin anestesia y sin bis, mierda.',
 
-  'Acta de %N completa. Sin apéndices de redención, basura Documentado en el hilo, coño. Sin anestesia y sin bis, coño.',
+  'Acta de %N completa. Sin apéndices de redención, basura. Documentado en el hilo, coño. Sin anestesia y sin bis, coño.',
 
-  'Fin. %N queda en el tablero como pieza tocada, ridículo Documentado en el hilo, cabrón. Sin anestesia y sin bis, cabrón.',
+  'Fin. %N queda en el tablero como pieza tocada, ridículo. Documentado en el hilo, cabrón. Sin anestesia y sin bis, cabrón.',
 
-  'Expediente cerrado. %N, el grupo ya pasó página, fracasado Documentado en el hilo, gilipollas. Sin anestesia y sin bis, gilipollas.',
+  'Expediente cerrado. %N, el grupo ya pasó página, fracasado. Documentado en el hilo, gilipollas. Sin anestesia y sin bis, gilipollas.',
 
-  'Última línea del wingman sobre %N. Duele y basta Documentado en el hilo, patético. Sin anestesia y sin bis, patético.',
+  'Última línea del wingman sobre %N. Duele y basta. Documentado en el hilo, patético. Sin anestesia y sin bis, patético.',
 
-  'Cierre. %N no necesita epílogo: el daño es el epílogo, cabrón Documentado en el hilo, asco. Sin anestesia y sin bis, asco.',
+  'Cierre. %N no necesita epílogo: el daño es el epílogo, cabrón. Documentado en el hilo, asco. Sin anestesia y sin bis, asco.',
 
-  'El informe de %N termina aquí. Sin firma de consuelo, gilipollas Documentado en el hilo, basura. Sin anestesia y sin bis, basura.',
+  'El informe de %N termina aquí. Sin firma de consuelo, gilipollas. Documentado en el hilo, basura. Sin anestesia y sin bis, basura.',
 
-  'Fin de emisión. %N queda en el archivo del hilo, mierda Documentado en el hilo, ridículo. Sin anestesia y sin bis, ridículo.',
+  'Fin de emisión. %N queda en el archivo del hilo, mierda. Documentado en el hilo, ridículo. Sin anestesia y sin bis, ridículo.',
 
-  'Sellado. %N y su retrato quedan juntos para siempre, coño Documentado en el hilo, fracasado. Sin anestesia y sin bis, fracasado.',
+  'Sellado. %N y su retrato quedan juntos para siempre, coño. Documentado en el hilo, fracasado. Sin anestesia y sin bis, fracasado.',
 
-  'Cierre del acta de %N. El bot cumplió, asco Documentado en el hilo. Sin anestesia y sin bis.',
+  'Cierre del acta de %N. El bot cumplió, asco. Documentado en el hilo. Sin anestesia y sin bis.',
 
-  'Parte final. %N puede guardar silencio productivo, patético Documentado en el hilo, mierda. Sin anestesia y sin bis, mierda.',
+  'Parte final. %N puede guardar silencio productivo, patético. Documentado en el hilo, mierda. Sin anestesia y sin bis, mierda.',
 
-  'Expediente %N: cerrado sin apelación barata, basura Documentado en el hilo, coño. Sin anestesia y sin bis, coño.',
+  'Expediente %N: cerrado sin apelación barata, basura. Documentado en el hilo, coño. Sin anestesia y sin bis, coño.',
 
-  'Y se acabó lo de %N por esta ronda, ridículo Documentado en el hilo, cabrón. Sin anestesia y sin bis, cabrón.',
+  'Y se acabó lo de %N por esta ronda, ridículo. Documentado en el hilo, cabrón. Sin anestesia y sin bis, cabrón.',
 
-  'Cierre. El wingman no devuelve dignidad a %N, fracasado Documentado en el hilo, gilipollas. Sin anestesia y sin bis, gilipollas.',
+  'Cierre. El wingman no devuelve dignidad a %N, fracasado. Documentado en el hilo, gilipollas. Sin anestesia y sin bis, gilipollas.',
 
   'Cierre del acta de %N. El bot cumplió, asco. Sin anestesia y sin bis, patético.',
 

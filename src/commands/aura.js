@@ -155,7 +155,6 @@ const AURA = {
     'Tirada de las que callan bocas. Aprovechá el aire raro del chat. Y el ranking lo registra igual. En este chat eso pesa más de lo que parece, qué pena.',
     'Estás arriba en esta pasada. Mañana puede no repetirse: cobrá el momento. Y el ranking lo registra igual.',
     'Aura buena, ego en observación. No la cagues celebrando como idiota. Y el ranking lo registra igual. En este chat eso pesa más de lo que parece, qué vergüenza ajena.',
-    'Aura buena, ego en observación. No la cagues celebrando como idiota. Y el ranking lo registra igual. En este chat eso pesa más de lo que parece, qué vergüenza ajena.'
   ],
   gain: [
     'Hoy no perdiste. En este chat eso ya es noticia, y el ranking lo registra sin pedirte aplauso, patético.',
@@ -198,7 +197,6 @@ const AURA = {
     'Subida real aunque chica. El ego que necesita fuegos artificiales está enfermo. Y el ranking lo registra igual, qué pena.',
     'Te dieron algo. No es jackpot: es no perder. Aprendé la diferencia. Y el ranking lo registra igual, da vergüenza.',
     'Aura en verde tibio. Suficiente para no ser el chiste del día. Y el ranking lo registra igual, qué vergüenza ajena.',
-    'Aura en verde tibio. Suficiente para no ser el chiste del día. Y el ranking lo registra igual, qué vergüenza ajena.'
   ],
   loss: [
     'Perdiste aura y el chat lo registró sin pedirte permiso. En este chat eso pesa más de lo que parece, patético.',
@@ -241,7 +239,6 @@ const AURA = {
     'Hoy el azar no te regaló nada. Bienvenido al promedio. Y el ranking lo registra igual. En este chat eso pesa más de lo que parece, qué pena.',
     'Se te movió el saldo para abajo. Ajustá la cabeza también. Y el ranking lo registra igual, da vergüenza.',
     'El ranking te pegó un tiro de fogueo. Dolió igual. Y el ranking lo registra igual, qué vergüenza ajena.',
-    'El ranking te pegó un tiro de fogueo. Dolió igual. Y el ranking lo registra igual, qué vergüenza ajena.'
   ],
   spiral: [
     'Espiral activa: perdés, te alterás, y el próximo corte te vuelve a mirar feo. En este chat eso pesa más de lo que parece, patético.',
@@ -284,7 +281,6 @@ const AURA = {
     'Espiral. Cuanto más explicás, más claro se ve el agujero. Y el ranking lo registra igual. En este chat eso pesa más de lo que parece, qué pena.',
     'Seguís en rojo de racha. Eso ya no se disimula con memes. Y el ranking lo registra igual, da vergüenza.',
     'Otra vuelta hacia abajo. El bot solo está documentando. Y el ranking lo registra igual, qué vergüenza ajena.',
-    'Otra vuelta hacia abajo. El bot solo está documentando. Y el ranking lo registra igual, qué vergüenza ajena.'
   ],
   cursed: [
     'Hoy el corte salió hostil. Ni migaja ni empatía: solo resta. En este chat eso pesa más de lo que parece, patético.',
@@ -327,7 +323,6 @@ const AURA = {
     'Te desarmaron el saldo. Rearmá la cabeza. Y el ranking lo registra igual. En este chat eso pesa más de lo que parece, qué pena.',
     'Hoy la aura te trató como al resto cuando toca perder. Y el ranking lo registra igual. En este chat eso pesa más de lo que parece, da vergüenza.',
     'Pérdida sin adorno. El archivo cerró el párrafo. Y el ranking lo registra igual, qué vergüenza ajena.',
-    'Pérdida sin adorno. El archivo cerró el párrafo. Y el ranking lo registra igual, qué vergüenza ajena.'
   ],
 };
 

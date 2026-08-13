@@ -1486,7 +1486,7 @@ const LABELS = {
 
       'La luz natural te delata como un puto detector de mentiras, [nombre]. Ni con ring light te inventas un punto focal, cabrón.',
 
-      '[nombre], no eres \\\\\\\\\'interesante\\\\\\\\\': eres difícil de mirar y punto. La cámara frontal merece hazard pay, gilipollas.',
+      '[nombre], no eres \'interesante\': eres difícil de mirar y punto. La cámara frontal merece hazard pay, gilipollas.',
 
       'Fea de las que el group selfie se recorta solo, [nombre]. Ridículo automático. Sin anestesia, patético.',
 
@@ -1522,7 +1522,7 @@ const LABELS = {
 
       'Fea de las que el maquillaje es daño colateral, [nombre]. Ridículo. Con base. Sin anestesia, mierda.',
 
-      '[nombre], no hay \\\\\\\\\'te ves mejor en persona\\\\\\\\\': hay decepción escalonada. La cámara frontal merece hazard pay, coño.',
+      '[nombre], no hay \'te ves mejor en persona\': hay decepción escalonada. La cámara frontal merece hazard pay, coño.',
 
       'Tu cara es un argumento contra la natalidad irresponsable, [nombre]. Mierda. Heredada. El atractivo te bloqueó sin forwarding, cabrón.',
 
@@ -1556,7 +1556,7 @@ const LABELS = {
 
       '[nombre], el techo de tu cara es el suelo de casi cualquiera. El atractivo te bloqueó sin forwarding, ridículo.',
 
-      'No eres \\\\\\\\\'única\\\\\\\\\': eres difícil de catalogar sin insultar, [nombre]. Mierda. Rara. Ni con ring light te inventas un punto focal, fracasado.',
+      'No eres \'única\': eres difícil de catalogar sin insultar, [nombre]. Mierda. Rara. Ni con ring light te inventas un punto focal, fracasado.',
 
       '[nombre], la fealdad te queda tan natural que parece look. La cámara frontal merece hazard pay.',
 
@@ -1570,7 +1570,7 @@ const LABELS = {
 
       'Fea de las que el espejo del baño del bar tiene PTSD, [nombre]. Sin anestesia. Ni con ring light te inventas un punto focal, patético.',
 
-      '[nombre], tu cara es la razón por la que inventaron el \\\\\\\\\'desde lejos\\\\\\\\\' La cámara frontal merece hazard pay, asco.',
+      '[nombre], tu cara es la razón por la que inventaron el \'desde lejos\' La cámara frontal merece hazard pay, asco.',
 
       'No hay ángulo de salvación: hay rendición, [nombre]. Puta realidad. El atractivo te bloqueó sin forwarding, basura.',
 
@@ -1608,7 +1608,7 @@ const LABELS = {
 
       '[nombre], el high te mide yel número. La cámara frontal merece hazard pay, gilipollas, patético.',
 
-      'Fea sin barniz de \\\\\\\\\'carácter\\\\\\\\\': solo el informe, [nombre]. Cabrón. Seco. El atractivo te bloqueó sin forwarding, patético.',
+      'Fea sin barniz de \'carácter\': solo el informe, [nombre]. Cabrón. Seco. El atractivo te bloqueó sin forwarding, patético.',
 
       '[nombre], tienes el tipo de cara que hace odiar los selfies ajenos. Ni con ring light te inventas un punto focal, asco.',
 
@@ -1620,7 +1620,7 @@ const LABELS = {
 
       '[nombre], tu cara es un almost eterno que nunca llega a decente. La cámara frontal merece hazard pay.',
 
-      'No hay \\\\\\\\\'en persona se ve mejor\\\\\\\\\': hay la misma mierda. Con voz, [nombre]. El atractivo te bloqueó sin forwarding, mierda.',
+      'No hay \'en persona se ve mejor\': hay la misma mierda. Con voz, [nombre]. El atractivo te bloqueó sin forwarding, mierda.',
 
       '[nombre], el ranking de fea te tiene de inquilino fijo. Ni con ring light te inventas un punto focal, coño.',
 
@@ -1640,7 +1640,7 @@ const LABELS = {
 
       '[nombre], el high de fea te queda de tatuaje invisible. El atractivo te bloqueó sin forwarding.',
 
-      'Fea sin derecho a \\\\\\\\\'es el ángulo\\\\\\\\\': son todos, [nombre]. Ni con ring light te inventas un punto focal, mierda.',
+      'Fea sin derecho a \'es el ángulo\': son todos, [nombre]. Ni con ring light te inventas un punto focal, mierda.',
 
       '[nombre], tienes el magnetismo inverso: la gente se aleja sin saber por qué. La cámara frontal merece hazard pay, coño.',
 
@@ -1684,7 +1684,7 @@ const LABELS = {
 
       '[nombre], el material óseo y el de tejidos firmaron el mismo fail. Ni con ring light te inventas un punto focal, coño.',
 
-      'No eres un \\\\\\\\\'rostro con carácter\\\\\\\\\': eres un rostrosin suerte, [nombre]. La cámara frontal merece hazard pay, cabrón.',
+      'No eres un \'rostro con carácter\': eres un rostrosin suerte, [nombre]. La cámara frontal merece hazard pay, cabrón.',
 
       '[nombre], el ranking te tiene de ejemplo cuando explica el sótano. El atractivo te bloqueó sin forwarding, gilipollas.',
 
@@ -1736,13 +1736,13 @@ const LABELS = {
 
       '[nombre], el high te mide con regla y te deja en negativo. El atractivo te bloqueó sin forwarding, ridículo.',
 
-      'Fea sin consuelo de \\\\\\\\\'personalidad\\\\\\\\\': el comando no mide eso, [nombre]. Ni con ring light te inventas un punto focal, fracasado.',
+      'Fea sin consuelo de \'personalidad\': el comando no mide eso, [nombre]. Ni con ring light te inventas un punto focal, fracasado.',
 
       '[nombre], tienes más problemas de proporciones que un plano de arquitecto borracho. La cámara frontal merece hazard pay.',
 
       'La luz del flash te trata como evidencia del crimen, [nombre]. El atractivo te bloqueó sin forwarding, mierda.',
 
-      '[nombre], si te describen \\\\\\\\\'interesante\\\\\\\\\' es código de fea educada. Ni con ring light te inventas un punto focal, coño.',
+      '[nombre], si te describen \'interesante\' es código de fea educada. Ni con ring light te inventas un punto focal, coño.',
 
       'Fea de las que el selfie stick se acorta solo, [nombre]. Sin anestesia. La cámara frontal merece hazard pay, cabrón.',
 
@@ -1790,7 +1790,7 @@ const LABELS = {
 
       'La belleza objetiva no es debate: y tú perdiste, [nombre]. El atractivo te bloqueó sin forwarding, patético.',
 
-      '[nombre], si el high de fea fuera un piso, vivirías en el -2 Ni con ring light te inventas un punto focal, asco.',
+      '[nombre], si el high de fea fuera un piso, vivirías en el -2. Ni con ring light te inventas un punto focal, asco.',
 
       'Fea de las que el espejo del baño tiene horario de duelo, [nombre]. Sin anestesia. La cámara frontal merece hazard pay, basura.',
 
@@ -1816,7 +1816,7 @@ const LABELS = {
 
       '[nombre], el high te deja en el sótano sin ascensor. Ni con ring light te inventas un punto focal, ridículo.',
 
-      'Fea sin derecho a \\\\\\\\\'es el día\\\\\\\\\': es el material, [nombre]. La cámara frontal merece hazard pay, fracasado.',
+      'Fea sin derecho a \'es el día\': es el material, [nombre]. La cámara frontal merece hazard pay, fracasado.',
 
       '[nombre], tienes una geometría que ofende al compás. El atractivo te bloqueó sin forwarding.',
 
@@ -5318,7 +5318,7 @@ const LABELS = {
 
       'Hablas de fútbol como quien cumple un trámite. Los heteros de verdad a veces también se aburren, pero no se les nota tanto, maricón, basura.',
 
-      'Te delatas en cada gesto, cada audio y cada \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'qué guapo está ese cabrón\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'. La evidencia es tanta que ya ni cuenta como secreto.',
+      'Te delatas en cada gesto, cada audio y cada \'qué guapo está ese cabrón\'. La evidencia es tanta que ya ni cuenta como secreto.',
 
       'Tienes el tono de noches de chat sin una frase que se sostenga sola, [nombre]. Sin disimulo posible, basura.',
 
@@ -6959,7 +6959,7 @@ const LABELS = {
       'Si el porcentaje fuera más bajo, no estarías tan quieto leyendo esto, [nombre], qué pena. El grupo ya tenía el veredicto, da vergüenza.',
       '[nombre], el grupo no necesita detector: tú eres el sensor, da vergüenza. El grupo ya tenía el veredicto, qué vergüenza ajena.',
       'Maricón con manual de negación desactualizado, [nombre], qué vergüenza ajena. El grupo ya tenía el veredicto, patético.',
-      '[nombre], cada \\\'yo no soy\\\' suma un punto al contador interno del chat, patético. El grupo ya tenía el veredicto, miserable.',
+      '[nombre], cada \'yo no soy\' suma un punto al contador interno del chat, patético. El grupo ya tenía el veredicto, miserable.',
       'El armario tiene humedad y se te ve el moho, [nombre], miserable. El grupo ya tenía el veredicto, qué cringe.',
       '[nombre], te delata el tiempo de respuesta cuando el tema se pone visual, qué cringe. El grupo ya tenía el veredicto, da asco.',
       'No es un fase: es el build actual, [nombre], da asco. El grupo ya tenía el veredicto, qué vergüenza.',
@@ -7023,7 +7023,7 @@ const LABELS = {
       'El disfraz de indiferencia te queda corto, [nombre], miserable. El grupo ya tenía el veredicto, qué cringe.',
       '[nombre], si el % bajara, el chat pediría auditoría, qué cringe. El grupo ya tenía el veredicto, da asco.',
       'Maricón de catálogo, [nombre]: el bot solo pasó lista, da asco. El grupo ya tenía el veredicto, qué vergüenza.',
-      '[nombre], cada \\\'qué exagerados\\\' suma al expediente, qué vergüenza. El grupo ya tenía el veredicto, ridículo.',
+      '[nombre], cada \'qué exagerados\' suma al expediente, qué vergüenza. El grupo ya tenía el veredicto, ridículo.',
       'Se te ve más en lo que evitas que en lo que dices, [nombre], ridículo. El grupo ya tenía el veredicto, fracasado.',
       '[nombre], maricón con manual de crisis desactualizado, fracasado. El grupo ya tenía el veredicto, qué miseria.',
       'El armario tiene filtraciones con tu fuente, [nombre], qué miseria. El grupo ya tenía el veredicto, da grima.',
@@ -12752,87 +12752,86 @@ const LABELS = {
       '[nombre], patrón estable de inflar el relato y desinflar la autocrítica. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué pena.',
       'Informe clínico: el ego está hiperactivo; la ejecución, en reposo. El grupo ya lo tenía fichado sin necesidad de porcentaje, da vergüenza.',
       '[nombre], el diagnóstico no es creativo: es administrativo. El archivo alcanza, qué vergüenza ajena.',
-      'Informe clínico-cruel: tu marca personal es ruido con intermitencia de sustancia Caso reiterado, patético.',
-      'Se observa en [nombre] dependencia de validación y escasez de autocrítica Caso reiterado, miserable.',
-      'Diagnóstico: convertís feedback en enemistad para no convertirlo en tarea Caso reiterado, qué cringe.',
-      '[nombre], el expediente muestra más justificación que corrección Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da asco.',
-      'Informe: tolerancia alta al autoengaño, baja a la evidencia Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza.',
-      'Síntomas de [nombre]: protagonista en monólogo y secundario en resultados Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
-      'Diagnóstico: tu sistema inmune rechaza el \'no\' y busca reinterpretarlo Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, fracasado.',
-      '[nombre], cuadro de intensidad sin dirección. Cansa y no avanza Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
-      'Informe: la autoimagen está desactualizada respecto al build actual Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
-      'Se detecta en [nombre] hábito de cobrar deudas emocionales que nadie firmó Caso reiterado, qué nivel de pena.',
-      'Diagnóstico: más energía en la pose que en el trabajo invisible Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
-      '[nombre], patrón de desaparecer cuando toca demostrar y reaparecer cuando toca opinar Caso reiterado, qué cutre.',
-      'Informe: tu ego firma cheques que tu capacidad no cubre Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena.',
-      'Síntomas de [nombre]: necesidad de ganar discusiones más que de entender Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío.',
-      'Diagnóstico: la herida no es el roast; es que el roast tenía base Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante.',
-      '[nombre], cuadro clínico de relevancia percibida mayor que la relevancia medida Caso reiterado, qué flojo.',
-      'Informe: evitás cerrar ciclos para no admitir que ya estaban cerrados Caso reiterado, menudo desastre.',
-      'Se observa en [nombre] narrativa de incomprendido con datos de mal calibrado Caso reiterado, qué pena.',
-      'Diagnóstico: tu brújula apunta al orgullo, no al ajuste Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da vergüenza.',
-      '[nombre], patrón de subir el volumen cuando baja el argumento Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza ajena.',
-      'Informe: la paciencia ajena es tu recurso no renovable favorito Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
-      'Síntomas de [nombre]: vivir de proyecciones y sorprenderte cuando no pagan Caso reiterado, miserable.',
-      'Diagnóstico: identidad apoyada en filtros; sin filtro hay desajuste Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe.',
-      '[nombre], cuadro de quien colecciona intentos y no aciertos Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da asco.',
-      'Informe: tu resistencia al cambio es más fuerte que tu queja del presente Caso reiterado, qué vergüenza.',
-      'Se detecta en [nombre] hábito de leer indiferencia como misterio Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
-      'Diagnóstico: el problema no es el grupo; es el informe que el grupo ya tiene de vos Caso reiterado, fracasado.',
-      '[nombre], patrón de pedir confianza sin historial que la sostenga Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
-      'Informe clínico: más drama de trama que progreso de personaje Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
-      'Síntomas de [nombre]: autoestima procíclica: sube con likes mentales, cae con datos Caso reiterado, qué nivel de pena.',
-      'Diagnóstico de [nombre]: priorizás quedar por encima del dato. El dato siempre vuelve Caso reiterado, basura.',
-      '[nombre], informe: tu orgullo gasta más de lo que tu mérito ingresa Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cutre.',
-      'Cuadro clínico: hambre de estatus y dieta de resultados Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena.',
-      '[nombre], se observa costumbre de reescribir el pasado para proteger el ego Caso reiterado, qué vacío.',
-      'Diagnóstico: hablás de estándares que no aplicás en casa Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante.',
-      '[nombre], patrón de exigir claridad ajena mientras ofrecés niebla Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo.',
-      'Informe: tu zona de confort es quejarte del mapa sin caminar Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre.',
-      '[nombre], síntomas de alguien que necesita público más que plan Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué pena.',
-      'Diagnóstico: confundes ser recordado con ser respetado Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da vergüenza.',
-      '[nombre], el expediente marca repetición de los mismos errores con distinta excusa Caso reiterado, qué vergüenza ajena.',
-      'Informe frío: tu narrativa de esfuerzo no cuadra con la entrega visible Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
+      'Informe clínico-cruel: tu marca personal es ruido con intermitencia de sustancia. Caso reiterado, patético.',
+      'Se observa en [nombre] dependencia de validación y escasez de autocrítica. Caso reiterado, miserable.',
+      'Diagnóstico: convertís feedback en enemistad para no convertirlo en tarea. Caso reiterado, qué cringe.',
+      '[nombre], el expediente muestra más justificación que corrección. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da asco.',
+      'Informe: tolerancia alta al autoengaño, baja a la evidencia. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza.',
+      'Síntomas de [nombre]: protagonista en monólogo y secundario en resultados. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
+      'Diagnóstico: tu sistema inmune rechaza el \'no\' y busca reinterpretarlo. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, fracasado.',
+      '[nombre], cuadro de intensidad sin dirección. Cansa y no avanza. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
+      'Informe: la autoimagen está desactualizada respecto al build actual. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
+      'Se detecta en [nombre] hábito de cobrar deudas emocionales que nadie firmó. Caso reiterado, qué nivel de pena.',
+      'Diagnóstico: más energía en la pose que en el trabajo invisible. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
+      '[nombre], patrón de desaparecer cuando toca demostrar y reaparecer cuando toca opinar. Caso reiterado, qué cutre.',
+      'Informe: tu ego firma cheques que tu capacidad no cubre. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena.',
+      'Síntomas de [nombre]: necesidad de ganar discusiones más que de entender. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío.',
+      'Diagnóstico: la herida no es el roast; es que el roast tenía base. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante.',
+      '[nombre], cuadro clínico de relevancia percibida mayor que la relevancia medida. Caso reiterado, qué flojo.',
+      'Informe: evitás cerrar ciclos para no admitir que ya estaban cerrados. Caso reiterado, menudo desastre.',
+      'Se observa en [nombre] narrativa de incomprendido con datos de mal calibrado. Caso reiterado, qué pena.',
+      'Diagnóstico: tu brújula apunta al orgullo, no al ajuste. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da vergüenza.',
+      '[nombre], patrón de subir el volumen cuando baja el argumento. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza ajena.',
+      'Informe: la paciencia ajena es tu recurso no renovable favorito. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
+      'Síntomas de [nombre]: vivir de proyecciones y sorprenderte cuando no pagan. Caso reiterado, miserable.',
+      'Diagnóstico: identidad apoyada en filtros; sin filtro hay desajuste. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe.',
+      '[nombre], cuadro de quien colecciona intentos y no aciertos. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da asco.',
+      'Informe: tu resistencia al cambio es más fuerte que tu queja del presente. Caso reiterado, qué vergüenza.',
+      'Se detecta en [nombre] hábito de leer indiferencia como misterio. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
+      'Diagnóstico: el problema no es el grupo; es el informe que el grupo ya tiene de vos. Caso reiterado, fracasado.',
+      '[nombre], patrón de pedir confianza sin historial que la sostenga. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
+      'Informe clínico: más drama de trama que progreso de personaje. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
+      'Síntomas de [nombre]: autoestima procíclica: sube con likes mentales, cae con datos. Caso reiterado, qué nivel de pena.',
+      'Diagnóstico de [nombre]: priorizás quedar por encima del dato. El dato siempre vuelve. Caso reiterado, basura.',
+      '[nombre], informe: tu orgullo gasta más de lo que tu mérito ingresa. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cutre.',
+      'Cuadro clínico: hambre de estatus y dieta de resultados. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena.',
+      '[nombre], se observa costumbre de reescribir el pasado para proteger el ego. Caso reiterado, qué vacío.',
+      'Diagnóstico: hablás de estándares que no aplicás en casa. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante.',
+      '[nombre], patrón de exigir claridad ajena mientras ofrecés niebla. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo.',
+      'Informe: tu zona de confort es quejarte del mapa sin caminar. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre.',
+      '[nombre], síntomas de alguien que necesita público más que plan. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué pena.',
+      'Diagnóstico: confundes ser recordado con ser respetado. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da vergüenza.',
+      '[nombre], el expediente marca repetición de los mismos errores con distinta excusa. Caso reiterado, qué vergüenza ajena.',
+      'Informe frío: tu narrativa de esfuerzo no cuadra con la entrega visible. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
       '[nombre], se detecta alergia al \'no\' y adicción al \'aún no\' Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable.',
-      'Diagnóstico: el yo marketing supera al yo producto Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe.',
-      '[nombre], cuadro de intensidad mal invertida Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da asco.',
-      'Informe: generás más ruido de gestión que señal de valor Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza.',
-      '[nombre], patrón de buscar culpables externos con precisión y culpables internos con niebla Caso reiterado, ridículo.',
-      'Diagnóstico: tu brújula moral apunta hacia donde duele menos Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, fracasado.',
-      '[nombre], síntomas de vivir a crédito de potencial Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
-      'Informe: la autoimagen tiene inflación; el rendimiento no Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
-      '[nombre], se observa miedo a medir porque medir cierra discusiones a tu favor Caso reiterado, qué nivel de pena.',
-      'Diagnóstico: preferís ser mal interpretado que mal evaluado con números Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
-      '[nombre], cuadro de dependencia de la última palabra Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cutre.',
-      'Informe: tu presencia exige energía; no siempre la devuelve Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena.',
-      '[nombre], patrón de transformar límites ajenos en ofensas personales Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío.',
-      'Diagnóstico: el archivo del grupo es más honesto que tu monólogo Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante.',
-      '[nombre], síntomas de alguien que colecciona intenciones y exhibe pocas pruebas Caso reiterado, qué flojo.',
-      'Informe: hay más teatro de cambio que cambio Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre.',
-      '[nombre], se detecta hábito de pelear el espejo en vez de lavarlo Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué pena.',
-      'Diagnóstico: tu necesidad de ganar la escena supera la de mejorar el script Caso reiterado, da vergüenza.',
-      '[nombre], cuadro clínico de relevancia autoasignada Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza ajena.',
-      'Diagnóstico de [nombre]: ego inflado, resultados flacos y una resistencia notable a mirar el espejo Caso reiterado, patético.',
-      'Informe de [nombre]: más pose que sustancia. El grupo ya lo intuía; el porcentaje solo lo formaliza Caso reiterado, miserable.',
-      'Diagnóstico: dependencia del relato heroico para no admitir mediocridad operativa Caso reiterado, qué cringe.',
-      '[nombre], presentás síntomas de alguien que habla mejor de sí mismo de lo que rinde Caso reiterado, da asco.',
-      'Informe: confundes volumen de mensajes con valor. Efecto secundario: cansancio ajeno Caso reiterado, qué vergüenza.',
-      'Cuadro clínico de [nombre]: autoestima prestada y pruebas insuficientes Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
-      'Diagnóstico: evitás el dato incómodo como quien evita una analítica Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, fracasado.',
-      '[nombre], se observa proyección crónica y baja tolerancia a la crítica útil Caso reiterado, qué miseria.',
-      'Informe frío: tu confianza no está respaldada por el historial del chat Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
-      'Patrón de [nombre]: promesas internas sin entrega externa. Crónico Caso reiterado, qué nivel de pena.',
-      'Diagnóstico: necesidad de ser el centro con poco material de centro Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
-      '[nombre], síntomas de delulu social mezclados con pereza de cambio Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cutre.',
-      'Informe: reaccionás a la realidad como si fuera un ataque personal Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena.',
-      'Se detecta en [nombre] miedo a medir resultados reales. Preferís narrativas Caso reiterado, qué vacío.',
-      'Diagnóstico: el yo ideal trabaja tiempo completo; el yo real está de baja Caso reiterado, indignante.',
-      '[nombre], cuadro de quien exige respeto anticipado sin depositar mérito Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo.',
-      'Informe: tu presencia genera más gestión que admiración Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre.',
-      'Síntomas claros en [nombre]: hablar desde el potencial y vivir desde la excusa Caso reiterado, qué pena.',
-      'Diagnóstico: baja lucidez selectiva. Solo ves lo que no te implica Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da vergüenza.',
-      '[nombre], patrón repetido de ofenderte por espejos que no pediste pero necesitabas Caso reiterado, qué vergüenza ajena.',
-      '[nombre], patrón de subir el volumen cuando baja el argumento Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza ajena.'
+      'Diagnóstico: el yo marketing supera al yo producto. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe.',
+      '[nombre], cuadro de intensidad mal invertida. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da asco.',
+      'Informe: generás más ruido de gestión que señal de valor. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza.',
+      '[nombre], patrón de buscar culpables externos con precisión y culpables internos con niebla. Caso reiterado, ridículo.',
+      'Diagnóstico: tu brújula moral apunta hacia donde duele menos. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, fracasado.',
+      '[nombre], síntomas de vivir a crédito de potencial. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
+      'Informe: la autoimagen tiene inflación; el rendimiento no. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
+      '[nombre], se observa miedo a medir porque medir cierra discusiones a tu favor. Caso reiterado, qué nivel de pena.',
+      'Diagnóstico: preferís ser mal interpretado que mal evaluado con números. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
+      '[nombre], cuadro de dependencia de la última palabra. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cutre.',
+      'Informe: tu presencia exige energía; no siempre la devuelve. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena.',
+      '[nombre], patrón de transformar límites ajenos en ofensas personales. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío.',
+      'Diagnóstico: el archivo del grupo es más honesto que tu monólogo. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante.',
+      '[nombre], síntomas de alguien que colecciona intenciones y exhibe pocas pruebas. Caso reiterado, qué flojo.',
+      'Informe: hay más teatro de cambio que cambio. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre.',
+      '[nombre], se detecta hábito de pelear el espejo en vez de lavarlo. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué pena.',
+      'Diagnóstico: tu necesidad de ganar la escena supera la de mejorar el script. Caso reiterado, da vergüenza.',
+      '[nombre], cuadro clínico de relevancia autoasignada. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza ajena.',
+      'Diagnóstico de [nombre]: ego inflado, resultados flacos y una resistencia notable a mirar el espejo. Caso reiterado, patético.',
+      'Informe de [nombre]: más pose que sustancia. El grupo ya lo intuía; el porcentaje solo lo formaliza. Caso reiterado, miserable.',
+      'Diagnóstico: dependencia del relato heroico para no admitir mediocridad operativa. Caso reiterado, qué cringe.',
+      '[nombre], presentás síntomas de alguien que habla mejor de sí mismo de lo que rinde. Caso reiterado, da asco.',
+      'Informe: confundes volumen de mensajes con valor. Efecto secundario: cansancio ajeno. Caso reiterado, qué vergüenza.',
+      'Cuadro clínico de [nombre]: autoestima prestada y pruebas insuficientes. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
+      'Diagnóstico: evitás el dato incómodo como quien evita una analítica. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, fracasado.',
+      '[nombre], se observa proyección crónica y baja tolerancia a la crítica útil. Caso reiterado, qué miseria.',
+      'Informe frío: tu confianza no está respaldada por el historial del chat. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
+      'Patrón de [nombre]: promesas internas sin entrega externa. Crónico. Caso reiterado, qué nivel de pena.',
+      'Diagnóstico: necesidad de ser el centro con poco material de centro. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
+      '[nombre], síntomas de delulu social mezclados con pereza de cambio. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cutre.',
+      'Informe: reaccionás a la realidad como si fuera un ataque personal. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena.',
+      'Se detecta en [nombre] miedo a medir resultados reales. Preferís narrativas. Caso reiterado, qué vacío.',
+      'Diagnóstico: el yo ideal trabaja tiempo completo; el yo real está de baja. Caso reiterado, indignante.',
+      '[nombre], cuadro de quien exige respeto anticipado sin depositar mérito. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo.',
+      'Informe: tu presencia genera más gestión que admiración. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre.',
+      'Síntomas claros en [nombre]: hablar desde el potencial y vivir desde la excusa. Caso reiterado, qué pena.',
+      'Diagnóstico: baja lucidez selectiva. Solo ves lo que no te implica. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da vergüenza.',
+      '[nombre], patrón repetido de ofenderte por espejos que no pediste pero necesitabas. Caso reiterado, qué vergüenza ajena.',
     ],
     mid: [
       'Diagnóstico intermedio de [nombre]: hay luces y hay sombra. Hoy gana la sombra por poco, qué miseria.',
@@ -12855,7 +12854,6 @@ const LABELS = {
       '[nombre], se observa progreso a medias y relato de progreso completo. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza.',
       'Informe de [nombre]: estable en la zona tibia. Ni alarma ni medalla. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
       '[nombre], cuadro de quien ya sabe qué corregir y todavía no corrige. El grupo ya lo tenía fichado sin necesidad de porcentaje, fracasado.',
-      '[nombre], la autoimagen está un poco por encima del rendimiento. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre.'
     ],
     low: [
       'Diagnóstico suave de [nombre]: hoy el informe no sale rojo. Hay base usable. Sin necesidad de escalar el informe en esta tirada.',
@@ -12878,7 +12876,6 @@ const LABELS = {
       '[nombre], cuadro de quien hoy no necesita corrección pública fuerte. Sin necesidad de escalar el informe en esta tirada.',
       'Informe light: coherencia aceptable entre relato y rastro. Sin necesidad de escalar el informe en esta tirada.',
       '[nombre], el diagnóstico baja de tono porque el material no da para más. Sin necesidad de escalar el informe en esta tirada.',
-      '[nombre], el expediente hoy está en rango aceptable. Sin necesidad de escalar el informe en esta tirada.'
     ],
   }
 };

@@ -5,408 +5,408 @@
 
 // ─── El bote ─────────────────────────────────────────────────────────────────
 const BOTE_REVIENTA = [
-  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta Registro de atraco número 1, patético.',
+  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta. Registro de atraco número 1, patético.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 2.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón. Registro de atraco número 2.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 3, qué cringe.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas. Registro de atraco número 3, qué cringe.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 4 da asco.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda. Registro de atraco número 4, da asco.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 5.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño. Registro de atraco número 5.',
 
-  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 6, ridículo.',
+  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco. Registro de atraco número 6, ridículo.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, patético Registro de atraco número 7 Marca 6.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, patético. Registro de atraco número 7. Marca 6.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 8 Marca 7, qué miseria.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura. Registro de atraco número 8. Marca 7, qué miseria.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 9 Marca 8.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo. Registro de atraco número 9. Marca 8.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 10 Marca 9.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado. Registro de atraco número 10. Marca 9.',
 
-  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta Registro de atraco número 11 Marca 10, basura.',
+  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta. Registro de atraco número 11. Marca 10, basura.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 12 Marca 11.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón. Registro de atraco número 12. Marca 11.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 13 Marca 12, da pena ajena.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas. Registro de atraco número 13. Marca 12, da pena ajena.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 14 Marca 13.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda. Registro de atraco número 14. Marca 13.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 15 Marca 14.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño. Registro de atraco número 15. Marca 14.',
 
-  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 16 Marca 15, qué vergüenza ajena.',
+  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco. Registro de atraco número 16. Marca 15, qué vergüenza ajena.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, patético Registro de atraco número 17 Marca 16, da vergüenza.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, patético. Registro de atraco número 17. Marca 16, da vergüenza.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 18 Marca 17, qué flojo.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura. Registro de atraco número 18. Marca 17, qué flojo.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 19 Marca 18.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo. Registro de atraco número 19. Marca 18.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 20 Marca 19, qué pena.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado. Registro de atraco número 20. Marca 19, qué pena.',
 
-  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta Registro de atraco número 21 Marca 20, patético.',
+  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta. Registro de atraco número 21. Marca 20, patético.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 22 Marca 21.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón. Registro de atraco número 22. Marca 21.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 23 Marca 22, qué cringe.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas. Registro de atraco número 23. Marca 22, qué cringe.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 24 Marca 23 da asco.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda. Registro de atraco número 24. Marca 23, da asco.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 25 Marca 24.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño. Registro de atraco número 25. Marca 24.',
 
-  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 26 Marca 25, ridículo.',
+  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco. Registro de atraco número 26. Marca 25, ridículo.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, patético Registro de atraco número 27 Marca 26, fracasado.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, patético. Registro de atraco número 27. Marca 26, fracasado.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 28 Marca 27, qué miseria.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura. Registro de atraco número 28. Marca 27, qué miseria.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 29 Marca 28.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo. Registro de atraco número 29. Marca 28.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 30 Marca 29, qué nivel de pena.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado. Registro de atraco número 30. Marca 29, qué nivel de pena.',
 
-  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta Registro de atraco número 31 Marca 30, basura.',
+  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta. Registro de atraco número 31. Marca 30, basura.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 32 Marca 31.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón. Registro de atraco número 32. Marca 31.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 33 Marca 32, da pena ajena.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas. Registro de atraco número 33. Marca 32, da pena ajena.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 34 Marca 33.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda. Registro de atraco número 34. Marca 33.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 35 Marca 34.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño. Registro de atraco número 35. Marca 34.',
 
-  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 36 Marca 35, qué vergüenza ajena.',
+  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco. Registro de atraco número 36. Marca 35, qué vergüenza ajena.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, patético Registro de atraco número 37 Marca 36, da vergüenza.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, patético. Registro de atraco número 37. Marca 36, da vergüenza.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 38 Marca 37, qué flojo.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura. Registro de atraco número 38. Marca 37, qué flojo.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 39 Marca 38.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo. Registro de atraco número 39. Marca 38.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 40 Marca 39, qué pena.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado. Registro de atraco número 40. Marca 39, qué pena.',
 
-  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta Registro de atraco número 41 Marca 40, patético.',
+  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta. Registro de atraco número 41. Marca 40, patético.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 42 Marca 41.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón. Registro de atraco número 42. Marca 41.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 43 Marca 42, qué cringe.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas. Registro de atraco número 43. Marca 42, qué cringe.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 44 Marca 43 da asco.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda. Registro de atraco número 44. Marca 43, da asco.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 45 Marca 44.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño. Registro de atraco número 45. Marca 44.',
 
-  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 46 Marca 45, ridículo.',
+  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco. Registro de atraco número 46. Marca 45, ridículo.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, patético Registro de atraco número 47 Marca 46, fracasado.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, patético. Registro de atraco número 47. Marca 46, fracasado.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 48 Marca 47, qué miseria.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura. Registro de atraco número 48. Marca 47, qué miseria.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 49 Marca 48.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo. Registro de atraco número 49. Marca 48.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 50 Marca 49, qué nivel de pena.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado. Registro de atraco número 50. Marca 49, qué nivel de pena.',
 
-  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta Registro de atraco número 51 Marca 50, basura.',
+  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta. Registro de atraco número 51. Marca 50, basura.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 52 Marca 51.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón. Registro de atraco número 52. Marca 51.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 53 Marca 52, da pena ajena.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas. Registro de atraco número 53. Marca 52, da pena ajena.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 54 Marca 53.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda. Registro de atraco número 54. Marca 53.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 55 Marca 54.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño. Registro de atraco número 55. Marca 54.',
 
-  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 56 Marca 55, qué vergüenza ajena.',
+  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco. Registro de atraco número 56. Marca 55, qué vergüenza ajena.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, patético Registro de atraco número 57 Marca 56, da vergüenza.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, patético. Registro de atraco número 57. Marca 56, da vergüenza.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 58 Marca 57, qué flojo.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura. Registro de atraco número 58. Marca 57, qué flojo.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 59 Marca 58.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo. Registro de atraco número 59. Marca 58.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 60 Marca 59, qué pena.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado. Registro de atraco número 60. Marca 59, qué pena.',
 
-  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta Registro de atraco número 61 Marca 60, patético.',
+  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta. Registro de atraco número 61. Marca 60, patético.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 62 Marca 61.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón. Registro de atraco número 62. Marca 61.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 63 Marca 62, qué cringe.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas. Registro de atraco número 63. Marca 62, qué cringe.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 64 Marca 63 da asco.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda. Registro de atraco número 64. Marca 63, da asco.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 65 Marca 64.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño. Registro de atraco número 65. Marca 64.',
 
-  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 66 Marca 65, ridículo.',
+  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco. Registro de atraco número 66. Marca 65, ridículo.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, patético Registro de atraco número 67 Marca 66, fracasado.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, patético. Registro de atraco número 67. Marca 66, fracasado.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 68 Marca 67, qué miseria.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura. Registro de atraco número 68. Marca 67, qué miseria.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 69 Marca 68.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo. Registro de atraco número 69. Marca 68.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 70 Marca 69, qué nivel de pena.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado. Registro de atraco número 70. Marca 69, qué nivel de pena.',
 
-  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta Registro de atraco número 71 Marca 70, basura.',
+  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta. Registro de atraco número 71. Marca 70, basura.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 72 Marca 71.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón. Registro de atraco número 72. Marca 71.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 73 Marca 72, da pena ajena.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas. Registro de atraco número 73. Marca 72, da pena ajena.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 74 Marca 73.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda. Registro de atraco número 74. Marca 73.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 75 Marca 74.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño. Registro de atraco número 75. Marca 74.',
 
-  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 76 Marca 75, qué vergüenza ajena.',
+  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco. Registro de atraco número 76. Marca 75, qué vergüenza ajena.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, patético Registro de atraco número 77 Marca 76, da vergüenza.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, patético. Registro de atraco número 77. Marca 76, da vergüenza.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 78 Marca 77, qué flojo.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura. Registro de atraco número 78. Marca 77, qué flojo.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 79 Marca 78.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo. Registro de atraco número 79. Marca 78.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 80 Marca 79, qué pena.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado. Registro de atraco número 80. Marca 79, qué pena.',
 
-  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta Registro de atraco número 81 Marca 80, patético.',
+  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta. Registro de atraco número 81. Marca 80, patético.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 82 Marca 81.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón. Registro de atraco número 82. Marca 81.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 83 Marca 82, qué cringe.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas. Registro de atraco número 83. Marca 82, qué cringe.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 84 Marca 83 da asco.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda. Registro de atraco número 84. Marca 83, da asco.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 85 Marca 84.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño. Registro de atraco número 85. Marca 84.',
 
-  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 86 Marca 85, ridículo.',
+  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco. Registro de atraco número 86. Marca 85, ridículo.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, patético Registro de atraco número 87 Marca 86, fracasado.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, patético. Registro de atraco número 87. Marca 86, fracasado.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 88 Marca 87, qué miseria.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura. Registro de atraco número 88. Marca 87, qué miseria.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 89 Marca 88.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo. Registro de atraco número 89. Marca 88.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 90 Marca 89, qué nivel de pena.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado. Registro de atraco número 90. Marca 89, qué nivel de pena.',
 
-  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta Registro de atraco número 91 Marca 90, basura.',
+  '%A reventó el bote y se lleva %C. El fail colectivo pagó la fiesta. Registro de atraco número 91. Marca 90, basura.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón Registro de atraco número 92 Marca 91.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, cabrón. Registro de atraco número 92. Marca 91.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas Registro de atraco número 93 Marca 92, da pena ajena.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, gilipollas. Registro de atraco número 93. Marca 92, da pena ajena.',
 
-  'El bote no sobrevivió a %A. %C en su contador, mierda Registro de atraco número 94 Marca 93.',
+  'El bote no sobrevivió a %A. %C en su contador, mierda. Registro de atraco número 94. Marca 93.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, coño Registro de atraco número 95 Marca 94.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, coño. Registro de atraco número 95. Marca 94.',
 
-  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco Registro de atraco número 96 Marca 95, qué vergüenza ajena.',
+  '%A se comió el bote y se lleva %C. El fail colectivo pagó la fiesta, asco. Registro de atraco número 96. Marca 95, qué vergüenza ajena.',
 
-  'Bote a cero: %A se fue con %C. El chat traga saliva, patético Registro de atraco número 97 Marca 96, da vergüenza.',
+  'Bote a cero: %A se fue con %C. El chat traga saliva, patético. Registro de atraco número 97. Marca 96, da vergüenza.',
 
-  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura Registro de atraco número 98 Marca 97, qué flojo.',
+  '%A hizo caja con el acumulado (%C). Jackpot de miseria ajena, basura. Registro de atraco número 98. Marca 97, qué flojo.',
 
-  'El bote no sobrevivió a %A. %C en su contador, ridículo Registro de atraco número 99 Marca 98.',
+  'El bote no sobrevivió a %A. %C en su contador, ridículo. Registro de atraco número 99. Marca 98.',
 
-  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado Registro de atraco número 100 Marca 99, qué pena.',
+  '%A cobró %C del bote delante de todos. Sin aplauso, fracasado. Registro de atraco número 100. Marca 99, qué pena.',
 
 ];
 
 const BOTE_FALLA = [
-  '%A falló con el bote y salió escaldado. Manos vacías Intento fallido número 1 archivado.',
+  '%A falló con el bote y salió escaldado. Manos vacías. Intento fallido número 1 archivado.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón Intento fallido número 2 archivado.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón. Intento fallido número 2 archivado.',
 
-  '%A quiso el reventón y el bote ni se enteró, gilipollas Intento fallido número 3 archivado.',
+  '%A quiso el reventón y el bote ni se enteró, gilipollas. Intento fallido número 3 archivado.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, mierda Intento fallido número 4 archivado.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, mierda. Intento fallido número 4 archivado.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, coño Intento fallido número 5 archivado.',
+  '%A no cobró el bote. Cobró el roast express del grupo, coño. Intento fallido número 5 archivado.',
 
-  '%A fracasó con el bote y salió escaldado. Manos vacías, asco Intento fallido número 6 archivado.',
+  '%A fracasó con el bote y salió escaldado. Manos vacías, asco. Intento fallido número 6 archivado.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 7 archivado Marca 6, fracasado.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, patético. Intento fallido número 7 archivado. Marca 6, fracasado.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 8 archivado Marca 7.',
+  '%A quiso el reventón y el bote ni se enteró, basura. Intento fallido número 8 archivado. Marca 7.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 9 archivado Marca 8, da grima.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo. Intento fallido número 9 archivado. Marca 8, da grima.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, fracasado Intento fallido número 10 archivado Marca 9, qué nivel de pena.',
+  '%A no cobró el bote. Cobró el roast express del grupo, fracasado. Intento fallido número 10 archivado. Marca 9, qué nivel de pena.',
 
-  '%A falló con el bote y salió escaldado. Manos vacías Intento fallido número 11 archivado Marca 10, basura.',
+  '%A falló con el bote y salió escaldado. Manos vacías. Intento fallido número 11 archivado. Marca 10, basura.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón Intento fallido número 12 archivado Marca 11, qué cutre.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón. Intento fallido número 12 archivado. Marca 11, qué cutre.',
 
-  '%A quiso el reventón y el bote ni se enteró, gilipollas Intento fallido número 13 archivado Marca 12, da pena ajena.',
+  '%A quiso el reventón y el bote ni se enteró, gilipollas. Intento fallido número 13 archivado. Marca 12, da pena ajena.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, mierda Intento fallido número 14 archivado Marca 13, qué vacío.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, mierda. Intento fallido número 14 archivado. Marca 13, qué vacío.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, coño Intento fallido número 15 archivado Marca 14, indignante.',
+  '%A no cobró el bote. Cobró el roast express del grupo, coño. Intento fallido número 15 archivado. Marca 14, indignante.',
 
-  '%A fracasó con el bote y salió escaldado. Manos vacías, asco Intento fallido número 16 archivado Marca 15, qué vergüenza ajena.',
+  '%A fracasó con el bote y salió escaldado. Manos vacías, asco. Intento fallido número 16 archivado. Marca 15, qué vergüenza ajena.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 17 archivado Marca 16, da vergüenza.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, patético. Intento fallido número 17 archivado. Marca 16, da vergüenza.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 18 archivado Marca 17.',
+  '%A quiso el reventón y el bote ni se enteró, basura. Intento fallido número 18 archivado. Marca 17.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 19 archivado Marca 18, menudo desastre.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo. Intento fallido número 19 archivado. Marca 18, menudo desastre.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, fracasado Intento fallido número 20 archivado Marca 19, qué pena.',
+  '%A no cobró el bote. Cobró el roast express del grupo, fracasado. Intento fallido número 20 archivado. Marca 19, qué pena.',
 
-  '%A falló con el bote y salió escaldado. Manos vacías Intento fallido número 21 archivado Marca 20, patético.',
+  '%A falló con el bote y salió escaldado. Manos vacías. Intento fallido número 21 archivado. Marca 20, patético.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón Intento fallido número 22 archivado Marca 21, miserable.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón. Intento fallido número 22 archivado. Marca 21, miserable.',
 
-  '%A quiso el reventón y el bote ni se enteró, gilipollas Intento fallido número 23 archivado Marca 22, qué cringe.',
+  '%A quiso el reventón y el bote ni se enteró, gilipollas. Intento fallido número 23 archivado. Marca 22, qué cringe.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, mierda Intento fallido número 24 archivado Marca 23, da asco.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, mierda. Intento fallido número 24 archivado. Marca 23, da asco.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, coño Intento fallido número 25 archivado Marca 24, qué vergüenza.',
+  '%A no cobró el bote. Cobró el roast express del grupo, coño. Intento fallido número 25 archivado. Marca 24, qué vergüenza.',
 
-  '%A fracasó con el bote y salió escaldado. Manos vacías, asco Intento fallido número 26 archivado Marca 25, ridículo.',
+  '%A fracasó con el bote y salió escaldado. Manos vacías, asco. Intento fallido número 26 archivado. Marca 25, ridículo.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 27 archivado Marca 26, fracasado.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, patético. Intento fallido número 27 archivado. Marca 26, fracasado.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 28 archivado Marca 27.',
+  '%A quiso el reventón y el bote ni se enteró, basura. Intento fallido número 28 archivado. Marca 27.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 29 archivado Marca 28, da grima.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo. Intento fallido número 29 archivado. Marca 28, da grima.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, fracasado Intento fallido número 30 archivado Marca 29, qué nivel de pena.',
+  '%A no cobró el bote. Cobró el roast express del grupo, fracasado. Intento fallido número 30 archivado. Marca 29, qué nivel de pena.',
 
-  '%A falló con el bote y salió escaldado. Manos vacías Intento fallido número 31 archivado Marca 30, basura.',
+  '%A falló con el bote y salió escaldado. Manos vacías. Intento fallido número 31 archivado. Marca 30, basura.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón Intento fallido número 32 archivado Marca 31, qué cutre.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón. Intento fallido número 32 archivado. Marca 31, qué cutre.',
 
-  '%A quiso el reventón y el bote ni se enteró, gilipollas Intento fallido número 33 archivado Marca 32, da pena ajena.',
+  '%A quiso el reventón y el bote ni se enteró, gilipollas. Intento fallido número 33 archivado. Marca 32, da pena ajena.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, mierda Intento fallido número 34 archivado Marca 33, qué vacío.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, mierda. Intento fallido número 34 archivado. Marca 33, qué vacío.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, coño Intento fallido número 35 archivado Marca 34, indignante.',
+  '%A no cobró el bote. Cobró el roast express del grupo, coño. Intento fallido número 35 archivado. Marca 34, indignante.',
 
-  '%A fracasó con el bote y salió escaldado. Manos vacías, asco Intento fallido número 36 archivado Marca 35, qué vergüenza ajena.',
+  '%A fracasó con el bote y salió escaldado. Manos vacías, asco. Intento fallido número 36 archivado. Marca 35, qué vergüenza ajena.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 37 archivado Marca 36, da vergüenza.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, patético. Intento fallido número 37 archivado. Marca 36, da vergüenza.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 38 archivado Marca 37.',
+  '%A quiso el reventón y el bote ni se enteró, basura. Intento fallido número 38 archivado. Marca 37.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 39 archivado Marca 38, menudo desastre.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo. Intento fallido número 39 archivado. Marca 38, menudo desastre.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, fracasado Intento fallido número 40 archivado Marca 39, qué pena.',
+  '%A no cobró el bote. Cobró el roast express del grupo, fracasado. Intento fallido número 40 archivado. Marca 39, qué pena.',
 
-  '%A falló con el bote y salió escaldado. Manos vacías Intento fallido número 41 archivado Marca 40, patético.',
+  '%A falló con el bote y salió escaldado. Manos vacías. Intento fallido número 41 archivado. Marca 40, patético.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón Intento fallido número 42 archivado Marca 41, miserable.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón. Intento fallido número 42 archivado. Marca 41, miserable.',
 
-  '%A quiso el reventón y el bote ni se enteró, gilipollas Intento fallido número 43 archivado Marca 42, qué cringe.',
+  '%A quiso el reventón y el bote ni se enteró, gilipollas. Intento fallido número 43 archivado. Marca 42, qué cringe.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, mierda Intento fallido número 44 archivado Marca 43, da asco.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, mierda. Intento fallido número 44 archivado. Marca 43, da asco.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, coño Intento fallido número 45 archivado Marca 44, qué vergüenza.',
+  '%A no cobró el bote. Cobró el roast express del grupo, coño. Intento fallido número 45 archivado. Marca 44, qué vergüenza.',
 
-  '%A fracasó con el bote y salió escaldado. Manos vacías, asco Intento fallido número 46 archivado Marca 45, ridículo.',
+  '%A fracasó con el bote y salió escaldado. Manos vacías, asco. Intento fallido número 46 archivado. Marca 45, ridículo.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 47 archivado Marca 46, fracasado.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, patético. Intento fallido número 47 archivado. Marca 46, fracasado.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 48 archivado Marca 47.',
+  '%A quiso el reventón y el bote ni se enteró, basura. Intento fallido número 48 archivado. Marca 47.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 49 archivado Marca 48, da grima.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo. Intento fallido número 49 archivado. Marca 48, da grima.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, fracasado Intento fallido número 50 archivado Marca 49, qué nivel de pena.',
+  '%A no cobró el bote. Cobró el roast express del grupo, fracasado. Intento fallido número 50 archivado. Marca 49, qué nivel de pena.',
 
-  '%A falló con el bote y salió escaldado. Manos vacías Intento fallido número 51 archivado Marca 50, basura.',
+  '%A falló con el bote y salió escaldado. Manos vacías. Intento fallido número 51 archivado. Marca 50, basura.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón Intento fallido número 52 archivado Marca 51, qué cutre.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón. Intento fallido número 52 archivado. Marca 51, qué cutre.',
 
-  '%A quiso el reventón y el bote ni se enteró, gilipollas Intento fallido número 53 archivado Marca 52, da pena ajena.',
+  '%A quiso el reventón y el bote ni se enteró, gilipollas. Intento fallido número 53 archivado. Marca 52, da pena ajena.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, mierda Intento fallido número 54 archivado Marca 53, qué vacío.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, mierda. Intento fallido número 54 archivado. Marca 53, qué vacío.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, coño Intento fallido número 55 archivado Marca 54, indignante.',
+  '%A no cobró el bote. Cobró el roast express del grupo, coño. Intento fallido número 55 archivado. Marca 54, indignante.',
 
-  '%A fracasó con el bote y salió escaldado. Manos vacías, asco Intento fallido número 56 archivado Marca 55, qué vergüenza ajena.',
+  '%A fracasó con el bote y salió escaldado. Manos vacías, asco. Intento fallido número 56 archivado. Marca 55, qué vergüenza ajena.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 57 archivado Marca 56, da vergüenza.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, patético. Intento fallido número 57 archivado. Marca 56, da vergüenza.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 58 archivado Marca 57.',
+  '%A quiso el reventón y el bote ni se enteró, basura. Intento fallido número 58 archivado. Marca 57.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 59 archivado Marca 58, menudo desastre.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo. Intento fallido número 59 archivado. Marca 58, menudo desastre.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, fracasado Intento fallido número 60 archivado Marca 59, qué pena.',
+  '%A no cobró el bote. Cobró el roast express del grupo, fracasado. Intento fallido número 60 archivado. Marca 59, qué pena.',
 
-  '%A falló con el bote y salió escaldado. Manos vacías Intento fallido número 61 archivado Marca 60, patético.',
+  '%A falló con el bote y salió escaldado. Manos vacías. Intento fallido número 61 archivado. Marca 60, patético.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón Intento fallido número 62 archivado Marca 61, miserable.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón. Intento fallido número 62 archivado. Marca 61, miserable.',
 
-  '%A quiso el reventón y el bote ni se enteró, gilipollas Intento fallido número 63 archivado Marca 62, qué cringe.',
+  '%A quiso el reventón y el bote ni se enteró, gilipollas. Intento fallido número 63 archivado. Marca 62, qué cringe.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, mierda Intento fallido número 64 archivado Marca 63, da asco.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, mierda. Intento fallido número 64 archivado. Marca 63, da asco.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, coño Intento fallido número 65 archivado Marca 64, qué vergüenza.',
+  '%A no cobró el bote. Cobró el roast express del grupo, coño. Intento fallido número 65 archivado. Marca 64, qué vergüenza.',
 
-  '%A fracasó con el bote y salió escaldado. Manos vacías, asco Intento fallido número 66 archivado Marca 65, ridículo.',
+  '%A fracasó con el bote y salió escaldado. Manos vacías, asco. Intento fallido número 66 archivado. Marca 65, ridículo.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 67 archivado Marca 66, fracasado.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, patético. Intento fallido número 67 archivado. Marca 66, fracasado.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 68 archivado Marca 67.',
+  '%A quiso el reventón y el bote ni se enteró, basura. Intento fallido número 68 archivado. Marca 67.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 69 archivado Marca 68, da grima.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo. Intento fallido número 69 archivado. Marca 68, da grima.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, fracasado Intento fallido número 70 archivado Marca 69, qué nivel de pena.',
+  '%A no cobró el bote. Cobró el roast express del grupo, fracasado. Intento fallido número 70 archivado. Marca 69, qué nivel de pena.',
 
-  '%A falló con el bote y salió escaldado. Manos vacías Intento fallido número 71 archivado Marca 70, basura.',
+  '%A falló con el bote y salió escaldado. Manos vacías. Intento fallido número 71 archivado. Marca 70, basura.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón Intento fallido número 72 archivado Marca 71, qué cutre.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón. Intento fallido número 72 archivado. Marca 71, qué cutre.',
 
-  '%A quiso el reventón y el bote ni se enteró, gilipollas Intento fallido número 73 archivado Marca 72, da pena ajena.',
+  '%A quiso el reventón y el bote ni se enteró, gilipollas. Intento fallido número 73 archivado. Marca 72, da pena ajena.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, mierda Intento fallido número 74 archivado Marca 73, qué vacío.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, mierda. Intento fallido número 74 archivado. Marca 73, qué vacío.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, coño Intento fallido número 75 archivado Marca 74, indignante.',
+  '%A no cobró el bote. Cobró el roast express del grupo, coño. Intento fallido número 75 archivado. Marca 74, indignante.',
 
-  '%A fracasó con el bote y salió escaldado. Manos vacías, asco Intento fallido número 76 archivado Marca 75, qué vergüenza ajena.',
+  '%A fracasó con el bote y salió escaldado. Manos vacías, asco. Intento fallido número 76 archivado. Marca 75, qué vergüenza ajena.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 77 archivado Marca 76, da vergüenza.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, patético. Intento fallido número 77 archivado. Marca 76, da vergüenza.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 78 archivado Marca 77.',
+  '%A quiso el reventón y el bote ni se enteró, basura. Intento fallido número 78 archivado. Marca 77.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 79 archivado Marca 78, menudo desastre.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo. Intento fallido número 79 archivado. Marca 78, menudo desastre.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, fracasado Intento fallido número 80 archivado Marca 79, qué pena.',
+  '%A no cobró el bote. Cobró el roast express del grupo, fracasado. Intento fallido número 80 archivado. Marca 79, qué pena.',
 
-  '%A falló con el bote y salió escaldado. Manos vacías Intento fallido número 81 archivado Marca 80, patético.',
+  '%A falló con el bote y salió escaldado. Manos vacías. Intento fallido número 81 archivado. Marca 80, patético.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón Intento fallido número 82 archivado Marca 81, miserable.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón. Intento fallido número 82 archivado. Marca 81, miserable.',
 
-  '%A quiso el reventón y el bote ni se enteró, gilipollas Intento fallido número 83 archivado Marca 82, qué cringe.',
+  '%A quiso el reventón y el bote ni se enteró, gilipollas. Intento fallido número 83 archivado. Marca 82, qué cringe.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, mierda Intento fallido número 84 archivado Marca 83, da asco.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, mierda. Intento fallido número 84 archivado. Marca 83, da asco.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, coño Intento fallido número 85 archivado Marca 84, qué vergüenza.',
+  '%A no cobró el bote. Cobró el roast express del grupo, coño. Intento fallido número 85 archivado. Marca 84, qué vergüenza.',
 
-  '%A fracasó con el bote y salió escaldado. Manos vacías, asco Intento fallido número 86 archivado Marca 85, ridículo.',
+  '%A fracasó con el bote y salió escaldado. Manos vacías, asco. Intento fallido número 86 archivado. Marca 85, ridículo.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 87 archivado Marca 86, fracasado.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, patético. Intento fallido número 87 archivado. Marca 86, fracasado.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 88 archivado Marca 87.',
+  '%A quiso el reventón y el bote ni se enteró, basura. Intento fallido número 88 archivado. Marca 87.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 89 archivado Marca 88, da grima.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo. Intento fallido número 89 archivado. Marca 88, da grima.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, fracasado Intento fallido número 90 archivado Marca 89, qué nivel de pena.',
+  '%A no cobró el bote. Cobró el roast express del grupo, fracasado. Intento fallido número 90 archivado. Marca 89, qué nivel de pena.',
 
-  '%A falló con el bote y salió escaldado. Manos vacías Intento fallido número 91 archivado Marca 90, qué nivel de pena.',
+  '%A falló con el bote y salió escaldado. Manos vacías. Intento fallido número 91 archivado. Marca 90, qué nivel de pena.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón Intento fallido número 92 archivado Marca 91, basura.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, cabrón. Intento fallido número 92 archivado. Marca 91, basura.',
 
-  '%A quiso el reventón y el bote ni se enteró, gilipollas Intento fallido número 93 archivado Marca 92, qué cutre.',
+  '%A quiso el reventón y el bote ni se enteró, gilipollas. Intento fallido número 93 archivado. Marca 92, qué cutre.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, mierda Intento fallido número 94 archivado Marca 93, da pena ajena.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, mierda. Intento fallido número 94 archivado. Marca 93, da pena ajena.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, coño Intento fallido número 95 archivado Marca 94, qué vacío.',
+  '%A no cobró el bote. Cobró el roast express del grupo, coño. Intento fallido número 95 archivado. Marca 94, qué vacío.',
 
-  '%A fracasó con el bote y salió escaldado. Manos vacías, asco Intento fallido número 96 archivado Marca 95, indignante.',
+  '%A fracasó con el bote y salió escaldado. Manos vacías, asco. Intento fallido número 96 archivado. Marca 95, indignante.',
 
-  'Bote intacto. %A se llevó solo el ridículo del intento, patético Intento fallido número 97 archivado Marca 96, qué vergüenza ajena.',
+  'Bote intacto. %A se llevó solo el ridículo del intento, patético. Intento fallido número 97 archivado. Marca 96, qué vergüenza ajena.',
 
-  '%A quiso el reventón y el bote ni se enteró, basura Intento fallido número 98 archivado Marca 97.',
+  '%A quiso el reventón y el bote ni se enteró, basura. Intento fallido número 98 archivado. Marca 97.',
 
-  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo Intento fallido número 99 archivado Marca 98, qué flojo.',
+  'Golpe fallido de %A. El acumulado sigue creciendo, ridículo. Intento fallido número 99 archivado. Marca 98, qué flojo.',
 
-  '%A no cobró el bote. Cobró el roast express del grupo, fracasado Intento fallido número 100 archivado Marca 99, menudo desastre.',
+  '%A no cobró el bote. Cobró el roast express del grupo, fracasado. Intento fallido número 100 archivado. Marca 99, menudo desastre.',
 
 ];
 
@@ -1831,205 +1831,205 @@ const COMPRA_OK = [
 ];
 
 const COMPRA_POBRE = [
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador Ticket rechazado número 1, patético.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador. Ticket rechazado número 1, patético.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón Ticket rechazado número 2.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón. Ticket rechazado número 2.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas Ticket rechazado número 3, qué cringe.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas. Ticket rechazado número 3, qué cringe.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda Ticket rechazado número 4, da asco.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda. Ticket rechazado número 4, da asco.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño Ticket rechazado número 5, qué vergüenza.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño. Ticket rechazado número 5, qué vergüenza.',
 
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco Ticket rechazado número 6 Marca 5, ridículo.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco. Ticket rechazado número 6. Marca 5, ridículo.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, patético Ticket rechazado número 7 Marca 6, fracasado.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, patético. Ticket rechazado número 7. Marca 6, fracasado.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura Ticket rechazado número 8 Marca 7, qué miseria.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura. Ticket rechazado número 8. Marca 7, qué miseria.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo Ticket rechazado número 9 Marca 8, da grima.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo. Ticket rechazado número 9. Marca 8, da grima.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado Ticket rechazado número 10 Marca 9, qué nivel de pena.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado. Ticket rechazado número 10. Marca 9, qué nivel de pena.',
 
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador Ticket rechazado número 11 Marca 10, basura.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador. Ticket rechazado número 11. Marca 10, basura.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón Ticket rechazado número 12 Marca 11, qué cutre.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón. Ticket rechazado número 12. Marca 11, qué cutre.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas Ticket rechazado número 13 Marca 12, da pena ajena.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas. Ticket rechazado número 13. Marca 12, da pena ajena.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda Ticket rechazado número 14 Marca 13, qué vacío.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda. Ticket rechazado número 14. Marca 13, qué vacío.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño Ticket rechazado número 15 Marca 14, indignante.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño. Ticket rechazado número 15. Marca 14, indignante.',
 
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco Ticket rechazado número 16 Marca 15, qué vergüenza ajena.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco. Ticket rechazado número 16. Marca 15, qué vergüenza ajena.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, patético Ticket rechazado número 17 Marca 16, da vergüenza.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, patético. Ticket rechazado número 17. Marca 16, da vergüenza.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura Ticket rechazado número 18 Marca 17, qué flojo.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura. Ticket rechazado número 18. Marca 17, qué flojo.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo Ticket rechazado número 19 Marca 18, menudo desastre.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo. Ticket rechazado número 19. Marca 18, menudo desastre.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado Ticket rechazado número 20 Marca 19, qué pena.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado. Ticket rechazado número 20. Marca 19, qué pena.',
 
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador Ticket rechazado número 21 Marca 20, patético.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador. Ticket rechazado número 21. Marca 20, patético.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón Ticket rechazado número 22 Marca 21, miserable.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón. Ticket rechazado número 22. Marca 21, miserable.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas Ticket rechazado número 23 Marca 22, qué cringe.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas. Ticket rechazado número 23. Marca 22, qué cringe.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda Ticket rechazado número 24 Marca 23, da asco.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda. Ticket rechazado número 24. Marca 23, da asco.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño Ticket rechazado número 25 Marca 24, qué vergüenza.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño. Ticket rechazado número 25. Marca 24, qué vergüenza.',
 
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco Ticket rechazado número 26 Marca 25, ridículo.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco. Ticket rechazado número 26. Marca 25, ridículo.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, patético Ticket rechazado número 27 Marca 26, fracasado.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, patético. Ticket rechazado número 27. Marca 26, fracasado.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura Ticket rechazado número 28 Marca 27, qué miseria.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura. Ticket rechazado número 28. Marca 27, qué miseria.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo Ticket rechazado número 29 Marca 28, da grima.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo. Ticket rechazado número 29. Marca 28, da grima.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado Ticket rechazado número 30 Marca 29, qué nivel de pena.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado. Ticket rechazado número 30. Marca 29, qué nivel de pena.',
 
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador Ticket rechazado número 31 Marca 30, basura.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador. Ticket rechazado número 31. Marca 30, basura.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón Ticket rechazado número 32 Marca 31, qué cutre.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón. Ticket rechazado número 32. Marca 31, qué cutre.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas Ticket rechazado número 33 Marca 32, da pena ajena.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas. Ticket rechazado número 33. Marca 32, da pena ajena.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda Ticket rechazado número 34 Marca 33, qué vacío.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda. Ticket rechazado número 34. Marca 33, qué vacío.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño Ticket rechazado número 35 Marca 34, indignante.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño. Ticket rechazado número 35. Marca 34, indignante.',
 
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco Ticket rechazado número 36 Marca 35, qué vergüenza ajena.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco. Ticket rechazado número 36. Marca 35, qué vergüenza ajena.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, patético Ticket rechazado número 37 Marca 36, da vergüenza.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, patético. Ticket rechazado número 37. Marca 36, da vergüenza.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura Ticket rechazado número 38 Marca 37, qué flojo.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura. Ticket rechazado número 38. Marca 37, qué flojo.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo Ticket rechazado número 39 Marca 38, menudo desastre.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo. Ticket rechazado número 39. Marca 38, menudo desastre.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado Ticket rechazado número 40 Marca 39, qué pena.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado. Ticket rechazado número 40. Marca 39, qué pena.',
 
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador Ticket rechazado número 41 Marca 40, patético.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador. Ticket rechazado número 41. Marca 40, patético.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón Ticket rechazado número 42 Marca 41, miserable.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón. Ticket rechazado número 42. Marca 41, miserable.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas Ticket rechazado número 43 Marca 42, qué cringe.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas. Ticket rechazado número 43. Marca 42, qué cringe.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda Ticket rechazado número 44 Marca 43, da asco.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda. Ticket rechazado número 44. Marca 43, da asco.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño Ticket rechazado número 45 Marca 44, qué vergüenza.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño. Ticket rechazado número 45. Marca 44, qué vergüenza.',
 
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco Ticket rechazado número 46 Marca 45, ridículo.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco. Ticket rechazado número 46. Marca 45, ridículo.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, patético Ticket rechazado número 47 Marca 46, fracasado.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, patético. Ticket rechazado número 47. Marca 46, fracasado.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura Ticket rechazado número 48 Marca 47, qué miseria.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura. Ticket rechazado número 48. Marca 47, qué miseria.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo Ticket rechazado número 49 Marca 48, da grima.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo. Ticket rechazado número 49. Marca 48, da grima.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado Ticket rechazado número 50 Marca 49, qué nivel de pena.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado. Ticket rechazado número 50. Marca 49, qué nivel de pena.',
 
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador Ticket rechazado número 51 Marca 50, basura.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador. Ticket rechazado número 51. Marca 50, basura.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón Ticket rechazado número 52 Marca 51, qué cutre.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón. Ticket rechazado número 52. Marca 51, qué cutre.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas Ticket rechazado número 53 Marca 52, da pena ajena.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas. Ticket rechazado número 53. Marca 52, da pena ajena.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda Ticket rechazado número 54 Marca 53, qué vacío.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda. Ticket rechazado número 54. Marca 53, qué vacío.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño Ticket rechazado número 55 Marca 54, indignante.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño. Ticket rechazado número 55. Marca 54, indignante.',
 
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco Ticket rechazado número 56 Marca 55, qué vergüenza ajena.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco. Ticket rechazado número 56. Marca 55, qué vergüenza ajena.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, patético Ticket rechazado número 57 Marca 56, da vergüenza.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, patético. Ticket rechazado número 57. Marca 56, da vergüenza.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura Ticket rechazado número 58 Marca 57, qué flojo.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura. Ticket rechazado número 58. Marca 57, qué flojo.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo Ticket rechazado número 59 Marca 58, menudo desastre.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo. Ticket rechazado número 59. Marca 58, menudo desastre.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado Ticket rechazado número 60 Marca 59, qué pena.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado. Ticket rechazado número 60. Marca 59, qué pena.',
 
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador Ticket rechazado número 61 Marca 60, patético.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador. Ticket rechazado número 61. Marca 60, patético.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón Ticket rechazado número 62 Marca 61, miserable.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón. Ticket rechazado número 62. Marca 61, miserable.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas Ticket rechazado número 63 Marca 62, qué cringe.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas. Ticket rechazado número 63. Marca 62, qué cringe.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda Ticket rechazado número 64 Marca 63, da asco, qué nivel de pena.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda. Ticket rechazado número 64. Marca 63, da asco, qué nivel de pena.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño Ticket rechazado número 65 Marca 64, qué vergüenza.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño. Ticket rechazado número 65. Marca 64, qué vergüenza.',
 
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco Ticket rechazado número 66 Marca 65, ridículo.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco. Ticket rechazado número 66. Marca 65, ridículo.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, patético Ticket rechazado número 67 Marca 66, fracasado.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, patético. Ticket rechazado número 67. Marca 66, fracasado.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura Ticket rechazado número 68 Marca 67, qué miseria.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura. Ticket rechazado número 68. Marca 67, qué miseria.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo Ticket rechazado número 69 Marca 68, da grima.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo. Ticket rechazado número 69. Marca 68, da grima.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado Ticket rechazado número 70 Marca 69, qué nivel de pena.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado. Ticket rechazado número 70. Marca 69, qué nivel de pena.',
 
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador Ticket rechazado número 71 Marca 70, basura.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador. Ticket rechazado número 71. Marca 70, basura.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón Ticket rechazado número 72 Marca 71, qué cutre.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón. Ticket rechazado número 72. Marca 71, qué cutre.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas Ticket rechazado número 73 Marca 72, da pena ajena.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas. Ticket rechazado número 73. Marca 72, da pena ajena.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda Ticket rechazado número 74 Marca 73, qué vacío.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda. Ticket rechazado número 74. Marca 73, qué vacío.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño Ticket rechazado número 75 Marca 74, indignante.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño. Ticket rechazado número 75. Marca 74, indignante.',
 
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco Ticket rechazado número 76 Marca 75, qué vergüenza ajena.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco. Ticket rechazado número 76. Marca 75, qué vergüenza ajena.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, patético Ticket rechazado número 77 Marca 76, da vergüenza.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, patético. Ticket rechazado número 77. Marca 76, da vergüenza.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura Ticket rechazado número 78 Marca 77, qué flojo.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura. Ticket rechazado número 78. Marca 77, qué flojo.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo Ticket rechazado número 79 Marca 78, menudo desastre.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo. Ticket rechazado número 79. Marca 78, menudo desastre.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado Ticket rechazado número 80 Marca 79, qué pena.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado. Ticket rechazado número 80. Marca 79, qué pena.',
 
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador Ticket rechazado número 81 Marca 80, patético.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador. Ticket rechazado número 81. Marca 80, patético.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón Ticket rechazado número 82 Marca 81, miserable.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón. Ticket rechazado número 82. Marca 81, miserable.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas Ticket rechazado número 83 Marca 82, qué cringe.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas. Ticket rechazado número 83. Marca 82, qué cringe.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda Ticket rechazado número 84 Marca 83, da asco, qué nivel de pena.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda. Ticket rechazado número 84. Marca 83, da asco, qué nivel de pena.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño Ticket rechazado número 85 Marca 84, qué vergüenza.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño. Ticket rechazado número 85. Marca 84, qué vergüenza.',
 
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco Ticket rechazado número 86 Marca 85, ridículo.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco. Ticket rechazado número 86. Marca 85, ridículo.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, patético Ticket rechazado número 87 Marca 86, fracasado.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, patético. Ticket rechazado número 87. Marca 86, fracasado.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura Ticket rechazado número 88 Marca 87, qué miseria.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura. Ticket rechazado número 88. Marca 87, qué miseria.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo Ticket rechazado número 89 Marca 88, qué vergüenza ajena.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo. Ticket rechazado número 89. Marca 88, qué vergüenza ajena.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado Ticket rechazado número 90 Marca 89, da vergüenza.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado. Ticket rechazado número 90. Marca 89, da vergüenza.',
 
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador Ticket rechazado número 91 Marca 90, qué flojo.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador. Ticket rechazado número 91. Marca 90, qué flojo.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón Ticket rechazado número 92 Marca 91, menudo desastre.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, cabrón. Ticket rechazado número 92. Marca 91, menudo desastre.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas Ticket rechazado número 93 Marca 92, qué pena.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, gilipollas. Ticket rechazado número 93. Marca 92, qué pena.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda Ticket rechazado número 94 Marca 93, patético.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, mierda. Ticket rechazado número 94. Marca 93, patético.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño Ticket rechazado número 95 Marca 94, miserable.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, coño. Ticket rechazado número 95. Marca 94, miserable.',
 
-  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco Ticket rechazado número 96 Marca 95, qué cringe.',
+  '%A quiso comprar sin un puto duro de aura. La tienda le cerró el mostrador, asco. Ticket rechazado número 96. Marca 95, qué cringe.',
 
-  'Compra denegada: %A tiene más cara que saldo de ranking, patético Ticket rechazado número 97 Marca 96, da asco, da vergüenza.',
+  'Compra denegada: %A tiene más cara que saldo de ranking, patético. Ticket rechazado número 97. Marca 96, da asco, da vergüenza.',
 
-  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura Ticket rechazado número 98 Marca 97, qué vergüenza.',
+  '%A llegó pobre al checkout. Nadie fía a un muerto de hambre del contador, basura. Ticket rechazado número 98. Marca 97, qué vergüenza.',
 
-  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo Ticket rechazado número 99 Marca 98, ridículo.',
+  'Sin pasta de aura no hay artículo. %A se fue vacío de manos y de dignidad, ridículo. Ticket rechazado número 99. Marca 98, ridículo.',
 
-  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado Ticket rechazado número 100 Marca 99, fracasado.',
+  '%A pretendió el escudo con saldo de sótano. La tienda no es comedor social, fracasado. Ticket rechazado número 100. Marca 99, fracasado.',
 
 ];
 

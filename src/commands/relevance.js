@@ -119,7 +119,7 @@ let PARASITO = [
   '%N, %C mensajes. Mirón profesional con carnet del contador. Y el ranking no miente con el chat enterado del cargo, qué cutre.',
   '%N, %C mensajes. Silencio de quien no aporta: el bot no lo confunde con elegancia. El grupo lo nota cada día, da pena ajena.',
   '%N, %C mensajes. Irrelevante y estable: el peor pronóstico. Y el ranking no miente, coño con el fail todavía caliente, qué vacío.',
-  '%N, %C mensajes. Parasito del grupo Y el ranking no miente, cabrón sin anestesia de verdad esta vez, indignante.',
+  '%N, %C mensajes. Parasito del grupo. Y el ranking no miente, cabrón sin anestesia de verdad esta vez, indignante.',
   '%N, %C mensajes. El ranking de aporte te deja en el sótano con %C mensajes de testigo. El grupo lo nota cada día, qué vergüenza ajena.',
   '%N, %C mensajes. Relevancia bajo mínimos legales del chat. Y el ranking no miente, ridículo con el saldo a la intemperie, da vergüenza.',
   '%N, %C mensajes. Parasitas el hilo y el hilo no te devuelve eco. Y el ranking no miente, basura delante de quien aún leía el hilo, qué flojo.',
