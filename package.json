@@ -9,6 +9,7 @@
     "update": "bash scripts/actualizar.sh",
     "estado": "node scripts/estado.js",
     "economia": "node scripts/economia.js",
+    "check": "node scripts/check.js",
     "placeholders": "node scripts/placeholders.js",
     "pools": "node scripts/pools.js"
   },
