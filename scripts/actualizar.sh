@@ -48,6 +48,29 @@ npm install --omit=dev --ignore-scripts
 # residuo de una instalación vieja — así que no hay nada que se quede sin él.
 rm -rf node_modules/sharp node_modules/@img
 
+# ─── Antes de reiniciar: ¿arranca esto? ──────────────────────────────────────
+#
+# EXISTE PORQUE YA SE DESPLEGO CODIGO CAIDO. Un lote de frases entro con una
+# comilla sin escapar y otro dejo catorce pools vacios; en los dos casos el
+# fichero se subio, la VPS hizo pull y pm2 reinicio sobre algo que no cargaba.
+# El bot se quedaba muerto y nadie se enteraba hasta que alguien escribia al
+# grupo.
+#
+# Aqui se comprueba ANTES de tocar el proceso que esta corriendo. Si falla, no
+# se reinicia: el bot sigue con el codigo viejo, que funciona, en vez de
+# quedarse sin nada. Cuesta unos segundos y se ha ganado ese derecho.
+echo
+echo "→ Comprobando que el código nuevo arranca..."
+if ! npm run check; then
+  echo
+  echo "════════════════════════════════════════════"
+  echo "  NO SE REINICIA: el código nuevo no pasa la comprobación."
+  echo "  El bot sigue corriendo con la versión anterior."
+  echo "  Arregla lo de arriba y vuelve a lanzar: npm run update"
+  echo "════════════════════════════════════════════"
+  exit 1
+fi
+
 # Sin esto el código nuevo no llega a ejecutarse. --update-env relee el .env,
 # que es justo lo que hace falta cuando lo que cambió fue una key.
 pm2 restart bot --update-env || pm2 start ecosystem.config.js
