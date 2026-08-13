@@ -57,7 +57,7 @@ const HEADERS = [
   '*DERROTA SIMBÓLICA*',
   '*EXPOSICIÓN TOTAL*',
   '*GOLPE DE GRACIA*',
-  '*CIERRE CON LLAVE*'
+  '*CIERRE CON LLAVE*',
 ];
 
 const CLOSERS = [
@@ -160,7 +160,7 @@ const CLOSERS = [
   '_No hay modo avión que te salve el frame, patético._',
   '_El roast hizo su trabajo. Tú el tuyo: aguantar, basura._',
   '_Sentencia firme. Sin fianza de dignidad, ridículo._',
-  '_Acabó. El eco todavía te señala, fracasado._'
+  '_Acabó. El eco todavía te señala, fracasado._',
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -538,7 +538,7 @@ const OWNER_ROAST = [
   'Aquí el que se cree el más vivo del grupo, %N. Siempre un paso por delante y restregándolo con esa sonrisita de listo. Odioso. Ojalá te equivocaras una vez, prepotente.',
   '%N, el clásico sabelotodo que no aguanta nadie: siempre con la respuesta, siempre quedando por encima, siempre con ese aire de superioridad de mierda. Trágate el ego un día.',
   'Qué pesado eres, %N, con tu maldita costumbre de tener razón. El grupo está harto de que un creído como tú quede bien hasta sin intentarlo. Que te calles un rato, listillo.',
-  '%N, arrogante de manual, con un ego que te sale por las orejas y que encima está medio justificado, que es lo que más jode. Insoportable verte tan pagado de ti mismo... y acertar. Bájale, cabrón.',
+  '%N, arrogante de manual, con un ego que te sale por las orejas y que encima está medio justificado, que es lo que más jode. Insoportable verte tan pagado de ti mismo. y acertar. Bájale, cabrón.',
   'El intocable del grupo, %N. Ese que se cree por encima de todos y al que, para colmo, nadie consigue rebatir. Prepotente insufrible. Un día te caes y lo celebramos, listo de mierda.',
   '%N, el creído que va de sobrado por la vida y que, para desgracia de todos, casi siempre le sale la jugada. Ego insoportable, actitud de rey de mierda. Que alguien te baje los humos ya.',
   'Mírate, %N, con ese complejo de superioridad y esa manía de tener razón que saca de quicio a cualquiera. Un prepotente de libro. Lo peor es que no podemos ni desmentirte. Insufrible, hijo de puta.',
@@ -579,7 +579,7 @@ const OWNER_ROAST = [
   '%N, el favorito del RNG y de su propio espejo, basura Y el grupo lo tiene claro, joder.',
   'Ahí va el puto %N otra vez, sin pedir turno, ridículo Y el grupo lo tiene claro, joder.',
   '%N se cree el final boss. El grupo es el tutorial, fracasado Y el grupo lo tiene claro, joder.',
-  'Privilegio con nombre de usuario: %N, joder Y el grupo lo tiene claro, joder.'
+  'Privilegio con nombre de usuario: %N, joder Y el grupo lo tiene claro, joder.',
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -665,7 +665,7 @@ async function cmdRoast(sock, msg, groupMeta) {
     const singleVars = [
       'activity', 'activity', 'activity', 'activity',
       'name', 'name', 'name',
-      'bio',
+      'bio.',
     ];
     cat = freshCat(singleVars, cats);
 
