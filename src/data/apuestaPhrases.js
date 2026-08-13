@@ -113,7 +113,7 @@ const APUESTA_GANA = [
   '%A la apuesta de %C terminó a su favor: el ranking asiente. El chat lo registra entero, desperdicio, asco.',
   '%A se lleva %C doblados: el grupo puede callar la envidia. El chat lo registra entero, asco y el resto es ruido de fondo.',
   '%A gana %C sin pedir aplauso: el número basta. El chat lo registra entero, cutre y el ranking no pide permiso, ridículo.',
-  '%A dobla %C: victoria limpia de mesa. El chat lo registra entero, pringado sin bis ni matiz de consuelo, fracasado.'
+  '%A dobla %C: victoria limpia de mesa. El chat lo registra entero, pringado sin bis ni matiz de consuelo, fracasado.',
 ];
 
 const APUESTA_PIERDE = [
@@ -216,7 +216,7 @@ const APUESTA_PIERDE = [
   '%A pierde %C sin anestesia: el contador en %S. El chat lo registra entero, cutre con el fallo en 4K de chat, asco.',
   '%A metió %C y el universo cobró: %S de saldo. El chat lo registra entero, pringado con el dígito firmando solo.',
   '%A la apuesta no perdonó: %C fuera, %S dentro del hueco. El chat lo registra entero, fracasado sin segunda oportunidad hoy.',
-  '%A fail: %C a la mesa, %S al bolsillo del aura, cero al orgullo. El chat lo registra entero, joder sin maquillaje ni segunda toma.'
+  '%A fail: %C a la mesa, %S al bolsillo del aura, cero al orgullo. El chat lo registra entero, joder sin maquillaje ni segunda toma.',
 ];
 
 module.exports = { APUESTA_GANA, APUESTA_PIERDE };
