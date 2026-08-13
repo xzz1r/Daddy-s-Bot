@@ -89,6 +89,89 @@ function pick(arr) {
 const _pickHistory = new Map(); // key -> array of recently returned elements
 const _MAX_PICK_KEYS = 2000;    // bound the map so long-lived bots don't leak
 
+// ─── El historial sobrevive a los reinicios ─────────────────────────────────
+//
+// Vivia solo en memoria, asi que cada vez que pm2 reiniciaba el bot —al pasar
+// del tope de RAM, tras una actualizacion o al reiniciar la VPS— la ventana
+// anti-repeticion empezaba de cero. Justo despues de arrancar no habia nada
+// bloqueado y una frase podia repetirse a las dos tiradas. No era un fallo del
+// filtro: es que no recordaba nada.
+//
+// Se guarda un HASH de cada frase, no el texto. Con el texto el fichero rondaba
+// el medio mega y habia que reescribirlo entero cada pocos segundos; con hashes
+// de ocho caracteres baja a unas decenas de kilobytes. Y como la clave es el
+// contenido y no la posicion, reordenar un pool o borrarle frases no invalida
+// el historial: las entradas viejas dejan de casar con nada y se van solas por
+// la ventana.
+const HISTORIAL_FICHERO = path.join(__dirname, '../../data/pickhistory.json');
+const GUARDADO_MS = 30 * 1000;   // se agrupa: el bot habla mucho mas que eso
+
+let _historialCargado = false;
+let _historialSucio = false;
+let _guardadoProgramado = null;
+
+// FNV-1a de 32 bits. No hace falta nada criptografico: solo distinguir frases
+// dentro de un mismo pool, donde una colision es practicamente imposible y su
+// unico efecto seria saltarse una frase una vez.
+function _hash(texto) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < texto.length; i++) {
+    h ^= texto.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(16);
+}
+
+// Los pools son constantes de modulo, asi que se hashean UNA vez y se recuerdan.
+// WeakMap para no retener en memoria un pool que se genere al vuelo.
+const _hashesPorPool = new WeakMap();
+function _hashesDe(pool) {
+  let h = _hashesPorPool.get(pool);
+  if (!h) { h = pool.map(_hash); _hashesPorPool.set(pool, h); }
+  return h;
+}
+
+// Carga perezosa y sincrona: el fichero son decenas de KB y esto corre una sola
+// vez, en la primera frase que suelta el bot. Si no existe o esta corrupto se
+// empieza en blanco, que es exactamente el comportamiento de antes.
+function _cargarHistorial() {
+  _historialCargado = true;
+  try {
+    const datos = JSON.parse(require('fs').readFileSync(HISTORIAL_FICHERO, 'utf8'));
+    for (const [clave, lista] of Object.entries(datos)) {
+      if (Array.isArray(lista)) _pickHistory.set(clave, lista);
+    }
+  } catch { /* primera ejecucion, o fichero ilegible: se empieza de cero */ }
+}
+
+function _programarGuardado() {
+  _historialSucio = true;
+  if (_guardadoProgramado) return;
+  _guardadoProgramado = setTimeout(() => {
+    _guardadoProgramado = null;
+    if (!_historialSucio) return;
+    _historialSucio = false;
+    atomicWriteJson(HISTORIAL_FICHERO, Object.fromEntries(_pickHistory))
+      .catch(() => { _historialSucio = true; });
+  }, GUARDADO_MS);
+  // unref para que un guardado pendiente no impida que el proceso termine.
+  _guardadoProgramado.unref?.();
+}
+
+// Al apagar, volcado sincrono de lo que quede pendiente. pm2 manda SIGINT en un
+// reinicio normal, que es justo el caso que esto viene a cubrir.
+function _guardarYa() {
+  if (!_historialSucio) return;
+  _historialSucio = false;
+  try {
+    require('fs').writeFileSync(HISTORIAL_FICHERO, JSON.stringify(Object.fromEntries(_pickHistory)));
+  } catch { /* si no se puede escribir al salir, se pierde la ventana y ya */ }
+}
+process.once('exit', _guardarYa);
+for (const senyal of ['SIGINT', 'SIGTERM']) {
+  process.once(senyal, () => { _guardarYa(); process.exit(0); });
+}
+
 // Ventana anti-repeticion: no se repite una frase hasta pasadas otras 50 del
 // mismo pool. Si el pool tiene MENOS de 11 frases el bloqueo se recorta solo a
 // pool.length-1 — con 5 frases es imposible no repetir en 50 tiradas, y
@@ -130,15 +213,14 @@ function ordenarPorDureza(pool) {
 // Ahora es uniforme: dentro de las que la ventana deja libres, todas tienen la
 // misma probabilidad. La dureza sigue importando al ESCRIBIR —un pool crudo
 // pega más que uno tibio— pero ya no decide el orden de salida.
-function _pickPlano(pool, indices) {
-  return pool[indices[Math.floor(Math.random() * indices.length)]];
-}
-
+//
 // Elige una frase al azar entre las que no han salido en las ultimas `window`
 // tiradas de esa misma clave.
 function pickFresh(pool, key, window = 50) {
   if (!Array.isArray(pool) || pool.length === 0) return undefined;
   if (!key) return pick(pool);
+
+  if (!_historialCargado) _cargarHistorial();
 
   // Evict the oldest key once we hit the cap (Map preserves insertion order).
   if (!_pickHistory.has(key) && _pickHistory.size >= _MAX_PICK_KEYS) {
@@ -160,15 +242,17 @@ function pickFresh(pool, key, window = 50) {
   // usos en vez de 50. En los tramos que tienen 50 frases —los de poco
   // tráfico— eso son semanas de diferencia, no días.
   const block = new Set(hist.slice(-Math.min(window, Math.floor(pool.length * 0.6))));
+  const hashes = _hashesDe(pool);
   const libres = [];
-  for (let i = 0; i < pool.length; i++) if (!block.has(pool[i])) libres.push(i);
+  for (let i = 0; i < pool.length; i++) if (!block.has(hashes[i])) libres.push(i);
   const indices = libres.length ? libres : pool.map((_, i) => i);
-  const chosen = _pickPlano(pool, indices);
+  const elegido = indices[Math.floor(Math.random() * indices.length)];
 
-  hist.push(chosen);
+  hist.push(hashes[elegido]);
   if (hist.length > window + 4) hist.shift();
   _pickHistory.set(key, hist);
-  return chosen;
+  _programarGuardado();
+  return pool[elegido];
 }
 
 function shuffle(arr) {
