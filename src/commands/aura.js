@@ -620,7 +620,7 @@ La moneda del grupo. Empiezas con *${fmt(ARRANQUE)}*, un millonario ronda los *$
 
 *Apareciendo* — la racha. Escribe *${RACHA.minMensajes}* mensajes al día y cobras *${RACHA.pago}* por día acumulado, hasta *${RACHA.tope}*. Faltar un día la parte entera. El día corta a las *${RACHA.horaCorte}h*, no a medianoche.
 
-*Tirando* — *!aura*, una cada ${duracion(ROLL_COOLDOWN_MS)}. Las *${TIRADAS_PAGADAS} primeras del día* pagan; de ahí en adelante es cara o cruz.
+*Tirando* — *!aura*, una cada ${duracion(ROLL_COOLDOWN_MS)}.
 
 ━━━━━ *LOS COMANDOS* ━━━━━
 
@@ -639,7 +639,7 @@ La moneda del grupo. Empiezas con *${fmt(ARRANQUE)}*, un millonario ronda los *$
 
 ━━━━━ *LA LETRA PEQUEÑA* ━━━━━
 
-_Tus ${TIRADAS_PAGADAS} primeras tiradas salen a ganar. El robo, el duelo y la apuesta no: la casa se queda un pellizco. Lo que se acumula sale de escribir, y esa ventaja no se compra ni se roba._
+_El robo, el duelo y la apuesta van en tu contra: la casa se queda un pellizco. Lo que se acumula sale de escribir, y esa ventaja no se compra ni se roba._
 
 ━━━━━ *EN QUÉ SE GASTA* ━━━━━
 ${precios}`;
