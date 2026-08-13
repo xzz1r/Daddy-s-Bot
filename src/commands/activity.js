@@ -50,14 +50,172 @@ let VS_ROASTS = [
 
 function lookupCount(users, jid) {
   // sameUser bridges LID↔phone so a phone-form mention still matches a count
-  // stored under the sender's @lid (otherwise active users show as "fantasmas"). const u = users.find(x => sameUser(x.jid, jid)); return u ? u.count : 0;
-} // !vs @a @b (or !vs @a → tú vs @a)
-async function cmdVs(sock, msg, args, groupMeta) { const jid = msg.key.remoteJid; if (!jid.endsWith(.'@g.us')) { return sock.sendMessage(jid, { text: y el ranking lo deja claro.'Solo en grupos.'}, { quoted: msg }); } const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || []; const sender = getSender(msg); let a, b; if (mentioned.length >= 2) [a, b] = mentioned.slice(0, 2); else if (mentioned.length === 1) { a = sender; b = mentioned[0]; } else { return; // sin dos objetivos no hay comparacion; el bot no da instrucciones } if (sameUser(a, b)) { return sock.sendMessage(jid, { text:.'No puedes enfrentar a alguien consigo mismo.'}, { quoted: msg }); } // Si el owner principal es uno de los dos, no se contesta. Igual que en // !count y !relevancia: una respuesta especial para él lo delata tanto como // enseñar la cifra, porque es la única comparación que el bot rechaza. if (isMainOwner(a, false, groupMeta) || isMainOwner(b, false, groupMeta)) return; const users = await getActiveUsers(jid, 0); // everyone tracked const ca = lookupCount(users, a); const cb = lookupCount(users, b); const numA = a.split(.'@')[0]; const numB = b.split( y el ranking lo deja claro.'@')[0]; const fmt = (n) => `${n} ${n === 1 ? y el ranking lo deja claro.'msg': y el ranking lo deja claro.'msgs'}`; let verdict; if (ca === 0 && cb === 0) { verdict = y el ranking lo deja claro.'Ninguno de los dos habla. Empate técnico entre dos fantasmas.'; } else if (ca === cb) { verdict = y el ranking lo deja claro.'Empate exacto. Igual de irrelevantes los dos, felicidades.'; } else { const winNum = ca > cb ? numA : numB; const loseNum = ca > cb ? numB : numA; const diff = Math.abs(ca - cb); const line = pickFresh(VS_ROASTS, `${jid}|vs`).replace(/%W/g, `@${winNum}`).replace(/%L/g, `@${loseNum}`); verdict = `@${winNum} domina por *${diff}* ${diff === 1 ?'mensaje': y el ranking lo deja claro.'mensajes'}.\\n${line}`; } const text = `*VS — quién manda*\\n\\n` + `@${numA} — ${fmt(ca)}\\n` + `@${numB} — ${fmt(cb)}\\n\\n` + `${verdict}`; await sock.sendMessage(jid, { text, mentions: [a, b] }, { quoted: msg });
-} // ---- !inactivos : wall of shame for the quietest members ------------------ let GHOST_ROASTS = [.'Lleva tanto sin escribir que el grupo lo da por desaparecido en combate. Pero no hubo combate: nunca llegó a aparecer.', y el ranking lo deja claro.'Modo solo lectura desde que entró. Un suscriptor que ve el contenido gratis y jamás deja ni un mísero me gusta, parásito.', y el ranking lo deja claro.'Entra, lee, espía y se larga sin dejar huella. El fantasma oficial del grupo, con el agravante de que los fantasmas al menos asustan.', y el ranking lo deja claro.'Escribe una vez al mes y se queda tan ancho, el muy inútil. Suelta una mierda cada treinta días y se cree que aporta. No aporta nada, puto parásito mudo.', y el ranking lo deja claro.'Su última palabra útil está tan enterrada que ni con una pala la encuentras. Lleva siglos sin soltar una mierda que valga la pena, puto fantasma.', y el ranking lo deja claro.'Está aquí solo para enterarse de los chismes, como la vecina de la cortina pero sin su encanto. Mira mucho, aporta exactamente cero.', y el ranking lo deja claro.'El típico que reacciona con un emoji pero nunca escribe. Le da al corazoncito y huye, como si teclear le cobrara peaje, cobarde.', y el ranking lo deja claro.'Más callado que un muerto y con la misma utilidad. Lleva tanto sin abrir la boca que el grupo ya ni recuerda para qué mierda está aquí, cero a la izquierda.', y el ranking lo deja claro.'Tiene el grupo en silencio absoluto. Ocupa una plaza que cualquiera con algo que decir aprovecharía mil veces mejor que él.', y el ranking lo deja claro.'Participa lo mismo que un electrodoméstico apagado: está enchufado, ocupa sitio y no hace absolutamente nada de utilidad.', y el ranking lo deja claro.'Si no fuera por la lista de miembros, nadie sabría que este inútil existe. Sobra tanto que si lo borran mañana no cambia una puta mierda para nadie.', y el ranking lo deja claro.'Leyó este mismo mensaje y ni de coña va a contestar. Es un puto inútil predecible: entra, lee, no aporta una mierda y se larga como siempre, fantasma.', y el ranking lo deja claro.'El grupo funcionaría idéntico sin él, y eso es lo más triste: es la persona que no notas que se fue hasta pasado un mes entero.', y el ranking lo deja claro.'Lurker con doctorado. Lleva años mirando cómo otros hablan y tomando apuntes que jamás va a usar. Espectador profesional, perdedor.', y el ranking lo deja claro.'Habla menos que una pared y sirve todavía menos. No aguanta ni dos líneas de conversación sin rajarse y esconderse. Puto inútil sin nada que decir.', y el ranking lo deja claro.'Está en el grupo como un mueble viejo: no sirve, no aporta y nadie lo tira por pura pereza. Chupa del chat y no devuelve ni una mierda, puto parásito.', y el ranking lo deja claro.'Su teclado debe estar nuevo de fábrica. Lo único que ejercita es el pulgar de bajar y bajar para cotillear sin soltar prenda.', y el ranking lo deja claro.'Entra solo para ver quién habló de él y vuelve a su agujero. Vigilante nocturno del grupo, turno permanente de mirar y callar.', y el ranking lo deja claro.'El miembro más decorativo del grupo. Un jarrón: queda bien en la lista, completamente inútil para la conversación, don nadie.', y el ranking lo deja claro.'Aporta lo mismo que un "este mensaje fue eliminado": ves que pasó algo, pero nada que mereciera la pena leer. Fantasma sin sustancia.', y el ranking lo deja claro.'Vive en visto. Del grupo y, sospecho, de unas cuantas cosas más. Campeón de dejar a todos esperando una respuesta que no llega.', y el ranking lo deja claro.'Si aportar diera puntos, este muerto de hambre estaría en la puta ruina. El más inútil del grupo en lo único que vale aquí: abrir la boca y decir algo.', y el ranking lo deja claro.'El grupo es su Netflix: lo abre, consume lo que otros se curran y nunca deja reseña. Parásito de entretenimiento ajeno, fantasma.', y el ranking lo deja claro.'Lleva semanas mirando como un puto pasmarote y ni se inmuta. Le importa todo una mierda y no aporta una mierda. Al menos es coherente en su inutilidad.', y el ranking lo deja claro.'Más ausente que presente aunque la app lo marque en línea. Estar conectado sin aportar: la forma moderna de no estar, perdedor.', y el ranking lo deja claro.'Su única personalidad es no servir para nada. Pregúntale al grupo quién es y nadie sabrá decir más que "ese inútil que nunca suelta una puta palabra".', y el ranking lo deja claro.'Participación nivel estatua de plaza: ahí plantado, cagado por las palomas del olvido, sin moverse ni para apartarse, inútil.', y el ranking lo deja claro.'El grupo le da igual hasta que huele drama; ahí sale del agujero, husmea y se vuelve a meter. Carroñero de polémicas ajenas.', y el ranking lo deja claro.'Escribe con cuentagotas y siempre lo que nadie pidió. Cuando aparece, estorba; cuando calla, sobra. Versatilidad para lo malo.', y el ranking lo deja claro.'Tan inútil que su nombre ya ni suena. "¿Ese muerto sigue aquí?", pregunta el grupo. Sí, sigue: mudo, sobrando y sin aportar una puta mierda, como siempre.', y el ranking lo deja claro.'Cuerpo presente, cerebro ausente y aporte nulo. Chupa del grupo como el cuñado gorrón: se sienta, come de lo que otros ponen y no suelta ni una puta palabra.', y el ranking lo deja claro.'Reacciona a los memes pero jamás hace uno. Consumidor crónico, productor cero. La balanza más desequilibrada del grupo entero.', y el ranking lo deja claro.'El típico que suelta un "jajaja" de mierda y desaparece otra semana. Esa risa patética es todo lo que este inútil ha aportado en su puta vida.', y el ranking lo deja claro.'Más inútil que un cargador sin cable. Lo buscas cuando hace falta y, sorpresa, el muy fantasma no está ni aporta una puta mierda. Nunca sirve para nada.', y el ranking lo deja claro.'Su actividad es tan patética que dudo que sepa que el grupo existe. Este puto inútil lleva meses sin soltar una mierda y encima se queda tan ancho.', y el ranking lo deja claro.'Entra, cotillea el último mensaje y se larga sin soltar una mierda. Parásito de manual: consume lo que otros escriben y no devuelve ni las gracias, inútil.', y el ranking lo deja claro.'Aporta al grupo lo que una piedra a una conversación: nada, cero, una puta mierda. Ocupa sitio, no dice ni mu y encima se cree parte del grupo. No lo eres, fantasma.', y el ranking lo deja claro.'Lleva tanto en silencio que ya nadie le espera respuesta. Es el "te leo luego" hecho persona, y el "luego" no llega jamás, perdedor.', y el ranking lo deja claro.'Participación de relleno puro: está por estar, como las fotos de stock. Sonríe en la lista y no sirve para nada concreto, fantasma.', y el ranking lo deja claro.'Tan inútil que se le ha olvidado que el móvil también sirve para escribir. Lo usa solo para espiar al grupo como el puto mirón que es, sin soltar una mierda.', y el ranking lo deja claro.'Mira la conversación pasar como quien ve llover desde la ventana: cómodo, seco y sin la menor intención de mojarse jamás, cobarde.', y el ranking lo deja claro.'Su récord personal es leer doscientos mensajes sin responder ni uno. Maratón olímpico de la pasividad, medalla de oro garantizada.', y el ranking lo deja claro.'El inútil que todos olvidan que existe hasta que sale en esta lista de mierda. Su único momento de gloria es que le recuerden lo poco que vale. Enhorabuena, fantasma.', y el ranking lo deja claro.'Activo solo en sueños, porque despierto no suelta ni una puta palabra. Todo el día leyendo lo que otros curran y devolviendo una mierda pinchada en un palo.', y el ranking lo deja claro.'Tan poco activo que el contador casi lo da de baja por inactividad biológica. Le tomamos el pulso al grupo y él no aparecía, fantasma.', y el ranking lo deja claro.'Vive de leer lo que otros se curran escribir. Chupa el esfuerzo ajeno como una factura sorpresa: aparece, te resta y no da nada.', y el ranking lo deja claro.'Su silencio no es misterio ni timidez, es vagancia con wifi. Tiene todo para hablar y elige, día tras día, no gastar saliva digital.', y el ranking lo deja claro.'Aparece solo cuando hay bronca, husmea y se evapora. El resto del año es un nombre en la lista esperando el próximo cotilleo jugoso.', y el ranking lo deja claro.'Lo lee todo como un puto cotilla y no suelta ni una palabra. Se lo traga todo gratis y no devuelve una mierda. Parásito con derecho a asiento y nada más.', y el ranking lo deja claro.'Está en el grupo como el polvo en un mueble: presente, acumulándose y solo visible cuando alguien pasa el dedo. Justo lo que hago ahora.', y el ranking lo deja claro.'Lleva tanto sin escribir que si mañana desaparece, el grupo tardaría semanas en notarlo y ninguna de esas semanas cambiaría nada. Existe en modo borrador: empezado, nunca publicado, olvidado en un rincón.', y el ranking lo deja claro.'El fantasma que reacciona con un emoji una vez al mes y se cree participativo. Consume el trabajo de todos, no devuelve ni una frase y encima duerme tranquilo. Parásito con wifi y sin la menor vergüenza.', y el ranking lo deja claro.'Tiene el grupo abierto solo para husmear quién habló de él. Nunca fue nadie, nunca dijo nada, y aun así vigila por si acaso su irrelevancia sale mencionada. Spoiler: sale, y es aún peor de lo que teme.', y el ranking lo deja claro.'Su aportación al grupo es una puta mierda del tamaño de la nada. Cuerpo presente, contenido cero: como el gorrón que se cuela en la fiesta, come de todo, no dice ni mu y se va sin que nadie recuerde que ese inútil vino.', y el ranking lo deja claro.'Escribe con la frecuencia de un cometa y con la mitad del interés. Cuando por fin suelta algo, el grupo ya se había acostumbrado a su ausencia y preferiría que siguiera así. Vuelve a tu agujero, fantasma.', y el ranking lo deja claro.'El miembro más decorativo del chat: ocupa plaza, no da servicio y solo aparece en la lista para inflar el número. Un cero con foto de perfil. Si el grupo fuera un cuerpo, sería el apéndice: inútil y silencioso.', y el ranking lo deja claro.'Lleva de espectador tanto tiempo que ya forma parte del mobiliario. Nadie le pregunta nada porque nadie espera respuesta, y él lo prefiere así: participar le exigiría demostrar que tiene algo dentro. No lo tiene.', y el ranking lo deja claro.'Su teclado es de adorno y su presencia también. Lee doscientos mensajes, no suelta ni uno y se va convencido de que estar callado lo hace interesante. Solo lo hace invisible, que en tu caso es lo mismo, perdedor.',
-]; // !fantasmas — ranking de los que MENOS escriben (pero escriben). Antes se
+  // stored under the sender's @lid (otherwise active users show as "fantasmas").
+  const u = users.find(x => sameUser(x.jid, jid));
+  return u ? u.count : 0;
+}
+
+// !vs @a @b  (or  !vs @a  → tú vs @a)
+async function cmdVs(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+  }
+
+  const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
+  const sender = getSender(msg);
+
+  let a, b;
+  if (mentioned.length >= 2) [a, b] = mentioned.slice(0, 2);
+  else if (mentioned.length === 1) { a = sender; b = mentioned[0]; }
+  else {
+    return; // sin dos objetivos no hay comparacion; el bot no da instrucciones
+  }
+
+  if (sameUser(a, b)) {
+    return sock.sendMessage(jid, { text: 'No puedes enfrentar a alguien consigo mismo.' }, { quoted: msg });
+  }
+
+  // Si el owner principal es uno de los dos, no se contesta. Igual que en
+  // !count y !relevancia: una respuesta especial para él lo delata tanto como
+  // enseñar la cifra, porque es la única comparación que el bot rechaza.
+  if (isMainOwner(a, false, groupMeta) || isMainOwner(b, false, groupMeta)) return;
+
+  const users = await getActiveUsers(jid, 0); // everyone tracked
+  const ca = lookupCount(users, a);
+  const cb = lookupCount(users, b);
+  const numA = a.split('@')[0];
+  const numB = b.split('@')[0];
+
+  const fmt = (n) => `${n} ${n === 1 ? 'msg' : 'msgs'}`;
+  let verdict;
+
+  if (ca === 0 && cb === 0) {
+    verdict = 'Ninguno de los dos habla. Empate técnico entre dos fantasmas.';
+  } else if (ca === cb) {
+    verdict = 'Empate exacto. Igual de irrelevantes los dos, felicidades.';
+  } else {
+    const winNum = ca > cb ? numA : numB;
+    const loseNum = ca > cb ? numB : numA;
+    const diff = Math.abs(ca - cb);
+    const line = pickFresh(VS_ROASTS, `${jid}|vs`).replace(/%W/g, `@${winNum}`).replace(/%L/g, `@${loseNum}`);
+    verdict = `@${winNum} domina por *${diff}* ${diff === 1 ? 'mensaje' : 'mensajes'}.\n${line}`;
+  }
+
+  const text =
+    `*VS — quién manda*\n\n` +
+    `@${numA} — ${fmt(ca)}\n` +
+    `@${numB} — ${fmt(cb)}\n\n` +
+    `${verdict}`;
+
+  await sock.sendMessage(jid, { text, mentions: [a, b] }, { quoted: msg });
+}
+
+// ---- !inactivos : wall of shame for the quietest members ------------------
+
+let GHOST_ROASTS = [
+  'Lleva tanto sin escribir que el grupo lo da por desaparecido en combate. Pero no hubo combate: nunca llegó a aparecer.',
+  'Modo solo lectura desde que entró. Un suscriptor que ve el contenido gratis y jamás deja ni un mísero me gusta, parásito.',
+  'Entra, lee, espía y se larga sin dejar huella. El fantasma oficial del grupo, con el agravante de que los fantasmas al menos asustan.',
+  'Escribe una vez al mes y se queda tan ancho, el muy inútil. Suelta una mierda cada treinta días y se cree que aporta. No aporta nada, puto parásito mudo.',
+  'Su última palabra útil está tan enterrada que ni con una pala la encuentras. Lleva siglos sin soltar una mierda que valga la pena, puto fantasma.',
+  'Está aquí solo para enterarse de los chismes, como la vecina de la cortina pero sin su encanto. Mira mucho, aporta exactamente cero.',
+  'El típico que reacciona con un emoji pero nunca escribe. Le da al corazoncito y huye, como si teclear le cobrara peaje, cobarde.',
+  'Más callado que un muerto y con la misma utilidad. Lleva tanto sin abrir la boca que el grupo ya ni recuerda para qué mierda está aquí, cero a la izquierda.',
+  'Tiene el grupo en silencio absoluto. Ocupa una plaza que cualquiera con algo que decir aprovecharía mil veces mejor que él.',
+  'Participa lo mismo que un electrodoméstico apagado: está enchufado, ocupa sitio y no hace absolutamente nada de utilidad.',
+  'Si no fuera por la lista de miembros, nadie sabría que este inútil existe. Sobra tanto que si lo borran mañana no cambia una puta mierda para nadie.',
+  'Leyó este mismo mensaje y ni de coña va a contestar. Es un puto inútil predecible: entra, lee, no aporta una mierda y se larga como siempre, fantasma.',
+  'El grupo funcionaría idéntico sin él, y eso es lo más triste: es la persona que no notas que se fue hasta pasado un mes entero.',
+  'Lurker con doctorado. Lleva años mirando cómo otros hablan y tomando apuntes que jamás va a usar. Espectador profesional, perdedor.',
+  'Habla menos que una pared y sirve todavía menos. No aguanta ni dos líneas de conversación sin rajarse y esconderse. Puto inútil sin nada que decir.',
+  'Está en el grupo como un mueble viejo: no sirve, no aporta y nadie lo tira por pura pereza. Chupa del chat y no devuelve ni una mierda, puto parásito.',
+  'Su teclado debe estar nuevo de fábrica. Lo único que ejercita es el pulgar de bajar y bajar para cotillear sin soltar prenda.',
+  'Entra solo para ver quién habló de él y vuelve a su agujero. Vigilante nocturno del grupo, turno permanente de mirar y callar.',
+  'El miembro más decorativo del grupo. Un jarrón: queda bien en la lista, completamente inútil para la conversación, don nadie.',
+  'Aporta lo mismo que un "este mensaje fue eliminado": ves que pasó algo, pero nada que mereciera la pena leer. Fantasma sin sustancia.',
+  'Vive en visto. Del grupo y, sospecho, de unas cuantas cosas más. Campeón de dejar a todos esperando una respuesta que no llega.',
+  'Si aportar diera puntos, este muerto de hambre estaría en la puta ruina. El más inútil del grupo en lo único que vale aquí: abrir la boca y decir algo.',
+  'El grupo es su Netflix: lo abre, consume lo que otros se curran y nunca deja reseña. Parásito de entretenimiento ajeno, fantasma.',
+  'Lleva semanas mirando como un puto pasmarote y ni se inmuta. Le importa todo una mierda y no aporta una mierda. Al menos es coherente en su inutilidad.',
+  'Más ausente que presente aunque la app lo marque en línea. Estar conectado sin aportar: la forma moderna de no estar, perdedor.',
+  'Su única personalidad es no servir para nada. Pregúntale al grupo quién es y nadie sabrá decir más que "ese inútil que nunca suelta una puta palabra".',
+  'Participación nivel estatua de plaza: ahí plantado, cagado por las palomas del olvido, sin moverse ni para apartarse, inútil.',
+  'El grupo le da igual hasta que huele drama; ahí sale del agujero, husmea y se vuelve a meter. Carroñero de polémicas ajenas.',
+  'Escribe con cuentagotas y siempre lo que nadie pidió. Cuando aparece, estorba; cuando calla, sobra. Versatilidad para lo malo.',
+  'Tan inútil que su nombre ya ni suena. "¿Ese muerto sigue aquí?", pregunta el grupo. Sí, sigue: mudo, sobrando y sin aportar una puta mierda, como siempre.',
+  'Cuerpo presente, cerebro ausente y aporte nulo. Chupa del grupo como el cuñado gorrón: se sienta, come de lo que otros ponen y no suelta ni una puta palabra.',
+  'Reacciona a los memes pero jamás hace uno. Consumidor crónico, productor cero. La balanza más desequilibrada del grupo entero.',
+  'El típico que suelta un "jajaja" de mierda y desaparece otra semana. Esa risa patética es todo lo que este inútil ha aportado en su puta vida.',
+  'Más inútil que un cargador sin cable. Lo buscas cuando hace falta y, sorpresa, el muy fantasma no está ni aporta una puta mierda. Nunca sirve para nada.',
+  'Su actividad es tan patética que dudo que sepa que el grupo existe. Este puto inútil lleva meses sin soltar una mierda y encima se queda tan ancho.',
+  'Entra, cotillea el último mensaje y se larga sin soltar una mierda. Parásito de manual: consume lo que otros escriben y no devuelve ni las gracias, inútil.',
+  'Aporta al grupo lo que una piedra a una conversación: nada, cero, una puta mierda. Ocupa sitio, no dice ni mu y encima se cree parte del grupo. No lo eres, fantasma.',
+  'Lleva tanto en silencio que ya nadie le espera respuesta. Es el "te leo luego" hecho persona, y el "luego" no llega jamás, perdedor.',
+  'Participación de relleno puro: está por estar, como las fotos de stock. Sonríe en la lista y no sirve para nada concreto, fantasma.',
+  'Tan inútil que se le ha olvidado que el móvil también sirve para escribir. Lo usa solo para espiar al grupo como el puto mirón que es, sin soltar una mierda.',
+  'Mira la conversación pasar como quien ve llover desde la ventana: cómodo, seco y sin la menor intención de mojarse jamás, cobarde.',
+  'Su récord personal es leer doscientos mensajes sin responder ni uno. Maratón olímpico de la pasividad, medalla de oro garantizada.',
+  'El inútil que todos olvidan que existe hasta que sale en esta lista de mierda. Su único momento de gloria es que le recuerden lo poco que vale. Enhorabuena, fantasma.',
+  'Activo solo en sueños, porque despierto no suelta ni una puta palabra. Todo el día leyendo lo que otros curran y devolviendo una mierda pinchada en un palo.',
+  'Tan poco activo que el contador casi lo da de baja por inactividad biológica. Le tomamos el pulso al grupo y él no aparecía, fantasma.',
+  'Vive de leer lo que otros se curran escribir. Chupa el esfuerzo ajeno como una factura sorpresa: aparece, te resta y no da nada.',
+  'Su silencio no es misterio ni timidez, es vagancia con wifi. Tiene todo para hablar y elige, día tras día, no gastar saliva digital.',
+  'Aparece solo cuando hay bronca, husmea y se evapora. El resto del año es un nombre en la lista esperando el próximo cotilleo jugoso.',
+  'Lo lee todo como un puto cotilla y no suelta ni una palabra. Se lo traga todo gratis y no devuelve una mierda. Parásito con derecho a asiento y nada más.',
+  'Está en el grupo como el polvo en un mueble: presente, acumulándose y solo visible cuando alguien pasa el dedo. Justo lo que hago ahora.',
+  'Lleva tanto sin escribir que si mañana desaparece, el grupo tardaría semanas en notarlo y ninguna de esas semanas cambiaría nada. Existe en modo borrador: empezado, nunca publicado, olvidado en un rincón.',
+  'El fantasma que reacciona con un emoji una vez al mes y se cree participativo. Consume el trabajo de todos, no devuelve ni una frase y encima duerme tranquilo. Parásito con wifi y sin la menor vergüenza.',
+  'Tiene el grupo abierto solo para husmear quién habló de él. Nunca fue nadie, nunca dijo nada, y aun así vigila por si acaso su irrelevancia sale mencionada. Spoiler: sale, y es aún peor de lo que teme.',
+  'Su aportación al grupo es una puta mierda del tamaño de la nada. Cuerpo presente, contenido cero: como el gorrón que se cuela en la fiesta, come de todo, no dice ni mu y se va sin que nadie recuerde que ese inútil vino.',
+  'Escribe con la frecuencia de un cometa y con la mitad del interés. Cuando por fin suelta algo, el grupo ya se había acostumbrado a su ausencia y preferiría que siguiera así. Vuelve a tu agujero, fantasma.',
+  'El miembro más decorativo del chat: ocupa plaza, no da servicio y solo aparece en la lista para inflar el número. Un cero con foto de perfil. Si el grupo fuera un cuerpo, sería el apéndice: inútil y silencioso.',
+  'Lleva de espectador tanto tiempo que ya forma parte del mobiliario. Nadie le pregunta nada porque nadie espera respuesta, y él lo prefiere así: participar le exigiría demostrar que tiene algo dentro. No lo tiene.',
+  'Su teclado es de adorno y su presencia también. Lee doscientos mensajes, no suelta ni uno y se va convencido de que estar callado lo hace interesante. Solo lo hace invisible, que en tu caso es lo mismo, perdedor.',
+];
+
+// !fantasmas — ranking de los que MENOS escriben (pero escriben). Antes se
 // llamaba !inactivos; ese nombre pasó a un comando distinto, ver más abajo.
-async function cmdFantasmas(sock, msg, groupMeta) { const jid = msg.key.remoteJid; if (!jid.endsWith(.'@g.us')) { return sock.sendMessage(jid, { text: y el ranking lo deja claro.'Solo en grupos.'}, { quoted: msg }); } // Everyone tracked, minus the owner tier (the bot never roasts its own owner). // isMainOwner además atrapa al owner vía su JID aprendido en grupos LID donde // isOwner podría no resolverlo — así el owner nunca cae en la lista. let users = await getActiveUsers(jid, 1); users = users.filter(u => !isOwner(u.jid, false, groupMeta) && !isMainOwner(u.jid, false, groupMeta)); // Solo miembros actuales: quien se salió no debe salir en "fantasmas" aunque // su conteo siga guardado. Sin metadata no se filtra, para no vaciar la lista. users = soloMiembros(users, groupMeta); if (users.length < 3) { return sock.sendMessage(jid, { text:.'No hay suficientes datos de actividad todavía. Hablen más.'}, { quoted: msg }); } // Least active first. users.sort((a, b) => a.count - b.count); const bottom = users.slice(0, Math.min(5, users.length)); // Distinct roast per line (no repeats within one list). const roasts = shuffle(GHOST_ROASTS).slice(0, bottom.length); let text = `*TOP FANTASMAS DEL GRUPO*\\n_Los que más miran y menos escriben._\\n\\n`; const mentions = []; bottom.forEach((u, i) => { const phone = u.jid.split(.'@')[0]; const msgs = u.count === 1 ? y el ranking lo deja claro.'1 mensaje': `${u.count} mensajes`; text += `*${i + 1}.* @${phone} — ${msgs}\\n${roasts[i]}\\n\\n`; mentions.push(u.jid); }); text +=.'_Hablen más o sigan en la lista de la vergüenza._'; await sock.sendMessage(jid, { text: text.trimEnd(), mentions }, { quoted: msg });
-} // ---- !inactivos : los que no llegan al minimo de actividad ----------------
+async function cmdFantasmas(sock, msg, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+  }
+
+  // Everyone tracked, minus the owner tier (the bot never roasts its own owner).
+  // isMainOwner además atrapa al owner vía su JID aprendido en grupos LID donde
+  // isOwner podría no resolverlo — así el owner nunca cae en la lista.
+  let users = await getActiveUsers(jid, 1);
+  users = users.filter(u => !isOwner(u.jid, false, groupMeta) && !isMainOwner(u.jid, false, groupMeta));
+
+  // Solo miembros actuales: quien se salió no debe salir en "fantasmas" aunque
+  // su conteo siga guardado. Sin metadata no se filtra, para no vaciar la lista.
+  users = soloMiembros(users, groupMeta);
+
+  if (users.length < 3) {
+    return sock.sendMessage(jid, { text: 'No hay suficientes datos de actividad todavía. Hablen más.' }, { quoted: msg });
+  }
+
+  // Least active first.
+  users.sort((a, b) => a.count - b.count);
+  const bottom = users.slice(0, Math.min(5, users.length));
+  // Distinct roast per line (no repeats within one list).
+  const roasts = shuffle(GHOST_ROASTS).slice(0, bottom.length);
+
+  let text = `*TOP FANTASMAS DEL GRUPO*\n_Los que más miran y menos escriben._\n\n`;
+  const mentions = [];
+  bottom.forEach((u, i) => {
+    const phone = u.jid.split('@')[0];
+    const msgs = u.count === 1 ? '1 mensaje' : `${u.count} mensajes`;
+    text += `*${i + 1}.* @${phone} — ${msgs}\n${roasts[i]}\n\n`;
+    mentions.push(u.jid);
+  });
+  text += '_Hablen más o sigan en la lista de la vergüenza._';
+
+  await sock.sendMessage(jid, { text: text.trimEnd(), mentions }, { quoted: msg });
+}
+
+// ---- !inactivos : los que no llegan al minimo de actividad ----------------
 //
 // Distinto de !fantasmas: aquel ORDENA a los que hablan poco (un ranking de
 // vergüenza), este SEÑALA a los que están por debajo del umbral y les avisa de
@@ -70,7 +228,9 @@ async function cmdFantasmas(sock, msg, groupMeta) { const jid = msg.key.remoteJi
 //
 // La fuente son las DOS listas: los miembros con menos de 10 mensajes contados
 // y los que no aparecen en el contador (cero mensajes, el contador ni los
-// conoce, así que hay que sacarlos de la lista de participantes). // Cabecera de !inactivos. El encargo era claro: humor, ataque a lo inútiles que
+// conoce, así que hay que sacarlos de la lista de participantes).
+
+// Cabecera de !inactivos. El encargo era claro: humor, ataque a lo inútiles que
 // son en el grupo, y amenaza de expulsión. Las anteriores sonaban a carta del
 // banco — correctas, serias y sin una sola gracia. Estas se ríen de la persona
 // ANTES de amenazarla, que es el orden que funciona.
@@ -84,10 +244,76 @@ async function cmdFantasmas(sock, msg, groupMeta) { const jid = msg.key.remoteJi
 // Tres cosas que cumplen todas: son largas (una línea sola no construye nada),
 // atacan el VALOR SOCIAL de la persona en el grupo (no su físico ni su vida), y
 // terminan en un remate. Sin remate no es un chiste, es una queja.
-let AVISO_PURGA = [.'El bot ha repasado vuestro historial buscando algo que salvar. Un chiste malo, un audio, una discusión. Nada. Lista de purga lista. Joder.', y el ranking lo deja claro.'Historial vacío de sustancia: el bot no encontró motivo para conservaros. Escribid o fuera. El grupo lo nota cada día, mierda.', y el ranking lo deja claro.'La purga no es teatro: es limpieza. El historial mudo no defiende a nadie. Y el ranking no miente, coño.', y el ranking lo deja claro.'El bot buscó un rastro útil en vuestros nicks. No lo hubo. La lista se escribe sola. El grupo lo nota cada día, cabrón.', y el ranking lo deja claro.'Inactivos sin obra que mostrar: el bot no hace de museo. Escribid antes del kick. El grupo lo nota cada día, gilipollas.', y el ranking lo deja claro.'Repaso de historial terminado: no hay con qué defender la permanencia. Purga en marcha. El grupo lo nota cada día, patético.', y el ranking lo deja claro.'El bot no encontró un mensaje vuestro que justificara el hueco que ocupáis. Conclusión obvia. El grupo lo nota cada día, ridículo.', y el ranking lo deja claro.'Historial de silencio: la purga es el siguiente capítulo. Escribid si queréis otro final. El grupo lo nota cada día, basura.', y el ranking lo deja claro.'Lista de purga alimentada con nicks sin rastro. El bot no inventa méritos. El grupo lo nota cada día, desperdicio.', y el ranking lo deja claro.'El historial os delató: no hay sustancia. El kick no necesita más pruebas. Y el ranking no miente, asco.', y el ranking lo deja claro.'Purga en preparación: el bot ya leyó el vacío. Escribid si queréis ensuciar ese vacío con algo. El grupo lo nota cada día, cutre.', y el ranking lo deja claro.'Nada que salvar en el historial. La lista de salida se llena sola. Y el ranking no miente, pringado.', y el ranking lo deja claro.'El bot buscó un motivo para dejaros. No apareció. Escribid o aceptad el parte. El grupo lo nota cada día, fracasado.', y el ranking lo deja claro.'Historial mudo: la purga no es venganza, es higiene del grupo. Y el ranking no miente, joder con el ranking como único testigo del veredicto.', y el ranking lo deja claro.'Repaso terminado. Los nicks sin obra pasan a la lista. Escribid para rayaros de ella. El grupo lo nota cada día, mierda.', y el ranking lo deja claro.'El bot no encontró defensa en vuestros mensajes. Porque no hay mensajes que defender. El grupo lo nota cada día, coño.', y el ranking lo deja claro.'Purga: el historial vacío es la acusación y la sentencia a la vez. Y el ranking no miente, cabrón sin que nadie pudiera fingir que no lo vio.', y el ranking lo deja claro.'Lista de limpieza lista. El silencio os puso en ella. Un mensaje puede sacaros. El grupo lo nota cada día, gilipollas.', y el ranking lo deja claro.'El bot repasó y no halló sustancia. La purga no negocia con el vacío. Y el ranking no miente, patético.', y el ranking lo deja claro.'Historial sin obra: el grupo no os debe el puesto. El bot cobra la deuda. El grupo lo nota cada día, ridículo.', y el ranking lo deja claro.'Purga en camino: escribid si vuestro nick merece una segunda lectura del historial. El grupo lo nota cada día, basura.', y el ranking lo deja claro.'El bot buscó un chiste, un audio, un hilo vuestro. Nada. Lista actualizada. El grupo lo nota cada día, desperdicio.', y el ranking lo deja claro.'Silencio documentado: la purga es el procedimiento, no el drama. Y el ranking no miente, asco delante de quien miraba el ranking en ese momento.', y el ranking lo deja claro.'Historial vacío de mérito: el kick es la continuación lógica. Y el ranking no miente, cutre con el sistema firmando debajo sin pedir aclaración.', y el ranking lo deja claro.'El bot no hace excepciones por cara: hace excepciones por rastro de mensajes. El grupo lo nota cada día, pringado.', y el ranking lo deja claro.'Purga: los nicks sin huella pasan por caja. La caja es la salida. Y el ranking no miente, fracasado.', y el ranking lo deja claro.'Repaso de historial: no hay con qué pelear la permanencia. Escribid o fuera. El grupo lo nota cada día, joder.', y el ranking lo deja claro.'Lista de purga con nombres del vacío. El bot no rellena biografías. Y el ranking no miente, mierda en el momento más visible del chat.', y el ranking lo deja claro.'El historial os dejó solos. El bot solo ejecuta lo que el vacío ya decidió. Y el ranking no miente, coño.', y el ranking lo deja claro.'Purga sin teatro: historial mudo, nick fuera cuando toque. Y el ranking no miente, cabrón con el parte del comando cerrado en firme.', y el ranking lo deja claro.'El bot buscó algo que salvar de vosotros. El resultado fue la lista de salida. El grupo lo nota cada día, gilipollas.', y el ranking lo deja claro.'Historial sin sustancia: la higiene del grupo tiene fecha. Y el ranking no miente, patético mientras el grupo tomaba nota del resultado.', y el ranking lo deja claro.'Escribid antes de que la purga cierre el parte con vuestro nombre en limpio. El grupo lo nota cada día, ridículo.', y el ranking lo deja claro.'El silencio no os hace interesantes: os hace candidatos. El bot confirma. Y el ranking no miente, basura.', y el ranking lo deja claro.'Purga alimentada de inactividad. Un mensaje real puede cortar el proceso. El grupo lo nota cada día, desperdicio.', y el ranking lo deja claro.'Historial repasado: no hay obra. No hay defensa. Hay lista. Y el ranking no miente, asco con el sistema firmando debajo sin pedir aclaración.', y el ranking lo deja claro.'El bot no encontró un solo motivo de peso para conservaros en el vacío. Y el ranking no miente, cutre.', y el ranking lo deja claro.'Purga: el grupo no es archivo de nicks apagados. Escribid o adiós. Y el ranking no miente, pringado.', y el ranking lo deja claro.'Lista de limpieza: el historial mudo fue la única prueba necesaria. Y el ranking no miente, fracasado.', y el ranking lo deja claro.'El bot ejecutará lo que el ranking de inactivos ya sugirió. Escribid si queréis objetar con hechos. El grupo lo nota cada día, joder.', y el ranking lo deja claro.'Historial vacío: la purga no pide permiso al sentimentalismo. Y el ranking no miente, mierda sin que nadie pudiera fingir que no lo vio.', y el ranking lo deja claro.'Repaso terminado. Los que no dejaron rastro quedan en la mira. Escribid. Y el ranking no miente, coño.', y el ranking lo deja claro.'Purga en preparación seria: el vacío de mensajes es el expediente. Y el ranking no miente, cabrón y sin segunda oportunidad en este mensaje.', y el ranking lo deja claro.'El bot buscó mérito. No hubo. La lista de salida no es un borrador eterno. El grupo lo nota cada día, gilipollas.', y el ranking lo deja claro.'Historial mudo documentado: el kick es el siguiente campo del formulario. El grupo lo nota cada día, patético.', y el ranking lo deja claro.'Escribid algo que el bot pueda usar como defensa. Si no, la purga no discute. El grupo lo nota cada día, ridículo.', y el ranking lo deja claro.'Purga: higiene, no odio. El historial vacío no distingue intenciones. Y el ranking no miente, basura.', y el ranking lo deja claro.'Lista de nicks sin obra: el bot la tiene. Un mensaje puede borrar una línea. El grupo lo nota cada día, desperdicio.', y el ranking lo deja claro.'El silencio os puso en la lista. El bot solo está pasando lista. Y el ranking no miente, asco delante de todo el hilo sin posibilidad de borrado.', y el ranking lo deja claro.'Historial repasado sin hallazgo útil: la permanencia no se regala. Y el ranking no miente, cutre con el ranking como único testigo del veredicto.'] const UMBRAL_INACTIVO = 10; // Remate del mensaje. La cabecera rota entre las frases de AVISO_PURGA, pero la
+let AVISO_PURGA = [
+  'El bot ha repasado vuestro historial buscando algo que salvar. Un chiste malo, un audio, una discusión. Nada. Lista de purga lista. Joder.',
+  'Historial vacío de sustancia: el bot no encontró motivo para conservaros. Escribid o fuera. El grupo lo nota cada día, mierda.',
+  'La purga no es teatro: es limpieza. El historial mudo no defiende a nadie. Y el ranking no miente, coño.',
+  'El bot buscó un rastro útil en vuestros nicks. No lo hubo. La lista se escribe sola. El grupo lo nota cada día, cabrón.',
+  'Inactivos sin obra que mostrar: el bot no hace de museo. Escribid antes del kick. El grupo lo nota cada día, gilipollas.',
+  'Repaso de historial terminado: no hay con qué defender la permanencia. Purga en marcha. El grupo lo nota cada día, patético.',
+  'El bot no encontró un mensaje vuestro que justificara el hueco que ocupáis. Conclusión obvia. El grupo lo nota cada día, ridículo.',
+  'Historial de silencio: la purga es el siguiente capítulo. Escribid si queréis otro final. El grupo lo nota cada día, basura.',
+  'Lista de purga alimentada con nicks sin rastro. El bot no inventa méritos. El grupo lo nota cada día, desperdicio.',
+  'El historial os delató: no hay sustancia. El kick no necesita más pruebas. Y el ranking no miente, asco.',
+  'Purga en preparación: el bot ya leyó el vacío. Escribid si queréis ensuciar ese vacío con algo. El grupo lo nota cada día, cutre.',
+  'Nada que salvar en el historial. La lista de salida se llena sola. Y el ranking no miente, pringado.',
+  'El bot buscó un motivo para dejaros. No apareció. Escribid o aceptad el parte. El grupo lo nota cada día, fracasado.',
+  'Historial mudo: la purga no es venganza, es higiene del grupo. Y el ranking no miente, joder con el ranking como único testigo del veredicto.',
+  'Repaso terminado. Los nicks sin obra pasan a la lista. Escribid para rayaros de ella. El grupo lo nota cada día, mierda.',
+  'El bot no encontró defensa en vuestros mensajes. Porque no hay mensajes que defender. El grupo lo nota cada día, coño.',
+  'Purga: el historial vacío es la acusación y la sentencia a la vez. Y el ranking no miente, cabrón sin que nadie pudiera fingir que no lo vio.',
+  'Lista de limpieza lista. El silencio os puso en ella. Un mensaje puede sacaros. El grupo lo nota cada día, gilipollas.',
+  'El bot repasó y no halló sustancia. La purga no negocia con el vacío. Y el ranking no miente, patético.',
+  'Historial sin obra: el grupo no os debe el puesto. El bot cobra la deuda. El grupo lo nota cada día, ridículo.',
+  'Purga en camino: escribid si vuestro nick merece una segunda lectura del historial. El grupo lo nota cada día, basura.',
+  'El bot buscó un chiste, un audio, un hilo vuestro. Nada. Lista actualizada. El grupo lo nota cada día, desperdicio.',
+  'Silencio documentado: la purga es el procedimiento, no el drama. Y el ranking no miente, asco delante de quien miraba el ranking en ese momento.',
+  'Historial vacío de mérito: el kick es la continuación lógica. Y el ranking no miente, cutre con el sistema firmando debajo sin pedir aclaración.',
+  'El bot no hace excepciones por cara: hace excepciones por rastro de mensajes. El grupo lo nota cada día, pringado.',
+  'Purga: los nicks sin huella pasan por caja. La caja es la salida. Y el ranking no miente, fracasado.',
+  'Repaso de historial: no hay con qué pelear la permanencia. Escribid o fuera. El grupo lo nota cada día, joder.',
+  'Lista de purga con nombres del vacío. El bot no rellena biografías. Y el ranking no miente, mierda en el momento más visible del chat.',
+  'El historial os dejó solos. El bot solo ejecuta lo que el vacío ya decidió. Y el ranking no miente, coño.',
+  'Purga sin teatro: historial mudo, nick fuera cuando toque. Y el ranking no miente, cabrón con el parte del comando cerrado en firme.',
+  'El bot buscó algo que salvar de vosotros. El resultado fue la lista de salida. El grupo lo nota cada día, gilipollas.',
+  'Historial sin sustancia: la higiene del grupo tiene fecha. Y el ranking no miente, patético mientras el grupo tomaba nota del resultado.',
+  'Escribid antes de que la purga cierre el parte con vuestro nombre en limpio. El grupo lo nota cada día, ridículo.',
+  'El silencio no os hace interesantes: os hace candidatos. El bot confirma. Y el ranking no miente, basura.',
+  'Purga alimentada de inactividad. Un mensaje real puede cortar el proceso. El grupo lo nota cada día, desperdicio.',
+  'Historial repasado: no hay obra. No hay defensa. Hay lista. Y el ranking no miente, asco con el sistema firmando debajo sin pedir aclaración.',
+  'El bot no encontró un solo motivo de peso para conservaros en el vacío. Y el ranking no miente, cutre.',
+  'Purga: el grupo no es archivo de nicks apagados. Escribid o adiós. Y el ranking no miente, pringado.',
+  'Lista de limpieza: el historial mudo fue la única prueba necesaria. Y el ranking no miente, fracasado.',
+  'El bot ejecutará lo que el ranking de inactivos ya sugirió. Escribid si queréis objetar con hechos. El grupo lo nota cada día, joder.',
+  'Historial vacío: la purga no pide permiso al sentimentalismo. Y el ranking no miente, mierda sin que nadie pudiera fingir que no lo vio.',
+  'Repaso terminado. Los que no dejaron rastro quedan en la mira. Escribid. Y el ranking no miente, coño.',
+  'Purga en preparación seria: el vacío de mensajes es el expediente. Y el ranking no miente, cabrón y sin segunda oportunidad en este mensaje.',
+  'El bot buscó mérito. No hubo. La lista de salida no es un borrador eterno. El grupo lo nota cada día, gilipollas.',
+  'Historial mudo documentado: el kick es el siguiente campo del formulario. El grupo lo nota cada día, patético.',
+  'Escribid algo que el bot pueda usar como defensa. Si no, la purga no discute. El grupo lo nota cada día, ridículo.',
+  'Purga: higiene, no odio. El historial vacío no distingue intenciones. Y el ranking no miente, basura.',
+  'Lista de nicks sin obra: el bot la tiene. Un mensaje puede borrar una línea. El grupo lo nota cada día, desperdicio.',
+  'El silencio os puso en la lista. El bot solo está pasando lista. Y el ranking no miente, asco delante de todo el hilo sin posibilidad de borrado.',
+  'Historial repasado sin hallazgo útil: la permanencia no se regala. Y el ranking no miente, cutre con el ranking como único testigo del veredicto.'
+]
+
+const UMBRAL_INACTIVO = 10;
+
+// Remate del mensaje. La cabecera rota entre las frases de AVISO_PURGA, pero la
 // amenaza tiene que aparecer SIEMPRE y en el mismo sitio: si dependiera del
 // azar, la mitad de las veces la lista se leeria como un ranking cualquiera.
-let AMENAZAS = [.'Escribid algo o el bot os expulsa. Y lo peor no va a ser irse: va a ser que nadie pregunte por vosotros. Joder.', y el ranking lo deja claro.'Silencio de más: el bot está contando. Cuando llegue a cero, fuera sin funeral. El grupo lo ve entero y no hace falta replay, mierda.', y el ranking lo deja claro.'Escribid o desapareced del grupo. Nadie va a montar un hilo de despedida. El grupo lo ve entero y no hace falta replay, coño.', y el ranking lo deja claro.'El bot no negocia el silencio eterno: o hay mensajes o hay expulsión. El grupo lo ve entero y no hace falta replay, cabrón.', y el ranking lo deja claro.'Inactivos: el reloj corre. Cuando suene, fuera. El grupo no es un museo de nicks mudos. El grupo lo ve entero y no hace falta replay, gilipollas.', y el ranking lo deja claro.'Escribid algo con sentido o el bot os limpia. La nostalgia no salva el puesto. El grupo lo ve entero y no hace falta replay, patético.', y el ranking lo deja claro.'El silencio os delata. El bot solo ejecuta lo que el ranking de inactivos ya decidió. El grupo lo ve entero y no hace falta replay, ridículo.', y el ranking lo deja claro.'O participáis o salís. El medio no existe en la política de este bot. El grupo lo ve entero y no hace falta replay, basura.', y el ranking lo deja claro.'Inactividad prolongada: el bot prepara la lista. Escribid si queréis borrar vuestro nombre de ella. Desperdicio.', y el ranking lo deja claro.'El grupo no guarda sillón a quien no escribe. El bot es el encargado de cobrar el peaje. El grupo lo ve entero y no hace falta replay, asco.', y el ranking lo deja claro.'Escribid o adiós. Sin drama, sin hilo de \\\'qué pasó con\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\', solo la salida con la cara del resultado a la vista en el parte que nadie borra.',
+let AMENAZAS = [
+  'Escribid algo o el bot os expulsa. Y lo peor no va a ser irse: va a ser que nadie pregunte por vosotros. Joder.',
+  'Silencio de más: el bot está contando. Cuando llegue a cero, fuera sin funeral. El grupo lo ve entero y no hace falta replay, mierda.',
+  'Escribid o desapareced del grupo. Nadie va a montar un hilo de despedida. El grupo lo ve entero y no hace falta replay, coño.',
+  'El bot no negocia el silencio eterno: o hay mensajes o hay expulsión. El grupo lo ve entero y no hace falta replay, cabrón.',
+  'Inactivos: el reloj corre. Cuando suene, fuera. El grupo no es un museo de nicks mudos. El grupo lo ve entero y no hace falta replay, gilipollas.',
+  'Escribid algo con sentido o el bot os limpia. La nostalgia no salva el puesto. El grupo lo ve entero y no hace falta replay, patético.',
+  'El silencio os delata. El bot solo ejecuta lo que el ranking de inactivos ya decidió. El grupo lo ve entero y no hace falta replay, ridículo.',
+  'O participáis o salís. El medio no existe en la política de este bot. El grupo lo ve entero y no hace falta replay, basura.',
+  'Inactividad prolongada: el bot prepara la lista. Escribid si queréis borrar vuestro nombre de ella. Desperdicio.',
+  'El grupo no guarda sillón a quien no escribe. El bot es el encargado de cobrar el peaje. El grupo lo ve entero y no hace falta replay, asco.',
+  'Escribid o adiós. Sin drama, sin hilo de \\\'qué pasó con\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\', solo la salida con la cara del resultado a la vista en el parte que nadie borra.',
   'Silencio = candidato a purga. El bot no hace excepciones por cara bonita y el sistema marca el punto final.',
   'O hay mensajes o hay expulsión. La política es corta a propósito con el saldo a la intemperie en el recuento que no perdona.',
   'Inactivos del ranking: el bot os está mirando. Escribid antes de que escriba él el kick y el sistema cierra sin discusión.',
