@@ -81,7 +81,7 @@ const HITO = [
   'Racha *%D días* de %N. Sin días libres para el ego ajeno, asco patético.',
   '%N lleva *%D días* aquí como quien fichará en la oficina, patético asco. El grupo ya no discute la cifra, fracasado.',
   '*%D días* sin romper. %N, constancia que da un poco de miedo, basura. Menuda forma de dejar huella, qué miseria.',
-  '%N encadenó *%D*. ridículo. Sin derecho a perfil bajo después.',
+  '%N encadenó *%D* ridículo. Sin derecho a perfil bajo después.',
   'Racha de *%D días*. %N no pide aplauso: el contador ya basta, fracasado.',
   '%N, *%D días* seguidos. El ranking de actividad tiene dueño visible Así se ve la presencia de verdad, basura.',
   '*%D días* de %N. Hábito puro, casi laboral, cabrón mierda. No hay modo avión que borre esto, qué cutre.',

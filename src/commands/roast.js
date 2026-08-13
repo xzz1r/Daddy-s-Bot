@@ -545,18 +545,41 @@ for (const [iso, name] of [
 }
 
 function countryFromTarget(target, participant) {
-  const candidates = [];
-  if (participant?.phoneNumber) candidates.push(String(participant.phoneNumber));
+  // De dónde sacar un teléfono, en orden de fiabilidad.
+  const candidatos = [];
+  // 1) El que a veces adjunta la metadata del grupo. Es el más directo.
+  if (participant?.phoneNumber) candidatos.push(String(participant.phoneNumber));
+  // 2) La forma canónica: resuelve @lid → teléfono SI el mapeo ya se aprendió.
   try {
     const can = canonicalJid(target);
-    if (can) candidates.push(String(can));
+    if (can) candidatos.push(String(can));
   } catch (_) {}
-  candidates.push(String(target || ''));
+  // 3) El JID tal cual, que en un grupo direccionado por teléfono ya vale.
+  candidatos.push(String(target || ''));
 
-  for (const raw of candidates) {
-    const digits = String(raw).split('@')[0].split(':')[0].replace(/\D/g, '');
+  for (const raw of candidatos) {
+    const s = String(raw);
+
+    // NUNCA parsear un @lid. Es un identificador interno de WhatsApp, no un
+    // número: si el mapeo a teléfono no se ha aprendido todavía, canonicalJid
+    // devuelve el LID pelado y esto lo tomaba por bueno.
+    //
+    // Y no es teórico: un LID de once dígitos como 85267891234 parsea como
+    // +852 y el bot roasteaba a esa persona de Hong Kong, con su párrafo de
+    // estereotipo y todo. El fallo es silencioso — sale un país perfectamente
+    // plausible— así que nadie lo reporta como bug, solo como "el bot dice
+    // cosas raras".
+    if (s.includes('@lid')) continue;
+
+    const digits = s.split('@')[0].split(':')[0].replace(/\D/g, '');
     if (!digits || digits.length < 8 || digits.length > 15) continue;
+
     const phone = parsePhoneNumberFromString('+' + digits);
+    // Se pide país, NO isValid(). Un móvil mexicano de WhatsApp llega como
+    // 52 1 55…, que libphonenumber marca como inválido porque el 1 es el
+    // prefijo antiguo — pero es el formato que WhatsApp entrega de verdad.
+    // Exigir validez dejaba fuera a México entero, que en un grupo LatAm es
+    // justo lo contrario de ser preciso.
     if (phone && phone.country) {
       return { iso: phone.country, callingCode: phone.countryCallingCode };
     }

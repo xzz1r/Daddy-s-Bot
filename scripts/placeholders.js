@@ -30,11 +30,11 @@ const CONTRATO = {
   'src/commands/mog.js':           { permite: ['%L', '%M'],                    sustituye: 'src/commands/mog.js' },
   'src/commands/percent.js':       { permite: ['[nombre]'],                    sustituye: 'src/commands/percent.js' },
   'src/commands/relevance.js':     { permite: ['%N', '%C'],                    sustituye: 'src/commands/relevance.js' },
-  'src/commands/roast.js':         { permite: ['%N', '%C'],                    sustituye: 'src/commands/roast.js' },
+  'src/commands/roast.js':         { permite: ['%N', '%C', '%PAIS'],           sustituye: 'src/commands/roast.js' },
   'src/commands/robo.js':          { permite: ['%A', '%C', '%N', '%V'],        sustituye: 'src/commands/robo.js' },
   'src/commands/wingman.js':       { permite: ['%N'],                          sustituye: 'src/commands/wingman.js' },
   'src/commands/ship.js':          { permite: [],                              sustituye: '(no usa placeholders)' },
-  'src/commands/iq.js':            { permite: [],                              sustituye: '(no usa placeholders)' },
+  'src/commands/iq.js':            { permite: ['%IQ'],                         sustituye: 'src/commands/iq.js' },
   'src/commands/social.js':        { permite: [],                              sustituye: '(no usa placeholders)' },
   'src/commands/topsRandom.js':    { permite: ['{N}'],                         sustituye: 'src/commands/topsRandom.js' },
   'src/commands/aura.js':          { permite: [],                              sustituye: '(no usa placeholders)' },
@@ -50,13 +50,19 @@ const CONTRATO = {
 // código, que también llevan % y corchetes.
 const ES_FRASE = /^\s*(['"`])(.{25,})\1,\s*$/;
 
-// %X de una sola letra mayúscula, [loquesea] y {loquesea}. Son las tres formas
-// que usa el bot; cualquier otra cosa con % (un 70 %, un 100 %) no se toca.
+// %X y %PALABRA en mayúsculas, [loquesea] y {loquesea}. Son las formas que usa
+// el bot; cualquier otra cosa con % (un 70 %, un 100 %) no se toca.
+//
+// ANTES SOLO COGÍA UNA LETRA (`%[A-Z]\b`) y eso dejaba un agujero: al añadir la
+// detección de país, roast.js empezó a usar %PAIS en 303 frases y el validador
+// no lo veía — la `A` que sigue a la `%P` no es límite de palabra, así que no
+// casaba con nada. Un placeholder sin declarar y sin sustituir habría salido
+// escrito en el grupo, que es justo lo que este fichero existe para impedir.
 //
 // El lookbehind de `${` es imprescindible: en un literal de plantilla, `${x}` lo
 // interpola Node antes de que el texto exista, así que no es un placeholder
 // nuestro. Sin esa exclusión saltaban 54 falsos positivos en roast.js.
-const PLACEHOLDER = /%[A-Z]\b|\[[a-zA-Z_]+\]|(?<!\$)\{[a-zA-Z_]+\}/g;
+const PLACEHOLDER = /%[A-Z]+\b|\[[a-zA-Z_]+\]|(?<!\$)\{[a-zA-Z_]+\}/g;
 
 let fallos = 0;
 let frasesRevisadas = 0;

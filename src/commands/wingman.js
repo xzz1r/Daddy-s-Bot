@@ -985,7 +985,7 @@ const WINGMAN_ANECDOTAS = [
 
   'Se me enredó un puto cable en los huevos y %N tuvo que desenredarlo usando la boca con paciencia de santo.\n%N no duda ni un segundo cuando hay que meterse.',
 
-  'Me entró arena hasta en el puto ojete después de una pelea en la playa y %N me lo limpió con mucha dedicación usando la lengua.\nQué gran amigo es %N. a su manera de mierda.',
+  'Me entró arena hasta en el puto ojete después de una pelea en la playa y %N me lo limpió con mucha dedicación usando la lengua.\nQué gran amigo es %N a su manera de mierda.',
 
   'Estaba a punto de perder una apuesta de resistencia de los cojones y %N me mantuvo despierto dándome mordiscos y lamidas en los huevos.\n%N siempre encuentra la manera de motivarte.',
 
@@ -1057,7 +1057,7 @@ const WINGMAN_ANECDOTAS = [
 
   'Se me enredó un cable de auriculares en los huevos y %N tuvo que desenredarlo usando la boca con mucha paciencia.\n%N no duda ni un segundo cuando hay que meterse en líos.',
 
-  'Me entró arena fina en el culo después de una pelea y %N me lo limpió con mucha dedicación usando la lengua.\nQué gran amigo es %N. a su manera de mierda.',
+  'Me entró arena fina en el culo después de una pelea y %N me lo limpió con mucha dedicación usando la lengua.\nQué gran amigo es %N a su manera de mierda.',
 
   'Se me hinchó una zona delicada por una alergia de la hostia y %N se dedicó un rato a desinflamármela con la boca.\n%N es un antiinflamatorio ambulante de la peor especie.',
 

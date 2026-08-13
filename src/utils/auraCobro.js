@@ -44,7 +44,7 @@ const MISERIA = [
   'No te llega ni para el mínimo del sistema: miseria de aura documentada Operación denegada 1.',
   'Aura en dieta extrema. El cobro te mira y se ríe en tu cara, cabrón Operación denegada 2.',
   'Sin saldo suficiente. El sistema no fía a pobres de ranking, gilipollas Operación denegada 3.',
-  'Pobreza de aura certificada. Vuelve cuando tengas algo que mostrar, mierda Operación denegada 4. da asco.',
+  'Pobreza de aura certificada. Vuelve cuando tengas algo que mostrar, mierda Operación denegada 4 da asco.',
   'El cobro necesita números. Tú tienes vergüenza y poco más, coño Operación denegada 5.',
   'No te llega ni para el mínimo del sistema: miseria de aura documentada, asco Operación denegada 6 Marca 5, ridículo.',
   'Aura en dieta extrema. El cobro te mira y se ríe en tu cara, patético Operación denegada 7 Marca 6.',
