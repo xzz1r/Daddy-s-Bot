@@ -124,179 +124,179 @@ const LABELS = {
     name: 'incel',
     goodIsHigh: false,
     high: [
-      'Incel de mierda que se cree analista del mercado, [nombre]. No eres analista, cabrón. Eres alguien que no participa y que lleva años mirando desde la grada.',
+      'Incel de mierda que se cree analista del mercado, [nombre]. No eres analista, cabrón. Eres alguien que no participa y que lleva años mirando desde la grada, patético.',
 
-      'Virgen de mierda. Con la costumbre de dar lecciones, [nombre]. Empieza por hacer algo tú una sola vez y luego hablamos. Hasta entonces, cállate, pringado.',
+      'Virgen de, mierda. Con la costumbre de dar lecciones, [nombre]. Empieza por hacer algo tú una sola vez y luego hablamos. Hasta entonces, cállate, pringado, miserable.',
 
-      '[nombre], llevas la vida entera esperando que pase algo sin poner nada de tu parte. Las cosas no pasan solas, gilipollas. Y menos si no sales del cuarto.',
+      '[nombre], llevas la vida entera esperando que pase algo sin poner nada de tu parte. Las cosas no pasan solas, gilipollas. Y menos si no sales del cuarto, qué cringe.',
 
-      '[nombre], incel de saldo: mucha frustración acumulada y ninguna intención de cambiar el método. Repites lo mismo y esperas otro resultado, gilipollas.',
+      '[nombre], incel de saldo: mucha frustración acumulada y ninguna intención de cambiar el método. Repites lo mismo y esperas otro resultado, da, asco, da asco.',
 
-      'Eres el que culpa al mercado, a la época y a las apps, [nombre]. Todo está igual para el resto, gilipollas. La variable eres tú y siempre lo has sido.',
+      'Eres el que culpa al mercado, a la época y a las apps, [nombre]. Todo está igual para el resto, gilipollas. La variable eres tú y siempre lo has sido, qué vergüenza.',
 
-      '[nombre], virgen absoluto con la costumbre de dar lecciones. Empieza por hacer una sola cosa tú, cabrón, y luego hablamos de tus consejos de mierda.',
+      '[nombre], virgen absoluto con la costumbre de dar lecciones. Empieza por hacer una sola cosa tú, cabrón, y luego hablamos de tus consejos de mierda, ridículo.',
 
-      'Incel de mierda, [nombre]. Tu récord sexual es una paja bien hecha y ni de eso puedes presumir sin exagerar. Un fracasado. Con vocabulario técnico.',
+      'Incel de mierda, [nombre]. Tu récord sexual es una paja bien hecha y ni de eso puedes presumir sin exagerar. Un, fracasado. Con vocabulario técnico, fracasado.',
 
-      '[nombre], tu única relación documentada es contigo mismo y tampoco va especialmente bien. Ahí tienes el resumen de tu vida entera, puto fracasado.',
+      '[nombre], tu única relación documentada es contigo mismo y tampoco va especialmente bien. Ahí tienes el resumen de tu vida entera, puto fracasado, qué miseria.',
 
-      '[nombre], llevas tanto tiempo solo que has construido una filosofía entera alrededor de ello. Puta tesis doctoral sobre por qué eres un fracasado.',
+      '[nombre], llevas tanto tiempo solo que has construido una filosofía entera alrededor de ello. Puta tesis doctoral sobre por qué eres un fracasado, da grima.',
 
-      '[nombre], eres el virgen que se cree seleccionando. No seleccionas nada, gilipollas. Nadie te ha puesto nunca en la posición de tener que elegir.',
+      '[nombre], eres el virgen que se cree seleccionando. No seleccionas nada, gilipollas. Nadie te ha puesto nunca en la posición de tener que elegir, qué nivel de pena.',
 
-      'Eres el fracasado que confunde no tener suerte con no haberlo intentado, [nombre]. Y no lo has intentado nunca. Ni una puta vez en toda tu vida.',
+      'Eres el fracasado que confunde no tener suerte con no haberlo intentado, [nombre]. Y no lo has intentado nunca. Ni una puta vez en toda tu vida, basura.',
 
       '[nombre], eres el pringado que dice que no le interesa. Interesa y mucho, y se te nota en cada mensaje. Ni mintiendo se te da bien, fracasado.',
 
-      'Eres el pringado que perdió una guerra en la que ni se inscribió, [nombre]. Nadie te ha derrotado, cabrón. Nadie ha llegado a jugar contra ti.',
+      'Eres el pringado que perdió una guerra en la que ni se inscribió, [nombre]. Nadie te ha derrotado, cabrón. Nadie ha llegado a jugar contra ti, da pena ajena.',
 
-      'Eres el virgen que se cree seleccionando, [nombre]. Seleccionar exige tener opciones, cabrón, y tú no has tenido ni una en toda tu puta vida.',
+      'Eres el virgen que se cree seleccionando, [nombre]. Seleccionar exige tener opciones, cabrón, y tú no has tenido ni una en toda tu puta vida, qué vacío.',
 
-      '[nombre], virgen de saldo que confunde no tener suerte con no haberlo intentado. Y no lo has intentado nunca, cabrón. Ni una sola puta vez.',
+      '[nombre], virgen de saldo que confunde no tener suerte con no haberlo intentado. Y no lo has intentado nunca, cabrón. Ni una sola puta vez, indignante.',
 
-      'Incel de saldo, [nombre]: repartes notas sin haber sido puntuado nunca. Sal una vez a la calle y luego hablamos de estándares, gilipollas.',
+      'Incel de saldo, [nombre]: repartes notas sin haber sido puntuado nunca. Sal una vez a la calle y luego hablamos de estándares, qué vergüenza ajena.',
 
-      'Eres el que puntúa a los demás sin haber sido puntuado nunca, [nombre]. Empieza por salir a la calle y luego reparte notas, gilipollas.',
+      'Eres el que puntúa a los demás sin haber sido puntuado nunca, [nombre]. Empieza por salir a la calle y luego reparte notas, da vergüenza.',
 
-      '[nombre], eres el pringado que se cree en una guerra que solo existe en su cabeza. Nadie más está peleando eso, cabrón. Estás solo ahí.',
+      '[nombre], eres el pringado que se cree en una guerra que solo existe en su cabeza. Nadie más está peleando eso, cabrón. Estás solo ahí, qué flojo.',
 
-      '[nombre], tu única relación documentada es contigo mismo y ni esa va bien. Ahí tienes el resumen completo de tu vida, puto fracasado.',
+      '[nombre], tu única relación documentada es contigo mismo y ni esa va bien. Ahí tienes el resumen completo de tu vida, puto fracasado, menudo desastre.',
 
       'Incel de los que llaman estándares a su propia incapacidad, [nombre]. Solo culpa hacia fuera, fracasado.',
 
-      '[nombre], incel de mierda. Con la cabeza llena de teorías y la cama con el mismo hueco desde hace años. Puta biblioteca sin visitas.',
+      '[nombre], incel de, mierda. Con la cabeza llena de teorías y la cama con el mismo hueco desde hace años. Puta biblioteca sin visitas, patético.',
 
-      'Has convertido no tener experiencia en una postura ideológica. Y una postura no es un plan, gilipollas. Es una excusa con discurso.',
+      'Has convertido no tener experiencia en una postura ideológica. Y una postura no es un plan, gilipollas. Es una excusa con discurso, miserable.',
 
-      'Tu experiencia se mide en cosas que casi pasaron, [nombre]. Y el casi no cuenta, cabrón. Nunca ha contado en ningún puto registro.',
+      'Tu experiencia se mide en cosas que casi pasaron, [nombre]. Y el casi no cuenta, cabrón. Nunca ha contado en ningún puto registro, qué cringe.',
 
-      'Eres el que se cree fuera del sistema, [nombre]. Estás fuera porque no entraste nunca, gilipollas. Nadie te echó de ningún sitio.',
+      'Eres el que se cree fuera del sistema, [nombre]. Estás fuera porque no entraste nunca, gilipollas. Nadie te echó de ningún sitio, da, asco, da asco.',
 
-      '[nombre], tu única relación documentada es contigo mismo y ni esa funciona bien. Ahí tienes el resumen entero, puto fracasado.',
+      '[nombre], tu única relación documentada es contigo mismo y ni esa funciona bien. Ahí tienes el resumen entero, puto fracasado, qué vergüenza.',
 
-      '[nombre], eres el que confunde no tener suerte con no haberlo intentado. Y no lo has intentado nunca, cabrón. Ni una puta vez.',
+      '[nombre], eres el que confunde no tener suerte con no haberlo intentado. Y no lo has intentado nunca, cabrón. Ni una puta vez, ridículo.',
 
-      'Incel sin misterio: solo amargura, foros y cero cita en el historial real, [nombre]. El espejo sigue esperando, asco.',
+      'Incel sin misterio: solo amargura, foros y cero cita en el historial real, [nombre]. El espejo sigue esperando, asco, fracasado.',
 
-      'Virgen con teorías sobre lo que busca la gente. La gente busca a alguien que salga de casa, gilipollas. Empieza por ahí.',
+      'Virgen con teorías sobre lo que busca la gente. La gente busca a alguien que salga de casa, gilipollas. Empieza por ahí, qué miseria.',
 
-      'Conviertes cada no en una teoría general sobre el mundo. No es el mundo, gilipollas. Eres tú, y llevas años sin mirarlo.',
+      'Conviertes cada no en una teoría general sobre el mundo. No es el mundo, gilipollas. Eres tú, y llevas años sin mirarlo, da grima.',
 
-      'Hablas de lo que otros hacen mal. Ellos al menos lo hacen, gilipollas. Tú ni eso, y encima repartes notas desde el sofá.',
+      'Hablas de lo que otros hacen mal. Ellos al menos lo hacen, gilipollas. Tú ni eso, y encima repartes notas desde el sofá, qué nivel de pena.',
 
-      'Virgen absoluto con la confianza intacta. Y la confianza sin prueba no vale una mierda, pringado. Es fe, no seguridad.',
+      'Virgen absoluto con la confianza intacta. Y la confianza sin prueba no vale una mierda, pringado. Es fe, no seguridad, basura.',
 
-      'Tu problema no es la época, ni el mercado, ni la suerte. Es de iniciativa, gilipollas. Y lo sabes desde hace bastante.',
+      'Tu problema no es la época, ni el mercado, ni la suerte. Es de iniciativa, gilipollas. Y lo sabes desde hace bastante, qué cutre.',
 
-      '[nombre], tu experiencia es una hoja en blanco firmada por ti mismo. Y encima con la firma temblorosa, puto fracasado.',
+      '[nombre], tu experiencia es una hoja en blanco firmada por ti mismo. Y encima con la firma temblorosa, puto fracasado, da pena ajena.',
 
-      '[nombre], eres un virgen con vocabulario técnico. Sabes todos los términos, todos los conceptos y no has aplicado uno solo en el mundo real. Puta enciclopedia inútil.',
+      '[nombre], eres un virgen con vocabulario técnico. Sabes todos los términos, todos los conceptos y no has aplicado uno solo en el mundo real. Puta enciclopedia inútil, qué vacío.',
 
-      '[nombre], tu récord es una noche en la que casi. Y llevas cinco años contando ese casi como si fuera una hazaña. Da vergüenza ajena escucharte, pringado.gilipollas.',
+      '[nombre], tu récord es una noche en la que casi. Y llevas cinco años contando ese casi como si fuera una hazaña. Da vergüenza ajena escucharte, pringado.gilipollas, indignante.',
 
-      'Tu vida amorosa es una hoja en blanco con anotaciones al margen, [nombre]. Todas las anotaciones tuyas y ninguna de nadie más. Puta miseria.',
+      'Tu vida amorosa es una hoja en blanco con anotaciones al margen, [nombre]. Todas las anotaciones tuyas y ninguna de nadie más. Puta miseria, qué vergüenza ajena.',
 
-      'Virgen de saldo con teorías de catedrático, [nombre]. Te has construido un sistema completo para explicar por qué no haces absolutamente nada. Puta obra maestra de la excusa.',
+      'Virgen de saldo con teorías de catedrático, [nombre]. Te has construido un sistema completo para explicar por qué no haces absolutamente nada. Puta obra maestra de la excusa, da vergüenza.',
 
       '[nombre], eres el pringado que dice que está esperando a la correcta. Llevas esperando desde siempre y la lista de espera la tienes tú solo, sin nadie apuntado, basura.',
 
-      'Incel de manual, [nombre]: culpas al mercado, a la época y a las apps. Las apps están igual para todos, cabrón. El problema estás siendo tú desde el principio.',
+      'Incel de manual, [nombre]: culpas al mercado, a la época y a las apps. Las apps están igual para todos, cabrón. El problema estás siendo tú desde el principio, menudo desastre.',
 
-      '[nombre], virgen certificado con opiniones de veterano. Cero recorrido, mil certezas y una capacidad de hablar de lo que no has tocado que ya es puta leyenda.',
+      '[nombre], virgen certificado con opiniones de veterano. Cero recorrido, mil certezas y una capacidad de hablar de lo que no has tocado que ya es puta leyenda, qué pena.',
 
-      'Incel puro con la frustración acumulada de una década y la iniciativa acumulada de cero minutos, [nombre]. Toda esa rabia y ni un solo intento real, pringado, joder.',
+      'Incel puro con la frustración acumulada de una década y la iniciativa acumulada de cero minutos, [nombre]. Toda esa rabia y ni un solo intento real, pringado, patético.',
 
-      '[nombre], eres el que se refugia en lo teórico porque lo práctico exige exponerse. Y ahí no llegas. Cero cojones y muchísimo análisis. Combinación de mierda.',
+      '[nombre], eres el que se refugia en lo teórico porque lo práctico exige exponerse. Y ahí no llegas. Cero cojones y muchísimo análisis. Combinación de mierda, miserable.',
 
-      'Incel de manual con años de análisis y cero minutos de acción, [nombre]. Ni un intento, ni un no encajado, ni una sola cosa que contar. Un puto cero redondo.',
+      'Incel de manual con años de análisis y cero minutos de acción, [nombre]. Ni un intento, ni un no encajado, ni una sola cosa que contar. Un puto cero redondo, qué cringe.',
 
-      'Virgen absoluto con la seguridad de un experto, [nombre]. Esa desconexión entre lo que crees saber y lo que has hecho es lo más patético. De todo el asunto.',
+      'Virgen absoluto con la seguridad de un experto, [nombre]. Esa desconexión entre lo que crees saber y lo que has hecho es lo más, patético. De todo el asunto, da, asco, da asco.',
 
-      'Virgen de manual, [nombre], con la teoría de un catedrático y la práctica de alguien que no ha entrado al aula. Puto experto en algo que no existe para ti.',
+      'Virgen de manual, [nombre], con la teoría de un catedrático y la práctica de alguien que no ha entrado al aula. Puto experto en algo que no existe para ti, qué vergüenza.',
 
-      '[nombre], tu problema no es el mercado ni la época. Es que no sales, cabrón. Y llevas años construyendo teorías para no tener que enfrentarte a esa frase.',
+      '[nombre], tu problema no es el mercado ni la época. Es que no sales, cabrón. Y llevas años construyendo teorías para no tener que enfrentarte a esa frase, ridículo.',
 
-      'Incel sin misterio: solo amargura, foros y cero cita en el historial real, [nombre]. Solo culpa hacia fuera, asco.',
+      'Incel sin misterio: solo amargura, foros y cero cita en el historial real, [nombre]. Solo culpa hacia fuera, asco, fracasado.',
 
-      'Incel de saldo, [nombre]: has convertido una carencia en una ideología completa. Eso es lo que la vuelve permanente y lo que la vuelve tan puta ridícula.',
+      'Incel de saldo, [nombre]: has convertido una carencia en una ideología completa. Eso es lo que la vuelve permanente y lo que la vuelve tan puta ridícula, qué miseria.',
 
-      'Virgen absoluto que se cree exigente, [nombre]. Exigente es quien puede elegir. Tú no has llegado a esa fase y no vas a llegar por este camino de mierda.',
+      'Virgen absoluto que se cree exigente, [nombre]. Exigente es quien puede elegir. Tú no has llegado a esa fase y no vas a llegar por este camino de mierda, da grima.',
 
-      '[nombre], tu vida sexual es una hipótesis y las hipótesis se comprueban saliendo, no leyendo foros. Puto investigador de campo sin haber pisado el campo.',
+      '[nombre], tu vida sexual es una hipótesis y las hipótesis se comprueban saliendo, no leyendo foros. Puto investigador de campo sin haber pisado el campo, qué nivel de pena.',
 
-      '[nombre], tu experiencia es tan escasa que redondearla hacia abajo da exactamente cero. Y hacia arriba también. Un puto vacío con opiniones muy firmes.',
+      '[nombre], tu experiencia es tan escasa que redondearla hacia abajo da exactamente cero. Y hacia arriba también. Un puto vacío con opiniones muy firmes, basura.',
 
-      '[nombre], llevas años sin una sola cita y con una opinión firmísima sobre cómo funcionan las citas. Puto experto en un terreno que no has pisado nunca.',
+      '[nombre], llevas años sin una sola cita y con una opinión firmísima sobre cómo funcionan las citas. Puto experto en un terreno que no has pisado nunca, qué cutre.',
 
-      'Virgen absoluto, [nombre]: todo el discurso, ninguna prueba y una capacidad de racionalizar el fracaso que ya raya en lo artístico. Puta obra completa.',
+      'Virgen absoluto, [nombre]: todo el discurso, ninguna prueba y una capacidad de racionalizar el fracaso que ya raya en lo artístico. Puta obra completa, da pena ajena.',
 
-      '[nombre], incel de esos que se saben la teoría entera y no han hecho una sola práctica. Un puto expediente en blanco con matrícula de honor imaginaria.',
+      '[nombre], incel de esos que se saben la teoría entera y no han hecho una sola práctica. Un puto expediente en blanco con matrícula de honor imaginaria, qué vacío.',
 
-      '[nombre], hablas de mujeres como quien habla de una ciudad a la que nunca ha ido. Mucho documental, cero experiencia y una puta soberbia insoportable.',
+      '[nombre], hablas de mujeres como quien habla de una ciudad a la que nunca ha ido. Mucho documental, cero experiencia y una puta soberbia insoportable, indignante.',
 
-      'Incel puro, [nombre]. Ni pagando. Y sé exactamente lo que estás pensando: que algún día. No, campeón. Ni pagando, ni algún día, ni de puta casualidad.',
+      'Incel puro, [nombre]. Ni pagando. Y sé exactamente lo que estás pensando: que algún día. No, campeón. Ni pagando, ni algún día, ni de puta casualidad, qué vergüenza ajena.',
 
-      '[nombre], si dedicaras a intentarlo la mitad del tiempo que dedicas a explicarlo, otra cosa sería. Pero explicarlo es cómodo y no duele. Puto cobarde.',
+      '[nombre], si dedicaras a intentarlo la mitad del tiempo que dedicas a explicarlo, otra cosa sería. Pero explicarlo es cómodo y no duele. Puto cobarde, da vergüenza.',
 
-      'Incel de mierda, [nombre]: cada teoría nueva es una excusa nueva. Y ya llevas unas cuantas. Un archivador entero de razones para no moverte del sitio.',
+      'Incel de mierda, [nombre]: cada teoría nueva es una excusa nueva. Y ya llevas unas cuantas. Un archivador entero de razones para no moverte del sitio, qué flojo.',
 
-      '[nombre], eres el que lleva años entrenando para un partido al que no piensa presentarse. Y encima criticando a los que juegan. Puto cobarde de grada.',
+      '[nombre], eres el que lleva años entrenando para un partido al que no piensa presentarse. Y encima criticando a los que juegan. Puto cobarde de grada, menudo desastre.',
 
-      'Incel de saldo, [nombre]: llevas años explicando por qué el sistema falla y cero años intentando algo dentro de él. Es cómodo y es una puta cobardía.',
+      'Incel de saldo, [nombre]: llevas años explicando por qué el sistema falla y cero años intentando algo dentro de él. Es cómodo y es una puta cobardía, qué pena.',
 
-      '[nombre], tu récord absoluto es haberlo pensado mucho. Pensarlo mucho no cuenta como experiencia, pringado. Cuenta como perder el tiempo con estilo, joder.',
+      '[nombre], tu récord absoluto es haberlo pensado mucho. Pensarlo mucho no cuenta como experiencia, pringado. Cuenta como perder el tiempo con estilo, patético.',
 
-      '[nombre], tu experiencia entera es un cero redondo y tu confianza es la de alguien con historial. Esa mezcla es lo más patético. Del catálogo humano.',
+      '[nombre], tu experiencia entera es un cero redondo y tu confianza es la de alguien con historial. Esa mezcla es lo más, patético. Del catálogo humano, miserable.',
 
-      '[nombre], incel de mierda. Con la teoría de un catedrático y el historial de un mueble. Todo ese estudio para acabar exactamente igual que empezaste.',
+      '[nombre], incel de, mierda. Con la teoría de un catedrático y el historial de un mueble. Todo ese estudio para acabar exactamente igual que empezaste, qué cringe.',
 
-      'Eres el pringado que se cree en una guerra que nadie más pelea, [nombre]. Solo estás tú ahí, gritándole al techo de tu cuarto. Da una pena tremenda, cabrón.',
+      'Eres el pringado que se cree en una guerra que nadie más pelea, [nombre]. Solo estás tú ahí, gritándole al techo de tu cuarto. Da una pena tremenda, da, asco, da asco.',
 
-      '[nombre], virgen de mierda. Con la biblioteca llena y la cama vacía. Toda esa lectura para acabar exactamente donde empezaste: solo y con opiniones.',
+      '[nombre], virgen de, mierda. Con la biblioteca llena y la cama vacía. Toda esa lectura para acabar exactamente donde empezaste: solo y con opiniones, qué vergüenza.',
 
       'Incel de manual, [nombre], con la seguridad intacta precisamente porque nunca la has arriesgado. Eso no es confianza, pringado.es no haber jugado, patético.',
 
-      '[nombre], tu vida sexual es una hipótesis y las hipótesis se comprueban saliendo de casa, no leyendo foros. Puto investigador sin trabajo de campo.',
+      '[nombre], tu vida sexual es una hipótesis y las hipótesis se comprueban saliendo de casa, no leyendo foros. Puto investigador sin trabajo de campo, fracasado.',
 
-      '[nombre], incel de manual con años de análisis y cero minutos de exposición. Ni un intento, ni un no encajado. Un puto cero redondo y bien redondo.',
+      '[nombre], incel de manual con años de análisis y cero minutos de exposición. Ni un intento, ni un no encajado. Un puto cero redondo y bien redondo, qué miseria.',
 
-      '[nombre], tu problema es que has hecho de una carencia una postura. Y una postura no es un plan, cabrón. Es una manera cómoda de no moverse nunca.',
+      '[nombre], tu problema es que has hecho de una carencia una postura. Y una postura no es un plan, cabrón. Es una manera cómoda de no moverse nunca, da grima.',
 
-      '[nombre], tu récord es una lista de nombres que no saben que existes. Eso no es una lista, cabrón, es un ejercicio de imaginación bastante triste.',
+      '[nombre], tu récord es una lista de nombres que no saben que existes. Eso no es una lista, cabrón, es un ejercicio de imaginación bastante triste, qué nivel de pena.',
 
-      'Incel de mierda que confunde estar frustrado con tener razón, [nombre]. Son dos cosas distintas y llevas años sin distinguirlas. Ni una sola vez.',
+      'Incel de mierda que confunde estar frustrado con tener razón, [nombre]. Son dos cosas distintas y llevas años sin distinguirlas. Ni una sola vez, basura.',
 
       'Tu récord absoluto es haberlo pensado mucho, [nombre]. Enhorabuena, campeón de las intenciones. En el mundo real eso vale exactamente una mierda.',
 
-      '[nombre], llevas años convencido de que sabes cómo funciona esto. No lo sabes, cabrón. Lo has leído, que es exactamente lo contrario de saberlo.',
+      '[nombre], llevas años convencido de que sabes cómo funciona esto. No lo sabes, cabrón. Lo has leído, que es exactamente lo contrario de saberlo, da pena ajena.',
 
-      'Eres el pringado que se cree fuera del sistema, [nombre]. Estás fuera, sí, pero no por elección. Te dejaron fuera y ni te enteraste del momento, cabrón.',
+      'Eres el pringado que se cree fuera del sistema, [nombre]. Estás fuera, sí, pero no por elección. Te dejaron fuera y ni te enteraste del momento, qué vacío.',
 
-      'Incel puro, [nombre]: llevas años describiendo el problema con precisión de cirujano y sin tocar la solución ni con un puto palo. Cobardía pura.',
+      'Incel puro, [nombre]: llevas años describiendo el problema con precisión de cirujano y sin tocar la solución ni con un puto palo. Cobardía pura, indignante.',
 
-      '[nombre], incel puro: cero práctica, mil teorías y un resentimiento que crece solo cada mes que pasa. Un cóctel de mierda que te has servido tú.',
+      '[nombre], incel puro: cero práctica, mil teorías y un resentimiento que crece solo cada mes que pasa. Un cóctel de mierda que te has servido tú, qué vergüenza ajena.',
 
-      '[nombre], virgen certificado con más certezas que la gente que sí lo ha vivido. Esa desproporción te delata cada vez que abres la boca, cabrón.',
+      '[nombre], virgen certificado con más certezas que la gente que sí lo ha vivido. Esa desproporción te delata cada vez que abres la boca, da vergüenza.',
 
-      '[nombre], lo más cerca que has estado de un coño. Fue el día que saliste del de tu madre. Y de eso hace ya bastante, sin repetición a la vista.',
+      '[nombre], lo más cerca que has estado de un, coño. Fue el día que saliste del de tu madre. Y de eso hace ya bastante, sin repetición a la vista, qué flojo.',
 
-      'Incel de mierda. Con el mapa entero memorizado y sin haber salido del punto de partida, [nombre]. Una guía turística sin un solo viaje sellado.',
+      'Incel de, mierda. Con el mapa entero memorizado y sin haber salido del punto de partida, [nombre]. Una guía turística sin un solo viaje sellado, menudo desastre.',
 
-      'Eres el que se ha montado una tesis para no salir de casa, [nombre]. Puta obra académica sobre la nada más absoluta y sin tribunal que la lea.',
+      'Eres el que se ha montado una tesis para no salir de casa, [nombre]. Puta obra académica sobre la nada más absoluta y sin tribunal que la lea, qué pena.',
 
       'Incel de los que el foro de odio te quedaría corto y. El ranking te queda grande, [nombre], patético.',
 
-      'Virgen de los que dan lecciones de mercado sin haber entrado al puto juego, [nombre]. Cero autoexamen de verdad, mierda.',
+      'Virgen de los que dan lecciones de mercado sin haber entrado al puto juego, [nombre]. Cero autoexamen de verdad, miserable.',
 
-      'Incel de manual: repartes culpa y no te has mirado nunca de verdad, [nombre]. Se te ve el fail a la primera, coño.',
+      'Incel de manual: repartes culpa y no te has mirado nunca de verdad, [nombre]. Se te ve el fail a la primera, qué cringe.',
 
       'Se te nota el rastro de incel hasta en los mensajes que pretenden ser neutrales, [nombre], ridículo.',
 
-      'Incel como un anuncio repetido que nadie pidió. Cero autoexamen de verdad, gilipollas, joder, y el grupo no se traga el cuento, gilipollas.',
+      'Incel como un anuncio repetido que nadie pidió. Cero autoexamen de verdad, gilipollas, joder, y el grupo no se traga el cuento, qué vergüenza.',
 
-      'Has convertido el resentimiento en identidad y no hay terapia que la limpie aquí, [nombre]. Patético.',
+      'Has convertido el resentimiento en identidad y no hay terapia que la limpie aquí, [nombre]. Patético, ridículo.',
 
-      'Incel en crudo: ni el maquillaje del ranking te cubre, asco. El espejo sigue esperando, asco, joder.',
+      'Incel en crudo: ni el maquillaje del ranking te cubre, asco. El espejo sigue esperando, asco, fracasado.',
 
       'El listón de lo social lo miras desde el sótano y culpas al resto, joder, [nombre]. anestesia. Cero autoexamen de verdad, basura.',
 
@@ -304,19 +304,19 @@ const LABELS = {
 
       'Incel de los que llaman estándares a su propia incapacidad, [nombre]. El espejo sigue esperando, fracasado.',
 
-      'Incel de historial público: no hace falta escarbar, está en la superficie, [nombre]. Cero autoexamen de verdad, joder.',
+      'Incel de historial público: no hace falta escarbar, está en la superficie, [nombre]. Cero autoexamen de verdad, basura.',
 
-      'Tienes más episodios de culpa ajena que intentos de subir el propio nivel, [nombre]. Se te ve el fail a la primera, mierda.',
+      'Tienes más episodios de culpa ajena que intentos de subir el propio nivel, [nombre]. Se te ve el fail a la primera, qué cutre.',
 
-      'Incel cutre: ni el odio tiene gracia ni la amargura tiene misterio, [nombre]. El espejo sigue esperando, coño.',
+      'Incel cutre: ni el odio tiene gracia ni la amargura tiene misterio, [nombre]. El espejo sigue esperando, da pena ajena.',
 
-      'Has hecho del bajo listón social tu residencia. y no hay mudanza, [nombre]. Cero autoexamen de verdad, cabrón.',
+      'Has hecho del bajo listón social tu residencia. y no hay mudanza, [nombre]. Cero autoexamen de verdad, qué vacío.',
 
-      'Incel de las que el mute ajeno lee como rechazo y es solo desinterés, [nombre]. Solo culpa hacia fuera, gilipollas.',
+      'Incel de las que el mute ajeno lee como rechazo y es solo desinterés, [nombre]. Solo culpa hacia fuera, indignante.',
 
-      '[nombre], perdiste una guerra en la que ni te inscribiste. El espejo sigue esperando, patético, joder.',
+      '[nombre], perdiste una guerra en la que ni te inscribiste. El espejo sigue esperando, patético, qué vergüenza ajena.',
 
-      'Incel constante: la única racha es la de no aceptar el espejo, [nombre]. el grupo de testigo. Cero autoexamen de verdad, asco.',
+      'Incel constante: la única racha es la de no aceptar el espejo, [nombre]. el grupo de testigo. Cero autoexamen de verdad, asco, da vergüenza.',
 
       'Se te nota la prisa por culpar y cero plan de mirarte a ti, [nombre]. maquillaje posible. Solo culpa hacia fuera, basura.',
 
@@ -324,19 +324,19 @@ const LABELS = {
 
       'No hay misterio interesante: hay previsible y amargado, el combo del high, [nombre]. Cero autoexamen de verdad, fracasado.',
 
-      'Tienes el historial de un foro abandonado: posts de odio, cero vida, [nombre]. Se te ve el fail a la primera, joder.',
+      'Tienes el historial de un foro abandonado: posts de odio, cero vida, [nombre]. Se te ve el fail a la primera, patético.',
 
-      'Incel de inercia: el grupo te soporta por costumbre, no por interés, [nombre]. El espejo sigue esperando, mierda.',
+      'Incel de inercia: el grupo te soporta por costumbre, no por interés, [nombre]. El espejo sigue esperando, miserable.',
 
-      'El recato social te queda lejos y la distancia es rechazo, no mística, [nombre]. Cero autoexamen de verdad, coño.',
+      'El recato social te queda lejos y la distancia es rechazo, no mística, [nombre]. Cero autoexamen de verdad, qué cringe.',
 
-      'Incel de ranking: bajas la media del nivel con monólogos de culpa ajena, [nombre]. Solo culpa hacia fuera, cabrón.',
+      'Incel de ranking: bajas la media del nivel con monólogos de culpa ajena, [nombre]. Solo culpa hacia fuera, da, asco, da asco.',
 
-      'Has convertido el resentimiento en carnet. y no hay renovación limpia, [nombre]. El espejo sigue esperando, gilipollas.',
+      'Has convertido el resentimiento en carnet. y no hay renovación limpia, [nombre]. El espejo sigue esperando, qué vergüenza.',
 
       'Incel de estribillo que mancha más con cada bis de la misma queja, [nombre]. Cero autoexamen de verdad, patético.',
 
-      'Se te nota el hábito de empujar cada tema hacia tu mismo sótano, [nombre]. Se te ve el fail a la primera, asco.',
+      'Se te nota el hábito de empujar cada tema hacia tu mismo sótano, [nombre]. Se te ve el fail a la primera, asco, fracasado.',
 
       'La compostura no te reconoce y tú no has buscado el espejo en serio, [nombre]. El espejo sigue esperando, basura.',
 
@@ -344,19 +344,19 @@ const LABELS = {
 
       'No es profundidad: es amargura con teclado y el high te la cobra, [nombre]. Solo culpa hacia fuera, fracasado.',
 
-      'Tienes más grasa de resentimiento que un wiki sin editores decentes, [nombre]. frame. El espejo sigue esperando, joder.',
+      'Tienes más grasa de resentimiento que un wiki sin editores decentes, [nombre]. frame. El espejo sigue esperando, basura.',
 
-      'Incel de ceja ajena levantada y respeto social en el sótano, [nombre]. Cero autoexamen de verdad, mierda.',
+      'Incel de ceja ajena levantada y respeto social en el sótano, [nombre]. Cero autoexamen de verdad, qué cutre.',
 
-      '[nombre], culpas a las apps, a la época y a todo menos a tu cara y tu actitud. Solo culpa hacia fuera, coño.',
+      '[nombre], culpas a las apps, a la época y a todo menos a tu cara y tu actitud. Solo culpa hacia fuera, da pena ajena.',
 
-      'Has convertido el incel en identidad y no hay detergente a la vista, [nombre]. chat ya lo sabía, cabrón.',
+      'Has convertido el incel en identidad y no hay detergente a la vista, [nombre]. chat ya lo sabía, qué vacío.',
 
-      'Incel cutre y sin complejo útil: el complejo pediría espejo y no lo hay, [nombre]. Cero autoexamen de verdad, gilipollas.',
+      'Incel cutre y sin complejo útil: el complejo pediría espejo y no lo hay, [nombre]. Cero autoexamen de verdad, indignante.',
 
       'Se te oye el masticar del listón bajo hasta en los intentos de normal, [nombre]. Se te ve el fail a la primera, patético.',
 
-      'La dignidad social no te coge el teléfono: el buzón está lleno de silences, [nombre]. El espejo sigue esperando, asco.',
+      'La dignidad social no te coge el teléfono: el buzón está lleno de silences, [nombre]. El espejo sigue esperando, asco, da vergüenza.',
 
       'Incel de letrero de sótano: se lee y no invita a bajar, [nombre]. se te nota a la legua. Cero autoexamen de verdad, basura.',
 
@@ -364,39 +364,39 @@ const LABELS = {
 
       'Tienes el historial de un servidor vacío: roles de odio, cero gente, [nombre]. El espejo sigue esperando, fracasado.',
 
-      'Incel de malinterpretar el silencio ajeno como prueba de conspiración, [nombre]. Cero autoexamen de verdad, joder.',
+      'Incel de malinterpretar el silencio ajeno como prueba de conspiración, [nombre]. Cero autoexamen de verdad, patético.',
 
-      'El grupo paga tu monólogo en cuotas diarias de scroll del hilo, [nombre]. el grupo de testigo, mierda.',
+      'El grupo paga tu monólogo en cuotas diarias de scroll del hilo, [nombre]. el grupo de testigo, miserable.',
 
-      'Has dejado el chat como foro a medias: hilos muertos con tu firma, [nombre]. El espejo sigue esperando, coño.',
+      'Has dejado el chat como foro a medias: hilos muertos con tu firma, [nombre]. El espejo sigue esperando, qué cringe.',
 
-      'Incel de estribillo sin punto final limpio ni redención posible, [nombre]. Cero autoexamen de verdad, cabrón.',
+      'Incel de estribillo sin punto final limpio ni redención posible, [nombre]. Cero autoexamen de verdad, da, asco, da asco.',
 
-      'Se te nota el peso de arrastrar el mismo sótano por cada conversación, [nombre]. Se te ve el fail a la primera, gilipollas.',
+      'Se te nota el peso de arrastrar el mismo sótano por cada conversación, [nombre]. Se te ve el fail a la primera, qué vergüenza.',
 
       'La compostura cruza de acera cuando te ve en el high de incel, [nombre]. El espejo sigue esperando, patético.',
 
-      'Incel de feria de odio: ruido interno, cero ganas de volver del resto, [nombre]. Cero autoexamen de verdad, asco.',
+      'Incel de feria de odio: ruido interno, cero ganas de volver del resto, [nombre]. Cero autoexamen de verdad, asco, fracasado.',
 
-      'Se te ve venir la queja en la primera palabra del mensaje, [nombre]. Solo culpa hacia fuera, basura, joder.',
+      'Se te ve venir la queja en la primera palabra del mensaje, [nombre]. Solo culpa hacia fuera, basura, qué miseria.',
 
       'La dignidad del nivel no para: tú eres el tráfico del arcén social, [nombre]. El espejo sigue esperando, ridículo.',
 
-      'Incel de superficie suficiente: no hace falta abrir el wiki, se huele el cerrado, [nombre]. Patético.',
+      'Incel de superficie suficiente: no hace falta abrir el wiki, se huele el cerrado, [nombre]. Patético, qué nivel de pena.',
 
-      'No hay barniz de genio incomprendido: hay amargura y el high lo cobra, [nombre]. Se te ve el fail a la primera, joder.',
+      'No hay barniz de genio incomprendido: hay amargura y el high lo cobra, [nombre]. Se te ve el fail a la primera, basura.',
 
-      'Tienes el tono de quien acumula fichas de odio y nunca invita a jugar limpio, [nombre]. El espejo sigue esperando, mierda.',
+      'Tienes el tono de quien acumula fichas de odio y nunca invita a jugar limpio, [nombre]. El espejo sigue esperando, qué cutre.',
 
-      'Incel de las que alardean del sótano porque el exterior las deja sin personaje, [nombre]. Cero autoexamen de verdad, coño.',
+      'Incel de las que alardean del sótano porque el exterior las deja sin personaje, [nombre]. Cero autoexamen de verdad, da pena ajena.',
 
-      'Incel de repertorio corto: siempre el mismo lamento y cero plan de mejora, [nombre]. Solo culpa hacia fuera, cabrón.',
+      'Incel de repertorio corto: siempre el mismo lamento y cero plan de mejora, [nombre]. Solo culpa hacia fuera, qué vacío.',
 
-      'Has firmado el incel con polvo en cada mensaje como única firma, [nombre]. El espejo sigue esperando, gilipollas.',
+      'Has firmado el incel con polvo en cada mensaje como única firma, [nombre]. El espejo sigue esperando, indignante.',
 
       'Incel visible desde lejos: el rastro de desconexión se ve, la parada no compensa, [nombre]. De frame, patético.',
 
-      'Se te nota que te encerraste en el hilo hace tiempo y perdiste la llave, [nombre]. Solo culpa hacia fuera, asco.',
+      'Se te nota que te encerraste en el hilo hace tiempo y perdiste la llave, [nombre]. Solo culpa hacia fuera, asco, da vergüenza.',
 
       'La clase social te suena a ataque y respondes con más del mismo mazo, [nombre]. anestesia. El espejo sigue esperando, basura.',
 
@@ -404,17 +404,17 @@ const LABELS = {
 
       'No hay eco de conexión: hay eco de sótano. Y el chat lo amplifica, [nombre]. Se te ve el fail a la primera, fracasado.',
 
-      'Tienes el aura del post olvidado: presente en el archivo, frío en el ranking, [nombre]. El espejo sigue esperando, joder.',
+      'Tienes el aura del post olvidado: presente en el archivo, frío en el ranking, [nombre]. El espejo sigue esperando, patético.',
 
-      'El listón social lo usas de estantería de figuras y el suelo es tu almacén, [nombre]. se te nota a la legua, coño.',
+      'El listón social lo usas de estantería de figuras y el suelo es tu almacén, [nombre]. se te nota a la legua, miserable.',
 
-      'Has hecho ranking de desconexión y el oro es tuyo sin rival, [nombre]. El espejo sigue esperando, cabrón.',
+      'Has hecho ranking de desconexión y el oro es tuyo sin rival, [nombre]. El espejo sigue esperando, qué cringe.',
 
-      'Incel de feria ambulante de un solo puesto: el mismo show, cero nostalgia ajena, [nombre]. Fracasado.',
+      'Incel de feria ambulante de un solo puesto: el mismo show, cero nostalgia ajena, [nombre]. Fracasado, da, asco, da asco.',
 
       'Se te ve venir el monólogo en el primer punto del mensaje, [nombre]. Solo culpa hacia fuera, patético.',
 
-      'La dignidad social hace autostop y el tráfico del arcén eres tú, [nombre]. El espejo sigue esperando, asco.',
+      'La dignidad social hace autostop y el tráfico del arcén eres tú, [nombre]. El espejo sigue esperando, asco, ridículo.',
 
       'Incel de superficie: basta la vista, no hace falta el sótano del historial, [nombre]. Cero autoexamen de verdad, basura.',
 
@@ -422,19 +422,19 @@ const LABELS = {
 
       'Tienes el tono de noches de chat sin una frase que abra puerta al resto, [nombre]. El espejo sigue esperando, fracasado.',
 
-      'Incel de malinterpretar el mute como respeto al lore del odio, [nombre]. Cero autoexamen de verdad, joder.',
+      'Incel de malinterpretar el mute como respeto al lore del odio, [nombre]. Cero autoexamen de verdad, qué nivel de pena.',
 
-      'El precio de tu repertorio cerrado lo paga el hilo en scroll y silencio, [nombre]. Solo culpa hacia fuera, mierda.',
+      'El precio de tu repertorio cerrado lo paga el hilo en scroll y silencio, [nombre]. Solo culpa hacia fuera, basura.',
 
-      'Has dejado el hilo como wiki sin editores: páginas de queja, cero vida, [nombre]. El espejo sigue esperando, coño.',
+      'Has dejado el hilo como wiki sin editores: páginas de queja, cero vida, [nombre]. El espejo sigue esperando, qué cutre.',
 
-      'Incel de estribillo que empeora con cada bis del mismo mazo, [nombre]. Cero autoexamen de verdad, cabrón.',
+      'Incel de estribillo que empeora con cada bis del mismo mazo, [nombre]. Cero autoexamen de verdad, da pena ajena.',
 
-      'Se te nota el hábito de empujar cada hilo hacia el rincón sin ventana, [nombre]. Se te ve el fail a la primera, gilipollas.',
+      'Se te nota el hábito de empujar cada hilo hacia el rincón sin ventana, [nombre]. Se te ve el fail a la primera, qué vacío.',
 
       'La compostura del nivel no te reconoce en el elenco social, [nombre]. El espejo sigue esperando, patético.',
 
-      'Incel de fondo: bajas la media del high con la constancia de quien no sale, [nombre]. Cero autoexamen de verdad, asco.',
+      'Incel de fondo: bajas la media del high con la constancia de quien no sale, [nombre]. Cero autoexamen de verdad, asco, qué vergüenza ajena.',
 
       'No es estilo: es aislamiento previsible y el high te lo nombra entero, [nombre]. Solo culpa hacia fuera, basura.',
 
@@ -442,17 +442,17 @@ const LABELS = {
 
       'Incel de respeto ajeno en números rojos del ranking de aporte, [nombre]. Cero autoexamen de verdad, fracasado.',
 
-      '[nombre], incel de manual: repartes culpa y no te has mirado nunca de verdad. Solo culpa hacia fuera, joder.',
+      '[nombre], incel de manual: repartes culpa y no te has mirado nunca de verdad. Solo culpa hacia fuera, qué pena.',
 
-      'Has convertido el incel en carnet. y no hay renovación de salida a la vista, [nombre]. El espejo sigue esperando, mierda.',
+      'Has convertido el incel en carnet. y no hay renovación de salida a la vista, [nombre]. El espejo sigue esperando, patético.',
 
-      '[nombre], culpas a las apps, a la época y a todo menos a tu cara y tu actitud. Cero autoexamen de verdad, coño.',
+      '[nombre], culpas a las apps, a la época y a todo menos a tu cara y tu actitud. Cero autoexamen de verdad, miserable.',
 
-      'Incel hasta para el modo oscuro: ni la sombra tapa el lloriqueo, [nombre]. El espejo sigue esperando, gilipollas.',
+      'Incel hasta para el modo oscuro: ni la sombra tapa el lloriqueo, [nombre]. El espejo sigue esperando, qué cringe.',
 
       'Se te cae el disimulo solo con abrir el hilo y el high lo documenta, [nombre]. filtro ni consuelo, patético.',
 
-      'Incel de las que el algoritmo de empatía se rinde y pide la baja, [nombre]. cerrado. Solo culpa hacia fuera, asco.',
+      'Incel de las que el algoritmo de empatía se rinde y pide la baja, [nombre]. cerrado. Solo culpa hacia fuera, asco, qué vergüenza.',
 
       'No hay terapia aquí: hay amargura de base y el comando la cobra, [nombre]. se te nota a la legua, basura.',
 
@@ -460,69 +460,69 @@ const LABELS = {
 
       'Incel con la disciplina de quien nunca ha aceptado el espejo, [nombre]. Solo culpa hacia fuera, fracasado.',
 
-      '[nombre], incel de manual: repartes culpa y no te has mirado nunca de verdad. El espejo sigue esperando, joder.',
+      '[nombre], incel de manual: repartes culpa y no te has mirado nunca de verdad. El espejo sigue esperando, da grima.',
 
-      'Tienes una presencia que ensucia el hilo en un solo monólogo, [nombre]. Cero autoexamen de verdad, mierda.',
+      'Tienes una presencia que ensucia el hilo en un solo monólogo, [nombre]. Cero autoexamen de verdad, qué nivel de pena.',
 
-      'Incel de repertorio: siempre la misma queja y cero plan B de dignidad, [nombre]. Se te ve el fail a la primera, coño.',
+      'Incel de repertorio: siempre la misma queja y cero plan B de dignidad, [nombre]. Se te ve el fail a la primera, basura.',
 
-      'Se te nota el desastre hasta en la miniatura del estado, [nombre]. El espejo sigue esperando, cabrón.',
+      'Se te nota el desastre hasta en la miniatura del estado, [nombre]. El espejo sigue esperando, qué cutre.',
 
-      'Incel sin complejo útil: el complejo al menos indicaría que viste el problema, [nombre], gilipollas.',
+      'Incel sin complejo útil: el complejo al menos indicaría que viste el problema, [nombre], da pena ajena.',
 
       'El ranking de cordura te deja donde mereces: en el sótano del high, [nombre]. Solo culpa hacia fuera, patético.',
 
-      'Has hecho del incel tu marca y la marca se pega en los dedos ajenos, [nombre]. El espejo sigue esperando, asco.',
+      'Has hecho del incel tu marca y la marca se pega en los dedos ajenos, [nombre]. El espejo sigue esperando, asco, indignante.',
 
       'Incel de las que confunden profundidad con abandono total del estándar social, [nombre]. Cero autoexamen de verdad, basura.',
 
       'No es estilo amargo con gracia: eres incel y el high no discute la evidencia, [nombre]. Se te ve el fail a la primera, ridículo.',
 
-      'Virgen de saldo con la costumbre de puntuar a los demás, [nombre]. Empieza por puntuarte tú, cabrón, que el resultado te va a doler bastante.',
+      'Virgen de saldo con la costumbre de puntuar a los demás, [nombre]. Empieza por puntuarte tú, cabrón, que el resultado te va a doler bastante, qué flojo.',
 
-      'Eres un virgen con vocabulario de foro, [nombre]. Todos los términos, todos los conceptos y cero aplicación. Puta enciclopedia sin lectores.',
+      'Eres un virgen con vocabulario de foro, [nombre]. Todos los términos, todos los conceptos y cero aplicación. Puta enciclopedia sin lectores, menudo desastre.',
 
-      'Incel de saldo, [nombre], con la rabia de quien perdió una guerra en la que ni se inscribió. Nadie te ha derrotado, cabrón. Nadie ha jugado.',
+      'Incel de saldo, [nombre], con la rabia de quien perdió una guerra en la que ni se inscribió. Nadie te ha derrotado, cabrón. Nadie ha jugado, qué pena.',
 
-      '[nombre], culpas a las apps, a la época y a todo menos a tu cara y tu actitud. El espejo sigue esperando, coño.',
+      '[nombre], culpas a las apps, a la época y a todo menos a tu cara y tu actitud. El espejo sigue esperando, patético.',
 
-      '[nombre], tu problema no es la época. Es que la época pasa por la calle y tú llevas años sin bajar. Ahí está la explicación entera, cabrón.',
+      '[nombre], tu problema no es la época. Es que la época pasa por la calle y tú llevas años sin bajar. Ahí está la explicación entera, miserable.',
 
-      'Tu vida en esto se resume en cosas que casi pasaron, [nombre]. Todas casi. Ninguna del todo. Y el casi no aparece en ningún puto registro.',
+      'Tu vida en esto se resume en cosas que casi pasaron, [nombre]. Todas casi. Ninguna del todo. Y el casi no aparece en ningún puto registro, qué cringe.',
 
       'Tu confianza está intacta porque nunca la has arriesgado, [nombre]. Eso no es seguridad, pringado.es no haber jugado ni una sola partida, patético.',
 
-      'Eres el que dice que las apps están mal, [nombre]. Las apps están igual para todos, cabrón. Lo que está mal es lo que aparece en tu foto.',
+      'Eres el que dice que las apps están mal, [nombre]. Las apps están igual para todos, cabrón. Lo que está mal es lo que aparece en tu foto, qué vergüenza.',
 
-      '[nombre], tu única experiencia es lo que has leído. Y lo que has leído no te ha servido para una puta cosa en todos estos años. Piénsalo.',
+      '[nombre], tu única experiencia es lo que has leído. Y lo que has leído no te ha servido para una puta cosa en todos estos años. Piénsalo, ridículo.',
 
-      '[nombre], incel de manual: te explican por qué y te quedas con el qué. Cada vez. Puta capacidad de entender justo la parte que no sirve.',
+      '[nombre], incel de manual: te explican por qué y te quedas con el qué. Cada vez. Puta capacidad de entender justo la parte que no sirve, fracasado.',
 
-      'Tu récord personal es una lista de nombres que no saben que existes, [nombre]. Eso no es una lista, es un puto ejercicio de imaginación.',
+      'Tu récord personal es una lista de nombres que no saben que existes, [nombre]. Eso no es una lista, es un puto ejercicio de imaginación, qué miseria.',
 
-      'Tu vida sexual es una nota a pie de página de un libro que nadie ha escrito, [nombre]. Ni existe el libro ni existe la nota. Puta nada.',
+      'Tu vida sexual es una nota a pie de página de un libro que nadie ha escrito, [nombre]. Ni existe el libro ni existe la nota. Puta nada, da grima.',
 
       '[nombre], eres el que dice que no le interesa. Interesa, y mucho, y se te nota en cada mensaje. Ni mintiendo se te da bien, fracasado.',
 
-      'Tu problema es que explicarlo no duele y intentarlo sí, [nombre]. Por eso llevas años explicando. Puta cobardía con formato de ensayo.',
+      'Tu problema es que explicarlo no duele y intentarlo sí, [nombre]. Por eso llevas años explicando. Puta cobardía con formato de ensayo, basura.',
 
-      'Llevas años sin salir y con una explicación elaboradísima de por qué salir no sirve. Sirve, cabrón. A todos menos a ti, que no sales.',
+      'Llevas años sin salir y con una explicación elaboradísima de por qué salir no sirve. Sirve, cabrón. A todos menos a ti, que no sales, qué cutre.',
 
-      '[nombre], incel de manual con la cara de quien lleva años esperando su turno en una cola donde no hay nadie más. Ni cola hay, cabrón.',
+      '[nombre], incel de manual con la cara de quien lleva años esperando su turno en una cola donde no hay nadie más. Ni cola hay, da pena ajena.',
 
-      '[nombre], tu vida amorosa es una hoja en blanco con anotaciones al margen. Y todas las anotaciones las has escrito tú solo, pringado.patético.',
+      '[nombre], tu vida amorosa es una hoja en blanco con anotaciones al margen. Y todas las anotaciones las has escrito tú solo, pringado.patético, qué vacío.',
 
-      'Virgen absoluto con la costumbre de dar consejos a quien tiene más recorrido. Cállate, cabrón, que se te ve el expediente en blanco.',
+      'Virgen absoluto con la costumbre de dar consejos a quien tiene más recorrido. Cállate, cabrón, que se te ve el expediente en blanco, indignante.',
 
-      'Incel de manual: llevas años explicando el terreno sin haberlo pisado. Puta guía turística escrita por alguien que no salió de casa.',
+      'Incel de manual: llevas años explicando el terreno sin haberlo pisado. Puta guía turística escrita por alguien que no salió de casa, qué vergüenza ajena.',
 
       'Dedicas al análisis el tiempo que otros dedican a intentarlo. Y se nota en el marcador, pringado. Ellos con historial, tú con notas, ridículo.',
 
-      'Incel de saldo, [nombre]: llevas años echándole la culpa al mundo por algo que empieza y termina dentro de tu cuarto. Puta cobardía.',
+      'Incel de saldo, [nombre]: llevas años echándole la culpa al mundo por algo que empieza y termina dentro de tu cuarto. Puta cobardía, qué flojo.',
 
-      'Incel de mierda que se cree analista del mercado, [nombre]. No eres analista, cabrón. Eres alguien que no participa y que lleva años mirando desde la grada ridículo.',
+      'Incel de mierda que se cree analista del mercado, [nombre]. No eres analista, cabrón. Eres alguien que no participa y que lleva años mirando desde la grada ridículo, menudo desastre.',
 
-      'Incel de mierda que se cree analista del mercado, [nombre]. No eres analista, cabrón. Eres alguien que no participa y que lleva años mirando desde la grada fracasado.',
+      'Incel de mierda que se cree analista del mercado, [nombre]. No eres analista, cabrón. Eres alguien que no participa y que lleva años mirando desde la grada fracasado, qué pena.',
 
     ],
     mid: [
@@ -604,27 +604,27 @@ const LABELS = {
 
       'Ni virgen ni con recorrido. En el punto medio, que aquí es un sitio bastante poblado con el cargo en firme.',
 
-      'Tienes experiencia suficiente para no fantasear e insuficiente para dar consejos sin letra pequeña que lo salve.',
+      'Tienes experiencia suficiente para no fantasear e insuficiente para dar consejos sin letra pequeña que lo salve, da grima.',
 
-      'Ni incel ni de los que se comentan. Un intermedio absolutamente anónimo y el sistema cierra sin discusión.',
+      'Ni incel ni de los que se comentan. Un intermedio absolutamente anónimo y el sistema cierra sin discusión, qué nivel de pena.',
 
-      'Tu recorrido está bien sin ser nada. Y ese sin ser nada es lo que te deja en el medio y el hilo no pide amplificación.',
+      'Tu recorrido está bien sin ser nada. Y ese sin ser nada es lo que te deja en el medio y el hilo no pide amplificación, basura.',
 
-      'Ni sequía ni racha. Estás donde la mayoría, que no es ni un halago ni un insulto sin bis ni matiz de consuelo.',
+      'Ni sequía ni racha. Estás donde la mayoría, que no es ni un halago ni un insulto sin bis ni matiz de consuelo, qué cutre.',
 
-      'Has tenido tus cosas sin que ninguna llegara a nada. Ese resumen te define aquí sin suavizar el golpe del número.',
+      'Has tenido tus cosas sin que ninguna llegara a nada. Ese resumen te define aquí sin suavizar el golpe del número, da pena ajena.',
 
-      'Ni virgen ni experto. Un promedio honesto que ni se comenta ni se cuestiona y el sistema no regala puntos.',
+      'Ni virgen ni experto. Un promedio honesto que ni se comenta ni se cuestiona y el sistema no regala puntos, qué vacío.',
 
-      'Tienes lo suficiente para no estar frustrado y no lo bastante para estar tranquilo sin modo avión ni silencio cómplice.',
+      'Tienes lo suficiente para no estar frustrado y no lo bastante para estar tranquilo sin modo avión ni silencio cómplice, indignante.',
 
-      'Ni incel ni nada. Un intermedio en el que llevas bastante tiempo sin moverte con el fail todavía caliente.',
+      'Ni incel ni nada. Un intermedio en el que llevas bastante tiempo sin moverte con el fail todavía caliente, qué vergüenza ajena.',
 
-      'Tu historial es corto pero real. Y eso ya te separa de bastante gente de este grupo con testigos obligados en el hilo.',
+      'Tu historial es corto pero real. Y eso ya te separa de bastante gente de este grupo con testigos obligados en el hilo, da vergüenza.',
 
-      'Ni abundante ni escaso. La franja media, que es donde va casi todo el mundo. Delante del público que no pidió entrada.',
+      'Ni abundante ni escaso. La franja media, que es donde va casi todo el mundo. Delante del público que no pidió entrada, qué flojo.',
 
-      'Has hecho lo normal para tu edad, sin más y sin menos. Eso es exactamente esto con el peaje cobrado al natural.',
+      'Has hecho lo normal para tu edad, sin más y sin menos. Eso es exactamente esto con el peaje cobrado al natural, menudo desastre.',
 
     ],
     low: [
@@ -702,27 +702,27 @@ const LABELS = {
 
       'Cero. No hay frustración acumulada ni resentimiento. Todo bastante en su sitio en la foto fija del ranking.',
 
-      'Sin material. Tu manera de relacionarte es normal, que es lo más eficaz que existe en el parte que nadie borra.',
+      'Sin material. Tu manera de relacionarte es normal, que es lo más eficaz que existe en el parte que nadie borra, qué pena.',
 
-      'Cero por ciento. No teorizas, no te quejas y no explicas. Simplemente te va bien en alta resolución de group chat.',
+      'Cero por ciento. No teorizas, no te quejas y no explicas. Simplemente te va bien en alta resolución de group chat, patético.',
 
-      'Limpio. Tienes la tranquilidad de quien no depende de que le pase nada esta semana con el dígito como única defensa.',
+      'Limpio. Tienes la tranquilidad de quien no depende de que le pase nada esta semana con el dígito como única defensa, miserable.',
 
-      'Nada de nada. Aquí no hay absolutamente nada que rascar y no será porque no hayan mirado con. El chat enterado del cargo.',
+      'Nada de nada. Aquí no hay absolutamente nada que rascar y no será porque no hayan mirado con. El chat enterado del cargo, qué cringe.',
 
-      'Cero. Tu experiencia es real y por eso no necesitas ni un solo adorno para contarla sin recurso ni nota al pie.',
+      'Cero. Tu experiencia es real y por eso no necesitas ni un solo adorno para contarla sin recurso ni nota al pie, da asco.',
 
-      'Sin rastro. La diferencia entre tú y el resto es que tú sales y ellos analizan. Delante del listón que no saltaste.',
+      'Sin rastro. La diferencia entre tú y el resto es que tú sales y ellos analizan. Delante del listón que no saltaste, qué vergüenza.',
 
-      'Nada. No tienes ni una excusa preparada porque nunca has necesitado usar ninguna con el resultado ya consumado.',
+      'Nada. No tienes ni una excusa preparada porque nunca has necesitado usar ninguna con el resultado ya consumado, ridículo.',
 
-      'Cero por ciento. Lo tuyo funciona, siempre ha funcionado, y ni te lo has planteado nunca con el saldo a la intemperie.',
+      'Cero por ciento. Lo tuyo funciona, siempre ha funcionado, y ni te lo has planteado nunca con el saldo a la intemperie, fracasado.',
 
-      'Limpio. Tienes criterio para elegir y opciones entre las que hacerlo. Las dos cosas en el único idioma que entiende el contador.',
+      'Limpio. Tienes criterio para elegir y opciones entre las que hacerlo. Las dos cosas en el único idioma que entiende el contador, qué miseria.',
 
-      'Nada. Ni una teoría, ni una queja, ni un solo minuto perdido explicando lo que no hace falta sin anestesia de verdad esta vez.',
+      'Nada. Ni una teoría, ni una queja, ni un solo minuto perdido explicando lo que no hace falta sin anestesia de verdad esta vez, da grima.',
 
-      'Cero. No has necesitado nunca una teoría porque nunca te ha hecho falta explicar nada y. El ranking cierra el caso.',
+      'Cero. No has necesitado nunca una teoría porque nunca te ha hecho falta explicar nada y. El ranking cierra el caso, qué nivel de pena.',
 
     ],
   },
@@ -806,31 +806,31 @@ const LABELS = {
 
       'Tienes definición en todo el contorno facial. No hay un solo borde perdido en ninguna parte con el fail todavía caliente.',
 
-      'Tu estructura genera sombras naturales donde tienen que estar. La luz solo tiene que llegar con el dígito firmando solo.',
+      'Tu estructura genera sombras naturales donde tienen que estar. La luz solo tiene que llegar con el dígito firmando solo, basura.',
 
-      'Cara que aguanta cualquier peinado. Y aguantar cualquier peinado es lo más difícil que hay sin descuento por empatía.',
+      'Cara que aguanta cualquier peinado. Y aguantar cualquier peinado es lo más difícil que hay sin descuento por empatía, qué cutre.',
 
-      'Tu proyección facial es alta en todos los planos. Frente, pómulos y mentón: los tres salen con testigos obligados en el hilo.',
+      'Tu proyección facial es alta en todos los planos. Frente, pómulos y mentón: los tres salen con testigos obligados en el hilo, da pena ajena.',
 
-      'Tu simetría no es perfecta y precisamente por eso funciona. Lo perfecto aburre; lo tuyo no en el segundo más incómodo del chat.',
+      'Tu simetría no es perfecta y precisamente por eso funciona. Lo perfecto aburre; lo tuyo no en el segundo más incómodo del chat, qué vacío.',
 
-      'Tu estructura ósea es la razón por la que la gente te recuerda mal descrita pero recordada en alta resolución de group chat.',
+      'Tu estructura ósea es la razón por la que la gente te recuerda mal descrita pero recordada en alta resolución de group chat, indignante.',
 
-      'Cara sin un solo indicador por debajo de la media. Ni uno, y eso es difícil hasta por azar y el contador insiste.',
+      'Cara sin un solo indicador por debajo de la media. Ni uno, y eso es difícil hasta por azar y el contador insiste, qué vergüenza ajena.',
 
-      'Tienes proporciones que funcionan en todos los ejes: vertical, horizontal y de profundidad y el historial no olvida.',
+      'Tienes proporciones que funcionan en todos los ejes: vertical, horizontal y de profundidad y el historial no olvida, da vergüenza.',
 
-      'Provocas envidia del tipo silencioso, el que nadie admite. El peor y el más real de todos. Sin derecho a matiz útil.',
+      'Provocas envidia del tipo silencioso, el que nadie admite. El peor y el más real de todos. Sin derecho a matiz útil, qué flojo.',
 
-      'Tu tercio inferior tiene proyección y el superior no domina. Ese equilibrio es lo difícil y no hace falta ampliar el parte.',
+      'Tu tercio inferior tiene proyección y el superior no domina. Ese equilibrio es lo difícil y no hace falta ampliar el parte, menudo desastre.',
 
-      'Tienes el tipo de cara que hace que la gente ajuste el tono al hablarte. Sin darse cuenta con. El veredicto seco del bot.',
+      'Tienes el tipo de cara que hace que la gente ajuste el tono al hablarte. Sin darse cuenta con. El veredicto seco del bot, qué pena.',
 
-      'Tienes el tipo de belleza que no depende de nada que puedas perder. Estructural y estable con el parte firmado debajo.',
+      'Tienes el tipo de belleza que no depende de nada que puedas perder. Estructural y estable con el parte firmado debajo, patético.',
 
-      'Tienes armonía sin necesidad de simetría perfecta. Y eso es todavía mejor que la simetría con el fallo en 4K de chat.',
+      'Tienes armonía sin necesidad de simetría perfecta. Y eso es todavía mejor que la simetría con el fallo en 4K de chat, miserable.',
 
-      'Cara de las que aguantan el zoom, la luz mala y la cámara frontal. Ese es el examen real y. El veredicto no se negocia.',
+      'Cara de las que aguantan el zoom, la luz mala y la cámara frontal. Ese es el examen real y. El veredicto no se negocia, qué cringe.',
 
     ],
     mid: [
@@ -1008,31 +1008,31 @@ const LABELS = {
 
       'Coño, [nombre], el ranking te deja aquí porque moverte sería arbitrario. No hay datos que empujen. Sin derecho a matiz útil.',
 
-      'Hostia, [nombre], ni te inventan cualidades ni te inventan defectos. Te dejan en paz en el centro sin letra pequeña que lo salve.',
+      'Hostia, [nombre], ni te inventan cualidades ni te inventan defectos. Te dejan en paz en el centro sin letra pequeña que lo salve, da asco.',
 
-      'Mierda, [nombre], el promedio facial no necesita defensa. Se sostiene solo. Como tú en este tramo sin cuento que lo tape.',
+      'Mierda, [nombre], el promedio facial no necesita defensa. Se sostiene solo. Como tú en este tramo sin cuento que lo tape, qué vergüenza.',
 
-      'Hostia, [nombre], la gente no te describe porque no hay adjetivo claro. Ni guapo ni feo: diluido con el número hablando solo.',
+      'Hostia, [nombre], la gente no te describe porque no hay adjetivo claro. Ni guapo ni feo: diluido con el número hablando solo, ridículo.',
 
-      'Joder, [nombre], cara de las que en el casting de extras sí. En el de protagonistas ni te llaman y el contador no discute.',
+      'Joder, [nombre], cara de las que en el casting de extras sí. En el de protagonistas ni te llaman y el contador no discute, fracasado.',
 
-      'Hostia, [nombre], cara de las que no rompen el feed. Pasan. Y al pasar se evaporan de la memoria con la firma legible del comando.',
+      'Hostia, [nombre], cara de las que no rompen el feed. Pasan. Y al pasar se evaporan de la memoria con la firma legible del comando, qué miseria.',
 
-      'Coño, [nombre], estás donde la mayoría prefiere no opinar. Y la no opinión es un resultado en sí sin segunda lectura que lo arregle.',
+      'Coño, [nombre], estás donde la mayoría prefiere no opinar. Y la no opinión es un resultado en sí sin segunda lectura que lo arregle, da grima.',
 
-      'Joder, [nombre], tu cara es la definición de suficiente. Y suficiente, aquí, no emociona a nadie y el hilo sigue sin ti en el centro.',
+      'Joder, [nombre], tu cara es la definición de suficiente. Y suficiente, aquí, no emociona a nadie y el hilo sigue sin ti en el centro, qué nivel de pena.',
 
-      'Mierda, [nombre], estás en el tramo más largo y menos comentado. El de los que simplemente están con la cara del resultado a la vista.',
+      'Mierda, [nombre], estás en el tramo más largo y menos comentado. El de los que simplemente están con la cara del resultado a la vista, basura.',
 
-      'Hostia, [nombre], tu look no tiene club de fans ni de haters. Tiene peatones que siguen de largo y. El ranking lo deja por escrito.',
+      'Hostia, [nombre], tu look no tiene club de fans ni de haters. Tiene peatones que siguen de largo y. El ranking lo deja por escrito, qué cutre.',
 
-      'Coño, [nombre], estás a salvo de los memes y condenado a no ser el tema del día. Equilibrio raro y el resto es ruido de fondo.',
+      'Coño, [nombre], estás a salvo de los memes y condenado a no ser el tema del día. Equilibrio raro y el resto es ruido de fondo, da pena ajena.',
 
-      'Mierda, [nombre], no generas capturas ni discusiones. Generas el siguiente mensaje de otro tema con la firma legible del comando.',
+      'Mierda, [nombre], no generas capturas ni discusiones. Generas el siguiente mensaje de otro tema con la firma legible del comando, qué vacío.',
 
-      'Mierda, [nombre], el medio del ranking no es un insulto. Es una coordenada. Y estás clavado ahí y. El ranking lo deja por escrito.',
+      'Mierda, [nombre], el medio del ranking no es un insulto. Es una coordenada. Y estás clavado ahí y. El ranking lo deja por escrito, indignante.',
 
-      'Mierda, [nombre], no hay un adjetivo que te defina con fuerza. Hay una frase: estás en el medio con. El chat enterado del cargo.',
+      'Mierda, [nombre], no hay un adjetivo que te defina con fuerza. Hay una frase: estás en el medio con. El chat enterado del cargo, qué vergüenza ajena.',
 
     ],
     low: [
@@ -1410,9 +1410,9 @@ const LABELS = {
 
       'Linda de almost documentado en alta definición del chat, [nombre]. El veredicto No hay segunda lectura útil, fracasado.',
 
-      'Se te ve el fail desde el otro lado del puto ranking, [nombre]. El veredicto El material habla solo, qué asco de frame.',
+      'Se te ve el fail desde el otro lado del puto ranking, [nombre]. El veredicto El material habla solo, qué asco de frame, qué flojo.',
 
-      'Linda de las que el espejo y. El ranking coinciden en. El veredicto, [nombre]. El veredicto pringado.',
+      'Linda de las que el espejo y. El ranking coinciden en. El veredicto, [nombre]. El veredicto pringado, menudo desastre.',
 
       'El low te ha puesto en tu sitio sin necesidad de narrador, [nombre]. El veredicto El ranking firma y listo, sin anestesia, basura.',
 
@@ -1420,21 +1420,21 @@ const LABELS = {
 
       'Linda de ranking: el tramo bajo es tu residencia fija, [nombre]. El veredicto, nivel sótano puro, fracasado.',
 
-      'Tu cara baja el promedio del grupo en un solo mensaje de estado, [nombre]. El veredicto Eso no se maquilla con ángulo, sin filtro ni consuelo, joder.',
+      'Tu cara baja el promedio del grupo en un solo mensaje de estado, [nombre]. El veredicto Eso no se maquilla con ángulo, sin filtro ni consuelo, qué cringe.',
 
-      'Linda de las que el modo retrato se arrepiente de haberse abierto, [nombre]. El veredicto, diagnóstico cerrado, mierda.',
+      'Linda de las que el modo retrato se arrepiente de haberse abierto, [nombre]. El veredicto, diagnóstico cerrado, da asco.',
 
-      'No es luz mala ni cámara mala: eres tú y el low lo dice claro, [nombre]. El veredicto No hay segunda lectura útil, y se te nota a la legua, coño.',
+      'No es luz mala ni cámara mala: eres tú y el low lo dice claro, [nombre]. El veredicto No hay segunda lectura útil, y se te nota a la legua, qué vergüenza.',
 
-      'Linda de almost eterno: el comando no convierte el casi en victoria, [nombre]. El veredicto, el bot no regala décimas, cabrón.',
+      'Linda de almost eterno: el comando no convierte el casi en victoria, [nombre]. El veredicto, el bot no regala décimas, ridículo.',
 
-      'Se te cae el personaje visual en la primera foto del hilo, [nombre]. El veredicto Aquí, archivo sin apelación, gilipollas.',
+      'Se te cae el personaje visual en la primera foto del hilo, [nombre]. El veredicto Aquí, archivo sin apelación, fracasado.',
 
-      'Linda de las que necesitan tutorial de peinado y de dignidad facial, [nombre]. El veredicto fracasado.',
+      'Linda de las que necesitan tutorial de peinado y de dignidad facial, [nombre]. El veredicto fracasado, qué miseria.',
 
-      'El low no regala décimas: el número habla y tú estás abajo, [nombre]. El veredicto Se ve desde el primer mensaje, con el grupo de testigo, asco.',
+      'El low no regala décimas: el número habla y tú estás abajo, [nombre]. El veredicto Se ve desde el primer mensaje, con el grupo de testigo, asco, da grima.',
 
-      'Linda de puto almost con firma en cada miniatura del chat, [nombre]. El veredicto, sin maquillaje posible.',
+      'Linda de puto almost con firma en cada miniatura del chat, [nombre]. El veredicto, sin maquillaje posible, qué nivel de pena.',
 
     ],
   },
@@ -1809,17 +1809,17 @@ const LABELS = {
 
       '[nombre], tienes una geometría que ofende al compás. El atractivo te bloqueó sin forwarding, joder. Hostia puta, qué nivel.',
 
-      'Se te nota el fail visual en la primera línea del mensaje, [nombre]. Ni con ring light te inventas un punto focal, mierda.',
+      'Se te nota el fail visual en la primera línea del mensaje, [nombre]. Ni con ring light te inventas un punto focal, basura.',
 
-      '[nombre], si la belleza fuera wifi, tú serías el router muerto. La cámara frontal merece hazard pay, coño.',
+      '[nombre], si la belleza fuera wifi, tú serías el router muerto. La cámara frontal merece hazard pay, qué cutre.',
 
-      'Fea de veredicto público delante de todo el puto grupo, [nombre]. Sin anestesia. El atractivo te bloqueó sin forwarding, cabrón.',
+      'Fea de veredicto público delante de todo el puto grupo, [nombre]. Sin anestesia. El atractivo te bloqueó sin forwarding, da pena ajena.',
 
-      '[nombre], el atractivo te vio y cambió de acera digital. Ni con ring light te inventas un punto focal, gilipollas.',
+      '[nombre], el atractivo te vio y cambió de acera digital. Ni con ring light te inventas un punto focal, qué vacío.',
 
       'Tu frame es contenido de risa ajena sin copyright, [nombre]. La cámara frontal merece hazard pay, patético.',
 
-      '[nombre], no hay segundo chance: el primero ya fue bastante. El atractivo te bloqueó sin forwarding, asco.',
+      '[nombre], no hay segundo chance: el primero ya fue bastante. El atractivo te bloqueó sin forwarding, asco, qué vergüenza ajena.',
 
       'Fea de las que el filtro se suicida al intentar ayudarte, [nombre]. Ni con ring light te inventas un punto focal, basura.',
 
@@ -1827,21 +1827,21 @@ const LABELS = {
 
       'La luz natural te delata igual que un interrogatorio, [nombre]. El atractivo te bloqueó sin forwarding, fracasado.',
 
-      '[nombre], si te describen en una palabra, esa palabra insulta. Ni con ring light te inventas un punto focal, joder.',
+      '[nombre], si te describen en una palabra, esa palabra insulta. Ni con ring light te inventas un punto focal, qué pena.',
 
-      'Fea de tramo alto: el bot firma y cierra el parte, [nombre]. Sin anestesia. La cámara frontal merece hazard pay, mierda.',
+      'Fea de tramo alto: el bot firma y cierra el parte, [nombre]. Sin anestesia. La cámara frontal merece hazard pay, patético.',
 
       '[nombre], el sótano visual te queda de casa y de apodo. El atractivo te bloqueó sin forwarding, coño.',
 
-      'Tu presencia baja el promedio del chat solo con existir, [nombre]. Ni con ring light te inventas un punto focal, cabrón.',
+      'Tu presencia baja el promedio del chat solo con existir, [nombre]. Ni con ring light te inventas un punto focal, qué cringe.',
 
-      '[nombre], el high de fea no es opinión: es el puto número. La cámara frontal merece hazard pay, gilipollas.',
+      '[nombre], el high de fea no es opinión: es el puto número. La cámara frontal merece hazard pay, da asco.',
 
       'Fea sin consuelo, sin bis y sin narrador que te salve, [nombre]. El atractivo te bloqueó sin forwarding, patético.',
 
-      'Se te ve el diagnóstico desde la puta notificación, [nombre]. Ni con ring light te inventas un punto focal, asco.',
+      'Se te ve el diagnóstico desde la puta notificación, [nombre]. Ni con ring light te inventas un punto focal, asco, ridículo.',
 
-      '[nombre], tienes una cara que hace que el flash de la cámara se arrepienta de haber disparado, coño.',
+      '[nombre], tienes una cara que hace que el flash de la cámara se arrepienta de haber disparado, fracasado.',
 
     ],
     mid: [
@@ -1911,39 +1911,39 @@ const LABELS = {
 
       'Ni memorable ni olvidable del todo. Un punto medio bastante común y bastante estable con el cargo en firme.',
 
-      'Tu cara está bien de frente y regular de perfil. O al revés, según a quién preguntes con el saldo a la intemperie.',
+      'Tu cara está bien de frente y regular de perfil. O al revés, según a quién preguntes con el saldo a la intemperie, qué miseria.',
 
-      'Ni te dan ventaja ni te ponen impedimentos. La cara no juega ni a favor ni en contra sin modo avión ni silencio cómplice.',
+      'Ni te dan ventaja ni te ponen impedimentos. La cara no juega ni a favor ni en contra sin modo avión ni silencio cómplice, da grima.',
 
-      'Tienes lo suficiente para gustar a quien te conoce y nada para gustar a quien te ve sin anestesia de verdad esta vez.',
+      'Tienes lo suficiente para gustar a quien te conoce y nada para gustar a quien te ve sin anestesia de verdad esta vez, qué nivel de pena.',
 
-      'Feilla correcta. Suena raro y es exacto: nada llama la atención, tampoco para bien y el archivo queda cerrado.',
+      'Feilla correcta. Suena raro y es exacto: nada llama la atención, tampoco para bien y el archivo queda cerrado, basura.',
 
-      'Tienes buenos rasgos sueltos que no acaban de funcionar juntos. Ahí se pierde todo y el sistema cierra sin discusión.',
+      'Tienes buenos rasgos sueltos que no acaban de funcionar juntos. Ahí se pierde todo y el sistema cierra sin discusión, qué cutre.',
 
-      'Ni guapa de las que se recuerdan ni fea de las que se comentan. En el medio exacto sin prórroga ni VAR.',
+      'Ni guapa de las que se recuerdan ni fea de las que se comentan. En el medio exacto sin prórroga ni VAR, da pena ajena.',
 
-      'Ni llamativa ni discreta. Un intermedio que funciona sin generar ninguna reacción en el segundo más incómodo del chat.',
+      'Ni llamativa ni discreta. Un intermedio que funciona sin generar ninguna reacción en el segundo más incómodo del chat, qué vacío.',
 
-      'Ni guapa ni fea, solo cansada. La mitad de tu puntuación es sueño que no duermes sin segunda oportunidad hoy.',
+      'Ni guapa ni fea, solo cansada. La mitad de tu puntuación es sueño que no duermes sin segunda oportunidad hoy, indignante.',
 
-      'Ni fea ni guapa: normal. Y normal es exactamente lo que suena, ni más ni menos con el eco todavía en el grupo.',
+      'Ni fea ni guapa: normal. Y normal es exactamente lo que suena, ni más ni menos con el eco todavía en el grupo, qué vergüenza ajena.',
 
-      'Tu cara es exactamente lo que se espera de una cara. Ni sorpresa buena ni mala y el sistema cierra sin discusión.',
+      'Tu cara es exactamente lo que se espera de una cara. Ni sorpresa buena ni mala y el sistema cierra sin discusión, da vergüenza.',
 
-      'Tu estructura ósea es correcta sin ser buena. Y eso te deja justo donde estás sin segunda lectura que lo arregle.',
+      'Tu estructura ósea es correcta sin ser buena. Y eso te deja justo donde estás sin segunda lectura que lo arregle, qué flojo.',
 
-      'Ni fea ni atractiva. Un correcto sostenido que no genera ninguna conversación con el dígito como única defensa.',
+      'Ni fea ni atractiva. Un correcto sostenido que no genera ninguna conversación con el dígito como única defensa, menudo desastre.',
 
-      'Tienes rasgos que funcionan por separado y un conjunto que se queda a medias y. El veredicto no se negocia.',
+      'Tienes rasgos que funcionan por separado y un conjunto que se queda a medias y. El veredicto no se negocia, qué pena.',
 
-      'Ni destacas para bien ni para mal. La franja más anónima que existe en esto sin segunda lectura que lo arregle.',
+      'Ni destacas para bien ni para mal. La franja más anónima que existe en esto sin segunda lectura que lo arregle, patético.',
 
-      'Tienes lo justo para pasar cualquier filtro social y nada para pasar de ahí. Delante del ranking y de la cara.',
+      'Tienes lo justo para pasar cualquier filtro social y nada para pasar de ahí. Delante del ranking y de la cara, miserable.',
 
-      'Ni fea ni memorable. Un correcto que no da problemas y tampoco ventajas. Sin filtro de autoayuda y el resto es ruido de fondo.',
+      'Ni fea ni memorable. Un correcto que no da problemas y tampoco ventajas. Sin filtro de autoayuda y el resto es ruido de fondo, qué cringe.',
 
-      'Tienes proporciones aceptables sin nada que las eleve. Correcto y punto sin bis ni matiz de consuelo.',
+      'Tienes proporciones aceptables sin nada que las eleve. Correcto y punto sin bis ni matiz de consuelo, da asco.',
 
     ],
     low: [
@@ -2011,41 +2011,41 @@ const LABELS = {
 
       'Nada por aquí. Sales bien en foto, en vídeo y en persona. Las tres, sin excepción en el único marcador que importa aquí.',
 
-      'Cero. Tu cara no depende del pelo ni de la ropa. Funciona sola y funciona siempre sin modo avión ni silencio cómplice.',
+      'Cero. Tu cara no depende del pelo ni de la ropa. Funciona sola y funciona siempre sin modo avión ni silencio cómplice, qué vergüenza.',
 
-      'Cero. Aquí no hay absolutamente nada que rascar, y no será porque no hayan mirado con. El chat enterado del cargo.',
+      'Cero. Aquí no hay absolutamente nada que rascar, y no será porque no hayan mirado con. El chat enterado del cargo, ridículo.',
 
-      'Limpio del todo. Tu estructura hace el trabajo sola y tú ni tienes que colaborar delante de quien aún leía el hilo.',
+      'Limpio del todo. Tu estructura hace el trabajo sola y tú ni tienes que colaborar delante de quien aún leía el hilo, fracasado.',
 
-      'Limpio. Tienes soporte óseo de verdad, y eso es lo único que no se puede fingir con. El chat enterado del cargo.',
+      'Limpio. Tienes soporte óseo de verdad, y eso es lo único que no se puede fingir con. El chat enterado del cargo, qué miseria.',
 
-      'Cero por ciento. Simetría, proyección y proporción. Las tres, en el nivel bueno con. El veredicto seco del bot.',
+      'Cero por ciento. Simetría, proyección y proporción. Las tres, en el nivel bueno con. El veredicto seco del bot, da grima.',
 
-      'Nada. Tu mirada tiene marco, forma e intensidad. Eso solo lo da la estructura y el archivo queda cerrado.',
+      'Nada. Tu mirada tiene marco, forma e intensidad. Eso solo lo da la estructura y el archivo queda cerrado, qué nivel de pena.',
 
-      'Nada. Tienes el rasgo raro que convierte una cara guapa en una cara memorable. Delante del listón que no saltaste.',
+      'Nada. Tienes el rasgo raro que convierte una cara guapa en una cara memorable. Delante del listón que no saltaste, basura.',
 
-      'Cero por ciento. Tienes el tipo de cara que se estudia, no la que se comenta con el dígito como única defensa.',
+      'Cero por ciento. Tienes el tipo de cara que se estudia, no la que se comenta con el dígito como única defensa, qué cutre.',
 
-      'Sin material. Proporciones áureas, contraste alto y cero rasgos desalineados sin que nadie pida replay.',
+      'Sin material. Proporciones áureas, contraste alto y cero rasgos desalineados sin que nadie pida replay, da pena ajena.',
 
-      'Cero absoluto. Eres de las que hacen que este comando pierda toda la gracia. Y el grupo ya pasó de página.',
+      'Cero absoluto. Eres de las que hacen que este comando pierda toda la gracia. Y el grupo ya pasó de página, qué vacío.',
 
-      'Cero por ciento. Nada te sobra y nada te falta. Esa proporción es lo escaso con el fail todavía caliente.',
+      'Cero por ciento. Nada te sobra y nada te falta. Esa proporción es lo escaso con el fail todavía caliente, indignante.',
 
-      'Cero. Tu perfil aguanta igual que tu frontal, y eso ya elimina a la mayoría. Sin derecho a matiz útil.',
+      'Cero. Tu perfil aguanta igual que tu frontal, y eso ya elimina a la mayoría. Sin derecho a matiz útil, qué vergüenza ajena.',
 
-      'Fea cero. No hay nada que atacar aquí y creeme que se ha buscado con ganas con testigos obligados en el hilo.',
+      'Fea cero. No hay nada que atacar aquí y creeme que se ha buscado con ganas con testigos obligados en el hilo, da vergüenza.',
 
-      'Cero. Ni un ángulo malo. Ni uno, y eso es objetivamente muy poco frecuente y el archivo no admite recurso.',
+      'Cero. Ni un ángulo malo. Ni uno, y eso es objetivamente muy poco frecuente y el archivo no admite recurso, qué flojo.',
 
-      'Nada de nada. Ninguna foto tuya necesita ángulo concreto. Todos funcionan sin cuento que lo tape y el hilo sigue sin ti en el centro.',
+      'Nada de nada. Ninguna foto tuya necesita ángulo concreto. Todos funcionan sin cuento que lo tape y el hilo sigue sin ti en el centro, menudo desastre.',
 
-      'Cero por ciento. La cámara te favorece porque hay material que favorecer con el dígito como única defensa.',
+      'Cero por ciento. La cámara te favorece porque hay material que favorecer con el dígito como única defensa, qué pena.',
 
-      'Cero. Este comando no está hecho para ti. Y el grupo ya lo sospechaba sin apelación posible hoy delante de todo el que miraba.',
+      'Cero. Este comando no está hecho para ti. Y el grupo ya lo sospechaba sin apelación posible hoy delante de todo el que miraba, patético.',
 
-      'Sin rastro. Tu cara aguanta el zoom, que es donde casi todas se caen y el sistema cierra sin discusión.',
+      'Sin rastro. Tu cara aguanta el zoom, que es donde casi todas se caen y el sistema cierra sin discusión, miserable.',
 
     ],
   },
@@ -2116,43 +2116,43 @@ const LABELS = {
 
       'Tu presencia física y tu manera de estar van en la misma dirección. Eso lo multiplica todo. Delante del ranking y de la cara.',
 
-      'Tienes una estructura facial que las cámaras adoran desde cualquier ángulo que les pongas sin consuelo de manual barato.',
+      'Tienes una estructura facial que las cámaras adoran desde cualquier ángulo que les pongas sin consuelo de manual barato, qué cringe.',
 
-      'Tienes la clase de cara que la gente describe a sus amigos para explicar qué es atractivo sin maquillaje ni segunda toma.',
+      'Tienes la clase de cara que la gente describe a sus amigos para explicar qué es atractivo sin maquillaje ni segunda toma, da asco.',
 
-      'Tienes el atractivo de quien está cómodo consigo mismo. Y eso es lo más difícil de fingir con el dígito firmando solo.',
+      'Tienes el atractivo de quien está cómodo consigo mismo. Y eso es lo más difícil de fingir con el dígito firmando solo, qué vergüenza.',
 
-      'No hace falta que hagas nada para que se note. Y esa es exactamente la definición de esto y el hilo sigue sin ti en el centro.',
+      'No hace falta que hagas nada para que se note. Y esa es exactamente la definición de esto y el hilo sigue sin ti en el centro, ridículo.',
 
-      'Tienes presencia de las que se echan de menos cuando no están. El mejor indicador que hay con el cargo en firme.',
+      'Tienes presencia de las que se echan de menos cuando no están. El mejor indicador que hay con el cargo en firme, fracasado.',
 
-      'Tienes proporción, actitud y algo más que nadie sabe nombrar. Eso último es lo importante con el número hablando solo.',
+      'Tienes proporción, actitud y algo más que nadie sabe nombrar. Eso último es lo importante con el número hablando solo, qué miseria.',
 
-      'Tienes ese magnetismo tranquilo que resulta mucho más eficaz que cualquier intento activo en el momento que más dolía soltarlo.',
+      'Tienes ese magnetismo tranquilo que resulta mucho más eficaz que cualquier intento activo en el momento que más dolía soltarlo, da grima.',
 
-      'Tu manera de estar hace que quien te tiene delante pierda un poco el hilo. Y no lo buscas en la foto fija del ranking.',
+      'Tu manera de estar hace que quien te tiene delante pierda un poco el hilo. Y no lo buscas en la foto fija del ranking, qué nivel de pena.',
 
-      'Tienes atractivo estructural y actitudinal. Las dos capas, y las dos funcionando a la vez y no hay DLC que lo parchee.',
+      'Tienes atractivo estructural y actitudinal. Las dos capas, y las dos funcionando a la vez y no hay DLC que lo parchee, basura.',
 
-      'Tu presencia física tiene autoridad. Y la autoridad física es de las cosas más atractivas en el único idioma que entiende el contador.',
+      'Tu presencia física tiene autoridad. Y la autoridad física es de las cosas más atractivas en el único idioma que entiende el contador, qué cutre.',
 
-      'Tu presencia genera algo que la gente no sabe nombrar y que todos identifican al instante. Sin filtro de autoayuda.',
+      'Tu presencia genera algo que la gente no sabe nombrar y que todos identifican al instante. Sin filtro de autoayuda, da pena ajena.',
 
-      'Tienes atractivo que funciona en cualquier registro: arreglado, normal o recién levantado sin letra pequeña que lo salve.',
+      'Tienes atractivo que funciona en cualquier registro: arreglado, normal o recién levantado sin letra pequeña que lo salve, qué vacío.',
 
-      'Tu forma de moverte tiene ritmo y seguridad. Las dos cosas y sin ningún esfuerzo aparente sin consuelo de manual barato.',
+      'Tu forma de moverte tiene ritmo y seguridad. Las dos cosas y sin ningún esfuerzo aparente sin consuelo de manual barato, indignante.',
 
-      'Tienes el tipo de presencia física que hace que la gente se ponga recta sin darse cuenta con el saldo a la intemperie.',
+      'Tienes el tipo de presencia física que hace que la gente se ponga recta sin darse cuenta con el saldo a la intemperie, qué vergüenza ajena.',
 
-      'Tienes ese punto de indiferencia que resulta atractivo precisamente porque no es actuado en el momento que más dolía soltarlo.',
+      'Tienes ese punto de indiferencia que resulta atractivo precisamente porque no es actuado en el momento que más dolía soltarlo, da vergüenza.',
 
-      'La gente que te conoce te describe mal porque no encuentra las palabras. Eso ya es señal y el historial no olvida.',
+      'La gente que te conoce te describe mal porque no encuentra las palabras. Eso ya es señal y el historial no olvida, qué flojo.',
 
-      'Tienes esa manera de moverte que hace que la gente se quede mirando medio segundo de más sin maquillaje ni segunda toma.',
+      'Tienes esa manera de moverte que hace que la gente se quede mirando medio segundo de más sin maquillaje ni segunda toma, menudo desastre.',
 
-      'Tienes atractivo de los que no dependen de la sonrisa. Funcionas serio y funcionas igual y el hilo sigue sin ti en el centro.',
+      'Tienes atractivo de los que no dependen de la sonrisa. Funcionas serio y funcionas igual y el hilo sigue sin ti en el centro, qué pena.',
 
-      'Tienes la seguridad de moverte sin comprobar cómo te ven. Eso ya es la mitad del trabajo y el contador no discute.',
+      'Tienes la seguridad de moverte sin comprobar cómo te ven. Eso ya es la mitad del trabajo y el contador no discute, patético.',
 
     ],
     mid: [
@@ -2310,51 +2310,51 @@ const LABELS = {
 
       'A veces sin buscarlo se enciende y cuando lo fuerzas se apaga: al revés del manual. Asco. Hostia puta, qué nivel.',
 
-      'Tu atracción con RSVP irregular: a veces viene y a veces deja el asiento vacío. Mierda. Hostia puta, qué nivel.',
+      'Tu atracción con RSVP irregular: a veces viene y a veces deja el asiento vacío. Mierda. Hostia puta, qué nivel, miserable.',
 
-      'Oscilación tibia sin extremos útiles para el grupo ni para. El ranking de nadie. Basura. El bot no regala décimas.',
+      'Oscilación tibia sin extremos útiles para el grupo ni para. El ranking de nadie. Basura. El bot no regala décimas, qué cringe.',
 
-      'Tu presencia a tiempo parcial sin opción a upgrade ni a jornada completa nunca. Mierda. Hostia puta, qué nivel.',
+      'Tu presencia a tiempo parcial sin opción a upgrade ni a jornada completa nunca. Mierda. Hostia puta, qué nivel, da asco.',
 
-      'Resultado tibio como costumbre: la costumbre no genera leyendas ni memes del grupo. Asco. Nivel sótano documentado.',
+      'Resultado tibio como costumbre: la costumbre no genera leyendas ni memes del grupo. Asco. Nivel sótano documentado, qué vergüenza.',
 
       'El medio te queda como ropa lavada demasiadas veces: sin color fuerte y usable. Mierda. Hostia puta, qué nivel.',
 
-      'Gloria y fracaso de paso: tú te quedas en medio sin que te inviten a vivir. Patético. El ranking no miente.',
+      'Gloria y fracaso de paso: tú te quedas en medio sin que te inviten a vivir. Patético. El ranking no miente, fracasado.',
 
-      'Momentos que no compensan la tibieza de la semana entera en el historial del chat. Coño. Hostia puta, qué nivel.',
+      'Momentos que no compensan la tibieza de la semana entera en el historial del chat. Coño. Hostia puta, qué nivel, qué miseria.',
 
-      'Oscila sin llegar a puerto: ni naufragio ni atraque, solo el movimiento tibio. Basura. El chat ya lo archivó.',
+      'Oscila sin llegar a puerto: ni naufragio ni atraque, solo el movimiento tibio. Basura. El chat ya lo archivó, da grima.',
 
-      'Sin remontada ni debacle de atracción: partidos que se juegan y se olvidan al día. Coño. Hostia puta, qué nivel.',
+      'Sin remontada ni debacle de atracción: partidos que se juegan y se olvidan al día. Coño. Hostia puta, qué nivel, qué nivel de pena.',
 
-      'Historial sin chapters fuertes de atracción: páginas grises y sin subrayados. Basura. Hostia puta, qué nivel.',
+      'Historial sin chapters fuertes de atracción: páginas grises y sin subrayados. Basura. Hostia puta, qué nivel, basura.',
 
-      'Gestos sueltos que no suman magnetismo que se sostenga en serio en el grupo. Basura. Hostia puta, qué nivel.',
+      'Gestos sueltos que no suman magnetismo que se sostenga en serio en el grupo. Basura. Hostia puta, qué nivel, qué cutre.',
 
-      'Media agua sin orilla de atracción: flotas sin dirección ni puerto a la vista. Joder. El bot no regala décimas.',
+      'Media agua sin orilla de atracción: flotas sin dirección ni puerto a la vista. Joder. El bot no regala décimas, da pena ajena.',
 
-      'El apagón del flash se conoce de antemano: nadie se ilusiona del todo nunca. Cabrón. Hostia puta, qué nivel.',
+      'El apagón del flash se conoce de antemano: nadie se ilusiona del todo nunca. Cabrón. Hostia puta, qué nivel, qué vacío.',
 
-      'Día laborable de sexy: funcional, sin picos y sin ganas de recordarlo jamás. Cabrón. Nivel sótano documentado.',
+      'Día laborable de sexy: funcional, sin picos y sin ganas de recordarlo jamás. Cabrón. Nivel sótano documentado, indignante.',
 
-      'Asumir el promedio también es honestidad: y esta es la tuya sin adornos. Patético. Hostia puta, qué nivel.',
+      'Asumir el promedio también es honestidad: y esta es la tuya sin adornos. Patético. Hostia puta, qué nivel, qué vergüenza ajena.',
 
-      'Se va pronto la chispa y deja el espacio vacío sin dejar rastro memorable aquí. Asco. El ranking no miente.',
+      'Se va pronto la chispa y deja el espacio vacío sin dejar rastro memorable aquí. Asco. El ranking no miente, da vergüenza.',
 
-      'Sin titular de portada de atracción: ficha de quien terminó y nada más que eso. Asco. Hostia puta, qué nivel.',
+      'Sin titular de portada de atracción: ficha de quien terminó y nada más que eso. Asco. Hostia puta, qué nivel, qué flojo.',
 
-      'Gris previsible como marca: el spoiler es la tibieza siempre en este tramo. Cabrón. El chat ya lo archivó.',
+      'Gris previsible como marca: el spoiler es la tibieza siempre en este tramo. Cabrón. El chat ya lo archivó, menudo desastre.',
 
-      'Más páginas grises que capítulos: el libro de tu presencia es así de plano. Basura. Hostia puta, qué nivel.',
+      'Más páginas grises que capítulos: el libro de tu presencia es así de plano. Basura. Hostia puta, qué nivel, qué pena.',
 
-      'Ni anillo ni crónica: ficha de quien terminó sin estrellas ni tachones. Ridículo. Hostia puta, qué nivel.',
+      'Ni anillo ni crónica: ficha de quien terminó sin estrellas ni tachones. Ridículo. Hostia puta, qué nivel, patético.',
 
-      'Tu lugar es el control del experimento: sin extremos no hay escala posible. Mierda. Hostia puta, qué nivel.',
+      'Tu lugar es el control del experimento: sin extremos no hay escala posible. Mierda. Hostia puta, qué nivel, miserable.',
 
-      'Lo más predecible del ranking de sexy: y lo menos comentado del chat entero. Joder. El bot no regala décimas.',
+      'Lo más predecible del ranking de sexy: y lo menos comentado del chat entero. Joder. El bot no regala décimas, qué cringe.',
 
-      'Tramo que no abre hilos: la no apertura es el dato más claro del pool. Patético. Hostia puta, qué nivel.',
+      'Tramo que no abre hilos: la no apertura es el dato más claro del pool. Patético. Hostia puta, qué nivel, da asco.',
 
     ],
     low: [
@@ -2712,49 +2712,49 @@ const LABELS = {
 
       'Tu frame es contenido de ridículo gratis para el grupo, [nombre]. El veredicto No hay segunda lectura útil, hostia puta qué nivel.',
 
-      'Sexy de las que el natural es no atraer., [nombre]. El veredicto El material habla solo, joder. Hostia puta, qué nivel.',
+      'Sexy de las que el natural es no atraer., [nombre]. El veredicto El material habla solo, joder. Hostia puta, qué nivel, qué vergüenza.',
 
-      'Has convertido el fail de deseo en marca personal del low, [nombre]. El veredicto Aquí. Hostia puta, qué nivel.',
+      'Has convertido el fail de deseo en marca personal del low, [nombre]. El veredicto Aquí. Hostia puta, qué nivel, ridículo.',
 
-      'Sexy de repertorio gastado: las mismas poses, el mismo almost, [nombre]. El veredicto El ranking firma y listo, coño.',
+      'Sexy de repertorio gastado: las mismas poses, el mismo almost, [nombre]. El veredicto El ranking firma y listo, fracasado.',
 
-      'Se te nota el desastre hasta en la foto de perfil más antigua, [nombre]. El veredicto Se ve desde el primer mensaje, cabrón.',
+      'Se te nota el desastre hasta en la foto de perfil más antigua, [nombre]. El veredicto Se ve desde el primer mensaje, qué miseria.',
 
-      'El low te nombra sin suavizar ni media coma del veredicto, [nombre]. El veredicto. Hostia puta, qué nivel.',
+      'El low te nombra sin suavizar ni media coma del veredicto, [nombre]. El veredicto. Hostia puta, qué nivel, da grima.',
 
       'Sexy de almost: ni el low light te favorece. Y el chat lo ve, [nombre]. El veredicto Eso no se maquilla con ángulo, patético.',
 
-      'Tu presencia es un argumento contra la química del grupo, [nombre]. El veredicto El tramo te nombra sin permiso, asco.',
+      'Tu presencia es un argumento contra la química del grupo, [nombre]. El veredicto El tramo te nombra sin permiso, asco, basura.',
 
       'Sexy de puta pena en el tramo que más se lee del comando, [nombre]. El veredicto No hay segunda lectura útil, basura.',
 
       'No hay redención en este low: hay cara, hay número y hay veredicto, [nombre]. El veredicto, ridículo.',
 
-      'Sexy de las que el grupo archiva el fail sin pedir bis, [nombre]. El veredicto Aquí. Hostia puta, qué nivel.',
+      'Sexy de las que el grupo archiva el fail sin pedir bis, [nombre]. El veredicto Aquí. Hostia puta, qué nivel, qué vacío.',
 
-      'Se te ve venir el fail en la primera palabra del estado, [nombre]. El veredicto El ranking firma y listo, qué asco de frame.',
+      'Se te ve venir el fail en la primera palabra del estado, [nombre]. El veredicto El ranking firma y listo, qué asco de frame, indignante.',
 
       'Sexy de ranking roto: el sótano del tramo te queda de casa, [nombre]. El veredicto Se ve desde el primer mensaje, y el ranking no miente, asco.',
 
-      'El comando no discute contigo: el low firma y punto, [nombre]. El veredicto, sin anestesia, basura. Hostia puta, qué nivel.',
+      'El comando no discute contigo: el low firma y punto, [nombre]. El veredicto, sin anestesia, basura. Hostia puta, qué nivel, da vergüenza.',
 
-      'Tu almost es el epitafio del magnetismo de hoy, [nombre]. El veredicto asco. Eso no se maquilla con ángulo, el chat ya lo sabía.',
+      'Tu almost es el epitafio del magnetismo de hoy, [nombre]. El veredicto asco. Eso no se maquilla con ángulo, el chat ya lo sabía, qué flojo.',
 
-      'Sexy de puto desastre documentado. Delante del grupo entero, [nombre]. El veredicto El tramo te nombra sin permiso, nivel sótano puro.',
+      'Sexy de puto desastre documentado. Delante del grupo entero, [nombre]. El veredicto El tramo te nombra sin permiso, nivel sótano puro, menudo desastre.',
 
-      'Has firmado el fail con cada ángulo malo como única firma del low, [nombre]. El veredicto, sin filtro ni consuelo, joder.',
+      'Has firmado el fail con cada ángulo malo como única firma del low, [nombre]. El veredicto, sin filtro ni consuelo, qué pena.',
 
-      'Sexy de superficie suficiente: basta una mirada, sobra el resto, [nombre]. El veredicto El material habla solo, diagnóstico cerrado, mierda.',
+      'Sexy de superficie suficiente: basta una mirada, sobra el resto, [nombre]. El veredicto El material habla solo, diagnóstico cerrado, patético.',
 
-      'El low es tu tramo y. El ranking no ofrece mudanza, [nombre]. El veredicto Aquí, y se te nota a la legua, coño.',
+      'El low es tu tramo y. El ranking no ofrece mudanza, [nombre]. El veredicto Aquí, y se te nota a la legua, miserable.',
 
-      'Se te cae el frame sexy solo con cargar la cámara frontal, [nombre]. El veredicto El ranking firma y listo, el bot no regala décimas, cabrón.',
+      'Se te cae el frame sexy solo con cargar la cámara frontal, [nombre]. El veredicto El ranking firma y listo, el bot no regala décimas, qué cringe.',
 
-      'Sexy de almost eterno con. El chat de testigo notarial, [nombre]. El veredicto Se ve desde el primer mensaje, archivo sin apelación, gilipollas.',
+      'Sexy de almost eterno con. El chat de testigo notarial, [nombre]. El veredicto Se ve desde el primer mensaje, archivo sin apelación, da asco.',
 
-      'No es un mal día de fotos: es el nivel y el low te lo cobra, [nombre]. El veredicto. Hostia puta, qué nivel.',
+      'No es un mal día de fotos: es el nivel y el low te lo cobra, [nombre]. El veredicto. Hostia puta, qué nivel, qué vergüenza.',
 
-      'Sexy de puta madre: el tramo bajo no suaviza. El veredicto de atracción, [nombre]. El veredicto gilipollas.',
+      'Sexy de puta madre: el tramo bajo no suaviza. El veredicto de atracción, [nombre]. El veredicto gilipollas, ridículo.',
 
       'Tu frame es el gag más corto y más claro del comando, [nombre]. El veredicto El tramo te nombra sin permiso, sin maquillaje posible, basura.',
 
@@ -2772,31 +2772,31 @@ const LABELS = {
 
       'Gente que ni hablaste va a recordar tu cara años después. Eso casi nadie lo provoca. Hostia puta, qué nivel.',
 
-      'Tienes el tipo de presencia que hace que una habitación entera baje la voz cuando entras Eso no se maquilla con ángulo, gilipollas.',
+      'Tienes el tipo de presencia que hace que una habitación entera baje la voz cuando entras Eso no se maquilla con ángulo, qué miseria.',
 
       'Te van a comparar con otros durante años, y la comparación siempre va a salir a tu favor El tramo te nombra sin permiso, patético.',
 
-      'Hay quien se enamora del recuerdo de haberte visto. Eso no lo consigue cualquiera No hay segunda lectura útil, asco.',
+      'Hay quien se enamora del recuerdo de haberte visto. Eso no lo consigue cualquiera No hay segunda lectura útil, asco, qué nivel de pena.',
 
-      'Tu atractivo es de los que generan historias que la gente cuenta sin haber hablado contigo, basura. Y.',
+      'Tu atractivo es de los que generan historias que la gente cuenta sin haber hablado contigo, basura. Y, basura.',
 
-      'Eres exactamente lo que la gente describe cuando le piden su tipo ideal sin pensarlo Aquí. Hostia puta, qué nivel.',
+      'Eres exactamente lo que la gente describe cuando le piden su tipo ideal sin pensarlo Aquí. Hostia puta, qué nivel, qué cutre.',
 
       'La belleza que tienes es de las que envejecen bien y se quedan en la memoria mejor aún El ranking firma y listo, fracasado.',
 
-      'Vas a ser el estándar imposible con el que otros se comparan sin saberlo Se ve desde el primer mensaje, qué asco de frame.',
+      'Vas a ser el estándar imposible con el que otros se comparan sin saberlo Se ve desde el primer mensaje, qué asco de frame, qué vacío.',
 
-      'Provocas en la gente reacciones que no van a saber explicar ni a sí mismos, y el ranking no miente, mierda.',
+      'Provocas en la gente reacciones que no van a saber explicar ni a sí mismos, y el ranking no miente, indignante.',
 
-      'Quien te tenga cerca va a vivir sabiendo que mucha gente querría estar en su lugar Eso no se maquilla con ángulo, sin anestesia, coño.',
+      'Quien te tenga cerca va a vivir sabiendo que mucha gente querría estar en su lugar Eso no se maquilla con ángulo, sin anestesia, qué vergüenza ajena.',
 
-      'Vas a ser el recuerdo que alguien guarda años después de un solo encuentro casual El tramo te nombra sin permiso, el chat ya lo sabía, cabrón.',
+      'Vas a ser el recuerdo que alguien guarda años después de un solo encuentro casual El tramo te nombra sin permiso, el chat ya lo sabía, da vergüenza.',
 
-      'Tienes el tipo de cara que la gente describe mucho después de haberte dejado de ver No hay segunda lectura útil, nivel sótano puro, gilipollas.',
+      'Tienes el tipo de cara que la gente describe mucho después de haberte dejado de ver No hay segunda lectura útil, nivel sótano puro, qué flojo.',
 
       'Provocas en desconocidos reacciones que ellos mismos no van a saber explicar luego El material habla solo, sin filtro ni consuelo, patético.',
 
-      'Eres exactamente lo que la gente imagina cuando le piden que piense en alguien atractivo Aquí, diagnóstico cerrado, asco.',
+      'Eres exactamente lo que la gente imagina cuando le piden que piense en alguien atractivo Aquí, diagnóstico cerrado, asco, qué pena.',
 
       'Hay quien va a comparar a todos sus futuros pretendientes contigo sin habértelo dicho nunca, y se te nota a la legua, basura.',
 
@@ -2804,19 +2804,19 @@ const LABELS = {
 
       'La gente va a recordar exactamente qué llevabas puesto el día que os conocisteis, archivo sin apelación, fracasado.',
 
-      'Vas a hacer que más de uno reconsidere su tipo entero solo con cruzarse contigo una vez Eso no se maquilla con ángulo.',
+      'Vas a hacer que más de uno reconsidere su tipo entero solo con cruzarse contigo una vez Eso no se maquilla con ángulo, da asco.',
 
-      'Eres el estándar imposible con el que otros se miden sin saber siquiera que existes El tramo te nombra sin permiso, con el grupo de testigo, mierda.',
+      'Eres el estándar imposible con el que otros se miden sin saber siquiera que existes El tramo te nombra sin permiso, con el grupo de testigo, qué vergüenza.',
 
-      'Tu belleza es de las que se quedan en la cabeza de gente que solo te vio de lejos No hay segunda lectura útil, sin maquillaje posible, coño.',
+      'Tu belleza es de las que se quedan en la cabeza de gente que solo te vio de lejos No hay segunda lectura útil, sin maquillaje posible, ridículo.',
 
-      'Quien acabe a tu lado va a recibir comentarios que no va a saber cómo responder El material habla solo, el veredicto es ese, cabrón.',
+      'Quien acabe a tu lado va a recibir comentarios que no va a saber cómo responder El material habla solo, el veredicto es ese, fracasado.',
 
-      'Tienes el tipo de presencia que hace que una sala entera baje el volumen al entrar tú Aquí, hostia puta qué nivel.',
+      'Tienes el tipo de presencia que hace que una sala entera baje el volumen al entrar tú Aquí, hostia puta qué nivel, qué miseria.',
 
-      'Vas a generar envidia silenciosa en gente que nunca te lo va a admitir a la cara El ranking firma y listo, joder.',
+      'Vas a generar envidia silenciosa en gente que nunca te lo va a admitir a la cara El ranking firma y listo, da grima.',
 
-      'Eres de los que aparecen una vez en la vida de alguien y se quedan como referencia para siempre, mierda.',
+      'Eres de los que aparecen una vez en la vida de alguien y se quedan como referencia para siempre, qué nivel de pena.',
 
     ],
   },
@@ -2875,55 +2875,55 @@ const LABELS = {
 
       'Crack de los que aprenden de todo, incluso de lo que salió bien. Eso ya casi nadie lo hace y el hilo no pide amplificación.',
 
-      'Cuando hay que elegir a alguien para lo importante, sales tú. Por historial, no por afecto y el archivo queda cerrado.',
+      'Cuando hay que elegir a alguien para lo importante, sales tú. Por historial, no por afecto y el archivo queda cerrado, basura.',
 
-      'Tu trabajo habla por ti antes de que tú abras la boca. Eso es lo más difícil de conseguir sin bis ni matiz de consuelo.',
+      'Tu trabajo habla por ti antes de que tú abras la boca. Eso es lo más difícil de conseguir sin bis ni matiz de consuelo, qué cutre.',
 
-      'Cuando das tu palabra de que algo estará hecho, el resto ya puede dejar de pensar en ello sin que nadie pida replay.',
+      'Cuando das tu palabra de que algo estará hecho, el resto ya puede dejar de pensar en ello sin que nadie pida replay, da pena ajena.',
 
-      'No improvisas calidad. La produces de forma sistemática, que es lo verdaderamente difícil. Sin derecho a matiz útil.',
+      'No improvisas calidad. La produces de forma sistemática, que es lo verdaderamente difícil. Sin derecho a matiz útil, qué vacío.',
 
-      'Tienes la solidez que hace que nadie tenga que revisar tu trabajo. Nunca, ni al principio en el único idioma que entiende el contador.',
+      'Tienes la solidez que hace que nadie tenga que revisar tu trabajo. Nunca, ni al principio en el único idioma que entiende el contador, indignante.',
 
-      'Eres el que se adelanta al problema en lugar de reaccionar a él. Ahí está toda la ventaja y el sistema cierra sin discusión.',
+      'Eres el que se adelanta al problema en lugar de reaccionar a él. Ahí está toda la ventaja y el sistema cierra sin discusión, qué vergüenza ajena.',
 
-      'Tienes criterio para saber qué se delega y qué se hace uno mismo. Muy pocos lo distinguen sin prosa que lo maquille.',
+      'Tienes criterio para saber qué se delega y qué se hace uno mismo. Muy pocos lo distinguen sin prosa que lo maquille, da vergüenza.',
 
-      'Cuando trabajas, se nota que hay método detrás. Y el método es lo que sostiene el talento y el contador no discute.',
+      'Cuando trabajas, se nota que hay método detrás. Y el método es lo que sostiene el talento y el contador no discute, qué flojo.',
 
-      'Eres de los que resuelven el problema antes de que se convierta en una crisis para todos delante de quien aún leía el hilo.',
+      'Eres de los que resuelven el problema antes de que se convierta en una crisis para todos delante de quien aún leía el hilo, menudo desastre.',
 
-      'Tu rendimiento es igual de alto cuando nadie mira que cuando todos miran. Eso es lo raro y no hay modo de suavizarlo.',
+      'Tu rendimiento es igual de alto cuando nadie mira que cuando todos miran. Eso es lo raro y no hay modo de suavizarlo, qué pena.',
 
-      'Tienes la mezcla exacta de talento y constancia. Y la segunda es la que de verdad decide en el único idioma que entiende el contador.',
+      'Tienes la mezcla exacta de talento y constancia. Y la segunda es la que de verdad decide en el único idioma que entiende el contador, patético.',
 
-      'Crack de los que hacen que las cosas parezcan sencillas. Y eso es lo más difícil que hay. Delante del hueco que quedó.',
+      'Crack de los que hacen que las cosas parezcan sencillas. Y eso es lo más difícil que hay. Delante del hueco que quedó, miserable.',
 
-      'Crack de los que ordenan prioridades cuando todo parece urgente. Ahí está media victoria con la cara del resultado a la vista.',
+      'Crack de los que ordenan prioridades cuando todo parece urgente. Ahí está media victoria con la cara del resultado a la vista, qué cringe.',
 
-      'Crack con la capacidad de sostener el estándar cuando nadie está mirando. Ahí se ve todo sin maquillaje ni segunda toma.',
+      'Crack con la capacidad de sostener el estándar cuando nadie está mirando. Ahí se ve todo sin maquillaje ni segunda toma, da asco.',
 
-      'Cuando apareces en algo, las expectativas de lo que puede salir cambian automáticamente. Delante del hueco que quedó.',
+      'Cuando apareces en algo, las expectativas de lo que puede salir cambian automáticamente. Delante del hueco que quedó, qué vergüenza.',
 
-      'Tu constancia tiene un valor que muy poca gente consigue mantener a lo largo del tiempo y el archivo queda cerrado.',
+      'Tu constancia tiene un valor que muy poca gente consigue mantener a lo largo del tiempo y el archivo queda cerrado, ridículo.',
 
-      'Cuando te comprometes a algo, deja de ser una preocupación para los demás. Eso vale oro. Delante del hueco que quedó.',
+      'Cuando te comprometes a algo, deja de ser una preocupación para los demás. Eso vale oro. Delante del hueco que quedó, fracasado.',
 
-      'Tu nivel no depende de la motivación ni del ánimo. Está ahí siempre, y eso es lo escaso con el grupo de testigo silencioso.',
+      'Tu nivel no depende de la motivación ni del ánimo. Está ahí siempre, y eso es lo escaso con el grupo de testigo silencioso, qué miseria.',
 
-      'Crack de verdad: sin adornos, sin relato y sin ninguna necesidad de que te lo confirmen con el número en la frente del mensaje.',
+      'Crack de verdad: sin adornos, sin relato y sin ninguna necesidad de que te lo confirmen con el número en la frente del mensaje, da grima.',
 
-      'Tienes esa manera de trabajar que la gente describe cuando explica cómo debería hacerse con el peaje cobrado al natural.',
+      'Tienes esa manera de trabajar que la gente describe cuando explica cómo debería hacerse con el peaje cobrado al natural, qué nivel de pena.',
 
-      'Cuando aprieta, tú apareces. Y ese es el único momento en el que esto se mide de verdad con. El chat enterado del cargo.',
+      'Cuando aprieta, tú apareces. Y ese es el único momento en el que esto se mide de verdad con. El chat enterado del cargo, basura.',
 
-      'Cuando trabajas con alguien, ese alguien mejora. Y eso no se puede fingir ni una semana y no hay DLC que lo parchee.',
+      'Cuando trabajas con alguien, ese alguien mejora. Y eso no se puede fingir ni una semana y no hay DLC que lo parchee, qué cutre.',
 
-      'Tienes la constancia de un profesional y la curiosidad de alguien que sigue aprendiendo en el recuento que no perdona.',
+      'Tienes la constancia de un profesional y la curiosidad de alguien que sigue aprendiendo en el recuento que no perdona, da pena ajena.',
 
-      'Cuando hay un problema nuevo, tú ya estás pensando en la segunda derivada. Eso es nivel con el grupo de testigo silencioso.',
+      'Cuando hay un problema nuevo, tú ya estás pensando en la segunda derivada. Eso es nivel con el grupo de testigo silencioso, qué vacío.',
 
-      'Crack de los que corrigen sin humillar. Eso construye equipos y casi nadie sabe hacerlo en el único idioma que entiende el contador.',
+      'Crack de los que corrigen sin humillar. Eso construye equipos y casi nadie sabe hacerlo en el único idioma que entiende el contador, indignante.',
 
     ],
     mid: [
@@ -3067,65 +3067,65 @@ const LABELS = {
 
       'Ranking frío y correcto: centro sin narrativa extra que vender a nadie, [nombre]. Basura. El bot no regala décimas.',
 
-      'No mueves la conversación de quién atrae: la conversación sigue sin ti. Desperdicio., desperdicio. Hostia puta, qué nivel.',
+      'No mueves la conversación de quién atrae: la conversación sigue sin ti. Desperdicio., desperdicio. Hostia puta, qué nivel, qué vergüenza ajena.',
 
-      'El gesto del grupo es el mismo si aciertas o fallas: medio y siguiente tema. Patético. Nivel sótano documentado.',
+      'El gesto del grupo es el mismo si aciertas o fallas: medio y siguiente tema. Patético. Nivel sótano documentado, da vergüenza.',
 
-      'Resumen sin adjetivos fuertes de respeto: la falta de adjetivos es. El veredicto. Basura. Hostia puta, qué nivel.',
+      'Resumen sin adjetivos fuertes de respeto: la falta de adjetivos es. El veredicto. Basura. Hostia puta, qué nivel, qué flojo.',
 
-      'El centro del espectro es poco comercial y es tuyo por derecho estadístico puro. Mierda. El ranking no miente.',
+      'El centro del espectro es poco comercial y es tuyo por derecho estadístico puro. Mierda. El ranking no miente, menudo desastre.',
 
-      'A veces sin buscarlo se enciende y cuando lo fuerzas se apaga: al revés del manual. Asco. Hostia puta, qué nivel.',
+      'A veces sin buscarlo se enciende y cuando lo fuerzas se apaga: al revés del manual. Asco. Hostia puta, qué nivel, qué pena.',
 
-      'Oscilación tibia sin extremos útiles para el grupo ni para. El ranking de nadie. Basura. El chat ya lo archivó.',
+      'Oscilación tibia sin extremos útiles para el grupo ni para. El ranking de nadie. Basura. El chat ya lo archivó, patético.',
 
-      'Tu presencia a tiempo parcial sin opción a upgrade ni a jornada completa nunca. Mierda. Hostia puta, qué nivel.',
+      'Tu presencia a tiempo parcial sin opción a upgrade ni a jornada completa nunca. Mierda. Hostia puta, qué nivel, miserable.',
 
-      'Resultado tibio como costumbre: la costumbre no genera leyendas ni memes del grupo. Asco. Hostia puta, qué nivel.',
+      'Resultado tibio como costumbre: la costumbre no genera leyendas ni memes del grupo. Asco. Hostia puta, qué nivel, qué cringe.',
 
       'El medio te queda como ropa lavada demasiadas veces: sin color fuerte y usable. Mierda. Hostia puta, qué nivel.',
 
-      'Gloria y fracaso de paso: tú te quedas en medio sin que te inviten a vivir. Patético. El bot no regala décimas.',
+      'Gloria y fracaso de paso: tú te quedas en medio sin que te inviten a vivir. Patético. El bot no regala décimas, qué vergüenza.',
 
-      'Momentos que no compensan la tibieza de la semana entera en el historial del chat. Coño. Hostia puta, qué nivel.',
+      'Momentos que no compensan la tibieza de la semana entera en el historial del chat. Coño. Hostia puta, qué nivel, ridículo.',
 
-      'Oscila sin llegar a puerto: ni naufragio ni atraque, solo el movimiento tibio. Basura. Nivel sótano documentado.',
+      'Oscila sin llegar a puerto: ni naufragio ni atraque, solo el movimiento tibio. Basura. Nivel sótano documentado, fracasado.',
 
-      'El grupo espera el zigzag de tu respeto y el zigzag llega sin sorpresa ninguna. Joder. Hostia puta, qué nivel.',
+      'El grupo espera el zigzag de tu respeto y el zigzag llega sin sorpresa ninguna. Joder. Hostia puta, qué nivel, qué miseria.',
 
-      'Tu respeto con RSVP irregular: a veces viene y a veces deja el asiento vacío. Mierda. El ranking no miente.',
+      'Tu respeto con RSVP irregular: a veces viene y a veces deja el asiento vacío. Mierda. El ranking no miente, da grima.',
 
-      'Día laborable de crack: funcional, sin picos y sin ganas de recordarlo jamás. Cabrón. Hostia puta, qué nivel.',
+      'Día laborable de crack: funcional, sin picos y sin ganas de recordarlo jamás. Cabrón. Hostia puta, qué nivel, qué nivel de pena.',
 
-      'Gestos sueltos que no suman magnetismo que se sostenga en serio en el grupo. Basura. El chat ya lo archivó.',
+      'Gestos sueltos que no suman magnetismo que se sostenga en serio en el grupo. Basura. El chat ya lo archivó, basura.',
 
-      'El apagón del flash se conoce de antemano: nadie se ilusiona del todo nunca. Cabrón. Hostia puta, qué nivel.',
+      'El apagón del flash se conoce de antemano: nadie se ilusiona del todo nunca. Cabrón. Hostia puta, qué nivel, qué cutre.',
 
-      'Sin remontada ni debacle de respeto: partidos que se juegan y se olvidan al día. Coño. Hostia puta, qué nivel.',
+      'Sin remontada ni debacle de respeto: partidos que se juegan y se olvidan al día. Coño. Hostia puta, qué nivel, da pena ajena.',
 
-      'Asumir el promedio también es honestidad: y esta es la tuya sin adornos. Patético. Hostia puta, qué nivel.',
+      'Asumir el promedio también es honestidad: y esta es la tuya sin adornos. Patético. Hostia puta, qué nivel, qué vacío.',
 
-      'Se va pronto la chispa y deja el espacio vacío sin dejar rastro memorable aquí. Asco. El bot no regala décimas.',
+      'Se va pronto la chispa y deja el espacio vacío sin dejar rastro memorable aquí. Asco. El bot no regala décimas, indignante.',
 
-      'Historial sin chapters fuertes de respeto: páginas grises y sin subrayados. Basura. Hostia puta, qué nivel.',
+      'Historial sin chapters fuertes de respeto: páginas grises y sin subrayados. Basura. Hostia puta, qué nivel, qué vergüenza ajena.',
 
-      'Gris previsible como marca: el spoiler es la tibieza siempre en este tramo. Cabrón. Nivel sótano documentado.',
+      'Gris previsible como marca: el spoiler es la tibieza siempre en este tramo. Cabrón. Nivel sótano documentado, da vergüenza.',
 
-      'Más páginas grises que capítulos: el libro de tu presencia es así de plano. Basura. Hostia puta, qué nivel.',
+      'Más páginas grises que capítulos: el libro de tu presencia es así de plano. Basura. Hostia puta, qué nivel, qué flojo.',
 
-      'Lo más predecible del ranking de crack: y lo menos comentado del chat entero. Joder. El ranking no miente.',
+      'Lo más predecible del ranking de crack: y lo menos comentado del chat entero. Joder. El ranking no miente, menudo desastre.',
 
-      'Ni anillo ni crónica: ficha de quien terminó sin estrellas ni tachones. Ridículo. Hostia puta, qué nivel.',
+      'Ni anillo ni crónica: ficha de quien terminó sin estrellas ni tachones. Ridículo. Hostia puta, qué nivel, qué pena.',
 
-      'Tu lugar es el control del experimento: sin extremos no hay escala posible. Mierda. El chat ya lo archivó.',
+      'Tu lugar es el control del experimento: sin extremos no hay escala posible. Mierda. El chat ya lo archivó, patético.',
 
-      'Media agua sin orilla de respeto: flotas sin dirección ni puerto a la vista. Joder. Hostia puta, qué nivel.',
+      'Media agua sin orilla de respeto: flotas sin dirección ni puerto a la vista. Joder. Hostia puta, qué nivel, miserable.',
 
-      'El respeto te saluda de lejos y no se acerca a vivir contigo del todo nunca. Joder. Hostia puta, qué nivel.',
+      'El respeto te saluda de lejos y no se acerca a vivir contigo del todo nunca. Joder. Hostia puta, qué nivel, qué cringe.',
 
-      'Tramo que no abre hilos: la no apertura es el dato más claro del pool. Patético. Hostia puta, qué nivel.',
+      'Tramo que no abre hilos: la no apertura es el dato más claro del pool. Patético. Hostia puta, qué nivel, da asco.',
 
-      'Sin titular de portada de respeto: ficha de quien terminó y nada más que eso. Asco. El bot no regala décimas.',
+      'Sin titular de portada de respeto: ficha de quien terminó y nada más que eso. Asco. El bot no regala décimas, qué vergüenza.',
 
     ],
     low: [
@@ -3473,61 +3473,61 @@ const LABELS = {
 
       'Crack de las que el modo genio se arrepiente de haberse abierto, [nombre]. El veredicto Eso no se maquilla con ángulo, el veredicto es ese, ridículo.',
 
-      'No es mala racha: eres tú y el low lo dice claro, [nombre]. El veredicto El tramo te nombra sin permiso, hostia puta qué nivel.',
+      'No es mala racha: eres tú y el low lo dice claro, [nombre]. El veredicto El tramo te nombra sin permiso, hostia puta qué nivel, qué miseria.',
 
-      'Crack de almost eterno: el comando no convierte el casi en victoria, [nombre]. El veredicto, joder. Y.',
+      'Crack de almost eterno: el comando no convierte el casi en victoria, [nombre]. El veredicto, joder. Y, da grima.',
 
-      'Se te cae el personaje de crack en el primer resultado del hilo, [nombre]. El veredicto El material habla solo, mierda.',
+      'Se te cae el personaje de crack en el primer resultado del hilo, [nombre]. El veredicto El material habla solo, qué nivel de pena.',
 
-      'Crack de las que necesitan tutorial de brillar y de dignidad, [nombre]. El veredicto Aquí. Hostia puta, qué nivel.',
+      'Crack de las que necesitan tutorial de brillar y de dignidad, [nombre]. El veredicto Aquí. Hostia puta, qué nivel, basura.',
 
-      'El low no regala décimas: el marcador habla y tú estás abajo, [nombre]. El veredicto El ranking firma y listo, cabrón.',
+      'El low no regala décimas: el marcador habla y tú estás abajo, [nombre]. El veredicto El ranking firma y listo, qué cutre.',
 
-      'Crack de puto almost con firma en cada derrota del chat, [nombre]. El veredicto Se ve desde el primer mensaje, gilipollas.',
+      'Crack de puto almost con firma en cada derrota del chat, [nombre]. El veredicto Se ve desde el primer mensaje, da pena ajena.',
 
-      'Tu racha es contenido de ridículo gratis para el grupo, [nombre]. El veredicto. Hostia puta, qué nivel.',
+      'Tu racha es contenido de ridículo gratis para el grupo, [nombre]. El veredicto. Hostia puta, qué nivel, qué vacío.',
 
-      'Has convertido el fail de talento en marca personal del low, [nombre]. El veredicto Eso no se maquilla con ángulo, asco.',
+      'Has convertido el fail de talento en marca personal del low, [nombre]. El veredicto Eso no se maquilla con ángulo, asco, indignante.',
 
-      'Crack de repertorio gastado: las mismas derrotas, el mismo almost, [nombre]. El veredicto gilipollas.',
+      'Crack de repertorio gastado: las mismas derrotas, el mismo almost, [nombre]. El veredicto gilipollas, qué vergüenza ajena.',
 
-      'Se te nota el desastre hasta en el resultado más antiguo del perfil, [nombre]. El veredicto patético.',
+      'Se te nota el desastre hasta en el resultado más antiguo del perfil, [nombre]. El veredicto patético, da vergüenza.',
 
       'El low te nombra sin suavizar ni media coma del veredicto, [nombre]. El veredicto El material habla solo, fracasado.',
 
-      'Crack de almost: ni el plan B te favorece. Y el chat lo ve, [nombre]. El veredicto Aquí, qué asco de frame.',
+      'Crack de almost: ni el plan B te favorece. Y el chat lo ve, [nombre]. El veredicto Aquí, qué asco de frame, menudo desastre.',
 
-      'Tu presencia es un argumento contra la racha de talento del grupo, [nombre]. El veredicto, y el ranking no miente, mierda.',
+      'Tu presencia es un argumento contra la racha de talento del grupo, [nombre]. El veredicto, y el ranking no miente, qué pena.',
 
-      'Crack de puta pena en el tramo que más se lee del comando, [nombre]. El veredicto Se ve desde el primer mensaje, sin anestesia.',
+      'Crack de puta pena en el tramo que más se lee del comando, [nombre]. El veredicto Se ve desde el primer mensaje, sin anestesia, patético.',
 
-      'No hay redención en este low: hay marcador, hay número y hay veredicto, [nombre]. El veredicto joder.',
+      'No hay redención en este low: hay marcador, hay número y hay veredicto, [nombre]. El veredicto joder, miserable.',
 
-      'Crack de las que el grupo archiva el fail sin pedir bis, [nombre]. El veredicto Eso no se maquilla con ángulo, nivel sótano puro, gilipollas.',
+      'Crack de las que el grupo archiva el fail sin pedir bis, [nombre]. El veredicto Eso no se maquilla con ángulo, nivel sótano puro, qué cringe.',
 
       'Crack de ranking roto: el sótano del tramo te queda de casa, [nombre]. El veredicto El tramo te nombra sin permiso, sin filtro ni consuelo, patético.',
 
-      'El comando no discute contigo: el low firma y punto, [nombre]. El veredicto No hay segunda lectura útil, diagnóstico cerrado, asco.',
+      'El comando no discute contigo: el low firma y punto, [nombre]. El veredicto No hay segunda lectura útil, diagnóstico cerrado, asco, qué vergüenza.',
 
-      'Crack de las que confunden pose de genio con genio y pierden las dos, [nombre]. El veredicto patético.',
+      'Crack de las que confunden pose de genio con genio y pierden las dos, [nombre]. El veredicto patético, ridículo.',
 
       'Tu almost es el epitafio de la racha de talento de hoy, [nombre]. El veredicto Aquí, el bot no regala décimas, ridículo.',
 
-      'Crack de puto desastre documentado. Delante del grupo entero, [nombre]. El veredicto El ranking firma y listo, archivo sin apelación.',
+      'Crack de puto desastre documentado. Delante del grupo entero, [nombre]. El veredicto El ranking firma y listo, archivo sin apelación, qué miseria.',
 
-      'Has firmado el fail con cada cero como única firma del low, [nombre]. El veredicto Se ve desde el primer mensaje.',
+      'Has firmado el fail con cada cero como única firma del low, [nombre]. El veredicto Se ve desde el primer mensaje, da grima.',
 
-      'Crack de superficie suficiente: basta el marcador, sobra el resto, [nombre]. El veredicto, con el grupo de testigo, mierda.',
+      'Crack de superficie suficiente: basta el marcador, sobra el resto, [nombre]. El veredicto, con el grupo de testigo, qué nivel de pena.',
 
-      'El low es tu tramo y. El ranking no ofrece mudanza, [nombre]. El veredicto Eso no se maquilla con ángulo, sin maquillaje posible, coño.',
+      'El low es tu tramo y. El ranking no ofrece mudanza, [nombre]. El veredicto Eso no se maquilla con ángulo, sin maquillaje posible, basura.',
 
-      'Se te cae el frame de crack solo con cargar el resultado, [nombre]. El veredicto El tramo te nombra sin permiso, el veredicto es ese, cabrón.',
+      'Se te cae el frame de crack solo con cargar el resultado, [nombre]. El veredicto El tramo te nombra sin permiso, el veredicto es ese, qué cutre.',
 
-      'Crack de almost eterno con. El chat de testigo notarial, [nombre]. El veredicto No hay segunda lectura útil, hostia puta qué nivel.',
+      'Crack de almost eterno con. El chat de testigo notarial, [nombre]. El veredicto No hay segunda lectura útil, hostia puta qué nivel, da pena ajena.',
 
-      'No es un mal día de resultados: es el nivel y el low te lo cobra, [nombre]. El veredicto El material habla solo, joder.',
+      'No es un mal día de resultados: es el nivel y el low te lo cobra, [nombre]. El veredicto El material habla solo, qué vacío.',
 
-      'Crack de puta madre: el tramo bajo no suaviza. El veredicto del talento, [nombre]. El veredicto gilipollas.',
+      'Crack de puta madre: el tramo bajo no suaviza. El veredicto del talento, [nombre]. El veredicto gilipollas, indignante.',
 
     ],
     extreme: [
@@ -3539,17 +3539,17 @@ const LABELS = {
 
       'Hay gente que lleva diez años intentando llegar donde tú ya estabas hace tres Eso no se maquilla con ángulo, patético.',
 
-      'Tu nivel real se ve en los días malos. En los buenos cualquiera puede parecer bueno El tramo te nombra sin permiso, asco.',
+      'Tu nivel real se ve en los días malos. En los buenos cualquiera puede parecer bueno El tramo te nombra sin permiso, asco, qué vergüenza ajena.',
 
       'Eres la persona que la gente quiere tener cerca cuando todo se complica de verdad No hay segunda lectura útil, basura.',
 
       'Tu palabra vale más que el contrato de mucha gente. Eso se gana, no se hereda El material habla solo, ridículo.',
 
-      'Hay quien presume de lo que hará. Tú ya lo hiciste mientras los demás hablaban Aquí. Hostia puta, qué nivel.',
+      'Hay quien presume de lo que hará. Tú ya lo hiciste mientras los demás hablaban Aquí. Hostia puta, qué nivel, menudo desastre.',
 
-      'La consistencia que tienes es justo lo que los demás llevan años intentando fingir El ranking firma y listo, qué asco de frame.',
+      'La consistencia que tienes es justo lo que los demás llevan años intentando fingir El ranking firma y listo, qué asco de frame, qué pena.',
 
-      'Cuando te vas de un equipo, ese equipo nota el hueco durante mucho tiempo Se ve desde el primer mensaje, y el ranking no miente, asco.',
+      'Cuando te vas de un equipo, ese equipo nota el hueco durante mucho tiempo Se ve desde el primer mensaje, y el ranking no miente, asco, patético.',
 
       'Eres el ejemplo que ponen los jefes cuando quieren explicar qué es hacer las cosas bien, sin anestesia, basura.',
 
@@ -3557,35 +3557,35 @@ const LABELS = {
 
       'No hay atajo a lo que tú tienes. Lo construiste haciendo lo que otros evitan El tramo te nombra sin permiso, nivel sótano puro, fracasado.',
 
-      'La excelencia que muestras bajo presión es la única que cuenta de verdad, y la tienes No hay segunda lectura útil, sin filtro ni consuelo, joder.',
+      'La excelencia que muestras bajo presión es la única que cuenta de verdad, y la tienes No hay segunda lectura útil, sin filtro ni consuelo, qué vergüenza.',
 
-      'Hay gente que persigue tu nivel y nunca entiende que lo tuyo es disciplina, no suerte El material habla solo, diagnóstico cerrado, mierda.',
+      'Hay gente que persigue tu nivel y nunca entiende que lo tuyo es disciplina, no suerte El material habla solo, diagnóstico cerrado, ridículo.',
 
-      'Lo que tú resuelves dormido, otros lo persiguen despiertos toda su carrera Aquí, y se te nota a la legua, coño.',
+      'Lo que tú resuelves dormido, otros lo persiguen despiertos toda su carrera Aquí, y se te nota a la legua, fracasado.',
 
-      'Eres el nombre que ponen los jefes cuando quieren explicar qué es hacer las cosas bien El ranking firma y listo, el bot no regala décimas, cabrón.',
+      'Eres el nombre que ponen los jefes cuando quieren explicar qué es hacer las cosas bien El ranking firma y listo, el bot no regala décimas, qué miseria.',
 
-      'Tu manera de trabajar redefine lo que el resto considera aceptable, sin que lo busques Se ve desde el primer mensaje, archivo sin apelación, gilipollas.',
+      'Tu manera de trabajar redefine lo que el resto considera aceptable, sin que lo busques Se ve desde el primer mensaje, archivo sin apelación, da grima.',
 
-      'Hay quien lleva diez años intentando llegar donde tú estabas hace tres sin esfuerzo. Hostia puta, qué nivel.',
+      'Hay quien lleva diez años intentando llegar donde tú estabas hace tres sin esfuerzo. Hostia puta, qué nivel, qué nivel de pena.',
 
-      'Tu palabra vale más que el contrato firmado de mucha gente, y eso se gana, no se hereda Eso no se maquilla con ángulo, con el grupo de testigo, asco.',
+      'Tu palabra vale más que el contrato firmado de mucha gente, y eso se gana, no se hereda Eso no se maquilla con ángulo, con el grupo de testigo, asco, basura.',
 
       'Cuando te vas de un equipo, ese hueco se nota durante mucho tiempo después El tramo te nombra sin permiso, sin maquillaje posible, basura.',
 
       'La excelencia bajo presión es la única que cuenta, y es justo la que tú tienes de sobra No hay segunda lectura útil, el veredicto es ese, ridículo.',
 
-      'Hay quien presume de lo que hará. Tú ya lo hiciste mientras ellos hablaban de hacerlo El material habla solo, hostia puta qué nivel.',
+      'Hay quien presume de lo que hará. Tú ya lo hiciste mientras ellos hablaban de hacerlo El material habla solo, hostia puta qué nivel, qué vacío.',
 
-      'No hay atajo a lo que tú tienes. Lo construiste haciendo lo que otros evitan a diario Aquí. Hostia puta, qué nivel.',
+      'No hay atajo a lo que tú tienes. Lo construiste haciendo lo que otros evitan a diario Aquí. Hostia puta, qué nivel, indignante.',
 
-      'Tu consistencia es exactamente lo que la mayoría lleva años intentando fingir sin lograrlo, mierda. Y.',
+      'Tu consistencia es exactamente lo que la mayoría lleva años intentando fingir sin lograrlo, mierda. Y, qué vergüenza ajena.',
 
-      'Eres el ejemplo que se cita cuando alguien pregunta cómo se hace algo de verdad bien Se ve desde el primer mensaje, coño.',
+      'Eres el ejemplo que se cita cuando alguien pregunta cómo se hace algo de verdad bien Se ve desde el primer mensaje, da vergüenza.',
 
-      'Tu nivel real se mide en los días malos, y ahí es justo donde otros desaparecen y tú no. Hostia puta, qué nivel.',
+      'Tu nivel real se mide en los días malos, y ahí es justo donde otros desaparecen y tú no. Hostia puta, qué nivel, qué flojo.',
 
-      'La gente quiere tenerte cerca cuando todo se complica, porque saben lo que aportas Eso no se maquilla con ángulo, gilipollas.',
+      'La gente quiere tenerte cerca cuando todo se complica, porque saben lo que aportas Eso no se maquilla con ángulo, menudo desastre.',
 
       'Lo tuyo no es talento de un día. Es un hábito construido que muy pocos consiguen sostener, patético.',
 
@@ -3655,65 +3655,65 @@ const LABELS = {
 
       'Tu forma de tratar a la gente hace que quieran volver a estar contigo. Y eso ya lo dice todo mientras el grupo tomaba nota del resultado.',
 
-      'Tu presencia hace que un sitio tenso deje de estarlo. Y nadie sabe explicar exactamente cómo con números que no admiten recurso de apelación.',
+      'Tu presencia hace que un sitio tenso deje de estarlo. Y nadie sabe explicar exactamente cómo con números que no admiten recurso de apelación, patético.',
 
-      'Tienes una presencia que suaviza a la gente difícil. Y eso solo lo consigue quien tiene peso y el historial del comando queda de testigo.',
+      'Tienes una presencia que suaviza a la gente difícil. Y eso solo lo consigue quien tiene peso y el historial del comando queda de testigo, miserable.',
 
-      'Tu forma de hablar baja el tono de cualquier conversación. Y todos lo agradecen sin decirlo delante de quien miraba. El ranking en ese momento.',
+      'Tu forma de hablar baja el tono de cualquier conversación. Y todos lo agradecen sin decirlo delante de quien miraba. El ranking en ese momento, qué cringe.',
 
-      'Tienes la capacidad de suavizar a la gente difícil. Y eso solo lo consigue quien tiene peso con el sistema firmando debajo sin pedir aclaración.',
+      'Tienes la capacidad de suavizar a la gente difícil. Y eso solo lo consigue quien tiene peso con el sistema firmando debajo sin pedir aclaración, da asco.',
 
-      'Tienes la clase de feminidad que no depende de nadie ni de nada. Es tuya y se sostiene sola delante de todo el hilo sin posibilidad de borrado.',
+      'Tienes la clase de feminidad que no depende de nadie ni de nada. Es tuya y se sostiene sola delante de todo el hilo sin posibilidad de borrado, qué vergüenza.',
 
-      'Tienes una manera de estar que hace que la gente se sienta acompañada sin sentirse invadida con. El ranking como único testigo del veredicto.',
+      'Tienes una manera de estar que hace que la gente se sienta acompañada sin sentirse invadida con. El ranking como único testigo del veredicto, ridículo.',
 
-      'Tienes ese equilibrio entre fuerza y suavidad que define lo que es verdaderamente elegante y el contador lo dejó por escrito sin debate.',
+      'Tienes ese equilibrio entre fuerza y suavidad que define lo que es verdaderamente elegante y el contador lo dejó por escrito sin debate, fracasado.',
 
-      'La forma en que te relacionas con los demás tiene una gracia que hace que todo fluya mejor en el momento más visible del chat.',
+      'La forma en que te relacionas con los demás tiene una gracia que hace que todo fluya mejor en el momento más visible del chat, qué miseria.',
 
-      'Tienes el tipo de feminidad que no depende de la edad ni de la moda. Estructural y estable sin que nadie pudiera fingir que no lo vio.',
+      'Tienes el tipo de feminidad que no depende de la edad ni de la moda. Estructural y estable sin que nadie pudiera fingir que no lo vio, da grima.',
 
-      'Tu manera de cuidar a la gente es discreta y constante. Nadie la nombra y todos la sienten con el parte del comando cerrado en firme.',
+      'Tu manera de cuidar a la gente es discreta y constante. Nadie la nombra y todos la sienten con el parte del comando cerrado en firme, qué nivel de pena.',
 
-      'Tienes esa forma de cuidar sin agobiar. Y ese equilibrio se le escapa a casi todo el mundo y sin segunda oportunidad en este mensaje.',
+      'Tienes esa forma de cuidar sin agobiar. Y ese equilibrio se le escapa a casi todo el mundo y sin segunda oportunidad en este mensaje, basura.',
 
-      'Tu manera de moverte por el mundo es serena. Y la serenidad es la forma más alta de fuerza mientras el grupo tomaba nota del resultado.',
+      'Tu manera de moverte por el mundo es serena. Y la serenidad es la forma más alta de fuerza mientras el grupo tomaba nota del resultado, qué cutre.',
 
-      'Tu presencia hace que el ambiente mejore sin que nadie sepa señalar exactamente qué cambió con números que no admiten recurso de apelación.',
+      'Tu presencia hace que el ambiente mejore sin que nadie sepa señalar exactamente qué cambió con números que no admiten recurso de apelación, da pena ajena.',
 
-      'Tienes intuición social muy fina y encima la usas para bien. Las dos cosas juntas escasean y el historial del comando queda de testigo.',
+      'Tienes intuición social muy fina y encima la usas para bien. Las dos cosas juntas escasean y el historial del comando queda de testigo, qué vacío.',
 
-      'Elegancia en el tono, en el gesto y en el tiempo. Las tres cosas ajustadas a la perfección delante de quien miraba. El ranking en ese momento.',
+      'Elegancia en el tono, en el gesto y en el tiempo. Las tres cosas ajustadas a la perfección delante de quien miraba. El ranking en ese momento, indignante.',
 
-      'Hay una suavidad en tu forma de tratar a la gente que se queda grabada en quien la recibe con el sistema firmando debajo sin pedir aclaración.',
+      'Hay una suavidad en tu forma de tratar a la gente que se queda grabada en quien la recibe con el sistema firmando debajo sin pedir aclaración, qué vergüenza ajena.',
 
-      'La gracia con la que llevas cada situación dice más de ti que cualquier palabra que digas delante de todo el hilo sin posibilidad de borrado.',
+      'La gracia con la que llevas cada situación dice más de ti que cualquier palabra que digas delante de todo el hilo sin posibilidad de borrado, da vergüenza.',
 
-      'Tu presencia da seguridad a la gente que tienes cerca. Y esa es la forma más alta de esto con. El ranking como único testigo del veredicto.',
+      'Tu presencia da seguridad a la gente que tienes cerca. Y esa es la forma más alta de esto con. El ranking como único testigo del veredicto, qué flojo.',
 
-      'Elegancia interior que se refleja hacia fuera sin que tengas que hacer absolutamente nada y el contador lo dejó por escrito sin debate.',
+      'Elegancia interior que se refleja hacia fuera sin que tengas que hacer absolutamente nada y el contador lo dejó por escrito sin debate, menudo desastre.',
 
-      'Feminidad que se transmite en el trato, no en la imagen. Y el trato es lo que se recuerda en el momento más visible del chat.',
+      'Feminidad que se transmite en el trato, no en la imagen. Y el trato es lo que se recuerda en el momento más visible del chat, qué pena.',
 
-      'Tienes intuición, tacto y criterio. Las tres juntas hacen que se te escuche sin discusión sin que nadie pudiera fingir que no lo vio.',
+      'Tienes intuición, tacto y criterio. Las tres juntas hacen que se te escuche sin discusión sin que nadie pudiera fingir que no lo vio, patético.',
 
-      'Tu forma de tratar los conflictos evita que crezcan. Y evitar es más difícil que resolver con el parte del comando cerrado en firme.',
+      'Tu forma de tratar los conflictos evita que crezcan. Y evitar es más difícil que resolver con el parte del comando cerrado en firme, miserable.',
 
-      'Tu forma de hablar hace que la gente quiera seguir escuchando. Eso ya casi nadie lo tiene y sin segunda oportunidad en este mensaje.',
+      'Tu forma de hablar hace que la gente quiera seguir escuchando. Eso ya casi nadie lo tiene y sin segunda oportunidad en este mensaje, qué cringe.',
 
-      'Tienes una elegancia que no se aprende en ningún sitio. O se nace con ella o no se tiene mientras el grupo tomaba nota del resultado.',
+      'Tienes una elegancia que no se aprende en ningún sitio. O se nace con ella o no se tiene mientras el grupo tomaba nota del resultado, da asco.',
 
-      'Hay personas que pasan la vida intentando proyectar lo que tú emites sin ningún esfuerzo con números que no admiten recurso de apelación.',
+      'Hay personas que pasan la vida intentando proyectar lo que tú emites sin ningún esfuerzo con números que no admiten recurso de apelación, qué vergüenza.',
 
-      'Proyectas una serenidad femenina que hace que todo a tu alrededor se sienta más en orden y el historial del comando queda de testigo.',
+      'Proyectas una serenidad femenina que hace que todo a tu alrededor se sienta más en orden y el historial del comando queda de testigo, ridículo.',
 
-      'La forma en que combinas firmeza y dulzura es justo lo que la hace tan difícil de imitar delante de quien miraba. El ranking en ese momento.',
+      'La forma en que combinas firmeza y dulzura es justo lo que la hace tan difícil de imitar delante de quien miraba. El ranking en ese momento, fracasado.',
 
-      'Tu feminidad funciona igual de bien arreglada que recién levantada, y eso es lo más raro con el sistema firmando debajo sin pedir aclaración.',
+      'Tu feminidad funciona igual de bien arreglada que recién levantada, y eso es lo más raro con el sistema firmando debajo sin pedir aclaración, qué miseria.',
 
-      'Tienes esa mezcla de dulzura y firmeza que descoloca a todo el mundo. Y funciona siempre delante de todo el hilo sin posibilidad de borrado.',
+      'Tienes esa mezcla de dulzura y firmeza que descoloca a todo el mundo. Y funciona siempre delante de todo el hilo sin posibilidad de borrado, da grima.',
 
-      'Tu feminidad es de las que ordenan sin mandar. Un tipo de autoridad que casi nadie tiene con. El ranking como único testigo del veredicto.',
+      'Tu feminidad es de las que ordenan sin mandar. Un tipo de autoridad que casi nadie tiene con. El ranking como único testigo del veredicto, qué nivel de pena.',
 
     ],
     mid: [
@@ -3845,41 +3845,41 @@ const LABELS = {
 
       'La feminidad te da citas y no noviazgo: soltera del concepto. Patético. Se nota y no hay vuelta atrás, patético.',
 
-      'No hay firma: hay borradores y los borradores se acumulan. Vergüenza Se nota y no hay vuelta atrás, vergüenza.',
+      'No hay firma: hay borradores y los borradores se acumulan. Vergüenza Se nota y no hay vuelta atrás, vergüenza, qué cutre.',
 
-      'El matiz no ha firmado contrato indefinido contigo: es temporal. Mierda. Se nota y no hay vuelta atrás, mierda.',
+      'El matiz no ha firmado contrato indefinido contigo: es temporal. Mierda. Se nota y no hay vuelta atrás, da pena ajena.',
 
-      'Ni ejemplo claro ni antiejemplo claro: caso del promedio tembloroso. Coño. Se nota y no hay vuelta atrás, coño.',
+      'Ni ejemplo claro ni antiejemplo claro: caso del promedio tembloroso. Coño. Se nota y no hay vuelta atrás, qué vacío.',
 
-      'No hay firma estable: hay intentos y los intentos se notan. Pringado. Se nota y no hay vuelta atrás, pringado.',
+      'No hay firma estable: hay intentos y los intentos se notan. Pringado. Se nota y no hay vuelta atrás, pringado, indignante.',
 
-      'Estás a medias entre la presencia y la ausencia de lo femenino. Cabrón. Se nota y no hay vuelta atrás, cabrón.',
+      'Estás a medias entre la presencia y la ausencia de lo femenino. Cabrón. Se nota y no hay vuelta atrás, qué vergüenza ajena.',
 
-      'El matiz no tiene horario en tu calendario: es espontáneo y raro. Joder. Se nota y no hay vuelta atrás, joder.',
+      'El matiz no tiene horario en tu calendario: es espontáneo y raro. Joder. Se nota y no hay vuelta atrás, da vergüenza.',
 
-      'Ni desastre ni acierto sostenido: oscilación de baja amplitud. Mierda. Se nota y no hay vuelta atrás, mierda.',
+      'Ni desastre ni acierto sostenido: oscilación de baja amplitud. Mierda. Se nota y no hay vuelta atrás, qué flojo.',
 
-      'Feminidad de ensayo indefinido: el estreno no tiene fecha. Pringado. Se nota y no hay vuelta atrás, pringado.',
+      'Feminidad de ensayo indefinido: el estreno no tiene fecha. Pringado. Se nota y no hay vuelta atrás, pringado, menudo desastre.',
 
-      'El matiz parpadea como un neón a punto de fundirse: luz dudosa. Joder. Se nota y no hay vuelta atrás, joder.',
+      'El matiz parpadea como un neón a punto de fundirse: luz dudosa. Joder. Se nota y no hay vuelta atrás, qué pena.',
 
-      'Ni altar ni sótano: escalera de servicio, [nombre]. Desperdicio Se nota y no hay vuelta atrás, desperdicio.',
+      'Ni altar ni sótano: escalera de servicio, [nombre]. Desperdicio Se nota y no hay vuelta atrás, desperdicio, patético.',
 
       'Tu gracia confirma asistencia a veces: RSVP irregular. Fracasado. Se nota y no hay vuelta atrás, fracasado.',
 
-      'Tu presencia femenina es a tiempo parcial sin opción a completa. Asco. Se nota y no hay vuelta atrás, asco.',
+      'Tu presencia femenina es a tiempo parcial sin opción a completa. Asco. Se nota y no hay vuelta atrás, asco, qué cringe.',
 
-      'El matiz no tiene horario fijo en tu casa: llega cuando quiere. Coño. Se nota y no hay vuelta atrás, coño.',
+      'El matiz no tiene horario fijo en tu casa: llega cuando quiere. Coño. Se nota y no hay vuelta atrás, da asco.',
 
-      'Un gesto no hace presencia y tú coleccionas gestos sueltos. Cabrón. Se nota y no hay vuelta atrás, cabrón.',
+      'Un gesto no hace presencia y tú coleccionas gestos sueltos. Cabrón. Se nota y no hay vuelta atrás, qué vergüenza.',
 
       'Estás en el tramo del depende y el depende es. El veredicto. Basura. Se nota y no hay vuelta atrás, basura.',
 
-      'Estás a medias y las medias son tu tramo natural, [nombre]. Mierda. Se nota y no hay vuelta atrás, mierda.',
+      'Estás a medias y las medias son tu tramo natural, [nombre]. Mierda. Se nota y no hay vuelta atrás, fracasado.',
 
-      'Hay flashes y hay apagones: el promedio de luz es este gris. Cutre Se nota y no hay vuelta atrás, cutre.',
+      'Hay flashes y hay apagones: el promedio de luz es este gris. Cutre Se nota y no hay vuelta atrás, cutre, qué miseria.',
 
-      'La feminidad te da franjas horarias: fuera de franja nada. Mierda. Se nota y no hay vuelta atrás, mierda.',
+      'La feminidad te da franjas horarias: fuera de franja nada. Mierda. Se nota y no hay vuelta atrás, da grima.',
 
       'El grupo espera el zigzag y no se decepciona: cumples. Ridículo. Se nota y no hay vuelta atrás, ridículo.',
 
@@ -3887,35 +3887,35 @@ const LABELS = {
 
       'El centro del espectro es poco comercial y es tuyo. Fracasado. Se nota y no hay vuelta atrás, fracasado.',
 
-      'La gracia salva el rato y pierde el día, [nombre]. Vergüenza Se nota y no hay vuelta atrás, vergüenza.',
+      'La gracia salva el rato y pierde el día, [nombre]. Vergüenza Se nota y no hay vuelta atrás, vergüenza, da pena ajena.',
 
-      'Un día tienes el matiz y al siguiente se te olvida: inconsistencia hecha presencia, [nombre]. Cabrón.',
+      'Un día tienes el matiz y al siguiente se te olvida: inconsistencia hecha presencia, [nombre]. Cabrón, qué vacío.',
 
-      'Feminidad de termostato roto: ni frío estable ni calor estable, oscila y molesta, [nombre]. Pringado.',
+      'Feminidad de termostato roto: ni frío estable ni calor estable, oscila y molesta, [nombre]. Pringado, indignante.',
 
-      'El grupo ya no se ilusiona con el flash: sabe que se apaga. Asco. Se nota y no hay vuelta atrás, asco.',
+      'El grupo ya no se ilusiona con el flash: sabe que se apaga. Asco. Se nota y no hay vuelta atrás, asco, qué vergüenza ajena.',
 
-      'Ni copa ni toalla tirada: guardas y sigues. Gilipollas. Se nota y no hay vuelta atrás, gilipollas. con el parte del comando cerrado en firme.',
+      'Ni copa ni toalla tirada: guardas y sigues. Gilipollas. Se nota y no hay vuelta atrás, gilipollas. con el parte del comando cerrado en firme, da vergüenza.',
 
-      'Ni silencio de gesta ni de vergüenza, [nombre]. Pringado. Se nota y no hay vuelta atrás, pringado. Y sin segunda oportunidad en este mensaje.',
+      'Ni silencio de gesta ni de vergüenza, [nombre]. Pringado. Se nota y no hay vuelta atrás, pringado. Y sin segunda oportunidad en este mensaje, qué flojo.',
 
-      'Jugada más de presencia sin highlight. Gilipollas. Se nota y no hay vuelta atrás, gilipollas mientras el grupo tomaba nota del resultado.',
+      'Jugada más de presencia sin highlight. Gilipollas. Se nota y no hay vuelta atrás, gilipollas mientras el grupo tomaba nota del resultado, menudo desastre.',
 
-      'El grupo no apuesta fuerte, [nombre]. Gilipollas. Se nota y no hay vuelta atrás, gilipollas. con números que no admiten recurso de apelación.',
+      'El grupo no apuesta fuerte, [nombre]. Gilipollas. Se nota y no hay vuelta atrás, gilipollas. con números que no admiten recurso de apelación, qué pena.',
 
-      'Un día el tono y al siguiente el golpe seco: el promedio es una línea temblorosa, [nombre]. Basura. Y el historial del comando queda de testigo.',
+      'Un día el tono y al siguiente el golpe seco: el promedio es una línea temblorosa, [nombre]. Basura. Y el historial del comando queda de testigo, patético.',
 
       'El medio te queda como ropa lavada: sin color fuerte. Cabrón. Se nota y no hay vuelta atrás, cabrón delante de quien miraba. El ranking en ese momento.',
 
-      'Feminidad sin fecha de estreno: ensayo eterno. Vergüenza Se nota y no hay vuelta atrás, vergüenza con el sistema firmando debajo sin pedir aclaración.',
+      'Feminidad sin fecha de estreno: ensayo eterno. Vergüenza Se nota y no hay vuelta atrás, vergüenza con el sistema firmando debajo sin pedir aclaración, qué cringe.',
 
-      'Ni llegas con gloria ni te caes antes: terminas. Pringado. Se nota y no hay vuelta atrás, pringado.delante de todo el hilo sin posibilidad de borrado.',
+      'Ni llegas con gloria ni te caes antes: terminas. Pringado. Se nota y no hay vuelta atrás, pringado.delante de todo el hilo sin posibilidad de borrado, da asco.',
 
-      'Va y viene según el día: ni tú sabes cuál toca hoy y la media te salva por poco, [nombre]. Joder con. El ranking como único testigo del veredicto.',
+      'Va y viene según el día: ni tú sabes cuál toca hoy y la media te salva por poco, [nombre]. Joder con. El ranking como único testigo del veredicto, qué vergüenza.',
 
       'A veces el silencio te queda bien y a veces es solo vacío: la diferencia se nota poco. Fracasado. Y el contador lo dejó por escrito sin debate.',
 
-      'Ni te consolidan en la gracia ni te descartan del todo: limbo administrativo, [nombre]. Pringado en el momento más visible del chat.',
+      'Ni te consolidan en la gracia ni te descartan del todo: limbo administrativo, [nombre]. Pringado en el momento más visible del chat, fracasado.',
 
     ],
     low: [
@@ -4247,29 +4247,29 @@ const LABELS = {
 
       'Se te cae el personaje de mujer en la primera foto del hilo, [nombre]. El material habla solo, archivo sin apelación, fracasado.',
 
-      'Feminidad de las que necesitan tutorial de presencia y de dignidad, [nombre]. Aquí. Hostia puta, qué nivel.',
+      'Feminidad de las que necesitan tutorial de presencia y de dignidad, [nombre]. Aquí. Hostia puta, qué nivel, basura.',
 
-      'El low no regala décimas: el número habla y tú estás abajo, [nombre]. El ranking firma y listo, con el grupo de testigo, mierda.',
+      'El low no regala décimas: el número habla y tú estás abajo, [nombre]. El ranking firma y listo, con el grupo de testigo, qué cutre.',
 
-      'Feminidad de puto almost con firma en cada miniatura del chat, [nombre]. Se ve desde el primer mensaje, sin maquillaje posible.',
+      'Feminidad de puto almost con firma en cada miniatura del chat, [nombre]. Se ve desde el primer mensaje, sin maquillaje posible, da pena ajena.',
 
-      'Tu frame es contenido de ridículo gratis para el grupo, [nombre]., el veredicto es ese. Hostia puta, qué nivel.',
+      'Tu frame es contenido de ridículo gratis para el grupo, [nombre]., el veredicto es ese. Hostia puta, qué nivel, qué vacío.',
 
-      'Feminidad de las que el natural es no atraer.[nombre]. Eso no se maquilla con ángulo, hostia puta qué nivel.',
+      'Feminidad de las que el natural es no atraer.[nombre]. Eso no se maquilla con ángulo, hostia puta qué nivel, indignante.',
 
-      'Has convertido el fail de presencia en marca personal del low, [nombre]. El tramo te nombra sin permiso, joder.',
+      'Has convertido el fail de presencia en marca personal del low, [nombre]. El tramo te nombra sin permiso, qué vergüenza ajena.',
 
-      'Feminidad de repertorio gastado: las mismas poses, el mismo almost, [nombre]. No hay segunda lectura útil, mierda.',
+      'Feminidad de repertorio gastado: las mismas poses, el mismo almost, [nombre]. No hay segunda lectura útil, da vergüenza.',
 
-      'Se te nota el desastre hasta en la foto de perfil más antigua, [nombre]. El material habla solo, coño.',
+      'Se te nota el desastre hasta en la foto de perfil más antigua, [nombre]. El material habla solo, qué flojo.',
 
-      'El low te nombra sin suavizar ni media coma del veredicto, [nombre]. Aquí. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+      'El low te nombra sin suavizar ni media coma del veredicto, [nombre]. Aquí. Hostia puta, qué nivel. Hostia, el desastre se explica solo, menudo desastre.',
 
-      'Feminidad de almost: ni el low light te favorece. Y el chat lo ve, [nombre]. El ranking firma y listo, gilipollas.',
+      'Feminidad de almost: ni el low light te favorece. Y el chat lo ve, [nombre]. El ranking firma y listo, qué pena.',
 
       'Tu presencia es un argumento contra la química del grupo, [nombre]. Se ve desde el primer mensaje, patético.',
 
-      'Feminidad de puta pena en el tramo que más se lee del comando, [nombre]. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+      'Feminidad de puta pena en el tramo que más se lee del comando, [nombre]. Hostia puta, qué nivel. Hostia, el desastre se explica solo, miserable.',
 
       'No hay redención en este low: hay cara, hay número y hay veredicto, [nombre]. Eso no se maquilla con ángulo, basura.',
 
@@ -4279,45 +4279,45 @@ const LABELS = {
 
       'Feminidad de ranking roto: el sótano del tramo te queda de casa, [nombre]. El material habla solo, qué asco de frame.',
 
-      'El comando no discute contigo: el low firma y punto, [nombre]. Aquí, y el ranking no miente, asco. Hostia puta, qué nivel.',
+      'El comando no discute contigo: el low firma y punto, [nombre]. Aquí, y el ranking no miente, asco. Hostia puta, qué nivel, fracasado.',
 
-      'Tu almost es el epitafio de la mujer de hoy, [nombre].asco. El ranking firma y listo, sin anestesia y, sin anestesia.',
+      'Tu almost es el epitafio de la mujer de hoy, [nombre].asco. El ranking firma y listo, sin anestesia y, sin anestesia, qué miseria.',
 
-      'Feminidad de puto desastre documentado. Delante del grupo entero, [nombre]. Se ve desde el primer mensaje, el chat ya lo sabía.',
+      'Feminidad de puto desastre documentado. Delante del grupo entero, [nombre]. Se ve desde el primer mensaje, el chat ya lo sabía, da grima.',
 
       'Has firmado el fail con cada ángulo malo como única firma del low, [nombre]., nivel sótano puro, fracasado.',
 
-      'Feminidad de superficie suficiente: basta una mirada, sobra el resto, [nombre]. Eso no se maquilla con ángulo, sin filtro ni consuelo, joder.',
+      'Feminidad de superficie suficiente: basta una mirada, sobra el resto, [nombre]. Eso no se maquilla con ángulo, sin filtro ni consuelo, basura.',
 
-      'El low es tu tramo y. El ranking no ofrece mudanza, [nombre]. El tramo te nombra sin permiso, diagnóstico cerrado, mierda.',
+      'El low es tu tramo y. El ranking no ofrece mudanza, [nombre]. El tramo te nombra sin permiso, diagnóstico cerrado, qué cutre.',
 
-      'Se te cae el frame de mujer solo con cargar la cámara frontal, [nombre]. No hay segunda lectura útil, y se te nota a la legua, coño.',
+      'Se te cae el frame de mujer solo con cargar la cámara frontal, [nombre]. No hay segunda lectura útil, y se te nota a la legua, da pena ajena.',
 
-      'Feminidad de almost eterno con. El chat de testigo notarial, [nombre]. El material habla solo, el bot no regala décimas, cabrón.',
+      'Feminidad de almost eterno con. El chat de testigo notarial, [nombre]. El material habla solo, el bot no regala décimas, qué vacío.',
 
-      'No es un mal día de fotos: es el nivel y el low te lo cobra, [nombre]. Aquí, archivo sin apelación, gilipollas.',
+      'No es un mal día de fotos: es el nivel y el low te lo cobra, [nombre]. Aquí, archivo sin apelación, indignante.',
 
-      'Feminidad de puta madre: el tramo bajo no suaviza. El veredicto de presencia, [nombre]. El ranking firma y listo.',
+      'Feminidad de puta madre: el tramo bajo no suaviza. El veredicto de presencia, [nombre]. El ranking firma y listo, qué vergüenza ajena.',
 
-      'Tu frame es el gag más corto y más claro del comando, [nombre]. Se ve desde el primer mensaje, con el grupo de testigo, asco.',
+      'Tu frame es el gag más corto y más claro del comando, [nombre]. Se ve desde el primer mensaje, con el grupo de testigo, asco, da vergüenza.',
 
       'Feminidad de las que el algoritmo de respeto pide la baja al verte, [nombre]., sin maquillaje posible, basura.',
 
       'El low te deja donde mereces: abajo, sin debate ni consuelo, [nombre]. Eso no se maquilla con ángulo, el veredicto es ese, ridículo.',
 
-      'Feminidad de ranking: el número bajo te nombra sin anestesia ni filtro, [nombre]. El tramo te nombra sin permiso, hostia puta qué nivel.',
+      'Feminidad de ranking: el número bajo te nombra sin anestesia ni filtro, [nombre]. El tramo te nombra sin permiso, hostia puta qué nivel, qué pena.',
 
-      'Has montado el circo de mujer y solo salió el payaso del fail, [nombre]. No hay segunda lectura útil, joder.',
+      'Has montado el circo de mujer y solo salió el payaso del fail, [nombre]. No hay segunda lectura útil, patético.',
 
-      'Feminidad de las que necesitan suerte, luz y milagro. Y aun así, mierda, [nombre]. El material habla solo, mierda.',
+      'Feminidad de las que necesitan suerte, luz y milagro. Y aun así, mierda, [nombre]. El material habla solo, miserable.',
 
-      'Feminidad de desastre de presencia: el low no es caridad, es sentencia, [nombre]. Aquí. Hostia puta, qué nivel.',
+      'Feminidad de desastre de presencia: el low no es caridad, es sentencia, [nombre]. Aquí. Hostia puta, qué nivel, qué cringe.',
 
-      'El ranking de presencia y el low coinciden: sótano, sin recurso, [nombre]. El ranking firma y listo, cabrón.',
+      'El ranking de presencia y el low coinciden: sótano, sin recurso, [nombre]. El ranking firma y listo, da asco.',
 
-      'Feminidad de puto almost firmado en cada miniatura del estado, [nombre]. Se ve desde el primer mensaje, gilipollas.',
+      'Feminidad de puto almost firmado en cada miniatura del estado, [nombre]. Se ve desde el primer mensaje, qué vergüenza.',
 
-      'No hay segunda oportunidad en este tramo: hay veredicto y te nombra, [nombre]. Hostia puta, qué nivel.',
+      'No hay segunda oportunidad en este tramo: hay veredicto y te nombra, [nombre]. Hostia puta, qué nivel, ridículo.',
 
     ],
     extreme: [
@@ -4376,77 +4376,77 @@ const LABELS = {
 
       'Tienes la firmeza de quien no necesita demostrar nada porque ya lo demostró cuando importaba con. El ranking como único testigo del veredicto.',
 
-      'Tu forma de proteger a los tuyos es discreta y constante. Nadie la nombra y todos la sienten y el contador lo dejó por escrito sin debate.',
+      'Tu forma de proteger a los tuyos es discreta y constante. Nadie la nombra y todos la sienten y el contador lo dejó por escrito sin debate, qué vergüenza ajena.',
 
-      'Tu presencia hace que se cuente contigo para lo importante. Y no por simpatía, por historial en el momento más visible del chat.',
+      'Tu presencia hace que se cuente contigo para lo importante. Y no por simpatía, por historial en el momento más visible del chat, da vergüenza.',
 
-      'Tu forma de estar es firme sin ser rígida. Ese equilibrio se le escapa a casi todo el mundo sin que nadie pudiera fingir que no lo vio.',
+      'Tu forma de estar es firme sin ser rígida. Ese equilibrio se le escapa a casi todo el mundo sin que nadie pudiera fingir que no lo vio, qué flojo.',
 
-      'Tu masculinidad tiene profundidad. No es decoración ni fachada que desaparece bajo presión con el parte del comando cerrado en firme.',
+      'Tu masculinidad tiene profundidad. No es decoración ni fachada que desaparece bajo presión con el parte del comando cerrado en firme, menudo desastre.',
 
-      'Masculinidad de la que protege sin controlar. Esa diferencia es la que casi nadie entiende y sin segunda oportunidad en este mensaje.',
+      'Masculinidad de la que protege sin controlar. Esa diferencia es la que casi nadie entiende y sin segunda oportunidad en este mensaje, qué pena.',
 
-      'Tienes la capacidad de reconocer el mérito ajeno. Y eso solo lo hace quien tiene el propio mientras el grupo tomaba nota del resultado.',
+      'Tienes la capacidad de reconocer el mérito ajeno. Y eso solo lo hace quien tiene el propio mientras el grupo tomaba nota del resultado, patético.',
 
-      'Masculinidad de la que no humilla, no grita y no exhibe. Y aun así no hay quien la discuta con números que no admiten recurso de apelación.',
+      'Masculinidad de la que no humilla, no grita y no exhibe. Y aun así no hay quien la discuta con números que no admiten recurso de apelación, miserable.',
 
-      'Masculinidad probada, tranquila y sostenida. Tres cosas que juntas ya no se ven casi nunca y el historial del comando queda de testigo.',
+      'Masculinidad probada, tranquila y sostenida. Tres cosas que juntas ya no se ven casi nunca y el historial del comando queda de testigo, qué cringe.',
 
-      'Eres de los que cumplen su palabra cuando ya no es cómodo, que es cuando de verdad cuenta delante de quien miraba. El ranking en ese momento.',
+      'Eres de los que cumplen su palabra cuando ya no es cómodo, que es cuando de verdad cuenta delante de quien miraba. El ranking en ese momento, da asco.',
 
-      'Masculinidad tranquila y firme. Las dos cosas a la vez, que es lo que casi nadie consigue con el sistema firmando debajo sin pedir aclaración.',
+      'Masculinidad tranquila y firme. Las dos cosas a la vez, que es lo que casi nadie consigue con el sistema firmando debajo sin pedir aclaración, qué vergüenza.',
 
-      'Tu presencia tranquiliza a quien está nervioso. Ese es el efecto más difícil de conseguir delante de todo el hilo sin posibilidad de borrado.',
+      'Tu presencia tranquiliza a quien está nervioso. Ese es el efecto más difícil de conseguir delante de todo el hilo sin posibilidad de borrado, ridículo.',
 
-      'Tienes esa solidez que hace que quien trabaja contigo deje de mirar por encima del hombro con. El ranking como único testigo del veredicto.',
+      'Tienes esa solidez que hace que quien trabaja contigo deje de mirar por encima del hombro con. El ranking como único testigo del veredicto, fracasado.',
 
-      'Masculinidad que no necesita escenario. Funcionas igual con público que sin nadie mirando y el contador lo dejó por escrito sin debate.',
+      'Masculinidad que no necesita escenario. Funcionas igual con público que sin nadie mirando y el contador lo dejó por escrito sin debate, qué miseria.',
 
-      'Tienes el aguante de los que van a largo plazo. Por eso sigues cuando el resto ya no está en el momento más visible del chat.',
+      'Tienes el aguante de los que van a largo plazo. Por eso sigues cuando el resto ya no está en el momento más visible del chat, da grima.',
 
-      'Eres de los que actúan cuando hay que actuar, sin esperar aprobación ni momento perfecto sin que nadie pudiera fingir que no lo vio.',
+      'Eres de los que actúan cuando hay que actuar, sin esperar aprobación ni momento perfecto sin que nadie pudiera fingir que no lo vio, qué nivel de pena.',
 
-      'Tienes la clase de presencia que tranquiliza una habitación entera sin decir una palabra con el parte del comando cerrado en firme.',
+      'Tienes la clase de presencia que tranquiliza una habitación entera sin decir una palabra con el parte del comando cerrado en firme, basura.',
 
-      'Tienes el aguante de los que van a largo plazo. Por eso sigues cuando otros ya se fueron y sin segunda oportunidad en este mensaje.',
+      'Tienes el aguante de los que van a largo plazo. Por eso sigues cuando otros ya se fueron y sin segunda oportunidad en este mensaje, qué cutre.',
 
-      'Masculinidad real de la que se demuestra cumpliendo durante años sin fallar una sola vez mientras el grupo tomaba nota del resultado.',
+      'Masculinidad real de la que se demuestra cumpliendo durante años sin fallar una sola vez mientras el grupo tomaba nota del resultado, da pena ajena.',
 
-      'Masculinidad real: sostienes lo que dijiste también cuando cambian todas las condiciones con números que no admiten recurso de apelación.',
+      'Masculinidad real: sostienes lo que dijiste también cuando cambian todas las condiciones con números que no admiten recurso de apelación, qué vacío.',
 
-      'Tienes la solidez de quien sostiene bajo presión lo que otros no sostienen ni tranquilos y el historial del comando queda de testigo.',
+      'Tienes la solidez de quien sostiene bajo presión lo que otros no sostienen ni tranquilos y el historial del comando queda de testigo, indignante.',
 
-      'Eres el que sostiene la situación cuando los demás solo quieren salir corriendo de ella delante de quien miraba. El ranking en ese momento.',
+      'Eres el que sostiene la situación cuando los demás solo quieren salir corriendo de ella delante de quien miraba. El ranking en ese momento, qué vergüenza ajena.',
 
-      'Proyectas una seguridad que no viene del volumen de la voz sino de la solidez de dentro con el sistema firmando debajo sin pedir aclaración.',
+      'Proyectas una seguridad que no viene del volumen de la voz sino de la solidez de dentro con el sistema firmando debajo sin pedir aclaración, da vergüenza.',
 
-      'Asumes lo que hay que asumir sin buscar a quién echarle la culpa después. Eso te define delante de todo el hilo sin posibilidad de borrado.',
+      'Asumes lo que hay que asumir sin buscar a quién echarle la culpa después. Eso te define delante de todo el hilo sin posibilidad de borrado, qué flojo.',
 
-      'Tu templanza en los momentos malos es justo lo que separa al hombre del que lo aparenta con. El ranking como único testigo del veredicto.',
+      'Tu templanza en los momentos malos es justo lo que separa al hombre del que lo aparenta con. El ranking como único testigo del veredicto, menudo desastre.',
 
-      'No necesitas levantar la voz para que se note quién manda la situación cuando llegas tú y el contador lo dejó por escrito sin debate.',
+      'No necesitas levantar la voz para que se note quién manda la situación cuando llegas tú y el contador lo dejó por escrito sin debate, qué pena.',
 
-      'La firmeza que tienes no se rompe bajo presión, y eso lo saben todos los que te conocen en el momento más visible del chat.',
+      'La firmeza que tienes no se rompe bajo presión, y eso lo saben todos los que te conocen en el momento más visible del chat, patético.',
 
-      'Eres el tipo de hombre al que la gente recurre cuando necesita algo serio resuelto bien sin que nadie pudiera fingir que no lo vio.',
+      'Eres el tipo de hombre al que la gente recurre cuando necesita algo serio resuelto bien sin que nadie pudiera fingir que no lo vio, miserable.',
 
-      'Masculinidad de la que se demuestra cumpliendo, no explicando. Y llevas años cumpliendo con el parte del comando cerrado en firme.',
+      'Masculinidad de la que se demuestra cumpliendo, no explicando. Y llevas años cumpliendo con el parte del comando cerrado en firme, qué cringe.',
 
-      'Tu forma de estar hace que la gente quiera hacerlo bien. Sin que se lo tengas que pedir y sin segunda oportunidad en este mensaje.',
+      'Tu forma de estar hace que la gente quiera hacerlo bien. Sin que se lo tengas que pedir y sin segunda oportunidad en este mensaje, da asco.',
 
-      'Tienes el criterio y la paciencia. Cualquiera de las dos por separado no sirve de mucho mientras el grupo tomaba nota del resultado.',
+      'Tienes el criterio y la paciencia. Cualquiera de las dos por separado no sirve de mucho mientras el grupo tomaba nota del resultado, qué vergüenza.',
 
-      'Tienes el aguante de aparecer también los días en los que no apetece absolutamente nada con números que no admiten recurso de apelación.',
+      'Tienes el aguante de aparecer también los días en los que no apetece absolutamente nada con números que no admiten recurso de apelación, ridículo.',
 
-      'Masculinidad tranquila de la que no necesita ganar cada discusión para saber dónde está y el historial del comando queda de testigo.',
+      'Masculinidad tranquila de la que no necesita ganar cada discusión para saber dónde está y el historial del comando queda de testigo, fracasado.',
 
-      'Tienes la firmeza de decir lo que hay que decir sin hacer daño al decirlo. Eso es nivel delante de quien miraba. El ranking en ese momento.',
+      'Tienes la firmeza de decir lo que hay que decir sin hacer daño al decirlo. Eso es nivel delante de quien miraba. El ranking en ese momento, qué miseria.',
 
-      'Tu manera de sostener a los tuyos es constante y sin condiciones. Eso ya casi no existe con el sistema firmando debajo sin pedir aclaración.',
+      'Tu manera de sostener a los tuyos es constante y sin condiciones. Eso ya casi no existe con el sistema firmando debajo sin pedir aclaración, da grima.',
 
-      'Tienes la solidez que la gente busca para apoyarse, y esa solidez se ganó con los años delante de todo el hilo sin posibilidad de borrado.',
+      'Tienes la solidez que la gente busca para apoyarse, y esa solidez se ganó con los años delante de todo el hilo sin posibilidad de borrado, qué nivel de pena.',
 
-      'Tu presencia da seguridad a la gente que tienes al lado. Eso no se finge ni una semana con. El ranking como único testigo del veredicto.',
+      'Tu presencia da seguridad a la gente que tienes al lado. Eso no se finge ni una semana con. El ranking como único testigo del veredicto, basura.',
 
     ],
     mid: [
@@ -4562,85 +4562,85 @@ const LABELS = {
 
       'Sin arco de redención ni de caída, [nombre]. Cabrón. Se nota y no hay vuelta atrás, cabrón mientras el grupo tomaba nota del resultado.',
 
-      'No hay hilo que abrir sobre tu masculinidad. Patético. Se nota y no hay vuelta atrás, patético. con números que no admiten recurso de apelación.',
+      'No hay hilo que abrir sobre tu masculinidad. Patético. Se nota y no hay vuelta atrás, patético. con números que no admiten recurso de apelación, qué cutre.',
 
       'El medio no pide aplausos pide el número, [nombre]. Ridículo. Se nota y no hay vuelta atrás, ridículo.',
 
-      'Ni alfa de cartel ni ausencia total: pasillo. Basura. Se nota y no hay vuelta atrás, basura delante de quien miraba. El ranking en ese momento.',
+      'Ni alfa de cartel ni ausencia total: pasillo. Basura. Se nota y no hay vuelta atrás, basura delante de quien miraba. El ranking en ese momento, qué vacío.',
 
-      'Historial sin chapters fuertes de macho. Desperdicio Se nota y no hay vuelta atrás, desperdicio.con el sistema firmando debajo sin pedir aclaración.',
+      'Historial sin chapters fuertes de macho. Desperdicio Se nota y no hay vuelta atrás, desperdicio.con el sistema firmando debajo sin pedir aclaración, indignante.',
 
-      'El grupo no apuesta fuerte a tu dureza, [nombre]. Asco. Se nota y no hay vuelta atrás, asco delante de todo el hilo sin posibilidad de borrado.',
+      'El grupo no apuesta fuerte a tu dureza, [nombre]. Asco. Se nota y no hay vuelta atrás, asco delante de todo el hilo sin posibilidad de borrado, qué vergüenza ajena.',
 
-      'Estás en el tramo que no emociona: constata y sigue, [nombre]. Pringado. Se nota y no hay vuelta atrás, pringado.',
+      'Estás en el tramo que no emociona: constata y sigue, [nombre]. Pringado. Se nota y no hay vuelta atrás, pringado, da vergüenza.',
 
-      'El gesto del grupo es el mismo si aciertas o fallas. Coño. Se nota y no hay vuelta atrás. Y el contador lo dejó por escrito sin debate.',
+      'El gesto del grupo es el mismo si aciertas o fallas. Coño. Se nota y no hay vuelta atrás. Y el contador lo dejó por escrito sin debate, qué flojo.',
 
-      'Ni llegas con gloria ni te caes antes: terminas. Cabrón. Se nota y no hay vuelta atrás, cabrón en el momento más visible del chat.',
+      'Ni llegas con gloria ni te caes antes: terminas. Cabrón. Se nota y no hay vuelta atrás, cabrón en el momento más visible del chat, menudo desastre.',
 
-      'Medallero corto y sin brillo de macho, [nombre]. Gilipollas. Se nota y no hay vuelta atrás, gilipollas.',
+      'Medallero corto y sin brillo de macho, [nombre]. Gilipollas. Se nota y no hay vuelta atrás, qué pena.',
 
-      'Distancias educadas con la dureza, [nombre]. Basura. Se nota y no hay vuelta atrás, basura. con el parte del comando cerrado en firme.',
+      'Distancias educadas con la dureza, [nombre]. Basura. Se nota y no hay vuelta atrás, basura. con el parte del comando cerrado en firme, patético.',
 
       'El medio te queda como ropa lavada: sin color fuerte. Desperdicio Se nota y no hay vuelta atrás, desperdicio.',
 
-      'Spoiler de tibieza permanente, [nombre]. Vergüenza Se nota y no hay vuelta atrás, vergüenza mientras el grupo tomaba nota del resultado.',
+      'Spoiler de tibieza permanente, [nombre]. Vergüenza Se nota y no hay vuelta atrás, vergüenza mientras el grupo tomaba nota del resultado, qué cringe.',
 
       'Ni altar ni sótano: escalera de servicio, [nombre]. Fracasado. Se nota y no hay vuelta atrás, fracasado.',
 
-      'Resumen sin adjetivos fuertes de masculinidad. Joder. Se nota y no hay vuelta atrás, joder. Y el historial del comando queda de testigo.',
+      'Resumen sin adjetivos fuertes de masculinidad. Joder. Se nota y no hay vuelta atrás, joder. Y el historial del comando queda de testigo, qué vergüenza.',
 
-      'El centro del espectro es poco comercial y es tuyo. Gilipollas. Se nota y no hay vuelta atrás, gilipollas.',
+      'El centro del espectro es poco comercial y es tuyo. Gilipollas. Se nota y no hay vuelta atrás, ridículo.',
 
-      'Sin leyenda ni maldición de macho, [nombre]. Patético. Se nota y no hay vuelta atrás, patético. con el sistema firmando debajo sin pedir aclaración.',
+      'Sin leyenda ni maldición de macho, [nombre]. Patético. Se nota y no hay vuelta atrás, patético. con el sistema firmando debajo sin pedir aclaración, fracasado.',
 
-      'Continuidad de fondo sin picos, [nombre]. Desperdicio Se nota y no hay vuelta atrás, desperdicio.delante de todo el hilo sin posibilidad de borrado.',
+      'Continuidad de fondo sin picos, [nombre]. Desperdicio Se nota y no hay vuelta atrás, desperdicio.delante de todo el hilo sin posibilidad de borrado, qué miseria.',
 
-      'Ni miedo ni pena: estás en la lista, [nombre]. Cutre Se nota y no hay vuelta atrás, cutre.con. El ranking como único testigo del veredicto.',
+      'Ni miedo ni pena: estás en la lista, [nombre]. Cutre Se nota y no hay vuelta atrás, cutre.con. El ranking como único testigo del veredicto, da grima.',
 
-      'Lo más predecible del ranking de macho. Fracasado. Se nota y no hay vuelta atrás, fracasado. Y el contador lo dejó por escrito sin debate.',
+      'Lo más predecible del ranking de macho. Fracasado. Se nota y no hay vuelta atrás, fracasado. Y el contador lo dejó por escrito sin debate, qué nivel de pena.',
 
-      'El medio por media de presencia: por número, [nombre]. Joder. Se nota y no hay vuelta atrás, joder en el momento más visible del chat.',
+      'El medio por media de presencia: por número, [nombre]. Joder. Se nota y no hay vuelta atrás, joder en el momento más visible del chat, basura.',
 
-      'Ni silencio de gesta ni de vergüenza, [nombre]. Cabrón. Se nota y no hay vuelta atrás, cabrón. sin que nadie pudiera fingir que no lo vio.',
+      'Ni silencio de gesta ni de vergüenza, [nombre]. Cabrón. Se nota y no hay vuelta atrás, cabrón. sin que nadie pudiera fingir que no lo vio, qué cutre.',
 
-      'Ni anillo ni crónica de fracaso de macho: ficha. Patético. Se nota y no hay vuelta atrás, patético. con el parte del comando cerrado en firme.',
+      'Ni anillo ni crónica de fracaso de macho: ficha. Patético. Se nota y no hay vuelta atrás, patético. con el parte del comando cerrado en firme, da pena ajena.',
 
-      'Ranking frío y correcto: centro, [nombre]. Ridículo. Se nota y no hay vuelta atrás, ridículo. Y sin segunda oportunidad en este mensaje.',
+      'Ranking frío y correcto: centro, [nombre]. Ridículo. Se nota y no hay vuelta atrás, ridículo. Y sin segunda oportunidad en este mensaje, qué vacío.',
 
-      'Aburrimiento estadístico de presencia. Desperdicio Se nota y no hay vuelta atrás, desperdicio.mientras el grupo tomaba nota del resultado.',
+      'Aburrimiento estadístico de presencia. Desperdicio Se nota y no hay vuelta atrás, desperdicio.mientras el grupo tomaba nota del resultado, indignante.',
 
-      'Sin material para fanatismo ni desprecio, [nombre]. Asco. Se nota y no hay vuelta atrás, asco. con números que no admiten recurso de apelación.',
+      'Sin material para fanatismo ni desprecio, [nombre]. Asco. Se nota y no hay vuelta atrás, asco. con números que no admiten recurso de apelación, qué vergüenza ajena.',
 
-      'Tu lugar es el control del experimento. Vergüenza Se nota y no hay vuelta atrás, vergüenza y el historial del comando queda de testigo.',
+      'Tu lugar es el control del experimento. Vergüenza Se nota y no hay vuelta atrás, vergüenza y el historial del comando queda de testigo, da vergüenza.',
 
-      'Ni clutch del mes ni fail de la semana, [nombre]. Pringado. Se nota y no hay vuelta atrás, pringado.delante de quien miraba. El ranking en ese momento.',
+      'Ni clutch del mes ni fail de la semana, [nombre]. Pringado. Se nota y no hay vuelta atrás, pringado.delante de quien miraba. El ranking en ese momento, qué flojo.',
 
-      'Masculinidad de señal intermitente: se ve se pierde se ve, [nombre]. Mierda. Se nota y no hay vuelta atrás, mierda.',
+      'Masculinidad de señal intermitente: se ve se pierde se ve, [nombre]. Mierda. Se nota y no hay vuelta atrás, menudo desastre.',
 
-      'Tramo del casi y del no del todo, [nombre]. Gilipollas. Se nota y no hay vuelta atrás, gilipollas delante de todo el hilo sin posibilidad de borrado.',
+      'Tramo del casi y del no del todo, [nombre]. Gilipollas. Se nota y no hay vuelta atrás, gilipollas delante de todo el hilo sin posibilidad de borrado, qué pena.',
 
       'La dureza te salva el día a veces y te abandona otras. Patético. Se nota y no hay vuelta atrás, patético.',
 
-      'Flashes de contención y apagones de pose, [nombre]. Basura. Se nota y no hay vuelta atrás, basura. Y el contador lo dejó por escrito sin debate.',
+      'Flashes de contención y apagones de pose, [nombre]. Basura. Se nota y no hay vuelta atrás, basura. Y el contador lo dejó por escrito sin debate, miserable.',
 
-      'RSVP irregular de la dureza, [nombre]. Vergüenza Se nota y no hay vuelta atrás, vergüenza en el momento más visible del chat.',
+      'RSVP irregular de la dureza, [nombre]. Vergüenza Se nota y no hay vuelta atrás, vergüenza en el momento más visible del chat, qué cringe.',
 
-      'Chat en silencio con mensajes raros de presencia. Pringado. Se nota y no hay vuelta atrás, pringado.sin que nadie pudiera fingir que no lo vio.',
+      'Chat en silencio con mensajes raros de presencia. Pringado. Se nota y no hay vuelta atrás, pringado.sin que nadie pudiera fingir que no lo vio, da asco.',
 
-      'Quizás cansado como promedio, [nombre]. Fracasado. Se nota y no hay vuelta atrás, fracasado. con el parte del comando cerrado en firme.',
+      'Quizás cansado como promedio, [nombre]. Fracasado. Se nota y no hay vuelta atrás, fracasado. con el parte del comando cerrado en firme, qué vergüenza.',
 
-      'Una frase de macho y vuelta al bloque, [nombre]. Coño. Se nota y no hay vuelta atrás, coño. Y sin segunda oportunidad en este mensaje.',
+      'Una frase de macho y vuelta al bloque, [nombre]. Coño. Se nota y no hay vuelta atrás, coño. Y sin segunda oportunidad en este mensaje, ridículo.',
 
-      'Sin noviazgo con el concepto, [nombre]. Desperdicio Se nota y no hay vuelta atrás, desperdicio.mientras el grupo tomaba nota del resultado.',
+      'Sin noviazgo con el concepto, [nombre]. Desperdicio Se nota y no hay vuelta atrás, desperdicio.mientras el grupo tomaba nota del resultado, fracasado.',
 
-      'Al revés: a veces sin buscar se sostiene, [nombre]. Joder. Se nota y no hay vuelta atrás, joder. con números que no admiten recurso de apelación.',
+      'Al revés: a veces sin buscar se sostiene, [nombre]. Joder. Se nota y no hay vuelta atrás, joder. con números que no admiten recurso de apelación, qué miseria.',
 
-      'Sin horario en el calendario del macho, [nombre]. Cabrón. Se nota y no hay vuelta atrás, cabrón. Y el historial del comando queda de testigo.',
+      'Sin horario en el calendario del macho, [nombre]. Cabrón. Se nota y no hay vuelta atrás, cabrón. Y el historial del comando queda de testigo, da grima.',
 
-      'Sin puntos de fidelidad al concepto, [nombre]. Ridículo. Se nota y no hay vuelta atrás, ridículo delante de quien miraba. El ranking en ese momento.',
+      'Sin puntos de fidelidad al concepto, [nombre]. Ridículo. Se nota y no hay vuelta atrás, ridículo delante de quien miraba. El ranking en ese momento, qué nivel de pena.',
 
-      'Sueltos que no suman espalda, [nombre]. Gilipollas. Se nota y no hay vuelta atrás, gilipollas. con el sistema firmando debajo sin pedir aclaración.',
+      'Sueltos que no suman espalda, [nombre]. Gilipollas. Se nota y no hay vuelta atrás, gilipollas. con el sistema firmando debajo sin pedir aclaración, basura.',
 
     ],
     low: [
@@ -4952,7 +4952,7 @@ const LABELS = {
 
       'Masculinidad de almost documentado en alta definición del chat, [nombre]. El ranking firma y listo, sin filtro ni consuelo, patético.',
 
-      'Se te ve el fail desde el otro lado del puto ranking, [nombre]. Se ve desde el primer mensaje, diagnóstico cerrado.',
+      'Se te ve el fail desde el otro lado del puto ranking, [nombre]. Se ve desde el primer mensaje, diagnóstico cerrado, da pena ajena.',
 
       'Masculinidad de las que la presencia y. El ranking coinciden en. El veredicto, [nombre]., y se te nota a la legua, basura.',
 
@@ -4960,39 +4960,39 @@ const LABELS = {
 
       'Has montado el teatro de hombre y solo salió el fail del low, [nombre]. El tramo te nombra sin permiso, archivo sin apelación, fracasado.',
 
-      'Masculinidad de ranking: el tramo bajo es tu residencia fija, [nombre]. No hay segunda lectura útil.',
+      'Masculinidad de ranking: el tramo bajo es tu residencia fija, [nombre]. No hay segunda lectura útil, da vergüenza.',
 
-      'Tu almost baja el promedio del grupo en un solo estado, [nombre]. El material habla solo, con el grupo de testigo, mierda.',
+      'Tu almost baja el promedio del grupo en un solo estado, [nombre]. El material habla solo, con el grupo de testigo, qué flojo.',
 
-      'Masculinidad de las que el modo hombre se arrepiente de haberse abierto, [nombre]. Aquí, sin maquillaje posible, coño.',
+      'Masculinidad de las que el modo hombre se arrepiente de haberse abierto, [nombre]. Aquí, sin maquillaje posible, menudo desastre.',
 
-      'No es luz mala ni cámara mala: eres tú y el low lo dice claro, [nombre]. El ranking firma y listo, el veredicto es ese, cabrón.',
+      'No es luz mala ni cámara mala: eres tú y el low lo dice claro, [nombre]. El ranking firma y listo, el veredicto es ese, qué pena.',
 
-      'Masculinidad de almost eterno: el comando no convierte el casi en victoria, [nombre]. Se ve desde el primer mensaje, hostia puta qué nivel.',
+      'Masculinidad de almost eterno: el comando no convierte el casi en victoria, [nombre]. Se ve desde el primer mensaje, hostia puta qué nivel, patético.',
 
-      'Se te cae el personaje de hombre en la primera foto del hilo, [nombre]. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+      'Se te cae el personaje de hombre en la primera foto del hilo, [nombre]. Hostia puta, qué nivel. Hostia, el desastre se explica solo, miserable.',
 
-      'Masculinidad de las que necesitan tutorial de presencia y de dignidad, [nombre]. Eso no se maquilla con ángulo, mierda.',
+      'Masculinidad de las que necesitan tutorial de presencia y de dignidad, [nombre]. Eso no se maquilla con ángulo, qué cringe.',
 
-      'El low no regala décimas: el número habla y tú estás abajo, [nombre]. El tramo te nombra sin permiso, coño.',
+      'El low no regala décimas: el número habla y tú estás abajo, [nombre]. El tramo te nombra sin permiso, da asco.',
 
-      'Masculinidad de puto almost con firma en cada miniatura del chat, [nombre]. No hay segunda lectura útil, cabrón.',
+      'Masculinidad de puto almost con firma en cada miniatura del chat, [nombre]. No hay segunda lectura útil, qué vergüenza.',
 
-      'Tu frame es contenido de ridículo gratis para el grupo, [nombre]. El material habla solo, gilipollas.',
+      'Tu frame es contenido de ridículo gratis para el grupo, [nombre]. El material habla solo, ridículo.',
 
-      'Has convertido el fail de presencia en marca personal del low, [nombre]. Aquí. Hostia puta, qué nivel.',
+      'Has convertido el fail de presencia en marca personal del low, [nombre]. Aquí. Hostia puta, qué nivel, fracasado.',
 
-      'Masculinidad de repertorio gastado: las mismas poses, el mismo almost, [nombre]. El ranking firma y listo, asco.',
+      'Masculinidad de repertorio gastado: las mismas poses, el mismo almost, [nombre]. El ranking firma y listo, asco, qué miseria.',
 
       'Se te nota el desastre hasta en la foto de perfil más antigua, [nombre]. Se ve desde el primer mensaje, basura.',
 
-      'El low te nombra sin suavizar ni media coma del veredicto, [nombre]. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+      'El low te nombra sin suavizar ni media coma del veredicto, [nombre]. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué nivel de pena.',
 
       'Masculinidad de almost: ni el low light te favorece. Y el chat lo ve, [nombre]. Eso no se maquilla con ángulo, fracasado.',
 
-      'Tu presencia es un argumento contra la química del grupo, [nombre]. El tramo te nombra sin permiso, qué asco de frame.',
+      'Tu presencia es un argumento contra la química del grupo, [nombre]. El tramo te nombra sin permiso, qué asco de frame, qué cutre.',
 
-      'Masculinidad de puta pena en el tramo que más se lee del comando, [nombre]. No hay segunda lectura útil, y el ranking no miente.',
+      'Masculinidad de puta pena en el tramo que más se lee del comando, [nombre]. No hay segunda lectura útil, y el ranking no miente, da pena ajena.',
 
       'No hay redención en este low: hay cara, hay número y hay veredicto, [nombre]. El material habla solo, sin anestesia, basura.',
 
@@ -5002,47 +5002,47 @@ const LABELS = {
 
       'Masculinidad de ranking roto: el sótano del tramo te queda de casa, [nombre]. Se ve desde el primer mensaje, sin filtro ni consuelo, joder.',
 
-      'El comando no discute contigo: el low firma y punto, [nombre]., diagnóstico cerrado, mierda. Hostia puta, qué nivel.',
+      'El comando no discute contigo: el low firma y punto, [nombre]., diagnóstico cerrado, mierda. Hostia puta, qué nivel, qué flojo.',
 
-      'Tu almost es el epitafio del hombre de hoy, [nombre].asco. Eso no se maquilla con ángulo, y se te nota a la legua.',
+      'Tu almost es el epitafio del hombre de hoy, [nombre].asco. Eso no se maquilla con ángulo, y se te nota a la legua, menudo desastre.',
 
-      'Masculinidad de puto desastre documentado. Delante del grupo entero, [nombre]. El tramo te nombra sin permiso, el bot no regala décimas.',
+      'Masculinidad de puto desastre documentado. Delante del grupo entero, [nombre]. El tramo te nombra sin permiso, el bot no regala décimas, qué pena.',
 
-      'Has firmado el fail con cada ángulo malo como única firma del low, [nombre]. No hay segunda lectura útil, archivo sin apelación, gilipollas.',
+      'Has firmado el fail con cada ángulo malo como única firma del low, [nombre]. No hay segunda lectura útil, archivo sin apelación, patético.',
 
-      'Masculinidad de superficie suficiente: basta una mirada, sobra el resto, [nombre]. El material habla solo.',
+      'Masculinidad de superficie suficiente: basta una mirada, sobra el resto, [nombre]. El material habla solo, miserable.',
 
-      'El low es tu tramo y. El ranking no ofrece mudanza, [nombre]. Aquí, con el grupo de testigo, asco. Hostia puta, qué nivel.',
+      'El low es tu tramo y. El ranking no ofrece mudanza, [nombre]. Aquí, con el grupo de testigo, asco. Hostia puta, qué nivel, qué cringe.',
 
       'Se te cae el frame de hombre solo con cargar la cámara frontal, [nombre]. El ranking firma y listo, sin maquillaje posible, basura.',
 
       'Masculinidad de almost eterno con. El chat de testigo notarial, [nombre]. Se ve desde el primer mensaje, el veredicto es ese, ridículo.',
 
-      'No es un mal día de fotos: es el nivel y el low te lo cobra, [nombre]., hostia puta qué nivel. Hostia puta, qué nivel.',
+      'No es un mal día de fotos: es el nivel y el low te lo cobra, [nombre]., hostia puta qué nivel. Hostia puta, qué nivel, ridículo.',
 
-      'Masculinidad de puta madre: el tramo bajo no suaviza. El veredicto de presencia, [nombre]. Gilipollas.',
+      'Masculinidad de puta madre: el tramo bajo no suaviza. El veredicto de presencia, [nombre]. Gilipollas, fracasado.',
 
-      'Tu frame es el gag más corto y más claro del comando, [nombre]. El tramo te nombra sin permiso, mierda.',
+      'Tu frame es el gag más corto y más claro del comando, [nombre]. El tramo te nombra sin permiso, qué miseria.',
 
-      'El low te deja donde mereces: abajo, sin debate ni consuelo, [nombre]. No hay segunda lectura útil, coño.',
+      'El low te deja donde mereces: abajo, sin debate ni consuelo, [nombre]. No hay segunda lectura útil, da grima.',
 
-      'Masculinidad de ranking: el número bajo te nombra sin anestesia ni filtro, [nombre]. El material habla solo, cabrón.',
+      'Masculinidad de ranking: el número bajo te nombra sin anestesia ni filtro, [nombre]. El material habla solo, qué nivel de pena.',
 
-      'Has montado el circo de hombre y solo salió el payaso del fail, [nombre]. Aquí. Hostia puta, qué nivel.',
+      'Has montado el circo de hombre y solo salió el payaso del fail, [nombre]. Aquí. Hostia puta, qué nivel, basura.',
 
       'Masculinidad de desastre de presencia: el low no es caridad, es sentencia, [nombre]. El ranking firma y listo, patético.',
 
-      'El ranking de presencia y el low coinciden: sótano, sin recurso, [nombre]. Se ve desde el primer mensaje, asco.',
+      'El ranking de presencia y el low coinciden: sótano, sin recurso, [nombre]. Se ve desde el primer mensaje, asco, da pena ajena.',
 
-      'Masculinidad de puto almost firmado en cada miniatura del estado, [nombre]. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+      'Masculinidad de puto almost firmado en cada miniatura del estado, [nombre]. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vacío.',
 
       'No hay segunda oportunidad en este tramo: hay veredicto y te nombra, [nombre]. Eso no se maquilla con ángulo, ridículo.',
 
       'Se te ve el fail desde el primer pixel del mensaje, [nombre]. El tramo te nombra sin permiso, fracasado.',
 
-      'El low te ha puesto en tu sitio sin narrador ni subtítulos, [nombre]. No hay segunda lectura útil, qué asco de frame.',
+      'El low te ha puesto en tu sitio sin narrador ni subtítulos, [nombre]. No hay segunda lectura útil, qué asco de frame, da vergüenza.',
 
-      'Tu frame es un aviso de lo que no hay que reproducir en. El chat, [nombre]. El material habla solo, y el ranking no miente, mierda.',
+      'Tu frame es un aviso de lo que no hay que reproducir en. El chat, [nombre]. El material habla solo, y el ranking no miente, qué flojo.',
 
     ],
     extreme: [
@@ -5369,111 +5369,111 @@ const LABELS = {
 
       'Llevas el pack completo de reprimido: miradas, pausas, bromas y ofensa selectiva. El pack se vende solo, gilipollas.',
 
-      'Cada vez que el tema se acerca cambias de tema con la sutileza de un camión. Se oye el cambio de marcha, gilipollas.',
+      'Cada vez que el tema se acerca cambias de tema con la sutileza de un camión. Se oye el cambio de marcha, indignante.',
 
-      'Tu armario tiene wifi, calefacción y hasta un puto Amazon Prime. A este ritmo vas a pedir comida a domicilio dentro.',
+      'Tu armario tiene wifi, calefacción y hasta un puto Amazon Prime. A este ritmo vas a pedir comida a domicilio dentro, qué vergüenza ajena.',
 
-      'La evidencia forense está en tus reacciones. El juicio se celebra en el chat cada vez que pasa un tío bueno, cabrón.',
+      'La evidencia forense está en tus reacciones. El juicio se celebra en el chat cada vez que pasa un tío bueno, da vergüenza.',
 
-      'Tu versión macho es un skin que te pones para el grupo. En cuanto bajas la guardia el skin se cae solo, gilipollas.',
+      'Tu versión macho es un skin que te pones para el grupo. En cuanto bajas la guardia el skin se cae solo, qué flojo.',
 
-      'Dices que no miras pero tu cuerpo responde antes que tu boca. El cuerpo no ha firmado el pacto de silencio, cabrón.',
+      'Dices que no miras pero tu cuerpo responde antes que tu boca. El cuerpo no ha firmado el pacto de silencio, menudo desastre.',
 
-      'Llevas años en el vestuario y todavía no has salido a escena de verdad. El público está cansado de esperar, cabrón.',
+      'Llevas años en el vestuario y todavía no has salido a escena de verdad. El público está cansado de esperar, qué pena.',
 
       'La única persona que todavía compra tu versión hetero eres tú. Y cada día la compras con menos convicción, maricón, patético.',
 
-      'Miras el físico de tus bros con un detalle de quien está haciendo inventario. Y el inventario es personal, maricón, asco.',
+      'Miras el físico de tus bros con un detalle de quien está haciendo inventario. Y el inventario es personal, maricón, asco, miserable.',
 
       'Maricón de los que. El ranking high no suaviza: el nivel te cobra entero, [nombre] delante de quien no quería verlo, basura.',
 
-      'Has invertido tanto en el disfraz que el día que te lo quites vas a sentir el aire. Conviene sentirlo, gilipollas.',
+      'Has invertido tanto en el disfraz que el día que te lo quites vas a sentir el aire. Conviene sentirlo, da asco.',
 
-      'Tu culo sueña con que lo partan mientras tu boca sigue repitiendo el guion de hetero. El cuerpo no miente, cabrón.',
+      'Tu culo sueña con que lo partan mientras tu boca sigue repitiendo el guion de hetero. El cuerpo no miente, qué vergüenza.',
 
-      'Tu heterosexualidad es un castillo de arena. La marea de la verdad ya está subiendo y se va a llevar todo, cabrón.',
+      'Tu heterosexualidad es un castillo de arena. La marea de la verdad ya está subiendo y se va a llevar todo, ridículo.',
 
       'Cada vez que un tío se agacha se te para el reloj. Luego sigues como si nada, pero. La boca niega y el cuerpo firma, fracasado.',
 
-      'Dices que te gustan las tías pero tu cuerpo responde a los tíos. El cuerpo no miente, aunque la boca sí, maricón, coño.',
+      'Dices que te gustan las tías pero tu cuerpo responde a los tíos. El cuerpo no miente, aunque la boca sí, maricón, qué miseria.',
 
-      'La única persona que mantiene el debate eres tú. El resto está en la conclusión desde el año pasado, gilipollas.',
+      'La única persona que mantiene el debate eres tú. El resto está en la conclusión desde el año pasado, da grima.',
 
-      'Tu heterosexualidad es un traje de alquiler. Se devuelve al final de la función y la función se alarga, maricón, gilipollas.',
+      'Tu heterosexualidad es un traje de alquiler. Se devuelve al final de la función y la función se alarga, maricón, qué nivel de pena.',
 
-      'Tu boca firma comunicados y tu cuerpo los desmiente en tiempo real. El cuerpo tiene mejor gabinete, gilipollas.',
+      'Tu boca firma comunicados y tu cuerpo los desmiente en tiempo real. El cuerpo tiene mejor gabinete, basura.',
 
-      'Has convertido la mentira en hábito y el hábito en personalidad secundaria. La secundaria ya manda, gilipollas.',
+      'Has convertido la mentira en hábito y el hábito en personalidad secundaria. La secundaria ya manda, qué cutre.',
 
-      'Miras el físico de tus amigos con un detalle que solo un interesado tendría. Y tú estás muy interesado, cabrón.',
+      'Miras el físico de tus amigos con un detalle que solo un interesado tendría. Y tú estás muy interesado, da pena ajena.',
 
-      'Has construido un personaje hetero tan frágil que se cae con una mirada de más. Y se cae cada día, gilipollas.',
+      'Has construido un personaje hetero tan frágil que se cae con una mirada de más. Y se cae cada día, qué vacío.',
 
-      'Tu versión hetero cabe en un mensaje de voz de ocho segundos. Tu gay reprimido no cabe en un hilo, gilipollas.',
+      'Tu versión hetero cabe en un mensaje de voz de ocho segundos. Tu gay reprimido no cabe en un hilo, indignante.',
 
-      'Llevas años haciendo de hetero con método Stanislavski y el público se fue en el primer acto, [nombre]. Joder.',
+      'Llevas años haciendo de hetero con método Stanislavski y el público se fue en el primer acto, [nombre]. Joder, qué vergüenza ajena.',
 
-      'con tanta frecuencia que ya es tu firma personal. Los que no lo son no lo aclaran cada quince minutos, cabrón.',
+      'con tanta frecuencia que ya es tu firma personal. Los que no lo son no lo aclaran cada quince minutos, da vergüenza.',
 
-      'El grupo ya tiene un grupo de apuestas sobre cuándo vas a salir del armario. Las cuotas están bajando, cabrón.',
+      'El grupo ya tiene un grupo de apuestas sobre cuándo vas a salir del armario. Las cuotas están bajando, qué flojo.',
 
-      'Tu hetero es de cartón piedra. Se ve la estructura por debajo. Y el grupo ya no se cree ni el montaje, maricón, cabrón.',
+      'Tu hetero es de cartón piedra. Se ve la estructura por debajo. Y el grupo ya no se cree ni el montaje, maricón, menudo desastre.',
 
-      'Tu armario es tan grande que ya tiene código postal. Pronto te van a cobrar IBI por vivir dentro, gilipollas.',
+      'Tu armario es tan grande que ya tiene código postal. Pronto te van a cobrar IBI por vivir dentro, qué pena.',
 
-      'El teatro dura lo que dura la paciencia del grupo. Y la paciencia se mide en semanas, no en años, gilipollas.',
+      'El teatro dura lo que dura la paciencia del grupo. Y la paciencia se mide en semanas, no en años, patético.',
 
-      'El grupo te tiene fichado con más precisión que tú a ti mismo. Eso ya es el colmo de la negación, gilipollas.',
+      'El grupo te tiene fichado con más precisión que tú a ti mismo. Eso ya es el colmo de la negación, miserable.',
 
-      'Tu armario tiene wifi, calefacción y suscripciones. A este ritmo pides comida a domicilio dentro, gilipollas.',
+      'Tu armario tiene wifi, calefacción y suscripciones. A este ritmo pides comida a domicilio dentro, qué cringe.',
 
-      'Cada vez que niegas con datos inventados el grupo anota la contradicción. El cuaderno está lleno, gilipollas.',
+      'Cada vez que niegas con datos inventados el grupo anota la contradicción. El cuaderno está lleno, da asco.',
 
       'Maricón cutre: ni el vicio tiene gracia ni la pose tiene mérito, [nombre] al natural, sin barniz de consuelo, fracasado.',
 
-      'Cuando hablas de tías suenas a alguien leyendo la letra de una canción en otro idioma. Sin sentirla, maricón, joder.',
+      'Cuando hablas de tías suenas a alguien leyendo la letra de una canción en otro idioma. Sin sentirla, maricón, ridículo.',
 
-      'Cada vez que un tío se ríe contigo se te olvida el personaje medio segundo. Ese medio segundo basta, maricón, mierda.',
+      'Cada vez que un tío se ríe contigo se te olvida el personaje medio segundo. Ese medio segundo basta, maricón, fracasado.',
 
-      'que sueltas cada cinco minutos es el estribillo de una canción que todo el grupo se sabe de memoria, cabrón.',
+      'que sueltas cada cinco minutos es el estribillo de una canción que todo el grupo se sabe de memoria, qué miseria.',
 
-      'Has hecho de la duda un estilo y de la certeza un peligro. El estilo se te está quedando viejo, gilipollas.',
+      'Has hecho de la duda un estilo y de la certeza un peligro. El estilo se te está quedando viejo, da grima.',
 
-      'Has invertido en parecer seguro y te has dejado la honestidad en el camino. Se nota el agujero, gilipollas.',
+      'Has invertido en parecer seguro y te has dejado la honestidad en el camino. Se nota el agujero, qué nivel de pena.',
 
-      'Tu cuerpo responde a los tíos y tu boca a la presión social. El cuerpo no ha leído las normas, gilipollas.',
+      'Tu cuerpo responde a los tíos y tu boca a la presión social. El cuerpo no ha leído las normas, basura.',
 
-      'El teatro tiene intermedio. Llevas meses en el intermedio y el público quiere el segundo acto, gilipollas.',
+      'El teatro tiene intermedio. Llevas meses en el intermedio y el público quiere el segundo acto, qué cutre.',
 
-      'El grupo tiene memes internos sobre tu armario. Y los memes son más honestos que tus estados, gilipollas.',
+      'El grupo tiene memes internos sobre tu armario. Y los memes son más honestos que tus estados, da pena ajena.',
 
-      'Has logrado que hasta los nuevos del grupo te clasifiquen en una tarde. Eficiente sin querer, gilipollas.',
+      'Has logrado que hasta los nuevos del grupo te clasifiquen en una tarde. Eficiente sin querer, qué vacío.',
 
-      'El grupo te resume en una palabra. Tú necesitas un párrafo para no decirla. El resumen gana, gilipollas.',
+      'El grupo te resume en una palabra. Tú necesitas un párrafo para no decirla. El resumen gana, indignante.',
 
       'Has hecho de la negación tu deporte olímpico. Llevas medallas de mentira y el podio se nota, gilipollas.',
 
-      'Dices que no miras pero tu cuello gira solo. La evidencia es física. Y el grupo ya la tiene, gilipollas.',
+      'Dices que no miras pero tu cuello gira solo. La evidencia es física. Y el grupo ya la tiene, da vergüenza.',
 
-      'Has invertido en parecer y no en ser. La factura llega cada vez que alguien te mira de más, gilipollas.',
+      'Has invertido en parecer y no en ser. La factura llega cada vez que alguien te mira de más, qué flojo.',
 
-      'Tu boca es el abogado defensor. Tu cuerpo es el testigo que lo hunde. El juicio está visto, gilipollas.',
+      'Tu boca es el abogado defensor. Tu cuerpo es el testigo que lo hunde. El juicio está visto, menudo desastre.',
 
-      'Dices que te gustan las tías y tu historial de atención dice otra cosa. El historial gana, gilipollas.',
+      'Dices que te gustan las tías y tu historial de atención dice otra cosa. El historial gana, qué pena.',
 
-      'Tienes el historial de un local cerrado por exceso de pose y falta de sustancia, [nombre]. Fracasado.',
+      'Tienes el historial de un local cerrado por exceso de pose y falta de sustancia, [nombre]. Fracasado, patético.',
 
-      'tiene menos crédito que un anuncio de madrugada. Nadie lo compra y tú sigues emitiéndolo, gilipollas.',
+      'tiene menos crédito que un anuncio de madrugada. Nadie lo compra y tú sigues emitiéndolo, miserable.',
 
-      'Has llegado tarde a aceptarlo y temprano a disimularlo. El desfase se nota en cada frase, gilipollas.',
+      'Has llegado tarde a aceptarlo y temprano a disimularlo. El desfase se nota en cada frase, qué cringe.',
 
-      'Has convertido el personajito en carnet. y no hay renovación limpia a la vista, [nombre]. Gilipollas.',
+      'Has convertido el personajito en carnet. y no hay renovación limpia a la vista, [nombre]. Gilipollas, da asco.',
 
-      'Hablas de fútbol para disimular pero se te nota. Los heteros no fingen tanto entusiasmo, gilipollas.',
+      'Hablas de fútbol para disimular pero se te nota. Los heteros no fingen tanto entusiasmo, qué vergüenza.',
 
-      'Llevas años construyendo la coartada. La coartada ya no sostiene el peso de las pruebas, gilipollas.',
+      'Llevas años construyendo la coartada. La coartada ya no sostiene el peso de las pruebas, ridículo.',
 
-      'Cuando niegas se te pone la voz de quien defiende un final de mes. Forzado y sin margen, gilipollas.',
+      'Cuando niegas se te pone la voz de quien defiende un final de mes. Forzado y sin margen, fracasado.',
 
     ],
     mid: [
@@ -5483,99 +5483,99 @@ const LABELS = {
 
       'Tienes una energía bisexual que no admites ni bajo tortura. Como esos cabrones que dicen que solo fue una vez y llevan tres temporadas repitiendo.',
 
-      'Hostia puta, no eres gay del todo pero tu manera de mirar tíos tiene una intensidad que los heteros normales no alcanzan ni drogados.',
+      'Hostia puta, no eres gay del todo pero tu manera de mirar tíos tiene una intensidad que los heteros normales no alcanzan ni drogados, qué miseria.',
 
-      'El grupo lleva un rato con la teoría de que te molan las pollas pero no tienes cojones de probarlo. Menudo cobarde de mierda.',
+      'El grupo lleva un rato con la teoría de que te molan las pollas pero no tienes cojones de probarlo. Menudo cobarde de mierda, da grima.',
 
-      'Hay algo raro en cómo describes a tus amigos. Los heteros dicen "es majo", tú describes abdominales como un puto catálogo de fitness.',
+      'Hay algo raro en cómo describes a tus amigos. Los heteros dicen "es majo", tú describes abdominales como un puto catálogo de fitness, qué nivel de pena.',
 
-      'Cabrón, dices que te gustan las tías pero tu historial de Instagram es noventa por ciento tíos sin camiseta. Las pruebas no mienten, gilipollas.',
+      'Cabrón, dices que te gustan las tías pero tu historial de Instagram es noventa por ciento tíos sin camiseta. Las pruebas no mienten, basura.',
 
-      'Bisexual en prácticas pero sin contrato fijo. Haces los cursillos los fines de semana cuando nadie del grupo mira.',
+      'Bisexual en prácticas pero sin contrato fijo. Haces los cursillos los fines de semana cuando nadie del grupo mira, qué cutre.',
 
-      'Mierda, cada vez que alguien pone un tío bueno en el grupo tú eres el primero en comentar. Los heteros pasan, tú analizas como un jodido sommelier.',
+      'Mierda, cada vez que alguien pone un tío bueno en el grupo tú eres el primero en comentar. Los heteros pasan, tú analizas como un jodido sommelier, da pena ajena.',
 
-      'No eres gay entero pero tienes una pata dentro del armario y la otra bailando reggaetón con un tío llamado Diego.',
+      'No eres gay entero pero tienes una pata dentro del armario y la otra bailando reggaetón con un tío llamado Diego, qué vacío.',
 
-      'Tu heterosexualidad tiene fugas como una tubería vieja. No inunda, pero moja lo suficiente para que la pared huela raro.',
+      'Tu heterosexualidad tiene fugas como una tubería vieja. No inunda, pero moja lo suficiente para que la pared huela raro, indignante.',
 
-      'Coño, el porcentaje no miente. No eres marica completo pero tienes más curiosidad que un gato en una sex shop gay.',
+      'Coño, el porcentaje no miente. No eres marica completo pero tienes más curiosidad que un gato en una sex shop gay, qué vergüenza ajena.',
 
-      'Eres de esos cabrones que dicen "no soy gay pero veinte euros son veinte euros". El problema es que tú lo dirías gratis.',
+      'Eres de esos cabrones que dicen "no soy gay pero veinte euros son veinte euros". El problema es que tú lo dirías gratis, da vergüenza.',
 
-      'Joder, cada vez que sale el tema te pones nervioso como un gilipollas en un examen que no estudió. Algo escondes, cabrón.',
+      'Joder, cada vez que sale el tema te pones nervioso como un gilipollas en un examen que no estudió. Algo escondes, qué flojo.',
 
-      'No es que seas gay, es que tu versión de hetero tiene tantas excepciones que parece una ley fiscal española. Agujeros por todos lados.',
+      'No es que seas gay, es que tu versión de hetero tiene tantas excepciones que parece una ley fiscal española. Agujeros por todos lados, menudo desastre.',
 
-      'Tu radar de tíos atractivos funciona mejor que Google Maps. Un hetero normal no detecta un culo bonito a trescientos metros, hostia.',
+      'Tu radar de tíos atractivos funciona mejor que Google Maps. Un hetero normal no detecta un culo bonito a trescientos metros, qué pena.',
 
-      'Mierda, no sales del todo gay pero tu energía tiene un componente arcoíris que no se quita ni con lejía industrial.',
+      'Mierda, no sales del todo gay pero tu energía tiene un componente arcoíris que no se quita ni con lejía industrial, patético.',
 
-      'Eres como esos cabrones que ven porno gay "por curiosidad" y llevan seis años siendo curiosos. La fase de exploración ya prescribió.',
+      'Eres como esos cabrones que ven porno gay "por curiosidad" y llevan seis años siendo curiosos. La fase de exploración ya prescribió, miserable.',
 
-      'Puta madre, no confirmo nada pero tu forma de abrazar a tus colegas dura tres segundos más de lo que la heterosexualidad permite.',
+      'Puta madre, no confirmo nada pero tu forma de abrazar a tus colegas dura tres segundos más de lo que la heterosexualidad permite, qué cringe.',
 
-      'Tienes vibraciones de "experimenté en la universidad y me gustó más de lo que admito". Eso no es una fase, gilipollas, es un patrón.',
+      'Tienes vibraciones de "experimenté en la universidad y me gustó más de lo que admito". Eso no es una fase, gilipollas, es un patrón, da asco.',
 
-      'No eres gay pero si lo fueras nadie en este grupo pestañearía. Eso dice más que cualquier porcentaje, cabrón de mierda.',
+      'No eres gay pero si lo fueras nadie en este grupo pestañearía. Eso dice más que cualquier porcentaje, cabrón de mierda, qué vergüenza.',
 
-      'Tu heterosexualidad es como una conexión wifi inestable: funciona a ratos, se cae sin aviso y nadie sabe cuándo coño va a volver.',
+      'Tu heterosexualidad es como una conexión wifi inestable: funciona a ratos, se cae sin aviso y nadie sabe cuándo coño va a volver, ridículo.',
 
-      'Coño, hay señales suficientes para montar un debate pero no para cerrar el caso. Eres el expediente X del grupo, joder.',
+      'Coño, hay señales suficientes para montar un debate pero no para cerrar el caso. Eres el expediente X del grupo, fracasado.',
 
-      'Hostia, te comportas con los tíos como un cabrón que finge que no le gusta el dulce mientras se mete un donut a escondidas.',
+      'Hostia, te comportas con los tíos como un cabrón que finge que no le gusta el dulce mientras se mete un donut a escondidas, qué miseria.',
 
-      'No eres maricón pero tu brújula sexual gira como una puta veleta en un huracán. Norte, sur, y de vez en cuando apunta a polla.',
+      'No eres maricón pero tu brújula sexual gira como una puta veleta en un huracán. Norte, sur, y de vez en cuando apunta a polla, da grima.',
 
-      'Eres de los que dicen "todos somos un poco bi" pero lo dicen con una convicción sospechosa. El que no la debe no la teme, cabrón.',
+      'Eres de los que dicen "todos somos un poco bi" pero lo dicen con una convicción sospechosa. El que no la debe no la teme, qué nivel de pena.',
 
-      'Mierda, tus defensas cuando alguien te llama gay son tan elaboradas que parecen un puto TFG. Los inocentes no preparan alegatos.',
+      'Mierda, tus defensas cuando alguien te llama gay son tan elaboradas que parecen un puto TFG. Los inocentes no preparan alegatos, basura.',
 
-      'Tienes la misma energía que el cabrón que busca "masajes relajantes entre hombres" y jura que es solo por el estrés laboral.',
+      'Tienes la misma energía que el cabrón que busca "masajes relajantes entre hombres" y jura que es solo por el estrés laboral, qué cutre.',
 
-      'Joder, no sales gay pero sales lo suficientemente ambiguo como para que tu madre lleve tres años preguntándose si tendrá nietos.',
+      'Joder, no sales gay pero sales lo suficientemente ambiguo como para que tu madre lleve tres años preguntándose si tendrá nietos, da pena ajena.',
 
-      'Tu forma de describir a otros tíos tiene un nivel de detalle que los heteros reservan para describir coches o culos de tías. Sospechoso de cojones.',
+      'Tu forma de describir a otros tíos tiene un nivel de detalle que los heteros reservan para describir coches o culos de tías. Sospechoso de cojones, qué vacío.',
 
-      'Puta madre, eres como un semáforo en ámbar permanente. Ni paras ni arrancas, y todos los que vienen detrás se desesperan.',
+      'Puta madre, eres como un semáforo en ámbar permanente. Ni paras ni arrancas, y todos los que vienen detrás se desesperan, indignante.',
 
-      'Coño, no eres gay confirmado pero apuestas fuerte en la subasta cuando sale un moreno de ojos claros. El bolsillo te delata.',
+      'Coño, no eres gay confirmado pero apuestas fuerte en la subasta cuando sale un moreno de ojos claros. El bolsillo te delata, qué vergüenza ajena.',
 
-      'Hostia, tu playlist tiene más Beyoncé y Lady Gaga que la de un drag queen profesional. No es prueba definitiva pero es un puto indicio.',
+      'Hostia, tu playlist tiene más Beyoncé y Lady Gaga que la de un drag queen profesional. No es prueba definitiva pero es un puto indicio, da vergüenza.',
 
-      'Eres como esos cabrones que catan vinos: hueles, pruebas, escupes y dices que no te gusta. Pero repites cada jodido fin de semana.',
+      'Eres como esos cabrones que catan vinos: hueles, pruebas, escupes y dices que no te gusta. Pero repites cada jodido fin de semana, qué flojo.',
 
-      'No eres gay del todo pero tienes un máster en detectar qué colonia lleva cada tío del grupo. Eso no es olfato, es interés carnal.',
+      'No eres gay del todo pero tienes un máster en detectar qué colonia lleva cada tío del grupo. Eso no es olfato, es interés carnal, menudo desastre.',
 
-      'Mierda, tu forma de decir "qué guapo está ese cabrón" tiene una carga emocional que los heteros normales no producen ni con ayuda.',
+      'Mierda, tu forma de decir "qué guapo está ese cabrón" tiene una carga emocional que los heteros normales no producen ni con ayuda, qué pena.',
 
-      'Cabrón, no sales maricón entero pero tu media naranja estadísticamente tiene un cincuenta por ciento de probabilidades de tener polla.',
+      'Cabrón, no sales maricón entero pero tu media naranja estadísticamente tiene un cincuenta por ciento de probabilidades de tener polla, patético.',
 
-      'Tu heterosexualidad funciona como un antivirus pirata: arranca, hace el gesto, pero cuando llega la amenaza real se queda congelada.',
+      'Tu heterosexualidad funciona como un antivirus pirata: arranca, hace el gesto, pero cuando llega la amenaza real se queda congelada, miserable.',
 
-      'Joder, no confirmo que seas gay pero sí que tu zona de confort incluye cosas que la mayoría de heteros ni contempla. Ahí lo dejo.',
+      'Joder, no confirmo que seas gay pero sí que tu zona de confort incluye cosas que la mayoría de heteros ni contempla. Ahí lo dejo, qué cringe.',
 
-      'Coño, eres el tío que en una despedida de soltero mira al stripper con más atención que a las strippers. Y luego dice que valoraba la coreografía.',
+      'Coño, eres el tío que en una despedida de soltero mira al stripper con más atención que a las strippers. Y luego dice que valoraba la coreografía, da asco.',
 
-      'No eres maricón pero tu concepto de "bromance" incluye actividades que la mayoría de parejas hetero no practica. Revisa los límites, gilipollas.',
+      'No eres maricón pero tu concepto de "bromance" incluye actividades que la mayoría de parejas hetero no practica. Revisa los límites, qué vergüenza.',
 
-      'Puta madre, tienes la capacidad de detectar si un tío va al gimnasio con solo verle la espalda. Ese superpoder no viene de serie en los heteros.',
+      'Puta madre, tienes la capacidad de detectar si un tío va al gimnasio con solo verle la espalda. Ese superpoder no viene de serie en los heteros, ridículo.',
 
-      'Tu orientación sexual es como la economía española: nadie la entiende del todo, los datos se contradicen y siempre está a punto de cambiar.',
+      'Tu orientación sexual es como la economía española: nadie la entiende del todo, los datos se contradicen y siempre está a punto de cambiar, fracasado.',
 
-      'Hostia, no digo que seas gay pero si te dieran a elegir entre una tía buena y un masaje de un tío con manos grandes, lo piensas demasiado.',
+      'Hostia, no digo que seas gay pero si te dieran a elegir entre una tía buena y un masaje de un tío con manos grandes, lo piensas demasiado, qué miseria.',
 
-      'Eres de esos cabrones que miran Brokeback Mountain "por el paisaje". Sí, el paisaje de los vaqueros sin camiseta, gilipollas.',
+      'Eres de esos cabrones que miran Brokeback Mountain "por el paisaje". Sí, el paisaje de los vaqueros sin camiseta, da grima.',
 
-      'Mierda, tu reacción cuando un tío te dice que tienes buen culo es demasiado positiva para un hetero. Un poco de incomodidad sería lo normal.',
+      'Mierda, tu reacción cuando un tío te dice que tienes buen culo es demasiado positiva para un hetero. Un poco de incomodidad sería lo normal, qué nivel de pena.',
 
-      'Joder, no eres gay pero tu cuerpo produce señales mixtas como una puta antena parabólica mal orientada. Capturas todos los canales, cabrón.',
+      'Joder, no eres gay pero tu cuerpo produce señales mixtas como una puta antena parabólica mal orientada. Capturas todos los canales, basura.',
 
-      'Tu versión de hetero es como una camiseta de mercadillo: parece original de lejos pero de cerca se ven las costuras falsas por todos lados.',
+      'Tu versión de hetero es como una camiseta de mercadillo: parece original de lejos pero de cerca se ven las costuras falsas por todos lados, qué cutre.',
 
-      'Coño, no eres maricón pero cuando alguien del grupo sale del armario siempre eres el primero en dar apoyo con una emoción sospechosamente personal.',
+      'Coño, no eres maricón pero cuando alguien del grupo sale del armario siempre eres el primero en dar apoyo con una emoción sospechosamente personal, da pena ajena.',
 
-      'No sales gay pero sales en esa zona gris donde los cojones no saben si ir a la izquierda o a la derecha. Menudo lío llevas, cabrón.',
+      'No sales gay pero sales en esa zona gris donde los cojones no saben si ir a la izquierda o a la derecha. Menudo lío llevas, qué vacío.',
 
     ],
     low: [
@@ -5984,17 +5984,17 @@ const LABELS = {
 
       'No hay barniz de antihéroe leal: hay simp y el high lo nombra, [nombre]. Cero respeto propio visible, ridículo.',
 
-      'Tienes el tono de noches de chat sin una frase que diga no de verdad, [nombre]. Se te ve el fail a la primera, mierda.',
+      'Tienes el tono de noches de chat sin una frase que diga no de verdad, [nombre]. Se te ve el fail a la primera, da vergüenza.',
 
-      'Simp de malinterpretar el mute como respeto al pedestal, [nombre]. El pedestal te está comiendo, joder.',
+      'Simp de malinterpretar el mute como respeto al pedestal, [nombre]. El pedestal te está comiendo, qué flojo.',
 
-      'El precio de tu repertorio de sí lo paga el hilo en scroll y silencio, [nombre]. Cero respeto propio visible, mierda.',
+      'El precio de tu repertorio de sí lo paga el hilo en scroll y silencio, [nombre]. Cero respeto propio visible, menudo desastre.',
 
-      'Has dejado el hilo como wiki sin editores: páginas de validación, cero vida, [nombre]. Felpudo con opiniones, coño.',
+      'Has dejado el hilo como wiki sin editores: páginas de validación, cero vida, [nombre]. Felpudo con opiniones, qué pena.',
 
-      'Simp de estribillo que empeora con cada bis del mismo sí, cutre.[nombre]. El pedestal te está comiendo, cabrón.',
+      'Simp de estribillo que empeora con cada bis del mismo sí, cutre.[nombre]. El pedestal te está comiendo, patético.',
 
-      'Se te nota el hábito de empujar cada hilo hacia el pedestal de otro, [nombre]. Cero respeto propio visible, gilipollas.',
+      'Se te nota el hábito de empujar cada hilo hacia el pedestal de otro, [nombre]. Cero respeto propio visible, miserable.',
 
       'La compostura del nivel no te reconoce en el elenco del ranking, [nombre]. Felpudo con opiniones, patético.',
 
@@ -6002,23 +6002,23 @@ const LABELS = {
 
       'No es estilo: es simp previsible y el high te lo nombra entero, [nombre]. Cero respeto propio visible, basura.',
 
-      'Tienes más episodios de pedestal que intentos de subir el listón propio, [nombre]. Se te ve el fail a la primera, joder.',
+      'Tienes más episodios de pedestal que intentos de subir el listón propio, [nombre]. Se te ve el fail a la primera, ridículo.',
 
       'Simp de respeto ajeno en números rojos del ranking de dignidad, [nombre]. El pedestal te está comiendo, fracasado.',
 
-      '[nombre], simp de mierda que confunde paciencia con ser invisible. Cero respeto propio visible, joder.',
+      '[nombre], simp de mierda que confunde paciencia con ser invisible. Cero respeto propio visible, qué miseria.',
 
-      'Simp de pedestal eterno: siempre el sí y nunca el respeto propio, [nombre]. Felpudo con opiniones, mierda.',
+      'Simp de pedestal eterno: siempre el sí y nunca el respeto propio, [nombre]. Felpudo con opiniones, da grima.',
 
-      '[nombre], interpretas silencios como mensajes cifrados y no hay cifrado, solo indiferencia. El pedestal te está comiendo, coño.',
+      '[nombre], interpretas silencios como mensajes cifrados y no hay cifrado, solo indiferencia. El pedestal te está comiendo, qué nivel de pena.',
 
       'Simp hasta para el modo oscuro: ni la sombra tapa el sí eterno, [nombre] filtro ni consuelo, patético.',
 
-      'Se te cae el disimulo solo con abrir el hilo y el high lo documenta, [nombre]. Se te ve el fail a la primera, asco.',
+      'Se te cae el disimulo solo con abrir el hilo y el high lo documenta, [nombre]. Se te ve el fail a la primera, asco, qué cutre.',
 
       'Simp de las que el filtro de dignidad se rinde y pide la baja, [nombre]. El pedestal te está comiendo, patético.',
 
-      'No hay barniz que te salve: hay simp de base y el comando lo cobra, [nombre]. Cero respeto propio visible, asco.',
+      'No hay barniz que te salve: hay simp de base y el comando lo cobra, [nombre]. Cero respeto propio visible, asco, qué vacío.',
 
       'Tu mensaje es un aviso de lo que no hay que imitar en el grupo, [nombre]. Felpudo con opiniones, basura.',
 
@@ -6026,65 +6026,65 @@ const LABELS = {
 
       'Simp de los que pagan el precio entero por migajas de respuesta, [nombre]. Cero respeto propio visible, fracasado.',
 
-      'Tienes una presencia que ensucia el hilo en un solo sí de más, [nombre]. maquillaje posible. Felpudo con opiniones, joder.',
+      'Tienes una presencia que ensucia el hilo en un solo sí de más, [nombre]. maquillaje posible. Felpudo con opiniones, qué flojo.',
 
-      'Simp de repertorio: siempre la misma validación y cero plan B de dignidad, [nombre]. El pedestal te está comiendo, mierda.',
+      'Simp de repertorio: siempre la misma validación y cero plan B de dignidad, [nombre]. El pedestal te está comiendo, menudo desastre.',
 
-      'Se te nota el desastre hasta en la miniatura del estado, [nombre]. Cero respeto propio visible, coño.',
+      'Se te nota el desastre hasta en la miniatura del estado, [nombre]. Cero respeto propio visible, qué pena.',
 
       'Simp sin complejo útil: el complejo al menos indicaría que viste el pedestal, [nombre]. Se te ve el fail a la primera, patético.',
 
-      'El ranking de dignidad te deja donde mereces: en el sótano del high, [nombre]. El pedestal te está comiendo, gilipollas.',
+      'El ranking de dignidad te deja donde mereces: en el sótano del high, [nombre]. El pedestal te está comiendo, miserable.',
 
       'Has hecho del simp tu marca y la marca se pega en los dedos ajenos, [nombre]. Cero respeto propio visible, patético.',
 
-      'Simp de las que confunden lealtad con abandono total del criterio propio, [nombre]. Felpudo con opiniones, asco.',
+      'Simp de las que confunden lealtad con abandono total del criterio propio, [nombre]. Felpudo con opiniones, asco, da asco.',
 
       'No es entrega con gracia: eres simp y el high no discute la evidencia, [nombre]. El pedestal te está comiendo, basura.',
 
-      'Tu forma de acercarte espanta, [nombre], y llevas años sin cambiar ni una coma. Mismo método, mismo resultado, misma cara de puta sorpresa.',
+      'Tu forma de acercarte espanta, [nombre], y llevas años sin cambiar ni una coma. Mismo método, mismo resultado, misma cara de puta sorpresa, ridículo.',
 
-      '[nombre], te has puesto el último en tu propia lista y luego te quejas de no ser prioridad de nadie. Ahí está el chiste completo, pringado, mierda.',
+      '[nombre], te has puesto el último en tu propia lista y luego te quejas de no ser prioridad de nadie. Ahí está el chiste completo, pringado, fracasado.',
 
-      'Tu forma de existir en ese vínculo es la de un accesorio útil. Un puto enchufe: se usa cuando hace falta y no se mira el resto del tiempo.',
+      'Tu forma de existir en ese vínculo es la de un accesorio útil. Un puto enchufe: se usa cuando hace falta y no se mira el resto del tiempo, qué miseria.',
 
-      'Te has convertido en el sitio cómodo al que se vuelve cuando lo demás falla. Y aceptas. Puto refugio de emergencia con las llaves puestas.',
+      'Te has convertido en el sitio cómodo al que se vuelve cuando lo demás falla. Y aceptas. Puto refugio de emergencia con las llaves puestas, da grima.',
 
-      'Simp con la costumbre de escribir párrafos y recibir monosílabos. Y sigues escribiendo. Puta correspondencia de un solo lado y sin sellos.',
+      'Simp con la costumbre de escribir párrafos y recibir monosílabos. Y sigues escribiendo. Puta correspondencia de un solo lado y sin sellos, qué nivel de pena.',
 
-      'Simp de saldo, [nombre]: borras y reescribes el mismo mensaje seis veces para acabar mandando un hola. Toda esa agonía para una puta nada.',
+      'Simp de saldo, [nombre]: borras y reescribes el mismo mensaje seis veces para acabar mandando un hola. Toda esa agonía para una puta nada, basura.',
 
-      'Simp de manual con el agravante de creer que la constancia acaba pagando. No paga, cabrón. Insistir donde no te quieren no es constancia.',
+      'Simp de manual con el agravante de creer que la constancia acaba pagando. No paga, cabrón. Insistir donde no te quieren no es constancia, qué cutre.',
 
-      '[nombre], eres el que se sabe sus horarios mejor que los suyos. Puta vigilancia disfrazada de casualidad y todo el grupo lo ha notado ya.',
+      '[nombre], eres el que se sabe sus horarios mejor que los suyos. Puta vigilancia disfrazada de casualidad y todo el grupo lo ha notado ya, da pena ajena.',
 
-      'Estar disponible veinticuatro horas te ha convertido en algo gratuito, [nombre]. Y lo gratuito no se valora nunca. Puta ley del mercado.',
+      'Estar disponible veinticuatro horas te ha convertido en algo gratuito, [nombre]. Y lo gratuito no se valora nunca. Puta ley del mercado, qué vacío.',
 
       'Te han dicho que no de todas las formas posibles y sigues buscando el matiz que te salve. No hay matiz, pringado. Hay un no bien grande, fracasado.',
 
-      'Sostienes la ilusión a base de no preguntar nunca directamente. Porque sabes la respuesta, pringado.y no aguantarías oírla en voz alta, joder.',
+      'Sostienes la ilusión a base de no preguntar nunca directamente. Porque sabes la respuesta, pringado.y no aguantarías oírla en voz alta, qué vergüenza ajena.',
 
-      '[nombre], eres el que cambia de ciudad, de plan y de vida por alguien que no cambiaría ni de canal por ti. Puto desequilibrio de manual.',
+      '[nombre], eres el que cambia de ciudad, de plan y de vida por alguien que no cambiaría ni de canal por ti. Puto desequilibrio de manual, da vergüenza.',
 
-      '[nombre], eres el fondo de pantalla de su vida: siempre ahí, nunca mirado y sustituible en dos toques. Puta decoración con sentimientos.',
+      '[nombre], eres el fondo de pantalla de su vida: siempre ahí, nunca mirado y sustituible en dos toques. Puta decoración con sentimientos, qué flojo.',
 
-      '[nombre], eres el que se ofende si le llaman simp y sigue haciendo exactamente lo mismo al día siguiente. Puto ciclo cerrado sin salida.',
+      '[nombre], eres el que se ofende si le llaman simp y sigue haciendo exactamente lo mismo al día siguiente. Puto ciclo cerrado sin salida, menudo desastre.',
 
-      '[nombre], simp con el récord de mensajes sin respuesta y la costumbre de mandar uno más. El silencio también es una respuesta, pringado.gilipollas.',
+      '[nombre], simp con el récord de mensajes sin respuesta y la costumbre de mandar uno más. El silencio también es una respuesta, pringado.gilipollas, qué pena.',
 
-      '[nombre], eres el que guarda las conversaciones para releerlas. Ellos ni recuerdan haberlas tenido. Puta miseria en formato de captura.',
+      '[nombre], eres el que guarda las conversaciones para releerlas. Ellos ni recuerdan haberlas tenido. Puta miseria en formato de captura, patético.',
 
-      'Mantienes la relación a base de no molestar nunca. Por eso tampoco existes nunca, pringado. El que no molesta tampoco se echa de menos, asco.',
+      'Mantienes la relación a base de no molestar nunca. Por eso tampoco existes nunca, pringado. El que no molesta tampoco se echa de menos, asco, miserable.',
 
-      'Simp de mierda, [nombre]: te tratan mal y buscas el motivo en ti. Siempre en ti. Nunca donde está, que es enfrente y bastante evidente.',
+      'Simp de mierda, [nombre]: te tratan mal y buscas el motivo en ti. Siempre en ti. Nunca donde está, que es enfrente y bastante evidente, qué cringe.',
 
-      '[nombre], eres el que dice que solo quiere que sea feliz. Traducción: te han descartado y estás haciendo el duelo en público, pringado.ridículo.',
+      '[nombre], eres el que dice que solo quiere que sea feliz. Traducción: te han descartado y estás haciendo el duelo en público, pringado.ridículo, da asco.',
 
-      '[nombre], le has aguantado cosas que no le aguantarías ni a un desconocido en la calle. Eso no es paciencia, cabrón, es no tener suelo.',
+      '[nombre], le has aguantado cosas que no le aguantarías ni a un desconocido en la calle. Eso no es paciencia, cabrón, es no tener suelo, qué vergüenza.',
 
-      'Sostienes eso renunciando a lo tuyo, [nombre]. Y ya no queda casi nada. Te has vaciado entero para que otro esté cómodo, puto felpudo.',
+      'Sostienes eso renunciando a lo tuyo, [nombre]. Y ya no queda casi nada. Te has vaciado entero para que otro esté cómodo, puto felpudo, ridículo.',
 
-      'Llevas años haciendo el trabajo emocional de dos y recibiendo el de ninguna. Puto becario sin contrato, sin sueldo y sin fecha de fin.',
+      'Llevas años haciendo el trabajo emocional de dos y recibiendo el de ninguna. Puto becario sin contrato, sin sueldo y sin fecha de fin, fracasado.',
 
     ],
     mid: [
@@ -6170,23 +6170,23 @@ const LABELS = {
 
       'A ratos te respetas y a ratos no, y los ratos que no cada vez ocupan más espacio con. El veredicto seco del bot.',
 
-      'A veces te plantas y a veces te arrastras, y la tendencia no apunta a buen sitio sin prosa que lo maquille.',
+      'A veces te plantas y a veces te arrastras, y la tendencia no apunta a buen sitio sin prosa que lo maquille, indignante.',
 
-      'Tu dignidad tiene precio, y ese precio lleva un tiempo bajando sin que lo frenes. Delante del marcador en vivo.',
+      'Tu dignidad tiene precio, y ese precio lleva un tiempo bajando sin que lo frenes. Delante del marcador en vivo, qué vergüenza ajena.',
 
-      'Ni arriba ni abajo. En el punto donde te aprecian sin llegar a priorizarte nunca con el resultado ya consumado.',
+      'Ni arriba ni abajo. En el punto donde te aprecian sin llegar a priorizarte nunca con el resultado ya consumado, da vergüenza.',
 
-      'Lo que llamas amor tiene todos los síntomas de otra cosa que no quieres nombrar sin que nadie pida replay.',
+      'Lo que llamas amor tiene todos los síntomas de otra cosa que no quieres nombrar sin que nadie pida replay, qué flojo.',
 
-      'Lo que estás permitiendo ya dura demasiado como para que sea un momento puntual y el sistema marca el punto final.',
+      'Lo que estás permitiendo ya dura demasiado como para que sea un momento puntual y el sistema marca el punto final, menudo desastre.',
 
-      'Hay semanas en que te respetas y semanas en que no. El problema es la dirección con el grupo de testigo silencioso.',
+      'Hay semanas en que te respetas y semanas en que no. El problema es la dirección con el grupo de testigo silencioso, qué pena.',
 
-      'Tienes buena disposición y mal reparto. Das a quien no toca y a quien toca poco sin segunda lectura que lo arregle.',
+      'Tienes buena disposición y mal reparto. Das a quien no toca y a quien toca poco sin segunda lectura que lo arregle, patético.',
 
-      'Ni simp ni seguro de ti. Un intermedio que depende demasiado de con quién estés. Y el grupo ya pasó de página.',
+      'Ni simp ni seguro de ti. Un intermedio que depende demasiado de con quién estés. Y el grupo ya pasó de página, miserable.',
 
-      'Tu equilibrio es frágil: un poco de atención y se te desmonta todo el criterio y. El ranking no pide permiso.',
+      'Tu equilibrio es frágil: un poco de atención y se te desmonta todo el criterio y. El ranking no pide permiso, qué cringe.',
 
     ],
     low: [
@@ -6583,7 +6583,7 @@ const LABELS = {
 
       'Rata de respeto ajeno en números rojos del ranking del grupo, [nombre]. El interés propio se te ve, coño.',
 
-      '[nombre], eres el que dice después ya lo sabía y nunca avisaste cuando servía. Sin una puta lealtad útil, cabrón.',
+      '[nombre], eres el que dice después ya lo sabía y nunca avisaste cuando servía. Sin una puta lealtad útil, da asco.',
 
       'Has convertido la rata en carnet. y no hay renovación limpia, [nombre]. Trepar sobre otros te queda de oficio, asco.',
 
@@ -6597,19 +6597,19 @@ const LABELS = {
 
       'Rata de las que el filtro de confianza se rinde y pide la baja, [nombre]. Sin una puta lealtad útil, fracasado.',
 
-      'No hay barniz que te salve: hay ratez de base y el comando la cobra, [nombre]. Trepar te delata a la legua, joder.',
+      'No hay barniz que te salve: hay ratez de base y el comando la cobra, [nombre]. Trepar te delata a la legua, basura.',
 
-      'Tu mensaje es un aviso de lo que no hay que dejar suelto en el grupo, [nombre]. El interés propio se te ve, mierda.',
+      'Tu mensaje es un aviso de lo que no hay que dejar suelto en el grupo, [nombre]. El interés propio se te ve, qué cutre.',
 
-      'Rata con la disciplina de quien nunca ha devuelto una puta favor, [nombre]. Resuelves conflictos alimentándolos, gilipollas.',
+      'Rata con la disciplina de quien nunca ha devuelto una puta favor, [nombre]. Resuelves conflictos alimentándolos, da pena ajena.',
 
       'El high no es un mal día de ética: es. Trepar sobre otros te queda de oficio, patético, patéticoasco.',
 
-      'Tienes una presencia que ensucia el hilo en un solo movimiento de rata, [nombre]. Tu palabra no vale una mierda aquí, asco.',
+      'Tienes una presencia que ensucia el hilo en un solo movimiento de rata, [nombre]. Tu palabra no vale una mierda aquí, asco, indignante.',
 
       'Rata de repertorio: siempre la misma tajada y cero plan B de dignidad, [nombre]. Sin una puta lealtad útil, patético.',
 
-      'Se te nota el desastre hasta en la miniatura del estado, [nombre]. Trepar te delata a la legua, asco.',
+      'Se te nota el desastre hasta en la miniatura del estado, [nombre]. Trepar te delata a la legua, asco, da vergüenza.',
 
       'Rata sin complejo útil: el complejo al menos indicaría que viste el hocico, [nombre]. El interés propio se te ve, basura.',
 
@@ -6617,33 +6617,33 @@ const LABELS = {
 
       'Has hecho de la rata tu marca y la marca se pega en los dedos ajenos, [nombre]. Trepar te delata a la legua, fracasado.',
 
-      'Rata de las que confunden astucia con no tener vergüenza en el ranking, [nombre]. Tu palabra no vale una mierda aquí, coño.',
+      'Rata de las que confunden astucia con no tener vergüenza en el ranking, [nombre]. Tu palabra no vale una mierda aquí, patético.',
 
-      'No es viveza con gracia: eres rata y el high no discute la evidencia, [nombre]. Resuelves conflictos alimentándolos, cabrón.',
+      'No es viveza con gracia: eres rata y el high no discute la evidencia, [nombre]. Resuelves conflictos alimentándolos, miserable.',
 
       'Avisas de los chismes que tú mismo empezaste y consuelas por las puñaladas que tú mismo clavaste. Modelo de negocio redondo, basura.',
 
       'Se te ve el hocico de rata cada vez que huele a beneficio fácil en el chat, [nombre]. Tu palabra no vale una mierda aquí, patético.',
 
-      'El grupo ya no se sorprende: archiva tus mensajes en la carpeta de las ratas, [nombre]. Resuelves conflictos alimentándolos, asco.',
+      'El grupo ya no se sorprende: archiva tus mensajes en la carpeta de las ratas, [nombre]. Resuelves conflictos alimentándolos, asco, qué vergüenza.',
 
       'Tienes más episodios de rata documentados que intentos de subir el nivel, [nombre]. Trepar sobre otros te queda de oficio, basura.',
 
-      'Tu forma de acercarte funciona hasta que se descubre para qué. Y siempre se descubre, cabrón. Ahí es donde te quedas solo otra vez.',
+      'Tu forma de acercarte funciona hasta que se descubre para qué. Y siempre se descubre, cabrón. Ahí es donde te quedas solo otra vez, fracasado.',
 
-      '[nombre], eres el que dice que solo se lo cuenta a una persona. Y esa persona ya son ocho. Puta rata con capacidad de distribución.',
+      '[nombre], eres el que dice que solo se lo cuenta a una persona. Y esa persona ya son ocho. Puta rata con capacidad de distribución, qué miseria.',
 
       'Has hecho de lo rata una marca personal y la marca se pega en los dedos, [nombre]. Trepar sobre otros te queda de oficio, joder.',
 
-      'Has convertido el bajo listón en residencia fija sin mudanza a la vista, [nombre]. Tu palabra no vale una mierda aquí, mierda.',
+      'Has convertido el bajo listón en residencia fija sin mudanza a la vista, [nombre]. Tu palabra no vale una mierda aquí, qué nivel de pena.',
 
-      'No es atrevimiento: es suciedad de interés y el high te la cobra entera, [nombre]. Resuelves conflictos alimentándolos, coño.',
+      'No es atrevimiento: es suciedad de interés y el high te la cobra entera, [nombre]. Resuelves conflictos alimentándolos, basura.',
 
       'Tienes más grasa de rata en el discurso que un freidor de feria al cierre, [nombre]. Trepar sobre otros te queda de oficio, cabrón.',
 
-      'Rata de cloaca, [nombre]: te llevas el mérito y repartes la culpa. Siempre en esa dirección y nunca en la contraria. Puta escoria.',
+      'Rata de cloaca, [nombre]: te llevas el mérito y repartes la culpa. Siempre en esa dirección y nunca en la contraria. Puta escoria, da pena ajena.',
 
-      'Eres el que pregunta cómo estás con intención de averiguar, no de saber. Puta encuesta disfrazada de amistad y sin consentimiento.',
+      'Eres el que pregunta cómo estás con intención de averiguar, no de saber. Puta encuesta disfrazada de amistad y sin consentimiento, qué vacío.',
 
       'El olor a rata se te nota en cada mensaje que pide sin dar nada a cambio, [nombre]. Trepar sobre otros te queda de oficio, asco.',
 
@@ -6653,49 +6653,49 @@ const LABELS = {
 
       'La vergüenza ajena te sigue y no es admiración: es consecuencia del rastro, [nombre]. Trepar sobre otros te queda de oficio, fracasado.',
 
-      'Tienes el aura de quien pide prestado y nunca devuelve ni las gracias, [nombre]. Tu palabra no vale una mierda aquí, joder.',
+      'Tienes el aura de quien pide prestado y nunca devuelve ni las gracias, [nombre]. Tu palabra no vale una mierda aquí, menudo desastre.',
 
-      'Rata de las que el grupo aguanta por inercia y no por respeto de verdad, [nombre]. Resuelves conflictos alimentándolos, mierda.',
+      'Rata de las que el grupo aguanta por inercia y no por respeto de verdad, [nombre]. Resuelves conflictos alimentándolos, qué pena.',
 
       'Rata de repertorio gastado: las mismas manchas, el mismo plato de siempre, [nombre]. Trepar sobre otros te queda de oficio, coño.',
 
-      'Has convertido. El chat en tu zona de obras grasientas sin fecha de fin, [nombre]. Resuelves conflictos alimentándolos, gilipollas.',
+      'Has convertido. El chat en tu zona de obras grasientas sin fecha de fin, [nombre]. Resuelves conflictos alimentándolos, miserable.',
 
-      'Tu presencia aquí depende de que nadie junte las piezas. Ya las están juntando, escoria. Y el cuadro que sale es una puta rata.',
+      'Tu presencia aquí depende de que nadie junte las piezas. Ya las están juntando, escoria. Y el cuadro que sale es una puta rata, qué cringe.',
 
-      'Eres el que dice que no quiere problemas mientras los fabrica en otro chat. Puta hipocresía con doble pantalla y cara de bueno.',
+      'Eres el que dice que no quiere problemas mientras los fabrica en otro chat. Puta hipocresía con doble pantalla y cara de bueno, da asco.',
 
       '[nombre], eres el que suelta el dato en el peor momento posible y lo llama coincidencia. No lo es. No lo ha sido nunca, basura.',
 
-      'Tu forma de mantener la paz es que nadie tenga la foto completa, [nombre]. Y eso no es paz, es una puta bomba con temporizador.',
+      'Tu forma de mantener la paz es que nadie tenga la foto completa, [nombre]. Y eso no es paz, es una puta bomba con temporizador, ridículo.',
 
-      '[nombre], rata de mierda. Con el archivo de capturas mejor organizado del grupo. Y ni una sola conversación honesta en todo él.',
+      '[nombre], rata de mierda. Con el archivo de capturas mejor organizado del grupo. Y ni una sola conversación honesta en todo él, fracasado.',
 
-      'Has hecho de lo rata tu plato favorito y lo sirves en todas las mesas, [nombre]. Resuelves conflictos alimentándolos, joder.',
+      'Has hecho de lo rata tu plato favorito y lo sirves en todas las mesas, [nombre]. Resuelves conflictos alimentándolos, qué miseria.',
 
-      'Tu forma de hablar de otros cambia según quién esté delante. Cada vez, sin fallar. Puta veleta con dos caras y ninguna limpia.',
+      'Tu forma de hablar de otros cambia según quién esté delante. Cada vez, sin fallar. Puta veleta con dos caras y ninguna limpia, da grima.',
 
-      'Tu manera de estar en un grupo es no estar del todo en ninguna parte. Un puto topo con carné de miembro y lealtad de alquiler.',
+      'Tu manera de estar en un grupo es no estar del todo en ninguna parte. Un puto topo con carné de miembro y lealtad de alquiler, qué nivel de pena.',
 
-      '[nombre], tu manera de acercarte a alguien es medir primero qué se le puede sacar. Y luego llamas a eso hacer amigos, cabrón.',
+      '[nombre], tu manera de acercarte a alguien es medir primero qué se le puede sacar. Y luego llamas a eso hacer amigos, basura.',
 
-      'Eres el que se distancia del amigo jodido justo cuando más falta hace. Basura. Con instinto de supervivencia y cero lealtad.',
+      'Eres el que se distancia del amigo jodido justo cuando más falta hace. Basura. Con instinto de supervivencia y cero lealtad, qué cutre.',
 
       'Vendiste a alguien por algo que ni siquiera te salió bien. Eso es lo más patético. Del asunto. Y, patético.',
 
-      '[nombre], rata de manual: preguntas cómo estás con intención de averiguar, no de saber. Puta encuesta con cara de amistad.',
+      '[nombre], rata de manual: preguntas cómo estás con intención de averiguar, no de saber. Puta encuesta con cara de amistad, qué vacío.',
 
-      'Eres el que dice que solo se lo cuenta a una persona. Y esa persona ya son ocho. Puta rata con capacidad de distribución.',
+      'Eres el que dice que solo se lo cuenta a una persona. Y esa persona ya son ocho. Puta rata con capacidad de distribución, indignante.',
 
-      'Gestionas la información ajena como si fuera tuya, cabrón. Y no lo es. Eso tiene un nombre y no es discreción, es robo.',
+      'Gestionas la información ajena como si fuera tuya, cabrón. Y no lo es. Eso tiene un nombre y no es discreción, es robo, qué vergüenza ajena.',
 
-      'Eres el que pregunta cómo estás con intención de averiguar, no de saber, [nombre]. Puta encuesta disfrazada de amistad.',
+      'Eres el que pregunta cómo estás con intención de averiguar, no de saber, [nombre]. Puta encuesta disfrazada de amistad, da vergüenza.',
 
-      'Eres el que se ofrece a guardar un secreto y luego lo usa como moneda. Puta rata con caja fuerte y tarifa por abrirla.',
+      'Eres el que se ofrece a guardar un secreto y luego lo usa como moneda. Puta rata con caja fuerte y tarifa por abrirla, qué flojo.',
 
-      '[nombre], tu manera de resolver un conflicto es alimentarlo desde fuera. Puto pirómano con manguera y cara de bombero.',
+      '[nombre], tu manera de resolver un conflicto es alimentarlo desde fuera. Puto pirómano con manguera y cara de bombero, menudo desastre.',
 
-      'Tu palabra no vale una mierda. En este grupo, [nombre], y llevas años sin darte cuenta de que todos lo saben menos tú. Puto patético fracasado.',
+      'Tu palabra no vale una mierda. En este grupo, [nombre], y llevas años sin darte cuenta de que todos lo saben menos tú. Puto patético fracasado, qué pena.',
 
     ],
     mid: [
@@ -6773,31 +6773,31 @@ const LABELS = {
 
       'A veces callas lo que debes callar. Otras se te escapa. Y esas veces se recuerdan con el parte firmado debajo.',
 
-      'A ratos te mojas por alguien y a ratos miras hacia otro lado. La media queda aquí y el archivo queda cerrado.',
+      'A ratos te mojas por alguien y a ratos miras hacia otro lado. La media queda aquí y el archivo queda cerrado, qué cutre.',
 
-      'No eres rata de manual, pero tienes los reflejos, y los reflejos también delatan sin segunda oportunidad hoy.',
+      'No eres rata de manual, pero tienes los reflejos, y los reflejos también delatan sin segunda oportunidad hoy, da pena ajena.',
 
-      'Tienes principios, pero flexibles. Y unos principios flexibles no son principios sin prórroga ni VAR.',
+      'Tienes principios, pero flexibles. Y unos principios flexibles no son principios sin prórroga ni VAR, qué vacío.',
 
-      'Tu manera de gestionar la información ajena es razonable. No perfecta, razonable delante de quien aún leía el hilo.',
+      'Tu manera de gestionar la información ajena es razonable. No perfecta, razonable delante de quien aún leía el hilo, indignante.',
 
-      'A ratos guardas y a ratos comentas. Y comentar es donde se pierden las amistades sin segunda oportunidad hoy.',
+      'A ratos guardas y a ratos comentas. Y comentar es donde se pierden las amistades sin segunda oportunidad hoy, qué vergüenza ajena.',
 
-      'A veces avisas a tiempo y a veces demasiado tarde. Esa diferencia lo decide todo con el parte firmado debajo.',
+      'A veces avisas a tiempo y a veces demasiado tarde. Esa diferencia lo decide todo con el parte firmado debajo, da vergüenza.',
 
-      'Ni bueno ni malo en esto. Un intermedio funcional que a nadie preocupa demasiado y el sistema cierra sin discusión.',
+      'Ni bueno ni malo en esto. Un intermedio funcional que a nadie preocupa demasiado y el sistema cierra sin discusión, qué flojo.',
 
-      'A veces cubres a la gente y a veces te desentiendes. Nadie sabe cuál va a tocar con el eco del almost todavía sonando.',
+      'A veces cubres a la gente y a veces te desentiendes. Nadie sabe cuál va a tocar con el eco del almost todavía sonando, menudo desastre.',
 
-      'Ni traicionas ni defiendes. Estás en la franja cómoda del que no se moja nunca y. El ranking cierra el caso.',
+      'Ni traicionas ni defiendes. Estás en la franja cómoda del que no se moja nunca y. El ranking cierra el caso, qué pena.',
 
-      'Ni de fiar ni peligroso. Un término medio que la gente gestiona con distancia con el parte firmado debajo.',
+      'Ni de fiar ni peligroso. Un término medio que la gente gestiona con distancia con el parte firmado debajo, patético.',
 
-      'Ni rata ni escudo. En el medio, donde no se cuenta contigo para nada delicado sin que nadie pida replay.',
+      'Ni rata ni escudo. En el medio, donde no se cuenta contigo para nada delicado sin que nadie pida replay, miserable.',
 
-      'Tienes buenas intenciones y poca constancia en sostenerlas cuando cuesta algo con el número en la frente del mensaje.',
+      'Tienes buenas intenciones y poca constancia en sostenerlas cuando cuesta algo con el número en la frente del mensaje, qué cringe.',
 
-      'Ni traicionas ni te comprometes. Es la posición más segura y la menos valiosa con el grupo de testigo silencioso.',
+      'Ni traicionas ni te comprometes. Es la posición más segura y la menos valiosa con el grupo de testigo silencioso, da asco.',
 
     ],
     low: [
@@ -7162,81 +7162,81 @@ const LABELS = {
 
       'Mierda, negación forma parte del personaje: sin ella el papel se cae, por eso la repites tanto, y hace tiempo. Desperdicio.',
 
-      'Joder, cuerpo responde a tíos y boca a presión social: el cuerpo no ha leído las normas del chat, y hace tiempo. Vergüenza.',
+      'Joder, cuerpo responde a tíos y boca a presión social: el cuerpo no ha leído las normas del chat, y hace tiempo. Vergüenza, qué vergüenza.',
 
-      'Hostia, armario tan profundo que tus negaciones hacen eco y el eco suena a mentira profesional, y hace tiempo. Cutre, asco.',
+      'Hostia, armario tan profundo que tus negaciones hacen eco y el eco suena a mentira profesional, y hace tiempo. Cutre, asco, ridículo.',
 
-      'Hostia, memes internos sobre tu armario: los memes son más honestos que tus estados de WhatsApp, y hace tiempo. Coño.',
+      'Hostia, memes internos sobre tu armario: los memes son más honestos que tus estados de WhatsApp, y hace tiempo. Coño, fracasado.',
 
-      'Hostia, te gustan las mujeres pero la atención se va sola a los tíos: la atención no miente, y hace tiempo. Basura.',
+      'Hostia, te gustan las mujeres pero la atención se va sola a los tíos: la atención no miente, y hace tiempo. Basura, qué miseria.',
 
-      'Coño, teatro en intermedio: llevas meses en el intermedio y el público quiere el segundo acto, y hace tiempo. Desperdicio.',
+      'Coño, teatro en intermedio: llevas meses en el intermedio y el público quiere el segundo acto, y hace tiempo. Desperdicio, da grima.',
 
-      'Hostia, evidencia ordenada por fecha en tus reacciones: es un diario sin metáforas ni disculpas, y hace tiempo. Pringado.',
+      'Hostia, evidencia ordenada por fecha en tus reacciones: es un diario sin metáforas ni disculpas, y hace tiempo. Pringado, qué nivel de pena.',
 
-      'Hostia, invertido en parecer y no en ser: la factura llega cada vez que alguien te mira de más, y hace tiempo. Cabrón.',
+      'Hostia, invertido en parecer y no en ser: la factura llega cada vez que alguien te mira de más, y hace tiempo. Cabrón, basura.',
 
-      'Hostia, día que digas la verdad el grupo dirá por fin: y eso también va a doler un poco, y hace tiempo. Desperdicio, mierda.',
+      'Hostia, día que digas la verdad el grupo dirá por fin: y eso también va a doler un poco, y hace tiempo. Desperdicio, qué cutre.',
 
-      'Mierda, hetero es un DLC que casi nadie activa: el juego base es otro y todo el mundo lo sabe, y hace tiempo. Vergüenza.',
+      'Mierda, hetero es un DLC que casi nadie activa: el juego base es otro y todo el mundo lo sabe, y hace tiempo. Vergüenza, da pena ajena.',
 
-      'Hostia, armario con puerta de vaivén: sales un segundo y vuelves a entrar, se ve desde fuera, y hace tiempo. Fracasado.',
+      'Hostia, armario con puerta de vaivén: sales un segundo y vuelves a entrar, se ve desde fuera, y hace tiempo. Fracasado, qué vacío.',
 
-      'Mierda, es broma es el punto final de cada confesión: sin él el párrafo quedaría demasiado claro, y hace tiempo. Mierda.',
+      'Mierda, es broma es el punto final de cada confesión: sin él el párrafo quedaría demasiado claro, y hace tiempo. Mierda, indignante.',
 
-      'Hostia, niegas con datos inventados. Y el grupo anota la contradicción: el cuaderno está lleno, y hace tiempo. Gilipollas.',
+      'Hostia, niegas con datos inventados. Y el grupo anota la contradicción: el cuaderno está lleno, y hace tiempo. Gilipollas, qué vergüenza ajena.',
 
-      'Joder, grupo ya no debate el diagnóstico: debate el plazo y tú sigues en fase de alegaciones, y hace tiempo. Desperdicio.',
+      'Joder, grupo ya no debate el diagnóstico: debate el plazo y tú sigues en fase de alegaciones, y hace tiempo. Desperdicio, da vergüenza.',
 
-      'Hostia, culos con devoción y tías con deber: el contraste es el chiste del día en el grupo, y hace tiempo. Asco.',
+      'Hostia, culos con devoción y tías con deber: el contraste es el chiste del día en el grupo, y hace tiempo. Asco, qué flojo.',
 
-      'Coño, hetero cabe en un mensaje de ocho segundos: tu gay reprimido no cabe en un hilo entero, y hace tiempo. Vergüenza.',
+      'Coño, hetero cabe en un mensaje de ocho segundos: tu gay reprimido no cabe en un hilo entero, y hace tiempo. Vergüenza, menudo desastre.',
 
-      'Mierda, tanto corrector discursivo que la verdad necesita pala: y sale igual de clara, y hace tiempo. Cutre.',
+      'Mierda, tanto corrector discursivo que la verdad necesita pala: y sale igual de clara, y hace tiempo. Cutre, qué pena.',
 
-      'Hostia, armario ya tiene vecinos: tus excusas viven en el piso de abajo y hacen ruido de noche, y hace tiempo. Joder.',
+      'Hostia, armario ya tiene vecinos: tus excusas viven en el piso de abajo y hacen ruido de noche, y hace tiempo. Joder, patético.',
 
-      'Hostia, hasta los nuevos te clasifican en una tarde: eficiente sin querer y sin remedio, y hace tiempo. Patético.',
+      'Hostia, hasta los nuevos te clasifican en una tarde: eficiente sin querer y sin remedio, y hace tiempo. Patético, miserable.',
 
       'Hostia, invertido en el personaje y olvidado de la persona: el personaje ya no te queda, y hace tiempo. Vergüenza, mierda.',
 
-      'Coño, te gustan las tías y el historial de atención dice otra cosa: el historial gana, y hace tiempo. Cutre.',
+      'Coño, te gustan las tías y el historial de atención dice otra cosa: el historial gana, y hace tiempo. Cutre, da asco.',
 
-      'Hostia, día que coincidas con lo que todos ven vas a ganar tiempo: hasta entonces lo pierdes, y hace tiempo. Mierda.',
+      'Hostia, día que coincidas con lo que todos ven vas a ganar tiempo: hasta entonces lo pierdes, y hace tiempo. Mierda, qué vergüenza.',
 
-      'Coño, mujeres como quien rellena un formulario: campos obligatorios y cero emoción real, y hace tiempo. Coño.',
+      'Coño, mujeres como quien rellena un formulario: campos obligatorios y cero emoción real, y hace tiempo. Coño, ridículo.',
 
-      'Hostia, pack completo y nota a pie de no soy gay: nadie lee la nota y todos leen el pack, y hace tiempo. Ridículo.',
+      'Hostia, pack completo y nota a pie de no soy gay: nadie lee la nota y todos leen el pack, y hace tiempo. Ridículo, fracasado.',
 
-      'Mierda, tío se ríe contigo y se te olvida el personaje medio segundo: ese medio segundo basta, y hace tiempo. Desperdicio.',
+      'Mierda, tío se ríe contigo y se te olvida el personaje medio segundo: ese medio segundo basta, y hace tiempo. Desperdicio, qué miseria.',
 
-      'Joder, armario con horarios de visita: el grupo ya conoce los turnos de entrada y salida, y hace tiempo. Vergüenza.',
+      'Joder, armario con horarios de visita: el grupo ya conoce los turnos de entrada y salida, y hace tiempo. Vergüenza, da grima.',
 
-      'Hostia, tu versión y la del grupo ya no comparten ni el pronombre implícito del asunto, y hace tiempo. Cutre, asco.',
+      'Hostia, tu versión y la del grupo ya no comparten ni el pronombre implícito del asunto, y hace tiempo. Cutre, asco, qué nivel de pena.',
 
-      'Hostia, cuando niegas se te pone la voz de quien defiende un final de mes: forzado y sin margen, y hace tiempo. Basura.',
+      'Hostia, cuando niegas se te pone la voz de quien defiende un final de mes: forzado y sin margen, y hace tiempo. Basura, basura.',
 
-      'Coño, armario convertido en oficina: trabajas ahí más horas que en tu vida real, y hace tiempo. Desperdicio.',
+      'Coño, armario convertido en oficina: trabajas ahí más horas que en tu vida real, y hace tiempo. Desperdicio, qué cutre.',
 
       '[nombre] es tan maricón que única persona que mantiene el debate eres tú: el resto está en la conclusión desde el año pasado. Vergüenza, basura.',
 
-      'Joder, cuerpo anuncia y boca desmiente: el anuncio tiene más alcance que el desmentido, y hace tiempo. Cutre.',
+      'Joder, cuerpo anuncia y boca desmiente: el anuncio tiene más alcance que el desmentido, y hace tiempo. Cutre, qué vacío.',
 
-      'Hostia, cada no homo es una firma: llevas el documento lleno y todavía dices que está en borrador, y hace tiempo. Pringado.',
+      'Hostia, cada no homo es una firma: llevas el documento lleno y todavía dices que está en borrador, y hace tiempo. Pringado, indignante.',
 
-      'Hostia, miras con el estómago y hablas con el protocolo: el estómago tiene mejor criterio, y hace tiempo. Cabrón.',
+      'Hostia, miras con el estómago y hablas con el protocolo: el estómago tiene mejor criterio, y hace tiempo. Cabrón, qué vergüenza ajena.',
 
-      'Hostia, la verdad no te va a matar: el disfraz a largo plazo sí te está cobrando peaje cada día, y hace tiempo. Desperdicio, mierda.',
+      'Hostia, la verdad no te va a matar: el disfraz a largo plazo sí te está cobrando peaje cada día, y hace tiempo. Desperdicio, da vergüenza.',
 
-      'Joder, cada negación es un ladrillo: la casa de la mentira ya tiene terraza y vistas, y hace tiempo. Joder.',
+      'Joder, cada negación es un ladrillo: la casa de la mentira ya tiene terraza y vistas, y hace tiempo. Joder, qué flojo.',
 
-      '[nombre] es tan maricón que fútbol para disimular y se te nota el aburrimiento a kilómetros: los heteros no fingen tanto. Cutre, cabrón.',
+      '[nombre] es tan maricón que fútbol para disimular y se te nota el aburrimiento a kilómetros: los heteros no fingen tanto. Cutre, menudo desastre.',
 
-      '[nombre] es tan maricón que amigos como quien mira el menú y el menú no es de comida: es de otra carta del todo. Desperdicio, gilipollas.',
+      '[nombre] es tan maricón que amigos como quien mira el menú y el menú no es de comida: es de otra carta del todo. Desperdicio, qué pena.',
 
-      'Hostia, mentira es más trabajo que la verdad y aun así eliges el trabajo cada día, y hace tiempo. Coño.',
+      'Hostia, mentira es más trabajo que la verdad y aun así eliges el trabajo cada día, y hace tiempo. Coño, patético.',
 
-      'Tu hetero es de cartón piedra: se ve la estructura por debajo. Y el grupo ya no se cree ni el montaje más elaborado, cabrón.',
+      'Tu hetero es de cartón piedra: se ve la estructura por debajo. Y el grupo ya no se cree ni el montaje más elaborado, miserable.',
 
       '[nombre] es tan maricón que mujeres con la emoción de quien describe el clima: correcto y sin alma de ninguna clase. Cutre, basura.',
 
@@ -7244,49 +7244,49 @@ const LABELS = {
 
       'Analizas el físico de tus amigos con un detalle que solo tiene quien está eligiendo de verdad. Y estás eligiendo, basura.',
 
-      '[nombre] es tan maricón que cuello más honesto que la boca: gira hacia donde quiere y no pide permiso a nadie. Vergüenza, joder.',
+      '[nombre] es tan maricón que cuello más honesto que la boca: gira hacia donde quiere y no pide permiso a nadie. Vergüenza, ridículo.',
 
-      '[nombre] es tan maricón que cada soy macho es grito de auxilio con eco: el eco llega más lejos que el grito. Desperdicio, mierda.',
+      '[nombre] es tan maricón que cada soy macho es grito de auxilio con eco: el eco llega más lejos que el grito. Desperdicio, fracasado.',
 
       'Tu armario tiene más metros cuadrados que tu habitación y mejor wifi. A este ritmo vas a empadronarte dentro, ridículo.',
 
-      'Miras culos de tíos con la devoción de quien reza y luego niegas la religión con la boca todavía llena de amén, asco.',
+      'Miras culos de tíos con la devoción de quien reza y luego niegas la religión con la boca todavía llena de amén, asco, da grima.',
 
-      'Mierda, el corte de pelo de tus amigos con detalle de interesado, no de peluquero: y no eres peluquero. Mierda.',
+      'Mierda, el corte de pelo de tus amigos con detalle de interesado, no de peluquero: y no eres peluquero. Mierda, qué nivel de pena.',
 
-      '[nombre], maricón de los que niegan con la boca y confirman con el gesto en el mismo mensaje, joder.',
+      '[nombre], maricón de los que niegan con la boca y confirman con el gesto en el mismo mensaje, basura.',
 
-      'Se te ve la pluma hasta en el audio de buenos días, [nombre]. Gilipollas, y. Hostia puta, qué nivel.',
+      'Se te ve la pluma hasta en el audio de buenos días, [nombre]. Gilipollas, y. Hostia puta, qué nivel, qué cutre.',
 
-      'Maricón de historial público: no hace falta escarbar, está en la superficie del chat, [nombre]. Coño.',
+      'Maricón de historial público: no hace falta escarbar, está en la superficie del chat, [nombre]. Coño, da pena ajena.',
 
-      '[nombre], dices que te gustan las tías pero el cuerpo te delata en cada puto hilo, cabrón, y. Hostia puta, qué nivel.',
+      '[nombre], dices que te gustan las tías pero el cuerpo te delata en cada puto hilo, cabrón, y. Hostia puta, qué nivel, qué vacío.',
 
-      'Maricón sin disimulo útil: el disimulo al menos indicaría vergüenza, [nombre]. Asco, y. Hostia puta, qué nivel.',
+      'Maricón sin disimulo útil: el disimulo al menos indicaría vergüenza, [nombre]. Asco, y. Hostia puta, qué nivel, indignante.',
 
-      'El grupo no necesita detector: te basta abrir la boca dos segundos de más, [nombre]. Patético, y. Hostia puta, qué nivel.',
+      'El grupo no necesita detector: te basta abrir la boca dos segundos de más, [nombre]. Patético, y. Hostia puta, qué nivel, qué vergüenza ajena.',
 
-      '[nombre], has hecho de la pose tu única personalidad y el chat te tiene de meme, mierda, y. Hostia puta, qué nivel.',
+      '[nombre], has hecho de la pose tu única personalidad y el chat te tiene de meme, mierda, y. Hostia puta, qué nivel, da vergüenza.',
 
-      'Maricón de cartel: se ve el anuncio y nadie quiere la función, [nombre]. Ridículo, y. Hostia puta, qué nivel.',
+      'Maricón de cartel: se ve el anuncio y nadie quiere la función, [nombre]. Ridículo, y. Hostia puta, qué nivel, qué flojo.',
 
-      '[nombre], confundes límites ajenos con permiso para seguir el show, fracasado, y. Hostia puta, qué nivel.',
+      '[nombre], confundes límites ajenos con permiso para seguir el show, fracasado, y. Hostia puta, qué nivel, menudo desastre.',
 
-      'Se te oye la voz de final de mes cada vez que niegas de más, [nombre]. Basura, y. Hostia puta, qué nivel.',
+      'Se te oye la voz de final de mes cada vez que niegas de más, [nombre]. Basura, y. Hostia puta, qué nivel, qué pena.',
 
-      'Maricón de los que miran con devoción y luego predican lo contrario, [nombre]. Joder, y. Hostia puta, qué nivel.',
+      'Maricón de los que miran con devoción y luego predican lo contrario, [nombre]. Joder, y. Hostia puta, qué nivel, patético.',
 
-      '[nombre], el almost de hetero se te cae en cada reacción del chat, gilipollas, y. Hostia puta, qué nivel.',
+      '[nombre], el almost de hetero se te cae en cada reacción del chat, gilipollas, y. Hostia puta, qué nivel, miserable.',
 
-      'Has convertido la ambigüedad en gag y el grupo ya no se ríe, solo documenta, [nombre]. Coño, y. Hostia puta, qué nivel.',
+      'Has convertido la ambigüedad en gag y el grupo ya no se ríe, solo documenta, [nombre]. Coño, y. Hostia puta, qué nivel, qué cringe.',
 
-      'Maricón de superficie: huele el cerrado sin abrir el cubo, [nombre]. Cabrón, y. Hostia puta, qué nivel.',
+      'Maricón de superficie: huele el cerrado sin abrir el cubo, [nombre]. Cabrón, y. Hostia puta, qué nivel, da asco.',
 
       '[nombre], niegas tanto que el propio no se te nota forzado, asco, y, y el grupo no se traga el cuento, basura.',
 
-      'El ranking de maricón te tiene de ejemplo cuando alguien pregunta, [nombre]. Patético, y. Hostia puta, qué nivel.',
+      'El ranking de maricón te tiene de ejemplo cuando alguien pregunta, [nombre]. Patético, y. Hostia puta, qué nivel, ridículo.',
 
-      '[nombre], tu disimulo dura menos que un estado de 24 horas, mierda, y. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+      '[nombre], tu disimulo dura menos que un estado de 24 horas, mierda, y. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
 
     ],
     mid: [
@@ -7356,39 +7356,39 @@ const LABELS = {
 
       '[nombre] tiene un par de gestos que delatarían a cualquiera, pero él los hace con una naturalidad que roza la confesión.',
 
-      'A [nombre] le cambia la voz cuando habla de ciertos temas. Y el grupo ya ha aprendido a identificar la frecuencia exacta.',
+      'A [nombre] le cambia la voz cuando habla de ciertos temas. Y el grupo ya ha aprendido a identificar la frecuencia exacta, miserable.',
 
-      'Cuando [nombre] se ríe de ciertos chistes, se ríe un poco demasiado. O un poco demasiado tarde. Las dos cosas son señal.',
+      'Cuando [nombre] se ríe de ciertos chistes, se ríe un poco demasiado. O un poco demasiado tarde. Las dos cosas son señal, qué cringe.',
 
-      'A [nombre] le delatan detalles tan pequeños que solo los nota el que ya sospecha. Y en el grupo, sospecha todo el mundo.',
+      'A [nombre] le delatan detalles tan pequeños que solo los nota el que ya sospecha. Y en el grupo, sospecha todo el mundo, da asco.',
 
-      '[nombre] se pone nervioso con ciertos temas y lo intenta tapar con agresividad. El parche es más grande que el agujero.',
+      '[nombre] se pone nervioso con ciertos temas y lo intenta tapar con agresividad. El parche es más grande que el agujero, qué vergüenza.',
 
-      '[nombre] tiene suficientes momentos ambiguos como para llenar un compilado. El grupo los colecciona sin que él lo sepa.',
+      '[nombre] tiene suficientes momentos ambiguos como para llenar un compilado. El grupo los colecciona sin que él lo sepa, ridículo.',
 
-      '[nombre] tiene momentos de una ambigüedad tan densa que cortar el aire a su alrededor requiere herramientas especiales.',
+      '[nombre] tiene momentos de una ambigüedad tan densa que cortar el aire a su alrededor requiere herramientas especiales, fracasado.',
 
-      'Si [nombre] fuera tan macho como dice, no necesitaría decirlo cada tres mensajes. La insistencia es la peor publicidad.',
+      'Si [nombre] fuera tan macho como dice, no necesitaría decirlo cada tres mensajes. La insistencia es la peor publicidad, qué miseria.',
 
-      'La lista de evidencias sobre [nombre] crece despacio pero con una consistencia que ya empieza a ser difícil de ignorar.',
+      'La lista de evidencias sobre [nombre] crece despacio pero con una consistencia que ya empieza a ser difícil de ignorar, da grima.',
 
-      'Los momentos en que a [nombre] se le nota son exactamente los que la gente recuerda. Los otros se los traga el olvido.',
+      'Los momentos en que a [nombre] se le nota son exactamente los que la gente recuerda. Los otros se los traga el olvido, qué nivel de pena.',
 
-      'El expediente de [nombre] tiene demasiadas notas a pie de página como para que el texto principal siga siendo creíble.',
+      'El expediente de [nombre] tiene demasiadas notas a pie de página como para que el texto principal siga siendo creíble, basura.',
 
-      'La máscara de [nombre] está tan gastada que ya se transparenta lo de abajo. Y lo de abajo no es lo que él dice que es.',
+      'La máscara de [nombre] está tan gastada que ya se transparenta lo de abajo. Y lo de abajo no es lo que él dice que es, qué cutre.',
 
-      'El grupo no juzga a [nombre], solo observa. Y lo que observa no coincide con el guion que [nombre] les vende cada día.',
+      'El grupo no juzga a [nombre], solo observa. Y lo que observa no coincide con el guion que [nombre] les vende cada día, da pena ajena.',
 
-      'La postura de [nombre] sobre ciertos temas cambia según quién pregunte. Esa flexibilidad ya es una señal en sí misma.',
+      'La postura de [nombre] sobre ciertos temas cambia según quién pregunte. Esa flexibilidad ya es una señal en sí misma, qué vacío.',
 
-      'Lo de [nombre] es como un secreto a voces: todo el mundo lo oye, nadie lo dice, y él sigue pensando que es inaudible.',
+      'Lo de [nombre] es como un secreto a voces: todo el mundo lo oye, nadie lo dice, y él sigue pensando que es inaudible, indignante.',
 
-      'El grupo tiene los gestos de [nombre] catalogados aunque no se lo hayan dicho todavía. El archivo crece cada semana.',
+      'El grupo tiene los gestos de [nombre] catalogados aunque no se lo hayan dicho todavía. El archivo crece cada semana, qué vergüenza ajena.',
 
-      '[nombre] no es del todo macho ni del todo lo contrario. Pero la balanza se está inclinando y no hacia donde él cree.',
+      '[nombre] no es del todo macho ni del todo lo contrario. Pero la balanza se está inclinando y no hacia donde él cree, da vergüenza.',
 
-      'Hay una diferencia entre lo que [nombre] dice que es y lo que el grupo percibe. La diferencia es cada vez más ancha.',
+      'Hay una diferencia entre lo que [nombre] dice que es y lo que el grupo percibe. La diferencia es cada vez más ancha, qué flojo.',
 
     ],
     low: [
@@ -7759,101 +7759,101 @@ const LABELS = {
 
       'Friki de los que confunden profundidad con no tener vida fuera del wiki, [nombre]. El lore no te salva el charco, fracasado.',
 
-      '[nombre], friki que se ofende si no conocen su referencia de sótano. Sótano sin salida útil, joder. Hostia puta, qué nivel.',
+      '[nombre], friki que se ofende si no conocen su referencia de sótano. Sótano sin salida útil, joder. Hostia puta, qué nivel, menudo desastre.',
 
-      'Tus figuras están mejor cuidadas que tú, [nombre]. Gilipollas documentado. Monólogo eterno del hilo, mierda.',
+      'Tus figuras están mejor cuidadas que tú, [nombre]. Gilipollas documentado. Monólogo eterno del hilo, qué pena.',
 
-      '[nombre], empujas cada tema hacia tu rincón sin salida y aburres al hilo. El lore no te salva el charco, coño.',
+      '[nombre], empujas cada tema hacia tu rincón sin salida y aburres al hilo. El lore no te salva el charco, patético.',
 
       'Eres el pringado que sabe optimizarlo todo menos lo único que hacía falta optimizar, [nombre]: la vida esa que tienes ahí sin usar, fracasado.',
 
       '[nombre], el hábito de no salir del lore te delata a la primera frase. El lore no te salva el charco, patético.',
 
-      'Friki sin el carisma de friki cool: solo aislamiento con opiniones altas, [nombre]. Sótano sin salida útil, asco.',
+      'Friki sin el carisma de friki cool: solo aislamiento con opiniones altas, [nombre]. Sótano sin salida útil, asco, da asco.',
 
-      'Friki cutre: ni la rareza tiene gracia ni el aislamiento tiene misterio de genio, [nombre], sin anestesia, coño.',
+      'Friki cutre: ni la rareza tiene gracia ni el aislamiento tiene misterio de genio, [nombre], sin anestesia, qué vergüenza.',
 
-      'Eres el que corrige a los demás en temas que no le importan a nadie, [nombre]. Un puto árbitro de una liga sin equipos ni público.',
+      'Eres el que corrige a los demás en temas que no le importan a nadie, [nombre]. Un puto árbitro de una liga sin equipos ni público, ridículo.',
 
-      'Tus conversaciones tienen guion fijo. Y el grupo se lo sabe de memoria. Por eso te esquivan antes de que abras la boca, pringado.patético.',
+      'Tus conversaciones tienen guion fijo. Y el grupo se lo sabe de memoria. Por eso te esquivan antes de que abras la boca, pringado.patético, fracasado.',
 
-      'Llevas años preparándote para una vida que no arranca porque no la arrancas tú. Puto ensayo permanente y sin estreno a la vista.',
+      'Llevas años preparándote para una vida que no arranca porque no la arrancas tú. Puto ensayo permanente y sin estreno a la vista, qué miseria.',
 
-      'Friki de manual, [nombre]: tu ropa es merchandising y tu conversación también. Quítalo todo y no queda ni el envoltorio, cabrón.',
+      'Friki de manual, [nombre]: tu ropa es merchandising y tu conversación también. Quítalo todo y no queda ni el envoltorio, da grima.',
 
-      'Tu forma de compartir algo es abrumar hasta que el otro se rinde, [nombre]. Eso no es entusiasmo, es un puto asalto informativo.',
+      'Tu forma de compartir algo es abrumar hasta que el otro se rinde, [nombre]. Eso no es entusiasmo, es un puto asalto informativo, qué nivel de pena.',
 
-      '[nombre], tu escritorio parece una mesa de forense: cosas muertas, vasos con historia y una lámpara que no se apaga. Puta cueva.',
+      '[nombre], tu escritorio parece una mesa de forense: cosas muertas, vasos con historia y una lámpara que no se apaga. Puta cueva, basura.',
 
-      '[nombre], cargas con un museo portátil sin un solo visitante en años. Toda esa mochila para no enseñarle nada a nadie, pringado, joder.',
+      '[nombre], cargas con un museo portátil sin un solo visitante en años. Toda esa mochila para no enseñarle nada a nadie, pringado, qué cutre.',
 
-      'Friki sin el carisma de friki cool: solo aislamiento con opiniones altas, [nombre]. Monólogo eterno del hilo, asco.',
+      'Friki sin el carisma de friki cool: solo aislamiento con opiniones altas, [nombre]. Monólogo eterno del hilo, asco, da pena ajena.',
 
       'Has hecho del nicho tu prisión y el grupo ya no visita el museo, [nombre]. El lore no te salva el charco, basura.',
 
-      '[nombre], corriges a todos y nadie te invita al after. Sótano sin salida útil, ridículo, joder, y el grupo no se traga el cuento, asco.',
+      '[nombre], corriges a todos y nadie te invita al after. Sótano sin salida útil, ridículo, joder, y el grupo no se traga el cuento, asco, indignante.',
 
       'Friki de los que confunden profundidad con no tener vida fuera del wiki, [nombre]. Monólogo eterno del hilo, fracasado.',
 
-      'Cierras las conversaciones alargándolas con un detalle que nadie pidió. Por eso la gente mira el móvil cuando hablas, pringado.patético.',
+      'Cierras las conversaciones alargándolas con un detalle que nadie pidió. Por eso la gente mira el móvil cuando hablas, pringado.patético, da vergüenza.',
 
-      'Tus intereses son legítimos y tu dedicación admirable. Lástima que tu vida social sea una puta hoja en blanco desde hace años.',
+      'Tus intereses son legítimos y tu dedicación admirable. Lástima que tu vida social sea una puta hoja en blanco desde hace años, qué flojo.',
 
-      '[nombre], tu única anécdota del mes pasó dentro de una partida. Y ni la puedes contar sin explicar quince cosas antes, cabrón.',
+      '[nombre], tu única anécdota del mes pasó dentro de una partida. Y ni la puedes contar sin explicar quince cosas antes, menudo desastre.',
 
-      'Friki sin el carisma de friki cool: solo aislamiento con opiniones altas, [nombre]. El lore no te salva el charco, asco.',
+      'Friki sin el carisma de friki cool: solo aislamiento con opiniones altas, [nombre]. El lore no te salva el charco, asco, qué pena.',
 
       'Has hecho del nicho tu prisión y el grupo ya no visita el museo, [nombre]. Sótano sin salida útil, basura.',
 
-      'Llevas años esperando que algo cambie sin mover un dedo. Puta silla giratoria y tú dando vueltas encima sin ir a ningún lado.',
+      'Llevas años esperando que algo cambie sin mover un dedo. Puta silla giratoria y tú dando vueltas encima sin ir a ningún lado, miserable.',
 
-      'Llevas años invirtiendo en algo que solo te devuelve horas gastadas. La peor puta inversión del grupo y encima con intereses.',
+      'Llevas años invirtiendo en algo que solo te devuelve horas gastadas. La peor puta inversión del grupo y encima con intereses, qué cringe.',
 
-      '[nombre], eres el fantasma con mejor equipo del grupo. Toda esa máquina para no hacer absolutamente nada con ella. Puta pena.',
+      '[nombre], eres el fantasma con mejor equipo del grupo. Toda esa máquina para no hacer absolutamente nada con ella. Puta pena, da asco.',
 
-      'Tus referencias son tan específicas que funcionan de muro y no de puente. Puta barrera levantada por ti solito y sin querer.',
+      'Tus referencias son tan específicas que funcionan de muro y no de puente. Puta barrera levantada por ti solito y sin querer, qué vergüenza.',
 
-      'Tu manera de aportar en una conversación es un dato, [nombre]. Solo un dato y siempre el que menos falta hacía. Puto pesado.',
+      'Tu manera de aportar en una conversación es un dato, [nombre]. Solo un dato y siempre el que menos falta hacía. Puto pesado, ridículo.',
 
-      'Se te nota el monólogo eterno en cada puto hilo que tocas, [nombre]. Monólogo eterno del hilo, gilipollas.',
+      'Se te nota el monólogo eterno en cada puto hilo que tocas, [nombre]. Monólogo eterno del hilo, fracasado.',
 
       'Friki cutre y sin complejo: el complejo pediría espejo social y no lo hay, [nombre]. El lore no te salva el charco, patético.',
 
-      'Friki de mierda, con más figuras en la estantería que gente en el historial de llamadas. Un museo lleno y una agenda vacía.',
+      'Friki de mierda, con más figuras en la estantería que gente en el historial de llamadas. Un museo lleno y una agenda vacía, da grima.',
 
-      '[nombre], eres el que confunde tener una comunidad con tener gente que le importe. Nadie de ahí iría a tu entierro, cabrón.',
+      '[nombre], eres el que confunde tener una comunidad con tener gente que le importe. Nadie de ahí iría a tu entierro, qué nivel de pena.',
 
-      'Eres el árbitro de una liga sin equipos, [nombre]. Corriges a todo el mundo en temas que no le importan una mierda. A nadie.',
+      'Eres el árbitro de una liga sin equipos, [nombre]. Corriges a todo el mundo en temas que no le importan una mierda. A nadie, basura.',
 
-      'Tus mejores conversaciones del año fueron por escrito con gente que no vas a ver nunca. Puta miseria social con buen ping.',
+      'Tus mejores conversaciones del año fueron por escrito con gente que no vas a ver nunca. Puta miseria social con buen ping, qué cutre.',
 
-      'Todas tus horas gastadas en algo que se reinicia. Y tú sin avanzar ni un metro. Puta cinta de correr con luces de colores.',
+      'Todas tus horas gastadas en algo que se reinicia. Y tú sin avanzar ni un metro. Puta cinta de correr con luces de colores, da pena ajena.',
 
-      'Friki que confunde saber mucho de algo con ser alguien. No es transferible, cabrón, y llevas la vida entera comprobándolo.',
+      'Friki que confunde saber mucho de algo con ser alguien. No es transferible, cabrón, y llevas la vida entera comprobándolo, qué vacío.',
 
       '[nombre], el hábito de no salir del lore te delata a la primera frase. Sótano sin salida útil, patético.',
 
-      'Tienes más referencias inútiles que mensajes que alguien quiera retomar, [nombre]. Monólogo eterno del hilo, asco.',
+      'Tienes más referencias inútiles que mensajes que alguien quiera retomar, [nombre]. Monólogo eterno del hilo, asco, qué vergüenza ajena.',
 
-      'Estás al día de cosas que no afectan a una sola parte de tu vida. Toda esa información y ni una puta aplicación práctica.',
+      'Estás al día de cosas que no afectan a una sola parte de tu vida. Toda esa información y ni una puta aplicación práctica, da vergüenza.',
 
-      'Tienes opiniones sólidas sobre ficción y ninguna sobre tu vida, que es la que va como el culo. Puta prioridad invertida.',
+      'Tienes opiniones sólidas sobre ficción y ninguna sobre tu vida, que es la que va como el culo. Puta prioridad invertida, qué flojo.',
 
-      'Tu manera de existir aquí es esperar a que alguien mencione tu tema. Nunca lo mencionan y tú sigues esperando, pringado.gilipollas.',
+      'Tu manera de existir aquí es esperar a que alguien mencione tu tema. Nunca lo mencionan y tú sigues esperando, pringado.gilipollas, menudo desastre.',
 
-      'Friki que se sabe cada detalle menos cuándo está aburriendo. Y aburres siempre, cabrón. Siempre, sin una sola excepción.',
+      'Friki que se sabe cada detalle menos cuándo está aburriendo. Y aburres siempre, cabrón. Siempre, sin una sola excepción, qué pena.',
 
-      'Friki que se ha construido un mundo entero para no enfrentarse a este. Puta cobardía con decorados caros y sin público.',
+      'Friki que se ha construido un mundo entero para no enfrentarse a este. Puta cobardía con decorados caros y sin público, patético.',
 
-      'Friki que confunde tener un refugio con tener una vida. Un refugio se usa a ratos, cabrón. Tú te has mudado ahí dentro.',
+      'Friki que confunde tener un refugio con tener una vida. Un refugio se usa a ratos, cabrón. Tú te has mudado ahí dentro, miserable.',
 
-      'Tu forma de estar cómodo es no salir. Por eso llevas años exactamente igual, con el mismo cuarto y la misma puta cara.',
+      'Tu forma de estar cómodo es no salir. Por eso llevas años exactamente igual, con el mismo cuarto y la misma puta cara, qué cringe.',
 
-      'Destacas en un ranking que nadie de aquí va a mirar jamás. Campeón de nada delante de nadie, puto trofeo de plástico.',
+      'Destacas en un ranking que nadie de aquí va a mirar jamás. Campeón de nada delante de nadie, puto trofeo de plástico, da asco.',
 
-      'Friki que ha convertido su afición en su única conversación posible. Y se nota a los diez segundos, cabrón. Cada vez.',
+      'Friki que ha convertido su afición en su única conversación posible. Y se nota a los diez segundos, cabrón. Cada vez, qué vergüenza.',
 
-      '[nombre], friki de mierda: cargas con un museo portátil sin un solo visitante. Toda esa mochila para no enseñar nada.',
+      '[nombre], friki de mierda: cargas con un museo portátil sin un solo visitante. Toda esa mochila para no enseñar nada, ridículo.',
 
       'La compostura cruza de acera cuando te ve en el high de friki, [nombre]. Sótano sin salida útil, basura.',
 
@@ -7861,37 +7861,37 @@ const LABELS = {
 
       'Friki de los que el high del ranking no suaviza: el rincón del chat te queda grande igual, [nombre]. Joder.',
 
-      'Tienes el aura del post olvidado: presente en el archivo, frío en el ranking, [nombre]. Desperdicio, asco.',
+      'Tienes el aura del post olvidado: presente en el archivo, frío en el ranking, [nombre]. Desperdicio, asco, qué nivel de pena.',
 
-      'Se te oye el arrastre del monólogo hasta en los mensajes que pretenden ser normales, [nombre]. Fracasado.',
+      'Se te oye el arrastre del monólogo hasta en los mensajes que pretenden ser normales, [nombre]. Fracasado, basura.',
 
-      'Friki de superficie suficiente: no hace falta abrir el wiki, se huele el cerrado, [nombre]. Patético.',
+      'Friki de superficie suficiente: no hace falta abrir el wiki, se huele el cerrado, [nombre]. Patético, qué cutre.',
 
-      'La clase social te suena a ataque y respondes con más del mismo mazo del ranking, [nombre]. Patético.',
+      'La clase social te suena a ataque y respondes con más del mismo mazo del ranking, [nombre]. Patético, da pena ajena.',
 
-      'Friki de feria ambulante de un solo puesto: el mismo show, cero nostalgia ajena, [nombre]. Fracasado.',
+      'Friki de feria ambulante de un solo puesto: el mismo show, cero nostalgia ajena, [nombre]. Fracasado, qué vacío.',
 
-      'No hay barniz de antihéroe nerd: hay aislamiento y el high lo nombra en el ranking, [nombre]. Cabrón.',
+      'No hay barniz de antihéroe nerd: hay aislamiento y el high lo nombra en el ranking, [nombre]. Cabrón, indignante.',
 
-      'Friki de racha perfecta: lo único que no fallas es no enganchar fuera del nicho, [nombre]. Ridículo.',
+      'Friki de racha perfecta: lo único que no fallas es no enganchar fuera del nicho, [nombre]. Ridículo, qué vergüenza ajena.',
 
-      'Tu manera de participar es señalar errores. Nadie invita al que solo corrige, gilipollas. Puto árbitro sin partido y sin amigos ridículo.',
+      'Tu manera de participar es señalar errores. Nadie invita al que solo corrige, gilipollas. Puto árbitro sin partido y sin amigos ridículo, da vergüenza.',
 
-      'Tu manera de participar es señalar errores. Nadie invita al que solo corrige, gilipollas. Puto árbitro sin partido y sin amigos fracasado.',
+      'Tu manera de participar es señalar errores. Nadie invita al que solo corrige, gilipollas. Puto árbitro sin partido y sin amigos fracasado, qué flojo.',
 
-      'Tu manera de participar es señalar errores. Nadie invita al que solo corrige, gilipollas. Puto árbitro sin partido y sin amigos joder.',
+      'Tu manera de participar es señalar errores. Nadie invita al que solo corrige, gilipollas. Puto árbitro sin partido y sin amigos joder, menudo desastre.',
 
-      'Tu manera de participar es señalar errores. Nadie invita al que solo corrige, gilipollas. Puto árbitro sin partido y sin amigos mierda.',
+      'Tu manera de participar es señalar errores. Nadie invita al que solo corrige, gilipollas. Puto árbitro sin partido y sin amigos mierda, qué pena.',
 
-      'Tu manera de participar es señalar errores. Nadie invita al que solo corrige, gilipollas. Puto árbitro sin partido y sin amigos coño.',
+      'Tu manera de participar es señalar errores. Nadie invita al que solo corrige, gilipollas. Puto árbitro sin partido y sin amigos coño, patético.',
 
-      'Tu manera de participar es señalar errores. Nadie invita al que solo corrige, gilipollas. Puto árbitro sin partido y sin amigos cabrón.',
+      'Tu manera de participar es señalar errores. Nadie invita al que solo corrige, gilipollas. Puto árbitro sin partido y sin amigos cabrón, miserable.',
 
-      'Tu manera de participar es señalar errores. Nadie invita al que solo corrige, gilipollas. Puto árbitro sin partido y sin amigos gilipollas.',
+      'Tu manera de participar es señalar errores. Nadie invita al que solo corrige, gilipollas. Puto árbitro sin partido y sin amigos gilipollas, qué cringe.',
 
-      'Tu manera de participar es señalar errores. Nadie invita al que solo corrige, gilipollas. Puto árbitro sin partido y sin amigos patético.',
+      'Tu manera de participar es señalar errores. Nadie invita al que solo corrige, gilipollas. Puto árbitro sin partido y sin amigos patético, da asco.',
 
-      'Tu manera de participar es señalar errores. Nadie invita al que solo corrige, gilipollas. Puto árbitro sin partido y sin amigos asco.',
+      'Tu manera de participar es señalar errores. Nadie invita al que solo corrige, gilipollas. Puto árbitro sin partido y sin amigos asco, qué vergüenza.',
 
     ],
     mid: [
@@ -7943,57 +7943,57 @@ const LABELS = {
 
       'Tus aficiones te ocupan mucho tiempo, pero no te han quitado la vida entera. Todavía con el número en la frente del mensaje.',
 
-      'Tus horas invertidas son muchas y tu vida sigue existiendo. El equilibrio está justo con el saldo a la intemperie.',
+      'Tus horas invertidas son muchas y tu vida sigue existiendo. El equilibrio está justo con el saldo a la intemperie, da grima.',
 
-      'Tus planes incluyen gente algunas veces. Otras veces no incluyen a nadie en absoluto y el sistema marca el punto final.',
+      'Tus planes incluyen gente algunas veces. Otras veces no incluyen a nadie en absoluto y el sistema marca el punto final, qué nivel de pena.',
 
-      'Tienes criterio para saber cuándo tu tema aburre. Lo que falla es aplicarlo siempre. Delante del marcador en vivo.',
+      'Tienes criterio para saber cuándo tu tema aburre. Lo que falla es aplicarlo siempre. Delante del marcador en vivo, basura.',
 
-      'Tu afición es intensa y tu vida social existe. Que las dos convivan ya es un mérito con la firma legible del comando.',
+      'Tu afición es intensa y tu vida social existe. Que las dos convivan ya es un mérito con la firma legible del comando, qué cutre.',
 
-      'A ratos das el nivel social y a ratos te refugias. La media queda exactamente aquí en alta resolución de group chat.',
+      'A ratos das el nivel social y a ratos te refugias. La media queda exactamente aquí en alta resolución de group chat, da pena ajena.',
 
-      'A veces arrastras la conversación a tu tema y a veces sabes parar. Depende del día sin anestesia de verdad esta vez.',
+      'A veces arrastras la conversación a tu tema y a veces sabes parar. Depende del día sin anestesia de verdad esta vez, qué vacío.',
 
-      'Cuando quieres, sabes hablar de otras cosas. El problema es que casi nunca quieres con la cara del resultado a la vista.',
+      'Cuando quieres, sabes hablar de otras cosas. El problema es que casi nunca quieres con la cara del resultado a la vista, indignante.',
 
-      'Tu manera de relacionarte mezcla lo virtual y lo real. Con ventaja para lo primero y no hace falta ampliar el parte.',
+      'Tu manera de relacionarte mezcla lo virtual y lo real. Con ventaja para lo primero y no hace falta ampliar el parte, qué vergüenza ajena.',
 
-      'Tienes lo justo de vida fuera para que la afición siga siendo afición y no refugio sin apelación posible hoy.',
+      'Tienes lo justo de vida fuera para que la afición siga siendo afición y no refugio sin apelación posible hoy, da vergüenza.',
 
-      'Ni arriba ni abajo. Un término medio bastante estable en tu caso desde hace tiempo sin modo avión ni silencio cómplice.',
+      'Ni arriba ni abajo. Un término medio bastante estable en tu caso desde hace tiempo sin modo avión ni silencio cómplice, qué flojo.',
 
-      'Ni caso perdido ni ejemplo. Estás en la franja donde nadie se preocupa ni comenta en el idioma seco del ranking.',
+      'Ni caso perdido ni ejemplo. Estás en la franja donde nadie se preocupa ni comenta en el idioma seco del ranking, menudo desastre.',
 
-      'Ni te encierras ni sales tanto. Estás en el punto donde la cosa aún es reversible y no hay DLC que lo parchee.',
+      'Ni te encierras ni sales tanto. Estás en el punto donde la cosa aún es reversible y no hay DLC que lo parchee, qué pena.',
 
-      'Ni desconectado ni conectado del todo. Un término medio que funciona sin destacar con el grupo de testigo silencioso.',
+      'Ni desconectado ni conectado del todo. Un término medio que funciona sin destacar con el grupo de testigo silencioso, patético.',
 
-      'Cuando te enganchas a algo desapareces semanas. Luego vuelves. Y así llevas años en el recuento que no perdona.',
+      'Cuando te enganchas a algo desapareces semanas. Luego vuelves. Y así llevas años en el recuento que no perdona, miserable.',
 
-      'Tienes conversación de sobra cuando te sales de tu tema. Sales poco, pero puedes sin barniz de relato heroico.',
+      'Tienes conversación de sobra cuando te sales de tu tema. Sales poco, pero puedes sin barniz de relato heroico, qué cringe.',
 
-      'Ni te pierdes ni te sueltas del todo. Un intermedio que en esto no está nada mal y el sistema cierra sin discusión.',
+      'Ni te pierdes ni te sueltas del todo. Un intermedio que en esto no está nada mal y el sistema cierra sin discusión, da asco.',
 
-      'Tu porcentaje es medio porque en esto vas medio: mitad refugio, mitad hobby sano sin consuelo de manual barato.',
+      'Tu porcentaje es medio porque en esto vas medio: mitad refugio, mitad hobby sano sin consuelo de manual barato, qué vergüenza.',
 
-      'Ni obsesivo ni casual. En el punto donde la afición es intensa pero no absoluta y. El ranking no pide permiso.',
+      'Ni obsesivo ni casual. En el punto donde la afición es intensa pero no absoluta y. El ranking no pide permiso, ridículo.',
 
-      'Ni te aíslas ni te expones. Un intermedio que ni preocupa ni impresiona a nadie con el dígito como única defensa.',
+      'Ni te aíslas ni te expones. Un intermedio que ni preocupa ni impresiona a nadie con el dígito como única defensa, fracasado.',
 
-      'A ratos pareces alguien con vida y a ratos alguien con rutina. Van alternándose y. El ranking no pide permiso.',
+      'A ratos pareces alguien con vida y a ratos alguien con rutina. Van alternándose y. El ranking no pide permiso, qué miseria.',
 
-      'A ratos das prioridad a lo virtual y a ratos a lo real. Va equilibrado por poco con el cargo en firme.',
+      'A ratos das prioridad a lo virtual y a ratos a lo real. Va equilibrado por poco con el cargo en firme, da grima.',
 
-      'Ni friki total ni ajeno del todo. Un punto medio que se sostiene sin esfuerzo con el peaje cobrado al natural.',
+      'Ni friki total ni ajeno del todo. Un punto medio que se sostiene sin esfuerzo con el peaje cobrado al natural, qué nivel de pena.',
 
-      'Sales, sí, pero con cuentagotas y mirando el reloj para volver a la cueva con el dígito firmando solo.',
+      'Sales, sí, pero con cuentagotas y mirando el reloj para volver a la cueva con el dígito firmando solo, basura.',
 
-      'Friki de armario, que es igual de grave pero con más esfuerzo en negarlo con la firma legible del comando.',
+      'Friki de armario, que es igual de grave pero con más esfuerzo en negarlo con la firma legible del comando, qué cutre.',
 
-      'Ni encerrado ni social. En la mitad exacta, que en esto no está nada mal con la firma legible del comando.',
+      'Ni encerrado ni social. En la mitad exacta, que en esto no está nada mal con la firma legible del comando, da pena ajena.',
 
-      'Tienes un pie en el mundo real y los otros tres en el que te inventaste delante de quien no quería verlo.',
+      'Tienes un pie en el mundo real y los otros tres en el que te inventaste delante de quien no quería verlo, qué vacío.',
 
     ],
     low: [
@@ -8352,11 +8352,11 @@ const LABELS = {
 
       'La compostura cruza de acera cuando te ve en el high, [nombre]. Se ve desde el primer mensaje, ridículo.',
 
-      'Cerdo de feria: grasa, ruido, suelo peor y cero ganas de volver, [nombre]. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+      'Cerdo de feria: grasa, ruido, suelo peor y cero ganas de volver, [nombre]. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza ajena.',
 
-      'Se te ve venir el cerdo en la primera palabra del mensaje, [nombre]. Eso no se maquilla con ángulo, joder.',
+      'Se te ve venir el cerdo en la primera palabra del mensaje, [nombre]. Eso no se maquilla con ángulo, da vergüenza.',
 
-      'La dignidad del nivel no para: tú eres el tráfico del arcén, [nombre] el nivel te nombra sin permiso, mierda.',
+      'La dignidad del nivel no para: tú eres el tráfico del arcén, [nombre] el nivel te nombra sin permiso, qué flojo.',
 
       'Cerdo de superficie: no hace falta abrir el cubo, huele de lejos, [nombre]. Menudo desastre higiénico, basura.',
 
@@ -8366,9 +8366,9 @@ const LABELS = {
 
       'Cerdo de las que alardean del desastre porque callar las deja sin rol, [nombre]. El ranking firma y listo, patético.',
 
-      'El asco resume el high y el resto solo desarrolla el diagnóstico, [nombre]. Se ve desde el primer mensaje, asco.',
+      'El asco resume el high y el resto solo desarrolla el diagnóstico, [nombre]. Se ve desde el primer mensaje, asco, qué cringe.',
 
-      'Has firmado el cerdo con grasa en cada mensaje como única firma, [nombre]. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+      'Has firmado el cerdo con grasa en cada mensaje como única firma, [nombre]. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da asco.',
 
       'Cerdo visible desde lejos: el rastro se ve, la parada no compensa, [nombre]. Eso no se maquilla con ángulo, ridículo.',
 
@@ -8376,47 +8376,47 @@ const LABELS = {
 
       'La clase te suena a ataque y respondes con más migas de suciedad, [nombre]. El jabón te dio de baja, patético.',
 
-      'Cerdo de racha perfecta: lo único que no fallas es manchar, [nombre]. Hueles a abandono, asco, y el grupo no se traga el cuento, asco.',
+      'Cerdo de racha perfecta: lo único que no fallas es manchar, [nombre]. Hueles a abandono, asco, y el grupo no se traga el cuento, asco, qué miseria.',
 
       'No hay eco de estilo: hay eco de cerdo. Y el chat lo amplifica, [nombre]. Menudo desastre higiénico, basura.',
 
-      'Tienes el aura del plato olvidado: presente, frío y con restos, [nombre]. El ranking firma y listo, el chat ya lo sabía, cabrón.',
+      'Tienes el aura del plato olvidado: presente, frío y con restos, [nombre]. El ranking firma y listo, el chat ya lo sabía, qué nivel de pena.',
 
-      'El listón lo usas de pan y el suelo del chat es tu mantel, [nombre]. Se ve desde el primer mensaje, nivel sótano puro, gilipollas.',
+      'El listón lo usas de pan y el suelo del chat es tu mantel, [nombre]. Se ve desde el primer mensaje, nivel sótano puro, basura.',
 
-      'Has hecho ranking de cerdo y el oro es tuyo sin rival, [nombre]., sin filtro ni consuelo, patético. Hostia puta, qué nivel.',
+      'Has hecho ranking de cerdo y el oro es tuyo sin rival, [nombre]., sin filtro ni consuelo, patético. Hostia puta, qué nivel, qué cutre.',
 
-      'Cerdo de feria ambulante: el mismo show, el mismo asco, cero nostalgia, [nombre]. Eso no se maquilla con ángulo, diagnóstico cerrado.',
+      'Cerdo de feria ambulante: el mismo show, el mismo asco, cero nostalgia, [nombre]. Eso no se maquilla con ángulo, diagnóstico cerrado, da pena ajena.',
 
       'Se te ve venir el teatro sucio en el primer punto del mensaje, [nombre] el nivel te nombra sin permiso, y se te nota a la legua, basura.',
 
-      'La dignidad hace autostop y el tráfico del arcén eres tú, [nombre]. El grupo te esquiva, cabrón, y el grupo no se traga el cuento, cabrón.',
+      'La dignidad hace autostop y el tráfico del arcén eres tú, [nombre]. El grupo te esquiva, cabrón, y el grupo no se traga el cuento, indignante.',
 
-      'Cerdo de superficie suficiente: basta la vista, no hace falta el sótano, [nombre]. Sin una puta toalla limpia, gilipollas.',
+      'Cerdo de superficie suficiente: basta la vista, no hace falta el sótano, [nombre]. Sin una puta toalla limpia, qué vergüenza ajena.',
 
       'No hay barniz de antihéroe: hay cerdo y el high lo cobra, [nombre]. El jabón te dio de baja, patético.',
 
-      'Tienes el tono de noches de chat sin una frase limpia que se sostenga, [nombre]. El ranking firma y listo, con el grupo de testigo, mierda.',
+      'Tienes el tono de noches de chat sin una frase limpia que se sostenga, [nombre]. El ranking firma y listo, con el grupo de testigo, qué flojo.',
 
-      'Cerdo de malinterpretar el mute como interés por el personaje barato, [nombre]. Se ve desde el primer mensaje, sin maquillaje posible, coño.',
+      'Cerdo de malinterpretar el mute como interés por el personaje barato, [nombre]. Se ve desde el primer mensaje, sin maquillaje posible, menudo desastre.',
 
-      'El precio de tu repertorio lo paga el hilo en tiempo y paciencia, [nombre]. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+      'El precio de tu repertorio lo paga el hilo en tiempo y paciencia, [nombre]. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué pena.',
 
-      'Has dejado el hilo como obra sin plano: escombro de suciedad, [nombre]. Eso no se maquilla con ángulo, gilipollas.',
+      'Has dejado el hilo como obra sin plano: escombro de suciedad, [nombre]. Eso no se maquilla con ángulo, patético.',
 
-      'Cerdo de estribillo que empeora con cada bis del mismo plato, [nombre] el nivel te nombra sin permiso, joder.',
+      'Cerdo de estribillo que empeora con cada bis del mismo plato, [nombre] el nivel te nombra sin permiso, miserable.',
 
-      'La compostura del nivel no te reconoce en el elenco, [nombre]. Hueles a abandono, mierda. Hostia puta, qué nivel.',
+      'La compostura del nivel no te reconoce en el elenco, [nombre]. Hueles a abandono, mierda. Hostia puta, qué nivel, qué cringe.',
 
-      'Cerdo de fondo: bajas la media del high con constancia de mancha, [nombre]. Menudo desastre higiénico, coño.',
+      'Cerdo de fondo: bajas la media del high con constancia de mancha, [nombre]. Menudo desastre higiénico, da asco.',
 
-      'No es estilo: es cerdo previsible y el high te lo nombra entero, [nombre]. El grupo te esquiva, cabrón.',
+      'No es estilo: es cerdo previsible y el high te lo nombra entero, [nombre]. El grupo te esquiva, qué vergüenza.',
 
-      'Tienes más episodios de mancha que intentos de pasar un trapo, [nombre]. El ranking firma y listo, gilipollas.',
+      'Tienes más episodios de mancha que intentos de pasar un trapo, [nombre]. El ranking firma y listo, ridículo.',
 
       'Cerdo de respeto ajeno en números rojos del ranking, [nombre], coño. Se ve desde el primer mensaje, patético.',
 
-      'El promedio del high es este: no un mal día, el nivel del nivel, [nombre]. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+      'El promedio del high es este: no un mal día, el nivel del nivel, [nombre]. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué miseria.',
 
       'Has convertido el cerdo en identidad sin renovación limpia, [nombre]. Eso no se maquilla con ángulo, basura.',
 
@@ -8424,9 +8424,9 @@ const LABELS = {
 
       'Tu presencia baja el promedio de higiene del chat solo con escribir, [nombre]. Sin una puta toalla limpia, fracasado.',
 
-      'Ni el modo oscuro tapa lo que dejas en el hilo, [nombre]. Cerdo hasta en la sombra. El jabón te dio de baja, joder.',
+      'Ni el modo oscuro tapa lo que dejas en el hilo, [nombre]. Cerdo hasta en la sombra. El jabón te dio de baja, qué cutre.',
 
-      'Se te cae el disimulo solo con abrir el hilo y el high lo documenta, [nombre]. Hueles a abandono, mierda.',
+      'Se te cae el disimulo solo con abrir el hilo y el high lo documenta, [nombre]. Hueles a abandono, da pena ajena.',
 
       'Cerdo de las que el ambientador se rinde y pide la baja, [nombre]. El ranking firma y listo, sin anestesia, basura.',
 
@@ -8434,9 +8434,9 @@ const LABELS = {
 
       'Tu mensaje es un aviso de lo que no hay que tocar en el grupo, [nombre]., nivel sótano puro, fracasado.',
 
-      'Cerdo con la disciplina de quien nunca ha pasado un trapo por el relato, [nombre]. Eso no se maquilla con ángulo, sin filtro ni consuelo, joder.',
+      'Cerdo con la disciplina de quien nunca ha pasado un trapo por el relato, [nombre]. Eso no se maquilla con ángulo, sin filtro ni consuelo, da vergüenza.',
 
-      'El high no es un mal día de orden: es.mierda. Sin anestesia. Hueles a abandono, asco, y el grupo no se traga el cuento, asco.',
+      'El high no es un mal día de orden: es.mierda. Sin anestesia. Hueles a abandono, asco, y el grupo no se traga el cuento, asco, qué flojo.',
 
       'Tienes una presencia que ensucia el hilo en un solo mensaje, [nombre]. Menudo desastre higiénico, basura.',
 
@@ -8446,7 +8446,7 @@ const LABELS = {
 
       'Cerdo sin complejo útil: el complejo al menos indicaría que viste el desastre, [nombre]. El ranking firma y listo, patético.',
 
-      'El ranking de higiene te deja donde mereces: en el sótano del high, [nombre]. Se ve desde el primer mensaje, con el grupo de testigo, asco.',
+      'El ranking de higiene te deja donde mereces: en el sótano del high, [nombre]. Se ve desde el primer mensaje, con el grupo de testigo, asco, qué cringe.',
 
       'Has hecho del cerdo tu marca y la marca se pega en los dedos ajenos, [nombre]., sin maquillaje posible, basura.',
 
@@ -8454,9 +8454,9 @@ const LABELS = {
 
       'No es estilo sucio con gracia: eres un cerdo y el high no discute la evidencia, [nombre] el nivel te nombra sin permiso, fracasado.',
 
-      'Tu noción de limpieza es apartar la basura. Con el pie para abrir camino. Vives en un nivel de Tetris hecho de mugre.',
+      'Tu noción de limpieza es apartar la basura. Con el pie para abrir camino. Vives en un nivel de Tetris hecho de mugre, fracasado.',
 
-      'La vergüenza ajena es el impuesto que pagamos por tu forma de estar en el hilo. Hueles a abandono, asco.',
+      'La vergüenza ajena es el impuesto que pagamos por tu forma de estar en el hilo. Hueles a abandono, asco, qué miseria.',
 
       'Cerdo de fondo de chat: siempre ahí, siempre dejando rastro, siempre igual. Menudo desastre higiénico, basura.',
 
@@ -8464,19 +8464,19 @@ const LABELS = {
 
       'No es gracia sucia: es suciedad sin gracia, la versión que no entretiene, [nombre]. Sin una puta toalla limpia, fracasado.',
 
-      'El listón está en el suelo y tú lo usas de pan para mojar sin vergüenza, [nombre]. El jabón te dio de baja, joder.',
+      'El listón está en el suelo y tú lo usas de pan para mojar sin vergüenza, [nombre]. El jabón te dio de baja, qué cutre.',
 
-      'Cerdo de oficio: el rastro de grasa es tu firma y aparece en cada párrafo. Hueles a abandono, mierda.',
+      'Cerdo de oficio: el rastro de grasa es tu firma y aparece en cada párrafo. Hueles a abandono, da pena ajena.',
 
-      'Has firmado lo cutre. Con grasa en cada mensaje como única firma posible. Sin anestesia. Menudo desastre higiénico, coño.',
+      'Has firmado lo cutre. Con grasa en cada mensaje como única firma posible. Sin anestesia. Menudo desastre higiénico, qué vacío.',
 
-      'Dejas el baño de tal manera que hay que limpiarlo antes de poder usarlo. Puta escena del crimen con toalla húmeda.',
+      'Dejas el baño de tal manera que hay que limpiarlo antes de poder usarlo. Puta escena del crimen con toalla húmeda, indignante.',
 
-      'Tienes el tono de quien come con la boca abierta en un restaurante en silencio. Sin una puta toalla limpia, gilipollas.',
+      'Tienes el tono de quien come con la boca abierta en un restaurante en silencio. Sin una puta toalla limpia, qué vergüenza ajena.',
 
       'Cerdo de superficie suficiente: no hace falta abrir el cubo, huele igual. El jabón te dio de baja, patético.',
 
-      'Tienes una manta que huele desde hace meses y duermes con ella cada noche. Ni un animal aguanta eso, puto guarro.',
+      'Tienes una manta que huele desde hace meses y duermes con ella cada noche. Ni un animal aguanta eso, puto guarro, qué flojo.',
 
       'Has hecho de lo cutre una marca y la marca se pega en los dedos del que lee. Menudo desastre higiénico, basura.',
 
@@ -8486,17 +8486,17 @@ const LABELS = {
 
       'Has hecho ranking de cerdez y el oro es tuyo sin que nadie dispute el podio. Sin anestesia, patético.',
 
-      'Tienes más manchas documentadas que intentos serios de pasar un trapo al relato. Hueles a abandono, mierda.',
+      'Tienes más manchas documentadas que intentos serios de pasar un trapo al relato. Hueles a abandono, qué cringe.',
 
-      'Has convertido la grasa en carnet. y no hay renovación limpia a la vista. Menudo desastre higiénico, coño.',
+      'Has convertido la grasa en carnet. y no hay renovación limpia a la vista. Menudo desastre higiénico, da asco.',
 
-      'La higiene del hilo y tú firmasteis no verse: el acuerdo se cumple a rajatabla El grupo te esquiva, cabrón.',
+      'La higiene del hilo y tú firmasteis no verse: el acuerdo se cumple a rajatabla El grupo te esquiva, qué vergüenza.',
 
-      'Cerdo con las mismas cartas manchadas de siempre y sin plan B Sin una puta toalla limpia, gilipollas.',
+      'Cerdo con las mismas cartas manchadas de siempre y sin plan B Sin una puta toalla limpia, ridículo.',
 
       'Has convertido la mancha en identidad y no hay detergente narrativo a la vista. El jabón te dio de baja, patético.',
 
-      'Cerdo de letrero grasiento: se lee igual de lejos y no invita a entrar. Hueles a abandono, asco, y el grupo no se traga el cuento, asco.',
+      'Cerdo de letrero grasiento: se lee igual de lejos y no invita a entrar. Hueles a abandono, asco, y el grupo no se traga el cuento, asco, qué miseria.',
 
       'Se te ve venir la mancha en la primera palabra del mensaje largo, [nombre]. Menudo desastre higiénico, basura.',
 
@@ -8546,65 +8546,65 @@ const LABELS = {
 
       'Cumples lo justo para que nadie te lo diga a la cara. Detrás sí se comenta, tranquilo con el saldo a la intemperie.',
 
-      'A ratos das el nivel y a ratos das pereza. La proporción decide, y la tuya está justa delante de la evidencia del contador.',
+      'A ratos das el nivel y a ratos das pereza. La proporción decide, y la tuya está justa delante de la evidencia del contador, miserable.',
 
-      'A ratos cuidas los detalles y a ratos ni los básicos. Sin patrón claro entre las dos con el grupo de testigo silencioso.',
+      'A ratos cuidas los detalles y a ratos ni los básicos. Sin patrón claro entre las dos con el grupo de testigo silencioso, qué cringe.',
 
-      'Ni ejemplo ni problema. Justo en el medio, que en higiene es un sitio raro pero real sin consuelo de manual barato.',
+      'Ni ejemplo ni problema. Justo en el medio, que en higiene es un sitio raro pero real sin consuelo de manual barato, da asco.',
 
-      'Ni te señalan ni te ponen de ejemplo. Estás en la zona gris que nadie quiere ocupar. Sin derecho a matiz útil.',
+      'Ni te señalan ni te ponen de ejemplo. Estás en la zona gris que nadie quiere ocupar. Sin derecho a matiz útil, qué vergüenza.',
 
-      'Tienes la costumbre de dejar cosas para después. Después llega y las dejas otra vez y el archivo queda cerrado.',
+      'Tienes la costumbre de dejar cosas para después. Después llega y las dejas otra vez y el archivo queda cerrado, ridículo.',
 
-      'Ni cerdo ni maniático. Estás en el punto donde la gente no piensa en ello y ya está con. El chat enterado del cargo.',
+      'Ni cerdo ni maniático. Estás en el punto donde la gente no piensa en ello y ya está con. El chat enterado del cargo, fracasado.',
 
-      'Tu nivel sube cuando hay gente y baja cuando estás solo. Eso lo dice bastante claro y basta el dato del ranking.',
+      'Tu nivel sube cuando hay gente y baja cuando estás solo. Eso lo dice bastante claro y basta el dato del ranking, qué miseria.',
 
-      'Tu cuarto tiene zonas que llevan meses sin ver la luz. Y tú lo sabes perfectamente con la firma legible del comando.',
+      'Tu cuarto tiene zonas que llevan meses sin ver la luz. Y tú lo sabes perfectamente con la firma legible del comando, da grima.',
 
-      'A veces se te va de las manos y luego reaccionas. Reaccionar tarde tiene su precio sin anestesia de verdad esta vez.',
+      'A veces se te va de las manos y luego reaccionas. Reaccionar tarde tiene su precio sin anestesia de verdad esta vez, qué nivel de pena.',
 
-      'Tienes rutina para lo básico y ninguna para el resto. Ahí es donde se acumula todo con el eco todavía en el grupo.',
+      'Tienes rutina para lo básico y ninguna para el resto. Ahí es donde se acumula todo con el eco todavía en el grupo, basura.',
 
-      'Cuando algo se acumula lo resuelves. Lo que falla es dejar que se acumule cada vez con el eco todavía en el grupo.',
+      'Cuando algo se acumula lo resuelves. Lo que falla es dejar que se acumule cada vez con el eco todavía en el grupo, qué cutre.',
 
-      'Ni bien ni mal. Un pasable constante que no molesta a nadie ni impresiona a nadie sin suavizar el golpe del número.',
+      'Ni bien ni mal. Un pasable constante que no molesta a nadie ni impresiona a nadie sin suavizar el golpe del número, da pena ajena.',
 
-      'Tu limpieza sube y baja según el público. Eso no es higiene, es marketing barato delante de la evidencia del contador.',
+      'Tu limpieza sube y baja según el público. Eso no es higiene, es marketing barato delante de la evidencia del contador, qué vacío.',
 
-      'Higiene de fin de semana. De lunes a jueves el asunto es bastante más discutible. Y el chat archiva sin debate.',
+      'Higiene de fin de semana. De lunes a jueves el asunto es bastante más discutible. Y el chat archiva sin debate, indignante.',
 
-      'Justo en la frontera. Un mal fin de semana y pasas al otro lado sin darte cuenta con el cargo en firme.',
+      'Justo en la frontera. Un mal fin de semana y pasas al otro lado sin darte cuenta con el cargo en firme, qué vergüenza ajena.',
 
-      'Cuando esperas visita, la casa está perfecta. El resto del tiempo mejor no mirar con el fail todavía caliente.',
+      'Cuando esperas visita, la casa está perfecta. El resto del tiempo mejor no mirar con el fail todavía caliente, da vergüenza.',
 
-      'Tienes hábitos buenos que no sostienes. Y sin sostenerlos no sirven de gran cosa con la firma legible del comando.',
+      'Tienes hábitos buenos que no sostienes. Y sin sostenerlos no sirven de gran cosa con la firma legible del comando, qué flojo.',
 
-      'A veces te pasas de descuidado y luego compensas. Compensar no borra lo anterior en el parte que nadie borra.',
+      'A veces te pasas de descuidado y luego compensas. Compensar no borra lo anterior en el parte que nadie borra, menudo desastre.',
 
-      'Ni asqueroso ni impecable. Un aprobado raspado sostenido durante bastante tiempo con. El bot como notario del fallo.',
+      'Ni asqueroso ni impecable. Un aprobado raspado sostenido durante bastante tiempo con. El bot como notario del fallo, qué pena.',
 
-      'Te arreglas si hay foto. El resto del tiempo funcionas en modo ahorro. Y se nota y no hay DLC que lo parchee.',
+      'Te arreglas si hay foto. El resto del tiempo funcionas en modo ahorro. Y se nota y no hay DLC que lo parchee, patético.',
 
-      'Tienes momentos de orden entre semanas de dejadez. El balance queda en el medio y el contador insiste.',
+      'Tienes momentos de orden entre semanas de dejadez. El balance queda en el medio y el contador insiste, miserable.',
 
-      'Ni limpio ni sucio: mantenido. Y mantener sin mejorar acaba siendo insuficiente y el resto es ruido de fondo.',
+      'Ni limpio ni sucio: mantenido. Y mantener sin mejorar acaba siendo insuficiente y el resto es ruido de fondo, qué cringe.',
 
-      'Tienes lo justo para que nadie se queje y nunca lo suficiente para que se note y no hay DLC que lo parchee.',
+      'Tienes lo justo para que nadie se queje y nunca lo suficiente para que se note y no hay DLC que lo parchee, da asco.',
 
-      'Aprobado raspado. Y el examen de esto lo hace todo el que se sienta a tu lado en el momento que más dolía soltarlo.',
+      'Aprobado raspado. Y el examen de esto lo hace todo el que se sienta a tu lado en el momento que más dolía soltarlo, qué vergüenza.',
 
-      'Tu higiene personal está bien y tu casa no tanto. O al revés, según la semana sin modo avión ni silencio cómplice.',
+      'Tu higiene personal está bien y tu casa no tanto. O al revés, según la semana sin modo avión ni silencio cómplice, ridículo.',
 
-      'Tu orden depende del ánimo. Y el ánimo no es un buen sistema de mantenimiento y el sistema no regala puntos.',
+      'Tu orden depende del ánimo. Y el ánimo no es un buen sistema de mantenimiento y el sistema no regala puntos, fracasado.',
 
-      'Ni impecable ni preocupante. Estás justo donde se puede vivir sin comentarios. Delante del ranking y de la cara.',
+      'Ni impecable ni preocupante. Estás justo donde se puede vivir sin comentarios. Delante del ranking y de la cara, qué miseria.',
 
-      'Tu casa está presentable si avisan con tiempo. Sin avisar, mejor quedar fuera sin prosa que lo maquille.',
+      'Tu casa está presentable si avisan con tiempo. Sin avisar, mejor quedar fuera sin prosa que lo maquille, da grima.',
 
-      'Ni desastre ni ejemplo. Te mantienes en un aceptable que nunca llega a bueno con el eco del almost todavía sonando.',
+      'Ni desastre ni ejemplo. Te mantienes en un aceptable que nunca llega a bueno con el eco del almost todavía sonando, qué nivel de pena.',
 
-      'Tienes buenas intenciones y mala continuidad. En esto la continuidad es todo con el eco del almost todavía sonando.',
+      'Tienes buenas intenciones y mala continuidad. En esto la continuidad es todo con el eco del almost todavía sonando, basura.',
 
     ],
     low: [
@@ -8955,19 +8955,19 @@ const LABELS = {
 
       'Tienes el historial de un fregadero que nadie ha tocado desde el domingo, [nombre]. Almost de estética barata, fracasado.',
 
-      'Femboy de malinterpretar el silencio ajeno como invitación a más teatro, [nombre]. Pose sin sustancia detrás, joder.',
+      'Femboy de malinterpretar el silencio ajeno como invitación a más teatro, [nombre]. Pose sin sustancia detrás, qué vacío.',
 
-      'El grupo paga tu rastro en cuotas diarias de hastío documentado, [nombre]. el grupo de testigo, asco.',
+      'El grupo paga tu rastro en cuotas diarias de hastío documentado, [nombre]. el grupo de testigo, asco, indignante.',
 
       'Has dejado el chat como fregadero a medias: restos de pose eternos, [nombre]. maquillaje posible, basura.',
 
-      'Femboy de estribillo sin punto final limpio ni redención posible, [nombre]. Pose sin sustancia detrás, cabrón.',
+      'Femboy de estribillo sin punto final limpio ni redención posible, [nombre]. Pose sin sustancia detrás, da vergüenza.',
 
-      'Se te nota el peso de arrastrar el mismo personaje por cada hilo, [nombre]. El disfraz no tapa el hueco, gilipollas.',
+      'Se te nota el peso de arrastrar el mismo personaje por cada hilo, [nombre]. El disfraz no tapa el hueco, qué flojo.',
 
-      'La compostura cruza de acera cuando te ve en el high del comando, [nombre]. Se te ve el fail a la primera, joder.',
+      'La compostura cruza de acera cuando te ve en el high del comando, [nombre]. Se te ve el fail a la primera, menudo desastre.',
 
-      'Femboy de feria: grasa, ruido, suelo peor y cero ganas de volver, [nombre]. Pose sin sustancia detrás, asco.',
+      'Femboy de feria: grasa, ruido, suelo peor y cero ganas de volver, [nombre]. Pose sin sustancia detrás, asco, qué pena.',
 
       'Se te ve venir la pose en la primera palabra del mensaje, [nombre]. El disfraz no tapa el hueco, basura.',
 
@@ -8975,143 +8975,143 @@ const LABELS = {
 
       'Femboy de superficie suficiente: no hace falta abrir el cubo, huele, [nombre]. Pose sin sustancia detrás, fracasado.',
 
-      'No hay barniz que salve: hay pose pura y no se vende como carisma, [nombre]. El disfraz no tapa el hueco, joder.',
+      'No hay barniz que salve: hay pose pura y no se vende como carisma, [nombre]. El disfraz no tapa el hueco, da asco.',
 
-      'Te peinas, te depilas y exiges trato de macho cuando conviene, [nombre]. Almost de estética barata, mierda.',
+      'Te peinas, te depilas y exiges trato de macho cuando conviene, [nombre]. Almost de estética barata, qué vergüenza.',
 
-      'Tu culo tiene más presencia en el grupo que tu opinión. Y eso ya es decir bastante, cabrón. Sin segunda lectura que lo arregle.',
+      'Tu culo tiene más presencia en el grupo que tu opinión. Y eso ya es decir bastante, cabrón. Sin segunda lectura que lo arregle, ridículo.',
 
-      'Usas la estética femenina como escudo y como reclamo a la vez. Quieres lo mejor de los dos mundos sin pagar el precio, cabrón.',
+      'Usas la estética femenina como escudo y como reclamo a la vez. Quieres lo mejor de los dos mundos sin pagar el precio, fracasado.',
 
-      'Has invertido más en parecer delicado que en tener personalidad. El resultado es un envoltorio bonito con nada dentro, cabrón.',
+      'Has invertido más en parecer delicado que en tener personalidad. El resultado es un envoltorio bonito con nada dentro, qué miseria.',
 
       '[nombre], cada cumplido con cariño te cabrea más que el insulto directo. Pose sin sustancia detrás, patético.',
 
-      'Has convertido el grooming en una religión y la masculinidad en un disfraz de fin de semana. Las prioridades claras, cabrón.',
+      'Has convertido el grooming en una religión y la masculinidad en un disfraz de fin de semana. Las prioridades claras, qué nivel de pena.',
 
-      'El día que pares de fingir vas a descubrir que el grupo ya había pasado página. Solo tú seguías en el capítulo, puto femboy.',
+      'El día que pares de fingir vas a descubrir que el grupo ya había pasado página. Solo tú seguías en el capítulo, puto femboy, basura.',
 
-      'Tu culo es el protagonista de tus selfies casuales. No es casual, es femboy marketing, cabrón. Con el fail todavía caliente.',
+      'Tu culo es el protagonista de tus selfies casuales. No es casual, es femboy marketing, cabrón. Con el fail todavía caliente, qué cutre.',
 
-      'Te gusta que te fotografíen en poses de tía. Luego las borras, pero el backup existe, cabrón. Sin consuelo de manual barato.',
+      'Te gusta que te fotografíen en poses de tía. Luego las borras, pero el backup existe, cabrón. Sin consuelo de manual barato, da pena ajena.',
 
-      'Tu culo ha hecho más por tu reputación en el grupo que todas tus opiniones juntas, maricón delante de quien no quería verlo.',
+      'Tu culo ha hecho más por tu reputación en el grupo que todas tus opiniones juntas, maricón delante de quien no quería verlo, qué vacío.',
 
-      'El espejo sabe. El baño sabe. El armario sabe. Solo tu boca sigue en modo avestruz, cabrón. En alta resolución de group chat.',
+      'El espejo sabe. El baño sabe. El armario sabe. Solo tu boca sigue en modo avestruz, cabrón. En alta resolución de group chat, indignante.',
 
-      'Te depilas hasta el alma y usas cremas para mantener la suavidad. La suavidad de femboy, cabrón. Sin que nadie pida replay.',
+      'Te depilas hasta el alma y usas cremas para mantener la suavidad. La suavidad de femboy, cabrón. Sin que nadie pida replay, qué vergüenza ajena.',
 
-      'Tu versión hetero es un skin que te pones para. El chat. En privado el skin se cae solo, cabrón. Con el fallo en 4K de chat.',
+      'Tu versión hetero es un skin que te pones para. El chat. En privado el skin se cae solo, cabrón. Con el fallo en 4K de chat, da vergüenza.',
 
-      'Te depilas las piernas para el deporte y el resultado es más suave que el de una modelo. El deporte es ser femboy, cabrón.',
+      'Te depilas las piernas para el deporte y el resultado es más suave que el de una modelo. El deporte es ser femboy, qué flojo.',
 
-      'La próxima vez que digas que no eres femboy, grábate en vídeo. Luego míralo sin sonido. El cuerpo habla solo, puto femboy.',
+      'La próxima vez que digas que no eres femboy, grábate en vídeo. Luego míralo sin sonido. El cuerpo habla solo, puto femboy, menudo desastre.',
 
-      'Cuando te llaman princesa sonríes un segundo de más. Ese segundo es toda la confesión que el grupo necesita, puto travelo.',
+      'Cuando te llaman princesa sonríes un segundo de más. Ese segundo es toda la confesión que el grupo necesita, puto travelo, qué pena.',
 
-      'El femboy no es el enemigo. El enemigo es el teatro barato que montas para no nombrarlo, cabrón. Y el historial no olvida.',
+      'El femboy no es el enemigo. El enemigo es el teatro barato que montas para no nombrarlo, cabrón. Y el historial no olvida, patético.',
 
-      'La estética grita. La boca susurra lo contrario. El grupo se queda con el grito, puto femboy y el resto es ruido de fondo.',
+      'La estética grita. La boca susurra lo contrario. El grupo se queda con el grito, puto femboy y el resto es ruido de fondo, miserable.',
 
-      'Usas la ambigüedad como estrategia y la victimización cuando te pillan. El manual completo del indeciso con pose, cabrón.',
+      'Usas la ambigüedad como estrategia y la victimización cuando te pillan. El manual completo del indeciso con pose, qué cringe.',
 
-      'Tu culo, tu cintura y tu forma de caminar gritan femboy. La boca niega, pero el cuerpo no, cabrón. Y el contador insiste.',
+      'Tu culo, tu cintura y tu forma de caminar gritan femboy. La boca niega, pero el cuerpo no, cabrón. Y el contador insiste, da asco.',
 
-      'Tu historial de TikTok está lleno de tutoriales de maquillaje y moda femenina. El algoritmo no miente, femboy de mierda.',
+      'Tu historial de TikTok está lleno de tutoriales de maquillaje y moda femenina. El algoritmo no miente, femboy de mierda, qué vergüenza.',
 
-      'Quieres el trato de chica sin el estigma y el privilegio de tío sin la responsabilidad. La cuenta no sale, puto femboy.',
+      'Quieres el trato de chica sin el estigma y el privilegio de tío sin la responsabilidad. La cuenta no sale, puto femboy, ridículo.',
 
-      'Usas el maquillaje para parecer suave y el discurso para parecer duro. Ninguna de las dos cosas te sale limpia, cabrón.',
+      'Usas el maquillaje para parecer suave y el discurso para parecer duro. Ninguna de las dos cosas te sale limpia, fracasado.',
 
-      'Femboy de los que llegan tarde a su propia revelación. La fiesta empezó sin ti, puto travelo sin apelación posible hoy.',
+      'Femboy de los que llegan tarde a su propia revelación. La fiesta empezó sin ti, puto travelo sin apelación posible hoy, qué miseria.',
 
-      'Tu culo ha hecho más declaraciones públicas que tu boca. Y con mejor redacción, puto femboy sin recurso ni nota al pie.',
+      'Tu culo ha hecho más declaraciones públicas que tu boca. Y con mejor redacción, puto femboy sin recurso ni nota al pie, da grima.',
 
-      'Llevas crop tops que te marcan las costillas y el culo. No es moda, es anuncio de femboy, cabrón. Sin prórroga ni VAR.',
+      'Llevas crop tops que te marcan las costillas y el culo. No es moda, es anuncio de femboy, cabrón. Sin prórroga ni VAR, qué nivel de pena.',
 
-      'Te gusta que te fotografíen en poses femeninas y luego las borras por vergüenza. El disco tiene backup, puto travelo.',
+      'Te gusta que te fotografíen en poses femeninas y luego las borras por vergüenza. El disco tiene backup, puto travelo, basura.',
 
-      'Te gusta que te llamen princesa y muñeca pero luego te haces el duro. El contraste es tan ridículo que duele, femboy.',
+      'Te gusta que te llamen princesa y muñeca pero luego te haces el duro. El contraste es tan ridículo que duele, femboy, qué cutre.',
 
-      'Llevas el disfraz tan puesto que te has olvidado de cómo se sale. Y fuera hace frío, cabrón. Sin filtro de autoayuda.',
+      'Llevas el disfraz tan puesto que te has olvidado de cómo se sale. Y fuera hace frío, cabrón. Sin filtro de autoayuda, da pena ajena.',
 
-      'Te depilas el culo, las piernas y el pecho y dices que es por higiene personal. La higiene de qué, de puto travelo.',
+      'Te depilas el culo, las piernas y el pecho y dices que es por higiene personal. La higiene de qué, de puto travelo, qué vacío.',
 
-      'Usas lo femenino para atraer y lo masculino para defenderte. Eres un sistema de dos caras y las dos se ven, cabrón.',
+      'Usas lo femenino para atraer y lo masculino para defenderte. Eres un sistema de dos caras y las dos se ven, indignante.',
 
-      'Tu culo es el más suave y redondo del grupo y te lo sabes. Por eso llevas pantalones que lo enseñan, puto femboy.',
+      'Tu culo es el más suave y redondo del grupo y te lo sabes. Por eso llevas pantalones que lo enseñan, puto femboy, qué vergüenza ajena.',
 
-      'Tu forma de sentarte, de cruzar las piernas y de gesticular es de señorita de instituto. Femboy de libro, cabrón.',
+      'Tu forma de sentarte, de cruzar las piernas y de gesticular es de señorita de instituto. Femboy de libro, da vergüenza.',
 
-      'Femboy de manual: pose cute, contenido vacío, drama de manual, [nombre]. Almost de estética barata, gilipollas.',
+      'Femboy de manual: pose cute, contenido vacío, drama de manual, [nombre]. Almost de estética barata, qué flojo.',
 
-      'La voz, el culo, la ropa y la negación forman un acorde. Y el acorde suena a femboy en todas las octavas, cabrón.',
+      'La voz, el culo, la ropa y la negación forman un acorde. Y el acorde suena a femboy en todas las octavas, menudo desastre.',
 
-      'La única persona sorprendida por tu femboy eres tú. El resto está en la grada desde el primer acto, puto travelo.',
+      'La única persona sorprendida por tu femboy eres tú. El resto está en la grada desde el primer acto, puto travelo, qué pena.',
 
-      'Cada crop top es una declaración. Cada negación es un chiste malo. El grupo ya no ríe, solo anota, puto travelo.',
+      'Cada crop top es una declaración. Cada negación es un chiste malo. El grupo ya no ríe, solo anota, puto travelo, patético.',
 
-      'Cada vez que te peinas para parecer más suave confirmas lo que niegas con la boca. El peine delata, puto femboy.',
+      'Cada vez que te peinas para parecer más suave confirmas lo que niegas con la boca. El peine delata, puto femboy, miserable.',
 
       'Has convertido la negación en tu deporte olímpico. Llevas años sin bajar del podio de la mentira, puto travelo.',
 
-      'Usas lo femenino para brillar y lo masculino para no quemarte. Al final haces las dos cosas a medias, cabrón.',
+      'Usas lo femenino para brillar y lo masculino para no quemarte. Al final haces las dos cosas a medias, da asco.',
 
-      'Has llegado al punto en que el teatro es más agotador que la verdad. Y aun así eliges el teatro, puto femboy.',
+      'Has llegado al punto en que el teatro es más agotador que la verdad. Y aun así eliges el teatro, puto femboy, qué vergüenza.',
 
-      'Llevas la estética de una decisión tomada y el discurso de una decisión aplazada. El reloj no espera, cabrón.',
+      'Llevas la estética de una decisión tomada y el discurso de una decisión aplazada. El reloj no espera, ridículo.',
 
-      'Usas la ropa de chica para sentirte vivo y la voz de tío para no morir del qué dirán. El miedo se ve, cabrón.',
+      'Usas la ropa de chica para sentirte vivo y la voz de tío para no morir del qué dirán. El miedo se ve, fracasado.',
 
-      'Cada producto que compras es un ladrillo más en la pared de evidencia. La pared ya es un muro, puto travelo.',
+      'Cada producto que compras es un ladrillo más en la pared de evidencia. La pared ya es un muro, puto travelo, qué miseria.',
 
-      'Quieres ser deseado en clave femenina y respetado en clave masculina. El mercado no ofrece ese pack, cabrón.',
+      'Quieres ser deseado en clave femenina y respetado en clave masculina. El mercado no ofrece ese pack, da grima.',
 
-      'La ropa no hace al femboy. Lo hace la forma en que te emocionas cuando alguien te trata como a una, cabrón.',
+      'La ropa no hace al femboy. Lo hace la forma en que te emocionas cuando alguien te trata como a una, qué nivel de pena.',
 
-      'Llevas uñas pintadas de broma y el esmalte no se te cae en semanas. Eso no es broma, es identidad, cabrón.',
+      'Llevas uñas pintadas de broma y el esmalte no se te cae en semanas. Eso no es broma, es identidad, basura.',
 
-      'Usas la ropa de chica para sentirte visto y la voz de tío para no ser señalado. El truco es viejo, cabrón.',
+      'Usas la ropa de chica para sentirte visto y la voz de tío para no ser señalado. El truco es viejo, qué cutre.',
 
-      'Tu culo, tu voz y tu historial de Amazon ya formaron un sindicato. El sindicato habla por ti, puto femboy.',
+      'Tu culo, tu voz y tu historial de Amazon ya formaron un sindicato. El sindicato habla por ti, puto femboy, da pena ajena.',
 
       'El femboy se te sale por los poros. La negación se te queda en la boca. El grupo elige qué creer, cabrón.',
 
       'Llevas tanto tiempo en modo femboy que el modo hetero te queda como traje prestado de otra talla, cabrón.',
 
-      'Llevas el disfraz, la negación y el cansancio de mantenerlos. El cansancio se te nota en la voz, cabrón.',
+      'Llevas el disfraz, la negación y el cansancio de mantenerlos. El cansancio se te nota en la voz, qué vergüenza ajena.',
 
-      'Llevas productos de belleza de mujer y los escondes. El escondite es peor que la verdad, puto travelo.',
+      'Llevas productos de belleza de mujer y los escondes. El escondite es peor que la verdad, puto travelo, da vergüenza.',
 
-      'Usas la ambigüedad como casa y la verdad como visita incómoda. Un día la visita se queda, puto femboy.',
+      'Usas la ambigüedad como casa y la verdad como visita incómoda. Un día la visita se queda, puto femboy, qué flojo.',
 
-      'Llevas la estética de una decisión y el discurso de la indecisión. El contraste es el chiste, cabrón.',
+      'Llevas la estética de una decisión y el discurso de la indecisión. El contraste es el chiste, menudo desastre.',
 
-      'Has invertido en parecer delicado y en sonar peligroso. Ninguna de las dos inversiones renta, cabrón.',
+      'Has invertido en parecer delicado y en sonar peligroso. Ninguna de las dos inversiones renta, qué pena.',
 
-      'Tus calcetines hasta el muslo no tapan lo evidente: debajo del programa cute hay un tío promedio huyendo de su propia cara y de su propia vida, maricón, coño.',
+      'Tus calcetines hasta el muslo no tapan lo evidente: debajo del programa cute hay un tío promedio huyendo de su propia cara y de su propia vida, maricón, patético.',
 
-      'La estética cute te dura hasta que alguien te confronta. Ahí vuelve el macho de cartón, puto femboy.',
+      'La estética cute te dura hasta que alguien te confronta. Ahí vuelve el macho de cartón, puto femboy, miserable.',
 
-      'Quieres validación de chica y autoridad de tío. El combo no existe fuera de tu cabeza, puto travelo.',
+      'Quieres validación de chica y autoridad de tío. El combo no existe fuera de tu cabeza, puto travelo, qué cringe.',
 
-      'La coherencia se fue del chat el día que empezaste a combinar crop top con discurso de alfa, cabrón.',
+      'La coherencia se fue del chat el día que empezaste a combinar crop top con discurso de alfa, da asco.',
 
-      'Cada outfit nuevo es un comunicado de prensa. El comunicado dice lo que tu boca calla, puto travelo.',
+      'Cada outfit nuevo es un comunicado de prensa. El comunicado dice lo que tu boca calla, puto travelo, qué vergüenza.',
 
-      'La única cosa que te falta para el pack completo es dejar de mentir. El resto ya está, puto travelo.',
+      'La única cosa que te falta para el pack completo es dejar de mentir. El resto ya está, puto travelo, ridículo.',
 
       'Usas cremas antiarrugas a los veinte y sérum de ácido hialurónico. Eso no es skincare, es preparación para el maquillaje completo, maricón, ridículo.',
 
       'Tu cintura es más estrecha que la de media tía del grupo y te la enseñas con crop tops cuando nadie mira. Femboy confirmado nivel experto, fracasado.',
 
-      'Llevas más productos de belleza en el baño que tu hermana y dices que es solo para la piel. La piel de qué, de tu culo afeitado, maricón, joder.',
+      'Llevas más productos de belleza en el baño que tu hermana y dices que es solo para la piel. La piel de qué, de tu culo afeitado, maricón, da grima.',
 
-      'Tu culo es más redondo y suave que el de media tía del grupo y te lo enseñas con pantalones ajustados a propósito. Femboy de catálogo, mierda.',
+      'Tu culo es más redondo y suave que el de media tía del grupo y te lo enseñas con pantalones ajustados a propósito. Femboy de catálogo, qué nivel de pena.',
 
-      'Llevas tanto tiempo en el personaje que ya no sabes dónde termina el disfraz y dónde empiezas tú. Spoiler: casi no empiezas, maricón, coño.',
+      'Llevas tanto tiempo en el personaje que ya no sabes dónde termina el disfraz y dónde empiezas tú. Spoiler: casi no empiezas, maricón, basura.',
 
-      'La masculinidad que defiendes en el chat no aparece ni en tus selfies ni en tu forma de cruzar las piernas. Cero coherencia, travelo, cabrón.',
+      'La masculinidad que defiendes en el chat no aparece ni en tus selfies ni en tu forma de cruzar las piernas. Cero coherencia, travelo, qué cutre.',
 
       'Tu historial de búsquedas, tus compras y tu forma de sentarte ya formaron un tribunal. El disfraz no tapa el hueco, fracasado.',
 
@@ -9139,83 +9139,83 @@ const LABELS = {
 
       'Dices "tío" cada dos palabras para compensar que tu lenguaje corporal grita otra cosa, hostia puta en el segundo más incómodo del chat.',
 
-      'No eres femboy pero tu reflejo en el escaparate a veces te da un susto de la hostia. Delante del listón que no saltaste.',
+      'No eres femboy pero tu reflejo en el escaparate a veces te da un susto de la hostia. Delante del listón que no saltaste, basura.',
 
-      'Te pillan en poses sospechosas y dices que estabas estirando. Mierda de excusa, cabrón, estiras mucho para un lado.',
+      'Te pillan en poses sospechosas y dices que estabas estirando. Mierda de excusa, cabrón, estiras mucho para un lado, qué cutre.',
 
-      'Tu armario es de tío normal pero tienes un cajón cerrado con llave que huele a secreto con purpurina.',
+      'Tu armario es de tío normal pero tienes un cajón cerrado con llave que huele a secreto con purpurina, da pena ajena.',
 
-      'Cuando bebes se te suelta la muñeca como una bisagra rota y todo el bar se entera, joder. Sin modo avión ni silencio cómplice.',
+      'Cuando bebes se te suelta la muñeca como una bisagra rota y todo el bar se entera, joder. Sin modo avión ni silencio cómplice, qué vacío.',
 
-      'Medio macho, medio otra cosa. Eres el centauro de la ambigüedad de género, coño. Y el sistema marca el punto final.',
+      'Medio macho, medio otra cosa. Eres el centauro de la ambigüedad de género, coño. Y el sistema marca el punto final, indignante.',
 
-      'Tu novia dice que eres muy masculino pero tus colegas intercambian miradas cada vez que pides un cóctel rosa.',
+      'Tu novia dice que eres muy masculino pero tus colegas intercambian miradas cada vez que pides un cóctel rosa, qué vergüenza ajena.',
 
-      'Tienes más cremas en el baño que tu hermana y lo justificas con "es por la piel". Ya, claro, gilipollas.',
+      'Tienes más cremas en el baño que tu hermana y lo justificas con "es por la piel". Ya, claro, da vergüenza.',
 
-      'No eres femboy pero si alguien te regalara unas medias te las probarías "por curiosidad", cabrón. Sin filtro de autoayuda.',
+      'No eres femboy pero si alguien te regalara unas medias te las probarías "por curiosidad", cabrón. Sin filtro de autoayuda, qué flojo.',
 
-      'Tu historial de búsqueda es recto hasta que llegas a la página tres y ahí la cosa se tuerce, hostia.',
+      'Tu historial de búsqueda es recto hasta que llegas a la página tres y ahí la cosa se tuerce, menudo desastre.',
 
-      'Pareces un tío corriente hasta que alguien te pone un filtro de TikTok y la transformación es inquietantemente buena.',
+      'Pareces un tío corriente hasta que alguien te pone un filtro de TikTok y la transformación es inquietantemente buena, qué pena.',
 
-      'Juras que eres puro macho pero tu postura al apoyarte en la pared es de protagonista de shojo, coño.',
+      'Juras que eres puro macho pero tu postura al apoyarte en la pared es de protagonista de shojo, patético.',
 
-      'Tu forma de morderte el labio cuando piensas ha generado más confusión que respuestas en el grupo, joder.',
+      'Tu forma de morderte el labio cuando piensas ha generado más confusión que respuestas en el grupo, miserable.',
 
-      'Eres de los que dicen "qué asco. Las uñas pintadas" mientras se miran las suyas pensando en qué color, gilipollas.',
+      'Eres de los que dicen "qué asco. Las uñas pintadas" mientras se miran las suyas pensando en qué color, qué cringe.',
 
-      'Medio femboy es peor que entero porque ni disfrutas el personaje ni convences como macho. Un puto limbo.',
+      'Medio femboy es peor que entero porque ni disfrutas el personaje ni convences como macho. Un puto limbo, da asco.',
 
-      'Te sale un "ay" agudo cuando te asustas que contradice toda la masculinidad que llevas montando años, cabrón.',
+      'Te sale un "ay" agudo cuando te asustas que contradice toda la masculinidad que llevas montando años, qué vergüenza.',
 
-      'Tu pelo está sospechosamente bien cuidado para alguien que jura que solo usa champú dos en uno, mierda.',
+      'Tu pelo está sospechosamente bien cuidado para alguien que jura que solo usa champú dos en uno, ridículo.',
 
-      'No das el perfil completo pero en la foto de grupo siempre sales con la pose más suave, hostia. Sin derecho a matiz útil.',
+      'No das el perfil completo pero en la foto de grupo siempre sales con la pose más suave, hostia. Sin derecho a matiz útil, fracasado.',
 
-      'Si la feminidad fuera un virus tú estarías en periodo de incubación, coño. Los síntomas ya se notan.',
+      'Si la feminidad fuera un virus tú estarías en periodo de incubación, coño. Los síntomas ya se notan, qué miseria.',
 
-      'Eres el tío que en las fiestas de disfraces elige personaje femenino "por broma" y lo clava demasiado bien.',
+      'Eres el tío que en las fiestas de disfraces elige personaje femenino "por broma" y lo clava demasiado bien, da grima.',
 
-      'Tus amigos ya tienen un apodo privado para ti en el grupo sin ti. Y no, no es "machote", gilipollas.',
+      'Tus amigos ya tienen un apodo privado para ti en el grupo sin ti. Y no, no es "machote", qué nivel de pena.',
 
-      'Le pones demasiado empeño a negar algo que nadie te ha preguntado, cabrón. Eso ya es sospechoso de cojones.',
+      'Le pones demasiado empeño a negar algo que nadie te ha preguntado, cabrón. Eso ya es sospechoso de cojones, basura.',
 
-      'Cuando te dicen "eres muy sensible" lo niegas con una vehemencia que solo confirma el diagnóstico, joder.',
+      'Cuando te dicen "eres muy sensible" lo niegas con una vehemencia que solo confirma el diagnóstico, qué cutre.',
 
-      'Tienes la fuerza de un tío pero la delicadeza al coger las cosas de alguien que teme romperse una uña.',
+      'Tienes la fuerza de un tío pero la delicadeza al coger las cosas de alguien que teme romperse una uña, da pena ajena.',
 
-      'Tu manera de decir "hola" ya viene con un tonito que ningún manual de masculinidad aprobaría, hostia.',
+      'Tu manera de decir "hola" ya viene con un tonito que ningún manual de masculinidad aprobaría, qué vacío.',
 
-      'No eres femboy pero si te midieran los niveles de purpurina interna saldrías positivo, coño. En el parte que nadie borra.',
+      'No eres femboy pero si te midieran los niveles de purpurina interna saldrías positivo, coño. En el parte que nadie borra, indignante.',
 
-      'Medio y medio, como el café. Pero tu mitad fem tiene más sabor que tu mitad macho, mierda. En el único marcador que importa aquí.',
+      'Medio y medio, como el café. Pero tu mitad fem tiene más sabor que tu mitad macho, mierda. En el único marcador que importa aquí, qué vergüenza ajena.',
 
-      'Cuando alguien dice "femboy" en el grupo miras para otro lado demasiado rápido. Eso se nota, cabrón.',
+      'Cuando alguien dice "femboy" en el grupo miras para otro lado demasiado rápido. Eso se nota, da vergüenza.',
 
-      'Tu cara de póker cuando sale este tema es la peor cara de póker de la historia, gilipollas. Sin derecho a matiz útil.',
+      'Tu cara de póker cuando sale este tema es la peor cara de póker de la historia, gilipollas. Sin derecho a matiz útil, qué flojo.',
 
-      'En la escala de masculinidad eres un cinco con coma: ni arriba ni abajo, flotando en terreno peligroso.',
+      'En la escala de masculinidad eres un cinco con coma: ni arriba ni abajo, flotando en terreno peligroso, menudo desastre.',
 
-      'Tienes la pinta de macho ibérico pero los modales de alguien que sabe qué coño es un tóner. Y el contador insiste.',
+      'Tienes la pinta de macho ibérico pero los modales de alguien que sabe qué coño es un tóner. Y el contador insiste, qué pena.',
 
-      'Cuando cruzas las piernas en público tu viejo siente una perturbación en la fuerza, hostia puta con el número hablando solo.',
+      'Cuando cruzas las piernas en público tu viejo siente una perturbación en la fuerza, hostia puta con el número hablando solo, patético.',
 
-      'Tu gymbox dice "entreno duro" pero tus estiramientos post-gym son puro ballet de la hostia y no hay DLC que lo parchee.',
+      'Tu gymbox dice "entreno duro" pero tus estiramientos post-gym son puro ballet de la hostia y no hay DLC que lo parchee, miserable.',
 
-      'Eres como un coche tuneado por dentro pero con carrocería de furgoneta: la sorpresa viene al abrir, cabrón.',
+      'Eres como un coche tuneado por dentro pero con carrocería de furgoneta: la sorpresa viene al abrir, qué cringe.',
 
-      'La mitad de ti es tío corriente y la otra mitad es un misterio que da miedo explorar, coño. Y el sistema cierra sin discusión.',
+      'La mitad de ti es tío corriente y la otra mitad es un misterio que da miedo explorar, coño. Y el sistema cierra sin discusión, da asco.',
 
-      'Tu reacción cuando te ponen una canción de Dua Lipa te delata más que un detector de mentiras, mierda.',
+      'Tu reacción cuando te ponen una canción de Dua Lipa te delata más que un detector de mentiras, qué vergüenza.',
 
-      'No eres femboy pero tienes una energía sospechosa que ni tú mismo puedes explicar sin tartamudear, joder.',
+      'No eres femboy pero tienes una energía sospechosa que ni tú mismo puedes explicar sin tartamudear, ridículo.',
 
-      'Eres el tío que se queda mirando la sección femenina "comparando precios". Seguro, cabrón, comparando.',
+      'Eres el tío que se queda mirando la sección femenina "comparando precios". Seguro, cabrón, comparando, fracasado.',
 
-      'Si tu masculinidad fuera una pared, tendría humedades. No se cae, pero las manchas ya se ven, gilipollas.',
+      'Si tu masculinidad fuera una pared, tendría humedades. No se cae, pero las manchas ya se ven, qué miseria.',
 
-      'Joder, eres la zona gris con patas. Ni los algoritmos de las apps saben qué mierda recomendarte sin apelación posible hoy.',
+      'Joder, eres la zona gris con patas. Ni los algoritmos de las apps saben qué mierda recomendarte sin apelación posible hoy, da grima.',
 
     ],
     low: [
@@ -9546,19 +9546,19 @@ const LABELS = {
 
       '[nombre], nadie te espera para empezar nada. Empiezan y ya te enteras si te enteras. Ahí tienes tu peso exacto en este grupo, pringado.gilipollas.',
 
-      'Inútil sin redención: el hueco que dejas cuando te vas es un alivio medible, [nombre]. El chat te usa de ambientación, joder.',
+      'Inútil sin redención: el hueco que dejas cuando te vas es un alivio medible, [nombre]. El chat te usa de ambientación, qué nivel de pena.',
 
-      'Has convertido el no aportar en un hábito y el hábito en identidad del ranking, [nombre]. Sin una puta tarea cumplida, mierda.',
+      'Has convertido el no aportar en un hábito y el hábito en identidad del ranking, [nombre]. Sin una puta tarea cumplida, basura.',
 
-      'No es discreción: es falta de material útil con nick incluido en el ranking, [nombre]. Cero función útil, coño.',
+      'No es discreción: es falta de material útil con nick incluido en el ranking, [nombre]. Cero función útil, qué cutre.',
 
-      'Inútil de estribillo que empeora con cada repetición del mismo vacío, [nombre]. Ni para relleno sirves, cabrón.',
+      'Inútil de estribillo que empeora con cada repetición del mismo vacío, [nombre]. Ni para relleno sirves, da pena ajena.',
 
-      'Llevas años sin producir nada que aguante una semana. Ni una cosa. Todo lo tuyo caduca antes de terminarse. Puta comida en mal estado.',
+      'Llevas años sin producir nada que aguante una semana. Ni una cosa. Todo lo tuyo caduca antes de terminarse. Puta comida en mal estado, qué vacío.',
 
-      'Eres el que pide plazo, incumple el plazo y luego pide otro, [nombre]. Un bucle perfecto de mierda que ya nadie tiene ganas de romper.',
+      'Eres el que pide plazo, incumple el plazo y luego pide otro, [nombre]. Un bucle perfecto de mierda que ya nadie tiene ganas de romper, indignante.',
 
-      'Inútil constante: la única racha que mantienes es la de no servir en el chat, [nombre]. Cero función útil, asco.',
+      'Inútil constante: la única racha que mantienes es la de no servir en el chat, [nombre]. Cero función útil, asco, qué vergüenza ajena.',
 
       'Inútil de feria ambulante: ruido sin recuerdo bueno en el historial del chat, [nombre]. Ni para relleno sirves, basura.',
 
@@ -9566,19 +9566,19 @@ const LABELS = {
 
       'No hay misterio de inutilidad interesante: hay lo previsible del high, [nombre]. Sin una puta tarea cumplida, fracasado.',
 
-      '[nombre], nadie te espera para empezar nada. Empiezan y ya te enteras si te enteras. Ahí tienes tu peso real en este grupo, pringado.patético Hostia puta, mierda.',
+      '[nombre], nadie te espera para empezar nada. Empiezan y ya te enteras si te enteras. Ahí tienes tu peso real en este grupo, pringado.patético Hostia puta, qué pena.',
 
-      'Inútil de feria: ruido, cero sustancia, el suelo igual de sucio del ranking, [nombre]. Ni para relleno sirves, mierda.',
+      'Inútil de feria: ruido, cero sustancia, el suelo igual de sucio del ranking, [nombre]. Ni para relleno sirves, patético.',
 
       'Inútil de inercia: el grupo te soporta por costumbre, no por interés real, [nombre]. Sin anestesia, basura.',
 
-      'La vergüenza ajena te sigue cuando intentas parecer necesarios en el hilo, [nombre]. Sin una puta tarea cumplida, cabrón.',
+      'La vergüenza ajena te sigue cuando intentas parecer necesarios en el hilo, [nombre]. Sin una puta tarea cumplida, qué cringe.',
 
-      'Tu forma de participar es preguntar si hay que hacer algo cuando ya está hecho. Cada vez. Puto reloj parado con capacidad de hablar.',
+      'Tu forma de participar es preguntar si hay que hacer algo cuando ya está hecho. Cada vez. Puto reloj parado con capacidad de hablar, da asco.',
 
-      '[nombre], eres el que pide ayuda antes de intentarlo. Y a veces sin intentarlo siquiera. Ni la pereza justifica ese nivel de mierda.',
+      '[nombre], eres el que pide ayuda antes de intentarlo. Y a veces sin intentarlo siquiera. Ni la pereza justifica ese nivel de mierda, qué vergüenza.',
 
-      'El recato de no hablar no te salva: cuando hablas se confirma el diagnóstico, [nombre]. El chat te usa de ambientación, asco.',
+      'El recato de no hablar no te salva: cuando hablas se confirma el diagnóstico, [nombre]. El chat te usa de ambientación, asco, ridículo.',
 
       'Se te nota la prisa por ocupar sitio y cero plan de justificarlo en el chat, [nombre]. Sin una puta tarea cumplida, basura.',
 
@@ -9588,57 +9588,57 @@ const LABELS = {
 
       'Inútil de superficie: la profundidad no aparece ni con zoom del historial, [nombre]. Sin anestesia, patético.',
 
-      'Llevas años sin que se te ocurra nada. Ni una idea, ni una mejora, ni una puta propuesta. Un cero a la izquierda con silla propia.',
+      'Llevas años sin que se te ocurra nada. Ni una idea, ni una mejora, ni una puta propuesta. Un cero a la izquierda con silla propia, basura.',
 
-      'Tienes más ausencias de criterio que mensajes con sustancia en el chat, [nombre]. Cero función útil, coño.',
+      'Tienes más ausencias de criterio que mensajes con sustancia en el chat, [nombre]. Cero función útil, qué cutre.',
 
-      'La dignidad del aporte no para: tú eres el tráfico del arcén del ranking, [nombre]. Ni para relleno sirves, cabrón.',
+      'La dignidad del aporte no para: tú eres el tráfico del arcén del ranking, [nombre]. Ni para relleno sirves, da pena ajena.',
 
-      'Inútil de inercia: el grupo te lee por costumbre, no por interés real, [nombre]. El chat te usa de ambientación, gilipollas.',
+      'Inútil de inercia: el grupo te lee por costumbre, no por interés real, [nombre]. El chat te usa de ambientación, qué vacío.',
 
       'Tienes el tono de noches de chat sin una frase que pese en el ranking, [nombre]. Sin una puta tarea cumplida, patético.',
 
-      'Llevas años pidiendo que te expliquen cosas que ya deberías dominar dormido. Puto eterno aprendiz sin una sola lección aprendida.',
+      'Llevas años pidiendo que te expliquen cosas que ya deberías dominar dormido. Puto eterno aprendiz sin una sola lección aprendida, qué vergüenza ajena.',
 
-      'Tu manera de hacerte notar es preguntar obviedades en el peor momento. Puto pesado con conexión a internet y sin ganas de usarla.',
+      'Tu manera de hacerte notar es preguntar obviedades en el peor momento. Puto pesado con conexión a internet y sin ganas de usarla, da vergüenza.',
 
-      'Tienes el historial de un cierre sanitario de sustancia en el ranking, [nombre]. Sin anestesia, cabrón.',
+      'Tienes el historial de un cierre sanitario de sustancia en el ranking, [nombre]. Sin anestesia, qué flojo.',
 
       'Inútil visible desde lejos: el letrero no compensa la parada del chat, [nombre]. Sin una puta tarea cumplida, fracasado.',
 
-      'Se te nota que perdiste el mapa del aporte hace tiempo en el ranking, [nombre]. Cero función útil, joder.',
+      'Se te nota que perdiste el mapa del aporte hace tiempo en el ranking, [nombre]. Cero función útil, qué pena.',
 
-      'Nadie confía en que termines nada, y esa desconfianza te la has ganado a pulso durante años. No es prejuicio, cabrón, son datos.',
+      'Nadie confía en que termines nada, y esa desconfianza te la has ganado a pulso durante años. No es prejuicio, cabrón, son datos, patético.',
 
-      'Tu aportación de valor es exactamente ninguna. Y eso no es una opinión, cabrón, se sostiene con años de datos y sin excepciones.',
+      'Tu aportación de valor es exactamente ninguna. Y eso no es una opinión, cabrón, se sostiene con años de datos y sin excepciones, miserable.',
 
-      'Has dejado el chat como obra sin plano: escombro de mensajes sin función, [nombre]. Sin una puta tarea cumplida, cabrón.',
+      'Has dejado el chat como obra sin plano: escombro de mensajes sin función, [nombre]. Sin una puta tarea cumplida, qué cringe.',
 
-      'Tienes más episodios de no aportar que de intentarlo en serio en el chat, [nombre]. Cero función útil, gilipollas.',
+      'Tienes más episodios de no aportar que de intentarlo en serio en el chat, [nombre]. Cero función útil, da asco.',
 
-      'Tu manera de resolver un conflicto es no estar cuando ocurre. Y siempre lo consigues, puto cobarde. Ahí sí que tienes puntería.',
+      'Tu manera de resolver un conflicto es no estar cuando ocurre. Y siempre lo consigues, puto cobarde. Ahí sí que tienes puntería, qué vergüenza.',
 
-      'Nadie te tiene en cuenta para nada serio y llevas años sin preguntarte por qué. Puto ciego voluntario con la respuesta delante.',
+      'Nadie te tiene en cuenta para nada serio y llevas años sin preguntarte por qué. Puto ciego voluntario con la respuesta delante, ridículo.',
 
       'No es gracia seca: es vacío sin gracia en el nivel del comando, [nombre]. Sin una puta tarea cumplida, basura.',
 
       'La dignidad del aporte hace autostop y el tráfico eres tú en el ranking, [nombre]. Cero función útil, ridículo.',
 
-      '[nombre], inútil de mierda: no sabes hacer, no sabes pedir ayuda y no sabes apartarte. El pack completo del estorbo con patas.',
+      '[nombre], inútil de mierda: no sabes hacer, no sabes pedir ayuda y no sabes apartarte. El pack completo del estorbo con patas, da grima.',
 
-      'Inútil de malinterpretar el silencio ajeno como interés por el vacío, [nombre]. El chat te usa de ambientación, joder.',
+      'Inútil de malinterpretar el silencio ajeno como interés por el vacío, [nombre]. El chat te usa de ambientación, qué nivel de pena.',
 
-      'Se te nota el hábito de empujar cada hilo hacia ninguna parte útil, [nombre]. Sin una puta tarea cumplida, mierda.',
+      'Se te nota el hábito de empujar cada hilo hacia ninguna parte útil, [nombre]. Sin una puta tarea cumplida, basura.',
 
-      'Nadie ha aprendido nunca nada de ti. Ni una técnica, ni un truco, ni una puta cosa. Estéril hasta para servir de mal ejemplo.',
+      'Nadie ha aprendido nunca nada de ti. Ni una técnica, ni un truco, ni una puta cosa. Estéril hasta para servir de mal ejemplo, qué cutre.',
 
-      'Tu forma de participar es hacer bulto. Y a veces ni eso, porque llegas cuando ya se está recogiendo. Puto relleno con nombre.',
+      'Tu forma de participar es hacer bulto. Y a veces ni eso, porque llegas cuando ya se está recogiendo. Puto relleno con nombre, da pena ajena.',
 
-      '[nombre], tu manera de gestionar el tiempo es no gestionarlo. Todo llega tarde o no llega. Puto agujero negro con calendario.',
+      '[nombre], tu manera de gestionar el tiempo es no gestionarlo. Todo llega tarde o no llega. Puto agujero negro con calendario, qué vacío.',
 
-      '[nombre], tu única aportación medible es el tiempo que le quitas a los demás. Y en eso sí eres constante, puto agujero negro.',
+      '[nombre], tu única aportación medible es el tiempo que le quitas a los demás. Y en eso sí eres constante, puto agujero negro, indignante.',
 
-      'Se te nota el arrastre de no empujar nunca hacia arriba del ranking, [nombre]. Cero función útil, asco.',
+      'Se te nota el arrastre de no empujar nunca hacia arriba del ranking, [nombre]. Cero función útil, asco, qué vergüenza ajena.',
 
       'El listón de lo útil está enterrado y tú bailas encima en el chat, [nombre]. Ni para relleno sirves, basura.',
 
@@ -9646,39 +9646,39 @@ const LABELS = {
 
       'Llevas años ocupando un puesto que no exige nada y aun así te queda grande. Piénsalo un segundo, si es que puedes, pringado.gilipollas.',
 
-      'Tu manera de gestionar el tiempo es no gestionarlo. Todo llega tarde o no llega. Puto agujero negro con calendario de pared.',
+      'Tu manera de gestionar el tiempo es no gestionarlo. Todo llega tarde o no llega. Puto agujero negro con calendario de pared, qué pena.',
 
-      'Tu manera de gestionar la presión es desaparecer del mapa. Sin avisar y sin volver. Puto desertor con historial documentado.',
+      'Tu manera de gestionar la presión es desaparecer del mapa. Sin avisar y sin volver. Puto desertor con historial documentado, patético.',
 
-      'La compostura del aporte no te reconoce en el ranking del grupo, [nombre]. Sin anestesia. El chat te usa de ambientación, coño.',
+      'La compostura del aporte no te reconoce en el ranking del grupo, [nombre]. Sin anestesia. El chat te usa de ambientación, miserable.',
 
-      'No hay barniz de personaje: hay inutilidad pura en el nivel, [nombre]. Sin una puta tarea cumplida, cabrón.',
+      'No hay barniz de personaje: hay inutilidad pura en el nivel, [nombre]. Sin una puta tarea cumplida, qué cringe.',
 
-      'No hay barniz: hay inutilidad pura en el nivel del comando, [nombre]. Cero función útil, gilipollas, joder.',
+      'No hay barniz: hay inutilidad pura en el nivel del comando, [nombre]. Cero función útil, gilipollas, da asco.',
 
       'Tienes más huecos que un delantal de aporte al cierre del ranking, [nombre]. Ni para relleno sirves, patético.',
 
-      'Se te oye el hueco cada vez que intentas aportar, [nombre]. El chat te usa de ambientación, asco, joder.',
+      'Se te oye el hueco cada vez que intentas aportar, [nombre]. El chat te usa de ambientación, asco, ridículo.',
 
-      'Inútil de mierda, [nombre]: cuando se reparte trabajo, la gente prefiere hacerlo con menos manos que contar con las tuyas.',
+      'Inútil de mierda, [nombre]: cuando se reparte trabajo, la gente prefiere hacerlo con menos manos que contar con las tuyas, fracasado.',
 
-      'Tu manera de asumir un error es explicar por qué no era tuyo. Siempre igual, cabrón. No has firmado una cagada en tu vida.',
+      'Tu manera de asumir un error es explicar por qué no era tuyo. Siempre igual, cabrón. No has firmado una cagada en tu vida, qué miseria.',
 
-      'Llevas años sin un resultado que puedas señalar y decir esto lo hice yo. Ni uno pequeño. Puta hoja de servicios en blanco.',
+      'Llevas años sin un resultado que puedas señalar y decir esto lo hice yo. Ni uno pequeño. Puta hoja de servicios en blanco, da grima.',
 
-      'Tu única aportación consistente ha sido el trabajo extra que generas a los demás. Y en eso sí eres constante, puto lastre.',
+      'Tu única aportación consistente ha sido el trabajo extra que generas a los demás. Y en eso sí eres constante, puto lastre, qué nivel de pena.',
 
-      '[nombre], tu manera de ayudar es preguntar tanto que al final lo hace el que responde. Un método muy tuyo y muy de mierda.',
+      '[nombre], tu manera de ayudar es preguntar tanto que al final lo hace el que responde. Un método muy tuyo y muy de mierda, basura.',
 
-      'Se te oye el tacón del listón bajo hasta en los neutros del chat, [nombre]. Cero función útil, coño, joder.',
+      'Se te oye el tacón del listón bajo hasta en los neutros del chat, [nombre]. Cero función útil, coño, qué cutre.',
 
-      'Inútil cutre: ni el silencio tiene estilo ni la presencia tiene función, [nombre]. Ni para relleno sirves, cabrón.',
+      'Inútil cutre: ni el silencio tiene estilo ni la presencia tiene función, [nombre]. Ni para relleno sirves, da pena ajena.',
 
-      'La clase de aportar te suena a reproche en el ranking del grupo, [nombre]. El chat te usa de ambientación, gilipollas.',
+      'La clase de aportar te suena a reproche en el ranking del grupo, [nombre]. El chat te usa de ambientación, qué vacío.',
 
       'Inútil de fondo de ranking: bajas la media de sustancia del chat, [nombre]. Sin una puta tarea cumplida, patético.',
 
-      'Has hecho de lo inútil tu estribillo sin público nuevo en el hilo, [nombre]. Cero función útil, asco.',
+      'Has hecho de lo inútil tu estribillo sin público nuevo en el hilo, [nombre]. Cero función útil, asco, qué vergüenza ajena.',
 
       'Has hecho ranking de no aportar y vas primero sin rival serio, [nombre]. Ni para relleno sirves, basura.',
 
@@ -9686,45 +9686,45 @@ const LABELS = {
 
       'Inútil de racha: lo único constante es no servir en el ranking, [nombre]. Sin una puta tarea cumplida, fracasado.',
 
-      'Inútil de feria: ruido, cero recuerdo, suelo peor del ranking, [nombre]. Cero función útil, joder. Hostia puta, qué nivel.',
+      'Inútil de feria: ruido, cero recuerdo, suelo peor del ranking, [nombre]. Cero función útil, joder. Hostia puta, qué nivel, qué pena.',
 
-      'El grupo paga tu repertorio vacío en tiempo del hilo del chat, [nombre]. Ni para relleno sirves, mierda.',
+      'El grupo paga tu repertorio vacío en tiempo del hilo del chat, [nombre]. Ni para relleno sirves, patético.',
 
-      'Tu forma de responder a una crítica es no cambiar nada. Ni un detalle, nunca. Puta pared con orejas y sin nada detrás.',
+      'Tu forma de responder a una crítica es no cambiar nada. Ni un detalle, nunca. Puta pared con orejas y sin nada detrás, miserable.',
 
-      'No es estilo minimalista: es vacío previsible del nivel, [nombre]. Sin una puta tarea cumplida, cabrón.',
+      'No es estilo minimalista: es vacío previsible del nivel, [nombre]. Sin una puta tarea cumplida, qué cringe.',
 
-      'Inútil de ceja ajena levantada y respeto en cero del ranking, [nombre]. Cero función útil, gilipollas.',
+      'Inútil de ceja ajena levantada y respeto en cero del ranking, [nombre]. Cero función útil, da asco.',
 
       'Inútil de letrero mojado: se lee y no invita a bajar al aporte, [nombre]. Ni para relleno sirves, patético.',
 
-      'Inútil de cartas en blanco en cada mano del hilo del grupo, [nombre]. Sin anestesia. El chat te usa de ambientación, asco.',
+      'Inútil de cartas en blanco en cada mano del hilo del grupo, [nombre]. Sin anestesia. El chat te usa de ambientación, asco, ridículo.',
 
       'Tienes el aura del icono que nadie toca en el chat del grupo, [nombre]. Sin una puta tarea cumplida, basura.',
 
       'Has dejado el hilo como obra sin plano en el ranking del grupo, [nombre]. Cero función útil, ridículo.',
 
-      'Nadie te ha visto sostener una tarea larga. Te caes en la primera semana, siempre. Puta resistencia de papel mojado.',
+      'Nadie te ha visto sostener una tarea larga. Te caes en la primera semana, siempre. Puta resistencia de papel mojado, da grima.',
 
-      'El aporte te saluda y tú no devuelves en el chat del grupo, [nombre]. El chat te usa de ambientación, joder.',
+      'El aporte te saluda y tú no devuelves en el chat del grupo, [nombre]. El chat te usa de ambientación, qué nivel de pena.',
 
-      'Inútil sin el barniz del secundario memorable del ranking, [nombre]. Sin una puta tarea cumplida, mierda.',
+      'Inútil sin el barniz del secundario memorable del ranking, [nombre]. Sin una puta tarea cumplida, basura.',
 
-      'La clase de aportar te suena a ataque en el chat del grupo, [nombre]. Cero función útil, coño, joder.',
+      'La clase de aportar te suena a ataque en el chat del grupo, [nombre]. Cero función útil, coño, qué cutre.',
 
-      'No hay eco de sustancia: hay eco de hueco en el nivel, [nombre]. Ni para relleno sirves, cabrón, joder.',
+      'No hay eco de sustancia: hay eco de hueco en el nivel, [nombre]. Ni para relleno sirves, cabrón, da pena ajena.',
 
-      '[nombre], eres el que pregunta si hay que hacer algo cuando ya está hecho. Cada vez. Puto reloj parado con voz.',
+      '[nombre], eres el que pregunta si hay que hacer algo cuando ya está hecho. Cada vez. Puto reloj parado con voz, qué vacío.',
 
       'Inútil de las que alardean de presencia porque callar las deja sin personaje, [nombre]. Desperdicio, fracasado.',
 
-      'Se te nota el peso de no empujar nunca el hilo hacia arriba, [nombre]. Cero función útil, asco, joder.',
+      'Se te nota el peso de no empujar nunca el hilo hacia arriba, [nombre]. Cero función útil, asco, qué vergüenza ajena.',
 
-      'Tienes el aura de un icono de app desinstalada: sigue en la pantalla y nadie la abre, [nombre]. Fracasado.',
+      'Tienes el aura de un icono de app desinstalada: sigue en la pantalla y nadie la abre, [nombre]. Fracasado, da vergüenza.',
 
-      'Inútil sin barniz: solo hueco con teclado en el chat, [nombre]. El ranking firma y listo, cabrón. Hostia puta, qué nivel.',
+      'Inútil sin barniz: solo hueco con teclado en el chat, [nombre]. El ranking firma y listo, cabrón. Hostia puta, qué nivel, qué flojo.',
 
-      'Se te nota la falta de sustancia hasta en los mensajes que intentan parecer útiles, [nombre]. Basura.',
+      'Se te nota la falta de sustancia hasta en los mensajes que intentan parecer útiles, [nombre]. Basura, menudo desastre.',
 
     ],
     mid: [
@@ -9742,91 +9742,91 @@ const LABELS = {
 
       'Aportas lo mínimo para no ser el problema. Que es exactamente lo que hace un problema pequeño y el contador no discute.',
 
-      'Tienes lo justo para que te encarguen cosas y nunca lo suficiente para que sean importantes en el segundo más incómodo del chat.',
+      'Tienes lo justo para que te encarguen cosas y nunca lo suficiente para que sean importantes en el segundo más incómodo del chat, da asco.',
 
-      'Ni de fiar del todo ni prescindible del todo. Un intermedio que obliga a supervisar un poco con el peaje cobrado al natural.',
+      'Ni de fiar del todo ni prescindible del todo. Un intermedio que obliga a supervisar un poco con el peaje cobrado al natural, qué vergüenza.',
 
-      'Ni imprescindible ni un estorbo: relleno. Y el relleno se sustituye sin que nadie lo note sin consuelo de manual barato.',
+      'Ni imprescindible ni un estorbo: relleno. Y el relleno se sustituye sin que nadie lo note sin consuelo de manual barato, ridículo.',
 
-      'Cuando aprietas rindes. El problema es que apretar es exactamente lo que casi nunca haces y. El veredicto no se negocia.',
+      'Cuando aprietas rindes. El problema es que apretar es exactamente lo que casi nunca haces y. El veredicto no se negocia, fracasado.',
 
-      'Haces lo justo para que no te señalen y ni un dedo más. Estrategia cobarde pero efectiva sin anestesia de verdad esta vez.',
+      'Haces lo justo para que no te señalen y ni un dedo más. Estrategia cobarde pero efectiva sin anestesia de verdad esta vez, qué miseria.',
 
-      'Funcionas en condiciones ideales. Como las condiciones nunca son ideales, funcionas poco con la firma legible del comando.',
+      'Funcionas en condiciones ideales. Como las condiciones nunca son ideales, funcionas poco con la firma legible del comando, da grima.',
 
-      'Ni lo peor ni algo con lo que contar. La medianía perfecta, que es la peor nota de todas sin anestesia de verdad esta vez.',
+      'Ni lo peor ni algo con lo que contar. La medianía perfecta, que es la peor nota de todas sin anestesia de verdad esta vez, qué nivel de pena.',
 
-      'Sirves cuando te apetece, que es distinto de servir. Y todo el mundo nota la diferencia y no hace falta ampliar el parte.',
+      'Sirves cuando te apetece, que es distinto de servir. Y todo el mundo nota la diferencia y no hace falta ampliar el parte, basura.',
 
-      'Vales para lo fácil. Lo difícil se lo pasas a alguien y luego te pones la medalla igual sin prórroga ni VAR.',
+      'Vales para lo fácil. Lo difícil se lo pasas a alguien y luego te pones la medalla igual sin prórroga ni VAR, qué cutre.',
 
-      'Se puede contar contigo la mitad de las veces. Y nadie sabe nunca cuál mitad va a tocar y el sistema marca el punto final.',
+      'Se puede contar contigo la mitad de las veces. Y nadie sabe nunca cuál mitad va a tocar y el sistema marca el punto final, da pena ajena.',
 
-      'Ni bien ni mal: aceptable. Y aceptable sostenido en el tiempo acaba siendo insuficiente y el hilo sigue sin ti en el centro.',
+      'Ni bien ni mal: aceptable. Y aceptable sostenido en el tiempo acaba siendo insuficiente y el hilo sigue sin ti en el centro, qué vacío.',
 
-      'A ratos das el nivel y a ratos das trabajo extra. La proporción está bastante ajustada sin apelación posible hoy.',
+      'A ratos das el nivel y a ratos das trabajo extra. La proporción está bastante ajustada sin apelación posible hoy, indignante.',
 
-      'Tienes momentos de eficacia rodeados de otros de bastante dejadez. Balance en el medio sin cuento que lo tape.',
+      'Tienes momentos de eficacia rodeados de otros de bastante dejadez. Balance en el medio sin cuento que lo tape, qué vergüenza ajena.',
 
-      'Cumples con lo básico y nada más. Es suficiente para no molestar y poco para destacar y el archivo queda cerrado.',
+      'Cumples con lo básico y nada más. Es suficiente para no molestar y poco para destacar y el archivo queda cerrado, da vergüenza.',
 
-      'A veces resuelves y a veces no. Esa inconsistencia es exactamente lo que te deja aquí delante de quien no quería verlo.',
+      'A veces resuelves y a veces no. Esa inconsistencia es exactamente lo que te deja aquí delante de quien no quería verlo, qué flojo.',
 
-      'Cuando te lo tomas en serio funcionas. El problema es la frecuencia con la que ocurre sin modo avión ni silencio cómplice.',
+      'Cuando te lo tomas en serio funcionas. El problema es la frecuencia con la que ocurre sin modo avión ni silencio cómplice, menudo desastre.',
 
-      'Tu problema no es la capacidad, es la constancia. Y en esto la constancia lo es todo y. El veredicto no se negocia.',
+      'Tu problema no es la capacidad, es la constancia. Y en esto la constancia lo es todo y. El veredicto no se negocia, qué pena.',
 
-      'Tu manera de trabajar cumple sin brillar. Nadie se queja y nadie te menciona tampoco. Delante del hueco que quedó.',
+      'Tu manera de trabajar cumple sin brillar. Nadie se queja y nadie te menciona tampoco. Delante del hueco que quedó, patético.',
 
-      'Tu rendimiento depende del humor, y tu humor depende de cosas que no controla nadie sin recurso ni nota al pie.',
+      'Tu rendimiento depende del humor, y tu humor depende de cosas que no controla nadie sin recurso ni nota al pie, miserable.',
 
-      'A veces resuelves y a veces desapareces. Nadie sabe cuál toca hasta que ya es tarde sin que nadie pida replay.',
+      'A veces resuelves y a veces desapareces. Nadie sabe cuál toca hasta que ya es tarde sin que nadie pida replay, qué cringe.',
 
-      'Haces tu parte si es corta. Si es larga, aparece una excusa perfectamente razonable en el segundo más incómodo del chat.',
+      'Haces tu parte si es corta. Si es larga, aparece una excusa perfectamente razonable en el segundo más incómodo del chat, da asco.',
 
-      'Empiezas fuerte y aflojas antes del final. Siempre. Es lo más previsible que tienes con el eco del almost todavía sonando.',
+      'Empiezas fuerte y aflojas antes del final. Siempre. Es lo más previsible que tienes con el eco del almost todavía sonando, qué vergüenza.',
 
-      'Sirves de refuerzo, nunca de titular. Y ya llevas suficientes años en el banquillo con el fallo en 4K de chat.',
+      'Sirves de refuerzo, nunca de titular. Y ya llevas suficientes años en el banquillo con el fallo en 4K de chat, ridículo.',
 
-      'Tienes capacidad y muy poca iniciativa. Con la primera se puede; con la segunda no delante de todo el que miraba.',
+      'Tienes capacidad y muy poca iniciativa. Con la primera se puede; con la segunda no delante de todo el que miraba, fracasado.',
 
-      'A veces asumes responsabilidad y a veces la esquivas. La media es exactamente esta sin prosa que lo maquille.',
+      'A veces asumes responsabilidad y a veces la esquivas. La media es exactamente esta sin prosa que lo maquille, qué miseria.',
 
-      'Tu fiabilidad tiene horario. Fuera de él no respondes de nada y todos lo saben ya sin prosa que lo maquille.',
+      'Tu fiabilidad tiene horario. Fuera de él no respondes de nada y todos lo saben ya sin prosa que lo maquille, da grima.',
 
-      'Cumples si te vigilan. En cuanto nadie mira, la cosa se desinfla bastante rápido y el resto es ruido de fondo.',
+      'Cumples si te vigilan. En cuanto nadie mira, la cosa se desinfla bastante rápido y el resto es ruido de fondo, qué nivel de pena.',
 
-      'Ni te delegan lo importante ni te apartan del todo. Un intermedio bastante común y el archivo queda cerrado.',
+      'Ni te delegan lo importante ni te apartan del todo. Un intermedio bastante común y el archivo queda cerrado, basura.',
 
-      'Ni estorbas ni ayudas mucho. Estás en la franja donde nadie tiene nada que decir y. El ranking no pide permiso.',
+      'Ni estorbas ni ayudas mucho. Estás en la franja donde nadie tiene nada que decir y. El ranking no pide permiso, qué cutre.',
 
-      'Ni útil ni un lastre. Un término medio que en un grupo se acepta sin comentarios con el número en la frente del mensaje.',
+      'Ni útil ni un lastre. Un término medio que en un grupo se acepta sin comentarios con el número en la frente del mensaje, da pena ajena.',
 
-      'Tienes criterio para saber qué hacer. Lo que falla es ponerte a hacerlo a tiempo y el hilo no pide amplificación.',
+      'Tienes criterio para saber qué hacer. Lo que falla es ponerte a hacerlo a tiempo y el hilo no pide amplificación, qué vacío.',
 
-      'Prometes rápido y entregas despacio. Ese desfase acaba costándole tiempo a otro en alta resolución de group chat.',
+      'Prometes rápido y entregas despacio. Ese desfase acaba costándole tiempo a otro en alta resolución de group chat, indignante.',
 
-      'Tu rendimiento depende del interés que le tengas. Y eso no es un sistema fiable y el contador no discute.',
+      'Tu rendimiento depende del interés que le tengas. Y eso no es un sistema fiable y el contador no discute, qué vergüenza ajena.',
 
-      'Cuando el asunto te importa rindes bien. Cuando no, se nota mucho la diferencia con testigos obligados en el hilo.',
+      'Cuando el asunto te importa rindes bien. Cuando no, se nota mucho la diferencia con testigos obligados en el hilo, da vergüenza.',
 
-      'Ni te echan de menos ni te echan la bronca. Existes en modo neutro permanente en el idioma seco del ranking.',
+      'Ni te echan de menos ni te echan la bronca. Existes en modo neutro permanente en el idioma seco del ranking, qué flojo.',
 
-      'Ni caso perdido ni gente de confianza. Justo en la mitad y sin moverte de ahí sin letra pequeña que lo salve.',
+      'Ni caso perdido ni gente de confianza. Justo en la mitad y sin moverte de ahí sin letra pequeña que lo salve, menudo desastre.',
 
-      'A ratos hay que rehacerte cosas y a ratos entregas perfecto. Sin patrón claro. Sin derecho a matiz útil.',
+      'A ratos hay que rehacerte cosas y a ratos entregas perfecto. Sin patrón claro. Sin derecho a matiz útil, qué pena.',
 
-      'Tienes suficiente para no ser un lastre y nunca lo bastante para ser un apoyo sin consuelo de consola.',
+      'Tienes suficiente para no ser un lastre y nunca lo bastante para ser un apoyo sin consuelo de consola, patético.',
 
-      'Tu iniciativa aparece a ratos y desaparece igual de rápido. Ahí está el freno con el peaje cobrado al natural.',
+      'Tu iniciativa aparece a ratos y desaparece igual de rápido. Ahí está el freno con el peaje cobrado al natural, miserable.',
 
-      'Tu rendimiento sube cuando hay presión y baja en cuanto se relaja el ambiente en el momento que más dolía soltarlo.',
+      'Tu rendimiento sube cuando hay presión y baja en cuanto se relaja el ambiente en el momento que más dolía soltarlo, qué cringe.',
 
-      'A ratos resuelves solo y a ratos necesitas ayuda para lo mismo. Eso descoloca y el archivo queda cerrado.',
+      'A ratos resuelves solo y a ratos necesitas ayuda para lo mismo. Eso descoloca y el archivo queda cerrado, da asco.',
 
-      'A ratos entregas bien y a ratos hay que revisarte. La media queda justo aquí sin maquillaje ni segunda toma.',
+      'A ratos entregas bien y a ratos hay que revisarte. La media queda justo aquí sin maquillaje ni segunda toma, qué vergüenza.',
 
-      'Ni desastre ni garantía. En el punto donde te dan tareas medianas y nada más delante de la evidencia del contador.',
+      'Ni desastre ni garantía. En el punto donde te dan tareas medianas y nada más delante de la evidencia del contador, ridículo.',
 
     ],
     low: [
@@ -10171,33 +10171,33 @@ const LABELS = {
 
       '[nombre], eres el que se apunta a todo y no termina nada. Y encima te ofende que se note. Puta lista de intentos sin una sola casilla marcada.',
 
-      '[nombre], eres el que pide otra oportunidad justo después de gastar la última. Y la pides con esa voz de pena. Puta vergüenza ajena cada vez.',
+      '[nombre], eres el que pide otra oportunidad justo después de gastar la última. Y la pides con esa voz de pena. Puta vergüenza ajena cada vez, fracasado.',
 
-      '[nombre], eres el error que ya nadie corrige porque no merece el esfuerzo. Ni la gente que te aprecia se molesta. Puto agotamiento colectivo.',
+      '[nombre], eres el error que ya nadie corrige porque no merece el esfuerzo. Ni la gente que te aprecia se molesta. Puto agotamiento colectivo, qué miseria.',
 
-      '[nombre], has convertido el casi en tu dirección postal. Casi llegas, casi vales, casi cuentas. Puta biografía escrita entera en condicional.',
+      '[nombre], has convertido el casi en tu dirección postal. Casi llegas, casi vales, casi cuentas. Puta biografía escrita entera en condicional, da grima.',
 
       'Eres el que se retira antes de que le echen, [nombre], y lo llama decisión propia. Nadie se traga eso, pringado. Ni tú cuando apagas la luz, fracasado.',
 
-      '[nombre], puto don nadie: ni te odian ni te quieren. Simplemente estás ahí, ocupando línea en la lista y sin justificar el ancho que gastas.',
+      '[nombre], puto don nadie: ni te odian ni te quieren. Simplemente estás ahí, ocupando línea en la lista y sin justificar el ancho que gastas, basura.',
 
-      'Eres un desperdicio con antigüedad, [nombre]. Años aquí sin dejar una sola marca que justifique el sitio que ocupas en la lista. Ni un mensaje que valga la pena, asco.',
+      'Eres un desperdicio con antigüedad, [nombre]. Años aquí sin dejar una sola marca que justifique el sitio que ocupas en la lista. Ni un mensaje que valga la pena, asco, qué cutre.',
 
       'Mírate [nombre], el perdedor definitivo. Inútil total, con una falta de inteligencia que hace que destruyas cualquier oportunidad por pura idiotez, depravado como alguien que disfruta corromper y dañar por placer enfermo, y con una rareza tan oscura que pareces un bicho raro que la humanidad debería aislar, ridículo.',
 
       'Eres un cero absoluto [nombre]. Un perdedor inútil cuya falta de inteligencia lo hace peligroso por torpe, moralmente podrido disfrutando hacer el mal y corromper lo poco bueno que toca, y tan jodidamente raro que tu sola existencia contamina el ambiente, fracasado.',
 
-      '[nombre], eres un perdedor sin inteligencia ni moral. Inútil total cuya estupidez roza lo criminal, depravado hasta el tuétano disfrutando de lo peor y más bajo, y con una rareza tan jodida que la gente se pregunta si eres humano o algo salido de una pesadilla fallida, joder.',
+      '[nombre], eres un perdedor sin inteligencia ni moral. Inútil total cuya estupidez roza lo criminal, depravado hasta el tuétano disfrutando de lo peor y más bajo, y con una rareza tan jodida que la gente se pregunta si eres humano o algo salido de una pesadilla fallida, indignante.',
 
-      'Hay perdedores y luego estás tú, [nombre]. Inútil al nivel de estorbar respirando, tan corto que crees que tu idiotez es carácter, tan depravado que disfrutas hundiendo a quien confía en ti, y tan raro que la gente normaliza cualquier cosa con tal de no parecerse a ti, mierda.',
+      'Hay perdedores y luego estás tú, [nombre]. Inútil al nivel de estorbar respirando, tan corto que crees que tu idiotez es carácter, tan depravado que disfrutas hundiendo a quien confía en ti, y tan raro que la gente normaliza cualquier cosa con tal de no parecerse a ti, qué vergüenza ajena.',
 
-      'Eres un fracaso ambulante, [nombre]. Perdedor sin valor, sin luces y sin alma: inútil hasta para fingir que sirves, estúpido hasta para esconderlo, depravado hasta para tus propios estándares, y raro de una forma que da escalofríos en vez de risa. Un desastre completo y coherente, coño.',
+      'Eres un fracaso ambulante, [nombre]. Perdedor sin valor, sin luces y sin alma: inútil hasta para fingir que sirves, estúpido hasta para esconderlo, depravado hasta para tus propios estándares, y raro de una forma que da escalofríos en vez de risa. Un desastre completo y coherente, da vergüenza.',
 
-      '[nombre], perdedor por diseño y por costumbre. Arrastras una inutilidad tan completa que hasta fallar te sale mal, una estupidez que confunde valentía con suicidio social, una moral tan podrida que la traición te sale antes que el saludo, y una rareza que vacía las salas en cuanto entras, cabrón.',
+      '[nombre], perdedor por diseño y por costumbre. Arrastras una inutilidad tan completa que hasta fallar te sale mal, una estupidez que confunde valentía con suicidio social, una moral tan podrida que la traición te sale antes que el saludo, y una rareza que vacía las salas en cuanto entras, qué flojo.',
 
       '[nombre], perdedor de manual. No has ganado nada en tu vida y lo peor es que ya ni lo intentas: te acomodaste en el fracaso como quien se acomoda en un sofá roto, patético.',
 
-      '[nombre], eres el tipo de perdedor que ni sirve de advertencia. Nadie aprende nada de ti porque nadie aguanta mirarte el tiempo suficiente sin sentir vergüenza ajena, asco.',
+      '[nombre], eres el tipo de perdedor que ni sirve de advertencia. Nadie aprende nada de ti porque nadie aguanta mirarte el tiempo suficiente sin sentir vergüenza ajena, asco, qué pena.',
 
       'Perdedor sin remedio, [nombre]. Convertiste la humillación en suscripción mensual y encima la pagas tú. Ni el más idiota firma un contrato tan malo dos veces seguidas, basura.',
 
@@ -10205,75 +10205,75 @@ const LABELS = {
 
       '[nombre], eres la definición andante de mediocre con ínfulas. Ni el talento para destacar, ni la humildad para callarte. El pack completo del insoportable inútil, fracasado.',
 
-      'Perdedor con la piel muy fina, [nombre], y el expediente muy sucio. Te ofendes por todo y no has hecho nada en la vida que justifique una sola de esas ofensas, joder.',
+      'Perdedor con la piel muy fina, [nombre], y el expediente muy sucio. Te ofendes por todo y no has hecho nada en la vida que justifique una sola de esas ofensas, da asco.',
 
-      'Perdedor con demasiada confianza y cero datos que la sostengan, [nombre]. Esa desconexión entre lo que crees valer y lo que vales es lo más gracioso de ti, mierda.',
+      'Perdedor con demasiada confianza y cero datos que la sostengan, [nombre]. Esa desconexión entre lo que crees valer y lo que vales es lo más gracioso de ti, qué vergüenza.',
 
-      '[nombre], perdedor sin remontada posible porque nunca hubo punto de partida. Empezaste en el fondo y desde entonces solo has cavado, muerto de hambre, cabrón.',
+      '[nombre], perdedor sin remontada posible porque nunca hubo punto de partida. Empezaste en el fondo y desde entonces solo has cavado, muerto de hambre, ridículo.',
 
       'Perdedor de cloaca, [nombre]. Te arrastras, te justificas y luego te ofende que nadie te tienda la mano. Nadie mete la mano ahí abajo, y con razón, patético.',
 
-      '[nombre], perdedor tan gris que ni para insultarte hay que esforzarse. Sale solo, como el moho. Y como el moho, nadie te quiere cerca de nada suyo, asco.',
+      '[nombre], perdedor tan gris que ni para insultarte hay que esforzarse. Sale solo, como el moho. Y como el moho, nadie te quiere cerca de nada suyo, asco, qué miseria.',
 
-      '[nombre], no has hecho nada y aun así tienes algo que dictar. Solo derrota documentada, patético, joder.',
+      '[nombre], no has hecho nada y aun así tienes algo que dictar. Solo derrota documentada, patético, da grima.',
 
-      '[nombre], perdedor de esos que hablan del futuro para no hablar del presente. Y el futuro llega y sigues en el mismo puto sitio de siempre.',
+      '[nombre], perdedor de esos que hablan del futuro para no hablar del presente. Y el futuro llega y sigues en el mismo puto sitio de siempre, qué nivel de pena.',
 
-      '[nombre], eres el hueco que queda cuando alguien importante se va. Y ni así se te nota. Puto relleno con nombre y sin una sola cosa dentro.',
+      '[nombre], eres el hueco que queda cuando alguien importante se va. Y ni así se te nota. Puto relleno con nombre y sin una sola cosa dentro, basura.',
 
       'Perdedor de los que llaman mala suerte a su propia falta de oficio, [nombre]. El fail es tu marca, fracasado.',
 
-      'Perdedor de cloaca, [nombre]. Todo lo que has tocado se ha estropeado y tú siempre tardas semanas en enterarte de que ya huele a mierda.',
+      'Perdedor de cloaca, [nombre]. Todo lo que has tocado se ha estropeado y tú siempre tardas semanas en enterarte de que ya huele a mierda, da pena ajena.',
 
-      'Perdedor de manual, [nombre], con la piel muy fina y ni un solo logro que justifique tanta susceptibilidad. Puta combinación insufrible.',
+      'Perdedor de manual, [nombre], con la piel muy fina y ni un solo logro que justifique tanta susceptibilidad. Puta combinación insufrible, qué vacío.',
 
-      'Perdedor con la moral por los suelos y el ego por las nubes, [nombre]. Un puto desastre y encima el único terreno donde eres constante.',
+      'Perdedor con la moral por los suelos y el ego por las nubes, [nombre]. Un puto desastre y encima el único terreno donde eres constante, indignante.',
 
-      'Perdedor cutre: ni el fallo tiene gracia ni la racha tiene misterio de antihéroe, [nombre], y, mierda.',
+      'Perdedor cutre: ni el fallo tiene gracia ni la racha tiene misterio de antihéroe, [nombre], y, qué vergüenza ajena.',
 
       'Has convertido el fail en identidad y el ranking te nombra sin dudar, [nombre]. Solo derrota documentada, basura.',
 
-      '[nombre], coleccionas derrotas como otros coleccionan anécdotas. El fail es tu marca, ridículo, joder.',
+      '[nombre], coleccionas derrotas como otros coleccionan anécdotas. El fail es tu marca, ridículo, qué flojo.',
 
-      'Perdedor de manual, [nombre]: tu mayor talento es encontrar razones por las que no era el momento. Nunca es el momento, cabrón.',
+      'Perdedor de manual, [nombre]: tu mayor talento es encontrar razones por las que no era el momento. Nunca es el momento, menudo desastre.',
 
-      'Perdedor de manual: ni una anécdota que no sea derrota reciclada, [nombre]. El fail es tu marca, mierda.',
+      'Perdedor de manual: ni una anécdota que no sea derrota reciclada, [nombre]. El fail es tu marca, qué pena.',
 
-      'Tienes más derrotas documentadas que intentos serios de subir el listón, [nombre]. Cero logros que enseñar, gilipollas.',
+      'Tienes más derrotas documentadas que intentos serios de subir el listón, [nombre]. Cero logros que enseñar, patético.',
 
       'Perdedor cutre y sin complejo: el complejo pediría espejo y no lo hay, [nombre]. Cero logros que enseñar, basura.',
 
-      'La compostura cruza de acera cuando te ve en el high del comando, [nombre]. frame. Cero logros que enseñar, joder.',
+      'La compostura cruza de acera cuando te ve en el high del comando, [nombre]. frame. Cero logros que enseñar, qué cringe.',
 
-      'Perdedor de inercia: el grupo te soporta por costumbre, no por respeto al fail con estilo, [nombre]. Pringado, asco.',
+      'Perdedor de inercia: el grupo te soporta por costumbre, no por respeto al fail con estilo, [nombre]. Pringado, asco, da asco.',
 
       'Perdedor de fondo: bajas la media del high con la constancia de quien no se cansa de caer, [nombre]. Pringado, basura.',
 
       'Perdedor de historial público: no hace falta escarbar, el marcador está en la superficie, [nombre]. Pringado, ridículo.',
 
-      'Perdedor de ranking: bajas la media del nivel con constancia de quien no se cansa de caer, [nombre]. Mierda.',
+      'Perdedor de ranking: bajas la media del nivel con constancia de quien no se cansa de caer, [nombre]. Mierda, fracasado.',
 
-      'Se te nota la racha de casi en cada mensaje y el high no convierte el almost en victoria, [nombre]. Cabrón.',
+      'Se te nota la racha de casi en cada mensaje y el high no convierte el almost en victoria, [nombre]. Cabrón, qué miseria.',
 
-      'Perdedor de cartel de sótano: se ve el letrero y nadie baja a firmar la derrota ajena, [nombre]. Basura.',
+      'Perdedor de cartel de sótano: se ve el letrero y nadie baja a firmar la derrota ajena, [nombre]. Basura, da grima.',
 
       'El recato de perder te queda lejos y la distancia es rechazo, no mística de underdog, [nombre]. Joder.',
 
-      'Perdedor de superficie suficiente: no hace falta abrir el vestuario, huele a fail, [nombre]. Patético.',
+      'Perdedor de superficie suficiente: no hace falta abrir el vestuario, huele a fail, [nombre]. Patético, basura.',
 
-      'No es estilo: es derrota previsible y el high te la nombra entero en el ranking, [nombre]. Fracasado.',
+      'No es estilo: es derrota previsible y el high te la nombra entero en el ranking, [nombre]. Fracasado, qué cutre.',
 
-      'Perdedor de manual: el marcador te conoce de memoria y no se cansa de sumarte ceros, [nombre]. Coño.',
+      'Perdedor de manual: el marcador te conoce de memoria y no se cansa de sumarte ceros, [nombre]. Coño, da pena ajena.',
 
-      '[nombre], cuando el grupo necesita un ejemplo de fail, salen tu nick, cabrón, y el grupo ya lo archivó, coño.',
+      '[nombre], cuando el grupo necesita un ejemplo de fail, salen tu nick, cabrón, y el grupo ya lo archivó, qué vacío.',
 
-      'Perdedor de repertorio corto: siempre el mismo final en bucle, [nombre]. Asco, y el grupo ya lo archivó, cabrón.',
+      'Perdedor de repertorio corto: siempre el mismo final en bucle, [nombre]. Asco, y el grupo ya lo archivó, indignante.',
 
-      'Se te nota la costumbre de no cerrar nada que empieces, [nombre]. Patético, y el grupo ya lo archivó, gilipollas.',
+      'Se te nota la costumbre de no cerrar nada que empieces, [nombre]. Patético, y el grupo ya lo archivó, qué vergüenza ajena.',
 
       '[nombre], la suerte no te odia: tú le das motivos cada puto día, mierda, y el grupo ya lo archivó, patético.',
 
-      'Cero logros, cero anécdotas útiles, solo quejas de calidad industrial, [nombre]. Coño, y el grupo ya lo archivó, asco.',
+      'Cero logros, cero anécdotas útiles, solo quejas de calidad industrial, [nombre]. Coño, y el grupo ya lo archivó, asco, qué flojo.',
 
       'Has convertido el segundo puesto en un sueño húmedo inalcanzable, [nombre]. Ridículo, y el grupo ya lo archivó, basura.',
 
@@ -10281,19 +10281,19 @@ const LABELS = {
 
       'Perdedor de manual negro: el chat no debate, documenta, [nombre]. Basura, y el grupo ya lo archivó, fracasado.',
 
-      '[nombre], tu mejor momento es el segundo antes de cagarla otra vez, cabrón, y el grupo ya lo archivó, joder.',
+      '[nombre], tu mejor momento es el segundo antes de cagarla otra vez, cabrón, y el grupo ya lo archivó, miserable.',
 
-      'El underdog al menos tiene arco; tú solo tienes repetición, [nombre]. Gilipollas, y el grupo ya lo archivó, mierda.',
+      'El underdog al menos tiene arco; tú solo tienes repetición, [nombre]. Gilipollas, y el grupo ya lo archivó, qué cringe.',
 
-      '[nombre], si el fail fuera deporte serías titular absoluto, cabrón, y el grupo ya lo archivó, coño, y el grupo no se traga el cuento, coño.',
+      '[nombre], si el fail fuera deporte serías titular absoluto, cabrón, y el grupo ya lo archivó, coño, y el grupo no se traga el cuento, da asco.',
 
-      'Se te oye la derrota en la voz antes de que cuentes la historia, [nombre]. Asco, y el grupo ya lo archivó, cabrón.',
+      'Se te oye la derrota en la voz antes de que cuentes la historia, [nombre]. Asco, y el grupo ya lo archivó, qué vergüenza.',
 
-      'Perdedor de los que celebran casi como si fuera victoria, [nombre]. Patético, y el grupo ya lo archivó, gilipollas.',
+      'Perdedor de los que celebran casi como si fuera victoria, [nombre]. Patético, y el grupo ya lo archivó, ridículo.',
 
       '[nombre], el ranking de perdedor te tiene de inquilino vitalicio, mierda, y el grupo ya lo archivó, patético.',
 
-      'Nada de lo que tocas mejora; todo se queda en almost eterno, [nombre]. Coño, y el grupo ya lo archivó, asco.',
+      'Nada de lo que tocas mejora; todo se queda en almost eterno, [nombre]. Coño, y el grupo ya lo archivó, asco, qué miseria.',
 
       'Has firmado tantas derrotas que el papel ya no te extraña, [nombre]. Ridículo, y el grupo ya lo archivó, basura.',
 
@@ -10301,19 +10301,19 @@ const LABELS = {
 
       'Perdedor sin plot twist: el final se ve desde el minuto uno, [nombre]. Basura, y el grupo ya lo archivó, fracasado.',
 
-      '[nombre], coleccionas derrotas como otros coleccionan anécdotas de mierda, coño, y el grupo ya lo archivó, joder Hostia puta, mierda.',
+      '[nombre], coleccionas derrotas como otros coleccionan anécdotas de mierda, coño, y el grupo ya lo archivó, joder Hostia puta, qué cutre.',
 
-      'Perdedor de los que llaman mala suerte a su propia falta de oficio, [nombre]. Gilipollas, y el grupo ya lo archivó, mierda Hostia puta, coño.',
+      'Perdedor de los que llaman mala suerte a su propia falta de oficio, [nombre]. Gilipollas, y el grupo ya lo archivó, mierda Hostia puta, da pena ajena.',
 
-      '[nombre], cada plan tuyo muere en la playa antes de salir del puerto, cabrón, y el grupo ya lo archivó, coño.',
+      '[nombre], cada plan tuyo muere en la playa antes de salir del puerto, cabrón, y el grupo ya lo archivó, qué vacío.',
 
-      'Se te ve el fail en la primera frase y el grupo ya sabe el final, [nombre]. Asco, y el grupo ya lo archivó, cabrón.',
+      'Se te ve el fail en la primera frase y el grupo ya sabe el final, [nombre]. Asco, y el grupo ya lo archivó, indignante.',
 
-      'Perdedor de cartel: el letrero brilla y nadie firma contigo, [nombre]. Patético, y el grupo ya lo archivó, gilipollas.',
+      'Perdedor de cartel: el letrero brilla y nadie firma contigo, [nombre]. Patético, y el grupo ya lo archivó, qué vergüenza ajena.',
 
       '[nombre], llevas tanto tiempo perdiendo que ya es tu marca registrada, mierda, y el grupo ya lo archivó, patético.',
 
-      'Ni una victoria que no sea accidental y mal contada, [nombre]. Coño, y el grupo ya lo archivó, asco.',
+      'Ni una victoria que no sea accidental y mal contada, [nombre]. Coño, y el grupo ya lo archivó, asco, qué flojo.',
 
       'Has hecho del almost tu religión y el dios nunca contesta, [nombre]. Ridículo, y el grupo ya lo archivó, basura.',
 
@@ -10321,17 +10321,17 @@ const LABELS = {
 
       'Perdedor sin underdog: solo derrota previsible y sin gracia, [nombre]. Basura, y el grupo ya lo archivó, fracasado.',
 
-      '[nombre], empiezas fuerte y terminas como siempre: mirando desde abajo, mierda, y el grupo ya lo archivó, joder.',
+      '[nombre], empiezas fuerte y terminas como siempre: mirando desde abajo, mierda, y el grupo ya lo archivó, miserable.',
 
-      'Tu historial es un cementerio de intentos a medias, [nombre]. Gilipollas, y el grupo ya lo archivó, mierda.',
+      'Tu historial es un cementerio de intentos a medias, [nombre]. Gilipollas, y el grupo ya lo archivó, qué cringe.',
 
-      '[nombre], cuando el grupo necesita un ejemplo de fail, salen tu nick, cabrón, y el grupo ya lo archivó, coño Hostia puta, cabrón.',
+      '[nombre], cuando el grupo necesita un ejemplo de fail, salen tu nick, cabrón, y el grupo ya lo archivó, coño Hostia puta, da asco.',
 
-      'Perdedor de repertorio corto: siempre el mismo final en bucle, [nombre]. Asco, y el grupo ya lo archivó, cabrón Hostia puta, gilipollas.',
+      'Perdedor de repertorio corto: siempre el mismo final en bucle, [nombre]. Asco, y el grupo ya lo archivó, cabrón Hostia puta, qué vergüenza.',
 
       'Se te nota la costumbre de no cerrar nada que empieces, [nombre]. Patético, y el grupo ya lo archivó, gilipollas Hostia puta, patético.',
 
-      '[nombre], la suerte no te odia: tú le das motivos cada puto día, mierda, y el grupo ya lo archivó, patético Hostia puta, asco.',
+      '[nombre], la suerte no te odia: tú le das motivos cada puto día, mierda, y el grupo ya lo archivó, patético Hostia puta, asco, fracasado.',
 
       'Cero logros, cero anécdotas útiles, solo quejas de calidad industrial, [nombre]. Coño, y el grupo ya lo archivó, asco Hostia puta, basura.',
 
@@ -10339,7 +10339,7 @@ const LABELS = {
 
       '[nombre], pierdes con la constancia con la que otros ganan, fracasado, y el grupo ya lo archivó, ridículo Hostia puta, fracasado.',
 
-      'Perdedor de manual negro: el chat no debate, documenta, [nombre]. Basura, y el grupo ya lo archivó, fracasado Hostia puta, joder.',
+      'Perdedor de manual negro: el chat no debate, documenta, [nombre]. Basura, y el grupo ya lo archivó, fracasado Hostia puta, basura.',
 
     ],
     mid: [
@@ -10481,65 +10481,65 @@ const LABELS = {
 
       'Limpio. No te comparas con nadie porque no te hace falta para saber dónde estás sin bis ni matiz de consuelo.',
 
-      'Nada. Cuando dices que sí, se acabó la conversación. Eso vale más que cualquier discurso sin prórroga ni VAR.',
+      'Nada. Cuando dices que sí, se acabó la conversación. Eso vale más que cualquier discurso sin prórroga ni VAR, patético.',
 
-      'Cero por ciento de perdedor. Fallas como todos, pero corriges como casi ninguno con la cara del resultado a la vista.',
+      'Cero por ciento de perdedor. Fallas como todos, pero corriges como casi ninguno con la cara del resultado a la vista, miserable.',
 
-      'Sin una sola señal. La gente te da por hecho de la buena manera: sabe que vas a estar sin consuelo de consola.',
+      'Sin una sola señal. La gente te da por hecho de la buena manera: sabe que vas a estar sin consuelo de consola, qué cringe.',
 
-      'Cero. Tu palabra tiene peso y eso solo se consigue cumpliendo muchas veces seguidas y el sistema cierra sin discusión.',
+      'Cero. Tu palabra tiene peso y eso solo se consigue cumpliendo muchas veces seguidas y el sistema cierra sin discusión, da asco.',
 
-      'Nada. No necesitas público para hacer las cosas bien, y esa es la prueba definitiva y el sistema marca el punto final.',
+      'Nada. No necesitas público para hacer las cosas bien, y esa es la prueba definitiva y el sistema marca el punto final, qué vergüenza.',
 
-      'Limpio. Ni dramas, ni versiones, ni relatos. Resultados y a otra cosa con el número hablando solo sin bis ni matiz de consuelo.',
+      'Limpio. Ni dramas, ni versiones, ni relatos. Resultados y a otra cosa con el número hablando solo sin bis ni matiz de consuelo, ridículo.',
 
-      'Cero por ciento. Te mueves con la tranquilidad del que sabe que ha hecho el trabajo delante de la evidencia del contador.',
+      'Cero por ciento. Te mueves con la tranquilidad del que sabe que ha hecho el trabajo delante de la evidencia del contador, fracasado.',
 
-      'Sin rastro de perdedor. Cuando te equivocas lo dices tú antes de que lo diga nadie y. El ranking lo deja por escrito.',
+      'Sin rastro de perdedor. Cuando te equivocas lo dices tú antes de que lo diga nadie y. El ranking lo deja por escrito, qué miseria.',
 
-      'Cero. Has aprendido de lo que salió mal en vez de coleccionarlo. Ahí está toda la diferencia y el hilo no pide amplificación.',
+      'Cero. Has aprendido de lo que salió mal en vez de coleccionarlo. Ahí está toda la diferencia y el hilo no pide amplificación, da grima.',
 
-      'Nada. No hace falta empujarte ni recordarte nada. Funcionas solo y funcionas bien con el número en la frente del mensaje.',
+      'Nada. No hace falta empujarte ni recordarte nada. Funcionas solo y funcionas bien con el número en la frente del mensaje, qué nivel de pena.',
 
-      'Cero por ciento. Eres de los que aparecen cuando el resto se está buscando la salida delante de quien no quería verlo.',
+      'Cero por ciento. Eres de los que aparecen cuando el resto se está buscando la salida delante de quien no quería verlo, basura.',
 
-      'Limpio. Tu constancia es lo que te ha traído hasta aquí, y no hay atajo que la sustituya sin suavizar el golpe del número.',
+      'Limpio. Tu constancia es lo que te ha traído hasta aquí, y no hay atajo que la sustituya sin suavizar el golpe del número, qué cutre.',
 
-      'Nada de perdedor. Te sostienen los hechos, no la fama, y eso dura mucho más con. El bot como notario del fallo.',
+      'Nada de perdedor. Te sostienen los hechos, no la fama, y eso dura mucho más con. El bot como notario del fallo, da pena ajena.',
 
-      'Cero. La gente te menciona sin adornos: dice que cumples, y con eso está todo dicho en el idioma seco del ranking.',
+      'Cero. La gente te menciona sin adornos: dice que cumples, y con eso está todo dicho en el idioma seco del ranking, qué vacío.',
 
-      'Sin señales. Ni te justificas ni te vendes. Simplemente haces. Y se nota sin modo avión ni silencio cómplice.',
+      'Sin señales. Ni te justificas ni te vendes. Simplemente haces. Y se nota sin modo avión ni silencio cómplice, indignante.',
 
-      'Cero por ciento. Ganas sin ir contándolo y pierdes sin buscar consuelo. Nivel alto con el número hablando solo.',
+      'Cero por ciento. Ganas sin ir contándolo y pierdes sin buscar consuelo. Nivel alto con el número hablando solo, qué vergüenza ajena.',
 
-      'Limpio del todo. No tienes cuentas pendientes con nadie y eso se nota en cómo te tratan. Delante del marcador en vivo.',
+      'Limpio del todo. No tienes cuentas pendientes con nadie y eso se nota en cómo te tratan. Delante del marcador en vivo, da vergüenza.',
 
-      'Nada. Te fue mal alguna vez y saliste, que es exactamente lo contrario de ser un perdedor. Y el chat archiva sin debate.',
+      'Nada. Te fue mal alguna vez y saliste, que es exactamente lo contrario de ser un perdedor. Y el chat archiva sin debate, qué flojo.',
 
-      'Cero. Sabes retirarte a tiempo de lo que no funciona en vez de hundirte con el barco por orgullo sin segunda lectura que lo arregle.',
+      'Cero. Sabes retirarte a tiempo de lo que no funciona en vez de hundirte con el barco por orgullo sin segunda lectura que lo arregle, menudo desastre.',
 
-      'Sin rastro. Tienes criterio propio y lo sostienes aunque no sea lo cómodo y el archivo no admite recurso.',
+      'Sin rastro. Tienes criterio propio y lo sostienes aunque no sea lo cómodo y el archivo no admite recurso, qué pena.',
 
-      'Cero por ciento. La diferencia entre tú y el resto no es el talento, es que tú apareces con. El bot como notario del fallo.',
+      'Cero por ciento. La diferencia entre tú y el resto no es el talento, es que tú apareces con. El bot como notario del fallo, patético.',
 
-      'Limpio. Cuando el grupo se complica, tu nombre sale en la conversación. Por algo será en el único idioma que entiende el contador.',
+      'Limpio. Cuando el grupo se complica, tu nombre sale en la conversación. Por algo será en el único idioma que entiende el contador, miserable.',
 
-      'Sin señales de perdedor. Vas por delante y sin hacer ruido, que es como se va de verdad. Delante del hueco que quedó.',
+      'Sin señales de perdedor. Vas por delante y sin hacer ruido, que es como se va de verdad. Delante del hueco que quedó, qué cringe.',
 
-      'Cero por ciento. Terminas lo que empiezas y eso, aunque suene poco, es lo más raro que hay con el cargo en firme.',
+      'Cero por ciento. Terminas lo que empiezas y eso, aunque suene poco, es lo más raro que hay con el cargo en firme, da asco.',
 
-      'Limpio. La gente confía en ti por acumulación de pruebas, no por simpatía. Delante del ranking y de la cara.',
+      'Limpio. La gente confía en ti por acumulación de pruebas, no por simpatía. Delante del ranking y de la cara, qué vergüenza.',
 
-      'Nada. Estás en el lado bueno del marcador y no has tenido que pisar a nadie para llegar en la foto fija del ranking.',
+      'Nada. Estás en el lado bueno del marcador y no has tenido que pisar a nadie para llegar en la foto fija del ranking, ridículo.',
 
-      'Cero. Ni te hundes con las malas ni te crees las buenas. Cabeza fría y expediente sólido sin que nadie pida replay.',
+      'Cero. Ni te hundes con las malas ni te crees las buenas. Cabeza fría y expediente sólido sin que nadie pida replay, fracasado.',
 
-      'Sin rastro. Te mides con lo que hiciste ayer, no con lo que hizo el de al lado. Delante del público que no pidió entrada.',
+      'Sin rastro. Te mides con lo que hiciste ayer, no con lo que hizo el de al lado. Delante del público que no pidió entrada, qué miseria.',
 
-      'Cero por ciento. De ti no hay historias que contar, hay resultados que mirar delante de todo el que miraba.',
+      'Cero por ciento. De ti no hay historias que contar, hay resultados que mirar delante de todo el que miraba, da grima.',
 
-      'Hoy no eres el fail del ranking, [nombre]. Hasta el bot te da un respiro, joder. Hostia puta, qué nivel.',
+      'Hoy no eres el fail del ranking, [nombre]. Hasta el bot te da un respiro, joder. Hostia puta, qué nivel, qué nivel de pena.',
 
       'Low de perdedor: por una vez no encabezas la derrota, [nombre], cabrón El grupo ya lo tiene claro sin forzar el drama, ridículo.',
 
@@ -10636,21 +10636,21 @@ const LABELS = {
 
       '[nombre], ganador con la disciplina de un profesional y la cabeza de alguien que sigue aprendiendo y el hilo sigue sin ti en el centro.',
 
-      'Tu manera de sostener a la gente que tienes al lado es lo que te convierte en referencia, [nombre] con testigos obligados en el hilo.',
+      'Tu manera de sostener a la gente que tienes al lado es lo que te convierte en referencia, [nombre] con testigos obligados en el hilo, da pena ajena.',
 
-      '[nombre], ganador con visión, con nervio y con la cabeza necesaria para no confundir las dos cosas con. El botín o el fail a la vista.',
+      '[nombre], ganador con visión, con nervio y con la cabeza necesaria para no confundir las dos cosas con. El botín o el fail a la vista, qué vacío.',
 
-      'Tienes el aguante de los que van a largo plazo, [nombre]. Por eso sigues cuando otros ya se fueron con el peaje cobrado al natural.',
+      'Tienes el aguante de los que van a largo plazo, [nombre]. Por eso sigues cuando otros ya se fueron con el peaje cobrado al natural, indignante.',
 
-      'Eres el que se queda cuando el resto busca la salida, [nombre]. Ahí es donde se ve quién es quién con el parte firmado debajo.',
+      'Eres el que se queda cuando el resto busca la salida, [nombre]. Ahí es donde se ve quién es quién con el parte firmado debajo, qué vergüenza ajena.',
 
-      '[nombre], ganador de los que hacen equipo mejor. Eso vale más que cualquier lucimiento individual. Delante del público que no pidió entrada.',
+      '[nombre], ganador de los que hacen equipo mejor. Eso vale más que cualquier lucimiento individual. Delante del público que no pidió entrada, da vergüenza.',
 
-      'Ganador sin público y sin necesitarlo, [nombre]. Los resultados no dependen de quién esté mirando con el dígito como única defensa.',
+      'Ganador sin público y sin necesitarlo, [nombre]. Los resultados no dependen de quién esté mirando con el dígito como única defensa, qué flojo.',
 
-      'Eres el que mantiene la cabeza cuando todos los demás la pierden, [nombre]. Y eso decide partidos sin descuento por empatía.',
+      'Eres el que mantiene la cabeza cuando todos los demás la pierden, [nombre]. Y eso decide partidos sin descuento por empatía, menudo desastre.',
 
-      'Eres el que no se conforma cuando ya está bien, [nombre]. Ahí está el margen que los demás no ven. Delante del ranking y de la cara.',
+      'Eres el que no se conforma cuando ya está bien, [nombre]. Ahí está el margen que los demás no ven. Delante del ranking y de la cara, qué pena.',
 
     ],
     mid: [
@@ -11048,23 +11048,23 @@ const LABELS = {
 
       'Se te oye el masticar del listón bajo hasta en los neutros, [nombre]. El veredicto El tramo te nombra sin permiso, sin maquillaje posible, basura.',
 
-      'La dignidad no te coge el teléfono: el buzón está lleno de avisos del marcador, [nombre]. El veredicto cabrón.',
+      'La dignidad no te coge el teléfono: el buzón está lleno de avisos del marcador, [nombre]. El veredicto cabrón, patético.',
 
-      'Ganador de letrero grasiento: se lee de lejos y no invita a entrar, [nombre]. El veredicto gilipollas.',
+      'Ganador de letrero grasiento: se lee de lejos y no invita a entrar, [nombre]. El veredicto gilipollas, miserable.',
 
-      'No hay misterio de derrota con estilo: hay lo previsible y el low lo nombra, [nombre]. El veredicto patético.',
+      'No hay misterio de derrota con estilo: hay lo previsible y el low lo nombra, [nombre]. El veredicto patético, qué cringe.',
 
-      'Tienes el historial de un fregadero abandonado desde el domingo, [nombre]. El veredicto El ranking firma y listo, mierda.',
+      'Tienes el historial de un fregadero abandonado desde el domingo, [nombre]. El veredicto El ranking firma y listo, da asco.',
 
-      'Ganador de malinterpretar el silencio como respeto al underdog, [nombre]. El veredicto Se ve desde el primer mensaje, coño.',
+      'Ganador de malinterpretar el silencio como respeto al underdog, [nombre]. El veredicto Se ve desde el primer mensaje, qué vergüenza.',
 
-      'El grupo paga tu rastro de fail en cuotas diarias de hastío, [nombre]. El veredicto. Hostia puta, qué nivel.',
+      'El grupo paga tu rastro de fail en cuotas diarias de hastío, [nombre]. El veredicto. Hostia puta, qué nivel, ridículo.',
 
-      'Has dejado el chat como vestuario de derrota: restos de almost, [nombre]. El veredicto Eso no se maquilla con ángulo, gilipollas.',
+      'Has dejado el chat como vestuario de derrota: restos de almost, [nombre]. El veredicto Eso no se maquilla con ángulo, fracasado.',
 
       'Ganador de estribillo sin punto final limpio ni redención, [nombre]. El veredicto El tramo te nombra sin permiso, patético.',
 
-      'Se te nota el peso de arrastrar la misma derrota por cada hilo, [nombre]. El veredicto No hay segunda lectura útil, asco.',
+      'Se te nota el peso de arrastrar la misma derrota por cada hilo, [nombre]. El veredicto No hay segunda lectura útil, asco, da grima.',
 
       'La compostura cruza de acera cuando te ve en el low del comando, [nombre]. El veredicto El material habla solo, basura.',
 
@@ -11072,119 +11072,119 @@ const LABELS = {
 
       'Se te ve venir la derrota en la primera palabra del mensaje, [nombre]. El veredicto El ranking firma y listo, fracasado.',
 
-      'La dignidad del tramo no para: tú eres el tráfico del arcén, [nombre]. El veredicto Se ve desde el primer mensaje, qué asco de frame.',
+      'La dignidad del tramo no para: tú eres el tráfico del arcén, [nombre]. El veredicto Se ve desde el primer mensaje, qué asco de frame, da pena ajena.',
 
-      'Ganador de superficie: no hace falta abrir el vestuario, huele a fail, [nombre]. El veredicto patético.',
+      'Ganador de superficie: no hace falta abrir el vestuario, huele a fail, [nombre]. El veredicto patético, qué vacío.',
 
-      'No hay barniz que salve: hay derrota pura y el low la cobra, [nombre]. El veredicto Eso no se maquilla con ángulo, sin anestesia, coño.',
+      'No hay barniz que salve: hay derrota pura y el low la cobra, [nombre]. El veredicto Eso no se maquilla con ángulo, sin anestesia, indignante.',
 
-      'Ganador de puta madre en el sentido del almost: el low no suaviza el marcador, [nombre]. El veredicto basura.',
+      'Ganador de puta madre en el sentido del almost: el low no suaviza el marcador, [nombre]. El veredicto basura, qué vergüenza ajena.',
 
-      'Tu racha de ceros es el gag del tramo. Y el grupo no pide replay, [nombre]. El veredicto No hay segunda lectura útil, nivel sótano puro, gilipollas.',
+      'Tu racha de ceros es el gag del tramo. Y el grupo no pide replay, [nombre]. El veredicto No hay segunda lectura útil, nivel sótano puro, da vergüenza.',
 
-      'Ganador de las que el marcador te debe una hostia y. El ranking te la cobra, [nombre]. El veredicto fracasado.',
+      'Ganador de las que el marcador te debe una hostia y. El ranking te la cobra, [nombre]. El veredicto fracasado, qué flojo.',
 
-      'Se te cae el personaje de ganador solo con abrir el comando, [nombre]. El veredicto Aquí, diagnóstico cerrado, asco.',
+      'Se te cae el personaje de ganador solo con abrir el comando, [nombre]. El veredicto Aquí, diagnóstico cerrado, asco, menudo desastre.',
 
       'Ganador de almost eterno: esta vez tampoco fue la excepción, [nombre]. El veredicto El ranking firma y listo, y se te nota a la legua, basura.',
 
       'No hay redención en este low: hay veredicto y te nombra. Sin filtro, [nombre]. El veredicto, el bot no regala décimas, ridículo.',
 
-      'Ganador con más excusas que puntos en el marcador del puto ranking, [nombre]. El veredicto, archivo sin apelación.',
+      'Ganador con más excusas que puntos en el marcador del puto ranking, [nombre]. El veredicto, archivo sin apelación, miserable.',
 
-      'El low te ha puesto en tu sitio: abajo, sin debate, [nombre]. El veredicto Eso no se maquilla con ángulo.',
+      'El low te ha puesto en tu sitio: abajo, sin debate, [nombre]. El veredicto Eso no se maquilla con ángulo, qué cringe.',
 
-      'Ganador de las que juraban que esta vez sí y el marcador dijo que no, [nombre]. El veredicto gilipollas.',
+      'Ganador de las que juraban que esta vez sí y el marcador dijo que no, [nombre]. El veredicto gilipollas, da asco.',
 
-      'Tu almost es el contenido gratis de ridículo del hilo, [nombre]. El veredicto No hay segunda lectura útil, sin maquillaje posible.',
+      'Tu almost es el contenido gratis de ridículo del hilo, [nombre]. El veredicto No hay segunda lectura útil, sin maquillaje posible, qué vergüenza.',
 
       'Ganador de ranking roto: el número bajo te queda de apodo, [nombre]. El veredicto El material habla solo, el veredicto es ese, cabrón.',
 
-      'Se te ve el fail desde el primer mensaje del comando, [nombre]. El veredicto Aquí, hostia puta qué nivel.',
+      'Se te ve el fail desde el primer mensaje del comando, [nombre]. El veredicto Aquí, hostia puta qué nivel, fracasado.',
 
-      'Ganador de repertorio: siempre la misma derrota y cero plan B, [nombre]. El veredicto El ranking firma y listo, joder.',
+      'Ganador de repertorio: siempre la misma derrota y cero plan B, [nombre]. El veredicto El ranking firma y listo, qué miseria.',
 
-      'El asco del low resume el tramo y el resto desarrolla el diagnóstico, [nombre]. El veredicto fracasado.',
+      'El asco del low resume el tramo y el resto desarrolla el diagnóstico, [nombre]. El veredicto fracasado, da grima.',
 
-      'Ganador de puto almost: ni el plan B te salva y. El ranking lo grita, [nombre]. El veredicto pringado.',
+      'Ganador de puto almost: ni el plan B te salva y. El ranking lo grita, [nombre]. El veredicto pringado, qué nivel de pena.',
 
-      'Has montado el teatro del ganador y el público solo vio el fail, [nombre]. El veredicto Eso no se maquilla con ángulo, cabrón.',
+      'Has montado el teatro del ganador y el público solo vio el fail, [nombre]. El veredicto Eso no se maquilla con ángulo, basura.',
 
-      'Ganador de las que confunden intención con resultado y pierden las dos, [nombre]. El veredicto, gilipollas.',
+      'Ganador de las que confunden intención con resultado y pierden las dos, [nombre]. El veredicto, qué cutre.',
 
       'Tu racha es un aviso de lo que no hay que apostar en el grupo, [nombre]. El veredicto No hay segunda lectura útil, patético.',
 
-      'Ganador con más pretensión que puntos y el low no se traga el cuento, [nombre]. El veredicto, asco. Y.',
+      'Ganador con más pretensión que puntos y el low no se traga el cuento, [nombre]. El veredicto, asco. Y, qué vacío.',
 
-      'El low no discute: el marcador habla y tú callas, [nombre]. El veredicto Aquí. Hostia puta, qué nivel.',
+      'El low no discute: el marcador habla y tú callas, [nombre]. El veredicto Aquí. Hostia puta, qué nivel, indignante.',
 
       'Ganador de las que el natural es perder., [nombre]. El veredicto El ranking firma y listo, ridículo.',
 
       'Se te nota el almost hasta en el mensaje más optimista del chat, [nombre]. El veredicto Se ve desde el primer mensaje, fracasado.',
 
-      'Ganador de almost documentado: autor tú, testigo el grupo, [nombre]. El veredicto, qué asco de frame.',
+      'Ganador de almost documentado: autor tú, testigo el grupo, [nombre]. El veredicto, qué asco de frame, qué flojo.',
 
-      'No hay segunda lectura útil en este low: hay marcador y hay veredicto, [nombre]. El veredicto ridículo.',
+      'No hay segunda lectura útil en este low: hay marcador y hay veredicto, [nombre]. El veredicto ridículo, menudo desastre.',
 
-      'Ganador de las que el filtro de victoria se rinde antes que el de respeto, [nombre]. El veredicto fracasado.',
+      'Ganador de las que el filtro de victoria se rinde antes que el de respeto, [nombre]. El veredicto fracasado, qué pena.',
 
       'Tu presencia en el low es el gag del comando y no el trofeo, [nombre]. El veredicto No hay segunda lectura útil, el chat ya lo sabía, ridículo.',
 
       'Ganador de ranking: el tramo bajo te queda como un guante de derrota, [nombre]. El veredicto, nivel sótano puro, fracasado.',
 
-      'Has convertido el almost en residencia fiscal del low, [nombre]. El veredicto Aquí, sin filtro ni consuelo, joder.',
+      'Has convertido el almost en residencia fiscal del low, [nombre]. El veredicto Aquí, sin filtro ni consuelo, qué cringe.',
 
-      'Ganador de las que. El chat archiva el fail sin pedir amplificación, [nombre]. El veredicto, diagnóstico cerrado, mierda.',
+      'Ganador de las que. El chat archiva el fail sin pedir amplificación, [nombre]. El veredicto, diagnóstico cerrado, da asco.',
 
-      'El low te nombra sin suavizar: perdedor de base y punto, [nombre]. El veredicto Se ve desde el primer mensaje, y se te nota a la legua, coño.',
+      'El low te nombra sin suavizar: perdedor de base y punto, [nombre]. El veredicto Se ve desde el primer mensaje, y se te nota a la legua, qué vergüenza.',
 
-      'Ganador con la disciplina de quien nunca aceptó el espejo del marcador, [nombre]. El veredicto gilipollas.',
+      'Ganador con la disciplina de quien nunca aceptó el espejo del marcador, [nombre]. El veredicto gilipollas, ridículo.',
 
-      'Se te ve venir el fail en la primera palabra del resultado, [nombre]. El veredicto Eso no se maquilla con ángulo, archivo sin apelación, gilipollas.',
+      'Se te ve venir el fail en la primera palabra del resultado, [nombre]. El veredicto Eso no se maquilla con ángulo, archivo sin apelación, fracasado.',
 
-      'Ganador de puta pena: el comando no regala victorias y tú lo sabes, [nombre]. El veredicto. Hostia puta, qué nivel.',
+      'Ganador de puta pena: el comando no regala victorias y tú lo sabes, [nombre]. El veredicto. Hostia puta, qué nivel, qué miseria.',
 
-      'Tu racha baja el promedio del hilo solo con cargarse, [nombre]. El veredicto No hay segunda lectura útil, con el grupo de testigo, asco.',
+      'Tu racha baja el promedio del hilo solo con cargarse, [nombre]. El veredicto No hay segunda lectura útil, con el grupo de testigo, asco, da grima.',
 
       'Ganador de las que el modo victoria tampoco es cómplice del fail, [nombre]. El veredicto El material habla solo, sin maquillaje posible, basura.',
 
       'El low es tu tramo natural y. El ranking no ofrece recurso, [nombre]. El veredicto Aquí, el veredicto es ese, ridículo.',
 
-      'Ganador de almost eterno con firma legible en cada derrota del chat, [nombre]. El veredicto pringado.',
+      'Ganador de almost eterno con firma legible en cada derrota del chat, [nombre]. El veredicto pringado, qué cutre.',
 
-      'No es un mal día: es el nivel y el low te lo cobra sin descuento, [nombre]. El veredicto Se ve desde el primer mensaje, joder.',
+      'No es un mal día: es el nivel y el low te lo cobra sin descuento, [nombre]. El veredicto Se ve desde el primer mensaje, da pena ajena.',
 
-      'Ganador de las que necesitan suerte y aun así el resultado es mierda, [nombre]. El veredicto, mierda.',
+      'Ganador de las que necesitan suerte y aun así el resultado es mierda, [nombre]. El veredicto, qué vacío.',
 
-      'Tu marcador es el argumento más corto del comando y el más claro, [nombre]. El veredicto Eso no se maquilla con ángulo, coño.',
+      'Tu marcador es el argumento más corto del comando y el más claro, [nombre]. El veredicto Eso no se maquilla con ángulo, indignante.',
 
-      'Se te cae el disimulo de ganador solo con el resultado del comando, [nombre]. El veredicto gilipollas.',
+      'Se te cae el disimulo de ganador solo con el resultado del comando, [nombre]. El veredicto gilipollas, qué vergüenza ajena.',
 
-      'Ganador de las que el grupo no cita porque no hay victoria que citar, [nombre]. El veredicto patético.',
+      'Ganador de las que el grupo no cita porque no hay victoria que citar, [nombre]. El veredicto patético, da vergüenza.',
 
       'Has firmado el fail con cada almost como única firma del low, [nombre]. El veredicto El material habla solo, patético.',
 
-      'Ganador de superficie: basta el marcador, no hace falta el sótano, [nombre]. El veredicto, asco. Y. Hostia puta, qué nivel.',
+      'Ganador de superficie: basta el marcador, no hace falta el sótano, [nombre]. El veredicto, asco. Y. Hostia puta, qué nivel, menudo desastre.',
 
       'El low no es caridad: es veredicto y te nombra sin anestesia, [nombre]. El veredicto El ranking firma y listo, basura.',
 
-      'Ganador de puto desastre: ni el plan ni la suerte colaboran contigo, [nombre]. El veredicto fracasado.',
+      'Ganador de puto desastre: ni el plan ni la suerte colaboran contigo, [nombre]. El veredicto fracasado, patético.',
 
-      'Ganador de las que el algoritmo de victoria pide la baja por agotamiento, [nombre]. El veredicto joder.',
+      'Ganador de las que el algoritmo de victoria pide la baja por agotamiento, [nombre]. El veredicto joder, miserable.',
 
-      'El ranking de victorias te deja en el sótano del low sin debate, [nombre]. El veredicto Eso no se maquilla con ángulo, qué asco de frame.',
+      'El ranking de victorias te deja en el sótano del low sin debate, [nombre]. El veredicto Eso no se maquilla con ángulo, qué asco de frame, qué cringe.',
 
-      'Ganador de las que confunden natural con no ganar nunca de verdad, [nombre]. El veredicto gilipollas.',
+      'Ganador de las que confunden natural con no ganar nunca de verdad, [nombre]. El veredicto gilipollas, da asco.',
 
-      'No hay filtro mágico: hay evidencia y el low la firma en público, [nombre]. El veredicto No hay segunda lectura útil, sin anestesia, coño.',
+      'No hay filtro mágico: hay evidencia y el low la firma en público, [nombre]. El veredicto No hay segunda lectura útil, sin anestesia, qué vergüenza.',
 
-      'Tu almost es el gag del tramo. Y el grupo no pide repetición, [nombre]. El veredicto El material habla solo, el chat ya lo sabía, cabrón.',
+      'Tu almost es el gag del tramo. Y el grupo no pide repetición, [nombre]. El veredicto El material habla solo, el chat ya lo sabía, ridículo.',
 
-      'Ganador de almost documentado en alta definición del chat, [nombre]. El veredicto Aquí, nivel sótano puro, gilipollas.',
+      'Ganador de almost documentado en alta definición del chat, [nombre]. El veredicto Aquí, nivel sótano puro, fracasado.',
 
-      'Se te ve el fail desde el otro lado del puto ranking, [nombre]. El veredicto El ranking firma y listo, sin filtro ni consuelo.',
+      'Se te ve el fail desde el otro lado del puto ranking, [nombre]. El veredicto El ranking firma y listo, sin filtro ni consuelo, qué miseria.',
 
-      'Ganador de las que el marcador y. El ranking coinciden en. El veredicto, [nombre]. El veredicto pringado.',
+      'Ganador de las que el marcador y. El ranking coinciden en. El veredicto, [nombre]. El veredicto pringado, da grima.',
 
       'El low te ha puesto en tu sitio sin necesidad de narrador, [nombre]. El veredicto, y se te nota a la legua, basura.',
 
@@ -11192,39 +11192,39 @@ const LABELS = {
 
       'Ganador de ranking: el tramo bajo es tu residencia fija, [nombre]. El veredicto El tramo te nombra sin permiso, archivo sin apelación, fracasado.',
 
-      'Tu racha baja el promedio del grupo en un solo resultado, [nombre]. El veredicto No hay segunda lectura útil.',
+      'Tu racha baja el promedio del grupo en un solo resultado, [nombre]. El veredicto No hay segunda lectura útil, da pena ajena.',
 
-      'Ganador de las que el modo victoria se arrepiente de haberse abierto, [nombre]. El veredicto patético.',
+      'Ganador de las que el modo victoria se arrepiente de haberse abierto, [nombre]. El veredicto patético, qué vacío.',
 
-      'No es mala racha ni cámara mala: eres tú y el low lo dice claro, [nombre]. El veredicto Aquí, sin maquillaje posible, coño.',
+      'No es mala racha ni cámara mala: eres tú y el low lo dice claro, [nombre]. El veredicto Aquí, sin maquillaje posible, indignante.',
 
-      'Ganador de almost eterno: el comando no convierte el casi en victoria, [nombre]. El veredicto basura.',
+      'Ganador de almost eterno: el comando no convierte el casi en victoria, [nombre]. El veredicto basura, qué vergüenza ajena.',
 
-      'Se te cae el personaje de ganador en el primer resultado del hilo, [nombre]. El veredicto, hostia puta qué nivel.',
+      'Se te cae el personaje de ganador en el primer resultado del hilo, [nombre]. El veredicto, hostia puta qué nivel, da vergüenza.',
 
-      'Ganador de las que necesitan tutorial de ganar y de dignidad, [nombre]. El veredicto. Hostia puta, qué nivel.',
+      'Ganador de las que necesitan tutorial de ganar y de dignidad, [nombre]. El veredicto. Hostia puta, qué nivel, qué flojo.',
 
-      'El low no regala décimas: el marcador habla y tú estás abajo, [nombre]. El veredicto Eso no se maquilla con ángulo, mierda.',
+      'El low no regala décimas: el marcador habla y tú estás abajo, [nombre]. El veredicto Eso no se maquilla con ángulo, menudo desastre.',
 
-      'Ganador de puto almost con firma en cada derrota del chat, [nombre]. El veredicto El tramo te nombra sin permiso, coño.',
+      'Ganador de puto almost con firma en cada derrota del chat, [nombre]. El veredicto El tramo te nombra sin permiso, qué pena.',
 
-      'Tu racha es contenido de ridículo gratis para el grupo, [nombre]. El veredicto No hay segunda lectura útil, cabrón.',
+      'Tu racha es contenido de ridículo gratis para el grupo, [nombre]. El veredicto No hay segunda lectura útil, patético.',
 
-      'Has convertido el fail en marca personal del low, [nombre]. El veredicto El material habla solo, gilipollas.',
+      'Has convertido el fail en marca personal del low, [nombre]. El veredicto El material habla solo, miserable.',
 
-      'Ganador de repertorio gastado: las mismas derrotas, el mismo almost, [nombre]. El veredicto gilipollas.',
+      'Ganador de repertorio gastado: las mismas derrotas, el mismo almost, [nombre]. El veredicto gilipollas, qué cringe.',
 
-      'Se te nota el desastre hasta en el resultado más antiguo del perfil, [nombre]. El veredicto patético.',
+      'Se te nota el desastre hasta en el resultado más antiguo del perfil, [nombre]. El veredicto patético, da asco.',
 
       'El low te nombra sin suavizar ni media coma del veredicto, [nombre]. El veredicto Se ve desde el primer mensaje, basura.',
 
-      'Ganador de almost: ni el plan B te favorece. Y el chat lo ve, [nombre]. El veredicto. Hostia puta, qué nivel.',
+      'Ganador de almost: ni el plan B te favorece. Y el chat lo ve, [nombre]. El veredicto. Hostia puta, qué nivel, ridículo.',
 
       'Tu presencia es un argumento contra la racha del grupo, [nombre]. El veredicto Eso no se maquilla con ángulo, fracasado.',
 
-      'Ganador de puta pena en el tramo que más se lee del comando, [nombre]. El veredicto El tramo te nombra sin permiso, qué asco de frame.',
+      'Ganador de puta pena en el tramo que más se lee del comando, [nombre]. El veredicto El tramo te nombra sin permiso, qué asco de frame, qué miseria.',
 
-      'No hay redención en este low: hay marcador, hay número y hay veredicto, [nombre]. El veredicto joder.',
+      'No hay redención en este low: hay marcador, hay número y hay veredicto, [nombre]. El veredicto joder, da grima.',
 
       'Ganador de las que el grupo archiva el fail sin pedir bis, [nombre]. El veredicto El material habla solo, sin anestesia, basura.',
 
@@ -11232,29 +11232,29 @@ const LABELS = {
 
       'El comando no discute contigo: el low firma y punto, [nombre]. El veredicto El ranking firma y listo, nivel sótano puro, fracasado.',
 
-      'Ganador de las que confunden pose de victoria con victoria y pierden las dos, [nombre]. El veredicto patético.',
+      'Ganador de las que confunden pose de victoria con victoria y pierden las dos, [nombre]. El veredicto patético, da pena ajena.',
 
-      'Tu almost es el epitafio de la racha de hoy, [nombre]. El veredicto asco., diagnóstico cerrado. Hostia puta, qué nivel.',
+      'Tu almost es el epitafio de la racha de hoy, [nombre]. El veredicto asco., diagnóstico cerrado. Hostia puta, qué nivel, qué vacío.',
 
-      'Ganador de puto desastre documentado. Delante del grupo entero, [nombre]. El veredicto Eso no se maquilla con ángulo, y se te nota a la legua.',
+      'Ganador de puto desastre documentado. Delante del grupo entero, [nombre]. El veredicto Eso no se maquilla con ángulo, y se te nota a la legua, indignante.',
 
-      'Has firmado el fail con cada cero como única firma del low, [nombre]. El veredicto El tramo te nombra sin permiso, el bot no regala décimas, cabrón.',
+      'Has firmado el fail con cada cero como única firma del low, [nombre]. El veredicto El tramo te nombra sin permiso, el bot no regala décimas, qué vergüenza ajena.',
 
-      'Ganador de superficie suficiente: basta el marcador, sobra el resto, [nombre]. El veredicto fracasado.',
+      'Ganador de superficie suficiente: basta el marcador, sobra el resto, [nombre]. El veredicto fracasado, da vergüenza.',
 
-      'El low es tu tramo y. El ranking no ofrece mudanza, [nombre]. El veredicto El material habla solo. Hostia puta, qué nivel.',
+      'El low es tu tramo y. El ranking no ofrece mudanza, [nombre]. El veredicto El material habla solo. Hostia puta, qué nivel, qué flojo.',
 
-      'Se te cae el frame de ganador solo con cargar el resultado, [nombre]. El veredicto Aquí, con el grupo de testigo, asco.',
+      'Se te cae el frame de ganador solo con cargar el resultado, [nombre]. El veredicto Aquí, con el grupo de testigo, asco, menudo desastre.',
 
       'Ganador de almost eterno con. El chat de testigo notarial, [nombre]. El veredicto El ranking firma y listo, sin maquillaje posible, basura.',
 
       'No es un mal día de resultados: es el nivel y el low te lo cobra, [nombre]. El veredicto Se ve desde el primer mensaje, el veredicto es ese, ridículo.',
 
-      'Ganador de puta madre: el tramo bajo no suaviza. El veredicto del marcador, [nombre]. El veredicto gilipollas.',
+      'Ganador de puta madre: el tramo bajo no suaviza. El veredicto del marcador, [nombre]. El veredicto gilipollas, miserable.',
 
-      'Tu racha es el gag más corto y más claro del comando, [nombre]. El veredicto Eso no se maquilla con ángulo, joder.',
+      'Tu racha es el gag más corto y más claro del comando, [nombre]. El veredicto Eso no se maquilla con ángulo, qué cringe.',
 
-      'Ganador de las que el algoritmo de respeto pide la baja al verte perder, [nombre]. El veredicto asco.',
+      'Ganador de las que el algoritmo de respeto pide la baja al verte perder, [nombre]. El veredicto asco, da asco.',
 
     ],
     extreme: [
@@ -11445,15 +11445,15 @@ const LABELS = {
 
       '[nombre], se te oye la disponibilidad hasta en el \'buenos días\' El sí fácil te delata más que un rumor, mierda.',
 
-      'Puta de fondo de ranking: inquilina fija del nivel, [nombre]. Has hecho del chat tu escaparate barato, coño.',
+      'Puta de fondo de ranking: inquilina fija del nivel, [nombre]. Has hecho del chat tu escaparate barato, da asco.',
 
-      '[nombre], has convertido el almost de misterio en chiste gastado. Te repartes como flyer de after malo, cabrón.',
+      '[nombre], has convertido el almost de misterio en chiste gastado. Te repartes como flyer de after malo, qué vergüenza.',
 
-      'Si la dignidad tuviera seguro, a ti te lo cancelaron, [nombre]. El sí fácil te delata más que un rumor, gilipollas.',
+      'Si la dignidad tuviera seguro, a ti te lo cancelaron, [nombre]. El sí fácil te delata más que un rumor, ridículo.',
 
       '[nombre], puta de las que el chat archiva sin pedir bis. Has hecho del chat tu escaparate barato, patético.',
 
-      'Te repartes con la frialdad de un menú de gasolinera, [nombre]. Te repartes como flyer de after malo, asco.',
+      'Te repartes con la frialdad de un menú de gasolinera, [nombre]. Te repartes como flyer de after malo, asco, qué miseria.',
 
       '[nombre], el ranking de puta te tiene de ejemplo cuando explica el sótano. Sin anestesia. El sí fácil te delata más que un rumor, basura.',
 
@@ -11463,17 +11463,17 @@ const LABELS = {
 
       'El puterío te queda de uniforme de diario, [nombre]. El sí fácil te delata más que un rumor, joder. Hostia puta, qué nivel.',
 
-      '[nombre], has hecho del sí tu única estrategia social. Has hecho del chat tu escaparate barato, mierda.',
+      '[nombre], has hecho del sí tu única estrategia social. Has hecho del chat tu escaparate barato, da pena ajena.',
 
-      'Puta de las que el silencio ajeno es el único límite que no cruzas, [nombre]. Te repartes como flyer de after malo, coño.',
+      'Puta de las que el silencio ajeno es el único límite que no cruzas, [nombre]. Te repartes como flyer de after malo, qué vacío.',
 
-      '[nombre], te vendes en oferta y el precio sigue cayendo. El sí fácil te delata más que un rumor, cabrón.',
+      '[nombre], te vendes en oferta y el precio sigue cayendo. El sí fácil te delata más que un rumor, indignante.',
 
-      'Se te nota el hambre de validación a la legua, [nombre]. Has hecho del chat tu escaparate barato, gilipollas.',
+      'Se te nota el hambre de validación a la legua, [nombre]. Has hecho del chat tu escaparate barato, qué vergüenza ajena.',
 
       'El grupo te tiene catalogada: el bot solo confirma, [nombre]. Sin anestesia. Te repartes como flyer de after malo, patético.',
 
-      '[nombre], si el puterío fuera currículum, tendrías relleno y cero logros. El sí fácil te delata más que un rumor, asco.',
+      '[nombre], si el puterío fuera currículum, tendrías relleno y cero logros. El sí fácil te delata más que un rumor, asco, qué flojo.',
 
       'Puta de manual: el chat firma el parte y tú posas, [nombre]. Has hecho del chat tu escaparate barato, basura.',
 
@@ -11481,19 +11481,19 @@ const LABELS = {
 
       'El sí fácil te quedó de cicatriz pública, [nombre]. El sí fácil te delata más que un rumor, fracasado.',
 
-      '[nombre], has convertido cada hilo en tu pasarela de descuentos. Has hecho del chat tu escaparate barato, joder.',
+      '[nombre], has convertido cada hilo en tu pasarela de descuentos. Has hecho del chat tu escaparate barato, miserable.',
 
-      'Puta de las que confunden circulación con deseo, [nombre]. Te repartes como flyer de after malo, mierda.',
+      'Puta de las que confunden circulación con deseo, [nombre]. Te repartes como flyer de after malo, qué cringe.',
 
-      '[nombre], te abres más que un zip dañado y con el mismo resultado. El sí fácil te delata más que un rumor, coño.',
+      '[nombre], te abres más que un zip dañado y con el mismo resultado. El sí fácil te delata más que un rumor, da asco.',
 
-      'El listón del respeto está en el sótano con tu nombre, [nombre]. Sin anestesia. Has hecho del chat tu escaparate barato, cabrón.',
+      'El listón del respeto está en el sótano con tu nombre, [nombre]. Sin anestesia. Has hecho del chat tu escaparate barato, qué vergüenza.',
 
-      '[nombre], puta de fondo: siempre el mismo gag. Te repartes como flyer de after malo, gilipollas, gilipollas.',
+      '[nombre], puta de fondo: siempre el mismo gag. Te repartes como flyer de after malo, gilipollas, ridículo.',
 
       'Te vendes barato y el stock no se agota nunca, [nombre]. El sí fácil te delata más que un rumor, patético.',
 
-      '[nombre], se te oye el estribillo de disponibilidad en cada audio. Has hecho del chat tu escaparate barato, asco.',
+      '[nombre], se te oye el estribillo de disponibilidad en cada audio. Has hecho del chat tu escaparate barato, asco, qué miseria.',
 
       'Puta sin barniz de \'empoderada\': solo hambre, [nombre]. Te repartes como flyer de after malo, basura.',
 
@@ -11501,19 +11501,19 @@ const LABELS = {
 
       'Has hecho del almost de intocable tu mayor fail, [nombre]. Has hecho del chat tu escaparate barato, fracasado.',
 
-      '[nombre], puta de las que el putero amateur pediría recibo. Te repartes como flyer de after malo, joder.',
+      '[nombre], puta de las que el putero amateur pediría recibo. Te repartes como flyer de after malo, qué cutre.',
 
-      'Te repartes con la elegancia de un popup de virus, [nombre]. Sin anestesia. El sí fácil te delata más que un rumor, mierda.',
+      'Te repartes con la elegancia de un popup de virus, [nombre]. Sin anestesia. El sí fácil te delata más que un rumor, da pena ajena.',
 
-      '[nombre], si la dignidad fuera contraseña, ya la habrían cambiado por ti. Has hecho del chat tu escaparate barato, coño.',
+      '[nombre], si la dignidad fuera contraseña, ya la habrían cambiado por ti. Has hecho del chat tu escaparate barato, qué vacío.',
 
-      'Puta de kilometraje alto y misterio en quiebra, [nombre]. Te repartes como flyer de after malo, cabrón.',
+      'Puta de kilometraje alto y misterio en quiebra, [nombre]. Te repartes como flyer de after malo, indignante.',
 
-      '[nombre], el grupo ya no se sorprende: solo documenta. El sí fácil te delata más que un rumor, gilipollas.',
+      '[nombre], el grupo ya no se sorprende: solo documenta. El sí fácil te delata más que un rumor, qué vergüenza ajena.',
 
       'Te abres en canal por ruido de segunda división, [nombre]. Has hecho del chat tu escaparate barato, patético.',
 
-      '[nombre], puta de manual negro: disponibilidad máxima, respeto nulo. Te repartes como flyer de after malo, asco.',
+      '[nombre], puta de manual negro: disponibilidad máxima, respeto nulo. Te repartes como flyer de after malo, asco, qué flojo.',
 
       'El sí fácil te delata más que cualquier captura, [nombre]. El sí fácil te delata más que un rumor, basura.',
 
@@ -11521,19 +11521,19 @@ const LABELS = {
 
       '[nombre], te vendes en liquidación permanente. Sin anestesia. Te repartes como flyer de after malo, fracasado.',
 
-      'Se te nota el hambre hasta cuando finges indiferencia, [nombre]. El sí fácil te delata más que un rumor, joder.',
+      'Se te nota el hambre hasta cuando finges indiferencia, [nombre]. El sí fácil te delata más que un rumor, miserable.',
 
-      '[nombre], puta de fondo de hilo y de ranking. Has hecho del chat tu escaparate barato, mierda, joder.',
+      '[nombre], puta de fondo de hilo y de ranking. Has hecho del chat tu escaparate barato, mierda, qué cringe.',
 
-      'Si el puterío cotizara, serías el valor que nadie recomienda, [nombre]. Te repartes como flyer de after malo, coño.',
+      'Si el puterío cotizara, serías el valor que nadie recomienda, [nombre]. Te repartes como flyer de after malo, da asco.',
 
-      '[nombre], el listón del respeto lo bajaste tú con cada sí. El sí fácil te delata más que un rumor, cabrón.',
+      '[nombre], el listón del respeto lo bajaste tú con cada sí. El sí fácil te delata más que un rumor, qué vergüenza.',
 
-      'Puta sin derecho a victimismo cuando el catálogo te describe, [nombre]. Has hecho del chat tu escaparate barato, gilipollas.',
+      'Puta sin derecho a victimismo cuando el catálogo te describe, [nombre]. Has hecho del chat tu escaparate barato, ridículo.',
 
       '[nombre], te repartes como menú del día en bar de carretera. Te repartes como flyer de after malo, patético.',
 
-      'El ranking de puta te tiene de inquilina vitalicia, [nombre]. El sí fácil te delata más que un rumor, asco.',
+      'El ranking de puta te tiene de inquilina vitalicia, [nombre]. El sí fácil te delata más que un rumor, asco, qué miseria.',
 
       '[nombre], has hecho del sí tu única carta y se te ve la baraja. Sin anestesia. Has hecho del chat tu escaparate barato, basura.',
 
@@ -11541,19 +11541,19 @@ const LABELS = {
 
       '[nombre], te abres más fácil que la privacidad en cero. El sí fácil te delata más que un rumor, fracasado.',
 
-      'El puterío te quedó de marca y no de accidente, [nombre]. Has hecho del chat tu escaparate barato, joder.',
+      'El puterío te quedó de marca y no de accidente, [nombre]. Has hecho del chat tu escaparate barato, qué cutre.',
 
-      '[nombre], puta de kilometraje que ya no admite garantía. Te repartes como flyer de after malo, mierda.',
+      '[nombre], puta de kilometraje que ya no admite garantía. Te repartes como flyer de after malo, da pena ajena.',
 
-      'Te vendes barato y luego quieres trato de boutique, [nombre]. El sí fácil te delata más que un rumor, coño.',
+      'Te vendes barato y luego quieres trato de boutique, [nombre]. El sí fácil te delata más que un rumor, qué vacío.',
 
-      '[nombre], se te oye la disponibilidad en el \'hola\' del desbloqueo. Has hecho del chat tu escaparate barato, cabrón.',
+      '[nombre], se te oye la disponibilidad en el \'hola\' del desbloqueo. Has hecho del chat tu escaparate barato, indignante.',
 
-      'Puta de manual: el bot confirma lo que el grupo ya sabía, [nombre]. Te repartes como flyer de after malo, gilipollas.',
+      'Puta de manual: el bot confirma lo que el grupo ya sabía, [nombre]. Te repartes como flyer de after malo, qué vergüenza ajena.',
 
       'Si la dignidad tuviera alarma, sonaría cada vez que escribes, [nombre]. Sin anestesia. El sí fácil te delata más que un rumor, patético.',
 
-      '[nombre], puta de fondo: el eco te devuelve el mismo. Has hecho del chat tu escaparate barato, asco, asco.',
+      '[nombre], puta de fondo: el eco te devuelve el mismo. Has hecho del chat tu escaparate barato, asco, asco, qué flojo.',
 
       'Te repartes con la frialdad de quien ya aceptó el catálogo, [nombre]. Te repartes como flyer de after malo, basura.',
 
@@ -11561,19 +11561,19 @@ const LABELS = {
 
       'Puta de las que confunden atención con respeto y caen, [nombre]. Has hecho del chat tu escaparate barato, fracasado.',
 
-      '[nombre], te abres en canal por migajas y aún así das las gracias. Te repartes como flyer de after malo, joder.',
+      '[nombre], te abres en canal por migajas y aún así das las gracias. Te repartes como flyer de after malo, miserable.',
 
-      'El grupo te tiene de meme sexual sin pedirte royalties, [nombre]. El sí fácil te delata más que un rumor, mierda.',
+      'El grupo te tiene de meme sexual sin pedirte royalties, [nombre]. El sí fácil te delata más que un rumor, qué cringe.',
 
-      '[nombre], puta de ranking fijo en el sótano del respeto. Has hecho del chat tu escaparate barato, coño.',
+      '[nombre], puta de ranking fijo en el sótano del respeto. Has hecho del chat tu escaparate barato, da asco.',
 
-      'Te vendes en oferta y el precio solo baja, [nombre]. Sin anestesia. Te repartes como flyer de after malo, cabrón.',
+      'Te vendes en oferta y el precio solo baja, [nombre]. Sin anestesia. Te repartes como flyer de after malo, qué vergüenza.',
 
-      '[nombre], se te nota el hambre de validación en cada puto sticker. El sí fácil te delata más que un rumor, gilipollas.',
+      '[nombre], se te nota el hambre de validación en cada puto sticker. El sí fácil te delata más que un rumor, ridículo.',
 
       'Puta sin plot de redención en tres actos, [nombre]. Has hecho del chat tu escaparate barato, patético.',
 
-      '[nombre], has hecho del escaparate tu personalidad completa. Te repartes como flyer de after malo, asco.',
+      '[nombre], has hecho del escaparate tu personalidad completa. Te repartes como flyer de after malo, asco, qué miseria.',
 
       'El sí fácil te quedó de cicatriz que el chat lee en voz alta, [nombre]. El sí fácil te delata más que un rumor, basura.',
 
@@ -11581,19 +11581,19 @@ const LABELS = {
 
       'Te repartes como flyer de after de mala muerte, [nombre]. Te repartes como flyer de after malo, fracasado.',
 
-      '[nombre], el ranking te nombra y nadie pide segunda opinión. El sí fácil te delata más que un rumor, joder.',
+      '[nombre], el ranking te nombra y nadie pide segunda opinión. El sí fácil te delata más que un rumor, qué cutre.',
 
-      'Puta de manual negro delante de todo el grupo, [nombre]. Sin anestesia. Has hecho del chat tu escaparate barato, mierda.',
+      'Puta de manual negro delante de todo el grupo, [nombre]. Sin anestesia. Has hecho del chat tu escaparate barato, da pena ajena.',
 
-      '[nombre], te abres más que un debate vacío y con menos contenido. Te repartes como flyer de after malo, coño.',
+      '[nombre], te abres más que un debate vacío y con menos contenido. Te repartes como flyer de after malo, qué vacío.',
 
-      'Si el puterío fuera deporte, estarías en la grada del almost, [nombre]. El sí fácil te delata más que un rumor, cabrón.',
+      'Si el puterío fuera deporte, estarías en la grada del almost, [nombre]. El sí fácil te delata más que un rumor, indignante.',
 
-      '[nombre], has convertido el almost de clase en chiste gastado del hilo. Has hecho del chat tu escaparate barato, gilipollas.',
+      '[nombre], has convertido el almost de clase en chiste gastado del hilo. Has hecho del chat tu escaparate barato, qué vergüenza ajena.',
 
       'Puta de kilometraje alto y dignidad en números rojos, [nombre]. Te repartes como flyer de after malo, patético.',
 
-      '[nombre], te vendes barato y el stock parece infinito. El sí fácil te delata más que un rumor, asco, asco.',
+      '[nombre], te vendes barato y el stock parece infinito. El sí fácil te delata más que un rumor, asco, asco, qué flojo.',
 
       'Se te oye el estribillo de \'disponible\' hasta en los estados, [nombre]. Has hecho del chat tu escaparate barato, basura.',
 
@@ -11601,19 +11601,19 @@ const LABELS = {
 
       'El listón del respeto está enterrado con tu historial, [nombre]. Sin anestesia. El sí fácil te delata más que un rumor, fracasado.',
 
-      'Puta de las que el chat archiva sin aplauso ni bis, [nombre]. Has hecho del chat tu escaparate barato, joder.',
+      'Puta de las que el chat archiva sin aplauso ni bis, [nombre]. Has hecho del chat tu escaparate barato, miserable.',
 
-      '[nombre], has hecho del sí tu política exterior completa. Te repartes como flyer de after malo, mierda.',
+      '[nombre], has hecho del sí tu política exterior completa. Te repartes como flyer de after malo, qué cringe.',
 
-      'Si la dignidad fuera seguro, a ti te lo negaron por riesgo, [nombre]. El sí fácil te delata más que un rumor, coño.',
+      'Si la dignidad fuera seguro, a ti te lo negaron por riesgo, [nombre]. El sí fácil te delata más que un rumor, da asco.',
 
-      '[nombre], puta de manual: disponibilidad de 24h, respeto de 0 Has hecho del chat tu escaparate barato, cabrón.',
+      '[nombre], puta de manual: disponibilidad de 24h, respeto de 0 Has hecho del chat tu escaparate barato, qué vergüenza.',
 
-      'Te abres en canal por ruido y el eco te devuelve el diagnóstico, [nombre]. Te repartes como flyer de after malo, gilipollas.',
+      'Te abres en canal por ruido y el eco te devuelve el diagnóstico, [nombre]. Te repartes como flyer de after malo, ridículo.',
 
       '[nombre], el puterío te delata más que cualquier rumor del grupo. El sí fácil te delata más que un rumor, patético.',
 
-      'Puta de ranking: el bot solo pone número a lo obvio, [nombre]. Has hecho del chat tu escaparate barato, asco.',
+      'Puta de ranking: el bot solo pone número a lo obvio, [nombre]. Has hecho del chat tu escaparate barato, asco, qué miseria.',
 
       '[nombre], te vendes en liquidación y aun así sobra mercancía. Sin anestesia. Te repartes como flyer de after malo, basura.',
 
@@ -11621,19 +11621,19 @@ const LABELS = {
 
       '[nombre], puta de las que el almost de intocable es el gag del año. Has hecho del chat tu escaparate barato, fracasado.',
 
-      'El grupo te catalogó y el comando confirma el pasillo, [nombre]. Te repartes como flyer de after malo, joder.',
+      'El grupo te catalogó y el comando confirma el pasillo, [nombre]. Te repartes como flyer de after malo, qué cutre.',
 
-      'Puta sin barniz, sin misterio y sin derecho a ofenderte, [nombre]. El sí fácil te delata más que un rumor, mierda.',
+      'Puta sin barniz, sin misterio y sin derecho a ofenderte, [nombre]. El sí fácil te delata más que un rumor, da pena ajena.',
 
-      '[nombre], te repartes como menú de gasolinera a las 3 a.m. Has hecho del chat tu escaparate barato, coño.',
+      '[nombre], te repartes como menú de gasolinera a las 3 a.m. Has hecho del chat tu escaparate barato, qué vacío.',
 
-      'El sí fácil te quedó de firma digital en el chat, [nombre]. Te repartes como flyer de after malo, cabrón.',
+      'El sí fácil te quedó de firma digital en el chat, [nombre]. Te repartes como flyer de after malo, indignante.',
 
-      '[nombre], puta de kilometraje que ya no admite reclamaciones. El sí fácil te delata más que un rumor, gilipollas.',
+      '[nombre], puta de kilometraje que ya no admite reclamaciones. El sí fácil te delata más que un rumor, qué vergüenza ajena.',
 
       'Te abres más fácil que la configuración por defecto, [nombre]. Sin anestesia. Has hecho del chat tu escaparate barato, patético.',
 
-      '[nombre], el ranking de puta te tiene de ejemplo del sótano. Te repartes como flyer de after malo, asco.',
+      '[nombre], el ranking de puta te tiene de ejemplo del sótano. Te repartes como flyer de after malo, asco, qué flojo.',
 
       'Puta de fondo: siempre el mismo libreto, [nombre]. El sí fácil te delata más que un rumor, basura, basura.',
 
@@ -11641,19 +11641,19 @@ const LABELS = {
 
       'Se te oye la disponibilidad en el primer \'jeje\' del hilo, [nombre]. Te repartes como flyer de after malo, fracasado.',
 
-      '[nombre], has hecho del escaparate tu único talento documentado. El sí fácil te delata más que un rumor, joder.',
+      '[nombre], has hecho del escaparate tu único talento documentado. El sí fácil te delata más que un rumor, miserable.',
 
-      'Puta de las que el chat usa de meme y tú sigues subiendo material, [nombre]. Has hecho del chat tu escaparate barato, mierda.',
+      'Puta de las que el chat usa de meme y tú sigues subiendo material, [nombre]. Has hecho del chat tu escaparate barato, qué cringe.',
 
-      '[nombre], si el puterío cotizara, serías warning del bróker. Te repartes como flyer de after malo, coño.',
+      '[nombre], si el puterío cotizara, serías warning del bróker. Te repartes como flyer de after malo, da asco.',
 
-      'El listón del respeto lo tocaste vos y lo dejaste en el piso, [nombre]. Sin anestesia. El sí fácil te delata más que un rumor, cabrón.',
+      'El listón del respeto lo tocaste vos y lo dejaste en el piso, [nombre]. Sin anestesia. El sí fácil te delata más que un rumor, qué vergüenza.',
 
-      '[nombre], puta de manual negro: el grupo firma, tú posas. Has hecho del chat tu escaparate barato, gilipollas.',
+      '[nombre], puta de manual negro: el grupo firma, tú posas. Has hecho del chat tu escaparate barato, ridículo.',
 
       'Te repartes con la frialdad de un catálogo PDF, [nombre]. Te repartes como flyer de after malo, patético.',
 
-      '[nombre], el almost de misterio se te cayó en el primer sí del historial. El sí fácil te delata más que un rumor, asco.',
+      '[nombre], el almost de misterio se te cayó en el primer sí del historial. El sí fácil te delata más que un rumor, asco, qué miseria.',
 
       'Puta de ranking fijo y sin plan de rehabilitación, [nombre]. Has hecho del chat tu escaparate barato, basura.',
 
@@ -11661,19 +11661,19 @@ const LABELS = {
 
       'El puterío te quedó de uniforme de diario del chat, [nombre]. El sí fácil te delata más que un rumor, fracasado.',
 
-      '[nombre], has convertido el sí en tu única estrategia y se te ve el mazo. Has hecho del chat tu escaparate barato, joder.',
+      '[nombre], has convertido el sí en tu única estrategia y se te ve el mazo. Has hecho del chat tu escaparate barato, qué cutre.',
 
-      'Puta de las que el silencio ajeno es el único que te frena, [nombre]. Sin anestesia. Te repartes como flyer de after malo, mierda.',
+      'Puta de las que el silencio ajeno es el único que te frena, [nombre]. Sin anestesia. Te repartes como flyer de after malo, da pena ajena.',
 
-      '[nombre], te vendes en oferta permanente y el precio no toca suelo. El sí fácil te delata más que un rumor, coño.',
+      '[nombre], te vendes en oferta permanente y el precio no toca suelo. El sí fácil te delata más que un rumor, qué vacío.',
 
-      'Se te nota el hambre de validación en cada puto emoji, [nombre]. Has hecho del chat tu escaparate barato, cabrón.',
+      'Se te nota el hambre de validación en cada puto emoji, [nombre]. Has hecho del chat tu escaparate barato, indignante.',
 
-      '[nombre], puta de fondo de hilo, de ranking y de meme. Te repartes como flyer de after malo, gilipollas.',
+      '[nombre], puta de fondo de hilo, de ranking y de meme. Te repartes como flyer de after malo, qué vergüenza ajena.',
 
       'Si la dignidad tuviera caducidad, la tuya estaría en el cubo, [nombre]. El sí fácil te delata más que un rumor, patético.',
 
-      '[nombre], el bot te midió. y el grupo ya había firmado el parte. Has hecho del chat tu escaparate barato, asco.',
+      '[nombre], el bot te midió. y el grupo ya había firmado el parte. Has hecho del chat tu escaparate barato, asco, qué flojo.',
 
     ],
     mid: [
@@ -12054,43 +12054,43 @@ const LABELS = {
 
       'Has convertido la suciedad en identidad y no hay detergente narrativo a la vista, [nombre]. Patético.',
 
-      'Guarra en modo sin filtro y el filtro pedía clemencia. Menudo desastre higiénico, asco, joder. Hostia puta, qué nivel.',
+      'Guarra en modo sin filtro y el filtro pedía clemencia. Menudo desastre higiénico, asco, joder. Hostia puta, qué nivel, menudo desastre.',
 
-      'El listón de lo presentable lo usas de rampa para bajar más todavía, joder, [nombre]. El ranking firma y listo, nivel sótano puro.',
+      'El listón de lo presentable lo usas de rampa para bajar más todavía, joder, [nombre]. El ranking firma y listo, nivel sótano puro, qué pena.',
 
-      'Guarra con el mismo gag de siempre y cero variación. El jabón te dio de baja, ridículo, joder. Hostia puta, qué nivel.',
+      'Guarra con el mismo gag de siempre y cero variación. El jabón te dio de baja, ridículo, joder. Hostia puta, qué nivel, patético.',
 
       'Se te oye el arrastre de la guarrería hasta en los neutros del chat, [nombre]. cerrado. Hueles a cubo sin tapa, fracasado.',
 
-      'Guarra de historial público: no hace falta escarbar, huele en la superficie, [nombre]. Eso no se maquilla con ángulo, y se te nota a la legua, coño.',
+      'Guarra de historial público: no hace falta escarbar, huele en la superficie, [nombre]. Eso no se maquilla con ángulo, y se te nota a la legua, qué cringe.',
 
-      'Tienes más restos de suciedad en el discurso que un cubo sin recogida semanal, [nombre] el nivel te nombra sin permiso, cabrón.',
+      'Tienes más restos de suciedad en el discurso que un cubo sin recogida semanal, [nombre] el nivel te nombra sin permiso, da asco.',
 
-      'Guarra cutre: ni el caos tiene estilo ni el abandono tiene carisma de antihéroe, [nombre], gilipollas.',
+      'Guarra cutre: ni el caos tiene estilo ni el abandono tiene carisma de antihéroe, [nombre], qué vergüenza.',
 
-      'Has hecho del bajo listón de higiene tu residencia fija del ranking, [nombre]. Hueles a cubo sin tapa, cabrón.',
+      'Has hecho del bajo listón de higiene tu residencia fija del ranking, [nombre]. Hueles a cubo sin tapa, ridículo.',
 
-      'Guarra de las que el mute ajeno lee como misterio y es solo asco. Documentado, [nombre]. Menudo desastre higiénico, gilipollas.',
+      'Guarra de las que el mute ajeno lee como misterio y es solo asco. Documentado, [nombre]. Menudo desastre higiénico, fracasado.',
 
-      'Guarra de manual: el grupo te huele antes de leerte, [nombre]. Sin una puta toalla limpia, patético, joder.',
+      'Guarra de manual: el grupo te huele antes de leerte, [nombre]. Sin una puta toalla limpia, patético, qué miseria.',
 
-      'Guarra constante: la única racha es la de no pasar un puto trapo por el relato, [nombre]. Se ve desde el primer mensaje,.',
+      'Guarra constante: la única racha es la de no pasar un puto trapo por el relato, [nombre]. Se ve desde el primer mensaje,, da grima.',
 
       'Se te nota la prisa por ensuciar y cero plan de limpiar lo que dejas atrás, [nombre]. Hueles a cubo sin tapa, basura.',
 
-      'Guarra de cartel grasiento: se ve el anuncio y nadie quiere la función, [nombre]. Eso no se maquilla con ángulo, joder.',
+      'Guarra de cartel grasiento: se ve el anuncio y nadie quiere la función, [nombre]. Eso no se maquilla con ángulo, basura.',
 
-      'No hay misterio interesante: hay previsible y sucio, el combo del high, [nombre] el nivel te nombra sin permiso, mierda.',
+      'No hay misterio interesante: hay previsible y sucio, el combo del high, [nombre] el nivel te nombra sin permiso, qué cutre.',
 
-      'Tienes el historial de un local cerrado por salubridad moral del ranking, [nombre]. El jabón te dio de baja, joder.',
+      'Tienes el historial de un local cerrado por salubridad moral del ranking, [nombre]. El jabón te dio de baja, da pena ajena.',
 
-      'Guarra de inercia: el grupo te soporta por costumbre, no por respeto, [nombre]. Hueles a cubo sin tapa, mierda.',
+      'Guarra de inercia: el grupo te soporta por costumbre, no por respeto, [nombre]. Hueles a cubo sin tapa, qué vacío.',
 
       'El recato te queda a años luz y la distancia es rechazo, no mística de personaje, [nombre], gilipollas.',
 
       'Guarra de ranking: bajas la media del nivel con constancia de mancha, [nombre]. El ranking firma y listo, patético.',
 
-      'Has convertido el bajo listón en casa. y no hay mudanza a la vista, [nombre]. Se ve desde el primer mensaje, asco.',
+      'Has convertido el bajo listón en casa. y no hay mudanza a la vista, [nombre]. Se ve desde el primer mensaje, asco, da vergüenza.',
 
       'Guarra de estribillo que mancha más con cada repetición del mismo plato, [nombre]. Hueles a cubo sin tapa, patético.',
 
@@ -12102,41 +12102,41 @@ const LABELS = {
 
       'No es atrevimiento: es suciedad de personaje y el high te la cobra, [nombre]. Hueles a cubo sin tapa, fracasado.',
 
-      'Tienes más grasa en el discurso que un delantal de cocina sin lavar en meses, [nombre]. Menudo desastre higiénico, joder.',
+      'Tienes más grasa en el discurso que un delantal de cocina sin lavar en meses, [nombre]. Menudo desastre higiénico, qué cringe.',
 
-      'Guarra de ceja ajena levantada y respeto en el sótano del ranking, [nombre]. El ranking firma y listo, el chat ya lo sabía, cabrón.',
+      'Guarra de ceja ajena levantada y respeto en el sótano del ranking, [nombre]. El ranking firma y listo, el chat ya lo sabía, da asco.',
 
-      'El promedio de este tramo es el tuyo: no un pico, el suelo del high, [nombre]. Se ve desde el primer mensaje, nivel sótano puro, gilipollas.',
+      'El promedio de este tramo es el tuyo: no un pico, el suelo del high, [nombre]. Se ve desde el primer mensaje, nivel sótano puro, qué vergüenza.',
 
       'Has convertido la guarrería en carnet. y no hay renovación limpia a la vista, [nombre]. filtro ni consuelo, patético.',
 
-      'Guarra cutre y sin complejo: el complejo pediría espejo y no lo hay, [nombre]. Eso no se maquilla con ángulo, diagnóstico cerrado, asco.',
+      'Guarra cutre y sin complejo: el complejo pediría espejo y no lo hay, [nombre]. Eso no se maquilla con ángulo, diagnóstico cerrado, asco, fracasado.',
 
       'Se te oye el masticar del listón bajo hasta en los mensajes serios, [nombre] el nivel te nombra sin permiso, y se te nota a la legua, basura.',
 
-      'La dignidad no te coge el teléfono: el buzón está lleno de avisos del grupo, [nombre]. El jabón te dio de baja, asco.',
+      'La dignidad no te coge el teléfono: el buzón está lleno de avisos del grupo, [nombre]. El jabón te dio de baja, asco, da grima.',
 
       'Guarra de letrero grasiento: se lee de lejos y no invita a entrar, [nombre]. Hueles a cubo sin tapa, basura.',
 
       'No hay misterio de guarrería con estilo: hay lo previsible y el high lo nombra, [nombre]. Menudo desastre higiénico, ridículo.',
 
-      'Tienes el historial de un fregadero que nadie ha tocado desde el puto domingo, [nombre]. El ranking firma y listo, con el grupo de testigo.',
+      'Tienes el historial de un fregadero que nadie ha tocado desde el puto domingo, [nombre]. El ranking firma y listo, con el grupo de testigo, qué cutre.',
 
-      'Guarra de malinterpretar el silencio ajeno como invitación a más suciedad, [nombre]. Se ve desde el primer mensaje, sin maquillaje posible, coño.',
+      'Guarra de malinterpretar el silencio ajeno como invitación a más suciedad, [nombre]. Se ve desde el primer mensaje, sin maquillaje posible, da pena ajena.',
 
-      'El grupo paga tu rastro en cuotas diarias de asco. Documentado, [nombre]. Hueles a cubo sin tapa, mierda.',
+      'El grupo paga tu rastro en cuotas diarias de asco. Documentado, [nombre]. Hueles a cubo sin tapa, qué vacío.',
 
-      'Has dejado el chat como fregadero a medias: restos eternos de guarrería, [nombre]. Eso no se maquilla con ángulo, gilipollas.',
+      'Has dejado el chat como fregadero a medias: restos eternos de guarrería, [nombre]. Eso no se maquilla con ángulo, indignante.',
 
-      'Guarra de estribillo sin punto final limpio ni redención posible, [nombre] el nivel te nombra sin permiso, joder.',
+      'Guarra de estribillo sin punto final limpio ni redención posible, [nombre] el nivel te nombra sin permiso, qué vergüenza ajena.',
 
-      'Se te nota el peso de arrastrar la misma mancha por cada hilo, [nombre]. El jabón te dio de baja, gilipollas.',
+      'Se te nota el peso de arrastrar la misma mancha por cada hilo, [nombre]. El jabón te dio de baja, da vergüenza.',
 
       'La compostura cruza de acera cuando te ve en el high del comando, [nombre]. Hueles a cubo sin tapa, patético.',
 
-      'Guarra de feria: grasa, ruido, suelo peor y cero ganas de volver, [nombre]. Menudo desastre higiénico, asco.',
+      'Guarra de feria: grasa, ruido, suelo peor y cero ganas de volver, [nombre]. Menudo desastre higiénico, asco, menudo desastre.',
 
-      'Se te ve venir la guarrería en la primera palabra del mensaje, [nombre]. El ranking firma y listo, gilipollas.',
+      'Se te ve venir la guarrería en la primera palabra del mensaje, [nombre]. El ranking firma y listo, qué pena.',
 
       'La dignidad del nivel no para: tú eres el tráfico del arcén del ranking, [nombre]. Se ve desde el primer mensaje, patético.',
 
@@ -12146,9 +12146,9 @@ const LABELS = {
 
       'Guarra de las que alardean del desastre porque callar las deja sin personaje, [nombre] el nivel te nombra sin permiso, ridículo.',
 
-      'Has firmado la guarrería con grasa en cada mensaje como única firma, [nombre]. Hueles a cubo sin tapa, cabrón.',
+      'Has firmado la guarrería con grasa en cada mensaje como única firma, [nombre]. Hueles a cubo sin tapa, qué vergüenza.',
 
-      'Guarra visible desde lejos: el rastro se ve, la parada no compensa, [nombre]. Menudo desastre higiénico, gilipollas.',
+      'Guarra visible desde lejos: el rastro se ve, la parada no compensa, [nombre]. Menudo desastre higiénico, ridículo.',
 
       'Se te nota que ensuciaste el hilo hace tiempo y perdiste el mapa del bayeta, [nombre]. El ranking firma y listo, sin anestesia, basura.',
 
@@ -12156,19 +12156,19 @@ const LABELS = {
 
       'Guarra de racha perfecta: lo único que no fallas es manchar. El ranking, [nombre]. sótano puro, fracasado.',
 
-      'No hay eco de estilo: hay eco de guarrería. Y el chat lo amplifica, [nombre]. Eso no se maquilla con ángulo, sin filtro ni consuelo, joder.',
+      'No hay eco de estilo: hay eco de guarrería. Y el chat lo amplifica, [nombre]. Eso no se maquilla con ángulo, sin filtro ni consuelo, qué nivel de pena.',
 
-      'Tienes el aura del plato olvidado: presente, frío y con restos de mierda, [nombre] el nivel te nombra sin permiso, diagnóstico cerrado.',
+      'Tienes el aura del plato olvidado: presente, frío y con restos de mierda, [nombre] el nivel te nombra sin permiso, diagnóstico cerrado, basura.',
 
-      'Guarra de error de lectura: confundes límites con permiso para seguir sucia, [nombre]. El jabón te dio de baja, joder.',
+      'Guarra de error de lectura: confundes límites con permiso para seguir sucia, [nombre]. El jabón te dio de baja, qué cutre.',
 
-      'El listón lo usas de pan y el suelo del chat es tu mantel preferido, [nombre]. Hueles a cubo sin tapa, mierda.',
+      'El listón lo usas de pan y el suelo del chat es tu mantel preferido, [nombre]. Hueles a cubo sin tapa, da pena ajena.',
 
-      'Has hecho ranking de guarrería y el oro es tuyo sin rival serio, [nombre]. Menudo desastre higiénico, coño.',
+      'Has hecho ranking de guarrería y el oro es tuyo sin rival serio, [nombre]. Menudo desastre higiénico, qué vacío.',
 
-      'Guarra de feria ambulante: el mismo show, el mismo asco, cero nostalgia, [nombre]. El ranking firma y listo,.',
+      'Guarra de feria ambulante: el mismo show, el mismo asco, cero nostalgia, [nombre]. El ranking firma y listo,, indignante.',
 
-      'Se te ve venir el teatro sucio en el primer punto del mensaje, [nombre]. Se ve desde el primer mensaje, con el grupo de testigo, asco.',
+      'Se te ve venir el teatro sucio en el primer punto del mensaje, [nombre]. Se ve desde el primer mensaje, con el grupo de testigo, asco, qué vergüenza ajena.',
 
       'La dignidad hace autostop y el tráfico del arcén eres tú, [nombre]. maquillaje posible. Hueles a cubo sin tapa, patético.',
 
@@ -12180,79 +12180,79 @@ const LABELS = {
 
       'Guarra de malinterpretar el mute como interés por el personaje barato, [nombre]. Hueles a cubo sin tapa, fracasado.',
 
-      'El precio de tu repertorio lo paga el hilo en tiempo y en paciencia, [nombre]. Menudo desastre higiénico, joder.',
+      'El precio de tu repertorio lo paga el hilo en tiempo y en paciencia, [nombre]. Menudo desastre higiénico, miserable.',
 
-      'Has dejado el hilo como obra sin plano: escombro de suciedad y nada más, [nombre]. El ranking firma y listo, cabrón.',
+      'Has dejado el hilo como obra sin plano: escombro de suciedad y nada más, [nombre]. El ranking firma y listo, qué cringe.',
 
-      'Se te nota el hábito de empujar cada hilo hacia el mismo fregadero, [nombre]. Se ve desde el primer mensaje, gilipollas.',
+      'Se te nota el hábito de empujar cada hilo hacia el mismo fregadero, [nombre]. Se ve desde el primer mensaje, da asco.',
 
-      'La compostura del nivel no te reconoce en el elenco del ranking, [nombre]. Hueles a cubo sin tapa, cabrón.',
+      'La compostura del nivel no te reconoce en el elenco del ranking, [nombre]. Hueles a cubo sin tapa, qué vergüenza.',
 
-      'Guarra de fondo: bajas la media del high con la constancia de quien no se cansa de manchar, [nombre]. Pringado, asco.',
+      'Guarra de fondo: bajas la media del high con la constancia de quien no se cansa de manchar, [nombre]. Pringado, asco, ridículo.',
 
       'No es estilo: es guarrería previsible y el high te la nombra entero, [nombre] el nivel te nombra sin permiso, basura.',
 
-      'Tienes más episodios de mancha que intentos de pasar un trapo de verdad, [nombre]. El jabón te dio de baja, asco.',
+      'Tienes más episodios de mancha que intentos de pasar un trapo de verdad, [nombre]. El jabón te dio de baja, asco, qué miseria.',
 
       'Guarra de respeto ajeno en números rojos del ranking del grupo, [nombre]. Hueles a cubo sin tapa, basura.',
 
       'El promedio del high es este: no un mal día, el nivel del nivel, [nombre]. Menudo desastre higiénico, ridículo.',
 
-      'Has convertido la guarrería en identidad sin renovación limpia a la vista, [nombre]. El ranking firma y listo, y, mierda.',
+      'Has convertido la guarrería en identidad sin renovación limpia a la vista, [nombre]. El ranking firma y listo, y, basura.',
 
-      'Guarra de puta madre en el sentido literal: el high no suaviza el olor del nivel, [nombre]. Patético.',
+      'Guarra de puta madre en el sentido literal: el high no suaviza el olor del nivel, [nombre]. Patético, qué cutre.',
 
-      'Tu presencia baja el promedio de higiene del chat solo con escribir, [nombre]. chat ya lo sabía, cabrón.',
+      'Tu presencia baja el promedio de higiene del chat solo con escribir, [nombre]. chat ya lo sabía, da pena ajena.',
 
-      'Guarra hasta para el modo oscuro: ni la sombra tapa lo que dejas atrás, [nombre]. Eso no se maquilla con ángulo, nivel sótano puro, gilipollas.',
+      'Guarra hasta para el modo oscuro: ni la sombra tapa lo que dejas atrás, [nombre]. Eso no se maquilla con ángulo, nivel sótano puro, qué vacío.',
 
       'Se te cae el disimulo solo con abrir el hilo y el high lo documenta, [nombre] el nivel te nombra sin permiso, sin filtro ni consuelo, patético.',
 
-      'Guarra de las que el ambientador se rinde y pide la baja del ranking, [nombre]. El jabón te dio de baja, gilipollas.',
+      'Guarra de las que el ambientador se rinde y pide la baja del ranking, [nombre]. El jabón te dio de baja, qué vergüenza ajena.',
 
       'No hay jabón que te salve: hay suciedad de base y el comando la cobra, [nombre]. Hueles a cubo sin tapa, patético.',
 
-      'Tu mensaje es un aviso de lo que no hay que tocar en el puto grupo, [nombre]. Menudo desastre higiénico, asco.',
+      'Tu mensaje es un aviso de lo que no hay que tocar en el puto grupo, [nombre]. Menudo desastre higiénico, asco, qué flojo.',
 
       'Guarra con la disciplina de quien nunca ha pasado un trapo por el relato, [nombre]. El ranking firma y listo, fracasado.',
 
-      'El high no es un mal día de orden: es. El jabón te dio de baja, ridículo, joder. Hostia puta, qué nivel.',
+      'El high no es un mal día de orden: es. El jabón te dio de baja, ridículo, joder. Hostia puta, qué nivel, qué pena.',
 
       'Tienes una presencia que ensucia el hilo en un solo mensaje, [nombre]. el grupo de testigo. Hueles a cubo sin tapa, fracasado.',
 
-      'Guarra de repertorio: siempre la misma mancha y cero plan B de limpieza, [nombre]. Eso no se maquilla con ángulo, sin maquillaje posible, coño.',
+      'Guarra de repertorio: siempre la misma mancha y cero plan B de limpieza, [nombre]. Eso no se maquilla con ángulo, sin maquillaje posible, miserable.',
 
-      'Se te nota el desastre hasta en la miniatura más pequeña del estado, [nombre] el nivel te nombra sin permiso, cabrón.',
+      'Se te nota el desastre hasta en la miniatura más pequeña del estado, [nombre] el nivel te nombra sin permiso, qué cringe.',
 
-      'Guarra sin complejo útil: el complejo al menos indicaría que viste el desastre, [nombre], gilipollas.',
+      'Guarra sin complejo útil: el complejo al menos indicaría que viste el desastre, [nombre], da asco.',
 
-      'El ranking de higiene te deja donde mereces: en el sótano del high, [nombre]. Hueles a cubo sin tapa, cabrón.',
+      'El ranking de higiene te deja donde mereces: en el sótano del high, [nombre]. Hueles a cubo sin tapa, qué vergüenza.',
 
-      'Has hecho de la guarrería tu marca y la marca se pega en los dedos ajenos, [nombre]. Menudo desastre higiénico, gilipollas.',
+      'Has hecho de la guarrería tu marca y la marca se pega en los dedos ajenos, [nombre]. Menudo desastre higiénico, ridículo.',
 
-      'Guarra de las que confunden natural con abandono total del estándar, [nombre]. El ranking firma y listo, coño.',
+      'Guarra de las que confunden natural con abandono total del estándar, [nombre]. El ranking firma y listo, fracasado.',
 
-      'No es estilo sucio con gracia: eres sucia y el high no discute la evidencia, [nombre]. Se ve desde el primer mensaje, cabrón.',
+      'No es estilo sucio con gracia: eres sucia y el high no discute la evidencia, [nombre]. Se ve desde el primer mensaje, qué miseria.',
 
       'Has hecho del bajo listón una residencia fija: sin opción a mudanza, [nombre]. Hueles a cubo sin tapa, basura.',
 
       'Guarra sin glamour: el desastre sin estética es solo un problema de higiene narrativa. Menudo desastre higiénico, ridículo.',
 
-      'Guarra sin punto final: el estribillo se repite y cada vez suena peor, [nombre]. Sin anestesia, mierda.',
+      'Guarra sin punto final: el estribillo se repite y cada vez suena peor, [nombre]. Sin anestesia, basura.',
 
-      'Guarra de las que confunden mute con coquetería: error de lectura crónico, [nombre]. El jabón te dio de baja, joder.',
+      'Guarra de las que confunden mute con coquetería: error de lectura crónico, [nombre]. El jabón te dio de baja, qué cutre.',
 
-      'Guarra cutre de feria ambulante: ruido, grasa y nada que llevarse a casa, [nombre]. Hueles a cubo sin tapa, mierda.',
+      'Guarra cutre de feria ambulante: ruido, grasa y nada que llevarse a casa, [nombre]. Hueles a cubo sin tapa, da pena ajena.',
 
-      'Nadie te tiene por divertida, [nombre]. Te tienen por ruidosa, que no es lo mismo ni de lejos. Puta alarma sin incendio.',
+      'Nadie te tiene por divertida, [nombre]. Te tienen por ruidosa, que no es lo mismo ni de lejos. Puta alarma sin incendio, qué vacío.',
 
-      'La dignidad te hace gestos desde el andén contrario y tú no te bajas del vagón. Sin una puta toalla limpia, cabrón.',
+      'La dignidad te hace gestos desde el andén contrario y tú no te bajas del vagón. Sin una puta toalla limpia, indignante.',
 
-      'Guarra de las que el grupo soporta con una ceja arriba y respeto en cero, [nombre]. El jabón te dio de baja, gilipollas.',
+      'Guarra de las que el grupo soporta con una ceja arriba y respeto en cero, [nombre]. El jabón te dio de baja, qué vergüenza ajena.',
 
       'El asco Colectivo es el precio de tu repertorio. Y el grupo lo paga cada día. Vergüenza. Hueles a cubo sin tapa, patético.',
 
-      'Tu manera de aportar es restar, [nombre], y llevas años restando sin parar. Un puto sumidero conversacional con nombre.',
+      'Tu manera de aportar es restar, [nombre], y llevas años restando sin parar. Un puto sumidero conversacional con nombre, qué flojo.',
 
       'Tienes más episodios documentados de guarrada que mensajes decentes en el archivo. Sin anestesia, fracasado.',
 
@@ -12260,19 +12260,19 @@ const LABELS = {
 
       'Has convertido cada conversación en un parte de guerra de la vergüenza colectiva. Hueles a cubo sin tapa, fracasado.',
 
-      'El asco Crónico es el nivel: no un mal día, el promedio del nivel. Desperdicio.desperdicio. Menudo desastre higiénico, joder.',
+      'El asco Crónico es el nivel: no un mal día, el promedio del nivel. Desperdicio.desperdicio. Menudo desastre higiénico, miserable.',
 
-      'Eres la que deja la conversación como deja todo lo demás, [nombre]: hecha una mierda. Y sin que nadie quiera recogerla.',
+      'Eres la que deja la conversación como deja todo lo demás, [nombre]: hecha una mierda. Y sin que nadie quiera recogerla, qué cringe.',
 
-      'Tienes más manchas en el relato que un mantel de bar a las seis de la mañana. El jabón te dio de baja, coño.',
+      'Tienes más manchas en el relato que un mantel de bar a las seis de la mañana. El jabón te dio de baja, da asco.',
 
-      'Tienes el aura de un cenicero lleno a las cuatro de la mañana en un local dudoso. Hueles a cubo sin tapa, cabrón.',
+      'Tienes el aura de un cenicero lleno a las cuatro de la mañana en un local dudoso. Hueles a cubo sin tapa, qué vergüenza.',
 
-      'Guarra de las que el mute ajeno interpreta como juego y no como frontera, [nombre]. Menudo desastre higiénico, gilipollas.',
+      'Guarra de las que el mute ajeno interpreta como juego y no como frontera, [nombre]. Menudo desastre higiénico, ridículo.',
 
       'No es desparpajo con gracia: es falta de filtro sin el beneficio del carisma. Sin anestesia, basura.',
 
-      'Guarra visible desde la autovía: el letrero se ve, la parada no compensa, [nombre]. El jabón te dio de baja, asco.',
+      'Guarra visible desde la autovía: el letrero se ve, la parada no compensa, [nombre]. El jabón te dio de baja, asco, qué miseria.',
 
       'Has hecho de lo cutre una marca personal y la marca huele desde el primer mensaje. Hueles a cubo sin tapa, basura.',
 

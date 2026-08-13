@@ -3,205 +3,205 @@ const { getSender, isMainOwner, isBotJid, bareJid, sameUser } = require('../util
 
 const VERDICTS = {
   perfect: [
-    'Cien por cien, joder. Estos dos se merecen mutuamente y eso es lo más bonito y lo más aterrador que se puede decir de alguien.',
+    'Cien por cien, joder. Estos dos se merecen mutuamente y eso es lo más bonito y lo más aterrador que se puede decir de alguien, patético.',
 
-    'Match perfecto. Nadie más los aguantaría, así que menos mal que se tienen el uno al otro, los muy cabrones.',
+    'Match perfecto. Nadie más los aguantaría, así que menos mal que se tienen el uno al otro, los muy cabrones, miserable.',
 
-    'Compatibilidad total. Dos putos desastres que encajan como una llave en una cerradura oxidada: chirría, pero abre.',
+    'Compatibilidad total. Dos putos desastres que encajan como una llave en una cerradura oxidada: chirría, pero abre, qué cringe.',
 
-    'Hostia puta, cien. Estos dos van a hacerse muchísimo daño y les va a encantar cada minuto, y el ranking no discute, cabrón.',
+    'Hostia puta, cien. Estos dos van a hacerse muchísimo daño y les va a encantar cada minuto, y el ranking no discute, da, asco, da asco.',
 
-    'Pleno. Si no acaban juntos es porque el universo tiene sentido del humor y quiere verlos sufrir por separado, los gilipollas.',
+    'Pleno. Si no acaban juntos es porque el universo tiene sentido del humor y quiere verlos sufrir por separado, los gilipollas, qué vergüenza.',
 
     'Match absoluto. Se van a arruinar la vida el uno al otro y va a ser un espectáculo de cojones, y el ranking no discute, patético.',
 
-    'Cien. Ninguno de los dos va a encontrar nada mejor, y en el fondo lo saben, los muy hijos de puta, y el ranking no discute, asco.',
+    'Cien. Ninguno de los dos va a encontrar nada mejor, y en el fondo lo saben, los muy hijos de puta, y el ranking no discute, asco, fracasado.',
 
-    'Compatibilidad perfecta. Dos taras que se cancelan entre sí. La ciencia no lo explica, la mierda esta sí.',
+    'Compatibilidad perfecta. Dos taras que se cancelan entre sí. La ciencia no lo explica, la mierda esta sí, qué miseria.',
 
-    'Joder, cien por cien. Esto no es química, esto es que nadie más quiere a ninguno de los dos y han acabado juntos por descarte.',
+    'Joder, cien por cien. Esto no es química, esto es que nadie más quiere a ninguno de los dos y han acabado juntos por descarte, da grima.',
 
-    'Match total. Se merecen tanto que casi parece una condena en vez de un premio. La cárcel con wifi más bonita del grupo.',
+    'Match total. Se merecen tanto que casi parece una condena en vez de un premio. La cárcel con wifi más bonita del grupo, qué nivel de pena.',
 
-    'Pleno absoluto. Que se junten ya de una puta vez y nos dejen en paz al resto, y el ranking no discute, joder.',
+    'Pleno absoluto. Que se junten ya de una puta vez y nos dejen en paz al resto, y el ranking no discute, basura.',
 
-    'Cien. Dos personas hechas la una para la otra, principalmente porque el resto del grupo ya les dijo que no, coño.',
+    'Cien. Dos personas hechas la una para la otra, principalmente porque el resto del grupo ya les dijo que no, qué cutre.',
 
-    'Match perfecto, joder. Van a discutir todos los días y ninguno se va a ir nunca. Amor del tipo tóxico que dura para siempre.',
+    'Match perfecto, joder. Van a discutir todos los días y ninguno se va a ir nunca. Amor del tipo tóxico que dura para siempre, da pena ajena.',
 
-    'Hostia, cien por cien. El grupo entero lo veía venir menos ellos dos, que son gilipollas, y el ranking no discute, cabrón.',
+    'Hostia, cien por cien. El grupo entero lo veía venir menos ellos dos, que son gilipollas, y el ranking no discute, qué vacío.',
 
-    'Cien. Si esto no acaba en boda acaba en orden de alejamiento, pero acaba en algo gordo, y el ranking no discute, gilipollas.',
+    'Cien. Si esto no acaba en boda acaba en orden de alejamiento, pero acaba en algo gordo, y el ranking no discute, indignante.',
 
     'Pleno de los gordos. Nadie ha dado nunca este número aquí. Tomad nota y haceos puto cargo, y el ranking no discute, patético.',
 
-    'Match del cien, cabrón. Dos piezas rotas que encajan justo por donde están rotas. Poético y patético a partes iguales.',
+    'Match del cien, cabrón. Dos piezas rotas que encajan justo por donde están rotas. Poético y patético a partes iguales, da vergüenza.',
 
     'Compatibilidad total. Se van a querer mal, que es como se quiere de verdad en este grupo de mierda, y el ranking no discute, basura.',
 
-    'Cien. El destino no ha tenido nada que ver: simplemente nadie más quiso a ninguno de los dos, joder.',
+    'Cien. El destino no ha tenido nada que ver: simplemente nadie más quiso a ninguno de los dos, menudo desastre.',
 
     'Match perfecto. Van a ser felices y va a ser insufrible de ver desde fuera, los muy cabrones, y el ranking no discute, fracasado.',
 
-    'Pleno, hostia puta. Lo único que separa a estos dos es la vergüenza, y eso se pasa con dos copas y una mala decisión.',
+    'Pleno, hostia puta. Lo único que separa a estos dos es la vergüenza, y eso se pasa con dos copas y una mala decisión, patético.',
 
-    'Cien por cien. Se lo merecen todo: lo bueno, lo malo y las broncas de madrugada a grito pelado, y el ranking no discute, mierda.',
+    'Cien por cien. Se lo merecen todo: lo bueno, lo malo y las broncas de madrugada a grito pelado, y el ranking no discute, miserable.',
 
-    'Match total. Dos personas con el mismo nivel exacto de desastre. Eso es más raro que encontrar un billete en la mierda.',
+    'Match total. Dos personas con el mismo nivel exacto de desastre. Eso es más raro que encontrar un billete en la mierda, qué cringe.',
 
-    'Cien, joder. Si un día lo dejan, el grupo va a tener que elegir bando y nadie tiene cojones para eso.',
+    'Cien, joder. Si un día lo dejan, el grupo va a tener que elegir bando y nadie tiene cojones para eso, da, asco, da asco.',
 
-    'Compatibilidad perfecta. Ninguno de los dos tiene nada mejor que hacer, y eso también es compatibilidad, coño.',
+    'Compatibilidad perfecta. Ninguno de los dos tiene nada mejor que hacer, y eso también es compatibilidad, qué vergüenza.',
 
     'Match del cien por cien. Que alguien les diga que se dejen de putas tonterías de una vez, y el ranking no discute, patético.',
 
-    'Pleno. Están hechos el uno para el otro con la precisión de dos errores que se corrigen solos, los cabrones.',
+    'Pleno. Están hechos el uno para el otro con la precisión de dos errores que se corrigen solos, los cabrones, fracasado.',
 
-    'Cien. Este número no lo da el bot por casualidad, lo da porque no hay alternativa para ninguno de estos gilipollas.',
+    'Cien. Este número no lo da el bot por casualidad, lo da porque no hay alternativa para ninguno de estos gilipollas, qué miseria.',
 
-    'Match perfecto. Dos que se entienden sin hablar, principalmente porque ninguno escucha nunca, joder.',
+    'Match perfecto. Dos que se entienden sin hablar, principalmente porque ninguno escucha nunca, da grima.',
 
-    'Compatibilidad absoluta, hostia. Se van a arruinar mutuamente y va a ser un espectáculo precioso de mierda.',
+    'Compatibilidad absoluta, hostia. Se van a arruinar mutuamente y va a ser un espectáculo precioso de mierda, qué nivel de pena.',
 
-    'Cien por cien. El grupo os hace de testigo, así que ya no hay marcha atrás posible, cabrones, y el ranking no discute, joder.',
+    'Cien por cien. El grupo os hace de testigo, así que ya no hay marcha atrás posible, cabrones, y el ranking no discute, basura.',
 
-    'Pleno. Juntos suman una persona funcional. Por separado no llegan ni a media, los muy putos inútiles.',
+    'Pleno. Juntos suman una persona funcional. Por separado no llegan ni a media, los muy putos inútiles, qué cutre.',
 
-    'Match total. Nadie discute esto. Ni ellos, y eso que discuten absolutamente todo como los gilipollas que son.',
+    'Match total. Nadie discute esto. Ni ellos, y eso que discuten absolutamente todo como los gilipollas que son, da pena ajena.',
 
-    'Cien, joder. Dos desgracias con patas que decidieron caminar en la misma dirección. Enhoramala, y el ranking no discute, cabrón.',
+    'Cien, joder. Dos desgracias con patas que decidieron caminar en la misma dirección. Enhoramala, y el ranking no discute, qué vacío.',
 
-    'Compatibilidad perfecta. Da igual lo que digan: el marcador ha hablado y el marcador no negocia, coño.',
+    'Compatibilidad perfecta. Da igual lo que digan: el marcador ha hablado y el marcador no negocia, indignante.',
 
     'Match del cien. Los que se odian así de bien acaban siempre en la misma cama. Todos lo hemos visto, y el ranking no discute, patético.',
 
-    'Pleno absoluto. Si esto sale mal, sale mal a lo grande. Y si sale bien, también. Esa es la puta gracia.',
+    'Pleno absoluto. Si esto sale mal, sale mal a lo grande. Y si sale bien, también. Esa es la puta gracia, da vergüenza.',
 
-    'Cien por cien. Es su última oportunidad y es mutua. Aprovechadla o callaos para siempre, hijos de puta.',
+    'Cien por cien. Es su última oportunidad y es mutua. Aprovechadla o callaos para siempre, hijos de puta, qué flojo.',
 
-    'Match perfecto, hostia. Que se besen ya y acabemos con esta mierda antes de que el grupo se muera de cringe.',
+    'Match perfecto, hostia. Que se besen ya y acabemos con esta mierda antes de que el grupo se muera de cringe, menudo desastre.',
 
-    'Cien por cien. El bot ha hecho la cuenta tres veces por si se había equivocado y no: esto pasa una vez cada diez años, joder.',
+    'Cien por cien. El bot ha hecho la cuenta tres veces por si se había equivocado y no: esto pasa una vez cada diez años, qué pena.',
 
-    'Match total. Se han encontrado dos personas igual de insoportables y por eso mismo funciona: nadie más las habría aguantado, coño.',
+    'Match total. Se han encontrado dos personas igual de insoportables y por eso mismo funciona: nadie más las habría aguantado, patético.',
 
-    'Compatibilidad absoluta. Lo raro no es que encajen, lo raro es que hayan tardado tanto con el grupo entero mirando como gilipollas.',
+    'Compatibilidad absoluta. Lo raro no es que encajen, lo raro es que hayan tardado tanto con el grupo entero mirando como gilipollas, miserable.',
 
-    'Perfecto, hostia puta. Esto no es química, es destino con muy mal gusto y muchísima insistencia, y el ranking no discute, coño.',
+    'Perfecto, hostia puta. Esto no es química, es destino con muy mal gusto y muchísima insistencia, y el ranking no discute, qué cringe.',
 
-    'Redondo, joder. El bot no reparte cien por cien todos los días, así que aprovechad antes de que uno de los dos la cague.',
+    'Redondo, joder. El bot no reparte cien por cien todos los días, así que aprovechad antes de que uno de los dos la cague, da, asco, da asco.',
 
-    'Cien. Dos piezas rotas que resulta que estaban rotas por el mismo sitio. Encajan de milagro y encajan de puta madre.',
+    'Cien. Dos piezas rotas que resulta que estaban rotas por el mismo sitio. Encajan de milagro y encajan de puta madre, qué vergüenza.',
 
-    'Match de los que se cuentan en las bodas entre vómitos. Lo mejor es que ninguno lo vio venir hasta este mensaje, los imbéciles.',
+    'Match de los que se cuentan en las bodas entre vómitos. Lo mejor es que ninguno lo vio venir hasta este mensaje, los imbéciles, ridículo.',
 
-    'Perfecto y ligeramente preocupante, coño. Cuando dos personas encajan tanto, el resto del grupo sobra un poco.',
+    'Perfecto y ligeramente preocupante, coño. Cuando dos personas encajan tanto, el resto del grupo sobra un poco, fracasado.',
 
-    'Cien por cien. El bot lleva meses viendo venir esta mierda y por fin tiene una excusa para decirlo en voz alta.',
+    'Cien por cien. El bot lleva meses viendo venir esta mierda y por fin tiene una excusa para decirlo en voz alta, qué miseria.',
 
-    'Compatibilidad máxima. No hay nada que analizar: se ha juntado lo que tenía que juntarse y punto, joder.',
+    'Compatibilidad máxima. No hay nada que analizar: se ha juntado lo que tenía que juntarse y punto, da grima.',
 
-    'Match perfecto. Uno pone el caos y el otro pone la paciencia, que es exactamente como funciona la mierda que dura.',
+    'Match perfecto. Uno pone el caos y el otro pone la paciencia, que es exactamente como funciona la mierda que dura, qué nivel de pena.',
 
-    'Cien, hostia. Si esto no acaba en algo, el problema ya no son los números: sois vosotros dos y vuestra puta cobardía.',
+    'Cien, hostia. Si esto no acaba en algo, el problema ya no son los números: sois vosotros dos y vuestra puta cobardía, basura.',
 
-    'Total. El bot no encuentra ni un solo motivo para que esto falle, y mira que ha buscado con ganas, cabrón.',
+    'Total. El bot no encuentra ni un solo motivo para que esto falle, y mira que ha buscado con ganas, qué cutre.',
 
-    'Perfecto. Dos personas que se entienden sin hablar, que en este grupo de mierda es prácticamente un superpoder.',
+    'Perfecto. Dos personas que se entienden sin hablar, que en este grupo de mierda es prácticamente un superpoder, da pena ajena.',
 
-    'Cien por cien y con el grupo de testigo. A partir de ahora ya no se puede fingir que no pasa nada, gilipollas.',
+    'Cien por cien y con el grupo de testigo. A partir de ahora ya no se puede fingir que no pasa nada, qué vacío.',
 
-    'Match absoluto, joder. Es de esas parejas que dan rabia porque funcionan sin esfuerzo mientras el resto lo intenta y se come la mierda.',
+    'Match absoluto, joder. Es de esas parejas que dan rabia porque funcionan sin esfuerzo mientras el resto lo intenta y se come la mierda, indignante.',
 
-    'Redondo. El bot ha visto miles de combinaciones y esta es de las pocas que no le da vergüenza anunciar, hostia.',
+    'Redondo. El bot ha visto miles de combinaciones y esta es de las pocas que no le da vergüenza anunciar, qué vergüenza ajena.',
 
-    'Cien. Lo tenían delante todo el puto tiempo y ha tenido que venir un bot a decírselo. Patético y precioso a partes iguales.',
+    'Cien. Lo tenían delante todo el puto tiempo y ha tenido que venir un bot a decírselo. Patético y precioso a partes iguales, da vergüenza.',
 
-    'Perfecto. Si alguno lo estropea ahora, que sepa que el grupo entero tiene este mensaje guardado, cabrón.',
+    'Perfecto. Si alguno lo estropea ahora, que sepa que el grupo entero tiene este mensaje guardado, qué flojo.',
 
-    'Compatibilidad total, joder. Dos desastres que juntos, por algún motivo que escapa a la ciencia y a la decencia, funcionan.',
+    'Compatibilidad total, joder. Dos desastres que juntos, por algún motivo que escapa a la ciencia y a la decencia, funcionan, menudo desastre.',
 
-    'Cien por cien. Esto es lo más parecido a una boda que puede organizar un puto bot de WhatsApp. Que alguien traiga la tarta.',
+    'Cien por cien. Esto es lo más parecido a una boda que puede organizar un puto bot de WhatsApp. Que alguien traiga la tarta, qué pena.',
 
-    'Cien de cien. Estos dos se merecen mutuamente y eso es lo más cruel que le puede pasar al resto, joder.',
+    'Cien de cien. Estos dos se merecen mutuamente y eso es lo más cruel que le puede pasar al resto, patético.',
 
-    'Match perfecto: dos taras que se cancelan. La ciencia no lo explica, esta mierda sí, cabrón. Hostia puta, qué nivel.',
+    'Match perfecto: dos taras que se cancelan. La ciencia no lo explica, esta mierda sí, cabrón. Hostia puta, qué nivel, miserable.',
 
-    'Compatibilidad total. Van a discutir todos los días y ninguno se va, gilipollas. Hostia puta, qué nivel.',
+    'Compatibilidad total. Van a discutir todos los días y ninguno se va, gilipollas. Hostia puta, qué nivel, qué cringe.',
 
-    'Ship redondo. El grupo va a sufrirlo en silencio durante años, mierda, y el ranking no discute, cabrón.',
+    'Ship redondo. El grupo va a sufrirlo en silencio durante años, mierda, y el ranking no discute, da, asco, da asco.',
 
-    'Perfectos el uno para el otro. Nadie más los aguantaría, coño, y el ranking no discute, gilipollas. Hostia puta, qué nivel.',
+    'Perfectos el uno para el otro. Nadie más los aguantaría, coño, y el ranking no discute, gilipollas. Hostia puta, qué nivel, qué vergüenza.',
 
-    'Cien por cien. Química de la que se nota y da un poco de asco ajeno, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Cien por cien. Química de la que se nota y da un poco de asco ajeno, asco. Hostia puta, qué nivel. Hostia, el desastre se explica solo, ridículo.',
 
-    'Match de manual. Menos mal que se tienen: el resto del mundo no aplica, patético. Hostia puta, qué nivel.',
+    'Match de manual. Menos mal que se tienen: el resto del mundo no aplica, patético. Hostia puta, qué nivel, fracasado.',
 
     'Compatibilidad perfecta. Dos que se entienden sin escuchar, basura, y el ranking no discute, basura.',
 
     'Ship cerrado. El marcador no negocia y el chat tampoco, ridículo, y el ranking no discute, ridículo.',
 
-    'Cien. Que se besen ya y acabemos con el cringe colectivo, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Cien. Que se besen ya y acabemos con el cringe colectivo, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué nivel de pena.',
 
-    'Perfectos. Uno pone el caos y el otro la paciencia tóxica, joder., y el ranking no discute, joder. Hostia puta, qué nivel.',
+    'Perfectos. Uno pone el caos y el otro la paciencia tóxica, joder., y el ranking no discute, joder. Hostia puta, qué nivel, basura.',
 
-    'Match que duele de ver desde fuera. Funciona demasiado bien, cabrón, y el ranking no discute, mierda.',
+    'Match que duele de ver desde fuera. Funciona demasiado bien, cabrón, y el ranking no discute, qué cutre.',
 
-    'Compatibilidad de la mala: la que dura, gilipollas, y el ranking no discute, coño. Hostia puta, qué nivel.',
+    'Compatibilidad de la mala: la que dura, gilipollas, y el ranking no discute, coño. Hostia puta, qué nivel, da pena ajena.',
 
-    'Ship al máximo. El grupo ya está preparando el popcorn amargo, mierda, y el ranking no discute, cabrón.',
+    'Ship al máximo. El grupo ya está preparando el popcorn amargo, mierda, y el ranking no discute, qué vacío.',
 
-    'Cien de compatibilidad. Insufrible y real, coño, y el ranking no discute, gilipollas. Hostia puta, qué nivel.',
+    'Cien de compatibilidad. Insufrible y real, coño, y el ranking no discute, gilipollas. Hostia puta, qué nivel, indignante.',
 
-    'Perfectos entre sí. Un desastre para el resto del hilo, asco, y el ranking no discute, patético. Hostia puta, qué nivel.',
+    'Perfectos entre sí. Un desastre para el resto del hilo, asco, y el ranking no discute, patético. Hostia puta, qué nivel, qué vergüenza ajena.',
 
-    'Match sin fisuras. Hasta el ranking aplaude a regañadientes, patético, y el ranking no discute, asco.',
+    'Match sin fisuras. Hasta el ranking aplaude a regañadientes, patético, y el ranking no discute, asco, da vergüenza.',
 
-    'Compatibilidad total documentada. Caso cerrado, basura, y el ranking no discute, basura. Hostia puta, qué nivel.',
+    'Compatibilidad total documentada. Caso cerrado, basura, y el ranking no discute, basura. Hostia puta, qué nivel, qué flojo.',
 
     'Ship de los que se odian bien. Eso también es amor aquí, ridículo, y el ranking no discute, ridículo.',
 
-    'Cien. No hay tercero que entre en esa órbita, fracasado, y el ranking no discute, fracasado. Hostia puta, qué nivel.',
+    'Cien. No hay tercero que entre en esa órbita, fracasado, y el ranking no discute, fracasado. Hostia puta, qué nivel, qué pena.',
 
-    'Perfectos. El chat lo sabía antes que ellos, joder., y el ranking no discute, joder. Hostia puta, qué nivel.',
+    'Perfectos. El chat lo sabía antes que ellos, joder., y el ranking no discute, joder. Hostia puta, qué nivel, patético.',
 
-    'Match químico sin anestesia. Duele mirarlo, cabrón, y el ranking no discute, mierda. Hostia puta, qué nivel.',
+    'Match químico sin anestesia. Duele mirarlo, cabrón, y el ranking no discute, mierda. Hostia puta, qué nivel, miserable.',
 
-    'Compatibilidad de laboratorio roto, gilipollas, y el ranking no discute, coño. Hostia puta, qué nivel.',
+    'Compatibilidad de laboratorio roto, gilipollas, y el ranking no discute, coño. Hostia puta, qué nivel, qué cringe.',
 
-    'Ship perfecto. El resto sobra, mierda, y el ranking no discute, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Ship perfecto. El resto sobra, mierda, y el ranking no discute, cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da, asco, da asco.',
 
-    'Cien por cien de drama sostenible, coño, y el ranking no discute, gilipollas. Hostia puta, qué nivel.',
+    'Cien por cien de drama sostenible, coño, y el ranking no discute, gilipollas. Hostia puta, qué nivel, qué vergüenza.',
 
-    'Perfectos el uno para el otro. Qué puta tragedia ajena, asco, y el ranking no discute, patético. Hostia puta, qué nivel.',
+    'Perfectos el uno para el otro. Qué puta tragedia ajena, asco, y el ranking no discute, patético. Hostia puta, qué nivel, ridículo.',
 
-    'Match cerrado con candado, patético, y el ranking no discute, asco, y el grupo ya lo olió, asco. Hostia puta, qué nivel.',
+    'Match cerrado con candado, patético, y el ranking no discute, asco, y el grupo ya lo olió, asco. Hostia puta, qué nivel, fracasado.',
 
-    'Compatibilidad máxima. Sin derecho a réplica, basura, y el ranking no discute, basura. Hostia puta, qué nivel.',
+    'Compatibilidad máxima. Sin derecho a réplica, basura, y el ranking no discute, basura. Hostia puta, qué nivel, qué miseria.',
 
-    'Ship de los que el grupo no discute, ridículo, y el ranking no discute, ridículo. Hostia puta, qué nivel.',
+    'Ship de los que el grupo no discute, ridículo, y el ranking no discute, ridículo. Hostia puta, qué nivel, da grima.',
 
-    'Cien. Archivo y a sufrir, fracasado, y el ranking no discute, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Cien. Archivo y a sufrir, fracasado, y el ranking no discute, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué nivel de pena.',
 
-    'Perfectos. La física del fail compartido, joder., y el ranking no discute, joder. Hostia puta, qué nivel.',
+    'Perfectos. La física del fail compartido, joder., y el ranking no discute, joder. Hostia puta, qué nivel, basura.',
 
-    'Match que se siente en el hilo, cabrón, y el ranking no discute, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Match que se siente en el hilo, cabrón, y el ranking no discute, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cutre.',
 
-    'Compatibilidad sin escape, gilipollas, y el ranking no discute, coño, y el grupo ya lo olió, coño. Hostia puta, qué nivel.',
+    'Compatibilidad sin escape, gilipollas, y el ranking no discute, coño, y el grupo ya lo olió, coño. Hostia puta, qué nivel, da pena ajena.',
 
-    'Ship total., y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón. Hostia puta, qué nivel.',
+    'Ship total., y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón. Hostia puta, qué nivel, qué vacío.',
 
-    'Cien de cien y el chat lo traga, coño, y el ranking no discute, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Cien de cien y el chat lo traga, coño, y el ranking no discute, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, indignante.',
 
-    'Perfectos. No hay plan B que merezca la pena, asco, y el ranking no discute, patético. Hostia puta, qué nivel.',
+    'Perfectos. No hay plan B que merezca la pena, asco, y el ranking no discute, patético. Hostia puta, qué nivel, qué vergüenza ajena.',
 
-    'Match de los que se eligen mal a propósito, patético, y el ranking no discute, asco. Hostia puta, qué nivel.',
+    'Match de los que se eligen mal a propósito, patético, y el ranking no discute, asco. Hostia puta, qué nivel, da vergüenza.',
 
-    'Compatibilidad perfecta de taras, basura, y el ranking no discute, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Compatibilidad perfecta de taras, basura, y el ranking no discute, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué flojo.',
 
-    'Ship al límite. El ranking firmó, ridículo, y el ranking no discute, ridículo. Hostia puta, qué nivel.',
+    'Ship al límite. El ranking firmó, ridículo, y el ranking no discute, ridículo. Hostia puta, qué nivel, menudo desastre.',
 
-    'Cien. Fin del debate, fracasado, y el ranking no discute, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Cien. Fin del debate, fracasado, y el ranking no discute, fracasado. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué pena.',
 
 ],
   high: [
@@ -391,17 +391,17 @@ const VERDICTS = {
 
     'Fuerte. El marcador no pide opiniones, mierda, y el ranking no discute, coño. Hostia puta, qué nivel.',
 
-    'Alto de verdad. Archivado, coño, y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón. Hostia puta, qué nivel.',
+    'Alto de verdad. Archivado, coño, y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón. Hostia puta, qué nivel, fracasado.',
 
-    'Tensión de la que se traduce en memes, asco, y el ranking no discute, gilipollas. Hostia puta, qué nivel.',
+    'Tensión de la que se traduce en memes, asco, y el ranking no discute, gilipollas. Hostia puta, qué nivel, qué miseria.',
 
-    'Ship que se ve venir a la legua, patético, y el ranking no discute, patético. Hostia puta, qué nivel.',
+    'Ship que se ve venir a la legua, patético, y el ranking no discute, patético. Hostia puta, qué nivel, da grima.',
 
-    'Buena pareja según el bot y según el chisme, basura, y el ranking no discute, asco. Hostia puta, qué nivel.',
+    'Buena pareja según el bot y según el chisme, basura, y el ranking no discute, asco. Hostia puta, qué nivel, qué nivel de pena.',
 
-    'Alto. Casi el techo, ridículo, y el ranking no discute, basura, y el grupo ya lo olió, basura. Hostia puta, qué nivel.',
+    'Alto. Casi el techo, ridículo, y el ranking no discute, basura, y el grupo ya lo olió, basura. Hostia puta, qué nivel, basura.',
 
-    'Fuerte compatibilidad sin anestesia, fracasado, y el ranking no discute, ridículo. Hostia puta, qué nivel.',
+    'Fuerte compatibilidad sin anestesia, fracasado, y el ranking no discute, ridículo. Hostia puta, qué nivel, qué cutre.',
 
     'Alto de los que el almost duele, fracasado, fracasado, y el ranking no discute, fracasado, y el grupo ya lo olió, fracasado.',
 
@@ -593,19 +593,19 @@ const VERDICTS = {
 
     'Ship tibio de los que sobran, gilipollas, y el ranking no discute, coño, y el grupo ya lo olió, coño.',
 
-    'Mitad. El grupo no pide bis, mierda, y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón.',
+    'Mitad. El grupo no pide bis, mierda, y el ranking no discute, cabrón, y el grupo ya lo olió, qué vacío.',
 
-    'Medio sin derecho a hype, coño, y el ranking no discute, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Medio sin derecho a hype, coño, y el ranking no discute, gilipollas. Hostia puta, qué nivel. Hostia, el desastre se explica solo, indignante.',
 
-    'Ni fu ni fa con sello oficial, asco, y el ranking no discute, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Ni fu ni fa con sello oficial, asco, y el ranking no discute, patético. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza ajena.',
 
-    'Ship olvidable a propósito, patético, y el ranking no discute, asco, y el grupo ya lo olió, asco. Hostia puta, qué nivel.',
+    'Ship olvidable a propósito, patético, y el ranking no discute, asco, y el grupo ya lo olió, asco. Hostia puta, qué nivel, da vergüenza.',
 
-    'Tibio. Archivado sin ceremonia, basura, y el ranking no discute, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Tibio. Archivado sin ceremonia, basura, y el ranking no discute, basura. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué flojo.',
 
     'Mediocre y previsible, ridículo, y el ranking no discute, ridículo, y el grupo ya lo olió, ridículo.',
 
-    'Zona media: el casi que no importa, fracasado, y el ranking no discute, fracasado. Hostia puta, qué nivel.',
+    'Zona media: el casi que no importa, fracasado, y el ranking no discute, fracasado. Hostia puta, qué nivel, qué pena.',
 
 ],
   low: [
@@ -793,19 +793,19 @@ const VERDICTS = {
 
     'Química ausente con testigos, gilipollas, y el ranking no discute, mierda. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
 
-    'Fail de pareja en diferido, mierda, y el ranking no discute, coño, y el grupo ya lo olió, coño. Hostia puta, qué nivel.',
+    'Fail de pareja en diferido, mierda, y el ranking no discute, coño, y el grupo ya lo olió, coño. Hostia puta, qué nivel, patético.',
 
-    'Bajo. No fuerces el crossover, coño, y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón.',
+    'Bajo. No fuerces el crossover, coño, y el ranking no discute, cabrón, y el grupo ya lo olió, miserable.',
 
-    'Poco ship, mucho cringe potencial, asco, y el ranking no discute, gilipollas. Hostia puta, qué nivel.',
+    'Poco ship, mucho cringe potencial, asco, y el ranking no discute, gilipollas. Hostia puta, qué nivel, qué cringe.',
 
-    'Compatibilidad de sótano documentada, patético, y el ranking no discute, patético. Hostia puta, qué nivel.',
+    'Compatibilidad de sótano documentada, patético, y el ranking no discute, patético. Hostia puta, qué nivel, da asco.',
 
-    'Ship bajo sin plot twist, basura, y el ranking no discute, asco, y el grupo ya lo olió, asco. Hostia puta, qué nivel.',
+    'Ship bajo sin plot twist, basura, y el ranking no discute, asco, y el grupo ya lo olió, asco. Hostia puta, qué nivel, qué vergüenza.',
 
-    'Bajo. Caso casi cerrado, ridículo, y el ranking no discute, basura, y el grupo ya lo olió, basura. Hostia puta, qué nivel.',
+    'Bajo. Caso casi cerrado, ridículo, y el ranking no discute, basura, y el grupo ya lo olió, basura. Hostia puta, qué nivel, ridículo.',
 
-    'La química pidió la baja, fracasado, y el ranking no discute, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'La química pidió la baja, fracasado, y el ranking no discute, ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
 
     'Química en huelga, fracasado, fracasado, y el ranking no discute, fracasado, y el grupo ya lo olió, fracasado.',
 

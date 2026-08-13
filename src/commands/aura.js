@@ -111,203 +111,203 @@ function rollAura(targetIsOwner, targetIsAdmin, plusActividad = 0, dePago = true
 
 const AURA = {
   blessed: [
-    'Ganaste tan limpio que nadie pudo decir ni una puta cosa. Y eso aquí no pasa nunca, joder Y el grupo tomó nota, joder.',
+    'Ganaste tan limpio que nadie pudo decir ni una puta cosa. Y eso aquí no pasa nunca, joder Y el grupo tomó nota, patético.',
 
-    'El chat se frenó de verdad. No por respeto: por sorpresa de que fueras tú, cabrón. mierda Sin anestesia posible, mierda.',
+    'El chat se frenó de verdad. No por respeto: por sorpresa de que fueras tú, cabrón. mierda Sin anestesia posible, miserable.',
 
-    'Hoy te tocó estar arriba y al grupo le jodió admitirlo. Se les notó en la cara, gilipollas. Hostia puta, qué nivel.',
+    'Hoy te tocó estar arriba y al grupo le jodió admitirlo. Se les notó en la cara, gilipollas. Hostia puta, qué nivel, qué cringe.',
 
-    'Sacaste un número que obligó a esta gente a tragar saliva. Algunos todavía lo digieren, mierda. Hostia puta, qué nivel.',
+    'Sacaste un número que obligó a esta gente a tragar saliva. Algunos todavía lo digieren, mierda. Hostia puta, qué nivel, da asco.',
 
-    'Nadie te felicitó y eso es lo mejor: la envidia muda es el premio gordo, coño. gilipollas Se te ve a la legua, gilipollas.',
+    'Nadie te felicitó y eso es lo mejor: la envidia muda es el premio gordo, coño. gilipollas Se te ve a la legua, qué vergüenza.',
 
     'Ganaste con una frialdad que no te conocían. El chat no supo cómo cojones reaccionar, asco Y el grupo tomó nota, patético.',
 
-    'Esa tirada hizo ruido en un chat que llevaba semanas riéndose de ti. Ahora callan,. asco Sin anestesia posible, asco.',
+    'Esa tirada hizo ruido en un chat que llevaba semanas riéndose de ti. Ahora callan,. asco Sin anestesia posible, asco, fracasado.',
 
-    'El grupo tuvo que tragarse el guion que preparaba. Les cambiaste el puto plan en un turno, cabrón. Hostia puta, qué nivel.',
+    'El grupo tuvo que tragarse el guion que preparaba. Les cambiaste el puto plan en un turno, cabrón. Hostia puta, qué nivel, qué miseria.',
 
     'Hoy el aura se inclinó hacia ti. Raro, incómodo y bien merecido. No te acostumbres, patético. Hostia puta, qué nivel.',
 
     'Nadie quiso ser el primero en hablar después de tu tirada. Ese silencio es tu trofeo, basura Se te ve a la legua, fracasado.',
 
-    'Te miraron distinto un segundo. Ese segundo ya no te lo quitan, ridículo. joder Y el grupo tomó nota, joder.',
+    'Te miraron distinto un segundo. Ese segundo ya no te lo quitan, ridículo. joder Y el grupo tomó nota, basura.',
 
-    'Ganaste tan fuerte que hasta tus haters tuvieron que cerrar el hocico, fracasado. mierda Sin anestesia posible, mierda.',
+    'Ganaste tan fuerte que hasta tus haters tuvieron que cerrar el hocico, fracasado. mierda Sin anestesia posible, qué cutre.',
 
-    'El silencio después de tu número pesó más que cualquier comentario de mierda,. coño. Hostia puta, qué nivel.',
+    'El silencio después de tu número pesó más que cualquier comentario de mierda,. coño. Hostia puta, qué nivel, da pena ajena.',
 
-    'Por una vez no fuiste el chiste del grupo. Les costó, pero tuvieron que mirarte diferente, coño. Hostia puta, qué nivel.',
+    'Por una vez no fuiste el chiste del grupo. Les costó, pero tuvieron que mirarte diferente, coño. Hostia puta, qué nivel, qué vacío.',
 
-    'Sacaste algo tan grande que el chat se quedó sin el chiste preparado, gilipollas. gilipollas Se te ve a la legua, gilipollas.',
+    'Sacaste algo tan grande que el chat se quedó sin el chiste preparado, gilipollas. gilipollas Se te ve a la legua, indignante.',
 
     'Hoy mandaste callar a gente que solo sabe hablar de ti en broma, mierda. patético Y el grupo tomó nota, patético.',
 
-    'La mesa se quedó quieta un segundo real. Eso es peso, no cortesía, cabrón. asco Sin anestesia posible, asco.',
+    'La mesa se quedó quieta un segundo real. Eso es peso, no cortesía, cabrón. asco Sin anestesia posible, asco, da vergüenza.',
 
-    'Nadie dijo bien jugado porque les habría dolido admitirlo. Ahí está la diferencia, asco. basura. Hostia puta, qué nivel.',
+    'Nadie dijo bien jugado porque les habría dolido admitirlo. Ahí está la diferencia, asco. basura. Hostia puta, qué nivel, qué flojo.',
 
-    'Ganaste y la sala se enfrió. Pasa cuando gana quien no debería,. ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Ganaste y la sala se enfrió. Pasa cuando gana quien no debería,. ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, menudo desastre.',
 
     'El chat cambió de tema porque no sabía cómo reírse de esto, patético. fracasado Se te ve a la legua, fracasado.',
 
-    'Hoy te ganaste que esta gente se quedara sin palabras por tu culpa, basura. joder Y el grupo tomó nota, joder.',
+    'Hoy te ganaste que esta gente se quedara sin palabras por tu culpa, basura. joder Y el grupo tomó nota, patético.',
 
-    'Entraste sin ruido y saliste con el grupo callado. Eso no pasa dos veces, ridículo. mierda Sin anestesia posible, mierda.',
+    'Entraste sin ruido y saliste con el grupo callado. Eso no pasa dos veces, ridículo. mierda Sin anestesia posible, miserable.',
 
-    'El número habló. y el chat obedeció. Primera vez que te pasa en serio, fracasado. coño. Hostia puta, qué nivel.',
+    'El número habló. y el chat obedeció. Primera vez que te pasa en serio, fracasado. coño. Hostia puta, qué nivel, qué cringe.',
 
-    'Les jodió verte arriba. Se notó en cada mensaje que no mandaron,. cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Les jodió verte arriba. Se notó en cada mensaje que no mandaron,. cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da asco.',
 
-    'Ganaste limpio y el respeto forzado es más rico que el aplauso, coño. gilipollas Se te ve a la legua, gilipollas.',
+    'Ganaste limpio y el respeto forzado es más rico que el aplauso, coño. gilipollas Se te ve a la legua, qué vergüenza.',
 
     'Hoy el aura te usó de ejemplo al revés: de los que sí pueden, gilipollas. patético Y el grupo tomó nota, patético.',
 
-    'Nadie tenía el gag listo porque el gag eras tú perdiendo. Hoy no, mierda. asco Sin anestesia posible, asco.',
+    'Nadie tenía el gag listo porque el gag eras tú perdiendo. Hoy no, mierda. asco Sin anestesia posible, asco, fracasado.',
 
-    'Sacaste respeto a la fuerza. El chat lo pagó en silencio, cabrón. basura, joder. Hostia puta, qué nivel.',
+    'Sacaste respeto a la fuerza. El chat lo pagó en silencio, cabrón. basura, joder. Hostia puta, qué nivel, qué miseria.',
 
-    'Te tocó el turno bueno y el grupo tuvo que tragar, asco. ridículo, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Te tocó el turno bueno y el grupo tuvo que tragar, asco. ridículo, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da grima.',
 
     'Esa tirada no se discute: se archiva y se odia en privado,. fracasado Se te ve a la legua, fracasado.',
 
-    'Ganaste de puta madre y nadie te lo va a poner fácil la próxima, patético. joder Y el grupo tomó nota, joder.',
+    'Ganaste de puta madre y nadie te lo va a poner fácil la próxima, patético. joder Y el grupo tomó nota, basura.',
 
-    'El chat te miró como se mira a un accidente bueno. Raro y real, basura. mierda Sin anestesia posible, mierda.',
+    'El chat te miró como se mira a un accidente bueno. Raro y real, basura. mierda Sin anestesia posible, qué cutre.',
 
-    'Hoy no hubo debate. El número cerró el puto caso, ridículo. coño, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Hoy no hubo debate. El número cerró el puto caso, ridículo. coño, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da pena ajena.',
 
-    'Les cambiaste el humor del hilo en un solo turno, fracasado. cabrón, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Les cambiaste el humor del hilo en un solo turno, fracasado. cabrón, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vacío.',
 
-    'Silencio de verdad después de tu tirada. Ese es el sonido del respeto a regañadientes, joder Se te ve a la legua, gilipollas.',
+    'Silencio de verdad después de tu tirada. Ese es el sonido del respeto a regañadientes, joder Se te ve a la legua, indignante.',
 
     'Ganaste y hasta los cínicos se quedaron cortos de chiste, coño. patético Y el grupo tomó nota, patético.',
 
-    'El aura te dio el momento y el grupo no supo cómo restártelo, gilipollas. asco Sin anestesia posible, asco.',
+    'El aura te dio el momento y el grupo no supo cómo restártelo, gilipollas. asco Sin anestesia posible, asco, da vergüenza.',
 
-    'Hoy fuiste el problema del resto. Qué rico se siente, mierda. basura, joder. Hostia puta, qué nivel.',
+    'Hoy fuiste el problema del resto. Qué rico se siente, mierda. basura, joder. Hostia puta, qué nivel, qué flojo.',
 
-    'Sacaste un resultado que no se limpia con un meme, cabrón. ridículo, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Sacaste un resultado que no se limpia con un meme, cabrón. ridículo, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, menudo desastre.',
 
     'Nadie te lo celebra en voz alta. Mejor: así duele más, asco. fracasado Se te ve a la legua, fracasado.',
 
-    'Ganaste fuerte. y el chat aprendió una lección que no quería,. joder Y el grupo tomó nota, joder. Hostia puta, qué nivel.',
+    'Ganaste fuerte. y el chat aprendió una lección que no quería,. joder Y el grupo tomó nota, joder. Hostia puta, qué nivel, patético.',
 
-    'Te pusiste arriba y el suelo se notó bajo para los demás, patético. mierda Sin anestesia posible, mierda.',
+    'Te pusiste arriba y el suelo se notó bajo para los demás, patético. mierda Sin anestesia posible, miserable.',
 
-    'Esa tirada te compró un minuto de respeto. Úsalo antes de volver a ser tú, basura. coño. Hostia puta, qué nivel.',
+    'Esa tirada te compró un minuto de respeto. Úsalo antes de volver a ser tú, basura. coño. Hostia puta, qué nivel, qué cringe.',
 
-    'El grupo entero se tragó el orgullo. Un trago amargo, ridículo. cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El grupo entero se tragó el orgullo. Un trago amargo, ridículo. cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da asco.',
 
-    'Hoy el número te hizo el favor que tus mensajes no consiguen, fracasado. gilipollas Se te ve a la legua, gilipollas.',
+    'Hoy el número te hizo el favor que tus mensajes no consiguen, fracasado. gilipollas Se te ve a la legua, qué vergüenza.',
 
     'Ganaste y el silencio fue más elocuente que cualquier roast,. patético Y el grupo tomó nota, patético.',
 
-    'Les quitaste el libreto. Sin libreto este chat se pone nervioso, coño. asco Sin anestesia posible, asco.',
+    'Les quitaste el libreto. Sin libreto este chat se pone nervioso, coño. asco Sin anestesia posible, asco, fracasado.',
 
-    'Sacaste respeto por la vía rápida: el marcador, gilipollas. basura, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Sacaste respeto por la vía rápida: el marcador, gilipollas. basura, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué miseria.',
 
-    'Hoy no eras el gag. Eras el que apagó el gag, mierda. ridículo, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Hoy no eras el gag. Eras el que apagó el gag, mierda. ridículo, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da grima.',
 
-    'El aura te bendijo y al grupo le supo a veneno, cabrón. fracasado Se te ve a la legua, fracasado, joder.',
+    'El aura te bendijo y al grupo le supo a veneno, cabrón. fracasado Se te ve a la legua, fracasado, qué nivel de pena.',
 
-    'Ganaste tan claro que hasta el más listo se calló, asco. joder Y el grupo tomó nota, joder. Hostia puta, qué nivel.',
+    'Ganaste tan claro que hasta el más listo se calló, asco. joder Y el grupo tomó nota, joder. Hostia puta, qué nivel, basura.',
 
-    'Te tocó el premio gordo del silencio ajeno,. mierda Sin anestesia posible, mierda, joder. Hostia puta, qué nivel.',
+    'Te tocó el premio gordo del silencio ajeno,. mierda Sin anestesia posible, mierda, joder. Hostia puta, qué nivel, qué cutre.',
 
-    'El chat no discute lo evidente. Hoy lo evidente eras tú arriba, patético. coño. Hostia puta, qué nivel.',
+    'El chat no discute lo evidente. Hoy lo evidente eras tú arriba, patético. coño. Hostia puta, qué nivel, da pena ajena.',
 
-    'Sacaste un golpe limpio en un grupo que solo espera tu fail, basura. cabrón. Hostia puta, qué nivel.',
+    'Sacaste un golpe limpio en un grupo que solo espera tu fail, basura. cabrón. Hostia puta, qué nivel, qué vacío.',
 
-    'Hoy el respeto te miró de reojo y tuvo que quedarse, ridículo. gilipollas Se te ve a la legua, gilipollas.',
+    'Hoy el respeto te miró de reojo y tuvo que quedarse, ridículo. gilipollas Se te ve a la legua, indignante.',
 
     'Ganaste y el historial de burlas se quedó sin munición un rato, fracasado. patético Y el grupo tomó nota, patético.',
 
-    'Nadie tenía plan B para cuando tú ganas. Se notó,. asco Sin anestesia posible, asco, joder. Hostia puta, qué nivel.',
+    'Nadie tenía plan B para cuando tú ganas. Se notó,. asco Sin anestesia posible, asco, joder. Hostia puta, qué nivel, da vergüenza.',
 
-    'El número te puso en un sitio que el chat no te había reservado, coño. basura. Hostia puta, qué nivel.',
+    'El número te puso en un sitio que el chat no te había reservado, coño. basura. Hostia puta, qué nivel, qué flojo.',
 
-    'Hoy te salió el tiro y al grupo le dio en la frente, gilipollas. ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Hoy te salió el tiro y al grupo le dio en la frente, gilipollas. ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, menudo desastre.',
 
     'Silencio pesado después de tu tirada. Eso no se compra, mierda. fracasado Se te ve a la legua, fracasado.',
 
-    'Ganaste de verdad. El resto es envidia con WiFi, cabrón. joder Y el grupo tomó nota, joder. Hostia puta, qué nivel.',
+    'Ganaste de verdad. El resto es envidia con WiFi, cabrón. joder Y el grupo tomó nota, joder. Hostia puta, qué nivel, patético.',
 
-    'Les rompiste el pronóstico y el pronóstico eras tú perdiendo, asco. mierda Sin anestesia posible, mierda.',
+    'Les rompiste el pronóstico y el pronóstico eras tú perdiendo, asco. mierda Sin anestesia posible, miserable.',
 
-    'Hoy el aura habló más alto que los haters,. coño, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Hoy el aura habló más alto que los haters,. coño, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cringe.',
 
-    'Te llevaste el respeto que nadie pensaba soltar, patético. cabrón, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Te llevaste el respeto que nadie pensaba soltar, patético. cabrón, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da asco.',
 
-    'Sacaste un resultado que obliga a mirarte distinto aunque duela, basura. gilipollas Se te ve a la legua, gilipollas.',
+    'Sacaste un resultado que obliga a mirarte distinto aunque duela, basura. gilipollas Se te ve a la legua, qué vergüenza.',
 
     'El chat se quedó sin el chiste fácil. Gracias por el favor, ridículo. patético Y el grupo tomó nota, patético.',
 
-    'Ganaste y el eco del silencio valió más que mil stickers, fracasado. asco Sin anestesia posible, asco.',
+    'Ganaste y el eco del silencio valió más que mil stickers, fracasado. asco Sin anestesia posible, asco, fracasado.',
 
-    'Hoy no hubo almost: hubo victoria y cara de pocos amigos alrededor,. basura. Hostia puta, qué nivel.',
+    'Hoy no hubo almost: hubo victoria y cara de pocos amigos alrededor,. basura. Hostia puta, qué nivel, qué miseria.',
 
-    'El grupo tuvo que aceptar lo obvio. Les costó cada segundo, coño. ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El grupo tuvo que aceptar lo obvio. Les costó cada segundo, coño. ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da grima.',
 
-    'Sacaste peso real en un chat de pluma, gilipollas. fracasado Se te ve a la legua, fracasado, joder. Hostia puta, qué nivel.',
+    'Sacaste peso real en un chat de pluma, gilipollas. fracasado Se te ve a la legua, fracasado, joder. Hostia puta, qué nivel, qué nivel de pena.',
 
-    'Te tocó arriba y el suelo del grupo crujió un poco, mierda. joder Y el grupo tomó nota, joder. Hostia puta, qué nivel.',
+    'Te tocó arriba y el suelo del grupo crujió un poco, mierda. joder Y el grupo tomó nota, joder. Hostia puta, qué nivel, basura.',
 
-    'Ganaste limpio. El resto del hilo se fue a la mierda solo, cabrón. mierda Sin anestesia posible, mierda.',
+    'Ganaste limpio. El resto del hilo se fue a la mierda solo, cabrón. mierda Sin anestesia posible, qué cutre.',
 
-    'Hoy el marcador te hizo el favor que tu reputación no merecía, asco. coño, joder. Hostia puta, qué nivel.',
+    'Hoy el marcador te hizo el favor que tu reputación no merecía, asco. coño, joder. Hostia puta, qué nivel, da pena ajena.',
 
-    'Nadie te lo va a recordar mañana. Disfrútalo hoy,. cabrón, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Nadie te lo va a recordar mañana. Disfrútalo hoy,. cabrón, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vacío.',
 
-    'El aura te dio el micrófono. y el chat se calló, patético. gilipollas Se te ve a la legua, gilipollas.',
+    'El aura te dio el micrófono. y el chat se calló, patético. gilipollas Se te ve a la legua, indignante.',
 
     'Sacaste un número que no admite narrador de consolación, basura. patético Y el grupo tomó nota, patético.',
 
-    'Ganaste y hasta el más valiente se hizo el muerto, ridículo. asco Sin anestesia posible, asco, joder.',
+    'Ganaste y hasta el más valiente se hizo el muerto, ridículo. asco Sin anestesia posible, asco, da vergüenza.',
 
-    'Hoy fuiste la excepción que el grupo no quería firmar, fracasado. basura, joder. Hostia puta, qué nivel.',
+    'Hoy fuiste la excepción que el grupo no quería firmar, fracasado. basura, joder. Hostia puta, qué nivel, qué flojo.',
 
-    'Te salió redondo y el odio ajeno se quedó sin ángulo,. ridículo, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Te salió redondo y el odio ajeno se quedó sin ángulo,. ridículo, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, menudo desastre.',
 
     'El silencio del chat es tu puto aplauso de esta noche, coño. fracasado Se te ve a la legua, fracasado.',
 
-    'Ganaste fuerte. No te creas eterno: aquí todo se olvida, gilipollas. joder Y el grupo tomó nota, joder.',
+    'Ganaste fuerte. No te creas eterno: aquí todo se olvida, gilipollas. joder Y el grupo tomó nota, patético.',
 
-    'Les diste en el orgullo con un solo número, mierda. Sin anestesia posible, mierda, joder. Hostia puta, qué nivel.',
+    'Les diste en el orgullo con un solo número, mierda. Sin anestesia posible, mierda, joder. Hostia puta, qué nivel, miserable.',
 
-    'Hoy el aura te puso donde el chat no te quería ver, cabrón. coño, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Hoy el aura te puso donde el chat no te quería ver, cabrón. coño, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cringe.',
 
-    'Sacaste respeto a regañadientes. El mejor tipo de respeto, asco. cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Sacaste respeto a regañadientes. El mejor tipo de respeto, asco. cabrón. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da asco.',
 
-    'Ganaste y el gag colectivo se quedó sin protagonista,. gilipollas Se te ve a la legua, gilipollas, joder.',
+    'Ganaste y el gag colectivo se quedó sin protagonista,. gilipollas Se te ve a la legua, gilipollas, qué vergüenza.',
 
-    'El número cerró el debate antes de que empezara, patético. patético Y el grupo tomó nota, patético, joder.',
+    'El número cerró el debate antes de que empezara, patético. patético Y el grupo tomó nota, patético, ridículo.',
 
-    'Te tocó el turno de hacer tragar a esta gente, basura. asco Sin anestesia posible, asco, joder. Hostia puta, qué nivel.',
+    'Te tocó el turno de hacer tragar a esta gente, basura. asco Sin anestesia posible, asco, joder. Hostia puta, qué nivel, fracasado.',
 
-    'Hoy no fallaste. El chat no sabía qué hacer con eso, ridículo. basura, joder. Hostia puta, qué nivel.',
+    'Hoy no fallaste. El chat no sabía qué hacer con eso, ridículo. basura, joder. Hostia puta, qué nivel, qué miseria.',
 
-    'Ganaste de puta madre y el historial de fail se quedó corto, fracasado. ridículo. Hostia puta, qué nivel.',
+    'Ganaste de puta madre y el historial de fail se quedó corto, fracasado. ridículo. Hostia puta, qué nivel, da grima.',
 
-    'Silencio real. Respeto forzado. Envidia muda. Todo tuyo,. fracasado Se te ve a la legua, fracasado, joder.',
+    'Silencio real. Respeto forzado. Envidia muda. Todo tuyo,. fracasado Se te ve a la legua, fracasado, qué nivel de pena.',
 
-    'Les cambiaste el humor del grupo con una tirada, coño. joder Y el grupo tomó nota, joder. Hostia puta, qué nivel.',
+    'Les cambiaste el humor del grupo con una tirada, coño. joder Y el grupo tomó nota, joder. Hostia puta, qué nivel, basura.',
 
-    'Sacaste el resultado que nadie apostaba por ti, gilipollas. mierda Sin anestesia posible, mierda, joder.',
+    'Sacaste el resultado que nadie apostaba por ti, gilipollas. mierda Sin anestesia posible, mierda, qué cutre.',
 
-    'Hoy el aura te hizo el favor y al resto les hizo un favor al revés, mierda. coño. Hostia puta, qué nivel.',
+    'Hoy el aura te hizo el favor y al resto les hizo un favor al revés, mierda. coño. Hostia puta, qué nivel, da pena ajena.',
 
-    'Ganaste. Punto. El resto es ruido de perdedores, cabrón. cabrón, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Ganaste. Punto. El resto es ruido de perdedores, cabrón. cabrón, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vacío.',
 
-    'Te miraron como se mira a un problema nuevo. Qué rico, asco. gilipollas Se te ve a la legua, gilipollas.',
+    'Te miraron como se mira a un problema nuevo. Qué rico, asco. gilipollas Se te ve a la legua, indignante.',
 
-    'El chat se quedó sin plan de burla. Gracias por el caos,. patético Y el grupo tomó nota, patético, joder.',
+    'El chat se quedó sin plan de burla. Gracias por el caos,. patético Y el grupo tomó nota, patético, qué vergüenza ajena.',
 
-    'Sacaste un golpe que no se limpia con un emoji, patético. asco Sin anestesia posible, asco, joder. Hostia puta, qué nivel.',
+    'Sacaste un golpe que no se limpia con un emoji, patético. asco Sin anestesia posible, asco, joder. Hostia puta, qué nivel, da vergüenza.',
 
-    'Hoy estuviste arriba y se notó en cada silencio, basura. basura, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Hoy estuviste arriba y se notó en cada silencio, basura. basura, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué flojo.',
 
-    'Ganaste limpio en un basurero de opiniones, ridículo. ridículo, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Ganaste limpio en un basurero de opiniones, ridículo. ridículo, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, menudo desastre.',
 
     'El número te coronó por un minuto. Eso aquí es una eternidad, fracasado. fracasado Se te ve a la legua, fracasado.',
 
@@ -505,13 +505,13 @@ const AURA = {
 
     'Ganaste sin merecer titulares. No los inventes, asco. patético Y el grupo tomó nota, patético, joder.',
 
-    'Subida discreta en un currículum de caídas, patético. asco Sin anestesia posible, asco, joder. Hostia puta, qué nivel.',
+    'Subida discreta en un currículum de caídas, patético. asco Sin anestesia posible, asco, joder. Hostia puta, qué nivel, qué vergüenza.',
 
-    'Te tocó gain. El grupo ya está en el siguiente fail, basura. basura, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Te tocó gain. El grupo ya está en el siguiente fail, basura. basura, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, ridículo.',
 
-    'Puntos de más. No los conviertas en personalidad, ridículo. ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Puntos de más. No los conviertas en personalidad, ridículo. ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, fracasado.',
 
-    'Hoy no bajaste. Celebración en modo avión, fracasado. fracasado Se te ve a la legua, fracasado, joder.',
+    'Hoy no bajaste. Celebración en modo avión, fracasado. fracasado Se te ve a la legua, fracasado, qué miseria.',
 
   ],
   loss: [
@@ -705,15 +705,15 @@ const AURA = {
 
     'Se te escurrió aura. El suelo ya conocía el camino, coño. gilipollas Se te ve a la legua, gilipollas.',
 
-    'Hoy perdiste en silencio de biblioteca, asco. patético Y el grupo tomó nota, patético, joder. Hostia puta, qué nivel.',
+    'Hoy perdiste en silencio de biblioteca, asco. patético Y el grupo tomó nota, patético, joder. Hostia puta, qué nivel, da grima.',
 
-    'Bajada de trámite. Firma aquí, patético. asco Sin anestesia posible, asco, joder. Hostia puta, qué nivel.',
+    'Bajada de trámite. Firma aquí, patético. asco Sin anestesia posible, asco, joder. Hostia puta, qué nivel, qué nivel de pena.',
 
-    'El aura te recortó el presupuesto de respeto, basura. basura, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El aura te recortó el presupuesto de respeto, basura. basura, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, basura.',
 
-    'Te restaron. Caso cerrado sin forense, ridículo. ridículo, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Te restaron. Caso cerrado sin forense, ridículo. ridículo, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué cutre.',
 
-    'Caíste. El promedio del grupo mejoró un poco, fracasado. fracasado Se te ve a la legua, fracasado, joder.',
+    'Caíste. El promedio del grupo mejoró un poco, fracasado. fracasado Se te ve a la legua, fracasado, da pena ajena.',
 
   ],
   spiral: [
@@ -907,13 +907,13 @@ const AURA = {
 
     'Sigues cayendo. El fondo manda postales, coño. gilipollas Se te ve a la legua, gilipollas, joder. Hostia puta, qué nivel.',
 
-    'Spiral sin final feliz ni final, asco. patético Y el grupo tomó nota, patético, joder. Hostia puta, qué nivel.',
+    'Spiral sin final feliz ni final, asco. patético Y el grupo tomó nota, patético, joder. Hostia puta, qué nivel, qué vacío.',
 
-    'Tu descenso es el único arco estable de tu historia, patético. asco Sin anestesia posible, asco, joder.',
+    'Tu descenso es el único arco estable de tu historia, patético. asco Sin anestesia posible, asco, indignante.',
 
-    'El aura firma el parte y tú pones la huella, basura. basura, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'El aura firma el parte y tú pones la huella, basura. basura, joder. Hostia puta, qué nivel. Hostia, el desastre se explica solo, qué vergüenza ajena.',
 
-    'Otra bajada. Caso cerrado hasta la próxima tirada, ridículo. ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, joder.',
+    'Otra bajada. Caso cerrado hasta la próxima tirada, ridículo. ridículo. Hostia puta, qué nivel. Hostia, el desastre se explica solo, da vergüenza.',
 
     'Racha negativa con vocación de clasico del chat, fracasado. fracasado Se te ve a la legua, fracasado.',
 
@@ -1240,205 +1240,205 @@ const apuestaEnCurso = new Set();
 // Frases de rechazo. Secas: dicen el porque y nada mas. El bot no da tutoriales
 // ni explica como conseguir aura.
 const APUESTA_POBRE = [
-  'Joder, vienes a apostar con el culo al aire y sin un puto duro de aura. La mesa no hace caridad El grupo ya memorizó este fail.',
+  'Joder, vienes a apostar con el culo al aire y sin un puto duro de aura. La mesa no hace caridad El grupo ya memorizó este fail, patético.',
 
-  'Sin saldo y con pretensiones de high roller. Eres el chiste del casino, cabrón No hay maquillaje que lo tape.',
+  'Sin saldo y con pretensiones de high roller. Eres el chiste del casino, cabrón No hay maquillaje que lo tape, miserable.',
 
-  'Los bolsillos transparentes y la cara de querer ganar. Menuda combinación de gilipollas Se te ve el cartón desde el otro lado del hilo.',
+  'Los bolsillos transparentes y la cara de querer ganar. Menuda combinación de gilipollas Se te ve el cartón desde el otro lado del hilo, qué cringe.',
 
-  'Apuestas con aura de mendigo y ego de dueño. El contraste da vergüenza ajena, mierda Menuda forma de pedir que te humillen.',
+  'Apuestas con aura de mendigo y ego de dueño. El contraste da vergüenza ajena, mierda Menuda forma de pedir que te humillen, da asco.',
 
-  'No tienes con qué perder y aun así te sientas a la mesa. Pobreza con audacia, coño El ranking no hace descuentos.',
+  'No tienes con qué perder y aun así te sientas a la mesa. Pobreza con audacia, coño El ranking no hace descuentos, qué vergüenza.',
 
-  'El croupier virtual te mira y se rie. Cero aura, cero respeto, asco puro El grupo ya memorizó este fail.',
+  'El croupier virtual te mira y se rie. Cero aura, cero respeto, asco puro El grupo ya memorizó este fail, ridículo.',
 
-  'Vienes a apostar lo que no tienes. Eso no es valiente: es patético de manual No hay maquillaje que lo tape.',
+  'Vienes a apostar lo que no tienes. Eso no es valiente: es patético de manual No hay maquillaje que lo tape, fracasado.',
 
-  'Aura en negativo y manos en la mesa. El grupo ya sabe cómo acaba esto, basura Se te ve el cartón desde el otro lado del hilo.',
+  'Aura en negativo y manos en la mesa. El grupo ya sabe cómo acaba esto, basura Se te ve el cartón desde el otro lado del hilo, qué miseria.',
 
-  'Sin un puto punto y quieres el bote. La delusión es olímpica, ridículo Menuda forma de pedir que te humillen.',
+  'Sin un puto punto y quieres el bote. La delusión es olímpica, ridículo Menuda forma de pedir que te humillen, da grima.',
 
-  'Pobre de aura y rico en cara dura. El casino no fía a fracasados como tú El ranking no hace descuentos.',
+  'Pobre de aura y rico en cara dura. El casino no fía a fracasados como tú El ranking no hace descuentos, qué nivel de pena.',
 
-  'La mesa exige saldo. Tú ofreces vergüenza. No hay cambio posible, joder El grupo ya memorizó este fail.',
+  'La mesa exige saldo. Tú ofreces vergüenza. No hay cambio posible, joder El grupo ya memorizó este fail, basura.',
 
-  'Intentar apostar en bancarrota es el deporte de los que no aprenden, cabrón No hay maquillaje que lo tape.',
+  'Intentar apostar en bancarrota es el deporte de los que no aprenden, cabrón No hay maquillaje que lo tape, qué cutre.',
 
-  'Cero ficha, mil fantasías. Eres el cliente que echan antes de servir, gilipollas Se te ve el cartón desde el otro lado del hilo.',
+  'Cero ficha, mil fantasías. Eres el cliente que echan antes de servir, gilipollas Se te ve el cartón desde el otro lado del hilo, da pena ajena.',
 
-  'El aura no llega ni para la propina simbólica. Fuera de la mesa, mierda Menuda forma de pedir que te humillen.',
+  'El aura no llega ni para la propina simbólica. Fuera de la mesa, mierda Menuda forma de pedir que te humillen, qué vacío.',
 
-  'Apuestas de pobre: mucho teatro y nada en el bolsillo, coño El ranking no hace descuentos El ranking no hace descuentos.',
+  'Apuestas de pobre: mucho teatro y nada en el bolsillo, coño El ranking no hace descuentos El ranking no hace descuentos, indignante.',
 
-  'Sin saldo no hay jugada. Solo hay un pringado queriendo escena, asco El grupo ya memorizó este fail.',
+  'Sin saldo no hay jugada. Solo hay un pringado queriendo escena, asco El grupo ya memorizó este fail, qué vergüenza ajena.',
 
-  'La pobreza de aura te delata antes de que hables. Callate y farmea, patético No hay maquillaje que lo tape.',
+  'La pobreza de aura te delata antes de que hables. Callate y farmea, patético No hay maquillaje que lo tape, da vergüenza.',
 
-  'Quieres apostar aire. El bot no cotiza aire, basura Se te ve el cartón desde el otro lado del hilo Se te ve el cartón desde el otro lado del hilo.',
+  'Quieres apostar aire. El bot no cotiza aire, basura Se te ve el cartón desde el otro lado del hilo Se te ve el cartón desde el otro lado del hilo, qué flojo.',
 
-  'Miseria documentada y aun así en la cola del casino. Ridículo total Menuda forma de pedir que te humillen.',
+  'Miseria documentada y aun así en la cola del casino. Ridículo total Menuda forma de pedir que te humillen, menudo desastre.',
 
-  'No tienes aura. Tienes un hueco donde debería estar el saldo, fracasado El ranking no hace descuentos.',
+  'No tienes aura. Tienes un hueco donde debería estar el saldo, fracasado El ranking no hace descuentos, qué pena.',
 
-  'All-in con los bolsillos vacíos. Eres un meme andante, joder El grupo ya memorizó este fail El grupo ya memorizó este fail.',
+  'All-in con los bolsillos vacíos. Eres un meme andante, joder El grupo ya memorizó este fail El grupo ya memorizó este fail, patético.',
 
-  'La mesa te rechaza por higiene económica del ranking, cabrón No hay maquillaje que lo tape No hay maquillaje que lo tape.',
+  'La mesa te rechaza por higiene económica del ranking, cabrón No hay maquillaje que lo tape No hay maquillaje que lo tape, miserable.',
 
-  'Sin chips no hay drama heroico. Solo hay un pobre insistente, gilipollas Se te ve el cartón desde el otro lado del hilo.',
+  'Sin chips no hay drama heroico. Solo hay un pobre insistente, gilipollas Se te ve el cartón desde el otro lado del hilo, qué cringe.',
 
-  'Aura de sótano y boca de VIP. El combo da grima, mierda Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen.',
+  'Aura de sótano y boca de VIP. El combo da grima, mierda Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen, da asco.',
 
-  'Vuelves a la mesa sin haber ganado un puto mensaje de aura, coño El ranking no hace descuentos El ranking no hace descuentos.',
+  'Vuelves a la mesa sin haber ganado un puto mensaje de aura, coño El ranking no hace descuentos El ranking no hace descuentos, qué vergüenza.',
 
-  'El casino no es un comedor social. Fuera, asco El grupo ya memorizó este fail El grupo ya memorizó este fail.',
+  'El casino no es un comedor social. Fuera, asco El grupo ya memorizó este fail El grupo ya memorizó este fail, ridículo.',
 
-  'Apuesta denegada por pobreza crónica de ranking, patético No hay maquillaje que lo tape No hay maquillaje que lo tape.',
+  'Apuesta denegada por pobreza crónica de ranking, patético No hay maquillaje que lo tape No hay maquillaje que lo tape, fracasado.',
 
-  'No llegas al mínimo y pretendes el máximo. Basura con pretensiones Se te ve el cartón desde el otro lado del hilo.',
+  'No llegas al mínimo y pretendes el máximo. Basura con pretensiones Se te ve el cartón desde el otro lado del hilo, qué miseria.',
 
-  'El saldo grita miseria. Tú gritas all-in. El grupo elige a quién oír, ridículo Menuda forma de pedir que te humillen.',
+  'El saldo grita miseria. Tú gritas all-in. El grupo elige a quién oír, ridículo Menuda forma de pedir que te humillen, da grima.',
 
-  'Pobreza de aura certificada. No hay mesa para ti hoy, fracasado El ranking no hace descuentos El ranking no hace descuentos.',
+  'Pobreza de aura certificada. No hay mesa para ti hoy, fracasado El ranking no hace descuentos El ranking no hace descuentos, qué nivel de pena.',
 
-  'Intentar farmear suerte sin farmear presencia. Estrategia de idiota, joder El grupo ya memorizó este fail.',
+  'Intentar farmear suerte sin farmear presencia. Estrategia de idiota, joder El grupo ya memorizó este fail, basura.',
 
-  'La bancarrota no es estética. Es tu estado real, cabrón No hay maquillaje que lo tape No hay maquillaje que lo tape.',
+  'La bancarrota no es estética. Es tu estado real, cabrón No hay maquillaje que lo tape No hay maquillaje que lo tape, qué cutre.',
 
-  'Sin aura no hay apuesta. Hay un show de pobreza, gilipollas Se te ve el cartón desde el otro lado del hilo.',
+  'Sin aura no hay apuesta. Hay un show de pobreza, gilipollas Se te ve el cartón desde el otro lado del hilo, da pena ajena.',
 
-  'El bot te cierra la ventanilla. Vuelve cuando tengas algo, mierda Menuda forma de pedir que te humillen.',
+  'El bot te cierra la ventanilla. Vuelve cuando tengas algo, mierda Menuda forma de pedir que te humillen, qué vacío.',
 
-  'Cero en el contador y mil en el ego. Desbalance de enfermo, coño El ranking no hace descuentos El ranking no hace descuentos.',
+  'Cero en el contador y mil en el ego. Desbalance de enfermo, coño El ranking no hace descuentos El ranking no hace descuentos, indignante.',
 
-  'La mesa está abierta para quien paga. Tú no pagas, asco El grupo ya memorizó este fail El grupo ya memorizó este fail.',
+  'La mesa está abierta para quien paga. Tú no pagas, asco El grupo ya memorizó este fail El grupo ya memorizó este fail, qué vergüenza ajena.',
 
-  'Pobre con manual de rich kid. Nadie compra el personaje, patético No hay maquillaje que lo tape No hay maquillaje que lo tape.',
+  'Pobre con manual de rich kid. Nadie compra el personaje, patético No hay maquillaje que lo tape No hay maquillaje que lo tape, da vergüenza.',
 
-  'Aura insuficiente. Orgullo sobrante. Resultado: rechazo, basura Se te ve el cartón desde el otro lado del hilo.',
+  'Aura insuficiente. Orgullo sobrante. Resultado: rechazo, basura Se te ve el cartón desde el otro lado del hilo, qué flojo.',
 
-  'No te alcanza ni para el peaje del casino, ridículo Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen.',
+  'No te alcanza ni para el peaje del casino, ridículo Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen, menudo desastre.',
 
-  'All-in emocional, all-out de saldo. Fracasado con estilo barato El ranking no hace descuentos El ranking no hace descuentos.',
+  'All-in emocional, all-out de saldo. Fracasado con estilo barato El ranking no hace descuentos El ranking no hace descuentos, qué pena.',
 
-  'Vienes a perder lo que no tienes. Matemáticas de pringado, joder El grupo ya memorizó este fail El grupo ya memorizó este fail.',
+  'Vienes a perder lo que no tienes. Matemáticas de pringado, joder El grupo ya memorizó este fail El grupo ya memorizó este fail, patético.',
 
-  'El ranking te tiene fichado como cliente insolvente, cabrón No hay maquillaje que lo tape No hay maquillaje que lo tape.',
+  'El ranking te tiene fichado como cliente insolvente, cabrón No hay maquillaje que lo tape No hay maquillaje que lo tape, miserable.',
 
-  'Sin ficha no hay historia. Hay un corte de luz a tu drama, gilipollas Se te ve el cartón desde el otro lado del hilo.',
+  'Sin ficha no hay historia. Hay un corte de luz a tu drama, gilipollas Se te ve el cartón desde el otro lado del hilo, qué cringe.',
 
-  'La pobreza se te lee en el aura y en la insistencia, mierda Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen.',
+  'La pobreza se te lee en el aura y en la insistencia, mierda Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen, da asco.',
 
-  'Casino cerrado para mendigos de ranking, coño El ranking no hace descuentos El ranking no hace descuentos.',
+  'Casino cerrado para mendigos de ranking, coño El ranking no hace descuentos El ranking no hace descuentos, qué vergüenza.',
 
-  'No hay crédito. Hay solo un no en la cara, asco El grupo ya memorizó este fail El grupo ya memorizó este fail.',
+  'No hay crédito. Hay solo un no en la cara, asco El grupo ya memorizó este fail El grupo ya memorizó este fail, ridículo.',
 
-  'Apuesta imposible: saldo cero, dignidad en oferta, patético No hay maquillaje que lo tape No hay maquillaje que lo tape.',
+  'Apuesta imposible: saldo cero, dignidad en oferta, patético No hay maquillaje que lo tape No hay maquillaje que lo tape, fracasado.',
 
-  'El grupo ya memorizó tu fail de pobre, basura Se te ve el cartón desde el otro lado del hilo Se te ve el cartón desde el otro lado del hilo.',
+  'El grupo ya memorizó tu fail de pobre, basura Se te ve el cartón desde el otro lado del hilo Se te ve el cartón desde el otro lado del hilo, qué miseria.',
 
-  'Sin aura no entras. Punto final sin debate, ridículo Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen.',
+  'Sin aura no entras. Punto final sin debate, ridículo Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen, da grima.',
 
-  'La mesa te debe cero. Tú le debes vergüenza, fracasado El ranking no hace descuentos El ranking no hace descuentos.',
+  'La mesa te debe cero. Tú le debes vergüenza, fracasado El ranking no hace descuentos El ranking no hace descuentos, qué nivel de pena.',
 
-  'Joder, otra vez sin saldo y con hambre de apuesta. Aprende el peaje El grupo ya memorizó este fail El grupo ya memorizó este fail.',
+  'Joder, otra vez sin saldo y con hambre de apuesta. Aprende el peaje El grupo ya memorizó este fail El grupo ya memorizó este fail, basura.',
 
-  'Cabrón, el casino no es terapia para tu miseria de aura No hay maquillaje que lo tape No hay maquillaje que lo tape.',
+  'Cabrón, el casino no es terapia para tu miseria de aura No hay maquillaje que lo tape No hay maquillaje que lo tape, qué cutre.',
 
-  'Gilipollas con los bolsillos de cristal. Se ve el vacío entero Se te ve el cartón desde el otro lado del hilo.',
+  'Gilipollas con los bolsillos de cristal. Se ve el vacío entero Se te ve el cartón desde el otro lado del hilo, da pena ajena.',
 
-  'Mierda de intento: apostar humo y esperar oro Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen.',
+  'Mierda de intento: apostar humo y esperar oro Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen, qué vacío.',
 
-  'Coño, farmea primero y presume después El ranking no hace descuentos El ranking no hace descuentos El ranking no hace descuentos.',
+  'Coño, farmea primero y presume después El ranking no hace descuentos El ranking no hace descuentos El ranking no hace descuentos, indignante.',
 
-  'Asco de clientela: quiere VIP con carnet de pobre El grupo ya memorizó este fail El grupo ya memorizó este fail.',
+  'Asco de clientela: quiere VIP con carnet de pobre El grupo ya memorizó este fail El grupo ya memorizó este fail, qué vergüenza ajena.',
 
-  'Patético el ritual de sentarse sin un puto punto No hay maquillaje que lo tape No hay maquillaje que lo tape.',
+  'Patético el ritual de sentarse sin un puto punto No hay maquillaje que lo tape No hay maquillaje que lo tape, da vergüenza.',
 
-  'Basura de estrategia: suerte sin presencia previa Se te ve el cartón desde el otro lado del hilo Se te ve el cartón desde el otro lado del hilo.',
+  'Basura de estrategia: suerte sin presencia previa Se te ve el cartón desde el otro lado del hilo Se te ve el cartón desde el otro lado del hilo, qué flojo.',
 
-  'Ridículo el all-in de quien no tiene ni el mínimo Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen.',
+  'Ridículo el all-in de quien no tiene ni el mínimo Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen, menudo desastre.',
 
-  'Fracasado de mesa: rechazado antes del shuffle El ranking no hace descuentos El ranking no hace descuentos.',
+  'Fracasado de mesa: rechazado antes del shuffle El ranking no hace descuentos El ranking no hace descuentos, qué pena.',
 
-  'Joder, el aura en dieta y el ego en buffet libre El grupo ya memorizó este fail El grupo ya memorizó este fail.',
+  'Joder, el aura en dieta y el ego en buffet libre El grupo ya memorizó este fail El grupo ya memorizó este fail, patético.',
 
-  'Cabrón, no hay silla para quien no paga el cubierto No hay maquillaje que lo tape No hay maquillaje que lo tape.',
+  'Cabrón, no hay silla para quien no paga el cubierto No hay maquillaje que lo tape No hay maquillaje que lo tape, miserable.',
 
-  'Gilipollas, la pobreza no se disfraza con bravata Se te ve el cartón desde el otro lado del hilo Se te ve el cartón desde el otro lado del hilo.',
+  'Gilipollas, la pobreza no se disfraza con bravata Se te ve el cartón desde el otro lado del hilo Se te ve el cartón desde el otro lado del hilo, qué cringe.',
 
-  'Mierda, vuelves con las mismas manos vacías Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen.',
+  'Mierda, vuelves con las mismas manos vacías Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen, da asco.',
 
-  'Coño, el contador sigue en el sótano y tú en la cola El ranking no hace descuentos El ranking no hace descuentos.',
+  'Coño, el contador sigue en el sótano y tú en la cola El ranking no hace descuentos El ranking no hace descuentos, qué vergüenza.',
 
-  'Asco, insistir sin saldo es una forma de mendigar escena El grupo ya memorizó este fail El grupo ya memorizó este fail.',
+  'Asco, insistir sin saldo es una forma de mendigar escena El grupo ya memorizó este fail El grupo ya memorizó este fail, ridículo.',
 
-  'Patético, el bot ya tiene plantilla para tu rechazo No hay maquillaje que lo tape No hay maquillaje que lo tape.',
+  'Patético, el bot ya tiene plantilla para tu rechazo No hay maquillaje que lo tape No hay maquillaje que lo tape, fracasado.',
 
-  'Basura, no hay plot twist: sigues pobre de aura Se te ve el cartón desde el otro lado del hilo Se te ve el cartón desde el otro lado del hilo.',
+  'Basura, no hay plot twist: sigues pobre de aura Se te ve el cartón desde el otro lado del hilo Se te ve el cartón desde el otro lado del hilo, qué miseria.',
 
-  'Ridículo, la mesa ni se inmuta con tu drama Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen.',
+  'Ridículo, la mesa ni se inmuta con tu drama Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen, da grima.',
 
-  'Fracasado, primero escribe, luego apuesta El ranking no hace descuentos El ranking no hace descuentos.',
+  'Fracasado, primero escribe, luego apuesta El ranking no hace descuentos El ranking no hace descuentos, qué nivel de pena.',
 
-  'Joder, sin mensajes no hay milagro de fichas El grupo ya memorizó este fail El grupo ya memorizó este fail.',
+  'Joder, sin mensajes no hay milagro de fichas El grupo ya memorizó este fail El grupo ya memorizó este fail, basura.',
 
-  'Cabrón, el casino lee el ranking mejor que tú No hay maquillaje que lo tape No hay maquillaje que lo tape.',
+  'Cabrón, el casino lee el ranking mejor que tú No hay maquillaje que lo tape No hay maquillaje que lo tape, qué cutre.',
 
-  'Gilipollas, la cara dura no cotiza como saldo Se te ve el cartón desde el otro lado del hilo Se te ve el cartón desde el otro lado del hilo.',
+  'Gilipollas, la cara dura no cotiza como saldo Se te ve el cartón desde el otro lado del hilo Se te ve el cartón desde el otro lado del hilo, da pena ajena.',
 
-  'Mierda, otra denegación con tu nombre encima Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen.',
+  'Mierda, otra denegación con tu nombre encima Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen, qué vacío.',
 
-  'Coño, miseria y pretensión en el mismo asiento El ranking no hace descuentos El ranking no hace descuentos.',
+  'Coño, miseria y pretensión en el mismo asiento El ranking no hace descuentos El ranking no hace descuentos, indignante.',
 
-  'Asco, el vacío de aura se oye desde aquí El grupo ya memorizó este fail El grupo ya memorizó este fail.',
+  'Asco, el vacío de aura se oye desde aquí El grupo ya memorizó este fail El grupo ya memorizó este fail, qué vergüenza ajena.',
 
-  'Patético, quieres ganar sin haber farmeado nada No hay maquillaje que lo tape No hay maquillaje que lo tape.',
+  'Patético, quieres ganar sin haber farmeado nada No hay maquillaje que lo tape No hay maquillaje que lo tape, da vergüenza.',
 
-  'Basura, el peaje existe precisamente por gente como tú Se te ve el cartón desde el otro lado del hilo.',
+  'Basura, el peaje existe precisamente por gente como tú Se te ve el cartón desde el otro lado del hilo, qué flojo.',
 
-  'Ridículo, all-in de aire comprimido Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen.',
+  'Ridículo, all-in de aire comprimido Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen, menudo desastre.',
 
-  'Fracasado, la mesa te devuelve a la realidad del sótano El ranking no hace descuentos El ranking no hace descuentos.',
+  'Fracasado, la mesa te devuelve a la realidad del sótano El ranking no hace descuentos El ranking no hace descuentos, qué pena.',
 
-  'Joder, no hay ficha mágica para el que no aparece en el hilo El grupo ya memorizó este fail El grupo ya memorizó este fail.',
+  'Joder, no hay ficha mágica para el que no aparece en el hilo El grupo ya memorizó este fail El grupo ya memorizó este fail, patético.',
 
-  'Cabrón, pobreza documentada y ego sin documentar vergüenza No hay maquillaje que lo tape No hay maquillaje que lo tape.',
+  'Cabrón, pobreza documentada y ego sin documentar vergüenza No hay maquillaje que lo tape No hay maquillaje que lo tape, miserable.',
 
-  'Gilipollas, el rechazo es el único premio que te toca Se te ve el cartón desde el otro lado del hilo.',
+  'Gilipollas, el rechazo es el único premio que te toca Se te ve el cartón desde el otro lado del hilo, qué cringe.',
 
-  'Mierda, saldo cero es un idioma y tú lo hablas fluido Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen.',
+  'Mierda, saldo cero es un idioma y tú lo hablas fluido Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen, da asco.',
 
-  'Coño, deja de molestar la mesa hasta tener algo El ranking no hace descuentos El ranking no hace descuentos.',
+  'Coño, deja de molestar la mesa hasta tener algo El ranking no hace descuentos El ranking no hace descuentos, qué vergüenza.',
 
-  'Asco, el ranking no fía y el bot tampoco El grupo ya memorizó este fail El grupo ya memorizó este fail.',
+  'Asco, el ranking no fía y el bot tampoco El grupo ya memorizó este fail El grupo ya memorizó este fail, ridículo.',
 
-  'Patético, tu all-in es un grito de socorro disfrazado No hay maquillaje que lo tape No hay maquillaje que lo tape.',
+  'Patético, tu all-in es un grito de socorro disfrazado No hay maquillaje que lo tape No hay maquillaje que lo tape, fracasado.',
 
-  'Basura, sin aura no hay butaca Se te ve el cartón desde el otro lado del hilo Se te ve el cartón desde el otro lado del hilo.',
+  'Basura, sin aura no hay butaca Se te ve el cartón desde el otro lado del hilo Se te ve el cartón desde el otro lado del hilo, qué miseria.',
 
-  'Ridículo, la bancarrota no es un estilo de juego Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen.',
+  'Ridículo, la bancarrota no es un estilo de juego Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen, da grima.',
 
-  'Fracasado, vuelve cuando el contador no se ría de ti El ranking no hace descuentos El ranking no hace descuentos.',
+  'Fracasado, vuelve cuando el contador no se ría de ti El ranking no hace descuentos El ranking no hace descuentos, qué nivel de pena.',
 
-  'Joder, otra vez el mismo pobre en la misma cola El grupo ya memorizó este fail El grupo ya memorizó este fail.',
+  'Joder, otra vez el mismo pobre en la misma cola El grupo ya memorizó este fail El grupo ya memorizó este fail, basura.',
 
-  'Cabrón, el casino cerró la pestaña de caridad No hay maquillaje que lo tape No hay maquillaje que lo tape.',
+  'Cabrón, el casino cerró la pestaña de caridad No hay maquillaje que lo tape No hay maquillaje que lo tape, qué cutre.',
 
-  'Gilipollas, tus manos vacías son el argumento entero Se te ve el cartón desde el otro lado del hilo.',
+  'Gilipollas, tus manos vacías son el argumento entero Se te ve el cartón desde el otro lado del hilo, da pena ajena.',
 
-  'Mierda, no hay debate: no llegas Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen.',
+  'Mierda, no hay debate: no llegas Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen, qué vacío.',
 
-  'Coño, farmea aura o farmea silencio El ranking no hace descuentos El ranking no hace descuentos El ranking no hace descuentos.',
+  'Coño, farmea aura o farmea silencio El ranking no hace descuentos El ranking no hace descuentos El ranking no hace descuentos, indignante.',
 
-  'Asco, la insistencia no genera saldo El grupo ya memorizó este fail El grupo ya memorizó este fail El grupo ya memorizó este fail.',
+  'Asco, la insistencia no genera saldo El grupo ya memorizó este fail El grupo ya memorizó este fail El grupo ya memorizó este fail, qué vergüenza ajena.',
 
-  'Patético, el no te lo sabes de memoria y aun así preguntas No hay maquillaje que lo tape No hay maquillaje que lo tape.',
+  'Patético, el no te lo sabes de memoria y aun así preguntas No hay maquillaje que lo tape No hay maquillaje que lo tape, da vergüenza.',
 
-  'Basura, cliente insolvente del ranking Se te ve el cartón desde el otro lado del hilo Se te ve el cartón desde el otro lado del hilo.',
+  'Basura, cliente insolvente del ranking Se te ve el cartón desde el otro lado del hilo Se te ve el cartón desde el otro lado del hilo, qué flojo.',
 
-  'Ridículo, apuesta fantasma con cuerpo presente Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen.',
+  'Ridículo, apuesta fantasma con cuerpo presente Menuda forma de pedir que te humillen Menuda forma de pedir que te humillen, menudo desastre.',
 
-  'Fracasado, la mesa te señala la salida sin levantar la voz El ranking no hace descuentos El ranking no hace descuentos.',
+  'Fracasado, la mesa te señala la salida sin levantar la voz El ranking no hace descuentos El ranking no hace descuentos, qué pena.',
 
 ];
 
@@ -1695,12 +1695,12 @@ async function cmdAura(sock, msg, args, groupMeta) {
     // grupo no hace nunca. Que a él no le salga lo deja igual que a cualquiera
     // que no llegó al umbral, que es el caso normal y no llama la atención.
     (plusActividad && !esOwnerPrincipal
-      ? `\n_Veterano (${fmt(mensajes)} msgs): +${Math.round(plusActividad * 100)}% de suerte_`
+      ? `\\n_Veterano (${fmt(mensajes)} msgs): +${Math.round(plusActividad * 100)}% de suerte_, patético.`
       : '') +
     // Y el aviso de que esta tirada ya no paga. Sin esto el jugador ve importes
     // raros a partir de la novena y piensa que el bot se ha roto.
     (!dePago
-      ? `\n_Ya has cobrado tus ${TIRADAS_PAGADAS} tiradas de hoy. Estas son a cara o cruz._`
+      ? `\\n_Ya has cobrado tus ${TIRADAS_PAGADAS} tiradas de hoy. Estas son a cara o cruz._, miserable.`
       : '');
 
   await sock.sendMessage(jid, { text, mentions: [sender] }, { quoted: msg });

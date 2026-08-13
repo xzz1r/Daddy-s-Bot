@@ -22,16 +22,16 @@ const { isBotEnabled, isAuraEnabled } = require('./state');
 const PHRASES = {
   tier1: {
     win: [
-      '200 mensajes y el aura responde. No es el bono gordo, pero es aura real que los fantasmas del grupo no van a ver nunca.',
-      'Primer tramo cubierto. El aura paga lo básico: poco, pero más de lo que gana el que solo lee. Hostia puta, qué nivel.',
-      '200 mensajes registrados. El aura sube porque se ha ganado escribiendo, que es la única forma que existe.',
-      'Actividad confirmada y aura entregada. Hay gente aquí que lleva semanas sin acercarse a este número.',
-      '200 mensajes: el mínimo para que el aura empiece a tenerte en cuenta. Cobrado.',
-      '200 mensajes. Poco, pero más de lo que ha escrito la mitad del grupo en todo el mes. Hostia puta, qué nivel.',
-      'Tier 1 cubierto. El aura paga y el que no escribe no cobra. Así de fácil.',
-      '200 mensajes y el aura responde en consecuencia. Poco pero honrado, como tu aportación. Hostia puta, qué nivel.',
-      'Actividad registrada. 200 mensajes que los muertos del grupo no van a juntar ni en sueños. Hostia puta, qué nivel.',
-      '200. El aura paga a los que aparecen y a los demás les paga una mierda.',
+      '200 mensajes y el aura responde. No es el bono gordo, pero es aura real que los fantasmas del grupo no van a ver nunca, patético.',
+      'Primer tramo cubierto. El aura paga lo básico: poco, pero más de lo que gana el que solo lee. Hostia puta, qué nivel, miserable.',
+      '200 mensajes registrados. El aura sube porque se ha ganado escribiendo, que es la única forma que existe, qué cringe.',
+      'Actividad confirmada y aura entregada. Hay gente aquí que lleva semanas sin acercarse a este número, da, asco, da asco.',
+      '200 mensajes: el mínimo para que el aura empiece a tenerte en cuenta. Cobrado, qué vergüenza.',
+      '200 mensajes. Poco, pero más de lo que ha escrito la mitad del grupo en todo el mes. Hostia puta, qué nivel, ridículo.',
+      'Tier 1 cubierto. El aura paga y el que no escribe no cobra. Así de fácil, fracasado.',
+      '200 mensajes y el aura responde en consecuencia. Poco pero honrado, como tu aportación. Hostia puta, qué nivel, qué miseria.',
+      'Actividad registrada. 200 mensajes que los muertos del grupo no van a juntar ni en sueños. Hostia puta, qué nivel, da grima.',
+      '200. El aura paga a los que aparecen y a los demás les paga una mierda, qué nivel de pena.',
     ],
     bigwin: [
       'El aura salió generosa en el primer tramo. 200 mensajes que rindieron más de lo normal. Hostia puta, qué nivel.',
