@@ -63,6 +63,18 @@ const BOTE_VACIO = [
   'El bote está tan limpio que da vergüenza mirarlo. Este grupo necesita más ambición y menos prudencia.',
   'Nada. El bote está más vacío que las conversaciones de este grupo a las tres de la madrugada.',
   'Cero en el bote. Ni un fracaso que lo engorde. Menudo grupo de cobardes sin iniciativa.',
+  'Bote vacío. Nadie ha fallado lo suficiente como para llenarlo, mierda.',
+  'El bote está más limpio que vuestra racha. Vacío total, cabrón.',
+  'Nada que repartir. El bote espera vuestros próximos desastres, gilipollas.',
+  'Bote en cero. La miseria colectiva aún no da para premio, patético.',
+  'Vacío. Como algunas de vuestras estrategias de robo, basura.',
+  'El bote bosteza. No hay botín de fracasos acumulado, ridículo.',
+  'Cero monedas de la vergüenza. Volved a fallar con ganas, desperdicio.',
+  'No hay premio. Solo el recordatorio de que aún podéis fallar más, cutre.',
+  'El fondo del bote se ve con claridad. Porque no hay nada encima, pringado.',
+  'Vacío técnico. Llenadlo a base de hostias fallidas, fracasado.',
+  'Bote sin nada. El drama tendrá que esperar al próximo fail, joder.',
+  'Abrir el bote vacío es el primer fail del día. Enhorabuena, mierda.'
 ];
 
 // ─── La tienda ───────────────────────────────────────────────────────────────
@@ -81,6 +93,22 @@ const COMPRA_ESCUDO = [
   '%N paga %C por no tener que preocuparse. El resto del grupo paga gratis con la cara que pone.',
   'Doce horas de inmunidad para %N. Doce horas de planear cómo atacarlo para el resto.',
   '%N ha comprado blindaje. Que nadie diga que el miedo no mueve dinero.',
+  '%N se gasta el aura en un escudo. El miedo convertido en ticket de compra, patético.',
+  '%N entra en la tienda temblando y sale con escudo. El grupo ya tomó nota del pánico, joder.',
+  'Escudo comprado. %N acaba de confesar en público que le da culo que le roben, mierda.',
+  '%N paga por no sentir el frío del robo. El escudo no tapa la vergüenza de haberlo necesitado, cabrón.',
+  'La tienda le vende un escudo a %N. Traducción: hoy no se fía ni de su sombra, gilipollas.',
+  '%N invierte en defensa porque el ataque nunca fue su fuerte. Escudo nuevo, dignidad vieja, basura.',
+  'Escudo en el inventario de %N. El mensaje es claro: prefiero pagar que pelear, ridículo.',
+  '%N sale de la tienda con escudo bajo el brazo. El resto del grupo con una ceja arriba, desperdicio.',
+  'Compra de escudo registrada. %N ha firmado el parte de «me da miedo el chat», asco.',
+  '%N convierte aura en plástico protector. No es estrategia: es miedo con ticket, cutre.',
+  'La caja registradora suena y %N tiene escudo. El grupo tiene un dato nuevo del personaje, pringado.',
+  '%N paga el peaje del cagado. Escudo activable, respeto desactivable, fracasado.',
+  'Escudo comprado por %N. Cuando el aura duele más perderlo que la cara, joder.',
+  '%N en la tienda: una cosa. Sale con escudo. Diagnóstico cerrado, mierda.',
+  'El invento del escudo existe por gente como %N. Hoy ha pasado por caja, coño.',
+  '%N se blindó con dinero del aura. El blindaje no cubre el ridículo de la cola de la tienda, cabrón.'
 ];
 
 const COMPRA_GANZUA = [
@@ -97,6 +125,21 @@ const COMPRA_GANZUA = [
   '%N suelta %C por una ganzúa que probablemente malgaste. Pero la ilusión no tiene precio.',
   'Ganzúa comprada. %N tiene ventaja, ahora solo necesita que no le tiemble el pulso.',
   '%N paga %C por un uso. Si falla con ventaja incluida el ridículo va a ser doble.',
+  '%N suelta %C por una ganzúa de un solo uso. O la clava o el chiste se escribe solo, joder.',
+  'Ganzúa en el bolsillo de %N. Una bala, un tiro, cero excusas si falla, mierda.',
+  '%N paga %C por la herramienta de los que no saben forzar sin manual, coño.',
+  'Compra de ganzúa: %N apuesta a que esta vez sí. El historial dice otra cosa, cabrón.',
+  '%N cambia aura por ganzúa. El bricolaje del robo para principiantes, gilipollas.',
+  'Una ganzúa, un uso, %C menos. %N acaba de firmar un contrato con su propia suerte, patético.',
+  '%N sale de la tienda con ganzúa. Si la gasta mal, el grupo tiene meme garantizado, basura.',
+  'Ganzúa comprada. %N cree que el problema era la herramienta y no las manos, ridículo.',
+  '%N invierte %C en una segunda oportunidad metálica. Que no la tire a la primera, desperdicio.',
+  'La tienda le vende ganzúa a %N. Traducción: hoy va de profesional de mentira, asco.',
+  '%N y su ganzúa de un solo cartucho. Que apunte bien o el chat no perdona, cutre.',
+  'Compra registrada: ganzúa para %N. El tutorial del robo en formato item, pringado.',
+  '%N paga por abrir lo que otros abren con cara. Ganzúa lista, dignidad en duda, fracasado.',
+  'Ganzúa en inventario de %N. Una sola vez. Sin reembolso emocional, joder.',
+  '%N suelta %C y se lleva la llave de los torpes. Úsela con cabeza, si le queda, mierda.'
 ];
 
 const COMPRA_CEBO = [
@@ -113,6 +156,21 @@ const COMPRA_CEBO = [
   '%N paga %C por parecer rico. El que pique va a robar aire con envoltorio de lujo.',
   'Cebo listo. %N ya puede esperar sentado a que alguien sea lo bastante codicioso para picar.',
   '%N ha montado la trampa. Ahora solo falta un imbécil con ambición y poca vista.',
+  '%N monta el cebo con cara de póker. El grupo ya sabe que el billete es de mentira, joder.',
+  'Cebo desplegado por %N. Ahora falta el pardillo que pique, mierda.',
+  '%N paga por parecer rico un rato. El disfraz de millonario tiene fecha de caducidad, coño.',
+  'Cebo en juego. %N va de carnada andante por el chat, cabrón.',
+  '%N invierte en parecer objetivo jugoso. O sale redondo o sale ridículo, gilipollas.',
+  'La tienda vende cebo y %N pica al revés: lo compra. Estrategia de pescador flojo, patético.',
+  '%N activa modo señuelo. Que alguien muerda o el gasto fue al aire, basura.',
+  'Cebo comprado. %N acaba de ponerse el letrero de «róbame» con letra pequeña, ridículo.',
+  '%N y su cebo de aura falsa. El teatro del pobre que juega a rico, desperdicio.',
+  'Compra de cebo: %N apuesta a la avaricia ajena. Clásico y a veces efectivo, asco.',
+  '%N sale de la tienda oliendo a trampa. El olor llega al resto del grupo, cutre.',
+  'Cebo listo. %N espera al inocente. El inocente a veces tiene más hambre que cerebro, pringado.',
+  '%N convierte aura en disfraz de botín. Que no se le vea el velcro del disfraz, fracasado.',
+  'Señuelo activado por %N. Ahora el chat es un río y alguien tiene que picar, joder.',
+  '%N paga por ser el cebo. Si nadie muerde, el chiste es él solo, mierda.'
 ];
 
 const GANZUA_USADA = [
@@ -128,6 +186,19 @@ const GANZUA_USADA = [
   'Ganzúa usada y destruida. %A vuelve a la casilla de salida sin ventaja y sin remordimientos.',
   'La ganzúa de %A ha cumplido su función y se ha ido. Como todo lo bueno.',
   '%A se ha quedado sin ganzúa. El próximo golpe va a ser a pecho descubierto y con fe.',
+  'La ganzúa de %A acaba de convertirse en chatarra sentimental, mierda.',
+  'Un uso, un gasto, cero reembolso. %A vuelve al método manual, coño.',
+  'Ganzúa consumida. %A ya no tiene excusa metálica para el próximo fallo, cabrón.',
+  '%A acaba de gastar la bala única. Que haya valido la pena, gilipollas.',
+  'Inventario: ganzúa fuera. %A queda a solas con su talento, si le queda, patético.',
+  'La herramienta de un solo uso cumplió su ciclo. %A, de vuelta al bricolaje, basura.',
+  'Ganzúa rota de tanto (mal) usarla. %A vuelve a la casilla de salida, ridículo.',
+  '%A ya no tiene ganzúa. Solo manos y fe, y la fe estaba floja, desperdicio.',
+  'Ganzúa en el cubo. %A mira las manos como si fueran a inventar algo, cutre.',
+  '%A gastó la ganzúa. El tutorial se acabó: ahora examen real, pringado.',
+  'Sin ganzúa, sin muleta. %A y el robo a pelo otra vez, fracasado.',
+  'La ganzúa hizo su trabajo o no. En cualquier caso, %A ya no la tiene, joder.',
+  '%A sin ganzúa es %A con menos opciones y las mismas manos torpes, mierda.'
 ];
 
 const INVENTARIO_VACIO = [
@@ -143,6 +214,18 @@ const INVENTARIO_VACIO = [
   'No tienes nada. Ni material ni un plan B. La tienda te espera y tú no la mereces.',
   'Tu inventario es un páramo, cabrón. Ni un escudo ni una ganzúa ni un puto chicle.',
   'Vacío total. Vas por el grupo sin protección y sin vergüenza, que ya es decir.',
+  'Inventario vacío. %N es todo promesa y cero material, mierda.',
+  'Sin escudo, sin ganzúa, sin cebo. Solo el aura y la cara, coño.',
+  'No hay items. Hay intención. La intención no bloquea un robo, gilipollas.',
+  'Inventario en cero. %N juega en modo hardcore sin haberlo elegido, patético.',
+  'La mochila de %N es un argumento vacío. Como algunos de sus mensajes, basura.',
+  'Sin herramientas. Solo manos. El bricolaje del pobre, ridículo.',
+  '%N no tiene nada que sacar en el próximo asalto. Buena suerte, desperdicio.',
+  'Inventario limpio de tanto no comprar. O de tanto gastar mal, asco.',
+  'Cero items. %N va a pecho descubierto y se le nota el pecho, cutre.',
+  'La tienda te espera y tú miras el saldo. Mientras tanto, inventario vacío, pringado.',
+  '%N sin material es un robo anunciado a favor del otro, fracasado.',
+  'Nada en el cinturón. Todo en la cara de póker. El póker no basta, joder.'
 ];
 
 const COMPRA_OK = [
@@ -159,6 +242,20 @@ const COMPRA_OK = [
   '%N paga %C y se equipa. Que el grupo sepa que ahora va con material.',
   'Hecho. %N ha soltado %C por algo que en mejores manos sería peligroso. En las suyas, ya veremos.',
   '%C fuera. %N tiene lo que pedía y ahora viene la parte difícil: no cagarla.',
+  'Compra cerrada. %N tiene el item y el grupo tiene el dato, mierda.',
+  '%C menos, inventario más. %N acaba de pasar de la queja a la herramienta, coño.',
+  'Ticket pagado. %N sale de la tienda con algo que no sea aire, cabrón.',
+  'La caja suena. %N tiene material. Que sepa usarlo, gilipollas.',
+  '%C bien gastados o mal gastados: ya están fuera. El item, dentro, patético.',
+  'Compra OK. %N deja de ser solo boca y pasa a tener juguete, basura.',
+  '%N paga %C y se lleva el pack. Sin letra pequeña emocional, ridículo.',
+  'Transacción limpia. Aura menos, item más, excusas a cero, desperdicio.',
+  '%N acaba de invertir. El retorno se verá en el próximo robo, asco.',
+  'Material entregado. %N, sin derecho a llorar por falta de herramientas, cutre.',
+  '%C han cambiado de dueño. El item también. Todo en orden, pringado.',
+  'Compra registrada. %N tiene con qué liarla o con qué fallar mejor, fracasado.',
+  'La tienda cierra el trato. %N abre el inventario con algo dentro, joder.',
+  '%N ya no puede decir que no tenía con qué. Tiene con qué, mierda.'
 ];
 
 const COMPRA_POBRE = [
@@ -175,6 +272,19 @@ const COMPRA_POBRE = [
   'No te llega ni de lejos, %N. Escribe algo, roba algo, haz algo con tu vida.',
   '%N viene a la tienda con los bolsillos vacíos y la cara llena de ilusión. Fuera.',
   'Con eso no compras nada, %N. Ni siquiera la atención del que vende.',
+  'Saldo insuficiente. %N mira el precio y el precio se ríe, mierda.',
+  '%N quiere item y tiene aura de mendigo. La tienda no hace caridad, coño.',
+  'Compra rechazada. Vuelve cuando el aura no dé vergüenza ajena, cabrón.',
+  '%N en la caja: ilusión. En el saldo: realidad. Fuera, gilipollas.',
+  'Precio por encima del aura de %N. Operación cancelada, basura.',
+  '%N intentó comprar con monedas de chocolate. No cuela, ridículo.',
+  'Insuficiente. El item sigue en el escaparate y %N en la calle, desperdicio.',
+  'La caja registradora dice no. %N dice ojalá. Gana la caja, asco.',
+  '%N pobre de aura y rico en ganas. Las ganas no pagan, cutre.',
+  'Compra bloqueada. Primero el aura, luego el capricho, pringado.',
+  '%N no llega al mínimo. La tienda tampoco llega a apiadarse, fracasado.',
+  'Con ese saldo solo compras humillación. Y esa ya la tienes, joder.',
+  '%N y el precio se miran. El precio gana por goleada, mierda.'
 ];
 
 const ESCUDO_SALVA = [
@@ -192,6 +302,17 @@ const ESCUDO_SALVA = [
   '%A fue a por %V y se encontró un muro. Escudo bien gastado, robo bien frustrado.',
   '%V pagó por blindarse y %A acaba de validar la inversión. Menudo ridículo, cabrón.',
   'El escudo de %V ha hecho su trabajo. %A se vuelve con una mano delante y otra detrás.',
+  '%A iba a por el aura de %V y encontró metal. Rebotó entero, coño.',
+  'El escudo de %V hace su trabajo. %A hace el ridículo, cabrón.',
+  'Choque contra escudo. %A recoje los dientes del aura, patético.',
+  '%V tenía escudo y %A no tenía plan B. Resultado previsible, basura.',
+  'El golpe de %A se convierte en eco contra la defensa de %V, ridículo.',
+  '%A descubre tarde que %V había pasado por la tienda. Escudo up, desperdicio.',
+  'Robo interrumpido por plástico caro. %V sonríe, %A no, asco.',
+  'Escudo de %V absorbe el intento de %A. Intento archivado, cutre.',
+  '%A pone la mano. El escudo de %V la devuelve con intereses de vergüenza, pringado.',
+  'Defensa activa. %V intacto. %A con el ego abollado, fracasado.',
+  'El muro se llama escudo y tiene el nombre de %V. %A de cara contra él, mierda.'
 ];
 
 const CEBO_PICA = [
@@ -208,6 +329,17 @@ const CEBO_PICA = [
   '%A fue a por el más gordo de la tabla y resulta que era de cartón. Menudo pardillo.',
   'Cebo perfecto. %A ha robado aire envasado y %V se parte de risa.',
   '%V brillaba como un diamante y por dentro era cristal. %A se lo tragó entero, el muy gilipollas.',
+  'Cebo tragado entero por %A. %V recoge el botín y la risa, mierda.',
+  '%A vio aura fácil y encontró trampa. %V tenía el guion preparado, coño.',
+  'El señuelo de %V funciona. %A firma el parte de inocente, cabrón.',
+  '%A muerde. %V tira del sedal. Clásico de tienda, gilipollas.',
+  'Pica el pez. %A es el pez. %V el que eligió el cebo, patético.',
+  '%A ataca el disfraz de rico y se lleva la lección barata, basura.',
+  'Cebo activado con éxito. %V gana, %A aprende (o no), ridículo.',
+  'La carnada era %V. El hambriento, %A. Platos servidos, asco.',
+  '%A va a por el botín falso y paga el precio del ansia, cutre.',
+  '%A picó con todas las letras. El grupo tampoco se sorprendió, fracasado.',
+  '%A descubrió tarde que el millonario era cartonaje. %V ya cobró, mierda.'
 ];
 
 // ─── El contraataque ─────────────────────────────────────────────────────────
@@ -226,6 +358,14 @@ const CONTRA_GANA = [
   'Contraataque perfecto. %V recupera %C y %A se queda con la cara de quien roba y le roban en el mismo turno.',
   '%V fue a por lo suyo y se trajo %C. %A acaba de descubrir que no todos lloran, algunos muerden.',
   '%C de vuelta a %V. %A ha aprendido que robar al que responde sale caro, joder.',
+  'Contraataque limpio. %V recupera y encima cobra %C de propina, mierda.',
+  'La revancha de %V duele en el aura: %C menos para %A, cabrón.',
+  '%V contraataca y gana. %A debería haber dejado estar, gilipollas.',
+  'Mano de %V en el bolsillo de %A. %C cambian de dueño, patético.',
+  '%A provocó. %V respondió. El marcador favorece a %V, ridículo.',
+  'Robo fallido y vuelta de tuerca: %V se lleva %C de %A, desperdicio.',
+  'Contraataque con botín. %V +%C, %A con la cara cambiada, pringado.',
+  '%V gana el exchange. %A paga el curso de no robarle, mierda.'
 ];
 
 const CONTRA_PIERDE = [
@@ -243,6 +383,14 @@ const CONTRA_PIERDE = [
   '%V intentó la revancha y la revancha le dio otra hostia. %C que suman para %A.',
   'Doble derrota. %V ha perdido dos veces contra la misma persona y %C en cada una. Impresionante.',
   '%V fue a recuperar su aura y dejó la que le quedaba. %C más para %A, el muy inútil.',
+  'Contraataque fallido. %V empeora el parte con %C menos, mierda.',
+  '%V intentó devolver el golpe y regaló más aura. %C de regalo, coño.',
+  'Segundo round: gana el que ya había ganado. %V paga %C, patético.',
+  'Contraataque en falso. %V confirma el desastre con %C extra perdidos, basura.',
+  '%V buscó dignidad y encontró otro agujero en el aura, ridículo.',
+  '%V doble combo de pérdida. El orgullo no pagó el recibo, asco.',
+  'Contraataque: mala idea. Ejecución: peor. Resultado: %C, pringado.',
+  '%V añade %C al parte de bajas. El orgullo firma el ticket, fracasado.'
 ];
 
 const CONTRA_TARDE = [
@@ -259,6 +407,17 @@ const CONTRA_TARDE = [
   'La ventana se cerró y tú estabas en otra parte. Probablemente mirando el techo.',
   'Demasiado lento. Para cuando has reaccionado tu aura ya ha cambiado de manos dos veces.',
   'Ni de broma. El tiempo para vengarse ha pasado y tú has llegado como llegas a todo: después.',
+  'El contraataque caducó. El aura ya no está donde %V la recuerda, mierda.',
+  'Ventana cerrada. %V llega al sitio del robo y solo queda polvo, coño.',
+  'Tarde. El botín se fue y la revancha se quedó sin objeto, cabrón.',
+  '%V despierta para contraatacar cuando el chat ya archivó el robo, gilipollas.',
+  'El tiempo no perdona. Ni el aura. %V fuera de plazo, patético.',
+  'Contraataque en diferido: no existe. %V lo acaba de descubrir, basura.',
+  'Llegaste tarde a tu propia venganza. El aura tampoco te esperó, ridículo.',
+  '%V mira el reloj del robo: en rojo. Sin reembolso, desperdicio.',
+  'Tarde. El ladrón ya contó y se fue. %V se quedó con la pose, cutre.',
+  '%V contraataca al aire. El aire no devuelve aura, fracasado.',
+  '%V llega cuando las luces del atraco ya están apagadas, mierda.'
 ];
 
 // ─── El más buscado ──────────────────────────────────────────────────────────
@@ -277,6 +436,15 @@ const DIANA_GOLPE = [
   '%V era intocable hasta que %A le ha quitado %C. El grupo se lo va a recordar durante días.',
   'Cae el primero: %C para %A. %V llevaba de intocable y ahora lleva de ejemplo, cabrón.',
   'El más buscado acaba de perder %C y la aureola de intocable. %A ha hecho justicia a lo bruto.',
+  'El top se tambalea. %C menos y el trono un poco más frío, coño.',
+  'Golpe a la diana mayor. %C de peaje por ir de intocable, cabrón.',
+  'El número uno acaba de soltar %C. El ranking lo siente, gilipollas.',
+  'Diana clara. El que más tenía ahora tiene %C menos, patético.',
+  'Ataque al faro del ranking. %C de descuento forzoso, basura.',
+  'La cima no era de mármol. Era de aura. Y se acaban de llevar %C, ridículo.',
+  'El intocable tocó madera. La madera era un robo de %C, asco.',
+  'El grupo ve caer %C del que más lucía. Fiesta menor, pringado.',
+  'El primero paga %C por la foto de la cima. Peaje del liderato, mierda.'
 ];
 
 module.exports = {
