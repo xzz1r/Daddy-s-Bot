@@ -307,7 +307,13 @@ async function cmdHelp(sock, msg, groupMeta) {
   //    cabecera y su propia nota repetida, y funcionan igual que el resto;
   //  · el precio va PEGADO al comando que cuesta. Antes habia una lista suelta
   //    al final del bloque de aura que obligaba a buscar el comando dos veces;
-  //  · lo que vale para toda una seccion (lo del @) se dice una vez, no dos.
+  //  · lo que vale para toda una seccion (lo del @) se dice una vez, no dos;
+  //  · los 23 comandos de porcentaje van a secas. La cabecera de arriba ya dice
+  //    lo que son y lo que cuestan, asi que glosar uno ("!delulu — autoengaño")
+  //    no aclara: rompe la rejilla, obliga a meter un separador raro en una
+  //    lista que se separa por espacios, y deja a los otros 21 pareciendo que
+  //    les falta algo. Si un comando necesita explicacion propia, es que no va
+  //    en este bloque.
   //
   // Los precios NO se escriben a mano: salen de utils/economia.js. Escritos a
   // mano se desincronizan solos y el bot acaba cobrando una cifra y anunciando
@@ -326,7 +332,7 @@ _Sin @ va sobre ti · con @ va sobre esa persona._
 _De más crudo a más suave, ${PRECIOS.percent} cada uno:_
 *${p}perdedor* *${p}puta* *${p}guarra* *${p}incel* *${p}maricon* *${p}gay*
 *${p}cerdo* *${p}inutil* *${p}rata* *${p}femboy* *${p}simp* *${p}friki*
-*${p}fea* *${p}iq* *${p}infiel* *${p}delulu* — autoengaño · *${p}diagnostico* — informe
+*${p}fea* *${p}iq* *${p}infiel* *${p}delulu* *${p}diagnostico*
 *${p}feminidad* *${p}masculinidad*
 *${p}linda* *${p}hot* *${p}sexy* *${p}fiel* *${p}crack* *${p}ganador*
 
