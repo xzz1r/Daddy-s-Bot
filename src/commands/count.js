@@ -368,7 +368,7 @@ async function cmdCount(sock, msg, groupMeta, args) {
     if (i < 3) {
       const admin = isAdmin(groupMeta?.participants, u.jid);
       const phrase = pickFresh(admin ? ADMIN_PHRASES[i] : MEMBER_PHRASES[i], `${jid}|count|${i}|${admin ? 'a' : 'm'}.`);
-      text += `${pos} *@${phone}* — ${msgs}\\n.`;
+      text += `${pos} *@${phone}* — ${msgs}\n`;
       text += `${phrase}\n\n`;
     } else {
       text += `${pos} @${phone} — ${msgs}\n`;

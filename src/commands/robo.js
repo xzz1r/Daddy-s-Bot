@@ -294,7 +294,7 @@ const ROB_FAIL = [
  '%V sigue con su aura; %A sigue con la cara de quien juraba que esta vez sí y otra vez se quedó en almost, fracasado.',
  'El plan de %A se cayó solo. Ni %V tuvo que defenderse. Nivel de inútil certificado en el ranking, cutre, da grima.',
  '%A entró a por el aura de %V y salió con el ego más vacío que su puta cuenta de resultados. Qué vergüenza, qué nivel de pena.',
- 'Robo fallido: %A firma el parte, %V bosteza. Has montado un show de mierda. y ni el botín apareció, basura.',
+ 'Robo fallido: %A firma el parte, %V bosteza. Has montado un show de mierda y ni el botín apareció, basura.',
  'El golpe de %A no conectó ni de casualidad. %V intacto, %A explicando como un puto payaso sin público, qué cutre.',
  '%A miró el aura de %V como se mira lo que no se puede tocar. Hambre de puto pobre de ranking, asco.',
  '%V intacto y aburrido. %A sudando la explicación que nadie pidió, fracasado de manual.',
@@ -363,7 +363,7 @@ const ROB_FAIL = [
  '%A vs %V: crónica breve de un fallo que a %A se le hizo eterno en la cabeza, patético.',
  '%A vs %V en modo solo frente al espejo del chat. Gana quien no atacó como atacó %A, gilipollas.',
  '%A creyó que esta vez sí tocaba. El universo y %V contestaron que no al unísono y sin dudar, basura.',
- '%V ni se enteró del show montado. %A se enteró demasiado, demasiado tarde y demasiado claro, ridículo.',
+ '%V ni se enteró del show montado. %A se enteró demasiado tarde y demasiado claro, ridículo.',
  '%A tropezó con el peaje del fallo antes de oler de cerca el botín que guardaba %V, fracasado.',
  '%A sin el aura de %V. Historia corta de botín y largometraje de ridículo con créditos finales, miserable.',
  '%A el plan se le cayó de las manos antes de poder usarlo una sola vez contra %V, mierda.',
@@ -1169,7 +1169,7 @@ async function topLadrones(sock, msg, jid, groupMeta) {
      text: 'Esta semana no ha robado nadie. Un grupo de gente honrada, o de cobardes, qué vacío.',
     }, { quoted: msg });
   }
- let text = '*LOS MÁS BUSCADOS*\\n_Últimos 7 días_\\n╾━━━━━━━━━━━━━━╼\\n\\n.';
+ let text = '*LOS MÁS BUSCADOS*\n_Últimos 7 días_\n╾━━━━━━━━━━━━━━╼\n\n';
   r.forEach((x, i) => {
    const corona = i === 0 ? '— *con diana en la espalda* y el ranking lo deja claro, qué vergüenza ajena.' : '';
    text += `*${i + 1}.* ${tag(x.jid)} — ${fmt(x.total)} en ${x.golpes} ${x.golpes === 1 ? 'golpe' : 'golpes'}${corona}\n`;

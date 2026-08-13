@@ -97,7 +97,7 @@ const VERDICTS = {
 
     'Perfecto y ligeramente preocupante, coño. Cuando dos personas encajan tanto, el resto del grupo sobra un poco, fracasado.',
 
-    'Cien por cien. El bot lleva meses viendo venir esta mierda. y por fin tiene una excusa para decirlo en voz alta, qué miseria.',
+    'Cien por cien. El bot lleva meses viendo venir esta mierda y por fin tiene una excusa para decirlo en voz alta, qué miseria.',
 
     'Compatibilidad máxima. No hay nada que analizar: se ha juntado lo que tenía que juntarse y punto, da grima.',
 
@@ -115,7 +115,7 @@ const VERDICTS = {
 
     'Redondo. El bot ha visto miles de combinaciones y esta es de las pocas que no le da vergüenza anunciar, qué vergüenza ajena.',
 
-    'Cien. Lo tenían delante todo el puto tiempo y ha tenido que venir un bot a decírselo. Patético. y precioso a partes iguales, da vergüenza.',
+    'Cien. Lo tenían delante todo el puto tiempo y ha tenido que venir un bot a decírselo. Patético y precioso a partes iguales, da vergüenza.',
 
     'Perfecto. Si alguno lo estropea ahora, que sepa que el grupo entero tiene este mensaje guardado, qué flojo.',
 
@@ -143,7 +143,7 @@ const VERDICTS = {
 
     'Cien. Que se besen ya y acabemos con el cringe colectivo, fracasado.nivel de pena.',
 
-    'Perfectos. Uno pone el caos y el otro la paciencia tóxica. y el ranking no discute.',
+    'Perfectos. Uno pone el caos y el otro la paciencia tóxica y el ranking no discute.',
 
     'Match que duele de ver desde fuera. Funciona demasiado bien, cabrón, y el ranking no discute, qué cutre.',
 
@@ -163,13 +163,13 @@ const VERDICTS = {
 
     'Cien. No hay tercero que entre en esa órbita, fracasado, y el ranking no discute, fracasado.',
 
-    'Perfectos. El chat lo sabía antes que ellos. y el ranking no discute.',
+    'Perfectos. El chat lo sabía antes que ellos y el ranking no discute.',
 
     'Match químico sin anestesia. Duele mirarlo, cabrón, y el ranking no discute, mierda.',
 
     'Compatibilidad de laboratorio roto, gilipollas, y el ranking no discute, coño.',
 
-    'Ship perfecto. El resto sobra, mierda, y el ranking no discute, cabrón. asco, da asco.',
+    'Ship perfecto. El resto sobra, mierda, y el ranking no discute, cabrón asco, da asco.',
 
     'Cien por cien de drama sostenible, coño, y el ranking no discute, gilipollas.',
 
@@ -183,13 +183,13 @@ const VERDICTS = {
 
     'Cien. Archivo y a sufrir, fracasado, y el ranking no discute, fracasado.nivel de pena.',
 
-    'Perfectos. La física del fail compartido. y el ranking no discute.',
+    'Perfectos. La física del fail compartido y el ranking no discute.',
 
     'Match que se siente en el hilo, cabrón, y el ranking no discute, mierda.cutre.',
 
     'Compatibilidad sin escape, gilipollas, y el ranking no discute, coño, y el grupo ya lo olió, coño.',
 
-    'Ship total. y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón.',
+    'Ship total y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón.',
 
     'Cien de cien y el chat lo traga, coño, y el ranking no discute, gilipollas.',
 
@@ -211,117 +211,117 @@ const VERDICTS = {
 
     'Alto de los que ilusionan con razón: la química está y se nota. El ranking lo deja bastante claro.',
 
-    'Ship sólido. Falta un empujón para el pleno, sobra base. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Ship sólido. Falta un empujón para el pleno, sobra base. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Compatibilidad de las que el chat comenta en serio. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Compatibilidad de las que el chat comenta en serio. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
     'Alto. No es cuento: el cálculo respalda el runoreo del grupo. El ranking lo deja bastante claro.',
 
-    'Ship con sustancia. La tensión no es invento del comando. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Ship con sustancia. La tensión no es invento del comando. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
     'Alto de verdad. El pleno está cerca si el universo no es cabrón. El ranking lo deja bastante claro.',
 
     'Compatibilidad alta: piezas que encajan con roce interesante. El ranking lo deja bastante claro.',
 
-    'Ship que se sostiene solo. El número solo confirma. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Ship que se sostiene solo. El número solo confirma. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Alto. Hay arco, hay roce, hay motivo para mirar dos veces. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto. Hay arco, hay roce, hay motivo para mirar dos veces. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Compatibilidad de las que duelen si no se consuman. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Compatibilidad de las que duelen si no se consuman. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Alto. El grupo lo veía: el bot pone el porcentaje. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto. El grupo lo veía: el bot pone el porcentaje. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Ship con base real. No es cope, es cálculo. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Ship con base real. No es cope, es cálculo. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
     'Alto de los limpios: química sin necesidad de guion forzado. El ranking lo deja bastante claro.',
 
-    'Compatibilidad alta y legible en el día a día del chat. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Compatibilidad alta y legible en el día a día del chat. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Alto. El pleno es tentación, no fantasía. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto. El pleno es tentación, no fantasía. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Ship con tensión de la buena: la que no se apaga sola. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Ship con tensión de la buena: la que no se apaga sola. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Alto. Material de pareja con número que no miente. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto. Material de pareja con número que no miente. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
     'Compatibilidad de quienes ya se buscan en el hilo sin decirlo. El ranking lo deja bastante claro.',
 
-    'Alto. Falta poco para el cien y el poco se siente. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto. Falta poco para el cien y el poco se siente. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
     'Ship sólido documentado. El chat puede dejar de fingir sorpresa. El ranking lo deja bastante claro.',
 
-    'Alto de verdad. La química tiene expediente. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto de verdad. La química tiene expediente. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Compatibilidad alta: el roce produce chispa, no solo roce. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Compatibilidad alta: el roce produce chispa, no solo roce. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Alto. El arco está escrito a medias y pide final. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto. El arco está escrito a medias y pide final. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Ship con sustancia suficiente para el rumor serio. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Ship con sustancia suficiente para el rumor serio. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Alto. No es el pleno y aun así pesa. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto. No es el pleno y aun así pesa. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Compatibilidad de las que el grupo banca en silencio. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Compatibilidad de las que el grupo banca en silencio. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Alto. El número respalda lo que ya se comentaba. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto. El número respalda lo que ya se comentaba. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Ship con base: el resto es decisión de ellos, no del bot. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Ship con base: el resto es decisión de ellos, no del bot. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Alto de los claros. La tensión no es un malentendido. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto de los claros. La tensión no es un malentendido. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Compatibilidad alta y de cope. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Compatibilidad alta y de cope. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Alto. Hay match de verdad, no de relleno. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto. Hay match de verdad, no de relleno. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Ship que se sostiene en el cálculo y en el chat. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Ship que se sostiene en el cálculo y en el chat. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
     'Alto. El pleno está a un mal día de distancia o a un buen sí. El ranking lo deja bastante claro.',
 
-    'Compatibilidad de quienes ya ocupan espacio mental ajeno. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Compatibilidad de quienes ya ocupan espacio mental ajeno. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Alto. Material de pareja con porcentaje que no pide fe. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto. Material de pareja con porcentaje que no pide fe. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Ship sólido: el grupo puede dejar el cinismo un segundo. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Ship sólido: el grupo puede dejar el cinismo un segundo. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Alto de verdad. La química no es un rumor vacío. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto de verdad. La química no es un rumor vacío. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Compatibilidad alta legible sin forzar el relato. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Compatibilidad alta legible sin forzar el relato. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Alto. Falta el cierre, sobra la base. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto. Falta el cierre, sobra la base. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Ship con arco real. El número es el subtítulo. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Ship con arco real. El número es el subtítulo. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Alto. El chat lo olió antes que el comando. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto. El chat lo olió antes que el comando. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
     'Compatibilidad de las que duelen por lo cerca que están del pleno. El ranking lo deja bastante claro.',
 
-    'Alto. No es cuento chino: es porcentaje con sustancia. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto. No es cuento chino: es porcentaje con sustancia. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Ship con tensión que no se apaga al cambiar de hilo. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Ship con tensión que no se apaga al cambiar de hilo. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Alto de los limpios: match sin necesidad de milagro. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto de los limpios: match sin necesidad de milagro. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Compatibilidad alta y el grupo lo sabe. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Compatibilidad alta y el grupo lo sabe. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Alto. El bot confirma, no inventa. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto. El bot confirma, no inventa. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Ship sólido documentado sin drama falso. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Ship sólido documentado sin drama falso. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Alto. Hay drift de pareja, no solo de amistad de chat. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto. Hay drift de pareja, no solo de amistad de chat. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
     'Compatibilidad de quienes ya se eligen en las bromas del grupo. El ranking lo deja bastante claro.',
 
     'Alto. El pleno es el siguiente tramo natural, no un salto imposible. El ranking lo deja bastante claro.',
 
-    'Ship con base y con roce. El número pesa. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Ship con base y con roce. El número pesa. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Alto de verdad. La química tiene testigos en el hilo. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto de verdad. La química tiene testigos en el hilo. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Compatibilidad alta: piezas que encajan con historia. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Compatibilidad alta: piezas que encajan con historia. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Alto. Material suficiente para que el rumor sea legítimo. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto. Material suficiente para que el rumor sea legítimo. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Ship que se sostiene solo ante el cálculo. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Ship que se sostiene solo ante el cálculo. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
-    'Alto. El grupo puede dejar de hacerse el sorprendido. El ranking lo deja bastante claro. y el grupo ya lo tiene claro.',
+    'Alto. El grupo puede dejar de hacerse el sorprendido. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
 
     'Compatibilidad de las que piden un sí o un no claro, no un mediocre. El ranking lo deja bastante claro.',
 
@@ -343,7 +343,7 @@ const VERDICTS = {
 
     'Alto. Material de drama sostenible, fracasado, y el ranking no discute, ridículo.',
 
-    'Hay drift de puta madre. El marcador no miente. y el ranking no discute, fracasado.',
+    'Hay drift de puta madre. El marcador no miente y el ranking no discute, fracasado.',
 
     'Química alta. El chat ya tiene el ship name, cabrón, y el ranking no discute.',
 
@@ -363,7 +363,7 @@ const VERDICTS = {
 
     'Alto de los que el almost duele, fracasado, y el ranking no discute, ridículo.',
 
-    'Hay material. Y de sobra. y el ranking no discute, fracasado.',
+    'Hay material. Y de sobra y el ranking no discute, fracasado.',
 
     'Química de las que no se improvisan, cabrón, y el ranking no discute.',
 
@@ -383,7 +383,7 @@ const VERDICTS = {
 
     'Fuerte. Sin derecho a fingir lo contrario, fracasado, y el ranking no discute, ridículo.',
 
-    'Hay drift. El grupo ya eligió bando. y el ranking no discute, fracasado.',
+    'Hay drift. El grupo ya eligió bando y el ranking no discute, fracasado.',
 
     'Ship alto con potencial de incendio, cabrón, y el ranking no discute.',
 
@@ -489,7 +489,7 @@ const VERDICTS = {
 
     'Si la apatía se tirara pedos, sonaría exactamente como este porcentaje de compatibilidad, y el ranking no discute.',
 
-    'Esto funciona como el culo de un político: algo sale, pero siempre es mierda. y nunca lo que esperabas.',
+    'Esto funciona como el culo de un político: algo sale, pero siempre es mierda y nunca lo que esperabas.',
 
     'Compatibilidad de kebab de madrugada. En el momento parece buena idea, a la mañana siguiente te arrepientes en el váter.',
 
@@ -547,7 +547,7 @@ const VERDICTS = {
 
     'Zona gris. Ni ship ni enemigos, fracasado, y el ranking no discute, fracasado.',
 
-    'Medio. Como serie cancelada en el capítulo tres. y el ranking no discute.',
+    'Medio. Como serie cancelada en el capítulo tres y el ranking no discute.',
 
     'Compatibilidad de trámite. Siguiente, cabrón, y el ranking no discute, mierda.',
 
@@ -567,7 +567,7 @@ const VERDICTS = {
 
     'Mitad. Casi un no con maquillaje, fracasado, y el ranking no discute, fracasado.',
 
-    'Medio. El hype se murió solo. y el ranking no discute, y el grupo ya lo olió.',
+    'Medio. El hype se murió solo y el ranking no discute, y el grupo ya lo olió.',
 
     'Compatibilidad de sala de espera, cabrón, y el ranking no discute, mierda.',
 
@@ -587,7 +587,7 @@ const VERDICTS = {
 
     'Zona gris documentada, fracasado, y el ranking no discute, fracasado.',
 
-    'Medio. Como café descafeinado del ship. y el ranking no discute.',
+    'Medio. Como café descafeinado del ship y el ranking no discute.',
 
     'Compatibilidad sin especias, cabrón, y el ranking no discute, mierda, y el grupo ya lo olió, mierda.',
 
@@ -615,119 +615,119 @@ const VERDICTS = {
 
     'Compatibilidad de mierda. Mejor separados que ensuciando el ranking juntos delante del puto grupo, coño.',
 
-    'Bajo. El ship no levanta ni con tutorial ni con rezo del puto grupo delante del puto grupo delante del puto grupo, cabrón.',
+    'Bajo. El ship no levanta ni con tutorial ni con rezo del puto grupo delante del puto grupo, cabrón.',
 
     'Estos dos suman menos que por separado. Matemáticas crueles del ranking delante del puto grupo, gilipollas.',
 
     'Ship en el sótano. El número no admite recurso ni segunda lectura útil delante del puto grupo, patético.',
 
-    'Bajo de los que duelen. La compatibilidad se fue a la mierda. y no vuelve delante del puto grupo, asco.',
+    'Bajo de los que duelen. La compatibilidad se fue a la mierda y no vuelve delante del puto grupo, asco.',
 
-    'El bot midió y el resultado es un no seco. Ship fallido en limpio delante del puto grupo delante del puto grupo, basura.',
+    'El bot midió y el resultado es un no seco. Ship fallido en limpio delante del puto grupo, basura.',
 
-    'Bajo. Mejor ni intentarlo: el ranking ya firmó el fail en público delante del puto grupo delante del puto grupo, ridículo.',
+    'Bajo. Mejor ni intentarlo: el ranking ya firmó el fail en público delante del puto grupo, ridículo.',
 
     'Compatibilidad justa para el trámite y nada más. El resto es ruido delante del puto grupo, fracasado.',
 
-    'Ship bajo documentado. Autor el número, testigo el puto grupo entero delante del puto grupo delante del puto grupo.',
+    'Ship bajo documentado. Autor el número, testigo el puto grupo entero delante del puto grupo.',
 
-    'Estos dos juntos bajan el promedio del chat solo con el comando delante del puto grupo delante del puto grupo, mierda.',
+    'Estos dos juntos bajan el promedio del chat solo con el comando delante del puto grupo, mierda.',
 
-    'Bajo. La química no existe y el bot no inventa lo que no hay delante del puto grupo delante del puto grupo, coño.',
+    'Bajo. La química no existe y el bot no inventa lo que no hay delante del puto grupo, coño.',
 
-    'Ship en números rojos. El ranking no ofrece consuelo ni anestesia delante del puto grupo delante del puto grupo, cabrón.',
+    'Ship en números rojos. El ranking no ofrece consuelo ni anestesia delante del puto grupo, cabrón.',
 
-    'Bajo de verdad: ni el almost salva a este par del sótano delante del puto grupo delante del puto grupo, gilipollas.',
+    'Bajo de verdad: ni el almost salva a este par del sótano delante del puto grupo, gilipollas.',
 
-    'La compatibilidad es un gag y el grupo no pide replay del fail delante del puto grupo delante del puto grupo, patético.',
+    'La compatibilidad es un gag y el grupo no pide replay del fail delante del puto grupo, patético.',
 
-    'Ship bajo. Separados estorban menos al promedio del ranking delante del puto grupo delante del puto grupo, asco.',
+    'Ship bajo. Separados estorban menos al promedio del ranking delante del puto grupo, asco.',
 
-    'El número habla: bajo. Vosotros calláis porque no hay réplica delante del puto grupo delante del puto grupo, basura.',
+    'El número habla: bajo. Vosotros calláis porque no hay réplica delante del puto grupo, basura.',
 
-    'Bajo. El ship es un experimento fallido del ranking del grupo delante del puto grupo delante del puto grupo, ridículo.',
+    'Bajo. El ship es un experimento fallido del ranking del grupo delante del puto grupo, ridículo.',
 
-    'Compatibilidad de sótano. El bot no suaviza el veredicto público delante del puto grupo delante del puto grupo, fracasado.',
+    'Compatibilidad de sótano. El bot no suaviza el veredicto público delante del puto grupo, fracasado.',
 
-    'Ship bajo hasta para el modo oscuro del comando de pareja delante del puto grupo delante del puto grupo.',
+    'Ship bajo hasta para el modo oscuro del comando de pareja delante del puto grupo.',
 
-    'Estos dos no suman. Restan. El ranking lo firma sin debate delante del puto grupo delante del puto grupo, mierda.',
+    'Estos dos no suman. Restan. El ranking lo firma sin debate delante del puto grupo, mierda.',
 
-    'Bajo. Mejor archivo y olvido que insistir en este fail delante del puto grupo delante del puto grupo, coño.',
+    'Bajo. Mejor archivo y olvido que insistir en este fail delante del puto grupo, coño.',
 
-    'Ship fallido en limpio. Sin asterisco de caridad del bot delante del puto grupo delante del puto grupo, cabrón.',
+    'Ship fallido en limpio. Sin asterisco de caridad del bot delante del puto grupo, cabrón.',
 
-    'Bajo de los que el chat archiva sin pedir amplificación delante del puto grupo delante del puto grupo, gilipollas.',
+    'Bajo de los que el chat archiva sin pedir amplificación delante del puto grupo, gilipollas.',
 
-    'La química es cero con maquillaje de low. Se nota a la legua delante del puto grupo delante del puto grupo, patético.',
+    'La química es cero con maquillaje de low. Se nota a la legua delante del puto grupo, patético.',
 
-    'Ship en el tramo que nadie quiere. El número manda y punto delante del puto grupo delante del puto grupo, asco.',
+    'Ship en el tramo que nadie quiere. El número manda y punto delante del puto grupo, asco.',
 
-    'Bajo. El bot midió dos veces y las dos dio fail de pareja delante del puto grupo delante del puto grupo, basura.',
+    'Bajo. El bot midió dos veces y las dos dio fail de pareja delante del puto grupo, basura.',
 
-    'Compatibilidad de puta pena. El ranking no miente nunca delante del puto grupo delante del puto grupo, ridículo.',
+    'Compatibilidad de puta pena. El ranking no miente nunca delante del puto grupo, ridículo.',
 
-    'Ship bajo: el almost de pareja nunca llega a puerto delante del puto grupo delante del puto grupo, fracasado.',
+    'Ship bajo: el almost de pareja nunca llega a puerto delante del puto grupo, fracasado.',
 
-    'Estos dos juntos son el gag del comando y del chat delante del puto grupo delante del puto grupo.',
+    'Estos dos juntos son el gag del comando y del chat delante del puto grupo.',
 
-    'Bajo. Separados al menos no ensucian el mismo frame delante del puto grupo delante del puto grupo, mierda.',
+    'Bajo. Separados al menos no ensucian el mismo frame delante del puto grupo, mierda.',
 
-    'Ship en rojo. El veredicto es seco y público en el ranking delante del puto grupo delante del puto grupo, coño.',
+    'Ship en rojo. El veredicto es seco y público en el ranking delante del puto grupo, coño.',
 
-    'Bajo de manual. El número no necesita narrador emocional delante del puto grupo delante del puto grupo, cabrón.',
+    'Bajo de manual. El número no necesita narrador emocional delante del puto grupo, cabrón.',
 
-    'La compatibilidad se cayó sola antes del primer mensaje delante del puto grupo delante del puto grupo, gilipollas.',
+    'La compatibilidad se cayó sola antes del primer mensaje delante del puto grupo, gilipollas.',
 
-    'Ship bajo documentado delante de todo el puto grupo delante del puto grupo delante del puto grupo, patético.',
+    'Ship bajo documentado delante de todo el puto grupo delante del puto grupo, patético.',
 
-    'Bajo. Mejor no forzar lo que el ranking ya mató delante del puto grupo delante del puto grupo, asco.',
+    'Bajo. Mejor no forzar lo que el ranking ya mató delante del puto grupo, asco.',
 
-    'Compatibilidad de sótano sin ascensor ni luz de emergencia delante del puto grupo delante del puto grupo, basura.',
+    'Compatibilidad de sótano sin ascensor ni luz de emergencia delante del puto grupo, basura.',
 
-    'Ship fallido. El bot cierra el parte sin consuelo posible delante del puto grupo delante del puto grupo, ridículo.',
+    'Ship fallido. El bot cierra el parte sin consuelo posible delante del puto grupo, ridículo.',
 
-    'Bajo hasta el cartel de salida del comando de pareja delante del puto grupo delante del puto grupo, fracasado.',
+    'Bajo hasta el cartel de salida del comando de pareja delante del puto grupo, fracasado.',
 
-    'Estos dos no levantan el ship ni con milagro del ranking delante del puto grupo delante del puto grupo.',
+    'Estos dos no levantan el ship ni con milagro del ranking delante del puto grupo.',
 
-    'Bajo. El ranking firma y el chat archiva sin debate delante del puto grupo delante del puto grupo, mierda.',
+    'Bajo. El ranking firma y el chat archiva sin debate delante del puto grupo, mierda.',
 
-    'Ship en el empty seat de la compatibilidad del grupo delante del puto grupo delante del puto grupo, coño.',
+    'Ship en el empty seat de la compatibilidad del grupo delante del puto grupo, coño.',
 
-    'Bajo de verdad. Ni el low light favorece a este par delante del puto grupo delante del puto grupo, cabrón.',
+    'Bajo de verdad. Ni el low light favorece a este par delante del puto grupo, cabrón.',
 
-    'La química es un rumor y el número lo desmiente en seco delante del puto grupo delante del puto grupo, gilipollas.',
+    'La química es un rumor y el número lo desmiente en seco delante del puto grupo, gilipollas.',
 
-    'Ship bajo. El almost de pareja es eterno y vacío delante del puto grupo delante del puto grupo, patético.',
+    'Ship bajo. El almost de pareja es eterno y vacío delante del puto grupo, patético.',
 
-    'Bajo. Separados es el único consejo útil del bot delante del puto grupo delante del puto grupo, asco.',
+    'Bajo. Separados es el único consejo útil del bot delante del puto grupo, asco.',
 
-    'Compatibilidad de mierda documentada en el ranking delante del puto grupo delante del puto grupo, basura.',
+    'Compatibilidad de mierda documentada en el ranking delante del puto grupo, basura.',
 
-    'Ship fallido sin derecho a bis ni a apelación posible delante del puto grupo delante del puto grupo, ridículo.',
+    'Ship fallido sin derecho a bis ni a apelación posible delante del puto grupo, ridículo.',
 
-    'Bajo. El bot no regala décimas de caridad a este par delante del puto grupo delante del puto grupo, fracasado.',
+    'Bajo. El bot no regala décimas de caridad a este par delante del puto grupo, fracasado.',
 
-    'Estos dos suman un fail con nombre propio en el chat delante del puto grupo delante del puto grupo.',
+    'Estos dos suman un fail con nombre propio en el chat delante del puto grupo.',
 
-    'Bajo de los que duelen en público delante del grupo delante del puto grupo delante del puto grupo, mierda.',
+    'Bajo de los que duelen en público delante del grupo delante del puto grupo, mierda.',
 
-    'Ship en números que no se maquillan con filtros delante del puto grupo delante del puto grupo, coño.',
+    'Ship en números que no se maquillan con filtros delante del puto grupo, coño.',
 
-    'Bajo. La pareja es un experimento que el ranking abortó delante del puto grupo delante del puto grupo, cabrón.',
+    'Bajo. La pareja es un experimento que el ranking abortó delante del puto grupo, cabrón.',
 
-    'Compatibilidad de sótano. Sin filtro que salve el frame delante del puto grupo delante del puto grupo, gilipollas.',
+    'Compatibilidad de sótano. Sin filtro que salve el frame delante del puto grupo, gilipollas.',
 
-    'Ship bajo hasta para el modo avión del deseo ajeno delante del puto grupo delante del puto grupo, patético.',
+    'Ship bajo hasta para el modo avión del deseo ajeno delante del puto grupo, patético.',
 
-    'Bajo. El número habla y vosotros no tenéis réplica útil delante del puto grupo delante del puto grupo, asco.',
+    'Bajo. El número habla y vosotros no tenéis réplica útil delante del puto grupo, asco.',
 
-    'Ship fallido. Archivo cerrado sin segunda oportunidad delante del puto grupo delante del puto grupo, basura.',
+    'Ship fallido. Archivo cerrado sin segunda oportunidad delante del puto grupo, basura.',
 
-    'Bajo de puta madre en el sentido del desastre de pareja delante del puto grupo delante del puto grupo, ridículo.',
+    'Bajo de puta madre en el sentido del desastre de pareja delante del puto grupo, ridículo.',
 
-    'Compatibilidad justa para el gag del comando y nada más delante del puto grupo delante del puto grupo, fracasado.',
+    'Compatibilidad justa para el gag del comando y nada más delante del puto grupo, fracasado.',
 
     'Poca química. El ranking lo marca en rojo suave, cabrón, y el ranking no discute.',
 
@@ -747,7 +747,7 @@ const VERDICTS = {
 
     'Compatibilidad en el sótano, fracasado, y el ranking no discute, ridículo.',
 
-    'Bajo. Mejor amigos de mentira que esto. y el ranking no discute, fracasado.',
+    'Bajo. Mejor amigos de mentira que esto y el ranking no discute, fracasado.',
 
     'Ship flojo. El chat no compra la premisa, cabrón, y el ranking no discute.',
 
@@ -767,7 +767,7 @@ const VERDICTS = {
 
     'Química en huelga, fracasado, y el ranking no discute, ridículo, y el grupo ya lo olió, ridículo.',
 
-    'Ship de los que mejor ni empezar. y el ranking no discute, fracasado.',
+    'Ship de los que mejor ni empezar y el ranking no discute, fracasado.',
 
     'Bajo perfil tóxico sin beneficio, cabrón, y el ranking no discute.',
 
@@ -787,7 +787,7 @@ const VERDICTS = {
 
     'Poca chispa, mucho papelón, fracasado, y el ranking no discute, ridículo.',
 
-    'Ship en zona de peligro tibio. y el ranking no discute, fracasado.',
+    'Ship en zona de peligro tibio y el ranking no discute, fracasado.',
 
     'Bajo de verdad. Sin anestesia, cabrón, y el ranking no discute, y el grupo ya lo olió.',
 
@@ -815,121 +815,121 @@ const VERDICTS = {
 
     'Ship cero. Ni el almost existe. El bot cierra sin anestesia ni consuelo delante del puto grupo, mierda.',
 
-    'Cero de compatibilidad. Separados es poco: mejor ni en el mismo chat delante del puto grupo delante del puto grupo, coño.',
+    'Cero de compatibilidad. Separados es poco: mejor ni en el mismo chat delante del puto grupo, coño.',
 
-    'Ship en el abismo. El número es un no rotundo sin maquillaje delante del puto grupo delante del puto grupo, cabrón.',
+    'Ship en el abismo. El número es un no rotundo sin maquillaje delante del puto grupo, cabrón.',
 
-    'Cero. Estos dos juntos son un error de casting del comando delante del puto grupo delante del puto grupo, gilipollas.',
+    'Cero. Estos dos juntos son un error de casting del comando delante del puto grupo, gilipollas.',
 
     'Compatibilidad cero. El ranking no ofrece segunda oportunidad útil delante del puto grupo, patético.',
 
-    'Ship cero documentado. Autor el número, testigo el grupo entero delante del puto grupo delante del puto grupo, asco.',
+    'Ship cero documentado. Autor el número, testigo el grupo entero delante del puto grupo, asco.',
 
-    'Cero. Mejor archivo permanente que insistir en este fail delante del puto grupo delante del puto grupo, basura.',
+    'Cero. Mejor archivo permanente que insistir en este fail delante del puto grupo, basura.',
 
-    'Ship en el empty total. Ni chispa ni almost de pareja delante del puto grupo delante del puto grupo, ridículo.',
+    'Ship en el empty total. Ni chispa ni almost de pareja delante del puto grupo, ridículo.',
 
-    'Cero de verdad. El bot midió y el resultado es un agujero delante del puto grupo delante del puto grupo, fracasado.',
+    'Cero de verdad. El bot midió y el resultado es un agujero delante del puto grupo, fracasado.',
 
-    'Estos dos no suman ni en broma. Restan en serio en el ranking delante del puto grupo delante del puto grupo.',
+    'Estos dos no suman ni en broma. Restan en serio en el ranking delante del puto grupo.',
 
-    'Ship cero. La química se fue y no dejó ni una puta nota delante del puto grupo delante del puto grupo, mierda.',
+    'Ship cero. La química se fue y no dejó ni una puta nota delante del puto grupo, mierda.',
 
-    'Cero. El ranking firma el no sin narrador emocional delante del puto grupo delante del puto grupo, coño.',
+    'Cero. El ranking firma el no sin narrador emocional delante del puto grupo, coño.',
 
-    'Compatibilidad de abismo. Sin puente posible en este comando delante del puto grupo delante del puto grupo, cabrón.',
+    'Compatibilidad de abismo. Sin puente posible en este comando delante del puto grupo, cabrón.',
 
-    'Ship cero hasta para el modo oscuro del ranking del grupo delante del puto grupo delante del puto grupo, gilipollas.',
+    'Ship cero hasta para el modo oscuro del ranking del grupo delante del puto grupo, gilipollas.',
 
-    'Cero. Separados estorban menos al promedio del chat delante del puto grupo delante del puto grupo, patético.',
+    'Cero. Separados estorban menos al promedio del chat delante del puto grupo, patético.',
 
-    'Ship en el sótano sin escalera. El número manda y punto delante del puto grupo delante del puto grupo, asco.',
+    'Ship en el sótano sin escalera. El número manda y punto delante del puto grupo, asco.',
 
-    'Cero documentado delante del puto grupo sin filtro delante del puto grupo delante del puto grupo, basura.',
+    'Cero documentado delante del puto grupo sin filtro delante del puto grupo, basura.',
 
-    'Ship fallido en grado cero. Sin asterisco de caridad delante del puto grupo delante del puto grupo, ridículo.',
+    'Ship fallido en grado cero. Sin asterisco de caridad delante del puto grupo, ridículo.',
 
-    'Cero. El bot no regala ni una décima de caridad visual delante del puto grupo delante del puto grupo, fracasado.',
+    'Cero. El bot no regala ni una décima de caridad visual delante del puto grupo, fracasado.',
 
-    'Estos dos son el gag más corto del comando de pareja delante del puto grupo delante del puto grupo.',
+    'Estos dos son el gag más corto del comando de pareja delante del puto grupo.',
 
-    'Ship cero. El almost de pareja ni siquiera empezó delante del puto grupo delante del puto grupo, mierda.',
+    'Ship cero. El almost de pareja ni siquiera empezó delante del puto grupo, mierda.',
 
-    'Cero. Mejor ni el trámite del comando en este caso delante del puto grupo delante del puto grupo, coño.',
+    'Cero. Mejor ni el trámite del comando en este caso delante del puto grupo, coño.',
 
-    'Compatibilidad cero. El ranking cierra el parte en seco delante del puto grupo delante del puto grupo, cabrón.',
+    'Compatibilidad cero. El ranking cierra el parte en seco delante del puto grupo, cabrón.',
 
-    'Ship en el empty seat eterno del deseo del ranking delante del puto grupo delante del puto grupo, gilipollas.',
+    'Ship en el empty seat eterno del deseo del ranking delante del puto grupo, gilipollas.',
 
-    'Cero de los que duelen porque ni ilusión quedó en pie delante del puto grupo delante del puto grupo, patético.',
+    'Cero de los que duelen porque ni ilusión quedó en pie delante del puto grupo, patético.',
 
-    'Ship cero. Archivo y olvido sin segunda lectura útil delante del puto grupo delante del puto grupo, asco.',
+    'Ship cero. Archivo y olvido sin segunda lectura útil delante del puto grupo, asco.',
 
-    'Cero. La distancia no se mide: se certifica en el bot delante del puto grupo delante del puto grupo, basura.',
+    'Cero. La distancia no se mide: se certifica en el bot delante del puto grupo, basura.',
 
-    'Ship fallido total. Sin recurso ni bis posible aquí delante del puto grupo delante del puto grupo, ridículo.',
+    'Ship fallido total. Sin recurso ni bis posible aquí delante del puto grupo, ridículo.',
 
-    'Cero. El número es un muro y vosotros el eco del fail delante del puto grupo delante del puto grupo, fracasado.',
+    'Cero. El número es un muro y vosotros el eco del fail delante del puto grupo, fracasado.',
 
-    'Estos dos juntos bajan el promedio solo con el ship delante del puto grupo delante del puto grupo.',
+    'Estos dos juntos bajan el promedio solo con el ship delante del puto grupo.',
 
-    'Ship cero. Ni el low light favorece a este par de mierda delante del puto grupo delante del puto grupo, mierda.',
+    'Ship cero. Ni el low light favorece a este par de mierda delante del puto grupo, mierda.',
 
-    'Cero de compatibilidad. El bot no inventa química ajena delante del puto grupo delante del puto grupo, coño.',
+    'Cero de compatibilidad. El bot no inventa química ajena delante del puto grupo, coño.',
 
-    'Ship en el abismo documentado sin consuelo del ranking delante del puto grupo delante del puto grupo, cabrón.',
+    'Ship en el abismo documentado sin consuelo del ranking delante del puto grupo, cabrón.',
 
-    'Cero. Separados es el único veredicto útil del comando delante del puto grupo delante del puto grupo, gilipollas.',
+    'Cero. Separados es el único veredicto útil del comando delante del puto grupo, gilipollas.',
 
-    'Compatibilidad cero. Sin filtro que salve el frame junto delante del puto grupo delante del puto grupo, patético.',
+    'Compatibilidad cero. Sin filtro que salve el frame junto delante del puto grupo, patético.',
 
-    'Ship cero hasta el cartel de salida del puto ranking delante del puto grupo delante del puto grupo, asco.',
+    'Ship cero hasta el cartel de salida del puto ranking delante del puto grupo, asco.',
 
     'Cero delante del puto grupo, basura delante del puto grupo. El ranking lo deja claro. El ranking lo deja claro.',
 
-    'Ship fallido en limpio. Cero es cero y punto final delante del puto grupo delante del puto grupo, ridículo.',
+    'Ship fallido en limpio. Cero es cero y punto final delante del puto grupo, ridículo.',
 
-    'Cero de puta madre en el sentido del vacío de pareja delante del puto grupo delante del puto grupo, fracasado.',
+    'Cero de puta madre en el sentido del vacío de pareja delante del puto grupo, fracasado.',
 
-    'Estos dos no levantan ni con milagro del ranking del grupo delante del puto grupo delante del puto grupo.',
+    'Estos dos no levantan ni con milagro del ranking del grupo delante del puto grupo.',
 
-    'Ship cero. El chat archiva sin debate ni amplificación delante del puto grupo delante del puto grupo, mierda.',
+    'Ship cero. El chat archiva sin debate ni amplificación delante del puto grupo, mierda.',
 
-    'Cero. La química es un rumor desmentido por el número delante del puto grupo delante del puto grupo, coño.',
+    'Cero. La química es un rumor desmentido por el número delante del puto grupo, coño.',
 
-    'Compatibilidad de abismo sin puente ni cuerda de escape delante del puto grupo delante del puto grupo, cabrón.',
+    'Compatibilidad de abismo sin puente ni cuerda de escape delante del puto grupo, cabrón.',
 
-    'Ship cero. Mejor ni en la misma foto del puto grupo delante del puto grupo delante del puto grupo, gilipollas.',
+    'Ship cero. Mejor ni en la misma foto del puto grupo delante del puto grupo, gilipollas.',
 
-    'Cero documentado. Autor el bot, testigo todos en el chat delante del puto grupo delante del puto grupo, patético.',
+    'Cero documentado. Autor el bot, testigo todos en el chat delante del puto grupo, patético.',
 
-    'Ship en el empty total del deseo del ranking del grupo delante del puto grupo delante del puto grupo, asco.',
+    'Ship en el empty total del deseo del ranking del grupo delante del puto grupo, asco.',
 
-    'Cero. El almost ni se presentó al trámite del comando delante del puto grupo delante del puto grupo, basura.',
+    'Cero. El almost ni se presentó al trámite del comando delante del puto grupo, basura.',
 
-    'Ship fallido. Cero sin maquillaje ni narrador emocional delante del puto grupo delante del puto grupo, ridículo.',
+    'Ship fallido. Cero sin maquillaje ni narrador emocional delante del puto grupo, ridículo.',
 
-    'Cero. El número habla y no hay réplica posible aquí delante del puto grupo delante del puto grupo, fracasado.',
+    'Cero. El número habla y no hay réplica posible aquí delante del puto grupo, fracasado.',
 
-    'Estos dos suman un agujero con nombre en el ranking delante del puto grupo delante del puto grupo.',
+    'Estos dos suman un agujero con nombre en el ranking delante del puto grupo.',
 
-    'Ship cero. El ranking firma el no en público y listo delante del puto grupo delante del puto grupo, mierda.',
+    'Ship cero. El ranking firma el no en público y listo delante del puto grupo, mierda.',
 
-    'Cero de verdad. Ni el modo avión oculta este fail delante del puto grupo delante del puto grupo, coño.',
+    'Cero de verdad. Ni el modo avión oculta este fail delante del puto grupo, coño.',
 
-    'Compatibilidad cero. Archivo cerrado sin recurso útil delante del puto grupo delante del puto grupo, cabrón.',
+    'Compatibilidad cero. Archivo cerrado sin recurso útil delante del puto grupo, cabrón.',
 
-    'Ship en el sótano sin luz ni escalera de emergencia delante del puto grupo delante del puto grupo, gilipollas.',
+    'Ship en el sótano sin luz ni escalera de emergencia delante del puto grupo, gilipollas.',
 
-    'Cero. Separados es piedad, juntos es el gag del chat delante del puto grupo delante del puto grupo, patético.',
+    'Cero. Separados es piedad, juntos es el gag del chat delante del puto grupo, patético.',
 
-    'Ship cero hasta para el que no cree en el comando delante del puto grupo delante del puto grupo, asco.',
+    'Ship cero hasta para el que no cree en el comando delante del puto grupo, asco.',
 
-    'Cero. El bot midió dos veces y las dos dio vacío total delante del puto grupo delante del puto grupo, basura.',
+    'Cero. El bot midió dos veces y las dos dio vacío total delante del puto grupo, basura.',
 
-    'Ship fallido total. Sin consuelo ni narrador que salve delante del puto grupo delante del puto grupo, ridículo.',
+    'Ship fallido total. Sin consuelo ni narrador que salve delante del puto grupo, ridículo.',
 
-    'Cero de compatibilidad. El veredicto es un muro seco delante del puto grupo delante del puto grupo, fracasado.',
+    'Cero de compatibilidad. El veredicto es un muro seco delante del puto grupo, fracasado.',
 
     'Nada. Cero spark, cero futuro, cero debate, cabrón, y el ranking no discute.',
 
@@ -949,7 +949,7 @@ const VERDICTS = {
 
     'Imposible. Fin del experimento, fracasado, y el ranking no discute, ridículo.',
 
-    'Cero. Ni el RNG los junta con sentido. y el ranking no discute, fracasado.',
+    'Cero. Ni el RNG los junta con sentido y el ranking no discute, fracasado.',
 
     'Nula. El grupo respira aliviado, cabrón, y el ranking no discute.',
 
@@ -969,7 +969,7 @@ const VERDICTS = {
 
     'Cero spark. Cero paciencia del chat, fracasado, y el ranking no discute, ridículo.',
 
-    'Nada. El agujero donde debería haber química. y el ranking no discute, fracasado.',
+    'Nada. El agujero donde debería haber química y el ranking no discute, fracasado.',
 
     'Ship imposible con sello oficial, cabrón, y el ranking no discute.',
 
@@ -989,7 +989,7 @@ const VERDICTS = {
 
     'Nula química. Archivado, fracasado, y el ranking no discute, ridículo.',
 
-    'Cero total. Ni meme salva esto. y el ranking no discute, fracasado.',
+    'Cero total. Ni meme salva esto y el ranking no discute, fracasado.',
 
     'Ship cancelado por el universo, cabrón, y el ranking no discute, y el grupo ya lo olió.',
 

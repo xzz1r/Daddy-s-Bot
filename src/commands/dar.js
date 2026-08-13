@@ -47,8 +47,8 @@ async function cmdDar(sock, msg, args) {
   await sock.sendMessage(jid, {
     text:
       `*TRANSFERENCIA DE AURA*\n\n` +
-      `${sTag} le pasa *${fmt(amount)} de aura* a ${tTag}\\n\\n.` +
-      `${sTag} −${fmt(amount)} → *${fmt(result.fromNew)}*\\n.` +
+      `${sTag} le pasa *${fmt(amount)} de aura* a ${tTag}\n\n` +
+      `${sTag} −${fmt(amount)} → *${fmt(result.fromNew)}*\n` +
       `${tTag} +${fmt(amount)} → *${fmt(result.toNew)}*.`,
     mentions: [sender, target],
   }, { quoted: msg });

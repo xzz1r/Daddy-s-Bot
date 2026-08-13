@@ -19,7 +19,7 @@ let MOG_PHRASES = [
   '%M le ha hecho un mog a %L tan limpio que duele. Diferencia de liga, no de opinión.',
   'It\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'s over para %L. %M nació en otra categoría y %L nació de relleno.',
   '%L puede sofmear hasta el cansancio: el hard wall se llama %M y no se discute.',
-  '%M sube el promedio del chat. %L es el lastre. Mog check = aritmética facial. da asco.',
+  '%M sube el promedio del chat. %L es el lastre. Mog check = aritmética facial da asco.',
   '%M no pidió el mog: el universo lo organizó. %L pagó la entrada.',
   'Para %M nunca hizo falta empezar. Para %L nunca empezó ni va a empezar.',
   '%L perdió el mog check antes de escribir. %M ganó antes de mirar, asco. Qué asco de intento.',
@@ -39,7 +39,7 @@ let MOG_PHRASES = [
   '%M vs %L en una frase: uno existe y el otro explica por qué no llega.',
   '%L perdió el mog check en el vestíbulo. %M ni entró a la sala de espera.',
   'La foto de grupo mejora cuando %M está y empeora cuando %L se pone al lado.',
-  '%M no pidió permiso para subir el promedio. %L no pidió permiso para bajarlo. da asco.',
+  '%M no pidió permiso para subir el promedio. %L no pidió permiso para bajarlo da asco.',
   'Softmax no es estrategia: es negación. %L niega y %M sigue ahí.',
   '%M es el hard wall que %L no va a saltar ni con tutorial ni con filtro.',
   '%L se miró al espejo del ranking y el espejo le devolvió a %M de fondo.',
@@ -59,7 +59,7 @@ let MOG_PHRASES = [
   '%L en modo softmax permanente. %M en modo realidad permanente. Qué asco de intento.',
   'Hard wall confirmado. Autor del muro: %M. Autor del choque: %L. mierda. Qué asco de intento.',
   '%M gana el mog check por KO de presencia. %L en la grada sin entrada.',
-  '%L puede hablar del frame. %M es el frame. Diferencia de categoría. da asco.',
+  '%L puede hablar del frame. %M es el frame. Diferencia de categoría da asco.',
   '%M no pidió el mog check. El universo.',
   '%L se estrelló contra %M y todavía está buscando el tutorial del salto.',
   '%M es el estándar que %L usa de excusa. Qué asco de estrategia, asco. Qué asco de intento.',
@@ -79,7 +79,7 @@ let MOG_PHRASES = [
   '%M sube el promedio. %L es el lastre documentado. Aritmética. Qué asco de intento.',
   '%L puede invocar la luz, el ángulo y el filtro. %M invoca la realidad.',
   '%M cierra el mog sin sudar. %L abre el debate que nadie pidió, coño. Qué asco de intento.',
-  '%L vs %M en el vestíbulo: %L ya había perdido antes de entrar, cabrón. Qué asco de intento. da asco.',
+  '%L vs %M en el vestíbulo: %L ya había perdido antes de entrar, cabrón. Qué asco de intento da asco.',
   'El frame mejora con %M y se rompe con %L al lado. Mog check, gilipollas. Qué asco de intento.',
   '%M no flexea: existe. %L flexea y el espacio lo expulsa del frame.',
   '%L se miró al ranking y el ranking le devolvió el hard wall con nombre %M.',
@@ -163,7 +163,7 @@ async function cmdMog(sock, msg, groupMeta) {
   const text =
     `*MOG CHECK*\n\n` +
     `@${numA} *vs* @${numB}\n\n` +
-    `@${numM} *moggea* a @${numL}\\n.` +
+    `@${numM} *moggea* a @${numL}\n` +
     `${phrase}`;
 
   await sock.sendMessage(jid, { text, mentions: [a, b] }, { quoted: msg });

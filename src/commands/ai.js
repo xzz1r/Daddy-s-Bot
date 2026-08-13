@@ -85,7 +85,7 @@ async function cmdGrok(sock, msg, args, groupMeta) {
 
   const quoted = extractQuotedText(msg);
   const userContent = quoted
-    ? `Mensaje al que estoy respondiendo en el chat:\\n"""\\n${quoted}\\n"""\\n\\nMi pregunta sobre eso: ${prompt}.`
+    ? `Mensaje al que estoy respondiendo en el chat:\n"""\n${quoted}\n"""\n\nMi pregunta sobre eso: ${prompt}.`
     : prompt;
 
   await sock.sendMessage(jid, { text: 'Pensando...' }, { quoted: msg }).catch(() => {});

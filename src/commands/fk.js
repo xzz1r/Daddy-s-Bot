@@ -389,10 +389,10 @@ async function cmdFk(sock, msg, args, groupMeta) {
 
   // Veredicto por umbrales.
   let verdict;
-  if (score >= 8)      verdict = '*RIESGO ALTO — casi seguro fake/multicuenta.*.';
-  else if (score >= 4) verdict = '*RIESGO MEDIO — verificar manualmente.*.';
-  else if (score >= 1) verdict = '*Riesgo bajo — señales menores.*.';
-  else                 verdict = '*Sin señales de cuenta falsa.*.';
+  if (score >= 8)      verdict = '*RIESGO ALTO — casi seguro fake/multicuenta.*';
+  else if (score >= 4) verdict = '*RIESGO MEDIO — verificar manualmente.*';
+  else if (score >= 1) verdict = '*Riesgo bajo — señales menores.*';
+  else                 verdict = '*Sin señales de cuenta falsa.*';
 
   const num = target.split('@')[0];
   const tag = (target.endsWith('@s.whatsapp.net') ? '+' : '@') + num;

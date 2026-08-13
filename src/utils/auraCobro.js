@@ -161,7 +161,7 @@ function textoSinSaldo(concepto, { precio, saldo }, jid) {
   // seguidas, que es lo que convierte un chiste en un mensaje de error.
   const burla = pickFresh(MISERIA, `${jid || 'x'}|miseria`);
   return `${burla}\n\n` +
-    `_Cuesta *${fmt(precio)}* y tienes *${fmt(saldo)}*._\\n.` +
+    `_Cuesta *${fmt(precio)}* y tienes *${fmt(saldo)}*._\n` +
     `_Se gana con *!aura* y con los bonos de 200, 500 y 1000 mensajes del día. Cada ${fmt(ACTIVIDAD_MSGS)} mensajes que escribes tus tiradas ganan suerte para siempre._`;
 }
 

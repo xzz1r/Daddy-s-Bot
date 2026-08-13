@@ -137,7 +137,7 @@ async function cmdCacheList(sock, msg) {
     const t = s.title.length > 55 ? s.title.slice(0, 52) + '...' : s.title;
     return s.requester ? `${i + 1}. ${t} — ${s.requester}.` : `${i + 1}. ${t}`;
   });
-  const text = `*CANCIONES EN CACHE* (${list.length})\\n\\n.` + lines.join('\n');
+  const text = `*CANCIONES EN CACHE* (${list.length})\n\n` + lines.join('\n');
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
 

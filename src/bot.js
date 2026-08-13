@@ -157,7 +157,7 @@ async function explicarFreno(grupo) {
   if (!meta) return;
   logger.info(
     isBotAdmin(sock, meta)
-      ? `solicitudes: en ${grupo} SI soy admin, asi que el problema es del grupo:.` +
+      ? `solicitudes: en ${grupo} SI soy admin, asi que el problema es del grupo:` +
         `no tiene activada la aprobacion de entradas. Sin ella no hay solicitudes.` +
         `que leer, y el anti-admin no puede distinguir una aprobacion de un alta a dedo.`
       : `solicitudes: en ${grupo} NO soy admin, por eso no puedo leer las solicitudes.` +
@@ -322,7 +322,7 @@ async function connectToWhatsApp() {
     }
 
     if (qr) {
-      console.log('\\nEscanea el QR con WhatsApp → Dispositivos vinculados → Vincular dispositivo:\\n.');
+      console.log('\nEscanea el QR con WhatsApp → Dispositivos vinculados → Vincular dispositivo:\n');
       qrcode.generate(qr, { small: true });
     }
 
@@ -351,7 +351,7 @@ async function connectToWhatsApp() {
             // tras QR sin que nadie los escanee es justo la actividad que
             // puede convertir una restriccion temporal en una permanente.
             logger.error(
-              `Sesión cerrada ${ciclosLogout} veces seguidas. Dejo de reintentar solo:.` +
+              `Sesión cerrada ${ciclosLogout} veces seguidas. Dejo de reintentar solo:` +
               `puede que WhatsApp tenga la cuenta restringida (revisa el teléfono).` +
               `Cuando esté resuelto, arrancá el bot a mano: pm2 restart bot.`
             );
@@ -435,7 +435,7 @@ async function connectToWhatsApp() {
       const specCompliant = /pad=512:512/.test(VF_STATIC);
       console.log(`commit cargado : ${gitCommit()}.`);
       console.log(`filtro sticker : ${VF_STATIC}.`);
-      console.log(`canvas 512 : ${specCompliant ? 'SI (spec WhatsApp, relleno transparente, sin estirar)' : 'NO (código viejo, canvas no cuadrado)'}\\n.`);
+      console.log(`canvas 512 : ${specCompliant ? 'SI (spec WhatsApp, relleno transparente, sin estirar)' : 'NO (código viejo, canvas no cuadrado)'}\n`);
 
       // Barrido inicial del historial de huellas: indexa en segundo plano las
       // fotos de los miembros de todos los grupos. Escalonado por su propia cola,
@@ -569,7 +569,7 @@ async function connectToWhatsApp() {
     // multiple users join at once via group link.
     if (action === 'add') {
       const fromBot = isBotJid(author);
-      const authorTag = author ? `@${String(author).split('@')[0]}.` : 'Alguien';
+      const authorTag = author ? `@${String(author).split('@')[0]}` : 'Alguien';
 
       // Anti-fake: lista negra y huella de fotos sobre cada entrada.
       // No bloquea al resto de handlers — sus fallos se registran y ya.
@@ -705,7 +705,7 @@ async function connectToWhatsApp() {
           .some(f => isOwner(f, false, meta)))
         .map(o => o.id);
       if (echados.length) {
-        const autorTag = `@${String(author).split('@')[0]}.`;
+        const autorTag = `@${String(author).split('@')[0]}`;
         const menciones = [author, ...echados];
 
         // Primero el degradado: es lo único que depende solo del bot y sale
@@ -835,7 +835,7 @@ async function connectToWhatsApp() {
     const tags = (a) => a.map(j => `@${j.split('@')[0]}`).join(', ');
 
     const targets = partJids.map(jid => `@${jid.split('@')[0]}`).join(', ');
-    const authorTag = author ? `@${String(author).split('@')[0]}.` : 'Alguien';
+    const authorTag = author ? `@${String(author).split('@')[0]}` : 'Alguien';
 
     // Si al BOT le acaban de dar admin aquí, este grupo pasa de "forbidden" a
     // legible: se levanta el freno del sondeo en vez de esperar las seis horas.
@@ -862,8 +862,8 @@ async function connectToWhatsApp() {
       // verdad se degradó y se cuenta lo que falló, si falló algo.
       const fallidos = toDemote.filter(j => !degradados.includes(j));
       const text =
-        `*Anti-admin: acción revertida.*\\n.` +
-        `${authorTag} intento dar admin a ${targets}.\\n.` +
+        `*Anti-admin: acción revertida.*\n` +
+        `${authorTag} intento dar admin a ${targets}.\n` +
         (degradados.length === 1
           ? `${tags(degradados)} ha sido degradado.`
           : `Degradados: ${tags(degradados)}.`) +
@@ -936,7 +936,7 @@ async function connectToWhatsApp() {
 
       if (repuestos.length || castigado) {
         const sinReponer = aReponer.filter(j => !repuestos.includes(j));
-        const parts = [`*Anti-admin: acción revertida.*.`, `${authorTag} intento quitar admin a ${targets}.`];
+        const parts = [`*Anti-admin: acción revertida.*`, `${authorTag} intento quitar admin a ${targets}.`];
         const recupera = repuestos.length === 1 ? 'recupera' : 'recuperan';
         if (repuestos.length && castigado) parts.push(`${tags(repuestos)} ${recupera} el admin y ${authorTag} lo pierde.`);
         else if (repuestos.length)         parts.push(`${tags(repuestos)} ${recupera} el admin.`);
