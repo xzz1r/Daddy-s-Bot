@@ -11,7 +11,8 @@
     "economia": "node scripts/economia.js",
     "check": "node scripts/check.js",
     "placeholders": "node scripts/placeholders.js",
-    "pools": "node scripts/pools.js"
+    "pools": "node scripts/pools.js",
+    "progreso": "node scripts/progreso.js"
   },
   "repository": {
     "type": "git",
