@@ -327,12 +327,21 @@ Escribir 21 para uno que sale el 87 % de las veces es un bot roto.
 ## 10. Antes de entregar
 
 ```bash
-npm run placeholders
+npm run placeholders    # ¿algún hueco se quedaría sin rellenar?
+npm run pools           # ¿hay bastantes frases donde de verdad se leen?
 ```
 
-Recorre las 10.338 frases del repo y revienta si alguna usa un placeholder que
-su consumidor no sustituye. **Tiene que salir verde**: termina diciendo *"Todos
-los placeholders están enchufados a algo que los sustituye"*.
+**`placeholders`** recorre las 10.338 frases del repo y revienta si alguna usa
+un placeholder que su consumidor no sustituye. Tiene que terminar diciendo
+*"Todos los placeholders están enchufados a algo que los sustituye"*.
+
+**`pools`** cruza el tamaño de cada pool con la frecuencia real de su tramo
+(secciones 3.3 y 5.2) y lista los que están agotados, con cuántas frases faltan
+en cada uno. Es la tabla de la sección 6, recalculada en el momento: en vez de
+fiarse de una lista escrita a mano, la mide sobre el código actual. Sale en rojo
+mientras quede algún tramo en bucle.
+
+Los dos tienen que salir verdes.
 
 Checklist:
 
@@ -343,6 +352,7 @@ Checklist:
 - [ ] ¿La frase evita repetir el % y el nombre del rasgo? (ya van en la cabecera)
 - [ ] ¿Suficientes frases para el tráfico de ese tramo? (sección 9)
 - [ ] `npm run placeholders` en verde
+- [ ] `npm run pools` en verde
 
 ---
 

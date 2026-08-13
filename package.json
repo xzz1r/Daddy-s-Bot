@@ -9,7 +9,8 @@
     "update": "bash scripts/actualizar.sh",
     "estado": "node scripts/estado.js",
     "economia": "node scripts/economia.js",
-    "placeholders": "node scripts/placeholders.js"
+    "placeholders": "node scripts/placeholders.js",
+    "pools": "node scripts/pools.js"
   },
   "repository": {
     "type": "git",
