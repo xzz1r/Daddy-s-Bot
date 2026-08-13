@@ -347,7 +347,7 @@ const BAJO = [
   'Con %IQ te dejan hablar por pena, no porque aportes. Eres ruido con pretensiones. Y se repite el patrón, miserable Vuelta 196.',
   '%IQ. Pensar te cansa de más. El abismo no te insulta: te reconoce. Y se repite el patrón, qué cringe Vuelta 197.',
   'Con %IQ eres un lastre en el hilo y lo niegas. La confianza te sobra; el coeficiente no. Y se repite el patrón, da asco Vuelta 198.',
-  '%IQ. Hasta el bot dudó de publicar el número. Así de claro quedó. Y se repite el patrón, qué vergüenza Vuelta 199.'
+  '%IQ. Hasta el bot dudó de publicar el número. Así de claro quedó. Y se repite el patrón, qué vergüenza Vuelta 199.',
 ];
 
 const MEDIO = [
