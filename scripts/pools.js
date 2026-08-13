@@ -30,6 +30,12 @@ const TRAFICO = {
   true:  { high: 0.17, mid: 0.31, low: 0.52 },  // goodIsHigh:true  — positivos
 };
 
+// !fiel e !infiel son la excepción: declaran `roll: rollUniform` y tiran plano
+// de 0 a 100, sin las curvas por rol. Con los cortes en 70 y 30 eso reparte
+// 31 valores altos, 39 medios y 31 bajos de 101 posibles. Aplicarles la tabla
+// de arriba —como se hacía— exageraba un tramo y enterraba los otros dos.
+const TRAFICO_UNIFORME = { high: 31 / 101, mid: 39 / 101, low: 31 / 101 };
+
 // La ventana anti-repetición de pickFresh(pool, key, window = 50). Se recorta
 // sola a pool.length-1 para no bloquear un pool entero.
 const VENTANA = 50;
@@ -70,6 +76,9 @@ function leerLabels() {
     m = linea.match(/^    goodIsHigh: (true|false),$/);
     if (m) { labels[label].goodIsHigh = m[1] === 'true'; continue; }
 
+    // Marca los que tiran uniforme en vez de por rol.
+    if (/^    roll: rollUniform,$/.test(linea)) { labels[label].uniforme = true; continue; }
+
     // Tramo declarado en línea: `high: [`
     m = linea.match(/^    (high|mid|low|extreme): \[$/);
     if (m) { tramo = m[1]; labels[label].pools[tramo] = 0; continue; }
@@ -88,7 +97,7 @@ const labels = leerLabels();
 const filas = [];
 
 for (const [nombre, cfg] of Object.entries(labels)) {
-  const traf = TRAFICO[String(cfg.goodIsHigh)];
+  const traf = cfg.uniforme ? TRAFICO_UNIFORME : TRAFICO[String(cfg.goodIsHigh)];
   if (!traf) continue;
   for (const tramo of ['high', 'mid', 'low']) {
     const n = cfg.pools[tramo];
