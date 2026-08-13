@@ -985,11 +985,17 @@ async function cmdAura(sock, msg, args, groupMeta) {
     (plusActividad && !esOwnerPrincipal
       ? `\n_Veterano (${fmt(mensajes)} msgs): +${Math.round(plusActividad * 100)}% de suerte_`
       : '') +
-    // Y el aviso de que esta tirada ya no paga. Sin esto el jugador ve importes
-    // raros a partir de la novena y piensa que el bot se ha roto.
-    (!dePago
-      ? `\n_Ya has cobrado tus ${TIRADAS_PAGADAS} tiradas de hoy. Estas son a cara o cruz._`
-      : '');
+    '';
+
+  // NO se avisa de que la tirada ha dejado de pagar, por decision del owner:
+  // "es totalmente irrelevante". Y lo es para quien juega — los importes que
+  // salen son los mismos, lo unico que cambia es el valor esperado a la larga,
+  // asi que el aviso no explicaba nada que se viera en pantalla y ensuciaba
+  // todas las tiradas a partir de la octava.
+  //
+  // El freno sigue existiendo igual: `dePago` se calcula y se le pasa a
+  // rollAura, que a partir de ahi tira a cara o cruz con valor esperado cero.
+  // Lo unico que se ha quitado es el cartel.
 
   await sock.sendMessage(jid, { text, mentions: [sender] }, { quoted: msg });
 }
