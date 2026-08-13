@@ -252,7 +252,7 @@ const NEEDS_META = new Set([
   'count','resetcount','resetconteo',
   'top5','top10',   // el sorteo cruza los conteos con la lista de miembros
   'k',              // isOwner necesita la metadata para resolver el LID del owner
-  'diag','diagnostico',
+  'diag',
   'relevancia','relevance',   // isMainOwner necesita meta para resolver LID → teléfono
   // !casino es la puerta directa a lo mismo que !aura hoy, y ese texto NO se le
   // contesta al owner principal (le sacaba "Mensajes hoy: 0", que es justo la
@@ -1303,7 +1303,6 @@ async function handleMessage(sock, msg) {
         break;
 
       case 'diag':
-      case 'diagnostico':
         await cmdDiag(sock, msg, groupMeta);
         break;
 
