@@ -142,6 +142,15 @@ const groupMeta = {
                  { id: '34633333333@s.whatsapp.net', admin: 'admin' }],
 };
 
+// Mensaje sin mencion y de un remitente nuevo cada vez, para los comandos que
+// actuan sobre uno mismo y llevan cooldown (!aura). Repetir remitente los frena
+// en seco y el comando se queda sin probar de verdad.
+const msgSolo = (i) => ({
+  key: { remoteJid: JID, participant: `3499${String(i).padStart(7, '0')}@s.whatsapp.net`,
+         fromMe: false, id: 'S' + i },
+  message: { conversation: '!check' },
+});
+
 // Mensaje con mencion, para los comandos que necesitan un objetivo distinto.
 const msgCon = {
   key: { remoteJid: JID, participant: YO, fromMe: false, id: 'X' },
@@ -165,6 +174,30 @@ const OTROS = [
   ['piropo',    () => require(path.join(R, 'src/commands/wingman')).cmdPiropo,    'meta'],
   ['wingman',   () => require(path.join(R, 'src/commands/wingman')).cmdWingman,   'meta'],
   ['duel',      () => require(path.join(R, 'src/commands/duel')).cmdDuel,         'args'],
+
+  // !aura, !roast y !robo faltaban, y son los TRES MAS USADOS del grupo.
+  //
+  // EXISTE POR UN FALLO QUE ESTA CAPA DEJO PASAR ENTERO. Un script masivo
+  // aplasto una funcion de aura.js en una sola linea de 2.198 caracteres,
+  // comentarios `//` incluidos. Al quedar todo detras del primer `//`, treinta
+  // lineas de codigo real —entre ellas `const sign`— pasaron a ser comentario.
+  // El fichero compila perfecto, importa perfecto, y la capa 1 y la 2 daban
+  // verde. Solo reventaba al TIRAR: "sign is not defined" en la cara del grupo.
+  //
+  // Esta capa lo habria pillado en la primera tirada. No lo hizo porque !aura
+  // no estaba en la lista, y no estaba por ningun motivo: se fue anyadiendo lo
+  // que iba fallando. Que el comando que mueve la moneda del grupo no se
+  // ejecutara ni una vez antes de desplegar era el agujero mas grande que tenia
+  // el guardian.
+  //
+  // `solo` = mensaje SIN mencion y con un remitente distinto en cada tirada.
+  // Las dos cosas hacen falta: con mencion, !aura no tira, CONSULTA el saldo del
+  // mencionado y no pisa nunca el codigo de la tirada — que es justo donde
+  // estaba el fallo. Y con el mismo remitente saltaria el cooldown de 10 min a
+  // partir de la segunda, dejando 59 tiradas sin ejercitar nada.
+  ['aura',      () => require(path.join(R, 'src/commands/aura')).cmdAura,         'solo'],
+  ['roast',     () => require(path.join(R, 'src/commands/roast')).cmdRoast,       'meta'],
+  ['robo',      () => require(path.join(R, 'src/commands/robo')).cmdRobo,         'args'],
 ];
 
 
@@ -326,8 +359,9 @@ async function capaStores() {
     cubiertos++;
     for (let i = 0; i < TIRADAS; i++) {
       try {
-        if (forma === 'args') await fn(sock, msgCon, [], groupMeta);
-        else                  await fn(sock, msgCon, groupMeta);
+        if (forma === 'solo')      await fn(sock, msgSolo(i), [], groupMeta);
+        else if (forma === 'args') await fn(sock, msgCon, [], groupMeta);
+        else                       await fn(sock, msgCon, groupMeta);
       } catch (e) {
         fallos++;
         console.log(rojo(`   ✗ ${nombre} lanzó: ${e.message.split('\n')[0]}`));

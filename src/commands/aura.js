@@ -846,7 +846,52 @@ async function cmdAura(sock, msg, args, groupMeta) {
   if (lastRoll.size >= 2000) lastRoll.delete(lastRoll.keys().next().value);
   lastRoll.set(coolKey, Date.now());
 
- // The roll is rigged by the SENDER's own role — you only ever play your own aura. const selfIsOwner = isOwner(sender, msg.key.fromMe, groupMeta); const selfIsAdmin = isAdmin(groupMeta?.participants, sender); // Empujon por actividad: el bot mira el contador de !count del que tira. A // partir del umbral la tirada sale positiva algo mas a menudo. Es un plus // pequeno y no garantiza nada — el resultado sigue siendo aleatorio. let plusActividad = 0; let mensajes = 0; const esOwnerPrincipal = isMainOwner(sender, msg.key.fromMe, groupMeta); if (esOwnerPrincipal) { // Al owner principal el contador no le cuenta los mensajes (es lo que lo // mantiene fuera de !count y de los tops), así que preguntarle al contador // siempre devolvía 0 y era el único del grupo que jamás podía cobrar el plus // por actividad — castigado justo por el mecanismo que lo protege. Se le da // el TOPE directamente: de todo el grupo es quien más escribe. plusActividad = ACTIVIDAD_TOPE; } else { try { mensajes = await getUserCount(jid, sender); // Acumulativo: un escalón por cada ACTIVIDAD_MSGS, con tope. Antes era un // interruptor de sí/no y el que llevaba 40.000 mensajes iba igual que el // que acababa de pasar de 1.000. plusActividad = bonoActividad(mensajes); } catch { /* si el contador falla, se tira sin plus */ } } // ¿Esta tirada cobra? Las primeras TIRADAS_PAGADAS del día pagan de verdad; // de ahí en adelante la tirada sigue funcionando pero es cara o cruz a valor // esperado cero. Es lo que permite que las de arriba paguen bien sin que // nadie pueda fabricar aura dándole al botón toda la noche. // // Si el contador falla se cobra: preferimos regalar una tirada a bloquear el // comando por un problema de disco. let tiradasHoy = 1; try { tiradasHoy = await contarTirada(jid, sender); } catch { /* se cobra */ } const dePago = tiradasHoy <= TIRADAS_PAGADAS; const { tier, amount } = rollAura(selfIsOwner, selfIsAdmin, plusActividad, dePago); const sign = amount >= 0 ?'+' : '-'; const { previous, current } = await addAura(jid, sender, amount); // Already in the red and going deeper: use spiral phrases const effectiveTier = (previous < 0 && amount < 0) ?'spiral' : tier;
+  // The roll is rigged by the SENDER's own role — you only ever play your own aura.
+  const selfIsOwner = isOwner(sender, msg.key.fromMe, groupMeta);
+  const selfIsAdmin = isAdmin(groupMeta?.participants, sender);
+
+  // Empujon por actividad: el bot mira el contador de !count del que tira. A
+  // partir del umbral la tirada sale positiva algo mas a menudo. Es un plus
+  // pequeno y no garantiza nada — el resultado sigue siendo aleatorio.
+  let plusActividad = 0;
+  let mensajes = 0;
+  const esOwnerPrincipal = isMainOwner(sender, msg.key.fromMe, groupMeta);
+  if (esOwnerPrincipal) {
+    // Al owner principal el contador no le cuenta los mensajes (es lo que lo
+    // mantiene fuera de !count y de los tops), así que preguntarle al contador
+    // siempre devolvía 0 y era el único del grupo que jamás podía cobrar el plus
+    // por actividad — castigado justo por el mecanismo que lo protege. Se le da
+    // el TOPE directamente: de todo el grupo es quien más escribe.
+    plusActividad = ACTIVIDAD_TOPE;
+  } else {
+    try {
+      mensajes = await getUserCount(jid, sender);
+      // Acumulativo: un escalón por cada ACTIVIDAD_MSGS, con tope. Antes era un
+      // interruptor de sí/no y el que llevaba 40.000 mensajes iba igual que el
+      // que acababa de pasar de 1.000.
+      plusActividad = bonoActividad(mensajes);
+    } catch { /* si el contador falla, se tira sin plus */ }
+  }
+
+  // ¿Esta tirada cobra? Las primeras TIRADAS_PAGADAS del día pagan de verdad;
+  // de ahí en adelante la tirada sigue funcionando pero es cara o cruz a valor
+  // esperado cero. Es lo que permite que las de arriba paguen bien sin que
+  // nadie pueda fabricar aura dándole al botón toda la noche.
+  //
+  // Si el contador falla se cobra: preferimos regalar una tirada a bloquear el
+  // comando por un problema de disco.
+  let tiradasHoy = 1;
+  try { tiradasHoy = await contarTirada(jid, sender); } catch { /* se cobra */ }
+  const dePago = tiradasHoy <= TIRADAS_PAGADAS;
+
+  const { tier, amount } = rollAura(selfIsOwner, selfIsAdmin, plusActividad, dePago);
+  const sign = amount >= 0 ? '+' : '-';
+
+  const { previous, current } = await addAura(jid, sender, amount);
+
+  // Already in the red and going deeper: use spiral phrases
+ const effectiveTier = (previous < 0 && amount < 0) ? 'spiral' : tier;
+  
 
   const text =
    `*@${sender.split('@')[0]} ${sign}${fmt(Math.abs(amount))} de aura*\n` +
