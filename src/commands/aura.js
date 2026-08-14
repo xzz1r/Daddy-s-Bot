@@ -538,7 +538,7 @@ const AURA = {
     'Hoy el aura te miró con odio estadístico. Odio impreso en rojo, basura Sin narrativa que lo tape. El contador no ofrece apelación.',
     'Cursed firmado. Sin paño. Sin segunda lectura. Solo el dígito hundido, patético El total habla solo.',
     'Bajaste fuerte. El ranking te empujó dos tramos. El orgullo no encontró asidero, ridículo Documentado en el contador.',
-    'Hoy el corte fue una demolicción chica del total. Demolición igual, cabrón El grupo lo vio de un vistazo.',
+    'Hoy el corte fue una demolición chica del total. Demolición igual, cabrón El grupo lo vio de un vistazo.',
     'Pérdida gorda registrada. El buitre del chat abrió el pico, pringado El archivo no discute el dígito.',
     'Sangría sin adorno. Número en caída. Boca inútil, cutre El chat ya tomó nota sin pedirte permiso. El contador no ofrece apelación.',
     'Hoy el contador te ejecutó un tramo. Ejecución pública de aura, basura Aquí el número pesa más que la labia.',
