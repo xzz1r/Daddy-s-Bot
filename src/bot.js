@@ -13,9 +13,9 @@ const qrcode = require('qrcode-terminal');
 const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, flushState } = require('./utils/state');
 const { isOwner, sameUser, isBotAdmin, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto } = require('./utils/wa');
-// Solo anotarAlta: motivoDelAlta y sus constantes servian para adivinar si un
-// alta era a dedo o una aprobacion, y eso solo hacia falta para castigarla.
-const { anotarAlta } = require('./utils/joinReason');
+// anotarAlta apunta el motivo de cada alta; motivoDelAlta lo consulta cuando hay
+// que decidir si un alta fue a dedo (la unica que se sanciona).
+const { anotarAlta, motivoDelAlta, ALTA_ADD } = require('./utils/joinReason');
 const { notarSolicitud, olvidarSolicitud, sondear, reactivarSondeo, frenoNuevo, flushJoinRequests } = require('./utils/joinRequests');
 const { flushCounts } = require('./utils/messageCounter');
 const { flushAura } = require('./utils/auraStore');
@@ -26,10 +26,10 @@ const { flushCache } = require('./utils/musicCache');
 const { flush: flushPfpHashes } = require('./utils/pfpStore');
 const { flush: flushPfpCache } = require('./utils/pfpCache');
 const { sweepAllGroups, maybeIndex } = require('./utils/pfpIndexer');
-const { flushBanlist } = require('./utils/banlist');
+const { flushBanlist, banAccount } = require('./utils/banlist');
 const { flushLinkPerms } = require('./utils/linkPerms');
 const { flushRobo } = require('./utils/roboStore');
-const { guardOnJoin } = require('./commands/fk');
+const { guardOnJoin, allForms } = require('./commands/fk');
 const { isBusiness } = require('./utils/businessCheck');
 const { ensureTemp, barrerHuerfanos } = require('./utils/helpers');
 const { gitCommit } = require('./utils/version');
@@ -227,6 +227,55 @@ let _baileysVersion = null;
 // publicó una nueva. Arrancar con una versión de hace unos días es infinitamente
 // mejor que no arrancar.
 const ESPERA_VERSION_MS = 10000;
+
+// Castigo por meter gente a dedo: se le quita el admin, se le veta y se le echa.
+//
+// El orden importa y no es el obvio. Primero DEGRADAR: si el kick falla —porque
+// el bot no es admin, porque WhatsApp lo rechaza— al menos se queda sin mando,
+// que es lo que de verdad hace daño. Si se echara primero y fallase el resto,
+// seguiría siendo admin y con la puerta abierta.
+//
+// Al owner y al bot no les llega nunca: quien llama ya lo comprueba, pero
+// banear al dueño sería irreversible desde dentro del propio grupo, así que se
+// vuelve a mirar aquí. Una guarda de dos líneas contra eso sale barata.
+async function sancionarPorAñadir(sock, groupJid, autor, meta, metidos) {
+  if (isOwner(autor, false, meta)) return;
+
+  const paso = async (accion, fn) => {
+    try { return await fn(); }
+    catch (e) { logger.warn(`anti-admin (añadir): ${accion} falló en ${groupJid}: ${e.message}.`); return null; }
+  };
+
+  // 1) Sin admin. Se mira el status porque WhatsApp contesta por participante y
+  //    puede rechazar sin lanzar excepción: dar por hecho el éxito hacía que el
+  //    bot anunciara castigos que no habían ocurrido.
+  const res = await paso('demote', () => sock.groupParticipantsUpdate(groupJid, [autor], 'demote'));
+  const fila = Array.isArray(res) ? res[0] : null;
+  const degradado = res !== null && String(fila?.status ?? '200') === '200';
+
+  // 2) A la lista negra, con todas sus formas (teléfono y @lid). Si solo se
+  //    guardara una, vuelve a entrar con la otra y el guard no lo reconoce.
+  const formas = allForms(autor, meta);
+  await paso('ban', () => banAccount(formas, `metió gente a dedo en ${groupJid}`, formas[0]));
+
+  // 3) Fuera. El guard de entrada ya impide que vuelva.
+  const echado = await paso('kick', () => sock.groupParticipantsUpdate(groupJid, [autor], 'remove')) !== null;
+
+  const tag = `@${String(autor).split('@')[0]}`;
+  logger.warn(
+    `anti-admin: ${autor} metió a dedo a ${metidos.join(', ')} en ${groupJid}. ` +
+    `degradado=${degradado} echado=${echado} vetado=true`);
+
+  await paso('aviso', () => sock.sendMessage(groupJid, {
+    text:
+      `*Anti-admin:* ${tag} ha metido gente a dedo.\n\n` +
+      `${degradado ? '· Se le ha quitado el admin.' : '· No he podido quitarle el admin.'}\n` +
+      `${echado ? '· Expulsado.' : '· No he podido expulsarlo.'}\n` +
+      `· Queda en la lista negra: no puede volver a entrar.\n\n` +
+      `_Aquí solo mete gente el dueño._`,
+    mentions: [autor],
+  }));
+}
 
 async function getBaileysVersion() {
   if (_baileysVersion) return _baileysVersion;
@@ -648,33 +697,47 @@ async function connectToWhatsApp() {
         }));
       }
 
-      // AÑADIR GENTE YA NO SE CASTIGA. Ni se degrada al admin que la añadió ni
-      // se expulsa a quien entró: se retiró por decisión del owner.
+      // ─── Meter gente a dedo: se le quita el admin y se le veta ────────────
       //
-      // Por qué estaba y por qué se va. La idea era que solo el owner metiera
-      // gente a dedo, pero distinguir un alta a dedo de la aprobación de una
-      // solicitud es IMPOSIBLE de forma fiable: WhatsApp manda exactamente el
-      // mismo evento (messageStubType 27) en los dos casos y no existe ningún
-      // aviso de "solicitud aprobada" — RequestJoinAction solo tiene created,
-      // revoked y rejected. Todo se apoyaba en adivinarlo cruzando una lista de
-      // pendientes que hay que sondear a mano y que puede estar caducada.
+      // Esto estuvo puesto, se quitó, y VUELVE CON UNA DIFERENCIA QUE ES TODO EL
+      // ASUNTO. Se quitó porque el evento de participantes no dice POR QUÉ entró
+      // alguien: Baileys mete en el mismo `action: 'add'` el alta a dedo, la
+      // entrada por enlace y la aprobación de una solicitud. Con eso, el bot
+      // castigaba a una admin por aprobar solicitudes, que es justo para lo que
+      // se da admin. Sancionar sobre una suposición irreversible no valía.
       //
-      // Con una sanción irreversible —perder el admin y echar a alguien— al
-      // final de esa cadena de suposiciones, el único desenlace aceptable era
-      // no aplicarla. Ahora solo queda constancia en el log del servidor.
+      // El motivo sí existe, solo que viaja aparte: en el messageStubType del
+      // mensaje de sistema (27 a dedo · 31 enlace · 71 solicitud aprobada). Ya se
+      // venía anotando en utils/joinReason.js, solo que nadie lo leía. Aquí se
+      // lee y se espera, porque el evento de participantes suele llegar ANTES
+      // que el stub.
       //
-      // Lo que SIGUE haciendo el anti-admin: revertir los promote y demote que
-      // no vienen del bot, y proteger al owner tier de que le quiten el admin o
-      // lo echen. Eso no depende de adivinar nada.
+      // La regla es estricta a propósito: solo se sanciona con un 27 confirmado.
+      // Si el stub no llega a tiempo, motivoDelAlta devuelve null y eso es "no se
+      // sabe", NUNCA "fue a dedo". Preferir el falso negativo es obligatorio
+      // cuando el castigo es perder el admin y quedar vetado.
       if (!fromBot && author && !esOwnerAmplio(author, authorPn, meta) && isAntiAdminEnabled(groupJid)) {
         const metidos = (participants || [])
           .map(p => (typeof p === 'string' ? { id: p } : p))
           .filter(o => o?.id && !isBotJid(o.id) && !sameUser(o.id, author))
           .map(o => o.id);
+
         if (metidos.length) {
-          logger.info(
-            `alta en ${groupJid}: ${author} añadió a ${metidos.join(', ')}.` +
-            `No se sanciona: el castigo por añadir se retiró.`);
+          // Basta con uno a dedo para que la sanción caiga: quien mete a cinco a
+          // la vez no se libra porque una de las altas fuera una solicitud.
+          const motivos = await Promise.all(
+            metidos.map(id => motivoDelAlta(groupJid, id).catch(() => null))
+          );
+          const aDedo = motivos.some(t => t === ALTA_ADD);
+
+          if (!aDedo) {
+            logger.info(
+              `alta en ${groupJid}: ${author} metió a ${metidos.join(', ')}; ` +
+              `motivos ${JSON.stringify(motivos)}. No se sanciona.`);
+          } else {
+            sancionarPorAñadir(sock, groupJid, author, meta, metidos)
+              .catch(e => logger.warn(`anti-admin (añadir): ${e.message}`));
+          }
         }
       }
 

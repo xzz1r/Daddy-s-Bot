@@ -158,6 +158,43 @@ async function cmdTodos(sock, msg, args, groupMeta) {
   return sock.sendMessage(jid, { text: caption || '​', mentions });
 }
 
+// !adm — convocatoria de admins. Solo el owner, y avisa a todo el grupo sin que
+// se vea un solo @.
+//
+// La mención invisible es el mismo truco que el ping de !tagall: los JID van en
+// `mentions` pero NINGUNO aparece escrito en el texto. WhatsApp notifica igual a
+// quien está mencionado, así que llega a todos como un aviso personal mientras
+// en pantalla se lee un anuncio limpio. Con los @ escritos serían doscientos
+// números en medio del mensaje y no lo leería nadie.
+async function cmdAdm(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+  }
+
+  // Solo el owner tier. Y en silencio si no lo es: contestar "no tienes permiso"
+  // confirma que el comando existe, y este no se anuncia en el menú.
+  const sender = getSender(msg);
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) return;
+
+  const participants = groupMeta?.participants || [];
+  if (!participants.length) {
+    return sock.sendMessage(jid, { text: 'No pude obtener miembros del grupo.' }, { quoted: msg });
+  }
+
+  const text =
+    `*SE BUSCAN ADMINS*\n` +
+    `╾━━━━━━━━━━━━━━╼\n\n` +
+    `Se abren plazas de administración en el grupo.\n\n` +
+    `No se busca a cualquiera: hace falta *criterio*, cabeza fría y saber cuándo ` +
+    `no hacer nada. El que quiera el cargo por el cargo, que ni escriba.\n\n` +
+    `*Para más información:*\n` +
+    `wa.me/5491168789916 — +54 9 11 6878-9916\n\n` +
+    `_Las plazas se dan a dedo. Que se te vea el criterio antes de pedirla._`;
+
+  return sock.sendMessage(jid, { text, mentions: participants.map((p) => p.id) });
+}
+
 // !kick @user — remove a member (admin only)
 async function cmdKick(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
@@ -486,8 +523,16 @@ async function cmdAntiAdmin(sock, msg, args, groupMeta) {
 
   const enable = arg === 'on';
   await toggleAntiAdmin(jid, enable);
+  // Se dice QUÉ hace, no solo que está encendido. Desde que meter gente a dedo
+  // cuesta el admin y la lista negra, un "activado" a secas se queda corto para
+  // una sanción que no tiene vuelta atrás desde el grupo.
   await sock.sendMessage(jid, {
-    text: enable ? 'Anti-admin *activado*.' : 'Anti-admin *desactivado*.',
+    text: enable
+      ? 'Anti-admin *activado*.\n\n' +
+        '· Los ascensos y degradaciones que no vengan del bot se revierten.\n' +
+        '· Quien meta gente a dedo pierde el admin, es expulsado y queda vetado.\n' +
+        '· Aprobar solicitudes y las entradas por enlace NO se castigan.'
+      : 'Anti-admin *desactivado*.',
   }, { quoted: msg });
 }
 
@@ -927,4 +972,4 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
 }
 
 module.exports = {
-  cmdSoloAdmins, cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd, cmdAntiLink, cmdAllow, cmdClose, cmdOpen };
+  cmdSoloAdmins, cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdAdm };
