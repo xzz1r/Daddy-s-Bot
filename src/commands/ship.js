@@ -9,13 +9,13 @@ const VERDICTS = {
 
     'Compatibilidad total. Dos putos desastres que encajan como una llave en una cerradura oxidada: chirría, pero abre, qué cringe.',
 
-    'Hostia puta, cien. Estos dos van a hacerse muchísimo daño y les va a encantar cada minuto, y el ranking no discute, da asco.',
+    'Hostia puta, cien. Estos dos van a hacerse muchísimo daño y les va a encantar cada minuto.',
 
     'Pleno. Si no acaban juntos es porque el universo tiene sentido del humor y quiere verlos sufrir por separado, los gilipollas, qué vergüenza.',
 
-    'Match absoluto. Se van a arruinar la vida el uno al otro y va a ser un espectáculo de cojones, y el ranking no discute, patético.',
+    'Match absoluto. Se van a arruinar la vida el uno al otro y va a ser un espectáculo de cojones',
 
-    'Cien. Ninguno de los dos va a encontrar nada mejor, y en el fondo lo saben, los muy hijos de puta, y el ranking no discute, asco, fracasado.',
+    'Cien. Ninguno de los dos va a encontrar nada mejor, y en el fondo lo saben, los muy hijos de puta',
 
     'Compatibilidad perfecta. Dos taras que se cancelan entre sí. La ciencia no lo explica, la mierda esta sí, qué miseria.',
 
@@ -23,29 +23,29 @@ const VERDICTS = {
 
     'Match total. Se merecen tanto que casi parece una condena en vez de un premio. La cárcel con wifi más bonita del grupo, qué nivel de pena.',
 
-    'Pleno absoluto. Que se junten ya de una puta vez y nos dejen en paz al resto, y el ranking no discute, basura.',
+    'Pleno absoluto. Que se junten ya de una puta vez y nos dejen en paz al resto',
 
     'Cien. Dos personas hechas la una para la otra, principalmente porque el resto del grupo ya les dijo que no, qué cutre.',
 
     'Match perfecto. Van a discutir todos los días y ninguno se va a ir nunca. Amor del tipo tóxico que dura para siempre, da pena ajena.',
 
-    'Hostia, cien por cien. El grupo entero lo veía venir menos ellos dos, que son gilipollas, y el ranking no discute, qué vacío.',
+    'Hostia, cien por cien. El grupo entero lo veía venir menos ellos dos, que son gilipollas.',
 
-    'Cien. Si esto no acaba en boda acaba en orden de alejamiento, pero acaba en algo gordo, y el ranking no discute, indignante.',
+    'Cien. Si esto no acaba en boda acaba en orden de alejamiento, pero acaba en algo gordo',
 
-    'Pleno de los gordos. Nadie ha dado nunca este número aquí. Tomad nota y haceos puto cargo, y el ranking no discute, patético.',
+    'Pleno de los gordos. Nadie ha dado nunca este número aquí. Tomad nota y haceos puto cargo',
 
     'Match del cien, cabrón. Dos piezas rotas que encajan justo por donde están rotas. Poético y patético a partes iguales, da vergüenza.',
 
-    'Compatibilidad total. Se van a querer mal, que es como se quiere de verdad en este grupo de mierda, y el ranking no discute, basura.',
+    'Compatibilidad total. Se van a querer mal, que es como se quiere de verdad en este grupo de mierda',
 
     'Cien. El destino no ha tenido nada que ver: simplemente nadie más quiso a ninguno de los dos, menudo desastre.',
 
-    'Match perfecto. Van a ser felices y va a ser insufrible de ver desde fuera, los muy cabrones, y el ranking no discute, fracasado.',
+    'Match perfecto. Van a ser felices y va a ser insufrible de ver desde fuera, los muy cabrones',
 
     'Pleno, hostia puta. Lo único que separa a estos dos es la vergüenza, y eso se pasa con dos copas y una mala decisión, patético.',
 
-    'Cien por cien. Se lo merecen todo: lo bueno, lo malo y las broncas de madrugada a grito pelado, y el ranking no discute, miserable.',
+    'Cien por cien. Se lo merecen todo: lo bueno, lo malo y las broncas de madrugada a grito pelado',
 
     'Match total. Dos personas con el mismo nivel exacto de desastre. Eso es más raro que encontrar un billete en la mierda, qué cringe.',
 
@@ -53,7 +53,7 @@ const VERDICTS = {
 
     'Compatibilidad perfecta. Ninguno de los dos tiene nada mejor que hacer, y eso también es compatibilidad, qué vergüenza.',
 
-    'Match del cien por cien. Que alguien les diga que se dejen de putas tonterías de una vez, y el ranking no discute, patético.',
+    'Match del cien por cien. Que alguien les diga que se dejen de putas tonterías de una vez',
 
     'Pleno. Están hechos el uno para el otro con la precisión de dos errores que se corrigen solos, los cabrones, fracasado.',
 
@@ -63,17 +63,17 @@ const VERDICTS = {
 
     'Compatibilidad absoluta, hostia. Se van a arruinar mutuamente y va a ser un espectáculo precioso de mierda, qué nivel de pena.',
 
-    'Cien por cien. El grupo os hace de testigo, así que ya no hay marcha atrás posible, cabrones, y el ranking no discute, basura.',
+    'Cien por cien. El grupo os hace de testigo, así que ya no hay marcha atrás posible, cabrones',
 
     'Pleno. Juntos suman una persona funcional. Por separado no llegan ni a media, los muy putos inútiles, qué cutre.',
 
     'Match total. Nadie discute esto. Ni ellos, y eso que discuten absolutamente todo como los gilipollas que son, da pena ajena.',
 
-    'Cien. Dos desgracias con patas que decidieron caminar en la misma dirección. Enhoramala, y el ranking no discute, qué vacío.',
+    'Cien. Dos desgracias con patas que decidieron caminar en la misma dirección. Enhoramala.',
 
     'Compatibilidad perfecta. Da igual lo que digan: el marcador ha hablado y el marcador no negocia, indignante.',
 
-    'Match del cien. Los que se odian así de bien acaban siempre en la misma cama. Todos lo hemos visto, y el ranking no discute, patético.',
+    'Match del cien. Los que se odian así de bien acaban siempre en la misma cama. Todos lo hemos visto',
 
     'Pleno absoluto. Si esto sale mal, sale mal a lo grande. Y si sale bien, también. Esa es la puta gracia, da vergüenza.',
 
@@ -87,7 +87,7 @@ const VERDICTS = {
 
     'Compatibilidad absoluta. Lo raro no es que encajen, lo raro es que hayan tardado tanto con el grupo entero mirando como gilipollas, miserable.',
 
-    'Perfecto, hostia puta. Esto no es química, es destino con muy mal gusto y muchísima insistencia, y el ranking no discute, qué cringe.',
+    'Perfecto, hostia puta. Esto no es química, es destino con muy mal gusto y muchísima insistencia.',
 
     'Redondo. El bot no reparte cien por cien todos los días, así que aprovechad antes de que uno de los dos la cague, da asco.',
 
@@ -129,79 +129,79 @@ const VERDICTS = {
 
     'Compatibilidad total. Van a discutir todos los días y ninguno se va, gilipollas.',
 
-    'Ship redondo. El grupo va a sufrirlo en silencio durante años, mierda, y el ranking no discute, da asco.',
+    'Ship redondo. El grupo va a sufrirlo en silencio durante años, mierda.',
 
-    'Perfectos el uno para el otro. Nadie más los aguantaría, coño, y el ranking no discute, gilipollas.',
+    'Perfectos el uno para el otro. Nadie más los aguantaría, coño',
 
     'Cien por cien. Química de la que se nota y da un poco de asco ajeno, asco.',
 
     'Match de manual. Menos mal que se tienen: el resto del mundo no aplica, patético.',
 
-    'Compatibilidad perfecta. Dos que se entienden sin escuchar, basura, y el ranking no discute, basura.',
+    'Compatibilidad perfecta. Dos que se entienden sin escuchar, basura',
 
-    'Ship cerrado. El marcador no negocia y el chat tampoco, ridículo, y el ranking no discute, ridículo.',
+    'Ship cerrado. El marcador no negocia y el chat tampoco, ridículo',
 
-    'Cien. Que se besen ya y acabemos con el cringe colectivo, fracasado.nivel de pena.',
+    'Cien. Que se besen ya y acabemos con el cringe colectivo, fracasado.',
 
-    'Perfectos. Uno pone el caos y el otro la paciencia tóxica y el ranking no discute.',
+    'Perfectos. Uno pone el caos y el otro la paciencia tóxica',
 
-    'Match que duele de ver desde fuera. Funciona demasiado bien, cabrón, y el ranking no discute, qué cutre.',
+    'Match que duele de ver desde fuera. Funciona demasiado bien, cabrón.',
 
-    'Compatibilidad de la mala: la que dura, gilipollas, y el ranking no discute, coño.',
+    'Compatibilidad de la mala: la que dura, gilipollas',
 
-    'Ship al máximo. El grupo ya está preparando el popcorn amargo, mierda, y el ranking no discute, qué vacío.',
+    'Ship al máximo. El grupo ya está preparando el popcorn amargo, mierda.',
 
-    'Cien de compatibilidad. Insufrible y real, coño, y el ranking no discute, gilipollas.',
+    'Cien de compatibilidad. Insufrible y real, coño',
 
-    'Perfectos entre sí. Un desastre para el resto del hilo, asco, y el ranking no discute, patético.ajena.',
+    'Perfectos entre sí. Un desastre para el resto del hilo, asco.ajena.',
 
-    'Match sin fisuras. Hasta el ranking aplaude a regañadientes, patético, y el ranking no discute, asco, da vergüenza.',
+    'Match sin fisuras. Hasta el ranking aplaude a regañadientes, patético.',
 
-    'Compatibilidad total documentada. Caso cerrado, basura, y el ranking no discute, basura.',
+    'Compatibilidad total documentada. Caso cerrado, basura',
 
-    'Ship de los que se odian bien. Eso también es amor aquí, ridículo, y el ranking no discute, ridículo.',
+    'Ship de los que se odian bien. Eso también es amor aquí, ridículo',
 
-    'Cien. No hay tercero que entre en esa órbita, fracasado, y el ranking no discute, fracasado.',
+    'Cien. No hay tercero que entre en esa órbita, fracasado',
 
-    'Perfectos. El chat lo sabía antes que ellos y el ranking no discute.',
+    'Perfectos. El chat lo sabía antes que ellos',
 
-    'Match químico sin anestesia. Duele mirarlo, cabrón, y el ranking no discute, mierda.',
+    'Match químico sin anestesia. Duele mirarlo, cabrón',
 
-    'Compatibilidad de laboratorio roto, gilipollas, y el ranking no discute, coño.',
+    'Compatibilidad de laboratorio roto, gilipollas',
 
-    'Ship perfecto. El resto sobra, mierda, y el ranking no discute, cabrón asco, da asco.',
+    'Ship perfecto. El resto sobra, mierda.',
 
-    'Cien por cien de drama sostenible, coño, y el ranking no discute, gilipollas.',
+    'Cien por cien de drama sostenible, coño',
 
-    'Perfectos el uno para el otro. Qué puta tragedia ajena, asco, y el ranking no discute, patético.',
+    'Perfectos el uno para el otro. Qué puta tragedia ajena, asco',
 
-    'Match cerrado con candado, patético, y el ranking no discute, asco, y el grupo ya lo olió, asco.',
+    'Match cerrado con candado, patético',
 
-    'Compatibilidad máxima. Sin derecho a réplica, basura, y el ranking no discute, basura.',
+    'Compatibilidad máxima. Sin derecho a réplica, basura',
 
-    'Ship de los que el grupo no discute, ridículo, y el ranking no discute, ridículo.',
+    'Ship de los que el grupo no discute, ridículo',
 
-    'Cien. Archivo y a sufrir, fracasado, y el ranking no discute, fracasado.nivel de pena.',
+    'Cien. Archivo y a sufrir, fracasado.',
 
-    'Perfectos. La física del fail compartido y el ranking no discute.',
+    'Perfectos. La física del fail compartido',
 
-    'Match que se siente en el hilo, cabrón, y el ranking no discute, mierda.cutre.',
+    'Match que se siente en el hilo, cabrón.cutre.',
 
-    'Compatibilidad sin escape, gilipollas, y el ranking no discute, coño, y el grupo ya lo olió, coño.',
+    'Compatibilidad sin escape, gilipollas',
 
     'Ship total y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón.',
 
-    'Cien de cien y el chat lo traga, coño, y el ranking no discute, gilipollas.',
+    'Cien de cien y el chat lo traga, coño',
 
-    'Perfectos. No hay plan B que merezca la pena, asco, y el ranking no discute, patético.ajena.',
+    'Perfectos. No hay plan B que merezca la pena, asco.ajena.',
 
-    'Match de los que se eligen mal a propósito, patético, y el ranking no discute, asco.',
+    'Match de los que se eligen mal a propósito, patético',
 
-    'Compatibilidad perfecta de taras, basura, y el ranking no discute, basura.flojo.',
+    'Compatibilidad perfecta de taras, basura.',
 
-    'Ship al límite. El ranking firmó, ridículo, y el ranking no discute, ridículo.',
+    'Ship al límite. El ranking firmó, ridículo',
 
-    'Cien. Fin del debate, fracasado, y el ranking no discute, fracasado.pena.',
+    'Cien. Fin del debate, fracasado',
 
 ],
   high: [
@@ -329,81 +329,81 @@ const VERDICTS = {
 
     'Alto de verdad. El chat ya está shippeando sin pedir permiso, gilipollas.',
 
-    'Buena química. El ranking lo marca y el resto inventa excusas, mierda, y el ranking no discute, coño.',
+    'Buena química. El ranking lo marca y el resto inventa excusas, mierda',
 
-    'Ship alto. Hay historia aunque lo nieguen, coño, y el ranking no discute, cabrón.',
+    'Ship alto. Hay historia aunque lo nieguen, coño',
 
-    'Tensión real. No es fanfic: el número habla, asco, y el ranking no discute, gilipollas.',
+    'Tensión real. No es fanfic: el número habla, asco',
 
-    'Alto. El grupo ve lo que ellos fingen no ver, patético, y el ranking no discute, patético.',
+    'Alto. El grupo ve lo que ellos fingen no ver, patético',
 
-    'Fuerte compatibilidad. Casi molesta de lo obvio, basura, y el ranking no discute, asco.',
+    'Fuerte compatibilidad. Casi molesta de lo obvio, basura',
 
-    'Ship de los que el hilo adelanta el final, ridículo, y el ranking no discute, basura.',
+    'Ship de los que el hilo adelanta el final, ridículo',
 
-    'Alto. Material de drama sostenible, fracasado, y el ranking no discute, ridículo.',
+    'Alto. Material de drama sostenible, fracasado',
 
-    'Hay drift de puta madre. El marcador no miente y el ranking no discute, fracasado.',
+    'Hay drift de puta madre. El marcador no miente',
 
-    'Química alta. El chat ya tiene el ship name, cabrón, y el ranking no discute.',
+    'Química alta. El chat ya tiene el ship name, cabrón',
 
-    'Fuerte. Casi perfecto y por eso da más rabia, gilipollas, y el ranking no discute, mierda.',
+    'Fuerte. Casi perfecto y por eso da más rabia, gilipollas',
 
-    'Ship alto documentado. Sin anestesia, mierda, y el ranking no discute, coño.',
+    'Ship alto documentado. Sin anestesia, mierda',
 
-    'Tensión que se corta. El ranking aplaude, coño, y el ranking no discute, cabrón.',
+    'Tensión que se corta. El ranking aplaude, coño',
 
-    'Alto. Ellos en negación, el grupo en modo crónica, asco, y el ranking no discute, gilipollas.',
+    'Alto. Ellos en negación, el grupo en modo crónica, asco',
 
-    'Buena pareja de fail compartido, patético, y el ranking no discute, patético.',
+    'Buena pareja de fail compartido, patético',
 
-    'Ship que se siente en cada respuesta cruzada, basura, y el ranking no discute, asco.',
+    'Ship que se siente en cada respuesta cruzada, basura',
 
-    'Fuerte. No necesita narrador, ridículo, y el ranking no discute, basura.',
+    'Fuerte. No necesita narrador, ridículo',
 
-    'Alto de los que el almost duele, fracasado, y el ranking no discute, ridículo.',
+    'Alto de los que el almost duele, fracasado',
 
-    'Hay material. Y de sobra y el ranking no discute, fracasado.',
+    'Hay material. Y de sobra',
 
-    'Química de las que no se improvisan, cabrón, y el ranking no discute.',
+    'Química de las que no se improvisan, cabrón',
 
-    'Ship alto. El chat ya cobró entrada, gilipollas, y el ranking no discute, mierda.',
+    'Ship alto. El chat ya cobró entrada, gilipollas',
 
-    'Fuerte compatibilidad con olor a drama, mierda, y el ranking no discute, coño.',
+    'Fuerte compatibilidad con olor a drama, mierda',
 
-    'Alto. El número cierra el caso, coño, y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón.',
+    'Alto. El número cierra el caso, coño',
 
-    'Tensión real en un grupo de cínicos, asco, y el ranking no discute, gilipollas.',
+    'Tensión real en un grupo de cínicos, asco',
 
-    'Ship que el ranking no discute, patético, y el ranking no discute, patético.',
+    'Ship que el ranking no discute, patético',
 
-    'Buena química, peor para el resto del hilo, basura, y el ranking no discute, asco.',
+    'Buena química, peor para el resto del hilo, basura',
 
-    'Alto. Casi perfectos y se nota, ridículo, y el ranking no discute, basura.',
+    'Alto. Casi perfectos y se nota, ridículo',
 
-    'Fuerte. Sin derecho a fingir lo contrario, fracasado, y el ranking no discute, ridículo.',
+    'Fuerte. Sin derecho a fingir lo contrario, fracasado',
 
-    'Hay drift. El grupo ya eligió bando y el ranking no discute, fracasado.',
+    'Hay drift. El grupo ya eligió bando',
 
-    'Ship alto con potencial de incendio, cabrón, y el ranking no discute.',
+    'Ship alto con potencial de incendio, cabrón',
 
-    'Química que molesta de lo clara, gilipollas, y el ranking no discute, mierda.',
+    'Química que molesta de lo clara, gilipollas',
 
-    'Fuerte. El marcador no pide opiniones, mierda, y el ranking no discute, coño.',
+    'Fuerte. El marcador no pide opiniones, mierda',
 
-    'Alto de verdad. Archivado, coño, y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón.',
+    'Alto de verdad. Archivado, coño',
 
-    'Tensión de la que se traduce en memes, asco, y el ranking no discute, gilipollas.',
+    'Tensión de la que se traduce en memes, asco',
 
-    'Ship que se ve venir a la legua, patético, y el ranking no discute, patético.',
+    'Ship que se ve venir a la legua, patético',
 
-    'Buena pareja según el bot y según el chisme, basura, y el ranking no discute, asco.',
+    'Buena pareja según el bot y según el chisme, basura',
 
-    'Alto. Casi el techo, ridículo, y el ranking no discute, basura, y el grupo ya lo olió, basura.',
+    'Alto. Casi el techo, ridículo',
 
-    'Fuerte compatibilidad sin anestesia, fracasado, y el ranking no discute, ridículo.',
+    'Fuerte compatibilidad sin anestesia, fracasado',
 
-    'Alto de los que el almost duele, fracasado, y el ranking no discute, fracasado, y el grupo ya lo olió, fracasado.',
+    'Alto de los que el almost duele, fracasado',
 
 ],
   mid: [
@@ -415,7 +415,7 @@ const VERDICTS = {
 
     'Hostia, menudo bodrio de pareja. Serían de esos que follan con calcetines y luego se dan la espalda para ver el móvil.',
 
-    'Compatibilidad de mierda tibia. Como cagar a medias: ni el alivio ni las ganas de seguir, y el ranking no discute, gilipollas.',
+    'Compatibilidad de mierda tibia. Como cagar a medias: ni el alivio ni las ganas de seguir',
 
     'Si estos dos fueran una peli, serían una de esas que pones de fondo mientras limpias y ni te enteras de que ha acabado.',
 
@@ -449,7 +449,7 @@ const VERDICTS = {
 
     'Hostia puta, menudo churro. Esto es como ganar un concurso y que el premio sea un cupón de descuento en algo que no quieres.',
 
-    'Match más soso que chuparle el culo a una piedra. Y la piedra al menos te da una anécdota, y el ranking no discute, mierda.',
+    'Match más soso que chuparle el culo a una piedra. Y la piedra al menos te da una anécdota',
 
     'Compatibilidad de microondas: calienta rápido, sabe a mierda, y al final siempre acabas queriendo algo mejor.',
 
@@ -473,7 +473,7 @@ const VERDICTS = {
 
     'Esto es como mezclar agua con más agua: no explota, no huele, no sabe a nada. Enhorabuena, coño, habéis inventado la nada.',
 
-    'Menos chispa que un puto funeral. Y en el funeral al menos alguien llora, aquí ni eso, y el ranking no discute, cabrón.',
+    'Menos chispa que un puto funeral. Y en el funeral al menos alguien llora, aquí ni eso',
 
     'Si estos dos fueran comida, serían una tostada sin mantequilla: cumple su función, pero te la comes con cara de que te han jodido la mañana.',
 
@@ -487,7 +487,7 @@ const VERDICTS = {
 
     'Match con la misma energía que un lunes a las siete de la mañana. Se puede sobrevivir, pero nadie lo elige.',
 
-    'Si la apatía se tirara pedos, sonaría exactamente como este porcentaje de compatibilidad, y el ranking no discute.',
+    'Si la apatía se tirara pedos, sonaría exactamente como este porcentaje de compatibilidad',
 
     'Esto funciona como el culo de un político: algo sale, pero siempre es mierda y nunca lo que esperabas.',
 
@@ -501,13 +501,13 @@ const VERDICTS = {
 
     'Compatibilidad de pene a media asta: algo hay, la intención se nota, pero no da para el espectáculo completo.',
 
-    'Juntos generan menos calor que un puto iglú en invierno. Al menos el iglú sirve para algo, coño, y el ranking no discute, basura.',
+    'Juntos generan menos calor que un puto iglú en invierno. Al menos el iglú sirve para algo, coño',
 
     'Esto es el match sentimental de ir a comprar tabaco y volver con chicles. No es lo que querías, pero masticas algo.',
 
     'Mierda, estos dos son como dos calcetines de distinto par: los puedes poner juntos, pero cada vez que te miras el pie sabes que algo falla.',
 
-    'Si la indiferencia pudiera reproducirse, estos dos serían sus putos padres fundadores, y el ranking no discute.',
+    'Si la indiferencia pudiera reproducirse, estos dos serían sus putos padres fundadores',
 
     'Hostia, compatibilidad de semáforo en ámbar. No sabes si frenar o acelerar, y hagas lo que hagas va a salir regular.',
 
@@ -529,83 +529,83 @@ const VERDICTS = {
 
     'Mitad de camino. Ni spark de verdad ni rechazo limpio: zona tibia.',
 
-    'Ship mediocre. Como pizza sin queso: llega, pero para qué, cabrón, y el ranking no discute, mierda.',
+    'Ship mediocre. Como pizza sin queso: llega, pero para qué, cabrón',
 
-    'Medio. Hay algo, pero no suficiente para el hype del grupo, gilipollas, y el ranking no discute, coño.',
+    'Medio. Hay algo, pero no suficiente para el hype del grupo, gilipollas',
 
-    'Compatibilidad tibia. El ranking bostezó, mierda, y el ranking no discute, cabrón.',
+    'Compatibilidad tibia. El ranking bostezó, mierda',
 
-    'Ni fu ni fa. El ship más olvidable del catálogo, coño, y el ranking no discute, gilipollas.',
+    'Ni fu ni fa. El ship más olvidable del catálogo, coño',
 
-    'Medio puro. Ni drama ni magia, asco, y el ranking no discute, patético.',
+    'Medio puro. Ni drama ni magia, asco',
 
-    'Ship de los que el chat no recuerda mañana, patético, y el ranking no discute, asco.',
+    'Ship de los que el chat no recuerda mañana, patético',
 
-    'Mitad. Química de ascensor: existe y se acaba, basura, y el ranking no discute, basura.',
+    'Mitad. Química de ascensor: existe y se acaba, basura',
 
-    'Mediocre. El número no miente y no emociona, ridículo, y el ranking no discute, ridículo.',
+    'Mediocre. El número no miente y no emociona, ridículo',
 
-    'Zona gris. Ni ship ni enemigos, fracasado, y el ranking no discute, fracasado.',
+    'Zona gris. Ni ship ni enemigos, fracasado',
 
-    'Medio. Como serie cancelada en el capítulo tres y el ranking no discute.',
+    'Medio. Como serie cancelada en el capítulo tres',
 
-    'Compatibilidad de trámite. Siguiente, cabrón, y el ranking no discute, mierda.',
+    'Compatibilidad de trámite. Siguiente, cabrón',
 
-    'Ship tibio. El grupo ya cambió de tema, gilipollas, y el ranking no discute, coño.',
+    'Ship tibio. El grupo ya cambió de tema, gilipollas',
 
-    'Mitad de tarta. Nadie pide segunda porción, mierda, y el ranking no discute, cabrón.',
+    'Mitad de tarta. Nadie pide segunda porción, mierda',
 
-    'Medio sin narrativa. Gracias por no inventarla, coño, y el ranking no discute, gilipollas.',
+    'Medio sin narrativa. Gracias por no inventarla, coño',
 
-    'Ni spark ni tragedia. Solo mediocridad, asco, y el ranking no discute, patético.',
+    'Ni spark ni tragedia. Solo mediocridad, asco',
 
-    'Ship administrativo. Firmado y olvidado, patético, y el ranking no discute, asco.',
+    'Ship administrativo. Firmado y olvidado, patético',
 
-    'Mediocre de manual, basura, y el ranking no discute, basura, y el grupo ya lo olió, basura.',
+    'Mediocre de manual, basura',
 
-    'Zona media. El ranking no se emociona, ridículo, y el ranking no discute, ridículo.',
+    'Zona media. El ranking no se emociona, ridículo',
 
-    'Mitad. Casi un no con maquillaje, fracasado, y el ranking no discute, fracasado.',
+    'Mitad. Casi un no con maquillaje, fracasado',
 
-    'Medio. El hype se murió solo y el ranking no discute, y el grupo ya lo olió.',
+    'Medio. El hype se murió solo.',
 
-    'Compatibilidad de sala de espera, cabrón, y el ranking no discute, mierda.',
+    'Compatibilidad de sala de espera, cabrón',
 
-    'Ship sin gancho. El chat bostezó, gilipollas, y el ranking no discute, coño.',
+    'Ship sin gancho. El chat bostezó, gilipollas',
 
-    'Tibio. Ni vale el thread, mierda, y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón.',
+    'Tibio. Ni vale el thread, mierda',
 
-    'Medio puro sin plot, coño, y el ranking no discute, gilipollas, y el grupo ya lo olió, gilipollas.',
+    'Medio puro sin plot, coño',
 
-    'Ni química ni guerra. Solo relleno, asco, y el ranking no discute, patético.',
+    'Ni química ni guerra. Solo relleno, asco',
 
-    'Ship de los que no generan meme, patético, y el ranking no discute, asco.',
+    'Ship de los que no generan meme, patético',
 
-    'Mitad de camino al olvido, basura, y el ranking no discute, basura, y el grupo ya lo olió, basura.',
+    'Mitad de camino al olvido, basura',
 
-    'Mediocre. El número lo dice sin drama, ridículo, y el ranking no discute, ridículo.',
+    'Mediocre. El número lo dice sin drama, ridículo',
 
-    'Zona gris documentada, fracasado, y el ranking no discute, fracasado.',
+    'Zona gris documentada, fracasado',
 
-    'Medio. Como café descafeinado del ship y el ranking no discute.',
+    'Medio. Como café descafeinado del ship',
 
-    'Compatibilidad sin especias, cabrón, y el ranking no discute, mierda, y el grupo ya lo olió, mierda.',
+    'Compatibilidad sin especias, cabrón',
 
-    'Ship tibio de los que sobran, gilipollas, y el ranking no discute, coño, y el grupo ya lo olió, coño.',
+    'Ship tibio de los que sobran, gilipollas',
 
-    'Mitad. El grupo no pide bis, mierda, y el ranking no discute, cabrón, y el grupo ya lo olió, qué vacío.',
+    'Mitad. El grupo no pide bis, mierda.',
 
-    'Medio sin derecho a hype, coño, y el ranking no discute, gilipollas.',
+    'Medio sin derecho a hype, coño',
 
-    'Ni fu ni fa con sello oficial, asco, y el ranking no discute, patético.vergüenza ajena.',
+    'Ni fu ni fa con sello oficial, asco.vergüenza ajena.',
 
-    'Ship olvidable a propósito, patético, y el ranking no discute, asco, y el grupo ya lo olió, asco.',
+    'Ship olvidable a propósito, patético',
 
-    'Tibio. Archivado sin ceremonia, basura, y el ranking no discute, basura.flojo.',
+    'Tibio. Archivado sin ceremonia, basura.',
 
-    'Mediocre y previsible, ridículo, y el ranking no discute, ridículo, y el grupo ya lo olió, ridículo.',
+    'Mediocre y previsible, ridículo',
 
-    'Zona media: el casi que no importa, fracasado, y el ranking no discute, fracasado.',
+    'Zona media: el casi que no importa, fracasado',
 
 ],
   low: [
@@ -729,85 +729,85 @@ const VERDICTS = {
 
     'Compatibilidad justa para el gag del comando y nada más delante del puto grupo, fracasado.',
 
-    'Poca química. El ranking lo marca en rojo suave, cabrón, y el ranking no discute.',
+    'Poca química. El ranking lo marca en rojo suave, cabrón',
 
-    'Ship bajo. Mejor ni forzar el crossover, gilipollas, y el ranking no discute, mierda.',
+    'Ship bajo. Mejor ni forzar el crossover, gilipollas',
 
-    'Compatibilidad de las que duelen de lo flojas, mierda, y el ranking no discute, coño.',
+    'Compatibilidad de las que duelen de lo flojas, mierda',
 
-    'Bajo. El grupo ya está en modo no, coño, y el ranking no discute, cabrón.',
+    'Bajo. El grupo ya está en modo no, coño',
 
-    'Casi nada. Forzar esto es crueldad gratuita, asco, y el ranking no discute, gilipollas.',
+    'Casi nada. Forzar esto es crueldad gratuita, asco',
 
-    'Ship de los que el número pide clemencia, patético, y el ranking no discute, patético.',
+    'Ship de los que el número pide clemencia, patético',
 
-    'Bajo perfil de desastre compartido, basura, y el ranking no discute, asco.',
+    'Bajo perfil de desastre compartido, basura',
 
-    'Poca chispa. Mucho potencial de cringe, ridículo, y el ranking no discute, basura.',
+    'Poca chispa. Mucho potencial de cringe, ridículo',
 
-    'Compatibilidad en el sótano, fracasado, y el ranking no discute, ridículo.',
+    'Compatibilidad en el sótano, fracasado',
 
-    'Bajo. Mejor amigos de mentira que esto y el ranking no discute, fracasado.',
+    'Bajo. Mejor amigos de mentira que esto',
 
-    'Ship flojo. El chat no compra la premisa, cabrón, y el ranking no discute.',
+    'Ship flojo. El chat no compra la premisa, cabrón',
 
-    'Poca química documentada, gilipollas, y el ranking no discute, mierda, y el grupo ya lo olió, mierda.',
+    'Poca química documentada, gilipollas',
 
-    'Bajo de los que se ven venir, mierda, y el ranking no discute, coño, y el grupo ya lo olió, coño.',
+    'Bajo de los que se ven venir, mierda',
 
-    'Fail de pareja en versión preview, coño, y el ranking no discute, cabrón.',
+    'Fail de pareja en versión preview, coño',
 
-    'Compatibilidad mínima. Casi un no, asco, y el ranking no discute, gilipollas.',
+    'Compatibilidad mínima. Casi un no, asco',
 
-    'Ship bajo sin derecho a defensa, patético, y el ranking no discute, patético.',
+    'Ship bajo sin derecho a defensa, patético',
 
-    'Poco material. Mucho riesgo de ridículo, basura, y el ranking no discute, asco.',
+    'Poco material. Mucho riesgo de ridículo, basura',
 
-    'Bajo. El ranking no discute, ridículo, y el ranking no discute, basura.',
+    'Bajo. El ranking no discute, ridículo',
 
-    'Química en huelga, fracasado, y el ranking no discute, ridículo, y el grupo ya lo olió, ridículo.',
+    'Química en huelga, fracasado',
 
-    'Ship de los que mejor ni empezar y el ranking no discute, fracasado.',
+    'Ship de los que mejor ni empezar',
 
-    'Bajo perfil tóxico sin beneficio, cabrón, y el ranking no discute.',
+    'Bajo perfil tóxico sin beneficio, cabrón',
 
-    'Poca compatibilidad real, gilipollas, y el ranking no discute, mierda, y el grupo ya lo olió, mierda.',
+    'Poca compatibilidad real, gilipollas',
 
-    'Fail anunciado con números, mierda, y el ranking no discute, coño, y el grupo ya lo olió, coño.',
+    'Fail anunciado con números, mierda',
 
-    'Bajo. Archivado por piedad, coño, y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón.',
+    'Bajo. Archivado por piedad, coño',
 
-    'Casi cero con maquillaje, asco, y el ranking no discute, gilipollas.',
+    'Casi cero con maquillaje, asco',
 
-    'Ship flojo de solemnidad, patético, y el ranking no discute, patético.',
+    'Ship flojo de solemnidad, patético',
 
-    'Compatibilidad de trámite negativo, basura, y el ranking no discute, asco.',
+    'Compatibilidad de trámite negativo, basura',
 
-    'Bajo. El grupo ya dijo que no, ridículo, y el ranking no discute, basura.',
+    'Bajo. El grupo ya dijo que no, ridículo',
 
-    'Poca chispa, mucho papelón, fracasado, y el ranking no discute, ridículo.',
+    'Poca chispa, mucho papelón, fracasado',
 
-    'Ship en zona de peligro tibio y el ranking no discute, fracasado.',
+    'Ship en zona de peligro tibio',
 
-    'Bajo de verdad. Sin anestesia, cabrón, y el ranking no discute, y el grupo ya lo olió.',
+    'Bajo de verdad. Sin anestesia, cabrón.',
 
-    'Química ausente con testigos, gilipollas, y el ranking no discute, mierda.',
+    'Química ausente con testigos, gilipollas',
 
-    'Fail de pareja en diferido, mierda, y el ranking no discute, coño, y el grupo ya lo olió, coño.',
+    'Fail de pareja en diferido, mierda',
 
-    'Bajo. No fuerces el crossover, coño, y el ranking no discute, cabrón, y el grupo ya lo olió, miserable.',
+    'Bajo. No fuerces el crossover, coño',
 
-    'Poco ship, mucho cringe potencial, asco, y el ranking no discute, gilipollas.',
+    'Poco ship, mucho cringe potencial, asco',
 
-    'Compatibilidad de sótano documentada, patético, y el ranking no discute, patético.',
+    'Compatibilidad de sótano documentada, patético',
 
-    'Ship bajo sin plot twist, basura, y el ranking no discute, asco, y el grupo ya lo olió, asco.',
+    'Ship bajo sin plot twist, basura',
 
-    'Bajo. Caso casi cerrado, ridículo, y el ranking no discute, basura, y el grupo ya lo olió, basura.',
+    'Bajo. Caso casi cerrado, ridículo',
 
-    'La química pidió la baja, fracasado, y el ranking no discute, ridículo.',
+    'La química pidió la baja, fracasado',
 
-    'Química en huelga, fracasado, y el ranking no discute, fracasado, y el grupo ya lo olió, fracasado.',
+    'Química en huelga, fracasado',
 
 ],
   zero: [
@@ -931,85 +931,85 @@ const VERDICTS = {
 
     'Cero de compatibilidad. El veredicto es un muro seco delante del puto grupo, fracasado.',
 
-    'Nada. Cero spark, cero futuro, cero debate, cabrón, y el ranking no discute.',
+    'Nada. Cero spark, cero futuro, cero debate, cabrón',
 
-    'Ship imposible. El ranking firmó el no, gilipollas, y el ranking no discute, mierda.',
+    'Ship imposible. El ranking firmó el no, gilipollas',
 
-    'Cero de cero. Ni en fanfic salva, mierda, y el ranking no discute, coño, y el grupo ya lo olió, coño.',
+    'Cero de cero. Ni en fanfic salva, mierda',
 
-    'Nula compatibilidad. El chat ni lo intenta, coño, y el ranking no discute, cabrón.',
+    'Nula compatibilidad. El chat ni lo intenta, coño',
 
-    'Cero. Mejor enemigos que esto, asco, y el ranking no discute, gilipollas.',
+    'Cero. Mejor enemigos que esto, asco',
 
-    'Ship cancelado antes de empezar, patético, y el ranking no discute, patético.',
+    'Ship cancelado antes de empezar, patético',
 
-    'Nada de nada. El número es un muro, basura, y el ranking no discute, asco.',
+    'Nada de nada. El número es un muro, basura',
 
-    'Cero químico. Archivado con asco, ridículo, y el ranking no discute, basura.',
+    'Cero químico. Archivado con asco, ridículo',
 
-    'Imposible. Fin del experimento, fracasado, y el ranking no discute, ridículo.',
+    'Imposible. Fin del experimento, fracasado',
 
-    'Cero. Ni el RNG los junta con sentido y el ranking no discute, fracasado.',
+    'Cero. Ni el RNG los junta con sentido',
 
-    'Nula. El grupo respira aliviado, cabrón, y el ranking no discute.',
+    'Nula. El grupo respira aliviado, cabrón',
 
-    'Ship cero. Sin derecho a almost, gilipollas, y el ranking no discute, mierda.',
+    'Ship cero. Sin derecho a almost, gilipollas',
 
-    'Nada. Química en modo avión eterno, mierda, y el ranking no discute, coño.',
+    'Nada. Química en modo avión eterno, mierda',
 
-    'Cero total. Caso cerrado, coño, y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón.',
+    'Cero total. Caso cerrado, coño',
 
-    'Imposible de vender hasta de broma, asco, y el ranking no discute, gilipollas.',
+    'Imposible de vender hasta de broma, asco',
 
-    'Ship nulo. El ranking no negocia, patético, y el ranking no discute, patético.',
+    'Ship nulo. El ranking no negocia, patético',
 
-    'Cero. Mejor cada uno por su lado, basura, y el ranking no discute, asco, y el grupo ya lo olió, asco.',
+    'Cero. Mejor cada uno por su lado, basura',
 
-    'Nula compatibilidad documentada, ridículo, y el ranking no discute, basura.',
+    'Nula compatibilidad documentada, ridículo',
 
-    'Cero spark. Cero paciencia del chat, fracasado, y el ranking no discute, ridículo.',
+    'Cero spark. Cero paciencia del chat, fracasado',
 
-    'Nada. El agujero donde debería haber química y el ranking no discute, fracasado.',
+    'Nada. El agujero donde debería haber química',
 
-    'Ship imposible con sello oficial, cabrón, y el ranking no discute.',
+    'Ship imposible con sello oficial, cabrón',
 
-    'Cero. Ni forzado funciona, gilipollas, y el ranking no discute, mierda.',
+    'Cero. Ni forzado funciona, gilipollas',
 
-    'Nula. Fin, mierda, y el ranking no discute, coño, y el grupo ya lo olió, coño.',
+    'Nula. Fin, mierda.',
 
-    'Cero de compatibilidad. Sin anestesia, coño, y el ranking no discute, cabrón.',
+    'Cero de compatibilidad. Sin anestesia, coño',
 
-    'Imposible. El chat ya pasó página, asco, y el ranking no discute, gilipollas.',
+    'Imposible. El chat ya pasó página, asco',
 
-    'Ship cero sin narrador amigo, patético, y el ranking no discute, patético.',
+    'Ship cero sin narrador amigo, patético',
 
-    'Nada que salvar. Nada que inventar, basura, y el ranking no discute, asco.',
+    'Nada que salvar. Nada que inventar, basura',
 
-    'Cero. El no más limpio del catálogo, ridículo, y el ranking no discute, basura.',
+    'Cero. El no más limpio del catálogo, ridículo',
 
-    'Nula química. Archivado, fracasado, y el ranking no discute, ridículo.',
+    'Nula química. Archivado, fracasado',
 
-    'Cero total. Ni meme salva esto y el ranking no discute, fracasado.',
+    'Cero total. Ni meme salva esto',
 
-    'Ship cancelado por el universo, cabrón, y el ranking no discute, y el grupo ya lo olió.',
+    'Ship cancelado por el universo, cabrón.',
 
-    'Nada. El ranking fue misericordioso al decir cero, gilipollas, y el ranking no discute, mierda.',
+    'Nada. El ranking fue misericordioso al decir cero, gilipollas',
 
-    'Cero. Punto final, mierda, y el ranking no discute, coño, y el grupo ya lo olió, coño.',
+    'Cero. Punto final, mierda',
 
-    'Imposible de shippear sin autoengaño, coño, y el ranking no discute, cabrón.',
+    'Imposible de shippear sin autoengaño, coño',
 
-    'Nula. El grupo lo sabía, asco, y el ranking no discute, gilipollas.',
+    'Nula. El grupo lo sabía, asco',
 
-    'Cero químico sin maquillaje, patético, y el ranking no discute, patético.',
+    'Cero químico sin maquillaje, patético',
 
-    'Ship nulo. Sin bis, basura, y el ranking no discute, asco, y el grupo ya lo olió, asco.',
+    'Ship nulo. Sin bis, basura',
 
-    'Nada de nada. Caso cerrado con llave, ridículo, y el ranking no discute, basura.',
+    'Nada de nada. Caso cerrado con llave, ridículo',
 
-    'Cero. Y menos mal, fracasado, y el ranking no discute, ridículo, y el grupo ya lo olió, ridículo.',
+    'Cero. Y menos mal, fracasado',
 
-    'Cero spark. Cero paciencia del chat, fracasado, y el ranking no discute, fracasado, y el grupo ya lo olió, fracasado.',
+    'Cero spark. Cero paciencia del chat, fracasado',
 
 ],
 };

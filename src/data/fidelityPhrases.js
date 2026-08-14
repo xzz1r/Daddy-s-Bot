@@ -407,7 +407,7 @@ const INFIEL_HIGH = [
   '[nombre] tiene la moral de un semaforo estropeado: siempre en verde, para todo el mundo, a todas horas. Accidentes garantizados, da pena ajena.',
   'Joder, si tu polla tuviera memoria, escribiria unas memorias mas largas que las del puto Quijote. Y con mas aventuras, qué vacío.',
   'Hostia puta, eres como un centro comercial: muchas tiendas, muchos visitantes y nada que valga la pena comprar de verdad, indignante.',
-  'Tu compromiso de pareja tiene la consistencia de la mayonesa casera: se corta al minimo movimiento y deja todo hecho un, asco, qué vergüenza ajena.',
+  'Tu compromiso de pareja tiene la consistencia de la mayonesa casera: se corta al minimo movimiento y deja todo hecho un',
   '[nombre] es mas infiel que las traducciones de Google. Distorsiona todo, pierde el sentido y siempre hay algo que no encaja, da vergüenza.',
   'Coño, tu polla tiene mas historias que un bar de pueblo. Y todas acaban igual: con alguien borracho y arrepentido, qué flojo.',
   'Eres el que dice te quiero y piensa en otra. Multitarea emocional de mierda, el especialista del engaño sin esfuerzo, menudo desastre.',

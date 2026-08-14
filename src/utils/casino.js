@@ -45,7 +45,7 @@ const PHRASES = {
     ],
     jackpot: [
       'BOTE EN EL PRIMER TRAMO. 200 mensajes y el aura se desbordó. Los que no escriben que tomen nota.',
-      '200 mensajes y el aura reventó por arriba. Bono grande en el tramo de entrada. Raro y documentado.',
+      '200 mensajes y el aura reventó por arriba. Bono grande en el tramo de entrada. Raro y',
       'Bote gordo de aura en Tier 1. Poco habitual, completamente real, y el marcador lo confirma.',
       'BOTE DE TIER 1. 200 mensajes y el aura ha pagado como si fueran mil. Suerte descomunal.',
       '200 mensajes y bote confirmado. Esto no pasa todos los días y el grupo lo acaba de ver.',

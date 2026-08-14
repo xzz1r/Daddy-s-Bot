@@ -128,21 +128,21 @@ const RIZZ = {
 
     'El chat tiene un subhilo mental dedicado a %N, fracasado.desastre.',
 
-    'Con %N hasta el visto se siente personal, fracasado.pena.',
+    'Con %N hasta el visto se siente personal',
 
     '%N manda un sticker y alguien lo analiza como texto sagrado.',
 
-    'El rizz de %N funciona en modo avión: sin esfuerzo visible, cabrón, mierda.',
+    'El rizz de %N funciona en modo avión: sin esfuerzo visible',
 
-    '%N no pide atención: la atención se le sube sola al regazo, gilipollas, coño.',
+    '%N no pide atención: la atención se le sube sola al regazo',
 
     'Hay gente que guarda capturas de %N como reliquia, mierda, cabrón asco, da asco.',
 
-    '%N puede desaparecer una semana y el hilo sigue orbitando, coño, gilipollas.',
+    '%N puede desaparecer una semana y el hilo sigue orbitando',
 
-    'Cuando %N habla en serio, el chat baja el volumen del resto, asco, patético.',
+    'Cuando %N habla en serio, el chat baja el volumen del resto',
 
-    '%N tiene el pack completo: timing, cara y cero prisa, patético, asco.',
+    '%N tiene el pack completo: timing, cara y cero prisa',
 
     'Un cumplido de %N vale más que un ensayo de otro, basura.miseria.',
 
@@ -158,7 +158,7 @@ const RIZZ = {
 
     'La gente estable evita a %N por higiene mental, mierda, cabrón.vacío.',
 
-    '%N no gana debates: los deja sin oxígeno, coño, gilipollas.',
+    '%N no gana debates: los deja sin oxígeno',
 
     'Con %N el almost duele más que el no, asco, patético.vergüenza ajena.',
 
@@ -168,37 +168,37 @@ const RIZZ = {
 
     '%N no necesita filtro: el resto necesita casco, ridículo.desastre.',
 
-    'El chat tiene un subhilo mental dedicado a %N, fracasado.pena.',
+    'El chat tiene un subhilo mental dedicado a %N',
 
     '%N mandó un audio de siete segundos diciendo eh hola y alguien lo tiene de tono de llamada.',
 
-    '%N tiene tanto rizz que hasta sus rechazos generan lealtad absurda, cabrón, mierda.',
+    '%N tiene tanto rizz que hasta sus rechazos generan lealtad absurda',
 
     'Cuando %N entra al chat, dos personas fingen indiferencia y una tercera revisa su vida, gilipollas, qué cringe.',
 
     '%N mandó una foto normal y alguien la imprimió para el velador, mierda, cabrón da asco.',
 
-    'La ex de %N sigue pagando el gimnasio del barrio por si se cruzan, coño, gilipollas.',
+    'La ex de %N sigue pagando el gimnasio del barrio por si se cruzan',
 
-    '%N puede decir no puedo hoy y la otra persona pide perdón sin motivo, asco, patético.',
+    '%N puede decir no puedo hoy y la otra persona pide perdón sin motivo',
 
-    'Un desconocido le escribió a %N por error y terminó contándole su trauma, patético, asco.',
-
-
+    'Un desconocido le escribió a %N por error y terminó contándole su trauma',
 
 
 
-    'Alguien dejó su terapia de pareja por quince minutos de chat con %N, cabrón, mierda.',
 
-    '%N tiene rizz de los que no se entrenan: se hereda de algo oscuro, gilipollas, coño.',
 
-    'La última vez que %N ignoró a alguien, esa persona contrató un detective emocional, mierda, cabrón.',
+    'Alguien dejó su terapia de pareja por quince minutos de chat con %N',
 
-    '%N puede vaciar la autoestima de una sala solo pasando por el medio, coño, gilipollas.',
+    '%N tiene rizz de los que no se entrenan: se hereda de algo oscuro',
+
+    'La última vez que %N ignoró a alguien, esa persona contrató un detective emocional',
+
+    '%N puede vaciar la autoestima de una sala solo pasando por el medio',
 
     'Cuando %N dice wenas, tres personas interpretan un código secreto, asco, patético.ajena.',
 
-    '%N tiene el tipo de presencia que hace que gente estable se replantee todo, patético, asco.',
+    '%N tiene el tipo de presencia que hace que gente estable se replantee todo',
 
     'Le contestan a %N al segundo o nunca: no hay término medio, basura.flojo.',
 
@@ -329,61 +329,61 @@ const RIZZ = {
 
     'Medio. %N da contenido, no estabilidad, fracasado.',
 
-    'El rizz de %N funciona en beta perpetua, cabrón, mierda.',
+    'El rizz de %N funciona en beta perpetua',
 
-    '%N enamora en texto y se desmonta en audio, gilipollas, coño.',
+    '%N enamora en texto y se desmonta en audio',
 
-    'Hay potencial en %N y también hay evidencias en contra, mierda, cabrón.',
+    'Hay potencial en %N y también hay evidencias en contra',
 
-    '%N es el rey del almost documentado, coño, gilipollas.',
+    '%N es el rey del almost',
 
-    'El chat le da oportunidades a %N por entretenimiento, asco, patético.',
+    'El chat le da oportunidades a %N por entretenimiento',
 
-    '%N sube el hype y lo baja con un ja, patético, asco.',
-
-
-
-
-
-    'El timing de %N llega tarde a su propia fiesta, cabrón, mierda.',
-
-    '%N tiene gancho y también tiene fugas, gilipollas, coño.',
-
-    'Material de %N: brillante y resbaladizo, mierda, cabrón.',
-
-    '%N no cierra ciclos: los deja en visto emocional, coño, gilipollas.',
-
-    '%N: Rizz irregular certificado por el grupo, asco, patético.',
-
-    '%N casi genio, casi desastre, nunca aburrido del todo, patético, asco.',
+    '%N sube el hype y lo baja con un ja',
 
 
 
 
 
-    'El rizz de %N es ambulancia: llega, hace ruido y a veces confirma la defunción, cabrón, mierda.',
+    'El timing de %N llega tarde a su propia fiesta',
 
-    '%N tiene material de genio y ejecución de tropiezo con la sombra, gilipollas, coño.',
+    '%N tiene gancho y también tiene fugas',
 
-    'A %N le contestan a veces al toque y a veces nunca, y no entiende el patrón, mierda, cabrón.',
+    'Material de %N: brillante y resbaladizo',
 
-    '%N casi lo logra y el casi es su deporte oficial, coño, gilipollas.',
+    '%N no cierra ciclos: los deja en visto emocional',
 
-    'Hay días en que %N brilla y días en que se tropieza solo, asco, patético.',
+    '%N: Rizz irregular certificado por el grupo',
 
-    '%N mezcla buen timing con decisiones de borracho sobrio, patético, asco.',
-
-
+    '%N casi genio, casi desastre, nunca aburrido del todo',
 
 
 
-    'El almost de %N ya es marca registrada del grupo, cabrón, mierda.',
 
-    '%N puede salvar una conversación y matarla en el mensaje siguiente, gilipollas, coño.',
 
-    'Rizz intermitente: %N como wifi del vecino, mierda, cabrón.',
+    'El rizz de %N es ambulancia: llega, hace ruido y a veces confirma la defunción',
 
-    '%N tiene buenas cartas y las juega de culo a veces, coño, gilipollas.',
+    '%N tiene material de genio y ejecución de tropiezo con la sombra',
+
+    'A %N le contestan a veces al toque y a veces nunca, y no entiende el patrón',
+
+    '%N casi lo logra y el casi es su deporte oficial',
+
+    'Hay días en que %N brilla y días en que se tropieza solo',
+
+    '%N mezcla buen timing con decisiones de borracho sobrio',
+
+
+
+
+
+    'El almost de %N ya es marca registrada del grupo',
+
+    '%N puede salvar una conversación y matarla en el mensaje siguiente',
+
+    'Rizz intermitente: %N como wifi del vecino',
+
+    '%N tiene buenas cartas y las juega de culo a veces',
 
     'El grupo celebra a %N y dos horas después le hace un roast, asco, patético.miseria.',
 
@@ -526,58 +526,58 @@ const RIZZ = {
 
     'Con %N el rechazo es un servicio público, fracasado.',
 
-    'Con %N hasta el algoritmo deja de recomendar, asco, patético.',
+    'Con %N hasta el algoritmo deja de recomendar',
 
-    '%N tiene el pack de anti-rizz completo, patético, asco.',
-
-
+    '%N tiene el pack de anti-rizz completo',
 
 
 
-    'Piropo de %N = solicitud de alejamiento emocional, cabrón, mierda.',
 
-    '%N tiene menos tirón que un carro sin ruedas, gilipollas, coño.',
 
-    'El rizz de %N se fue y no dejó nota, mierda, cabrón.',
+    'Piropo de %N = solicitud de alejamiento emocional',
 
-    '%N en modo romance es una alerta roja, coño, gilipollas.',
+    '%N tiene menos tirón que un carro sin ruedas',
 
-    'Cuando %N intenta, el universo corrige el rumbo, asco, patético.',
+    'El rizz de %N se fue y no dejó nota',
 
-    '%N es el recordatorio de por qué existe el no, patético, asco.',
+    '%N en modo romance es una alerta roja',
+
+    'Cuando %N intenta, el universo corrige el rumbo',
+
+    '%N es el recordatorio de por qué existe el no',
 
 
 
 
     '%N es un puto espantaviejas: aparece y hasta las del banco se cruzan de acera.',
 
-    'El rizz de %N tiene fecha de caducidad en el mismo mensaje, cabrón, mierda.',
+    'El rizz de %N tiene fecha de caducidad en el mismo mensaje',
 
-    '%N intenta ligar y el chat activa el modo testigo de Jehová, gilipollas, coño.',
+    '%N intenta ligar y el chat activa el modo testigo de Jehová',
 
-    'Cuando %N manda un piropo, el grupo prepara el botiquín, mierda, cabrón.',
+    'Cuando %N manda un piropo, el grupo prepara el botiquín',
 
-    '%N tiene el magnetismo de una silla de plástico mojada, coño, gilipollas.',
+    '%N tiene el magnetismo de una silla de plástico mojada',
 
-    'El almost de %N es un no con efectos especiales de cringe, asco, patético.',
+    'El almost de %N es un no con efectos especiales de cringe',
 
-    '%N entra en modo seducción y la wifi emocional se cae, patético, asco.',
-
-
+    '%N entra en modo seducción y la wifi emocional se cae',
 
 
 
-    'El chat usa a %N de ejemplo de fail romántico, cabrón, mierda.',
 
-    '%N intenta el closure y abre tres tickets de vergüenza, gilipollas, coño.',
 
-    'Piropo de %N: daño colateral garantizado, mierda, cabrón.',
+    'El chat usa a %N de ejemplo de fail romántico',
+
+    '%N intenta el closure y abre tres tickets de vergüenza',
+
+    'Piropo de %N: daño colateral garantizado',
 
     '%N espanta hasta a los bots de spam, coño, gilipollas.pena ajena.',
 
     'El rizz de %N es un pozo sin fondo de almost, asco, patético.vacío.',
 
-    '%N en modo conquista es contenido para el roast, patético, asco.',
+    '%N en modo conquista es contenido para el roast',
 
     'Cuando %N dice hola, tres personas silencian el chat, basura.vergüenza ajena.',
 
@@ -827,7 +827,7 @@ const PIROPOS = [
 
   'Con %N el piropo es eufemismo de algo peor, fracasado ridículo. Y ridículo.desastre.',
 
-  '%N es tentación con notificación en tiempo real fracasado.pena.',
+  '%N es tentación con notificación en tiempo real',
 
   'Esa voz de %N debería tener clasificación por edades, cabrón.',
 
