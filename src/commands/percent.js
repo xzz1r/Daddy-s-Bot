@@ -1454,406 +1454,206 @@ const LABELS = {
     name: 'fea',
     goodIsHigh: false,
     high: [
-      '[nombre], tienes una cara que hace que el flash de la cámara se arrepienta de haber disparado.',
-
-      'Fea de las que el espejo pide indulto antes de reflejarte, [nombre]. Qué puta desgracia visual, fracasado.',
-
-      '[nombre], no es que te falte ángulo: es que te faltan los tres y el cuarto también. El atractivo te bloqueó sin forwarding.',
-
-      'Tienes el atractivo de un martes lluvioso en una sala de espera, [nombre]. Pura mierda. Estética, mierda.',
-
-      '[nombre], si la belleza fuera wifi, tú estarías en modo avión permanente.',
-
-      'Fea medible: ni con luz de restaurante caro te salva el frame, [nombre]. Asco con piernas.',
-
-      '[nombre], tu cara es el argumento perfecto contra los filtros gratis.',
-
-      'Se te nota la fealdad hasta en la miniatura del estado, [nombre]. Ridículo de bulto.',
-
-      '[nombre], el modo retrato de tu móvil debería venir con advertencia sanitaria.',
-
-      'Fea de las que hacen que el fotógrafo cobre extra por trauma, [nombre]. Mierda. Pura',
-
-      '[nombre], no hay misterio: hay huesos de mala suerte y piel que no perdona.',
-
-      'Tu simetría es un chiste malo contado dos veces, [nombre]. Fracasado. Del catálogo visual, fracasado.',
-
-      '[nombre], si te miran de frente es por educación, no por interés. Ni con ring light te inventas un punto focal.',
-
-      'Fea de close-up: el zoom solo empeora el informe, [nombre]. De material.',
-
-      '[nombre], tienes más fallos de fábrica que un electrodoméstico chino de outlet.',
-
-      'La luz natural te delata como un puto detector de mentiras, [nombre].',
-
-      '[nombre], no eres \'interesante\': eres difícil de mirar y punto.',
-
-      'Fea de las que el group selfie se recorta solo, [nombre]. Ridículo automático',
-
-      '[nombre], tu cara pide un softbox y un milagro, y no hay presupuesto para ninguno.',
-
-      'Si el atractivo fuera nota, tú irías a recuperación en agosto, [nombre]. Mierda. Académica.',
-
-      '[nombre], el filtro de Instagram se suicida cuando intentas usarlo.',
-
-      'Fea sin narrativa de villana: solo fea, [nombre]. Cabrón. Sin plot twist.',
-
-      '[nombre], te hicieron con las luces apagadas y prisa de lunes. La cámara frontal merece hazard pay.',
-
-      'Tu perfil izquierdo y el derecho compiten a ver cuál es peor, [nombre]. Patético. Empate.',
-
-      '[nombre], ni el modo noche te hace favor: te hace más honesta.',
-
-      'Fea de las que el espejo del ascensor tiene traumas, [nombre]. Ridículo móvil',
-
-      '[nombre], tienes el tipo de cara que hace cambiar de acera sin confesarlo.',
-
-      'No es un mal día: es el material de base, [nombre]. Puta mierda. Estructural.',
-
-      '[nombre], si la genética fuera un juicio, tú saldrías culpable sin fianza.',
-
-      'Fea de catálogo de lo que no se debe repetir, [nombre]. Cabrón. De manual.',
-
-      '[nombre], el atractivo te vio pasar y fingió que miraba el móvil.',
-
-      'Tienes más ángulos muertos que un parking en U, [nombre].',
-
-      '[nombre], la cámara frontal de tu móvil merece una medalla al valor. El atractivo te bloqueó sin forwarding.',
-
-      'Fea de las que el maquillaje es daño colateral, [nombre]. Ridículo. Con base',
-
-      '[nombre], no hay \'te ves mejor en persona\': hay decepción escalonada.',
-
-      'Tu cara es un argumento contra la natalidad irresponsable, [nombre]. Mierda. Heredada.',
-
-      '[nombre], el high de fea te queda de casa y de apodo.',
-
-      'Fea sin derecho a matiz ni a filtro de caridad, [nombre]. Cabrón. Del ranking.',
-
-      '[nombre], si te describen es por contraste con lo normal.',
-
-      'Se te ve el fail visual desde el otro lado del puto chat, [nombre].',
-
-      '[nombre], tienes el magnetismo de una silla de plástico mojada.',
-
-      'Fea de las que el retrato robado se borra por piedad, [nombre]',
-
-      '[nombre], el bot no necesita adjetivos: el número ya te dejó en el sótano. Ni con ring light te inventas un punto focal.',
-
-      'No hay segundo chance en este frame, [nombre]. Puta sentencia visual.',
-
-      '[nombre], tu belleza es un rumor que nadie pudo confirmar.',
-
-      'Fea de informe clínico sin anestesia, [nombre]. Cabrón.',
-
-      '[nombre], hasta el perro del vecino elige mejor dónde mirar.',
-
-      'Tienes una presencia que baja el promedio del group photo, [nombre].',
-
-      '[nombre], si el atractivo fuera propina, te dejarían monedas de cinco.',
-
-      'Fea de las que el flash avisa antes de disparar, [nombre]. Ridículo preventivo',
-
-      '[nombre], el techo de tu cara es el suelo de casi cualquiera.',
-
-      'No eres \'única\': eres difícil de catalogar sin insultar, [nombre]. Mierda. Rara.',
-
-      '[nombre], la fealdad te queda tan natural que parece look. La cámara frontal merece hazard pay.',
-
-      'Fea de tramo alto: el ranking te nombra y el chat asiente, [nombre].',
-
-      '[nombre], tienes más problemas de simetría que un IKEA mal montado.',
-
-      'El modo retrato te trata como amenaza, [nombre]. Patético. Software.',
-
-      '[nombre], si te miran mucho es porque no creen lo que ven.',
-
-      'Fea de las que el espejo del baño del bar tiene PTSD, [nombre]',
-
-      '[nombre], tu cara es la razón por la que inventaron el \'desde lejos\'',
-
-      'No hay ángulo de salvación: hay rendición, [nombre]. Puta realidad.',
-
-      '[nombre], el high de fea no es insulto, es inventario.',
-
-      'Fea sin plot de redención en tres actos, [nombre]. Cabrón. Plano.',
-
-      '[nombre], tienes el glow up invertido: cada año confirma el diagnóstico. El atractivo te bloqueó sin forwarding.',
-
-      'La cámara trasera es tu única amiga y aun así miente poco, [nombre].',
-
-      '[nombre], si la belleza fuera wifi, tú serías zona muerta.',
-
-      'Fea de las que el maquillador cobra hazard pay, [nombre]. Ridículo laboral',
-
-      '[nombre], el atractivo te bloqueó en todas las redes.',
-
-      'Tu frame es contenido de risa ajena gratis, [nombre]. Mierda. Viral.',
-
-      '[nombre], no es luz: es que no hay material que iluminar con dignidad.',
-
-      'Fea de veredicto que no admite recurso, [nombre]. Cabrón. Firme.',
-
-      '[nombre], tienes cara de final de temporada cancelada.',
-
-      'Se te nota el sótano visual en la primera foto de perfil, [nombre].',
-
-      '[nombre], el filtro beauty se declara en huelga cuando te ve. Ni con ring light te inventas un punto focal.',
-
-      'Fea de las que el group chat prefiere stickers, [nombre]',
-
-      '[nombre], si te hacen un retrato es por compromiso, no por deseo.',
-
-      'Tu simetría perdió el juicio y no pagó fianza, [nombre]. Mierda. Legal.',
-
-      '[nombre], el high te mide yel número. La cámara frontal merece hazard pay',
-
-      'Fea sin barniz de \'carácter\': solo el informe, [nombre]. Cabrón. Seco.',
-
-      '[nombre], tienes el tipo de cara que hace odiar los selfies ajenos.',
-
-      'La belleza objetiva no es opinión: y tú estás en el sótano, [nombre].',
-
-      '[nombre], ni con ring light de influencer te inventas un punto focal.',
-
-      'Fea de las que el fotógrafo finge que se le acabó la batería, [nombre]',
-
-      '[nombre], tu cara es un almost eterno que nunca llega a decente. La cámara frontal merece hazard pay.',
-
-      'No hay \'en persona se ve mejor\': hay la misma mierda. Con voz, [nombre].',
-
-      '[nombre], el ranking de fea te tiene de inquilino fijo.',
-
-      'Fea de manual negro: sin misterio, sin estilo[nombre].',
-
-      '[nombre], tienes más fallos faciales que un examen a última hora.',
-
-      'El close-up es una denuncia anónima contra tu genética, [nombre].',
-
-      '[nombre], si el atractivo fuera crédito, tu score sería.',
-
-      'Fea de las que el espejo retrovisor se niega a colaborar, [nombre]',
-
-      '[nombre], te ves como un borrador que nadie quiso terminar.',
-
-      'La luz del atardecer te delata igual que el fluorescente del súper, [nombre].',
-
-      '[nombre], el high de fea te queda de tatuaje invisible. El atractivo te bloqueó sin forwarding.',
-
-      'Fea sin derecho a \'es el ángulo\': son todos, [nombre].',
-
-      '[nombre], tienes el magnetismo inverso: la gente se aleja sin saber por qué.',
-
-      'cabrón. El atractivo te bloqueó sin forwarding',
-
-      '[nombre], si te describieran en tres palabras sobrarían dos insultos.',
-
-      'Fea de las que el maquillaje es diplomacia fallida, [nombre]',
-
-      '[nombre], el bot te midió y el resultado no admite consuelo.',
-
-      'Tu cara es el gag visual del comando y nadie pide bis, [nombre].',
-
-      '[nombre], no hay segundo acto: el primero ya fue suficiente desastre.',
-
-      'Fea de tramo que duele porque es verdad, [nombre]. Gilipollas.',
-
-      '[nombre], tienes una geometría facial que ofende a Euclides. Ni con ring light te inventas un punto focal.',
-
-      'El atractivo te dio de baja y no dejó forwarding, [nombre]. Asco. Administrativo.',
-
-      '[nombre], si la belleza fuera propina, el camarero te ignoraría.',
-
-      'Fea de las que el selfie se queda en el carrete por vergüenza, [nombre]',
-
-      '[nombre], el high no es bullying: es el espejo con números.',
-
-      'Tu frame pide un testigo de Jehová y un indulto papal, [nombre].',
-
-      '[nombre], se te nota la falta de suerte genética en cada pixel.',
-
-      'Fea sin modo avión que oculte el diagnóstico, [nombre].',
-
-      '[nombre], tienes el tipo de cara que hace amar los paisajes.',
-
-      'La cámara frontal merece hazard pay por trabajar contigo, [nombre].',
-
-      '[nombre], si te miran de reojo es para no comprometerse. La cámara frontal merece hazard pay.',
-
-      'Fea de las que el group photo tiene un hueco estratégico, [nombre]',
-
-      '[nombre], el material óseo y el de tejidos firmaron el mismo fail.',
-
-      'No eres un \'rostro con carácter\': eres un rostrosin suerte, [nombre].',
-
-      '[nombre], el ranking te tiene de ejemplo cuando explica el sótano.',
-
-      'Fea de veredicto público y sin narrador emocional, [nombre].',
-
-      '[nombre], tienes más asimetría que un debate en este puto chat.',
-
-      'Se te ve el techo visual y está bajo, [nombre]. Asco. De altura.',
-
-      '[nombre], si el atractivo fuera examen, irías a septiembre.',
-
-      'Fea de las que el filtro se rinde y apaga la pantalla, [nombre]',
-
-      '[nombre], tu cara es un almost de humano decente. El atractivo te bloqueó sin forwarding.',
-
-      'El high de fea te nombra sin pedir permiso al ego, [nombre].',
-
-      '[nombre], no hay redención en un ángulo ni en un tutorial.',
-
-      'Fea de manual: el bot firma y el chat archiva, [nombre].',
-
-      '[nombre], tienes el glow de un aparcamiento a las tres de la mañana.',
-
-      'La belleza objetiva pasó de largo y no dejó recado, [nombre].',
-
-      '[nombre], si te hacen un cumplido es por pena o por agenda.',
-
-      'Fea de las que el espejo del gym tiene restricción de horario, [nombre]',
-
-      '[nombre], el sótano visual te queda de residencia fiscal.',
-
-      'Tu presencia baja el promedio del frame en un mensaje, [nombre].',
-
-      '[nombre], no hay misterio de fealdad cool: hay lo previsible. Ni con ring light te inventas un punto focal.',
-
-      'Fea de tramo alto y sin derecho a bis, [nombre]. Gilipollas. Del ranking.',
-
-      '[nombre], tienes cara de final boss de la mala suerte genética.',
-
-      'Se te nota el fail hasta en la sombra del perfil, [nombre].',
-
-      '[nombre], si la genética fuera un juicio oral, no tendrías defensa.',
-
-      'Fea de las que el maquillador finge dolor de cabeza, [nombre]',
-
-      '[nombre], el atractivo te bloqueó y te dejó en visto eterno.',
-
-      'Tu frame es el gag del día y el grupo no pide replay, [nombre].',
-
-      '[nombre], el high te mide con regla y te deja en negativo.',
-
-      'Fea sin consuelo de \'personalidad\': el comando no mide eso, [nombre].',
-
-      '[nombre], tienes más problemas de proporciones que un plano de arquitecto borracho. La cámara frontal merece hazard pay.',
-
-      'La luz del flash te trata como evidencia del crimen, [nombre].',
-
-      '[nombre], si te describen \'interesante\' es código de fea educada.',
-
-      'Fea de las que el selfie stick se acorta solo, [nombre]',
-
-      '[nombre], el material de base no admite segunda oportunidad.',
-
-      'Tu cara es un informe sin anexos de caridad, [nombre].',
-
-      '[nombre], se te ve el sótano desde la notificación. La cámara frontal merece hazard pay',
-
-      'Fea de veredicto que el chat confirma en silencio, [nombre].',
-
-      '[nombre], tienes el tipo de presencia que hace amar el paisaje urbano.',
-
-      'El ranking de fea te tiene de inquilino sin contrato, [nombre].',
-
-      '[nombre], si el atractivo fuera crédito, estarías en mora. El atractivo te bloqueó sin forwarding.',
-
-      'Fea de las que el filtro beauty pide apoyo técnico, [nombre]',
-
-      '[nombre], no hay ángulo: hay rendición documentada. La cámara frontal merece hazard pay, coño, qué nivel, cabrón.',
-
-      'Tu simetría perdió el norte y el sur, [nombre].',
-
-      '[nombre], el high de fea te queda de apodo no oficial.',
-
-      'Fea sin plot twist de redención en tres mensajes, [nombre].',
-
-      '[nombre], tienes cara de borrador olvidado en la papelera.',
-
-      'Se te nota la falta de suerte en cada puto pixel del estado, [nombre].',
-
-      '[nombre], si te miran fijo es porque no procesan el input.',
-
-      'Fea de las que el group chat prefiere audio a foto, [nombre]',
-
-      '[nombre], el bot te midió dos veces y las dos dio sótano. Ni con ring light te inventas un punto focal.',
-
-      'Tu frame pide un testigo y un abogado de oficio, [nombre].',
-
-      '[nombre], el atractivo te dio de baja sin carta de despido.',
-
-      'Fea de manual negro y sin anestesia, [nombre]. Gilipollas.',
-
-      '[nombre], tienes más fallos faciales que un DNI mal escaneado.',
-
-      'La belleza objetiva no es debate: y tú perdiste, [nombre].',
-
-      '[nombre], si el high de fea fuera un piso, vivirías en el -2.',
-
-      'Fea de las que el espejo del baño tiene horario de duelo, [nombre]',
-
-      '[nombre], te ves como un almost que se quedó en almost.',
-
-      'El close-up es una denuncia con firma digital, [nombre].',
-
-      '[nombre], se te ve el techo y está por los suelos. La cámara frontal merece hazard pay.',
-
-      'Fea de tramo que no admite narrador emocional, [nombre].',
-
-      '[nombre], tienes el magnetismo de una silla mojada en la terraza.',
-
-      'El ranking te nombra y el chat no apela, [nombre]. Asco. Firmado.',
-
-      '[nombre], si te hacen un retrato es por relleno de álbum.',
-
-      'Fea de las que el maquillaje es daño colateral permanente, [nombre]',
-
-      '[nombre], el material óseo firmó el mismo contrato de fail que la piel.',
-
-      'Tu cara es el gag visual y nadie pide bis, [nombre].',
-
-      '[nombre], el high te deja en el sótano sin ascensor.',
-
-      'Fea sin derecho a \'es el día\': es el material, [nombre].',
-
-      '[nombre], tienes una geometría que ofende al compás. El atractivo te bloqueó sin forwarding.',
-
-      'Se te nota el fail visual en la primera línea del mensaje, [nombre].',
-
-      '[nombre], si la belleza fuera wifi, tú serías el router muerto. La cámara frontal merece hazard pay, qué cutre.',
-
-      'Fea de veredicto público delante de todo el puto grupo, [nombre].',
-
-      '[nombre], el atractivo te vio y cambió de acera digital. Ni con ring light te inventas un punto focal, qué vacío.',
-
-      'Tu frame es contenido de risa ajena sin copyright, [nombre].',
-
-      '[nombre], no hay segundo chance: el primero ya fue bastante. El atractivo te bloqueó sin forwarding',
-
-      'Fea de las que el filtro se suicida al intentar ayudarte, [nombre].',
-
-      '[nombre], tienes el glow up invertido certificado por el ranking.',
-
-      'La luz natural te delata igual que un interrogatorio, [nombre].',
-
-      '[nombre], si te describen en una palabra, esa palabra insulta. Ni con ring light te inventas un punto focal, qué pena.',
-
-      'Fea de tramo alto: el bot firma y cierra el parte, [nombre]',
-
-      '[nombre], el sótano visual te queda de casa y de apodo.',
-
-      'Tu presencia baja el promedio del chat solo con existir, [nombre]. Ni con ring light te inventas un punto focal, qué cringe.',
-
-      '[nombre], el high de fea no es opinión: es el puto número. La cámara frontal merece hazard pay, da asco.',
-
-      'Fea sin consuelo, sin bis y sin narrador que te salve, [nombre].',
-
-      'Se te ve el diagnóstico desde la puta notificación, [nombre]. Ni con ring light te inventas un punto focal',
-
-      '[nombre], tienes una cara que hace que el flash de la cámara se arrepienta de haber disparado, fracasado.',
-
+      '[nombre], tienes una cara que hace que el flash se arrepienta a mitad de disparo. El atractivo te bloqueó sin dejar visto.',
+      'Fea de las que el espejo pide indulto antes de reflejarte, [nombre]. Desgracia visual con ego de filtro gratis.',
+      '[nombre], no te faltan ángulos: te faltan los tres y el cuarto. Ni ring light inventa un punto focal decente.',
+      '[nombre], si la belleza fuera wifi, estarías en modo avión permanente. El grupo lo nota sin abrirte el perfil.',
+      '[nombre], tu cara es el argumento perfecto contra los filtros gratis. El algoritmo prefiere un sticker a tu selfie.',
+      '[nombre], el modo retrato debería venir con advertencia sanitaria. Hazard pay para la cámara frontal, basura.',
+      '[nombre], no hay misterio: hay huesos de mala suerte y piel que no perdona. El atractivo pasó de largo sin nota.',
+      '[nombre], si te miran de frente es por educación, no por interés. Documentado en cada foto de grupo que te recorta.',
+      'Fea de close-up, [nombre]: el zoom solo empeora el informe. Material de archivo, no de portada El tramo high solo certifica lo evidente.',
+      '[nombre], tienes el tipo de cara que hace el ascensor más lento. Nadie quiere ese silencio a solas con tu reflejo.',
+      '[nombre], el maquillaje en ti no es estilo: es diplomacia fallida. Capa tras capa y el parte de guerra sigue abierto.',
+      'Fea de las que el group selfie se recorta solo, [nombre]. Ridículo automático. El chat prefiere stickers a tu foto.',
+      '[nombre], tienes una simetría de accidente industrial. El atractivo no es subjetivo cuando el material grita en 4K.',
+      '[nombre], tu cara pide soft focus permanente y el mundo te da resolución completa. Crueldad del hardware, no del grupo.',
+      'Fea clínica, [nombre]: ni el ángulo de tres cuartos te salva. El bot no opina; el material habla y te deja sin recurso.',
+      '[nombre], si la fealdad fuera un deporte, serías selección nacional. Medalla de plomo en cada selfie sin filtro.',
+      '[nombre], el espejo del baño tiene PTSD con tu nombre. Cada mañana es reincidencia, no desayuno Hasta el sticker tiene más carisma que tú.',
+      'Fea de las que el flash avisa antes de disparar, [nombre]. Ridículo preventivo. La cámara frontal merece hazard pay.',
+      '[nombre], no hay "te ves mejor en persona": hay distancia y poca luz. De cerca el informe es peor, basura.',
+      '[nombre], tienes el rostro de quien hace que el maquillador cobre doble y aun así salga derrotado Basura con wifi y pretensión de portada.',
+      '[nombre], tu atractivo cotiza en negativo y el mercado no miente. El ranking visual del chat te tiene en sótano.',
+      'Fea de horario restringido, [nombre]: solo sobrevives a cierta distancia y con poca luz. En HD eres evento de riesgo.',
+      '[nombre], el filtro más caro del mundo en tu cara es tirita en hemorragia. El hardware no perdona, fracasado.',
+      '[nombre], tienes una cara de "borra y vuelve a sacar" permanente. El rollo nunca llega al like sincero.',
+      'Fea de las que el selfie stick se acorta solo, [nombre]. Hasta el plástico tiene dignidad y la ejerce lejos de ti.',
+      '[nombre], si te miran dos segundos es cortesía social, no magnetismo. El tercer segundo ya es tortura compartida.',
+      '[nombre], tu cara es la razón por la que inventaron el modo paisaje. El retrato se niega a colaborar, ridículo.',
+      'Fea de informe médico, [nombre]: el atractivo te diagnosticó y te dio el alta sin tratamiento posible.',
+      '[nombre], tienes más ángulos muertos que un coche blindado. Y ninguno es favorecedor, qué miseria visual.',
+      '[nombre], el maquillaje es daño colateral en tu caso. No embellece: negocia una tregua que el hueso no firma.',
+      'Fea de las que el bar apaga la luz un punto más cuando entras, [nombre]. El ambiente también quiere sobrevivir.',
+      '[nombre], tu selfie parece modo nocturno a plena luz del día. El sensor se rinde, el ego no, patético.',
+      '[nombre], si la belleza es objetiva, tú eres el contraejemplo de libro. El material no discute: sentencia.',
+      'Fea de close-up prohibido, [nombre]. El zoom es un arma y la usamos. Resultado: parte sin consuelo visual.',
+      '[nombre], tienes una cara que hace que el espejo del ascensor finja estar ocupado. Nadie quiere ese reflejo.',
+      '[nombre], el atractivo te bloqueó sin forwarding. Ni "tal vez en otra vida". Directo a spam visual, basura.',
+      'Fea de las que el fotógrafo cobra y pide disculpas al entregar, [nombre]. Producto no conforme, ridículo.',
+      '[nombre], tu rostro prueba que el filtro Beauty existe por una razón y aun así no te alcanza el milagro.',
+      '[nombre], tienes el tipo de fealdad que no se arregla con corte ni actitud. Hardware, no software, fracasado.',
+      'Fea de espejo roto, [nombre]: ni siete años de mala suerte compensan lo que se ve cuando te enfocas bien.',
+      '[nombre], si te etiquetan en una foto, la gente entra solo para reírse. Engagement de pena ajena, no de deseo.',
+      '[nombre], tu cara hace que el modo retrato active el modo pánico. El algoritmo prefiere recortarte del frame.',
+      'Fea de las que el ring light parece interrogatorio, [nombre]. Cuanta más luz, peor el veredicto. Apaga eso.',
+      '[nombre], no es "estilo único": es desastre simétrico. El marketing personal no tapa un informe en rojo.',
+      '[nombre], tienes una presencia facial que baja el promedio de la foto de grupo sin esfuerzo. Logro miserable.',
+      'Fea de archivo adjunto que nadie abre, [nombre]. Preview suficiente para decir que no, gracias, basura.',
+      '[nombre], el atractivo no es un derecho humano. En tu caso es mitología. El material te desmintió en 4K.',
+      '[nombre], tienes cara de que el maquillaje se aplica en defensa propia. Y aun así pierde cada mañana.',
+      'Fea de las que el visor se niega a colaborar, [nombre]. La cámara frontal merece hazard pay y sindicato.',
+      '[nombre], si la fealdad tuviera ranking, estarías en el podio con himno de fondo. Medalla de plomo, patético.',
+      '[nombre], el ring light delata en vez de favorecer. Cada lumen es testigo en tu contra, fracasado El chat ya lo archivó sin debate.',
+      '[nombre], pediste nitidez y la nitidez te delató. El soft focus era tu último amigo, basura El material no deja margen a la duda.',
+      '[nombre], el cloud borra tu selfie por piedad. Hasta la nube tiene compasión selectiva, [nombre] Documentado en cada selfie sin filtro.',
+      '[nombre], el espejo del baño tiene más criterio que tu círculo de "estás bien". Ellos mienten El espejo firmó antes que el comando.',
+      '[nombre], discutirle al espejo no cambia el material. El vidrio informa, no negocia, ridículo Sin recurso ni segunda oportunidad visual.',
+      '[nombre], apagar la luz es el único filtro que te funciona. El resto es teatro, patético El ranking facial del grupo no negocia.',
+      '[nombre], el espejo firma el veredicto antes de que el bot abra el comando. Coincidencia cruel Hasta el sticker tiene más carisma que tú.',
+      '[nombre], el maquillaje te dura menos que la esperanza de que hoy se ve mejor. Spoiler: no La autoestima de prestado se embarga sola.',
+      '[nombre], capas de base no tapan un problema de fábrica. El marketing personal tiene límite El tramo high solo certifica lo evidente.',
+      '[nombre], el modo belleza devuelve null. Exception: beauty not found. Reinicia. Sigue igual Basura con wifi y pretensión de portada.',
+      '[nombre], el group foto se edita en silencio. Crop estratégico. Tú eras el problema del frame El chat ya lo archivó sin debate.',
+      '[nombre], el grupo aprende el crop antes que tu nombre. Prioridades claras del chat, basura El material no deja margen a la duda.',
+      '[nombre], foto grupal sin [nombre] se volvió política no escrita. Evolución natural del hilo Documentado en cada selfie sin filtro.',
+      '[nombre], te recortan por higiene visual. Si fuera contagioso, ya habría cuarentena, ridículo El espejo firmó antes que el comando.',
+      '[nombre], el fondo gana más carisma que tú. Hasta la pared es mejor personaje secundario Sin recurso ni segunda oportunidad visual.',
+      '[nombre], el algoritmo prefiere un anuncio de seguros a tu cara. Prioridades del feed, [nombre] El ranking facial del grupo no negocia.',
+      '[nombre], cuando el chat necesita ejemplo de desastre facial, te etiquetan. Eres la plantilla Hasta el sticker tiene más carisma que tú.',
+      '[nombre], el like es de compromiso y el comentario un punto. Nadie se arriesga a más, patético La autoestima de prestado se embarga sola.',
+      '[nombre], el atractivo te miró, suspiró y siguió. No dejó tarjeta ni esperanza, basura El tramo high solo certifica lo evidente.',
+      '[nombre], el atractivo te puso lista de espera y la lista se cerró. Sin turno. Sin milagro Basura con wifi y pretensión de portada.',
+      '[nombre], el atractivo te auditó y el balance salió en rojo. Sin capital que salve el trimestre El chat ya lo archivó sin debate.',
+      '[nombre], el atractivo te dejó en visto hace años. Sin doble check azul en tu historial visual El material no deja margen a la duda.',
+      '[nombre], el atractivo te puso un wall y tiró la llave. Solo queda el espejo de las siete Documentado en cada selfie sin filtro.',
+      '[nombre], el atractivo firmó el desahucio de tu ego. Orden de desalojo visual sin prórroga El espejo firmó antes que el comando.',
+      '[nombre], si la belleza fuera crédito, lista negra del bureau. Score visual en números rojos Sin recurso ni segunda oportunidad visual.',
+      '[nombre], si la belleza fuera un club, el portero te conoce de vista por malos motivos El ranking facial del grupo no negocia.',
+      '[nombre], si la belleza fuera GPS, fuera de cobertura permanente. Recalculando… error infinito Hasta el sticker tiene más carisma que tú.',
+      '[nombre], si la belleza fuera examen, suspenso histórico. Sin recuperatorio que te salve, [nombre] La autoestima de prestado se embarga sola.',
+      '[nombre], si la belleza fuera contrato, nulidad por vicio de origen. Hardware nulo, basura El tramo high solo certifica lo evidente.',
+      '[nombre], si la belleza fuera app, dispositivo no compatible. Fuera de soporte, patético Basura con wifi y pretensión de portada.',
+      '[nombre], el deseo colectivo pidió la baja el día que te enfocaron en HD. Documentado El chat ya lo archivó sin debate.',
+      '[nombre], el ranking no negocia simpatía cuando el hardware grita tan alto. El número te mide El material no deja margen a la duda.',
+      '[nombre], "esto no salía en el ensayo". El estreno es peor. El público no pide bis, ridículo Documentado en cada selfie sin filtro.',
+      '[nombre], no hay ángulo de gracia: hay ángulos de menos daño. El menos malo igual duele El espejo firmó antes que el comando.',
+      '[nombre], hipótesis de atractivo falsificada cada mañana por el espejo. Ciencia dura, [nombre] Sin recurso ni segunda oportunidad visual.',
+      '[nombre], selfie que se borra sola por piedad. El rollo tiene más empatía que tu ego El ranking facial del grupo no negocia.',
+      '[nombre], cara de "tiene buen corazón" porque no pueden decir otra cosa sin perjurar Hasta el sticker tiene más carisma que tú.',
+      '[nombre], te miran para validar su suerte. Al menos no soy [nombre]. Servicio de contraste La autoestima de prestado se embarga sola.',
+      '[nombre], evento de riesgo laboral para el retratista. Cobran extra y aun así tiemblan El tramo high solo certifica lo evidente.',
+      '[nombre], simetría diseñada por alguien que odiaba a la humanidad. Incluido tú, basura Basura con wifi y pretensión de portada.',
+      '[nombre], "es interesante" quiere decir "es difícil de mirar". Traducción del cumplido flojo El chat ya lo archivó sin debate.',
+      '[nombre], de reojo no es coquetería: es daño colateral. De frente duele más, patético El material no deja margen a la duda.',
+      '[nombre], tutorial de cómo no salir en la foto. El grupo ya aprendió la lección contigo Documentado en cada selfie sin filtro.',
+      '[nombre], archivo que pesa más en vergüenza que en megas. Nadie lo descarga dos veces El espejo firmó antes que el comando.',
+      '[nombre], "sonríe" suena a amenaza. Sonreír empeora el radio de daño, [nombre] Sin recurso ni segunda oportunidad visual.',
+      '[nombre], close-up no es arte: es autopsia. Forense visual firmó causa: hardware El ranking facial del grupo no negocia.',
+      '[nombre], "buenos días" se convierte en acto de valor. El café no alcanza para mirarte Hasta el sticker tiene más carisma que tú.',
+      '[nombre], el "quiérete" tiene límites prácticos. El espejo pone el tope cada mañana La autoestima de prestado se embarga sola.',
+      '[nombre], veredicto sin recurso. Primera instancia, única instancia, archivo cerrado El tramo high solo certifica lo evidente.',
+      '[nombre], el peluquero cobra y pide que no lo menciones. Producto no conforme otra vez Basura con wifi y pretensión de portada.',
+      '[nombre], error 404 beauty not found. Reinicia. Formatea. Sigue sin aparecer, ridículo El chat ya lo archivó sin debate.',
+      '[nombre], "está bien de cara" es sarcasmo de alto nivel. No está bien. Punto. Material El material no deja margen a la duda.',
+      '[nombre], más arreglos pendientes que un edificio en ruinas. Milagros agotados, basura Documentado en cada selfie sin filtro.',
+      '[nombre], te miran para calibrar su autoestima al alza. Gracias por el servicio, patético El espejo firmó antes que el comando.',
+      '[nombre], argumento final contra "todo el mundo es hermoso". El material tiene veto Sin recurso ni segunda oportunidad visual.',
+      '[nombre], maquillaje es negociar con un terremoto. Mañana vuelve el temblor, [nombre] El ranking facial del grupo no negocia.',
+      '[nombre], close-up con consentimiento informado. Quien mira asume el riesgo emocional Hasta el sticker tiene más carisma que tú.',
+      '[nombre], bajas el valor inmobiliario de la foto de grupo. Nadie quiere vivir a tu lado La autoestima de prestado se embarga sola.',
+      '[nombre], el algoritmo entierra tu selfie bajo el feed. La IA tiene piedad selectiva El tramo high solo certifica lo evidente.',
+      '[nombre], "tiene personalidad" porque se acabó el diccionario de insultos suaves, ridículo Basura con wifi y pretensión de portada.',
+      '[nombre], si la fealdad fuera trabajo, asalariado del mes. Constancia en el desastre El chat ya lo archivó sin debate.',
+      '[nombre], ring light como quirófano. Operación fallida. Paciente sin mejora, basura El material no deja margen a la duda.',
+      '[nombre], ego que ignora la evidencia. El espejo es el fiscal y ya ganó el juicio Documentado en cada selfie sin filtro.',
+      '[nombre], el atractivo no discute: te exhibe. El grupo toma nota sin narrador, [nombre] El espejo firmó antes que el comando.',
+      '[nombre], informe sin segunda opinión. Primera vista basta. Segunda es ensañamiento Sin recurso ni segunda oportunidad visual.',
+      '[nombre], de lejos borrón; de cerca veredicto. Acércate y confirma el daño, patético El ranking facial del grupo no negocia.',
+      '[nombre], cotizas en el mercado de la pena ajena. Alto volumen, cero deseo, basura Hasta el sticker tiene más carisma que tú.',
+      '[nombre], close-up con daño emocional al espectador. Menores no admitidos al frame La autoestima de prestado se embarga sola.',
+      '[nombre], simetría hostil. El ojo pide tregua y el hueso no firma, ridículo El tramo high solo certifica lo evidente.',
+      '[nombre], el saludo se traba en la garganta. Hasta "buenos días" tiene estándares Basura con wifi y pretensión de portada.',
+      '[nombre], más capas de maquillaje que de esperanza. La esperanza se agotó primero El chat ya lo archivó sin debate.',
+      '[nombre], error de casting del group selfie. El fondo gana mejor actor secundario El material no deja margen a la duda.',
+      '[nombre], modo retrato activa evacuación. El teléfono quiere salir de ahí, [nombre] Documentado en cada selfie sin filtro.',
+      '[nombre], el ring light te procesa. Veredicto público y cruel. Sin apelación visual El espejo firmó antes que el comando.',
+      '[nombre], el disco duro mueve tu selfie a la papelera solo. Hasta el hardware tiene criterio Sin recurso ni segunda oportunidad visual.',
+      '[nombre], "esto no era el plan del genético". El plan falló. El espejo lo recuerda diario El ranking facial del grupo no negocia.',
+      '[nombre], si la fealdad fuera podcast, episodio top por pena ajena, no por fans, basura Hasta el sticker tiene más carisma que tú.',
+      '[nombre], el flash pide abogado antes del click. Nadie quiere la demanda por daño visual La autoestima de prestado se embarga sola.',
+      '[nombre], mito de atractivo muerto en la primera foto real. Fin de la leyenda, patético El tramo high solo certifica lo evidente.',
+      '[nombre], maquillaje es tregua humanitaria. Caduca al mediodía. El hueso no respeta tratados Basura con wifi y pretensión de portada.',
+      '[nombre], close-up clasificación X. El estómago avisa antes que los ojos, [nombre] El chat ya lo archivó sin debate.',
+      '[nombre], el piropo sincero se extinguió en tu código postal. Especie en peligro El material no deja margen a la duda.',
+      '[nombre], de frente el cerebro pide buffer. El buffer no llega. Parpadeo de emergencia Documentado en cada selfie sin filtro.',
+      '[nombre], presencia igual a extinción del deseo colectivo. Documentado y firmado, ridículo El espejo firmó antes que el comando.',
+      '[nombre], cada lumen del ring light es prueba en tu contra. Fiscal de la luz, basura Sin recurso ni segunda oportunidad visual.',
+      '[nombre], el cloud marca tu selfie como sensible y la oculta. Favor de la privacidad El ranking facial del grupo no negocia.',
+      '[nombre], simetría de burla. No trágica: cómica. El chiste eres tú y el grupo ya rio Hasta el sticker tiene más carisma que tú.',
+      '[nombre], si la belleza fuera derecho, demanda desestimada con costas. Sin recurso La autoestima de prestado se embarga sola.',
+      '[nombre], "mala racha" insulta al calendario. No es racha: es planta fija, [nombre] El tramo high solo certifica lo evidente.',
+      '[nombre], el atractivo te dio de baja sin cotizar prestación. Sin paro visual, patético Basura con wifi y pretensión de portada.',
+      '[nombre], la actitud no negocia la fealdad. La actitud empeora el contraste, basura El chat ya lo archivó sin debate.',
+      '[nombre], modo retrato devuelve error de sistema. Beauty not found, ridículo El material no deja margen a la duda.',
+      '[nombre], inventaron "mejor de lejos" por casos como el tuyo. De cerca es delito de daño Documentado en cada selfie sin filtro.',
+      '[nombre], close-up con efectos permanentes en quien mira. Daño colateral certificado El espejo firmó antes que el comando.',
+      '[nombre], "te ves bien hoy" es perjurio. El tribunal del espejo te condena, [nombre] Sin recurso ni segunda oportunidad visual.',
+      '[nombre], si la fealdad fuera clima, invierno permanente. Sin deshielo. Solo escarcha en el ego El ranking facial del grupo no negocia.',
+      '[nombre], el crop del group selfie es arte del escape. Artistas del recorte, basura Hasta el sticker tiene más carisma que tú.',
+      '[nombre], rumor de atractivo asesinado por la primera foto. Fin de la investigación La autoestima de prestado se embarga sola.',
+      '[nombre], ring light igual a museo de horrores. Visita guiada. No tocar. No mirar mucho El tramo high solo certifica lo evidente.',
+      '[nombre], tu selfie debería pagar impuesto por daño al feed. Multa visual, patético Basura con wifi y pretensión de portada.',
+      '[nombre], más ángulos de escape que de favor. El que mira usa el escape, no la cámara El chat ya lo archivó sin debate.',
+      '[nombre], el tramo high es metrología. El número te mide y el material confirma, [nombre] El material no deja margen a la duda.',
+      '[nombre], sentencia firme: sin filtro, sin ángulo, sin milagro. El bot lee el espejo Documentado en cada selfie sin filtro.',
+      '[nombre], "sonríe más" es una trampa. Sonreír aumenta el radio de daño, ridículo El espejo firmó antes que el comando.',
+      '[nombre], pozo de gravedad facial: absorbe likes, esperanza y ganas de otra foto Sin recurso ni segunda oportunidad visual.',
+      '[nombre], plantilla histórica de desastre facial del chat. Cuando hace falta ejemplo, te etiquetan El ranking facial del grupo no negocia.',
+      '[nombre], el material no discute. El tramo high te nombra y el espejo aplaude, basura Hasta el sticker tiene más carisma que tú.',
+      '[nombre], el bar baja la luz cuando entras. Instinto de supervivencia del ambiente, [nombre] La autoestima de prestado se embarga sola.',
+      '[nombre], el selfie stick se acorta solo. El plástico tiene más dignidad que tu ego El tramo high solo certifica lo evidente.',
+      '[nombre], el visor se niega. La cámara frontal pide traslado de dispositivo, patético Basura con wifi y pretensión de portada.',
+      '[nombre], el fotógrafo entrega con nota de condolencias. Producto sin garantía, ridículo El chat ya lo archivó sin debate.',
+      '[nombre], el espejo del gym no es cómplice. El vidrio también tiene ética, [nombre] El material no deja margen a la duda.',
+      '[nombre], el espejo prefiere empañarse. El vapor es el único favor que te hacen Documentado en cada selfie sin filtro.',
+      '[nombre], el espejo prefiere romperse. Siete años de mala suerte son poco, basura El espejo firmó antes que el comando.',
+      '[nombre], el espejo del baño pide vacaciones. El azulejo está quemado de verte, patético Sin recurso ni segunda oportunidad visual.',
+      '[nombre], el filtro natural se siente sarcástico. Hasta el software se ríe, ridículo El ranking facial del grupo no negocia.',
+      '[nombre], el filtro agresivo te deja reconocible y ese es el problema, [nombre] Hasta el sticker tiene más carisma que tú.',
+      '[nombre], el botón de desenfoque existe por ti. Úsalo. Es lo más generoso que puedes hacer La autoestima de prestado se embarga sola.',
+      '[nombre], el group selfie se vota sin ti en silencio. Democracia cruel y eficiente, basura El tramo high solo certifica lo evidente.',
+      '[nombre], presencia en la foto es impuesto al bienestar colectivo. Todos pagan odio Basura con wifi y pretensión de portada.',
+      '[nombre], el bokeh se siente mal de cómplice. El fondo pide asilo lejos de ti, [nombre] El chat ya lo archivó sin debate.',
+      '[nombre], el atractivo pasó de largo sin nota. Hardware de mala suerte, piel sin perdón El material no deja margen a la duda.',
+      '[nombre], el atractivo te dio alta sin tratamiento. Fea de informe médico cerrado Documentado en cada selfie sin filtro.',
+      '[nombre], cotizas en negativo. El mercado visual del chat no miente, patético El espejo firmó antes que el comando.',
+      '[nombre], horario restringido: distancia y poca luz. En HD eres evento de riesgo, basura Sin recurso ni segunda oportunidad visual.',
+      '[nombre], "borra y vuelve a sacar" permanente. El like sincero no existe en tu feed El ranking facial del grupo no negocia.',
+      '[nombre], dos segundos cortesía, el tercero tortura. Cronómetro social, [nombre] Hasta el sticker tiene más carisma que tú.',
+      '[nombre], modo paisaje inventado por tu cara. El retrato se niega a colaborar, ridículo La autoestima de prestado se embarga sola.',
+      '[nombre], más ángulos muertos que blindado. Ninguno favorecedor, qué miseria visual El tramo high solo certifica lo evidente.',
+      '[nombre], selfie modo noche a pleno sol. El sensor se rinde, el ego no, patético Basura con wifi y pretensión de portada.',
+      '[nombre], belleza objetiva: eres el contraejemplo de libro. El material sentencia El chat ya lo archivó sin debate.',
+      '[nombre], espejo de ascensor finge ocupado. Nadie quiere tu reflejo compartido, [nombre] El material no deja margen a la duda.',
+      '[nombre], atractivo te bloqueó sin forwarding. Spam visual directo, basura Documentado en cada selfie sin filtro.',
+      '[nombre], Beauty existe por una razón y no te alcanza el milagro, fracasado El espejo firmó antes que el comando.',
+      '[nombre], fealdad de hardware. Corte y actitud no parchean fábrica, ridículo Sin recurso ni segunda oportunidad visual.',
+      '[nombre], espejo roto: ni siete años compensan el enfoque nítido, [nombre] El ranking facial del grupo no negocia.',
+      '[nombre], etiquetan y entran a reírse. Engagement de pena ajena, no de deseo Hasta el sticker tiene más carisma que tú.',
+      '[nombre], modo retrato igual a modo pánico. El algoritmo te recorta del frame La autoestima de prestado se embarga sola.',
+      '[nombre], ring light interrogatorio. Más luz, peor veredicto. Apaga eso, basura El tramo high solo certifica lo evidente.',
+      '[nombre], no es estilo único: es desastre simétrico. Informe en rojo, patético Basura con wifi y pretensión de portada.',
+      '[nombre], bajas el promedio del group sin esfuerzo. Logro miserable, [nombre] El chat ya lo archivó sin debate.',
+      '[nombre], archivo que nadie abre. Preview basta para el no, gracias, ridículo El material no deja margen a la duda.',
+      '[nombre], atractivo no es derecho humano. Mitología desmentida en 4K, basura Documentado en cada selfie sin filtro.',
+      '[nombre], maquillaje en defensa propia y pierde igual cada mañana, patético El espejo firmó antes que el comando.',
+      '[nombre], visor en huelga. Cámara frontal con sindicato, [nombre] Sin recurso ni segunda oportunidad visual.',
+      '[nombre], fealdad con podio e himno. Medalla de plomo en el ranking facial El ranking facial del grupo no negocia.',
+      '[nombre], el tramo high no consuela: certifica. El espejo ya había firmado antes, basura Hasta el sticker tiene más carisma que tú.',
+      '[nombre], cada selfie sin filtro es una confesión. El chat solo la lee en voz alta, patético La autoestima de prestado se embarga sola.',
+      '[nombre], el material grita y tú pones música de fondo. El volumen del hueso gana, ridículo El tramo high solo certifica lo evidente.',
+      '[nombre], no hay segunda oportunidad para un primer close-up. El primero ya fue letal, [nombre] Basura con wifi y pretensión de portada.'
     ],
     mid: [
       'Tienes un rasgo bueno rodeado de rasgos normales. Ese rasgo está haciendo un esfuerzo enorme, dale las gracias.',
