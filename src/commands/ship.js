@@ -205,207 +205,107 @@ const VERDICTS = {
 
 ],
   high: [
-    'Alto. Hay drift, hay tensión, hay material de ship que el grupo ya olió. El ranking lo deja bastante claro.',
-
-    'Compatibilidad alta. No es pleno, pero el arco se ve sin forzar. El ranking lo deja bastante claro.',
-
-    'Alto de los que ilusionan con razón: la química está y se nota. El ranking lo deja bastante claro.',
-
-    'Ship sólido. Falta un empujón para el pleno, sobra base. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Compatibilidad de las que el chat comenta en serio. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto. No es cuento: el cálculo respalda el runoreo del grupo. El ranking lo deja bastante claro.',
-
-    'Ship con sustancia. La tensión no es invento del comando. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto de verdad. El pleno está cerca si el universo no es cabrón. El ranking lo deja bastante claro.',
-
-    'Compatibilidad alta: piezas que encajan con roce interesante. El ranking lo deja bastante claro.',
-
-    'Ship que se sostiene solo. El número solo confirma. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto. Hay arco, hay roce, hay motivo para mirar dos veces. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Compatibilidad de las que duelen si no se consuman. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto. El grupo lo veía: el bot pone el porcentaje. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Ship con base real. No es cope, es cálculo. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto de los limpios: química sin necesidad de guion forzado. El ranking lo deja bastante claro.',
-
-    'Compatibilidad alta y legible en el día a día del chat. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto. El pleno es tentación, no fantasía. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Ship con tensión de la buena: la que no se apaga sola. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto. Material de pareja con número que no miente. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Compatibilidad de quienes ya se buscan en el hilo sin decirlo. El ranking lo deja bastante claro.',
-
-    'Alto. Falta poco para el cien y el poco se siente. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Ship sólido documentado. El chat puede dejar de fingir sorpresa. El ranking lo deja bastante claro.',
-
-    'Alto de verdad. La química tiene expediente. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Compatibilidad alta: el roce produce chispa, no solo roce. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto. El arco está escrito a medias y pide final. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Ship con sustancia suficiente para el rumor serio. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto. No es el pleno y aun así pesa. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Compatibilidad de las que el grupo banca en silencio. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto. El número respalda lo que ya se comentaba. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Ship con base: el resto es decisión de ellos, no del bot. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto de los claros. La tensión no es un malentendido. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Compatibilidad alta y de cope. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto. Hay match de verdad, no de relleno. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Ship que se sostiene en el cálculo y en el chat. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto. El pleno está a un mal día de distancia o a un buen sí. El ranking lo deja bastante claro.',
-
-    'Compatibilidad de quienes ya ocupan espacio mental ajeno. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto. Material de pareja con porcentaje que no pide fe. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Ship sólido: el grupo puede dejar el cinismo un segundo. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto de verdad. La química no es un rumor vacío. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Compatibilidad alta legible sin forzar el relato. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto. Falta el cierre, sobra la base. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Ship con arco real. El número es el subtítulo. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto. El chat lo olió antes que el comando. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Compatibilidad de las que duelen por lo cerca que están del pleno. El ranking lo deja bastante claro.',
-
-    'Alto. No es cuento chino: es porcentaje con sustancia. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Ship con tensión que no se apaga al cambiar de hilo. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto de los limpios: match sin necesidad de milagro. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Compatibilidad alta y el grupo lo sabe. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto. El bot confirma, no inventa. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Ship sólido documentado sin drama falso. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto. Hay drift de pareja, no solo de amistad de chat. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Compatibilidad de quienes ya se eligen en las bromas del grupo. El ranking lo deja bastante claro.',
-
-    'Alto. El pleno es el siguiente tramo natural, no un salto imposible. El ranking lo deja bastante claro.',
-
-    'Ship con base y con roce. El número pesa. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto de verdad. La química tiene testigos en el hilo. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Compatibilidad alta: piezas que encajan con historia. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto. Material suficiente para que el rumor sea legítimo. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Ship que se sostiene solo ante el cálculo. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Alto. El grupo puede dejar de hacerse el sorprendido. El ranking lo deja bastante claro y el grupo ya lo tiene claro.',
-
-    'Compatibilidad de las que piden un sí o un no claro, no un mediocre. El ranking lo deja bastante claro.',
-
-    'Fuerte. No es perfecto, pero el aire cambia cuando salen juntos, cabrón.',
-
-    'Alto de verdad. El chat ya está shippeando sin pedir permiso, gilipollas.',
-
-    'Buena química. El ranking lo marca y el resto inventa excusas, mierda',
-
-    'Ship alto. Hay historia aunque lo nieguen, coño',
-
-    'Tensión real. No es fanfic: el número habla, asco',
-
-    'Alto. El grupo ve lo que ellos fingen no ver, patético',
-
-    'Fuerte compatibilidad. Casi molesta de lo obvio, basura',
-
-    'Ship de los que el hilo adelanta el final, ridículo',
-
-    'Alto. Material de drama sostenible, fracasado',
-
-    'Hay drift de puta madre. El marcador no miente',
-
-    'Química alta. El chat ya tiene el ship name, cabrón',
-
-    'Fuerte. Casi perfecto y por eso da más rabia, gilipollas',
-
-    'Ship alto documentado. Sin anestesia, mierda',
-
-    'Tensión que se corta. El ranking aplaude, coño',
-
-    'Alto. Ellos en negación, el grupo en modo crónica, asco',
-
-    'Buena pareja de fail compartido, patético',
-
-    'Ship que se siente en cada respuesta cruzada, basura',
-
-    'Fuerte. No necesita narrador, ridículo',
-
-    'Alto de los que el almost duele, fracasado',
-
-    'Hay material. Y de sobra',
-
-    'Química de las que no se improvisan, cabrón',
-
-    'Ship alto. El chat ya cobró entrada, gilipollas',
-
-    'Fuerte compatibilidad con olor a drama, mierda',
-
-    'Alto. El número cierra el caso, coño',
-
-    'Tensión real en un grupo de cínicos, asco',
-
-    'Ship que el ranking no discute, patético',
-
-    'Buena química, peor para el resto del hilo, basura',
-
-    'Alto. Casi perfectos y se nota, ridículo',
-
-    'Fuerte. Sin derecho a fingir lo contrario, fracasado',
-
-    'Hay drift. El grupo ya eligió bando',
-
-    'Ship alto con potencial de incendio, cabrón',
-
-    'Química que molesta de lo clara, gilipollas',
-
-    'Fuerte. El marcador no pide opiniones, mierda',
-
-    'Alto de verdad. Archivado, coño',
-
-    'Tensión de la que se traduce en memes, asco',
-
-    'Ship que se ve venir a la legua, patético',
-
-    'Buena pareja según el bot y según el chisme, basura',
-
-    'Alto. Casi el techo, ridículo',
-
-    'Fuerte compatibilidad sin anestesia, fracasado',
-
-    'Alto de los que el almost duele, fracasado',
-
-],
+    'Ship alto. Hay drift y tensión que el grupo ya olió. El archivo del chat lo confirma, basura El número no miente y el chisme tampoco.',
+    'Match elevado: químicamente inestables y aun así orbitan. Documentado en el hilo, patético El número no miente y el chisme tampoco.',
+    'Alto de verdad. Falla compartida con wifi y emoticonos. El grupo ya tomó nota, ridículo El número no miente y el chisme tampoco.',
+    'Ship alto. Se van a hacer daño con estilo de novela mala. El archivo del chat lo confirma, cabrón El número no miente y el chisme tampoco.',
+    'Match elevado: se entienden demasiado bien en lo peor. Documentado en el hilo, pringado El número no miente y el chisme tampoco.',
+    'Alto de verdad. Chispa y gasolina en el mismo hilo. El grupo ya tomó nota, cutre El número no miente y el chisme tampoco.',
+    'Ship alto. El número grita lo que ellos susurran. El archivo del chat lo confirma, qué asco El número no miente y el chisme tampoco.',
+    'Match elevado: dos taras que se reconocen al primer mensaje. Documentado en el hilo, qué miseria El número no miente y el chisme tampoco.',
+    'Alto de verdad. El grupo ya apartó las sillas para el show. El grupo ya tomó nota, basura El número no miente y el chisme tampoco.',
+    'Ship alto. Diagnóstico de “termina mal y es divertido”. El archivo del chat lo confirma, patético El número no miente y el chisme tampoco.',
+    'Match elevado: el historial del hilo hizo de cupido cruel. Documentado en el hilo, ridículo El número no miente y el chisme tampoco.',
+    'Alto de verdad. Se miran como quien no puede dejar un accidente. El grupo ya tomó nota, cabrón El número no miente y el chisme tampoco.',
+    'Ship alto. El solo amigos es el chiste del año. El archivo del chat lo confirma, pringado El número no miente y el chisme tampoco.',
+    'Match elevado: compatibilidad que duele a terceros. Documentado en el hilo, cutre El número no miente y el chisme tampoco.',
+    'Alto de verdad. El contador de química solo imprime. El grupo ya tomó nota, qué asco El número no miente y el chisme tampoco.',
+    'Ship alto. Puzzle de piezas rotas que igual arman figura. El archivo del chat lo confirma, qué miseria.',
+    'Match elevado: el universo los juntó por contenido no por bondad. Documentado en el hilo, basura El número no miente y el chisme tampoco.',
+    'Alto de verdad. Hay plot, negación del plot y público. El grupo ya tomó nota, patético El número no miente y el chisme tampoco.',
+    'Ship alto. El silencio del chat también shippea. El archivo del chat lo confirma, ridículo El número no miente y el chisme tampoco.',
+    'Match elevado: dos egos que encontraron eco de cristal. Documentado en el hilo, cabrón El número no miente y el chisme tampoco.',
+    'Alto de verdad. Peligroso con emoticonos y sin frenos. El grupo ya tomó nota, pringado El número no miente y el chisme tampoco.',
+    'Ship alto. Podio de tensión en cartón mojado. El archivo del chat lo confirma, cutre El número no miente y el chisme tampoco.',
+    'Match elevado: se leen la mente en lo tóxico. Documentado en el hilo, qué asco El número no miente y el chisme tampoco.',
+    'Alto de verdad. Apuestas internas del grupo ya abiertas. El grupo ya tomó nota, qué miseria El número no miente y el chisme tampoco.',
+    'Ship alto. Química de laboratorio ilegal. El archivo del chat lo confirma, basura El número no miente y el chisme tampoco.',
+    'Match elevado: cortocircuito anunciado en el hilo. Documentado en el hilo, patético El número no miente y el chisme tampoco.',
+    'Alto de verdad. Jajaja de más como evidencia. El grupo ya tomó nota, ridículo El número no miente y el chisme tampoco.',
+    'Ship alto. Se aguantan lo que nadie más aguanta. El archivo del chat lo confirma, cabrón El número no miente y el chisme tampoco.',
+    'Match elevado: el comando confirma el chisme. Documentado en el hilo, pringado El número no miente y el chisme tampoco.',
+    'Alto de verdad. Plot de meses en dos miradas. El grupo ya tomó nota, cutre El número no miente y el chisme tampoco.',
+    'Ship alto. Dos desastres con GPS al mismo punto. El archivo del chat lo confirma, qué asco El número no miente y el chisme tampoco.',
+    'Match elevado: modo peor versión activado en pareja. Documentado en el hilo, qué miseria El número no miente y el chisme tampoco.',
+    'Alto de verdad. El no es por ahí es el primer capítulo. El grupo ya tomó nota, basura El número no miente y el chisme tampoco.',
+    'Ship alto. Código basura compartido. El archivo del chat lo confirma, patético El número no miente y el chisme tampoco.',
+    'Match elevado: frente frío de drama en el hilo. Documentado en el hilo, ridículo El número no miente y el chisme tampoco.',
+    'Alto de verdad. Tensión sexual y de pelea a la vez. El grupo ya tomó nota, cabrón El número no miente y el chisme tampoco.',
+    'Ship alto. Se buscan sin buscarse. El archivo del chat lo confirma, pringado El número no miente y el chisme tampoco.',
+    'Match elevado: desastre nítido sin filtro. Documentado en el hilo, cutre El número no miente y el chisme tampoco.',
+    'Alto de verdad. Próximo mensaje cruzado como prueba. El grupo ya tomó nota, qué asco El número no miente y el chisme tampoco.',
+    'Ship alto. Química impura que funciona aquí. El archivo del chat lo confirma, qué miseria El número no miente y el chisme tampoco.',
+    'Match elevado: experimento con butacas vendidas. Documentado en el hilo, basura El número no miente y el chisme tampoco.',
+    'Alto de verdad. Material de ship y de roast pack. El grupo ya tomó nota, patético El número no miente y el chisme tampoco.',
+    'Ship alto. Amigues como disfraz translúcido. El archivo del chat lo confirma, ridículo El número no miente y el chisme tampoco.',
+    'Match elevado: quién escribe primero ya perdió y ganó. Documentado en el hilo, cabrón El número no miente y el chisme tampoco.',
+    'Alto de verdad. Luces de freno que frenan tarde. El grupo ya tomó nota, pringado El número no miente y el chisme tampoco.',
+    'Ship alto. Ranking de tensión sin mentiras. El archivo del chat lo confirma, cutre El número no miente y el chisme tampoco.',
+    'Match elevado: error de software que igual corre. Documentado en el hilo, qué asco El número no miente y el chisme tampoco.',
+    'Alto de verdad. Abono colectivo al drama. El grupo ya tomó nota, qué miseria El número no miente y el chisme tampoco.',
+    'Ship alto. Miradas que pesan más que párrafos. El archivo del chat lo confirma, basura El número no miente y el chisme tampoco.',
+    'Match elevado: cifra a lo obvio que ya dolía. Documentado en el hilo, patético El número no miente y el chisme tampoco.',
+    'Alto de verdad. Hay drift y tensión que el grupo ya olió. El grupo ya tomó nota, ridículo El número no miente y el chisme tampoco.',
+    'Ship alto. Químicamente inestables y aun así orbitan. El archivo del chat lo confirma, cabrón El número no miente y el chisme tampoco.',
+    'Match elevado: falla compartida con wifi y emoticonos. Documentado en el hilo, pringado El número no miente y el chisme tampoco.',
+    'Alto de verdad. Se van a hacer daño con estilo de novela mala. El grupo ya tomó nota, cutre El número no miente y el chisme tampoco.',
+    'Ship alto. Se entienden demasiado bien en lo peor. El archivo del chat lo confirma, qué asco El número no miente y el chisme tampoco.',
+    'Match elevado: chispa y gasolina en el mismo hilo. Documentado en el hilo, qué miseria El número no miente y el chisme tampoco.',
+    'Alto de verdad. El número grita lo que ellos susurran. El grupo ya tomó nota, basura El número no miente y el chisme tampoco.',
+    'Ship alto. Dos taras que se reconocen al primer mensaje. El archivo del chat lo confirma, patético El número no miente y el chisme tampoco.',
+    'Match elevado: el grupo ya apartó las sillas para el show. Documentado en el hilo, ridículo El número no miente y el chisme tampoco.',
+    'Alto de verdad. Diagnóstico de “termina mal y es divertido”. El grupo ya tomó nota, cabrón El número no miente y el chisme tampoco.',
+    'Ship alto. El historial del hilo hizo de cupido cruel. El archivo del chat lo confirma, pringado El número no miente y el chisme tampoco.',
+    'Match elevado: se miran como quien no puede dejar un accidente. Documentado en el hilo, cutre El número no miente y el chisme tampoco.',
+    'Alto de verdad. El solo amigos es el chiste del año. El grupo ya tomó nota, qué asco El número no miente y el chisme tampoco.',
+    'Ship alto. Compatibilidad que duele a terceros. El archivo del chat lo confirma, qué miseria El número no miente y el chisme tampoco.',
+    'Match elevado: el contador de química solo imprime. Documentado en el hilo, basura El número no miente y el chisme tampoco.',
+    'Alto de verdad. Puzzle de piezas rotas que igual arman figura. El grupo ya tomó nota, patético El número no miente y el chisme tampoco.',
+    'Ship alto. El universo los juntó por contenido no por bondad. El archivo del chat lo confirma, ridículo.',
+    'Match elevado: hay plot, negación del plot y público. Documentado en el hilo, cabrón El número no miente y el chisme tampoco.',
+    'Alto de verdad. El silencio del chat también shippea. El grupo ya tomó nota, pringado El número no miente y el chisme tampoco.',
+    'Ship alto. Dos egos que encontraron eco de cristal. El archivo del chat lo confirma, cutre El número no miente y el chisme tampoco.',
+    'Match elevado: peligroso con emoticonos y sin frenos. Documentado en el hilo, qué asco El número no miente y el chisme tampoco.',
+    'Alto de verdad. Podio de tensión en cartón mojado. El grupo ya tomó nota, qué miseria El número no miente y el chisme tampoco.',
+    'Ship alto. Se leen la mente en lo tóxico. El archivo del chat lo confirma, basura El número no miente y el chisme tampoco.',
+    'Match elevado: apuestas internas del grupo ya abiertas. Documentado en el hilo, patético El número no miente y el chisme tampoco.',
+    'Alto de verdad. Química de laboratorio ilegal. El grupo ya tomó nota, ridículo El número no miente y el chisme tampoco.',
+    'Ship alto. Cortocircuito anunciado en el hilo. El archivo del chat lo confirma, cabrón El número no miente y el chisme tampoco.',
+    'Match elevado: jajaja de más como evidencia. Documentado en el hilo, pringado El número no miente y el chisme tampoco.',
+    'Alto de verdad. Se aguantan lo que nadie más aguanta. El grupo ya tomó nota, cutre El número no miente y el chisme tampoco.',
+    'Ship alto. El comando confirma el chisme. El archivo del chat lo confirma, qué asco El número no miente y el chisme tampoco.',
+    'Match elevado: plot de meses en dos miradas. Documentado en el hilo, qué miseria El número no miente y el chisme tampoco.',
+    'Alto de verdad. Dos desastres con GPS al mismo punto. El grupo ya tomó nota, basura El número no miente y el chisme tampoco.',
+    'Ship alto. Modo peor versión activado en pareja. El archivo del chat lo confirma, patético El número no miente y el chisme tampoco.',
+    'Match elevado: el no es por ahí es el primer capítulo. Documentado en el hilo, ridículo El número no miente y el chisme tampoco.',
+    'Alto de verdad. Código basura compartido. El grupo ya tomó nota, cabrón El número no miente y el chisme tampoco.',
+    'Ship alto. Frente frío de drama en el hilo. El archivo del chat lo confirma, pringado El número no miente y el chisme tampoco.',
+    'Match elevado: tensión sexual y de pelea a la vez. Documentado en el hilo, cutre El número no miente y el chisme tampoco.',
+    'Alto de verdad. Se buscan sin buscarse. El grupo ya tomó nota, qué asco El número no miente y el chisme tampoco.',
+    'Ship alto. Desastre nítido sin filtro. El archivo del chat lo confirma, qué miseria El número no miente y el chisme tampoco.',
+    'Match elevado: próximo mensaje cruzado como prueba. Documentado en el hilo, basura El número no miente y el chisme tampoco.',
+    'Alto de verdad. Química impura que funciona aquí. El grupo ya tomó nota, patético El número no miente y el chisme tampoco.',
+    'Ship alto. Experimento con butacas vendidas. El archivo del chat lo confirma, ridículo El número no miente y el chisme tampoco.',
+    'Match elevado: material de ship y de roast pack. Documentado en el hilo, cabrón El número no miente y el chisme tampoco.',
+    'Alto de verdad. Amigues como disfraz translúcido. El grupo ya tomó nota, pringado El número no miente y el chisme tampoco.',
+    'Ship alto. Quién escribe primero ya perdió y ganó. El archivo del chat lo confirma, cutre El número no miente y el chisme tampoco.',
+    'Match elevado: luces de freno que frenan tarde. Documentado en el hilo, qué asco El número no miente y el chisme tampoco.',
+    'Alto de verdad. Ranking de tensión sin mentiras. El grupo ya tomó nota, qué miseria El número no miente y el chisme tampoco.',
+    'Ship alto. Error de software que igual corre. El archivo del chat lo confirma, basura El número no miente y el chisme tampoco.',
+    'Match elevado: abono colectivo al drama. Documentado en el hilo, patético El número no miente y el chisme tampoco.',
+    'Alto de verdad. Miradas que pesan más que párrafos. El grupo ya tomó nota, ridículo El número no miente y el chisme tampoco.',
+    'Ship alto. Cifra a lo obvio que ya dolía. El archivo del chat lo confirma, cabrón El número no miente y el chisme tampoco.'
+  ],
   mid: [
     'Joder, esto es como pedir una puta pizza y que te llegue sin queso. Funciona, pero para qué coño te molestas.',
 
