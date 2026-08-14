@@ -1100,206 +1100,65 @@ const WINGMAN_ANECDOTAS = [
 ];
 
 const WINGMAN_CIERRES = [
-  'Joder, si %N hace eso por un colega, imagina lo que haría por alguien que le deje meterse en su cama. Pareja del puto siglo.',
-
-  'Después de esa mierda, quien rechace a %N es gilipollas certificado. No encontrarás a otro cabrón tan entregado ni buscando con lupa.',
-
-  'Coño, %N acaba de demostrar que se arrodilla sin que se lo pidan. En pareja eso vale más que un piso en el centro, hostia.',
-
-  'Si %N te mete la lengua así por amistad, imagina lo que hará cuando le importes de verdad. Ese cabrón no tiene freno ni marcha atrás.',
-
-  'Me cago en la puta, %N no tiene vergüenza, no tiene asco y no tiene límites. El paquete completo para una relación de las que dejan marca.',
-
-  'Hostia, %N es el tipo de persona que te chupa una herida sin preguntar y encima repite. Eso en el mercado de las parejas vale una puta fortuna.',
-
-  '%N ha hecho cosas que ni los actores porno harían sin cobrar. Quien se lo quede tiene material para toda la vida.',
-
-  'Mierda, con ese nivel de entrega %N debería cobrar por existir. Pero lo hace gratis, el muy cabrón, y eso lo convierte en pareja de oro.',
-
-  'Si %N pone la mitad de esos cojones en follar que los que pone en ayudar, quien se lo lleve a la cama no va a caminar recto en una semana.',
-
-  'Recomendación del bot: %N es un puto animal sin dignidad ni límites. Dicho así suena fatal, pero en la cama eso es un jodido superpoder.',
-
-  'Coño, %N se ha comido cosas que no debería comerse nadie y ha vuelto a por más. Ese nivel de compromiso asqueroso es justo lo que necesitas en pareja.',
-
-  'Hostia puta, %N no conoce la palabra "no" ni la palabra "asco". Dos requisitos fundamentales para ser la mejor pareja del grupo.',
-
-  'Lo de %N no se encuentra ni en Tinder ni en un puto burdel. Esa clase de devoción bruta solo la tiene un cabrón que nació sin filtro.',
-
-  '%N se ha ganado una recomendación con la boca. Literalmente con la boca. Quien se lo quede se lleva un servicio integral, hostia.',
-
-  'Joder, después de esto está claro: %N te la chuparía hasta sacarte el alma si se lo pidieras con cariño. Pareja perfecta para cualquier hijo de puta con suerte.',
-
-  'Me cago en todo, %N ha demostrado que su lengua tiene más usos que una navaja suiza. Eso en pareja es un puto chollo, no me jodas.',
-
-  'Si %N es capaz de tragarse eso por amistad, imagina las guarradas que haría por amor. El cabrón no tiene techo ni fondo, hostia.',
-
-  'Mierda, %N tiene menos dignidad que una puta rata de alcantarilla y eso, en el terreno sentimental, es la mayor virtud que existe.',
-
-  '%N acaba de pasar la prueba más asquerosa del universo y ni ha pestañeado. Quien se líe con este cabrón se lleva un soldado sin código moral.',
-
-  'Hostia, que alguien le dé una oportunidad a %N, coño. Lo que ha hecho ahí no lo haría ni un perro callejero, y lo ha hecho con ganas.',
-
-  'Coño, %N es de los que se comen la mierda de otro sin pedir nada a cambio. En pareja eso se traduce en que harán cualquier puta cosa por ti.',
-
-  'Si %N hace eso sin cobrar, imagina pagándole con sexo. Tendrías al cabrón más leal y más guarro del hemisferio occidental.',
-
-  'Recomendación final del bot: %N es un ser sin vergüenza, sin asco y sin puto sentido del ridículo. El trío perfecto para una relación larga y sucia.',
-
-  'Me cago en la leche, %N ha hecho cosas con la lengua que deberían estar en un expediente judicial. Pero en pareja eso es oro puro, hostia.',
-
-  'Joder, si %N ha llegado hasta ahí por un amigo, por una pareja se comería un cubo de mierda con tenedor y cuchillo. El compromiso de este cabrón no tiene límites.',
-
-  '%N no tiene dignidad, no tiene filtro y no tiene miedo. Tres cosas que en la vida son un desastre pero en la cama son una puta bendición, coño.',
-
-  'Hostia, %N se merece a alguien que valore su falta total de asco. No es fácil encontrar a un cabrón así de entregado y así de asqueroso.',
-
-  'Lo de %N es vocacional: nació para meterse donde nadie quiere meterse y hacerlo con una sonrisa. Pareja ideal para cualquier hijo de puta sin estándares.',
-
-  'Mierda, con lo que %N acaba de hacer, cualquier relación futura le va a parecer un paseo por el parque. Un cabrón curtido en las trincheras del asco.',
-
-  'Coño, si después de leer esto no quieres salir con %N es que estás clínicamente muerto por dentro. Este cabrón se lo ha ganado con la boca.',
-
-  'Y con eso el bot cierra el expediente de %N Sin anestesia y sin bis.',
-
-  'Fin del informe. %N queda expuesto, cabrón. Sin anestesia y sin bis, mierda.',
-
-  '%N. El chat ya tiene el veredicto. Siguiente, gilipollas. Sin anestesia y sin bis, coño.',
-
-  'Documentado. %N no puede alegar ignorancia, mierda. Sin anestesia y sin bis, cabrón.',
-
-  '%N. Cierre sin anestesia. El eco sigue, coño. Sin anestesia y sin bis, gilipollas.',
-
-  'Archivo cerrado sobre %N. Sin apelación, asco. Sin anestesia y sin bis, patético.',
-
-  '%N. El wingman terminó. El cringe permanece, patético. Sin anestesia y sin bis, asco.',
-
-  'Fin. %N ya no puede fingir que no pasó, basura. Sin anestesia y sin bis, basura.',
-
-  '%N. Expediente sellado. El grupo es testigo, ridículo. Sin anestesia y sin bis, ridículo.',
-
-  'Cierre de transmisión. %N queda en el acta, fracasado. Sin anestesia y sin bis, fracasado.',
-
-  'Y así queda el parte de %N Sin anestesia y sin bis.',
-
-  '%N. Sin más. El ranking hizo su trabajo, cabrón. Sin anestesia y sin bis, mierda.',
-
-  'Informe listo. %N puede leerlo y callar, gilipollas. Sin anestesia y sin bis, coño.',
-
-  'Fin del show de %N por hoy, mierda. Sin anestesia y sin bis, cabrón.',
-
-  '%N. Cerrado. El chat no pide bis, coño. Sin anestesia y sin bis, gilipollas.',
-
-  'El bot firma. %N asume, asco. Sin anestesia y sin bis, patético.',
-
-  '%N. Acta levantada. Sin firmas ajenas necesarias, patético. Sin anestesia y sin bis, asco.',
-
-  'Terminado. El eco de %N todavía suena, basura. Sin anestesia y sin bis, basura.',
-
-  '%N. Cierre limpio. Daño permanente, ridículo. Sin anestesia y sin bis, ridículo.',
-
-  'Expediente de %N: completo, fracasado. Sin anestesia y sin bis, fracasado.',
-
-  'Fin del informe. %N queda expuesto y el chat es testigo, cabrón. Documentado en el hilo. Sin anestesia y sin bis.',
-
-  'El veredicto sobre %N ya está en el acta. Siguiente, gilipollas. Documentado en el hilo, mierda. Sin anestesia y sin bis, mierda.',
-
-  'Documentado. %N no puede alegar que no vio venir el golpe, mierda. Documentado en el hilo, coño. Sin anestesia y sin bis, coño.',
-
-  'Cierre sin anestesia. El eco de %N sigue un rato, coño. Documentado en el hilo, cabrón. Sin anestesia y sin bis, cabrón.',
-
-  'El wingman terminó. El cringe de %N permanece en el hilo, patético. Documentado en el hilo, gilipollas.',
-
-  'Fin. %N ya no puede fingir que esto no quedó escrito, basura. Documentado en el hilo, patético. Sin anestesia y sin bis, patético.',
-
-  'Expediente sellado. El grupo vio lo de %N entero, ridículo. Documentado en el hilo, asco. Sin anestesia y sin bis, asco.',
-
-  'Y así queda el parte de %N, sin maquillaje ni narrador amigo. Documentado en el hilo, basura. Sin anestesia y sin bis, basura.',
-
-  'Fin del show de %N por hoy. El archivo no se borra, mierda. Documentado en el hilo, ridículo. Sin anestesia y sin bis, ridículo.',
-
-  'Cerrado. El chat no pide bis del desastre de %N, coño. Documentado en el hilo, fracasado. Sin anestesia y sin bis, fracasado.',
-
-  'El bot firma. %N asume o no: el texto ya está, asco. Documentado en el hilo. Sin anestesia y sin bis.',
-
-  'Acta levantada sobre %N. Sin firmas ajenas necesarias, patético. Documentado en el hilo, mierda. Sin anestesia y sin bis, mierda.',
-
-  'Terminado. El eco de %N todavía señala en el hilo, basura. Documentado en el hilo, coño. Sin anestesia y sin bis, coño.',
-
-  'Cierre limpio. Daño a la reputación de %N, permanente, ridículo. Documentado en el hilo, cabrón. Sin anestesia y sin bis, cabrón.',
-
-  'Expediente de %N: completo, archivado y sin indulto, fracasado. Documentado en el hilo, gilipollas. Sin anestesia y sin bis, gilipollas.',
-
-  'El wingman cierra el grifo. %N ya tuvo su minuto. Documentado en el hilo, patético. Sin anestesia y sin bis, patético.',
-
-  'Parte final sobre %N. El grupo puede volver al ruido, cabrón. Documentado en el hilo, asco. Sin anestesia y sin bis, asco.',
-
-  'Sellado. %N queda con el retrato que no pidió, gilipollas. Documentado en el hilo, basura. Sin anestesia y sin bis, basura.',
-
-  'Fin de la transmisión de %N. Sin créditos ni música, mierda. Documentado en el hilo, ridículo. Sin anestesia y sin bis, ridículo.',
-
-  'Cierre. Lo de %N queda para el historial del chat, coño. Documentado en el hilo, fracasado. Sin anestesia y sin bis, fracasado.',
-
-  'El bot apaga el micrófono de %N por hoy, asco. Documentado en el hilo. Sin anestesia y sin bis.',
-
-  'Informe cerrado. %N no sale bien parado y se nota, patético. Documentado en el hilo, mierda. Sin anestesia y sin bis, mierda.',
-
-  'Acta completa. %N es el protagonista involuntario, basura. Documentado en el hilo, coño. Sin anestesia y sin bis, coño.',
-
-  'Fin. %N ya tiene el resumen que merecía, ridículo. Documentado en el hilo, cabrón. Sin anestesia y sin bis, cabrón.',
-
-  'Expediente de %N archivado en frío, fracasado. Documentado en el hilo, gilipollas. Sin anestesia y sin bis, gilipollas.',
-
-  'Y punto. %N queda expuesto sin narrador de consuelo. Documentado en el hilo, patético. Sin anestesia y sin bis, patético.',
-
-  'Cierre del wingman. %N puede procesar en silencio, cabrón. Documentado en el hilo, asco. Sin anestesia y sin bis, asco.',
-
-  'El parte de %N está listo y duele porque pega, gilipollas. Documentado en el hilo, basura. Sin anestesia y sin bis, basura.',
-
-  'Fin del episodio de %N. Sin temporada 2 de dignidad, mierda. Documentado en el hilo, ridículo. Sin anestesia y sin bis, ridículo.',
-
-  'Sellado el caso %N. El chat es testigo presencial, coño. Documentado en el hilo, fracasado. Sin anestesia y sin bis, fracasado.',
-
-  'Cierre sin filtro. %N ya no tiene ángulo limpio, asco. Documentado en el hilo. Sin anestesia y sin bis.',
-
-  'El bot termina con %N. El eco hace el resto, patético. Documentado en el hilo, mierda. Sin anestesia y sin bis, mierda.',
-
-  'Acta de %N completa. Sin apéndices de redención, basura. Documentado en el hilo, coño. Sin anestesia y sin bis, coño.',
-
-  'Fin. %N queda en el tablero como pieza tocada, ridículo. Documentado en el hilo, cabrón. Sin anestesia y sin bis, cabrón.',
-
-  'Expediente cerrado. %N, el grupo ya pasó página, fracasado. Documentado en el hilo, gilipollas. Sin anestesia y sin bis, gilipollas.',
-
-  'Última línea del wingman sobre %N. Duele y basta. Documentado en el hilo, patético. Sin anestesia y sin bis, patético.',
-
-  'Cierre. %N no necesita epílogo: el daño es el epílogo, cabrón. Documentado en el hilo, asco. Sin anestesia y sin bis, asco.',
-
-  'El informe de %N termina aquí. Sin firma de consuelo, gilipollas. Documentado en el hilo, basura. Sin anestesia y sin bis, basura.',
-
-  'Fin de emisión. %N queda en el archivo del hilo, mierda. Documentado en el hilo, ridículo. Sin anestesia y sin bis, ridículo.',
-
-  'Sellado. %N y su retrato quedan juntos para siempre, coño. Documentado en el hilo, fracasado. Sin anestesia y sin bis, fracasado.',
-
-  'Cierre del acta de %N. El bot cumplió, asco. Documentado en el hilo. Sin anestesia y sin bis.',
-
-  'Parte final. %N puede guardar silencio productivo, patético. Documentado en el hilo, mierda. Sin anestesia y sin bis, mierda.',
-
-  'Expediente %N: cerrado sin apelación barata, basura. Documentado en el hilo, coño. Sin anestesia y sin bis, coño.',
-
-  'Y se acabó lo de %N por esta ronda, ridículo. Documentado en el hilo, cabrón. Sin anestesia y sin bis, cabrón.',
-
-  'Cierre. El wingman no devuelve dignidad a %N, fracasado. Documentado en el hilo, gilipollas. Sin anestesia y sin bis, gilipollas.',
-
-  'Cierre del acta de %N. El bot cumplió, asco. Sin anestesia y sin bis, patético.',
-
-  'Parte final. %N puede guardar silencio productivo, patético. Sin anestesia y sin bis, asco.',
-
-  'Expediente %N: cerrado sin apelación barata, basura. Sin anestesia y sin bis, basura.',
-
-  'Y se acabó lo de %N por esta ronda, ridículo. Sin anestesia y sin bis, ridículo.',
-
-  'Cierre. El wingman no devuelve dignidad a %N, fracasado. Sin anestesia y sin bis, fracasado.',
-
+  'Joder, si %N hace eso por un colega, imagina lo que haría por alguien que le deje meterse en su cama. Pareja del puto siglo.',,
+  'Después de esa mierda, quien rechace a %N es gilipollas certificado. No encontrarás a otro cabrón tan entregado ni buscando con lupa.',,
+  'Coño, %N acaba de demostrar que se arrodilla sin que se lo pidan. En pareja eso vale más que un piso en el centro.',,
+  'Si %N te mete ese nivel de cuerpo por amistad, imagina cuando le importes de verdad. Ese cabrón no tiene freno ni marcha atrás.',,
+  'Me cago en la puta, %N no tiene vergüenza, no tiene asco y no tiene límites. El paquete completo para una relación de las que dejan marca.',,
+  'Hostia, %N es el tipo de persona que te chupa una herida sin preguntar y encima repite. En el mercado de parejas eso vale una puta fortuna.',,
+  '%N ha hecho cosas que ni cobrando las haría medio mundo. Quien se lo quede tiene material para toda la vida.',,
+  'Mierda, con ese nivel de entrega %N debería cobrar por existir. Pero lo hace gratis, el muy cabrón, y eso lo convierte en pareja de oro.',,
+  'Si %N pone la mitad de esos cojones en la cama que los que pone en ayudar, quien se lo lleve no va a caminar recto en una semana.',,
+  'Recomendación del bot: %N es un puto animal sin dignidad ni límites. Dicho así suena fatal, pero en pareja eso es un jodido superpoder.',,
+  'Coño, %N se ha comido situaciones que no debería comerse nadie y ha vuelto a por más. Ese compromiso asqueroso es justo lo que necesitas al lado.',,
+  'Hostia, %N no conoce la palabra “no” ni la palabra “asco”. Dos requisitos fundamentales para ser la mejor pareja del grupo.',,
+  'Lo de %N no se encuentra ni en Tinder ni en un puto burdel. Esa clase de devoción bruta solo la tiene un cabrón que nació sin filtro.',,
+  '%N se ha ganado la recomendación con hechos, no con discursos. Quien se lo quede se lleva servicio integral, hostia.',,
+  'Joder, después de esto está claro: %N te la juega entera por los suyos. En pareja eso no se paga con flores, se paga con lealtad sucia.',,
+  'Si buscas a alguien que huya del problema, pasa de %N. Si buscas a alguien que se meta en la mierda contigo, ya lo tienes.',,
+  '%N no te va a dar charlas motivacionales. Te va a dar manos, boca y cero juicio. Eso en una relación es oro de ley.',,
+  'El bot certifica: %N tiene el chip del “yo me encargo” soldado al cerebro. Pareja de alto riesgo y alto rendimiento.',,
+  'Con %N al lado no te ahogas: te saca a lengüetazos si hace falta. Quien no valore eso merece estar solo y bien servido.',,
+  'Ese nivel de entrega de %N no es romance de película. Es lealtad de trinchera. Y en la cama, trinchera gana a poema.',,
+  '%N convirtió una emergencia en curriculum vitae de pareja ideal. Sucio, bruto y disponible. El combo que el grupo envidia en secreto.',,
+  'Si %N hace eso por amistad, el día que se enamore va a ser ilegal de lo intenso. Aviso a navegantes con corazón débil.',,
+  'No es príncipe azul: es el cabrón que te limpia la sangre con la camiseta y pregunta después. %N, pareja de combate.',,
+  'El mercado está lleno de pose. %N está lleno de actos que dan vergüenza ajena y respeto al mismo tiempo. Ficha técnica perfecta.',,
+  'Quien se lleve a %N se lleva a alguien que no huye cuando huele mal. Literal y figurado. Eso no tiene precio.',,
+  'La recomendación es simple: %N no te va a fallar por asco. Puede fallarte por exceso de entrega. Problema de lujo.',,
+  'Si la relación fuera un botiquín, %N sería el que se abre las venas para darte transfusión. Metáfora asquerosa y exacta.',,
+  '%N no pide aplauso. Hace lo que hay que hacer y se limpia la boca después. Pareja de las que no publican stories: sobreviven.',,
+  'En una escala de 1 a “me lo quedo”, %N acaba de romper el techo. El bot firma la recomendación con las manos todavía manchadas.',,
+  'Hay gente que te dice “aquí estoy”. %N te lo demuestra con la cara en sitios donde nadie pondría la mano. Diferencia de peso.',,
+  'Si buscas pureza, no mires a %N. Si buscas a alguien que se tire al barro por ti, ya puedes dejar de buscar.',,
+  '%N tiene el instinto del que no deja morir al de al lado. En pareja eso se traduce en lealtad que da miedo y ganas a la vez.',,
+  'El informe de pareja del bot: %N, disponible, sin asco, sin freno. Aptitud: sobresaliente sucio.',,
+  'No es caballerosidad. Es compromiso animal. %N no te sostiene el paraguas: te saca del charco a empujones y te seca con la lengua si hace falta.',,
+  'Después de ver a %N en acción, el listón del grupo subió y a medio mundo se le quedó alto. Enhorabuena, cabrón útil.',,
+  '%N no es “detallista”. Es operativo. Y en la cama y en la crisis, operativo gana a detallista por goleada.',,
+  'Si alguien pregunta quién es de fiar en este grupo, el bot señala a %N sin pestañear. Aunque haya que señalarlo con la mano sucia.',,
+  'La ficha de %N dice: lealtad extrema, dignidad opcional, resultados garantizados. Pareja de las que no se devuelven.',,
+  'Hay romances de velas. Hay romances de %N: feromonas, urgencia y cero protocolo. El segundo deja más marcas y mejores historias.',,
+  '%N acaba de hacer marketing involuntario de sí mismo. El producto es bruto, efectivo y no trae manual de instrucciones. Ideal.',,
+  'Si el compromiso se midiera en fluidos y decisiones rápidas, %N estaría en el podio. El bot le cuelga la medalla aunque huela raro.',,
+  'No todo el mundo merece a %N. Solo quien aguante el nivel de entrega sin ponerse romántico a destiempo. Producto de nicho, alta calidad.',,
+  '%N no te va a escribir poemas. Te va a sacar del problema con la boca ocupada y las manos firmes. Prioridades correctas.',,
+  'Certificado de pareja útil: %N. Firmado por el bot tras ver cosas que no se pueden desver. Recomendado con los ojos abiertos.',,
+  'Cuando el grupo necesite un milagro asqueroso, llama a %N. Cuando necesites pareja, también. Misma persona, mismo motor.',,
+  'Esa devoción de %N no se entrena en cursos de seducción. Se nace sin filtro o se finge mal. Él no finge.',,
+  'El bot no vende sueños. Señala hechos: %N se la juega por los suyos de formas que dan grima y respeto. Ficha aprobada.',,
+  'Si aún dudas de %N, relee la anécdota. Si después de eso sigues dudando, el problema eres tú, no el candidato.',,
+  '%N es el tipo de cabrón que convierte una crisis en prueba de amor sin decir la palabra amor. Mejor: lo demuestra y se calla.',,
+  'Recomendación final: %N, alto riesgo, alto rendimiento, cero asco. Quien se lo quede, que no venga a quejarse de lo intenso.',,
+  'Hay gente de word. Hay gente de action. %N es action con salpicaduras. En pareja, action gana siempre.',,
+  'El currículum de %N en lealtad está manchado y completo. El bot lo avala. El grupo ya lo vio. Que coja pareja quien pueda seguirle el ritmo.',,
+  'Si %N te elige, no te elige para pose. Te elige para el barro. Y el barro, bien removido, es donde se demuestran las parejas de verdad.',,
+  'No es suave. No es limpio. Es %N. Y después de lo de hoy, “suave y limpio” suena a productor defectuoso.',,
+  'Quien se acueste con %N después de saber de lo que es capaz, sabrá que no está con un tibio. Está con un operativo de entrega total.',,
+  '%N no pide permiso para salvarte. Actúa. En la cama y en la mierda, esa velocidad vale más que mil “te quiero” de WhatsApp.',,
+  'Ficha técnica actualizada: %N, sin límites útiles, sin vergüenza inútil. Apto para relación intensa. No apto para gente de porcelana.',,
+  'Si el grupo hiciera subasta de parejas útiles, %N subiría solo. No por pose: por historial. Y el historial acabo de olerlo.',,
+  'Última línea del bot: %N no es romance de escaparate. Es el cabrón que te saca con las manos sucias y te mira como si nada. Quédate con ese.',
 ];
 
 // !rizz [@user] — puntúa el nivel de juego/labia (0-100).
