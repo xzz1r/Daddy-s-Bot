@@ -491,12 +491,12 @@ const ROB_MAESTRO = [
  'Maestro de puta madre: empty total firmado en público del ranking, mierda.',
  '%A vs %V terminó con cero en %V y el botín en %A del contador, cabrón.',
  '%A cobró el aura de %V al completo sin temblar en el hilo, coño.',
- 'Robo total. %A ejecuta, %V firma el vacío, el chat mira el ranking, gilipollas. Archivo cerrado. Qué asco de atraco, da asco.',
+ 'Robo total. %A ejecuta, %V firma el vacío, el chat mira el ranking, gilipollas. Archivo cerrado. asco.',
  '%A entró en silencio y salió con todo el aura de %V del contador, patético. El ranking no ofrece descuento, qué vergüenza.',
  'Maestro en público sin filtro ni narrador emocional del comando, asco.',
  '%A no dejó residuo de aura en la cuenta de %V del ranking, basura.',
  '%A vs %V: empty account. Archivo cerrado sin segunda lectura, ridículo.',
- '%A se llevó el 100 %. Recibo colgado en este hilo del puto grupo, fracasado. Archivo cerrado. Qué asco de atraco, da grima.',
+ '%A se llevó el 100 %. Recibo colgado en este hilo del puto grupo, fracasado. Archivo cerrado. grima.',
 ];
 
 const ROB_PARCIAL = [
@@ -589,17 +589,17 @@ const ROB_PARCIAL = [
  'Parcial en el ranking. %V lo mira y se le cae la cara en el hilo, asco.',
  '%A vs %V: tajada real, vacío no, dolor sí documentado en el chat, basura.',
  '%A se llevó lo justo. El almost de defensa de %V quedó en almost, ridículo.',
- 'Robo a medias firmado sin anestesia en el puto grupo del ranking, fracasado. Archivo cerrado. Qué asco de atraco, qué nivel de pena.',
+ 'Robo a medias firmado sin anestesia en el puto grupo del ranking, fracasado. Archivo cerrado. nivel de pena.',
  '%A picó sin rematar y el ranking de %V sangró igual de claro. El ranking no ofrece descuento.',
  'Parcial de manual: %A gana, %V pierde a medias, el chat gana el gag, mierda.',
- '%A vs %V terminó a medias en botín y entero en fail de %V, cabrón. Sin derecho a apelación. Qué asco de atraco, da pena ajena.',
+ '%A vs %V terminó a medias en botín y entero en fail de %V, cabrón. pena ajena.',
  '%A cobró lo que pudo sacar. %V notó cada unidad del contador, coño.',
  'Robo parcial limpio. El bot firma y %V calla en el hilo del grupo, gilipollas. Archivo cerrado.',
  '%A entró, tomó tajada y salió. %V con el hueco a medias del ranking, patético. El ranking no ofrece descuento, qué vergüenza ajena.',
  'Parcial documentado delante de todos sin narrador ni subtítulos, asco.',
- '%A no vació el tanque de %V: lo dejó en la reserva baja del contador, basura. Sin derecho a apelación, qué flojo.',
+ '%A no vació el tanque de %V: lo dejó en la reserva baja del contador, basura., qué flojo.',
  '%A vs %V: el medio atraco con firma completa en el ranking del chat, ridículo.',
- '%A se llevó una porción y dejó a %V con la lección a medias, fracasado. Archivo cerrado. Qué asco de atraco, qué pena.',
+ '%A se llevó una porción y dejó a %V con la lección a medias, fracasado. Archivo cerrado. pena.',
 ];
 
 const ROB_DESASTRE = [
