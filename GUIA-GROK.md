@@ -454,7 +454,22 @@ da por bueno y el grupo ve la misma frase con distinto final. Doce países
 —GT, CU, BO, DO, HN, PY, SV, NI, CR, PA, UY, PR— siguen sin una sola frase
 propia: las 10 que tienen son genéricas con `%PAIS` sustituido.
 
-La regla que sale de los cinco: **edita el pool que estás trabajando y solo ese.**
+**6. Un script no junta líneas de código. Esto tumbó `!aura` en producción.**
+Una pasada dejó 30 líneas de `aura.js` metidas en UNA sola de 2.198 caracteres,
+con los comentarios `//` dentro. Todo lo que iba detrás del primer `//` pasó a
+ser comentario: treinta líneas de código real desaparecidas, entre ellas
+`const sign`. La línea siguiente lo usaba, así que **cada `!aura` moría con
+"sign is not defined"** delante del grupo.
+
+Lo que lo hace peligroso es que no se ve: el fichero compila, importa y pasa la
+capa 1 y la 2 del `check`. Solo revienta al ejecutarlo.
+
+Si vas a tocar un fichero, toca **las frases**, nunca el código que hay entre
+ellas. Y si una pasada tuya puede juntar líneas, no la lances: en un `.js` un
+salto de línea después de un `//` es lo único que separa un comentario del
+programa.
+
+La regla que sale de los seis: **edita el pool que estás trabajando y solo ese.**
 Un cambio que toca 62 pools para arreglar 6 va a romper algo siempre.
 
 **Y actualiza antes de empezar.** Si tu rama viene de una base vieja, al empujar
