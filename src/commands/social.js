@@ -4,7 +4,6 @@ const { isOwner, isMainOwner, isGroupAdmin, getSender } = require('../utils/wa')
 const { getCasinoCount, msUntilReset, tiradasDeHoy } = require('../utils/casinoStore');
 const { verRacha } = require('../utils/rachaStore');
 const { nextMilestone } = require('../utils/casino');
-const { mensajesHoyFalsos, rachaFalsa } = require('../utils/fachada');
 const { PRECIOS, APUESTA, CONTRA, ACTIVIDAD_MSGS, TIRADAS_PAGADAS, RACHA } = require('../utils/economia');
 const config = require('../config');
 const logger = require('../utils/logger');
@@ -178,54 +177,32 @@ async function cmdCasino(sock, msg, groupMeta) {
 
   const sender = getSender(msg);
 
-  // AL OWNER PRINCIPAL SE LE ENSEÑAN NUMEROS FALSOS, no un cero y no silencio.
+  // AL OWNER PRINCIPAL NO SE LE CONTESTA, y aqui la fachada NO vale.
   //
-  // Sus mensajes no se cuentan — es lo que lo mantiene fuera de !count, de los
-  // tops y de las purgas — asi que este comando le sacaba "Mensajes hoy: 0"
-  // delante del grupo. La contradiccion exacta que lo delata: la unica persona a
-  // la que el bot dice que no ha escrito nada es justamente la que mas escribe.
+  // Se probo a darle un informe con numeros inventados, como se hace en la
+  // tirada y en el contraataque, y esta mal por un motivo que no tienen los
+  // otros sitios: este comando entero ES el contador de mensajes. No enseña un
+  // dato suyo de paso, enseña mensajes de hoy, hitos que faltan y la racha —
+  // cuatro lineas de una mecanica en la que el no participa, porque sus
+  // mensajes no se cuentan por diseño.
   //
-  // La version anterior lo arreglaba callandose. Y callarse es otra señal: si
-  // escribe !aura hoy delante del grupo y el bot no contesta, eso se ve, y no
-  // hay forma de explicarlo. La fachada es lo unico que sostiene el resto del
-  // amaño; sin ella, el amaño no tiene sentido.
+  // Y lo peor: le anunciaria "faltan 145 msgs para el Tier 1", o sea un bono que
+  // NUNCA le va a llegar. Una fachada que promete un premio inexistente es peor
+  // que el silencio, porque tarde o temprano el premio no aparece.
   //
-  // Los numeros salen de utils/fachada.js: se derivan de lo que escribe LA GENTE
-  // de este grupo, no de su actividad real, y son fijos durante todo el dia para
-  // que dos comandos seguidos no se contradigan.
-  const esOwnerPrincipal = isMainOwner(sender, msg.key.fromMe, groupMeta);
+  // Asi que se calla, como antes. El silencio no se distingue de un comando que
+  // no salio, que es el mismo criterio de !count y !relevancia. La fachada se
+  // queda donde si tiene sentido: donde el bot ya iba a enseñar un numero suyo
+  // dentro de algo que si le aplica.
+  if (isMainOwner(sender, msg.key.fromMe, groupMeta)) return;
 
-  const [countReal, ms, tiradas, rachaReal] = await Promise.all([
+  const [count, ms, tiradas, racha] = await Promise.all([
     getCasinoCount(jid, sender),
     msUntilReset(jid),
     tiradasDeHoy(jid, sender),
     verRacha(jid, sender),
   ]);
 
-  let count = countReal;
-  let racha = rachaReal;
-  if (esOwnerPrincipal) {
-    const [hoyFalso, rachaDias] = await Promise.all([
-      mensajesHoyFalsos(jid).catch(() => null),
-      rachaFalsa(jid).catch(() => null),
-    ]);
-    // Si el grupo aun no tiene datos para fabricar algo creible, se prefiere el
-    // silencio de antes a enseñar una cifra que no cuadra con nada. Es el unico
-    // caso en que se sigue sin contestar, y pasa solo en un grupo recien puesto.
-    if (hoyFalso === null) return;
-    count = hoyFalso;
-    // La racha SI se le da por buena en dias, pero "hoy ya cuenta" siempre: es
-    // lo que le saldria a cualquiera que haya escrito, y el owner escribe.
-    racha = { dias: rachaDias ?? racha.dias, hoyCuenta: true, msgs: RACHA.minMensajes };
-  }
-
-  // El calculo del proximo hito vive en utils/casino.js, que es quien reparte los
-  // bonos de verdad. Estaba copiado literalmente aqui: tocar un tramo alli y
-  // olvidarse de este sitio habria hecho que el bot anunciara un hito que no
-  // paga lo que dice.
-  // Sale del count APARENTE a proposito: si se calculara con el real, al owner
-  // le saldria "faltan 200 msgs" junto a un "Mensajes hoy: 180" y las dos cifras
-  // se contradirian en la misma pantalla.
   const { tier, remaining } = nextMilestone(count);
 
   const tierLabel = tier === 3 ? 'Tier 3 (1000 msgs)' : tier === 2 ? 'Tier 2 (500 msgs)' : 'Tier 1 (200 msgs)';

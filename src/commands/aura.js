@@ -1220,26 +1220,48 @@ async function cmdAura(sock, msg, args, groupMeta) {
   // cuya unica progresion es escribir. El tope no se toca (esta ahi para que
   // ningun miembro alcance a un admin), asi que la veterania se paga en cantidad.
   // Solo toca lo GANADO: no reduce el castigo al perder.
-  const vet = bonoVeterania(mensajes);
+  // El recuento que cuenta para la veterania. Para todos es el suyo; para el
+  // owner es el de la fachada, porque el suyo real es cero por diseño.
+  //
+  // Y SE USA TAMBIEN PARA CALCULAR EL BONO, no solo para enseñarlo. La primera
+  // version solo cambiaba el numero de la linea y dejaba el bono saliendo del
+  // contador real: con la fachada en 1.987 msgs le habria salido "Veterano
+  // (1.987 msgs): +30% de suerte" mientras que a un miembro con esos mismos
+  // 1.987 le sale ademas "+2% de botin". La misma cifra dando dos lineas
+  // distintas es exactamente lo que la fachada tiene que evitar — y ademas es
+  // el bono que le tocaria si el contador le contara, que es la premisa de todo
+  // esto.
+  const mensajesMostrados = esOwnerPrincipal
+    ? await mensajesFalsos(jid).catch(() => null)
+    : mensajes;
+
+  const vet = bonoVeterania(mensajesMostrados ?? mensajes);
   let extraVet = 0;
   if (amount > 0 && vet > 0) {
     extraVet = Math.round(amount * vet);
     amount += extraVet;
   }
   const sign = amount >= 0 ? '+' : '-';
-
-  // El recuento que se ENSEÑA. Para todos es el suyo; para el owner es el de la
-  // fachada, porque el suyo real es siempre 0 por diseño.
-  let mensajesMostrados = mensajes;
-  if (esOwnerPrincipal) {
-    mensajesMostrados = await mensajesFalsos(jid).catch(() => null);
-  }
+  // EL BONO DE SUERTE QUE SE PUBLICA NO ES EL QUE SE COBRA, y solo para el owner.
+  //
+  // A el se le da ACTIVIDAD_TOPE directamente (arriba, porque su contador esta
+  // en cero por diseño y si no seria el unico que jamas cobra el plus). Pero
+  // publicarlo tal cual delataba: con la fachada en ~2.000 msgs le salia
+  // "+13% de suerte" donde a un miembro con ESOS MISMOS 2.000 le sale "+3%".
+  // Cuatro veces mas con el mismo recuento al lado, en la misma linea. Cualquiera
+  // que compare dos mensajes lo ve.
+  //
+  // Asi que se enseña el que le tocaria por el recuento que aparenta. El bono
+  // real no se toca: se cobra el tope igual, solo deja de anunciarse.
+  const plusMostrado = esOwnerPrincipal
+    ? bonoActividad(mensajesMostrados ?? 0)
+    : plusActividad;
   // Se DICE: un bono invisible no premia a nadie. El veterano no sabria que
   // cobra de mas y el que empieza no sabria que hay algo que perseguir.
-  const lineaVeterano = (plusActividad || extraVet) && mensajesMostrados !== null
+  const lineaVeterano = (plusMostrado || extraVet) && mensajesMostrados !== null
     ? `Veterano (${fmt(mensajesMostrados)} msgs):` +
-      (plusActividad ? ` +${Math.round(plusActividad * 100)}% de suerte` : '') +
-      (plusActividad && extraVet ? ' ·' : '') +
+      (plusMostrado ? ` +${Math.round(plusMostrado * 100)}% de suerte` : '') +
+      (plusMostrado && extraVet ? ' ·' : '') +
       (extraVet ? ` +${Math.round(vet * 100)}% de botín (+${fmt(extraVet)})` : '')
     : '';
 
