@@ -2002,7 +2002,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       //
       // Va aqui y no en el menu porque un aviso sirve cuando llega en el
       // segundo en que hace falta, no en una lista que se lee una vez.
-      `\n_${vTag}: ${CONTRA.ventanaSeg}s para *!robo contra* — doble o nada._` +
+      `\n_${vTag}: ${CONTRA.ventanaSeg}s para *!contrarobo* — doble o nada._` +
       notaDinamicas;
     return sock.sendMessage(jid, { text, mentions: [sender, target] });
   }

@@ -632,7 +632,7 @@ _Pero cuanto más pides, menos probable: el punto dulce está sobre el ${Math.ro
 *!robo tienda* / *comprar* — escudo, ganzúa, cebo
 _Para la mesa: *amuleto* (${fmt(OBJETOS.amuleto.precio)}) · *seguro* (${fmt(OBJETOS.seguro.precio)}) · *socio* (${fmt(OBJETOS.socio.precio)}) todo un ${Math.round(OBJETOS.socio.descuento * 100)}% más barato ${OBJETOS.socio.horas}h_
 _Y los caros: *pase* (${fmt(OBJETOS.pase.precio)}) publicas tus redes ${OBJETOS.pase.horas}h · *indulto* (${fmt(OBJETOS.indulto.precio)}) el bot no te banea solo. Ninguno te salva de un admin._
-*!robo contra* — devuelves el golpe, *${CONTRA.ventanaSeg}s*. Doble o nada
+*!contrarobo* — devuelves el golpe, *${CONTRA.ventanaSeg}s*. Doble o nada
 *!robo top* — los más buscados
 
 *!duel* @user <cant.> — 1v1, se acepta con *!duel aceptar*

@@ -227,7 +227,7 @@ const NEEDS_META = new Set([
   'ship','mute','unmute','desmute',
   'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness','antifoto',
   'antilink','allow','permitir','close','cerrar','open','abrir',
-  'adminmode','soloadmins','soloadmin','adm',
+  'adminmode','soloadmins','soloadmin','adm','contrarobo','contraataque','contraatacar','vengarse',
   's','sticker','stk',   // cmdSticker SI recibe groupMeta
   // Los que cobran aura SI necesitan groupMeta: auraCobro exime al owner tier y
   // sin la metadata no puede resolver quien lo es, asi que al owner le cobraria.
@@ -1826,6 +1826,18 @@ async function handleMessage(sock, msg) {
         break;
       case 'bote':
         await cmdRobo(sock, msg, ['bote', ...args], groupMeta);
+        break;
+
+      // El contraataque, con nombre propio.
+      //
+      // Vivia solo como *!robo contra*, y un subcomando obliga a saberse la
+      // sintaxis justo cuando hay noventa segundos para responder y el que te
+      // acaba de robar esta mirando. Se escribe lo que se piensa: contrarobo.
+      case 'contrarobo':
+      case 'contraataque':
+      case 'contraatacar':
+      case 'vengarse':
+        await cmdRobo(sock, msg, ['contra', ...args], groupMeta);
         break;
       case 'asalto':
       case 'asaltar':
