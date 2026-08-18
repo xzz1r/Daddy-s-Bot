@@ -397,6 +397,73 @@ async function expulsarBusinessDetectado(sock, jid, sender, msg) {
 }
 
 
+// Una historia que llega por status@broadcast en vez de por el grupo.
+//
+// Es el mismo delito, pero por otra puerta: WhatsApp reparte las historias por
+// el canal de estados, asi que el mensaje NO trae el JID del grupo en
+// remoteJid. Lo que si trae —cuando la historia va dirigida a grupos— es
+// statusMentionSources, la lista de destinos. De ahi salen los grupos.
+//
+// Se busca en todo el objeto y no en una ruta fija a proposito: WhatsApp ha
+// movido este campo de sitio mas de una vez, y una ruta exacta que deje de
+// existir vuelve a dejar al bot ciego sin avisar de nada.
+function gruposDeLaHistoria(obj, vistos = new Set(), salida = new Set()) {
+  if (!obj || typeof obj !== 'object' || vistos.has(obj)) return salida;
+  vistos.add(obj);
+  for (const [k, v] of Object.entries(obj)) {
+    if (k === 'statusMentionSources' && Array.isArray(v)) {
+      for (const x of v) if (typeof x === 'string' && x.endsWith('@g.us')) salida.add(x);
+    } else if (v && typeof v === 'object') {
+      gruposDeLaHistoria(v, vistos, salida);
+    }
+  }
+  return salida;
+}
+
+async function historiaPorBroadcast(sock, msg, deteccion) {
+  const autor = msg.key.participant || msg.participant;
+  const grupos = [...gruposDeLaHistoria(msg.message)];
+
+  // Sin destino no se puede sancionar a nadie: no sabriamos en que grupo. Queda
+  // el registro para poder afinar con un caso real en vez de a ciegas.
+  if (!autor || !grupos.length) {
+    logger.info(
+      `historia por broadcast (${deteccion.motivo}) de ${autor || 'desconocido'}: ` +
+      `sin grupo identificable — tipos=[${Object.keys(msg.message || {}).join(',')}]`);
+    return;
+  }
+
+  for (const g of grupos) {
+    const meta = await getGroupMeta(sock, g).catch(() => null);
+    if (!meta) continue;
+    // Al owner y a los admins no les toca, igual que en la puerta del grupo.
+    if (isGroupAdmin(autor, false, meta) || isOwner(autor, false, meta)) continue;
+    if (!isBotAdmin(sock, meta)) {
+      logger.warn(`historia en ${g}: no soy admin, no puedo expulsar a ${autor}`);
+      continue;
+    }
+    // Solo con el sobre identificado. Si vino por heuristica no se sanciona a
+    // ciegas y encima sin poder borrar nada, que aqui el mensaje no esta en el
+    // grupo: se avisa y que decidan los admins.
+    if (!deteccion.seguro) {
+      sock.sendMessage(g, {
+        text: `@${String(autor).split('@')[0]} parece haber subido una historia al grupo. No la puedo borrar desde aquí; miradlo.`,
+        mentions: [autor],
+      }).catch(() => {});
+      continue;
+    }
+    await banAccount(allForms(autor, meta), `historia subida al grupo ${g}`, 'auto').catch(() => {});
+    const fuera = await expulsar(sock, g, autor);
+    logger.warn(`historia en ${g} de ${autor}: vetado, expulsado=${fuera}`);
+    sock.sendMessage(g, {
+      text: fuera
+        ? `@${String(autor).split('@')[0]} fuera y a la lista negra por subir una historia al grupo.`
+        : `@${String(autor).split('@')[0]} subió una historia al grupo y queda vetado, pero no he podido expulsarlo: hacedlo a mano.`,
+      mentions: [autor],
+    }).catch(() => {});
+  }
+}
+
 // !diag — herramienta de diagnostico de las guardas automaticas.
 //
 // Existe por un motivo concreto: el bot borra a quien MENCIONA al grupo en un
@@ -888,11 +955,7 @@ async function handleMessage(sock, msg) {
   // resto —los estados personales de cada contacto— se descarta aqui mismo, que
   // es lo que hacia antes el filtro de Baileys, pero sin cegar al bot.
   if (jid === 'status@broadcast') {
-    if (estadoCrudo) {
-      logger.info(
-        `historia por status@broadcast (${estadoCrudo.motivo}) de ` +
-        `${msg.key.participant || 'desconocido'} — tipos=[${Object.keys(msg.message || {}).join(',')}]`);
-    }
+    if (estadoCrudo) await historiaPorBroadcast(sock, msg, estadoCrudo);
     return;
   }
   if (!jid) return; // protocol/system message without a chat JID — nothing to do
@@ -1048,11 +1111,25 @@ async function handleMessage(sock, msg) {
         return;
       }
 
+      // AQUI SI SE BANEA, y es un cambio deliberado sobre lo que habia.
+      //
+      // El motivo de no banear era el falso positivo: la lista negra es GLOBAL
+      // y permanente, y un guardia que se equivoca deja a alguien vetado en
+      // todos los grupos. Ese miedo vale para la HEURISTICA — que ya se queda
+      // arriba, solo borrando y avisando — pero no para esta rama: aqui el
+      // sobre viene identificado por nombre (groupStatusMessageV2 y compañia),
+      // no hay nada que interpretar. O es una historia subida al grupo o no lo
+      // es.
+      //
+      // Y por decision del owner: subir spam a la historia del grupo se paga
+      // con la lista negra, no con un "vuelve cuando quieras".
+      const forms = allForms(sender, meta);
+      await banAccount(forms, `historia subida al grupo ${jid}`, 'auto').catch(() => {});
       const fuera = await expulsar(sock, jid, sender);
       sock.sendMessage(jid, {
         text: fuera
-          ? `@${sender.split('@')[0]} fuera por publicar un estado en el grupo. Aquí no se suben estados, ni con enlaces ni sin ellos.`
-          : `@${sender.split('@')[0]} publicó un estado en el grupo. Borrado, pero no he podido expulsarlo: hacedlo a mano.`,
+          ? `@${sender.split('@')[0]} fuera y a la lista negra por subir una historia al grupo. Aquí no se suben estados, ni con enlaces ni sin ellos.`
+          : `@${sender.split('@')[0]} subió una historia al grupo. Borrada y cuenta vetada, pero no he podido expulsarlo: hacedlo a mano.`,
         mentions: [sender],
       }).catch(() => {});
       return; // un estado no sigue procesándose en ningún caso
