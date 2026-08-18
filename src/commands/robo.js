@@ -1832,8 +1832,20 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   let chanceFinal = chance;
   const usoGanzua = await tienda.gastarGanzua(jid, sender);
   if (usoGanzua) {
-    chanceFinal = Math.min(ROBO_LIMITES.techo, chanceFinal + OBJETOS.ganzua.bono);
+    // El bono se DILUYE por encima del tope, igual que el del amuleto en la
+    // mesa. Un bono de probabilidad fijo vale mas cuanto mas se pide, asi que
+    // sin esto la jugada optima era comprar ganzuas y robar lo mas gordo
+    // posible: a 2.250 de botin aportaba 627 y costaba 140, y encima daba la
+    // vuelta al signo del robo. Entero hasta el tope y proporcional a partir de
+    // ahi: abre una cerradura, no una camara acorazada.
+    const bono = OBJETOS.ganzua.bono * Math.min(1, OBJETOS.ganzua.topeRobo / Math.max(1, stake));
+    chanceFinal = Math.min(ROBO_LIMITES.techo, chanceFinal + bono);
     motivos.push(fraseCon(RX.GANZUA_USADA, `${jid}|ganzua`, { '%A': tag(sender) }));
+    // Si se ha diluido se dice, porque si no el jugador paga por un +18 % que no
+    // ha tenido y no hay forma de que lo sepa.
+    if (stake > OBJETOS.ganzua.topeRobo) {
+      motivos.push(`la ganzúa solo llegó al ${Math.round(bono * 100)} %: para esa cifra hacía falta otra cosa`);
+    }
   }
 
   // Diana: el nº1 de la semana esta mas en guardia pero paga mas. El bono de

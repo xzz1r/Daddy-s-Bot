@@ -20,7 +20,8 @@ const eco = require(R + '/src/utils/economia');
 const { P_POSITIVA, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, ACTIVIDAD_MSGS, P_TOPE_MIEMBRO, TIRADA,
         APUESTA, PRECIOS, BONOS, REDENCION, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE,
         P_TOPE, TIRADAS_PAGADAS, bonoActividad,
-        RACHA, rango, ROBO, DUELO, ARRANQUE, MILLONARIO } = eco;
+        RACHA, rango, ROBO, DUELO, ARRANQUE, MILLONARIO,
+        OBJETOS, RIESGO, ROBO_BASE, ROBO_LIMITES } = eco;
 
 let fallos = 0;
 const ok = (c, q) => { if (!c) { fallos++; console.log('FALLO: ' + q); } else console.log('OK    ' + q); };
@@ -602,6 +603,114 @@ ok(Math.abs(o.peor) === Math.abs(m.peor),
   `  y pierde exactamente lo mismo que cualquiera cuando pierde (${o.peor}): el castigo ya no depende de la suerte de nadie`);
 ok(o.ev * TIRADAS_PAGADAS < MILLONARIO * 0.05,
   `  su techo diario tirando es ${n0(o.ev * TIRADAS_PAGADAS)}, el ${(100 * o.ev * TIRADAS_PAGADAS / MILLONARIO).toFixed(1)} % de una fortuna: ni el amaño imprime`);
+
+console.log('\n════ 9. la tienda: ¿sale a cuenta comprar, y no es una imprenta? ════\n');
+
+// ESTA SECCION EXISTE POR UN AGUJERO REAL, no por completitud.
+//
+// Los precios de la tienda se pusieron contra "un robo medio mueve 40-60", que
+// era verdad cuando el robo tenia techo fijo de 200. Al quitarse ese techo el
+// robo paso a mover cientos y NADIE rehizo la cuenta. El resultado aguanto meses
+// sin que ningun validador lo viera: tres objetos costaban mas de lo que podian
+// llegar a valer nunca —no caros, imposibles de amortizar— y la ganzua se quedo
+// sin tope, valiendo 627 donde costaba 140 y dando la vuelta al signo del robo.
+//
+// Cada objeto tiene que pasar DOS pruebas opuestas, y son opuestas a proposito:
+//
+//   1. VALE LA PENA — en su mejor uso previsto aporta mas de lo que cuesta. Si
+//      no, es decorado: nadie lo compra dos veces.
+//   2. NO IMPRIME — comprarlo y usarlo en bucle no sale a ganancia. Lo que
+//      sostiene esto es el TOPE de cada objeto, no el precio.
+//
+// Entre las dos hay una horquilla estrecha —la ventaja de la casa— y el precio
+// va dentro. Si un cambio futuro mueve el techo del robo, la apuesta maxima o
+// los desenlaces, esta seccion se pone roja en vez de pudrirse en silencio.
+
+// Los desenlaces del robo, tal como los reparte robo.js.
+const R_GANA   = 0.12 * 1.8 + 0.55 * 1.0 + 0.33 * 0.4;  // se lleva esto de lo pedido
+const R_PIERDE = 0.70 * 0.5 + 0.30 * 1.0;               // paga esto si falla
+
+function castigoCifra(a) {
+  const { puntoDulce: pd, codiciaMax, miseriaMax } = RIESGO;
+  if (a > pd) { const x = (a - pd) / (1 - pd); return x * x * codiciaMax; }
+  const x = (pd - a) / pd; return x * x * miseriaMax;
+}
+const pRobo = (a) => Math.min(ROBO_LIMITES.techo, Math.max(ROBO_LIMITES.suelo, ROBO_BASE.miembro - castigoCifra(a)));
+const evRobo = (M, p) => M * (R_GANA * p - R_PIERDE * (1 - p));
+
+// La apuesta, con el multiplicador medio que cuadra con lo medido arriba.
+const P_AP = APUESTA.probabilidad !== undefined ? APUESTA.probabilidad : 0.45;
+const MULT_AP = (1 - P_AP - 0.05) / P_AP + 1;
+const evAp = (S, p) => S * (p * (MULT_AP - 1) - (1 - p));
+
+// Dos fortunas medias enfrentadas: es el escenario donde mas vale cada objeto,
+// que es justo donde hay que buscar la imprenta.
+const CAP = MILLONARIO;
+const barrido = (n) => Array.from({ length: n }, (_, i) => Math.round(CAP * (i + 1) / n));
+
+// ─── ganzua ──────────────────────────────────────────────────────────────────
+const gz = OBJETOS.ganzua;
+let gzAporta = 0, gzBucle = -Infinity;
+for (const M of barrido(200)) {
+  const p0 = pRobo(M / CAP);
+  const bono = gz.bono * Math.min(1, (gz.topeRobo || Infinity) / Math.max(1, M));
+  const p1 = Math.min(ROBO_LIMITES.techo, p0 + bono);
+  gzAporta = Math.max(gzAporta, evRobo(M, p1) - evRobo(M, p0));
+  gzBucle = Math.max(gzBucle, evRobo(M, p1) - gz.precio);
+}
+console.log(`  ganzua  ${String(gz.precio).padStart(5)}   aporta hasta ${n0(gzAporta)}   comprar+robar en bucle: ${n2(gzBucle)}`);
+ok(gz.topeRobo > 0, '  la ganzua lleva tope: sin el, su valor crece con lo pedido y no para');
+ok(gzAporta > gz.precio, `  y aun asi compensa comprarla (aporta ${n0(gzAporta)} contra ${gz.precio} que cuesta)`);
+ok(gzBucle <= 0, `  pero comprarla y robar en bucle NO imprime (${n2(gzBucle)} por vuelta)`);
+
+// ─── amuleto ─────────────────────────────────────────────────────────────────
+const am = OBJETOS.amuleto;
+let amAporta = 0, amBucle = -Infinity;
+for (const S of barrido(200)) {
+  const efec = Math.min(S, am.topeApuesta);
+  const con = evAp(S - efec, P_AP) + evAp(efec, P_AP + am.bono);
+  amAporta = Math.max(amAporta, con - evAp(S, P_AP));
+  amBucle = Math.max(amBucle, con - am.precio);
+}
+console.log(`  amuleto ${String(am.precio).padStart(5)}   aporta hasta ${n0(amAporta)}   comprar+apostar en bucle: ${n2(amBucle)}`);
+ok(am.topeApuesta > 0, '  el amuleto lleva tope de apuesta');
+ok(amAporta > am.precio, `  y compensa comprarlo (aporta ${n0(amAporta)} contra ${am.precio} que cuesta)`);
+ok(amBucle <= 0, `  pero comprarlo y apostar el maximo NO imprime (${n2(amBucle)} por vuelta)`);
+
+// ─── seguro ──────────────────────────────────────────────────────────────────
+const sg = OBJETOS.seguro;
+let sgAporta = 0, sgBucle = -Infinity;
+for (const S of barrido(200)) {
+  const devuelve = (1 - P_AP) * Math.min(S * sg.recupera, sg.topeDevuelto);
+  sgAporta = Math.max(sgAporta, devuelve);
+  sgBucle = Math.max(sgBucle, evAp(S, P_AP) + devuelve - sg.precio);
+}
+console.log(`  seguro  ${String(sg.precio).padStart(5)}   devuelve hasta ${n0(sgAporta)}   comprar+apostar en bucle: ${n2(sgBucle)}`);
+ok(sg.topeDevuelto > 0, '  el seguro lleva tope de devolucion');
+ok(sgAporta > sg.precio, `  y compensa comprarlo (devuelve ${n0(sgAporta)} contra ${sg.precio} que cuesta)`);
+ok(sgBucle <= 0, `  pero comprarlo y apostar el maximo NO imprime (${n2(sgBucle)} por vuelta)`);
+
+// ─── socio ───────────────────────────────────────────────────────────────────
+const sc = OBJETOS.socio;
+const comandoMedio = Object.values(PRECIOS).reduce((a, b) => a + b, 0) / Object.values(PRECIOS).length;
+const cortaEn = Math.ceil(sc.precio / (comandoMedio * sc.descuento));
+console.log(`  socio   ${String(sc.precio).padStart(5)}   se amortiza a los ${cortaEn} comandos en ${sc.horas} h (comando medio ${n2(comandoMedio)})`);
+ok(cortaEn <= 35, `  el socio se amortiza en una tarde larga (${cortaEn} comandos): por encima de ~35 no lo alcanza nadie y es decorado`);
+ok(cortaEn >= 15, `  y no se amortiza solo con pasar por ahi (${cortaEn} comandos): sigue siendo para quien vive en el chat`);
+
+// ─── lo que cuestan, en dias de quien los compra ─────────────────────────────
+//
+// El precio en aura no dice nada por si solo; lo que dice algo es cuantos dias
+// de juego cuesta. Esta es la lectura que faltaba cuando se pusieron: 1.500 por
+// un indulto de 48 h eran OCHO DIAS de ingresos de un usuario normal.
+const DIA_NORMAL = f('normal').total;
+console.log(`\n  (un usuario normal ingresa ${n0(DIA_NORMAL)} al dia)\n`);
+for (const [k, o] of Object.entries(OBJETOS)) {
+  const d = o.precio / DIA_NORMAL;
+  const linea = `  ${k.padEnd(8)} ${String(o.precio).padStart(5)} = ${d.toFixed(1)} dias de un usuario normal`;
+  if (d > 6) { nota(`${k} cuesta ${d.toFixed(1)} dias de ingresos de un usuario normal: eso ya no es caro, es inalcanzable`); }
+  console.log(linea);
+}
 
 console.log('\n' + '═'.repeat(66));
 if (avisos.length) {

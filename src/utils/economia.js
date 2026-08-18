@@ -639,12 +639,37 @@ const BOTE = {
   fraccionDeApuesta: 0.25,
 };
 
-// LOS OBJETOS. Dan una decisión ANTES de robar, no solo al robar. Los precios
-// están puestos contra el botín típico (un robo medio mueve unos 40-60): un
-// escudo cuesta más que un robo bueno, así que comprarlo es renunciar a algo.
+// LOS OBJETOS. Dan una decisión ANTES de robar, no solo al robar.
+//
+// LOS PRECIOS SE REHICIERON. Estaban puestos contra "un robo medio mueve unos
+// 40-60", que era cierto cuando el robo tenia techo fijo de 200. Al quitarse ese
+// techo (ROBO.techoFraccion = 1) el robo pasó a mover cientos, la referencia se
+// quedó vieja y nadie volvió a hacer la cuenta. Resultado: tres objetos costaban
+// mas de lo que podian llegar a valer NUNCA —no caros, imposibles— y la ganzua
+// se quedo sin tope y valia mucho mas de lo que costaba.
+//
+// La referencia ahora es doble y esta medida, no estimada:
+//   · lo que el objeto aporta de valor esperado en su uso previsto;
+//   · y lo que ingresa al dia quien lo va a comprar (188 un usuario normal).
 const OBJETOS = {
   escudo: { precio: 180, horas: 12, desc: 'nadie te puede robar durante 12 h' },
-  ganzua: { precio: 140, usos: 1,   bono: 0.18, desc: '+18 % en tu próximo robo' },
+  // LA GANZUA LLEVA TOPE, y le hacia mucha falta. Es el mismo fallo que el
+  // amuleto tenia previsto y esta no: un bono de probabilidad sobre lo pedido
+  // vale mas cuanto mas se pide. Sin tope, con las dos fortunas en 5.000 y
+  // pidiendo en el punto dulce (2.250), aportaba 627 de valor esperado y costaba
+  // 140 — y ademas daba la vuelta al signo del robo, que pasaba de -139 a +488.
+  // O sea que la jugada optima era comprar ganzuas en bucle y robar fuerte.
+  //
+  // Ahora el bono se diluye a partir de topeRobo: entero hasta 800, y de ahi en
+  // adelante proporcional. Abre una cerradura, no una camara acorazada.
+  //
+  // Y EL PRECIO SE QUEDA EN 140, que es la excepcion de esta tanda: la ganzua no
+  // estaba cara, estaba REGALADA. Con el tope aporta 223 como maximo, asi que a
+  // 140 sale a cuenta desde unos 500 de botin (1,6 veces lo que cuesta) y el
+  // bucle de comprar-y-robar se queda en -17. Bajarla ademas la habria devuelto
+  // a ser imprenta por otro camino.
+  ganzua: { precio: 140, usos: 1,   bono: 0.18, topeRobo: 800,
+            desc: '+18 % en tu próximo robo (sobre los primeros 800)' },
   cebo:   { precio: 90,  horas: 8,  desc: 'aparentas el doble de aura durante 8 h' },
 
   // ─── Los caros: no son para robar, son para que el bot no te toque ────────
@@ -654,44 +679,64 @@ const OBJETOS = {
   // Si salieran baratos, el !allow dejaria de ser una decision de un admin y
   // pasaria a ser un tramite, y la moderacion automatica dejaria de existir.
   //
-  // Con una fortuna en 5.000, el pase cuesta el 12 % de ser rico y el indulto el
-  // 30 %. Nadie compra ninguno de los dos por capricho.
-  pase:    { precio: 600,  horas: 24, desc: 'publicas tus redes 24 h sin que el bot te borre nada' },
+  // Rebajados, pero siguen siendo los caros. 600 y 1.500 eran tres y ocho dias
+  // de un usuario normal (188/dia) por algo que dura 24 y 48 horas: el indulto
+  // pedia una semana de trabajo para dos dias de cobertura parcial, y ni el mas
+  // rico hacia esa cuenta. A 400 y 900 siguen doliendo —dos dias y cinco— pero
+  // son una decision que alguien puede llegar a tomar, que es el punto.
+  pase:    { precio: 400,  horas: 24, desc: 'publicas tus redes 24 h sin que el bot te borre nada' },
 
   // OJO CON EL ALCANCE: el indulto solo para al BOT, y solo cuando actua SOLO.
   // No protege de un !kick ni de un !fkban de un admin, ni deberia: el dia que
   // el aura compre inmunidad frente a una persona, el owner deja de mandar en
   // su propio grupo y la tienda se convierte en un agujero de moderacion.
   // Es un seguro contra el automatismo, no un salvoconducto.
-  indulto: { precio: 1500, horas: 48, desc: 'el bot no te banea solo durante 48 h — no te salva de un admin' },
+  indulto: { precio: 900,  horas: 48, desc: 'el bot no te banea solo durante 48 h — no te salva de un admin' },
 
   // ─── Los de la mesa ────────────────────────────────────────────────────────
   //
   // POR QUE LOS DOS LLEVAN TOPE. Cualquier ventaja proporcional a lo apostado
   // se convierte en una impresora de aura en cuanto alguien apuesta fuerte: un
   // +8 % de probabilidad sobre una apuesta de 5.000 vale 800 de valor esperado,
-  // asi que comprarlo por 450 y apostar el maximo seria ganar dinero sin jugar.
+  // asi que sin tope se compra y se apuesta el maximo en bucle.
   //
-  // Con el tope, lo que el objeto puede llegar a valer esta acotado y siempre
-  // por debajo de su precio. Sigue siendo util —te cubre una apuesta normal
-  // entera— pero no se puede exprimir.
-  amuleto: { precio: 450, usos: 1, bono: 0.08, topeApuesta: 2000,
+  // EL TOPE ES LO QUE IMPIDE ESO, NO EL PRECIO. Y estaba haciendo las dos cosas:
+  // los precios se pusieron ademas por encima de lo que el objeto podia llegar a
+  // valer NUNCA —450 por un amuleto que como mucho aporta 338, 600 por un seguro
+  // que como mucho devuelve 440— asi que no eran caros, eran imposibles. Ningun
+  // nivel de juego los amortizaba y por eso no los compraba nadie.
+  //
+  // El criterio ahora es otro, y es el que deberia haber sido desde el principio:
+  //
+  //   · el precio va por DEBAJO de lo que el objeto aporta en su uso previsto,
+  //     para que comprarlo sea una buena jugada de quien ya iba a apostar fuerte;
+  //   · y por ENCIMA de lo que aporta menos la ventaja de la casa, para que
+  //     comprar-y-apostar en bucle salga a cero y no imprima.
+  //
+  // Entre esas dos cifras hay una horquilla estrecha (la ventaja de la casa, un
+  // 5 %) y el precio va dentro. Ver el desglose en la nota de cada uno.
+  // Aporta como mucho 338 (a partir de 2.000 apostados). A 240 sale a cuenta
+  // desde unos 1.200 de apuesta, y comprar+apostar el maximo queda en cero
+  // exacto: -100 de la casa +338 del amuleto -240 del precio = -2.
+  amuleto: { precio: 240, usos: 1, bono: 0.08, topeApuesta: 2000,
              desc: '+8 % en tu próxima apuesta (sobre los primeros 2.000)' },
-  seguro:  { precio: 600, usos: 1, recupera: 0.5, topeDevuelto: 800,
+
+  // Devuelve como mucho 440 de media (a partir de 1.600 apostados). A 360 sale a
+  // cuenta desde unos 1.300, y el bucle vuelve a quedar en cero: -80 +440 -360.
+  seguro:  { precio: 360, usos: 1, recupera: 0.5, topeDevuelto: 800,
              desc: 'si pierdes la próxima apuesta recuperas la mitad (máx. 800)' },
 
   // Descuento en todo lo que se paga.
   //
-  // EL PRECIO SALE DE UNA CUENTA, no a ojo. Con un comando medio en unos 28 de
-  // aura y un descuento del 25 %, cada comando ahorra 7. A 500 el socio no sale
-  // a cuenta hasta los ~71 comandos en doce horas, que es machacar el bot todo
-  // el dia. Un usuario normal-tirando-a-intenso (40-50 comandos) ahorra 280-350
-  // y pierde dinero comprandolo.
+  // EL PRECIO SALE DE UNA CUENTA, y la cuenta estaba mal. Con el comando medio
+  // real (34,7) y un 25 % de descuento se ahorran 8,7 por comando, o sea que a
+  // 500 hacian falta 58 comandos EN DOCE HORAS para amortizarlo. Un usuario
+  // intenso hace 40-50 comandos AL DIA. Nadie llegaba, nunca.
   //
-  // Esa es la linea: tiene que compensar solo al que de verdad vive en el chat,
-  // no al que lo compra por si acaso. La primera version estaba en 400 y salia
-  // rentable demasiado pronto.
-  socio:   { precio: 500, horas: 12, descuento: 0.25,
+  // A 250 el corte esta en 29 comandos en doce horas: eso lo alcanza quien pasa
+  // la tarde en el chat y no lo alcanza quien lo compra por si acaso, que es
+  // exactamente donde tenia que estar la linea.
+  socio:   { precio: 250, horas: 12, descuento: 0.25,
              desc: 'todos los comandos te cuestan un 25 % menos durante 12 h' },
 };
 
