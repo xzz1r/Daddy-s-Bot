@@ -55,7 +55,7 @@ const ROBO_FALLO_REMATE = [
   'y hasta la víctima sintió vergüenza ajena',
   'y confirmó que lo suyo no es robar, ni esto ni una puta cosa',
   'y se quedó ahí parado como un pasmarote',
-  'y le salió tan mal que da hasta risa, cabrón',
+  'y le salió tan mal que da hasta risa',
   'y ni robando sirve, que ya hay que ser inútil',
   'y volvió llorando a su rincón de siempre'
 ];
