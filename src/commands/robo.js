@@ -1988,6 +1988,17 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       `${phrase}\n\n` +
       `${aTag} +${fmt(monto)} → *${fmt(aNew.current)}*\n` +
       `${vTag} −${fmt(monto)} → *${fmt(vNew.current)}*` +
+      // SE AVISA A LA VICTIMA, que si no el contraataque no existe.
+      //
+      // La ventana es de 90 segundos y el mensaje del robo no la mencionaba por
+      // ningun lado: habia que saber de antemano que *!robo contra* existia y
+      // acordarse en el momento. El resultado es que no lo usaba nadie — ni el
+      // dueño del bot sabia que estaba ahi.
+      //
+      // Va aqui y no en el menu porque un aviso sirve cuando llega en el
+      // segundo en que hace falta, no en una lista que se lee una vez.
+      `\n\n_${vTag}: tienes *${CONTRA.ventanaSeg}s* para responder con *!robo contra*. ` +
+      `Recuperas el doble... o pierdes otro tanto._` +
       notaDinamicas;
     return sock.sendMessage(jid, { text, mentions: [sender, target] });
   }
