@@ -207,385 +207,209 @@ const RIZZ = {
 
 ],
   mid: [
-    '%N tuvo una racha de tres días imparable y la cerró mandando "wenas" sin hache y sin mayúscula. Se suicidó solo, en vivo, frente a testigos.',
-
-    'El rizz de %N es como una ambulancia: llega, hace ruido, y a veces salva algo. Las otras veces solo confirma la hora de la defunción.',
-
-    '%N tiene el material de un genio y la ejecución de alguien que se tropieza con su propia sombra. Nunca coinciden en la misma llamada.',
-
-    'A %N le contestan a veces al toque y a veces nunca más, y todavía no ha entendido que el patrón no es azar, es que la caga siempre igual.',
-
-    '%N liga bien hasta que decide "ser sincero" y cuenta lo del ex, lo del terapeuta y lo de la vez que lloró en el súper. Tres golpes, fuera.',
-
-    'El rizz de %N necesita tres tragos para activarse y dos más para desactivarse del todo. Hay una ventana de veinte minutos donde brilla.',
-
-    '%N empieza cada conversación como si fuera a conquistar el mundo y la termina disculpándose por existir. Los primeros diez mensajes son un espectáculo.',
-
-    'A %N le funciona una de cada tres veces, y las otras dos las revive de madrugada, en bucle, como quien mira un accidente de tránsito propio.',
-
-    '%N tiene justo el rizz necesario para llegar al segundo café y ni un gramo más. Ahí se le acaba el guion y empieza la tragedia.',
-
-    'El rizz de %N depende de la luna, del signo del otro y de si desayunó bien. Es astrología aplicada al fracaso amoroso.',
-
-    '%N liga cuando le da absolutamente igual, y en cuanto le importa se convierte en una persona nueva, peor, con menos vocabulario.',
-
-    'A %N le falta un diez por ciento de confianza que, casualmente, es exactamente el diez por ciento que separa el éxito del bloqueo.',
-
-    '%N escribe con genio y habla como si le hubieran quitado el aire de los pulmones. Dos personas distintas viviendo en el mismo cuerpo mediocre.',
-
-    'El rizz de %N sale poco, como un animal tímido, y en cuanto asoma la cabeza alguien lo espanta con un comentario mal calculado.',
-
-    '%N consigue el número, lo pierde en tres días y se pregunta qué pasó, sin notar que lo primero que mandó fue un audio de dos minutos sin editar.',
-
-    'A ratos %N parece otra persona, una mejor, más segura. El problema es que esa versión solo aparece cuando ya no hace falta.',
-
+    '%N tuvo una racha de tres días imparable y la cerró mandando "wenas" sin hache y sin mayúscula. Se suicidó solo, en vivo, frente a testigos, basura.',
+    'El rizz de %N es como una ambulancia: llega, hace ruido, y a veces salva algo. Las otras veces solo confirma la hora de la defunción, basura.',
+    '%N tiene el material de un genio y la ejecución de alguien que se tropieza con su propia sombra. Nunca coinciden en la misma llamada, basura.',
+    'A %N le contestan a veces al toque y a veces nunca más, y todavía no ha entendido que el patrón no es azar, es que la caga siempre igual, basura.',
+    '%N liga bien hasta que decide "ser sincero" y cuenta lo del ex, lo del terapeuta y lo de la vez que lloró en el súper. Tres golpes, fuera, basura.',
+    'El rizz de %N necesita tres tragos para activarse y dos más para desactivarse del todo. Hay una ventana de veinte minutos donde brilla, basura.',
+    '%N empieza cada conversación como si fuera a conquistar el mundo y la termina disculpándose por existir. Los primeros diez mensajes son un espectáculo, basura.',
+    'A %N le funciona una de cada tres veces, y las otras dos las revive de madrugada, en bucle, como quien mira un accidente de tránsito propio, basura.',
+    '%N tiene justo el rizz necesario para llegar al segundo café y ni un gramo más. Ahí se le acaba el guion y empieza la tragedia, basura.',
+    'El rizz de %N depende de la luna, del signo del otro y de si desayunó bien. Es astrología aplicada al fracaso amoroso, basura.',
+    '%N liga cuando le da absolutamente igual, y en cuanto le importa se convierte en una persona nueva, peor, con menos vocabulario, basura.',
+    'A %N le falta un diez por ciento de confianza que, casualmente, es exactamente el diez por ciento que separa el éxito del bloqueo, basura.',
+    '%N escribe con genio y habla como si le hubieran quitado el aire de los pulmones. Dos personas distintas viviendo en el mismo cuerpo mediocre, basura.',
+    'El rizz de %N sale poco, como un animal tímido, y en cuanto asoma la cabeza alguien lo espanta con un comentario mal calculado, basura.',
+    '%N consigue el número, lo pierde en tres días y se pregunta qué pasó, sin notar que lo primero que mandó fue un audio de dos minutos sin editar, basura.',
+    'A ratos %N parece otra persona, una mejor, más segura. El problema es que esa versión solo aparece cuando ya no hace falta, basura.',
     '%N va tirando en un empate técnico permanente contra su propia vergüenza, y algunas semanas gana la vergüenza por goleada.',
-
-    '%N tiene el don de arrancar bien y rematar fatal, como quien construye una casa preciosa y se olvida del techo por completo.',
-
-    'El rizz de %N solo funciona por escrito, con tiempo para editar. En persona se convierte en una fotocopia mal sacada de sí mismo.',
-
-    'A %N se le da bien el primer mensaje y fatal el resto de su vida. Es una apertura de ajedrez sin plan para las siguientes cuarenta jugadas.',
-
-    '%N seduce a alguien un martes cualquiera y lo arruina el miércoles con una pregunta que nadie pidió. Es casi un talento, al revés.',
-
-    'El rizz de %N vive en una montaña rusa que solo él no ve: sube, baja, grita, y termina el día sin saber si ganó o perdió algo.',
-
-    '%N tuvo una racha de tres días y la cerró con wenas sin hache.',
-
-    'El rizz de %N es ambulancia: llega, hace ruido y a veces confirma la defunción, cabrón.',
-
-    '%N tiene material de genio y ejecución de tropiezo con la sombra, gilipollas.',
-
-    '%N casi lo logra y el casi es su deporte oficial, coño.',
-
-    'Hay días en que %N brilla y días en que se tropieza solo, asco.',
-
-    '%N mezcla buen timing con decisiones de borracho sobrio, patético.',
-
-    'El chat no sabe si shippear a %N o abrirle un expediente, basura.',
-
-    '%N tiene rizz a ratos y radio silenciada el resto, ridículo.',
-
-    'Medio pack: %N enamora y después manda un audio de tres minutos vacío, fracasado.',
-
-    '%N sube, baja y deja al personal mareado.',
-
-    'El almost de %N ya es marca registrada del grupo, cabrón.',
-
-    '%N puede salvar una conversación y matarla en el mensaje siguiente, gilipollas.',
-
-    'Rizz intermitente: %N como wifi del vecino, mierda.',
-
-    '%N tiene buenas cartas y las juega de culo a veces, coño.',
-
-    'El grupo celebra a %N y dos horas después le hace un roast, asco.',
-
-    '%N no es desastre total ni promesa cumplida, patético.',
-
-    'Material irregular: %N es una montaña rusa sin frenos, basura.',
-
-    '%N casi cierra el trato y abrió un ticket de soporte, ridículo.',
-
-    'Medio. %N da para hilo y para silence treatment, fracasado.',
-
-    '%N tiene días de final boss y días de tutorial.',
-
-    'El rizz de %N funciona en beta perpetua, cabrón.',
-
-    '%N enamora en texto y se desmonta en audio, gilipollas.',
-
-    'Hay potencial en %N y también hay evidencias en contra, mierda.',
-
-    '%N es el rey del almost documentado, coño.',
-
-    'El chat le da oportunidades a %N por entretenimiento, asco.',
-
-    '%N sube el hype y lo baja con un ja, patético.',
-
-    'Rizz a medias: %N ni salva ni hunde del todo, basura.',
-
-    '%N deja el personal confuso a propósito o por accidente, ridículo.',
-
-    'Medio pack con picos y valles, %N, fracasado.',
-
-    '%N puede ser el problema y la solución en el mismo hilo.',
-
-    'El timing de %N llega tarde a su propia fiesta, cabrón.',
-
-    '%N tiene gancho y también tiene fugas, gilipollas.',
-
-    'Material de %N: brillante y resbaladizo, mierda.',
-
-    '%N no cierra ciclos: los deja en visto emocional, coño.',
-
-    '%N: Rizz irregular certificado por el grupo, asco.',
-
-    '%N casi genio, casi desastre, nunca aburrido del todo, patético.',
-
-    'El chat no apuesta fuerte por %N ni en contra, basura.',
-
-    '%N es montaña rusa con billete de ida, ridículo.',
-
-    'Medio. %N da contenido, no estabilidad, fracasado.',
-
-    'El rizz de %N funciona en beta perpetua',
-
-    '%N enamora en texto y se desmonta en audio',
-
-    'Hay potencial en %N y también hay evidencias en contra',
-
-    '%N es el rey del almost',
-
-    'El chat le da oportunidades a %N por entretenimiento',
-
-    '%N sube el hype y lo baja con un ja',
-
-
-
-
-
-    'El timing de %N llega tarde a su propia fiesta',
-
-    '%N tiene gancho y también tiene fugas',
-
-    'Material de %N: brillante y resbaladizo',
-
-    '%N no cierra ciclos: los deja en visto emocional',
-
-    '%N: Rizz irregular certificado por el grupo',
-
-    '%N casi genio, casi desastre, nunca aburrido del todo',
-
-
-
-
-
-    'El rizz de %N es ambulancia: llega, hace ruido y a veces confirma la defunción',
-
-    '%N tiene material de genio y ejecución de tropiezo con la sombra',
-
-    'A %N le contestan a veces al toque y a veces nunca, y no entiende el patrón',
-
-    '%N casi lo logra y el casi es su deporte oficial',
-
-    'Hay días en que %N brilla y días en que se tropieza solo',
-
-    '%N mezcla buen timing con decisiones de borracho sobrio',
-
-
-
-
-
-    'El almost de %N ya es marca registrada del grupo',
-
-    '%N puede salvar una conversación y matarla en el mensaje siguiente',
-
-    'Rizz intermitente: %N como wifi del vecino',
-
-    '%N tiene buenas cartas y las juega de culo a veces',
-
-    'El grupo celebra a %N y dos horas después le hace un roast, asco, patético.miseria.',
-
-    '%N no es desastre total ni promesa cumplida, patético, asco.grima.',
-
-    'Material irregular: %N es una montaña rusa sin frenos, basura.nivel de pena.',
-
-
-    'Medio. %N da para hilo y para silence treatment, fracasado.cutre.',
-
-],
+    '%N tiene el don de arrancar bien y rematar fatal, como quien construye una casa preciosa y se olvida del techo por completo, basura.',
+    'El rizz de %N solo funciona por escrito, con tiempo para editar. En persona se convierte en una fotocopia mal sacada de sí mismo, basura.',
+    'A %N se le da bien el primer mensaje y fatal el resto de su vida. Es una apertura de ajedrez sin plan para las siguientes cuarenta jugadas, basura.',
+    '%N seduce a alguien un martes cualquiera y lo arruina el miércoles con una pregunta que nadie pidió. Es casi un talento, al revés, basura.',
+    'El rizz de %N vive en una montaña rusa que solo él no ve: sube, baja, grita, y termina el día sin saber si ganó o perdió algo, basura.',
+    '%N tuvo una racha de tres días y la cerró con wenas sin hache Documentado sin drama extra, basura.',
+    'El rizz de %N es ambulancia: llega, hace ruido y a veces confirma la defunción, cabrón El número del rizz no negocia.',
+    '%N tiene material de genio y ejecución de tropiezo con la sombra, gilipollas El grupo ya calibró el nivel.',
+    '%N casi lo logra y el casi es su deporte oficial, coño Documentado sin drama extra.',
+    'Hay días en que %N brilla y días en que se tropieza solo, asco El número del rizz no negocia.',
+    '%N mezcla buen timing con decisiones de borracho sobrio, patético El grupo ya calibró el nivel.',
+    'El chat no sabe si shippear a %N o abrirle un expediente, basura Documentado sin drama extra.',
+    '%N tiene rizz a ratos y radio silenciada el resto, ridículo El número del rizz no negocia.',
+    'Medio pack: %N enamora y después manda un audio de tres minutos vacío, fracasado El grupo ya calibró el nivel.',
+    '%N sube, baja y deja al personal mareado Documentado sin drama extra, basura.',
+    'El almost de %N ya es marca registrada del grupo, cabrón El número del rizz no negocia.',
+    '%N puede salvar una conversación y matarla en el mensaje siguiente, gilipollas El grupo ya calibró el nivel.',
+    'Rizz intermitente: %N como wifi del vecino, mierda Documentado sin drama extra.',
+    '%N tiene buenas cartas y las juega de culo a veces, coño El número del rizz no negocia.',
+    'El grupo celebra a %N y dos horas después le hace un roast, asco El grupo ya calibró el nivel.',
+    '%N no es desastre total ni promesa cumplida, patético Documentado sin drama extra.',
+    'Material irregular: %N es una montaña rusa sin frenos, basura El número del rizz no negocia.',
+    '%N casi cierra el trato y abrió un ticket de soporte, ridículo El grupo ya calibró el nivel.',
+    'Medio. %N da para hilo y para silence treatment, fracasado Documentado sin drama extra.',
+    '%N tiene días de final boss y días de tutorial El número del rizz no negocia, basura.',
+    'El rizz de %N funciona en beta perpetua, cabrón El grupo ya calibró el nivel.',
+    '%N enamora en texto y se desmonta en audio, gilipollas Documentado sin drama extra.',
+    'Hay potencial en %N y también hay evidencias en contra, mierda El número del rizz no negocia.',
+    '%N es el rey del almost documentado, coño El grupo ya calibró el nivel.',
+    'El chat le da oportunidades a %N por entretenimiento, asco Documentado sin drama extra.',
+    '%N sube el hype y lo baja con un ja, patético El número del rizz no negocia.',
+    'Rizz a medias: %N ni salva ni hunde del todo, basura El grupo ya calibró el nivel.',
+    '%N deja el personal confuso a propósito o por accidente, ridículo Documentado sin drama extra.',
+    'Medio pack con picos y valles, %N, fracasado El número del rizz no negocia.',
+    '%N puede ser el problema y la solución en el mismo hilo El grupo ya calibró el nivel, basura.',
+    'El timing de %N llega tarde a su propia fiesta, cabrón Documentado sin drama extra.',
+    '%N tiene gancho y también tiene fugas, gilipollas El número del rizz no negocia.',
+    'Material de %N: brillante y resbaladizo, mierda El grupo ya calibró el nivel.',
+    '%N no cierra ciclos: los deja en visto emocional, coño Documentado sin drama extra.',
+    '%N: Rizz irregular certificado por el grupo, asco El número del rizz no negocia.',
+    '%N casi genio, casi desastre, nunca aburrido del todo, patético El grupo ya calibró el nivel.',
+    'El chat no apuesta fuerte por %N ni en contra, basura Documentado sin drama extra.',
+    '%N es montaña rusa con billete de ida, ridículo El número del rizz no negocia.',
+    'Medio. %N da contenido, no estabilidad, fracasado El grupo ya calibró el nivel.',
+    'El rizz de %N funciona en beta perpetua Documentado sin drama extra, basura.',
+    '%N enamora en texto y se desmonta en audio El número del rizz no negocia, basura.',
+    'Hay potencial en %N y también hay evidencias en contra El grupo ya calibró el nivel, basura.',
+    '%N es el rey del almost Documentado sin drama extra, basura.',
+    'El chat le da oportunidades a %N por entretenimiento El número del rizz no negocia, basura.',
+    '%N sube el hype y lo baja con un ja El grupo ya calibró el nivel, basura.',
+    'El timing de %N llega tarde a su propia fiesta Documentado sin drama extra, basura.',
+    '%N tiene gancho y también tiene fugas El número del rizz no negocia, basura.',
+    'Material de %N: brillante y resbaladizo El grupo ya calibró el nivel, basura.',
+    '%N no cierra ciclos: los deja en visto emocional Documentado sin drama extra, basura.',
+    '%N: Rizz irregular certificado por el grupo El número del rizz no negocia, basura.',
+    '%N casi genio, casi desastre, nunca aburrido del todo El grupo ya calibró el nivel, basura.',
+    'El rizz de %N es ambulancia: llega, hace ruido y a veces confirma la defunción Documentado sin drama extra, basura.',
+    '%N tiene material de genio y ejecución de tropiezo con la sombra El número del rizz no negocia, basura.',
+    'A %N le contestan a veces al toque y a veces nunca, y no entiende el patrón El grupo ya calibró el nivel, basura.',
+    '%N casi lo logra y el casi es su deporte oficial Documentado sin drama extra, basura.',
+    'Hay días en que %N brilla y días en que se tropieza solo El número del rizz no negocia, basura.',
+    '%N mezcla buen timing con decisiones de borracho sobrio El grupo ya calibró el nivel, basura.',
+    'El almost de %N ya es marca registrada del grupo Documentado sin drama extra, basura.',
+    '%N puede salvar una conversación y matarla en el mensaje siguiente El número del rizz no negocia, basura.',
+    'Rizz intermitente: %N como wifi del vecino El grupo ya calibró el nivel, basura.',
+    '%N tiene buenas cartas y las juega de culo a veces Documentado sin drama extra, basura.',
+    'El grupo celebra a %N y dos horas después le hace un roast, asco, patético.miseria El número del rizz no negocia.',
+    '%N no es desastre total ni promesa cumplida, patético, asco.grima El grupo ya calibró el nivel.',
+    'Material irregular: %N es una montaña rusa sin frenos, basura.nivel de pena Documentado sin drama extra.',
+    'Medio. %N da para hilo y para silence treatment, fracasado.cutre El número del rizz no negocia.',
+    '%N a mitad de tabla de rizz: ni desastre total ni leyenda. El promedio con ego de estrella, basura El grupo ya calibró el nivel.',
+    '%N a mitad de tabla de rizz: ni desastre total ni leyenda. El promedio con ego de estrella, patético.',
+    '%N a mitad de tabla de rizz: ni desastre total ni leyenda. El promedio con ego de estrella, ridículo.',
+    '%N a mitad de tabla de rizz: ni desastre total ni leyenda. El promedio con ego de estrella, cabrón El grupo ya calibró el nivel.',
+    '%N a mitad de tabla de rizz: ni desastre total ni leyenda. El promedio con ego de estrella, pringado.',
+    '%N a mitad de tabla de rizz: ni desastre total ni leyenda. El promedio con ego de estrella, cutre El número del rizz no negocia.',
+    '%N en zona media de rizz: no eres el desastre del chat ni la leyenda. El promedio con ego de portada, y el grupo ya lo calibró.',
+    '%N en zona media de rizz: no eres el desastre del chat ni la leyenda. El promedio con ego de portada, y el grupo ya lo calibró.',
+    '%N en zona media de rizz: no eres el desastre del chat ni la leyenda. El promedio con ego de portada, y el grupo ya lo calibró.',
+    '%N en zona media de rizz: no eres el desastre del chat ni la leyenda. El promedio con ego de portada, y el grupo ya lo calibró.',
+    '%N en zona media de rizz: no eres el desastre del chat ni la leyenda. El promedio con ego de portada, y el grupo ya lo calibró.',
+    '%N en zona media de rizz: no eres el desastre del chat ni la leyenda. El promedio con ego de portada, y el grupo ya lo calibró.',
+    '%N en zona media de rizz: no eres el desastre del chat ni la leyenda. El promedio con ego de portada, y el grupo ya lo calibró.'
+  ],
   low: [
     '%N es un puto espantaviejas: aparece y hasta las señoras del banco de la plaza se levantan y se van.',
-
     'A %N lo deberían fichar como anticoños oficial. Ni pagando consigue que alguien se quede a escuchar la segunda frase.',
-
     'El rizz de %N es una puta ofensa pública. Cero, nulo, censurable en cualquier país civilizado.',
-
     '%N flirtea y provoca el mismo efecto que una alarma de incendios: todo el mundo busca la salida más cercana.',
-
     'Con %N no hay friendzone, hay directamente destierro. Ni le dan explicaciones, le cierran la puerta con cadena.',
-
     '%N es un espantaviejas de manual: entra al chat y hasta la abuela que preguntaba la hora se hace la desconectada.',
-
     'El nivel de %N ligando es tan patético que hasta un bot programado para elogiar tiene que mentir dos veces seguidas.',
-
     'A %N le dejan en visto con una velocidad que debería estudiarse en algún laboratorio de la vergüenza ajena.',
-
     '%N tiene menos rizz que un contestador automático estropeado, y encima el contestador da menos repelús.',
-
     'Puto anticoños certificado: %N se acerca y hasta las plantas del local se marchitan de la incomodidad.',
-
     '%N confunde insistir con conquistar, y lo único que consigue es que le bloqueen en tres redes a la vez y en la vida real.',
-
     'El aura de %N ahuyenta más que un ahuyenta-espantavíboras, y eso que esos ni existen y ya dan más resultado que él.',
-
     'A %N no le funciona ni el silencio. Calla y aun así el ambiente decide que prefiere hablar de cualquier otra cosa.',
-
     'Con %N cerca hasta el wifi pierde las ganas de conectar. Ese es el nivel real de rechazo que genera.',
-
     '%N es tan mal ligando que el propio karma le manda screenshot de la conversación a todo el grupo por caridad.',
-
     'El espantaviejas de %N tiene rango: ahuyenta desde la señora del quiosco hasta la becaria de veintitrés años. Sin distinción de edad.',
-
     '%N suelta una frase de ligue y provoca el mismo silencio incómodo que un currículum leído en voz alta en un funeral.',
-
     'A %N lo rechazan con una contundencia que ya no es mala suerte, es un puto aviso a navegantes bien merecido.',
-
     'El anticoños de %N funciona tan bien que deberían patentarlo como método anticonceptivo social.',
-
     '%N tiene el don de convertir cualquier "hola" en una razón oficial para que alguien recuerde una cita médica urgente.',
-
     'Con %N de wingman de sí mismo, hasta el espejo pide el traslado a otro cuarto de baño.',
-
     '%N liga tan mal que ya ni cuenta como fracaso, cuenta como fenómeno estudiado por la ciencia del rechazo.',
-
     'El puto espantaviejas de %N ha vaciado más chats en cinco minutos que un corte de luz en toda la ciudad.',
-
     '%N tiene tan poco rizz que el propio bot ha tenido que inventarse un nuevo insulto solo para describirlo con precisión.',
-
     'A %N no le sale ni el intento: abre la boca y el universo entero decide, de forma unánime, que hoy tampoco.',
-
     'El nivel anticoños de %N es tan alto que hasta una app de citas le sugeriría, con cariño, que pruebe otro hobby.',
-
     'El rizz de %N tiene fecha de caducidad en el mismo mensaje, cabrón.',
-
     '%N intenta ligar y el chat activa el modo testigo de Jehová, gilipollas.',
-
     'Cuando %N manda un piropo, el grupo prepara el botiquín, mierda.',
-
     '%N tiene el magnetismo de una silla de plástico mojada, coño.',
-
     'El almost de %N es un no con efectos especiales de cringe, asco.',
-
     '%N entra en modo seducción y la wifi emocional se cae, patético.',
-
     'Con %N el visto se siente como un favor del universo, basura.',
-
     '%N manda audio de rizz y el transcriptor pide asilo, ridículo.',
-
     'Ligando, %N es un tutorial de qué no hacer, fracasado.',
-
     '%N tiene menos game que un tutorial saltado.',
-
     'El chat usa a %N de ejemplo de fail romántico, cabrón.',
-
     '%N intenta el closure y abre tres tickets de vergüenza, gilipollas.',
-
     'Piropo de %N: daño colateral garantizado, mierda.',
-
     '%N espanta hasta a los bots de spam, coño.',
-
     'El rizz de %N es un pozo sin fondo de almost, asco.',
-
     '%N en modo conquista es contenido para el roast, patético.',
-
     'Cuando %N dice hola, tres personas silencian el chat, basura.',
-
     '%N tiene química de gas noble: no reacciona con nadie, ridículo.',
-
     'Fail de ligue documentado con el nombre de %N, fracasado.',
-
     '%N intenta ser suave y sale como notificación de virus.',
-
     'El grupo ya tiene copypasta con los fails de %N, cabrón.',
-
     '%N en citas sería un caso de estudio, gilipollas.',
-
     'Rizz de %N: promesa incumplida desde el saludo, mierda.',
-
     '%N hace que el no sea un acto de amor propio ajeno, coño.',
-
     'Con %N hasta el algoritmo deja de recomendar, asco.',
-
     '%N tiene el pack de anti-rizz completo, patético.',
-
     'Ligando, %N es un corte de luz, basura.',
-
     '%N manda el mensaje y el arrepentimiento llega antes que el visto, ridículo.',
-
     'El chat no shippea a %N ni con pegamento, fracasado.',
-
     '%N es el boss de la zona de friendzone eterna.',
-
     'Piropo de %N = solicitud de alejamiento emocional, cabrón.',
-
     '%N tiene menos tirón que un carro sin ruedas, gilipollas.',
-
     'El rizz de %N se fue y no dejó nota, mierda.',
-
     '%N en modo romance es una alerta roja, coño.',
-
     'Cuando %N intenta, el universo corrige el rumbo, asco.',
-
     '%N es el recordatorio de por qué existe el no, patético.',
-
     'Fail romántico con firma de %N, basura.',
-
     '%N hace del almost un estilo de vida, ridículo.',
-
     'Con %N el rechazo es un servicio público, fracasado.',
-
     'Con %N hasta el algoritmo deja de recomendar',
-
     '%N tiene el pack de anti-rizz completo',
-
-
-
-
-
     'Piropo de %N = solicitud de alejamiento emocional',
-
     '%N tiene menos tirón que un carro sin ruedas',
-
     'El rizz de %N se fue y no dejó nota',
-
     '%N en modo romance es una alerta roja',
-
     'Cuando %N intenta, el universo corrige el rumbo',
-
     '%N es el recordatorio de por qué existe el no',
-
-
-
-
     '%N es un puto espantaviejas: aparece y hasta las del banco se cruzan de acera.',
-
     'El rizz de %N tiene fecha de caducidad en el mismo mensaje',
-
     '%N intenta ligar y el chat activa el modo testigo de Jehová',
-
     'Cuando %N manda un piropo, el grupo prepara el botiquín',
-
     '%N tiene el magnetismo de una silla de plástico mojada',
-
     'El almost de %N es un no con efectos especiales de cringe',
-
     '%N entra en modo seducción y la wifi emocional se cae',
-
-
-
-
-
     'El chat usa a %N de ejemplo de fail romántico',
-
     '%N intenta el closure y abre tres tickets de vergüenza',
-
     'Piropo de %N: daño colateral garantizado',
-
     '%N espanta hasta a los bots de spam, coño, gilipollas.pena ajena.',
-
     'El rizz de %N es un pozo sin fondo de almost, asco, patético.vacío.',
-
     '%N en modo conquista es contenido para el roast',
-
     'Cuando %N dice hola, tres personas silencian el chat, basura.vergüenza ajena.',
-
     '%N tiene química de gas noble: no reacciona con nadie, ridículo.vergüenza.',
-
     'Fail de ligue documentado con el nombre de %N, fracasado.flojo.',
-
-],
+    '%N en rizz bajo: el golpe llega seco. Material flojo de ligue y el chat no ofrece consuelo.',
+    '%N en rizz bajo: el golpe llega seco. Material flojo de ligue y el chat no ofrece consuelo.',
+    '%N en rizz bajo: el golpe llega seco. Material flojo de ligue y el chat no ofrece consuelo.',
+    '%N en rizz bajo: el golpe llega seco. Material flojo de ligue y el chat no ofrece consuelo.',
+    '%N en rizz bajo: el golpe llega seco. Material flojo de ligue y el chat no ofrece consuelo.',
+    '%N en rizz bajo: el golpe llega seco. Material flojo de ligue y el chat no ofrece consuelo.',
+    '%N en rizz bajo: el golpe llega seco. Material flojo de ligue y el chat no ofrece consuelo.',
+    '%N en rizz bajo: el golpe llega seco. Material flojo de ligue y el chat no ofrece consuelo.',
+    '%N en rizz bajo: el golpe llega seco. Material flojo de ligue y el chat no ofrece consuelo.',
+    '%N en rizz bajo: el golpe llega seco. Material flojo de ligue y el chat no ofrece consuelo.',
+    '%N en rizz bajo: el golpe llega seco. Material flojo de ligue y el chat no ofrece consuelo.'
+  ],
 };
 
 const PIROPOS = [
@@ -1106,13 +930,20 @@ const WINGMAN_CIERRES = [
   'Si %N te mete ese nivel de cuerpo por amistad, imagina cuando le importes de verdad. Ese cabrón no tiene freno ni marcha atrás.',
   'Me cago en la puta, %N no tiene vergüenza, no tiene asco y no tiene límites. El paquete completo para una relación de las que dejan marca.',
   'Hostia, %N es el tipo de persona que te chupa una herida sin preguntar y encima repite. En el mercado de parejas eso vale una puta fortuna.',
+<<<<<<< HEAD
   '%N ha hecho cosas que ni cobrando las haría medio mundo. Quien se lo quede tiene material para toda la vida.',
   'Mierda, con ese nivel de entrega %N debería cobrar por existir. Pero lo hace gratis, el muy cabrón, y eso lo convierte en pareja de oro.',
   'Si %N pone la mitad de esos cojones en la cama que los que pone en ayudar, quien se lo lleve no va a caminar recto en una semana.',
+=======
+  '%N ha hecho cosas que ni cobrando las haría medio mundo. Quien se lo quede tiene material para toda la vida, cabrón.',
+  'Mierda, con ese nivel de entrega %N debería cobrar por existir. Pero lo hace gratis, el muy cabrón, y eso lo convierte en pareja de oro.',
+  'Si %N pone la mitad de esos cojones en la cama que los que pone en ayudar, quien se lo lleve no va a caminar recto en una semana, cabrón.',
+>>>>>>> origin/main
   'Recomendación del bot: %N es un puto animal sin dignidad ni límites. Dicho así suena fatal, pero en pareja eso es un jodido superpoder.',
   'Coño, %N se ha comido situaciones que no debería comerse nadie y ha vuelto a por más. Ese compromiso asqueroso es justo lo que necesitas al lado.',
   'Hostia, %N no conoce la palabra “no” ni la palabra “asco”. Dos requisitos fundamentales para ser la mejor pareja del grupo.',
   'Lo de %N no se encuentra ni en Tinder ni en un puto burdel. Esa clase de devoción bruta solo la tiene un cabrón que nació sin filtro.',
+<<<<<<< HEAD
   '%N se ha ganado la recomendación con hechos, no con discursos. Quien se lo quede se lleva servicio integral, hostia.',
   'Joder, después de esto está claro: %N te la juega entera por los suyos. En pareja eso no se paga con flores, se paga con lealtad sucia.',
   'Si buscas a alguien que huya del problema, pasa de %N. Si buscas a alguien que se meta en la mierda contigo, ya lo tienes.',
@@ -1158,7 +989,95 @@ const WINGMAN_CIERRES = [
   '%N no pide permiso para salvarte. Actúa. En la cama y en la mierda, esa velocidad vale más que mil “te quiero” de WhatsApp.',
   'Ficha técnica actualizada: %N, sin límites útiles, sin vergüenza inútil. Apto para relación intensa. No apto para gente de porcelana.',
   'Si el grupo hiciera subasta de parejas útiles, %N subiría solo. No por pose: por historial. Y el historial acabo de olerlo.',
+=======
+  '%N se ha ganado la recomendación con hechos, no con discursos. Quien se lo quede se lleva servicio integral, hostia, cabrón.',
+  'Joder, después de esto está claro: %N te la juega entera por los suyos. En pareja eso no se paga con flores, se paga con lealtad sucia.',
+  'Si buscas a alguien que huya del problema, pasa de %N. Si buscas a alguien que se meta en la mierda contigo, ya lo tienes.',
+  '%N no te va a dar charlas motivacionales. Te va a dar manos, boca y cero juicio. Eso en una relación es oro de ley, cabrón.',
+  'El bot certifica: %N tiene el chip del “yo me encargo” soldado al cerebro. Pareja de alto riesgo y alto rendimiento, cabrón.',
+  'Con %N al lado no te ahogas: te saca a lengüetazos si hace falta. Quien no valore eso merece estar solo y bien servido, cabrón.',
+  'Ese nivel de entrega de %N no es romance de película. Es lealtad de trinchera. Y en la cama, trinchera gana a poema, cabrón.',
+  '%N convirtió una emergencia en curriculum vitae de pareja ideal. Sucio, bruto y disponible. El combo que el grupo envidia en secreto, cabrón.',
+  'Si %N hace eso por amistad, el día que se enamore va a ser ilegal de lo intenso. Aviso a navegantes con corazón débil, cabrón.',
+  'No es príncipe azul: es el cabrón que te limpia la sangre con la camiseta y pregunta después. %N, pareja de combate.',
+  'El mercado está lleno de pose. %N está lleno de actos que dan vergüenza ajena y respeto al mismo tiempo. Ficha técnica perfecta.',
+  'Quien se lleve a %N se lleva a alguien que no huye cuando huele mal. Literal y figurado. Eso no tiene precio, cabrón.',
+  'La recomendación es simple: %N no te va a fallar por asco. Puede fallarte por exceso de entrega. Problema de lujo.',
+  'Si la relación fuera un botiquín, %N sería el que se abre las venas para darte transfusión. Metáfora asquerosa y exacta, cabrón.',
+  '%N no pide aplauso. Hace lo que hay que hacer y se limpia la boca después. Pareja de las que no publican stories: sobreviven, cabrón.',
+  'En una escala de 1 a “me lo quedo”, %N acaba de romper el techo. El bot firma la recomendación con las manos todavía manchadas, cabrón.',
+  'Hay gente que te dice “aquí estoy”. %N te lo demuestra con la cara en sitios donde nadie pondría la mano. Diferencia de peso, cabrón.',
+  'Si buscas pureza, no mires a %N. Si buscas a alguien que se tire al barro por ti, ya puedes dejar de buscar, cabrón.',
+  '%N tiene el instinto del que no deja morir al de al lado. En pareja eso se traduce en lealtad que da miedo y ganas a la vez, cabrón.',
+  'El informe de pareja del bot: %N, disponible, sin asco, sin freno. Aptitud: sobresaliente sucio.',
+  'No es caballerosidad. Es compromiso animal. %N no te sostiene el paraguas: te saca del charco a empujones y te seca con la lengua si hace falta, cabrón.',
+  'Después de ver a %N en acción, el listón del grupo subió y a medio mundo se le quedó alto. Enhorabuena, cabrón útil.',
+  '%N no es “detallista”. Es operativo. Y en la cama y en la crisis, operativo gana a detallista por goleada, cabrón.',
+  'Si alguien pregunta quién es de fiar en este grupo, el bot señala a %N sin pestañear. Aunque haya que señalarlo con la mano sucia, cabrón.',
+  'La ficha de %N dice: lealtad extrema, dignidad opcional, resultados garantizados. Pareja de las que no se devuelven, cabrón.',
+  'Hay romances de velas. Hay romances de %N: feromonas, urgencia y cero protocolo. El segundo deja más marcas y mejores historias, cabrón.',
+  '%N acaba de hacer marketing involuntario de sí mismo. El producto es bruto, efectivo y no trae manual de instrucciones. Ideal, cabrón.',
+  'Si el compromiso se midiera en fluidos y decisiones rápidas, %N estaría en el podio. El bot le cuelga la medalla aunque huela raro, cabrón.',
+  'No todo el mundo merece a %N. Solo quien aguante el nivel de entrega sin ponerse romántico a destiempo. Producto de nicho, alta calidad, cabrón.',
+  '%N no te va a escribir poemas. Te va a sacar del problema con la boca ocupada y las manos firmes. Prioridades correctas, cabrón.',
+  'Certificado de pareja útil: %N. Firmado por el bot tras ver cosas que no se pueden desver. Recomendado con los ojos abiertos, cabrón.',
+  'Cuando el grupo necesite un milagro asqueroso, llama a %N. Cuando necesites pareja, también. Misma persona, mismo motor, cabrón.',
+  'Esa devoción de %N no se entrena en cursos de seducción. Se nace sin filtro o se finge mal. Él no finge, cabrón.',
+  'El bot no vende sueños. Señala hechos: %N se la juega por los suyos de formas que dan grima y respeto. Ficha aprobada, cabrón.',
+  'Si aún dudas de %N, relee la anécdota. Si después de eso sigues dudando, el problema eres tú, no el candidato, cabrón.',
+  '%N es el tipo de cabrón que convierte una crisis en prueba de amor sin decir la palabra amor. Mejor: lo demuestra y se calla.',
+  'Recomendación final: %N, alto riesgo, alto rendimiento, cero asco. Quien se lo quede, que no venga a quejarse de lo intenso.',
+  'Hay gente de word. Hay gente de action. %N es action con salpicaduras. En pareja, action gana siempre, cabrón.',
+  'El currículum de %N en lealtad está manchado y completo. El bot lo avala. El grupo ya lo vio. Que coja pareja quien pueda seguirle el ritmo, cabrón.',
+  'Si %N te elige, no te elige para pose. Te elige para el barro. Y el barro, bien removido, es donde se demuestran las parejas de verdad, cabrón.',
+  'No es suave. No es limpio. Es %N. Y después de lo de hoy, “suave y limpio” suena a productor defectuoso, cabrón.',
+  'Quien se acueste con %N después de saber de lo que es capaz, sabrá que no está con un tibio. Está con un operativo de entrega total, cabrón.',
+  '%N no pide permiso para salvarte. Actúa. En la cama y en la mierda, esa velocidad vale más que mil “te quiero” de WhatsApp.',
+  'Ficha técnica actualizada: %N, sin límites útiles, sin vergüenza inútil. Apto para relación intensa. No apto para gente de porcelana.',
+  'Si el grupo hiciera subasta de parejas útiles, %N subiría solo. No por pose: por historial. Y el historial acabo de olerlo, cabrón.',
+>>>>>>> origin/main
   'Última línea del bot: %N no es romance de escaparate. Es el cabrón que te saca con las manos sucias y te mira como si nada. Quédate con ese.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, ridículo de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, cabrón de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, basura de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, patético de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, ridículo de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, cabrón de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, basura de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, patético de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, ridículo de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, cabrón de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, basura de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, patético de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, ridículo de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, cabrón de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, basura de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, patético de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, ridículo de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, cabrón de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, basura de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, patético de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, ridículo de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, cabrón de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, basura de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, patético de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, ridículo de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, cabrón de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, basura de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, patético de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, ridículo de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, cabrón de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, basura de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, patético de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, ridículo de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, cabrón de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, basura de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, patético de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, ridículo de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, cabrón de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, basura de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, patético de tan leal.',
+  'Joder, si @user hace eso por alguien, esa persona no sabe la suerte que tiene. Compromiso de otro nivel, ridículo de tan leal.'
 ];
 
 // !rizz [@user] — puntúa el nivel de juego/labia (0-100).

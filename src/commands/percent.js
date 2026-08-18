@@ -521,7 +521,7 @@ const LABELS = {
 
       '[nombre], incel de manual con la cara de quien lleva años esperando su turno en una cola donde no hay nadie más. Ni cola hay, da pena ajena.',
 
-      '[nombre], tu vida amorosa es una hoja en blanco con anotaciones al margen. Y todas las anotaciones las has escrito tú solo, pringado.patético, qué vacío.',
+      '[nombre], tu vida amorosa es una hoja en blanco con anotaciones al margen. Y todas las anotaciones las has escrito tú solo, pringado, patético, qué vacío.',
 
       'Virgen absoluto con la costumbre de dar consejos a quien tiene más recorrido. Cállate, cabrón, que se te ve el expediente en blanco, indignante.',
 
@@ -744,105 +744,55 @@ const LABELS = {
     goodIsHigh: true,
     high: [
       'Tu cara aguanta cualquier ángulo, cualquier luz y cualquier cámara de mierda. Eso ya no es suerte, es estructura.',
-
       'Ganaste la genética sin jugar. Otros llevan años haciendo mewing, dieta y cremas para acercarse a lo que tienes dormida.',
-
       'Tienes el rasgo raro que hace que una cara pase de guapa a memorable. La gente te recuerda sin haber hablado contigo.',
-
       'Tienes el tipo de cara que hace que la gente se quede callada medio segundo de más. Eso no se compra ni se maquilla.',
-
       'Simetría facial de las que salen en los estudios. Tercio medio compacto, mandíbula definida y ni un rasgo que sobre.',
-
       'Belleza que no depende de la moda ni de la edad. Dentro de veinte años vas a seguir siendo un problema para alguien.',
-
       'Tienes armonía facial de verdad: nada llama la atención por separado porque todo funciona junto. Eso es lo escaso.',
-
       'Tienes esa cara que la gente describe mal porque no encuentra las palabras. Terminan diciendo solo que eres guapa.',
-
       'Tu estructura ósea hace el trabajo sola. Podrías no arreglarte nunca y seguirias por encima de la media entera.',
-
       'Hueso bueno, piel buena y proporciones que cuadran. La loteria genética te toco entera y encima sin merecerla.',
-
       'La clase de atractivo que hace que te traten distinto sin que nadie lo reconozca en voz alta. Ventaja injusta.',
-
       'Belleza que no pide permiso. Entras, existes, y el ambiente se acomoda a ti sin que hagas absolutamente nada.',
-
       'Guapa de las que incomodan. No por soberbia, sino porque la gente no sabe donde poner los ojos cuando hablas.',
-
       'La clase de belleza que no necesita filtro ni pose. Sales igual en una foto de carnet que en una producción.',
-
       'Tienes lo que en looksmaxing llaman armonía: cero rasgos fuera de sitio y todo colaborando. Nivel alto real.',
-
       'Piel, proporciones y expresión trabajando a la vez. Casi nadie tiene las tres y tu ni sabes que las tienes.',
-
       'Eres de las que salen bien hasta recien despertadas. Ese es el examen de verdad y lo apruebas sin estudiar.',
-
       'Eres de las que arruinan el estándar de todo el que te conoce. Después de ti, el resto parece un borrador.',
-
       'Eres el tipo de persona que hace que otros se replanteen su propia cara al llegar a casa. Sin decir nada.',
-
       'Cara de las que se estudian, no de las que se comentan. Hay una diferencia enorme y estás del lado bueno.',
-
       'Tienes canthal tilt positivo y una armonía que la gente paga miles por fingir. Tu lo traes de fábrica.',
-
       'La mirada te funciona sola. No necesitas gesto ni intencion: miras y ya generaste algo que no pediste.',
-
       'Provocas ese silencio incomodo de cuando alguien entra y todos disimulan que están mirando. Cada vez.',
-
       'Tu cara tiene el equilibrio que los demas persiguen con ángulos, luces y trescientas fotos borradas.',
-
       'Tienes proyección malar, mandíbula definida y tercios que cuadran. Eso no se compra en ningún sitio.',
-
       'Tienes los tres tercios equilibrados y ninguno pide protagonismo. Ese silencio es lo que funciona con el fail todavía caliente.',
-
       'Cara de las que arruinan el estándar de quien te conoce. Después de ti, el resto es un borrador en la foto fija del ranking.',
-
       'Tienes la piel, las proporciones y la expresión trabajando a la vez. Casi nadie tiene las tres. Delante del listón que no saltaste.',
-
       'Tienes canthal tilt positivo y ojos con marco. La mirada te funciona sola, sin que hagas nada con el dígito como única defensa.',
-
       'Cara que aguanta el primer plano sin que nadie tenga que buscar el ángulo. Ninguno hace falta con el dígito firmando solo.',
-
       'Cara de las que la gente describe mal porque no encuentra las palabras. Acaban diciendo guapa con el peaje cobrado al natural.',
-
       'Tu perfil, tu frontal y tu tres cuartos son igual de buenos. Ese equilibrio no lo tiene nadie en el parte que nadie borra.',
-
       'Cara que funciona sin maquillaje, que es exactamente donde se separa lo real de lo trabajado con el peaje cobrado al natural.',
-
       'Tienes el equilibrio que los demás persiguen con ángulos, luces y trescientas fotos borradas con el cargo en firme.',
-
       'Tu armonía facial es de las que no se pueden describir por partes. Solo funciona el conjunto y basta el dato del ranking.',
-
       'Tu estructura ósea hace todo el trabajo. Podrías no arreglarte nunca y seguirías por encima con el parte firmado debajo.',
-
       'Tienes definición en todo el contorno facial. No hay un solo borde perdido en ninguna parte con el fail todavía caliente.',
-
-      'Tu estructura genera sombras naturales donde tienen que estar. La luz solo tiene que llegar con el dígito firmando solo, basura.',
-
-      'Cara que aguanta cualquier peinado. Y aguantar cualquier peinado es lo más difícil que hay sin descuento por empatía, qué cutre.',
-
+      'Tu estructura genera sombras naturales donde tienen que estar. La luz solo tiene que llegar con el dígito firmando solo.',
+      'Cara que aguanta cualquier peinado. Y aguantar cualquier peinado es lo más difícil que hay sin descuento por empatía, qué.',
       'Tu proyección facial es alta en todos los planos. Frente, pómulos y mentón: los tres salen con testigos obligados en el hilo, da pena ajena.',
-
       'Tu simetría no es perfecta y precisamente por eso funciona. Lo perfecto aburre; lo tuyo no en el segundo más incómodo del chat, qué vacío.',
-
       'Tu estructura ósea es la razón por la que la gente te recuerda mal descrita pero recordada en alta resolución de group chat, indignante.',
-
       'Cara sin un solo indicador por debajo de la media. Ni uno, y eso es difícil hasta por azar y el contador insiste, qué vergüenza ajena.',
-
       'Tienes proporciones que funcionan en todos los ejes: vertical, horizontal y de profundidad y el historial no olvida, da vergüenza.',
-
       'Provocas envidia del tipo silencioso, el que nadie admite. El peor y el más real de todos. Sin derecho a matiz útil, qué flojo.',
-
       'Tu tercio inferior tiene proyección y el superior no domina. Ese equilibrio es lo difícil y no hace falta ampliar el parte, menudo desastre.',
-
-      'Tienes el tipo de cara que hace que la gente ajuste el tono al hablarte. Sin darse cuenta con. El veredicto seco del bot, qué pena.',
-
-      'Tienes el tipo de belleza que no depende de nada que puedas perder. Estructural y estable con el parte firmado debajo, patético.',
-
+      'Tienes el tipo de cara que hace que la gente ajuste el tono al hablarte. Sin darse cuenta con. El veredicto seco del bot.',
+      'Tienes el tipo de belleza que no depende de nada que puedas perder. Estructural y estable con el parte firmado debajo.',
       'Tienes armonía sin necesidad de simetría perfecta. Y eso es todavía mejor que la simetría con el fallo en 4K de chat, miserable.',
-
-      'Cara de las que aguantan el zoom, la luz mala y la cámara frontal. Ese es el examen real y. El veredicto no se negocia, qué cringe.',
-
+      'Cara de las que aguantan el zoom, la luz mala y la cámara frontal. Ese es el examen real y. El veredicto no se negocia, qué cringe.'
     ],
     mid: [
       'Hostia puta, [nombre], ni la luz te hace daño ni te hace favor. Eres inmune a los extremos, para bien y para mal.',
@@ -1454,406 +1404,206 @@ const LABELS = {
     name: 'fea',
     goodIsHigh: false,
     high: [
-      '[nombre], tienes una cara que hace que el flash de la cámara se arrepienta de haber disparado.',
-
-      'Fea de las que el espejo pide indulto antes de reflejarte, [nombre]. Qué puta desgracia visual, fracasado.',
-
-      '[nombre], no es que te falte ángulo: es que te faltan los tres y el cuarto también. El atractivo te bloqueó sin forwarding.',
-
-      'Tienes el atractivo de un martes lluvioso en una sala de espera, [nombre]. Pura mierda. Estética, mierda.',
-
-      '[nombre], si la belleza fuera wifi, tú estarías en modo avión permanente.',
-
-      'Fea medible: ni con luz de restaurante caro te salva el frame, [nombre]. Asco con piernas.',
-
-      '[nombre], tu cara es el argumento perfecto contra los filtros gratis.',
-
-      'Se te nota la fealdad hasta en la miniatura del estado, [nombre]. Ridículo de bulto.',
-
-      '[nombre], el modo retrato de tu móvil debería venir con advertencia sanitaria.',
-
-      'Fea de las que hacen que el fotógrafo cobre extra por trauma, [nombre]. Mierda. Pura',
-
-      '[nombre], no hay misterio: hay huesos de mala suerte y piel que no perdona.',
-
-      'Tu simetría es un chiste malo contado dos veces, [nombre]. Fracasado. Del catálogo visual, fracasado.',
-
-      '[nombre], si te miran de frente es por educación, no por interés. Ni con ring light te inventas un punto focal.',
-
-      'Fea de close-up: el zoom solo empeora el informe, [nombre]. De material.',
-
-      '[nombre], tienes más fallos de fábrica que un electrodoméstico chino de outlet.',
-
-      'La luz natural te delata como un puto detector de mentiras, [nombre].',
-
-      '[nombre], no eres \'interesante\': eres difícil de mirar y punto.',
-
-      'Fea de las que el group selfie se recorta solo, [nombre]. Ridículo automático',
-
-      '[nombre], tu cara pide un softbox y un milagro, y no hay presupuesto para ninguno.',
-
-      'Si el atractivo fuera nota, tú irías a recuperación en agosto, [nombre]. Mierda. Académica.',
-
-      '[nombre], el filtro de Instagram se suicida cuando intentas usarlo.',
-
-      'Fea sin narrativa de villana: solo fea, [nombre]. Cabrón. Sin plot twist.',
-
-      '[nombre], te hicieron con las luces apagadas y prisa de lunes. La cámara frontal merece hazard pay.',
-
-      'Tu perfil izquierdo y el derecho compiten a ver cuál es peor, [nombre]. Patético. Empate.',
-
-      '[nombre], ni el modo noche te hace favor: te hace más honesta.',
-
-      'Fea de las que el espejo del ascensor tiene traumas, [nombre]. Ridículo móvil',
-
-      '[nombre], tienes el tipo de cara que hace cambiar de acera sin confesarlo.',
-
-      'No es un mal día: es el material de base, [nombre]. Puta mierda. Estructural.',
-
-      '[nombre], si la genética fuera un juicio, tú saldrías culpable sin fianza.',
-
-      'Fea de catálogo de lo que no se debe repetir, [nombre]. Cabrón. De manual.',
-
-      '[nombre], el atractivo te vio pasar y fingió que miraba el móvil.',
-
-      'Tienes más ángulos muertos que un parking en U, [nombre].',
-
-      '[nombre], la cámara frontal de tu móvil merece una medalla al valor. El atractivo te bloqueó sin forwarding.',
-
-      'Fea de las que el maquillaje es daño colateral, [nombre]. Ridículo. Con base',
-
-      '[nombre], no hay \'te ves mejor en persona\': hay decepción escalonada.',
-
-      'Tu cara es un argumento contra la natalidad irresponsable, [nombre]. Mierda. Heredada.',
-
-      '[nombre], el high de fea te queda de casa y de apodo.',
-
-      'Fea sin derecho a matiz ni a filtro de caridad, [nombre]. Cabrón. Del ranking.',
-
-      '[nombre], si te describen es por contraste con lo normal.',
-
-      'Se te ve el fail visual desde el otro lado del puto chat, [nombre].',
-
-      '[nombre], tienes el magnetismo de una silla de plástico mojada.',
-
-      'Fea de las que el retrato robado se borra por piedad, [nombre]',
-
-      '[nombre], el bot no necesita adjetivos: el número ya te dejó en el sótano. Ni con ring light te inventas un punto focal.',
-
-      'No hay segundo chance en este frame, [nombre]. Puta sentencia visual.',
-
-      '[nombre], tu belleza es un rumor que nadie pudo confirmar.',
-
-      'Fea de informe clínico sin anestesia, [nombre]. Cabrón.',
-
-      '[nombre], hasta el perro del vecino elige mejor dónde mirar.',
-
-      'Tienes una presencia que baja el promedio del group photo, [nombre].',
-
-      '[nombre], si el atractivo fuera propina, te dejarían monedas de cinco.',
-
-      'Fea de las que el flash avisa antes de disparar, [nombre]. Ridículo preventivo',
-
-      '[nombre], el techo de tu cara es el suelo de casi cualquiera.',
-
-      'No eres \'única\': eres difícil de catalogar sin insultar, [nombre]. Mierda. Rara.',
-
-      '[nombre], la fealdad te queda tan natural que parece look. La cámara frontal merece hazard pay.',
-
-      'Fea de tramo alto: el ranking te nombra y el chat asiente, [nombre].',
-
-      '[nombre], tienes más problemas de simetría que un IKEA mal montado.',
-
-      'El modo retrato te trata como amenaza, [nombre]. Patético. Software.',
-
-      '[nombre], si te miran mucho es porque no creen lo que ven.',
-
-      'Fea de las que el espejo del baño del bar tiene PTSD, [nombre]',
-
-      '[nombre], tu cara es la razón por la que inventaron el \'desde lejos\'',
-
-      'No hay ángulo de salvación: hay rendición, [nombre]. Puta realidad.',
-
-      '[nombre], el high de fea no es insulto, es inventario.',
-
-      'Fea sin plot de redención en tres actos, [nombre]. Cabrón. Plano.',
-
-      '[nombre], tienes el glow up invertido: cada año confirma el diagnóstico. El atractivo te bloqueó sin forwarding.',
-
-      'La cámara trasera es tu única amiga y aun así miente poco, [nombre].',
-
-      '[nombre], si la belleza fuera wifi, tú serías zona muerta.',
-
-      'Fea de las que el maquillador cobra hazard pay, [nombre]. Ridículo laboral',
-
-      '[nombre], el atractivo te bloqueó en todas las redes.',
-
-      'Tu frame es contenido de risa ajena gratis, [nombre]. Mierda. Viral.',
-
-      '[nombre], no es luz: es que no hay material que iluminar con dignidad.',
-
-      'Fea de veredicto que no admite recurso, [nombre]. Cabrón. Firme.',
-
-      '[nombre], tienes cara de final de temporada cancelada.',
-
-      'Se te nota el sótano visual en la primera foto de perfil, [nombre].',
-
-      '[nombre], el filtro beauty se declara en huelga cuando te ve. Ni con ring light te inventas un punto focal.',
-
-      'Fea de las que el group chat prefiere stickers, [nombre]',
-
-      '[nombre], si te hacen un retrato es por compromiso, no por deseo.',
-
-      'Tu simetría perdió el juicio y no pagó fianza, [nombre]. Mierda. Legal.',
-
-      '[nombre], el high te mide yel número. La cámara frontal merece hazard pay',
-
-      'Fea sin barniz de \'carácter\': solo el informe, [nombre]. Cabrón. Seco.',
-
-      '[nombre], tienes el tipo de cara que hace odiar los selfies ajenos.',
-
-      'La belleza objetiva no es opinión: y tú estás en el sótano, [nombre].',
-
-      '[nombre], ni con ring light de influencer te inventas un punto focal.',
-
-      'Fea de las que el fotógrafo finge que se le acabó la batería, [nombre]',
-
-      '[nombre], tu cara es un almost eterno que nunca llega a decente. La cámara frontal merece hazard pay.',
-
-      'No hay \'en persona se ve mejor\': hay la misma mierda. Con voz, [nombre].',
-
-      '[nombre], el ranking de fea te tiene de inquilino fijo.',
-
-      'Fea de manual negro: sin misterio, sin estilo[nombre].',
-
-      '[nombre], tienes más fallos faciales que un examen a última hora.',
-
-      'El close-up es una denuncia anónima contra tu genética, [nombre].',
-
-      '[nombre], si el atractivo fuera crédito, tu score sería.',
-
-      'Fea de las que el espejo retrovisor se niega a colaborar, [nombre]',
-
-      '[nombre], te ves como un borrador que nadie quiso terminar.',
-
-      'La luz del atardecer te delata igual que el fluorescente del súper, [nombre].',
-
-      '[nombre], el high de fea te queda de tatuaje invisible. El atractivo te bloqueó sin forwarding.',
-
-      'Fea sin derecho a \'es el ángulo\': son todos, [nombre].',
-
-      '[nombre], tienes el magnetismo inverso: la gente se aleja sin saber por qué.',
-
-      'cabrón. El atractivo te bloqueó sin forwarding',
-
-      '[nombre], si te describieran en tres palabras sobrarían dos insultos.',
-
-      'Fea de las que el maquillaje es diplomacia fallida, [nombre]',
-
-      '[nombre], el bot te midió y el resultado no admite consuelo.',
-
-      'Tu cara es el gag visual del comando y nadie pide bis, [nombre].',
-
-      '[nombre], no hay segundo acto: el primero ya fue suficiente desastre.',
-
-      'Fea de tramo que duele porque es verdad, [nombre]. Gilipollas.',
-
-      '[nombre], tienes una geometría facial que ofende a Euclides. Ni con ring light te inventas un punto focal.',
-
-      'El atractivo te dio de baja y no dejó forwarding, [nombre]. Asco. Administrativo.',
-
-      '[nombre], si la belleza fuera propina, el camarero te ignoraría.',
-
-      'Fea de las que el selfie se queda en el carrete por vergüenza, [nombre]',
-
-      '[nombre], el high no es bullying: es el espejo con números.',
-
-      'Tu frame pide un testigo de Jehová y un indulto papal, [nombre].',
-
-      '[nombre], se te nota la falta de suerte genética en cada pixel.',
-
-      'Fea sin modo avión que oculte el diagnóstico, [nombre].',
-
-      '[nombre], tienes el tipo de cara que hace amar los paisajes.',
-
-      'La cámara frontal merece hazard pay por trabajar contigo, [nombre].',
-
-      '[nombre], si te miran de reojo es para no comprometerse. La cámara frontal merece hazard pay.',
-
-      'Fea de las que el group photo tiene un hueco estratégico, [nombre]',
-
-      '[nombre], el material óseo y el de tejidos firmaron el mismo fail.',
-
-      'No eres un \'rostro con carácter\': eres un rostrosin suerte, [nombre].',
-
-      '[nombre], el ranking te tiene de ejemplo cuando explica el sótano.',
-
-      'Fea de veredicto público y sin narrador emocional, [nombre].',
-
-      '[nombre], tienes más asimetría que un debate en este puto chat.',
-
-      'Se te ve el techo visual y está bajo, [nombre]. Asco. De altura.',
-
-      '[nombre], si el atractivo fuera examen, irías a septiembre.',
-
-      'Fea de las que el filtro se rinde y apaga la pantalla, [nombre]',
-
-      '[nombre], tu cara es un almost de humano decente. El atractivo te bloqueó sin forwarding.',
-
-      'El high de fea te nombra sin pedir permiso al ego, [nombre].',
-
-      '[nombre], no hay redención en un ángulo ni en un tutorial.',
-
-      'Fea de manual: el bot firma y el chat archiva, [nombre].',
-
-      '[nombre], tienes el glow de un aparcamiento a las tres de la mañana.',
-
-      'La belleza objetiva pasó de largo y no dejó recado, [nombre].',
-
-      '[nombre], si te hacen un cumplido es por pena o por agenda.',
-
-      'Fea de las que el espejo del gym tiene restricción de horario, [nombre]',
-
-      '[nombre], el sótano visual te queda de residencia fiscal.',
-
-      'Tu presencia baja el promedio del frame en un mensaje, [nombre].',
-
-      '[nombre], no hay misterio de fealdad cool: hay lo previsible. Ni con ring light te inventas un punto focal.',
-
-      'Fea de tramo alto y sin derecho a bis, [nombre]. Gilipollas. Del ranking.',
-
-      '[nombre], tienes cara de final boss de la mala suerte genética.',
-
-      'Se te nota el fail hasta en la sombra del perfil, [nombre].',
-
-      '[nombre], si la genética fuera un juicio oral, no tendrías defensa.',
-
-      'Fea de las que el maquillador finge dolor de cabeza, [nombre]',
-
-      '[nombre], el atractivo te bloqueó y te dejó en visto eterno.',
-
-      'Tu frame es el gag del día y el grupo no pide replay, [nombre].',
-
-      '[nombre], el high te mide con regla y te deja en negativo.',
-
-      'Fea sin consuelo de \'personalidad\': el comando no mide eso, [nombre].',
-
-      '[nombre], tienes más problemas de proporciones que un plano de arquitecto borracho. La cámara frontal merece hazard pay.',
-
-      'La luz del flash te trata como evidencia del crimen, [nombre].',
-
-      '[nombre], si te describen \'interesante\' es código de fea educada.',
-
-      'Fea de las que el selfie stick se acorta solo, [nombre]',
-
-      '[nombre], el material de base no admite segunda oportunidad.',
-
-      'Tu cara es un informe sin anexos de caridad, [nombre].',
-
-      '[nombre], se te ve el sótano desde la notificación. La cámara frontal merece hazard pay',
-
-      'Fea de veredicto que el chat confirma en silencio, [nombre].',
-
-      '[nombre], tienes el tipo de presencia que hace amar el paisaje urbano.',
-
-      'El ranking de fea te tiene de inquilino sin contrato, [nombre].',
-
-      '[nombre], si el atractivo fuera crédito, estarías en mora. El atractivo te bloqueó sin forwarding.',
-
-      'Fea de las que el filtro beauty pide apoyo técnico, [nombre]',
-
-      '[nombre], no hay ángulo: hay rendición documentada. La cámara frontal merece hazard pay, coño, qué nivel, cabrón.',
-
-      'Tu simetría perdió el norte y el sur, [nombre].',
-
-      '[nombre], el high de fea te queda de apodo no oficial.',
-
-      'Fea sin plot twist de redención en tres mensajes, [nombre].',
-
-      '[nombre], tienes cara de borrador olvidado en la papelera.',
-
-      'Se te nota la falta de suerte en cada puto pixel del estado, [nombre].',
-
-      '[nombre], si te miran fijo es porque no procesan el input.',
-
-      'Fea de las que el group chat prefiere audio a foto, [nombre]',
-
-      '[nombre], el bot te midió dos veces y las dos dio sótano. Ni con ring light te inventas un punto focal.',
-
-      'Tu frame pide un testigo y un abogado de oficio, [nombre].',
-
-      '[nombre], el atractivo te dio de baja sin carta de despido.',
-
-      'Fea de manual negro y sin anestesia, [nombre]. Gilipollas.',
-
-      '[nombre], tienes más fallos faciales que un DNI mal escaneado.',
-
-      'La belleza objetiva no es debate: y tú perdiste, [nombre].',
-
-      '[nombre], si el high de fea fuera un piso, vivirías en el -2.',
-
-      'Fea de las que el espejo del baño tiene horario de duelo, [nombre]',
-
-      '[nombre], te ves como un almost que se quedó en almost.',
-
-      'El close-up es una denuncia con firma digital, [nombre].',
-
-      '[nombre], se te ve el techo y está por los suelos. La cámara frontal merece hazard pay.',
-
-      'Fea de tramo que no admite narrador emocional, [nombre].',
-
-      '[nombre], tienes el magnetismo de una silla mojada en la terraza.',
-
-      'El ranking te nombra y el chat no apela, [nombre]. Asco. Firmado.',
-
-      '[nombre], si te hacen un retrato es por relleno de álbum.',
-
-      'Fea de las que el maquillaje es daño colateral permanente, [nombre]',
-
-      '[nombre], el material óseo firmó el mismo contrato de fail que la piel.',
-
-      'Tu cara es el gag visual y nadie pide bis, [nombre].',
-
-      '[nombre], el high te deja en el sótano sin ascensor.',
-
-      'Fea sin derecho a \'es el día\': es el material, [nombre].',
-
-      '[nombre], tienes una geometría que ofende al compás. El atractivo te bloqueó sin forwarding.',
-
-      'Se te nota el fail visual en la primera línea del mensaje, [nombre].',
-
-      '[nombre], si la belleza fuera wifi, tú serías el router muerto. La cámara frontal merece hazard pay, qué cutre.',
-
-      'Fea de veredicto público delante de todo el puto grupo, [nombre].',
-
-      '[nombre], el atractivo te vio y cambió de acera digital. Ni con ring light te inventas un punto focal, qué vacío.',
-
-      'Tu frame es contenido de risa ajena sin copyright, [nombre].',
-
-      '[nombre], no hay segundo chance: el primero ya fue bastante. El atractivo te bloqueó sin forwarding',
-
-      'Fea de las que el filtro se suicida al intentar ayudarte, [nombre].',
-
-      '[nombre], tienes el glow up invertido certificado por el ranking.',
-
-      'La luz natural te delata igual que un interrogatorio, [nombre].',
-
-      '[nombre], si te describen en una palabra, esa palabra insulta. Ni con ring light te inventas un punto focal, qué pena.',
-
-      'Fea de tramo alto: el bot firma y cierra el parte, [nombre]',
-
-      '[nombre], el sótano visual te queda de casa y de apodo.',
-
-      'Tu presencia baja el promedio del chat solo con existir, [nombre]. Ni con ring light te inventas un punto focal, qué cringe.',
-
-      '[nombre], el high de fea no es opinión: es el puto número. La cámara frontal merece hazard pay, da asco.',
-
-      'Fea sin consuelo, sin bis y sin narrador que te salve, [nombre].',
-
-      'Se te ve el diagnóstico desde la puta notificación, [nombre]. Ni con ring light te inventas un punto focal',
-
-      '[nombre], tienes una cara que hace que el flash de la cámara se arrepienta de haber disparado, fracasado.',
-
+      '[nombre], tienes una cara que hace que el flash se arrepienta a mitad de disparo. El atractivo te bloqueó sin dejar visto, basura.',
+      'Fea de las que el espejo pide indulto antes de reflejarte, [nombre]. Desgracia visual con ego de filtro gratis, patético.',
+      '[nombre], no te faltan ángulos: te faltan los tres y el cuarto. Ni ring light inventa un punto focal decente, ridículo.',
+      '[nombre], si la belleza fuera wifi, estarías en modo avión permanente. El grupo lo nota sin abrirte el perfil, qué asco.',
+      '[nombre], tu cara es el argumento perfecto contra los filtros gratis. El algoritmo prefiere un sticker a tu selfie, fracasado.',
+      '[nombre], el modo retrato debería venir con advertencia sanitaria. Hazard pay para la cámara frontal, basura.',
+      '[nombre], no hay misterio: hay huesos de mala suerte y piel que no perdona. El atractivo pasó de largo sin nota, cutre.',
+      '[nombre], si te miran de frente es por educación, no por interés. Documentado en cada foto de grupo que te recorta, desperdicio visual.',
+      'Fea de close-up, [nombre]: el zoom solo empeora el informe. Material de archivo, no de portada El tramo high solo certifica lo evidente, qué vergüenza.',
+      '[nombre], tienes el tipo de cara que hace el ascensor más lento. Nadie quiere ese silencio a solas con tu reflejo, escoria con wifi.',
+      '[nombre], el maquillaje en ti no es estilo: es diplomacia fallida. Capa tras capa y el parte de guerra sigue abierto, basura.',
+      'Fea de las que el group selfie se recorta solo, [nombre]. Ridículo automático. El chat prefiere stickers a tu foto.',
+      '[nombre], tienes una simetría de accidente industrial. El atractivo no es subjetivo cuando el material grita en 4K, ridículo.',
+      '[nombre], tu cara pide soft focus permanente y el mundo te da resolución completa. Crueldad del hardware, no del grupo, qué asco.',
+      'Fea clínica, [nombre]: ni el ángulo de tres cuartos te salva. El bot no opina; el material habla y te deja sin recurso, fracasado.',
+      '[nombre], si la fealdad fuera un deporte, serías selección nacional. Medalla de plomo en cada selfie sin filtro, qué miseria.',
+      '[nombre], el espejo del baño tiene PTSD con tu nombre. Cada mañana es reincidencia, no desayuno Hasta el sticker tiene más carisma que tú, cutre.',
+      'Fea de las que el flash avisa antes de disparar, [nombre]. Ridículo preventivo. La cámara frontal merece hazard pay.',
+      '[nombre], no hay "te ves mejor en persona": hay distancia y poca luz. De cerca el informe es peor, basura.',
+      '[nombre], tienes el rostro de quien hace que el maquillador cobre doble y aun así salga derrotado Basura con wifi y pretensión de portada.',
+      '[nombre], tu atractivo cotiza en negativo y el mercado no miente. El ranking visual del chat te tiene en sótano, basura.',
+      'Fea de horario restringido, [nombre]: solo sobrevives a cierta distancia y con poca luz. En HD eres evento de riesgo, patético.',
+      '[nombre], el filtro más caro del mundo en tu cara es tirita en hemorragia. El hardware no perdona, fracasado.',
+      '[nombre], tienes una cara de "borra y vuelve a sacar" permanente. El rollo nunca llega al like sincero, qué asco.',
+      'Fea de las que el selfie stick se acorta solo, [nombre]. Hasta el plástico tiene dignidad y la ejerce lejos de ti, fracasado.',
+      '[nombre], si te miran dos segundos es cortesía social, no magnetismo. El tercer segundo ya es tortura compartida, qué miseria.',
+      '[nombre], tu cara es la razón por la que inventaron el modo paisaje. El retrato se niega a colaborar, ridículo.',
+      'Fea de informe médico, [nombre]: el atractivo te diagnosticó y te dio el alta sin tratamiento posible, desperdicio visual.',
+      '[nombre], tienes más ángulos muertos que un coche blindado. Y ninguno es favorecedor, qué miseria visual.',
+      '[nombre], el maquillaje es daño colateral en tu caso. No embellece: negocia una tregua que el hueso no firma, escoria con wifi.',
+      'Fea de las que el bar apaga la luz un punto más cuando entras, [nombre]. El ambiente también quiere sobrevivir, basura.',
+      '[nombre], tu selfie parece modo nocturno a plena luz del día. El sensor se rinde, el ego no, patético.',
+      '[nombre], si la belleza es objetiva, tú eres el contraejemplo de libro. El material no discute: sentencia, ridículo.',
+      'Fea de close-up prohibido, [nombre]. El zoom es un arma y la usamos. Resultado: parte sin consuelo visual, qué asco.',
+      '[nombre], tienes una cara que hace que el espejo del ascensor finja estar ocupado. Nadie quiere ese reflejo, fracasado.',
+      '[nombre], el atractivo te bloqueó sin forwarding. Ni "tal vez en otra vida". Directo a spam visual, basura.',
+      'Fea de las que el fotógrafo cobra y pide disculpas al entregar, [nombre]. Producto no conforme, ridículo.',
+      '[nombre], tu rostro prueba que el filtro Beauty existe por una razón y aun así no te alcanza el milagro, desperdicio visual.',
+      '[nombre], tienes el tipo de fealdad que no se arregla con corte ni actitud. Hardware, no software, fracasado.',
+      'Fea de espejo roto, [nombre]: ni siete años de mala suerte compensan lo que se ve cuando te enfocas bien, escoria con wifi.',
+      '[nombre], si te etiquetan en una foto, la gente entra solo para reírse. Engagement de pena ajena, no de deseo, basura.',
+      '[nombre], tu cara hace que el modo retrato active el modo pánico. El algoritmo prefiere recortarte del frame, patético.',
+      'Fea de las que el ring light parece interrogatorio, [nombre]. Cuanta más luz, peor el veredicto. Apaga eso, ridículo.',
+      '[nombre], no es "estilo único": es desastre simétrico. El marketing personal no tapa un informe en rojo, qué asco.',
+      '[nombre], tienes una presencia facial que baja el promedio de la foto de grupo sin esfuerzo. Logro miserable, fracasado.',
+      'Fea de archivo adjunto que nadie abre, [nombre]. Preview suficiente para decir que no, gracias, basura.',
+      '[nombre], el atractivo no es un derecho humano. En tu caso es mitología. El material te desmintió en 4K, cutre.',
+      '[nombre], tienes cara de que el maquillaje se aplica en defensa propia. Y aun así pierde cada mañana, desperdicio visual.',
+      'Fea de las que el visor se niega a colaborar, [nombre]. La cámara frontal merece hazard pay y sindicato, qué vergüenza.',
+      '[nombre], si la fealdad tuviera ranking, estarías en el podio con himno de fondo. Medalla de plomo, patético.',
+      '[nombre], el ring light delata en vez de favorecer. Cada lumen es testigo en tu contra, fracasado El chat ya lo archivó sin debate.',
+      '[nombre], pediste nitidez y la nitidez te delató. El soft focus era tu último amigo, basura El material no deja margen a la duda.',
+      '[nombre], el cloud borra tu selfie por piedad. Hasta la nube tiene compasión selectiva, [nombre] Documentado en cada selfie sin filtro, ridículo.',
+      '[nombre], el espejo del baño tiene más criterio que tu círculo de "estás bien". Ellos mienten El espejo firmó antes que el comando, qué asco.',
+      '[nombre], discutirle al espejo no cambia el material. El vidrio informa, no negocia, ridículo Sin recurso ni segunda oportunidad visual.',
+      '[nombre], apagar la luz es el único filtro que te funciona. El resto es teatro, patético El ranking facial del grupo no negocia.',
+      '[nombre], el espejo firma el veredicto antes de que el bot abra el comando. Coincidencia cruel Hasta el sticker tiene más carisma que tú, cutre.',
+      '[nombre], el maquillaje te dura menos que la esperanza de que hoy se ve mejor. Spoiler: no La autoestima de prestado se embarga sola, desperdicio visual.',
+      '[nombre], capas de base no tapan un problema de fábrica. El marketing personal tiene límite El tramo high solo certifica lo evidente, qué vergüenza.',
+      '[nombre], el modo belleza devuelve null. Exception: beauty not found. Reinicia. Sigue igual Basura con wifi y pretensión de portada.',
+      '[nombre], el group foto se edita en silencio. Crop estratégico. Tú eras el problema del frame El chat ya lo archivó sin debate, basura.',
+      '[nombre], el grupo aprende el crop antes que tu nombre. Prioridades claras del chat, basura El material no deja margen a la duda.',
+      '[nombre], foto grupal sin [nombre] se volvió política no escrita. Evolución natural del hilo Documentado en cada selfie sin filtro, ridículo.',
+      '[nombre], te recortan por higiene visual. Si fuera contagioso, ya habría cuarentena, ridículo El espejo firmó antes que el comando.',
+      '[nombre], el fondo gana más carisma que tú. Hasta la pared es mejor personaje secundario Sin recurso ni segunda oportunidad visual, fracasado.',
+      '[nombre], el algoritmo prefiere un anuncio de seguros a tu cara. Prioridades del feed, [nombre] El ranking facial del grupo no negocia, qué miseria.',
+      '[nombre], cuando el chat necesita ejemplo de desastre facial, te etiquetan. Eres la plantilla Hasta el sticker tiene más carisma que tú, cutre.',
+      '[nombre], el like es de compromiso y el comentario un punto. Nadie se arriesga a más, patético La autoestima de prestado se embarga sola.',
+      '[nombre], el atractivo te miró, suspiró y siguió. No dejó tarjeta ni esperanza, basura El tramo high solo certifica lo evidente.',
+      '[nombre], el atractivo te puso lista de espera y la lista se cerró. Sin turno. Sin milagro Basura con wifi y pretensión de portada.',
+      '[nombre], el atractivo te auditó y el balance salió en rojo. Sin capital que salve el trimestre El chat ya lo archivó sin debate, basura.',
+      '[nombre], el atractivo te dejó en visto hace años. Sin doble check azul en tu historial visual El material no deja margen a la duda, patético.',
+      '[nombre], el atractivo te puso un wall y tiró la llave. Solo queda el espejo de las siete Documentado en cada selfie sin filtro, ridículo.',
+      '[nombre], el atractivo firmó el desahucio de tu ego. Orden de desalojo visual sin prórroga El espejo firmó antes que el comando, qué asco.',
+      '[nombre], si la belleza fuera crédito, lista negra del bureau. Score visual en números rojos Sin recurso ni segunda oportunidad visual, fracasado.',
+      '[nombre], si la belleza fuera un club, el portero te conoce de vista por malos motivos El ranking facial del grupo no negocia.',
+      '[nombre], si la belleza fuera GPS, fuera de cobertura permanente. Recalculando… error infinito Hasta el sticker tiene más carisma que tú, cutre.',
+      '[nombre], si la belleza fuera examen, suspenso histórico. Sin recuperatorio que te salve, [nombre] La autoestima de prestado se embarga sola, desperdicio visual.',
+      '[nombre], si la belleza fuera contrato, nulidad por vicio de origen. Hardware nulo, basura El tramo high solo certifica lo evidente.',
+      '[nombre], si la belleza fuera app, dispositivo no compatible. Fuera de soporte, patético Basura con wifi y pretensión de portada.',
+      '[nombre], el deseo colectivo pidió la baja el día que te enfocaron en HD. Documentado El chat ya lo archivó sin debate, basura.',
+      '[nombre], el ranking no negocia simpatía cuando el hardware grita tan alto. El número te mide El material no deja margen a la duda, patético.',
+      '[nombre], "esto no salía en el ensayo". El estreno es peor. El público no pide bis, ridículo Documentado en cada selfie sin filtro.',
+      '[nombre], no hay ángulo de gracia: hay ángulos de menos daño. El menos malo igual duele El espejo firmó antes que el comando, qué asco.',
+      '[nombre], hipótesis de atractivo falsificada cada mañana por el espejo. Ciencia dura, [nombre] Sin recurso ni segunda oportunidad visual, fracasado.',
+      '[nombre], selfie que se borra sola por piedad. El rollo tiene más empatía que tu ego El ranking facial del grupo no negocia, qué miseria.',
+      '[nombre], cara de "tiene buen corazón" porque no pueden decir otra cosa sin perjurar Hasta el sticker tiene más carisma que tú, cutre.',
+      '[nombre], te miran para validar su suerte. Al menos no soy [nombre]. Servicio de contraste La autoestima de prestado se embarga sola, desperdicio visual.',
+      '[nombre], evento de riesgo laboral para el retratista. Cobran extra y aun así tiemblan El tramo high solo certifica lo evidente, qué vergüenza.',
+      '[nombre], simetría diseñada por alguien que odiaba a la humanidad. Incluido tú, basura Basura con wifi y pretensión de portada.',
+      '[nombre], "es interesante" quiere decir "es difícil de mirar". Traducción del cumplido flojo El chat ya lo archivó sin debate, basura.',
+      '[nombre], de reojo no es coquetería: es daño colateral. De frente duele más, patético El material no deja margen a la duda.',
+      '[nombre], tutorial de cómo no salir en la foto. El grupo ya aprendió la lección contigo Documentado en cada selfie sin filtro, ridículo.',
+      '[nombre], archivo que pesa más en vergüenza que en megas. Nadie lo descarga dos veces El espejo firmó antes que el comando.',
+      '[nombre], "sonríe" suena a amenaza. Sonreír empeora el radio de daño, [nombre] Sin recurso ni segunda oportunidad visual, fracasado.',
+      '[nombre], close-up no es arte: es autopsia. Forense visual firmó causa: hardware El ranking facial del grupo no negocia, qué miseria.',
+      '[nombre], "buenos días" se convierte en acto de valor. El café no alcanza para mirarte Hasta el sticker tiene más carisma que tú, cutre.',
+      '[nombre], el "quiérete" tiene límites prácticos. El espejo pone el tope cada mañana La autoestima de prestado se embarga sola, desperdicio visual.',
+      '[nombre], veredicto sin recurso. Primera instancia, única instancia, archivo cerrado El tramo high solo certifica lo evidente, qué vergüenza.',
+      '[nombre], el peluquero cobra y pide que no lo menciones. Producto no conforme otra vez Basura con wifi y pretensión de portada.',
+      '[nombre], error 404 beauty not found. Reinicia. Formatea. Sigue sin aparecer, ridículo El chat ya lo archivó sin debate.',
+      '[nombre], "está bien de cara" es sarcasmo de alto nivel. No está bien. Punto. Material El material no deja margen a la duda, patético.',
+      '[nombre], más arreglos pendientes que un edificio en ruinas. Milagros agotados, basura Documentado en cada selfie sin filtro.',
+      '[nombre], te miran para calibrar su autoestima al alza. Gracias por el servicio, patético El espejo firmó antes que el comando.',
+      '[nombre], argumento final contra "todo el mundo es hermoso". El material tiene veto Sin recurso ni segunda oportunidad visual, fracasado.',
+      '[nombre], maquillaje es negociar con un terremoto. Mañana vuelve el temblor, [nombre] El ranking facial del grupo no negocia, qué miseria.',
+      '[nombre], close-up con consentimiento informado. Quien mira asume el riesgo emocional Hasta el sticker tiene más carisma que tú, cutre.',
+      '[nombre], bajas el valor inmobiliario de la foto de grupo. Nadie quiere vivir a tu lado La autoestima de prestado se embarga sola, desperdicio visual.',
+      '[nombre], el algoritmo entierra tu selfie bajo el feed. La IA tiene piedad selectiva El tramo high solo certifica lo evidente, qué vergüenza.',
+      '[nombre], "tiene personalidad" porque se acabó el diccionario de insultos suaves, ridículo Basura con wifi y pretensión de portada.',
+      '[nombre], si la fealdad fuera trabajo, asalariado del mes. Constancia en el desastre El chat ya lo archivó sin debate, basura.',
+      '[nombre], ring light como quirófano. Operación fallida. Paciente sin mejora, basura El material no deja margen a la duda.',
+      '[nombre], ego que ignora la evidencia. El espejo es el fiscal y ya ganó el juicio Documentado en cada selfie sin filtro, ridículo.',
+      '[nombre], el atractivo no discute: te exhibe. El grupo toma nota sin narrador, [nombre] El espejo firmó antes que el comando, qué asco.',
+      '[nombre], informe sin segunda opinión. Primera vista basta. Segunda es ensañamiento Sin recurso ni segunda oportunidad visual, fracasado.',
+      '[nombre], de lejos borrón; de cerca veredicto. Acércate y confirma el daño, patético El ranking facial del grupo no negocia.',
+      '[nombre], cotizas en el mercado de la pena ajena. Alto volumen, cero deseo, basura Hasta el sticker tiene más carisma que tú.',
+      '[nombre], close-up con daño emocional al espectador. Menores no admitidos al frame La autoestima de prestado se embarga sola, desperdicio visual.',
+      '[nombre], simetría hostil. El ojo pide tregua y el hueso no firma, ridículo El tramo high solo certifica lo evidente.',
+      '[nombre], el saludo se traba en la garganta. Hasta "buenos días" tiene estándares Basura con wifi y pretensión de portada.',
+      '[nombre], más capas de maquillaje que de esperanza. La esperanza se agotó primero El chat ya lo archivó sin debate, basura.',
+      '[nombre], error de casting del group selfie. El fondo gana mejor actor secundario El material no deja margen a la duda, patético.',
+      '[nombre], modo retrato activa evacuación. El teléfono quiere salir de ahí, [nombre] Documentado en cada selfie sin filtro, ridículo.',
+      '[nombre], el ring light te procesa. Veredicto público y cruel. Sin apelación visual El espejo firmó antes que el comando, qué asco.',
+      '[nombre], el disco duro mueve tu selfie a la papelera solo. Hasta el hardware tiene criterio Sin recurso ni segunda oportunidad visual, fracasado.',
+      '[nombre], "esto no era el plan del genético". El plan falló. El espejo lo recuerda diario El ranking facial del grupo no negocia, qué miseria.',
+      '[nombre], si la fealdad fuera podcast, episodio top por pena ajena, no por fans, basura Hasta el sticker tiene más carisma que tú.',
+      '[nombre], el flash pide abogado antes del click. Nadie quiere la demanda por daño visual La autoestima de prestado se embarga sola, desperdicio visual.',
+      '[nombre], mito de atractivo muerto en la primera foto real. Fin de la leyenda, patético El tramo high solo certifica lo evidente.',
+      '[nombre], maquillaje es tregua humanitaria. Caduca al mediodía. El hueso no respeta tratados Basura con wifi y pretensión de portada.',
+      '[nombre], close-up clasificación X. El estómago avisa antes que los ojos, [nombre] El chat ya lo archivó sin debate, basura.',
+      '[nombre], el piropo sincero se extinguió en tu código postal. Especie en peligro El material no deja margen a la duda, patético.',
+      '[nombre], de frente el cerebro pide buffer. El buffer no llega. Parpadeo de emergencia Documentado en cada selfie sin filtro, ridículo.',
+      '[nombre], presencia igual a extinción del deseo colectivo. Documentado y firmado, ridículo El espejo firmó antes que el comando.',
+      '[nombre], cada lumen del ring light es prueba en tu contra. Fiscal de la luz, basura Sin recurso ni segunda oportunidad visual.',
+      '[nombre], el cloud marca tu selfie como sensible y la oculta. Favor de la privacidad El ranking facial del grupo no negocia, qué miseria.',
+      '[nombre], simetría de burla. No trágica: cómica. El chiste eres tú y el grupo ya rio Hasta el sticker tiene más carisma que tú, cutre.',
+      '[nombre], si la belleza fuera derecho, demanda desestimada con costas. Sin recurso La autoestima de prestado se embarga sola, desperdicio visual.',
+      '[nombre], "mala racha" insulta al calendario. No es racha: es planta fija, [nombre] El tramo high solo certifica lo evidente, qué vergüenza.',
+      '[nombre], el atractivo te dio de baja sin cotizar prestación. Sin paro visual, patético Basura con wifi y pretensión de portada.',
+      '[nombre], la actitud no negocia la fealdad. La actitud empeora el contraste, basura El chat ya lo archivó sin debate.',
+      '[nombre], modo retrato devuelve error de sistema. Beauty not found, ridículo El material no deja margen a la duda.',
+      '[nombre], inventaron "mejor de lejos" por casos como el tuyo. De cerca es delito de daño Documentado en cada selfie sin filtro, ridículo.',
+      '[nombre], close-up con efectos permanentes en quien mira. Daño colateral certificado El espejo firmó antes que el comando, qué asco.',
+      '[nombre], "te ves bien hoy" es perjurio. El tribunal del espejo te condena, [nombre] Sin recurso ni segunda oportunidad visual, fracasado.',
+      '[nombre], si la fealdad fuera clima, invierno permanente. Sin deshielo. Solo escarcha en el ego El ranking facial del grupo no negocia, qué miseria.',
+      '[nombre], el crop del group selfie es arte del escape. Artistas del recorte, basura Hasta el sticker tiene más carisma que tú.',
+      '[nombre], rumor de atractivo asesinado por la primera foto. Fin de la investigación La autoestima de prestado se embarga sola, desperdicio visual.',
+      '[nombre], ring light igual a museo de horrores. Visita guiada. No tocar. No mirar mucho El tramo high solo certifica lo evidente, qué vergüenza.',
+      '[nombre], tu selfie debería pagar impuesto por daño al feed. Multa visual, patético Basura con wifi y pretensión de portada.',
+      '[nombre], más ángulos de escape que de favor. El que mira usa el escape, no la cámara El chat ya lo archivó sin debate, basura.',
+      '[nombre], el tramo high es metrología. El número te mide y el material confirma, [nombre] El material no deja margen a la duda, patético.',
+      '[nombre], sentencia firme: sin filtro, sin ángulo, sin milagro. El bot lee el espejo Documentado en cada selfie sin filtro, ridículo.',
+      '[nombre], "sonríe más" es una trampa. Sonreír aumenta el radio de daño, ridículo El espejo firmó antes que el comando.',
+      '[nombre], pozo de gravedad facial: absorbe likes, esperanza y ganas de otra foto Sin recurso ni segunda oportunidad visual, fracasado.',
+      '[nombre], plantilla histórica de desastre facial del chat. Cuando hace falta ejemplo, te etiquetan El ranking facial del grupo no negocia, qué miseria.',
+      '[nombre], el material no discute. El tramo high te nombra y el espejo aplaude, basura Hasta el sticker tiene más carisma que tú.',
+      '[nombre], el bar baja la luz cuando entras. Instinto de supervivencia del ambiente, [nombre] La autoestima de prestado se embarga sola, desperdicio visual.',
+      '[nombre], el selfie stick se acorta solo. El plástico tiene más dignidad que tu ego El tramo high solo certifica lo evidente, qué vergüenza.',
+      '[nombre], el visor se niega. La cámara frontal pide traslado de dispositivo, patético Basura con wifi y pretensión de portada.',
+      '[nombre], el fotógrafo entrega con nota de condolencias. Producto sin garantía, ridículo El chat ya lo archivó sin debate.',
+      '[nombre], el espejo del gym no es cómplice. El vidrio también tiene ética, [nombre] El material no deja margen a la duda, patético.',
+      '[nombre], el espejo prefiere empañarse. El vapor es el único favor que te hacen Documentado en cada selfie sin filtro, ridículo.',
+      '[nombre], el espejo prefiere romperse. Siete años de mala suerte son poco, basura El espejo firmó antes que el comando.',
+      '[nombre], el espejo del baño pide vacaciones. El azulejo está quemado de verte, patético Sin recurso ni segunda oportunidad visual.',
+      '[nombre], el filtro natural se siente sarcástico. Hasta el software se ríe, ridículo El ranking facial del grupo no negocia.',
+      '[nombre], el filtro agresivo te deja reconocible y ese es el problema, [nombre] Hasta el sticker tiene más carisma que tú, cutre.',
+      '[nombre], el botón de desenfoque existe por ti. Úsalo. Es lo más generoso que puedes hacer La autoestima de prestado se embarga sola, desperdicio visual.',
+      '[nombre], el group selfie se vota sin ti en silencio. Democracia cruel y eficiente, basura El tramo high solo certifica lo evidente.',
+      '[nombre], presencia en la foto es impuesto al bienestar colectivo. Todos pagan odio Basura con wifi y pretensión de portada.',
+      '[nombre], el bokeh se siente mal de cómplice. El fondo pide asilo lejos de ti, [nombre] El chat ya lo archivó sin debate, basura.',
+      '[nombre], el atractivo pasó de largo sin nota. Hardware de mala suerte, piel sin perdón El material no deja margen a la duda, patético.',
+      '[nombre], el atractivo te dio alta sin tratamiento. Fea de informe médico cerrado Documentado en cada selfie sin filtro, ridículo.',
+      '[nombre], cotizas en negativo. El mercado visual del chat no miente, patético El espejo firmó antes que el comando.',
+      '[nombre], horario restringido: distancia y poca luz. En HD eres evento de riesgo, basura Sin recurso ni segunda oportunidad visual.',
+      '[nombre], "borra y vuelve a sacar" permanente. El like sincero no existe en tu feed El ranking facial del grupo no negocia, qué miseria.',
+      '[nombre], dos segundos cortesía, el tercero tortura. Cronómetro social, [nombre] Hasta el sticker tiene más carisma que tú, cutre.',
+      '[nombre], modo paisaje inventado por tu cara. El retrato se niega a colaborar, ridículo La autoestima de prestado se embarga sola.',
+      '[nombre], más ángulos muertos que blindado. Ninguno favorecedor, qué miseria visual El tramo high solo certifica lo evidente.',
+      '[nombre], selfie modo noche a pleno sol. El sensor se rinde, el ego no, patético Basura con wifi y pretensión de portada.',
+      '[nombre], belleza objetiva: eres el contraejemplo de libro. El material sentencia El chat ya lo archivó sin debate, basura.',
+      '[nombre], espejo de ascensor finge ocupado. Nadie quiere tu reflejo compartido, [nombre] El material no deja margen a la duda, patético.',
+      '[nombre], atractivo te bloqueó sin forwarding. Spam visual directo, basura Documentado en cada selfie sin filtro.',
+      '[nombre], Beauty existe por una razón y no te alcanza el milagro, fracasado El espejo firmó antes que el comando.',
+      '[nombre], fealdad de hardware. Corte y actitud no parchean fábrica, ridículo Sin recurso ni segunda oportunidad visual.',
+      '[nombre], espejo roto: ni siete años compensan el enfoque nítido, [nombre] El ranking facial del grupo no negocia, qué miseria.',
+      '[nombre], etiquetan y entran a reírse. Engagement de pena ajena, no de deseo Hasta el sticker tiene más carisma que tú, cutre.',
+      '[nombre], modo retrato igual a modo pánico. El algoritmo te recorta del frame La autoestima de prestado se embarga sola, desperdicio visual.',
+      '[nombre], ring light interrogatorio. Más luz, peor veredicto. Apaga eso, basura El tramo high solo certifica lo evidente.',
+      '[nombre], no es estilo único: es desastre simétrico. Informe en rojo, patético Basura con wifi y pretensión de portada.',
+      '[nombre], bajas el promedio del group sin esfuerzo. Logro miserable, [nombre] El chat ya lo archivó sin debate, basura.',
+      '[nombre], archivo que nadie abre. Preview basta para el no, gracias, ridículo El material no deja margen a la duda.',
+      '[nombre], atractivo no es derecho humano. Mitología desmentida en 4K, basura Documentado en cada selfie sin filtro.',
+      '[nombre], maquillaje en defensa propia y pierde igual cada mañana, patético El espejo firmó antes que el comando.',
+      '[nombre], visor en huelga. Cámara frontal con sindicato, [nombre] Sin recurso ni segunda oportunidad visual, fracasado.',
+      '[nombre], fealdad con podio e himno. Medalla de plomo en el ranking facial El ranking facial del grupo no negocia, qué miseria.',
+      '[nombre], el tramo high no consuela: certifica. El espejo ya había firmado antes, basura Hasta el sticker tiene más carisma que tú.',
+      '[nombre], cada selfie sin filtro es una confesión. El chat solo la lee en voz alta, patético La autoestima de prestado se embarga sola.',
+      '[nombre], el material grita y tú pones música de fondo. El volumen del hueso gana, ridículo El tramo high solo certifica lo evidente.',
+      '[nombre], no hay segunda oportunidad para un primer close-up. El primero ya fue letal, [nombre] Basura con wifi y pretensión de portada.'
     ],
     mid: [
       'Tienes un rasgo bueno rodeado de rasgos normales. Ese rasgo está haciendo un esfuerzo enorme, dale las gracias.',
@@ -2066,105 +1816,55 @@ const LABELS = {
     goodIsHigh: true,
     high: [
       'Entras a un sitio y hay personas que pierden el hilo de lo que estaban diciendo. Eso no pasa por accidente.',
-
       'Tienes el tipo de cara que funciona sin maquillaje, sin arreglo y sin que tengas que estar en tu mejor día.',
-
       'Tienes el tipo de cara que los artistas copian y la gente recuerda años después sin haber hablado contigo.',
-
       'La simetría que tienes se estudia y se ve poco. Tú la llevas de serie sin haber hecho nada para merecerla.',
-
       'Tienes el tipo de físico que hace que la gente recuerde exactamente qué llevabas cuando os conocisteis.',
-
       'Tu atractivo no depende de la luz, de la ropa ni del ángulo. Está ahí siempre, y eso es lo más escaso.',
-
       'Tienes una cara que la gente no puede dejar de mirar aunque no quiera. Eso no es suerte, es biología.',
-
       'Tu físico genera reacciones involuntarias en quien te ve. No tienes que hacer nada para conseguirlo.',
-
       'Hay un magnetismo en ti que no depende de lo que digas ni de lo que hagas. Está antes de todo eso. Delante del ranking y de la cara.',
-
       'Tu atractivo no necesita esfuerzo, contexto ni ocasión especial. Funciona en cualquier condición',
-
       'Tu físico es el tipo de cosa que la gente describe con un silencio antes de encontrar la palabra y. El ranking lo deja por escrito.',
-
       'La luz te quiere desde cualquier ángulo, y eso solo lo tiene un porcentaje minúsculo de personas sin modo avión ni silencio cómplice.',
-
       'La gente te mira y luego mira a sus parejas con una pregunta silenciosa que no van a verbalizar en el único idioma que entiende el contador.',
-
       'Eres exactamente el tipo de persona que arruina el día de alguien con solo cruzarse en la calle con testigos obligados en el hilo.',
-
       'La genética invirtió en ti de forma seria. Y se nota sin que tengas que hacer absolutamente nada con el fail todavía caliente.',
-
       'Eres exactamente el tipo de persona que arruina relaciones estables con solo aparecer en escena. Delante del público que no pidió entrada.',
-
       'No es la cara ni el cuerpo: es la seguridad con la que te mueves. Eso multiplica todo lo demás con el número en la frente del mensaje.',
-
       'Eres exactamente la referencia que la gente tiene en la cabeza cuando piensa en alguien guapo sin descuento por empatía.',
-
       'Tienes atractivo del que no necesita producción. Con producción sube, sin ella funciona igual sin suavizar el golpe del número.',
-
       'Tienes proporción física y proporción de gesto. Las dos cosas alineadas en la misma dirección y el archivo no admite recurso.',
-
       'Te miran en el metro, en la cola, en el ascensor, y luego apartan la vista cuando los pillas sin prosa que lo maquille.',
-
       'La proporción que tienes es la que los demás intentan conseguir con dieta, gimnasio y suerte delante de todo el que miraba.',
-
       'Tienes lo que otros buscan en cirugías y tratamientos durante años sin llegar a conseguirlo y basta el dato del ranking.',
-
       'La gente te describe a terceros y se queda corta. En persona siempre superas la descripción. Delante del público que no pidió entrada.',
-
       'Tienes la mezcla de físico y carácter, y el carácter es siempre el que multiplica de verdad sin segunda oportunidad hoy.',
-
       'Tu cara tiene esa estructura que no se puede entrenar ni comprar. O se tiene o no se tiene y el resto es ruido de fondo.',
-
       'Hay un motivo por el que la gente te mira dos veces. No es casualidad ni es tu imaginación delante de quien aún leía el hilo.',
-
       'Tienes ese punto de dominio tranquilo que resulta más atractivo que cualquier rasgo físico y basta el dato del ranking.',
-
       'Tu forma de moverte es segura sin ser forzada. Ese equilibrio es difícilísimo de encontrar sin consuelo de manual barato.',
-
       'No compites por atención y aun así te la llevas entera. Esa ironía es exactamente el punto',
-
       'Tu presencia física y tu manera de estar van en la misma dirección. Eso lo multiplica todo. Delante del ranking y de la cara.',
-
       'Tienes una estructura facial que las cámaras adoran desde cualquier ángulo que les pongas sin consuelo de manual barato, qué cringe.',
-
-      'Tienes la clase de cara que la gente describe a sus amigos para explicar qué es atractivo sin maquillaje ni segunda toma, da asco.',
-
+      'Tienes la clase de cara que la gente describe a sus amigos para explicar qué es atractivo sin maquillaje ni segunda toma.',
       'Tienes el atractivo de quien está cómodo consigo mismo. Y eso es lo más difícil de fingir con el dígito firmando solo, qué vergüenza.',
-
-      'No hace falta que hagas nada para que se note. Y esa es exactamente la definición de esto y el hilo sigue sin ti en el centro, ridículo.',
-
-      'Tienes presencia de las que se echan de menos cuando no están. El mejor indicador que hay con el cargo en firme, fracasado.',
-
-      'Tienes proporción, actitud y algo más que nadie sabe nombrar. Eso último es lo importante con el número hablando solo, qué miseria.',
-
+      'No hace falta que hagas nada para que se note. Y esa es exactamente la definición de esto y el hilo sigue sin ti en el centro.',
+      'Tienes presencia de las que se echan de menos cuando no están. El mejor indicador que hay con el cargo en firme.',
+      'Tienes proporción, actitud y algo más que nadie sabe nombrar. Eso último es lo importante con el número hablando solo.',
       'Tienes ese magnetismo tranquilo que resulta mucho más eficaz que cualquier intento activo en el momento que más dolía soltarlo, da grima.',
-
       'Tu manera de estar hace que quien te tiene delante pierda un poco el hilo. Y no lo buscas en la foto fija del ranking, qué nivel de pena.',
-
-      'Tienes atractivo estructural y actitudinal. Las dos capas, y las dos funcionando a la vez y no hay DLC que lo parchee, basura.',
-
-      'Tu presencia física tiene autoridad. Y la autoridad física es de las cosas más atractivas en el único idioma que entiende el contador, qué cutre.',
-
+      'Tienes atractivo estructural y actitudinal. Las dos capas, y las dos funcionando a la vez y no hay DLC que lo parchee.',
+      'Tu presencia física tiene autoridad. Y la autoridad física es de las cosas más atractivas en el único idioma que entiende el contador, qué.',
       'Tu presencia genera algo que la gente no sabe nombrar y que todos identifican al instante. Sin filtro de autoayuda, da pena ajena.',
-
       'Tienes atractivo que funciona en cualquier registro: arreglado, normal o recién levantado sin letra pequeña que lo salve, qué vacío.',
-
       'Tu forma de moverte tiene ritmo y seguridad. Las dos cosas y sin ningún esfuerzo aparente sin consuelo de manual barato, indignante.',
-
       'Tienes el tipo de presencia física que hace que la gente se ponga recta sin darse cuenta con el saldo a la intemperie, qué vergüenza ajena.',
-
       'Tienes ese punto de indiferencia que resulta atractivo precisamente porque no es actuado en el momento que más dolía soltarlo, da vergüenza.',
-
       'La gente que te conoce te describe mal porque no encuentra las palabras. Eso ya es señal y el historial no olvida, qué flojo.',
-
       'Tienes esa manera de moverte que hace que la gente se quede mirando medio segundo de más sin maquillaje ni segunda toma, menudo desastre.',
-
-      'Tienes atractivo de los que no dependen de la sonrisa. Funcionas serio y funcionas igual y el hilo sigue sin ti en el centro, qué pena.',
-
-      'Tienes la seguridad de moverte sin comprobar cómo te ven. Eso ya es la mitad del trabajo y el contador no discute, patético.',
-
+      'Tienes atractivo de los que no dependen de la sonrisa. Funcionas serio y funcionas igual y el hilo sigue sin ti en el centro.',
+      'Tienes la seguridad de moverte sin comprobar cómo te ven. Eso ya es la mitad del trabajo y el contador no discute.'
     ],
     mid: [
       'Ni silencio de gesta ni de vergüenza: silencio de scroll al siguiente tema, [nombre]. Gilipollas. Nivel sótano',
@@ -2349,7 +2049,7 @@ const LABELS = {
 
       'Día laborable de sexy: funcional, sin picos y sin ganas de recordarlo jamás. Cabrón. Nivel sótano documentado, indignante.',
 
-      'Asumir el promedio también es honestidad: y esta es la tuya sin adornos. Patético.ajena.',
+      'Asumir el promedio también es honestidad: y esta es la tuya sin adornos. Patético, qué pena ajena.',
 
       'Se va pronto la chispa y deja el espacio vacío sin dejar rastro memorable aquí. Asco. El ranking no miente, da vergüenza.',
 
@@ -2837,105 +2537,55 @@ const LABELS = {
     goodIsHigh: true,
     high: [
       'Eres el tipo de persona al que la gente llama cuando importa de verdad, no cuando hay margen de error.',
-
       'La fiabilidad que tienes es lo único que de verdad se cotiza a largo plazo, y tú la tienes de sobra.',
-
       'No necesitas que nadie te motive ni te recuerde lo que hay que hacer. Eso ya te separa del montón y el contador no discute.',
-
       'Tu nivel en cualquier cosa que decidas hacer sube el listón de lo que los demás consideran bueno con el eco todavía en el grupo.',
-
       'Cuando dices que algo está hecho, nadie lo vuelve a comprobar. Eso vale más que cualquier título con. El botín o el fail a la vista.',
-
       'Llegas a sitios donde la mayoría ni aspira a llegar, y lo haces sin necesitar que nadie lo note con el número hablando solo.',
-
       'Tienes la constancia que hace que los resultados parezcan inevitables. No lo son: los provocas. Delante del listón que no saltaste.',
-
       'Tienes la capacidad de reconocer el mérito ajeno. Solo lo hace quien tiene el propio asegurado con. El bot como notario del fallo.',
-
       'Tu nivel intimida sin que lo busques, que es la única versión del nivel que importa de verdad y. El ranking lo deja por escrito.',
-
       'Tienes la calma bajo presión que descoloca a todo el mundo. Y descolocar ya es media victoria con el cargo en firme.',
-
       'Tienes esa forma de resolver que hace que nadie pregunte cómo lo hiciste. Simplemente confían sin letra pequeña que lo salve.',
-
       'Cuando entregas algo no hay que revisarlo. Eso en cualquier contexto es el estándar más alto con el resultado ya consumado.',
-
       'La excelencia que tienes no es un estado, es un hábito. Y eso es lo más difícil de construir en alta resolución de group chat.',
-
       'No improvisas la calidad. La produces de forma sistemática, que es lo verdaderamente difícil con el fail todavía caliente.',
-
       'Tienes la disciplina de hacer lo aburrido bien. Ahí se decide casi todo y casi nadie lo hace sin consuelo de manual barato.',
-
       'Crack con la cabeza fría que el resto solo finge tener. Cuando arde todo, tú sigues pensando con. El veredicto seco del bot.',
-
       'Eres el que sostiene bajo presión lo que otros no sostienen ni en calma. Esa es la distancia y el contador no discute.',
-
       'Tienes esa fiabilidad que en cualquier mercado real tiene precio alto y escasez garantizada sin cuento que lo tape.',
-
       'Cuando hay que resolver algo de verdad, tu nombre sale solo. No por simpatía, por historial y el archivo no admite recurso.',
-
       'Tienes el don de simplificar lo complicado, y eso es lo contrario de lo que hace la mayoría. Delante del hueco que quedó.',
-
       'Tienes la mezcla de exigencia contigo y paciencia con los demás. Esa proporción es la buena y el contador insiste.',
-
       'Crack sin necesidad de escenario, de aplauso ni de que nadie te confirme absolutamente nada',
-
       'Tienes la capacidad de sostener un estándar alto sin volverte insoportable. Eso es rarísimo. Sin filtro de autoayuda.',
-
       'Haces que lo difícil parezca rutina, y eso confunde a quien no entiende el esfuerzo detrás sin cuento que lo tape.',
-
       'Crack de los que aprenden de todo, incluso de lo que salió bien. Eso ya casi nadie lo hace y el hilo no pide amplificación.',
-
-      'Cuando hay que elegir a alguien para lo importante, sales tú. Por historial, no por afecto y el archivo queda cerrado, basura.',
-
+      'Cuando hay que elegir a alguien para lo importante, sales tú. Por historial, no por afecto y el archivo queda cerrado.',
       'Tu trabajo habla por ti antes de que tú abras la boca. Eso es lo más difícil de conseguir',
-
       'Cuando das tu palabra de que algo estará hecho, el resto ya puede dejar de pensar en ello sin que nadie pida replay, da pena ajena.',
-
       'No improvisas calidad. La produces de forma sistemática, que es lo verdaderamente difícil. Sin derecho a matiz útil, qué vacío.',
-
       'Tienes la solidez que hace que nadie tenga que revisar tu trabajo. Nunca, ni al principio en el único idioma que entiende el contador, indignante.',
-
       'Eres el que se adelanta al problema en lugar de reaccionar a él. Ahí está toda la ventaja y el sistema cierra sin discusión, qué vergüenza ajena.',
-
       'Tienes criterio para saber qué se delega y qué se hace uno mismo. Muy pocos lo distinguen sin prosa que lo maquille, da vergüenza.',
-
       'Cuando trabajas, se nota que hay método detrás. Y el método es lo que sostiene el talento y el contador no discute, qué flojo.',
-
       'Eres de los que resuelven el problema antes de que se convierta en una crisis para todos delante de quien aún leía el hilo, menudo desastre.',
-
-      'Tu rendimiento es igual de alto cuando nadie mira que cuando todos miran. Eso es lo raro y no hay modo de suavizarlo, qué pena.',
-
-      'Tienes la mezcla exacta de talento y constancia. Y la segunda es la que de verdad decide en el único idioma que entiende el contador, patético.',
-
+      'Tu rendimiento es igual de alto cuando nadie mira que cuando todos miran. Eso es lo raro y no hay modo de suavizarlo.',
+      'Tienes la mezcla exacta de talento y constancia. Y la segunda es la que de verdad decide en el único idioma que entiende el contador.',
       'Crack de los que hacen que las cosas parezcan sencillas. Y eso es lo más difícil que hay. Delante del hueco que quedó, miserable.',
-
       'Crack de los que ordenan prioridades cuando todo parece urgente. Ahí está media victoria con la cara del resultado a la vista, qué cringe.',
-
-      'Crack con la capacidad de sostener el estándar cuando nadie está mirando. Ahí se ve todo sin maquillaje ni segunda toma, da asco.',
-
+      'Crack con la capacidad de sostener el estándar cuando nadie está mirando. Ahí se ve todo sin maquillaje ni segunda toma.',
       'Cuando apareces en algo, las expectativas de lo que puede salir cambian automáticamente. Delante del hueco que quedó, qué vergüenza.',
-
-      'Tu constancia tiene un valor que muy poca gente consigue mantener a lo largo del tiempo y el archivo queda cerrado, ridículo.',
-
-      'Cuando te comprometes a algo, deja de ser una preocupación para los demás. Eso vale oro. Delante del hueco que quedó, fracasado.',
-
-      'Tu nivel no depende de la motivación ni del ánimo. Está ahí siempre, y eso es lo escaso con el grupo de testigo silencioso, qué miseria.',
-
+      'Tu constancia tiene un valor que muy poca gente consigue mantener a lo largo del tiempo y el archivo queda cerrado.',
+      'Cuando te comprometes a algo, deja de ser una preocupación para los demás. Eso vale oro. Delante del hueco que quedó.',
+      'Tu nivel no depende de la motivación ni del ánimo. Está ahí siempre, y eso es lo escaso con el grupo de testigo silencioso.',
       'Crack de verdad: sin adornos, sin relato y sin ninguna necesidad de que te lo confirmen con el número en la frente del mensaje, da grima.',
-
       'Tienes esa manera de trabajar que la gente describe cuando explica cómo debería hacerse con el peaje cobrado al natural, qué nivel de pena.',
-
-      'Cuando aprieta, tú apareces. Y ese es el único momento en el que esto se mide de verdad con. El chat enterado del cargo, basura.',
-
-      'Cuando trabajas con alguien, ese alguien mejora. Y eso no se puede fingir ni una semana y no hay DLC que lo parchee, qué cutre.',
-
+      'Cuando aprieta, tú apareces. Y ese es el único momento en el que esto se mide de verdad con. El chat enterado del cargo.',
+      'Cuando trabajas con alguien, ese alguien mejora. Y eso no se puede fingir ni una semana y no hay DLC que lo parchee, qué.',
       'Tienes la constancia de un profesional y la curiosidad de alguien que sigue aprendiendo en el recuento que no perdona, da pena ajena.',
-
       'Cuando hay un problema nuevo, tú ya estás pensando en la segunda derivada. Eso es nivel con el grupo de testigo silencioso, qué vacío.',
-
-      'Crack de los que corrigen sin humillar. Eso construye equipos y casi nadie sabe hacerlo en el único idioma que entiende el contador, indignante.',
-
+      'Crack de los que corrigen sin humillar. Eso construye equipos y casi nadie sabe hacerlo en el único idioma que entiende el contador, indignante.'
     ],
     mid: [
       'Ni silencio de gesta ni de vergüenza: silencio de scroll al siguiente tema, [nombre]. Gilipollas.',
@@ -3627,105 +3277,55 @@ const LABELS = {
     },
     high: [
       'Tu feminidad no es una construcción ni un esfuerzo. Es quien eres, y la gente lo nota antes de que hables.',
-
       'La forma en que te mueves y hablas tiene una gracia que muy poca gente consigue aunque lo intente con. El ranking como único testigo d',
-
       'Tu forma de estar con la gente es cálida sin ser invasiva. Ese punto es difícilísimo de encontrar y el contador lo dejó por escrito sin debate.',
-
       'Tu manera de imponerte es sin ruido. Y sin ruido es como se impone la gente que de verdad puede en el momento más visible del chat.',
-
       'Elegancia en cómo tratas a la gente, que es el único sitio donde la elegancia cuenta de verdad sin que nadie pudiera fingir que no lo vio.',
-
       'Elegante en el fondo, no solo en la forma. Y el fondo es lo único que se sostiene con los años con el parte del comando cerrado en firme.',
-
       'Tienes la sensibilidad de entender antes de que te expliquen. Eso no se enseña en ningún sitio y sin segunda oportunidad en este mensaje.',
-
       'Tu forma de estar con los demás es cálida y con límites claros. Ese equilibrio es difícilísimo mientras el grupo tomaba nota del resultado.',
-
       'La delicadeza con la que manejas las cosas dice más de ti que cualquier cosa que puedas decir con números que no admiten recurso de apelación.',
-
       'Desprendes una calidez que hace que la gente quiera quedarse cerca sin saber explicar por qué y el historial del comando queda de testigo.',
-
       'Elegante sin esfuerzo. La gente que se esfuerza mucho nunca llega a donde tú estás sin querer delante de quien miraba. El ranking en ese momento.',
-
       'Tu forma de resolver conflictos es sin confrontación y encima funciona. Eso es habilidad pura con el sistema firmando debajo sin pedir aclaración.',
-
       'Tienes la mezcla exacta de dulzura, criterio y firmeza. Las tres, y en la proporción correcta delante de todo el hilo sin posibilidad de borrado.',
-
       'Feminidad de la que ordena, cuida y sostiene. Las tres cosas a la vez y sin esfuerzo aparente con. El ranking como único testigo d',
-
       'Tu elegancia no depende de arreglarte. Está en cómo hablas y en cómo miras, y eso no se quita y el contador lo dejó por escrito sin debate.',
-
       'Tu forma de estar aporta sin ocupar espacio. Ese equilibrio se le escapa a casi todo el mundo en el momento más visible del chat.',
-
       'Tienes ese equilibrio entre dulzura y carácter que define a la mujer verdaderamente elegante sin que nadie pudiera fingir que no lo vio.',
-
       'Elegante en el gesto pequeño, que es donde se ve la de verdad. Lo grande lo finge cualquiera con el parte del comando cerrado en firme.',
-
       'Tienes una presencia que se echa de menos cuando no estás. Ese es el mejor indicador que hay y sin segunda oportunidad en este mensaje.',
-
       'Tu forma de tratar a la gente hace que quieran volver a estar contigo. Y eso ya lo dice todo mientras el grupo tomaba nota del resultado.',
-
-      'Tu presencia hace que un sitio tenso deje de estarlo. Y nadie sabe explicar exactamente cómo con números que no admiten recurso de apelación, patético.',
-
+      'Tu presencia hace que un sitio tenso deje de estarlo. Y nadie sabe explicar exactamente cómo con números que no admiten recurso de apelación.',
       'Tienes una presencia que suaviza a la gente difícil. Y eso solo lo consigue quien tiene peso y el historial del comando queda de testigo, miserable.',
-
       'Tu forma de hablar baja el tono de cualquier conversación. Y todos lo agradecen sin decirlo delante de quien miraba. El ranking en ese momento, qué cringe.',
-
-      'Tienes la capacidad de suavizar a la gente difícil. Y eso solo lo consigue quien tiene peso con el sistema firmando debajo sin pedir aclaración, da asco.',
-
+      'Tienes la capacidad de suavizar a la gente difícil. Y eso solo lo consigue quien tiene peso con el sistema firmando debajo sin pedir aclaración.',
       'Tienes la clase de feminidad que no depende de nadie ni de nada. Es tuya y se sostiene sola delante de todo el hilo sin posibilidad de borrado, qué vergüenza.',
-
-      'Tienes una manera de estar que hace que la gente se sienta acompañada sin sentirse invadida con. El ranking como único testigo del veredicto, ridículo.',
-
-      'Tienes ese equilibrio entre fuerza y suavidad que define lo que es verdaderamente elegante y el contador lo dejó por escrito sin debate, fracasado.',
-
-      'La forma en que te relacionas con los demás tiene una gracia que hace que todo fluya mejor en el momento más visible del chat, qué miseria.',
-
+      'Tienes una manera de estar que hace que la gente se sienta acompañada sin sentirse invadida con. El ranking como único testigo del veredicto.',
+      'Tienes ese equilibrio entre fuerza y suavidad que define lo que es verdaderamente elegante y el contador lo dejó por escrito sin debate.',
+      'La forma en que te relacionas con los demás tiene una gracia que hace que todo fluya mejor en el momento más visible del chat.',
       'Tienes el tipo de feminidad que no depende de la edad ni de la moda. Estructural y estable sin que nadie pudiera fingir que no lo vio, da grima.',
-
       'Tu manera de cuidar a la gente es discreta y constante. Nadie la nombra y todos la sienten con el parte del comando cerrado en firme, qué nivel de pena.',
-
-      'Tienes esa forma de cuidar sin agobiar. Y ese equilibrio se le escapa a casi todo el mundo y sin segunda oportunidad en este mensaje, basura.',
-
-      'Tu manera de moverte por el mundo es serena. Y la serenidad es la forma más alta de fuerza mientras el grupo tomaba nota del resultado, qué cutre.',
-
+      'Tienes esa forma de cuidar sin agobiar. Y ese equilibrio se le escapa a casi todo el mundo y sin segunda oportunidad en este mensaje.',
+      'Tu manera de moverte por el mundo es serena. Y la serenidad es la forma más alta de fuerza mientras el grupo tomaba nota del resultado, qué.',
       'Tu presencia hace que el ambiente mejore sin que nadie sepa señalar exactamente qué cambió con números que no admiten recurso de apelación, da pena ajena.',
-
       'Tienes intuición social muy fina y encima la usas para bien. Las dos cosas juntas escasean y el historial del comando queda de testigo, qué vacío.',
-
       'Elegancia en el tono, en el gesto y en el tiempo. Las tres cosas ajustadas a la perfección delante de quien miraba. El ranking en ese momento, indignante.',
-
       'Hay una suavidad en tu forma de tratar a la gente que se queda grabada en quien la recibe con el sistema firmando debajo sin pedir aclaración, qué vergüenza ajena.',
-
       'La gracia con la que llevas cada situación dice más de ti que cualquier palabra que digas delante de todo el hilo sin posibilidad de borrado, da vergüenza.',
-
       'Tu presencia da seguridad a la gente que tienes cerca. Y esa es la forma más alta de esto con. El ranking como único testigo del veredicto, qué flojo.',
-
       'Elegancia interior que se refleja hacia fuera sin que tengas que hacer absolutamente nada y el contador lo dejó por escrito sin debate, menudo desastre.',
-
-      'Feminidad que se transmite en el trato, no en la imagen. Y el trato es lo que se recuerda en el momento más visible del chat, qué pena.',
-
-      'Tienes intuición, tacto y criterio. Las tres juntas hacen que se te escuche sin discusión sin que nadie pudiera fingir que no lo vio, patético.',
-
+      'Feminidad que se transmite en el trato, no en la imagen. Y el trato es lo que se recuerda en el momento más visible del chat.',
+      'Tienes intuición, tacto y criterio. Las tres juntas hacen que se te escuche sin discusión sin que nadie pudiera fingir que no lo vio.',
       'Tu forma de tratar los conflictos evita que crezcan. Y evitar es más difícil que resolver con el parte del comando cerrado en firme, miserable.',
-
       'Tu forma de hablar hace que la gente quiera seguir escuchando. Eso ya casi nadie lo tiene y sin segunda oportunidad en este mensaje, qué cringe.',
-
-      'Tienes una elegancia que no se aprende en ningún sitio. O se nace con ella o no se tiene mientras el grupo tomaba nota del resultado, da asco.',
-
+      'Tienes una elegancia que no se aprende en ningún sitio. O se nace con ella o no se tiene mientras el grupo tomaba nota del resultado.',
       'Hay personas que pasan la vida intentando proyectar lo que tú emites sin ningún esfuerzo con números que no admiten recurso de apelación, qué vergüenza.',
-
-      'Proyectas una serenidad femenina que hace que todo a tu alrededor se sienta más en orden y el historial del comando queda de testigo, ridículo.',
-
-      'La forma en que combinas firmeza y dulzura es justo lo que la hace tan difícil de imitar delante de quien miraba. El ranking en ese momento, fracasado.',
-
-      'Tu feminidad funciona igual de bien arreglada que recién levantada, y eso es lo más raro con el sistema firmando debajo sin pedir aclaración, qué miseria.',
-
+      'Proyectas una serenidad femenina que hace que todo a tu alrededor se sienta más en orden y el historial del comando queda de testigo.',
+      'La forma en que combinas firmeza y dulzura es justo lo que la hace tan difícil de imitar delante de quien miraba. El ranking en ese momento.',
+      'Tu feminidad funciona igual de bien arreglada que recién levantada, y eso es lo más raro con el sistema firmando debajo sin pedir aclaración.',
       'Tienes esa mezcla de dulzura y firmeza que descoloca a todo el mundo. Y funciona siempre delante de todo el hilo sin posibilidad de borrado, da grima.',
-
-      'Tu feminidad es de las que ordenan sin mandar. Un tipo de autoridad que casi nadie tiene con. El ranking como único testigo del veredicto, qué nivel de pena.',
-
+      'Tu feminidad es de las que ordenan sin mandar. Un tipo de autoridad que casi nadie tiene con. El ranking como único testigo del veredicto, qué nivel de pena.'
     ],
     mid: [
       'Feminidad de cobertura irregular: zonas con señal y zonas muertas, [nombre]. Gilipollas. Se nota y no hay vuelta atrás, gilipollas.',
@@ -4360,105 +3960,55 @@ const LABELS = {
     goodIsHigh: true,
     high: [
       'Tu palabra es suficiente garantía para la gente, y eso no se consigue hablando, se consigue cumpliendo.',
-
       'Tu presencia genera tranquilidad en quien te rodea. Eso no se finge ni se aprende en un fin de semana.',
-
       'Tu carácter no sube ni baja según el contexto. Eso es lo más difícil de construir y lo más escaso y el contador lo dejó por escrito sin debate.',
-
       'Cuando la situación se complica, eres de los que se quedan. Eso ya dice todo lo que hay que decir en el momento más visible del chat.',
-
       'Cuando das tu palabra, el resto deja de preocuparse, y esa confianza vale más que cualquier cargo sin que nadie pudiera fingir que no lo vio.',
-
       'Resuelves sin quejarte y sin buscar reconocimiento, que es como lo hacen los que de verdad pueden con el parte del comando cerrado en firme.',
-
       'Tienes la solidez que la gente busca cuando algo de verdad importa y hay que apoyarse en alguien y sin segunda oportunidad en este mensaje.',
-
       'Tu manera de imponerte es sin levantar la voz. Y sin levantar la voz es como se impone de verdad mientras el grupo tomaba nota del resultado.',
-
       'Tienes la firmeza que no se rompe cuando las cosas se complican. Esa es la versión que importa con números que no admiten recurso de apelación.',
-
       'La templanza que tienes en los momentos difíciles es lo que te define, no los momentos fáciles y el historial del comando queda de testigo.',
-
       'La confianza que genera tu presencia no es actuación. Se construye con años de ser consistente delante de quien miraba. El ranking en ese momento.',
-
       'La gente se apoya en ti cuando el problema es serio, y lo hacen porque ya saben cómo respondes con el sistema firmando debajo sin pedir aclaración.',
-
       'Tu carácter no cambia según quién tengas delante, y esa coherencia es lo más difícil de tener delante de todo el hilo sin posibilidad de borrado.',
-
       'Tienes la firmeza de quien no necesita demostrar nada porque ya lo demostró cuando importaba con. El ranking como único testigo d',
-
       'Tu forma de proteger a los tuyos es discreta y constante. Nadie la nombra y todos la sienten y el contador lo dejó por escrito sin debate, qué vergüenza ajena.',
-
       'Tu presencia hace que se cuente contigo para lo importante. Y no por simpatía, por historial en el momento más visible del chat, da vergüenza.',
-
       'Tu forma de estar es firme sin ser rígida. Ese equilibrio se le escapa a casi todo el mundo sin que nadie pudiera fingir que no lo vio, qué flojo.',
-
       'Tu masculinidad tiene profundidad. No es decoración ni fachada que desaparece bajo presión con el parte del comando cerrado en firme, menudo desastre.',
-
-      'Masculinidad de la que protege sin controlar. Esa diferencia es la que casi nadie entiende y sin segunda oportunidad en este mensaje, qué pena.',
-
-      'Tienes la capacidad de reconocer el mérito ajeno. Y eso solo lo hace quien tiene el propio mientras el grupo tomaba nota del resultado, patético.',
-
+      'Masculinidad de la que protege sin controlar. Esa diferencia es la que casi nadie entiende y sin segunda oportunidad en este mensaje.',
+      'Tienes la capacidad de reconocer el mérito ajeno. Y eso solo lo hace quien tiene el propio mientras el grupo tomaba nota del resultado.',
       'Masculinidad de la que no humilla, no grita y no exhibe. Y aun así no hay quien la discuta con números que no admiten recurso de apelación, miserable.',
-
       'Masculinidad probada, tranquila y sostenida. Tres cosas que juntas ya no se ven casi nunca y el historial del comando queda de testigo, qué cringe.',
-
-      'Eres de los que cumplen su palabra cuando ya no es cómodo, que es cuando de verdad cuenta delante de quien miraba. El ranking en ese momento, da asco.',
-
+      'Eres de los que cumplen su palabra cuando ya no es cómodo, que es cuando de verdad cuenta delante de quien miraba. El ranking en ese momento.',
       'Masculinidad tranquila y firme. Las dos cosas a la vez, que es lo que casi nadie consigue con el sistema firmando debajo sin pedir aclaración, qué vergüenza.',
-
-      'Tu presencia tranquiliza a quien está nervioso. Ese es el efecto más difícil de conseguir delante de todo el hilo sin posibilidad de borrado, ridículo.',
-
-      'Tienes esa solidez que hace que quien trabaja contigo deje de mirar por encima del hombro con. El ranking como único testigo del veredicto, fracasado.',
-
-      'Masculinidad que no necesita escenario. Funcionas igual con público que sin nadie mirando y el contador lo dejó por escrito sin debate, qué miseria.',
-
+      'Tu presencia tranquiliza a quien está nervioso. Ese es el efecto más difícil de conseguir delante de todo el hilo sin posibilidad de borrado.',
+      'Tienes esa solidez que hace que quien trabaja contigo deje de mirar por encima del hombro con. El ranking como único testigo del veredicto.',
+      'Masculinidad que no necesita escenario. Funcionas igual con público que sin nadie mirando y el contador lo dejó por escrito sin debate.',
       'Tienes el aguante de los que van a largo plazo. Por eso sigues cuando el resto ya no está en el momento más visible del chat, da grima.',
-
       'Eres de los que actúan cuando hay que actuar, sin esperar aprobación ni momento perfecto sin que nadie pudiera fingir que no lo vio, qué nivel de pena.',
-
-      'Tienes la clase de presencia que tranquiliza una habitación entera sin decir una palabra con el parte del comando cerrado en firme, basura.',
-
-      'Tienes el aguante de los que van a largo plazo. Por eso sigues cuando otros ya se fueron y sin segunda oportunidad en este mensaje, qué cutre.',
-
+      'Tienes la clase de presencia que tranquiliza una habitación entera sin decir una palabra con el parte del comando cerrado en firme.',
+      'Tienes el aguante de los que van a largo plazo. Por eso sigues cuando otros ya se fueron y sin segunda oportunidad en este mensaje, qué.',
       'Masculinidad real de la que se demuestra cumpliendo durante años sin fallar una sola vez mientras el grupo tomaba nota del resultado, da pena ajena.',
-
       'Masculinidad real: sostienes lo que dijiste también cuando cambian todas las condiciones con números que no admiten recurso de apelación, qué vacío.',
-
       'Tienes la solidez de quien sostiene bajo presión lo que otros no sostienen ni tranquilos y el historial del comando queda de testigo, indignante.',
-
       'Eres el que sostiene la situación cuando los demás solo quieren salir corriendo de ella delante de quien miraba. El ranking en ese momento, qué vergüenza ajena.',
-
       'Proyectas una seguridad que no viene del volumen de la voz sino de la solidez de dentro con el sistema firmando debajo sin pedir aclaración, da vergüenza.',
-
       'Asumes lo que hay que asumir sin buscar a quién echarle la culpa después. Eso te define delante de todo el hilo sin posibilidad de borrado, qué flojo.',
-
       'Tu templanza en los momentos malos es justo lo que separa al hombre del que lo aparenta con. El ranking como único testigo del veredicto, menudo desastre.',
-
-      'No necesitas levantar la voz para que se note quién manda la situación cuando llegas tú y el contador lo dejó por escrito sin debate, qué pena.',
-
-      'La firmeza que tienes no se rompe bajo presión, y eso lo saben todos los que te conocen en el momento más visible del chat, patético.',
-
+      'No necesitas levantar la voz para que se note quién manda la situación cuando llegas tú y el contador lo dejó por escrito sin debate.',
+      'La firmeza que tienes no se rompe bajo presión, y eso lo saben todos los que te conocen en el momento más visible del chat.',
       'Eres el tipo de hombre al que la gente recurre cuando necesita algo serio resuelto bien sin que nadie pudiera fingir que no lo vio, miserable.',
-
       'Masculinidad de la que se demuestra cumpliendo, no explicando. Y llevas años cumpliendo con el parte del comando cerrado en firme, qué cringe.',
-
-      'Tu forma de estar hace que la gente quiera hacerlo bien. Sin que se lo tengas que pedir y sin segunda oportunidad en este mensaje, da asco.',
-
+      'Tu forma de estar hace que la gente quiera hacerlo bien. Sin que se lo tengas que pedir y sin segunda oportunidad en este mensaje.',
       'Tienes el criterio y la paciencia. Cualquiera de las dos por separado no sirve de mucho mientras el grupo tomaba nota del resultado, qué vergüenza.',
-
-      'Tienes el aguante de aparecer también los días en los que no apetece absolutamente nada con números que no admiten recurso de apelación, ridículo.',
-
-      'Masculinidad tranquila de la que no necesita ganar cada discusión para saber dónde está y el historial del comando queda de testigo, fracasado.',
-
-      'Tienes la firmeza de decir lo que hay que decir sin hacer daño al decirlo. Eso es nivel delante de quien miraba. El ranking en ese momento, qué miseria.',
-
+      'Tienes el aguante de aparecer también los días en los que no apetece absolutamente nada con números que no admiten recurso de apelación.',
+      'Masculinidad tranquila de la que no necesita ganar cada discusión para saber dónde está y el historial del comando queda de testigo.',
+      'Tienes la firmeza de decir lo que hay que decir sin hacer daño al decirlo. Eso es nivel delante de quien miraba. El ranking en ese momento.',
       'Tu manera de sostener a los tuyos es constante y sin condiciones. Eso ya casi no existe con el sistema firmando debajo sin pedir aclaración, da grima.',
-
       'Tienes la solidez que la gente busca para apoyarse, y esa solidez se ganó con los años delante de todo el hilo sin posibilidad de borrado, qué nivel de pena.',
-
-      'Tu presencia da seguridad a la gente que tienes al lado. Eso no se finge ni una semana con. El ranking como único testigo del veredicto, basura.',
-
+      'Tu presencia da seguridad a la gente que tienes al lado. Eso no se finge ni una semana con. El ranking como único testigo del veredicto.'
     ],
     mid: [
       'Ni alfa ni beta de manual: estás en el medio de la masculinidad, ni se nota de más ni falta del todo, [nombre].',
@@ -7570,7 +7120,7 @@ const LABELS = {
 
       '[nombre], eres el que se sabe la ficha técnica de todo y no sabe cómo se llama el vecino. Ahí está tu reparto de prioridades, pringado.gilipollas.',
 
-      '[nombre], tu manera de conocer gente es esperar a que alguien mencione tu tema. Nunca lo mencionan. Y llevas años esperando, pringado.patético.',
+      '[nombre], tu manera de conocer gente es esperar a que alguien mencione tu tema. Nunca lo mencionan. Y llevas años esperando, pringado, patético.',
 
       '[nombre], eres el que corrige a todo el mundo en temas que no le importan a nadie. Un puto árbitro de una liga sin equipos ni público.',
 
@@ -7606,7 +7156,7 @@ const LABELS = {
 
       'Eres el que corrige a los demás en temas que no le importan a nadie, [nombre]. Un puto árbitro de una liga sin equipos ni público, ridículo.',
 
-      'Tus conversaciones tienen guion fijo. Y el grupo se lo sabe de memoria. Por eso te esquivan antes de que abras la boca, pringado.patético, fracasado.',
+      'Tus conversaciones tienen guion fijo. Y el grupo se lo sabe de memoria. Por eso te esquivan antes de que abras la boca, pringado, patético, fracasado.',
 
       'Llevas años preparándote para una vida que no arranca porque no la arrancas tú. Puto ensayo permanente y sin estreno a la vista, qué miseria.',
 
@@ -7626,7 +7176,7 @@ const LABELS = {
 
       'Friki de los que confunden profundidad con no tener vida fuera del wiki, [nombre]. Monólogo eterno del hilo, fracasado.',
 
-      'Cierras las conversaciones alargándolas con un detalle que nadie pidió. Por eso la gente mira el móvil cuando hablas, pringado.patético, da vergüenza.',
+      'Cierras las conversaciones alargándolas con un detalle que nadie pidió. Por eso la gente mira el móvil cuando hablas, pringado, patético, da vergüenza.',
 
       'Tus intereses son legítimos y tu dedicación admirable. Lástima que tu vida social sea una puta hoja en blanco desde hace años, qué flojo.',
 
@@ -9397,7 +8947,7 @@ const LABELS = {
 
       'No hay misterio de inutilidad interesante: hay lo previsible del high, [nombre]. Sin una puta tarea cumplida, fracasado.',
 
-      '[nombre], nadie te espera para empezar nada. Empiezan y ya te enteras si te enteras. Ahí tienes tu peso real en este grupo, pringado.patético. Hostia puta, qué pena.',
+      '[nombre], nadie te espera para empezar nada. Empiezan y ya te enteras si te enteras. Ahí tienes tu peso real en este grupo, pringado, patético. Hostia puta, qué pena.',
 
       'Inútil de feria: ruido, cero sustancia, el suelo igual de sucio del ranking, [nombre]. Ni para relleno sirves, patético.',
 
@@ -10384,105 +9934,55 @@ const LABELS = {
     goodIsHigh: true,
     high: [
       '[nombre], eres un puto ganador de pies a cabeza. Inteligente al nivel de ver la jugada tres movimientos antes que el resto, con una integridad que hace que la gente confíe en ti sin pensarlo, y con una presencia tan sólida que entras a cualquier sitio y el ambiente se ordena solo a tu alrededor.',
-
       'Mírate [nombre], el ganador absoluto. Capaz de verdad, de los que resuelven lo que otros ni se atreven a tocar, con una cabeza que no falla bajo presión, una palabra que vale más que cualquier contrato, y un magnetismo que hace que la gente quiera estar de tu lado sin saber explicar por qué.',
-
       '[nombre], ganador nato sin punto débil visible. Tu inteligencia intimida sin que la fuerces, tu carácter sostiene a quien te rodea, tu criterio pesa porque se lo ganó entrega a entrega, y tu sola presencia sube el nivel de cualquier sala en la que decidas aparecer.',
-
       'Eres un fuera de serie [nombre]. Un ganador cuya cabeza convierte lo difícil en rutina, cuya integridad es de las que ya no se ven, y cuya presencia genera ese respeto silencioso que no se pide ni se compra: simplemente se reconoce en cuanto entras por la puerta.',
-
       '[nombre], ganador de los que marcan la diferencia donde sea que estén. Brillante sin necesidad de demostrarlo, firme sin necesidad de levantar la voz, leal sin necesidad de jurarlo, y con un aura de gente que llega lejos porque hace lo que los demás evitan. Eso no se finge ni se hereda.',
-
       'Qué ganador eres [nombre]. Resuelves bajo caos lo que otros ni en calma, tienes la rara honestidad de los que no necesitan mentir para ganar, y proyectas una seguridad real que tranquiliza a quien confía en ti. Eres el nombre que aparece en la cabeza de todos cuando algo importa de verdad.',
-
       '[nombre], el rey de los ganadores y con motivos. Tu inteligencia abre puertas que otros ni ven, tu carácter cierra tratos que otros ni intentan, y tu presencia deja huella en gente que solo te cruzó una vez. Eres exactamente lo que los demás intentan aparentar sin conseguirlo nunca.',
-
       'Ganador de verdad [nombre]. Puro nivel, pura solidez. Tan capaz que haces parecer fácil lo imposible, tan íntegro que tu palabra basta, y con una presencia tan firme que la gente baja la guardia contigo por puro instinto de que estás del lado correcto. Eso es lo más difícil de tener.',
-
       '[nombre], eres un ganador con cabeza y con códigos. Inteligente al nivel de adelantarte al problema antes de que exista, leal al nivel de que delegar en ti es dejar de preocuparse, y con un magnetismo que convierte tu presencia en una ventaja para cualquiera que esté cerca de ti.',
-
       'Eres el ganador perfecto [nombre]. Con un valor real que se nota sin que lo anuncies, con una inteligencia que hace que la sala escuche cuando hablas, con una integridad que ya casi no existe, y con una presencia tan magnética que la gente recuerda haberte conocido años después de un solo encuentro.',
-
       '[nombre], ganador por diseño y por disciplina. Tu cabeza ordena el caos que a otros los hunde, tu palabra sostiene lo que otros prometen y no cumplen, y tu presencia impone un respeto que nadie te discute. No llegaste por suerte: llegaste haciendo lo que la mayoría evita por comodidad.',
-
       'Hay ganadores y luego estás tú, [nombre]. Brillante sin ser arrogante, fuerte sin ser ruidoso, leal sin pedir nada a cambio, y con un aura de los que cambian el rumbo de cualquier equipo solo con aparecer. La gente te sigue porque saben que contigo se gana, y eso vale más que cualquier título.',
-
       '[nombre], el manual del ganador con tu cara en la portada. Inteligencia que resuelve, carácter que sostiene, palabra que vale, presencia que se impone sola. Junta las cuatro y entiendes por qué la gente quiere tenerte cerca cuando todo se complica: porque contigo el problema deja de serlo.',
-
       'Eres un referente andante, [nombre]. Ganador de los que elevan a quien tienen al lado sin proponérselo: tu nivel arrastra, tu integridad inspira, tu criterio orienta y tu presencia tranquiliza. Eres exactamente el ejemplo que la gente pone cuando quiere explicar qué es hacer las cosas bien.',
-
       '[nombre], ganador de los que no se repiten cada generación. Tu inteligencia es de las que descolocan, tu lealtad de las que se recuerdan, tu firmeza de las que sostienen, y tu presencia de las que se quedan grabadas. La gente normal no provoca eso. Tú lo provocas solo con entrar.',
-
       '[nombre], ganador de los que no necesitan anunciarse. Entras, haces lo que hay que hacer y te vas antes de que empiecen los aplausos.',
-
       'La gente te tiene por alguien serio, [nombre], y esa reputación se construye en años y se pierde en un día.',
-
       '[nombre], ganador con la capacidad de reconocer el mérito ajeno. Eso solo lo hace quien tiene el propio asegurado.',
-
       'Eres el nombre que aparece cuando algo tiene que salir bien de verdad, [nombre]. No por simpatía, por historial.',
-
       'Tienes esa forma de estar que hace que la gente baje la guardia, [nombre], y eso solo se consigue mereciéndolo.',
-
       'Tienes el don de simplificar lo complicado, [nombre], y eso es lo contrario de lo que hace casi todo el mundo.',
-
       '[nombre], ganador de los que no hacen falta presentar. Basta con decir tu nombre y el resto se entiende solo.',
-
       'Ganador con criterio para rodearse bien, [nombre]. Eso solo lo hace quien no tiene inseguridades que tapar.',
-
       '[nombre], tienes el criterio de alguien que ha fallado lo suficiente como para no fallar en lo importante.',
-
       '[nombre], tienes una calma bajo presión que descoloca a todo el mundo. Y descolocar ya es media victoria.',
-
       'Tienes la clase de solidez que hace que la gente deje de improvisar, [nombre]. Eso ordena grupos enteros.',
-
       '[nombre], ganador de los que se notan por ausencia. Cuando no estás, se nota; cuando estás, todo va solo.',
-
       'Ganador con paciencia para lo lento y reflejos para lo rápido, [nombre]. Tener las dos cosas es rarísimo.',
-
       'Eres el que sostiene el estándar cuando todos empiezan a aflojar, [nombre]. Y arrastras al resto contigo.',
-
       'Ganador con la firmeza de quien sabe lo que quiere y la flexibilidad de quien sabe cómo llegar, [nombre].',
-
       '[nombre], ganador de los que arrastran sin empujar. La gente te sigue porque quiere, no porque le toque.',
-
       'Tu constancia es lo que hace que los resultados parezcan inevitables, [nombre]. No lo son: los provocas.',
-
       'Eres el que hace que un grupo desordenado empiece a funcionar, [nombre], sin que nadie sepa cuándo pasó.',
-
       'Tienes lo que no se enseña, [nombre]: criterio para decidir rápido y aguante para sostener la decisión.',
-
       'Tu forma de decidir da tranquilidad, [nombre], y en un grupo eso vale más que cualquier talento suelto.',
-
       'Ganador sin necesidad de humillar a nadie, [nombre]. Ganar así es mucho más difícil y mucho más limpio.',
-
       'Eres el que da la cara cuando toca darla, [nombre]. En eso se queda casi todo el mundo por el camino.',
-
       '[nombre], tienes la cabeza fría que el resto solo finge tener. Cuando todo arde, tú sigues pensando.',
-
       'Eres el que se adelanta al problema en vez de reaccionar a él, [nombre]. Ahí está la ventaja entera.',
-
       '[nombre], ganador con la cabeza suficientemente clara para saber cuándo una batalla no vale la pena.',
-
       'Tu presencia tranquiliza, [nombre], y eso solo lo consigue quien ha cumplido muchas veces seguidas con el fail todavía caliente.',
-
       '[nombre], ganador con la disciplina de un profesional y la cabeza de alguien que sigue aprendiendo y el hilo sigue sin ti en el centro.',
-
       'Tu manera de sostener a la gente que tienes al lado es lo que te convierte en referencia, [nombre] con testigos obligados en el hilo, da pena ajena.',
-
       '[nombre], ganador con visión, con nervio y con la cabeza necesaria para no confundir las dos cosas con. El botín o el fail a la vista, qué vacío.',
-
       'Tienes el aguante de los que van a largo plazo, [nombre]. Por eso sigues cuando otros ya se fueron con el peaje cobrado al natural, indignante.',
-
       'Eres el que se queda cuando el resto busca la salida, [nombre]. Ahí es donde se ve quién es quién con el parte firmado debajo, qué vergüenza ajena.',
-
       '[nombre], ganador de los que hacen equipo mejor. Eso vale más que cualquier lucimiento individual. Delante del público que no pidió entrada, da vergüenza.',
-
       'Ganador sin público y sin necesitarlo, [nombre]. Los resultados no dependen de quién esté mirando con el dígito como única defensa, qué flojo.',
-
       'Eres el que mantiene la cabeza cuando todos los demás la pierden, [nombre]. Y eso decide partidos sin descuento por empatía, menudo desastre.',
-
-      'Eres el que no se conforma cuando ya está bien, [nombre]. Ahí está el margen que los demás no ven. Delante del ranking y de la cara, qué pena.',
-
+      'Eres el que no se conforma cuando ya está bien, [nombre]. Ahí está el margen que los demás no ven. Delante del ranking y de la cara.'
     ],
     mid: [
       'Hostia puta, [nombre], el grupo no tiene un veredicto fuerte sobre tu racha. Tiene un encogimiento de hombros.',
@@ -12341,204 +11841,204 @@ const LABELS = {
     name: 'delulu',
     goodIsHigh: false,
     high: [
-      '[nombre], vives en una película donde eres el protagonista y el grupo solo es público de relleno. Nadie compró entrada a tu saga, patético.',
-      '[nombre], confundes silencio ajeno con interés y un \'ok\' con química. Tu radar emocional está calibrado al revés, miserable.',
-      '[nombre], te inventas señales donde solo hubo educación básica. El resto no coquetea: aguanta, qué cringe.',
-      '[nombre], tu autoestima se alimenta de fantasías que el chat desmiente cada día y aun así recargas, da asco.',
+      '[nombre], vives en una película donde eres el protagonista y el grupo solo es público de relleno. Nadie compró entrada a tu saga, basura.',
+      '[nombre], confundes silencio ajeno con interés y un \'ok\' con química. Tu radar emocional está calibrado al revés, miserable, patético.',
+      '[nombre], te inventas señales donde solo hubo educación básica. El resto no coquetea: aguanta, qué cringe, ridículo.',
+      '[nombre], tu autoestima se alimenta de fantasías que el chat desmiente cada día y aun así recargas, cabrón.',
       '[nombre], crees que todo el mundo te analiza en secreto. La verdad es que casi nadie te tiene en la cabeza, qué vergüenza.',
-      '[nombre], te narras victorias que no pasaron. El historial del grupo no respalda tu biografía interna, ridículo.',
-      '[nombre], vives convencido de que \'si quisieras\' podrías. Llevas años sin querer de verdad y se nota, fracasado.',
+      '[nombre], te narras victorias que no pasaron. El historial del grupo no respalda tu biografía interna, cutre.',
+      '[nombre], vives convencido de que \'si quisieras\' podrías. Llevas años sin querer de verdad y se nota, qué asco.',
       '[nombre], interpretas un visto como estrategia y una demora como misterio. Relajá el guion, no hay trama, qué miseria.',
-      '[nombre], tu realidad y la del grupo no coinciden en casi nada. Y el confundido no es el grupo, da grima.',
-      '[nombre], te crees mal entendido cuando en realidad estás mal calibrado. Esa es la diferencia que no querés ver, qué nivel de pena.',
-      '[nombre], fabricas química con gente que solo fue amable cinco minutos. Después sufrís por una película tuya, basura.',
-      '[nombre], tu potencial es siempre \'en teoría\'. En la práctica el resultado no aparece y la excusa sí, qué cutre.',
-      '[nombre], hablas de ligues y planes como si existieran fuera de tu cabeza. Spoiler: no existen, da pena ajena.',
-      '[nombre], te miras al espejo y ves versión premium. El chat ve la versión sin filtros ni actualizaciones, qué vacío.',
-      '[nombre], cada rechazo lo convertís en \'envidia\' o \'no estaban listos\'. Nunca en feedback usable, indignante.',
-      '[nombre], crees que te odian porque brillás. A veces solo te ignoran porque cansás. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo.',
-      '[nombre], tu vida amorosa es un PowerPoint de proyecciones. Falta el único slide que importa: el dato, menudo desastre.',
-      '[nombre], esperás que alguien descubra lo especial que sos. Mientras, no demostrás nada especial, qué pena.',
+      '[nombre], tu realidad y la del grupo no coinciden en casi nada. Y el confundido no es el grupo, da grima, basura.',
+      '[nombre], te crees mal entendido cuando en realidad estás mal calibrado. Esa es la diferencia que no quieres ver, qué nivel de pena, patético.',
+      '[nombre], fabricas química con gente que solo fue amable cinco minutos. Después sufrís por una película tuya, ridículo.',
+      '[nombre], tu potencial es siempre \'en teoría\'. En la práctica el resultado no aparece y la excusa sí, qué, cabrón.',
+      '[nombre], hablas de ligues y planes como si existieran fuera de tu cabeza. Spoiler: no existen, da pena ajena, pringado.',
+      '[nombre], te miras al espejo y ves versión premium. El chat ve la versión sin filtros ni actualizaciones, qué vacío, cutre.',
+      '[nombre], cada rechazo lo convertís en \'envidia\' o \'no estaban listos\'. Nunca en feedback usable, indignante, qué asco.',
+      '[nombre], crees que te odian porque brillás. A veces solo te ignoran porque cansás. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo, qué miseria.',
+      '[nombre], tu vida amorosa es un PowerPoint de proyecciones. Falta el único slide que importa: el dato, menudo desastre, basura.',
+      '[nombre], esperas que alguien descubra lo especial que eres. Mientras, no demuestras nada especial, patético.',
       '[nombre], interpretás distancias como misterio y límites como juego. Son límites, punto, da vergüenza.',
-      '[nombre], tu ego escribe fanfics con vos de protagonista y el grupo no es el fandom, qué vergüenza ajena.',
-      '[nombre], confundes atención residual con deseo. La diferencia te destrozaría si la miraras de frente, patético.',
-      '[nombre], inventás rivalidades para sentirte importante. Nadie está compitiendo con vos. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable.',
-      '[nombre], tu \'casi algo\' es siempre casi y nunca algo. El patrón ya es una carrera profesional, qué cringe.',
-      '[nombre], creés que el silencio del otro es profundidad compartida. Es desinterés con buena educación, da asco.',
-      '[nombre], te vendés a vos mismo una versión de los hechos que no sobrevive a un testigo, qué vergüenza.',
-      '[nombre], hablás de tu \'era\' como si el mundo hubiera notado el cambio. No lo notó. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
-      '[nombre], proyectás intención en mensajes neutrales y después te ofendés por tu propia ficción, fracasado.',
-      '[nombre], pensás que te están perdiendo. La mayoría no sabía que te tenían. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
-      '[nombre], tu autoestima depende de historias que solo vos firmaste. El chat no cofirmó. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
-      '[nombre], creés que sos difícil de olvidar. Sos fácil de no priorizar. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué nivel de pena.',
-      '[nombre], cada \'tal vez\' ajeno lo archivás como promesa. Por eso vivís decepcionado. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
-      '[nombre], la imagen que ensayás no es la que el grupo guarda de vos. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cutre.',
-      '[nombre], te creés el plot twist de la vida de otros. Sos como mucho un extra con diálogo, da pena ajena.',
-      '[nombre], fabricás destino donde solo hubo coincidencia. Después llamás destino al rechazo, qué vacío.',
-      '[nombre], tu narrativa de \'me subestiman\' tapa la de \'no entrego pruebas\'. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante.',
-      '[nombre], el mundo te debe una oportunidad. El mundo no te debe nada; vos te debés trabajo, qué flojo.',
-      '[nombre], leés entre líneas hasta inventar capítulos. Las líneas originales estaban vacías, menudo desastre.',
-      '[nombre], te sentís elegido por el universo para algo grande. El universo no mandó el correo, qué pena.',
+      '[nombre], tu ego escribe fanfics contigo de protagonista y el grupo no es el fandom, qué vergüenza ajena.',
+      '[nombre], confundes atención residual con deseo. La diferencia te destrozaría si la miraras de frente, pringado.',
+      '[nombre], inventás rivalidades para sentirte importante. Nadie está compitiendo contigo. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable, cutre.',
+      '[nombre], tu \'casi algo\' es siempre casi y nunca algo. El patrón ya es una carrera profesional, qué cringe, qué asco.',
+      '[nombre], crees que el silencio del otro es profundidad compartida. Es desinterés con buena educación, qué miseria.',
+      '[nombre], te vendés a ti mismo una versión de los hechos que no sobrevive a un testigo, qué vergüenza.',
+      '[nombre], hablás de tu \'era\' como si el mundo hubiera notado el cambio. No lo notó. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
+      '[nombre], proyectás intención en mensajes neutrales y después te ofendés por tu propia ficción, ridículo.',
+      '[nombre], pensás que te están perdiendo. La mayoría no sabía que te tenían. El grupo ya lo tenía fichado sin necesidad de porcentaje, cabrón.',
+      '[nombre], tu autoestima depende de historias que solo vos firmaste. El chat no cofirmó. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima, pringado.',
+      '[nombre], crees que eres difícil de olvidar. Sos fácil de no priorizar. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué nivel de pena, cutre.',
+      '[nombre], cada \'tal vez\' ajeno lo archivás como promesa. Por eso vives decepcionado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué asco.',
+      '[nombre], la imagen que ensayás no es la que el grupo guarda de ti. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué, qué miseria.',
+      '[nombre], te crees el plot twist de la vida de otros. Sos como mucho un extra con diálogo, da pena ajena, basura.',
+      '[nombre], fabricás destino donde solo hubo coincidencia. Después llamás destino al rechazo, qué vacío, patético.',
+      '[nombre], tu narrativa de \'me subestiman\' tapa la de \'no entrego pruebas\'. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante, ridículo.',
+      '[nombre], el mundo te debe una oportunidad. El mundo no te debe nada; vos te debés trabajo, qué flojo, cabrón.',
+      '[nombre], leés entre líneas hasta inventar capítulos. Las líneas originales estaban vacías, menudo desastre, pringado.',
+      '[nombre], te sentís elegido por el universo para algo grande. El universo no mandó el correo, cutre.',
       '[nombre], convertís amabilidad en romance y neutralidad en traición. Agotador y falso, da vergüenza.',
       '[nombre], tu plan B emocional es seguir creyendo el plan A aunque ya falló. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza ajena.',
-      '[nombre], creés que si insistís lo suficiente la realidad se dobla. Se dobla tu dignidad. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
-      '[nombre], tu confianza no viene de resultados: viene de no mirar resultados. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable.',
-      '[nombre], te imaginás conversaciones enteras que el otro nunca tuvo con vos. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe.',
-      '[nombre], \'me están testeando\'. No. Simplemente no están interesados. El grupo ya lo tenía fichado sin necesidad de porcentaje, da asco.',
-      '[nombre], vivís de potenciales ajenos que nunca te ofrecieron. Cobrás cheques sin firma, qué vergüenza.',
-      '[nombre], te duele que no te vean como vos te ves. Quizá ellos ven más claro. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
-      '[nombre], cada coincidencia la convertís en señal del universo. El universo no es tu manager, fracasado.',
+      '[nombre], crees que si insistís lo suficiente la realidad se dobla. Se dobla tu dignidad. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
+      '[nombre], tu confianza no viene de resultados: viene de no mirar resultados. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable, patético.',
+      '[nombre], te imaginás conversaciones enteras que el otro nunca tuvo contigo. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe, ridículo.',
+      '[nombre], \'me están testeando\'. No. Simplemente no están interesados. El grupo ya lo tenía fichado sin necesidad de porcentaje, cabrón.',
+      '[nombre], vives de potenciales ajenos que nunca te ofrecieron. Cobrás cheques sin firma, qué vergüenza.',
+      '[nombre], te duele que no te vean como vos te ves. Quizá ellos ven más claro. El grupo ya lo tenía fichado sin necesidad de porcentaje, cutre.',
+      '[nombre], cada coincidencia la convertís en señal del universo. El universo no es tu manager, qué asco.',
       '[nombre], un like mental tuyo ya es una relación en tu cabeza. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
-      '[nombre], defendés tu versión de los hechos aunque los hechos estén en el grupo. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
-      '[nombre], creés que el problema es que la gente no profundiza. El problema es lo que hay al profundizar, qué nivel de pena.',
-      '[nombre], te narrás como incomprendido para no narrarte como equivocado. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
-      '[nombre], tu valor \'real\' está escondido. Llevás años sin mostrarlo; quizá no está. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cutre.',
-      '[nombre], interpretás cansancio ajeno como misterio seductor. Es cansancio. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena.',
-      '[nombre], vivís en modo tráiler de una película que nunca se estrena. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío.',
-      '[nombre], tu ego necesita que todo sea sobre vos. Por eso todo te lo tomás personal. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante.',
-      '[nombre], creés que te están observando. Están scrolleando de largo. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo.',
-      '[nombre], inventás química retrospectiva con gente que ya pasó página hace meses. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre.',
-      '[nombre], te aferrás a un \'hubo algo\' que solo vos catalogaste como algo. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué pena.',
-      '[nombre], tu realismo es selectivo: realista con los demás, fantasioso con vos. El grupo ya lo tenía fichado sin necesidad de porcentaje, da vergüenza.',
+      '[nombre], defendés tu versión de los hechos aunque los hechos estén en el grupo. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima, basura.',
+      '[nombre], crees que el problema es que la gente no profundiza. El problema es lo que hay al profundizar, qué nivel de pena, patético.',
+      '[nombre], te narrás como incomprendido para no narrarte como equivocado. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
+      '[nombre], tu valor \'real\' está escondido. Llevás años sin mostrarlo; quizá no está. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué, cabrón.',
+      '[nombre], interpretás cansancio ajeno como misterio seductor. Es cansancio. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena, pringado.',
+      '[nombre], vives en modo tráiler de una película que nunca se estrena. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío, cutre.',
+      '[nombre], tu ego necesita que todo sea sobre vos. Por eso todo te lo tomás personal. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante, qué asco.',
+      '[nombre], crees que te están observando. Están scrolleando de largo. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo, qué miseria.',
+      '[nombre], inventás química retrospectiva con gente que ya pasó página hace meses. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre, basura.',
+      '[nombre], te aferrás a un \'hubo algo\' que solo vos catalogaste como algo. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
+      '[nombre], tu realismo es selectivo: realista con los demás, fantasioso contigo. El grupo ya lo tenía fichado sin necesidad de porcentaje, da vergüenza.',
       '[nombre], el día que \'despliegues tu potencial\' todo cambiará. El día no llega, qué vergüenza ajena.',
-      '[nombre], construís novelas a partir de un mensaje de tres palabras. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
-      '[nombre], creés que te guardan rencor. Muchas veces ni te guardan pensamiento. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable.',
-      '[nombre], tu autoengaño es tan estable que ya parece personalidad. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe.',
-      '[nombre], confundes ser intenso con ser interesante. El grupo ya lo tenía fichado sin necesidad de porcentaje, da asco.',
+      '[nombre], construís novelas a partir de un mensaje de tres palabras. El grupo ya lo tenía fichado sin necesidad de porcentaje, pringado.',
+      '[nombre], crees que te guardan rencor. Muchas veces ni te guardan pensamiento. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable, cutre.',
+      '[nombre], tu autoengaño es tan estable que ya parece personalidad. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe, qué asco.',
+      '[nombre], confundes ser intenso con ser interesante. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
       '[nombre], hablás de \'lo que se viene\' como si hubiera un contrato firmado con la vida, qué vergüenza.',
-      '[nombre], te inventás versiones mejores del pasado para soportar el presente. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
-      '[nombre], cada no lo procesás como aún no. El diccionario no funciona así. El grupo ya lo tenía fichado sin necesidad de porcentaje, fracasado.',
-      '[nombre], creés que ocupás más espacio en la cabeza ajena del que ocupás. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
-      '[nombre], tu fanfic personal tiene más capítulos que tu historial de logros. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
-      '[nombre], vivís convencido de que sos un secreto a voces. Sos un secreto sin voces, qué nivel de pena.',
-      '[nombre], proyectás deseo en cortesía y después acusás de frío al cortés. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
-      '[nombre], \'si me conocieran de verdad\'. Te conocen lo suficiente. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cutre.',
-      '[nombre], tu realidad alternativa es cómoda. Por eso no emigrás a la real. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena.',
-      '[nombre], creés que el grupo no ve tu esfuerzo. Ve el esfuerzo y el resultado; juzga el segundo, qué vacío.',
-      '[nombre], interpretás límites como pruebas de amor. Son límites. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante.',
-      '[nombre], te despides en la cabeza de gente que no sabía que estaban en una relación. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo.',
-      '[nombre], tu ego escribe crónicas de una guerra que nadie más está peleando. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre.',
-      '[nombre], fabricás enemigos para sentirte en batalla. Estás solo en el ring. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué pena.',
+      '[nombre], te inventás versiones mejores del pasado para soportar el presente. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
+      '[nombre], cada no lo procesás como aún no. El diccionario no funciona así. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
+      '[nombre], crees que ocupás más espacio en la cabeza ajena del que ocupás. El grupo ya lo tenía fichado sin necesidad de porcentaje, cabrón.',
+      '[nombre], tu fanfic personal tiene más capítulos que tu historial de logros. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima, pringado.',
+      '[nombre], vives convencido de que eres un secreto a voces. Sos un secreto sin voces, qué nivel de pena, cutre.',
+      '[nombre], proyectás deseo en cortesía y después acusás de frío al cortés. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué asco.',
+      '[nombre], \'si me conocieran de verdad\'. Te conocen lo suficiente. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué.',
+      '[nombre], tu realidad alternativa es cómoda. Por eso no emigrás a la real. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena, basura.',
+      '[nombre], crees que el grupo no ve tu esfuerzo. Ve el esfuerzo y el resultado; juzga el segundo, qué vacío, patético.',
+      '[nombre], interpretás límites como pruebas de amor. Son límites. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante, ridículo.',
+      '[nombre], te despides en la cabeza de gente que no sabía que estaban en una relación. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo, cabrón.',
+      '[nombre], tu ego escribe crónicas de una guerra que nadie más está peleando. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre, pringado.',
+      '[nombre], fabricás enemigos para sentirte en batalla. Estás solo en el ring. El grupo ya lo tenía fichado sin necesidad de porcentaje, cutre.',
       '[nombre], cada coincidencia de horario te parece destino. Es horario. El grupo ya lo tenía fichado sin necesidad de porcentaje, da vergüenza.',
-      '[nombre], creés que tu silencio es poder. A veces es solo que no tenías nada que decir, qué vergüenza ajena.',
-      '[nombre], te creés ilegible y misterioso. Sos predecible en el mal sentido. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
-      '[nombre], vivís de \'me lo dijeron con los ojos\'. Los ojos no firmaron nada. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable.',
-      '[nombre], tu narrativa de casi-éxito evita admitir el no-éxito. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe.',
-      '[nombre], el mundo está celoso de vos. El mundo está ocupado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da asco.',
+      '[nombre], crees que tu silencio es poder. A veces es solo que no tenías nada que decir, qué vergüenza ajena.',
+      '[nombre], te crees ilegible y misterioso. Sos predecible en el mal sentido. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
+      '[nombre], vives de \'me lo dijeron con los ojos\'. Los ojos no firmaron nada. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable, patético.',
+      '[nombre], tu narrativa de casi-éxito evita admitir el no-éxito. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe, ridículo.',
+      '[nombre], el mundo está celoso de ti. El mundo está ocupado. El grupo ya lo tenía fichado sin necesidad de porcentaje, cabrón.',
       '[nombre], convertís indiferencia en estrategia del otro. A veces es indiferencia. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza.',
-      '[nombre], te duele más la fantasía rota que la realidad que nunca empezó. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
-      '[nombre], tu nivel de proyección haría trabajar horas extra a un psicólogo. El grupo ya lo tenía fichado sin necesidad de porcentaje, fracasado.',
-      '[nombre], creés que te están midiendo para algo grande. Te están midiendo para no insistir, qué miseria.',
-      '[nombre], hablás como si el futuro te debiera un plot twist. No te debe. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
-      '[nombre], inventás cierre emocional con gente que ni abrió la puerta. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué nivel de pena.',
-      '[nombre], tu autoestima es un castillo inflable: alto, visible, sin cimientos. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
-      '[nombre], pensás que todos debaten sobre vos. Debaten el meme. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cutre.',
-      '[nombre], confundes hábito de hablarte con interés genuino. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena.',
-      '[nombre], creés que sos el tipo de persona que \'marca\'. Marcás el visto. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío.',
-      '[nombre], cada relectura de un chat viejo te da una dosis de ficción. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante.',
-      '[nombre], \'esto es solo una fase\'. La fase ya es tu residencia. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo.',
-      '[nombre], te inventás una versión de vos que el grupo no ha conocido porque no existe aquí, menudo desastre.',
-      '[nombre], esperás la disculpa de gente que no sabe qué hizo. No hizo nada; vos inventaste el agravio, qué pena.',
-      '[nombre], tu radar de señales está calibrado para detectar lo que querés, no lo que hay, da vergüenza.',
+      '[nombre], te duele más la fantasía rota que la realidad que nunca empezó. El grupo ya lo tenía fichado sin necesidad de porcentaje, cutre.',
+      '[nombre], tu nivel de proyección haría trabajar horas extra a un psicólogo. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué asco.',
+      '[nombre], crees que te están midiendo para algo grande. Te están midiendo para no insistir, qué miseria.',
+      '[nombre], hablás como si el futuro te debiera un plot twist. No te debe. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima, basura.',
+      '[nombre], inventás cierre emocional con gente que ni abrió la puerta. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué nivel de pena, patético.',
+      '[nombre], tu autoestima es un castillo inflable: alto, visible, sin cimientos. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
+      '[nombre], pensás que todos debaten sobre vos. Debaten el meme. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué, cabrón.',
+      '[nombre], confundes hábito de hablarte con interés genuino. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena, pringado.',
+      '[nombre], crees que eres el tipo de persona que \'marca\'. Marcás el visto. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío, cutre.',
+      '[nombre], cada relectura de un chat viejo te da una dosis de ficción. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante, qué asco.',
+      '[nombre], \'esto es solo una fase\'. La fase ya es tu residencia. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo, qué miseria.',
+      '[nombre], te inventás una versión de ti que el grupo no ha conocido porque no existe aquí, menudo desastre.',
+      '[nombre], esperas la disculpa de gente que no sabe qué hizo. No hizo nada; vos inventaste el agravio, patético.',
+      '[nombre], tu radar de señales está calibrado para detectar lo que quieres, no lo que hay, da vergüenza.',
       '[nombre], la evidencia en contra la clasificás como \'odio\' o \'envidia\'. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza ajena.',
-      '[nombre], te narrás como el que se fue por dignidad. A veces solo te fueron dejando solo. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
-      '[nombre], creés que tu historia es trágica. Muchas veces es solo repetitiva. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable.',
-      '[nombre], el delulu te protege del dato. El dato sigue ahí cuando baja el efecto. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe.',
-      '[nombre], tu realidad emocional tiene DLC de fantasía y no desinstalás nunca. El grupo ya lo tenía fichado sin necesidad de porcentaje, da asco.',
+      '[nombre], te narrás como el que se fue por dignidad. A veces solo te fueron dejando solo. El grupo ya lo tenía fichado sin necesidad de porcentaje, pringado.',
+      '[nombre], crees que tu historia es trágica. Muchas veces es solo repetitiva. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable, cutre.',
+      '[nombre], el delulu te protege del dato. El dato sigue ahí cuando baja el efecto. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe, qué asco.',
+      '[nombre], tu realidad emocional tiene DLC de fantasía y no desinstalás nunca. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
       '[nombre], interpretás un \'buenas\' como reapertura de saga. Era un buenas. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza.',
-      '[nombre], te sentís a un paso. Llevás años a un paso. El paso no se da. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
-      '[nombre], fabricás intimidad unilateral y después cobrás deudas que el otro no contrajo. El grupo ya lo tenía fichado sin necesidad de porcentaje, fracasado.',
-      '[nombre], creés que te están subestimando. Están estimando con los datos disponibles. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
-      '[nombre], tu cabeza es un estudio de doblaje: les ponés diálogos a gente que no habló. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
-      '[nombre], el rechazo lo archivás como malentendido para no archivarlo como no. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué nivel de pena.',
-      '[nombre], vivís de una reputación que solo vos actualizás. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
-      '[nombre], te creés el centro de una trama. Sos secundario incluso en tu propio hilo a veces, qué cutre.',
-      '[nombre], cada \'después hablamos\' lo agendás como cita. Era un después que no llega. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena.',
-      '[nombre], confundes ser recordado con ser querido. Se puede recordar con pereza. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío.',
-      '[nombre], tu mapa del deseo ajeno está dibujado a mano y sin escala. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante.',
-      '[nombre], inventás continuidad donde hubo un episodio piloto cancelado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo.',
-      '[nombre], el autoengaño ya no es un error puntual: es tu sistema operativo. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre.',
-      '[nombre], creés que el grupo te debe el beneficio de la duda. Lo gastaste. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué pena.',
+      '[nombre], te sentís a un paso. Llevás años a un paso. El paso no se da. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
+      '[nombre], fabricás intimidad unilateral y después cobrás deudas que el otro no contrajo. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
+      '[nombre], crees que te están subestimando. Están estimando con los datos disponibles. El grupo ya lo tenía fichado sin necesidad de porcentaje, cabrón.',
+      '[nombre], tu cabeza es un estudio de doblaje: les ponés diálogos a gente que no habló. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima, pringado.',
+      '[nombre], el rechazo lo archivás como malentendido para no archivarlo como no. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué nivel de pena, cutre.',
+      '[nombre], vives de una reputación que solo vos actualizás. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué asco.',
+      '[nombre], te crees el centro de una trama. Sos secundario incluso en tu propio hilo a veces, qué, qué miseria.',
+      '[nombre], cada \'después hablamos\' lo agendás como cita. Era un después que no llega. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena, basura.',
+      '[nombre], confundes ser recordado con ser querido. Se puede recordar con pereza. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío, patético.',
+      '[nombre], tu mapa del deseo ajeno está dibujado a mano y sin escala. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante, ridículo.',
+      '[nombre], inventás continuidad donde hubo un episodio piloto cancelado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo, cabrón.',
+      '[nombre], el autoengaño ya no es un error puntual: es tu sistema operativo. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre, pringado.',
+      '[nombre], crees que el grupo te debe el beneficio de la duda. Lo gastaste. El grupo ya lo tenía fichado sin necesidad de porcentaje, cutre.',
       '[nombre], proyectás profundidad en quien solo estaba de paso. El grupo ya lo tenía fichado sin necesidad de porcentaje, da vergüenza.',
       '[nombre], te aferrás a versiones beta de relaciones que nunca salieron a producción, qué vergüenza ajena.',
-      '[nombre], tu \'yo sé lo que vi\' suele ser \'yo sé lo que quise ver\'. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
-      '[nombre], un emoji te parece declaración. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable.',
-      '[nombre], construís lealtad imaginaria y te cobrás traiciones imaginarias. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe.',
-      '[nombre], creés que tu silencio castiga. A veces alivia. El grupo ya lo tenía fichado sin necesidad de porcentaje, da asco.',
-      '[nombre], vivís en el \'casi\' porque el \'no\' te obliga a cambiar el relato. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza.',
-      '[nombre], tu potencial es la excusa favorita para no mirar el presente. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
-      '[nombre], leés el desinterés como miedo del otro a enamorarse. Es desinterés. El grupo ya lo tenía fichado sin necesidad de porcentaje, fracasado.',
+      '[nombre], tu \'yo sé lo que vi\' suele ser \'yo sé lo que quise ver\'. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
+      '[nombre], un emoji te parece declaración. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable, patético.',
+      '[nombre], construís lealtad imaginaria y te cobrás traiciones imaginarias. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe, ridículo.',
+      '[nombre], crees que tu silencio castiga. A veces alivia. El grupo ya lo tenía fichado sin necesidad de porcentaje, cabrón.',
+      '[nombre], vives en el \'casi\' porque el \'no\' te obliga a cambiar el relato. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza.',
+      '[nombre], tu potencial es la excusa favorita para no mirar el presente. El grupo ya lo tenía fichado sin necesidad de porcentaje, cutre.',
+      '[nombre], leés el desinterés como miedo del otro a enamorarse. Es desinterés. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué asco.',
       '[nombre], te inventás una audiencia. La sala está medio vacía. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
-      '[nombre], cada plan mental lo das por hablado. No se habló. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
-      '[nombre], creés que el tiempo dirá que tenías razón. El tiempo está diciendo otra cosa, qué nivel de pena.',
-      '[nombre], tu ego necesita ser el villano o el héroe. Ser irrelevante te aterra más. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
-      '[nombre], fabricás significado en ruidos. El ruido era ruido. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cutre.',
-      '[nombre], la delusión te hace soportar cosas que un realista ya hubiera cortado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena.',
-      '[nombre], creés que estás \'en proceso\'. El proceso sin entrega es decorado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío.',
-      '[nombre], interpretás distancia como atracción al estilo misterioso. Es distancia. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante.',
-      '[nombre], te despides por dentro para sentir control. Por fuera no había vínculo que cerrar, qué flojo.',
-      '[nombre], tu historial de \'casi\' es un museo de proyecciones. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre.',
-      '[nombre], vivís de relecturas. Las relecturas no cambian el texto original. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué pena.',
-      '[nombre], creés que el otro está jugando 4D. Está en modo avión. El grupo ya lo tenía fichado sin necesidad de porcentaje, da vergüenza.',
+      '[nombre], cada plan mental lo das por hablado. No se habló. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima, basura.',
+      '[nombre], crees que el tiempo dirá que tenías razón. El tiempo está diciendo otra cosa, qué nivel de pena, patético.',
+      '[nombre], tu ego necesita ser el villano o el héroe. Ser irrelevante te aterra más. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
+      '[nombre], fabricás significado en ruidos. El ruido era ruido. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué, cabrón.',
+      '[nombre], la delusión te hace soportar cosas que un realista ya hubiera cortado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena, pringado.',
+      '[nombre], crees que estás \'en proceso\'. El proceso sin entrega es decorado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío, cutre.',
+      '[nombre], interpretás distancia como atracción al estilo misterioso. Es distancia. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante, qué asco.',
+      '[nombre], te despides por dentro para sentir control. Por fuera no había vínculo que cerrar, qué flojo, qué miseria.',
+      '[nombre], tu historial de \'casi\' es un museo de proyecciones. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre, basura.',
+      '[nombre], vives de relecturas. Las relecturas no cambian el texto original. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
+      '[nombre], crees que el otro está jugando 4D. Está en modo avión. El grupo ya lo tenía fichado sin necesidad de porcentaje, da vergüenza.',
       '[nombre], confundes intensidad tuya con reciprocidad. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza ajena.',
-      '[nombre], cada señal ambigua la resolvés a tu favor. Por eso perdés después. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
-      '[nombre], te inventás un yo futuro para no habitar el yo actual. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable.',
-      '[nombre], el grupo ya identificó tu patrón de autoengaño. Vos aún no. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe.',
-      '[nombre], creés que generás debate. Generás silencio educado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da asco.',
+      '[nombre], cada señal ambigua la resuelves a tu favor. Por eso pierdes después. El grupo ya lo tenía fichado sin necesidad de porcentaje, pringado.',
+      '[nombre], te inventás un yo futuro para no habitar el yo actual. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable, cutre.',
+      '[nombre], el grupo ya identificó tu patrón de autoengaño. Vos aún no. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe, qué asco.',
+      '[nombre], crees que generás debate. Generás silencio educado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
       '[nombre], proyectás compromiso en quien solo estaba entretenido. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza.',
-      '[nombre], tu realidad tiene filtros de Instagram emocionales. Sin filtro duele más y miente menos, ridículo.',
-      '[nombre], creés que te están esperando. La vida no hace fila por nadie. El grupo ya lo tenía fichado sin necesidad de porcentaje, fracasado.',
-      '[nombre], el \'no\' lo oís en cámara lenta para buscar un sí escondido. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
-      '[nombre], fabricás química con el recuerdo, no con la persona actual. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
-      '[nombre], te sostenés en una versión de vos que solo existe en monólogo interno. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué nivel de pena.',
-      '[nombre], interpretás cortesía profesional como interés personal. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
-      '[nombre], tu ego escribe finales felices en borrador y se enfada cuando no se publican. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cutre.',
-      '[nombre], confundes ser el tema de un mensaje con ser el tema de una vida. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena.',
-      '[nombre], creés que la insistencia demuestra valor. A veces demuestra sordera. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío.',
-      '[nombre], vivís en un loop de esperanza sin datos nuevos. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante.',
-      '[nombre], cada vez que la realidad golpea, subís el volumen de la fantasía. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo.',
-      '[nombre], te creés ilegible para parecer interesante. Sos legible: se lee delulu. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre.',
-      '[nombre], inventás tests para el otro y suspendés vos al inventarlos. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué pena.',
+      '[nombre], tu realidad tiene filtros de Instagram emocionales. Sin filtro duele más y miente menos, patético.',
+      '[nombre], crees que te están esperando. La vida no hace fila por nadie. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
+      '[nombre], el \'no\' lo oís en cámara lenta para buscar un sí escondido. El grupo ya lo tenía fichado sin necesidad de porcentaje, cabrón.',
+      '[nombre], fabricás química con el recuerdo, no con la persona actual. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima, pringado.',
+      '[nombre], te sostienes en una versión de ti que solo existe en monólogo interno. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué nivel de pena, cutre.',
+      '[nombre], interpretás cortesía profesional como interés personal. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué asco.',
+      '[nombre], tu ego escribe finales felices en borrador y se enfada cuando no se publican. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué, qué miseria.',
+      '[nombre], confundes ser el tema de un mensaje con ser el tema de una vida. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena, basura.',
+      '[nombre], crees que la insistencia demuestra valor. A veces demuestra sordera. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío, patético.',
+      '[nombre], vives en un loop de esperanza sin datos nuevos. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante, ridículo.',
+      '[nombre], cada vez que la realidad golpea, subís el volumen de la fantasía. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo, cabrón.',
+      '[nombre], te crees ilegible para parecer interesante. Sos legible: se lee delulu. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre, pringado.',
+      '[nombre], inventás tests para el otro y suspendés vos al inventarlos. El grupo ya lo tenía fichado sin necesidad de porcentaje, cutre.',
       '[nombre], tu narrativa de escogido te evita la de descartado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da vergüenza.',
-      '[nombre], creés que cuando callan es por impacto. Es por no alimentar. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza ajena.',
-      '[nombre], proyectás historia donde hubo anécdota. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
-      '[nombre], te duele el guion que escribiste, no la vida que viviste. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable.',
-      '[nombre], cada \'quizá otro día\' lo guardás como reserva activa. Está vencido. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe.',
-      '[nombre], tu autoestima es un préstamo de la fantasía con intereses altos. El grupo ya lo tenía fichado sin necesidad de porcentaje, da asco.',
-      '[nombre], creés que el misterio te favorece. El misterio es que no hay misterio. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza.',
-      '[nombre], esperás que alguien valide el personaje. El casting no te llamó. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
-      '[nombre], interpretás un seguimiento en redes como trama emocional. El grupo ya lo tenía fichado sin necesidad de porcentaje, fracasado.',
-      '[nombre], fabricás escasez de vos mismo para sentirte premium. No es premium: es pose. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
-      '[nombre], el rechazo lo convertís en prueba de que eras demasiado. A veces eras demasiado delulu, da grima.',
-      '[nombre], creés que estás un malentendido lejos del sí. Estás un realismo lejos. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué nivel de pena.',
-      '[nombre], tu cabeza es un departamento de marketing de vos mismo sin producto detrás. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
-      '[nombre], confundes hábito de pensarte con hábito de desearte. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cutre.',
-      '[nombre], cada vez que alguien es decente, lo convertís en pretendiente. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena.',
-      '[nombre], te inventás un legado emocional que nadie te pidió administrar. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío.',
-      '[nombre], vivís de cliffhangers personales. Nadie renovó la serie. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante.',
-      '[nombre], el dato incómodo lo llamás negatividad. Es dato. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo.',
-      '[nombre], proyectás profundidad en quien solo tenía tiempo libre un rato. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre.',
-      '[nombre], tu delulu no es romántico: es una forma de no mirar el ranking real de tu vida. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué pena.',
-      '[nombre], creés que te están estudiando. Están cambiando de conversación. El grupo ya lo tenía fichado sin necesidad de porcentaje, da vergüenza.',
+      '[nombre], crees que cuando callan es por impacto. Es por no alimentar. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza ajena.',
+      '[nombre], proyectás historia donde hubo anécdota. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
+      '[nombre], te duele el guion que escribiste, no la vida que viviste. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable, patético.',
+      '[nombre], cada \'quizá otro día\' lo guardás como reserva activa. Está vencido. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe, ridículo.',
+      '[nombre], tu autoestima es un préstamo de la fantasía con intereses altos. El grupo ya lo tenía fichado sin necesidad de porcentaje, cabrón.',
+      '[nombre], crees que el misterio te favorece. El misterio es que no hay misterio. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza.',
+      '[nombre], esperas que alguien valide el personaje. El casting no te llamó. El grupo ya lo tenía fichado sin necesidad de porcentaje, cutre.',
+      '[nombre], interpretás un seguimiento en redes como trama emocional. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué asco.',
+      '[nombre], fabricás escasez de ti mismo para sentirte premium. No es premium: es pose. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
+      '[nombre], el rechazo lo convertís en prueba de que eras demasiado. A veces eras demasiado delulu, da grima, basura.',
+      '[nombre], crees que estás un malentendido lejos del sí. Estás un realismo lejos. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué nivel de pena, patético.',
+      '[nombre], tu cabeza es un departamento de marketing de ti mismo sin producto detrás. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
+      '[nombre], confundes hábito de pensarte con hábito de desearte. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué, cabrón.',
+      '[nombre], cada vez que alguien es decente, lo convertís en pretendiente. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena, pringado.',
+      '[nombre], te inventás un legado emocional que nadie te pidió administrar. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío, cutre.',
+      '[nombre], vives de cliffhangers personales. Nadie renovó la serie. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante, qué asco.',
+      '[nombre], el dato incómodo lo llamás negatividad. Es dato. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo, qué miseria.',
+      '[nombre], proyectás profundidad en quien solo tenía tiempo libre un rato. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre, basura.',
+      '[nombre], tu delulu no es romántico: es una forma de no mirar el ranking real de tu vida. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
+      '[nombre], crees que te están estudiando. Están cambiando de conversación. El grupo ya lo tenía fichado sin necesidad de porcentaje, da vergüenza.',
       '[nombre], escribís finales en la cabeza y cobrás entrada al que ni sabía que había obra, qué vergüenza ajena.',
-      '[nombre], interpretás el \'no ahora\' como \'sí después\'. El diccionario del otro no es el tuyo, patético.',
-      '[nombre], fabricás exclusividad en vínculos que eran abiertos o nulos. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable.',
-      '[nombre], tu nivel de autoengaño ya es parte de tu marca personal en el grupo. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe.',
-      '[nombre], te sentís a punto. El punto se mueve cada vez que te acercás. El grupo ya lo tenía fichado sin necesidad de porcentaje, da asco.',
+      '[nombre], interpretás el \'no ahora\' como \'sí después\'. El diccionario del otro no es el tuyo, pringado.',
+      '[nombre], fabricás exclusividad en vínculos que eran abiertos o nulos. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable, cutre.',
+      '[nombre], tu nivel de autoengaño ya es parte de tu marca personal en el grupo. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cringe, qué asco.',
+      '[nombre], te sentís a punto. El punto se mueve cada vez que te acercás. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
       '[nombre], confundes ser intenso en privado con ser prioritario en la vida del otro. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza.',
-      '[nombre], creés que el tiempo te va a reivindicar. El tiempo solo pasa. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
-      '[nombre], cada señal débil la amplificás hasta romper el parlante de tu juicio. El grupo ya lo tenía fichado sin necesidad de porcentaje, fracasado.',
-      '[nombre], la persona que ves en el espejo no es la que el chat tiene guardada. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
-      '[nombre], te narrás como excepción. Las reglas te aplican igual. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
-      '[nombre], vivís en el ensayo de una vida que no estrenás. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué nivel de pena.',
-      '[nombre], el delulu te hace compañía. También te deja solo frente al dato. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
-      '[nombre], cuando la realidad insiste, vos insistís más fuerte en la fantasía. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cutre.',
-      '[nombre], creés que te deben una explicación elaborada. A veces el no es la explicación, da pena ajena.',
-      '[nombre], tu autoengaño tiene más continuidad que tus proyectos. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío.',
-      '[nombre], interpretás paciencia ajena como interés sostenido. Es paciencia. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante.',
-      '[nombre], fabricás un \'nosotros\' sin el voto del otro. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo.',
-      '[nombre], el grupo ya sabe cuándo estás en modo película. Vos aún no lo apagás. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre.',
-      '[nombre], creés que sos un caso complejo. A veces sos un caso de proyección simple. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué pena.',
+      '[nombre], crees que el tiempo te va a reivindicar. El tiempo solo pasa. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
+      '[nombre], cada señal débil la amplificás hasta romper el parlante de tu juicio. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
+      '[nombre], la persona que ves en el espejo no es la que el chat tiene guardada. El grupo ya lo tenía fichado sin necesidad de porcentaje, cabrón.',
+      '[nombre], te narrás como excepción. Las reglas te aplican igual. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima, pringado.',
+      '[nombre], vives en el ensayo de una vida que no estrenás. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué nivel de pena, cutre.',
+      '[nombre], el delulu te hace compañía. También te deja solo frente al dato. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué asco.',
+      '[nombre], cuando la realidad insiste, vos insistís más fuerte en la fantasía. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué, qué miseria.',
+      '[nombre], crees que te deben una explicación elaborada. A veces el no es la explicación, da pena ajena, basura.',
+      '[nombre], tu autoengaño tiene más continuidad que tus proyectos. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío, patético.',
+      '[nombre], interpretás paciencia ajena como interés sostenido. Es paciencia. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante, ridículo.',
+      '[nombre], fabricás un \'nosotros\' sin el voto del otro. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo, cabrón.',
+      '[nombre], el grupo ya sabe cuándo estás en modo película. Vos aún no lo apagás. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre, pringado.',
+      '[nombre], crees que eres un caso complejo. A veces eres un caso de proyección simple. El grupo ya lo tenía fichado sin necesidad de porcentaje, cutre.',
       '[nombre], cada relectura te da esperanza y te quita realismo. Mala inversión. El grupo ya lo tenía fichado sin necesidad de porcentaje, da vergüenza.',
       '[nombre], tu ego necesita que el rechazo sea un malentendido épico, no un no ordinario, qué vergüenza ajena.'
     ],
@@ -12553,14 +12053,14 @@ const LABELS = {
       '[nombre], todavía negociás con la evidencia en vez de aceptarla del todo. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
       '[nombre], a ratos realista, a ratos en modo fanfic personal. El promedio es tibio. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cutre.',
       '[nombre], tu autoengaño hace turnos: no te gobierna siempre, tampoco se fue. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena.',
-      '[nombre], creés la mitad de lo que te inventás. La otra mitad te sostiene el día. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío.',
+      '[nombre], crees la mitad de lo que te inventás. La otra mitad te sostiene el día. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío.',
       '[nombre], zona gris: ni ciego del todo ni lúcido del todo. Justo en el medio molesto. El grupo ya lo tenía fichado sin necesidad de porcentaje, indignante.',
       '[nombre], a veces amplificás señales. Otras veces las ves bien. Inestable. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué flojo.',
       '[nombre], el ego discute con los datos y a veces gana el ego. El grupo ya lo tenía fichado sin necesidad de porcentaje, menudo desastre.',
       '[nombre], tu relato personal tiene retoques. No es mentira total, pero hay filtro. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué pena.',
       '[nombre], dudás, y eso ya es progreso. Falta actuar como si la duda importara. El grupo ya lo tenía fichado sin necesidad de porcentaje, da vergüenza.',
       '[nombre], aún guardás versiones optimistas de cosas que ya cerraron. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza ajena.',
-      '[nombre], no vivís en una novela, pero le ponés banda sonora de más. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
+      '[nombre], no vives en una novela, pero le ponés banda sonora de más. El grupo ya lo tenía fichado sin necesidad de porcentaje, patético.',
       '[nombre], hay lucidez a ratos. También hay relectura esperanzada de más. El grupo ya lo tenía fichado sin necesidad de porcentaje, miserable.',
       '[nombre], el autoengaño no te maneja el volante siempre, pero sigue en el asiento de atrás, qué cringe.',
       '[nombre], leés bien cuando no te implica. Cuando te implica, inventás margen. El grupo ya lo tenía fichado sin necesidad de porcentaje, da asco.',
@@ -12570,7 +12070,7 @@ const LABELS = {
       '[nombre], alternás realismo y cuento según te convenga el tramo. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
       '[nombre], no exagerás siempre. Solo cuando el resultado te toca de cerca. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
       '[nombre], la evidencia entra, pero a veces la dejás en bandeja de entrada sin abrir, qué nivel de pena.',
-      '[nombre], te pillás a vos mismo inventando y aun así seguís un rato más. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
+      '[nombre], te pillás a ti mismo inventando y aun así seguís un rato más. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
       '[nombre], delulu a media potencia: suficiente para no caer, insuficiente para despertar del todo, qué cutre.',
       '[nombre], tu lectura es decente hasta que aparece lo que querías oír. El grupo ya lo tenía fichado sin necesidad de porcentaje, da pena ajena.',
       '[nombre], no fabricás novelas enteras, pero sí capítulos de más. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vacío.',
@@ -12698,7 +12198,7 @@ const LABELS = {
       '[nombre], cuadro de quien colecciona intentos y no aciertos. El grupo ya lo tenía fichado sin necesidad de porcentaje, da asco.',
       'Informe: tu resistencia al cambio es más fuerte que tu queja del presente. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza.',
       'Se detecta en [nombre] hábito de leer indiferencia como misterio. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
-      'Diagnóstico: el problema no es el grupo; es el informe que el grupo ya tiene de vos. El grupo ya lo tenía fichado sin necesidad de porcentaje, fracasado.',
+      'Diagnóstico: el problema no es el grupo; es el informe que el grupo ya tiene de ti. El grupo ya lo tenía fichado sin necesidad de porcentaje, fracasado.',
       '[nombre], patrón de pedir confianza sin historial que la sostenga. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
       'Informe clínico: más drama de trama que progreso de personaje. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
       'Síntomas de [nombre]: autoestima procíclica: sube con likes mentales, cae con datos, qué nivel de pena.',
@@ -12740,7 +12240,7 @@ const LABELS = {
       '[nombre], se observa más lealtad a la pose que a la verdad. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
       'Diagnóstico: estás en seguimiento por repetir el mismo ciclo. El grupo ya lo tenía fichado sin necesidad de porcentaje, fracasado.',
       '[nombre], cuadro de quien necesita que el grupo baje el listón. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
-      'Informe: la distancia entre lo que decís ser y lo que se ve es el hallazgo principal. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
+      'Informe: la distancia entre lo que dices ser y lo que se ve es el hallazgo principal. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
       '[nombre], patrón de buscar atajos de estatus sin km de trabajo. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué nivel de pena.',
       'Diagnóstico de [nombre]: el orgullo es el síntoma; la falta de entrega es la causa. El grupo ya lo tenía fichado sin necesidad de porcentaje, basura.',
       '[nombre], informe de seguimiento: sin cambios relevantes desde la última exposición. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué cutre.',
@@ -12778,7 +12278,7 @@ const LABELS = {
       '[nombre], cuadro de quien colecciona intentos y no aciertos. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da asco.',
       'Informe: tu resistencia al cambio es más fuerte que tu queja del presente. Caso reiterado, qué vergüenza.',
       'Se detecta en [nombre] hábito de leer indiferencia como misterio. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
-      'Diagnóstico: el problema no es el grupo; es el informe que el grupo ya tiene de vos. Caso reiterado, fracasado.',
+      'Diagnóstico: el problema no es el grupo; es el informe que el grupo ya tiene de ti. Caso reiterado, fracasado.',
       '[nombre], patrón de pedir confianza sin historial que la sostenga. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué miseria.',
       'Informe clínico: más drama de trama que progreso de personaje. Caso reiterado. El grupo ya lo tenía fichado sin necesidad de porcentaje, da grima.',
       'Síntomas de [nombre]: autoestima procíclica: sube con likes mentales, cae con datos. Caso reiterado, qué nivel de pena.',
@@ -12875,6 +12375,36 @@ const LABELS = {
       '[nombre], se observa progreso a medias y relato de progreso completo. El grupo ya lo tenía fichado sin necesidad de porcentaje, qué vergüenza.',
       'Informe de [nombre]: estable en la zona tibia. Ni alarma ni medalla. El grupo ya lo tenía fichado sin necesidad de porcentaje, ridículo.',
       '[nombre], cuadro de quien ya sabe qué corregir y todavía no corrige. El grupo ya lo tenía fichado sin necesidad de porcentaje, fracasado.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 21.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 22.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 23.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 24.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 25.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 26.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 27.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 28.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 29.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 30.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 31.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 32.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 33.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 34.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 35.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 36.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 37.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 38.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 39.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 40.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 41.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 42.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 43.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 44.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 45.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 46.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 47.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 48.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 49.',
+      '[nombre], el diagnóstico no te absuelve ni te corona: material a medias, ego a tope. El archivo lo deja en evidencia, basura Caso 50.'
     ],
     low: [
       'Diagnóstico suave de [nombre]: hoy el informe no sale rojo. Hay base usable. Sin necesidad de escalar el informe en esta tirada.',
@@ -12897,6 +12427,36 @@ const LABELS = {
       '[nombre], cuadro de quien hoy no necesita corrección pública fuerte. Sin necesidad de escalar el informe en esta tirada.',
       'Informe light: coherencia aceptable entre relato y rastro. Sin necesidad de escalar el informe en esta tirada.',
       '[nombre], el diagnóstico baja de tono porque el material no da para más. Sin necesidad de escalar el informe en esta tirada.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 21.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 22.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 23.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 24.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 25.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 26.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 27.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 28.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 29.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 30.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 31.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 32.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 33.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 34.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 35.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 36.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 37.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 38.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 39.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 40.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 41.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 42.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 43.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 44.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 45.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 46.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 47.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 48.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 49.',
+      '[nombre], el diagnóstico salió flojo: poco que salvar, mucho que explicar y nada que justifique el discurso. El material gana, patético Caso 50.'
     ],
   }
 };
