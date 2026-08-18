@@ -192,7 +192,17 @@ for (const senyal of ['SIGINT', 'SIGTERM']) {
 //
 // Lo que queda sirve para MEDIR: scripts/progreso.js lo usa para saber que
 // pools estan escritos con filo y cuales tibios, que es donde esta el trabajo.
-const ARSENAL = /\b(puto?s?|puta?s?|mierda|joder|co[nñ]o|polla|cabr[oó]n|gilipollas|pringad|fracasad|in[uú]til|pat[eé]tic|basura|par[aá]sito|don nadie|muerto de hambre|cero a la izquierda|asco|verg[uü]enza|rid[ií]cul|escoria|guarr|cutre|miseria|desperdicio)\w*/gi;
+//
+// OJO CON `co(?:ñ\w*|nos?\b)`. Estaba escrito `co[nñ]o` y el `\w*` del final
+// dejaba que el prefijo "cono" se comiera media conjugacion de CONOCER: conoce,
+// conocer, conocido, conocimiento, conocerte, conoces... 93 aciertos falsos en
+// el corpus, el 2,1 % del total, y en algunos pools era el UNICO acierto — o
+// sea que el informe decia "tiene algo de filo" de un pool que no tiene
+// ninguno. Una regla de medida que miente hacia arriba es peor que no medir.
+//
+// Ahora: con ñ vale cualquier sufijo (coño, coños, coñazo) y sin ñ solo la
+// palabra entera (cono, conos), que es como se escribe cuando falta la tecla.
+const ARSENAL = /\b(puto?s?|puta?s?|mierda|joder|co(?:ñ\w*|nos?\b)|polla|cabr[oó]n|gilipollas|pringad|fracasad|in[uú]til|pat[eé]tic|basura|par[aá]sito|don nadie|muerto de hambre|cero a la izquierda|asco|verg[uü]enza|rid[ií]cul|escoria|guarr|cutre|miseria|desperdicio)\w*/gi;
 
 // ¿Lleva esta frase vocabulario del arsenal?
 //
