@@ -661,6 +661,16 @@ const ultimoRanking = new Map();   // grupo -> ts
 const huellaRanking = new Map();   // grupo -> huella del ultimo top publicado
 const huellaDe = (r) => r.map((x) => `${x.jid}:${x.aura}`).join('|');
 
+// El ultimo top que se publico, guardado tal cual para poder ENSEÑARLO durante
+// el cooldown sin volver a notificar a nadie.
+//
+// El truco esta en las menciones: un @numero solo se convierte en mencion —y
+// solo avisa al telefono— si ese JID va ademas en el array `mentions`. Si se
+// escribe el mismo texto y NO se manda mentions, WhatsApp lo pinta como texto
+// corriente. O sea que se puede enseñar la tabla entera sin tocarle los huevos
+// a los diez del top, que era justo el problema.
+const ultimoTop = new Map();       // grupo -> { texto, ts }
+
 async function showRanking(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
@@ -687,8 +697,21 @@ async function showRanking(sock, msg, groupMeta) {
     const pool = enTop ? RANKING_ANSIAS : RANKING_POBRE;
     // Se contesta CITANDO a quien lo pidio y sin mencionar a nadie mas: el
     // aviso es para el, no otro mensaje que le llegue al top entero.
+    // Y se le enseña el ultimo top conocido, en gris: mismo texto, SIN mentions.
+    const guardado = ultimoTop.get(jid);
+    let copia = '';
+    if (guardado) {
+      const minutos = Math.round((Date.now() - guardado.ts) / 60000);
+      const hace = minutos < 1 ? 'hace un momento'
+        : minutos < 60 ? `hace ${minutos} min`
+        : `hace ${Math.floor(minutos / 60)} h${minutos % 60 ? ` ${minutos % 60} min` : ''}`;
+      copia = `\n\n${guardado.texto}\n\n_Así estaba ${hace}._`;
+    }
+
     return sock.sendMessage(jid, {
-      text: `${pickFresh(pool, `${jid}|top|${enTop ? 'ansias' : 'pobre'}`)}\n_Vuelve en *${cuanto}*._`,
+      text: `${pickFresh(pool, `${jid}|top|${enTop ? 'ansias' : 'pobre'}`)}\n_Vuelve en *${cuanto}*._${copia}`,
+      // SIN mentions a proposito: es lo unico que separa enseñar la tabla de
+      // volver a notificar a los diez.
     }, { quoted: msg });
   }
 
@@ -733,6 +756,9 @@ async function showRanking(sock, msg, groupMeta) {
     text += `*${i + 1}.* @${r.jid.split('@')[0]} — ${fmt(r.aura)}\n`;
     mentions.push(r.jid);
   });
+  if (ultimoTop.size >= 500) ultimoTop.delete(ultimoTop.keys().next().value);
+  ultimoTop.set(jid, { texto: text.trimEnd(), ts: Date.now() });
+
   await sock.sendMessage(jid, { text: text.trimEnd(), mentions }, { quoted: msg });
 }
 
