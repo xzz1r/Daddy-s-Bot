@@ -8,6 +8,7 @@ const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { recordFacts } = require('../utils/nickStore');
 const { noteOffence, forget, yaAvisado, marcarAvisado, olvidarAviso } = require('../utils/mediaSpam');
 const { isAllowed, noteWarning, resetWarnings, MAX_AVISOS } = require('../utils/linkPerms');
+const { tienePase, gastarIndulto } = require('../utils/roboStore');
 const { banAccount } = require('../utils/banlist');
 const { allForms } = require('../commands/fk');
 const { checkCasinoMilestone } = require('../utils/casino');
@@ -1014,6 +1015,12 @@ async function handleMessage(sock, msg) {
         // banea, porque a la tercera ya no es un despiste, es spam.
         if (await isAllowed(jid, allForms(sender, meta))) return;
 
+        // El PASE hace lo mismo que el !allow de un admin, pero se compra y
+        // caduca solo a las 24 h. Es la via de pagar por publicar tus redes sin
+        // tener que pedirle permiso a nadie; el admin sigue pudiendo darlo
+        // gratis a quien quiera, y el pase no se lo quita.
+        if (await tienePase(jid, sender)) return;
+
         // Sin bot admin no se puede borrar: se avisa una vez por grupo y ya. No
         // se cuenta el aviso, que sería castigar a alguien por algo que el bot
         // ni siquiera ha podido impedir.
@@ -1034,6 +1041,19 @@ async function handleMessage(sock, msg) {
         const num = sender.split('@')[0];
 
         if (ban) {
+          // EL INDULTO PARA EL BAN AUTOMATICO, y se gasta al hacerlo. El enlace
+          // ya se ha borrado y el aviso ya esta contado: lo unico que compra es
+          // no acabar en la lista negra por este. Al siguiente, sin indulto, si.
+          if (await gastarIndulto(jid, sender)) {
+            await resetWarnings(jid, sender).catch(() => {});
+            sock.sendMessage(jid, {
+              text: `@${num} se libra por el *indulto*, que se acaba de gastar. ` +
+                    `El enlace se borra igual y el siguiente ya no lo para nadie.`,
+              mentions: [sender],
+            }).catch(() => {});
+            return;
+          }
+
           // Los avisos se ponen a cero al banear, igual que hace el contador de
           // rafagas de medios: si vuelve al grupo, empieza otra vez con sus dos
           // avisos y no con un ban inmediato del que nadie le habria advertido.

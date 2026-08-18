@@ -1549,6 +1549,8 @@ async function laTienda(sock, msg, jid, sender, args, groupMeta) {
     if (mio.escudo > ahora) llevo.push(`escudo — le quedan *${restanteEnTexto(mio.escudo - ahora)}*`);
     if (mio.cebo > ahora)   llevo.push(`cebo — le quedan *${restanteEnTexto(mio.cebo - ahora)}*`);
     if (mio.ganzua > 0)     llevo.push(`ganzúa — *${mio.ganzua}* ${mio.ganzua === 1 ? 'uso' : 'usos'}`);
+    if (mio.pase > ahora)    llevo.push(`pase de redes — le quedan *${restanteEnTexto(mio.pase - ahora)}*`);
+    if (mio.indulto > ahora) llevo.push(`indulto — le quedan *${restanteEnTexto(mio.indulto - ahora)}*`);
 
     return sock.sendMessage(jid, {
       text: `*LA TIENDA DEL LADRÓN*\n╾━━━━━━━━━━━━━━╼\n\n${lineas}\n\n` +

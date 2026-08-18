@@ -6,7 +6,7 @@ const { contarTirada } = require('../utils/casinoStore');
 const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
-const { BOTE, CONTRA, RACHA, RIESGO } = require('../utils/economia');
+const { BOTE, CONTRA, RACHA, RIESGO, OBJETOS } = require('../utils/economia');
 const { aportarAlBote } = require('../utils/roboStore');
 
 // QUINCE MINUTOS, subido desde minuto y medio por decision del owner.
@@ -629,6 +629,7 @@ _Cuanto más te juegues de lo tuyo, más paga: de *x${APUESTA.multiplicador}* a 
 _Pero cuanto más pides, menos probable: el punto dulce está sobre el ${Math.round(RIESGO.puntoDulce * 100)}% de lo que podrías llevarte._
 *!robo bote* / *asalto* — el bote común. Reventarlo cuesta *${fmt(BOTE.entrada)}*
 *!robo tienda* / *comprar* — escudo, ganzúa, cebo
+_Y los caros: *pase* (${fmt(OBJETOS.pase.precio)}) publicas tus redes ${OBJETOS.pase.horas}h · *indulto* (${fmt(OBJETOS.indulto.precio)}) el bot no te banea solo. Ninguno te salva de un admin._
 *!robo contra* — devuelves el golpe, *${CONTRA.ventanaSeg}s*. Doble o nada
 *!robo top* — los más buscados
 

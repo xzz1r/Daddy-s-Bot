@@ -585,6 +585,24 @@ const OBJETOS = {
   escudo: { precio: 180, horas: 12, desc: 'nadie te puede robar durante 12 h' },
   ganzua: { precio: 140, usos: 1,   bono: 0.18, desc: '+18 % en tu próximo robo' },
   cebo:   { precio: 90,  horas: 8,  desc: 'aparentas el doble de aura durante 8 h' },
+
+  // ─── Los caros: no son para robar, son para que el bot no te toque ────────
+  //
+  // Cuestan lo que cuestan a proposito. Un escudo son 180; estos valen entre
+  // tres y ocho veces mas, porque no dan ventaja en una tirada: compran permiso.
+  // Si salieran baratos, el !allow dejaria de ser una decision de un admin y
+  // pasaria a ser un tramite, y la moderacion automatica dejaria de existir.
+  //
+  // Con una fortuna en 5.000, el pase cuesta el 12 % de ser rico y el indulto el
+  // 30 %. Nadie compra ninguno de los dos por capricho.
+  pase:    { precio: 600,  horas: 24, desc: 'publicas tus redes 24 h sin que el bot te borre nada' },
+
+  // OJO CON EL ALCANCE: el indulto solo para al BOT, y solo cuando actua SOLO.
+  // No protege de un !kick ni de un !fkban de un admin, ni deberia: el dia que
+  // el aura compre inmunidad frente a una persona, el owner deja de mandar en
+  // su propio grupo y la tienda se convierte en un agujero de moderacion.
+  // Es un seguro contra el automatismo, no un salvoconducto.
+  indulto: { precio: 1500, horas: 48, desc: 'el bot no te banea solo durante 48 h — no te salva de un admin' },
 };
 
 // EL CONTRAATAQUE. Tras un robo con éxito, la víctima tiene una ventana para

@@ -143,6 +143,34 @@ async function tieneEscudo(g, persona) {
   return false;
 }
 
+// ¿Tiene el pase de redes activo? Mismo criterio que el escudo: se mira la
+// caducidad y se limpia lo vencido para que el fichero no engorde.
+async function tienePase(g, persona) {
+  const o = await objetosDe(g, persona);
+  if (!o.pase) return false;
+  if (o.pase > Date.now()) return true;
+  await darObjeto(g, persona, 'pase', undefined);
+  return false;
+}
+
+// ¿Tiene indulto? Solo frena sanciones AUTOMATICAS del bot.
+async function tieneIndulto(g, persona) {
+  const o = await objetosDe(g, persona);
+  if (!o.indulto) return false;
+  if (o.indulto > Date.now()) return true;
+  await darObjeto(g, persona, 'indulto', undefined);
+  return false;
+}
+
+// Se gasta al usarlo: para UN ban automatico y desaparece, aunque le quedaran
+// horas. Si no se consumiera, 1.500 de aura comprarian dos dias de barra libre
+// para spamear enlaces, y eso no es un seguro: es apagar la moderacion.
+async function gastarIndulto(g, persona) {
+  if (!(await tieneIndulto(g, persona))) return false;
+  await darObjeto(g, persona, 'indulto', undefined);
+  return true;
+}
+
 async function tieneCebo(g, persona) {
   const o = await objetosDe(g, persona);
   return Boolean(o.cebo && o.cebo > Date.now());
@@ -189,6 +217,7 @@ async function masBuscado(g) {
 }
 
 module.exports = {
+  tienePase, tieneIndulto, gastarIndulto,
   verBote, aportarAlBote, vaciarBote,
   objetosDe, darObjeto, gastarGanzua, tieneEscudo, tieneCebo,
   anotarGolpe, rankingLadrones, masBuscado,
