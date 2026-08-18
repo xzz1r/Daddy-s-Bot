@@ -139,6 +139,12 @@ if ! npm run check; then
   exit 1
 fi
 
+# Copia de data/ ANTES de reiniciar. El despliegue en si no toca los datos, pero
+# es el momento en que el bot se para y arranca con codigo distinto, y si algo
+# va a salir mal es aqui. Cuesta menos de un segundo y es la unica copia que se
+# hace sola aunque nadie se acuerde del cron.
+bash scripts/respaldo.sh || echo "  (aviso: no se pudo hacer la copia de data/, se sigue igual)"
+
 # Sin esto el código nuevo no llega a ejecutarse. --update-env relee el .env,
 # que es justo lo que hace falta cuando lo que cambió fue una key.
 pm2 restart bot --update-env || pm2 start ecosystem.config.js
