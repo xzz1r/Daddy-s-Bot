@@ -229,6 +229,7 @@ const NEEDS_META = new Set([
   'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness','antifoto',
   'antilink','allow','permitir','close','cerrar','open','abrir',
   'adminmode','soloadmins','soloadmin','adm','contrarobo','contraataque','contraatacar','vengarse',
+  'atraco','atracar','caja','registradora',
   's','sticker','stk',   // cmdSticker SI recibe groupMeta
   // Los que cobran aura SI necesitan groupMeta: auraCobro exime al owner tier y
   // sin la metadata no puede resolver quien lo es, asi que al owner le cobraria.
@@ -1855,6 +1856,17 @@ async function handleMessage(sock, msg) {
       case 'asalto':
       case 'asaltar':
         await cmdRobo(sock, msg, ['asalto', ...args], groupMeta);
+        break;
+      // El atraco a la tienda, tambien con nombre propio y por el mismo motivo
+      // que el contraataque: nadie escribe "!robo atraco" cuando lo que piensa
+      // es "atraco".
+      case 'atraco':
+      case 'atracar':
+        await cmdRobo(sock, msg, ['atraco', ...args], groupMeta);
+        break;
+      case 'caja':
+      case 'registradora':
+        await cmdRobo(sock, msg, ['caja', ...args], groupMeta);
         break;
 
       case 'duel':

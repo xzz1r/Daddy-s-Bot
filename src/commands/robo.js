@@ -1,7 +1,7 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser } = require('../utils/wa');
 const { getAura, addAura } = require('../utils/auraStore');
 const { pickFresh, fmt } = require('../utils/helpers');
-const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_RACHA_MAX, ROBO_OWNER_VISIBLE, BOTE, OBJETOS, CONTRA, DIANA } = require('../utils/economia');
+const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_RACHA_MAX, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, CONTRA, DIANA } = require('../utils/economia');
 const tienda = require('../utils/roboStore');
 const RX = require('../data/roboExtraPhrases');
 
@@ -1608,6 +1608,16 @@ async function laTienda(sock, msg, jid, sender, args, groupMeta) {
   }
 
   const obj = OBJETOS[que];
+  // Quien intento atracar la tienda no compra en ella hasta que se le pase. Va
+  // ANTES de mirar el saldo: el motivo por el que no puede comprar es el veto,
+  // y decirle "no te llega" cuando en realidad esta vetado seria mentirle.
+  const veto = await tienda.vetoTienda(jid, sender);
+  if (veto) {
+    return sock.sendMessage(jid, {
+      text: `${fraseCon(RX.ATRACO_VETADO, `${jid}|atraco|vetado`, { '%A': tag(sender) })}\n_Vuelve en *${restanteEnTexto(veto - Date.now())}*._`,
+      mentions: [sender],
+    }, { quoted: msg });
+  }
   const saldo = await getAura(jid, sender);
   if (saldo < obj.precio) {
     return sock.sendMessage(jid, {
@@ -1617,6 +1627,10 @@ async function laTienda(sock, msg, jid, sender, args, groupMeta) {
   }
 
   await addAura(jid, sender, -obj.precio);
+  // Y una parte de lo pagado se queda EN LA CAJA en vez de destruirse, para que
+  // haya algo que atracar. El resto se sigue destruyendo: la tienda no deja de
+  // ser un sumidero, solo devuelve una parte y con mucho riesgo por medio.
+  await tienda.aportarACaja(jid, obj.precio * ATRACO.fraccionDeCompra);
   // Por USOS o por HORAS, segun lo que declare el objeto.
   //
   // Antes esto preguntaba literalmente `if (que === 'ganzua')`, asi que
@@ -1741,6 +1755,117 @@ async function contraatacar(sock, msg, jid, sender, groupMeta) {
   }, { quoted: msg });
 }
 
+// Ver como esta la tienda sin entrar. Es informacion que el juego necesita que
+// sea publica: si la seguridad fuera secreta, decidir cuando atracar seria tirar
+// una moneda con pasos extra.
+async function verLaCaja(sock, msg, jid) {
+  const caja = await tienda.verCaja(jid);
+  const seguridad = await tienda.seguridadTienda(jid, {
+    subePorIntento: ATRACO.subeSeguridad,
+    maximo: ATRACO.seguridadMax,
+    enfriaMs: ATRACO.enfriaHoras * 3600000,
+  });
+  const chance = Math.max(0.10, ATRACO.base - seguridad);
+  const estado = seguridad < 0.02 ? 'tranquila, como si nadie la hubiera tocado nunca'
+               : seguridad < 0.10 ? 'algo escamada'
+               : seguridad < 0.20 ? 'con el tendero mirando la puerta'
+               : 'en alerta, y con razon';
+  return sock.sendMessage(jid, {
+    text: `*LA CAJA DE LA TIENDA*\n╾━━━━━━━━━━━━━━╼\n\n` +
+      `Dentro hay *${fmt(caja)}*.\n` +
+      `La tienda está *${estado}*: *${Math.round(chance * 100)} %* de entrar.\n\n` +
+      `_Se llena con lo que compra el grupo (un ${Math.round(ATRACO.fraccionDeCompra * 100)} % de cada objeto). ` +
+      `Hacen falta *${fmt(ATRACO.minimoParaAtracar)}* para poder entrar._\n` +
+      `_Cada intento la pone más nerviosa y se relaja en *${ATRACO.enfriaHoras}h*. Fallar cuesta multa y *${ATRACO.vetoHoras}h* sin comprar._\n\n` +
+      `*!atraco* para entrar.`,
+  }, { quoted: msg });
+}
+
+// ─── !atraco: jugar contra la casa ───────────────────────────────────────────
+//
+// Todo lo demas del bot es jugar contra otra persona (robo, duelo, contraataque)
+// o contra el azar puro (tirada, apuesta). Aqui enfrente hay un negocio, y un
+// negocio se defiende: cada intento sube la seguridad y el tiempo la baja.
+//
+// Eso es lo que lo separa del bote, que es una probabilidad fija por una entrada
+// fija. Aqui la caja es un recurso que se agota y se regenera, asi que hay algo
+// que decidir: entrar ahora con la tienda caliente, o esperar a que se enfrie
+// sabiendo que cualquiera puede entrar antes.
+async function atracarTienda(sock, msg, jid, sender, groupMeta) {
+  const yo = tag(sender);
+
+  // El veto primero: si no puede ni entrar, lo demas sobra.
+  const veto = await tienda.vetoTienda(jid, sender);
+  if (veto) {
+    return sock.sendMessage(jid, {
+      text: `${fraseCon(RX.ATRACO_VETADO, `${jid}|atraco|vetado`, { '%A': yo })}\n_Vuelve en *${restanteEnTexto(veto - Date.now())}*._`,
+      mentions: [sender],
+    }, { quoted: msg });
+  }
+
+  const caja = await tienda.verCaja(jid);
+  if (caja < ATRACO.minimoParaAtracar) {
+    return sock.sendMessage(jid, {
+      text: `${fraseCon(RX.ATRACO_VACIA, `${jid}|atraco|vacia`, { '%A': yo, '%N': fmt(caja) })}\n` +
+        `_Hace falta que haya *${fmt(ATRACO.minimoParaAtracar)}* en caja. Se llena con lo que compra el grupo._`,
+      mentions: [sender],
+    }, { quoted: msg });
+  }
+
+  // La seguridad se calcula al vuelo desde los intentos recientes. Se anota
+  // ANTES de tirar el dado: el intento cuenta salga como salga, que es lo que
+  // impide entrar tres veces seguidas aprovechando la misma tienda tranquila.
+  const seguridad = await tienda.seguridadTienda(jid, {
+    subePorIntento: ATRACO.subeSeguridad,
+    maximo: ATRACO.seguridadMax,
+    enfriaMs: ATRACO.enfriaHoras * 3600000,
+  });
+  await tienda.anotarAtraco(jid);
+
+  // El owner tambien juega aqui, y con el mismo techo de racha que en el robo y
+  // el contraataque: el grupo ve las tres cosas en el mismo chat.
+  const chance = Math.max(0.10, ATRACO.base - seguridad);
+  const gana = isMainOwner(sender, msg.key.fromMe, groupMeta)
+    ? ownerGana(jid, Math.min(0.95, chance + 0.22))
+    : Math.random() < chance;
+
+  // Lo que se ve del estado de la tienda. Se dice siempre, porque la seguridad
+  // es la unica pieza del juego que el jugador puede administrar y una regla
+  // invisible no cambia como juega nadie.
+  const pie = seguridad > 0.01
+    ? `\n_La tienda estaba en guardia: ${Math.round(chance * 100)} % de entrar. Se relaja en ${ATRACO.enfriaHoras} h._`
+    : `\n_La tienda estaba tranquila: ${Math.round(chance * 100)} % de entrar._`;
+
+  if (gana) {
+    const frac = ATRACO.botin.min + Math.random() * (ATRACO.botin.max - ATRACO.botin.min);
+    const botin = await tienda.sacarDeCaja(jid, frac);
+    const nuevo = await addAura(jid, sender, botin);
+    await tienda.anotarGolpe(jid, sender, botin);
+    return sock.sendMessage(jid, {
+      text: `*ATRACO A LA TIENDA*\n╾━━━━━━━━━━━━━━╼\n\n` +
+        `${fraseCon(RX.ATRACO_GANA, `${jid}|atraco|gana`, { '%A': yo, '%C': fmt(botin) })}\n\n` +
+        `${yo} +${fmt(botin)} → *${fmt(nuevo.current)}*\n_Quedan *${fmt(await tienda.verCaja(jid))}* en la caja._${pie}`,
+      mentions: [sender],
+    }, { quoted: msg });
+  }
+
+  // La multa VUELVE A LA CAJA, no se destruye: cada intento fallido deja el
+  // proximo mas goloso, que es lo que mantiene la mesa viva. Y nunca deja a
+  // nadie en negativo: se cobra lo que tenga si no llega.
+  const saldo = Math.max(0, await getAura(jid, sender));
+  const multa = Math.min(Math.round(caja * ATRACO.multa), ATRACO.multaTope, saldo);
+  const nuevo = await addAura(jid, sender, -multa);
+  await tienda.aportarACaja(jid, multa);
+  await tienda.vetarDeTienda(jid, sender, Date.now() + ATRACO.vetoHoras * 3600000);
+  return sock.sendMessage(jid, {
+    text: `*ATRACO FALLIDO*\n\n` +
+      `${fraseCon(RX.ATRACO_FALLA, `${jid}|atraco|falla`, { '%A': yo, '%C': fmt(multa) })}\n\n` +
+      `${yo} −${fmt(multa)} → *${fmt(nuevo.current)}*\n` +
+      `_Vetado de la tienda *${ATRACO.vetoHoras}h*. La multa se queda en la caja: ahora hay *${fmt(await tienda.verCaja(jid))}*._${pie}`,
+    mentions: [sender],
+  }, { quoted: msg });
+}
+
 // ─── !robo top ───────────────────────────────────────────────────────────────
 async function topLadrones(sock, msg, jid, groupMeta) {
   const r = (await tienda.rankingLadrones(jid))
@@ -1770,7 +1895,12 @@ async function cmdRobo(sock, msg, args, groupMeta) {
 
   // Subcomandos. Van antes de exigir victima porque ninguno la necesita.
   const sub = (args && args[0] ? String(args[0]) : '').toLowerCase();
-  if (['bote', 'caja', 'hucha'].includes(sub))            return verElBote(sock, msg, jid);
+  // OJO: 'caja' ya NO es el bote. Una caja registradora es de una tienda, no de
+  // una hucha comun, y dejarlo en el bote significaba que quien escribiera lo
+  // obvio acabaria en la dinamica equivocada.
+  if (['bote', 'hucha', 'pozo'].includes(sub))            return verElBote(sock, msg, jid);
+  if (['caja', 'registradora'].includes(sub))             return verLaCaja(sock, msg, jid);
+  if (['atraco', 'atracar', 'atracartienda'].includes(sub)) return atracarTienda(sock, msg, jid, sender, groupMeta);
   if (['asalto', 'asaltar', 'reventar'].includes(sub))    return asaltarBote(sock, msg, jid, sender, groupMeta);
   if (['tienda', 'shop', 'comprar'].includes(sub))        return laTienda(sock, msg, jid, sender, args, groupMeta);
   if (['contra', 'contraataque', 'venganza'].includes(sub)) return contraatacar(sock, msg, jid, sender, groupMeta);

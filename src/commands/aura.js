@@ -8,7 +8,7 @@ const { contarTirada } = require('../utils/casinoStore');
 const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, bonoVeterania, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
-const { BOTE, CONTRA, RACHA, RIESGO, OBJETOS } = require('../utils/economia');
+const { BOTE, ATRACO, CONTRA, RACHA, RIESGO, OBJETOS } = require('../utils/economia');
 const { aportarAlBote } = require('../utils/roboStore');
 const tiendaObj = require('../utils/roboStore');
 
@@ -860,6 +860,9 @@ _Cuanto más te juegues de lo tuyo, más paga: de *x${APUESTA.multiplicador}* a 
 *!robo* @user <cant.> — pide lo que quieras, hasta todo lo que tenga
 _Pero cuanto más pides, menos probable: el punto dulce está sobre el ${Math.round(RIESGO.puntoDulce * 100)}% de lo que podrías llevarte._
 *!robo bote* / *asalto* — el bote común. Reventarlo cuesta *${fmt(BOTE.entrada)}*
+*!caja* — cómo está la caja de la tienda
+*!atraco* — entras a por ella. Gratis, pero si fallas hay multa y *${ATRACO.vetoHoras}h* sin comprar
+_La caja se llena con lo que compra el grupo. Cada intento pone a la tienda más nerviosa y se relaja en *${ATRACO.enfriaHoras}h*: no es una tragaperras, es un sitio que se defiende._
 *!robo tienda* / *comprar* — escudo, ganzúa, cebo
 _Para la mesa: *amuleto* (${fmt(OBJETOS.amuleto.precio)}) · *seguro* (${fmt(OBJETOS.seguro.precio)}) · *socio* (${fmt(OBJETOS.socio.precio)}) todo un ${Math.round(OBJETOS.socio.descuento * 100)}% más barato ${OBJETOS.socio.horas}h_
 _Y los caros: *pase* (${fmt(OBJETOS.pase.precio)}) publicas tus redes ${OBJETOS.pase.horas}h · *indulto* (${fmt(OBJETOS.indulto.precio)}) el bot no te banea solo. Ninguno te salva de un admin._

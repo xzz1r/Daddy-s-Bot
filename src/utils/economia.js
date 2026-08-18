@@ -661,6 +661,54 @@ const BOTE = {
   fraccionDeApuesta: 0.25,
 };
 
+// ─── EL ATRACO A LA TIENDA ───────────────────────────────────────────────────
+//
+// Jugar contra la casa, que es lo unico que faltaba: todo lo demas del bot es
+// jugar contra otra persona (robo, duelo, contraataque) o contra el azar puro
+// (tirada, apuesta). Aqui enfrente hay un negocio, y un negocio se defiende.
+//
+// EN QUE SE DIFERENCIA DEL BOTE, que es la pregunta importante porque si no
+// serian dos loterias con distinto nombre:
+//
+//                   bote                      caja de la tienda
+//   se llena con    robos fallidos y          las compras del grupo
+//                   apuestas perdidas          (o sea: gastar la alimenta)
+//   entrar cuesta   60 fijos                  nada
+//   probabilidad    16 % siempre              baja con cada intento
+//   si fallas       pierdes la entrada        multa y la tienda te veta
+//   te llevas       el bote entero            una parte, segun salga
+//
+// La pieza que lo hace un juego y no una tragaperras es la SEGURIDAD: cada
+// intento la sube y el tiempo la baja. Asi que la caja es un recurso que se
+// agota y se regenera, y el grupo tiene que decidir cuando entrar y cuanto
+// esperar. Una probabilidad fija no da esa decision.
+//
+// Y NO IMPRIME AURA. Lo que sale de la caja entro antes por una compra: se
+// desvia una parte de cada objeto comprado en vez de destruirla entera. El
+// resto se sigue destruyendo, asi que la tienda no deja de ser un sumidero,
+// solo devuelve parte de lo que traga y con mucho riesgo por medio.
+const ATRACO = {
+  fraccionDeCompra: 0.40,  // cuanto de cada objeto comprado cae a la caja
+  minimoParaAtracar: 300,  // por debajo de esto no hay nada que llevarse
+
+  base: 0.34,              // con la tienda tranquila
+  subeSeguridad: 0.09,     // cada intento la sube, salga bien o mal
+  seguridadMax: 0.24,      // pero nunca por debajo del 10 %: siempre es un tiro
+  enfriaHoras: 6,          // y se relaja del todo en este tiempo
+
+  // Cuanto de la caja se lleva quien acierta. No es todo: la tienda cierra a
+  // tiempo y salva parte. Que sea variable es lo que hace que dos atracos
+  // buenos no se cuenten igual.
+  botin: { min: 0.35, max: 0.75 },
+
+  // Si falla, paga. Y lo que paga VUELVE A LA CAJA, no se destruye: cada intento
+  // fallido deja el proximo mas goloso, que es como se mantiene viva la mesa.
+  multa: 0.20,             // de lo que habia en la caja...
+  multaTope: 400,          // ...con tope, para que un mal dia no arruine a nadie
+
+  vetoHoras: 3,            // y no puede comprar en la tienda durante este rato
+};
+
 // LOS OBJETOS. Dan una decisión ANTES de robar, no solo al robar.
 //
 // LOS PRECIOS SE REHICIERON. Estaban puestos contra "un robo medio mueve unos
@@ -955,7 +1003,7 @@ module.exports = {
   RACHA, BONOS, REDENCION,
   VETERANIA_MSGS, VETERANIA_PAGO, VETERANIA_TOPE, bonoVeterania,
   ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_RACHA_MAX, ROBO_OWNER_VISIBLE, DUELO, REGALO_MIN,
-  BOTE, OBJETOS, CONTRA, DIANA,
+  BOTE, ATRACO, OBJETOS, CONTRA, DIANA,
   PRECIOS, SALDO_MINIMO,
   rango,
 };

@@ -67,7 +67,90 @@ function grupo(g) {
   if (typeof x.bote !== 'number') x.bote = 0;
   if (!x.objetos) x.objetos = {};
   if (!Array.isArray(x.golpes)) x.golpes = [];
+  // La tienda. Se añade sobre la marcha para que los ficheros que ya existen
+  // sigan valiendo: un grupo con partida empezada no pierde nada.
+  if (typeof x.caja !== 'number') x.caja = 0;
+  if (!Array.isArray(x.atracos)) x.atracos = [];   // ts de cada intento
   return x;
+}
+
+// ─── La caja de la tienda ────────────────────────────────────────────────────
+//
+// Se llena con una parte de cada objeto que compra el grupo. El resto de la
+// compra se sigue destruyendo, asi que la tienda no deja de ser sumidero: lo
+// unico que cambia es que ahora devuelve parte de lo que traga, y solo a quien
+// se atreva a entrar a por ello.
+
+async function verCaja(g) {
+  await load();
+  return grupo(g).caja;
+}
+
+async function aportarACaja(g, cuanto) {
+  if (!(cuanto > 0)) return 0;
+  await load();
+  const x = grupo(g);
+  x.caja += Math.round(cuanto);
+  scheduleSave();
+  return x.caja;
+}
+
+// Saca una fraccion de la caja y devuelve lo que se ha llevado. No la vacia
+// entera nunca: la tienda cierra a tiempo y salva parte.
+async function sacarDeCaja(g, fraccion) {
+  await load();
+  const x = grupo(g);
+  const sale = Math.max(0, Math.min(x.caja, Math.round(x.caja * fraccion)));
+  x.caja -= sale;
+  scheduleSave();
+  return sale;
+}
+
+// ─── La seguridad ────────────────────────────────────────────────────────────
+//
+// Cada intento la sube y el tiempo la baja. Es lo que convierte la caja en un
+// recurso que se agota y se regenera, en vez de en una tragaperras con una
+// probabilidad fija: hay que decidir cuando entrar y cuanto esperar.
+//
+// Se calcula al vuelo desde los timestamps en vez de guardar un numero que
+// habria que ir bajando con un temporizador. Cada intento aporta lo suyo y ese
+// aporte se desvanece en linea recta hasta enfriarse del todo.
+async function seguridadTienda(g, { subePorIntento, maximo, enfriaMs }) {
+  await load();
+  const x = grupo(g);
+  const ahora = Date.now();
+  // De paso se podan los ya enfriados: si no, la lista crece sin parar.
+  x.atracos = x.atracos.filter((ts) => ahora - ts < enfriaMs);
+  const suma = x.atracos.reduce((acc, ts) => acc + subePorIntento * (1 - (ahora - ts) / enfriaMs), 0);
+  return Math.min(maximo, suma);
+}
+
+async function anotarAtraco(g) {
+  await load();
+  const x = grupo(g);
+  x.atracos.push(Date.now());
+  scheduleSave();
+}
+
+// ─── El veto ─────────────────────────────────────────────────────────────────
+//
+// Quien la lia en la tienda no puede comprar en ella un rato. Vive en el mismo
+// cajon de objetos que el escudo y el cebo, porque es lo mismo: un estado con
+// fecha de caducidad colgando de una persona.
+async function vetarDeTienda(g, quien, hasta) {
+  await load();
+  const x = grupo(g);
+  const k = canonicalJid(quien);
+  if (!x.objetos[k]) x.objetos[k] = {};
+  x.objetos[k].vetoTienda = hasta;
+  scheduleSave();
+}
+
+async function vetoTienda(g, quien) {
+  await load();
+  const x = grupo(g);
+  const v = x.objetos[canonicalJid(quien)]?.vetoTienda || 0;
+  return v > Date.now() ? v : 0;
 }
 
 // ─── El bote ─────────────────────────────────────────────────────────────────
@@ -248,6 +331,7 @@ module.exports = {
   tieneSocio, gastarUso, tieneUso,
   tienePase, tieneIndulto, gastarIndulto,
   verBote, aportarAlBote, vaciarBote,
+  verCaja, aportarACaja, sacarDeCaja, seguridadTienda, anotarAtraco, vetarDeTienda, vetoTienda,
   objetosDe, darObjeto, gastarGanzua, tieneEscudo, tieneCebo,
   anotarGolpe, rankingLadrones, masBuscado,
   flushRobo,
