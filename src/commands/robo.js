@@ -1930,7 +1930,36 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     ? `\n_Ibas a por ${fmt(raw)}, pero ${vTag} solo tenía ${fmt(maxStake)}._`
     : '';
   const notaApuesta = `\n_Apostaste ${fmt(stake)} · ${Math.round(chanceVisible * 100)}% de salir bien._`;
-  const notaDinamicas = notaApuesta + notaTope + (motivos.length ? `\n_${motivos.join(' · ')}_` : '');
+
+  // AL OWNER SE LE FABRICA EL DESGLOSE, no solo el porcentaje.
+  //
+  // A un miembro el bot le explica de donde sale su probabilidad
+  // ("codicia (−14%) · te tienen fichado (−8%)"). Al owner no le salia NINGUNO,
+  // porque su calculo real se salta esos castigos — asi que su mensaje era el
+  // unico del grupo sin desglose. Eso delata tanto como un numero repetido:
+  // no hace falta ver las cuentas para notar que a uno le faltan.
+  //
+  // Se generan de uno a tres, coherentes con lo que ha pedido y distintos cada
+  // vez. Suman aproximadamente el hueco entre la base de un miembro y la cifra
+  // que se le enseña, asi que las cuentas le cuadran a quien las mire.
+  const motivosMostrados = ladronEsOwner
+    ? (() => {
+        const codicia = maxStake > 0 ? Math.min(1, stake / maxStake) : 0;
+        const out = [];
+        const pct = (a, b) => Math.round(a + Math.random() * (b - a));
+        if (codicia > 0.55)      out.push(`codicia (−${pct(9, 17)}%)`);
+        else if (codicia < 0.2)  out.push(`sin agallas (−${pct(4, 8)}%)`);
+        if (Math.random() < 0.45) out.push(`ya te vio venir (−${pct(5, 11)}%)`);
+        if (Math.random() < 0.30) out.push(`te tienen fichado (−${pct(4, 9)}%)`);
+        if (esDiana)              out.push(`diana (+${pct(10, 14)}%)`);
+        else if (Math.random() < 0.18) out.push('venganza (+12%)');
+        // Nunca vacio: quedarse sin desglose es justo lo que se quiere evitar.
+        if (!out.length) out.push(`ya te vio venir (−${pct(5, 11)}%)`);
+        return out;
+      })()
+    : motivos;
+
+  const notaDinamicas = notaApuesta + notaTope + (motivosMostrados.length ? `\n_${motivosMostrados.join(' · ')}_` : '');
 
   if (mult > 0) {
     anotarRoboExitoso(jid, canonicalJid(sender), canonicalJid(target));

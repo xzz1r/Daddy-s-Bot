@@ -590,10 +590,13 @@ const ROBO_OWNER_MIN = 0.78;
 // Cuanto acierta el owner principal cuando roba. NO es 1.
 //
 // Estuvo en exito garantizado y el owner lo pidio bajar: ganar SIEMPRE deja de
-// parecer suerte a la tercera vez y se nota mas que cualquier cifra. Con 0,84
-// falla aproximadamente uno de cada seis, que es lo justo para que el rig
-// parezca una racha buena en vez de un interruptor.
-const ROBO_OWNER_EXITO = 0.84;
+// parecer suerte a la tercera vez y se nota mas que cualquier cifra.
+//
+// Bajado despues a 0,74: con 0,84 seguia encadenando victorias demasiado
+// seguidas. Con 0,74 falla uno de cada cuatro — gana con mucha regularidad (un
+// miembro anda por el 38 %) pero pierde lo bastante a menudo como para que
+// nadie pueda sostener que el bot le regala los robos.
+const ROBO_OWNER_EXITO = 0.74;
 
 // La cifra que se le ENSEÑA al owner cuando roba, que no es la suya.
 //
