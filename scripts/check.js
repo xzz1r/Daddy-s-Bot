@@ -316,6 +316,79 @@ async function capaStores() {
     }
   }
 
+  // EL COOLDOWN DE !aura top. Cuatro reglas que ya se rompieron una vez cada una
+  // y que desde fuera no se ven: el bot contesta, solo contesta lo que no toca.
+  //
+  // Se usa el STORE DE VERDAD y no un doble. La primera version sustituia
+  // getAuraRanking en el modulo... y no servia de nada: aura.js lo desestructura
+  // al importarse, asi que se queda con la referencia original y reemplazar la
+  // propiedad despues no la alcanza. Los tres fallos que dio fueron de eso, no
+  // del bot. Con el store real no hay nada que fingir.
+  {
+    const st = require(path.join(R, 'src/utils/auraStore'));
+    const ahoraReal = Date.now;
+    const GT = '000000001@g.us';                  // grupo de pruebas, se borra al final
+    const A = '34600000011@s.whatsapp.net';
+    const B = '34600000012@s.whatsapp.net';
+    const C = '34600000013@s.whatsapp.net';
+    const mt = { id: GT, participants: [A, B, C].map(id => ({ id })) };
+    const outs = [];
+    const sk = { sendMessage: async (j, c) => { outs.push(c); return {}; } };
+    const { cmdAura: ca } = require(path.join(R, 'src/commands/aura'));
+    const top = async (q) => {
+      outs.length = 0;
+      await ca(sk, { key: { remoteJid: GT, participant: q, fromMe: false, id: 'X' },
+                     message: { conversation: '!aura top' }, pushName: 'x' }, ['top'], mt);
+      return outs.at(-1) || {};
+    };
+    const publica = (c) => /^\*RANKING DE AURA\*/.test(c.text || '');
+    try {
+      await st.resetAura(GT);
+      const suelo = await st.getAura(GT, A);
+      await st.addAura(GT, A, 900 - suelo);
+      await st.addAura(GT, B, 800 - suelo);
+
+      const primera = await top(A);
+      comprueba(publica(primera), 'aura top: la primera peticion publica el ranking');
+
+      // 1. Es de GRUPO: le rebota a otra persona distinta de quien lo pidio.
+      const aOtro = await top(B);
+      comprueba(/Vuelve en/.test(aOtro.text || ''),
+        'aura top: el cooldown es de grupo — al segundo que lo pida tambien le rebota');
+
+      // 2. La copia va SIN menciones. Es lo unico que separa enseñar la tabla de
+      //    volver a notificar a los diez, que era el motivo de todo esto.
+      comprueba((aOtro.mentions || []).length === 0,
+        'aura top: la copia en gris no menciona a nadie (si menciona, vuelve a sonar el telefono de los diez)');
+
+      // 3. La copia esta CONGELADA: cambia el ranking por debajo y sigue
+      //    enseñando el que se vio, no el nuevo.
+      // Se mueve a B, que YA esta en el ranking. Tocar a C lo metia dentro y
+      // cambiaba la huella, asi que el "no ha cambiado" de abajo no podia darse
+      // nunca: el fallo era del arnes, no del bot.
+      await st.addAura(GT, B, 4200);             // B pasa a 5.000 y adelanta a A
+      const congelada = await top(A);
+      comprueba(/900/.test(congelada.text || '') && !/5\.?000/.test(congelada.text || ''),
+        'aura top: durante el cooldown se enseña el top CONGELADO, no uno recalculado');
+
+      // 4. Un "no ha cambiado" NO reinicia el reloj. Si lo reiniciara, alguien
+      //    pidiendolo cada dos horas y media mantendria el ranking escondido
+      //    para siempre sin proponerselo. Fue un bug real.
+      await st.addAura(GT, B, -4200);            // se deja el top exactamente como estaba
+      let salto = 3 * 60 * 60 * 1000 + 1000;
+      Date.now = () => ahoraReal() + salto;
+      const igual = await top(A);
+      comprueba(/no ha cambiado/i.test(igual.text || ''),
+        'aura top: con el mismo top de antes, avisa en vez de repetirlo');
+      await st.addAura(GT, B, 6200);             // ahora si cambia, y sin pasar mas tiempo
+      comprueba(publica(await top(A)),
+        'aura top: un "no ha cambiado" no reinicia las 3 h (si las reinicia, el top se puede esconder indefinidamente)');
+    } finally {
+      Date.now = ahoraReal;
+      await st.resetAura(GT);
+    }
+  }
+
   const aura = require(path.join(R, 'src/utils/auraStore'));
   const inicial = await aura.getAura(G, U);
   comprueba(inicial >= 150, `aura: un usuario nuevo arranca en el suelo (dio ${inicial})`);
