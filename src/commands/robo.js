@@ -33,7 +33,7 @@ const ROB_COOLDOWN_MS = 6 * 60 * 1000;
 function topeRobo(auraLadron, auraVictima) {
   return Math.max(
     ROBO.suelo,
-    Math.min(ROBO.techo, auraVictima, auraLadron),
+    Math.min(Math.floor(auraVictima * ROBO.techoFraccion), auraLadron),
   );
 }
 

@@ -471,12 +471,23 @@ ok(/const vNew = clave === 'desastre' \? await addAura\(jid, target, \+monto\) :
   ok(-neto > diaNovato * 0.09,
     `  y un robo fallido quema ${n2(-neto)}, un ${Math.round(100 * -neto / diaNovato)} % del dia de tirar de un novato (${n0(diaNovato)}): el drenaje se nota`);
 }
-ok(ROBO.techo <= 200 && DUELO.techo <= 300, `ningun movimiento suelto pasa de ${ROBO.techo} (robo) / ${DUELO.techo} (duelo)`);
-ok(ROBO.techo / MILLONARIO < 0.05, `  un robo maximo es el ${(100 * ROBO.techo / MILLONARIO).toFixed(0)} % de una fortuna: un comando no decide el ranking`);
+// El robo YA NO TIENE TECHO FIJO: se pide lo que se quiera, hasta la fortuna
+// entera de la victima. Asi que lo que hay que comprobar ya no es un tope, sino
+// que pedir mucho sea de verdad mala idea — que es lo que ahora impide que un
+// solo comando decida el ranking.
+const codicioso = eco.ROBO_BASE.miembro - eco.RIESGO.codiciaMax;
+ok(codicioso <= eco.ROBO_LIMITES.suelo,
+  `  pedirlo todo hunde la probabilidad al suelo (${(100 * eco.ROBO_LIMITES.suelo).toFixed(0)} %): el robo maximo sale a perder de largo`);
+ok(eco.RIESGO.codiciaMax > eco.RIESGO.miseriaMax * 2,
+  `  la codicia castiga mucho mas que quedarse corto (${(100 * eco.RIESGO.codiciaMax).toFixed(0)} % vs ${(100 * eco.RIESGO.miseriaMax).toFixed(0)} %)`);
+ok(DUELO.techo <= 300, `el duelo si mantiene su tope de ${DUELO.techo}`);
 
 console.log('\n════ 6. lo que SI es casino: la casa gana ════\n');
+// Se audita con el multiplicador MAXIMO (el de jugarse mas del 60 % del aura).
+// Es el caso que puede volverse favorable al jugador, asi que si aguanta aqui,
+// aguanta en todos los demas.
 for (const [rol, p] of Object.entries(APUESTA.p)) {
-  const ev = p * APUESTA.multiplicador - 1;
+  const ev = p * APUESTA.multiplicadorMax - 1;
   console.log(`  !aura apostar (${rol.padEnd(7)}): acierta ${(p * 100).toFixed(0)} % → EV ${(ev >= 0 ? '+' : '') + (ev * 100).toFixed(0)} % de lo apostado`);
   if (rol !== 'owner') ok(ev < 0, `  ${rol}: la casa se queda el ${(-ev * 100).toFixed(0)} % — este es el sumidero que compensa el goteo de la tirada`);
 }
@@ -493,8 +504,13 @@ ok(eco.ROBO_BASE.miembro < 0.5, '  robar es desfavorable de partida, como una ma
 // Lo que se mide ahora es lo que de verdad duele: cuando PIERDES, te vas con la
 // mitad de lo que pusiste. Esa es la cifra que tiene que pesar mas que un dia
 // de escribir, o apostar deja de ser una decision.
-const casa = APUESTA.minimo * APUESTA.fraccion * (1 - APUESTA.p.miembro * 2);
-const perdidaReal = APUESTA.minimo * APUESTA.fraccion;
+// La apuesta mas pequeña posible no es "saldo minimo por la fraccion": es
+// APUESTA.apuestaMin, que es el suelo duro de lo que se puede poner en la mesa.
+// Modelarlo con la fraccion daba una cifra que ya no existe (150 cuando el
+// minimo real son 300) y hacia fallar una comprobacion que en realidad cumple.
+const apuestaChica = Math.max(APUESTA.apuestaMin, APUESTA.minimo * APUESTA.fraccion);
+const casa = apuestaChica * (1 - APUESTA.p.miembro * 2);
+const perdidaReal = apuestaChica;
 console.log(`  Una apuesta desde el minimo (${APUESTA.minimo}) pone ${n0(perdidaReal)} en la mesa; la casa se queda ${n2(casa)} de media.`);
 ok(perdidaReal > f('normal').total,
   `  perder la apuesta mas pequeña cuesta mas que un dia entero escribiendo (${n0(perdidaReal)} contra ${n0(f('normal').total)}): apostar es una decision, no un tramite`);

@@ -341,13 +341,33 @@ const APUESTA = {
   // lo que se pone si no se dice cifra, para que el comando siga sirviendo a
   // secas. Elegir cuánto es lo que convierte la apuesta en una decisión: jugarse
   // 100 cuando tienes 4.000 y jugarse los 4.000 no son la misma jugada.
-  apuestaMin: 100,      // por debajo de esto no es arriesgar, es hacer ruido
+  // SUBIDO DE 100 A 300 por decision del owner: se apuesta desde 300 para
+  // arriba. Una apuesta de 100 no era una apuesta, era pulsar un boton — se
+  // perdia menos de lo que da un dia escribiendo y no dolia nada.
+  apuestaMin: 300,      // por debajo de esto no es arriesgar, es hacer ruido
   fraccion: 0.5,        // cuánto del saldo se pone en la mesa si no se dice nada
   // Subido de 300 a 500 con el arranque: con el suelo en 250, apostar desde 300
   // ponía 150 sobre la mesa y el suelo devolvía 100 al perder, así que la
   // apuesta mínima casi no dolía. Desde 500 se juegan 250 y se pierden 250.
-  minimo: 500,          // por debajo no hay nada que arriesgar
-  multiplicador: 2,     // ganar paga el doble de lo apostado
+  // BAJADO DE 500 A 300 por decision del owner: apostar tenia que empezar antes.
+  // Con el suelo en 150, desde 300 se juega de verdad — el que pierde una
+  // apuesta minima se queda en el suelo y nota que ha perdido.
+  minimo: 300,          // saldo minimo para poder sentarse a la mesa
+  multiplicador: 2,     // pago base: ganar paga el doble de lo apostado
+
+  // El pago SUBE con lo que te juegas de lo tuyo.
+  //
+  // Antes pagaba x2 tanto si ponias 300 teniendo 20.000 como si ponias los
+  // 20.000 enteros, y esas dos no son la misma jugada: la primera es calderilla
+  // y la segunda es jugarse el puesto en el ranking. Ahora la segunda paga mas.
+  //
+  // El techo son x2,10 y no mas, y no es tacanyeria: con la probabilidad de un
+  // admin (0,47) un pago de x2,13 ya deja al jugador con ventaja sobre la casa,
+  // y ahi la apuesta pasa de ser un sumidero a ser una impresora de aura. El
+  // premio grande de verdad no esta en el multiplicador: esta en que ahora se
+  // puede poner sobre la mesa TODO lo que tengas, asi que ganar paga miles.
+  multiplicadorMax: 2.10,
+  fraccionRiesgo: 0.60, // a partir de jugarte este % de tu aura, pago maximo
   suelo: ARRANQUE,      // perder nunca te deja por debajo del arranque
   cooldownMin: 180,     // tres horas entre apuestas
   p: { owner: 0.58, admin: 0.47, miembro: 0.45 },
@@ -451,7 +471,15 @@ const REDENCION = {
 const ROBO = {
   suelo: 5,
   porDefecto: 20,
-  techo: 200,             // nadie se lleva más de esto de un solo robo
+  // EL TECHO FIJO DE 200 SE FUE. Lo pidio el owner: se roba la cantidad que se
+  // elija. Ahora el limite lo ponen las dos cosas que no se pueden saltar sin
+  // romper la economia — lo que la victima TIENE y lo que el ladron podria
+  // pagar si le sale mal — y nada mas.
+  //
+  // Que esto no descuadre el ranking no depende de un tope: depende de que
+  // pedir mucho sea muy dificil de acertar. Ver RIESGO.codiciaMax, que subio a
+  // la vez que esto y por esto.
+  techoFraccion: 1,       // se puede pedir hasta todo lo que tenga la victima
   minVictima: 20,         // por debajo de esto no se le puede robar a alguien
 };
 
@@ -476,7 +504,12 @@ const ROBO = {
 // nota, y son los extremos los que duelen.
 const RIESGO = {
   puntoDulce: 0.45,   // fracción del tope donde la probabilidad es máxima
-  codiciaMax: 0.14,   // castigo al pedir el tope entero
+  // SUBIDO DE 0,14 A 0,30 al quitar el techo fijo del robo, y es la pieza que
+  // sostiene todo lo demas. Sin techo, la jugada obvia seria pedir siempre la
+  // fortuna entera de la victima; con este castigo, pedirlo todo hunde la
+  // probabilidad hasta el suelo (15 %) y sale a perder de largo. El punto dulce
+  // sigue en el 45 % del tope: ahi es donde compensa.
+  codiciaMax: 0.30,   // castigo al pedir el tope entero
   miseriaMax: 0.08,   // castigo al pedir el mínimo
   allIn: 0.85,        // a partir de aquí el robo es "a lo grande" (ver DESENLACES)
 };

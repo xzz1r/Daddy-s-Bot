@@ -6,7 +6,7 @@ const { contarTirada } = require('../utils/casinoStore');
 const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
-const { BOTE, CONTRA, RACHA } = require('../utils/economia');
+const { BOTE, CONTRA, RACHA, RIESGO } = require('../utils/economia');
 const { aportarAlBote } = require('../utils/roboStore');
 
 // QUINCE MINUTOS, subido desde minuto y medio por decision del owner.
@@ -623,8 +623,10 @@ La moneda del grupo. Empiezas con *${fmt(ARRANQUE)}*, un millonario ronda los *$
 *!aura* — tiras · *@user* — miras el suyo
 *!aura top* — ranking · *!aura hoy* — tu estado
 *!aura apostar* <cant.> — a una carta, cada ${horasApuesta}h. Sin cifra va media cuenta. Necesitas *${fmt(APUESTA.minimo)}*, mínimo *${fmt(APUESTA.apuestaMin)}*
+_Cuanto más te juegues de lo tuyo, más paga: de *x${APUESTA.multiplicador}* a *x${APUESTA.multiplicadorMax}* si pones más del ${Math.round(APUESTA.fraccionRiesgo * 100)}% de tu aura._
 
-*!robo* @user <cant.> — cuanto más pides, menos probable
+*!robo* @user <cant.> — pide lo que quieras, hasta todo lo que tenga
+_Pero cuanto más pides, menos probable: el punto dulce está sobre el ${Math.round(RIESGO.puntoDulce * 100)}% de lo que podrías llevarte._
 *!robo bote* / *asalto* — el bote común. Reventarlo cuesta *${fmt(BOTE.entrada)}*
 *!robo tienda* / *comprar* — escudo, ganzúa, cebo
 *!robo contra* — devuelves el golpe, *${CONTRA.ventanaSeg}s*. Doble o nada
@@ -742,8 +744,21 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
     // Perder nunca deja por debajo del arranque: quedarse a cero significaria no
     // poder ni hacer un sticker, y el castigo que se busca es el drama, no que
     // alguien deje de usar el bot.
+    // Cuanto paga: mas cuanto mas te juegues de LO TUYO.
+    //
+    // Poner 300 teniendo 20.000 y poner los 20.000 no son la misma jugada, y
+    // pagarlas igual quitaba la unica decision interesante del comando. El pago
+    // sube del x2 al x2,10 segun la fraccion de tu aura que pongas en la mesa,
+    // y toca el techo a partir de APUESTA.fraccionRiesgo.
+    //
+    // El techo es bajo a proposito: unas centesimas mas y la apuesta deja de
+    // tener ventaja de la casa y pasa a imprimir aura (ver el comentario en
+    // economia.js). El premio gordo esta en el tamanyo, no en el multiplicador.
+    const riesgo = saldo > 0 ? Math.min(1, apuesta / saldo / APUESTA.fraccionRiesgo) : 0;
+    const mult = APUESTA.multiplicador +
+      (APUESTA.multiplicadorMax - APUESTA.multiplicador) * riesgo;
     const objetivo = gana
-      ? saldo + apuesta * (APUESTA.multiplicador - 1)
+      ? saldo + Math.round(apuesta * (mult - 1))
       : Math.max(APUESTA.suelo, saldo - apuesta);
     const delta = objetivo - saldo;
 
