@@ -617,13 +617,30 @@ const MAX_AVISOS_GRUPO = 500;
 // desfasada: se anyade un comando, nadie se acuerda del array, y el bot acaba
 // sugiriendo comandos que ya no existen o ignorando los nuevos. Leyendo la
 // fuente no hay dos sitios que puedan discrepar.
+// Comandos que NO existen para nadie salvo el owner, y que por tanto no pueden
+// asomar por ningun lado: ni en el menu, ni en el "¿querias decir...?".
+//
+// Un comando que responde con silencio a quien no lo puede usar solo esta
+// oculto si el bot no lo nombra en ningun otro sitio. El sugeridor es el hueco
+// que se pasa por alto: no hace falta acertar el comando para que el bot te lo
+// diga, basta con escribir algo parecido y el te lo completa. Escribir *!pf* y
+// que el bot conteste "¿querias decir *!p*?" seria el propio bot enseñando la
+// puerta.
+//
+// HOY NO SE FILTRA POR CASUALIDAD: el regex de abajo pide dos caracteres o mas
+// y "p" tiene uno. Eso no es una decision, es una coincidencia, y aguanta hasta
+// que alguien añada un comando corto o relaje el patron. Por eso la exclusion
+// se escribe aparte y `npm run check` la vigila.
+const COMANDOS_OCULTOS = new Set(['p']);
+
 const COMANDOS_CONOCIDOS = (() => {
   try {
     // Se reutiliza la lectura de arriba. Eran DOS readFileSync del propio
     // fichero (~100 KB cada uno) en el require, bloqueando el arranque para
     // leer exactamente lo mismo dos veces.
     const src = FUENTE_PROPIA;
-    return [...new Set([...src.matchAll(/^\s*case '([a-zá-úñ0-9_]{2,})':/gmi)].map(m => m[1]))];
+    return [...new Set([...src.matchAll(/^\s*case '([a-zá-úñ0-9_]+)':/gmi)].map(m => m[1]))]
+      .filter((c) => c.length >= 2 && !COMANDOS_OCULTOS.has(c));
   } catch { return []; }
 })();
 

@@ -660,6 +660,48 @@ async function capaStores() {
     }
   }
 
+  // ── LOS COMANDOS OCULTOS NO ASOMAN POR NINGUN LADO ────────────────────────
+  //
+  // !p echa una cuenta de TODOS los grupos. Responde con silencio a quien no es
+  // el owner, pero eso solo lo oculta si el bot no lo nombra en otro sitio. Se
+  // comprueban las tres puertas: la lista de permisos, el menu y —la que se
+  // pasa por alto— el sugeridor, que completa comandos a quien escribe algo
+  // parecido sin tener que acertarlo.
+  {
+    // `comprueba` vive dentro del bloque de la capa 3; aqui se usa el mismo
+    // par (fallos, rojo/verde) que los otros bloques de esta seccion.
+    const exige = (cond, queja) => {
+      if (cond) return;
+      fallos++;
+      console.log(rojo(`   ✗ ${queja}`));
+    };
+    const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+    const menu = fs.readFileSync(path.join(R, 'src/commands/aura.js'), 'utf8');
+    const ocultos = [...(mh.match(/const COMANDOS_OCULTOS = new Set\(\[([\s\S]*?)\]\);/)?.[1] || '')
+      .matchAll(/'([^']+)'/g)].map((x) => x[1]);
+
+    exige(ocultos.includes('p'), 'p tiene que estar en COMANDOS_OCULTOS: si no, el sugeridor lo ofrece');
+
+    // El sugeridor, de verdad: se reconstruye su lista igual que el fichero.
+    const conocidos = [...new Set([...mh.matchAll(/^\s*case '([a-zá-úñ0-9_]+)':/gmi)].map((m) => m[1]))]
+      .filter((c) => c.length >= 2 && !ocultos.includes(c));
+    const asoman = ocultos.filter((c) => conocidos.includes(c));
+    exige(asoman.length === 0, `el sugeridor ofrece comandos ocultos: ${asoman.join(', ')}`);
+
+    for (const c of ocultos) {
+      exige(!new RegExp(`\\*!${c}\\*|!${c}\\b`).test(menu), `!${c} esta en el menu y es un comando oculto`);
+    }
+
+    // Y que siga siendo del owner principal, no del tier owner entero.
+    const pn = fs.readFileSync(path.join(R, 'src/commands/purgaNumero.js'), 'utf8');
+    exige(/if \(!isMainOwner\(sender, msg\.key\.fromMe, groupMeta\)\) return;/.test(pn),
+      '!p tiene que seguir siendo solo del owner principal, y devolver silencio');
+    exige(!/isOwner\(sender/.test(pn),
+      '!p no puede pasar a isOwner: eso abriria la purga global al tier owner entero');
+
+    if (!fallos) console.log(verde('   ✓ los comandos ocultos no asoman por el menu ni por el sugeridor'));
+  }
+
   // ── 7. LOS MUTEOS SOBREVIVEN AL REINICIO ──────────────────────────────────
   {
     const gr = fs.readFileSync(path.join(R, "src/commands/group.js"), 'utf8');
