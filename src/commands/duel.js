@@ -199,7 +199,9 @@ async function cmdDuel(sock, msg, args, groupMeta) {
 
   // --- new challenge ---
   const target = getTarget(msg);
-  if (!target) return; // sin retado no hay duelo
+  if (!target) return sock.sendMessage(jid, {
+    text: 'Reta a alguien: *!duel @alguien 100*',
+  }, { quoted: msg });
   if (sameUser(target, sender)) {
     return sock.sendMessage(jid, { text: 'No puedes retarte a ti mismo.' }, { quoted: msg });
   }

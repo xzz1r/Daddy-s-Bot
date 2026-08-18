@@ -133,7 +133,9 @@ async function cmdMog(sock, msg, groupMeta) {
   let a, b;
   if (mentioned.length >= 2) [a, b] = mentioned.slice(0, 2);
   else if (mentioned.length === 1) { a = sender; b = mentioned[0]; }
-  else return; // sin nadie a quien medir, no hay duelo de looks
+  else return sock.sendMessage(jid, {
+    text: 'Menciona a dos: *!mog @uno @otro*',
+  }, { quoted: msg });
 
   if (sameUser(a, b)) {
     return sock.sendMessage(jid, { text: 'No puedes moggearte a ti mismo.' }, { quoted: msg });

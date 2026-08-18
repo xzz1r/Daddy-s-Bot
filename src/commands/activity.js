@@ -69,7 +69,9 @@ async function cmdVs(sock, msg, args, groupMeta) {
   if (mentioned.length >= 2) [a, b] = mentioned.slice(0, 2);
   else if (mentioned.length === 1) { a = sender; b = mentioned[0]; }
   else {
-    return; // sin dos objetivos no hay comparacion; el bot no da instrucciones
+    return sock.sendMessage(jid, {
+      text: 'Menciona a dos: *!vs @uno @otro*',
+    }, { quoted: msg });
   }
 
   if (sameUser(a, b)) {

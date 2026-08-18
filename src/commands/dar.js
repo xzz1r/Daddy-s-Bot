@@ -15,7 +15,10 @@ async function cmdDar(sock, msg, args) {
   const target = getTarget(msg);
 
   if (!target) {
-    return; // sin destinatario no hay transferencia
+    return sock.sendMessage(jid, {
+      text: 'Menciona a quién le das: *!dar @alguien 100*',
+    }, { quoted: msg });
+    // eslint-disable-next-line no-unreachable
   }
   if (sameUser(target, sender)) {
     return sock.sendMessage(jid, { text: 'No puedes darte aura a ti mismo.' }, { quoted: msg });

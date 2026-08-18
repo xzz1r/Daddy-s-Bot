@@ -157,7 +157,10 @@ async function cmdTtp(sock, msg, args) {
   const text = (args || []).join(' ').trim();
 
   if (!text) {
-    return; // sin texto no hay sticker
+    // Antes se volvia en silencio. Quien escribe *!ttp* a secas se queda sin
+    // saber si el comando existe, si fallo o si el bot esta muerto, y la
+    // mayoria no lo vuelve a intentar.
+    return sock.sendMessage(jid, { text: 'Dime qué poner: *!ttp tu texto*' }, { quoted: msg });
   }
   if (text.length > 120) {
     return sock.sendMessage(jid, { text: 'Máximo 120 caracteres.' }, { quoted: msg });
