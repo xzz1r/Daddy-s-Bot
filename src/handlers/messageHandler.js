@@ -663,9 +663,26 @@ function peekGroupMeta(jid) {
 // por una coincidencia de texto. Exigir un adjunto reduce eso a casi cero,
 // porque además es el único caso en el que el comando hace algo: sin archivo,
 // "!k" de verdad tampoco tiene qué reenviar.
-const TRIGGERS_K = ['welcome', 'diria algo'];
+// Se aceptan las dos formas del verbo y se IGNORA la puntuacion de los bordes.
+//
+// EXISTE POR UN FALLO QUE SE COMIA LA MITAD DE LOS DISPAROS. La comparacion era
+// exacta contra la cadena pelada, asi que "Diría algo?" —escrito tal cual, con
+// interrogante, que es como lo escribe cualquiera— NO disparaba. Ni "Welcome!".
+// El comando parecia funcionar a veces si y a veces no, y lo que cambiaba era
+// un signo que nadie mira al escribir.
+//
+// Se recortan solo los signos de los extremos: por dentro la frase tiene que
+// seguir siendo la que es, asi que un "no diria algo asi" sigue sin disparar
+// nada.
+const TRIGGERS_K = ['welcome', 'diria algo', 'dirias algo'];
+const BORDES = /^[\s¿¡"'“”«»(\[]+|[\s?!¿¡.,;:"'“”«»)\]…]+$/g;
 function esTriggerK(texto) {
-  const norm = texto.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const norm = texto
+    .trim()
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(BORDES, '')
+    .replace(/\s+/g, ' ');
   return TRIGGERS_K.includes(norm);
 }
 function traeArchivoParaK(msg) {
