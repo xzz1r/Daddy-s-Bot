@@ -870,7 +870,7 @@ _Ganzúa, amuleto y seguro dan ventaja de verdad, así que la tienda solo fía *
 _Y los caros: *pase* (${fmt(OBJETOS.pase.precio)}) publicas tus redes ${OBJETOS.pase.horas}h · *indulto* (${fmt(OBJETOS.indulto.precio)}) el bot no te banea solo. Ninguno te salva de un admin._
 *!contrarobo* — devuelves el golpe, *${CONTRA.ventanaSeg}s*
 _Cuanto antes respondas, más probabilidad: el bono entero es en los primeros *${CONTRA.segRapido}s* y se va cayendo. Puedes recuperar hasta *${CONTRA.desenlaces.demoledor.mult}x*... o pagar otro *${Math.abs(CONTRA.desenlaces.ruina.mult)}x* por listo._
-*!robo top* — los más buscados
+*!buscados* / *!robo top* — los más buscados y lo que paga cada cabeza
 _Cada golpe que das te deja un *${Math.round(RECOMPENSA.fraccionDeGolpe * 100)}%* encima de la cabeza. Quien te cace se lo lleva entero, además del botín. Si nadie te caza en 7 días, caduca._
 
 *!duel* @user <cant.> — 1v1, se acepta con *!duel aceptar*

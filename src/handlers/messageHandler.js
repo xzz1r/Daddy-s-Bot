@@ -230,6 +230,7 @@ const NEEDS_META = new Set([
   'antilink','allow','permitir','close','cerrar','open','abrir',
   'adminmode','soloadmins','soloadmin','adm','contrarobo','contraataque','contraatacar','vengarse',
   'atraco','atracar','caja','registradora',
+  'buscados','wanted','mostwanted','recompensas','cartel',
   's','sticker','stk',   // cmdSticker SI recibe groupMeta
   // Los que cobran aura SI necesitan groupMeta: auraCobro exime al owner tier y
   // sin la metadata no puede resolver quien lo es, asi que al owner le cobraria.
@@ -1896,6 +1897,17 @@ async function handleMessage(sock, msg) {
       case 'caja':
       case 'registradora':
         await cmdRobo(sock, msg, ['caja', ...args], groupMeta);
+        break;
+      // Los mas buscados, con nombre propio. Vivia solo como *!robo top*, y el
+      // propio owner tuvo que preguntar cual era el comando dos dias despues de
+      // pedir la lista: si quien la encargo no lo encuentra, nadie lo va a
+      // encontrar. Mismo motivo que !contrarobo y !atraco.
+      case 'buscados':
+      case 'wanted':
+      case 'mostwanted':
+      case 'recompensas':
+      case 'cartel':
+        await cmdRobo(sock, msg, ['top', ...args], groupMeta);
         break;
 
       case 'duel':

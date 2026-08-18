@@ -1970,7 +1970,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   if (['asalto', 'asaltar', 'reventar'].includes(sub))    return asaltarBote(sock, msg, jid, sender, groupMeta);
   if (['tienda', 'shop', 'comprar'].includes(sub))        return laTienda(sock, msg, jid, sender, args, groupMeta);
   if (['contra', 'contraataque', 'venganza'].includes(sub)) return contraatacar(sock, msg, jid, sender, groupMeta);
-  if (['top', 'ranking', 'buscados'].includes(sub))       return topLadrones(sock, msg, jid, groupMeta);
+  if (['top', 'ranking', 'buscados', 'wanted', 'cartel', 'recompensas'].includes(sub)) return topLadrones(sock, msg, jid, groupMeta);
 
   const target = getTarget(msg);
 
