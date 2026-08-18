@@ -287,7 +287,12 @@ _De más crudo a más suave, ${PRECIOS.percent} cada uno:_
 
 ━━━━━ *AURA* ━━━━━
 *${p}aura* — tirar · *${p}aura top* · *${p}aura hoy*
-*${p}robo* · *${p}duel* · *${p}dar* @user <cantidad>
+*${p}apostar* <cant.> — a una carta · *${p}duel* @user — 1v1
+*${p}robo* @user <cant.> · *${p}contrarobo* — devolver el golpe
+*${p}buscados* — quién roba y lo que paga su cabeza
+*${p}tienda* · *${p}comprar* <objeto> · *${p}bote* / *${p}asalto*
+*${p}caja* · *${p}atraco* — contra la casa, no contra nadie
+*${p}dar* / *${p}regalar* @user <cant.> — con impuesto
 *${p}guia* — el aura entera explicada, con todos sus modos
 
 ━━━━━ *HERRAMIENTAS* ━━━━━

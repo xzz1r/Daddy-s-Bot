@@ -280,6 +280,42 @@ async function capaStores() {
     }
   }
 
+  // LOS TEXTOS DE AYUDA NO PUEDEN ANUNCIAR COMANDOS QUE NO EXISTEN.
+  //
+  // Esto encontro dos que llevaban tiempo puestos: la guia listaba *!percent*,
+  // que no es un comando sino la clave de precio que comparten !gay, !puta e
+  // !iq; y *!aura guia* no devolvia la guia sino una TIRADA, porque la lista que
+  // dejaba pasar 'guia' y la que la despachaba eran dos listas distintas.
+  //
+  // Los dos son invisibles desde dentro: el bot no falla, contesta otra cosa.
+  {
+    const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+    const existen = new Set([...mh.matchAll(/case '([^']+)':/g)].map((m) => m[1]));
+    const salidas = [];
+    const sockT = { sendMessage: async (j, c) => { salidas.push(c); return {}; } };
+    const metaT = { id: G, participants: [{ id: U }] };
+    const msgT = { key: { remoteJid: G, participant: U, fromMe: false, id: 'X' },
+                   message: { conversation: '!guia' }, pushName: 'x' };
+
+    const { cmdAura } = require(path.join(R, 'src/commands/aura'));
+    await cmdAura(sockT, msgT, ['guia'], metaT);
+    const guia = salidas.at(-1)?.text || '';
+    comprueba(/GU[IÍ]A DEL AURA/.test(guia),
+      'ayuda: *!aura guia* devuelve la guia (y no una tirada, que es lo que hacia)');
+
+    const { cmdHelp } = require(path.join(R, 'src/commands/social'));
+    salidas.length = 0;
+    await cmdHelp(sockT, msgT, metaT);
+    const menu = salidas.at(-1)?.text || '';
+
+    for (const [nombre, texto] of [['la guia', guia], ['el menu', menu]]) {
+      const citados = [...new Set([...texto.matchAll(/!([a-zá-úñ0-9]+)/gi)].map((m) => m[1].toLowerCase()))];
+      const rotos = citados.filter((c) => !existen.has(c));
+      comprueba(rotos.length === 0,
+        `ayuda: ${nombre} anuncia comandos que no existen: ${rotos.join(', ')}`);
+    }
+  }
+
   const aura = require(path.join(R, 'src/utils/auraStore'));
   const inicial = await aura.getAura(G, U);
   comprueba(inicial >= 150, `aura: un usuario nuevo arranca en el suelo (dio ${inicial})`);

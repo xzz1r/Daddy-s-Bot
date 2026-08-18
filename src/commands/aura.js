@@ -836,7 +836,17 @@ function textoAuraInfo() {
   const horasApuesta = APUESTA.cooldownMin / 60;
   const precios = Object.entries(PRECIOS)
     .sort((a, b) => b[1] - a[1])
-    .map(([k, v]) => `*!${k === 'sticker' ? 's' : k === 'grok' ? 'g' : k}* ${v}`)
+    // 'percent' NO es un comando: es la clave de precio que comparten !gay,
+    // !puta, !iq y los demas. La lista lo anunciaba como *!percent 25* y quien
+    // lo escribiera no encontraba nada. Igual que 'sticker' y 'grok', que se
+    // llaman !s y !g, la clave interna no es el nombre que se teclea.
+    .map(([k, v]) => {
+      const nombre = k === 'sticker' ? 's'
+                   : k === 'grok' ? 'g'
+                   : k === 'percent' ? null
+                   : k;
+      return nombre ? `*!${nombre}* ${v}` : `_los de porcentaje_ ${v}`;
+    })
     .join(' · ');
 
   return `*LA GUÍA DEL AURA*
@@ -851,6 +861,8 @@ La moneda del grupo. Empiezas con *${fmt(ARRANQUE)}*, un millonario ronda los *$
 
 *Tirando* — *!aura*, una cada ${duracion(ROLL_COOLDOWN_MS)}.
 
+*Quitándoselo a otro* — *!robo*, *!duel* y *!apostar* van en tu contra a la larga. *!atraco* va contra la tienda y *!buscados* dice a quién sale a cuenta cazar.
+
 ━━━━━ *LOS COMANDOS* ━━━━━
 
 *!aura* — tiras · *@user* — miras el suyo
@@ -864,17 +876,18 @@ _Pero cuanto más pides, menos probable: el punto dulce está sobre el ${Math.ro
 *!caja* — cómo está la caja de la tienda
 *!atraco* — entras a por ella. Gratis, pero si fallas hay multa y *${ATRACO.vetoHoras}h* sin comprar
 _La caja se llena con lo que compra el grupo. Cada intento pone a la tienda más nerviosa y se relaja en *${ATRACO.enfriaHoras}h*: no es una tragaperras, es un sitio que se defiende._
-*!robo tienda* / *comprar* — escudo, ganzúa, cebo
+*!tienda* — verla · *!comprar* <objeto>
+_Para cazar: *escudo* (${fmt(OBJETOS.escudo.precio)}) nadie te roba ${OBJETOS.escudo.horas}h · *cebo* (${fmt(OBJETOS.cebo.precio)}) aparentas x${OBJETOS.cebo.multiplicador} y el que pica se estrella · *ganzúa* (${fmt(OBJETOS.ganzua.precio)}) +${Math.round(OBJETOS.ganzua.bono * 100)}% en un robo_
 _Para la mesa: *amuleto* (${fmt(OBJETOS.amuleto.precio)}) · *seguro* (${fmt(OBJETOS.seguro.precio)}) · *socio* (${fmt(OBJETOS.socio.precio)}) todo un ${Math.round(OBJETOS.socio.descuento * 100)}% más barato ${OBJETOS.socio.horas}h_
-_Ganzúa, amuleto y seguro dan ventaja de verdad, así que la tienda solo fía *uno de los tres cada ${VENTAJA.cooldownHoras}h*. El escudo, el cebo y el socio no cuentan._
-_Y los caros: *pase* (${fmt(OBJETOS.pase.precio)}) publicas tus redes ${OBJETOS.pase.horas}h · *indulto* (${fmt(OBJETOS.indulto.precio)}) el bot no te banea solo. Ninguno te salva de un admin._
+_Permisos: *pase* (${fmt(OBJETOS.pase.precio)}) publicas tus redes ${OBJETOS.pase.horas}h · *indulto* (${fmt(OBJETOS.indulto.precio)}) el bot no te banea solo ${OBJETOS.indulto.horas}h. Ninguno te salva de un admin._
+_Ganzúa, amuleto y seguro dan ventaja de verdad: la tienda solo fía *uno de los tres cada ${VENTAJA.cooldownHoras}h*. El escudo, el cebo y el socio no cuentan._
 *!contrarobo* — devuelves el golpe, *${CONTRA.ventanaSeg}s*
 _Cuanto antes respondas, más probabilidad: el bono entero es en los primeros *${CONTRA.segRapido}s* y se va cayendo. Puedes recuperar hasta *${CONTRA.desenlaces.demoledor.mult}x*... o pagar otro *${Math.abs(CONTRA.desenlaces.ruina.mult)}x* por listo._
 *!buscados* / *!robo top* — los más buscados y lo que paga cada cabeza
 _Cada golpe que das te deja un *${Math.round(RECOMPENSA.fraccionDeGolpe * 100)}%* encima de la cabeza. Quien te cace se lo lleva entero, además del botín. Si nadie te caza en 7 días, caduca._
 
 *!duel* @user <cant.> — 1v1, se acepta con *!duel aceptar*
-*!dar* @user <cant.> — regalas aura, desde *${fmt(REGALO_MIN)}*
+*!dar* / *!regalar* @user <cant.> — regalas aura, desde *${fmt(REGALO_MIN)}*
 _Hay un *${Math.round(IMPUESTO.porcentaje * 100)}%* de impuesto (mínimo *${fmt(IMPUESTO.minimo)}*) que paga quien da: el otro cobra siempre lo que pusiste. La mitad de lo recaudado va al bote._
 
 ━━━━━ *LA LETRA PEQUEÑA* ━━━━━
@@ -1103,7 +1116,16 @@ async function cmdAura(sock, msg, args, groupMeta) {
   //
   // La GUIA si pasa: es texto y leerla por privado sin gastarle el chat a nadie
   // es justo para lo que sirve.
-  const esGuia = ['info', 'help', 'ayuda', 'como', 'cómo', '?', 'guia', 'guía'].includes(sub);
+  // UNA SOLA LISTA, y hacia falta: habia dos y no decian lo mismo. Esta dejaba
+  // pasar 'guia' y 'guía' por privado, pero la de mas abajo —la que DESPACHA la
+  // guia— no los llevaba. Resultado: quien escribia *!aura guia*, que es lo
+  // natural, no recibia la guia sino una TIRADA, y encima se le gastaba el
+  // cooldown. Por privado era peor todavia: pasaba el filtro de grupo y caia en
+  // la tirada, que es justo lo que ese filtro existe para impedir.
+  //
+  // Se salvo solo porque el atajo *!guia* del dispatcher traduce a 'info'.
+  const SUBS_GUIA = ['info', 'help', 'ayuda', 'como', 'cómo', '?', 'guia', 'guía'];
+  const esGuia = SUBS_GUIA.includes(sub);
   if (!jid.endsWith('@g.us') && !esGuia) {
     return sock.sendMessage(jid, {
       text: 'El aura es del grupo: se juega ahí, no por privado.\n_Para saber cómo va: *!aura info*_',
@@ -1119,7 +1141,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
   if (['top', 'rank', 'ranking', 'leaderboard'].includes(sub)) {
     return showRanking(sock, msg, groupMeta);
   }
-  if (['info', 'help', 'ayuda', 'como', 'cómo', '?'].includes(sub)) {
+  if (esGuia) {
     return sock.sendMessage(jid, { text: textoAuraInfo() }, { quoted: msg });
   }
   // Progreso diario. Vive en social.js (cmdCasino) y se expone aquí como

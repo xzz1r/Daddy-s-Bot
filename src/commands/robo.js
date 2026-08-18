@@ -1563,9 +1563,20 @@ async function laTienda(sock, msg, jid, sender, args, groupMeta) {
   const nombre = tag(sender);
 
   if (!que || !OBJETOS[que]) {
-    const lineas = Object.entries(OBJETOS)
-      .map(([k, o]) => `*${k}* — ${fmt(o.precio)} · ${o.desc}`)
-      .join('\n');
+    // AGRUPADA POR PARA QUE SIRVE CADA COSA. Eran ocho lineas planas en las que
+    // el escudo y el indulto —que no tienen nada que ver ni en precio ni en uso—
+    // se leian igual. Las tres familias ya existian en los comentarios de
+    // economia.js; aqui solo se hacen visibles.
+    const familia = (titulo, claves) =>
+      `*${titulo}*\n` + claves
+        .filter((k) => OBJETOS[k])
+        .map((k) => `· *${k}* — ${fmt(OBJETOS[k].precio)} · ${OBJETOS[k].desc}`)
+        .join('\n');
+    const lineas = [
+      familia('PARA SALIR DE CAZA', ['escudo', 'cebo', 'ganzua']),
+      familia('PARA LA MESA', ['amuleto', 'seguro', 'socio']),
+      familia('PERMISOS', ['pase', 'indulto']),
+    ].join('\n\n');
 
     // Lo que YA llevas encima. Una tienda que no te enseña tu inventario te
     // obliga a comprar a ciegas, y comprar dos escudos seguidos porque no
@@ -1582,11 +1593,26 @@ async function laTienda(sock, msg, jid, sender, args, groupMeta) {
     if (mio.amuleto > 0)     llevo.push(`amuleto — *${mio.amuleto}* ${mio.amuleto === 1 ? 'uso' : 'usos'}`);
     if (mio.seguro > 0)      llevo.push(`seguro — *${mio.seguro}* ${mio.seguro === 1 ? 'uso' : 'usos'}`);
 
+    // El limite de los objetos de ventaja se dice AQUI y con el reloj puesto. Es
+    // la unica regla de la tienda que puede hacer que una compra rebote, y
+    // enterarse al intentar pagar es la peor forma de enterarse.
+    const conVentaja = Object.keys(OBJETOS).filter((k) => OBJETOS[k].ventaja);
+    const desdeVentaja = Date.now() - await tienda.ultimaVentaja(jid, sender);
+    const esperaVentaja = VENTAJA.cooldownHoras * 3600000;
+    const avisoVentaja = desdeVentaja < esperaVentaja
+      ? `_${conVentaja.join(', ')} dan ventaja de verdad: solo *uno cada ${VENTAJA.cooldownHoras}h*. Te toca en *${restanteEnTexto(esperaVentaja - desdeVentaja)}*._`
+      : `_${conVentaja.join(', ')} dan ventaja de verdad: solo *uno cada ${VENTAJA.cooldownHoras}h*, y ahora mismo lo tienes disponible._`;
+
+    // Y cuanto hay en la caja, porque cada compra la engorda: es la consecuencia
+    // directa de estar mirando esta pantalla y el enganche con !atraco.
+    const enCaja = await tienda.verCaja(jid);
+
     return sock.sendMessage(jid, {
-      text: `*LA TIENDA DEL LADRÓN*\n╾━━━━━━━━━━━━━━╼\n\n${lineas}\n\n` +
+      text: `*LA TIENDA DEL LADRÓN*\n╾━━━━━━━━━━━━━━╼\n\n${lineas}\n\n${avisoVentaja}\n\n` +
         `*LLEVAS ENCIMA*\n` +
         (llevo.length ? llevo.map(l => `· ${l}`).join('\n') : `_${pickFresh(RX.INVENTARIO_VACIO, `${jid}|inv|vacio`)}_`) +
-        `\n\n_Se compra con *!robo comprar <lo que sea>*._`,
+        `\n\n_Se compra con *!comprar <lo que sea>*._` +
+        `\n_En la caja hay *${fmt(enCaja)}*. Un ${Math.round(ATRACO.fraccionDeCompra * 100)}% de cada compra va ahí, y con *!atraco* se entra a por ella._`,
       mentions: [sender],
     }, { quoted: msg });
   }
