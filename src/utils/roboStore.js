@@ -171,6 +171,34 @@ async function gastarIndulto(g, persona) {
   return true;
 }
 
+// ¿Tiene el descuento de socio activo?
+async function tieneSocio(g, persona) {
+  const o = await objetosDe(g, persona);
+  if (!o.socio) return false;
+  if (o.socio > Date.now()) return true;
+  await darObjeto(g, persona, 'socio', undefined);
+  return false;
+}
+
+// Objetos de un solo uso que se consumen al resolver una apuesta. Devuelve true
+// si lo tenia (y lo gasta). Sirve para amuleto y seguro: los dos son de un uso.
+async function gastarUso(g, persona, objeto) {
+  await load();
+  const x = grupo(g);
+  const k = canonicalJid(persona);
+  const o = x.objetos[k];
+  if (!o || !(o[objeto] > 0)) return false;
+  o[objeto] -= 1;
+  if (o[objeto] <= 0) delete o[objeto];
+  scheduleSave();
+  return true;
+}
+
+async function tieneUso(g, persona, objeto) {
+  const o = await objetosDe(g, persona);
+  return Boolean(o[objeto] > 0);
+}
+
 async function tieneCebo(g, persona) {
   const o = await objetosDe(g, persona);
   return Boolean(o.cebo && o.cebo > Date.now());
@@ -217,6 +245,7 @@ async function masBuscado(g) {
 }
 
 module.exports = {
+  tieneSocio, gastarUso, tieneUso,
   tienePase, tieneIndulto, gastarIndulto,
   verBote, aportarAlBote, vaciarBote,
   objetosDe, darObjeto, gastarGanzua, tieneEscudo, tieneCebo,

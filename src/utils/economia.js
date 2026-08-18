@@ -603,6 +603,35 @@ const OBJETOS = {
   // su propio grupo y la tienda se convierte en un agujero de moderacion.
   // Es un seguro contra el automatismo, no un salvoconducto.
   indulto: { precio: 1500, horas: 48, desc: 'el bot no te banea solo durante 48 h — no te salva de un admin' },
+
+  // ─── Los de la mesa ────────────────────────────────────────────────────────
+  //
+  // POR QUE LOS DOS LLEVAN TOPE. Cualquier ventaja proporcional a lo apostado
+  // se convierte en una impresora de aura en cuanto alguien apuesta fuerte: un
+  // +8 % de probabilidad sobre una apuesta de 5.000 vale 800 de valor esperado,
+  // asi que comprarlo por 450 y apostar el maximo seria ganar dinero sin jugar.
+  //
+  // Con el tope, lo que el objeto puede llegar a valer esta acotado y siempre
+  // por debajo de su precio. Sigue siendo util —te cubre una apuesta normal
+  // entera— pero no se puede exprimir.
+  amuleto: { precio: 450, usos: 1, bono: 0.08, topeApuesta: 2000,
+             desc: '+8 % en tu próxima apuesta (sobre los primeros 2.000)' },
+  seguro:  { precio: 600, usos: 1, recupera: 0.5, topeDevuelto: 800,
+             desc: 'si pierdes la próxima apuesta recuperas la mitad (máx. 800)' },
+
+  // Descuento en todo lo que se paga.
+  //
+  // EL PRECIO SALE DE UNA CUENTA, no a ojo. Con un comando medio en unos 28 de
+  // aura y un descuento del 25 %, cada comando ahorra 7. A 500 el socio no sale
+  // a cuenta hasta los ~71 comandos en doce horas, que es machacar el bot todo
+  // el dia. Un usuario normal-tirando-a-intenso (40-50 comandos) ahorra 280-350
+  // y pierde dinero comprandolo.
+  //
+  // Esa es la linea: tiene que compensar solo al que de verdad vive en el chat,
+  // no al que lo compra por si acaso. La primera version estaba en 400 y salia
+  // rentable demasiado pronto.
+  socio:   { precio: 500, horas: 12, descuento: 0.25,
+             desc: 'todos los comandos te cuestan un 25 % menos durante 12 h' },
 };
 
 // EL CONTRAATAQUE. Tras un robo con éxito, la víctima tiene una ventana para

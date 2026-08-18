@@ -6,7 +6,10 @@
 // por una canción que no llegó.
 
 const { spendAura, addAura } = require('./auraStore');
-const { PRECIOS, SALDO_MINIMO, ACTIVIDAD_MSGS } = require('./economia');
+const { PRECIOS, SALDO_MINIMO, ACTIVIDAD_MSGS, OBJETOS } = require('./economia');
+// require perezoso: roboStore importa de aqui? No, pero se deja explicito para
+// que quede claro que este modulo depende del inventario.
+const { tieneSocio } = require('./roboStore');
 const { fmt, pickFresh } = require('./helpers');
 const { isOwner } = require('./wa');
 
@@ -16,9 +19,19 @@ const { isOwner } = require('./wa');
 //
 // El owner tier no paga: administra el bot, no lo consume.
 async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta = null } = {}) {
-  const precio = PRECIOS[concepto];
-  if (!precio) return { ok: true, pagado: 0, saldo: null };
+  const base = PRECIOS[concepto];
+  if (!base) return { ok: true, pagado: 0, saldo: null };
   if (isOwner(senderJid, fromMe, groupMeta)) return { ok: true, pagado: 0, saldo: null, exento: true };
+
+  // El descuento de SOCIO se aplica aqui, en el unico sitio por el que pasan
+  // todos los cobros. Ponerlo en cada comando seria garantizar que a alguno se
+  // le olvide y que el precio anunciado y el cobrado dejen de cuadrar.
+  let precio = base;
+  try {
+    if (await tieneSocio(groupJid, senderJid)) {
+      precio = Math.max(1, Math.round(base * (1 - OBJETOS.socio.descuento)));
+    }
+  } catch { /* si el fichero de objetos falla, se cobra el precio entero */ }
 
   // Comprobar y descontar tiene que ser UNA sola operacion: si se hace en dos
   // pasos, dos comandos simultaneos del mismo usuario leen el mismo saldo antes
@@ -26,7 +39,7 @@ async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta
   // usuario en negativo comprando, que es lo que SALDO_MINIMO impide.
   const r = await spendAura(groupJid, senderJid, precio, SALDO_MINIMO);
   if (!r.ok) return { ok: false, precio, saldo: r.saldo };
-  return { ok: true, pagado: precio, saldo: r.current };
+  return { ok: true, pagado: precio, saldo: r.current, precioBase: base };
 }
 
 // Devuelve lo cobrado. Se llama cuando el recurso falló después del cobro.

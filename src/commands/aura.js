@@ -8,6 +8,7 @@ const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
 const { BOTE, CONTRA, RACHA, RIESGO, OBJETOS } = require('../utils/economia');
 const { aportarAlBote } = require('../utils/roboStore');
+const tiendaObj = require('../utils/roboStore');
 
 // QUINCE MINUTOS, subido desde minuto y medio por decision del owner.
 //
@@ -629,6 +630,7 @@ _Cuanto más te juegues de lo tuyo, más paga: de *x${APUESTA.multiplicador}* a 
 _Pero cuanto más pides, menos probable: el punto dulce está sobre el ${Math.round(RIESGO.puntoDulce * 100)}% de lo que podrías llevarte._
 *!robo bote* / *asalto* — el bote común. Reventarlo cuesta *${fmt(BOTE.entrada)}*
 *!robo tienda* / *comprar* — escudo, ganzúa, cebo
+_Para la mesa: *amuleto* (${fmt(OBJETOS.amuleto.precio)}) · *seguro* (${fmt(OBJETOS.seguro.precio)}) · *socio* (${fmt(OBJETOS.socio.precio)}) todo un ${Math.round(OBJETOS.socio.descuento * 100)}% más barato ${OBJETOS.socio.horas}h_
 _Y los caros: *pase* (${fmt(OBJETOS.pase.precio)}) publicas tus redes ${OBJETOS.pase.horas}h · *indulto* (${fmt(OBJETOS.indulto.precio)}) el bot no te banea solo. Ninguno te salva de un admin._
 *!robo contra* — devuelves el golpe, *${CONTRA.ventanaSeg}s*. Doble o nada
 *!robo top* — los más buscados
@@ -729,7 +731,13 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
 
     const esOwner = isOwner(sender, msg.key.fromMe, groupMeta);
     const esAdmin = !esOwner && isAdmin(groupMeta?.participants, sender);
-    const p = esOwner ? APUESTA.p.owner : esAdmin ? APUESTA.p.admin : APUESTA.p.miembro;
+    const pBase = esOwner ? APUESTA.p.owner : esAdmin ? APUESTA.p.admin : APUESTA.p.miembro;
+
+    // AMULETO: se gasta al tirar, gane o pierda. Un objeto que solo se gastara
+    // al perder seria gratis cuando funciona, y entonces no es una apuesta: es
+    // un descuento.
+    const conAmuleto = await tiendaObj.gastarUso(jid, sender, 'amuleto').catch(() => false);
+    const p = conAmuleto ? Math.min(0.95, pBase + OBJETOS.amuleto.bono) : pBase;
     const gana = Math.random() < p;
 
     // La cifra la pone el jugador; sin cifra, la mitad de siempre.
@@ -761,7 +769,19 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
     const objetivo = gana
       ? saldo + Math.round(apuesta * (mult - 1))
       : Math.max(APUESTA.suelo, saldo - apuesta);
-    const delta = objetivo - saldo;
+    let delta = objetivo - saldo;
+
+    // SEGURO: devuelve la mitad de lo perdido, con tope. El tope no es un
+    // detalle: sin el, el seguro vale mas cuanto mas apuestas y comprarlo por
+    // 600 para cubrir una apuesta de 5.000 seria ganar aura sin jugar.
+    let devuelto = 0;
+    if (!gana && delta < 0 && await tiendaObj.gastarUso(jid, sender, 'seguro').catch(() => false)) {
+      devuelto = Math.min(
+        Math.round(Math.abs(delta) * OBJETOS.seguro.recupera),
+        OBJETOS.seguro.topeDevuelto,
+      );
+      delta += devuelto;
+    }
 
     const { current } = await addAura(jid, sender, delta);
 
@@ -783,6 +803,10 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
       `╾━━━━━━━━━━━━━━╼\n\n` +
       `${nm} puso *${fmt(apuesta)}* sobre la mesa.` +
       (recortada ? `\n_Ibas a por ${fmt(bruto)}, pero es todo lo que puedes cubrir._` : '') +
+      // Los objetos se DICEN. Un amuleto que actua en silencio es aura tirada:
+      // el jugador no sabe si le sirvio de algo y no vuelve a comprarlo.
+      (conAmuleto ? `\n_El amuleto se gastó: tiraste con un ${Math.round(OBJETOS.amuleto.bono * 100)} % más de suerte._` : '') +
+      (devuelto ? `\n_El seguro te devuelve *${fmt(devuelto)}* de lo perdido._` : '') +
       `\n\n` +
       `${frase}\n\n` +
       `${gana ? '+' : '−'}${fmt(Math.abs(delta))} → *${fmt(current)}* de aura` +

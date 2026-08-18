@@ -1551,6 +1551,9 @@ async function laTienda(sock, msg, jid, sender, args, groupMeta) {
     if (mio.ganzua > 0)     llevo.push(`ganzúa — *${mio.ganzua}* ${mio.ganzua === 1 ? 'uso' : 'usos'}`);
     if (mio.pase > ahora)    llevo.push(`pase de redes — le quedan *${restanteEnTexto(mio.pase - ahora)}*`);
     if (mio.indulto > ahora) llevo.push(`indulto — le quedan *${restanteEnTexto(mio.indulto - ahora)}*`);
+    if (mio.socio > ahora)   llevo.push(`socio — le quedan *${restanteEnTexto(mio.socio - ahora)}*`);
+    if (mio.amuleto > 0)     llevo.push(`amuleto — *${mio.amuleto}* ${mio.amuleto === 1 ? 'uso' : 'usos'}`);
+    if (mio.seguro > 0)      llevo.push(`seguro — *${mio.seguro}* ${mio.seguro === 1 ? 'uso' : 'usos'}`);
 
     return sock.sendMessage(jid, {
       text: `*LA TIENDA DEL LADRÓN*\n╾━━━━━━━━━━━━━━╼\n\n${lineas}\n\n` +
@@ -1571,9 +1574,15 @@ async function laTienda(sock, msg, jid, sender, args, groupMeta) {
   }
 
   await addAura(jid, sender, -obj.precio);
-  if (que === 'ganzua') {
-    const previos = (await tienda.objetosDe(jid, sender)).ganzua || 0;
-    await tienda.darObjeto(jid, sender, 'ganzua', previos + obj.usos);
+  // Por USOS o por HORAS, segun lo que declare el objeto.
+  //
+  // Antes esto preguntaba literalmente `if (que === 'ganzua')`, asi que
+  // cualquier objeto nuevo de un solo uso caia en la rama de las horas y se
+  // guardaba `Date.now() + undefined * 3600000`, o sea NaN: comprado, cobrado y
+  // sin efecto ninguno. Ahora manda la ficha del objeto y no su nombre.
+  if (obj.usos) {
+    const previos = (await tienda.objetosDe(jid, sender))[que] || 0;
+    await tienda.darObjeto(jid, sender, que, previos + obj.usos);
   } else {
     await tienda.darObjeto(jid, sender, que, Date.now() + obj.horas * 3600000);
   }
