@@ -3,7 +3,7 @@ const { pickFresh } = require('../utils/helpers');
 const config = require('../config');
 const { isBotEnabled, incrementStat, isAntiLinkEnabled, isSoloAdminsEnabled, isAntiBusinessEnabled } = require('../utils/state');
 const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
-const { cobrar: cobrarAura, textoSinSaldo } = require('../utils/auraCobro');
+const { cobrar: cobrarAura, devolver: devolverAura, textoSinSaldo } = require('../utils/auraCobro');
 const { PRECIOS } = require('../utils/economia');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { recordFacts } = require('../utils/nickStore');
@@ -1433,12 +1433,16 @@ async function handleMessage(sock, msg) {
   // Cobro central. Va antes del switch para que un comando sin saldo no llegue
   // ni a ejecutarse. El owner tier no paga (lo resuelve cobrarAura).
   const conceptoCobro = COBRO_CENTRAL[command];
+  // Lo cobrado se guarda para poder DEVOLVERLO si el comando revienta. Ver el
+  // catch del final.
+  let cobradoAqui = 0;
   if (jid.endsWith('@g.us') && conceptoCobro && !COBRAN_SOLOS.has(command)) {
     const pago = await cobrarAura(jid, sender, conceptoCobro, { fromMe: msg.key.fromMe, groupMeta });
     if (!pago.ok) {
       await sock.sendMessage(jid, { text: textoSinSaldo(conceptoCobro, pago, jid) }, { quoted: msg });
       return;
     }
+    cobradoAqui = pago.pagado || 0;
   }
 
   // Dinamica de aura en pausa (*!aura off*): los comandos que MUEVEN aura no se
@@ -1903,7 +1907,22 @@ async function handleMessage(sock, msg) {
     }
   } catch (err) {
     logger.error(`Command ${command} error: ${err.message}`);
-    sock.sendMessage(jid, { text: `Error inesperado: ${err.message}` }, { quoted: msg }).catch(() => {});
+
+    // SE DEVUELVE LO COBRADO. El cobro central ocurre ANTES del switch, asi que
+    // un comando que revienta dejaba al usuario pagando por un error: perdia el
+    // aura Y se quedaba sin respuesta. Y no es hipotetico — paso con el
+    // "sign is not defined" de !aura y con los pools vacios, que cobraban 25 y
+    // contestaban con una excepcion.
+    //
+    // Los comandos que se cobran por dentro (COBRAN_SOLOS) ya devuelven ellos
+    // mismos cuando falla su recurso; aqui solo se deshace lo que se cobro aqui.
+    if (cobradoAqui > 0) {
+      await devolverAura(jid, sender, cobradoAqui).catch(() => {});
+    }
+
+    sock.sendMessage(jid, {
+      text: `Error inesperado: ${err.message}` + (cobradoAqui > 0 ? `\n_Te devuelvo los ${cobradoAqui} de aura._` : ''),
+    }, { quoted: msg }).catch(() => {});
   }
 
 }
