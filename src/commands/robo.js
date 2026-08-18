@@ -44,20 +44,20 @@ function topeRobo(auraLadron, auraVictima) {
 // intento en vez de describir lo que paso.
 const ROBO_FALLO_REMATE = [
   'y le salió como el puto culo',
-  'y le salió como todo en la vida: mal',
-  'y le salió tan bien como le sale todo lo demás',
-  'y se estrelló como estaba escrito',
-  'y le duró menos que la dignidad',
-  'y acabó como acaba siempre: haciendo el ridículo',
-  'y le salió del revés, como su puta suerte',
-  'y la cagó con una precisión admirable',
-  'y le salió mal, que es su especialidad',
-  'y volvió con las manos vacías y la cara llena',
-  'y le salió regular tirando a desastre',
-  'y demostró por qué nadie le deja nada',
-  'y se llevó exactamente lo que merecía: nada',
-  'y le salió tan mal que hasta la víctima se ofendió',
-  'y confirmó que lo suyo no es robar, ni esto ni nada',
+  'y le salió como todo en su puta vida: mal',
+  'y se estrelló como el gilipollas que es',
+  'y le duró menos que la dignidad, que ya es decir',
+  'y acabó haciendo el ridículo, su especialidad',
+  'y la cagó con una puntería que asusta',
+  'y volvió con las manos vacías y la cara de imbécil puesta',
+  'y demostró por qué no le dejan ni el mando de la tele',
+  'y se llevó lo que merece: una puta mierda',
+  'y hasta la víctima sintió vergüenza ajena',
+  'y confirmó que lo suyo no es robar, ni esto ni una puta cosa',
+  'y se quedó ahí parado como un pasmarote',
+  'y le salió tan mal que da hasta risa, cabrón',
+  'y ni robando sirve, que ya hay que ser inútil',
+  'y volvió llorando a su rincón de siempre'
 ];
 
 const lastRob = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
