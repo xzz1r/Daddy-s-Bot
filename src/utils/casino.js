@@ -260,13 +260,17 @@ async function checkCasinoMilestone(sock, jid, sender) {
                   : tier === 2 ? '*BONO DE AURA · TIER 2 · 500 MENSAJES*'
                   :              '*BONO DE AURA · TIER 1 · 200 MENSAJES*';
   const next      = nextMilestone(count);
-  const nextLabel = next.tier === 3 ? 'Tier 3 (1000 msgs)'
-                  : next.tier === 2 ? 'Tier 2 (500 msgs)'
-                  :                   'Tier 1 (200 msgs)';
+  // La etiqueta decia el TAMAÑO del tramo, no donde esta el proximo bono. Justo
+  // despues de cobrar el de 200 salia "Proximo bono: Tier 1 (200 msgs)", que se
+  // lee como que el siguiente vuelve a ser a los 200 — el que se acaba de dar.
+  // Ahora dice el numero al que hay que llegar.
+  const nextLabel = `Tier ${next.tier} a los ${fmt(count + next.remaining)}`;
 
+  // La cifra salia TRES veces en cinco lineas: en la cabecera, en el "lleva X
+  // mensajes hoy" y otra vez dentro de la frase. Con la cabecera basta.
   const text =
     `${tierHdr}\n\n` +
-    `${userTag} lleva *${fmt(count)} mensajes* hoy\n\n` +
+    `${userTag}\n\n` +
     `${phrase}\n\n` +
     `${userTag}  +${fmt(amount)} de aura → *${fmt(current)}*\n\n` +
     `_Próximo bono: ${nextLabel} — faltan ${fmt(next.remaining)} mensajes_`;

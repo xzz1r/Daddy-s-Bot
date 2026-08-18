@@ -580,11 +580,15 @@ async function cmdRoast(sock, msg, groupMeta) {
 
   pushHist(jid, cat, tpl);
 
+  // Tres de las nueve lineas eran decoracion: dos barras separadoras y un
+  // "Victima: @X" que la propia frase ya dice —el roast empieza mencionandole—.
+  // En un movil eso es un tercio del mensaje gastado en no decir nada.
+  //
+  // Se queda UNA barra, que es la que separa el golpe del remate y ahi si hace
+  // trabajo: marca donde termina la paliza y empieza la firma.
   const text =
-    `${pickFresh(HEADERS, `${jid}|roast|hdr`)}\n` +
-    `╾━━━━━━━━━━━━━━╼\n\n` +
-    `Víctima: @${targetNum}\n\n` +
-    `${roastText}\n\n` +
+    `${pickFresh(HEADERS, `${jid}|roast|hdr`)}\n\n` +
+    `${roastText}\n` +
     `╾━━━━━━━━━━━━━━╼\n` +
     `${pickFresh(CLOSERS, `${jid}|roast|end`)}`;
 
