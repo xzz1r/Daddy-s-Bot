@@ -1,3 +1,4 @@
+const fs = require('fs');
 const { pickFresh } = require('../utils/helpers');
 const config = require('../config');
 const { isBotEnabled, incrementStat, isAntiLinkEnabled, isSoloAdminsEnabled, isAntiBusinessEnabled } = require('../utils/state');
@@ -461,6 +462,65 @@ const antilinkReminders = new Map(); // 'groupJid|sender' -> timestamp
 // entradas; a este se le olvido. Va por grupo, asi que crece despacio, pero en
 // un bot que lleva meses sin reiniciarse "despacio" tambien llega.
 const MAX_AVISOS_GRUPO = 500;
+
+// ─── "¿Querías decir...?" ────────────────────────────────────────────────────
+//
+// La lista de comandos SE LEE DE ESTE MISMO FICHERO, de los `case` del
+// dispatcher. Mantenerla a mano en un array aparte garantiza que se quede
+// desfasada: se anyade un comando, nadie se acuerda del array, y el bot acaba
+// sugiriendo comandos que ya no existen o ignorando los nuevos. Leyendo la
+// fuente no hay dos sitios que puedan discrepar.
+const COMANDOS_CONOCIDOS = (() => {
+  try {
+    const src = fs.readFileSync(__filename, 'utf8');
+    return [...new Set([...src.matchAll(/^\s*case '([a-zá-úñ0-9_]{2,})':/gmi)].map(m => m[1]))];
+  } catch { return []; }
+})();
+
+// Distancia de edicion, cortada en cuanto se pasa del maximo que nos interesa.
+function distancia(a, b, max) {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    const fila = [i];
+    let mejor = i;
+    for (let j = 1; j <= b.length; j++) {
+      fila[j] = Math.min(prev[j] + 1, fila[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if (fila[j] < mejor) mejor = fila[j];
+    }
+    if (mejor > max) return max + 1;
+    prev = fila;
+  }
+  return prev[b.length];
+}
+
+// El parecido exigido sube con lo corto que sea lo escrito: en algo de 3 letras
+// una distancia de 2 ya es otra palabra distinta.
+function sugerirComando(escrito) {
+  if (!escrito || escrito.length < 3) return null;
+  const max = escrito.length <= 4 ? 1 : 2;
+  let mejor = null, mejorD = max + 1;
+  for (const c of COMANDOS_CONOCIDOS) {
+    // Un comando que EMPIEZA por lo escrito casi siempre es lo que se buscaba
+    // (*!apues* -> *!apuesta*), aunque la distancia sea mayor que el margen.
+    if (c.length > escrito.length && c.startsWith(escrito)) return c;
+    const d = distancia(escrito, c, max);
+    if (d < mejorD) { mejorD = d; mejor = c; }
+  }
+  return mejorD <= max ? mejor : null;
+}
+
+// Una sugerencia por persona cada 30 s. Sin esto, quien se pelea con el teclado
+// convierte el chat en un hilo de correcciones del bot.
+const ultimaSugerencia = new Map();
+function puedeSugerir(quien) {
+  const k = String(quien);
+  const ahora = Date.now();
+  if (ultimaSugerencia.size >= MAX_AVISOS_GRUPO) ultimaSugerencia.delete(ultimaSugerencia.keys().next().value);
+  if (ahora - (ultimaSugerencia.get(k) || 0) < 30000) return false;
+  ultimaSugerencia.set(k, ahora);
+  return true;
+}
 const antilinkNoAdminWarn = new Map(); // 'groupJid' -> timestamp (bot-not-admin notice)
 const videoOnceWarn = new Map();       // 'groupJid|sender|vo' -> timestamp del ultimo aviso
 
@@ -1274,6 +1334,11 @@ async function handleMessage(sock, msg) {
 
   try {
     switch (command) {
+      case 'musica':
+      case 'música':
+      case 'cancion':
+      case 'canción':
+      case 'song':
       case 'playsong':
       case 'playaudio':
       case 'play':
@@ -1341,6 +1406,7 @@ async function handleMessage(sock, msg) {
       case 'fiel':      await cmdFiel(sock, msg, groupMeta); break;
       case 'infiel':    await cmdInfiel(sock, msg, groupMeta); break;
 
+      case 'importancia':
       case 'relevancia':
       case 'relevance':
         await cmdRelevance(sock, msg, groupMeta);
@@ -1434,10 +1500,14 @@ async function handleMessage(sock, msg) {
         await cmdMarkFake(sock, msg, args, groupMeta);
         break;
 
+      case 'banear':
+      case 'ban':
       case 'fkban':
         await cmdFkBan(sock, msg, args, groupMeta);
         break;
 
+      case 'desbanear':
+      case 'unban':
       case 'fkunban':
         await cmdFkUnban(sock, msg, args, groupMeta);
         break;
@@ -1467,6 +1537,8 @@ async function handleMessage(sock, msg) {
         await cmdAdd(sock, msg, args, groupMeta);
         break;
 
+      case 'sacar':
+      case 'echar':
       case 'kick':
       case 'expulsar':
         await cmdKick(sock, msg, args, groupMeta);
@@ -1478,6 +1550,8 @@ async function handleMessage(sock, msg) {
         await cmdDel(sock, msg, groupMeta);
         break;
 
+      case 'silenciar':
+      case 'callar':
       case 'mute':
         await cmdMute(sock, msg, args, groupMeta);
         break;
@@ -1491,6 +1565,7 @@ async function handleMessage(sock, msg) {
         await cmdShip(sock, msg, args, groupMeta);
         break;
 
+      case 'texto':
       case 'ttp':
         await cmdTtp(sock, msg, args);
         break;
@@ -1540,6 +1615,30 @@ async function handleMessage(sock, msg) {
 
       case 'aura':           await cmdAura(sock, msg, args, groupMeta); break;
 
+      // Los subcomandos, tambien sueltos.
+      //
+      // La gente escribe *!apostar 500*, no *!aura apostar 500*: el subcomando
+      // es lo que tiene nombre en su cabeza, y el contenedor se lo inventa el
+      // bot. Antes eso no hacia nada — silencio — y el que lo intentaba se
+      // quedaba pensando que el comando no existia.
+      //
+      // Se reinyecta el subcomando al principio de los argumentos y se llama al
+      // mismo sitio de siempre: una sola implementacion, dos puertas.
+      case 'apostar':
+      case 'apuesta':
+      case 'apuestas':
+        await cmdAura(sock, msg, ['apostar', ...args], groupMeta);
+        break;
+      case 'ranking':
+      case 'top':
+        await cmdAura(sock, msg, ['top', ...args], groupMeta);
+        break;
+      case 'hoy':
+      case 'saldo':
+      case 'miaura':
+        await cmdAura(sock, msg, ['hoy', ...args], groupMeta);
+        break;
+
       // La guia del aura, como comando propio.
       //
       // Existia solo como *!aura info*, que nadie descubre por su cuenta, y lo
@@ -1570,11 +1669,16 @@ async function handleMessage(sock, msg) {
         await cmdMog(sock, msg, groupMeta);
         break;
 
+      case 'quemar':
+      case 'destruir':
       case 'roast':
       case 'flamear':
         await cmdRoast(sock, msg, groupMeta);
         break;
 
+      case 'regalar':
+      case 'transferir':
+      case 'pagar':
       case 'dar':
       case 'donar':
         await cmdDar(sock, msg, args);
@@ -1582,7 +1686,25 @@ async function handleMessage(sock, msg) {
 
       case 'robo':
       case 'robar':
+      case 'atraco':
         await cmdRobo(sock, msg, args, groupMeta);
+        break;
+
+      // Igual que arriba: la tienda y el bote tienen nombre propio para quien
+      // los usa, aunque por dentro cuelguen de !robo.
+      case 'tienda':
+      case 'shop':
+        await cmdRobo(sock, msg, ['tienda', ...args], groupMeta);
+        break;
+      case 'comprar':
+              await cmdRobo(sock, msg, ['comprar', ...args], groupMeta);
+        break;
+      case 'bote':
+        await cmdRobo(sock, msg, ['bote', ...args], groupMeta);
+        break;
+      case 'asalto':
+      case 'asaltar':
+        await cmdRobo(sock, msg, ['asalto', ...args], groupMeta);
         break;
 
       case 'duel':
@@ -1598,6 +1720,7 @@ async function handleMessage(sock, msg) {
 
       // !fantasmas ordena a los que hablan POCO; !inactivos saca a los que no
       // han escrito NUNCA. Son dos listas distintas a proposito.
+      case 'muertos':
       case 'fantasma':
       case 'fantasmas':
         await cmdFantasmas(sock, msg, groupMeta);
@@ -1637,8 +1760,25 @@ async function handleMessage(sock, msg) {
         await cmdHelp(sock, msg, groupMeta);
         break;
 
-      default:
+      // ¿QUERIAS DECIR...? Antes un comando mal escrito no hacia NADA.
+      //
+      // Ese silencio es el peor de los desenlaces: el que escribe *!apuestas* o
+      // *!musica* no sabe si se equivoco, si el bot esta caido o si el comando
+      // no existe, asi que o pregunta o lo deja. La mayoria lo deja.
+      //
+      // Ahora se busca el comando conocido mas parecido y se ofrece. Solo si se
+      // parece de verdad (distancia 1 o 2 segun lo largo que sea), porque
+      // sugerir cualquier cosa es peor que no sugerir nada: *!x* no "queria
+      // decir" nada.
+      default: {
+        const sug = sugerirComando(command);
+        if (sug && puedeSugerir(sender)) {
+          await sock.sendMessage(jid, {
+            text: `No existe *${config.prefix}${command}*. ¿Querías decir *${config.prefix}${sug}*?`,
+          }, { quoted: msg }).catch(() => {});
+        }
         break;
+      }
     }
   } catch (err) {
     logger.error(`Command ${command} error: ${err.message}`);
