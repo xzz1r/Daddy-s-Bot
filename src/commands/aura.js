@@ -607,8 +607,20 @@ for (const tramo of Object.keys(AURA)) AURA[tramo] = AURA[tramo];
 // una son diez rankings igual. Tiene que ser del GRUPO — si acaba de salir, no
 // vuelve a salir, lo pida quien lo pida y sea quien sea. Tampoco se libra el
 // owner: la molestia es la misma venga de quien venga.
-const RANKING_COOLDOWN_MS = 30 * 60 * 1000;
+// Tres horas, no treinta minutos: con media hora seguian saliendo dos por hora
+// y el grupo lo notaba igual. Mismo cooldown que !aura apostar.
+const RANKING_COOLDOWN_MS = 3 * 60 * 60 * 1000;
 const ultimoRanking = new Map();   // grupo -> ts
+
+// Y ADEMAS: si el top no ha CAMBIADO, no se vuelve a soltar entero.
+//
+// El cooldown limita cada cuanto sale; esto ataca la otra mitad del problema.
+// Volver a publicar once lineas y notificar a los mismos diez para enseñar
+// exactamente la misma tabla no informa de nada: molesta y ya. Si nadie ha
+// movido su puesto ni su saldo, se contesta en una linea y sin mencionar a
+// nadie.
+const huellaRanking = new Map();   // grupo -> huella del ultimo top publicado
+const huellaDe = (r) => r.map((x) => `${x.jid}:${x.aura}`).join('|');
 
 async function showRanking(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
@@ -618,11 +630,15 @@ async function showRanking(sock, msg, groupMeta) {
 
   const desde = Date.now() - (ultimoRanking.get(jid) || 0);
   if (desde < RANKING_COOLDOWN_MS) {
-    const quedan = Math.ceil((RANKING_COOLDOWN_MS - desde) / 60000);
+    // En horas cuando pasa de una: "vuelve en 180 min" se lee peor que "en 3 h".
+    const min = Math.ceil((RANKING_COOLDOWN_MS - desde) / 60000);
+    const cuanto = min >= 60
+      ? `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ''}`
+      : `${min} min`;
     // Se contesta CITANDO a quien lo pidio y sin mencionar a nadie mas: el
     // aviso es para el, no otro mensaje que le llegue al top entero.
     return sock.sendMessage(jid, {
-      text: `El ranking acaba de salir. Vuelve en *${quedan} min*.`,
+      text: `El ranking acaba de salir. Vuelve en *${cuanto}*.`,
     }, { quoted: msg });
   }
 
@@ -642,8 +658,23 @@ async function showRanking(sock, msg, groupMeta) {
   }
 
   // El cooldown se marca AQUI, no al entrar: si no habia ranking que enseñar no
-  // se ha molestado a nadie, asi que bloquear los siguientes treinta minutos
-  // seria castigar por un mensaje que no llego a salir.
+  // se ha molestado a nadie, asi que bloquear las siguientes horas seria
+  // castigar por un mensaje que no llego a salir.
+  // Mismo top que la ultima vez: se dice en una linea y no se menciona a nadie.
+  //
+  // Y esto va ANTES de marcar el cooldown a proposito. Si se marcara aqui, cada
+  // "no ha cambiado" reiniciaria las tres horas — o sea que alguien consultando
+  // cada dos horas y media podria mantener el ranking oculto indefinidamente
+  // sin proponerselo. El reloj solo corre cuando el ranking SALE.
+  const huella = huellaDe(ranking);
+  if (huellaRanking.get(jid) === huella) {
+    return sock.sendMessage(jid, {
+      text: 'El top no ha cambiado desde la última vez. Mueve algo y vuelve.',
+    }, { quoted: msg });
+  }
+  if (huellaRanking.size >= 500) huellaRanking.delete(huellaRanking.keys().next().value);
+  huellaRanking.set(jid, huella);
+
   if (ultimoRanking.size >= 500) ultimoRanking.delete(ultimoRanking.keys().next().value);
   ultimoRanking.set(jid, Date.now());
   let text = '*RANKING DE AURA*\n\n';
