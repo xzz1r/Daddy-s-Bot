@@ -987,6 +987,31 @@ function esOwnerDelMensaje(msg, sender, senderPn, meta) {
 }
 
 async function handleMessage(sock, msg) {
+  // EL NOMBRE SE ANOTA LO PRIMERO DE TODO, antes de cualquier return.
+  //
+  // Estaba doscientas lineas mas abajo y detras de tres puertas cerradas, y por
+  // eso el ranking en gris salia lleno de "alguien":
+  //
+  //   · `if (!msg.message) return` — una reaccion o un mensaje de protocolo no
+  //     trae `message`, pero SI trae pushName. Se tiraba.
+  //   · el `return` de status@broadcast — cada historia que ve el bot trae el
+  //     nombre de quien la publico. Se tiraba tambien, y es de las fuentes mas
+  //     ricas que hay: la gente publica estados mas a menudo de lo que escribe.
+  //   · el filtro `jid.endsWith('@g.us')` — un privado al bot tambien trae
+  //     nombre, y este almacen es global (no va por grupo), asi que descartarlo
+  //     no protegia nada.
+  //
+  // Y se anota bajo TODAS las formas de la persona que trae la llave del
+  // mensaje. En un grupo LID, `participant` es el @lid y `participantAlt` el
+  // telefono: guardar solo una deja la ficha bajo una clave por la que luego
+  // nadie pregunta.
+  if (msg.pushName && !msg.key.fromMe) {
+    recordName(
+      [msg.key.participant, msg.key.participantAlt, msg.key.participantPn, msg.key.remoteJid?.endsWith('@g.us') ? null : msg.key.remoteJid],
+      msg.pushName,
+    ).catch(() => {});
+  }
+
   if (!msg.message) return;
   // Se comprueba ANTES de desenvolver: unwrapEnvelope destruye la prueba.
   const eraViewOnce = isViewOnce(msg.message);
@@ -1063,17 +1088,6 @@ async function handleMessage(sock, msg) {
     isMainOwner(sender, false, peekGroupMeta(jid)) ||
     (!!senderPn && isMainOwner(senderPn, false, null));
 
-  // Como firma cada uno sus mensajes, para poder pintar la copia en gris del
-  // ranking con nombres en vez de con telefonos.
-  //
-  // Va FUERA del gate de owner de abajo a proposito. Ese gate existe para que
-  // los mensajes del owner no inflen !count, y aqui no se cuenta nada: el owner
-  // SI sale en el ranking de aura por peticion expresa, asi que si no se anota
-  // su nombre seria el unico del podio apareciendo como "alguien" — que es
-  // justo el tipo de hueco que lo delata.
-  if (!msg.key.fromMe && jid.endsWith('@g.us') && sender && msg.pushName) {
-    recordName(sender, msg.pushName).catch(() => {});
-  }
   if (!msg.key.fromMe && jid.endsWith('@g.us') && sender && !senderIsMainOwner) {
     incrementMsgCount(jid, sender).catch(() => {});
     // verifiedBizName solo viaja en mensajes de cuentas Business: se anota como

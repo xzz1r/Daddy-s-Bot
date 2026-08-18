@@ -574,11 +574,9 @@ async function connectToWhatsApp() {
       // lid-telefono, asi que canonicalJid todavia no colapsa las dos formas en
       // una: guardar solo la que venga dejaria la ficha bajo una clave por la
       // que luego nadie pregunta.
-      if (nombre) {
-        for (const jid of [c.id, c.lid, c.phoneNumber]) {
-          if (jid) recordName(jid, nombre).catch(() => {});
-        }
-      }
+      // recordName ya guarda bajo todas las formas que se le pasen, asi que va
+      // una sola llamada con las tres.
+      if (nombre) recordName([c.id, c.lid, c.phoneNumber], nombre).catch(() => {});
       if (!biz && !photo) continue;
       n++;
       for (const jid of [c.id, c.lid, c.phoneNumber]) {
@@ -620,6 +618,11 @@ async function connectToWhatsApp() {
 
   // Group events: anti-business on join, anti-admin + notifications on promote/demote
   sock.ev.on('group-participants.update', async ({ id: groupJid, author, authorPn, participants, action }) => {
+    // Quien mueve gente viene con sus DOS identidades. Se aprovecha para atar la
+    // pareja lid↔telefono, que es lo que hace que una ficha guardada bajo una
+    // forma se encuentre preguntando por la otra. Lo hace rememberMapping, que
+    // es el sitio donde vive ese mapa; recordName solo guarda nombres.
+    if (author && authorPn) rememberMapping(author, authorPn);
     // Any participant change invalidates the cached metadata for that group —
     // otherwise commands run within 30s of a join/kick see stale member lists.
     invalidateGroupMeta(groupJid);

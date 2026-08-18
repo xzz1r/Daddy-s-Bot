@@ -134,18 +134,37 @@ function limpiar(raw) {
 // Si alguna vez se añade otra fuente, la pregunta es siempre la misma: ¿ese
 // nombre lo eligio la persona que sale nombrada, o se lo puso otro? Si se lo
 // puso otro, no entra.
-async function recordName(jid, crudo) {
-  if (!jid) return;
+// SE ANOTA BAJO TODAS LAS FORMAS CONOCIDAS DE LA PERSONA, no solo bajo la
+// canonica. Esto era una fuente de huecos y costo verlo.
+//
+// canonicalJid convierte un @lid en telefono SOLO si el mapa lidToPhone ya
+// conoce la pareja. Ese mapa se va llenando sobre la marcha, asi que la misma
+// persona se guardaba unas veces bajo su @lid (mapa frio) y otras bajo su
+// telefono (mapa caliente). Al leer pasaba lo mismo, y con las dos puntas
+// desalineadas la ficha existia pero no se encontraba: salia "alguien" para
+// alguien de quien SI se tenia el nombre.
+//
+// Guardando bajo las dos formas el hueco desaparece, cueste un par de claves de
+// mas en un fichero que tiene el tamaño de un grupo.
+async function recordName(jids, crudo) {
   const nombre = limpiar(crudo);
   if (!nombre) return;
+  const formas = [...new Set((Array.isArray(jids) ? jids : [jids]).filter(Boolean))];
+  if (!formas.length) return;
   await load();
-  const key = canonicalJid(jid);
-  const ficha = nombres[key];
-  // Se escribe solo cuando cambia de verdad. Si no, cada mensaje del grupo
-  // programaria un guardado a disco para dejar el fichero exactamente igual.
-  if (ficha && ficha.nombre === nombre) return;
-  nombres[key] = { nombre, ts: Date.now() };
-  scheduleSave();
+  let cambio = false;
+  for (const j of formas) {
+    for (const key of new Set([canonicalJid(j), bareJid(j)])) {
+      if (!key) continue;
+      const ficha = nombres[key];
+      // Se escribe solo cuando cambia de verdad. Si no, cada mensaje del grupo
+      // programaria un guardado a disco para dejar el fichero exactamente igual.
+      if (ficha && ficha.nombre === nombre) continue;
+      nombres[key] = { nombre, ts: Date.now() };
+      cambio = true;
+    }
+  }
+  if (cambio) scheduleSave();
 }
 
 // Cuantas fichas hay. Solo para el diagnostico de arranque: si esto sale en 0

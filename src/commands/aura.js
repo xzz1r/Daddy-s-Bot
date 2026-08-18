@@ -687,11 +687,35 @@ const ultimoTop = new Map();       // grupo -> { filas: [{jid, aura}], ts }
 // quedan congeladas —que es lo que se enseña, el top tal como se vio— pero el
 // nombre se resuelve al pintarlo, y quien no tuviera ficha entonces y la tenga
 // ahora sale con su nombre en vez de arrastrar para siempre el hueco.
-const SIN_NOMBRE = 'alguien';
+// Cuando de verdad no se sabe quien es.
+//
+// Antes era la palabra "alguien" a secas, y con tres desconocidos seguidos la
+// tabla se leia como un fallo del bot en vez de como un dato que falta. Ahora
+// hay varias formas de decirlo y se elige por la identidad de la persona, no al
+// azar: asi cada desconocido sale SIEMPRE con la misma etiqueta y dos consultas
+// seguidas no se contradicen, que es la misma regla que sostiene toda la copia.
+//
+// Esto es el ultimo recurso y deberia verse cada vez menos: el nombre se anota
+// ahora desde cualquier mensaje, historia o privado que el bot vea, no solo
+// desde los mensajes de grupo.
+const SIN_NOMBRE = [
+  'alguien',
+  'un fantasma',
+  'uno que no habla',
+  'un anónimo',
+  'alguien que pasaba',
+  'un desconocido',
+];
+function huella(txt) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < txt.length; i++) { h ^= txt.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h >>> 0;
+}
 function pintarTopGris(filas) {
   let t = '*RANKING DE AURA*\n\n';
   filas.forEach((f, i) => {
-    t += `*${i + 1}.* ${getName(f.jid) || SIN_NOMBRE} — ${fmt(f.aura)}\n`;
+    const nombre = getName(f.jid) || SIN_NOMBRE[huella(canonicalJid(f.jid) || String(f.jid)) % SIN_NOMBRE.length];
+    t += `*${i + 1}.* ${nombre} — ${fmt(f.aura)}\n`;
   });
   return t.trimEnd();
 }
@@ -799,7 +823,7 @@ async function showRanking(sock, msg, groupMeta) {
   // Igual que en la sincronizacion: solo notify. Ni p.name (libreta ajena) ni
   // p.verifiedName (nombre fiscal del rotulo Business).
   await Promise.allSettled((groupMeta?.participants || []).map((p) => (
-    p?.notify && p.id ? recordName(p.id, p.notify) : null
+    p?.notify && p.id ? recordName([p.id, p.jid, p.phoneNumber], p.notify) : null
   )).filter(Boolean));
   // Si aun asi queda alguien sin nombre, se dice en el log. Es la unica forma de
   // enterarse sin esperar tres horas a que caiga un cooldown y mirarlo en el
@@ -807,7 +831,7 @@ async function showRanking(sock, msg, groupMeta) {
   // vino en la sincronizacion.
   const sinNombre = ranking.filter((r) => !getName(r.jid)).length;
   if (sinNombre) {
-    logger.warn(`ranking: ${sinNombre} de ${ranking.length} del top sin nombre; saldran como "${SIN_NOMBRE}" en la copia en gris`);
+    logger.warn(`ranking: ${sinNombre} de ${ranking.length} del top sin nombre todavia; en la copia en gris saldran como desconocidos hasta que el bot les vea un mensaje, una historia o un privado`);
   }
 
   if (ultimoTop.size >= 500) ultimoTop.delete(ultimoTop.keys().next().value);
