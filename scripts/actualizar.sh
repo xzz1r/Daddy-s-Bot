@@ -191,6 +191,42 @@ sleep 12
 
 npm run estado
 
+# ─── Y AHORA LA PREGUNTA QUE IMPORTA: ¿corre lo que hay en disco? ────────────
+#
+# EXISTE PORQUE PASO Y NO SE NOTO. El despliegue trajo el codigo, dijo que todo
+# habia ido bien, y el proceso siguio con un commit DIEZ por detras. El bot
+# respondia con frases viejas mientras el fichero en disco era el nuevo, y
+# encontrar eso costo media hora de mirar donde no era.
+#
+# `npm run estado` ya lo detectaba, pero como un aviso suave entre otros diez, y
+# un aviso suave al final de una pared de texto no lo lee nadie. Aqui se compara
+# a proposito y, si no cuadra, se reintenta el reinicio UNA vez y se grita.
+CARGADO="$(pm2 logs bot --lines 200 --nostream 2>/dev/null | grep 'commit cargado' | tail -1 | grep -oE '[0-9a-f]{7,40}$' || true)"
+CORTO="$(git rev-parse --short HEAD)"
+
+if [ -n "${CARGADO}" ] && [ "${CARGADO}" != "${CORTO}" ]; then
+  echo
+  echo "  El proceso corre ${CARGADO} y en disco esta ${CORTO}. Reintentando el reinicio..."
+  pm2 restart bot --update-env >/dev/null 2>&1 || true
+  sleep 12
+  CARGADO="$(pm2 logs bot --lines 200 --nostream 2>/dev/null | grep 'commit cargado' | tail -1 | grep -oE '[0-9a-f]{7,40}$' || true)"
+fi
+
+echo
+if [ -z "${CARGADO}" ]; then
+  echo "  No he podido leer que commit corre el bot (aun no ha conectado)."
+  echo "  Compruebalo en un minuto:  pm2 logs bot --lines 5 --nostream | grep 'commit cargado'"
+elif [ "${CARGADO}" = "${CORTO}" ]; then
+  echo "  ✓ El bot corre lo que hay en disco (${CORTO})."
+else
+  echo "════════════════════════════════════════════"
+  echo "  ATENCION: el bot sigue en ${CARGADO} y en disco esta ${CORTO}."
+  echo "  El codigo nuevo NO se esta ejecutando. Prueba a mano:"
+  echo "    pm2 delete bot && pm2 start ecosystem.config.js"
+  echo "════════════════════════════════════════════"
+  exit 1
+fi
+
 }
 
 main "$@"
