@@ -278,7 +278,7 @@ _El número es lo que cuesta en aura._
 ━━━━━ *DINÁMICAS* ━━━━━
 _Sin @ va sobre ti · con @ va sobre esa persona._
 *${p}roast* ${c('roast')} — destrucción · *${p}mog* ${c('mog')} @a @b — looks
-*${p}ship* ${c('ship')} @a @b · *${p}rizz* ${c('rizz')} · *${p}piropo* · *${p}wingman*
+*${p}ship* ${c('ship')} @a @b · *${p}rizz* ${c('rizz')} · *${p}piropo* ${c('piropo')} · *${p}wingman* ${c('wingman')}
 _De más crudo a más suave, ${PRECIOS.percent} cada uno:_
 *${p}L* *${p}puta* *${p}guarra* *${p}incel* *${p}maricon* *${p}gay*
 *${p}cerdo* *${p}inutil* *${p}rata* *${p}femboy* *${p}simp* *${p}friki*
@@ -302,11 +302,12 @@ _De más crudo a más suave, ${PRECIOS.percent} cada uno:_
 
 ━━━━━ *ACTIVIDAD* ━━━━━
 *${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b
-*${p}fantasmas* ${c('fantasmas')} · *${p}inactivos* ${c('inactivos')} — los que menos escriben
+*${p}fantasmas* ${c('fantasmas')} — ranking de los que menos escriben
+*${p}inactivos* ${c('inactivos')} — los que no llegan al mínimo, con aviso de expulsión
 *${p}top5* ${c('top5')} · *${p}top10* ${c('top10')} <tema> — ranking al azar
 ${esAdmin ? `
 ━━━━━ *ADMIN* ━━━━━
-*${p}count* ${c('count')} · *${p}tagall* · *${p}kick* · *${p}add* · *${p}del*
+*${p}count* ${c('count')} · *${p}tagall* · *${p}kick* · *${p}del*
 *${p}mute* · *${p}unmute* · *${p}promote* · *${p}demote* · *${p}close* · *${p}open*
 *${p}allow* · *${p}scan* · *${p}marcarfake* · *${p}antifoto* · *${p}antiempresa*
 *${p}fkban* · *${p}fkunban* · *${p}fklist* · *${p}antifake* on/off
@@ -315,7 +316,7 @@ ${esAdmin ? `
 ━━━━━ *SISTEMA* ━━━━━
 *${p}on* · *${p}off* · *${p}aura on/off* — pausar la dinámica
 *${p}antiadmin* · *${p}antilink* on/off
-*${p}resetcount* · *${p}resetaura* · *${p}clearcache* · *${p}setgrok* · *${p}diag*
+*${p}add* · *${p}resetcount* · *${p}resetaura* · *${p}clearcache* · *${p}setgrok* · *${p}diag*
 ` : ''}
 _${p}ping · ${p}info · ${p}whoami_`;
 

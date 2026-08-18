@@ -234,7 +234,13 @@ const NEEDS_META = new Set([
   's','sticker','stk',   // cmdSticker SI recibe groupMeta
   // Los que cobran aura SI necesitan groupMeta: auraCobro exime al owner tier y
   // sin la metadata no puede resolver quien lo es, asi que al owner le cobraria.
-  'play','playsong','playaudio','g','ai','grok','pfp','foto',
+  'play','playsong','playaudio','musica','música','cancion','canción','song',
+  'g','ai','grok','pfp','foto',
+  // piropo y wingman COBRAN (30, como !rizz) y no estaban aqui, asi que cobraban
+  // sin metadata: sin ella isOwner no puede reconocer al owner tier en un grupo
+  // LID y se le cobraba a quien va exento. Lo mismo con los alias en español de
+  // !play, que cobran por dentro mientras 'play' si estaba en la lista.
+  'piropo','wingman',
   'toimg','stimg','tovid',   // tambien cobran desde que el aura es moneda
   // ttp/dar siguen fuera a proposito: el dispatch no les pasa groupMeta y sus
   // modulos no lo mencionan, asi que pedirlo solo anyadia una peticion de red
