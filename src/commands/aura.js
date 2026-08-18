@@ -2,6 +2,7 @@ const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameU
 const { pickFresh, fmt } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
+const { getName, cargar: cargarNombres } = require('../utils/nombreStore');
 const { contarTirada } = require('../utils/casinoStore');
 const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, bonoVeterania, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
@@ -669,7 +670,29 @@ const huellaDe = (r) => r.map((x) => `${x.jid}:${x.aura}`).join('|');
 // escribe el mismo texto y NO se manda mentions, WhatsApp lo pinta como texto
 // corriente. O sea que se puede enseñar la tabla entera sin tocarle los huevos
 // a los diez del top, que era justo el problema.
-const ultimoTop = new Map();       // grupo -> { texto, ts }
+const ultimoTop = new Map();       // grupo -> { filas: [{jid, aura}], ts }
+
+// La copia en gris del ranking, pintada con NOMBRES.
+//
+// El ranking de verdad escribe "@50412345678" y adjunta el array de mentions;
+// es ese array, y solo ese, el que hace que el movil sustituya el numero por el
+// nombre. Pero es tambien el que vuelve a avisar a los diez del podio, que es
+// justo lo que se queria cortar. Asi que en la copia no se manda: se trae el
+// nombre ya escrito de nombreStore y no se pone ni una arroba, porque una
+// arroba que no menciona a nadie solo sirve para enseñar un telefono.
+//
+// Se guardan las FILAS, no el texto ya montado: asi las cifras y las posiciones
+// quedan congeladas —que es lo que se enseña, el top tal como se vio— pero el
+// nombre se resuelve al pintarlo, y quien no tuviera ficha entonces y la tenga
+// ahora sale con su nombre en vez de arrastrar para siempre el hueco.
+const SIN_NOMBRE = 'alguien';
+function pintarTopGris(filas) {
+  let t = '*RANKING DE AURA*\n\n';
+  filas.forEach((f, i) => {
+    t += `*${i + 1}.* ${getName(f.jid) || SIN_NOMBRE} — ${fmt(f.aura)}\n`;
+  });
+  return t.trimEnd();
+}
 
 async function showRanking(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
@@ -700,12 +723,17 @@ async function showRanking(sock, msg, groupMeta) {
     // Y se le enseña el ultimo top conocido, en gris: mismo texto, SIN mentions.
     const guardado = ultimoTop.get(jid);
     let copia = '';
-    if (guardado) {
+    if (guardado && guardado.filas && guardado.filas.length) {
+      // getName es sincrono porque se llama pintando la tabla, asi que el mapa
+      // tiene que estar caliente antes. Normalmente ya lo esta (lo calienta el
+      // primer mensaje del grupo), pero esperarlo aqui cuesta nada y quita el
+      // unico caso en que la copia saldria llena de "alguien" por carrera.
+      await cargarNombres().catch(() => {});
       const minutos = Math.round((Date.now() - guardado.ts) / 60000);
       const hace = minutos < 1 ? 'hace un momento'
         : minutos < 60 ? `hace ${minutos} min`
         : `hace ${Math.floor(minutos / 60)} h${minutos % 60 ? ` ${minutos % 60} min` : ''}`;
-      copia = `\n\n${guardado.texto}\n\n_Así estaba ${hace}._`;
+      copia = `\n\n${pintarTopGris(guardado.filas)}\n\n_Así estaba ${hace}._`;
     }
 
     return sock.sendMessage(jid, {
@@ -757,7 +785,7 @@ async function showRanking(sock, msg, groupMeta) {
     mentions.push(r.jid);
   });
   if (ultimoTop.size >= 500) ultimoTop.delete(ultimoTop.keys().next().value);
-  ultimoTop.set(jid, { texto: text.trimEnd(), ts: Date.now() });
+  ultimoTop.set(jid, { filas: ranking.map((r) => ({ jid: r.jid, aura: r.aura })), ts: Date.now() });
 
   await sock.sendMessage(jid, { text: text.trimEnd(), mentions }, { quoted: msg });
 }

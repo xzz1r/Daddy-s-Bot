@@ -6,6 +6,7 @@ const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
 const { cobrar: cobrarAura, devolver: devolverAura, textoSinSaldo } = require('../utils/auraCobro');
 const { PRECIOS } = require('../utils/economia');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
+const { recordName } = require('../utils/nombreStore');
 const { recordFacts } = require('../utils/nickStore');
 const { noteOffence, forget, yaAvisado, marcarAvisado, olvidarAviso } = require('../utils/mediaSpam');
 const { isAllowed, noteWarning, resetWarnings, MAX_AVISOS } = require('../utils/linkPerms');
@@ -1030,6 +1031,18 @@ async function handleMessage(sock, msg) {
   const senderIsMainOwner =
     isMainOwner(sender, false, peekGroupMeta(jid)) ||
     (!!senderPn && isMainOwner(senderPn, false, null));
+
+  // Como firma cada uno sus mensajes, para poder pintar la copia en gris del
+  // ranking con nombres en vez de con telefonos.
+  //
+  // Va FUERA del gate de owner de abajo a proposito. Ese gate existe para que
+  // los mensajes del owner no inflen !count, y aqui no se cuenta nada: el owner
+  // SI sale en el ranking de aura por peticion expresa, asi que si no se anota
+  // su nombre seria el unico del podio apareciendo como "alguien" — que es
+  // justo el tipo de hueco que lo delata.
+  if (!msg.key.fromMe && jid.endsWith('@g.us') && sender && msg.pushName) {
+    recordName(sender, msg.pushName).catch(() => {});
+  }
   if (!msg.key.fromMe && jid.endsWith('@g.us') && sender && !senderIsMainOwner) {
     incrementMsgCount(jid, sender).catch(() => {});
     // verifiedBizName solo viaja en mensajes de cuentas Business: se anota como
