@@ -549,16 +549,21 @@ async function connectToWhatsApp() {
   // inicial, asi que la copia en gris del ranking sale con nombres desde el
   // primer minuto en vez de ir llenandose segun la gente escribe.
   //
-  // Sigue sin servir para !antinick, que es de lo que se retiro: ese nombre lo
-  // pinta cada telefono con su libreta, asi que no vale para sancionar a nadie.
-  // Para escribirlo en una tabla, que es lo unico que se hace con el, sobra.
+  // De aqui se coge UNICAMENTE notify (el pushName). Lo que NO se coge, y es
+  // deliberado, esta explicado abajo en el propio bucle.
   const guardarContactos = (lista) => {
     let n = 0;
     for (const c of (lista || [])) {
-      // name = como lo tiene guardado la cuenta del bot; notify = como se llama
-      // esa persona a si misma; verifiedName = el rotulo de una cuenta Business.
-      const nombre = c?.name || c?.notify || c?.verifiedName;
-      const fuente = c?.name ? 'agenda' : 'push';
+      // SOLO notify, que es el pushName: la etiqueta que esa persona se pone a
+      // si misma y que WhatsApp ya enseña a todo el mundo.
+      //
+      // NO se toca c.name. Ese es el nombre de la LIBRETA de la cuenta a la que
+      // esta enganchado el bot, o sea como tiene apuntado el dueño del telefono
+      // a cada uno — y la gente se guarda entre si con el nombre real. Leerlo
+      // era publicar en el grupo el nombre real de quien no lo ha dado nunca.
+      //
+      // Tampoco verifiedName: ese rotulo lleva el nombre fiscal de la cuenta.
+      const nombre = c?.notify;
       // verifiedName solo lo lleva una cuenta Business: prueba directa.
       const biz = Boolean(c?.verifiedName) || undefined;
       // imgUrl: null o 'removed' = sin foto; 'changed' o una url = con foto.
@@ -571,7 +576,7 @@ async function connectToWhatsApp() {
       // que luego nadie pregunta.
       if (nombre) {
         for (const jid of [c.id, c.lid, c.phoneNumber]) {
-          if (jid) recordName(jid, nombre, fuente).catch(() => {});
+          if (jid) recordName(jid, nombre).catch(() => {});
         }
       }
       if (!biz && !photo) continue;

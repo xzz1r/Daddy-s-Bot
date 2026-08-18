@@ -795,10 +795,11 @@ async function showRanking(sock, msg, groupMeta) {
   // Se esperan: son unas decenas de fichas, una vez cada tres horas, y el
   // recuento de abajo tiene que verlas ya escritas o acusaria de "sin nombre" a
   // quien acaba de recibir uno en esta misma linea.
-  await Promise.allSettled((groupMeta?.participants || []).map((p) => {
-    const n = p?.name || p?.notify || p?.verifiedName;
-    return n && p.id ? recordName(p.id, n, p?.name ? 'agenda' : 'push') : null;
-  }).filter(Boolean));
+  // Igual que en la sincronizacion: solo notify. Ni p.name (libreta ajena) ni
+  // p.verifiedName (nombre fiscal del rotulo Business).
+  await Promise.allSettled((groupMeta?.participants || []).map((p) => (
+    p?.notify && p.id ? recordName(p.id, p.notify) : null
+  )).filter(Boolean));
   // Si aun asi queda alguien sin nombre, se dice en el log. Es la unica forma de
   // enterarse sin esperar tres horas a que caiga un cooldown y mirarlo en el
   // grupo, y siempre es el mismo sintoma: esa cuenta no ha escrito nunca y no

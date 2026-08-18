@@ -28,6 +28,26 @@ const FILE = path.join(__dirname, '../../data/nombres.json');
 // Un nombre mas largo que esto descuadra la tabla en el movil. Se corta.
 const MAX = 22;
 
+// Limpieza de la version que si leia la libreta. Si ese fichero llego a
+// escribirse en algun arranque, sus fichas siguen ahi con fuente 'agenda' y
+// serian nombres reales puestos por otro: se tiran al leer, no se conservan.
+// Cuesta un barrido sobre unas decenas de claves, una vez por arranque.
+function purgarAgenda(d) {
+  let fuera = 0;
+  for (const k of Object.keys(d || {})) {
+    if (d[k] && d[k].fuente === 'agenda') { delete d[k]; fuera++; }
+  }
+  if (fuera) {
+    logger.warn(`nombreStore: ${fuera} nombre(s) de libreta descartados; solo se guarda el pushName`);
+    // Y se programa el guardado. Sin esto la purga solo limpiaba la memoria: el
+    // nombre real seguia escrito en el disco hasta que otra cosa disparase un
+    // guardado, o para siempre si nadie cambiaba de pushName.
+    pendienteDePurga = true;
+  }
+  return d || {};
+}
+let pendienteDePurga = false;
+
 let nombres = null;
 let loadPromise = null;
 let saveTimer = null;
@@ -36,7 +56,7 @@ async function load() {
   if (nombres) return;
   if (!loadPromise) {
     loadPromise = readJsonOrEnoent(FILE, {})
-      .then((d) => { nombres = d; })
+      .then((d) => { nombres = purgarAgenda(d); })
       .catch((e) => {
         loadPromise = null; // permite reintentar; NUNCA resetear+sobrescribir
         logger.warn(`nombreStore: lectura falló (${e.message}); no se toca el archivo`);
@@ -44,6 +64,7 @@ async function load() {
       });
   }
   await loadPromise;
+  if (pendienteDePurga) { pendienteDePurga = false; scheduleSave(); }
 }
 
 function scheduleSave() {
@@ -98,32 +119,32 @@ function limpiar(raw) {
   return n;
 }
 
-// De donde salio el nombre, y cual gana cuando hay dos.
+// AQUI SOLO ENTRA EL PUSHNAME. Una sola fuente, y a proposito.
 //
-//   agenda (2)  c.name: como lo tiene guardado la cuenta del bot en su libreta.
-//   push   (1)  c.notify o msg.pushName: como se llama esa persona a si misma.
+// Hubo una version que ademas leia c.name, el nombre de la LIBRETA de la cuenta
+// a la que esta enganchado el bot. Eso es una fuga: la gente se guarda entre si
+// con el nombre real, asi que el bot habria publicado en el grupo el nombre con
+// el que el dueño del telefono tiene apuntado a cada uno. Nadie eligio eso ni
+// lo sabe. Se quito entera, junto con la prioridad de fuentes que la sostenia.
 //
-// La agenda pesa mas porque es lo que se ve en pantalla al abrir el chat, y no
-// cambia porque alguien se ponga un apodo nuevo el martes. Un nombre de menos
-// peso NO pisa a uno de mas peso; uno del mismo peso si, para que un cambio de
-// pushName se refleje.
-const PESO = { agenda: 2, push: 1 };
-
-async function recordName(jid, crudo, fuente = 'push') {
+// El pushName es lo contrario: es la etiqueta que cada uno se pone A SI MISMO y
+// que WhatsApp ya enseña a todo el mundo. Escribirla en una tabla no cuenta
+// nada que el grupo no viera antes.
+//
+// Si alguna vez se añade otra fuente, la pregunta es siempre la misma: ¿ese
+// nombre lo eligio la persona que sale nombrada, o se lo puso otro? Si se lo
+// puso otro, no entra.
+async function recordName(jid, crudo) {
   if (!jid) return;
   const nombre = limpiar(crudo);
   if (!nombre) return;
-  const peso = PESO[fuente] || 1;
   await load();
   const key = canonicalJid(jid);
   const ficha = nombres[key];
-  if (ficha) {
-    if ((PESO[ficha.fuente] || 1) > peso) return;
-    // Se escribe solo cuando cambia de verdad. Si no, cada mensaje del grupo
-    // programaria un guardado a disco para dejar el fichero exactamente igual.
-    if (ficha.nombre === nombre && ficha.fuente === fuente) return;
-  }
-  nombres[key] = { nombre, fuente, ts: Date.now() };
+  // Se escribe solo cuando cambia de verdad. Si no, cada mensaje del grupo
+  // programaria un guardado a disco para dejar el fichero exactamente igual.
+  if (ficha && ficha.nombre === nombre) return;
+  nombres[key] = { nombre, ts: Date.now() };
   scheduleSave();
 }
 
