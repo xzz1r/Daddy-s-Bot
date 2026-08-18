@@ -2279,7 +2279,17 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     // Y ojo con el orden: se retiene sobre el monto ANTES de sumarselo, para que
     // lo que cobra y lo que se le queda encima sumen exactamente lo robado y la
     // victima pierda ni mas ni menos que eso.
-    const enSuCabeza = Math.min(
+    //
+    // AL OWNER NO SE LE RETIENE NADA, y esto es un agujero que habia que tapar.
+    // Su recompensa era estructuralmente incobrable: los robos contra el fallan
+    // SIEMPRE por diseño, asi que nadie iba a cazarlo jamas y ese 15 % se
+    // quedaba retenido hasta caducar a los siete dias — y entonces se destruia.
+    // O sea que estaba pagando un impuesto permanente del 15 % sobre cada golpe
+    // a cambio de nada, y por culpa de una mecanica que en su caso es solo
+    // fachada. La recompensa que se le anuncia en !buscados sigue siendo falsa,
+    // que es lo que tiene que ser; lo que ya no pasa es que le cueste aura de
+    // verdad. Su saldo es lo unico que no se toca.
+    const enSuCabeza = isMainOwner(sender, msg.key.fromMe, groupMeta) ? 0 : Math.min(
       RECOMPENSA.tope,
       Math.round(monto * RECOMPENSA.fraccionDeGolpe),
     );

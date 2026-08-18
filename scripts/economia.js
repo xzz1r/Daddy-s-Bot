@@ -489,6 +489,32 @@ ok(/addAura\(jid, winner, \+d\.stake\)[\s\S]{0,120}addAura\(jid, loser, -d\.stak
   console.log(`  Recompensa: ${(RECOMPENSA.fraccionDeGolpe * 100).toFixed(0)} % de cada golpe se queda en la cabeza del ladron, con tope ${n0(maxCabeza)}.`);
 }
 
+// LA FACHADA DEL OWNER NO PUEDE TOCAR SU SALDO REAL. Todo lo que se publica de
+// el puede ser inventado —mensajes, racha, golpes, botin, recompensa,
+// probabilidades— menos una cosa: cuanta aura tiene. Eso es lo unico que tiene
+// que ser consistente, porque es lo unico que el mismo puede comprobar y lo
+// unico que, si baila, no tiene explicacion posible.
+//
+// Se rompio dos veces y las dos en silencio, asi que va con asertos:
+//
+//  1. El bono de veterania se calculaba sobre el recuento FALSO y se aplicaba de
+//     verdad. Como esa cifra se mueve con el grupo, su aura crecia mas o menos
+//     segun un numero que no existe: si el grupo se calmaba, cobraba menos.
+//  2. La recompensa por su cabeza le retenia un 15 % de cada golpe. Pero los
+//     robos contra el fallan SIEMPRE por diseño, asi que nadie podia cazarlo
+//     nunca y ese aura caducaba a los siete dias y se destruia. Estaba pagando
+//     un impuesto permanente a cambio de nada.
+{
+  const as = src('aura.js');
+  ok(/const vet = esOwnerPrincipal \? VETERANIA_TOPE/.test(as),
+    'fachada: el bono de veterania que se COBRA no sale del recuento inventado');
+  ok(/vetMostrado = esOwnerPrincipal/.test(as),
+    '  y el que se PUBLICA si, que es donde tiene que estar la mentira');
+  const rs2 = src('robo.js');
+  ok(/const enSuCabeza = isMainOwner\([^)]*\) \? 0 :/.test(rs2),
+    'fachada: al owner no se le retiene recompensa — su cabeza es incobrable, retenersela era destruirle aura');
+}
+
 // !robo NO es suma cero, y es a proposito. En exito y en desastre el aura pasa
 // de una cuenta a otra; en el FALLO normal el ladron paga la multa y la victima
 // no toca nada, asi que ese aura sale del sistema. Es un sumidero, no un

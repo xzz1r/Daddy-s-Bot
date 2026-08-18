@@ -6,7 +6,7 @@ const { getName, recordName, cargar: cargarNombres } = require('../utils/nombreS
 const { mensajesFalsos } = require('../utils/fachada');
 const logger = require('../utils/logger');
 const { contarTirada } = require('../utils/casinoStore');
-const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, bonoVeterania, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
+const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, bonoVeterania, VETERANIA_TOPE, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
 const { BOTE, ATRACO, CONTRA, RACHA, RIESGO, OBJETOS, VENTAJA, RECOMPENSA, IMPUESTO, REGALO_MIN } = require('../utils/economia');
@@ -1282,7 +1282,17 @@ async function cmdAura(sock, msg, args, groupMeta) {
     ? await mensajesFalsos(jid).catch(() => null)
     : mensajes;
 
-  const vet = bonoVeterania(mensajesMostrados ?? mensajes);
+  // EL BONO QUE SE APLICA NO PUEDE SALIR DE UN NUMERO INVENTADO.
+  //
+  // Salia: se calculaba sobre `mensajesMostrados`, que para el owner es la
+  // fachada. Y esa cifra se mueve con el grupo de un dia a otro, asi que su
+  // aura REAL crecia mas o menos segun un numero que no existe — si el grupo se
+  // calmaba, cobraba menos, sin ninguna razon que pasara de verdad.
+  //
+  // Ahora va como el bono de actividad: se le da el TOPE, por el mismo motivo
+  // (de todo el grupo es quien mas escribe), y lo que se PUBLICA es lo que le
+  // tocaria por lo que aparenta. La fachada solo pinta; nunca mueve el saldo.
+  const vet = esOwnerPrincipal ? VETERANIA_TOPE : bonoVeterania(mensajes);
   let extraVet = 0;
   if (amount > 0 && vet > 0) {
     extraVet = Math.round(amount * vet);
@@ -1303,13 +1313,16 @@ async function cmdAura(sock, msg, args, groupMeta) {
   const plusMostrado = esOwnerPrincipal
     ? bonoActividad(mensajesMostrados ?? 0)
     : plusActividad;
+  const vetMostrado = esOwnerPrincipal
+    ? bonoVeterania(mensajesMostrados ?? 0)
+    : vet;
   // Se DICE: un bono invisible no premia a nadie. El veterano no sabria que
   // cobra de mas y el que empieza no sabria que hay algo que perseguir.
   const lineaVeterano = (plusMostrado || extraVet) && mensajesMostrados !== null
     ? `Veterano (${fmt(mensajesMostrados)} msgs):` +
       (plusMostrado ? ` +${Math.round(plusMostrado * 100)}% de suerte` : '') +
       (plusMostrado && extraVet ? ' ·' : '') +
-      (extraVet ? ` +${Math.round(vet * 100)}% de botín (+${fmt(extraVet)})` : '')
+      (extraVet ? ` +${Math.round(vetMostrado * 100)}% de botín (+${fmt(extraVet)})` : '')
     : '';
 
   const { previous, current } = await addAura(jid, sender, amount);
