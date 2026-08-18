@@ -16,7 +16,7 @@ const { isOwner, sameUser, isBotAdmin, canonicalJid, rememberMapping, flushOwner
 // anotarAlta apunta el motivo de cada alta; motivoDelAlta lo consulta cuando hay
 // que decidir si un alta fue a dedo (la unica que se sanciona).
 const { anotarAlta, motivoDelAlta, ALTA_ADD } = require('./utils/joinReason');
-const { notarSolicitud, olvidarSolicitud, sondear, reactivarSondeo, frenoNuevo, flushJoinRequests } = require('./utils/joinRequests');
+const { notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, reactivarSondeo, frenoNuevo, flushJoinRequests } = require('./utils/joinRequests');
 const { flushCounts } = require('./utils/messageCounter');
 const { flushAura } = require('./utils/auraStore');
 const { flushCasino } = require('./utils/casinoStore');
@@ -737,7 +737,27 @@ async function connectToWhatsApp() {
           // Ahora cada alta responde de si misma y solo cae la que viene con un
           // 27 confirmado; el null (el stub no llego) sigue siendo "no se sabe"
           // y no sanciona nunca.
-          const aDedo = metidos.filter((_, i) => motivos[i] === ALTA_ADD);
+          // SEGUNDA RED, INDEPENDIENTE DEL STUB. El bot ya apuntaba quien tenia
+          // una solicitud pendiente —se hace en group.join-request, y el propio
+          // comentario de alli dice que se apunta "antes de que entre" porque
+          // al llegar el alta ya es tarde para preguntarlo—, pero NADIE lo
+          // consultaba nunca. La lista se mantenia para nada.
+          //
+          // Aqui vale su peso en oro: si el que entra estaba esperando en la
+          // cola, su alta fue una APROBACION, diga lo que diga el stub. Y esa
+          // es justo la confusion que ha baneado admins dos veces. Dos senyales
+          // que no dependen la una de la otra: para sancionar tienen que estar
+          // las dos de acuerdo.
+          const pendientes = await Promise.all(
+            metidos.map(id => estabaPendiente(groupJid, allForms(id, meta)).catch(() => false))
+          );
+          const aDedo = metidos.filter((_, i) => motivos[i] === ALTA_ADD && !pendientes[i]);
+          const perdonados = metidos.filter((_, i) => pendientes[i]);
+          if (perdonados.length) {
+            logger.info(
+              `alta en ${groupJid}: ${perdonados.join(', ')} estaban en la cola de ` +
+              `solicitudes, asi que fue una aprobacion. No se sanciona a ${author}.`);
+          }
 
           if (!aDedo.length) {
     logger.info(

@@ -441,5 +441,10 @@ async function barrerHuerfanos(dir) {
 const fmt = n => n.toLocaleString('es-ES');
 
 module.exports = {
-  ARSENAL, tieneArsenal,
+  // ARSENAL (el regex) ya NO se exporta: lleva la bandera /g, o sea que arrastra
+  // lastIndex entre llamadas y un `ARSENAL.test(x)` desde fuera devolveria true
+  // y false alternandose sobre la MISMA frase. Aqui dentro se resetea antes de
+  // usarlo; exportarlo era ofrecer esa trampa a quien no lo supiera. Quien
+  // necesite la comprobacion tiene tieneArsenal, que ya lo hace bien.
+  tieneArsenal,
   fmt, ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, shuffle, streamToBuffer, atomicWriteJson, readJsonOrEnoent, barrerHuerfanos, MAX_DOWNLOAD_BYTES, MAX_MEDIA_BYTES, createSemaphore, ffmpegSemaphore, ffmpegToBuffer };
