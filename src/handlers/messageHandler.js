@@ -287,16 +287,27 @@ const NEEDS_META = new Set([
 // Los de esta tabla se cobran ANTES de ejecutar nada. Si no llega el saldo, el
 // comando ni se lanza.
 const COBRO_CENTRAL = {
-  roast: 'roast', flamear: 'roast',
+  // LOS ALIAS TAMBIEN COBRAN. El cobro mira el nombre TECLEADO, asi que un alias
+  // que falte aqui sale gratis mientras su canonico cobra: !quemar era gratis y
+  // !roast costaba 35, por el mismo comando y el mismo trabajo. Cinco estaban
+  // asi. Si se añade un alias al switch, tiene que entrar tambien aqui.
+  roast: 'roast', flamear: 'roast', quemar: 'roast', destruir: 'roast',
   mog: 'mog', moggear: 'mog',
   ship: 'ship',
-  rizz: 'rizz', piropo: 'piropo', wingman: 'wingman', coach: 'wingman',
-  count: 'count',
-  relevancia: 'relevancia', relevance: 'relevancia',
+  // 'coach' NO esta: cobraba 30 y despues caia en el default con un "no existe
+  // ese comando". Se le cobraba al usuario por un comando que el bot no tiene.
+  // O se implementa el case, o no se cobra; lo segundo es lo honesto.
+  rizz: 'rizz', piropo: 'piropo', wingman: 'wingman',
+  // 'count' NO esta, y es a proposito. El cobro central corre ANTES del switch,
+  // asi que a un miembro se le cobraban 25 y despues cmdCount le contestaba
+  // "solo los admins": pagaba por un rechazo. El catch solo devuelve el aura si
+  // salta una excepcion, y un return no lo es. Se cobra dentro de cmdCount,
+  // despues del permiso.
+  relevancia: 'relevancia', relevance: 'relevancia', importancia: 'relevancia',
   vs: 'vs', versus: 'vs',
-  fantasmas: 'fantasmas', fantasma: 'fantasmas',
+  fantasmas: 'fantasmas', fantasma: 'fantasmas', muertos: 'fantasmas',
   inactivos: 'inactivos', inactivo: 'inactivos',
-  ttp: 'ttp',
+  ttp: 'ttp', texto: 'ttp',
   cachelist: 'cachelist', listacache: 'cachelist', cache: 'cachelist',
 };
 
@@ -317,6 +328,18 @@ const COBRAN_SOLOS = new Set([
   'play', 'playsong', 'playaudio', 's', 'sticker', 'stk', 'toimg', 'tovid',
   'g', 'grok', 'pfp', 'fk', 'verificar', 'verify', 'check', 'top5', 'top10',
 ]);
+
+// El fuente de este mismo fichero, leido UNA vez.
+//
+// Dos sitios lo necesitan —la lista de comandos que tapa !aura off y la de
+// comandos conocidos para el "¿querias decir...?"— y cada uno hacia su propio
+// readFileSync de ~100 KB en el require. Dos lecturas sincronas del mismo
+// fichero antes de abrir el socket, para sacar lo mismo.
+//
+// Si la lectura falla, las dos deducciones caen a su respaldo y el bot arranca.
+const FUENTE_PROPIA = (() => {
+  try { return fs.readFileSync(__filename, 'utf8'); } catch { return ''; }
+})();
 
 // Los comandos que MUEVEN AURA y que por tanto tapa el interruptor de !aura off.
 //
@@ -339,7 +362,7 @@ const COBRAN_SOLOS = new Set([
 const CMDS_AURA = (() => {
   const aMano = ['robo', 'robar', 'duel', 'duelo', '1v1', 'dar', 'donar'];
   try {
-    const src = fs.readFileSync(__filename, 'utf8');
+    const src = FUENTE_PROPIA;
     const bloques = /((?:\s*case '[^']+':[^\n]*\n)+)\s*await (cmdDar|cmdRobo|cmdDuel)\(/g;
     const fuera = new Set(aMano);
     for (const m of src.matchAll(bloques)) {
@@ -571,7 +594,10 @@ const MAX_AVISOS_GRUPO = 500;
 // fuente no hay dos sitios que puedan discrepar.
 const COMANDOS_CONOCIDOS = (() => {
   try {
-    const src = fs.readFileSync(__filename, 'utf8');
+    // Se reutiliza la lectura de arriba. Eran DOS readFileSync del propio
+    // fichero (~100 KB cada uno) en el require, bloqueando el arranque para
+    // leer exactamente lo mismo dos veces.
+    const src = FUENTE_PROPIA;
     return [...new Set([...src.matchAll(/^\s*case '([a-zá-úñ0-9_]{2,})':/gmi)].map(m => m[1]))];
   } catch { return []; }
 })();
@@ -1871,9 +1897,17 @@ async function handleMessage(sock, msg) {
         await cmdDar(sock, msg, args);
         break;
 
+      // 'atraco' ESTABA EN ESTE BLOQUE y era un bug: en un switch de JS gana el
+      // primer case, asi que *!atraco* caia aqui —sin reescribir args— y
+      // contestaba "Dime a quien robas" en vez de entrar a la tienda. El menu y
+      // la guia lo anunciaban como el asalto a la caja, o sea que el comando
+      // llevaba dos dias anunciado y roto. Su sitio es la rama de mas abajo.
+      //
+      // Y el comentario va AQUI ARRIBA, no entre los case y el await: la lista
+      // de comandos que tapa !aura off se deduce de ese patron, y meter una
+      // linea en medio la rompia. Lo cazo el propio check.
       case 'robo':
       case 'robar':
-      case 'atraco':
         await cmdRobo(sock, msg, args, groupMeta);
         break;
 

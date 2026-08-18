@@ -12,12 +12,14 @@ const { BOTE, ATRACO, CONTRA, RACHA, RIESGO, OBJETOS, VENTAJA, RECOMPENSA, IMPUE
 const { aportarAlBote } = require('../utils/roboStore');
 const tiendaObj = require('../utils/roboStore');
 
-// QUINCE MINUTOS, subido desde minuto y medio por decision del owner.
+// SUBIDO desde minuto y medio por decision del owner. La cifra esta abajo, en
+// la constante, y NO se repite aqui: este comentario decia "QUINCE MINUTOS"
+// mientras el valor eran diez, y un comentario que miente es peor que ninguno
+// porque se lee antes que el codigo.
 //
-// Va en el mismo paquete que subir el acierto al 70 % y capar los importes
-// (50 de techo al ganar, 40 al perder): menos tiradas, mas seguidas de ganar y
-// mas pequeñas. La tirada pasa de ser algo que se machaca mientras se habla a
-// ser algo que se mira de vez en cuando.
+// Va en el mismo paquete que subir el acierto y capar los importes: menos
+// tiradas, mas seguidas de ganar y mas pequeñas. La tirada pasa de ser algo que
+// se machaca mientras se habla a ser algo que se mira de vez en cuando.
 //
 // El efecto practico esta en las tiradas de pago: con minuto y medio las cinco
 // que cobran se agotaban en menos de diez minutos y el resto del dia se tiraba

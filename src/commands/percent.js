@@ -5953,13 +5953,6 @@ const LABELS = {
 // mas suave UNA vez, al cargar el modulo, y pickFresh sesga la eleccion hacia
 // la cabecera. Asi la primera impresion de cualquier comando es la peor posible
 // para quien la recibe, que es de lo que va esto.
-for (const key of Object.keys(LABELS)) {
-  for (const tramo of ['high', 'mid', 'low', 'extreme']) {
-    if (Array.isArray(LABELS[key][tramo])) {
-      LABELS[key][tramo] = LABELS[key][tramo];
-    }
-  }
-}
 
 async function runPercent(sock, msg, key, groupMeta) {
   const jid = msg.key.remoteJid;

@@ -1,6 +1,6 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, bareJid, sameUser } = require('../utils/wa');
 const { pickFresh, fmt } = require('../utils/helpers');
-const { getAura, addAura } = require('../utils/auraStore');
+const { getAura, addAura, transferAura } = require('../utils/auraStore');
 const { ownerGana } = require('../utils/rigOwner');
 
 // Resolve a JID to its canonical form (preferring phone-JID) using the group
@@ -112,8 +112,31 @@ async function resolveDuel(sock, jid, d, groupMeta) {
   const winner = side === 'c' ? d.challenger : d.target;
   const loser  = side === 'c' ? d.target : d.challenger;
 
-  const w = await addAura(jid, winner, +d.stake);
-  const l = await addAura(jid, loser, -d.stake);
+  // TRANSFERAURA, NO DOS addAura. Un duelo mueve aura de una persona a otra y
+  // eso solo tiene una forma correcta de escribirse.
+  //
+  // Con dos addAura sueltos habia dos problemas de verdad:
+  //
+  //  · CADA UNO VA POR SU COLA. auraStore serializa por (grupo, persona), asi
+  //    que entre comprobar el saldo del perdedor arriba y descontarselo aqui
+  //    cabe un !robo, un !dar o una apuesta suya. El duelo cobraba igual y lo
+  //    dejaba en NEGATIVO, que es justo lo que SALDO_MINIMO existe para impedir.
+  //  · Y si el proceso se cae entre las dos lineas, se ha creado o destruido
+  //    aura: uno cobro y el otro no pago. transferAura hace las dos escrituras
+  //    dentro del mismo bloque serializado, asi que o pasan las dos o ninguna.
+  //
+  // Si el perdedor ya no puede cubrirlo, la transferencia no se hace y se dice.
+  const mov = await transferAura(jid, loser, winner, d.stake);
+  if (!mov.ok) {
+    // `pending` ya se limpio al entrar en resolveDuel, asi que aqui no hay nada
+    // que borrar: solo avisar y salir sin mover un aura.
+    return sock.sendMessage(jid, {
+      text: `@${loser.split('@')[0]} ya no tiene los *${fmt(d.stake)}* que apostó. Duelo anulado.`,
+      mentions: [loser],
+    }, { quoted: msg });
+  }
+  const w = { current: mov.toNew };
+  const l = { current: mov.fromNew };
 
   const phrase = pickFresh(DUEL_WIN, `${jid}|duel`)
     .replace(/%W/g, `@${winner.split('@')[0]}`)

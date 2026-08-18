@@ -12,10 +12,10 @@ const RX = require('../data/roboExtraPhrases');
 const STAKE_DEFAULT   = ROBO.porDefecto;
 const STAKE_FLOOR     = ROBO.suelo;
 const MIN_AURA        = ROBO.minVictima;
-// 6 min, bajado desde 10. Con la probabilidad en rango de casino se acierta
-// bastante menos, y esperar diez minutos para fallar hacia que el comando se
-// usara poco. Sigue por debajo del escudo de la victima (7 min), asi que no se
-// puede encadenar dos robos seguidos contra la misma persona.
+// Bajado, y la cifra vive SOLO en la constante de abajo. Con la probabilidad en
+// rango de casino se acierta bastante menos, y esperar tanto para fallar hacia
+// que el comando se usara poco. Sigue por debajo del escudo de la victima
+// (ESCUDO_MS), asi que no se pueden encadenar dos robos contra la misma persona.
 const ROB_COOLDOWN_MS = 6 * 60 * 1000;
 
 // Techo de lo que se puede mover en un robo concreto.
@@ -2007,7 +2007,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: 'No puedes robarte a ti mismo.' }, { quoted: msg });
   }
 
-  // Cooldown: 10 min per attacker per group
+  // Cooldown por atacante y grupo. La cifra es ROB_COOLDOWN_MS.
   const coolKey = `${jid}|${canonicalJid(sender)}`;
   const last = lastRob.get(coolKey) || 0;
   const remaining = ROB_COOLDOWN_MS - (Date.now() - last);

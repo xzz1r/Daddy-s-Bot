@@ -1,6 +1,7 @@
 const { getActiveUsers, resetCounts, resetAllCounts, getLastReset } = require('../utils/messageCounter');
 const { isOwner, isMainOwner, isAdmin, isGroupAdmin, getSender, getTarget, sameUser, soloMiembros } = require('../utils/wa');
 const { pickFresh } = require('../utils/helpers');
+const { cobrar, textoSinSaldo } = require('../utils/auraCobro');
 
 let MEMBER_PHRASES = [
   [
@@ -278,6 +279,20 @@ async function cmdCount(sock, msg, groupMeta, args) {
   const quien = getSender(msg);
   if (!isGroupAdmin(quien, msg.key.fromMe, groupMeta)) {
     return sock.sendMessage(jid, { text: 'Solo los admins pueden ver el ranking.' }, { quoted: msg });
+  }
+
+  // EL COBRO VA AQUI, DESPUES DEL PERMISO, y no en la tabla central.
+  //
+  // Estaba en COBRO_CENTRAL, que corre ANTES del switch: a un miembro se le
+  // cobraban 25 y justo despues le llegaba el "solo los admins". Pagaba por un
+  // rechazo. Y el catch del handler solo devuelve el aura cuando salta una
+  // excepcion — un `return` no lo es, asi que ese aura no volvia.
+  //
+  // El orden correcto es permiso -> cobro -> ejecucion, y el unico sitio donde
+  // se puede hacer es dentro del comando, que es quien conoce su propio gate.
+  const pago = await cobrar(jid, quien, 'count', { fromMe: msg.key.fromMe, groupMeta });
+  if (!pago.ok) {
+    return sock.sendMessage(jid, { text: textoSinSaldo('count', pago, jid) }, { quoted: msg });
   }
 
   // !count @mention — o RESPONDIENDO a un mensaje suyo, que es lo natural.

@@ -459,8 +459,24 @@ ok(/transferAura/.test(src('dar.js')), '!dar sigue usando transferAura: el cargo
   }
   console.log(`  !dar: ${(IMPUESTO.porcentaje * 100).toFixed(0)} % con minimo ${IMPUESTO.minimo}; de lo recaudado, el ${(IMPUESTO.alBote * 100).toFixed(0)} % va al bote y el resto se destruye.`);
 }
-ok(/addAura\(jid, winner, \+d\.stake\)[\s\S]{0,120}addAura\(jid, loser, -d\.stake\)/.test(src('duel.js')),
-  '!duel: el ganador cobra exactamente lo que paga el perdedor, suma cero');
+// ESTE ASERTO EXIGIA LA IMPLEMENTACION VIEJA, no la propiedad. Comprobaba que
+// hubiera literalmente dos addAura seguidos — que es justo la forma INCORRECTA
+// de mover aura entre dos personas: cada uno va por su cola, asi que entre el
+// chequeo de saldo y el descuento cabe otro comando del perdedor y el duelo lo
+// deja en negativo; y si el proceso se cae entre las dos lineas, uno cobra y el
+// otro no paga. Un test que fija la implementacion impide justo el arreglo.
+//
+// Lo que hay que exigir es la propiedad: que las dos escrituras pasen por el
+// mismo bloque serializado, o sea transferAura.
+{
+  const ds = src('duel.js');
+  ok(/transferAura\(jid, loser, winner, d\.stake\)/.test(ds),
+    '!duel: el traspaso va por transferAura — las dos escrituras en el mismo bloque serializado');
+  ok(!/addAura\(jid, (winner|loser)/.test(ds),
+    '  y ya no quedan addAura sueltos, que era lo que dejaba al perdedor en negativo');
+  ok(/if \(!mov\.ok\)/.test(ds),
+    '  y si el perdedor ya no puede cubrirlo, el duelo se anula en vez de cobrarle igual');
+}
 
 // LA RECOMPENSA POR SU CABEZA no puede crear aura, y es lo primero que hay que
 // comprobar de ella: es lo unico del bot que retiene dinero de una operacion

@@ -316,6 +316,61 @@ async function capaStores() {
     }
   }
 
+  // NINGUN ALIAS PUEDE ESTAR DOS VECES EN EL SWITCH, y esto lo aprendi por las
+  // malas: *!atraco* estaba en la rama de !robo y en la suya, y en JS gana el
+  // primer case. Resultado: el comando se anunciaba en el menu y en la guia, y
+  // contestaba "Dime a quien robas". Dos dias asi.
+  //
+  // Mi comprobacion de textos no lo caza y no puede: verifica que el comando
+  // EXISTA como case, y existia. Verificar existencia no es verificar destino.
+  {
+    const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+    const vistos = new Map();
+    const dobles = [];
+    for (const m of mh.matchAll(/case '([^']+)':/g)) {
+      if (vistos.has(m[1])) dobles.push(m[1]);
+      else vistos.set(m[1], true);
+    }
+    comprueba(dobles.length === 0,
+      `dispatcher: alias duplicados en el switch (gana el primero y el segundo queda muerto): ${dobles.join(', ')}`);
+  }
+
+  // Y EL COBRO TIENE QUE CUADRAR CON EL SWITCH, en las dos direcciones:
+  //
+  //  · una clave de precio sin case cobra por un comando que no existe — le paso
+  //    a !coach, que se llevaba 30 y contestaba "no existe";
+  //  · un alias fuera de la tabla sale GRATIS mientras su canonico cobra, que es
+  //    lo que pasaba con !quemar, !destruir, !muertos, !texto e !importancia.
+  {
+    const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+    const cases = new Set([...mh.matchAll(/case '([^']+)':/g)].map((m) => m[1]));
+    const tabla = mh.match(/const COBRO_CENTRAL = \{[\s\S]*?\n\};/);
+    const claves = tabla ? [...tabla[0].matchAll(/([a-zá-úñ0-9]+):\s*'[a-z0-9]+'/g)].map((x) => x[1]) : [];
+    // Los de porcentaje NO estan en el literal: se meten con un bucle sobre
+    // CMDS_PORCENTAJE. Sin esto la comprobacion acusaba a fiel e infiel de salir
+    // gratis cuando cobran perfectamente — un falso positivo que habria mandado
+    // a alguien a "arreglar" algo que funciona.
+    const pct = mh.match(/const CMDS_PORCENTAJE = \[([\s\S]*?)\];/);
+    if (pct) for (const x of pct[1].matchAll(/'([^']+)'/g)) claves.push(x[1]);
+    const huerfanos = claves.filter((c) => !cases.has(c));
+    comprueba(huerfanos.length === 0,
+      `cobro: se cobra por comandos que no existen: ${huerfanos.join(', ')}`);
+
+    // Alias gratis: se agrupan los case consecutivos que llaman al mismo
+    // handler; si UNO de ellos cobra, todos tienen que cobrar.
+    const grupos = [...mh.matchAll(/((?:\s*case '[^']+':[^\n]*\n)+)\s*await (cmd[A-Za-z]+)\(/g)];
+    const sueltos = [];
+    for (const g of grupos) {
+      const alias = [...g[1].matchAll(/case '([^']+)'/g)].map((x) => x[1]);
+      const conCobro = alias.filter((a) => claves.includes(a));
+      if (conCobro.length && conCobro.length !== alias.length) {
+        sueltos.push(...alias.filter((a) => !claves.includes(a)));
+      }
+    }
+    comprueba(sueltos.length === 0,
+      `cobro: alias gratis mientras su hermano cobra por el mismo trabajo: ${sueltos.join(', ')}`);
+  }
+
   // EL COOLDOWN DE !aura top. Cuatro reglas que ya se rompieron una vez cada una
   // y que desde fuera no se ven: el bot contesta, solo contesta lo que no toca.
   //

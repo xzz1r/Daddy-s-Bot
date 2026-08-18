@@ -299,11 +299,13 @@ const P_TRAMO_GRANDE = { gana: 0.30, pierde: 0.25 };
 // Si algún día hay que mover el ingreso general arriba o abajo, ESTE es el
 // número, y es el más directo que hay: cada tirada de pago vale entre 2 (novato)
 // y 16 (owner) de aura al día.
-// SUBIDO DE 5 A 10, de la mano del cooldown de 10 minutos. Con las dos cosas
-// hacen falta unos 100 minutos para cobrar el dia entero, en vez de 75 para
-// cobrar la mitad. El freno sigue estando donde estaba: de la 11 en adelante la
-// tirada es cara o cruz a valor esperado CERO, asi que darle al boton toda la
-// noche no fabrica nada.
+// SUBIDO, de la mano del cooldown de la tirada. Ninguna de las dos cifras se
+// escribe aqui: este comentario decia "de 5 a 10" con la constante en 8, y el
+// del cooldown decia quince cuando eran diez. Los numeros viven en las
+// constantes y en ningun otro sitio.
+//
+// El freno sigue donde estaba: pasadas las de pago, la tirada es cara o cruz a
+// valor esperado CERO, asi que darle al boton toda la noche no fabrica nada.
 const TIRADAS_PAGADAS = 8;
 
 const mediaRango = ([min, max]) => (min + max) / 2;   // TIRADA es [min, max]
@@ -815,8 +817,7 @@ const OBJETOS = {
   // A 250 el corte esta en 29 comandos en doce horas: eso lo alcanza quien pasa
   // la tarde en el chat y no lo alcanza quien lo compra por si acaso, que es
   // exactamente donde tenia que estar la linea.
-  socio:   { precio: 250, horas: 24, descuento: 0.30,
-             desc: 'todos los comandos te cuestan un 25 % menos durante 12 h' },
+  socio:   { precio: 250, horas: 24, descuento: 0.30 },
 };
 
 // ─── EL LIMITE DE LOS OBJETOS DE VENTAJA ─────────────────────────────────────
@@ -1088,6 +1089,17 @@ const IMPUESTO = {
   // que la comision del asalto: parte drena, parte vuelve al juego.
   alBote: 0.5,
 };
+
+// LAS DESCRIPCIONES QUE DEPENDEN DE UNA CIFRA SE GENERAN.
+//
+// El socio la tenia escrita a mano y mentia: la tienda anunciaba "25 % menos
+// durante 12 h" mientras el cobro aplicaba 30 % y 24 h. Se cambiaron los valores
+// y el texto se quedo atras, que es exactamente lo que pasa siempre que el mismo
+// dato vive en dos sitios.
+//
+// Se hace despues de definir OBJETOS y encima del export, asi que cualquier
+// cambio de `descuento` u `horas` mueve el texto solo.
+OBJETOS.socio.desc = `todos los comandos te cuestan un ${Math.round(OBJETOS.socio.descuento * 100)} % menos durante ${OBJETOS.socio.horas} h`;
 
 // Lo que cuesta de verdad mandar una cantidad, y lo unico que hay que llamar
 // para saberlo. Vive aqui y no en el comando para que la ayuda, el mensaje y el

@@ -167,10 +167,20 @@ function _guardarYa() {
     require('fs').writeFileSync(HISTORIAL_FICHERO, JSON.stringify(Object.fromEntries(_pickHistory)));
   } catch { /* si no se puede escribir al salir, se pierde la ventana y ya */ }
 }
+// SOLO 'exit'. AQUI NO SE MATA EL PROCESO.
+//
+// Habia un handler de SIGINT/SIGTERM que llamaba a process.exit(0) directamente,
+// y competia con el apagado ordenado de bot.js — que espera hasta 3 s a que
+// catorce stores vuelquen: aura, conteos, casino, racha, robos, banlist...
+//
+// Los dos escuchan la misma señal, asi que el orden lo decidia el azar del
+// registro. Si ganaba este, el historial de frases se guardaba y la ultima
+// transferencia de aura NO. Cambiar frases por dinero es un mal negocio.
+//
+// 'exit' es distinto y si vale: se dispara cuando el proceso YA se esta
+// cerrando, venga de donde venga, y no adelanta a nadie. Las señales las maneja
+// bot.js, que es quien sabe que hay que volcar.
 process.once('exit', _guardarYa);
-for (const senyal of ['SIGINT', 'SIGTERM']) {
-  process.once(senyal, () => { _guardarYa(); process.exit(0); });
-}
 
 // Ventana anti-repeticion: no se repite una frase hasta pasadas otras 50 del
 // mismo pool. Si el pool tiene MENOS de 11 frases el bloqueo se recorta solo a
@@ -450,7 +460,13 @@ async function barrerHuerfanos(dir) {
 // literalmente en 8 modulos.
 const fmt = n => n.toLocaleString('es-ES');
 
+// Para que bot.js lo meta en su lista de volcados con el resto de stores. Antes
+// el historial de frases era el UNICO estado que no estaba en esa lista: se
+// salvaba por su cuenta y por eso hacia falta el handler de señales de arriba.
+async function flushPickHistory() { _guardarYa(); }
+
 module.exports = {
+  flushPickHistory,
   // ARSENAL (el regex) ya NO se exporta: lleva la bandera /g, o sea que arrastra
   // lastIndex entre llamadas y un `ARSENAL.test(x)` desde fuera devolveria true
   // y false alternandose sobre la MISMA frase. Aqui dentro se resetea antes de
