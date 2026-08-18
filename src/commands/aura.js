@@ -863,7 +863,8 @@ _Pero cuanto más pides, menos probable: el punto dulce está sobre el ${Math.ro
 *!robo tienda* / *comprar* — escudo, ganzúa, cebo
 _Para la mesa: *amuleto* (${fmt(OBJETOS.amuleto.precio)}) · *seguro* (${fmt(OBJETOS.seguro.precio)}) · *socio* (${fmt(OBJETOS.socio.precio)}) todo un ${Math.round(OBJETOS.socio.descuento * 100)}% más barato ${OBJETOS.socio.horas}h_
 _Y los caros: *pase* (${fmt(OBJETOS.pase.precio)}) publicas tus redes ${OBJETOS.pase.horas}h · *indulto* (${fmt(OBJETOS.indulto.precio)}) el bot no te banea solo. Ninguno te salva de un admin._
-*!contrarobo* — devuelves el golpe, *${CONTRA.ventanaSeg}s*. Doble o nada
+*!contrarobo* — devuelves el golpe, *${CONTRA.ventanaSeg}s*
+_Cuanto antes respondas, más probabilidad: el bono entero es en los primeros *${CONTRA.segRapido}s* y se va cayendo. Puedes recuperar hasta *${CONTRA.desenlaces.demoledor.mult}x*... o pagar otro *${Math.abs(CONTRA.desenlaces.ruina.mult)}x* por listo._
 *!robo top* — los más buscados
 
 *!duel* @user <cant.> — 1v1, se acepta con *!duel aceptar*

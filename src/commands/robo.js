@@ -1673,36 +1673,70 @@ async function contraatacar(sock, msg, jid, sender, groupMeta) {
   // las consecuencias de haber robado tú. Comprarlo y salir de caza sabiendo
   // que nadie puede responderte convertiría 180 de aura en impunidad, que es
   // justo lo contrario de lo que se busca con las dinámicas.
-  const botin = Math.round(p.cuanto * CONTRA.multiplicador);
+  // LA VELOCIDAD MANDA. Antes la ventana solo decia si llegabas o no: responder
+  // al segundo y responder en el 89 valian igual, asi que lo optimo era esperar
+  // por si acaso. Eso no es una ventana, es un plazo. Ahora el bono se cobra
+  // entero respondiendo en caliente y baja en linea recta hasta cero al
+  // cerrarse, que es lo unico que el bot no puede fingir: estar delante.
+  const tardo = (Date.now() - p.ts) / 1000;
+  const bonoVel = tardo <= CONTRA.segRapido
+    ? CONTRA.bonoRapido
+    : CONTRA.bonoRapido * Math.max(0, 1 - (tardo - CONTRA.segRapido) / (CONTRA.ventanaSeg - CONTRA.segRapido));
+
   // Ni aqui gana siempre: ver CONTRA.owner en economia.js. Este es el sitio
   // donde un amaño del 100 % mas se nota, porque la jugada se resuelve en
   // caliente y delante del que acaba de robarle.
+  //
+  // El owner NO cobra el bono de velocidad: su probabilidad ya viene amañada y
+  // sumarle otros 14 puntos lo devolveria al terreno del que se acaba de salir.
   const contraEsOwner = isMainOwner(sender, msg.key.fromMe, groupMeta);
   const gana = contraEsOwner
     ? ownerGana(jid, CONTRA.owner)
-    : Math.random() < CONTRA.probabilidad;
+    : Math.random() < Math.min(0.95, CONTRA.probabilidad + bonoVel);
+
+  // El dado decide ADEMAS cuanto, igual que en el robo desde hace tiempo. Cinco
+  // escalones en vez de cara o cruz: ver CONTRA.desenlaces. Se sortea dentro de
+  // la rama que ya ha salido, asi que los pesos solo reparten el drama y no
+  // tocan la probabilidad de ganar.
+  const rama = Object.entries(CONTRA.desenlaces).filter(([, d]) => (d.mult > 0) === gana);
+  const total = rama.reduce((acc, [, d]) => acc + d.peso, 0);
+  let dado = Math.random() * total;
+  const [clave, des] = rama.find(([, d]) => (dado -= d.peso) <= 0) || rama[rama.length - 1];
+
+  // Cuanto tardo en responder, dicho en voz alta. Sin esto el bono de velocidad
+  // seria una regla invisible, y una regla que no se ve no cambia como juega
+  // nadie. Del owner no se dice nada: no lo cobra, y anunciarlo solo invitaria a
+  // cruzar sus tiempos con sus resultados.
+  const pieVel = contraEsOwner ? ''
+    : tardo <= CONTRA.segRapido
+      ? `\n_Respondió en *${tardo.toFixed(0)}s*: a sangre caliente y con ventaja._`
+      : `\n_Tardó *${tardo.toFixed(0)}s*. Pensárselo tanto se paga._`;
 
   if (gana) {
     // Se mueve lo que el ladrón pueda cubrir: cobrar de una cuenta vacía
     // dejaría a alguien en negativo por una dinámica opcional.
     const tieneEl = await getAura(jid, p.ladron);
-    const real = Math.max(0, Math.min(botin, tieneEl));
+    const real = Math.max(0, Math.min(Math.round(p.cuanto * des.mult), tieneEl));
     const [vN] = await Promise.all([addAura(jid, sender, real), addAura(jid, p.ladron, -real)]);
     await tienda.anotarGolpe(jid, sender, real);
+    const pool = clave === 'demoledor' ? RX.CONTRA_DEMOLEDOR
+               : clave === 'raspado'   ? RX.CONTRA_RASPADO
+               : RX.CONTRA_GANA;
     return sock.sendMessage(jid, {
-      text: `*CONTRAATAQUE*\n╾━━━━━━━━━━━━━━╼\n\n` +
-        `${fraseCon(RX.CONTRA_GANA, `${jid}|contra|gana`, { '%A': a, '%V': v, '%C': fmt(real) })}\n\n` +
-        `${v} +${fmt(real)} → *${fmt(vN.current)}*`,
+      text: `${des.titulo}\n╾━━━━━━━━━━━━━━╼\n\n` +
+        `${fraseCon(pool, `${jid}|contra|${clave}`, { '%A': a, '%V': v, '%C': fmt(real) })}\n\n` +
+        `${v} +${fmt(real)} → *${fmt(vN.current)}*${pieVel}`,
       mentions: [sender, p.ladron],
     }, { quoted: msg });
   }
 
-  const castigo = Math.min(p.cuanto, Math.max(0, await getAura(jid, sender)));
+  const castigo = Math.min(Math.round(p.cuanto * Math.abs(des.mult)), Math.max(0, await getAura(jid, sender)));
   const [vN] = await Promise.all([addAura(jid, sender, -castigo), addAura(jid, p.ladron, castigo)]);
+  const poolMal = clave === 'ruina' ? RX.CONTRA_RUINA : RX.CONTRA_PIERDE;
   return sock.sendMessage(jid, {
-    text: `*CONTRAATAQUE FALLIDO*\n\n` +
-      `${fraseCon(RX.CONTRA_PIERDE, `${jid}|contra|pierde`, { '%A': a, '%V': v, '%C': fmt(castigo) })}\n\n` +
-      `${v} −${fmt(castigo)} → *${fmt(vN.current)}*`,
+    text: `${des.titulo}\n\n` +
+      `${fraseCon(poolMal, `${jid}|contra|${clave}`, { '%A': a, '%V': v, '%C': fmt(castigo) })}\n\n` +
+      `${v} −${fmt(castigo)} → *${fmt(vN.current)}*${pieVel}`,
     mentions: [sender, p.ladron],
   }, { quoted: msg });
 }

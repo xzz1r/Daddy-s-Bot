@@ -785,6 +785,42 @@ const CONTRA = {
   // Y cuenta para la misma racha que el robo (ROBO_OWNER_RACHA_MAX): a la cuarta
   // victoria seguida entre los dos comandos, esta se pierde.
   owner: 0.66,
+
+  // ─── LA VELOCIDAD IMPORTA ──────────────────────────────────────────────────
+  //
+  // Antes la ventana de 90 s solo decia si llegabas o no: responder al segundo y
+  // responder en el 89 valian exactamente lo mismo, asi que la jugada optima era
+  // esperar por si acaso. Eso no es una ventana, es un plazo.
+  //
+  // Ahora el que responde EN CALIENTE tiene mas probabilidad, y se va cayendo
+  // hasta el final de la ventana. Le da sentido a que sean noventa segundos y
+  // premia lo unico que el bot no puede fingir: estar delante del chat.
+  segRapido: 15,        // hasta aqui, el bono entero
+  bonoRapido: 0.14,     // y de ahi baja en linea recta hasta cero al cerrarse
+
+  // ─── LOS DESENLACES ────────────────────────────────────────────────────────
+  //
+  // El robo lleva cinco desenlaces desde hace tiempo (golpe maestro, limpio, a
+  // medias, fallo, desastre) y el contraataque seguia siendo cara o cruz: o el
+  // doble o nada. La respuesta al robo era menos interesante que el robo.
+  //
+  // Mismos cinco escalones, con los pesos dentro de cada rama:
+  //
+  //   ganando   demoledor  le pillas con el botin en la mano y sale carisimo
+  //             limpio     el doble de siempre
+  //             raspado    recuperas lo tuyo y ni un aura mas
+  //   perdiendo fallo      pagas otra vez lo que te quitaron
+  //             ruina      pagas casi el doble por listo
+  //
+  // Esto NO infla la economia: gane quien gane, el aura pasa de un bolsillo al
+  // otro. Los pesos solo deciden el drama.
+  desenlaces: {
+    demoledor: { peso: 0.18, mult:  2.6, titulo: '*CONTRAATAQUE DEMOLEDOR*' },
+    limpio:    { peso: 0.57, mult:  2.0, titulo: '*CONTRAATAQUE*' },
+    raspado:   { peso: 0.25, mult:  1.0, titulo: '*CONTRAATAQUE JUSTITO*' },
+    fallo:     { peso: 0.75, mult: -1.0, titulo: '*CONTRAATAQUE FALLIDO*' },
+    ruina:     { peso: 0.25, mult: -1.8, titulo: '*RUINA TOTAL*' },
+  },
 };
 
 // EL MÁS BUSCADO. El nº1 de la semana lleva diana: robarle a él paga más, y
