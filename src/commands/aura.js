@@ -3,7 +3,6 @@ const { pickFresh, fmt } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
 const { getName, recordName, cargar: cargarNombres } = require('../utils/nombreStore');
-const { mensajesFalsos } = require('../utils/fachada');
 const logger = require('../utils/logger');
 const { contarTirada } = require('../utils/casinoStore');
 const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, bonoVeterania, VETERANIA_TOPE, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
@@ -1267,31 +1266,10 @@ async function cmdAura(sock, msg, args, groupMeta) {
   // cuya unica progresion es escribir. El tope no se toca (esta ahi para que
   // ningun miembro alcance a un admin), asi que la veterania se paga en cantidad.
   // Solo toca lo GANADO: no reduce el castigo al perder.
-  // El recuento que cuenta para la veterania. Para todos es el suyo; para el
-  // owner es el de la fachada, porque el suyo real es cero por diseño.
-  //
-  // Y SE USA TAMBIEN PARA CALCULAR EL BONO, no solo para enseñarlo. La primera
-  // version solo cambiaba el numero de la linea y dejaba el bono saliendo del
-  // contador real: con la fachada en 1.987 msgs le habria salido "Veterano
-  // (1.987 msgs): +30% de suerte" mientras que a un miembro con esos mismos
-  // 1.987 le sale ademas "+2% de botin". La misma cifra dando dos lineas
-  // distintas es exactamente lo que la fachada tiene que evitar — y ademas es
-  // el bono que le tocaria si el contador le contara, que es la premisa de todo
-  // esto.
-  const mensajesMostrados = esOwnerPrincipal
-    ? await mensajesFalsos(jid).catch(() => null)
-    : mensajes;
 
-  // EL BONO QUE SE APLICA NO PUEDE SALIR DE UN NUMERO INVENTADO.
-  //
-  // Salia: se calculaba sobre `mensajesMostrados`, que para el owner es la
-  // fachada. Y esa cifra se mueve con el grupo de un dia a otro, asi que su
-  // aura REAL crecia mas o menos segun un numero que no existe — si el grupo se
-  // calmaba, cobraba menos, sin ninguna razon que pasara de verdad.
-  //
-  // Ahora va como el bono de actividad: se le da el TOPE, por el mismo motivo
-  // (de todo el grupo es quien mas escribe), y lo que se PUBLICA es lo que le
-  // tocaria por lo que aparenta. La fachada solo pinta; nunca mueve el saldo.
+  // El owner COBRA el tope, como el bono de actividad y por el mismo motivo: su
+  // contador esta en cero por diseño, asi que calcularlo sobre sus mensajes lo
+  // dejaria sin nada. Lo que NO pasa es que se le enseñe (ver la linea de abajo).
   const vet = esOwnerPrincipal ? VETERANIA_TOPE : bonoVeterania(mensajes);
   let extraVet = 0;
   if (amount > 0 && vet > 0) {
@@ -1299,31 +1277,26 @@ async function cmdAura(sock, msg, args, groupMeta) {
     amount += extraVet;
   }
   const sign = amount >= 0 ? '+' : '-';
-  // EL BONO DE SUERTE QUE SE PUBLICA NO ES EL QUE SE COBRA, y solo para el owner.
+  // AL OWNER NO SE LE ENSEÑA ESTA LINEA. NUNCA, y tampoco inventada.
   //
-  // A el se le da ACTIVIDAD_TOPE directamente (arriba, porque su contador esta
-  // en cero por diseño y si no seria el unico que jamas cobra el plus). Pero
-  // publicarlo tal cual delataba: con la fachada en ~2.000 msgs le salia
-  // "+13% de suerte" donde a un miembro con ESOS MISMOS 2.000 le sale "+3%".
-  // Cuatro veces mas con el mismo recuento al lado, en la misma linea. Cualquiera
-  // que compare dos mensajes lo ve.
+  // Llegue a fabricarle un recuento creible para que le saliera como a todos,
+  // con el argumento de que la ausencia tambien es una señal. El argumento es
+  // malo aqui, y es el mismo por el que !aura hoy se calla: esta linea ES el
+  // contador de mensajes. Inventarle una cifra es publicar un dato sobre su
+  // actividad — justo lo que el contador existe para no publicar — y ademas
+  // abre la puerta a que ese numero contradiga a cualquier otro sitio.
   //
-  // Asi que se enseña el que le tocaria por el recuento que aparenta. El bono
-  // real no se toca: se cobra el tope igual, solo deja de anunciarse.
-  const plusMostrado = esOwnerPrincipal
-    ? bonoActividad(mensajesMostrados ?? 0)
-    : plusActividad;
-  const vetMostrado = esOwnerPrincipal
-    ? bonoVeterania(mensajesMostrados ?? 0)
-    : vet;
-  // Se DICE: un bono invisible no premia a nadie. El veterano no sabria que
-  // cobra de mas y el que empieza no sabria que hay algo que perseguir.
-  const lineaVeterano = (plusMostrado || extraVet) && mensajesMostrados !== null
-    ? `Veterano (${fmt(mensajesMostrados)} msgs):` +
-      (plusMostrado ? ` +${Math.round(plusMostrado * 100)}% de suerte` : '') +
-      (plusMostrado && extraVet ? ' ·' : '') +
-      (extraVet ? ` +${Math.round(vetMostrado * 100)}% de botín (+${fmt(extraVet)})` : '')
-    : '';
+  // Y la ausencia no lo señala: la linea solo sale pasando el umbral de
+  // actividad, cosa que la mayoria del grupo no hace nunca. Que a el no le
+  // salga lo deja igual que a cualquiera que no llego, que es el caso normal.
+  //
+  // Los bonos SI los cobra, los dos al tope. Lo que se quita es el anuncio.
+  const lineaVeterano = esOwnerPrincipal || !(plusActividad || extraVet)
+    ? ''
+    : `Veterano (${fmt(mensajes)} msgs):` +
+      (plusActividad ? ` +${Math.round(plusActividad * 100)}% de suerte` : '') +
+      (plusActividad && extraVet ? ' ·' : '') +
+      (extraVet ? ` +${Math.round(vet * 100)}% de botín (+${fmt(extraVet)})` : '');
 
   const { previous, current } = await addAura(jid, sender, amount);
 

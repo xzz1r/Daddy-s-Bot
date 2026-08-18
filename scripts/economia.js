@@ -508,8 +508,10 @@ ok(/addAura\(jid, winner, \+d\.stake\)[\s\S]{0,120}addAura\(jid, loser, -d\.stak
   const as = src('aura.js');
   ok(/const vet = esOwnerPrincipal \? VETERANIA_TOPE/.test(as),
     'fachada: el bono de veterania que se COBRA no sale del recuento inventado');
-  ok(/vetMostrado = esOwnerPrincipal/.test(as),
-    '  y el que se PUBLICA si, que es donde tiene que estar la mentira');
+  ok(/lineaVeterano = esOwnerPrincipal \|\| /.test(as),
+    '  y la linea de veterano NO se le enseña: ese texto es el contador de mensajes, del que el esta fuera');
+  ok(!/mensajesFalsos|mensajesHoyFalsos/.test(as + src('social.js')),
+    '  y no queda ningun recuento de mensajes inventado para el: inventarlo es publicar su actividad');
   const rs2 = src('robo.js');
   ok(/const enSuCabeza = isMainOwner\([^)]*\) \? 0 :/.test(rs2),
     'fachada: al owner no se le retiene recompensa — su cabeza es incobrable, retenersela era destruirle aura');
