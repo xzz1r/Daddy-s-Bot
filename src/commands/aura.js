@@ -3,7 +3,7 @@ const { pickFresh, fmt } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
 const { contarTirada } = require('../utils/casinoStore');
-const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
+const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, bonoVeterania, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
 const { BOTE, CONTRA, RACHA, RIESGO, OBJETOS } = require('../utils/economia');
@@ -973,7 +973,21 @@ async function cmdAura(sock, msg, args, groupMeta) {
   try { tiradasHoy = await contarTirada(jid, sender); } catch { /* se cobra */ }
   const dePago = tiradasHoy <= TIRADAS_PAGADAS;
 
-  const { tier, amount } = rollAura(selfIsOwner, selfIsAdmin, plusActividad, dePago);
+  let { tier, amount } = rollAura(selfIsOwner, selfIsAdmin, plusActividad, dePago);
+
+  // VETERANIA: mas aura cuando ganas, segun lo escrito en total.
+  //
+  // La otra veterania —la que sube la probabilidad— se agota contra P_TOPE a los
+  // ~1.700 mensajes, asi que a partir de ahi escribir no daba NADA en un bot
+  // cuya unica progresion es escribir. El tope no se toca (esta ahi para que
+  // ningun miembro alcance a un admin), asi que la veterania se paga en cantidad.
+  // Solo toca lo GANADO: no reduce el castigo al perder.
+  const vet = bonoVeterania(mensajes);
+  let extraVet = 0;
+  if (amount > 0 && vet > 0) {
+    extraVet = Math.round(amount * vet);
+    amount += extraVet;
+  }
   const sign = amount >= 0 ? '+' : '-';
 
   const { previous, current } = await addAura(jid, sender, amount);
@@ -985,6 +999,9 @@ async function cmdAura(sock, msg, args, groupMeta) {
     `*@${sender.split('@')[0]} ${sign}${fmt(Math.abs(amount))} de aura*\n` +
     `${pickFresh(AURA[effectiveTier], `${jid}|aura|${effectiveTier}`)}\n\n` +
     `Aura total: *${fmt(current)}*` +
+    // Se DICE: un bono invisible no premia a nadie. El veterano no sabria que
+    // cobra de mas y el que empieza no sabria que hay algo que perseguir.
+
     // La línea del bono se enseña a TODOS MENOS AL OWNER PRINCIPAL.
     //
     // Con él era el peor sitio posible para ponerla: sus mensajes no se cuentan
@@ -995,8 +1012,17 @@ async function cmdAura(sock, msg, args, groupMeta) {
     // aparece si superas los 1.000 mensajes del día, cosa que la mayoría del
     // grupo no hace nunca. Que a él no le salga lo deja igual que a cualquiera
     // que no llegó al umbral, que es el caso normal y no llama la atención.
-    (plusActividad && !esOwnerPrincipal
-      ? `\n_Veterano (${fmt(mensajes)} msgs): +${Math.round(plusActividad * 100)}% de suerte_`
+    // UNA sola linea de veterano, con las dos ventajas juntas.
+    //
+    // Al anyadir el bono a la cantidad quedaron dos lineas seguidas diciendo
+    // "Veterano" con numeros distintos, y eso no se lee como un premio: se lee
+    // como que el bot se ha repetido.
+    ((plusActividad || extraVet) && !esOwnerPrincipal
+      ? `\n_Veterano (${fmt(mensajes)} msgs):` +
+        (plusActividad ? ` +${Math.round(plusActividad * 100)}% de suerte` : '') +
+        (plusActividad && extraVet ? ' ·' : '') +
+        (extraVet ? ` +${Math.round(vet * 100)}% de botín (+${fmt(extraVet)})` : '') +
+        '_'
       : '') +
     '';
 

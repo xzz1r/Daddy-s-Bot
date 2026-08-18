@@ -198,6 +198,31 @@ const P_TOPE = {
 const P_TOPE_MIEMBRO = P_TOPE.miembro;   // se mantiene el nombre viejo: lo usan otros modulos
 const ACTIVIDAD_TOPE = 0.13;
 
+// ─── Veterania que SI crece: se paga en cantidad, no en suerte ───────────────
+//
+// EXISTE PORQUE LA PROGRESION ESTABA MUERTA. El bono de veterania sube la
+// probabilidad, pero esa probabilidad choca contra P_TOPE.miembro (0,80) partiendo
+// de una base de 0,75: o sea que el margen real son cinco puntos y un miembro los
+// agota alrededor de los 1.700 mensajes. A partir de ahi escribir mas no daba
+// NADA, y eso en un bot cuya unica progresion es escribir.
+//
+// El tope no se toca —esta ahi para que ningun miembro alcance a un admin, y
+// levantarlo desarma el amaño entero—, asi que la veterania se paga por otro
+// lado: cuando ganas, ganas MAS. Eso no toca ninguna probabilidad ni acerca a
+// nadie al owner, y encima se nota mas que un 3 % invisible.
+//
+// El tope del 40 % se alcanza a los 20.000 mensajes, que es un veterano de
+// verdad. Y solo multiplica lo GANADO: no reduce el castigo al perder, asi que
+// no convierte a nadie en intocable.
+const VETERANIA_MSGS = 1000;   // cada cuántos mensajes sube un escalón
+const VETERANIA_PAGO = 0.02;   // +2 % a lo que ganas por escalón
+const VETERANIA_TOPE = 0.40;   // ...hasta un +40 %
+
+function bonoVeterania(mensajes) {
+  if (!mensajes || mensajes < VETERANIA_MSGS) return 0;
+  return Math.min(VETERANIA_TOPE, Math.floor(mensajes / VETERANIA_MSGS) * VETERANIA_PAGO);
+}
+
 // ─── Cuánto pesa perder ──────────────────────────────────────────────────────
 //
 // EL CASTIGO YA NO DEPENDE DE TU SUERTE. Es la corrección de fondo de todo este
@@ -409,9 +434,22 @@ const APUESTA = {
 // conversación a las 00:30. A medianoche eso pasaría constantemente.
 const RACHA = {
   minMensajes: 10,      // mensajes que hay que escribir para que el día cuente
-  pago: 2,              // por cada día de racha...
-  tope: 10,             // ...hasta este, o sea 20 al día como techo
+  // SUBIDO DE 2 A 6 y el tope de 10 a 20 dias por decision del owner: la racha
+  // pagaba 20 al dia en el mejor caso, menos de la mitad de UNA tirada de
+  // !aura. Aparecer todos los dias durante diez seguidos valia menos que pulsar
+  // un boton una vez, asi que no era un incentivo, era un adorno.
+  pago: 3,              // por cada día de racha...
+  tope: 11,             // ...hasta este, o sea 33 al día como techo
   hitos: [7, 15, 30, 50, 100, 200, 365],   // los días que el bot canta en el grupo
+
+  // Y ADEMAS UN PREMIO GORDO AL LLEGAR A CADA HITO.
+  //
+  // El goteo diario mantiene la costumbre; esto es lo que hace que llegar a los
+  // 30 dias signifique algo. Son pagos de una sola vez y estan durisimamente
+  // limitados por lo que cuesta conseguirlos: para cobrar el de 100 hay que
+  // escribir 10 mensajes al dia durante cien dias SIN fallar uno solo. No hay
+  // forma de acelerarlo con dinero ni de repetirlo.
+  premioHito: { 7: 150, 15: 350, 30: 700, 50: 1200, 100: 2500, 200: 5000, 365: 10000 },
   minParaLlorarla: 7,   // por debajo de esto, romperla no se anuncia
   horaCorte: 5,         // el día cambia a las 5 de la mañana, hora española
   zona: 'Europe/Madrid',
@@ -773,6 +811,7 @@ module.exports = {
   TIRADA, TIRADA_MIN, TIRADA_MAX, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE,
   P_TOPE_MIEMBRO, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, MEDIA_PREMIO, MEDIA_CASTIGO, bonoActividad, APUESTA,
   RACHA, BONOS, REDENCION,
+  VETERANIA_MSGS, VETERANIA_PAGO, VETERANIA_TOPE, bonoVeterania,
   ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, DUELO, REGALO_MIN,
   BOTE, OBJETOS, CONTRA, DIANA,
   PRECIOS, SALDO_MINIMO,

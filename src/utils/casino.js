@@ -177,7 +177,10 @@ async function avisarRacha(sock, jid, sender) {
   const r = await anotarMensaje(jid, sender);
   if (!r.evento) return;
 
-  await addAura(jid, sender, r.pago);
+  // El goteo diario, y ADEMAS el premio gordo si hoy toca hito. El premio es de
+  // una sola vez: r.hito solo trae numero el dia exacto en que se alcanza.
+  const premio = (r.hito && RACHA.premioHito[r.hito]) || 0;
+  await addAura(jid, sender, r.pago + premio);
   if (!isBotEnabled(jid) || !isAuraEnabled(jid)) return;
   if (r.evento === 'sube' && !r.hito) return;
 
@@ -188,6 +191,7 @@ async function avisarRacha(sock, jid, sender) {
     : `*RACHA DE ${r.dias} DIAS*\n\n` +
       pickFresh(RACHA_HITO, `${jid}|racha|hito`)
         .replace(/%N/g, userTag).replace(/%D/g, fmt(r.dias)) +
+      (premio ? `\n\n*+${fmt(premio)} de aura* por llegar a los ${r.dias} días.` : '') +
       `\n\n_+${fmt(r.pago)} de aura al dia mientras no falles. Tope en ${RACHA.tope} dias._`;
 
   await sock.sendMessage(jid, { text: texto, mentions: [sender] });
