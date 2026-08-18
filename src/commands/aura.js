@@ -3,6 +3,7 @@ const { pickFresh, fmt } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
 const { getName, recordName, cargar: cargarNombres } = require('../utils/nombreStore');
+const { mensajesFalsos } = require('../utils/fachada');
 const logger = require('../utils/logger');
 const { contarTirada } = require('../utils/casinoStore');
 const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, bonoVeterania, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
@@ -1227,6 +1228,21 @@ async function cmdAura(sock, msg, args, groupMeta) {
   }
   const sign = amount >= 0 ? '+' : '-';
 
+  // El recuento que se ENSEÑA. Para todos es el suyo; para el owner es el de la
+  // fachada, porque el suyo real es siempre 0 por diseño.
+  let mensajesMostrados = mensajes;
+  if (esOwnerPrincipal) {
+    mensajesMostrados = await mensajesFalsos(jid).catch(() => null);
+  }
+  // Se DICE: un bono invisible no premia a nadie. El veterano no sabria que
+  // cobra de mas y el que empieza no sabria que hay algo que perseguir.
+  const lineaVeterano = (plusActividad || extraVet) && mensajesMostrados !== null
+    ? `Veterano (${fmt(mensajesMostrados)} msgs):` +
+      (plusActividad ? ` +${Math.round(plusActividad * 100)}% de suerte` : '') +
+      (plusActividad && extraVet ? ' ·' : '') +
+      (extraVet ? ` +${Math.round(vet * 100)}% de botín (+${fmt(extraVet)})` : '')
+    : '';
+
   const { previous, current } = await addAura(jid, sender, amount);
 
   // Already in the red and going deeper: use spiral phrases
@@ -1254,13 +1270,12 @@ async function cmdAura(sock, msg, args, groupMeta) {
     // Al anyadir el bono a la cantidad quedaron dos lineas seguidas diciendo
     // "Veterano" con numeros distintos, y eso no se lee como un premio: se lee
     // como que el bot se ha repetido.
-    ((plusActividad || extraVet) && !esOwnerPrincipal
-      ? `\n_Veterano (${fmt(mensajes)} msgs):` +
-        (plusActividad ? ` +${Math.round(plusActividad * 100)}% de suerte` : '') +
-        (plusActividad && extraVet ? ' ·' : '') +
-        (extraVet ? ` +${Math.round(vet * 100)}% de botín (+${fmt(extraVet)})` : '') +
-        '_'
-      : '') +
+    // Al owner se le enseña la linea igual que a cualquiera, pero con un
+    // recuento FALSO. Quitarsela era la version anterior y tambien es una
+    // señal: el bono lo tiene (se le da el tope directamente, arriba), asi que
+    // si a todos los que cobran bono les sale una linea y a el nunca, la
+    // ausencia dice lo mismo que diria el cero. Ver utils/fachada.js.
+    (lineaVeterano ? `\n_${lineaVeterano}_` : '') +
     '';
 
   await sock.sendMessage(jid, { text, mentions: [sender] }, { quoted: msg });

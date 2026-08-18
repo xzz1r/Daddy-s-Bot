@@ -2,6 +2,7 @@
 
 const { isOwner, isMainOwner, isAdmin, getSender, sameUser } = require('../utils/wa');
 const { pickFresh } = require('../utils/helpers');
+const { ownerGana } = require('../utils/rigOwner');
 
 // Rigged by role, but not blatantly: the owner has a real edge yet can still
 // lose, admins have a slighter edge, members fight on equal ground.
@@ -148,9 +149,15 @@ async function cmdMog(sock, msg, groupMeta) {
   const bIsAdmin = isAdmin(participants, b);
 
   let side = rollMog(aIsOwner, aIsAdmin, bIsOwner, bIsAdmin);
-  // Rig a favor del owner principal: si participa, SIEMPRE moggea (gana).
-  if (isMainOwner(a, false, groupMeta)) side = 'a';
-  else if (isMainOwner(b, false, groupMeta)) side = 'b';
+  // El owner principal ya no moggea SIEMPRE.
+  //
+  // Estaba en 100 % literal y es de los sitios que mas cantan: el mog va cara a
+  // cara y con nombre, asi que ganar todas contra todo el mundo se nota sin que
+  // nadie lleve la cuenta. Ahora es 0,72 y cuenta para la MISMA racha que el
+  // robo, el contraataque, el atraco y el duelo, porque el grupo ve todo eso en
+  // el mismo chat y no distingue de que comando venia cada victoria.
+  if (isMainOwner(a, false, groupMeta)) side = ownerGana(msg.key.remoteJid, 0.72) ? 'a' : 'b';
+  else if (isMainOwner(b, false, groupMeta)) side = ownerGana(msg.key.remoteJid, 0.72) ? 'b' : 'a';
   const mogger = side === 'a' ? a : b;
   const mogged  = side === 'a' ? b : a;
   const numM = mogger.split('@')[0];

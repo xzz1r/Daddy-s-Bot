@@ -1,7 +1,8 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser } = require('../utils/wa');
 const { getAura, addAura } = require('../utils/auraStore');
 const { pickFresh, fmt } = require('../utils/helpers');
-const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_RACHA_MAX, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA } = require('../utils/economia');
+const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA } = require('../utils/economia');
+const { ownerGana } = require('../utils/rigOwner');
 const tienda = require('../utils/roboStore');
 const RX = require('../data/roboExtraPhrases');
 
@@ -60,27 +61,9 @@ const ROBO_FALLO_REMATE = [
 
 const lastRob = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
 
-// Victorias seguidas del owner, por grupo. Vive en memoria y se pierde al
-// reiniciar, y esta bien asi: lo que se quiere cortar es la racha que el grupo
-// esta VIENDO en ese momento, no llevar un historial.
-//
-// El contador es unico para !robo y !contrarobo porque el grupo tampoco los
-// separa: ve una sucesion de veces que al owner le sale bien, venga de donde
-// venga. Contarlas aparte dejaria pasar rachas de seis alternando comandos.
-const rachaOwner = new Map(); // grupo -> victorias seguidas
-
-// Devuelve si el owner gana ESTA vez, con el techo de racha aplicado.
-//
-// A la cuarta seguida no se tira el dado: pierde. Cuesta unos cinco puntos de
-// acierto efectivo y a cambio quita el unico sintoma que de verdad se nota, que
-// no es el porcentaje sino ver al mismo tio ganar seis veces sin fallar una.
-function ownerGana(grupo, probabilidad) {
-  const seguidas = rachaOwner.get(grupo) || 0;
-  const gana = seguidas >= ROBO_OWNER_RACHA_MAX ? false : Math.random() < probabilidad;
-  if (rachaOwner.size >= 500) rachaOwner.delete(rachaOwner.keys().next().value);
-  rachaOwner.set(grupo, gana ? seguidas + 1 : 0);
-  return gana;
-}
+// El amaño del owner y su techo de racha viven en utils/rigOwner.js, y el
+// contador es COMPARTIDO con el duelo y el mog: el grupo ve las cinco dinamicas
+// en el mismo chat y no distingue de cual venia cada victoria.
 
 // %A = atacante (ladrón), %V = víctima
 const ROB_WIN = [
@@ -1736,12 +1719,26 @@ async function contraatacar(sock, msg, jid, sender, groupMeta) {
 
   // Cuanto tardo en responder, dicho en voz alta. Sin esto el bono de velocidad
   // seria una regla invisible, y una regla que no se ve no cambia como juega
-  // nadie. Del owner no se dice nada: no lo cobra, y anunciarlo solo invitaria a
-  // cruzar sus tiempos con sus resultados.
-  const pieVel = contraEsOwner ? ''
-    : tardo <= CONTRA.segRapido
-      ? `\n_Respondió en *${tardo.toFixed(0)}s*: a sangre caliente y con ventaja._`
-      : `\n_Tardó *${tardo.toFixed(0)}s*. Pensárselo tanto se paga._`;
+  // nadie.
+  //
+  // AL OWNER SE LE ENSEÑA UN TIEMPO FALSO, no se le quita la linea. Quitarsela
+  // era la version anterior y es peor: si a todo el mundo le sale y a el nunca,
+  // la ausencia es la señal. Y enseñarle el real tampoco vale, porque su
+  // probabilidad no depende de el — tardaria cuarenta segundos y ganaria igual,
+  // que es justo lo que hay que tapar.
+  //
+  // Asi que se le fabrica un tiempo COHERENTE CON EL RESULTADO: rapido cuando
+  // gana, lento cuando pierde. Es lo que hace que sus victorias tengan una
+  // explicacion a la vista, y es exactamente el mismo truco que la probabilidad
+  // de fachada de !robo.
+  const tardoMostrado = contraEsOwner
+    ? (gana
+        ? 2 + Math.random() * (CONTRA.segRapido - 3)                         // 2-12s
+        : CONTRA.segRapido + 8 + Math.random() * (CONTRA.ventanaSeg - CONTRA.segRapido - 20))
+    : tardo;
+  const pieVel = tardoMostrado <= CONTRA.segRapido
+    ? `\n_Respondió en *${tardoMostrado.toFixed(0)}s*: a sangre caliente y con ventaja._`
+    : `\n_Tardó *${tardoMostrado.toFixed(0)}s*. Pensárselo tanto se paga._`;
 
   if (gana) {
     // Se mueve lo que el ladrón pueda cubrir: cobrar de una cuenta vacía
@@ -1849,6 +1846,11 @@ async function atracarTienda(sock, msg, jid, sender, groupMeta) {
   // Lo que se ve del estado de la tienda. Se dice siempre, porque la seguridad
   // es la unica pieza del juego que el jugador puede administrar y una regla
   // invisible no cambia como juega nadie.
+  //
+  // Y OJO: aqui se enseña `chance`, la de un miembro, tambien al owner — el suma
+  // 22 puntos por dentro y esos NO se anuncian. Es deliberado y es la misma
+  // fachada que en !robo y en el contraataque: el numero que se publica es
+  // siempre el que veria cualquiera.
   const pie = seguridad > 0.01
     ? `\n_La tienda estaba en guardia: ${Math.round(chance * 100)} % de entrar. Se relaja en ${ATRACO.enfriaHoras} h._`
     : `\n_La tienda estaba tranquila: ${Math.round(chance * 100)} % de entrar._`;

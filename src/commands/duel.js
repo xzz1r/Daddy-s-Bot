@@ -1,6 +1,7 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, bareJid, sameUser } = require('../utils/wa');
 const { pickFresh, fmt } = require('../utils/helpers');
 const { getAura, addAura } = require('../utils/auraStore');
+const { ownerGana } = require('../utils/rigOwner');
 
 // Resolve a JID to its canonical form (preferring phone-JID) using the group
 // participant list. Fixes LID vs phone-JID mismatches in accept/reject checks:
@@ -103,9 +104,11 @@ async function resolveDuel(sock, jid, d, groupMeta) {
   const tA = isAdmin(participants, d.target);
 
   let side = rollWinner(cO, cA, tO, tA);
-  // Rig a favor del owner principal: si participa en el duelo, SIEMPRE gana.
-  if (isMainOwner(d.challenger, false, groupMeta)) side = 'c';
-  else if (isMainOwner(d.target, false, groupMeta)) side = 't';
+  // El owner principal ya no gana SIEMPRE. Ver DUELO.owner en economia.js: era
+  // un 100 % literal en el sitio donde mas se nota, porque un duelo se le gana A
+  // ALGUIEN y ese alguien lo cuenta. Misma racha compartida que el resto.
+  if (isMainOwner(d.challenger, false, groupMeta)) side = ownerGana(jid, DUELO.owner) ? 'c' : 't';
+  else if (isMainOwner(d.target, false, groupMeta)) side = ownerGana(jid, DUELO.owner) ? 't' : 'c';
   const winner = side === 'c' ? d.challenger : d.target;
   const loser  = side === 'c' ? d.target : d.challenger;
 

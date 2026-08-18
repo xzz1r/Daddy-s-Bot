@@ -929,6 +929,18 @@ const DUELO = {
   porDefecto: 40,
   techo: 300,             // más que el robo (200), porque aquí el otro acepta
   fraccionRival: 0.35,    // ni más de un tercio de lo que tiene el más pobre
+
+  // El duelo del owner ERA UN 100 % LITERAL (`side = 'c'`). Se quedo asi cuando
+  // el robo bajo a 0,62: se toco el robo, se toco el contraataque y este no.
+  //
+  // Y es el peor sitio de todos para un amaño total. Un robo se le hace a un
+  // saldo; un duelo se le gana A ALGUIEN, con nombre, delante del grupo y con el
+  // otro contandolo. Perder siempre contra la misma persona se aprende en dos
+  // tardes aunque nadie apunte nada.
+  //
+  // 0,70 contra el 50 % de un duelo entre iguales, y con el mismo techo de racha
+  // que el resto: ver utils/rigOwner.js.
+  owner: 0.70,
 };
 
 // ─── !dar ────────────────────────────────────────────────────────────────────
