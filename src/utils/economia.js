@@ -896,7 +896,7 @@ const CONTRA = {
   // Esto NO infla la economia: gane quien gane, el aura pasa de un bolsillo al
   // otro. Los pesos solo deciden el drama.
   desenlaces: {
-    demoledor: { peso: 0.18, mult:  2.6, titulo: '*CONTRAATAQUE DEMOLEDOR*' },
+    demoledor: { peso: 0.18, mult:  2.6, titulo: '*CONTRAATAQUE BRUTAL*' },
     limpio:    { peso: 0.57, mult:  2.0, titulo: '*CONTRAATAQUE*' },
     raspado:   { peso: 0.25, mult:  1.0, titulo: '*CONTRAATAQUE JUSTITO*' },
     fallo:     { peso: 0.75, mult: -1.0, titulo: '*CONTRAATAQUE FALLIDO*' },
