@@ -702,6 +702,18 @@ const CONTRA = {
   ventanaSeg: 90,       // lo que tiene la víctima para responder
   multiplicador: 2,     // recupera el doble de lo que le quitaron...
   probabilidad: 0.42,   // ...con menos de una moneda al aire
+
+  // El contraataque del owner tampoco es del 100 %.
+  //
+  // Estaba puesto a exito garantizado, igual que estaba el robo. Y es el sitio
+  // donde MAS canta: el contraataque se responde en caliente, delante del que
+  // acaba de robarte y con el grupo mirando la jugada. Que el owner devuelva el
+  // golpe SIEMPRE, con exito, mientras al resto le sale menos de la mitad de
+  // las veces, se aprende en tres tardes.
+  //
+  // Con 0,78 recupera casi siempre y falla de vez en cuando, que es lo que hace
+  // que parezca tener buena mano y no un interruptor.
+  owner: 0.78,
 };
 
 // EL MÁS BUSCADO. El nº1 de la semana lleva diana: robarle a él paga más, y

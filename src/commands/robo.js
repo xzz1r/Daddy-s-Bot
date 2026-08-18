@@ -1652,7 +1652,10 @@ async function contraatacar(sock, msg, jid, sender, groupMeta) {
   // que nadie puede responderte convertiría 180 de aura en impunidad, que es
   // justo lo contrario de lo que se busca con las dinámicas.
   const botin = Math.round(p.cuanto * CONTRA.multiplicador);
-  const gana = isMainOwner(sender, msg.key.fromMe, groupMeta) ? true : Math.random() < CONTRA.probabilidad;
+  // Ni aqui gana siempre: ver CONTRA.owner en economia.js. Este es el sitio
+  // donde un amaño del 100 % mas se nota, porque la jugada se resuelve en
+  // caliente y delante del que acaba de robarle.
+  const gana = Math.random() < (isMainOwner(sender, msg.key.fromMe, groupMeta) ? CONTRA.owner : CONTRA.probabilidad);
 
   if (gana) {
     // Se mueve lo que el ladrón pueda cubrir: cobrar de una cuenta vacía
