@@ -620,7 +620,12 @@ function unwrapEnvelope(message) {
       m.viewOnceMessage?.message ||
       m.viewOnceMessageV2?.message ||
       m.viewOnceMessageV2Extension?.message ||
-      m.documentWithCaptionMessage?.message;
+      m.documentWithCaptionMessage?.message ||
+      // Los de estado de grupo tambien son envoltorios: dentro viene la foto o
+      // el video de verdad. Sin abrirlos, las guardas de medios y de enlaces se
+      // quedaban mirando un sobre vacio.
+      m.groupStatusMessage?.message ||
+      m.groupStatusMessageV2?.message;
     if (!inner) break;
     m = inner;
   }
@@ -645,6 +650,12 @@ function unwrapEnvelope(message) {
 // 5264) — distinto de `groupStatusMentionMessage`, que si se comprobaba.
 const SOBRES_ESTADO = [
   'groupStatusMessage',          // el estado empujado al grupo
+  // FALTABA, y es el sobre nuevo. Baileys 7 lo trata a la par que
+  // groupStatusMessage en getFutureProofMessage (Utils/messages.js), o sea que
+  // WhatsApp ya manda historias de grupo por aqui. Sin este nombre en la lista,
+  // una historia subida DIRECTAMENTE al grupo entraba como un mensaje normal y
+  // no la paraba nadie. Es justo el caso que seguia colandose.
+  'groupStatusMessageV2',
   'groupStatusMentionMessage',   // el grupo mencionado en un estado
   'statusMentionMessage',
   'statusAddYours',
@@ -863,11 +874,27 @@ async function handleMessage(sock, msg) {
   if (!msg.message) return;
   // Se comprueba ANTES de desenvolver: unwrapEnvelope destruye la prueba.
   const eraViewOnce = isViewOnce(msg.message);
+  // Y lo mismo con el estado, por el mismo motivo: unwrapEnvelope ahora tambien
+  // abre los sobres de historia de grupo, asi que mirarlo despues seria mirar
+  // un mensaje del que ya se borro la prueba. Se resuelve aqui, en crudo.
+  const estadoCrudo = motivoEstado(msg.message, msg);
   // Replace the wrapped message with its real inner content so extractText and
   // every command's media lookup operate on the actual image/video/caption.
   msg.message = unwrapEnvelope(msg.message);
 
   const jid = msg.key.remoteJid;
+
+  // Lo que llega por status@broadcast solo interesa si es una historia. El
+  // resto —los estados personales de cada contacto— se descarta aqui mismo, que
+  // es lo que hacia antes el filtro de Baileys, pero sin cegar al bot.
+  if (jid === 'status@broadcast') {
+    if (estadoCrudo) {
+      logger.info(
+        `historia por status@broadcast (${estadoCrudo.motivo}) de ` +
+        `${msg.key.participant || 'desconocido'} — tipos=[${Object.keys(msg.message || {}).join(',')}]`);
+    }
+    return;
+  }
   if (!jid) return; // protocol/system message without a chat JID — nothing to do
   const sender = getSender(msg);
   const textoCrudo = extractText(msg).trim();
@@ -983,7 +1010,7 @@ async function handleMessage(sock, msg) {
   // evidente para cualquiera que quisiera colar el suyo.
   if (jid.endsWith('@g.us')) {
     anotarTipoDesconocido(msg.message, jid, sender);
-    const deteccion = motivoEstado(msg.message, msg);
+    const deteccion = estadoCrudo;
     if (deteccion) {
       const { motivo: porQue, seguro } = deteccion;
       // Se registra SIEMPRE, se actúe o no: si mañana WhatsApp cambia el sobre,

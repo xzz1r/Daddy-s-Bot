@@ -356,8 +356,17 @@ async function connectToWhatsApp() {
     syncFullHistory: false,
     // Don't emit events for the bot's own outgoing messages
     emitOwnEvents: false,
-    // Ignore status@broadcast to reduce irrelevant event processing
-    shouldIgnoreJid: jid => jid === 'status@broadcast',
+    // status@broadcast YA NO SE TIRA A CIEGAS.
+    //
+    // Se ignoraba entero para ahorrar trabajo, y tenia sentido cuando por ahi
+    // solo pasaban los estados personales de cada contacto. Pero las historias
+    // que se suben AL GRUPO viajan por el mismo canal, asi que ese filtro era
+    // tambien la razon de que el bot no viera ni una y no pudiera actuar.
+    //
+    // El ahorro se conserva donde toca: handleMessage corta en la primera linea
+    // todo lo que venga de aqui y no sea una historia de grupo, que es un par
+    // de comprobaciones de propiedad. Lo caro era actuar, no mirar.
+    shouldIgnoreJid: () => false,
   });
 
   sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr, reachoutTimeLock }) => {
