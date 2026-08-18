@@ -464,34 +464,34 @@ const AURA = {
     'Otra caida. Ya ni el bot se molesta en fingir sorpresa.',
     'Sigues bajando. A este ritmo vas a tener que pedir permiso para existir.',
     'Menos aura, otra vez. Ya no es mala racha, es tu nivel.',
-    'Bajas y bajas. Lo unico constante de tu vida en este grupo.',
+    'Bajas y bajas. Lo único constante de tu vida en este grupo.',
     'El pozo tiene fondo y tu estas empeñado en comprobarlo.',
     'Otra menos. Empieza a ser deprimente hasta para los que miran.',
     'Sigues en rojo y sigues tirando. Eso no es valentia, es no saber parar.',
     'Cada tirada tuya es un recordatorio de que se puede estar peor.',
     'Bajando. Como siempre. Como todo.',
     'Ya ni duele, verdad? Eso es lo preocupante.',
-    'Otra caida mas para la coleccion. Vas a necesitar estanteria.',
+    'Otra caida más para la coleccion. Vas a necesitar estanteria.',
     'El aura se te escapa como todo lo demas.',
     'Menos. Y lo peor es que lo has vuelto a buscar tu solo.',
-    'Estas en negativo y sigues insistiendo. Hay algo casi admirable en esa cabezoneria, casi.',
-    'Otra vez abajo. El grupo ya ni comenta, y ese silencio pesa mas que las burlas.',
+    'Estas en negativo y sigues insistiendo. Hay algo casi admirable en esa cabezonería, casi.',
+    'Otra vez abajo. El grupo ya ni comenta, y ese silencio pesa más que las burlas.',
     'Sigues cavando. El agujero ya tiene tu nombre puesto.',
-    'Menos aura y menos motivos. Sigue asi.',
+    'Menos aura y menos motivos. Sigue así.',
     'Caes otra vez y nadie levanta la vista. Eso es lo que has conseguido.',
     'El fondo te saluda. Otra vez.',
     'Bajas. Ni una sorpresa, ni un respiro, ni una excusa nueva.',
     'Otra tirada, otro hachazo. A ver cuanto aguantas antes de rendirte.',
     'Esto ya no es mala suerte. Es una tendencia con tu cara.',
-    'Menos. Un poquito mas y hasta el bot te tiene lastima.',
-    'Sigues perdiendo y sigues aqui. Lo segundo es lo que no entiendo.',
+    'Menos. Un poquito más y hasta el bot te tiene lastima.',
+    'Sigues perdiendo y sigues aquí. Lo segundo es lo que no entiendo.',
     'Otra caida. Tu aura hace tiempo que dejo de ser un numero y es un diagnostico.',
     'Abajo otra vez. Ya te has hecho un hueco en el sotano.',
     'Pierdes. Otra. Vez.',
-    'El agujero se hace mas hondo y tu sigues con la pala.',
-    'Menos aura. A estas alturas ya deberia dolerte, y lo raro es que no.',
-    'Caes de nuevo. El chat sigue a lo suyo, que es lo que mas debe joder.',
-    'Otra menos. Tu racha negativa ya tiene mas historia que tu.',
+    'El agujero se hace más hondo y tu sigues con la pala.',
+    'Menos aura. A estas alturas ya debería dolerte, y lo raro es que no.',
+    'Caes de nuevo. El chat sigue a lo suyo, que es lo que más debe joder.',
+    'Otra menos. Tu racha negativa ya tiene más historia que tu.',
     'Sigues hundiendote y con una constancia que ya quisieras para otras cosas.',
     'Bajas otra vez. En algun momento habra que llamarlo por su nombre: eres malo en esto.',
     'Menos. Y ni siquiera puedes decir que no te avisaron.',
@@ -609,6 +609,45 @@ for (const tramo of Object.keys(AURA)) AURA[tramo] = AURA[tramo];
 // owner: la molestia es la misma venga de quien venga.
 // Tres horas, no treinta minutos: con media hora seguian saliendo dos por hora
 // y el grupo lo notaba igual. Mismo cooldown que !aura apostar.
+// Lo que se contesta cuando el ranking esta en cooldown. Y NO es lo mismo para
+// todos: el que esta en el top lo pide por vanidad y el que no esta lo pide por
+// envidia, asi que se les responde por donde le duele a cada uno.
+const RANKING_ANSIAS = [
+  'Tranquilo, que tu puesto no se va a mover en lo que tardas en respirar.',
+  'Ya sabes que estás arriba. Pedirlo otra vez no te sube más.',
+  'Qué ansias. El podio no se evapora, sigue ahí con tu nombre.',
+  'Estás en el top y aun así necesitas verlo escrito. Eso dice algo de ti.',
+  'Sigues arriba. Ahora suelta el móvil y disfrútalo como una persona normal.',
+  'No comas ansias. Tu nombre no se ha borrado en los últimos diez minutos.',
+  'Ya estás en la lista. Mirarla cada rato no la hace más tuya.',
+  'Relaja. El ranking no huye y tu puesto tampoco.',
+  'Que sí, que vas bien. No hace falta comprobarlo cada dos por tres.',
+  'Estar arriba y necesitar verlo constantemente es una forma cara de inseguridad.',
+  'Tu sitio está reservado. Vuelve luego y seguirá ahí.',
+  '¿Otra vez? Si estás arriba, disimula un poco al menos.',
+  'Vanidad detectada. El top no ha cambiado desde que lo miraste.',
+  'Tranquilo, campeón. Nadie te ha quitado el puesto mientras parpadeabas.',
+  'Ya lo has visto. Verlo más veces no multiplica el aura.',
+];
+
+const RANKING_POBRE = [
+  'Para lo que sales tú en esa lista, tampoco corre prisa.',
+  'Con tu saldo, el ranking es turismo.',
+  'Mirar el top no te sube el aura. Escribir, sí. Prueba eso.',
+  'Tanto interés en una lista donde no apareces es casi ternura.',
+  'El top no ha cambiado y tú tampoco. Ahí está el problema.',
+  'Sigues sin salir. Ver la lista otra vez no te va a colar en ella.',
+  'Cada vez que pides el ranking confirmas que no estás en él.',
+  'Estúdiate menos la lista y farmea más, que es lo que te falta.',
+  'No sales. No vas a salir mirando. Ponte a escribir.',
+  'Fascinante obsesión con un podio que te queda lejísimos.',
+  'El ranking sigue igual, y tú sigues igual de abajo.',
+  'Consultar el top con tu saldo es como leer la carta sin cartera.',
+  'Ni estás ni se te espera. Pero oye, buena curiosidad.',
+  'Deja de vigilar a los que ganan y ponte a competir de una vez.',
+  'El podio no se mira, se ocupa. Tú de momento miras.',
+];
+
 const RANKING_COOLDOWN_MS = 3 * 60 * 60 * 1000;
 const ultimoRanking = new Map();   // grupo -> ts
 
@@ -635,10 +674,21 @@ async function showRanking(sock, msg, groupMeta) {
     const cuanto = min >= 60
       ? `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ''}`
       : `${min} min`;
+    // Se le pincha por donde le duele: el que ESTA en el top lo pide por
+    // vanidad y el que no esta lo pide por envidia. Cuesta una lectura del
+    // ranking, y solo en la rama que ya iba a rechazar la peticion.
+    const quien = getSender(msg);
+    let enTop = false;
+    try {
+      const r = soloMiembros(await getAuraRanking(jid), groupMeta).slice(0, 10);
+      enTop = r.some((x) => sameUser(x.jid, quien));
+    } catch { /* si falla la lectura, se usa el tono del que no sale */ }
+
+    const pool = enTop ? RANKING_ANSIAS : RANKING_POBRE;
     // Se contesta CITANDO a quien lo pidio y sin mencionar a nadie mas: el
     // aviso es para el, no otro mensaje que le llegue al top entero.
     return sock.sendMessage(jid, {
-      text: `El ranking acaba de salir. Vuelve en *${cuanto}*.`,
+      text: `${pickFresh(pool, `${jid}|top|${enTop ? 'ansias' : 'pobre'}`)}\n_Vuelve en *${cuanto}*._`,
     }, { quoted: msg });
   }
 
