@@ -851,6 +851,26 @@ async function cmdAura(sock, msg, args, groupMeta) {
 
   const sub = (args && args[0] ? args[0] : '').toLowerCase();
 
+  // El aura es la moneda DEL GRUPO, asi que fuera de un grupo no se juega.
+  //
+  // Antes se podia tirar por privado y funcionaba: el saldo se guardaba bajo el
+  // JID del chat privado, o sea una cartera aparte que no sale en ningun
+  // ranking, que nadie puede robar y con la que no se compra nada donde
+  // importa. No era un agujero —ese aura no llega al grupo— pero si un sitio
+  // donde gastar el cooldown a cambio de nada.
+  //
+  // Ademas era incoherente: !dar y !roast ya contestaban "Solo en grupos" y
+  // este no, siendo los tres del mismo sistema.
+  //
+  // La GUIA si pasa: es texto y leerla por privado sin gastarle el chat a nadie
+  // es justo para lo que sirve.
+  const esGuia = ['info', 'help', 'ayuda', 'como', 'cómo', '?', 'guia', 'guía'].includes(sub);
+  if (!jid.endsWith('@g.us') && !esGuia) {
+    return sock.sendMessage(jid, {
+      text: 'El aura es del grupo: se juega ahí, no por privado.\n_Para saber cómo va: *!aura info*_',
+    }, { quoted: msg });
+  }
+
   // El interruptor va lo primero: si no, con la dinamica apagada no habria
   // forma de volver a encenderla desde el propio comando.
   if (['on', 'off', 'encender', 'apagar'].includes(sub)) {
