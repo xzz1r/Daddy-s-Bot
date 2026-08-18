@@ -369,6 +369,49 @@ async function capaStores() {
     }
     comprueba(sueltos.length === 0,
       `cobro: alias gratis mientras su hermano cobra por el mismo trabajo: ${sueltos.join(', ')}`);
+
+    // LA MISMA COMPROBACION PARA LAS OTRAS DOS LISTAS A MANO.
+    //
+    // Este es el fallo de fondo del fichero y merece decirse claro: el alias, el
+    // precio, el permiso y la ayuda de cada comando viven en CUATRO listas
+    // separadas que se mantienen a mano. Nada obliga a que cuadren, asi que se
+    // desincronizan solas y en silencio — el historial de comentarios de
+    // COBRO_CENTRAL y NEEDS_META es literalmente la lista de las veces que ya
+    // paso: !quemar gratis mientras !roast cobraba, !piropo y !wingman cobrando
+    // sin metadata (y por tanto cobrandole al owner), los alias en español de
+    // !play igual, !coach cobrando por un comando inexistente.
+    //
+    // La solucion de verdad es una sola tabla por comando de la que salgan las
+    // cuatro cosas. Eso es una reescritura del dispatcher y no se hace a ciegas
+    // sobre un bot en produccion. Lo que si se puede hacer hoy, y es lo que
+    // impide que el problema siga creciendo, es que la desincronizacion deje de
+    // ser silenciosa: si un alias entra en una lista y sus hermanos no, aqui
+    // salta.
+    for (const [nombre, re] of [['NEEDS_META', /const NEEDS_META = new Set\(\[([\s\S]*?)\]\);/],
+                                ['COBRAN_SOLOS', /const COBRAN_SOLOS = new Set\(\[([\s\S]*?)\]\);/]]) {
+      const m = mh.match(re);
+      if (!m) { comprueba(false, `no encuentro la lista ${nombre}`); continue; }
+      const dentro = new Set([...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1]));
+      const rotos = [];
+      for (const g of grupos) {
+        const alias = [...g[1].matchAll(/case '([^']+)'/g)].map((x) => x[1]);
+        // COBRAN_SOLOS solo se consulta cuando el comando tiene precio en
+        // COBRO_CENTRAL, asi que un alias fuera de la lista solo hace daño —
+        // cobro doble— si ademas cobra. Sin este filtro la comprobacion acusaba
+        // a los alias de !play, que cobran por dentro y no estan en la tabla de
+        // precios: no se les cobra dos veces porque no se les cobra fuera.
+        const pertinentes = nombre === 'COBRAN_SOLOS'
+          ? alias.filter((a) => claves.includes(a))
+          : alias;
+        if (!pertinentes.length) continue;
+        const hay = pertinentes.filter((a) => dentro.has(a));
+        if (hay.length && hay.length !== pertinentes.length) {
+          rotos.push(`${pertinentes.filter((a) => !dentro.has(a)).join('/')} (sus hermanos ${hay.join('/')} si estan)`);
+        }
+      }
+      comprueba(rotos.length === 0,
+        `${nombre}: alias descolgados de sus hermanos: ${rotos.join('; ')}`);
+    }
   }
 
   // EL COOLDOWN DE !aura top. Cuatro reglas que ya se rompieron una vez cada una

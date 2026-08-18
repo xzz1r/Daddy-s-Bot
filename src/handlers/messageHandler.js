@@ -225,6 +225,17 @@ const PERMISO_ENLACE = [
 const NEEDS_META = new Set([
   'on','off','tagall','todos','all','everyone',
   'kick','expulsar','del','borrar','delete','add','agregar',
+  // sacar/echar/silenciar/callar/banear/ban/desbanear/unban ESTABAN FUERA, y sus
+  // hermanos dentro. Sin metadata isGroupAdmin no puede resolver quien es admin
+  // en un grupo LID, asi que estos alias no expulsaban ni silenciaban a nadie:
+  // el comando existia, contestaba "solo los admins" al admin que lo escribia.
+  // Los detecta ahora `npm run check`.
+  'sacar','echar','silenciar','callar',
+  'banear','ban','fkban','desbanear','unban','fkunban',
+  // importancia (alias de relevancia), quemar/destruir (de roast) y muertos (de
+  // fantasmas) COBRAN desde que se metieron en COBRO_CENTRAL, y sin metadata
+  // auraCobro no reconoce al owner: le cobraba a quien va exento.
+  'importancia','quemar','destruir','muertos',
   'ship','mute','unmute','desmute',
   'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness','antifoto',
   'antilink','allow','permitir','close','cerrar','open','abrir',
