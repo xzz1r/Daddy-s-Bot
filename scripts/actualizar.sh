@@ -230,3 +230,19 @@ fi
 }
 
 main "$@"
+
+# EXIT EXPLICITO, y es obligatorio en este fichero.
+#
+# El main() de arriba protege el CUERPO: bash parsea la funcion entera antes de
+# ejecutarla, asi que el git reset puede reescribir el fichero sin romper la
+# pasada. Pero cuando main termina, bash vuelve al fichero a buscar mas ordenes
+# desde la posicion de byte en la que se quedo — y el fichero de ahora es OTRO,
+# normalmente mas largo. Ahi lee trozos sueltos del texto nuevo y los ejecuta.
+#
+# Paso de verdad en el despliegue de 4ed51b7: tras terminar bien, la terminal
+# escupio media linea del bloque de verificacion y bash contesto
+# "syntax error near unexpected token \'(\'". El despliegue habia ido bien; la
+# basura venia de seguir leyendo un fichero que ya no era el mismo.
+#
+# Con esto bash cierra el guion en cuanto main devuelve y no lee un byte mas.
+exit 0
