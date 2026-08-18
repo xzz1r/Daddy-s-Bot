@@ -587,6 +587,26 @@ const ROBO_LIMITES = {
 // miseria le afectan, y su probabilidad nunca baja de aquí.
 const ROBO_OWNER_MIN = 0.78;
 
+// Cuanto acierta el owner principal cuando roba. NO es 1.
+//
+// Estuvo en exito garantizado y el owner lo pidio bajar: ganar SIEMPRE deja de
+// parecer suerte a la tercera vez y se nota mas que cualquier cifra. Con 0,84
+// falla aproximadamente uno de cada seis, que es lo justo para que el rig
+// parezca una racha buena en vez de un interruptor.
+const ROBO_OWNER_EXITO = 0.84;
+
+// La cifra que se le ENSEÑA al owner cuando roba, que no es la suya.
+//
+// Antes se calculaba como si fuera un miembro normal, y con el castigo por
+// codicia al 30 % —el que sostiene el robo sin techo— esa cuenta se hundia
+// contra el suelo del 15 % en cuanto pedia una cantidad grande. Resultado: el
+// bot le cantaba SIEMPRE "15 % de salir bien" y acto seguido salia bien. Un
+// numero fijo repitiendose es justo lo que delata que hay un amaño detras.
+//
+// Ahora se le enseña un valor dentro de la banda en la que se mueve un miembro
+// de verdad, con variacion en cada tirada: creible y distinto cada vez.
+const ROBO_OWNER_VISIBLE = { min: 0.24, max: 0.46 };
+
 // ─── Las dinámicas nuevas del robo ───────────────────────────────────────────
 //
 // Todo lo que añade el rework sale de aquí, para que no vuelva a haber cifras
@@ -812,7 +832,7 @@ module.exports = {
   P_TOPE_MIEMBRO, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, MEDIA_PREMIO, MEDIA_CASTIGO, bonoActividad, APUESTA,
   RACHA, BONOS, REDENCION,
   VETERANIA_MSGS, VETERANIA_PAGO, VETERANIA_TOPE, bonoVeterania,
-  ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, DUELO, REGALO_MIN,
+  ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, DUELO, REGALO_MIN,
   BOTE, OBJETOS, CONTRA, DIANA,
   PRECIOS, SALDO_MINIMO,
   rango,

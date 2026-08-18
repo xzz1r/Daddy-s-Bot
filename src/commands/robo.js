@@ -1,7 +1,7 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser } = require('../utils/wa');
 const { getAura, addAura } = require('../utils/auraStore');
 const { pickFresh, fmt } = require('../utils/helpers');
-const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, BOTE, OBJETOS, CONTRA, DIANA } = require('../utils/economia');
+const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, BOTE, OBJETOS, CONTRA, DIANA } = require('../utils/economia');
 const tienda = require('../utils/roboStore');
 const RX = require('../data/roboExtraPhrases');
 
@@ -1857,15 +1857,24 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // que pide, igual que el de cualquiera — y encaja con lo que el grupo ve.
   //
   // Por dentro no cambia nada: `chance` es lo que decide el resultado.
+  // Al owner se le enseña una cifra CREIBLE Y DISTINTA cada vez.
+  //
+  // Antes se calculaba como si fuera un miembro normal, pero con el castigo por
+  // codicia al 30 % esa cuenta se hunde contra el suelo del 15 % en cuanto se
+  // pide una cantidad grande — y el owner pide grande. El bot acababa cantando
+  // "15 % de salir bien" en todas las tiradas y saliendo bien en todas: un
+  // numero fijo que se repite es lo que delata el amaño, no el numero en si.
+  //
+  // Se mueve dentro de la banda real de un miembro y baja un poco cuanto mas se
+  // pide, para que siga teniendo la logica que cualquiera espera ver.
   const chanceVisible = ladronEsOwner
-    ? ajustarProbabilidad(calcChance(false, false, vO, vA, auraA, auraV), {
-        grupo: jid,
-        ladron: canonicalJid(sender),
-        victima: canonicalJid(target),
-        stake,
-        maxStake,
-        esOwner: false,
-      }).p
+    ? (() => {
+        const { min, max } = ROBO_OWNER_VISIBLE;
+        const codicia = maxStake > 0 ? Math.min(1, stake / maxStake) : 0;
+        const centro = max - (max - min) * codicia;         // pedir mas, enseñar menos
+        const jitter = (Math.random() - 0.5) * 0.06;        // ±3 puntos, para que no se repita
+        return Math.min(max, Math.max(min, centro + jitter));
+      })()
     : chanceFinal;
 
   // Rig a favor del owner principal:
@@ -1882,7 +1891,11 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // en el mensaje, que si no saldría baja mientras el resultado sale siempre
   // bueno — y esa contradicción sí cantaría.
   if (isMainOwner(target, false, groupMeta)) success = false;
-  else if (isMainOwner(sender, msg.key.fromMe, groupMeta)) success = true;
+  // El owner ya NO acierta siempre: lo pidio el, y con razon. Ganar el 100 % de
+  // los robos deja de parecer suerte a la tercera vez y canta mas que cualquier
+  // cifra que se enseñe. Con ROBO_OWNER_EXITO falla uno de cada seis y el rig
+  // pasa por racha buena.
+  else if (isMainOwner(sender, msg.key.fromMe, groupMeta)) success = Math.random() < ROBO_OWNER_EXITO;
 
   const aTag = `@${sender.split('@')[0]}`;
   const vTag = `@${target.split('@')[0]}`;
