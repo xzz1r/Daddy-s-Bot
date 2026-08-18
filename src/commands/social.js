@@ -72,22 +72,44 @@ async function cmdOff(sock, msg, groupMeta) {
 async function cmdPing(sock, msg) {
   const jid = msg.key.remoteJid;
 
-  let wsPing = null;
+  // TRES MEDIDAS, NO UNA.
+  //
+  // Antes se mandaba un solo paquete y se cantaba ese numero. Una muestra suelta
+  // no dice cual es la latencia: dice lo que tardo ESE paquete, y basta con que
+  // uno pille la red en mal momento para que salga 140 en una linea que va a 90.
+  // De ahi la sensacion de "siempre esta por encima de 100".
+  //
+  // Con tres se ve la diferencia entre la latencia de verdad (la mejor, que es
+  // el suelo de la linea) y lo que se pierde por congestion (la peor). Si las
+  // dos van juntas, ese es tu suelo y no hay nada que tocar; si bailan mucho, es
+  // la red del momento.
+  const medidas = [];
   if (typeof sock.query === 'function') {
-    try {
-      const start = Date.now();
-      await sock.query({
-        tag: 'iq',
-        attrs: { to: 's.whatsapp.net', type: 'get', xmlns: 'w:p' },
-        content: [{ tag: 'ping', attrs: {} }],
-      });
-      wsPing = Date.now() - start;
-    } catch {}
+    for (let i = 0; i < 3; i++) {
+      try {
+        const start = Date.now();
+        await sock.query({
+          tag: 'iq',
+          attrs: { to: 's.whatsapp.net', type: 'get', xmlns: 'w:p' },
+          content: [{ tag: 'ping', attrs: {} }],
+        });
+        medidas.push(Date.now() - start);
+      } catch { /* si una falla, se sigue con las que salgan */ }
+    }
   }
 
-  await sock.sendMessage(jid, {
-    text: wsPing !== null ? `*${wsPing}ms*` : 'Ping',
-  });
+  let texto = 'Ping';
+  if (medidas.length) {
+    const mejor = Math.min(...medidas);
+    const peor = Math.max(...medidas);
+    texto = `*${mejor}ms*` + (peor > mejor ? `  _(peor de 3: ${peor}ms)_` : '');
+    // El numero solo no dice si es mucho. Esto lo situa.
+    texto += mejor < 80 ? '\n_Va fino._'
+           : mejor < 150 ? '\n_Normal para un servidor lejos de WhatsApp._'
+           : '\n_Alto. Es la distancia del servidor, no el bot._';
+  }
+
+  await sock.sendMessage(jid, { text: texto });
 }
 
 // !info - bot status
