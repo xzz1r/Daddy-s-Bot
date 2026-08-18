@@ -1679,7 +1679,12 @@ async function laTienda(sock, msg, jid, sender, args, groupMeta) {
              : RX.COMPRA_OK;
   return sock.sendMessage(jid, {
     text: `*COMPRA HECHA — ${que.toUpperCase()}*\n\n` +
-      `${fraseCon(pool, `${jid}|compra|${que}`, { '%N': nombre, '%C': fmt(obj.precio) })}\n\n_${obj.desc}._`,
+      // %H son las horas DEL OBJETO, no un numero escrito en la frase. Las frases
+      // del escudo decian "doce horas" y "medio dia" mientras el objeto duraba
+      // 24: la misma mentira que tenia el socio, en el texto que se lee justo al
+      // pagar. Un texto fijo al lado de una constante que se toca al reequilibrar
+      // siempre acaba asi.
+      `${fraseCon(pool, `${jid}|compra|${que}`, { '%N': nombre, '%C': fmt(obj.precio), '%H': String(obj.horas || '') })}\n\n_${obj.desc}._`,
     mentions: [sender],
   }, { quoted: msg });
 }

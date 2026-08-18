@@ -440,6 +440,29 @@ async function capaStores() {
       return outs.at(-1) || {};
     };
     const publica = (c) => /^\*RANKING DE AURA\*/.test(c.text || '');
+
+    // *!saldo* Y *!miaura* TIENEN QUE ENSEÑAR EL SALDO Y NO JUGARLO.
+    //
+    // Estaban enchufados a *!aura hoy*, que enseña mensajes del dia y racha:
+    // dos comandos llamados "saldo" que no enseñaban ningun saldo. Y el otro
+    // riesgo del arreglo es el contrario — que la consulta acabe cayendo en la
+    // TIRADA, porque *!aura* a secas se juega el aura. Se comprueban las dos.
+    try {
+      await st.resetAura(GT);
+      await st.addAura(GT, A, 777);
+      const antes = await st.getAura(GT, A);
+      for (const sub of ['saldo', 'miaura']) {
+        outs.length = 0;
+        await ca(sk, { key: { remoteJid: GT, participant: A, fromMe: false, id: 'X' },
+                       message: { conversation: `!${sub}` }, pushName: 'x' }, [sub], mt);
+        const t = (outs.at(-1) || {}).text || '';
+        comprueba(new RegExp(`\\b${antes}\\b`).test(t.replace(/[.,]/g, '')),
+          `!${sub}: tiene que enseñar el saldo (${antes}) y sale "${t.slice(0, 60)}"`);
+        comprueba(!/mensajes|racha/i.test(t), `!${sub}: sigue enseñando el informe del dia en vez del saldo`);
+      }
+      comprueba(await st.getAura(GT, A) === antes, '!saldo/!miaura: consultar el saldo no puede jugarlo');
+    } catch (e) { fallos++; console.log(rojo(`   ✗ !saldo revento: ${e.message}`)); }
+
     try {
       await st.resetAura(GT);
       const suelo = await st.getAura(GT, A);
@@ -658,6 +681,62 @@ async function capaStores() {
       fallos++;
       console.log(rojo('   ✗ falta la guarda de privado: los comandos de pago vuelven a ser gratis en DM'));
     }
+  }
+
+  // ── NADIE USA `msg` SIN RECIBIRLO ─────────────────────────────────────────
+  //
+  // `{ quoted: msg }` sale mas de cien veces en el bot y casi siempre es
+  // correcto, porque casi todo lo que envia un mensaje recibe el msg original.
+  // Pero no todo: los que responden desde un temporizador o desde una funcion
+  // auxiliar no lo tienen, y ahi `msg` es una variable libre — ReferenceError
+  // garantizado en cuanto esa linea corra.
+  //
+  // Paso de verdad. Al hacer atomico el duelo se añadio un aviso de "duelo
+  // anulado" con `{ quoted: msg }` dentro de resolveDuel(sock, jid, d,
+  // groupMeta), que no recibe msg. El grupo habria visto "Error inesperado: msg
+  // is not defined" en vez del aviso — y en el camino de fallo, que es el que
+  // nunca se ejecuta al probar.
+  //
+  // No hace falta ejecutar nada para verlo: si la funcion no lo declara y no lo
+  // hereda, no existe. Es lo que se comprueba aqui.
+  console.log('\n6. NADIE USA UNA VARIABLE QUE NO TIENE');
+  {
+    let libres = 0;
+    const DECL = /^(?:async )?function ([A-Za-z0-9_$]+)\s*\(([^)]*)\)\s*\{/gm;
+    for (const f of ficheros.filter((x) => x.startsWith(path.join(R, 'src')))) {
+      const src = fs.readFileSync(f, 'utf8');
+      // Si el modulo entero declara `msg` fuera de las funciones, cualquiera lo
+      // hereda por cierre y no hay nada que mirar.
+      if (/^(?:const|let|var) msg\b/m.test(src)) continue;
+      for (const m of src.matchAll(DECL)) {
+        const [nombre, params] = [m[1], m[2]];
+        if (/\bmsg\b/.test(params)) continue;      // lo recibe: correcto
+        // Cuerpo: desde la llave de apertura hasta la de cierre, contando.
+        let i = m.index + m[0].length, prof = 1;
+        while (i < src.length && prof > 0) {
+          if (src[i] === '{') prof++;
+          else if (src[i] === '}') prof--;
+          i++;
+        }
+        const cuerpo = src.slice(m.index + m[0].length, i - 1)
+          // fuera comentarios: los explicativos mencionan `msg` constantemente
+          .replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+        // Una funcion anidada que SI declara msg se lleva sus usos con ella.
+        if (/function[^(]*\([^)]*\bmsg\b/.test(cuerpo) || /\(\s*msg\s*[,)]|\bmsg\s*=>/.test(cuerpo)) continue;
+        // Solo cuenta `msg` LEIDO como variable. Ni `{ msg: algo }` (ahi es la
+        // clave de un objeto) ni `x.msg` (ahi es una propiedad). Sin esta
+        // distincion saltaban identifyMedia() y rapidConvert(), que devuelven
+        // objetos con un campo llamado msg y no leen ninguna variable.
+        const USA = /(?<![.\w])msg\b(?!\s*:)/;
+        if (USA.test(cuerpo)) {
+          libres++;
+          const linea = src.slice(0, m.index).split('\n').length;
+          console.log(rojo(`   ✗ ${path.relative(R, f)}:${linea} ${nombre}() usa \`msg\` y no lo recibe`));
+        }
+      }
+    }
+    if (libres) fallos += libres;
+    else console.log(verde('   ✓ ninguna funcion usa `msg` sin recibirlo'));
   }
 
   // ── LOS COMANDOS OCULTOS NO ASOMAN POR NINGUN LADO ────────────────────────

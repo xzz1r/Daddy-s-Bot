@@ -31,7 +31,7 @@ const CONTRATO = {
   'src/commands/percent.js':       { permite: ['[nombre]'],                    sustituye: 'src/commands/percent.js' },
   'src/commands/relevance.js':     { permite: ['%N', '%C'],                    sustituye: 'src/commands/relevance.js' },
   'src/commands/roast.js':         { permite: ['%N', '%C', '%PAIS'],           sustituye: 'src/commands/roast.js' },
-  'src/commands/robo.js':          { permite: ['%A', '%C', '%N', '%V'],        sustituye: 'src/commands/robo.js' },
+  'src/commands/robo.js':          { permite: ['%A', '%C', '%N', '%V', '%H'],  sustituye: 'src/commands/robo.js' },
   'src/commands/wingman.js':       { permite: ['%N'],                          sustituye: 'src/commands/wingman.js' },
   'src/commands/ship.js':          { permite: [],                              sustituye: '(no usa placeholders)' },
   'src/commands/iq.js':            { permite: ['%IQ'],                         sustituye: 'src/commands/iq.js' },
@@ -42,7 +42,7 @@ const CONTRATO = {
   'src/data/fidelityPhrases.js':   { permite: ['[nombre]'],                    sustituye: 'src/commands/percent.js' },
   'src/data/apuestaPhrases.js':    { permite: ['%A', '%C', '%S'],              sustituye: 'src/commands/aura.js' },
   'src/data/rachaPhrases.js':      { permite: ['%N', '%P', '%D'],              sustituye: 'src/utils/casino.js' },
-  'src/data/roboExtraPhrases.js':  { permite: ['%A', '%C', '%N', '%V'],        sustituye: 'src/commands/robo.js' },
+  'src/data/roboExtraPhrases.js':  { permite: ['%A', '%C', '%N', '%V', '%H'],  sustituye: 'src/commands/robo.js' },
 };
 
 // Una "frase" es una línea que es solo un literal de texto largo terminado en

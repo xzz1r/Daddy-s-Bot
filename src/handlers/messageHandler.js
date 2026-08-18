@@ -4,7 +4,7 @@ const config = require('../config');
 const { isBotEnabled, incrementStat, isAntiLinkEnabled, isSoloAdminsEnabled, isAntiBusinessEnabled } = require('../utils/state');
 const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
 const { cobrar: cobrarAura, devolver: devolverAura, textoSinSaldo } = require('../utils/auraCobro');
-const { PRECIOS } = require('../utils/economia');
+const { PRECIOS, SUELO_TODOS } = require('../utils/economia');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { recordName } = require('../utils/nombreStore');
 const { recordFacts } = require('../utils/nickStore');
@@ -257,13 +257,18 @@ const NEEDS_META = new Set([
   // !play, que cobran por dentro mientras 'play' si estaba en la lista.
   'piropo','wingman',
   'toimg','stimg','tovid',   // tambien cobran desde que el aura es moneda
-  // ttp/dar siguen fuera a proposito: el dispatch no les pasa groupMeta y sus
-  // modulos no lo mencionan, asi que pedirlo solo anyadia una peticion de red
-  // (hasta 8s con la cache fria) antes de ejecutarlos.
+  // ttp, texto e iq ESTABAN FUERA y cobran los tres. Se sacaron porque sus
+  // handlers no usan groupMeta, asi que pedirla solo añadia una peticion de red
+  // —hasta 8 s con la cache fria— antes de ejecutarlos.
+  //
+  // El razonamiento era bueno y ha dejado de serlo: la metadata NO la pide el
+  // handler, la pide el COBRO, que exime al owner y sin ella no puede resolver
+  // su LID. O sea que el ahorro se pagaba cobrandole al owner en los grupos LID,
+  // que es justo donde esta el bot. Y desde que META_TTL son 10 min con la
+  // consulta compartida, el coste que justificaba el intercambio casi no existe:
+  // la cache fria pasa de ser cada 30 s a cada 10 min, y una sola vez.
+  'ttp','texto','iq',
   'gay','simp','sexy','hot','rata','maricon','maricón','friki',
-  // 'iq' ya NO va aqui: dejo de ser un comando de porcentaje y su modulo no usa
-  // groupMeta, asi que pedirla solo anyadia una peticion de red (hasta 8s con la
-  // cache fria) antes de una tirada que no la necesita para nada.
   'crack','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','l','ganador',
   'puta','guarra','fiel','infiel','linda','fea','incel',
   'rizz',   // piropo y wingman NO: sus handlers no reciben groupMeta (wingman.js)
@@ -1934,9 +1939,14 @@ async function handleMessage(sock, msg) {
         await cmdAura(sock, msg, ['top', ...args], groupMeta);
         break;
       case 'hoy':
+        await cmdAura(sock, msg, ['hoy', ...args], groupMeta);
+        break;
+
+      // Estos dos iban a 'hoy', que enseña mensajes del dia y racha. Se llaman
+      // saldo y no enseñaban ningun saldo; ahora van al numero.
       case 'saldo':
       case 'miaura':
-        await cmdAura(sock, msg, ['hoy', ...args], groupMeta);
+        await cmdAura(sock, msg, ['saldo', ...args], groupMeta);
         break;
 
       // La guia del aura, como comando propio.
@@ -1960,7 +1970,15 @@ async function handleMessage(sock, msg) {
           await sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
         } else {
           await resetAura(jid);
-          await sock.sendMessage(jid, { text: 'Aura de todos reseteada. El marcador empieza desde cero.' }, { quoted: msg });
+          // "DESDE CERO" ERA MENTIRA. resetAura deja a todo el mundo en el
+          // suelo, no en cero, y por una razon buena que esta escrita alli: con
+          // el grupo a cero nadie puede gastar y el bot se queda muerto hasta
+          // que cada uno vuelva a tirar. Lo que estaba mal era el aviso, no el
+          // comportamiento — y la cifra se saca de la constante para que no se
+          // vuelva a separar de ella.
+          await sock.sendMessage(jid, {
+            text: `Aura de todos reseteada. El marcador vuelve a *${SUELO_TODOS}* para todo el mundo.`,
+          }, { quoted: msg });
         }
         break;
 

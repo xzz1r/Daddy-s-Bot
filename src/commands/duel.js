@@ -1,6 +1,6 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, bareJid, sameUser } = require('../utils/wa');
 const { pickFresh, fmt } = require('../utils/helpers');
-const { getAura, addAura, transferAura } = require('../utils/auraStore');
+const { getAura, transferAura } = require('../utils/auraStore');
 const { ownerGana } = require('../utils/rigOwner');
 
 // Resolve a JID to its canonical form (preferring phone-JID) using the group
@@ -130,10 +130,15 @@ async function resolveDuel(sock, jid, d, groupMeta) {
   if (!mov.ok) {
     // `pending` ya se limpio al entrar en resolveDuel, asi que aqui no hay nada
     // que borrar: solo avisar y salir sin mover un aura.
+    // SIN `quoted`: resolveDuel no recibe msg. Se llama desde el temporizador
+    // del duelo, donde no hay ningun mensaje que citar — y el aviso de exito de
+    // aqui abajo tampoco cita. Poner `{ quoted: msg }` era un ReferenceError:
+    // en vez de "duelo anulado" el grupo veia "Error inesperado: msg is not
+    // defined", y justo en el camino de fallo, que es el que menos se prueba.
     return sock.sendMessage(jid, {
       text: `@${loser.split('@')[0]} ya no tiene los *${fmt(d.stake)}* que apostó. Duelo anulado.`,
       mentions: [loser],
-    }, { quoted: msg });
+    });
   }
   const w = { current: mov.toNew };
   const l = { current: mov.fromNew };

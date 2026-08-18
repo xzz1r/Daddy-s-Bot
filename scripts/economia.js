@@ -478,6 +478,58 @@ ok(/transferAura/.test(src('dar.js')), '!dar sigue usando transferAura: el cargo
     '  y si el perdedor ya no puede cubrirlo, el duelo se anula en vez de cobrarle igual');
 }
 
+// LAS RELACIONES ENTRE PRECIOS, QUE SON LA DECISION DE DISENYO.
+//
+// Estaban escritas en un comentario de economia.js junto con las cifras, y las
+// cifras se quedaron viejas mientras las relaciones seguian siendo verdad. Aqui
+// se comprueban en vez de contarse: un reajuste que las rompa salta, y uno que
+// solo cambie los numeros no molesta a nadie.
+{
+  const { PRECIOS, ARRANQUE } = require(`${R}/src/utils/economia`);
+  ok(PRECIOS.tovid > PRECIOS.toimg,
+    `!tovid por encima de !toimg (${PRECIOS.tovid} > ${PRECIOS.toimg}): recodifica el video entero con preset slow`);
+  ok(PRECIOS.top10 > PRECIOS.top5,
+    `!top10 por encima de !top5 (${PRECIOS.top10} > ${PRECIOS.top5}): molesta al doble de gente`);
+  // El minimo absoluto es !cachelist, que es mirar una lista y no representa
+  // "probar el bot". Lo que importa es que el que entra pueda usar lo que la
+  // gente usa: un sticker, una cancion, un roast. Se mide contra el MAS CARO de
+  // esos, que es el caso peor.
+  const CARA = Math.max(PRECIOS.sticker, PRECIOS.play, PRECIOS.roast);
+  ok(ARRANQUE >= CARA,
+    `  el arranque (${ARRANQUE}) cubre al menos una compra de las que se usan a diario (la mas cara de ellas: ${CARA})`);
+  ok(Math.floor(ARRANQUE / CARA) >= 3,
+    `  y da para ${Math.floor(ARRANQUE / CARA)} de ellas: quien entra puede probar el bot antes de tener que ganarselo`);
+}
+
+// NINGUNA FRASE DE TIENDA ESCRIBE UNA DURACION A MANO.
+//
+// Ya paso dos veces con la misma forma: el socio anunciaba "25 % durante 12 h"
+// cuando el objeto daba 30 % durante 24, y el escudo se compraba con frases que
+// decian "doce horas" y "medio dia" mientras duraba 24. Las dos son texto fijo
+// al lado de una constante que se toca cada vez que se reequilibra la economia,
+// y el texto no se toca con ella.
+//
+// El socio se arreglo generando su `desc` de las constantes. El escudo, con un
+// placeholder (%H). Esto vigila que no vuelva a colarse una tercera: si una
+// frase de compra menciona horas en numero o en letra, salta.
+{
+  const fr = require(`${R}/src/data/roboExtraPhrases`);
+  const { OBJETOS } = require(`${R}/src/utils/economia`);
+  const POOLS = { escudo: 'COMPRA_ESCUDO', ganzua: 'COMPRA_GANZUA', cebo: 'COMPRA_CEBO' };
+  // Horas escritas a mano: cifra ("12 h", "24 horas") o palabra.
+  const AMANO = /\b(\d{1,2})\s*h(?:oras?)?\b|\b(una|dos|tres|cuatro|seis|ocho|diez|doce|dieciocho|veinticuatro)\s+horas\b|\bmedio\s+d[íi]a\b|\bun\s+d[íi]a\b/i;
+  const sucias = [];
+  for (const [obj, pool] of Object.entries(POOLS)) {
+    for (const f of (fr[pool] || [])) {
+      if (AMANO.test(f)) sucias.push(`${pool}: "${f.slice(0, 62)}…"`);
+    }
+  }
+  ok(sucias.length === 0,
+    `las frases de compra no escriben la duracion a mano (la piden con %H)${sucias.length ? ':\n     ' + sucias.join('\n     ') : ''}`);
+  ok(OBJETOS.escudo.horas > 0 && /%H/.test((fr.COMPRA_ESCUDO || []).join(' ')),
+    '  y las del escudo si usan %H, que sale de OBJETOS.escudo.horas');
+}
+
 // LA RECOMPENSA POR SU CABEZA no puede crear aura, y es lo primero que hay que
 // comprobar de ella: es lo unico del bot que retiene dinero de una operacion
 // para pagarlo en otra distinta y mas tarde.

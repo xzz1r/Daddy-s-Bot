@@ -60,7 +60,11 @@ function duracion(ms) {
 function rollAura(targetIsOwner, targetIsAdmin, plusActividad = 0, dePago = true) {
   const grande  = () => rango([TIRADA.grande[0],  TIRADA.grande[1]  - TIRADA.grande[0]]);
   const pequena = () => rango([TIRADA.pequena[0], TIRADA.pequena[1] - TIRADA.pequena[0]]);
-  const premio  = () => (Math.random() < 0.34 ? grande() : pequena());
+  // P_TRAMO_GRANDE.gana, no un 0.34 suelto. Aqui el valor esperado es cero de
+  // todas formas (mismo importe a los dos lados), asi que la cifra no rompia la
+  // economia — pero era una constante distinta de la que usa el resto de la
+  // funcion para lo mismo, y el auditor calcula con la del modulo.
+  const premio  = () => (Math.random() < P_TRAMO_GRANDE.gana ? grande() : pequena());
 
   // ─── Las tiradas que ya no cobran ──────────────────────────────────────────
   //
@@ -1171,6 +1175,27 @@ async function cmdAura(sock, msg, args, groupMeta) {
   }
   // Progreso diario. Vive en social.js (cmdCasino) y se expone aquí como
   // "!aura hoy" porque es aura, no un casino aparte. !casino sigue valiendo.
+  // MIRAR TU PROPIO SALDO SIN JUGARTELO.
+  //
+  // No existia. *!aura* a secas TIRA —te juegas el aura— y *!aura @alguien* lee
+  // el de otro, pero no habia forma de ver el tuyo sin apostar. Por eso *!saldo*
+  // y *!miaura* estaban enchufados a *!aura hoy*, que enseña mensajes del dia y
+  // racha: dos comandos que se llaman "saldo" y no enseñaban ningun saldo.
+  //
+  // Va ANTES del bloqueo por *!aura off* y antes del cooldown a proposito:
+  // consultar un numero no es jugar, y no tiene por que estar sujeto a los
+  // frenos de la tirada.
+  if (['saldo', 'miaura', 'mi'].includes(sub)) {
+    // `sender` se declara mas abajo en esta funcion, asi que aqui todavia esta
+    // en su zona muerta: leerlo revienta con "Cannot access 'sender' before
+    // initialization". Se resuelve aparte.
+    const quien = getSender(msg);
+    const mio = await getAura(jid, quien);
+    return sock.sendMessage(jid, {
+      text: `Tienes *${fmt(mio)}* de aura.`,
+    }, { quoted: msg });
+  }
+
   if (['hoy', 'today', 'dia', 'día', 'diario'].includes(sub)) {
     const { cmdCasino } = require('./social');
     // groupMeta va SIEMPRE: es lo que le permite reconocer al owner principal

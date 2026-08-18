@@ -119,8 +119,13 @@ const SUELO_TODOS = ARRANQUE;
 // veces y se gana menos de golpe, que es la combinación que mantiene la
 // sensación de racha sin inflar el marcador.
 // SUBIDOS por decision del owner: se ganaba poco y los comandos salian caros,
-// asi que la gente no llegaba a usar el bot. La tirada pequenya pasa de 10-25 a
-// 20-40 y la grande de 40-50 a 50-70.
+// asi que la gente no llegaba a usar el bot.
+//
+// AQUI NO SE REPITEN LAS CIFRAS. Este comentario decia "la pequenya pasa a
+// 20-40 y la grande a 50-70" y los valores de abajo eran otros: un comentario
+// que copia el numero que tiene debajo se queda viejo en el primer reajuste y
+// despues miente a quien lo lee para decidir. Los rangos estan en TIRADA, dos
+// lineas mas abajo, y son la unica fuente.
 const TIRADA = {
   grande: [45, 60],
   pequena: [15, 30],
@@ -994,29 +999,27 @@ const DUELO = {
 //
 // El !top10 cuesta casi el doble que el !top5 porque molesta al doble de gente.
 //
-// Precios pensados para ser accesibles: una canción son 15, y una sola tirada
-// floja de !aura ya paga eso. Nadie se queda sin música por estar pobre.
-// Los conversores (!s, !toimg, !tovid) son los comandos más usados del grupo y
-// cada uno levanta un ffmpeg. Estuvieron a 4 por ser el uso diario; ahora van a
-// 15, igual que una canción, por decisión del owner. Con eso un sticker deja de
-// ser calderilla: el aura de arranque da para seis, y hacerlos en cadena cuesta
-// de verdad, que es justo lo que frena el spam de stickers.
+// AQUÍ NO SE ESCRIBE NINGÚN PRECIO. Este bloque llegó a decir "una canción son
+// 15", "los conversores van a 15" y "el aura de arranque da para seis stickers"
+// cuando debajo ponía play 40, sticker 45 y un arranque que da para tres. Un
+// comentario que copia el número que tiene debajo se queda viejo en el primer
+// reajuste, y a partir de ahí miente a quien lo lee para decidir — que es peor
+// que no haber escrito nada.
 //
-// !tovid tiene que quedar POR ENCIMA de !toimg pase lo que pase: recodifica el
-// vídeo entero con preset slow, que es con diferencia lo más caro que hace el
-// bot en CPU. Al subir !toimg de 4 a 15 se quedó costando 6 — menos de la mitad
-// que la conversión ligera — así que sube con él manteniendo la proporción que
-// tenía (una vez y media).
-// SUBIDA GENERAL, menos !play. Se mantienen las proporciones que ya había —
-// tovid por encima de toimg, el top10 al doble largo del top5, los conversores
-// al mismo nivel — porque esas relaciones no son estéticas: salen de lo que
-// cuesta cada cosa en CPU y en molestar al grupo.
+// Lo que sí vive aquí son las RELACIONES, que son la decisión de diseño de
+// verdad y no cambian al reajustar. Las tres están comprobadas en
+// `npm run economia`, así que si alguien las rompe salta ahí y no aquí:
 //
-// !play se queda en 15 por decisión del owner. Deja la escala con una rareza que
-// conviene tener presente: bajar una canción cuesta ancho de banda, cuota de la
-// API y un ffmpeg entero, y ahora sale más barata que convertir un sticker.
-// Es lo pedido, pero si algún día el cupo de RapidAPI se dispara, este es el
-// número que hay que mirar primero.
+//   · !tovid POR ENCIMA de !toimg, pase lo que pase. Recodifica el vídeo entero
+//     con preset slow, que es con diferencia lo más caro que hace el bot en CPU.
+//   · !top10 al doble largo de !top5: molesta al doble de gente.
+//   · El arranque tiene que dar para varias compras baratas. Si no, el que entra
+//     no puede tocar nada y el bot parece roto.
+//
+// Y una rareza que conviene tener presente: bajar una canción cuesta ancho de
+// banda, cuota de RapidAPI y un ffmpeg entero, y sale más barata que convertir
+// un sticker. Es lo que pidió el owner. Si algún día el cupo de RapidAPI se
+// dispara, ese es el primer número que hay que mirar.
 const PRECIOS = {
   // ─── Lo que consume recursos de verdad ─────────────────────────────────────
   tovid: 70,   // transcodifica el vídeo entero con preset slow: lo más caro
