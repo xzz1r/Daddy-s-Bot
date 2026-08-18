@@ -18,7 +18,7 @@ const { isOwner, sameUser, isBotAdmin, canonicalJid, rememberMapping, flushOwner
 const { anotarAlta, motivoDelAlta, ALTA_ADD } = require('./utils/joinReason');
 const { notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, reactivarSondeo, frenoNuevo, flushJoinRequests } = require('./utils/joinRequests');
 const { flushCounts } = require('./utils/messageCounter');
-const { flushNames } = require('./utils/nombreStore');
+const { flushNames, recordName, cuantosNombres } = require('./utils/nombreStore');
 const { flushAura } = require('./utils/auraStore');
 const { flushCasino } = require('./utils/casinoStore');
 const { flushRacha } = require('./utils/rachaStore');
@@ -544,17 +544,36 @@ async function connectToWhatsApp() {
   // Cosecha de hechos de cada cuenta que WhatsApp manda por su cuenta: si es
   // Business (!antiempresa) y si tiene foto o la ha quitado (!antifoto).
   //
-  // Aqui NO se guarda el nombre visible. Se hizo y no sirve: ese nombre lo pinta
-  // el telefono que lee el mensaje con su propia libreta, asi que lo que ve el
-  // bot no es lo que ve el grupo. Ese fue el motivo de retirar !antinick.
+  // De aqui SI se saca el nombre, y es la unica via que lo tiene listo antes de
+  // que nadie hable. WhatsApp manda estos contactos en la sincronizacion
+  // inicial, asi que la copia en gris del ranking sale con nombres desde el
+  // primer minuto en vez de ir llenandose segun la gente escribe.
+  //
+  // Sigue sin servir para !antinick, que es de lo que se retiro: ese nombre lo
+  // pinta cada telefono con su libreta, asi que no vale para sancionar a nadie.
+  // Para escribirlo en una tabla, que es lo unico que se hace con el, sobra.
   const guardarContactos = (lista) => {
     let n = 0;
     for (const c of (lista || [])) {
+      // name = como lo tiene guardado la cuenta del bot; notify = como se llama
+      // esa persona a si misma; verifiedName = el rotulo de una cuenta Business.
+      const nombre = c?.name || c?.notify || c?.verifiedName;
+      const fuente = c?.name ? 'agenda' : 'push';
       // verifiedName solo lo lleva una cuenta Business: prueba directa.
       const biz = Boolean(c?.verifiedName) || undefined;
       // imgUrl: null o 'removed' = sin foto; 'changed' o una url = con foto.
       const photo = c?.imgUrl === null || c?.imgUrl === 'removed' ? 'no'
                   : (typeof c?.imgUrl === 'string' && c.imgUrl) ? 'si' : undefined;
+      // El nombre se anota bajo TODAS las formas conocidas de esa cuenta. En la
+      // sincronizacion inicial los contactos llegan ANTES que el mapa
+      // lid-telefono, asi que canonicalJid todavia no colapsa las dos formas en
+      // una: guardar solo la que venga dejaria la ficha bajo una clave por la
+      // que luego nadie pregunta.
+      if (nombre) {
+        for (const jid of [c.id, c.lid, c.phoneNumber]) {
+          if (jid) recordName(jid, nombre, fuente).catch(() => {});
+        }
+      }
       if (!biz && !photo) continue;
       n++;
       for (const jid of [c.id, c.lid, c.phoneNumber]) {
@@ -588,6 +607,10 @@ async function connectToWhatsApp() {
     const k = guardarMapeos(lidPnMappings);
     if (n) logger.info(`cuentas: ${n} fichas (business/foto) aprendidas de la sincronizacion de WhatsApp`);
     if (k) logger.info(`jid: ${k} correspondencias LID-teléfono aprendidas de WhatsApp`);
+    // Se dice en voz alta porque es lo que decide si el top en gris sale con
+    // nombres o con huecos, y no hay forma de verlo desde el grupo sin esperar
+    // a que caiga un cooldown.
+    logger.info(`nombres: ${cuantosNombres()} fichas para la copia en gris del ranking`);
   });
 
   // Group events: anti-business on join, anti-admin + notifications on promote/demote

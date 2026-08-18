@@ -2,7 +2,8 @@ const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameU
 const { pickFresh, fmt } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
-const { getName, cargar: cargarNombres } = require('../utils/nombreStore');
+const { getName, recordName, cargar: cargarNombres } = require('../utils/nombreStore');
+const logger = require('../utils/logger');
 const { contarTirada } = require('../utils/casinoStore');
 const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, bonoVeterania, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
@@ -784,6 +785,29 @@ async function showRanking(sock, msg, groupMeta) {
     text += `*${i + 1}.* @${r.jid.split('@')[0]} — ${fmt(r.aura)}\n`;
     mentions.push(r.jid);
   });
+  // Tercera y ultima red para los nombres, justo donde hacen falta.
+  //
+  // La metadata del grupo a veces trae el nombre de cada participante, y a veces
+  // no: depende de lo que mande el servidor. Cuando viene es gratis, asi que se
+  // aprovecha; cuando no, no pasa nada, porque para entonces ya han pasado la
+  // sincronizacion de contactos y los mensajes de cada uno.
+  await cargarNombres().catch(() => {});
+  // Se esperan: son unas decenas de fichas, una vez cada tres horas, y el
+  // recuento de abajo tiene que verlas ya escritas o acusaria de "sin nombre" a
+  // quien acaba de recibir uno en esta misma linea.
+  await Promise.allSettled((groupMeta?.participants || []).map((p) => {
+    const n = p?.name || p?.notify || p?.verifiedName;
+    return n && p.id ? recordName(p.id, n, p?.name ? 'agenda' : 'push') : null;
+  }).filter(Boolean));
+  // Si aun asi queda alguien sin nombre, se dice en el log. Es la unica forma de
+  // enterarse sin esperar tres horas a que caiga un cooldown y mirarlo en el
+  // grupo, y siempre es el mismo sintoma: esa cuenta no ha escrito nunca y no
+  // vino en la sincronizacion.
+  const sinNombre = ranking.filter((r) => !getName(r.jid)).length;
+  if (sinNombre) {
+    logger.warn(`ranking: ${sinNombre} de ${ranking.length} del top sin nombre; saldran como "${SIN_NOMBRE}" en la copia en gris`);
+  }
+
   if (ultimoTop.size >= 500) ultimoTop.delete(ultimoTop.keys().next().value);
   ultimoTop.set(jid, { filas: ranking.map((r) => ({ jid: r.jid, aura: r.aura })), ts: Date.now() });
 

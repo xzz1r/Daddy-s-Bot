@@ -98,18 +98,40 @@ function limpiar(raw) {
   return n;
 }
 
-async function recordName(jid, pushName) {
+// De donde salio el nombre, y cual gana cuando hay dos.
+//
+//   agenda (2)  c.name: como lo tiene guardado la cuenta del bot en su libreta.
+//   push   (1)  c.notify o msg.pushName: como se llama esa persona a si misma.
+//
+// La agenda pesa mas porque es lo que se ve en pantalla al abrir el chat, y no
+// cambia porque alguien se ponga un apodo nuevo el martes. Un nombre de menos
+// peso NO pisa a uno de mas peso; uno del mismo peso si, para que un cambio de
+// pushName se refleje.
+const PESO = { agenda: 2, push: 1 };
+
+async function recordName(jid, crudo, fuente = 'push') {
   if (!jid) return;
-  const nombre = limpiar(pushName);
+  const nombre = limpiar(crudo);
   if (!nombre) return;
+  const peso = PESO[fuente] || 1;
   await load();
   const key = canonicalJid(jid);
   const ficha = nombres[key];
-  // Se escribe solo cuando cambia de verdad. Si no, cada mensaje del grupo
-  // programaria un guardado a disco para dejar el fichero exactamente igual.
-  if (ficha && ficha.nombre === nombre) return;
-  nombres[key] = { nombre, ts: Date.now() };
+  if (ficha) {
+    if ((PESO[ficha.fuente] || 1) > peso) return;
+    // Se escribe solo cuando cambia de verdad. Si no, cada mensaje del grupo
+    // programaria un guardado a disco para dejar el fichero exactamente igual.
+    if (ficha.nombre === nombre && ficha.fuente === fuente) return;
+  }
+  nombres[key] = { nombre, fuente, ts: Date.now() };
   scheduleSave();
+}
+
+// Cuantas fichas hay. Solo para el diagnostico de arranque: si esto sale en 0
+// despues de sincronizar, la copia en gris del ranking saldria sin nombres y es
+// mejor enterarse por el log que por el grupo.
+function cuantosNombres() {
+  return nombres ? Object.keys(nombres).length : 0;
 }
 
 // Devuelve el nombre conocido, o null. Nunca devuelve un numero: quien no tenga
@@ -137,4 +159,4 @@ async function flushNames() {
 // load() se expone porque getName es SINCRONO a proposito (se llama mientras se
 // pinta una tabla). Alguien tiene que haber calentado el mapa antes; lo hace el
 // propio recordName con el primer mensaje que entra.
-module.exports = { recordName, getName, flushNames, limpiar, cargar: load };
+module.exports = { recordName, getName, cuantosNombres, flushNames, limpiar, cargar: load };
