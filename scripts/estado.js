@@ -90,6 +90,25 @@ if (!fs.existsSync(envPath)) {
 
   if (env.GROK_API_KEY || fs.existsSync(path.join(RAIZ, 'data/grok-key.txt'))) bien('key de Grok presente (!g funciona)');
   else aviso('sin key de Grok: !g no responderá', 'usa !setgrok <key> desde WhatsApp');
+
+  // SHIP_ALTO se comprueba aqui porque es la unica pieza de configuracion que no
+  // se puede verificar de ninguna otra forma: si el bot no la ve, el !ship sale
+  // bajo — que es EXACTAMENTE lo que sale cuando la config esta bien y el amaño
+  // no aplica. Un fallo indistinguible del funcionamiento normal es un fallo que
+  // no se descubre nunca, asi que se dice aqui.
+  //
+  // NO SE IMPRIME EL NUMERO. Es de un tercero y este comando se enseña en
+  // capturas; con saber que esta y cuantos hay basta para comprobar la config.
+  const shipAlto = (env.SHIP_ALTO || '').split(',').map(n => n.replace(/\D/g, '')).filter(Boolean);
+  if (shipAlto.length) {
+    const raros = shipAlto.filter(n => n.length < 8 || n.length > 15);
+    if (raros.length) {
+      mal(`SHIP_ALTO tiene ${raros.length} número(s) con una longitud imposible`,
+        'repásalo: se esperan de 8 a 15 dígitos, con o sin el + y los espacios');
+    } else {
+      bien(`SHIP_ALTO: ${shipAlto.length} número(s) con ship amañado al alza`);
+    }
+  }
 }
 
 // ─── Proceso ─────────────────────────────────────────────────────────────────
