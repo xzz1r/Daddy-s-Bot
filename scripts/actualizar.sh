@@ -14,6 +14,23 @@
 #   · no comprobaba nada después.
 set -euo pipefail
 
+# TODO EL CUERPO VA DENTRO DE UNA FUNCION, y no es estilo: es correccion.
+#
+# Este script se REESCRIBE A SI MISMO a mitad de ejecucion — el `git reset
+# --hard` de mas abajo trae la version nueva de este mismo fichero. Y bash no
+# lee un script entero de golpe: lo lee por posicion de byte segun lo va
+# ejecutando. Si el fichero cambia de tamanyo bajo sus pies, la siguiente linea
+# que ejecuta sale de un desplazamiento que ya no corresponde: puede saltarse
+# ordenes, partir una por la mitad o ejecutar un trozo suelto.
+#
+# Ya paso: el despliegue que trajo el respaldo automatico no llego a hacer la
+# copia, porque cuando arranco el script todavia era el de antes.
+#
+# Metido en una funcion, bash tiene que parsear el cuerpo ENTERO antes de
+# ejecutar la primera linea. A partir de ahi el fichero puede cambiar lo que
+# quiera: esta pasada ya corre desde memoria.
+main() {
+
 cd "$(dirname "$0")/.."
 
 # El repo y la rama van CLAVADOS aquí, no se leen de la máquina.
@@ -173,3 +190,7 @@ echo "→ Esperando a que el bot conecte..."
 sleep 12
 
 npm run estado
+
+}
+
+main "$@"
