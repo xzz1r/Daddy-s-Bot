@@ -89,7 +89,24 @@ function privadoDelOwner(sender, groupMeta) {
 
 function autorDelCitado(ctx, jid) {
   const quien = ctx?.participant || ctx?.remoteJid || jid;
-  return quien ? `+${String(quien).split('@')[0].split(':')[0]}` : 'desconocido';
+  if (!quien) return 'desconocido';
+
+  // SE RESUELVE EL @lid ANTES DE ENSEÑARLO.
+  //
+  // Antes se cogia el participant en crudo y se le pegaba un '+' delante. En un
+  // grupo LID —que es lo normal ya— eso no es un telefono: es el identificador
+  // interno de WhatsApp, y salia "imagen de +89210866430183", un numero de
+  // catorce digitos que no existe y que no sirve para buscar a nadie.
+  //
+  // canonicalJid traduce el LID al telefono con el mapa que el bot ya mantiene.
+  const bruto = String(quien);
+  const canon = canonicalJid(bruto) || bruto;
+  const num = String(canon).split('@')[0].split(':')[0];
+
+  // Si sigue sin resolverse, NO se inventa un numero. Un '+' delante de un LID
+  // solo sirve para confundir al que lea el pie meses despues.
+  if (String(canon).includes('@lid') || !/^\d{6,15}$/.test(num)) return 'alguien del grupo';
+  return `+${num}`;
 }
 
 // `borrar` decide si el mensaje que disparó esto se borra del grupo.
