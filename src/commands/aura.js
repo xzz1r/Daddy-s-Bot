@@ -8,7 +8,7 @@ const { contarTirada } = require('../utils/casinoStore');
 const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, bonoVeterania, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
-const { BOTE, ATRACO, CONTRA, RACHA, RIESGO, OBJETOS } = require('../utils/economia');
+const { BOTE, ATRACO, CONTRA, RACHA, RIESGO, OBJETOS, IMPUESTO, REGALO_MIN } = require('../utils/economia');
 const { aportarAlBote } = require('../utils/roboStore');
 const tiendaObj = require('../utils/roboStore');
 
@@ -871,7 +871,8 @@ _Cuanto antes respondas, más probabilidad: el bono entero es en los primeros *$
 *!robo top* — los más buscados
 
 *!duel* @user <cant.> — 1v1, se acepta con *!duel aceptar*
-*!dar* @user <cant.> — regalas aura
+*!dar* @user <cant.> — regalas aura, desde *${fmt(REGALO_MIN)}*
+_Hay un *${Math.round(IMPUESTO.porcentaje * 100)}%* de impuesto (mínimo *${fmt(IMPUESTO.minimo)}*) que paga quien da: el otro cobra siempre lo que pusiste. La mitad de lo recaudado va al bote._
 
 ━━━━━ *LA LETRA PEQUEÑA* ━━━━━
 

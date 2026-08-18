@@ -238,7 +238,15 @@ async function addAura(groupJid, userJid, delta) {
 // sender has insufficient funds. Both the debit check and both writes happen
 // inside the same serialized block, so no concurrent command can read a stale
 // balance in the window between check and commit.
-async function transferAura(groupJid, fromJid, toJid, amount) {
+//
+// `credita` permite abonar MENOS de lo que se cobra, que es lo que hace falta
+// para el impuesto de !dar. Por defecto es igual al cargo, o sea suma cero
+// exacta como toda la vida: ningun otro sitio que la use cambia de
+// comportamiento por esto. La diferencia (amount - credita) NO se queda en el
+// fichero: sale de la cuenta de uno, no entra en la del otro y es quien llama
+// el que decide que hacer con ella. Se devuelve como `retenido` para que no se
+// pueda perder por descuido.
+async function transferAura(groupJid, fromJid, toJid, amount, credita = amount) {
   await load();
   const fromKey = canonicalJid(fromJid);
   const toKey   = canonicalJid(toJid);
@@ -250,11 +258,14 @@ async function transferAura(groupJid, fromJid, toJid, amount) {
     foldPerson(g, fromJid);
     foldPerson(g, toJid);
     const fromCurrent = g[fromKey] === undefined ? STARTING_AURA : g[fromKey];
+    // Se comprueba contra lo que se COBRA, no contra lo que se abona: si no,
+    // alguien con 100 justos podria mandar 100 y quedarse debiendo el impuesto.
     if (fromCurrent < amount) return { ok: false, fromCurrent };
+    const abono = Math.max(0, Math.min(credita, amount));
     g[fromKey] = fromCurrent - amount;
-    g[toKey]   = (g[toKey] === undefined ? STARTING_AURA : g[toKey]) + amount;
+    g[toKey]   = (g[toKey] === undefined ? STARTING_AURA : g[toKey]) + abono;
     scheduleSave();
-    return { ok: true, fromNew: g[fromKey], toNew: g[toKey] };
+    return { ok: true, fromNew: g[fromKey], toNew: g[toKey], retenido: amount - abono };
   });
 }
 

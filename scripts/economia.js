@@ -20,7 +20,7 @@ const eco = require(R + '/src/utils/economia');
 const { P_POSITIVA, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, ACTIVIDAD_MSGS, P_TOPE_MIEMBRO, TIRADA,
         APUESTA, PRECIOS, BONOS, REDENCION, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE,
         P_TOPE, TIRADAS_PAGADAS, bonoActividad,
-        RACHA, rango, ROBO, DUELO, ARRANQUE, MILLONARIO,
+        RACHA, rango, ROBO, DUELO, ARRANQUE, MILLONARIO, IMPUESTO, impuestoDe,
         OBJETOS, RIESGO, ROBO_BASE, ROBO_LIMITES } = eco;
 
 let fallos = 0;
@@ -428,7 +428,37 @@ ok(red / 200000 > 0.10, `quien esta en negativo tiene rescate real: el ${(100 * 
 
 console.log('\n════ 5. ¿que crea y que destruye aura? ════\n');
 const src = (x) => fs.readFileSync(`${R}/src/commands/${x}`, 'utf8');
-ok(/transferAura/.test(src('dar.js')), '!dar usa transferAura: suma cero exacta, lo que sale de uno entra en el otro');
+// !dar YA NO ES SUMA CERO, y esta linea decia que si. Lo era hasta que se le
+// puso impuesto: ahora sale mas de una cuenta de lo que entra en la otra, y la
+// diferencia se reparte entre el bote y la nada. Lo que hay que comprobar no es
+// que cuadre a cero, sino que la cuenta este bien hecha en las dos direcciones.
+ok(/transferAura/.test(src('dar.js')), '!dar sigue usando transferAura: el cargo y el abono pasan por el mismo bloque serializado');
+{
+  const darSrc = src('dar.js');
+  ok(/transferAura\(jid, sender, target, cargo, amount\)/.test(darSrc),
+    '  y se cobra `cargo` abonando solo `amount`: el impuesto no puede quedarse a medias entre las dos escrituras');
+  ok(/const cargo = amount \+ impuesto/.test(darSrc),
+    '  el impuesto lo paga QUIEN DA, encima de la cantidad: quien recibe cobra siempre lo anunciado');
+
+  // Y la cuenta en si, con las cifras de economia.js.
+  const casos = [1, 5, 50, 100, 1000, 5000];
+  const roto = casos.filter((n) => impuestoDe(n) < IMPUESTO.minimo);
+  ok(roto.length === 0, `  toda transferencia paga al menos ${IMPUESTO.minimo}: ${casos.length} cantidades comprobadas`);
+
+  // Trocear tiene que salir MAS CARO que pagar de una vez, o el impuesto no
+  // sirve para nada: bastaria con mandar la fortuna en trozos de uno.
+  const entero = impuestoDe(400);
+  const troceado = 100 * impuestoDe(4);
+  ok(troceado > entero,
+    `  trocear no esquiva el impuesto: 400 de golpe cuesta ${entero} y en cien trozos ${troceado}`);
+
+  // El efectivo sobre una cantidad normal, para que se vea si alguien lo sube.
+  const efectivo = (100 * impuestoDe(100) / 100).toFixed(0);
+  if (impuestoDe(100) / 100 > 0.25) {
+    nota(`el impuesto de !dar se lleva el ${efectivo} % de un regalo normal: eso ya no es un peaje, es una expropiacion`);
+  }
+  console.log(`  !dar: ${(IMPUESTO.porcentaje * 100).toFixed(0)} % con minimo ${IMPUESTO.minimo}; de lo recaudado, el ${(IMPUESTO.alBote * 100).toFixed(0)} % va al bote y el resto se destruye.`);
+}
 ok(/addAura\(jid, winner, \+d\.stake\)[\s\S]{0,120}addAura\(jid, loser, -d\.stake\)/.test(src('duel.js')),
   '!duel: el ganador cobra exactamente lo que paga el perdedor, suma cero');
 

@@ -985,8 +985,50 @@ const PRECIOS = {
   percent: 25,   // el precio común de gay, puta, iq, fea, crack y compañía
 };
 
-// Regalar el mínimo tiene que dar para algo. Ver la nota de !dar más arriba.
-const REGALO_MIN = Math.min(...Object.values(PRECIOS));
+// EL MINIMO DE !dar BAJA A 1, por peticion expresa.
+//
+// Estaba clavado al comando mas barato de la lista (12) con el argumento de que
+// "regalar el minimo tiene que dar para algo". El argumento no se sostiene: lo
+// que da o no da para algo lo decide quien recibe, no el bot, y mas de una vez
+// lo que se quiere pasar es 1 de aura por la coña de pasar 1 de aura.
+const REGALO_MIN = 1;
+
+// ─── EL IMPUESTO DE TRANSFERENCIA ────────────────────────────────────────────
+//
+// !dar era el unico sitio del bot donde el aura se movia gratis, y eso lo
+// convertia en la lavadora del juego: con el minimo en 1 y sin coste, mover una
+// fortuna entera a un amigo antes de que te roben —o repartirla en trozos para
+// esquivar cualquier cosa— no costaba nada. Un impuesto porcentual es lo que
+// hace que cada salto cueste.
+//
+// EL IMPUESTO LO PAGA QUIEN DA, ENCIMA DE LA CANTIDAD. Es la unica forma de que
+// el minimo de 1 funcione de verdad: si se descontara de lo enviado, un regalo
+// de 1 llegaria como 0 y el comando estaria roto justo en el caso que se acaba
+// de pedir. Asi quien recibe cobra SIEMPRE exactamente lo que se anuncio.
+//
+// Y el minimo de un aura por transferencia no es decorativo: es lo que impide
+// trocear. Mover 400 de golpe cuesta 48; moverlos en cien trozos de 4 cuesta
+// 100. Trocear para esquivar el impuesto sale mas caro que pagarlo, que es
+// exactamente lo que tiene que pasar.
+//
+// No lleva tope a proposito. Mover una fortuna TIENE que ser caro: el tope
+// convertiria el impuesto en calderilla justo en las cantidades donde importa.
+const IMPUESTO = {
+  porcentaje: 0.12,
+  minimo: 1,      // toda transferencia paga al menos esto
+
+  // Y la mitad de lo recaudado va al bote comun en vez de evaporarse. El resto
+  // se destruye, que es lo que lo mantiene siendo un sumidero. Mismo reparto
+  // que la comision del asalto: parte drena, parte vuelve al juego.
+  alBote: 0.5,
+};
+
+// Lo que cuesta de verdad mandar una cantidad, y lo unico que hay que llamar
+// para saberlo. Vive aqui y no en el comando para que la ayuda, el mensaje y el
+// auditor lean todos la misma cuenta.
+function impuestoDe(cantidad) {
+  return Math.max(IMPUESTO.minimo, Math.round(cantidad * IMPUESTO.porcentaje));
+}
 
 // Suelo de crédito: se puede pagar aunque te deje justo, pero no se entra en
 // negativo comprando. Quien ya está en rojo no puede gastar hasta remontar.
@@ -1004,6 +1046,6 @@ module.exports = {
   VETERANIA_MSGS, VETERANIA_PAGO, VETERANIA_TOPE, bonoVeterania,
   ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_RACHA_MAX, ROBO_OWNER_VISIBLE, DUELO, REGALO_MIN,
   BOTE, ATRACO, OBJETOS, CONTRA, DIANA,
-  PRECIOS, SALDO_MINIMO,
+  PRECIOS, SALDO_MINIMO, IMPUESTO, impuestoDe,
   rango,
 };
