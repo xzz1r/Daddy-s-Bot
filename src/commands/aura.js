@@ -461,6 +461,46 @@ const AURA = {
     'Sigues en rojo y sin señales de cambio. El pronóstico es el mismo que ayer: tú.',
     'Otra pérdida para un historial que ya no admite más. Pero tú siempre encuentras sitio, cabrón.',
     'Tu racha negativa ya es tan larga que el grupo la usa de referencia temporal: "desde que empezó a perder".',
+    'Otra caida. Ya ni el bot se molesta en fingir sorpresa.',
+    'Sigues bajando. A este ritmo vas a tener que pedir permiso para existir.',
+    'Menos aura, otra vez. Ya no es mala racha, es tu nivel.',
+    'Bajas y bajas. Lo unico constante de tu vida en este grupo.',
+    'El pozo tiene fondo y tu estas empeñado en comprobarlo.',
+    'Otra menos. Empieza a ser deprimente hasta para los que miran.',
+    'Sigues en rojo y sigues tirando. Eso no es valentia, es no saber parar.',
+    'Cada tirada tuya es un recordatorio de que se puede estar peor.',
+    'Bajando. Como siempre. Como todo.',
+    'Ya ni duele, verdad? Eso es lo preocupante.',
+    'Otra caida mas para la coleccion. Vas a necesitar estanteria.',
+    'El aura se te escapa como todo lo demas.',
+    'Menos. Y lo peor es que lo has vuelto a buscar tu solo.',
+    'Estas en negativo y sigues insistiendo. Hay algo casi admirable en esa cabezoneria, casi.',
+    'Otra vez abajo. El grupo ya ni comenta, y ese silencio pesa mas que las burlas.',
+    'Sigues cavando. El agujero ya tiene tu nombre puesto.',
+    'Menos aura y menos motivos. Sigue asi.',
+    'Caes otra vez y nadie levanta la vista. Eso es lo que has conseguido.',
+    'El fondo te saluda. Otra vez.',
+    'Bajas. Ni una sorpresa, ni un respiro, ni una excusa nueva.',
+    'Otra tirada, otro hachazo. A ver cuanto aguantas antes de rendirte.',
+    'Esto ya no es mala suerte. Es una tendencia con tu cara.',
+    'Menos. Un poquito mas y hasta el bot te tiene lastima.',
+    'Sigues perdiendo y sigues aqui. Lo segundo es lo que no entiendo.',
+    'Otra caida. Tu aura hace tiempo que dejo de ser un numero y es un diagnostico.',
+    'Abajo otra vez. Ya te has hecho un hueco en el sotano.',
+    'Pierdes. Otra. Vez.',
+    'El agujero se hace mas hondo y tu sigues con la pala.',
+    'Menos aura. A estas alturas ya deberia dolerte, y lo raro es que no.',
+    'Caes de nuevo. El chat sigue a lo suyo, que es lo que mas debe joder.',
+    'Otra menos. Tu racha negativa ya tiene mas historia que tu.',
+    'Sigues hundiendote y con una constancia que ya quisieras para otras cosas.',
+    'Bajas otra vez. En algun momento habra que llamarlo por su nombre: eres malo en esto.',
+    'Menos. Y ni siquiera puedes decir que no te avisaron.',
+    'Otra caida y el silencio de siempre. Ese es tu verdadero marcador.',
+    'El aura se va, tu te quedas, y el grupo mira para otro lado.',
+    'Pierdes de nuevo. Empiezo a pensar que te gusta.',
+    'Abajo. Sin drama, sin sorpresa, sin nada.',
+    'Otra vez menos. Ya ni el bot encuentra formas nuevas de decirtelo.',
+    'Sigues en caida libre y sin paracaidas. Ni ganas de buscarlo.',
   ],
   cursed: [
     // ── Ejemplos del usuario (intocables) ──
@@ -556,11 +596,36 @@ const AURA = {
 for (const tramo of Object.keys(AURA)) AURA[tramo] = AURA[tramo];
 
 // !aura top — leaderboard of accumulated aura in the group.
+// El ranking lleva cooldown POR GRUPO, no por persona.
+//
+// EXISTE PORQUE MOLESTABA A TODOS. Es el comando mas facil de pedir y el que
+// mas ocupa —once lineas con menciones—, asi que salia cada dos por tres, y
+// encima cada vez notifica a los diez del top. Al que va primero le suena el
+// telefono porque a otro le dio por mirar.
+//
+// Un cooldown por persona no lo arregla: diez personas pidiendolo una vez cada
+// una son diez rankings igual. Tiene que ser del GRUPO — si acaba de salir, no
+// vuelve a salir, lo pida quien lo pida y sea quien sea. Tampoco se libra el
+// owner: la molestia es la misma venga de quien venga.
+const RANKING_COOLDOWN_MS = 30 * 60 * 1000;
+const ultimoRanking = new Map();   // grupo -> ts
+
 async function showRanking(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
     return sock.sendMessage(jid, { text: 'El ranking de aura solo existe en grupos.' }, { quoted: msg });
   }
+
+  const desde = Date.now() - (ultimoRanking.get(jid) || 0);
+  if (desde < RANKING_COOLDOWN_MS) {
+    const quedan = Math.ceil((RANKING_COOLDOWN_MS - desde) / 60000);
+    // Se contesta CITANDO a quien lo pidio y sin mencionar a nadie mas: el
+    // aviso es para el, no otro mensaje que le llegue al top entero.
+    return sock.sendMessage(jid, {
+      text: `El ranking acaba de salir. Vuelve en *${quedan} min*.`,
+    }, { quoted: msg });
+  }
+
   // Un solo filtro: quien ya no esta en el grupo no ocupa puesto. El aura se
   // guarda para siempre y sin esto el ranking seguia coronando a gente que se
   // fue del grupo hace meses.
@@ -575,6 +640,12 @@ async function showRanking(sock, msg, groupMeta) {
   if (ranking.length === 0) {
     return sock.sendMessage(jid, { text: 'Nadie ha medido su aura todavía. Usa *!aura*.' }, { quoted: msg });
   }
+
+  // El cooldown se marca AQUI, no al entrar: si no habia ranking que enseñar no
+  // se ha molestado a nadie, asi que bloquear los siguientes treinta minutos
+  // seria castigar por un mensaje que no llego a salir.
+  if (ultimoRanking.size >= 500) ultimoRanking.delete(ultimoRanking.keys().next().value);
+  ultimoRanking.set(jid, Date.now());
   let text = '*RANKING DE AURA*\n\n';
   const mentions = [];
   ranking.forEach((r, i) => {
