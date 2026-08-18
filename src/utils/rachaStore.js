@@ -37,7 +37,7 @@ async function load() {
       .then((d) => { store = d; })
       .catch((e) => {
         loadPromise = null;
-        logger.warn(`rachaStore: lectura falló (${e.message}); no se toca el archivo.`);
+        logger.warn(`rachaStore: lectura falló (${e.message}); no se toca el archivo`);
         throw e;
       });
   }
@@ -49,7 +49,7 @@ function scheduleSave() {
   saveTimer = setTimeout(async () => {
     saveTimer = null;
     try { await atomicWriteJson(RACHA_FILE, store); }
-    catch (e) { logger.error(`rachaStore: fallo al guardar: ${e.message}.`); }
+    catch (e) { logger.error(`rachaStore: fallo al guardar: ${e.message}`); }
   }, 5000);
 }
 
@@ -143,7 +143,7 @@ async function flushRacha() {
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
   if (store) {
     try { await atomicWriteJson(RACHA_FILE, store); }
-    catch (e) { logger.error(`rachaStore: fallo al flush: ${e.message}.`); }
+    catch (e) { logger.error(`rachaStore: fallo al flush: ${e.message}`); }
   }
 }
 

@@ -50,7 +50,7 @@ async function load() {
       .then((d) => { store = d; })
       .catch((e) => {
         loadPromise = null; // permite reintentar; NUNCA resetear+sobrescribir
-        logger.warn(`nickStore: lectura falló (${e.message}); no se toca el archivo.`);
+        logger.warn(`nickStore: lectura falló (${e.message}); no se toca el archivo`);
         throw e;
       });
   }
@@ -62,7 +62,7 @@ function scheduleSave() {
   saveTimer = setTimeout(async () => {
     saveTimer = null;
     try { await atomicWriteJson(FILE, store); }
-    catch (e) { logger.error(`nickStore: fallo al guardar: ${e.message}.`); }
+    catch (e) { logger.error(`nickStore: fallo al guardar: ${e.message}`); }
   }, 10000);
 }
 
@@ -110,7 +110,7 @@ async function flushNicks() {
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
   if (store) {
     try { await atomicWriteJson(FILE, store); }
-    catch (e) { logger.error(`nickStore: fallo al flush: ${e.message}.`); }
+    catch (e) { logger.error(`nickStore: fallo al flush: ${e.message}`); }
   }
 }
 

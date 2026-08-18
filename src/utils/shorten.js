@@ -9,7 +9,7 @@ const cache = new Map(); // url larga -> url corta (evita re-acortar lo mismo)
 const MAX_CACHE = 500;
 
 async function viaTinyurl(url) {
-  const res = await axios.get('https://tinyurl.com/api-create.php.', {
+  const res = await axios.get('https://tinyurl.com/api-create.php', {
     params: { url }, timeout: 8000,
   });
   return String(res.data || '').trim();

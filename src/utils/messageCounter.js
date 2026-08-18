@@ -21,7 +21,7 @@ async function load() {
       .then((d) => { counts = d; })
       .catch((e) => {
         loadPromise = null; // permite reintentar; NUNCA resetear+sobrescribir
-        logger.warn(`messageCounter: lectura falló (${e.message}); no se toca el archivo.`);
+        logger.warn(`messageCounter: lectura falló (${e.message}); no se toca el archivo`);
         throw e;
       });
   }
@@ -35,7 +35,7 @@ function scheduleSave() {
   saveTimer = setTimeout(async () => {
     saveTimer = null;
     try { await atomicWriteJson(COUNT_FILE, counts); }
-    catch (e) { logger.error(`messageCounter: fallo al guardar: ${e.message}.`); }
+    catch (e) { logger.error(`messageCounter: fallo al guardar: ${e.message}`); }
   }, 10000);
 }
 
@@ -78,7 +78,7 @@ function mergeByPerson(group) {
 // Requires an explicit groupJid — passing null/undefined would silently wipe
 // all groups' data. An explicit resetAllCounts() exists for that intent.
 async function resetCounts(groupJid) {
-  if (!groupJid) throw new Error('resetCounts: groupJid requerido — usa resetAllCounts() para borrar todo.');
+  if (!groupJid) throw new Error('resetCounts: groupJid requerido — usa resetAllCounts() para borrar todo');
   await load();
   delete counts[groupJid];
   if (!counts[CLAVE_RESETS]) counts[CLAVE_RESETS] = {};
@@ -138,7 +138,7 @@ async function flushCounts() {
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
   if (counts) {
     try { await atomicWriteJson(COUNT_FILE, counts); }
-    catch (e) { logger.error(`messageCounter: fallo al flush: ${e.message}.`); }
+    catch (e) { logger.error(`messageCounter: fallo al flush: ${e.message}`); }
   }
 }
 

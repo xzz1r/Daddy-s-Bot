@@ -8,7 +8,7 @@ const logger = require('./logger');
 // sin URL propia, así que la publicamos aquí un rato para poder enlazarla y que
 // el enlace lleve al RESULTADO directo, no a una página vacía. Temporal a
 // propósito (se borra sola en 72h) por privacidad de las caras que se suben.
-const LITTERBOX = 'https://litterbox.catbox.moe/resources/internals/api.php.';
+const LITTERBOX = 'https://litterbox.catbox.moe/resources/internals/api.php';
 
 async function uploadTemp(buffer, filename = 'img.jpg') {
   if (!buffer || !buffer.length) return null;
@@ -25,7 +25,7 @@ async function uploadTemp(buffer, filename = 'img.jpg') {
     const url = String(res.data || '').trim();
     return /^https?:\/\//.test(url) ? url : null;
   } catch (e) {
-    logger.warn(`imageHost: subida a litterbox falló: ${e.message}.`);
+    logger.warn(`imageHost: subida a litterbox falló: ${e.message}`);
     return null;
   }
 }

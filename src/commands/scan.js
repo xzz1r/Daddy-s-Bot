@@ -85,7 +85,7 @@ async function cmdScan(sock, msg, groupMeta) {
   }
 
   await sock.sendMessage(jid, {
-    text: `Escaneando ${participants.length} miembros….`,
+    text: `Escaneando ${participants.length} miembros…`,
   }, { quoted: msg });
 
   // ── Business account check (con EVIDENCIA: qué campo lo marca) ─────────────
@@ -132,7 +132,7 @@ async function cmdScan(sock, msg, groupMeta) {
   // El total es el de miembros ESCANEADOS. Antes se imprimía el total del grupo
   // mientras el owner quedaba fuera de los cubos, así que las cifras no sumaban.
   const escaneados = phoneJids.length + lidOnly.length;
-  text += `Total miembros: *${escaneados}*.`;
+  text += `Total miembros: *${escaneados}*`;
   text += `\n`;
   text += `Número visible: *${phoneJids.length}*\n`;
   if (lidOnly.length > 0)
@@ -142,7 +142,7 @@ async function cmdScan(sock, msg, groupMeta) {
   // Business accounts — individually listed with mention
   if (bizCount > 0) {
     const bizLines = [...bizMap.entries()]
-      .map(([j, fields]) => `• @${(phoneToId.get(j) || j).split('@')[0]} — ${fields.join(', ')}.`);
+      .map(([j, fields]) => `• @${(phoneToId.get(j) || j).split('@')[0]} — ${fields.join(', ')}`);
     text += `*Cuentas Business (${bizCount}):*\n${bizLines.join('\n')}\n\n`;
   }
 

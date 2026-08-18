@@ -69,7 +69,7 @@ async function cmdPlay(sock, msg, args, groupMeta) {
     try {
       result = await downloadAudio(query);
     } catch (err) {
-      logger.error(`Download error: ${err.message}.`);
+      logger.error(`Download error: ${err.message}`);
       // Caso más común: la búsqueda no devolvió resultado en SoundCloud. Mensaje
       // claro para el grupo; el detalle técnico queda en el log.
       const notFound = /no se encontr|no result|unable to|not found|nothing found/i.test(err.message);
@@ -97,14 +97,14 @@ async function cmdPlay(sock, msg, args, groupMeta) {
     await sock.sendMessage(jid, {
       audio: audioBuffer,
       mimetype: result.mimetype || 'audio/mp4',
-      fileName: `${result.title}.${result.ext || 'm4a'}.`,
+      fileName: `${result.title}.${result.ext || 'm4a'}`,
       ptt: false,
     }, { quoted: msg });
     incrementStat('musicPlayed');
   } catch (err) {
-    logger.error(`Send audio error: ${err.message}.`);
+    logger.error(`Send audio error: ${err.message}`);
     await reembolsar();
-    await sock.sendMessage(jid, { text: `Error al enviar audio: ${err.message}.` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: `Error al enviar audio: ${err.message}` }, { quoted: msg });
   }
 
   // Cache and cleanup (only if it was a fresh download). Pass the buffer we
@@ -126,7 +126,7 @@ async function cmdCacheList(sock, msg) {
   try {
     list = await listCached();
   } catch (err) {
-    return sock.sendMessage(jid, { text: `Error al leer el cache: ${err.message}.` }, { quoted: msg });
+    return sock.sendMessage(jid, { text: `Error al leer el cache: ${err.message}` }, { quoted: msg });
   }
   if (!list.length) {
     return sock.sendMessage(jid, { text: 'No hay canciones en cache todavía.' }, { quoted: msg });
@@ -135,7 +135,7 @@ async function cmdCacheList(sock, msg) {
   // solicitante al lado (vacío si lo pidió el owner o no se registró el nombre).
   const lines = list.map((s, i) => {
     const t = s.title.length > 55 ? s.title.slice(0, 52) + '...' : s.title;
-    return s.requester ? `${i + 1}. ${t} — ${s.requester}.` : `${i + 1}. ${t}`;
+    return s.requester ? `${i + 1}. ${t} — ${s.requester}` : `${i + 1}. ${t}`;
   });
   const text = `*CANCIONES EN CACHE* (${list.length})\n\n` + lines.join('\n');
   await sock.sendMessage(jid, { text }, { quoted: msg });
@@ -148,7 +148,7 @@ async function cmdClearCache(sock, msg) {
     await clearCache();
     await sock.sendMessage(jid, { text: 'Cache de musica borrado.' }, { quoted: msg });
   } catch (err) {
-    await sock.sendMessage(jid, { text: `Error al borrar cache: ${err.message}.` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: `Error al borrar cache: ${err.message}` }, { quoted: msg });
   }
 }
 

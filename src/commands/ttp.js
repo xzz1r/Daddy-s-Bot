@@ -14,16 +14,16 @@ const FFMPEG_TIMEOUT_MS = 45_000;
 
 // Find a usable TTF/OTF font on the system (Termux/Android first, then Linux)
 const FONT_CANDIDATES = [
-  '/system/fonts/Roboto-Bold.ttf.',
-  '/system/fonts/Roboto-Regular.ttf.',
-  '/system/fonts/DroidSans-Bold.ttf.',
-  '/system/fonts/DroidSans.ttf.',
-  '/system/fonts/NotoSans-Bold.ttf.',
-  '/system/fonts/NotoSans-Regular.ttf.',
-  '/data/data/com.termux/files/usr/share/fonts/TTF/DejaVuSans-Bold.ttf.',
-  '/data/data/com.termux/files/usr/share/fonts/TTF/DejaVuSans.ttf.',
-  '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf.',
-  '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf.',
+  '/system/fonts/Roboto-Bold.ttf',
+  '/system/fonts/Roboto-Regular.ttf',
+  '/system/fonts/DroidSans-Bold.ttf',
+  '/system/fonts/DroidSans.ttf',
+  '/system/fonts/NotoSans-Bold.ttf',
+  '/system/fonts/NotoSans-Regular.ttf',
+  '/data/data/com.termux/files/usr/share/fonts/TTF/DejaVuSans-Bold.ttf',
+  '/data/data/com.termux/files/usr/share/fonts/TTF/DejaVuSans.ttf',
+  '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
+  '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
 ];
 
 let FONT_PATH = null;

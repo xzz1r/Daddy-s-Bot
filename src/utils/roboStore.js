@@ -39,7 +39,7 @@ async function load() {
   if (!loadPromise) {
     loadPromise = readJsonOrEnoent(ROBO_FILE, {})
       .then((d) => { store = d && typeof d === 'object' ? d : {}; })
-      .catch((e) => { logger.error(`roboStore: no pude leer: ${e.message}.`); store = {}; });
+      .catch((e) => { logger.error(`roboStore: no pude leer: ${e.message}`); store = {}; });
   }
   await loadPromise;
 }
@@ -49,7 +49,7 @@ function scheduleSave() {
   saveTimer = setTimeout(async () => {
     saveTimer = null;
     try { await atomicWriteJson(ROBO_FILE, store); }
-    catch (e) { logger.error(`roboStore: fallo al guardar: ${e.message}.`); }
+    catch (e) { logger.error(`roboStore: fallo al guardar: ${e.message}`); }
   }, 3000);
 }
 
@@ -57,7 +57,7 @@ async function flushRobo() {
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
   if (store) {
     try { await atomicWriteJson(ROBO_FILE, store); }
-    catch (e) { logger.error(`roboStore: fallo al flush: ${e.message}.`); }
+    catch (e) { logger.error(`roboStore: fallo al flush: ${e.message}`); }
   }
 }
 

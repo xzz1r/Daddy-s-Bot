@@ -24,8 +24,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function detectYtDlp() {
   const candidates = [
-    '/data/data/com.termux/files/home/.local/bin/yt-dlp.',
-    '/data/data/com.termux/files/usr/bin/yt-dlp.',
+    '/data/data/com.termux/files/home/.local/bin/yt-dlp',
+    '/data/data/com.termux/files/usr/bin/yt-dlp',
     '/usr/local/bin/yt-dlp',
     '/usr/bin/yt-dlp',
   ];
@@ -33,7 +33,7 @@ function detectYtDlp() {
     if (fs.existsSync(p)) return p;
   }
   try {
-    const which = execSync('command -v yt-dlp 2>/dev/null || which yt-dlp 2>/dev/null.', { encoding: 'utf8' }).trim();
+    const which = execSync('command -v yt-dlp 2>/dev/null || which yt-dlp 2>/dev/null', { encoding: 'utf8' }).trim();
     if (which) return which;
   } catch {}
   return 'yt-dlp';
@@ -59,8 +59,8 @@ function buildProviders() {
 const PROVIDERS = buildProviders();
 
 console.log(PROVIDERS.length
-  ? `!play fuente : RapidAPI x${PROVIDERS.length} key(s) + SoundCloud (respaldo).`
-  : '!play fuente : SoundCloud (falta RAPIDAPI_KEY para la vía principal de YouTube).');
+  ? `  !play fuente : RapidAPI x${PROVIDERS.length} key(s) + SoundCloud (respaldo)`
+  : '  !play fuente : SoundCloud (falta RAPIDAPI_KEY para la vía principal de YouTube)');
 
 // ── Control de concurrencia ───────────────────────────────────────────────────
 const MAX_CONCURRENT_DOWNLOADS = 2;
@@ -77,7 +77,7 @@ function acquireDownloadSlot() {
       } else if (downloadQueue.length < MAX_QUEUED_DOWNLOADS) {
         downloadQueue.push(tryRun);
       } else {
-        reject(new Error('Hay demasiadas descargas en cola, intenta de nuevo en un momento.'));
+        reject(new Error('Hay demasiadas descargas en cola, intenta de nuevo en un momento'));
       }
     };
     tryRun();
@@ -107,7 +107,7 @@ function audioDuration(file) {
       // ffprobe en PATH, asi que el spawn fallaba y la duracion salia null SIEMPRE,
       // dejando muerto el filtro que descarta las previews de 30 segundos.
       proc = spawn(ffprobePath, ['-v', 'error', '-show_entries', 'format=duration',
-        '-of', 'default=noprint_wrappers=1:nokey=1.', file]);
+        '-of', 'default=noprint_wrappers=1:nokey=1', file]);
     } catch { return resolve(null); }
     const timer = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} resolve(null); }, 15000);
     proc.stdout?.on('data', (d) => { out += d.toString(); });
@@ -130,11 +130,11 @@ async function cleanupPartials(baseName) {
 // resultados (una simple página web; NO es la API de extracción que sufre el
 // bot-check, así que esto sí funciona desde datacenter). null si falla.
 async function searchYouTubeId(query) {
-  const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&sp=EgIQAQ%253D%253D.`;
+  const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&sp=EgIQAQ%253D%253D`;
   const res = await axios.get(url, {
     timeout: 8000,
     headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64;) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36.',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
       'Accept-Language': 'es',
     },
   });
@@ -152,7 +152,7 @@ function extractVideoId(query) {
 // { link, title, duration }. Lanza con .quota=true si la key agotó su cuota
 // (HTTP 429) para que el llamador rote a la siguiente key.
 async function rapidConvert(videoId, provider) {
-  const url = `https://${provider.host}/dl?id=${videoId}.`;
+  const url = `https://${provider.host}/dl?id=${videoId}`;
   const headers = {
     'X-RapidAPI-Key': provider.key,
     'X-RapidAPI-Host': provider.host,
@@ -175,11 +175,11 @@ async function rapidConvert(videoId, provider) {
       return { link: data.link, title: data.title || 'Sin título', duration: Number(data.duration) || null };
     }
     if (status === 'fail' || status === 'error') {
-      throw new Error(data.msg || 'la API no pudo convertir el video.');
+      throw new Error(data.msg || 'la API no pudo convertir el video');
     }
     await sleep(2500); // processing / in queue
   }
-  throw new Error('la conversión tardó demasiado.');
+  throw new Error('la conversión tardó demasiado');
 }
 
 // Descarga una URL directa a un archivo, con tope de tamaño.
@@ -193,7 +193,7 @@ async function downloadUrlToFile(url, dest) {
     const fail = (err) => { resp.data.destroy(); w.destroy(); reject(err); };
     resp.data.on('data', (c) => {
       bytes += c.length;
-      if (bytes > MAX_BYTES) fail(new Error('La canción pesa más de 25MB.'));
+      if (bytes > MAX_BYTES) fail(new Error('La canción pesa más de 25MB'));
     });
     resp.data.on('error', fail);
     w.on('error', fail);
@@ -206,7 +206,7 @@ async function fetchFromProvider(videoId, provider) {
   const { link, title, duration } = await rapidConvert(videoId, provider);
   if (duration != null && duration < MIN_FULL_SECONDS) throw new Error('preview');
 
-  const baseName = `audio_${Date.now()}_${Math.random().toString(36).slice(2)}.`;
+  const baseName = `audio_${Date.now()}_${Math.random().toString(36).slice(2)}`;
   const dest = path.join(TEMP_DIR, `${baseName}.mp3`);
   try {
     await downloadUrlToFile(link, dest);
@@ -275,7 +275,7 @@ async function tryRapidApi(query) {
       if (err.message === 'preview') break;
       if (err.quota) {
         sinCuota.set(i, Date.now());
-        logger.warn(`!play: key ${i + 1}/${PROVIDERS.length} sin cuota; pasa al final de la cola.`);
+        logger.warn(`!play: key ${i + 1}/${PROVIDERS.length} sin cuota; pasa al final de la cola`);
       }
       continue;
     }
@@ -297,7 +297,7 @@ function ytdlp(args, timeoutMs = 180000) {
     const timer = setTimeout(() => { killGroup(); reject(new Error('yt-dlp timeout')); }, timeoutMs);
     proc.stdout?.on('data', (d) => { stdout += d.toString(); });
     proc.stderr?.on('data', (d) => { stderr += d.toString(); });
-    proc.on('error', (err) => { clearTimeout(timer); reject(new Error(`yt-dlp no se pudo ejecutar: ${err.message}.`)); });
+    proc.on('error', (err) => { clearTimeout(timer); reject(new Error(`yt-dlp no se pudo ejecutar: ${err.message}`)); });
     proc.on('close', (code) => {
       clearTimeout(timer);
       if (code === 0) resolve(stdout);
@@ -311,8 +311,8 @@ function ytdlp(args, timeoutMs = 180000) {
 }
 
 async function scDownloadOne(url) {
-  const baseName = `audio_${Date.now()}_${Math.random().toString(36).slice(2)}.`;
-  const outTemplate = path.join(TEMP_DIR, `${baseName}__%(title).80B.%(ext)s.`);
+  const baseName = `audio_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  const outTemplate = path.join(TEMP_DIR, `${baseName}__%(title).80B.%(ext)s`);
   try {
     await ytdlp([
       url, '-f', 'bestaudio/best', '-o', outTemplate,
@@ -321,7 +321,7 @@ async function scDownloadOne(url) {
     ]);
     const files = await fs.readdir(TEMP_DIR);
     const audioFile = files.find(f => f.startsWith(baseName));
-    if (!audioFile) throw new Error('No se encontró la canción.');
+    if (!audioFile) throw new Error('No se encontró la canción');
     const fullPath = path.join(TEMP_DIR, audioFile);
     const stat = await fs.stat(fullPath);
     if (stat.size < 1024) { await cleanTemp(fullPath); throw new Error('Archivo vacío'); }
@@ -344,16 +344,16 @@ async function trySoundCloud(query) {
   const clean = query.replace(/["\r\n]/g, ' ').trim();
   let urls = [];
   try {
-    const out = await ytdlp([`scsearch${SC_CANDIDATES}:${clean}.`, '--flat-playlist', '--print', '%(url)s'], 30000);
+    const out = await ytdlp([`scsearch${SC_CANDIDATES}:${clean}`, '--flat-playlist', '--print', '%(url)s'], 30000);
     urls = out.split('\n').map(l => l.trim()).filter(u => /^https?:\/\//i.test(u));
   } catch {}
-  if (!urls.length) throw new Error('sin resultados en SoundCloud.');
+  if (!urls.length) throw new Error('sin resultados en SoundCloud');
   let lastErr = null;
   for (const url of urls) {
     try { return await scDownloadOne(url); }
     catch (err) { lastErr = err; continue; } // preview u otro fallo: siguiente
   }
-  throw lastErr || new Error('sin versión completa en SoundCloud.');
+  throw lastErr || new Error('sin versión completa en SoundCloud');
 }
 
 // ── Entrada ───────────────────────────────────────────────────────────────────
@@ -364,14 +364,14 @@ async function downloadAudio(query) {
     try {
       return await tryRapidApi(query);
     } catch (apiErr) {
-      logger.warn(`!play: API de terceros no disponible (${apiErr.message}); probando SoundCloud.`);
+      logger.warn(`!play: API de terceros no disponible (${apiErr.message}); probando SoundCloud`);
     }
     // 2) SoundCloud.
     try {
       return await trySoundCloud(query);
     } catch (scErr) {
-      logger.warn(`!play: SoundCloud tampoco dio la canción (${scErr.message}).`);
-      throw new Error('No se encontró la canción completa.');
+      logger.warn(`!play: SoundCloud tampoco dio la canción (${scErr.message})`);
+      throw new Error('No se encontró la canción completa');
     }
   } finally {
     releaseDownloadSlot();

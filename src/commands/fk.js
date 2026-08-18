@@ -700,7 +700,7 @@ async function guardOnJoin(sock, groupJid, joiners, groupMeta) {
 
       const numTag = `@${String(obj.id).split('@')[0]}`;
       const motivo = fake
-        ? 'su foto está *marcada como FAKE*.'
+        ? 'su foto está *marcada como FAKE*'
         : `su foto es la misma que la de ${dupes.join(', ')}${matches.some(m => presentSet.has(m.account)) ? ' (presente en el grupo)' : ''}`;
       await sock.sendMessage(groupJid, {
         text: `*Anti-fake:* ${numTag} acaba de entrar y ${motivo}. Revisen con *!fk ${numTag}*.`,

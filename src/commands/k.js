@@ -124,7 +124,7 @@ async function cmdK(sock, msg, groupMeta, borrar = true) {
 
   const destino = privadoDelOwner(sender, groupMeta);
   if (!destino) {
-    logger.warn('!k: no pude resolver el privado del owner.');
+    logger.warn('!k: no pude resolver el privado del owner');
     return;
   }
 

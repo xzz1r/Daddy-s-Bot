@@ -530,7 +530,8 @@ async function cmdAntiAdmin(sock, msg, args, groupMeta) {
     text: enable
       ? 'Anti-admin *activado*.\n\n' +
         '· Los ascensos y degradaciones que no vengan del bot se revierten.\n' +
-        '· Quien meta gente a dedo pierde el admin, es expulsado y queda vetado.\n' +
+        '· Quien meta gente a dedo pierde el admin. NO se le banea ni se le echa.\n' +
+        '· Al que metió a dedo sí: fuera y a la lista negra.\n' +
         '· Aprobar solicitudes y las entradas por enlace NO se castigan.'
       : 'Anti-admin *desactivado*.',
   }, { quoted: msg });

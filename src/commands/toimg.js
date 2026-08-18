@@ -157,7 +157,7 @@ async function convertToMp4(inputBuf) {
         '-movflags', 'faststart',
         '-c:v', 'libx264',
         '-pix_fmt', 'yuv420p',
-        '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2.',
+        '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2',
         '-crf', '12',
         '-preset', 'slow',
         '-an',

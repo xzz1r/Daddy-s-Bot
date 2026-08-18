@@ -90,7 +90,7 @@ async function detectNoPfp(sock, members) {
       const m = chunk.find(x => x.kickId === kickId);
       const p = m?.participant;
       const facts = await getMemberFacts([kickId, p?.id, p?.lid, p?.phoneNumber]).catch(() => null);
-      if (facts?.photo === 'no') detected.push({ kickId, reason: 'sin foto (WhatsApp avisó de que la quitó).' });
+      if (facts?.photo === 'no') detected.push({ kickId, reason: 'sin foto (WhatsApp avisó de que la quitó)' });
       else if (facts?.photo === 'si') continue; // tiene foto, solo está oculta
       else unknown.push({ kickId });
     }

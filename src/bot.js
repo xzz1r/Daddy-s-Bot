@@ -228,17 +228,22 @@ let _baileysVersion = null;
 // mejor que no arrancar.
 const ESPERA_VERSION_MS = 10000;
 
-// Castigo por meter gente a dedo: se le quita el admin, se le veta y se le echa.
+// Castigo por meter gente a dedo: el admin PIERDE EL MANDO, el metido se va.
 //
-// El orden importa y no es el obvio. Primero DEGRADAR: si el kick falla —porque
-// el bot no es admin, porque WhatsApp lo rechaza— al menos se queda sin mando,
-// que es lo que de verdad hace daño. Si se echara primero y fallase el resto,
-// seguiría siendo admin y con la puerta abierta.
+// AL ADMIN NO SE LE BANEA NUNCA, y es una regla dura, no una preferencia.
+// Antes se le degradaba, expulsaba y vetaba de golpe. El problema es que la
+// deteccion no puede ser perfecta —depende de que llegue un mensaje de sistema
+// a tiempo— y un ban es irreversible desde dentro del grupo: si el bot se
+// equivoca con una admin que solo estaba aceptando solicitudes, la deja fuera
+// y vetada, y eso no lo arregla nadie sin tocar la lista negra a mano.
 //
-// Al owner y al bot no les llega nunca: quien llama ya lo comprueba, pero
-// banear al dueño sería irreversible desde dentro del propio grupo, así que se
-// vuelve a mirar aquí. Una guarda de dos líneas contra eso sale barata.
-async function sancionarPorAñadir(sock, groupJid, autor, meta, metidos) {
+// Degradar, en cambio, se deshace con un !promote. Asi que el castigo se parte
+// segun lo que cuesta equivocarse: al admin lo reversible, al metido lo demas.
+//
+//   · admin  → solo demote. Ni ban ni kick, pase lo que pase.
+//   · metido → ban + kick, y solo el que venga con alta a dedo CONFIRMADA.
+async function sancionarPorAñadir(sock, groupJid, autor, meta, aDedo) {
+  if (!aDedo.length) return;
   if (isOwner(autor, false, meta)) return;
 
   const paso = async (accion, fn) => {
@@ -246,34 +251,32 @@ async function sancionarPorAñadir(sock, groupJid, autor, meta, metidos) {
     catch (e) { logger.warn(`anti-admin (añadir): ${accion} falló en ${groupJid}: ${e.message}.`); return null; }
   };
 
-  // 1) Sin admin. Se mira el status porque WhatsApp contesta por participante y
-  //    puede rechazar sin lanzar excepción: dar por hecho el éxito hacía que el
-  //    bot anunciara castigos que no habían ocurrido.
+  // 1) El admin, sin mando. Se mira el status porque WhatsApp contesta por
+  //    participante y puede rechazar sin lanzar excepcion.
   const res = await paso('demote', () => sock.groupParticipantsUpdate(groupJid, [autor], 'demote'));
   const fila = Array.isArray(res) ? res[0] : null;
   const degradado = res !== null && String(fila?.status ?? '200') === '200';
 
-  // 2) A la lista negra, con todas sus formas (teléfono y @lid). Si solo se
-  //    guardara una, vuelve a entrar con la otra y el guard no lo reconoce.
-  const formas = allForms(autor, meta);
-  await paso('ban', () => banAccount(formas, `metió gente a dedo en ${groupJid}`, formas[0]));
+  // 2) Los que metió: fuera y a la lista negra, con todas sus formas (teléfono
+  //    y @lid). Si solo se guardara una, vuelve a entrar con la otra.
+  const vetados = [];
+  for (const quien of aDedo) {
+    if (isOwner(quien, false, meta)) continue;
+    await paso('ban', () => banAccount(allForms(quien, meta), `metido a dedo en ${groupJid}`, String(autor)));
+    await paso('kick', () => sock.groupParticipantsUpdate(groupJid, [quien], 'remove'));
+    vetados.push(quien);
+  }
 
-  // 3) Fuera. El guard de entrada ya impide que vuelva.
-  const echado = await paso('kick', () => sock.groupParticipantsUpdate(groupJid, [autor], 'remove')) !== null;
-
-  const tag = `@${String(autor).split('@')[0]}`;
-  logger.warn(
-    `anti-admin: ${autor} metió a dedo a ${metidos.join(', ')} en ${groupJid}. ` +
-    `degradado=${degradado} echado=${echado} vetado=true`);
+  const tag = (j) => `@${String(j).split('@')[0]}`;
+  logger.warn(`anti-admin: ${autor} metió a dedo a ${vetados.join(', ')} en ${groupJid}. degradado=${degradado}`);
 
   await paso('aviso', () => sock.sendMessage(groupJid, {
     text:
-      `*Anti-admin:* ${tag} ha metido gente a dedo.\n\n` +
+      `*Anti-admin:* ${tag(autor)} ha metido gente a dedo.\n\n` +
       `${degradado ? '· Se le ha quitado el admin.' : '· No he podido quitarle el admin.'}\n` +
-      `${echado ? '· Expulsado.' : '· No he podido expulsarlo.'}\n` +
-      `· Queda en la lista negra: no puede volver a entrar.\n\n` +
-      `_Aquí solo mete gente el dueño._`,
-    mentions: [autor],
+      `· ${vetados.map(tag).join(', ')} fuera y en la lista negra.\n\n` +
+      `_Aquí solo mete gente el dueño. Aceptar solicitudes no cuenta._`,
+    mentions: [autor, ...vetados],
   }));
 }
 
@@ -728,14 +731,20 @@ async function connectToWhatsApp() {
           const motivos = await Promise.all(
             metidos.map(id => motivoDelAlta(groupJid, id).catch(() => null))
           );
-          const aDedo = motivos.some(t => t === ALTA_ADD);
+          // UNO A UNO, no en bloque. Antes bastaba con que una de las altas
+          // fuera a dedo para castigar TODAS, asi que si un admin aceptaba dos
+          // solicitudes y ademas metia a alguien, los tres se iban fuera.
+          // Ahora cada alta responde de si misma y solo cae la que viene con un
+          // 27 confirmado; el null (el stub no llego) sigue siendo "no se sabe"
+          // y no sanciona nunca.
+          const aDedo = metidos.filter((_, i) => motivos[i] === ALTA_ADD);
 
-          if (!aDedo) {
+          if (!aDedo.length) {
             logger.info(
               `alta en ${groupJid}: ${author} metió a ${metidos.join(', ')}; ` +
               `motivos ${JSON.stringify(motivos)}. No se sanciona.`);
           } else {
-            sancionarPorAñadir(sock, groupJid, author, meta, metidos)
+            sancionarPorAñadir(sock, groupJid, author, meta, aDedo)
               .catch(e => logger.warn(`anti-admin (añadir): ${e.message}`));
           }
         }

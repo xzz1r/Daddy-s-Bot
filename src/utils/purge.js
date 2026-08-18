@@ -106,7 +106,7 @@ async function executePurge(sock, groupJid, detected, groupMeta) {
 function purgeReport(title, r) {
   let text = r.done.length
     ? `*${title}* — expulsado${r.done.length > 1 ? 's' : ''} *${r.done.length}*:\n` +
-      r.done.map(d => `@${d.kickId.split('@')[0]} — ${d.reason}.`).join('\n')
+      r.done.map(d => `@${d.kickId.split('@')[0]} — ${d.reason}`).join('\n')
     : `*${title}* — no se pudo expulsar a nadie.`;
   if (r.failed.length) {
     text += `\n\n_No se pudo expulsar a ${r.failed.length} (¿el bot no es admin?):_\n` +

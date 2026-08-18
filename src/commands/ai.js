@@ -5,7 +5,7 @@ const logger = require('../utils/logger');
 const { isOwner, extractQuotedText, getSender } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 
-const GROK_API = 'https://api.x.ai/v1/chat/completions.';
+const GROK_API = 'https://api.x.ai/v1/chat/completions';
 const MODEL = process.env.GROK_MODEL || 'grok-3';
 const KEY_FILE = path.join(__dirname, '../../data/grok-key.txt');
 
@@ -85,7 +85,7 @@ async function cmdGrok(sock, msg, args, groupMeta) {
 
   const quoted = extractQuotedText(msg);
   const userContent = quoted
-    ? `Mensaje al que estoy respondiendo en el chat:\n"""\n${quoted}\n"""\n\nMi pregunta sobre eso: ${prompt}.`
+    ? `Mensaje al que estoy respondiendo en el chat:\n"""\n${quoted}\n"""\n\nMi pregunta sobre eso: ${prompt}`
     : prompt;
 
   await sock.sendMessage(jid, { text: 'Pensando...' }, { quoted: msg }).catch(() => {});
@@ -116,7 +116,7 @@ async function cmdGrok(sock, msg, args, groupMeta) {
     // group chat: upstream errors can carry account/plan/quota details, so the
     // members only see a generic, friendly message.
     const apiErr = err.response?.data?.error?.message || err.response?.data?.error || err.message;
-    logger.error(`Grok error: ${typeof apiErr === 'string' ? apiErr : JSON.stringify(apiErr)}.`);
+    logger.error(`Grok error: ${typeof apiErr === 'string' ? apiErr : JSON.stringify(apiErr)}`);
     const status = err.response?.status;
     const friendly =
       status === 429 ? 'Grok está saturado ahora mismo, intenta en un momento.'
@@ -149,8 +149,8 @@ async function cmdSetGrokKey(sock, msg, args, groupMeta) {
       text: 'Grok configurado. Borra tu mensaje con la key por seguridad.',
     }, { quoted: msg });
   } catch (err) {
-    logger.error(`setGrokKey error: ${err.message}.`);
-    await sock.sendMessage(jid, { text: `Error guardando key: ${err.message}.` }, { quoted: msg });
+    logger.error(`setGrokKey error: ${err.message}`);
+    await sock.sendMessage(jid, { text: `Error guardando key: ${err.message}` }, { quoted: msg });
   }
 }
 
