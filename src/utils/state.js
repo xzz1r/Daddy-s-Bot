@@ -26,7 +26,7 @@ async function loadState() {
   if (!raw.trim()) return { ...defaultState };
   try {
     const parsed = JSON.parse(raw);
-    // Deep-merge stats so a partial on-disk object (e.g missing startTime, or a
+    // Deep-merge stats so a partial on-disk object (e.g. missing startTime, or a
     // newly-added counter) keeps the defaults instead of dropping them.
     return { ...defaultState, ...parsed, stats: { ...defaultState.stats, ...(parsed.stats || {}) } };
   } catch {
@@ -44,7 +44,7 @@ let _state = { ...defaultState };
 let _saveTimer = null;
 let _loaded = false;
 
-// Load from disk once. Subsequent calls (e.g on every reconnect) keep the
+// Load from disk once. Subsequent calls (e.g. on every reconnect) keep the
 // live in-memory state instead of reloading and discarding stat increments that
 // haven't been flushed yet.
 async function initState() {

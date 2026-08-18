@@ -20,10 +20,6 @@ const { aportarAlBote } = require('../utils/roboStore');
 // que cobran se agotaban en menos de diez minutos y el resto del dia se tiraba
 // a valor cero. Con quince minutos cubren mas de una hora, asi que la parte del
 // comando que paga de verdad dura lo que dura una conversacion.
-// Bajado de 15 a 10 minutos por decision del owner. Con TIRADAS_PAGADAS en 10
-// eso da algo mas de hora y media para cobrar el dia entero, que es tiempo de
-// sobra sin convertir el comando en un boton de fabricar aura: a partir de la
-// decima tirada el valor esperado es cero, tire quien tire y cuanto tire.
 const ROLL_COOLDOWN_MS = 10 * 60 * 1000;
 const lastRoll = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
 
@@ -115,526 +111,454 @@ function rollAura(targetIsOwner, targetIsAdmin, plusActividad = 0, dePago = true
 
 const AURA = {
   blessed: [
-    'Ganaste tan limpio que el chat se quedó sin chiste. Aquí eso casi no pasa: anótalo antes de que el ego te lo gaste en teatro, cabrón.',
-    'Alza gorda. El contador firmó a tu favor y el grupo lo vio entero. No lo conviertas en soberbia barata, joder.',
-    'Hoy el aura te eligió sin anestesia positiva. Número arriba, boca cerrada un rato: el silencio también cotiza. Joder.',
-    'Subida de las que duelen al que iba detrás. El ranking no pide permiso para reordenarte; solo lo hace, cabrón.',
-    'Botín limpio. El archivo te puso en verde y el resto a tragar saliva. Que no se te suba a la cabeza el wifi, cabrón con racha.',
-    'Ganancia real, no de pose. El hilo lo registró sin aplauso falso. Sostén el número o el próximo corte te lo cobra. Coño.',
-    'Hoy no fue migaja: fue plato. El contador te sonrió y. el chat tomó nota. No gastes el crédito en monólogo, cabrón.',
-    'Alza que se siente en el total. Aquí el respeto se farmea con números, no con discursos de sobremesa, joder.',
-    'El aura te empujó fuerte. El grupo no te debe la vida; te debe el rastro que acabas de firmar. Cuídalo. Joder.',
-    'Victoria de contador. Sin narrativa heroica: solo el dígito subiendo y el ego en observación, cabrón con suerte.',
-    'Hoy el corte salió a tu favor y grande. El archivo no miente. El que discute el número discute con el aire, cabrón con racha.',
-    'Subida limpia. En este chat eso pesa más que diez mensajes de pose. No lo cambies por teatro barato. Coño.',
-    'Aura en verde fuerte. El ranking te acomodó arriba un tramo. Que el orgullo no te baje antes que el próximo tiro, cabrón.',
-    'Ganaste espacio real en el total. No es caridad del bot: es el azar y tu racha. Adminístrala o la pierdes, joder.',
-    'Alza de las que callan bocas. El chat vio el número y cambió el tono. No abras la boca de más. Joder.',
-    'Hoy el contador te hizo el favor gordo. Anótalo: los favores en este grupo se cobran con intereses. El grupo lo vio de un vistazo, cabrón.',
-    'Subida que se lee sin narrador. El dígito solo basta. El resto es ruido que no suma aura. El archivo no discute el dígito, cabrón con racha.',
-    'Botín visible. El grupo no aplaude: archiva. Y el archivo te dejó en positivo gordo esta vez. El chat ya tomó nota sin pedirte permiso. Coño.',
-    'Ganancia de las que reordenan el top. No te creas intocable: el próximo !aura no firma lealtad. Aquí el número pesa más que la labia, cabrón.',
-    'Hoy saliste arriba de verdad. El ego querrá discursito; el contador prefiere que calles y sostengas, joder.',
-    'Alza sin adorno. Número, punto. En este chat eso vale más que media hora de labia con racha. Joder.',
-    'El aura te eligió en grande. No es amor: es tirada. Trátala como capital, no como identidad. El total habla solo, cabrón.',
-    'Subida gorda registrada. El que iba a reírse se tragó el chiste. No le des material nuevo tan pronto, cabrón con racha.',
-    'Victoria numérica. El ranking te movió y el hilo lo sintió. Baja el teatro; sube la constancia. El grupo lo vio de un vistazo. Coño.',
-    'Hoy el total te quedó mejor puesto. Eso se farmea y se pierde. Hoy farmeaste. Mañana no está firmado, cabrón.',
-    'Alza limpia de las que duelen al rival de ranking. Sin sangre: solo dígitos. Suficiente para este chat, joder.',
-    'Ganaste aire. El contador te abrió margen. No lo gastes explicando por qué merecías más. Joder.',
-    'Subida que no necesita hilo de justificación. El número habla. Tú solo no lo arruines con soberbia. El ranking lo registra entero, cabrón.',
-    'Aura en modo generoso contigo. Raro. Anótalo. Aquí la generosidad dura lo que dura una tirada. Sin narrativa que lo tape, cabrón con racha.',
-    'Hoy el corte fue hostil… para el que esperaba verte caer. Tú sumaste. Ellos aprendieron el número. El total habla solo. Coño.',
-    'Botín de verdad. No migaja. El archivo cerró el párrafo a tu favor. Firma y sigue, sin discurso. Documentado en el contador, cabrón.',
-    'Alza que se nota en el total de un vistazo. El grupo no necesita subtítulos. El dígito basta. El grupo lo vio de un vistazo, joder.',
-    'Ganaste. Punto. En este chat eso ya es noticia. No la conviertas en novela de autoayuda barata. El archivo no discute el dígito. Joder.',
-    'Subida fuerte. El ranking te reubicó. El ego quiere fiesta; el contador quiere la próxima tirada limpia, cabrón.',
-    'Hoy el aura te hizo el trabajo sucio a favor. Cobró el azar en tu cuenta. No digas que era destino. Aquí el número pesa más que la labia, cabrón con racha.',
-    'Victoria de mesa. Sin narrativa. Solo el total subiendo y el chat mirando de reojo afortunada. Coño.',
-    'Alza registrada sin filtro. El bot no te felicita: te muestra el número. Eso es todo el cariño que hay, cabrón.',
-    'Ganancia gorda. El que lleva la cuenta mental ya te recalculó. No le des motivos para celebrar tu caída, joder.',
-    'Hoy saliste verde de verdad. Sostén el número con menos boca y más rastro. Aquí eso cotiza. Documentado en el contador. Joder.',
-    'Subida limpia. El archivo te puso donde duele al que iba a reírse. Disfrútalo en silencio, cabrón. El grupo lo vio de un vistazo.',
-    'El contador te sonrió en grande. Raro en este grupo. No lo malgastes en monólogo de sobremesa. El archivo no discute el dígito, cabrón con racha.',
-    'Alza de ranking. No de ego. Confundir las dos es el camino más corto a la próxima espiral. Coño.',
-    'Ganaste margen. El total lo dice sin adjetivos. Los adjetivos sobran cuando el dígito trabaja. Aquí el número pesa más que la labia, cabrón.',
-    'Hoy el aura te empujó al alza fuerte. El chat archivó el resultado. Tú decide si lo cuidas o lo tiras, joder.',
-    'Botín visible en el total. Sin poesía. Solo matemática del comando a tu favor esta vez. Sin narrativa que lo tape. Joder.',
-    'Subida que cierra bocas un rato. Aprovecha el silencio: dura menos que tu racha. El total habla solo, gilipollas con suerte.',
-    'Ganaste. El ranking lo firmó. El resto es decoración. No decores de más el momento Documentado en el contador, cabrón con racha.',
-    'Alza gorda sin anestesia positiva. Duele al de abajo. A ti te toca no volverte insoportable tan rápido. Coño.',
-    'Hoy el número te eligió. Mañana puede no. Administra el capital como adulto, no como influencer de aura, cabrón.',
-    'Victoria contable. El hilo lo vio. El ego querrá discurso; dale descanso al grupo, joder.',
-    'Subida real. No de pose. El archivo no premia relatos: premia el dígito que acabas de farmear. Aquí el número pesa más que la labia. Joder.',
-    'Aura en verde intenso. El top se movió un milímetro a tu favor. En este chat un milímetro pesa. El ranking lo registra entero, cabrón.',
-    'Ganaste espacio. No lo conviertas en trono. Los tronos aquí duran lo que dura un !aura en contra. Sin narrativa que lo tape, cabrón con racha.',
-    'Alza limpia de las que no necesitan hilo de celebración. El número basta y sobra, cabrón. El total habla solo.',
-    'Hoy el corte te dejó mejor parado. Anota la fecha: las buenas tiradas se recuerdan cuando vuelves a caer, cabrón.',
-    'Botín de contador. El grupo no te ovaciona; te recalcula. Sé digno del recálculo. El grupo lo vio de un vistazo, joder.',
-    'Subida fuerte registrada. Sin migas de consuelo para el que esperaba tu fail. Solo tu total subiendo. Joder.',
-    'Ganaste. En este chat eso es más raro que un cumplido sincero. No lo desperdicies en teatro. El chat ya tomó nota sin pedirte permiso, cabrón.',
-    'Alza que se lee en el total de un vistazo. Sin narrador. Sin bis. Solo el dígito a tu favor. Aquí el número pesa más que la labia, cabrón con racha.',
-    'Hoy el aura te hizo rico un tramo. Rico de número, no de carácter. No confundas las cuentas. El ranking lo registra entero. Coño.',
-    'Victoria de tirada. El azar te guiñó. El ego querrá atribuírselo. No le hagas caso Sin narrativa que lo tape, cabrón.',
-    'Subida gorda. El archivo cerró verde. El próximo mensaje tuyo no debería arruinar el clima, joder.',
-    'Ganaste margen real. El ranking te movió. Callar un poco también es estrategia de aura. Documentado en el contador. Joder.',
-    'Alza sin adorno ni narrativa. Número arriba. Boca en observación. Así cotiza el respeto aquí. El grupo lo vio de un vistazo, cabrón.',
-    'Hoy saliste a favor y se notó. El chat no lo dice con palabras: lo dice dejando de reírse de ti un rato, cabrón con racha.',
-    'Botín limpio. El contador no hace favoritismos eternos. Hoy tocó. Adminístralo, cabrón. El chat ya tomó nota sin pedirte permiso.',
-    'Subida que duele al ranking ajeno. Sin sangre. Solo matemáticas. Suficiente para este grupo. Aquí el número pesa más que la labia, cabrón.',
-    'Ganaste. Punto final del párrafo. No agregues epílogo de soberbia o el próximo corte te lo cobra con intereses, joder.',
-    'Alza registrada. El total te quedó más presentable. No lo celebras a gritos: aquí eso se ve cutre. Sin narrativa que lo tape.',
-    'Hoy el aura te empujó. El grupo recalculó. Tú decide si el nuevo número te dura o se evapora, gilipollas con suerte.',
-    'Victoria numérica sin poesía. El bot no escribe odas: escribe totales. El tuyo subió. Ya. Documentado en el contador, cabrón con racha.',
-    'Subida fuerte. El que llevaba la cuenta mental apretó los dientes. No le des el placer de verte caer ya. Coño.',
-    'Ganaste aire en el total. Respíralo sin discurso. El discurso gasta aura social aunque el número quede, cabrón.',
-    'Alza gorda. Firma el momento y pasa página. Quedarte monologando es de pringado con racha. El chat ya tomó nota sin pedirte permiso.',
-    'Hoy el contador te hizo el trabajo. Tú no fueras y lo arruines con pose de intocable Aquí el número pesa más que la labia. Joder.',
-    'Botín visible. Ranking movido. Ego en cuarentena preventiva. Así se sostiene una alza en este chat. El ranking lo registra entero, cabrón.',
-    'Subida limpia. El archivo te puso en verde. El resto del hilo a tragar. No pidas aplauso encima. Sin narrativa que lo tape, cabrón con racha.',
-    'Ganaste. En este grupo eso ya es titular. No lo conviertas en editorial de soberbia, cabrón. El total habla solo.',
-    'Alza real. Sin migaja. El dígito habla y el chat calla un segundo. Aprovecha ese segundo. Documentado en el contador, cabrón.',
-    'Hoy el aura te eligió en grande. No digas destino. Di tirada. Y cuida el capital, joder.',
-    'Hoy el total te hizo un guiño gordo. Guiño de número, no de destino. Cuídalo sin discurso, cabrón. Aquí el número manda.',
-    'Alza real registrada. El chat no trae globos. Trae memoria. No le des material en contra tan pronto, gilipollas con suerte.',
-    'Ganaste margen fuerte. El margen no es trono. Los tronos aquí duran un !aura. El chat tomó nota, cabrón con racha.',
-    'Subida limpia. El archivo te dejó en verde intenso. Intenso se sostiene callando Aquí el número manda. Coño.',
-    'Hoy el contador te empujó arriba de verdad. Arriba se cae más fuerte. Adminístralo. El archivo no discute el dígito, cabrón.',
-    'Botín gordo. El ranking te recalculó. El ego quiere fiesta. La fiesta atrae cursed. El chat tomó nota, joder.',
-    'Alza de las que duelen al de atrás. Duele el número ajeno. Tú no agregues soberbia, cabrón. Aquí el número manda.',
-    'Victoria contable. Sin poesía. El dígito basta y sobra. Cualquier adjetivo te hace basura. El archivo no discute el dígito.',
-    'Hoy saliste verde fuerte. Verde se defiende con menos boca y más rastro. El chat tomó nota, cabrón con racha.',
-    'Subida gorda firmada. Firma y sigue. Quedarte monologando es de pringado con racha Aquí el número manda.',
-    'Ganaste espacio real. Espacio no es corona. La corona aquí es de cartón. El archivo no discute el dígito, cabrón.',
-    'Alza limpia. El buitre se quedó sin carroña un rato. No le regales la próxima, cabrón. El chat tomó nota.',
-    'Hoy el aura te eligió en grande. Elección de tirada. No de merecimiento cósmico Aquí el número manda. Joder.',
-    'Botín visible. Ranking movido. Ego en cuarentena. Así se sostiene. El archivo no discute el dígito, gilipollas con suerte.',
-    'Subida fuerte. El grupo te recalculó sin aplauso. El aplauso aquí es trampa. El chat tomó nota, cabrón con racha.',
-    'Ganaste. Punto. El punto final evita el epílogo de soberbia Aquí el número manda. El contador no ofrece apelación. Coño.',
-    'Alza gorda. El total lo grita. Tú no grites. El grito gasta respeto. El archivo no discute el dígito, cabrón.',
-    'Hoy el contador te hizo rico un tramo. Rico de número. Pobre de carácter si lo alardeas, cabrón. El chat tomó nota.',
-    'Victoria de mesa. Mesa fría. Número caliente. No calientes el ego Aquí el número manda. El contador no ofrece apelación. Joder.',
-    'Subida registrada sin filtro. Sin filtro también se celebra en silencio. El archivo no discute el dígito, gilipollas con suerte.'
+    // ── Ejemplos del usuario (intocables) ──
+    'El chat se quedó en silencio de verdad. Nadie sabía cómo quitarte el respeto que acabas de ganar.',
+    'Por una vez no fuiste el chiste del grupo. Les costó admitirlo, pero tuvieron que mirarte diferente.',
+    'Sacaste un número que obligó a esta gente a tragar saliva. Algunos todavía lo están digiriendo.',
+    'El silencio después de tu tirada pesó más que cualquier comentario. Hasta los más cínicos se tuvieron que callar.',
+    'Hoy el aura del grupo se inclinó hacia ti. Raro, incómodo y bien merecido. No te acostumbres.',
+    // ── Generadas ──
+    'Entraste sin hacer ruido y saliste con todo el grupo callado. Eso no pasa dos veces.',
+    'Nadie comentó nada después de tu tirada. Ese silencio fue el mejor resultado posible.',
+    'El grupo entero miró el número y cambió de tema. Cuando nadie sabe qué decir, es que ganaste de verdad.',
+    'Hoy te tocó estar arriba y el grupo lo asumió sin gracia ninguna. Les jodió, y se notó.',
+    'La mesa se quedó quieta un segundo. Un segundo real, no de cortesía. Eso es peso.',
+    'Ganaste tan limpio que nadie pudo decir ni una puta cosa. Y eso aquí no pasa nunca.',
+    'El chat se frenó. No por respeto, por sorpresa. Y la sorpresa era que tú hiciste algo bien.',
+    'Nadie quiso ser el primero en hablar después de tu tirada. Ese miedo es tu mejor trofeo.',
+    'Te miraron distinto. Solo un segundo, pero ese segundo ya no te lo quitan, cabrón.',
+    'Ganaste y la sala se enfrió. Eso pasa cuando alguien que no debería ganar gana así de bien.',
+    'El grupo tuvo que tragarse lo que estaba preparando. Les cambiaste el puto guion en un turno.',
+    'Hoy no hubo debate. El número habló y el chat obedeció. Primera vez que pasa contigo.',
+    'Nadie te felicitó y eso es lo mejor que te ha pasado. La envidia muda es el premio gordo.',
+    'Sacaste algo tan grande que hasta los que te odian tuvieron que cerrar la boca. Y les dolió.',
+    'Hoy te ganaste algo que no se compra: que esta gente se quedara sin palabras por tu culpa.',
+    'Esa tirada hizo ruido en un chat que lleva semanas riéndose de ti. Ahora no se ríen, joder.',
+    'Ganaste con una frialdad que no te conocían. El chat lo notó y no supo cómo cojones reaccionar.',
+    'El grupo entero cambió de actitud por una tirada. Una. Y era tuya. Eso no se repite pronto.',
+    'Nadie dijo "bien jugado" porque les habría dolido admitirlo. Ahí está la puta diferencia.',
+    'Hoy tu tirada mandó callar a gente que lleva meses hablando de más. Servicio público.',
+    'Sacaste algo tan alto que hasta tú te sorprendiste. El grupo más, pero tú también.',
+    'Hoy fuiste el nombre que nadie quiso mencionar después. Eso es respeto del que duele.',
+    'Ganaste y el ambiente se cortó. No de la buena manera, de la incómoda. Esa es la buena.',
+    'Nadie se atrevió a bromear después de tu tirada. Esa cobardía colectiva es tu medalla.',
+    'Tu tirada dejó un vacío en el chat que nadie quiso llenar. Ni con broma ni con nada.',
+    'El grupo se la tuvo que tragar entera. Sin excusas, sin matices, sin puta alternativa.',
+    'Ganaste de una forma que hizo que tres personas cerraran la app un momento. Eso es poder.',
+    'Hoy el chat te respetó sin querer. Y sin querer es la única forma válida de respeto aquí.',
+    'El silencio posterior duró más de lo normal. Ese tiempo extra es todo mérito tuyo.',
+    'Nadie se rio. Nadie comentó. Nadie respiró fuerte. Eso solo pasa cuando ganas de verdad.',
+    'Hoy el grupo tuvo que admitir algo que le costaba: que por un momento mandabas tú.',
+    'Tu tirada fue como un portazo. Todo el mundo lo oyó y nadie fue a preguntar qué coño pasó.',
+    'El chat se detuvo. No por educación, sino porque no tenían nada que decir que no les dejara peor.',
+    'Ganaste tan fuerte que hasta la broma que alguien estaba escribiendo se quedó a medias.',
+    'Ese resultado fue una bofetada silenciosa a todos los que te subestimaban. Se la comieron entera.',
+    'Hoy ganaste con la naturalidad de quien no necesita ganar. Y eso fue lo que más jodió al grupo.',
+    'Tu tirada dejó tres conversaciones a medias. Nadie quiso seguir hablando con tu número en pantalla.',
+    'Ganaste y nadie pudo hacer el chiste fácil. Cuando el chiste no sale, es que el resultado impone.',
+    'Hoy te tocó ser el que manda y el chat se reajustó en silencio. Como tiene que ser, cojones.',
+    'Sacaste algo tan alto que la primera reacción del grupo fue comprobar si era real. Lo era.',
+    'Nadie quiso felicitarte porque habría sonado a capitulación. Y nadie aquí capitula fácil.',
+    'Hoy dejaste al chat sin herramientas. Sin broma, sin ironía, sin salida. Solo tu número y su puta cara.',
+    'Tu resultado fue un corte limpio. El grupo lo sintió, se calló y siguió como si nada. Pero lo sintió.',
+    'Ganaste con una cara que ninguno de estos quiere recordar mañana. Pero la van a recordar.',
+    'Hoy hiciste algo que nadie va a admitir que vio: ganar de forma que les cerró la boca a todos.',
+    'Sacaste un número que convirtió al grupo en público. Ellos mirando y tú siendo lo único que importaba.',
+    'Tu tirada hizo que dos personas borrasen lo que estaban escribiendo. Ese es el mejor cumplido del chat.',
+    'Ganaste y ni una sola persona tuvo los huevos de hacer un comentario. Eso es aura.',
+    'El grupo se quedó sin repertorio. Todo lo que habían preparado para burlarse se les quedó en la garganta.',
+    'Hoy tu resultado fue el protagonista. Y el chat, por primera vez en mucho tiempo, fue el público.',
+    'El silencio fue tan denso que se podía cortar. Nadie cortó porque nadie quería ser el primero.',
+    'Ganaste de una manera que hizo que el grupo se sintiese gilipollas por haberte subestimado.',
+    'Hoy el chat aprendió que los resultados no avisan. Y el tuyo fue una hostia que nadie vio venir.',
+    'Tu tirada cayó como un jarro de agua fría en un grupo que se creía a salvo. No lo estaban.',
+    'Nadie escribió nada en treinta segundos. En este chat, treinta segundos es una puta eternidad.',
+    'El grupo tuvo que recalcular quién eres. Y el resultado no les gustó nada, porque era bueno.',
+    'Ganaste con una limpieza que asusta. Ni una duda, ni un pero, ni una manera de quitarle mérito.',
+    'Sacaste un número que dejó al grupo con la misma cara de mierda que ponen cuando les deben dinero.',
+    'Hoy el chat se quedó a oscuras un momento. No por fallo, por tu tirada. Les apagaste la gracia.',
+    'El grupo entero se calló y ninguno quiso admitir que fue por tu resultado. Pero fue por tu resultado.',
+    'Nadie tuvo cojones de decir nada. Ni para bien ni para mal. El número mandaba y punto.',
+    'Ganaste y dejaste al grupo con cara de velorio. No porque les importes, sino porque les ganaste.',
+    'Tu tirada fue una bofetada con la mano abierta a todos los que estaban esperando tu fallo.',
+    'Hoy subiste tanto que el grupo necesitó un momento para procesar que eras tú y no un error.',
+    'Sacaste algo que hizo que el más bocazas del chat se mordiera la lengua. Y eso merece bronce.',
+    'Ganaste de una forma tan limpia que hasta el cabrón que siempre comenta prefirió callarse.',
+    'El chat se congeló un segundo después de tu tirada. Ese segundo fue tu monumento.',
+    'Hoy dejaste al grupo sin excusas, sin bromas y sin ganas de hablar. Eso es dominar una sala.',
+    'Tu resultado cayó como una losa sobre un chat que ya tenía el chiste preparado. Se lo tragaron.',
+    'Ganaste y el silencio posterior fue más pesado que cualquier puta cosa que se pueda escribir.',
+    'Nadie te aplaudió porque aquí no se aplaude. Pero el silencio fue lo más parecido a una ovación.',
+    'Sacaste un resultado que hizo que tres personas se arrepintieran de haber hablado mierda de ti hoy.',
+    'El grupo se quedó sin aire un momento. Tú se lo quitaste con un número. Puro peso.',
+    'Hoy te miraron como se mira a alguien que acaba de hacer algo que nadie esperaba. Con respeto forzado.',
+    'Ganaste y el chat tardó en reaccionar. No porque fuera difícil, sino porque les costó aceptarlo.',
   ],
   gain: [
-    'Hoy no perdiste. En este chat eso ya es noticia. El ranking lo registró sin pedirte aplauso. El archivo no discute el dígito, cabrón.',
-    'Alza contenida. Mejor eso que otra espiral. Sostén el número y no lo gastes en monólogo, cabrón. El chat ya tomó nota sin pedirte permiso.',
-    'Subida chica pero verde. El archivo prefiere eso a tu discurso de “casi gano grande” Aquí el número pesa más que la labia. Joder.',
-    'Ganancia modesta. El total se movió a tu favor. No lo conviertas en leyenda personal. El ranking lo registra entero, gilipollas con suerte.',
-    'Hoy el corte te dejó un poco mejor. Un poco cuenta. Aquí los poco se acumulan o se evaporan. Sin narrativa que lo tape, cabrón con racha.',
-    'Aura arriba un tramo. Sin fiesta. Sin bis. Solo el dígito haciendo su trabajo en silencio. El total habla solo. Coño.',
-    'Subiste. No es portada; es pie de página positivo. Aun así pesa más que diez mensajes vacíos. Documentado en el contador, cabrón.',
-    'Alza de las discretas. El chat casi no lo comenta. Mejor: menos teatro, más total. El grupo lo vio de un vistazo, joder.',
-    'Hoy el contador te hizo un favor chico. Anótalo. Los favores chicos también se cobran. El archivo no discute el dígito. Joder.',
-    'Ganancia sin drama. El ranking te movió un milímetro. En este grupo un milímetro es noticia. El chat ya tomó nota sin pedirte permiso, cabrón.',
-    'Verde flojo pero verde. El que esperaba tu caída se quedó con el chiste a medias Aquí el número pesa más que la labia, cabrón con racha.',
-    'Subida menor. El ego querrá inflarla. No le hagas caso: el número es el que es. El ranking lo registra entero. Coño.',
-    'Hoy no sangraste aura. Ya es logro local. No lo celebres como mundial Sin narrativa que lo tape, cabrón.',
-    'Alza contenida registrada. Mejor administración que otra tirada de soberbia barata. El total habla solo, joder.',
-    'El aura te dio un empujón chico. Úsalo de colchón, no de trampolín de ego, cabrón. Documentado en el contador.',
-    'Subiste un poco. El archivo lo firmó. El resto es ruido que no suma. El grupo lo vio de un vistazo, gilipollas con suerte.',
-    'Ganancia discreta. El total respira mejor. Tú también deberías: menos boca, más rastro. El archivo no discute el dígito, cabrón con racha.',
-    'Hoy el corte fue amable en lo mínimo. Lo mínimo aquí se agradece porque lo normal es el fail. El chat ya tomó nota sin pedirte permiso. Coño.',
-    'Alza chica. No pide hilo de celebración. Pide que no la tires en la próxima Aquí el número pesa más que la labia, cabrón.',
-    'Verde. Punto. En este chat eso ya cierra el párrafo mejor que tu labia. El ranking lo registra entero, joder.',
-    'Subida de mantenimiento. El ranking no te coronó; te dejó de hundir un rato. Aprovecha. Sin narrativa que lo tape. Joder.',
-    'Hoy sumaste. Poco. Suficiente para no ser el chiste del momento. No pidas más crédito. El total habla solo, gilipollas con suerte.',
-    'Alza modesta firmada. El contador no hace odas. Solo mueve el total y sigue. Documentado en el contador, cabrón con racha.',
-    'Ganaste aire chico. Respíralo sin discurso de superación. Aquí eso suena a estafa. El grupo lo vio de un vistazo. Coño.',
-    'Subida contenida. El grupo lo vio y no aplaudió. Perfecto: el aplauso aquí suele ser trampa. El archivo no discute el dígito, cabrón.',
-    'Hoy el aura te dejó en positivo menor. Adminístralo como adulto, no como influencer de tiradas. El chat ya tomó nota sin pedirte permiso, joder.',
-    'Alza sin adorno. Número un poco más alto. Boca en observación. Así se sostiene, cabrón. Aquí el número pesa más que la labia.',
-    'Sumaste. El archivo no se emocionó. Tú tampoco deberías. La emoción gasta foco. El ranking lo registra entero, gilipollas con suerte.',
-    'Verde flojo. Mejor que rojo. El ranking te dio una tregua. No la malgastes en teatro Sin narrativa que lo tape, cabrón con racha.',
-    'Hoy no caíste. En este grupo eso es casi una victoria moral. Casi. No la influes. El total habla solo. Coño.',
-    'Alza chica registrada. El que lleva la cuenta mental te recalculó sin drama. Imita eso. Documentado en el contador, cabrón.',
-    'Subiste un tramo menor. El total lo refleja. El ego no debería reflejar más que el total. El grupo lo vio de un vistazo, joder.',
-    'Ganancia de las que no hacen titular. Perfecto. Los titulares aquí suelen terminar mal. El archivo no discute el dígito. Joder.',
-    'Hoy el contador te sonrió chiquito. Sonrisa chiquita. No pidas foto del momento. El chat ya tomó nota sin pedirte permiso, gilipollas con suerte.',
-    'Alza discreta. El hilo no se detuvo a celebrarte. Mejor: sigue el hilo y cuida el número. Aquí el número pesa más que la labia, cabrón con racha.',
-    'Sumaste poco. El poco es capital. El capital se pierde explicando por qué merecías más. El ranking lo registra entero. Coño.',
-    'Verde. Sin fiesta. Sin epílogo. Solo el dígito un poco menos miserable que antes, cabrón. Sin narrativa que lo tape.',
-    'Hoy el aura te hizo el favor mínimo. El mínimo aquí es lujo. No lo trate como derecho. El total habla solo, joder.',
-    'Alza contenida. Mejor eso que otra espiral de pérdida. En este chat eso pesa Documentado en el contador. Joder.',
-    'Subida menor firmada. El ranking te movió sin preguntarte. Acepta el movimiento y calla. El grupo lo vio de un vistazo, cabrón.',
-    'Ganaste un colchón chico. No saltes encima. Los saltos aquí terminan en cursed. El archivo no discute el dígito, cabrón con racha.',
-    'Hoy no fue grande; fue suficiente. Suficiente para no abrir el parte de fallos. El chat ya tomó nota sin pedirte permiso. Coño.',
-    'Alza de mantenimiento del ego. El número subió un poco. El ego debería quedarse quieto. Aquí el número pesa más que la labia, cabrón.',
-    'Sumaste. El archivo cerró el renglón en verde flojo. Ya. Siguiente tirada sin discurso, cabrón. El ranking lo registra entero.',
-    'Subida chica. El chat casi bosteza. Mejor bostezar que reírse de tu caída Sin narrativa que lo tape. Joder.',
-    'Hoy el total te quedó un peldaño mejor. Un peldaño. No construyas escalera imaginaria. El total habla solo, gilipollas con suerte.',
-    'Alza sin narrativa. El bot no escribe crónicas de subidas chicas. Solo el número Documentado en el contador, cabrón con racha.',
-    'Ganancia modesta. El que esperaba drama se aburrió. Aburrir al buitre también es victoria. El grupo lo vio de un vistazo. Coño.',
-    'Verde menor. Registrado. Sin bis. Sin hilo de gratitud al universo. El archivo no discute el dígito, cabrón.',
-    'Hoy el aura te empujó despacio. Despacio llega más lejos que tu soberbia. El chat ya tomó nota sin pedirte permiso, joder.',
-    'Alza contenida. El ranking no te debe platea. Te debe el dígito que acabas de farmear, cabrón. Aquí el número pesa más que la labia.',
-    'Sumaste poco y bien. Lo bien es no haber sangrado. Anota esa diferencia. El ranking lo registra entero, gilipollas con suerte.',
-    'Subida discreta. El grupo no cambió de tema por ti. Perfecto. No fuerces el tema Sin narrativa que lo tape, cabrón con racha.',
-    'Hoy el corte te dejó respirar. Respira. No discurses. El discurso atrae el próximo fail. El total habla solo. Coño.',
-    'Alza chica firmada en el total. El ego firma de más. Táchalo Documentado en el contador. El contador no ofrece apelación, cabrón.',
-    'Ganaste margen mínimo. El mínimo sostiene. El máximo discurso hunde. El grupo lo vio de un vistazo, joder.',
-    'Verde. Punto. Siguiente. En este chat la economía de palabras también cotiza, cabrón. El archivo no discute el dígito.',
-    'Hoy no perdiste aura. Titular local. No lo mandes a portada nacional. El chat ya tomó nota sin pedirte permiso, gilipollas con suerte.',
-    'Alza de las silenciosas. Las silenciosas duran más que las gritadas Aquí el número pesa más que la labia, cabrón con racha.',
-    'Subiste un poco. El archivo lo sabe. Tú también. No hace falta hilo. El ranking lo registra entero. Coño.',
-    'Ganancia contenida. Mejor administración que otra noche de espiral Sin narrativa que lo tape, cabrón.',
-    'Hoy el contador fue neutro-positivo contigo. Acepta la neutralidad como regalo. El total habla solo, joder.',
-    'Alza menor. El top no se movió; tu sótano sí un centímetro. Centímetro vale, cabrón. Documentado en el contador.',
-    'Sumaste. Sin poesía. Sin destino. Solo tirada. Cuídala. El grupo lo vio de un vistazo. El contador no ofrece apelación, gilipollas con suerte.',
-    'Subida chica. El buitre del chat se quedó sin carroña un rato. Ya es algo. El archivo no discute el dígito, cabrón con racha.',
-    'Hoy el aura te dejó en paz relativa. La paz relativa aquí es lujo importado. El chat ya tomó nota sin pedirte permiso. Coño.',
-    'Alza firmada. El número un poco menos triste. No pidas medalla por eso Aquí el número pesa más que la labia, cabrón.',
-    'Ganaste un respiro. No lo conviertas en mitin. Los mitines gastan lo que el respiro dio. El ranking lo registra entero, joder.',
-    'Verde flojo. El ranking te recalculó sin odio. Imita al ranking: menos odio, más número, cabrón. Sin narrativa que lo tape.',
-    'Hoy sumaste sin hacer ruido. El silencio te favorece más que tu labia. El total habla solo. El contador no ofrece apelación, gilipollas con suerte.',
-    'Alza discreta. Guardala. Las discretas pagan mejor a largo plazo que el teatro Documentado en el contador, cabrón con racha.',
-    'Subida menor. El archivo no abrió champán. Tú tampoco deberías. No hay champán. El grupo lo vio de un vistazo. Coño.',
-    'Ganancia de colchón. Si te tiras de cabeza igual te partes. No te tires. El archivo no discute el dígito, cabrón.',
-    'Hoy el total te hizo un guiño. Un guiño. No un contrato de intocable. El chat ya tomó nota sin pedirte permiso, joder.',
-    'Alza chica. Cierra el párrafo. Abre el siguiente sin soberbia, cabrón. Aquí el número pesa más que la labia.',
-    'Sumaste poco. El poco bien administrado vence al mucho mal gastado. El ranking lo registra entero, gilipollas con suerte.',
-    'Verde. Registrado. Sin epílogo. El epílogo es de los que van a caer Sin narrativa que lo tape, cabrón con racha.',
-    'Hoy no fue cursed. Ya puedes exhalar. Exhala sin discurso de supervivencia. El total habla solo. Coño.',
-    'Alza contenida. El chat lo archivó y siguió. Tú también sigue, sin monólogo Documentado en el contador, cabrón.',
-    'Subiste. El número lo dice. Cualquier adjetivo de más sobra. El grupo lo vio de un vistazo, joder.',
-    'Hoy sumaste un poco más. Un poco más es capital. No lo conviertas en mitología, cabrón. Aquí el número manda.',
-    'Alza chica extra. El colchón crece milímetro a milímetro. Los milímetros cuentan. El archivo no discute el dígito, gilipollas con suerte.',
-    'Subida contenida. Mejor eso que el discurso de casi. El casi no cotiza. El chat tomó nota. El contador no ofrece apelación, cabrón con racha.',
-    'Verde menor otra vez. Acumular menores vence al teatro de un grande fallido Aquí el número manda. Coño.',
-    'Hoy el total te hizo un favor chico. Favor chico. Cóbralo en silencio. El archivo no discute el dígito, cabrón.',
-    'Ganancia discreta. El archivo sonríe flojo. Tú no sonrías de más. El chat tomó nota. El contador no ofrece apelación, joder.',
-    'Alza de mantenimiento. Mantener también es ganar en este chat, cabrón. Aquí el número manda. El contador no ofrece apelación.',
-    'Sumaste. El ranking no abrió champán. Perfecto. No hay champán. El archivo no discute el dígito, gilipollas con suerte.',
-    'Hoy no sangraste. Titular local renovado. No lo mandes a nacionales. El chat tomó nota. El contador no ofrece apelación, cabrón con racha.',
-    'Subida chica firmada. Firma corta. Epílogo prohibido Aquí el número manda. El contador no ofrece apelación. Coño.',
-    'Verde flojo. Flojo y suficiente. Suficiente es una palabra adulta. El archivo no discute el dígito, cabrón.',
-    'Alza contenida. El buitre bostezó. Mejor bostezo que pico. El chat tomó nota. El contador no ofrece apelación, joder.',
-    'Hoy el aura te dejó respirar otra vez. Respira. No discurses, cabrón. Aquí el número manda. El contador no ofrece apelación.',
-    'Ganancia mínima con máximo de sentido. El sentido es no haber caído. El archivo no discute el dígito, gilipollas con suerte.',
-    'Subiste un peldaño. Peldaño. No escalera al cielo. El chat tomó nota. El contador no ofrece apelación, cabrón con racha.',
-    'Alza discreta. Guardala como adulto. Los adultos no hacen hilo Aquí el número manda. El contador no ofrece apelación. Coño.',
-    'Hoy el contador fue neutro-positivo. Acepta la neutralidad. El archivo no discute el dígito, cabrón.',
-    'Sumaste poco. El poco bien llevado vence al mucho mal gastado. El chat tomó nota. El contador no ofrece apelación, joder.',
-    'Verde. Punto. Siguiente sin soberbia, cabrón. Aquí el número manda. El contador no ofrece apelación.',
-    'Alza chica. El silencio te favorece más que tu labia. El archivo no discute el dígito. El contador no ofrece apelación, gilipollas con suerte.'
+    // ── Ejemplos del usuario (intocables) ──
+    'Sumaste algo. No es para celebrar, pero al menos hoy no diste el papelón de siempre.',
+    'Te tiraron una migaja decente. Agárrala y cierra la boca antes de que se arrepientan.',
+    'Pequeña subida. El grupo lo vio, bostezó y siguió con lo suyo. No esperes aplausos.',
+    'Hoy no la cagaste. Para tu historial ya es casi un logro, no te creas demasiado.',
+    'El aura te dio un hueso. Disfrútalo en silencio, mañana vuelves a ser el de siempre.',
+    // ── Generadas ──
+    'Sumaste un poco y nadie lo comentó. Así de importante fue tu tirada para el grupo.',
+    'Ganancia modesta. No cambia nada, pero al menos el número subió y no bajó.',
+    'Hoy el aura fue generosa contigo. No te acostumbres, que mañana se le pasa.',
+    'Te llevaste un poco sin hacer ruido. Tu mejor estrategia: no llamar la atención.',
+    'Subiste algo. El grupo ni se enteró y tú tampoco deberías darle más importancia.',
+    'El aura te dio lo justo para no bajar. Eso en tu caso ya es una victoria, joder.',
+    'Ganancia tibia. Ni fría ni caliente, como todo lo que haces aquí.',
+    'Hoy te fue bien y nadie te va a felicitar. Acostúmbrate a los éxitos en silencio.',
+    'Sumaste calderilla. No da para presumir, pero da para no llorar.',
+    'Ganaste algo. No es para contar en casa, pero tampoco es para pedir perdón.',
+    'El aura subió un poco. Lo justo para que no te quejes y lo poco para que no presumas.',
+    'Hoy te salió bien por primera vez en un rato. No lo arruines abriendo la boca.',
+    'Pequeña ganancia. Del tamaño exacto de tus ambiciones en este grupo.',
+    'Sumaste y el chat siguió como si nada. Eso te dice todo sobre el impacto de tu puta tirada.',
+    'Te dieron un poco y lo aceptaste sin protestar. Así se comporta alguien que sabe cuál es su sitio.',
+    'Hoy no fuiste noticia. Ni por arriba ni por abajo. Solo un número que sube en silencio.',
+    'Ganancia discreta. Nadie la vio, nadie la comentó y nadie la va a recordar.',
+    'Subiste algo sin hacer el ridículo. Para ti eso ya es un dos por uno.',
+    'Te llevaste un puñado de aura. Pequeño, como todo lo tuyo, pero al menos es positivo.',
+    'Hoy el marcador subió y tú no tuviste la culpa de nada malo. Eso ya es raro, cojones.',
+    'El aura se portó contigo. No esperes que se repita: la generosidad tiene límites.',
+    'Ganancia pequeña, cara neutra, grupo indiferente. Todo como de costumbre.',
+    'Hoy sumaste sin drama. Es poco, pero es tuyo y nadie te lo va a discutir.',
+    'Subiste un poco. Nadie aplaudió, nadie abucheó, nadie supo que pasaste por aquí.',
+    'Te llevaste algo y cerraste la boca. Por fin aprendes cómo funciona esta mierda.',
+    'El aura te dio un trocito. Cómetelo rápido antes de que el siguiente turno te lo quite.',
+    'Sumaste y punto. Sin épica, sin drama, sin nada que contar cuando te pregunten.',
+    'Ganancia gris. Del color de tu presencia en este grupo.',
+    'Te subió un poco el marcador. No te lo tomes como tendencia, tómatelo como accidente.',
+    'El aura te pagó lo mínimo. Lo justo para que no te vayas y lo poco para que no te quedes.',
+    'Sumaste algo sin mérito visible. El azar fue bueno contigo y tú no le diste razones.',
+    'Hoy el número verde es tuyo. Pequeño, solitario y sin testigos. Como todo lo bueno en tu vida.',
+    'Ganancia modesta que no merece párrafo. Ni frase larga, la verdad.',
+    'Te dieron un poco y es más de lo que merecías según tu historial de mierda.',
+    'Subiste algo. El grupo siguió hablando de otra cosa, que es lo que pasa cuando ganas poco.',
+    'El aura te dio lo justo para no quejarte. Que es exactamente lo que le pides a todo.',
+    'Ganaste un poco y nadie se inmutó. El impacto de tu victoria fue cero en el chat.',
+    'Hoy sumaste sin esfuerzo y sin gracia. Tu marca personal aplicada al éxito.',
+    'Te llevaste unos puntos. Pocos, tibios y olvidables. Justo tu tamaño.',
+    'Sumaste calderilla de aura y seguiste tu camino. Nadie te paró a preguntar cómo.',
+    'Ganancia de supervivencia. No estás creciendo, estás no muriendo. Y eso ya es algo.',
+    'Hoy el aura te trató como a un cliente habitual: sin entusiasmo pero sin hostias.',
+    'Pequeña ganancia sin firma. Si no fuera por el número, nadie sabría que pasaste.',
+    'El aura te dio una propina. No te ofendas: es más de lo que sueles conseguir, gilipollas.',
+    'Sumaste un poco y el chat siguió. Eso resume tu relación con este grupo perfectamente.',
+    'Te llevaste algo y punto. Sin historia, sin moraleja, sin nada que recordar.',
+    'Ganancia limpia. Tan limpia que pasa sin dejar marca. Como tú por la conversación.',
+    'Subiste algo. El grupo no cambió de tono, no cambió de tema, no cambió de nada.',
+    'Hoy sumaste sin molestar a nadie. Tu mayor virtud y tu único puto talento comprobado.',
+    'Te dieron un puñado y no lo discutiste. Eso te honra, porque no había mucho que discutir.',
+    'Ganaste algo que mañana ya no recordarás. Y el grupo lo olvidó antes de que tú lo leyeras.',
+    'Hoy el número fue verde y tu cara fue la misma. Ni te alegraste, y eso es lo más sensato.',
+    'El aura subió lo justo. No te dieron ni de más ni de menos. Justo lo que eres.',
+    'Ganancia modesta. Del montón, del medio, del promedio. De todo lo que te define.',
+    'Te llevaste algo en silencio. El silencio fue lo mejor de todo el turno.',
+    'Subiste un poco y nadie notó la diferencia. Porque la diferencia era mínima, como tu presencia.',
+    'Sumaste sin que el grupo se enterase. Si un árbol cae en el bosque y nadie lo oye, joder.',
+    'El aura te dejó un poco más que antes. Sigue sin ser una mierda, pero es la dirección correcta.',
+    'Ganancia menor. De las que no se celebran, no se comentan y no se recuerdan.',
+    'Te dieron un poco y lo cogiste rápido. Buena decisión, que aquí las cosas se quitan fácil.',
+    'Hoy sumaste por primera vez en un rato. No lo conviertas en costumbre, que aburre.',
+    'Ganaste algo real. Poco y gris, pero real. Que es más de lo que puedes decir de otras cosas.',
+    'Subiste un poco. El grupo asintió mentalmente y pasó página. Así de rápido.',
+    'El aura te pagó sin entusiasmo y tú lo cobraste sin quejarte. Buen trato para ambas partes.',
+    'Sumaste lo mínimo visible. Ese es tu techo y hoy lo tocaste, enhorabuena.',
+    'Te llevaste un poco de aura. No cambia tu vida, no cambia tu ranking, no cambia una mierda.',
+    'Ganancia tibia. Del tipo que ni alegra ni entristece. Solo ocupa espacio en el historial.',
+    'El aura subió un escalón. Sigues en el sótano, pero ahora es un sótano ligeramente más alto.',
+    'Sumaste algo y el chat no se detuvo. Eso dice más de tu resultado que cualquier cifra.',
+    'Te dieron un poco sin pedirlo y sin merecerlo. El azar es así: injusto, pero a veces a tu favor.',
+    'Ganancia menor. Funcional, seca y sin nada que destacar. Como un puto martes cualquiera.',
+    'Subiste algo y seguiste siendo el mismo. Al menos ahora eres el mismo con un poco más.',
+    'Sumaste sin esfuerzo. Que es la única forma en que sumas algo, siendo honestos.',
+    'Te llevaste un poco y el grupo bostezó. Ese bostezo es el aplauso más sincero que vas a recibir.',
+    'Ganancia discreta. Tan discreta que hasta a ti se te olvidará en diez minutos.',
+    'El aura subió como sube todo en tu vida: despacio, sin gracia y sin testigos.',
+    'Sumaste lo justo para que el número cambie de color. Y ni eso impresionó a nadie, cabrón.',
+    'Hoy el resultado fue positivo y aburrido. Que es mucho mejor que negativo y divertido.',
+    'El marcador subió sin aspavientos. Como todo lo que pasa contigo: sin aspavientos y sin peso.',
+    'Hoy te fue bien y el chat lo ignoró con profesionalidad. Así funciona esta mierda para ti.',
+    'Te dieron una migaja y saliste contento. Dice más de ti que de la tirada.',
+    'Subiste algo y nadie pestañeó. Para el grupo tu ganancia es ruido de fondo, como tu voz.',
+    'Sumaste un poco. El grupo se enterará cuando revise el ranking. O sea, nunca.',
+    'Ganaste lo justo para no quejarte y lo poco para que nadie te envidie. Tu zona de confort.',
+    'Hoy el aura fue amable contigo. Sospechoso, pero disfrútalo antes de que cambie.',
+    'Te subió el marcador por primera vez en un rato. No te emociones, que el rato vuelve.',
+    'Pequeña subida. El tipo de resultado que te da para sonreír solo si nadie mira.',
+    'Sumaste algo que mañana ya no importará. Pero hoy, por un segundo, fue algo.',
+    'Ganancia de mantenimiento. No subiste de verdad, solo dejaste de hundirte un turno.',
+    'Hoy te tiraron unas migajas y las recogiste con la dignidad justa. Ni más ni menos.',
+    'El aura te dio un respiro. Corto, seco y sin garantía de que se repita.',
+    'Sumaste un poquito. Tan poco que decirlo en voz alta ya suena a exageración.',
+    'Te llevaste algo y cerraste el turno sin hacer ruido. Tu mejor versión, sinceramente.',
   ],
   loss: [
-    'Perdiste aura y el chat lo registró sin pedirte permiso. Aquí eso pesa más de lo que tu ego quiere admitir, basura.',
-    'Sangría chica pero sangría. El total bajó y el archivo no ofrece pañuelos, patético. El chat ya tomó nota sin pedirte permiso.',
-    'Hoy el corte te restó. Sin drama hollywoodense: solo el dígito en rojo y tu cara de circunstancia, ridículo.',
-    'Pérdida firmada. El ranking te movió hacia abajo un tramo. El ego querrá explicación; el contador no, cabrón.',
-    'Aura abajo. El grupo no necesita narrador: el número alcanza para el chiste, pringado. Sin narrativa que lo tape.',
-    'Hoy perdiste. Poco o mucho, perdiste. El archivo cerró el renglón en rojo, cutre. El total habla solo.',
-    'Restó. El total lo refleja. Tu discurso no lo va a parchear, basura. Documentado en el contador. El contador no ofrece apelación.',
-    'Pérdida contenida. Aun así duele más el orgullo que el número. Prioridades rotas, patético. El grupo lo vio de un vistazo.',
-    'El aura te cobró peaje. Peaje chico. Peaje igual. Aquí nadie viaja gratis, ridículo. El archivo no discute el dígito.',
-    'Hoy el contador te miró feo. Feo de número. El resto es decoración de tu queja, cabrón. El chat ya tomó nota sin pedirte permiso.',
-    'Sangraste aura. El hilo lo vio. No pidas empatía: pide mejor tirada la próxima, pringado. Aquí el número pesa más que la labia.',
-    'Pérdida registrada sin anestesia. El bot no endulza el rojo. Solo lo imprime, cutre. El ranking lo registra entero.',
-    'Bajaste. El ranking te reubicó. El ego está en negación. El número no, basura. Sin narrativa que lo tape.',
-    'Hoy el corte fue menor y aun así te dejó el humor de funeral. El funeral es tu orgullo, patético. El total habla solo.',
-    'Aura en rojo flojo. Rojo igual. El chat archiva y sigue. Tú te quedaste monologando, ridículo. Documentado en el contador.',
-    'Perdiste un tramo. El total respira peor. Tú hablas más. Mala combinación, cabrón. El grupo lo vio de un vistazo.',
-    'Pérdida chica. El buitre del grupo ya olfateó. No le des banquete de excusas, pringado. El archivo no discute el dígito.',
-    'Hoy el aura te restó sin pedir disculpas. Aquí el comando no disculpa, cutre. El chat ya tomó nota sin pedirte permiso.',
-    'Sangría. El archivo firmó. Tu autoestima quiere renegociar. No hay mesa de diálogo, basura. Aquí el número pesa más que la labia.',
-    'Bajaste un poco. Un poco cuenta cuando el ego estaba de fiesta, patético. El ranking lo registra entero.',
-    'Pérdida sin adorno. Número abajo. Boca de más. Cierra la boca, ridículo. Sin narrativa que lo tape. El contador no ofrece apelación.',
-    'Hoy el contador te cobró. Cobró poco. Cobró. El recibo está en el total, cabrón. El total habla solo.',
-    'Aura abajo un escalón. El escalón se siente. No lo tapices de labia, pringado. Documentado en el contador.',
-    'Restó. El ranking no ofrece cuotas. Pagas de contado en silencio, cutre. El grupo lo vio de un vistazo.',
-    'Hoy perdiste margen. El margen era tu colchón. Ahora duermes más duro, basura. El archivo no discute el dígito.',
-    'Pérdida firmada en el total. El ego firmó de más con quejas. Tacha las quejas, patético. El chat ya tomó nota sin pedirte permiso.',
-    'Sangraste. El chat no trajo flores. Trajo memoria para el próximo roast, ridículo. Aquí el número pesa más que la labia.',
-    'Bajaste. Punto. El epílogo de victimismo sobra y ensucia el renglón, cabrón. El ranking lo registra entero.',
-    'Hoy el aura te hizo el trabajo sucio en contra. Sucio de número. Límpiate el ego, pringado. Sin narrativa que lo tape.',
-    'Pérdida contenida. Contenida no significa inexistente. El total lo prueba, cutre. El total habla solo.',
-    'Rojo menor. El ranking te empujó un centímetro abajo. Centímetro de vergüenza, basura. Documentado en el contador.',
-    'Hoy el corte te dejó peor parado. Peor es peor. No hay narrativa que lo vuelva “aprendizaje”, patético.',
-    'Aura restada. El archivo no debate. Tú sí. Por eso pierdes dos veces, ridículo. El archivo no discute el dígito.',
-    'Sangría chica. El orgullo la siente grande. Desajuste típico, cabrón. El chat ya tomó nota sin pedirte permiso.',
-    'Perdiste. El contador lo gritó sin voz. El dígito basta, pringado. Aquí el número pesa más que la labia.',
-    'Hoy bajaste sin espectáculo. El espectáculo lo pones tú después con la queja, cutre. El ranking lo registra entero.',
-    'Pérdida registrada. Sin paño de lágrimas. Sin segundo intento en el mismo mensaje, basura. Sin narrativa que lo tape.',
-    'El aura te mordió chiquito. Chiquito con dientes. Sangra igual, patético. El total habla solo. El contador no ofrece apelación.',
-    'Restó. El total lo sabe. El grupo lo huele. Tú aún negocias con el aire, ridículo. Documentado en el contador.',
-    'Hoy el ranking te reordenó a la baja. Acepta el orden o pelea con el espejo numérico, cabrón. El grupo lo vio de un vistazo.',
-    'Sangraste aura. No es el fin del mundo. Es el fin de tu racha de postureo, pringado. El archivo no discute el dígito.',
-    'Pérdida. El archivo cerró el párrafo. Tu boca lo quiere reabrir. No, cutre. El chat ya tomó nota sin pedirte permiso.',
-    'Bajaste un tramo. El tramo se lee en el total. Cualquier adjetivo de más es ruido, basura. Aquí el número pesa más que la labia.',
-    'Hoy el contador no te regaló nada. Te cobró. El recibo está público, patético. El ranking lo registra entero.',
-    'Aura en rojo. Rojo flojo. Rojo. El chat no hace distinciones poéticas, ridículo. Sin narrativa que lo tape.',
-    'Perdiste margen de error. Ahora cada tirada te pega más cerca del hueso, cabrón. El total habla solo.',
-    'Sangría firmada. Sin narrador empático. Solo el número y tu cara, pringado. Documentado en el contador.',
-    'Hoy restó. Mañana puede restar otra vez. El patrón lo eliges tú con cada !aura, cutre. El grupo lo vio de un vistazo.',
-    'Pérdida chica con eco grande en el ego. El eco es el problema, basura. El archivo no discute el dígito.',
-    'Bajaste. El ranking te anotó. El ego quiere apelación. No hay juzgado, patético. El chat ya tomó nota sin pedirte permiso.',
-    'Aura abajo. El hilo lo incorporó sin ceremonia. Aprende de la falta de ceremonia, ridículo. Aquí el número pesa más que la labia.',
-    'Hoy el corte te dejó el total más flaco. Flaco se nota. No lo vistas de “da igual”, cabrón. El ranking lo registra entero.',
-    'Sangraste. Punto final. El punto suspensivo lo pone el que no acepta, pringado. Sin narrativa que lo tape.',
-    'Pérdida registrada sin filtro. El bot no es tu terapeuta, cutre. El total habla solo. El contador no ofrece apelación.',
-    'Restó. El grupo ya pasó al siguiente mensaje. Tú sigues en este. Por eso pesas menos, basura. Documentado en el contador.',
-    'Hoy el aura te cobró peaje emocional y numérico. Doble ticket, patético. El grupo lo vio de un vistazo.',
-    'Bajaste un poco y hablaste mucho. Mala tasa de cambio, ridículo. El archivo no discute el dígito. El contador no ofrece apelación.',
-    'Pérdida. El archivo no ofrece cuotas ni empatía. Solo el total actualizado, cabrón. El chat ya tomó nota sin pedirte permiso.',
-    'Sangría menor. El buitre anotó la coordenada. No le regales el mapa con tu queja, pringado. Aquí el número pesa más que la labia.',
-    'Hoy perdiste aura. El resto es cuento. El cuento no sube el número, cutre. El ranking lo registra entero.',
-    'Rojo. Firmado. Sin bis. Sin “pero es que”. El pero es que perdiste, basura. Sin narrativa que lo tape.',
-    'Aura restada. El ranking te miró de arriba. Merecido por el número, no por la historia, patético. El total habla solo.',
-    'Hoy el contador fue claro. Claro y en tu contra. La claridad duele más que el insulto, ridículo. Documentado en el contador.',
-    'Sangraste. El chat no pidió detalles. Los detalles los inventas tú para tapar el dígito, cabrón. El grupo lo vio de un vistazo.',
-    'Pérdida contenida. Contén también el monólogo. El monólogo empeora el promedio, pringado. El archivo no discute el dígito.',
-    'Bajaste. El total lo exhibe. Tú exhibes excusas. El público prefiere el total, cutre. El chat ya tomó nota sin pedirte permiso.',
-    'Hoy el aura te dejó peor. Peor es una palabra simple. Úsala. No la adornos, basura. Aquí el número pesa más que la labia.',
-    'Restó. Sin poesía. Sin destino. Solo tirada en contra, patético. El ranking lo registra entero. El contador no ofrece apelación.',
-    'Pérdida firmada en público. El público no trae pañuelos. Trae memoria, ridículo. Sin narrativa que lo tape.',
-    'Sangría. El ego grita. El número susurra. El susurro gana, cabrón. El total habla solo. El contador no ofrece apelación.',
-    'Hoy bajaste y se notó. Se notó porque el total no sabe mentir, pringado. Documentado en el contador. El contador no ofrece apelación.',
-    'Aura abajo. Cierra el pico. Abre el próximo !aura con menos fe y más silencio, cutre. El grupo lo vio de un vistazo.',
-    'Perdiste un tramo. El tramo no se debate. Se acumula, basura. El archivo no discute el dígito. El contador no ofrece apelación.',
-    'Hoy el ranking te empujó abajo. Empujón chico. Orgullo grande herido. Desajuste, patético. El chat ya tomó nota sin pedirte permiso.',
-    'Sangraste aura. El archivo lo dejó en actas. Actas públicas, ridículo. Aquí el número pesa más que la labia.',
-    'Pérdida. El bot no te odia. Te resta. El odio lo pones tú al leerlo, cabrón. El ranking lo registra entero.',
-    'Restó. El grupo siguió scrolleando. Tu ego se quedó en pausa. Suelta la pausa, pringado. Sin narrativa que lo tape.',
-    'Hoy el corte te cobró. Cobra. Paga en silencio. El silencio es lo único que te queda digno, cutre. El total habla solo.',
-    'Aura en rojo menor. Menor no es cero. Cero es lo que te queda de postura, basura. Documentado en el contador.',
-    'Bajaste. Fin del parte. Cualquier apéndice de victimismo se tira a la basura, patético. El grupo lo vio de un vistazo.',
-    'Hoy restó otra vez un tramo chico. Chico se acumula. Acumulado hunde, basura. Aquí el número manda. El contador no ofrece apelación.',
-    'Pérdida extra firmada. El archivo no se cansa de restar. Tú sí de quejarte, patético. El archivo no discute el dígito.',
-    'Sangría menor renovada. Renovada duele igual. El ego no aprendió, ridículo. El chat tomó nota. El contador no ofrece apelación.',
-    'Bajaste otro centímetro. Centímetro de vergüenza pública, cabrón. Aquí el número manda. El contador no ofrece apelación.',
-    'Hoy el contador te cobró de nuevo. Cobro en serie. Cliente habitual, pringado. El archivo no discute el dígito.',
-    'Pérdida contenida. Contenida y visible. Visible te delata, cutre. El chat tomó nota. El contador no ofrece apelación.',
-    'Restó. El total lo exhibe. Tú exhibes labia. Pierdes dos veces, basura. Aquí el número manda. El contador no ofrece apelación.',
-    'Sangría chica. El buitre anotó. No dictes el artículo, patético. El archivo no discute el dígito. El contador no ofrece apelación.',
-    'Hoy el ranking te empujó abajo otra vez. Empujón chico. Orgullo grande, ridículo. El chat tomó nota. El contador no ofrece apelación.',
-    'Aura abajo. Cierra el pico. El pico no sube números, cabrón. Aquí el número manda. El contador no ofrece apelación.',
-    'Pérdida firmada en actas. Actas públicas. Apelación inexistente, pringado. El archivo no discute el dígito.',
-    'Bajaste. El grupo scrolleó. Tú te quedaste. Por eso pesas menos, cutre. El chat tomó nota. El contador no ofrece apelación.',
-    'Hoy restó sin poesía. La poesía sobra en el rojo, basura. Aquí el número manda. El contador no ofrece apelación.',
-    'Sangría. El recibo público no admite “pero es que”, patético. El archivo no discute el dígito. El contador no ofrece apelación.',
-    'Pérdida. El espejo numérico no miente. Tú sí cuando narras, ridículo. El chat tomó nota. El contador no ofrece apelación.',
-    'Hoy el corte te dejó peor otra vez. Peor se apila, cabrón. Aquí el número manda. El contador no ofrece apelación.',
-    'Restó. Fin del renglón. Apéndice de victimismo a la basura, pringado. El archivo no discute el dígito.',
-    'Sangría menor. Eco mayor en el ego. Desajuste clásico, cutre. El chat tomó nota. El contador no ofrece apelación.',
-    'Hoy el contador fue claro otra vez. Claro y en tu contra, basura. Aquí el número manda. El contador no ofrece apelación.',
-    'Bajaste. El dígito basta. Cualquier adjetivo sobra, patético. El archivo no discute el dígito. El contador no ofrece apelación.'
+    // ── Ejemplos del usuario (intocables) ──
+    'Bajaste y nadie se inmutó. Ya es parte del paisaje verte perder aura.',
+    'Se te escurrió un poco más de presencia. El chat lo anotó mentalmente y siguió hablando de cosas serias.',
+    'Perdiste. Otra vez. Ni siquiera generas gracia, solo esa cara de "obvio que iba a ser él".',
+    'Te restaron sin drama. Como quien le quita importancia a un mosquito, sin odio y sin esfuerzo.',
+    'Hoy el grupo te bajó un escalón más y ni se molestó en reírse. Eso debería preocuparte.',
+    // ── Generadas ──
+    'Perdiste un poco y nadie comentó. Tu derrota es tan rutinaria que ya no genera contenido.',
+    'Bajaste otra vez. El grupo lo procesó con la misma emoción que una actualización del sistema.',
+    'Hoy te quitaron un poco y seguiste siendo el mismo de siempre. Solo con menos.',
+    'Perdiste aura como quien pierde un botón: ni te diste cuenta hasta que miraste.',
+    'El marcador bajó y el chat ni pestañeó. Tu pérdida ya forma parte del ruido de fondo.',
+    'Te restaron y ni te molestas en preguntar por qué. Ya sabes por qué: porque eres tú, gilipollas.',
+    'Bajaste un poco. Lo justo para que se note y lo poco para que a nadie le importe.',
+    'Hoy perdiste sin épica. Un fallo gris para un jugador gris en un turno gris.',
+    'El aura te cobró algo y seguiste caminando. Ni drama ni sorpresa. Solo la factura de siempre.',
+    'Perdiste otro trozo y el grupo ni levantó la vista. Ya no eres noticia ni perdiendo.',
+    'Bajaste aura con la misma naturalidad con la que respiras. A nadie le extrañó.',
+    'Te quitaron un poco. Lo de siempre, vamos. Ni tú te sorprendes ya.',
+    'Hoy tu tirada dijo no. Y tú asentiste como quien lleva oyendo eso toda la vida.',
+    'Perdiste lo suficiente para que se note y lo poco para que no importe. Tu zona habitual.',
+    'El marcador rojo es tuyo otra vez. El grupo lo miró y siguió a lo suyo.',
+    'Bajaste sin pelear. Ni una queja, ni un gesto, ni una mierda. Solo aceptación.',
+    'Perdiste aura y el chat continuó. Tu derrota no tiene el peso necesario para frenar nada.',
+    'Te restaron en silencio. Igual que vives aquí: en silencio y sin que nadie pregunte.',
+    'Hoy perdiste como pierde la gente aburrida: sin gracia, sin historia y sin testigos interesados.',
+    'El aura bajó un escalón y tú ni lo sentiste. Ese escalón era lo más valioso que tenías.',
+    'Perdiste poco. Pero es que también tenías poco, así que proporcionalmente fue un puto desastre.',
+    'Bajaste y nadie se ofreció a comentar. Ni por burla ni por pena. Pura indiferencia.',
+    'Te quitaron aura y el grupo siguió hablando de comida. Tu pérdida vale menos que un menú.',
+    'Hoy el marcador dijo que no. Un no pequeño, rutinario y esperado. Como todo lo tuyo.',
+    'Perdiste otro puñado de aura. El puñado era pequeño, como tus posibilidades de remontar.',
+    'Bajaste sin hacer ruido. Que es también como subes, como hablas y como existes aquí.',
+    'El aura te cobró peaje y seguiste adelante. Sin queja y sin dignidad, que son cosas distintas.',
+    'Perdiste y el chat no reaccionó. Si tu victoria no genera interés, imagina tu derrota.',
+    'Te restaron un poco y seguiste como si nada. Ese "como si nada" es tu estado natural.',
+    'Hoy perdiste lo de siempre. Ni más ni menos. La constancia es lo tuyo, aunque sea para perder.',
+    'El marcador bajó y nadie tomó nota. Tu pérdida ya está incorporada al precio de tenerte aquí.',
+    'Perdiste aura con una tranquilidad sospechosa. O te la suda o ya no te queda con qué sufrir.',
+    'Bajaste otro punto. Si el grupo llevara la cuenta de tus descensos, tendría un hobby de mierda.',
+    'Te quitaron algo y seguiste. Sin cara de sorpresa, sin queja, sin nada. Costumbre pura.',
+    'Hoy el aura decidió que no y tú obedeciste sin rechistar. Así llevas meses, cabrón.',
+    'Perdiste lo justo para no quedar bien. No lo bastante para quedar mal de verdad.',
+    'El chat vio tu número rojo y siguió. Ni un comentario, ni una broma, ni una puta mirada.',
+    'Bajaste y el grupo lo absorbió como absorbe todo lo tuyo: sin esfuerzo y sin interés.',
+    'Perdiste un poco. El grupo no se enteró y tú tampoco deberías darle más vueltas.',
+    'Te restaron aura y la vida siguió exactamente igual. Para ti y para todos los demás.',
+    'Hoy fallaste en algo fácil. Pero como todo lo fácil se te complica, nadie se sorprendió.',
+    'Perdiste calderilla de aura. No da para llorar, pero da para no presumir.',
+    'El marcador bajó con la misma velocidad con la que el grupo dejó de mirarlo.',
+    'Bajaste y ni tú mismo le diste importancia. Primer acierto del día, aunque sea el único.',
+    'Te quitaron un trozo de aura. Pequeño, previsible y perfectamente tuyo.',
+    'Hoy perdiste como siempre: sin pena, sin gloria y sin que a nadie le cambie el día.',
+    'El aura te restó en automático. Como si ya tuviera programado cuánto quitarte cada puta vez.',
+    'Perdiste otro puñado y el grupo no pestañeó. Tu descenso ya es tan suave que no se siente.',
+    'Bajaste sin causar nada. Ni risa, ni pena, ni conversación. Solo un número que se mueve.',
+    'Te quitaron algo y cerraste la boca. Buena decisión: hablar ahora solo lo empeoraría.',
+    'Hoy el número fue rojo y tu cara fue la de siempre. Ni te inmutaste y a nadie le extrañó.',
+    'Perdiste poco y aportaste menos. El saldo de tu turno es un vacío perfecto.',
+    'El aura bajó despacio. Tan despacio como todo lo que haces, incluido perder.',
+    'Bajaste y el chat siguió a otro tema. Tu pérdida duró en pantalla menos que un estado.',
+    'Te restaron un poco y punto. Sin moraleja, sin lección, sin nada que aprender.',
+    'Hoy perdiste lo previsible. Si alguien hubiera apostado en tu contra, habría ganado sin emoción.',
+    'El marcador rojo se repite otra vez. A estas alturas podría ser tu puto fondo de pantalla.',
+    'Perdiste aura y nadie se acercó a consolar. Porque no da para consuelo, solo para bostezo.',
+    'Bajaste otro escalón sin que nadie te empujara. El mérito es tuyo entero, cabrón.',
+    'Te quitaron algo que apenas tenías. Duele menos cuando no hay mucho que perder.',
+    'Hoy el aura fue sincera contigo. Y la sinceridad, en tu caso, siempre duele un poco.',
+    'Perdiste como pierde un reloj atrasado: poco a poco, sin que nadie se dé cuenta, hasta que importa.',
+    'El grupo vio tu pérdida y la archivó con las demás. Tienes una carpeta propia de descensos.',
+    'Bajaste sin provocar nada. Ni un gesto, ni un comentario, ni un suspiro. Nada.',
+    'Te restaron y tú seguiste. El único talento que nadie te discute: aguantar sin enterarte.',
+    'Perdiste poco y se notó poco. Proporción perfecta para alguien de tu calibre.',
+    'El aura te cobró lo que te tocaba. Poco, pero tuyo. Como todo lo que sale mal en tu puta vida.',
+    'Bajaste y nadie preguntó cuánto. Porque la respuesta siempre es la misma: lo de siempre.',
+    'Hoy perdiste sin historia. Un descenso aburrido para una persona aburrida en un turno aburrido.',
+    'Perdiste algo que mañana ya no recordarás. Y el grupo lo olvidó antes de terminar de leerlo.',
+    'El marcador bajó un poco y la vida siguió. Sin tu permiso y sin tu opinión, como de costumbre.',
+    'Bajaste otro puñado y cerraste el turno. Nadie se quedó a ver cómo encajabas el golpe.',
+    'Te restaron aura sin anestesia. Aunque con tan poco dolor, tampoco la necesitabas.',
+    'Hoy tu resultado fue rojo y tu reacción fue nula. Perfecto equilibrio entre la pérdida y la nada.',
+    'El chat procesó tu derrota en un milisegundo. Ese es el tiempo que le dedica el grupo a tus problemas.',
+    'Bajaste y el silencio fue el mismo de siempre. Ni más pesado ni más ligero. Solo el de siempre.',
+    'Hoy perdiste lo que toca. Ni más ni menos. La rutina no falla, y tú tampoco, pero al revés.',
+    'Perdiste un poco y el grupo ni alzó la puta vista. Tu derrota pesa lo mismo que tu silencio.',
+    'El aura bajó sin aspavientos. Igual que todo lo que te pasa: sin aspavientos y sin que importe.',
+    'Bajaste y seguiste. Sin excusa, sin drama y sin nadie que te pidiera una explicación.',
+    'Te restaron lo justo para no llamar la atención. Tu derrota fue tan discreta como tú.',
+    'Hoy perdiste aura y el grupo no cambió de tema. No hizo falta: tu pérdida no era un tema.',
+    'Perdiste poco. Pero poco sumado a poco sumado a poco ya empieza a ser algo. Y algo feo.',
+    'El marcador rojo volvió a aparecer junto a tu nombre. Ya casi se escriben solos juntos.',
+    'Te quitaron un pedazo y ni lo sentiste. O sí lo sentiste y eso es lo que te queda: sentir y callar.',
+    'Hoy tu tirada fue un no. Corto, seco y sin posibilidad de réplica. Justo como te tratan aquí.',
+    'Perdiste y nadie lloró. Ni tú. Ese nivel de sequía emocional ya es preocupante.',
+    'El aura te castigó con calma. Sin prisa, sin rabia, sin nada personal. Solo números.',
+    'Bajaste y el mundo siguió girando. El mundo y el grupo y todo lo que no depende de ti.',
+    'Te quitaron un punto y el chat pasó a otra cosa. Tu pérdida dura menos que un puto parpadeo.',
+    'Hoy perdiste lo típico. Lo que pierde alguien que ya ni espera ganar y al que nadie compadece.',
+    'Bajaste otra vez y el grupo bostezó. Tu derrota ya es lo más predecible de este chat.',
+    'Te restaron y cerraste el turno como cierras todo: sin ruido y sin que nadie note la diferencia.',
   ],
   spiral: [
-    'Espiral activa: pierdes, te alteras, y el próximo corte te vuelve a mirar feo. El patrón ya apesta, basura.',
-    'Espiral. El número baja y el ego sube la voz para taparlo. Se te oye el agujero, patético. El chat ya tomó nota sin pedirte permiso.',
-    'Espiral de aura: cada corte confirma el anterior. El archivo no necesita narrador, ridículo. Aquí el número pesa más que la labia.',
-    'Hoy la espiral te volvió a morder. Aprende o repite. El contador prefiere que repitas, cabrón. El ranking lo registra entero.',
-    'Espiral. Si el ego no frena, el contador tampoco. Prioridades al revés, pringado. Sin narrativa que lo tape.',
-    'Espiral fea. El próximo mensaje tuyo no borra el número. Solo lo subraya, cutre. El total habla solo.',
-    'Cuanto más explicas, más clara se ve la espiral. Callar también es control de daños, basura. Documentado en el contador.',
-    'Espiral registrada. El ranking te ve en bucle. El bucle no es personalidad; es fail, patético. El grupo lo vio de un vistazo.',
-    'Otra vuelta. El total se adelgaza. El discurso engorda. Mala dieta, ridículo. El archivo no discute el dígito.',
-    'Espiral. El chat ya no se sorprende. La falta de sorpresa es el insulto, cabrón. El chat ya tomó nota sin pedirte permiso.',
-    'Hoy otra vez rojo en cadena. La cadena la armaste a tiradas. Suéltala, pringado. Aquí el número pesa más que la labia.',
-    'Espiral activa. El ego grita “azar”. El historial susurra “patrón”. Gana el historial, cutre. El ranking lo registra entero.',
-    'Bucle de pérdida. El archivo pone sellos repetidos. Se te acaba la tinta de la dignidad, basura. Sin narrativa que lo tape.',
-    'Espiral. Cada !aura tuyo es un capítulo del mismo fail. Cambia de libro, patético. El total habla solo.',
-    'Hoy la racha en contra te volvió a firmar. La firma es pública. El orgullo, público también, ridículo.',
-    'Espiral. No es mala suerte: es estadística con tu nombre. Aprende a leerla, cabrón. El grupo lo vio de un vistazo.',
-    'Otra mordida. El total sangra en cuotas. Las cuotas también arruinan, pringado. El archivo no discute el dígito.',
-    'Espiral fea. El grupo ya tiene el meme listo. No le des el caption con tu queja, cutre. El chat ya tomó nota sin pedirte permiso.',
-    'Hoy el contador te encadenó otra resta. Cadena visible. Orgullo invisible, basura. Aquí el número pesa más que la labia.',
-    'Espiral. El próximo corte no viene a salvarte. Viene a confirmar, patético. El ranking lo registra entero.',
-    'Bucle. Explicas. Restas. Explicas. Restas. El chat ya aprendió el ritmo, ridículo. Sin narrativa que lo tape.',
-    'Espiral activa: el ego acelera y el aura frena. Choque frontal, cabrón. El total habla solo. El contador no ofrece apelación.',
-    'Hoy otra vez el mismo agujero. El agujero no es el bot. Eres el patrón, pringado. Documentado en el contador.',
-    'Espiral. El ranking te puso etiqueta de riesgo. La etiqueta se gana a tiradas, cutre. El grupo lo vio de un vistazo.',
-    'Sangría en serie. El archivo no ofrece plancito de rescate. Ofrece memoria, basura. El archivo no discute el dígito.',
-    'Espiral. Callar un ciclo también es jugada. Hablar en rojo es suicidio social, patético. El chat ya tomó nota sin pedirte permiso.',
-    'Otra vuelta de pérdida. El total se parece cada vez más a tu racha de excusas, ridículo. Aquí el número pesa más que la labia.',
-    'Espiral documentada. El hilo no necesita detective. El número basta, cabrón. El ranking lo registra entero.',
-    'Hoy el bucle te escupió otra resta. Escupe menos labia y más silencio, pringado. Sin narrativa que lo tape.',
-    'Espiral. El chat bosteza de tu patrón. El bostezo duele más que el roast, cutre. El total habla solo.',
-    'Racha en contra firme. La firmeza no está en tu carácter; está en el rojo, basura. Documentado en el contador.',
-    'Espiral. Cada justificación cava un centímetro más. Deja la pala, patético. El grupo lo vio de un vistazo.',
-    'Hoy otra firma en rojo. El bolígrafo del contador no se cansa. Tú sí pareces cansado, ridículo. El archivo no discute el dígito.',
-    'Espiral activa. El ego quiere “una más”. El historial quiere que pares, cabrón. El chat ya tomó nota sin pedirte permiso.',
-    'Bucle de fail. El grupo ya no apuesta a tu recuperación. Apuesta a tu próxima caída, pringado. Aquí el número pesa más que la labia.',
-    'Espiral. El total se derrite. El discurso se infla. Física del pringado, cutre. El ranking lo registra entero.',
-    'Hoy la espiral te hizo el retrato otra vez. Retrato en rojo. Sin filtro que salve, basura. Sin narrativa que lo tape.',
-    'Espiral. No es tragedia: es repetición. La repetición es más ridícula que el drama, patético. El total habla solo.',
-    'Otra resta en cadena. La cadena se ve desde el primer mensaje del día, ridículo. Documentado en el contador.',
-    'Espiral. El archivo pone “idem”. Idem es el insulto más seco, cabrón. El grupo lo vio de un vistazo. El contador no ofrece apelación.',
-    'Hoy el contador te volvió a pasar la factura. Factura en serie. Cliente moroso de aura, pringado. El archivo no discute el dígito.',
-    'Espiral fea. El próximo !aura no es esperanza. Es ruleta con el tambor casi lleno, cutre. El chat ya tomó nota sin pedirte permiso.',
-    'Bucle. El ego niega. El número afirma. El grupo cree al número, basura. Aquí el número pesa más que la labia.',
-    'Espiral. Te alteras, restas, te alteras. Manual del hundimiento, patético. El ranking lo registra entero.',
-    'Hoy otra vez el mismo corte con el mismo resultado. Originalidad cero, ridículo. Sin narrativa que lo tape.',
-    'Espiral activa. El ranking te dejó de tratar como excepción. Ahora eres patrón, cabrón. El total habla solo.',
-    'Sangría en bucle. El paño de lágrimas se agotó en el chat, pringado. Documentado en el contador. El contador no ofrece apelación.',
-    'Espiral. Cada mensaje tuyo post-pérdida suma vergüenza, no aura, cutre. El grupo lo vio de un vistazo.',
-    'Hoy el agujero se profundizó. Profundo se oye cuando hablas, basura. El archivo no discute el dígito.',
-    'Espiral. El bot no te persigue. Tú repites el comando. Autoría tuya, patético. El chat ya tomó nota sin pedirte permiso.',
-    'Otra vuelta. El total ya ni se inmuta: bajó tantas veces que es rutina, ridículo. Aquí el número pesa más que la labia.',
-    'Espiral. La rutina de perder también es una habilidad. Malísima, cabrón. El ranking lo registra entero.',
-    'Hoy el rojo en serie te delató. Delato de patrón, no de azar, pringado. Sin narrativa que lo tape. El contador no ofrece apelación.',
-    'Espiral documentada en actas. Actas públicas. Orgullo en quiebra, cutre. El total habla solo. El contador no ofrece apelación.',
-    'Bucle de pérdida. El chat cambió de canal emocional. Ya no hay empatía en stock, basura. Documentado en el contador.',
-    'Espiral. Si vas a tirar otra vez, al menos calla el preámbulo, patético. El grupo lo vio de un vistazo.',
-    'Hoy la cadena te apretó otro eslabón. Eslabón numérico. Cuello del ego, ridículo. El archivo no discute el dígito.',
-    'Espiral activa. El historial sonríe. Tú no. Por algo será, cabrón. El chat ya tomó nota sin pedirte permiso.',
-    'Otra resta. El archivo pone sello repetido. Se te acaba el papel de dignidad, pringado. Aquí el número pesa más que la labia.',
-    'Espiral. El grupo ya memorizó tu curva. La curva apunta abajo, cutre. El ranking lo registra entero. El contador no ofrece apelación.',
-    'Hoy el contador te hizo el combo: resta + exposición. Combo del día, basura. Sin narrativa que lo tape.',
-    'Espiral. No pidas consejo. Pide silencio y una tirada menos, patético. El total habla solo. El contador no ofrece apelación.',
-    'Bucle. Explicar la espiral es alimentar la espiral. Corta el feed, ridículo. Documentado en el contador.',
-    'Espiral. El ranking te puso en vigilancia. Vigilancia merecida, cabrón. El grupo lo vio de un vistazo.',
-    'Hoy otra firma roja. El bolígrafo sigue. Tú decides si el cuaderno se llena, pringado. El archivo no discute el dígito.',
-    'Espiral fea. El meme ya está escrito. Solo falta tu próxima línea, cutre. El chat ya tomó nota sin pedirte permiso.',
-    'Sangría en serie sin pausa dramática. La falta de pausa es el chiste, basura. Aquí el número pesa más que la labia.',
-    'Espiral. El ego quiere giro de guion. El número quiere continuidad, patético. El ranking lo registra entero.',
-    'Hoy el bucle te escupió. Escupe menos y respira más, ridículo. Sin narrativa que lo tape. El contador no ofrece apelación.',
-    'Espiral activa. El chat no trae escalera. Trae palomitas, cabrón. El total habla solo. El contador no ofrece apelación.',
-    'Otra vuelta de fail. El fail ya no sorprende. La falta de sorpresa te borra, pringado. Documentado en el contador.',
-    'Espiral. El total es un tobogán. Tú te negaste a ver la pendiente, cutre. El grupo lo vio de un vistazo.',
-    'Hoy el rojo en cadena te hizo paisaje. Paisaje triste, basura. El archivo no discute el dígito. El contador no ofrece apelación.',
-    'Espiral. Deja de regar el agujero con palabras. El agujero crece, patético. El chat ya tomó nota sin pedirte permiso.',
-    'Bucle documentado. El detective es el contador. Caso cerrado cada tirada, ridículo. Aquí el número pesa más que la labia.',
-    'Espiral. El próximo corte no te debe un break. Te debe continuidad estadística, cabrón. El ranking lo registra entero.',
-    'Hoy otra vez. Idem. Idem es tu biografía corta de aura, pringado. Sin narrativa que lo tape. El contador no ofrece apelación.',
-    'Espiral. Calla. Resta. Calla. Mejor versión del plan, cutre. El total habla solo. El contador no ofrece apelación.',
-    'Sangría en bucle. El grupo ya cobró el abono al espectáculo, basura. Documentado en el contador. El contador no ofrece apelación.',
-    'Espiral final del párrafo: el número bajó otra vez y tu labia no lo subió. Sorpresa para nadie, patético.',
-    'Espiral: otra vuelta que el chat ya tenía memorizada. Originalidad cero, basura. Aquí el número manda.',
-    'Bucle de pérdida renovado. El meme se escribe solo, patético. El archivo no discute el dígito. El contador no ofrece apelación.',
-    'Hoy el patrón se confirmó otra vez. Confirmación pública, ridículo. El chat tomó nota. El contador no ofrece apelación.',
-    'Espiral activa. El historial sonríe de lado. Tú no, cabrón. Aquí el número manda. El contador no ofrece apelación.',
-    'Otra resta en cadena. Cadena visible desde ayer, pringado. El archivo no discute el dígito. El contador no ofrece apelación.',
-    'Espiral. El ego niega. El número afirma. Gana el número, cutre. El chat tomó nota. El contador no ofrece apelación.',
-    'Hoy el bucle te escupió de nuevo. Escupe menos labia, basura. Aquí el número manda. El contador no ofrece apelación.',
-    'Espiral documentada. Idem en actas. Idem es tu biografía, patético. El archivo no discute el dígito. El contador no ofrece apelación.',
-    'Sangría en serie. El abono al espectáculo ya se cobró, ridículo. El chat tomó nota. El contador no ofrece apelación.',
-    'Espiral. Callar un ciclo también es jugada. Juega, cabrón. Aquí el número manda. El contador no ofrece apelación.',
-    'Otra firma roja. El bolígrafo sigue fresco, pringado. El archivo no discute el dígito. El contador no ofrece apelación.',
-    'Espiral fea. El caption del meme eres tú, cutre. El chat tomó nota. El contador no ofrece apelación.',
-    'Hoy el agujero se profundizó un grado. Grado audible cuando hablas, basura. Aquí el número manda. El contador no ofrece apelación.',
-    'Espiral. El ranking te dejó de sorprender. Mala señal, patético. El archivo no discute el dígito. El contador no ofrece apelación.',
-    'Bucle. Explicas y restas. El ritmo ya es chiste interno, ridículo. El chat tomó nota. El contador no ofrece apelación.',
-    'Espiral activa. Sin escalera. Solo palomitas del grupo, cabrón. Aquí el número manda. El contador no ofrece apelación.',
-    'Hoy otra vez el mismo tobogán. La pendiente no cambió, pringado. El archivo no discute el dígito. El contador no ofrece apelación.',
-    'Espiral. Deja la pala. El agujero sobra de profundo, cutre. El chat tomó nota. El contador no ofrece apelación.',
-    'Sangría en bucle. Caso cerrado cada tirada, basura. Aquí el número manda. El contador no ofrece apelación.',
-    'Espiral final del renglón: el número bajó y tu labia no lo subió, patético. El archivo no discute el dígito.'
+    // ── Ejemplos del usuario: no proporcionó para spiral, se generan todas ──
+    'Sigues bajando y el chat ya ni levanta la vista cuando aparece tu nombre. Pierdes en silencio.',
+    'Otra caída y ni un mensaje. Ese silencio es tu verdadero marcador.',
+    'Llevas tantas seguidas que ganar te daría un susto de muerte.',
+    'Sigues en rojo y cada tirada confirma lo que todos daban por hecho.',
+    'Ya no es una racha. Es tu estado natural y el grupo lo asumió hace semanas.',
+    'Otra bajada. A esto ya no se le llama mala suerte, se le llama ser tú.',
+    'Sigues cavando. En algún momento habrá que decirte que el fondo ya lo pasaste, gilipollas.',
+    'Nueva pérdida encadenada. El marcador ya no reacciona, solo actualiza.',
+    'La caída lleva tanto que el grupo dejó de contarla. Ni para eso das trabajo.',
+    'Sigues perdiendo con la naturalidad de quien no conoce otra cosa.',
+    'Otra vez abajo. El grupo dejó de sorprenderse hace bastante tiempo.',
+    'Tu racha negativa ya tiene más historia que cualquier cosa que hayas dicho aquí.',
+    'Sigues bajando y nadie te sostiene. Porque nadie sintió nunca tu puto peso arriba.',
+    'Otra derrota encadenada. Ni una excepción, ni un respiro, ni un accidente a favor.',
+    'Llevas tanto abajo que subir un puesto sería noticia. Y no va a pasar.',
+    'Cada intento tuyo confirma lo mismo: que no aprendes.',
+    'Sigues cayendo con una constancia que daría gusto ver aplicada a otra cosa.',
+    'Tu descenso ya es parte del paisaje. Como una mancha en la pared que nadie limpia.',
+    'Otra derrota que se suma a las demás. Ya ni el bot encuentra la parte graciosa.',
+    'Sigues en rojo y encima cómodo. Eso es lo que ya no tiene arreglo, joder.',
+    'Llevas tantas derrotas que la palabra intento se te da mejor que la palabra logro.',
+    'Otra caída idéntica a la anterior. Ni variedad ofreces en el fracaso, cabrón.',
+    'Sigues perdiendo y el grupo ha dejado de mirar. Pierdes para nadie.',
+    'Tu aura negativa crece con más constancia que cualquier cosa buena que hayas tenido.',
+    'Otra vez el mismo resultado. Cambia el día, cambia la hora y no cambia una mierda.',
+    'Sigues abajo y lo peor es que ahí encajas. Ese es tu puto sitio.',
+    'El grupo ya no apuesta por tu recuperación. Apuesta por cuánto tardas en tocar un nuevo mínimo.',
+    'Llevas tanto perdiendo que el grupo ha normalizado tu descenso como se normaliza el tráfico.',
+    'Otra pérdida en una lista que ya necesita scroll para verse entera.',
+    'Sigues cayendo y ni frenas. Ese abandono es lo que de verdad preocupa.',
+    'Tu racha es tan larga que ya forma parte del reglamento no escrito: tú pierdes.',
+    'Otra derrota y ni una reacción. El grupo ya pasó la fase de burlarse de ti.',
+    'Sigues en negativo y profundizando. Como tus problemas: nunca se resuelven, solo se acumulan.',
+    'Llevas tanto abajo que el fondo te ha adoptado. Residencia permanente, gilipollas.',
+    'Otra caída y ni tú la comentas. Cuando el propio protagonista pierde interés, algo va muy mal.',
+    'Sigues perdiendo con la misma cara. Ni la puta expresión se te ha gastado de tanto usarla.',
+    'Tu descenso ya no es noticia. Es el fondo del paisaje, decorado permanente.',
+    'Otra derrota más para una colección que ya nadie quiere ver.',
+    'Sigues cayendo sin fondo a la vista. Y llevas tiempo buscándolo.',
+    'Llevas tantas seguidas que hasta el bot tiene que buscar frases nuevas para describirte.',
+    'Otra bajada rutinaria. Tu historial parece un tobogán y tú sigues subiendo para tirarte.',
+    'Sigues en rojo y el grupo te lee los resultados como quien mira una pared.',
+    'Tu racha ya tiene edad para tener opinión propia sobre ti. Y no es buena.',
+    'Otra pérdida que se suma al montón. El montón ya pesa más que tu presencia.',
+    'Sigues perdiendo y a nadie le cambia el día. Ni el tuyo, que ya es decir.',
+    'Llevas tanto abajo que subir sería sospechoso. Tranquilo, no va a pasar.',
+    'Otra derrota encadenada. El chat la registra y pasa página sin detenerse.',
+    'Sigues cayendo y ni te molestas en frenar. Eso ya no es mala racha, es elección.',
+    'Tu aura negativa ya es un estilo de vida. Y no uno bueno, puto fracasado.',
+    'Otra caída más en una secuencia que ya parece infinita. Quizá lo sea.',
+    'Sigues bajando con la calma de quien ya se rindió. Y la calma te sienta peor que la derrota.',
+    'Llevas tantas pérdidas que el propio sistema se pregunta si estás bien. No lo estás.',
+    'Otra vez para abajo. El grupo ni se gira. Ya te convirtieron en ruido de fondo.',
+    'Tu descenso continuado es lo más constante de este grupo. Y mira que hay cosas constantes.',
+    'Sigues perdiendo sin que nadie te diga nada. Ese silencio es compasión mezclada con aburrimiento.',
+    'Otra derrota y el mismo patrón. Si esto fuera un gráfico, sería una línea recta hacia la mierda.',
+    'Llevas tanto cayendo que el grupo ha dejado de marcarlo. Se asume como se asume la gravedad.',
+    'Sigues en rojo y sin señales de cambio. El pronóstico es el mismo que ayer: tú.',
+    'Otra pérdida para un historial que ya no admite más. Pero tú siempre encuentras sitio, cabrón.',
+    'Tu racha negativa ya es tan larga que el grupo la usa de referencia temporal: "desde que empezó a perder".',
   ],
   cursed: [
-    'Hoy el corte salió hostil. Ni migaja ni empatía: solo resta gorda. El archivo cerró fuerte, basura. El archivo no discute el dígito.',
-    'Pérdida grande. El total se notó de lejos. El ego también, pero de vergüenza, patético. El chat ya tomó nota sin pedirte permiso.',
-    'Cursed de manual: el contador te pegó donde duele y el chat tomó asiento, ridículo. Aquí el número pesa más que la labia.',
-    'Hoy el aura te desahució un tramo entero. Orden de desalojo numérico, cabrón. El ranking lo registra entero.',
-    'Sangría gorda. El ranking te reubicó sin anestesia. El grito sobra, pringado. Sin narrativa que lo tape.',
-    'Pérdida de las que reordenan el sótano. Bienvenido al nuevo piso, cutre. El total habla solo. El contador no ofrece apelación.',
-    'Hoy el bot no te cobró peaje: te cobró multa. Multa visible en el total, basura. Documentado en el contador.',
-    'Cursed. El número cayó feo. Tu narrativa de “azar” cayó peor, patético. El grupo lo vio de un vistazo.',
-    'Restó fuerte. El archivo no ofrece plan de pagos. Pagas de golpe, ridículo. El archivo no discute el dígito.',
-    'Hoy el contador te hizo un agujero de verdad. El agujero se ve en el total, cabrón. El chat ya tomó nota sin pedirte permiso.',
-    'Pérdida hostil. El grupo no pregunta si estás bien. Pregunta cuánto bajaste, pringado. Aquí el número pesa más que la labia.',
-    'Sangría de las que callan monólogos. Hasta tu labia se quedó corta, cutre. El ranking lo registra entero.',
-    'Hoy el aura te miró con odio estadístico. Odio impreso en rojo, basura. Sin narrativa que lo tape. El contador no ofrece apelación.',
-    'Cursed firmado. Sin paño. Sin segunda lectura. Solo el dígito hundido, patético. El total habla solo.',
-    'Bajaste fuerte. El ranking te empujó dos tramos. El orgullo no encontró asidero, ridículo. Documentado en el contador.',
-    'Hoy el corte fue una demolición chica del total. Demolición igual, cabrón. El grupo lo vio de un vistazo.',
-    'Pérdida gorda registrada. El buitre del chat abrió el pico, pringado. El archivo no discute el dígito.',
-    'Sangría sin adorno. Número en caída. Boca inútil, cutre. El chat ya tomó nota sin pedirte permiso. El contador no ofrece apelación.',
-    'Hoy el contador te ejecutó un tramo. Ejecución pública de aura, basura. Aquí el número pesa más que la labia.',
-    'Cursed. El total te quedó antiestético. La estética del fail, patético. El ranking lo registra entero.',
-    'Restó feo. Feo de número. Feo de momento. Doble feo, ridículo. Sin narrativa que lo tape. El contador no ofrece apelación.',
-    'Hoy el aura te dejó el colchón en el suelo. Duerme ahí un rato, cabrón. El total habla solo. El contador no ofrece apelación.',
-    'Pérdida hostil. El archivo cerró de un portazo. El portazo se oye, pringado. Documentado en el contador.',
-    'Sangría grande. El ego quiere mitin. El mitin empeora las actas, cutre. El grupo lo vio de un vistazo.',
-    'Hoy bajaste de las que se comentan en silencio. El silencio es el roast, basura. El archivo no discute el dígito.',
-    'Cursed de verdad. No de pose. El número no posa, patético. El chat ya tomó nota sin pedirte permiso. El contador no ofrece apelación.',
-    'Restó fuerte y el ranking lo exhibió. Exhibición sin taquilla para ti, ridículo. Aquí el número pesa más que la labia.',
-    'Hoy el contador te cobró con intereses emocionales. Pagas igual, cabrón. El ranking lo registra entero.',
-    'Pérdida gorda. El grupo recalculó tu amenaza a la baja. Correcto, pringado. Sin narrativa que lo tape.',
-    'Sangría. El total habla solo. Tú sobras en la escena, cutre. El total habla solo. El contador no ofrece apelación.',
-    'Hoy el aura te hizo un agujero negro chico. Absorbe orgullo, basura. Documentado en el contador. El contador no ofrece apelación.',
-    'Cursed. Firmado en actas. Actas que el próximo roast va a citar, patético. El grupo lo vio de un vistazo.',
-    'Bajaste feo. Feo se lee en el total de un vistazo. Sin zoom, ridículo. El archivo no discute el dígito.',
-    'Hoy el corte te dejó sin margen. Sin margen se vive peor, cabrón. El chat ya tomó nota sin pedirte permiso.',
-    'Pérdida hostil registrada. Sin empatía de software. Solo resta, pringado. Aquí el número pesa más que la labia.',
-    'Sangría de ranking. El ranking no trae flores al funeral del tramo, cutre. El ranking lo registra entero.',
-    'Hoy el bot te restó como quien cobra una deuda vieja. Deuda de racha, basura. Sin narrativa que lo tape.',
-    'Cursed. El dígito cayó y tu cara no tuvo tiempo de pose, patético. El total habla solo. El contador no ofrece apelación.',
-    'Restó gordo. El archivo no discute. Tú sí. Por eso duele doble, ridículo. Documentado en el contador.',
-    'Hoy el aura te pegó en público. Público de grupo. Audiencia completa, cabrón. El grupo lo vio de un vistazo.',
-    'Pérdida grande. El sótano te dio la bienvenida otra vez, pringado. El archivo no discute el dígito. El contador no ofrece apelación.',
-    'Sangría sin filtro. El filtro no existe para el rojo, cutre. El chat ya tomó nota sin pedirte permiso.',
-    'Hoy el contador te escribió un párrafo corto y cruel. Corto y suficiente, basura. Aquí el número pesa más que la labia.',
-    'Cursed de los que se recuerdan. El chat tiene memoria selectiva para fails, patético. El ranking lo registra entero.',
-    'Bajaste fuerte. El ego buscó culpables. El único nombre en el recibo eres tú, ridículo. Sin narrativa que lo tape.',
-    'Hoy el ranking te bajó el volumen de respeto. Volumen numérico, cabrón. El total habla solo. El contador no ofrece apelación.',
-    'Pérdida hostil. Sin migaja. Sin “casi”. Solo el agujero, pringado. Documentado en el contador. El contador no ofrece apelación.',
-    'Sangría gorda. El total se vio flaco de golpe. Dieta forzosa, cutre. El grupo lo vio de un vistazo. El contador no ofrece apelación.',
-    'Hoy el aura te descontó con alevosía estadística. Alevosía del azar, basura. El archivo no discute el dígito.',
-    'Cursed. El parte cerró en rojo intenso. Intenso se nota, patético. El chat ya tomó nota sin pedirte permiso.',
-    'Restó. Fuerte. Público. Sin apelación. El pack completo, ridículo. Aquí el número pesa más que la labia.',
-    'Hoy el contador te hizo el favor de ser claro. Claro y brutal, cabrón. El ranking lo registra entero.',
-    'Pérdida grande firmada. El firmado duele más que el rumor, pringado. Sin narrativa que lo tape. El contador no ofrece apelación.',
-    'Sangría. El grupo no ofrece GoFundMe de aura. Ofrece memoria, cutre. El total habla solo. El contador no ofrece apelación.',
-    'Hoy bajaste de las que dejan el hilo quieto un segundo. Ese segundo es tu exposición, basura. Documentado en el contador.',
-    'Cursed. Número abajo. Orgullo en el suelo. Orden correcto del universo local, patético. El grupo lo vio de un vistazo.',
-    'Restó feo y el archivo no suavizó el adjetivo. No hay adjetivo: hay dígito, ridículo. El archivo no discute el dígito.',
-    'Hoy el aura te cobró el show. Show a la baja. Taquilla en negativo, cabrón. El chat ya tomó nota sin pedirte permiso.',
-    'Pérdida hostil. El buitre tomó notas. No le dictes el artículo con tu queja, pringado. Aquí el número pesa más que la labia.',
-    'Sangría gorda sin ceremonia. La falta de ceremonia es el mensaje, cutre. El ranking lo registra entero.',
-    'Hoy el contador te reubicó a la fuerza. Fuerza de número, basura. Sin narrativa que lo tape. El contador no ofrece apelación.',
-    'Cursed de manual pedagógico: así se ve un total cuando el azar no te quiere, patético. El total habla solo.',
-    'Bajaste. Fuerte. El adverbio sobra porque el total ya lo grita, ridículo. Documentado en el contador.',
-    'Hoy el ranking te dejó el ego en mode avión. Sin señal de consuelo, cabrón. El grupo lo vio de un vistazo.',
-    'Pérdida grande. El sótano tiene tu nombre en la puerta otra vez, pringado. El archivo no discute el dígito.',
-    'Sangría. El archivo puso sello grueso. Sello grueso se lee de lejos, cutre. El chat ya tomó nota sin pedirte permiso.',
-    'Hoy el aura te ejecutó un tramo entero. Ejecución sin último cigarro, basura. Aquí el número pesa más que la labia.',
-    'Cursed. El chat aprendió el número nuevo. Aprendizaje colectivo a tu costa, patético. El ranking lo registra entero.',
-    'Restó hostil. Hostil se siente en el silencio post-mensaje, ridículo. Sin narrativa que lo tape. El contador no ofrece apelación.',
-    'Hoy el contador te escribió en rojo y subrayó. Subrayado público, cabrón. El total habla solo. El contador no ofrece apelación.',
-    'Pérdida gorda. No hay subplot de redención en este mensaje. Solo el total, pringado. Documentado en el contador.',
-    'Sangría de las que cierran el pico ajeno… y el propio si tienes dignidad, cutre. El grupo lo vio de un vistazo.',
-    'Hoy el aura te dejó sin colchón ni narrativa. Desnudo de número, basura. El archivo no discute el dígito.',
-    'Cursed firmado. El firmado es el roast. El resto es eco, patético. El chat ya tomó nota sin pedirte permiso.',
-    'Bajaste fuerte. El eco de tu queja no sube el dígito. Nunca lo hizo, ridículo. Aquí el número pesa más que la labia.',
-    'Hoy el ranking te cobró cara la tirada. Cara se ve en el total, cabrón. El ranking lo registra entero.',
-    'Pérdida hostil. El grupo no hace velorio. Hace scroll, pringado. Sin narrativa que lo tape. El contador no ofrece apelación.',
-    'Sangría gorda. Scroll. Memoria. Próximo roast con material fresco, cutre. El total habla solo. El contador no ofrece apelación.',
-    'Hoy el contador te bajó del podio imaginario. El podio nunca existió, basura. Documentado en el contador.',
-    'Cursed. Fin del parte. Cualquier apéndice de orgullo se tira con el resto de la basura, patético. El grupo lo vio de un vistazo.',
-    'Hoy el corte hostil se repitió en grande. Grande se lee sin zoom, basura. Aquí el número manda. El contador no ofrece apelación.',
-    'Cursed renovado. El sótano te dio la bienvenida otra vez, patético. El archivo no discute el dígito. El contador no ofrece apelación.',
-    'Pérdida gorda extra. El total se vio flaco de golpe, ridículo. El chat tomó nota. El contador no ofrece apelación.',
-    'Sangría hostil. El grupo hizo scroll con memoria, cabrón. Aquí el número manda. El contador no ofrece apelación.',
-    'Hoy el contador te ejecutó otro tramo. Ejecución sin cigarro, pringado. El archivo no discute el dígito.',
-    'Cursed firmado. Firmado duele más que el rumor, cutre. El chat tomó nota. El contador no ofrece apelación.',
-    'Bajaste fuerte otra vez. El adverbio sobra: el total grita, basura. Aquí el número manda. El contador no ofrece apelación.',
-    'Pérdida hostil. Sin migaja. Sin casi. Solo agujero, patético. El archivo no discute el dígito. El contador no ofrece apelación.',
-    'Hoy el aura te desahució de nuevo. Desalojo numérico, ridículo. El chat tomó nota. El contador no ofrece apelación.',
-    'Sangría gorda. El buitre tomó nota fina, cabrón. Aquí el número manda. El contador no ofrece apelación.',
-    'Cursed. Número abajo. Orgullo en el suelo. Orden local, pringado. El archivo no discute el dígito. El contador no ofrece apelación.',
-    'Restó feo. Feo de total. Feo de momento, cutre. El chat tomó nota. El contador no ofrece apelación.',
-    'Hoy el ranking te bajó el volumen de respeto otra vez, basura. Aquí el número manda. El contador no ofrece apelación.',
-    'Pérdida grande. Sin subplot de redención en este mensaje, patético. El archivo no discute el dígito. El contador no ofrece apelación.',
-    'Sangría. El archivo puso sello grueso otra vez, ridículo. El chat tomó nota. El contador no ofrece apelación.',
-    'Hoy el contador te escribió en rojo y subrayó, cabrón. Aquí el número manda. El contador no ofrece apelación.',
-    'Cursed de los que se citan en el próximo roast, pringado. El archivo no discute el dígito. El contador no ofrece apelación.',
-    'Bajaste de las que dejan el hilo quieto un segundo. Ese segundo te expone, cutre. El chat tomó nota. El contador no ofrece apelación.',
-    'Pérdida hostil. El grupo no hace velorio. Hace memoria, basura. Aquí el número manda. El contador no ofrece apelación.',
-    'Cursed. Fin del parte. Apéndice de orgullo a la basura, patético. El archivo no discute el dígito. El contador no ofrece apelación.'
+    // ── Ejemplos del usuario (intocables) ──
+    'Perdiste tanta mierda que el silencio posterior fue puro cringe. Nadie quería ser el que lo mencionara.',
+    'El aura te usó de ejemplo público. El grupo miró, asintió y tomó nota mental.',
+    'Bajaste tan fuerte que hasta tus habituales defensores se hicieron los locos.',
+    'Esto no fue mala suerte. Fue el chat recordándote, sin filtro, que sigues siendo un desastre.',
+    'Quedaste tan abajo que ni valía la pena bardear. Solo quedó esa mezcla de pena y alivio de no ser tú.',
+    // ── Generadas ──
+    'El chat se quedó callado después de tu resultado. No por respeto. Por vergüenza ajena.',
+    'Perdiste tanto de golpe que el grupo necesitó un momento para procesar la magnitud del desastre.',
+    'Tu tirada fue tan mala que dos personas cerraron el chat para no tener que verlo.',
+    'El número fue tan bajo que el grupo entero se miró y nadie quiso ser el primero en hablar.',
+    'Hoy batiste un récord que nadie quería ver roto. Enhorabuena por lo único que se te da bien.',
+    'Perdiste tanto que el grupo tuvo que hacer un esfuerzo consciente por no decir nada. Y les costó.',
+    'Tu resultado fue tan malo que hasta el bot se sintió incómodo anunciándolo, joder.',
+    'Hoy te hundiste delante de todos. Con público, con testigos y con capturas que van a durar.',
+    'El silencio después de tu tirada fue el tipo de silencio que aparece en los funerales. Y lo era.',
+    'Perdiste con una intensidad que hizo que el grupo entero se sintiese aliviado de no ser tú.',
+    'Tu marcador se desplomó y el chat se congeló un segundo. Un segundo que vas a recordar.',
+    'Hoy te retrataste delante de todos. Y el retrato fue feo, preciso y permanente.',
+    'El grupo vio tu resultado y cada uno pensó lo mismo: "menos mal que no soy yo, puta madre".',
+    'Perdiste tanto que la cifra ya no da risa. Da esa incomodidad de cuando alguien la caga de verdad.',
+    'Tu tirada fue un accidente público. Todo el mundo lo vio, nadie pudo evitarlo, todos lo van a recordar.',
+    'Hoy te hundiste tan rápido que el chat no tuvo tiempo ni de preparar la broma.',
+    'El resultado fue tan malo que el grupo cambió de tema por compasión. No por ti, por ellos.',
+    'Perdiste de una forma que dejó a todo el mundo sin ganas de seguir jugando un rato.',
+    'Tu marcador cayó como cae todo lo que sueltas: rápido, ruidoso y sin que nadie lo recoja.',
+    'Hoy tu tirada fue un espectáculo, pero del tipo que nadie quiere ver dos veces.',
+    'El grupo entero presenció tu desastre y nadie dijo nada. El cringe fue más fuerte que la broma.',
+    'Perdiste tanto de golpe que el silencio posterior tuvo peso físico. Se podía sentir, cojones.',
+    'Tu resultado dejó al chat con esa sensación de cuando alguien dice algo que no debería. Incómodo.',
+    'Hoy te comiste una derrota tan grande que el grupo no supo si reírse o mirarse los zapatos.',
+    'El marcador se hundió y arrastró el ambiente con él. Nadie quiso hablar después.',
+    'Perdiste con una limpieza que da miedo. Ni un titubeo, ni una duda. Directo al puto fondo.',
+    'Tu tirada fue tan catastrófica que el grupo se dividió entre los que sentían cringe y los que sentían pena.',
+    'Hoy te expusiste delante de todos y el resultado fue exactamente lo que temías. Y peor.',
+    'El chat vio tu número y cada persona procesó la información en silencio. Demasiado malo para comentar.',
+    'Perdiste tanto que la cifra parece un error. Pero no lo es. Es tu puta realidad.',
+    'Tu resultado fue la clase de desastre que hace que la gente cierre la app y abra otra cosa.',
+    'Hoy te diste de bruces con el suelo delante de todo el grupo. Y el suelo estaba duro, cabrón.',
+    'El silencio del chat después de tu tirada fue más elocuente que cualquier insulto.',
+    'Perdiste de una manera que ni el peor enemigo te habría deseado. Y eso que aquí tienes varios.',
+    'Tu marcador se desplomó y el grupo respiró hondo colectivamente. Ese suspiro era por ti.',
+    'Hoy hiciste historia en el chat, pero del tipo que se cuenta bajando la voz.',
+    'El resultado fue tan malo que el grupo necesitó un cambio de tema urgente para poder seguir.',
+    'Perdiste tanto que tu nombre va a ser sinónimo de desastre durante las próximas semanas.',
+    'Tu tirada fue el equivalente a tropezarte en un escenario. Con foco, con público y sin salida.',
+    'Hoy el chat presenció algo que no quería presenciar. Tu derrota fue genuinamente incómoda.',
+    'El grupo vio tu resultado y ninguno quiso ser el que rompiera el silencio. Demasiado.',
+    'Perdiste con un estruendo silencioso. De esos que se sienten pero no se nombran.',
+    'Tu marcador bajó tanto que el chat necesitó un momento para recuperar la normalidad, joder.',
+    'Hoy te hundiste con testigos. Y los testigos van a hablar cuando tú no estés.',
+    'El resultado fue tan catastrófico que el grupo sintió vergüenza ajena real. De la física.',
+    'Perdiste de una forma que convirtió el chat en un velatorio durante treinta segundos.',
+    'Tu tirada fue tan mala que hasta la gente que te odia prefirió no decir nada. Eso ya es mucho.',
+    'Hoy batiste un fondo que nadie sabía que existía. Explorador del desastre, puto campeón.',
+    'El chat se quedó en blanco después de tu resultado. No por sorpresa. Por cringe.',
+    'Perdiste tanto que la próxima vez que tires, todo el grupo va a mirar con morbo. Y con miedo.',
+    'Tu resultado fue una demolición pública. Rápida, visible y sin un solo atenuante.',
+    'Hoy te comiste la peor tirada que el grupo ha visto en semanas. Y la comiste en directo.',
+    'El silencio posterior fue de los que incomodan. De los que hacen que la gente mire el móvil para otro lado.',
+    'Perdiste con una magnitud que dejó al grupo sin herramientas. Sin broma, sin ironía, sin nada.',
+    'Tu tirada fue tan desastrosa que el chat tardó en retomar la conversación. Y cuando la retomó, fue de otro tema.',
+    'Hoy tu resultado fue un golpe que se sintió en todo el grupo. No de respeto. De cringe puro.',
+    'El marcador se desplomó y llevó tu dignidad con él. Los dos al fondo, juntos.',
+    'Perdiste de una forma tan limpia que no hay debate posible. Solo el número y su significado.',
+    'Tu tirada dejó al grupo con esa cara de cuando alguien la caga en público y nadie sabe qué decir.',
+    'Hoy te hundiste en público y en directo. El grupo fue testigo de todo y ninguno te ayudó.',
+    'El resultado fue tan bajo que el chat se sintió pesado un rato. Tu presencia empeoró el ambiente.',
+    'Perdiste con la elegancia de un saco de mierda cayendo por las escaleras. Ruidoso y feo.',
+    'Tu tirada fue el punto más bajo del día en el chat. Y el día venía siendo malo de antes.',
+    'Hoy el grupo vio tu resultado y cada uno sintió algo distinto. Todos malos.',
+    'El chat absorbió tu derrota como absorbe las malas noticias: en silencio y con la cara larga.',
+    'Perdiste tanto que el grupo dudó si era real. Confirmó que sí, y el cringe fue peor.',
+    'Tu resultado convirtió un chat activo en un velatorio temporal. Nadie quiso seguir hablando.',
+    'Hoy te retrataron los números. Y el retrato fue tan feo que nadie quiso mirarlo dos veces.',
+    'El marcador cayó y el grupo sintió el golpe. No por ti, por la incomodidad de presenciarlo.',
+    'Perdiste de la peor forma posible: delante de todos, sin excusa y sin manera de explicarlo.',
+    'Tu tirada fue una catástrofe que el grupo va a recordar. No por grande, por incómoda.',
+    'Hoy te comiste una derrota que dejó al chat más callado que un examen. Nadie copió nada, cojones.',
+    'El resultado fue tan malo que el grupo tardó en reaccionar. Y cuando reaccionó, fue cambiando de tema.',
+    'Perdiste con un impacto que dejó al chat desorientado un momento. Tu derrota fue desorientadora de lo mala.',
+    'Sacaste un número que el grupo va a usar como unidad de medida del desastre. "Perdiste casi tanto como él".',
+    'Tu resultado fue tan malo que hasta los que disfrutan viendo fracasos sintieron que era demasiado.',
+    'Hoy caíste tan fuerte que el chat se quedó con esa sensación de haber visto algo que no debería. Cringe puro.',
   ],
 };
 
 
 
 // Cada tramo se ordena de mas duro a mas suave: el bot saca primero lo peor.
+for (const tramo of Object.keys(AURA)) AURA[tramo] = AURA[tramo];
 
 // !aura top — leaderboard of accumulated aura in the group.
 async function showRanking(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
- if (!jid.endsWith('@g.us')) {
-   return sock.sendMessage(jid, { text: 'El ranking de aura solo existe en grupos.' }, { quoted: msg });
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'El ranking de aura solo existe en grupos.' }, { quoted: msg });
   }
   // Un solo filtro: quien ya no esta en el grupo no ocupa puesto. El aura se
   // guarda para siempre y sin esto el ranking seguia coronando a gente que se
@@ -645,23 +569,15 @@ async function showRanking(sock, msg, groupMeta) {
   // aura, no de actividad. No dice cuanto escribe nadie ni de donde salio ese
   // saldo, asi que aparecer en el no delata ni su rango ni sus mensajes — que es
   // lo que se protege en !count, !relevancia, !vs, !inactivos y los tops al azar.
-  // Fuera los que estan a cero o en negativo. Un top es para presumir, y una
-  // cola de gente con 0 y con numeros rojos no dice nada de nadie: solo alarga
-  // la lista y molesta. Quien esta ahi ya se entera por su propio !aura.
-  //
-  // Ojo, esto NO es lo mismo que el suelo de SUELO_TODOS: aquel fue un rescate
-  // de una vez, y despues de el se puede volver a caer a cero robando o
-  // apostando. Por eso hace falta filtrar aqui y no basta con el suelo.
   const ranking = soloMiembros(await getAuraRanking(jid), groupMeta)
-    .filter(r => r.aura > 0)
     .slice(0, 10);
   if (ranking.length === 0) {
-    return sock.sendMessage(jid, { text: 'Nadie tiene aura que enseñar todavía. Usa *!aura*.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Nadie ha medido su aura todavía. Usa *!aura*.' }, { quoted: msg });
   }
- let text = '*RANKING DE AURA*\n\n';
+  let text = '*RANKING DE AURA*\n\n';
   const mentions = [];
   ranking.forEach((r, i) => {
-   text += `*${i + 1}.* @${r.jid.split('@')[0]} — ${fmt(r.aura)}\n`;
+    text += `*${i + 1}.* @${r.jid.split('@')[0]} — ${fmt(r.aura)}\n`;
     mentions.push(r.jid);
   });
   await sock.sendMessage(jid, { text: text.trimEnd(), mentions }, { quoted: msg });
@@ -687,8 +603,8 @@ function textoAuraInfo() {
   const horasApuesta = APUESTA.cooldownMin / 60;
   const precios = Object.entries(PRECIOS)
     .sort((a, b) => b[1] - a[1])
-   .map(([k, v]) => `*!${k === 'sticker' ? 's' : k === 'grok' ? 'g' : k}* ${v}`)
-   .join(' · ');
+    .map(([k, v]) => `*!${k === 'sticker' ? 's' : k === 'grok' ? 'g' : k}* ${v}`)
+    .join(' · ');
 
   return `*LA GUÍA DEL AURA*
 
@@ -752,212 +668,26 @@ const apuestaEnCurso = new Set();
 // Frases de rechazo. Secas: dicen el porque y nada mas. El bot no da tutoriales
 // ni explica como conseguir aura.
 const APUESTA_POBRE = [
- 'Joder, vienes a apostar con el culo al aire y sin un puto duro de aura. La mesa no hace caridad. El grupo ya memorizó este fail, patético.',
-
- 'Sin saldo y con pretensiones de high roller. Eres el chiste del casino, cabrón. No hay maquillaje que lo tape, miserable.',
-
- 'Los bolsillos transparentes y la cara de querer ganar. Menuda combinación de gilipollas. Se te ve el cartón desde el otro lado del hilo, qué cringe.',
-
- 'Apuestas con aura de mendigo y ego de dueño. El contraste da vergüenza ajena, mierda. Menuda forma de pedir que te humillen, da asco.',
-
- 'No tienes con qué perder y aun así te sientas a la mesa. Pobreza con audacia, coño. El ranking no hace descuentos, qué vergüenza.',
-
- 'El croupier virtual te mira y se rie. Cero aura, cero respeto, asco puro. El grupo ya memorizó este fail, ridículo.',
-
- 'Vienes a apostar lo que no tienes. Eso no es valiente: es patético de manual. No hay maquillaje que lo tape, fracasado.',
-
- 'Aura en negativo y manos en la mesa. El grupo ya sabe cómo acaba esto, basura. Se te ve el cartón desde el otro lado del hilo, qué miseria.',
-
- 'Sin un puto punto y quieres el bote. La delusión es olímpica, ridículo. Menuda forma de pedir que te humillen, da grima.',
-
- 'Pobre de aura y rico en cara dura. El casino no fía a fracasados como tú. El ranking no hace descuentos, qué nivel de pena.',
-
- 'La mesa exige saldo. Tú ofreces vergüenza. No hay cambio posible. El grupo ya memorizó este fail, basura.',
-
- 'Intentar apostar en bancarrota es el deporte de los que no aprenden, cabrón. No hay maquillaje que lo tape, qué cutre.',
-
- 'Cero ficha, mil fantasías. Eres el cliente que echan antes de servir, gilipollas. Se te ve el cartón desde el otro lado del hilo, da pena ajena.',
-
- 'El aura no llega ni para la propina simbólica. Fuera de la mesa, mierda. Menuda forma de pedir que te humillen, qué vacío.',
-
- 'Apuestas de pobre: mucho teatro y nada en el bolsillo, coño. El ranking no hace descuentos, indignante.',
-
- 'Sin saldo no hay jugada. Solo hay un pringado queriendo escena, asco. El grupo ya memorizó este fail, qué vergüenza ajena.',
-
- 'La pobreza de aura te delata antes de que hables. Callate y farmea, patético. No hay maquillaje que lo tape, da vergüenza.',
-
- 'Quieres apostar aire. El bot no cotiza aire, basura. Se te ve el cartón desde el otro lado del hilo, qué flojo.',
-
- 'Miseria documentada y aun así en la cola del casino. Ridículo total. Menuda forma de pedir que te humillen, menudo desastre.',
-
- 'No tienes aura. Tienes un hueco donde debería estar el saldo, fracasado. El ranking no hace descuentos, qué pena.',
-
- 'All-in con los bolsillos vacíos. Eres un meme andante. El grupo ya memorizó este fail, patético.',
-
- 'La mesa te rechaza por higiene económica del ranking, cabrón. No hay maquillaje que lo tape, miserable.',
-
- 'Sin chips no hay drama heroico. Solo hay un pobre insistente, gilipollas. Se te ve el cartón desde el otro lado del hilo, qué cringe.',
-
- 'Aura de sótano y boca de VIP. El combo da grima, mierda. Menuda forma de pedir que te humillen, da asco.',
-
- 'Vuelves a la mesa sin haber ganado un puto mensaje de aura, coño. El ranking no hace descuentos, qué vergüenza.',
-
- 'El casino no es un comedor social. Fuera, asco. El grupo ya memorizó este fail, ridículo.',
-
- 'Apuesta denegada por pobreza crónica de ranking, patético. No hay maquillaje que lo tape, fracasado.',
-
- 'No llegas al mínimo y pretendes el máximo. Basura con pretensiones. Se te ve el cartón desde el otro lado del hilo, qué miseria.',
-
- 'El saldo grita miseria. Tú gritas all-in. El grupo elige a quién oír, ridículo. Menuda forma de pedir que te humillen, da grima.',
-
- 'Pobreza de aura certificada. No hay mesa para ti hoy, fracasado. El ranking no hace descuentos, qué nivel de pena.',
-
- 'Intentar farmear suerte sin farmear presencia. Estrategia de idiota. El grupo ya memorizó este fail, basura.',
-
- 'La bancarrota no es estética. Es tu estado real, cabrón. No hay maquillaje que lo tape, qué cutre.',
-
- 'Sin aura no hay apuesta. Hay un show de pobreza, gilipollas. Se te ve el cartón desde el otro lado del hilo, da pena ajena.',
-
- 'El bot te cierra la ventanilla. Vuelve cuando tengas algo, mierda. Menuda forma de pedir que te humillen, qué vacío.',
-
- 'Cero en el contador y mil en el ego. Desbalance de enfermo, coño. El ranking no hace descuentos, indignante.',
-
- 'La mesa está abierta para quien paga. Tú no pagas, asco. El grupo ya memorizó este fail, qué vergüenza ajena.',
-
- 'Pobre con manual de rich kid. Nadie compra el personaje, patético. No hay maquillaje que lo tape, da vergüenza.',
-
- 'Aura insuficiente. Orgullo sobrante. Resultado: rechazo, basura. Se te ve el cartón desde el otro lado del hilo, qué flojo.',
-
- 'No te alcanza ni para el peaje del casino, ridículo. Menuda forma de pedir que te humillen, menudo desastre.',
-
- 'All-in emocional, all-out de saldo. Fracasado con estilo barato. El ranking no hace descuentos, qué pena.',
-
- 'Vienes a perder lo que no tienes. Matemáticas de pringado. El grupo ya memorizó este fail, patético.',
-
- 'El ranking te tiene fichado como cliente insolvente, cabrón. No hay maquillaje que lo tape, miserable.',
-
- 'Sin ficha no hay historia. Hay un corte de luz a tu drama, gilipollas. Se te ve el cartón desde el otro lado del hilo, qué cringe.',
-
- 'La pobreza se te lee en el aura y en la insistencia, mierda. Menuda forma de pedir que te humillen, da asco.',
-
- 'Casino cerrado para mendigos de ranking, coño. El ranking no hace descuentos, qué vergüenza.',
-
- 'No hay crédito. Hay solo un no en la cara, asco. El grupo ya memorizó este fail, ridículo.',
-
- 'Apuesta imposible: saldo cero, dignidad en oferta, patético. No hay maquillaje que lo tape, fracasado.',
-
- 'El grupo ya memorizó tu fail de pobre, basura. Se te ve el cartón desde el otro lado del hilo, qué miseria.',
-
- 'Sin aura no entras. Punto final sin debate, ridículo. Menuda forma de pedir que te humillen, da grima.',
-
- 'La mesa te debe cero. Tú le debes vergüenza, fracasado. El ranking no hace descuentos, qué nivel de pena.',
-
- 'Joder, otra vez sin saldo y con hambre de apuesta. Aprende el peaje. El grupo ya memorizó este fail, basura.',
-
- 'Cabrón, el casino no es terapia para tu miseria de aura. No hay maquillaje que lo tape, qué cutre.',
-
- 'Gilipollas con los bolsillos de cristal. Se ve el vacío entero. Se te ve el cartón desde el otro lado del hilo, da pena ajena.',
-
- 'Mierda de intento: apostar humo y esperar oro. Menuda forma de pedir que te humillen, qué vacío.',
-
- 'Coño, farmea primero y presume después. El ranking no hace descuentos, indignante.',
-
- 'Asco de clientela: quiere VIP con carnet de pobre. El grupo ya memorizó este fail, qué vergüenza ajena.',
-
- 'Patético el ritual de sentarse sin un puto punto. No hay maquillaje que lo tape, da vergüenza.',
-
- 'Basura de estrategia: suerte sin presencia previa. Se te ve el cartón desde el otro lado del hilo, qué flojo.',
-
- 'Ridículo el all-in de quien no tiene ni el mínimo. Menuda forma de pedir que te humillen, menudo desastre.',
-
- 'Fracasado de mesa: rechazado antes del shuffle. El ranking no hace descuentos, qué pena.',
-
- 'Joder, el aura en dieta y el ego en buffet libre. El grupo ya memorizó este fail, patético.',
-
- 'Cabrón, no hay silla para quien no paga el cubierto. No hay maquillaje que lo tape, miserable.',
-
- 'Gilipollas, la pobreza no se disfraza con bravata. Se te ve el cartón desde el otro lado del hilo, qué cringe.',
-
- 'Mierda, vuelves con las mismas manos vacías. Menuda forma de pedir que te humillen, da asco.',
-
- 'Coño, el contador sigue en el sótano y tú en la cola. El ranking no hace descuentos, qué vergüenza.',
-
- 'Asco, insistir sin saldo es una forma de mendigar escena. El grupo ya memorizó este fail, ridículo.',
-
- 'Patético, el bot ya tiene plantilla para tu rechazo. No hay maquillaje que lo tape, fracasado.',
-
- 'Basura, no hay plot twist: sigues pobre de aura. Se te ve el cartón desde el otro lado del hilo, qué miseria.',
-
- 'Ridículo, la mesa ni se inmuta con tu drama. Menuda forma de pedir que te humillen, da grima.',
-
- 'Fracasado, primero escribe, luego apuesta. El ranking no hace descuentos, qué nivel de pena.',
-
- 'Joder, sin mensajes no hay milagro de fichas. El grupo ya memorizó este fail, basura.',
-
- 'Cabrón, el casino lee el ranking mejor que tú. No hay maquillaje que lo tape, qué cutre.',
-
- 'Gilipollas, la cara dura no cotiza como saldo. Se te ve el cartón desde el otro lado del hilo, da pena ajena.',
-
- 'Mierda, otra denegación con tu nombre encima. Menuda forma de pedir que te humillen, qué vacío.',
-
- 'Coño, miseria y pretensión en el mismo asiento. El ranking no hace descuentos, indignante.',
-
- 'Asco, el vacío de aura se oye desde aquí. El grupo ya memorizó este fail, qué vergüenza ajena.',
-
- 'Patético, quieres ganar sin haber farmeado nada. No hay maquillaje que lo tape, da vergüenza.',
-
- 'Basura, el peaje existe precisamente por gente como tú. Se te ve el cartón desde el otro lado del hilo, qué flojo.',
-
- 'Ridículo, all-in de aire comprimido. Menuda forma de pedir que te humillen, menudo desastre.',
-
- 'Fracasado, la mesa te devuelve a la realidad del sótano. El ranking no hace descuentos, qué pena.',
-
- 'Joder, no hay ficha mágica para el que no aparece en el hilo. El grupo ya memorizó este fail, patético.',
-
- 'Cabrón, pobreza documentada y ego sin documentar vergüenza. No hay maquillaje que lo tape, miserable.',
-
- 'Gilipollas, el rechazo es el único premio que te toca. Se te ve el cartón desde el otro lado del hilo, qué cringe.',
-
- 'Mierda, saldo cero es un idioma y tú lo hablas fluido. Menuda forma de pedir que te humillen, da asco.',
-
- 'Coño, deja de molestar la mesa hasta tener algo. El ranking no hace descuentos, qué vergüenza.',
-
- 'Asco, el ranking no fía y el bot tampoco. El grupo ya memorizó este fail, ridículo.',
-
- 'Patético, tu all-in es un grito de socorro disfrazado. No hay maquillaje que lo tape, fracasado.',
-
- 'Basura, sin aura no hay butaca. Se te ve el cartón desde el otro lado del hilo, qué miseria.',
-
- 'Ridículo, la bancarrota no es un estilo de juego. Menuda forma de pedir que te humillen, da grima.',
-
- 'Fracasado, vuelve cuando el contador no se ría de ti. El ranking no hace descuentos, qué nivel de pena.',
-
- 'Joder, otra vez el mismo pobre en la misma cola. El grupo ya memorizó este fail, basura.',
-
- 'Cabrón, el casino cerró la pestaña de caridad. No hay maquillaje que lo tape, qué cutre.',
-
- 'Gilipollas, tus manos vacías son el argumento entero. Se te ve el cartón desde el otro lado del hilo, da pena ajena.',
-
- 'Mierda, no hay debate: no llegas. Menuda forma de pedir que te humillen, qué vacío.',
-
- 'Coño, farmea aura o farmea silencio. El ranking no hace descuentos, indignante.',
-
- 'Asco, la insistencia no genera saldo. El grupo ya memorizó este fail, qué vergüenza ajena.',
-
- 'Patético, el no te lo sabes de memoria y aun así preguntas. No hay maquillaje que lo tape, da vergüenza.',
-
- 'Basura, cliente insolvente del ranking. Se te ve el cartón desde el otro lado del hilo, qué flojo.',
-
- 'Ridículo, apuesta fantasma con cuerpo presente. Menuda forma de pedir que te humillen, menudo desastre.',
-
- 'Fracasado, la mesa te señala la salida sin levantar la voz. El ranking no hace descuentos, qué pena.',
-
+  'Joder, vienes a apostar con el culo al aire y sin vergüenza. Vuelve cuando tengas algo que no sea miseria.',
+  'Con esa mierda de saldo no llegas ni a la barra, cojones.',
+  '¿Apostar tú? Ni de coña. Antes junta cuatro duros y luego hablamos.',
+  'Vienes más pelado que una rata de alcantarilla. Aquí no se juega con pena.',
+  'Esa calderilla no vale ni para limpiarme el culo, no te digo ya para apostar.',
+  'La mesa tiene un mínimo y tú tienes menos que eso, gilipollas.',
+  'Con lo que tienes no apuestas, mendigas. Y aquí no se reparte caridad.',
+  'Joder, qué vergüenza ajena da tu saldo. Vuelve cuando no seas un puto pordiosero.',
+  'Eso no es aura, es la mierda que queda en el fondo del bolsillo.',
+  'Ni para propina llega eso, coño. Vete a pedir a otro lado.',
+  'Aquí se apuesta con cojones, no con las migajas que te quedan.',
+  'Con esa hostia de saldo lo único que arriesgas es hacer el ridículo.',
+  'Estás más seco que la Mancha en agosto. Junta pasta y vuelve, pringado.',
+  'No hay mínimo que sobreviva a tu miseria. Larga de la mesa.',
 ];
 
 async function jugarApuesta(sock, msg, groupMeta, args) {
   const jid = msg.key.remoteJid;
- if (!jid.endsWith('@g.us')) {
-   return sock.sendMessage(jid, { text: 'Esto solo se juega en grupos.' }, { quoted: msg });
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'Esto solo se juega en grupos.' }, { quoted: msg });
   }
 
   if (auraApagada(jid)) return avisarApagada(sock, jid, msg);
@@ -978,7 +708,7 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
       const h = Math.floor(queda / 3_600_000);
       const m = Math.ceil((queda % 3_600_000) / 60_000);
       return sock.sendMessage(jid, {
-       text: `La mesa todavía está caliente. Vuelve en *${h ? h + 'h ' : ''}${m}min*.`,
+        text: `La mesa todavía está caliente. Vuelve en *${h ? h + 'h ' : ''}${m}min*.`,
       }, { quoted: msg });
     }
 
@@ -1026,21 +756,21 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
     let alBote = 0;
     if (!gana && delta < 0) alBote = await aportarAlBote(jid, Math.abs(delta) * BOTE.fraccionDeApuesta);
 
-   const nm = `@${sender.split('@')[0]}`;
-   const frase = pickFresh(gana ? POOL_APUESTA_GANA : POOL_APUESTA_PIERDE, `${jid}|apuesta|${gana ? 'gana' : 'pierde'}`)
+    const nm = `@${sender.split('@')[0]}`;
+    const frase = pickFresh(gana ? POOL_APUESTA_GANA : POOL_APUESTA_PIERDE, `${jid}|apuesta|${gana ? 'gana' : 'pierde'}`)
       .replace(/%A/g, nm)
       .replace(/%C/g, fmt(apuesta))
       .replace(/%S/g, fmt(current));
 
     const text =
-     `*APUESTA — ${gana ? 'GANA' : 'PIERDE'}*\n` +
+      `*APUESTA — ${gana ? 'GANA' : 'PIERDE'}*\n` +
       `╾━━━━━━━━━━━━━━╼\n\n` +
       `${nm} puso *${fmt(apuesta)}* sobre la mesa.` +
-     (recortada ? `\n_Ibas a por ${fmt(bruto)}, pero es todo lo que puedes cubrir._` : '') +
+      (recortada ? `\n_Ibas a por ${fmt(bruto)}, pero es todo lo que puedes cubrir._` : '') +
       `\n\n` +
       `${frase}\n\n` +
-     `${gana ? '+' : '−'}${fmt(Math.abs(delta))} → *${fmt(current)}* de aura` +
-     (alBote ? `\n_Una parte de lo que soltaste ha ido al bote del grupo, que sube a *${fmt(alBote)}*. Alguien se lo va a llevar y no vas a ser tú._` : '');
+      `${gana ? '+' : '−'}${fmt(Math.abs(delta))} → *${fmt(current)}* de aura` +
+      (alBote ? `\n_Una parte de lo que soltaste ha ido al bote del grupo, que sube a *${fmt(alBote)}*. Alguien se lo va a llevar y no vas a ser tú._` : '');
 
     return sock.sendMessage(jid, { text, mentions: [sender] }, { quoted: msg });
   } finally {
@@ -1056,48 +786,47 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
 // grupo entero da por hecho que le han borrado el marcador.
 async function interruptor(sock, msg, sub, groupMeta) {
   const jid = msg.key.remoteJid;
- if (!jid.endsWith('@g.us')) {
-   return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-   return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
   }
 
- const encender = sub === 'on' || sub === 'encender';
+  const encender = sub === 'on' || sub === 'encender';
   await toggleAura(jid, encender);
   reiniciarAviso(jid);
 
   return sock.sendMessage(jid, {
     text: encender
-     ? 'Dinámica de aura *reanudada*. Se puede volver a tirar, apostar, robar y batirse en duelo.'
-     : 'Dinámica de aura *en pausa*. Nadie puede tirar, apostar, robar, batirse en duelo ni dar aura.\n\n' +
-       '_Los saldos no se tocan y se siguen ganando escribiendo. *!aura top* y *!aura @user* siguen funcionando._.',
-
+      ? 'Dinámica de aura *reanudada*. Se puede volver a tirar, apostar, robar y batirse en duelo.'
+      : 'Dinámica de aura *en pausa*. Nadie puede tirar, apostar, robar, batirse en duelo ni dar aura.\n\n' +
+        '_Los saldos no se tocan y se siguen ganando escribiendo. *!aura top* y *!aura @user* siguen funcionando._',
   }, { quoted: msg });
 }
 
 async function cmdAura(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
 
- const sub = (args && args[0] ? args[0] : '').toLowerCase();
+  const sub = (args && args[0] ? args[0] : '').toLowerCase();
 
   // El interruptor va lo primero: si no, con la dinamica apagada no habria
   // forma de volver a encenderla desde el propio comando.
- if (['on', 'off', 'encender', 'apagar'].includes(sub)) {
+  if (['on', 'off', 'encender', 'apagar'].includes(sub)) {
     return interruptor(sock, msg, sub, groupMeta);
   }
 
- if (['top', 'rank', 'ranking', 'leaderboard'].includes(sub)) {
+  if (['top', 'rank', 'ranking', 'leaderboard'].includes(sub)) {
     return showRanking(sock, msg, groupMeta);
   }
- if (['info', 'help', 'ayuda', 'como', 'cómo', '?'].includes(sub)) {
+  if (['info', 'help', 'ayuda', 'como', 'cómo', '?'].includes(sub)) {
     return sock.sendMessage(jid, { text: textoAuraInfo() }, { quoted: msg });
   }
   // Progreso diario. Vive en social.js (cmdCasino) y se expone aquí como
   // "!aura hoy" porque es aura, no un casino aparte. !casino sigue valiendo.
- if (['hoy', 'today', 'dia', 'día', 'diario'].includes(sub)) {
-   const { cmdCasino } = require('./social');
+  if (['hoy', 'today', 'dia', 'día', 'diario'].includes(sub)) {
+    const { cmdCasino } = require('./social');
     // groupMeta va SIEMPRE: es lo que le permite reconocer al owner principal
     // para no contestarle. Sin ella la comprobacion falla en grupos LID y le
     // saldria el "Mensajes hoy: 0" que lo delata.
@@ -1108,7 +837,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
   // El nombre bueno es *apostar*. Los demas se conservan como alias porque el
   // comando ya se llamo asi antes y no tiene sentido romperle el habito a nadie
   // por un cambio de nombre.
- if (['apostar', 'apuesta', 'mitad', 'x2', 'ordago', 'órdago', 'allin', 'all-in', 'todo', 'mesa'].includes(sub)) {
+  if (['apostar', 'apuesta', 'mitad', 'x2', 'ordago', 'órdago', 'allin', 'all-in', 'todo', 'mesa'].includes(sub)) {
     return jugarApuesta(sock, msg, groupMeta, args);
   }
 
@@ -1121,7 +850,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
   if (mentioned && !sameUser(mentioned, sender)) {
     const aura = await getAura(jid, mentioned);
     return sock.sendMessage(jid, {
-     text: `*@${mentioned.split('@')[0]}* tiene *${fmt(aura)}* de aura.`,
+      text: `*@${mentioned.split('@')[0]}* tiene *${fmt(aura)}* de aura.`,
       mentions: [mentioned],
     }, { quoted: msg });
   }
@@ -1190,11 +919,10 @@ async function cmdAura(sock, msg, args, groupMeta) {
   const { previous, current } = await addAura(jid, sender, amount);
 
   // Already in the red and going deeper: use spiral phrases
- const effectiveTier = (previous < 0 && amount < 0) ? 'spiral' : tier;
-  
+  const effectiveTier = (previous < 0 && amount < 0) ? 'spiral' : tier;
 
   const text =
-   `*@${sender.split('@')[0]} ${sign}${fmt(Math.abs(amount))} de aura*\n` +
+    `*@${sender.split('@')[0]} ${sign}${fmt(Math.abs(amount))} de aura*\n` +
     `${pickFresh(AURA[effectiveTier], `${jid}|aura|${effectiveTier}`)}\n\n` +
     `Aura total: *${fmt(current)}*` +
     // La línea del bono se enseña a TODOS MENOS AL OWNER PRINCIPAL.
@@ -1211,16 +939,6 @@ async function cmdAura(sock, msg, args, groupMeta) {
       ? `\n_Veterano (${fmt(mensajes)} msgs): +${Math.round(plusActividad * 100)}% de suerte_`
       : '') +
     '';
-
-  // NO se avisa de que la tirada ha dejado de pagar, por decision del owner:
-  // "es totalmente irrelevante". Y lo es para quien juega — los importes que
-  // salen son los mismos, lo unico que cambia es el valor esperado a la larga,
-  // asi que el aviso no explicaba nada que se viera en pantalla y ensuciaba
-  // todas las tiradas a partir de la octava.
-  //
-  // El freno sigue existiendo igual: `dePago` se calcula y se le pasa a
-  // rollAura, que a partir de ahi tira a cara o cruz con valor esperado cero.
-  // Lo unico que se ha quitado es el cartel.
 
   await sock.sendMessage(jid, { text, mentions: [sender] }, { quoted: msg });
 }

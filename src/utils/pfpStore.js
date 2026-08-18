@@ -45,7 +45,7 @@ function scheduleSave() {
 // devuelve las coincidencias relevantes ANTES de registrar: otras cuentas con
 // (casi) la misma foto, o fotos marcadas fake. Los `now`/timestamps permiten
 // distinguir después si esa cuenta sigue o ya no está. `group` puede ser null
-// (p.ej un !pfp por número en un DM) — solo se usa como etiqueta.
+// (p.ej. un !pfp por número en un DM) — solo se usa como etiqueta.
 async function recordAndMatch(group, account, hash, now = Date.now()) {
   await load();
   if (!hash || !account) return [];

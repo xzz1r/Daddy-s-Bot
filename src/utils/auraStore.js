@@ -300,6 +300,9 @@ async function getAuraRanking(groupJid) {
   }
   return [...por.values()]
     .map(({ jid, aura, extras }) => ({ jid, aura: aura - STARTING_AURA * extras }))
+    // Fuera los que estan a cero o en rojo. Un top es de los que van ganando;
+    // rellenarlo con gente a 0 solo alarga la lista y no dice nada de nadie.
+    .filter((r) => r.aura > 0)
     .sort((a, b) => b.aura - a.aura);
 }
 

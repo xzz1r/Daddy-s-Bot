@@ -294,7 +294,7 @@ function injectExifIntoWebP(webp, exifBuf) {
     // renderer alpha-blends a frame's semi-transparent edge pixels against
     // whatever the PREVIOUS frame drew there — different video content each
     // frame — producing a translucent ghost/"doubled" smear at the seam
-    // between the opaque content and the transparent padding libwebp also
+    // between the opaque content and the transparent padding. libwebp also
     // always sets the VP8X Alpha flag (0x10) even for fully opaque animations
     // with no real alpha at all, so we track per-frame whether alpha is real
     // and only keep the flag set when at least one frame actually has it.
@@ -616,7 +616,7 @@ async function videoToSticker(videoBuffer, author) {
   }
 }
 
-// Raw GIF (image/gif attachment) → animated sticker detectExt sees 'gif',
+// Raw GIF (image/gif attachment) → animated sticker. detectExt sees 'gif',
 // so videoToSticker writes a .gif temp file and ffmpeg reads it once through
 // with the same square-fit tiers — no separate code path needed.
 async function gifToSticker(gifBuffer, author) {

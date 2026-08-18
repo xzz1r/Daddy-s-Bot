@@ -3,915 +3,315 @@ const { getSender, isMainOwner, isBotJid, bareJid, sameUser } = require('../util
 
 const VERDICTS = {
   perfect: [
-    'Cien por cien. Estos dos se merecen mutuamente y eso es lo más bonito y lo más aterrador que se puede decir de alguien, patético.',
-
-    'Match perfecto. Nadie más los aguantaría, así que menos mal que se tienen el uno al otro, los muy cabrones, miserable.',
-
-    'Compatibilidad total. Dos putos desastres que encajan como una llave en una cerradura oxidada: chirría, pero abre, qué cringe.',
-
+    'Cien por cien, joder. Estos dos se merecen mutuamente y eso es lo más bonito y lo más aterrador que se puede decir de alguien.',
+    'Match perfecto. Nadie más los aguantaría, así que menos mal que se tienen el uno al otro, los muy cabrones.',
+    'Compatibilidad total. Dos putos desastres que encajan como una llave en una cerradura oxidada: chirría, pero abre.',
     'Hostia puta, cien. Estos dos van a hacerse muchísimo daño y les va a encantar cada minuto.',
-
-    'Pleno. Si no acaban juntos es porque el universo tiene sentido del humor y quiere verlos sufrir por separado, los gilipollas, qué vergüenza.',
-
-    'Match absoluto. Se van a arruinar la vida el uno al otro y va a ser un espectáculo de cojones',
-
-    'Cien. Ninguno de los dos va a encontrar nada mejor, y en el fondo lo saben, los muy hijos de puta',
-
-    'Compatibilidad perfecta. Dos taras que se cancelan entre sí. La ciencia no lo explica, la mierda esta sí, qué miseria.',
-
-    'Joder, cien por cien. Esto no es química, esto es que nadie más quiere a ninguno de los dos y han acabado juntos por descarte, da grima.',
-
-    'Match total. Se merecen tanto que casi parece una condena en vez de un premio. La cárcel con wifi más bonita del grupo, qué nivel de pena.',
-
-    'Pleno absoluto. Que se junten ya de una puta vez y nos dejen en paz al resto',
-
-    'Cien. Dos personas hechas la una para la otra, principalmente porque el resto del grupo ya les dijo que no, qué cutre.',
-
-    'Match perfecto. Van a discutir todos los días y ninguno se va a ir nunca. Amor del tipo tóxico que dura para siempre, da pena ajena.',
-
+    'Pleno. Si no acaban juntos es porque el universo tiene sentido del humor y quiere verlos sufrir por separado, los gilipollas.',
+    'Match absoluto. Se van a arruinar la vida el uno al otro y va a ser un espectáculo de cojones.',
+    'Cien. Ninguno de los dos va a encontrar nada mejor, y en el fondo lo saben, los muy hijos de puta.',
+    'Compatibilidad perfecta. Dos taras que se cancelan entre sí. La ciencia no lo explica, la mierda esta sí.',
+    'Joder, cien por cien. Esto no es química, esto es que nadie más quiere a ninguno de los dos y han acabado juntos por descarte.',
+    'Match total. Se merecen tanto que casi parece una condena en vez de un premio. La cárcel con wifi más bonita del grupo.',
+    'Pleno absoluto. Que se junten ya de una puta vez y nos dejen en paz al resto.',
+    'Cien. Dos personas hechas la una para la otra, principalmente porque el resto del grupo ya les dijo que no, coño.',
+    'Match perfecto, joder. Van a discutir todos los días y ninguno se va a ir nunca. Amor del tipo tóxico que dura para siempre.',
     'Hostia, cien por cien. El grupo entero lo veía venir menos ellos dos, que son gilipollas.',
-
-    'Cien. Si esto no acaba en boda acaba en orden de alejamiento, pero acaba en algo gordo',
-
-    'Pleno de los gordos. Nadie ha dado nunca este número aquí. Tomad nota y haceos puto cargo',
-
-    'Match del cien, cabrón. Dos piezas rotas que encajan justo por donde están rotas. Poético y patético a partes iguales, da vergüenza.',
-
-    'Compatibilidad total. Se van a querer mal, que es como se quiere de verdad en este grupo de mierda',
-
-    'Cien. El destino no ha tenido nada que ver: simplemente nadie más quiso a ninguno de los dos, menudo desastre.',
-
-    'Match perfecto. Van a ser felices y va a ser insufrible de ver desde fuera, los muy cabrones',
-
-    'Pleno, hostia puta. Lo único que separa a estos dos es la vergüenza, y eso se pasa con dos copas y una mala decisión, patético.',
-
-    'Cien por cien. Se lo merecen todo: lo bueno, lo malo y las broncas de madrugada a grito pelado',
-
-    'Match total. Dos personas con el mismo nivel exacto de desastre. Eso es más raro que encontrar un billete en la mierda, qué cringe.',
-
-    'Cien. Si un día lo dejan, el grupo va a tener que elegir bando y nadie tiene cojones para eso, da asco.',
-
-    'Compatibilidad perfecta. Ninguno de los dos tiene nada mejor que hacer, y eso también es compatibilidad, qué vergüenza.',
-
-    'Match del cien por cien. Que alguien les diga que se dejen de putas tonterías de una vez',
-
-    'Pleno. Están hechos el uno para el otro con la precisión de dos errores que se corrigen solos, los cabrones, fracasado.',
-
-    'Cien. Este número no lo da el bot por casualidad, lo da porque no hay alternativa para ninguno de estos gilipollas, qué miseria.',
-
-    'Match perfecto. Dos que se entienden sin hablar, principalmente porque ninguno escucha nunca, da grima.',
-
-    'Compatibilidad absoluta, hostia. Se van a arruinar mutuamente y va a ser un espectáculo precioso de mierda, qué nivel de pena.',
-
-    'Cien por cien. El grupo os hace de testigo, así que ya no hay marcha atrás posible, cabrones',
-
-    'Pleno. Juntos suman una persona funcional. Por separado no llegan ni a media, los muy putos inútiles, qué cutre.',
-
-    'Match total. Nadie discute esto. Ni ellos, y eso que discuten absolutamente todo como los gilipollas que son, da pena ajena.',
-
-    'Cien. Dos desgracias con patas que decidieron caminar en la misma dirección. Enhoramala.',
-
-    'Compatibilidad perfecta. Da igual lo que digan: el marcador ha hablado y el marcador no negocia, indignante.',
-
-    'Match del cien. Los que se odian así de bien acaban siempre en la misma cama. Todos lo hemos visto',
-
-    'Pleno absoluto. Si esto sale mal, sale mal a lo grande. Y si sale bien, también. Esa es la puta gracia, da vergüenza.',
-
-    'Cien por cien. Es su última oportunidad y es mutua. Aprovechadla o callaos para siempre, hijos de puta, qué flojo.',
-
-    'Match perfecto, hostia. Que se besen ya y acabemos con esta mierda antes de que el grupo se muera de cringe, menudo desastre.',
-
-    'Cien por cien. El bot ha hecho la cuenta tres veces por si se había equivocado y no: esto pasa una vez cada diez años, qué pena.',
-
-    'Match total. Se han encontrado dos personas igual de insoportables y por eso mismo funciona: nadie más las habría aguantado, patético.',
-
-    'Compatibilidad absoluta. Lo raro no es que encajen, lo raro es que hayan tardado tanto con el grupo entero mirando como gilipollas, miserable.',
-
+    'Cien. Si esto no acaba en boda acaba en orden de alejamiento, pero acaba en algo gordo.',
+    'Pleno de los gordos. Nadie ha dado nunca este número aquí. Tomad nota y haceos puto cargo.',
+    'Match del cien, cabrón. Dos piezas rotas que encajan justo por donde están rotas. Poético y patético a partes iguales.',
+    'Compatibilidad total. Se van a querer mal, que es como se quiere de verdad en este grupo de mierda.',
+    'Cien. El destino no ha tenido nada que ver: simplemente nadie más quiso a ninguno de los dos, joder.',
+    'Match perfecto. Van a ser felices y va a ser insufrible de ver desde fuera, los muy cabrones.',
+    'Pleno, hostia puta. Lo único que separa a estos dos es la vergüenza, y eso se pasa con dos copas y una mala decisión.',
+    'Cien por cien. Se lo merecen todo: lo bueno, lo malo y las broncas de madrugada a grito pelado.',
+    'Match total. Dos personas con el mismo nivel exacto de desastre. Eso es más raro que encontrar un billete en la mierda.',
+    'Cien, joder. Si un día lo dejan, el grupo va a tener que elegir bando y nadie tiene cojones para eso.',
+    'Compatibilidad perfecta. Ninguno de los dos tiene nada mejor que hacer, y eso también es compatibilidad, coño.',
+    'Match del cien por cien. Que alguien les diga que se dejen de putas tonterías de una vez.',
+    'Pleno. Están hechos el uno para el otro con la precisión de dos errores que se corrigen solos, los cabrones.',
+    'Cien. Este número no lo da el bot por casualidad, lo da porque no hay alternativa para ninguno de estos gilipollas.',
+    'Match perfecto. Dos que se entienden sin hablar, principalmente porque ninguno escucha nunca, joder.',
+    'Compatibilidad absoluta, hostia. Se van a arruinar mutuamente y va a ser un espectáculo precioso de mierda.',
+    'Cien por cien. El grupo os hace de testigo, así que ya no hay marcha atrás posible, cabrones.',
+    'Pleno. Juntos suman una persona funcional. Por separado no llegan ni a media, los muy putos inútiles.',
+    'Match total. Nadie discute esto. Ni ellos, y eso que discuten absolutamente todo como los gilipollas que son.',
+    'Cien, joder. Dos desgracias con patas que decidieron caminar en la misma dirección. Enhoramala.',
+    'Compatibilidad perfecta. Da igual lo que digan: el marcador ha hablado y el marcador no negocia, coño.',
+    'Match del cien. Los que se odian así de bien acaban siempre en la misma cama. Todos lo hemos visto.',
+    'Pleno absoluto. Si esto sale mal, sale mal a lo grande. Y si sale bien, también. Esa es la puta gracia.',
+    'Cien por cien. Es su última oportunidad y es mutua. Aprovechadla o callaos para siempre, hijos de puta.',
+    'Match perfecto, hostia. Que se besen ya y acabemos con esta mierda antes de que el grupo se muera de cringe.',
+    'Cien por cien. El bot ha hecho la cuenta tres veces por si se había equivocado y no: esto pasa una vez cada diez años, joder.',
+    'Match total. Se han encontrado dos personas igual de insoportables y por eso mismo funciona: nadie más las habría aguantado, coño.',
+    'Compatibilidad absoluta. Lo raro no es que encajen, lo raro es que hayan tardado tanto con el grupo entero mirando como gilipollas.',
     'Perfecto, hostia puta. Esto no es química, es destino con muy mal gusto y muchísima insistencia.',
-
-    'Redondo. El bot no reparte cien por cien todos los días, así que aprovechad antes de que uno de los dos la cague, da asco.',
-
-    'Cien. Dos piezas rotas que resulta que estaban rotas por el mismo sitio. Encajan de milagro y encajan de puta madre, qué vergüenza.',
-
-    'Match de los que se cuentan en las bodas entre vómitos. Lo mejor es que ninguno lo vio venir hasta este mensaje, los imbéciles, ridículo.',
-
-    'Perfecto y ligeramente preocupante, coño. Cuando dos personas encajan tanto, el resto del grupo sobra un poco, fracasado.',
-
-    'Cien por cien. El bot lleva meses viendo venir esta mierda y por fin tiene una excusa para decirlo en voz alta, qué miseria.',
-
-    'Compatibilidad máxima. No hay nada que analizar: se ha juntado lo que tenía que juntarse y punto, da grima.',
-
-    'Match perfecto. Uno pone el caos y el otro pone la paciencia, que es exactamente como funciona la mierda que dura, qué nivel de pena.',
-
-    'Cien, hostia. Si esto no acaba en algo, el problema ya no son los números: sois vosotros dos y vuestra puta cobardía, basura.',
-
-    'Total. El bot no encuentra ni un solo motivo para que esto falle, y mira que ha buscado con ganas, qué cutre.',
-
-    'Perfecto. Dos personas que se entienden sin hablar, que en este grupo de mierda es prácticamente un superpoder, da pena ajena.',
-
-    'Cien por cien y con el grupo de testigo. A partir de ahora ya no se puede fingir que no pasa nada, qué vacío.',
-
-    'Match absoluto. Es de esas parejas que dan rabia porque funcionan sin esfuerzo mientras el resto lo intenta y se come la mierda, indignante.',
-
-    'Redondo. El bot ha visto miles de combinaciones y esta es de las pocas que no le da vergüenza anunciar, qué vergüenza ajena.',
-
-    'Cien. Lo tenían delante todo el puto tiempo y ha tenido que venir un bot a decírselo. Patético y precioso a partes iguales, da vergüenza.',
-
-    'Perfecto. Si alguno lo estropea ahora, que sepa que el grupo entero tiene este mensaje guardado, qué flojo.',
-
-    'Compatibilidad total. Dos desastres que juntos, por algún motivo que escapa a la ciencia y a la decencia, funcionan, menudo desastre.',
-
-    'Cien por cien. Esto es lo más parecido a una boda que puede organizar un puto bot de WhatsApp. Que alguien traiga la tarta, qué pena.',
-
-    'Cien de cien. Estos dos se merecen mutuamente y eso es lo más cruel que le puede pasar al resto, patético.',
-
-    'Match perfecto: dos taras que se cancelan. La ciencia no lo explica, esta mierda sí, cabrón.',
-
-    'Compatibilidad total. Van a discutir todos los días y ninguno se va, gilipollas.',
-
-    'Ship redondo. El grupo va a sufrirlo en silencio durante años, mierda.',
-
-    'Perfectos el uno para el otro. Nadie más los aguantaría, coño',
-
-    'Cien por cien. Química de la que se nota y da un poco de asco ajeno, asco.',
-
-    'Match de manual. Menos mal que se tienen: el resto del mundo no aplica, patético.',
-
-    'Compatibilidad perfecta. Dos que se entienden sin escuchar, basura',
-
-    'Ship cerrado. El marcador no negocia y el chat tampoco, ridículo',
-
-    'Cien. Que se besen ya y acabemos con el cringe colectivo, fracasado.',
-
-    'Perfectos. Uno pone el caos y el otro la paciencia tóxica',
-
-    'Match que duele de ver desde fuera. Funciona demasiado bien, cabrón.',
-
-    'Compatibilidad de la mala: la que dura, gilipollas',
-
-    'Ship al máximo. El grupo ya está preparando el popcorn amargo, mierda.',
-
-    'Cien de compatibilidad. Insufrible y real, coño',
-
-    'Perfectos entre sí. Un desastre para el resto del hilo, asco.ajena.',
-
-    'Match sin fisuras. Hasta el ranking aplaude a regañadientes, patético.',
-
-    'Compatibilidad total documentada. Caso cerrado, basura',
-
-    'Ship de los que se odian bien. Eso también es amor aquí, ridículo',
-
-    'Cien. No hay tercero que entre en esa órbita, fracasado',
-
-    'Perfectos. El chat lo sabía antes que ellos',
-
-    'Match químico sin anestesia. Duele mirarlo, cabrón',
-
-    'Compatibilidad de laboratorio roto, gilipollas',
-
-    'Ship perfecto. El resto sobra, mierda.',
-
-    'Cien por cien de drama sostenible, coño',
-
-    'Perfectos el uno para el otro. Qué puta tragedia ajena, asco',
-
-    'Match cerrado con candado, patético',
-
-    'Compatibilidad máxima. Sin derecho a réplica, basura',
-
-    'Ship de los que el grupo no discute, ridículo',
-
-    'Cien. Archivo y a sufrir, fracasado.',
-
-    'Perfectos. La física del fail compartido',
-
-    'Match que se siente en el hilo, cabrón.cutre.',
-
-    'Compatibilidad sin escape, gilipollas',
-
-    'Ship total y el ranking no discute, cabrón, y el grupo ya lo olió, cabrón.',
-
-    'Cien de cien y el chat lo traga, coño',
-
-    'Perfectos. No hay plan B que merezca la pena, asco.ajena.',
-
-    'Match de los que se eligen mal a propósito, patético',
-
-    'Compatibilidad perfecta de taras, basura.',
-
-    'Ship al límite. El ranking firmó, ridículo',
-
-    'Cien. Fin del debate, fracasado',
-
-],
+    'Redondo, joder. El bot no reparte cien por cien todos los días, así que aprovechad antes de que uno de los dos la cague.',
+    'Cien. Dos piezas rotas que resulta que estaban rotas por el mismo sitio. Encajan de milagro y encajan de puta madre.',
+    'Match de los que se cuentan en las bodas entre vómitos. Lo mejor es que ninguno lo vio venir hasta este mensaje, los imbéciles.',
+    'Perfecto y ligeramente preocupante, coño. Cuando dos personas encajan tanto, el resto del grupo sobra un poco.',
+    'Cien por cien. El bot lleva meses viendo venir esta mierda y por fin tiene una excusa para decirlo en voz alta.',
+    'Compatibilidad máxima. No hay nada que analizar: se ha juntado lo que tenía que juntarse y punto, joder.',
+    'Match perfecto. Uno pone el caos y el otro pone la paciencia, que es exactamente como funciona la mierda que dura.',
+    'Cien, hostia. Si esto no acaba en algo, el problema ya no son los números: sois vosotros dos y vuestra puta cobardía.',
+    'Total. El bot no encuentra ni un solo motivo para que esto falle, y mira que ha buscado con ganas, cabrón.',
+    'Perfecto. Dos personas que se entienden sin hablar, que en este grupo de mierda es prácticamente un superpoder.',
+    'Cien por cien y con el grupo de testigo. A partir de ahora ya no se puede fingir que no pasa nada, gilipollas.',
+    'Match absoluto, joder. Es de esas parejas que dan rabia porque funcionan sin esfuerzo mientras el resto lo intenta y se come la mierda.',
+    'Redondo. El bot ha visto miles de combinaciones y esta es de las pocas que no le da vergüenza anunciar, hostia.',
+    'Cien. Lo tenían delante todo el puto tiempo y ha tenido que venir un bot a decírselo. Patético y precioso a partes iguales.',
+    'Perfecto. Si alguno lo estropea ahora, que sepa que el grupo entero tiene este mensaje guardado, cabrón.',
+    'Compatibilidad total, joder. Dos desastres que juntos, por algún motivo que escapa a la ciencia y a la decencia, funcionan.',
+    'Cien por cien. Esto es lo más parecido a una boda que puede organizar un puto bot de WhatsApp. Que alguien traiga la tarta.',
+  ],
   high: [
-    'Ship alto. Hay drift y tensión que el grupo ya olió. El archivo del chat lo confirma, basura El número no miente y el chisme tampoco.',
-    'Match elevado: químicamente inestables y aun así orbitan. Documentado en el hilo, patético El número no miente y el chisme tampoco.',
-    'Alto de verdad. Falla compartida con wifi y emoticonos. El grupo ya tomó nota, ridículo El número no miente y el chisme tampoco.',
-    'Ship alto. Se van a hacer daño con estilo de novela mala. El archivo del chat lo confirma, cabrón El número no miente y el chisme tampoco.',
-    'Match elevado: se entienden demasiado bien en lo peor. Documentado en el hilo, pringado El número no miente y el chisme tampoco.',
-    'Alto de verdad. Chispa y gasolina en el mismo hilo. El grupo ya tomó nota, cutre El número no miente y el chisme tampoco.',
-    'Ship alto. El número grita lo que ellos susurran. El archivo del chat lo confirma, qué asco El número no miente y el chisme tampoco.',
-    'Match elevado: dos taras que se reconocen al primer mensaje. Documentado en el hilo, qué miseria El número no miente y el chisme tampoco.',
-    'Alto de verdad. El grupo ya apartó las sillas para el show. El grupo ya tomó nota, basura El número no miente y el chisme tampoco.',
-    'Ship alto. Diagnóstico de “termina mal y es divertido”. El archivo del chat lo confirma, patético El número no miente y el chisme tampoco.',
-    'Match elevado: el historial del hilo hizo de cupido cruel. Documentado en el hilo, ridículo El número no miente y el chisme tampoco.',
-    'Alto de verdad. Se miran como quien no puede dejar un accidente. El grupo ya tomó nota, cabrón El número no miente y el chisme tampoco.',
-    'Ship alto. El solo amigos es el chiste del año. El archivo del chat lo confirma, pringado El número no miente y el chisme tampoco.',
-    'Match elevado: compatibilidad que duele a terceros. Documentado en el hilo, cutre El número no miente y el chisme tampoco.',
-    'Alto de verdad. El contador de química solo imprime. El grupo ya tomó nota, qué asco El número no miente y el chisme tampoco.',
-    'Ship alto. Puzzle de piezas rotas que igual arman figura. El archivo del chat lo confirma, qué miseria.',
-    'Match elevado: el universo los juntó por contenido no por bondad. Documentado en el hilo, basura El número no miente y el chisme tampoco.',
-    'Alto de verdad. Hay plot, negación del plot y público. El grupo ya tomó nota, patético El número no miente y el chisme tampoco.',
-    'Ship alto. El silencio del chat también shippea. El archivo del chat lo confirma, ridículo El número no miente y el chisme tampoco.',
-    'Match elevado: dos egos que encontraron eco de cristal. Documentado en el hilo, cabrón El número no miente y el chisme tampoco.',
-    'Alto de verdad. Peligroso con emoticonos y sin frenos. El grupo ya tomó nota, pringado El número no miente y el chisme tampoco.',
-    'Ship alto. Podio de tensión en cartón mojado. El archivo del chat lo confirma, cutre El número no miente y el chisme tampoco.',
-    'Match elevado: se leen la mente en lo tóxico. Documentado en el hilo, qué asco El número no miente y el chisme tampoco.',
-    'Alto de verdad. Apuestas internas del grupo ya abiertas. El grupo ya tomó nota, qué miseria El número no miente y el chisme tampoco.',
-    'Ship alto. Química de laboratorio ilegal. El archivo del chat lo confirma, basura El número no miente y el chisme tampoco.',
-    'Match elevado: cortocircuito anunciado en el hilo. Documentado en el hilo, patético El número no miente y el chisme tampoco.',
-    'Alto de verdad. Jajaja de más como evidencia. El grupo ya tomó nota, ridículo El número no miente y el chisme tampoco.',
-    'Ship alto. Se aguantan lo que nadie más aguanta. El archivo del chat lo confirma, cabrón El número no miente y el chisme tampoco.',
-    'Match elevado: el comando confirma el chisme. Documentado en el hilo, pringado El número no miente y el chisme tampoco.',
-    'Alto de verdad. Plot de meses en dos miradas. El grupo ya tomó nota, cutre El número no miente y el chisme tampoco.',
-    'Ship alto. Dos desastres con GPS al mismo punto. El archivo del chat lo confirma, qué asco El número no miente y el chisme tampoco.',
-    'Match elevado: modo peor versión activado en pareja. Documentado en el hilo, qué miseria El número no miente y el chisme tampoco.',
-    'Alto de verdad. El no es por ahí es el primer capítulo. El grupo ya tomó nota, basura El número no miente y el chisme tampoco.',
-    'Ship alto. Código basura compartido. El archivo del chat lo confirma, patético El número no miente y el chisme tampoco.',
-    'Match elevado: frente frío de drama en el hilo. Documentado en el hilo, ridículo El número no miente y el chisme tampoco.',
-    'Alto de verdad. Tensión sexual y de pelea a la vez. El grupo ya tomó nota, cabrón El número no miente y el chisme tampoco.',
-    'Ship alto. Se buscan sin buscarse. El archivo del chat lo confirma, pringado El número no miente y el chisme tampoco.',
-    'Match elevado: desastre nítido sin filtro. Documentado en el hilo, cutre El número no miente y el chisme tampoco.',
-    'Alto de verdad. Próximo mensaje cruzado como prueba. El grupo ya tomó nota, qué asco El número no miente y el chisme tampoco.',
-    'Ship alto. Química impura que funciona aquí. El archivo del chat lo confirma, qué miseria El número no miente y el chisme tampoco.',
-    'Match elevado: experimento con butacas vendidas. Documentado en el hilo, basura El número no miente y el chisme tampoco.',
-    'Alto de verdad. Material de ship y de roast pack. El grupo ya tomó nota, patético El número no miente y el chisme tampoco.',
-    'Ship alto. Amigues como disfraz translúcido. El archivo del chat lo confirma, ridículo El número no miente y el chisme tampoco.',
-    'Match elevado: quién escribe primero ya perdió y ganó. Documentado en el hilo, cabrón El número no miente y el chisme tampoco.',
-    'Alto de verdad. Luces de freno que frenan tarde. El grupo ya tomó nota, pringado El número no miente y el chisme tampoco.',
-    'Ship alto. Ranking de tensión sin mentiras. El archivo del chat lo confirma, cutre El número no miente y el chisme tampoco.',
-    'Match elevado: error de software que igual corre. Documentado en el hilo, qué asco El número no miente y el chisme tampoco.',
-    'Alto de verdad. Abono colectivo al drama. El grupo ya tomó nota, qué miseria El número no miente y el chisme tampoco.',
-    'Ship alto. Miradas que pesan más que párrafos. El archivo del chat lo confirma, basura El número no miente y el chisme tampoco.',
-    'Match elevado: cifra a lo obvio que ya dolía. Documentado en el hilo, patético El número no miente y el chisme tampoco.',
-    'Alto de verdad. Hay drift y tensión que el grupo ya olió. El grupo ya tomó nota, ridículo El número no miente y el chisme tampoco.',
-    'Ship alto. Químicamente inestables y aun así orbitan. El archivo del chat lo confirma, cabrón El número no miente y el chisme tampoco.',
-    'Match elevado: falla compartida con wifi y emoticonos. Documentado en el hilo, pringado El número no miente y el chisme tampoco.',
-    'Alto de verdad. Se van a hacer daño con estilo de novela mala. El grupo ya tomó nota, cutre El número no miente y el chisme tampoco.',
-    'Ship alto. Se entienden demasiado bien en lo peor. El archivo del chat lo confirma, qué asco El número no miente y el chisme tampoco.',
-    'Match elevado: chispa y gasolina en el mismo hilo. Documentado en el hilo, qué miseria El número no miente y el chisme tampoco.',
-    'Alto de verdad. El número grita lo que ellos susurran. El grupo ya tomó nota, basura El número no miente y el chisme tampoco.',
-    'Ship alto. Dos taras que se reconocen al primer mensaje. El archivo del chat lo confirma, patético El número no miente y el chisme tampoco.',
-    'Match elevado: el grupo ya apartó las sillas para el show. Documentado en el hilo, ridículo El número no miente y el chisme tampoco.',
-    'Alto de verdad. Diagnóstico de “termina mal y es divertido”. El grupo ya tomó nota, cabrón El número no miente y el chisme tampoco.',
-    'Ship alto. El historial del hilo hizo de cupido cruel. El archivo del chat lo confirma, pringado El número no miente y el chisme tampoco.',
-    'Match elevado: se miran como quien no puede dejar un accidente. Documentado en el hilo, cutre El número no miente y el chisme tampoco.',
-    'Alto de verdad. El solo amigos es el chiste del año. El grupo ya tomó nota, qué asco El número no miente y el chisme tampoco.',
-    'Ship alto. Compatibilidad que duele a terceros. El archivo del chat lo confirma, qué miseria El número no miente y el chisme tampoco.',
-    'Match elevado: el contador de química solo imprime. Documentado en el hilo, basura El número no miente y el chisme tampoco.',
-    'Alto de verdad. Puzzle de piezas rotas que igual arman figura. El grupo ya tomó nota, patético El número no miente y el chisme tampoco.',
-    'Ship alto. El universo los juntó por contenido no por bondad. El archivo del chat lo confirma, ridículo.',
-    'Match elevado: hay plot, negación del plot y público. Documentado en el hilo, cabrón El número no miente y el chisme tampoco.',
-    'Alto de verdad. El silencio del chat también shippea. El grupo ya tomó nota, pringado El número no miente y el chisme tampoco.',
-    'Ship alto. Dos egos que encontraron eco de cristal. El archivo del chat lo confirma, cutre El número no miente y el chisme tampoco.',
-    'Match elevado: peligroso con emoticonos y sin frenos. Documentado en el hilo, qué asco El número no miente y el chisme tampoco.',
-    'Alto de verdad. Podio de tensión en cartón mojado. El grupo ya tomó nota, qué miseria El número no miente y el chisme tampoco.',
-    'Ship alto. Se leen la mente en lo tóxico. El archivo del chat lo confirma, basura El número no miente y el chisme tampoco.',
-    'Match elevado: apuestas internas del grupo ya abiertas. Documentado en el hilo, patético El número no miente y el chisme tampoco.',
-    'Alto de verdad. Química de laboratorio ilegal. El grupo ya tomó nota, ridículo El número no miente y el chisme tampoco.',
-    'Ship alto. Cortocircuito anunciado en el hilo. El archivo del chat lo confirma, cabrón El número no miente y el chisme tampoco.',
-    'Match elevado: jajaja de más como evidencia. Documentado en el hilo, pringado El número no miente y el chisme tampoco.',
-    'Alto de verdad. Se aguantan lo que nadie más aguanta. El grupo ya tomó nota, cutre El número no miente y el chisme tampoco.',
-    'Ship alto. El comando confirma el chisme. El archivo del chat lo confirma, qué asco El número no miente y el chisme tampoco.',
-    'Match elevado: plot de meses en dos miradas. Documentado en el hilo, qué miseria El número no miente y el chisme tampoco.',
-    'Alto de verdad. Dos desastres con GPS al mismo punto. El grupo ya tomó nota, basura El número no miente y el chisme tampoco.',
-    'Ship alto. Modo peor versión activado en pareja. El archivo del chat lo confirma, patético El número no miente y el chisme tampoco.',
-    'Match elevado: el no es por ahí es el primer capítulo. Documentado en el hilo, ridículo El número no miente y el chisme tampoco.',
-    'Alto de verdad. Código basura compartido. El grupo ya tomó nota, cabrón El número no miente y el chisme tampoco.',
-    'Ship alto. Frente frío de drama en el hilo. El archivo del chat lo confirma, pringado El número no miente y el chisme tampoco.',
-    'Match elevado: tensión sexual y de pelea a la vez. Documentado en el hilo, cutre El número no miente y el chisme tampoco.',
-    'Alto de verdad. Se buscan sin buscarse. El grupo ya tomó nota, qué asco El número no miente y el chisme tampoco.',
-    'Ship alto. Desastre nítido sin filtro. El archivo del chat lo confirma, qué miseria El número no miente y el chisme tampoco.',
-    'Match elevado: próximo mensaje cruzado como prueba. Documentado en el hilo, basura El número no miente y el chisme tampoco.',
-    'Alto de verdad. Química impura que funciona aquí. El grupo ya tomó nota, patético El número no miente y el chisme tampoco.',
-    'Ship alto. Experimento con butacas vendidas. El archivo del chat lo confirma, ridículo El número no miente y el chisme tampoco.',
-    'Match elevado: material de ship y de roast pack. Documentado en el hilo, cabrón El número no miente y el chisme tampoco.',
-    'Alto de verdad. Amigues como disfraz translúcido. El grupo ya tomó nota, pringado El número no miente y el chisme tampoco.',
-    'Ship alto. Quién escribe primero ya perdió y ganó. El archivo del chat lo confirma, cutre El número no miente y el chisme tampoco.',
-    'Match elevado: luces de freno que frenan tarde. Documentado en el hilo, qué asco El número no miente y el chisme tampoco.',
-    'Alto de verdad. Ranking de tensión sin mentiras. El grupo ya tomó nota, qué miseria El número no miente y el chisme tampoco.',
-    'Ship alto. Error de software que igual corre. El archivo del chat lo confirma, basura El número no miente y el chisme tampoco.',
-    'Match elevado: abono colectivo al drama. Documentado en el hilo, patético El número no miente y el chisme tampoco.',
-    'Alto de verdad. Miradas que pesan más que párrafos. El grupo ya tomó nota, ridículo El número no miente y el chisme tampoco.',
-    'Ship alto. Cifra a lo obvio que ya dolía. El archivo del chat lo confirma, cabrón El número no miente y el chisme tampoco.'
+    'Hay más química entre vosotros dos que en un laboratorio clandestino, y aun así preferís hablar del tiempo como dos jubilados.',
+    'Encajáis como una llave con su cerradura, pero los dos os empeñáis en tocar el timbre en vez de entrar de una puta vez.',
+    'Esta compatibilidad es tan alta que da coraje, porque el único puto obstáculo entre vosotros dos sois vosotros dos.',
+    'Tenéis la tensión sexual de una peli prohibida en 1985, y la valentía de un funcionario a diez minutos de jubilarse.',
+    'Joder, con este porcentaje deberíais estar liados hace meses, y en vez de eso os mandáis stickers como si tuvierais doce años.',
+    'Sois esa pareja que el universo ya escribió en el guión, solo falta que alguno de los dos se aprenda su puta frase.',
+    'La cifra dice que sois compatibles de cojones, lo que no mide es vuestra habilidad para cagarla por puro miedo.',
+    'Vais a acabar juntos igual, la única duda es cuántos años más vais a tardar en dejar de haceros los tontos.',
+    'Encajáis mejor que un político con una mentira bien ensayada, y con la misma cara de no haber roto un plato.',
+    'Esta sintonía es tan bestia que hasta el router de casa se conecta solo cuando estáis los dos en la misma habitación.',
+    'Sois tan compatibles que hasta vuestros ex os odian en secreto, y vosotros seguís ahí, de brazos cruzados como dos idiotas.',
+    'Tenéis más rollo que una telenovela y menos acción que un domingo de resaca, panda de cagados de mierda.',
+    'El porcentaje es una puta locura, casi tanto como vuestra capacidad para ignorar lo obvio delante de todo el mundo.',
+    'Esta compatibilidad debería venir con una etiqueta: contenido no apto para los dos gilipollas que la protagonizan.',
+    'Sois como dos elementos radiactivos: juntos generáis una energía brutal, pero nadie se atreve a acercar el detonador.',
+    'Encajáis de cojones, el problema es que los dos tenéis el orgullo más grande que un piso en el centro.',
+    'Con esta cifra ya podríais estar eligiendo el menú de la boda, y en vez de eso seguís dándole vueltas como dos gilipollas.',
+    'Esta compatibilidad es tan alta que hasta yo, que soy un puto bot, estoy más nervioso que vosotros dos juntos.',
+    'Sois la prueba de que se puede tener una química de escándalo y aun así ser más lentos que una fila del banco.',
+    'Tenéis tanto potencial desperdiciado que da rabia, como comprar entradas de primera fila y quedarte en la puerta.',
+    'Esta sintonía tan fuerte y vosotros seguís tratándoos como compañeros de curro que solo se hablan por el café.',
+    'Sois compatibles hasta para discutir por tonterías, que ya es el nivel más alto de intimidad que existe, cabrones.',
+    'Con este porcentaje el único milagro pendiente es que alguno mande el mensaje sin borrarlo quince putas veces antes.',
+    'Encajáis tan bien que parece amañado, como esos combates donde ya sabes el resultado pero igual hay que fingir sorpresa.',
+    'Esta compatibilidad de escándalo se está pudriendo en la nevera mientras los dos preferís morir solos con dignidad.',
+    'Sois tan compatibles que hasta vuestros signos del zodiaco se llevarían mejor que dos suegras en Navidad.',
+    'Tenéis la química al máximo y los cojones a cero, una combinación tan patética como enternecedora.',
+    'El bot lo tiene clarísimo: os gustáis un huevo y os comportáis como dos gilipollas jugando al despiste.',
+    'Con esta sintonía deberíais mandaros audios de veinte minutos, no un "jaja bien y tú" cada dos putos días.',
+    'Sois la definición de potencial desperdiciado: química de sobra, valentía de mierda y un reloj que no para.',
+    'Esta compatibilidad tan alta y seguís tratándoos como colegas del gimnasio que solo se saludan con la cabeza.',
+    'El destino os ha puesto en bandeja una conexión de escándalo, y la estáis usando para hablar de series que veis por separado.',
+    'Sois esa pareja de manual que todo el barrio ya dio por hecha, menos vosotros, que seguís en fase de negación.',
+    'Con este porcentaje hasta las plantas de la oficina notan la tensión, y vosotros ahí, hablando del partido de ayer.',
+    'Esta cifra es una puta declaración de amor del universo, y la respondéis con un emoticono de risa y punto.',
+    'Sois tan compatibles que da vergüenza ajena veros fingir indiferencia, sois los peores actores del puto barrio.',
+    'Tenéis más feeling que dos gemelos separados al nacer, y menos iniciativa que un cactus en pleno invierno.',
+    'Esta sintonía es de las que solo pasan una vez, y la estáis dejando pudrirse como fruta olvidada en el frutero.',
+    'Sois compatibles hasta durmiendo, seguro, porque para todo lo demás os falta el valor de un puto flan de postre.',
+    'Con esta cifra vuestras madres ya se mandan mensajes preguntando la fecha de la boda, y vosotros ni un mísero café juntos.',
+    'Esta compatibilidad tan brutal y seguís actuando como dos desconocidos en un ascensor averiado, qué desperdicio, joder.',
+    'Sois de los que se gustan tanto que prefieren pelearse por chorradas antes que admitir lo evidente, panda de críos.',
+    'Encajáis tan bien que hasta da rabia veros perder el tiempo con gente que no os llega ni a la suela del zapato.',
+    'Con esta sintonía el único que no se ha enterado sois vosotros dos, porque el resto ya lo tiene claro desde hace tiempo.',
+    'Esta compatibilidad tiene tanta fuerza que podría mover un camión, y vosotros no movéis ni un puto dedo para acercaros.',
+    'Sois esa combinación perfecta que solo falla por cobardía, como un coche de carreras conducido por alguien con miedo a pisar el acelerador.',
+    'Tenéis tanta química que hasta resulta sospechoso que sigáis fingiendo que sois solo amigos, panda de mentirosos.',
+    'Con este porcentaje deberíais estar celebrando, pero seguro que los dos estáis fingiendo que no habéis leído esto todavía.',
+    'Esta cifra es tan alta que roza lo indecente, y vuestra indecisión también, así que técnicamente estáis empatados.',
+    'Sois la pareja que todos ya apostaron que acabaría junta, y los únicos que no han pagado la apuesta sois vosotros dos.',
+    'Encajáis como una comida cara con el vino equivocado: brutal por separado, y de escándalo si alguien se atreviera a combinarlo.',
+    'Con esta compatibilidad hasta un ciego vería que hay algo ahí, menos vosotros, que sois los únicos ciegos de verdad.',
+    'Esta sintonía es tan real que da hasta pena verla desperdiciada en indirectas de Instagram que nadie contesta.',
+    'Sois tan compatibles que hasta discutiendo parecéis un matrimonio de toda la vida, y ni siquiera habéis quedado a solas.',
+    'Con este porcentaje el problema no es el amor, es que los dos tenéis el amor propio más inflado que un globo aerostático.',
+    'Esta compatibilidad de escándalo se merece algo mejor que dos cobardes esperando a que el otro dé el primer paso.',
+    'Sois esa pareja que hasta el karma está impaciente por ver junta, y vosotros seguís sin daros ni cuenta.',
+    'Encajáis tan bien que hasta el algoritmo se ha emocionado, y eso que un algoritmo no siente una puta mierda.',
+    'Con esta sintonía deberíais estar planeando vacaciones juntos, no debatiendo si mandar el mensaje o dejarlo en visto.',
+    'Sois la prueba viviente de que la química de sobra no sirve de nada si los dos os quedáis parados como dos postes.',
   ],
   mid: [
     'Joder, esto es como pedir una puta pizza y que te llegue sin queso. Funciona, pero para qué coño te molestas.',
-
     'Tienen la misma compatibilidad que un condón reutilizado: técnicamente posible, pero nadie con dos dedos de frente lo intentaría.',
-
     'Esto es lo que pasa cuando dos personas se atraen con la misma intensidad con la que uno se rasca los cojones un martes.',
-
     'Hostia, menudo bodrio de pareja. Serían de esos que follan con calcetines y luego se dan la espalda para ver el móvil.',
-
-    'Compatibilidad de mierda tibia. Como cagar a medias: ni el alivio ni las ganas de seguir',
-
+    'Compatibilidad de mierda tibia. Como cagar a medias: ni el alivio ni las ganas de seguir.',
     'Si estos dos fueran una peli, serían una de esas que pones de fondo mientras limpias y ni te enteras de que ha acabado.',
-
     'El bot ha visto parejas malas, pero es que estos dos ni siquiera llegan a mala. Llegan a nada. A puta nada.',
-
     'Esto tiene la misma emoción que encontrar un billete de cinco euros en el bolsillo: bien, coño, pero tampoco te cambia la vida.',
-
     'Se aguantan como se aguanta a un compañero de piso que deja la puta tapa del váter levantada. Se puede vivir, pero jode.',
-
     'Mierda, el bot ha intentado encontrar algo interesante aquí y lo único que ha sacado es ganas de irse a dormir.',
-
     'Estos dos juntos son como un pedo silencioso en un ascensor: presente, incómodo, y al final todos fingen que no ha pasado nada.',
-
     'Compatibilidad más floja que la erección de un borracho a las cuatro de la mañana. Hay intención, pero el cuerpo no responde.',
-
     'Coño, esto es como comerse un yogur caducado de ayer: probablemente no te mate, pero tampoco vas presumiendo de ello.',
-
     'Regular tirando a hostia que me da igual. Si esto fuera sexo, sería un misionero con la luz apagada y sin hacer ruido.',
-
     'Juntos funcionarían como un puto mechero mojado. A veces da chispa, la mayoría de las veces te quemas el dedo para nada.',
-
     'Tienen menos química que un cabrón repitiendo primero de la ESO. Y mira que ese chaval lo intentaba.',
-
     'Esto es el equivalente sentimental a comer arroz blanco sin sal: te llena, pero a nadie le sale una puta sonrisa.',
-
     'Si la mediocridad tuviera un hijo no deseado, tendría exactamente este porcentaje de compatibilidad.',
-
     'Joder, se llevan bien de la misma forma que te llevas bien con el dentista: porque no queda otra y dura lo justo.',
-
     'Estos dos son como las instrucciones del IKEA: algo se puede montar, pero vas a sudar, maldecir, y el resultado va a cojear.',
-
     'Hostia puta, menudo churro. Esto es como ganar un concurso y que el premio sea un cupón de descuento en algo que no quieres.',
-
-    'Match más soso que chuparle el culo a una piedra. Y la piedra al menos te da una anécdota',
-
+    'Match más soso que chuparle el culo a una piedra. Y la piedra al menos te da una anécdota.',
     'Compatibilidad de microondas: calienta rápido, sabe a mierda, y al final siempre acabas queriendo algo mejor.',
-
     'Si estos dos se liaran, el grupo ni se enteraría. Y si se enterara, le importaría tres cojones. Y tendrían razón.',
-
     'Esto tiene el mismo potencial romántico que una colonoscopia. Se puede hacer, pero nadie lo pone en su lista de deseos.',
-
     'Mierda, he visto más tensión sexual entre dos abuelos peleándose por el último pan en el supermercado.',
-
     'Estos dos juntos durarían lo que dura un hielo en un coño en verano. Mucha gracia al principio, y luego solo hay charco.',
-
     'Compatibilidad del carajo. Funcionarían como pareja en un universo donde follar fuera opcional y la conversación no existiera.',
-
     'Si esto fuera una droga, sería una aspirina genérica: algo hace, pero no es por lo que llamas al camello a las tres de la mañana.',
-
     'Regular. Y no regular de interesante, regular de que el bot se ha quedado dormido calculando esto y le ha dado puta igual.',
-
     'Juntos generan la misma pasión que un cabrón leyendo los términos y condiciones. Técnicamente participas, pero el alma se ha ido.',
-
     'Hostia, compatibilidad de sala de espera. Estáis juntos porque no hay otra opción y cada uno mira su puto móvil.',
-
     'Esto es como mezclar agua con más agua: no explota, no huele, no sabe a nada. Enhorabuena, coño, habéis inventado la nada.',
-
-    'Menos chispa que un puto funeral. Y en el funeral al menos alguien llora, aquí ni eso',
-
+    'Menos chispa que un puto funeral. Y en el funeral al menos alguien llora, aquí ni eso.',
     'Si estos dos fueran comida, serían una tostada sin mantequilla: cumple su función, pero te la comes con cara de que te han jodido la mañana.',
-
     'Coño, esto es como comprarse un coche de segunda mano que solo arranca en bajada. Amor cuesta abajo y a empujones.',
-
     'Compatibilidad de mierda templada. Ni lo bastante caliente para quemar ni lo bastante fría para que alguien se queje.',
-
     'Estos dos juntos son como ver un partido de fútbol que acaba 0-0: inviertes noventa minutos y te vas con las manos vacías y cabreado.',
-
     'Joder, si esto fuera un polvo sería de esos que acabas y piensas hostia, para esto me podría haber cascado una paja.',
-
     'Match con la misma energía que un lunes a las siete de la mañana. Se puede sobrevivir, pero nadie lo elige.',
-
-    'Si la apatía se tirara pedos, sonaría exactamente como este porcentaje de compatibilidad',
-
+    'Si la apatía se tirara pedos, sonaría exactamente como este porcentaje de compatibilidad.',
     'Esto funciona como el culo de un político: algo sale, pero siempre es mierda y nunca lo que esperabas.',
-
     'Compatibilidad de kebab de madrugada. En el momento parece buena idea, a la mañana siguiente te arrepientes en el váter.',
-
     'Hostia, menudo mojón de match. Se toleran como se tolera una cucaracha que vive detrás del frigorífico: mientras no aparezca mucho, se puede.',
-
     'Tienen la misma conexión emocional que un cabrón con su declaración de la renta. Lo haces porque toca, no porque te apetezca.',
-
     'Si estos dos se casaran, los invitados irían solo por la comida gratis y se pirarían antes del vals.',
-
     'Compatibilidad de pene a media asta: algo hay, la intención se nota, pero no da para el espectáculo completo.',
-
-    'Juntos generan menos calor que un puto iglú en invierno. Al menos el iglú sirve para algo, coño',
-
+    'Juntos generan menos calor que un puto iglú en invierno. Al menos el iglú sirve para algo, coño.',
     'Esto es el match sentimental de ir a comprar tabaco y volver con chicles. No es lo que querías, pero masticas algo.',
-
     'Mierda, estos dos son como dos calcetines de distinto par: los puedes poner juntos, pero cada vez que te miras el pie sabes que algo falla.',
-
-    'Si la indiferencia pudiera reproducirse, estos dos serían sus putos padres fundadores',
-
+    'Si la indiferencia pudiera reproducirse, estos dos serían sus putos padres fundadores.',
     'Hostia, compatibilidad de semáforo en ámbar. No sabes si frenar o acelerar, y hagas lo que hagas va a salir regular.',
-
     'Esto es como hacerse una paja con la mano dormida: raro, confuso, y al final te preguntas por qué cojones has empezado.',
-
     'Match más flojo que un pedazo de mierda atado con un pelo. Existe la unión, pero nadie confía en ella.',
-
     'Coño, estos dos son como el WiFi de un hotel barato: se conectan a ratos, la señal es una basura, y al final acabas usando tus propios datos.',
-
     'Compatibilidad de cuarto de baño de gasolinera: funcional, pero no te quedas ni un segundo más de lo estrictamente necesario.',
-
     'Si estos dos fueran una canción, serían el hilo musical del ascensor. Suena algo, pero tu cerebro se niega a procesarlo.',
-
     'Joder, esto tiene toda la pinta de esas relaciones que duran lo que tarda uno de los dos en conocer a alguien menos aburrido.',
-
     'Hostia puta, menudo par de mediocres. Ni para follar bien ni para discutir con ganas. El peor de los dos mundos.',
-
     'Match con menos futuro que una mierda en una tormenta. Se sostiene un momento y luego la corriente se lo lleva todo al carajo.',
-
-    'Mitad de camino. Ni spark de verdad ni rechazo limpio: zona tibia.',
-
-    'Ship mediocre. Como pizza sin queso: llega, pero para qué, cabrón',
-
-    'Medio. Hay algo, pero no suficiente para el hype del grupo, gilipollas',
-
-    'Compatibilidad tibia. El ranking bostezó, mierda',
-
-    'Ni fu ni fa. El ship más olvidable del catálogo, coño',
-
-    'Medio puro. Ni drama ni magia, asco',
-
-    'Ship de los que el chat no recuerda mañana, patético',
-
-    'Mitad. Química de ascensor: existe y se acaba, basura',
-
-    'Mediocre. El número no miente y no emociona, ridículo',
-
-    'Zona gris. Ni ship ni enemigos, fracasado',
-
-    'Medio. Como serie cancelada en el capítulo tres',
-
-    'Compatibilidad de trámite. Siguiente, cabrón',
-
-    'Ship tibio. El grupo ya cambió de tema, gilipollas',
-
-    'Mitad de tarta. Nadie pide segunda porción, mierda',
-
-    'Medio sin narrativa. Gracias por no inventarla, coño',
-
-    'Ni spark ni tragedia. Solo mediocridad, asco',
-
-    'Ship administrativo. Firmado y olvidado, patético',
-
-    'Mediocre de manual, basura',
-
-    'Zona media. El ranking no se emociona, ridículo',
-
-    'Mitad. Casi un no con maquillaje, fracasado',
-
-    'Medio. El hype se murió solo.',
-
-    'Compatibilidad de sala de espera, cabrón',
-
-    'Ship sin gancho. El chat bostezó, gilipollas',
-
-    'Tibio. Ni vale el thread, mierda',
-
-    'Medio puro sin plot, coño',
-
-    'Ni química ni guerra. Solo relleno, asco',
-
-    'Ship de los que no generan meme, patético',
-
-    'Mitad de camino al olvido, basura',
-
-    'Mediocre. El número lo dice sin drama, ridículo',
-
-    'Zona gris documentada, fracasado',
-
-    'Medio. Como café descafeinado del ship',
-
-    'Compatibilidad sin especias, cabrón',
-
-    'Ship tibio de los que sobran, gilipollas',
-
-    'Mitad. El grupo no pide bis, mierda.',
-
-    'Medio sin derecho a hype, coño',
-
-    'Ni fu ni fa con sello oficial, asco.vergüenza ajena.',
-
-    'Ship olvidable a propósito, patético',
-
-    'Tibio. Archivado sin ceremonia, basura.',
-
-    'Mediocre y previsible, ridículo',
-
-    'Zona media: el casi que no importa, fracasado',
-
-],
+  ],
   low: [
-    'Bajo de verdad. Estos dos juntos son un fail anunciado y el número lo grita sin filtro delante del puto grupo.',
-
-    'Ship bajo: la química es un agujero y no un puente. El bot no regala décimas delante del puto grupo, mierda.',
-
-    'Compatibilidad de mierda. Mejor separados que ensuciando el ranking juntos delante del puto grupo, coño.',
-
-    'Bajo. El ship no levanta ni con tutorial ni con rezo del puto grupo delante del puto grupo, cabrón.',
-
-    'Estos dos suman menos que por separado. Matemáticas crueles del ranking delante del puto grupo, gilipollas.',
-
-    'Ship en el sótano. El número no admite recurso ni segunda lectura útil delante del puto grupo, patético.',
-
-    'Bajo de los que duelen. La compatibilidad se fue a la mierda y no vuelve delante del puto grupo, asco.',
-
-    'El bot midió y el resultado es un no seco. Ship fallido en limpio delante del puto grupo, basura.',
-
-    'Bajo. Mejor ni intentarlo: el ranking ya firmó el fail en público delante del puto grupo, ridículo.',
-
-    'Compatibilidad justa para el trámite y nada más. El resto es ruido delante del puto grupo, fracasado.',
-
-    'Ship bajo documentado. Autor el número, testigo el puto grupo entero delante del puto grupo.',
-
-    'Estos dos juntos bajan el promedio del chat solo con el comando delante del puto grupo, mierda.',
-
-    'Bajo. La química no existe y el bot no inventa lo que no hay delante del puto grupo, coño.',
-
-    'Ship en números rojos. El ranking no ofrece consuelo ni anestesia delante del puto grupo, cabrón.',
-
-    'Bajo de verdad: ni el almost salva a este par del sótano delante del puto grupo, gilipollas.',
-
-    'La compatibilidad es un gag y el grupo no pide replay del fail delante del puto grupo, patético.',
-
-    'Ship bajo. Separados estorban menos al promedio del ranking delante del puto grupo, asco.',
-
-    'El número habla: bajo. Vosotros calláis porque no hay réplica delante del puto grupo, basura.',
-
-    'Bajo. El ship es un experimento fallido del ranking del grupo delante del puto grupo, ridículo.',
-
-    'Compatibilidad de sótano. El bot no suaviza el veredicto público delante del puto grupo, fracasado.',
-
-    'Ship bajo hasta para el modo oscuro del comando de pareja delante del puto grupo.',
-
-    'Estos dos no suman. Restan. El ranking lo firma sin debate delante del puto grupo, mierda.',
-
-    'Bajo. Mejor archivo y olvido que insistir en este fail delante del puto grupo, coño.',
-
-    'Ship fallido en limpio. Sin asterisco de caridad del bot delante del puto grupo, cabrón.',
-
-    'Bajo de los que el chat archiva sin pedir amplificación delante del puto grupo, gilipollas.',
-
-    'La química es cero con maquillaje de low. Se nota a la legua delante del puto grupo, patético.',
-
-    'Ship en el tramo que nadie quiere. El número manda y punto delante del puto grupo, asco.',
-
-    'Bajo. El bot midió dos veces y las dos dio fail de pareja delante del puto grupo, basura.',
-
-    'Compatibilidad de puta pena. El ranking no miente nunca delante del puto grupo, ridículo.',
-
-    'Ship bajo: el almost de pareja nunca llega a puerto delante del puto grupo, fracasado.',
-
-    'Estos dos juntos son el gag del comando y del chat delante del puto grupo.',
-
-    'Bajo. Separados al menos no ensucian el mismo frame delante del puto grupo, mierda.',
-
-    'Ship en rojo. El veredicto es seco y público en el ranking delante del puto grupo, coño.',
-
-    'Bajo de manual. El número no necesita narrador emocional delante del puto grupo, cabrón.',
-
-    'La compatibilidad se cayó sola antes del primer mensaje delante del puto grupo, gilipollas.',
-
-    'Ship bajo documentado delante de todo el puto grupo delante del puto grupo, patético.',
-
-    'Bajo. Mejor no forzar lo que el ranking ya mató delante del puto grupo, asco.',
-
-    'Compatibilidad de sótano sin ascensor ni luz de emergencia delante del puto grupo, basura.',
-
-    'Ship fallido. El bot cierra el parte sin consuelo posible delante del puto grupo, ridículo.',
-
-    'Bajo hasta el cartel de salida del comando de pareja delante del puto grupo, fracasado.',
-
-    'Estos dos no levantan el ship ni con milagro del ranking delante del puto grupo.',
-
-    'Bajo. El ranking firma y el chat archiva sin debate delante del puto grupo, mierda.',
-
-    'Ship en el empty seat de la compatibilidad del grupo delante del puto grupo, coño.',
-
-    'Bajo de verdad. Ni el low light favorece a este par delante del puto grupo, cabrón.',
-
-    'La química es un rumor y el número lo desmiente en seco delante del puto grupo, gilipollas.',
-
-    'Ship bajo. El almost de pareja es eterno y vacío delante del puto grupo, patético.',
-
-    'Bajo. Separados es el único consejo útil del bot delante del puto grupo, asco.',
-
-    'Compatibilidad de mierda documentada en el ranking delante del puto grupo, basura.',
-
-    'Ship fallido sin derecho a bis ni a apelación posible delante del puto grupo, ridículo.',
-
-    'Bajo. El bot no regala décimas de caridad a este par delante del puto grupo, fracasado.',
-
-    'Estos dos suman un fail con nombre propio en el chat delante del puto grupo.',
-
-    'Bajo de los que duelen en público delante del grupo delante del puto grupo, mierda.',
-
-    'Ship en números que no se maquillan con filtros delante del puto grupo, coño.',
-
-    'Bajo. La pareja es un experimento que el ranking abortó delante del puto grupo, cabrón.',
-
-    'Compatibilidad de sótano. Sin filtro que salve el frame delante del puto grupo, gilipollas.',
-
-    'Ship bajo hasta para el modo avión del deseo ajeno delante del puto grupo, patético.',
-
-    'Bajo. El número habla y vosotros no tenéis réplica útil delante del puto grupo, asco.',
-
-    'Ship fallido. Archivo cerrado sin segunda oportunidad delante del puto grupo, basura.',
-
-    'Bajo de puta madre en el sentido del desastre de pareja delante del puto grupo, ridículo.',
-
-    'Compatibilidad justa para el gag del comando y nada más delante del puto grupo, fracasado.',
-
-    'Poca química. El ranking lo marca en rojo suave, cabrón',
-
-    'Ship bajo. Mejor ni forzar el crossover, gilipollas',
-
-    'Compatibilidad de las que duelen de lo flojas, mierda',
-
-    'Bajo. El grupo ya está en modo no, coño',
-
-    'Casi nada. Forzar esto es crueldad gratuita, asco',
-
-    'Ship de los que el número pide clemencia, patético',
-
-    'Bajo perfil de desastre compartido, basura',
-
-    'Poca chispa. Mucho potencial de cringe, ridículo',
-
-    'Compatibilidad en el sótano, fracasado',
-
-    'Bajo. Mejor amigos de mentira que esto',
-
-    'Ship flojo. El chat no compra la premisa, cabrón',
-
-    'Poca química documentada, gilipollas',
-
-    'Bajo de los que se ven venir, mierda',
-
-    'Fail de pareja en versión preview, coño',
-
-    'Compatibilidad mínima. Casi un no, asco',
-
-    'Ship bajo sin derecho a defensa, patético',
-
-    'Poco material. Mucho riesgo de ridículo, basura',
-
-    'Bajo. El ranking no discute, ridículo',
-
-    'Química en huelga, fracasado',
-
-    'Ship de los que mejor ni empezar',
-
-    'Bajo perfil tóxico sin beneficio, cabrón',
-
-    'Poca compatibilidad real, gilipollas',
-
-    'Fail anunciado con números, mierda',
-
-    'Bajo. Archivado por piedad, coño',
-
-    'Casi cero con maquillaje, asco',
-
-    'Ship flojo de solemnidad, patético',
-
-    'Compatibilidad de trámite negativo, basura',
-
-    'Bajo. El grupo ya dijo que no, ridículo',
-
-    'Poca chispa, mucho papelón, fracasado',
-
-    'Ship en zona de peligro tibio',
-
-    'Bajo de verdad. Sin anestesia, cabrón.',
-
-    'Química ausente con testigos, gilipollas',
-
-    'Fail de pareja en diferido, mierda',
-
-    'Bajo. No fuerces el crossover, coño',
-
-    'Poco ship, mucho cringe potencial, asco',
-
-    'Compatibilidad de sótano documentada, patético',
-
-    'Ship bajo sin plot twist, basura',
-
-    'Bajo. Caso casi cerrado, ridículo',
-
-    'La química pidió la baja, fracasado',
-
-    'Química en huelga, fracasado',
-
-],
+    'Estos dos tienen menos química que un preservativo caducado olvidado en una guantera.',
+    'Compatibilidad tan baja que hasta el algoritmo de la app mandó un mensaje pidiendo perdón.',
+    'Si esto fuera una boda, hasta el fotógrafo se iría antes del brindis.',
+    'Se llevan tan mal que sus signos del zodiaco han pedido el divorcio.',
+    'Menos compatibles que un vegano invitado de honor a una barbacoa.',
+    'Esto no es química, es un accidente de laboratorio esperando a que alguien llame a los bomberos.',
+    'El grupo entero suspiró aliviado al ver este resultado, coño.',
+    'Juntarlos es como meter un gato en la lavadora: mala idea desde el minuto uno.',
+    'Su primera cita terminaría en urgencias, y no por amor precisamente.',
+    'Tienen tanta conexión como una avispa encerrada en un coche con las ventanillas subidas.',
+    'Esto es lo más parecido a mezclar lejía con amoníaco: alguien va a acabar mal.',
+    'Su compatibilidad es un error 404: contenido no encontrado, ni se molesten en buscar.',
+    'Se caen tan mal que ni sus fantasmas se cruzarían en el mismo pasillo del más allá.',
+    'Menos pegue que un pez intentando aparcar una moto.',
+    'Si fueran imanes, se repelerían desde la otra punta del supermercado.',
+    'Esta pareja tiene la compatibilidad de una resaca con el despertador sonando a todo volumen.',
+    'Ni con un traductor de la ONU se entenderían estos dos, joder.',
+    'Su relación duraría lo que tarda un refresco sin gas en dar asco.',
+    'Esto es como poner a un pingüino a hacer surf en pleno desierto: no cuadra ni de casualidad.',
+    'Se odian con una elegancia que ni el mejor guion de Hollywood podría mejorar.',
+    'Compatibilidad de mierda, la misma que tiene una dieta estricta con un bufet libre.',
+    'Estos dos son agua y aceite, pero el aceite está ardiendo.',
+    'El universo entero conspiró para que jamás coincidieran, y por una vez hizo bien su trabajo.',
+    'Tienen la conexión de un módem viejo intentando cargar una videollamada.',
+    'Su chat tendría un solo tick gris eternamente, sin doble tick jamás.',
+    'Esto necesitaría un tratado de paz internacional para no acabar a hostias.',
+    'Menos afinidad que un tiburón metido en la bañera de un apartamento pequeño.',
+    'Su horóscopo compartido diría: hoy es un buen día para no verse jamás.',
+    'Compatibles como un paraguas roto en pleno huracán.',
+    'Estos dos generan tanta tensión como dos gatos metidos en el mismo saco.',
+    'Su amor tiene la efervescencia de un refresco que lleva tres días destapado.',
+    'Ni una inteligencia artificial se atrevería a emparejar a estos dos, joder.',
+    'Esto es tan improbable como que un gilipollas gane la lotería dos veces seguidas, pero al revés.',
+    'Se llevan tan mal que hasta las cucarachas del bar se cambiaron de sitio.',
+    'Su compatibilidad cabe en el hueco de una uña, y aun así sobra espacio.',
+    'Esta pareja es la prueba de que hasta el destino puede ser un cabrón con sentido del humor.',
+    'Menos conexión que dos ferris que zarpan en direcciones opuestas a la misma hora.',
+    'Juntarlos es firmar un contrato de mala hostia sin cláusula de rescisión.',
+    'Se repelen con la misma fuerza que dos exparejas en la boda de otra persona.',
+    'Su química es tan floja que ni un electricista con ganas la reanima.',
+    'Estos dos podrían protagonizar un documental sobre especies que jamás deberían cruzarse.',
+    'El test de compatibilidad no dio error, dio directamente un portazo.',
+    'Tienen tanto futuro juntos como un helado olvidado al sol de agosto.',
+    'Esta combinación es tan mala que hasta las palomas se apartaron al verlos pasar.',
+    'Su relación se rompería antes de firmarla, como un contrato con la letra pequeña podrida.',
+    'Se entienden tan poco como un sordo dando indicaciones a un ciego en hora punta.',
+    'Compatibilidad más plana que la cerveza olvidada toda la noche en el balcón.',
+    'Esto no es incompatibilidad, es una declaración de guerra con papeleo de por medio.',
+    'Si fueran un plato, serían piña en la pizza servida por un enemigo personal.',
+    'Su energía junta apagaría hasta la fiesta de fin de año más animada del barrio.',
+    'Estos dos se llevan como una migraña y un concierto de reguetón a todo volumen.',
+    'Dejarlos a solas en la misma habitación no lo firmaría ni de cojones un domador de leones.',
+    'Compatibles como un gilipollas con carnet de conducir recién sacado en hora punta.',
+    'Su primer beso sería tan bienvenido como una alarma antirrobo a las tres de la madrugada.',
+    'El algoritmo del bot casi se rinde al calcular esta puta miseria de porcentaje.',
+    'Tienen la sintonía de una radio a medio dial: puro ruido y ninguna canción.',
+    'Esta pareja junta produce el mismo entusiasmo que una revisión dental sin anestesia.',
+    'Se caen tan mal que ni con barra libre se acercarían al mismo rincón de la fiesta.',
+    'Su compatibilidad tiene menos vida que una pila usada tirada en un cajón.',
+    'Esto es tan forzado como enchufar dos cables pelados y esperar que no salte la chispa.',
+  ],
   zero: [
-    'Cero. La distancia química es un agujero, no un puente. El ranking lo grita delante del puto grupo.',
-
-    'Ship cero. Ni el almost existe. El bot cierra sin anestesia ni consuelo delante del puto grupo, mierda.',
-
-    'Cero de compatibilidad. Separados es poco: mejor ni en el mismo chat delante del puto grupo, coño.',
-
-    'Ship en el abismo. El número es un no rotundo sin maquillaje delante del puto grupo, cabrón.',
-
-    'Cero. Estos dos juntos son un error de casting del comando delante del puto grupo, gilipollas.',
-
-    'Compatibilidad cero. El ranking no ofrece segunda oportunidad útil delante del puto grupo, patético.',
-
-    'Ship cero documentado. Autor el número, testigo el grupo entero delante del puto grupo, asco.',
-
-    'Cero. Mejor archivo permanente que insistir en este fail delante del puto grupo, basura.',
-
-    'Ship en el empty total. Ni chispa ni almost de pareja delante del puto grupo, ridículo.',
-
-    'Cero de verdad. El bot midió y el resultado es un agujero delante del puto grupo, fracasado.',
-
-    'Estos dos no suman ni en broma. Restan en serio en el ranking delante del puto grupo.',
-
-    'Ship cero. La química se fue y no dejó ni una puta nota delante del puto grupo, mierda.',
-
-    'Cero. El ranking firma el no sin narrador emocional delante del puto grupo, coño.',
-
-    'Compatibilidad de abismo. Sin puente posible en este comando delante del puto grupo, cabrón.',
-
-    'Ship cero hasta para el modo oscuro del ranking del grupo delante del puto grupo, gilipollas.',
-
-    'Cero. Separados estorban menos al promedio del chat delante del puto grupo, patético.',
-
-    'Ship en el sótano sin escalera. El número manda y punto delante del puto grupo, asco.',
-
-    'Cero documentado delante del puto grupo sin filtro delante del puto grupo, basura.',
-
-    'Ship fallido en grado cero. Sin asterisco de caridad delante del puto grupo, ridículo.',
-
-    'Cero. El bot no regala ni una décima de caridad visual delante del puto grupo, fracasado.',
-
-    'Estos dos son el gag más corto del comando de pareja delante del puto grupo.',
-
-    'Ship cero. El almost de pareja ni siquiera empezó delante del puto grupo, mierda.',
-
-    'Cero. Mejor ni el trámite del comando en este caso delante del puto grupo, coño.',
-
-    'Compatibilidad cero. El ranking cierra el parte en seco delante del puto grupo, cabrón.',
-
-    'Ship en el empty seat eterno del deseo del ranking delante del puto grupo, gilipollas.',
-
-    'Cero de los que duelen porque ni ilusión quedó en pie delante del puto grupo, patético.',
-
-    'Ship cero. Archivo y olvido sin segunda lectura útil delante del puto grupo, asco.',
-
-    'Cero. La distancia no se mide: se certifica en el bot delante del puto grupo, basura.',
-
-    'Ship fallido total. Sin recurso ni bis posible aquí delante del puto grupo, ridículo.',
-
-    'Cero. El número es un muro y vosotros el eco del fail delante del puto grupo, fracasado.',
-
-    'Estos dos juntos bajan el promedio solo con el ship delante del puto grupo.',
-
-    'Ship cero. Ni el low light favorece a este par de mierda delante del puto grupo, mierda.',
-
-    'Cero de compatibilidad. El bot no inventa química ajena delante del puto grupo, coño.',
-
-    'Ship en el abismo documentado sin consuelo del ranking delante del puto grupo, cabrón.',
-
-    'Cero. Separados es el único veredicto útil del comando delante del puto grupo, gilipollas.',
-
-    'Compatibilidad cero. Sin filtro que salve el frame junto delante del puto grupo, patético.',
-
-    'Ship cero hasta el cartel de salida del puto ranking delante del puto grupo, asco.',
-
-    'Cero delante del puto grupo, basura delante del puto grupo. El ranking lo deja claro. El ranking lo deja claro.',
-
-    'Ship fallido en limpio. Cero es cero y punto final delante del puto grupo, ridículo.',
-
-    'Cero de puta madre en el sentido del vacío de pareja delante del puto grupo, fracasado.',
-
-    'Estos dos no levantan ni con milagro del ranking del grupo delante del puto grupo.',
-
-    'Ship cero. El chat archiva sin debate ni amplificación delante del puto grupo, mierda.',
-
-    'Cero. La química es un rumor desmentido por el número delante del puto grupo, coño.',
-
-    'Compatibilidad de abismo sin puente ni cuerda de escape delante del puto grupo, cabrón.',
-
-    'Ship cero. Mejor ni en la misma foto del puto grupo delante del puto grupo, gilipollas.',
-
-    'Cero documentado. Autor el bot, testigo todos en el chat delante del puto grupo, patético.',
-
-    'Ship en el empty total del deseo del ranking del grupo delante del puto grupo, asco.',
-
-    'Cero. El almost ni se presentó al trámite del comando delante del puto grupo, basura.',
-
-    'Ship fallido. Cero sin maquillaje ni narrador emocional delante del puto grupo, ridículo.',
-
-    'Cero. El número habla y no hay réplica posible aquí delante del puto grupo, fracasado.',
-
-    'Estos dos suman un agujero con nombre en el ranking delante del puto grupo.',
-
-    'Ship cero. El ranking firma el no en público y listo delante del puto grupo, mierda.',
-
-    'Cero de verdad. Ni el modo avión oculta este fail delante del puto grupo, coño.',
-
-    'Compatibilidad cero. Archivo cerrado sin recurso útil delante del puto grupo, cabrón.',
-
-    'Ship en el sótano sin luz ni escalera de emergencia delante del puto grupo, gilipollas.',
-
-    'Cero. Separados es piedad, juntos es el gag del chat delante del puto grupo, patético.',
-
-    'Ship cero hasta para el que no cree en el comando delante del puto grupo, asco.',
-
-    'Cero. El bot midió dos veces y las dos dio vacío total delante del puto grupo, basura.',
-
-    'Ship fallido total. Sin consuelo ni narrador que salve delante del puto grupo, ridículo.',
-
-    'Cero de compatibilidad. El veredicto es un muro seco delante del puto grupo, fracasado.',
-
-    'Nada. Cero spark, cero futuro, cero debate, cabrón',
-
-    'Ship imposible. El ranking firmó el no, gilipollas',
-
-    'Cero de cero. Ni en fanfic salva, mierda',
-
-    'Nula compatibilidad. El chat ni lo intenta, coño',
-
-    'Cero. Mejor enemigos que esto, asco',
-
-    'Ship cancelado antes de empezar, patético',
-
-    'Nada de nada. El número es un muro, basura',
-
-    'Cero químico. Archivado con asco, ridículo',
-
-    'Imposible. Fin del experimento, fracasado',
-
-    'Cero. Ni el RNG los junta con sentido',
-
-    'Nula. El grupo respira aliviado, cabrón',
-
-    'Ship cero. Sin derecho a almost, gilipollas',
-
-    'Nada. Química en modo avión eterno, mierda',
-
-    'Cero total. Caso cerrado, coño',
-
-    'Imposible de vender hasta de broma, asco',
-
-    'Ship nulo. El ranking no negocia, patético',
-
-    'Cero. Mejor cada uno por su lado, basura',
-
-    'Nula compatibilidad documentada, ridículo',
-
-    'Cero spark. Cero paciencia del chat, fracasado',
-
-    'Nada. El agujero donde debería haber química',
-
-    'Ship imposible con sello oficial, cabrón',
-
-    'Cero. Ni forzado funciona, gilipollas',
-
-    'Nula. Fin, mierda.',
-
-    'Cero de compatibilidad. Sin anestesia, coño',
-
-    'Imposible. El chat ya pasó página, asco',
-
-    'Ship cero sin narrador amigo, patético',
-
-    'Nada que salvar. Nada que inventar, basura',
-
-    'Cero. El no más limpio del catálogo, ridículo',
-
-    'Nula química. Archivado, fracasado',
-
-    'Cero total. Ni meme salva esto',
-
-    'Ship cancelado por el universo, cabrón.',
-
-    'Nada. El ranking fue misericordioso al decir cero, gilipollas',
-
-    'Cero. Punto final, mierda',
-
-    'Imposible de shippear sin autoengaño, coño',
-
-    'Nula. El grupo lo sabía, asco',
-
-    'Cero químico sin maquillaje, patético',
-
-    'Ship nulo. Sin bis, basura',
-
-    'Nada de nada. Caso cerrado con llave, ridículo',
-
-    'Cero. Y menos mal, fracasado',
-
-    'Cero spark. Cero paciencia del chat, fracasado',
-
-],
+    'Esto no es un cero, es un agujero negro que se traga hasta la esperanza. Ni Dios junta esta mierda.',
+    'Compatibilidad de cero como el aceite y el agua bendita: ni con exorcismo se mezclan estos dos.',
+    'Vaya puta broma cósmica. Juntar a estos dos es como meter gasolina en una lavadora y esperar que lave bien.',
+    'Hostia, esto ni siquiera es incompatible, es que ni existen en el mismo puto universo.',
+    'Match del cero por ciento: como pedirle a un pez que suba una escalera mientras se está quemando vivo.',
+    'Esto es peor que mezclar lejía con amoníaco. Al menos ahí sale gas tóxico, aquí no sale ni una puta chispa.',
+    'Estos dos juntos son la prueba de que el universo tiene sentido del humor negro y encima es hijo de puta.',
+    'Cero compatibilidad, cero futuro, cero de todo. Ni una vela de cumpleaños sobrevive a este agujero negro.',
+    'Esto es como firmar la paz entre un gato y un perro y que al día siguiente pidan el divorcio.',
+    'Coño, si esto fuera una ecuación, ni las matemáticas más rotas del mundo la resolverían.',
+    'Vaya par de gilipollas. Ni el Big Bang tuvo tan poca química como estos dos.',
+    'Esto no es amor imposible, es directamente una broma de mal gusto que le está gastando el destino a la humanidad.',
+    'Meter a estos dos en la misma habitación es como poner diésel en un Ferrari y esperar que gane la carrera.',
+    'Cero por ciento, y ni el fósil más viejo del planeta tiene tan poca vida como esta pareja.',
+    'Esto es peor que un chiste malo en un funeral: ni gracia tiene, ni sentido, ni futuro.',
+    'Hostia puta, esto es tan improbable como que un político no mienta un solo día de su vida.',
+    'Estos dos combinan tan mal como un condón con agujeros: la cosa va a explotar sí o sí.',
+    'Cero de compatibilidad. Ni el bosón de Higgs y el cuñado del grupo de WhatsApp familiar tienen tan poco en común.',
+    'Esto es un desastre con patas. Ni el Titanic chocó tan fuerte contra la realidad.',
+    'Joder, esta pareja es la prueba de que hasta Dios se equivoca cuando reparte el mundo al azar.',
+    'Cero. Ni un solo punto. Esto es tan compatible como un pedo con un premio Nobel.',
+    'Estos dos son agua y aceite, pero el aceite ya se mudó a otro puto continente.',
+    'Menudo cero. Esto es como pedirle peras al olmo, y encima el olmo ni te contesta al teléfono.',
+    'Esto no combina ni a tiros. Es como intentar encender una hoguera bajo el puto Niágara.',
+    'Cero por ciento. Esto es lo que pasa cuando el universo tira los dados y le sale una puta merienda.',
+    'Hostia, esto tiene menos futuro que un helado dejado al sol en pleno agosto.',
+    'Estos dos ni comparten planeta. Uno vive en la Tierra y el otro en una puta dimensión paralela.',
+    'Cero por ciento. Esto es tan trágico como ver a alguien meter la pata en su propia boda.',
+    'Joder, esto es peor que un mal doblaje: nada encaja, nada tiene sentido, y encima da vergüenza ajena.',
+    'Esto no es una pareja, es un accidente de tráfico esperando a que alguien llame a la grúa.',
+    'Cero de cero. Ni el chiste más malo del bar tiene tan poca gracia como este emparejamiento.',
+    'Hostia puta, juntar a estos dos es como intentar que un cactus y un globo se lleven bien en una fiesta.',
+    'Esto es tan compatible como meter una cerilla encendida en un depósito de gasolina y esperar que no pase nada.',
+    'Cero total: esta pareja tiene menos química que un examen de física aprobado copiando mal.',
+    'Esto es la prueba viviente de que el destino a veces se emborracha antes de repartir parejas.',
+    'Esto no tiene arreglo ni con pegamento cósmico. Es una puta chapuza del universo entero.',
+    'Cero compatibilidad. Esto es como esperar que un iceberg y un soplete se lleven bien de vacaciones.',
+    'Hostia, esto es más incompatible que un vegano en una churrasquería argentina un sábado por la noche.',
+    'Esto no es cero, son números negativos. El infierno tiene mejor pareja que estos dos.',
+    'Ver a estos dos juntos da más vergüenza ajena que un karaoke desafinado en la boda de tu jefe.',
+    'Cero por ciento. Esta pareja es la razón por la que el horóscopo debería llevar advertencia sanitaria.',
+    'Esto es tan improbable como que un gilipollas se calle a la primera. O sea, imposible.',
+    'Hostia puta, esto tiene menos sentido que un GPS roto guiándote directo a un puto acantilado.',
+    'Cero. Esta combinación es un crimen contra la naturaleza que ni la policía sabría cómo tipificar.',
+    'Esto es como juntar un incendio con una gasolinera y esperar que salga bien la cosa.',
+    'Esto no combina ni por accidente. Es el equivalente humano a mezclar Coca-Cola con Mentos en el salón de tu casa.',
+    'Cero de compatibilidad. Esto es tan trágico que hasta el destino debería pedir disculpas.',
+    'Hostia, esta pareja es como un GPS sin señal en medio del desierto: no lleva a ningún lado.',
+    'Esto es tan compatible como un pingüino intentando ligar en el Sahara. Ni con protector solar sobrevive.',
+    'Joder, cero es un puto halago comparado con lo que hay aquí. Esto es directamente el vacío existencial.',
+    'Esto no es mala suerte, es una advertencia cósmica escrita en mayúsculas y subrayada tres veces.',
+    'Cero por ciento. Esta pareja combina tan mal como poner sal al café pensando que es azúcar.',
+    'Hostia puta, esto es tan absurdo como ver a un cura vendiendo lotería en la puerta de un puticlub.',
+    'Esto ni es una pareja, es una catástrofe natural con nombre y apellido esperando fecha para el desastre.',
+    'Cero total. Esto tiene menos futuro que un helado en el infierno, y ahí ya hace bastante calor.',
+    'Esta combinación es tan mala que hasta el algoritmo debería pedir perdón por sugerirla.',
+    'Esto es como pedirle a un iceberg que caliente la sopa: cero posibilidades, cero calor, cero de todo.',
+    'Hostia, esta pareja tiene tanta química como una piedra y un cactus discutiendo de poesía.',
+    'Cero compatibilidad. Esto es la prueba de que hasta el universo tiene días de mierda en el curro.',
+    'Joder, esto no es cero por poco, es cero porque ni el infierno quiso aceptar esta mezcla.',
+  ],
 };
 
 // Etiqueta visible para un participante. Un JID @lid no resuelve a un numero

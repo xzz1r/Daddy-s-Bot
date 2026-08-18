@@ -25,7 +25,7 @@ const { cmdToImg, cmdToVid } = require('../commands/toimg');
 const { cmdPfp } = require('../commands/pfp');
 const { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdFkList, cmdAntiFake } = require('../commands/fk');
 const { maybeIndex } = require('../utils/pfpIndexer');
-const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy, cmdPerdedor, cmdGanador, cmdPuta, cmdGuarra, cmdFiel, cmdInfiel, cmdLinda, cmdFea, cmdIncel, cmdDelulu, cmdDiagnostico } = require('../commands/percent');
+const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy, cmdPerdedor, cmdGanador, cmdPuta, cmdGuarra, cmdFiel, cmdInfiel, cmdLinda, cmdFea, cmdIncel } = require('../commands/percent');
 // !iq no es un comando de porcentaje: saca una CIFRA de IQ y vive aparte.
 const { cmdIQ } = require('../commands/iq');
 const { cmdRizz, cmdPiropo, cmdWingman } = require('../commands/wingman');
@@ -239,7 +239,7 @@ const NEEDS_META = new Set([
   // groupMeta, asi que pedirla solo anyadia una peticion de red (hasta 8s con la
   // cache fria) antes de una tirada que no la necesita para nada.
   'crack','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','ganador',
-  'puta','guarra','fiel','infiel','linda','fea','incel','delulu','diagnostico',
+  'puta','guarra','fiel','infiel','linda','fea','incel',
   'rizz',   // piropo y wingman NO: sus handlers no reciben groupMeta (wingman.js)
   'aura','guia','guía','aurahelp','guiaaura',   // la guia entra por cmdAura, que exime al owner de pagar
   'resetaura','inactivos','inactivo','fantasma','fantasmas','mog','moggear','roast','flamear',
@@ -301,7 +301,7 @@ const COBRO_CENTRAL = {
 const CMDS_PORCENTAJE = [
   'gay', 'maricon', 'femboy', 'incel', 'simp', 'friki', 'rata', 'cerdo', 'inutil',
   'perdedor', 'ganador', 'crack', 'puta', 'guarra', 'fea', 'linda', 'hot', 'sexy',
-  'iq', 'fiel', 'infiel', 'feminidad', 'masculinidad', 'delulu', 'diagnostico',
+  'iq', 'fiel', 'infiel', 'feminidad', 'masculinidad',
 ];
 for (const c of CMDS_PORCENTAJE) COBRO_CENTRAL[c] = 'percent';
 
@@ -1509,8 +1509,6 @@ async function handleMessage(sock, msg) {
       case 'puta':           await cmdPuta(sock, msg, groupMeta); break;
       case 'guarra':         await cmdGuarra(sock, msg, groupMeta); break;
       case 'incel':          await cmdIncel(sock, msg, groupMeta); break;
-      case 'delulu':          await cmdDelulu(sock, msg, groupMeta); break;
-      case 'diagnostico':     await cmdDiagnostico(sock, msg, groupMeta); break;
       case 'linda':          await cmdLinda(sock, msg, groupMeta); break;
       case 'fea':            await cmdFea(sock, msg, groupMeta); break;
 

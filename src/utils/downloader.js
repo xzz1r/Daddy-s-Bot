@@ -97,7 +97,7 @@ const MIMETYPES = {
 
 const TEMP_DIR = path.dirname(tempFile('tmp'));
 
-// Duración real del audio con ffprobe null si no se puede medir (no descartamos).
+// Duración real del audio con ffprobe. null si no se puede medir (no descartamos).
 function audioDuration(file) {
   return new Promise((resolve) => {
     let out = '';

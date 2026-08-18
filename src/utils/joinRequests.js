@@ -51,7 +51,7 @@ async function load() {
       .then((d) => { store = d; })
       .catch((e) => {
         loadPromise = null;
-        logger.warn(`joinRequests: lectura falló (${e.message}); no se toca el archivo.`);
+        logger.warn(`joinRequests: lectura falló (${e.message}); no se toca el archivo`);
         throw e;
       });
   }
@@ -63,7 +63,7 @@ function scheduleSave() {
   saveTimer = setTimeout(async () => {
     saveTimer = null;
     try { await atomicWriteJson(FILE, store); }
-    catch (e) { logger.error(`joinRequests: fallo al guardar: ${e.message}.`); }
+    catch (e) { logger.error(`joinRequests: fallo al guardar: ${e.message}`); }
   }, 5000);
 }
 
@@ -169,8 +169,8 @@ async function sondear(sock, grupo) {
     const mins = Math.round(espera / 60000);
     logger.info(
       prohibido
-        ? `joinRequests: ${grupo} no deja leer las solicitudes (${msg}).` +
-          `O no soy admin o el grupo no pide aprobación para entrar.` +
+        ? `joinRequests: ${grupo} no deja leer las solicitudes (${msg}). ` +
+          `O no soy admin o el grupo no pide aprobación para entrar. ` +
           `No lo vuelvo a intentar en ${mins} min.`
         : `joinRequests: fallo al leer las solicitudes de ${grupo} (${msg}). Reintento en ${mins} min.`
     );
@@ -200,7 +200,7 @@ function frenoNuevo(grupo) {
 // ahí: es justo el cambio que puede convertir el `forbidden` en una lista.
 function reactivarSondeo(grupo) {
   if (frenados.delete(grupo)) {
-    logger.info(`joinRequests: vuelvo a sondear ${grupo}.`);
+    logger.info(`joinRequests: vuelvo a sondear ${grupo}`);
   }
 }
 
@@ -215,7 +215,7 @@ async function flushJoinRequests() {
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
   if (store) {
     try { await atomicWriteJson(FILE, store); }
-    catch (e) { logger.error(`joinRequests: fallo al flush: ${e.message}.`); }
+    catch (e) { logger.error(`joinRequests: fallo al flush: ${e.message}`); }
   }
 }
 

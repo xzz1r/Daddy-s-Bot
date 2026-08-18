@@ -11,10 +11,10 @@ const logger = require('./logger');
 //     un hecho negativo: quien no tenga ficha queda "sin datos" y jamás entra en
 //     una purga.
 //
-//  2. LA CLAVE ES bareJid, NO canonicalJid canonicalJid depende del mapa
+//  2. LA CLAVE ES bareJid, NO canonicalJid. canonicalJid depende del mapa
 //     lidToPhone, que se va llenando durante la ejecución: el mismo usuario
 //     daría el LID crudo con el mapa frío y el teléfono con el mapa caliente,
-//     partiendo su registro en dos bareJid es estable siempre; la unificación
+//     partiendo su registro en dos. bareJid es estable siempre; la unificación
 //     se hace al LEER, consultando todas las formas conocidas del participante.
 //
 //  3. AQUÍ NO HAY NOMBRES. Se guardaron para un !antinick que hubo que retirar:

@@ -12,7 +12,7 @@ function fechaCorta(ts) {
 }
 
 // Extrae un número de teléfono de texto libre: acepta wa.me/<num>,
-// https://wa.me/<num>, api.whatsapp.com/send?phone=<num>, +34 600.., o el
+// https://wa.me/<num>, api.whatsapp.com/send?phone=<num>, +34 600..., o el
 // número pelado con espacios/guiones. Devuelve solo los dígitos, o null si no
 // hay un número plausible (mínimo 7 dígitos, para no tragar basura).
 function extractNumber(raw) {
@@ -78,7 +78,7 @@ async function resolveTarget(sock, msg, args) {
   }
 }
 
-// Descarga los bytes de una URL de foto de perfil null si falla.
+// Descarga los bytes de una URL de foto de perfil. null si falla.
 async function downloadPfp(url) {
   try {
     const res = await axios.get(url, {

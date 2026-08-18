@@ -42,7 +42,7 @@ function scheduleSave() {
 // La clave es canonicalJid, NO bareJid. La misma persona llega unas veces con su
 // @lid (mensajes de grupo) y otras con su teléfono (menciones), así que con
 // bareJid acababa con DOS entradas: sus mensajes se partían en dos montones y
-// salía duplicada en los rankings canonicalJid colapsa ambas formas en cuanto
+// salía duplicada en los rankings. canonicalJid colapsa ambas formas en cuanto
 // WhatsApp nos dice la correspondencia, igual que hace auraStore.
 //
 // Aun así, los montones viejos escritos antes de conocer la correspondencia
@@ -95,7 +95,7 @@ async function resetAllCounts() {
   scheduleSave();
 }
 
-// Momento del ultimo reseteo del grupo, en ms null si nunca se resetró.
+// Momento del ultimo reseteo del grupo, en ms. null si nunca se resetró.
 async function getLastReset(groupJid) {
   await load();
   const r = counts?.[CLAVE_RESETS];
