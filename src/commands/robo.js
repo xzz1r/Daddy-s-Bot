@@ -1,7 +1,7 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser } = require('../utils/wa');
 const { getAura, addAura } = require('../utils/auraStore');
 const { pickFresh, fmt } = require('../utils/helpers');
-const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, BOTE, OBJETOS, CONTRA, DIANA } = require('../utils/economia');
+const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_RACHA_MAX, ROBO_OWNER_VISIBLE, BOTE, OBJETOS, CONTRA, DIANA } = require('../utils/economia');
 const tienda = require('../utils/roboStore');
 const RX = require('../data/roboExtraPhrases');
 
@@ -59,6 +59,28 @@ const ROBO_FALLO_REMATE = [
 ];
 
 const lastRob = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
+
+// Victorias seguidas del owner, por grupo. Vive en memoria y se pierde al
+// reiniciar, y esta bien asi: lo que se quiere cortar es la racha que el grupo
+// esta VIENDO en ese momento, no llevar un historial.
+//
+// El contador es unico para !robo y !contrarobo porque el grupo tampoco los
+// separa: ve una sucesion de veces que al owner le sale bien, venga de donde
+// venga. Contarlas aparte dejaria pasar rachas de seis alternando comandos.
+const rachaOwner = new Map(); // grupo -> victorias seguidas
+
+// Devuelve si el owner gana ESTA vez, con el techo de racha aplicado.
+//
+// A la cuarta seguida no se tira el dado: pierde. Cuesta unos cinco puntos de
+// acierto efectivo y a cambio quita el unico sintoma que de verdad se nota, que
+// no es el porcentaje sino ver al mismo tio ganar seis veces sin fallar una.
+function ownerGana(grupo, probabilidad) {
+  const seguidas = rachaOwner.get(grupo) || 0;
+  const gana = seguidas >= ROBO_OWNER_RACHA_MAX ? false : Math.random() < probabilidad;
+  if (rachaOwner.size >= 500) rachaOwner.delete(rachaOwner.keys().next().value);
+  rachaOwner.set(grupo, gana ? seguidas + 1 : 0);
+  return gana;
+}
 
 // %A = atacante (ladrón), %V = víctima
 const ROB_WIN = [
@@ -1655,7 +1677,10 @@ async function contraatacar(sock, msg, jid, sender, groupMeta) {
   // Ni aqui gana siempre: ver CONTRA.owner en economia.js. Este es el sitio
   // donde un amaño del 100 % mas se nota, porque la jugada se resuelve en
   // caliente y delante del que acaba de robarle.
-  const gana = Math.random() < (isMainOwner(sender, msg.key.fromMe, groupMeta) ? CONTRA.owner : CONTRA.probabilidad);
+  const contraEsOwner = isMainOwner(sender, msg.key.fromMe, groupMeta);
+  const gana = contraEsOwner
+    ? ownerGana(jid, CONTRA.owner)
+    : Math.random() < CONTRA.probabilidad;
 
   if (gana) {
     // Se mueve lo que el ladrón pueda cubrir: cobrar de una cuenta vacía
@@ -1910,7 +1935,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // los robos deja de parecer suerte a la tercera vez y canta mas que cualquier
   // cifra que se enseñe. Con ROBO_OWNER_EXITO falla uno de cada seis y el rig
   // pasa por racha buena.
-  else if (isMainOwner(sender, msg.key.fromMe, groupMeta)) success = Math.random() < ROBO_OWNER_EXITO;
+  else if (isMainOwner(sender, msg.key.fromMe, groupMeta)) success = ownerGana(jid, ROBO_OWNER_EXITO);
 
   const aTag = `@${sender.split('@')[0]}`;
   const vTag = `@${target.split('@')[0]}`;

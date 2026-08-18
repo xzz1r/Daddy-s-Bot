@@ -596,7 +596,29 @@ const ROBO_OWNER_MIN = 0.78;
 // seguidas. Con 0,74 falla uno de cada cuatro — gana con mucha regularidad (un
 // miembro anda por el 38 %) pero pierde lo bastante a menudo como para que
 // nadie pueda sostener que el bot le regala los robos.
-const ROBO_OWNER_EXITO = 0.74;
+//
+// BAJADO DE 0,74 A 0,62, y por segunda vez, porque 0,74 seguia cantando: es casi
+// el DOBLE de lo que acierta un miembro (38 %). Contando veinte robos, con 0,74
+// salen unos 15 aciertos donde se esperaban 7 — casi cuatro desviaciones tipicas.
+// Eso no es tener suerte, es una anomalia que cualquiera nota sin contar nada.
+// Con 0,62 salen unos 12 contra 7: sigue siendo mejor mano que la de nadie, pero
+// entra en lo que se puede explicar con suerte.
+const ROBO_OWNER_EXITO = 0.62;
+
+// PERO LA TASA NO ERA EL PROBLEMA PRINCIPAL. Lo que delata un amaño no es el
+// porcentaje, es la RACHA: nadie del grupo lleva la cuenta de cuantos robos
+// acierta el owner, pero todos ven cuando gana seis seguidos. Un 62 % suelto
+// produce rachas de seis con bastante frecuencia (0,62^6 ≈ 1 de cada 18), y es
+// justo lo que se estaba viendo.
+//
+// Asi que hay un techo duro: a la cuarta seguida, el dado no decide — pierde.
+// Cuesta muy poco valor esperado (recorta del 62 % al ~57 % efectivo) y elimina
+// por completo el sintoma que se nota.
+//
+// El contador es COMPARTIDO entre !robo y !contrarobo a proposito: el grupo ve
+// las dos cosas en el mismo chat y no distingue de que comando venia cada
+// victoria. Contarlas por separado dejaria pasar rachas de seis mezcladas.
+const ROBO_OWNER_RACHA_MAX = 3;
 
 // La cifra que se le ENSEÑA al owner cuando roba, que no es la suya.
 //
@@ -756,9 +778,13 @@ const CONTRA = {
   // golpe SIEMPRE, con exito, mientras al resto le sale menos de la mitad de
   // las veces, se aprende en tres tardes.
   //
-  // Con 0,78 recupera casi siempre y falla de vez en cuando, que es lo que hace
-  // que parezca tener buena mano y no un interruptor.
-  owner: 0.78,
+  // Bajado de 0,78 a 0,66 por lo mismo que el robo: 0,78 contra el 42 % de
+  // cualquiera era casi el doble, y ademas el contraataque se resuelve en
+  // caliente y delante del que acaba de robarte, o sea que se mira mas.
+  //
+  // Y cuenta para la misma racha que el robo (ROBO_OWNER_RACHA_MAX): a la cuarta
+  // victoria seguida entre los dos comandos, esta se pierde.
+  owner: 0.66,
 };
 
 // EL MÁS BUSCADO. El nº1 de la semana lleva diana: robarle a él paga más, y
@@ -892,7 +918,7 @@ module.exports = {
   P_TOPE_MIEMBRO, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, MEDIA_PREMIO, MEDIA_CASTIGO, bonoActividad, APUESTA,
   RACHA, BONOS, REDENCION,
   VETERANIA_MSGS, VETERANIA_PAGO, VETERANIA_TOPE, bonoVeterania,
-  ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, DUELO, REGALO_MIN,
+  ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_RACHA_MAX, ROBO_OWNER_VISIBLE, DUELO, REGALO_MIN,
   BOTE, OBJETOS, CONTRA, DIANA,
   PRECIOS, SALDO_MINIMO,
   rango,
