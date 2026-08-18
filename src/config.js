@@ -9,6 +9,19 @@ const config = {
     .split(',')
     .map(n => n.replace(/\D/g, ''))
     .filter(Boolean),
+  // Amaño de !ship: con estos numeros, al owner le sale compatibilidad ALTA en
+  // vez del 0-12 que le sale con todo el mundo. Se definen en .env como
+  // SHIP_ALTO=numero1,numero2 por el mismo motivo que CO_OWNERS — no dejar
+  // ningun numero real escrito en el codigo, que ademas aqui es de un tercero
+  // que no ha pedido salir en un repositorio.
+  //
+  // Se guardan como digitos a secas; la comparacion la hace ship.js, que se
+  // encarga del lio de los JID argentinos (ver alli).
+  shipAlto: (process.env.SHIP_ALTO || '')
+    .split(',')
+    .map(n => n.replace(/\D/g, ''))
+    .filter(Boolean),
+
   autoRead: true,
 
   // Key de la API de búsqueda facial de Lenso.ai (plan Developer). Opcional:

@@ -1,5 +1,39 @@
 const { shuffle, pickFresh } = require('../utils/helpers');
 const { getSender, isMainOwner, isBotJid, bareJid, sameUser } = require('../utils/wa');
+const { canonicalJid } = require('../utils/wa');
+const config = require('../config');
+
+// ¿Es este JID uno de los numeros de config.shipAlto?
+//
+// NO SE PUEDE COMPARAR EL NUMERO A PELO, y el caso que lo obliga es argentino.
+// WhatsApp se come el 9 de movil de Argentina en el JID: quien marca
+// +54 9 297 506-9854 aparece muchas veces como 542975069854@s.whatsapp.net, sin
+// el nueve. Comparar la cadena tal cual fallaria justo con el numero para el
+// que se ha pedido esto, y fallaria en silencio — el ship saldria bajo y nadie
+// sabria por que.
+//
+// Asi que se comparan tres cosas, en este orden:
+//   1. el JID canonico, por si es un @lid ya resuelto a telefono;
+//   2. los digitos exactos;
+//   3. los digitos quitando el 9 de movil argentino (54 9 xxx -> 54 xxx) en los
+//      dos lados, que cubre las dos formas del mismo numero.
+function digitos(x) {
+  return String(x || '').split('@')[0].split(':')[0].replace(/\D/g, '');
+}
+function sinNueveAR(d) {
+  return /^549\d{8,}$/.test(d) ? '54' + d.slice(3) : d;
+}
+function esShipAlto(jid) {
+  if (!jid || !config.shipAlto.length) return false;
+  const propios = [digitos(jid), digitos(canonicalJid(jid))].filter(Boolean);
+  for (const objetivo of config.shipAlto) {
+    for (const propio of propios) {
+      if (propio === objetivo) return true;
+      if (sinNueveAR(propio) === sinNueveAR(objetivo)) return true;
+    }
+  }
+  return false;
+}
 
 const VERDICTS = {
   perfect: [
@@ -395,8 +429,20 @@ async function cmdShip(sock, msg, args, groupMeta) {
   // Se probó a suavizarlo a 8-53 junto con el resto de amaños, para que no
   // cantara tanto. Lo revirtió: aquí prefiere que cante a que le emparejen. Es
   // su decisión y no se vuelve a tocar sin que la cambie él.
+  //
+  // LA EXCEPCION: con los numeros de config.shipAlto le sale ALTO en vez de bajo.
+  // Va por delante del amaño de arriba a proposito — es una peticion posterior y
+  // mas concreta, asi que gana. Con el resto del grupo sigue saliendo 0-12.
+  //
+  // 62-89 y no "60 y pico": pedirlo "de 60 para arriba" y devolver 60, 61, 62
+  // clavados se leeria como un suelo, que es lo que delata un amaño. Con la
+  // horquilla ancha unas veces sale correcto y otras sale muy alto, que es como
+  // se lee la suerte.
   const ownerInvolved = isMainOwner(a, false, groupMeta) || isMainOwner(b, false, groupMeta);
-  const compat = ownerInvolved ? Math.floor(Math.random() * 13) : Math.floor(Math.random() * 101);
+  const conFavorito = ownerInvolved && (esShipAlto(a) || esShipAlto(b));
+  const compat = conFavorito ? 62 + Math.floor(Math.random() * 28)
+               : ownerInvolved ? Math.floor(Math.random() * 13)
+               : Math.floor(Math.random() * 101);
   const filled = Math.round(compat / 10);
   const bar = '█'.repeat(filled) + '░'.repeat(10 - filled);
 
