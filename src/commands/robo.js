@@ -37,6 +37,27 @@ function topeRobo(auraLadron, auraVictima) {
   );
 }
 
+// El remate del robo fallido. Era UNA linea fija —"y le salio al reves"— que
+// ademas de sosa se leia igual las mil veces. Ahora rota, y se rie del que lo
+// intento en vez de describir lo que paso.
+const ROBO_FALLO_REMATE = [
+  'y le salió como el puto culo',
+  'y le salió como todo en la vida: mal',
+  'y le salió tan bien como le sale todo lo demás',
+  'y se estrelló como estaba escrito',
+  'y le duró menos que la dignidad',
+  'y acabó como acaba siempre: haciendo el ridículo',
+  'y le salió del revés, como su puta suerte',
+  'y la cagó con una precisión admirable',
+  'y le salió mal, que es su especialidad',
+  'y volvió con las manos vacías y la cara llena',
+  'y le salió regular tirando a desastre',
+  'y demostró por qué nadie le deja nada',
+  'y se llevó exactamente lo que merecía: nada',
+  'y le salió tan mal que hasta la víctima se ofendió',
+  'y confirmó que lo suyo no es robar, ni esto ni nada',
+];
+
 const lastRob = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
 
 // %A = atacante (ladrón), %V = víctima
@@ -1938,7 +1959,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const phrase = pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag);
   const text =
     `${titulo}\n` +
-    `${aTag} intentó robarle a ${vTag} y le salió al revés\n` +
+    `${aTag} intentó robarle a ${vTag} ${pickFresh(ROBO_FALLO_REMATE, `${jid}|robo|remate`)}\n` +
     (clave === 'desastre'
       ? `_Se le cayó todo encima: ${vTag} se queda con lo que traía._\n\n`
       : `\n`) +
