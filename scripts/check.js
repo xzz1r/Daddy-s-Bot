@@ -261,6 +261,25 @@ async function capaStores() {
     console.log(rojo(`   ✗ ${q}`));
   };
 
+  // El interruptor de !aura off tapa una lista de comandos que se deduce del
+  // propio dispatcher. Si un refactor rompe ese patron, la deduccion cae a la
+  // lista a mano de seis nombres y la economia se queda medio abierta con la
+  // economia apagada, EN SILENCIO. Por eso se comprueba que sigue encontrando
+  // los alias, no solo que arranca.
+  {
+    const src = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+    const bloques = /((?:\s*case '[^']+':[^\n]*\n)+)\s*await (cmdDar|cmdRobo|cmdDuel)\(/g;
+    const hallados = new Set();
+    for (const m of src.matchAll(bloques)) {
+      for (const c of m[1].matchAll(/case '([^']+)'/g)) hallados.add(c[1]);
+    }
+    comprueba(hallados.size >= 20,
+      `aura off: se deducen ${hallados.size} comandos que mueven aura (si baja de 20, el patron del dispatcher se ha roto y el interruptor deja puertas abiertas)`);
+    for (const imprescindible of ['dar', 'regalar', 'robo', 'atraco', 'contrarobo', 'asalto', 'comprar']) {
+      comprueba(hallados.has(imprescindible), `aura off: !${imprescindible} queda tapado por el interruptor`);
+    }
+  }
+
   const aura = require(path.join(R, 'src/utils/auraStore'));
   const inicial = await aura.getAura(G, U);
   comprueba(inicial >= 150, `aura: un usuario nuevo arranca en el suelo (dio ${inicial})`);

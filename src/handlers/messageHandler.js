@@ -317,11 +317,40 @@ const COBRAN_SOLOS = new Set([
   'g', 'grok', 'pfp', 'fk', 'verificar', 'verify', 'check', 'top5', 'top10',
 ]);
 
-const CMDS_AURA = new Set([
-  'robo','robar',
-  'duel','duelo','1v1',
-  'dar','donar',
-]);
+// Los comandos que MUEVEN AURA y que por tanto tapa el interruptor de !aura off.
+//
+// ESTABA A MANO Y SE HABIA PODRIDO. Listaba seis nombres —robo, robar, duel,
+// duelo, 1v1, dar, donar— y desde entonces se habian ido añadiendo alias que
+// llegan a los mismos comandos sin pasar por aqui: !regalar, !transferir y
+// !pagar movian aura con la economia apagada, y lo mismo !asalto, !comprar,
+// !contrarobo y !atraco. O sea que el interruptor tapaba el nombre principal y
+// dejaba abierta la puerta de al lado.
+//
+// El motivo del podrido es el de siempre: dos sitios que tienen que decir lo
+// mismo y solo uno se toca al añadir un alias. Asi que ahora sale del propio
+// dispatcher, igual que COMANDOS_CONOCIDOS: se buscan los bloques de `case`
+// consecutivos que acaban llamando a uno de los comandos que tocan el saldo, y
+// se cogen TODAS sus etiquetas. Añadir un alias nuevo lo mete solo.
+//
+// cmdAura queda fuera a proposito: ese si mira el interruptor por dentro (ver
+// auraApagada en aura.js), y ademas tiene ramas que deben seguir contestando
+// con la economia apagada, como la guia y el propio !aura on.
+const CMDS_AURA = (() => {
+  const aMano = ['robo', 'robar', 'duel', 'duelo', '1v1', 'dar', 'donar'];
+  try {
+    const src = fs.readFileSync(__filename, 'utf8');
+    const bloques = /((?:\s*case '[^']+':[^\n]*\n)+)\s*await (cmdDar|cmdRobo|cmdDuel)\(/g;
+    const fuera = new Set(aMano);
+    for (const m of src.matchAll(bloques)) {
+      for (const c of m[1].matchAll(/case '([^']+)'/g)) fuera.add(c[1]);
+    }
+    return fuera;
+  } catch {
+    // Si el fichero no se puede leer, la lista a mano es el suelo: mejor tapar
+    // de menos que quedarse sin interruptor del todo.
+    return new Set(aMano);
+  }
+})();
 
 // Comandos que TRABAJAN sobre la foto o el vídeo que llevan adjunto. La guarda
 // de medios sin "ver una vez" los deja pasar: mandar una foto con el pie *!s*
