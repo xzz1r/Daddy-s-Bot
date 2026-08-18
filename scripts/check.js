@@ -570,6 +570,64 @@ async function capaStores() {
   catch (e) { fallos++; console.log(rojo(`   ✗ los stores lanzaron: ${e.message.split('\n')[0]}`)); }
   finally { restaurar(respaldo, ficherosAntes); }
 
+  // ── 5. LOS COBROS DE AURA NO PUEDEN VOLVER A SER UNA CARRERA ──────────────
+  //
+  // El patron prohibido es leer el saldo, hacer awaits por el medio y cobrar con
+  // la cifra leida: entre la lectura y el cobro cualquiera puede gastar y la
+  // resta deja a la persona en negativo. Se arreglo cinco veces en robo.js y se
+  // vigila aqui porque es facil de reintroducir sin darse cuenta: leer y restar
+  // por separado parece del todo inocente.
+  //
+  // Lo correcto es drainAura/spendAura/transferAura, que leen y restan dentro
+  // del mismo bloque serializado.
+  console.log('\n5. NADIE ACABA EN NEGATIVO');
+  {
+    let sucios = 0;
+    const RESTA = /addAura\(\s*[^,]+,\s*[^,]+,\s*-/;
+    for (const f of ficheros.filter((x) => x.startsWith(path.join(R, "src")))) {
+      if (f.endsWith('auraStore.js')) continue;   // aqui vive el arreglo, no el fallo
+      // Se quitan los comentarios: si no, la cabecera que explica el antipatron
+      // se denuncia a si misma.
+      const src = fs.readFileSync(f, 'utf8')
+        .split('\n').map((l) => l.replace(/^\s*\/\/.*$/, '')).join('\n');
+      const lineas = src.split('\n');
+      lineas.forEach((l, i) => {
+        if (!RESTA.test(l)) return;
+        // Una resta suelta vale; lo que no vale es que el importe venga de un
+        // Math.min contra un getAura leido antes.
+        const antes = lineas.slice(Math.max(0, i - 12), i).join('\n');
+        if (/await getAura\(/.test(antes) && /Math\.min\(/.test(antes)) {
+          sucios++;
+          console.log(rojo(`   ✗ ${path.relative(R, f)}:${i + 1} lee el saldo y lo resta despues; usa drainAura`));
+        }
+      });
+    }
+    if (sucios) fallos += sucios;
+    else console.log(verde('   ✓ ningun cobro lee el saldo y lo resta mas tarde'));
+  }
+
+  // ── 6. LOS COMANDOS DE PAGO NO SALEN GRATIS POR PRIVADO ───────────────────
+  {
+    const mh = fs.readFileSync(path.join(R, "src/handlers/messageHandler.js"), 'utf8');
+    if (/!jid\.endsWith\('@g\.us'\) && conceptoCobro/.test(mh)) {
+      console.log(verde('   ✓ los comandos de pago no se sirven gratis por privado'));
+    } else {
+      fallos++;
+      console.log(rojo('   ✗ falta la guarda de privado: los comandos de pago vuelven a ser gratis en DM'));
+    }
+  }
+
+  // ── 7. LOS MUTEOS SOBREVIVEN AL REINICIO ──────────────────────────────────
+  {
+    const gr = fs.readFileSync(path.join(R, "src/commands/group.js"), 'utf8');
+    if (/atomicWriteJson\(MUTE_FILE/.test(gr) && /readJsonOrEnoent\(MUTE_FILE/.test(gr)) {
+      console.log(verde('   ✓ los muteos se guardan en disco'));
+    } else {
+      fallos++;
+      console.log(rojo('   ✗ los muteos volvieron a vivir solo en memoria: `npm run update` los borra'));
+    }
+  }
+
   console.log(`\n${'─'.repeat(70)}`);
   if (fallos) {
     console.log(rojo(`${fallos} fallo(s). NO commitees esto.`));

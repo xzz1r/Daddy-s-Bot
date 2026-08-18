@@ -1,6 +1,8 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const { isOwner, isAdmin, isBotJid, isBotAdmin, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid, sameUser, esMiembroActual, restriccionContactoActiva, cuantoQuedaDeRestriccion } = require('../utils/wa');
-const { streamToBuffer, MAX_DOWNLOAD_BYTES } = require('../utils/helpers');
+const { streamToBuffer, MAX_DOWNLOAD_BYTES, atomicWriteJson, readJsonOrEnoent } = require('../utils/helpers');
+const path = require('path');
+const logger = require('../utils/logger');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled, toggleSoloAdmins, isSoloAdminsEnabled } = require('../utils/state');
 const { businessEvidence } = require('../utils/businessCheck');
 const { getMemberFacts } = require('../utils/nickStore');
@@ -21,6 +23,48 @@ const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('
 const mutedUsers = new Map();
 const MAX_MUTED = 5000;
 
+// LOS MUTEOS SE GUARDAN EN DISCO, y hasta ahora no. Vivian solo en este Map, o
+// sea que cualquier reinicio del proceso los borraba todos de golpe y en
+// silencio: nadie avisaba, el silenciado volvia a escribir y el admin que lo
+// habia callado veinticuatro horas se enteraba por las malas.
+//
+// Y no es un caso raro: `npm run update` reinicia con pm2. Cada actualizacion
+// del bot levantaba todos los muteos activos.
+//
+// Es el mismo patron que el resto de almacenes del bot: lectura perezosa,
+// escritura atomica y agrupada, y los caducados se tiran al cargar en vez de
+// arrastrarlos.
+const MUTE_FILE = path.join(__dirname, '../../data/mutes.json');
+let mutesCargados = false;
+let muteTimer = null;
+
+function guardarMutes() {
+  if (muteTimer) return;
+  muteTimer = setTimeout(() => {
+    muteTimer = null;
+    atomicWriteJson(MUTE_FILE, Object.fromEntries(mutedUsers))
+      .catch((e) => logger.warn(`mutes: no pude guardar (${e.message})`));
+  }, 2000);
+  muteTimer.unref?.();
+}
+
+async function cargarMutes() {
+  if (mutesCargados) return;
+  mutesCargados = true;
+  try {
+    const d = await readJsonOrEnoent(MUTE_FILE, {});
+    const ahora = Date.now();
+    let vivos = 0;
+    for (const [k, exp] of Object.entries(d || {})) {
+      if (typeof exp === 'number' && exp > ahora) { mutedUsers.set(k, exp); vivos++; }
+    }
+    if (vivos) logger.info(`mutes: ${vivos} silenciado(s) siguen en pie tras el reinicio.`);
+  } catch (e) {
+    logger.warn(`mutes: no pude leer el fichero (${e.message}); se empieza vacio`);
+  }
+}
+cargarMutes();
+
 function muteKey(groupJid, userJid) {
   return `${groupJid}|${canonicalJid(userJid)}`;
 }
@@ -31,13 +75,14 @@ function muteUser(groupJid, userJid, expireTs) {
     mutedUsers.delete(mutedUsers.keys().next().value);
   }
   mutedUsers.set(k, expireTs);
+  guardarMutes();
 }
 
 function isMuted(groupJid, userJid) {
   const k = muteKey(groupJid, userJid);
   const exp = mutedUsers.get(k);
   if (!exp) return false;
-  if (Date.now() > exp) { mutedUsers.delete(k); return false; }
+  if (Date.now() > exp) { mutedUsers.delete(k); guardarMutes(); return false; }
   return true;
 }
 
@@ -50,16 +95,20 @@ function getMuteRemaining(groupJid, userJid) {
 }
 
 function unmuteUser(groupJid, userJid) {
-  return mutedUsers.delete(muteKey(groupJid, userJid));
+  const habia = mutedUsers.delete(muteKey(groupJid, userJid));
+  if (habia) guardarMutes();
+  return habia;
 }
 
 // Periodic sweep — isMuted only evicts entries that get queried after expiry,
 // so abandoned mutes would otherwise accumulate forever in a 24/7 bot.
 setInterval(() => {
   const now = Date.now();
+  let fuera = 0;
   for (const [k, exp] of mutedUsers) {
-    if (now > exp) mutedUsers.delete(k);
+    if (now > exp) { mutedUsers.delete(k); fuera++; }
   }
+  if (fuera) guardarMutes();
 }, 10 * 60 * 1000).unref();
 
 // !tagall — mention everyone. Forwards media if replying to one, otherwise sends text.
@@ -973,4 +1022,4 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
 }
 
 module.exports = {
-  cmdSoloAdmins, cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdAdm };
+  cmdSoloAdmins, cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, muteUser, unmuteUser, cmdAdd, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdAdm };

@@ -1,5 +1,5 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser } = require('../utils/wa');
-const { getAura, addAura } = require('../utils/auraStore');
+const { getAura, addAura, drainAura } = require('../utils/auraStore');
 const { pickFresh, fmt } = require('../utils/helpers');
 const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, RECOMPENSA } = require('../utils/economia');
 const { ownerGana } = require('../utils/rigOwner');
@@ -1770,9 +1770,8 @@ async function contraatacar(sock, msg, jid, sender, groupMeta) {
   if (gana) {
     // Se mueve lo que el ladrón pueda cubrir: cobrar de una cuenta vacía
     // dejaría a alguien en negativo por una dinámica opcional.
-    const tieneEl = await getAura(jid, p.ladron);
-    const real = Math.max(0, Math.min(Math.round(p.cuanto * des.mult), tieneEl));
-    const [vN] = await Promise.all([addAura(jid, sender, real), addAura(jid, p.ladron, -real)]);
+    const { cobrado: real } = await drainAura(jid, p.ladron, Math.round(p.cuanto * des.mult));
+    const vN = await addAura(jid, sender, real);
     await tienda.anotarGolpe(jid, sender, real);
     const pool = clave === 'demoledor' ? RX.CONTRA_DEMOLEDOR
                : clave === 'raspado'   ? RX.CONTRA_RASPADO
@@ -1785,8 +1784,9 @@ async function contraatacar(sock, msg, jid, sender, groupMeta) {
     }, { quoted: msg });
   }
 
-  const castigo = Math.min(Math.round(p.cuanto * Math.abs(des.mult)), Math.max(0, await getAura(jid, sender)));
-  const [vN] = await Promise.all([addAura(jid, sender, -castigo), addAura(jid, p.ladron, castigo)]);
+  const { cobrado: castigo, current: tras } = await drainAura(jid, sender, Math.round(p.cuanto * Math.abs(des.mult)));
+  await addAura(jid, p.ladron, castigo);
+  const vN = { current: tras };
   const poolMal = clave === 'ruina' ? RX.CONTRA_RUINA : RX.CONTRA_PIERDE;
   return sock.sendMessage(jid, {
     text: `${des.titulo}\n\n` +
@@ -1898,9 +1898,9 @@ async function atracarTienda(sock, msg, jid, sender, groupMeta) {
   // La multa VUELVE A LA CAJA, no se destruye: cada intento fallido deja el
   // proximo mas goloso, que es lo que mantiene la mesa viva. Y nunca deja a
   // nadie en negativo: se cobra lo que tenga si no llega.
-  const saldo = Math.max(0, await getAura(jid, sender));
-  const multa = Math.min(Math.round(caja * ATRACO.multa), ATRACO.multaTope, saldo);
-  const nuevo = await addAura(jid, sender, -multa);
+  const { cobrado: multa, current: trasMulta } = await drainAura(
+    jid, sender, Math.min(Math.round(caja * ATRACO.multa), ATRACO.multaTope));
+  const nuevo = { current: trasMulta };
   await tienda.aportarACaja(jid, multa);
   await tienda.vetarDeTienda(jid, sender, Date.now() + ATRACO.vetoHoras * 3600000);
   return sock.sendMessage(jid, {
@@ -2289,6 +2289,16 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     // fachada. La recompensa que se le anuncia en !buscados sigue siendo falsa,
     // que es lo que tiene que ser; lo que ya no pasa es que le cueste aura de
     // verdad. Su saldo es lo unico que no se toca.
+    // EL COBRO VA PRIMERO, y el orden importa. Todo lo de abajo —la recompensa
+    // que se le pone en la cabeza al ladron, el golpe que se anota en la lista
+    // de buscados, la ventana de contraataque— se calcula a partir de `monto`.
+    // Si se cobra al final, `monto` puede acabar siendo mayor que lo que la
+    // victima podia pagar de verdad y las tres cosas quedan apuntadas sobre una
+    // cifra que nunca se movio.
+    const { cobrado: movido, current: vTras } = await drainAura(jid, target, monto);
+    monto = movido;
+    const vNew = { current: vTras };
+
     const enSuCabeza = isMainOwner(sender, msg.key.fromMe, groupMeta) ? 0 : Math.min(
       RECOMPENSA.tope,
       Math.round(monto * RECOMPENSA.fraccionDeGolpe),
@@ -2301,10 +2311,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
 
     // La victima tiene una ventana para devolver el golpe.
     anotarParaContra(jid, target, sender, monto);
-    const [aNew, vNew] = await Promise.all([
-      addAura(jid, sender, +monto - enSuCabeza + cobrada),
-      addAura(jid, target, -monto),
-    ]);
+    const aNew = await addAura(jid, sender, +monto - enSuCabeza + cobrada);
     const phrase = pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag);
     const extra =
       (clave === 'maestro' ? '\n_Le salió redondo: se llevó bastante más de lo que iba a por._'
@@ -2336,7 +2343,9 @@ async function cmdRobo(sock, msg, args, groupMeta) {
 
   // Fallo. En el desastre lo que pierde el ladrón se lo queda la víctima; en el
   // fallo normal solo es una multa y la víctima no toca nada.
-  const aNew = await addAura(jid, sender, -monto);
+  const { cobrado: pagado, current: aTras } = await drainAura(jid, sender, monto);
+  monto = pagado;
+  const aNew = { current: aTras };
   const vNew = clave === 'desastre' ? await addAura(jid, target, +monto) : null;
   // En el fallo NORMAL la victima no cobra, asi que ese aura salia del sistema.
   // Ahora una parte cae al bote del grupo: los fracasos dejan de evaporarse y

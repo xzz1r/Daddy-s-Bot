@@ -333,6 +333,10 @@ for (const c of CMDS_PORCENTAJE) COBRO_CENTRAL[c] = 'percent';
 const COBRAN_SOLOS = new Set([
   'play', 'playsong', 'playaudio', 's', 'sticker', 'stk', 'toimg', 'tovid',
   'g', 'grok', 'pfp', 'fk', 'verificar', 'verify', 'check', 'top5', 'top10',
+  // vs/versus cobran dentro de cmdVs: tienen tres salidas sin respuesta (sin
+  // menciones, contra uno mismo, y el silencio contra el owner) y cobrando
+  // fuera se pagaba por ellas.
+  'vs', 'versus',
 ]);
 
 // El fuente de este mismo fichero, leido UNA vez.
@@ -658,9 +662,21 @@ const videoOnceWarn = new Map();       // 'groupJid|sender|vo' -> timestamp del 
 // Group metadata cache: 30s TTL, bounded at 500 entries (FIFO eviction).
 // Bot.js calls invalidateGroupMeta() on participant changes so the cache
 // never serves stale member lists right after joins/kicks/promotes.
-const META_TTL = 30_000;
+// EL TTL ERA DE 30 s Y NO HACIA FALTA. La invalidacion de esta cache es por
+// EVENTO: bot.js llama a invalidateGroupMeta() en cuanto cambia un participante
+// (entra, sale, lo ascienden). O sea que el TTL no protege de nada que la
+// invalidacion no cubra ya; lo unico que hacia era forzar una consulta de red
+// cada 30 s por grupo activo. En una VPS de 1 GB con la conexion que hay, esa
+// consulta es de las que se notan en el tiempo de respuesta.
+//
+// Diez minutos deja la red tranquila y sigue siendo una red de seguridad por si
+// algun cambio no genera evento.
+const META_TTL = 10 * 60_000;
 const META_MAX = 500;
 const metaCache = new Map();
+// Consultas en curso por grupo. Sin esto, cinco mensajes que llegan juntos con
+// la cache fria disparan cinco groupMetadata para el mismo grupo.
+const metaEnVuelo = new Map();
 
 // Hard timeout on the groupMetadata call — without this, a stalled WebSocket
 // can hang the entire message handler for tens of seconds (or forever).
@@ -669,19 +685,28 @@ const META_FETCH_TIMEOUT = 8000;
 async function getGroupMeta(sock, jid) {
   const c = metaCache.get(jid);
   if (c && Date.now() - c.ts < META_TTL) return c.meta;
-  try {
-    const meta = await Promise.race([
-      sock.groupMetadata(jid),
-      new Promise((_, rej) => setTimeout(() => rej(new Error('groupMetadata timeout')), META_FETCH_TIMEOUT)),
-    ]);
-    if (metaCache.size >= META_MAX) {
-      metaCache.delete(metaCache.keys().next().value);
+  const yaVa = metaEnVuelo.get(jid);
+  if (yaVa) return yaVa;
+
+  const tarea = (async () => {
+    try {
+      const meta = await Promise.race([
+        sock.groupMetadata(jid),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('groupMetadata timeout')), META_FETCH_TIMEOUT)),
+      ]);
+      if (metaCache.size >= META_MAX) {
+        metaCache.delete(metaCache.keys().next().value);
+      }
+      metaCache.set(jid, { meta, ts: Date.now() });
+      return meta;
+    } catch {
+      return c?.meta ?? null;
+    } finally {
+      metaEnVuelo.delete(jid);
     }
-    metaCache.set(jid, { meta, ts: Date.now() });
-    return meta;
-  } catch {
-    return c?.meta ?? null;
-  }
+  })();
+  metaEnVuelo.set(jid, tarea);
+  return tarea;
 }
 
 function invalidateGroupMeta(jid) {
@@ -1526,6 +1551,23 @@ async function handleMessage(sock, msg) {
   // Lo cobrado se guarda para poder DEVOLVERLO si el comando revienta. Ver el
   // catch del final.
   let cobradoAqui = 0;
+
+  // EL AURA VIVE POR GRUPO, ASI QUE EN PRIVADO NO HAY DE DONDE COBRAR — y la
+  // condicion de abajo lleva `jid.endsWith('@g.us')` justamente por eso. El
+  // efecto secundario era que los 36 comandos de pago salian GRATIS por privado:
+  // !roast, !ship, !ttp y los 24 de porcentaje, ilimitados y sin tocar el saldo
+  // de nadie. El precio existe para que gastar tenga coste; por privado no lo
+  // tenia.
+  //
+  // No se arregla cobrando (no hay saldo de privado que cobrar, y fabricar uno
+  // seria inventar una segunda economia), se arregla diciendo donde se juega.
+  // Al owner no le afecta: no paga en ningun sitio y usa el privado para
+  // administrar.
+  if (!jid.endsWith('@g.us') && conceptoCobro && !isMainOwner(sender, msg.key.fromMe, null)) {
+    await sock.sendMessage(jid, { text: 'Eso se juega en el grupo. Aquí no hay aura que gastar.' }, { quoted: msg });
+    return;
+  }
+
   if (jid.endsWith('@g.us') && conceptoCobro && !COBRAN_SOLOS.has(command)) {
     const pago = await cobrarAura(jid, sender, conceptoCobro, { fromMe: msg.key.fromMe, groupMeta });
     if (!pago.ok) {

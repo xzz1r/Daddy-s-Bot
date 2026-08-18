@@ -113,7 +113,10 @@ function maybeIndex(sock, pfpJid, groupJid) {
 // Barrido inicial: recorre todos los grupos del bot e indexa a sus miembros.
 // Escalonado por la cola (tope de concurrencia), así un grupo de 200 no dispara
 // 200 descargas de golpe. Se llama una vez al conectar.
-async function sweepAllGroups(sock) {
+// `yaPedidos` es el mapa que bot.js acaba de traerse. Se acepta de fuera para
+// no repetir groupFetchAllParticipating, que es la consulta mas cara del bot y
+// la que dispara el rate-overlimit. Si no llega, se pide (arranques sueltos).
+async function sweepAllGroups(sock, yaPedidos = null) {
   const ahora = Date.now();
   if (ultimoBarrido && ahora - ultimoBarrido < BARRIDO_CADA_MS) {
     logger.info('pfpIndexer: barrido omitido (se hizo hace menos de 6 h)');
@@ -121,9 +124,11 @@ async function sweepAllGroups(sock) {
   }
   ultimoBarrido = ahora;
 
-  let groups;
-  try { groups = await sock.groupFetchAllParticipating(); }
-  catch (e) { logger.warn(`pfpIndexer: no pude listar grupos: ${e.message}`); return; }
+  let groups = yaPedidos;
+  if (!groups) {
+    try { groups = await sock.groupFetchAllParticipating(); }
+    catch (e) { logger.warn(`pfpIndexer: no pude listar grupos: ${e.message}`); return; }
+  }
 
   let enqueued = 0;
   for (const [groupJid, meta] of Object.entries(groups || {})) {

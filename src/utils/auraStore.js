@@ -269,6 +269,40 @@ async function transferAura(groupJid, fromJid, toJid, amount, credita = amount) 
   });
 }
 
+// Cobro "hasta donde llegue", atomico. Descuenta el minimo entre lo pedido y lo
+// que la persona tiene DE VERDAD en el momento de escribir, y dice cuanto pudo
+// cobrar.
+//
+// EXISTE POR UN PATRON REPETIDO EN robo.js QUE ERA UNA CARRERA. Se hacia asi:
+//
+//     const tiene = await getAura(jid, victima);          // (1) lectura
+//     const monto = Math.min(loQueTocaba, tiene);         // (2) recorte
+//     ...varios await por el medio...                     // (3)
+//     await addAura(jid, victima, -monto);                // (4) cobro
+//
+// El recorte de (2) protege contra el saldo de (1), pero entre (1) y (4) hay
+// awaits: anotarGolpe, cobrarRecompensa, sacarDeCaja. Si en ese hueco la
+// victima gasta o le roban —cosa nada rara en un grupo donde cinco personas
+// juegan a la vez— en (4) se le cobra un monto que ya no puede pagar y se queda
+// en negativo. Que es exactamente lo que el recorte pretendia evitar.
+//
+// Aqui la lectura y la resta ocurren dentro del mismo bloque serializado, asi
+// que no hay hueco donde meterse. Es el mismo arreglo que se le hizo a !duel
+// con transferAura, aplicado al caso "cobrale lo que tenga".
+async function drainAura(groupJid, userJid, amount) {
+  await load();
+  const qKey = `${groupJid}|${canonicalJid(userJid)}`;
+  return serialized(qKey, () => {
+    if (!store[groupJid]) store[groupJid] = {};
+    const key = foldPerson(store[groupJid], userJid);
+    const saldo = store[groupJid][key] === undefined ? STARTING_AURA : store[groupJid][key];
+    const cobrado = Math.max(0, Math.min(amount, saldo));
+    store[groupJid][key] = saldo - cobrado;
+    scheduleSave();
+    return { cobrado, current: store[groupJid][key] };
+  });
+}
+
 // Cobro atomico: comprueba el saldo y descuenta DENTRO del mismo bloque
 // serializado, igual que transferAura.
 //
@@ -358,4 +392,4 @@ async function flushAura() {
   }
 }
 
-module.exports = { getAura, addAura, spendAura, transferAura, getAuraRanking, resetAura, flushAura, STARTING_AURA };
+module.exports = { getAura, addAura, spendAura, drainAura, transferAura, getAuraRanking, resetAura, flushAura, STARTING_AURA };

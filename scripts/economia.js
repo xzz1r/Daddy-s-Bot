@@ -495,8 +495,14 @@ ok(/transferAura/.test(src('dar.js')), '!dar sigue usando transferAura: el cargo
   const rs = src('robo.js');
   ok(/addAura\(jid, sender, \+monto - enSuCabeza \+ cobrada\)/.test(rs),
     '!robo: la recompensa se RETIENE del propio botin (+monto - enSuCabeza), no se acuña aparte');
-  ok(/addAura\(jid, target, -monto\)/.test(rs),
-    '  y la victima pierde exactamente el monto: la retencion no le cuesta a ella');
+  // Se comprueba la PROPIEDAD, no una linea concreta. La version anterior
+  // exigia literalmente `addAura(jid, target, -monto)`, asi que en cuanto ese
+  // cobro paso a ser atomico —drainAura, para no dejar a la victima en
+  // negativo— el auditor empezo a dar por roto justo el arreglo. Un assert que
+  // congela la implementacion bloquea el siguiente arreglo en vez de proteger
+  // la regla.
+  ok(/drainAura\(jid, target, monto\)|addAura\(jid, target, -monto\)/.test(rs),
+    '  y a la victima se le cobra exactamente el monto: la retencion no le cuesta a ella');
   ok(/premio: Math\.round\(premio\)/.test(fs.readFileSync(`${R}/src/utils/roboStore.js`, 'utf8')),
     '  la recompensa vive DENTRO del golpe, asi que caduca sola con la ventana de 7 dias');
   const maxCabeza = RECOMPENSA.tope;

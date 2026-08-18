@@ -106,9 +106,27 @@ let timerSolicitudes = null;
 const TTL_LISTA_GRUPOS = 30 * 60 * 1000;
 const ESPERA_LISTA_MAX = 60 * 60 * 1000;
 let gruposConocidos = [];
+let gruposMeta = null;      // el mapa entero de la ultima consulta
 let gruposTs = 0;
 let gruposEsperaHasta = 0;
 let gruposFallos = 0;
+let gruposEnVuelo = null;   // consulta en curso, para no lanzar dos a la vez
+
+// SE GUARDA EL MAPA ENTERO, NO SOLO LAS CLAVES. Habia dos sitios pidiendo esta
+// misma consulta —aqui y pfpIndexer.sweepAllGroups()— y los dos disparaban al
+// conectar, con segundos de diferencia. Es la llamada mas cara que hace el bot
+// y ya habia provocado `rate-overlimit` ella sola; pedirla dos veces seguidas
+// era pedirlo a gritos. Ahora sale una y el barrido de fotos reutiliza el
+// resultado.
+async function mapaDeGrupos() {
+  const ahora = Date.now();
+  if (gruposMeta && ahora - gruposTs < TTL_LISTA_GRUPOS) return gruposMeta;
+  if (ahora < gruposEsperaHasta) return gruposMeta;
+  // Dos llamadas simultaneas comparten la misma consulta en vuelo.
+  if (gruposEnVuelo) return gruposEnVuelo;
+  gruposEnVuelo = listaDeGrupos().then(() => gruposMeta).finally(() => { gruposEnVuelo = null; });
+  return gruposEnVuelo;
+}
 
 async function listaDeGrupos() {
   const ahora = Date.now();
@@ -117,7 +135,8 @@ async function listaDeGrupos() {
   if (ahora < gruposEsperaHasta) return gruposConocidos;
 
   try {
-    gruposConocidos = Object.keys(await sock.groupFetchAllParticipating());
+    gruposMeta = await sock.groupFetchAllParticipating();
+    gruposConocidos = Object.keys(gruposMeta || {});
     gruposTs = ahora;
     gruposFallos = 0;
     gruposEsperaHasta = 0;
@@ -503,7 +522,9 @@ async function connectToWhatsApp() {
       // Barrido inicial del historial de huellas: indexa en segundo plano las
       // fotos de los miembros de todos los grupos. Escalonado por su propia cola,
       // no bloquea el arranque. A partir de aquí se mantiene solo con cada mensaje.
-      sweepAllGroups(sock).catch(e => logger.warn(`pfpIndexer: barrido falló: ${e.message}`));
+      mapaDeGrupos()
+        .then((mapa) => sweepAllGroups(sock, mapa))
+        .catch(e => logger.warn(`pfpIndexer: barrido falló: ${e.message}`));
 
       // Lista de solicitudes de entrada pendientes. Es lo único que permite
       // saber, cuando un admin mete a alguien, si lo estaba APROBANDO o lo
@@ -1169,6 +1190,7 @@ process.on('unhandledRejection', (reason) => {
 function _sockDePrueba(s) {
   sock = s;
   gruposConocidos = [];
+  gruposMeta = null;
   gruposTs = 0;
   gruposEsperaHasta = 0;
   gruposFallos = 0;

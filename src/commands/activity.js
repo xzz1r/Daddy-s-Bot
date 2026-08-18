@@ -1,5 +1,6 @@
 const { getActiveUsers } = require('../utils/messageCounter');
 const { isOwner, isMainOwner, getSender, sameUser, soloMiembros, bareJid, canonicalJid, isBotJid } = require('../utils/wa');
+const { cobrar, textoSinSaldo } = require('../utils/auraCobro');
 const { shuffle, pickFresh } = require('../utils/helpers');
 
 // ---- !vs : real-activity head-to-head -------------------------------------
@@ -62,15 +63,21 @@ async function cmdVs(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
   }
 
-  const mentioned = msg.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
+  const ctx = msg.message?.extendedTextMessage?.contextInfo;
+  const mentioned = ctx?.mentionedJid || [];
   const sender = getSender(msg);
 
   let a, b;
   if (mentioned.length >= 2) [a, b] = mentioned.slice(0, 2);
   else if (mentioned.length === 1) { a = sender; b = mentioned[0]; }
+  // RESPONDER A UN MENSAJE CON *!vs* TAMBIEN VALE. El resto del bot resuelve el
+  // objetivo con getTarget(), que acepta cita o mencion indistintamente; este
+  // comando era el unico que solo miraba menciones, asi que responderle a
+  // alguien contestaba "menciona a dos" con la persona citada delante.
+  else if (ctx?.participant) { a = sender; b = ctx.participant; }
   else {
     return sock.sendMessage(jid, {
-      text: 'Menciona a dos: *!vs @uno @otro*',
+      text: 'Menciona a dos (*!vs @uno @otro*) o responde al mensaje de alguien con *!vs*.',
     }, { quoted: msg });
   }
 
@@ -82,6 +89,17 @@ async function cmdVs(sock, msg, args, groupMeta) {
   // !count y !relevancia: una respuesta especial para él lo delata tanto como
   // enseñar la cifra, porque es la única comparación que el bot rechaza.
   if (isMainOwner(a, false, groupMeta) || isMainOwner(b, false, groupMeta)) return;
+
+  // EL COBRO VA AQUI, NO EN EL DISPATCHER, y es el mismo motivo que en !count.
+  // El cobro central corre ANTES del switch, asi que se cobraba y despues este
+  // comando podia irse por tres puertas sin responder: sin menciones, contra uno
+  // mismo, o —peor— contra el owner, donde el return es SILENCIOSO. Ahi el
+  // usuario pagaba y no recibia ni un mensaje. El catch del handler solo
+  // devuelve el aura si salta una excepcion, y un return no lo es.
+  const pago = await cobrar(jid, sender, 'vs', { fromMe: msg.key.fromMe, groupMeta });
+  if (!pago.ok) {
+    return sock.sendMessage(jid, { text: textoSinSaldo('vs', pago, jid) }, { quoted: msg });
+  }
 
   const users = await getActiveUsers(jid, 0); // everyone tracked
   const ca = lookupCount(users, a);
