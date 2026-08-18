@@ -368,7 +368,7 @@ async function ffmpegToBuffer(args, input = null, timeoutMs = 10000) {
 // battery cut mid-write leaves the PREVIOUS file intact instead of a truncated
 // one. Without this, a corrupt half-write makes the next readJson throw, and
 // the stores'`catch → {}` then silently wipes all persisted data on boot.
-// Safe store read. Returns `fallback` ONLY when the file genuinely doesn.'t
+// Safe store read. Returns `fallback` ONLY when the file genuinely doesn't
 // exist yet (first run). Any OTHER error — a transient EMFILE/ENOMEM/EACCES
 // under memory pressure on a 1GB box, or a corrupt file — is rethrown, so the
 // caller's load rejects and the in-memory store stays null instead of being
