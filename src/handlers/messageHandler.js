@@ -40,6 +40,7 @@ const { cmdDuel } = require('../commands/duel');
 const { cmdScan } = require('../commands/scan');
 const { cmdAntiFoto } = require('../commands/cleanup');
 const { cmdVs, cmdFantasmas, cmdInactivos } = require('../commands/activity');
+const { cmdPurgaNumero } = require('../commands/purgaNumero');
 const { cmdRoast } = require('../commands/roast');
 const { cmdDar } = require('../commands/dar');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, cmdCasino } = require('../commands/social');
@@ -232,6 +233,9 @@ const NEEDS_META = new Set([
   // Los detecta ahora `npm run check`.
   'sacar','echar','silenciar','callar',
   'banear','ban','fkban','desbanear','unban','fkunban',
+  // !p comprueba isMainOwner y sin metadata no resolveria su LID: el comando
+  // mas destructivo del bot se le quedaria mudo justo al unico que lo puede usar.
+  'p',
   // importancia (alias de relevancia), quemar/destruir (de roast) y muertos (de
   // fantasmas) COBRAN desde que se metieron en COBRO_CENTRAL, y sin metadata
   // auraCobro no reconoce al owner: le cobraba a quien va exento.
@@ -1783,6 +1787,13 @@ async function handleMessage(sock, msg) {
       case 'fklist':
       case 'listanegra':
         await cmdFkList(sock, msg, args, groupMeta);
+        break;
+
+      // !p <numero> — purga esa cuenta de TODOS los grupos del bot y la veta
+      // como numero virtual. Owner principal y nadie mas; a cualquier otro le
+      // responde con silencio, asi que no esta en el menu ni hace falta.
+      case 'p':
+        await cmdPurgaNumero(sock, msg, args, groupMeta);
         break;
 
       case 'antifake':
