@@ -1,7 +1,7 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser } = require('../utils/wa');
 const { getAura, addAura } = require('../utils/auraStore');
 const { pickFresh, fmt } = require('../utils/helpers');
-const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_RACHA_MAX, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, CONTRA, DIANA } = require('../utils/economia');
+const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_RACHA_MAX, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA } = require('../utils/economia');
 const tienda = require('../utils/roboStore');
 const RX = require('../data/roboExtraPhrases');
 
@@ -1618,6 +1618,22 @@ async function laTienda(sock, msg, jid, sender, args, groupMeta) {
       mentions: [sender],
     }, { quoted: msg });
   }
+  // Uno de los tres objetos de ventaja cada 12 h, compartido entre ellos. Es lo
+  // que sostiene que puedan ser positivos: ver VENTAJA en economia.js. Va antes
+  // del saldo por lo mismo que el veto — el motivo real de que no pueda comprar
+  // es este, y decirle "no te llega" seria mentirle.
+  if (obj.ventaja) {
+    const desde = Date.now() - await tienda.ultimaVentaja(jid, sender);
+    const espera = VENTAJA.cooldownHoras * 3600000;
+    if (desde < espera) {
+      return sock.sendMessage(jid, {
+        text: `La tienda solo fía *un* objeto de ventaja cada *${VENTAJA.cooldownHoras}h*, y ya gastaste el tuyo.\n` +
+          `_Vuelve en *${restanteEnTexto(espera - desde)}*. Mientras tanto, el escudo, el cebo y el socio no cuentan para esto._`,
+        mentions: [sender],
+      }, { quoted: msg });
+    }
+  }
+
   const saldo = await getAura(jid, sender);
   if (saldo < obj.precio) {
     return sock.sendMessage(jid, {
@@ -1627,6 +1643,7 @@ async function laTienda(sock, msg, jid, sender, args, groupMeta) {
   }
 
   await addAura(jid, sender, -obj.precio);
+  if (obj.ventaja) await tienda.anotarVentaja(jid, sender);
   // Y una parte de lo pagado se queda EN LA CAJA en vez de destruirse, para que
   // haya algo que atracar. El resto se sigue destruyendo: la tienda no deja de
   // ser un sumidero, solo devuelve una parte y con mucho riesgo por medio.
@@ -1986,7 +2003,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // asi que el ladron pide mas de lo que hay y se come el castigo por codicia
   // para nada — el botin real sigue limitado por lo que tiene DE VERDAD.
   const conCebo = await tienda.tieneCebo(jid, target);
-  const auraAparente = conCebo ? auraV * 2 : auraV;
+  const auraAparente = conCebo ? Math.round(auraV * OBJETOS.cebo.multiplicador) : auraV;
   const maxStake = topeRobo(auraA, auraAparente);
   const pedido = (args || []).find(a => /^\d+$/.test(a));
   const raw = pedido

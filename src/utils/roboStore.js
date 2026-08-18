@@ -132,6 +132,26 @@ async function anotarAtraco(g) {
   scheduleSave();
 }
 
+// ─── El limite de los objetos de ventaja ─────────────────────────────────────
+//
+// Uno cada 12 h y compartido entre los tres. Vive en el mismo cajon que el resto
+// del estado con caducidad de cada persona. Es lo que sostiene que esos objetos
+// puedan ser positivos sin convertirse en una imprenta: ver VENTAJA en
+// economia.js.
+async function ultimaVentaja(g, quien) {
+  await load();
+  return grupo(g).objetos[canonicalJid(quien)]?.ultimaVentaja || 0;
+}
+
+async function anotarVentaja(g, quien) {
+  await load();
+  const x = grupo(g);
+  const k = canonicalJid(quien);
+  if (!x.objetos[k]) x.objetos[k] = {};
+  x.objetos[k].ultimaVentaja = Date.now();
+  scheduleSave();
+}
+
 // ─── El veto ─────────────────────────────────────────────────────────────────
 //
 // Quien la lia en la tienda no puede comprar en ella un rato. Vive en el mismo
@@ -332,6 +352,7 @@ module.exports = {
   tienePase, tieneIndulto, gastarIndulto,
   verBote, aportarAlBote, vaciarBote,
   verCaja, aportarACaja, sacarDeCaja, seguridadTienda, anotarAtraco, vetarDeTienda, vetoTienda,
+  ultimaVentaja, anotarVentaja,
   objetosDe, darObjeto, gastarGanzua, tieneEscudo, tieneCebo,
   anotarGolpe, rankingLadrones, masBuscado,
   flushRobo,

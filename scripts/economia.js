@@ -21,7 +21,7 @@ const { P_POSITIVA, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, ACTIVIDAD_MSGS, P_TOPE_MIEMB
         APUESTA, PRECIOS, BONOS, REDENCION, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE,
         P_TOPE, TIRADAS_PAGADAS, bonoActividad,
         RACHA, rango, ROBO, DUELO, ARRANQUE, MILLONARIO, IMPUESTO, impuestoDe,
-        OBJETOS, RIESGO, ROBO_BASE, ROBO_LIMITES } = eco;
+        OBJETOS, VENTAJA, RIESGO, ROBO_BASE, ROBO_LIMITES } = eco;
 
 let fallos = 0;
 const ok = (c, q) => { if (!c) { fallos++; console.log('FALLO: ' + q); } else console.log('OK    ' + q); };
@@ -649,12 +649,22 @@ console.log('\n════ 9. la tienda: ¿sale a cuenta comprar, y no es una i
 //
 //   1. VALE LA PENA — en su mejor uso previsto aporta mas de lo que cuesta. Si
 //      no, es decorado: nadie lo compra dos veces.
-//   2. NO IMPRIME — comprarlo y usarlo en bucle no sale a ganancia. Lo que
-//      sostiene esto es el TOPE de cada objeto, no el precio.
+//   2. NO IMPRIME — lo que se puede sacar al dia esta acotado.
 //
-// Entre las dos hay una horquilla estrecha —la ventaja de la casa— y el precio
-// va dentro. Si un cambio futuro mueve el techo del robo, la apuesta maxima o
-// los desenlaces, esta seccion se pone roja en vez de pudrirse en silencio.
+// LA SEGUNDA PRUEBA CAMBIO, y conviene saber por que. Antes exigia que comprar y
+// jugar en bucle saliera a cero o a perdida, y eso lo garantizaba el precio. El
+// efecto secundario era que el objeto NO PODIA DAR NADA: como mucho llegaba a
+// cancelar la ventaja de la casa, asi que lo mejor que te podia pasar comprando
+// un amuleto era no perder. Con razon parecia que daban poco: es que daban cero.
+//
+// Ahora los tres objetos de ventaja son positivos (~+70 por compra jugando bien)
+// y lo que impide la imprenta ya no es el precio sino el LIMITE DE COMPRA: uno
+// cada 12 h, compartido entre los tres. Asi que lo que hay que acotar es lo que
+// se puede sacar AL DIA, no por vuelta.
+
+// Lo que ingresa al dia un usuario normal. Se necesita en dos sitios de esta
+// seccion, asi que se saca una vez.
+const DIA_NORMAL_PREV = f('normal').total;
 
 // Los desenlaces del robo, tal como los reparte robo.js.
 const R_GANA   = 0.12 * 1.8 + 0.55 * 1.0 + 0.33 * 0.4;  // se lleva esto de lo pedido
@@ -691,7 +701,7 @@ for (const M of barrido(200)) {
 console.log(`  ganzua  ${String(gz.precio).padStart(5)}   aporta hasta ${n0(gzAporta)}   comprar+robar en bucle: ${n2(gzBucle)}`);
 ok(gz.topeRobo > 0, '  la ganzua lleva tope: sin el, su valor crece con lo pedido y no para');
 ok(gzAporta > gz.precio, `  y aun asi compensa comprarla (aporta ${n0(gzAporta)} contra ${gz.precio} que cuesta)`);
-ok(gzBucle <= 0, `  pero comprarla y robar en bucle NO imprime (${n2(gzBucle)} por vuelta)`);
+ok(gz.ventaja, '  y esta bajo el limite de compra, que es lo que ahora impide la imprenta');
 
 // ─── amuleto ─────────────────────────────────────────────────────────────────
 const am = OBJETOS.amuleto;
@@ -705,7 +715,7 @@ for (const S of barrido(200)) {
 console.log(`  amuleto ${String(am.precio).padStart(5)}   aporta hasta ${n0(amAporta)}   comprar+apostar en bucle: ${n2(amBucle)}`);
 ok(am.topeApuesta > 0, '  el amuleto lleva tope de apuesta');
 ok(amAporta > am.precio, `  y compensa comprarlo (aporta ${n0(amAporta)} contra ${am.precio} que cuesta)`);
-ok(amBucle <= 0, `  pero comprarlo y apostar el maximo NO imprime (${n2(amBucle)} por vuelta)`);
+ok(am.ventaja, '  y esta bajo el limite de compra');
 
 // ─── seguro ──────────────────────────────────────────────────────────────────
 const sg = OBJETOS.seguro;
@@ -718,7 +728,7 @@ for (const S of barrido(200)) {
 console.log(`  seguro  ${String(sg.precio).padStart(5)}   devuelve hasta ${n0(sgAporta)}   comprar+apostar en bucle: ${n2(sgBucle)}`);
 ok(sg.topeDevuelto > 0, '  el seguro lleva tope de devolucion');
 ok(sgAporta > sg.precio, `  y compensa comprarlo (devuelve ${n0(sgAporta)} contra ${sg.precio} que cuesta)`);
-ok(sgBucle <= 0, `  pero comprarlo y apostar el maximo NO imprime (${n2(sgBucle)} por vuelta)`);
+ok(sg.ventaja, '  y esta bajo el limite de compra');
 
 // ─── socio ───────────────────────────────────────────────────────────────────
 const sc = OBJETOS.socio;
@@ -728,12 +738,33 @@ console.log(`  socio   ${String(sc.precio).padStart(5)}   se amortiza a los ${co
 ok(cortaEn <= 35, `  el socio se amortiza en una tarde larga (${cortaEn} comandos): por encima de ~35 no lo alcanza nadie y es decorado`);
 ok(cortaEn >= 15, `  y no se amortiza solo con pasar por ahi (${cortaEn} comandos): sigue siendo para quien vive en el chat`);
 
+// ─── EL TECHO DIARIO, que es lo que ahora sostiene la economia ───────────────
+//
+// Con el limite de compra, lo maximo que se puede extraer de la tienda al dia es
+// (24 / cooldown) compras del objeto que mas deje. Se mide contra lo que ingresa
+// un usuario normal: si la tienda llega a dar mas que escribir, deja de ser una
+// tienda y pasa a ser el trabajo.
+{
+  const porDia = 24 / VENTAJA.cooldownHoras;
+  const mejorVuelta = Math.max(gzBucle, amBucle, sgBucle);
+  const techoDia = porDia * mejorVuelta;
+  const cuantos = Object.values(OBJETOS).filter((o) => o.ventaja).length;
+  console.log(`\n  Limite: 1 objeto de ventaja cada ${VENTAJA.cooldownHoras} h (${cuantos} comparten el mismo limite).`);
+  console.log(`  El que mas deja son ${n0(mejorVuelta)} por compra, asi que el techo diario de la tienda es ${n0(techoDia)}.`);
+  ok(mejorVuelta > 0,
+    `  comprar SI sale a cuenta ahora: la mejor jugada deja ${n0(mejorVuelta)} en vez de quedarse a cero`);
+  ok(techoDia < DIA_NORMAL_PREV,
+    `  y aun asi la tienda da menos que escribir (${n0(techoDia)} contra ${n0(DIA_NORMAL_PREV)} al dia): sigue siendo un extra, no un sueldo`);
+  ok(VENTAJA.cooldownHoras >= 6,
+    `  el limite es de ${VENTAJA.cooldownHoras} h: por debajo de 6 el techo se dispara y el precio ya no lo sujeta`);
+}
+
 // ─── lo que cuestan, en dias de quien los compra ─────────────────────────────
 //
 // El precio en aura no dice nada por si solo; lo que dice algo es cuantos dias
 // de juego cuesta. Esta es la lectura que faltaba cuando se pusieron: 1.500 por
 // un indulto de 48 h eran OCHO DIAS de ingresos de un usuario normal.
-const DIA_NORMAL = f('normal').total;
+const DIA_NORMAL = DIA_NORMAL_PREV;
 console.log(`\n  (un usuario normal ingresa ${n0(DIA_NORMAL)} al dia)\n`);
 for (const [k, o] of Object.entries(OBJETOS)) {
   const d = o.precio / DIA_NORMAL;

@@ -722,7 +722,11 @@ const ATRACO = {
 //   · lo que el objeto aporta de valor esperado en su uso previsto;
 //   · y lo que ingresa al dia quien lo va a comprar (188 un usuario normal).
 const OBJETOS = {
-  escudo: { precio: 180, horas: 12, desc: 'nadie te puede robar durante 12 h' },
+  // LOS DE DURACION SUBEN SIN MAS, y hay un motivo por el que se puede: no
+  // producen aura, la protegen o la ahorran. No hay bucle que cerrar con ellos,
+  // asi que aqui el unico limite es que sigan siendo una decision y no un
+  // tramite. Se ha ido a lo generoso.
+  escudo: { precio: 180, horas: 24, desc: 'nadie te puede robar durante 24 h' },
   // LA GANZUA LLEVA TOPE, y le hacia mucha falta. Es el mismo fallo que el
   // amuleto tenia previsto y esta no: un bono de probabilidad sobre lo pedido
   // vale mas cuanto mas se pide. Sin tope, con las dos fortunas en 5.000 y
@@ -738,9 +742,14 @@ const OBJETOS = {
   // 140 sale a cuenta desde unos 500 de botin (1,6 veces lo que cuesta) y el
   // bucle de comprar-y-robar se queda en -17. Bajarla ademas la habria devuelto
   // a ser imprenta por otro camino.
-  ganzua: { precio: 140, usos: 1,   bono: 0.18, topeRobo: 800,
+  ganzua: { precio: 60,  usos: 1,   bono: 0.18, topeRobo: 800, ventaja: true,
             desc: '+18 % en tu próximo robo (sobre los primeros 800)' },
-  cebo:   { precio: 90,  horas: 8,  desc: 'aparentas el doble de aura durante 8 h' },
+  // El cebo ademas pega mas fuerte: aparentar x2.5 en vez de x2 hunde al ladron
+  // que pica del 38 % al 15 %, o sea al suelo. El multiplicador estaba escrito a
+  // pelo dentro de robo.js (`auraV * 2`) y ahora sale de aqui, que es donde
+  // tienen que estar las cifras del juego.
+  cebo:   { precio: 90,  horas: 16, multiplicador: 2.5,
+            desc: 'aparentas dos veces y media tu aura durante 16 h' },
 
   // ─── Los caros: no son para robar, son para que el bot no te toque ────────
   //
@@ -754,14 +763,14 @@ const OBJETOS = {
   // pedia una semana de trabajo para dos dias de cobertura parcial, y ni el mas
   // rico hacia esa cuenta. A 400 y 900 siguen doliendo —dos dias y cinco— pero
   // son una decision que alguien puede llegar a tomar, que es el punto.
-  pase:    { precio: 400,  horas: 24, desc: 'publicas tus redes 24 h sin que el bot te borre nada' },
+  pase:    { precio: 400,  horas: 48, desc: 'publicas tus redes 48 h sin que el bot te borre nada' },
 
   // OJO CON EL ALCANCE: el indulto solo para al BOT, y solo cuando actua SOLO.
   // No protege de un !kick ni de un !fkban de un admin, ni deberia: el dia que
   // el aura compre inmunidad frente a una persona, el owner deja de mandar en
   // su propio grupo y la tienda se convierte en un agujero de moderacion.
   // Es un seguro contra el automatismo, no un salvoconducto.
-  indulto: { precio: 900,  horas: 48, desc: 'el bot no te banea solo durante 48 h — no te salva de un admin' },
+  indulto: { precio: 900,  horas: 72, desc: 'el bot no te banea solo durante 72 h — no te salva de un admin' },
 
   // ─── Los de la mesa ────────────────────────────────────────────────────────
   //
@@ -788,12 +797,12 @@ const OBJETOS = {
   // Aporta como mucho 338 (a partir de 2.000 apostados). A 240 sale a cuenta
   // desde unos 1.200 de apuesta, y comprar+apostar el maximo queda en cero
   // exacto: -100 de la casa +338 del amuleto -240 del precio = -2.
-  amuleto: { precio: 240, usos: 1, bono: 0.08, topeApuesta: 2000,
+  amuleto: { precio: 165, usos: 1, bono: 0.08, topeApuesta: 2000, ventaja: true,
              desc: '+8 % en tu próxima apuesta (sobre los primeros 2.000)' },
 
   // Devuelve como mucho 440 de media (a partir de 1.600 apostados). A 360 sale a
   // cuenta desde unos 1.300, y el bucle vuelve a quedar en cero: -80 +440 -360.
-  seguro:  { precio: 360, usos: 1, recupera: 0.5, topeDevuelto: 800,
+  seguro:  { precio: 290, usos: 1, recupera: 0.5, topeDevuelto: 800, ventaja: true,
              desc: 'si pierdes la próxima apuesta recuperas la mitad (máx. 800)' },
 
   // Descuento en todo lo que se paga.
@@ -806,8 +815,31 @@ const OBJETOS = {
   // A 250 el corte esta en 29 comandos en doce horas: eso lo alcanza quien pasa
   // la tarde en el chat y no lo alcanza quien lo compra por si acaso, que es
   // exactamente donde tenia que estar la linea.
-  socio:   { precio: 250, horas: 12, descuento: 0.25,
+  socio:   { precio: 250, horas: 24, descuento: 0.30,
              desc: 'todos los comandos te cuestan un 25 % menos durante 12 h' },
+};
+
+// ─── EL LIMITE DE LOS OBJETOS DE VENTAJA ─────────────────────────────────────
+//
+// Los tres objetos marcados `ventaja: true` (ganzua, amuleto, seguro) acaban de
+// bajar de precio, y eso los vuelve POSITIVOS: comprarlos y jugar bien deja unos
+// +70 en vez de quedarse a cero. Era lo que habia que arreglar — el objeto solo
+// llegaba a cancelar la ventaja de la casa y nunca a superarla, asi que lo mejor
+// que podia pasarte comprandolo era no perder nada.
+//
+// Pero eso obliga a cambiar QUIEN sostiene la economia. Antes lo hacia el
+// precio: estaba puesto justo por encima de lo que el objeto podia dar, y por
+// eso no habia bucle... y por eso tampoco habia premio. Ahora lo sostiene esto:
+//
+//   solo se puede comprar UNO de los tres cada 12 h.
+//
+// Compartido entre los tres a proposito, no uno por objeto. Dos motivos: acota
+// la extraccion maxima a dos compras al dia —unos +140 en el mejor de los casos
+// imaginables, y eso apostando 2.000 con la varianza que eso trae— y ademas
+// obliga a elegir entre ir a robar o ir a la mesa, que es una decision de verdad
+// donde antes no habia ninguna.
+const VENTAJA = {
+  cooldownHoras: 12,
 };
 
 // EL CONTRAATAQUE. Tras un robo con éxito, la víctima tiene una ventana para
@@ -1045,7 +1077,7 @@ module.exports = {
   RACHA, BONOS, REDENCION,
   VETERANIA_MSGS, VETERANIA_PAGO, VETERANIA_TOPE, bonoVeterania,
   ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_RACHA_MAX, ROBO_OWNER_VISIBLE, DUELO, REGALO_MIN,
-  BOTE, ATRACO, OBJETOS, CONTRA, DIANA,
+  BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA,
   PRECIOS, SALDO_MINIMO, IMPUESTO, impuestoDe,
   rango,
 };
