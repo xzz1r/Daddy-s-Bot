@@ -98,4 +98,38 @@ async function rachaFalsa(grupo) {
   return 12 + Math.floor(ruido(grupo, 'racha') * 26);   // 12-37 dias
 }
 
-module.exports = { mensajesFalsos, mensajesHoyFalsos, rachaFalsa };
+// ─── La ficha del owner en LOS MAS BUSCADOS ──────────────────────────────────
+//
+// Salio a peticion expresa: no aparecer en una lista de ladrones cuando se roba
+// a diario es tan raro como aparecer con un cero. Pero sus cifras reales no
+// pueden salir — ni el botin que se lleva ni cuantos golpes da, que es
+// exactamente su actividad — asi que la ficha entera es inventada.
+//
+// SE LE COLOCA SEGUNDO O MAS ABAJO, NUNCA PRIMERO, y no es por modestia:
+//
+//   · el numero uno lleva diana, y la diana da un 35 % mas de botin a quien le
+//     robe. Ponerle diana a alguien al que los robos SIEMPRE le fallan es
+//     montar un cartel que nadie va a poder cobrar nunca, y eso si se nota;
+//   · el primer puesto es el que todo el mundo mira y comenta. El segundo es
+//     "va fuerte este mes" y nadie le da mas vueltas.
+//
+// La cifra se calcula a partir del que si va primero de verdad, asi que la
+// distancia siempre parece natural: si esa semana el lider ha robado poco, el
+// owner tambien; si ha sido una semana salvaje, el owner acompaña.
+const SEGUNDO = { min: 0.62, max: 0.88 };   // fraccion del botin del lider
+
+function fichaFalsaBuscado(grupo, lider) {
+  if (!lider || !(lider.total > 0)) return null;
+  const frac = SEGUNDO.min + ruido(grupo, 'buscado') * (SEGUNDO.max - SEGUNDO.min);
+  const total = Math.max(1, Math.round(lider.total * frac));
+  // Los golpes, coherentes con el botin: un botin medio parecido al del lider,
+  // porque si no saldria "12.000 en 2 golpes" al lado de "14.000 en 19" y la
+  // media por golpe lo delataria a el solo.
+  const medioLider = lider.golpes > 0 ? lider.total / lider.golpes : total;
+  const golpes = Math.max(1, Math.round(total / Math.max(1, medioLider * (0.85 + ruido(grupo, 'buscado-golpes') * 0.3))));
+  // Y la recompensa, con la misma cuenta que la de verdad: una fraccion de lo
+  // robado. Se calcula fuera, en quien llama, para no importar economia aqui.
+  return { total, golpes };
+}
+
+module.exports = { mensajesFalsos, mensajesHoyFalsos, rachaFalsa, fichaFalsaBuscado };

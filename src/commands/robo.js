@@ -1,8 +1,9 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser } = require('../utils/wa');
 const { getAura, addAura } = require('../utils/auraStore');
 const { pickFresh, fmt } = require('../utils/helpers');
-const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA } = require('../utils/economia');
+const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, RECOMPENSA } = require('../utils/economia');
 const { ownerGana } = require('../utils/rigOwner');
+const { fichaFalsaBuscado } = require('../utils/fachada');
 const tienda = require('../utils/roboStore');
 const RX = require('../data/roboExtraPhrases');
 
@@ -1886,21 +1887,67 @@ async function atracarTienda(sock, msg, jid, sender, groupMeta) {
 }
 
 // ─── !robo top ───────────────────────────────────────────────────────────────
+// El JID del owner dentro de ESTE grupo, para poder mencionarlo en la lista de
+// los mas buscados. Se busca en la metadata en vez de leerlo de la config porque
+// en grupos LID su numero de config no es el JID con el que WhatsApp lo menciona:
+// mencionar el equivocado saldria como texto muerto y encima con un telefono.
+function ownerJidDelGrupo(groupMeta) {
+  for (const p of (groupMeta?.participants || [])) {
+    if (p?.id && isMainOwner(p.id, false, groupMeta)) return p.id;
+  }
+  return null;
+}
+
 async function topLadrones(sock, msg, jid, groupMeta) {
-  const r = (await tienda.rankingLadrones(jid))
-    .filter(x => !isMainOwner(x.jid, false, groupMeta))   // el owner no figura
-    .slice(0, 10);
+  const real = await tienda.rankingLadrones(jid);
+
+  // EL OWNER SÍ FIGURA AHORA, con ficha inventada. No aparecer en una lista de
+  // ladrones cuando se roba a diario es tan raro como aparecer con un cero.
+  //
+  // Ni una cifra suya es real: ni el botín ni los golpes ni la recompensa. Todo
+  // sale de utils/fachada.js, calculado a partir del que va primero DE VERDAD,
+  // para que la distancia parezca natural — semana floja, cifras flojas.
+  //
+  // Y se le inserta SEGUNDO, nunca primero. El número uno lleva diana, y la
+  // diana paga un 35 % más a quien le robe: ponerle cartel a alguien al que los
+  // robos siempre le fallan sería anunciar un premio que nadie va a cobrar
+  // jamás, y eso acaba viéndose. El segundo puesto es "va fuerte este mes" y
+  // nadie le da más vueltas.
+  const lista = real.filter(x => !isMainOwner(x.jid, false, groupMeta));
+  const yoJid = ownerJidDelGrupo(groupMeta);
+  const ficha = yoJid ? fichaFalsaBuscado(jid, lista[0]) : null;
+  if (ficha) {
+    lista.splice(1, 0, {
+      jid: yoJid,
+      total: ficha.total,
+      golpes: ficha.golpes,
+      premio: Math.min(RECOMPENSA.tope, Math.round(ficha.total * RECOMPENSA.fraccionDeGolpe)),
+    });
+  }
+  const r = lista.slice(0, 10);
+
   if (!r.length) {
     return sock.sendMessage(jid, {
       text: 'Esta semana no ha robado nadie. Un grupo de gente honrada, o de cobardes.',
     }, { quoted: msg });
   }
+
   let text = '*LOS MÁS BUSCADOS*\n_Últimos 7 días_\n╾━━━━━━━━━━━━━━╼\n\n';
+  let mayor = 0;
   r.forEach((x, i) => {
-    const corona = i === 0 ? ' — *con diana en la espalda*' : '';
-    text += `*${i + 1}.* ${tag(x.jid)} — ${fmt(x.total)} en ${x.golpes} ${x.golpes === 1 ? 'golpe' : 'golpes'}${corona}\n`;
+    const premio = Math.min(RECOMPENSA.tope, x.premio || 0);
+    if (premio > mayor) mayor = premio;
+    // La recompensa es lo que convierte la tabla en un cartel. Solo se anuncia a
+    // partir del mínimo: una cabeza de 12 de aura da más risa que miedo.
+    const cartel = premio >= RECOMPENSA.minimo ? `\n    _Recompensa: *${fmt(premio)}*_` : '';
+    const corona = i === 0 ? ' — *diana en la espalda*' : '';
+    text += `*${i + 1}.* ${tag(x.jid)} — ${fmt(x.total)} en ${x.golpes} ${x.golpes === 1 ? 'golpe' : 'golpes'}${corona}${cartel}\n`;
   });
+
   text += `\n_Robarle al número uno paga un ${Math.round(DIANA.bonoBotin * 100)}% más._`;
+  if (mayor >= RECOMPENSA.minimo) {
+    text += `\n_Y quien cace a uno de estos se lleva su recompensa entera, encima del botín. La pone él solo: un ${Math.round(RECOMPENSA.fraccionDeGolpe * 100)}% de cada golpe que da se le queda en la cabeza._`;
+  }
   return sock.sendMessage(jid, { text: text.trimEnd(), mentions: r.map(x => x.jid) }, { quoted: msg });
 }
 
@@ -2196,18 +2243,42 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     // Robar al mas buscado paga mas, pero nunca por encima de lo que tiene.
     if (esDiana) monto = Math.min(auraV, Math.round(monto * (1 + DIANA.bonoBotin)));
     if (conCebo && monto < stake) motivos.push('picaste el cebo: no tenía tanto');
-    await tienda.anotarGolpe(jid, sender, monto);
+    // LA RECOMPENSA POR SU CABEZA. De lo que se lleva, una parte no la cobra:
+    // se le queda encima como precio. Cuanto mas roba, mas vale cazarlo.
+    //
+    // No se crea aura: se RETIENE de su propio botin. Se guarda dentro del golpe,
+    // asi que caduca sola a los siete dias con la ventana del ranking — quien
+    // robo mucho hace un mes no sigue valiendo una fortuna hoy.
+    //
+    // Y ojo con el orden: se retiene sobre el monto ANTES de sumarselo, para que
+    // lo que cobra y lo que se le queda encima sumen exactamente lo robado y la
+    // victima pierda ni mas ni menos que eso.
+    const enSuCabeza = Math.min(
+      RECOMPENSA.tope,
+      Math.round(monto * RECOMPENSA.fraccionDeGolpe),
+    );
+    await tienda.anotarGolpe(jid, sender, monto, enSuCabeza);
+
+    // Y si la victima llevaba precio, el ladron lo cobra. Esto es lo que hace
+    // que la lista de buscados sea un cartel y no una tabla.
+    const cobrada = await tienda.cobrarRecompensa(jid, target);
+
     // La victima tiene una ventana para devolver el golpe.
     anotarParaContra(jid, target, sender, monto);
     const [aNew, vNew] = await Promise.all([
-      addAura(jid, sender, +monto),
+      addAura(jid, sender, +monto - enSuCabeza + cobrada),
       addAura(jid, target, -monto),
     ]);
     const phrase = pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag);
     const extra =
-      clave === 'maestro' ? '\n_Golpe maestro: se llevó bastante más de lo que iba a por._'
-    : clave === 'parcial' ? '\n_Lo pillaron a mitad y solo pudo llevarse una parte._'
-    : '';
+      (clave === 'maestro' ? '\n_Golpe maestro: se llevó bastante más de lo que iba a por._'
+     : clave === 'parcial' ? '\n_Lo pillaron a mitad y solo pudo llevarse una parte._'
+     : '')
+      // Las dos patas de la recompensa se DICEN. Si el ladron no ve que le
+      // retienen, cree que el bot le ha pagado de menos; y si el que caza a un
+      // buscado no ve el cobro, la lista sigue pareciendo decorativa.
+      + (cobrada ? `\n_Llevaba precio en la cabeza: *+${fmt(cobrada)}* de recompensa encima del botín._` : '')
+      + (enSuCabeza ? `\n_Y ahora vale *${fmt(await tienda.recompensaDe(jid, sender))}* para quien lo cace._` : '');
     const text =
       `${titulo}\n` +
       `${aTag} le roba a ${vTag}${extra}\n\n` +

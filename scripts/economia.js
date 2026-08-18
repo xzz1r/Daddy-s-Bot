@@ -21,7 +21,7 @@ const { P_POSITIVA, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, ACTIVIDAD_MSGS, P_TOPE_MIEMB
         APUESTA, PRECIOS, BONOS, REDENCION, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE,
         P_TOPE, TIRADAS_PAGADAS, bonoActividad,
         RACHA, rango, ROBO, DUELO, ARRANQUE, MILLONARIO, IMPUESTO, impuestoDe,
-        OBJETOS, VENTAJA, RIESGO, ROBO_BASE, ROBO_LIMITES } = eco;
+        OBJETOS, VENTAJA, RECOMPENSA, RIESGO, ROBO_BASE, ROBO_LIMITES } = eco;
 
 let fallos = 0;
 const ok = (c, q) => { if (!c) { fallos++; console.log('FALLO: ' + q); } else console.log('OK    ' + q); };
@@ -461,6 +461,33 @@ ok(/transferAura/.test(src('dar.js')), '!dar sigue usando transferAura: el cargo
 }
 ok(/addAura\(jid, winner, \+d\.stake\)[\s\S]{0,120}addAura\(jid, loser, -d\.stake\)/.test(src('duel.js')),
   '!duel: el ganador cobra exactamente lo que paga el perdedor, suma cero');
+
+// LA RECOMPENSA POR SU CABEZA no puede crear aura, y es lo primero que hay que
+// comprobar de ella: es lo unico del bot que retiene dinero de una operacion
+// para pagarlo en otra distinta y mas tarde.
+//
+// El circuito: de cada robo con exito se RETIENE una fraccion del botin (el
+// ladron cobra menos) y se guarda dentro del propio golpe. Quien cace a ese
+// ladron la cobra entera. Si nadie lo caza en siete dias, el golpe se poda con
+// la ventana del ranking y esa aura desaparece.
+//
+// O sea: en el mejor de los casos es suma cero (se retiene de uno y se paga a
+// otro) y en el peor es un sumidero (caduca). Nunca es una fuente. Lo que lo
+// garantiza es que la retencion salga del MISMO monto que se suma, y por eso se
+// comprueba en el fuente.
+{
+  const rs = src('robo.js');
+  ok(/addAura\(jid, sender, \+monto - enSuCabeza \+ cobrada\)/.test(rs),
+    '!robo: la recompensa se RETIENE del propio botin (+monto - enSuCabeza), no se acuña aparte');
+  ok(/addAura\(jid, target, -monto\)/.test(rs),
+    '  y la victima pierde exactamente el monto: la retencion no le cuesta a ella');
+  ok(/premio: Math\.round\(premio\)/.test(fs.readFileSync(`${R}/src/utils/roboStore.js`, 'utf8')),
+    '  la recompensa vive DENTRO del golpe, asi que caduca sola con la ventana de 7 dias');
+  const maxCabeza = RECOMPENSA.tope;
+  ok(RECOMPENSA.fraccionDeGolpe < 0.5,
+    `  y se queda el ${(RECOMPENSA.fraccionDeGolpe * 100).toFixed(0)} % de cada golpe: por encima del 50 % robar dejaria de compensar`);
+  console.log(`  Recompensa: ${(RECOMPENSA.fraccionDeGolpe * 100).toFixed(0)} % de cada golpe se queda en la cabeza del ladron, con tope ${n0(maxCabeza)}.`);
+}
 
 // !robo NO es suma cero, y es a proposito. En exito y en desastre el aura pasa
 // de una cuenta a otra; en el FALLO normal el ladron paga la multa y la victima

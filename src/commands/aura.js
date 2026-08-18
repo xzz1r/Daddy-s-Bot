@@ -9,7 +9,7 @@ const { contarTirada } = require('../utils/casinoStore');
 const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, bonoVeterania, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
-const { BOTE, ATRACO, CONTRA, RACHA, RIESGO, OBJETOS, VENTAJA, IMPUESTO, REGALO_MIN } = require('../utils/economia');
+const { BOTE, ATRACO, CONTRA, RACHA, RIESGO, OBJETOS, VENTAJA, RECOMPENSA, IMPUESTO, REGALO_MIN } = require('../utils/economia');
 const { aportarAlBote } = require('../utils/roboStore');
 const tiendaObj = require('../utils/roboStore');
 
@@ -871,6 +871,7 @@ _Y los caros: *pase* (${fmt(OBJETOS.pase.precio)}) publicas tus redes ${OBJETOS.
 *!contrarobo* — devuelves el golpe, *${CONTRA.ventanaSeg}s*
 _Cuanto antes respondas, más probabilidad: el bono entero es en los primeros *${CONTRA.segRapido}s* y se va cayendo. Puedes recuperar hasta *${CONTRA.desenlaces.demoledor.mult}x*... o pagar otro *${Math.abs(CONTRA.desenlaces.ruina.mult)}x* por listo._
 *!robo top* — los más buscados
+_Cada golpe que das te deja un *${Math.round(RECOMPENSA.fraccionDeGolpe * 100)}%* encima de la cabeza. Quien te cace se lo lleva entero, además del botín. Si nadie te caza en 7 días, caduca._
 
 *!duel* @user <cant.> — 1v1, se acepta con *!duel aceptar*
 *!dar* @user <cant.> — regalas aura, desde *${fmt(REGALO_MIN)}*

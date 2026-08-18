@@ -309,10 +309,10 @@ async function tieneCebo(g, persona) {
 
 // ─── Golpes y ranking ────────────────────────────────────────────────────────
 
-async function anotarGolpe(g, quien, cuanto) {
+async function anotarGolpe(g, quien, cuanto, premio = 0) {
   await load();
   const x = grupo(g);
-  x.golpes.push({ quien: canonicalJid(quien), cuanto: Math.round(cuanto), ts: Date.now() });
+  x.golpes.push({ quien: canonicalJid(quien), cuanto: Math.round(cuanto), premio: Math.round(premio), ts: Date.now() });
   podar(x);
   scheduleSave();
 }
@@ -332,12 +332,41 @@ async function rankingLadrones(g) {
   podar(x);
   const por = new Map();
   for (const gp of x.golpes) {
-    const p = por.get(gp.quien) || { jid: gp.quien, total: 0, golpes: 0 };
+    const p = por.get(gp.quien) || { jid: gp.quien, total: 0, golpes: 0, premio: 0 };
     p.total += gp.cuanto;
     p.golpes++;
+    p.premio += gp.premio || 0;
     por.set(gp.quien, p);
   }
   return [...por.values()].sort((a, b) => b.total - a.total);
+}
+
+// ─── La recompensa por cada cabeza ───────────────────────────────────────────
+//
+// Se guarda dentro del propio golpe (`premio`) en vez de en un contador aparte,
+// y eso resuelve la caducidad gratis: los golpes ya se podan a los siete dias,
+// asi que la recompensa de una racha vieja se va con ella sin ningun codigo
+// extra. Quien robo mucho hace un mes no sigue valiendo una fortuna hoy.
+async function recompensaDe(g, quien) {
+  await load();
+  const x = grupo(g);
+  podar(x);
+  const k = canonicalJid(quien);
+  return x.golpes.reduce((acc, gp) => acc + (gp.quien === k ? (gp.premio || 0) : 0), 0);
+}
+
+// Se cobra la cabeza: devuelve lo que habia y lo deja a cero.
+async function cobrarRecompensa(g, quien) {
+  await load();
+  const x = grupo(g);
+  podar(x);
+  const k = canonicalJid(quien);
+  let total = 0;
+  for (const gp of x.golpes) {
+    if (gp.quien === k && gp.premio) { total += gp.premio; gp.premio = 0; }
+  }
+  if (total) scheduleSave();
+  return total;
 }
 
 // El número uno de la semana. Devuelve null si no hay ninguno todavía: sin esto
@@ -354,7 +383,7 @@ module.exports = {
   verCaja, aportarACaja, sacarDeCaja, seguridadTienda, anotarAtraco, vetarDeTienda, vetoTienda,
   ultimaVentaja, anotarVentaja,
   objetosDe, darObjeto, gastarGanzua, tieneEscudo, tieneCebo,
-  anotarGolpe, rankingLadrones, masBuscado,
+  anotarGolpe, rankingLadrones, masBuscado, recompensaDe, cobrarRecompensa,
   flushRobo,
   VENTANA_RANKING_MS,
 };

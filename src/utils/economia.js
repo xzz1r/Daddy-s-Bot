@@ -911,6 +911,28 @@ const DIANA = {
   bonoProbabilidad: -0.05, // pero está en guardia: un pelo más difícil
 };
 
+// ─── LA RECOMPENSA POR SU CABEZA ─────────────────────────────────────────────
+//
+// La lista de los mas buscados era solo una tabla: decia quien habia robado mas
+// y ahi se acababa. Salir en ella no costaba nada y cazar a alguien de ella no
+// pagaba nada distinto de robarle a cualquier otro. Una lista de wanted sin
+// recompensa es un ranking con nombre bonito.
+//
+// Ahora cada uno lleva precio, y el precio LO PONE EL SOLO: de cada golpe que
+// das, una parte no te la llevas — se queda sobre tu cabeza. Cuanto mas robas,
+// mas vales muerto.
+//
+// Y ESTO NO IMPRIME AURA, que era lo primero que habia que resolver. La
+// recompensa no se crea: se retiene del botin del propio ladron y se guarda. Si
+// alguien le roba con exito, se la lleva ademas de lo robado. Si nadie lo caza
+// en una semana, caduca con la ventana del ranking y ese aura desaparece — o
+// sea que en el peor caso es un sumidero, nunca una fuente.
+const RECOMPENSA = {
+  fraccionDeGolpe: 0.15,   // de cada robo que sale bien, esto se queda en tu cabeza
+  tope: 3000,              // ninguna cabeza vale mas que esto
+  minimo: 40,              // por debajo no se anuncia: da mas risa que miedo
+};
+
 // ─── !duel ───────────────────────────────────────────────────────────────────
 //
 // La apuesta se recorta a lo que los DOS pueden cubrir, con un techo absoluto,
@@ -1089,7 +1111,7 @@ module.exports = {
   RACHA, BONOS, REDENCION,
   VETERANIA_MSGS, VETERANIA_PAGO, VETERANIA_TOPE, bonoVeterania,
   ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_RACHA_MAX, ROBO_OWNER_VISIBLE, DUELO, REGALO_MIN,
-  BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA,
+  BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, RECOMPENSA,
   PRECIOS, SALDO_MINIMO, IMPUESTO, impuestoDe,
   rango,
 };
