@@ -4673,7 +4673,11 @@ const LABELS = {
   // casi nunca sale perdedor y casi siempre ganador, y al revés con los miembros.
   // [nombre] se sustituye por la mención del target dentro de runPercent.
   perdedor: {
-    name: 'perdedor',
+    // El rotulo que se ve es "L", que es el termino que se ha adoptado. La clave
+    // interna sigue siendo 'perdedor' a proposito: la usan los pools, el
+    // validador y el historial anti-repeticion, y renombrarla solo para que
+    // cuadre con el trigger seria tocar cuatro sitios para no ganar nada.
+    name: 'L',
     goodIsHigh: false,
     high: [
       '[nombre], eres un perdedor de mierda sin el más mínimo valor. Tan estúpido que ni captas cuando te están destruyendo en la cara, moralmente depravado al punto de que te excita traicionar y joder a cualquiera que comete el error de acercarse, y tan raro y retorcido que la gente siente que algo anda mal contigo apenas te ven.',

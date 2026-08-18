@@ -243,7 +243,7 @@ const NEEDS_META = new Set([
   // 'iq' ya NO va aqui: dejo de ser un comando de porcentaje y su modulo no usa
   // groupMeta, asi que pedirla solo anyadia una peticion de red (hasta 8s con la
   // cache fria) antes de una tirada que no la necesita para nada.
-  'crack','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','ganador',
+  'crack','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','l','ganador',
   'puta','guarra','fiel','infiel','linda','fea','incel',
   'rizz',   // piropo y wingman NO: sus handlers no reciben groupMeta (wingman.js)
   'aura','guia','guía','aurahelp','guiaaura',   // la guia entra por cmdAura, que exime al owner de pagar
@@ -305,7 +305,7 @@ const COBRO_CENTRAL = {
 // sin arriesgarse a cobrar de más por algo que no lo es.
 const CMDS_PORCENTAJE = [
   'gay', 'maricon', 'femboy', 'incel', 'simp', 'friki', 'rata', 'cerdo', 'inutil',
-  'perdedor', 'ganador', 'crack', 'puta', 'guarra', 'fea', 'linda', 'hot', 'sexy',
+  'perdedor', 'l', 'ganador', 'crack', 'puta', 'guarra', 'fea', 'linda', 'hot', 'sexy',
   'iq', 'fiel', 'infiel', 'feminidad', 'masculinidad',
 ];
 for (const c of CMDS_PORCENTAJE) COBRO_CENTRAL[c] = 'percent';
@@ -1782,6 +1782,10 @@ async function handleMessage(sock, msg) {
       case 'masculinidad':   await cmdMasculinidad(sock, msg, groupMeta); break;
       case 'inutil':         await cmdInutil(sock, msg, groupMeta); break;
       case 'femboy':         await cmdFemboy(sock, msg, groupMeta); break;
+      // *!L* es el nombre bueno; *!perdedor* se queda como alias porque el
+      // comando se llamo asi hasta hoy y no tiene sentido romperle el habito a
+      // nadie por un cambio de nombre. Mismo criterio que !contrarobo.
+      case 'l':
       case 'perdedor':       await cmdPerdedor(sock, msg, groupMeta); break;
       case 'ganador':        await cmdGanador(sock, msg, groupMeta); break;
       case 'puta':           await cmdPuta(sock, msg, groupMeta); break;

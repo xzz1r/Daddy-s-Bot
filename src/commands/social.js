@@ -280,7 +280,7 @@ _Sin @ va sobre ti · con @ va sobre esa persona._
 *${p}roast* ${c('roast')} — destrucción · *${p}mog* ${c('mog')} @a @b — looks
 *${p}ship* ${c('ship')} @a @b · *${p}rizz* ${c('rizz')} · *${p}piropo* · *${p}wingman*
 _De más crudo a más suave, ${PRECIOS.percent} cada uno:_
-*${p}perdedor* *${p}puta* *${p}guarra* *${p}incel* *${p}maricon* *${p}gay*
+*${p}L* *${p}puta* *${p}guarra* *${p}incel* *${p}maricon* *${p}gay*
 *${p}cerdo* *${p}inutil* *${p}rata* *${p}femboy* *${p}simp* *${p}friki*
 *${p}fea* *${p}iq* *${p}infiel* *${p}feminidad* *${p}masculinidad*
 *${p}linda* *${p}hot* *${p}sexy* *${p}fiel* *${p}crack* *${p}ganador*
