@@ -1932,7 +1932,10 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const notaTope = recortado
     ? `\n_Ibas a por ${fmt(raw)}, pero ${vTag} solo tenía ${fmt(maxStake)}._`
     : '';
-  const notaApuesta = `\n_Apostaste ${fmt(stake)} · ${Math.round(chanceVisible * 100)}% de salir bien._`;
+  // El importe apostado ya sale en las lineas de saldo, asi que aqui solo va el
+  // porcentaje: repetir la cifra cuatro veces en un mensaje de once lineas era
+  // lo que lo hacia largo sin aportar nada.
+  const notaApuesta = `${Math.round(chanceVisible * 100)}% de salir bien`;
 
   // AL OWNER SE LE FABRICA EL DESGLOSE, no solo el porcentaje.
   //
@@ -1962,7 +1965,10 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       })()
     : motivos;
 
-  const notaDinamicas = notaApuesta + notaTope + (motivosMostrados.length ? `\n_${motivosMostrados.join(' · ')}_` : '');
+  // Todo lo tecnico en UNA linea. Antes eran tres seguidas en cursiva —apuesta,
+  // recorte y modificadores— y el ojo las lee como un bloque de letra pequeña
+  // que se salta entero.
+  const notaDinamicas = `\n_${[notaApuesta, ...motivosMostrados].join(' · ')}_` + notaTope;
 
   if (mult > 0) {
     anotarRoboExitoso(jid, canonicalJid(sender), canonicalJid(target));
@@ -1984,10 +1990,9 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     : '';
     const text =
       `${titulo}\n` +
-      `${aTag} le roba *${fmt(monto)} de aura* a ${vTag}${extra}\n\n` +
+      `${aTag} le roba a ${vTag}${extra}\n\n` +
       `${phrase}\n\n` +
-      `${aTag} +${fmt(monto)} → *${fmt(aNew.current)}*\n` +
-      `${vTag} −${fmt(monto)} → *${fmt(vNew.current)}*` +
+      `${aTag} *${fmt(aNew.current)}* (+${fmt(monto)}) · ${vTag} *${fmt(vNew.current)}* (−${fmt(monto)})` +
       // SE AVISA A LA VICTIMA, que si no el contraataque no existe.
       //
       // La ventana es de 90 segundos y el mensaje del robo no la mencionaba por
@@ -1997,8 +2002,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       //
       // Va aqui y no en el menu porque un aviso sirve cuando llega en el
       // segundo en que hace falta, no en una lista que se lee una vez.
-      `\n\n_${vTag}: tienes *${CONTRA.ventanaSeg}s* para responder con *!robo contra*. ` +
-      `Recuperas el doble... o pierdes otro tanto._` +
+      `\n_${vTag}: ${CONTRA.ventanaSeg}s para *!robo contra* — doble o nada._` +
       notaDinamicas;
     return sock.sendMessage(jid, { text, mentions: [sender, target] });
   }
