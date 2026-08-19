@@ -416,6 +416,33 @@ async function capaStores() {
     }
   }
 
+  // *!top 10 <tema>* TIENE QUE SER *!top10 <tema>*.
+  //
+  // Alguien escribio "!top 10 que cojen bien piola" y le salio el RANKING DE
+  // AURA. 'top' cae en el case del aura y los args se tiraban enteros, asi que
+  // el numero y el tema desaparecian. Quien lo escribe no tiene forma de saber
+  // que el espacio importa — son el mismo comando escrito de las dos maneras
+  // naturales.
+  //
+  // Se comprueba sobre el DISPATCHER, que es donde estaba el fallo: importa
+  // adonde ROUTA cada forma, no que el comando exista.
+  {
+    const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+    // SIN COMENTARIOS. La primera version leia el bloque tal cual, y el
+    // comentario que hay ahi dentro NOMBRA cmdTopRandom para explicar por que
+    // *!top 10* a secas no se desvia. O sea que al borrar el codigo la
+    // comprobacion seguia pasando: se daba por satisfecha leyendo la prosa que
+    // explica el arreglo en vez del arreglo. Ya me paso con el guardia de `msg`.
+    const sinComentarios = mh.replace(/\/\/[^\n]*/g, '');
+    const bloque = sinComentarios.match(/case 'ranking':\s*case 'top':([\s\S]*?)case 'hoy':/);
+    comprueba(!!bloque && /cmdTopRandom/.test(bloque[1]),
+      'dispatcher: *!top 10 <tema>* vuelve a caer en el ranking de aura en vez del sorteo');
+    // Y solo CON tema: *!top 10* a secas es la forma natural de pedir el aura, y
+    // cmdTopRandom se calla sin asunto, asi que desviarlo seria dejarlo mudo.
+    comprueba(!!bloque && /args\.length > 1/.test(bloque[1]),
+      'dispatcher: *!top 10* sin tema tiene que seguir dando el ranking de aura, no silencio');
+  }
+
   // NINGUN ALIAS PUEDE ESTAR DOS VECES EN EL SWITCH, y esto lo aprendi por las
   // malas: *!atraco* estaba en la rama de !robo y en la suya, y en JS gana el
   // primer case. Resultado: el comando se anunciaba en el menu y en la guia, y

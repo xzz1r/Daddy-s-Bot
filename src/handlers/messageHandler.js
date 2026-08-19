@@ -282,6 +282,14 @@ const NEEDS_META = new Set([
   'fkban','fkunban','fklist','listanegra','antifake','antifk',
   'count','resetcount','resetconteo',
   'top5','top10',   // el sorteo cruza los conteos con la lista de miembros
+  // 'top' y 'ranking' NO ESTABAN, y son el ranking de aura. Sin metadata
+  // soloMiembros() no puede filtrar y DEVUELVE A TODO EL MUNDO, asi que *!top*
+  // listaba a gente que ya se habia ido del grupo mientras *!aura top* no. Dos
+  // formas del mismo comando dando rankings distintos.
+  //
+  // Y ahora ademas hacen falta porque *!top 10 <tema>* se desvia al sorteo, que
+  // cobra: sin metadata el cobro no reconoce al owner en grupos LID.
+  'top','ranking',
   'k',              // isOwner necesita la metadata para resolver el LID del owner
   'diag',
   'relevancia','relevance',   // isMainOwner necesita meta para resolver LID → teléfono
@@ -1936,6 +1944,18 @@ async function handleMessage(sock, msg) {
         break;
       case 'ranking':
       case 'top':
+        // *!top 10 <tema>* ES *!top10 <tema>*. Alguien escribio "!top 10 que
+        // cojen bien piola" y le salio el RANKING DE AURA: 'top' cae aqui y los
+        // args se tiraban enteros, asi que el numero y el tema se perdian. El
+        // que lo escribe no tiene forma de saber que el espacio importa.
+        //
+        // Solo se desvia si HAY tema detras. *!top 10* a secas no es un sorteo
+        // sin asunto —cmdTopRandom se calla sin tema— sino la forma natural de
+        // pedir el ranking de aura, asi que eso se queda como estaba.
+        if (command === 'top' && ['5', '10'].includes(args[0]) && args.length > 1) {
+          await cmdTopRandom(sock, msg, Number(args[0]), args.slice(1), groupMeta);
+          break;
+        }
         await cmdAura(sock, msg, ['top', ...args], groupMeta);
         break;
       case 'hoy':
