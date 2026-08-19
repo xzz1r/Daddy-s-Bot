@@ -831,6 +831,95 @@ async function capaStores() {
     }
   }
 
+  // ── NINGUN POOL DE FRASES SE VACIA DE GOLPE ───────────────────────────────
+  //
+  // PASO, Y NINGUNA DE LAS OTRAS COMPROBACIONES LO VIO. Un push por la API de
+  // GitHub trunco wingman.js y dejo esto en main:
+  //
+  //     const RIZZ = { high: ['%N tiene rizz.'], ... };
+  //     const PIROPOS = ['Joder, %N, estás buena.'];
+  //
+  //  · `check` pasaba: el fichero compila y el comando responde.
+  //  · `placeholders` pasaba: los %N estan perfectamente enchufados.
+  //  · `pools` fallaba, pero por los 9 tramos de siempre — solo mira percent.js
+  //    y no ve wingman.js.
+  //
+  // O sea que !rizz habria contestado siempre la misma linea y el despliegue no
+  // se habria parado. El fallo no es de sintaxis ni de contenido: es de TAMANYO,
+  // y por eso no lo caza nada que mire una frase a la vez.
+  //
+  // El minimo es deliberadamente bajo. No es una medida de calidad —de eso ya se
+  // ocupa quien escribe— es un detector de amputacion: por debajo de esto no hay
+  // pool, hay un resto.
+  console.log('\n7. NINGUN POOL SE HA QUEDADO EN LOS HUESOS');
+  {
+    const MINIMO = 8;
+    const flacos = [];
+
+    // UN POOL DE FRASES SE RECONOCE POR LO QUE LLEVA DENTRO, no por el nombre.
+    // La primera version miraba cualquier array en MAYUSCULAS y acusaba a
+    // DOWNSCALE_ARGS, FF_ARGS y STATIC_QUALITY_TIERS, que son argumentos de
+    // ffmpeg. Una frase del bot tiene varias palabras; un argumento es "-vf".
+    //
+    // SIN_NOMBRE (los apodos del top en gris: "alguien", "un fantasma") queda
+    // fuera por lo mismo y esta bien que quede: son etiquetas de una o tres
+    // palabras y seis bastan.
+    // SIN DEPENDER DEL FORMATO. La primera version de esto exigia un salto de
+    // linea antes del corchete de cierre, asi que un array escrito en UNA sola
+    // linea era invisible — y esa es EXACTAMENTE la forma que dejo el push
+    // truncado:
+    //
+    //     const PIROPOS = ['Joder, %N, estás buena.'];
+    //
+    // Un comprobador que no ve el caso para el que se escribio no vale nada. Se
+    // recorre el corchete contando, y da igual como este escrito dentro.
+    const cuerpoDelArray = (src, desde) => {
+      let prof = 0, i = desde, comilla = null;
+      for (; i < src.length; i++) {
+        const c = src[i];
+        if (comilla) {
+          if (c === '\\') i++;
+          else if (c === comilla) comilla = null;
+          continue;
+        }
+        if (c === "'" || c === '"' || c === '`') { comilla = c; continue; }
+        if (c === '[') prof++;
+        else if (c === ']') { prof--; if (prof === 0) return src.slice(desde + 1, i); }
+      }
+      return null;
+    };
+    const entradasDe = (txt) => [...txt.matchAll(/'((?:[^'\\]|\\.)*)'/g)].map((x) => x[1]);
+    const esPool = (entradas) => {
+      if (!entradas.length) return false;
+      const palabras = entradas.map((x) => x.trim().split(/\s+/).length).sort((a, b) => a - b);
+      return palabras[Math.floor(palabras.length / 2)] >= 5;
+    };
+
+    for (const f of ficheros.filter((x) => x.startsWith(path.join(R, 'src')))) {
+      const src = fs.readFileSync(f, 'utf8');
+      const mira = (nombre, desde) => {
+        const cuerpo = cuerpoDelArray(src, desde);
+        if (cuerpo === null) return;
+        const e = entradasDe(cuerpo);
+        if (esPool(e) && e.length < MINIMO) flacos.push(`${path.relative(R, f)} ${nombre} (${e.length})`);
+      };
+      for (const m of src.matchAll(/(?:const|let)\s+([A-Z][A-Z_0-9]{3,})\s*=\s*\[/g)) {
+        mira(m[1], m.index + m[0].length - 1);
+      }
+      // Los tramos anidados, que es donde vive !rizz.
+      for (const m of src.matchAll(/\b(high|mid|low)\s*:\s*\[/g)) {
+        mira(m[1], m.index + m[0].length - 1);
+      }
+    }
+
+    if (flacos.length) {
+      fallos += flacos.length;
+      for (const x of flacos) console.log(rojo(`   ✗ pool con menos de ${MINIMO} frases: ${x}`));
+    } else {
+      console.log(verde(`   ✓ ningun pool ha quedado por debajo de ${MINIMO} frases`));
+    }
+  }
+
   // ── NADIE USA `msg` SIN RECIBIRLO ─────────────────────────────────────────
   //
   // `{ quoted: msg }` sale mas de cien veces en el bot y casi siempre es
