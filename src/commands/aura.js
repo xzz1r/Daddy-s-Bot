@@ -881,12 +881,12 @@ function textoAuraInfo() {
 
 La moneda del grupo. Empiezas con *${fmt(ARRANQUE)}* y casi todo cuesta.
 
-*Se gana escribiendo*, y apareciendo cada día. Es lo único que suma de verdad: lo demás es jugártela.
+*Para tener más: escribe, y no faltes ningún día.* Es lo único que suma de verdad. Lo demás es jugártela.
 
-*!aura* — tiras
+*!aura* — te da o te quita, a suerte
 *!robo* @alguien — se lo quitas
 *!duel* @alguien — 1v1
-*!aura apostar* — a una carta
+*!aura apostar* — todo o nada
 *!tienda* — te compras algo
 *!dar* @alguien — le regalas
 
