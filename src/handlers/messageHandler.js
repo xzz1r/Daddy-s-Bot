@@ -58,7 +58,7 @@ const LINK_WHITELIST = /(?:^|\.)(?:youtube\.com|youtu\.be|instagram\.com|instagr
 // Los dominios de invitación se listan SIN esquema a propósito: son la vía de
 // spam más común y casi nadie los pega con "https://" delante. Faltaban wa.me,
 // los canales de whatsapp.com y telegram.me, y se colaban enteros.
-const DOMINIOS_INVITACION = String.raw`chat\.whatsapp\.com|wa\.me|whatsapp\.com\/channel|t\.me|telegram\.me|telegram\.dog`;
+const DOMINIOS_INVITACION = String.raw`chat\.whatsapp\.com|wa\.me|whatsapp\.com\/channel|t\.me|telegram\.me|telegram\.dog|discord\.gg|discord\.com\/invite|invite\.gg`;
 // Los de la lista blanca tambien se reconocen pelados: si no, un
 // "youtube.com/x" sin esquema no se detectaba NI para avisar, y quedaba en un
 // limbo raro donde el mismo enlace se trataba distinto segun como lo pegaran.
@@ -145,9 +145,16 @@ function sobresInternos(message, prof = 0) {
     const m = message[k]?.message;
     if (m) dentro.push(m, ...sobresInternos(m, prof + 1));
   }
-  // Los editados esconden el texto nuevo dos niveles mas abajo.
-  const ed = message.editedMessage?.message?.protocolMessage?.editedMessage;
-  if (ed) dentro.push(ed, ...sobresInternos(ed, prof + 1));
+  // Los editados. Hay DOS formas y solo se cubria una: la envuelta en
+  // editedMessage. La que emite Baileys de verdad al editar es un
+  // protocolMessage suelto con el texto nuevo dentro, y esa no se miraba — o
+  // sea que bastaba con mandar algo inocente y editarlo para meter el enlace.
+  for (const ed of [
+    message.editedMessage?.message?.protocolMessage?.editedMessage,
+    message.protocolMessage?.editedMessage,
+  ]) {
+    if (ed) dentro.push(ed, ...sobresInternos(ed, prof + 1));
+  }
   return dentro;
 }
 
@@ -202,6 +209,38 @@ function textoParaEnlaces(message) {
   push(message.productMessage?.product?.url);
   push(message.orderMessage?.message);
 
+  // BOTONES CTA (nativeFlow). El texto visible es inofensivo y la URL viaja
+  // dentro de un JSON en los parametros del boton. Es la forma moderna de
+  // colar un enlace: quien lo lee ve "Abrir" y el detector no veia nada.
+  for (const bt of (message.interactiveMessage?.nativeFlowMessage?.buttons || [])) {
+    push(bt?.buttonParamsJson);
+  }
+  // Y las URLs de los botones de siempre, que tampoco se leian: solo se miraba
+  // el contentText y el footerText del mensaje que los lleva.
+  for (const bt of (message.buttonsMessage?.buttons || [])) {
+    push(bt?.urlButton?.url);
+  }
+
+  // TARJETA DE PREVIEW (externalAdReply). El bypass clasico: el mensaje dice
+  // "hola" y el enlace esta en la tarjeta que se pincha. Vive en contextInfo,
+  // que cuelga de casi cualquier tipo de mensaje, asi que se busca en todos.
+  for (const k of Object.keys(message)) {
+    const ad = message[k]?.contextInfo?.externalAdReply;
+    if (!ad) continue;
+    push(ad.sourceUrl); push(ad.mediaUrl); push(ad.title); push(ad.body);
+  }
+
+  // Ubicaciones: el pin lleva su propia URL.
+  push(message.locationMessage?.url);
+  push(message.liveLocationMessage?.caption);
+
+  // Album, comentarios y eventos: contenedores nuevos con texto propio.
+  push(message.albumMessage?.caption);
+  push(message.commentMessage?.message?.conversation);
+  push(message.eventMessage?.name);
+  push(message.eventMessage?.description);
+  push(message.eventMessage?.location?.name);
+
   // Y TODO LO QUE HAYA DENTRO DE UN ENVOLTORIO. Sin esto, un enlace mandado en
   // un grupo con mensajes temporales, o como "ver una vez", no se veia.
   for (const dentro of sobresInternos(message)) trozos.push(textoParaEnlaces(dentro));
@@ -219,21 +258,44 @@ function hostOf(url) {
 // 'none' = no links; 'whitelisted' = only YouTube/Instagram links present;
 // 'blocked' = at least one non-whitelisted link (websites, WhatsApp/Telegram
 // invites, etc.) — those get the sender kicked and the message deleted.
+// UNA INVITACION NO ES LO MISMO QUE UN ENLACE, y hacia falta separarlas.
+//
+// Antes todo lo que no fuera YouTube/Instagram era 'blocked' y se expulsaba sin
+// mirar permisos. O sea que *!allow* —que el bot anuncia como "con esto publicas
+// sin problema"— no servia para nada salvo YouTube e Instagram: un admin te daba
+// permiso, pegabas un Drive y te echaba igual.
+//
+// Ahora hay tres niveles y el permiso significa algo:
+//
+//   invite      → invitacion a otro grupo o canal. NO la salva nadie: ni el
+//                 *!allow* de un admin ni el pase comprado. Es lo que el modo
+//                 existe para impedir.
+//   blocked     → cualquier otro enlace. Se expulsa igual que antes, PERO el
+//                 *!allow* y el pase lo permiten, que es lo que prometen.
+//   whitelisted → YouTube/Instagram: aviso y borrado, ban al tercero.
+const INVITACION_RE = new RegExp(String.raw`^(?:${DOMINIOS_INVITACION})`, 'i');
+
 function classifyLinks(text) {
   const matches = normalizarParaEnlaces(text).match(URL_RE);
   if (!matches) return 'none';
   let whitelisted = false;
+  let bloqueado = false;
   for (const m of matches) {
-    if (LINK_WHITELIST.test(hostOf(m))) { whitelisted = true; continue; }
-    return 'blocked';
+    const host = hostOf(m);
+    // La invitacion manda sobre todo lo demas: si hay una, da igual lo que
+    // venga acompañandola.
+    if (INVITACION_RE.test(host) || INVITACION_RE.test(m.replace(/^https?:\/\//i, ''))) return 'invite';
+    if (LINK_WHITELIST.test(host)) { whitelisted = true; continue; }
+    bloqueado = true;
   }
+  if (bloqueado) return 'blocked';
   return whitelisted ? 'whitelisted' : 'none';
 }
 
 // Veredicto completo de un mensaje: mira el sobre (invitación nativa) y TODAS
 // las superficies de texto, no solo el cuerpo.
 function clasificarMensaje(message) {
-  if (esInvitacionNativa(message)) return 'blocked';
+  if (esInvitacionNativa(message)) return 'invite';
   return classifyLinks(textoParaEnlaces(message));
 }
 
@@ -1386,15 +1448,21 @@ async function handleMessage(sock, msg) {
       // so moderation doesn't silently no-op when connectivity is degraded.
       const senderIsAdmin = meta ? isGroupAdmin(sender, msg.key.fromMe, meta) : false;
       if (!senderIsAdmin && !esOwnerDelMensaje(msg, sender, senderPn, meta)) {
+        // El permiso se mira ANTES de expulsar, salvo para las invitaciones.
+        // Ese era el agujero: *!allow* se consultaba solo en la rama de
+        // YouTube/Instagram, asi que para todo lo demas no existia.
         if (verdict === 'blocked') {
+          if (await isAllowed(jid, allForms(sender, meta))) return;
+          if (await tienePase(jid, sender)) return;
+        }
+        if (verdict === 'invite' || verdict === 'blocked') {
           // Without bot-admin (or without meta to verify it) the bot can neither
           // delete the message nor kick — warn once per group instead.
           if (!meta || !isBotAdmin(sock, meta)) {
             const lastW = antilinkNoAdminWarn.get(jid);
             if (!lastW || Date.now() - lastW > ANTILINK_REMINDER_TTL) {
               if (antilinkNoAdminWarn.size >= MAX_AVISOS_GRUPO) antilinkNoAdminWarn.delete(antilinkNoAdminWarn.keys().next().value);
-              if (antilinkNoAdminWarn.size >= MAX_AVISOS_GRUPO) antilinkNoAdminWarn.delete(antilinkNoAdminWarn.keys().next().value);
-            antilinkNoAdminWarn.set(jid, Date.now());
+              antilinkNoAdminWarn.set(jid, Date.now());
               anotarTropiezo(meta
                 ? `Enlace no permitido en ${jid} y NO soy admin: no puedo borrarlo ni expulsar. Dame admin.`
                 : `Enlace no permitido en ${jid} pero no pude leer la metadata del grupo para comprobar permisos.`);

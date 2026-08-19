@@ -912,7 +912,16 @@ async function cmdAntiLink(sock, msg, args, groupMeta) {
   await toggleAntiLink(jid, enable);
   await sock.sendMessage(jid, {
     text: enable
-      ? `Anti-link *activado*. Se borra cualquier enlace. Los de YouTube e Instagram avisan ${MAX_AVISOS - 1} veces y al ${MAX_AVISOS === 3 ? 'tercero' : `aviso ${MAX_AVISOS}`} es ban; el resto, expulsión directa. Con *!allow* se publica sin problema. Los admins quedan exentos.`
+      // EL TEXTO DICE LO QUE HACE EL CODIGO, y antes no. Prometia "con *!allow*
+      // se publica sin problema" cuando el permiso solo valia para YouTube e
+      // Instagram: un admin te lo daba, pegabas un Drive y te expulsaba igual.
+      // Y sigue habiendo algo que el permiso NO salva —las invitaciones— asi
+      // que eso tambien se dice, que es justo lo que nadie adivina.
+      ? `Anti-link *activado*.\n\n` +
+        `· Invitaciones a otros grupos o canales: expulsión directa. *No las salva ni el !allow*.\n` +
+        `· Cualquier otro enlace: expulsión, salvo que tengas *!allow* o el *pase*.\n` +
+        `· YouTube e Instagram: se borran y avisan ${MAX_AVISOS - 1} veces; al ${MAX_AVISOS === 3 ? 'tercero' : `aviso ${MAX_AVISOS}`}, ban.\n\n` +
+        `_Los admins quedan exentos de todo._`
       : 'Anti-link *desactivado*.',
   }, { quoted: msg });
 }

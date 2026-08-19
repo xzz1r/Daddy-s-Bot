@@ -851,23 +851,41 @@ async function capaStores() {
     const L = 'https://chat.whatsapp.com/ABCdef1234567890';
     const INV = { groupInviteMessage: { groupJid: 'X@g.us', inviteCode: 'A' } };
     const casos = [
-      ['texto plano',                 { conversation: L }, 'blocked'],
-      ['mensajes temporales',         { ephemeralMessage: { message: { conversation: L } } }, 'blocked'],
-      ['ver una vez v1',              { viewOnceMessage: { message: { imageMessage: { caption: L } } } }, 'blocked'],
-      ['ver una vez v2',              { viewOnceMessageV2: { message: { imageMessage: { caption: L } } } }, 'blocked'],
-      ['documento con caption',       { documentWithCaptionMessage: { message: { documentMessage: { caption: L } } } }, 'blocked'],
-      ['editado',                     { editedMessage: { message: { protocolMessage: { editedMessage: { conversation: L } } } } }, 'blocked'],
-      ['invitacion nativa',           INV, 'blocked'],
-      ['invitacion dentro de temporal', { ephemeralMessage: { message: INV } }, 'blocked'],
-      ['temporal + ver una vez',      { ephemeralMessage: { message: { viewOnceMessageV2: { message: { imageMessage: { caption: L } } } } } }, 'blocked'],
-      ['dominio sin ruta',            { conversation: 'entrad a chat.whatsapp.com' }, 'blocked'],
-      ['codigo en la linea de abajo', { conversation: 'chat.whatsapp.com/\nABCdef123' }, 'blocked'],
-      ['espacios en los puntos',      { conversation: 'chat . whatsapp . com/ABC123' }, 'blocked'],
-      ['punto falso',                 { conversation: 'chat·whatsapp·com/ABC123' }, 'blocked'],
-      ['invisible en medio',          { conversation: 'chat.what\u200bsapp.com/ABC123' }, 'blocked'],
-      ['telegram',                    { conversation: 'https://t.me/loquesea' }, 'blocked'],
-      // Y lo que NO debe bloquear, que es igual de importante: un antilink que
-      // expulsa por hablar no dura en un grupo.
+      // ── invitaciones: expulsion directa y NO las salva ningun permiso ──
+      ['texto plano',                 { conversation: L }, 'invite'],
+      ['mensajes temporales',         { ephemeralMessage: { message: { conversation: L } } }, 'invite'],
+      ['ver una vez v1',              { viewOnceMessage: { message: { imageMessage: { caption: L } } } }, 'invite'],
+      ['ver una vez v2',              { viewOnceMessageV2: { message: { imageMessage: { caption: L } } } }, 'invite'],
+      ['documento con caption',       { documentWithCaptionMessage: { message: { documentMessage: { caption: L } } } }, 'invite'],
+      ['editado (envuelto)',          { editedMessage: { message: { protocolMessage: { editedMessage: { conversation: L } } } } }, 'invite'],
+      ['editado (forma de Baileys)',  { protocolMessage: { type: 14, key: { id: 'ORIG' }, editedMessage: { conversation: L } } }, 'invite'],
+      ['invitacion nativa',           INV, 'invite'],
+      ['invitacion dentro de temporal', { ephemeralMessage: { message: INV } }, 'invite'],
+      ['temporal + ver una vez',      { ephemeralMessage: { message: { viewOnceMessageV2: { message: { imageMessage: { caption: L } } } } } }, 'invite'],
+      ['dominio sin ruta',            { conversation: 'entrad a chat.whatsapp.com' }, 'invite'],
+      ['codigo en la linea de abajo', { conversation: 'chat.whatsapp.com/\nABCdef123' }, 'invite'],
+      ['espacios en los puntos',      { conversation: 'chat . whatsapp . com/ABC123' }, 'invite'],
+      ['punto falso',                 { conversation: 'chat·whatsapp·com/ABC123' }, 'invite'],
+      ['invisible en medio',          { conversation: 'chat.what​sapp.com/ABC123' }, 'invite'],
+      ['telegram',                    { conversation: 'https://t.me/loquesea' }, 'invite'],
+      ['discord sin esquema',         { conversation: 'entrad a discord.gg/abc123' }, 'invite'],
+
+      // ── superficies donde WhatsApp esconde la URL. El texto visible es
+      //    inofensivo y el enlace viaja en otra parte del sobre.
+      ['boton CTA (nativeFlow)',      { interactiveMessage: { body: { text: 'hola' }, nativeFlowMessage: { buttons: [{ buttonParamsJson: JSON.stringify({ display_text: 'Abrir', url: L }) }] } } }, 'invite'],
+      ['tarjeta de preview',          { extendedTextMessage: { text: 'hola', contextInfo: { externalAdReply: { title: 'x', sourceUrl: L } } } }, 'invite'],
+      ['boton con url',               { buttonsMessage: { contentText: 'hola', buttons: [{ urlButton: { url: L } }] } }, 'invite'],
+      ['ubicacion',                   { locationMessage: { url: L } }, 'invite'],
+      ['album',                       { albumMessage: { caption: L } }, 'invite'],
+
+      // ── otros enlaces: se expulsa igual, PERO el !allow y el pase valen.
+      //    Si esto se mezcla con las invitaciones, *!allow* vuelve a mentir.
+      ['un Drive es blocked',         { conversation: 'https://drive.google.com/file/x' }, 'blocked'],
+      ['una web es blocked',          { conversation: 'https://elpais.com/x' }, 'blocked'],
+      ['un acortador es blocked',     { conversation: 'https://bit.ly/3xyz' }, 'blocked'],
+
+      // ── y lo que NO debe tocarse, que importa igual: un antilink que
+      //    expulsa por hablar no dura en un grupo.
       ['conversacion normal',         { conversation: 'te lo mando por whatsapp luego' }, 'none'],
       ['hablando del grupo',          { conversation: 'este grupo de whatsapp esta muerto' }, 'none'],
       ['frase con puntos',            { conversation: 'vale. venga. hasta luego' }, 'none'],
