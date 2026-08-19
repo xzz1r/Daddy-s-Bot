@@ -889,8 +889,33 @@ async function cmdAntiLink(sock, msg, args, groupMeta) {
 
   const arg = (args[0] || '').toLowerCase();
   if (arg !== 'on' && arg !== 'off') {
-    const current = isAntiLinkEnabled(jid) ? 'activado' : 'desactivado';
-    return sock.sendMessage(jid, { text: `Anti-link: *${current}*.` }, { quoted: msg });
+    // *!antilink* A SECAS DICE POR QUE NO ACTUA, no solo si esta encendido.
+    //
+    // Se colaron enlaces en un grupo y hubo que reconstruir a mano por que: el
+    // antilink tiene TRES condiciones y si falla cualquiera no pasa nada, casi
+    // siempre en silencio. Que este "activado" no significa que vaya a echar a
+    // nadie — sin admin no puede borrar, y a un admin no le toca.
+    //
+    // Un interruptor que dice "activado" mientras no hace nada es peor que uno
+    // apagado: el apagado al menos se entiende.
+    const encendido = isAntiLinkEnabled(jid);
+    const soyAdmin = isBotAdmin(sock, groupMeta);
+    const admins = (groupMeta?.participants || []).filter(p => p?.admin).length;
+    const conPermiso = (await listAllowed(jid)).filter(j => esMiembroActual(groupMeta, j)).length;
+
+    const si = (b) => (b ? '✅' : '❌');
+    const actua = encendido && soyAdmin;
+    return sock.sendMessage(jid, {
+      text: `*ANTI-LINK*\n\n` +
+        `${si(encendido)} activado en este grupo\n` +
+        `${si(soyAdmin)} soy admin${soyAdmin ? '' : ' — sin esto no puedo borrar ni expulsar'}\n\n` +
+        (actua
+          ? `_Funcionando. Cualquier enlace se borra y se expulsa; YouTube e Instagram avisan ${MAX_AVISOS - 1} veces antes del ban._\n`
+          : `_NO está actuando. Arregla lo de arriba con ❌._\n`) +
+        `\n_Exentos: los *${admins}* admins del grupo` +
+        (conPermiso ? `, y *${conPermiso}* con *!allow* (caduca a las 2 h)` : '') +
+        `. Los enlaces dentro de una foto no se leen: eso no lo ve ningún bot._`,
+    }, { quoted: msg });
   }
 
   const enable = arg === 'on';
