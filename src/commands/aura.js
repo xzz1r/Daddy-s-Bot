@@ -806,7 +806,12 @@ async function showRanking(sock, msg, groupMeta) {
   const huella = huellaDe(ranking);
   if (huellaRanking.get(jid) === huella) {
     return sock.sendMessage(jid, {
-      text: 'El top no ha cambiado desde la última vez. Mueve algo y vuelve.',
+      // La otra cara del mismo freno: aqui las tres horas YA pasaron, pero el
+      // ranking es identico al que se publico, asi que repetirlo seria mandar
+      // dos veces el mismo mensaje. Lleva cabecera igual que el rechazo por
+      // cooldown —es la misma pregunta desde fuera, "pedi el top y no salio"—
+      // pero no dice "EN COOLDOWN", que seria mentira: el reloj ya corrio.
+      text: '*TOP SIN CAMBIOS*\nEl top no ha cambiado desde la última vez. Mueve algo y vuelve.',
     }, { quoted: msg });
   }
   if (huellaRanking.size >= 500) huellaRanking.delete(huellaRanking.keys().next().value);
