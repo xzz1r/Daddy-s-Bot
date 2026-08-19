@@ -6,7 +6,7 @@ const logger = require('../utils/logger');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled, toggleSoloAdmins, isSoloAdminsEnabled } = require('../utils/state');
 const { businessEvidence } = require('../utils/businessCheck');
 const { getMemberFacts } = require('../utils/nickStore');
-const { allow, disallow, listAllowed, MAX_AVISOS } = require('../utils/linkPerms');
+const { allow, disallow, listAllowed, MAX_AVISOS, DURACION_MS } = require('../utils/linkPerms');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 
 // In-memory mute store: `groupJid|bareJid` -> expireTimestamp
@@ -922,16 +922,16 @@ async function cmdAllow(sock, msg, args, groupMeta) {
   const target = getTarget(msg);
 
   if (!target) {
-    // Solo los que siguen dentro: el permiso se guarda para siempre y la lista
-    // acababa nombrando a gente que se fue hace meses.
+    // Solo los que siguen dentro. listAllowed ya descarta los caducados, asi
+    // que esta lista son los que pueden publicar AHORA MISMO.
     const lista = (await listAllowed(jid)).filter(j => esMiembroActual(groupMeta, j));
     if (!lista.length) {
       return sock.sendMessage(jid, {
-        text: 'Nadie tiene permiso para publicar enlaces.\n\n*!allow* @user — se lo das\n*!allow off* @user — se lo quitas',
+        text: `Ahora mismo nadie puede publicar enlaces.\n\n*!allow* @user — se lo das ${DURACION_MS / 3600000} h\n*!allow off* @user — se lo quitas antes`,
       }, { quoted: msg });
     }
     return sock.sendMessage(jid, {
-      text: `*Pueden publicar enlaces (${lista.length}):*\n` + lista.map(j => `@${j.split('@')[0]}`).join(' '),
+      text: `*Pueden publicar enlaces ahora (${lista.length}):*\n` + lista.map(j => `@${j.split('@')[0]}`).join(' '),
       mentions: lista,
     }, { quoted: msg });
   }
@@ -949,7 +949,10 @@ async function cmdAllow(sock, msg, args, groupMeta) {
 
   await allow(jid, target);
   return sock.sendMessage(jid, {
-    text: `@${num} tiene permiso para publicar enlaces. Se lo ha ganado, no lo desperdicies.`,
+    // SE DICE QUE CADUCA. Antes el permiso era eterno y el mensaje no prometia
+    // nada al respecto; ahora que dura dos horas, callarselo seria dejar que el
+    // admin creyera que sigue dado y que el otro se comiera un aviso.
+    text: `@${num} puede publicar enlaces durante *${DURACION_MS / 3600000} h*. Luego vuelve a estar como todos.`,
     mentions: [target],
   }, { quoted: msg });
 }

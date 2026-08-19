@@ -22,6 +22,31 @@ const FILE = path.join(__dirname, '../../data/linkperms.json');
 // Avisos antes del ban. El tercero es el que lo echa.
 const MAX_AVISOS = 3;
 
+// EL PERMISO CADUCA. Antes era para siempre: isAllowed() solo miraba `ok` y el
+// `ts` que se guardaba no lo leia nadie. Un admin daba *!allow* para que alguien
+// pusiera UN enlace y esa persona quedaba autorizada de por vida, incluida la
+// vez que volviera a acordarse seis meses despues.
+//
+// Dos horas es para lo que se da de verdad: "ponlo y ya". Si hace falta mas,
+// volver a darlo cuesta un mensaje.
+const DURACION_MS = 2 * 60 * 60 * 1000;
+
+// LA FECHA DE CONCESION VA EN SU PROPIO CAMPO, y esto no es un detalle. El `ts`
+// de siempre lo reescriben noteWarning() y resetWarnings(), que son
+// contabilidad de avisos y no tienen nada que ver con el permiso. Si la
+// caducidad se midiera con `ts`, cada aviso registrado le RENOVARIA el permiso
+// a quien lo tiene — justo al revés de lo que se quiere.
+function vivo(rec) {
+  if (!rec?.ok) return false;
+  const desde = rec.desde || rec.ts || 0;   // fichas viejas: se cuenta desde su ts
+  return Date.now() - desde < DURACION_MS;
+}
+
+function restanteMs(rec) {
+  if (!vivo(rec)) return 0;
+  return DURACION_MS - (Date.now() - (rec.desde || rec.ts || 0));
+}
+
 let store = null;
 let loadPromise = null;
 let saveTimer = null;
@@ -61,7 +86,7 @@ async function allow(grupo, jid) {
   const { g, k, rec } = ficha(grupo, jid);
   const nuevo = !rec?.ok;
   // Al dar el permiso se le perdonan los avisos: ya no tiene sentido contarlos.
-  g[k] = { ok: true, avisos: 0, ts: Date.now() };
+  g[k] = { ok: true, avisos: 0, ts: Date.now(), desde: Date.now() };
   scheduleSave();
   return nuevo;
 }
@@ -85,7 +110,7 @@ async function isAllowed(grupo, forms) {
   if (!g) return false;
   for (const f of (Array.isArray(forms) ? forms : [forms])) {
     if (!f) continue;
-    if (g[canonicalJid(f)]?.ok) return true;
+    if (vivo(g[canonicalJid(f)])) return true;
   }
   return false;
 }
@@ -97,7 +122,9 @@ async function resetWarnings(grupo, jid) {
   await load();
   const { g, k, rec } = ficha(grupo, jid);
   if (!rec || !rec.avisos) return;
-  g[k] = { ok: Boolean(rec.ok), avisos: 0, ts: Date.now() };
+  // `desde` se ARRASTRA: si se recalculara aqui, borrar los avisos le
+  // renovaria las dos horas a quien ya las tenia corriendo.
+  g[k] = { ok: Boolean(rec.ok), avisos: 0, ts: Date.now(), desde: rec.desde };
   scheduleSave();
 }
 
@@ -116,7 +143,9 @@ async function listAllowed(grupo) {
   await load();
   const g = store[grupo];
   if (!g) return [];
-  return Object.keys(g).filter(k => g[k]?.ok);
+  // Solo los que lo tienen VIVO: listar permisos caducados es prometer algo
+  // que el bot ya no cumple.
+  return Object.keys(g).filter(k => vivo(g[k]));
 }
 
 async function flushLinkPerms() {
@@ -131,6 +160,7 @@ async function flushLinkPerms() {
 function _reset() { store = null; loadPromise = null; }
 
 module.exports = {
+  DURACION_MS, restanteMs,
   allow, disallow, isAllowed, noteWarning, resetWarnings, listAllowed, flushLinkPerms,
   MAX_AVISOS, _reset,
 };

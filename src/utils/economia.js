@@ -733,7 +733,7 @@ const OBJETOS = {
   // producen aura, la protegen o la ahorran. No hay bucle que cerrar con ellos,
   // asi que aqui el unico limite es que sigan siendo una decision y no un
   // tramite. Se ha ido a lo generoso.
-  escudo: { precio: 180, horas: 24, desc: 'nadie te puede robar durante 24 h' },
+  escudo: { precio: 180, horas: 24 },
   // LA GANZUA LLEVA TOPE, y le hacia mucha falta. Es el mismo fallo que el
   // amuleto tenia previsto y esta no: un bono de probabilidad sobre lo pedido
   // vale mas cuanto mas se pide. Sin tope, con las dos fortunas en 5.000 y
@@ -755,8 +755,7 @@ const OBJETOS = {
   // que pica del 38 % al 15 %, o sea al suelo. El multiplicador estaba escrito a
   // pelo dentro de robo.js (`auraV * 2`) y ahora sale de aqui, que es donde
   // tienen que estar las cifras del juego.
-  cebo:   { precio: 90,  horas: 16, multiplicador: 2.5,
-            desc: 'aparentas dos veces y media tu aura durante 16 h' },
+  cebo:   { precio: 90,  horas: 16, multiplicador: 2.5 },
 
   // ─── Los caros: no son para robar, son para que el bot no te toque ────────
   //
@@ -770,14 +769,14 @@ const OBJETOS = {
   // pedia una semana de trabajo para dos dias de cobertura parcial, y ni el mas
   // rico hacia esa cuenta. A 400 y 900 siguen doliendo —dos dias y cinco— pero
   // son una decision que alguien puede llegar a tomar, que es el punto.
-  pase:    { precio: 400,  horas: 48, desc: 'publicas tus redes 48 h sin que el bot te borre nada' },
+  pase:    { precio: 400,  horas: 12 },
 
   // OJO CON EL ALCANCE: el indulto solo para al BOT, y solo cuando actua SOLO.
   // No protege de un !kick ni de un !fkban de un admin, ni deberia: el dia que
   // el aura compre inmunidad frente a una persona, el owner deja de mandar en
   // su propio grupo y la tienda se convierte en un agujero de moderacion.
   // Es un seguro contra el automatismo, no un salvoconducto.
-  indulto: { precio: 900,  horas: 72, desc: 'el bot no te banea solo durante 72 h — no te salva de un admin' },
+  indulto: { precio: 900,  horas: 72 },
 
   // ─── Los de la mesa ────────────────────────────────────────────────────────
   //
@@ -1108,6 +1107,18 @@ const IMPUESTO = {
 //
 // Se hace despues de definir OBJETOS y encima del export, asi que cualquier
 // cambio de `descuento` u `horas` mueve el texto solo.
+// LOS `desc` CON DURACION SE GENERAN, NO SE ESCRIBEN.
+//
+// Cuatro los tenian a mano —escudo 24, cebo 16, pase 48, indulto 72— y cuadraban
+// de casualidad, porque nadie habia tocado esas horas desde que se escribieron.
+// Es exactamente lo que ya mintio en el socio (anunciaba 25 % / 12 h cuando daba
+// 30 % / 24), en las frases de compra del escudo y en las del cebo. El desc es
+// el texto que se lee EN EL MOMENTO DE PAGAR, asi que ahi una cifra vieja es de
+// las peores: alguien compra por lo que dice y recibe otra cosa.
+OBJETOS.escudo.desc  = `nadie te puede robar durante ${OBJETOS.escudo.horas} h`;
+OBJETOS.cebo.desc    = `aparentas ${OBJETOS.cebo.multiplicador} veces tu aura durante ${OBJETOS.cebo.horas} h`;
+OBJETOS.pase.desc    = `publicas tus redes ${OBJETOS.pase.horas} h sin que el bot te borre nada`;
+OBJETOS.indulto.desc = `el bot no te banea solo durante ${OBJETOS.indulto.horas} h — no te salva de un admin`;
 OBJETOS.socio.desc = `todos los comandos te cuestan un ${Math.round(OBJETOS.socio.descuento * 100)} % menos durante ${OBJETOS.socio.horas} h`;
 
 // Lo que cuesta de verdad mandar una cantidad, y lo unico que hay que llamar

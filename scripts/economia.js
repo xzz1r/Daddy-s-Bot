@@ -508,6 +508,33 @@ ok(/transferAura/.test(src('dar.js')), '!dar sigue usando transferAura: el cargo
     `  y da para ${Math.floor(ARRANQUE / CARA)} de ellas: quien entra puede probar el bot antes de tener que ganarselo`);
 }
 
+// NINGUN `desc` DE LA TIENDA ESCRIBE SU DURACION A MANO.
+//
+// El desc es el texto que se lee EN EL MOMENTO DE PAGAR, asi que una cifra
+// vieja ahi es de las peores que hay: alguien compra por lo que dice y recibe
+// otra cosa.
+//
+// Cuatro lo tenian escrito (escudo 24, cebo 16, pase 48, indulto 72) y
+// cuadraban de pura casualidad, porque nadie habia tocado esas horas desde que
+// se escribieron. En cuanto el pase bajo a 12 su desc habria seguido diciendo
+// 48. Es la tercera vez que la misma enfermedad aparece: ya mintio el socio
+// (25 % / 12 h cuando daba 30 % / 24), las frases de compra del escudo y las
+// del cebo.
+{
+  const { OBJETOS } = require(`${R}/src/utils/economia`);
+  const malos = [];
+  for (const [nombre, o] of Object.entries(OBJETOS)) {
+    if (!o.desc) continue;
+    const cifras = [...o.desc.matchAll(/(\d+)\s*h\b/g)].map((m) => Number(m[1]));
+    for (const c of cifras) {
+      if (c !== o.horas) malos.push(`${nombre}: dice ${c} h y dura ${o.horas || 'nada'}`);
+    }
+    if (o.horas && !cifras.length) malos.push(`${nombre}: dura ${o.horas} h y su desc no lo dice`);
+  }
+  ok(malos.length === 0,
+    `los desc de la tienda dicen la duracion real${malos.length ? ':\n     ' + malos.join('\n     ') : ''}`);
+}
+
 // NINGUNA FRASE DE TIENDA ESCRIBE UNA DURACION A MANO.
 //
 // Ya paso dos veces con la misma forma: el socio anunciaba "25 % durante 12 h"
