@@ -759,9 +759,30 @@ async function capaStores() {
   // data/ es el que la deja como estaba.
   process.on('exit', () => restaurar(respaldo, ficherosAntes));
 
+  // LOS AVISOS DE ESTA CAPA SON DE LOS DATOS DE PRUEBA, NO DEL BOT.
+  //
+  // capaStores() monta un ranking con JIDs inventados (34600000011@...) que
+  // logicamente no tienen pushName, asi que el aviso legitimo de aura.js —"2 de
+  // 2 del top sin nombre todavia"— saltaba dos veces en cada `npm run update`,
+  // en amarillo y con pinta de problema. No lo es: es el validador
+  // denunciandose a si mismo.
+  //
+  // No se tiran: se cuentan y se dicen en una linea. Un aviso escondido es peor
+  // que uno ruidoso, y si algun dia salen veinte en vez de dos, eso si hay que
+  // verlo.
+  const logger = require(path.join(R, 'src/utils/logger'));
+  const avisosReales = logger.warn;
+  const capturados = [];
+  logger.warn = (m) => { capturados.push(String(m)); };
   try { await capaStores(); }
   catch (e) { fallos++; console.log(rojo(`   ✗ los stores lanzaron: ${e.message.split('\n')[0]}`)); }
-  finally { restaurar(respaldo, ficherosAntes); }
+  finally {
+    logger.warn = avisosReales;
+    restaurar(respaldo, ficherosAntes);
+  }
+  if (capturados.length) {
+    console.log(`   ${capturados.length} aviso(s) de los datos de prueba (JIDs inventados sin nombre), no del bot`);
+  }
 
   // ── 5. LOS COBROS DE AURA NO PUEDEN VOLVER A SER UNA CARRERA ──────────────
   //

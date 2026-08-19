@@ -146,6 +146,27 @@ rm -rf node_modules/sharp node_modules/@img
 # quedarse sin nada. Cuesta unos segundos y se ha ganado ese derecho.
 echo
 echo "→ Comprobando que el código nuevo arranca..."
+
+# PLACEHOLDERS TAMBIEN, y esto se aprendio por poco. Aqui solo corria `check`,
+# que mira que el bot arranca y responde — no que las frases esten bien
+# enchufadas. Entro una reescritura de 130 frases de wingman y se desplego sin
+# que nadie comprobara sus %N: paso, pero por suerte, no por comprobacion. Un
+# placeholder suelto no rompe el bot, hace algo peor: manda "%A" en crudo al
+# grupo, en publico y sin que salte nada.
+#
+# `pools` NO entra a proposito. Mide si un tramo se repite demasiado, que es
+# calidad y no correccion, y ahora mismo sale en rojo por diseño (9 tramos
+# cortos que le tocan a quien escribe las frases). Meterlo aqui bloquearia todos
+# los despliegues por algo que no rompe nada.
+if ! npm run placeholders; then
+  echo
+  echo "════════════════════════════════════════════"
+  echo "  NO SE REINICIA: hay placeholders sin enchufar."
+  echo "  Saldrían en crudo (%A, %N…) en el grupo."
+  echo "════════════════════════════════════════════"
+  exit 1
+fi
+
 if ! npm run check; then
   echo
   echo "════════════════════════════════════════════"
