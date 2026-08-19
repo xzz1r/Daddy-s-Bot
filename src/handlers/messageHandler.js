@@ -7,7 +7,7 @@ const { cobrar: cobrarAura, devolver: devolverAura, textoSinSaldo } = require('.
 const { PRECIOS, SUELO_TODOS } = require('../utils/economia');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { recordName } = require('../utils/nombreStore');
-const { recordFacts } = require('../utils/nickStore');
+const { recordFacts, getMemberFacts } = require('../utils/nickStore');
 const { noteOffence, forget, yaAvisado, marcarAvisado, olvidarAviso } = require('../utils/mediaSpam');
 const { isAllowed, noteWarning, resetWarnings, MAX_AVISOS } = require('../utils/linkPerms');
 const { tienePase, gastarIndulto } = require('../utils/roboStore');
@@ -619,7 +619,7 @@ function claveDePersona(sender, meta) {
 // admin para poder echar a alguien.
 const avisoBizReciente = new Map(); // `${jid}|${canonical}` -> ts
 
-async function expulsarBusinessDetectado(sock, jid, sender, msg) {
+async function expulsarBusinessDetectado(sock, jid, sender, msg, motivo = 'cuenta de negocio') {
   if (!jid.endsWith('@g.us') || !isAntiBusinessEnabled(jid)) return;
 
   const meta = await getGroupMeta(sock, jid);
@@ -627,25 +627,36 @@ async function expulsarBusinessDetectado(sock, jid, sender, msg) {
   if (isGroupAdmin(sender, msg.key.fromMe, meta)) return; // admins y owner tier
   if (!isBotAdmin(sock, meta)) return;
 
-  // Un solo intento por persona cada 10 min: si WhatsApp rechaza el kick, no
-  // tiene sentido reintentarlo en cada mensaje que mande.
   const clave = `${jid}|${canonicalJid(sender)}`;
   const ultimo = avisoBizReciente.get(clave);
   if (ultimo && Date.now() - ultimo < 10 * 60 * 1000) return;
-  if (avisoBizReciente.size >= 2000) avisoBizReciente.delete(avisoBizReciente.keys().next().value);
-  avisoBizReciente.set(clave, Date.now());
 
-  logger.info(`Anti-empresa: ${sender} delatado por verifiedBizName en ${jid}`);
+  logger.info(`Anti-empresa: ${sender} en ${jid} — ${motivo}`);
   const fuera = await expulsar(sock, jid, sender);
   const num = sender.split('@')[0];
+
   if (fuera) {
+    // ECHAR SIN VETAR ES UNA PUERTA GIRATORIA. Era la unica guarda automatica
+    // grave que no llamaba a banAccount: los enlaces, los stickers, las fotos y
+    // las historias si lo hacen. Con el enlace del grupo en la mano, a quien
+    // solo se le expulsa vuelve a entrar y hay que echarlo otra vez, y otra.
+    // La lista negra ya la aplica guardOnJoin al entrar, asi que no hace falta
+    // inventar nada: el owner puede deshacerlo con *!fkunban*.
+    await banAccount(allForms(sender, meta), `cuenta business en ${jid} (${motivo})`, 'auto').catch(() => {});
     sock.sendMessage(jid, {
-      text: `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada automáticamente.`,
+      text: `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada y vetada.`,
       mentions: [sender],
     }).catch(() => {});
   } else {
     anotarTropiezo(`Anti-empresa: +${num} detectada en ${jid} y NO he podido expulsarla. Hazlo a mano.`);
   }
+
+  // EL FRENO SE PONE AL FINAL, y antes iba arriba. Puesto antes del kick, un
+  // intento que fallara porque el bot todavia no era admin dejaba diez minutos
+  // de ceguera justo despues de darle admin. Solo se frena cuando ya se sabe
+  // que hubo un intento de verdad.
+  if (avisoBizReciente.size >= 2000) avisoBizReciente.delete(avisoBizReciente.keys().next().value);
+  avisoBizReciente.set(clave, Date.now());
 }
 
 
@@ -1356,6 +1367,18 @@ async function handleMessage(sock, msg) {
     // Del owner tier NO se anota: esa ficha es justo la que alimenta la purga de
     // !antiempresa, y con el gate de arriba (isMainOwner, para el ranking) los
     // co-owners si quedaban fichados. El owner esta por encima tambien de esto.
+    // EL BADGE NO PUEDE SER LA UNICA PUERTA, y esto era el agujero de fondo.
+    //
+    // `verifiedBizName` solo lo lleva una cuenta Business VERIFICADA. El que
+    // usa Business para suplantar a alguien —abrir con la app, dejar la ficha
+    // vacia a proposito y entrar como una persona cualquiera— no lo lleva
+    // nunca. O sea que la guarda estaba encendida contra las marcas y apagada
+    // contra el suplantador, que es a quien se quiere echar.
+    //
+    // Ahora hay dos disparadores: el badge (prueba directa, se anota y se echa)
+    // y la FICHA YA GUARDADA. Si a esa cuenta se le vio un nombre de negocio en
+    // cualquier grupo, aqui vale igual aunque este mensaje no traiga nada: la
+    // prueba no caduca porque cambie de sala.
     if (msg.verifiedBizName && !isOwner(sender, msg.key.fromMe, peekGroupMeta(jid))) {
       recordFacts(sender, { biz: true }).catch(() => {});
       // Y ADEMÁS se actúa, no solo se anota.
@@ -1369,7 +1392,13 @@ async function handleMessage(sock, msg) {
       // `verifiedBizName` es prueba DIRECTA de WhatsApp: viaja en el propio
       // mensaje, no hace falta ninguna consulta de perfil y funciona igual con
       // @lid, que es donde la comprobación de entrada era ciega.
-      expulsarBusinessDetectado(sock, jid, sender, msg).catch(() => {});
+      expulsarBusinessDetectado(sock, jid, sender, msg, 'nombre verificado de negocio').catch(() => {});
+    } else if (!isOwner(sender, msg.key.fromMe, peekGroupMeta(jid))) {
+      // Sin badge: se mira lo ya fichado. Es una lectura de disco, no una
+      // consulta de red, asi que puede correr en cada mensaje sin coste.
+      getMemberFacts([sender, canonicalJid(sender)]).then((f) => {
+        if (f?.biz) return expulsarBusinessDetectado(sock, jid, sender, msg, 'ya estaba fichada como cuenta de negocio');
+      }).catch(() => {});
     }
     checkCasinoMilestone(sock, jid, sender).catch(() => {});
     // Historial de huellas AUTOMÁTICO: indexa la foto de quien escribe (con

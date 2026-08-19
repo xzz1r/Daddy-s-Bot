@@ -120,11 +120,11 @@ async function cmdScan(sock, msg, groupMeta) {
       const chunk = phoneJids.slice(i, i + BIZ_CONC);
       const results = await Promise.all(chunk.map(async j => {
         const observado = await porFacts(phoneToId.get(j), j);
-        if (observado) return [j, { isBiz: true, fields: observado }];
-        const ev = await businessEvidence(sock, j).catch(() => ({ isBiz: false, fields: [] }));
+        if (observado) return [j, { estado: 'biz', fields: observado }];
+        const ev = await businessEvidence(sock, j).catch(() => ({ estado: 'desconocido', fields: [] }));
         return [j, ev];
       }));
-      for (const [j, ev] of results) if (ev.isBiz) bizMap.set(j, ev.fields);
+      for (const [j, ev] of results) if (ev.estado === 'biz') bizMap.set(j, ev.fields);
     }
     // Los que solo tienen @lid: la consulta de perfil no los acepta, pero el
     // hecho observado si. Sin esto quedaban fuera del recuento sin decirlo.

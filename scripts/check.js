@@ -913,49 +913,78 @@ async function capaStores() {
   console.log('\n9. ANTIEMPRESA');
   {
     const { businessEvidence, clearBusinessCache } = require(path.join(R, 'src/utils/businessCheck'));
-    const sockDe = (perfil) => ({ getBusinessProfile: async () => perfil });
-    // `comprueba` vive en el bloque de la capa 3; aqui se usa el mismo par.
     const exige = (cond, queja) => { if (cond) return; fallos++; console.log(rojo(`   ✗ ${queja}`)); };
+    const sockDe = (perfil) => ({ getBusinessProfile: async () => perfil });
+
+    // TRES ESTADOS, Y EL QUE IMPORTA ES EL TERCERO. Antes esto era un booleano
+    // y "no he podido comprobarlo" salia como "es una cuenta personal". Para un
+    // modo cuyo trabajo es echar suplantadores, tratar la ignorancia como
+    // inocencia no es prudencia: es la puerta.
     const casos = [
-      ['solo wid (cuenta normal)',   { wid: '34600000000@s.whatsapp.net' }, false],
-      ['objeto vacio',               {}, false],
-      ['undefined',                  undefined, false],
-      ['con categoria',              { wid: 'x', category: 'Tienda' }, true],
-      ['con email',                  { wid: 'x', email: 'a@b.com' }, true],
-      ['con web',                    { wid: 'x', website: ['http://x.com'] }, true],
-      ['con descripcion',            { wid: 'x', description: 'vendemos cosas' }, true],
-      ['campos vacios no cuentan',   { wid: 'x', category: '', email: '', description: '   ' }, false],
+      ['solo wid es cuenta normal',   { wid: 'x' }, 'personal'],
+      ['objeto vacio',                {}, 'personal'],
+      ['con categoria',               { wid: 'x', category: 'Tienda' }, 'biz'],
+      ['con email',                   { wid: 'x', email: 'a@b.com' }, 'biz'],
+      ['con web',                     { wid: 'x', website: ['http://x.com'] }, 'biz'],
+      ['con descripcion',             { wid: 'x', description: 'vendemos cosas' }, 'biz'],
+      ['campos vacios no cuentan',    { wid: 'x', category: '', email: '', description: '   ' }, 'personal'],
+      // El suplantador: Business con la ficha en blanco a proposito.
+      ['ficha vacia pero con portada',{ wid: 'x', cover_photo: 'a.jpg' }, 'biz'],
+      ['ficha vacia con opciones',    { wid: 'x', profile_options: {} }, 'biz'],
+      // Y lo que NO se sabe.
+      ['la consulta no responde',     undefined, 'desconocido'],
+      ['devuelve algo que no es objeto', 'nada', 'desconocido'],
     ];
     let mal = 0;
     for (const [etq, perfil, esperado] of casos) {
-      // EL RESULTADO SE CACHEA POR JID DURANTE UNA HORA. Sin limpiar entre
-      // casos, el primero (una cuenta normal) dejaba un `false` guardado y los
-      // siete siguientes leian ese false en vez de consultar. Los cuatro casos
-      // de negocio salian negativos y parecia un fallo del bot: era del test.
+      // El resultado se cachea por JID. Sin limpiar entre casos, el primero
+      // dejaba un 'personal' guardado y los demas lo leian en vez de consultar.
       clearBusinessCache();
       let ev;
       try { ev = await businessEvidence(sockDe(perfil), '34600000000@s.whatsapp.net'); }
-      catch (e) { ev = { isBiz: 'revienta: ' + e.message }; }
-      if (ev.isBiz !== esperado) {
+      catch (e) { ev = { estado: 'revienta: ' + e.message }; }
+      if (ev.estado !== esperado) {
         mal++;
-        console.log(rojo(`   ✗ ${etq}: esperaba isBiz=${esperado} y da ${ev.isBiz}`));
+        console.log(rojo(`   ✗ ${etq}: esperaba ${esperado} y da ${ev.estado}`));
       }
     }
+    // Un @lid no admite la consulta. Eso es 'desconocido', NUNCA 'personal':
+    // era la puerta principal del suplantador con el numero oculto.
+    clearBusinessCache();
+    const evLid = await businessEvidence(sockDe({ wid: 'x' }), '123@lid');
+    if (evLid.estado !== 'desconocido') {
+      mal++;
+      console.log(rojo(`   ✗ un @lid da ${evLid.estado} y tiene que dar desconocido: sin telefono no se sabe, no es que sea personal`));
+    }
     if (mal) fallos += mal;
-    else console.log(verde(`   ✓ la prueba de perfil distingue negocio de cuenta normal (${casos.length} casos)`));
+    else console.log(verde(`   ✓ la prueba distingue negocio, personal y desconocido (${casos.length + 1} casos)`));
 
-    // Y que los dos escaneos usen la MISMA evidencia. Si uno mira el hecho
-    // observado y el otro no, el mismo grupo da dos listas distintas — y el
-    // purge expulsa la de uno de ellos.
     const scanSrc = fs.readFileSync(path.join(R, 'src/commands/scan.js'), 'utf8');
     const grpSrc  = fs.readFileSync(path.join(R, 'src/commands/group.js'), 'utf8');
     const botSrc  = fs.readFileSync(path.join(R, 'src/bot.js'), 'utf8');
-    exige(/getMemberFacts/.test(scanSrc),
-      '!scan no mira el hecho observado (getMemberFacts) y *!antiempresa scan* si: dan listas distintas');
-    exige(/getMemberFacts/.test(grpSrc),
-      '*!antiempresa scan* dejo de mirar el hecho observado');
-    exige(/getMemberFacts/.test(botSrc),
-      'la entrada al grupo no mira el hecho observado: una Business ya fichada entra por la puerta');
+    const mhSrc   = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+
+    // Los tres caminos —entrada, !scan y !antiempresa scan— tienen que mirar la
+    // misma evidencia. Si uno se queda solo con el perfil, el mismo grupo da
+    // dos listas y el purge expulsa la de otro.
+    exige(/getMemberFacts/.test(scanSrc), '!scan dejo de mirar el hecho observado: dara una lista distinta que *!antiempresa scan*');
+    exige(/getMemberFacts/.test(grpSrc),  '*!antiempresa scan* dejo de mirar el hecho observado');
+    exige(/getMemberFacts/.test(botSrc),  'la entrada al grupo no mira el hecho observado: una Business ya fichada entra por la puerta');
+
+    // La guarda de mensajes no puede volver a exigir el badge. El suplantador
+    // no lo lleva NUNCA: si esa es la unica puerta, el modo esta apagado justo
+    // contra quien se quiere echar.
+    exige(/getMemberFacts\(\[sender/.test(mhSrc),
+      'la guarda de mensajes vuelve a exigir verifiedBizName: el suplantador no lo lleva nunca y se cuela');
+
+    // Y echar sin vetar es una puerta giratoria: con el enlace del grupo, vuelve
+    // a entrar. Es la unica guarda grave que no baneaba.
+    exige(/banAccount\(allForms\(sender, meta\), `cuenta business/.test(mhSrc),
+      'el antiempresa expulsa sin meter en la lista negra: vuelve a entrar con el enlace del grupo');
+
+    // El @lid sin telefono no puede volver a descartarse en el join.
+    exige(!/no se puede comprobar si es Business`\);\s*\n\s*continue;/.test(botSrc),
+      'vuelve a haber un `continue` que deja entrar a los @lid sin telefono sin comprobarlos');
   }
 
   // ── NINGUN POOL DE FRASES SE VACIA DE GOLPE ───────────────────────────────

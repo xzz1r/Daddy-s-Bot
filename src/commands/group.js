@@ -639,7 +639,8 @@ const lastScan = new Map(); // groupJid -> { ts, detected: [{ kickId, fields }] 
 
 async function detectBusinesses(sock, idToPhone) {
   const entries = Array.from(idToPhone.entries()); // [kickId, phoneJid]
-  const detected = []; // { kickId, fields }
+  const detected = [];      // { kickId, fields }
+  const sinComprobar = [];  // { kickId, motivo } — ni biz ni personal: no se supo
   const CONC = 6;
   for (let i = 0; i < entries.length; i += CONC) {
     const chunk = entries.slice(i, i + CONC);
@@ -647,22 +648,30 @@ async function detectBusinesses(sock, idToPhone) {
       // Sin teléfono no se puede consultar el perfil (getBusinessProfile no
       // acepta LIDs), pero el hecho observado sí vale, así que estos NO se
       // descartan: se saltan la consulta y se juzgan solo por lo que ya consta.
+      // El hecho observado va PRIMERO: es gratis, esta en disco y vale en LID.
+      // Antes se consultaba el perfil y solo se miraban los hechos si salia que
+      // no, o sea gastando una consulta de red para nada en el caso mas comun.
+      const facts0 = await getMemberFacts([kickId, phoneJid]).catch(() => null);
+      if (facts0?.biz) return { kickId, ev: { estado: 'biz', fields: ['nombre verificado de negocio'] } };
+
       const ev = phoneJid
-        ? await businessEvidence(sock, phoneJid).catch(() => ({ isBiz: false, fields: [] }))
-        : { isBiz: false, fields: [] };
-      if (ev.isBiz) return { kickId, ev };
+        ? await businessEvidence(sock, phoneJid).catch(() => ({ estado: 'desconocido', fields: [] }))
+        : { estado: 'desconocido', fields: [], motivo: 'sin teléfono' };
+      if (ev.estado === 'biz') return { kickId, ev };
       // WhatsApp adjunta un verified_name a los mensajes de las cuentas
       // Business (Baileys lo expone como msg.verifiedBizName). Si se le ha
       // visto uno, es Business aunque su perfil venga vacío en la consulta.
-      const facts = await getMemberFacts([kickId, phoneJid]).catch(() => null);
-      if (facts?.biz) return { kickId, ev: { isBiz: true, fields: ['nombre verificado de negocio'] } };
       return { kickId, ev };
     }));
     for (const { kickId, ev } of results) {
-      if (ev.isBiz) detected.push({ kickId, fields: ev.fields });
+      if (ev.estado === 'biz') detected.push({ kickId, fields: ev.fields });
+      // Los que no se pudieron comprobar se listan aparte. Antes se contaban
+      // como personales y desaparecian del informe: quien lo leia creia que
+      // estaban revisados.
+      else if (ev.estado === 'desconocido') sinComprobar.push({ kickId, motivo: ev.motivo || 'no se pudo comprobar' });
     }
   }
-  return detected;
+  return { detected, sinComprobar };
 }
 
 // scan = DRY-RUN: detecta y lista con evidencia, NO expulsa. Guarda la lista para
@@ -689,18 +698,28 @@ async function scanBusinesses(sock, msg, groupJid, groupMeta) {
       (sinTelefono ? `\n_${sinTelefono} tienen el número oculto: a esos solo se les mira lo ya observado._` : ''),
   }, { quoted: msg });
 
-  const detected = await detectBusinesses(sock, idToPhone);
+  const { detected, sinComprobar } = await detectBusinesses(sock, idToPhone);
   lastScan.set(groupJid, { ts: Date.now(), detected });
 
+  // LOS QUE NO SE PUDIERON COMPROBAR SE DICEN. Antes contaban como personales y
+  // desaparecian del informe, asi que quien lo leia daba por revisado a alguien
+  // que nadie habia mirado. Un escaneo que no distingue "limpio" de "no lo se"
+  // da una confianza que no ha ganado.
+  const pieDudas = sinComprobar.length
+    ? `\n\n_${sinComprobar.length} sin comprobar (número oculto o la consulta no respondió). No son limpios: son desconocidos._`
+    : '';
+
   if (!detected.length) {
-    return sock.sendMessage(groupJid, { text: 'No se detectaron cuentas Business entre los miembros.' });
+    return sock.sendMessage(groupJid, {
+      text: 'No se detectaron cuentas Business entre los miembros.' + pieDudas,
+    });
   }
 
   const lines = detected.map(d => `@${d.kickId.split('@')[0]} — ${d.fields.join(', ')}`);
   return sock.sendMessage(groupJid, {
     text:
       `*Business detectados (${detected.length})* — con su evidencia:\n\n` +
-      lines.join('\n') +
+      lines.join('\n') + pieDudas +
       // EL SCAN DICE CUAL ES EL PASO SIGUIENTE. Decia "esto no expulsa a nadie"
       // y se quedaba ahi, sin nombrar *!antiempresa purge*, que es lo unico que
       // hace algo con esta lista. Habia que acordarse de un comando que el bot
