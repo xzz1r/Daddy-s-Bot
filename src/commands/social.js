@@ -286,14 +286,16 @@ _De más crudo a más suave, ${PRECIOS.percent} cada uno:_
 *${p}linda* *${p}hot* *${p}sexy* *${p}fiel* *${p}crack* *${p}ganador*
 
 ━━━━━ *AURA* ━━━━━
-*${p}aura* — tirar · *${p}aura top* · *${p}aura hoy*
-*${p}apostar* <cant.> — a una carta · *${p}duel* @user — 1v1
+_Estos no llevan número: no cobran nada por usarlos, mueven tu aura según cómo salgan._
+*${p}saldo* — lo que tienes · *${p}aura top* · *${p}aura hoy*
+*${p}aura* — te da o te quita, a suerte
+*${p}apostar* <cant.> — todo o nada · *${p}duel* @user — 1v1
 *${p}robo* @user <cant.> · *${p}contrarobo* — devolver el golpe
 *${p}buscados* — quién roba y lo que paga su cabeza
 *${p}tienda* · *${p}comprar* <objeto> · *${p}bote* / *${p}asalto*
 *${p}caja* · *${p}atraco* — contra la casa, no contra nadie
 *${p}dar* / *${p}regalar* @user <cant.> — con impuesto
-*${p}guia* — el aura entera explicada, con todos sus modos
+*${p}guia* — para qué sirve el aura, en quince líneas
 
 ━━━━━ *HERRAMIENTAS* ━━━━━
 *${p}play* ${c('play')} <nombre> — canción · *${p}cachelist* ${c('cachelist')} — las guardadas

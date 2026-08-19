@@ -335,6 +335,79 @@ async function capaStores() {
     await cmdHelp(sockT, msgT, metaT);
     const menu = salidas.at(-1)?.text || '';
 
+    // LOS PRECIOS DEL MENU SALEN DE PRECIOS, NO ESCRITOS A MANO.
+    //
+    // Hoy lo hacen (via la funcion c()), y es lo que hay que mantener: el menu
+    // es el sitio donde el grupo mira lo que cuesta cada cosa, asi que un
+    // numero viejo ahi es peor que en un comentario — lo lee todo el mundo y
+    // decide con el. Es la misma enfermedad que ya mintio en el socio, el
+    // escudo, el cebo y dos bloques de comentarios.
+    {
+      const { PRECIOS } = require(path.join(R, 'src/utils/economia'));
+
+      // CADA COMANDO DE PAGO DEL MENU TIENE QUE ENSEÑAR SU PRECIO, Y EL BUENO.
+      //
+      // Dos intentos anteriores de esto no comprobaban nada. El primero buscaba
+      // en social.js un backtick con un numero dentro; el segundo, lo mismo
+      // sobre el texto final. Los dos eran tautologicos: la plantilla ES un
+      // template literal, asi que un backtick literal la cerraria y el fichero
+      // ni compilaria — la unica forma de que salga un numero entre backticks
+      // es que lo haya puesto c(), que ya lee de PRECIOS. Buscaban algo que no
+      // puede fallar.
+      //
+      // Lo que si puede fallar, y es lo que el grupo nota, son dos cosas: que un
+      // comando de pago se liste SIN precio, o que lo liste con uno que ya no es.
+      // Eso es lo que se mira, sobre el texto que se envia.
+      const mh2 = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+      const tabla = mh2.match(/const COBRO_CENTRAL = \{[\s\S]*?\n\};/);
+      const clave = {};
+      if (tabla) for (const m of tabla[0].matchAll(/([a-zá-úñ0-9]+):\s*'([a-z0-9]+)'/g)) clave[m[1]] = m[2];
+      const pct = mh2.match(/const CMDS_PORCENTAJE = \[([\s\S]*?)\];/);
+      if (pct) for (const x of pct[1].matchAll(/'([^']+)'/g)) clave[x[1]] = 'percent';
+      // COBRO_CENTRAL NO ES TODA LA TABLA. Los que cobran por dentro
+      // (COBRAN_SOLOS: !play, !s, !g, !pfp, !fk, !toimg, !tovid, !top5, !top10)
+      // no aparecen ahi, y son justo los mas caros del bot. Sin esto la
+      // comprobacion se saltaba media lista en silencio — probado quitandole el
+      // precio a !pfp: no decia nada.
+      for (const k of Object.keys(PRECIOS)) if (!clave[k]) clave[k] = k;
+      // Y dos que se teclean distinto de como se llama su precio.
+      clave.s = 'sticker';
+      clave.g = 'grok';
+
+      // LA REGLA ES "AL MENOS UNA VEZ CON SU PRECIO", no "en cada linea".
+      // La primera version pedia el numero en cada linea donde saliera el
+      // comando, y acusaba a !play porque tambien aparece en el ejemplo de la
+      // cabecera ("ejemplo: *!play* despacito"), donde un precio no pinta nada.
+      const mudos = [], mentirosos = [];
+      for (const [cmd, k] of Object.entries(clave)) {
+        const precio = PRECIOS[k];
+        if (precio === undefined) continue;
+        const nombre = cmd.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        if (!new RegExp(`\\*!${nombre}\\*`, 'i').test(menu)) continue;   // no se lista: nada que comprobar
+        // Los de porcentaje se anuncian UNA vez para los veinticuatro ("25 cada
+        // uno") y luego van cuatro lineas de nombres sueltos. Exigir el numero
+        // en cada uno seria exigir que el menu lo repita veinticuatro veces,
+        // que es justo lo que lo hace ilegible.
+        if (k === 'percent') {
+          if (!new RegExp(`\\b${precio}\\b`).test(menu)) mudos.push(`!${cmd} (cuesta ${precio})`);
+          continue;
+        }
+        const junto = menu.match(new RegExp(`\\*!${nombre}\\*\\s*\`(\\d+)\``, 'i'));
+        if (!junto) mudos.push(`!${cmd} (cuesta ${precio})`);
+        else if (Number(junto[1]) !== precio) mentirosos.push(`!${cmd} dice ${junto[1]} y cuesta ${precio}`);
+      }
+      comprueba(mudos.length === 0,
+        `menu: comandos de pago listados sin precio: ${mudos.join(', ')}`);
+      comprueba(mentirosos.length === 0,
+        `menu: comandos con un precio que ya no es el suyo: ${mentirosos.join(', ')}`);
+    }
+
+    // Y el menu no puede prometer de la guia algo que la guia ya no es: decia
+    // "el aura entera explicada, con todos sus modos" cuando la guia son quince
+    // lineas de puertas. Quien lea eso la abre esperando un manual.
+    comprueba(!/entera explicada|todos sus modos/.test(menu),
+      'menu: sigue anunciando la guia como un manual completo, y ya no lo es');
+
     for (const [nombre, texto] of [['la guia', guia], ['el menu', menu]]) {
       const citados = [...new Set([...texto.matchAll(/!([a-zá-úñ0-9]+)/gi)].map((m) => m[1].toLowerCase()))];
       const rotos = citados.filter((c) => !existen.has(c));
