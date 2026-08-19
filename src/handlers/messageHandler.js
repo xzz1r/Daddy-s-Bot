@@ -93,6 +93,36 @@ function normalizarParaEnlaces(text) {
   return s;
 }
 
+// MODERAR SIEMPRE, ANUNCIAR UNA VEZ.
+//
+// Medido con rafagas: diez invitaciones seguidas producian DIEZ mensajes del
+// bot. O sea que quien viene a hacer ruido manda diez lineas y el bot le pone
+// otras diez encima — el guardia acaba ensuciando mas que el spam que para. Y
+// si el kick se rechaza (el bot dejo de ser admin a mitad), la persona se queda
+// dentro y cada mensaje suyo genera otro anuncio, para siempre.
+//
+// La accion NO se toca: el enlace se borra, se expulsa y se veta cada vez, en
+// silencio. Lo que se limita es el ANUNCIO, que es lo unico que ve el grupo.
+// Uno por persona cada cinco minutos.
+const ANUNCIO_TTL = 5 * 60 * 1000;
+const anuncios = new Map(); // `${jid}|${canonical}` -> ts
+
+// `minimo` permite un freno mas corto para el aviso que NO se puede perder: el
+// ultimo antes del ban. Ese tiene que llegar —si no, el siguiente enlace le
+// cuesta el grupo sin advertencia— pero tampoco puede repetirse en bucle.
+//
+// Y se repetia: al banear se ponen los avisos a cero, asi que el ciclo de tres
+// empezaba otra vez y el "ultimo aviso" volvia a saltarse el freno cada tres
+// enlaces. Con alguien a quien el bot no puede expulsar, eso es infinito.
+function puedeAnunciar(jid, sender, minimo = ANUNCIO_TTL) {
+  const k = `${jid}|${canonicalJid(sender)}`;
+  const ultimo = anuncios.get(k);
+  if (ultimo && Date.now() - ultimo < minimo) return false;
+  if (anuncios.size >= 2000) anuncios.delete(anuncios.keys().next().value);
+  anuncios.set(k, Date.now());
+  return true;
+}
+
 // LOS TROPIEZOS DEL BOT NO SE CUENTAN EN EL GRUPO — NI SE MANDAN AL PRIVADO.
 //
 // Habia ocho mensajes que anunciaban en publico lo que el bot no podia hacer:
@@ -643,10 +673,12 @@ async function expulsarBusinessDetectado(sock, jid, sender, msg, motivo = 'cuent
     // La lista negra ya la aplica guardOnJoin al entrar, asi que no hace falta
     // inventar nada: el owner puede deshacerlo con *!fkunban*.
     await banAccount(allForms(sender, meta), `cuenta business en ${jid} (${motivo})`, 'auto').catch(() => {});
-    sock.sendMessage(jid, {
-      text: `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada y vetada.`,
-      mentions: [sender],
-    }).catch(() => {});
+    if (puedeAnunciar(jid, sender)) {
+      sock.sendMessage(jid, {
+        text: `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada y vetada.`,
+        mentions: [sender],
+      }).catch(() => {});
+    }
   } else {
     anotarTropiezo(`Anti-empresa: +${num} detectada en ${jid} y NO he podido expulsarla. Hazlo a mano.`);
   }
@@ -1533,12 +1565,14 @@ async function handleMessage(sock, msg) {
           }
           sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
           const fuera = await expulsar(sock, jid, sender);
-          sock.sendMessage(jid, {
-            text: fuera
-              ? `@${sender.split('@')[0]} expulsado por enviar enlaces no permitidos.`
-              : `@${sender.split('@')[0]} enlace no permitido. Borrado.`,
-            mentions: [sender],
-          }).catch(() => {});
+          if (puedeAnunciar(jid, sender)) {
+            sock.sendMessage(jid, {
+              text: fuera
+                ? `@${sender.split('@')[0]} expulsado por enviar enlaces no permitidos.`
+                : `@${sender.split('@')[0]} enlace no permitido. Borrado.`,
+              mentions: [sender],
+            }).catch(() => {});
+          }
           if (!fuera) anotarTropiezo(`Enlace no permitido en ${jid} de +${sender.split('@')[0]}: borrado pero NO expulsado. Hazlo a mano.`);
           return;
         }
@@ -1590,7 +1624,7 @@ async function handleMessage(sock, msg) {
           await resetWarnings(jid, claveDePersona(sender, meta)).catch(() => {});
           await banAccount(allForms(sender, meta), `spam de enlaces sin permiso en ${jid}`, 'auto').catch(() => {});
           const fuera = await expulsar(sock, jid, sender);
-          sock.sendMessage(jid, {
+          if (puedeAnunciar(jid, sender)) sock.sendMessage(jid, {
             text: fuera
               ? `@${num} baneado. ${MAX_AVISOS} enlaces sin el *!allow* de un admin. Te avisamos ${MAX_AVISOS - 1} veces y pasaste de todo, así que fuera.`
               : `@${num} a la lista negra por soltar ${MAX_AVISOS} enlaces sin permiso.`,
@@ -1606,9 +1640,17 @@ async function handleMessage(sock, msg) {
         // EXCEPCIÓN: el último aviso sale siempre, esté o no dentro del límite.
         // Si se lo tragara el silenciador, el siguiente enlace le costaría el
         // grupo sin que nadie le hubiera dicho que iba por ahí.
+        // Mismo freno que el resto de anuncios, con UNA excepcion: el ultimo
+        // aviso sale siempre. Si el silenciador se lo tragara, el siguiente
+        // enlace le costaria el grupo sin que nadie se lo hubiera advertido.
+        //
+        // Sin esto salian cinco mensajes por diez enlaces: al banear se ponen
+        // los avisos a cero, asi que el ciclo de tres empezaba otra vez y el
+        // limitador propio de esta rama no lo veia.
         const rKey = `${jid}|${canonicalJid(sender)}`;
         const lastR = antilinkReminders.get(rKey);
-        if (restantes === 1 || !lastR || Date.now() - lastR > ANTILINK_REMINDER_TTL) {
+        if ((restantes === 1 && puedeAnunciar(jid, sender, 60_000))
+            || ((!lastR || Date.now() - lastR > ANTILINK_REMINDER_TTL) && puedeAnunciar(jid, sender))) {
           if (antilinkReminders.size >= 2000) antilinkReminders.delete(antilinkReminders.keys().next().value);
           antilinkReminders.set(rKey, Date.now());
           // El limite sale de linkPerms, no escrito a mano: si algun dia se

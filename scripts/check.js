@@ -904,6 +904,41 @@ async function capaStores() {
     else console.log(verde(`   ✓ las ${casos.length} formas se clasifican bien`));
   }
 
+  // ── EL GUARDIA NO PUEDE ENSUCIAR MAS QUE EL SPAM ──────────────────────────
+  //
+  // Medido con rafagas antes de ponerle freno: diez invitaciones seguidas
+  // producian DIEZ mensajes del bot. El que viene a hacer ruido manda diez
+  // lineas y el bot le pone otras diez encima. Y con alguien a quien no puede
+  // expulsar —el bot dejo de ser admin a mitad— era infinito: se queda dentro y
+  // cada mensaje suyo genera otro anuncio.
+  //
+  // La regla es "moderar siempre, anunciar una vez". Aqui se vigila que el
+  // freno siga puesto, porque quitarlo no rompe nada visible en las pruebas
+  // normales: solo hace al bot insoportable en el unico momento en que importa.
+  console.log('\n10. EL GUARDIA NO INUNDA EL CHAT');
+  {
+    const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8')
+      .split('\n').map((l) => l.replace(/^\s*\/\/.*$/, '')).join('\n');
+    const exige = (cond, queja) => { if (cond) return; fallos++; console.log(rojo(`   ✗ ${queja}`)); };
+
+    exige(/function puedeAnunciar\(/.test(mh),
+      'desaparecio el freno de anuncios: una rafaga de enlaces duplica el ruido en el grupo');
+    // Los tres anuncios de moderacion tienen que pasar por el.
+    for (const [etq, re] of [
+      ['la expulsion por enlace', /puedeAnunciar\(jid, sender\)\) \{\s*\n\s*sock\.sendMessage\(jid, \{\s*\n\s*text: fuera/],
+      ['el ban por enlaces',      /if \(puedeAnunciar\(jid, sender\)\) sock\.sendMessage\(jid, \{/],
+      ['el aviso de antiempresa', /if \(puedeAnunciar\(jid, sender\)\) \{\s*\n\s*sock\.sendMessage\(jid, \{\s*\n\s*text: `\*Anti-empresa:/],
+    ]) {
+      exige(re.test(mh), `${etq} anuncia sin pasar por el freno: una rafaga inunda el grupo`);
+    }
+    // Y el ultimo aviso antes del ban, que salta el freno a proposito, tiene
+    // que llevar el suyo propio: al banear se resetean los avisos, asi que sin
+    // tope volvia a saltarselo cada tres enlaces, para siempre.
+    exige(/restantes === 1 && puedeAnunciar\(jid, sender, 60_000\)/.test(mh),
+      'el ultimo aviso vuelve a saltarse el freno sin tope: con alguien inexpulsable se repite en bucle');
+    if (!fallos) console.log(verde('   ✓ los anuncios de moderacion llevan freno (la accion no)'));
+  }
+
   // ── ANTIEMPRESA: LA PRUEBA, Y QUE LOS DOS ESCANEOS VEAN LO MISMO ──────────
   //
   // Este modo no tenia UN SOLO test, y decide expulsiones. Un
