@@ -606,18 +606,28 @@ async function cmdAntiBusiness(sock, msg, args, groupMeta) {
   if (arg === 'purge') return purgeBusinesses(sock, msg, jid, groupMeta); // expulsa la lista verificada
 
   if (arg !== 'on' && arg !== 'off') {
-    // Solo el estado. El bot no lista sus propios subcomandos.
+    // EL ESTADO CON SUS DOS MITADES. Decia solo "(auto al entrar)", que es
+    // verdad a medias: tambien expulsa a quien YA estaba si escribe y WhatsApp
+    // le adjunta el nombre verificado de negocio. Lo que NO hace es barrer a
+    // los que ya estan callados, y eso es justo lo que nadie adivina.
     const current = isAntiBusinessEnabled(jid) ? 'activado' : 'desactivado';
     return sock.sendMessage(jid, {
-      text: `Anti-empresa (auto al entrar): *${current}*`,
+      text: `Anti-empresa: *${current}*\n\n` +
+        `_Actúa al entrar alguien, y también si ya estaba y escribe. A los que están callados no los toca: para esos, *!antiempresa scan* y luego *purge*._`,
     }, { quoted: msg });
   }
 
   const enable = arg === 'on';
   await toggleAntiBusiness(jid, enable);
+  // Encender un modo que no puede expulsar deja al grupo creyendose cubierto.
+  // No se cuenta el motivo tecnico en publico: se dice lo que hay que hacer.
+  const sinAdmin = enable && !isBotAdmin(sock, groupMeta);
+  if (sinAdmin) logger.warn(`antiempresa en ${jid}: activado pero NO soy admin`);
   await sock.sendMessage(jid, {
     text: enable
-      ? 'Anti-empresa *activado* (auto al entrar). Verifica antes con *!antiempresa scan*.'
+      ? `Anti-empresa *activado*.\n\n` +
+        `_Actúa al entrar alguien, y también si ya estaba y escribe. A los que están callados no los toca: para esos, *!antiempresa scan* y luego *purge*._` +
+        (sinAdmin ? `\n\n_Hazme admin para que pueda expulsar._` : '')
       : 'Anti-empresa *desactivado*.',
   }, { quoted: msg });
 }
@@ -691,7 +701,12 @@ async function scanBusinesses(sock, msg, groupJid, groupMeta) {
     text:
       `*Business detectados (${detected.length})* — con su evidencia:\n\n` +
       lines.join('\n') +
-      `\n\n_Esto no expulsa a nadie._`,
+      // EL SCAN DICE CUAL ES EL PASO SIGUIENTE. Decia "esto no expulsa a nadie"
+      // y se quedaba ahi, sin nombrar *!antiempresa purge*, que es lo unico que
+      // hace algo con esta lista. Habia que acordarse de un comando que el bot
+      // no menciona en ningun sitio, y la lista caduca a los 10 min.
+      `\n\n_Esto no expulsa a nadie. Para echarlos: *!antiempresa purge* ` +
+      `(sobre esta misma lista, dentro de ${Math.round(SCAN_VALID_MS / 60000)} min)._`,
     mentions: detected.map(d => d.kickId),
   });
 }

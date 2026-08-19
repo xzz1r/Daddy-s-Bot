@@ -904,6 +904,60 @@ async function capaStores() {
     else console.log(verde(`   ✓ las ${casos.length} formas se clasifican bien`));
   }
 
+  // ── ANTIEMPRESA: LA PRUEBA, Y QUE LOS DOS ESCANEOS VEAN LO MISMO ──────────
+  //
+  // Este modo no tenia UN SOLO test, y decide expulsiones. Un
+  // getBusinessProfile que devolviera `{ wid }` en vez de un perfil real —o al
+  // reves— se romperia en silencio y nadie se enteraria hasta que empezara a
+  // echar gente, o hasta que dejara de echar a nadie.
+  console.log('\n9. ANTIEMPRESA');
+  {
+    const { businessEvidence, clearBusinessCache } = require(path.join(R, 'src/utils/businessCheck'));
+    const sockDe = (perfil) => ({ getBusinessProfile: async () => perfil });
+    // `comprueba` vive en el bloque de la capa 3; aqui se usa el mismo par.
+    const exige = (cond, queja) => { if (cond) return; fallos++; console.log(rojo(`   ✗ ${queja}`)); };
+    const casos = [
+      ['solo wid (cuenta normal)',   { wid: '34600000000@s.whatsapp.net' }, false],
+      ['objeto vacio',               {}, false],
+      ['undefined',                  undefined, false],
+      ['con categoria',              { wid: 'x', category: 'Tienda' }, true],
+      ['con email',                  { wid: 'x', email: 'a@b.com' }, true],
+      ['con web',                    { wid: 'x', website: ['http://x.com'] }, true],
+      ['con descripcion',            { wid: 'x', description: 'vendemos cosas' }, true],
+      ['campos vacios no cuentan',   { wid: 'x', category: '', email: '', description: '   ' }, false],
+    ];
+    let mal = 0;
+    for (const [etq, perfil, esperado] of casos) {
+      // EL RESULTADO SE CACHEA POR JID DURANTE UNA HORA. Sin limpiar entre
+      // casos, el primero (una cuenta normal) dejaba un `false` guardado y los
+      // siete siguientes leian ese false en vez de consultar. Los cuatro casos
+      // de negocio salian negativos y parecia un fallo del bot: era del test.
+      clearBusinessCache();
+      let ev;
+      try { ev = await businessEvidence(sockDe(perfil), '34600000000@s.whatsapp.net'); }
+      catch (e) { ev = { isBiz: 'revienta: ' + e.message }; }
+      if (ev.isBiz !== esperado) {
+        mal++;
+        console.log(rojo(`   ✗ ${etq}: esperaba isBiz=${esperado} y da ${ev.isBiz}`));
+      }
+    }
+    if (mal) fallos += mal;
+    else console.log(verde(`   ✓ la prueba de perfil distingue negocio de cuenta normal (${casos.length} casos)`));
+
+    // Y que los dos escaneos usen la MISMA evidencia. Si uno mira el hecho
+    // observado y el otro no, el mismo grupo da dos listas distintas — y el
+    // purge expulsa la de uno de ellos.
+    const scanSrc = fs.readFileSync(path.join(R, 'src/commands/scan.js'), 'utf8');
+    const grpSrc  = fs.readFileSync(path.join(R, 'src/commands/group.js'), 'utf8');
+    const botSrc  = fs.readFileSync(path.join(R, 'src/bot.js'), 'utf8');
+    exige(/getMemberFacts/.test(scanSrc),
+      '!scan no mira el hecho observado (getMemberFacts) y *!antiempresa scan* si: dan listas distintas');
+    exige(/getMemberFacts/.test(grpSrc),
+      '*!antiempresa scan* dejo de mirar el hecho observado');
+    exige(/getMemberFacts/.test(botSrc),
+      'la entrada al grupo no mira el hecho observado: una Business ya fichada entra por la puerta');
+  }
+
   // ── NINGUN POOL DE FRASES SE VACIA DE GOLPE ───────────────────────────────
   //
   // PASO, Y NINGUNA DE LAS OTRAS COMPROBACIONES LO VIO. Un push por la API de

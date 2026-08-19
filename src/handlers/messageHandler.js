@@ -567,11 +567,44 @@ const MEDIA_CMDS = new Set([
 async function expulsar(sock, jid, target) {
   try {
     const res = await sock.groupParticipantsUpdate(jid, [target], 'remove');
-    const fila = Array.isArray(res)
-      ? res.find(r => (r?.jid || '').split('@')[0] === target.split('@')[0])
-      : null;
-    return String(fila?.status ?? '200') === '200';
+    if (!Array.isArray(res) || !res.length) return false;
+    // NO SE DA POR BUENO UN KICK QUE NO SE PUDO CONFIRMAR. Aqui ponia
+    // `fila?.status ?? '200'`: si no encontraba la fila de esa persona, asumia
+    // que habia salido. Y en un grupo LID no la encuentra casi nunca — se pide
+    // el kick con una forma del JID y WhatsApp responde con la otra, asi que la
+    // comparacion por digitos falla y el bot anunciaba "expulsado" por alguien
+    // que sigue dentro.
+    //
+    // Se compara con canonicalJid, que si cruza LID y telefono. Y si aun asi no
+    // aparece pero solo vino UNA fila, es la de este kick: no hay otra cosa que
+    // pueda ser.
+    const mio = canonicalJid(target);
+    const fila = res.find(r => r?.jid && canonicalJid(r.jid) === mio)
+      || res.find(r => (r?.jid || '').split('@')[0] === target.split('@')[0])
+      || (res.length === 1 ? res[0] : null);
+    if (!fila) return false;
+    return String(fila.status ?? '') === '200';
   } catch { return false; }
+}
+
+// LA MISMA PERSONA CON LA MISMA CLAVE EN LOS CUATRO SITIOS.
+//
+// isAllowed() recibe allForms() —todas las formas conocidas— pero el pase, los
+// avisos y el indulto recibian el `sender` pelado. Los tres canonicalizan por
+// dentro, y ahi esta el problema: canonicalJid solo cruza LID↔telefono cuando
+// el mapa ya esta caliente. Con el mapa frio, la misma persona se apunta bajo
+// su LID en un momento y bajo su telefono en otro — o sea que los tres avisos
+// antes del ban se reinician solos y el ban no llega nunca.
+//
+// La metadata del grupo SIEMPRE trae las dos formas, asi que se saca de ahi la
+// del telefono, que es la unica estable.
+function claveDePersona(sender, meta) {
+  const canon = canonicalJid(sender);
+  if (canon && canon.endsWith('@s.whatsapp.net')) return canon;
+  for (const f of allForms(sender, meta)) {
+    if (f && f.endsWith('@s.whatsapp.net')) return f;
+  }
+  return canon || sender;
 }
 
 // Expulsa a una cuenta Business detectada por su propio mensaje.
@@ -1453,7 +1486,7 @@ async function handleMessage(sock, msg) {
         // YouTube/Instagram, asi que para todo lo demas no existia.
         if (verdict === 'blocked') {
           if (await isAllowed(jid, allForms(sender, meta))) return;
-          if (await tienePase(jid, sender)) return;
+          if (await tienePase(jid, claveDePersona(sender, meta))) return;
         }
         if (verdict === 'invite' || verdict === 'blocked') {
           // Without bot-admin (or without meta to verify it) the bot can neither
@@ -1489,7 +1522,7 @@ async function handleMessage(sock, msg) {
         // caduca solo a las 24 h. Es la via de pagar por publicar tus redes sin
         // tener que pedirle permiso a nadie; el admin sigue pudiendo darlo
         // gratis a quien quiera, y el pase no se lo quita.
-        if (await tienePase(jid, sender)) return;
+        if (await tienePase(jid, claveDePersona(sender, meta))) return;
 
         // Sin bot admin no se puede borrar: se avisa una vez por grupo y ya. No
         // se cuenta el aviso, que sería castigar a alguien por algo que el bot
@@ -1505,15 +1538,15 @@ async function handleMessage(sock, msg) {
         }
         sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
 
-        const { avisos, restantes, ban } = await noteWarning(jid, sender);
+        const { avisos, restantes, ban } = await noteWarning(jid, claveDePersona(sender, meta));
         const num = sender.split('@')[0];
 
         if (ban) {
           // EL INDULTO PARA EL BAN AUTOMATICO, y se gasta al hacerlo. El enlace
           // ya se ha borrado y el aviso ya esta contado: lo unico que compra es
           // no acabar en la lista negra por este. Al siguiente, sin indulto, si.
-          if (await gastarIndulto(jid, sender)) {
-            await resetWarnings(jid, sender).catch(() => {});
+          if (await gastarIndulto(jid, claveDePersona(sender, meta))) {
+            await resetWarnings(jid, claveDePersona(sender, meta)).catch(() => {});
             sock.sendMessage(jid, {
               text: `@${num} se libra por el *indulto*, que se acaba de gastar. ` +
                     `El enlace se borra igual y el siguiente ya no lo para nadie.`,
@@ -1525,7 +1558,7 @@ async function handleMessage(sock, msg) {
           // Los avisos se ponen a cero al banear, igual que hace el contador de
           // rafagas de medios: si vuelve al grupo, empieza otra vez con sus dos
           // avisos y no con un ban inmediato del que nadie le habria advertido.
-          await resetWarnings(jid, sender).catch(() => {});
+          await resetWarnings(jid, claveDePersona(sender, meta)).catch(() => {});
           await banAccount(allForms(sender, meta), `spam de enlaces sin permiso en ${jid}`, 'auto').catch(() => {});
           const fuera = await expulsar(sock, jid, sender);
           sock.sendMessage(jid, {

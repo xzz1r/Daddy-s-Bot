@@ -33,6 +33,7 @@ const { flushLinkPerms } = require('./utils/linkPerms');
 const { flushRobo } = require('./utils/roboStore');
 const { guardOnJoin, allForms } = require('./commands/fk');
 const { isBusiness } = require('./utils/businessCheck');
+const { getMemberFacts } = require('./utils/nickStore');
 const { ensureTemp, barrerHuerfanos } = require('./utils/helpers');
 const { gitCommit } = require('./utils/version');
 const { VF_STATIC } = require('./utils/sticker');
@@ -727,20 +728,41 @@ async function connectToWhatsApp() {
           const phoneJid = obj.phoneNumber
             || (obj.id.endsWith('@s.whatsapp.net') ? obj.id : null)
             || (canon?.endsWith('@s.whatsapp.net') ? canon : null);
+          // SIN TELEFONO YA NO SE DESCARTA. Aqui habia un `continue` que dejaba
+          // dentro a cualquiera que llegara solo como @lid con el mapa frio —
+          // justo lo que pasa en un grupo LID recien reiniciado el bot. Ahora
+          // entra igual en la lista: la prueba observada (getMemberFacts) NO
+          // necesita telefono, y solo la consulta de perfil lo pide.
           if (!phoneJid) {
-            logger.warn(`Anti-empresa: no pude resolver el telefono de ${obj.id}; no se puede comprobar si es Business`);
-            continue;
+            logger.warn(`Anti-empresa: ${obj.id} sin telefono resoluble; se comprueba solo con lo ya observado`);
           }
-          candidates.push({ kickId: obj.id, phoneJid });
+          candidates.push({ kickId: obj.id, phoneJid, participante: obj });
         }
 
-        await Promise.all(candidates.map(async ({ kickId, phoneJid }) => {
-          let biz;
-          try {
-            biz = await isBusiness(sock, phoneJid);
-          } catch (err) {
-            logger.warn(`Anti-empresa: chequeo fallo para ${phoneJid}: ${err.message}`);
-            return;
+        await Promise.all(candidates.map(async ({ kickId, phoneJid, participante }) => {
+          // LA ENTRADA MIRA LO MISMO QUE EL SCAN, y antes no.
+          //
+          // Aqui solo se consultaba el perfil. El scan, en cambio, acepta DOS
+          // pruebas: el perfil relleno y el hecho ya observado —que WhatsApp le
+          // adjuntara un nombre verificado de negocio a un mensaje suyo, visto
+          // en este grupo o en cualquier otro—. O sea que una cuenta que el bot
+          // YA tenia fichada como Business entraba por la puerta sin que nadie
+          // la mirara, y solo caia despues, si le daba por escribir.
+          //
+          // La prueba observada va primero ademas porque es gratis: esta en
+          // disco y no gasta una consulta de red.
+          const facts = await getMemberFacts([
+            kickId, phoneJid, participante?.id, participante?.lid, participante?.phoneNumber,
+          ]).catch(() => null);
+          let biz = !!facts?.biz;
+
+          if (!biz && phoneJid) {
+            try {
+              biz = await isBusiness(sock, phoneJid);
+            } catch (err) {
+              logger.warn(`Anti-empresa: chequeo fallo para ${phoneJid}: ${err.message}`);
+              return;
+            }
           }
           if (!biz) return;
           try {

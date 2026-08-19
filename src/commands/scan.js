@@ -1,5 +1,6 @@
 const { isOwner, isMainOwner, isGroupAdmin, getSender, bareJid } = require('../utils/wa');
 const { businessEvidence } = require('../utils/businessCheck');
+const { getMemberFacts } = require('../utils/nickStore');
 
 const PFP_CONCURRENCY = 8;
 const PFP_TIMEOUT_MS  = 3500;
@@ -96,15 +97,39 @@ async function cmdScan(sock, msg, groupMeta) {
   const pfpMap = new Map();
   const BIZ_CONC = 6;
 
+  // *!scan* Y *!antiempresa scan* TIENEN QUE VER LO MISMO.
+  //
+  // Aqui solo se consultaba el perfil, y solo de los que tienen telefono. El
+  // otro acepta ademas el hecho YA OBSERVADO —que WhatsApp le adjuntara un
+  // nombre verificado de negocio a un mensaje suyo— y mira tambien a los que
+  // llegan solo como @lid.
+  //
+  // Resultado: mismo grupo, mismo minuto, dos listas distintas. Y como el purge
+  // expulsa la lista del otro, el admin que corria *!scan* veia un numero y la
+  // purga hacia otra cosa. Ya paso con *!antifoto* y quedo documentado; aqui
+  // seguia abierto.
+  //
+  // La prueba observada va primero porque es gratis: esta en disco y no gasta
+  // una consulta de red.
   const pasadaBiz = async () => {
+    const porFacts = async (id, phone) => {
+      const f = await getMemberFacts([id, phone].filter(Boolean)).catch(() => null);
+      return f?.biz ? ['nombre verificado de negocio'] : null;
+    };
     for (let i = 0; i < phoneJids.length; i += BIZ_CONC) {
       const chunk = phoneJids.slice(i, i + BIZ_CONC);
       const results = await Promise.all(chunk.map(async j => {
+        const observado = await porFacts(phoneToId.get(j), j);
+        if (observado) return [j, { isBiz: true, fields: observado }];
         const ev = await businessEvidence(sock, j).catch(() => ({ isBiz: false, fields: [] }));
         return [j, ev];
       }));
       for (const [j, ev] of results) if (ev.isBiz) bizMap.set(j, ev.fields);
     }
+    // Los que solo tienen @lid: la consulta de perfil no los acepta, pero el
+    // hecho observado si. Sin esto quedaban fuera del recuento sin decirlo.
+    const resLid = await Promise.all(lidOnly.map(async id => [id, await porFacts(id, null)]));
+    for (const [id, campos] of resLid) if (campos) bizMap.set(id, campos);
   };
 
   const pasadaFoto = async () => {
