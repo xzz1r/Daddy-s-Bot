@@ -349,9 +349,37 @@ if (auditJson) {
     else bien('sin vulnerabilidades');
   } catch { aviso('no pude leer el informe de npm audit'); }
 }
+// EL FIN DE SOPORTE VA POR FECHA, NO POR NUMERO ESCRITO A MANO.
+//
+// Aqui solo se avisaba por debajo de Node 18, asi que a un Node 20 —que dejo de
+// recibir parches de seguridad en abril de 2026— le ponia un ✔ y a correr. Un
+// chequeo de salud que da por bueno algo caducado es peor que no tenerlo.
+//
+// Con las fechas puestas, esto envejece SOLO: el dia que Node 22 salga de
+// soporte empieza a avisar sin que nadie toque el fichero. Es lo contrario de lo
+// que hacen los comentarios con cifras dentro, que se quedan viejos y mienten.
+const FIN_DE_SOPORTE = {   // final del mantenimiento de cada LTS
+  18: Date.UTC(2025, 3, 30),
+  20: Date.UTC(2026, 3, 30),
+  22: Date.UTC(2027, 3, 30),
+  24: Date.UTC(2028, 3, 30),
+};
 const nodeMayor = Number(process.versions.node.split('.')[0]);
-if (nodeMayor < 18) mal(`Node ${process.versions.node} es demasiado viejo para Baileys`, 'actualiza a Node 20 o superior');
-else bien(`Node ${process.versions.node}`);
+const fin = FIN_DE_SOPORTE[nodeMayor];
+const siguienteLTS = Object.keys(FIN_DE_SOPORTE)
+  .map(Number).filter((v) => FIN_DE_SOPORTE[v] > Date.now()).sort((a, b) => a - b)[0];
+
+if (nodeMayor < 18) {
+  mal(`Node ${process.versions.node} es demasiado viejo para Baileys`, `actualiza a Node ${siguienteLTS || 22}`);
+} else if (fin && fin < Date.now()) {
+  const meses = Math.round((Date.now() - fin) / (30 * 86400000));
+  aviso(`Node ${process.versions.node} lleva ${meses} mes(es) sin soporte: ya no recibe parches de seguridad`,
+    `pasa a Node ${siguienteLTS || 22} (y de paso npm se actualiza solo, viene dentro)`);
+} else if (!fin) {
+  bien(`Node ${process.versions.node}`);   // version que no esta en la tabla: no se opina
+} else {
+  bien(`Node ${process.versions.node}`);
+}
 
 // ─── Veredicto ───────────────────────────────────────────────────────────────
 console.log('\n' + '─'.repeat(52));
