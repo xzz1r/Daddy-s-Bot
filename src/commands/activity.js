@@ -363,7 +363,7 @@ async function cmdInactivos(sock, msg, groupMeta) {
   }
   if (!groupMeta?.participants?.length) {
     return sock.sendMessage(jid, {
-      text: 'No pude leer la lista de miembros del grupo ahora mismo. Probá de nuevo en un momento.',
+      text: 'No pude leer la lista de miembros del grupo ahora mismo. Prueba otra vez en un rato.',
     }, { quoted: msg });
   }
 

@@ -1,4 +1,5 @@
 const axios = require('axios');
+const logger = require('../utils/logger');
 const { getTarget, getSender, canonicalJid, fetchPfpUrl } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { computeHash } = require('../utils/phash');
@@ -137,6 +138,7 @@ async function cmdPfp(sock, msg, args, groupMeta) {
   // azar con cuentas que sí tenían foto visible.
   let imageBuffer = null;
   let falloPasajero = false;
+  let restringida = false;
   try {
     const url = await fetchPfpUrl(sock, target, 'image');
     if (url) {
@@ -145,8 +147,17 @@ async function cmdPfp(sock, msg, args, groupMeta) {
       // descarga en sí falla, eso tampoco es "sin foto".
       if (!imageBuffer) falloPasajero = true;
     }
-  } catch {
-    falloPasajero = true;
+  } catch (err) {
+    // Tres casos, no dos. La foto limitada a contactos NO es un hipo de red:
+    // decirle a alguien que reintente contra una restricción de privacidad es
+    // mandarlo a chocar contra la misma pared cada rato.
+    if (err?.restringida) restringida = true;
+    else {
+      falloPasajero = true;
+      // Se deja el código en el log. Cuando esto vuelva a fallar con una cuenta
+      // que sí tiene foto, el log dice por qué en vez de obligar a adivinar.
+      logger.warn(`!pfp: ${target} fallo no clasificado (data=${err?.data}, msg=${err?.message})`);
+    }
   }
 
   if (imageBuffer) {
@@ -171,7 +182,9 @@ async function cmdPfp(sock, msg, args, groupMeta) {
   if (cached?.buf?.length) {
     return sock.sendMessage(jid, {
       image: cached.buf,
-      caption: falloPasajero
+      caption: restringida
+        ? `${tag}\n_Tiene la foto limitada a sus contactos — esta es la última que el bot llegó a ver, del ${fechaCorta(cached.lastSeen)}._`
+        : falloPasajero
         ? `${tag}\n_No pude comprobar la foto actual ahora mismo — esta es la última que se conoce, del ${fechaCorta(cached.lastSeen)}._`
         : `${tag}\n_Foto oculta ahora — última vista el ${fechaCorta(cached.lastSeen)}._`,
       mentions: [target],
@@ -184,8 +197,10 @@ async function cmdPfp(sock, msg, args, groupMeta) {
   // foto" confirmado no, porque ahi el bot si hizo el trabajo y dio la respuesta.
   if (falloPasajero) await reembolsar();
   return sock.sendMessage(jid, {
-    text: falloPasajero
-      ? `No pude comprobar la foto de ${tag} ahora mismo (fallo de red o límite de peticiones). Probá de nuevo en un momento.`
+    text: restringida
+      ? `${tag} tiene la foto limitada a sus contactos. No es que no tenga: es que a este número no se la enseña. Reintentar no cambia nada.`
+      : falloPasajero
+      ? `No pude comprobar la foto de ${tag} ahora mismo (fallo de red o límite de peticiones). Prueba otra vez en un rato.`
       : `${tag} no tiene foto de perfil visible, y el bot nunca la vio antes para guardarla.`,
     mentions: [target],
   }, { quoted: msg });

@@ -524,6 +524,26 @@ function esFalloDeSinFoto(err) {
   return SIN_FOTO_TEXTO.test(texto);
 }
 
+// FOTO RESTRINGIDA POR PRIVACIDAD. Es un tercer caso y no estaba contemplado:
+// solo habia "no tiene foto" y "hipo de red".
+//
+// Cuando alguien tiene la foto limitada a sus contactos, WhatsApp no responde
+// 404 —la foto EXISTE— sino no-autorizado. Eso caia en el saco de los fallos
+// pasajeros, asi que el bot reintentaba tres veces, se comia 2,1 s y acababa
+// diciendo "fallo de red o limite de peticiones, prueba otra vez en un rato".
+//
+// Las dos mitades de esa frase son falsas. No es un fallo de red, y probar otra
+// vez no va a funcionar nunca: la restriccion no se cae sola. Quien lo pide se
+// queda reintentando contra una pared que el bot le describe como un charco.
+const RESTRINGIDA_CODIGOS = new Set([401, 403]);
+const RESTRINGIDA_TEXTO = /not-authorized|forbidden|unauthorized|privacy/i;
+
+function esFotoRestringida(err) {
+  if (RESTRINGIDA_CODIGOS.has(err?.data)) return true;
+  const texto = err?.output?.payload?.message || err?.message || '';
+  return RESTRINGIDA_TEXTO.test(texto);
+}
+
 // Foto de perfil con reintento. Diferencia "confirmado sin foto" (null, sin
 // reintentar — no tiene sentido reintentar un hecho) de "fallo pasajero"
 // (reintenta un par de veces con una pausa corta, y si persiste, LANZA en vez
@@ -537,6 +557,9 @@ async function fetchPfpUrl(sock, jid, tipo = 'image', intentos = 2) {
       return await sock.profilePictureUrl(jid, tipo);
     } catch (err) {
       if (esFalloDeSinFoto(err)) return null;
+      // Restringida: NO se reintenta. Reintentar un permiso denegado es gastar
+      // tres peticiones y dos segundos para que te lo denieguen tres veces.
+      if (esFotoRestringida(err)) { err.restringida = true; throw err; }
       ultimoError = err;
       if (i < intentos) await new Promise((r) => setTimeout(r, 700 * (i + 1)));
     }
@@ -595,6 +618,7 @@ module.exports = {
   isKnownOwnerJid,
   fetchAbout,
   fetchPfpUrl,
+  esFotoRestringida,
   isAdmin,
   esMiembroActual,
   soloMiembros,
