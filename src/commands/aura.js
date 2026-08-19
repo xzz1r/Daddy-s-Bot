@@ -768,7 +768,12 @@ async function showRanking(sock, msg, groupMeta) {
     }
 
     return sock.sendMessage(jid, {
-      text: `${pickFresh(pool, `${jid}|top|${enTop ? 'ansias' : 'pobre'}`)}\n_Vuelve en *${cuanto}*._${copia}`,
+      // CABECERA QUE DICE QUE ES UN COOLDOWN. Sin ella el mensaje empieza con
+      // una pulla y sigue con una tabla en gris, y desde fuera eso parece que el
+      // bot simplemente ha contestado otra cosa. Que hay un tiempo de espera se
+      // deducia del "Vuelve en" de la segunda linea, y no se deducia: la gente
+      // volvia a pedirlo. Se dice en la primera linea y en una palabra.
+      text: `*TOP EN COOLDOWN*\n${pickFresh(pool, `${jid}|top|${enTop ? 'ansias' : 'pobre'}`)}\n_Vuelve en *${cuanto}*._${copia}`,
       // SIN mentions a proposito: es lo unico que separa enseñar la tabla de
       // volver a notificar a los diez.
     }, { quoted: msg });
