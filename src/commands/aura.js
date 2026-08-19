@@ -856,75 +856,44 @@ async function showRanking(sock, msg, groupMeta) {
 // que cambiar un número en un sitio lo cambia aquí también. Hay un test que
 // comprueba que no quede ninguna cifra a pelo.
 function textoAuraInfo() {
-  // Los porcentajes se calculan AQUI, fuera de la plantilla. Dentro de ella un
-  // `${Math.round(X * 100)}` deja un "100" a la vista del test que vigila que no
-  // haya cifras escritas a mano, y no distingue una conversion a porcentaje de
-  // una cifra economica copiada. Fuera, la plantilla queda limpia de numeros.
-  const pctBono = Math.round(ACTIVIDAD_BONO * 100);
-  const pctTope = Math.round(ACTIVIDAD_TOPE * 100);
-  const horasApuesta = APUESTA.cooldownMin / 60;
-  const precios = Object.entries(PRECIOS)
-    .sort((a, b) => b[1] - a[1])
-    // 'percent' NO es un comando: es la clave de precio que comparten !gay,
-    // !puta, !iq y los demas. La lista lo anunciaba como *!percent 25* y quien
-    // lo escribiera no encontraba nada. Igual que 'sticker' y 'grok', que se
-    // llaman !s y !g, la clave interna no es el nombre que se teclea.
-    .map(([k, v]) => {
-      const nombre = k === 'sticker' ? 's'
-                   : k === 'grok' ? 'g'
-                   : k === 'percent' ? null
-                   : k;
-      return nombre ? `*!${nombre}* ${v}` : `_los de porcentaje_ ${v}`;
-    })
-    .join(' · ');
-
+  // LA GUIA NO ES UN MANUAL. Su trabajo es que alguien escriba su primer
+  // comando, no que se entere de todo.
+  //
+  // La version anterior tenia cincuenta lineas: cuatro secciones, los rangos de
+  // la apuesta, el punto dulce del robo, los ocho objetos con precio y horas, el
+  // impuesto del regalo, la ventana del contraataque y la lista entera de
+  // precios. Todo cierto y todo inutil, porque en un grupo de WhatsApp un texto
+  // asi se salta entero — y encima llega plegado detras de un "Leer mas", asi
+  // que la mitad ni se ve sin tocar.
+  //
+  // Lo que hay ahora son las PUERTAS. Ni un parametro, ni un porcentaje, ni un
+  // cooldown: eso lo cuenta cada comando en el momento en que hace falta, que es
+  // donde se lee. La tienda ya explica *!comprar* y *!atraco* al abrirla, y el
+  // mensaje de un robo ya avisa de *!contrarobo* con los segundos que quedan.
+  //
+  // Por eso *!dar* SI esta aqui: es la unica puerta que no se anuncia en ningun
+  // otro sitio, asi que fuera de la guia deja de existir. Si algun dia se
+  // anuncia sola, puede salir.
+  //
+  // Un solo numero, y sacado de la constante: el arranque, que es lo que da la
+  // escala de todo lo demas.
   return `*LA GUÍA DEL AURA*
 
-La moneda del grupo. Empiezas con *${fmt(ARRANQUE)}*, un millonario ronda los *${fmt(MILLONARIO)}* y casi todo cuesta.
+La moneda del grupo. Empiezas con *${fmt(ARRANQUE)}* y casi todo cuesta.
 
-━━━━━ *CÓMO SE GANA* ━━━━━
+*Se gana escribiendo*, y apareciendo cada día. Es lo único que suma de verdad: lo demás es jugártela.
 
-*Escribiendo* — la vía principal. Bonos al llegar a *200*, *500* y *1000* mensajes en el día, y cada *${fmt(ACTIVIDAD_MSGS)}* mensajes en total tus tiradas ganan *+${pctBono}%* de suerte para siempre (tope *+${pctTope}%*).
+*!aura* — tiras
+*!robo* @alguien — se lo quitas
+*!duel* @alguien — 1v1
+*!aura apostar* — a una carta
+*!tienda* — te compras algo
+*!dar* @alguien — le regalas
 
-*Apareciendo* — la racha. Escribe *${RACHA.minMensajes}* mensajes al día y cobras *${RACHA.pago}* por día acumulado, hasta *${RACHA.tope}*. Faltar un día la parte entera. El día corta a las *${RACHA.horaCorte}h*, no a medianoche.
+*!saldo* — lo que tienes
+*!aura top* — quién va ganando
 
-*Tirando* — *!aura*, una cada ${duracion(ROLL_COOLDOWN_MS)}.
-
-*Quitándoselo a otro* — *!robo*, *!duel* y *!apostar* van en tu contra a la larga. *!atraco* va contra la tienda y *!buscados* dice a quién sale a cuenta cazar.
-
-━━━━━ *LOS COMANDOS* ━━━━━
-
-*!aura* — tiras · *@user* — miras el suyo
-*!aura top* — ranking · *!aura hoy* — tu estado
-*!aura apostar* <cant.> — a una carta, cada ${horasApuesta}h. Sin cifra va media cuenta. Necesitas *${fmt(APUESTA.minimo)}*, mínimo *${fmt(APUESTA.apuestaMin)}*
-_Cuanto más te juegues de lo tuyo, más paga: de *x${APUESTA.multiplicador}* a *x${APUESTA.multiplicadorMax}* si pones más del ${Math.round(APUESTA.fraccionRiesgo * 100)}% de tu aura._
-
-*!robo* @user <cant.> — pide lo que quieras, hasta todo lo que tenga
-_Pero cuanto más pides, menos probable: el punto dulce está sobre el ${Math.round(RIESGO.puntoDulce * 100)}% de lo que podrías llevarte._
-*!robo bote* / *asalto* — el bote común. Reventarlo cuesta *${fmt(BOTE.entrada)}*
-*!caja* — cómo está la caja de la tienda
-*!atraco* — entras a por ella. Gratis, pero si fallas hay multa y *${ATRACO.vetoHoras}h* sin comprar
-_La caja se llena con lo que compra el grupo. Cada intento pone a la tienda más nerviosa y se relaja en *${ATRACO.enfriaHoras}h*: no es una tragaperras, es un sitio que se defiende._
-*!tienda* — verla · *!comprar* <objeto>
-_Para cazar: *escudo* (${fmt(OBJETOS.escudo.precio)}) nadie te roba ${OBJETOS.escudo.horas}h · *cebo* (${fmt(OBJETOS.cebo.precio)}) aparentas x${OBJETOS.cebo.multiplicador} y el que pica se estrella · *ganzúa* (${fmt(OBJETOS.ganzua.precio)}) +${Math.round(OBJETOS.ganzua.bono * 100)}% en un robo_
-_Para la mesa: *amuleto* (${fmt(OBJETOS.amuleto.precio)}) · *seguro* (${fmt(OBJETOS.seguro.precio)}) · *socio* (${fmt(OBJETOS.socio.precio)}) todo un ${Math.round(OBJETOS.socio.descuento * 100)}% más barato ${OBJETOS.socio.horas}h_
-_Permisos: *pase* (${fmt(OBJETOS.pase.precio)}) publicas tus redes ${OBJETOS.pase.horas}h · *indulto* (${fmt(OBJETOS.indulto.precio)}) el bot no te banea solo ${OBJETOS.indulto.horas}h. Ninguno te salva de un admin._
-_Ganzúa, amuleto y seguro dan ventaja de verdad: la tienda solo fía *uno de los tres cada ${VENTAJA.cooldownHoras}h*. El escudo, el cebo y el socio no cuentan._
-*!contrarobo* — devuelves el golpe, *${CONTRA.ventanaSeg}s*
-_Cuanto antes respondas, más probabilidad: el bono entero es en los primeros *${CONTRA.segRapido}s* y se va cayendo. Puedes recuperar hasta *${CONTRA.desenlaces.demoledor.mult}x*... o pagar otro *${Math.abs(CONTRA.desenlaces.ruina.mult)}x* por listo._
-*!buscados* / *!robo top* — los más buscados y lo que paga cada cabeza
-_Cada golpe que das te deja un *${Math.round(RECOMPENSA.fraccionDeGolpe * 100)}%* encima de la cabeza. Quien te cace se lo lleva entero, además del botín. Si nadie te caza en 7 días, caduca._
-
-*!duel* @user <cant.> — 1v1, se acepta con *!duel aceptar*
-*!dar* / *!regalar* @user <cant.> — regalas aura, desde *${fmt(REGALO_MIN)}*
-_Hay un *${Math.round(IMPUESTO.porcentaje * 100)}%* de impuesto (mínimo *${fmt(IMPUESTO.minimo)}*) que paga quien da: el otro cobra siempre lo que pusiste. La mitad de lo recaudado va al bote._
-
-━━━━━ *LA LETRA PEQUEÑA* ━━━━━
-
-_El robo, el duelo y la apuesta van en tu contra: la casa se queda un pellizco. Lo que se acumula sale de escribir, y esa ventaja no se compra ni se roba._
-
-━━━━━ *EN QUÉ SE GASTA* ━━━━━
-${precios}`;
+_Cada comando te explica sus reglas cuando lo usas. No hay que aprenderse nada._`;
 }
 
 // !aura [@user]  — rolls aura for the target and updates their PERSISTENT total.

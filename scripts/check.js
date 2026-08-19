@@ -303,6 +303,33 @@ async function capaStores() {
     comprueba(/GU[IÍ]A DEL AURA/.test(guia),
       'ayuda: *!aura guia* devuelve la guia (y no una tirada, que es lo que hacia)');
 
+    // LA GUIA TIENE QUE SEGUIR CABIENDO EN UNA PANTALLA.
+    //
+    // Llego a tener 3.196 caracteres: cuatro secciones, los ocho objetos con
+    // precio y horas, los rangos de la apuesta, el punto dulce del robo y la
+    // lista entera de precios. En un grupo de WhatsApp eso no se lee — y encima
+    // llega plegado detras de un "Leer mas", asi que ni se ve.
+    //
+    // El limite no es estetico: por encima de ~700 caracteres WhatsApp la pliega
+    // y la guia deja de hacer su trabajo, que es que alguien escriba su primer
+    // comando. Una guia crece sola, un parrafo cada vez y siempre con buen
+    // motivo; esto es lo que lo para.
+    const TOPE_GUIA = 700;
+    comprueba(guia.length <= TOPE_GUIA,
+      `ayuda: la guia son ${guia.length} caracteres y el tope es ${TOPE_GUIA} — por encima WhatsApp la pliega y no se lee`);
+
+    // Y sin cifras sueltas: cada numero en la guia es uno que se queda viejo al
+    // primer reajuste. Solo se permite el arranque, que da la escala.
+    {
+      const { ARRANQUE } = require(path.join(R, 'src/utils/economia'));
+      // Cifras SUELTAS. Los digitos pegados a letras no son importes: "1v1" son
+      // dos unos que no se quedan viejos nunca.
+      const cifras = [...guia.matchAll(/(?<![\w])\d[\d.,]*(?![\w])/g)].map((m) => m[0].replace(/[.,]/g, ''));
+      const sobran = cifras.filter((c) => Number(c) !== ARRANQUE);
+      comprueba(sobran.length === 0,
+        `ayuda: la guia escribe cifras que se quedaran viejas (${sobran.join(', ')}); los numeros los cuenta cada comando al usarlo`);
+    }
+
     const { cmdHelp } = require(path.join(R, 'src/commands/social'));
     salidas.length = 0;
     await cmdHelp(sockT, msgT, metaT);

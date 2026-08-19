@@ -2326,7 +2326,11 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       // retienen, cree que el bot le ha pagado de menos; y si el que caza a un
       // buscado no ve el cobro, la lista sigue pareciendo decorativa.
       + (cobrada ? `\n_Llevaba precio en la cabeza: *+${fmt(cobrada)}* de recompensa encima del botín._` : '')
-      + (enSuCabeza ? `\n_Y ahora vale *${fmt(await tienda.recompensaDe(jid, sender))}* para quien lo cace._` : '');
+      // *!buscados* se nombra AQUI porque la guia ya no lo lista, y este es el
+      // unico momento en que a alguien le importa: acaba de ver que una cabeza
+      // vale dinero. Un comando que solo vive en una lista que nadie lee es un
+      // comando que no existe.
+      + (enSuCabeza ? `\n_Y ahora vale *${fmt(await tienda.recompensaDe(jid, sender))}* para quien lo cace — *!buscados*._` : '');
     const text =
       `${titulo}\n` +
       `${aTag} le roba a ${vTag}${extra}\n\n` +
