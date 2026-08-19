@@ -98,16 +98,19 @@ async function cmdPing(sock, msg) {
     }
   }
 
-  let texto = 'Ping';
-  if (medidas.length) {
-    const mejor = Math.min(...medidas);
-    const peor = Math.max(...medidas);
-    texto = `*${mejor}ms*` + (peor > mejor ? `  _(peor de 3: ${peor}ms)_` : '');
-    // SIN COMENTARIO NINGUNO. Habia tres —"Va fino", "Normal para un servidor
-    // lejos de WhatsApp", "Alto. Es la distancia del servidor, no el bot"— y los
-    // tres sobran por el mismo motivo: quien escribe *!ping* quiere el numero.
-    // Si es alto lo ve, y si es bajo tambien. Explicarselo es hablar por hablar.
-  }
+  // LA CIFRA Y NADA MAS.
+  //
+  // Se siguen tomando tres medidas y se enseña la mejor, porque una sola puede
+  // salir mal por un hipo y dar un numero que no representa nada. Pero eso es
+  // cocina: el "_(peor de 3: 118ms)_" que salia al lado no le sirve a nadie —
+  // quien escribe *!ping* quiere saber si el bot va rapido, no la dispersion de
+  // la muestra.
+  //
+  // Antes tambien habia un comentario por tramo ("Va fino", "Normal para un
+  // servidor lejos de WhatsApp", "Alto. Es la distancia del servidor, no el
+  // bot"). Fuera los tres por lo mismo: si el numero es alto se ve, y si es bajo
+  // tambien.
+  const texto = medidas.length ? `*${Math.min(...medidas)}ms*` : 'Ping';
 
   await sock.sendMessage(jid, { text: texto });
 }
