@@ -7,6 +7,7 @@ const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEna
 const { businessEvidence } = require('../utils/businessCheck');
 const { getMemberFacts } = require('../utils/nickStore');
 const { allow, disallow, listAllowed, MAX_AVISOS, DURACION_MS } = require('../utils/linkPerms');
+const { privadoDelOwner } = require('./k');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 
 // In-memory mute store: `groupJid|bareJid` -> expireTimestamp
@@ -903,18 +904,28 @@ async function cmdAntiLink(sock, msg, args, groupMeta) {
     const admins = (groupMeta?.participants || []).filter(p => p?.admin).length;
     const conPermiso = (await listAllowed(jid)).filter(j => esMiembroActual(groupMeta, j)).length;
 
+    // EL DIAGNOSTICO VA AL PRIVADO, NO AL GRUPO. Dice donde estan los limites
+    // del guardia —si no soy admin, quien queda exento— y eso delante del grupo
+    // es un mapa para quien quiera saltarselo. En el grupo solo queda la linea
+    // de siempre, que no cuenta nada aprovechable.
     const si = (b) => (b ? '✅' : '❌');
     const actua = encendido && soyAdmin;
+    const destino = privadoDelOwner(sender, groupMeta);
+    if (destino) {
+      await sock.sendMessage(destino, {
+        text: `*ANTI-LINK* — ${groupMeta?.subject || jid}\n\n` +
+          `${si(encendido)} activado en este grupo\n` +
+          `${si(soyAdmin)} soy admin${soyAdmin ? '' : ' — sin esto no puedo borrar ni expulsar'}\n\n` +
+          (actua
+            ? `_Funcionando. Cualquier enlace se borra y se expulsa; YouTube e Instagram avisan ${MAX_AVISOS - 1} veces antes del ban._\n`
+            : `_NO está actuando. Arregla lo de arriba con ❌._\n`) +
+          `\n_Exentos: los *${admins}* admins del grupo` +
+          (conPermiso ? `, y *${conPermiso}* con *!allow* (caduca a las 2 h)` : '') +
+          `. Un enlace escrito dentro de una foto no se puede leer._`,
+      }).catch(() => {});
+    }
     return sock.sendMessage(jid, {
-      text: `*ANTI-LINK*\n\n` +
-        `${si(encendido)} activado en este grupo\n` +
-        `${si(soyAdmin)} soy admin${soyAdmin ? '' : ' — sin esto no puedo borrar ni expulsar'}\n\n` +
-        (actua
-          ? `_Funcionando. Cualquier enlace se borra y se expulsa; YouTube e Instagram avisan ${MAX_AVISOS - 1} veces antes del ban._\n`
-          : `_NO está actuando. Arregla lo de arriba con ❌._\n`) +
-        `\n_Exentos: los *${admins}* admins del grupo` +
-        (conPermiso ? `, y *${conPermiso}* con *!allow* (caduca a las 2 h)` : '') +
-        `. Los enlaces dentro de una foto no se leen: eso no lo ve ningún bot._`,
+      text: `Anti-link: *${encendido ? 'activado' : 'desactivado'}*.`,
     }, { quoted: msg });
   }
 
