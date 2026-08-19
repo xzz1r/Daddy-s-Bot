@@ -63,8 +63,14 @@ const DOMINIOS_INVITACION = String.raw`chat\.whatsapp\.com|wa\.me|whatsapp\.com\
 // "youtube.com/x" sin esquema no se detectaba NI para avisar, y quedaba en un
 // limbo raro donde el mismo enlace se trataba distinto segun como lo pegaran.
 const DOMINIOS_BLANCOS = String.raw`youtube\.com|youtu\.be|instagram\.com|instagr\.am`;
+// EL DOMINIO DE INVITACION CUENTA AUNQUE NO LLEVE NADA DETRAS. Antes exigia una
+// barra y un codigo, asi que "chat.whatsapp.com" a secas no se veia — y tampoco
+// se veia el codigo puesto en la linea de abajo, que es evasion de un segundo.
+// Un dominio de invitacion suelto no tiene uso legitimo en el grupo; los de la
+// lista blanca siguen exigiendo ruta, porque "youtube.com" suelto si sale en
+// conversaciones normales.
 const URL_RE = new RegExp(
-  String.raw`(?:https?:\/\/|www\.)[^\s]+|(?:${DOMINIOS_INVITACION}|${DOMINIOS_BLANCOS})\/[^\s]+`,
+  String.raw`(?:https?:\/\/|www\.)[^\s]+|(?:${DOMINIOS_INVITACION})(?:\/[^\s]*)?|(?:${DOMINIOS_BLANCOS})\/[^\s]+`,
   'gi'
 );
 
@@ -94,9 +100,43 @@ function normalizarParaEnlaces(text) {
 // mensaje pasaba limpio. Es, además, la forma más cómoda de pasar un grupo.
 const SOBRES_INVITACION = ['groupInviteMessage', 'newsletterAdminInviteMessage'];
 
+// SOBRES QUE ENVUELVEN A OTRO MENSAJE. Este era el agujero de verdad, y el mas
+// caro: el antilink miraba el sobre PLANO, asi que cualquier mensaje anidado
+// pasaba entero sin que el detector viera una sola letra.
+//
+// Y el peor de la lista es el primero. Si un grupo tiene los MENSAJES
+// TEMPORALES activados —cosa normalisima y que no controla quien escribe—
+// TODOS los mensajes llegan envueltos en ephemeralMessage. O sea que en un
+// grupo asi el antilink no estaba fallando a ratos: no funcionaba en absoluto,
+// y nadie podia notarlo mirando el codigo del detector, que es correcto.
+//
+// Medido antes de arreglarlo: de ocho formas de anidar, siete se colaban.
+const SOBRES_ANIDADOS = [
+  'ephemeralMessage',
+  'viewOnceMessage', 'viewOnceMessageV2', 'viewOnceMessageV2Extension',
+  'documentWithCaptionMessage', 'documentWithCaptionMessageV2',
+];
+
+// Devuelve el mensaje de dentro de cada envoltorio, si lo hay. El tope de
+// profundidad es por seguridad: un sobre que se apuntara a si mismo colgaria el
+// handler entero, y esto corre en cada mensaje del grupo.
+function sobresInternos(message, prof = 0) {
+  if (!message || prof > 5) return [];
+  const dentro = [];
+  for (const k of SOBRES_ANIDADOS) {
+    const m = message[k]?.message;
+    if (m) dentro.push(m, ...sobresInternos(m, prof + 1));
+  }
+  // Los editados esconden el texto nuevo dos niveles mas abajo.
+  const ed = message.editedMessage?.message?.protocolMessage?.editedMessage;
+  if (ed) dentro.push(ed, ...sobresInternos(ed, prof + 1));
+  return dentro;
+}
+
 function esInvitacionNativa(message) {
   if (!message) return false;
-  return SOBRES_INVITACION.some(k => message[k]);
+  const todos = [message, ...sobresInternos(message)];
+  return todos.some((m) => SOBRES_INVITACION.some(k => m[k]));
 }
 
 // Todo el texto donde puede esconderse un enlace, no solo el cuerpo del
@@ -143,6 +183,10 @@ function textoParaEnlaces(message) {
 
   push(message.productMessage?.product?.url);
   push(message.orderMessage?.message);
+
+  // Y TODO LO QUE HAYA DENTRO DE UN ENVOLTORIO. Sin esto, un enlace mandado en
+  // un grupo con mensajes temporales, o como "ver una vez", no se veia.
+  for (const dentro of sobresInternos(message)) trozos.push(textoParaEnlaces(dentro));
 
   return trozos.join(' \n ');
 }

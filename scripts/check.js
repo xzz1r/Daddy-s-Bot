@@ -831,6 +831,61 @@ async function capaStores() {
     }
   }
 
+  // ── EL ANTILINK NO PUEDE TENER HUECOS ─────────────────────────────────────
+  //
+  // Se colaron enlaces de invitacion en un grupo con el antilink encendido, y el
+  // detector de texto era correcto. El agujero estaba un nivel mas arriba:
+  // clasificarMensaje miraba el sobre PLANO, asi que cualquier mensaje anidado
+  // pasaba sin que viera una letra.
+  //
+  // El peor caso es ephemeralMessage: si un grupo tiene los MENSAJES TEMPORALES
+  // activados —normalisimo, y no lo controla quien escribe— TODOS los mensajes
+  // llegan envueltos. En un grupo asi el antilink no fallaba de vez en cuando:
+  // no funcionaba en absoluto. Y no habia forma de verlo leyendo el detector,
+  // porque el detector estaba bien.
+  //
+  // De ocho formas de anidar, siete se colaban. Esto las fija.
+  console.log('\n8. EL ANTILINK VE TODAS LAS FORMAS DE MANDAR UN ENLACE');
+  {
+    const { clasificarMensaje } = require(path.join(R, 'src/handlers/messageHandler'));
+    const L = 'https://chat.whatsapp.com/ABCdef1234567890';
+    const INV = { groupInviteMessage: { groupJid: 'X@g.us', inviteCode: 'A' } };
+    const casos = [
+      ['texto plano',                 { conversation: L }, 'blocked'],
+      ['mensajes temporales',         { ephemeralMessage: { message: { conversation: L } } }, 'blocked'],
+      ['ver una vez v1',              { viewOnceMessage: { message: { imageMessage: { caption: L } } } }, 'blocked'],
+      ['ver una vez v2',              { viewOnceMessageV2: { message: { imageMessage: { caption: L } } } }, 'blocked'],
+      ['documento con caption',       { documentWithCaptionMessage: { message: { documentMessage: { caption: L } } } }, 'blocked'],
+      ['editado',                     { editedMessage: { message: { protocolMessage: { editedMessage: { conversation: L } } } } }, 'blocked'],
+      ['invitacion nativa',           INV, 'blocked'],
+      ['invitacion dentro de temporal', { ephemeralMessage: { message: INV } }, 'blocked'],
+      ['temporal + ver una vez',      { ephemeralMessage: { message: { viewOnceMessageV2: { message: { imageMessage: { caption: L } } } } } }, 'blocked'],
+      ['dominio sin ruta',            { conversation: 'entrad a chat.whatsapp.com' }, 'blocked'],
+      ['codigo en la linea de abajo', { conversation: 'chat.whatsapp.com/\nABCdef123' }, 'blocked'],
+      ['espacios en los puntos',      { conversation: 'chat . whatsapp . com/ABC123' }, 'blocked'],
+      ['punto falso',                 { conversation: 'chat·whatsapp·com/ABC123' }, 'blocked'],
+      ['invisible en medio',          { conversation: 'chat.what\u200bsapp.com/ABC123' }, 'blocked'],
+      ['telegram',                    { conversation: 'https://t.me/loquesea' }, 'blocked'],
+      // Y lo que NO debe bloquear, que es igual de importante: un antilink que
+      // expulsa por hablar no dura en un grupo.
+      ['conversacion normal',         { conversation: 'te lo mando por whatsapp luego' }, 'none'],
+      ['hablando del grupo',          { conversation: 'este grupo de whatsapp esta muerto' }, 'none'],
+      ['frase con puntos',            { conversation: 'vale. venga. hasta luego' }, 'none'],
+      ['youtube con ruta',            { conversation: 'https://youtube.com/watch?v=x' }, 'whitelisted'],
+    ];
+    let huecos = 0;
+    for (const [etq, sobre, esperado] of casos) {
+      let real;
+      try { real = clasificarMensaje(sobre); } catch (e) { real = 'revienta: ' + e.message; }
+      if (real !== esperado) {
+        huecos++;
+        console.log(rojo(`   ✗ ${etq}: esperaba ${esperado} y da ${real}`));
+      }
+    }
+    if (huecos) fallos += huecos;
+    else console.log(verde(`   ✓ las ${casos.length} formas se clasifican bien`));
+  }
+
   // ── NINGUN POOL DE FRASES SE VACIA DE GOLPE ───────────────────────────────
   //
   // PASO, Y NINGUNA DE LAS OTRAS COMPROBACIONES LO VIO. Un push por la API de
