@@ -93,13 +93,31 @@ async function businessEvidence(sock, jid) {
   // Van aparte de los de arriba porque son MÁS DÉBILES: dependen de qué aplane
   // Baileys en cada versión. Si algún día dejan de venir, el detector pierde
   // este caso pero no empieza a acusar a nadie.
+  // EXISTIR NO ES TENER CONTENIDO, y aqui casi la lio. La primera version de
+  // esto hacia `if (profile[campo])`, y en JavaScript `{}` es verdadero: una
+  // cuenta NORMAL con un `business_hours: {}` o un `profile_options: {}` vacio
+  // quedaba marcada como negocio y expulsada. Tres falsos positivos medidos.
+  //
+  // Peor todavia: `business_hours` estaba en esta lista, y arriba ya se mira
+  // BIEN (exigiendo que business_config traiga entradas). O sea que esta linea
+  // pisaba una comprobacion cuidadosa con una chapucera. Fuera de la lista: de
+  // ese campo ya se ocupa el bloque de arriba.
+  //
+  // Es exactamente el error que el propio fichero avisa de no repetir —tratar
+  // `!!profile` como Business— cometido otra vez un nivel mas abajo.
+  const conContenido = (v) => {
+    if (v == null) return false;
+    if (typeof v === 'string') return v.trim().length > 0;
+    if (Array.isArray(v)) return v.length > 0;
+    if (typeof v === 'object') return Object.keys(v).length > 0;
+    return Boolean(v);
+  };
   for (const [campo, etiqueta] of [
     ['cover_photo', 'foto de portada de negocio'],
     ['profile_options', 'opciones de perfil de negocio'],
     ['commerce_experience', 'ficha de comercio'],
-    ['business_hours', 'bloque de horario'],
   ]) {
-    if (profile?.[campo] && !fields.includes(etiqueta)) fields.push(etiqueta);
+    if (conContenido(profile?.[campo]) && !fields.includes(etiqueta)) fields.push(etiqueta);
   }
 
   const value = fields.length

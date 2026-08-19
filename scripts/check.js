@@ -965,7 +965,18 @@ async function capaStores() {
       ['campos vacios no cuentan',    { wid: 'x', category: '', email: '', description: '   ' }, 'personal'],
       // El suplantador: Business con la ficha en blanco a proposito.
       ['ficha vacia pero con portada',{ wid: 'x', cover_photo: 'a.jpg' }, 'biz'],
-      ['ficha vacia con opciones',    { wid: 'x', profile_options: {} }, 'biz'],
+      ['ficha vacia con opciones',    { wid: 'x', profile_options: { cart_enabled: true } }, 'biz'],
+      ['horario con entradas',        { wid: 'x', business_hours: { business_config: [{ day: 'mon' }] } }, 'biz'],
+      // LOS FALSOS POSITIVOS QUE CASI ME COMO. En JavaScript `{}` es verdadero,
+      // asi que una comprobacion `if (profile[campo])` marcaba como negocio a
+      // una cuenta NORMAL que trajera un business_hours o un profile_options
+      // vacios. Tres casos medidos, y expulsan gente de verdad. Existir no es
+      // tener contenido.
+      ['horario vacio NO es negocio', { wid: 'x', business_hours: {} }, 'personal'],
+      ['config vacio NO es negocio',  { wid: 'x', business_hours: { business_config: [] } }, 'personal'],
+      ['opciones vacias NO son negocio', { wid: 'x', profile_options: {} }, 'personal'],
+      ['comercio vacio NO es negocio',{ wid: 'x', commerce_experience: {} }, 'personal'],
+      ['portada vacia NO es negocio', { wid: 'x', cover_photo: '' }, 'personal'],
       // Y lo que NO se sabe.
       ['la consulta no responde',     undefined, 'desconocido'],
       ['devuelve algo que no es objeto', 'nada', 'desconocido'],
