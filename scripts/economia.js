@@ -488,6 +488,13 @@ ok(/transferAura/.test(src('dar.js')), '!dar sigue usando transferAura: el cargo
   const { PRECIOS, ARRANQUE } = require(`${R}/src/utils/economia`);
   ok(PRECIOS.tovid > PRECIOS.toimg,
     `!tovid por encima de !toimg (${PRECIOS.tovid} > ${PRECIOS.toimg}): recodifica el video entero con preset slow`);
+  // !play por encima de los conversores, y no es estetico. Es el unico comando
+  // con un limite EXTERNO y finito: gasta cuota mensual de RapidAPI, y al
+  // agotarse deja de funcionar para todo el grupo hasta que renueve. Un sticker
+  // solo gasta CPU de la VPS, que vuelve sola. El precio es el unico freno que
+  // tiene, porque la cuota no se compra con mas CPU.
+  ok(PRECIOS.play >= Math.max(PRECIOS.sticker, PRECIOS.toimg),
+    `!play (${PRECIOS.play}) no por debajo de los conversores (${Math.max(PRECIOS.sticker, PRECIOS.toimg)}): su cuota es finita y la CPU no`);
   ok(PRECIOS.top10 > PRECIOS.top5,
     `!top10 por encima de !top5 (${PRECIOS.top10} > ${PRECIOS.top5}): molesta al doble de gente`);
   // El minimo absoluto es !cachelist, que es mirar una lista y no representa

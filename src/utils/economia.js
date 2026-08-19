@@ -1016,17 +1016,23 @@ const DUELO = {
 //   · El arranque tiene que dar para varias compras baratas. Si no, el que entra
 //     no puede tocar nada y el bot parece roto.
 //
-// Y una rareza que conviene tener presente: bajar una canción cuesta ancho de
-// banda, cuota de RapidAPI y un ffmpeg entero, y sale más barata que convertir
-// un sticker. Es lo que pidió el owner. Si algún día el cupo de RapidAPI se
-// dispara, ese es el primer número que hay que mirar.
+//   · !play NO por debajo de los conversores. Es el único comando del bot cuyo
+//     límite es EXTERNO y finito: cada canción gasta cuota mensual de RapidAPI,
+//     y cuando se agota no es que salga caro, es que deja de funcionar para todo
+//     el grupo hasta que renueve. Un sticker solo gasta CPU de la VPS, que se
+//     recupera sola en un minuto.
+//
+//     Estuvo por debajo, y el comentario de aquí decía que si el cupo se
+//     disparaba ese era el primer número a mirar. Se subió por eso: el precio es
+//     el único freno que tiene, porque la cuota no se puede ampliar gastando más
+//     CPU.
 const PRECIOS = {
   // ─── Lo que consume recursos de verdad ─────────────────────────────────────
   tovid: 70,   // transcodifica el vídeo entero con preset slow: lo más caro
   grok: 50,    // llamada a la IA, con su cuota
   sticker: 45, // !s — un ffmpeg por cada uno
   toimg: 45,
-  play: 40,    // canción: ancho de banda + cuota de RapidAPI + ffmpeg
+  play: 50,    // canción: ancho de banda + cuota de RapidAPI + ffmpeg
   fk: 35,      // análisis de cuenta falsa
   ttp: 30,     // texto a sticker
   pfp: 25,     // foto de perfil
