@@ -103,13 +103,10 @@ async function cmdPing(sock, msg) {
     const mejor = Math.min(...medidas);
     const peor = Math.max(...medidas);
     texto = `*${mejor}ms*` + (peor > mejor ? `  _(peor de 3: ${peor}ms)_` : '');
-    // Solo se comenta cuando hay algo que decir. El tramo de en medio llevaba
-    // un "_Normal para un servidor lejos de WhatsApp._" que no aporta nada:
-    // decirle a alguien que 114 ms es normal es gastarle una linea para no
-    // contarle nada. Si el numero es corriente, el numero se basta.
-    texto += mejor < 80 ? '\n_Va fino._'
-           : mejor < 150 ? ''
-           : '\n_Alto. Es la distancia del servidor, no el bot._';
+    // SIN COMENTARIO NINGUNO. Habia tres —"Va fino", "Normal para un servidor
+    // lejos de WhatsApp", "Alto. Es la distancia del servidor, no el bot"— y los
+    // tres sobran por el mismo motivo: quien escribe *!ping* quiere el numero.
+    // Si es alto lo ve, y si es bajo tambien. Explicarselo es hablar por hablar.
   }
 
   await sock.sendMessage(jid, { text: texto });

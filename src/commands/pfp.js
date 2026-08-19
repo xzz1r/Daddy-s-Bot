@@ -191,11 +191,17 @@ async function cmdPfp(sock, msg, args, groupMeta) {
     }, { quoted: msg });
   }
 
-  // 3) Nada guardado. Un fallo pasajero NO es lo mismo que "confirmado sin
-  // foto": lo primero se dice como lo que es, sin afirmar de más.
-  // Un fallo pasajero se devuelve (habra que repetir la consulta); un "no tiene
-  // foto" confirmado no, porque ahi el bot si hizo el trabajo y dio la respuesta.
-  if (falloPasajero) await reembolsar();
+  // 3) Nada guardado. SIN FOTO NO SE COBRA, y da igual el motivo.
+  //
+  // Antes solo se devolvia el fallo pasajero: un "no tiene foto" confirmado se
+  // cobraba porque el bot habia hecho el trabajo y dado una respuesta. El
+  // argumento era razonable con el comando a 25; a 80 ya no. Quien escribe
+  // *!pfp* viene a por una imagen, no a por un dictamen sobre si existe, y
+  // cobrarle el precio mas alto del bot por un "pues no" es cobrarle por nada.
+  //
+  // Las dos mitades de la regla se sostienen juntas: el precio es alto para que
+  // el rastreo de fotos no salga gratis, y solo se cobra cuando la foto llega.
+  await reembolsar();
   return sock.sendMessage(jid, {
     text: restringida
       ? `${tag} tiene la foto limitada a sus contactos. No es que no tenga: es que a este número no se la enseña. Reintentar no cambia nada.`

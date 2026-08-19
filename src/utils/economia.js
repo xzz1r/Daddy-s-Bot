@@ -1034,7 +1034,11 @@ const PRECIOS = {
   play: 50,    // canción: ancho de banda + cuota de RapidAPI + ffmpeg
   fk: 35,      // análisis de cuenta falsa
   ttp: 30,     // texto a sticker
-  pfp: 25,     // foto de perfil
+  // !pfp es el mas caro del bot Y EL UNICO QUE SIEMPRE DEVUELVE SI NO ENTREGA.
+  // Las dos cosas van juntas y por decision del owner: el precio frena el
+  // rastreo de fotos a lo loco, y como solo se cobra cuando llega una imagen,
+  // nadie paga por una consulta que no dio nada.
+  pfp: 80,     // foto de perfil
   cachelist: 12, // la lista de lo ya guardado: barata a propósito, es el atajo
 
   // ─── Lo que molesta al grupo ───────────────────────────────────────────────
