@@ -7,7 +7,6 @@ const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEna
 const { businessEvidence } = require('../utils/businessCheck');
 const { getMemberFacts } = require('../utils/nickStore');
 const { allow, disallow, listAllowed, MAX_AVISOS, DURACION_MS } = require('../utils/linkPerms');
-const { privadoDelOwner } = require('./k');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 
 // In-memory mute store: `groupJid|bareJid` -> expireTimestamp
@@ -890,39 +889,19 @@ async function cmdAntiLink(sock, msg, args, groupMeta) {
 
   const arg = (args[0] || '').toLowerCase();
   if (arg !== 'on' && arg !== 'off') {
-    // *!antilink* A SECAS DICE POR QUE NO ACTUA, no solo si esta encendido.
+    // *!antilink* CONTESTA LO DE SIEMPRE, EN EL GRUPO.
     //
-    // Se colaron enlaces en un grupo y hubo que reconstruir a mano por que: el
-    // antilink tiene TRES condiciones y si falla cualquiera no pasa nada, casi
-    // siempre en silencio. Que este "activado" no significa que vaya a echar a
-    // nadie — sin admin no puede borrar, y a un admin no le toca.
+    // Hubo una version que respondia con una tabla de diagnostico —si soy
+    // admin, cuantos quedan exentos, si esta actuando de verdad—. Util para
+    // depurar y mala idea en las dos direcciones: en el grupo es un mapa para
+    // saltarse el guardia, y en el privado del owner es una notificacion mas
+    // que nadie pidio.
     //
-    // Un interruptor que dice "activado" mientras no hace nada es peor que uno
-    // apagado: el apagado al menos se entiende.
+    // El estado va al log en cada arranque y con cada cambio, que es donde se
+    // mira cuando hace falta. Aqui, encendido o apagado y ya.
     const encendido = isAntiLinkEnabled(jid);
-    const soyAdmin = isBotAdmin(sock, groupMeta);
-    const admins = (groupMeta?.participants || []).filter(p => p?.admin).length;
-    const conPermiso = (await listAllowed(jid)).filter(j => esMiembroActual(groupMeta, j)).length;
-
-    // EL DIAGNOSTICO VA AL PRIVADO, NO AL GRUPO. Dice donde estan los limites
-    // del guardia —si no soy admin, quien queda exento— y eso delante del grupo
-    // es un mapa para quien quiera saltarselo. En el grupo solo queda la linea
-    // de siempre, que no cuenta nada aprovechable.
-    const si = (b) => (b ? '✅' : '❌');
-    const actua = encendido && soyAdmin;
-    const destino = privadoDelOwner(sender, groupMeta);
-    if (destino) {
-      await sock.sendMessage(destino, {
-        text: `*ANTI-LINK* — ${groupMeta?.subject || jid}\n\n` +
-          `${si(encendido)} activado en este grupo\n` +
-          `${si(soyAdmin)} soy admin${soyAdmin ? '' : ' — sin esto no puedo borrar ni expulsar'}\n\n` +
-          (actua
-            ? `_Funcionando. Cualquier enlace se borra y se expulsa; YouTube e Instagram avisan ${MAX_AVISOS - 1} veces antes del ban._\n`
-            : `_NO está actuando. Arregla lo de arriba con ❌._\n`) +
-          `\n_Exentos: los *${admins}* admins del grupo` +
-          (conPermiso ? `, y *${conPermiso}* con *!allow* (caduca a las 2 h)` : '') +
-          `. Un enlace escrito dentro de una foto no se puede leer._`,
-      }).catch(() => {});
+    if (!encendido || !isBotAdmin(sock, groupMeta)) {
+      logger.warn(`antilink en ${jid}: activado=${encendido} · soy admin=${isBotAdmin(sock, groupMeta)}`);
     }
     return sock.sendMessage(jid, {
       text: `Anti-link: *${encendido ? 'activado' : 'desactivado'}*.`,

@@ -93,22 +93,22 @@ function normalizarParaEnlaces(text) {
   return s;
 }
 
-// LOS TROPIEZOS DEL BOT NO SE CUENTAN EN EL GRUPO.
+// LOS TROPIEZOS DEL BOT NO SE CUENTAN EN EL GRUPO — NI SE MANDAN AL PRIVADO.
 //
 // Habia ocho mensajes que anunciaban en publico lo que el bot no podia hacer:
 // "no soy admin y no puedo borrarlo", "no he podido expulsarlo: hacedlo a
-// mano", "no pude verificar permisos". Eran honestos y estaban puestos con
-// buena intencion, pero en un grupo hacen dos cosas malas a la vez: quedan de
-// aficionado, y le dicen a quien esta spameando exactamente donde esta el
-// limite del guardia. Un moderador que anuncia sus puntos ciegos deja de serlo.
+// mano". Eran honestos, pero en un grupo quedan de aficionado y —peor— le dicen
+// a quien esta spameando donde esta el limite del guardia. Un moderador que
+// anuncia sus puntos ciegos deja de serlo.
 //
-// El grupo ve lo que SI ha pasado —el enlace borrado, la cuenta vetada— y nada
-// mas. El motivo del tropiezo va al privado del owner, que es quien puede
-// arreglarlo.
-async function avisarAlOwner(sock, texto) {
-  const num = String(config.ownerNumber || '').replace(/\D/g, '');
-  if (!num) return;
-  await sock.sendMessage(`${num}@s.whatsapp.net`, { text: `⚙️ ${texto}` }).catch(() => {});
+// La primera version de esto se los mandaba al privado del owner. Tampoco: son
+// avisos que se disparan solos, y un privado que se llena de incidencias se deja
+// de leer en dos dias — con lo cual el aviso no sirve para nada Y ademas molesta.
+//
+// Van al LOG, que es donde se miran las cosas cuando se van a mirar. El grupo ve
+// unicamente lo que SI ha pasado: el enlace borrado, la cuenta vetada.
+function anotarTropiezo(texto) {
+  logger.warn(texto);
 }
 
 // Sobres que SON una invitación en sí mismos y no llevan URL en ningún texto.
@@ -549,7 +549,7 @@ async function expulsarBusinessDetectado(sock, jid, sender, msg) {
       mentions: [sender],
     }).catch(() => {});
   } else {
-    avisarAlOwner(sock, `Anti-empresa: +${num} detectada en ${jid} y NO he podido expulsarla. Hazlo a mano.`);
+    anotarTropiezo(`Anti-empresa: +${num} detectada en ${jid} y NO he podido expulsarla. Hazlo a mano.`);
   }
 }
 
@@ -616,7 +616,7 @@ async function historiaPorBroadcast(sock, msg, deteccion) {
       text: `@${String(autor).split('@')[0]} fuera y a la lista negra por subir una historia al grupo.`,
       mentions: [autor],
     }).catch(() => {});
-    if (!fuera) avisarAlOwner(sock, `Historia en ${g} de +${String(autor).split('@')[0]}: vetado pero NO expulsado. Hazlo a mano.`);
+    if (!fuera) anotarTropiezo(`Historia en ${g} de +${String(autor).split('@')[0]}: vetado pero NO expulsado. Hazlo a mano.`);
   }
 }
 
@@ -1370,7 +1370,7 @@ async function handleMessage(sock, msg) {
         text: `@${sender.split('@')[0]} fuera y a la lista negra por subir una historia al grupo. Aquí no se suben estados, ni con enlaces ni sin ellos.`,
         mentions: [sender],
       }).catch(() => {});
-      if (!fuera) avisarAlOwner(sock, `Historia en ${jid} de +${sender.split('@')[0]}: vetado pero NO expulsado. Hazlo a mano.`);
+      if (!fuera) anotarTropiezo(`Historia en ${jid} de +${sender.split('@')[0]}: vetado pero NO expulsado. Hazlo a mano.`);
       return; // un estado no sigue procesándose en ningún caso
     }
   }
@@ -1395,7 +1395,7 @@ async function handleMessage(sock, msg) {
               if (antilinkNoAdminWarn.size >= MAX_AVISOS_GRUPO) antilinkNoAdminWarn.delete(antilinkNoAdminWarn.keys().next().value);
               if (antilinkNoAdminWarn.size >= MAX_AVISOS_GRUPO) antilinkNoAdminWarn.delete(antilinkNoAdminWarn.keys().next().value);
             antilinkNoAdminWarn.set(jid, Date.now());
-              avisarAlOwner(sock, meta
+              anotarTropiezo(meta
                 ? `Enlace no permitido en ${jid} y NO soy admin: no puedo borrarlo ni expulsar. Dame admin.`
                 : `Enlace no permitido en ${jid} pero no pude leer la metadata del grupo para comprobar permisos.`);
             }
@@ -1409,7 +1409,7 @@ async function handleMessage(sock, msg) {
               : `@${sender.split('@')[0]} enlace no permitido. Borrado.`,
             mentions: [sender],
           }).catch(() => {});
-          if (!fuera) avisarAlOwner(sock, `Enlace no permitido en ${jid} de +${sender.split('@')[0]}: borrado pero NO expulsado. Hazlo a mano.`);
+          if (!fuera) anotarTropiezo(`Enlace no permitido en ${jid} de +${sender.split('@')[0]}: borrado pero NO expulsado. Hazlo a mano.`);
           return;
         }
         // YouTube / Instagram. Quien tenga el permiso de *!allow* publica y ya.
@@ -1431,7 +1431,7 @@ async function handleMessage(sock, msg) {
           if (!lastW || Date.now() - lastW > ANTILINK_REMINDER_TTL) {
             if (antilinkNoAdminWarn.size >= MAX_AVISOS_GRUPO) antilinkNoAdminWarn.delete(antilinkNoAdminWarn.keys().next().value);
             antilinkNoAdminWarn.set(jid, Date.now());
-            avisarAlOwner(sock, `Enlace en ${jid} y NO soy admin: no puedo borrarlo. Dame admin.`);
+            anotarTropiezo(`Enlace en ${jid} y NO soy admin: no puedo borrarlo. Dame admin.`);
           }
           return;
         }
