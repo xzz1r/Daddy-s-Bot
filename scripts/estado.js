@@ -226,7 +226,11 @@ if (fs.existsSync(statePath)) {
 // 3. Sesión de WhatsApp. Sin credenciales el bot pide QR y se queda esperando.
 const authDir = path.join(RAIZ, 'data/auth');
 if (!fs.existsSync(authDir) || !fs.existsSync(path.join(authDir, 'creds.json'))) {
-  mal('no hay sesión de WhatsApp: el bot está esperando a que alguien escanee el QR', 'pm2 logs bot   y escanea el código que sale');
+  // NO se manda a `pm2 logs`. pm2 mete un prefijo (`0|bot  | `) delante de cada
+  // linea, y eso desplaza las filas del QR: el dibujo se rompe y la camara no
+  // lo lee. Hay que sacarlo en primer plano, sin pm2 por medio.
+  mal('no hay sesión de WhatsApp: el bot está esperando a que alguien escanee el QR',
+      'pm2 stop bot && node index.js   → escanea, y luego Ctrl+C y pm2 start ecosystem.config.js');
 } else {
   const edad = Math.round((Date.now() - fs.statSync(path.join(authDir, 'creds.json')).mtimeMs) / 60000);
   if (edad > 60 * 24 * 7) aviso(`la sesión no se toca desde hace ${Math.floor(edad / 1440)} días: puede estar muerta`, 'pm2 logs bot --lines 30');
