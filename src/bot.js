@@ -391,6 +391,41 @@ async function connectToWhatsApp() {
     shouldIgnoreJid: () => false,
   });
 
+  // ── Vincular con CODIGO en vez de con QR ─────────────────────────────────
+  //
+  // El QR sirve cuando quien administra el servidor tiene DOS pantallas: una
+  // que lo enseña y un movil que lo escanea. Administrando desde el propio
+  // movil por SSH no vale: el QR sale en la misma pantalla con la que habria
+  // que escanearlo, y un telefono no se lee a si mismo.
+  //
+  //   node index.js --codigo 34600111222
+  //
+  // Saca ocho caracteres por pantalla. En el movil:
+  //   WhatsApp → Dispositivos vinculados → Vincular un dispositivo →
+  //   "Vincular con el número de teléfono" → se teclea el codigo.
+  //
+  // El numero va con prefijo de pais y SOLO digitos: nada de +, espacios ni
+  // guiones. Es el numero de la cuenta que va a SER el bot.
+  const argCodigo = process.argv.indexOf('--codigo');
+  const numeroPar = argCodigo !== -1 ? String(process.argv[argCodigo + 1] || '').replace(/\D/g, '') : '';
+  if (numeroPar && !sock.authState?.creds?.registered) {
+    // Hay que dejar que el socket abra antes de pedirlo; si se pide de
+    // inmediato, WhatsApp aun no escucha y la peticion se pierde.
+    setTimeout(async () => {
+      try {
+        const codigo = await sock.requestPairingCode(numeroPar);
+        const bonito = String(codigo).match(/.{1,4}/g)?.join('-') || codigo;
+        console.log(`\n  CODIGO DE VINCULACION: ${bonito}\n`);
+        console.log('  WhatsApp → Dispositivos vinculados → Vincular un dispositivo');
+        console.log('  → "Vincular con el número de teléfono" → teclea el codigo.');
+        console.log('  Caduca en un par de minutos; si expira, vuelve a lanzar el comando.\n');
+      } catch (e) {
+        logger.error(`no pude pedir el codigo de vinculacion: ${e.message}`);
+        logger.error('comprueba que el numero lleva prefijo de pais y solo digitos');
+      }
+    }, 3000).unref?.();
+  }
+
   sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr, reachoutTimeLock }) => {
     // WhatsApp restringe a las cuentas nuevas o marcadas para que no contacten
     // desconocidos. Mientras esta activo, !add falla con
