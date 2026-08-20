@@ -13,6 +13,7 @@ const { isAllowed, noteWarning, resetWarnings, MAX_AVISOS } = require('../utils/
 const { tienePase, gastarIndulto } = require('../utils/roboStore');
 const { banAccount } = require('../utils/banlist');
 const { businessEvidence } = require('../utils/businessCheck');
+const { aplicarAUno } = require('../utils/participantes');
 const { allForms } = require('../commands/fk');
 const { checkCasinoMilestone } = require('../utils/casino');
 const { cmdPlay, cmdCacheList, cmdClearCache } = require('../commands/music');
@@ -204,8 +205,12 @@ function esInvitacionNativa(message) {
 // mensaje extractText solo mira conversation/extendedText/captions; un enlace
 // metido en un botón, en una lista, en una encuesta o en la tarjeta de un
 // contacto no aparecía por ningún lado y pasaba el filtro entero.
-function textoParaEnlaces(message) {
-  if (!message) return '';
+function textoParaEnlaces(message, prof = 0) {
+  // TOPE DE PROFUNDIDAD. Los sobres ya lo tenian; esto no, y al empezar a
+  // seguir las citas hacia falta: una cita puede traer otra cita dentro, y una
+  // cadena anidada a mano es una forma barata de reventar la pila del proceso
+  // desde un mensaje de grupo. Ocho niveles no los alcanza nada legitimo.
+  if (!message || prof > 8) return '';
   const trozos = [];
   const push = (v) => { if (typeof v === 'string' && v) trozos.push(v); };
 
@@ -279,7 +284,20 @@ function textoParaEnlaces(message) {
 
   // Y TODO LO QUE HAYA DENTRO DE UN ENVOLTORIO. Sin esto, un enlace mandado en
   // un grupo con mensajes temporales, o como "ver una vez", no se veia.
-  for (const dentro of sobresInternos(message)) trozos.push(textoParaEnlaces(dentro));
+  for (const dentro of sobresInternos(message)) trozos.push(textoParaEnlaces(dentro, prof + 1));
+
+  // EL MENSAJE CITADO. El contexto de una cita lo rellena QUIEN MANDA, no el
+  // servidor: se puede citar algo que nunca existio. Asi que basta con mandar
+  // "mira esto" citando una invitacion inventada y el enlace se renderiza en la
+  // burbuja de la cita para todo el grupo, mientras el detector solo veia
+  // "mira esto".
+  //
+  // Va al final y con su propia guarda de profundidad porque una cita puede
+  // traer dentro otra cita.
+  for (const k of Object.keys(message)) {
+    const citado = message[k]?.contextInfo?.quotedMessage;
+    if (citado) trozos.push(textoParaEnlaces(citado, prof + 1));
+  }
 
   return trozos.join(' \n ');
 }
@@ -600,27 +618,35 @@ const MEDIA_CMDS = new Set([
 // medias). Las guardas automáticas la lanzaban sin mirar y anunciaban la
 // expulsión igual, así que el bot afirmaba haber echado a alguien que seguía
 // sentado en el grupo — el mismo fallo que ya se corrigió en las purgas.
-async function expulsar(sock, jid, target) {
-  try {
-    const res = await sock.groupParticipantsUpdate(jid, [target], 'remove');
-    if (!Array.isArray(res) || !res.length) return false;
-    // NO SE DA POR BUENO UN KICK QUE NO SE PUDO CONFIRMAR. Aqui ponia
-    // `fila?.status ?? '200'`: si no encontraba la fila de esa persona, asumia
-    // que habia salido. Y en un grupo LID no la encuentra casi nunca — se pide
-    // el kick con una forma del JID y WhatsApp responde con la otra, asi que la
-    // comparacion por digitos falla y el bot anunciaba "expulsado" por alguien
-    // que sigue dentro.
-    //
-    // Se compara con canonicalJid, que si cruza LID y telefono. Y si aun asi no
-    // aparece pero solo vino UNA fila, es la de este kick: no hay otra cosa que
-    // pueda ser.
-    const mio = canonicalJid(target);
-    const fila = res.find(r => r?.jid && canonicalJid(r.jid) === mio)
-      || res.find(r => (r?.jid || '').split('@')[0] === target.split('@')[0])
-      || (res.length === 1 ? res[0] : null);
-    if (!fila) return false;
-    return String(fila.status ?? '') === '200';
-  } catch { return false; }
+// QUE ID SE BORRA CUANDO EL MENSAJE ES UNA EDICION.
+//
+// Al editar, WhatsApp manda un evento NUEVO (un protocolMessage) que lleva el
+// texto nuevo dentro y, aparte, la key del mensaje ORIGINAL. El detector ya
+// miraba dentro del sobre —por eso caza el enlace metido al editar—, pero
+// despues borraba `msg.key.id`, que es el id del evento de edicion. Borrar el
+// evento no quita nada de la pantalla: el mensaje original se queda ahi con el
+// enlace puesto. O sea que la mitad util del arreglo anterior no llegaba a
+// pasar.
+//
+// Se mira la key del original y, si no viene, se usa la del propio mensaje.
+function idABorrar(msg) {
+  const m = msg?.message;
+  return (
+    m?.protocolMessage?.key?.id ||
+    m?.editedMessage?.message?.protocolMessage?.key?.id ||
+    msg?.key?.id
+  );
+}
+
+// Esta era la UNICA de las siete copias que lo hacia bien, y solo porque ya se
+// habia corregido aqui despues de que el bot anunciara expulsiones que no
+// ocurrieron. Ahora la regla vive en un sitio y las siete la comparten.
+//
+// Lo que gana al pasar por el contrato: cruza LID↔telefono por la METADATA, no
+// solo por canonicalJid. canonicalJid necesita el mapa caliente, y el mapa esta
+// frio justo despues de cada reinicio; la metadata trae las dos formas siempre.
+async function expulsar(sock, jid, target, meta = null) {
+  return aplicarAUno(sock, jid, target, 'remove', meta);
 }
 
 // LA MISMA PERSONA CON LA MISMA CLAVE EN LOS CUATRO SITIOS.
@@ -668,7 +694,7 @@ async function expulsarBusinessDetectado(sock, jid, sender, msg, motivo = 'cuent
   if (ultimo && Date.now() - ultimo < 10 * 60 * 1000) return;
 
   logger.info(`Anti-empresa: ${sender} en ${jid} — ${motivo}`);
-  const fuera = await expulsar(sock, jid, sender);
+  const fuera = await expulsar(sock, jid, sender, meta);
   const num = sender.split('@')[0];
 
   if (fuera) {
@@ -754,7 +780,7 @@ async function historiaPorBroadcast(sock, msg, deteccion) {
       continue;
     }
     await banAccount(allForms(autor, meta), `historia subida al grupo ${g}`, 'auto').catch(() => {});
-    const fuera = await expulsar(sock, g, autor);
+    const fuera = await expulsar(sock, g, autor, meta);
     logger.warn(`historia en ${g} de ${autor}: vetado, expulsado=${fuera}`);
     sock.sendMessage(g, {
       text: `@${String(autor).split('@')[0]} fuera y a la lista negra por subir una historia al grupo.`,
@@ -785,7 +811,7 @@ async function cmdDiag(sock, msg, groupMeta) {
   }
   if (jid.endsWith('@g.us')) {
     sock.sendMessage(jid, {
-      delete: { remoteJid: jid, fromMe: Boolean(msg.key.fromMe), id: msg.key.id, participant: sender },
+      delete: { remoteJid: jid, fromMe: Boolean(msg.key.fromMe), id: idABorrar(msg), participant: sender },
     }).catch(() => {});
   }
 
@@ -1519,7 +1545,7 @@ async function handleMessage(sock, msg) {
         return;
       }
 
-      sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
+      sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: idABorrar(msg), participant: sender } }).catch(() => {});
 
       // La sanción depende de lo seguro que sea el diagnóstico.
       //
@@ -1553,7 +1579,7 @@ async function handleMessage(sock, msg) {
       // con la lista negra, no con un "vuelve cuando quieras".
       const forms = allForms(sender, meta);
       await banAccount(forms, `historia subida al grupo ${jid}`, 'auto').catch(() => {});
-      const fuera = await expulsar(sock, jid, sender);
+      const fuera = await expulsar(sock, jid, sender, meta);
       sock.sendMessage(jid, {
         text: `@${sender.split('@')[0]} fuera y a la lista negra por subir una historia al grupo. Aquí no se suben estados, ni con enlaces ni sin ellos.`,
         mentions: [sender],
@@ -1595,8 +1621,8 @@ async function handleMessage(sock, msg) {
             }
             return;
           }
-          sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
-          const fuera = await expulsar(sock, jid, sender);
+          sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: idABorrar(msg), participant: sender } }).catch(() => {});
+          const fuera = await expulsar(sock, jid, sender, meta);
           if (puedeAnunciar(jid, sender)) {
             sock.sendMessage(jid, {
               text: fuera
@@ -1631,7 +1657,7 @@ async function handleMessage(sock, msg) {
           }
           return;
         }
-        sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: msg.key.id, participant: sender } }).catch(() => {});
+        sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: idABorrar(msg), participant: sender } }).catch(() => {});
 
         const { avisos, restantes, ban } = await noteWarning(jid, claveDePersona(sender, meta));
         const num = sender.split('@')[0];
@@ -1655,7 +1681,7 @@ async function handleMessage(sock, msg) {
           // avisos y no con un ban inmediato del que nadie le habria advertido.
           await resetWarnings(jid, claveDePersona(sender, meta)).catch(() => {});
           await banAccount(allForms(sender, meta), `spam de enlaces sin permiso en ${jid}`, 'auto').catch(() => {});
-          const fuera = await expulsar(sock, jid, sender);
+          const fuera = await expulsar(sock, jid, sender, meta);
           if (puedeAnunciar(jid, sender)) sock.sendMessage(jid, {
             text: fuera
               ? `@${num} baneado. ${MAX_AVISOS} enlaces sin el *!allow* de un admin. Te avisamos ${MAX_AVISOS - 1} veces y pasaste de todo, así que fuera.`
@@ -1724,7 +1750,7 @@ async function handleMessage(sock, msg) {
       esOwnerDelMensaje(msg, sender, senderPn, meta);
 
     if (!protegido && isBotAdmin(sock, meta)) {
-      const { spam, ids } = noteOffence(jid, sender, 'sticker', msg.key.id);
+      const { spam, ids } = noteOffence(jid, sender, 'sticker', idABorrar(msg));
       if (spam) {
         // Se borra la ráfaga entera, no solo el último: los stickers no se
         // borran de uno en uno al llegar (a diferencia de las fotos), así que
@@ -1740,7 +1766,7 @@ async function handleMessage(sock, msg) {
         if (yaAvisado(jid, sender)) {
           olvidarAviso(jid, sender);
           await banAccount(allForms(sender, meta), `spam de stickers en ${jid}`, 'auto').catch(() => {});
-          const fuera = await expulsar(sock, jid, sender);
+          const fuera = await expulsar(sock, jid, sender, meta);
           sock.sendMessage(jid, {
             text: fuera
               ? `@${num} baneado por seguir spameando stickers después del aviso.`
@@ -1776,9 +1802,9 @@ async function handleMessage(sock, msg) {
 
       // Se borra siempre, foto o vídeo. Antes la foto suelta se dejaba pasar y
       // solo caía la ráfaga entera al llegar al quinto.
-      borrar(msg.key.id);
+      borrar(idABorrar(msg));
 
-      const { spam, ids } = noteOffence(jid, sender, medio, msg.key.id);
+      const { spam, ids } = noteOffence(jid, sender, medio, idABorrar(msg));
 
       if (spam) {
         // Ya se han borrado una a una al llegar, así que aquí no hay que
@@ -1786,7 +1812,7 @@ async function handleMessage(sock, msg) {
         forget(jid, sender);
         await banAccount(allForms(sender, meta), `spam de ${medio}s sin ver una vez en ${jid}`, 'auto')
           .catch(() => {});
-        const fuera = await expulsar(sock, jid, sender);
+        const fuera = await expulsar(sock, jid, sender, meta);
         sock.sendMessage(jid, {
           text: fuera
             ? `@${sender.split('@')[0]} baneado por spam de ${medio === 'video' ? 'videos' : 'fotos'} sin *ver una vez*.`

@@ -81,7 +81,20 @@ async function recordFacts(userJid, { biz, photo } = {}) {
   if (next.biz === prev.biz && next.photo === prev.photo) return;
   next.ts = Date.now();
   store[GLOBAL][key] = next;
-  scheduleSave();
+
+  // La ficha `biz` va a disco AL MOMENTO; la foto se queda con el retardo.
+  //
+  // No son lo mismo. El hecho de que una cuenta sea business decide una
+  // expulsion y se apunta JUSTO ANTES de echarla —para que la prueba sobreviva
+  // si el kick falla—, o sea en el instante de mas movimiento. Perderlo en la
+  // ventana de 10 s significa redescubrirlo desde cero, y a veces no se puede
+  // (la cuenta ya no esta en el grupo para consultarle el perfil).
+  //
+  // La foto es otra cosa: se anota en casi cada mensaje cuando el anti-fake
+  // esta encendido. Esa SI necesita el debounce, o el bot escribe el fichero
+  // entero cada dos por tres.
+  if (biz === true) await flushNicks();
+  else scheduleSave();
 }
 
 // Todo lo que se sabe de un usuario, mirando TODAS sus formas (id, lid,

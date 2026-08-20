@@ -33,6 +33,7 @@ const { flushLinkPerms } = require('./utils/linkPerms');
 const { flushRobo } = require('./utils/roboStore');
 const { guardOnJoin, allForms } = require('./commands/fk');
 const { isBusiness, businessEvidence } = require('./utils/businessCheck');
+const { aplicarParticipantes, aplicarAUno } = require('./utils/participantes');
 const { getMemberFacts } = require('./utils/nickStore');
 const { ensureTemp, barrerHuerfanos } = require('./utils/helpers');
 const { gitCommit } = require('./utils/version');
@@ -275,9 +276,7 @@ async function sancionarPorAñadir(sock, groupJid, autor, meta, aDedo) {
 
   // 1) El admin, sin mando. Se mira el status porque WhatsApp contesta por
   //    participante y puede rechazar sin lanzar excepcion.
-  const res = await paso('demote', () => sock.groupParticipantsUpdate(groupJid, [autor], 'demote'));
-  const fila = Array.isArray(res) ? res[0] : null;
-  const degradado = res !== null && String(fila?.status ?? '200') === '200';
+  const degradado = await aplicarAUno(sock, groupJid, autor, 'demote', meta);
 
   // 2) Los que metió: fuera y a la lista negra, con todas sus formas (teléfono
   //    y @lid). Si solo se guardara una, vuelve a entrar con la otra.
@@ -285,8 +284,10 @@ async function sancionarPorAñadir(sock, groupJid, autor, meta, aDedo) {
   for (const quien of aDedo) {
     if (isOwner(quien, false, meta)) continue;
     await paso('ban', () => banAccount(allForms(quien, meta), `metido a dedo en ${groupJid}`, String(autor)));
-    await paso('kick', () => sock.groupParticipantsUpdate(groupJid, [quien], 'remove'));
-    vetados.push(quien);
+    // Se veta SIEMPRE (lo metieron a dedo, eso ya pasó) pero solo se anuncia
+    // como fuera a quien salió de verdad.
+    if (await aplicarAUno(sock, groupJid, quien, 'remove', meta)) vetados.push(quien);
+    else logger.warn(`anti-admin (añadir): no pude expulsar a ${quien} de ${groupJid}`);
   }
 
   const tag = (j) => `@${String(j).split('@')[0]}`;
@@ -668,9 +669,9 @@ function reintentarBusiness(sock, groupJid, kickId, phoneJid, intento = 0) {
       if (phoneJid && phoneJid !== kickId) await recordFacts(phoneJid, { biz: true }).catch(() => {});
 
       const meta = await sock.groupMetadata(groupJid).catch(() => null);
-      const res = await sock.groupParticipantsUpdate(groupJid, [kickId], 'remove');
-      const st = Array.isArray(res) ? String(res[0]?.status ?? '200') : '200';
-      if (st !== '200') return logger.warn(`Anti-empresa: kick rechazado (${st}) para ${kickId} en ${groupJid}`);
+      if (!await aplicarAUno(sock, groupJid, kickId, 'remove', meta)) {
+        return logger.warn(`Anti-empresa: kick rechazado para ${kickId} en ${groupJid}`);
+      }
 
       await banAccount(allForms(kickId, meta), `cuenta business al entrar en ${groupJid} (${ev.fields.join(', ')})`, 'auto').catch(() => {});
       sock.sendMessage(groupJid, {
@@ -833,12 +834,10 @@ function reintentarBusiness(sock, groupJid, kickId, phoneJid, intento = 0) {
           if (phoneJid && phoneJid !== kickId) await recordFacts(phoneJid, { biz: true }).catch(() => {});
 
           try {
-            const res = await sock.groupParticipantsUpdate(groupJid, [kickId], 'remove');
             // WhatsApp responde por participante. Sin mirarlo, el bot anunciaba
             // expulsiones que el servidor había rechazado y la cuenta seguía dentro.
-            const st = Array.isArray(res) ? String(res[0]?.status ?? '200') : '200';
-            if (st !== '200') {
-              logger.warn(`Anti-empresa: kick rechazado (${st}) para ${kickId} en ${groupJid}`);
+            if (!await aplicarAUno(sock, groupJid, kickId, 'remove', meta)) {
+              logger.warn(`Anti-empresa: kick rechazado para ${kickId} en ${groupJid}`);
               return;
             }
             // Y SE VETA, igual que hace la guarda de mensajes. Sin esto era una
@@ -958,27 +957,20 @@ function reintentarBusiness(sock, groupJid, kickId, phoneJid, intento = 0) {
 
         // Primero el degradado: es lo único que depende solo del bot y sale
         // siempre, aunque el re-alta se tuerza.
-        let degradado = false;
-        try {
-          const r = await sock.groupParticipantsUpdate(groupJid, [author], 'demote');
-          degradado = String((Array.isArray(r) ? r[0] : null)?.status ?? '200') === '200';
-        } catch (err) {
-          logger.warn(`Owner echado: no pude degradar a ${author} en ${groupJid}: ${err.message}`);
-        }
+        const degradado = await aplicarAUno(sock, groupJid, author, 'demote', meta);
+        if (!degradado) logger.warn(`Owner echado: no pude degradar a ${author} en ${groupJid}`);
 
         const vueltos = [];
         const sinAdmin = [];
         const invitados = [];
         const fallidos = [];
         for (const victima of echados) {
-          let fila = null;
-          try {
-            const r = await sock.groupParticipantsUpdate(groupJid, [victima], 'add');
-            fila = Array.isArray(r) ? r[0] : null;
-          } catch (err) {
-            logger.warn(`Owner echado: alta fallida de ${victima} en ${groupJid}: ${err.message}`);
-          }
-          const estado = String(fila?.status ?? '');
+          // El alta necesita el codigo exacto: un 403 significa "tiene la
+          // privacidad activa" y se le manda invitacion, que no es lo mismo que
+          // un fallo. Por eso aqui se mira `fallidos`, no solo `ok`.
+          const rAlta = await aplicarParticipantes(sock, groupJid, [victima], 'add', meta);
+          if (rAlta.error) logger.warn(`Owner echado: alta fallida de ${victima} en ${groupJid}: ${rAlta.error}`);
+          const estado = rAlta.ok.length ? '200' : String(rAlta.fallidos[0]?.status ?? '');
 
           if (estado === '200') {
             // Vuelve con el admin que tenía. El evento de promote lo firma el
@@ -987,16 +979,8 @@ function reintentarBusiness(sock, groupJid, kickId, phoneJid, intento = 0) {
             // Se comprueba el resultado en vez de lanzarlo y olvidarse: el aviso
             // afirma que vuelve CON su admin, y decirlo sin haberlo verificado
             // es exactamente el tipo de mentira que el resto del bot ya no dice.
-            let conAdmin = false;
-            try {
-              const r2 = await sock.groupParticipantsUpdate(groupJid, [victima], 'promote');
-              const f2 = Array.isArray(r2)
-                ? r2.find(x => (x?.jid || '').split('@')[0] === victima.split('@')[0])
-                : null;
-              conAdmin = String(f2?.status ?? '200') === '200';
-            } catch (err) {
-              logger.warn(`Owner echado: no pude devolverle el admin a ${victima}: ${err.message}`);
-            }
+            const conAdmin = await aplicarAUno(sock, groupJid, victima, 'promote', meta);
+            if (!conAdmin) logger.warn(`Owner echado: no pude devolverle el admin a ${victima}`);
             (conAdmin ? vueltos : sinAdmin).push(victima);
             continue;
           }
@@ -1063,22 +1047,17 @@ function reintentarBusiness(sock, groupJid, kickId, phoneJid, intento = 0) {
     // El anti-empresa y el bloque del owner echado de este mismo fichero ya
     // miraban el status. Esto pone a los tres reverts en el mismo criterio.
     //
-    // Sin fila para un jid se asume que fue bien, igual que hace el bloque del
-    // owner echado: WhatsApp no siempre responde por cada uno cuando todo va
-    // bien, y asumir el fallo llenaría el chat de "no he podido" falsos.
+    // Y ya NO se asume el 200 cuando falta la fila. Aqui ponia que asumir el
+    // fallo llenaria el chat de "no he podido" falsos, y era verdad mientras la
+    // fila se buscaba comparando digitos: se pide por telefono, WhatsApp
+    // contesta por @lid y no encontraba ninguna. El contrato unico cruza las
+    // dos formas por la metadata, asi que "sin fila" pasa a ser raro de verdad
+    // y ya se puede tratar como lo que es: no confirmado.
     const cambiarRango = async (jids, accion) => {
       if (!jids.length) return [];
-      try {
-        const res = await sock.groupParticipantsUpdate(groupJid, jids, accion);
-        const filas = Array.isArray(res) ? res : [];
-        return jids.filter((j) => {
-          const fila = filas.find(r => (r?.jid || '').split('@')[0] === j.split('@')[0]);
-          return String(fila?.status ?? '200') === '200';
-        });
-      } catch (err) {
-        logger.warn(`anti-admin: ${accion} fallo en ${groupJid}: ${err.message}`);
-        return [];
-      }
+      const r = await aplicarParticipantes(sock, groupJid, jids, accion, meta);
+      if (r.error) logger.warn(`anti-admin: ${accion} fallo en ${groupJid}: ${r.error}`);
+      return r.ok;
     };
     const tags = (a) => a.map(j => `@${j.split('@')[0]}`).join(', ');
 

@@ -79,10 +79,23 @@ if (fallos) {
 }
 
 // ─── 2. ¿Carga? ──────────────────────────────────────────────────────────────
+// SIN node_modules ESTO NO ES UN VERDE, ES UN "NO HE MIRADO".
+//
+// Aqui se salia con exit 0 y el mensaje "Sintaxis correcta", que en el script
+// de despliegue se lee igual que un check pasado: `if ! npm run check` no
+// distingue "todo bien" de "no he podido comprobar casi nada". Y lo que se
+// queda sin correr no es cualquier cosa —son las capas que deciden a quien se
+// echa del grupo: antilink, antiempresa y el freno de ruido.
+//
+// Es exactamente el mismo error que el antiempresa tenia con las cuentas sin
+// comprobar: tratar la ignorancia como si fuera una respuesta. Un despliegue a
+// medias (npm install a medio hacer, disco lleno) desplegaba los agujeros con
+// el semaforo en verde.
 if (!fs.existsSync(path.join(R, 'node_modules'))) {
-  console.log('\n2-3. CARGA y RESPONDE — saltadas (falta node_modules; corre `npm install`)');
-  console.log(verde('\nSintaxis correcta.'));
-  process.exit(0);
+  console.log('\n2-10. SALTADAS: falta node_modules.');
+  console.log(rojo('\nLa sintaxis esta bien, pero NO se ha comprobado nada de moderacion'));
+  console.log(rojo('(antilink, antiempresa, ruido). Corre `npm install` y repite.'));
+  process.exit(1);
 }
 
 process.env.OWNER_NUMBER = process.env.OWNER_NUMBER || '34600000000';
@@ -1058,7 +1071,7 @@ async function capaStores() {
     // propia ficha por delante.
     let fichado = false, ordenOk = true, sitios = 0;
     for (const m of botSrc.matchAll(
-      /(await recordFacts\(kickId, \{ biz: true \}\))|(sock\.groupParticipantsUpdate\(groupJid, \[kickId\], 'remove'\))/g)) {
+      /(await recordFacts\(kickId, \{ biz: true \}\))|(aplicarAUno\(sock, groupJid, kickId, 'remove')/g)) {
       if (m[1]) { fichado = true; continue; }
       sitios++;
       if (!fichado) ordenOk = false;
@@ -1074,6 +1087,40 @@ async function capaStores() {
       'la guarda de mensajes ya no consulta el perfil: quien entro antes de encender el modo no se mira nunca');
     exige(/perfilMirado/.test(mhSrc),
       'la consulta de perfil del primer mensaje perdio su freno: una consulta por linea es la via rapida al rate-limit');
+
+    // NADIE VUELVE A HABLAR CON groupParticipantsUpdate POR SU CUENTA.
+    //
+    // Habia siete copias de "echar y ver si salio" y cinco compartian el mismo
+    // fallo: `String(fila?.status ?? '200') === '200'`, o sea dar por hecho que
+    // salio cuando WhatsApp no devuelve fila para esa persona. Y no devolverla
+    // es lo normal: se pide por telefono y contesta por @lid, asi que la
+    // comparacion por digitos no encuentra nada. Medido: con la respuesta vacia
+    // el purge daba por expulsados a todos —y desde que veta, los vetaba.
+    //
+    // La excepcion es !add, que no es una expulsion y necesita el codigo crudo
+    // para distinguir "tiene la privacidad activa" de un fallo de verdad.
+    const llamadasCrudas = [];
+    for (const f of ['src/bot.js', 'src/handlers/messageHandler.js', 'src/utils/purge.js',
+                     'src/commands/group.js', 'src/commands/fk.js', 'src/commands/purgaNumero.js']) {
+      const src = fs.readFileSync(path.join(R, f), 'utf8');
+      for (const linea of src.split('\n')) {
+        if (!/sock\.groupParticipantsUpdate\(/.test(linea)) continue;
+        if (/^\s*(\/\/|\*)/.test(linea)) continue;      // comentarios no cuentan
+        if (/'add'\)/.test(linea)) continue;             // !add va aparte, a proposito
+        llamadasCrudas.push(`${f}: ${linea.trim().slice(0, 60)}`);
+      }
+    }
+    exige(llamadasCrudas.length === 0,
+      `alguien volvio a llamar a groupParticipantsUpdate a mano en vez de pasar por aplicarParticipantes: ${llamadasCrudas.join(' | ')}`);
+
+    // Y el contrato no puede volver a inventarse el 200.
+    // Se miran solo las lineas de CODIGO: el fichero cita el fallo antiguo en un
+    // comentario para explicarlo, y la primera version de esta guarda se cazaba
+    // a si misma con esa cita.
+    const partSrc = fs.readFileSync(path.join(R, 'src/utils/participantes.js'), 'utf8')
+      .split('\n').filter(l => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n');
+    exige(!/\?\?\s*'200'/.test(partSrc),
+      'el contrato unico volvio a asumir el 200 cuando falta la fila: es justo lo que venia a quitar');
 
     // El @lid sin telefono no puede volver a descartarse en el join.
     exige(!/no se puede comprobar si es Business`\);\s*\n\s*continue;/.test(botSrc),

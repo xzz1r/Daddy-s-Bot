@@ -21,6 +21,7 @@ const { getSender, isMainOwner, isBotJid, isBotAdmin, bareJid, canonicalJid, get
 const { banAccount } = require('../utils/banlist');
 const { extractNumber } = require('./pfp');
 const logger = require('../utils/logger');
+const { aplicarParticipantes } = require('../utils/participantes');
 
 // Pausa entre grupos. No es paranoia: groupParticipantsUpdate en ráfaga es
 // justo lo que dispara el rate-overlimit que ya sale en el log del bot.
@@ -128,15 +129,20 @@ async function cmdPurgaNumero(sock, msg, args, groupMeta) {
 
     if (!isBotAdmin(sock, meta)) { sinPermiso.push(nombre); continue; }
 
-    try {
-      await sock.groupParticipantsUpdate(gJid, [hit.p.id], 'remove');
+    // No basta con que la llamada no reviente: WhatsApp rechaza expulsiones
+    // devolviendo un codigo, sin excepcion ninguna. Aqui se contaba como
+    // expulsado igual y el grupo leia el aviso de veto por alguien que seguia
+    // dentro.
+    const r = await aplicarParticipantes(sock, gJid, [hit.p.id], 'remove', meta);
+    if (r.ok.length) {
       fuera.push(nombre);
       // El aviso va DESPUÉS de la expulsión: si el kick falla, el grupo no se
       // queda con el anuncio de algo que no llegó a pasar.
       await sock.sendMessage(gJid, avisoDeVeto(digitos)).catch(() => {});
-    } catch (e) {
-      fallos.push(`${nombre} (${e.message})`);
-      logger.warn(`!p: no pude expulsar de ${gJid}: ${e.message}`);
+    } else {
+      const porque = r.error || r.fallidos[0]?.status || 'sin respuesta';
+      fallos.push(`${nombre} (${porque})`);
+      logger.warn(`!p: no pude expulsar de ${gJid}: ${porque}`);
     }
     await espera(PAUSA_MS);
   }

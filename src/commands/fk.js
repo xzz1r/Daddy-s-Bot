@@ -9,7 +9,8 @@ const { resolveTarget, extractNumber } = require('./pfp');
 const { computeHash } = require('../utils/phash');
 const { recordAndMatch, matchOnly, markFake } = require('../utils/pfpStore');
 const { banAccount, unbanAccount, isBanned, banCount, listBanned } = require('../utils/banlist');
-const { isBusiness } = require('../utils/businessCheck');
+const { businessEvidence } = require('../utils/businessCheck');
+const { aplicarAUno } = require('../utils/participantes');
 const { isAntiFakeEnabled, toggleAntiFake } = require('../utils/state');
 const { faceSearch: lensoSearch, hasKey: lensoEnabled } = require('../utils/lenso');
 const { faceSearch: facecheckSearch, hasKey: facecheckEnabled } = require('../utils/facecheck');
@@ -287,9 +288,15 @@ async function cmdFk(sock, msg, args, groupMeta) {
     fetchPfp(sock, target),
     fetchAbout(sock, target),
     isBanned(forms),
+    // TRES ESTADOS TAMBIEN EN EL INFORME. Aqui se usaba isBusiness(), que
+    // aplana "no he podido comprobarlo" a "no es business" — y el informe se
+    // callaba justo en el caso que mas importa: el @lid sin telefono, que es
+    // como se presenta un suplantador. Decia lo mismo para "lo he mirado y es
+    // una cuenta normal" que para "no he podido mirar".
     (async () => {
       const phone = forms.find(f => f.endsWith('@s.whatsapp.net'));
-      return phone ? isBusiness(sock, phone).catch(() => false) : false;
+      if (!phone) return { estado: 'desconocido', fields: [] };
+      return businessEvidence(sock, phone).catch(() => ({ estado: 'desconocido', fields: [] }));
     })(),
   ]);
 
@@ -375,10 +382,13 @@ async function cmdFk(sock, msg, args, groupMeta) {
     }
   }
 
-  // Cuenta Business.
-  if (biz) {
+  // Cuenta Business. Solo puntua la prueba; lo desconocido se dice pero no
+  // suma, que es la diferencia entre informar y acusar.
+  if (biz?.estado === 'biz') {
     score += 2;
-    lines.push(`*Cuenta WhatsApp Business.*`);
+    lines.push(`*Cuenta WhatsApp Business* (${biz.fields.join(', ')}).`);
+  } else if (biz?.estado === 'desconocido') {
+    lines.push(`Business: sin comprobar (no responde o el número está oculto).`);
   }
 
   // Número oculto (solo LID, sin mapeo a teléfono conocido).
@@ -511,12 +521,8 @@ async function cmdFkBan(sock, msg, args, groupMeta) {
       p && [p.id, p.lid, p.phoneNumber].some(f => f && forms.includes(bareJid(f)))
     );
     if (inGroup) {
-      try {
-        await sock.groupParticipantsUpdate(jid, [inGroup.id], 'remove');
-        kicked = true;
-      } catch (e) {
-        logger.warn(`fkban: kick falló en ${jid}: ${e.message}`);
-      }
+      kicked = await aplicarAUno(sock, jid, inGroup.id, 'remove', groupMeta);
+      if (!kicked) logger.warn(`fkban: kick no confirmado en ${jid}`);
     }
   }
 
@@ -666,14 +672,16 @@ async function guardOnJoin(sock, groupJid, joiners, groupMeta) {
 
     const bannedAs = await isBanned(forms).catch(() => null);
     if (bannedAs) {
-      try {
-        await sock.groupParticipantsUpdate(groupJid, [obj.id], 'remove');
+      // Se anuncia solo si salio. Antes el aviso iba dentro del try junto al
+      // kick, asi que una expulsion rechazada por codigo (sin excepcion)
+      // publicaba "Expulsado" con la cuenta todavia dentro.
+      if (await aplicarAUno(sock, groupJid, obj.id, 'remove', groupMeta)) {
         await sock.sendMessage(groupJid, {
           text: `*Anti-fake:* @${String(obj.id).split('@')[0]} está en la lista negra (${shortAcc(bannedAs)}). Expulsado.`,
           mentions: [obj.id],
-        });
-      } catch (e) {
-        logger.warn(`anti-fake: kick de baneado falló en ${groupJid}: ${e.message}`);
+        }).catch(() => {});
+      } else {
+        logger.warn(`anti-fake: kick de baneado no confirmado en ${groupJid}`);
       }
       continue;
     }

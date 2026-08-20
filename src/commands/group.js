@@ -7,6 +7,7 @@ const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEna
 const { businessEvidence } = require('../utils/businessCheck');
 const { getMemberFacts, recordFacts } = require('../utils/nickStore');
 const { banAccount } = require('../utils/banlist');
+const { aplicarParticipantes, aplicarAUno } = require('../utils/participantes');
 const { allForms } = require('./fk');
 const { allow, disallow, listAllowed, MAX_AVISOS, DURACION_MS } = require('../utils/linkPerms');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
@@ -301,20 +302,18 @@ async function cmdKick(sock, msg, args, groupMeta) {
   }
 
   try {
-    // Single batch call to the WA API instead of one round-trip per user.
-    const res = await sock.groupParticipantsUpdate(jid, targets, 'remove');
-    // WhatsApp responde por participante y puede rechazar a unos y aceptar a
-    // otros. Anunciar la lista entera sin mirarlo hacía que el bot afirmara
-    // haber expulsado a gente que sigue sentada en el grupo.
-    const codigo = (t) => String(
-      (Array.isArray(res) ? res.find(r => (r?.jid || '').split('@')[0] === t.split('@')[0]) : null)?.status ?? '200'
-    );
-    const hechos  = targets.filter(t => codigo(t) === '200');
-    const fallidos = targets.filter(t => codigo(t) !== '200');
+    // Una sola llamada para todos, y el contrato unico decide quien salio.
+    // Aqui la fila se buscaba comparando digitos y, si no aparecia, se asumia
+    // el 200 — o sea que en un grupo LID (se pide por telefono, contesta por
+    // @lid) el bot anunciaba la lista entera como expulsada sin haber echado a
+    // nadie.
+    const r = await aplicarParticipantes(sock, jid, targets, 'remove', groupMeta);
+    const hechos   = r.ok;
+    const fallidos = r.fallidos.map(f => f.jid);
 
     let text;
     if (!hechos.length) {
-      text = `No se pudo expulsar a nadie: WhatsApp rechazó la operación (${codigo(targets[0])}).`;
+      text = `No se pudo expulsar a nadie: WhatsApp rechazó la operación (${r.error || r.fallidos[0]?.status || 'sin respuesta'}).`;
     } else {
       const tags = hechos.map(t => `@${t.split('@')[0]}`).join(', ');
       text = hechos.length === 1
@@ -486,9 +485,14 @@ async function cmdPromote(sock, msg, args, groupMeta) {
   }
 
   try {
-    await sock.groupParticipantsUpdate(jid, [target], 'promote');
+    // Se comprueba el resultado. Antes se lanzaba la llamada y se anunciaba el
+    // ascenso pasara lo que pasara: WhatsApp puede rechazarlo sin excepcion.
+    const hecho = await aplicarAUno(sock, jid, target, 'promote', groupMeta);
     const num = target.split('@')[0];
-    await sock.sendMessage(jid, { text: `@${num} ahora es admin.`, mentions: [target] }, { quoted: msg });
+    await sock.sendMessage(jid, {
+      text: hecho ? `@${num} ahora es admin.` : `No pude ascender a @${num}.`,
+      mentions: [target],
+    }, { quoted: msg });
   } catch (err) {
     await sock.sendMessage(jid, { text: `No pude ascender al usuario: ${err.message}` }, { quoted: msg });
   }
@@ -523,9 +527,12 @@ async function cmdDemote(sock, msg, args, groupMeta) {
   }
 
   try {
-    await sock.groupParticipantsUpdate(jid, [target], 'demote');
+    const hecho = await aplicarAUno(sock, jid, target, 'demote', groupMeta);
     const num = target.split('@')[0];
-    await sock.sendMessage(jid, { text: `@${num} degradado a miembro.`, mentions: [target] }, { quoted: msg });
+    await sock.sendMessage(jid, {
+      text: hecho ? `@${num} degradado a miembro.` : `No pude degradar a @${num}.`,
+      mentions: [target],
+    }, { quoted: msg });
   } catch (err) {
     await sock.sendMessage(jid, { text: `No pude degradar al usuario: ${err.message}` }, { quoted: msg });
   }

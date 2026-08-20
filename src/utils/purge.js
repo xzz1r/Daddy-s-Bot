@@ -14,6 +14,7 @@
 // que las dos versiones se separen y una acabe sin alguna de las garantias.
 
 const { isOwner, isBotJid, sameUser } = require('./wa');
+const { aplicarParticipantes } = require('./participantes');
 
 const SCAN_VALID_MS = 10 * 60 * 1000; // margen para revisar el scan antes de purgar
 
@@ -80,24 +81,21 @@ async function executePurge(sock, groupJid, detected, groupMeta) {
 
   if (!stillHere.length) return { status: 'vacio', spared };
 
-  let res;
-  try {
-    res = await sock.groupParticipantsUpdate(groupJid, stillHere.map(d => d.kickId), 'remove');
-  } catch (err) {
-    return { status: 'error', message: err.message };
-  }
+  // AQUI ESTABA LO GORDO. Habia un `statusOf` propio que devolvia '200' cuando
+  // no encontraba la fila de esa persona, y no encontrarla es lo normal: se
+  // pide el kick por telefono y WhatsApp contesta por @lid. Con el purge
+  // vetando desde hace dos commits, ese falso 200 no era un mensaje incorrecto
+  // sino un veto a alguien que sigue sentado en el grupo. Medido: con la
+  // respuesta vacia daba por expulsados a todos.
+  const r = await aplicarParticipantes(
+    sock, groupJid, stillHere.map(d => d.kickId), 'remove', groupMeta);
+  if (r.error) return { status: 'error', message: r.error };
 
-  // WhatsApp responde por participante. Sin detalle se asume que se hizo lo pedido.
-  const statusOf = (kickId) => {
-    if (!Array.isArray(res)) return '200';
-    const row = res.find(r => r?.jid && sameUser(r.jid, kickId));
-    return String(row?.status ?? '200');
-  };
-
+  const salio = (kickId) => r.ok.some(j => sameUser(j, kickId));
   return {
     status: 'ok',
-    done:   stillHere.filter(d => statusOf(d.kickId) === '200'),
-    failed: stillHere.filter(d => statusOf(d.kickId) !== '200'),
+    done:   stillHere.filter(d => salio(d.kickId)),
+    failed: stillHere.filter(d => !salio(d.kickId)),
     spared,
   };
 }

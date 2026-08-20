@@ -53,7 +53,18 @@ async function banAccount(forms, reason, by) {
     if (!store.accounts[f]) added++;
     store.accounts[f] = { reason: reason || 'sin motivo', at, by: by || null, aka: all };
   }
-  if (all.length) scheduleSave();
+  // A DISCO YA, no dentro de tres segundos.
+  //
+  // Un ban es irreversible y es la unica prueba de que esa cuenta no puede
+  // volver. El debounce de 3 s lo trataba igual que un contador de mensajes:
+  // si a pm2 le da por matar el proceso —tope de RAM, actualizacion, corte— en
+  // esa ventana, el veto no llego nunca al fichero y la cuenta vuelve a entrar
+  // con el enlace del grupo como si nada. Y justo despues de un ban viene una
+  // expulsion, que es cuando mas se mueve todo.
+  //
+  // El coste es un fichero pequeño escrito de forma atomica, y solo cuando se
+  // banea a alguien de verdad: no es un camino caliente.
+  if (all.length) await flushBanlist();
   return added;
 }
 
