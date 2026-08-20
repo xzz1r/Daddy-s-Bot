@@ -31,7 +31,12 @@ function onPlayCooldown(senderJid) {
 async function cmdPlay(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
 
-  if (!args.length) return;
+  // Callarse aqui no es prudencia, es dejar a la persona sin saber si el bot
+  // esta caido o si escribio mal. No cuesta red y no se cobra: el cobro va mas
+  // abajo.
+  if (!args.length) {
+    return sock.sendMessage(jid, { text: 'Uso: *!play <canción o enlace>*' }, { quoted: msg });
+  }
 
   const query = args.join(' ');
 
@@ -72,10 +77,16 @@ async function cmdPlay(sock, msg, args, groupMeta) {
       logger.error(`Download error: ${err.message}`);
       // Caso más común: la búsqueda no devolvió resultado en SoundCloud. Mensaje
       // claro para el grupo; el detalle técnico queda en el log.
-      const notFound = /no se encontr|no result|unable to|not found|nothing found/i.test(err.message);
-      const text = notFound
-        ? 'No encontré esa canción. Prueba con otro nombre o añade el artista.'
-        : 'No pude descargar la canción en este momento. Intenta de nuevo.';
+      // POR EL PORQUE, NO POR EL TEXTO. Aqui se adivinaba la causa haciendo
+      // un regex sobre el mensaje del error, y el downloader terminaba SIEMPRE
+      // con "No se encontró la canción completa" — que casa con ese regex. O
+      // sea que con las keys agotadas el grupo leia "no encontré esa canción"
+      // y la gente reescribia el nombre contra un cupo inexistente.
+      const text = {
+        'sin-cuota':     'Me he quedado sin cupo de descargas por ahora. Prueba más tarde.',
+        'red':           'No pude descargar la canción: fallo de red. Intenta de nuevo.',
+        'no-encontrada': 'No encontré esa canción. Prueba con otro nombre o añade el artista.',
+      }[err.causa] || 'No pude descargar la canción en este momento. Intenta de nuevo.';
       await reembolsar();
       return sock.sendMessage(jid, { text }, { quoted: msg });
     }
@@ -89,7 +100,7 @@ async function cmdPlay(sock, msg, args, groupMeta) {
     audioBuffer = result.buffer || await fs.readFile(result.filePath);
 
     if (audioBuffer.length > 25 * 1024 * 1024) {
-      if (!fromCache) cleanTemp(result.filePath).catch(() => {});
+      if (!fromCache && !result.compartido) cleanTemp(result.filePath).catch(() => {});
       await reembolsar();
       return sock.sendMessage(jid, { text: 'La canción pesa más de 25MB y no puede enviarse.' }, { quoted: msg });
     }
@@ -109,7 +120,10 @@ async function cmdPlay(sock, msg, args, groupMeta) {
 
   // Cache and cleanup (only if it was a fresh download). Pass the buffer we
   // already read so setCached doesn't re-read the file from disk.
-  if (!fromCache) {
+  // `compartido` = esta cancion la bajo OTRA peticion que iba en paralelo y
+  // este solo se colgo de ella. El fichero es suyo, asi que ni se borra (se lo
+  // quitaria de debajo mientras lo lee) ni se vuelve a guardar en cache.
+  if (!fromCache && !result.compartido) {
     // Guarda quién pidió la canción (nombre de WhatsApp) para !cachelist. El
     // owner principal (+33) queda excluido: sus pedidos no muestran solicitante.
     const requester = isMainOwner(getSender(msg), msg.key.fromMe) ? '' : (msg.pushName || '').trim();

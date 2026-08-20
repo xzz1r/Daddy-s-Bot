@@ -5,6 +5,7 @@ const axios = require('axios');
 const config = require('../config');
 const { tempFile, cleanTemp } = require('./helpers');
 const { ffprobePath } = require('./ffmpeg');
+const { cacheKey } = require('./musicCache');
 const logger = require('./logger');
 
 // Fuentes de música para !play, en cadena, buscando siempre la canción COMPLETA:
@@ -18,6 +19,13 @@ const logger = require('./logger');
 
 const MIN_FULL_SECONDS = 45;   // por debajo se considera preview/recorte
 const SC_CANDIDATES = 4;       // resultados de SoundCloud a probar
+// Cuantos candidatos se prueban A LA VEZ. Iban de uno en uno y cada yt-dlp
+// puede irse a su timeout de 180 s, asi que cuatro previews seguidas eran doce
+// minutos de espera. De dos en dos se parte por la mitad sin pasarse: son dos
+// yt-dlp por hueco del semaforo y el semaforo permite dos, o sea cuatro
+// procesos como mucho. En 1 GB de RAM tres por hueco (seis procesos) ya es
+// jugarsela, y por eso no son tres.
+const SC_PARALELO = 2;
 const MAX_BYTES = 25 * 1024 * 1024;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -261,6 +269,10 @@ async function tryRapidApi(query) {
   if (!videoId) throw new Error('no se encontró el video');
 
   let lastErr = null;
+  // Se recuerda si ALGUNA key se quedo sin cupo, no solo la ultima. Sin esto,
+  // dos keys seca y una tercera que falla por otra cosa daba un error sin
+  // marca de cuota y el grupo leia "no encontré esa canción".
+  let huboCuota = false;
   for (const i of ordenDeKeys()) {
     try {
       const r = await fetchFromProvider(videoId, PROVIDERS[i]);
@@ -268,6 +280,7 @@ async function tryRapidApi(query) {
       return r;
     } catch (err) {
       lastErr = err;
+      if (err.quota) huboCuota = true;
       // "preview" es propiedad del vídeo (mismo videoId en todas las keys):
       // rotar repetiría la conversión para el mismo id y volvería a dar preview,
       // gastando tiempo en todas las keys. Es terminal para RapidAPI → que el
@@ -280,7 +293,9 @@ async function tryRapidApi(query) {
       continue;
     }
   }
-  throw lastErr || new Error('la API de terceros falló');
+  const fin = lastErr || new Error('la API de terceros falló');
+  if (huboCuota) fin.quota = true;
+  throw fin;
 }
 
 // ── Vía 2: SoundCloud (respaldo) ──────────────────────────────────────────────
@@ -348,33 +363,104 @@ async function trySoundCloud(query) {
     urls = out.split('\n').map(l => l.trim()).filter(u => /^https?:\/\//i.test(u));
   } catch {}
   if (!urls.length) throw new Error('sin resultados en SoundCloud');
+
+  // De dos en dos, y el primero que traiga la cancion completa gana. Los demas
+  // del lote se descartan CON SU FICHERO: si dos terminan bien a la vez y solo
+  // se devuelve uno, el otro se queda en el disco para siempre. En un temp que
+  // nadie barre eso es una fuga lenta, que es la peor clase.
   let lastErr = null;
-  for (const url of urls) {
-    try { return await scDownloadOne(url); }
-    catch (err) { lastErr = err; continue; } // preview u otro fallo: siguiente
+  for (let i = 0; i < urls.length; i += SC_PARALELO) {
+    const lote = urls.slice(i, i + SC_PARALELO);
+    const hechos = await Promise.allSettled(lote.map(u => scDownloadOne(u)));
+
+    let ganador = null;
+    for (const h of hechos) {
+      if (h.status === 'rejected') { lastErr = h.reason; continue; }
+      if (!ganador) ganador = h.value;
+      else cleanTemp(h.value.filePath).catch(() => {});   // el que llego tarde
+    }
+    if (ganador) return ganador;
   }
   throw lastErr || new Error('sin versión completa en SoundCloud');
 }
 
 // ── Entrada ───────────────────────────────────────────────────────────────────
-async function downloadAudio(query) {
-  await acquireDownloadSlot();
+// EL PORQUE, NO SOLO EL QUE. Todo acababa en un unico
+// `No se encontró la canción completa`, y arriba music.js lo pasaba por un
+// `/no se encontr/` para decidir el mensaje — o sea que ese if SIEMPRE daba la
+// misma rama. Con las keys agotadas el grupo leia "no encontré esa canción" y
+// la gente reescribia el nombre una y otra vez contra un cupo que no existia.
+//
+// Ahora el error lleva `causa` y el comando decide con eso, no adivinando por
+// el texto.
+async function intentar(query) {
+  let sinCuota = false;
   try {
-    // 1) API de terceros (YouTube en IP limpia). Si no hay key o falla, respaldo.
+    return await tryRapidApi(query);
+  } catch (apiErr) {
+    if (apiErr.quota) sinCuota = true;
+    // "sin RAPIDAPI_KEY" no es quedarse sin cupo: es no haberlo tenido nunca.
+    logger.warn(`!play: API de terceros no disponible (${apiErr.message}); probando SoundCloud`);
+  }
+  try {
+    return await trySoundCloud(query);
+  } catch (scErr) {
+    logger.warn(`!play: SoundCloud tampoco dio la canción (${scErr.message})`);
+    const err = new Error('No se encontró la canción completa');
+    // Si RapidAPI se quedo sin cupo, el fallo de SoundCloud es secundario: lo
+    // que hay que decir es que la via principal esta agotada.
+    err.causa = sinCuota ? 'sin-cuota'
+      : /red|network|timeout|ECONN|ENOTFOUND|socket/i.test(scErr.message) ? 'red'
+      : 'no-encontrada';
+    throw err;
+  }
+}
+
+// UNA DESCARGA POR CANCION, AUNQUE LA PIDAN VARIOS A LA VEZ.
+//
+// Dos `!play` de lo mismo casi a la vez eran dos busquedas, dos conversiones de
+// la API (dos llamadas de un cupo gratis que se cuenta al mes) y dos ficheros
+// bajados. Es el mismo patron que ya usa la metadata de grupo en el handler,
+// pero aqui lo que se ahorra no es latencia: es cuota y ancho de banda.
+//
+// El segundo NO coge hueco del semaforo: se cuelga de la promesa del primero.
+// Asi que ademas deja de ocupar uno de los dos huecos que tiene el VPS.
+//
+// La clave es la de la CACHE, no el texto crudo: "blinding lights" y
+// "Blinding Lights official video" son la misma peticion y ya lo eran para el
+// cache; seria raro que aqui no lo fueran.
+const enVuelo = new Map();   // cacheKey -> promesa
+
+async function downloadAudio(query) {
+  const clave = cacheKey(query);
+  const yaVa = enVuelo.get(clave);
+  if (yaVa) {
+    // El seguidor recibe el MISMO objeto, con el buffer ya leido y marcado
+    // como compartido: no debe borrar el fichero (lo borra quien lo bajo) ni
+    // volver a guardarlo en cache. Si lo hiciera, borraria el fichero por
+    // debajo del otro mientras lo esta leyendo.
+    const r = await yaVa;
+    return { ...r, compartido: true };
+  }
+
+  const tarea = (async () => {
+    await acquireDownloadSlot();
     try {
-      return await tryRapidApi(query);
-    } catch (apiErr) {
-      logger.warn(`!play: API de terceros no disponible (${apiErr.message}); probando SoundCloud`);
+      const r = await intentar(query);
+      // El buffer se lee AQUI, antes de resolver, para que quien esperaba tenga
+      // los bytes en mano pase lo que pase con el fichero despues.
+      const buffer = r.buffer || await fs.readFile(r.filePath);
+      return { ...r, buffer };
+    } finally {
+      releaseDownloadSlot();
     }
-    // 2) SoundCloud.
-    try {
-      return await trySoundCloud(query);
-    } catch (scErr) {
-      logger.warn(`!play: SoundCloud tampoco dio la canción (${scErr.message})`);
-      throw new Error('No se encontró la canción completa');
-    }
+  })();
+
+  enVuelo.set(clave, tarea);
+  try {
+    return await tarea;
   } finally {
-    releaseDownloadSlot();
+    enVuelo.delete(clave);
   }
 }
 

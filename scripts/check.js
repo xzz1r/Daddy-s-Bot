@@ -1325,6 +1325,47 @@ async function capaStores() {
     }
   }
 
+  // ── 11. !play NO BAJA LA MISMA CANCION DOS VECES NI BORRA FICHERO AJENO ───
+  //
+  // El single-flight ahorra cuota, pero abre un fallo nuevo que no existia
+  // antes: dos peticiones comparten UN fichero. Si la que se colgo de la otra
+  // lo borra al terminar, se lo quita de debajo a quien lo bajo — y peor, si lo
+  // vuelve a guardar en cache, la cache apunta a un fichero que ya no esta.
+  // Por eso esto se vigila: el ahorro no puede pagarse con audios rotos.
+  {
+    console.log('\n11. !play NO REPITE DESCARGA NI PISA FICHEROS');
+    const dl = fs.readFileSync(path.join(R, 'src/utils/downloader.js'), 'utf8');
+    const mu = fs.readFileSync(path.join(R, 'src/commands/music.js'), 'utf8');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    exige(/enVuelo\.set\(clave, tarea\)/.test(dl) && /enVuelo\.delete\(clave\)/.test(dl),
+      'el single-flight de !play perdio su registro o su limpieza: si no se borra la clave al terminar, una descarga fallida deja esa cancion muerta para siempre');
+
+    // El buffer se lee ANTES de resolver. Si se resolviera antes, quien esperaba
+    // podria encontrarse el fichero ya borrado por el que lo bajo.
+    const iBuf = dl.indexOf('const buffer = r.buffer || await fs.readFile(r.filePath)');
+    const iRet = dl.indexOf('return { ...r, buffer }');
+    exige(iBuf !== -1 && iRet !== -1 && iBuf < iRet,
+      'el single-flight resuelve antes de leer el buffer: quien esperaba puede quedarse sin fichero');
+
+    // Las DOS de music.js: ni borrar ni recachear lo que no es tuyo.
+    const borra = /if \(!fromCache && !result\.compartido\) cleanTemp/.test(mu);
+    const cachea = /if \(!fromCache && !result\.compartido\) \{/.test(mu);
+    exige(borra && cachea,
+      'una peticion compartida volvio a borrar o recachear el fichero de otra: audio roto para quien lo bajo');
+
+    // SoundCloud en paralelo: el que llega tarde tambien ocupa disco.
+    exige(/cleanTemp\(h\.value\.filePath\)/.test(dl),
+      'los candidatos de SoundCloud que ganan tarde ya no se borran: fuga lenta en temp, que es la peor clase');
+
+    // Y el error tiene que decir por que, no adivinarse por el texto.
+    exige(/err\.causa = sinCuota \? 'sin-cuota'/.test(dl) && /\[err\.causa\]/.test(mu),
+      '!play volvio a adivinar la causa del fallo por el texto del error: con las keys secas el grupo lee "no encontré esa canción"');
+
+    if (fallos === antes) console.log(verde('   ✓ una descarga por cancion, sin ficheros huerfanos ni causas inventadas'));
+  }
+
   console.log(`\n${'─'.repeat(70)}`);
   if (fallos) {
     console.log(rojo(`${fallos} fallo(s). NO commitees esto.`));
