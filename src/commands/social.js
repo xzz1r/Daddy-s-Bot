@@ -260,7 +260,7 @@ async function cmdHelp(sock, msg, groupMeta) {
   // El menu se lee en un movil, de una sentada. Cada linea que sobra empuja
   // hacia abajo la que alguien necesitaba, asi que va condensado a proposito:
   //
-  //  · musica, stickers, IA y perfil se juntan en HERRAMIENTAS, que es lo que
+  //  · musica, stickers y perfil se juntan en HERRAMIENTAS, que es lo que
   //    son (antes eran cuatro cabeceras para ocho comandos);
   //  · WINGMAN cae dentro de DINAMICAS: eran tres comandos con su propia
   //    cabecera y su propia nota repetida, y funcionan igual que el resto;

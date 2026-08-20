@@ -1851,6 +1851,13 @@ async function handleMessage(sock, msg) {
   // silencia nadie. Con la metadata resuelve todas sus formas de JID.
   if (isMuted(jid, sender) && !isOwner(sender, msg.key.fromMe, peekGroupMeta(jid))) return;
 
+  // Visto solo aqui, y sin await: si corriera en cada mensaje del grupo
+  // WhatsApp ve un lector automatico. En un comando, marcar leido en paralelo
+  // con la respuesta no le pone un round-trip delante.
+  if (config.autoRead && !msg.key.fromMe) {
+    sock.readMessages?.([msg.key]).catch(() => {});
+  }
+
   logger.cmd(sender.split('@')[0], `${config.prefix}${command} ${args.join(' ')}`);
   incrementStat('commandsExecuted');
 

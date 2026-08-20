@@ -39,7 +39,6 @@ const { ensureTemp, barrerHuerfanos } = require('./utils/helpers');
 const { gitCommit } = require('./utils/version');
 const { VF_STATIC } = require('./utils/sticker');
 const logger = require('./utils/logger');
-const config = require('./config');
 
 const AUTH_DIR = path.join(__dirname, '../data/auth');
 
@@ -1208,9 +1207,8 @@ function reintentarBusiness(sock, groupJid, kickId, phoneJid, intento = 0) {
       // handleMessage runs first so its sock.sendMessage is queued BEFORE readMessages.
       // Swapping the order would add one extra WA round-trip in front of every command response.
       handleMessage(sock, msg).catch(err => logger.error(`handleMessage error: ${err.message}`));
-      if (config.autoRead && !msg.key.fromMe && msg.key.remoteJid) {
-        sock.readMessages([msg.key]).catch(() => {});
-      }
+      // El visto va SOLO en comandos (messageHandler), no en cada linea del
+      // grupo: marcar leido todo es trafico extra y cara de bot.
     }
   });
 

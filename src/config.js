@@ -22,6 +22,7 @@ const config = {
     .map(n => n.replace(/\D/g, ''))
     .filter(Boolean),
 
+  // Solo se usa en comandos (messageHandler), no en cada mensaje del grupo.
   autoRead: true,
 
   // Key de la API de búsqueda facial de Lenso.ai (plan Developer). Opcional:

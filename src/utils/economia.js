@@ -1028,7 +1028,7 @@ const DUELO = {
 const PRECIOS = {
   // ─── Lo que consume recursos de verdad ─────────────────────────────────────
   tovid: 70,   // transcodifica el vídeo entero con preset slow: lo más caro
-  grok: 50,    // llamada a la IA, con su cuota
+  grok: 50,    // !g — la llamada más cara, con su cuota
   sticker: 45, // !s — un ffmpeg por cada uno
   toimg: 45,
   play: 50,    // canción: ancho de banda + cuota de RapidAPI + ffmpeg

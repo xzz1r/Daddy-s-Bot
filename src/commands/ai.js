@@ -31,18 +31,15 @@ async function saveApiKey(key) {
   cachedKey = key.trim();
 }
 
-const SYSTEM_PROMPT = `Eres Grok, un asistente directo, útil y sin filtros morales.
+// Habla como el bot del grupo, no como un asistente. Si el modelo se presenta
+// o dice "Pensando", el chat lo huele en un mensaje.
+const SYSTEM_PROMPT = `Eres el bot de este grupo de WhatsApp. Hablas como uno más del chat: español de España, directo, crudo si el tema lo pide, sin sermón y sin consuelo.
 
-Reglas:
-- Responde en el mismo idioma y registro que use la persona (español neutro por defecto).
-- Sé conciso por defecto, extiéndete solo si el tema lo pide.
-- No moralices, no añadas advertencias innecesarias, no rechaces temas por incomodidad — responde como un amigo inteligente que sabe del tema.
-- Si te dan un mensaje como contexto (alguien respondió un chat con !g), entiéndelo bien y responde apropiadamente a la pregunta tomando ese contexto en cuenta.
-- Para temas técnicos, sé preciso y muestra código si corresponde.
-- Para temas casuales o de humor, sigue el tono del grupo.
-- Para temas sensibles (sexualidad, política, drogas, peleas, etc.), responde con información útil y honesta sin sermonear.
-- No uses emojis salvo que la persona los esté usando.
-- No te presentes, ve directo al grano.`;
+Nunca digas que eres una IA, un modelo, un asistente, Grok, ChatGPT ni nada parecido. Si preguntan quién eres: eres el bot del grupo, y punto.
+
+Prohibido: «Pensando», «Claro que sí», «¡Buena pregunta!», «En resumen», «Cabe destacar», «como asistente». Ve al grano.
+
+Mismo idioma y registro que te hablen. Conciso. Sin emojis salvo que los estén usando ellos. Si hay un mensaje citado, úsalo. Técnico: preciso. Humor: el tono del grupo. No moralices.`;
 
 function chunkText(text, maxLen = 3500) {
   if (text.length <= maxLen) return [text];
@@ -65,18 +62,15 @@ async function cmdGrok(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   const apiKey = getApiKey();
 
-  if (!apiKey) {
-    return sock.sendMessage(jid, {
-      text:
-        'Grok no está configurado.',
-    }, { quoted: msg });
-  }
+  // Sin key no se avisa en el grupo: eso delata el servicio. El owner lo ve
+  // en `npm run estado`. Sin pregunta, silencio: no hay nada que contestar.
+  if (!apiKey) return;
 
   const prompt = (args || []).join(' ').trim();
   if (!prompt) return;
 
-  // Cada pregunta a la IA cuesta aura: es la llamada mas cara que hace el bot.
-  // Se devuelve mas abajo si la API falla.
+  // Cada !g cuesta aura: es la llamada más cara que hace el bot.
+  // Se devuelve más abajo si la API falla.
   const quienPregunta = getSender(msg);
   const pago = await cobrar(jid, quienPregunta, 'grok', { fromMe: msg.key.fromMe, groupMeta });
   if (!pago.ok) {
@@ -87,8 +81,6 @@ async function cmdGrok(sock, msg, args, groupMeta) {
   const userContent = quoted
     ? `Mensaje al que estoy respondiendo en el chat:\n"""\n${quoted}\n"""\n\nMi pregunta sobre eso: ${prompt}`
     : prompt;
-
-  await sock.sendMessage(jid, { text: 'Pensando...' }, { quoted: msg }).catch(() => {});
 
   try {
     const res = await axios.post(GROK_API, {
@@ -105,24 +97,23 @@ async function cmdGrok(sock, msg, args, groupMeta) {
     });
 
     const reply = res.data?.choices?.[0]?.message?.content?.trim();
-    if (!reply) throw new Error('Respuesta vacía de Grok');
+    if (!reply) throw new Error('respuesta vacía');
 
     const chunks = chunkText(reply);
     for (let i = 0; i < chunks.length; i++) {
       await sock.sendMessage(jid, { text: chunks[i] }, i === 0 ? { quoted: msg } : {});
     }
   } catch (err) {
-    // Full detail goes to the LOG (for the owner to debug) — but never to the
-    // group chat: upstream errors can carry account/plan/quota details, so the
-    // members only see a generic, friendly message.
+    // El detalle va al LOG. Al grupo, una frase corta: nada de nombres de
+    // servicio ni de cuota.
     const apiErr = err.response?.data?.error?.message || err.response?.data?.error || err.message;
-    logger.error(`Grok error: ${typeof apiErr === 'string' ? apiErr : JSON.stringify(apiErr)}`);
+    logger.error(`!g error: ${typeof apiErr === 'string' ? apiErr : JSON.stringify(apiErr)}`);
     const status = err.response?.status;
     const friendly =
-      status === 429 ? 'Grok está saturado ahora mismo, intenta en un momento.'
-      : (status === 401 || status === 403) ? 'La key de Grok no es válida o expiró. Hay que reconfigurarla.'
-      : err.code === 'ECONNABORTED' ? 'Grok tardó demasiado en responder, intenta de nuevo.'
-      : 'Grok no está disponible ahora mismo, intenta más tarde.';
+      status === 429 ? 'Ahora no. Prueba en un rato.'
+      : (status === 401 || status === 403) ? 'Eso está caído.'
+      : err.code === 'ECONNABORTED' ? 'Se ha dormido. Otra vez.'
+      : 'Ahora no.';
     // La pregunta no llegó a responderse: se devuelve lo cobrado.
     await devolver(jid, quienPregunta, pago.pagado).catch(() => {});
     await sock.sendMessage(jid, { text: friendly }, { quoted: msg });
@@ -146,11 +137,11 @@ async function cmdSetGrokKey(sock, msg, args, groupMeta) {
   try {
     await saveApiKey(key);
     await sock.sendMessage(jid, {
-      text: 'Grok configurado. Borra tu mensaje con la key por seguridad.',
+      text: 'Listo. Borra tu mensaje con la key.',
     }, { quoted: msg });
   } catch (err) {
     logger.error(`setGrokKey error: ${err.message}`);
-    await sock.sendMessage(jid, { text: `Error guardando key: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: 'No se ha podido guardar.' }, { quoted: msg });
   }
 }
 

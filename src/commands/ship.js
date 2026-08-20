@@ -254,7 +254,7 @@ const VERDICTS = {
     'Compatibles como un paraguas roto en pleno huracán.',
     'Estos dos generan tanta tensión como dos gatos metidos en el mismo saco.',
     'Su amor tiene la efervescencia de un refresco que lleva tres días destapado.',
-    'Ni una inteligencia artificial se atrevería a emparejar a estos dos, joder.',
+    'Ni un vidente borracho se atrevería a emparejar a estos dos, joder.',
     'Esto es tan improbable como que un gilipollas gane la lotería dos veces seguidas, pero al revés.',
     'Se llevan tan mal que hasta las cucarachas del bar se cambiaron de sitio.',
     'Su compatibilidad cabe en el hueco de una uña, y aun así sobra espacio.',
