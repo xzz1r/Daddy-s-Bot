@@ -36,10 +36,19 @@ const TRAFICO = {
 // de arriba —como se hacía— exageraba un tramo y enterraba los otros dos.
 const TRAFICO_UNIFORME = { high: 31 / 101, mid: 39 / 101, low: 31 / 101 };
 
-// La ventana anti-repetición de pickFresh(pool, key, window = 50). Se recorta
-// sola a pool.length-1 para no bloquear un pool entero.
+// La ventana anti-repetición de pickFresh(pool, key, window = 50).
+//
+// ESTA CUENTA ESTABA MAL Y HE ESTADO DANDO NUMEROS INFLADOS. Decia
+// `min(VENTANA, n-1)`, que es el tope VIEJO de pickFresh. helpers.js lo cambio
+// hace tiempo a un tope del 60 % del pool —y lo dejo escrito— pero esta linea
+// se quedo con la formula antigua. Resultado: un pool de 50 salia con "1 frase
+// libre" cuando de verdad tiene 20, y este validador llevaba tiempo marcando
+// como ROTO lo que estaba sano.
+//
+// Tiene que decir lo MISMO que helpers.js:
+//   const block = hist.slice(-Math.min(window, Math.floor(pool.length * 0.6)));
 const VENTANA = 50;
-const libres = (n) => n - Math.min(VENTANA, Math.max(0, n - 1));
+const libres = (n) => n - Math.min(VENTANA, Math.floor(n * 0.6), Math.max(0, n - 1));
 
 // Misma definición de "frase" que scripts/placeholders.js: un literal largo en
 // su propia línea y terminado en coma.
@@ -127,9 +136,18 @@ const CRITICO = (f) => f.tramo !== 'extreme' && f.n < 10;
 const ROTO  = (f) => !CRITICO(f) && f.prob >= 0.30 && f.libres <= 5;
 const FLOJO = (f) => !CRITICO(f) && f.prob >= 0.30 && f.libres <= 20 && !ROTO(f);
 
-// Frases que harían falta para que el tramo tenga holgura real: la ventana
-// entera más un margen de maniobra proporcional al tráfico que soporta.
-const objetivo = (f) => (f.prob >= 0.30 ? VENTANA + 150 : VENTANA + 10);
+// Los topes que fijo el dueño, A LA MITAD del estandar anterior: menos frases
+// y solo las duras, porque con la eleccion plana la peor sale tanto como la
+// mejor y el relleno hace danyo de verdad.
+//
+// POR TRAFICO, NO POR NOMBRE DE TRAMO. Es la misma trampa de siempre: en los
+// comandos positivos (linda, sexy, crack, ganador, feminidad, masculinidad) el
+// tramo que se lee es `low` con el 52 %, y `high` solo el 17 %. Aplicar
+// "high=100, el resto 25" por el nombre le da cuatro veces mas frases al tramo
+// que se ve tres veces menos.
+//
+//   el que mas sale 100 · el intermedio 50 · el raro 25
+const objetivo = (f) => (f.prob >= 0.50 ? 100 : f.prob >= 0.25 ? 50 : 25);
 
 const criticos = filas.filter(CRITICO).sort((a, b) => a.n - b.n);
 const rotos  = filas.filter(ROTO).sort((a, b) => b.prob - a.prob);

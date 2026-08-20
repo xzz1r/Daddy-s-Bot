@@ -12,7 +12,7 @@
 // Dos criterios, los dos objetivos:
 //
 //   TAMANYO  frases suficientes para su trafico, con los topes acordados:
-//            el tramo que mas sale 200, el intermedio 100, el raro 50.
+//            el tramo que mas sale 100, el intermedio 50, el raro 25.
 //   FILO     al menos la mitad de las frases con vocabulario del arsenal, y
 //            SOLO en los pools cuyo trabajo es hacer danyo. En los de halago
 //            no se exige: ahi la crudeza no pinta nada.
@@ -83,9 +83,12 @@ for(const rel of OTROS){
 let pesoOk=0,pesoTot=0,cumplen=0;const fallan=[];
 for(const f of filas){
   const n=f.P.length;
-  // Los topes que fijo el dueño, por trafico y no por nombre de tramo:
-  //   el que mas sale 200 · el intermedio 100 · el raro 50
-  const objetivo = f.traf>=0.50 ? 200 : f.traf>=0.25 ? 100 : 50;
+  // Los topes que fijo el dueño, A LA MITAD del estandar anterior, y por
+  // TRAFICO — no por nombre de tramo. En los positivos el tramo que se lee es
+  // `low` con el 52 %; ir por el nombre le daria las frases al `high`, que solo
+  // sale el 17 %.
+  //   el que mas sale 100 · el intermedio 50 · el raro 25
+  const objetivo = f.traf>=0.50 ? 100 : f.traf>=0.25 ? 50 : 25;
   const con=f.P.filter(tieneArsenal).length;
   const ars=con/n;
   // El objetivo es una DIANA, no un acantilado. Sin margen, un pool de 199

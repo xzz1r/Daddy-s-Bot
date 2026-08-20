@@ -356,13 +356,19 @@ sale es `high`, con el 87 % de las tiradas. En los **positivos** (`linda`,
 `ganador`, `sexy`, `crack`, `feminidad`, `masculinidad`) el que más sale es
 **`low`**, con el 52 %, y `high` solo el 17 %.
 
+**El dueño bajó los topes a la mitad**: con la elección plana (sección 5.1) la
+peor frase de un pool sale tanto como la mejor, así que el relleno no es neutro
+—hace daño—. Mejor pool corto y filoso que inflado.
+
 | | high | mid | low |
 |---|---|---|---|
-| **Negativos** | **200** | 50 | 50 |
-| **Positivos** | 50 | 100 | **200** |
+| **Negativos** | **100** | 25 | 25 |
+| **Positivos** | 25 | 50 | **100** |
 
-Unas 300 por comando. Aplicar la regla por el nombre del tramo en vez de por el
-tráfico pone 200 frases donde casi nadie las lee y 50 donde caen todas.
+Unas 150 por comando. **Aplicar la regla por el nombre del tramo en vez de por
+el tráfico es el error que ya se cometió una vez**: dejó a `!linda`, `!sexy`,
+`!crack` y `!ganador` con 100 frases en el tramo que se ve el 17 % de las veces
+y 25 en el que se ve el 52 %. Cuatro veces más frases donde casi nadie mira.
 
 Fuera de `percent.js` la regla es la misma pero mirando el pool concreto:
 
