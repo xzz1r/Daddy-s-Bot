@@ -1088,6 +1088,30 @@ async function capaStores() {
     exige(/perfilMirado/.test(mhSrc),
       'la consulta de perfil del primer mensaje perdio su freno: una consulta por linea es la via rapida al rate-limit');
 
+    // !add NO VUELVE. Se quito porque meter numeros desconocidos en un grupo es
+    // la peticion que mas facil hace que WhatsApp marque la cuenta del bot, y
+    // perder la cuenta cuesta mucho mas que no tener el comando. Que no se
+    // reintroduzca sin querer al copiar un bloque de otro comando.
+    for (const [f, src] of [['src/commands/group.js', grpSrc],
+                            ['src/handlers/messageHandler.js', mhSrc]]) {
+      exige(!/\bcmdAdd\b/.test(src), `${f} vuelve a tener cmdAdd: !add se quito a proposito`);
+      exige(!/case 'agregar':/.test(src), `${f} vuelve a despachar !agregar`);
+    }
+    // Y ninguna llamada de alta a mano, venga de donde venga. El unico alta que
+    // queda es la del owner expulsado, y esa pasa por el contrato.
+    const altasCrudas = [];
+    for (const f of ['src/bot.js', 'src/handlers/messageHandler.js', 'src/commands/group.js',
+                     'src/commands/fk.js', 'src/commands/purgaNumero.js', 'src/utils/purge.js']) {
+      const src = fs.readFileSync(path.join(R, f), 'utf8');
+      for (const linea of src.split('\n')) {
+        if (/sock\.groupParticipantsUpdate\([^)]*'add'\)/.test(linea) && !/^\s*(\/\/|\*)/.test(linea)) {
+          altasCrudas.push(`${f}: ${linea.trim().slice(0, 50)}`);
+        }
+      }
+    }
+    exige(altasCrudas.length === 0,
+      `alguien mete gente en grupos a mano otra vez: ${altasCrudas.join(' | ')}`);
+
     // NADIE VUELVE A HABLAR CON groupParticipantsUpdate POR SU CUENTA.
     //
     // Habia siete copias de "echar y ver si salio" y cinco compartian el mismo
@@ -1097,8 +1121,11 @@ async function capaStores() {
     // comparacion por digitos no encuentra nada. Medido: con la respuesta vacia
     // el purge daba por expulsados a todos —y desde que veta, los vetaba.
     //
-    // La excepcion es !add, que no es una expulsion y necesita el codigo crudo
-    // para distinguir "tiene la privacidad activa" de un fallo de verdad.
+    // Ya no hay excepciones. La habia para !add, que necesitaba el codigo crudo
+    // para distinguir "tiene la privacidad activa" de un fallo de verdad, pero
+    // !add se quito entero: era la via mas rapida a que WhatsApp marque la
+    // cuenta, porque pedir meter numeros desconocidos en grupos es exactamente
+    // lo que su antiabuso vigila.
     const llamadasCrudas = [];
     for (const f of ['src/bot.js', 'src/handlers/messageHandler.js', 'src/utils/purge.js',
                      'src/commands/group.js', 'src/commands/fk.js', 'src/commands/purgaNumero.js']) {
@@ -1106,7 +1133,6 @@ async function capaStores() {
       for (const linea of src.split('\n')) {
         if (!/sock\.groupParticipantsUpdate\(/.test(linea)) continue;
         if (/^\s*(\/\/|\*)/.test(linea)) continue;      // comentarios no cuentan
-        if (/'add'\)/.test(linea)) continue;             // !add va aparte, a proposito
         llamadasCrudas.push(`${f}: ${linea.trim().slice(0, 60)}`);
       }
     }

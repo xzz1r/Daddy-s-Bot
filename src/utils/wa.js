@@ -576,9 +576,13 @@ async function fetchPfpUrl(sock, jid, tipo = 'image', intentos = 2) {
 // añadir: es del bot. Eso confunde muchísimo, porque el owner prueba con otro
 // número y también falla.
 //
-// Baileys avisa por `connection.update` con la fecha en que se levanta. Se
-// guarda aquí para que los comandos puedan explicarlo y decir hasta cuándo, en
-// vez de soltar el código en crudo.
+// Baileys avisa por `connection.update` con la fecha en que se levanta.
+//
+// Ya no lo consulta ningún comando: existía para que *!add* pudiera explicar
+// por qué fallaba, y *!add* se ha quitado. Lo que se conserva es el AVISO EN EL
+// LOG, y se conserva a propósito: que WhatsApp marque la cuenta es justo la
+// señal temprana de que algo la está poniendo en el punto de mira. Quitar el
+// canario por haber quitado el comando sería quedarse sin la alarma.
 let restriccionContacto = null;   // { hasta: Date } o null
 
 function anotarRestriccionContacto(info) {
@@ -586,31 +590,8 @@ function anotarRestriccionContacto(info) {
   restriccionContacto = { hasta: info.timeEnforcementEnds || null };
 }
 
-function restriccionContactoActiva() {
-  if (!restriccionContacto) return null;
-  // Si ya pasó la hora, se da por levantada aunque no haya llegado el aviso.
-  if (restriccionContacto.hasta && Date.now() > new Date(restriccionContacto.hasta).getTime()) {
-    restriccionContacto = null;
-    return null;
-  }
-  return restriccionContacto;
-}
-
-// Texto legible de cuánto queda, o cadena vacía si no se sabe.
-function cuantoQuedaDeRestriccion() {
-  const r = restriccionContactoActiva();
-  if (!r || !r.hasta) return '';
-  const ms = new Date(r.hasta).getTime() - Date.now();
-  if (ms <= 0) return '';
-  const h = Math.floor(ms / 3600000);
-  const m = Math.ceil((ms % 3600000) / 60000);
-  return h ? `${h}h ${m}min` : `${m}min`;
-}
-
 module.exports = {
   anotarRestriccionContacto,
-  restriccionContactoActiva,
-  cuantoQuedaDeRestriccion,
   isOwner,
   isMainOwner,
   noteOwnerJid,

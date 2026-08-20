@@ -1,5 +1,5 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const { isOwner, isAdmin, isBotJid, isBotAdmin, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid, sameUser, esMiembroActual, restriccionContactoActiva, cuantoQuedaDeRestriccion } = require('../utils/wa');
+const { isOwner, isAdmin, isBotJid, isBotAdmin, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid, sameUser, esMiembroActual } = require('../utils/wa');
 const { streamToBuffer, MAX_DOWNLOAD_BYTES, atomicWriteJson, readJsonOrEnoent } = require('../utils/helpers');
 const path = require('path');
 const logger = require('../utils/logger');
@@ -820,111 +820,6 @@ function numeroDeArgs(args) {
   return digitos;
 }
 
-// !add <número> — mete a alguien en el grupo. Solo eso: si no se puede, lo dice
-// y se acaba. No manda enlaces ni busca rodeos.
-//
-// Lo que sí hace es explicar POR QUÉ falla, porque los dos motivos habituales se
-// confunden con facilidad:
-//
-//   · privacidad del OTRO — tiene cerrado que le metan en grupos. Con otro
-//     número funcionaría.
-//   · restricción del BOT (`account_reachout_restricted`) — WhatsApp limita a
-//     las cuentas nuevas o marcadas para que no contacten desconocidos. Con
-//     esta, ningún número va a funcionar hasta que se levante.
-//
-// Antes los dos salían como un código en crudo, y el owner probaba número tras
-// número sin saber que el problema estaba en su propio bot.
-async function cmdAdd(sock, msg, args, groupMeta) {
-  const jid = msg.key.remoteJid;
-  if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
-  }
-  const sender = getSender(msg);
-  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
-  }
-
-  const raw = numeroDeArgs(args);
-  if (!raw || raw.length < 7) {
-    return sock.sendMessage(jid, { text: '*!add <número con prefijo del país>*' }, { quoted: msg });
-  }
-
-  // Sin ser admin no se puede añadir a nadie, y decirlo de entrada evita que el
-  // owner crea que el problema es el número.
-  if (!isBotAdmin(sock, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No soy admin del grupo, así que no puedo añadir a nadie.' }, { quoted: msg });
-  }
-
-  // Se confirma el número con WhatsApp y se usa el JID que devuelve, no el que
-  // se arma a mano: en grupos modernos la forma correcta puede no ser
-  // "numero@s.whatsapp.net" y añadir con la forma equivocada falla en silencio.
-  let targetJid = `${raw}@s.whatsapp.net`;
-  try {
-    const res = await sock.onWhatsApp(targetJid);
-    const hit = Array.isArray(res) ? res.find(r => r?.exists) : null;
-    if (!hit) {
-      return sock.sendMessage(jid, { text: `+${raw} no tiene cuenta de WhatsApp.` }, { quoted: msg });
-    }
-    if (hit.jid) targetJid = hit.jid;
-  } catch {
-    // Si la consulta falla (red, límite), se intenta igual con la forma armada:
-    // más vale probar que abortar por un hipo de red.
-  }
-
-  let status = '';
-  try {
-    const result = await sock.groupParticipantsUpdate(jid, [targetJid], 'add');
-    // El codigo llega SIEMPRE como cadena: Baileys lo construye con
-    // `p.attrs.error || '200'` (Socket/groups.js:137), y los atributos del nodo
-    // binario son texto. Compararlo contra numeros no acertaba ni una vez.
-    status = String(result?.[0]?.status ?? '');
-  } catch (err) {
-    // OJO: cuando WhatsApp bloquea el añadido, a veces NO devuelve un codigo:
-    // LANZA. Y el mensaje suele ser `account_reachout_restricted`, que es una
-    // restriccion sobre LA CUENTA DEL BOT (WhatsApp limita a las cuentas nuevas
-    // o marcadas para que no contacten desconocidos), no sobre el numero al que
-    // se intenta añadir. Antes esto se soltaba en crudo al grupo y el owner
-    // probaba con otro numero pensando que el problema era ese, cuando iba a
-    // fallar igual con todos.
-    const texto = String(err?.message || '');
-    if (/reachout/i.test(texto) || restriccionContactoActiva()) {
-      const queda = cuantoQuedaDeRestriccion();
-      return sock.sendMessage(jid, {
-        text: `WhatsApp tiene restringida a esta cuenta para contactar con gente nueva${queda ? `, y le quedan *${queda}*` : ''}. No es cosa de +${raw}: ahora mismo fallaría con cualquier número.`,
-      }, { quoted: msg });
-    }
-    if (/restrict|not-?authorized|forbidden|403|401/i.test(texto)) {
-      return sock.sendMessage(jid, {
-        text: `No se puede añadir a +${raw}: tiene cerrado que le metan en grupos.`,
-      }, { quoted: msg });
-    }
-    return sock.sendMessage(jid, { text: `No pude añadir a +${raw}: ${texto}` }, { quoted: msg });
-  }
-
-  if (status === '200') {
-    return sock.sendMessage(jid, {
-      text: `@${raw} está dentro.`,
-      mentions: [targetJid],
-    }, { quoted: msg });
-  }
-  if (status === '409') {
-    return sock.sendMessage(jid, { text: `+${raw} ya está en el grupo.` }, { quoted: msg });
-  }
-  if (status === '408') {
-    return sock.sendMessage(jid, { text: `+${raw} no existe en WhatsApp o no se puede alcanzar.` }, { quoted: msg });
-  }
-
-  // 403 (privacidad cerrada) y 401 (te tiene bloqueado) acaban igual: no se le
-  // puede meter y no hay nada más que hacer desde aquí.
-  if (status === '403' || status === '401') {
-    return sock.sendMessage(jid, {
-      text: `No se puede añadir a +${raw}: tiene cerrado que le metan en grupos.`,
-    }, { quoted: msg });
-  }
-
-  return sock.sendMessage(jid, { text: `No pude añadir a +${raw} (código ${status || 'desconocido'}).` }, { quoted: msg });
-}
-
 // !antilink on/off — solo owner. Se borra CUALQUIER enlace:
 //   YouTube / Instagram → borrado + aviso de que ese permiso lo dan los admins
 //                         con *!allow*. Los dos primeros solo avisan; al TERCERO
@@ -1104,4 +999,4 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
 }
 
 module.exports = {
-  cmdSoloAdmins, cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, muteUser, unmuteUser, cmdAdd, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdAdm };
+  cmdSoloAdmins, cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, muteUser, unmuteUser, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdAdm };

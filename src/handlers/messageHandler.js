@@ -23,7 +23,7 @@ const { cmdK, privadoDelOwner, hallarMedio } = require('../commands/k');
 const { cmdCount, cmdResetCount } = require('../commands/count');
 const { cmdRelevance } = require('../commands/relevance');
 const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
-const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAdd, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdSoloAdmins, cmdAdm } = require('../commands/group');
+const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdSoloAdmins, cmdAdm } = require('../commands/group');
 const { cmdShip } = require('../commands/ship');
 const { cmdTtp } = require('../commands/ttp');
 const { cmdToImg, cmdToVid } = require('../commands/toimg');
@@ -403,7 +403,7 @@ const PERMISO_ENLACE = [
 // Commands that need group metadata — skip the network call for everything else
 const NEEDS_META = new Set([
   'on','off','tagall','todos','all','everyone',
-  'kick','expulsar','del','borrar','delete','add','agregar',
+  'kick','expulsar','del','borrar','delete',
   // sacar/echar/silenciar/callar/banear/ban/desbanear/unban ESTABAN FUERA, y sus
   // hermanos dentro. Sin metadata isGroupAdmin no puede resolver quien es admin
   // en un grupo LID, asi que estos alias no expulsaban ni silenciaban a nadie:
@@ -2135,11 +2135,6 @@ async function handleMessage(sock, msg) {
       case 'open':
       case 'abrir':
         await cmdOpen(sock, msg, groupMeta);
-        break;
-
-      case 'add':
-      case 'agregar':
-        await cmdAdd(sock, msg, args, groupMeta);
         break;
 
       case 'sacar':

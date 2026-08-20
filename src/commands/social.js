@@ -321,7 +321,7 @@ ${esAdmin ? `
 ━━━━━ *SISTEMA* ━━━━━
 *${p}on* · *${p}off* · *${p}aura on/off* — pausar la dinámica
 *${p}antiadmin* · *${p}antilink* on/off
-*${p}add* · *${p}resetcount* · *${p}resetaura* · *${p}clearcache* · *${p}setgrok* · *${p}diag*
+*${p}resetcount* · *${p}resetaura* · *${p}clearcache* · *${p}setgrok* · *${p}diag*
 ` : ''}
 _${p}ping · ${p}info · ${p}whoami_`;
 
