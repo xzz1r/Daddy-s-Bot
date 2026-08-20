@@ -5,7 +5,9 @@ const path = require('path');
 const logger = require('../utils/logger');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled, toggleSoloAdmins, isSoloAdminsEnabled } = require('../utils/state');
 const { businessEvidence } = require('../utils/businessCheck');
-const { getMemberFacts } = require('../utils/nickStore');
+const { getMemberFacts, recordFacts } = require('../utils/nickStore');
+const { banAccount } = require('../utils/banlist');
+const { allForms } = require('./fk');
 const { allow, disallow, listAllowed, MAX_AVISOS, DURACION_MS } = require('../utils/linkPerms');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 
@@ -750,6 +752,18 @@ async function purgeBusinesses(sock, msg, groupJid, groupMeta) {
   // La evidencia de cada uno pasa a ser el "motivo" que muestra el informe.
   const detected = last.detected.map(d => ({ kickId: d.kickId, reason: d.fields.join(', ') }));
   const r = await executePurge(sock, groupJid, detected, groupMeta);
+
+  // EL PURGE TAMBIEN VETA. Era la tercera puerta del mismo modo y la unica que
+  // seguia siendo giratoria: la guarda de mensajes vetaba, el join tambien, y
+  // el purge —que es el barrido masivo, el que mas cuentas echa de golpe— solo
+  // expulsaba. Con el enlace del grupo, todas volvian a entrar.
+  //
+  // Va sobre los que SALIERON de verdad (r.done), no sobre la lista pedida: no
+  // se veta a quien el servidor no llego a echar.
+  for (const d of (r.done || [])) {
+    await banAccount(allForms(d.kickId, groupMeta), `cuenta business (purga en ${groupJid})`, 'auto').catch(() => {});
+    await recordFacts(d.kickId, { biz: true }).catch(() => {});
+  }
 
   if (r.status === 'sin-metadata') {
     return sock.sendMessage(groupJid, {

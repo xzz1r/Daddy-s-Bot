@@ -12,6 +12,7 @@ const { noteOffence, forget, yaAvisado, marcarAvisado, olvidarAviso } = require(
 const { isAllowed, noteWarning, resetWarnings, MAX_AVISOS } = require('../utils/linkPerms');
 const { tienePase, gastarIndulto } = require('../utils/roboStore');
 const { banAccount } = require('../utils/banlist');
+const { businessEvidence } = require('../utils/businessCheck');
 const { allForms } = require('../commands/fk');
 const { checkCasinoMilestone } = require('../utils/casino');
 const { cmdPlay, cmdCacheList, cmdClearCache } = require('../commands/music');
@@ -106,6 +107,11 @@ function normalizarParaEnlaces(text) {
 // Uno por persona cada cinco minutos.
 const ANUNCIO_TTL = 5 * 60 * 1000;
 const anuncios = new Map(); // `${jid}|${canonical}` -> ts
+
+// A quien no tiene ficha se le mira el perfil UNA vez por grupo. Si se hiciera
+// en cada mensaje, un grupo activo dispararia cientos de consultas por hora y
+// WhatsApp acabaria limitando el socket entero.
+const perfilMirado = new Set(); // `${jid}|${telefono}`
 
 // `minimo` permite un freno mas corto para el aviso que NO se puede perder: el
 // ultimo antes del ban. Ese tiene que llegar —si no, el siguiente enlace le
@@ -1428,8 +1434,34 @@ async function handleMessage(sock, msg) {
     } else if (!isOwner(sender, msg.key.fromMe, peekGroupMeta(jid))) {
       // Sin badge: se mira lo ya fichado. Es una lectura de disco, no una
       // consulta de red, asi que puede correr en cada mensaje sin coste.
-      getMemberFacts([sender, canonicalJid(sender)]).then((f) => {
+      getMemberFacts([sender, canonicalJid(sender)]).then(async (f) => {
         if (f?.biz) return expulsarBusinessDetectado(sock, jid, sender, msg, 'ya estaba fichada como cuenta de negocio');
+
+        // Y SI NO HAY FICHA, SE MIRA EL PERFIL UNA VEZ. Este es el hueco que
+        // quedaba: a quien entro cuando la consulta no respondio —o antes de
+        // encender el modo— nadie lo volvia a mirar nunca. Se quedaba dentro
+        // para siempre salvo que alguien se acordara de correr un scan.
+        //
+        // UNA vez por persona y grupo, no en cada mensaje: consultar el perfil
+        // en cada linea es la forma mas rapida de que WhatsApp te limite el
+        // socket. Y solo si el modo esta encendido, que si no es red gastada
+        // para nada.
+        if (!isAntiBusinessEnabled(jid)) return;
+        const tel = canonicalJid(sender);
+        if (!tel || !tel.endsWith('@s.whatsapp.net')) return;
+        const clave = `${jid}|${tel}`;
+        if (perfilMirado.has(clave)) return;
+        if (perfilMirado.size >= 5000) perfilMirado.delete(perfilMirado.keys().next().value);
+        perfilMirado.add(clave);
+
+        const ev = await businessEvidence(sock, tel).catch(() => ({ estado: 'desconocido' }));
+        if (ev.estado !== 'biz') {
+          // Si no se supo, se deja que otro mensaje lo reintente mas adelante.
+          if (ev.estado === 'desconocido') perfilMirado.delete(clave);
+          return;
+        }
+        await recordFacts(sender, { biz: true }).catch(() => {});
+        return expulsarBusinessDetectado(sock, jid, sender, msg, ev.fields.join(', '));
       }).catch(() => {});
     }
     checkCasinoMilestone(sock, jid, sender).catch(() => {});

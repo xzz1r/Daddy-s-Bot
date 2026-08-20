@@ -1028,6 +1028,53 @@ async function capaStores() {
     exige(/banAccount\(allForms\(sender, meta\), `cuenta business/.test(mhSrc),
       'el antiempresa expulsa sin meter en la lista negra: vuelve a entrar con el enlace del grupo');
 
+    // LAS OTRAS DOS PUERTAS TAMBIEN VETAN, y hasta ahora esto solo vigilaba la
+    // de mensajes. Por eso el test seguia verde con el join y el purge echando
+    // sin banear: nadie los miraba.
+    exige(/banAccount\(allForms\(kickId, meta\), `cuenta business al entrar/.test(botSrc),
+      'la entrada al grupo expulsa sin vetar: con el enlace del grupo vuelve a entrar');
+    exige(/banAccount\(allForms\(d\.kickId, groupMeta\), `cuenta business \(purga/.test(grpSrc),
+      'el purge expulsa sin vetar: el barrido masivo es justo el que mas cuentas devuelve');
+
+    // El join decide con businessEvidence, NO con isBusiness. isBusiness aplana
+    // los tres estados a un si/no, asi que un IQ vencido o un @lid sin telefono
+    // salian como `false` —o sea, como cuenta personal— y entraban.
+    exige(/businessEvidence\(sock, phoneJid\)/.test(botSrc),
+      'el join volvio a decidir con isBusiness: lo que no se sabe cuenta como inocente');
+    exige(/function reintentarBusiness/.test(botSrc),
+      'el join ya no reintenta lo desconocido: quien no se pudo comprobar entra y se queda');
+
+    // SE FICHA ANTES DE ECHAR, no despues. Si el kick falla —bot sin admin, o
+    // WhatsApp lo rechaza— la prueba tiene que sobrevivir igual; si no, el
+    // mensaje siguiente de esa cuenta no se entera de nada.
+    //
+    // Esto compara POSICIONES, no presencia: con dos `test()` sueltos la guarda
+    // pasaba igual con las lineas al reves, que es exactamente el fallo.
+    // Y compara CADA pareja, no la primera que aparezca. La primera version
+    // usaba indexOf y pasaba siempre: hay dos sitios que echan (el join y el
+    // reintento), indexOf encontraba los del reintento —que estan bien— y daba
+    // por buenos los del join aunque estuvieran al reves. Justo la mutacion que
+    // se probo. Aqui se recorre el fichero y cada expulsion tiene que traer su
+    // propia ficha por delante.
+    let fichado = false, ordenOk = true, sitios = 0;
+    for (const m of botSrc.matchAll(
+      /(await recordFacts\(kickId, \{ biz: true \}\))|(sock\.groupParticipantsUpdate\(groupJid, \[kickId\], 'remove'\))/g)) {
+      if (m[1]) { fichado = true; continue; }
+      sitios++;
+      if (!fichado) ordenOk = false;
+      fichado = false;
+    }
+    exige(sitios >= 2 && ordenOk,
+      'el join echa antes de fichar: si el kick falla, la prueba se pierde y hay que redescubrirla');
+
+    // Y a quien ya estaba DENTRO se le mira el perfil al primer mensaje. Sin
+    // esto, el que entro antes de encender el modo —o cuya consulta de entrada
+    // no respondio— se quedaba dentro para siempre.
+    exige(/businessEvidence\(sock, tel\)/.test(mhSrc),
+      'la guarda de mensajes ya no consulta el perfil: quien entro antes de encender el modo no se mira nunca');
+    exige(/perfilMirado/.test(mhSrc),
+      'la consulta de perfil del primer mensaje perdio su freno: una consulta por linea es la via rapida al rate-limit');
+
     // El @lid sin telefono no puede volver a descartarse en el join.
     exige(!/no se puede comprobar si es Business`\);\s*\n\s*continue;/.test(botSrc),
       'vuelve a haber un `continue` que deja entrar a los @lid sin telefono sin comprobarlos');

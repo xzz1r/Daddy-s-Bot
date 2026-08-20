@@ -32,7 +32,7 @@ const { flushBanlist, banAccount } = require('./utils/banlist');
 const { flushLinkPerms } = require('./utils/linkPerms');
 const { flushRobo } = require('./utils/roboStore');
 const { guardOnJoin, allForms } = require('./commands/fk');
-const { isBusiness } = require('./utils/businessCheck');
+const { isBusiness, businessEvidence } = require('./utils/businessCheck');
 const { getMemberFacts } = require('./utils/nickStore');
 const { ensureTemp, barrerHuerfanos } = require('./utils/helpers');
 const { gitCommit } = require('./utils/version');
@@ -640,6 +640,49 @@ async function connectToWhatsApp() {
   });
 
   // Group events: anti-business on join, anti-admin + notifications on promote/demote
+// REINTENTO DE LO QUE NO SE PUDO COMPROBAR.
+//
+// En un join recien hecho la consulta de perfil falla mucho: WhatsApp acaba de
+// mover a alguien y el IQ se pierde o vence. Antes eso salia como "no es
+// Business" y la cuenta se quedaba dentro para siempre.
+//
+// Dos reintentos, a los 5 y a los 30 segundos. No es un bucle: si a los treinta
+// sigue sin saberse, se abandona y lo recoge la guarda del primer mensaje, que
+// tiene mas informacion (el propio mensaje puede traer el nombre verificado).
+//
+// Se ficha ANTES de echar por lo mismo que en el join: si el kick falla, la
+// prueba tiene que sobrevivir.
+function reintentarBusiness(sock, groupJid, kickId, phoneJid, intento = 0) {
+  const ESPERAS = [5000, 30000];
+  if (intento >= ESPERAS.length) {
+    logger.warn(`Anti-empresa: ${kickId} en ${groupJid} sigue sin poder comprobarse; queda para el primer mensaje`);
+    return;
+  }
+  setTimeout(async () => {
+    try {
+      const ev = await businessEvidence(sock, phoneJid);
+      if (ev.estado === 'desconocido') return reintentarBusiness(sock, groupJid, kickId, phoneJid, intento + 1);
+      if (ev.estado !== 'biz') return;
+
+      await recordFacts(kickId, { biz: true }).catch(() => {});
+      if (phoneJid && phoneJid !== kickId) await recordFacts(phoneJid, { biz: true }).catch(() => {});
+
+      const meta = await sock.groupMetadata(groupJid).catch(() => null);
+      const res = await sock.groupParticipantsUpdate(groupJid, [kickId], 'remove');
+      const st = Array.isArray(res) ? String(res[0]?.status ?? '200') : '200';
+      if (st !== '200') return logger.warn(`Anti-empresa: kick rechazado (${st}) para ${kickId} en ${groupJid}`);
+
+      await banAccount(allForms(kickId, meta), `cuenta business al entrar en ${groupJid} (${ev.fields.join(', ')})`, 'auto').catch(() => {});
+      sock.sendMessage(groupJid, {
+        text: `*Anti-empresa:* @${kickId.split('@')[0]} es cuenta de WhatsApp Business. Expulsada y vetada.`,
+        mentions: [kickId],
+      }).catch(() => {});
+    } catch (e) {
+      logger.warn(`Anti-empresa: reintento fallo para ${kickId}: ${e.message}`);
+    }
+  }, ESPERAS[intento]).unref?.();
+}
+
   sock.ev.on('group-participants.update', async ({ id: groupJid, author, authorPn, participants, action }) => {
     // Quien mueve gente viene con sus DOS identidades. Se aprovecha para atar la
     // pareja lid↔telefono, que es lo que hace que una ficha guardada bajo una
@@ -755,16 +798,40 @@ async function connectToWhatsApp() {
             kickId, phoneJid, participante?.id, participante?.lid, participante?.phoneNumber,
           ]).catch(() => null);
           let biz = !!facts?.biz;
+          let evidencia = biz ? ['ya fichada como cuenta de negocio'] : [];
 
+          // businessEvidence, NO isBusiness. Y la diferencia es todo el asunto:
+          // isBusiness() aplana los tres estados a un si/no, asi que un IQ que
+          // vence o un @lid sin telefono salian como `false` — o sea, como
+          // cuenta personal, adentro y a otra cosa. El propio businessCheck.js
+          // avisa de no usarlo para decidir una expulsion, y el join lo usaba.
           if (!biz && phoneJid) {
+            let ev;
             try {
-              biz = await isBusiness(sock, phoneJid);
+              ev = await businessEvidence(sock, phoneJid);
             } catch (err) {
               logger.warn(`Anti-empresa: chequeo fallo para ${phoneJid}: ${err.message}`);
+              ev = { estado: 'desconocido', fields: [] };
+            }
+            if (ev.estado === 'biz') { biz = true; evidencia = ev.fields; }
+            else if (ev.estado === 'desconocido') {
+              // NO SE DEJA PASAR LO QUE NO SE SABE. Se reintenta a los 5 y a
+              // los 30 segundos: en un join recien hecho la consulta de perfil
+              // falla mucho, y treinta segundos despues suele ir. Si sigue sin
+              // saberse, la guarda del primer mensaje lo recoge.
+              reintentarBusiness(sock, groupJid, kickId, phoneJid);
               return;
             }
           }
           if (!biz) return;
+
+          // SE FICHA ANTES DE ECHAR. Si el kick falla —el bot no es admin, o
+          // WhatsApp lo rechaza— la prueba tiene que quedar guardada igual: si
+          // no, el mensaje siguiente de esa cuenta no se entera de nada y hay
+          // que volver a descubrirlo desde cero.
+          await recordFacts(kickId, { biz: true }).catch(() => {});
+          if (phoneJid && phoneJid !== kickId) await recordFacts(phoneJid, { biz: true }).catch(() => {});
+
           try {
             const res = await sock.groupParticipantsUpdate(groupJid, [kickId], 'remove');
             // WhatsApp responde por participante. Sin mirarlo, el bot anunciaba
@@ -774,9 +841,13 @@ async function connectToWhatsApp() {
               logger.warn(`Anti-empresa: kick rechazado (${st}) para ${kickId} en ${groupJid}`);
               return;
             }
+            // Y SE VETA, igual que hace la guarda de mensajes. Sin esto era una
+            // puerta giratoria: con el enlace del grupo vuelve a entrar y hay
+            // que echarlo otra vez, y otra.
+            await banAccount(allForms(kickId, meta), `cuenta business al entrar en ${groupJid} (${evidencia.join(', ') || 'perfil'})`, 'auto').catch(() => {});
             const num = kickId.split('@')[0];
             sock.sendMessage(groupJid, {
-              text: `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada automáticamente.`,
+              text: `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada y vetada.`,
               mentions: [kickId],
             }).catch((e) => logger.warn(`Anti-empresa: send fallo en ${groupJid}: ${e.message}`));
           } catch (err) {
