@@ -1097,6 +1097,14 @@ async function capaStores() {
       exige(!/\bcmdAdd\b/.test(src), `${f} vuelve a tener cmdAdd: !add se quito a proposito`);
       exige(!/case 'agregar':/.test(src), `${f} vuelve a despachar !agregar`);
     }
+    // EL RE-ALTA SIGUE SIENDO SOLO DEL DUEÑO. Es la unica alta que queda en todo
+    // el bot, y lo que la hace aceptable no es que sea automatica: es que mete
+    // a alguien que YA estaba en el grupo y que figura en el .env. Si ese filtro
+    // se ensancha —o se cae— el bot vuelve a meter gente en grupos por su cuenta,
+    // que es justo lo que se quito con !add.
+    exige(/\.some\(f => isOwner\(f, false, meta\)\)/.test(botSrc),
+      'el re-alta del owner ya no filtra por isOwner: el bot puede volver a meter a cualquiera que echen');
+
     // Y ninguna llamada de alta a mano, venga de donde venga. El unico alta que
     // queda es la del owner expulsado, y esa pasa por el contrato.
     const altasCrudas = [];
