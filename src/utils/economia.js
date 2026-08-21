@@ -311,7 +311,7 @@ const P_TRAMO_GRANDE = { gana: 0.30, pierde: 0.25 };
 //
 // El freno sigue donde estaba: pasadas las de pago, la tirada es cara o cruz a
 // valor esperado CERO, asi que darle al boton toda la noche no fabrica nada.
-const TIRADAS_PAGADAS = 8;
+const TIRADAS_PAGADAS = 4;
 
 const mediaRango = ([min, max]) => (min + max) / 2;   // TIRADA es [min, max]
 const MEDIA_PREMIO  = P_TRAMO_GRANDE.gana * mediaRango(TIRADA.grande)
@@ -568,7 +568,7 @@ const RACHA = {
 // linea de fortuna y los precios, y eso devalua el aura que la gente ya tiene:
 // es una decision del dueño, no un ajuste.
 const BONOS = {
-  1: { win: [20, 3],  bigwin: [24, 5],  jackpot: [30, 6], mega: [38, 9] },
+  1: { win: [8, 6],   bigwin: [14, 8],  jackpot: [22, 12], mega: [34, 18] },
   2: { win: [35, 20], bigwin: [55, 25], jackpot: [80, 35], mega: [120, 50] },
   3: { win: [90, 40], bigwin: [130, 60], jackpot: [190, 80], mega: [260, 120] },
 };
@@ -578,8 +578,25 @@ const BONOS = {
 // quedar POR ENCIMA del mejor bono normal de ese mismo tramo. Con los números
 // anteriores no era así: en tier 3 la redención pagaba 200-350 mientras un bote
 // normal daba 260-380, o sea que estar hundido salía peor que no estarlo.
+// EL PRIMER HITO DEL DIA, Y SOLO EL PRIMERO.
+//
+// Lo pedido era 75 por escribir 200 mensajes. Subir el tramo 1 a 75 no cabe, y
+// no por el tramo: el contador es diario (ventana de 24 h en casinoStore), asi
+// que el de 200 mensajes cruza el hito UNA vez al dia y el de 1.200 lo cruza
+// CINCO. Subir el importe reparte +50 al que lo pidio y +250 al que ya rozaba
+// la linea de fortuna. Eso es inflacion, y se pidio evitarla a toda costa.
+//
+// Este pago va aparte y es PLANO: se cobra al llegar a 200 y no se repite ese
+// dia. El de 200 mensajes y el de 1.200 cobran exactamente lo mismo, asi que
+// suma la misma cantidad a cada perfil y no compounda con el volumen.
+//
+// Y se paga con dinero que ya existia: a cambio bajan las tiradas de pago de
+// !aura (ver TIRADAS_PAGADAS). Lo que el bot deja de repartir por darle a un
+// boton lo reparte por escribir, que es lo que dice ser en todas partes.
+const PRIMERA_DEL_DIA = 59;
+
 const REDENCION = {
-  1: [55, 45],    // por encima del mega de tier 1 (38-47)
+  1: [55, 45],    // por encima del mega de tier 1 (34-52)
   2: [180, 120],  // por encima del mega de tier 2 (120-170)
   3: [400, 250],  // por encima del mega de tier 3 (260-380)
 };
@@ -1263,6 +1280,7 @@ function rango([suelo, ancho]) {
 module.exports = {
   MILLONARIO, ARRANQUE, SUELO_TODOS,
   TIRADA, TIRADA_MIN, TIRADA_MAX, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE,
+  PRIMERA_DEL_DIA,
   P_TOPE_MIEMBRO, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, MEDIA_PREMIO, MEDIA_CASTIGO, bonoActividad, APUESTA,
   pApuestaDe, pApuestaVisible, APUESTA_OWNER_VISIBLE,
   RACHA, BONOS, REDENCION,

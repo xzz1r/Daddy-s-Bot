@@ -11,7 +11,7 @@
 const { incrementCasinoCount } = require('./casinoStore');
 const { anotarMensaje } = require('./rachaStore');
 const { getAura, addAura } = require('./auraStore');
-const { BONOS, REDENCION, RACHA, rango } = require('./economia');
+const { BONOS, REDENCION, PRIMERA_DEL_DIA, RACHA, rango } = require('./economia');
 const { HITO: RACHA_HITO, ROTA: RACHA_ROTA } = require('../data/rachaPhrases');
 const { pickFresh, fmt } = require('./helpers');
 const { isBotEnabled, isAuraEnabled } = require('./state');
@@ -221,7 +221,16 @@ async function checkCasinoMilestone(sock, jid, sender) {
   if (!tier) return;
 
   const currentAura = await getAura(jid, sender);
-  const { amount, label } = rollReward(tier, currentAura);
+  const { amount: base, label } = rollReward(tier, currentAura);
+
+  // EL PRIMER HITO DEL DIA PAGA UN EXTRA PLANO, y solo el primero.
+  //
+  // `count` viene del contador de 24 h, asi que `count === 200` ocurre UNA vez
+  // al dia por persona: el que escribe 200 lo cobra igual que el que escribe
+  // 1.200. Por eso no compounda con el volumen, que es lo que hacia imposible
+  // subir el importe del tramo sin inflar a los que mas escriben.
+  const extraPrimera = count === 200 ? PRIMERA_DEL_DIA : 0;
+  const amount = base + extraPrimera;
   const { current } = await addAura(jid, sender, amount);
 
   const phrasePool = label === 'redemption'

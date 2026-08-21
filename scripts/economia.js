@@ -21,7 +21,7 @@ const { P_POSITIVA, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, ACTIVIDAD_MSGS, P_TOPE_MIEMB
         APUESTA, PRECIOS, BONOS, REDENCION, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE,
         P_TOPE, TIRADAS_PAGADAS, bonoActividad,
         RACHA, rango, ROBO, DUELO, ARRANQUE, MILLONARIO, IMPUESTO, impuestoDe,
-        OBJETOS, VENTAJA, RECOMPENSA, RIESGO, ROBO_BASE, ROBO_LIMITES,
+        OBJETOS, VENTAJA, RECOMPENSA, RIESGO, ROBO_BASE, ROBO_LIMITES, PRIMERA_DEL_DIA,
         pApuestaDe, pApuestaVisible, MOMENTUM, OBJETIVO_DIA } = eco;
 
 let fallos = 0;
@@ -114,6 +114,10 @@ function evEscribir(msgs) {
     if      (c % 1000 === 0) total += evBono(3);
     else if (c % 500  === 0) total += evBono(2);
     else if (c % 200  === 0) total += evBono(1);
+    // El extra del primer hito del dia: plano, una vez, igual para todos. Es lo
+    // que permite pagar mas por escribir sin que el que escribe 1.200 cobre
+    // seis veces la subida.
+    if (c === 200) total += PRIMERA_DEL_DIA;
   }
   return total;
 }
@@ -717,6 +721,26 @@ console.log('\n════ 6. lo que SI es casino: la casa gana ════\n'
   // propia base (0,47) y el equilibrio a x2 esta en 0,50: basta con subirle tres
   // puntos en un ajuste de balance para que empiece a acuñar aura, y con dos
   // muestras no se ve. Aqui se barre la curva entera para cada rol.
+  // NADA DE INFLACION: se pidio a toda costa. El pago por escribir subio, pero
+  // el presupuesto sale de las tiradas de pago, no del aire. Se comprueba
+  // contra las cifras MEDIDAS de antes del cambio, no contra una sensacion.
+  {
+    const BASE = { 'normal': 188, 'activo': 268, 'muy activo': 486 };
+    for (const [perfil, antes] of Object.entries(BASE)) {
+      const ahora = f(perfil).total;
+      ok(ahora <= antes,
+        `  ${perfil}: ${n0(ahora)} al dia contra los ${antes} de antes — no entra aura nueva al sistema`);
+    }
+    // Y que el pago plano siga siendo PLANO: si algun dia se cobra por cada
+    // hito en vez de una vez al dia, vuelve a compounder con el volumen y el
+    // que escribe 1.200 cobra seis veces la subida. Ese fue el motivo de que
+    // no se pudiera subir el tramo y de que esto exista.
+    const subeNormal = f('normal').total - (188 - PRIMERA_DEL_DIA);
+    const subeMucho  = f('muy activo').total - (486 - PRIMERA_DEL_DIA);
+    ok(Math.abs(subeNormal - subeMucho) < 1,
+      '  el extra del primer hito es plano: el de 200 mensajes cobra lo mismo que el de 1.200');
+  }
+
   for (const rol of Object.keys(APUESTA.p)) {
     if (rol === 'owner') continue;   // el owner esta amañado a proposito
     let peorEv = -Infinity, dondeEv = '';
