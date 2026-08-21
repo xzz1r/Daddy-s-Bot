@@ -1,6 +1,6 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser } = require('../utils/wa');
 const { getAura, addAura, drainAura } = require('../utils/auraStore');
-const { pickFresh, fmt } = require('../utils/helpers');
+const { pickFresh, fmt, parseCantidad, resolverCantidad, etiquetaRiesgo } = require('../utils/helpers');
 const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, RECOMPENSA } = require('../utils/economia');
 const { ownerGana } = require('../utils/rigOwner');
 const { fichaFalsaBuscado } = require('../utils/fachada');
@@ -9,7 +9,6 @@ const RX = require('../data/roboExtraPhrases');
 
 // La escala vive en utils/economia.js. Aqui solo el cooldown, que es de ritmo
 // de juego y no de economia.
-const STAKE_DEFAULT   = ROBO.porDefecto;
 const STAKE_FLOOR     = ROBO.suelo;
 const MIN_AURA        = ROBO.minVictima;
 // Bajado, y la cifra vive SOLO en la constante de abajo. Con la probabilidad en
@@ -2006,7 +2005,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const target = getTarget(msg);
 
   if (!target) return sock.sendMessage(jid, {
-    text: 'Dime a quién robas: *!robo @alguien 200*',
+    text: 'Dime a quién robas y cuánto: *!robo @alguien 200*\n_Sin cifra voy al punto dulce. *mitad* o *todo* también valen. Cuanto más pides, menos sale._',
   }, { quoted: msg });
   if (sameUser(target, sender)) {
     return sock.sendMessage(jid, { text: 'No puedes robarte a ti mismo.' }, { quoted: msg });
@@ -2070,29 +2069,26 @@ async function cmdRobo(sock, msg, args, groupMeta) {
 
   // Cuanto se apuesta.
   //
-  // Con cifra: la que se pida. Sin cifra: una AL AZAR ajustada a lo que tenga la
-  // victima, no un valor fijo. Antes salía siempre 20, y contra alguien con
-  // 3.000 de aura eso era un robo de propina que no arriesgaba ni interesaba a
-  // nadie; contra alguien con 60, en cambio, era la mitad de su cuenta.
+  // Con cifra: la que se pida. Sin cifra: el PUNTO DULCE, no un valor al azar.
+  // El azar era justo lo que hacia que el comando pareciera ignorarte: pedia
+  // 200, el parser no lo veia (mencion, marca bidi, 2k, 1.000) y el bot
+  // contestaba con otra cifra. Ahora si no hay cifra se va al 45 % del tope,
+  // que es donde la probabilidad es maxima, y se DICE.
   //
-  // Al azar entre el suelo y el tope, que ya está calculado sobre el saldo real
-  // de los dos. Así !robo a secas sigue siendo una jugada de verdad: unas veces
-  // toca una cifra cómoda y otras una que te va a costar sacar, con la
-  // probabilidad que corresponda a cada una.
   // Cebo: la victima aparenta el doble. El tope se calcula sobre lo aparentado,
   // asi que el ladron pide mas de lo que hay y se come el castigo por codicia
   // para nada — el botin real sigue limitado por lo que tiene DE VERDAD.
   const conCebo = await tienda.tieneCebo(jid, target);
   const auraAparente = conCebo ? Math.round(auraV * OBJETOS.cebo.multiplicador) : auraV;
   const maxStake = topeRobo(auraA, auraAparente);
-  const pedido = (args || []).find(a => /^\d+$/.test(a));
-  const raw = pedido
-    ? parseInt(pedido, 10)
-    : ROBO.suelo + Math.floor(Math.random() * (Math.max(0, maxStake - ROBO.suelo) + 1));
-  const stake = Math.max(Math.min(ROBO.suelo, maxStake), Math.min(raw, maxStake));
-  // Solo se avisa de recorte cuando el jugador PIDIO una cifra y no cabia. Si la
-  // eligio el bot, no hay nada que explicar: ya salio dentro del tope.
-  const recortado = Boolean(pedido) && raw > maxStake;
+  const parsed = parseCantidad(args);
+  const { stake, pedido: raw, elegido, recortado } = resolverCantidad(parsed, {
+    max: maxStake,
+    suelo: Math.min(ROBO.suelo, maxStake),
+    dulce: RIESGO.puntoDulce,
+  });
+  // raw se usa abajo en la nota de recorte. elegido, para no vender como
+  // decision una cifra que puso el bot.
 
   const participants = groupMeta?.participants || [];
   const aO = isOwner(sender, msg.key.fromMe, groupMeta);
@@ -2230,10 +2226,17 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const notaTope = recortado
     ? `\n_Ibas a por ${fmt(raw)}, pero ${vTag} solo tenía ${fmt(maxStake)}._`
     : '';
-  // El importe apostado ya sale en las lineas de saldo, asi que aqui solo va el
-  // porcentaje: repetir la cifra cuatro veces en un mensaje de once lineas era
-  // lo que lo hacia largo sin aportar nada.
-  const notaApuesta = `${Math.round(chanceVisible * 100)}% de salir bien`;
+  const fraccion = maxStake > 0 ? stake / maxStake : 0;
+  const sello = etiquetaRiesgo(fraccion);
+  // La cifra se enseña SIEMPRE. Era lo que faltaba: se podia elegir desde hacia
+  // tiempo, pero el bot solo lo mencionaba al recortar, y si el parser fallaba
+  // (que era el caso normal con menciones) ni siquiera recortaba — eligia otra
+  // cifra en silencio. Ahora se ve a por cuanto se fue, contra que tope, y si
+  // la cifra la puso el jugador o el bot.
+  const notaApuesta = elegido
+    ? `a por ${fmt(stake)} de ${fmt(maxStake)} · ${Math.round(chanceVisible * 100)}% de salir bien`
+    : `punto dulce ${fmt(stake)} de ${fmt(maxStake)} · ${Math.round(chanceVisible * 100)}% · *!robo @alguien 200* para elegir`;
+  const notaSello = sello ? ` · ${sello}` : '';
 
   // AL OWNER SE LE FABRICA EL DESGLOSE, no solo el porcentaje.
   //
@@ -2266,7 +2269,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // Todo lo tecnico en UNA linea. Antes eran tres seguidas en cursiva —apuesta,
   // recorte y modificadores— y el ojo las lee como un bloque de letra pequeña
   // que se salta entero.
-  const notaDinamicas = `\n_${[notaApuesta, ...motivosMostrados].join(' · ')}_` + notaTope;
+  const notaDinamicas = `\n_${[notaApuesta + notaSello, ...motivosMostrados].join(' · ')}_` + notaTope;
 
   if (mult > 0) {
     anotarRoboExitoso(jid, canonicalJid(sender), canonicalJid(target));

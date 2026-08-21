@@ -1,5 +1,5 @@
 const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameUser, soloMiembros } = require('../utils/wa');
-const { pickFresh, fmt } = require('../utils/helpers');
+const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
 const { getName, recordName, cargar: cargarNombres } = require('../utils/nombreStore');
@@ -894,9 +894,9 @@ La moneda del grupo. Empiezas con *${fmt(ARRANQUE)}* y casi todo cuesta.
 *Para tener más: escribe, y no faltes ningún día.* Es lo único que suma de verdad. Lo demás es jugártela.
 
 *!aura* — te da o te quita, a suerte
-*!robo* @alguien — se lo quitas
+*!robo* @alguien [cuánto] — se lo quitas
 *!duel* @alguien — 1v1
-*!aura apostar* — todo o nada
+*!aura apostar* [cuánto] — te lo juegas
 *!tienda* — te compras algo
 *!dar* @alguien — le regalas
 
@@ -1005,11 +1005,14 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
     // Dos topes, los dos fisicos y no de diseño: no se puede apostar mas de lo
     // que se tiene, ni menos del minimo. Si pide de mas se juega lo que tiene y
     // se dice — recortar en silencio es lo que hacia que !robo pareciera roto.
-    const pedido = (args || []).slice(1).find(a => /^\d+$/.test(a));
+    const parsed = parseCantidad(args);
     const jugable = Math.max(0, saldo - APUESTA.suelo);
-    const bruto = pedido ? parseInt(pedido, 10) : Math.floor(saldo * APUESTA.fraccion);
-    const apuesta = Math.max(APUESTA.apuestaMin, Math.min(bruto, jugable || Math.floor(saldo * APUESTA.fraccion)));
-    const recortada = Boolean(pedido) && bruto > apuesta;
+    const topeMesa = jugable || Math.floor(saldo * APUESTA.fraccion);
+    const { stake: apuesta, pedido: bruto, recortado: recortada } = resolverCantidad(parsed, {
+      max: topeMesa,
+      suelo: APUESTA.apuestaMin,
+      porDefecto: Math.floor(saldo * APUESTA.fraccion),
+    });
     // Perder nunca deja por debajo del arranque: quedarse a cero significaria no
     // poder ni hacer un sticker, y el castigo que se busca es el drama, no que
     // alguien deje de usar el bot.
@@ -1063,6 +1066,7 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
       `╾━━━━━━━━━━━━━━╼\n\n` +
       `${nm} puso *${fmt(apuesta)}* sobre la mesa.` +
       (recortada ? `\n_Ibas a por ${fmt(bruto)}, pero es todo lo que puedes cubrir._` : '') +
+      `\n_${Math.round(p * 100)}% de salir · ×${mult.toFixed(2)} si gana._` +
       // Los objetos se DICEN. Un amuleto que actua en silencio es aura tirada:
       // el jugador no sabe si le sirvio de algo y no vuelve a comprarlo.
       (conAmuleto ? `\n_El amuleto se gastó: tiraste con un ${Math.round(OBJETOS.amuleto.bono * 100)} % más de suerte._` : '') +
@@ -1189,6 +1193,15 @@ async function cmdAura(sock, msg, args, groupMeta) {
   // por un cambio de nombre.
   if (['apostar', 'apuesta', 'mitad', 'x2', 'ordago', 'órdago', 'allin', 'all-in', 'todo', 'mesa'].includes(sub)) {
     return jugarApuesta(sock, msg, groupMeta, args);
+  }
+  // !aura robar @alguien 200. Sin esto, *!aura robar* CAIA EN LA CONSULTA DE
+  // SALDO: sub='robar' no era un modo conocido, habia mencion, y el bot
+  // contestaba "Fulano tiene 430 de aura" en vez de robarle. Quien lo escribe
+  // piensa que el comando no deja elegir cantidad porque no esta robando nada.
+  if (['robar', 'robo'].includes(sub)) {
+    if (auraApagada(jid)) return avisarApagada(sock, jid, msg);
+    const { cmdRobo } = require('./robo');
+    return cmdRobo(sock, msg, (args || []).slice(1), groupMeta);
   }
 
   const sender = getSender(msg);

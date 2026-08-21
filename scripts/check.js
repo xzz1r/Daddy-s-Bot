@@ -1400,6 +1400,51 @@ async function capaStores() {
     if (fallos === antes) console.log(verde('   ✓ una descarga por cancion, sin ficheros huerfanos ni causas inventadas'));
   }
 
+  // ── LA CIFRA DE !robo SE LEE DE VERDAD ────────────────────────────────────
+  //
+  // El comando prometia elegir cantidad y no lo hacia. Tres fallos, los tres
+  // invisibles: marcas bidi de WhatsApp, el telefono de la mencion tomado como
+  // importe, y 1.000 / 2k / todo que no existian. Sin cifra el bot elegia al
+  // azar, o sea que pedir 200 y que saliera otra cifra era el caso normal.
+  {
+    console.log('\n12. !robo LEE LA CANTIDAD QUE SE ESCRIBE');
+    const { parseCantidad, resolverCantidad } = require(path.join(R, 'src/utils/helpers'));
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const n = (args) => parseCantidad(args).valor;
+    exige(n(['@573001112222', '200']) === 200, 'mencion + cifra: tiene que leer 200, no el telefono');
+    exige(n(['573001112222', '200']) === 200, 'telefono sin @ no puede comerse el 200');
+    exige(n(['\u200e200']) === 200, 'marca LTR de WhatsApp no puede esconder el 200');
+    exige(n(['1.000']) === 1000, '1.000 en espanol es mil, no uno');
+    exige(n(['2k']) === 2000, '2k es dos mil');
+    exige(n(['@alguien']) == null, 'una mencion sola no es una cantidad');
+    exige(parseCantidad(['todo']).modo === 'todo', '*todo* es un modo, no un fallo de parseo');
+    exige(parseCantidad(['mitad']).modo === 'mitad', '*mitad* es un modo');
+    exige(parseCantidad(['50%']).modo === 'pct' && parseCantidad(['50%']).pct === 50, '50% es un porcentaje del tope');
+
+    const r = resolverCantidad(parseCantidad(['200']), { max: 80, suelo: 5 });
+    exige(r.stake === 80 && r.recortado, 'pedir de mas recorta al tope y se marca');
+    const dulce = resolverCantidad(parseCantidad([]), { max: 200, suelo: 5, dulce: 0.45 });
+    exige(!dulce.elegido && dulce.stake === 90, 'sin cifra va al punto dulce, no al azar');
+    const allin = resolverCantidad(parseCantidad(['todo']), { max: 200, suelo: 5 });
+    exige(allin.elegido && allin.stake === 200, '*todo* pide el tope entero');
+
+    const roboSrc = fs.readFileSync(path.join(R, 'src/commands/robo.js'), 'utf8');
+    exige(/parseCantidad\(args\)/.test(roboSrc),
+      '!robo volvio al find(/\\d/) que se comia el telefono de la mencion');
+    exige(!/\.find\(a => \/\^\\d\+\$\/\.test\(a\)\)/.test(roboSrc),
+      '!robo volvio a buscar el primer token de solo digitos: eso es el telefono');
+
+    const auraSrc = fs.readFileSync(path.join(R, 'src/commands/aura.js'), 'utf8');
+    exige(/\['robar', 'robo'\]\.includes\(sub\)/.test(auraSrc) && /cmdRobo/.test(auraSrc),
+      '*!aura robar* tiene que despachar a cmdRobo: si no, consulta el saldo y parece que no se puede elegir cifra');
+    exige(/\[cuánto\]/.test(auraSrc),
+      'la guia tiene que decir que !robo lleva cantidad: si no, nadie se entera de que se puede elegir');
+
+    if (fallos === antes) console.log(verde('   ✓ la cifra se lee, el telefono no, y *!aura robar* roba'));
+  }
+
   console.log(`\n${'─'.repeat(70)}`);
   if (fallos) {
     console.log(rojo(`${fallos} fallo(s). NO commitees esto.`));
