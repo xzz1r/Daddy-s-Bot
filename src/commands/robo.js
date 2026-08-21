@@ -2415,7 +2415,20 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const phrase = pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag);
   const text =
     `${titulo}\n` +
-    `${aTag} intentó robarle a ${vTag} ${pickFresh(ROBO_FALLO_REMATE, `${jid}|robo|remate`)}\n` +
+    // LA CIFRA QUE IBA A ROBAR, EN EL TITULAR.
+    //
+    // Decia solo "intentó robarle a @V y le salió como el puto culo": el grupo
+    // no se enteraba de si habia ido a por 50 o a por 4.000, que es justo lo
+    // que hace que un fallo tenga gracia o no. La unica cifra visible era la
+    // multa (`@A −90`), y esa NO es lo que intento robar — se confunden solas.
+    //
+    // Lo que se intento vivia solo en la nota tecnica de abajo, en cursiva y en
+    // letra pequeña, junto al porcentaje. Ahi no se lee.
+    //
+    // Va `stake`, que es lo que pidio, no `monto`, que a estas alturas ya vale
+    // la multa. Y va delante del remate porque las quince frases empiezan por
+    // "y ", asi que la linea sigue leyendose como una sola.
+    `${aTag} intentó robarle *${fmt(stake)}* a ${vTag} ${pickFresh(ROBO_FALLO_REMATE, `${jid}|robo|remate`)}\n` +
     (clave === 'desastre'
       ? `_Se le cayó todo encima: ${vTag} se queda con lo que traía._\n\n`
       : `\n`) +

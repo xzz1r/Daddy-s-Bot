@@ -1420,6 +1420,29 @@ async function capaStores() {
     }
   }
 
+  // ── 14. UN ROBO FALLIDO DICE CUANTO SE INTENTO ROBAR ─────────────────────
+  //
+  // El titular decia solo "intentó robarle a @V y le salió como el puto culo".
+  // La unica cifra visible era la MULTA, y una multa no es lo que fuiste a
+  // robar: quien lo lee no sabe si el otro iba a por 50 o a por 4.000, que es
+  // justo lo que hace que el fallo tenga gracia. Lo intentado vivia en la nota
+  // tecnica de abajo, en cursiva y pequeño, donde no se lee.
+  {
+    console.log('\n14. UN ROBO FALLIDO DICE CUANTO SE INTENTO');
+    const rb = fs.readFileSync(path.join(R, 'src/commands/robo.js'), 'utf8');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    exige(/intentó robarle \*\$\{fmt\(stake\)\}\* a \$\{vTag\}/.test(rb),
+      'el titular del robo fallido perdio la cifra: solo se ve la multa, que no es lo que se intento robar');
+    // Y que sea `stake`, no `monto`: a esa altura `monto` ya vale la multa, asi
+    // que enseñarlo diria dos veces lo mismo y ninguna la verdad.
+    exige(!/intentó robarle \*\$\{fmt\(monto\)\}\*/.test(rb),
+      'el titular usa `monto`, que a esa altura ya es la multa, no lo que se pidio');
+
+    if (fallos === antes) console.log(verde('   ✓ el fallo enseña lo que se fue a robar, no solo la multa'));
+  }
+
   // ── 11. !play NO BAJA LA MISMA CANCION DOS VECES NI BORRA FICHERO AJENO ───
   //
   // El single-flight ahorra cuota, pero abre un fallo nuevo que no existia
