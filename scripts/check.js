@@ -1420,6 +1420,41 @@ async function capaStores() {
     }
   }
 
+  // ── 15. EL OBJETIVO DEL DIA ROTA DE VERDAD ───────────────────────────────
+  //
+  // Salio siete dias seguidos sobre la MISMA persona, y el codigo parecia
+  // correcto: hash de (grupo, etiqueta, dia). El fallo estaba dentro del hash.
+  // FNV-1a a secas termina en una multiplicacion, y eso no empuja el ultimo byte
+  // a los bits altos; como las claves de dias consecutivos solo cambian en el
+  // ultimo caracter, el ruido se movia en pasos de 0,004 y el indice caia
+  // siempre en el mismo sitio.
+  //
+  // Esto NO se ve leyendo: hay que generar los dias y mirar. Por eso la guarda
+  // los genera.
+  {
+    console.log('\n15. EL OBJETIVO DEL DIA ROTA');
+    const antes = fallos;
+    const { ruido } = require(path.join(R, 'src/utils/fachada'));
+    const dias = [];
+    for (let d = 0; d < 30; d++) {
+      const f = new Date(Date.UTC(2026, 0, 1 + d)).toISOString().slice(0, 10);
+      dias.push(Math.floor(ruido('G@g.us', 'objetivo-dia', f) * 7));
+    }
+    const distintos = new Set(dias).size;
+    if (distintos >= 5) {
+      console.log(verde(`   ✓ en 30 dias caen ${distintos} personas distintas de 7`));
+    } else {
+      fallos++;
+      console.log(rojo(`   ✗ el objetivo del dia no rota: en 30 dias solo caen ${distintos} de 7. ` +
+        'Suele ser que el hash perdio la mezcla final y el ultimo caracter no llega a los bits altos'));
+    }
+    // Y sigue siendo ESTABLE dentro del mismo dia, que es la otra mitad del trato.
+    const a = ruido('G@g.us', 'objetivo-dia', '2026-03-05');
+    const b = ruido('G@g.us', 'objetivo-dia', '2026-03-05');
+    if (a !== b) { fallos++; console.log(rojo('   ✗ el ruido dejo de ser estable dentro del dia')); }
+    if (fallos === antes) console.log(verde('   ✓ y es el mismo durante todo el dia'));
+  }
+
   // ── 14. UN ROBO FALLIDO DICE CUANTO SE INTENTO ROBAR ─────────────────────
   //
   // El titular decia solo "intentó robarle a @V y le salió como el puto culo".
