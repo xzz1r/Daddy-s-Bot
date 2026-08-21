@@ -391,6 +391,39 @@ async function connectToWhatsApp() {
   // mismo log que uno que va bien —el banner y nada más— y no hay forma de
   // saber en qué paso se quedó. Son tres líneas y solo salen al arrancar.
   logger.info('arranque: estado cargado, leyendo la sesión...');
+  // VINCULAR POR CODIGO EXIGE EMPEZAR DE CERO, Y ESTO CUESTA CINCO INTENTOS
+  // ENTENDERLO SI NO SE MIRA EL CODIGO DE BAILEYS.
+  //
+  // Baileys elige que mandar segun UNA condicion (Socket/socket.js):
+  //
+  //     if (!creds.me) -> generateRegistrationNode()   registro
+  //     else           -> generateLoginNode()          INICIO DE SESION
+  //
+  // Y `requestPairingCode` hace esto ANTES de devolver el codigo:
+  //
+  //     authState.creds.me = { id: jidEncode(phoneNumber, ...), name: '~' };
+  //     ev.emit('creds.update', ...)   -> saveCreds -> se escribe en disco
+  //
+  // O sea que pedir un codigo YA deja `me` guardado. Si la vinculacion no se
+  // completa —el codigo caduca, se teclea tarde, se cae la conexion— el
+  // arranque siguiente encuentra ese `me`, intenta INICIAR SESION con unas
+  // credenciales que nunca llegaron a registrarse, y WhatsApp responde 401.
+  //
+  // A partir de ahi ya da igual lo rapido que se teclee: todos los intentos
+  // salen 401 hasta que alguien borra data/auth a mano. Se vio en produccion,
+  // cinco intentos seguidos.
+  //
+  // Asi que si se pide vincular por codigo y no hay una sesion REGISTRADA, se
+  // limpia antes de abrir. Una sesion que funciona no se toca: `registered`
+  // solo es cierto cuando la vinculacion se completo de verdad.
+  if (process.argv.includes('--codigo')) {
+    const previo = await useMultiFileAuthState(AUTH_DIR);
+    if (!previo.state?.creds?.registered) {
+      await fs.remove(AUTH_DIR);
+      logger.info('vinculacion por codigo: se parte de cero (habia credenciales a medias)');
+    }
+  }
+
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
   logger.info('arranque: sesión leída, consultando la versión de WhatsApp...');
   const version = await getBaileysVersion();

@@ -1088,6 +1088,17 @@ async function capaStores() {
     exige(/perfilMirado/.test(mhSrc),
       'la consulta de perfil del primer mensaje perdio su freno: una consulta por linea es la via rapida al rate-limit');
 
+    // VINCULAR POR CODIGO PARTE DE CERO. requestPairingCode escribe `creds.me` en
+    // disco antes de devolver el codigo, y Baileys manda LOGIN en vez de REGISTRO
+    // en cuanto ese `me` existe. Si la vinculacion no se completa, todos los
+    // arranques siguientes son 401 hasta que alguien borre data/auth a mano —
+    // cinco intentos costo verlo. Pero SOLO si no hay sesion registrada: una que
+    // funciona no se toca.
+    exige(/if \(process\.argv\.includes\('--codigo'\)\)/.test(botSrc)
+       && /previo\.state\?\.creds\?\.registered/.test(botSrc)
+       && /await fs\.remove\(AUTH_DIR\)/.test(botSrc),
+      'la vinculacion por codigo ya no limpia las credenciales a medias: todo intento tras el primero sera un 401');
+
     // Y el codigo de vinculacion tiene su propio tope, porque el de los QR no le
     // valia: solo cuenta eventos `qr`, y un codigo no es uno. Cada reconexion
     // entraba otra vez en connectToWhatsApp y pedia un codigo NUEVO — dos en
