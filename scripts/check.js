@@ -24,6 +24,20 @@
 
 const fs = require('fs');
 const path = require('path');
+
+// LEER FUENTE SIN COMENTARIOS.
+//
+// Existe porque el mismo error me ha salido TRES veces en un dia: una guarda
+// busca en el fuente el nombre de lo que vigila, y lo encuentra... en el
+// comentario que explica por que ese nombre ya no se usa. La guarda se caza a si
+// misma y da un fallo que no existe.
+//
+// Cualquier guarda que busque un identificador en el codigo tiene que leer por
+// aqui. Las que buscan una frase concreta de un comentario, no.
+function soloCodigo(rutaRelativa) {
+  const txt = fs.readFileSync(path.join(R, rutaRelativa), 'utf8');
+  return txt.split('\n').filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n');
+}
 const vm = require('vm');
 const Module = require('module');
 
@@ -1576,12 +1590,19 @@ async function capaStores() {
   // no lo pilla: usan palabras distintas para lo mismo.
   {
     console.log('\n16. EL MENSAJE DEL ROBO NO SE REPITE');
-    const rb = fs.readFileSync(path.join(R, 'src/commands/robo.js'), 'utf8');
+    const rb = soloCodigo('src/commands/robo.js');
     const antes = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
 
-    exige(/hayMotivoDeRiesgo/.test(rb) && /codicia\|sin agallas/.test(rb),
-      'el sello de riesgo volvio a salir junto al motivo: son la misma etiqueta dos veces');
+    // El sello de riesgo se quito entero. Primero solo cuando coincidia con un
+    // motivo ("cobarde · sin agallas (−6%)"); despues tambien en el caso del
+    // punto dulce, porque etiquetar unos numeros que estan al lado no aporta.
+    exige(!/const notaSello/.test(rb) && !/etiquetaRiesgo/.test(rb),
+      'volvio el sello de riesgo a la nota: es una etiqueta para unos numeros que se leen solos');
+    // Y la cifra pedida no se repite en la nota: ya sale en el titular y en el
+    // saldo. Lo unico que aporta la nota es el TOPE.
+    exige(/tope \$\{fmt\(maxStake\)\}/.test(rb) && !/\$\{fmt\(stake\)\} de \$\{fmt\(maxStake\)\}/.test(rb),
+      'la nota vuelve a repetir la cifra pedida: ya sale dos veces mas arriba');
     // El consejo de la cifra no puede volver a salir en cada robo.
     exige(/pistaCifra\(jid, sender\)/.test(rb) && /function pistaCifra/.test(rb),
       'el consejo de *!robo @alguien 200* volvio a salir en todos los robos: un consejo repetido cien veces no enseña nada');
@@ -1601,7 +1622,7 @@ async function capaStores() {
   // tecnica de abajo, en cursiva y pequeño, donde no se lee.
   {
     console.log('\n14. UN ROBO FALLIDO DICE CUANTO SE INTENTO');
-    const rb = fs.readFileSync(path.join(R, 'src/commands/robo.js'), 'utf8');
+    const rb = soloCodigo('src/commands/robo.js');
     const antes = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
 

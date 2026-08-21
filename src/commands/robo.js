@@ -1,6 +1,6 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser } = require('../utils/wa');
 const { getAura, addAura, drainAura } = require('../utils/auraStore');
-const { pickFresh, fmt, parseCantidad, resolverCantidad, etiquetaRiesgo } = require('../utils/helpers');
+const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/helpers');
 const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA } = require('../utils/economia');
 const { ownerGana } = require('../utils/rigOwner');
 const { fichaFalsaBuscado } = require('../utils/fachada');
@@ -2382,7 +2382,6 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     ? `\n_Ibas a por ${fmt(raw)}, pero ${vTag} solo tenía ${fmt(maxStake)}._`
     : '';
   const fraccion = maxStake > 0 ? stake / maxStake : 0;
-  const sello = etiquetaRiesgo(fraccion);
   // La cifra se enseña SIEMPRE. Era lo que faltaba: se podia elegir desde hacia
   // tiempo, pero el bot solo lo mencionaba al recortar, y si el parser fallaba
   // (que era el caso normal con menciones) ni siquiera recortaba — eligia otra
@@ -2401,16 +2400,17 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   //    consejo. Ahora sale una vez al dia por persona, que es cuando enseña algo.
   //
   // Queda lo que responde a "cuanto iba y que posibilidades tenia".
+  // LA CIFRA NO SE DICE TRES VECES. Salia en el titular ("intentó robarle
+  // *39*"), en el saldo ("−39") y otra vez aqui ("39 de 87"). De las tres, la
+  // unica que aporta algo nuevo es el TOPE: cuanto se podia haber pedido.
   const notaApuesta = elegido
-    ? `${fmt(stake)} de ${fmt(maxStake)} · ${Math.round(chanceVisible * 100)}%`
-    : `${fmt(stake)} de ${fmt(maxStake)} · ${Math.round(chanceVisible * 100)}%${pistaCifra(jid, sender) ? ' · *!robo @alguien 200* para elegir' : ''}`;
-  // EL SELLO SOLO CUANDO NO HAY MOTIVO DE RIESGO, que es el unico caso en que
-  // añade algo. Los motivos ya dicen lo mismo Y con el numero: salia
-  // "cobarde · sin agallas (−6%)" en la misma linea, que son dos etiquetas para
-  // una sola cosa. La version anterior de esto comparaba las cadenas y no lo
-  // veia, porque el sello y el motivo usan PALABRAS DISTINTAS para lo mismo.
-  const hayMotivoDeRiesgo = motivos.some((m) => /codicia|sin agallas/.test(m));
-  const notaSello = sello && !hayMotivoDeRiesgo ? ` · ${sello}` : '';
+    ? `tope ${fmt(maxStake)} · ${Math.round(chanceVisible * 100)}%`
+    : `tope ${fmt(maxStake)} · ${Math.round(chanceVisible * 100)}%${pistaCifra(jid, sender) ? ' · *!robo @alguien 200* para elegir' : ''}`;
+  // EL SELLO SE VA ENTERO. Primero se quito cuando coincidia con un motivo de
+  // riesgo ("cobarde · sin agallas (−6%)", dos etiquetas para una cosa). Lo que
+  // quedaba era el caso del punto dulce, y ahi tampoco aporta: poner
+  // "punto dulce" al lado de "39 de 87" es etiquetar unos numeros que se leen
+  // solos. La proporcion ya dice si fuiste goloso o cobarde.
 
   // AL OWNER SE LE FABRICA EL DESGLOSE, no solo el porcentaje.
   //
@@ -2445,7 +2445,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       })()
     : motivos;
 
-  const notaDinamicas = `\n_${[notaApuesta + notaSello, ...motivosMostrados].join(' · ')}_` + notaTope + notaPuerta;
+  const notaDinamicas = `\n_${[notaApuesta, ...motivosMostrados].join(' · ')}_` + notaTope + notaPuerta;
 
   if (mult > 0) {
     anotarRoboExitoso(jid, canonicalJid(sender), canonicalJid(target));
@@ -2563,7 +2563,10 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     // sobraba: dos lineas mas abajo se lee `@V +200 → *3350*`. Explicar con una
     // frase lo que el numero de al lado ya dice es exactamente lo que hacia
     // largo el mensaje.
-    `\n` +
+    //
+    // Y el remate y el desenlace van PEGADOS, sin linea en blanco en medio: los
+    // dos cuentan lo mismo (que fallo), asi que separarlos en dos bloques hacia
+    // parecer que eran dos cosas distintas.
     `${phrase}\n\n` +
     `${aTag} −${fmt(monto)} → *${fmt(aNew.current)}*\n` +
     (vNew
