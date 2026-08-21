@@ -257,7 +257,25 @@ async function cmdHelp(sock, msg, groupMeta) {
   // puerta: al privado del bot ya no llega nadie que no sea del tier owner
   // (ver ownerEnPrivado en messageHandler). Se deja porque una puerta que
   // depende de otra puerta se rompe el dia que mueven la de arriba.
-  const esAdmin = isGroupAdmin(getSender(msg), msg.key.fromMe, groupMeta);
+  // TRES NIVELES, NO DOS. El corte anterior era admin/miembro y le enseñaba al
+  // admin trece comandos que le rebotan: los interruptores del grupo, el
+  // degradado, los resets y !on/!off son isOwner, no isGroupAdmin.
+  //
+  // El reparto esta leido de la guarda de CADA comando, uno por uno, no
+  // deducido del nombre — y hace falta leerla entera, porque dos formas de
+  // mirarla por encima dan respuestas falsas:
+  //
+  //   · !roast, !ship, !mog, !relevancia, !fantasmas y !s llaman a isOwner por
+  //     dentro, pero para EXIMIR al dueño (no se le puede rostear ni sacar en
+  //     el ranking de fantasmas), no para cerrar la puerta. Son de todos.
+  //   · !scan, !marcarfake, !fkban, !fkunban, !fklist y !antifake se escriben
+  //     "isOwner(...) || isGroupAdmin(...)": el primer simbolo es isOwner y
+  //     parecen del dueño, pero son de admins.
+  //
+  // Lo que decide es si un admin entra, y eso solo lo dice la expresion entera.
+  const quien = getSender(msg);
+  const esAdmin = isGroupAdmin(quien, msg.key.fromMe, groupMeta);
+  const esOwner = isOwner(quien, msg.key.fromMe, groupMeta);
 
   // El menu se lee en un movil, de una sentada. Cada linea que sobra empuja
   // hacia abajo la que alguien necesitaba, asi que va condensado a proposito:
@@ -277,52 +295,48 @@ async function cmdHelp(sock, msg, groupMeta) {
 
   const text =
 `*${config.botName}*
-_Prefijo *${p}* · ejemplo: *${p}play* despacito_
-_El número es lo que cuesta en aura._
+_Todo lleva *${p}* delante — *${p}play* despacito. El número es lo que cuesta en aura._
 
 ━━━━━ *DINÁMICAS* ━━━━━
 _Sin @ va sobre ti · con @ va sobre esa persona._
-*${p}roast* ${c('roast')} — destrucción · *${p}mog* ${c('mog')} @a @b — looks
-*${p}ship* ${c('ship')} @a @b · *${p}rizz* ${c('rizz')} · *${p}piropo* ${c('piropo')} · *${p}wingman* ${c('wingman')}
-_De más crudo a más suave, ${PRECIOS.percent} cada uno:_
+*${p}roast* ${c('roast')} · *${p}mog* ${c('mog')} @a @b · *${p}ship* ${c('ship')} @a @b
+*${p}rizz* ${c('rizz')} · *${p}piropo* ${c('piropo')} · *${p}wingman* ${c('wingman')}
+*${p}top5* ${c('top5')} · *${p}top10* ${c('top10')} — ranking del <tema> que pidas
+_Y los de una palabra, ${PRECIOS.percent} cada uno, de más crudo a más suave:_
 *${p}L* *${p}puta* *${p}guarra* *${p}incel* *${p}maricon* *${p}gay*
 *${p}cerdo* *${p}inutil* *${p}rata* *${p}femboy* *${p}simp* *${p}friki*
 *${p}fea* *${p}iq* *${p}infiel* *${p}feminidad* *${p}masculinidad*
 *${p}linda* *${p}hot* *${p}sexy* *${p}fiel* *${p}crack* *${p}ganador*
 
 ━━━━━ *AURA* ━━━━━
-_Estos no llevan número: no cobran nada por usarlos, mueven tu aura según cómo salgan._
-*${p}saldo* — lo que tienes · *${p}aura top* · *${p}aura hoy*
-*${p}aura* — te da o te quita, a suerte
-*${p}apostar* <cant.> — pon *mitad*, *todo*, *2k* o *50%* · *${p}duel* @user — 1v1
-*${p}robo* @user <cant.> · *${p}contrarobo* — devolver el golpe
-*${p}buscados* — quién roba y lo que paga su cabeza
-*${p}tienda* · *${p}comprar* <objeto> · *${p}bote* / *${p}asalto*
-*${p}caja* · *${p}atraco* — contra la casa, no contra nadie
-*${p}dar* / *${p}regalar* @user <cant.> — con impuesto
-*${p}guia* — para qué sirve el aura, en quince líneas
+_Gratis: no cobran, pero mueven tu saldo._
+*${p}aura* — la tirada · *${p}saldo* · *${p}aura top* · *${p}aura hoy*
+*${p}apostar* mitad / todo / 2k / 50% · *${p}duel* @user
+*${p}robo* @user <cant.> · *${p}contrarobo* · *${p}buscados*
+*${p}dar* @user <cant.> · *${p}tienda* · *${p}comprar* <objeto>
+*${p}bote* · *${p}caja* — lo que hay en el pozo y en la tienda
+*${p}asalto* · *${p}atraco* — reventarlos: es contra la casa, no contra nadie
+*${p}guia* — cómo funciona todo esto
 
 ━━━━━ *HERRAMIENTAS* ━━━━━
-*${p}play* ${c('play')} <nombre> — canción · *${p}cachelist* ${c('cachelist')} — las guardadas
+*${p}play* ${c('play')} <nombre> · *${p}cachelist* ${c('cachelist')}
 *${p}s* ${c('sticker')} · *${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')} · *${p}ttp* ${c('ttp')} <texto>
 *${p}g* ${c('grok')} <pregunta> · *${p}pfp* ${c('pfp')} · *${p}fk* ${c('fk')} @user
 
 ━━━━━ *ACTIVIDAD* ━━━━━
 *${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b
 *${p}fantasmas* ${c('fantasmas')} — ranking de los que menos escriben
-*${p}inactivos* ${c('inactivos')} — los que no llegan al mínimo, con aviso de expulsión
-*${p}top5* ${c('top5')} · *${p}top10* ${c('top10')} <tema> — ranking al azar
+*${p}inactivos* ${c('inactivos')} — los que no llegan al mínimo, y les avisa de expulsión
 ${esAdmin ? `
 ━━━━━ *ADMIN* ━━━━━
-*${p}count* ${c('count')} · *${p}tagall* · *${p}kick* · *${p}del*
-*${p}mute* · *${p}unmute* · *${p}promote* · *${p}demote* · *${p}close* · *${p}open*
-*${p}allow* · *${p}scan* · *${p}marcarfake* · *${p}antifoto* · *${p}antiempresa*
-*${p}fkban* · *${p}fkunban* · *${p}fklist* · *${p}antifake* on/off
-*${p}adminmode* · *${p}notifadmin* on/off
-
-━━━━━ *SISTEMA* ━━━━━
-*${p}on* · *${p}off* · *${p}aura on/off* — pausar la dinámica
-*${p}antiadmin* · *${p}antilink* on/off
+*${p}kick* · *${p}del* · *${p}mute* · *${p}unmute* · *${p}tagall* · *${p}allow*
+*${p}close* · *${p}open* · *${p}count* ${c('count')} · *${p}scan*
+*${p}marcarfake* · *${p}fkban* · *${p}fkunban* · *${p}fklist* · *${p}antifake* on/off
+*${p}notifadmin* on/off · *${p}promote* — con el anti-admin puesto, solo el owner
+` : ''}${esOwner ? `
+━━━━━ *OWNER* ━━━━━
+*${p}demote* · *${p}on* / *${p}off* — apagar el bot en este grupo
+_Van con on/off:_ *${p}antilink* · *${p}antifoto* · *${p}antiempresa* · *${p}antiadmin* · *${p}adminmode* · *${p}aura*
 *${p}resetcount* · *${p}resetaura* · *${p}clearcache* · *${p}setgrok* · *${p}diag*
 ` : ''}
 _${p}ping · ${p}info · ${p}whoami_`;

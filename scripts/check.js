@@ -359,7 +359,15 @@ async function capaStores() {
 
     const { cmdHelp } = require(path.join(R, 'src/commands/social'));
     salidas.length = 0;
-    await cmdHelp(sockT, msgT, metaT);
+    // SE PIDE EL MENU COMO OWNER, que es el unico que lo trae entero. Con el
+    // miembro raso —que es como se pedia— los bloques de ADMIN y OWNER ni
+    // aparecen, asi que ni el precio de !count ni un comando inventado de esas
+    // secciones podian saltar nunca. La comprobacion se creia completa y miraba
+    // dos tercios del menu.
+    const OWNER_T = `${String(require(path.join(R, 'src/config')).ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
+    const msgOwner = { ...msgT, key: { ...msgT.key, participant: OWNER_T } };
+    const metaOwner = { id: G, participants: [{ id: OWNER_T, admin: 'admin' }, { id: U }] };
+    await cmdHelp(sockT, msgOwner, metaOwner);
     const menu = salidas.at(-1)?.text || '';
 
     // LOS PRECIOS DEL MENU SALEN DE PRECIOS, NO ESCRITOS A MANO.
@@ -1715,6 +1723,138 @@ async function capaStores() {
     }
 
     if (fallos === antes) console.log(verde('   ✓ en privado solo habla con el owner, y el owner sigue entrando'));
+  }
+
+  // ── 20. EL MENU NO ANUNCIA LO QUE NO SE PUEDE USAR ───────────────────────
+  //
+  // El menu se parte por nivel para no enseñarle a nadie comandos que le van a
+  // rebotar. Estaba partido en dos —admin y miembro— y el bloque de ADMIN
+  // llevaba trece cosas que un admin no puede tocar: los interruptores del
+  // grupo, el degradado, los resets y !on/!off son isOwner.
+  //
+  // Y al repartirlos me equivoque en los dos sentidos, que es justo lo que esta
+  // capa vigila:
+  //   · leer "isOwner(" a secas mete en el bloque del dueño comandos que solo
+  //     usan isOwner para EXIMIRLE (a nadie le sale !roast del owner);
+  //   · quedarse con el primer simbolo de "isOwner(...) || isGroupAdmin(...)"
+  //     hace owner-only a seis comandos que son de admins.
+  //
+  // Asi que no se deduce el nivel del nombre: se lee LA PUERTA de cada uno —la
+  // expresion entera, no el primer simbolo— y se compara con el bloque donde el
+  // menu lo mete.
+  {
+    console.log('\n20. EL MENU NO ANUNCIA LO QUE NO SE PUEDE USAR');
+    const antes = fallos;
+    const { cmdHelp } = require(path.join(R, 'src/commands/social'));
+    const cfg = require(path.join(R, 'src/config'));
+    const OWN = `${String(cfg.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
+    const ADM = '34600000002@s.whatsapp.net';
+    const RASO = '34600000003@s.whatsapp.net';
+    const GRUPO = '000000000@g.us';
+    const metaM = { id: GRUPO, participants: [{ id: OWN, admin: 'admin' }, { id: ADM, admin: 'admin' }, { id: RASO }] };
+
+    const pedir = async (quien) => {
+      const out = [];
+      const s = { sendMessage: async (j, c) => { out.push(c); return {}; } };
+      await cmdHelp(s, { key: { remoteJid: GRUPO, participant: quien, fromMe: false, id: 'X' } }, metaM);
+      return out.at(-1)?.text || '';
+    };
+    const cmds = (txt) => new Set([...txt.matchAll(/!([a-zá-úñ0-9]+)/gi)].map((m) => m[1].toLowerCase()));
+
+    const mOwner = await pedir(OWN), mAdmin = await pedir(ADM), mRaso = await pedir(RASO);
+    const cO = cmds(mOwner), cA = cmds(mAdmin), cR = cmds(mRaso);
+
+    // Los tres menus son uno dentro de otro. Si un comando sale para el miembro
+    // y no para el owner, es que un bloque se quedo colgando de la condicion
+    // equivocada.
+    for (const [chico, grande, etq] of [[cR, cA, 'miembro ⊄ admin'], [cA, cO, 'admin ⊄ owner']]) {
+      const fuera = [...chico].filter((x) => !grande.has(x));
+      if (fuera.length) {
+        fallos++;
+        console.log(rojo(`   ✗ los menus dejaron de encajar (${etq}): ${fuera.join(', ')}`));
+      }
+    }
+    if (cO.size <= cA.size || cA.size <= cR.size) {
+      fallos++;
+      console.log(rojo(`   ✗ los tres menus salen iguales (${cR.size}/${cA.size}/${cO.size}): el corte por nivel no esta haciendo nada`));
+    }
+
+    // LA PUERTA DE CADA UNO, LEIDA ENTERA.
+    //
+    // Se coge la primera linea de la funcion que menciona un permiso y las DOS
+    // siguientes: ahi cabe el "|| isGroupAdmin(...)" partido en dos lineas, que
+    // es la forma que me engaño. Mirar 26 lineas era demasiado (pillaba
+    // comprobaciones sobre el objetivo, no sobre quien escribe) y una sola era
+    // demasiado poco.
+    const fuentes = {};
+    for (const f of fs.readdirSync(path.join(R, 'src/commands'))) {
+      if (f.endsWith('.js')) fuentes[f] = fs.readFileSync(path.join(R, 'src/commands', f), 'utf8');
+    }
+    fuentes['messageHandler.js'] = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+
+    const puertaDe = (fn) => {
+      for (const txt of Object.values(fuentes)) {
+        const m = txt.match(new RegExp(`^(?:async )?function ${fn}\\s*\\(`, 'm'));
+        if (!m) continue;
+        const cuerpo = txt.slice(m.index).replace(/\/\/[^\n]*/g, '').split('\n');
+        const i = cuerpo.findIndex((l) => /is(?:Main)?(?:Owner|GroupAdmin|Admin)\s*\(/.test(l));
+        if (i < 0) return null;
+        return cuerpo.slice(i, i + 3).join('\n');
+      }
+      return undefined;   // la funcion ya no existe
+    };
+
+    // Nivel esperado de cada comando que el menu mete en ADMIN o en OWNER.
+    // !promote no esta: es el unico mixto de verdad (con !antiadmin puesto es
+    // del dueño y sin el es de admins), y el menu ya lo dice en su linea.
+    // !resetaura y !clearcache tampoco: su puerta vive en el dispatcher.
+    const esperado = {
+      admin: { kick: 'cmdKick', del: 'cmdDel', mute: 'cmdMute', unmute: 'cmdUnmute',
+        tagall: 'cmdTodos', allow: 'cmdAllow', close: 'cmdClose', open: 'cmdOpen',
+        count: 'cmdCount', scan: 'cmdScan', marcarfake: 'cmdMarkFake', fkban: 'cmdFkBan',
+        fkunban: 'cmdFkUnban', fklist: 'cmdFkList', antifake: 'cmdAntiFake', notifadmin: 'cmdNotifAdmin' },
+      owner: { demote: 'cmdDemote', on: 'cmdOn', off: 'cmdOff', antilink: 'cmdAntiLink',
+        antifoto: 'cmdAntiFoto', antiempresa: 'cmdAntiBusiness', antiadmin: 'cmdAntiAdmin',
+        adminmode: 'cmdSoloAdmins', aura: 'interruptor', resetcount: 'cmdResetCount',
+        setgrok: 'cmdSetGrokKey', diag: 'cmdDiag' },
+    };
+    const mal = [], perdidas = [];
+    for (const [nivel, tabla] of Object.entries(esperado)) {
+      for (const [cmd, fn] of Object.entries(tabla)) {
+        const puerta = puertaDe(fn);
+        if (puerta === undefined) { perdidas.push(`${fn} (${cmd})`); continue; }
+        if (puerta === null) { mal.push(`!${cmd} ya no comprueba permisos y el menu lo pone en ${nivel.toUpperCase()}`); continue; }
+        const entraAdmin = /isGroupAdmin\s*\(|isAdmin\s*\(/.test(puerta);
+        if (nivel === 'admin' && !entraAdmin) mal.push(`!${cmd} esta en ADMIN y su puerta solo deja pasar al owner`);
+        if (nivel === 'owner' && entraAdmin) mal.push(`!${cmd} esta en OWNER y un admin si puede usarlo`);
+      }
+    }
+    if (perdidas.length) {
+      fallos++;
+      console.log(rojo(`   ✗ no encuentro la funcion de: ${perdidas.join(', ')} — la tabla de niveles se quedo vieja`));
+    }
+    if (mal.length) {
+      fallos++;
+      for (const x of mal) console.log(rojo(`   ✗ ${x}`));
+    }
+
+    // Y que cada uno salga DONDE toca en el menu de verdad, no solo en la tabla.
+    const soloAdmin = [...cA].filter((x) => !cR.has(x));
+    const soloOwner = [...cO].filter((x) => !cA.has(x));
+    for (const cmd of Object.keys(esperado.admin)) {
+      if (!soloAdmin.includes(cmd)) {
+        fallos++;
+        console.log(rojo(`   ✗ !${cmd} es de admins y el menu no lo saca en el bloque de ADMIN`));
+      }
+    }
+    for (const cmd of Object.keys(esperado.owner)) {
+      if (!soloOwner.includes(cmd) && cmd !== 'aura') {   // !aura sale antes, en su seccion
+        fallos++;
+        console.log(rojo(`   ✗ !${cmd} es del owner y el menu no lo saca en el bloque de OWNER`));
+      }
+    }
+
+    if (fallos === antes) console.log(verde(`   ✓ cada comando en su nivel (${cR.size}/${cA.size}/${cO.size} comandos por menu)`));
   }
 
   // ── 16. EL MENSAJE DEL ROBO NO SE REPITE A SI MISMO ──────────────────────
