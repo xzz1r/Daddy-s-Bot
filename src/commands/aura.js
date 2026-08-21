@@ -12,7 +12,7 @@ const { BOTE, ATRACO, CONTRA, RACHA, RIESGO, OBJETOS, VENTAJA, RECOMPENSA, IMPUE
 const { aportarAlBote } = require('../utils/roboStore');
 const tiendaObj = require('../utils/roboStore');
 const momentum = require('../utils/momentum');
-const { objetivoDelDia, esObjetivoDelDia } = require('../utils/objetivoDia');
+const { objetivoDelDia, esObjetivoDelDia, diaClave } = require('../utils/objetivoDia');
 
 // SUBIDO desde minuto y medio por decision del owner. La cifra esta abajo, en
 // la constante, y NO se repite aqui: este comentario decia "QUINCE MINUTOS"
@@ -29,6 +29,7 @@ const { objetivoDelDia, esObjetivoDelDia } = require('../utils/objetivoDia');
 // comando que paga de verdad dura lo que dura una conversacion.
 const ROLL_COOLDOWN_MS = 10 * 60 * 1000;
 const lastRoll = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
+const anuncioObjetivo = new Map(); // grupo -> diaClave, para no pinguear al cazado en cada tirada
 
 // Duracion en texto. Existe porque redondear a minutos miente con los tiempos
 // cortos: minuto y medio salia como "2min" y una espera de 20 segundos tambien.
@@ -1203,7 +1204,10 @@ async function cmdAura(sock, msg, args, groupMeta) {
   // comando ya se llamo asi antes y no tiene sentido romperle el habito a nadie
   // por un cambio de nombre.
   if (['apostar', 'apuesta', 'mitad', 'x2', 'ordago', 'órdago', 'allin', 'all-in', 'todo', 'mesa'].includes(sub)) {
-    return jugarApuesta(sock, msg, groupMeta, args);
+    // slice(1): el subcomando no es la cifra. Sin esto *!aura todo* (atajo de
+    // la mesa) se leía como "me juego el saldo entero", que es justo lo que
+    // el alias existía para no hacer — la mesa pone la mitad si no pides.
+    return jugarApuesta(sock, msg, groupMeta, (args || []).slice(1));
   }
   // !aura robar @alguien 200. Sin esto, *!aura robar* CAIA EN LA CONSULTA DE
   // SALDO: sub='robar' no era un modo conocido, habia mencion, y el bot
@@ -1369,8 +1373,23 @@ async function cmdAura(sock, msg, args, groupMeta) {
       if (sameUser(obj.jid, sender)) {
         extraObjetivo = `\n_Hoy te toca a ti: quien te robe cobra un ${paga}% más._`;
       } else {
-        extraObjetivo = `\n_Hoy se caza a @${obj.jid.split('@')[0]}: robarle paga un ${paga}% más._`;
-        mentions.push(obj.jid);
+        // Se anuncia siempre, se MENCIONA una vez al día. Mentions en cada
+        // tirada es el mismo fallo que tenía !aura top: el cazado se entera
+        // veinte veces y el grupo también. Después se pinta el nombre, no el
+        // teléfono crudo.
+        const pagaTxt = `robarle paga un ${paga}% más`;
+        const hoy = diaClave();
+        if (anuncioObjetivo.get(jid) !== hoy) {
+          if (anuncioObjetivo.size >= 500) anuncioObjetivo.delete(anuncioObjetivo.keys().next().value);
+          anuncioObjetivo.set(jid, hoy);
+          mentions.push(obj.jid);
+          extraObjetivo = `\n_Hoy se caza a @${obj.jid.split('@')[0]}: ${pagaTxt}._`;
+        } else {
+          const nombre = getName(obj.jid);
+          extraObjetivo = nombre
+            ? `\n_Hoy se caza a *${nombre}*: ${pagaTxt}._`
+            : `\n_Hoy se caza a @${obj.jid.split('@')[0]}: ${pagaTxt}._`;
+        }
       }
     }
   } catch { /* sin objetivo el comando sigue; no es un dato sin el que no se tire */ }
