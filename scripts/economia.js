@@ -21,7 +21,7 @@ const { P_POSITIVA, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, ACTIVIDAD_MSGS, P_TOPE_MIEMB
         APUESTA, PRECIOS, BONOS, REDENCION, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE,
         P_TOPE, TIRADAS_PAGADAS, bonoActividad,
         RACHA, rango, ROBO, DUELO, ARRANQUE, MILLONARIO, IMPUESTO, impuestoDe,
-        OBJETOS, VENTAJA, RECOMPENSA, RIESGO, ROBO_BASE, ROBO_LIMITES, PRIMERA_DEL_DIA,
+        OBJETOS, VENTAJA, RECOMPENSA, RIESGO, ROBO_BASE, ROBO_LIMITES, PRIMERA_DEL_DIA, HITOS,
         pApuestaDe, pApuestaVisible, MOMENTUM, OBJETIVO_DIA } = eco;
 
 let fallos = 0;
@@ -108,16 +108,21 @@ function evBono(tier) {
 }
 // Cuanto da escribir N mensajes en un dia. Solo los hitos: el sueldo que hubo
 // una temporada (un pago cada 10 mensajes) se quito.
+//
+// LOS HITOS SON UMBRALES, UNO POR VENTANA. Esto sumaba con modulo —un bono cada
+// 200 mensajes— porque el motor lo hacia asi, y era el mismo fallo: el de 1.200
+// mensajes cobraba cinco veces el tramo 1. Ahora se recorre HITOS, que es la
+// misma tabla que usa casino.js, para que el modelo no pueda medir un bot
+// distinto del que corre.
 function evEscribir(msgs) {
   let total = 0;
-  for (let c = 1; c <= msgs; c++) {
-    if      (c % 1000 === 0) total += evBono(3);
-    else if (c % 500  === 0) total += evBono(2);
-    else if (c % 200  === 0) total += evBono(1);
+  for (const h of HITOS) {
+    if (msgs < h.n) continue;
+    total += evBono(h.tier);
     // El extra del primer hito del dia: plano, una vez, igual para todos. Es lo
     // que permite pagar mas por escribir sin que el que escribe 1.200 cobre
     // seis veces la subida.
-    if (c === 200) total += PRIMERA_DEL_DIA;
+    if (h.n === 200) total += PRIMERA_DEL_DIA;
   }
   return total;
 }
@@ -393,9 +398,9 @@ function recorrido(tiradas, msgs, gastaFraccion) {
         aura += i < TIRADAS_PAGADAS ? rollAura(p) : rollNeutra();
         if (aura < min) min = aura;
       }
-      for (let c = 1; c <= msgs; c++) {
-        const t = c % 1000 === 0 ? 3 : c % 500 === 0 ? 2 : c % 200 === 0 ? 1 : 0;
-        if (t) aura += bonoReal(t, aura);
+      for (const h of HITOS) {
+        if (msgs < h.n) continue;
+        aura += bonoReal(h.tier, aura) + (h.n === 200 ? PRIMERA_DEL_DIA : 0);
       }
       // La racha: se supone que no falla ni un dia, que es el caso peor.
       aura += RACHA.pago * Math.min(d + 1, RACHA.tope);
@@ -725,6 +730,9 @@ console.log('\n════ 6. lo que SI es casino: la casa gana ════\n'
   // el presupuesto sale de las tiradas de pago, no del aire. Se comprueba
   // contra las cifras MEDIDAS de antes del cambio, no contra una sensacion.
   {
+    // Techos historicos: lo que ingresaba cada perfil ANTES de que el pago por
+    // escribir se tocara. Solo bajan, nunca suben — son un trinquete. Medido hoy
+    // (hitos por umbral, tramo 3 subido): 177 / 204 / 462.
     const BASE = { 'normal': 188, 'activo': 268, 'muy activo': 486 };
     for (const [perfil, antes] of Object.entries(BASE)) {
       const ahora = f(perfil).total;
@@ -735,10 +743,22 @@ console.log('\n════ 6. lo que SI es casino: la casa gana ════\n'
     // hito en vez de una vez al dia, vuelve a compounder con el volumen y el
     // que escribe 1.200 cobra seis veces la subida. Ese fue el motivo de que
     // no se pudiera subir el tramo y de que esto exista.
-    const subeNormal = f('normal').total - (188 - PRIMERA_DEL_DIA);
-    const subeMucho  = f('muy activo').total - (486 - PRIMERA_DEL_DIA);
-    ok(Math.abs(subeNormal - subeMucho) < 1,
-      '  el extra del primer hito es plano: el de 200 mensajes cobra lo mismo que el de 1.200');
+    //
+    // SE MIDE SOBRE LA FUNCION, NO CONTRA UNA CIFRA DE ANTES. La version
+    // anterior restaba dos bases apuntadas a mano (188 y 486) y comparaba las
+    // diferencias: mientras la estructura de los hitos no se moviera daba lo
+    // mismo, pero en cuanto se paso de modulo a umbrales dejo de significar
+    // nada y dio FALLO por aritmetica vieja, no porque el pago hubiera dejado
+    // de ser plano. Una guarda anclada a un numero medido caduca sin avisar.
+    const sinExtra = (msgs) => HITOS.filter((h) => msgs >= h.n)
+      .reduce((s, h) => s + evBono(h.tier), 0);
+    for (const msgs of [200, 500, 1200, 5000]) {
+      const extra = evEscribir(msgs) - sinExtra(msgs);
+      ok(Math.abs(extra - PRIMERA_DEL_DIA) < 0.01,
+        `  el extra del primer hito es plano con ${msgs} msgs: entra ${extra.toFixed(0)} y tiene que entrar ${PRIMERA_DEL_DIA}`);
+    }
+    ok(evEscribir(199) - sinExtra(199) === 0,
+      '  y por debajo del primer hito no entra: el extra es del hito, no de escribir');
   }
 
   for (const rol of Object.keys(APUESTA.p)) {

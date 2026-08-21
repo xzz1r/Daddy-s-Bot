@@ -1902,6 +1902,119 @@ async function capaStores() {
     if (fallos === antes) console.log(verde(`   ✓ cada comando en su nivel (${cR.size}/${cA.size}/${cO.size} comandos por menu)`));
   }
 
+  // ── 21. LOS BONOS DE ESCRIBIR SON DIARIOS, NO UN PEAJE ───────────────────
+  //
+  // Reportado desde el grupo: "se repite constantemente el de 200 cuando
+  // literalmente es un contador de 24 horas, y solo daba +11".
+  //
+  // Las dos cosas eran el mismo fallo. Los hitos se daban con `count % 200`, o
+  // sea cada 200 mensajes y no una vez al dia: a los 400, 600, 800 y 1.200
+  // volvia a saltar. Y la cabecera estaba escrita a mano por tramo, asi que las
+  // cinco veces decia "200 MENSAJES" aunque el contador fuera por 1.200 — de
+  // ahi lo de "se repite". Del segundo al quinto pagaban 8-14: el +11.
+  //
+  // Esto se comprueba EJECUTANDO, no leyendo: el fallo no se ve en el codigo
+  // (una linea con un modulo parece razonable), se ve al escribir mil mensajes.
+  {
+    console.log('\n21. LOS BONOS DE ESCRIBIR SON DIARIOS');
+    const antes = fallos;
+    if (botEnMarcha()) {
+      console.log('   — saltada: el bot esta corriendo y escribiria sobre sus datos');
+    } else {
+      const habia = new Set(fs.readdirSync(DATA).filter((f) => f.endsWith('.json')));
+      const copia = copiaSeguridad();
+      try {
+        for (const k of Object.keys(require.cache)) {
+          if (/utils[\/\\](casino|casinoStore|auraStore|rachaStore)\.js$/.test(k)) delete require.cache[k];
+        }
+        for (const f of ['casino.json', 'aura.json', 'racha.json']) {
+          try { fs.unlinkSync(path.join(DATA, f)); } catch {}
+        }
+        const { checkCasinoMilestone } = require(path.join(R, 'src/utils/casino'));
+        const { PRIMERA_DEL_DIA, HITOS } = require(path.join(R, 'src/utils/economia'));
+        const GB = '000000021@g.us';
+        const UB = '34600000021@s.whatsapp.net';
+
+        const avisos = [];
+        const sockB = { sendMessage: async (j, c) => { avisos.push(c.text); return {}; } };
+        for (let i = 1; i <= 1300; i++) await checkCasinoMilestone(sockB, GB, UB);
+
+        if (avisos.length !== HITOS.length) {
+          fallos++;
+          console.log(rojo(`   ✗ 1.300 mensajes en un dia sueltan ${avisos.length} bonos y los hitos son ${HITOS.length}: el de 200 vuelve a repetirse`));
+        }
+        // Cada cabecera tiene que decir EL UMBRAL QUE SE CRUZO. Es la mitad del
+        // fallo que se vio en el grupo, y la que lo hacia parecer un bucle.
+        const cabeceras = avisos.map((a) => (a.match(/TIER (\d) · ([\d.,]+) MENSAJES/) || []).slice(1).join('|'));
+        const esperadas = HITOS.map((h) => `${h.tier}|${h.n.toLocaleString('es-ES')}`);
+        const esperadasLlanas = HITOS.map((h) => `${h.tier}|${h.n}`);
+        const bien = cabeceras.every((c, i) => c === esperadas[i] || c === esperadasLlanas[i]);
+        if (!bien) {
+          fallos++;
+          console.log(rojo(`   ✗ las cabeceras no dicen el hito que se cruzo: ${cabeceras.join(' · ')}`));
+        }
+        // El de 200 tiene que llevar el extra plano. Es lo que pidio el dueño
+        // ("al menos 75 por 200 mensajes") y sin el vuelve a pagar calderilla.
+        const primero = Number((avisos[0]?.match(/\+([\d.,]+) de aura/) || [])[1]?.replace(/[.,]/g, ''));
+        if (!(primero >= PRIMERA_DEL_DIA)) {
+          fallos++;
+          console.log(rojo(`   ✗ el bono de 200 paga ${primero} y el extra plano solo ya son ${PRIMERA_DEL_DIA}: no se esta aplicando`));
+        }
+        // Y los siguientes NO lo llevan: si lo llevaran, compoundaria con el
+        // volumen, que es lo que obligo a que el extra fuera plano.
+        const resto = avisos.slice(1).map((a) => Number((a.match(/\+([\d.,]+) de aura/) || [])[1]?.replace(/[.,]/g, '')));
+
+        // El dia siguiente: la ventana caduca y los tres hitos vuelven a estar
+        // disponibles. Sin esto, un `hitos` que no se limpiara dejaria al grupo
+        // entero sin bonos para siempre y nadie sabria por que.
+        const cs = require(path.join(R, 'src/utils/casinoStore'));
+        await cs.flushCasino();
+        const raw = JSON.parse(fs.readFileSync(path.join(DATA, 'casino.json'), 'utf8'));
+        raw[GB].resetAt = Date.now() - (cs.RESET_MS + 1000);
+        fs.writeFileSync(path.join(DATA, 'casino.json'), JSON.stringify(raw));
+        for (const k of Object.keys(require.cache)) {
+          if (/utils[\/\\](casino|casinoStore)\.js$/.test(k)) delete require.cache[k];
+        }
+        const { checkCasinoMilestone: cm2 } = require(path.join(R, 'src/utils/casino'));
+        const avisos2 = [];
+        const sock2 = { sendMessage: async (j, c) => { avisos2.push(c.text); return {}; } };
+        for (let i = 1; i <= 250; i++) await cm2(sock2, GB, UB);
+        if (avisos2.length !== 1) {
+          fallos++;
+          console.log(rojo(`   ✗ al caducar la ventana de 24 h el hito de 200 sale ${avisos2.length} veces en vez de 1: los hitos cobrados no se reinician`));
+        }
+
+        // Dos mensajes que cruzan el umbral a la vez NO pueden cobrar dos veces.
+        // El pipeline llama a esto sin await, asi que es una carrera real.
+        for (const f of ['casino.json', 'aura.json', 'racha.json']) {
+          try { fs.unlinkSync(path.join(DATA, f)); } catch {}
+        }
+        for (const k of Object.keys(require.cache)) {
+          if (/utils[\/\\](casino|casinoStore|auraStore|rachaStore)\.js$/.test(k)) delete require.cache[k];
+        }
+        const { checkCasinoMilestone: cm3 } = require(path.join(R, 'src/utils/casino'));
+        const GC = '000000022@g.us';
+        let dobles = 0;
+        const sock3 = { sendMessage: async () => { dobles++; return {}; } };
+        for (let i = 1; i <= 198; i++) await cm3(sock3, GC, UB);
+        await Promise.all([cm3(sock3, GC, UB), cm3(sock3, GC, UB), cm3(sock3, GC, UB), cm3(sock3, GC, UB)]);
+        if (dobles !== 1) {
+          fallos++;
+          console.log(rojo(`   ✗ cuatro mensajes a la vez cruzando el 200 cobran ${dobles} bonos: se paga por duplicado`));
+        }
+
+        if (fallos === antes) {
+          console.log(verde(`   ✓ tres bonos al dia (${resto.length + 1}), cabecera correcta, extra plano solo en el primero y vuelven mañana`));
+        }
+      } finally {
+        for (const k of Object.keys(require.cache)) {
+          if (/utils[\/\\](casino|casinoStore|auraStore|rachaStore)\.js$/.test(k)) delete require.cache[k];
+        }
+        restaurar(copia, habia);
+      }
+    }
+  }
+
   // ── 16. EL MENSAJE DEL ROBO NO SE REPITE A SI MISMO ──────────────────────
   //
   // La nota llego a decir la misma cosa dos veces con palabras distintas:

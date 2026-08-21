@@ -11,7 +11,8 @@
 const { incrementCasinoCount } = require('./casinoStore');
 const { anotarMensaje } = require('./rachaStore');
 const { getAura, addAura } = require('./auraStore');
-const { BONOS, REDENCION, PRIMERA_DEL_DIA, RACHA, rango } = require('./economia');
+const { BONOS, REDENCION, PRIMERA_DEL_DIA, HITOS, RACHA, rango } = require('./economia');
+const { hitosCobrados, apuntarHito } = require('./casinoStore');
 const { HITO: RACHA_HITO, ROTA: RACHA_ROTA } = require('../data/rachaPhrases');
 const { pickFresh, fmt } = require('./helpers');
 const { isBotEnabled, isAuraEnabled } = require('./state');
@@ -156,13 +157,28 @@ function rollReward(tier, currentAura) {
 
 // ─── Next milestone display (near-miss — keeps players counting) ──────────────
 
-function nextMilestone(count) {
-  const n200  = Math.ceil((count + 1) / 200)  * 200;
-  const n500  = Math.ceil((count + 1) / 500)  * 500;
-  const n1000 = Math.ceil((count + 1) / 1000) * 1000;
-  const next  = Math.min(n200, n500, n1000);
-  const tier  = next % 1000 === 0 ? 3 : next % 500 === 0 ? 2 : 1;
-  return { tier, remaining: next - count };
+// LOS HITOS SON TRES UMBRALES DEL DIA, no un resto.
+//
+// Estaban puestos con modulo —`count % 200 === 0`— y eso no es un hito diario,
+// es un peaje cada 200 mensajes: a los 200, 400, 600, 800 y 1.200 saltaba el
+// mismo aviso, siempre con la cabecera "200 MENSAJES" (que no miraba el
+// contador, escribia el tamaño del tramo), y a partir del primero pagaban 8-14.
+// Cinco avisos identicos al dia por calderilla: parecia un bucle porque en la
+// practica lo era.
+//
+// El contador ya es de 24 h. Con umbrales, cada uno se cruza UNA vez por
+// ventana y se acabo: 200, 500 y 1.000.
+// El proximo umbral que le queda por cobrar hoy. `cobrados` es la lista que
+// guarda casinoStore; sin ella se supone que no ha cobrado ninguno.
+//
+// Devuelve null cuando ya estan los tres: antes esto era imposible —siempre
+// habia un "proximo" porque el modulo no se acaba nunca— y el mensaje prometia
+// un bono mas que ya no existe.
+function nextMilestone(count, cobrados = []) {
+  const pend = HITOS.filter((h) => !cobrados.includes(h.n) && h.n > count);
+  if (!pend.length) return null;
+  const h = pend[0];
+  return { tier: h.tier, hito: h.n, remaining: h.n - count };
 }
 
 // ─── La racha de dias seguidos ───────────────────────────────────────────────
@@ -214,22 +230,34 @@ async function checkCasinoMilestone(sock, jid, sender) {
   // la distingue del sueldo — aquel pagaba callado y no daba nada que contar.
   await avisarRacha(sock, jid, sender).catch(() => {});
 
-  let tier = 0;
-  if      (count % 1000 === 0) tier = 3;
-  else if (count % 500  === 0) tier = 2;
-  else if (count % 200  === 0) tier = 1;
-  if (!tier) return;
+  // EL UMBRAL MAS BAJO QUE YA SE HA CRUZADO Y AUN NO SE HA COBRADO HOY.
+  //
+  // El mas bajo y no el mas alto a proposito: si el contador da un salto —
+  // colapsar junta dos formas de la misma persona de golpe— pueden quedar dos
+  // umbrales cruzados a la vez. Cobrando el mas bajo primero no se pierde
+  // ninguno; el siguiente mensaje cobra el otro. Quedarse con el mas alto
+  // regalaria el de abajo, y saltar los dos de una vez soltaria dos avisos
+  // seguidos en el grupo.
+  const cobrados = await hitosCobrados(jid, sender);
+  const toca = HITOS.find((h) => count >= h.n && !cobrados.includes(h.n));
+  if (!toca) return;
 
+  // Y se apunta ANTES de pagar. apuntarHito devuelve false si otro mensaje se
+  // adelanto: los mensajes se procesan en paralelo y dos que crucen el umbral a
+  // la vez cobrarian los dos el bono. Esta es la unica linea que lo impide.
+  if (!(await apuntarHito(jid, sender, toca.n))) return;
+
+  const tier = toca.tier;
   const currentAura = await getAura(jid, sender);
   const { amount: base, label } = rollReward(tier, currentAura);
 
   // EL PRIMER HITO DEL DIA PAGA UN EXTRA PLANO, y solo el primero.
   //
-  // `count` viene del contador de 24 h, asi que `count === 200` ocurre UNA vez
-  // al dia por persona: el que escribe 200 lo cobra igual que el que escribe
-  // 1.200. Por eso no compounda con el volumen, que es lo que hacia imposible
-  // subir el importe del tramo sin inflar a los que mas escriben.
-  const extraPrimera = count === 200 ? PRIMERA_DEL_DIA : 0;
+  // Es el de 200, que ahora se cruza UNA vez al dia por persona: el que escribe
+  // 200 lo cobra igual que el que escribe 1.200. Por eso no compounda con el
+  // volumen, que es lo que hacia imposible subir el importe del tramo sin
+  // inflar a los que mas escriben.
+  const extraPrimera = toca.n === 200 ? PRIMERA_DEL_DIA : 0;
   const amount = base + extraPrimera;
   const { current } = await addAura(jid, sender, amount);
 
@@ -265,15 +293,20 @@ async function checkCasinoMilestone(sock, jid, sender) {
   // Sin emojis, como el resto del bot. Este fichero era el ÚNICO de todo src/
   // que sacaba emojis por WhatsApp (doce líneas), y cantaba: el bot escribe en
   // texto pelado en los otros ciento y pico sitios.
-  const tierHdr   = tier === 3 ? '*BONO DE AURA · TIER 3 · 1000 MENSAJES*'
-                  : tier === 2 ? '*BONO DE AURA · TIER 2 · 500 MENSAJES*'
-                  :              '*BONO DE AURA · TIER 1 · 200 MENSAJES*';
-  const next      = nextMilestone(count);
+  // La cabecera dice EL UMBRAL QUE SE ACABA DE CRUZAR. Estaba escrita a mano
+  // por tramo, asi que a los 600 mensajes seguia diciendo "200 MENSAJES" — el
+  // mismo cartel cinco veces al dia, que es lo que hacia parecer que el bono se
+  // repetia. Ahora sale del hito, y no puede volver a separarse de el.
+  const tierHdr   = `*BONO DE AURA · TIER ${tier} · ${fmt(toca.n)} MENSAJES*`;
+  const next      = nextMilestone(count, await hitosCobrados(jid, sender));
   // La etiqueta decia el TAMAÑO del tramo, no donde esta el proximo bono. Justo
   // despues de cobrar el de 200 salia "Proximo bono: Tier 1 (200 msgs)", que se
   // lee como que el siguiente vuelve a ser a los 200 — el que se acaba de dar.
   // Ahora dice el numero al que hay que llegar.
-  const nextLabel = `Tier ${next.tier} a los ${fmt(count + next.remaining)}`;
+  // Y cuando ya no queda ninguno, se dice eso y no un hito inventado.
+  const lineaProx = next
+    ? `_Próximo bono: Tier ${next.tier} a los ${fmt(next.hito)} — faltan ${fmt(next.remaining)} mensajes_`
+    : '_Ya has cobrado los tres bonos de hoy. Vuelven al reiniciarse el contador._';
 
   // La cifra salia TRES veces en cinco lineas: en la cabecera, en el "lleva X
   // mensajes hoy" y otra vez dentro de la frase. Con la cabecera basta.
@@ -282,7 +315,7 @@ async function checkCasinoMilestone(sock, jid, sender) {
     `${userTag}\n\n` +
     `${phrase}\n\n` +
     `${userTag}  +${fmt(amount)} de aura → *${fmt(current)}*\n\n` +
-    `_Próximo bono: ${nextLabel} — faltan ${fmt(next.remaining)} mensajes_`;
+    lineaProx;
 
   // Solo se menciona a quien cobra el bono, y únicamente para que su nombre se
   // renderice en el mensaje. Antes esto hacía un tagall invisible que notificaba
@@ -291,4 +324,4 @@ async function checkCasinoMilestone(sock, jid, sender) {
   await sock.sendMessage(jid, { text, mentions: [sender] });
 }
 
-module.exports = { checkCasinoMilestone, nextMilestone };
+module.exports = { checkCasinoMilestone, nextMilestone, HITOS };

@@ -570,7 +570,21 @@ const RACHA = {
 const BONOS = {
   1: { win: [8, 6],   bigwin: [14, 8],  jackpot: [22, 12], mega: [34, 18] },
   2: { win: [35, 20], bigwin: [55, 25], jackpot: [80, 35], mega: [120, 50] },
-  3: { win: [90, 40], bigwin: [130, 60], jackpot: [190, 80], mega: [260, 120] },
+  // TRAMO 3 SUBIDO UN 30 % AL PASAR LOS HITOS A UMBRALES.
+  //
+  // No es un regalo: es devolver lo que el arreglo se llevo. Con el modulo, el
+  // que escribia 1.200 mensajes cobraba CINCO tramos 1 ademas de los otros dos;
+  // al pasar a umbrales cobra uno, y su ingreso cayo de 486 a 412 mientras el
+  // de 200 mensajes se quedaba igual. Eso estrecha la distancia entre el que
+  // vive en el chat y el que pasa por ahi, que es justo lo contrario de lo que
+  // se pide del sistema.
+  //
+  // Se compensa aqui y no en el tramo 1 a proposito: el tramo 3 lo cobra solo
+  // quien pasa de 1.000 mensajes en 24 h, asi que no toca ni un punto al resto.
+  // Y se queda en 462 al dia, por debajo de los 486 que ingresaba antes: sigue
+  // sin entrar aura nueva al sistema, y la distancia con el que escribe poco
+  // vuelve a pasar del 2,5x que exige el validador.
+  3: { win: [115, 50], bigwin: [170, 80], jackpot: [245, 105], mega: [340, 155] },
 };
 
 // Premio de redención para quien está en negativo. Su función es sacar a
@@ -595,10 +609,21 @@ const BONOS = {
 // boton lo reparte por escribir, que es lo que dice ser en todas partes.
 const PRIMERA_DEL_DIA = 59;
 
+// LOS TRES HITOS DEL DIA. Viven aqui y no en casino.js porque este fichero es
+// la escala entera del bot y porque el validador (scripts/economia.js) modela
+// el ingreso por escribir: con la tabla en el motor y una copia a mano en el
+// modelo, el dia que cambie una se queda midiendo un bot que ya no existe. Ya
+// paso con el modulo — el modelo seguia sumando un bono cada 200 mensajes.
+const HITOS = [
+  { n: 200,  tier: 1 },
+  { n: 500,  tier: 2 },
+  { n: 1000, tier: 3 },
+];
+
 const REDENCION = {
   1: [55, 45],    // por encima del mega de tier 1 (34-52)
   2: [180, 120],  // por encima del mega de tier 2 (120-170)
-  3: [400, 250],  // por encima del mega de tier 3 (260-380)
+  3: [500, 260],  // por encima del mega de tier 3 (340-495)
 };
 // ─── !robo ───────────────────────────────────────────────────────────────────
 //
@@ -1280,7 +1305,7 @@ function rango([suelo, ancho]) {
 module.exports = {
   MILLONARIO, ARRANQUE, SUELO_TODOS,
   TIRADA, TIRADA_MIN, TIRADA_MAX, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE,
-  PRIMERA_DEL_DIA,
+  PRIMERA_DEL_DIA, HITOS,
   P_TOPE_MIEMBRO, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, MEDIA_PREMIO, MEDIA_CASTIGO, bonoActividad, APUESTA,
   pApuestaDe, pApuestaVisible, APUESTA_OWNER_VISIBLE,
   RACHA, BONOS, REDENCION,

@@ -1,7 +1,7 @@
 const { getState, setState, toggleGroup } = require('../utils/state');
 const { formatUptime, fmt, pickFresh } = require('../utils/helpers');
 const { isOwner, isMainOwner, isGroupAdmin, getSender } = require('../utils/wa');
-const { getCasinoCount, msUntilReset, tiradasDeHoy } = require('../utils/casinoStore');
+const { getCasinoCount, msUntilReset, tiradasDeHoy, hitosCobrados } = require('../utils/casinoStore');
 const { verRacha } = require('../utils/rachaStore');
 const { nextMilestone } = require('../utils/casino');
 const { PRECIOS, APUESTA, CONTRA, ACTIVIDAD_MSGS, TIRADAS_PAGADAS, RACHA } = require('../utils/economia');
@@ -199,16 +199,21 @@ async function cmdCasino(sock, msg, groupMeta) {
   // dentro de algo que si le aplica.
   if (isMainOwner(sender, msg.key.fromMe, groupMeta)) return;
 
-  const [count, ms, tiradas, racha] = await Promise.all([
+  const [count, ms, tiradas, racha, cobrados] = await Promise.all([
     getCasinoCount(jid, sender),
     msUntilReset(jid),
     tiradasDeHoy(jid, sender),
     verRacha(jid, sender),
+    hitosCobrados(jid, sender),
   ]);
 
-  const { tier, remaining } = nextMilestone(count);
-
-  const tierLabel = tier === 3 ? 'Tier 3 (1000 msgs)' : tier === 2 ? 'Tier 2 (500 msgs)' : 'Tier 1 (200 msgs)';
+  // Los hitos cobrados hacen falta aqui igual que en el aviso: sin ellos esto
+  // enseñaba el proximo tramo por resto —"Tier 1 (200 msgs)" a alguien que ya
+  // llevaba 900— y prometia un bono que no iba a llegar.
+  const next = nextMilestone(count, cobrados);
+  const lineaBono = next
+    ? `Próximo bono: Tier ${next.tier} a los ${fmt(next.hito)} — faltan *${fmt(next.remaining)}* msgs`
+    : 'Bonos de hoy: *los tres cobrados*';
 
   const hours = Math.floor(ms / 3_600_000);
   const mins  = Math.floor((ms % 3_600_000) / 60_000);
@@ -232,7 +237,7 @@ async function cmdCasino(sock, msg, groupMeta) {
     `Mensajes hoy: *${fmt(count)}*\n` +
     `Tiradas que pagan: *${fmt(quedan)}* de ${TIRADAS_PAGADAS}\n` +
     `${lineaRacha}\n` +
-    `Próximo bono: ${tierLabel} — faltan *${fmt(remaining)}* msgs\n` +
+    `${lineaBono}\n` +
     `${pickFresh(AURA_LINES, `${jid}|auralines`)}\n\n` +
     `_Reset en ${resetStr}_`;
 
