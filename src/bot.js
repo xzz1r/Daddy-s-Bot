@@ -416,21 +416,28 @@ async function connectToWhatsApp() {
   // Asi que si se pide vincular por codigo y no hay una sesion REGISTRADA, se
   // limpia antes de abrir. Una sesion que funciona no se toca: `registered`
   // solo es cierto cuando la vinculacion se completo de verdad.
-  // Y NO SOLO CON --codigo: vale para el QR igual.
+  // CREDENCIALES A MEDIAS: SE MIRA `account`, NO `registered`.
   //
-  // `registered` solo se pone a true cuando la vinculacion se COMPLETO
-  // (messages-recv.js:940). Asi que unas credenciales con `me` pero sin
-  // `registered` son una sesion muerta por definicion: tienen lo justo para que
-  // Baileys mande LOGIN y nada de lo que hace falta para que ese login funcione.
-  // No se recuperan esperando; solo dan 401, una y otra vez.
+  // Esto lo escribi mirando `registered` y estaba MAL de una forma que borraba
+  // la sesion buena. En todo Baileys `registered = true` se escribe en UN solo
+  // sitio (messages-recv.js:940) y es la rama del codigo de vinculacion: EL QR
+  // NUNCA LO PONE. Con esa condicion, una sesion escaneada con QR se borraba en
+  // cada arranque — y como tras escanear Baileys cierra con "restart required"
+  // y el bot reconecta, se borraba a los dos segundos de escanear y salia otro
+  // QR. Justo lo que se vio.
   //
-  // Antes esto solo se limpiaba al vincular por codigo, asi que quien lo
-  // intentara por codigo y luego se pasara al QR se llevaba el mismo 401 y sin
-  // ninguna pista de por que. Ahora el bot se cura solo en los dos caminos.
+  // Lo que SI distingue una cosa de la otra es `account`. Una vinculacion
+  // completada (QR o codigo) pasa por configureSuccessfulPairing, que escribe
+  // account + me + signalIdentities + platform (validate-connection.js:183).
+  // El muñon que deja requestPairingCode sin terminar solo tiene
+  // `me: { id, name: '~' }` y el pairingCode: no hay account por ningun lado.
+  //
+  // O sea: me sin account = imposible de usar, solo da 401. Con account, es una
+  // sesion de verdad y no se toca pase lo que pase.
   {
     const previo = await useMultiFileAuthState(AUTH_DIR);
     const c = previo.state?.creds;
-    if (c?.me && !c.registered) {
+    if (c?.me && !c.account) {
       await fs.remove(AUTH_DIR);
       logger.warn('habia credenciales a medias (vinculacion sin terminar): se parte de cero');
     }

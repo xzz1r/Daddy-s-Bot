@@ -1096,7 +1096,13 @@ async function capaStores() {
     // funciona no se toca.
     // Y vale para los DOS caminos, no solo para --codigo: quien lo intente por
     // codigo y se pase al QR arrastra las mismas credenciales muertas.
-    exige(/if \(c\?\.me && !c\.registered\)/.test(botSrc)
+    // Y se mira `account`, NUNCA `registered`: en todo Baileys `registered` solo
+    // lo escribe la rama del codigo de vinculacion, el QR no lo pone jamas. Con
+    // `registered` esta guarda borraba la sesion recien escaneada en cada
+    // arranque.
+    exige(!/!c\.registered/.test(botSrc),
+      'la limpieza de credenciales volvio a mirar `registered`: el QR nunca lo pone, asi que borrara la sesion buena en cada arranque');
+    exige(/if \(c\?\.me && !c\.account\)/.test(botSrc)
        && /await fs\.remove\(AUTH_DIR\)/.test(botSrc),
       'el arranque ya no limpia las credenciales a medias: seran 401 hasta que alguien borre data/auth a mano');
 
