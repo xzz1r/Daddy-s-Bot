@@ -1448,6 +1448,32 @@ async function capaStores() {
       console.log(rojo(`   ✗ el objetivo del dia no rota: en 30 dias solo caen ${distintos} de 7. ` +
         'Suele ser que el hash perdio la mezcla final y el ultimo caracter no llega a los bits altos'));
     }
+    // NO SE ELIGE POR POSICION EN LA LISTA. Este era el fallo que se vio en el
+    // grupo: el cartel saltaba de persona en persona en minutos. El indice
+    // sorteado era estable todo el dia, pero la lista sale del ranking de aura y
+    // ese se reordena con cada tirada, robo y apuesta — asi que `candidatos[i]`
+    // apuntaba a otro cada vez. Ahora cada candidato saca su propio numero de
+    // (grupo, dia, su jid) y gana el mas alto, que no depende del orden.
+    // Solo lineas de CODIGO: el fichero cita `candidatos[i]` en el comentario
+    // que explica el fallo viejo, y la primera version de esta guarda se cazaba
+    // a si misma con esa cita. Es la segunda vez que me pasa lo mismo.
+    const objSrc = fs.readFileSync(path.join(R, 'src/utils/objetivoDia.js'), 'utf8')
+      .split('\n').filter(l => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n');
+    if (/candidatos\[i\]/.test(objSrc) || /\* candidatos\.length/.test(objSrc)) {
+      fallos++;
+      console.log(rojo('   ✗ el objetivo del dia volvio a elegirse por posicion: el ranking se reordena solo y el cartel salta de persona en persona'));
+    }
+    if (!/ruido\(grupo, 'objetivo-dia', `\$\{diaClave\(\)\}\|\$\{canonicalJid\(r\.jid\)\}`\)/.test(objSrc)) {
+      fallos++;
+      console.log(rojo('   ✗ el objetivo del dia ya no sortea por persona: sin el jid en la clave vuelve a depender del orden'));
+    }
+    // Y solo la mitad de arriba: un cartel sobre alguien con 30 de aura no es
+    // una caza, porque el 22 % extra cae sobre un botin que no existe.
+    if (!/elegibles\.slice\(0, Math\.ceil\(elegibles\.length \/ 2\)\)/.test(objSrc)) {
+      fallos++;
+      console.log(rojo('   ✗ el objetivo del dia vuelve a poder caer en cualquiera: se quito el corte a la mitad de arriba del ranking'));
+    }
+
     // Y sigue siendo ESTABLE dentro del mismo dia, que es la otra mitad del trato.
     const a = ruido('G@g.us', 'objetivo-dia', '2026-03-05');
     const b = ruido('G@g.us', 'objetivo-dia', '2026-03-05');

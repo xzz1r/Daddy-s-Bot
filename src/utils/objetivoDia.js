@@ -43,16 +43,42 @@ async function objetivoDelDia(grupo, groupMeta) {
     n1Semana = visto ? visto.jid : null;
   } catch { /* sin ranking semanal, se elige igual */ }
 
-  const candidatos = ranking.filter((r) => {
+  const elegibles = ranking.filter((r) => {
     if (isMainOwner(r.jid, false, groupMeta)) return false;
     if (n1Aura && mismo(r.jid, n1Aura)) return false;
     if (n1Semana && mismo(r.jid, n1Semana)) return false;
     return true;
   });
-  if (!candidatos.length) return null;
+  if (!elegibles.length) return null;
 
-  const i = Math.floor(ruido(grupo, 'objetivo-dia', diaClave()) * candidatos.length);
-  const elegido = candidatos[i];
+  // NO VALE CUALQUIERA: SOLO LA MITAD DE ARRIBA.
+  //
+  // El filtro era `aura >= ROBO.minVictima`, o sea 20, o sea todo el mundo. Un
+  // cartel diario sobre alguien que tiene 30 de aura no es una caza: es una
+  // molestia, porque el 22 % extra se aplica sobre un botin que no existe.
+  // `ranking` ya viene ordenado de mas a menos, asi que la mitad de arriba es
+  // el corte natural. Con menos de cuatro elegibles se coge la lista entera:
+  // en un grupo pequeño partirla por la mitad deja uno o ninguno.
+  const candidatos = elegibles.length >= 4
+    ? elegibles.slice(0, Math.ceil(elegibles.length / 2))
+    : elegibles;
+
+  // Y SE ELIGE SIN DEPENDER DEL ORDEN, que era el fallo de verdad.
+  //
+  // Antes se sorteaba un indice y se cogia `candidatos[i]`. El indice era
+  // estable todo el dia, pero la LISTA no: sale del ranking de aura, que se
+  // reordena con cada tirada, cada robo y cada apuesta. O sea que el numero no
+  // cambiaba y a quien apuntaba si — el cartel saltaba de persona en persona en
+  // minutos, que es justo lo contrario de lo que promete "objetivo del dia".
+  //
+  // Ahora cada candidato saca su propio numero de (grupo, dia, su jid) y gana el
+  // mas alto. Eso no depende de en que posicion este: mientras siga en la lista,
+  // sigue siendo el elegido aunque suba o baje veinte puestos.
+  let elegido = null, mejor = -1;
+  for (const r of candidatos) {
+    const n = ruido(grupo, 'objetivo-dia', `${diaClave()}|${canonicalJid(r.jid)}`);
+    if (n > mejor) { mejor = n; elegido = r; }
+  }
   if (!elegido) return null;
   return { jid: elegido.jid, bonoBotin: OBJETIVO_DIA.bonoBotin, bonoProbabilidad: OBJETIVO_DIA.bonoProbabilidad };
 }
