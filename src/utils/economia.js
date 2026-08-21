@@ -424,7 +424,16 @@ const APUESTA = {
 //
 // `suave` recorta el castigo a la mitad: es el dado REAL del owner principal.
 // La cifra que se enseña NUNCA pasa por aquí con rol owner — ver pApuestaVisible.
-function pApuestaDe(fraccion, rol, { suave = false } = {}) {
+// `exento` = el owner principal. Lo pidio el dueño y ademas iguala la mesa con
+// !robo, donde ya estaba escrito: "El owner queda fuera: robe lo que robe, la
+// cantidad no le penaliza". La apuesta era el unico sitio donde su amaño jugaba
+// EN CONTRA de la cifra que elegia — a todo o nada se le quedaba en el 50 %,
+// una moneda al aire, cuando su base es 58 %. Antes de la curva era 58 % pusiera
+// lo que pusiera, asi que esto no es un amaño nuevo: es devolverle el que tenia.
+//
+// Lo que ve el grupo no cambia: pApuestaVisible sigue inventando una cifra de
+// banda de miembro, y esa SI baja cuando se pide mas.
+function pApuestaDe(fraccion, rol, { suave = false, exento = false } = {}) {
   const base = APUESTA.p[rol] != null ? APUESTA.p[rol] : APUESTA.p.miembro;
   const a = Math.min(1, Math.max(0, Number(fraccion) || 0));
   const { puntoDulce: pd, codiciaMax, miseriaMax } = APUESTA.riesgo;
@@ -439,7 +448,8 @@ function pApuestaDe(fraccion, rol, { suave = false } = {}) {
     castigo = x * x * miseriaMax;
     etiqueta = 'sin agallas';
   }
-  if (suave) castigo *= 0.5;
+  if (exento) { castigo = 0; etiqueta = null; }
+  else if (suave) castigo *= 0.5;
   const p = Math.min(APUESTA.techoP, Math.max(APUESTA.sueloP, base - castigo));
   return { p, castigo, etiqueta: castigo > 0.02 ? etiqueta : null };
 }

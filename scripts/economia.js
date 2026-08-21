@@ -694,6 +694,19 @@ console.log('\n════ 6. lo que SI es casino: la casa gana ════\n'
   ok(evAllIn < 0, `  all-in: la casa se queda el ${(-evAllIn*100).toFixed(0)} %`);
   ok(evDulce < 0, `  punto dulce: la casa se queda el ${(-evDulce*100).toFixed(0)} %`);
   // La fachada del owner: lo que se ENSEÑA está en banda de miembro, no el 58 %.
+  // EL OWNER NO SE PENALIZA POR LO QUE PIDA, igual que en !robo, donde ya
+  // estaba escrito. La apuesta era el unico sitio donde su amaño jugaba EN
+  // CONTRA: con `suave` a todo o nada se le quedaba en el 50 % —cara o cruz—
+  // teniendo 58 % de base. Antes de la curva era 58 % pusiera lo que pusiera.
+  {
+    const ps = [0.05, 0.25, 0.45, 0.7, 1].map((f) => pApuestaDe(f, 'owner', { exento: true }).p);
+    const plano = ps.every((x) => Math.abs(x - APUESTA.p.owner) < 1e-9);
+    ok(plano, `  al owner la cifra que pide no le baja el acierto: ${(APUESTA.p.owner * 100).toFixed(0)} % ponga lo que ponga`);
+    // Y lo que VE el grupo sigue bajando: si no, el amaño se leeria en pantalla.
+    ok(pApuestaVisible(1, { jitter: false }) < pApuestaVisible(0.45, { jitter: false }),
+      '  pero la cifra que se le enseña sigue bajando al pedir mas: la fachada aguanta');
+  }
+
   const vistoAllIn = pApuestaVisible(1, { jitter: false });
   const vistoDulce = pApuestaVisible(APUESTA.riesgo.puntoDulce, { jitter: false });
   ok(vistoAllIn < vistoDulce, '  al owner también se le enseña menos si pide más');

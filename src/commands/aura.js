@@ -1016,7 +1016,9 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
     });
 
     const fraccion = saldo > 0 ? apuesta / saldo : 0;
-    const curva = pApuestaDe(fraccion, rol, { suave: esOwnerPrincipal });
+    // exento, no suave: el owner no se penaliza por lo que pida, igual que en
+    // !robo. Con `suave` a todo o nada se le quedaba en el 50 % — cara o cruz.
+    const curva = pApuestaDe(fraccion, rol, { exento: esOwnerPrincipal });
     let pReal = curva.p;
     // AL OWNER SE LE ENSEÑA LA CURVA DE UN MIEMBRO, no la suya. El 58 %
     // impreso al lado del 45 % del resto es exactamente lo que delata el
