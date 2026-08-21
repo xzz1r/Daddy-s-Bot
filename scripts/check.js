@@ -24,6 +24,8 @@
 
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
+const { execSync } = require('child_process');
 
 // LEER FUENTE SIN COMENTARIOS.
 //
@@ -2807,6 +2809,63 @@ async function capaStores() {
       'la puerta del anti-admin volvio a mirar solo el sondeo');
 
     if (fallos === antes) console.log(verde('   ✓ solo se perdona el alta cuando de verdad no se puede saber'));
+  }
+
+  // ── 24. EL RESUMEN DE `npm run estado` NO ESCONDE NADA ───────────────────
+  //
+  // `estado` pasó a tener dos salidas: un resumen (lo que se ve al escribirlo)
+  // y el detalle entero detrás de -v. Un resumen sirve mientras se pueda
+  // confiar en él, y solo se puede confiar si NO calla nada que pida atención:
+  // el día que un aviso se quede fuera por brevedad, el modo corto pasa a ser
+  // peor que no tener nada, porque se lee como "todo bien".
+  //
+  // Se comprueba ejecutando los dos modos y cruzándolos. Con solo `node` en el
+  // PATH (sin git ni pm2) tarda 60 ms y todas las comprobaciones fallan, que es
+  // justo el caso que interesa: el resumen tiene que enseñarlas todas.
+  {
+    console.log('\n24. EL RESUMEN DE `estado` NO ESCONDE NADA');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'estado-'));
+    try {
+      fs.symlinkSync(process.execPath, path.join(dir, 'node'));
+      const correr = (args) => {
+        try {
+          return execSync(`node ${path.join(R, 'scripts/estado.js')} ${args}`,
+            { encoding: 'utf8', env: { ...process.env, PATH: dir }, timeout: 30000, stdio: ['ignore', 'pipe', 'ignore'] });
+        } catch (e) {
+          // estado sale con 1 cuando hay problemas: eso es exito para nosotros.
+          return e.stdout || '';
+        }
+      };
+      const limpio = (s) => s.replace(/\x1b\[[0-9;]*m/g, '');
+      const corto = limpio(correr(''));
+      const largo = limpio(correr('-v'));
+
+      exige(corto.trim().length > 0 && largo.trim().length > 0,
+        'estado no imprime nada en uno de los dos modos');
+
+      // Lo que pide atencion en el detalle tiene que estar TAMBIEN en el resumen.
+      const pendientes = (s) => s.split('\n')
+        .filter((l) => /^\s*[✘!]\s/.test(l))
+        .map((l) => l.replace(/^\s*[✘!]\s+/, '').trim());
+      const enLargo = pendientes(largo);
+      const enCorto = new Set(pendientes(corto));
+      const ocultos = enLargo.filter((x) => !enCorto.has(x));
+      exige(enLargo.length > 0,
+        'sin git ni pm2 el detalle no reporta ni un problema: la comprobacion se quedo ciega');
+      exige(ocultos.length === 0,
+        `el resumen se calla ${ocultos.length} aviso(s) que si salen con -v: ${ocultos.slice(0, 2).join(' · ')}`);
+
+      // Y que siga siendo un resumen. Si crece hasta el detalle, no resume nada.
+      exige(corto.split('\n').length < largo.split('\n').length,
+        'el resumen ya no es mas corto que el detalle');
+      exige(/estado -v/.test(corto),
+        'el resumen no dice como ver el detalle: quien necesite mas no sabra que existe');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+    if (fallos === antes) console.log(verde('   ✓ el modo corto resume, pero no oculta ni un aviso'));
   }
 
   console.log(`\n${'─'.repeat(70)}`);

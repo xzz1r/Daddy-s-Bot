@@ -24,12 +24,42 @@ const sh = (cmd, ms = 15000) => {
 };
 
 let problemas = 0, avisos = 0;
-const bien  = (t) => console.log(`  \x1b[32m✔\x1b[0m  ${t}`);
-const mal   = (t, arreglo) => { problemas++; console.log(`  \x1b[31m✘\x1b[0m  ${t}`); if (arreglo) console.log(`      \x1b[36m→ ${arreglo}\x1b[0m`); };
-const aviso = (t, arreglo) => { avisos++; console.log(`  \x1b[33m!\x1b[0m  ${t}`); if (arreglo) console.log(`      \x1b[36m→ ${arreglo}\x1b[0m`); };
-const titulo = (t) => console.log(`\n\x1b[1m${t}\x1b[0m`);
 
-console.log('\n\x1b[1mESTADO DEL BOT\x1b[0m');
+// DOS SALIDAS, UNA SOLA PASADA DE COMPROBACIONES.
+//
+// Esto imprimia cuarenta lineas para decir "va bien", y cuarenta lineas de "✔"
+// se leen igual que ninguna: lo que importa —lo que hay que arreglar— quedaba
+// enterrado entre lo que ya funciona. En el movil, que es donde se mira, ni se
+// ve sin hacer scroll.
+//
+// Por defecto sale un resumen: las tres cosas que hay que saber y TODO lo que
+// pide atencion, sin una sola linea de relleno. El detalle completo sigue
+// entero detras de `-v`, que es cuando de verdad hace falta: cuando algo falla
+// y hay que ver por donde.
+//
+// No hay dos juegos de comprobaciones: se hacen una vez y se guardan. Un
+// resumen que se calculara aparte acabaria diciendo algo distinto del detalle,
+// y entonces no se podria confiar en ninguno de los dos.
+const DETALLE = process.argv.includes('-v') || process.argv.includes('--todo');
+const items = [];          // { tipo, texto, arreglo, seccion, clave }
+let seccion = '';
+
+const C = { ok: '\x1b[32m✔\x1b[0m', mal: '\x1b[31m✘\x1b[0m', avi: '\x1b[33m!\x1b[0m' };
+function anota(tipo, texto, arreglo, clave = false) {
+  items.push({ tipo, texto, arreglo, seccion, clave });
+  if (!DETALLE) return;
+  const marca = tipo === 'ok' ? C.ok : tipo === 'mal' ? C.mal : C.avi;
+  console.log(`  ${marca}  ${texto}`);
+  if (arreglo) console.log(`      \x1b[36m→ ${arreglo}\x1b[0m`);
+}
+// `clave` marca las tres lineas que van en el resumen aunque esten bien. El
+// resto de los ✔ solo se ven con -v.
+const bien  = (t, clave = false) => anota('ok', t, null, clave);
+const mal   = (t, arreglo) => { problemas++; anota('mal', t, arreglo); };
+const aviso = (t, arreglo) => { avisos++; anota('aviso', t, arreglo); };
+const titulo = (t) => { seccion = t; if (DETALLE) console.log(`\n\x1b[1m${t}\x1b[0m`); };
+
+if (DETALLE) console.log('\n\x1b[1mESTADO DEL BOT\x1b[0m');
 
 // ─── Código ──────────────────────────────────────────────────────────────────
 titulo('Código');
@@ -42,7 +72,7 @@ if (!local) {
   const remoto = sh(`git -C ${RAIZ} rev-parse --short origin/${rama}`);
   const detras = Number(sh(`git -C ${RAIZ} rev-list --count HEAD..origin/${rama}`) || 0);
   if (!remoto) aviso(`commit ${local} (no pude consultar el remoto: ¿sin internet?)`);
-  else if (detras === 0) bien(`commit ${local} — al día`);
+  else if (detras === 0) bien(`commit ${local} — al día`, true);
   else mal(`commit ${local}, faltan ${detras} ${detras === 1 ? 'actualización' : 'actualizaciones'} (la última es ${remoto})`,
     `git pull origin ${rama} && npm install --omit=dev && pm2 restart all --update-env`);
 
@@ -123,7 +153,7 @@ if (!bot) {
   if (env.status === 'online') {
     const mins = Math.floor((Date.now() - (env.pm_uptime || Date.now())) / 60000);
     const tiempo = mins >= 1440 ? `${Math.floor(mins / 1440)}d` : mins >= 60 ? `${Math.floor(mins / 60)}h` : `${mins}min`;
-    bien(`${bot.name} en marcha desde hace ${tiempo}`);
+    bien(`en marcha desde hace ${tiempo}`, true);
   } else {
     mal(`${bot.name} está en estado "${env.status}"`, 'pm2 logs --lines 50   para ver por qué');
   }
@@ -234,7 +264,7 @@ if (!fs.existsSync(authDir) || !fs.existsSync(path.join(authDir, 'creds.json')))
 } else {
   const edad = Math.round((Date.now() - fs.statSync(path.join(authDir, 'creds.json')).mtimeMs) / 60000);
   if (edad > 60 * 24 * 7) aviso(`la sesión no se toca desde hace ${Math.floor(edad / 1440)} días: puede estar muerta`, 'pm2 logs bot --lines 30');
-  else bien('sesión de WhatsApp presente');
+  else bien('sesión de WhatsApp presente', true);
 }
 
 // 4. Lo que diga el log. Se buscan las frases EXACTAS que imprime el bot al
@@ -386,9 +416,37 @@ if (nodeMayor < 18) {
 }
 
 // ─── Veredicto ───────────────────────────────────────────────────────────────
-console.log('\n' + '─'.repeat(52));
-if (!problemas && !avisos) console.log('\x1b[32m\x1b[1m  TODO EN ORDEN. No hay nada que hacer.\x1b[0m\n');
-else if (!problemas) console.log(`\x1b[33m\x1b[1m  Funciona, pero hay ${avisos} ${avisos === 1 ? 'cosa mejorable' : 'cosas mejorables'} (las marcadas con !).\x1b[0m\n`);
-else console.log(`\x1b[31m\x1b[1m  ${problemas} ${problemas === 1 ? 'cosa que arreglar' : 'cosas que arreglar'} (las marcadas con ✘). Copia el comando en azul de debajo de cada una.\x1b[0m\n`);
+const B = '\x1b[1m', F = '\x1b[0m', VERDE = '\x1b[32m', ROJO = '\x1b[31m', AMBAR = '\x1b[33m', AZUL = '\x1b[36m';
+
+if (DETALLE) {
+  console.log('\n' + '─'.repeat(52));
+  if (!problemas && !avisos) console.log(`${VERDE}${B}  TODO EN ORDEN. No hay nada que hacer.${F}\n`);
+  else if (!problemas) console.log(`${AMBAR}${B}  Funciona, pero hay ${avisos} ${avisos === 1 ? 'cosa mejorable' : 'cosas mejorables'} (las marcadas con !).${F}\n`);
+  else console.log(`${ROJO}${B}  ${problemas} ${problemas === 1 ? 'cosa que arreglar' : 'cosas que arreglar'} (las marcadas con ✘). Copia el comando en azul de debajo de cada una.${F}\n`);
+} else {
+  // El resumen. Tres lineas de "esta vivo y corriendo lo que toca", y despues
+  // TODO lo que pide atencion — nada se esconde por brevedad, que seria el
+  // unico modo de que este modo fuera peor que el largo.
+  const titular = problemas ? `${ROJO}${B}HAY ${problemas} ${problemas === 1 ? 'COSA' : 'COSAS'} QUE ARREGLAR${F}`
+                : avisos    ? `${AMBAR}${B}FUNCIONA${F}`
+                :             `${VERDE}${B}TODO EN ORDEN${F}`;
+  console.log(`\n${B}DADDY'S BOT${F} · ${titular}\n`);
+
+  for (const it of items.filter((x) => x.clave)) console.log(`  ${C.ok}  ${it.texto}`);
+
+  const pendientes = items.filter((x) => x.tipo !== 'ok');
+  if (pendientes.length) {
+    console.log('');
+    for (const it of pendientes) {
+      console.log(`  ${it.tipo === 'mal' ? C.mal : C.avi}  ${it.texto}`);
+      if (it.arreglo) console.log(`      ${AZUL}→ ${it.arreglo}${F}`);
+    }
+  }
+
+  // Cuantas comprobaciones se han hecho y no se estan enseñando. Sin esto, el
+  // resumen parece una revision de tres cosas en vez de la de siempre.
+  const calladas = items.length - items.filter((x) => x.clave).length - pendientes.length;
+  console.log(`\n  ${AZUL}npm run estado -v${F}  ${calladas} comprobaciones más, todas en verde\n`);
+}
 
 process.exit(problemas ? 1 : 0);
