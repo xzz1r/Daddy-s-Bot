@@ -292,7 +292,7 @@ _De más crudo a más suave, ${PRECIOS.percent} cada uno:_
 _Estos no llevan número: no cobran nada por usarlos, mueven tu aura según cómo salgan._
 *${p}saldo* — lo que tienes · *${p}aura top* · *${p}aura hoy*
 *${p}aura* — te da o te quita, a suerte
-*${p}apostar* <cant.> — todo o nada · *${p}duel* @user — 1v1
+*${p}apostar* <cant.> — pon *mitad*, *todo*, *2k* o *50%* · *${p}duel* @user — 1v1
 *${p}robo* @user <cant.> · *${p}contrarobo* — devolver el golpe
 *${p}buscados* — quién roba y lo que paga su cabeza
 *${p}tienda* · *${p}comprar* <objeto> · *${p}bote* / *${p}asalto*

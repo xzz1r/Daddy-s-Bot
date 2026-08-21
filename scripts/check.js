@@ -1389,6 +1389,23 @@ async function capaStores() {
     exige(!/isOwner\(sender/.test(pn),
       '!p no puede pasar a isOwner: eso abriria la purga global al tier owner entero');
 
+    // Y AL REVES: que el menu no anuncie comandos que ya no existen. La guarda
+    // de arriba vigila que lo oculto no asome; esta vigila que lo anunciado se
+    // pueda escribir. Al quitar !add habia que acordarse de la linea del menu a
+    // mano, y acordarse no es un mecanismo.
+    {
+      const soc = fs.readFileSync(path.join(R, 'src/commands/social.js'), 'utf8');
+      const mhSrc = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+      const desde = soc.indexOf('async function cmdHelp');
+      const menu = desde === -1 ? '' : soc.slice(desde);
+      const nombrados = [...new Set([...menu.matchAll(/\$\{p\}([a-z0-9ñ-]+)/gi)].map(m => m[1].toLowerCase()))];
+      const despachados = new Set([...mhSrc.matchAll(/case .[\"']?([a-z0-9ñáéíóú-]+)[\"']?.:/gi)].map(m => m[1].toLowerCase()));
+      const fantasmas = nombrados.filter(n => !despachados.has(n));
+      exige(nombrados.length > 50, 'el menu dejo de nombrar comandos: ¿se rompio el trozo que se lee?');
+      exige(fantasmas.length === 0,
+        `el menu anuncia comandos que ya no existen: ${fantasmas.join(', ')}`);
+    }
+
     if (!fallos) console.log(verde('   ✓ los comandos ocultos no asoman por el menu ni por el sugeridor'));
   }
 
