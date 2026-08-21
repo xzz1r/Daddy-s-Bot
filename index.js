@@ -12,7 +12,7 @@ const chalk = require('chalk');
 console.log(chalk.magenta(`
 ╔══════════════════════════════╗
 ║         Daddy's Bot          ║
-║       by xz1s (Sebastian)    ║
+║           by xz1s            ║
 ╚══════════════════════════════╝
 `));
 

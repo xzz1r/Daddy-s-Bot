@@ -253,8 +253,10 @@ async function cmdHelp(sock, msg, groupMeta) {
   // Un admin lo sigue viendo entero. Ver de mas es su trabajo; ver de mas sin
   // poder tocarlo no le sirve a nadie.
   // isGroupAdmin ya cubre al owner, y aguanta groupMeta undefined (un DM), donde
-  // solo el owner pasa el filtro. Es lo que se quiere: en privado el menu largo
-  // lo ve quien manda, no cualquiera que escriba al bot.
+  // solo el owner pasa el filtro. Eso hoy es cinturon de seguridad y no la
+  // puerta: al privado del bot ya no llega nadie que no sea del tier owner
+  // (ver ownerEnPrivado en messageHandler). Se deja porque una puerta que
+  // depende de otra puerta se rompe el dia que mueven la de arriba.
   const esAdmin = isGroupAdmin(getSender(msg), msg.key.fromMe, groupMeta);
 
   // El menu se lee en un movil, de una sentada. Cada linea que sobra empuja

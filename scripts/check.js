@@ -1643,6 +1643,80 @@ async function capaStores() {
     if (fallos === antes) console.log(verde('   ✓ solo cae quien manda el enlace, no quien lo responde'));
   }
 
+  // ── 19. EL PRIVADO DEL BOT ES SOLO DEL OWNER ─────────────────────────────
+  //
+  // Contestarle a cualquiera que escriba al privado es lo que convierte el
+  // numero en un bot publico: se prueba, se aburren y se reporta. El bot NUNCA
+  // abrio conversacion con nadie (eso es lo que de verdad tumba una cuenta) y
+  // eso no debe cambiar, pero responder tampoco interesa.
+  //
+  // Las dos mitades de la guarda importan por igual y fallan al reves:
+  //   · si la puerta se cae, vuelve el bot publico;
+  //   · si la puerta se pasa de lista, el DUEÑO se queda fuera de su propio
+  //     bot en silencio, que es el fallo mas caro de diagnosticar que hay.
+  {
+    console.log('\n19. EL PRIVADO DEL BOT ES SOLO DEL OWNER');
+    const antes = fallos;
+    const { ownerEnPrivado } = require(path.join(R, 'src/handlers/messageHandler'));
+    const cfg = require(path.join(R, 'src/config'));
+    const OWNER = `${String(cfg.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
+    const EXTRANO = '5217777777777@s.whatsapp.net';
+    const priv = (remoteJid, extra = {}) => ({ key: { remoteJid, fromMe: false, id: 'X', ...extra } });
+
+    if (ownerEnPrivado(priv(EXTRANO), EXTRANO)) {
+      fallos++;
+      console.log(rojo('   ✗ un desconocido pasa la puerta del privado: el bot vuelve a ser publico'));
+    }
+    if (!ownerEnPrivado(priv(OWNER), OWNER)) {
+      fallos++;
+      console.log(rojo('   ✗ el OWNER no pasa su propia puerta: se queda fuera del bot y sin ningun mensaje que lo explique'));
+    }
+    // El owner llegando por @lid con el mapa frio: el telefono viaja aparte en
+    // la llave y tiene que valer, o el dueño se queda fuera el dia que WhatsApp
+    // le reparta el privado por LID.
+    if (!ownerEnPrivado(priv('123456789@lid', { participantAlt: OWNER }), '123456789@lid')) {
+      fallos++;
+      console.log(rojo('   ✗ el owner por @lid no pasa: la puerta solo mira una forma del JID'));
+    }
+    if (!ownerEnPrivado({ key: { remoteJid: EXTRANO, fromMe: true, id: 'X' } }, EXTRANO)) {
+      fallos++;
+      console.log(rojo('   ✗ lo que manda el propio bot no pasa la puerta'));
+    }
+
+    const mh = soloCodigo('src/handlers/messageHandler.js');
+    // La puerta tiene que estar, y estar ARRIBA: por delante del visto, de los
+    // contadores y del switch. Si se cuela por debajo de cualquiera de ellos,
+    // el desconocido ya dejo rastro aunque no reciba respuesta.
+    const iPuerta = mh.indexOf("if (!jid.endsWith('@g.us') && !ownerEnPrivado(msg, sender)) return;");
+    if (iPuerta < 0) {
+      fallos++;
+      console.log(rojo('   ✗ no esta la puerta del privado en handleMessage'));
+    } else {
+      const iVisto = mh.indexOf('sock.readMessages?.');
+      const iSwitch = mh.indexOf('switch (command)');
+      const iContador = mh.indexOf("incrementStat('messagesReceived')");
+      for (const [i, que] of [[iVisto, 'del visto'], [iSwitch, 'del switch de comandos'], [iContador, 'de los contadores']]) {
+        if (i >= 0 && iPuerta > i) {
+          fallos++;
+          console.log(rojo(`   ✗ la puerta del privado esta por DEBAJO ${que}: el desconocido deja rastro igual`));
+        }
+      }
+    }
+    // Y que siga siendo solo del privado: el grupo es publico a proposito.
+    if (!/!jid\.endsWith\('@g\.us'\) && !ownerEnPrivado/.test(mh)) {
+      fallos++;
+      console.log(rojo('   ✗ la puerta dejo de mirar si es privado: puede estar callando al grupo entero'));
+    }
+
+    // El nombre propio no viaja en cada sticker que manda el bot.
+    if (/sebasti/i.test(JSON.stringify(cfg))) {
+      fallos++;
+      console.log(rojo('   ✗ el nombre real sigue en la config: cada sticker lo lleva en el EXIF'));
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ en privado solo habla con el owner, y el owner sigue entrando'));
+  }
+
   // ── 16. EL MENSAJE DEL ROBO NO SE REPITE A SI MISMO ──────────────────────
   //
   // La nota llego a decir la misma cosa dos veces con palabras distintas:

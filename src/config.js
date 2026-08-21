@@ -47,7 +47,7 @@ const config = {
 
   sticker: {
     pack: "𝐃𝐀𝐃𝐃𝐘'𝐒 𝐁𝐎𝐓",
-    author: 'xz1s (Sebastian)',
+    author: 'xz1s',
   },
 };
 

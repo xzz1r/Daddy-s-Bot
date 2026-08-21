@@ -1339,6 +1339,41 @@ function esOwnerDelMensaje(msg, sender, senderPn, meta) {
   return Boolean(senderPn && isOwner(senderPn, msg.key.fromMe, meta));
 }
 
+// EL PRIVADO DEL BOT ES SOLO DEL OWNER TIER.
+//
+// Antes contestaba a cualquiera que le escribiera con el prefijo: *!ping*,
+// *!commands*, *!whoami*, la guia entera del aura. No abria conversacion con
+// nadie —eso nunca lo hizo, y es lo que de verdad tumba una cuenta— pero
+// responder ya convierte el numero en un bot publico: cualquiera que lo tenga
+// se pone a probar comandos, se aburre y le da a reportar. Varios reportes si
+// suman.
+//
+// Silencio TOTAL para el que no es owner: ni "no puedes usar esto", ni visto,
+// ni presencia. Un "no puedes" confirma que hay un bot detras, que es justo lo
+// que no interesa confirmar. El que no sabe si hay algo al otro lado deja de
+// escribir solo.
+//
+// Los grupos no se tocan: alli el bot es publico a proposito.
+//
+// Se prueban todas las formas del que escribe, no solo la que llega en la
+// llave. Un privado normal llega como telefono, pero WhatsApp ya reparte
+// tambien chats direccionados por @lid, y con el mapa frio ese @lid no se
+// parece en nada al numero configurado. Si se resolviera de una sola forma, el
+// propio dueño se quedaria fuera de su bot sin ningun mensaje que lo explique
+// —el fallo mas caro de arreglar es el que no dice nada.
+function ownerEnPrivado(msg, sender) {
+  if (msg.key.fromMe) return true;
+  const formas = [
+    sender,
+    canonicalJid(sender),
+    msg.key.participantAlt,
+    msg.key.participantPn,
+    msg.key.remoteJid,
+    canonicalJid(msg.key.remoteJid),
+  ];
+  return formas.some((f) => f && isOwner(f, false, null));
+}
+
 async function handleMessage(sock, msg) {
   // EL NOMBRE SE ANOTA LO PRIMERO DE TODO, antes de cualquier return.
   //
@@ -1426,6 +1461,11 @@ async function handleMessage(sock, msg) {
   // Skip own messages that aren't commands (avoids bot responding to itself)
   // fromMe = true when the owner sends from their linked phone — still allow commands
   if (msg.key.fromMe && !text.startsWith(config.prefix)) return;
+
+  // La puerta del privado, y va aqui arriba a proposito: por delante de los
+  // comandos, del visto, de la moderacion y de los contadores. Todo lo que
+  // pueda enviar algo queda detras. Ver ownerEnPrivado.
+  if (!jid.endsWith('@g.us') && !ownerEnPrivado(msg, sender)) return;
 
   // Non-blocking counters — never delay command execution.
   // Don't count the bot's own messages so the owner doesn't inflate their rank.
@@ -2493,4 +2533,6 @@ async function handleMessage(sock, msg) {
 
 module.exports = { handleMessage, invalidateGroupMeta, getGroupMeta, PERMISO_ENLACE,
   // Exportados para poder probar la deteccion de enlaces sin montar un socket.
-  clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa };
+  clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa,
+  // Y la puerta del privado, por lo mismo: se prueba sola.
+  ownerEnPrivado };
