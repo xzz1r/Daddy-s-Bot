@@ -36,13 +36,13 @@ const OWNER_SOSO  = 0.42;
 const OWNER_BUENO = 0.50;
 const OWNER_HIGH = [88, 100]; // favorables: siempre alto (tier high ≥70), no siempre 100
 
-// SOLO los que tiran uniforme. El resto pasa por rollPercent, que YA tiene
-// las bandas del owner (62 % sosa, 20 % buena, 18 % fallo real). Reaplicar
-// este mapa encima las machacaba: el 85 % caía en 3-30 / 88-100, justo las
-// cifras redondas que el grupo detectó y por las que se escribieron las bandas
-// sosas.
+// SOLO los que tiran uniforme. El resto pasa por rollPercent, que YA tiene sus
+// propias bandas para el owner (ver OWNER_SOSO/OWNER_BUENO). Reaplicar este
+// mapa encima las machacaba: el 85 % caía en 3-30 / 88-100, justo las cifras
+// redondas que el grupo detectó y por las que se escribieron las bandas sosas.
 //
-// `linda`, `fea` e `iq` NO estan aqui a proposito: son aleatorios puros.
+// Aqui ya solo quedan !fiel e !infiel, que son los unicos que siguen tirando
+// uniforme. !linda y !fea pasaron a la curva (ver la lista de rollUniform).
 const OWNER_FORCE = {
   fiel: OWNER_HIGH, infiel: OWNER_LOW,
 };
@@ -62,11 +62,19 @@ function rollRange([min, max]) {
 //  ─────────────────┼───────────┼──────────────┼──────────
 //  Negativo miembro │   87 %    │    9 %       │    4 %
 //  Negativo admin   │   86 %    │    9 %       │    5 %
-//  Positivo miembro │   17 %    │   31 %       │   52 %
-//  Positivo admin   │   19 %    │   31 %       │   50 %
+//  Positivo miembro │    6 %    │   18 %       │   76 %
+//  Positivo admin   │    7 %    │   19 %       │   74 %
 //
-// El owner NO usa estas tres franjas: 62 % banda sosa (45-75 / 25-55),
-// 20 % extremo que le favorece, 18 % fallo real como cualquiera.
+// LOS POSITIVOS PERDONABAN Y LOS PEYORATIVOS NO. Un miembro se comia el zasca
+// el 87 % de las veces en !puta y solo el 52 % en !sexy: uno de cada seis salia
+// con un piropo. Eso es lo que se noto en el grupo como "les sale bien todo" —
+// a nadie le extraña que !rata le insulte, se da por hecho, pero un !sexy 84 %
+// si se comenta. Ahora las dos polaridades pegan parecido.
+//
+// El owner NO usa estas tres franjas: tiene las suyas, y salen de
+// OWNER_SOSO/OWNER_BUENO para que no haya cifras sueltas aqui que se queden
+// viejas al primer ajuste. Hoy: 42 % banda sosa, 50 % la franja que le
+// favorece, 8 % fallo real como cualquiera.
 function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
   const rand = Math.random();
   const hi = () => 70 + Math.floor(Math.random() * 31);
@@ -89,14 +97,13 @@ function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
   // grande que en el grupo se notaba y acusaban al bot de tratar a los admins
   // como intocables. Entre admin y miembro la diferencia pasa a ser un matiz.
   //
-  // Y el sesgo del OWNER se rebajó de 92/90 a 80, por petición suya: cantaba
-  // demasiado. Con 92 le salía la franja buena en nueve de cada diez tiradas y
-  // eso se nota a ojo en un grupo que usa estos comandos a diario; con 80 sigue
-  // saliendo favorecido de calle pero de vez en cuando le toca un resultado
-  // normal, que es lo que hace creíble al resto.
+  // El reparto del owner ya no vive aqui: son OWNER_SOSO y OWNER_BUENO, arriba,
+  // con su historia al lado. Estas dos ramas son solo para el resto del grupo.
   //
-  // Peyorativos, franja alta:  admin 78 -> 86, miembro 88 -> 87  (hueco 10 -> 1)
-  // Positivos,   franja alta:  admin 28 -> 19, miembro 15 -> 17  (hueco 13 -> 2)
+  // Y las dos polaridades pegan ya parecido. Estaban descompensadas: los
+  // peyorativos machacaban al 87 % y los positivos solo al 52 %, asi que uno de
+  // cada seis !sexy salia con un piropo. Un !rata insultando no llama la
+  // atencion de nadie; un !sexy 84 % si.
   if (!goodIsHigh) {
     // Peyorativos: aqui el grupo saca ALTO (70-100) y quedar bien es sacar bajo.
     // Al owner le sale la banda sosa la mayoria de las veces, muy bajo de vez en
@@ -124,18 +131,32 @@ function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
       return lo();
     }
     if (targetIsAdmin) {
-      if (rand < 0.19) return hi();
-      if (rand < 0.50) return mid();
+      if (rand < 0.07) return hi();
+      if (rand < 0.26) return mid();
       return lo();
     }
-    if (rand < 0.17) return hi();
-    if (rand < 0.48) return mid();
+    if (rand < 0.06) return hi();
+    if (rand < 0.24) return mid();
     return lo();
   }
 }
 
 const LABELS = require('../data/percentLabels');
-for (const k of ['linda', 'fea', 'fiel', 'infiel']) {
+// LOS QUE TIRAN UNIFORME, Y NADA MAS.
+//
+// !linda y !fea salieron de aqui: repartian un piropo el 31 % de las veces
+// —puro azar, sin curva— y eran de los mas usados, asi que buena parte del
+// "a estos les sale bien todo" venia de estos dos. Ahora pasan por la curva
+// como el resto.
+//
+// !fiel e !infiel se quedan: una medida de fidelidad amañada por rol no mide
+// nada, y el amaño del dueño en esos dos vive aparte, en OWNER_FORCE.
+//
+// Esta lista es la que MANDA. El `uniforme: true` de percentLabels.js es la
+// misma decision escrita al lado de las frases, y las dos tienen que decir lo
+// mismo: quitar solo una deja el fichero de datos mintiendo sobre lo que hace
+// el bot. Lo comprueba `npm run check`.
+for (const k of ['fiel', 'infiel']) {
   if (LABELS[k]) LABELS[k].roll = rollUniform;
 }
 

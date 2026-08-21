@@ -2690,14 +2690,25 @@ async function capaStores() {
     exige(/case 'auratop':/.test(mh) && dentro.has('auratop'),
       '*!auratop* tiene que ser alias del ranking y pedir metadata: si no, o no existe o lista a quien ya se fue');
 
-    const linda = pools.slice(pools.indexOf('\n  linda:'), pools.indexOf('\n  fea:'));
-    const fea = pools.slice(pools.indexOf('\n  fea:'), pools.indexOf('\n  sexy:'));
-    exige(/uniforme:\s*true/.test(linda.slice(0, 220)),
-      '!linda tiene que tirar uniforme: rollPercent le aplica el amaño de owner');
-    exige(/uniforme:\s*true/.test(fea.slice(0, 220)),
-      '!fea tiene que tirar uniforme: rollPercent le aplica el amaño de owner');
-    exige(/\['linda', 'fea', 'fiel', 'infiel'\]/.test(pct),
-      'percent.js tiene que asignar rollUniform a linda/fea/fiel/infiel');
+    // LAS DOS LISTAS DE "TIRA UNIFORME" TIENEN QUE DECIR LO MISMO.
+    //
+    // La decision esta escrita en dos sitios: la lista de percent.js, que es la
+    // que manda, y el `uniforme: true` de percentLabels.js, que la explica al
+    // lado de las frases. Tocar solo uno deja el fichero de datos mintiendo
+    // sobre lo que hace el bot — y ahi no hay error, ni aviso, ni nada: solo
+    // alguien leyendo una linea que ya no es verdad. Casi pasa al sacar !linda
+    // y !fea de la curva.
+    //
+    // Se comprueba la coincidencia, no QUIENES son: la lista puede cambiar.
+    const enCodigo = new Set([...(pct.match(/for \(const k of \[([^\]]*)\]\) \{\n\s*if \(LABELS\[k\]\) LABELS\[k\]\.roll = rollUniform;/) || [])[1]
+      ?.matchAll(/'([^']+)'/g) || []].map((m) => m[1]));
+    const enDatos = new Set();
+    for (const m of pools.matchAll(/\n  ([a-zá-úñ]+):\s*\{[\s\S]{0,300}?uniforme:\s*true/g)) enDatos.add(m[1]);
+    exige(enCodigo.size > 0, 'no encuentro la lista de comandos que tiran uniforme en percent.js');
+    const soloCod = [...enCodigo].filter((k) => !enDatos.has(k));
+    const soloDat = [...enDatos].filter((k) => !enCodigo.has(k));
+    exige(soloCod.length === 0 && soloDat.length === 0,
+      `uniforme: percent.js y percentLabels.js no coinciden (solo en el codigo: ${soloCod.join(', ') || '—'}; solo en los datos: ${soloDat.join(', ') || '—'})`);
     const of = pct.match(/const OWNER_FORCE = \{([\s\S]*?)\n\};/);
     const keys = of ? [...of[1].matchAll(/\b([a-z]+):/g)].map((x) => x[1]) : [];
     const extras = keys.filter((k) => k !== 'fiel' && k !== 'infiel');

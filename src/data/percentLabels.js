@@ -176,7 +176,6 @@ const LABELS = {
   linda: {
     name: 'linda',
     goodIsHigh: true,
-    uniforme: true,
     high: [
       'Simetría facial de las que salen en los estudios. Tercio medio compacto, mandíbula definida y ni un rasgo que sobre.',
       'Tienes canthal tilt positivo y una armonía que la gente paga miles por fingir. Tu lo traes de fábrica.',
@@ -363,7 +362,6 @@ const LABELS = {
   fea: {
     name: 'fea',
     goodIsHigh: false,
-    uniforme: true,
     high: [
       'Retrognatia evidente, cuello sin definición y perfil que desaparece de lado. Tres frentes abiertos a la vez.',
       'Frente ancha, tercio inferior corto y nariz que domina el conjunto entero. No hay armonía posible ahí.',
