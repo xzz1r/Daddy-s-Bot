@@ -67,14 +67,14 @@ function avisoDeVeto(hits) {
   };
 }
 
-// Aviso de !purge: hiriente, al hueso, sobre el valor en el grupo.
+// Aviso de !purge: hiriente y burlón, al hueso: no son suficientes.
 // Español neutral (tú en singular, ustedes en plural; sin vosotros).
 function avisoDePurge(hits) {
   const tags = etiquetasDe(hits);
   const menciones = tags.map((t) => `@${t.label}`).join(' ');
   const texto = tags.length === 1
-    ? `${menciones} no vales una mierda en este grupo.\nNo aportas. Sobras. No eres bienvenido.`
-    : `${menciones} no valen una mierda en este grupo.\nNo aportan. Sobran. No son bienvenidos.`;
+    ? `${menciones} no eres suficiente para este grupo.\nNunca lo fuiste. Te queda grande y se nota. Sobras.`
+    : `${menciones} no son suficientes para este grupo.\nNunca lo fueron. Les queda grande y se nota. Sobran.`;
   return {
     text: texto,
     mentions: tags.map((t) => t.mention),

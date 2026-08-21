@@ -1419,8 +1419,8 @@ async function capaStores() {
     const kickDesp = pn.indexOf("aplicarParticipantes(sock, gJid, ids, 'remove'");
     exige(avisoAntes > 0 && kickDesp > avisoAntes,
       'el aviso de !p/!purge tiene que salir ANTES del kick: si no, no lo ven');
-    exige(/No eres bienvenido|No son bienvenidos/.test(pn),
-      'el aviso de !purge tiene que decir que no son bienvenidos');
+    exige(/no eres suficiente|no son suficientes/i.test(pn),
+      'el aviso de !purge tiene que ir al hueso: que no son suficientes');
     const avisoSrc = pn.slice(pn.indexOf('function avisoDePurge'), pn.indexOf('function extractNumbers'));
     exige(avisoSrc.includes('function avisoDePurge'), 'no encuentro avisoDePurge para comprobar el tono');
     exige(!/valéis|estáis|sois |vosotros|tenéis/.test(avisoSrc),
@@ -1464,10 +1464,10 @@ async function capaStores() {
     exige(extractNumbers('hola').length === 0, 'extractNumbers inventa numeros donde no hay');
 
     const aviso1 = avisoDePurge(['57300111222']);
-    exige(/no vales una mierda/i.test(aviso1.text) && /no eres bienvenido/i.test(aviso1.text),
+    exige(/no eres suficiente/i.test(aviso1.text) && /te queda grande/i.test(aviso1.text),
       'el aviso de un numero no va al hueso');
     const avisoN = avisoDePurge(['57300111222', '57300333444']);
-    exige(/no valen una mierda/i.test(avisoN.text) && /no son bienvenidos/i.test(avisoN.text),
+    exige(/no son suficientes/i.test(avisoN.text) && /les queda grande/i.test(avisoN.text),
       'el aviso de varios no va al hueso');
     exige(!/valéis|estáis|sois |vosotros/.test(aviso1.text + avisoN.text),
       'avisoDePurge conjugó en vosotros');
@@ -1530,12 +1530,12 @@ async function capaStores() {
         exige(kicks.every((k) => k.accion === 'remove'), '!purge no esta expulsando');
 
         const ordenG1 = timeline.filter((x) => x.jid === 'g1@g.us' || x.gJid === 'g1@g.us');
-        const iAviso = ordenG1.findIndex((x) => x.t === 'msg' && /mierda|bienvenid/i.test(x.text || ''));
+        const iAviso = ordenG1.findIndex((x) => x.t === 'msg' && /suficiente/i.test(x.text || ''));
         const iKick = ordenG1.findIndex((x) => x.t === 'kick');
         exige(iAviso >= 0 && iKick > iAviso,
           'en el grupo el aviso de !purge no sale ANTES del kick');
 
-        const avisoLid = timeline.find((x) => x.jid === 'g2@g.us' && /mierda|bienvenid/i.test(x.text || ''));
+        const avisoLid = timeline.find((x) => x.jid === 'g2@g.us' && /suficiente/i.test(x.text || ''));
         exige(Boolean(avisoLid), '!purge no aviso en el grupo LID (no encontro el @lid)');
         exige(kicks.some((k) => k.gJid === 'g2@g.us' && k.ids.includes('999@lid')),
           '!purge no echo del grupo LID por el id del participante');
