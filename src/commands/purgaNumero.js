@@ -16,10 +16,9 @@
 //     y a mitad de purga eso deja el trabajo hecho a medias.
 //
 // !p y !purge comparten el barrido. !p deja el aviso de número virtual; !purge
-// deja uno hiriente sobre el valor de esa gente en el grupo. En los dos el
-// aviso se manda ANTES del ban: la idea es que lo vean y sepan que no son
-// bienvenidos. Si el kick falla, el grupo vio el aviso igual — mejor eso que
-// echar a alguien en silencio.
+// deja uno frío: no cumplen las reglas, uno más que se va. En los dos el
+// aviso se manda ANTES del ban: la idea es que lo vean. Si el kick falla, el
+// grupo vio el aviso igual — mejor eso que echar a alguien en silencio.
 const { getSender, isMainOwner, isBotJid, isBotAdmin, bareJid, canonicalJid, extractText, extractQuotedText } = require('../utils/wa');
 const { banAccount } = require('../utils/banlist');
 const { extractNumber } = require('./pfp');
@@ -67,16 +66,14 @@ function avisoDeVeto(hits) {
   };
 }
 
-// Aviso de !purge: hiriente y burlón. El hueso es que no son suficientes.
+// Aviso de !purge: frío, sin drama. No cumplen las reglas; uno más que se va.
 // Español neutral (tú en singular, ustedes en plural; sin vosotros).
 function avisoDePurge(hits) {
   const tags = etiquetasDe(hits);
   const menciones = tags.map((t) => `@${t.label}`).join(' ');
   const texto = tags.length === 1
-    ? `${menciones} no eres suficiente para este grupo.\n` +
-      `Te creíste a la altura y no lo estás. El grupo funcionó igual contigo dentro y va a funcionar igual sin ti. Fuera.`
-    : `${menciones} no son suficientes para este grupo.\n` +
-      `Se creyeron a la altura y no lo están. El grupo funcionó igual con ustedes dentro y va a funcionar igual sin ustedes. Fuera.`;
+    ? `${menciones} no cumples los requisitos de las reglas.\nUno más. Fuera.`
+    : `${menciones} no cumplen los requisitos de las reglas.\nUnos más. Fuera.`;
   return {
     text: texto,
     mentions: tags.map((t) => t.mention),
