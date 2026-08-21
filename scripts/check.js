@@ -1581,6 +1581,68 @@ async function capaStores() {
     if (fallos === antes) console.log(verde('   ✓ ni clones ni moldes: cada frase se lee distinta de las de al lado'));
   }
 
+  // ── 18. RESPONDER A UN ENLACE NO TE HACE CULPABLE ────────────────────────
+  //
+  // Fallo grave visto en el grupo: alguien mandaba un enlace y se iba; otro
+  // RESPONDIA a ese mensaje y al que respondia lo echaban.
+  //
+  // La causa fue un arreglo mio. Se hizo que el detector mirara el mensaje
+  // citado, porque el contexto de una cita lo rellena quien manda y se puede
+  // citar una invitacion inventada. Pero responder mete el mensaje del otro
+  // DENTRO del tuyo, asi que quien contestaba "jajaja" a un enlace pasaba a ser
+  // el que mandaba el enlace.
+  //
+  // La cita solo cuenta cuando el citado es uno mismo. Y esta guarda existe
+  // porque el fallo no se ve leyendo: el codigo parecia correcto y solo se nota
+  // cuando alguien responde.
+  {
+    console.log('\n18. RESPONDER A UN ENLACE NO TE HACE CULPABLE');
+    const antes = fallos;
+    const { clasificarMensaje } = require(path.join(R, 'src/handlers/messageHandler'));
+    const INV = 'https://chat.whatsapp.com/ABCdef1234567890';
+    const YO = '5211111111111@s.whatsapp.net';
+    const OTRO = '5219999999999@s.whatsapp.net';
+    const citando = (autorCitado) => ({
+      extendedTextMessage: {
+        text: 'jajaja',
+        contextInfo: { participant: autorCitado, quotedMessage: { conversation: INV } },
+      },
+    });
+
+    const respondiendo = clasificarMensaje(citando(OTRO), YO);
+    if (respondiendo !== 'none') {
+      fallos++;
+      console.log(rojo(`   ✗ responder al enlace de otro sale como "${respondiendo}": al que responde se le echa`));
+    }
+    // Citarse a uno mismo SI es contenido propio.
+    const citandose = clasificarMensaje(citando(YO), YO);
+    if (citandose !== 'invite') {
+      fallos++;
+      console.log(rojo(`   ✗ citarse a uno mismo con una invitacion sale como "${citandose}": es la puerta que la cita venia a cerrar`));
+    }
+    // Y sin saber quien escribe, las citas no se miran: es lo prudente.
+    if (clasificarMensaje(citando(OTRO)) !== 'none') {
+      fallos++;
+      console.log(rojo('   ✗ sin saber quien escribe se siguen mirando las citas: no hay forma de saber si el contenido es suyo'));
+    }
+    // Lo que manda uno mismo, sin citas, sigue cayendo.
+    if (clasificarMensaje({ conversation: INV }, YO) !== 'invite') {
+      fallos++;
+      console.log(rojo('   ✗ un enlace normal dejo de detectarse'));
+    }
+
+    // Y que el handler SIGA pasandole quien escribe. Sin ese argumento las citas
+    // dejan de mirarse del todo — no rompe nada visible, pero reabre en silencio
+    // el agujero que la cita venia a tapar.
+    const mh = soloCodigo('src/handlers/messageHandler.js');
+    if (!/clasificarMensaje\(msg\.message, sender\)/.test(mh)) {
+      fallos++;
+      console.log(rojo('   ✗ el antilink dejo de pasarle quien escribe a clasificarMensaje: las citas dejan de mirarse en silencio'));
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ solo cae quien manda el enlace, no quien lo responde'));
+  }
+
   // ── 16. EL MENSAJE DEL ROBO NO SE REPITE A SI MISMO ──────────────────────
   //
   // La nota llego a decir la misma cosa dos veces con palabras distintas:

@@ -46,7 +46,7 @@ const { cmdPurgaNumero } = require('../commands/purgaNumero');
 const { cmdRoast } = require('../commands/roast');
 const { cmdDar } = require('../commands/dar');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, cmdCasino } = require('../commands/social');
-const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, extractText, rememberMapping, getSender, canonicalJid } = require('../utils/wa');
+const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, extractText, rememberMapping, getSender, canonicalJid, sameUser } = require('../utils/wa');
 const logger = require('../utils/logger');
 
 // Hosts allowed without penalty (only a "send once" reminder). Matched against
@@ -205,7 +205,7 @@ function esInvitacionNativa(message) {
 // mensaje extractText solo mira conversation/extendedText/captions; un enlace
 // metido en un botón, en una lista, en una encuesta o en la tarjeta de un
 // contacto no aparecía por ningún lado y pasaba el filtro entero.
-function textoParaEnlaces(message, prof = 0) {
+function textoParaEnlaces(message, prof = 0, quien = null) {
   // TOPE DE PROFUNDIDAD. Los sobres ya lo tenian; esto no, y al empezar a
   // seguir las citas hacia falta: una cita puede traer otra cita dentro, y una
   // cadena anidada a mano es una forma barata de reventar la pila del proceso
@@ -284,19 +284,35 @@ function textoParaEnlaces(message, prof = 0) {
 
   // Y TODO LO QUE HAYA DENTRO DE UN ENVOLTORIO. Sin esto, un enlace mandado en
   // un grupo con mensajes temporales, o como "ver una vez", no se veia.
-  for (const dentro of sobresInternos(message)) trozos.push(textoParaEnlaces(dentro, prof + 1));
+  for (const dentro of sobresInternos(message)) trozos.push(textoParaEnlaces(dentro, prof + 1, quien));
 
-  // EL MENSAJE CITADO. El contexto de una cita lo rellena QUIEN MANDA, no el
-  // servidor: se puede citar algo que nunca existio. Asi que basta con mandar
-  // "mira esto" citando una invitacion inventada y el enlace se renderiza en la
-  // burbuja de la cita para todo el grupo, mientras el detector solo veia
-  // "mira esto".
+  // EL MENSAJE CITADO, PERO SOLO SI ES SUYO. Y esto costo caro.
   //
-  // Va al final y con su propia guarda de profundidad porque una cita puede
-  // traer dentro otra cita.
-  for (const k of Object.keys(message)) {
-    const citado = message[k]?.contextInfo?.quotedMessage;
-    if (citado) trozos.push(textoParaEnlaces(citado, prof + 1));
+  // Se metio porque el contexto de una cita lo rellena QUIEN MANDA, no el
+  // servidor: se puede citar una invitacion que nunca existio y el enlace se
+  // renderiza en la burbuja para todo el grupo mientras el detector ve "mira
+  // esto". El agujero era real.
+  //
+  // PERO EL ARREGLO ERA PEOR QUE EL AGUJERO. Responder a un mensaje mete ese
+  // mensaje entero en el tuyo, asi que quien contestaba "jajaja" a un enlace
+  // pasaba a ser el que mandaba el enlace a ojos del bot. Reportado desde el
+  // grupo: el que spameaba se iba, alguien respondia a su mensaje, y al que
+  // respondia lo echaban. Castigar a quien contesta es mucho peor que dejar que
+  // alguien enseñe un enlace dentro de una burbuja de cita, que ademas no es
+  // pinchable.
+  //
+  // Asi que la cita solo cuenta cuando el citado es UNO MISMO: ahi el contenido
+  // si es suyo. `contextInfo.participant` dice de quien era el mensaje citado.
+  //
+  // Se puede falsear ese campo, si. Pero entre colar un enlace en una burbuja y
+  // echar a gente que solo responde, la eleccion no es dificil.
+  if (quien) {
+    for (const k of Object.keys(message)) {
+      const ctx = message[k]?.contextInfo;
+      if (!ctx?.quotedMessage) continue;
+      if (!ctx.participant || !sameUser(ctx.participant, quien)) continue;
+      trozos.push(textoParaEnlaces(ctx.quotedMessage, prof + 1, quien));
+    }
   }
 
   return trozos.join(' \n ');
@@ -348,9 +364,11 @@ function classifyLinks(text) {
 
 // Veredicto completo de un mensaje: mira el sobre (invitación nativa) y TODAS
 // las superficies de texto, no solo el cuerpo.
-function clasificarMensaje(message) {
+// `quien` es quien escribe. Sin el, las citas no se miran — que es lo correcto
+// para cualquier llamada que no sepa de quien es el mensaje.
+function clasificarMensaje(message, quien = null) {
   if (esInvitacionNativa(message)) return 'invite';
-  return classifyLinks(textoParaEnlaces(message));
+  return classifyLinks(textoParaEnlaces(message, 0, quien));
 }
 
 // Aviso para quien suelta un enlace de YouTube o Instagram sin el permiso de
@@ -1593,7 +1611,7 @@ async function handleMessage(sock, msg) {
   // (groupInviteMessage) no tiene NI UNA letra de texto, así que con el
   // `text &&` de antes el guardia ni se ejecutaba y el enlace entraba limpio.
   if (jid.endsWith('@g.us') && isAntiLinkEnabled(jid)) {
-    const verdict = clasificarMensaje(msg.message);
+    const verdict = clasificarMensaje(msg.message, sender);
     if (verdict !== 'none') {
       const meta = await getGroupMeta(sock, jid);
       // If meta is unavailable (timeout/network error), treat sender as non-admin
