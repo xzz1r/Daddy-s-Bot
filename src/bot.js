@@ -113,6 +113,18 @@ let ciclosLogout = 0;
 // esta delante, y poco para que no se convierta en un martilleo.
 const MAX_QR_SIN_ESCANEAR = 12;
 let qrSinEscanear = 0;
+// Se esta vinculando por codigo: entonces el QR no se dibuja. Salian los dos a
+// la vez, empujando el codigo fuera de la pantalla justo cuando hay que leerlo.
+let pidiendoCodigo = false;
+
+// Y lo mismo para el codigo de vinculacion, que se colaba por la puerta de al
+// lado: el tope de arriba solo cuenta eventos `qr`, y un codigo no es un
+// evento `qr`. Cada reconexion volvia a entrar en connectToWhatsApp y pedia un
+// codigo NUEVO, asi que un 401 en bucle encadenaba peticiones de vinculacion
+// exactamente igual que encadenar QR. Se vio en el log: dos codigos distintos
+// en diez segundos.
+const MAX_CODIGOS = 3;
+let codigosPedidos = 0;
 const MAX_CICLOS_LOGOUT = 2;
 
 // Cada cuánto se relee la lista de solicitudes pendientes de cada grupo. Es una
@@ -438,12 +450,32 @@ async function connectToWhatsApp() {
   // guiones. Es el numero de la cuenta que va a SER el bot.
   const argCodigo = process.argv.indexOf('--codigo');
   const numeroPar = argCodigo !== -1 ? String(process.argv[argCodigo + 1] || '').replace(/\D/g, '') : '';
+  pidiendoCodigo = Boolean(numeroPar);
   if (numeroPar && !sock.authState?.creds?.registered) {
+    if (codigosPedidos >= MAX_CODIGOS) {
+      logger.error(
+        `Van ${codigosPedidos} codigos de vinculacion y ninguno se ha usado. Paro: encadenar ` +
+        `peticiones es lo que agrava una restriccion.`);
+      anotarParada('codigos-sin-usar',
+        `Se pidieron ${codigosPedidos} codigos de vinculacion sin que ninguno llegara a usarse. ` +
+        `Ten WhatsApp abierto en "Vincular con el número de teléfono" ANTES de lanzar el comando.`);
+      detenido = true;
+      try { sock.ev.removeAllListeners(); } catch {}
+      try { sock.end(); } catch {}
+      return;
+    }
+    codigosPedidos++;
+    // EL SOCKET SE GUARDA EN UNA LOCAL. `sock` es la variable del modulo, y
+    // scheduleReconnect la pone a null al desmontar: si llega un 401 en estos
+    // tres segundos, el temporizador de abajo explotaba con
+    // "Cannot read properties of null (reading 'requestPairingCode')".
+    const miSock = sock;
     // Hay que dejar que el socket abra antes de pedirlo; si se pide de
     // inmediato, WhatsApp aun no escucha y la peticion se pierde.
     setTimeout(async () => {
       try {
-        const codigo = await sock.requestPairingCode(numeroPar);
+        if (miSock !== sock) return;   // este socket ya no es el vivo
+        const codigo = await miSock.requestPairingCode(numeroPar);
         const bonito = String(codigo).match(/.{1,4}/g)?.join('-') || codigo;
         console.log(`\n  CODIGO DE VINCULACION: ${bonito}\n`);
         console.log('  WhatsApp → Dispositivos vinculados → Vincular un dispositivo');
@@ -474,6 +506,7 @@ async function connectToWhatsApp() {
       // socket ya llevaba encolados entraban igual y repetian el aviso una vez
       // por cada uno.
       if (detenido) return;
+      if (pidiendoCodigo) return;   // se vincula por codigo: el QR solo estorba
       qrSinEscanear++;
       if (qrSinEscanear > MAX_QR_SIN_ESCANEAR) {
         // Se para de verdad: se cierra el socket y no se programa reconexion.
@@ -588,6 +621,7 @@ async function connectToWhatsApp() {
         consecutive401 = 0;
         ciclosLogout = 0;
         qrSinEscanear = 0;   // alguien escaneo y aguanto: la cuenta vuelve a cero
+        codigosPedidos = 0;
         limpiarParada();   // la conexión aguantó: la marca ya no vale
       }, ESTABLE_MS);
       // Precompute bot's bare IDs (phone + LID) so participant-update events

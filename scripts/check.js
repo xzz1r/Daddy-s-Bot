@@ -1088,6 +1088,18 @@ async function capaStores() {
     exige(/perfilMirado/.test(mhSrc),
       'la consulta de perfil del primer mensaje perdio su freno: una consulta por linea es la via rapida al rate-limit');
 
+    // Y el codigo de vinculacion tiene su propio tope, porque el de los QR no le
+    // valia: solo cuenta eventos `qr`, y un codigo no es uno. Cada reconexion
+    // entraba otra vez en connectToWhatsApp y pedia un codigo NUEVO — dos en
+    // diez segundos, medido en el log. Encadenar peticiones de vinculacion es
+    // lo mismo que encadenar QR.
+    exige(/MAX_CODIGOS/.test(botSrc) && /codigosPedidos\+\+/.test(botSrc),
+      'el codigo de vinculacion volvio a poder pedirse sin limite en cada reconexion');
+    // Y el socket se captura en una local: `sock` lo pone a null scheduleReconnect
+    // al desmontar, asi que un 401 durante la espera hacia explotar el temporizador.
+    exige(/const miSock = sock;/.test(botSrc) && /miSock\.requestPairingCode/.test(botSrc),
+      'el temporizador del codigo volvio a usar el `sock` del modulo: revienta si llega un 401 mientras espera');
+
     // EL BUCLE DE QR TIENE TOPE. Paso de verdad: 401 x3, el bot borro data/auth,
     // reconecto sin credenciales y se puso a sacar QR cada cinco minutos contra
     // un numero que WhatsApp acababa de rechazar. El freno de "no encadenar QR"
