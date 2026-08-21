@@ -1561,6 +1561,112 @@ async function capaStores() {
     if (!fallos) console.log(verde('   ✓ !purge lista, avisa antes del ban y no se delata'));
   }
 
+  // ── !kick: aviso ANTES del kick, admins, más hiriente ─────────────────────
+  {
+    const exige = (cond, queja) => {
+      if (cond) return;
+      fallos++;
+      console.log(rojo(`   ✗ ${queja}`));
+    };
+    const { cmdKick, avisoDeKick } = require(path.join(R, 'src/commands/group'));
+    const { AVISOS_KICK } = require(path.join(R, 'src/data/kickPhrases'));
+
+    exige(AVISOS_KICK.length >= 8, 'el pool de !kick se quedó en los huesos');
+    for (const f of AVISOS_KICK) {
+      exige(typeof f?.uno === 'string' && typeof f?.varios === 'string', 'aviso de kick incompleto');
+      exige(f.uno.includes('%M') && f.varios.includes('%M'), 'aviso de kick no menciona');
+      exige(!/valéis|estáis|sois |vosotros|tenéis/.test(`${f.uno} ${f.varios}`),
+        'aviso de kick conjugó en vosotros');
+      exige(/no eres suficiente|no das |no llegas|te queda grande|te echa con alivio|ocupaste el sitio|ya te olvidó/i.test(f.uno),
+        'frase de !kick se salió del hueso');
+      exige(/no son suficientes|no dan |no llegan|les queda grande|los echa con alivio|ocuparon el sitio|ya los olvidó/i.test(f.varios),
+        'frase plural de !kick se salió del hueso');
+    }
+
+    const aviso1 = avisoDeKick(['57300111222@s.whatsapp.net']);
+    exige(/@57300111222/.test(aviso1.text), 'aviso de kick no patea el numero');
+    exige((aviso1.mentions || []).includes('57300111222@s.whatsapp.net'), 'aviso de kick no pingea');
+    const avisoN = avisoDeKick(['57300111222@s.whatsapp.net', '57300333444@s.whatsapp.net']);
+    exige(/@57300111222/.test(avisoN.text) && /@57300333444/.test(avisoN.text),
+      'aviso de kick con varios no menciona a todos');
+    exige(!/valéis|estáis|sois |vosotros|tenéis/.test(aviso1.text + avisoN.text),
+      'avisoDeKick conjugó en vosotros');
+
+    const grKick = fs.readFileSync(path.join(R, 'src/commands/group.js'), 'utf8');
+    const iAvisoKick = grKick.indexOf('avisoDeKick(targets)');
+    const iKickApply = grKick.indexOf("aplicarParticipantes(sock, jid, targets, 'remove'");
+    exige(iAvisoKick > 0 && iKickApply > iAvisoKick,
+      'el aviso de !kick tiene que salir ANTES del kick: si no, no lo ven');
+    exige(/esperaKick\(AVISO_ANTES_KICK_MS\)/.test(grKick),
+      '!kick no deja margen para que vean la frase');
+
+    const timeline = [];
+    const BOT = '11111111111@s.whatsapp.net';
+    const ADMIN = '15559876543@s.whatsapp.net';
+    const T = '57300111222@s.whatsapp.net';
+    const metaK = {
+      participants: [
+        { id: ADMIN, admin: 'admin' },
+        { id: T, admin: null },
+        { id: BOT, admin: 'admin' },
+      ],
+    };
+    const sockK = {
+      user: { id: BOT },
+      sendMessage: async (jid, c) => { timeline.push({ t: 'msg', jid, text: c.text || '' }); return {}; },
+      groupParticipantsUpdate: async (gJid, ids, accion) => {
+        timeline.push({ t: 'kick', gJid, ids, accion });
+        return ids.map((jid) => ({ jid, status: '200' }));
+      },
+    };
+    const msgK = {
+      key: { remoteJid: 'g1@g.us', fromMe: false, id: 'K1', participant: ADMIN },
+      message: {
+        extendedTextMessage: {
+          text: '!kick @57300111222',
+          contextInfo: { mentionedJid: [T] },
+        },
+      },
+    };
+    await cmdKick(sockK, msgK, [], metaK);
+    const iAviso = timeline.findIndex((x) => x.t === 'msg' && /@57300111222/.test(x.text || ''));
+    const iKick = timeline.findIndex((x) => x.t === 'kick');
+    exige(iAviso >= 0 && iKick > iAviso, '!kick no avisa ANTES de echar');
+    exige(timeline.filter((x) => x.t === 'kick').length === 1, '!kick no echo o echo de mas');
+    exige(timeline.filter((x) => x.t === 'kick')[0].accion === 'remove', '!kick no esta expulsando');
+
+    const silenciosoKick = [];
+    const sockM = {
+      ...sockK,
+      sendMessage: async (jid, c) => { silenciosoKick.push(c); return {}; },
+      groupParticipantsUpdate: async () => { throw new Error('no deberia echar'); },
+    };
+    await cmdKick(sockM, {
+      key: { remoteJid: 'g1@g.us', fromMe: false, id: 'K2', participant: T },
+      message: { extendedTextMessage: { text: '!kick @x', contextInfo: { mentionedJid: [ADMIN] } } },
+    }, [], metaK);
+    exige(silenciosoKick.length === 1 && /Solo admins/i.test(silenciosoKick[0].text || ''),
+      '!kick no corta a quien no es admin');
+
+    const msgsNA = [];
+    const sockNA = {
+      user: { id: BOT },
+      sendMessage: async (jid, c) => { msgsNA.push(c); return {}; },
+      groupParticipantsUpdate: async () => { throw new Error('no deberia echar'); },
+    };
+    await cmdKick(sockNA, msgK, [], {
+      participants: [
+        { id: ADMIN, admin: 'admin' },
+        { id: T, admin: null },
+        { id: BOT, admin: null },
+      ],
+    });
+    exige(msgsNA.length === 1 && /no es admin/i.test(msgsNA[0].text || ''),
+      '!kick insulto en publico sin poder echar');
+
+    if (!fallos) console.log(verde('   ✓ !kick avisa antes del ban y sigue siendo de admins'));
+  }
+
   // ── 7. LOS MUTEOS SOBREVIVEN AL REINICIO ──────────────────────────────────
   {
     const gr = fs.readFileSync(path.join(R, "src/commands/group.js"), 'utf8');

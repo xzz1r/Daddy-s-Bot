@@ -11,6 +11,7 @@ const { aplicarParticipantes, aplicarAUno } = require('../utils/participantes');
 const { allForms } = require('./fk');
 const { allow, disallow, listAllowed, MAX_AVISOS, DURACION_MS } = require('../utils/linkPerms');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
+const { AVISOS_KICK } = require('../data/kickPhrases');
 
 // In-memory mute store: `groupJid|bareJid` -> expireTimestamp
 // Hard-capped: insertion-ordered Map evicts oldest entry past the cap so a
@@ -247,7 +248,22 @@ async function cmdAdm(sock, msg, args, groupMeta) {
   return sock.sendMessage(jid, { text, mentions: participants.map((p) => p.id) });
 }
 
-// !kick @user — remove a member (admin only)
+// !kick @user — remove a member (admin only).
+// El aviso hiriente sale ANTES del kick, igual que en !purge: tienen que verlo.
+const AVISO_ANTES_KICK_MS = 1000;
+const esperaKick = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function avisoDeKick(jids) {
+  const ids = [...new Set((Array.isArray(jids) ? jids : [jids]).filter(Boolean))];
+  const menciones = ids.map((j) => `@${String(j).split('@')[0]}`).join(' ');
+  const pick = AVISOS_KICK[Math.floor(Math.random() * AVISOS_KICK.length)] || AVISOS_KICK[0];
+  const plantilla = ids.length === 1 ? pick.uno : pick.varios;
+  return {
+    text: String(plantilla).replace(/%M/g, menciones),
+    mentions: ids,
+  };
+}
+
 async function cmdKick(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
@@ -301,35 +317,45 @@ async function cmdKick(sock, msg, args, groupMeta) {
     }, { quoted: msg });
   }
 
+  // Sin admin del bot no hay kick: no se suelta el aviso en público para
+  // quedarse a medias.
+  if (!isBotAdmin(sock, groupMeta)) {
+    return sock.sendMessage(jid, { text: 'No pude expulsar: el bot no es admin.' }, { quoted: msg });
+  }
+
   try {
     // Una sola llamada para todos, y el contrato unico decide quien salio.
     // Aqui la fila se buscaba comparando digitos y, si no aparecia, se asumia
     // el 200 — o sea que en un grupo LID (se pide por telefono, contesta por
     // @lid) el bot anunciaba la lista entera como expulsada sin haber echado a
     // nadie.
+    const payload = avisoDeKick(targets);
+    await sock.sendMessage(jid, payload);
+    await esperaKick(AVISO_ANTES_KICK_MS);
+
     const r = await aplicarParticipantes(sock, jid, targets, 'remove', groupMeta);
     const hechos   = r.ok;
     const fallidos = r.fallidos.map(f => f.jid);
 
+    // Si salieron todos y no hay salteados, el aviso ya dijo lo que había que decir.
+    if (hechos.length === targets.length && !skipped.length) return;
+
     let text;
     if (!hechos.length) {
       text = `No se pudo expulsar a nadie: WhatsApp rechazó la operación (${r.error || r.fallidos[0]?.status || 'sin respuesta'}).`;
+    } else if (fallidos.length) {
+      text = `No se pudo expulsar a: ${fallidos.map(t => `@${t.split('@')[0]}`).join(', ')}`;
     } else {
-      const tags = hechos.map(t => `@${t.split('@')[0]}`).join(', ');
-      text = hechos.length === 1
-        ? `${tags} fue expulsado del grupo.`
-        : `*${hechos.length}* expulsados: ${tags}`;
-    }
-    if (fallidos.length && hechos.length) {
-      text += `\nNo se pudo expulsar a: ${fallidos.map(t => `@${t.split('@')[0]}`).join(', ')}`;
+      text = '';
     }
     if (skipped.length) {
       const skipTags = skipped.map(s => `@${s.jid.split('@')[0]} (${s.reason})`).join(', ');
-      text += `\nSalteados: ${skipTags}`;
+      text = (text ? `${text}\n` : '') + `Salteados: ${skipTags}`;
     }
+    if (!text) return;
     await sock.sendMessage(jid, {
       text,
-      mentions: [...targets, ...skipped.map(s => s.jid)],
+      mentions: [...fallidos, ...skipped.map(s => s.jid)],
     }, { quoted: msg });
   } catch (err) {
     await sock.sendMessage(jid, { text: `No pude expulsar: ${err.message}` }, { quoted: msg });
@@ -999,4 +1025,4 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
 }
 
 module.exports = {
-  cmdSoloAdmins, cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, muteUser, unmuteUser, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdAdm };
+  cmdSoloAdmins, cmdTodos, cmdKick, avisoDeKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, muteUser, unmuteUser, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdAdm };
