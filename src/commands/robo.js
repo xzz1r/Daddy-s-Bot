@@ -1,10 +1,12 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser } = require('../utils/wa');
 const { getAura, addAura, drainAura } = require('../utils/auraStore');
 const { pickFresh, fmt, parseCantidad, resolverCantidad, etiquetaRiesgo } = require('../utils/helpers');
-const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, RECOMPENSA } = require('../utils/economia');
+const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA } = require('../utils/economia');
 const { ownerGana } = require('../utils/rigOwner');
 const { fichaFalsaBuscado } = require('../utils/fachada');
 const tienda = require('../utils/roboStore');
+const momentum = require('../utils/momentum');
+const { objetivoDelDia, esObjetivoDelDia } = require('../utils/objetivoDia');
 const RX = require('../data/roboExtraPhrases');
 
 // La escala vive en utils/economia.js. Aqui solo el cooldown, que es de ritmo
@@ -2139,6 +2141,32 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     motivos.push('el más buscado va con la mosca detrás de la oreja');
   }
 
+  // Objetivo del día: no es el nº1. Paga extra, un poco menos que la diana
+  // semanal, y se anuncia al tirar !aura. El owner no sale nunca — ver
+  // objetivoDia.js.
+  let esObjDia = false;
+  try {
+    const objDia = await objetivoDelDia(jid, groupMeta);
+    esObjDia = esObjetivoDelDia(objDia, target);
+    if (esObjDia) {
+      chanceFinal = Math.max(ROBO_LIMITES.suelo, chanceFinal + OBJETIVO_DIA.bonoProbabilidad);
+      motivos.push('objetivo del día: va con un ojo abierto');
+    }
+  } catch { /* sin cartel el robo sigue */ }
+
+  // Racha caliente / tilt que viene de !aura. Se gasta aquí.
+  // Al owner se le enseña y no se le aplica: su dado es ownerGana, no este %.
+  const mom = momentum.consumir(jid, sender, 'robo');
+  if (mom) {
+    if (!ladronEsOwner) {
+      const delta = mom.tipo === 'caliente' ? MOMENTUM.caliente : MOMENTUM.tilt;
+      chanceFinal = Math.min(ROBO_LIMITES.techo, Math.max(ROBO_LIMITES.suelo, chanceFinal + delta));
+    }
+    motivos.push(mom.tipo === 'caliente'
+      ? `racha caliente (+${Math.round(MOMENTUM.caliente * 100)}%)`
+      : `tilt (${Math.round(MOMENTUM.tilt * 100)}%)`);
+  }
+
   anotarIntento(jid, canonicalJid(sender), canonicalJid(target));
   let success = Math.random() < chanceFinal;
 
@@ -2164,7 +2192,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   //
   // Se mueve dentro de la banda real de un miembro y baja un poco cuanto mas se
   // pide, para que siga teniendo la logica que cualquiera espera ver.
-  const chanceVisible = ladronEsOwner
+  let chanceVisible = ladronEsOwner
     ? (() => {
         const { min, max } = ROBO_OWNER_VISIBLE;
         const codicia = maxStake > 0 ? Math.min(1, stake / maxStake) : 0;
@@ -2173,6 +2201,14 @@ async function cmdRobo(sock, msg, args, groupMeta) {
         return Math.min(max, Math.max(min, centro + jitter));
       })()
     : chanceFinal;
+  // El momentum del owner también mueve la cifra que se ve, para que la línea
+  // de "racha caliente" no acompañe a un % idéntico al de siempre. Se queda
+  // dentro de la banda de un miembro.
+  if (ladronEsOwner && mom) {
+    const { min, max } = ROBO_OWNER_VISIBLE;
+    chanceVisible += mom.tipo === 'caliente' ? 0.03 : -0.03;
+    chanceVisible = Math.min(max, Math.max(min, chanceVisible));
+  }
 
   // Rig a favor del owner principal:
   // · si la VÍCTIMA es el owner, el robo SIEMPRE falla (no pierde aura; el
@@ -2205,6 +2241,14 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // salir tan mal que acabas financiando a tu víctima.
   const clave = elegirDesenlace(success, ambicion);
   const { mult, titulo } = DESENLACES[clave];
+  if (clave === 'maestro') momentum.anotar(jid, sender, 'caliente', 'aura');
+  else if (clave === 'desastre') momentum.anotar(jid, sender, 'tilt', 'aura');
+  const pctMom = (x) => Math.round(Math.abs(x) * 100);
+  const notaPuerta = clave === 'maestro'
+    ? `\n_Caliente. La próxima *!aura* (10 min) lleva un +${pctMom(MOMENTUM.caliente)}%._`
+    : clave === 'desastre'
+      ? `\n_Tilt. La próxima *!aura* (10 min) te resta un ${pctMom(MOMENTUM.tilt)}%._`
+      : '';
   // Nunca se mueve más aura de la que la víctima tiene ni de la que el ladrón
   // puede pagar: un golpe maestro sobre alguien con poco no le deja en negativo.
   const bruto = Math.max(1, Math.round(stake * Math.abs(mult)));
@@ -2254,28 +2298,31 @@ async function cmdRobo(sock, msg, args, groupMeta) {
         const codicia = maxStake > 0 ? Math.min(1, stake / maxStake) : 0;
         const out = [];
         const pct = (a, b) => Math.round(a + Math.random() * (b - a));
+        // Las líneas REALES que el grupo tiene que ver: si al owner no le
+        // salen y al resto sí, la ausencia delata. El resto del desglose
+        // se fabrica.
+        for (const m of motivos) {
+          if (/racha caliente|tilt|objetivo del día/.test(m)) out.push(m);
+        }
         if (codicia > 0.55)      out.push(`codicia (−${pct(9, 17)}%)`);
         else if (codicia < 0.2)  out.push(`sin agallas (−${pct(4, 8)}%)`);
         if (Math.random() < 0.45) out.push(`ya te vio venir (−${pct(5, 11)}%)`);
         if (Math.random() < 0.30) out.push(`te tienen fichado (−${pct(4, 9)}%)`);
         if (esDiana)              out.push(`diana (+${pct(10, 14)}%)`);
         else if (Math.random() < 0.18) out.push('venganza (+12%)');
-        // Nunca vacio: quedarse sin desglose es justo lo que se quiere evitar.
         if (!out.length) out.push(`ya te vio venir (−${pct(5, 11)}%)`);
         return out;
       })()
     : motivos;
 
-  // Todo lo tecnico en UNA linea. Antes eran tres seguidas en cursiva —apuesta,
-  // recorte y modificadores— y el ojo las lee como un bloque de letra pequeña
-  // que se salta entero.
-  const notaDinamicas = `\n_${[notaApuesta + notaSello, ...motivosMostrados].join(' · ')}_` + notaTope;
+  const notaDinamicas = `\n_${[notaApuesta + notaSello, ...motivosMostrados].join(' · ')}_` + notaTope + notaPuerta;
 
   if (mult > 0) {
     anotarRoboExitoso(jid, canonicalJid(sender), canonicalJid(target));
     anotarFama(jid, canonicalJid(sender));
     // Robar al mas buscado paga mas, pero nunca por encima de lo que tiene.
     if (esDiana) monto = Math.min(auraV, Math.round(monto * (1 + DIANA.bonoBotin)));
+    if (esObjDia) monto = Math.min(auraV, Math.round(monto * (1 + OBJETIVO_DIA.bonoBotin)));
     if (conCebo && monto < stake) motivos.push('picaste el cebo: no tenía tanto');
     // LA RECOMPENSA POR SU CABEZA. De lo que se lleva, una parte no la cobra:
     // se le queda encima como precio. Cuanto mas roba, mas vale cazarlo.
@@ -2329,6 +2376,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       // retienen, cree que el bot le ha pagado de menos; y si el que caza a un
       // buscado no ve el cobro, la lista sigue pareciendo decorativa.
       + (cobrada ? `\n_Llevaba precio en la cabeza: *+${fmt(cobrada)}* de recompensa encima del botín._` : '')
+      + (esObjDia ? `\n_Era el objetivo del día: botín +${Math.round(OBJETIVO_DIA.bonoBotin * 100)}%._` : '')
       // *!buscados* se nombra AQUI porque la guia ya no lo lista, y este es el
       // unico momento en que a alguien le importa: acaba de ver que una cabeza
       // vale dinero. Un comando que solo vive en una lista que nadie lee es un

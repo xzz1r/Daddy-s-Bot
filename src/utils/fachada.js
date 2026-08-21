@@ -73,4 +73,4 @@ function fichaFalsaBuscado(grupo, lider) {
   return { total, golpes };
 }
 
-module.exports = { fichaFalsaBuscado };
+module.exports = { fichaFalsaBuscado, ruido };

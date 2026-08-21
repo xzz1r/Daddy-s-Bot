@@ -1,16 +1,18 @@
 const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameUser, soloMiembros } = require('../utils/wa');
-const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/helpers');
+const { pickFresh, fmt, parseCantidad, resolverCantidad, etiquetaRiesgo } = require('../utils/helpers');
 const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
 const { getName, recordName, cargar: cargarNombres } = require('../utils/nombreStore');
 const logger = require('../utils/logger');
 const { contarTirada } = require('../utils/casinoStore');
-const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, bonoVeterania, VETERANIA_TOPE, APUESTA, PRECIOS, ARRANQUE, MILLONARIO, rango } = require('../utils/economia');
+const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, bonoVeterania, VETERANIA_TOPE, APUESTA, pApuestaDe, pApuestaVisible, PRECIOS, ARRANQUE, MILLONARIO, rango, MOMENTUM } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
 const { BOTE, ATRACO, CONTRA, RACHA, RIESGO, OBJETOS, VENTAJA, RECOMPENSA, IMPUESTO, REGALO_MIN } = require('../utils/economia');
 const { aportarAlBote } = require('../utils/roboStore');
 const tiendaObj = require('../utils/roboStore');
+const momentum = require('../utils/momentum');
+const { objetivoDelDia, esObjetivoDelDia } = require('../utils/objetivoDia');
 
 // SUBIDO desde minuto y medio por decision del owner. La cifra esta abajo, en
 // la constante, y NO se repite aqui: este comentario decia "QUINCE MINUTOS"
@@ -821,10 +823,17 @@ async function showRanking(sock, msg, groupMeta) {
   ultimoRanking.set(jid, Date.now());
   let text = '*RANKING DE AURA*\n\n';
   const mentions = [];
+  let objDia = null;
+  try { objDia = await objetivoDelDia(jid, groupMeta); } catch { /* el top sale igual */ }
   ranking.forEach((r, i) => {
-    text += `*${i + 1}.* @${r.jid.split('@')[0]} — ${fmt(r.aura)}\n`;
+    const marca = (objDia && esObjetivoDelDia(objDia, r.jid)) ? ' — *objetivo del día*' : '';
+    text += `*${i + 1}.* @${r.jid.split('@')[0]} — ${fmt(r.aura)}${marca}\n`;
     mentions.push(r.jid);
   });
+  if (objDia && objDia.jid && !ranking.some((r) => esObjetivoDelDia(objDia, r.jid))) {
+    text += `\n_Hoy se caza a @${objDia.jid.split('@')[0]} — no está en el top, y robarle paga extra._`;
+    mentions.push(objDia.jid);
+  }
   // Tercera y ultima red para los nombres, justo donde hacen falta.
   //
   // La metadata del grupo a veces trae el nombre de cada participante, y a veces
@@ -990,21 +999,12 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
     ultimaApuesta.set(clave, Date.now());
 
     const esOwner = isOwner(sender, msg.key.fromMe, groupMeta);
+    const esOwnerPrincipal = isMainOwner(sender, msg.key.fromMe, groupMeta);
     const esAdmin = !esOwner && isAdmin(groupMeta?.participants, sender);
-    const pBase = esOwner ? APUESTA.p.owner : esAdmin ? APUESTA.p.admin : APUESTA.p.miembro;
+    const rol = esOwner ? 'owner' : esAdmin ? 'admin' : 'miembro';
 
-    // AMULETO: se gasta al tirar, gane o pierda. Un objeto que solo se gastara
-    // al perder seria gratis cuando funciona, y entonces no es una apuesta: es
-    // un descuento.
-    const conAmuleto = await tiendaObj.gastarUso(jid, sender, 'amuleto').catch(() => false);
-    const p = conAmuleto ? Math.min(0.95, pBase + OBJETOS.amuleto.bono) : pBase;
-    const gana = Math.random() < p;
-
-    // La cifra la pone el jugador; sin cifra, la mitad de siempre.
-    //
-    // Dos topes, los dos fisicos y no de diseño: no se puede apostar mas de lo
-    // que se tiene, ni menos del minimo. Si pide de mas se juega lo que tiene y
-    // se dice — recortar en silencio es lo que hacia que !robo pareciera roto.
+    // La cifra ANTES del dado. Si se tiraba primero, el % no podía depender
+    // de lo pedido y *!apostar 300* era la misma ficha que *!apostar todo*.
     const parsed = parseCantidad(args);
     const jugable = Math.max(0, saldo - APUESTA.suelo);
     const topeMesa = jugable || Math.floor(saldo * APUESTA.fraccion);
@@ -1013,19 +1013,30 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
       suelo: APUESTA.apuestaMin,
       porDefecto: Math.floor(saldo * APUESTA.fraccion),
     });
-    // Perder nunca deja por debajo del arranque: quedarse a cero significaria no
-    // poder ni hacer un sticker, y el castigo que se busca es el drama, no que
-    // alguien deje de usar el bot.
-    // Cuanto paga: mas cuanto mas te juegues de LO TUYO.
-    //
-    // Poner 300 teniendo 20.000 y poner los 20.000 no son la misma jugada, y
-    // pagarlas igual quitaba la unica decision interesante del comando. El pago
-    // sube del x2 al x2,10 segun la fraccion de tu aura que pongas en la mesa,
-    // y toca el techo a partir de APUESTA.fraccionRiesgo.
-    //
-    // El techo es bajo a proposito: unas centesimas mas y la apuesta deja de
-    // tener ventaja de la casa y pasa a imprimir aura (ver el comentario en
-    // economia.js). El premio gordo esta en el tamanyo, no en el multiplicador.
+
+    const fraccion = saldo > 0 ? apuesta / saldo : 0;
+    const curva = pApuestaDe(fraccion, rol, { suave: esOwnerPrincipal });
+    let pReal = curva.p;
+    // AL OWNER SE LE ENSEÑA LA CURVA DE UN MIEMBRO, no la suya. El 58 %
+    // impreso al lado del 45 % del resto es exactamente lo que delata el
+    // amaño: no hace falta contar victorias, está escrito en cada apuesta.
+    let pVisible = (esOwner || esOwnerPrincipal)
+      ? pApuestaVisible(fraccion)
+      : curva.p;
+
+    // AMULETO: se gasta al tirar, gane o pierda. Un objeto que solo se gastara
+    // al perder seria gratis cuando funciona, y entonces no es una apuesta: es
+    // un descuento.
+    const conAmuleto = await tiendaObj.gastarUso(jid, sender, 'amuleto').catch(() => false);
+    if (conAmuleto) {
+      pReal = Math.min(0.95, pReal + OBJETOS.amuleto.bono);
+      pVisible = Math.min(0.95, pVisible + OBJETOS.amuleto.bono);
+    }
+    const gana = Math.random() < pReal;
+    const sello = etiquetaRiesgo(fraccion);
+
+    // El pago SUBE con lo que te juegas de lo tuyo. El acierto BAJA. Las dos
+    // palancas juntas son lo que hace que 300 y todo no sean la misma ficha.
     const riesgo = saldo > 0 ? Math.min(1, apuesta / saldo / APUESTA.fraccionRiesgo) : 0;
     const mult = APUESTA.multiplicador +
       (APUESTA.multiplicadorMax - APUESTA.multiplicador) * riesgo;
@@ -1066,7 +1077,7 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
       `╾━━━━━━━━━━━━━━╼\n\n` +
       `${nm} puso *${fmt(apuesta)}* sobre la mesa.` +
       (recortada ? `\n_Ibas a por ${fmt(bruto)}, pero es todo lo que puedes cubrir._` : '') +
-      `\n_${Math.round(p * 100)}% de salir · ×${mult.toFixed(2)} si gana._` +
+      `\n_${Math.round(pVisible * 100)}% de salir · ×${mult.toFixed(2)} si gana${sello ? ` · ${sello}` : ''}._` +
       // Los objetos se DICEN. Un amuleto que actua en silencio es aura tirada:
       // el jugador no sabe si le sirvio de algo y no vuelve a comprarlo.
       (conAmuleto ? `\n_El amuleto se gastó: tiraste con un ${Math.round(OBJETOS.amuleto.bono * 100)} % más de suerte._` : '') +
@@ -1276,7 +1287,21 @@ async function cmdAura(sock, msg, args, groupMeta) {
   try { tiradasHoy = await contarTirada(jid, sender); } catch { /* se cobra */ }
   const dePago = tiradasHoy <= TIRADAS_PAGADAS;
 
-  let { tier, amount } = rollAura(selfIsOwner, selfIsAdmin, plusActividad, dePago);
+  // La otra puerta habla. Un golpe maestro de !robo calienta esta tirada; un
+  // desastre te deja tilt. Al owner se le ENSEÑA y no se le aplica: su dado
+  // ya viene amañado, y restarle 4 % de verdad mientras el mensaje dice tilt
+  // es el único sitio donde el amaño jugaría EN CONTRA. El grupo ve la línea
+  // igual que a cualquiera.
+  const mom = momentum.consumir(jid, sender, 'aura');
+  let plusSuerte = plusActividad;
+  if (mom && !esOwnerPrincipal) {
+    plusSuerte += mom.tipo === 'caliente' ? MOMENTUM.caliente : MOMENTUM.tilt;
+  }
+
+  let { tier, amount } = rollAura(selfIsOwner, selfIsAdmin, plusSuerte, dePago);
+
+  if (tier === 'blessed') momentum.anotar(jid, sender, 'caliente', 'robo');
+  else if (tier === 'cursed') momentum.anotar(jid, sender, 'tilt', 'robo');
 
   // VETERANIA: mas aura cuando ganas, segun lo escrito en total.
   //
@@ -1322,6 +1347,34 @@ async function cmdAura(sock, msg, args, groupMeta) {
   // Already in the red and going deeper: use spiral phrases
   const effectiveTier = (previous < 0 && amount < 0) ? 'spiral' : tier;
 
+  const pct = (x) => Math.round(Math.abs(x) * 100);
+  let extraPuerta = '';
+  if (mom) {
+    extraPuerta += mom.tipo === 'caliente'
+      ? `\n_Vienes de un golpe: esta tirada llevaba un +${pct(MOMENTUM.caliente)}%._`
+      : `\n_Vienes tilt: esta tirada llevaba un −${pct(MOMENTUM.tilt)}%._`;
+  }
+  if (tier === 'blessed') {
+    extraPuerta += `\n_Caliente. El próximo *!robo* (10 min) lleva un +${pct(MOMENTUM.caliente)}%._`;
+  } else if (tier === 'cursed') {
+    extraPuerta += `\n_Tilt. El próximo *!robo* (10 min) te resta un ${pct(MOMENTUM.tilt)}%._`;
+  }
+
+  let extraObjetivo = '';
+  let mentions = [sender];
+  try {
+    const obj = await objetivoDelDia(jid, groupMeta);
+    if (obj && obj.jid) {
+      const paga = Math.round(obj.bonoBotin * 100);
+      if (sameUser(obj.jid, sender)) {
+        extraObjetivo = `\n_Hoy te toca a ti: quien te robe cobra un ${paga}% más._`;
+      } else {
+        extraObjetivo = `\n_Hoy se caza a @${obj.jid.split('@')[0]}: robarle paga un ${paga}% más._`;
+        mentions.push(obj.jid);
+      }
+    }
+  } catch { /* sin objetivo el comando sigue; no es un dato sin el que no se tire */ }
+
   const text =
     `*@${sender.split('@')[0]} ${sign}${fmt(Math.abs(amount))} de aura*\n` +
     `${pickFresh(AURA[effectiveTier], `${jid}|aura|${effectiveTier}`)}\n\n` +
@@ -1350,9 +1403,10 @@ async function cmdAura(sock, msg, args, groupMeta) {
     // si a todos los que cobran bono les sale una linea y a el nunca, la
     // ausencia dice lo mismo que diria el cero. Ver utils/fachada.js.
     (lineaVeterano ? `\n_${lineaVeterano}_` : '') +
-    '';
+    extraPuerta +
+    extraObjetivo;
 
-  await sock.sendMessage(jid, { text, mentions: [sender] }, { quoted: msg });
+  await sock.sendMessage(jid, { text, mentions }, { quoted: msg });
 }
 
 module.exports = { cmdAura };
