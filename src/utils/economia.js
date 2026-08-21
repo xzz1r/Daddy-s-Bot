@@ -614,6 +614,19 @@ const PRIMERA_DEL_DIA = 59;
 // el ingreso por escribir: con la tabla en el motor y una copia a mano en el
 // modelo, el dia que cambie una se queda midiendo un bot que ya no existe. Ya
 // paso con el modulo — el modelo seguia sumando un bono cada 200 mensajes.
+// CUANDO EMPIEZA EL DIA PARA EL CONTADOR DE MENSAJES.
+//
+// Era una ventana DESLIZANTE de 24 h: arrancaba con el primer mensaje despues
+// de que caducara la anterior, asi que "el dia" se corria solo. Si el grupo
+// callaba tres horas pasado el corte, el dia siguiente empezaba tres horas mas
+// tarde, y a la semana el reinicio caia a cualquier hora. Nadie podia saber
+// cuando se le reiniciaba el contador, que es justo lo que hace falta saber
+// para decidir si merece la pena escribir un rato mas.
+//
+// Ahora corta a una hora fija de un huso fijo. `horaCorte` es la hora local a
+// la que empieza el dia nuevo: 0 = medianoche.
+const CONTADOR = { zona: 'America/New_York', horaCorte: 0 };
+
 const HITOS = [
   { n: 200,  tier: 1 },
   { n: 500,  tier: 2 },
@@ -1305,7 +1318,7 @@ function rango([suelo, ancho]) {
 module.exports = {
   MILLONARIO, ARRANQUE, SUELO_TODOS,
   TIRADA, TIRADA_MIN, TIRADA_MAX, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE,
-  PRIMERA_DEL_DIA, HITOS,
+  PRIMERA_DEL_DIA, HITOS, CONTADOR,
   P_TOPE_MIEMBRO, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, MEDIA_PREMIO, MEDIA_CASTIGO, bonoActividad, APUESTA,
   pApuestaDe, pApuestaVisible, APUESTA_OWNER_VISIBLE,
   RACHA, BONOS, REDENCION,

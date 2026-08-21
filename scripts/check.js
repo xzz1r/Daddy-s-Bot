@@ -1970,7 +1970,7 @@ async function capaStores() {
         const cs = require(path.join(R, 'src/utils/casinoStore'));
         await cs.flushCasino();
         const raw = JSON.parse(fs.readFileSync(path.join(DATA, 'casino.json'), 'utf8'));
-        raw[GB].resetAt = Date.now() - (cs.RESET_MS + 1000);
+        raw[GB].dia = '1999-01-01';   // el dia guardado ya no es hoy: toca reinicio
         fs.writeFileSync(path.join(DATA, 'casino.json'), JSON.stringify(raw));
         for (const k of Object.keys(require.cache)) {
           if (/utils[\/\\](casino|casinoStore)\.js$/.test(k)) delete require.cache[k];
@@ -2003,8 +2003,58 @@ async function capaStores() {
           console.log(rojo(`   ✗ cuatro mensajes a la vez cruzando el 200 cobran ${dobles} bonos: se paga por duplicado`));
         }
 
+        // EL CORTE ES A HORA FIJA, y cae donde dice.
+        //
+        // Era una ventana deslizante de 24 h: el dia nuevo empezaba con el
+        // primer mensaje despues de caducar el anterior, asi que el reinicio se
+        // corria unas horas cada dia hasta acabar cayendo a cualquier hora.
+        // Ahora corta a la hora de CONTADOR, y esta guarda lo comprueba EN LOS
+        // DIAS DEL CAMBIO DE HORA, que es donde se rompen estas cosas: sumar
+        // 24 h a mano habria descuadrado el corte una hora dos veces al año.
+        {
+          const { CONTADOR } = require(path.join(R, 'src/utils/economia'));
+          const cs2 = require(path.join(R, 'src/utils/casinoStore'));
+          const hh = String(CONTADOR.horaCorte).padStart(2, '0');
+          const momentos = [
+            ['visperas del salto adelante', Date.UTC(2026, 2, 7, 20, 0)],
+            ['el dia del salto adelante',   Date.UTC(2026, 2, 8, 19, 0)],
+            ['visperas del salto atras',    Date.UTC(2026, 9, 31, 19, 0)],
+            ['el dia del salto atras',      Date.UTC(2026, 10, 1, 20, 0)],
+            ['un minuto antes del corte',   Date.UTC(2026, 7, 22, 3, 59)],
+            ['un minuto despues',           Date.UTC(2026, 7, 22, 4, 1)],
+          ];
+          for (const [etq, ts] of momentos) {
+            const cae = new Date(ts + cs2.msHastaCorte(ts))
+              .toLocaleString('sv-SE', { timeZone: CONTADOR.zona });
+            if (!new RegExp(` ${hh}:00:0[01]$`).test(cae)) {
+              fallos++;
+              console.log(rojo(`   ✗ ${etq}: el corte cae a las ${cae.slice(11)} en ${CONTADOR.zona} y tiene que caer a las ${hh}:00`));
+            }
+          }
+          // Y el dia tiene que ser UNO SOLO de corte a corte: todo lo que cae
+          // entre dos cortes comparte clave, y lo que pasa el corte ya no.
+          //
+          // Escrito asi y no comparando dos horas concretas a proposito: la
+          // primera version daba por hecho que el corte es a medianoche, y al
+          // mover la hora acusaba de deslizarse a un contador que estaba bien.
+          // Una guarda que solo vale para el valor de hoy no protege el ajuste.
+          for (const ancla of [Date.UTC(2026, 7, 22, 4, 1), Date.UTC(2026, 2, 8, 19, 0), Date.UTC(2026, 10, 1, 20, 0)]) {
+            const corte = ancla + cs2.msHastaCorte(ancla);
+            const dentro = [corte - 2000, corte - 6 * 3600 * 1000, corte - 23 * 3600 * 1000];
+            const clave = cs2.diaDe(dentro[0]);
+            if (!dentro.every((x) => cs2.diaDe(x) === clave)) {
+              fallos++;
+              console.log(rojo(`   ✗ el dia se parte por dentro (${dentro.map((x) => cs2.diaDe(x)).join(' / ')}): el contador se reinicia a media tarde`));
+            }
+            if (cs2.diaDe(corte + 2000) === clave) {
+              fallos++;
+              console.log(rojo('   ✗ pasado el corte sigue siendo el mismo dia: el contador no se reinicia nunca'));
+            }
+          }
+        }
+
         if (fallos === antes) {
-          console.log(verde(`   ✓ tres bonos al dia (${resto.length + 1}), cabecera correcta, extra plano solo en el primero y vuelven mañana`));
+          console.log(verde(`   ✓ tres bonos al dia (${resto.length + 1}), cabecera correcta, extra plano solo en el primero, corte a hora fija y vuelven mañana`));
         }
       } finally {
         for (const k of Object.keys(require.cache)) {

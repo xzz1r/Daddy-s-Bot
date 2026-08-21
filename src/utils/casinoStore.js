@@ -1,15 +1,71 @@
 const path = require('path');
 const { canonicalJid } = require('./wa');
+const { CONTADOR } = require('./economia');
 const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const logger = require('./logger');
 
 const CASINO_FILE = path.join(__dirname, '../../data/casino.json');
 
 // The casino/jackpot counter is SEPARATE from the normal message counter
-// (messageCounter.js). It tracks messages per user per 24h window so the
-// 200/500/1000 milestones are a daily race. Evaluated lazily — no setInterval,
-// so it survives Termux restarts cleanly.
-const RESET_MS = 24 * 60 * 60 * 1000;
+// (messageCounter.js). It tracks messages per user per day so the 200/500/1000
+// milestones are a daily race. Evaluated lazily — no setInterval, so it
+// survives restarts cleanly.
+//
+// EL DIA ES DE CALENDARIO, NO UNA VENTANA DESLIZANTE. Antes se guardaba un
+// `resetAt` y se comparaba con 24 h: el dia nuevo empezaba con el primer
+// mensaje despues de caducar el anterior, asi que el corte se corria solo unas
+// horas cada dia hasta caer a cualquier hora. Ahora se guarda LA FECHA a la que
+// pertenece lo contado y se reinicia cuando esa fecha cambia (ver CONTADOR en
+// economia.js).
+//
+// Es el mismo mecanismo que la racha, y a proposito: formato sv-SE porque es el
+// unico que da YYYY-MM-DD directo, y el corte se aplica RESTANDO las horas
+// antes de formatear. Asi el cambio de horario de verano no lo descuadra —
+// nunca se hace aritmetica con husos, solo se pregunta la fecha local.
+const PARTES = new Intl.DateTimeFormat('en-CA', {
+  timeZone: CONTADOR.zona, hour12: false,
+  year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit',
+});
+function diaDe(ts) {
+  const p = {};
+  for (const x of PARTES.formatToParts(new Date(ts))) {
+    if (x.type !== 'literal') p[x.type] = Number(x.value);
+  }
+  const hora = p.hour % 24;   // hour12:false devuelve 24 para medianoche en algunos entornos
+  if (hora >= CONTADOR.horaCorte) {
+    return `${p.year}-${String(p.month).padStart(2, '0')}-${String(p.day).padStart(2, '0')}`;
+  }
+  // Antes del corte todavia cuenta como el dia anterior. EL DIA SE RESTA SOBRE
+  // LA FECHA, NO SOBRE LA MARCA DE TIEMPO.
+  //
+  // La primera version restaba `horaCorte` horas al instante y formateaba: mas
+  // corta, y mal. En los dos dias del año en que cambia la hora esa resta cruza
+  // el salto y el corte se iba una hora — con horaCorte 0 no se nota porque no
+  // resta nada, pero en cuanto se mueva la hora (que es un solo numero en
+  // economia.js) el reinicio caeria a las 11 o a la 1 dos veces al año. Lo
+  // encontro un mutante que precisamente movia esa hora.
+  //
+  // Anclando en las 12:00 UTC, restar 24 h nunca puede cambiar de fecha por un
+  // salto de horario: sobran doce horas de margen por los dos lados.
+  const ayer = new Date(Date.UTC(p.year, p.month - 1, p.day, 12) - 24 * 3600 * 1000);
+  return ayer.toISOString().slice(0, 10);
+}
+
+// Cuanto falta para el proximo corte. Se busca el instante EXACTO en que diaDe
+// cambia, en vez de calcularlo con aritmetica de husos: asi la cuenta atras que
+// se enseña en *!aura hoy* y el reinicio de verdad no pueden discrepar nunca,
+// que es el fallo clasico de estas dos piezas. 26 h de margen cubren el dia en
+// que se cambia la hora.
+function msHastaCorte(ts = Date.now()) {
+  const hoy = diaDe(ts);
+  let lo = ts, hi = ts + 26 * 3600 * 1000;
+  if (diaDe(hi) === hoy) return hi - ts;
+  while (hi - lo > 1000) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (diaDe(mid) === hoy) lo = mid; else hi = mid;
+  }
+  return hi - ts;
+}
 
 // store = { [groupJid]: { resetAt: <ms>, counts: { [bareJid]: number } } }
 let store = null;
@@ -43,8 +99,13 @@ function scheduleSave() {
 // Also migrates the legacy flat format ({ [bareJid]: number }) by starting fresh.
 function freshBucket(groupJid) {
   const now = Date.now();
+  const hoy = diaDe(now);
   let g = store[groupJid];
-  if (!g || typeof g.resetAt !== 'number' || !g.counts) {
+  // `typeof g.dia !== 'string'` cubre tambien la migracion desde el formato con
+  // `resetAt`: un casino.json de la version anterior entra por aqui y empieza
+  // el dia de cero, que es lo correcto — no hay forma de saber a que fecha
+  // pertenecia lo que habia contado una ventana deslizante.
+  if (!g || typeof g.dia !== 'string' || !g.counts) {
     // `tiradas` va aquí y no solo abajo: esta rama HACE UN RETURN y se saltaba
     // la línea que lo inicializa. La primera llamada de un grupo devolvía un
     // bucket sin `tiradas`, y contarTirada reventaba con un TypeError al leer
@@ -54,15 +115,15 @@ function freshBucket(groupJid) {
     // tirada por cobrada si falla. O sea que no rompía nada a la vista: se
     // comía la primera tirada de cada grupo sin contarla, y esa es justo la
     // cuenta de la que depende TIRADAS_PAGADAS para frenar la inflación.
-    g = { resetAt: now, counts: {}, tiradas: {}, hitos: {} };
+    g = { dia: hoy, counts: {}, tiradas: {}, hitos: {} };
     store[groupJid] = g;
     return g;
   }
-  if (now - g.resetAt >= RESET_MS) {
+  if (g.dia !== hoy) {
     g.counts = {};
     g.tiradas = {};
     g.hitos = {};
-    g.resetAt = now;
+    g.dia = hoy;
   }
   if (!g.tiradas) g.tiradas = {};
   // `hitos` puede faltar en un casino.json escrito por la version anterior. Se
@@ -98,8 +159,8 @@ async function contarTirada(groupJid, userJid) {
 async function tiradasDeHoy(groupJid, userJid) {
   await load();
   const g = store[groupJid];
-  if (!g || typeof g.resetAt !== 'number' || !g.tiradas) return 0;
-  if (Date.now() - g.resetAt >= RESET_MS) return 0;
+  if (!g || typeof g.dia !== 'string' || !g.tiradas) return 0;
+  if (g.dia !== diaDe(Date.now())) return 0;
   return g.tiradas[canonicalJid(userJid)] || 0;
 }
 
@@ -124,8 +185,8 @@ async function tiradasDeHoy(groupJid, userJid) {
 async function hitosCobrados(groupJid, userJid) {
   await load();
   const g = store[groupJid];
-  if (!g || typeof g.resetAt !== 'number' || !g.hitos) return [];
-  if (Date.now() - g.resetAt >= RESET_MS) return [];
+  if (!g || typeof g.dia !== 'string' || !g.hitos) return [];
+  if (g.dia !== diaDe(Date.now())) return [];
   return g.hitos[canonicalJid(userJid)] || [];
 }
 
@@ -188,8 +249,8 @@ async function incrementCasinoCount(groupJid, userJid) {
 async function getCasinoCount(groupJid, userJid) {
   await load();
   const g = store[groupJid];
-  if (!g || typeof g.resetAt !== 'number' || !g.counts) return 0;
-  if (Date.now() - g.resetAt >= RESET_MS) return 0;
+  if (!g || typeof g.dia !== 'string' || !g.counts) return 0;
+  if (g.dia !== diaDe(Date.now())) return 0;
   const key = canonicalJid(userJid);
   let total = 0;
   for (const k in g.counts) {
@@ -199,11 +260,10 @@ async function getCasinoCount(groupJid, userJid) {
 }
 
 // Milliseconds until current window resets (0 if expired / unknown).
-async function msUntilReset(groupJid) {
-  await load();
-  const g = store[groupJid];
-  if (!g || typeof g.resetAt !== 'number') return 0;
-  return Math.max(0, RESET_MS - (Date.now() - g.resetAt));
+// Ya no depende del grupo: el corte es el mismo para todos y a hora fija. Se
+// deja el parametro para no tocar a quien llama.
+async function msUntilReset(_groupJid) {
+  return msHastaCorte();
 }
 
 async function flushCasino() {
@@ -215,4 +275,4 @@ async function flushCasino() {
 }
 
 module.exports = { incrementCasinoCount, getCasinoCount, contarTirada, tiradasDeHoy,
-  hitosCobrados, apuntarHito, msUntilReset, flushCasino, RESET_MS };
+  hitosCobrados, apuntarHito, msUntilReset, flushCasino, diaDe, msHastaCorte };

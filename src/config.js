@@ -45,6 +45,12 @@ const config = {
   rapidApiKey: process.env.RAPIDAPI_KEY || '',
   rapidApiHost: process.env.RAPIDAPI_HOST || 'youtube-mp36.p.rapidapi.com',
 
+  // Numero de contacto que se enseña en el menu. Va aqui y no escrito dentro
+  // del texto porque es un dato de identidad del bot, igual que el nombre y el
+  // autor de los stickers: los tres se cambian juntos y en un solo sitio.
+  // Solo digitos, en formato internacional y sin el +.
+  contacto: '573246561597',
+
   sticker: {
     pack: "𝐃𝐀𝐃𝐃𝐘'𝐒 𝐁𝐎𝐓",
     author: 'xz1s',

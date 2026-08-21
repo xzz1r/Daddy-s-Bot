@@ -344,7 +344,8 @@ ${esAdmin ? `
 _Van con on/off:_ *${p}antilink* · *${p}antifoto* · *${p}antiempresa* · *${p}antiadmin* · *${p}adminmode* · *${p}aura*
 *${p}resetcount* · *${p}resetaura* · *${p}clearcache* · *${p}setgrok* · *${p}diag*
 ` : ''}
-_${p}ping · ${p}info · ${p}whoami_`;
+_${p}ping · ${p}info · ${p}whoami_
+_Contactar al creador del bot: wa.me/${config.contacto}_`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
