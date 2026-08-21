@@ -416,11 +416,23 @@ async function connectToWhatsApp() {
   // Asi que si se pide vincular por codigo y no hay una sesion REGISTRADA, se
   // limpia antes de abrir. Una sesion que funciona no se toca: `registered`
   // solo es cierto cuando la vinculacion se completo de verdad.
-  if (process.argv.includes('--codigo')) {
+  // Y NO SOLO CON --codigo: vale para el QR igual.
+  //
+  // `registered` solo se pone a true cuando la vinculacion se COMPLETO
+  // (messages-recv.js:940). Asi que unas credenciales con `me` pero sin
+  // `registered` son una sesion muerta por definicion: tienen lo justo para que
+  // Baileys mande LOGIN y nada de lo que hace falta para que ese login funcione.
+  // No se recuperan esperando; solo dan 401, una y otra vez.
+  //
+  // Antes esto solo se limpiaba al vincular por codigo, asi que quien lo
+  // intentara por codigo y luego se pasara al QR se llevaba el mismo 401 y sin
+  // ninguna pista de por que. Ahora el bot se cura solo en los dos caminos.
+  {
     const previo = await useMultiFileAuthState(AUTH_DIR);
-    if (!previo.state?.creds?.registered) {
+    const c = previo.state?.creds;
+    if (c?.me && !c.registered) {
       await fs.remove(AUTH_DIR);
-      logger.info('vinculacion por codigo: se parte de cero (habia credenciales a medias)');
+      logger.warn('habia credenciales a medias (vinculacion sin terminar): se parte de cero');
     }
   }
 

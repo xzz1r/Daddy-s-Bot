@@ -1094,10 +1094,11 @@ async function capaStores() {
     // arranques siguientes son 401 hasta que alguien borre data/auth a mano —
     // cinco intentos costo verlo. Pero SOLO si no hay sesion registrada: una que
     // funciona no se toca.
-    exige(/if \(process\.argv\.includes\('--codigo'\)\)/.test(botSrc)
-       && /previo\.state\?\.creds\?\.registered/.test(botSrc)
+    // Y vale para los DOS caminos, no solo para --codigo: quien lo intente por
+    // codigo y se pase al QR arrastra las mismas credenciales muertas.
+    exige(/if \(c\?\.me && !c\.registered\)/.test(botSrc)
        && /await fs\.remove\(AUTH_DIR\)/.test(botSrc),
-      'la vinculacion por codigo ya no limpia las credenciales a medias: todo intento tras el primero sera un 401');
+      'el arranque ya no limpia las credenciales a medias: seran 401 hasta que alguien borre data/auth a mano');
 
     // Y el codigo de vinculacion tiene su propio tope, porque el de los QR no le
     // valia: solo cuenta eventos `qr`, y un codigo no es uno. Cada reconexion
