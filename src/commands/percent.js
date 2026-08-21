@@ -11,6 +11,29 @@ const OWNER_LOW  = [3, 30];   // peyorativos: siempre bajo, tope 30 (tier low �
 // Cada cuanto se le aplica el amaño al dueño en fiel/infiel. El resto de veces
 // se queda la tirada uniforme, que es el contrato de esos dos comandos.
 const OWNER_AMANYO = 0.85;
+
+// ─── EL REPARTO DEL OWNER, EN UN SOLO SITIO ──────────────────────────────────
+//
+// Estaba escrito dos veces con numeros a pelo (0.62 / 0.82 en cada rama) y las
+// dos ramas tienen que moverse JUNTAS: si una se toca y la otra no, al owner le
+// sale bien en los positivos y regular en los peyorativos, o al reves. Aqui son
+// una constante y la simetria deja de depender de que alguien se acuerde.
+//
+//   soso  → banda sosa (45-75 en positivos, 25-55 en peyorativos). Cifras que
+//           podrian ser de cualquiera. Es lo que hace que el amaño no cante.
+//   bueno → la franja que le favorece.
+//   resto → un resultado malo DE VERDAD. Tiene que existir: no salir nunca mal
+//           es, en si mismo, el patron que delata.
+//
+// De 62/20/18 a 42/50/8 por decision del dueño: con el reparto anterior perdia
+// tres de cada diez y eso no era lo que se pidio del amaño. Medido sobre
+// 300.000 tiradas: !sexy pasa de media 57 a 69, y de salir ≥70 tres veces de
+// cada diez a seis. Un miembro raso saca 38.
+//
+// Lo que NO se toca es la forma de los numeros: se sigue tirando de las mismas
+// bandas anchas, asi que no vuelven los 97 y 99 repetidos que el grupo cazo.
+const OWNER_SOSO  = 0.42;
+const OWNER_BUENO = 0.50;
 const OWNER_HIGH = [88, 100]; // favorables: siempre alto (tier high ≥70), no siempre 100
 
 // SOLO los que tiran uniforme. El resto pasa por rollPercent, que YA tiene
@@ -81,8 +104,8 @@ function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
     // ALTO de verdad, igual que a cualquiera. Sin esa parte, no salir nunca mal
     // es en si mismo el patron que canta.
     if (targetIsOwner) {
-      if (rand < 0.62) return suaveMalo();
-      if (rand < 0.82) return lo();
+      if (rand < OWNER_SOSO) return suaveMalo();
+      if (rand < OWNER_SOSO + OWNER_BUENO) return lo();
       return hi();
     }
     if (targetIsAdmin) {
@@ -96,8 +119,8 @@ function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
   } else {
     // Positivos: el grupo saca BAJO. Misma idea al reves.
     if (targetIsOwner) {
-      if (rand < 0.62) return suave();
-      if (rand < 0.82) return hi();
+      if (rand < OWNER_SOSO) return suave();
+      if (rand < OWNER_SOSO + OWNER_BUENO) return hi();
       return lo();
     }
     if (targetIsAdmin) {

@@ -16,7 +16,7 @@ const { isOwner, sameUser, isBotAdmin, canonicalJid, rememberMapping, flushOwner
 // anotarAlta apunta el motivo de cada alta; motivoDelAlta lo consulta cuando hay
 // que decidir si un alta fue a dedo (la unica que se sanciona).
 const { anotarAlta, motivoDelAlta, ALTA_ADD } = require('./utils/joinReason');
-const { notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, reactivarSondeo, frenoNuevo, flushJoinRequests, sondeoReciente } = require('./utils/joinRequests');
+const { notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, reactivarSondeo, frenoNuevo, flushJoinRequests, sondeoReciente, colaConocida } = require('./utils/joinRequests');
 const { flushCounts } = require('./utils/messageCounter');
 const { flushNames, recordName, cuantosNombres } = require('./utils/nombreStore');
 const { flushPickHistory } = require('./utils/helpers');
@@ -1083,12 +1083,18 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
           const pendientes = await Promise.all(
             metidos.map(id => estabaPendiente(groupJid, allForms(id, meta)).catch(() => false))
           );
-          // Sin sondeo fresco no se sabe quién estaba en la cola. Castigar
-          // entonces es el falso positivo que ya baneó admins: un 27 llega
-          // igual al aprobar una solicitud y al meter a dedo.
-          if (!sondeoReciente(groupJid)) {
+          // Sin saber qué había en la cola no se castiga: un 27 llega igual al
+          // aprobar una solicitud que al meter a dedo, y ese falso positivo ya
+          // baneó admins.
+          //
+          // Pero "no se sabe" no es lo mismo que "no hay cola". Con el sondeo
+          // prohibido y el bot de admin, el grupo sencillamente no pide
+          // aprobación: ahí no existe cola y el alta es a dedo por definición.
+          // Mirando solo el sondeo, la sanción se quedaba apagada para siempre
+          // justo en esos grupos — ver colaConocida.
+          if (!colaConocida(groupJid, isBotAdmin(sock, meta))) {
             logger.info(
-              `alta en ${groupJid}: sondeo de solicitudes caducado; no se sanciona a ${author}.`);
+              `alta en ${groupJid}: no puedo saber qué había en la cola de solicitudes; no se sanciona a ${author}.`);
           } else {
             const aDedo = metidos.filter((_, i) => motivos[i] === ALTA_ADD && !pendientes[i]);
             const perdonados = metidos.filter((_, i) => pendientes[i]);

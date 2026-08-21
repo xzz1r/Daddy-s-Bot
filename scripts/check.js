@@ -2664,7 +2664,102 @@ async function capaStores() {
     exige(/function withTimeout/.test(fs.readFileSync(path.join(R, 'src/utils/helpers.js'), 'utf8')),
       'withTimeout vive en helpers y lo usan metadata, version de Baileys, scan y antifoto');
 
+    // EL REPARTO DEL OWNER: SIMETRICO, VENTAJOSO Y NO PERFECTO.
+    //
+    // Las dos ramas (positivos y peyorativos) tienen que moverse juntas o al
+    // dueño le sale bien en una cosa y regular en la otra. Estaban escritas con
+    // los numeros a pelo en cada rama; ahora salen de OWNER_SOSO/OWNER_BUENO y
+    // esto lo vigila.
+    //
+    // Y se mide EJECUTANDO, no leyendo las constantes: lo que importa es lo que
+    // sale por pantalla. Tres cosas — que gane de calle, que pueda salirle mal
+    // alguna vez (no fallar nunca es el patron que delata), y que no sea tan
+    // frecuente como para que el amaño no se note en su propia mesa.
+    exige(/rand < OWNER_SOSO\) return suaveMalo\(\)/.test(pct) && /rand < OWNER_SOSO\) return suave\(\)/.test(pct),
+      'las dos ramas del owner volvieron a llevar el reparto a pelo: se desincronizan al primer ajuste');
+    {
+      const cuerpo = pct.slice(pct.indexOf('function rollPercent'), pct.indexOf('\n}\n', pct.indexOf('function rollPercent')) + 2);
+      const consts = pct.match(/const OWNER_SOSO\s*=\s*([\d.]+);[\s\S]*?const OWNER_BUENO\s*=\s*([\d.]+);/);
+      // eslint-disable-next-line no-eval
+      const rollPercent = eval(`(() => { const OWNER_SOSO=${consts?.[1]}, OWNER_BUENO=${consts?.[2]}; ${cuerpo} return rollPercent; })()`);
+      const N = 40000;
+      const medir = (good, own) => {
+        let suma = 0, mal = 0;
+        for (let i = 0; i < N; i++) {
+          const v = rollPercent(good, false, own);
+          suma += v;
+          if (good ? v <= 30 : v >= 70) mal++;
+        }
+        return { media: suma / N, mal: mal / N };
+      };
+      for (const good of [true, false]) {
+        const o = medir(good, true), m = medir(good, false);
+        const etq = good ? 'positivos' : 'peyorativos';
+        const ventaja = good ? o.media - m.media : m.media - o.media;
+        exige(ventaja > 20, `${etq}: al owner solo le sacan ${Math.round(ventaja)} puntos de ventaja sobre un miembro; el amaño dejo de amañar`);
+        exige(o.mal > 0.02, `${etq}: al owner no le sale mal NUNCA (${Math.round(100 * o.mal)} %) y eso es justo el patron que lo delata`);
+        exige(o.mal < 0.30, `${etq}: al owner le sale mal el ${Math.round(100 * o.mal)} % de las veces; con eso el amaño no se nota ni en su propia mesa`);
+      }
+    }
+
     if (fallos === antes) console.log(verde('   ✓ amaño de % coherente, metadata en las puertas propias, 403 con invitacion'));
+  }
+
+  // ── 23. "NO LO SE" NO ES LO MISMO QUE "NO HAY COLA" ──────────────────────
+  //
+  // El anti-admin sanciona a quien mete gente a dedo. Para no castigar a quien
+  // solo APRUEBA una solicitud (WhatsApp manda el mismo evento en los dos
+  // casos) se puso una puerta: sin sondeo fresco de la cola, no se sanciona.
+  //
+  // Esa puerta miraba `sondeoReciente`, que solo se marca cuando la lista se lee
+  // CON EXITO. Un grupo que devuelve forbidden entra en un freno de seis horas y
+  // no se marca nunca — asi que la sancion quedaba apagada PARA SIEMPRE ahi.
+  //
+  // Y forbidden significa dos cosas opuestas: que el bot no es admin (no se
+  // puede saber, y da igual porque tampoco podria degradar), o que el grupo NO
+  // PIDE APROBACION para entrar. En el segundo no hay cola que consultar, o sea
+  // que el alta es a dedo por definicion: el caso mas claro que existe, y era
+  // justo el que se perdonaba.
+  //
+  // Se comprueba ejecutando, porque la diferencia esta en el estado interno del
+  // freno y no se ve leyendo la linea de la puerta.
+  {
+    console.log('\n23. EL ANTI-ADMIN NO SE APAGA SOLO');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const jr = require(path.join(R, 'src/utils/joinRequests'));
+    const GJ = '000000023@g.us';
+
+    jr._reset();
+    exige(!jr.colaConocida(GJ, true), 'recien arrancado se sanciona sin saber que habia en la cola');
+    jr._marcarSondeo(GJ);
+    exige(jr.colaConocida(GJ, true), 'con el sondeo fresco no se sanciona: la sancion no llega nunca');
+    jr._reset();
+    jr._marcarSondeo(GJ, Date.now() - (jr.SONDEO_VALIDO_MS + 1000));
+    exige(!jr.colaConocida(GJ, true), 'un sondeo caducado se toma por bueno');
+
+    jr._reset();
+    await jr.sondear({ groupRequestParticipantsList: async () => { throw new Error('forbidden'); } }, GJ);
+    exige(jr.colaConocida(GJ, true),
+      'grupo sin aprobacion de entrada y el bot de admin: la sancion se queda apagada para siempre, que es el fallo que esto vigila');
+    exige(!jr.colaConocida(GJ, false),
+      'sin ser admin se sanciona: ahi no hay forma de saber si fue una aprobacion');
+
+    jr._reset();
+    await jr.sondear({ groupRequestParticipantsList: async () => { throw new Error('timed out'); } }, GJ);
+    exige(!jr.colaConocida(GJ, true),
+      'un fallo de red se confunde con "el grupo no pide aprobacion"');
+    jr._reset();
+
+    // Y que bot.js siga preguntandolo con la metadata: sin el segundo argumento
+    // colaConocida no puede distinguir los dos forbidden y vuelve el agujero.
+    const bot2 = fs.readFileSync(path.join(R, 'src/bot.js'), 'utf8').replace(/\/\/[^\n]*/g, '');
+    exige(/colaConocida\(groupJid, isBotAdmin\(/.test(bot2),
+      'bot.js dejo de pasarle a colaConocida si el bot es admin: sin eso no distingue los dos forbidden');
+    exige(!/if \(!sondeoReciente\(groupJid\)\)/.test(bot2),
+      'la puerta del anti-admin volvio a mirar solo el sondeo');
+
+    if (fallos === antes) console.log(verde('   ✓ solo se perdona el alta cuando de verdad no se puede saber'));
   }
 
   console.log(`\n${'─'.repeat(70)}`);

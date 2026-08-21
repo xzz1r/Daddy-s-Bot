@@ -211,6 +211,29 @@ function sondeoReciente(grupo) {
   return Boolean(ts) && Date.now() - ts < SONDEO_VALIDO_MS;
 }
 
+// ¿Se puede saber si un alta salió de la cola de solicitudes?
+//
+// sondeoReciente NO basta para decidirlo, y usarlo solo apagaba la sanción justo
+// donde más clara está. `ultimoSondeo` se marca únicamente cuando la lista se
+// lee CON ÉXITO; un grupo que devuelve forbidden entra en un freno de seis horas
+// y nunca se marca, así que ahí el anti-admin quedaba desactivado para siempre.
+//
+// Y forbidden significa dos cosas que no se distinguen desde este fichero:
+//
+//   · el bot no es admin  → no hay forma de saberlo. Se falla en abierto (no se
+//     sanciona), que además da igual: sin admin tampoco puede degradar a nadie.
+//   · el bot SÍ es admin  → entonces lo que pasa es que el grupo NO PIDE
+//     APROBACIÓN para entrar. No hay cola que consultar, así que meter a alguien
+//     solo se puede haber hecho a dedo. Es el caso más claro que existe, y era
+//     precisamente el que se estaba perdonando.
+//
+// Quien llama pasa si el bot es admin, porque eso solo se sabe con la metadata.
+function colaConocida(grupo, botEsAdmin) {
+  if (sondeoReciente(grupo)) return true;
+  const freno = frenados.get(grupo);
+  return Boolean(freno?.prohibido && botEsAdmin);
+}
+
 async function flushJoinRequests() {
   if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
   if (store) {
@@ -225,7 +248,7 @@ function _marcarSondeo(grupo, ts = Date.now()) { ultimoSondeo.set(grupo, ts); }
 function _frenado(grupo) { return frenados.get(grupo) || null; }
 
 module.exports = {
-  notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, sondeoReciente,
+  notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, sondeoReciente, colaConocida,
   reactivarSondeo, frenoNuevo, flushJoinRequests, SONDEO_VALIDO_MS,
   _reset, _marcarSondeo, _frenado,
 };
