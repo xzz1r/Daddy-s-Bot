@@ -117,6 +117,43 @@ for (const [nombre, cfg] of Object.entries(labels)) {
   }
 }
 
+// pickFresh no vive solo en percent.js. !rizz y los cierres de !wingman
+// salían verdes aquí con 25 frases porque este fichero no los miraba.
+function contarAnidado(rel, nombreConst) {
+  const src = fs.readFileSync(path.join(R, rel), 'utf8').split('\n');
+  const out = {};
+  let dentro = false, tramo = null;
+  for (const linea of src) {
+    if (new RegExp('^const ' + nombreConst + ' = \\{$').test(linea)) { dentro = true; continue; }
+    if (!dentro) continue;
+    if (/^};$/.test(linea)) break;
+    const m = linea.match(/^\s+(high|mid|low): \[$/);
+    if (m) { tramo = m[1]; out[tramo] = 0; continue; }
+    if (/^\s+\],?$/.test(linea)) { tramo = null; continue; }
+    if (tramo && ES_FRASE.test(linea)) out[tramo]++;
+  }
+  return out;
+}
+
+const rizz = contarAnidado('src/commands/wingman.js', 'RIZZ');
+for (const tramo of ['high', 'mid', 'low']) {
+  if (typeof rizz[tramo] !== 'number') continue;
+  const traf = TRAFICO.true; // rollPercent(true) en cmdRizz
+  filas.push({ cmd: 'rizz', tramo, prob: traf[tramo], n: rizz[tramo], libres: libres(rizz[tramo]) });
+}
+
+const EXTRA_ARRAYS = [
+  // Cada uso de !wingman gasta una. Con 25, la ventana deja 10 libres.
+  { rel: 'src/commands/wingman.js', nombre: 'WINGMAN_CIERRES', cmd: 'wingman', tramo: 'cierres', prob: 1 },
+  { rel: 'src/commands/wingman.js', nombre: 'WINGMAN_ANECDOTAS', cmd: 'wingman', tramo: 'anecdotas', prob: 1 },
+  // Va en el titular de cada robo fallido. Con 15 se recita.
+  { rel: 'src/commands/robo.js', nombre: 'ROBO_FALLO_REMATE', cmd: 'robo', tramo: 'remate', prob: 0.50 },
+];
+for (const e of EXTRA_ARRAYS) {
+  const n = contarExternos(e.rel)[e.nombre] || 0;
+  filas.push({ cmd: e.cmd, tramo: e.tramo, prob: e.prob, n, libres: libres(n) });
+}
+
 // CRÍTICO: el pool está vacío o casi. Esto NO depende del tráfico y por eso se
 // mira antes que nada.
 //
