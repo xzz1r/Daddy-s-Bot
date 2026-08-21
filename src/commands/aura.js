@@ -783,6 +783,21 @@ async function showRanking(sock, msg, groupMeta) {
     }, { quoted: msg });
   }
 
+  // Se reclama el cooldown AQUI, en sincrono, ANTES de cualquier await.
+  //
+  // El handler no deduplica por id de mensaje, y tanto getGroupMeta (en el
+  // dispatcher) como getAuraRanking ceden el hilo: dos !aura top seguidos
+  // pasaban los dos el check de arriba, esperaban el ranking y publicaban
+  // DOS tablas con menciones. El cooldown existia y no frenaba el spam, que
+  // es justo para lo que se invento.
+  //
+  // Mismo patron que !robo y la apuesta. Si al final no hay ranking que
+  // enseñar, o es el mismo de siempre, se DEVUELVE: bloquear tres horas por
+  // un mensaje que no salio seria el otro fallo, y un "no ha cambiado" que
+  // reiniciara el reloj esconderia el top para siempre.
+  if (ultimoRanking.size >= 500) ultimoRanking.delete(ultimoRanking.keys().next().value);
+  ultimoRanking.set(jid, Date.now());
+
   // Un solo filtro: quien ya no esta en el grupo no ocupa puesto. El aura se
   // guarda para siempre y sin esto el ranking seguia coronando a gente que se
   // fue del grupo hace meses.
@@ -795,20 +810,13 @@ async function showRanking(sock, msg, groupMeta) {
   const ranking = soloMiembros(await getAuraRanking(jid), groupMeta)
     .slice(0, 10);
   if (ranking.length === 0) {
+    ultimoRanking.delete(jid);
     return sock.sendMessage(jid, { text: 'Nadie ha medido su aura todavía. Usa *!aura*.' }, { quoted: msg });
   }
 
-  // El cooldown se marca AQUI, no al entrar: si no habia ranking que enseñar no
-  // se ha molestado a nadie, asi que bloquear las siguientes horas seria
-  // castigar por un mensaje que no llego a salir.
-  // Mismo top que la ultima vez: se dice en una linea y no se menciona a nadie.
-  //
-  // Y esto va ANTES de marcar el cooldown a proposito. Si se marcara aqui, cada
-  // "no ha cambiado" reiniciaria las tres horas — o sea que alguien consultando
-  // cada dos horas y media podria mantener el ranking oculto indefinidamente
-  // sin proponerselo. El reloj solo corre cuando el ranking SALE.
   const huella = huellaDe(ranking);
   if (huellaRanking.get(jid) === huella) {
+    ultimoRanking.delete(jid);
     return sock.sendMessage(jid, {
       // La otra cara del mismo freno: aqui las tres horas YA pasaron, pero el
       // ranking es identico al que se publico, asi que repetirlo seria mandar
@@ -821,8 +829,12 @@ async function showRanking(sock, msg, groupMeta) {
   if (huellaRanking.size >= 500) huellaRanking.delete(huellaRanking.keys().next().value);
   huellaRanking.set(jid, huella);
 
-  if (ultimoRanking.size >= 500) ultimoRanking.delete(ultimoRanking.keys().next().value);
-  ultimoRanking.set(jid, Date.now());
+  // La copia en gris se guarda YA, no despues de cargar nombres: un segundo
+  // pedido que entre ahora en cooldown tiene que poder enseñarla. Los nombres
+  // se resuelven al pintarla, no hacen falta aqui.
+  if (ultimoTop.size >= 500) ultimoTop.delete(ultimoTop.keys().next().value);
+  ultimoTop.set(jid, { filas: ranking.map((r) => ({ jid: r.jid, aura: r.aura })), ts: Date.now() });
+
   let text = '*RANKING DE AURA*\n\n';
   const mentions = [];
   let objDia = null;
@@ -859,9 +871,6 @@ async function showRanking(sock, msg, groupMeta) {
   if (sinNombre) {
     logger.warn(`ranking: ${sinNombre} de ${ranking.length} del top sin nombre todavia; en la copia en gris saldran como desconocidos hasta que el bot les vea un mensaje, una historia o un privado`);
   }
-
-  if (ultimoTop.size >= 500) ultimoTop.delete(ultimoTop.keys().next().value);
-  ultimoTop.set(jid, { filas: ranking.map((r) => ({ jid: r.jid, aura: r.aura })), ts: Date.now() });
 
   await sock.sendMessage(jid, { text: text.trimEnd(), mentions }, { quoted: msg });
 }
@@ -1165,7 +1174,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
     return interruptor(sock, msg, sub, groupMeta);
   }
 
-  if (['top', 'rank', 'ranking', 'leaderboard'].includes(sub)) {
+  if (['top', 'rank', 'ranking', 'leaderboard', 'auratop'].includes(sub)) {
     return showRanking(sock, msg, groupMeta);
   }
   if (esGuia) {

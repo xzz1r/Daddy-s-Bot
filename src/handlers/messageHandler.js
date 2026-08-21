@@ -119,7 +119,7 @@ const NEEDS_META = new Set([
   //
   // Y ahora ademas hacen falta porque *!top 10 <tema>* se desvia al sorteo, que
   // cobra: sin metadata el cobro no reconoce al owner en grupos LID.
-  'top','ranking',
+  'top','ranking','auratop',
   'k',              // isOwner necesita la metadata para resolver el LID del owner
   'diag',
   'relevancia','relevance',   // isMainOwner necesita meta para resolver LID → teléfono
@@ -1964,6 +1964,7 @@ async function handleMessage(sock, msg) {
         break;
       case 'ranking':
       case 'top':
+      case 'auratop':
         // *!top 10 <tema>* ES *!top10 <tema>*. Alguien escribio "!top 10 que
         // cojen bien piola" y le salio el RANKING DE AURA: 'top' cae aqui y los
         // args se tiraban enteros, asi que el numero y el tema se perdian. El
