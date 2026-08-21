@@ -67,14 +67,16 @@ function avisoDeVeto(hits) {
   };
 }
 
-// Aviso de !purge: hiriente y burlón, al hueso: no son suficientes.
+// Aviso de !purge: hiriente y burlón. El hueso es que no son suficientes.
 // Español neutral (tú en singular, ustedes en plural; sin vosotros).
 function avisoDePurge(hits) {
   const tags = etiquetasDe(hits);
   const menciones = tags.map((t) => `@${t.label}`).join(' ');
   const texto = tags.length === 1
-    ? `${menciones} no eres suficiente para este grupo.\nNunca lo fuiste. Te queda grande y se nota. Sobras.`
-    : `${menciones} no son suficientes para este grupo.\nNunca lo fueron. Les queda grande y se nota. Sobran.`;
+    ? `${menciones} no eres suficiente para este grupo.\n` +
+      `Te creíste a la altura y no lo estás. El grupo funcionó igual contigo dentro y va a funcionar igual sin ti. Fuera.`
+    : `${menciones} no son suficientes para este grupo.\n` +
+      `Se creyeron a la altura y no lo están. El grupo funcionó igual con ustedes dentro y va a funcionar igual sin ustedes. Fuera.`;
   return {
     text: texto,
     mentions: tags.map((t) => t.mention),

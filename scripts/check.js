@@ -1464,10 +1464,10 @@ async function capaStores() {
     exige(extractNumbers('hola').length === 0, 'extractNumbers inventa numeros donde no hay');
 
     const aviso1 = avisoDePurge(['57300111222']);
-    exige(/no eres suficiente/i.test(aviso1.text) && /te queda grande/i.test(aviso1.text),
+    exige(/no eres suficiente/i.test(aviso1.text) && /te creíste a la altura/i.test(aviso1.text),
       'el aviso de un numero no va al hueso');
     const avisoN = avisoDePurge(['57300111222', '57300333444']);
-    exige(/no son suficientes/i.test(avisoN.text) && /les queda grande/i.test(avisoN.text),
+    exige(/no son suficientes/i.test(avisoN.text) && /se creyeron a la altura/i.test(avisoN.text) && /ustedes/.test(avisoN.text),
       'el aviso de varios no va al hueso');
     exige(!/valéis|estáis|sois |vosotros/.test(aviso1.text + avisoN.text),
       'avisoDePurge conjugó en vosotros');
