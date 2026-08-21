@@ -528,8 +528,37 @@ const RACHA = {
 // economía era que NO HUBIERA NADA por debajo de los 200 mensajes, y eso lo
 // arregla el sueldo, no inflar los botes. Un hito tiene que seguir siendo un
 // premio ocasional; el goteo constante es cosa del sueldo.
+// EL TRAMO 1 SUBE HASTA DONDE LA ECONOMIA AGUANTA, QUE NO ES HASTA DONDE SE
+// PIDIO. La cifra pedida era 75 de suelo; el techo real medido es 20, y merece
+// quedar escrito por que, para no volver a intentarlo dentro de tres meses.
+//
+// El problema no es el tramo 1: es que ya no queda presupuesto. Antes de tocar
+// nada, el perfil activo (500 msgs/dia) llegaba a 4.437 en un mes contra la
+// linea de fortuna de 5.000 — un 11 % de margen, y esa linea existe para que
+// hacerse rico cueste mas de un mes.
+//
+// Y subir este tramo no reparte ese margen a partes iguales: el de 200 mensajes
+// cobra el bono UNA vez, el de 500 dos veces, el de 1.200 cinco. O sea que
+// +59 al dia para quien lo pidio son +295 para quien ya rozaba el techo. El
+// aumento compounda justo en el perfil que no tiene sitio.
+//
+// Medido, con todo lo demas quieto:
+//
+//     suelo 20  ->  normal 196/dia   OK
+//     suelo 30  ->  normal 209/dia   el activo cruza la linea de fortuna
+//     suelo 75  ->  normal 265/dia   ademas los precios dejan de morder
+//
+// Tambien se probo compensar por otros lados y ninguno sale: bajar las tiradas
+// de pago hasta 3 no basta; reescalar precios y fortuna a la vez rompe el
+// arranque (con 1,5x el que entra no puede probar el bot); dejar el arranque
+// quieto rompe lo contrario. El presupuesto esta agotado, no mal repartido.
+//
+// Con 20-47 el bono medio pasa de 16 a 28: un 75 % mas, y un dia de escribir
+// deja de valer menos que medio sticker. Para llegar a 75 hay que mover la
+// linea de fortuna y los precios, y eso devalua el aura que la gente ya tiene:
+// es una decision del dueño, no un ajuste.
 const BONOS = {
-  1: { win: [8, 6],   bigwin: [14, 8],  jackpot: [22, 12], mega: [34, 18] },
+  1: { win: [20, 3],  bigwin: [24, 5],  jackpot: [30, 6], mega: [38, 9] },
   2: { win: [35, 20], bigwin: [55, 25], jackpot: [80, 35], mega: [120, 50] },
   3: { win: [90, 40], bigwin: [130, 60], jackpot: [190, 80], mega: [260, 120] },
 };
@@ -540,7 +569,7 @@ const BONOS = {
 // anteriores no era así: en tier 3 la redención pagaba 200-350 mientras un bote
 // normal daba 260-380, o sea que estar hundido salía peor que no estarlo.
 const REDENCION = {
-  1: [55, 45],    // por encima del mega de tier 1 (34-52)
+  1: [55, 45],    // por encima del mega de tier 1 (38-47)
   2: [180, 120],  // por encima del mega de tier 2 (120-170)
   3: [400, 250],  // por encima del mega de tier 3 (260-380)
 };
