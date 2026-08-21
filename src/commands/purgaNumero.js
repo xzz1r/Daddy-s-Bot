@@ -20,7 +20,7 @@
 // aviso se manda ANTES del ban: la idea es que lo vean y sepan que no son
 // bienvenidos. Si el kick falla, el grupo vio el aviso igual — mejor eso que
 // echar a alguien en silencio.
-const { getSender, isMainOwner, isBotJid, isBotAdmin, bareJid, canonicalJid, getTarget, extractText, extractQuotedText } = require('../utils/wa');
+const { getSender, isMainOwner, isBotJid, isBotAdmin, bareJid, canonicalJid, extractText, extractQuotedText } = require('../utils/wa');
 const { banAccount } = require('../utils/banlist');
 const { extractNumber } = require('./pfp');
 const logger = require('../utils/logger');
@@ -29,17 +29,32 @@ const { aplicarParticipantes } = require('../utils/participantes');
 // Pausa entre grupos. No es paranoia: groupParticipantsUpdate en ráfaga es
 // justo lo que dispara el rate-overlimit que ya sale en el log del bot.
 const PAUSA_MS = 1200;
-// Pausa corta entre el aviso y el kick, para que el mensaje llegue antes de
-// que WhatsApp saque a la persona del grupo.
-const AVISO_ANTES_MS = 500;
+// Margen entre el aviso y el kick. sendMessage espera el ack del servidor;
+// esto es para que el mensaje llegue al teléfono antes de que WhatsApp los
+// saque del grupo. Si es demasiado corto, la frase no la ven.
+const AVISO_ANTES_MS = 1000;
+const PAUSA_ONWA_MS = 150;
 const MAX_PURGE = 30;
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
+function etiquetasDe(hits) {
+  const items = Array.isArray(hits) ? hits : [hits];
+  return items.map((h) => {
+    if (h && typeof h === 'object' && (h.digitos || h.hit)) {
+      const mention = h.hit?.p?.id || `${h.digitos}@s.whatsapp.net`;
+      const label = h.digitos || String(mention).split('@')[0];
+      return { label, mention };
+    }
+    const label = String(h);
+    return { label, mention: `${label}@s.whatsapp.net` };
+  });
+}
+
 // Aviso de !p: motivo fijo de número virtual.
-function avisoDeVeto(numeros) {
-  const nums = Array.isArray(numeros) ? numeros : [numeros];
-  const menciones = nums.map((n) => `@${n}`).join(' ');
-  const cuerpo = nums.length === 1
+function avisoDeVeto(hits) {
+  const tags = etiquetasDe(hits);
+  const menciones = tags.map((t) => `@${t.label}`).join(' ');
+  const cuerpo = tags.length === 1
     ? `${menciones} fuera del grupo.\n\n` +
       '_Se comprobó que es un *número virtual* (VoIP), no una línea real. ' +
       'Queda en la lista negra: si vuelve a entrar, se le echa solo._'
@@ -48,21 +63,21 @@ function avisoDeVeto(numeros) {
       'Quedan en la lista negra: si vuelven a entrar, se les echa solo._';
   return {
     text: `*CUENTA PURGADA*\n╾━━━━━━━━━━━━━━╼\n\n${cuerpo}`,
-    mentions: nums.map((n) => `${n}@s.whatsapp.net`),
+    mentions: tags.map((t) => t.mention),
   };
 }
 
 // Aviso de !purge: hiriente, al hueso, sobre el valor en el grupo.
-// Español neutral (forma en ustedes, sin conjugaciones de España).
-function avisoDePurge(numeros) {
-  const nums = Array.isArray(numeros) ? numeros : [numeros];
-  const menciones = nums.map((n) => `@${n}`).join(' ');
-  const texto = nums.length === 1
-    ? `${menciones} no vales una mierda en este grupo.\nNo aportas. Sobras.`
-    : `${menciones} no valen una mierda en este grupo.\nNo aportan. Sobran.`;
+// Español neutral (tú en singular, ustedes en plural; sin vosotros).
+function avisoDePurge(hits) {
+  const tags = etiquetasDe(hits);
+  const menciones = tags.map((t) => `@${t.label}`).join(' ');
+  const texto = tags.length === 1
+    ? `${menciones} no vales una mierda en este grupo.\nNo aportas. Sobras. No eres bienvenido.`
+    : `${menciones} no valen una mierda en este grupo.\nNo aportan. Sobran. No son bienvenidos.`;
   return {
     text: texto,
-    mentions: nums.map((n) => `${n}@s.whatsapp.net`),
+    mentions: tags.map((t) => t.mention),
   };
 }
 
@@ -115,9 +130,52 @@ function formasEnGrupo(meta, formas) {
   return null;
 }
 
+function telefonoDeParticipante(p) {
+  const phone = p?.phoneNumber || (p?.id && String(p.id).endsWith('@s.whatsapp.net') ? p.id : null);
+  if (!phone) return null;
+  const d = bareJid(phone).split('@')[0].replace(/\D/g, '');
+  return (d.length >= 7 && d.length <= 15) ? d : null;
+}
+
+// JID que ya trajo WhatsApp (mención o cita). NO se pasa por onWhatsApp:
+// en un grupo LID el mentionedJid es @lid, y tratar esos dígitos como teléfono
+// barre una cuenta que no es o no encuentra a nadie.
+function cuentaDesdeJid(sock, jid, groupMeta) {
+  if (!jid) return { error: 'sin jid' };
+  if (isBotJid(sock, jid)) return { error: 'A esa cuenta no.' };
+  if (isMainOwner(jid, false, groupMeta)) return { skip: true };
+
+  const formas = new Set([bareJid(jid), canonicalJid(jid)].filter(Boolean));
+  let digitos = null;
+
+  const hit = groupMeta ? formasEnGrupo(groupMeta, formas) : null;
+  if (hit) {
+    hit.suyas.forEach((f) => formas.add(f));
+    digitos = telefonoDeParticipante(hit.p);
+  }
+  if (!digitos) {
+    const bare = bareJid(jid);
+    if (bare.endsWith('@s.whatsapp.net')) {
+      digitos = bare.split('@')[0].replace(/\D/g, '');
+    }
+  }
+  if (digitos) formas.add(`${digitos}@s.whatsapp.net`);
+  if (!digitos) digitos = bareJid(jid).split('@')[0].replace(/\D/g, '') || '???';
+
+  return { digitos, objetivo: jid, formas };
+}
+
+function formasDeCuenta(objetivo, digitos) {
+  return new Set([
+    bareJid(objetivo),
+    canonicalJid(objetivo),
+    digitos ? `${digitos}@s.whatsapp.net` : null,
+  ].filter(Boolean));
+}
+
 // Barre una o varias cuentas de todos los grupos.
 // cuentas: [{ digitos, objetivo, formas: Set }]
-// hacerAviso(numsEnGrupo) → payload de sendMessage o null
+// hacerAviso(hitsEnGrupo) → payload de sendMessage o null
 async function barrerGrupos(sock, grupos, cuentas, hacerAviso) {
   const fuera = [];
   const sinPermiso = [];
@@ -126,9 +184,14 @@ async function barrerGrupos(sock, grupos, cuentas, hacerAviso) {
 
   for (const [gJid, meta] of Object.entries(grupos || {})) {
     const hits = [];
+    const vistoP = new Set();
     for (const c of cuentas) {
       const hit = formasEnGrupo(meta, c.formas);
-      if (hit) hits.push({ ...c, hit });
+      if (!hit) continue;
+      const pid = bareJid(hit.p.id);
+      if (vistoP.has(pid)) continue;
+      vistoP.add(pid);
+      hits.push({ ...c, hit });
     }
     if (!hits.length) continue;
     visto += hits.length;
@@ -142,8 +205,7 @@ async function barrerGrupos(sock, grupos, cuentas, hacerAviso) {
     // Aviso ANTES del ban: tienen que verlo. Un momento de margen para que el
     // mensaje entre en el grupo antes de que WhatsApp los saque.
     if (hacerAviso) {
-      const nums = hits.map((h) => h.digitos);
-      const payload = hacerAviso(nums);
+      const payload = hacerAviso(hits);
       if (payload) {
         await sock.sendMessage(gJid, payload).catch(() => {});
         await espera(AVISO_ANTES_MS);
@@ -154,6 +216,9 @@ async function barrerGrupos(sock, grupos, cuentas, hacerAviso) {
     const r = await aplicarParticipantes(sock, gJid, ids, 'remove', meta);
     if (r.ok.length) {
       fuera.push(nombre);
+      if (r.fallidos.length) {
+        fallos.push(`${nombre} (parcial: ${r.fallidos.length})`);
+      }
     } else {
       const porque = r.error || r.fallidos[0]?.status || 'sin respuesta';
       fallos.push(`${nombre} (${porque})`);
@@ -173,7 +238,7 @@ async function resolverCuenta(sock, digitos, groupMeta) {
     const objetivo = hit.jid;
     if (isBotJid(sock, objetivo)) return { error: 'A esa cuenta no.' };
     if (isMainOwner(objetivo, false, groupMeta)) return { skip: true };
-    return { digitos, objetivo };
+    return { digitos, objetivo, formas: formasDeCuenta(objetivo, digitos) };
   } catch (e) {
     return { error: `No pude comprobar +${digitos}: ${e.message}` };
   }
@@ -186,17 +251,21 @@ async function cmdPurgaNumero(sock, msg, args, groupMeta) {
   // Silencio si no es el owner: una respuesta distinta delataría que existe.
   if (!isMainOwner(sender, msg.key.fromMe, groupMeta)) return;
 
-  const mencionado = getTarget(msg);
+  const ctx = msg.message?.extendedTextMessage?.contextInfo;
+  const mencionado = ctx?.mentionedJid?.[0] || ctx?.participant || null;
   let objetivo = null;
   let digitos = null;
+  let formas = null;
 
   if (mencionado) {
-    objetivo = mencionado;
-    digitos = bareJid(mencionado).split('@')[0].replace(/\D/g, '');
-    if (isBotJid(sock, objetivo)) {
-      return sock.sendMessage(jid, { text: 'A esa cuenta no.' }, { quoted: msg });
+    const res = cuentaDesdeJid(sock, mencionado, groupMeta);
+    if (res.skip) return;
+    if (res.error) {
+      return sock.sendMessage(jid, { text: res.error }, { quoted: msg });
     }
-    if (isMainOwner(objetivo, false, groupMeta)) return;
+    objetivo = res.objetivo;
+    digitos = res.digitos;
+    formas = res.formas;
   } else {
     digitos = extractNumber((args || []).join(' '));
     if (!digitos) {
@@ -212,6 +281,7 @@ async function cmdPurgaNumero(sock, msg, args, groupMeta) {
     }
     objetivo = res.objetivo;
     digitos = res.digitos;
+    formas = res.formas;
   }
 
   await sock.sendMessage(jid, { text: `Purgando +${digitos} de todos los grupos…` }, { quoted: msg });
@@ -223,7 +293,6 @@ async function cmdPurgaNumero(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: `No pude listar los grupos: ${e.message}` }, { quoted: msg });
   }
 
-  const formas = new Set([bareJid(objetivo), canonicalJid(objetivo), `${digitos}@s.whatsapp.net`].filter(Boolean));
   for (const meta of Object.values(grupos || {})) {
     const hit = formasEnGrupo(meta, formas);
     if (hit) hit.suyas.forEach((f) => formas.add(f));
@@ -233,7 +302,7 @@ async function cmdPurgaNumero(sock, msg, args, groupMeta) {
     sock,
     grupos,
     [{ digitos, objetivo, formas }],
-    (nums) => avisoDeVeto(nums),
+    (hits) => avisoDeVeto(hits),
   );
 
   const anotadas = await banAccount([...formas], 'numero virtual (!p)', bareJid(sender));
@@ -261,30 +330,56 @@ async function cmdPurge(sock, msg, args, groupMeta) {
   // Se lee el cuerpo completo del mensaje (y el citado) para no fusionar ni
   // perder números que venían en renglones distintos.
   const resto = String(extractText(msg) || '').replace(/^[!¡]\s*purge\b/i, '');
+  const ctx = msg.message?.extendedTextMessage?.contextInfo;
+
+  const jidsDirectos = [];
+  for (const m of (ctx?.mentionedJid || [])) if (m) jidsDirectos.push(m);
+  if (ctx?.participant) jidsDirectos.push(ctx.participant);
+
   const digitosLista = [
     ...extractNumbers((args || []).join('\n')),
     ...extractNumbers(resto),
     ...extractNumbers(extractQuotedText(msg) || ''),
   ];
 
-  // Menciones del mensaje (si las hay).
-  const ctx = msg.message?.extendedTextMessage?.contextInfo;
-  for (const m of (ctx?.mentionedJid || [])) {
-    const d = bareJid(m).split('@')[0].replace(/\D/g, '');
-    if (d && d.length >= 7 && d.length <= 15) digitosLista.push(d);
+  const cuentas = [];
+  const errores = [];
+  const saltados = [];
+  const vistoNum = new Set();
+  const vistoJid = new Set();
+
+  const meterCuenta = (c) => {
+    if (!c?.objetivo) return;
+    const bj = bareJid(c.objetivo);
+    if (vistoJid.has(bj)) return;
+    vistoJid.add(bj);
+    if (c.digitos) vistoNum.add(c.digitos);
+    cuentas.push(c);
+  };
+
+  for (const j of jidsDirectos) {
+    if (cuentas.length >= MAX_PURGE) break;
+    const res = cuentaDesdeJid(sock, j, groupMeta);
+    if (res.skip) {
+      saltados.push(bareJid(j).split('@')[0].replace(/\D/g, '') || bareJid(j));
+      continue;
+    }
+    if (res.error) {
+      errores.push(res.error);
+      continue;
+    }
+    meterCuenta(res);
   }
 
-  // Únicos, tope duro.
   const unicos = [];
-  const vistoNum = new Set();
   for (const d of digitosLista) {
     if (!d || vistoNum.has(d)) continue;
     vistoNum.add(d);
     unicos.push(d);
-    if (unicos.length >= MAX_PURGE) break;
+    if (cuentas.length + unicos.length >= MAX_PURGE) break;
   }
 
-  if (!unicos.length) {
+  if (!cuentas.length && !unicos.length) {
     return sock.sendMessage(jid, {
       text:
         'Uso: *!purge* seguido de un listado de números (uno por línea, separados, enlaces wa.me o menciones).\n\n' +
@@ -293,17 +388,19 @@ async function cmdPurge(sock, msg, args, groupMeta) {
   }
 
   // Listado ANTES de tocar nada: el owner ve a quién va a sacar.
-  const listado = unicos.map((d, i) => `${i + 1}. +${d}`).join('\n');
+  const ya = cuentas.map((c) => `+${c.digitos}`);
+  const pendientes = unicos.map((d) => `+${d}`);
+  const listado = [...ya, ...pendientes].map((x, i) => `${i + 1}. ${x}`).join('\n');
+  const total = ya.length + pendientes.length;
+  const tope = (cuentas.length + unicos.length) >= MAX_PURGE
+    ? `\n_Tope de ${MAX_PURGE}. El resto no se toca._`
+    : '';
   await sock.sendMessage(jid, {
     text:
       `*PURGE — listado*\n╾━━━━━━━━━━━━━━╼\n\n` +
-      `Voy a purgar *${unicos.length}* número(s):\n${listado}\n\n` +
+      `Voy a purgar *${total}* número(s):\n${listado}${tope}\n\n` +
       `_Comprobando cuentas…_`,
   }, { quoted: msg });
-
-  const cuentas = [];
-  const errores = [];
-  const saltados = [];
 
   for (const d of unicos) {
     const res = await resolverCuenta(sock, d, groupMeta);
@@ -315,12 +412,8 @@ async function cmdPurge(sock, msg, args, groupMeta) {
       errores.push(res.error);
       continue;
     }
-    const formas = new Set([
-      bareJid(res.objetivo),
-      canonicalJid(res.objetivo),
-      `${res.digitos}@s.whatsapp.net`,
-    ].filter(Boolean));
-    cuentas.push({ digitos: res.digitos, objetivo: res.objetivo, formas });
+    meterCuenta(res);
+    await espera(PAUSA_ONWA_MS);
   }
 
   if (!cuentas.length) {
@@ -339,11 +432,14 @@ async function cmdPurge(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: `No pude listar los grupos: ${e.message}` }, { quoted: msg });
   }
 
-  // Ampliar formas con lo que haya en los grupos.
+  // Ampliar formas con lo que haya en los grupos (LID ↔ teléfono).
   for (const meta of Object.values(grupos || {})) {
     for (const c of cuentas) {
       const hit = formasEnGrupo(meta, c.formas);
-      if (hit) hit.suyas.forEach((f) => c.formas.add(f));
+      if (!hit) continue;
+      hit.suyas.forEach((f) => c.formas.add(f));
+      const tel = telefonoDeParticipante(hit.p);
+      if (tel) c.digitos = tel;
     }
   }
 
@@ -351,7 +447,7 @@ async function cmdPurge(sock, msg, args, groupMeta) {
     sock,
     grupos,
     cuentas,
-    (nums) => avisoDePurge(nums),
+    (hits) => avisoDePurge(hits),
   );
 
   // Lista negra al final y siempre, aunque no estuvieran en ningún grupo.

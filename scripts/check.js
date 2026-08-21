@@ -1393,6 +1393,7 @@ async function capaStores() {
       .matchAll(/'([^']+)'/g)].map((x) => x[1]);
 
     exige(ocultos.includes('p'), 'p tiene que estar en COMANDOS_OCULTOS: si no, el sugeridor lo ofrece');
+    exige(ocultos.includes('purge'), 'purge tiene que estar en COMANDOS_OCULTOS: si no, escribir !purga lo delata');
 
     // El sugeridor, de verdad: se reconstruye su lista igual que el fichero.
     const conocidos = [...new Set([...mh.matchAll(/^\s*case '([a-zá-úñ0-9_]+)':/gmi)].map((m) => m[1]))]
@@ -1410,6 +1411,20 @@ async function capaStores() {
       '!p tiene que seguir siendo solo del owner principal, y devolver silencio');
     exige(!/isOwner\(sender/.test(pn),
       '!p no puede pasar a isOwner: eso abriria la purga global al tier owner entero');
+    exige(/cmdPurge/.test(mh) && /case 'purge':/.test(mh),
+      '!purge esta escrito pero no enganchado al dispatcher');
+    exige(/'p','purge'/.test(mh) || /'purge'/.test(mh.match(/const NEEDS_META[\s\S]*?\]\)/)?.[0] || ''),
+      '!purge tiene que pedir metadata: sin ella isMainOwner no resuelve el LID del owner');
+    const avisoAntes = pn.indexOf('await sock.sendMessage(gJid, payload)');
+    const kickDesp = pn.indexOf("aplicarParticipantes(sock, gJid, ids, 'remove'");
+    exige(avisoAntes > 0 && kickDesp > avisoAntes,
+      'el aviso de !p/!purge tiene que salir ANTES del kick: si no, no lo ven');
+    exige(/No eres bienvenido|No son bienvenidos/.test(pn),
+      'el aviso de !purge tiene que decir que no son bienvenidos');
+    const avisoSrc = pn.slice(pn.indexOf('function avisoDePurge'), pn.indexOf('function extractNumbers'));
+    exige(avisoSrc.includes('function avisoDePurge'), 'no encuentro avisoDePurge para comprobar el tono');
+    exige(!/valéis|estáis|sois |vosotros|tenéis/.test(avisoSrc),
+      'el aviso de !purge no puede usar conjugacion de España');
 
     // Y AL REVES: que el menu no anuncie comandos que ya no existen. La guarda
     // de arriba vigila que lo oculto no asome; esta vigila que lo anunciado se
@@ -1429,6 +1444,121 @@ async function capaStores() {
     }
 
     if (!fallos) console.log(verde('   ✓ los comandos ocultos no asoman por el menu ni por el sugeridor'));
+  }
+
+  // ── !purge: listado, aviso ANTES del kick, LID, silencio al resto ─────────
+  {
+    const exige = (cond, queja) => {
+      if (cond) return;
+      fallos++;
+      console.log(rojo(`   ✗ ${queja}`));
+    };
+    const { extractNumbers, avisoDePurge, cmdPurge } = require(path.join(R, 'src/commands/purgaNumero'));
+
+    exige(extractNumbers('57300111222\n57300333444').join(',') === '57300111222,57300333444',
+      'extractNumbers fusiona o pierde numeros del listado');
+    exige(extractNumbers('57300111222 57300333444').length === 2,
+      'dos numeros en la misma linea se tienen que quedar en dos, no en uno solo');
+    exige(extractNumbers('https://wa.me/57300555666').includes('57300555666'),
+      'extractNumbers no lee wa.me');
+    exige(extractNumbers('hola').length === 0, 'extractNumbers inventa numeros donde no hay');
+
+    const aviso1 = avisoDePurge(['57300111222']);
+    exige(/no vales una mierda/i.test(aviso1.text) && /no eres bienvenido/i.test(aviso1.text),
+      'el aviso de un numero no va al hueso');
+    const avisoN = avisoDePurge(['57300111222', '57300333444']);
+    exige(/no valen una mierda/i.test(avisoN.text) && /no son bienvenidos/i.test(avisoN.text),
+      'el aviso de varios no va al hueso');
+    exige(!/valéis|estáis|sois |vosotros/.test(aviso1.text + avisoN.text),
+      'avisoDePurge conjugó en vosotros');
+
+    // Barrido simulado. fromMe salta isMainOwner sin depender del .env.
+    // Se restaura banlist: cmdPurge escribe ahí de verdad.
+    if (botEnMarcha()) {
+      console.log('   — barrido de !purge saltado: el bot esta corriendo');
+    } else {
+      const copia = copiaSeguridad();
+      const antes = new Set(copia.keys());
+      try {
+        const timeline = [];
+        const BOT = '11111111111@s.whatsapp.net';
+        const A = '57300111222@s.whatsapp.net';
+        const B = '57300333444@s.whatsapp.net';
+        const sockP = {
+          user: { id: BOT },
+          sendMessage: async (jid, c) => { timeline.push({ t: 'msg', jid, text: c.text || '' }); return {}; },
+          onWhatsApp: async (jid) => [{ exists: true, jid }],
+          groupFetchAllParticipating: async () => ({
+            'g1@g.us': {
+              subject: 'Grupo 1',
+              participants: [
+                { id: A, admin: null },
+                { id: B, admin: null },
+                { id: BOT, admin: 'admin' },
+              ],
+            },
+            'g2@g.us': {
+              subject: 'Grupo LID',
+              participants: [
+                { id: '999@lid', lid: '999@lid', phoneNumber: A, admin: null },
+                { id: BOT, admin: 'superadmin' },
+              ],
+            },
+            'g3@g.us': {
+              subject: 'Sin admin',
+              participants: [{ id: A, admin: null }],
+            },
+          }),
+          groupParticipantsUpdate: async (gJid, ids, accion) => {
+            timeline.push({ t: 'kick', gJid, ids, accion });
+            return ids.map((jid) => ({ jid, status: '200' }));
+          },
+        };
+        const msgP = {
+          key: { remoteJid: 'g1@g.us', fromMe: true, id: 'P1', participant: BOT },
+          message: { conversation: '!purge 57300111222\n57300333444' },
+        };
+        await cmdPurge(sockP, msgP, ['57300111222', '57300333444'], { participants: [] });
+
+        exige(/listado/i.test(timeline[0]?.text || ''),
+          '!purge no enseña el listado antes de tocar nada');
+        exige(/57300111222/.test(timeline[0]?.text || '') && /57300333444/.test(timeline[0]?.text || ''),
+          '!purge no lista los numeros que va a sacar');
+
+        const kicks = timeline.filter((x) => x.t === 'kick');
+        exige(kicks.length === 2, `!purge tenia que echar de 2 grupos y echo de ${kicks.length}`);
+        exige(kicks.every((k) => k.accion === 'remove'), '!purge no esta expulsando');
+
+        const ordenG1 = timeline.filter((x) => x.jid === 'g1@g.us' || x.gJid === 'g1@g.us');
+        const iAviso = ordenG1.findIndex((x) => x.t === 'msg' && /mierda|bienvenid/i.test(x.text || ''));
+        const iKick = ordenG1.findIndex((x) => x.t === 'kick');
+        exige(iAviso >= 0 && iKick > iAviso,
+          'en el grupo el aviso de !purge no sale ANTES del kick');
+
+        const avisoLid = timeline.find((x) => x.jid === 'g2@g.us' && /mierda|bienvenid/i.test(x.text || ''));
+        exige(Boolean(avisoLid), '!purge no aviso en el grupo LID (no encontro el @lid)');
+        exige(kicks.some((k) => k.gJid === 'g2@g.us' && k.ids.includes('999@lid')),
+          '!purge no echo del grupo LID por el id del participante');
+        exige(!kicks.some((k) => k.gJid === 'g3@g.us'),
+          '!purge echo de un grupo donde el bot no es admin');
+
+        const silencioso = [];
+        const sockS = {
+          ...sockP,
+          sendMessage: async (...a) => { silencioso.push(a); return {}; },
+          groupFetchAllParticipating: async () => { throw new Error('no deberia listar grupos'); },
+        };
+        await cmdPurge(sockS, {
+          key: { remoteJid: 'g1@g.us', fromMe: false, id: 'P2', participant: '15551234567@s.whatsapp.net' },
+          message: { conversation: '!purge 57300111222' },
+        }, ['57300111222'], null);
+        exige(silencioso.length === 0, '!purge hablo a quien no es el owner');
+      } finally {
+        restaurar(copia, antes);
+      }
+    }
+
+    if (!fallos) console.log(verde('   ✓ !purge lista, avisa antes del ban y no se delata'));
   }
 
   // ── 7. LOS MUTEOS SOBREVIVEN AL REINICIO ──────────────────────────────────
