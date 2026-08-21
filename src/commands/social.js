@@ -295,7 +295,12 @@ async function cmdHelp(sock, msg, groupMeta) {
 
   const text =
 `*${config.botName}*
-_Todo lleva *${p}* delante — *${p}play* despacito. El número es lo que cuesta en aura._
+_Todo lleva *${p}* delante — *${p}play* summertime sadness. El número es lo que cuesta en aura._
+
+━━━━━ *HERRAMIENTAS* ━━━━━
+*${p}play* ${c('play')} <nombre> · *${p}cachelist* ${c('cachelist')}
+*${p}s* ${c('sticker')} · *${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')} · *${p}ttp* ${c('ttp')} <texto>
+*${p}g* ${c('grok')} <pregunta> · *${p}pfp* ${c('pfp')} · *${p}fk* ${c('fk')} @user
 
 ━━━━━ *DINÁMICAS* ━━━━━
 _Sin @ va sobre ti · con @ va sobre esa persona._
@@ -303,9 +308,9 @@ _Sin @ va sobre ti · con @ va sobre esa persona._
 *${p}rizz* ${c('rizz')} · *${p}piropo* ${c('piropo')} · *${p}wingman* ${c('wingman')}
 *${p}top5* ${c('top5')} · *${p}top10* ${c('top10')} — ranking del <tema> que pidas
 _Y los de una palabra, ${PRECIOS.percent} cada uno, de más crudo a más suave:_
-*${p}L* *${p}puta* *${p}guarra* *${p}incel* *${p}maricon* *${p}gay*
-*${p}cerdo* *${p}inutil* *${p}rata* *${p}femboy* *${p}simp* *${p}friki*
-*${p}fea* *${p}iq* *${p}infiel* *${p}feminidad* *${p}masculinidad*
+*${p}puta* *${p}guarra* *${p}maricon* *${p}incel* *${p}gay* *${p}femboy*
+*${p}cerdo* *${p}rata* *${p}simp* *${p}friki* *${p}inutil* *${p}perdedor*
+*${p}fea* *${p}infiel* *${p}iq* *${p}feminidad* *${p}masculinidad*
 *${p}linda* *${p}hot* *${p}sexy* *${p}fiel* *${p}crack* *${p}ganador*
 
 ━━━━━ *AURA* ━━━━━
@@ -318,11 +323,6 @@ _Gratis: no cobran, pero mueven tu saldo._
 *${p}asalto* · *${p}atraco* — reventarlos: es contra la casa, no contra nadie
 *${p}guia* — cómo funciona todo esto
 
-━━━━━ *HERRAMIENTAS* ━━━━━
-*${p}play* ${c('play')} <nombre> · *${p}cachelist* ${c('cachelist')}
-*${p}s* ${c('sticker')} · *${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')} · *${p}ttp* ${c('ttp')} <texto>
-*${p}g* ${c('grok')} <pregunta> · *${p}pfp* ${c('pfp')} · *${p}fk* ${c('fk')} @user
-
 ━━━━━ *ACTIVIDAD* ━━━━━
 *${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b
 *${p}fantasmas* ${c('fantasmas')} — ranking de los que menos escriben
@@ -332,9 +332,9 @@ ${esAdmin ? `
 *${p}kick* · *${p}del* · *${p}mute* · *${p}unmute* · *${p}tagall* · *${p}allow*
 *${p}close* · *${p}open* · *${p}count* ${c('count')} · *${p}scan*
 *${p}marcarfake* · *${p}fkban* · *${p}fkunban* · *${p}fklist* · *${p}antifake* on/off
-*${p}notifadmin* on/off · *${p}promote* — con el anti-admin puesto, solo el owner
+*${p}notifadmin* on/off · *${p}promote* — con el anti-admin puesto sube un nivel
 ` : ''}${esOwner ? `
-━━━━━ *OWNER* ━━━━━
+━━━━━ *ADMINS SUPERIORES* ━━━━━
 *${p}demote* · *${p}on* / *${p}off* — apagar el bot en este grupo
 _Van con on/off:_ *${p}antilink* · *${p}antifoto* · *${p}antiempresa* · *${p}antiadmin* · *${p}adminmode* · *${p}aura*
 *${p}resetcount* · *${p}resetaura* · *${p}clearcache* · *${p}setgrok* · *${p}diag*

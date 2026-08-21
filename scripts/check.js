@@ -412,7 +412,7 @@ async function capaStores() {
       // LA REGLA ES "AL MENOS UNA VEZ CON SU PRECIO", no "en cada linea".
       // La primera version pedia el numero en cada linea donde saliera el
       // comando, y acusaba a !play porque tambien aparece en el ejemplo de la
-      // cabecera ("ejemplo: *!play* despacito"), donde un precio no pinta nada.
+      // cabecera (el ejemplo de *!play*), donde un precio no pinta nada.
       const mudos = [], mentirosos = [];
       for (const [cmd, k] of Object.entries(clave)) {
         const precio = PRECIOS[k];
@@ -1851,6 +1851,51 @@ async function capaStores() {
       if (!soloOwner.includes(cmd) && cmd !== 'aura') {   // !aura sale antes, en su seccion
         fallos++;
         console.log(rojo(`   ✗ !${cmd} es del owner y el menu no lo saca en el bloque de OWNER`));
+      }
+    }
+
+    // NINGUN COMANDO DE PORCENTAJE SE PUEDE QUEDAR FUERA DEL MENU.
+    //
+    // Son veinticuatro nombres en una lista de messageHandler y cuatro lineas
+    // sueltas en el menu: dos sitios que no se hablan. Uno nuevo se añade a la
+    // lista, cobra, funciona y no lo descubre nadie porque no esta escrito.
+    //
+    // Los alias no cuentan como ausencia: *!L* y *!perdedor* son el MISMO case,
+    // asi que con que salga uno de los dos basta. Los grupos se sacan de las
+    // rafagas de "case" del dispatcher, que es donde esta la verdad de que dos
+    // nombres son la misma cosa — que es justo lo que fallaba al reves cuando
+    // el menu abria la lista con *!L*, un alias, en vez de con el comando.
+    {
+      const mh3 = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+      const sw3 = mh3.slice(mh3.indexOf('switch (command)'));
+      // Se recorre linea a linea, no con una expresion: el dispatcher escribe los
+      // alias de las dos formas —"case 'x':" a solas y "case 'y': await cmd(...)"
+      // en la misma linea— y una rafaga puede acabar de cualquiera de las dos.
+      // Un patron que exigiera la linea limpia parte el grupo justo en el ultimo,
+      // que es el que lleva el codigo; uno que la permitiera siempre pegaria
+      // entre si comandos vecinos que no tienen nada que ver.
+      const grupo = new Map();   // comando -> todos sus alias
+      {
+        let pend = [];
+        const cerrar = () => { for (const n of pend) grupo.set(n, pend); pend = []; };
+        for (const linea of sw3.split('\n')) {
+          const m = linea.match(/^[ \t]*case '([^']+)':(.*)$/);
+          if (!m) { cerrar(); continue; }
+          pend.push(m[1]);
+          if (m[2].trim()) cerrar();        // la rafaga acaba en la linea que trae codigo
+        }
+        cerrar();
+      }
+      const lista = mh3.match(/const CMDS_PORCENTAJE = \[([\s\S]*?)\];/);
+      const pct2 = lista ? [...lista[1].matchAll(/'([^']+)'/g)].map((x) => x[1]) : [];
+      if (pct2.length < 20) {
+        fallos++;
+        console.log(rojo(`   ✗ solo leo ${pct2.length} comandos de porcentaje: el patron de CMDS_PORCENTAJE se rompio y esta comprobacion se quedo ciega`));
+      }
+      const ausentes = pct2.filter((cmd) => !(grupo.get(cmd) || [cmd]).some((a) => cR.has(a)));
+      if (ausentes.length) {
+        fallos++;
+        console.log(rojo(`   ✗ comandos de porcentaje que cobran y el menu no nombra: ${ausentes.join(', ')}`));
       }
     }
 
