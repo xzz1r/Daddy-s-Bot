@@ -1529,6 +1529,10 @@ async function capaStores() {
     exige(/pApuestaVisible\(fraccion\)/.test(auraSrc), '!aura apostar tiene que enseñar pVisible, no el 58 % del owner');
     exige(/Math\.random\(\) < pReal/.test(auraSrc), 'el dado de la apuesta tira con pReal, la cifra impresa es otra');
     exige(/objetivoDelDia/.test(auraSrc) && /objetivo del día/.test(auraSrc), '!aura tiene que anunciar el objetivo del día');
+    exige(/jugarApuesta\(sock, msg, groupMeta, \(args \|\| \[\]\)\.slice\(1\)\)/.test(auraSrc),
+      '*!aura todo* es atajo de la mesa: sin slice el parser lo lee como all-in y se juega el saldo entero');
+    exige(/anuncioObjetivo\.get\(jid\) !== hoy/.test(auraSrc),
+      'el objetivo del día no se puede mencionar en cada tirada: es el mismo ping-spam que se cortó en !aura top');
     exige(/momentum\.anotar\(jid, sender, 'caliente', 'robo'\)/.test(auraSrc), 'una tirada gorda tiene que calentar el siguiente !robo');
     exige(/momentum\.anotar\(jid, sender, 'tilt', 'robo'\)/.test(auraSrc), 'un desastre de !aura tiene que dejar tilt el siguiente !robo');
 
