@@ -403,7 +403,59 @@ const APUESTA = {
   suelo: ARRANQUE,      // perder nunca te deja por debajo del arranque
   cooldownMin: 180,     // tres horas entre apuestas
   p: { owner: 0.58, admin: 0.47, miembro: 0.45 },
+
+  // LA CURVA. Pedir más baja el acierto, igual que el robo. Sin esto,
+  // *!apostar 300* y *!apostar todo* son la misma ficha con distinto cartel:
+  // el multiplicador sube unas centésimas y el % se queda clavado.
+  //
+  // Dos orillas, como el robo: el punto dulce está en ~45 % de LO TUYO, que
+  // coincide con lo que se pone si no dices cifra (fraccion 0,5). Pedir el
+  // mínimo con una fortuna es calderilla; pedirlo todo te ve venir la mesa.
+  riesgo: {
+    puntoDulce: 0.45,
+    codiciaMax: 0.16,   // all-in: miembro 0.45 → ~0.29
+    miseriaMax: 0.06,   // calderilla: miembro 0.45 → ~0.39
+  },
+  sueloP: 0.22,         // ni pidiendo el tope baja de aquí
+  techoP: 0.62,         // ni con todo a favor sube de aquí
 };
+
+// Probabilidad de la apuesta según la fracción de aura que pongas.
+//
+// `suave` recorta el castigo a la mitad: es el dado REAL del owner principal.
+// La cifra que se enseña NUNCA pasa por aquí con rol owner — ver pApuestaVisible.
+function pApuestaDe(fraccion, rol, { suave = false } = {}) {
+  const base = APUESTA.p[rol] != null ? APUESTA.p[rol] : APUESTA.p.miembro;
+  const a = Math.min(1, Math.max(0, Number(fraccion) || 0));
+  const { puntoDulce: pd, codiciaMax, miseriaMax } = APUESTA.riesgo;
+  let castigo = 0;
+  let etiqueta = null;
+  if (a > pd) {
+    const x = (1 - pd) > 0 ? (a - pd) / (1 - pd) : 1;
+    castigo = x * x * codiciaMax;
+    etiqueta = 'codicia';
+  } else if (a < pd) {
+    const x = pd > 0 ? (pd - a) / pd : 1;
+    castigo = x * x * miseriaMax;
+    etiqueta = 'sin agallas';
+  }
+  if (suave) castigo *= 0.5;
+  const p = Math.min(APUESTA.techoP, Math.max(APUESTA.sueloP, base - castigo));
+  return { p, castigo, etiqueta: castigo > 0.02 ? etiqueta : null };
+}
+
+// Cifra que se ENSEÑA al owner en la mesa. Su 58 % no sale nunca: se le calcula
+// la curva de un miembro y se mueve un poco para que no se repita. Pedir más
+// enseña menos, igual que a cualquiera — si no, el único que va a por todo y
+// le sale un 58 % fijo es él.
+const APUESTA_OWNER_VISIBLE = { min: 0.28, max: 0.48 };
+
+function pApuestaVisible(fraccion, { jitter = true } = {}) {
+  const { p } = pApuestaDe(fraccion, 'miembro');
+  const { min, max } = APUESTA_OWNER_VISIBLE;
+  const ruido = jitter ? (Math.random() - 0.5) * 0.04 : 0;
+  return Math.min(max, Math.max(min, p + ruido));
+}
 
 // EL SUELDO SE QUITO. Estuvo aqui poco: pagaba 1-3 de aura cada 10 mensajes,
 // en silencio, y era la renta base de quien no llega a los hitos. Se retira por
@@ -916,6 +968,35 @@ const DIANA = {
   bonoProbabilidad: -0.05, // pero está en guardia: un pelo más difícil
 };
 
+// OBJETIVO DEL DÍA. Un miembro al azar, NO el nº1, lleva cartel 24 h.
+//
+// La diana semanal siempre cae en el mismo: el que va primero. A los dos días
+// el grupo ya no mira el ranking, mira a esa persona. Esto rota, se anuncia
+// al tirar !aura y da un motivo para mirar el top que no sea "el de siempre".
+//
+// Paga menos que la diana semanal a propósito: el nº1 sigue siendo el golpe
+// gordo. Este es el caza menor del día.
+//
+// EL OWNER NO SALE NUNCA. Robarle falla siempre, y un cartel sobre alguien a
+// quien no se puede cobrar es exactamente el anuncio que delata el amaño.
+const OBJETIVO_DIA = {
+  bonoBotin: 0.22,
+  bonoProbabilidad: -0.03,
+};
+
+// RACHA CALIENTE / TILT entre !aura y !robo.
+//
+// Las dos puertas se hablan: una tirada gorda calienta el siguiente robo, un
+// desastre te deja tilt. Al revés igual. Ventana corta (10 min) y se gasta
+// en el siguiente golpe de la otra puerta — no es un buff permanente.
+//
+// El grupo lo VE: sale en el mensaje. Un bono invisible no existe.
+const MOMENTUM = {
+  ventanaMs: 10 * 60 * 1000,
+  caliente: 0.04,
+  tilt: -0.04,
+};
+
 // ─── LA RECOMPENSA POR SU CABEZA ─────────────────────────────────────────────
 //
 // La lista de los mas buscados era solo una tabla: decia quien habia robado mas
@@ -1144,10 +1225,11 @@ module.exports = {
   MILLONARIO, ARRANQUE, SUELO_TODOS,
   TIRADA, TIRADA_MIN, TIRADA_MAX, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE,
   P_TOPE_MIEMBRO, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, MEDIA_PREMIO, MEDIA_CASTIGO, bonoActividad, APUESTA,
+  pApuestaDe, pApuestaVisible, APUESTA_OWNER_VISIBLE,
   RACHA, BONOS, REDENCION,
   VETERANIA_MSGS, VETERANIA_PAGO, VETERANIA_TOPE, bonoVeterania,
   ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_RACHA_MAX, ROBO_OWNER_VISIBLE, DUELO, REGALO_MIN,
-  BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, RECOMPENSA,
+  BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA,
   PRECIOS, SALDO_MINIMO, IMPUESTO, impuestoDe,
   rango,
 };

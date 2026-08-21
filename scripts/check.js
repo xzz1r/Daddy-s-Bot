@@ -1471,6 +1471,60 @@ async function capaStores() {
     if (fallos === antes) console.log(verde('   ✓ la cifra se lee, el telefono no, y *!aura robar* roba'));
   }
 
+  // ── LAS TRES PUERTAS NUEVAS, Y LA FACHADA DEL OWNER ───────────────────────
+  //
+  // Tres dinamicas: racha caliente/tilt entre !aura y !robo, curva de acierto
+  // en la apuesta, objetivo del dia. Y la regla que las sostiene: el amaño del
+  // owner existe, y NINGUNA de las tres lo imprime.
+  {
+    console.log('\n13. AURA DINAMICA Y FACHADA DEL OWNER');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const { pApuestaDe, pApuestaVisible, APUESTA, MOMENTUM, OBJETIVO_DIA, DIANA } =
+      require(path.join(R, 'src/utils/economia'));
+
+    const pAllIn = pApuestaDe(1, 'miembro').p;
+    const pDulce = pApuestaDe(APUESTA.riesgo.puntoDulce, 'miembro').p;
+    exige(pAllIn < pDulce, '*!apostar todo* tiene que acertar menos que el punto dulce');
+    exige(pApuestaDe(0, 'miembro').p < pDulce, 'apostar calderilla también baja el acierto');
+
+    const visto = pApuestaVisible(1, { jitter: false });
+    exige(visto < APUESTA.p.owner, 'al owner no se le puede enseñar su 58 %: eso es lo que delata el amaño');
+    exige(visto <= 0.48 && visto >= 0.22, 'la cifra visible de la mesa vive en banda de miembro');
+
+    const mom = require(path.join(R, 'src/utils/momentum'));
+    mom._reset();
+    mom.anotar('g', '111@s.whatsapp.net', 'caliente', 'robo');
+    exige(mom.consumir('g', '111@s.whatsapp.net', 'aura') == null, 'el momentum de !robo no se gasta en otra !aura a destiempo');
+    const hit = mom.consumir('g', '111@s.whatsapp.net', 'robo');
+    exige(hit && hit.tipo === 'caliente', 'el siguiente !robo tiene que gastar la racha caliente');
+    exige(mom.consumir('g', '111@s.whatsapp.net', 'robo') == null, 'la racha se gasta una vez, no es un buff permanente');
+    exige(MOMENTUM.caliente === 0.04 && MOMENTUM.tilt === -0.04, 'caliente/tilt es ±4 %');
+
+    const objSrc = fs.readFileSync(path.join(R, 'src/utils/objetivoDia.js'), 'utf8');
+    exige(/isMainOwner\(r\.jid/.test(objSrc), 'el objetivo del día NO puede caer en el owner: robarle falla siempre y el cartel delata el amaño');
+    exige(/n1Aura/.test(objSrc) && /n1Semana/.test(objSrc), 'el objetivo del día no puede ser el nº1 de aura ni el de la semana');
+    exige(OBJETIVO_DIA.bonoBotin < DIANA.bonoBotin, 'el objetivo del día paga menos que la diana semanal');
+
+    const auraSrc = fs.readFileSync(path.join(R, 'src/commands/aura.js'), 'utf8');
+    exige(/pApuestaVisible\(fraccion\)/.test(auraSrc), '!aura apostar tiene que enseñar pVisible, no el 58 % del owner');
+    exige(/Math\.random\(\) < pReal/.test(auraSrc), 'el dado de la apuesta tira con pReal, la cifra impresa es otra');
+    exige(/objetivoDelDia/.test(auraSrc) && /objetivo del día/.test(auraSrc), '!aura tiene que anunciar el objetivo del día');
+    exige(/momentum\.anotar\(jid, sender, 'caliente', 'robo'\)/.test(auraSrc), 'una tirada gorda tiene que calentar el siguiente !robo');
+    exige(/momentum\.anotar\(jid, sender, 'tilt', 'robo'\)/.test(auraSrc), 'un desastre de !aura tiene que dejar tilt el siguiente !robo');
+
+    const roboSrc = fs.readFileSync(path.join(R, 'src/commands/robo.js'), 'utf8');
+    exige(/chanceVisible/.test(roboSrc) && /ROBO_OWNER_VISIBLE/.test(roboSrc), '!robo sigue enseñando la banda falsa, no el 62 %');
+    exige(/ownerGana\(jid, ROBO_OWNER_EXITO\)/.test(roboSrc), 'el dado real del owner en !robo no se tocó');
+    exige(/momentum\.consumir\(jid, sender, 'robo'\)/.test(roboSrc), '!robo gasta la racha que viene de !aura');
+    exige(/momentum\.anotar\(jid, sender, 'caliente', 'aura'\)/.test(roboSrc), 'un golpe maestro calienta la próxima !aura');
+    exige(/esObjDia/.test(roboSrc) && /OBJETIVO_DIA\.bonoBotin/.test(roboSrc), 'robar al objetivo del día paga extra');
+    exige(/if \(!ladronEsOwner\)/.test(roboSrc) && /MOMENTUM\.caliente/.test(roboSrc), 'al owner el momentum se le enseña y no se le aplica al dado');
+
+    if (fallos === antes) console.log(verde('   ✓ curva, racha, objetivo del día, y el owner no se imprime'));
+  }
+
   console.log(`\n${'─'.repeat(70)}`);
   if (fallos) {
     console.log(rojo(`${fallos} fallo(s). NO commitees esto.`));

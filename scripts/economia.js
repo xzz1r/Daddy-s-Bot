@@ -21,7 +21,8 @@ const { P_POSITIVA, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, ACTIVIDAD_MSGS, P_TOPE_MIEMB
         APUESTA, PRECIOS, BONOS, REDENCION, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE,
         P_TOPE, TIRADAS_PAGADAS, bonoActividad,
         RACHA, rango, ROBO, DUELO, ARRANQUE, MILLONARIO, IMPUESTO, impuestoDe,
-        OBJETOS, VENTAJA, RECOMPENSA, RIESGO, ROBO_BASE, ROBO_LIMITES } = eco;
+        OBJETOS, VENTAJA, RECOMPENSA, RIESGO, ROBO_BASE, ROBO_LIMITES,
+        pApuestaDe, pApuestaVisible, MOMENTUM, OBJETIVO_DIA } = eco;
 
 let fallos = 0;
 const ok = (c, q) => { if (!c) { fallos++; console.log('FALLO: ' + q); } else console.log('OK    ' + q); };
@@ -677,13 +678,28 @@ ok(eco.RIESGO.codiciaMax > eco.RIESGO.miseriaMax * 2,
 ok(DUELO.techo <= 300, `el duelo si mantiene su tope de ${DUELO.techo}`);
 
 console.log('\n════ 6. lo que SI es casino: la casa gana ════\n');
-// Se audita con el multiplicador MAXIMO (el de jugarse mas del 60 % del aura).
-// Es el caso que puede volverse favorable al jugador, asi que si aguanta aqui,
-// aguanta en todos los demas.
-for (const [rol, p] of Object.entries(APUESTA.p)) {
-  const ev = p * APUESTA.multiplicadorMax - 1;
-  console.log(`  !aura apostar (${rol.padEnd(7)}): acierta ${(p * 100).toFixed(0)} % → EV ${(ev >= 0 ? '+' : '') + (ev * 100).toFixed(0)} % de lo apostado`);
-  if (rol !== 'owner') ok(ev < 0, `  ${rol}: la casa se queda el ${(-ev * 100).toFixed(0)} % — este es el sumidero que compensa el goteo de la tirada`);
+// La curva hace que ya no se puedan tener a la vez el acierto máximo Y el
+// multiplicador máximo. Se audita el all-in (peor acierto, mejor pago) y el
+// punto dulce (mejor acierto, pago medio). Si la casa gana en los dos, gana.
+{
+  const pAllIn = pApuestaDe(1, 'miembro').p;
+  const pDulce = pApuestaDe(APUESTA.riesgo.puntoDulce, 'miembro').p;
+  const pMin = pApuestaDe(0, 'miembro').p;
+  ok(pAllIn < pDulce, `  pedir todo baja el acierto (${(pAllIn*100).toFixed(0)} % vs ${(pDulce*100).toFixed(0)} % en el punto dulce)`);
+  ok(pMin < pDulce, `  pedir calderilla también baja el acierto (${(pMin*100).toFixed(0)} %)`);
+  const evAllIn = pAllIn * APUESTA.multiplicadorMax - 1;
+  const evDulce = pDulce * APUESTA.multiplicador - 1;
+  console.log(`  !aura apostar all-in: acierta ${(pAllIn*100).toFixed(0)} % a ×${APUESTA.multiplicadorMax} → EV ${(evAllIn*100).toFixed(0)} %`);
+  console.log(`  !aura apostar dulce:  acierta ${(pDulce*100).toFixed(0)} % a ×${APUESTA.multiplicador} → EV ${(evDulce*100).toFixed(0)} %`);
+  ok(evAllIn < 0, `  all-in: la casa se queda el ${(-evAllIn*100).toFixed(0)} %`);
+  ok(evDulce < 0, `  punto dulce: la casa se queda el ${(-evDulce*100).toFixed(0)} %`);
+  // La fachada del owner: lo que se ENSEÑA está en banda de miembro, no el 58 %.
+  const vistoAllIn = pApuestaVisible(1, { jitter: false });
+  const vistoDulce = pApuestaVisible(APUESTA.riesgo.puntoDulce, { jitter: false });
+  ok(vistoAllIn < vistoDulce, '  al owner también se le enseña menos si pide más');
+  ok(vistoAllIn <= 0.48 && vistoDulce >= 0.28, '  y la cifra visible vive en banda de miembro, no en el 58 % real');
+  ok(MOMENTUM.caliente === 0.04 && MOMENTUM.tilt === -0.04, '  racha caliente/tilt es ±4 %');
+  ok(OBJETIVO_DIA.bonoBotin < eco.DIANA.bonoBotin, '  el objetivo del día paga menos que la diana semanal: el nº1 sigue siendo el golpe gordo');
 }
 console.log(`  !robo (miembro): acierta ${(eco.ROBO_BASE.miembro * 100).toFixed(0)} % como mucho → sale a perder`);
 ok(eco.ROBO_BASE.miembro < 0.5, '  robar es desfavorable de partida, como una maquina de verdad');
