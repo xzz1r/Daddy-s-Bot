@@ -1463,15 +1463,31 @@ async function capaStores() {
       fallos++;
       console.log(rojo('   ✗ el objetivo del dia volvio a elegirse por posicion: el ranking se reordena solo y el cartel salta de persona en persona'));
     }
-    if (!/ruido\(grupo, 'objetivo-dia', `\$\{diaClave\(\)\}\|\$\{canonicalJid\(r\.jid\)\}`\)/.test(objSrc)) {
+    if (!/ruido\(grupo, 'objetivo-dia', `\$\{hoy\}\|\$\{canonicalJid\(r\.jid\)\}`\)/.test(objSrc)) {
       fallos++;
       console.log(rojo('   ✗ el objetivo del dia ya no sortea por persona: sin el jid en la clave vuelve a depender del orden'));
     }
     // Y solo la mitad de arriba: un cartel sobre alguien con 30 de aura no es
     // una caza, porque el 22 % extra cae sobre un botin que no existe.
-    if (!/elegibles\.slice\(0, Math\.ceil\(elegibles\.length \/ 2\)\)/.test(objSrc)) {
+    // Suelo ABSOLUTO, no una posicion en el ranking: la mitad de arriba es un
+    // puesto, y la gente entra y sale de el con cada tirada — el elegido se caia
+    // de la lista y ganaba otro. Cambiar el filtro por uno relativo reabre eso.
+    // Y la decision del dia se guarda: perseguir fuentes de movimiento una a una
+    // no acaba nunca porque todo lo que hay debajo es un ranking vivo. Se toma
+    // una vez y despues solo se comprueba que el elegido siga valiendo.
+    if (!/const decidido = new Map\(\)/.test(objSrc) || !/yaEsta\.dia === hoy/.test(objSrc)) {
       fallos++;
-      console.log(rojo('   ✗ el objetivo del dia vuelve a poder caer en cualquiera: se quito el corte a la mitad de arriba del ranking'));
+      console.log(rojo('   ✗ el objetivo del dia ya no memoriza su decision: cualquier cosa que mueva el ranking vuelve a cambiar el cartel a media tarde'));
+    }
+    // Y se re-valida contra el RANKING, no contra los candidatos: las
+    // exclusiones son para elegir, no para mantener.
+    if (!/const sigue = ranking\.find/.test(objSrc)) {
+      fallos++;
+      console.log(rojo('   ✗ el objetivo del dia re-aplica las exclusiones al recordar: si el cazado sube a nº1, el cartel cambia solo'));
+    }
+    if (!/r\.aura >= ARRANQUE/.test(objSrc)) {
+      fallos++;
+      console.log(rojo('   ✗ el objetivo del dia ya no exige un suelo absoluto de aura: con un corte por posicion, el elegido se cae de la lista cuando el ranking se mueve'));
     }
 
     // Y sigue siendo ESTABLE dentro del mismo dia, que es la otra mitad del trato.
@@ -1479,6 +1495,31 @@ async function capaStores() {
     const b = ruido('G@g.us', 'objetivo-dia', '2026-03-05');
     if (a !== b) { fallos++; console.log(rojo('   ✗ el ruido dejo de ser estable dentro del dia')); }
     if (fallos === antes) console.log(verde('   ✓ y es el mismo durante todo el dia'));
+  }
+
+  // ── 16. EL MENSAJE DEL ROBO NO SE REPITE A SI MISMO ──────────────────────
+  //
+  // La nota llego a decir la misma cosa dos veces con palabras distintas:
+  // "punto dulce 30 de 66 ... · punto dulce", y despues "cobarde · sin agallas
+  // (−6%)". Son la misma etiqueta de riesgo saliendo por dos sitios — el sello
+  // de etiquetaRiesgo y el motivo de ajustarProbabilidad. Comparar las cadenas
+  // no lo pilla: usan palabras distintas para lo mismo.
+  {
+    console.log('\n16. EL MENSAJE DEL ROBO NO SE REPITE');
+    const rb = fs.readFileSync(path.join(R, 'src/commands/robo.js'), 'utf8');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    exige(/hayMotivoDeRiesgo/.test(rb) && /codicia\|sin agallas/.test(rb),
+      'el sello de riesgo volvio a salir junto al motivo: son la misma etiqueta dos veces');
+    // El consejo de la cifra no puede volver a salir en cada robo.
+    exige(/pistaCifra\(jid, sender\)/.test(rb) && /function pistaCifra/.test(rb),
+      'el consejo de *!robo @alguien 200* volvio a salir en todos los robos: un consejo repetido cien veces no enseña nada');
+    // Y no se explica con una frase lo que el numero de al lado ya dice.
+    exige(!/Se le cayó todo encima/.test(rb),
+      'volvio la linea que narra lo que las cifras de dos lineas mas abajo ya enseñan');
+
+    if (fallos === antes) console.log(verde('   ✓ la nota no dice dos veces lo mismo ni repite el tutorial'));
   }
 
   // ── 14. UN ROBO FALLIDO DICE CUANTO SE INTENTO ROBAR ─────────────────────

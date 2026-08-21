@@ -6,7 +6,7 @@ const { ownerGana } = require('../utils/rigOwner');
 const { fichaFalsaBuscado } = require('../utils/fachada');
 const tienda = require('../utils/roboStore');
 const momentum = require('../utils/momentum');
-const { objetivoDelDia, esObjetivoDelDia } = require('../utils/objetivoDia');
+const { objetivoDelDia, esObjetivoDelDia, diaClave } = require('../utils/objetivoDia');
 const RX = require('../data/roboExtraPhrases');
 
 // La escala vive en utils/economia.js. Aqui solo el cooldown, que es de ritmo
@@ -2106,6 +2106,18 @@ async function topLadrones(sock, msg, jid, groupMeta) {
   return sock.sendMessage(jid, { text: text.trimEnd(), mentions: r.map(x => x.jid) }, { quoted: msg });
 }
 
+// El consejo de la cifra: una vez al dia por persona y grupo. Repetido en cada
+// robo era una linea fija debajo de todos los mensajes del grupo.
+const pistaVista = new Map();   // `${grupo}|${persona}` -> diaClave
+function pistaCifra(grupo, quien) {
+  const hoy = diaClave();
+  const k = `${grupo}|${canonicalJid(quien)}`;
+  if (pistaVista.get(k) === hoy) return false;
+  if (pistaVista.size >= 2000) pistaVista.delete(pistaVista.keys().next().value);
+  pistaVista.set(k, hoy);
+  return true;
+}
+
 async function cmdRobo(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
@@ -2261,7 +2273,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const esDiana = Boolean(buscado && canonicalJid(target) === buscado.jid);
   if (esDiana) {
     chanceFinal = Math.max(ROBO_LIMITES.suelo, chanceFinal + DIANA.bonoProbabilidad);
-    motivos.push('el más buscado va con la mosca detrás de la oreja');
+    motivos.push('el más buscado va avisado');
   }
 
   // Objetivo del día: no es el nº1. Paga extra, un poco menos que la diana
@@ -2273,7 +2285,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     esObjDia = esObjetivoDelDia(objDia, target);
     if (esObjDia) {
       chanceFinal = Math.max(ROBO_LIMITES.suelo, chanceFinal + OBJETIVO_DIA.bonoProbabilidad);
-      motivos.push('objetivo del día: va con un ojo abierto');
+      motivos.push('objetivo del día');
     }
   } catch { /* sin cartel el robo sigue */ }
 
@@ -2400,10 +2412,29 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // (que era el caso normal con menciones) ni siquiera recortaba — eligia otra
   // cifra en silencio. Ahora se ve a por cuanto se fue, contra que tope, y si
   // la cifra la puso el jugador o el bot.
+  // CORTA. La nota llego a tener seis segmentos y una linea entera de tutorial
+  // debajo de cada robo, y se lee en un movil pegada a otras cuatro lineas.
+  //
+  // Lo que se ha quitado y por que:
+  //
+  //  · "punto dulce" salia DOS VECES en la misma linea — una en este texto y
+  //    otra en el sello de etiquetaRiesgo, que devuelve la misma palabra. No
+  //    era estilo, era un duplicado.
+  //  · "*!robo @alguien 200* para elegir" iba en CADA robo de quien no pone
+  //    cifra, para siempre. Un consejo que se repite cien veces deja de ser un
+  //    consejo. Ahora sale una vez al dia por persona, que es cuando enseña algo.
+  //
+  // Queda lo que responde a "cuanto iba y que posibilidades tenia".
   const notaApuesta = elegido
-    ? `a por ${fmt(stake)} de ${fmt(maxStake)} · ${Math.round(chanceVisible * 100)}% de salir bien`
-    : `punto dulce ${fmt(stake)} de ${fmt(maxStake)} · ${Math.round(chanceVisible * 100)}% · *!robo @alguien 200* para elegir`;
-  const notaSello = sello ? ` · ${sello}` : '';
+    ? `${fmt(stake)} de ${fmt(maxStake)} · ${Math.round(chanceVisible * 100)}%`
+    : `${fmt(stake)} de ${fmt(maxStake)} · ${Math.round(chanceVisible * 100)}%${pistaCifra(jid, sender) ? ' · *!robo @alguien 200* para elegir' : ''}`;
+  // EL SELLO SOLO CUANDO NO HAY MOTIVO DE RIESGO, que es el unico caso en que
+  // añade algo. Los motivos ya dicen lo mismo Y con el numero: salia
+  // "cobarde · sin agallas (−6%)" en la misma linea, que son dos etiquetas para
+  // una sola cosa. La version anterior de esto comparaba las cadenas y no lo
+  // veia, porque el sello y el motivo usan PALABRAS DISTINTAS para lo mismo.
+  const hayMotivoDeRiesgo = motivos.some((m) => /codicia|sin agallas/.test(m));
+  const notaSello = sello && !hayMotivoDeRiesgo ? ` · ${sello}` : '';
 
   // AL OWNER SE LE FABRICA EL DESGLOSE, no solo el porcentaje.
   //
@@ -2552,9 +2583,11 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     // la multa. Y va delante del remate porque las quince frases empiezan por
     // "y ", asi que la linea sigue leyendose como una sola.
     `${aTag} intentó robarle *${fmt(stake)}* a ${vTag} ${pickFresh(ROBO_FALLO_REMATE, `${jid}|robo|remate`)}\n` +
-    (clave === 'desastre'
-      ? `_Se le cayó todo encima: ${vTag} se queda con lo que traía._\n\n`
-      : `\n`) +
+    // Aqui iba "_Se le cayo todo encima: @V se queda con lo que traia._", y
+    // sobraba: dos lineas mas abajo se lee `@V +200 → *3350*`. Explicar con una
+    // frase lo que el numero de al lado ya dice es exactamente lo que hacia
+    // largo el mensaje.
+    `\n` +
     `${phrase}\n\n` +
     `${aTag} −${fmt(monto)} → *${fmt(aNew.current)}*\n` +
     (vNew

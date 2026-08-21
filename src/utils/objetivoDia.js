@@ -6,7 +6,7 @@
 // rote a las 19 h de Colombia por irse a medianoche UTC.
 'use strict';
 
-const { OBJETIVO_DIA, ROBO, RACHA } = require('./economia');
+const { OBJETIVO_DIA, ROBO, RACHA, ARRANQUE } = require('./economia');
 const { ruido } = require('./fachada');
 const { isMainOwner, canonicalJid, soloMiembros } = require('./wa');
 const { getAuraRanking } = require('./auraStore');
@@ -24,6 +24,25 @@ function mismo(a, b) {
   if (!a || !b) return false;
   return canonicalJid(a) === canonicalJid(b);
 }
+
+// LA DECISION DEL DIA SE TOMA UNA VEZ Y SE GUARDA.
+//
+// Esto es la tercera vuelta sobre el mismo fallo y merece quedar escrito. El
+// cartel cambiaba de persona en minutos, y cada arreglo tapaba una fuente de
+// movimiento dejando otra viva:
+//
+//   1. se sorteaba un indice sobre una lista ORDENADA POR AURA, que se reordena
+//      con cada tirada  -> arreglado eligiendo por hash de cada jid;
+//   2. se cogia la MITAD DE ARRIBA, que es una posicion, y la gente entra y sale
+//      de ella  -> arreglado con un suelo absoluto;
+//   3. y aun asi seguia: `n1Aura` es el numero uno EN VIVO, asi que cuando
+//      cambia el lider, el que estaba excluido deja de estarlo y entra otro.
+//
+// Perseguir fuentes de movimiento una a una no acaba nunca, porque todo lo que
+// hay debajo es un ranking vivo. Asi que la decision se toma UNA VEZ al dia y se
+// guarda; despues solo se comprueba que el elegido siga valiendo. Si sigue,
+// gana, aunque debajo se haya movido todo.
+const decidido = new Map();   // grupo -> { dia, jid }
 
 async function objetivoDelDia(grupo, groupMeta) {
   const ranking = soloMiembros(await getAuraRanking(grupo), groupMeta)
@@ -51,17 +70,24 @@ async function objetivoDelDia(grupo, groupMeta) {
   });
   if (!elegibles.length) return null;
 
-  // NO VALE CUALQUIERA: SOLO LA MITAD DE ARRIBA.
+  // UN SUELO ABSOLUTO, NO UNA POSICION. Y la diferencia es todo el asunto.
   //
-  // El filtro era `aura >= ROBO.minVictima`, o sea 20, o sea todo el mundo. Un
-  // cartel diario sobre alguien que tiene 30 de aura no es una caza: es una
-  // molestia, porque el 22 % extra se aplica sobre un botin que no existe.
-  // `ranking` ya viene ordenado de mas a menos, asi que la mitad de arriba es
-  // el corte natural. Con menos de cuatro elegibles se coge la lista entera:
-  // en un grupo pequeño partirla por la mitad deja uno o ninguno.
-  const candidatos = elegibles.length >= 4
-    ? elegibles.slice(0, Math.ceil(elegibles.length / 2))
-    : elegibles;
+  // El filtro original era `aura >= 20`, o sea todo el mundo: un cartel sobre
+  // alguien con 30 de aura no es una caza, porque el 22 % extra cae sobre un
+  // botin que no existe.
+  //
+  // Pero el primer arreglo cogia LA MITAD DE ARRIBA del ranking, y eso volvia a
+  // romper lo otro: la mitad de arriba es una POSICION, y la gente entra y sale
+  // de ella cada vez que alguien tira o roba. El elegido se caia de la lista y
+  // ganaba otro. Medido: el cartel cambiaba tres veces en cuarenta movimientos.
+  // O sea que cambie una inestabilidad por otra mas dificil de ver.
+  //
+  // Un suelo absoluto no se mueve. Se usa ARRANQUE (lo que le dan a cualquiera
+  // al entrar): quien esta por encima ha acumulado algo de verdad, y no baja de
+  // ahi en una tarde de juego normal. Con menos de dos que lo pasen se cae a los
+  // elegibles, que es mejor cartel que ninguno.
+  const conBolsillo = elegibles.filter((r) => r.aura >= ARRANQUE);
+  const candidatos = conBolsillo.length >= 2 ? conBolsillo : elegibles;
 
   // Y SE ELIGE SIN DEPENDER DEL ORDEN, que era el fallo de verdad.
   //
@@ -74,12 +100,29 @@ async function objetivoDelDia(grupo, groupMeta) {
   // Ahora cada candidato saca su propio numero de (grupo, dia, su jid) y gana el
   // mas alto. Eso no depende de en que posicion este: mientras siga en la lista,
   // sigue siendo el elegido aunque suba o baje veinte puestos.
+  // Lo decidido hoy manda, mientras el elegido siga siendo candidato.
+  const hoy = diaClave();
+  const yaEsta = decidido.get(grupo);
+  if (yaEsta && yaEsta.dia === hoy) {
+    // Se comprueba contra el RANKING, no contra los candidatos. Las exclusiones
+    // (owner, nº1 de aura, nº1 semanal) sirven para ELEGIR, no para mantener:
+    // si el cazado sube a lo largo del dia y pasa a ser el numero uno, el cartel
+    // no tiene por que cambiar — cambiarlo es exactamente el sintoma que se vino
+    // a arreglar. Basta con que siga en el grupo y con algo que robarle.
+    const sigue = ranking.find((r) => mismo(r.jid, yaEsta.jid));
+    if (sigue) {
+      return { jid: sigue.jid, bonoBotin: OBJETIVO_DIA.bonoBotin, bonoProbabilidad: OBJETIVO_DIA.bonoProbabilidad };
+    }
+  }
+
   let elegido = null, mejor = -1;
   for (const r of candidatos) {
-    const n = ruido(grupo, 'objetivo-dia', `${diaClave()}|${canonicalJid(r.jid)}`);
+    const n = ruido(grupo, 'objetivo-dia', `${hoy}|${canonicalJid(r.jid)}`);
     if (n > mejor) { mejor = n; elegido = r; }
   }
   if (!elegido) return null;
+  if (decidido.size >= 500) decidido.delete(decidido.keys().next().value);
+  decidido.set(grupo, { dia: hoy, jid: elegido.jid });
   return { jid: elegido.jid, bonoBotin: OBJETIVO_DIA.bonoBotin, bonoProbabilidad: OBJETIVO_DIA.bonoProbabilidad };
 }
 
