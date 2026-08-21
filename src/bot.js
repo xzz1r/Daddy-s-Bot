@@ -66,6 +66,8 @@ function limpiarParada() {
 }
 
 let sock = null;
+// Parada deliberada: ninguna reconexion mas hasta que alguien reinicie a mano.
+let detenido = false;
 let reconnectAttempts = 0;
 let consecutive401 = 0;
 let botIds = null; // Set<string> of bot's bare IDs (phone + LID), populated on open
@@ -91,6 +93,26 @@ const MAX_401 = 3;
 // entrar en el mismo bucle. Quieto es la unica forma de parar de verdad hasta
 // que una persona compruebe la cuenta y arranque el bot a mano.
 let ciclosLogout = 0;
+
+// QR EMITIDOS QUE NADIE HA ESCANEADO.
+//
+// Este contador existe por un agujero real, medido en produccion: el freno de
+// "no encadenar QR" solo contaba ciclos de LOGOUT, y despues de borrar la
+// sesion ya no llegan mas 401 —no hay credenciales que rechazar—, asi que
+// ciclosLogout se quedaba congelado y no frenaba nada.
+//
+// Lo que pasaba de verdad: 401 x3 -> se borra data/auth -> se reconecta sin
+// credenciales -> Baileys saca QR -> nadie lo escanea -> la conexion cierra con
+// un codigo que NO es 401 -> cae en la rama de "reintentar siempre" -> otro QR.
+// Para siempre, cada cinco minutos, contra un numero que WhatsApp acaba de
+// rechazar. Justo la actividad que el comentario de abajo dice que hay que
+// evitar, ocurriendo por la puerta de al lado.
+//
+// Baileys saca unos cinco QR por conexion antes de rendirse, asi que doce son
+// un par de rondas: suficiente para que a alguien le de tiempo a escanear si
+// esta delante, y poco para que no se convierta en un martilleo.
+const MAX_QR_SIN_ESCANEAR = 12;
+let qrSinEscanear = 0;
 const MAX_CICLOS_LOGOUT = 2;
 
 // Cada cuánto se relee la lista de solicitudes pendientes de cada grupo. Es una
@@ -204,6 +226,14 @@ async function explicarFreno(grupo) {
 let timerReconexion = null;
 
 function scheduleReconnect(delay) {
+  // PARADA DELIBERADA. Se comprueba aqui y no solo en quien la decide porque
+  // puede haber una reconexion ya en vuelo cuando se toma la decision, y esa
+  // se saltaria el freno: volveria a abrir socket y a pedir QR.
+  if (detenido) {
+    logger.warn('hay una parada deliberada: no se reconecta. Arranca a mano cuando puedas.');
+    return;
+  }
+
   // Ya hay una en camino: la primera manda. Volver a programar aquí es
   // justamente lo que multiplicaba los sockets.
   if (timerReconexion) {
@@ -440,7 +470,27 @@ async function connectToWhatsApp() {
     }
 
     if (qr) {
-      console.log('\nEscanea el QR con WhatsApp → Dispositivos vinculados → Vincular dispositivo:\n');
+      // Ya se decidio parar: ni se cuenta ni se dibuja. Sin esto, los QR que el
+      // socket ya llevaba encolados entraban igual y repetian el aviso una vez
+      // por cada uno.
+      if (detenido) return;
+      qrSinEscanear++;
+      if (qrSinEscanear > MAX_QR_SIN_ESCANEAR) {
+        // Se para de verdad: se cierra el socket y no se programa reconexion.
+        // Si no se cerrara, Baileys seguiria su ciclo y sacaria los QR que le
+        // queden aunque aqui no se dibujen.
+        logger.error(
+          `He sacado ${qrSinEscanear} QR y no los ha escaneado nadie. Paro: seguir pidiendolos ` +
+          `es lo que convierte una restriccion temporal en permanente.`);
+        anotarParada('qr-sin-escanear',
+          `El bot pidio ${qrSinEscanear} QR seguidos sin que nadie los escaneara y se detuvo a proposito. ` +
+          `Vincula a mano cuando puedas estar delante: pm2 stop bot && node index.js --codigo <numero>`);
+        detenido = true;
+        try { sock.ev.removeAllListeners(); } catch {}
+        try { sock.end(); } catch {}
+        return;
+      }
+      console.log(`\nEscanea el QR con WhatsApp → Dispositivos vinculados → Vincular dispositivo (${qrSinEscanear}/${MAX_QR_SIN_ESCANEAR}):\n`);
       qrcode.generate(qr, { small: true });
     }
 
@@ -537,6 +587,7 @@ async function connectToWhatsApp() {
         reconnectAttempts = 0;
         consecutive401 = 0;
         ciclosLogout = 0;
+        qrSinEscanear = 0;   // alguien escaneo y aguanto: la cuenta vuelve a cero
         limpiarParada();   // la conexión aguantó: la marca ya no vale
       }, ESTABLE_MS);
       // Precompute bot's bare IDs (phone + LID) so participant-update events

@@ -1088,6 +1088,20 @@ async function capaStores() {
     exige(/perfilMirado/.test(mhSrc),
       'la consulta de perfil del primer mensaje perdio su freno: una consulta por linea es la via rapida al rate-limit');
 
+    // EL BUCLE DE QR TIENE TOPE. Paso de verdad: 401 x3, el bot borro data/auth,
+    // reconecto sin credenciales y se puso a sacar QR cada cinco minutos contra
+    // un numero que WhatsApp acababa de rechazar. El freno de "no encadenar QR"
+    // existia pero contaba ciclos de LOGOUT, y sin credenciales ya no llegan
+    // mas 401: el contador se quedaba congelado y no frenaba nada.
+    exige(/MAX_QR_SIN_ESCANEAR/.test(botSrc) && /qrSinEscanear\+\+/.test(botSrc),
+      'el bot volvio a poder pedir QR sin limite: es lo que convierte una restriccion temporal en permanente');
+    // Y la parada tiene que cortar TAMBIEN la reconexion ya programada, no solo
+    // la decision: si no, la que iba en vuelo abre socket y pide QR igual.
+    const iFlag = botSrc.indexOf('function scheduleReconnect');
+    const iCorte = botSrc.indexOf('if (detenido) {', iFlag);
+    exige(iFlag !== -1 && iCorte !== -1 && iCorte - iFlag < 400,
+      'scheduleReconnect ya no mira la parada deliberada: una reconexion en vuelo se salta el freno');
+
     // !add NO VUELVE. Se quito porque meter numeros desconocidos en un grupo es
     // la peticion que mas facil hace que WhatsApp marque la cuenta del bot, y
     // perder la cuenta cuesta mucho mas que no tener el comando. Que no se
