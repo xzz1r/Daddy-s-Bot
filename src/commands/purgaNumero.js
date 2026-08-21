@@ -1,4 +1,5 @@
 // !p <número> — saca ese número de TODOS los grupos donde está el bot.
+// !purge <lista> — igual, pero con varios números a la vez.
 //
 // ES EL COMANDO MÁS DESTRUCTIVO DEL BOT y por eso lleva las guardas que lleva.
 // Todo lo demás actúa sobre el grupo donde se escribe; esto barre la cuenta de
@@ -14,10 +15,12 @@
 //     seis grupos es la clase de ráfaga que WhatsApp corta con rate-overlimit,
 //     y a mitad de purga eso deja el trabajo hecho a medias.
 //
-// El motivo del veto es fijo: NÚMERO VIRTUAL. Es el caso para el que se pidió
-// —cuentas VoIP que entran, spamean y se rehacen— y dejarlo fijo evita que el
-// aviso público diga cosas distintas según quién lo escriba.
-const { getSender, isMainOwner, isBotJid, isBotAdmin, bareJid, canonicalJid, getTarget } = require('../utils/wa');
+// !p y !purge comparten el barrido. !p deja el aviso de número virtual; !purge
+// deja uno hiriente sobre el valor de esa gente en el grupo. En los dos el
+// aviso se manda ANTES del ban: la idea es que lo vean y sepan que no son
+// bienvenidos. Si el kick falla, el grupo vio el aviso igual — mejor eso que
+// echar a alguien en silencio.
+const { getSender, isMainOwner, isBotJid, isBotAdmin, bareJid, canonicalJid, extractText, extractQuotedText } = require('../utils/wa');
 const { banAccount } = require('../utils/banlist');
 const { extractNumber } = require('./pfp');
 const logger = require('../utils/logger');
@@ -26,19 +29,94 @@ const { aplicarParticipantes } = require('../utils/participantes');
 // Pausa entre grupos. No es paranoia: groupParticipantsUpdate en ráfaga es
 // justo lo que dispara el rate-overlimit que ya sale en el log del bot.
 const PAUSA_MS = 1200;
+// Margen entre el aviso y el kick. sendMessage espera el ack del servidor;
+// esto es para que el mensaje llegue al teléfono antes de que WhatsApp los
+// saque del grupo. Si es demasiado corto, la frase no la ven.
+const AVISO_ANTES_MS = 1000;
+const PAUSA_ONWA_MS = 150;
+const MAX_PURGE = 30;
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// El aviso que se deja en cada grupo del que se le expulsa. Se dice el motivo a
-// propósito: si la cuenta desaparece sin más, el grupo se pregunta qué pasó, y
-// el aviso sirve además para que nadie vuelva a invitarla.
-function avisoDeVeto(numero) {
-  return {
-    text: '*CUENTA PURGADA*\n╾━━━━━━━━━━━━━━╼\n\n' +
-      `@${numero} fuera del grupo.\n\n` +
+function etiquetasDe(hits) {
+  const items = Array.isArray(hits) ? hits : [hits];
+  return items.map((h) => {
+    if (h && typeof h === 'object' && (h.digitos || h.hit)) {
+      const mention = h.hit?.p?.id || `${h.digitos}@s.whatsapp.net`;
+      const label = h.digitos || String(mention).split('@')[0];
+      return { label, mention };
+    }
+    const label = String(h);
+    return { label, mention: `${label}@s.whatsapp.net` };
+  });
+}
+
+// Aviso de !p: motivo fijo de número virtual.
+function avisoDeVeto(hits) {
+  const tags = etiquetasDe(hits);
+  const menciones = tags.map((t) => `@${t.label}`).join(' ');
+  const cuerpo = tags.length === 1
+    ? `${menciones} fuera del grupo.\n\n` +
       '_Se comprobó que es un *número virtual* (VoIP), no una línea real. ' +
-      'Queda en la lista negra: si vuelve a entrar, se le echa solo._',
-    mentions: [`${numero}@s.whatsapp.net`],
+      'Queda en la lista negra: si vuelve a entrar, se le echa solo._'
+    : `${menciones} fuera del grupo.\n\n` +
+      '_Se comprobó que son *números virtuales* (VoIP), no líneas reales. ' +
+      'Quedan en la lista negra: si vuelven a entrar, se les echa solo._';
+  return {
+    text: `*CUENTA PURGADA*\n╾━━━━━━━━━━━━━━╼\n\n${cuerpo}`,
+    mentions: tags.map((t) => t.mention),
   };
+}
+
+// Aviso de !purge: hiriente y burlón. El hueso es que no son suficientes.
+// Español neutral (tú en singular, ustedes en plural; sin vosotros).
+function avisoDePurge(hits) {
+  const tags = etiquetasDe(hits);
+  const menciones = tags.map((t) => `@${t.label}`).join(' ');
+  const texto = tags.length === 1
+    ? `${menciones} no eres suficiente para este grupo.\n` +
+      `Te creíste a la altura y no lo estás. El grupo funcionó igual contigo dentro y va a funcionar igual sin ti. Fuera.`
+    : `${menciones} no son suficientes para este grupo.\n` +
+      `Se creyeron a la altura y no lo están. El grupo funcionó igual con ustedes dentro y va a funcionar igual sin ustedes. Fuera.`;
+  return {
+    text: texto,
+    mentions: tags.map((t) => t.mention),
+  };
+}
+
+// Extrae VARIOS números de un bloque de texto sin fusionarlos.
+// extractNumber junta todos los dígitos en uno solo; aquí cada línea / token
+// / enlace wa.me cuenta por separado.
+function extractNumbers(raw) {
+  if (!raw) return [];
+  const s = String(raw);
+  const hallados = [];
+  const visto = new Set();
+
+  const meter = (d) => {
+    if (!d || d.length < 7 || d.length > 15) return;
+    if (visto.has(d)) return;
+    visto.add(d);
+    hallados.push(d);
+  };
+
+  // Enlaces wa.me / api.whatsapp.com primero (suelen traer el número limpio).
+  for (const m of s.matchAll(/(?:wa\.me\/|api\.whatsapp\.com\/send\?phone=)(\+?\d[\d\s\-]*)/gi)) {
+    meter(String(m[1]).replace(/\D/g, ''));
+  }
+
+  // Línea a línea: un número por renglón es el caso natural del listado.
+  for (const linea of s.split(/\r?\n/)) {
+    const d = extractNumber(linea);
+    if (d) meter(d);
+  }
+
+  // Tokens sueltos por espacios / comas / punto y coma.
+  for (const tok of s.split(/[\s,;]+/)) {
+    const d = extractNumber(tok);
+    if (d) meter(d);
+  }
+
+  return hallados;
 }
 
 // Todas las formas conocidas de una misma persona dentro de un grupo. Hace
@@ -54,6 +132,120 @@ function formasEnGrupo(meta, formas) {
   return null;
 }
 
+function telefonoDeParticipante(p) {
+  const phone = p?.phoneNumber || (p?.id && String(p.id).endsWith('@s.whatsapp.net') ? p.id : null);
+  if (!phone) return null;
+  const d = bareJid(phone).split('@')[0].replace(/\D/g, '');
+  return (d.length >= 7 && d.length <= 15) ? d : null;
+}
+
+// JID que ya trajo WhatsApp (mención o cita). NO se pasa por onWhatsApp:
+// en un grupo LID el mentionedJid es @lid, y tratar esos dígitos como teléfono
+// barre una cuenta que no es o no encuentra a nadie.
+function cuentaDesdeJid(sock, jid, groupMeta) {
+  if (!jid) return { error: 'sin jid' };
+  if (isBotJid(sock, jid)) return { error: 'A esa cuenta no.' };
+  if (isMainOwner(jid, false, groupMeta)) return { skip: true };
+
+  const formas = new Set([bareJid(jid), canonicalJid(jid)].filter(Boolean));
+  let digitos = null;
+
+  const hit = groupMeta ? formasEnGrupo(groupMeta, formas) : null;
+  if (hit) {
+    hit.suyas.forEach((f) => formas.add(f));
+    digitos = telefonoDeParticipante(hit.p);
+  }
+  if (!digitos) {
+    const bare = bareJid(jid);
+    if (bare.endsWith('@s.whatsapp.net')) {
+      digitos = bare.split('@')[0].replace(/\D/g, '');
+    }
+  }
+  if (digitos) formas.add(`${digitos}@s.whatsapp.net`);
+  if (!digitos) digitos = bareJid(jid).split('@')[0].replace(/\D/g, '') || '???';
+
+  return { digitos, objetivo: jid, formas };
+}
+
+function formasDeCuenta(objetivo, digitos) {
+  return new Set([
+    bareJid(objetivo),
+    canonicalJid(objetivo),
+    digitos ? `${digitos}@s.whatsapp.net` : null,
+  ].filter(Boolean));
+}
+
+// Barre una o varias cuentas de todos los grupos.
+// cuentas: [{ digitos, objetivo, formas: Set }]
+// hacerAviso(hitsEnGrupo) → payload de sendMessage o null
+async function barrerGrupos(sock, grupos, cuentas, hacerAviso) {
+  const fuera = [];
+  const sinPermiso = [];
+  const fallos = [];
+  let visto = 0;
+
+  for (const [gJid, meta] of Object.entries(grupos || {})) {
+    const hits = [];
+    const vistoP = new Set();
+    for (const c of cuentas) {
+      const hit = formasEnGrupo(meta, c.formas);
+      if (!hit) continue;
+      const pid = bareJid(hit.p.id);
+      if (vistoP.has(pid)) continue;
+      vistoP.add(pid);
+      hits.push({ ...c, hit });
+    }
+    if (!hits.length) continue;
+    visto += hits.length;
+    const nombre = meta?.subject || gJid;
+
+    if (!isBotAdmin(sock, meta)) {
+      sinPermiso.push(nombre);
+      continue;
+    }
+
+    // Aviso ANTES del ban: tienen que verlo. Un momento de margen para que el
+    // mensaje entre en el grupo antes de que WhatsApp los saque.
+    if (hacerAviso) {
+      const payload = hacerAviso(hits);
+      if (payload) {
+        await sock.sendMessage(gJid, payload).catch(() => {});
+        await espera(AVISO_ANTES_MS);
+      }
+    }
+
+    const ids = hits.map((h) => h.hit.p.id);
+    const r = await aplicarParticipantes(sock, gJid, ids, 'remove', meta);
+    if (r.ok.length) {
+      fuera.push(nombre);
+      if (r.fallidos.length) {
+        fallos.push(`${nombre} (parcial: ${r.fallidos.length})`);
+      }
+    } else {
+      const porque = r.error || r.fallidos[0]?.status || 'sin respuesta';
+      fallos.push(`${nombre} (${porque})`);
+      logger.warn(`purga: no pude expulsar de ${gJid}: ${porque}`);
+    }
+    await espera(PAUSA_MS);
+  }
+
+  return { fuera, sinPermiso, fallos, visto };
+}
+
+async function resolverCuenta(sock, digitos, groupMeta) {
+  try {
+    const res = await sock.onWhatsApp(`${digitos}@s.whatsapp.net`);
+    const hit = Array.isArray(res) ? res.find((r) => r?.exists) : null;
+    if (!hit?.jid) return { error: `+${digitos} no tiene cuenta de WhatsApp (o no es visible).` };
+    const objetivo = hit.jid;
+    if (isBotJid(sock, objetivo)) return { error: 'A esa cuenta no.' };
+    if (isMainOwner(objetivo, false, groupMeta)) return { skip: true };
+    return { digitos, objetivo, formas: formasDeCuenta(objetivo, digitos) };
+  } catch (e) {
+    return { error: `No pude comprobar +${digitos}: ${e.message}` };
+  }
+}
+
 async function cmdPurgaNumero(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   const sender = getSender(msg);
@@ -61,14 +253,21 @@ async function cmdPurgaNumero(sock, msg, args, groupMeta) {
   // Silencio si no es el owner: una respuesta distinta delataría que existe.
   if (!isMainOwner(sender, msg.key.fromMe, groupMeta)) return;
 
-  // El objetivo puede venir mencionado, citado o como número suelto.
-  const mencionado = getTarget(msg);
+  const ctx = msg.message?.extendedTextMessage?.contextInfo;
+  const mencionado = ctx?.mentionedJid?.[0] || ctx?.participant || null;
   let objetivo = null;
   let digitos = null;
+  let formas = null;
 
   if (mencionado) {
-    objetivo = mencionado;
-    digitos = bareJid(mencionado).split('@')[0].replace(/\D/g, '');
+    const res = cuentaDesdeJid(sock, mencionado, groupMeta);
+    if (res.skip) return;
+    if (res.error) {
+      return sock.sendMessage(jid, { text: res.error }, { quoted: msg });
+    }
+    objetivo = res.objetivo;
+    digitos = res.digitos;
+    formas = res.formas;
   } else {
     digitos = extractNumber((args || []).join(' '));
     if (!digitos) {
@@ -77,26 +276,15 @@ async function cmdPurgaNumero(sock, msg, args, groupMeta) {
           '_Lo saca de todos los grupos del bot y lo deja en la lista negra como número virtual._',
       }, { quoted: msg });
     }
-    // onWhatsApp confirma que existe y da el JID canónico. Sin esto, un número
-    // mal escrito lanzaría la purga contra una cuenta que no es.
-    try {
-      const res = await sock.onWhatsApp(`${digitos}@s.whatsapp.net`);
-      const hit = Array.isArray(res) ? res.find((r) => r?.exists) : null;
-      if (!hit?.jid) {
-        return sock.sendMessage(jid, {
-          text: `+${digitos} no tiene cuenta de WhatsApp (o no es visible). No purgo nada.`,
-        }, { quoted: msg });
-      }
-      objetivo = hit.jid;
-    } catch (e) {
-      return sock.sendMessage(jid, { text: `No pude comprobar +${digitos}: ${e.message}` }, { quoted: msg });
+    const res = await resolverCuenta(sock, digitos, groupMeta);
+    if (res.skip) return;
+    if (res.error) {
+      return sock.sendMessage(jid, { text: res.error }, { quoted: msg });
     }
+    objetivo = res.objetivo;
+    digitos = res.digitos;
+    formas = res.formas;
   }
-
-  if (isBotJid(sock, objetivo)) {
-    return sock.sendMessage(jid, { text: 'A esa cuenta no.' }, { quoted: msg });
-  }
-  if (isMainOwner(objetivo, false, groupMeta)) return;
 
   await sock.sendMessage(jid, { text: `Purgando +${digitos} de todos los grupos…` }, { quoted: msg });
 
@@ -107,49 +295,18 @@ async function cmdPurgaNumero(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: `No pude listar los grupos: ${e.message}` }, { quoted: msg });
   }
 
-  // Se juntan TODAS las formas de la cuenta antes de empezar: la que aparece en
-  // un grupo sirve para reconocerla en el siguiente, donde a lo mejor solo está
-  // con la otra.
-  const formas = new Set([bareJid(objetivo), canonicalJid(objetivo), `${digitos}@s.whatsapp.net`]);
   for (const meta of Object.values(grupos || {})) {
     const hit = formasEnGrupo(meta, formas);
     if (hit) hit.suyas.forEach((f) => formas.add(f));
   }
 
-  const fuera = [];       // expulsado
-  const sinPermiso = [];  // está, pero el bot no es admin
-  const fallos = [];
-  let visto = 0;
+  const { fuera, sinPermiso, fallos, visto } = await barrerGrupos(
+    sock,
+    grupos,
+    [{ digitos, objetivo, formas }],
+    (hits) => avisoDeVeto(hits),
+  );
 
-  for (const [gJid, meta] of Object.entries(grupos || {})) {
-    const hit = formasEnGrupo(meta, formas);
-    if (!hit) continue;
-    visto++;
-    const nombre = meta?.subject || gJid;
-
-    if (!isBotAdmin(sock, meta)) { sinPermiso.push(nombre); continue; }
-
-    // No basta con que la llamada no reviente: WhatsApp rechaza expulsiones
-    // devolviendo un codigo, sin excepcion ninguna. Aqui se contaba como
-    // expulsado igual y el grupo leia el aviso de veto por alguien que seguia
-    // dentro.
-    const r = await aplicarParticipantes(sock, gJid, [hit.p.id], 'remove', meta);
-    if (r.ok.length) {
-      fuera.push(nombre);
-      // El aviso va DESPUÉS de la expulsión: si el kick falla, el grupo no se
-      // queda con el anuncio de algo que no llegó a pasar.
-      await sock.sendMessage(gJid, avisoDeVeto(digitos)).catch(() => {});
-    } else {
-      const porque = r.error || r.fallidos[0]?.status || 'sin respuesta';
-      fallos.push(`${nombre} (${porque})`);
-      logger.warn(`!p: no pude expulsar de ${gJid}: ${porque}`);
-    }
-    await espera(PAUSA_MS);
-  }
-
-  // La lista negra va al final y SIEMPRE, aunque no estuviera en ningún grupo:
-  // ese es justo el caso útil —vetar la cuenta antes de que entre— y ponerla al
-  // principio habría dejado un veto puesto si la purga reventaba a la mitad.
   const anotadas = await banAccount([...formas], 'numero virtual (!p)', bareJid(sender));
 
   const linea = (t, l) => (l.length ? `\n\n*${t}* (${l.length})\n${l.map((x) => `· ${x}`).join('\n')}` : '');
@@ -164,4 +321,157 @@ async function cmdPurgaNumero(sock, msg, args, groupMeta) {
   }, { quoted: msg });
 }
 
-module.exports = { cmdPurgaNumero };
+async function cmdPurge(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  const sender = getSender(msg);
+
+  // Silencio si no es el owner: una respuesta distinta delataría que existe.
+  if (!isMainOwner(sender, msg.key.fromMe, groupMeta)) return;
+
+  // El dispatcher parte por espacios y se come los saltos de línea del listado.
+  // Se lee el cuerpo completo del mensaje (y el citado) para no fusionar ni
+  // perder números que venían en renglones distintos.
+  const resto = String(extractText(msg) || '').replace(/^[!¡]\s*purge\b/i, '');
+  const ctx = msg.message?.extendedTextMessage?.contextInfo;
+
+  const jidsDirectos = [];
+  for (const m of (ctx?.mentionedJid || [])) if (m) jidsDirectos.push(m);
+  if (ctx?.participant) jidsDirectos.push(ctx.participant);
+
+  const digitosLista = [
+    ...extractNumbers((args || []).join('\n')),
+    ...extractNumbers(resto),
+    ...extractNumbers(extractQuotedText(msg) || ''),
+  ];
+
+  const cuentas = [];
+  const errores = [];
+  const saltados = [];
+  const vistoNum = new Set();
+  const vistoJid = new Set();
+
+  const meterCuenta = (c) => {
+    if (!c?.objetivo) return;
+    const bj = bareJid(c.objetivo);
+    if (vistoJid.has(bj)) return;
+    vistoJid.add(bj);
+    if (c.digitos) vistoNum.add(c.digitos);
+    cuentas.push(c);
+  };
+
+  for (const j of jidsDirectos) {
+    if (cuentas.length >= MAX_PURGE) break;
+    const res = cuentaDesdeJid(sock, j, groupMeta);
+    if (res.skip) {
+      saltados.push(bareJid(j).split('@')[0].replace(/\D/g, '') || bareJid(j));
+      continue;
+    }
+    if (res.error) {
+      errores.push(res.error);
+      continue;
+    }
+    meterCuenta(res);
+  }
+
+  const unicos = [];
+  for (const d of digitosLista) {
+    if (!d || vistoNum.has(d)) continue;
+    vistoNum.add(d);
+    unicos.push(d);
+    if (cuentas.length + unicos.length >= MAX_PURGE) break;
+  }
+
+  if (!cuentas.length && !unicos.length) {
+    return sock.sendMessage(jid, {
+      text:
+        'Uso: *!purge* seguido de un listado de números (uno por línea, separados, enlaces wa.me o menciones).\n\n' +
+        '_Los saca de todos los grupos del bot y los deja en la lista negra._',
+    }, { quoted: msg });
+  }
+
+  // Listado ANTES de tocar nada: el owner ve a quién va a sacar.
+  const ya = cuentas.map((c) => `+${c.digitos}`);
+  const pendientes = unicos.map((d) => `+${d}`);
+  const listado = [...ya, ...pendientes].map((x, i) => `${i + 1}. ${x}`).join('\n');
+  const total = ya.length + pendientes.length;
+  const tope = (cuentas.length + unicos.length) >= MAX_PURGE
+    ? `\n_Tope de ${MAX_PURGE}. El resto no se toca._`
+    : '';
+  await sock.sendMessage(jid, {
+    text:
+      `*PURGE — listado*\n╾━━━━━━━━━━━━━━╼\n\n` +
+      `Voy a purgar *${total}* número(s):\n${listado}${tope}\n\n` +
+      `_Comprobando cuentas…_`,
+  }, { quoted: msg });
+
+  for (const d of unicos) {
+    const res = await resolverCuenta(sock, d, groupMeta);
+    if (res.skip) {
+      saltados.push(d);
+      continue;
+    }
+    if (res.error) {
+      errores.push(res.error);
+      continue;
+    }
+    meterCuenta(res);
+    await espera(PAUSA_ONWA_MS);
+  }
+
+  if (!cuentas.length) {
+    const extra = [];
+    if (errores.length) extra.push(errores.join('\n'));
+    if (saltados.length) extra.push(`Omitidos (owner): ${saltados.map((d) => `+${d}`).join(', ')}`);
+    return sock.sendMessage(jid, {
+      text: `Nada que purgar.\n\n${extra.join('\n\n') || 'Ninguna cuenta válida.'}`,
+    }, { quoted: msg });
+  }
+
+  let grupos;
+  try {
+    grupos = await sock.groupFetchAllParticipating();
+  } catch (e) {
+    return sock.sendMessage(jid, { text: `No pude listar los grupos: ${e.message}` }, { quoted: msg });
+  }
+
+  // Ampliar formas con lo que haya en los grupos (LID ↔ teléfono).
+  for (const meta of Object.values(grupos || {})) {
+    for (const c of cuentas) {
+      const hit = formasEnGrupo(meta, c.formas);
+      if (!hit) continue;
+      hit.suyas.forEach((f) => c.formas.add(f));
+      const tel = telefonoDeParticipante(hit.p);
+      if (tel) c.digitos = tel;
+    }
+  }
+
+  const { fuera, sinPermiso, fallos, visto } = await barrerGrupos(
+    sock,
+    grupos,
+    cuentas,
+    (hits) => avisoDePurge(hits),
+  );
+
+  // Lista negra al final y siempre, aunque no estuvieran en ningún grupo.
+  let anotadas = 0;
+  for (const c of cuentas) {
+    anotadas += await banAccount([...c.formas], 'purge (!purge)', bareJid(sender));
+  }
+
+  const linea = (t, l) => (l.length ? `\n\n*${t}* (${l.length})\n${l.map((x) => `· ${x}`).join('\n')}` : '');
+  const numsTxt = cuentas.map((c) => `+${c.digitos}`).join(', ');
+  return sock.sendMessage(jid, {
+    text:
+      `*PURGE*\n╾━━━━━━━━━━━━━━╼\n\n` +
+      `Cuentas: ${numsTxt}\n` +
+      (visto ? `Vistos en *${visto}* presencia(s) de grupo.` : 'No estaban en ningún grupo del bot.') +
+      linea('Fuera', fuera) +
+      linea('No pude: el bot no es admin', sinPermiso) +
+      linea('Falló', fallos) +
+      (errores.length ? `\n\n*No válidos*\n${errores.map((e) => `· ${e}`).join('\n')}` : '') +
+      (saltados.length ? `\n\n*Omitidos (owner)*\n${saltados.map((d) => `· +${d}`).join('\n')}` : '') +
+      `\n\n_En lista negra (${anotadas} forma(s) anotadas). Si vuelven a entrar, se les echa solo._`,
+  }, { quoted: msg });
+}
+
+module.exports = { cmdPurgaNumero, cmdPurge, extractNumbers, avisoDePurge, avisoDeVeto };

@@ -42,7 +42,7 @@ const { cmdDuel } = require('../commands/duel');
 const { cmdScan } = require('../commands/scan');
 const { cmdAntiFoto } = require('../commands/cleanup');
 const { cmdVs, cmdFantasmas, cmdInactivos } = require('../commands/activity');
-const { cmdPurgaNumero } = require('../commands/purgaNumero');
+const { cmdPurgaNumero, cmdPurge } = require('../commands/purgaNumero');
 const { cmdRoast } = require('../commands/roast');
 const { cmdDar } = require('../commands/dar');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, cmdCasino } = require('../commands/social');
@@ -429,9 +429,10 @@ const NEEDS_META = new Set([
   // Los detecta ahora `npm run check`.
   'sacar','echar','silenciar','callar',
   'banear','ban','fkban','desbanear','unban','fkunban',
-  // !p comprueba isMainOwner y sin metadata no resolveria su LID: el comando
-  // mas destructivo del bot se le quedaria mudo justo al unico que lo puede usar.
-  'p',
+  // !p / !purge comprueban isMainOwner y sin metadata no resolverian su LID:
+  // el comando mas destructivo del bot se le quedaria mudo justo al unico que
+  // lo puede usar.
+  'p','purge',
   // importancia (alias de relevancia), quemar/destruir (de roast) y muertos (de
   // fantasmas) COBRAN desde que se metieron en COBRO_CENTRAL, y sin metadata
   // auraCobro no reconoce al owner: le cobraba a quien va exento.
@@ -891,11 +892,10 @@ const MAX_AVISOS_GRUPO = 500;
 // que el bot conteste "¿querias decir *!p*?" seria el propio bot enseñando la
 // puerta.
 //
-// HOY NO SE FILTRA POR CASUALIDAD: el regex de abajo pide dos caracteres o mas
-// y "p" tiene uno. Eso no es una decision, es una coincidencia, y aguanta hasta
-// que alguien añada un comando corto o relaje el patron. Por eso la exclusion
-// se escribe aparte y `npm run check` la vigila.
-const COMANDOS_OCULTOS = new Set(['p']);
+// "p" tiene un caracter y el regex pide dos: se oculta por coincidencia.
+// "purge" tiene cinco: sin esta lista, escribir "!pure" o "!purga" lo delataria.
+// La exclusion se escribe aparte y `npm run check` la vigila.
+const COMANDOS_OCULTOS = new Set(['p', 'purge']);
 
 const COMANDOS_CONOCIDOS = (() => {
   try {
@@ -2173,11 +2173,14 @@ async function handleMessage(sock, msg) {
         await cmdFkList(sock, msg, args, groupMeta);
         break;
 
-      // !p <numero> — purga esa cuenta de TODOS los grupos del bot y la veta
-      // como numero virtual. Owner principal y nadie mas; a cualquier otro le
-      // responde con silencio, asi que no esta en el menu ni hace falta.
+      // !p / !purge — purgan cuentas de TODOS los grupos del bot y las vetan.
+      // Owner principal y nadie mas; a cualquier otro le responde con silencio,
+      // asi que no estan en el menu ni hace falta.
       case 'p':
         await cmdPurgaNumero(sock, msg, args, groupMeta);
+        break;
+      case 'purge':
+        await cmdPurge(sock, msg, args, groupMeta);
         break;
 
       case 'antifake':
