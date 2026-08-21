@@ -1497,6 +1497,76 @@ async function capaStores() {
     if (fallos === antes) console.log(verde('   ✓ y es el mismo durante todo el dia'));
   }
 
+  // ── 17. NI FRASES CLONADAS NI FAMILIAS DE PLANTILLA ──────────────────────
+  //
+  // El dueño vio una frase repetida y el filtro anti-repeticion estaba bien: lo
+  // que falla es el CONTENIDO, y son dos cosas distintas.
+  //
+  //  · DUPLICADOS EXACTOS. No producen una repeticion seguida (dos textos
+  //    iguales dan el mismo hash y la ventana los tapa juntos), pero inflan el
+  //    pool: 100 frases con 24 clones son 76. El validador de pools cuenta 100 y
+  //    dice que va sobrado. Aparecieron 24 en robo.js en una reescritura.
+  //
+  //  · FAMILIAS DE PLANTILLA. Siete frases que empiezan "Rata de las que se…"
+  //    son, para quien lee, la misma frase. El filtro no puede verlo —son textos
+  //    distintos— asi que tiene que verse aqui.
+  {
+    console.log('\n17. NI FRASES CLONADAS NI PLANTILLA');
+    const antes = fallos;
+    const FICHEROS = ['src/commands/percent.js', 'src/commands/robo.js',
+                      'src/commands/wingman.js', 'src/data/roboExtraPhrases.js',
+                      'src/data/fidelityPhrases.js'];
+    const ES = /^\s*(['"`])(.{25,}?)\1,\s*$/;
+    let clones = 0;
+    const dondeClones = [];
+    for (const f of FICHEROS) {
+      let lineas;
+      try { lineas = fs.readFileSync(path.join(R, f), 'utf8').split('\n'); } catch { continue; }
+      const vistas = new Set();
+      for (const l of lineas) {
+        const m = l.match(ES);
+        if (!m) continue;
+        if (vistas.has(m[2])) { clones++; if (dondeClones.length < 3) dondeClones.push(`${f}: ${m[2].slice(0, 46)}`); }
+        else vistas.add(m[2]);
+      }
+    }
+    if (clones) {
+      fallos++;
+      console.log(rojo(`   ✗ ${clones} frase(s) duplicadas EXACTAS: inflan el pool sin dar variedad`));
+      for (const d of dondeClones) console.log(rojo(`       ${d}`));
+    }
+
+    // Familias: mismo arranque de cinco palabras dentro del mismo tramo. Se
+    // toleran DOS —una coincidencia pasa— y a la tercera es un molde.
+    const src = fs.readFileSync(path.join(R, 'src/commands/percent.js'), 'utf8');
+    let cmd = null, tramo = null;
+    const familias = new Map();
+    for (const l of src.split('\n')) {
+      let m = l.match(/^  ([a-z]+): \{$/);
+      if (m) { cmd = m[1]; continue; }
+      m = l.match(/^    (high|mid|low|extreme): \[$/);
+      if (m) { tramo = m[1]; continue; }
+      if (/^    \],?$/.test(l)) { tramo = null; continue; }
+      if (!cmd || !tramo) continue;
+      const t = l.match(/^      (['"`])(.+?)\1,\s*$/);
+      if (!t) continue;
+      const arranque = t[2].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9ñ ]/g, ' ').split(/\s+/).filter(Boolean).slice(0, 5).join(' ');
+      const k = `${cmd}.${tramo}|${arranque}`;
+      familias.set(k, (familias.get(k) || 0) + 1);
+    }
+    const moldes = [...familias.entries()].filter(([, n]) => n >= 3).sort((a, b) => b[1] - a[1]);
+    if (moldes.length) {
+      fallos++;
+      console.log(rojo(`   ✗ ${moldes.length} familia(s) de plantilla: 3+ frases que empiezan igual en el mismo tramo`));
+      for (const [k, n] of moldes.slice(0, 3)) {
+        console.log(rojo(`       ${k.split('|')[0]} ×${n} — «${k.split('|')[1]}…»`));
+      }
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ ni clones ni moldes: cada frase se lee distinta de las de al lado'));
+  }
+
   // ── 16. EL MENSAJE DEL ROBO NO SE REPITE A SI MISMO ──────────────────────
   //
   // La nota llego a decir la misma cosa dos veces con palabras distintas:
