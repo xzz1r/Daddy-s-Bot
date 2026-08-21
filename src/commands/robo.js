@@ -2225,7 +2225,9 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // Ganzua comprada: se gasta SIEMPRE que se tenga, salga bien o mal. Si solo
   // se gastara al acertar seria una compra sin riesgo y dejaria de ser decision.
   let chanceFinal = chance;
-  const usoGanzua = await tienda.gastarGanzua(jid, sender);
+  // El owner tira con ownerGana, no con chanceFinal: gastar la ganzúa aquí
+  // era cobrar un objeto que no entra en el dado.
+  const usoGanzua = ladronEsOwner ? false : await tienda.gastarGanzua(jid, sender);
   if (usoGanzua) {
     // El bono se DILUYE por encima del tope, igual que el del amuleto en la
     // mesa. Un bono de probabilidad fijo vale mas cuanto mas se pide, asi que
@@ -2321,24 +2323,9 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     chanceVisible = Math.min(max, Math.max(min, chanceVisible));
   }
 
-  // Rig a favor del owner principal:
-  // · si la VÍCTIMA es el owner, el robo SIEMPRE falla (no pierde aura; el
-  //   atacante igual paga la penalización normal por la vía de fallo).
-  // · si el ATACANTE es el owner, el robo SIEMPRE tiene éxito.
-  //
-  // Esto llegó a estar rebajado a un suelo del 78 % por una lectura mía de "más
-  // del 70 % de probabilidades": lo entendí como una cifra a fijar cuando era
-  // un mínimo, y cien por cien también lo cumple. Rebajar un rig del owner no es
-  // una decisión que me toque tomar sola. Restaurado.
-  //
-  // ROBO_OWNER_MIN se queda igualmente: sostiene la probabilidad que se ANUNCIA
-  // en el mensaje, que si no saldría baja mientras el resultado sale siempre
-  // bueno — y esa contradicción sí cantaría.
+  // Víctima = owner principal → el robo falla siempre.
+  // Atacante = owner principal → ownerGana(ROBO_OWNER_EXITO), no el 100 %.
   if (isMainOwner(target, false, groupMeta)) success = false;
-  // El owner ya NO acierta siempre: lo pidio el, y con razon. Ganar el 100 % de
-  // los robos deja de parecer suerte a la tercera vez y canta mas que cualquier
-  // cifra que se enseñe. Con ROBO_OWNER_EXITO falla uno de cada seis y el rig
-  // pasa por racha buena.
   else if (isMainOwner(sender, msg.key.fromMe, groupMeta)) success = ownerGana(jid, ROBO_OWNER_EXITO);
 
   const aTag = `@${sender.split('@')[0]}`;

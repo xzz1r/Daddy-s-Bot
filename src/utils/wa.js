@@ -158,6 +158,12 @@ function rememberMapping(lid, phone) {
 // direccionados por teléfono no aportaban ni una correspondencia.
 function indexGroupMeta(groupMeta) {
   if (!groupMeta?.participants) return;
+  // Una vez por objeto. Lo llamaban matchOwnerIndex y clavesDeMiembros cada
+  // uno con su propio WeakSet-check; si se olvidaba uno, se recorría la lista
+  // entera otra vez. Ahora el candado vive aqui y getGroupMeta puede indexar
+  // en cuanto llega la metadata, sin esperar a un isOwner posterior.
+  if (metasIndexadas.has(groupMeta)) return;
+  metasIndexadas.add(groupMeta);
   for (const p of groupMeta.participants) {
     if (!p) continue;
     if (p.phoneNumber && p.id?.endsWith?.('@lid')) rememberMapping(p.id, p.phoneNumber);
@@ -230,11 +236,9 @@ function matchOwnerIndex(jid, groupMeta, owners) {
   if (!jid) return -1;
 
   // Efecto lateral: toda comprobación de owner que traiga metadata refresca el
-  // mapa global de LID. Una sola vez por objeto de metadata.
-  if (groupMeta && !metasIndexadas.has(groupMeta)) {
-    metasIndexadas.add(groupMeta);
-    indexGroupMeta(groupMeta);
-  }
+  // mapa global de LID. Una sola vez por objeto de metadata (lo guarda
+  // indexGroupMeta).
+  if (groupMeta) indexGroupMeta(groupMeta);
 
   const bare = bareJid(jid);
   const candidates = new Set([jid, bare]);
@@ -363,9 +367,13 @@ function isBotAdmin(sock, groupMeta) {
 
 function isAdmin(participants, jid) {
   if (!participants || !jid) return false;
-  const bare = bareJid(jid);
+  // Comparar solo bareJid fallaba en grupos LID: la mención llega como
+  // teléfono y el participante está como @lid. canonicalJid cruza el mapa.
+  const claves = new Set([bareJid(jid), canonicalJid(jid)].filter(Boolean));
   const p = participants.find(x =>
-    bareJid(x?.id) === bare || bareJid(x?.lid) === bare || bareJid(x?.phoneNumber) === bare
+    [x?.id, x?.lid, x?.phoneNumber].some(f => f && (
+      claves.has(bareJid(f)) || claves.has(canonicalJid(f))
+    ))
   );
   return p?.admin === 'admin' || p?.admin === 'superadmin';
 }
@@ -383,10 +391,7 @@ const indiceMiembros = new WeakMap();
 function clavesDeMiembros(groupMeta) {
   let set = indiceMiembros.get(groupMeta);
   if (set) return set;
-  if (!metasIndexadas.has(groupMeta)) {
-    metasIndexadas.add(groupMeta);
-    indexGroupMeta(groupMeta);
-  }
+  indexGroupMeta(groupMeta);
   set = new Set();
   for (const p of groupMeta.participants) {
     if (!p) continue;
@@ -441,7 +446,16 @@ function soloMiembros(users, groupMeta) {
 // Canonical sender. In groups msg.key.remoteJid is the GROUP JID;
 // the actual sender lives in msg.key.participant. Falls back to remoteJid for DMs.
 function getSender(msg) {
-  return msg.key.participant || msg.key.remoteJid;
+  const p = msg?.key?.participant || msg?.key?.remoteJid;
+  const alt = msg?.key?.participantAlt || msg?.key?.participantPn;
+  if (alt && msg.key.participant) {
+    const altEsLid = msg.key.addressingMode
+      ? msg.key.addressingMode !== 'lid'
+      : String(alt).endsWith('@lid');
+    if (altEsLid) rememberMapping(alt, msg.key.participant);
+    else rememberMapping(msg.key.participant, alt);
+  }
+  return p;
 }
 
 // Combined owner-or-admin gate. Owner is checked first because it's the cheap
@@ -452,8 +466,18 @@ function isGroupAdmin(sender, fromMe, groupMeta) {
 
 // Mention/reply target. Returns null when neither is present.
 function getTarget(msg) {
-  const ctx = msg.message?.extendedTextMessage?.contextInfo;
-  return ctx?.mentionedJid?.[0] || ctx?.participant || null;
+  if (!msg?.message) return null;
+  const nodos = [msg.message];
+  for (const v of Object.values(msg.message)) {
+    if (v && typeof v === 'object') nodos.push(v);
+  }
+  for (const nodo of nodos) {
+    const ctx = nodo?.contextInfo;
+    if (!ctx) continue;
+    const t = ctx.mentionedJid?.[0] || ctx.participant;
+    if (t) return t;
+  }
+  return null;
 }
 
 // Same as getTarget but defaults to the sender — used by !sexy/!gay/etc.
@@ -612,6 +636,7 @@ module.exports = {
   extractText,
   extractQuotedText,
   rememberMapping,
+  indexGroupMeta,
   flushLidMap,
   bareJid,
   canonicalJid,

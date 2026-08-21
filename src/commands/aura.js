@@ -5,7 +5,7 @@ const { getUserCount } = require('../utils/messageCounter');
 const { getName, recordName, cargar: cargarNombres } = require('../utils/nombreStore');
 const logger = require('../utils/logger');
 const { contarTirada } = require('../utils/casinoStore');
-const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, bonoVeterania, VETERANIA_TOPE, APUESTA, pApuestaDe, pApuestaVisible, PRECIOS, ARRANQUE, MILLONARIO, rango, MOMENTUM } = require('../utils/economia');
+const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, bonoVeterania, VETERANIA_TOPE, APUESTA, pApuestaDe, pApuestaVisible, PRECIOS, ARRANQUE, MILLONARIO, tirar, MOMENTUM } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
 const { BOTE, ATRACO, CONTRA, RACHA, RIESGO, OBJETOS, VENTAJA, RECOMPENSA, IMPUESTO, REGALO_MIN } = require('../utils/economia');
@@ -13,6 +13,7 @@ const { aportarAlBote } = require('../utils/roboStore');
 const tiendaObj = require('../utils/roboStore');
 const momentum = require('../utils/momentum');
 const { objetivoDelDia, esObjetivoDelDia, diaClave } = require('../utils/objetivoDia');
+const { ownerGana } = require('../utils/rigOwner');
 
 // SUBIDO desde minuto y medio por decision del owner. La cifra esta abajo, en
 // la constante, y NO se repite aqui: este comentario decia "QUINCE MINUTOS"
@@ -61,8 +62,8 @@ function duracion(ms) {
 // Una tirada. `plusActividad` es el bono de veterania ya calculado y `dePago`
 // dice si esta tirada esta dentro de las que cobran hoy.
 function rollAura(targetIsOwner, targetIsAdmin, plusActividad = 0, dePago = true) {
-  const grande  = () => rango([TIRADA.grande[0],  TIRADA.grande[1]  - TIRADA.grande[0]]);
-  const pequena = () => rango([TIRADA.pequena[0], TIRADA.pequena[1] - TIRADA.pequena[0]]);
+  const grande  = () => tirar(TIRADA.grande);
+  const pequena = () => tirar(TIRADA.pequena);
   // P_TRAMO_GRANDE.gana, no un 0.34 suelto. Aqui el valor esperado es cero de
   // todas formas (mismo importe a los dos lados), asi que la cifra no rompia la
   // economia — pero era una constante distinta de la que usa el resto de la
@@ -1035,7 +1036,7 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
       pReal = Math.min(0.95, pReal + OBJETOS.amuleto.bono);
       pVisible = Math.min(0.95, pVisible + OBJETOS.amuleto.bono);
     }
-    const gana = Math.random() < pReal;
+    const gana = esOwnerPrincipal ? ownerGana(jid, pReal) : Math.random() < pReal;
     const sello = etiquetaRiesgo(fraccion);
 
     // El pago SUBE con lo que te juegas de lo tuyo. El acierto BAJA. Las dos
@@ -1249,8 +1250,8 @@ async function cmdAura(sock, msg, args, groupMeta) {
     }, { quoted: msg });
   }
   // Aqui hubo un tope de doce tiradas al dia. Se quito: un contador que se agota
-  // convierte el comando en mirar un numero en vez de jugar, y el freno real es
-  // el cooldown mas la ventaja de la casa (ver multiplicadorPerdida en economia.js).
+  // convierte el comando en mirar un numero en vez de jugar. El freno real es
+  // el cooldown más TIRADAS_PAGADAS (después, EV cero).
   // Se puede tirar todo lo que se quiera; lo que ya no se puede es imprimir.
   if (lastRoll.size >= 2000) lastRoll.delete(lastRoll.keys().next().value);
   lastRoll.set(coolKey, Date.now());

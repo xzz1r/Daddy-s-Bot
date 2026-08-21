@@ -16,7 +16,7 @@ const { isOwner, sameUser, isBotAdmin, canonicalJid, rememberMapping, flushOwner
 // anotarAlta apunta el motivo de cada alta; motivoDelAlta lo consulta cuando hay
 // que decidir si un alta fue a dedo (la unica que se sanciona).
 const { anotarAlta, motivoDelAlta, ALTA_ADD } = require('./utils/joinReason');
-const { notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, reactivarSondeo, frenoNuevo, flushJoinRequests } = require('./utils/joinRequests');
+const { notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, reactivarSondeo, frenoNuevo, flushJoinRequests, sondeoReciente } = require('./utils/joinRequests');
 const { flushCounts } = require('./utils/messageCounter');
 const { flushNames, recordName, cuantosNombres } = require('./utils/nombreStore');
 const { flushPickHistory } = require('./utils/helpers');
@@ -32,10 +32,10 @@ const { flushBanlist, banAccount } = require('./utils/banlist');
 const { flushLinkPerms } = require('./utils/linkPerms');
 const { flushRobo } = require('./utils/roboStore');
 const { guardOnJoin, allForms } = require('./commands/fk');
-const { isBusiness, businessEvidence } = require('./utils/businessCheck');
-const { aplicarParticipantes, aplicarAUno } = require('./utils/participantes');
+const { businessEvidence } = require('./utils/businessCheck');
+const { aplicarParticipantes, aplicarAUno, formasDe } = require('./utils/participantes');
 const { getMemberFacts } = require('./utils/nickStore');
-const { ensureTemp, barrerHuerfanos } = require('./utils/helpers');
+const { ensureTemp, barrerHuerfanos, withTimeout } = require('./utils/helpers');
 const { gitCommit } = require('./utils/version');
 const { VF_STATIC } = require('./utils/sticker');
 const logger = require('./utils/logger');
@@ -347,10 +347,10 @@ async function sancionarPorAñadir(sock, groupJid, autor, meta, aDedo) {
 async function getBaileysVersion() {
   if (_baileysVersion) return _baileysVersion;
   try {
-    const version = await Promise.race([
+    const version = await withTimeout(
       fetchLatestBaileysVersion().then(r => r.version),
-      new Promise((_, rechaza) => setTimeout(() => rechaza(new Error('tardó demasiado')), ESPERA_VERSION_MS)),
-    ]);
+      ESPERA_VERSION_MS,
+    );
     _baileysVersion = version;
     return version;
   } catch (err) {
@@ -612,6 +612,10 @@ async function connectToWhatsApp() {
               `WhatsApp cerró la sesión ${ciclosLogout} veces seguidas. El bot dejó de reintentar.` +
               `a propósito: encadenar QR puede convertir una restricción temporal en permanente.` +
               `Revisa el teléfono (Dispositivos vinculados) y arranca a mano con: pm2 restart bot`);
+            detenido = true;
+            try { sock.ev.removeAllListeners(); } catch {}
+            try { sock.end(); } catch {}
+            sock = null;
             return;
           }
 
@@ -646,10 +650,8 @@ async function connectToWhatsApp() {
           `Van ${reconnectAttempts} intentos de reconexión fallidos. Sigo intentándolo.` +
           `cada ${Math.round(ESPERA_RECONEXION_MAX / 60000)} min: si esto no se arregla solo.` +
           `mira la red de la VPS.`);
-        anotarParada('sin-reconexion',
-          `Lleva ${reconnectAttempts} intentos de reconexión fallidos y sigue intentándolo cada.` +
-          `${Math.round(ESPERA_RECONEXION_MAX / 60000)} min. Suele ser la red de la VPS o WhatsApp caído.` +
-          `Mira: pm2 logs bot --err --lines 50`);
+        // NO se escribe parado.json: el bot SIGUE reconectando. estado.js trata
+        // ese fichero como "se paró", y mentir ahí es peor que un log.
       }
       scheduleReconnect(delay);
 
@@ -824,13 +826,17 @@ async function connectToWhatsApp() {
 //
 // Se ficha ANTES de echar por lo mismo que en el join: si el kick falla, la
 // prueba tiene que sobrevivir.
-function reintentarBusiness(sock, groupJid, kickId, phoneJid, intento = 0) {
+function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0) {
   const ESPERAS = [5000, 30000];
   if (intento >= ESPERAS.length) {
     logger.warn(`Anti-empresa: ${kickId} en ${groupJid} sigue sin poder comprobarse; queda para el primer mensaje`);
     return;
   }
   setTimeout(async () => {
+    // El socket del join puede estar muerto: scheduleReconnect lo cierra.
+    // `sock` es el del módulo, el vivo. Si ya no hay o el modo se apagó, se deja.
+    if (!sock) return;
+    if (!isAntiBusinessEnabled(groupJid)) return;
     try {
       const ev = await businessEvidence(sock, phoneJid);
       if (ev.estado === 'desconocido') return reintentarBusiness(sock, groupJid, kickId, phoneJid, intento + 1);
@@ -1077,21 +1083,29 @@ function reintentarBusiness(sock, groupJid, kickId, phoneJid, intento = 0) {
           const pendientes = await Promise.all(
             metidos.map(id => estabaPendiente(groupJid, allForms(id, meta)).catch(() => false))
           );
-          const aDedo = metidos.filter((_, i) => motivos[i] === ALTA_ADD && !pendientes[i]);
-          const perdonados = metidos.filter((_, i) => pendientes[i]);
-          if (perdonados.length) {
+          // Sin sondeo fresco no se sabe quién estaba en la cola. Castigar
+          // entonces es el falso positivo que ya baneó admins: un 27 llega
+          // igual al aprobar una solicitud y al meter a dedo.
+          if (!sondeoReciente(groupJid)) {
             logger.info(
-              `alta en ${groupJid}: ${perdonados.join(', ')} estaban en la cola de ` +
-              `solicitudes, asi que fue una aprobacion. No se sanciona a ${author}.`);
-          }
-
-          if (!aDedo.length) {
-    logger.info(
-              `alta en ${groupJid}: ${author} metió a ${metidos.join(', ')}; ` +
-              `motivos ${JSON.stringify(motivos)}. No se sanciona.`);
+              `alta en ${groupJid}: sondeo de solicitudes caducado; no se sanciona a ${author}.`);
           } else {
-            sancionarPorAñadir(sock, groupJid, author, meta, aDedo)
-              .catch(e => logger.warn(`anti-admin (añadir): ${e.message}`));
+            const aDedo = metidos.filter((_, i) => motivos[i] === ALTA_ADD && !pendientes[i]);
+            const perdonados = metidos.filter((_, i) => pendientes[i]);
+            if (perdonados.length) {
+              logger.info(
+                `alta en ${groupJid}: ${perdonados.join(', ')} estaban en la cola de ` +
+                `solicitudes, asi que fue una aprobacion. No se sanciona a ${author}.`);
+            }
+
+            if (!aDedo.length) {
+              logger.info(
+                `alta en ${groupJid}: ${author} metió a ${metidos.join(', ')}; ` +
+                `motivos ${JSON.stringify(motivos)}. No se sanciona.`);
+            } else {
+              sancionarPorAñadir(sock, groupJid, author, meta, aDedo)
+                .catch(e => logger.warn(`anti-admin (añadir): ${e.message}`));
+            }
           }
         }
       }
@@ -1120,11 +1134,15 @@ function reintentarBusiness(sock, groupJid, kickId, phoneJid, intento = 0) {
         .map(p => (typeof p === 'string' ? { id: p } : p))
         .filter(o => o?.id && !isBotJid(o.id))
         .filter(o => [o.id, o.lid, o.phoneNumber].filter(Boolean)
-          .some(f => isOwner(f, false, meta)))
-        .map(o => o.id);
+          .some(f => isOwner(f, false, meta)));
       if (echados.length) {
+        for (const o of echados) {
+          if (o.id?.endsWith?.('@lid') && o.phoneNumber) rememberMapping(o.id, o.phoneNumber);
+          else if (o.lid && o.phoneNumber) rememberMapping(o.lid, o.phoneNumber);
+          else if (o.lid && o.id && !String(o.id).endsWith('@lid')) rememberMapping(o.lid, o.id);
+        }
         const autorTag = `@${String(author).split('@')[0]}`;
-        const menciones = [author, ...echados];
+        const menciones = [author, ...echados.map(o => o.id)];
 
         // Primero el degradado: es lo único que depende solo del bot y sale
         // siempre, aunque el re-alta se tuerza.
@@ -1135,11 +1153,24 @@ function reintentarBusiness(sock, groupJid, kickId, phoneJid, intento = 0) {
         const sinAdmin = [];
         const invitados = [];
         const fallidos = [];
-        for (const victima of echados) {
+        for (const o of echados) {
+          // WhatsApp add quiere el teléfono. El evento trae lid + phoneNumber;
+          // `o.id` en un grupo LID es el @lid y el alta falla. El expulsado
+          // YA no está en meta, así que formasDe tampoco puede recuperarlo.
+          const victima = o.phoneNumber
+            || (String(o.id).endsWith('@s.whatsapp.net') ? o.id : null)
+            || o.id;
+          const metaAlta = {
+            ...(meta || {}),
+            participants: [
+              ...(meta?.participants || []),
+              { id: o.id, lid: o.lid, phoneNumber: o.phoneNumber },
+            ],
+          };
           // El alta necesita el codigo exacto: un 403 significa "tiene la
           // privacidad activa" y se le manda invitacion, que no es lo mismo que
           // un fallo. Por eso aqui se mira `fallidos`, no solo `ok`.
-          const rAlta = await aplicarParticipantes(sock, groupJid, [victima], 'add', meta);
+          const rAlta = await aplicarParticipantes(sock, groupJid, [victima], 'add', metaAlta);
           if (rAlta.error) logger.warn(`Owner echado: alta fallida de ${victima} en ${groupJid}: ${rAlta.error}`);
           const estado = rAlta.ok.length ? '200' : String(rAlta.fallidos[0]?.status ?? '');
 
@@ -1162,6 +1193,15 @@ function reintentarBusiness(sock, groupJid, kickId, phoneJid, intento = 0) {
           // getBinaryNodeChild de Baileys, no un find a mano: el `content` de un
           // nodo binario puede ser un array, una cadena o bytes, y hacer .find
           // sobre una cadena reventaría.
+          //
+          // `fila` no existía en este ámbito: aplicarParticipantes no devolvía
+          // las filas crudas y `fila?.content` era un ReferenceError en strict
+          // mode. Eso tumba el revert entero — el owner se queda fuera y ni
+          // entra en `fallidos`. Las filas van ahora en rAlta.filas.
+          const filas = rAlta.filas || [];
+          const formas = formasDe(victima, metaAlta);
+          const fila = filas.find(r => r?.jid && formas.some(f => sameUser(f, r.jid)))
+            || (filas.length === 1 ? filas[0] : null);
           const pedido = fila?.content ? getBinaryNodeChild(fila.content, 'add_request') : null;
           const code = pedido?.attrs?.code;
           if (code) {

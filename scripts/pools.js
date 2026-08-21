@@ -73,7 +73,7 @@ const EXTERNOS = contarExternos('src/data/fidelityPhrases.js');
 // Recorre percent.js quedándose con: qué label, qué polaridad y cuántas frases
 // tiene cada tramo.
 function leerLabels() {
-  const src = fs.readFileSync(path.join(R, 'src/commands/percent.js'), 'utf8').split('\n');
+  const src = fs.readFileSync(path.join(R, 'src/data/percentLabels.js'), 'utf8').split('\n');
   const labels = {};
   let label = null, tramo = null;
 
@@ -86,7 +86,9 @@ function leerLabels() {
     if (m) { labels[label].goodIsHigh = m[1] === 'true'; continue; }
 
     // Marca los que tiran uniforme en vez de por rol.
-    if (/^    roll: rollUniform,$/.test(linea)) { labels[label].uniforme = true; continue; }
+    if (/^    roll: rollUniform,$/.test(linea) || /^    uniforme: true,$/.test(linea)) {
+      labels[label].uniforme = true; continue;
+    }
 
     // Tramo declarado en línea: `high: [`
     m = linea.match(/^    (high|mid|low|extreme): \[$/);
@@ -165,10 +167,9 @@ for (const e of EXTRA_ARRAYS) {
 // de runPercent revienta.
 //
 // Un tramo del 4 % sigue saliendo decenas de veces al día en un grupo activo.
-// Con cero frases eso no es repetición: es el comando muerto.
-// `extreme` queda fuera: runPercent lo consulta con `cfg.extreme?.length`, así
-// que vacío no rompe nada — solo se pierde el remate. Los otros tres sí se leen
-// sin red y por eso son los que tumban el comando.
+// Con cero frases eso no es repetición: es el comando mudo (pickFresh devuelve
+// cadena vacía y runPercent se calla). Antes reventaba con .replace sobre
+// undefined; ahora no pega un error, pero el grupo no ve frase.
 const CRITICO = (f) => f.tramo !== 'extreme' && f.n < 10;
 const ROTO  = (f) => !CRITICO(f) && f.prob >= 0.30 && f.libres <= 5;
 const FLOJO = (f) => !CRITICO(f) && f.prob >= 0.30 && f.libres <= 20 && !ROTO(f);
@@ -178,10 +179,10 @@ const FLOJO = (f) => !CRITICO(f) && f.prob >= 0.30 && f.libres <= 20 && !ROTO(f)
 // mejor y el relleno hace danyo de verdad.
 //
 // POR TRAFICO, NO POR NOMBRE DE TRAMO. Es la misma trampa de siempre: en los
-// comandos positivos (linda, sexy, crack, ganador, feminidad, masculinidad) el
+// comandos positivos (sexy, crack, ganador, feminidad, masculinidad) el
 // tramo que se lee es `low` con el 52 %, y `high` solo el 17 %. Aplicar
 // "high=100, el resto 25" por el nombre le da cuatro veces mas frases al tramo
-// que se ve tres veces menos.
+// que se ve tres veces menos. !linda y !fea tiran uniforme, como fiel/infiel.
 //
 //   el que mas sale 100 · el intermedio 50 · el raro 25
 const objetivo = (f) => (f.prob >= 0.50 ? 100 : f.prob >= 0.25 ? 50 : 25);

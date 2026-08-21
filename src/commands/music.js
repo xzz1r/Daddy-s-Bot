@@ -126,7 +126,7 @@ async function cmdPlay(sock, msg, args, groupMeta) {
   if (!fromCache && !result.compartido) {
     // Guarda quién pidió la canción (nombre de WhatsApp) para !cachelist. El
     // owner principal (+33) queda excluido: sus pedidos no muestran solicitante.
-    const requester = isMainOwner(getSender(msg), msg.key.fromMe) ? '' : (msg.pushName || '').trim();
+    const requester = isMainOwner(getSender(msg), msg.key.fromMe, groupMeta) ? '' : (msg.pushName || '').trim();
     try { await setCached(query, result.filePath, result.title, result.mimetype, result.ext, audioBuffer, requester); } catch {}
     cleanTemp(result.filePath).catch(() => {});
   }

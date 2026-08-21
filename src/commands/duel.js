@@ -1,4 +1,4 @@
-const { isOwner, isMainOwner, isAdmin, getSender, getTarget, bareJid, sameUser } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, getSender, getTarget, bareJid, sameUser, canonicalJid } = require('../utils/wa');
 const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/helpers');
 const { getAura, transferAura } = require('../utils/auraStore');
 const { ownerGana } = require('../utils/rigOwner');
@@ -9,11 +9,12 @@ const { ownerGana } = require('../utils/rigOwner');
 // same person, making bareJid comparisons always fail.
 function resolveJid(rawJid, participants) {
   const bare = bareJid(rawJid);
-  if (!participants?.length) return bare;
+  const canon = canonicalJid(rawJid);
+  if (!participants?.length) return canon || bare;
   const p = participants.find(q =>
-    bareJid(q.id) === bare ||
-    (q.lid && bareJid(q.lid) === bare) ||
-    (q.phoneNumber && bareJid(q.phoneNumber) === bare)
+    [q.id, q.lid, q.phoneNumber].some(f => f && (
+      bareJid(f) === bare || canonicalJid(f) === canon
+    ))
   );
   if (!p) return bare;
   if (p.phoneNumber) {
@@ -82,12 +83,6 @@ let DUEL_WIN = [
 ];
 
 
-function clampStake(raw) {
-  const n = parseInt(String(raw).replace(/\D/g, ''), 10);
-  if (!Number.isFinite(n) || n <= 0) return STAKE_DEFAULT;
-  return Math.max(n, STAKE_MIN);
-}
-
 function getPending(jid) {
   const d = pending.get(jid);
   if (!d) return null;
@@ -103,12 +98,13 @@ async function resolveDuel(sock, jid, d, groupMeta) {
   const cA = isAdmin(participants, d.challenger);
   const tA = isAdmin(participants, d.target);
 
-  let side = rollWinner(cO, cA, tO, tA);
-  // El owner principal ya no gana SIEMPRE. Ver DUELO.owner en economia.js: era
-  // un 100 % literal en el sitio donde mas se nota, porque un duelo se le gana A
-  // ALGUIEN y ese alguien lo cuenta. Misma racha compartida que el resto.
+  // El owner principal usa ownerGana (DUELO.owner + racha). rollWinner de
+  // 0.65 se aplicaba ANTES y se tiraba: un dado muerto. Co-owners/admins
+  // siguen por rollWinner.
+  let side;
   if (isMainOwner(d.challenger, false, groupMeta)) side = ownerGana(jid, DUELO.owner) ? 'c' : 't';
   else if (isMainOwner(d.target, false, groupMeta)) side = ownerGana(jid, DUELO.owner) ? 't' : 'c';
+  else side = rollWinner(cO, cA, tO, tA);
   const winner = side === 'c' ? d.challenger : d.target;
   const loser  = side === 'c' ? d.target : d.challenger;
 
@@ -296,12 +292,4 @@ async function cmdDuel(sock, msg, args, groupMeta) {
 }
 
 
-// El bot abre con lo mas fuerte que tiene: los pools de insultos se ordenan
-// de mas duro a mas suave UNA vez, al cargar, y pickFresh sesga la eleccion
-// hacia la cabecera. Los pools neutros (cabeceras, cierres) no se tocan:
-// ahi la "dureza" no significa nada.
-DUEL_WIN = DUEL_WIN;
-
-// clampStake se exporta para poder comprobarlo aparte: es la unica parte del
-// duelo que se puede probar sin un socket ni un grupo de verdad.
-module.exports = { cmdDuel, clampStake };
+module.exports = { cmdDuel };

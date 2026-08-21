@@ -39,7 +39,7 @@ function formasDe(jid, groupMeta) {
 }
 
 // Devuelve SIEMPRE la misma forma:
-//   { ok: [jid...], fallidos: [{ jid, status }], error: null | 'mensaje' }
+//   { ok: [jid...], fallidos: [{ jid, status }], error: null | 'mensaje', filas }
 //
 // `ok` son los que WhatsApp confirmo con un 200. Nada mas entra ahi: ni los que
 // no traen fila, ni los que vienen con otro codigo, ni el caso de que la
@@ -59,6 +59,7 @@ async function aplicarParticipantes(sock, groupJid, ids, accion, groupMeta = nul
       ok: [],
       fallidos: pedidos.map(jid => ({ jid, status: 'excepcion' })),
       error: err?.message || 'error',
+      filas: [],
     };
   }
 
@@ -68,6 +69,7 @@ async function aplicarParticipantes(sock, groupJid, ids, accion, groupMeta = nul
       ok: [],
       fallidos: pedidos.map(jid => ({ jid, status: 'sin-respuesta' })),
       error: null,
+      filas: [],
     };
   }
 
@@ -82,9 +84,13 @@ async function aplicarParticipantes(sock, groupJid, ids, accion, groupMeta = nul
 
     const status = String(fila?.status ?? 'sin-fila');
     if (status === '200') ok.push(jid);
-    else fallidos.push({ jid, status });
+    else fallidos.push({ jid, status, content: fila?.content });
   }
-  return { ok, fallidos, error: null };
+  // `filas` son las filas crudas de WhatsApp. Hacen falta para el 403 de un
+  // alta: el codigo de invitacion viaja ahi dentro (`add_request`), no en
+  // `fallidos`. Sin devolverlas, el caller no puede mandar la invitacion y el
+  // owner echado con privacidad activa se quedaba fuera del grupo.
+  return { ok, fallidos, error: null, filas: res };
 }
 
 // Azucar para el caso de uno solo, que es el 90% de las llamadas. true = salio

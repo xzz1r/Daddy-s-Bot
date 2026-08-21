@@ -6,7 +6,7 @@ const { isOwner, extractQuotedText, getSender } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 
 const GROK_API = 'https://api.x.ai/v1/chat/completions';
-const MODEL = process.env.GROK_MODEL || 'grok-3';
+const MODEL = process.env.GROK_MODEL || 'grok-4.6';
 const KEY_FILE = path.join(__dirname, '../../data/grok-key.txt');
 
 let cachedKey = null;

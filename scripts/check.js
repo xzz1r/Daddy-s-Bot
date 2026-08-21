@@ -952,8 +952,10 @@ async function capaStores() {
   // normales: solo hace al bot insoportable en el unico momento en que importa.
   console.log('\n10. EL GUARDIA NO INUNDA EL CHAT');
   {
-    const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8')
-      .split('\n').map((l) => l.replace(/^\s*\/\/.*$/, '')).join('\n');
+    const mh = [
+      fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8'),
+      fs.readFileSync(path.join(R, 'src/utils/antilink.js'), 'utf8'),
+    ].join('\n').split('\n').map((l) => l.replace(/^\s*\/\/.*$/, '')).join('\n');
     const exige = (cond, queja) => { if (cond) return; fallos++; console.log(rojo(`   ✗ ${queja}`)); };
 
     exige(/function puedeAnunciar\(/.test(mh),
@@ -1793,7 +1795,7 @@ async function capaStores() {
   {
     console.log('\n17. NI FRASES CLONADAS NI PLANTILLA');
     const antes = fallos;
-    const FICHEROS = ['src/commands/percent.js', 'src/commands/robo.js',
+    const FICHEROS = ['src/commands/percent.js', 'src/data/percentLabels.js', 'src/commands/robo.js',
                       'src/commands/wingman.js', 'src/data/roboExtraPhrases.js',
                       'src/data/fidelityPhrases.js'];
     const ES = /^\s*(['"`])(.{25,}?)\1,\s*$/;
@@ -1818,7 +1820,7 @@ async function capaStores() {
 
     // Familias: mismo arranque de cinco palabras dentro del mismo tramo. Se
     // toleran DOS —una coincidencia pasa— y a la tercera es un molde.
-    const src = fs.readFileSync(path.join(R, 'src/commands/percent.js'), 'utf8');
+    const src = fs.readFileSync(path.join(R, 'src/data/percentLabels.js'), 'utf8');
     let cmd = null, tramo = null;
     const familias = new Map();
     for (const l of src.split('\n')) {
@@ -2611,6 +2613,58 @@ async function capaStores() {
     exige(/if \(!ladronEsOwner\)/.test(roboSrc) && /MOMENTUM\.caliente/.test(roboSrc), 'al owner el momentum se le enseña y no se le aplica al dado');
 
     if (fallos === antes) console.log(verde('   ✓ curva, racha, objetivo del día, y el owner no se imprime'));
+  }
+
+  // ── Contratos que se rompieron en silencio y no tocan data/ ───────────────
+  //
+  // Van FUERA de capaStores: esa capa se salta si el bot esta corriendo, y
+  // estas comprobaciones solo leen fuente. Si viven alli, el bug vuelve a
+  // colarse en produccion porque el check diario no las ve.
+  {
+    console.log('\n22. AMAÑO, METADATA Y EL 403 DEL OWNER');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+    const pct = fs.readFileSync(path.join(R, 'src/commands/percent.js'), 'utf8');
+    const pools = fs.readFileSync(path.join(R, 'src/data/percentLabels.js'), 'utf8');
+    const part = fs.readFileSync(path.join(R, 'src/utils/participantes.js'), 'utf8');
+    const bot = fs.readFileSync(path.join(R, 'src/bot.js'), 'utf8');
+
+    const m = mh.match(/const NEEDS_META = new Set\(\[([\s\S]*?)\]\);/);
+    const dentro = new Set([...(m?.[1] || '').matchAll(/'([^']+)'/g)].map((x) => x[1]));
+    const gruposMeta = [...mh.matchAll(/((?:\s*case '[^']+':[^\n]*\n)+)\s*await (cmdAura|cmdRobo|cmdDar|cmdHelp|cmdCasino|cmdCacheList)\(/g)];
+    const faltan = [];
+    for (const g of gruposMeta) {
+      const alias = [...g[1].matchAll(/case '([^']+)'/g)].map((x) => x[1]);
+      faltan.push(...alias.filter((a) => !dentro.has(a)));
+    }
+    exige(faltan.length === 0,
+      `NEEDS_META: faltan alias de aura/robo/dar/ayuda/casino: ${faltan.join(', ')}`);
+
+    const linda = pools.slice(pools.indexOf('\n  linda:'), pools.indexOf('\n  fea:'));
+    const fea = pools.slice(pools.indexOf('\n  fea:'), pools.indexOf('\n  sexy:'));
+    exige(/uniforme:\s*true/.test(linda.slice(0, 220)),
+      '!linda tiene que tirar uniforme: rollPercent le aplica el amaño de owner');
+    exige(/uniforme:\s*true/.test(fea.slice(0, 220)),
+      '!fea tiene que tirar uniforme: rollPercent le aplica el amaño de owner');
+    exige(/\['linda', 'fea', 'fiel', 'infiel'\]/.test(pct),
+      'percent.js tiene que asignar rollUniform a linda/fea/fiel/infiel');
+    const of = pct.match(/const OWNER_FORCE = \{([\s\S]*?)\n\};/);
+    const keys = of ? [...of[1].matchAll(/\b([a-z]+):/g)].map((x) => x[1]) : [];
+    const extras = keys.filter((k) => k !== 'fiel' && k !== 'infiel');
+    exige(extras.length === 0,
+      `percent: OWNER_FORCE no puede reaplicar el amaño de rollPercent; sobran: ${extras.join(', ')}`);
+
+    exige(/filas:\s*res/.test(part),
+      'aplicarParticipantes tiene que devolver las filas crudas (el 403 trae add_request ahi)');
+    exige(/rAlta\.filas/.test(bot),
+      'bot.js tiene que leer rAlta.filas al revertir una expulsion del owner');
+    exige(/withTimeout\(sock\.groupMetadata/.test(mh),
+      'getGroupMeta tiene que cancelar su timer: si no, cada comando loguea un timeout 8s despues');
+    exige(/function withTimeout/.test(fs.readFileSync(path.join(R, 'src/utils/helpers.js'), 'utf8')),
+      'withTimeout vive en helpers y lo usan metadata, version de Baileys, scan y antifoto');
+
+    if (fallos === antes) console.log(verde('   ✓ amaño de % coherente, metadata en las puertas propias, 403 con invitacion'));
   }
 
   console.log(`\n${'─'.repeat(70)}`);

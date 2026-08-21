@@ -2,7 +2,7 @@ const axios = require('axios');
 const { computeHash } = require('./phash');
 const { recordAndMatch } = require('./pfpStore');
 const pfpCache = require('./pfpCache');
-const { canonicalJid } = require('./wa');
+const { canonicalJid, fetchPfpUrl } = require('./wa');
 const logger = require('./logger');
 
 // Indexado AUTOMÁTICO de fotos de perfil. El historial de huellas se construye
@@ -50,6 +50,9 @@ let ultimoBarrido = 0;
 const lastIndexed = new Map(); // account -> ts (última vez que se intentó)
 const queue = [];
 let active = 0;
+let nextAt = 0;
+let pauseTimer = null;
+const enCola = new Set();
 
 function markTracked(account, ts) {
   if (lastIndexed.size >= MAX_TRACKED && !lastIndexed.has(account)) {
@@ -59,17 +62,22 @@ function markTracked(account, ts) {
 }
 
 function pump() {
-  while (active < MAX_CONCURRENT && queue.length) {
-    const job = queue.shift();
-    active++;
-    // La pausa va DESPUÉS de cada trabajo, no antes: así el ritmo se mantiene
-    // aunque la consulta sea instantánea por caché o falle enseguida. Ponerla
-    // antes solo retrasaría el primero y dejaría el resto en ráfaga igual.
-    job().catch(() => {}).finally(() => {
-      active--;
-      if (queue.length) setTimeout(pump, PAUSA_MS);
-    });
+  if (active >= MAX_CONCURRENT || !queue.length) return;
+  const wait = nextAt - Date.now();
+  if (wait > 0) {
+    if (!pauseTimer) {
+      pauseTimer = setTimeout(() => { pauseTimer = null; pump(); }, wait);
+      pauseTimer.unref?.();
+    }
+    return;
   }
+  const job = queue.shift();
+  active++;
+  job().catch(() => {}).finally(() => {
+    active--;
+    nextAt = Date.now() + PAUSA_MS;
+    pump();
+  });
 }
 
 // Encola (si toca) el indexado de la foto de `pfpJid` en `groupJid`. No bloquea:
@@ -86,12 +94,13 @@ function maybeIndex(sock, pfpJid, groupJid) {
   // WITHOUT marking tracked, so this account is retried on its next message/join
   // instead of being silently dropped for the whole TTL window.
   if (queue.length >= MAX_QUEUE) return;
-  markTracked(account, now); // optimista: no volver a encolar mientras corre
+  if (enCola.has(account)) return;
+  enCola.add(account);
 
   queue.push(async () => {
     try {
-      const url = await sock.profilePictureUrl(pfpJid, 'image');
-      if (!url) return;
+      const url = await fetchPfpUrl(sock, pfpJid, 'image', 0);
+      if (!url) { markTracked(account, Date.now()); return; }
       const res = await axios.get(url, {
         responseType: 'arraybuffer', timeout: 10000,
         maxContentLength: 20 * 1024 * 1024, maxBodyLength: 20 * 1024 * 1024,
@@ -103,8 +112,15 @@ function maybeIndex(sock, pfpJid, groupJid) {
       // para que !pfp pueda mostrar la última foto conocida si luego la ocultan.
       // Al resto no lo cacheamos → mínima huella en disco.
       pfpCache.maybeStore({ group: groupJid || null, rawJid: pfpJid, account, matches }, buf).catch(() => {});
-    } catch {
-      // Sin foto / oculta / red: no pasa nada, se reintenta pasado el TTL.
+      markTracked(account, Date.now());
+    } catch (e) {
+      // 429 / timeout: NO se ficha. El markTracked optimista de antes
+      // bloqueaba la cuenta 3 días tras un rate-overlimit.
+      const msg = String(e?.message || e?.data || '');
+      if (/rate-overlimit|429|timeout|ETIMEDOUT|ECONNRESET|ENOTFOUND/i.test(msg)) return;
+      markTracked(account, Date.now());
+    } finally {
+      enCola.delete(account);
     }
   });
   pump();

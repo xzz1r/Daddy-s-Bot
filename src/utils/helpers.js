@@ -77,6 +77,25 @@ function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+// Race `promise` against a timer that ALWAYS gets cleared.
+//
+// Un `Promise.race([fetch, new Promise((_, rej) => setTimeout(rej, ms))])` a
+// palo seco NO cancela al perdedor. Si gana el fetch, el timer sigue vivo y a
+// los N segundos rechaza una promesa que ya nadie escucha → unhandledRejection
+// (y una linea de error en el log) en cada consulta que SI fue bien. Se vio en
+// getGroupMeta: cada comando que pedia metadata escribia "groupMetadata timeout"
+// ocho segundos despues, con la respuesta ya en pantalla.
+//
+// `alExpirar` ausente → se RECHAZA con Error('timeout').
+// `alExpirar` presente → se RESUELVE con ese valor (el patron de !scan/!antifoto).
+function withTimeout(promise, ms, alExpirar) {
+  let t;
+  const timed = alExpirar !== undefined
+    ? new Promise((resolve) => { t = setTimeout(() => resolve(alExpirar), ms); t?.unref?.(); })
+    : new Promise((_, reject) => { t = setTimeout(() => reject(new Error('timeout')), ms); t?.unref?.(); });
+  return Promise.race([Promise.resolve(promise), timed]).finally(() => { if (t) clearTimeout(t); });
+}
+
 // Anti-repetition picker. Avoids returning any element of `pool` that was
 // already returned for the same `key` within the recent window, so the same
 // phrase doesn't land twice in a short span. State is in-memory (per process)
@@ -138,9 +157,9 @@ function _cargarHistorial() {
   _historialCargado = true;
   try {
     const datos = JSON.parse(require('fs').readFileSync(HISTORIAL_FICHERO, 'utf8'));
-    for (const [clave, lista] of Object.entries(datos)) {
-      if (Array.isArray(lista)) _pickHistory.set(clave, lista);
-    }
+    const entradas = Object.entries(datos).filter(([, lista]) => Array.isArray(lista));
+    const recorte = entradas.length > _MAX_PICK_KEYS ? entradas.slice(-_MAX_PICK_KEYS) : entradas;
+    for (const [clave, lista] of recorte) _pickHistory.set(clave, lista);
   } catch { /* primera ejecucion, o fichero ilegible: se empieza de cero */ }
 }
 
@@ -163,8 +182,12 @@ function _programarGuardado() {
 function _guardarYa() {
   if (!_historialSucio) return;
   _historialSucio = false;
+  const fs = require('fs');
+  const tmp = HISTORIAL_FICHERO + '.tmp';
   try {
-    require('fs').writeFileSync(HISTORIAL_FICHERO, JSON.stringify(Object.fromEntries(_pickHistory)));
+    fs.mkdirSync(require('path').dirname(HISTORIAL_FICHERO), { recursive: true });
+    fs.writeFileSync(tmp, JSON.stringify(Object.fromEntries(_pickHistory)));
+    fs.renameSync(tmp, HISTORIAL_FICHERO);
   } catch { /* si no se puede escribir al salir, se pierde la ventana y ya */ }
 }
 // SOLO 'exit'. AQUI NO SE MATA EL PROCESO.
@@ -245,17 +268,23 @@ function tieneArsenal(frase) {
 // Elige una frase al azar entre las que no han salido en las ultimas `window`
 // tiradas de esa misma clave.
 function pickFresh(pool, key, window = 50) {
-  if (!Array.isArray(pool) || pool.length === 0) return undefined;
+  // Cadena vacia, no undefined: los callers hacen `.replace` sobre el resultado
+  // y un pool vacio (o una clave mal escrita) reventaba el comando entero —
+  // `undefined.replace is not a function` — cobrando aura y contestando con
+  // una excepcion delante del grupo.
+  if (!Array.isArray(pool) || pool.length === 0) return '';
   if (!key) return pick(pool);
 
   if (!_historialCargado) _cargarHistorial();
 
-  // Evict the oldest key once we hit the cap (Map preserves insertion order).
-  if (!_pickHistory.has(key) && _pickHistory.size >= _MAX_PICK_KEYS) {
+  // LRU de verdad: Map.set sobre una clave existente NO cambia el orden de
+  // inserción, así que hay que borrar y volver a poner (igual que lidToPhone).
+  let hist = _pickHistory.get(key);
+  if (_pickHistory.has(key)) _pickHistory.delete(key);
+  else if (_pickHistory.size >= _MAX_PICK_KEYS) {
     _pickHistory.delete(_pickHistory.keys().next().value);
   }
-
-  const hist = _pickHistory.get(key) || [];
+  if (!hist) hist = [];
   // Se bloquea como mucho el 60 % del pool, nunca "todo menos una".
   //
   // El tope antiguo era pool.length-1, y en un pool del tamaño de la ventana
@@ -667,4 +696,4 @@ module.exports = {
   // necesite la comprobacion tiene tieneArsenal, que ya lo hace bien.
   tieneArsenal,
   parseCantidad, resolverCantidad, etiquetaRiesgo, limpiarToken,
-  fmt, ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, shuffle, streamToBuffer, atomicWriteJson, readJsonOrEnoent, barrerHuerfanos, MAX_DOWNLOAD_BYTES, MAX_MEDIA_BYTES, createSemaphore, ffmpegSemaphore, ffmpegToBuffer };
+  fmt, ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, withTimeout, shuffle, streamToBuffer, atomicWriteJson, readJsonOrEnoent, barrerHuerfanos, MAX_DOWNLOAD_BYTES, MAX_MEDIA_BYTES, createSemaphore, ffmpegSemaphore, ffmpegToBuffer };

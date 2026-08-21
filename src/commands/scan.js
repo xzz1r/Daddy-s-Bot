@@ -1,6 +1,7 @@
-const { isOwner, isMainOwner, isGroupAdmin, getSender, bareJid } = require('../utils/wa');
+const { isOwner, isMainOwner, isGroupAdmin, getSender, bareJid, fetchPfpUrl, esFotoRestringida } = require('../utils/wa');
 const { businessEvidence } = require('../utils/businessCheck');
 const { getMemberFacts } = require('../utils/nickStore');
+const { withTimeout } = require('../utils/helpers');
 
 const PFP_CONCURRENCY = 8;
 const PFP_TIMEOUT_MS  = 3500;
@@ -14,27 +15,12 @@ const PFP_TIMEOUT_MS  = 3500;
 // IQ como Boom y ahí err.output.statusCode es siempre 500.
 async function pfpEstado(sock, jid) {
   try {
-    const url = await sock.profilePictureUrl(jid, 'image');
-    // Respuesta correcta sin nodo <picture> → no tiene foto.
+    const url = await fetchPfpUrl(sock, jid, 'image', 1);
     return (typeof url === 'string' && url) ? 'si' : 'no';
   } catch (err) {
-    const code = Number(err?.data ?? err?.output?.statusCode ?? err?.status);
-    const txt  = String(err?.message || '').toLowerCase();
-    if (code === 404 || txt.includes('item-not-found')) return 'no';
-    if (code === 401 || code === 403) return 'privacidad';
+    if (err?.restringida || esFotoRestringida(err)) return 'privacidad';
     return 'error';
   }
-}
-
-// Race con timeout que SÍ cancela su temporizador. Sin el clearTimeout, cada
-// consulta dejaba un timer vivo hasta agotarse: en un grupo grande son cientos
-// de temporizadores pendientes reteniendo su closure sin ninguna necesidad.
-function withTimeout(promise, ms, alExpirar) {
-  let t;
-  return Promise.race([
-    promise.finally(() => clearTimeout(t)),
-    new Promise(resolve => { t = setTimeout(() => resolve(alExpirar), ms); }),
-  ]);
 }
 
 async function cmdScan(sock, msg, groupMeta) {

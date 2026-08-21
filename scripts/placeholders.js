@@ -29,6 +29,7 @@ const CONTRATO = {
   'src/commands/duel.js':          { permite: ['%L', '%W'],                    sustituye: 'src/commands/duel.js' },
   'src/commands/mog.js':           { permite: ['%L', '%M'],                    sustituye: 'src/commands/mog.js' },
   'src/commands/percent.js':       { permite: ['[nombre]'],                    sustituye: 'src/commands/percent.js' },
+  'src/data/percentLabels.js':     { permite: ['[nombre]'],                    sustituye: 'src/commands/percent.js' },
   'src/commands/relevance.js':     { permite: ['%N', '%C'],                    sustituye: 'src/commands/relevance.js' },
   'src/commands/roast.js':         { permite: ['%N', '%C', '%PAIS'],           sustituye: 'src/commands/roast.js' },
   'src/commands/robo.js':          { permite: ['%A', '%C', '%N', '%V', '%H'],  sustituye: 'src/commands/robo.js' },

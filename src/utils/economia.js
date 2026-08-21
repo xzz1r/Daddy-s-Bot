@@ -1,20 +1,9 @@
 // Escala única de la economía de aura. Todo lo que reparte, cobra o mueve aura
 // lee de aquí, para que no haya dos sitios con números que se contradigan.
 //
-// REFERENCIA: un miembro MILLONARIO del grupo ronda los 5.000 de aura.
-// Con eso fijado, el resto sale solo:
-//
-//   arranque .................     250   (5 % de un millonario)
-//   tirada floja de !aura ....   10-25
-//   tirada buena de !aura ....   40-80
-//   golpe malo de !aura ......   26-66   (igual para todos, ver MULT_CASTIGO)
-//   bono tier 1 (200 msgs) ...    8-52
-//   bono tier 2 (500 msgs) ...   35-170
-//   bono tier 3 (1000 msgs) ..   90-380  (un 8 % de millonario en el mejor caso)
-//   robo .....................   lo que se pida (punto dulce si no hay cifra)
-//   duelo ....................  10-300
-//   apuesta (!aura apostar) ..  la que se elija, o media cuenta
-//   comando barato / caro ....   12-70
+// REFERENCIA: MILLONARIO, ARRANQUE, TIRADA, BONOS, PRECIOS. Las cifras viven
+// en esas constantes. Un recuadro aquí se queda viejo en el primer reajuste
+// y luego miente a quien lo lee para decidir.
 //
 // ─── DE DONDE SALE EL AURA ──────────────────────────────────────────────────
 //
@@ -137,12 +126,11 @@ const TIRADA_MAX = { grande: TIRADA.grande[1], pequena: TIRADA.pequena[1] };
 // las que se pierde: esa sensación es la que engancha y no se toca.
 //
 // Esto es SOLO el punto de partida. Encima se suma el bono de veteranía, que
-// acumula con los mensajes escritos, y el resultado se tapa en P_TOPE_MIEMBRO
-// para los miembros y en el 80 % del owner para el tier de arriba.
+// acumula con los mensajes escritos, y el resultado se tapa en P_TOPE por rol.
 //
 // Lo que frena que esto se convierta en una imprenta ya no es el multiplicador
 // de pérdida (ver la nota larga más abajo) sino TIRADAS_PAGADAS: se cobra de
-// verdad cinco veces al día y a partir de ahí se juega gratis, a cara o cruz.
+// verdad esas veces al día y a partir de ahí se juega gratis, a cara o cruz.
 // SUBIDO A 75/25 PARA EL MIEMBRO por decisión del owner (era 70/30, y antes
 // 62/38). El motivo fue concreto: había demasiada gente en números rojos y sin
 // aura no se puede usar el bot.
@@ -185,7 +173,7 @@ const ACTIVIDAD_BONO = 0.03;   // +3 % de acierto por escalón, acumulables
 
 // Tope del acierto de un miembro, esté como esté de veterano.
 //
-// Va por debajo del 80 % del owner a propósito y no se toca sin pedirlo: si un
+// Va por debajo de P_TOPE.owner a propósito y no se toca sin pedirlo: si un
 // miembro pudiera igualarlo, el amaño dejaría de ser un amaño. Con +13 se llega
 // a 75 % a los ~4.400 mensajes, o sea cinco escalones de progresión real.
 // Con la base del miembro ya en 75 haria falta un techo mas alto o la veterania
@@ -244,17 +232,9 @@ function bonoVeterania(mensajes) {
 //  2. AL QUE MEJOR LE IBA, MÁS LE DOLÍA. Un veterano con suerte veía golpes de
 //     −95 mientras un novato veía −73. Justo al revés de lo que se espera.
 //
-// Ahora el castigo es el MISMO PARA TODOS: el tramo pequeño (10-25) por un
-// multiplicador fijo. Un golpe malo mueve 26-66, con media 46, tires como tires
-// y seas quien seas. Lo único que decide la suerte es CADA CUÁNTO te toca.
-//
-// Con eso la suerte pasa a ser una ventaja de verdad y se puede leer de un
-// vistazo quién gana qué por tirada:
-//
-//   novato (62 %) ......  +2,2     un miembro recién llegado
-//   admin  (68 %) ......  +7,2
-//   veterano (75 %) ....  +12,4    con el bono de veteranía al tope
-//   owner  (80 %) ......  +16,3
+// Ahora el castigo es el MISMO PARA TODOS: TIRADA.pequena × MULT_CASTIGO (o
+// TIRADA.grande × MULT_CASTIGO_GRANDE). Lo único que decide la suerte es
+// CADA CUÁNTO te toca, no CUÁNTO. Las medias viven en MEDIA_PREMIO / MEDIA_CASTIGO.
 //
 // EL FRENO. Un valor esperado positivo y sin tope es una imprenta: 960 tiradas
 // al día (una cada 90 s las 24 h, automatizable) darían miles de aura. Por eso
@@ -263,16 +243,9 @@ function bonoVeterania(mensajes) {
 // tirada pasa a ser una moneda al aire limpia: 50 % y el mismo importe a los dos
 // lados, valor esperado CERO exacto. Sigues jugando, dejas de cobrar.
 //
-// El multiplicador del golpe NORMAL, que es 3 de cada 4. Bajado de 1,6 a 1,4 al
-// pasar el miembro a 75/25: la pérdida pequeña va de 14 a 35. El golpe gordo
-// tiene su propio multiplicador justo debajo.
-//
-// La relación con la ganancia se invierte respecto a como estaba: antes perder
-// pesaba vez y media lo que pesaba ganar, y ahora pesa MENOS (media de 28 en
-// contra de una media de 30 a favor). Es coherente con lo demás que se ha
-// pedido — más probabilidad de ganar y menos importe — y hace que la tirada
-// sea claramente favorable al jugador. El freno que impide que eso sea una
-// imprenta sigue siendo TIRADAS_PAGADAS, no el castigo.
+// El multiplicador del golpe NORMAL. El gordo tiene el suyo debajo.
+// El freno que impide que un EV positivo sea una imprenta es TIRADAS_PAGADAS,
+// no el castigo.
 const MULT_CASTIGO = 1.4;
 
 // EL GOLPE GORDO, que antes no existia. Perder tenia un solo tamanyo: el tramo
@@ -280,10 +253,8 @@ const MULT_CASTIGO = 1.4;
 // frases pero no el importe, asi que el drama lo ponia el texto y no el marcador
 // — y el jugador no notaba diferencia entre una mala tirada y un desastre.
 //
-// Ahora la perdida tiene los dos tamanyos que ya tenia la ganancia. Una de cada
-// cuatro derrotas sale del tramo GRANDE (48-60 de perdida), que duele de verdad
-// y le da sentido a las frases de "cursed". Las otras tres son el golpe normal
-// de 14-35.
+// Ahora la perdida tiene los dos tamanyos que ya tenia la ganancia.
+// La frecuencia del tramo gordo es P_TRAMO_GRANDE.pierde.
 const MULT_CASTIGO_GRANDE = 1.2;
 
 // Cada cuanto la tirada sale por el tramo grande, gane o pierda. Antes era un
@@ -291,7 +262,7 @@ const MULT_CASTIGO_GRANDE = 1.2;
 // nombre, que es donde vive el resto de la escala.
 const P_TRAMO_GRANDE = { gana: 0.30, pierde: 0.25 };
 
-// Cuántas tiradas del día pagan de verdad. La 6ª y siguientes son moneda al aire
+// Cuántas tiradas del día pagan de verdad. Las siguientes son moneda al aire
 // a valor esperado cero (ver arriba).
 //
 // El número sale de una cuenta, no del gusto: multiplica directamente al ingreso
@@ -1322,6 +1293,11 @@ const SALDO_MINIMO = 0;
 function rango([suelo, ancho]) {
   return suelo + Math.floor(Math.random() * (ancho + 1));
 }
+// TIRADA es [min, max]. rango es [suelo, ancho]. Esta es la única forma
+// correcta de tirar un tramo de TIRADA; pasárselo a rango crudo da 45-105.
+function tirar([min, max]) {
+  return rango([min, max - min]);
+}
 
 module.exports = {
   MILLONARIO, ARRANQUE, SUELO_TODOS,
@@ -1334,5 +1310,5 @@ module.exports = {
   ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_RACHA_MAX, ROBO_OWNER_VISIBLE, DUELO, REGALO_MIN,
   BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA,
   PRECIOS, SALDO_MINIMO, IMPUESTO, impuestoDe,
-  rango,
+  rango, tirar,
 };

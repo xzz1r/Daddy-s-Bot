@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const {
-  getSender, isOwner, isMainOwner, isGroupAdmin, isBotJid, canonicalJid, bareJid, sameUser, fetchAbout,
+  getSender, isOwner, isMainOwner, isGroupAdmin, isBotJid, canonicalJid, bareJid, sameUser, fetchAbout, fetchPfpUrl,
 } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { streamToBuffer, MAX_MEDIA_BYTES } = require('../utils/helpers');
@@ -46,7 +46,7 @@ function allForms(target, groupMeta) {
 // Descarga la foto de perfil. Devuelve { url, buf } o null (sin foto/oculta).
 async function fetchPfp(sock, target) {
   let url;
-  try { url = await sock.profilePictureUrl(target, 'image'); }
+  try { url = await fetchPfpUrl(sock, target, 'image', 1); }
   catch { return null; }
   try {
     const res = await axios.get(url, {

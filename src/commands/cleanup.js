@@ -19,9 +19,10 @@
 // intentó y daba 86 "sin datos" de 134 y cero detectados en un grupo lleno de
 // nicks de un punto. Un comando que no puede ver lo que juzga no debe existir.
 
-const { isOwner, getSender } = require('../utils/wa');
+const { isOwner, getSender, fetchPfpUrl, esFotoRestringida } = require('../utils/wa');
 const { getMemberFacts } = require('../utils/nickStore');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
+const { withTimeout } = require('../utils/helpers');
 
 const lastPfpScan = new Map(); // groupJid -> { ts, detected: [{ kickId, reason }] }
 
@@ -41,22 +42,10 @@ async function detectNoPfp(sock, members) {
   // Un intento. Devuelve 'has' | 'none' | 'privacidad' | 'reintentable'.
   const attempt = async (target) => {
     try {
-      const url = await sock.profilePictureUrl(target, 'image');
-      // Baileys devuelve child?.attrs?.url. Con una respuesta correcta que no
-      // trae nodo <picture>, eso es undefined: es la forma normal en que
-      // WhatsApp dice "esta cuenta no tiene foto". Tratarlo como dato
-      // desconocido dejaba sin verificar a media lista.
+      const url = await fetchPfpUrl(sock, target, 'image', 0);
       return (typeof url === 'string' && url) ? 'has' : 'none';
     } catch (err) {
-      // Baileys lanza los errores IQ como new Boom(text, { data: code })
-      // (WABinary/generic-utils.js:assertNodeErrorFree). El código real va en
-      // err.data; err.output.statusCode es SIEMPRE 500 porque Boom lo pone por
-      // defecto al no recibir statusCode.
-      const code = Number(err?.data ?? err?.output?.statusCode ?? err?.status);
-      const txt  = String(err?.message || '').toLowerCase();
-      if (code === 404 || txt.includes('item-not-found')) return 'none';
-      // Solo la privacidad es genuinamente indistinguible: ahi no se puede saber.
-      if (code === 401 || code === 403) return 'privacidad';
+      if (err?.restringida || esFotoRestringida(err)) return 'privacidad';
       return 'reintentable';
     }
   };
@@ -66,10 +55,7 @@ async function detectNoPfp(sock, members) {
   const probe = async (m) => {
     const target = m.phoneJid || m.kickId;
     for (let intento = 0; intento < 3; intento++) {
-      const r = await Promise.race([
-        attempt(target),
-        new Promise(res => setTimeout(() => res('reintentable'), TIMEOUT_MS)),
-      ]);
+      const r = await withTimeout(attempt(target), TIMEOUT_MS, 'reintentable');
       if (r !== 'reintentable') return r === 'privacidad' ? 'error' : r;
       if (intento < 2) await new Promise(res => setTimeout(res, 400 * (intento + 1)));
     }

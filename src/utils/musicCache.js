@@ -163,6 +163,7 @@ function cacheKey(query) {
 }
 
 function storeInRam(k, buffer, title, mimetype, ext) {
+  if (!buffer || buffer.length > MAX_RAM_BYTES) return; // disco solo: no romper el tope
   // If this key is already in cache, remove it first to reclaim its bytes
   if (ramCache.has(k)) {
     ramUsedBytes -= ramCache.get(k).buffer.length;

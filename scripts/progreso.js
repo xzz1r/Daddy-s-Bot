@@ -29,13 +29,13 @@ const TRAF={false:{high:.87,mid:.09,low:.04},true:{high:.17,mid:.31,low:.52}};
 const UNIF={high:31/101,mid:39/101,low:31/101};
 
 // ── percent.js ───────────────────────────────────────────────────────────────
-const L=fs.readFileSync(path.join(R,'src/commands/percent.js'),'utf8').split('\n');
+const L=fs.readFileSync(path.join(R,'src/data/percentLabels.js'),'utf8').split('\n');
 const labels={};let lab=null,t=null;
 for(const l of L){
   let m=l.match(/^  ([a-z]+): \{$/); if(m){lab=m[1];labels[lab]={p:{}};t=null;continue;}
   if(!lab)continue;
   m=l.match(/^    goodIsHigh: (true|false),$/); if(m){labels[lab].gh=m[1]==='true';continue;}
-  if(/^    roll: rollUniform,$/.test(l)){labels[lab].u=true;continue;}
+  if(/^    roll: rollUniform,$/.test(l)||/^    uniforme: true,$/.test(l)){labels[lab].u=true;continue;}
   m=l.match(/^    (high|mid|low|extreme): \[$/); if(m){t=m[1];labels[lab].p[t]=[];continue;}
   m=l.match(/^    (high|mid|low|extreme): ([A-Z_]+),$/); if(m){labels[lab].p[m[1]]='ext';t=null;continue;}
   if(/^    \],$/.test(l)){t=null;continue;}

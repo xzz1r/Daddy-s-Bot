@@ -193,21 +193,24 @@ function scheduleSave() {
 // Devuelve la clave canónica, ya con todo dentro y las sobrantes borradas.
 function foldPerson(g, userJid) {
   const key = canonicalJid(userJid);
-  let total = g[key];
-  let extras = 0;
-  for (const k in g) {
+  const partes = [];
+  if (g[key] !== undefined) partes.push(g[key]);
+  for (const k of Object.keys(g)) {
     if (k === key || canonicalJid(k) !== key) continue;
-    total = (total === undefined ? 0 : total) + g[k];
+    partes.push(g[k]);
     delete g[k];
-    extras++;
   }
-  if (extras) {
-    // Si la clave canónica no existía, una de las sobrantes hace de base y solo
-    // los extras restantes traen arranque duplicado.
-    const duplicados = g[key] === undefined ? extras - 1 : extras;
-    g[key] = total - STARTING_AURA * duplicados;
-    scheduleSave();
+  if (partes.length <= 1) {
+    if (partes.length === 1 && g[key] === undefined) g[key] = partes[0];
+    return key;
   }
+  const total = partes.reduce((a, b) => a + b, 0);
+  const duplicados = partes.length - 1;
+  const fusionado = total - STARTING_AURA * duplicados;
+  // Dos identidades ya por debajo del arranque (20+20) daban -110. El suelo
+  // es lo que ya tenían, no un agujero inventado.
+  g[key] = Math.max(fusionado, Math.min(...partes));
+  scheduleSave();
   return key;
 }
 
@@ -250,8 +253,10 @@ async function transferAura(groupJid, fromJid, toJid, amount, credita = amount) 
   await load();
   const fromKey = canonicalJid(fromJid);
   const toKey   = canonicalJid(toJid);
-  // Serialize on the sender's key — the critical section is the debit check.
-  const qKey = `${groupJid}|${fromKey}`;
+  // Las dos cuentas, en orden estable: dos !dar al mismo destino (o un duelo
+  // cruzado) se pisaban el abono si solo se bloqueaba al emisor.
+  const keys = [fromKey, toKey].sort();
+  const qKey = `${groupJid}|${keys[0]}|${keys[1]}`;
   return serialized(qKey, () => {
     if (!store[groupJid]) store[groupJid] = {};
     const g = store[groupJid];

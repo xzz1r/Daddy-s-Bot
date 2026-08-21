@@ -20,7 +20,7 @@ const eco = require(R + '/src/utils/economia');
 const { P_POSITIVA, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, ACTIVIDAD_MSGS, P_TOPE_MIEMBRO, TIRADA,
         APUESTA, PRECIOS, BONOS, REDENCION, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE,
         P_TOPE, TIRADAS_PAGADAS, bonoActividad,
-        RACHA, rango, ROBO, DUELO, ARRANQUE, MILLONARIO, IMPUESTO, impuestoDe,
+        RACHA, rango, tirar, ROBO, DUELO, ARRANQUE, MILLONARIO, IMPUESTO, impuestoDe,
         OBJETOS, VENTAJA, RECOMPENSA, RIESGO, ROBO_BASE, ROBO_LIMITES, PRIMERA_DEL_DIA, HITOS,
         pApuestaDe, pApuestaVisible, MOMENTUM, OBJETIVO_DIA } = eco;
 
@@ -45,10 +45,8 @@ const TOPE_PEQUENA = TIRADA.pequena[1];
 const G = [], P = [];
 for (let v = TIRADA.grande[0];  v <= TOPE_GRANDE;  v++) G.push(v);
 for (let v = TIRADA.pequena[0]; v <= TOPE_PEQUENA; v++) P.push(v);
-// [suelo, ANCHO], no [min, max]: el maximo es suelo + ancho. Ya me confundio
-// una vez y volvio a pasar — el "peor golpe" que publique salia un 50 % corto
-// (decia -128 donde son -192) porque tomaba el ancho por el tope. Con nombre
-// propio deja de poder confundirse.
+// TIRADA es [min, max]. Los bucles de arriba enumeran ese intervalo, no
+// [suelo, ancho]. tirar() en economia.js es quien convierte a rango.
 const media = (a) => a.reduce((s, x) => s + x, 0) / a.length;
 // El reparto grande/pequenyo ya no es un 0.34 escrito a mano: vive en economia.js
 // con nombre (P_TRAMO_GRANDE) y es distinto al ganar que al perder.
@@ -346,20 +344,18 @@ ok(f('solo spamea 24').tirando < MILLONARIO * 0.05,
 
 console.log('\n════ 4. varianza y ruina (Monte Carlo, 4.000 vidas) ════\n');
 function rollAura(pPos) {
-  const mult = MULT_CASTIGO;
-  const g = () => rango([TIRADA.grande[0], TIRADA.grande[1] - TIRADA.grande[0]]);
-  const q = () => rango([TIRADA.pequena[0], TIRADA.pequena[1] - TIRADA.pequena[0]]);
-  if (Math.random() < pPos) return Math.random() < 0.34 ? g() : q();
-  // El castigo sale SIEMPRE del tramo pequeño, igual que en aura.js. Esta copia
-  // seguia castigando sobre el grande y, con el multiplicador reescalado, dejaba
-  // a todo el mundo en -8.000 tras 30 dias: una ruina que no existe.
-  return -Math.round(q() * mult);
+  const g = () => tirar(TIRADA.grande);
+  const q = () => tirar(TIRADA.pequena);
+  if (Math.random() < pPos) {
+    return Math.random() < P_TRAMO_GRANDE.gana ? g() : q();
+  }
+  return Math.random() < P_TRAMO_GRANDE.pierde
+    ? -Math.round(g() * MULT_CASTIGO_GRANDE)
+    : -Math.round(q() * MULT_CASTIGO);
 }
 // La tirada que ya no paga: mismo importe a los dos lados, 50 %. EV cero exacto.
 function rollNeutra() {
-  const g = () => rango([TIRADA.grande[0], TIRADA.grande[1] - TIRADA.grande[0]]);
-  const q = () => rango([TIRADA.pequena[0], TIRADA.pequena[1] - TIRADA.pequena[0]]);
-  const cuanto = Math.random() < 0.34 ? g() : q();
+  const cuanto = Math.random() < P_TRAMO_GRANDE.gana ? tirar(TIRADA.grande) : tirar(TIRADA.pequena);
   return Math.random() < 0.5 ? cuanto : -cuanto;
 }
 function bonoReal(tier, aura) {

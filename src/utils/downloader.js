@@ -303,23 +303,30 @@ async function tryRapidApi(query) {
 function ytdlp(args, timeoutMs = 180000) {
   return new Promise((resolve, reject) => {
     const proc = spawn(YT_DLP, args, { detached: true });
+    proc.unref?.();
     let stdout = '';
     let stderr = '';
+    let settled = false;
+    const done = (fn, arg) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      fn(arg);
+    };
     const killGroup = () => {
       try { process.kill(-proc.pid, 'SIGKILL'); }
       catch { try { proc.kill('SIGKILL'); } catch {} }
     };
-    const timer = setTimeout(() => { killGroup(); reject(new Error('yt-dlp timeout')); }, timeoutMs);
-    proc.stdout?.on('data', (d) => { stdout += d.toString(); });
-    proc.stderr?.on('data', (d) => { stderr += d.toString(); });
-    proc.on('error', (err) => { clearTimeout(timer); reject(new Error(`yt-dlp no se pudo ejecutar: ${err.message}`)); });
+    const timer = setTimeout(() => { killGroup(); done(reject, new Error('yt-dlp timeout')); }, timeoutMs);
+    proc.stdout?.on('data', (d) => { if (!settled) stdout += d.toString(); });
+    proc.stderr?.on('data', (d) => { if (!settled) stderr += d.toString(); });
+    proc.on('error', (err) => { done(reject, new Error(`yt-dlp no se pudo ejecutar: ${err.message}`)); });
     proc.on('close', (code) => {
-      clearTimeout(timer);
-      if (code === 0) resolve(stdout);
+      if (code === 0) done(resolve, stdout);
       else {
         const cleanErr = stderr.split('\n').filter(l => l.startsWith('ERROR:')).pop()
           || stderr.trim().split('\n').pop() || `código ${code}`;
-        reject(new Error(cleanErr.replace(/^ERROR:\s*/, '')));
+        done(reject, new Error(cleanErr.replace(/^ERROR:\s*/, '')));
       }
     });
   });
