@@ -20,8 +20,8 @@
 
 const path = require('path');
 const { canonicalJid } = require('./wa');
-const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
-const { RACHA } = require('./economia');
+const { atomicWriteJson, readJsonOrEnoent, claveDia } = require('./helpers');
+const { RACHA, DIA } = require('./economia');
 const logger = require('./logger');
 
 const RACHA_FILE = path.join(__dirname, '../../data/racha.json');
@@ -53,14 +53,15 @@ function scheduleSave() {
   }, 5000);
 }
 
-// El día al que pertenece un instante, en hora española y con el corte movido.
-// Formato sv-SE porque es el único que da YYYY-MM-DD directo, que ordena y
-// resta bien como texto.
-const FORMATO = new Intl.DateTimeFormat('sv-SE', {
-  timeZone: RACHA.zona, year: 'numeric', month: '2-digit', day: '2-digit',
-});
+// El día al que pertenece un instante. Es el día del bot entero (DIA), no uno
+// propio: la racha cortaba a las 5 de la mañana hora de Madrid y el contador de
+// mensajes a medianoche de Nueva York, o sea dos "hoy" a una hora de distancia.
+//
+// Y el cálculo es el compartido. El que había aquí restaba las horas al
+// instante antes de formatear, y eso se desvía sesenta minutos los dos días del
+// año en que cambia la hora: medido, cortaba a las 06:00 y a las 04:00.
 function diaDe(ts) {
-  return FORMATO.format(new Date(ts - RACHA.horaCorte * 3600 * 1000));
+  return claveDia(ts, DIA.zona, DIA.horaCorte);
 }
 
 // ¿`b` es el día siguiente a `a`? Se compara con fechas de verdad, no sumando

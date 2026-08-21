@@ -520,8 +520,9 @@ const RACHA = {
   // forma de acelerarlo con dinero ni de repetirlo.
   premioHito: { 7: 150, 15: 350, 30: 700, 50: 1200, 100: 2500, 200: 5000, 365: 10000 },
   minParaLlorarla: 7,   // por debajo de esto, romperla no se anuncia
-  horaCorte: 5,         // el día cambia a las 5 de la mañana, hora española
-  zona: 'Europe/Madrid',
+  // El corte del día NO vive aquí: es el del bot entero (DIA, más abajo). Tenía
+  // los suyos propios —5 de la mañana, hora de Madrid— y eso son dos "hoy"
+  // distintos conviviendo en el mismo bot.
 };
 
 // ─── Bonos por actividad (tramos de 200 / 500 / 1000 mensajes diarios) ───────
@@ -625,7 +626,14 @@ const PRIMERA_DEL_DIA = 59;
 //
 // Ahora corta a una hora fija de un huso fijo. `horaCorte` es la hora local a
 // la que empieza el dia nuevo: 0 = medianoche.
-const CONTADOR = { zona: 'America/New_York', horaCorte: 0 };
+// Y es el dia de TODO el bot, no solo el del contador: la racha y el objetivo
+// del dia cortaban a las 5 de la mañana hora de Madrid, o sea una hora antes y
+// en un huso que no pinta nada aqui. Tres relojes distintos para un bot que
+// dice "hoy" en tres sitios era una explicacion pendiente cada vez que alguien
+// preguntaba por que su racha cambio antes que su contador.
+const DIA = { zona: 'America/New_York', horaCorte: 0 };
+// Nombre viejo, mismo objeto: lo lee casinoStore y no vale la pena romperlo.
+const CONTADOR = DIA;
 
 const HITOS = [
   { n: 200,  tier: 1 },
@@ -1318,7 +1326,7 @@ function rango([suelo, ancho]) {
 module.exports = {
   MILLONARIO, ARRANQUE, SUELO_TODOS,
   TIRADA, TIRADA_MIN, TIRADA_MAX, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE,
-  PRIMERA_DEL_DIA, HITOS, CONTADOR,
+  PRIMERA_DEL_DIA, HITOS, CONTADOR, DIA,
   P_TOPE_MIEMBRO, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, MEDIA_PREMIO, MEDIA_CASTIGO, bonoActividad, APUESTA,
   pApuestaDe, pApuestaVisible, APUESTA_OWNER_VISIBLE,
   RACHA, BONOS, REDENCION,

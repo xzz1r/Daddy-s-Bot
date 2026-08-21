@@ -1419,8 +1419,13 @@ async function capaStores() {
     const kickDesp = pn.indexOf("aplicarParticipantes(sock, gJid, ids, 'remove'");
     exige(avisoAntes > 0 && kickDesp > avisoAntes,
       'el aviso de !p/!purge tiene que salir ANTES del kick: si no, no lo ven');
-    exige(/no eres suficiente|no son suficientes/i.test(pn),
-      'el aviso de !purge tiene que ir al hueso: que no son suficientes');
+    // Aqui habia una guarda que exigia las palabras "no eres suficiente". El
+    // aviso se reescribio a proposito (ahora es frio y por reglas) y la guarda
+    // se quedo pidiendo la redaccion vieja: cinco fallos en verde que no eran
+    // fallos. Una guarda atada a la copia se rompe cada vez que alguien mejora
+    // la frase, y entrena a ignorarla. Lo que importa del aviso es que exista,
+    // que salga antes del kick y que mencione a quien va a caer — y eso se
+    // comprueba mas abajo, ejecutandolo.
     const avisoSrc = pn.slice(pn.indexOf('function avisoDePurge'), pn.indexOf('function extractNumbers'));
     exige(avisoSrc.includes('function avisoDePurge'), 'no encuentro avisoDePurge para comprobar el tono');
     exige(!/valéis|estáis|sois |vosotros|tenéis/.test(avisoSrc),
@@ -1463,12 +1468,22 @@ async function capaStores() {
       'extractNumbers no lee wa.me');
     exige(extractNumbers('hola').length === 0, 'extractNumbers inventa numeros donde no hay');
 
+    // El aviso, por lo que TIENE que cumplir y no por como esta redactado.
     const aviso1 = avisoDePurge(['57300111222']);
-    exige(/no eres suficiente/i.test(aviso1.text) && /te creíste a la altura/i.test(aviso1.text),
-      'el aviso de un numero no va al hueso');
     const avisoN = avisoDePurge(['57300111222', '57300333444']);
-    exige(/no son suficientes/i.test(avisoN.text) && /se creyeron a la altura/i.test(avisoN.text) && /ustedes/.test(avisoN.text),
-      'el aviso de varios no va al hueso');
+    exige((aviso1.mentions || []).length === 1 && (avisoN.mentions || []).length === 2,
+      'el aviso de !purge tiene que mencionar a cada uno de los que van a caer');
+    exige(/@/.test(aviso1.text) && /@/.test(avisoN.text),
+      'el aviso no escribe la etiqueta: la mencion sin el @ en el texto no se ve');
+    // SIN LAS ETIQUETAS. Comparar los textos enteros no comprueba nada: uno
+    // lleva una mencion y el otro dos, asi que difieren siempre aunque la frase
+    // sea la misma. Probado — con el singular desactivado a proposito, la
+    // guarda seguia en verde. Lo que tiene que cambiar es la FRASE.
+    const sinTags = (a) => a.text.replace(/@\S+/g, '').replace(/\s+/g, ' ').trim();
+    exige(sinTags(aviso1) !== sinTags(avisoN),
+      'el aviso de uno y el de varios dicen la misma frase: uno de los dos concuerda mal en numero');
+    exige(aviso1.text.length < 200 && avisoN.text.length < 240,
+      'el aviso de !purge se esta alargando: es un aviso, no un comunicado');
     exige(!/valéis|estáis|sois |vosotros/.test(aviso1.text + avisoN.text),
       'avisoDePurge conjugó en vosotros');
 
@@ -1486,7 +1501,7 @@ async function capaStores() {
         const B = '57300333444@s.whatsapp.net';
         const sockP = {
           user: { id: BOT },
-          sendMessage: async (jid, c) => { timeline.push({ t: 'msg', jid, text: c.text || '' }); return {}; },
+          sendMessage: async (jid, c) => { timeline.push({ t: 'msg', jid, text: c.text || '', mentions: c.mentions || [] }); return {}; },
           onWhatsApp: async (jid) => [{ exists: true, jid }],
           groupFetchAllParticipating: async () => ({
             'g1@g.us': {
@@ -1529,14 +1544,21 @@ async function capaStores() {
         exige(kicks.length === 2, `!purge tenia que echar de 2 grupos y echo de ${kicks.length}`);
         exige(kicks.every((k) => k.accion === 'remove'), '!purge no esta expulsando');
 
+        // El aviso se localiza por lo que ES —el mensaje al grupo que menciona a
+        // alguien—, no por lo que dice. Antes se buscaba la palabra
+        // "suficiente" y al reescribir la frase estas tres guardas dejaron de
+        // encontrar nada: no fallaban por un fallo, fallaban por la copia.
+        const esAviso = (x) => x.t === 'msg' && (x.mentions || []).length > 0;
         const ordenG1 = timeline.filter((x) => x.jid === 'g1@g.us' || x.gJid === 'g1@g.us');
-        const iAviso = ordenG1.findIndex((x) => x.t === 'msg' && /suficiente/i.test(x.text || ''));
+        const iAviso = ordenG1.findIndex(esAviso);
         const iKick = ordenG1.findIndex((x) => x.t === 'kick');
         exige(iAviso >= 0 && iKick > iAviso,
           'en el grupo el aviso de !purge no sale ANTES del kick');
 
-        const avisoLid = timeline.find((x) => x.jid === 'g2@g.us' && /suficiente/i.test(x.text || ''));
+        const avisoLid = timeline.find((x) => x.jid === 'g2@g.us' && esAviso(x));
         exige(Boolean(avisoLid), '!purge no aviso en el grupo LID (no encontro el @lid)');
+        exige(!avisoLid || avisoLid.mentions.includes('999@lid'),
+          '!purge avisa en el grupo LID sin mencionar el @lid: la mencion no le llega a quien va a caer');
         exige(kicks.some((k) => k.gJid === 'g2@g.us' && k.ids.includes('999@lid')),
           '!purge no echo del grupo LID por el id del participante');
         exige(!kicks.some((k) => k.gJid === 'g3@g.us'),
@@ -2248,9 +2270,9 @@ async function capaStores() {
         // DIAS DEL CAMBIO DE HORA, que es donde se rompen estas cosas: sumar
         // 24 h a mano habria descuadrado el corte una hora dos veces al año.
         {
-          const { CONTADOR } = require(path.join(R, 'src/utils/economia'));
+          const { DIA } = require(path.join(R, 'src/utils/economia'));
           const cs2 = require(path.join(R, 'src/utils/casinoStore'));
-          const hh = String(CONTADOR.horaCorte).padStart(2, '0');
+          const hh = String(DIA.horaCorte).padStart(2, '0');
           const momentos = [
             ['visperas del salto adelante', Date.UTC(2026, 2, 7, 20, 0)],
             ['el dia del salto adelante',   Date.UTC(2026, 2, 8, 19, 0)],
@@ -2258,13 +2280,18 @@ async function capaStores() {
             ['el dia del salto atras',      Date.UTC(2026, 10, 1, 20, 0)],
             ['un minuto antes del corte',   Date.UTC(2026, 7, 22, 3, 59)],
             ['un minuto despues',           Date.UTC(2026, 7, 22, 4, 1)],
+            // Los cambios de hora de Madrid entran aqui porque la racha y el
+            // objetivo del dia vivian en ese huso: si alguien los devuelve alli,
+            // estos dos momentos lo cazan.
+            ['cambio de hora en Madrid',    Date.UTC(2026, 2, 29, 12, 0)],
+            ['cambio de hora en Madrid',    Date.UTC(2026, 9, 25, 12, 0)],
           ];
           for (const [etq, ts] of momentos) {
             const cae = new Date(ts + cs2.msHastaCorte(ts))
-              .toLocaleString('sv-SE', { timeZone: CONTADOR.zona });
+              .toLocaleString('sv-SE', { timeZone: DIA.zona });
             if (!new RegExp(` ${hh}:00:0[01]$`).test(cae)) {
               fallos++;
-              console.log(rojo(`   ✗ ${etq}: el corte cae a las ${cae.slice(11)} en ${CONTADOR.zona} y tiene que caer a las ${hh}:00`));
+              console.log(rojo(`   ✗ ${etq}: el corte cae a las ${cae.slice(11)} en ${DIA.zona} y tiene que caer a las ${hh}:00`));
             }
           }
           // Y el dia tiene que ser UNO SOLO de corte a corte: todo lo que cae
@@ -2274,6 +2301,92 @@ async function capaStores() {
           // primera version daba por hecho que el corte es a medianoche, y al
           // mover la hora acusaba de deslizarse a un contador que estaba bien.
           // Una guarda que solo vale para el valor de hoy no protege el ajuste.
+          // EL BOT TIENE UN SOLO DIA, Y UNA SOLA FORMA DE CALCULARLO.
+          //
+          // El calculo estaba escrito TRES veces —contador, racha y objetivo del
+          // dia— y las tres restaban las horas al instante antes de formatear,
+          // que se desvia sesenta minutos los dos dias del año en que cambia la
+          // hora. Ademas la racha y el objetivo cortaban en Madrid y el contador
+          // en Nueva York: dos "hoy" a una hora de distancia.
+          //
+          // SE BARRE EL DIA ENTERO, no se comparan tres instantes sueltos. La
+          // primera version de esta guarda elegia timestamps a mano y los tres
+          // caian a mediodia UTC, donde Madrid y Nueva York dan LA MISMA fecha:
+          // pasaba en verde con el objetivo del dia devuelto a Madrid a proposito.
+          // Un muestreo cada quince minutos no tiene donde esconderse.
+          {
+            const { claveDia } = require(path.join(R, 'src/utils/helpers'));
+            const od = require(path.join(R, 'src/utils/objetivoDia'));
+            const rs = require(path.join(R, 'src/utils/rachaStore'));
+            const anclas = [
+              Date.UTC(2026, 7, 21), Date.UTC(2026, 2, 8), Date.UTC(2026, 10, 1),
+              Date.UTC(2026, 2, 29), Date.UTC(2026, 9, 25),
+            ];
+            const discrepan = [];
+            for (const base of anclas) {
+              for (let m = 0; m < 48 * 60 && discrepan.length < 4; m += 15) {
+                const ts = base + m * 60000;
+                const esperada = claveDia(ts, DIA.zona, DIA.horaCorte);
+                for (const [quien, val] of [['contador', cs2.diaDe(ts)], ['racha', rs.diaDe(ts)], ['objetivo del dia', od.diaClave(ts)]]) {
+                  if (val !== esperada) discrepan.push(`el ${quien} dice ${val} y el dia del bot es ${esperada} (${new Date(ts).toISOString()})`);
+                }
+              }
+            }
+            if (discrepan.length) {
+              fallos++;
+              for (const d of discrepan) console.log(rojo(`   ✗ hay dos "hoy" distintos: ${d}`));
+            }
+            // Y que no vuelva una copia del calculo. Se mira que ninguno de los
+            // tres se fabrique su propio formateador de fechas: si delega en
+            // helpers no lo necesita, y si lo tiene es que se lo ha vuelto a
+            // escribir. El patron viejo exacto no vale como señal — el mutante
+            // que probe escribia el 5 a mano en vez de leer horaCorte.
+            // EL AYUDANTE, COMPROBADO POR SUS PROPIEDADES Y EN VARIOS HUSOS.
+            //
+            // Comparar las tres piezas contra claveDia no basta: si el que se
+            // rompe es claveDia, las tres coinciden en la respuesta equivocada.
+            // Y con Nueva York (huso negativo) algunos errores no se ven —
+            // probado: cambiar el calculo del dia anterior por una resta cruda
+            // de 24 h da lo mismo aqui y falla en Madrid. Asi que se comprueban
+            // PROPIEDADES, en husos de los dos signos:
+            //
+            //   · a lo largo de N dias salen exactamente N claves distintas,
+            //   · cada una es el dia natural siguiente de la anterior,
+            //   · y el salto ocurre justo al dar la hora de corte local.
+            for (const zona of ['America/New_York', 'Europe/Madrid', 'America/Bogota', 'Asia/Katmandu']) {
+              for (const hc of [0, 5, 23]) {
+                const vistas = [];
+                const base = Date.UTC(2026, 2, 6);   // cruza el cambio de hora de EE. UU.
+                for (let m = 0; m < 6 * 24 * 60; m += 10) {
+                  const k = claveDia(base + m * 60000, zona, hc);
+                  if (k !== vistas[vistas.length - 1]) vistas.push(k);
+                }
+                let roto = null;
+                for (let i = 1; i < vistas.length; i++) {
+                  const a = new Date(`${vistas[i - 1]}T12:00:00Z`).getTime();
+                  const b = new Date(`${vistas[i]}T12:00:00Z`).getTime();
+                  if (!Number.isFinite(a) || !Number.isFinite(b)) { roto = `clave ilegible (${vistas[i - 1]} -> ${vistas[i]})`; break; }
+                  if (Math.round((b - a) / 86400000) !== 1) { roto = `${vistas[i - 1]} -> ${vistas[i]} no son dias seguidos`; break; }
+                }
+                if (!roto && vistas.length !== 7) roto = `en 6 dias salen ${vistas.length} claves y tendrian que salir 7`;
+                if (roto) {
+                  fallos++;
+                  console.log(rojo(`   ✗ claveDia en ${zona} con corte a las ${hc}: ${roto}`));
+                }
+              }
+            }
+
+            const copias = [];
+            for (const f of ['casinoStore.js', 'rachaStore.js', 'objetivoDia.js']) {
+              const src = fs.readFileSync(path.join(R, 'src/utils', f), 'utf8').replace(/\/\/[^\n]*/g, '');
+              if (/Intl\.DateTimeFormat/.test(src)) copias.push(f);
+            }
+            if (copias.length) {
+              fallos++;
+              console.log(rojo(`   ✗ ${copias.join(', ')} se fabrica otra vez su propio calculo del dia: tiene que salir de claveDia`));
+            }
+          }
+
           for (const ancla of [Date.UTC(2026, 7, 22, 4, 1), Date.UTC(2026, 2, 8, 19, 0), Date.UTC(2026, 10, 1, 20, 0)]) {
             const corte = ancla + cs2.msHastaCorte(ancla);
             const dentro = [corte - 2000, corte - 6 * 3600 * 1000, corte - 23 * 3600 * 1000];

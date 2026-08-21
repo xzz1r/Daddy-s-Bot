@@ -2,22 +2,20 @@
 //
 // Sale del hash (grupo, día), el mismo truco que la ficha falsa del owner:
 // estable las 24 h, distinto cada día, sin guardar nada en disco. El corte
-// del día es el de la racha (5 de la mañana, hora española) para que no
-// rote a las 19 h de Colombia por irse a medianoche UTC.
+// del día es el del bot entero (DIA: medianoche de Nueva York), el mismo que el
+// contador de mensajes y la racha, para que no rote a media tarde por irse a
+// medianoche UTC ni a una hora distinta que los otros dos.
 'use strict';
 
-const { OBJETIVO_DIA, ROBO, RACHA, ARRANQUE } = require('./economia');
+const { OBJETIVO_DIA, ROBO, ARRANQUE, DIA } = require('./economia');
 const { ruido } = require('./fachada');
+const { claveDia } = require('./helpers');
 const { isMainOwner, canonicalJid, soloMiembros } = require('./wa');
 const { getAuraRanking } = require('./auraStore');
 const tienda = require('./roboStore');
 
-const FORMATO = new Intl.DateTimeFormat('sv-SE', {
-  timeZone: RACHA.zona, year: 'numeric', month: '2-digit', day: '2-digit',
-});
-
 function diaClave(ts = Date.now()) {
-  return FORMATO.format(new Date(ts - RACHA.horaCorte * 3600 * 1000));
+  return claveDia(ts, DIA.zona, DIA.horaCorte);
 }
 
 function mismo(a, b) {

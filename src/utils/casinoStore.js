@@ -1,7 +1,7 @@
 const path = require('path');
 const { canonicalJid } = require('./wa');
-const { CONTADOR } = require('./economia');
-const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
+const { DIA } = require('./economia');
+const { atomicWriteJson, readJsonOrEnoent, claveDia, msHastaCorte: msHastaCorteDia } = require('./helpers');
 const logger = require('./logger');
 
 const CASINO_FILE = path.join(__dirname, '../../data/casino.json');
@@ -22,49 +22,13 @@ const CASINO_FILE = path.join(__dirname, '../../data/casino.json');
 // unico que da YYYY-MM-DD directo, y el corte se aplica RESTANDO las horas
 // antes de formatear. Asi el cambio de horario de verano no lo descuadra —
 // nunca se hace aritmetica con husos, solo se pregunta la fecha local.
-const PARTES = new Intl.DateTimeFormat('en-CA', {
-  timeZone: CONTADOR.zona, hour12: false,
-  year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit',
-});
+// El dia, con el ayudante compartido: la unica copia del calculo vive en
+// helpers.js. Aqui hubo una propia, y estaba mal en los dias del cambio de hora.
 function diaDe(ts) {
-  const p = {};
-  for (const x of PARTES.formatToParts(new Date(ts))) {
-    if (x.type !== 'literal') p[x.type] = Number(x.value);
-  }
-  const hora = p.hour % 24;   // hour12:false devuelve 24 para medianoche en algunos entornos
-  if (hora >= CONTADOR.horaCorte) {
-    return `${p.year}-${String(p.month).padStart(2, '0')}-${String(p.day).padStart(2, '0')}`;
-  }
-  // Antes del corte todavia cuenta como el dia anterior. EL DIA SE RESTA SOBRE
-  // LA FECHA, NO SOBRE LA MARCA DE TIEMPO.
-  //
-  // La primera version restaba `horaCorte` horas al instante y formateaba: mas
-  // corta, y mal. En los dos dias del año en que cambia la hora esa resta cruza
-  // el salto y el corte se iba una hora — con horaCorte 0 no se nota porque no
-  // resta nada, pero en cuanto se mueva la hora (que es un solo numero en
-  // economia.js) el reinicio caeria a las 11 o a la 1 dos veces al año. Lo
-  // encontro un mutante que precisamente movia esa hora.
-  //
-  // Anclando en las 12:00 UTC, restar 24 h nunca puede cambiar de fecha por un
-  // salto de horario: sobran doce horas de margen por los dos lados.
-  const ayer = new Date(Date.UTC(p.year, p.month - 1, p.day, 12) - 24 * 3600 * 1000);
-  return ayer.toISOString().slice(0, 10);
+  return claveDia(ts, DIA.zona, DIA.horaCorte);
 }
-
-// Cuanto falta para el proximo corte. Se busca el instante EXACTO en que diaDe
-// cambia, en vez de calcularlo con aritmetica de husos: asi la cuenta atras que
-// se enseña en *!aura hoy* y el reinicio de verdad no pueden discrepar nunca,
-// que es el fallo clasico de estas dos piezas. 26 h de margen cubren el dia en
-// que se cambia la hora.
 function msHastaCorte(ts = Date.now()) {
-  const hoy = diaDe(ts);
-  let lo = ts, hi = ts + 26 * 3600 * 1000;
-  if (diaDe(hi) === hoy) return hi - ts;
-  while (hi - lo > 1000) {
-    const mid = Math.floor((lo + hi) / 2);
-    if (diaDe(mid) === hoy) lo = mid; else hi = mid;
-  }
-  return hi - ts;
+  return msHastaCorteDia(ts, DIA.zona, DIA.horaCorte);
 }
 
 // store = { [groupJid]: { resetAt: <ms>, counts: { [bareJid]: number } } }

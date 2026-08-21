@@ -587,7 +587,78 @@ function etiquetaRiesgo(fraccion) {
 // salvaba por su cuenta y por eso hacia falta el handler de senales de arriba.
 async function flushPickHistory() { _guardarYa(); }
 
+// ─── EL DIA DEL BOT ──────────────────────────────────────────────────────────
+//
+// A que fecha pertenece un instante, en un huso y con la hora de corte que se
+// le diga. Formato YYYY-MM-DD, que ordena y compara bien como texto.
+//
+// ESTO ESTABA ESCRITO TRES VECES —contador diario, racha y objetivo del dia— y
+// las tres igual de mal:
+//
+//     FORMATO.format(new Date(ts - horaCorte * 3600 * 1000))
+//
+// Restarle las horas al INSTANTE y luego preguntar la fecha parece lo mismo y
+// no lo es: los dos dias del año en que cambia la hora, esa resta cruza el
+// salto y el corte se va sesenta minutos. Se veia en la racha (cortaba a las
+// 06:00 y a las 04:00 en vez de a las 05:00) y en el objetivo del dia.
+//
+// Lo correcto es preguntar la hora local PRIMERO y decidir con ella a que dia
+// pertenece; y cuando toca restar un dia, restarlo sobre la fecha reconstruida
+// con Date.UTC, que no tiene horario de verano y por tanto no puede desviarse.
+// (El ancla del mediodia es margen de sobra, no lo que sostiene el calculo:
+// probado, con las 00:00 sale lo mismo. Se deja por si alguien cambia Date.UTC
+// por un constructor en hora local, donde si importaria.)
+//
+// Una sola copia, y por eso: tres copias del mismo calculo son tres sitios
+// donde arreglarlo y dos que se van a olvidar.
+const _formatos = new Map();
+function _partes(ts, zona) {
+  let f = _formatos.get(zona);
+  if (!f) {
+    f = new Intl.DateTimeFormat('en-CA', {
+      timeZone: zona, hour12: false,
+      year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit',
+    });
+    _formatos.set(zona, f);
+  }
+  const o = {};
+  for (const x of f.formatToParts(new Date(ts))) {
+    if (x.type !== 'literal') o[x.type] = Number(x.value);
+  }
+  return o;
+}
+
+function claveDia(ts, zona, horaCorte = 0) {
+  const p = _partes(ts, zona);
+  // El % 24 es defensivo: en este Node la medianoche llega como "00", pero
+  // hour12:false la devuelve como "24" en otros entornos de ICU y ahi la
+  // comparacion de abajo mandaria la medianoche al dia anterior. No lo cubre
+  // ninguna prueba porque aqui no se puede reproducir; queda dicho.
+  const hora = p.hour % 24;
+  if (hora >= horaCorte) {
+    return `${p.year}-${String(p.month).padStart(2, '0')}-${String(p.day).padStart(2, '0')}`;
+  }
+  const ayer = new Date(Date.UTC(p.year, p.month - 1, p.day, 12) - 24 * 3600 * 1000);
+  return ayer.toISOString().slice(0, 10);
+}
+
+// Cuanto falta para el proximo corte. Se busca el instante EXACTO en que cambia
+// la clave, en vez de calcularlo aparte con aritmetica de husos: asi la cuenta
+// atras que se enseña y el reinicio de verdad no pueden discrepar nunca, que es
+// el fallo clasico de este par. 26 h de margen cubren el dia del cambio de hora.
+function msHastaCorte(ts, zona, horaCorte = 0) {
+  const hoy = claveDia(ts, zona, horaCorte);
+  let lo = ts, hi = ts + 26 * 3600 * 1000;
+  if (claveDia(hi, zona, horaCorte) === hoy) return hi - ts;
+  while (hi - lo > 1000) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (claveDia(mid, zona, horaCorte) === hoy) lo = mid; else hi = mid;
+  }
+  return hi - ts;
+}
+
 module.exports = {
+  claveDia, msHastaCorte,
   flushPickHistory,
   // ARSENAL (el regex) ya NO se exporta: lleva la bandera /g, o sea que arrastra
   // lastIndex entre llamadas y un `ARSENAL.test(x)` desde fuera devolveria true
