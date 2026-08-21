@@ -472,6 +472,8 @@ async function capaStores() {
     const bloque = sinComentarios.match(/case 'ranking':\s*case 'top':([\s\S]*?)case 'hoy':/);
     comprueba(!!bloque && /cmdTopRandom/.test(bloque[1]),
       'dispatcher: *!top 10 <tema>* vuelve a caer en el ranking de aura en vez del sorteo');
+    comprueba(/case 'auratop':/.test(sinComentarios),
+      'dispatcher: *!auratop* (una palabra) tiene que ser el ranking, no silencio');
     // Y solo CON tema: *!top 10* a secas es la forma natural de pedir el aura, y
     // cmdTopRandom se calla sin asunto, asi que desviarlo seria dejarlo mudo.
     comprueba(!!bloque && /args\.length > 1/.test(bloque[1]),
@@ -576,7 +578,7 @@ async function capaStores() {
     }
   }
 
-  // EL COOLDOWN DE !aura top. Cuatro reglas que ya se rompieron una vez cada una
+  // EL COOLDOWN DE !aura top. Las reglas que ya se rompieron una vez cada una
   // y que desde fuera no se ven: el bot contesta, solo contesta lo que no toca.
   //
   // Se usa el STORE DE VERDAD y no un doble. La primera version sustituia
@@ -638,6 +640,34 @@ async function capaStores() {
       const aOtro = await top(B);
       comprueba(/Vuelve en/.test(aOtro.text || ''),
         'aura top: el cooldown es de grupo — al segundo que lo pida tambien le rebota');
+
+      // 0. DOS A LA VEZ. El cooldown se reclamaba despues de getAuraRanking, asi
+      //    que dos peticiones que llegaban juntas pasaban las dos el check y
+      //    publicaban dos rankings con menciones. El comando mas facil de
+      //    spamear era el unico que no frenaba el spam.
+      //
+      //    Va en un grupo propio: el de arriba ya tiene el reloj en marcha y
+      //    las dos caerían en cooldown, que no prueba la carrera.
+      {
+        const GT2 = '000000002@g.us';
+        const mt2 = { id: GT2, participants: [A, B, C].map(id => ({ id })) };
+        await st.resetAura(GT2);
+        const s2 = await st.getAura(GT2, A);
+        await st.addAura(GT2, A, 900 - s2);
+        await st.addAura(GT2, B, 800 - s2);
+        const top2 = async (q) => {
+          const mine = [];
+          const sk2 = { sendMessage: async (_j, c) => { mine.push(c); return {}; } };
+          await ca(sk2, { key: { remoteJid: GT2, participant: q, fromMe: false, id: 'C' + q },
+                          message: { conversation: '!auratop' }, pushName: 'x' }, ['auratop'], mt2);
+          return mine.at(-1) || {};
+        };
+        const [x, y] = await Promise.all([top2(A), top2(B)]);
+        const nPub = [x, y].filter(publica).length;
+        comprueba(nPub === 1,
+          `aura top: dos peticiones a la vez publican ${nPub} rankings (tiene que ser 1: si son 2, el cooldown se reclama despues del await)`);
+        await st.resetAura(GT2);
+      }
 
       // 2. La copia va SIN menciones. Es lo unico que separa enseñar la tabla de
       //    volver a notificar a los diez, que era el motivo de todo esto.
@@ -2601,6 +2631,21 @@ async function capaStores() {
       '*!aura todo* es atajo de la mesa: sin slice el parser lo lee como all-in y se juega el saldo entero');
     exige(/anuncioObjetivo\.get\(jid\) !== hoy/.test(auraSrc),
       'el objetivo del día no se puede mencionar en cada tirada: es el mismo ping-spam que se cortó en !aura top');
+    // El cooldown de !aura top se reclamaba DESPUES de await getAuraRanking, y
+    // dos peticiones a la vez publicaban las dos. El set tiene que quedar
+    // delante de la lectura que publica (la ultima getAuraRanking del cuerpo).
+    // Y si el ranking no sale, hay que devolverlo: si no, un "no ha cambiado"
+    // esconde el top tres horas, que es el otro bug que ya se rompio.
+    {
+      const cuerpo = auraSrc.slice(auraSrc.indexOf('async function showRanking'),
+                                   auraSrc.indexOf('function textoAuraInfo'));
+      const iSet = cuerpo.indexOf('ultimoRanking.set(');
+      const iGet = cuerpo.lastIndexOf('getAuraRanking(');
+      exige(iSet >= 0 && iSet < iGet,
+        '!aura top: el cooldown se reclama despues de leer el ranking — dos peticiones a la vez lo saltan las dos');
+      exige(/ultimoRanking\.delete\(jid\)/.test(cuerpo),
+        '!aura top: si el ranking no sale hay que devolver el cooldown, o un "no ha cambiado" esconde el top');
+    }
     exige(/momentum\.anotar\(jid, sender, 'caliente', 'robo'\)/.test(auraSrc), 'una tirada gorda tiene que calentar el siguiente !robo');
     exige(/momentum\.anotar\(jid, sender, 'tilt', 'robo'\)/.test(auraSrc), 'un desastre de !aura tiene que dejar tilt el siguiente !robo');
 
@@ -2640,6 +2685,8 @@ async function capaStores() {
     }
     exige(faltan.length === 0,
       `NEEDS_META: faltan alias de aura/robo/dar/ayuda/casino: ${faltan.join(', ')}`);
+    exige(/case 'auratop':/.test(mh) && dentro.has('auratop'),
+      '*!auratop* tiene que ser alias del ranking y pedir metadata: si no, o no existe o lista a quien ya se fue');
 
     const linda = pools.slice(pools.indexOf('\n  linda:'), pools.indexOf('\n  fea:'));
     const fea = pools.slice(pools.indexOf('\n  fea:'), pools.indexOf('\n  sexy:'));
