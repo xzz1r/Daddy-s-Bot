@@ -1,5 +1,5 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, bareJid, sameUser } = require('../utils/wa');
-const { pickFresh, fmt } = require('../utils/helpers');
+const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/helpers');
 const { getAura, transferAura } = require('../utils/auraStore');
 const { ownerGana } = require('../utils/rigOwner');
 
@@ -245,9 +245,9 @@ async function cmdDuel(sock, msg, args, groupMeta) {
     }, { quoted: msg });
   }
 
-  // Apuesta: primer argumento numerico despues de la mencion.
-  const stakeArg = (args || []).find(a => /^\d+$/.test(a));
-  const pedido = clampStake(stakeArg);
+  // Apuesta: primer argumento numerico despues de la mencion. Mismo parser
+  // que el robo: si no, un telefono sin @ o una marca bidi se comen la cifra.
+  const parsed = parseCantidad(args);
 
   // El tope se calcula con el saldo de LOS DOS, no solo con el del retador.
   // Antes solo se miraba al que lanzaba, asi que se podia retar por 500 a
@@ -262,8 +262,11 @@ async function cmdDuel(sock, msg, args, groupMeta) {
     STAKE_MIN,
     Math.min(DUELO.techo, Math.floor(pobre * DUELO.fraccionRival)),
   );
-  const stake = Math.min(pedido, maxStake);
-  const recortado = pedido > maxStake;
+  const { stake, pedido, recortado } = resolverCantidad(parsed, {
+    max: maxStake,
+    suelo: STAKE_MIN,
+    porDefecto: Math.min(STAKE_DEFAULT, maxStake),
+  });
 
   if (auraC < stake || auraT < stake) {
     return sock.sendMessage(jid, {

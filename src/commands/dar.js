@@ -1,6 +1,6 @@
 const { getSender, getTarget, sameUser } = require('../utils/wa');
 const { transferAura } = require('../utils/auraStore');
-const { fmt } = require('../utils/helpers');
+const { fmt, parseCantidad } = require('../utils/helpers');
 const { aportarAlBote } = require('../utils/roboStore');
 
 // El minimo y el impuesto viven en utils/economia.js con el resto de la escala.
@@ -25,11 +25,11 @@ async function cmdDar(sock, msg, args) {
     return sock.sendMessage(jid, { text: 'No puedes darte aura a ti mismo.' }, { quoted: msg });
   }
 
-  const amountArg = (args || []).find(a => /^\d+$/.test(a));
-  if (!amountArg) {
-    return sock.sendMessage(jid, { text: 'Indica una cantidad: *!dar @user <cantidad>*' }, { quoted: msg });
+  const parsed = parseCantidad(args);
+  const amount = parsed.valor;
+  if (!amount) {
+    return sock.sendMessage(jid, { text: 'Indica una cantidad: *!dar @user 100*' }, { quoted: msg });
   }
-  const amount = parseInt(amountArg, 10);
   if (amount < GIFT_MIN) {
     return sock.sendMessage(jid, {
       text: `Mínimo *${GIFT_MIN}* de aura por transferencia.`,

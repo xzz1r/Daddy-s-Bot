@@ -11,7 +11,7 @@
 //   bono tier 1 (200 msgs) ...    8-52
 //   bono tier 2 (500 msgs) ...   35-170
 //   bono tier 3 (1000 msgs) ..   90-380  (un 8 % de millonario en el mejor caso)
-//   robo .....................   5-200   (lo que se pida, o al azar sin cifra)
+//   robo .....................   lo que se pida (punto dulce si no hay cifra)
 //   duelo ....................  10-300
 //   apuesta (!aura apostar) ..  la que se elija, o media cuenta
 //   comando barato / caro ....   12-70

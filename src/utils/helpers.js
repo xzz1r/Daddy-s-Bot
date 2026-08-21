@@ -460,9 +460,131 @@ async function barrerHuerfanos(dir) {
 // literalmente en 8 modulos.
 const fmt = n => n.toLocaleString('es-ES');
 
+// ─── Cantidades que escribe la gente ─────────────────────────────────────────
+//
+// !robo, !dar, !duel y !aura apostar leen un numero de los argumentos. El
+// parser viejo era `/^\d+$/` sobre el token crudo, y por tres caminos distintos
+// IGNORABA lo que se acaba de escribir:
+//
+//   1. WhatsApp pega marcas bidi y espacios duros alrededor de las menciones.
+//      "200" llega como "\u200e200" y la regex no lo ve. El bot elige al azar
+//      y parece que la cifra no existe.
+//   2. Si la mencion llega SIN @ (pasa en algunos clientes y en grupos LID),
+//      el primer token de solo digitos es el TELEFONO de la victima. find()
+//      se lo queda, lo recorta al tope, y el 200 que iba detras no se mira.
+//      Resultado: siempre se robe el maximo, da igual lo que pidas.
+//   3. 1.000, 2k, mitad, todo. Nadie escribe "1000" a pelo en un chat en
+//      espanol, y esas formas no existian.
+//
+// Esto es el parser unico. Cada comando recorta despues, porque el tope es
+// cosa suya.
+const BASURA_WA = /[\u200e\u200f\u202a-\u202e\u2066-\u2069\u00a0\u1680\u2000-\u200d\u2028\u2029\u202f\u205f\u3000\ufeff]/g;
+
+function limpiarToken(s) {
+  return String(s == null ? '' : s).replace(BASURA_WA, '').trim();
+}
+
+const MODOS_CANTIDAD = {
+  todo: 'todo', max: 'todo', all: 'todo', allin: 'todo', 'all-in': 'todo',
+  entero: 'todo', full: 'todo', goloso: 'todo', codicia: 'todo',
+  mitad: 'mitad', half: 'mitad', medio: 'mitad',
+  poco: 'poco', min: 'poco', minimo: 'poco', mínimo: 'poco',
+  cobarde: 'poco', calderilla: 'poco',
+  dulce: 'dulce',
+};
+
+function parseEnteroAura(token) {
+  const t = limpiarToken(token);
+  if (!t || t.startsWith('@')) return null;
+
+  const low = t.toLowerCase();
+
+  const mk = low.match(/^(\d+(?:[.,]\d+)?)\s*k$/i);
+  if (mk) {
+    const n = Number(mk[1].replace(',', '.'));
+    if (!Number.isFinite(n) || n <= 0) return null;
+    const v = Math.round(n * 1000);
+    return v >= 1 && v < 1e10 ? v : null;
+  }
+
+  const mp = low.match(/^(\d+(?:[.,]\d+)?)\s*%$/);
+  if (mp) {
+    const n = Number(mp[1].replace(',', '.'));
+    if (!Number.isFinite(n) || n <= 0) return null;
+    return { pct: Math.min(100, n) };
+  }
+
+  let s = t;
+  if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
+  else if (/^\d{1,3}(,\d{3})+$/.test(s)) s = s.replace(/,/g, '');
+  else if (/^\d+[.,]\d+$/.test(s)) s = s.replace(/[.,]\d+$/, '');
+  else if (!/^\d+$/.test(s)) return null;
+
+  // Telefono o LID: 10+ cifras. Ningun robo, duelo ni apuesta llega ahi.
+  if (s.length >= 10) return null;
+  const n = parseInt(s, 10);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return n;
+}
+
+function parseCantidad(args) {
+  const tokens = (Array.isArray(args) ? args : [args]).map(limpiarToken).filter(Boolean);
+  let modo = null;
+  let valor = null;
+  let pct = null;
+
+  for (const t of tokens) {
+    const low = t.toLowerCase();
+    if (MODOS_CANTIDAD[low]) {
+      modo = MODOS_CANTIDAD[low];
+      continue;
+    }
+    const n = parseEnteroAura(t);
+    if (n && typeof n === 'object' && n.pct != null) {
+      modo = 'pct';
+      pct = n.pct;
+      continue;
+    }
+    if (typeof n === 'number' && valor == null) valor = n;
+  }
+
+  return { modo, valor, pct };
+}
+
+function resolverCantidad(parsed, { max, suelo = 1, dulce = 0.45, poco = 0.15, porDefecto } = {}) {
+  const tope = Math.max(suelo, Math.max(0, Number(max) || 0));
+  let pedido;
+  let elegido = true;
+
+  if (parsed && parsed.modo === 'todo') pedido = tope;
+  else if (parsed && parsed.modo === 'mitad') pedido = Math.max(suelo, Math.round(tope * 0.5));
+  else if (parsed && parsed.modo === 'poco') pedido = Math.max(suelo, Math.round(tope * poco));
+  else if (parsed && parsed.modo === 'dulce') pedido = Math.max(suelo, Math.round(tope * dulce));
+  else if (parsed && parsed.modo === 'pct') pedido = Math.max(suelo, Math.round(tope * (parsed.pct || 0) / 100));
+  else if (parsed && parsed.valor != null) pedido = parsed.valor;
+  else {
+    elegido = false;
+    pedido = typeof porDefecto === 'number'
+      ? porDefecto
+      : Math.max(suelo, Math.round(tope * dulce));
+  }
+
+  const stake = Math.max(suelo, Math.min(pedido, tope));
+  return { stake, pedido, elegido, recortado: elegido && pedido > tope };
+}
+
+function etiquetaRiesgo(fraccion) {
+  if (!(fraccion > 0)) return 'sin agallas';
+  if (fraccion >= 0.85) return 'a lo grande';
+  if (fraccion >= 0.70) return 'goloso';
+  if (fraccion <= 0.20) return 'cobarde';
+  if (fraccion >= 0.35 && fraccion <= 0.55) return 'punto dulce';
+  return null;
+}
+
 // Para que bot.js lo meta en su lista de volcados con el resto de stores. Antes
 // el historial de frases era el UNICO estado que no estaba en esa lista: se
-// salvaba por su cuenta y por eso hacia falta el handler de señales de arriba.
+// salvaba por su cuenta y por eso hacia falta el handler de senales de arriba.
 async function flushPickHistory() { _guardarYa(); }
 
 module.exports = {
@@ -473,4 +595,5 @@ module.exports = {
   // usarlo; exportarlo era ofrecer esa trampa a quien no lo supiera. Quien
   // necesite la comprobacion tiene tieneArsenal, que ya lo hace bien.
   tieneArsenal,
+  parseCantidad, resolverCantidad, etiquetaRiesgo, limpiarToken,
   fmt, ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, shuffle, streamToBuffer, atomicWriteJson, readJsonOrEnoent, barrerHuerfanos, MAX_DOWNLOAD_BYTES, MAX_MEDIA_BYTES, createSemaphore, ffmpegSemaphore, ffmpegToBuffer };
