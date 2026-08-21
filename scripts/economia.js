@@ -698,7 +698,30 @@ console.log('\n════ 6. lo que SI es casino: la casa gana ════\n'
   const vistoDulce = pApuestaVisible(APUESTA.riesgo.puntoDulce, { jitter: false });
   ok(vistoAllIn < vistoDulce, '  al owner también se le enseña menos si pide más');
   ok(vistoAllIn <= 0.48 && vistoDulce >= 0.28, '  y la cifra visible vive en banda de miembro, no en el 58 % real');
-  ok(MOMENTUM.caliente === 0.04 && MOMENTUM.tilt === -0.04, '  racha caliente/tilt es ±4 %');
+  // LA CASA GANA A TODO EL MUNDO MENOS AL OWNER, Y SE COMPRUEBA ENTERO.
+  //
+  // Arriba solo se miraba `miembro` en dos fracciones sueltas. El admin tiene su
+  // propia base (0,47) y el equilibrio a x2 esta en 0,50: basta con subirle tres
+  // puntos en un ajuste de balance para que empiece a acuñar aura, y con dos
+  // muestras no se ve. Aqui se barre la curva entera para cada rol.
+  for (const rol of Object.keys(APUESTA.p)) {
+    if (rol === 'owner') continue;   // el owner esta amañado a proposito
+    let peorEv = -Infinity, dondeEv = '';
+    for (let f = 0; f <= 1.0001; f += 0.01) {
+      const mult = f >= 0.999 ? APUESTA.multiplicadorMax : APUESTA.multiplicador;
+      const ev = pApuestaDe(f, rol).p * mult - 1;
+      if (ev > peorEv) { peorEv = ev; dondeEv = `${(f * 100).toFixed(0)} %`; }
+    }
+    ok(peorEv < 0,
+      `  ${rol}: la casa gana en TODA la curva (lo mejor que saca es ${(peorEv * 100).toFixed(1)} % en ${dondeEv})`);
+  }
+
+  // Esta comprobacion no vale para nada y se deja escrita para que se vea por
+  // que: `MOMENTUM.caliente === 0.04` no puede fallar salvo que alguien cambie
+  // la constante a proposito, que es justo cuando NO quieres que salte. Lo que
+  // hay que vigilar es que el bono no rompa el tope, y de eso se ocupa el
+  // P_TOPE de rollAura (aura.js:96), que ya se mide en la seccion de la tirada.
+  ok(MOMENTUM.caliente > 0 && MOMENTUM.tilt < 0, '  la racha suma y el tilt resta');
   ok(OBJETIVO_DIA.bonoBotin < eco.DIANA.bonoBotin, '  el objetivo del día paga menos que la diana semanal: el nº1 sigue siendo el golpe gordo');
 }
 console.log(`  !robo (miembro): acierta ${(eco.ROBO_BASE.miembro * 100).toFixed(0)} % como mucho → sale a perder`);
