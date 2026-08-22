@@ -115,6 +115,9 @@ if (!fs.existsSync(path.join(R, 'node_modules'))) {
 }
 
 process.env.OWNER_NUMBER = process.env.OWNER_NUMBER || '34600000000';
+// Hace falta un co-owner para comprobar el reparto de *!purge*, y config lo lee
+// UNA vez al importarse: si se pone mas abajo ya no llega a tiempo.
+process.env.CO_OWNERS = process.env.CO_OWNERS || '34600000009,34600000008';
 console.log('\n2. CARGA');
 for (const dir of ['src/commands', 'src/utils', 'src/data', 'src/handlers']) {
   for (const f of fs.readdirSync(path.join(R, dir)).filter((x) => x.endsWith('.js'))) {
@@ -1441,10 +1444,76 @@ async function capaStores() {
 
     // Y que siga siendo del owner principal, no del tier owner entero.
     const pn = fs.readFileSync(path.join(R, 'src/commands/purgaNumero.js'), 'utf8');
-    exige(/if \(!isMainOwner\(sender, msg\.key\.fromMe, groupMeta\)\) return;/.test(pn),
+    // !p Y !purge YA NO TIENEN LA MISMA PUERTA, y la diferencia es deliberada:
+    // *!purge* se abrio al tier owner por decision del dueño, *!p* sigue siendo
+    // solo suyo. La guarda de antes prohibia isOwner en todo el fichero, asi que
+    // habria que borrarla para hacer el cambio — y una guarda que estorba se
+    // borra sin pensarla. Se reescribe para vigilar el contrato NUEVO.
+    const gp = (fn) => pn.slice(pn.indexOf(`async function ${fn}(`), pn.indexOf('\n}', pn.indexOf(`async function ${fn}(`)));
+    exige(/if \(!isMainOwner\(sender, msg\.key\.fromMe, groupMeta\)\) return;/.test(gp('cmdPurgaNumero')),
       '!p tiene que seguir siendo solo del owner principal, y devolver silencio');
-    exige(!/isOwner\(sender/.test(pn),
-      '!p no puede pasar a isOwner: eso abriria la purga global al tier owner entero');
+    exige(/if \(!isOwner\(sender, msg\.key\.fromMe, groupMeta\)\) return;/.test(gp('cmdPurge')),
+      '!purge tiene que dejar pasar al tier owner entero, y devolver silencio al resto');
+    // Y lo que hace que abrirlo no sea un arma: quien no es el owner principal
+    // no puede purgar a nadie del tier. Sin esto, dos co-owners enfadados se
+    // borran el uno al otro de todos los grupos y de la lista negra no se sale.
+    exige(/isOwner\(o, false, meta\)/.test(gp('cmdPurge')) && /esElPrincipal/.test(gp('cmdPurge')),
+      '!purge dejo de proteger al tier owner de si mismo: un co-owner puede purgar a otro');
+    exige(/function esIntocable/.test(pn) && /esIntocable\(objetivo, groupMeta, protegido\)/.test(pn),
+      'la proteccion de victimas dejo de mirar quien purga: vuelve a proteger solo al owner principal');
+    // Y COMPROBADO EJECUTANDO, no solo leyendo. Quitando la linea que consulta
+    // el predicado, las guardas de texto de arriba seguian pasando: la llamada
+    // seguia ahi, solo que ya no hacia nada. Esto no se puede esquivar moviendo
+    // codigo.
+    //
+    // Se prueba el caso PROTEGIDO (un co-owner intenta purgar a otro), que no
+    // llega a tocar nada: no escribe banlist ni expulsa, asi que puede correr
+    // siempre, tambien con el bot en marcha.
+    {
+      const cfg2 = require(path.join(R, 'src/config'));
+      const CO_A = `${String((cfg2.coOwners || [])[0] || '').replace(/\D/g, '')}@s.whatsapp.net`;
+      // El objetivo tiene que ser co-owner TAMBIEN, o purgarlo seria legitimo y
+      // la guarda estaria acusando al codigo de hacer lo correcto. Ya me paso.
+      const CO_B = `${String((cfg2.coOwners || [])[1] || '').replace(/\D/g, '')}@s.whatsapp.net`;
+      if (!/^\d/.test(CO_A) || !/^\d/.test(CO_B)) {
+        fallos++;
+        console.log(rojo('   ✗ hacen falta DOS co-owners para comprobar el reparto de !purge y no los hay'));
+      } else {
+        const BOT_P = '11111111111@s.whatsapp.net';
+        const kicks = [];
+        const participantes = [{ id: CO_A }, { id: CO_B }, { id: BOT_P, admin: 'admin' }];
+        const sockP2 = {
+          user: { id: BOT_P },
+          sendMessage: async () => ({}),
+          onWhatsApp: async (j) => [{ exists: true, jid: j }],
+          groupFetchAllParticipating: async () => ({ 'gp@g.us': { subject: 'G', participants: participantes } }),
+          groupParticipantsUpdate: async (g, ids) => { kicks.push(...ids); return ids.map((j) => ({ jid: j, status: '200' })); },
+        };
+        const { cmdPurge: purgar } = require(path.join(R, 'src/commands/purgaNumero'));
+        const objetivo = CO_B.split('@')[0];
+        // LAS DOS RUTAS. Un numero escrito entra por resolverCuenta y una
+        // MENCION por cuentaDesdeJid: son dos funciones distintas y cada una
+        // tiene que recibir el predicado. Con un solo caso, quitarselo a la otra
+        // pasaba en verde — probado.
+        const meta2 = { id: 'gp@g.us', participants: participantes };
+        await purgar(sockP2,
+          { key: { remoteJid: 'gp@g.us', participant: CO_A, fromMe: false, id: 'GP1' },
+            message: { conversation: `!purge ${objetivo}` } },
+          [objetivo], meta2);
+        await new Promise((r) => setTimeout(r, 150));
+        exige(kicks.length === 0,
+          `un co-owner ha purgado a otro co-owner por su numero (${kicks.length} expulsion(es)): !purge se puede volver contra el tier`);
+
+        kicks.length = 0;
+        await purgar(sockP2,
+          { key: { remoteJid: 'gp@g.us', participant: CO_A, fromMe: false, id: 'GP2' },
+            message: { extendedTextMessage: { text: '!purge', contextInfo: { mentionedJid: [CO_B] } } } },
+          [], meta2);
+        await new Promise((r) => setTimeout(r, 150));
+        exige(kicks.length === 0,
+          `un co-owner ha purgado a otro co-owner MENCIONANDOLO (${kicks.length} expulsion(es)): la ruta de la mencion no mira quien purga`);
+      }
+    }
     exige(/cmdPurge/.test(mh) && /case 'purge':/.test(mh),
       '!purge esta escrito pero no enganchado al dispatcher');
     exige(/'p','purge'/.test(mh) || /'purge'/.test(mh.match(/const NEEDS_META[\s\S]*?\]\)/)?.[0] || ''),

@@ -19,7 +19,7 @@
 // deja uno frío: no cumplen las reglas, uno más que se va. En los dos el
 // aviso se manda ANTES del ban: la idea es que lo vean. Si el kick falla, el
 // grupo vio el aviso igual — mejor eso que echar a alguien en silencio.
-const { getSender, isMainOwner, isBotJid, isBotAdmin, bareJid, canonicalJid, extractText, extractQuotedText } = require('../utils/wa');
+const { getSender, isMainOwner, isOwner, isBotJid, isBotAdmin, bareJid, canonicalJid, extractText, extractQuotedText } = require('../utils/wa');
 const { banAccount } = require('../utils/banlist');
 const { extractNumber } = require('./pfp');
 const logger = require('../utils/logger');
@@ -136,13 +136,30 @@ function telefonoDeParticipante(p) {
   return (d.length >= 7 && d.length <= 15) ? d : null;
 }
 
+// ¿A esta cuenta no se la toca?
+//
+// Depende de QUIÉN esté purgando, y por eso se pasa el predicado en vez de
+// preguntarlo aquí dentro:
+//
+//   · el owner principal (*!p* y su propio *!purge*) solo se protege a sí
+//     mismo. Si un co-owner se va de madre, tiene que poder sacarlo;
+//   · un CO-OWNER usando *!purge* no puede tocar a nadie del tier owner. Abrir
+//     el comando al tier sin esto sería repartir un arma con la que purgarse
+//     entre ellos, y eso no es dar acceso, es montar una guerra civil.
+//
+// Sin predicado se protege solo al owner principal, que es como estaba.
+function esIntocable(objetivo, groupMeta, protegido) {
+  if (protegido) return protegido(objetivo, groupMeta);
+  return isMainOwner(objetivo, false, groupMeta);
+}
+
 // JID que ya trajo WhatsApp (mención o cita). NO se pasa por onWhatsApp:
 // en un grupo LID el mentionedJid es @lid, y tratar esos dígitos como teléfono
 // barre una cuenta que no es o no encuentra a nadie.
-function cuentaDesdeJid(sock, jid, groupMeta) {
+function cuentaDesdeJid(sock, jid, groupMeta, protegido = null) {
   if (!jid) return { error: 'sin jid' };
   if (isBotJid(sock, jid)) return { error: 'A esa cuenta no.' };
-  if (isMainOwner(jid, false, groupMeta)) return { skip: true };
+  if (esIntocable(jid, groupMeta, protegido)) return { skip: true };
 
   const formas = new Set([bareJid(jid), canonicalJid(jid)].filter(Boolean));
   let digitos = null;
@@ -229,14 +246,14 @@ async function barrerGrupos(sock, grupos, cuentas, hacerAviso) {
   return { fuera, sinPermiso, fallos, visto };
 }
 
-async function resolverCuenta(sock, digitos, groupMeta) {
+async function resolverCuenta(sock, digitos, groupMeta, protegido = null) {
   try {
     const res = await sock.onWhatsApp(`${digitos}@s.whatsapp.net`);
     const hit = Array.isArray(res) ? res.find((r) => r?.exists) : null;
     if (!hit?.jid) return { error: `+${digitos} no tiene cuenta de WhatsApp (o no es visible).` };
     const objetivo = hit.jid;
     if (isBotJid(sock, objetivo)) return { error: 'A esa cuenta no.' };
-    if (isMainOwner(objetivo, false, groupMeta)) return { skip: true };
+    if (esIntocable(objetivo, groupMeta, protegido)) return { skip: true };
     return { digitos, objetivo, formas: formasDeCuenta(objetivo, digitos) };
   } catch (e) {
     return { error: `No pude comprobar +${digitos}: ${e.message}` };
@@ -322,8 +339,19 @@ async function cmdPurge(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   const sender = getSender(msg);
 
-  // Silencio si no es el owner: una respuesta distinta delataría que existe.
-  if (!isMainOwner(sender, msg.key.fromMe, groupMeta)) return;
+  // *!purge* es de TODO EL TIER OWNER, por decisión del dueño. *!p* sigue
+  // siendo solo del owner principal.
+  //
+  // Silencio si no lo es: una respuesta distinta delataría que el comando
+  // existe, y este no se anuncia en ningún sitio.
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) return;
+
+  // Y quien no es el owner principal NO puede tocar al tier owner. El que lo es
+  // sí: si hay que sacar a un co-owner, alguien tiene que poder hacerlo.
+  const esElPrincipal = isMainOwner(sender, msg.key.fromMe, groupMeta);
+  const protegido = esElPrincipal
+    ? (o, meta) => isMainOwner(o, false, meta)
+    : (o, meta) => isOwner(o, false, meta);
 
   // El dispatcher parte por espacios y se come los saltos de línea del listado.
   // Se lee el cuerpo completo del mensaje (y el citado) para no fusionar ni
@@ -358,7 +386,7 @@ async function cmdPurge(sock, msg, args, groupMeta) {
 
   for (const j of jidsDirectos) {
     if (cuentas.length >= MAX_PURGE) break;
-    const res = cuentaDesdeJid(sock, j, groupMeta);
+    const res = cuentaDesdeJid(sock, j, groupMeta, protegido);
     if (res.skip) {
       saltados.push(bareJid(j).split('@')[0].replace(/\D/g, '') || bareJid(j));
       continue;
@@ -402,7 +430,7 @@ async function cmdPurge(sock, msg, args, groupMeta) {
   }, { quoted: msg });
 
   for (const d of unicos) {
-    const res = await resolverCuenta(sock, d, groupMeta);
+    const res = await resolverCuenta(sock, d, groupMeta, protegido);
     if (res.skip) {
       saltados.push(d);
       continue;
