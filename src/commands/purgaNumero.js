@@ -22,6 +22,7 @@
 const { getSender, isMainOwner, isOwner, isBotJid, isBotAdmin, bareJid, canonicalJid, extractText, extractQuotedText } = require('../utils/wa');
 const { banAccount } = require('../utils/banlist');
 const { extractNumber } = require('./pfp');
+const { findPhoneNumbersInText } = require('libphonenumber-js');
 const logger = require('../utils/logger');
 const { aplicarParticipantes } = require('../utils/participantes');
 
@@ -33,7 +34,10 @@ const PAUSA_MS = 1200;
 // saque del grupo. Si es demasiado corto, la frase no la ven.
 const AVISO_ANTES_MS = 1000;
 const PAUSA_ONWA_MS = 150;
-const MAX_PURGE = 30;
+// Tope por ráfaga. Un pegado internacional con formato ("+54 9 11 …") ronda
+// las treinta cuentas; 30 se quedaba corto en el caso real (33) y encima los
+// trozos falsos del parser llenaban el cupo antes de llegar a los de verdad.
+const MAX_PURGE = 50;
 const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function etiquetasDe(hits) {
@@ -80,9 +84,16 @@ function avisoDePurge(hits) {
   };
 }
 
-// Extrae VARIOS números de un bloque de texto sin fusionarlos.
-// extractNumber junta todos los dígitos en uno solo; aquí cada línea / token
-// / enlace wa.me cuenta por separado.
+// Extrae VARIOS números de un bloque de texto sin fusionarlos y sin romper
+// uno formateado en trozos.
+//
+// El caso que lo rompió: "+504 3217-6205" (un número) se partía por espacios
+// y el último trozo con 7+ dígitos ("32176205") se tomaba por otra cuenta.
+// onWhatsApp decía que no existía, llenaba el tope con basura y los números
+// de verdad del pegado se quedaban sin tocar.
+//
+// Orden: enlaces wa.me, luego libphonenumber (entiende +, espacios, guiones
+// y paréntesis), luego el heurístico de dígitos para los pelados sin +.
 function extractNumbers(raw) {
   if (!raw) return [];
   const s = String(raw);
@@ -96,24 +107,60 @@ function extractNumbers(raw) {
     hallados.push(d);
   };
 
-  // Enlaces wa.me / api.whatsapp.com primero (suelen traer el número limpio).
   for (const m of s.matchAll(/(?:wa\.me\/|api\.whatsapp\.com\/send\?phone=)(\+?\d[\d\s\-]*)/gi)) {
     meter(String(m[1]).replace(/\D/g, ''));
   }
 
-  // Línea a línea: un número por renglón es el caso natural del listado.
+  try {
+    for (const f of findPhoneNumbersInText(s)) {
+      const e164 = f?.number?.number;
+      if (e164) meter(String(e164).replace(/\D/g, ''));
+    }
+  } catch (_) { /* texto sucio: sigue el heurístico */ }
+
   for (const linea of s.split(/\r?\n/)) {
-    const d = extractNumber(linea);
-    if (d) meter(d);
+    const limpia = linea
+      .replace(/(?:https?:\/\/)?(?:wa\.me\/|api\.whatsapp\.com\/send\?phone=)\S+/gi, ' ')
+      .trim();
+    if (!limpia) continue;
+    for (const seg of partirSegmentos(limpia)) {
+      const d = extractNumber(seg);
+      if (d) {
+        meter(d);
+        continue;
+      }
+      // Más de 15 dígitos: varios números pelados en el mismo renglón
+      // ("57300… 57300…"). Solo entonces se parte por espacios, y solo
+      // si el token ENTERO es un número, no un fragmento de uno formateado.
+      const digits = seg.replace(/\D/g, '');
+      if (digits.length > 15) {
+        for (const tok of seg.split(/[\s]+/)) {
+          const t = extractNumber(tok);
+          if (t) meter(t);
+        }
+      }
+    }
   }
 
-  // Tokens sueltos por espacios / comas / punto y coma.
-  for (const tok of s.split(/[\s,;]+/)) {
-    const d = extractNumber(tok);
-    if (d) meter(d);
-  }
+  return sinFragmentos(hallados);
+}
 
-  return hallados;
+// Una cuenta por trozo. Comas / punto y coma separan. Un "+" que arranca
+// otro internacional también, para no fusionar dos formateados del mismo renglón.
+function partirSegmentos(linea) {
+  const out = [];
+  for (const trozo of linea.split(/[,;]+/)) {
+    const t = trozo.trim();
+    if (!t) continue;
+    out.push(...t.split(/(?=\+\d)/).map((x) => x.trim()).filter(Boolean));
+  }
+  return out;
+}
+
+// Un candidato que es la cola de otro del mismo listado es el resto de un
+// número con formato ("3217-6205" de "+504 3217-6205"), no una cuenta aparte.
+function sinFragmentos(nums) {
+  return nums.filter((d) => !nums.some((otro) => otro !== d && otro.endsWith(d)));
 }
 
 // Todas las formas conocidas de una misma persona dentro de un grupo. Hace
@@ -354,8 +401,12 @@ async function cmdPurge(sock, msg, args, groupMeta) {
     : (o, meta) => isOwner(o, false, meta);
 
   // El dispatcher parte por espacios y se come los saltos de línea del listado.
-  // Se lee el cuerpo completo del mensaje (y el citado) para no fusionar ni
-  // perder números que venían en renglones distintos.
+  // Se lee el cuerpo completo (y el citado) para no fusionar ni perder números
+  // que venían en renglones distintos.
+  //
+  // args NUNCA se une con \n: "+54 9 385 313-8518" se volvería cuatro renglones
+  // y el último trozo (7+ dígitos) se tomaría por una cuenta aparte. Con espacio
+  // el formato se reconstruye y libphonenumber lo lee entero.
   const resto = String(extractText(msg) || '').replace(/^[!¡]\s*purge\b/i, '');
   const ctx = msg.message?.extendedTextMessage?.contextInfo;
 
@@ -363,11 +414,16 @@ async function cmdPurge(sock, msg, args, groupMeta) {
   for (const m of (ctx?.mentionedJid || [])) if (m) jidsDirectos.push(m);
   if (ctx?.participant) jidsDirectos.push(ctx.participant);
 
-  const digitosLista = [
-    ...extractNumbers((args || []).join('\n')),
-    ...extractNumbers(resto),
-    ...extractNumbers(extractQuotedText(msg) || ''),
-  ];
+  const deCuerpo = extractNumbers(resto);
+  const deCita = extractNumbers(extractQuotedText(msg) || '');
+  const deArgs = extractNumbers((args || []).join(' '));
+  // El cuerpo original conserva los renglones. args es el fallback (mensaje
+  // sin texto parseable, o tests que solo pasan args). Si el cuerpo ya trajo
+  // números, no se mezclan los args: serían la misma lista partida por espacios.
+  const digitosLista = sinFragmentos([
+    ...(deCuerpo.length ? deCuerpo : deArgs),
+    ...deCita,
+  ]);
 
   const cuentas = [];
   const errores = [];

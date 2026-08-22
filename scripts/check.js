@@ -1571,6 +1571,82 @@ async function capaStores() {
       'extractNumbers no lee wa.me');
     exige(extractNumbers('hola').length === 0, 'extractNumbers inventa numeros donde no hay');
 
+    // El listado REAL que rompió !purge: números internacionales con espacios,
+    // guiones y paréntesis. Cada renglón es UNA cuenta. El parser viejo partía
+    // por espacios y tomaba el último trozo ("32176205") como otra.
+    const listadoFmt = [
+      '+504 3217-6205',
+      '+54 9 385 313-8518',
+      '+1 (939) 231-1444',
+      '+57 323 8511204',
+      '+57 350 5876044',
+      '+52 722 844 2506',
+      '+57 323 8509393',
+      '+54 9 11 3766-6386',
+      '+34 652 06 00 71',
+      '+54 9 2926 41-7572',
+      '+57 350 8575476',
+      '+54 9 11 6122-2259',
+      '+505 8217 6482',
+      '+57 350 8575060',
+      '+54 9 3329 63-7203',
+      '+54 9 351 803-4190',
+      '+54 9 11 3774-8767',
+      '+54 9 266 487-2423',
+      '+54 9 2942 60-1630',
+      '+57 350 4913215',
+      '+57 350 2133453',
+      '+57 350 5892241',
+      '+57 320 9410817',
+      '+57 350 2700958',
+      '+593 99 852 4716',
+      '+51 943 377 849',
+      '+593 98 449 1344',
+      '+593 99 587 9192',
+      '+52 55 3729 8052',
+      '+54 9 2223 57-5776',
+      '+54 9 11 7823-4019',
+      '+52 55 3401 2232',
+      '+593 99 586 3873',
+    ];
+    const esperadosFmt = [
+      '50432176205', '5493853138518', '19392311444', '573238511204',
+      '573505876044', '527228442506', '573238509393', '5491137666386',
+      '34652060071', '5492926417572', '573508575476', '5491161222259',
+      '50582176482', '573508575060', '5493329637203', '5493518034190',
+      '5491137748767', '5492664872423', '5492942601630', '573504913215',
+      '573502133453', '573505892241', '573209410817', '573502700958',
+      '593998524716', '51943377849', '593984491344', '593995879192',
+      '525537298052', '5492223575776', '5491178234019', '525534012232',
+      '593995863873',
+    ];
+    const parsedFmt = extractNumbers(listadoFmt.join('\n'));
+    exige(parsedFmt.join(',') === esperadosFmt.join(','),
+      `listado internacional con formato: esperaba ${esperadosFmt.length}, salieron ${parsedFmt.length} (${parsedFmt.join(',')})`);
+    const fragmentos = ['32176205', '3138518', '2311444', '8511204', '5876044',
+      '8509393', '37666386', '8575476', '61222259', '8575060', '8034190',
+      '37748767', '4872423', '4913215', '2133453', '5892241', '9410817',
+      '2700958', '78234019'];
+    exige(fragmentos.every((f) => !parsedFmt.includes(f)),
+      'extractNumbers sigue tomando el final de un numero formateado como cuenta aparte');
+
+    // Así llega `args` desde el dispatcher (split por espacios). Unirlo con
+    // espacio tiene que reconstruir el número; unirlo con \n era el bug.
+    const argsFmt = listadoFmt.join('\n').split(/\s+/);
+    exige(extractNumbers(argsFmt.join(' ')).join(',') === esperadosFmt.join(','),
+      'args partidos por espacios no reconstruyen el numero internacional');
+    exige(extractNumbers('+504 3217-6205, +57 323 8511204').join(',') === '50432176205,573238511204',
+      'dos internacionales separados por coma se tienen que quedar en dos');
+    exige(extractNumbers('+504 3217-6205 +57 323 8511204').join(',') === '50432176205,573238511204',
+      'dos internacionales en el mismo renglón se tienen que quedar en dos');
+
+    const pnSrc = fs.readFileSync(path.join(R, 'src/commands/purgaNumero.js'), 'utf8');
+    exige(!/extractNumbers\(\(args \|\| \[\]\)\.join\('\\n'\)\)/.test(pnSrc),
+      '!purge volvio a unir args con salto de linea: eso parte un numero formateado en trozos');
+    const tope = Number((pnSrc.match(/const MAX_PURGE = (\d+)/) || [])[1] || 0);
+    exige(tope >= esperadosFmt.length,
+      `MAX_PURGE=${tope} se queda corto para el listado real de ${esperadosFmt.length} numeros`);
+
     // El aviso, por lo que TIENE que cumplir y no por como esta redactado.
     const aviso1 = avisoDePurge(['57300111222']);
     const avisoN = avisoDePurge(['57300111222', '57300333444']);
@@ -1642,6 +1718,30 @@ async function capaStores() {
           '!purge no enseña el listado antes de tocar nada');
         exige(/57300111222/.test(timeline[0]?.text || '') && /57300333444/.test(timeline[0]?.text || ''),
           '!purge no lista los numeros que va a sacar');
+
+        // El dispatcher parte "+504 3217-6205" en ['+504','3217-6205']. El
+        // cuerpo del mensaje tiene que ganar: si args manda, el listado enseña
+        // +32176205 (un trozo) y WhatsApp dice que no existe.
+        const timelineFmt = [];
+        const sockFmt = {
+          ...sockP,
+          sendMessage: async (jid, c) => { timelineFmt.push({ t: 'msg', jid, text: c.text || '' }); return {}; },
+          groupFetchAllParticipating: async () => ({}),
+        };
+        const cuerpoFmt = '!purge\n+504 3217-6205\n+54 9 385 313-8518';
+        await cmdPurge(sockFmt, {
+          key: { remoteJid: 'g1@g.us', fromMe: true, id: 'P3', participant: BOT },
+          message: { conversation: cuerpoFmt },
+        }, cuerpoFmt.replace(/^!purge\s*/, '').split(/\s+/), { participants: [] });
+        const listadoFmtTxt = timelineFmt[0]?.text || '';
+        exige(/50432176205/.test(listadoFmtTxt) && /5493853138518/.test(listadoFmtTxt),
+          '!purge no reconstruye numeros internacionales con formato');
+        exige(!/\+32176205\b/.test(listadoFmtTxt) && !/\+3138518\b/.test(listadoFmtTxt),
+          '!purge lista el final de un numero formateado como si fuera otra cuenta');
+        exige(!/Tope de /i.test(listadoFmtTxt),
+          '!purge recorta un listado de 2 por el tope');
+        exige(/Voy a purgar \*2\*/.test(listadoFmtTxt),
+          '!purge no cuenta 2 numeros formateados: sigue inflando el listado con trozos');
 
         const kicks = timeline.filter((x) => x.t === 'kick');
         exige(kicks.length === 2, `!purge tenia que echar de 2 grupos y echo de ${kicks.length}`);
