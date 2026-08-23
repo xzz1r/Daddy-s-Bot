@@ -66,7 +66,7 @@ const OTROS=['src/commands/robo.js','src/commands/aura.js','src/commands/roast.j
  'src/commands/relevance.js','src/commands/ship.js','src/commands/iq.js','src/commands/count.js',
  'src/commands/activity.js','src/commands/wingman.js','src/commands/mog.js','src/commands/duel.js',
  'src/commands/social.js','src/commands/topsRandom.js','src/data/apuestaPhrases.js',
- 'src/data/rachaPhrases.js','src/data/roboExtraPhrases.js','src/utils/casino.js','src/utils/auraCobro.js'];
+ 'src/data/rachaPhrases.js','src/data/roboExtraPhrases.js','src/data/cooldownPhrases.js','src/utils/casino.js','src/utils/auraCobro.js'];
 for(const rel of OTROS){
   const src=fs.readFileSync(path.join(R,rel),'utf8').split('\n');
   let nom=null,cur=[];

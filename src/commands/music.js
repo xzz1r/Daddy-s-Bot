@@ -4,6 +4,7 @@ const { incrementStat } = require('../utils/state');
 const { getCached, setCached, listCached, clearCache } = require('../utils/musicCache');
 const { getSender, canonicalJid, isMainOwner } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
+const { fraseCooldown, PLAY } = require('../data/cooldownPhrases');
 const logger = require('../utils/logger');
 const fs = require('fs-extra');
 
@@ -60,7 +61,7 @@ async function cmdPlay(sock, msg, args, groupMeta) {
     if (waitMs > 0) {
       await reembolsar();
       return sock.sendMessage(jid, {
-        text: `Espera ${Math.ceil(waitMs / 1000)}s antes de pedir otra canción.`,
+        text: `${fraseCooldown(PLAY, `${canonicalJid(quienPide)}|play`, 0)}\n_Vuelve en *${Math.ceil(waitMs / 1000)}s*._`,
       }, { quoted: msg });
     }
     // Fire the "Buscando..." notice without awaiting so yt-dlp starts immediately,

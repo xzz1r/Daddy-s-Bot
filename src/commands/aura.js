@@ -7,6 +7,7 @@ const logger = require('../utils/logger');
 const { contarTirada } = require('../utils/casinoStore');
 const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, bonoVeterania, VETERANIA_TOPE, APUESTA, pApuestaDe, pApuestaVisible, PRECIOS, ARRANQUE, MILLONARIO, tirar, MOMENTUM } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
+const { fraseCooldown, AURA_TIRADA, AURA_APOSTAR, AURA_TOP_ANSIAS, AURA_TOP_POBRE } = require('../data/cooldownPhrases');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
 const { BOTE, ATRACO, CONTRA, RACHA, RIESGO, OBJETOS, VENTAJA, RECOMPENSA, IMPUESTO, REGALO_MIN } = require('../utils/economia');
 const { aportarAlBote } = require('../utils/roboStore');
@@ -150,20 +151,20 @@ const AURA = {
     'Joder, has obligado a recastear el reparto. El payaso, por un rato, no eras tú.',
     'Coño, le debían una y se la has cobrado en público. La cara de deudor no se les quita con un jaja.',
     'El puto grupo pasó de 40 mensajes al minuto a mirar el techo. Tú has sido el corte de luz.',
-    'Coño, un "hostia" a medias. La hache se mandó. El resto se lo comieron. Eso es peso.',
+    'Coño, un "joder" a medias. La jota se mandó. El resto se lo comieron. Eso es peso.',
     'Coño, el que iba a mandar el audio se lo guardó. Hoy no tocaba reírse. Tocaba tragar.',
-    'Coño, te han mirado como se mira al que acierta el chino gordo: con rabia educada.',
+    'Coño, te han mirado como se mira al que acierta la lotería: con rabia educada.',
     'Alguien actualizó el ranking dos veces por si era un delay. No era un delay, gilipollas.',
     'El defensor habitual se ha callado también. Cuando hasta el tuyo se asusta, has ganado.',
     'Había un puto hilo de burla a medio construir. Lo has tirado abajo con un ladrillo.',
-    'El puto chat te ha puesto de protagonista sin querer. El público está de mala leche, y se nota.',
+    'El puto chat te ha puesto de protagonista sin querer. El público no te traga, y se nota.',
     'Has cerrado el chiste fácil. Cuando no sale, es que el número impone, cabrón.',
     'Alguien iba a decir "de chiripa" y se lo ha guardado. Porque no lo era, y lo sabe.',
     'Te han hecho sitio en la conversación a la fuerza. El sitio era el de en medio, incómodo.',
     'El que te subestimaba está recálculando. El Excel le ha salido en verde y le ha jodido.',
     'Has dejado tres "jajaja" a medias. Se ven los puntos suspensivos y ninguna risa.',
     'El puto grupo te ha concedido el respeto de los que no tienen salida. Aprovecha, no dura.',
-    'Alguien ha puesto el móvil boca abajo un segundo. Para no tener que verte arriba.',
+    'Alguien ha puesto el teléfono boca abajo un segundo. Para no tener que verte arriba.',
     'Has ganado de una forma que obliga a cambiar de tema. Han saltado a fútbol demasiado rápido.',
     'El que tenía un meme con tu cara lo ha guardado en "borradores". Hoy no toca, pringado.',
     'Te han tragado como se traga un hueso: de lado, con los ojos entornados, y sin aplauso.',
@@ -171,7 +172,7 @@ const AURA = {
     'Has hecho que el puto ranking duela. Duele más cuando el nombre no debería estar ahí.',
     'Alguien ha dicho "bueno" y se ha quedado corto. No había un segundo adjetivo que no le quemara.',
     'El puto chat te ha reasignado el papel. De extra a plano corto. Les ha costado el encuadre.',
-    'Has dejado al que siempre pila sin pila. Se le ha visto buscar otra víctima, joder.',
+    'Has dejado al que siempre te tira sin material. Se le ha visto buscar otra víctima, joder.',
     'Te han concedido el silencio de los que están haciendo cuentas. Las cuentas no les salen.',
     'Un visto colectivo. Nadie escribe. Ese visto vale más que cien "crack" de mentira.',
     'Has obligado a tragar saliva a gente que traga poco. Conserva el ruido. Es raro en ti.',
@@ -192,7 +193,7 @@ const AURA = {
     'Alguien ha escrito tu puto nombre y lo ha borrado. Hoy el nombre pesa. Ayer era un meme.',
     'Has hecho que el "seguro que pierde" se atragante. La frase se les ha quedado entre dientes.',
     'Te han mirado como se mira al que paga la ronda: con respeto, con rabia, y sin decir gracias.',
-    'El aura te ha puesto de portada. El resto del periódico está de muy mala hostia.',
+    'El aura te ha puesto de portada. El resto del periódico está que no te traga.',
     'Has dejado al cronista del puto grupo sin titular de risa. Ha tenido que escribir en serio. Le ha dolido.',
     'El que te reenviaba los fails a otro puto chat hoy no tiene material. Que se busque un hobby.',
     'Has ganado de una forma que obliga a mirar el teclado. Nadie quería ser el primer carácter.',
@@ -219,7 +220,7 @@ const AURA = {
     'Has obligado a que te traguen sin salsa. El plato eras tú. La cara, de "esto no lo pedí".',
     'El aura te ha hecho un corte de manga colectivo al repertorio. Se han quedado sin herramientas.',
     'Has puesto tu puto nombre donde no tocaba. El sitio estaba reservado para otros. Ya no.',
-    'Te han dado el respeto de la mala leche: no te quieren ahí, y ahí estás. Qué se le va a hacer.',
+    'Te han dado el respeto de la rabia: no te quieren ahí, y ahí estás. Qué se le va a hacer.',
     'El puto grupo te ha tragado el número como se traga un hueso de cereza: con miedo a que se note.',
   ],
   gain: [
@@ -230,16 +231,16 @@ const AURA = {
     'Hoy no la cagaste. Para tu historial ya es casi un logro, no te creas demasiado.',
     'El aura te dio un hueso. Disfrútalo en silencio, mañana vuelves a ser el de siempre.',
     // ── Reescritas y nuevas ──
-    'Joder, sumaste calderilla. No da para presumir, pero da para no llorar.',
+    'Joder, sumaste monedas. No da para presumir, pero da para no llorar.',
     'El aura te dio una propina. No te ofendas: es más de lo que sueles conseguir, gilipollas.',
     'El aura subió un escalón. Sigues en el puto sótano, pero ahora es un sótano ligeramente más alto.',
     'Te dieron una migaja y saliste contento. Dice más de ti que de la puta tirada.',
-    'Joder, hoy el aura te trató como a un cliente habitual: sin entusiasmo pero sin hostias.',
+    'Joder, hoy el aura te trató como a un cliente habitual: sin entusiasmo pero sin palos.',
     'Joder, te llevaste un puñado de aura. Pequeño, como todo lo tuyo, pero al menos es positivo.',
     'Joder, una ganancia de supervivencia. No estás creciendo, estás no muriendo. Y eso ya es algo.',
     'Te han dado el cambio del kiosko. Cuéntalo en voz alta y se te acaba el puto turno.',
-    'Un like de compromiso. Verde, sí. Respeto, ni de coña.',
-    'El ticket del Mercadona tiene más presencia que este resultado, y eso que acaba en la basura.',
+    'Un like de compromiso. Verde, sí. Respeto, ni de broma.',
+    'El ticket del súper tiene más presencia que este resultado, y eso que acaba en la basura.',
     'Joder, te tocó el menú junior. Cómetelo antes de que se enfríe y nadie pregunte de quién era.',
     'Joder, el wifi del vecino: llega, flojo, y se corta en cuanto te fías.',
     'Joder, el verde de farmacia. Cura poco y se nota que es marca blanca.',
@@ -249,7 +250,7 @@ const AURA = {
     'Coño, el chicle pisado en la acera: alguien lo soltó y tú lo has recogido como si fuera premio.',
     'Coño, el segundo del McDonalds. Ni menú, ni corona, ni foto. Lo que sobra, para ti.',
     'Aviso de puto saldo mínimo en verde. El banco te mira igual de mal, solo que hoy no te cobra.',
-    'Coño, el like de la tía en el Facebook. Cariño obligatorio, cero ganas, y tú agradecido.',
+    'Coño, el like de tu tía en Facebook. Cariño obligatorio, cero ganas, y tú agradecido.',
     'Notificación de +1. El teléfono ni vibra. Tú sí, y eso es lo patético.',
     'Limosna de iglesia. La echas y te persignas. El cura ya está pensando en otro.',
     'Resto de pizza fría a las cuatro. Nadie la reclamó. Ahora es tuya, pringado.',
@@ -260,11 +261,11 @@ const AURA = {
     'Pelusa del bolsillo. La sacas, la miras y la vuelves a guardar. Patrimonio de miseria.',
     'Hielo del gin-tonic derretido. Refresca un segundo y luego es agua caliente con pretensiones.',
     'Recambio genérico del Chinese. Encaja. Hace ruido. Dura lo que dura tu suerte.',
-    'Marca blanca del Día. Misma función, cara cutre, y tú contento porque es positiva.',
-    'Dacia Sandero del aura: llega, no impresiona, y el seguro es lo único caro.',
+    'Marca blanca del súper. Misma función, cara cutre, y tú contento porque es positiva.',
+    'El auto más barato del catálogo: llega, no impresiona, y el seguro es lo único caro.',
     'Nokia que aún enciende. No es un logro, es que no sabía cómo morirse. Como tú, fracasado.',
     'Brick de leche a punto de caducar. Lo abres hoy o huele mañana. Tú verás.',
-    'Chubasquero del Decathlon. Feo, efectivo y nadie te lo va a copiar, joder.',
+    'Impermeable de oferta. Feo, efectivo y nadie te lo va a copiar, joder.',
     'Ración de cortesía en el bar. No la pediste, no la merecías, y aun así la has palmeado.',
     'Sombra de alguien que sí ganó. Hoy te ha tocado un trozo de esa sombra. Calla, cabrón.',
     'Eco de un aplauso que era para otro. Lo has recogido del suelo como si fuera tuyo, patético.',
@@ -276,10 +277,10 @@ const AURA = {
     'Verde de semáforo en ámbar. Pasa, pero si te confías te pisan, cabrón.',
     'Goma de borrar usada. Todavía limpia algo. No presume de material escolar.',
     'Tostada del día anterior en el microondas. Caliente por fuera, vergüenza por dentro.',
-    'El aura te ha hecho un Bizum de vergüenza. Acepta y no pongas concepto.',
+    'El aura te ha hecho una transferencia de vergüenza. Acepta y no pongas concepto.',
     'Entrada de grada. Ves el partido, sí. El césped te queda a un kilometraje moral.',
-    'Te ha tocado el chino del día: un puto número que no da para el gordo ni para el café.',
-    'Sello en el carné de puntos. No te lo han quitado. Eso, en ti, ya es fiesta, inútil.',
+    'Te ha tocado el boleto del día: un puto número que no da para el gordo ni para el café.',
+    'Sello en la tarjeta de puntos. No te la han quitado. Eso, en ti, ya es fiesta, inútil.',
     'Agua del grifo fría. No es Perrier, no es drama, y te la bebes igual.',
     'Calcetín encontrado detrás de la lavadora. Pareja incompleta, pero es un hallazgo.',
     'El aura te dejó puta propina de cubierto. Ni plato, ni vino, ni que te miren al servir.',
@@ -292,7 +293,7 @@ const AURA = {
     'Te ha salido el parche oficial. Sigue siendo el mismo juego cutre, con un parche.',
     'Cargador de gasolinera: cinco minutos, tres por ciento, y el coche detrás pitando.',
     'El aura te ha puesto en cc de un correo que no era para ti. Has aparecido. Punto.',
-    'Subiste lo que sube el sueldo en hostelería: un insulto disfrazado de cifra.',
+    'Subiste lo que sube el sueldo en un restaurante: un insulto disfrazado de cifra.',
     'Te dieron un chupito de cortesía. Ni copa, ni hielo, ni segunda ronda. Qué asco de premio.',
     'Verde de Excel: la celda cambió de color y el jefe ni abrió el archivo.',
     'Te ha tocado el relleno del bocadillo: atún del barato. Alimenta. No enamora. Cutre y tuyo.',
@@ -300,7 +301,7 @@ const AURA = {
     'Subida de esas que se cuentan en cucharaditas. No llenas el plato ni mintiendo.',
     'Te han dado el wifi de 30 minutos del aeropuerto. Navega y lárgate, fracasado.',
     'Sello de "pagado" en una factura de tres euros. Contable de tu propia miseria.',
-    'El aura te ha hecho la ola de un solo tío. Ese tío eres tú. Qué vergüenza más íntima.',
+    'El aura te ha hecho la ola de un solo tipo. Ese tipo eres tú. Qué vergüenza más íntima.',
     'Te tocó el caramelo de menta del plato de la entrada. Gratis, duro y de nadie.',
     'Subiste como el agua del vaso: por capilaridad, sin que nadie lo pidiera.',
     'Te han dado el número de espera y ha bajado uno. Sigues en la sala, gilipollas.',
@@ -328,7 +329,7 @@ const AURA = {
     'Subiste como el pan de molde: una rebanada, y la bolsa sigue casi llena de aire.',
     'Te ha tocado el "puede ser peor". Hoy no lo es. Guárdalo, que mañana vuelve a serlo.',
     'El aura te ha hecho un guiño. Un guiño, no un beso. No te pongas romántico, inútil.',
-    'Te pagaron en puntos Nectar de tres supermercados atrás. Caducan. Tú también, un poco.',
+    'Te pagaron en puntos de un súper de hace tres años. Caducan. Tú también, un poco.',
     'Subida de andén: el tren no para, pero por lo menos ya no estás en las vías.',
     'Te dieron el pan de la cesta que nadie cogió. Gratis, duro, y tú haciendo fiesta.',
     'El aura te ha puesto un post-it verde en la frente. Se cae si sudas de la emoción, gilipollas.',
@@ -376,7 +377,7 @@ const AURA = {
     'Coño, el tupperware sin tapa. El resto se pone feo y nadie va a reclamarlo.',
     'Paraguas olvidado en el bar. El camarero lo mira un día y lo tira. Como tu puta tirada.',
     'Coño, el ticket de la compra en el bolsillo: se lava, se hace pelota, y no vale para nada.',
-    'Coño, la cola del Mercadona que no avanza. Has perdido un puesto y el de la caja ni te ha visto.',
+    'Coño, la cola del súper que no avanza. Has perdido un puesto y el de la caja ni te ha visto.',
     'Coño, el wifi que pica una vez y se cae. Has notado el corte. El resto seguía con datos.',
     'Alarma que snoozeas. El golpe es pequeño y tú ya lo tenías metido en el cuerpo.',
     'Taburete cojo. Se nota cuando te sientas. Nadie va a cambiarte el mueble, pringado.',
@@ -392,10 +393,10 @@ const AURA = {
     'Pérdida de mando a distancia: está entre el sofá, no la buscas, y la peli sigue.',
     'Te restaron lo que se lleva el IVA: lo sabías, lo odias, y pagas igual.',
     'El grupo te archivó en "recuerdos". Ahí no entra nadie a mirar, cabrón.',
-    'Bajaste como el hielo del cubata: se nota al final, cuando ya está aguado.',
-    'Te han dado el visto de la tía. Obligatorio, frío, y a otra cosa.',
+    'Bajaste como el hielo del vaso: se nota al final, cuando ya está aguado.',
+    'Te han dado el visto de compromiso. Obligatorio, frío, y a otra cosa.',
     'Pérdida de esas que caben en un post-it. Nadie lo pega. El suelo se lo come.',
-    'El aura te ha hecho un Bizum al revés. Sin concepto. Sin perdón. Sin drama. Qué asco de cobro.',
+    'El aura te ha hecho una transferencia al revés. Sin concepto. Sin perdón. Sin drama. Qué asco de cobro.',
     'Te quitaron el asiento del pasillo. Sigues en el vagón. Viajas peor, que es lo tuyo.',
     'Bajaste lo que baja una planta de IKEA en un piso de estudiantes: despacio y sin funeral.',
     'El chat puso "jaja" a otra cosa mientras tú salías en rojo. Prioridades, inútil.',
@@ -417,9 +418,9 @@ const AURA = {
     'El aura te ha puesto un "ok" en rojo. Ni sticker. Ni pena. Ok, fracasado.',
     'Te quitaron el hielo y te dejaron el agua. Sigues bebiendo. El gin se lo quedó otro.',
     'Pérdida de mando de persiana. La persiana se queda a medias. Como tú, siempre.',
-    'El chat archivó tu nombre junto a "el de siempre". Ya sois una sola entrada, gilipollas.',
+    'El chat archivó tu nombre junto a "el de siempre". Ya son una sola entrada, gilipollas.',
     'Te han dado el recorte del cupón caducado. Lo tenías. Ya no vale. Típico.',
-    'Bajaste lo que baja el móvil en el bolsillo: un por ciento, y ni lo has sacado a mirar.',
+    'Bajaste lo que baja el teléfono en el bolsillo: un por ciento, y ni lo has sacado a mirar.',
     'El aura te cobró el peaje de tres euros. La autopista sigue. Tú sales más corto.',
     'Te restaron el pan de la cesta. El segundo plato no era para ti de todas formas.',
     'Pérdida de llavero. Las llaves están. El llavero era lo único medianamente tuyo.',
@@ -439,7 +440,7 @@ const AURA = {
     'Te restaron el último chicle del paquete. Lo querías para el aliento. Ahora hueles a derrota.',
     'Bajada de termostato de un grado. Sigues pasando frío. El casero no va a venir, cabrón.',
     'El aura te ha hecho la cama de albergue: corta, dura, y el ronquido del de al lado sigue.',
-    'Te quitaron el sello del carné. No te han expulsado. Te han recordado que existes mal.',
+    'Te quitaron el sello de la ficha. No te han expulsado. Te han recordado que existes mal.',
     'Pérdida de esas que se miden en migas. El mantel se sacude y tú caes al suelo.',
     'El puto chat te dejó en "escribiendo…" y se le pasó. Ni mensaje. Ni pena. Se le pasó.',
     'Bajaste como el wifi del tren: se corta, vuelve, se corta, y el viaje no te espera.',
@@ -450,7 +451,7 @@ const AURA = {
     'El puto grupo te usó de pausa publicitaria. Has salido en rojo y han vuelto al programa.',
     'Te quitaron lo que se lleva el viento de una terraza: la servilleta, no el plato. Tú eras la servilleta.',
     'Pérdida de pilas del mando. Has apretado más fuerte. La tele, impasible. Como el puto chat.',
-    'El aura te cobró el café solo cuando pediste con leche. Te lo bebes. No reclamas. Of course.',
+    'El aura te cobró el café solo cuando pediste con leche. Te lo bebes. No reclamas. Claro.',
     'Bajaste el volumen de ti mismo. El puto grupo ya te tenía en 0. Hoy han confirmado el mute.',
     'Te restaron el panecillo de cortesía. El restaurante sigue lleno. Tu mesa, no.',
     'El chat te puso junto a "ya se sabe". Hoy se ha sabido otra vez. Sorpresa cero, gilipollas.',
@@ -499,7 +500,7 @@ const AURA = {
     'Sótano con literas. Has elegido la de abajo. La de arriba también es abajo.',
     'Pozo con eco. Gritas "ya está" y te devuelve "todavía no", gilipollas.',
     'Cuerda de puto pozo que has soltado. Sigues bajando. La cuerda se ríe desde arriba.',
-    'Marea negra. Cada oleada te deja más cubierto. El chubasquero no era para esto.',
+    'Marea negra. Cada oleada te deja más cubierto. El impermeable no era para esto.',
     'Temporada de lluvias en tu puto marcador. No hay paraguas. Hay pala. Sigue.',
     'Hoyos de golf: cada uno más hondo. Nadie te va a aplaudir el putt, inútil.',
     'Cueva turística. El guía ya ni habla. "Aquí vive él" y pasa el puto grupo de largo.',
@@ -545,7 +546,7 @@ const AURA = {
     'Pozo de petróleo con el cartel de "seco" desde el 23. El taladro sigue en marcha.',
     'Hoyo de hamster. La rueda está abajo. Corres. No subes. El aserrín eres tú.',
     'Sótano de trastero de IKEA: todo es "aún se puede usar". Nada se usa. Tú tampoco, hacia arriba.',
-    'Cripta de móvil: batería al uno y tú tirando. El modo ahorro ya es tu personalidad.',
+    'Cripta de teléfono: batería al uno y tú tirando. El modo ahorro ya es tu personalidad.',
     'Foso de orquesta con un solo platillo: cada vez que tiras, suena el mismo palo.',
     'Pozo de vecindad. El cubo de todos sube. El tuyo tiene un puto agujero. Lo sabes. Tiras igual.',
     'Sótano de cine: la peli es tu puta racha. Nadie se queda al crédito. El crédito eres tú perdiendo.',
@@ -584,7 +585,7 @@ const AURA = {
     'El grupo vio tu resultado y cada uno pensó lo mismo: "menos mal que no soy yo, puta madre".',
     'Dos personas cerraron el puto chat para no tener que verte. El resto se quedó, peor para ti.',
     'Joder, el defensor se fue al baño con una puntualidad sospechosa. Cuando vuelva, dirá que no vio nada.',
-    'Joder, alguien ha puesto el móvil boca abajo. No por respeto. Para no tener que mirar el cráter.',
+    'Joder, alguien ha puesto el teléfono boca abajo. No por respeto. Para no tener que mirar el cráter.',
     'Joder, la captura ya está en destacados. No la ha mandado. La tiene. Eso es peor.',
     'El bocazas se ha encontrado sin material. Demasiado feo para su repertorio de tres chistes.',
     'Has convertido el chat en un velatorio de treinta segundos. Nadie ha llevado flores, cabrón.',
@@ -621,10 +622,10 @@ const AURA = {
     'Has puesto el ranking en modo agujero. El nombre y el puto número parecen un error. No lo son.',
     'El que iba a bardear se ha encontrado sin ganas. Ni odio te mereces hoy. Solo pena.',
     'Has convertido un puto chat activo en una sala de espera. Nadie quería ser el siguiente en hablar.',
-    'Te han mirado como se mira un choque en la M-30: no puedes no verlo, y ojalá pudieras.',
+    'Te han mirado como se mira un choque en la autopista: no puedes no verlo, y ojalá pudieras.',
     'Has dejado una huella de cringe que se siente en los hombros. El puto grupo se ha encogido entero.',
     'Alguien ha dicho "buah" y ha sido todo el discurso. Un buah. Tu epitafio de hoy.',
-    'Has hecho que pongan el móvil en la mesa, pantalla abajo, como quien esconde un muerto.',
+    'Has hecho que pongan el teléfono en la mesa, pantalla abajo, como quien esconde un muerto.',
     'El defensor ha salido a fumar. No fuma. Hoy ha salido a fumar. Traducción: no sabe qué decir.',
     'Has batido el fondo y el fondo ha pedido un receso. Ni el puto pozo te quería tanto rato.',
     'La gente ha hecho esa risa nerviosa que no es risa. Es una válvula. La has abierto tú.',
@@ -680,42 +681,9 @@ for (const tramo of Object.keys(AURA)) AURA[tramo] = AURA[tramo];
 // Lo que se contesta cuando el ranking esta en cooldown. Y NO es lo mismo para
 // todos: el que esta en el top lo pide por vanidad y el que no esta lo pide por
 // envidia, asi que se les responde por donde le duele a cada uno.
-const RANKING_ANSIAS = [
-  'Tranquilo, que tu puesto no se va a mover en lo que tardas en respirar.',
-  'Ya sabes que estás arriba. Pedirlo otra vez no te sube más.',
-  'Qué ansias. El podio no se evapora, sigue ahí con tu nombre.',
-  'Estás en el top y aun así necesitas verlo escrito. Eso dice algo de ti.',
-  'Sigues arriba. Ahora suelta el móvil y disfrútalo como una persona normal.',
-  'No comas ansias. Tu nombre no se ha borrado en los últimos diez minutos.',
-  'Ya estás en la lista. Mirarla cada rato no la hace más tuya.',
-  'Relaja. El ranking no huye y tu puesto tampoco.',
-  'Que sí, que vas bien. No hace falta comprobarlo cada dos por tres.',
-  'Estar arriba y necesitar verlo constantemente es una forma cara de inseguridad.',
-  'Tu sitio está reservado. Vuelve luego y seguirá ahí.',
-  '¿Otra vez? Si estás arriba, disimula un poco al menos.',
-  'Vanidad detectada. El top no ha cambiado desde que lo miraste.',
-  'Tranquilo, campeón. Nadie te ha quitado el puesto mientras parpadeabas.',
-  'Ya lo has visto. Verlo más veces no multiplica el aura.',
-];
-
-const RANKING_POBRE = [
-  'Para lo que sales tú en esa lista, tampoco corre prisa.',
-  'Con tu saldo, el ranking es turismo.',
-  'Mirar el top no te sube el aura. Escribir, sí. Prueba eso.',
-  'Tanto interés en una lista donde no apareces es casi ternura.',
-  'El top no ha cambiado y tú tampoco. Ahí está el problema.',
-  'Sigues sin salir. Ver la lista otra vez no te va a colar en ella.',
-  'Cada vez que pides el ranking confirmas que no estás en él.',
-  'Estúdiate menos la lista y farmea más, que es lo que te falta.',
-  'No sales. No vas a salir mirando. Ponte a escribir.',
-  'Fascinante obsesión con un podio que te queda lejísimos.',
-  'El ranking sigue igual, y tú sigues igual de abajo.',
-  'Consultar el top con tu saldo es como leer la carta sin cartera.',
-  'Ni estás ni se te espera. Pero oye, buena curiosidad.',
-  'Deja de vigilar a los que ganan y ponte a competir de una vez.',
-  'El podio no se mira, se ocupa. Tú de momento miras.',
-];
-
+// Pools: src/data/cooldownPhrases.js (AURA_TOP_ANSIAS / AURA_TOP_POBRE).
+const RANKING_ANSIAS = AURA_TOP_ANSIAS;
+const RANKING_POBRE = AURA_TOP_POBRE;
 const RANKING_COOLDOWN_MS = 3 * 60 * 60 * 1000;
 const ultimoRanking = new Map();   // grupo -> ts
 
@@ -833,7 +801,7 @@ async function showRanking(sock, msg, groupMeta) {
       // bot simplemente ha contestado otra cosa. Que hay un tiempo de espera se
       // deducia del "Vuelve en" de la segunda linea, y no se deducia: la gente
       // volvia a pedirlo. Se dice en la primera linea y en una palabra.
-      text: `*TOP EN COOLDOWN*\n${pickFresh(pool, `${jid}|top|${enTop ? 'ansias' : 'pobre'}`)}\n_Vuelve en *${cuanto}*._${copia}`,
+      text: `*TOP EN COOLDOWN*\n${fraseCooldown(pool, `${jid}|top|${enTop ? 'ansias' : 'pobre'}`, 0)}\n_Vuelve en *${cuanto}*._${copia}`,
       // SIN mentions a proposito: es lo unico que separa enseñar la tabla de
       // volver a notificar a los diez.
     }, { quoted: msg });
@@ -1011,17 +979,17 @@ const apuestaEnCurso = new Set();
 const APUESTA_POBRE = [
   'Joder, vienes a apostar con el culo al aire y sin vergüenza. Vuelve cuando tengas algo que no sea miseria.',
   'Con esa mierda de saldo no llegas ni a la barra, cojones.',
-  '¿Apostar tú? Ni de coña. Antes junta cuatro duros y luego hablamos.',
+  '¿Apostar tú? Ni de broma. Antes junta algo de saldo y luego hablamos.',
   'Vienes más pelado que una rata de alcantarilla. Aquí no se juega con pena.',
-  'Esa calderilla no vale ni para limpiarme el culo, no te digo ya para apostar.',
+  'Esa miseria no vale ni para limpiarme el culo, no te digo ya para apostar.',
   'La mesa tiene un mínimo y tú tienes menos que eso, gilipollas.',
   'Con lo que tienes no apuestas, mendigas. Y aquí no se reparte caridad.',
   'Joder, qué vergüenza ajena da tu saldo. Vuelve cuando no seas un puto pordiosero.',
   'Eso no es aura, es la mierda que queda en el fondo del bolsillo.',
   'Ni para propina llega eso, coño. Vete a pedir a otro lado.',
   'Aquí se apuesta con cojones, no con las migajas que te quedan.',
-  'Con esa hostia de saldo lo único que arriesgas es hacer el ridículo.',
-  'Estás más seco que la Mancha en agosto. Junta pasta y vuelve, pringado.',
+  'Con ese agujero de saldo lo único que arriesgas es hacer el ridículo.',
+  'Estás más seco que un río en agosto. Junta saldo y vuelve, pringado.',
   'No hay mínimo que sobreviva a tu miseria. Larga de la mesa.',
 ];
 
@@ -1049,7 +1017,7 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
       const h = Math.floor(queda / 3_600_000);
       const m = Math.ceil((queda % 3_600_000) / 60_000);
       return sock.sendMessage(jid, {
-        text: `La mesa todavía está caliente. Vuelve en *${h ? h + 'h ' : ''}${m}min*.`,
+        text: `*APUESTA EN COOLDOWN*\n${fraseCooldown(AURA_APOSTAR, `${clave}|apostar`)}\n_Vuelve en *${h ? h + 'h ' : ''}${m}min*._`,
       }, { quoted: msg });
     }
 
@@ -1311,7 +1279,7 @@ async function cmdAura(sock, msg, args, groupMeta) {
   const remaining = ROLL_COOLDOWN_MS - (Date.now() - last);
   if (remaining > 0) {
     return sock.sendMessage(jid, {
-      text: `Espera *${duracion(remaining)}* para volver a tirar.`,
+      text: `*TIRADA EN COOLDOWN*\n${fraseCooldown(AURA_TIRADA, `${coolKey}|tirada`)}\n_Vuelve en *${duracion(remaining)}*._`,
     }, { quoted: msg });
   }
   // Aqui hubo un tope de doce tiradas al dia. Se quito: un contador que se agota
