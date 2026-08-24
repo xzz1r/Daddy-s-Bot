@@ -305,7 +305,7 @@ _Todo lleva *${p}* delante — *${p}play* summertime sadness. El número es lo q
 ━━━━━ *HERRAMIENTAS* ━━━━━
 *${p}play* ${c('play')} <nombre> · *${p}cachelist* ${c('cachelist')}
 *${p}s* ${c('sticker')} · *${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')} · *${p}ttp* ${c('ttp')} <texto>
-*${p}g* ${c('grok')} <pregunta> · *${p}pfp* ${c('pfp')} · *${p}fk* ${c('fk')} @user
+*${p}g* ${c('g')} <pregunta> · *${p}pfp* ${c('pfp')} · *${p}fk* ${c('fk')} @user
 
 ━━━━━ *DINÁMICAS* ━━━━━
 _Sin @ va sobre ti · con @ va sobre esa persona._
@@ -342,7 +342,7 @@ ${esAdmin ? `
 ━━━━━ *ADMINS SUPERIORES* ━━━━━
 *${p}demote* · *${p}on* / *${p}off* — apagar el bot en este grupo
 _Van con on/off:_ *${p}antilink* · *${p}antifoto* · *${p}antiempresa* · *${p}antiadmin* · *${p}adminmode* · *${p}aura*
-*${p}resetcount* · *${p}resetaura* · *${p}clearcache* · *${p}setgrok* · *${p}diag*
+*${p}resetcount* · *${p}resetaura* · *${p}clearcache* · *${p}setkey* · *${p}diag*
 ` : ''}
 _${p}ping · ${p}info · ${p}whoami_
 _Contactar al creador del bot: wa.me/${config.contacto}_`;

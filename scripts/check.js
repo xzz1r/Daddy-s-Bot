@@ -410,9 +410,8 @@ async function capaStores() {
       // comprobacion se saltaba media lista en silencio — probado quitandole el
       // precio a !pfp: no decia nada.
       for (const k of Object.keys(PRECIOS)) if (!clave[k]) clave[k] = k;
-      // Y dos que se teclean distinto de como se llama su precio.
+      // !s se teclea distinto de como se llama su precio.
       clave.s = 'sticker';
-      clave.g = 'grok';
 
       // LA REGLA ES "AL MENOS UNA VEZ CON SU PRECIO", no "en cada linea".
       // La primera version pedia el numero en cada linea donde saliera el
@@ -2277,7 +2276,7 @@ async function capaStores() {
       owner: { demote: 'cmdDemote', on: 'cmdOn', off: 'cmdOff', antilink: 'cmdAntiLink',
         antifoto: 'cmdAntiFoto', antiempresa: 'cmdAntiBusiness', antiadmin: 'cmdAntiAdmin',
         adminmode: 'cmdSoloAdmins', aura: 'interruptor', resetcount: 'cmdResetCount',
-        setgrok: 'cmdSetGrokKey', diag: 'cmdDiag' },
+        setkey: 'cmdSetKey', diag: 'cmdDiag' },
     };
     const mal = [], perdidas = [];
     for (const [nivel, tabla] of Object.entries(esperado)) {
