@@ -1057,18 +1057,33 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
 //
 // Van sin genero marcado (el grupo no es solo de tios) y ninguno amenaza con
 // echar a nadie: el bot no lo hace, y lo que si se cumple solo es lo otro.
+// Los remates. Dos condiciones, y las dos se me olvidaron por el camino:
+//
+//   1. EMPUJAR. "Se presentó igual, y como cobarde" le decia que la cosa ya
+//      estaba hecha, o sea que le quitaba el motivo para mandar la foto.
+//      Un veredicto no mueve a nadie: el insulto tiene que ser lo que le cae
+//      POR DEFECTO y se quita mandandola.
+//   2. INSULTAR DE VERDAD. La tanda siguiente fue peor de otra forma:
+//      "Esconderse no te hace interesante, te hace evidente" es un refran, no
+//      un ataque. En un bot que dice "fantasma de mierda" eso suena a taza de
+//      desayuno.
+//
+// Sin genero marcado, que el grupo no es solo de tios — y eso NO es excusa para
+// escribir blando: "das pena", "careto", "te has visto" valen para cualquiera.
+// Y ninguno amenaza con echar: el bot no lo hace.
 const REMATES = [
-  'Nadie esconde una cara que valga la pena.',
-  'Cada hora sin foto, el grupo te imagina peor.',
-  'La foto que no mandas es la que todos se están imaginando.',
-  'Diez segundos de foto o toda la vida de sospecha.',
-  'Quien no manda foto ya sabe por qué.',
-  'Aquí se entra con cara. Si no la pones, te ponemos una.',
-  'Todo el mundo tiene una foto decente. Todo el mundo.',
-  'Sin foto, el grupo asume lo peor. Y se queda corto.',
-  'Esconderse no te hace interesante. Te hace evidente.',
-  'La edad tampoco la escondes: no mandarla ya la dice.',
+  'No es timidez. Es que te has visto.',
+  'Sin foto porque ya sabes que das pena. Y aciertas.',
+  'Ese careto no mejora por esconderlo, pero se entiende el intento.',
+  'Cada minuto sin foto, el grupo te dibuja peor. Y va ganando.',
+  'Nadie con una cara decente tarda dos días.',
+  'Mándala y nos callas. Si no, hablamos nosotros.',
+  'Si ni diez segundos de foto puedes, esto está peor de lo que creíamos.',
+  'Sin foto te ponemos una nosotros, y no te va a gustar.',
+  'Escondes la cara y la edad. Las dos cantan igual de mal.',
+  'La foto que no mandas ya la está describiendo el grupo, y sin piedad.',
 ];
+
 
 
 // EL AVISO VA POR PARTES, Y NO SOLO PARA QUE SE LEA MEJOR.
