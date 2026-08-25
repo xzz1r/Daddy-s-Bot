@@ -1036,8 +1036,8 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
 const PRESENTACION =
   '*PRESENTACIÓN*\n' +
   '╾━━━━━━━━━━━━━━╼\n\n' +
-  'Foto y edad. Eso es todo.\n\n' +
-  '_Los que ya llevan tiempo, también._';
+  'Foto y edad.\n\n' +
+  '_La foto de ahora, no la de hace cuatro años._';
 
 async function cmdPresentarse(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
