@@ -1039,7 +1039,7 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
 const PRESENTACION =
   '*PRESENTACIÓN OBLIGATORIA*\n' +
   '╾━━━━━━━━━━━━━━╼\n\n' +
-  'Foto y edad. El que no se presente, que no se queje de lo que nos imaginemos.';
+  'Foto y edad. El/La que no se presente, que no se queje de lo que nos imaginemos.';
 
 async function cmdPresentarse(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
