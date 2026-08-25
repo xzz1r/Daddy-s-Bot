@@ -44,7 +44,7 @@ cd "$(dirname "$0")/.."
 # semanas. No fallaba: mentía, que es peor.
 #
 # Lo mismo pasa con la rama. Si la máquina se quedó en una vieja
-# —grok/frases-aura-robo va 26 commits por detrás— el pull funciona y no trae
+# —una rama vieja va 26 commits por detrás— el pull funciona y no trae
 # nada de lo nuevo.
 #
 # Por eso ahora se comprueban los dos y se corrigen solos. Si esto vuelve a

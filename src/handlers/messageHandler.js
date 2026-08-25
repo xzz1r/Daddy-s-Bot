@@ -22,7 +22,7 @@ const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdK, privadoDelOwner, hallarMedio } = require('../commands/k');
 const { cmdCount, cmdResetCount } = require('../commands/count');
 const { cmdRelevance } = require('../commands/relevance');
-const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
+const { cmdG, cmdSetKey } = require('../commands/ai');
 const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdSoloAdmins, cmdAdm, cmdPresentarse } = require('../commands/group');
 const { cmdShip } = require('../commands/ship');
 const { cmdTtp } = require('../commands/ttp');
@@ -82,7 +82,7 @@ const NEEDS_META = new Set([
   // Los que cobran aura SI necesitan groupMeta: auraCobro exime al owner tier y
   // sin la metadata no puede resolver quien lo es, asi que al owner le cobraria.
   'play','playsong','playaudio','musica','música','cancion','canción','song',
-  'g','ai','grok','pfp','foto',
+  'g','ai','pfp','foto',
   // piropo y wingman COBRAN (30, como !rizz) y no estaban aqui, asi que cobraban
   // sin metadata: sin ella isOwner no puede reconocer al owner tier en un grupo
   // LID y se le cobraba a quien va exento. Lo mismo con los alias en español de
@@ -132,7 +132,7 @@ const NEEDS_META = new Set([
   'casino',
   // Owner-gated commands also need meta in groups to resolve LID → phone
   // for isOwner checks (otherwise co-owners always fail in modern groups).
-  'clearcache','borracache','setgrok','setkey','whoami',
+  'clearcache','borracache','setkey','whoami',
   // !cachelist cobra por el dispatcher. Sin metadata isOwner no resuelve el LID
   // y se le cobra al owner las 12 de aura.
   'cachelist','listacache','cache',
@@ -208,7 +208,7 @@ for (const c of CMDS_PORCENTAJE) COBRO_CENTRAL[c] = 'percent';
 // falla. Cobrarlos también aquí sería cobrar dos veces.
 const COBRAN_SOLOS = new Set([
   'play', 'playsong', 'playaudio', 's', 'sticker', 'stk', 'toimg', 'tovid',
-  'g', 'grok', 'pfp', 'fk', 'verificar', 'verify', 'check', 'top5', 'top10',
+  'g', 'ai', 'pfp', 'fk', 'verificar', 'verify', 'check', 'top5', 'top10',
   // vs/versus cobran dentro de cmdVs: tienen tres salidas sin respuesta (sin
   // menciones, contra uno mismo, y el silencio contra el owner) y cobrando
   // fuera se pagaba por ellas.
@@ -1744,13 +1744,11 @@ async function handleMessage(sock, msg) {
 
       case 'g':
       case 'ai':
-      case 'grok':
-        await cmdGrok(sock, msg, args, groupMeta);
+        await cmdG(sock, msg, args, groupMeta);
         break;
 
-      case 'setgrok':
       case 'setkey':
-        await cmdSetGrokKey(sock, msg, args, groupMeta);
+        await cmdSetKey(sock, msg, args, groupMeta);
         break;
 
       // !r — el ping invisible pidiendo que se presenten. En un grupo sale ahi;

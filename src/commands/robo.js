@@ -8,6 +8,7 @@ const tienda = require('../utils/roboStore');
 const momentum = require('../utils/momentum');
 const { objetivoDelDia, esObjetivoDelDia, diaClave } = require('../utils/objetivoDia');
 const RX = require('../data/roboExtraPhrases');
+const { fraseCooldown, ROBO: ROBO_CD, ROBO_ASALTO, ROBO_GUARDIA } = require('../data/cooldownPhrases');
 
 // La escala vive en utils/economia.js. Aqui solo el cooldown, que es de ritmo
 // de juego y no de economia.
@@ -1621,7 +1622,9 @@ async function asaltarBote(sock, msg, jid, sender, groupMeta) {
   const coolKey = `${jid}|${canonicalJid(sender)}`;
   const queda = ROB_COOLDOWN_MS - (Date.now() - (lastRob.get(coolKey) || 0));
   if (queda > 0) {
-    return sock.sendMessage(jid, { text: `Espera *${Math.ceil(queda / 60000)}min*.` }, { quoted: msg });
+    return sock.sendMessage(jid, {
+      text: `*ASALTO EN COOLDOWN*\n${fraseCooldown(ROBO_ASALTO, `${coolKey}|asalto`, 0.1)}\n_Vuelve en *${Math.ceil(queda / 60000)}min*._`,
+    }, { quoted: msg });
   }
   limpiaMapa(lastRob);
   lastRob.set(coolKey, Date.now());
@@ -2131,7 +2134,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   if (remaining > 0) {
     const mins = Math.ceil(remaining / 60_000);
     return sock.sendMessage(jid, {
-      text: `Espera *${mins}min* antes de volver a robar.`,
+      text: `*ROBO EN COOLDOWN*\n${fraseCooldown(ROBO_CD, `${coolKey}|robo`)}\n_Vuelve en *${mins}min*._`,
     }, { quoted: msg });
   }
 
@@ -2150,7 +2153,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const escudo = escudoRestante(jid, canonicalJid(target));
   if (escudo > 0) {
     return sock.sendMessage(jid, {
-      text: `@${target.split('@')[0]} acaba de ser robado y todavía está en guardia. Vuelve en *${escudo}min*.`,
+      text: `${fraseCooldown(ROBO_GUARDIA, `${jid}|guardia`, 0)}\n_@${target.split('@')[0]} sigue en guardia. Vuelve en *${escudo}min*._`,
       mentions: [target],
     }, { quoted: msg });
   }

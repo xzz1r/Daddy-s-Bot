@@ -5,26 +5,29 @@ const logger = require('../utils/logger');
 const { isOwner, extractQuotedText, getSender } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 
-const GROK_API = 'https://api.x.ai/v1/chat/completions';
-const MODEL = process.env.GROK_MODEL || 'grok-4.6';
-const KEY_FILE = path.join(__dirname, '../../data/grok-key.txt');
+const API = 'https://api.x.ai/v1/chat/completions';
+const MODEL = process.env.GROK_MODEL || process.env.AI_MODEL || 'grok-4.6';
+const KEY_FILE = path.join(__dirname, '../../data/ai-key.txt');
+const KEY_FILE_VIEJO = path.join(__dirname, '../../data/grok-key.txt');
 
 let cachedKey = null;
 
 function getApiKey() {
   if (cachedKey) return cachedKey;
-  try {
-    const fromFile = fs.readFileSync(KEY_FILE, 'utf-8').trim();
-    if (fromFile) { cachedKey = fromFile; return fromFile; }
-  } catch {}
-  const fromEnv = process.env.GROK_API_KEY || process.env.XAI_API_KEY;
+  for (const file of [KEY_FILE, KEY_FILE_VIEJO]) {
+    try {
+      const fromFile = fs.readFileSync(file, 'utf-8').trim();
+      if (fromFile) { cachedKey = fromFile; return fromFile; }
+    } catch {}
+  }
+  const fromEnv = process.env.GROK_API_KEY || process.env.XAI_API_KEY || process.env.AI_API_KEY;
   if (fromEnv) { cachedKey = fromEnv; return fromEnv; }
   return null;
 }
 
 async function saveApiKey(key) {
   await fs.ensureFile(KEY_FILE);
-  // 0600 = owner read/write only. The Grok API key is a secret; the default
+  // 0600 = owner read/write only. The API key is a secret; the default
   // mode (0644) would let any other local user on the VPS read it.
   await fs.writeFile(KEY_FILE, key.trim(), { mode: 0o600 });
   await fs.chmod(KEY_FILE, 0o600).catch(() => {}); // tighten an already-existing file too
@@ -33,9 +36,9 @@ async function saveApiKey(key) {
 
 // Habla como el bot del grupo, no como un asistente. Si el modelo se presenta
 // o dice "Pensando", el chat lo huele en un mensaje.
-const SYSTEM_PROMPT = `Eres el bot de este grupo de WhatsApp. Hablas como uno más del chat: español de España, directo, crudo si el tema lo pide, sin sermón y sin consuelo.
+const SYSTEM_PROMPT = `Eres el bot de este grupo de WhatsApp. Hablas como uno más del chat: español neutro, directo, crudo si el tema lo pide, sin sermón y sin consuelo.
 
-Nunca digas que eres una IA, un modelo, un asistente, Grok, ChatGPT ni nada parecido. Si preguntan quién eres: eres el bot del grupo, y punto.
+Nunca digas que eres una IA, un modelo, un asistente ni nombres de modelos. Si preguntan quién eres: eres el bot del grupo, y punto.
 
 Prohibido: «Pensando», «Claro que sí», «¡Buena pregunta!», «En resumen», «Cabe destacar», «como asistente». Ve al grano.
 
@@ -58,7 +61,7 @@ function chunkText(text, maxLen = 3500) {
 }
 
 // !g <pregunta>   |   reply + !g <pregunta>
-async function cmdGrok(sock, msg, args, groupMeta) {
+async function cmdG(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   const apiKey = getApiKey();
 
@@ -72,9 +75,9 @@ async function cmdGrok(sock, msg, args, groupMeta) {
   // Cada !g cuesta aura: es la llamada más cara que hace el bot.
   // Se devuelve más abajo si la API falla.
   const quienPregunta = getSender(msg);
-  const pago = await cobrar(jid, quienPregunta, 'grok', { fromMe: msg.key.fromMe, groupMeta });
+  const pago = await cobrar(jid, quienPregunta, 'g', { fromMe: msg.key.fromMe, groupMeta });
   if (!pago.ok) {
-    return sock.sendMessage(jid, { text: textoSinSaldo('grok', pago) }, { quoted: msg });
+    return sock.sendMessage(jid, { text: textoSinSaldo('g', pago) }, { quoted: msg });
   }
 
   const quoted = extractQuotedText(msg);
@@ -83,7 +86,7 @@ async function cmdGrok(sock, msg, args, groupMeta) {
     : prompt;
 
   try {
-    const res = await axios.post(GROK_API, {
+    const res = await axios.post(API, {
       model: MODEL,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
@@ -120,8 +123,8 @@ async function cmdGrok(sock, msg, args, groupMeta) {
   }
 }
 
-// !setgrok <api_key>  — owner only, saves key persistently
-async function cmdSetGrokKey(sock, msg, args, groupMeta) {
+// !setkey <api_key>  — owner only, saves key persistently
+async function cmdSetKey(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   const sender = getSender(msg);
 
@@ -130,7 +133,7 @@ async function cmdSetGrokKey(sock, msg, args, groupMeta) {
   }
 
   const key = (args || []).join(' ').trim();
-  // Key ausente o con formato que no es el de xAI: no se guarda y no se
+  // Key ausente o con formato que no cuadra: no se guarda y no se
   // explica el formato. El bot ejecuta o se calla.
   if (!key || !key.startsWith('xai-')) return;
 
@@ -140,9 +143,9 @@ async function cmdSetGrokKey(sock, msg, args, groupMeta) {
       text: 'Listo. Borra tu mensaje con la key.',
     }, { quoted: msg });
   } catch (err) {
-    logger.error(`setGrokKey error: ${err.message}`);
+    logger.error(`setKey error: ${err.message}`);
     await sock.sendMessage(jid, { text: 'No se ha podido guardar.' }, { quoted: msg });
   }
 }
 
-module.exports = { cmdGrok, cmdSetGrokKey };
+module.exports = { cmdG, cmdSetKey };

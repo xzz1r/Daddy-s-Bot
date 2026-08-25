@@ -4,9 +4,9 @@ Esto explica cómo funciona Daddy's Bot por dentro, con el detalle necesario par
 escribir frases que encajen en el motor sin romperlo. No hace falta saber
 programar: hace falta entender **dónde cae cada frase y por qué**.
 
-Reparto de trabajo: **Grok escribe el contenido** (las frases). **Claude mantiene
-el motor** (lógica, economía, rendimiento, guardarraíles). El punto de contacto
-son los cuatro validadores de la sección 10.
+El contenido (las frases) y el motor (lógica, economía, rendimiento,
+guardarraíles) se mantienen aparte. El punto de contacto son los cuatro
+validadores de la sección 10.
 
 ---
 
@@ -73,13 +73,13 @@ index.js                 arranca el proceso
         └─ src/handlers/messageHandler.js
                          switch gigante: reparte cada !comando
              ├─ src/commands/*.js      lógica de cada comando
-             ├─ src/data/*.js          POOLS DE FRASES (aquí escribe Grok)
+             ├─ src/data/*.js          POOLS DE FRASES
              └─ src/utils/*.js         motor compartido: helpers, stores, economía
 ```
 
 Lo único que hace falta retener: **`src/commands/` es lógica, `src/data/` es
 contenido.** Hoy la separación está a medias — `percent.js` mezcla las dos cosas
-en 6.000 líneas — y terminarla es tarea de Claude.
+en 6.000 líneas — y conviene terminarla.
 
 ---
 
@@ -496,4 +496,4 @@ git pull origin main
 - **Robo** (`!robo`): el pool más grande fuera de `percent.js` (1.148 frases).
 - **Racha**: solo habla en hitos (7, 15, 30, 50, 100, 200, 365 días) y al romper
   una racha larga. El resto de días paga en silencio, a propósito.
-- **Multimedia**: stickers, `!play`, `!toimg`. Sin frases; no es terreno de Grok.
+- **Multimedia**: stickers, `!play`, `!toimg`. Sin frases; no es terreno de contenido.
