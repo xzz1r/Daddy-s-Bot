@@ -3183,6 +3183,94 @@ async function capaStores() {
     if (fallos === antes) console.log(verde(`   ✓ ${Object.keys(AV).length} pools, con filo donde toca y secos donde el que lee es el dueño`));
   }
 
+  // ── 27. EL BOT NO DELATA A SU DUEÑO ──────────────────────────────────────
+  //
+  // El dueño no quiere que en el grupo se sepa que el bot es suyo, y eso ya
+  // costo una pasada: se le quito el nombre a los stickers, se renombro el
+  // bloque OWNER del menu a ADMINS SUPERIORES y se comprobo que el menu no le
+  // nombra ni una vez.
+  //
+  // Y aun asi habia cuatro sitios mas, porque el menu no es lo unico que sale
+  // por WhatsApp:
+  //
+  //   · el aviso del anti-admin decia "Aquí solo mete gente el dueño";
+  //   · una frase de !aura decia "si el owner te había amañado" — que ademas
+  //     admite que hay amaño;
+  //   · !purge listaba las cuentas saltadas bajo "*Omitidos (owner)*", o sea
+  //     SEÑALANDO cual de esos numeros es el suyo, delante del grupo entero;
+  //   · y una que meti yo al endurecer los avisos.
+  //
+  // La regla que se vigila es simple porque tiene que poder comprobarse: la
+  // palabra "owner" no aparece en NADA que se mande por WhatsApp. En castellano
+  // no sale sola nunca, asi que si aparece es una etiqueta interna que se ha
+  // escapado. Los logs quedan fuera: no los lee el grupo.
+  {
+    console.log('\n27. EL BOT NO DELATA A SU DUEÑO');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    // El escaner tiene que distinguir tres cosas que se parecen en una linea:
+    //
+    //   · 'owner' a secas es una CLAVE interna (P_POSITIVA[rol], etc.), no un
+    //     texto. Se exige un espacio dentro: la prosa lo tiene, una clave no;
+    //   · logger.warn(...) puede ocupar VARIAS lineas, y solo la primera lleva
+    //     "logger.". Se cuentan parentesis hasta cerrar la llamada;
+    //   · y los comentarios se quitan antes, que ahi si se habla del dueño.
+    //
+    // Las tres las aprendi de golpe: la primera version dio tres falsos
+    // positivos, y un falso positivo en una guarda de anonimato es peor que
+    // ninguno — se desactiva y deja de mirar tambien lo de verdad.
+    const fugas = [];
+    const ficheros = [];
+    for (const dir of ['src/commands', 'src/utils', 'src/handlers', 'src/data']) {
+      for (const f of fs.readdirSync(path.join(R, dir)).filter((x) => x.endsWith('.js'))) {
+        ficheros.push([`${dir.replace('src/', '')}/${f}`, path.join(R, dir, f)]);
+      }
+    }
+    ficheros.push(['bot.js', path.join(R, 'src/bot.js')]);
+
+    for (const [nombre, ruta] of ficheros) {
+      const lineas = fs.readFileSync(ruta, 'utf8').split('\n');
+      let enLog = 0;
+      lineas.forEach((l, i2) => {
+        const codigo = l.replace(/^\s*\/\/.*/, '').replace(/\/\/.*$/, '');
+        if (enLog > 0) {
+          enLog += (codigo.match(/\(/g) || []).length - (codigo.match(/\)/g) || []).length;
+          return;
+        }
+        const log = codigo.search(/(?:logger\.\w+|console\.\w+)\s*\(/);
+        if (log >= 0) {
+          const resto = codigo.slice(log);
+          enLog = (resto.match(/\(/g) || []).length - (resto.match(/\)/g) || []).length;
+          if (enLog <= 0) enLog = 0;
+          return;
+        }
+        for (const m of codigo.matchAll(/(['`])((?:[^'`\\]|\\.){4,300}?)\1/g)) {
+          const s = m[2];
+          if (!/\s/.test(s)) continue;            // clave interna, no prosa
+          if (/\bowner\b/i.test(s) || /\b(el|del|al) dueño\b/i.test(s) && /\b(mete|reparte|manda|configura|amañ|bot)\b/i.test(s)) {
+            fugas.push(`${nombre}:${i2 + 1} "${s.slice(0, 60)}"`);
+          }
+        }
+      });
+    }
+    exige(fugas.length === 0,
+      `hay ${fugas.length} texto(s) que salen por WhatsApp nombrando al dueño: ${fugas.slice(0, 3).join(' · ')}`);
+
+    // Y las cuatro concretas, por nombre, para que no vuelvan tal cual.
+    const volvieron = [];
+    for (const [f, frag] of [
+      ['src/bot.js', 'solo mete gente el dueño'],
+      ['src/commands/aura.js', 'si el owner te había amañado'],
+      ['src/commands/purgaNumero.js', 'Omitidos (owner)'],
+      ['src/commands/group.js', 'los reparte el dueño'],
+    ]) {
+      if (fs.readFileSync(path.join(R, f), 'utf8').includes(frag)) volvieron.push(frag);
+    }
+    exige(volvieron.length === 0, `vuelven textos que delatan al dueño: ${volvieron.join(' · ')}`);
+
+    if (fallos === antes) console.log(verde('   ✓ nada de lo que el bot manda dice de quién es'));
+  }
+
   // ── 24. EL RESUMEN DE `npm run estado` NO ESCONDE NADA ───────────────────
   //
   // `estado` pasó a tener dos salidas: un resumen (lo que se ve al escribirlo)

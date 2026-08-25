@@ -498,7 +498,7 @@ async function cmdPromote(sock, msg, args, groupMeta) {
 
   if (isAntiAdminEnabled(jid)) {
     if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-      return sock.sendMessage(jid, { text: 'El anti-admin está puesto. Los ascensos los reparte el dueño, no tú.' }, { quoted: msg });
+      return sock.sendMessage(jid, { text: 'El anti-admin está puesto. Los ascensos no se reparten desde ahí, y menos por ti.' }, { quoted: msg });
     }
   } else if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
     return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });

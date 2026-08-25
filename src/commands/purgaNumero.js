@@ -507,7 +507,10 @@ async function cmdPurge(sock, msg, args, groupMeta) {
   if (!cuentas.length) {
     const extra = [];
     if (errores.length) extra.push(errores.join('\n'));
-    if (saltados.length) extra.push(`Omitidos (owner): ${saltados.map((d) => `+${d}`).join(', ')}`);
+    // "Omitidos" a secas: poner el motivo era señalar cuál de esos números es
+      // el del dueño, y este mensaje lo lee el grupo entero cuando !purge se
+      // escribe ahí. Un número sin motivo no dice nada; con el motivo, dice todo.
+      if (saltados.length) extra.push(`Omitidos: ${saltados.map((d) => `+${d}`).join(', ')}`);
     return sock.sendMessage(jid, {
       text: `Nada que purgar.\n\n${extra.join('\n\n') || 'Ninguna cuenta válida.'}`,
     }, { quoted: msg });
@@ -555,7 +558,7 @@ async function cmdPurge(sock, msg, args, groupMeta) {
       linea('No pude: el bot no es admin', sinPermiso) +
       linea('Falló', fallos) +
       (errores.length ? `\n\n*No válidos*\n${errores.map((e) => `· ${e}`).join('\n')}` : '') +
-      (saltados.length ? `\n\n*Omitidos (owner)*\n${saltados.map((d) => `· +${d}`).join('\n')}` : '') +
+      (saltados.length ? `\n\n*Omitidos*\n${saltados.map((d) => `· +${d}`).join('\n')}` : '') +
       `\n\n_En lista negra (${anotadas} forma(s) anotadas). Si vuelven a entrar, se les echa solo._`,
   }, { quoted: msg });
 }

@@ -339,7 +339,7 @@ async function sancionarPorAñadir(sock, groupJid, autor, meta, aDedo) {
       `*Anti-admin:* ${tag(autor)} ha metido gente a dedo.\n\n` +
       `${degradado ? '· Se le ha quitado el admin.' : '· No he podido quitarle el admin.'}\n` +
       `· ${vetados.map(tag).join(', ')} fuera y en la lista negra.\n\n` +
-      `_Aquí solo mete gente el dueño. Aceptar solicitudes no cuenta._`,
+      `_Aquí no se mete a nadie a dedo. Aceptar solicitudes no cuenta._`,
     mentions: [autor, ...vetados],
   }));
 }

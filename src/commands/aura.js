@@ -181,7 +181,7 @@ const AURA = {
     'El que te tenía de puto fondo de pantalla de risa ha tenido que cambiarlo. Aunque sea un rato.',
     'Has ganado con la cara de quien no debería. Esa es la que más jode. No te acostumbres.',
     'El puto grupo te ha mirado como se mira un radar en negativo: "este no era el blip". Lo eras.',
-    'Alguien ha ido a comprobar si el owner te había amañado. No. Has sido tú. Peor para ellos.',
+    'Alguien ha ido a buscar la trampa. No la hay. Has sido tú, y eso les jode más.',
     'Has dejado un hueco en el repertorio. Todo lo que tenían preparado para ti se ha caducado.',
     'Te han dado el respeto de la deuda: te miran, no pagan con palabras, y se van.',
     'El puto chat ha hecho la ola al revés: se han callado de abajo arriba. Empieza por los bocazas.',
