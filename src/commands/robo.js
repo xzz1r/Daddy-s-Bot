@@ -9,6 +9,8 @@ const momentum = require('../utils/momentum');
 const { objetivoDelDia, esObjetivoDelDia, diaClave } = require('../utils/objetivoDia');
 const RX = require('../data/roboExtraPhrases');
 const { fraseCooldown, ROBO: ROBO_CD, ROBO_ASALTO, ROBO_GUARDIA } = require('../data/cooldownPhrases');
+const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
+const { aviso } = require('../utils/helpers');
 
 // La escala vive en utils/economia.js. Aqui solo el cooldown, que es de ritmo
 // de juego y no de economia.
@@ -2100,7 +2102,7 @@ function pistaCifra(grupo, quien) {
 async function cmdRobo(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Los robos solo ocurren en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
   const sender = getSender(msg);
@@ -2124,7 +2126,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     text: 'Dime a quién robas y cuánto: *!robo @alguien 200*\n_Sin cifra voy al punto dulce. *mitad* o *todo* también valen. Cuanto más pides, menos sale._',
   }, { quoted: msg });
   if (sameUser(target, sender)) {
-    return sock.sendMessage(jid, { text: 'No puedes robarte a ti mismo.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(A_TI_MISMO, jid, 'yo') }, { quoted: msg });
   }
 
   // Cooldown por atacante y grupo. La cifra es ROB_COOLDOWN_MS.

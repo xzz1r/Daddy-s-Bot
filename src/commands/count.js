@@ -2,6 +2,8 @@ const { getActiveUsers, resetCounts, resetAllCounts, getLastReset } = require('.
 const { isOwner, isMainOwner, isAdmin, isGroupAdmin, getSender, getTarget, sameUser, soloMiembros } = require('../utils/wa');
 const { pickFresh } = require('../utils/helpers');
 const { cobrar, textoSinSaldo } = require('../utils/auraCobro');
+const { SIN_PERMISO, SOLO_ADMINS, SOLO_GRUPOS } = require('../data/avisos');
+const { aviso } = require('../utils/helpers');
 
 let MEMBER_PHRASES = [
   [
@@ -270,7 +272,7 @@ async function cmdCount(sock, msg, groupMeta, args) {
   const jid = msg.key.remoteJid;
 
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Este comando solo funciona en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
   // Solo admins y owner tier. Se cerró por pedido expreso: el ranking de
@@ -278,7 +280,7 @@ async function cmdCount(sock, msg, groupMeta, args) {
   // sacarlo cualquiera. Resetearlo sigue siendo solo del owner (destructivo).
   const quien = getSender(msg);
   if (!isGroupAdmin(quien, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo los admins pueden ver el ranking.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
   }
 
   // EL COBRO VA AQUI, DESPUES DEL PERMISO, y no en la tabla central.
@@ -367,7 +369,7 @@ async function cmdResetCount(sock, msg, groupMeta) {
   const sender = getSender(msg);
 
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
   }
 
   // En privado no hay grupo que resetear, así que se borra todo. Antes se

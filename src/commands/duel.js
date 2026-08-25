@@ -31,6 +31,8 @@ function resolveJid(rawJid, participants) {
 // La escala vive en utils/economia.js, igual que el robo y los bonos. Antes
 // estaba aqui a pelo y se quedo en la escala vieja cuando todo lo demas bajo.
 const { DUELO } = require('../utils/economia');
+const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
+const { aviso } = require('../utils/helpers');
 const STAKE_MIN = DUELO.suelo;
 const STAKE_DEFAULT = DUELO.porDefecto;
 const EXPIRY_MS = 90 * 1000;       // pending challenge dies after 90 s
@@ -158,7 +160,7 @@ async function resolveDuel(sock, jid, d, groupMeta) {
 async function cmdDuel(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Los duelos solo existen en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
   const sender = getSender(msg);
@@ -230,7 +232,7 @@ async function cmdDuel(sock, msg, args, groupMeta) {
     text: 'Reta a alguien: *!duel @alguien 100*',
   }, { quoted: msg });
   if (sameUser(target, sender)) {
-    return sock.sendMessage(jid, { text: 'No puedes retarte a ti mismo.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(A_TI_MISMO, jid, 'yo') }, { quoted: msg });
   }
 
   const existing = getPending(jid);

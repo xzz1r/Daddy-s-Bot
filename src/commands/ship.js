@@ -2,6 +2,8 @@ const { shuffle, pickFresh } = require('../utils/helpers');
 const { getSender, isMainOwner, isBotJid, bareJid, sameUser } = require('../utils/wa');
 const { canonicalJid } = require('../utils/wa');
 const config = require('../config');
+const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
+const { aviso } = require('../utils/helpers');
 
 // ¿Es este JID uno de los numeros de config.shipAlto?
 //
@@ -366,7 +368,7 @@ function resolveLabel(jidVal, participants) {
 async function cmdShip(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
   const groupParticipants = groupMeta?.participants || [];
@@ -418,7 +420,7 @@ async function cmdShip(sock, msg, args, groupMeta) {
 
   // No shippear a alguien consigo mismo (igual que !mog y !vs).
   if (sameUser(a, b)) {
-    return sock.sendMessage(jid, { text: 'No puedes shippear a alguien consigo mismo.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(A_TI_MISMO, jid, 'yo') }, { quoted: msg });
   }
 
   // Rig a favor del owner principal: si participa, la compatibilidad es alta pero

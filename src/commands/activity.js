@@ -2,6 +2,8 @@ const { getActiveUsers } = require('../utils/messageCounter');
 const { isOwner, isMainOwner, getSender, sameUser, soloMiembros, bareJid, canonicalJid, isBotJid } = require('../utils/wa');
 const { cobrar, textoSinSaldo } = require('../utils/auraCobro');
 const { shuffle, pickFresh } = require('../utils/helpers');
+const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
+const { aviso } = require('../utils/helpers');
 
 // ---- !vs : real-activity head-to-head -------------------------------------
 
@@ -60,7 +62,7 @@ function lookupCount(users, jid) {
 async function cmdVs(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
   const ctx = msg.message?.extendedTextMessage?.contextInfo;
@@ -82,7 +84,7 @@ async function cmdVs(sock, msg, args, groupMeta) {
   }
 
   if (sameUser(a, b)) {
-    return sock.sendMessage(jid, { text: 'No puedes enfrentar a alguien consigo mismo.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(A_TI_MISMO, jid, 'yo') }, { quoted: msg });
   }
 
   // Si el owner principal es uno de los dos, no se contesta. Igual que en
@@ -199,7 +201,7 @@ let GHOST_ROASTS = [
 async function cmdFantasmas(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
   // Everyone tracked, minus the owner tier (the bot never roasts its own owner).
@@ -359,7 +361,7 @@ let AMENAZAS = [
 async function cmdInactivos(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   if (!groupMeta?.participants?.length) {
     return sock.sendMessage(jid, {

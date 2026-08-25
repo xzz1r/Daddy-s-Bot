@@ -5,11 +5,13 @@ const { aportarAlBote } = require('../utils/roboStore');
 
 // El minimo y el impuesto viven en utils/economia.js con el resto de la escala.
 const { REGALO_MIN: GIFT_MIN, IMPUESTO, impuestoDe } = require('../utils/economia');
+const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
+const { aviso } = require('../utils/helpers');
 
 async function cmdDar(sock, msg, args) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
   const sender = getSender(msg);
@@ -22,7 +24,7 @@ async function cmdDar(sock, msg, args) {
     // eslint-disable-next-line no-unreachable
   }
   if (sameUser(target, sender)) {
-    return sock.sendMessage(jid, { text: 'No puedes darte aura a ti mismo.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(A_TI_MISMO, jid, 'yo') }, { quoted: msg });
   }
 
   const parsed = parseCantidad(args);

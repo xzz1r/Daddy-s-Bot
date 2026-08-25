@@ -4,6 +4,8 @@ const path = require('path');
 const logger = require('../utils/logger');
 const { isOwner, extractQuotedText, getSender } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
+const { SIN_PERMISO } = require('../data/avisos');
+const { aviso } = require('../utils/helpers');
 
 const API = 'https://api.x.ai/v1/chat/completions';
 const MODEL = process.env.GROK_MODEL || process.env.AI_MODEL || 'grok-4.6';
@@ -129,7 +131,7 @@ async function cmdSetKey(sock, msg, args, groupMeta) {
   const sender = getSender(msg);
 
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
   }
 
   const key = (args || []).join(' ').trim();

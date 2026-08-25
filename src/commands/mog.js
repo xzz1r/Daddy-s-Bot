@@ -3,6 +3,8 @@
 const { isOwner, isMainOwner, isAdmin, getSender, sameUser } = require('../utils/wa');
 const { pickFresh } = require('../utils/helpers');
 const { ownerGana } = require('../utils/rigOwner');
+const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
+const { aviso } = require('../utils/helpers');
 
 // Rigged by role, but not blatantly: the owner has a real edge yet can still
 // lose, admins have a slighter edge, members fight on equal ground.
@@ -124,7 +126,7 @@ let MOG_PHRASES = [
 async function cmdMog(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
   const sender = getSender(msg);
@@ -139,7 +141,7 @@ async function cmdMog(sock, msg, groupMeta) {
   }, { quoted: msg });
 
   if (sameUser(a, b)) {
-    return sock.sendMessage(jid, { text: 'No puedes moggearte a ti mismo.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(A_TI_MISMO, jid, 'yo') }, { quoted: msg });
   }
 
   const participants = groupMeta?.participants || [];

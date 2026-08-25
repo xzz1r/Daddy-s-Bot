@@ -17,6 +17,8 @@ const { faceSearch: facecheckSearch, hasKey: facecheckEnabled } = require('../ut
 const { uploadTemp } = require('../utils/imageHost');
 const { shorten } = require('../utils/shorten');
 const logger = require('../utils/logger');
+const { SOLO_ADMINS, SOLO_GRUPOS } = require('../data/avisos');
+const { aviso } = require('../utils/helpers');
 
 const DAY = 86400000;
 
@@ -434,7 +436,7 @@ async function cmdMarkFake(sock, msg, args, groupMeta) {
   const allowed = isOwner(sender, msg.key.fromMe, groupMeta)
     || isGroupAdmin(sender, msg.key.fromMe, groupMeta);
   if (!allowed) {
-    return sock.sendMessage(jid, { text: 'Solo admins pueden marcar fotos como fake.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
   }
 
   const { jid: target, error } = await resolveTarget(sock, msg, args);
@@ -485,7 +487,7 @@ async function cmdFkBan(sock, msg, args, groupMeta) {
   const allowed = isOwner(sender, msg.key.fromMe, groupMeta)
     || isGroupAdmin(sender, msg.key.fromMe, groupMeta);
   if (!allowed) {
-    return sock.sendMessage(jid, { text: 'Solo admins pueden usar la lista negra.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
   }
 
   const { jid: target, error } = await resolveTarget(sock, msg, args);
@@ -541,7 +543,7 @@ async function cmdFkUnban(sock, msg, args, groupMeta) {
   const allowed = isOwner(sender, msg.key.fromMe, groupMeta)
     || isGroupAdmin(sender, msg.key.fromMe, groupMeta);
   if (!allowed) {
-    return sock.sendMessage(jid, { text: 'Solo admins pueden usar la lista negra.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
   }
 
   // Desbanear NO necesita que la cuenta sea localizable, y ese era el segundo
@@ -586,7 +588,7 @@ async function cmdFkList(sock, msg, args, groupMeta) {
   const allowed = isOwner(sender, msg.key.fromMe, groupMeta)
     || isGroupAdmin(sender, msg.key.fromMe, groupMeta);
   if (!allowed) {
-    return sock.sendMessage(jid, { text: 'Solo admins pueden usar la lista negra.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
   }
 
   const cuentas = await listBanned();
@@ -621,13 +623,13 @@ async function cmdFkList(sock, msg, args, groupMeta) {
 async function cmdAntiFake(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo funciona en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   const sender = getSender(msg);
   const allowed = isOwner(sender, msg.key.fromMe, groupMeta)
     || isGroupAdmin(sender, msg.key.fromMe, groupMeta);
   if (!allowed) {
-    return sock.sendMessage(jid, { text: 'Solo admins pueden configurar el anti-fake.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
   }
 
   const arg = (args[0] || '').toLowerCase();

@@ -3,6 +3,8 @@
 const { getSender, getTarget, isMainOwner, bareJid, sameUser, fetchAbout } = require('../utils/wa');
 const { pick, pickFresh, fmt } = require('../utils/helpers');
 const { getUserCount } = require('../utils/messageCounter');
+const { SOLO_GRUPOS } = require('../data/avisos');
+const { aviso } = require('../utils/helpers');
 
 
 
@@ -473,7 +475,7 @@ const OWNER_ROAST = [
 async function cmdRoast(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
   const sender = getSender(msg);

@@ -7,6 +7,8 @@ const { nextMilestone } = require('../utils/casino');
 const { PRECIOS, APUESTA, CONTRA, ACTIVIDAD_MSGS, TIRADAS_PAGADAS, RACHA } = require('../utils/economia');
 const config = require('../config');
 const logger = require('../utils/logger');
+const { SIN_PERMISO, SOLO_GRUPOS } = require('../data/avisos');
+const { aviso } = require('../utils/helpers');
 
 // Captured once at startup (module load ≈ process start). Used for a real
 // "uptime" — state.stats.startTime persists across restarts so it measured the
@@ -24,14 +26,14 @@ async function cmdOn(sock, msg, groupMeta) {
     // cualquier admin podia apagar el bot entero; ahora encender y apagar es
     // del duenyo, como el resto de interruptores del bot.
     if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-      return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
+      return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
     }
     await toggleGroup(jid, true);
     return sock.sendMessage(jid, { text: 'Bot *activado* en este grupo.' }, { quoted: msg });
   }
 
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
   }
 
   await setState({ botEnabled: true });
@@ -50,14 +52,14 @@ async function cmdOff(sock, msg, groupMeta) {
     // cualquier admin podia apagar el bot entero; ahora encender y apagar es
     // del duenyo, como el resto de interruptores del bot.
     if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-      return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
+      return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
     }
     await toggleGroup(jid, false);
     return sock.sendMessage(jid, { text: 'Bot *desactivado* en este grupo.' }, { quoted: msg });
   }
 
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
   }
 
   await setState({ botEnabled: false });
@@ -175,7 +177,7 @@ const AURA_LINES = [
 async function cmdCasino(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo funciona en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
   const sender = getSender(msg);

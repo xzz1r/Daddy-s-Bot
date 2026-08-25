@@ -23,6 +23,8 @@ const { isOwner, getSender, fetchPfpUrl, esFotoRestringida } = require('../utils
 const { getMemberFacts } = require('../utils/nickStore');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 const { withTimeout } = require('../utils/helpers');
+const { SIN_PERMISO, SOLO_GRUPOS } = require('../data/avisos');
+const { aviso } = require('../utils/helpers');
 
 const lastPfpScan = new Map(); // groupJid -> { ts, detected: [{ kickId, reason }] }
 
@@ -167,14 +169,14 @@ async function runPurge(sock, msg, groupJid, groupMeta) {
 async function cmdAntiFoto(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo funciona en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   if (!groupMeta?.participants?.length) {
     return sock.sendMessage(jid, { text: 'No pude obtener los miembros del grupo.' }, { quoted: msg });
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
   }
 
   // Sin subcomando válido el bot no responde. No da menús de uso: ejecuta

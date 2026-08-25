@@ -1869,8 +1869,14 @@ async function capaStores() {
       key: { remoteJid: 'g1@g.us', fromMe: false, id: 'K2', participant: T },
       message: { extendedTextMessage: { text: '!kick @x', contextInfo: { mentionedJid: [ADMIN] } } },
     }, [], metaK);
-    exige(silenciosoKick.length === 1 && /Solo admins/i.test(silenciosoKick[0].text || ''),
-      '!kick no corta a quien no es admin');
+    // Se comprueba que CORTA, no como lo dice. Esta guarda pedia la frase
+    // literal "Solo admins" y al pasar el aviso a un pool que rota se puso roja
+    // sin que !kick hubiera cambiado — el mismo fallo que ya tuvieron las de
+    // !purge. Lo que importa es que conteste una sola vez, que sea el aviso de
+    // admins, y que groupParticipantsUpdate ni se llame (revienta si se llama).
+    const { SOLO_ADMINS: POOL_ADM } = require(path.join(R, 'src/data/avisos'));
+    exige(silenciosoKick.length === 1 && POOL_ADM.includes((silenciosoKick[0].text || '').trim()),
+      `!kick no corta a quien no es admin (contesto ${silenciosoKick.length} vez/veces: "${(silenciosoKick[0]?.text || '').slice(0, 60)}")`);
 
     const msgsNA = [];
     const sockNA = {
@@ -3081,6 +3087,68 @@ async function capaStores() {
       'un miembro raso puede lanzar el ping a todo el grupo');
 
     if (fallos === antes) console.log(verde('   ✓ menciona a todos, no enseña ni un @, y pide foto y edad'));
+  }
+
+  // ── 26. LOS AVISOS DE "NO PUEDES" SUENAN A ESTE BOT ──────────────────────
+  //
+  // Eran setenta y cinco frases sueltas repartidas por veinte ficheros y las
+  // cuatro mas usadas salian sesenta veces entre todas, escritas a mano en cada
+  // sitio. Dos problemas: sonaban a formulario de banco en un bot que insulta, y
+  // reescribir una dejaba las otras diecinueve como estaban.
+  //
+  // Ahora salen de src/data/avisos.js y rotan. Lo que vigila esta capa:
+  //
+  //   · que no vuelvan las frases planas a mano — es lo que pasa solo, porque
+  //     escribir el string donde hace falta es mas rapido que importarlo;
+  //   · que SOLO_GRUPOS siga sin insultar. Ese lo lee unicamente el tier owner
+  //     (el privado del bot esta cerrado al resto), asi que meterle sangre es
+  //     insultar al dueño cada vez que se equivoca de chat;
+  //   · que los otros tres SI tengan filo, que para eso se cambiaron;
+  //   · y que ninguno se quede sin decir lo que no se puede.
+  {
+    console.log('\n26. LOS AVISOS DE "NO PUEDES" SUENAN A ESTE BOT');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const AV = require(path.join(R, 'src/data/avisos'));
+
+    for (const [nombre, pool] of Object.entries(AV)) {
+      exige(pool.length >= 8, `${nombre} tiene ${pool.length} frases: con menos de 8 se repiten a la vista`);
+      exige(new Set(pool).size === pool.length, `${nombre} tiene frases repetidas`);
+      exige(pool.every((f) => f.length <= 90), `${nombre} tiene frases largas: un aviso se lee de un vistazo o no se lee`);
+      exige(pool.every((f) => /[.!?]$/.test(f)), `${nombre} tiene frases sin cerrar`);
+    }
+
+    // El de grupos lo lee el dueño. Sin sangre.
+    const duro = /\b(mierda|puta|puto|coña|gilipollas|imbécil|idiota|pena|decorado)\b/i;
+    const conSangre = AV.SOLO_GRUPOS.filter((f) => duro.test(f));
+    exige(conSangre.length === 0,
+      `SOLO_GRUPOS lleva ${conSangre.length} frase(s) con sangre y ese aviso solo lo lee el owner tier: ${conSangre[0] || ''}`);
+    // Y tiene que seguir diciendo DONDE si funciona, que es toda su utilidad.
+    exige(AV.SOLO_GRUPOS.every((f) => /grupo/i.test(f) || /aquí no|aqui no/i.test(f)),
+      'alguna frase de SOLO_GRUPOS ya no dice que eso es de grupo: entonces no informa de nada');
+
+    // Los tres del grupo si tienen que picar. Sin esto, alguien los "suaviza"
+    // en un ajuste y vuelven a sonar a formulario sin que salte nada.
+    for (const nombre of ['SIN_PERMISO', 'SOLO_ADMINS', 'A_TI_MISMO']) {
+      const conFilo = AV[nombre].filter((f) => f.length > 28).length;
+      exige(conFilo >= AV[nombre].length * 0.7,
+        `${nombre} se ha quedado en avisos secos: estos se leen en el grupo y tienen que picar`);
+    }
+
+    // Y QUE NO VUELVAN LAS FRASES A MANO. Se busca el string plano en src/.
+    const planas = ["'Solo en grupos.'", "'No tienes permiso para usar esto.'",
+      "'Solo admins pueden usar este comando.'", "'Solo funciona en grupos.'"];
+    const reincidentes = [];
+    for (const dir of ['src/commands', 'src/utils', 'src/handlers']) {
+      for (const f of fs.readdirSync(path.join(R, dir)).filter((x) => x.endsWith('.js'))) {
+        const src = fs.readFileSync(path.join(R, dir, f), 'utf8').replace(/\/\/[^\n]*/g, '');
+        for (const pl of planas) if (src.includes(pl)) reincidentes.push(`${f}: ${pl}`);
+      }
+    }
+    exige(reincidentes.length === 0,
+      `vuelven los avisos escritos a mano (usa aviso(POOL, jid, ...)): ${reincidentes.slice(0, 3).join(' · ')}`);
+
+    if (fallos === antes) console.log(verde(`   ✓ ${Object.keys(AV).length} pools, con filo donde toca y secos donde el que lee es el dueño`));
   }
 
   // ── 24. EL RESUMEN DE `npm run estado` NO ESCONDE NADA ───────────────────

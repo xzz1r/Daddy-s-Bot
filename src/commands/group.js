@@ -12,6 +12,8 @@ const { allForms } = require('./fk');
 const { allow, disallow, listAllowed, MAX_AVISOS, DURACION_MS } = require('../utils/linkPerms');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 const { AVISOS_KICK } = require('../data/kickPhrases');
+const { A_TI_MISMO, SIN_PERMISO, SOLO_ADMINS, SOLO_GRUPOS } = require('../data/avisos');
+const { aviso } = require('../utils/helpers');
 
 // In-memory mute store: `groupJid|bareJid` -> expireTimestamp
 // Hard-capped: insertion-ordered Map evicts oldest entry past the cap so a
@@ -119,12 +121,12 @@ setInterval(() => {
 async function cmdTodos(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
   const sender = getSender(msg);
   if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
   }
 
   const participants = groupMeta?.participants || [];
@@ -222,7 +224,7 @@ async function cmdTodos(sock, msg, args, groupMeta) {
 async function cmdAdm(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
   // Solo el owner tier. Y en silencio si no lo es: contestar "no tienes permiso"
@@ -267,12 +269,12 @@ function avisoDeKick(jids) {
 async function cmdKick(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
   const sender = getSender(msg);
   if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
   }
 
   // Collect all candidates: every @mention + the quoted participant (if any).
@@ -369,7 +371,7 @@ async function cmdDel(sock, msg, groupMeta) {
   const isGroup = jid.endsWith('@g.us');
 
   if (isGroup && !isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo admins pueden borrar mensajes.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
   }
 
   const ctx = msg.message?.extendedTextMessage?.contextInfo;
@@ -415,11 +417,11 @@ async function cmdDel(sock, msg, groupMeta) {
 async function cmdMute(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   const sender = getSender(msg);
   if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo admins pueden mutear.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
   }
 
   const target = getTarget(msg);
@@ -427,7 +429,7 @@ async function cmdMute(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: 'Menciona o responde al usuario que quieres mutear.' }, { quoted: msg });
   }
   if (sameUser(target, sender)) {
-    return sock.sendMessage(jid, { text: 'No puedes mutearte a ti mismo.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(A_TI_MISMO, jid, 'yo') }, { quoted: msg });
   }
   // Owner tier is immune; and (mirroring !kick) only the owner may act on admins.
   // SILENCIO, por lo mismo que en !del: contestar aquí delata al objetivo.
@@ -466,11 +468,11 @@ async function cmdMute(sock, msg, args, groupMeta) {
 async function cmdUnmute(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   const sender = getSender(msg);
   if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo admins pueden desmutear.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
   }
 
   const target = getTarget(msg);
@@ -490,7 +492,7 @@ async function cmdUnmute(sock, msg, args, groupMeta) {
 async function cmdPromote(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   const sender = getSender(msg);
 
@@ -499,7 +501,7 @@ async function cmdPromote(sock, msg, args, groupMeta) {
       return sock.sendMessage(jid, { text: 'Anti-admin esta activado: no puedes dar admin.' }, { quoted: msg });
     }
   } else if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
   }
 
   const target = getTarget(msg);
@@ -528,7 +530,7 @@ async function cmdPromote(sock, msg, args, groupMeta) {
 async function cmdDemote(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
@@ -568,11 +570,11 @@ async function cmdDemote(sock, msg, args, groupMeta) {
 async function cmdNotifAdmin(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   const sender = getSender(msg);
   if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo admins pueden cambiar esta configuracion.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
   }
 
   const arg = (args[0] || '').toLowerCase();
@@ -592,11 +594,11 @@ async function cmdNotifAdmin(sock, msg, args, groupMeta) {
 async function cmdAntiAdmin(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
   }
 
   const arg = (args[0] || '').toLowerCase();
@@ -628,11 +630,11 @@ async function cmdAntiAdmin(sock, msg, args, groupMeta) {
 async function cmdAntiBusiness(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
   }
 
   const arg = (args[0] || '').toLowerCase();
@@ -856,11 +858,11 @@ function numeroDeArgs(args) {
 async function cmdAntiLink(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
   }
 
   const arg = (args[0] || '').toLowerCase();
@@ -911,11 +913,11 @@ async function cmdAntiLink(sock, msg, args, groupMeta) {
 async function cmdAllow(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo funciona en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   const sender = getSender(msg);
   if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo los admins reparten este permiso.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
   }
 
   const quitar = (args[0] || '').toLowerCase() === 'off';
@@ -961,11 +963,11 @@ async function cmdAllow(sock, msg, args, groupMeta) {
 async function cmdClose(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   const sender = getSender(msg);
   if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
   }
   try {
     await sock.groupSettingUpdate(jid, 'announcement');
@@ -979,11 +981,11 @@ async function cmdClose(sock, msg, groupMeta) {
 async function cmdOpen(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   const sender = getSender(msg);
   if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
   }
   try {
     await sock.groupSettingUpdate(jid, 'not_announcement');
@@ -1000,11 +1002,11 @@ async function cmdOpen(sock, msg, groupMeta) {
 async function cmdSoloAdmins(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
   }
 
   const arg = (args[0] || '').toLowerCase();
@@ -1067,7 +1069,7 @@ async function cmdPresentarse(sock, msg, args, groupMeta) {
   // En un grupo, admins. En privado, groupMeta no existe y isGroupAdmin se
   // queda solo con isOwner, que es exactamente la puerta que hace falta ahi.
   if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
-    if (enGrupo) return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
+    if (enGrupo) return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
     return;   // en privado, silencio
   }
 

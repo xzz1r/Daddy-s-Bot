@@ -2,6 +2,8 @@ const { isOwner, isMainOwner, isGroupAdmin, getSender, bareJid, fetchPfpUrl, esF
 const { businessEvidence } = require('../utils/businessCheck');
 const { getMemberFacts } = require('../utils/nickStore');
 const { withTimeout } = require('../utils/helpers');
+const { SOLO_ADMINS, SOLO_GRUPOS } = require('../data/avisos');
+const { aviso } = require('../utils/helpers');
 
 const PFP_CONCURRENCY = 8;
 const PFP_TIMEOUT_MS  = 3500;
@@ -26,14 +28,14 @@ async function pfpEstado(sock, jid) {
 async function cmdScan(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo funciona en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
   const sender = getSender(msg);
   const canUse = isOwner(sender, msg.key.fromMe, groupMeta)
     || isGroupAdmin(sender, msg.key.fromMe, groupMeta);
   if (!canUse) {
-    return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
   }
 
   const participants = groupMeta?.participants || [];

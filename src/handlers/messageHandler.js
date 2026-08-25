@@ -50,6 +50,8 @@ const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, extractText, rememberMap
 const logger = require('../utils/logger');
 
 const { clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa, PERMISO_ENLACE, puedeAnunciar, anotarTropiezo, perfilMirado } = require('../utils/antilink');
+const { SIN_PERMISO, SOLO_GRUPOS } = require('../data/avisos');
+const { aviso } = require('../utils/helpers');
 
 // Commands that need group metadata — skip the network call for everything else
 const NEEDS_META = new Set([
@@ -1681,7 +1683,7 @@ async function handleMessage(sock, msg) {
         if (isOwner(sender, msg.key.fromMe, groupMeta)) {
           await cmdClearCache(sock, msg);
         } else {
-          await sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
+          await sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
         }
         break;
 
@@ -2015,9 +2017,9 @@ async function handleMessage(sock, msg) {
 
       case 'resetaura':
         if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-          await sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
+          await sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
         } else if (!jid.endsWith('@g.us')) {
-          await sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+          await sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
         } else {
           await resetAura(jid);
           // "DESDE CERO" ERA MENTIRA. resetAura deja a todo el mundo en el

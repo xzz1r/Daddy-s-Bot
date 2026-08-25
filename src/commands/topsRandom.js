@@ -2,6 +2,8 @@ const { getActiveUsers } = require('../utils/messageCounter');
 const { isMainOwner, soloMiembros, getSender } = require('../utils/wa');
 const { shuffle, pickFresh } = require('../utils/helpers');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
+const { SOLO_GRUPOS } = require('../data/avisos');
+const { aviso } = require('../utils/helpers');
 
 // Remate del ranking. Sale UNO por top, al final del bloque.
 //
@@ -68,7 +70,7 @@ async function cmdTopRandom(sock, msg, n, args, groupMeta) {
   const jid = msg.key.remoteJid;
 
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Este comando solo funciona en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
   const topic = (args || []).join(' ').trim();

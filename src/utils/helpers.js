@@ -686,7 +686,17 @@ function msHastaCorte(ts, zona, horaCorte = 0) {
   return hi - ts;
 }
 
+// El aviso de turno, ya rotado. Vive aqui y no en avisos.js para que ese
+// fichero se quede en frases y nada mas — es el mismo reparto que percentLabels.
+//
+// La clave lleva el chat: dos grupos distintos no se comen la rotacion el uno al
+// otro, y el mismo aviso repetido dos veces seguidas en el mismo sitio canta.
+function aviso(pool, chat, etiqueta) {
+  return pickFresh(pool, `${chat}|aviso|${etiqueta}`);
+}
+
 module.exports = {
+  aviso,
   claveDia, msHastaCorte,
   flushPickHistory,
   // ARSENAL (el regex) ya NO se exporta: lleva la bandera /g, o sea que arrastra

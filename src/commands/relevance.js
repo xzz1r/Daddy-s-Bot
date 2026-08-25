@@ -15,6 +15,8 @@
 const { getTargetOrSelf, isMainOwner } = require('../utils/wa');
 const { pickFresh, fmt } = require('../utils/helpers');
 const { getUserCount } = require('../utils/messageCounter');
+const { SOLO_GRUPOS } = require('../data/avisos');
+const { aviso } = require('../utils/helpers');
 
 const MID_MIN  = 300;
 const HIGH_MIN = 700;
@@ -348,7 +350,7 @@ const RELEVANTE = [
 async function cmdRelevance(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo funciona en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
   const target = getTargetOrSelf(msg);

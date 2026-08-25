@@ -15,6 +15,8 @@ const tiendaObj = require('../utils/roboStore');
 const momentum = require('../utils/momentum');
 const { objetivoDelDia, esObjetivoDelDia, diaClave } = require('../utils/objetivoDia');
 const { ownerGana } = require('../utils/rigOwner');
+const { SIN_PERMISO, SOLO_GRUPOS } = require('../data/avisos');
+const { aviso } = require('../utils/helpers');
 
 // SUBIDO desde minuto y medio por decision del owner. La cifra esta abajo, en
 // la constante, y NO se repite aqui: este comentario decia "QUINCE MINUTOS"
@@ -756,7 +758,7 @@ function pintarTopGris(filas) {
 async function showRanking(sock, msg, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'El ranking de aura solo existe en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
   const desde = Date.now() - (ultimoRanking.get(jid) || 0);
@@ -996,7 +998,7 @@ const APUESTA_POBRE = [
 async function jugarApuesta(sock, msg, groupMeta, args) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Esto solo se juega en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
 
   if (auraApagada(jid)) return avisarApagada(sock, jid, msg);
@@ -1139,11 +1141,11 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
 async function interruptor(sock, msg, sub, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
-    return sock.sendMessage(jid, { text: 'Solo en grupos.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No tienes permiso para usar esto.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
   }
 
   const encender = sub === 'on' || sub === 'encender';
