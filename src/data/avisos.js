@@ -80,4 +80,33 @@ const A_TI_MISMO = [
   'No. Mete a otro, que solo no tiene gracia.',
 ];
 
-module.exports = { SOLO_GRUPOS, SIN_PERMISO, SOLO_ADMINS, A_TI_MISMO };
+// El objetivo es un admin y quien lo intenta no llega. Se lee en el grupo, y
+// delante del propio admin, que es la mitad de la gracia.
+const CONTRA_UN_ADMIN = [
+  'Ese lleva galones. Busca a alguien de tu tamaño.',
+  'A un admin no. Elige a alguien que no pueda devolvértela.',
+  'Contra un admin no. Aquí hay clases y ya sabes en cuál estás.',
+  'No. Ese está por encima de ti, y se nota hasta en el intento.',
+  'A los admins no se les toca. A ti sí, y por algo será.',
+  'Ese no. Métete con los de tu liga, que hay de sobra.',
+  'A un admin no. Lo tuyo es aguantar, no repartir.',
+  'No puedes. Y él sí puede contigo, por si se te ocurre insistir.',
+  'Contra un admin no. Elige mejor a quién le tienes ganas.',
+  'No. Los galones existen exactamente para esto.',
+];
+
+// Se ha metido en un duelo de otros dos. Se lee en el grupo.
+const DUELO_AJENO = [
+  'Ese duelo no es tuyo. Espera a que alguien te rete a ti. Si pasa.',
+  'A ti no te han llamado. Aparta.',
+  'Ese duelo tiene dueño y no eres tú.',
+  'No es tu pelea. Métete en la tuya, si consigues una.',
+  'A ti nadie te retó. Párate a pensar por qué.',
+  'Ese no es tu duelo. Ni de lejos.',
+  'No va contigo, y colarte tampoco te lo va a ganar.',
+  'Ese duelo es de otros dos. Tú a mirar, como siempre.',
+  'No te toca. Consíguete un enemigo propio.',
+  'Ese duelo no te incluye, y eso ya dice bastante de ti.',
+];
+
+module.exports = { SOLO_GRUPOS, SIN_PERMISO, SOLO_ADMINS, A_TI_MISMO, CONTRA_UN_ADMIN, DUELO_AJENO };

@@ -509,7 +509,7 @@ async function cmdFkBan(sock, msg, args, groupMeta) {
   // distinta a la de cualquier otro, y probando !fkban por el grupo se sacaba
   // quién es el dueño sin más esfuerzo.
   if (isBotJid(sock, target)) {
-    return sock.sendMessage(jid, { text: 'A esa cuenta no se le puede aplicar la lista negra.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'A esa cuenta no. Está por encima de tu lista negra.' }, { quoted: msg });
   }
   if (isOwner(target, false, groupMeta)) return;
 

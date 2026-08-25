@@ -31,7 +31,7 @@ function resolveJid(rawJid, participants) {
 // La escala vive en utils/economia.js, igual que el robo y los bonos. Antes
 // estaba aqui a pelo y se quedo en la escala vieja cuando todo lo demas bajo.
 const { DUELO } = require('../utils/economia');
-const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
+const { A_TI_MISMO, DUELO_AJENO, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
 const STAKE_MIN = DUELO.suelo;
 const STAKE_DEFAULT = DUELO.porDefecto;
@@ -172,7 +172,7 @@ async function cmdDuel(sock, msg, args, groupMeta) {
     if (!d) return sock.sendMessage(jid, { text: 'No hay ningún duelo pendiente.' }, { quoted: msg });
     const resolvedSender = resolveJid(sender, groupMeta?.participants);
     if (!sameUser(resolvedSender, d.target)) {
-      return sock.sendMessage(jid, { text: 'Este duelo no es para ti.' }, { quoted: msg });
+      return sock.sendMessage(jid, { text: aviso(DUELO_AJENO, jid, 'duelo') }, { quoted: msg });
     }
     // Claim the duel atomically BEFORE any await. Two concurrent "aceptar"
     // messages (or a WhatsApp redelivery — the handler has no msg-id dedup)
@@ -211,7 +211,7 @@ async function cmdDuel(sock, msg, args, groupMeta) {
     const isTarget = sameUser(resolvedSender2, d.target);
     const isChallenger = sameUser(resolvedSender2, d.challenger);
     if (!isTarget && !isChallenger) {
-      return sock.sendMessage(jid, { text: 'Este duelo no es asunto tuyo.' }, { quoted: msg });
+      return sock.sendMessage(jid, { text: aviso(DUELO_AJENO, jid, 'duelo') }, { quoted: msg });
     }
     pending.delete(jid);
     if (isTarget) {

@@ -1891,8 +1891,13 @@ async function capaStores() {
         { id: BOT, admin: null },
       ],
     });
-    exige(msgsNA.length === 1 && /no es admin/i.test(msgsNA[0].text || ''),
-      '!kick insulto en publico sin poder echar');
+    // Por el HECHO: contesta una sola vez, dice que el problema es el admin del
+    // bot, y no llama a groupParticipantsUpdate (el stub revienta si se llama).
+    // Pedia la frase literal "no es admin" y al reescribir el aviso en primera
+    // persona ("No soy admin aquí") se puso roja sin que !kick cambiara. Van
+    // tres guardas asi; el patron es siempre el mismo.
+    exige(msgsNA.length === 1 && /admin/i.test(msgsNA[0].text || ''),
+      `!kick insulto en publico sin poder echar (${msgsNA.length} mensaje(s): "${(msgsNA[0]?.text || '').slice(0, 50)}")`);
 
     if (!fallos) console.log(verde('   ✓ !kick avisa antes del ban y sigue siendo de admins'));
   }
@@ -3144,17 +3149,27 @@ async function capaStores() {
     exige(AV.SOLO_GRUPOS.every((f) => /grupo/i.test(f) || /aquí no|aqui no/i.test(f)),
       'alguna frase de SOLO_GRUPOS ya no dice que eso es de grupo: entonces no informa de nada');
 
-    // Los tres del grupo si tienen que picar. Sin esto, alguien los "suaviza"
-    // en un ajuste y vuelven a sonar a formulario sin que salte nada.
-    for (const nombre of ['SIN_PERMISO', 'SOLO_ADMINS', 'A_TI_MISMO']) {
+    // Los del grupo si tienen que picar. Sin esto, alguien los "suaviza" en un
+    // ajuste y vuelven a sonar a formulario sin que salte nada.
+    for (const nombre of ['SIN_PERMISO', 'SOLO_ADMINS', 'A_TI_MISMO', 'CONTRA_UN_ADMIN', 'DUELO_AJENO']) {
       const conFilo = AV[nombre].filter((f) => f.length > 28).length;
       exige(conFilo >= AV[nombre].length * 0.7,
         `${nombre} se ha quedado en avisos secos: estos se leen en el grupo y tienen que picar`);
     }
 
+    // Español neutro en todos. Ya se colo un "dadme galones o dejad de pedirme
+    // cosas" al endurecer el aviso de !kick: el bot habla igual para todos y una
+    // conjugacion de España en un aviso canta mas que en una frase larga.
+    const peninsular = /\b(vosotros|valéis|estáis|sois|tenéis|dadme|dejad|mirad|escribid|poneos|hacedlo|idos)\b/i;
+    for (const [nombre, pool] of Object.entries(AV)) {
+      const conVos = pool.filter((f) => peninsular.test(f));
+      exige(conVos.length === 0, `${nombre} conjuga en vosotros: ${conVos[0] || ''}`);
+    }
+
     // Y QUE NO VUELVAN LAS FRASES A MANO. Se busca el string plano en src/.
     const planas = ["'Solo en grupos.'", "'No tienes permiso para usar esto.'",
-      "'Solo admins pueden usar este comando.'", "'Solo funciona en grupos.'"];
+      "'Solo admins pueden usar este comando.'", "'Solo funciona en grupos.'",
+      "'Este duelo no es para ti.'", "'No tienes permiso para mutear a un admin.'"];
     const reincidentes = [];
     for (const dir of ['src/commands', 'src/utils', 'src/handlers']) {
       for (const f of fs.readdirSync(path.join(R, dir)).filter((x) => x.endsWith('.js'))) {

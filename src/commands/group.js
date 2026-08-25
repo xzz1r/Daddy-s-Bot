@@ -12,7 +12,7 @@ const { allForms } = require('./fk');
 const { allow, disallow, listAllowed, MAX_AVISOS, DURACION_MS } = require('../utils/linkPerms');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 const { AVISOS_KICK } = require('../data/kickPhrases');
-const { A_TI_MISMO, SIN_PERMISO, SOLO_ADMINS, SOLO_GRUPOS } = require('../data/avisos');
+const { A_TI_MISMO, CONTRA_UN_ADMIN, SIN_PERMISO, SOLO_ADMINS, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
 
 // In-memory mute store: `groupJid|bareJid` -> expireTimestamp
@@ -322,7 +322,7 @@ async function cmdKick(sock, msg, args, groupMeta) {
   // Sin admin del bot no hay kick: no se suelta el aviso en público para
   // quedarse a medias.
   if (!isBotAdmin(sock, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No pude expulsar: el bot no es admin.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No soy admin aquí. Denme galones o dejen de pedirme cosas.' }, { quoted: msg });
   }
 
   try {
@@ -435,7 +435,7 @@ async function cmdMute(sock, msg, args, groupMeta) {
   // SILENCIO, por lo mismo que en !del: contestar aquí delata al objetivo.
   if (isOwner(target, false, groupMeta)) return;
   if (isAdmin(groupMeta?.participants, target) && !isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No tienes permiso para mutear a un admin.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(CONTRA_UN_ADMIN, jid, 'admin') }, { quoted: msg });
   }
 
   const explicit = args.find(a => /^\d+$/.test(a));
@@ -498,7 +498,7 @@ async function cmdPromote(sock, msg, args, groupMeta) {
 
   if (isAntiAdminEnabled(jid)) {
     if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-      return sock.sendMessage(jid, { text: 'Anti-admin esta activado: no puedes dar admin.' }, { quoted: msg });
+      return sock.sendMessage(jid, { text: 'El anti-admin está puesto. Los ascensos los reparte el dueño, no tú.' }, { quoted: msg });
     }
   } else if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
     return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
@@ -509,7 +509,7 @@ async function cmdPromote(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: 'Menciona o responde al usuario que quieres ascender.' }, { quoted: msg });
   }
   if (isAdmin(groupMeta?.participants, target)) {
-    return sock.sendMessage(jid, { text: 'Ese usuario ya es admin.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Ya es admin. Ascenderlo otra vez no lo hace más listo.' }, { quoted: msg });
   }
 
   try {
@@ -534,7 +534,7 @@ async function cmdDemote(sock, msg, args, groupMeta) {
   }
   const sender = getSender(msg);
   if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: 'No tienes permiso para degradar admins.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
   }
 
   const target = getTarget(msg);
@@ -543,7 +543,7 @@ async function cmdDemote(sock, msg, args, groupMeta) {
   }
   // Demoting the bot would strip the admin it needs to moderate — refuse.
   if (isBotJid(sock, target)) {
-    return sock.sendMessage(jid, { text: 'No puedo quitarme el admin a mí mismo.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'A mí mismo no. Alguien tiene que hacer el trabajo sucio.' }, { quoted: msg });
   }
   // Owner tier is immune: a co-owner must not be able to strip the main owner
   // (or another co-owner), matching the protection kick and mute already enforce.
@@ -551,7 +551,7 @@ async function cmdDemote(sock, msg, args, groupMeta) {
   // el bot anunciara su rango delante del grupo entero.
   if (isOwner(target, false, groupMeta)) return;
   if (!isAdmin(groupMeta?.participants, target)) {
-    return sock.sendMessage(jid, { text: 'Ese usuario no es admin.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'Ese no es admin. No le puedes quitar algo que no tiene.' }, { quoted: msg });
   }
 
   try {
