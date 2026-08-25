@@ -1071,9 +1071,14 @@ async function cmdPresentarse(sock, msg, args, groupMeta) {
     return;   // en privado, silencio
   }
 
-  // El envio, con todo el grupo mencionado y ninguno escrito.
-  // La frase se sortea POR GRUPO: lanzandolo desde el privado sale en varios a
-  // la vez, y el mismo texto repetido en todos delata que es un boton.
+  // SALE EN TODOS LOS GRUPOS, se escriba donde se escriba.
+  //
+  // La primera version solo lo soltaba en el grupo donde se escribia, y desde
+  // el privado en todos. Es una ronda de presentaciones: se pide una vez y
+  // tiene que llegar a todas partes, no repetir el comando grupo por grupo.
+  //
+  // La frase se sortea POR GRUPO. Con el mismo texto en todos a la vez, el
+  // primero que compare dos grupos ve que detras hay un boton.
   const soltar = async (grupo, participantes) => {
     const mentions = (participantes || []).map((p) => p.id).filter(Boolean);
     if (!mentions.length) return false;
@@ -1081,20 +1086,17 @@ async function cmdPresentarse(sock, msg, args, groupMeta) {
     return true;
   };
 
-  if (enGrupo) {
-    const participantes = groupMeta?.participants || [];
-    if (!participantes.length) {
-      return sock.sendMessage(jid, { text: 'No pude obtener miembros del grupo.' }, { quoted: msg });
-    }
-    return soltar(jid, participantes);
-  }
-
-  // Privado: a todos los grupos. Se dice en cuantos ha salido y en cuales no,
-  // porque un comando que reparte a ciegas y no cuenta nada es un comando en el
-  // que no se puede confiar la segunda vez.
   let grupos = {};
   try { grupos = await sock.groupFetchAllParticipating(); }
-  catch (e) { return sock.sendMessage(jid, { text: `No pude listar los grupos: ${e.message}` }, { quoted: msg }); }
+  catch (e) {
+    // Sin la lista, al menos el grupo desde el que se pidio. Quedarse sin hacer
+    // nada por un fallo de red seria peor que hacer la mitad.
+    if (enGrupo && groupMeta?.participants?.length) {
+      await soltar(jid, groupMeta.participants);
+      return sock.sendMessage(jid, { text: `_No pude listar los demás grupos (${e.message}), así que solo ha salido aquí._` }, { quoted: msg });
+    }
+    return sock.sendMessage(jid, { text: `No pude listar los grupos: ${e.message}` }, { quoted: msg });
+  }
 
   const enviados = [], fallidos = [];
   for (const [gJid, meta] of Object.entries(grupos || {})) {
@@ -1107,6 +1109,17 @@ async function cmdPresentarse(sock, msg, args, groupMeta) {
   if (!enviados.length) {
     return sock.sendMessage(jid, { text: 'No pude mandarlo a ningún grupo.' }, { quoted: msg });
   }
+
+  // Desde un grupo, el aviso ya se ve ahi: basta una linea diciendo que tambien
+  // fue a los demas. La lista entera solo tiene sentido en el privado.
+  if (enGrupo) {
+    const otros = enviados.length - 1;
+    if (otros <= 0) return;
+    return sock.sendMessage(jid, {
+      text: `_También pedida en ${otros} grupo(s) más._`,
+    }, { quoted: msg });
+  }
+
   return sock.sendMessage(jid, {
     text: `Pedida la presentación en *${enviados.length}* grupo(s):\n` +
       enviados.map((g) => `· ${g}`).join('\n') +

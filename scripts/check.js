@@ -3013,15 +3013,31 @@ async function capaStores() {
     const GR = 'gr@g.us';
     const partes = [{ id: ADM_R, admin: 'admin' }, { id: RASO_R }, { id: BOT_R, admin: 'admin' }];
 
+    const GR2 = 'gr2@g.us';
     const lanzar = async (quien) => {
       const out = [];
-      const s = { user: { id: BOT_R }, sendMessage: async (j, c) => { out.push({ a: j, ...c }); return {}; } };
+      const s = {
+        user: { id: BOT_R },
+        sendMessage: async (j, c) => { out.push({ a: j, ...c }); return {}; },
+        groupFetchAllParticipating: async () => ({
+          [GR]: { subject: 'Uno', participants: partes },
+          [GR2]: { subject: 'Dos', participants: partes },
+        }),
+      };
       await cmdPresentarse(s, { key: { remoteJid: GR, participant: quien, fromMe: false, id: 'R' },
         message: { conversation: '!r' } }, [], { id: GR, participants: partes });
       return out;
     };
 
-    const av = (await lanzar(ADM_R)).find((x) => x.a === GR);
+    const salida = await lanzar(ADM_R);
+    const av = salida.find((x) => x.a === GR);
+    // SALE EN TODOS LOS GRUPOS aunque se escriba en uno. Es una ronda de
+    // presentaciones: se pide una vez y llega a todas partes. Si esto se
+    // rompiera, el aviso saldria igual en el grupo donde se escribio y nadie
+    // notaria que a los demas no les llego nada.
+    const conAviso = salida.filter((x) => /PRESENTACIÓN/.test(x.text || '')).map((x) => x.a);
+    exige(conAviso.includes(GR) && conAviso.includes(GR2),
+      `!r solo ha salido en ${conAviso.length} grupo(s) de 2: se escriba donde se escriba tiene que ir a todos`);
     exige(!!av, '!r no manda nada en el grupo');
     exige(!av || (av.mentions || []).length === partes.length,
       `!r menciona a ${(av?.mentions || []).length} de ${partes.length}: al resto no le llega la notificacion`);
