@@ -61,7 +61,8 @@ const NEEDS_META = new Set([
   // el comando existia, contestaba "solo los admins" al admin que lo escribia.
   // Los detecta ahora `npm run check`.
   'sacar','echar','silenciar','callar',
-  // !r menciona a TODO el grupo: sin metadata no hay lista y el ping sale vacio.
+  // !r menciona a TODO el grupo para que vean el aviso; la orden es solo para
+  // los nuevos. Sin metadata no hay lista y el ping sale vacio.
   'r','presentarse','presentacion','presentación',
   'banear','ban','fkban','desbanear','unban','fkunban',
   // !p / !purge comprueban isMainOwner y sin metadata no resolverian su LID:
@@ -1751,8 +1752,8 @@ async function handleMessage(sock, msg) {
         await cmdSetKey(sock, msg, args, groupMeta);
         break;
 
-      // !r — el ping invisible pidiendo que se presenten. En un grupo sale ahi;
-      // en el privado del bot sale en todos los grupos.
+      // !r — ping invisible pidiendo que los NUEVOS se presenten. En un grupo
+      // sale ahi; en el privado del bot sale en todos los grupos.
       case 'r':
       case 'presentarse':
       case 'presentacion':
