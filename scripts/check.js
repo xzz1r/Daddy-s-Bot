@@ -3032,6 +3032,34 @@ async function capaStores() {
     exige(!av || (av.text || '').length < 200,
       `!r se esta alargando (${av?.text?.length} caracteres): es un aviso de dos lineas`);
 
+    // LOS REMATES ROTAN, Y NINGUNO PROMETE LO QUE EL BOT NO HACE.
+    //
+    // Rotan porque !r se usa cada vez que entra gente y una frase fija se quema
+    // a la tercera. Y ninguno puede amenazar con echar o banear: el bot no lo
+    // hace, y una amenaza incumplida deja de leerse — es la misma razon por la
+    // que el aviso de !inactivos si puede decirlo (ahi si se cumple) y este no.
+    {
+      const gsrc = fs.readFileSync(path.join(R, 'src/commands/group.js'), 'utf8');
+      const bloque = gsrc.slice(gsrc.indexOf('const REMATES'), gsrc.indexOf('];', gsrc.indexOf('const REMATES')));
+      const remates = [...bloque.matchAll(/^  '(.+)',$/gm)].map((m) => m[1]);
+      exige(remates.length >= 8,
+        `solo hay ${remates.length} remates para !r: con menos de 8 se repiten a la vista`);
+      exige(new Set(remates).size === remates.length, 'hay remates de !r repetidos');
+      exige(remates.every((r) => r.length < 110),
+        'algun remate de !r se alarga: el aviso tiene que caber de un vistazo');
+      // Sin \b al final: los verbos se conjugan. La primera version pedia
+      // \bexpuls\b y "lo expulso yo mismo" no casaba — el mutante paso en verde.
+      const amenaza = remates.filter((r) => /\b(ech[ao]|expuls|banea|fuera del grupo|te saco|los saco|te vas|se va a la calle)/i.test(r));
+      exige(amenaza.length === 0,
+        `remates de !r que amenazan con algo que el bot no hace: ${amenaza.slice(0, 2).join(' · ')}`);
+      exige(/pickFresh\(REMATES/.test(gsrc),
+        'el remate de !r dejo de rotar: la misma frase en cada aviso se quema a la tercera');
+      // Y por grupo, no global: lanzado desde el privado sale en varios a la vez
+      // y el mismo texto repetido en todos delata que es un boton.
+      exige(/textoPresentacion\(grupo\)/.test(gsrc),
+        '!r manda el mismo texto a todos los grupos a la vez');
+    }
+
     const raso = await lanzar(RASO_R);
     exige(!raso.some((x) => /PRESENTACIÓN/.test(x.text || '')),
       'un miembro raso puede lanzar el ping a todo el grupo');

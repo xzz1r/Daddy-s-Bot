@@ -1,6 +1,6 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const { isOwner, isAdmin, isBotJid, isBotAdmin, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid, sameUser, esMiembroActual } = require('../utils/wa');
-const { streamToBuffer, MAX_DOWNLOAD_BYTES, atomicWriteJson, readJsonOrEnoent } = require('../utils/helpers');
+const { streamToBuffer, MAX_DOWNLOAD_BYTES, atomicWriteJson, readJsonOrEnoent, pickFresh } = require('../utils/helpers');
 const path = require('path');
 const logger = require('../utils/logger');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled, toggleSoloAdmins, isSoloAdminsEnabled } = require('../utils/state');
@@ -1033,13 +1033,31 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
 // Escrito EN EL PRIVADO del bot, sale en todos los grupos donde esté. Es lo
 // natural: quien lo pide por privado lo esta pidiendo para el grupo, no para el
 // chat en el que escribe — ahi no hay nadie a quien avisar.
-// El remate NO amenaza con echar a nadie: el bot no lo va a hacer, y una
-// amenaza que no se cumple la segunda vez ya no la lee nadie. Lo que si se
-// cumple solo es lo otro — en este grupo, al que no da la cara se lo inventan.
-const PRESENTACION =
-  '*PRESENTACIÓN OBLIGATORIA*\n' +
-  '╾━━━━━━━━━━━━━━╼\n\n' +
-  'Foto y edad. El/La que no se presente, que no se queje de lo que nos imaginemos.';
+// Los remates. Van detras de "El/La que no se presente," y rotan, que este
+// comando se usa cada vez que entra gente nueva y una frase fija se quema a la
+// tercera.
+//
+// Ninguno amenaza con echar a nadie: el bot no lo va a hacer, y una amenaza que
+// no se cumple la segunda vez ya no la lee nadie. Lo que si se cumple solo es
+// lo otro — aqui, al que no da la cara se lo comen igual.
+const REMATES = [
+  'sabe de sobra lo que está escondiendo.',
+  'lo damos por feo, por viejo y por cobarde. Las tres cosas.',
+  'queda como el fantasma de mierda que ya sospechábamos que era.',
+  'es porque la cámara le hizo algo y todavía no lo ha superado.',
+  'lo tomamos como confesión firmada y pasamos a otra cosa.',
+  'que no vuelva a abrir la boca para opinar de la cara de nadie.',
+  'entra directo en la lista de los que dan pena en este grupo.',
+  'es porque el espejo ya le dio la respuesta y no le gustó.',
+  'que se vaya haciendo a la idea de lo que le vamos a decir.',
+  'tiene un motivo, y el motivo se le nota en la puta cara.',
+];
+
+function textoPresentacion(clave) {
+  return '*PRESENTACIÓN OBLIGATORIA*\n' +
+    '╾━━━━━━━━━━━━━━╼\n\n' +
+    `Foto y edad. El/La que no se presente, ${pickFresh(REMATES, `${clave}|presentacion`)}`;
+}
 
 async function cmdPresentarse(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
@@ -1054,10 +1072,12 @@ async function cmdPresentarse(sock, msg, args, groupMeta) {
   }
 
   // El envio, con todo el grupo mencionado y ninguno escrito.
+  // La frase se sortea POR GRUPO: lanzandolo desde el privado sale en varios a
+  // la vez, y el mismo texto repetido en todos delata que es un boton.
   const soltar = async (grupo, participantes) => {
     const mentions = (participantes || []).map((p) => p.id).filter(Boolean);
     if (!mentions.length) return false;
-    await sock.sendMessage(grupo, { text: PRESENTACION, mentions });
+    await sock.sendMessage(grupo, { text: textoPresentacion(grupo), mentions });
     return true;
   };
 
