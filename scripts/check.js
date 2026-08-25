@@ -3093,6 +3093,17 @@ async function capaStores() {
         'algun remate de !r se alarga: el aviso tiene que caber de un vistazo');
       // Sin \b al final: los verbos se conjugan. La primera version pedia
       // \bexpuls\b y "lo expulso yo mismo" no casaba — el mutante paso en verde.
+      // NINGUNO PUEDE VENIR CON GENERO. El aviso lo lee todo el grupo, y con
+      // "El/La que no se presente, callado se delata solo" a una tia le llegaba
+      // en masculino. De ahi que el mensaje se partiera por partes: asi el
+      // remate es su propia frase y no tiene que concordar con nadie — pero
+      // puede volver a colarse un adjetivo marcado dentro del propio remate.
+      const marcado = remates.filter((r) => /\b(callad[oa]|sol[oa]\b|fe[oa]\b|viej[oa]|guap[oa]|nuev[oa]|list[oa]|tont[oa]|much[oa]s)\b/i.test(r));
+      exige(marcado.length === 0,
+        `remates de !r con genero marcado (el grupo no es solo de tios): ${marcado.slice(0, 2).join(' · ')}`);
+      // Y que el aviso siga partido: es lo que quita la atadura de concordancia.
+      exige(/\*Quién:\*/.test(gsrc) && /\*Qué:\*/.test(gsrc) && /\*Si no:\*/.test(gsrc),
+        '!r volvio a ser una sola frase: entonces cada remate tiene que concordar con "El/La" y ahi es donde fallaban');
       const amenaza = remates.filter((r) => /\b(ech[ao]|expuls|banea|fuera del grupo|te saco|los saco|te vas|se va a la calle)/i.test(r));
       exige(amenaza.length === 0,
         `remates de !r que amenazan con algo que el bot no hace: ${amenaza.slice(0, 2).join(' · ')}`);

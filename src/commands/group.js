@@ -1046,22 +1046,34 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
 // no se cumple la segunda vez ya no la lee nadie. Lo que si se cumple solo es
 // lo otro — aqui, al nuevo que no da la cara se lo comen igual.
 const REMATES = [
-  'sabe de sobra lo que está escondiendo.',
-  'lo damos por feo, por viejo y por cobarde. Las tres cosas.',
-  'queda como el fantasma de mierda que ya sospechábamos que era.',
-  'tiene un motivo, y el motivo se le nota en la puta cara.',
-  'ya se presentó: cobarde.',
-  'no da la cara porque no la tiene.',
-  'se lo inventamos, y duele más.',
-  'es un número. Nada más.',
-  'callado se delata solo.',
-  'el grupo ya sabe por qué.',
+  'Se presentó igual, y como cobarde.',
+  'Cobarde y ausente. Las dos cosas.',
+  'Queda de fantasma, que es lo que ya sospechábamos.',
+  'Tiene un motivo, y se le nota en la puta cara.',
+  'No da la cara porque no la tiene.',
+  'Se lo inventa el grupo, y duele más.',
+  'Es un número y nada más.',
+  'Callarse también es contestar.',
+  'El grupo ya sabe por qué.',
+  'El silencio ya lo dijo todo.',
 ];
 
+// EL AVISO VA POR PARTES, Y NO SOLO PARA QUE SE LEA MEJOR.
+//
+// Era una sola frase: "Solo los nuevos. Foto y edad. El/La que no se presente,
+// <remate>". Eso obliga a que TODO remate concuerde con "El/La", y varios no lo
+// hacian: "lo damos por feo" (masculino y con un "lo" sin antecedente),
+// "callado se delata solo" (masculino), "el fantasma de mierda" (masculino).
+// A una tia le llegaban en masculino una de cada tres veces.
+//
+// Partiendolo, el remate pasa a ser su propia frase y deja de tener que
+// concordar con nadie. El arreglo de estilo y el de gramatica son el mismo.
 function textoPresentacion(clave) {
   return '*PRESENTACIÓN OBLIGATORIA*\n' +
     '╾━━━━━━━━━━━━━━╼\n\n' +
-    `Solo los nuevos. Foto y edad. El/La que no se presente, ${pickFresh(REMATES, `${clave}|presentacion`)}`;
+    '*Quién:* solo los nuevos.\n' +
+    '*Qué:* foto y edad.\n' +
+    `*Si no:* ${pickFresh(REMATES, `${clave}|presentacion`)}`;
 }
 
 async function cmdPresentarse(sock, msg, args, groupMeta) {
