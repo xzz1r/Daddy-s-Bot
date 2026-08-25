@@ -1033,11 +1033,13 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
 // Escrito EN EL PRIVADO del bot, sale en todos los grupos donde esté. Es lo
 // natural: quien lo pide por privado lo esta pidiendo para el grupo, no para el
 // chat en el que escribe — ahi no hay nadie a quien avisar.
+// El remate NO amenaza con echar a nadie: el bot no lo va a hacer, y una
+// amenaza que no se cumple la segunda vez ya no la lee nadie. Lo que si se
+// cumple solo es lo otro — en este grupo, al que no da la cara se lo inventan.
 const PRESENTACION =
-  '*PRESENTACIÓN*\n' +
+  '*PRESENTACIÓN OBLIGATORIA*\n' +
   '╾━━━━━━━━━━━━━━╼\n\n' +
-  'Foto y edad.\n\n' +
-  '_La foto de ahora, no la de hace cuatro años._';
+  'Foto y edad. El que no se presente, que no se queje de lo que nos imaginemos.';
 
 async function cmdPresentarse(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
