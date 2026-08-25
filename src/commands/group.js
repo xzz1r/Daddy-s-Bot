@@ -1045,18 +1045,31 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
 // Ninguno amenaza con echar a nadie: el bot no lo va a hacer, y una amenaza que
 // no se cumple la segunda vez ya no la lee nadie. Lo que si se cumple solo es
 // lo otro — aqui, al nuevo que no da la cara se lo comen igual.
+// Los remates. Cada uno tiene que EMPUJAR a mandar la foto, no dar por cerrado
+// el asunto: "Se presentó igual, y como cobarde" le decia al que no se presenta
+// que ya estaba hecho, o sea que le quitaba el motivo para hacerlo. Lo mismo
+// "El silencio ya lo dijo todo": es un veredicto, y un veredicto no mueve a
+// nadie.
+//
+// La palanca es una sola y va al autoestima: SIN FOTO, EL GRUPO ASUME LO PEOR,
+// y eso se arregla mandandola. El insulto es lo que le cae POR DEFECTO, no lo
+// que le cae igualmente.
+//
+// Van sin genero marcado (el grupo no es solo de tios) y ninguno amenaza con
+// echar a nadie: el bot no lo hace, y lo que si se cumple solo es lo otro.
 const REMATES = [
-  'Se presentó igual, y como cobarde.',
-  'Cobarde y ausente. Las dos cosas.',
-  'Queda de fantasma, que es lo que ya sospechábamos.',
-  'Tiene un motivo, y se le nota en la puta cara.',
-  'Una foto tarda diez segundos. Lo demás es miedo.',
-  'Si la foto da tanta pereza, la edad va a dar risa.',
-  'La foto que no llega ya la está describiendo el grupo.',
-  'Callarse también es contestar.',
-  'Se ahorra la foto y se gana el veredicto igual.',
-  'El silencio ya lo dijo todo.',
+  'Nadie esconde una cara que valga la pena.',
+  'Cada hora sin foto, el grupo te imagina peor.',
+  'La foto que no mandas es la que todos se están imaginando.',
+  'Diez segundos de foto o toda la vida de sospecha.',
+  'Quien no manda foto ya sabe por qué.',
+  'Aquí se entra con cara. Si no la pones, te ponemos una.',
+  'Todo el mundo tiene una foto decente. Todo el mundo.',
+  'Sin foto, el grupo asume lo peor. Y se queda corto.',
+  'Esconderse no te hace interesante. Te hace evidente.',
+  'La edad tampoco la escondes: no mandarla ya la dice.',
 ];
+
 
 // EL AVISO VA POR PARTES, Y NO SOLO PARA QUE SE LEA MEJOR.
 //
