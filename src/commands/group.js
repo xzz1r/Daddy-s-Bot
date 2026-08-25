@@ -1050,11 +1050,11 @@ const REMATES = [
   'Cobarde y ausente. Las dos cosas.',
   'Queda de fantasma, que es lo que ya sospechábamos.',
   'Tiene un motivo, y se le nota en la puta cara.',
-  'No da la cara porque no la tiene.',
-  'Se lo inventa el grupo, y duele más.',
-  'Es un número y nada más.',
+  'Una foto tarda diez segundos. Lo demás es miedo.',
+  'Si la foto da tanta pereza, la edad va a dar risa.',
+  'La foto que no llega ya la está describiendo el grupo.',
   'Callarse también es contestar.',
-  'El grupo ya sabe por qué.',
+  'Se ahorra la foto y se gana el veredicto igual.',
   'El silencio ya lo dijo todo.',
 ];
 
