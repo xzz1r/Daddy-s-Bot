@@ -1026,39 +1026,42 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
   }, { quoted: msg });
 }
 
-// !r — pide al grupo que se presente, con un ping invisible.
+// !r — pide a los NUEVOS que se presenten, con un ping invisible.
 //
 // Mismo truco que !tagall: los JID van en `mentions` pero NINGUNO aparece
 // escrito. WhatsApp notifica igual a todo el mundo y en pantalla se lee un
 // aviso limpio, sin doscientos numeros en medio que nadie va a leer.
 //
-// Escrito EN EL PRIVADO del bot, sale en todos los grupos donde esté. Es lo
-// natural: quien lo pide por privado lo esta pidiendo para el grupo, no para el
-// chat en el que escribe — ahi no hay nadie a quien avisar.
-// Los remates. Van detras de "El/La que no se presente," y rotan, que este
-// comando se usa cada vez que entra gente nueva y una frase fija se quema a la
-// tercera.
+// LA ORDEN ES SOLO PARA LOS QUE ACABAN DE ENTRAR. Se pinea a todos para que
+// lo vean; el resto del grupo no tiene que presentarse. Pedírselo a los que
+// ya están es ruido, y el aviso que no distingue a quién va no lo lee nadie.
+//
+// SALE EN TODOS LOS GRUPOS, se escriba donde se escriba. Es una ronda: se
+// pide una vez y tiene que llegar a todas partes.
+//
+// Los remates van detras de "El/La que no se presente," y rotan: este comando
+// se usa cada vez que entra gente y una frase fija se quema a la tercera.
 //
 // Ninguno amenaza con echar a nadie: el bot no lo va a hacer, y una amenaza que
 // no se cumple la segunda vez ya no la lee nadie. Lo que si se cumple solo es
-// lo otro — aqui, al que no da la cara se lo comen igual.
+// lo otro — aqui, al nuevo que no da la cara se lo comen igual.
 const REMATES = [
   'sabe de sobra lo que está escondiendo.',
   'lo damos por feo, por viejo y por cobarde. Las tres cosas.',
   'queda como el fantasma de mierda que ya sospechábamos que era.',
-  'es porque la cámara le hizo algo y todavía no lo ha superado.',
-  'lo tomamos como confesión firmada y pasamos a otra cosa.',
-  'que no vuelva a abrir la boca para opinar de la cara de nadie.',
-  'entra directo en la lista de los que dan pena en este grupo.',
-  'es porque el espejo ya le dio la respuesta y no le gustó.',
-  'que se vaya haciendo a la idea de lo que le vamos a decir.',
   'tiene un motivo, y el motivo se le nota en la puta cara.',
+  'ya se presentó: cobarde.',
+  'no da la cara porque no la tiene.',
+  'se lo inventamos, y duele más.',
+  'es un número. Nada más.',
+  'callado se delata solo.',
+  'el grupo ya sabe por qué.',
 ];
 
 function textoPresentacion(clave) {
   return '*PRESENTACIÓN OBLIGATORIA*\n' +
     '╾━━━━━━━━━━━━━━╼\n\n' +
-    `Foto y edad. El/La que no se presente, ${pickFresh(REMATES, `${clave}|presentacion`)}`;
+    `Solo los nuevos. Foto y edad. El/La que no se presente, ${pickFresh(REMATES, `${clave}|presentacion`)}`;
 }
 
 async function cmdPresentarse(sock, msg, args, groupMeta) {
@@ -1118,12 +1121,12 @@ async function cmdPresentarse(sock, msg, args, groupMeta) {
     const otros = enviados.length - 1;
     if (otros <= 0) return;
     return sock.sendMessage(jid, {
-      text: `_También pedida en ${otros} grupo(s) más._`,
+      text: `_También pedida a los nuevos en ${otros} grupo(s) más._`,
     }, { quoted: msg });
   }
 
   return sock.sendMessage(jid, {
-    text: `Pedida la presentación en *${enviados.length}* grupo(s):\n` +
+    text: `Pedida la presentación de los nuevos en *${enviados.length}* grupo(s):\n` +
       enviados.map((g) => `· ${g}`).join('\n') +
       (fallidos.length ? `\n\n_Sin poder mandarlo: ${fallidos.join(', ')}_` : ''),
   }, { quoted: msg });

@@ -2997,19 +2997,21 @@ async function capaStores() {
     if (fallos === antes) console.log(verde('   ✓ solo se perdona el alta cuando de verdad no se puede saber'));
   }
 
-  // ── 25. !r PIDE LA PRESENTACION SIN ENSEÑAR UN SOLO @ ────────────────────
+  // ── 25. !r PIDE LA PRESENTACION A LOS NUEVOS, SIN ENSEÑAR UN SOLO @ ──────
   //
-  // Es un tagall, o sea que notifica a todo el grupo de golpe. Dos cosas tienen
-  // que cumplirse siempre y las dos se rompen sin dar error:
+  // Es un tagall, o sea que notifica a todo el grupo de golpe. Tres cosas
+  // tienen que cumplirse siempre y las tres se rompen sin dar error:
   //
   //   · que mencione a TODOS — si `mentions` se queda corto, el aviso sale
   //     igual de bonito y no le llega a media lista;
   //   · que no escriba los @ en el texto — con doscientos numeros en medio, el
-  //     mensaje deja de leerse, que es justo lo que la mencion invisible evita.
+  //     mensaje deja de leerse, que es justo lo que la mencion invisible evita;
+  //   · que deje claro que es SOLO para los nuevos. Pedírselo a los que ya
+  //     están es ruido, y un aviso que no distingue a quién va no lo lee nadie.
   //
   // Y que siga siendo corto: es un aviso de dos lineas, no un comunicado.
   {
-    console.log('\n25. !r PIDE LA PRESENTACION SIN ENSEÑAR UN @');
+    console.log('\n25. !r PIDE LA PRESENTACION A LOS NUEVOS, SIN ENSEÑAR UN @');
     const antes = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
     const { cmdPresentarse } = require(path.join(R, 'src/commands/group'));
@@ -3051,8 +3053,23 @@ async function capaStores() {
       '!r escribe los @ en el texto: con doscientos numeros en medio no lo lee nadie');
     exige(!av || /foto/i.test(av.text || '') && /edad/i.test(av.text || ''),
       '!r dejo de pedir foto y edad, que es todo lo que tiene que pedir');
+    exige(!av || /nuev/i.test(av.text || ''),
+      '!r dejo de decir que es solo para los nuevos: el resto del grupo no tiene que presentarse');
+    exige(!av || !/(antigu|llevan tiempo|todo el mundo|todos se present)/i.test(av.text || ''),
+      '!r vuelve a pedir la presentación a gente que ya está');
     exige(!av || (av.text || '').length < 200,
       `!r se esta alargando (${av?.text?.length} caracteres): es un aviso de dos lineas`);
+
+    // Confirmaciones al admin: tambien dicen que es de los nuevos. Si el aviso
+    // del grupo lo deja claro y el recuento no, a la segunda se pide otra vez
+    // para todo el mundo.
+    const recuento = salida.find((x) => x.a === GR && /pedida/i.test(x.text || ''));
+    exige(!recuento || /nuev/i.test(recuento.text || ''),
+      'el recuento de !r no dice que era para los nuevos');
+
+    const menu = fs.readFileSync(path.join(R, 'src/commands/social.js'), 'utf8');
+    exige(/\*\$\{p\}r\*.*nuev/i.test(menu),
+      'el menu de !r no dice que es para los nuevos');
 
     // LOS REMATES ROTAN, Y NINGUNO PROMETE LO QUE EL BOT NO HACE.
     //
@@ -3086,7 +3103,7 @@ async function capaStores() {
     exige(!raso.some((x) => /PRESENTACIÓN/.test(x.text || '')),
       'un miembro raso puede lanzar el ping a todo el grupo');
 
-    if (fallos === antes) console.log(verde('   ✓ menciona a todos, no enseña ni un @, y pide foto y edad'));
+    if (fallos === antes) console.log(verde('   ✓ solo los nuevos, foto y edad, menciona a todos, sin un @'));
   }
 
   // ── 26. LOS AVISOS DE "NO PUEDES" SUENAN A ESTE BOT ──────────────────────
