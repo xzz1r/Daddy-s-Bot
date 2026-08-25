@@ -1571,6 +1571,46 @@ async function capaStores() {
       'extractNumbers no lee wa.me');
     exige(extractNumbers('hola').length === 0, 'extractNumbers inventa numeros donde no hay');
 
+    // UN LISTADO DE VERDAD, CON LOS ESPACIOS QUE PONE LA GENTE.
+    //
+    // Esto no era teorico: una purga real de 33 numeros metio 19 cuentas
+    // fantasma y solo llego a tocar 11 de las buenas. Nadie pega los telefonos
+    // pelados — los pega como los copia de WhatsApp: "+504 3217-6205",
+    // "+1 (939) 231-1444", "+54 9 11 3766-6386". Cada uno de esos trozos son
+    // siete u ocho digitos y colaban como si fueran numeros sueltos.
+    //
+    // Los casos de arriba no lo pillaban porque usaban numeros pelados, que es
+    // justo el formato que nadie escribe.
+    {
+      const listaReal = [
+        '+504 3217-6205', '+54 9 385 313-8518', '+1 (939) 231-1444',
+        '+57 323 8511204', '+52 722 844 2506', '+34 652 06 00 71',
+        '+54 9 11 3766-6386', '+593 99 852 4716', '+51 943 377 849',
+      ];
+      const esperados = listaReal.map((l) => l.replace(/\D/g, ''));
+      const salen = extractNumbers(listaReal.join('\n'));
+      const fantasmas = salen.filter((d) => !esperados.includes(d));
+      const perdidos = esperados.filter((d) => !salen.includes(d));
+      exige(fantasmas.length === 0,
+        `extractNumbers se inventa ${fantasmas.length} cuenta(s) partiendo los telefonos: ${fantasmas.slice(0, 4).join(', ')}`);
+      exige(perdidos.length === 0,
+        `extractNumbers pierde ${perdidos.length} numero(s) del listado: ${perdidos.slice(0, 4).join(', ')}`);
+    }
+
+    // Y QUE cmdPurge NO LEA `args`. Son el mismo texto partido por espacios: es
+    // la fuente exacta de aquellos 19 fantasmas, y ademas iban los primeros, o
+    // sea que se comian el tope antes que los numeros buenos. `resto` ya trae
+    // el cuerpo entero con sus saltos de linea.
+    {
+      const pnSrc = fs.readFileSync(path.join(R, 'src/commands/purgaNumero.js'), 'utf8');
+      const cuerpo = pnSrc.slice(pnSrc.indexOf('async function cmdPurge('));
+      const listaDigitos = cuerpo.slice(cuerpo.indexOf('const digitosLista'), cuerpo.indexOf('];', cuerpo.indexOf('const digitosLista')));
+      exige(!/args/.test(listaDigitos),
+        'cmdPurge vuelve a sacar numeros de `args`: eso parte los telefonos por los espacios y llena la purga de fantasmas');
+      exige(/extractNumbers\(resto\)/.test(listaDigitos),
+        'cmdPurge dejo de leer el cuerpo del mensaje: sin `resto` no ve el listado');
+    }
+
     // El aviso, por lo que TIENE que cumplir y no por como esta redactado.
     const aviso1 = avisoDePurge(['57300111222']);
     const avisoN = avisoDePurge(['57300111222', '57300333444']);
@@ -2172,6 +2212,7 @@ async function capaStores() {
     const esperado = {
       admin: { kick: 'cmdKick', del: 'cmdDel', mute: 'cmdMute', unmute: 'cmdUnmute',
         tagall: 'cmdTodos', allow: 'cmdAllow', close: 'cmdClose', open: 'cmdOpen',
+        r: 'cmdPresentarse',
         count: 'cmdCount', scan: 'cmdScan', marcarfake: 'cmdMarkFake', fkban: 'cmdFkBan',
         fkunban: 'cmdFkUnban', fklist: 'cmdFkList', antifake: 'cmdAntiFake', notifadmin: 'cmdNotifAdmin' },
       owner: { demote: 'cmdDemote', on: 'cmdOn', off: 'cmdOff', antilink: 'cmdAntiLink',
@@ -2889,6 +2930,54 @@ async function capaStores() {
       'la puerta del anti-admin volvio a mirar solo el sondeo');
 
     if (fallos === antes) console.log(verde('   ✓ solo se perdona el alta cuando de verdad no se puede saber'));
+  }
+
+  // ── 25. !r PIDE LA PRESENTACION SIN ENSEÑAR UN SOLO @ ────────────────────
+  //
+  // Es un tagall, o sea que notifica a todo el grupo de golpe. Dos cosas tienen
+  // que cumplirse siempre y las dos se rompen sin dar error:
+  //
+  //   · que mencione a TODOS — si `mentions` se queda corto, el aviso sale
+  //     igual de bonito y no le llega a media lista;
+  //   · que no escriba los @ en el texto — con doscientos numeros en medio, el
+  //     mensaje deja de leerse, que es justo lo que la mencion invisible evita.
+  //
+  // Y que siga siendo corto: es un aviso de dos lineas, no un comunicado.
+  {
+    console.log('\n25. !r PIDE LA PRESENTACION SIN ENSEÑAR UN @');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { cmdPresentarse } = require(path.join(R, 'src/commands/group'));
+    const BOT_R = '11111111111@s.whatsapp.net';
+    const ADM_R = '34600000002@s.whatsapp.net';
+    const RASO_R = '34600000003@s.whatsapp.net';
+    const GR = 'gr@g.us';
+    const partes = [{ id: ADM_R, admin: 'admin' }, { id: RASO_R }, { id: BOT_R, admin: 'admin' }];
+
+    const lanzar = async (quien) => {
+      const out = [];
+      const s = { user: { id: BOT_R }, sendMessage: async (j, c) => { out.push({ a: j, ...c }); return {}; } };
+      await cmdPresentarse(s, { key: { remoteJid: GR, participant: quien, fromMe: false, id: 'R' },
+        message: { conversation: '!r' } }, [], { id: GR, participants: partes });
+      return out;
+    };
+
+    const av = (await lanzar(ADM_R)).find((x) => x.a === GR);
+    exige(!!av, '!r no manda nada en el grupo');
+    exige(!av || (av.mentions || []).length === partes.length,
+      `!r menciona a ${(av?.mentions || []).length} de ${partes.length}: al resto no le llega la notificacion`);
+    exige(!av || !/@\d/.test(av.text || ''),
+      '!r escribe los @ en el texto: con doscientos numeros en medio no lo lee nadie');
+    exige(!av || /foto/i.test(av.text || '') && /edad/i.test(av.text || ''),
+      '!r dejo de pedir foto y edad, que es todo lo que tiene que pedir');
+    exige(!av || (av.text || '').length < 200,
+      `!r se esta alargando (${av?.text?.length} caracteres): es un aviso de dos lineas`);
+
+    const raso = await lanzar(RASO_R);
+    exige(!raso.some((x) => /PRESENTACIÓN/.test(x.text || '')),
+      'un miembro raso puede lanzar el ping a todo el grupo');
+
+    if (fallos === antes) console.log(verde('   ✓ menciona a todos, no enseña ni un @, y pide foto y edad'));
   }
 
   // ── 24. EL RESUMEN DE `npm run estado` NO ESCONDE NADA ───────────────────

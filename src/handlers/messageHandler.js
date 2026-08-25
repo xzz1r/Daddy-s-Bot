@@ -23,7 +23,7 @@ const { cmdK, privadoDelOwner, hallarMedio } = require('../commands/k');
 const { cmdCount, cmdResetCount } = require('../commands/count');
 const { cmdRelevance } = require('../commands/relevance');
 const { cmdGrok, cmdSetGrokKey } = require('../commands/ai');
-const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdSoloAdmins, cmdAdm } = require('../commands/group');
+const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdSoloAdmins, cmdAdm, cmdPresentarse } = require('../commands/group');
 const { cmdShip } = require('../commands/ship');
 const { cmdTtp } = require('../commands/ttp');
 const { cmdToImg, cmdToVid } = require('../commands/toimg');
@@ -61,6 +61,8 @@ const NEEDS_META = new Set([
   // el comando existia, contestaba "solo los admins" al admin que lo escribia.
   // Los detecta ahora `npm run check`.
   'sacar','echar','silenciar','callar',
+  // !r menciona a TODO el grupo: sin metadata no hay lista y el ping sale vacio.
+  'r','presentarse','presentacion','presentación',
   'banear','ban','fkban','desbanear','unban','fkunban',
   // !p / !purge comprueban isMainOwner y sin metadata no resolverian su LID:
   // el comando mas destructivo del bot se le quedaria mudo justo al unico que
@@ -1749,6 +1751,15 @@ async function handleMessage(sock, msg) {
       case 'setgrok':
       case 'setkey':
         await cmdSetGrokKey(sock, msg, args, groupMeta);
+        break;
+
+      // !r — el ping invisible pidiendo que se presenten. En un grupo sale ahi;
+      // en el privado del bot sale en todos los grupos.
+      case 'r':
+      case 'presentarse':
+      case 'presentacion':
+      case 'presentación':
+        await cmdPresentarse(sock, msg, args, groupMeta);
         break;
 
       case 'tagall':

@@ -101,16 +101,27 @@ function extractNumbers(raw) {
     meter(String(m[1]).replace(/\D/g, ''));
   }
 
-  // Línea a línea: un número por renglón es el caso natural del listado.
+  // LA LINEA MANDA, Y SI LA LINEA VALE NO SE MIRA POR DENTRO.
+  //
+  // Antes se hacian las dos pasadas siempre: primero renglon a renglon y luego
+  // token a token sobre TODO el texto. Con un listado normal eso duplica cada
+  // numero — de "+504 3217-6205" salia el bueno (50432176205) y ademas el
+  // trozo "3217-6205", que son ocho digitos y cuela como si fuera un numero.
+  //
+  // Un telefono partido por espacios son varios trozos de siete a nueve
+  // digitos, o sea que cada linea de un listado bien escrito generaba una o dos
+  // cuentas fantasma. En una purga eso no es ruido: es gastar el tope en
+  // numeros que no existen y dejar fuera a los que si.
+  //
+  // Los tokens siguen mirandose, pero SOLO en las lineas que no dieron numero
+  // (varios numeros seguidos separados por comas, texto suelto alrededor).
   for (const linea of s.split(/\r?\n/)) {
     const d = extractNumber(linea);
-    if (d) meter(d);
-  }
-
-  // Tokens sueltos por espacios / comas / punto y coma.
-  for (const tok of s.split(/[\s,;]+/)) {
-    const d = extractNumber(tok);
-    if (d) meter(d);
+    if (d) { meter(d); continue; }
+    for (const tok of linea.split(/[\s,;]+/)) {
+      const t2 = extractNumber(tok);
+      if (t2) meter(t2);
+    }
   }
 
   return hallados;
@@ -363,8 +374,15 @@ async function cmdPurge(sock, msg, args, groupMeta) {
   for (const m of (ctx?.mentionedJid || [])) if (m) jidsDirectos.push(m);
   if (ctx?.participant) jidsDirectos.push(ctx.participant);
 
+  // NO SE MIRAN LOS `args`. Son ESTE MISMO TEXTO partido por espacios, que es
+  // justo lo que hay que evitar: cada trozo de un telefono ("3217-6205") pasa
+  // por numero suelto. Y como iban los primeros, se comian el tope antes de que
+  // llegara ni uno de los buenos — 19 fantasmas de 30 plazas en la purga que lo
+  // destapo, y doce cuentas reales que no se llegaron a tocar.
+  //
+  // `resto` es el cuerpo del mensaje entero, con sus saltos de linea intactos.
+  // Ahi esta todo lo que traian los args y bien formado.
   const digitosLista = [
-    ...extractNumbers((args || []).join('\n')),
     ...extractNumbers(resto),
     ...extractNumbers(extractQuotedText(msg) || ''),
   ];

@@ -1024,5 +1024,74 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
   }, { quoted: msg });
 }
 
+// !r — pide al grupo que se presente, con un ping invisible.
+//
+// Mismo truco que !tagall: los JID van en `mentions` pero NINGUNO aparece
+// escrito. WhatsApp notifica igual a todo el mundo y en pantalla se lee un
+// aviso limpio, sin doscientos numeros en medio que nadie va a leer.
+//
+// Escrito EN EL PRIVADO del bot, sale en todos los grupos donde esté. Es lo
+// natural: quien lo pide por privado lo esta pidiendo para el grupo, no para el
+// chat en el que escribe — ahi no hay nadie a quien avisar.
+const PRESENTACION =
+  '*PRESENTACIÓN*\n' +
+  '╾━━━━━━━━━━━━━━╼\n\n' +
+  'Foto y edad. Eso es todo.\n\n' +
+  '_Los que ya llevan tiempo, también._';
+
+async function cmdPresentarse(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  const sender = getSender(msg);
+  const enGrupo = jid.endsWith('@g.us');
+
+  // En un grupo, admins. En privado, groupMeta no existe y isGroupAdmin se
+  // queda solo con isOwner, que es exactamente la puerta que hace falta ahi.
+  if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
+    if (enGrupo) return sock.sendMessage(jid, { text: 'Solo admins pueden usar este comando.' }, { quoted: msg });
+    return;   // en privado, silencio
+  }
+
+  // El envio, con todo el grupo mencionado y ninguno escrito.
+  const soltar = async (grupo, participantes) => {
+    const mentions = (participantes || []).map((p) => p.id).filter(Boolean);
+    if (!mentions.length) return false;
+    await sock.sendMessage(grupo, { text: PRESENTACION, mentions });
+    return true;
+  };
+
+  if (enGrupo) {
+    const participantes = groupMeta?.participants || [];
+    if (!participantes.length) {
+      return sock.sendMessage(jid, { text: 'No pude obtener miembros del grupo.' }, { quoted: msg });
+    }
+    return soltar(jid, participantes);
+  }
+
+  // Privado: a todos los grupos. Se dice en cuantos ha salido y en cuales no,
+  // porque un comando que reparte a ciegas y no cuenta nada es un comando en el
+  // que no se puede confiar la segunda vez.
+  let grupos = {};
+  try { grupos = await sock.groupFetchAllParticipating(); }
+  catch (e) { return sock.sendMessage(jid, { text: `No pude listar los grupos: ${e.message}` }, { quoted: msg }); }
+
+  const enviados = [], fallidos = [];
+  for (const [gJid, meta] of Object.entries(grupos || {})) {
+    try {
+      if (await soltar(gJid, meta?.participants)) enviados.push(meta?.subject || gJid);
+      else fallidos.push(meta?.subject || gJid);
+    } catch { fallidos.push(meta?.subject || gJid); }
+  }
+
+  if (!enviados.length) {
+    return sock.sendMessage(jid, { text: 'No pude mandarlo a ningún grupo.' }, { quoted: msg });
+  }
+  return sock.sendMessage(jid, {
+    text: `Pedida la presentación en *${enviados.length}* grupo(s):\n` +
+      enviados.map((g) => `· ${g}`).join('\n') +
+      (fallidos.length ? `\n\n_Sin poder mandarlo: ${fallidos.join(', ')}_` : ''),
+  }, { quoted: msg });
+}
+
 module.exports = {
+  cmdPresentarse,
   cmdSoloAdmins, cmdTodos, cmdKick, avisoDeKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, muteUser, unmuteUser, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdAdm };

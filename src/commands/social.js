@@ -335,6 +335,7 @@ _Gratis: no cobran, pero mueven tu saldo._
 ${esAdmin ? `
 ━━━━━ *ADMIN* ━━━━━
 *${p}kick* · *${p}del* · *${p}mute* · *${p}unmute* · *${p}tagall* · *${p}allow*
+*${p}r* — pide al grupo que se presente (foto y edad), sin @ a la vista
 *${p}close* · *${p}open* · *${p}count* ${c('count')} · *${p}scan*
 *${p}marcarfake* · *${p}fkban* · *${p}fkunban* · *${p}fklist* · *${p}antifake* on/off
 *${p}notifadmin* on/off · *${p}promote* — con el anti-admin puesto sube un nivel
