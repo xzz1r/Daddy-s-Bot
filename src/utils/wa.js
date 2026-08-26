@@ -628,7 +628,17 @@ async function fetchPfpUrl(sock, jid, tipo = 'image', intentos = 2) {
       // tres peticiones y dos segundos para que te lo denieguen tres veces.
       if (esFotoRestringida(err)) { err.restringida = true; throw err; }
       ultimoError = err;
-      if (i < intentos) await new Promise((r) => setTimeout(r, 250 * (i + 1)));
+      // 700 ms y no 250, y la diferencia no es de rendimiento.
+      //
+      // Bajarlo a 250 ahorraba poco mas de un segundo en el caso raro de que
+      // los tres intentos fallen, y a cambio apretaba tres consultas de perfil
+      // en 750 ms. Con la cuenta en revision de WhatsApp, tres peticiones
+      // seguidas contra el mismo endpoint en menos de un segundo es justo la
+      // forma de una automatizacion; repartidas en dos segundos, no.
+      //
+      // El reintento existe para un fallo de red pasajero, y un fallo de red
+      // pasajero no se arregla en 250 ms.
+      if (i < intentos) await new Promise((r) => setTimeout(r, 700 * (i + 1)));
     }
   }
   throw ultimoError;

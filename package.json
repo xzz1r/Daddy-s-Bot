@@ -15,7 +15,8 @@
     "progreso": "node scripts/progreso.js",
     "respaldo": "bash scripts/respaldo.sh",
     "restaurar": "bash scripts/restaurar.sh",
-    "conteos": "node scripts/conteos.js"
+    "conteos": "node scripts/conteos.js",
+    "node22": "bash scripts/node22.sh"
   },
   "repository": {
     "type": "git",
@@ -35,5 +36,8 @@
     "libphonenumber-js": "^1.13.10",
     "pino": "^10.3.1",
     "qrcode-terminal": "^0.12.0"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

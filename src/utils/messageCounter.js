@@ -15,7 +15,19 @@ let loadPromise = null;
 const saver = createDebouncedSaver(
   () => counts,
   COUNT_FILE,
-  25000,
+  // 12 s, no 25.
+  //
+  // Los 25 s venian de que este fichero crece para siempre y escribirlo cuesta,
+  // pero desde que el guardado va serializado y cede el event loop antes del
+  // stringify, ese coste ya no se nota: la mitad de retardo no devuelve la
+  // lentitud que se quito.
+  //
+  // Y del otro lado si hay algo que perder. En un apagado normal no se pierde
+  // nada —el cierre vacia todos los almacenes—, pero si el kernel mata el
+  // proceso a lo bruto (OOM) se van los conteos aun sin escribir. 25 s de un
+  // grupo activo son bastantes mensajes, y aqui la regla es que en los conteos
+  // no puede haber errores.
+  12000,
   (e) => logger.error(`messageCounter: fallo al guardar: ${e.message}`),
 );
 

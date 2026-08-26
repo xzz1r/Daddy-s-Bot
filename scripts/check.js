@@ -3710,6 +3710,53 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     if (fallos === antes) console.log(verde('   ✓ no rebaja lo ya indexado, y sigue indexando lo caducado'));
   }
 
+  // ── 34. LOS GUIONES DE DESPLIEGUE Y LOS DOS LIMITES QUE SE AJUSTARON ─────
+  //
+  // LOS .sh NO LOS COMPILA NADIE. La capa 1 compila los .js, pero un error de
+  // sintaxis en actualizar.sh o en node22.sh no se ve hasta que alguien lanza
+  // el despliegue en la VPS — y para entonces el fallo llega mezclado con la
+  // salida de git y de npm, que es el peor sitio posible para leerlo. `bash -n`
+  // los parsea sin ejecutar ni una linea.
+  //
+  // Y DOS CONSTANTES QUE SE AJUSTARON POR UN MOTIVO, no por gusto. Se vigila el
+  // LIMITE, no el numero exacto: mover 700 a 800 esta bien, bajarlo a 250 es
+  // volver al problema.
+  {
+    console.log('\n34. LOS GUIONES DE DESPLIEGUE Y SUS LIMITES');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    for (const sh of ['scripts/actualizar.sh', 'scripts/node22.sh', 'scripts/respaldo.sh', 'scripts/restaurar.sh']) {
+      const ruta = path.join(R, sh);
+      if (!fs.existsSync(ruta)) { exige(false, `falta ${sh}`); continue; }
+      try {
+        execSync(`bash -n ${ruta}`, { stdio: ['ignore', 'ignore', 'pipe'] });
+      } catch (e) {
+        exige(false, `${sh} no parsea: ${String(e.stderr || e.message).trim().split('\n')[0]}`);
+      }
+    }
+
+    // La pausa entre reintentos de foto de perfil. Bajarla apelotona tres
+    // consultas al mismo endpoint en menos de un segundo, que con la cuenta en
+    // revision es exactamente la forma de una automatizacion. El reintento
+    // existe para un fallo de red pasajero, y eso no se arregla en 250 ms.
+    const waSrc = soloCodigo('src/utils/wa.js');
+    const pausa = waSrc.match(/setTimeout\(r,\s*(\d+)\s*\*\s*\(i \+ 1\)\)/);
+    exige(pausa && Number(pausa[1]) >= 500,
+      `los reintentos de foto de perfil vuelven a ir a ${pausa ? pausa[1] : '?'} ms: tres consultas seguidas en menos de un segundo`);
+
+    // El retardo de guardado de los conteos. Subirlo agranda la ventana que se
+    // pierde si el kernel mata el proceso, y en los conteos no puede haber
+    // errores. El coste que justificaba subirlo desaparecio al serializar las
+    // escrituras.
+    const mcSrc = soloCodigo('src/utils/messageCounter.js');
+    const ret = mcSrc.match(/COUNT_FILE,\s*(\d+),/);
+    exige(ret && Number(ret[1]) <= 15000,
+      `el guardado de conteos vuelve a tardar ${ret ? ret[1] : '?'} ms: es lo que se pierde de golpe si el proceso muere a lo bruto`);
+
+    if (fallos === antes) console.log(verde('   ✓ los cuatro guiones parsean, y los dos limites siguen donde deben'));
+  }
+
   // ── 24. EL RESUMEN DE `npm run estado` NO ESCONDE NADA ───────────────────
   //
   // `estado` pasó a tener dos salidas: un resumen (lo que se ve al escribirlo)
