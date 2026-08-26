@@ -199,6 +199,30 @@ async function manda(quien, alt, texto, parts, menciones = null, grupo = G) {
       /No hay suficientes/.test(top) ? top.trim() : `${plazas} plazas`);
   }
 
+  console.log('\n════ una reaccion no es un mensaje ════\n');
+  // Cinco 👍 subian el contador de 1 a 6, y no solo el de !count: tambien el
+  // del dia, que paga los bonos y sostiene la racha. Se podia inflar el ranking
+  // y cobrar hitos a base de emojis, sin escribir una palabra.
+  {
+    const R = de('NORMAL');
+    const antesM = await getUserCount(G, R.tel), antesD = await getCasinoCount(G, R.tel);
+    for (let i = 0; i < 5; i++) {
+      const cap = []; cap.parts = partsTel;
+      await handleMessage(sock(cap), { key: { remoteJid: G, participant: R.lid, participantAlt: R.tel,
+        addressingMode: 'lid', fromMe: false, id: 'E' + i },
+        message: { reactionMessage: { key: { id: 'x' }, text: '👍' } },
+        pushName: 'x', messageTimestamp: Math.floor(Date.now() / 1000) });
+      await new Promise((r) => setTimeout(r, 40));
+    }
+    const dM = await getUserCount(G, R.tel), dD = await getCasinoCount(G, R.tel);
+    linea('cinco reacciones no suben el contador de mensajes', dM === antesM, `${antesM} -> ${dM}`);
+    linea('ni el contador del dia que paga los bonos', dD === antesD, `${antesD} -> ${dD}`);
+    // Y QUE SIGA CONTANDO LO QUE SI ES UN MENSAJE: cortar de mas aqui deja los
+    // conteos a cero y el fallo no se ve hasta que alguien mira el ranking.
+    await manda(R.lid, R.tel, 'y esto si cuenta', partsTel);
+    linea('y un mensaje de verdad justo despues si cuenta', await getUserCount(G, R.tel) === antesM + 1);
+  }
+
   console.log('\n════ el contador diario (bonos, racha y !aura hoy) ════\n');
   for (const p of [de('HABLADOR'), de('FLOJO'), de('MUDO')]) {
     const t = await getCasinoCount(G, p.tel), l = await getCasinoCount(G, p.lid);

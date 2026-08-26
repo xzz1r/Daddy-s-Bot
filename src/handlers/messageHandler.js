@@ -1206,7 +1206,18 @@ async function handleMessage(sock, msg) {
     isMainOwner(sender, false, peekGroupMeta(jid)) ||
     (!!senderPn && isMainOwner(senderPn, false, null));
 
-  if (!msg.key.fromMe && jid.endsWith('@g.us') && sender && !senderIsMainOwner) {
+  // UNA REACCION NO ES UN MENSAJE, y hasta ahora contaba como si lo fuera.
+  //
+  // Reproducido: cinco 👍 seguidos subian el contador de 1 a 6. Y no solo el de
+  // !count — tambien el del dia, que es el que paga los bonos y sostiene la
+  // racha. O sea que se podia inflar el ranking, cobrar hitos y mantener la
+  // racha a base de emojis, sin escribir una palabra.
+  //
+  // No es cosa del camino rapido de las reacciones: pasaba igual antes, porque
+  // el conteo va por delante de esa puerta. Se corta aqui, en el conteo, que es
+  // donde esta el error. Un voto de encuesta y un SKDM entran por lo mismo.
+  if (!msg.key.fromMe && jid.endsWith('@g.us') && sender && !senderIsMainOwner
+      && !esSobreSinContenido(msg.message)) {
     // `senderPn` es la otra forma de quien escribe, sacada del propio mensaje.
     // Va aqui para que el conteo quede cruzable con la lista de miembros.
     incrementMsgCount(jid, sender, senderPn).catch(() => {});
