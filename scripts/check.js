@@ -3837,6 +3837,21 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
       }
     }
 
+    // EL VISTO Y LA PRESENCIA NO PUEDEN CONTRADECIRSE.
+    //
+    // Estuvieron contradiciendose y no se veia: autoRead en true marcando todo,
+    // y markOnlineOnConnect clavado en false anunciando la sesion como
+    // 'unavailable'. Baileys entonces manda CADA acuse como 'inactive' y
+    // WhatsApp no pinta el visto de un cliente que dice no estar delante. El
+    // codigo corria perfecto y no servia de nada — el peor tipo de fallo, el
+    // que no falla.
+    //
+    // No se vigila el valor, se vigila que uno salga del otro: mientras
+    // markOnlineOnConnect dependa de autoRead, no pueden decir cosas distintas.
+    const botSrc = soloCodigo('src/bot.js');
+    exige(/markOnlineOnConnect:\s*config\.autoRead/.test(botSrc),
+      'markOnlineOnConnect vuelve a estar clavado: si dice false con autoRead en true, el bot marca leido y nadie lo ve');
+
     if (fallos === antes) console.log(verde('   ✓ los cuatro guiones parsean, y los dos limites siguen donde deben'));
   }
 

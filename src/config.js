@@ -23,6 +23,13 @@ const config = {
     .filter(Boolean),
 
   // Solo se usa en comandos (messageHandler), no en cada mensaje del grupo.
+  // EL VISTO, Y CON EL LA PRESENCIA. Encenderlo hace dos cosas a la vez y hay
+  // que saberlo: el bot marca como leido todo lo que le llega en los grupos, y
+  // para que eso se VEA tiene que anunciarse en linea (WhatsApp no pinta el
+  // visto de un cliente que dice no estar; ver la nota en bot.js). O sea que el
+  // bot aparecera "en linea" mientras este conectado.
+  //
+  // Apagarlo devuelve las dos: ni marca ni sale en linea.
   autoRead: true,
 
   // Key de la API de búsqueda facial de Lenso.ai (plan Developer). Opcional:

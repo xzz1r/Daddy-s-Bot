@@ -461,9 +461,27 @@ async function connectToWhatsApp() {
       keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' })),
     },
     printQRInTerminal: false,
-    // false → bot doesn't appear "online" all the time. This reduces incoming
-    // receipt traffic and lowers perceived response latency from WhatsApp's side.
-    markOnlineOnConnect: false,
+    // VA ATADO AL VISTO, Y NO ES UN CAPRICHO: WhatsApp ata las dos cosas.
+    //
+    // Estaba en `false` para que el bot no saliera "en linea" todo el rato.
+    // Suena bien y es justo lo que impedia que se viera el doble check azul,
+    // por un camino que no se ve desde aqui (Socket/messages-recv.js):
+    //
+    //     ev.on('connection.update', ({ isOnline }) => { sendActiveReceipts = isOnline; })
+    //     ...
+    //     else if (!sendActiveReceipts) { type = 'inactive'; }
+    //
+    // Con `false`, Baileys anuncia la sesion como 'unavailable', sendActiveReceipts
+    // se queda en falso y CADA acuse sale marcado 'inactive' — o sea, "lo he
+    // recibido pero no estoy delante". WhatsApp no pinta el visto de un cliente
+    // que dice no estar. El readMessages se mandaba igual y no servia de nada.
+    //
+    // Por eso ahora depende de `autoRead` en vez de estar clavado: las dos
+    // opciones contradictorias —querer que se vea el visto y anunciarse como
+    // desconectado— dejan de poder coexistir. Con autoRead en false el bot
+    // vuelve a ser invisible y no marca nada, que es coherente. Lo que no puede
+    // haber es un ajuste encendido que otro anula en silencio.
+    markOnlineOnConnect: config.autoRead,
     generateHighQualityLinkPreview: false,
     getMessage: async () => undefined,
     // El valor por defecto de la propia libreria es 30_000; este bot lo tenia
