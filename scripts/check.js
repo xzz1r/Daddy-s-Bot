@@ -3062,8 +3062,18 @@ async function capaStores() {
       '!r dejo de decir que es solo para los nuevos: el resto del grupo no tiene que presentarse');
     exige(!av || !/(antigu|llevan tiempo|todo el mundo|todos se present)/i.test(av.text || ''),
       '!r vuelve a pedir la presentación a gente que ya está');
-    exige(!av || (av.text || '').length < 200,
-      `!r se esta alargando (${av?.text?.length} caracteres): es un aviso de dos lineas`);
+    exige(!av || (av.text || '').length < 230,
+      `!r se esta alargando (${av?.text?.length} caracteres): es un aviso, no un comunicado`);
+    // LA FOTO SE PIDE COMO OBLIGACION, no como sugerencia.
+    //
+    // Y SE MIRA EN LA LINEA QUE LA PIDE, no en el mensaje entero. La primera
+    // version buscaba "obligat" en todo el texto y lo encontraba... en el
+    // titulo, "PRESENTACIÓN OBLIGATORIA", que esta siempre. O sea que la guarda
+    // pasaba en verde con la obligacion quitada de donde importa. Un titulo se
+    // lee como decoracion; lo que se lee de verdad es lo que se pide.
+    const lineaQue = (av?.text || '').split('\n').find((l) => /^\*Qué:\*/.test(l)) || '';
+    exige(!av || /(obligat|no es opcional|no se negocia|no vale sin)/i.test(lineaQue),
+      `!r pide la foto sin decir que es obligatoria ("${lineaQue}"): asi la mitad manda solo la edad`);
 
     // Confirmaciones al admin: tambien dicen que es de los nuevos. Si el aviso
     // del grupo lo deja claro y el recuento no, a la segunda se pide otra vez
@@ -3102,7 +3112,7 @@ async function capaStores() {
       exige(marcado.length === 0,
         `remates de !r con genero marcado (el grupo no es solo de tios): ${marcado.slice(0, 2).join(' · ')}`);
       // Y que el aviso siga partido: es lo que quita la atadura de concordancia.
-      exige(/\*Quién:\*/.test(gsrc) && /\*Qué:\*/.test(gsrc) && /\*Si no:\*/.test(gsrc),
+      exige(/\*Quién:\*/.test(gsrc) && /\*Qué:\*/.test(gsrc) && /\*Aviso:\*/.test(gsrc),
         '!r volvio a ser una sola frase: entonces cada remate tiene que concordar con "El/La" y ahi es donde fallaban');
       const amenaza = remates.filter((r) => /\b(ech[ao]|expuls|banea|fuera del grupo|te saco|los saco|te vas|se va a la calle)/i.test(r));
       exige(amenaza.length === 0,

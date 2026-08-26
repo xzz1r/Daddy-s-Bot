@@ -1072,16 +1072,27 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
 // escribir blando: "das pena", "careto", "te has visto" valen para cualquiera.
 // Y ninguno amenaza con echar: el bot no lo hace.
 const REMATES = [
-  'No es timidez. Es que te has visto.',
-  'Sin foto porque ya sabes que das pena. Y aciertas.',
-  'Ese careto no mejora por esconderlo, pero se entiende el intento.',
-  'Cada minuto sin foto, el grupo te dibuja peor. Y va ganando.',
-  'Nadie con una cara decente tarda dos días.',
-  'Mándala y nos callas. Si no, hablamos nosotros.',
-  'Si ni diez segundos de foto puedes, esto está peor de lo que creíamos.',
-  'Sin foto te ponemos una nosotros, y no te va a gustar.',
-  'Escondes la cara y la edad. Las dos cantan igual de mal.',
-  'La foto que no mandas ya la está describiendo el grupo, y sin piedad.',
+  // LA FORMA QUE FUNCIONA: excusa citada -> se desmonta con un dato concreto ->
+  // orden que humilla. Lo que hace daño es el dato ("seiscientas en la
+  // galería"), no el insulto: le quita la salida antes de que la use. Un remate
+  // sin dato es una opinión y se ignora.
+  //
+  // Cada uno ataca una excusa DISTINTA de las que de verdad frenan a la gente
+  // —el careto, la edad, el que da largas, el que mira sin exponerse, el que va
+  // de que le da igual— y por eso son diez y no diez variantes de lo mismo.
+  //
+  // Ninguno puede venir con género (lo lee el grupo entero) ni amenazar con
+  // echar a nadie: el bot no lo hace. Las dos cosas las vigila check.js.
+  '«no tengo foto» con seiscientas en la galería. Elige una y deja de hacer el ridículo.',
+  '«luego la mando» y nunca llega. Son diez segundos, hazlo ya.',
+  '«es que salgo mal en las fotos» y en persona también. Manda una y acabamos antes.',
+  'Llevas leyendo desde que entraste y sin dar la cara. Aquí no se mira gratis.',
+  '«paso de estas chorradas» lo dice quien lleva media hora dándole vueltas. Manda la foto.',
+  'Mandas la foto y te «olvidas» de la edad. No cuela. Pon el número.',
+  '«no me gusta exponerme» en un grupo de doscientos. Entraste por tu cuenta, da la cara.',
+  'Cuarenta fotos hechas buscando la buena. No la hay. Manda la última y ya.',
+  'Esperando a ver quién se presenta primero para copiar el tono. No hay tono. Sal tú.',
+  'Un «hola» no es una presentación. Foto y edad, o vuelve a tu agujero.',
 ];
 
 
@@ -1100,8 +1111,17 @@ function textoPresentacion(clave) {
   return '*PRESENTACIÓN OBLIGATORIA*\n' +
     '╾━━━━━━━━━━━━━━╼\n\n' +
     '*Quién:* solo los nuevos.\n' +
-    '*Qué:* foto y edad.\n' +
-    `*Si no:* ${pickFresh(REMATES, `${clave}|presentacion`)}`;
+    // LA FOTO SE DICE OBLIGATORIA AQUI, EN LA PROPIA ORDEN.
+    //
+    // El titulo ya pone OBLIGATORIA, pero un titulo se lee como decoracion.
+    // Puesto al lado de lo que se pide, deja de haber margen para el que manda
+    // solo la edad y se queda tan ancho — que es la mitad de los casos.
+    '*Qué:* foto y edad. La foto no es opcional.\n' +
+    // `Aviso:` y no `Si no:`. Con `Si no:` el remate tenia que completar la
+    // frase, y ninguno lo hacia: quedaban pegados con cola detras de una
+    // preposicion que no les pedia nada. `Aviso:` solo anuncia, asi que el
+    // remate vuelve a ser una frase entera con sujeto y verbo — y puede pegar.
+    `*Aviso:* ${pickFresh(REMATES, `${clave}|presentacion`)}`;
 }
 
 async function cmdPresentarse(sock, msg, args, groupMeta) {
