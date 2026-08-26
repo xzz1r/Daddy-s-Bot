@@ -1,6 +1,7 @@
 const axios = require('axios');
 const { computeHash } = require('./phash');
-const { recordAndMatch } = require('./pfpStore');
+const pfpStore = require('./pfpStore');
+const { recordAndMatch } = pfpStore;
 const pfpCache = require('./pfpCache');
 const { canonicalJid, fetchPfpUrl } = require('./wa');
 const logger = require('./logger');
@@ -48,6 +49,33 @@ const BARRIDO_CADA_MS = 6 * 3600 * 1000;
 let ultimoBarrido = 0;
 
 const lastIndexed = new Map(); // account -> ts (última vez que se intentó)
+
+// LA MEMORIA DE QUE YA SE INDEXO SOBREVIVE AL REINICIO, y antes no.
+//
+// `lastIndexed` vivia solo en RAM, asi que cada arranque empezaba en blanco:
+// el TTL de tres dias se reseteaba y el bot volvia a bajarse la foto de TODO el
+// grupo. Con el barrido inicial y dos segundos de pausa entre consulta y
+// consulta, un grupo de 200 son siete minutos seguidos de peticiones de perfil
+// a WhatsApp justo despues de conectar. Y eso pasaba en CADA despliegue y en
+// cada reinicio por memoria, no una vez.
+//
+// El dato ya estaba en disco —pfphashes.json guarda `lastSeen` por cuenta—;
+// simplemente nadie lo leia de vuelta. Ahora se siembra al arrancar y el
+// barrido se queda en nada: recorre la lista, todos salen por el TTL y no se
+// hace ni una consulta.
+//
+// Mientras la siembra esta en vuelo (unos milisegundos, y el bot tarda
+// segundos en conectar) no se indexa nada. Si falla se sigue con el mapa vacio,
+// que es exactamente como se comportaba antes.
+let semillaLista = false;
+(async () => {
+  try {
+    const previos = await pfpStore.ultimaVezPorCuenta();
+    for (const [cuenta, ts] of previos) if (!lastIndexed.has(cuenta)) markTracked(cuenta, ts);
+    if (previos.size) logger.info(`pfpIndexer: ${previos.size} cuentas ya indexadas de antes; no se rebajan sus fotos`);
+  } catch { /* sin semilla se arranca en blanco, como siempre */ }
+  finally { semillaLista = true; }
+})();
 const queue = [];
 let active = 0;
 let nextAt = 0;
@@ -85,6 +113,7 @@ function pump() {
 // acepta profilePictureUrl); la clave de deduplicado es su forma canónica.
 function maybeIndex(sock, pfpJid, groupJid) {
   if (!sock || !pfpJid) return;
+  if (!semillaLista) return;   // aun leyendo lo que ya se sabia; el proximo mensaje lo reintenta
   const account = canonicalJid(pfpJid);
   const now = Date.now();
   const prev = lastIndexed.get(account);

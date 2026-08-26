@@ -3640,6 +3640,76 @@ async function capaStores() {
     if (fallos === antes) console.log(verde('   ✓ con enlace fuera, sin enlace aviso, y a los admins no se les toca'));
   }
 
+  // ── 33. REINICIAR NO VUELVE A BAJAR TODAS LAS FOTOS ──────────────────────
+  //
+  // `lastIndexed` del indexador de fotos vivia solo en RAM, asi que cada
+  // arranque empezaba en blanco: el TTL de tres dias se reseteaba y el bot se
+  // rebajaba la foto de TODO el grupo. Con la cola a dos segundos por consulta,
+  // un grupo de 200 son siete minutos seguidos de peticiones de perfil a
+  // WhatsApp justo despues de conectar — en cada despliegue y en cada reinicio
+  // por memoria, no una vez.
+  //
+  // El dato estaba en disco desde siempre (pfphashes.json guarda `lastSeen`);
+  // nadie lo leia de vuelta. Se comprueba lo unico que importa: con historial
+  // reciente no se encola ni una descarga, y sin historial si se encolan.
+  {
+    console.log('\n33. REINICIAR NO VUELVE A BAJAR TODAS LAS FOTOS');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const dirP = fs.mkdtempSync(path.join(os.tmpdir(), 'pfp-'));
+    try {
+      const guion = path.join(dirP, 'p.js');
+      fs.writeFileSync(guion, `
+const fs=require('fs'),os=require('os'),path=require('path');
+const ROOT=fs.mkdtempSync(path.join(os.tmpdir(),'pfx-'));
+fs.cpSync(${JSON.stringify(path.join(R, 'src'))},path.join(ROOT,'src'),{recursive:true});
+fs.mkdirSync(path.join(ROOT,'data'));fs.mkdirSync(path.join(ROOT,'temp'));
+try{fs.symlinkSync(${JSON.stringify(path.join(R, 'node_modules'))},path.join(ROOT,'node_modules'),'dir');}catch{}
+const CUANDO = process.argv[2] === 'viejo' ? Date.now()-10*86400000 : Date.now()-86400000;
+const P=Array.from({length:20},(_,i)=>({tel:'52111111'+String(i).padStart(5,'0')+'@s.whatsapp.net',lid:'1111111'+String(i).padStart(5,'0')+'@lid'}));
+fs.writeFileSync(path.join(ROOT,'data/pfphashes.json'),JSON.stringify({records:
+  P.map(p=>({account:p.tel,hash:'0'.repeat(16),groups:['120099@g.us'],firstSeen:CUANDO,lastSeen:CUANDO}))}));
+const ip=path.join(ROOT,'src/utils/pfpIndexer.js');
+let ii=fs.readFileSync(ip,'utf8');
+ii=ii.replace('  queue.push(async () => {','  global.__enc=(global.__enc||0)+1;\\n  queue.push(async () => {');
+fs.writeFileSync(ip,ii);
+process.chdir(ROOT); process.env.OWNER_NUMBER='999999999999';
+process.on('exit',()=>{try{fs.rmSync(ROOT,{recursive:true,force:true});}catch{}});
+const {handleMessage}=require(ROOT+'/src/handlers/messageHandler');
+const BOT='549199@s.whatsapp.net',G='120099@g.us';
+const parts=[{id:BOT,admin:'admin'},...P.map(p=>({id:p.lid,phoneNumber:p.tel}))];
+const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{},
+ sendMessage:async()=>({}),groupMetadata:async()=>({id:G,subject:'G',participants:parts}),
+ groupParticipantsUpdate:async()=>[],groupFetchAllParticipating:async()=>({[G]:{id:G,participants:parts}}),
+ onWhatsApp:async(j)=>[{exists:true,jid:j}],profilePictureUrl:async()=>null};
+(async()=>{
+ await new Promise(r=>setTimeout(r,200));
+ for(let i=0;i<P.length;i++){const p=P[i];
+  await handleMessage(sock,{key:{remoteJid:G,participant:p.lid,participantAlt:p.tel,addressingMode:'lid',
+   fromMe:false,id:'M'+i},message:{conversation:'hola'},pushName:'x',messageTimestamp:Math.floor(Date.now()/1000)});}
+ await new Promise(r=>setTimeout(r,300));
+ console.log('ENCOLADAS='+(global.__enc||0));
+ process.exit(0);
+})();`);
+      const correr = (arg) => {
+        const out = execSync(`node ${guion} ${arg}`, { encoding: 'utf8', timeout: 120000, stdio: ['ignore', 'pipe', 'ignore'] });
+        const m = out.match(/ENCOLADAS=(\d+)/);
+        return m ? Number(m[1]) : -1;
+      };
+      const reciente = correr('reciente');
+      exige(reciente === 0,
+        `tras reiniciar se vuelven a encolar ${reciente} descargas de foto de gente indexada ayer: son minutos de consultas a WhatsApp en cada despliegue`);
+      // Y QUE SIGA INDEXANDO cuando de verdad toca: sembrar de mas apagaria el
+      // motor de !fk entero y nadie lo notaria hasta necesitarlo.
+      const viejo = correr('viejo');
+      exige(viejo > 0,
+        'con el historial caducado (10 dias) tampoco se indexa nada: la siembra se ha comido el indexador entero');
+    } finally {
+      fs.rmSync(dirP, { recursive: true, force: true });
+    }
+    if (fallos === antes) console.log(verde('   ✓ no rebaja lo ya indexado, y sigue indexando lo caducado'));
+  }
+
   // ── 24. EL RESUMEN DE `npm run estado` NO ESCONDE NADA ───────────────────
   //
   // `estado` pasó a tener dos salidas: un resumen (lo que se ve al escribirlo)

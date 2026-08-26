@@ -154,4 +154,19 @@ async function flush() {
   }
 }
 
-module.exports = { recordAndMatch, matchOnly, markFake, flush, MATCH_THRESHOLD };
+// Ultima vez que se vio la foto de cada cuenta, sacada de lo que ya hay en
+// disco. Lo usa pfpIndexer para no volver a bajar de cero las fotos de todo el
+// grupo cada vez que el bot se reinicia: el dato ya estaba guardado, solo que
+// nadie lo leia de vuelta.
+async function ultimaVezPorCuenta() {
+  await load();
+  const m = new Map();
+  for (const r of store.records) {
+    if (!r?.account) continue;
+    const ts = r.lastSeen || r.firstSeen || 0;
+    if (ts > (m.get(r.account) || 0)) m.set(r.account, ts);
+  }
+  return m;
+}
+
+module.exports = { recordAndMatch, matchOnly, markFake, flush, ultimaVezPorCuenta, MATCH_THRESHOLD };
