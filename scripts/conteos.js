@@ -221,6 +221,20 @@ async function manda(quien, alt, texto, parts, menciones = null, grupo = G) {
     // conteos a cero y el fallo no se ve hasta que alguien mira el ranking.
     await manda(R.lid, R.tel, 'y esto si cuenta', partsTel);
     linea('y un mensaje de verdad justo despues si cuenta', await getUserCount(G, R.tel) === antesM + 1);
+
+    // EL CASO QUE MAS DUELE SI SE ROMPE: WhatsApp manda a menudo la clave de
+    // cifrado PEGADA a un mensaje de verdad. El sobre trae entonces dos cosas y
+    // solo una es "sin contenido". Si el descarte mirase si ALGUNA lo es en vez
+    // de si TODAS lo son, dejarian de contarse mensajes normales — y el ranking
+    // entero se iria a cero sin que saltara nada.
+    const nM = await getUserCount(G, R.tel);
+    const cap2 = []; cap2.parts = partsTel;
+    await handleMessage(sock(cap2), { key: { remoteJid: G, participant: R.lid, participantAlt: R.tel,
+      addressingMode: 'lid', fromMe: false, id: 'SK' },
+      message: { conversation: 'hola', senderKeyDistributionMessage: {} },
+      pushName: 'x', messageTimestamp: Math.floor(Date.now() / 1000) });
+    await new Promise((r) => setTimeout(r, 40));
+    linea('un texto con la clave de cifrado pegada si cuenta', await getUserCount(G, R.tel) === nM + 1);
   }
 
   console.log('\n════ el contador diario (bonos, racha y !aura hoy) ════\n');
