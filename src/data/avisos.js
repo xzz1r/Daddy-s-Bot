@@ -128,26 +128,30 @@ const DUELO_AJENO = [
 
 // ESCRIBIO MAL UN COMANDO Y HAY QUE ADIVINARSELO.
 //
-// Antes esto era un "¿Querias decir X?" pelado, con la cortesia de un buscador.
-// El bot no es un buscador. El aviso sigue diciendo cual era —esa parte si
-// sirve— pero el remate va a lo que acaba de pasar: no ha sido capaz de
-// escribir bien una palabra que tenia delante, en el menu, entera.
+// El aviso sigue diciendo cual era —esa parte si sirve— y debajo va el remate.
+//
+// LA PRIMERA VERSION DE ESTAS FRASES ERAN CLASES, no ataques: "aprenderte la
+// palabra cuesta menos que volver a intentarlo", "toma la ayuda", "el teclado
+// funciona, lo que falla esta antes". Eso es un consejo con tono de superioridad
+// y no pica: quien lo lee se encoge de hombros. El remate va a la INCAPACIDAD,
+// que es lo que acaba de quedar demostrado delante del grupo — no sabe escribir
+// una palabra que tenia copiada ahi arriba.
 //
 // Solo sale cuando hay una sugerencia de verdad. Si lo escrito no se parece a
 // nada, el bot se calla: reirse de alguien que quiza no estaba escribiendo un
 // comando es reirse de uno mismo.
 const MAL_ESCRITO = [
-  'Cuatro letras y las has fallado. Y esto era lo fácil del día.',
-  'Te he entendido igual, que es más de lo que tú has hecho por mi.',
-  'Ni copiar del menú te sale. Está escrito ahí arriba, entero y gratis.',
-  'Escribir mal un comando de cinco letras tiene un mérito raro.',
-  'Te lo pongo yo, que si esperamos a que lo escribas bien no llegamos.',
-  'Lo tenías delante, escrito, y aun así. Impresionante lo tuyo.',
-  'Ni un comando. No podías haber fallado en algo más pequeño.',
-  'Aprenderte la palabra cuesta menos que volver a intentarlo así.',
-  'Has necesitado ayuda para escribir una palabra. Toma la ayuda.',
-  'El teclado funciona. Lo que falla está un poco antes del teclado.',
-]
+  'No sabes escribir. Ni una palabra de cinco letras con el modelo delante.',
+  'Analfabetismo con wifi. Te lo escribo yo, que tú no llegas.',
+  'Un comando. Una palabra. Y la has roto igual.',
+  'Ni eso sabes hacer. Literalmente ni eso.',
+  'Lo tenías copiado ahí arriba y lo has escrito mal de todas formas.',
+  'Cinco letras te han ganado y encima ni te has enterado.',
+  'Te falla la cabeza antes que el dedo, y eso ya es decir mucho.',
+  'Esto no pide saber nada de nada y tú has encontrado cómo fallarlo.',
+  'Escribirlo mal no es tener prisa. Es no dar para más.',
+  'Escribes igual de mal que aportas, o sea que al menos hay coherencia.',
+];
 
 // CABECERA POR POOL. Solo la tienen los avisos que niegan por RANGO: ahi hace
 // falta decir de quien es el comando. Los demas (a ti mismo, duelo ajeno, solo

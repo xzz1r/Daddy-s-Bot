@@ -3325,6 +3325,20 @@ async function capaStores() {
         `${nombre}: ${repiten.length} frase(s) repiten la cabecera en vez de rematar: ${repiten[0] || ''}`);
     }
 
+    // EL AVISO DE COMANDO MAL ESCRITO ATACA, NO DA CLASE.
+    //
+    // La primera version eran consejos con tono de superioridad —"aprenderte la
+    // palabra cuesta menos que volver a intentarlo", "toma la ayuda"— y eso no
+    // pica: quien lo lee se encoge de hombros. Se vigila lo unico objetivo aqui,
+    // que es la forma del consejo: recomendar, sugerir, decir lo que deberia
+    // hacer la proxima vez. Un remate no aconseja.
+    {
+      const CLASE = /\b(cuesta menos|toma la ayuda|aprend[eé]|deber[ií]as|prueba a |la pr[oó]xima|si quieres|te recomiendo|int[eé]ntalo|f[ií]jate)\b/i;
+      const lecciones = AV.MAL_ESCRITO.filter((f) => CLASE.test(f));
+      exige(lecciones.length === 0,
+        `MAL_ESCRITO vuelve a dar clase en vez de atacar: ${lecciones[0] || ''}`);
+    }
+
     // NINGUN COMANDO PUEDE DEPENDER DE LA TILDE.
     //
     // *!menú* e *!inútil* no funcionaban: los `case` son 'menu' e 'inutil', asi
