@@ -3340,6 +3340,92 @@ async function capaStores() {
     if (fallos === antes) console.log(verde('   ✓ la respuesta es lo primero que sale, en los tres comandos probados'));
   }
 
+  // ── 29. NADIE SALE CON 0 MENSAJES HABIENDO ESCRITO ───────────────────────
+  //
+  // Reportado desde el grupo: alguien que habia hablado aparecio en !inactivos
+  // con 0. Reproducido: escribe llegando por su @lid, la lista de miembros lo
+  // trae por telefono, y sin la correspondencia entre las dos formas el cruce
+  // no encuentra nada. Sale "0 mensajes" habiendo escrito veinticinco.
+  //
+  // Dos arreglos, y esta capa vigila los dos:
+  //
+  //   · el contador APRENDE la pareja al anotar, que es el unico momento en que
+  //     se tienen las dos formas delante (cada mensaje de grupo trae las dos);
+  //   · y !inactivos no acusa de cero cuando el cruce es demostrablemente
+  //     imposible — hay entradas bajo @lid que no casan con ningun miembro y
+  //     de esta persona no se conoce ninguna forma @lid.
+  //
+  // Un conteo que se inventa un cero es peor que no tener el comando: acusa por
+  // escrito y delante de todos.
+  {
+    console.log('\n29. NADIE SALE CON 0 HABIENDO ESCRITO');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    if (botEnMarcha()) {
+      console.log('   — saltada: el bot esta corriendo y escribiria sobre sus datos');
+    } else {
+      const habia = new Set(fs.readdirSync(DATA).filter((f) => f.endsWith('.json')));
+      const copia = copiaSeguridad();
+      try {
+        for (const k of Object.keys(require.cache)) {
+          if (/utils[\/\\](messageCounter|wa)\.js$|commands[\/\\]activity\.js$/.test(k)) delete require.cache[k];
+        }
+        for (const f of ['messageCounts.json', 'lidMap.json']) {
+          try { fs.unlinkSync(path.join(DATA, f)); } catch {}
+        }
+        const mc = require(path.join(R, 'src/utils/messageCounter'));
+        const act = require(path.join(R, 'src/commands/activity'));
+        const GC2 = '000000029@g.us';
+        const BOTC = '549199@s.whatsapp.net';
+        const TELC = '34600000291@s.whatsapp.net';
+        const LIDC = '999888777666@lid';
+        const CALLADO = '34600000292@s.whatsapp.net';
+
+        const pedir = async (participants) => {
+          let txt = '';
+          await act.cmdInactivos({ user: { id: BOTC }, sendMessage: async (j, c) => { txt = c.text || ''; return {}; } },
+            { key: { remoteJid: GC2, participant: BOTC, fromMe: false, id: 'I' } }, { id: GC2, participants });
+          return txt;
+        };
+
+        // 1) Escribe por @lid y la lista lo trae por telefono, sin pareja conocida.
+        for (let i = 0; i < 25; i++) await mc.increment(GC2, LIDC);
+        const t1 = await pedir([{ id: TELC }, { id: BOTC, admin: 'admin' }]);
+        exige(!/600000291/.test(t1),
+          '!inactivos acusa de 0 mensajes a alguien que escribio 25: el cruce por @lid no resuelve y se inventa el cero');
+
+        // 2) Con la pareja anotada al contar, que es el arreglo de raiz.
+        for (const f of ['messageCounts.json', 'lidMap.json']) { try { fs.unlinkSync(path.join(DATA, f)); } catch {} }
+        for (const k of Object.keys(require.cache)) {
+          if (/utils[\/\\](messageCounter|wa)\.js$|commands[\/\\]activity\.js$/.test(k)) delete require.cache[k];
+        }
+        const mc2 = require(path.join(R, 'src/utils/messageCounter'));
+        const act2 = require(path.join(R, 'src/commands/activity'));
+        for (let i = 0; i < 25; i++) await mc2.increment(GC2, LIDC, TELC);
+        let t2 = '';
+        await act2.cmdInactivos({ user: { id: BOTC }, sendMessage: async (j, c) => { t2 = c.text || ''; return {}; } },
+          { key: { remoteJid: GC2, participant: BOTC, fromMe: false, id: 'I' } },
+          { id: GC2, participants: [{ id: TELC }, { id: BOTC, admin: 'admin' }] });
+        exige(!/600000291/.test(t2),
+          'el contador dejo de aprender la pareja LID<->telefono al anotar: el conteo vuelve a partirse en dos');
+
+        // 3) Y EL COMANDO SIGUE SIRVIENDO: el que de verdad calla, sale.
+        let t3 = '';
+        await act2.cmdInactivos({ user: { id: BOTC }, sendMessage: async (j, c) => { t3 = c.text || ''; return {}; } },
+          { key: { remoteJid: GC2, participant: BOTC, fromMe: false, id: 'I' } },
+          { id: GC2, participants: [{ id: TELC }, { id: CALLADO }, { id: BOTC, admin: 'admin' }] });
+        exige(/600000292/.test(t3),
+          '!inactivos ya no saca al que de verdad no escribe: la red de seguridad se ha comido el comando entero');
+      } finally {
+        for (const k of Object.keys(require.cache)) {
+          if (/utils[\/\\](messageCounter|wa)\.js$|commands[\/\\]activity\.js$/.test(k)) delete require.cache[k];
+        }
+        restaurar(copia, habia);
+      }
+    }
+    if (fallos === antes) console.log(verde('   ✓ ni ceros inventados ni comando vacio'));
+  }
+
   // ── 24. EL RESUMEN DE `npm run estado` NO ESCONDE NADA ───────────────────
   //
   // `estado` pasó a tener dos salidas: un resumen (lo que se ve al escribirlo)

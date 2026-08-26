@@ -1,5 +1,5 @@
 const path = require('path');
-const { canonicalJid } = require('./wa');
+const { canonicalJid, rememberMapping } = require('./wa');
 const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const logger = require('./logger');
 
@@ -48,8 +48,16 @@ function scheduleSave() {
 // Aun así, los montones viejos escritos antes de conocer la correspondencia
 // siguen en el archivo bajo la clave antigua, por eso las LECTURAS agrupan
 // siempre por identidad en vez de fiarse de la clave.
-async function increment(groupJid, userJid) {
+async function increment(groupJid, userJid, altJid = null) {
   await load();
+  // SE APRENDE LA CORRESPONDENCIA AQUI, QUE ES CUANDO SE SABE.
+  //
+  // Cada mensaje de grupo trae las dos formas de quien escribe (participant y
+  // participantAlt). Si no se anota la pareja en este momento, el conteo se
+  // guarda bajo el @lid y luego NADIE puede cruzarlo con la lista de miembros,
+  // que viene por telefono: la persona sale con 0 mensajes habiendo escrito 25.
+  // Reproducido, y es justo lo que se vio en el grupo.
+  if (altJid) rememberMapping(userJid, altJid);
   const key = canonicalJid(userJid);
   if (!counts[groupJid]) counts[groupJid] = {};
   counts[groupJid][key] = (counts[groupJid][key] || 0) + 1;

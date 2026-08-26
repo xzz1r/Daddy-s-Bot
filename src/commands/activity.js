@@ -4,6 +4,7 @@ const { cobrar, textoSinSaldo } = require('../utils/auraCobro');
 const { shuffle, pickFresh } = require('../utils/helpers');
 const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
+const logger = require('../utils/logger');
 
 // ---- !vs : real-activity head-to-head -------------------------------------
 
@@ -391,6 +392,23 @@ async function cmdInactivos(sock, msg, groupMeta) {
     }
   }
 
+  // Entradas del contador que no casan con NINGUN miembro y estan bajo un @lid:
+  // son identidades sin resolver, no ex-miembros (un ex-miembro con telefono se
+  // reconoce por su forma). Su existencia significa que este cruce esta
+  // incompleto y que un cero puede no serlo.
+  const formasDeMiembros = new Set();
+  for (const p of groupMeta.participants) {
+    for (const f of [p?.id, p?.lid, p?.phoneNumber].filter(Boolean)) {
+      formasDeMiembros.add(bareJid(f));
+      formasDeMiembros.add(canonicalJid(f));
+    }
+  }
+  const hayLidsSinResolver = contados.some((u) => {
+    const c = canonicalJid(u.jid);
+    return String(c).endsWith('@lid') && !formasDeMiembros.has(c) && !formasDeMiembros.has(bareJid(u.jid));
+  });
+
+  const sinCruzar = [];
   const flojos = [];
   for (const p of groupMeta.participants) {
     const formas = [p?.id, p?.lid, p?.phoneNumber].filter(Boolean);
@@ -410,10 +428,33 @@ async function cmdInactivos(sock, msg, groupMeta) {
     }
     let n = 0;
     for (const e of suyas) n += e.count;
+
+    // NO SE ACUSA DE CERO CUANDO EL CRUCE ES IMPOSIBLE.
+    //
+    // Si en el contador hay entradas bajo un @lid que no casan con ningun
+    // miembro, es que hay identidades sin resolver: esas entradas SON de
+    // alguien de la lista, solo que no se sabe de quien. Decir "0 mensajes" de
+    // uno al que no se le puede cruzar nada es inventarse un dato, y de ahi
+    // salio el que aparecio con cero habiendo escrito veinticinco.
+    //
+    // Solo se calla en el caso en que el cruce es DEMOSTRABLEMENTE imposible:
+    // hay huerfanos por @lid Y la metadata no da ninguna forma @lid de esta
+    // persona. En un grupo sano no salta, porque la metadata trae las dos
+    // formas de cada miembro; y sin huerfanos tampoco.
+    if (n === 0 && hayLidsSinResolver && !formas.some((f) => String(f).endsWith('@lid'))) {
+      sinCruzar.push(p.id);
+      continue;
+    }
     // "entre 0 y 10" incluye el 10: quien lleva justo diez esta igual de
     // ausente que quien lleva nueve, y dejarlo fuera por uno era un corte que no
     // significaba nada.
     if (n <= UMBRAL_INACTIVO) flojos.push({ jid: p.id, count: n });
+  }
+
+  if (sinCruzar.length) {
+    logger.warn(
+      `!inactivos en ${jid}: ${sinCruzar.length} miembro(s) sin cruzar por identidades @lid sin resolver; ` +
+      `no se les cuenta como cero. Se arregla solo en cuanto escriban una vez.`);
   }
 
   if (!flojos.length) {

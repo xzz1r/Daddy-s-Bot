@@ -1158,7 +1158,9 @@ async function handleMessage(sock, msg) {
     (!!senderPn && isMainOwner(senderPn, false, null));
 
   if (!msg.key.fromMe && jid.endsWith('@g.us') && sender && !senderIsMainOwner) {
-    incrementMsgCount(jid, sender).catch(() => {});
+    // `senderPn` es la otra forma de quien escribe, sacada del propio mensaje.
+    // Va aqui para que el conteo quede cruzable con la lista de miembros.
+    incrementMsgCount(jid, sender, senderPn).catch(() => {});
     // verifiedBizName solo viaja en mensajes de cuentas Business: se anota como
     // prueba directa para !antiempresa, sin gastar una consulta de perfil.
     //
