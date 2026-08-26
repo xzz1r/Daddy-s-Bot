@@ -15,6 +15,13 @@ const qrcode = require('qrcode-terminal');
 // ReferenceError JUSTO al conectar — el peor momento posible y el unico en que
 // se ejecuta, asi que no se veia hasta tener el bot delante.
 const config = require('./config');
+
+// Temporizador del refresco de presencia. Vive aqui, junto a los imports, y no
+// al lado de donde se usa: se declara con `let` y se lee desde una funcion que
+// corre mucho despues, asi que ponerlo por debajo de su uso funciona por los
+// pelos y se lee fatal. Fuera de la funcion para que una reconexion no deje dos
+// temporizadores corriendo a la vez.
+let refrescoPresencia = null;
 const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, flushState } = require('./utils/state');
 const { isOwner, sameUser, isBotAdmin, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto } = require('./utils/wa');
@@ -570,6 +577,19 @@ async function connectToWhatsApp() {
     }, 3000).unref?.();
   }
 
+  // EL OYENTE DE `isOnline` VA AQUI, NO DENTRO DEL `connection === open`.
+  //
+  // Ahi es donde lo puse la primera vez y por eso el diagnostico decia
+  // "WhatsApp no ha confirmado la presencia" con todo correcto: Baileys manda
+  // la presencia desde SU propio manejador de connection.update, registrado al
+  // crear el socket, o sea ANTES que el mio. Cuando mi codigo llegaba a
+  // suscribirse, el evento ya habia pasado. La puerta estaba abierta y yo
+  // miraba tarde.
+  let ultimoEnLinea = null;
+  sock.ev.on('connection.update', (u) => {
+    if (typeof u.isOnline !== 'undefined') ultimoEnLinea = u.isOnline;
+  });
+
   sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr, reachoutTimeLock }) => {
     // WhatsApp restringe a las cuentas nuevas o marcadas para que no contacten
     // desconocidos. Mientras esta activo, !add falla con
@@ -765,8 +785,6 @@ async function connectToWhatsApp() {
       // Asi que se dicen las tres al conectar. Una linea en el log vale mas que
       // otra ronda de hipotesis.
       if (config.autoRead) {
-        let enLinea = null;
-        sock.ev.on('connection.update', (u) => { if (typeof u.isOnline !== 'undefined') enLinea = u.isOnline; });
         (async () => {
           const nombre = sock.authState?.creds?.me?.name || sock.user?.name || '';
           let priv = 'no consultada';
@@ -779,19 +797,41 @@ async function connectToWhatsApp() {
             }
           } catch (e) { priv = `fallo al consultarla: ${e.message}`; }
 
-          // Se espera un poco: la presencia la manda Baileys en su propio
-          // manejador de connection.update y puede llegar despues que este.
-          await new Promise((r) => setTimeout(r, 4000));
+          // SE MANDA LA PRESENCIA A PROPOSITO, no se espera a ver si llega.
+          //
+          // Baileys ya la manda por markOnlineOnConnect, pero depender de eso
+          // deja el resultado fuera de nuestro alcance: si no sale, no hay
+          // forma de saberlo desde aqui. Mandarla nosotros la hace verificable
+          // —o devuelve, o lanza— y repetirla no molesta a nadie.
+          let presencia = 'no mandada';
+          try {
+            await sock.sendPresenceUpdate('available');
+            presencia = 'mandada';
+          } catch (e) { presencia = `fallo: ${e.message}`; }
+
+          await new Promise((r) => setTimeout(r, 2500));
+          const enLinea = ultimoEnLinea;
 
           if (!nombre) {
             logger.warn('EL VISTO NO SE VA A VER: la cuenta del bot no tiene nombre de perfil, y sin nombre WhatsApp ignora la presencia. Ponle un nombre desde el movil del bot (Ajustes → Perfil) y reinicia.');
           } else if (enLinea === false) {
             logger.warn(`EL VISTO NO SE VA A VER: la sesion se anuncio como desconectada (autoRead=${config.autoRead}). Revisa markOnlineOnConnect.`);
           } else if (enLinea === null) {
-            logger.warn(`EL VISTO PUEDE NO VERSE: WhatsApp no ha confirmado la presencia. nombre="${nombre}", confirmaciones=${priv}`);
+            logger.warn(`EL VISTO PUEDE NO VERSE: WhatsApp no ha confirmado la presencia (envio: ${presencia}). nombre="${nombre}", confirmaciones=${priv}`);
           } else {
-            console.log(`  visto          : activo (nombre="${nombre}", confirmaciones=${priv}, en linea=si)`);
+            console.log(`  visto          : activo (nombre="${nombre}", confirmaciones=${priv}, presencia=${presencia})`);
           }
+
+          // Y SE REFRESCA. WhatsApp da por ausente al cliente que calla, y en
+          // cuanto te da por ausente los acuses vuelven a salir 'inactive'. Un
+          // cliente de verdad reanuncia su presencia cada pocos minutos; esto
+          // hace lo mismo. Es un nodo diminuto cada diez minutos, nada que
+          // moleste ni con la cuenta en revision.
+          if (refrescoPresencia) clearInterval(refrescoPresencia);
+          refrescoPresencia = setInterval(() => {
+            sock.sendPresenceUpdate('available').catch(() => {});
+          }, 10 * 60 * 1000);
+          refrescoPresencia.unref?.();
         })();
       }
 
