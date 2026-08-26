@@ -10,6 +10,11 @@ const pino = require('pino');
 const path = require('path');
 const fs = require('fs-extra');
 const qrcode = require('qrcode-terminal');
+// config NO estaba importado aqui, y bot.js lo necesita para saber si el visto
+// esta encendido. Sin esta linea, `config.autoRead` reventaba con un
+// ReferenceError JUSTO al conectar — el peor momento posible y el unico en que
+// se ejecuta, asi que no se veia hasta tener el bot delante.
+const config = require('./config');
 const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, flushState } = require('./utils/state');
 const { isOwner, sameUser, isBotAdmin, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto } = require('./utils/wa');
@@ -700,6 +705,37 @@ async function connectToWhatsApp() {
       console.log(`  commit cargado : ${gitCommit()}`);
       console.log(`  filtro sticker : ${VF_STATIC}`);
       console.log(`canvas 512 : ${specCompliant ? 'SI (spec WhatsApp, relleno transparente, sin estirar)' : 'NO (código viejo, canvas no cuadrado)'}\n`);
+
+      // EL VISTO NO DEPENDE SOLO DE NOSOTROS: LO CAPA LA PRIVACIDAD DE LA CUENTA.
+      //
+      // Esto costo un rato de no entender nada. El bot llamaba a readMessages en
+      // cada mensaje —eso funcionaba— y en el grupo no aparecia el doble check
+      // azul. La razon esta dentro de Baileys (Socket/messages-send.js):
+      //
+      //   const readType = privacySettings.readreceipts === 'all' ? 'read' : 'read-self';
+      //
+      // Si la cuenta tiene desactivadas las confirmaciones de lectura, el acuse
+      // se manda como `read-self`: el mensaje se marca leido SOLO en los
+      // dispositivos del bot y nadie mas lo ve. O sea que el codigo corria
+      // perfecto y WhatsApp lo estaba degradando por un ajuste del telefono.
+      //
+      // Y no se podia ver desde fuera: no falla, no avisa, no devuelve error.
+      //
+      // Se pone en cada conexion porque el ajuste vive en la cuenta y se puede
+      // cambiar desde el movil sin que el bot se entere. Solo se toca si NO
+      // estaba ya en 'all', para no mandar una consulta de mas en cada arranque.
+      if (config.autoRead) {
+        (async () => {
+          try {
+            const p = await sock.fetchPrivacySettings(true);
+            if (p?.readreceipts === 'all') return;
+            await sock.updateReadReceiptsPrivacy('all');
+            logger.warn(`confirmaciones de lectura estaban en "${p?.readreceipts || 'desconocido'}": el visto no se veia en el grupo. Puestas en "all".`);
+          } catch (e) {
+            logger.warn(`no he podido comprobar las confirmaciones de lectura (${e.message}); el visto puede no verse en el grupo`);
+          }
+        })();
+      }
 
       // Barrido inicial del historial de huellas: indexa en segundo plano las
       // fotos de los miembros de todos los grupos. Escalonado por su propia cola,
@@ -1454,8 +1490,8 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
       // handleMessage runs first so its sock.sendMessage is queued BEFORE readMessages.
       // Swapping the order would add one extra WA round-trip in front of every command response.
       handleMessage(sock, msg).catch(err => logger.error(`handleMessage error: ${err.message}`));
-      // El visto va SOLO en comandos (messageHandler), no en cada linea del
-      // grupo: marcar leido todo es trafico extra y cara de bot.
+      // El visto lo manda messageHandler, para TODO mensaje y no solo para los
+      // comandos (ver la nota junto a sock.readMessages alli).
     }
   });
 

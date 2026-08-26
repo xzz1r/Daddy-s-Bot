@@ -3799,6 +3799,44 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     exige(iHuella > 0 && iRecien > 0 && iHuella < iRecien,
       'en estado.js la huella dejo de mirarse antes que el "recien arrancado": con el bot al dia volveria a salir un aviso que no se puede apagar');
 
+    // UN MODULO QUE SE USA Y NO SE IMPORTA.
+    //
+    // Paso en bot.js: se escribio `config.autoRead` y bot.js no importaba
+    // config. `node --check` no lo ve —es sintaxis valida— y solo revienta al
+    // EJECUTAR esa linea, que en este caso era dentro del `connection === open`:
+    // el peor momento posible y el unico en que corre, asi que no habria dado
+    // la cara hasta tener el bot delante intentando conectar.
+    //
+    // Se mira solo un puñado de nombres —los modulos propios que se usan en
+    // media docena de ficheros— y siempre en el codigo sin comentarios, que ya
+    // me he cazado a mi mismo con eso mas de una vez.
+    {
+      const MODULOS = ['config', 'logger', 'economia', 'helpers'];
+      const ficheros = [];
+      const andar = (d) => {
+        for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+          const f = path.join(d, e.name);
+          if (e.isDirectory()) andar(f);
+          else if (e.name.endsWith('.js')) ficheros.push(path.relative(R, f));
+        }
+      };
+      andar(path.join(R, 'src'));
+      for (const rel of ficheros) {
+        const codigo = soloCodigo(rel);
+        for (const m of MODULOS) {
+          if (!new RegExp(`(^|[^\\w.$])${m}\\.[a-zA-Z_$]`).test(codigo)) continue;
+          const importado =
+            new RegExp(`(const|let|var)\\s+${m}\\s*=\\s*require`).test(codigo) ||
+            new RegExp(`\\b${m}\\b[^=]*=\\s*require`).test(codigo) ||
+            new RegExp(`function\\s+${m}\\b`).test(codigo) ||
+            new RegExp(`(const|let|var)\\s+${m}\\s*=`).test(codigo) ||
+            new RegExp(`[({,]\\s*${m}\\s*[,)}:=]`).test(codigo);
+          exige(importado,
+            `${rel} usa \`${m}.\` y no lo importa: ReferenceError en cuanto se ejecute esa linea, no antes`);
+        }
+      }
+    }
+
     if (fallos === antes) console.log(verde('   ✓ los cuatro guiones parsean, y los dos limites siguen donde deben'));
   }
 
