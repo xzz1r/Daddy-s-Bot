@@ -1140,6 +1140,15 @@ function ownerEnPrivado(msg, sender) {
   return formas.some((f) => f && isOwner(f, false, null));
 }
 
+// Se queja UNA vez por arranque de que el visto no sale. Ver la nota en el
+// sitio donde se llama.
+let vistoYaAvisado = false;
+function avisarVistoRoto(motivo) {
+  if (vistoYaAvisado) return;
+  vistoYaAvisado = true;
+  logger.warn(`el visto no se esta mandando: ${motivo}`);
+}
+
 async function handleMessage(sock, msg) {
   // EL NOMBRE SE ANOTA LO PRIMERO DE TODO, antes de cualquier return.
   //
@@ -1246,7 +1255,20 @@ async function handleMessage(sock, msg) {
   // de ti", que es peor que no aparecer. Esta linea va detras de esa puerta a
   // proposito.
   if (config.autoRead && !msg.key.fromMe) {
-    setImmediate(() => { sock.readMessages?.([msg.key]).catch(() => {}); });
+    setImmediate(() => {
+      // EL FALLO SE DICE UNA VEZ, no se traga.
+      //
+      // Esto era `.catch(() => {})` y ahi se fue media tarde: si readMessages
+      // reventaba —o si ni siquiera existia en el socket, que la interrogacion
+      // lo dejaba pasar en silencio— no habia absolutamente ninguna señal. Se
+      // veia el visto sin aparecer y el codigo aparentemente perfecto.
+      //
+      // Una vez y no en cada mensaje: si falla, falla siempre, y llenar el log
+      // con la misma linea mil veces es otra forma de no decir nada.
+      const p = sock.readMessages?.([msg.key]);
+      if (!p) { avisarVistoRoto('sock.readMessages no existe en este socket'); return; }
+      p.catch((e) => avisarVistoRoto(e?.message || String(e)));
+    });
   }
 
   // Non-blocking counters — never delay command execution.

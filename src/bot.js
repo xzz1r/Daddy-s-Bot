@@ -742,15 +742,55 @@ async function connectToWhatsApp() {
       // Se pone en cada conexion porque el ajuste vive en la cuenta y se puede
       // cambiar desde el movil sin que el bot se entere. Solo se toca si NO
       // estaba ya en 'all', para no mandar una consulta de mas en cada arranque.
+      // LAS TRES PUERTAS DEL VISTO, DICHAS EN VOZ ALTA.
+      //
+      // Que el doble check azul se vea depende de tres cosas, y las tres fallan
+      // EN SILENCIO. Se han ido descubriendo de una en una, a base de suponer y
+      // equivocarse, porque ninguna deja rastro:
+      //
+      //   1. La privacidad de la cuenta. Si `readreceipts` no es 'all', Baileys
+      //      degrada el acuse a 'read-self' y solo se marca en el movil del bot.
+      //   2. La presencia. Si la sesion se anuncia 'unavailable',
+      //      sendActiveReceipts se queda en falso y cada acuse sale 'inactive':
+      //      WhatsApp no pinta el visto de un cliente que dice no estar.
+      //   3. EL NOMBRE DE PERFIL. Y esta es la que no se ve ni leyendo el
+      //      codigo propio. En Socket/chats.js:
+      //
+      //          if (!me.name) { logger.warn('no name present, ignoring presence update request...'); return; }
+      //
+      //      Sin nombre, Baileys NO manda la presencia, no emite isOnline, y la
+      //      puerta 2 se queda cerrada para siempre. Ese aviso ademas no se lee:
+      //      el logger de Baileys va en 'silent'.
+      //
+      // Asi que se dicen las tres al conectar. Una linea en el log vale mas que
+      // otra ronda de hipotesis.
       if (config.autoRead) {
+        let enLinea = null;
+        sock.ev.on('connection.update', (u) => { if (typeof u.isOnline !== 'undefined') enLinea = u.isOnline; });
         (async () => {
+          const nombre = sock.authState?.creds?.me?.name || sock.user?.name || '';
+          let priv = 'no consultada';
           try {
             const p = await sock.fetchPrivacySettings(true);
-            if (p?.readreceipts === 'all') return;
-            await sock.updateReadReceiptsPrivacy('all');
-            logger.warn(`confirmaciones de lectura estaban en "${p?.readreceipts || 'desconocido'}": el visto no se veia en el grupo. Puestas en "all".`);
-          } catch (e) {
-            logger.warn(`no he podido comprobar las confirmaciones de lectura (${e.message}); el visto puede no verse en el grupo`);
+            priv = p?.readreceipts || 'desconocida';
+            if (priv !== 'all') {
+              await sock.updateReadReceiptsPrivacy('all');
+              priv = 'all (recien puesta)';
+            }
+          } catch (e) { priv = `fallo al consultarla: ${e.message}`; }
+
+          // Se espera un poco: la presencia la manda Baileys en su propio
+          // manejador de connection.update y puede llegar despues que este.
+          await new Promise((r) => setTimeout(r, 4000));
+
+          if (!nombre) {
+            logger.warn('EL VISTO NO SE VA A VER: la cuenta del bot no tiene nombre de perfil, y sin nombre WhatsApp ignora la presencia. Ponle un nombre desde el movil del bot (Ajustes → Perfil) y reinicia.');
+          } else if (enLinea === false) {
+            logger.warn(`EL VISTO NO SE VA A VER: la sesion se anuncio como desconectada (autoRead=${config.autoRead}). Revisa markOnlineOnConnect.`);
+          } else if (enLinea === null) {
+            logger.warn(`EL VISTO PUEDE NO VERSE: WhatsApp no ha confirmado la presencia. nombre="${nombre}", confirmaciones=${priv}`);
+          } else {
+            console.log(`  visto          : activo (nombre="${nombre}", confirmaciones=${priv}, en linea=si)`);
           }
         })();
       }
