@@ -3754,6 +3754,28 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     exige(ret && Number(ret[1]) <= 15000,
       `el guardado de conteos vuelve a tardar ${ret ? ret[1] : '?'} ms: es lo que se pierde de golpe si el proceso muere a lo bruto`);
 
+    // NODE22 NO PUEDE COLGARSE ESPERANDO UNA RESPUESTA. Paso de verdad: apt
+    // saco el dialogo de needrestart, el script se quedo esperando una tecla
+    // que nadie iba a pulsar y por fuera parecia que se habia colgado.
+    // SIN LOS COMENTARIOS, y esta vez la guarda se cazo a si misma: buscaba
+    // NEEDRESTART_MODE en el fichero entero y lo encontraba... en el comentario
+    // que explica para que sirve. Se podia borrar la linea de verdad y la
+    // comprobacion seguia en verde. Es el mismo error que ya me habia salido
+    // tres veces con los .js, y para eso existe soloCodigo(); a los .sh les
+    // hacia falta lo mismo con las almohadillas.
+    const n22 = fs.readFileSync(path.join(R, 'scripts/node22.sh'), 'utf8')
+      .split('\n').map((l) => l.replace(/(^|\s)#.*$/, '')).join('\n');
+    for (const v of ['DEBIAN_FRONTEND=noninteractive', 'NEEDRESTART_MODE=a', 'NEEDRESTART_SUSPEND=1']) {
+      exige(n22.includes(v),
+        `node22.sh sin ${v}: apt puede abrir un dialogo y el script se queda colgado esperando una tecla`);
+    }
+    // Y NO PUEDE DARSE POR HECHO. Si un intento anterior instalo Node y murio
+    // despues, volver a lanzarlo tiene que rehacer pm2 y las dependencias: Node
+    // nuevo con pm2 viejo y binarios del ABI anterior es un bot caido, y encima
+    // con el guion diciendo que todo esta bien.
+    exige(!/Ya estas en Node \$\{DESTINO\}\.[\s\S]{0,80}?exit 0/.test(n22),
+      'node22.sh vuelve a salirse cuando Node ya esta en el destino: se saltaria pm2 y las dependencias de un intento a medias');
+
     if (fallos === antes) console.log(verde('   ✓ los cuatro guiones parsean, y los dos limites siguen donde deben'));
   }
 

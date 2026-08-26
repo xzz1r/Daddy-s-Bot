@@ -33,9 +33,21 @@ echo "════════════════════════�
 echo "  Node ahora: ${ACTUAL}   →   destino: v${DESTINO}.x"
 echo "════════════════════════════════════════════"
 
+# NO SE SALE AUNQUE NODE YA ESTE EN EL DESTINO, y esto es importante.
+#
+# La primera version salia aqui con un "ya estas en Node 22". El problema: si
+# apt terminaba y el script moria despues —por lo que sea—, volver a lanzarlo
+# se saltaba pm2 y las dependencias y daba el trabajo por hecho. Node nuevo con
+# pm2 viejo y binarios nativos del ABI anterior es exactamente un bot caido, y
+# encima con el script diciendo que todo estaba bien.
+#
+# Asi que se sigue siempre. Reinstalar pm2 y rehacer node_modules cuando ya
+# estaban bien no rompe nada y cuesta un minuto; darlos por hechos cuando no lo
+# estaban cuesta el bot. El unico paso que se salta es la instalacion de Node,
+# que si es idempotente de verdad.
 if [ "${MAYOR}" = "${DESTINO}" ]; then
-  echo "  Ya estas en Node ${DESTINO}. No hay nada que hacer."
-  exit 0
+  echo "  Node ya esta en ${DESTINO}. Sigo igualmente con pm2 y las dependencias,"
+  echo "  por si un intento anterior se quedo a medias."
 fi
 
 if ! command -v sudo >/dev/null 2>&1; then
@@ -51,8 +63,26 @@ bash scripts/respaldo.sh || { echo "  No se pudo copiar data/. NO seguimos."; ex
 # 2. NODE. nodesource reemplaza el paquete; apt se encarga del resto.
 echo
 echo "→ 2/6  Instalando Node ${DESTINO}"
-curl -fsSL "https://deb.nodesource.com/setup_${DESTINO}.x" | sudo -E bash - >/dev/null
-sudo apt-get install -y nodejs >/dev/null
+if [ "${MAYOR}" = "${DESTINO}" ]; then
+  echo "  Node ya esta en ${DESTINO}; se salta la instalacion."
+else
+  # needrestart SE COME EL SCRIPT SI NO SE LE DICE NADA.
+  #
+  # Ubuntu lo ejecuta despues de cada instalacion y saca un dialogo preguntando
+  # que servicios reiniciar. Sin terminal interactiva se queda esperando una
+  # respuesta que no va a llegar nunca, y por fuera parece que apt se ha
+  # colgado: la ultima linea que se ve es "Scanning linux images...".
+  #
+  # NEEDRESTART_MODE=a  → reinicia los servicios que toque sin preguntar.
+  # NEEDRESTART_SUSPEND=1 → y si aun asi quisiera abrir el dialogo, no lo abre.
+  # DEBIAN_FRONTEND=noninteractive → lo mismo para cualquier otro paquete que
+  #   quiera preguntar algo a mitad de la instalacion.
+  export DEBIAN_FRONTEND=noninteractive
+  export NEEDRESTART_MODE=a
+  export NEEDRESTART_SUSPEND=1
+  curl -fsSL "https://deb.nodesource.com/setup_${DESTINO}.x" | sudo -E bash - >/dev/null
+  sudo -E apt-get install -y nodejs >/dev/null
+fi
 echo "  Node ahora: $(node -v)  ·  npm: $(npm -v)"
 
 # 3. PM2. Estaba instalado con el Node viejo y su ruta ya no existe.
