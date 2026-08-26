@@ -2889,6 +2889,25 @@ async function capaStores() {
     const soloDat = [...enDatos].filter((k) => !enCodigo.has(k));
     exige(soloCod.length === 0 && soloDat.length === 0,
       `uniforme: percent.js y percentLabels.js no coinciden (solo en el codigo: ${soloCod.join(', ') || '—'}; solo en los datos: ${soloDat.join(', ') || '—'})`);
+    // EL ROTULO DE CADA RASGO ES UNA PALABRA, NO UN ALIAS.
+    //
+    // *!perdedor* salia con la cabecera "es 87% L" porque su `name` era la
+    // letra suelta. *!L* siempre fue un alias del comando, no su nombre, y
+    // ademas contradecia a sus propias frases: dos lineas mas abajo el texto
+    // decia "eres un perdedor de mierda". Ninguna de sus 148 frases usa la L.
+    //
+    // Se mide lo unico que aqui es objetivo: un rotulo de una o dos letras no
+    // es una palabra. Lo demas —si "inutil" deberia llevar tilde— es estilo y
+    // no lo vigila una guarda.
+    {
+      const LB = require(path.join(R, 'src/data/percentLabels.js'));
+      const cortos = Object.entries(LB)
+        .filter(([, v]) => typeof v?.name === 'string' && v.name.trim().length < 3)
+        .map(([k, v]) => `${k}="${v.name}"`);
+      exige(cortos.length === 0,
+        `el rotulo de un rasgo volvio a ser un alias en vez de una palabra: ${cortos.join(', ')}`);
+    }
+
     const of = pct.match(/const OWNER_FORCE = \{([\s\S]*?)\n\};/);
     const keys = of ? [...of[1].matchAll(/\b([a-z]+):/g)].map((x) => x[1]) : [];
     const extras = keys.filter((k) => k !== 'fiel' && k !== 'infiel');

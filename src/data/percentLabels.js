@@ -1758,7 +1758,7 @@ const LABELS = {
   },
 
   maricon: {
-    name: 'maricon',
+    name: 'maricón',
     goodIsHigh: false,
     high: [
       '[nombre] es un puto felpudo con pulso. Entras, te limpias, y él da las gracias por el barro.',
@@ -2321,7 +2321,7 @@ const LABELS = {
   },
 
   inutil: {
-    name: 'inutil',
+    name: 'inútil',
     goodIsHigh: false,
     high: [
       'Inútil con experiencia. Más de 20 años y sigues siendo un cero a la izquierda que decepciona a todo el que comete el error de contar contigo.',
@@ -2483,11 +2483,12 @@ const LABELS = {
   // casi nunca sale perdedor y casi siempre ganador, y al revés con los miembros.
   // [nombre] se sustituye por la mención del target dentro de runPercent.
   perdedor: {
-    // El rotulo que se ve es "L", que es el termino que se ha adoptado. La clave
-    // interna sigue siendo 'perdedor' a proposito: la usan los pools, el
-    // validador y el historial anti-repeticion, y renombrarla solo para que
-    // cuadre con el trigger seria tocar cuatro sitios para no ganar nada.
-    name: 'L',
+    // EL ROTULO ES "perdedor". *!L* siempre fue un alias, no el nombre del
+    // comando, y ponerlo de titular ademas contradecia a sus propias frases:
+    // la cabecera decia "es 87% L" y dos lineas despues el texto decia
+    // "eres un perdedor de mierda". Ninguna de las 148 frases del tramo usa
+    // la letra suelta.
+    name: 'perdedor',
     goodIsHigh: false,
     high: [
       '[nombre], eres un perdedor de mierda sin el más mínimo valor. Tan estúpido que ni captas cuando te están destruyendo en la cara, moralmente depravado al punto de que te excita traicionar y joder a cualquiera que comete el error de acercarse, y tan raro y retorcido que la gente siente que algo anda mal contigo apenas te ven.',
