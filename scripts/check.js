@@ -3478,6 +3478,79 @@ async function capaStores() {
     if (fallos === antes) console.log(verde(`   ✓ ${marcas} comprobaciones de conteo, todas cuadran`));
   }
 
+  // ── 32. LAS HISTORIAS SUBIDAS AL GRUPO SE PARAN ──────────────────────────
+  //
+  // Reportado desde el grupo, con captura: una historia del grupo con un
+  // chat.whatsapp.com dentro, y el bot mudo.
+  //
+  // La causa no era la deteccion —esa iba bien— sino DONDE se buscaban los
+  // destinos. `statusMentions` y `statusMentionSources` son campos de
+  // WebMessageInfo (el objeto `msg`), no del payload `Message`, y se buscaban
+  // dentro de `msg.message`: el unico sitio donde no pueden estar. El bot veia
+  // la historia, no sabia a que grupo iba, lo apuntaba en el log y se callaba.
+  //
+  // Y aunque supiera el grupo, una deteccion por campos sueltos solo avisaba.
+  // Un enlace de invitacion no es una deduccion: es la misma infraccion que en
+  // el chat cuesta el grupo, asi que ahora tambien cuesta el grupo aqui.
+  //
+  // Se comprueba el HECHO (¿echa o no echa?), nunca el texto del aviso.
+  {
+    console.log('\n32. LAS HISTORIAS SUBIDAS AL GRUPO SE PARAN');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { handleMessage } = require(path.join(R, 'src/handlers/messageHandler'));
+    const GH = '000000032@g.us';
+    const BOTH = '549199@s.whatsapp.net';
+    const RANDOM = '34600000321@s.whatsapp.net';
+    const ADMH = '34600000322@s.whatsapp.net';
+    const partesH = [{ id: BOTH, admin: 'admin' }, { id: ADMH, admin: 'admin' }, { id: RANDOM }];
+
+    const subir = async (quien, campos, texto) => {
+      const out = { textos: [], echados: [] };
+      const s = {
+        user: { id: BOTH },
+        sendPresenceUpdate: async () => {}, readMessages: async () => {},
+        sendMessage: async (j, c) => { out.textos.push(`${j}|${c.text || ''}`); return {}; },
+        groupMetadata: async () => ({ id: GH, subject: 'G', participants: partesH }),
+        groupParticipantsUpdate: async (g, ids, accion) => { out.echados.push(`${accion}:${ids.join(',')}`); return []; },
+        groupFetchAllParticipating: async () => ({ [GH]: { id: GH, participants: partesH } }),
+        onWhatsApp: async (j) => [{ exists: true, jid: j }],
+      };
+      await handleMessage(s, {
+        key: { remoteJid: 'status@broadcast', participant: quien, fromMe: false, id: 'H' + Math.random() },
+        message: { extendedTextMessage: { text: texto } },
+        pushName: 'x', messageTimestamp: Math.floor(Date.now() / 1000), ...campos,
+      });
+      await new Promise((r) => setTimeout(r, 150));
+      return out;
+    };
+
+    const INVITE = 'mirad esto chat.whatsapp.com/EQx7w7EhVYvABC';
+    // LOS DOS CAMPOS QUE TRAEN DESTINO. Si solo se comprobara uno, quitar el
+    // otro de la busqueda pasaria en verde y la mitad de las historias
+    // seguirian colandose.
+    for (const campo of ['statusMentionSources', 'statusMentions']) {
+      const r = await subir(RANDOM, { [campo]: [GH] }, INVITE);
+      exige(r.echados.length > 0,
+        `historia con invitacion identificada por ${campo}: no se echa a nadie (los destinos viven en el sobre, no en msg.message)`);
+      exige(r.textos.some((t) => t.startsWith(GH)),
+        `historia con invitacion por ${campo}: el bot no dice nada en el grupo`);
+    }
+
+    // Una historia normal NO puede costar el grupo: el que sale es el enlace.
+    const normal = await subir(RANDOM, { statusMentionSources: [GH] }, 'foto de mi perro');
+    exige(normal.echados.length === 0,
+      'una historia sin enlace echa a quien la subio: un falso positivo aqui cuesta el grupo a alguien que no hizo nada');
+    exige(normal.textos.some((t) => t.startsWith(GH)),
+      'una historia sin enlace no avisa a los admins: si el bot no puede borrarla, al menos que se sepa');
+
+    // Y al tier de admin no se le toca, igual que en la puerta del grupo.
+    const deAdmin = await subir(ADMH, { statusMentionSources: [GH] }, INVITE);
+    exige(deAdmin.echados.length === 0, 'se echa a un admin por subir una historia');
+
+    if (fallos === antes) console.log(verde('   ✓ con enlace fuera, sin enlace aviso, y a los admins no se les toca'));
+  }
+
   // ── 24. EL RESUMEN DE `npm run estado` NO ESCONDE NADA ───────────────────
   //
   // `estado` pasó a tener dos salidas: un resumen (lo que se ve al escribirlo)

@@ -448,7 +448,14 @@ function gruposDeLaHistoria(obj, vistos = new Set(), salida = new Set()) {
   if (!obj || typeof obj !== 'object' || vistos.has(obj)) return salida;
   vistos.add(obj);
   for (const [k, v] of Object.entries(obj)) {
-    if (k === 'statusMentionSources' && Array.isArray(v)) {
+    // CUALQUIER campo `statusMention*`, no solo `statusMentionSources`.
+    //
+    // WAProto declara DOS que traen destinos y no uno:
+    // WebMessageInfo.statusMentions = 66 y .statusMentionSources = 71. Se
+    // aceptan los dos y los que WhatsApp añada con ese prefijo, que es
+    // exactamente el motivo por el que esto busca por nombre en vez de por una
+    // ruta fija. Solo se queda con lo que sea un grupo.
+    if (/^statusMention/i.test(k) && Array.isArray(v)) {
       for (const x of v) if (typeof x === 'string' && x.endsWith('@g.us')) salida.add(x);
     } else if (v && typeof v === 'object') {
       gruposDeLaHistoria(v, vistos, salida);
@@ -459,7 +466,34 @@ function gruposDeLaHistoria(obj, vistos = new Set(), salida = new Set()) {
 
 async function historiaPorBroadcast(sock, msg, deteccion) {
   const autor = msg.key.participant || msg.participant;
-  const grupos = [...gruposDeLaHistoria(msg.message)];
+  // SE BUSCA EN EL SOBRE ENTERO, NO EN `msg.message`. AQUI ESTABA EL FALLO.
+  //
+  // `statusMentions` y `statusMentionSources` son campos de WebMessageInfo —el
+  // objeto `msg`—, no del payload `Message`. Lo dice el propio WAProto de
+  // Baileys: WebMessageInfo.statusMentions = 66, .statusMentionSources = 71,
+  // mientras que `msg.message` es un `Message`, otra estructura entera.
+  //
+  // O sea que se estaba buscando la lista de destinos en el unico sitio donde
+  // NO puede estar. El bot detectaba la historia (marcaDeEstadoEnSobre si mira
+  // `msg`), no encontraba grupo, escribia "sin grupo identificable" en el log y
+  // se callaba. Desde fuera parecia que no la veia; la veia y no sabia donde.
+  const grupos = [...gruposDeLaHistoria(msg)];
+
+  // EL ENLACE ES LA PRUEBA, y manda sobre como se detecto la historia.
+  //
+  // `deteccion.seguro` dice si vino el sobre de estado o si se dedujo de campos
+  // sueltos, y con una deduccion no se echaba a nadie — bien pensado, porque un
+  // falso positivo cuesta el grupo. Pero eso dejaba pasar justo el caso que se
+  // ve en el grupo: una historia con una invitacion a OTRO grupo, detectada por
+  // `statusMentionSources`, o sea heuristica, o sea aviso y nada mas.
+  //
+  // Un chat.whatsapp.com no es una heuristica. Es la misma infraccion que en el
+  // chat le cuesta el grupo a cualquiera, y se juzga con el mismo clasificador.
+  // textoParaEnlaces recibe el `Message`, no el WebMessageInfo. Pasarle `msg`
+  // devuelve cadena vacia y el enlace no se ve: el mismo error de raiz que el
+  // de arriba, solo que al reves.
+  const veredicto = classifyLinks(textoParaEnlaces(msg.message) || '');
+  const conEnlace = veredicto === 'invite' || veredicto === 'blocked' || esInvitacionNativa(msg.message);
 
   // Sin destino no se puede sancionar a nadie: no sabriamos en que grupo. Queda
   // el registro para poder afinar con un caso real en vez de a ciegas.
@@ -482,18 +516,21 @@ async function historiaPorBroadcast(sock, msg, deteccion) {
     // Solo con el sobre identificado. Si vino por heuristica no se sanciona a
     // ciegas y encima sin poder borrar nada, que aqui el mensaje no esta en el
     // grupo: se avisa y que decidan los admins.
-    if (!deteccion.seguro) {
+    if (!deteccion.seguro && !conEnlace) {
       sock.sendMessage(g, {
         text: `@${String(autor).split('@')[0]} parece haber subido una historia al grupo. No la puedo borrar desde aquí; miradlo.`,
         mentions: [autor],
       }).catch(() => {});
       continue;
     }
-    await banAccount(allForms(autor, meta), `historia subida al grupo ${g}`, 'auto').catch(() => {});
+    const razon = conEnlace ? `historia con enlace subida al grupo ${g}` : `historia subida al grupo ${g}`;
+    await banAccount(allForms(autor, meta), razon, 'auto').catch(() => {});
     const fuera = await expulsar(sock, g, autor, meta);
     logger.warn(`historia en ${g} de ${autor}: vetado, expulsado=${fuera}`);
     sock.sendMessage(g, {
-      text: `@${String(autor).split('@')[0]} fuera y a la lista negra por subir una historia al grupo.`,
+      text: conEnlace
+        ? `@${String(autor).split('@')[0]} fuera y a la lista negra: historia al grupo con enlace. La historia no la puedo borrar yo; quitadla desde el estado.`
+        : `@${String(autor).split('@')[0]} fuera y a la lista negra por subir una historia al grupo.`,
       mentions: [autor],
     }).catch(() => {});
     if (!fuera) anotarTropiezo(`Historia en ${g} de +${String(autor).split('@')[0]}: vetado pero NO expulsado. Hazlo a mano.`);
