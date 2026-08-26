@@ -3325,6 +3325,37 @@ async function capaStores() {
         `${nombre}: ${repiten.length} frase(s) repiten la cabecera en vez de rematar: ${repiten[0] || ''}`);
     }
 
+    // NINGUN COMANDO PUEDE DEPENDER DE LA TILDE.
+    //
+    // *!menú* e *!inútil* no funcionaban: los `case` son 'menu' e 'inutil', asi
+    // que al que escribia CORRECTAMENTE en español no le respondia el bot. Y al
+    // reves, los cinco que llevan tilde en el nombre hubo que duplicarlos a mano
+    // uno por uno — duplicar alias arregla los casos de hoy y deja la clase de
+    // fallo intacta: el proximo comando con tilde vuelve a nacer roto.
+    //
+    // Se comprueba lo que lo hace imposible: que el token se normalice antes
+    // del switch, y que no quede ningun `case` con tilde (con normalizacion, un
+    // case acentuado es codigo muerto que nadie alcanza nunca).
+    {
+      const mh = soloCodigo('src/handlers/messageHandler.js');
+      exige(/const command = normalizarComando\(/.test(mh),
+        'el comando ya no se normaliza antes del switch: *!menú* y *!inútil* vuelven a no existir');
+      // Anclado a principio de linea: sin eso, el patron casa dentro de una
+      // expresion regular del propio fichero que lleva "case '([a-zá-úñ...])" y
+      // acusaba de acentuado a un `case` que no existe. Ya me habia pasado al
+      // inventariarlos; aqui casi se cuela a produccion.
+      const conTilde = [...mh.matchAll(/^[ \t]*case '([^']*[áéíóúüñÁÉÍÓÚÜÑ][^']*)':/gm)].map((m) => m[1]);
+      exige(conTilde.length === 0,
+        `hay case con tilde y con la normalizacion no se alcanzan nunca: ${conTilde.join(', ')}`);
+      // Y QUE DE VERDAD LLEGUE AL MISMO SITIO, no solo que la funcion exista.
+      const { normalizarComando } = require(path.join(R, 'src/handlers/messageHandler'));
+      for (const [escrito, esperado] of [['menú', 'menu'], ['inútil', 'inutil'], ['MÚSICA', 'musica'],
+        ['canción', 'cancion'], ['añadir', 'anadir'], ['aura', 'aura']]) {
+        const dio = normalizarComando ? normalizarComando(escrito) : null;
+        exige(dio === esperado, `normalizarComando("${escrito}") da "${dio}" y no "${esperado}"`);
+      }
+    }
+
     const planas = ["'Solo en grupos.'", "'No tienes permiso para usar esto.'",
       "'Solo admins pueden usar este comando.'", "'Solo funciona en grupos.'",
       "'Este duelo no es para ti.'", "'No tienes permiso para mutear a un admin.'"];

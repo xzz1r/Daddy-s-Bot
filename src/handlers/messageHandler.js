@@ -87,7 +87,7 @@ const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, extractText, getSender, 
 const logger = require('../utils/logger');
 
 const { clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa, PERMISO_ENLACE, puedeAnunciar, anotarTropiezo, perfilMirado } = require('../utils/antilink');
-const { SIN_PERMISO, SOLO_GRUPOS } = require('../data/avisos');
+const { SIN_PERMISO, SOLO_GRUPOS, MAL_ESCRITO } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
 
 // Commands that need group metadata — skip the network call for everything else
@@ -140,7 +140,7 @@ const NEEDS_META = new Set([
   // consulta compartida, el coste que justificaba el intercambio casi no existe:
   // la cache fria pasa de ser cada 30 s a cada 10 min, y una sola vez.
   'ttp','texto','iq',
-  'gay','simp','sexy','hot','rata','maricon','maricón','friki',
+  'gay','simp','sexy','hot','rata','maricon','friki',
   'crack','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','l','ganador',
   'puta','guarra','fiel','infiel','linda','fea','incel',
   'rizz',
@@ -237,7 +237,7 @@ const COBRO_CENTRAL = {
 // dispatcher los reparte uno a uno y no hay forma de reconocerlos por patrón
 // sin arriesgarse a cobrar de más por algo que no lo es.
 const CMDS_PORCENTAJE = [
-  'gay', 'maricon', 'maricón', 'femboy', 'incel', 'simp', 'friki', 'rata', 'cerdo', 'inutil',
+  'gay', 'maricon', 'femboy', 'incel', 'simp', 'friki', 'rata', 'cerdo', 'inutil',
   'perdedor', 'l', 'ganador', 'crack', 'puta', 'guarra', 'fea', 'linda', 'hot', 'sexy',
   'iq', 'fiel', 'infiel', 'feminidad', 'masculinidad',
 ];
@@ -589,9 +589,33 @@ async function cmdDiag(sock, msg, groupMeta) {
   await sock.sendMessage(destino, { text });
 }
 
+// LOS COMANDOS SE ESCRIBEN CON Y SIN TILDE, Y LOS DOS TIENEN QUE VALER.
+//
+// En español la tilde no es opcional: quien escribe bien pone *!menú* y *!inútil*,
+// y esos dos no existian —los `case` son 'menu' e 'inutil'—, asi que al que
+// escribia CORRECTAMENTE no le funcionaba el bot. Al reves pasaba lo mismo con
+// los cinco que si llevan tilde en el nombre (*!música*, *!canción*...), que
+// habia que duplicar a mano uno por uno.
+//
+// Duplicar alias no arregla la clase de fallo, solo los casos de hoy: el
+// proximo comando con tilde vuelve a nacer roto y nadie se entera hasta que
+// alguien se queja. Se normaliza UNA vez, aqui, y los `case` se escriben todos
+// sin tilde. A partir de ahora las dos formas caen en el mismo sitio por
+// construccion.
+//
+// La ñ tambien: *!añadir* y *!anadir* son la misma intencion, y nadie escribe
+// una ñ por error.
+function normalizarComando(x) {
+  return String(x || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')   // quita las tildes, deja la letra
+    .replace(/\u00f1/g, 'n');           // la ñ ya perdio su virgulilla arriba, pero por si acaso
+}
+
 function esComandoDeMedia(text) {
   if (!text.startsWith(config.prefix)) return false;
-  const first = text.slice(config.prefix.length).trim().split(/\s+/, 1)[0].toLowerCase();
+  const first = normalizarComando(text.slice(config.prefix.length).trim().split(/\s+/, 1)[0]);
   return MEDIA_CMDS.has(first);
 }
 
@@ -1377,7 +1401,7 @@ async function handleMessage(sock, msg) {
   // Exact-command match so things like "!once" don't bypass disabled state.
   if (!isBotEnabled(jid)) {
     const rest = text.startsWith(config.prefix) ? text.slice(config.prefix.length) : '';
-    const firstWord = rest.split(/\s+/, 1)[0].toLowerCase();
+    const firstWord = normalizarComando(rest.split(/\s+/, 1)[0]);
     if (firstWord !== 'on') return;
   }
 
@@ -1724,7 +1748,7 @@ async function handleMessage(sock, msg) {
   if (!text.startsWith(config.prefix)) return;
 
   const args = text.slice(config.prefix.length).trim().split(/\s+/);
-  const command = args.shift()?.toLowerCase();
+  const command = normalizarComando(args.shift());
   if (!command) return;
 
   // Check mute before anything else — but the owner tier is never silenced, so a
@@ -1831,9 +1855,7 @@ async function handleMessage(sock, msg) {
   try {
     switch (command) {
       case 'musica':
-      case 'música':
       case 'cancion':
-      case 'canción':
       case 'song':
       case 'playsong':
       case 'playaudio':
@@ -1927,7 +1949,6 @@ async function handleMessage(sock, msg) {
       case 'r':
       case 'presentarse':
       case 'presentacion':
-      case 'presentación':
         await cmdPresentarse(sock, msg, args, groupMeta);
         break;
 
@@ -2097,8 +2118,7 @@ async function handleMessage(sock, msg) {
       case 'sexy':
       case 'hot':        await cmdHot(sock, msg, groupMeta); break;
       case 'rata':       await cmdRata(sock, msg, groupMeta); break;
-      case 'maricon':
-      case 'maricón':    await cmdMaricon(sock, msg, groupMeta); break;
+      case 'maricon':    await cmdMaricon(sock, msg, groupMeta); break;
       case 'friki':      await cmdFriki(sock, msg, groupMeta); break;
       case 'crack':          await cmdCrack(sock, msg, groupMeta); break;
       case 'iq':             await cmdIQ(sock, msg); break;
@@ -2178,7 +2198,6 @@ async function handleMessage(sock, msg) {
       // quedarse en una linea y la explicacion puede ser todo lo larga que haga
       // falta sin estorbar a nadie.
       case 'guia':
-      case 'guía':
       case 'aurahelp':
       case 'guiaaura':
         await cmdAura(sock, msg, ['info'], groupMeta);
@@ -2354,8 +2373,11 @@ async function handleMessage(sock, msg) {
       default: {
         const sug = sugerirComando(command);
         if (sug && puedeSugerir(sender)) {
+          // La correccion primero —es la parte util— y el remate debajo. Mismo
+          // reparto que los avisos de rango: informar y picar no compiten.
           await sock.sendMessage(jid, {
-            text: `No existe *${config.prefix}${command}*. ¿Querías decir *${config.prefix}${sug}*?`,
+            text: `*${config.prefix}${command}* no existe. Era *${config.prefix}${sug}*.\n` +
+                  aviso(MAL_ESCRITO, jid, 'malescrito'),
           }, { quoted: msg }).catch(() => {});
         }
         break;
@@ -2388,7 +2410,7 @@ async function handleMessage(sock, msg) {
 
 }
 
-module.exports = { handleMessage, invalidateGroupMeta, getGroupMeta, PERMISO_ENLACE,
+module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGroupMeta, PERMISO_ENLACE,
   // Exportados para poder probar la deteccion de enlaces sin montar un socket.
   clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa,
   // Y la puerta del privado, por lo mismo: se prueba sola.

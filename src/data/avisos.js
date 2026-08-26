@@ -126,6 +126,29 @@ const DUELO_AJENO = [
   'Ese duelo no te incluye, y eso ya dice bastante de ti.',
 ];
 
+// ESCRIBIO MAL UN COMANDO Y HAY QUE ADIVINARSELO.
+//
+// Antes esto era un "¿Querias decir X?" pelado, con la cortesia de un buscador.
+// El bot no es un buscador. El aviso sigue diciendo cual era —esa parte si
+// sirve— pero el remate va a lo que acaba de pasar: no ha sido capaz de
+// escribir bien una palabra que tenia delante, en el menu, entera.
+//
+// Solo sale cuando hay una sugerencia de verdad. Si lo escrito no se parece a
+// nada, el bot se calla: reirse de alguien que quiza no estaba escribiendo un
+// comando es reirse de uno mismo.
+const MAL_ESCRITO = [
+  'Cuatro letras y las has fallado. Y esto era lo fácil del día.',
+  'Te he entendido igual, que es más de lo que tú has hecho por mi.',
+  'Ni copiar del menú te sale. Está escrito ahí arriba, entero y gratis.',
+  'Escribir mal un comando de cinco letras tiene un mérito raro.',
+  'Te lo pongo yo, que si esperamos a que lo escribas bien no llegamos.',
+  'Lo tenías delante, escrito, y aun así. Impresionante lo tuyo.',
+  'Ni un comando. No podías haber fallado en algo más pequeño.',
+  'Aprenderte la palabra cuesta menos que volver a intentarlo así.',
+  'Has necesitado ayuda para escribir una palabra. Toma la ayuda.',
+  'El teclado funciona. Lo que falla está un poco antes del teclado.',
+]
+
 // CABECERA POR POOL. Solo la tienen los avisos que niegan por RANGO: ahi hace
 // falta decir de quien es el comando. Los demas (a ti mismo, duelo ajeno, solo
 // grupos) ya se explican solos y una cabecera seria ruido.
@@ -140,4 +163,5 @@ const CABECERAS = new Map([
 function cabeceraDe(pool) { return CABECERAS.get(pool) || null; }
 
 module.exports = {
-  cabeceraDe, SOLO_GRUPOS, SIN_PERMISO, SOLO_ADMINS, A_TI_MISMO, CONTRA_UN_ADMIN, DUELO_AJENO };
+  cabeceraDe,
+  MAL_ESCRITO, SOLO_GRUPOS, SIN_PERMISO, SOLO_ADMINS, A_TI_MISMO, CONTRA_UN_ADMIN, DUELO_AJENO };
