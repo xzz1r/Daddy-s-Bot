@@ -621,6 +621,10 @@ const videoOnceWarn = new Map();       // 'groupJid|sender|vo' -> timestamp del 
 //
 // Diez minutos deja la red tranquila y sigue siendo una red de seguridad por si
 // algun cambio no genera evento.
+// A partir de aqui un comando se considera lento y se apunta en el log.
+// Un !ping normal ronda los 130 ms; kilo y medio es que algo va mal.
+const LENTO_MS = 1500;
+
 const META_TTL = 10 * 60_000;
 const META_MAX = 500;
 const metaCache = new Map();
@@ -1584,11 +1588,26 @@ async function handleMessage(sock, msg) {
   // Visto solo aqui, y sin await: si corriera en cada mensaje del grupo
   // WhatsApp ve un lector automatico. En un comando, marcar leido en paralelo
   // con la respuesta no le pone un round-trip delante.
-  if (config.autoRead && !msg.key.fromMe) {
-    sock.readMessages?.([msg.key]).catch(() => {});
-  }
+  // EL VISTO VA AL FINAL, EN EL `finally`. Aqui estaba, setenta lineas por
+  // delante del switch, y eso mete un viaje a WhatsApp DELANTE de cada
+  // respuesta: el socket es uno y las tramas salen en el orden en que se
+  // encolan, asi que el "visto" adelantaba a la contestacion en todos los
+  // comandos.
+  //
+  // Es exactamente lo que bot.js dice que no hay que hacer, en un comentario
+  // escrito para este mismo motivo. La optimizacion existia y se deshizo al
+  // mover la llamada aqui dentro.
 
   logger.cmd(sender.split('@')[0], `${config.prefix}${command} ${args.join(' ')}`);
+  // Cuanto tarda el comando en QUEDAR CONTESTADO, medido de verdad.
+  //
+  // "El bot va lento" no se puede arreglar a ojo: el coste local de un comando
+  // es de 2-3 ms y el resto es el viaje a WhatsApp, que desde aqui no se ve.
+  // Con esto, un `pm2 logs bot | grep LENTO` dice cual es y cuanto tarda.
+  //
+  // Solo se registra lo que pasa del umbral: un log por comando seria justo el
+  // ruido que hace que nadie lea los logs.
+  const t0Cmd = Date.now();
   incrementStat('commandsExecuted');
 
   // Only fetch group metadata for commands that actually need it
@@ -2211,6 +2230,14 @@ async function handleMessage(sock, msg) {
     sock.sendMessage(jid, {
       text: `Error inesperado: ${err.message}` + (cobradoAqui > 0 ? `\n_Te devuelvo los ${cobradoAqui} de aura._` : ''),
     }, { quoted: msg }).catch(() => {});
+  } finally {
+    // Y aqui, cuando la respuesta ya esta encolada. Sin await: no se le hace
+    // esperar a nadie por un acuse de lectura.
+    if (config.autoRead && !msg.key.fromMe) {
+      sock.readMessages?.([msg.key]).catch(() => {});
+    }
+    const tardo = Date.now() - t0Cmd;
+    if (tardo >= LENTO_MS) logger.warn(`LENTO: ${config.prefix}${command} tardo ${tardo} ms`);
   }
 
 }

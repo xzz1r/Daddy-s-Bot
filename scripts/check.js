@@ -3282,6 +3282,64 @@ async function capaStores() {
     if (fallos === antes) console.log(verde('   ✓ nada de lo que el bot manda dice de quién es'));
   }
 
+  // ── 28. NINGUN VIAJE A WHATSAPP POR DELANTE DE LA RESPUESTA ──────────────
+  //
+  // El socket es UNO y las tramas salen en el orden en que se encolan. Un acuse
+  // de lectura encolado antes de la contestacion la retrasa un viaje entero, y
+  // el viaje es lo unico que se nota: el coste local de un comando son 2-3 ms.
+  //
+  // Esto ya paso: bot.js lleva un comentario explicando que handleMessage va
+  // primero "para que su sendMessage se encole ANTES que readMessages", y aun
+  // asi el readMessages acabo DENTRO de handleMessage, setenta lineas por
+  // delante del switch. La optimizacion estaba escrita y deshecha a la vez.
+  //
+  // Se comprueba ejecutando y mirando el ORDEN de las llamadas al socket, que
+  // es lo unico que importa aqui y no se ve leyendo.
+  {
+    console.log('\n28. NADA SE ENCOLA POR DELANTE DE LA RESPUESTA');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const GV = '120028@g.us';
+    const BOTV = '549199@s.whatsapp.net';
+    const YOV = '34600000028@s.whatsapp.net';
+    const partsV = [{ id: BOTV, admin: 'admin' }, { id: YOV }];
+
+    const { handleMessage } = require(path.join(R, 'src/handlers/messageHandler'));
+    const orden = async (texto) => {
+      const ev = [];
+      const s = {
+        user: { id: BOTV },
+        sendMessage: async () => { ev.push('respuesta'); return {}; },
+        readMessages: async () => { ev.push('visto'); },
+        sendPresenceUpdate: async () => { ev.push('presencia'); },
+        groupMetadata: async () => ({ id: GV, subject: 'G', participants: partsV }),
+        groupParticipantsUpdate: async () => [],
+        groupFetchAllParticipating: async () => ({}),
+      };
+      await handleMessage(s, { key: { remoteJid: GV, participant: YOV, fromMe: false, id: `V${Math.random()}` },
+        message: { conversation: texto }, pushName: 'x', messageTimestamp: Math.floor(Date.now() / 1000) });
+      await new Promise((r) => setTimeout(r, 120));
+      return ev;
+    };
+
+    for (const c of ['!ping', '!commands', '!whoami']) {
+      const ev = await orden(c);
+      const iR = ev.indexOf('respuesta');
+      exige(iR === 0,
+        `${c}: antes de contestar se encola "${ev[0] || 'nada'}" — eso es un viaje a WhatsApp por delante de cada respuesta (orden: ${ev.join(' → ') || 'vacio'})`);
+    }
+
+    // Y que el visto siga estando DESPUES del switch en el fichero. La prueba de
+    // arriba lo pilla, pero esta dice donde mirar cuando falle.
+    const mhV = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+    const iVisto = mhV.indexOf('sock.readMessages?.');
+    const iSwitch = mhV.indexOf('switch (command)');
+    exige(iVisto > iSwitch,
+      'el visto volvio a mandarse antes del switch: retrasa un viaje entero cada respuesta');
+
+    if (fallos === antes) console.log(verde('   ✓ la respuesta es lo primero que sale, en los tres comandos probados'));
+  }
+
   // ── 24. EL RESUMEN DE `npm run estado` NO ESCONDE NADA ───────────────────
   //
   // `estado` pasó a tener dos salidas: un resumen (lo que se ve al escribirlo)
