@@ -1845,10 +1845,32 @@ async function capaStores() {
       exige(f.uno.includes('%M') && f.varios.includes('%M'), 'aviso de kick no menciona');
       exige(!/valéis|estáis|sois |vosotros|tenéis/.test(`${f.uno} ${f.varios}`),
         'aviso de kick conjugó en vosotros');
-      exige(/no eres suficiente|no das |no llegas|te queda grande|te echa con alivio|ocupaste el sitio|ya te olvidó/i.test(f.uno),
-        'frase de !kick se salió del hueso');
-      exige(/no son suficientes|no dan |no llegan|les queda grande|los echa con alivio|ocuparon el sitio|ya los olvidó/i.test(f.varios),
-        'frase plural de !kick se salió del hueso');
+      // AQUI VIVIA UNA LISTA DE SIETE EXPRESIONES LITERALES.
+      //
+      // Pedia que cada aviso contuviera "no eres suficiente", "te queda
+      // grande", "ya te olvidó"... una de siete. Y reventó el despliegue en
+      // cuanto entró un pool nuevo: 42 fallos, y ninguno era un fallo. Las
+      // frases nuevas eran mejores que las viejas — solo que no reutilizaban el
+      // vocabulario que yo habia congelado.
+      //
+      // Una guarda asi no protege la calidad: la impide. Obliga a que las
+      // veintidos frases digan lo mismo con otras palabras, que es exactamente
+      // como un pool se convierte en plantilla — el mismo defecto que hubo que
+      // arreglar a mano en !aura y en los avisos de rango.
+      //
+      // Se mide el HECHO: que sea un ataque con cuerpo y no un comunicado.
+      // Los cuatro criterios estan calibrados contra el pool real y los pasa
+      // entero, asi que ninguno le dice a nadie como tiene que escribir.
+      exige(f.uno !== f.varios,
+        'un aviso de !kick tiene la forma singular y la plural identicas: en un kick multiple se leera en singular');
+      exige(f.uno.length >= 120 && f.varios.length >= 120,
+        `aviso de !kick demasiado corto (${f.uno.length}/${f.varios.length} caracteres): esto es el remate de una expulsion, no una notificacion`);
+      const BUROCRACIA_KICK = /\b(ha sido (expulsad|eliminad|removid)|por incumplir|el administrador ha|abandona el grupo|ha salido del grupo|se ha procedido|conforme a las normas)\b/i;
+      exige(!BUROCRACIA_KICK.test(`${f.uno} ${f.varios}`),
+        'un aviso de !kick suena a comunicado de moderacion y no a este bot');
+      const PLURAL_KICK = /\b(sois|son|fueron|estuvieron|se creyeron|los echan|los echa|ocuparon|todos|cada uno|ninguno de|los dos|se van|se largan|nadie de)\b|\w+(aron|ieron|eron)\b/i;
+      exige(PLURAL_KICK.test(f.varios),
+        'la forma plural de un aviso de !kick no tiene ni una marca de plural: en un kick multiple sonara raro');
     }
 
     const aviso1 = avisoDeKick(['57300111222@s.whatsapp.net']);
