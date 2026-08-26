@@ -120,11 +120,18 @@ for (const abs of walk(path.join(R, 'src'))) {
 
 for (const s of sinContrato) console.log(`\nFALLO  ${s}`);
 
-console.log(`\n${'─'.repeat(70)}`);
-console.log(`${frasesRevisadas} frases revisadas en ${ficherosRevisados} ficheros con placeholders.`);
+// Con --breve, una sola linea. Lo usa el despliegue: ahi lo unico que importa
+// es si hay algo sin enchufar, y los FALLO de arriba se imprimen igual.
+const BREVE = process.argv.includes('--breve') || process.argv.includes('-b');
 
+if (!BREVE) console.log(`\n${'─'.repeat(70)}`);
 if (fallos) {
   console.log(`\n${fallos} placeholder(s) sin enchufar: SALDRÍAN EN CRUDO EN EL GRUPO.`);
   process.exit(1);
 }
-console.log('Todos los placeholders están enchufados a algo que los sustituye.');
+if (BREVE) {
+  console.log(`\x1b[32m  ✓ ${frasesRevisadas} frases, ningún placeholder suelto\x1b[0m`);
+} else {
+  console.log(`${frasesRevisadas} frases revisadas en ${ficherosRevisados} ficheros con placeholders.`);
+  console.log('Todos los placeholders están enchufados a algo que los sustituye.');
+}

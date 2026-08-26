@@ -91,7 +91,7 @@ fi
 
 ANTES="$(git rev-parse --short HEAD)"
 
-git fetch origin "${RAMA}"
+git fetch --quiet origin "${RAMA}"
 
 # Si la máquina se quedó en otra rama, se la trae a la buena. El control de
 # cambios locales de arriba ya pasó, así que aquí no se pisa nada de nadie.
@@ -118,14 +118,14 @@ fi
 # importar en qué estado raro se hubiera quedado la máquina. Los datos del bot
 # (aura, casino, rachas, sesión) están en data/ y fuera de git, así que esto no
 # toca ni un punto de aura de nadie.
-git reset --hard "origin/${RAMA}"
+git reset --hard --quiet "origin/${RAMA}"
 
 DESPUES="$(git rev-parse --short HEAD)"
 CUANTOS="$(git rev-list --count "${ANTES}..${DESPUES}" 2>/dev/null || echo 0)"
 
 # --ignore-scripts y borrar sharp: sus binarios precompilados no siempre casan
 # con esta máquina y su postinstall es de lo poco que puede tumbar un despliegue.
-npm install --omit=dev --ignore-scripts
+npm install --omit=dev --ignore-scripts --no-fund --no-audit --loglevel=error
 
 # sharp y SUS BINARIOS. Se borraba la carpeta sharp pero no @img, que es donde
 # viven los binarios de verdad: 27 MB de libvips y un fallback WebAssembly que
@@ -158,7 +158,7 @@ echo "→ Comprobando que el código nuevo arranca..."
 # calidad y no correccion, y ahora mismo sale en rojo por diseño (9 tramos
 # cortos que le tocan a quien escribe las frases). Meterlo aqui bloquearia todos
 # los despliegues por algo que no rompe nada.
-if ! npm run placeholders; then
+if ! npm run --silent placeholders -- --breve; then
   echo
   echo "════════════════════════════════════════════"
   echo "  NO SE REINICIA: hay placeholders sin enchufar."
@@ -167,11 +167,12 @@ if ! npm run placeholders; then
   exit 1
 fi
 
-if ! npm run check; then
+if ! npm run --silent check -- --breve; then
   echo
   echo "════════════════════════════════════════════"
   echo "  NO SE REINICIA: el código nuevo no pasa la comprobación."
   echo "  El bot sigue corriendo con la versión anterior."
+  echo "  Detalle completo de las 32 capas:  npm run check"
   echo "  Arregla lo de arriba y vuelve a lanzar: npm run update"
   echo "════════════════════════════════════════════"
   exit 1
@@ -185,7 +186,7 @@ bash scripts/respaldo.sh || echo "  (aviso: no se pudo hacer la copia de data/, 
 
 # Sin esto el código nuevo no llega a ejecutarse. --update-env relee el .env,
 # que es justo lo que hace falta cuando lo que cambió fue una key.
-pm2 restart bot --update-env || pm2 start ecosystem.config.js
+pm2 restart bot --update-env >/dev/null || pm2 start ecosystem.config.js >/dev/null
 pm2 save --force >/dev/null
 
 # Veredicto explícito. Sin esto no había forma de saber si el comando había
@@ -210,7 +211,7 @@ echo
 echo "→ Esperando a que el bot conecte..."
 sleep 12
 
-npm run estado
+npm run --silent estado
 
 # ─── Y AHORA LA PREGUNTA QUE IMPORTA: ¿corre lo que hay en disco? ────────────
 #

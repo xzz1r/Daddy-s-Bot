@@ -47,6 +47,50 @@ const R = path.resolve(__dirname, '..');
 const rojo = (s) => `\x1b[31m${s}\x1b[0m`;
 const verde = (s) => `\x1b[32m${s}\x1b[0m`;
 
+// ─── MODO BREVE ──────────────────────────────────────────────────────────────
+//
+// EXISTE PORQUE EL DESPLIEGUE ERA UNA PARED. `npm run update` corre esto por
+// dentro, y con 32 capas escupiendo su linea en verde el resultado eran
+// cincuenta lineas donde lo unico que importa es si algo fallo. Nadie lee eso;
+// se mira el final y ya. Un informe que no se lee no informa.
+//
+// Con --breve solo sale lo que falla. Lo demas se cuenta y se resume en una
+// linea. El detalle entero sigue estando a un `npm run check` de distancia, y
+// cuando algo falla se dice explicitamente donde mirar.
+//
+// Los avisos del logger (los WARN que sueltan las capas de moderacion al
+// probarse) se guardan en vez de imprimirse: son ruido esperado cuando todo va
+// bien, y prueba util cuando algo se rompe. Por eso se enseñan solo si hay
+// fallos, en vez de tirarlos.
+const BREVE = process.argv.includes('--breve') || process.argv.includes('-b');
+const _log = console.log;
+const _err = console.error;
+let capasCorridas = 0, capasSaltadas = 0;
+const erroresGuardados = [];
+if (BREVE) {
+  console.log = (...a) => {
+    const limpio = a.join(' ').replace(/\x1b\[\d+m/g, '');
+    if (/^\n?\s*\d+\./.test(limpio)) { capasCorridas++; return; }
+    if (/—\s*(saltad|barrido)/i.test(limpio)) { capasSaltadas++; return; }
+    if (limpio.includes('✗')) _log(...a);
+  };
+  console.error = (...a) => { erroresGuardados.push(a.join(' ')); };
+}
+function resumenBreve(fallos) {
+  console.log = _log; console.error = _err;
+  if (!BREVE) return;
+  if (fallos) {
+    if (erroresGuardados.length) {
+      _log(`\n  avisos durante la comprobacion (${erroresGuardados.length}):`);
+      for (const e of erroresGuardados.slice(-8)) _log('    ' + e);
+    }
+    _log(rojo(`\n  ${fallos} fallo(s) en ${capasCorridas} capas. Detalle completo: npm run check`));
+  } else {
+    const saltadas = capasSaltadas ? `, ${capasSaltadas} saltada(s) con el bot en marcha` : '';
+    _log(verde(`  ✓ ${capasCorridas} capas${saltadas} — sin fallos`));
+  }
+}
+
 let fallos = 0;
 
 function ficherosJs() {
@@ -3726,6 +3770,10 @@ async function capaStores() {
     if (fallos === antes) console.log(verde('   ✓ admin por @lid, reacciones mudas, stores sin pisarse'));
   }
 
+  if (BREVE) {
+    resumenBreve(fallos);
+    process.exit(fallos ? 1 : 0);
+  }
   console.log(`\n${'─'.repeat(70)}`);
   if (fallos) {
     console.log(rojo(`${fallos} fallo(s). NO commitees esto.`));
