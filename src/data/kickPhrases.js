@@ -1,7 +1,9 @@
 // Avisos de !kick. Salen en el grupo ANTES de echar, para que lo vean.
 //
-// El hueso es el mismo que en !purge — no son suficientes — pero más hiriente:
+// El hueso es el mismo que en !purge — no perteneces, sobras — pero más hiriente:
 // !kick lo usan los admins, se ve en el grupo y tiene que doler.
+// El ángulo NO es siempre "no eres suficiente": si todos dicen lo mismo, el
+// grupo deja de leerlo. Cada entrada ataca el mismo sitio por un sitio distinto.
 //
 // %M se sustituye por las menciones. Cada entrada trae singular (tú) y plural
 // (ustedes). Español neutral: sin vosotros.
@@ -46,6 +48,66 @@ const AVISOS_KICK = [
   {
     uno: '%M para cuando termines de leer esto, el grupo ya te olvidó.\nNo eres suficiente. No lo fuiste el día que entraste y no lo eres ahora. Tu ausencia es una mejora. Fuera.',
     varios: '%M para cuando terminen de leer esto, el grupo ya los olvidó.\nNo son suficientes. No lo fueron el día que entraron y no lo son ahora. Su ausencia es una mejora. Fuera.',
+  },
+  {
+    uno: '%M te confundiste: que te dejaran estar no era que te quisieran.\nTe toleraron. Te aguantaron. Estabas en la lista porque nadie se tomó el trabajo de borrarte. Eso se acaba ahora. Fuera.',
+    varios: '%M se confundieron: que los dejaran estar no era que los quisieran.\nLos toleraron. Los aguantaron. Estaban en la lista porque nadie se tomó el trabajo de borrarlos. Eso se acaba ahora. Fuera.',
+  },
+  {
+    uno: '%M mira alrededor. Nadie se está moviendo para quedarte.\nSi importaras, alguien habría abierto la boca. El silencio del grupo es el veredicto, y no hay apelación. Fuera.',
+    varios: '%M miren alrededor. Nadie se está moviendo para quedárselos.\nSi importaran, alguien habría abierto la boca. El silencio del grupo es el veredicto, y no hay apelación. Fuera.',
+  },
+  {
+    uno: '%M esto no es una discusión. Es un aviso.\nEl grupo ya decidió. Tú te enteras ahora. No hay debate, no hay segunda ronda, no hay "espera un momento". Fuera.',
+    varios: '%M esto no es una discusión. Es un aviso.\nEl grupo ya decidió. Ustedes se enteran ahora. No hay debate, no hay segunda ronda, no hay "esperen un momento". Fuera.',
+  },
+  {
+    uno: '%M eras mueble. Se te sentaba al lado y se te olvidaba.\nUn mueble se cambia cuando estorba. Estorbas. El grupo acaba de hacer limpieza. Fuera.',
+    varios: '%M eran mueble. Se les sentaba al lado y se les olvidaba.\nUn mueble se cambia cuando estorba. Estorban. El grupo acaba de hacer limpieza. Fuera.',
+  },
+  {
+    uno: '%M tu nombre en la lista fue un error administrativo.\nAlguien te dejó entrar y nadie te reclamó. Eso no es pertenecer: es un descuido. Los descuidos se corrigen. Fuera.',
+    varios: '%M sus nombres en la lista fueron un error administrativo.\nAlguien los dejó entrar y nadie los reclamó. Eso no es pertenecer: es un descuido. Los descuidos se corrigen. Fuera.',
+  },
+  {
+    uno: '%M el grupo iba más lento por cargarte.\nNo aportaste peso de valor: aportaste lastre. El lastre se tira por la borda cuando hay que avanzar. Te toca. Fuera.',
+    varios: '%M el grupo iba más lento por cargarlos.\nNo aportaron peso de valor: aportaron lastre. El lastre se tira por la borda cuando hay que avanzar. Les toca. Fuera.',
+  },
+  {
+    uno: '%M tu última oportunidad pasó hace tiempo y ni te enteraste.\nEl grupo te dio cuerda. La gastaste en no ser nadie. Hoy no hay más. Fuera.',
+    varios: '%M su última oportunidad pasó hace tiempo y ni se enteraron.\nEl grupo les dio cuerda. La gastaron en no ser nadie. Hoy no hay más. Fuera.',
+  },
+  {
+    uno: '%M cuando te vayas, nadie va a preguntar dónde estás.\nEso no es crueldad: es diagnóstico. Si nadie te busca, es que no hacías falta. Fuera.',
+    varios: '%M cuando se vayan, nadie va a preguntar dónde están.\nEso no es crueldad: es diagnóstico. Si nadie los busca, es que no hacían falta. Fuera.',
+  },
+  {
+    uno: '%M este grupo no es un refugio para el que no pinta nada.\nEntraste como si el sitio fuera un derecho. No lo es. Se gana, y tú no lo ganaste. Fuera.',
+    varios: '%M este grupo no es un refugio para el que no pinta nada.\nEntraron como si el sitio fuera un derecho. No lo es. Se gana, y ustedes no lo ganaron. Fuera.',
+  },
+  {
+    uno: '%M no hay juicio. No hay descargo. No hay "déjame explicar".\nEl grupo no te debe una audiencia. Te debe una salida. Esta es. Fuera.',
+    varios: '%M no hay juicio. No hay descargo. No hay "déjennos explicar".\nEl grupo no les debe una audiencia. Les debe una salida. Esta es. Fuera.',
+  },
+  {
+    uno: '%M eras ruido de fondo. Se te oía y se te ignoraba.\nEl grupo acaba de bajar el volumen a cero. No vas a faltar porque nunca sonaste. Fuera.',
+    varios: '%M eran ruido de fondo. Se les oía y se les ignoraba.\nEl grupo acaba de bajar el volumen a cero. No van a faltar porque nunca sonaron. Fuera.',
+  },
+  {
+    uno: '%M este grupo te estuvo examinando desde el primer día.\nNo aprobaste. No te avisaron porque no hacía falta: el resultado se veía solo. Hoy se publica. Fuera.',
+    varios: '%M este grupo los estuvo examinando desde el primer día.\nNo aprobaron. No les avisaron porque no hacía falta: el resultado se veía solo. Hoy se publica. Fuera.',
+  },
+  {
+    uno: '%M te tuvieron por lástima, no por mérito.\nEsa limosna se termina. El grupo no es caridad y tú no eres un caso social. Fuera.',
+    varios: '%M los tuvieron por lástima, no por mérito.\nEsa limosna se termina. El grupo no es caridad y ustedes no son un caso social. Fuera.',
+  },
+  {
+    uno: '%M te fuiste hace tiempo. Hoy solo se hace oficial.\nDejaste de contar el día en que el grupo aprendió a funcionar sin mirarte. La lista se pone al día. Fuera.',
+    varios: '%M se fueron hace tiempo. Hoy solo se hace oficial.\nDejaron de contar el día en que el grupo aprendió a funcionar sin mirarlos. La lista se pone al día. Fuera.',
+  },
+  {
+    uno: '%M esta puerta no se vuelve a abrir para ti.\nNo es un castigo con fecha. Es un cierre. El grupo ya te tuvo y ya te midió. No hay reingreso. Fuera.',
+    varios: '%M esta puerta no se vuelve a abrir para ustedes.\nNo es un castigo con fecha. Es un cierre. El grupo ya los tuvo y ya los midió. No hay reingreso. Fuera.',
   },
 ];
 
