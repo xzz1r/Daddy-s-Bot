@@ -75,10 +75,17 @@ function mergeByPerson(group) {
   const out = new Map(); // canonicalKey -> { jid, count }
   for (const k in group) {
     const id = canonicalJid(k);
+    // El representante es la forma de TELEFONO siempre que se sepa cual es, y
+    // por eso se prefiere `id` (ya canonizado) sobre la clave cruda: si la
+    // persona solo tiene un monton y esta guardado bajo su @lid, quedarse con
+    // la clave dejaba un "@919191919191" en el ranking — un numero que no es de
+    // nadie y que WhatsApp no sabe convertir en un nombre. El @lid solo
+    // sobrevive cuando de verdad no se conoce el telefono.
+    const rep = id.endsWith('@lid') ? k : id;
     const prev = out.get(id);
-    if (!prev) { out.set(id, { jid: k, count: group[k] }); continue; }
+    if (!prev) { out.set(id, { jid: rep, count: group[k] }); continue; }
     prev.count += group[k];
-    if (!k.endsWith('@lid')) prev.jid = k;
+    if (!rep.endsWith('@lid')) prev.jid = rep;
   }
   return out;
 }

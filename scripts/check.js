@@ -3426,6 +3426,48 @@ async function capaStores() {
     if (fallos === antes) console.log(verde('   ✓ ni ceros inventados ni comando vacio'));
   }
 
+  // ── 30. TODOS LOS CONTEOS CUADRAN ────────────────────────────────────────
+  //
+  // La capa 29 vigila UN comando (!inactivos) contra UN fallo concreto. Esta
+  // vigila los OCHO que dicen un número de mensajes —!count, !count @alguien,
+  // !relevancia, !vs, !fantasmas, !inactivos, !top5 y el contador del día que
+  // paga los bonos— y contra las tres formas en que WhatsApp manda la lista de
+  // miembros, más los montones heredados de antes de saber quién era quién.
+  //
+  // Va en un script aparte (scripts/conteos.js) porque necesita algo que aquí
+  // no se puede hacer: darle mensajes de verdad a handleMessage y preguntarle
+  // después al bot, en vez de mirar el almacén por dentro. Ese es justo el
+  // camino donde se rompió el conteo, y mirar el almacén no lo habría visto.
+  //
+  // Se ejecuta en una copia desechable del bot, con su propio `data` vacío, así
+  // que corre igual con el bot en marcha y no toca ni un conteo del grupo.
+  {
+    console.log('\n30. TODOS LOS CONTEOS CUADRAN');
+    const antes = fallos;
+    let salida = '';
+    try {
+      salida = execSync(`node ${path.join(R, 'scripts/conteos.js')}`,
+        { encoding: 'utf8', timeout: 180000, stdio: ['ignore', 'pipe', 'pipe'] });
+    } catch (e) {
+      salida = `${e.stdout || ''}${e.stderr || ''}`;
+      fallos++;
+      // Se enseñan las líneas que fallaron, no el volcado entero: el detalle
+      // completo se saca con `node scripts/conteos.js`.
+      const malas = salida.split('\n').filter((l) => l.includes('✗')).slice(0, 12);
+      console.log(rojo(malas.length
+        ? malas.map((l) => `   ${l.trim()}`).join('\n')
+        : `   ✗ scripts/conteos.js no llego a terminar: ${salida.trim().split('\n').slice(-3).join(' | ')}`));
+    }
+    // Y QUE HAYA COMPROBADO ALGO DE VERDAD. Un script que se cae al arrancar y
+    // devuelve 0 pasaria por bueno; aqui se exige ver las marcas.
+    const marcas = (salida.match(/✓/g) || []).length;
+    if (fallos === antes && marcas < 30) {
+      fallos++;
+      console.log(rojo(`   ✗ conteos.js dice que todo va bien pero solo ha comprobado ${marcas} cosas`));
+    }
+    if (fallos === antes) console.log(verde(`   ✓ ${marcas} comprobaciones de conteo, todas cuadran`));
+  }
+
   // ── 24. EL RESUMEN DE `npm run estado` NO ESCONDE NADA ───────────────────
   //
   // `estado` pasó a tener dos salidas: un resumen (lo que se ve al escribirlo)

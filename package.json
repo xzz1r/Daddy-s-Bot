@@ -14,7 +14,8 @@
     "pools": "node scripts/pools.js",
     "progreso": "node scripts/progreso.js",
     "respaldo": "bash scripts/respaldo.sh",
-    "restaurar": "bash scripts/restaurar.sh"
+    "restaurar": "bash scripts/restaurar.sh",
+    "conteos": "node scripts/conteos.js"
   },
   "repository": {
     "type": "git",
