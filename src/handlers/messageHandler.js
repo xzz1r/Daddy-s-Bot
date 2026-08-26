@@ -16,37 +16,74 @@ const { businessEvidence } = require('../utils/businessCheck');
 const { aplicarAUno } = require('../utils/participantes');
 const { allForms } = require('../commands/fk');
 const { checkCasinoMilestone } = require('../utils/casino');
-const { cmdPlay, cmdCacheList, cmdClearCache } = require('../commands/music');
-const { cmdSticker } = require('../commands/sticker');
+// Carga perezosa de los comandos gordos. percentLabels.js son 343 KB, robo.js
+// 184, aura 98, roast+wingman ~137: parsearlos al arrancar clavaba el event
+// loop antes de poder contestar. isMuted (group.js) y allForms (fk.js) se
+// quedan eager: el camino caliente los usa en cada mensaje.
+function lazyCmd(rel, name) {
+  let fn;
+  return async function (...args) {
+    if (!fn) fn = require(rel)[name];
+    return fn(...args);
+  };
+}
+const cmdPlay = lazyCmd('../commands/music', 'cmdPlay');
+const cmdCacheList = lazyCmd('../commands/music', 'cmdCacheList');
+const cmdClearCache = lazyCmd('../commands/music', 'cmdClearCache');
+const cmdSticker = lazyCmd('../commands/sticker', 'cmdSticker');
 const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdK, privadoDelOwner, hallarMedio } = require('../commands/k');
 const { cmdCount, cmdResetCount } = require('../commands/count');
-const { cmdRelevance } = require('../commands/relevance');
+const cmdRelevance = lazyCmd('../commands/relevance', 'cmdRelevance');
 const { cmdG, cmdSetKey } = require('../commands/ai');
 const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdSoloAdmins, cmdAdm, cmdPresentarse } = require('../commands/group');
-const { cmdShip } = require('../commands/ship');
+const cmdShip = lazyCmd('../commands/ship', 'cmdShip');
 const { cmdTtp } = require('../commands/ttp');
 const { cmdToImg, cmdToVid } = require('../commands/toimg');
 const { cmdPfp } = require('../commands/pfp');
 const { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdFkList, cmdAntiFake } = require('../commands/fk');
 const { maybeIndex } = require('../utils/pfpIndexer');
-const { cmdGay, cmdSimp, cmdHot, cmdRata, cmdMaricon, cmdFriki, cmdCrack, cmdCerdo, cmdFeminidad, cmdMasculinidad, cmdInutil, cmdFemboy, cmdPerdedor, cmdGanador, cmdPuta, cmdGuarra, cmdFiel, cmdInfiel, cmdLinda, cmdFea, cmdIncel } = require('../commands/percent');
+const cmdGay = lazyCmd('../commands/percent', 'cmdGay');
+const cmdSimp = lazyCmd('../commands/percent', 'cmdSimp');
+const cmdHot = lazyCmd('../commands/percent', 'cmdHot');
+const cmdRata = lazyCmd('../commands/percent', 'cmdRata');
+const cmdMaricon = lazyCmd('../commands/percent', 'cmdMaricon');
+const cmdFriki = lazyCmd('../commands/percent', 'cmdFriki');
+const cmdCrack = lazyCmd('../commands/percent', 'cmdCrack');
+const cmdCerdo = lazyCmd('../commands/percent', 'cmdCerdo');
+const cmdFeminidad = lazyCmd('../commands/percent', 'cmdFeminidad');
+const cmdMasculinidad = lazyCmd('../commands/percent', 'cmdMasculinidad');
+const cmdInutil = lazyCmd('../commands/percent', 'cmdInutil');
+const cmdFemboy = lazyCmd('../commands/percent', 'cmdFemboy');
+const cmdPerdedor = lazyCmd('../commands/percent', 'cmdPerdedor');
+const cmdGanador = lazyCmd('../commands/percent', 'cmdGanador');
+const cmdPuta = lazyCmd('../commands/percent', 'cmdPuta');
+const cmdGuarra = lazyCmd('../commands/percent', 'cmdGuarra');
+const cmdFiel = lazyCmd('../commands/percent', 'cmdFiel');
+const cmdInfiel = lazyCmd('../commands/percent', 'cmdInfiel');
+const cmdLinda = lazyCmd('../commands/percent', 'cmdLinda');
+const cmdFea = lazyCmd('../commands/percent', 'cmdFea');
+const cmdIncel = lazyCmd('../commands/percent', 'cmdIncel');
 // !iq no es un comando de porcentaje: saca una CIFRA de IQ y vive aparte.
 const { cmdIQ } = require('../commands/iq');
-const { cmdRizz, cmdPiropo, cmdWingman } = require('../commands/wingman');
-const { cmdAura } = require('../commands/aura');
+const cmdRizz = lazyCmd('../commands/wingman', 'cmdRizz');
+const cmdPiropo = lazyCmd('../commands/wingman', 'cmdPiropo');
+const cmdWingman = lazyCmd('../commands/wingman', 'cmdWingman');
+const cmdAura = lazyCmd('../commands/aura', 'cmdAura');
 const { resetAura } = require('../utils/auraStore');
 const { cmdMog } = require('../commands/mog');
-const { cmdRobo } = require('../commands/robo');
+const cmdRobo = lazyCmd('../commands/robo', 'cmdRobo');
 const { cmdDuel } = require('../commands/duel');
 const { cmdScan } = require('../commands/scan');
 const { cmdAntiFoto } = require('../commands/cleanup');
-const { cmdVs, cmdFantasmas, cmdInactivos } = require('../commands/activity');
+const cmdVs = lazyCmd('../commands/activity', 'cmdVs');
+const cmdFantasmas = lazyCmd('../commands/activity', 'cmdFantasmas');
+const cmdInactivos = lazyCmd('../commands/activity', 'cmdInactivos');
 const { cmdPurgaNumero, cmdPurge } = require('../commands/purgaNumero');
-const { cmdRoast } = require('../commands/roast');
+const cmdRoast = lazyCmd('../commands/roast', 'cmdRoast');
 const { cmdDar } = require('../commands/dar');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, cmdCasino } = require('../commands/social');
-const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, extractText, rememberMapping, getSender, canonicalJid, sameUser, indexGroupMeta } = require('../utils/wa');
+const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, extractText, getSender, canonicalJid, sameUser, indexGroupMeta } = require('../utils/wa');
 const logger = require('../utils/logger');
 
 const { clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa, PERMISO_ENLACE, puedeAnunciar, anotarTropiezo, perfilMirado } = require('../utils/antilink');
@@ -976,6 +1013,22 @@ function anotarTipoDesconocido(message, jid, sender) {
   }
 }
 
+// Reacción, SKDM, voto de encuesta: no hay texto, ni enlace, ni foto que
+// moderar. Recorrer el árbol (citas, botones, vCards) en cada uno era trabajo
+// muerto en el camino caliente — en un grupo activo llegan más reacciones que
+// mensajes. protocolMessage y editedMessage NO están: un edit sí puede colar
+// un enlace.
+const SOBRE_SIN_CONTENIDO = new Set([
+  'reactionMessage', 'encReactionMessage',
+  'senderKeyDistributionMessage', 'pollUpdateMessage',
+  'messageContextInfo',
+]);
+function esSobreSinContenido(message) {
+  if (!message) return true;
+  const keys = Object.keys(message);
+  return keys.length > 0 && keys.every((k) => SOBRE_SIN_CONTENIDO.has(k));
+}
+
 function sobresDesconocidos() { return desconocidos.slice().reverse(); }
 
 // ¿El mensaje venía marcado como "ver una vez"?
@@ -1125,13 +1178,9 @@ async function handleMessage(sock, msg) {
     const altEsLid = msg.key.addressingMode
       ? msg.key.addressingMode !== 'lid'
       : String(alt).endsWith('@lid');
-    if (altEsLid) {
-      rememberMapping(alt, msg.key.participant);
-      senderPn = msg.key.participant;
-    } else {
-      rememberMapping(msg.key.participant, alt);
-      senderPn = alt;
-    }
+    // getSender ya anotó el par en lidToPhone; aquí solo se saca el teléfono
+    // para el ranking y las guardas de owner.
+    senderPn = altEsLid ? msg.key.participant : alt;
   }
 
   // Skip own messages that aren't commands (avoids bot responding to itself)
@@ -1193,9 +1242,11 @@ async function handleMessage(sock, msg) {
       // mensaje, no hace falta ninguna consulta de perfil y funciona igual con
       // @lid, que es donde la comprobación de entrada era ciega.
       expulsarBusinessDetectado(sock, jid, sender, msg, 'nombre verificado de negocio').catch(() => {});
-    } else if (!isOwner(sender, msg.key.fromMe, peekGroupMeta(jid))) {
+    } else if (isAntiBusinessEnabled(jid) && !isOwner(sender, msg.key.fromMe, peekGroupMeta(jid))) {
       // Sin badge: se mira lo ya fichado. Es una lectura de disco, no una
       // consulta de red, asi que puede correr en cada mensaje sin coste.
+      // Con el modo apagado no se consulta: expulsarBusinessDetectado volvería
+      // a salir en la primera línea y era un getMemberFacts por mensaje muerto.
       getMemberFacts([sender, canonicalJid(sender)]).then(async (f) => {
         if (f?.biz) return expulsarBusinessDetectado(sock, jid, sender, msg, 'ya estaba fichada como cuenta de negocio');
 
@@ -1208,7 +1259,6 @@ async function handleMessage(sock, msg) {
         // en cada linea es la forma mas rapida de que WhatsApp te limite el
         // socket. Y solo si el modo esta encendido, que si no es red gastada
         // para nada.
-        if (!isAntiBusinessEnabled(jid)) return;
         const tel = canonicalJid(sender);
         if (!tel || !tel.endsWith('@s.whatsapp.net')) return;
         const clave = `${jid}|${tel}`;
@@ -1262,6 +1312,9 @@ async function handleMessage(sock, msg) {
   // mismo enlace en texto suelto costaba el grupo. Era la via de escape
   // evidente para cualquiera que quisiera colar el suyo.
   if (jid.endsWith('@g.us')) {
+    // Reacción / SKDM / voto: la actividad ya se anotó arriba. No hay nada
+    // que moderar y el árbol de antilink/medios era trabajo muerto.
+    if (esSobreSinContenido(msg.message) && !text.startsWith(config.prefix)) return;
     anotarTipoDesconocido(msg.message, jid, sender);
     const deteccion = estadoCrudo;
     if (deteccion) {
@@ -1480,14 +1533,18 @@ async function handleMessage(sock, msg) {
   // infringe nada — spamearlos es molesto, no grave. Así que la primera ráfaga
   // se borra entera y se avisa, y solo si el aviso no sirve se banea.
   if (jid.endsWith('@g.us') && msg.message?.stickerMessage) {
-    const meta = await getGroupMeta(sock, jid);
-    const protegido = !meta ||
-      isGroupAdmin(sender, msg.key.fromMe, meta) ||
-      esOwnerDelMensaje(msg, sender, senderPn, meta);
+    // La metadata solo hace falta si hay ráfaga: un sticker suelto no se
+    // borra, y pedir groupMetadata en cada uno (en un grupo que manda muchos)
+    // era un viaje a WhatsApp por nada. Se cuenta primero; si no es spam, se
+    // sigue. Si lo es, entonces sí se mira si es admin/owner y se actúa.
+    const { spam, ids } = noteOffence(jid, sender, 'sticker', idABorrar(msg));
+    if (spam) {
+      const meta = await getGroupMeta(sock, jid);
+      const protegido = !meta ||
+        isGroupAdmin(sender, msg.key.fromMe, meta) ||
+        esOwnerDelMensaje(msg, sender, senderPn, meta);
 
-    if (!protegido && isBotAdmin(sock, meta)) {
-      const { spam, ids } = noteOffence(jid, sender, 'sticker', idABorrar(msg));
-      if (spam) {
+      if (!protegido && isBotAdmin(sock, meta)) {
         // Se borra la ráfaga entera, no solo el último: los stickers no se
         // borran de uno en uno al llegar (a diferencia de las fotos), así que
         // aquí están todos los ids acumulados de la ventana.

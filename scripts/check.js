@@ -3525,6 +3525,79 @@ async function capaStores() {
     if (fallos === antes) console.log(verde('   ✓ el modo corto resume, pero no oculta ni un aviso'));
   }
 
+  // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────
+  //
+  // Tres cosas que se tocan juntas cuando se busca que el bot conteste antes,
+  // y las tres ya se han roto al optimizar:
+  //
+  //   1. isAdmin cacheaba el NO. Un @lid que aún no estaba mapeado salía
+  //      "no admin"; un mensaje después se aprendía el teléfono y el negativo
+  //      congelado le quitaba los galones durante todo el TTL de metadata.
+  //   2. Una reacción recorría antilink + medios + groupMetadata. En un grupo
+  //      activo hay más reacciones que mensajes: era trabajo muerto delante
+  //      de cada comando que llegara en el mismo tick.
+  //   3. Los stores stringifyaban el mismo fichero dos veces en vuelo y el
+  //      rename más lento podía dejar el snapshot viejo.
+  {
+    console.log('\n31. VELOCIDAD SIN REGRESIONES DE CALIDAD');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const { isAdmin, rememberMapping } = require(path.join(R, 'src/utils/wa'));
+    const lidA = `31lid${Date.now()}@lid`;
+    const telA = `346000031${String(Date.now()).slice(-4)}@s.whatsapp.net`;
+    const partsA = [{ id: telA, admin: 'admin' }];
+    exige(!isAdmin(partsA, lidA), 'sin mapeo, un @lid desconocido no puede salir admin');
+    rememberMapping(lidA, telA);
+    exige(isAdmin(partsA, lidA),
+      'isAdmin cacheó el NO: al aprender el teléfono del admin, sigue sin reconocerlo');
+
+    const { handleMessage } = require(path.join(R, 'src/handlers/messageHandler'));
+    const GV = '120031@g.us';
+    const BOTV = '549199@s.whatsapp.net';
+    const YOV = '34600000031@s.whatsapp.net';
+    let metas = 0;
+    const s = {
+      user: { id: BOTV },
+      sendMessage: async () => ({}),
+      readMessages: async () => {},
+      groupMetadata: async () => { metas++; return { id: GV, subject: 'G', participants: [{ id: BOTV, admin: 'admin' }, { id: YOV }] }; },
+      groupParticipantsUpdate: async () => [],
+    };
+    await handleMessage(s, {
+      key: { remoteJid: GV, participant: YOV, fromMe: false, id: 'R31' },
+      message: { reactionMessage: { key: { remoteJid: GV, fromMe: false, id: 'X' }, text: '👍' } },
+      pushName: 'x',
+      messageTimestamp: Math.floor(Date.now() / 1000),
+    });
+    exige(metas === 0, `una reacción pidió groupMetadata ${metas} vez/veces: vuelve el viaje muerto por cada emoji`);
+
+    const { createDebouncedSaver } = require(path.join(R, 'src/utils/helpers'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'saver-'));
+    try {
+      const file = path.join(dir, 's.json');
+      const n = { v: 0 };
+      const saver = createDebouncedSaver(() => ({ v: n.v }), file, 30);
+      n.v = 1; saver.schedule();
+      n.v = 2; saver.schedule();
+      n.v = 3; saver.schedule();
+      await saver.flush();
+      const disk = JSON.parse(fs.readFileSync(file, 'utf8'));
+      exige(disk.v === 3, `el saver dejó ${disk.v} en disco, no el 3 último: se pisaron escrituras`);
+      n.v = 4; saver.schedule();
+      const f2 = saver.flush();
+      n.v = 5; saver.schedule();
+      await f2;
+      await saver.flush();
+      const disk2 = JSON.parse(fs.readFileSync(file, 'utf8'));
+      exige(disk2.v === 5, `flush concurrente dejó ${disk2.v}, no el 5: se perdió una mutación`);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ admin por @lid, reacciones mudas, stores sin pisarse'));
+  }
+
   console.log(`\n${'─'.repeat(70)}`);
   if (fallos) {
     console.log(rojo(`${fallos} fallo(s). NO commitees esto.`));

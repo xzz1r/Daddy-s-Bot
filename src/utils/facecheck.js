@@ -40,7 +40,10 @@ async function faceSearch(buffer, { limit = 4, maxWaitMs = 45000, demo = false }
   }
 
   // 2) Poll hasta que haya output (o se agote el tiempo).
+  // La primera espera es corta: muchas búsquedas ya tienen output a los ~1 s.
+  // Si no, se pasa a 3 s como antes.
   const deadline = Date.now() + maxWaitMs;
+  let espera = 800;
   while (Date.now() < deadline) {
     try {
       const r = await axios.post(
@@ -61,7 +64,8 @@ async function faceSearch(buffer, { limit = 4, maxWaitMs = 45000, demo = false }
       logger.warn(`facecheck: poll falló: ${e.message}`);
       return { ok: false, reason: 'error', matches: [] };
     }
-    await new Promise(res => setTimeout(res, 3000));
+    await new Promise(res => setTimeout(res, espera));
+    espera = 3000;
   }
   return { ok: false, reason: 'timeout', matches: [] };
 }

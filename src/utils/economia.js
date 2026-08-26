@@ -1164,7 +1164,8 @@ const DUELO = {
 // `npm run economia`, así que si alguien las rompe salta ahí y no aquí:
 //
 //   · !tovid POR ENCIMA de !toimg, pase lo que pase. Recodifica el vídeo entero
-//     con preset slow, que es con diferencia lo más caro que hace el bot en CPU.
+//     (CRF 12, preset veryfast): lo más caro que hace el bot en CPU. El preset
+//     no toca la calidad visual — la fija el CRF —; solo el tiempo de encode.
 //   · !top10 al doble largo de !top5: molesta al doble de gente.
 //   · El arranque tiene que dar para varias compras baratas. Si no, el que entra
 //     no puede tocar nada y el bot parece roto.
@@ -1181,7 +1182,7 @@ const DUELO = {
 //     CPU.
 const PRECIOS = {
   // ─── Lo que consume recursos de verdad ─────────────────────────────────────
-  tovid: 70,   // transcodifica el vídeo entero con preset slow: lo más caro
+  tovid: 70,   // transcodifica el vídeo entero (CRF 12); lo más caro en CPU
   g: 50,       // !g — la llamada más cara, con su cuota
   sticker: 45, // !s — un ffmpeg por cada uno
   toimg: 45,

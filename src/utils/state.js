@@ -90,7 +90,7 @@ function incrementStat(key) {
     _saveTimer = setTimeout(() => {
       _saveTimer = null;
       saveState(_state).catch(() => {});
-    }, 5000);
+    }, 20000);
   }
 }
 

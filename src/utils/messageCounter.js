@@ -1,6 +1,6 @@
 const path = require('path');
 const { canonicalJid, rememberMapping } = require('./wa');
-const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
+const { readJsonOrEnoent, createDebouncedSaver } = require('./helpers');
 const logger = require('./logger');
 
 const COUNT_FILE = path.join(__dirname, '../../data/messageCounts.json');
@@ -12,7 +12,12 @@ const CLAVE_RESETS = '__resets';
 
 let counts = null;
 let loadPromise = null;
-let saveTimer = null;
+const saver = createDebouncedSaver(
+  () => counts,
+  COUNT_FILE,
+  25000,
+  (e) => logger.error(`messageCounter: fallo al guardar: ${e.message}`),
+);
 
 async function load() {
   if (counts) return;
@@ -28,16 +33,9 @@ async function load() {
   await loadPromise;
 }
 
-// Debounced save — 10s batches bursts on chatty groups.
-// Worst-case loss on crash: ~10s of message counts, acceptable.
-function scheduleSave() {
-  if (saveTimer) return;
-  saveTimer = setTimeout(async () => {
-    saveTimer = null;
-    try { await atomicWriteJson(COUNT_FILE, counts); }
-    catch (e) { logger.error(`messageCounter: fallo al guardar: ${e.message}`); }
-  }, 10000);
-}
+// Debounced save — 25s. El fichero crece para siempre (un contador por persona
+// y grupo) y stringifyarlo cada 10s en un grupo activo clavaba el event loop.
+function scheduleSave() { saver.schedule(); }
 
 // La clave es canonicalJid, NO bareJid. La misma persona llega unas veces con su
 // @lid (mensajes de grupo) y otras con su teléfono (menciones), así que con
@@ -138,9 +136,12 @@ async function getUserCount(groupJid, userJid) {
   // Camino rápido: la clave ya está canonizada y no hay ninguna otra forma suya
   // suelta en el archivo. Es el caso normal una vez conocida la correspondencia.
   const directo = group[key];
+  const keyEsLid = typeof key === 'string' && key.endsWith('@lid');
   let total = 0, otras = 0;
   for (const k in group) {
-    if (k === key || canonicalJid(k) !== key) continue;
+    if (k === key) continue;
+    if (!keyEsLid && !String(k).endsWith('@lid')) continue;
+    if (canonicalJid(k) !== key) continue;
     total += group[k];
     otras++;
   }
@@ -150,11 +151,7 @@ async function getUserCount(groupJid, userJid) {
 }
 
 async function flushCounts() {
-  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
-  if (counts) {
-    try { await atomicWriteJson(COUNT_FILE, counts); }
-    catch (e) { logger.error(`messageCounter: fallo al flush: ${e.message}`); }
-  }
+  await saver.flush();
 }
 
 module.exports = { increment, getActiveUsers, getUserCount, resetCounts, resetAllCounts, getLastReset, flushCounts };

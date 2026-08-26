@@ -1,7 +1,7 @@
 const path = require('path');
 const { canonicalJid } = require('./wa');
 const { DIA } = require('./economia');
-const { atomicWriteJson, readJsonOrEnoent, claveDia, msHastaCorte: msHastaCorteDia } = require('./helpers');
+const { readJsonOrEnoent, claveDia, msHastaCorte: msHastaCorteDia, createDebouncedSaver } = require('./helpers');
 const logger = require('./logger');
 
 const CASINO_FILE = path.join(__dirname, '../../data/casino.json');
@@ -34,7 +34,12 @@ function msHastaCorte(ts = Date.now()) {
 // store = { [groupJid]: { resetAt: <ms>, counts: { [bareJid]: number } } }
 let store = null;
 let loadPromise = null;
-let saveTimer = null;
+const saver = createDebouncedSaver(
+  () => store,
+  CASINO_FILE,
+  15000,
+  (e) => logger.error(`casinoStore: fallo al guardar: ${e.message}`),
+);
 
 async function load() {
   if (store) return;
@@ -50,14 +55,7 @@ async function load() {
   await loadPromise;
 }
 
-function scheduleSave() {
-  if (saveTimer) return;
-  saveTimer = setTimeout(async () => {
-    saveTimer = null;
-    try { await atomicWriteJson(CASINO_FILE, store); }
-    catch (e) { logger.error(`casinoStore: fallo al guardar: ${e.message}`); }
-  }, 5000);
-}
+function scheduleSave() { saver.schedule(); }
 
 // Returns the group's live bucket, rolling the 24h window forward when expired.
 // Also migrates the legacy flat format ({ [bareJid]: number }) by starting fresh.
@@ -173,8 +171,13 @@ async function apuntarHito(groupJid, userJid, hito) {
 // Es el mismo criterio que messageCounter y auraStore: la clave es canonicalJid.
 function colapsar(counts, key) {
   let total = counts[key] || 0;
+  const keyEsLid = typeof key === 'string' && key.endsWith('@lid');
   for (const k in counts) {
-    if (k === key || canonicalJid(k) !== key) continue;
+    if (k === key) continue;
+    // Sin un @lid de por medio no hay dos formas de la misma persona: nos
+    // ahorramos canonicalJid en cada clave, en cada mensaje.
+    if (!keyEsLid && !String(k).endsWith('@lid')) continue;
+    if (canonicalJid(k) !== key) continue;
     total += counts[k];
     delete counts[k];
   }
@@ -195,8 +198,11 @@ async function incrementCasinoCount(groupJid, userJid) {
   // clave nueva. Se juntan los dos lados y gana la union.
   {
     const union = new Set(g.hitos[key] || []);
+    const keyEsLid = typeof key === 'string' && key.endsWith('@lid');
     for (const k in g.hitos) {
-      if (k === key || canonicalJid(k) !== key) continue;
+      if (k === key) continue;
+      if (!keyEsLid && !String(k).endsWith('@lid')) continue;
+      if (canonicalJid(k) !== key) continue;
       for (const h of g.hitos[k]) union.add(h);
       delete g.hitos[k];
     }
@@ -217,7 +223,10 @@ async function getCasinoCount(groupJid, userJid) {
   if (g.dia !== diaDe(Date.now())) return 0;
   const key = canonicalJid(userJid);
   let total = 0;
+  const keyEsLid = typeof key === 'string' && key.endsWith('@lid');
   for (const k in g.counts) {
+    if (k === key) { total += g.counts[k]; continue; }
+    if (!keyEsLid && !String(k).endsWith('@lid')) continue;
     if (canonicalJid(k) === key) total += g.counts[k];
   }
   return total;
@@ -231,11 +240,7 @@ async function msUntilReset(_groupJid) {
 }
 
 async function flushCasino() {
-  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
-  if (store) {
-    try { await atomicWriteJson(CASINO_FILE, store); }
-    catch (e) { logger.error(`casinoStore: fallo al flush: ${e.message}`); }
-  }
+  await saver.flush();
 }
 
 module.exports = { incrementCasinoCount, getCasinoCount, contarTirada, tiradasDeHoy,

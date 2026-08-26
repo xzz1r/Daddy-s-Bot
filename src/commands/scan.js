@@ -73,9 +73,9 @@ async function cmdScan(sock, msg, groupMeta) {
     }
   }
 
-  await sock.sendMessage(jid, {
+  sock.sendMessage(jid, {
     text: `Escaneando ${participants.length} miembros…`,
-  }, { quoted: msg });
+  }, { quoted: msg }).catch(() => {});
 
   // ── Business account check (con EVIDENCIA: qué campo lo marca) ─────────────
   // bizMap solo contiene los detectados como Business, mapeados a los campos

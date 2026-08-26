@@ -111,23 +111,19 @@ async function cmdSticker(sock, msg, groupMeta) {
     sock.sendMessage(jid, { text: 'Haciendo sticker...' }, { quoted: msg }).catch(() => {});
   }
 
-  // For video/gif: grab a thumbnail from the SOURCE before WebP encoding.
-  // The bundled ffmpeg cannot decode its own animated WebP output, so
-  // generateAnimatedThumb always returns null for these types — leaving WhatsApp
-  // without a pngThumbnail. Without it, WhatsApp composites its own static
-  // preview by stacking the first two animation frames, producing the
-  // "split in two" visual. Grabbing the thumb from the original mp4/gif works.
+  // Miniatura del origen y el encode son independientes: en paralelo se
+  // ahorra el tiempo de la miniatura (un frame) sin tocar la calidad del WebP.
+  // El ffmpeg empaquetado no decodifica su propio WebP animado, así que la
+  // miniatura hay que sacarla del mp4/gif original; si falta, WhatsApp apila
+  // dos fotogramas y el sticker se ve partido.
   let sourceThumb = null;
-  const isVideoOrGif = found.type === 'video'
-    || (found.type !== 'sticker' && (found.msg.mimetype || '').includes('gif'));
-  if (isVideoOrGif) {
-    sourceThumb = await generateSourceThumb(buffer).catch(() => null);
-  }
-
   let stickerBuffer;
   try {
     if (found.type === 'video') {
-      stickerBuffer = await videoToSticker(buffer, author);
+      [sourceThumb, stickerBuffer] = await Promise.all([
+        generateSourceThumb(buffer).catch(() => null),
+        videoToSticker(buffer, author),
+      ]);
     } else if (found.type === 'sticker') {
       // Re-encode existing sticker to re-stamp metadata with our pack
       const mime = found.msg.mimetype || '';
@@ -137,9 +133,14 @@ async function cmdSticker(sock, msg, groupMeta) {
         : await imageToSticker(buffer, author);
     } else {
       const mime = found.msg.mimetype || '';
-      stickerBuffer = mime.includes('gif')
-        ? await gifToSticker(buffer, author)
-        : await imageToSticker(buffer, author);
+      if (mime.includes('gif')) {
+        [sourceThumb, stickerBuffer] = await Promise.all([
+          generateSourceThumb(buffer).catch(() => null),
+          gifToSticker(buffer, author),
+        ]);
+      } else {
+        stickerBuffer = await imageToSticker(buffer, author);
+      }
     }
   } catch (err) {
     logger.error(`Sticker conversion error: ${err.message}`);

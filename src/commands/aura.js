@@ -1300,7 +1300,9 @@ async function cmdAura(sock, msg, args, groupMeta) {
   // pequeno y no garantiza nada — el resultado sigue siendo aleatorio.
   let plusActividad = 0;
   let mensajes = 0;
+  let tiradasHoy = 1;
   const esOwnerPrincipal = isMainOwner(sender, msg.key.fromMe, groupMeta);
+  const paralelos = [];
   if (esOwnerPrincipal) {
     // Al owner principal el contador no le cuenta los mensajes (es lo que lo
     // mantiene fuera de !count y de los tops), así que preguntarle al contador
@@ -1309,13 +1311,17 @@ async function cmdAura(sock, msg, args, groupMeta) {
     // el TOPE directamente: de todo el grupo es quien más escribe.
     plusActividad = ACTIVIDAD_TOPE;
   } else {
-    try {
-      mensajes = await getUserCount(jid, sender);
-      // Acumulativo: un escalón por cada ACTIVIDAD_MSGS, con tope. Antes era un
-      // interruptor de sí/no y el que llevaba 40.000 mensajes iba igual que el
-      // que acababa de pasar de 1.000.
-      plusActividad = bonoActividad(mensajes);
-    } catch { /* si el contador falla, se tira sin plus */ }
+    paralelos.push(
+      getUserCount(jid, sender)
+        .then((n) => {
+          mensajes = n;
+          // Acumulativo: un escalón por cada ACTIVIDAD_MSGS, con tope. Antes era un
+          // interruptor de sí/no y el que llevaba 40.000 mensajes iba igual que el
+          // que acababa de pasar de 1.000.
+          plusActividad = bonoActividad(n);
+        })
+        .catch(() => { /* si el contador falla, se tira sin plus */ }),
+    );
   }
 
   // ¿Esta tirada cobra? Las primeras TIRADAS_PAGADAS del día pagan de verdad;
@@ -1325,8 +1331,12 @@ async function cmdAura(sock, msg, args, groupMeta) {
   //
   // Si el contador falla se cobra: preferimos regalar una tirada a bloquear el
   // comando por un problema de disco.
-  let tiradasHoy = 1;
-  try { tiradasHoy = await contarTirada(jid, sender); } catch { /* se cobra */ }
+  paralelos.push(
+    contarTirada(jid, sender)
+      .then((n) => { tiradasHoy = n; })
+      .catch(() => { /* se cobra */ }),
+  );
+  await Promise.all(paralelos);
   const dePago = tiradasHoy <= TIRADAS_PAGADAS;
 
   // La otra puerta habla. Un golpe maestro de !robo calienta esta tirada; un

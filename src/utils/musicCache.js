@@ -284,7 +284,7 @@ async function setCached(query, srcPath, title, mimetype, ext, srcBuffer = null,
   // puñado de temas largos en alta calidad podía dejar la caché en más de un
   // giga sin que nada la tocara: el VPS es pequeño y eso lo llena.
   await desalojar();
-  await saveIndex();
+  scheduleIndexSave();
 
   if (buffer) storeInRam(k, buffer, title, mimetype, ext);
 }

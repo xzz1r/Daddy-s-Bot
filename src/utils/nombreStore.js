@@ -1,6 +1,6 @@
 const path = require('path');
 const { canonicalJid, bareJid, sameUser } = require('./wa');
-const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
+const { readJsonOrEnoent, createDebouncedSaver } = require('./helpers');
 const logger = require('./logger');
 
 // El nombre con el que cada uno firma sus mensajes (pushName).
@@ -50,7 +50,12 @@ let pendienteDePurga = false;
 
 let nombres = null;
 let loadPromise = null;
-let saveTimer = null;
+const saver = createDebouncedSaver(
+  () => nombres,
+  FILE,
+  20000,
+  (e) => logger.error(`nombreStore: fallo al guardar: ${e.message}`),
+);
 
 async function load() {
   if (nombres) return;
@@ -67,14 +72,7 @@ async function load() {
   if (pendienteDePurga) { pendienteDePurga = false; scheduleSave(); }
 }
 
-function scheduleSave() {
-  if (saveTimer) return;
-  saveTimer = setTimeout(async () => {
-    saveTimer = null;
-    try { await atomicWriteJson(FILE, nombres); }
-    catch (e) { logger.error(`nombreStore: fallo al guardar: ${e.message}`); }
-  }, 10000);
-}
+function scheduleSave() { saver.schedule(); }
 
 // Los invisibles se filtran por CODIGO, no con una clase de caracteres.
 //
@@ -146,11 +144,18 @@ function limpiar(raw) {
 //
 // Guardando bajo las dos formas el hueco desaparece, cueste un par de claves de
 // mas en un fichero que tiene el tamaño de un grupo.
+const lastSeenName = new Map();
+const MAX_SEEN_NAMES = 2000;
+
 async function recordName(jids, crudo) {
-  const nombre = limpiar(crudo);
-  if (!nombre) return;
+  if (typeof crudo !== 'string' || !crudo) return;
   const formas = [...new Set((Array.isArray(jids) ? jids : [jids]).filter(Boolean))];
   if (!formas.length) return;
+  // Si el pushName crudo no ha cambiado, no hace falta limpiar ni tocar el store.
+  const probe = canonicalJid(formas[0]) || formas[0];
+  if (probe && lastSeenName.get(probe) === crudo) return;
+  const nombre = limpiar(crudo);
+  if (!nombre) return;
   await load();
   let cambio = false;
   for (const j of formas) {
@@ -163,6 +168,12 @@ async function recordName(jids, crudo) {
       nombres[key] = { nombre, ts: Date.now() };
       cambio = true;
     }
+  }
+  if (probe) {
+    if (lastSeenName.size >= MAX_SEEN_NAMES && !lastSeenName.has(probe)) {
+      lastSeenName.delete(lastSeenName.keys().next().value);
+    }
+    lastSeenName.set(probe, crudo);
   }
   if (cambio) scheduleSave();
 }
@@ -181,8 +192,10 @@ function getName(jid) {
   const directa = nombres[canonicalJid(jid)] || nombres[bareJid(jid)];
   if (directa) return directa.nombre;
   // Ficha escrita antes de conocer la correspondencia lid↔telefono: se busca
-  // por identidad. El mapa es del tamaño de un grupo, no de una agenda.
+  // por identidad. Solo hace falta mirar claves @lid; las de teléfono ya se
+  // probaron arriba con canonicalJid/bareJid.
   for (const k of Object.keys(nombres)) {
+    if (!k.endsWith('@lid')) continue;
     if (sameUser(k, jid)) return nombres[k].nombre;
   }
   return null;
@@ -190,10 +203,7 @@ function getName(jid) {
 
 // Deja el fichero al dia antes de apagar, igual que flushCounts.
 async function flushNames() {
-  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
-  if (!nombres) return;
-  try { await atomicWriteJson(FILE, nombres); }
-  catch (e) { logger.error(`nombreStore: fallo al guardar: ${e.message}`); }
+  await saver.flush();
 }
 
 // load() se expone porque getName es SINCRONO a proposito (se llama mientras se

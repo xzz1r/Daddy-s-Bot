@@ -47,6 +47,20 @@ async function objetivoDelDia(grupo, groupMeta) {
     .filter((r) => r.aura >= ROBO.minVictima);
   if (ranking.length < 2) return null;
 
+  const hoy = diaClave();
+  const yaEsta = decidido.get(grupo);
+  if (yaEsta && yaEsta.dia === hoy) {
+    // Se comprueba contra el RANKING, no contra los candidatos. Las exclusiones
+    // (owner, nº1 de aura, nº1 semanal) sirven para ELEGIR, no para mantener:
+    // si el cazado sube a lo largo del dia y pasa a ser el numero uno, el cartel
+    // no tiene por que cambiar — cambiarlo es exactamente el sintoma que se vino
+    // a arreglar. Basta con que siga en el grupo y con algo que robarle.
+    const sigue = ranking.find((r) => mismo(r.jid, yaEsta.jid));
+    if (sigue) {
+      return { jid: sigue.jid, bonoBotin: OBJETIVO_DIA.bonoBotin, bonoProbabilidad: OBJETIVO_DIA.bonoProbabilidad };
+    }
+  }
+
   const n1Aura = ranking[0] && ranking[0].jid;
 
   // El nº1 que el grupo VE en los más buscados: el primero que NO es el owner.
@@ -99,20 +113,6 @@ async function objetivoDelDia(grupo, groupMeta) {
   // mas alto. Eso no depende de en que posicion este: mientras siga en la lista,
   // sigue siendo el elegido aunque suba o baje veinte puestos.
   // Lo decidido hoy manda, mientras el elegido siga siendo candidato.
-  const hoy = diaClave();
-  const yaEsta = decidido.get(grupo);
-  if (yaEsta && yaEsta.dia === hoy) {
-    // Se comprueba contra el RANKING, no contra los candidatos. Las exclusiones
-    // (owner, nº1 de aura, nº1 semanal) sirven para ELEGIR, no para mantener:
-    // si el cazado sube a lo largo del dia y pasa a ser el numero uno, el cartel
-    // no tiene por que cambiar — cambiarlo es exactamente el sintoma que se vino
-    // a arreglar. Basta con que siga en el grupo y con algo que robarle.
-    const sigue = ranking.find((r) => mismo(r.jid, yaEsta.jid));
-    if (sigue) {
-      return { jid: sigue.jid, bonoBotin: OBJETIVO_DIA.bonoBotin, bonoProbabilidad: OBJETIVO_DIA.bonoProbabilidad };
-    }
-  }
-
   let elegido = null, mejor = -1;
   for (const r of candidatos) {
     const n = ruido(grupo, 'objetivo-dia', `${hoy}|${canonicalJid(r.jid)}`);

@@ -87,17 +87,17 @@ async function cmdPing(sock, msg) {
   // la red del momento.
   const medidas = [];
   if (typeof sock.query === 'function') {
-    for (let i = 0; i < 3; i++) {
-      try {
-        const start = Date.now();
-        await sock.query({
-          tag: 'iq',
-          attrs: { to: 's.whatsapp.net', type: 'get', xmlns: 'w:p' },
-          content: [{ tag: 'ping', attrs: {} }],
-        });
-        medidas.push(Date.now() - start);
-      } catch { /* si una falla, se sigue con las que salgan */ }
-    }
+    const pingOnce = async () => {
+      const start = Date.now();
+      await sock.query({
+        tag: 'iq',
+        attrs: { to: 's.whatsapp.net', type: 'get', xmlns: 'w:p' },
+        content: [{ tag: 'ping', attrs: {} }],
+      });
+      return Date.now() - start;
+    };
+    const r = await Promise.allSettled([pingOnce(), pingOnce(), pingOnce()]);
+    for (const x of r) if (x.status === 'fulfilled') medidas.push(x.value);
   }
 
   // LA CIFRA Y NADA MAS.

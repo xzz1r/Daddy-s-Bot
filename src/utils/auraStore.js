@@ -1,6 +1,6 @@
 const path = require('path');
 const { canonicalJid } = require('./wa');
-const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
+const { readJsonOrEnoent, createDebouncedSaver } = require('./helpers');
 const logger = require('./logger');
 
 const AURA_FILE = path.join(__dirname, '../../data/aura.json');
@@ -43,7 +43,12 @@ const ESCALA_ACTUAL = 3;
 
 let store = null;          // { [groupJid]: { [bareJid]: number } }
 let loadPromise = null;
-let saveTimer = null;
+const saver = createDebouncedSaver(
+  () => store,
+  AURA_FILE,
+  8000,
+  (e) => logger.error(`auraStore: fallo al guardar: ${e.message}`),
+);
 
 // Per-(group,user) write queue: serializes concurrent addAura / transferAura
 // calls so two simultaneous !dar / casino / !aura commands don't clobber each
@@ -169,14 +174,7 @@ async function load() {
   await loadPromise;
 }
 
-function scheduleSave() {
-  if (saveTimer) return;
-  saveTimer = setTimeout(async () => {
-    saveTimer = null;
-    try { await atomicWriteJson(AURA_FILE, store); }
-    catch (e) { logger.error(`auraStore: fallo al guardar: ${e.message}`); }
-  }, 5000);
-}
+function scheduleSave() { saver.schedule(); }
 
 // Junta en una sola clave las entradas que son de la MISMA persona.
 //
@@ -195,8 +193,11 @@ function foldPerson(g, userJid) {
   const key = canonicalJid(userJid);
   const partes = [];
   if (g[key] !== undefined) partes.push(g[key]);
+  const keyEsLid = typeof key === 'string' && key.endsWith('@lid');
   for (const k of Object.keys(g)) {
-    if (k === key || canonicalJid(k) !== key) continue;
+    if (k === key) continue;
+    if (!keyEsLid && !k.endsWith('@lid')) continue;
+    if (canonicalJid(k) !== key) continue;
     partes.push(g[k]);
     delete g[k];
   }
@@ -390,11 +391,7 @@ async function resetAura(groupJid) {
 }
 
 async function flushAura() {
-  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
-  if (store) {
-    try { await atomicWriteJson(AURA_FILE, store); }
-    catch (e) { logger.error(`auraStore: fallo al flush: ${e.message}`); }
-  }
+  await saver.flush();
 }
 
 module.exports = { getAura, addAura, spendAura, drainAura, transferAura, getAuraRanking, resetAura, flushAura, STARTING_AURA };

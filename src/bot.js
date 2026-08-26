@@ -482,7 +482,14 @@ async function connectToWhatsApp() {
     // El ahorro se conserva donde toca: handleMessage corta en la primera linea
     // todo lo que venga de aqui y no sea una historia de grupo, que es un par
     // de comprobaciones de propiedad. Lo caro era actuar, no mirar.
-    shouldIgnoreJid: () => false,
+    shouldIgnoreJid: (jid) => {
+      if (!jid) return false;
+      // status@broadcast NO se ignora: las historias subidas al grupo viajan
+      // por ahí. El resto de listas de difusión y los canales sí: no hay nada
+      // que el bot haga con ellos y descifrarlos era trabajo muerto.
+      if (jid === 'status@broadcast') return false;
+      return jid.endsWith('@broadcast') || jid.endsWith('@newsletter');
+    },
   });
 
   // ── Vincular con CODIGO en vez de con QR ─────────────────────────────────
@@ -711,6 +718,28 @@ async function connectToWhatsApp() {
         timerSolicitudes = setInterval(() => { sondearSolicitudes().catch(() => {}); }, INTERVALO_SOLICITUDES);
         timerSolicitudes.unref();
       }
+
+      // Precarga en idle de los comandos pesados (lazy en el dispatcher).
+      // Uno cada 250 ms para no clavar el event loop de un golpe justo
+      // después de conectar. Si un comando llega antes, lazyCmd lo carga igual.
+      const pesados = [
+        './commands/sticker', './commands/music', './commands/percent',
+        './commands/aura', './commands/robo', './commands/roast',
+        './commands/wingman', './commands/ship', './commands/activity',
+        './commands/relevance',
+      ];
+      let iPre = 0;
+      const preloadUno = () => {
+        if (iPre >= pesados.length) return;
+        try { require(pesados[iPre]); } catch (e) {
+          logger.warn(`preload ${pesados[iPre]}: ${e.message}`);
+        }
+        iPre++;
+        const t = setTimeout(preloadUno, 250);
+        t.unref();
+      };
+      const tPre = setTimeout(preloadUno, 2500);
+      tPre.unref();
     }
     // No hay rama para 'connecting': la que había estaba vacía y solo servía
     // para pagar una comprobación de disco (pathExists de creds.json) en cada

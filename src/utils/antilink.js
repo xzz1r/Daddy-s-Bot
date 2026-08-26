@@ -322,8 +322,21 @@ function classifyLinks(text) {
 // las superficies de texto, no solo el cuerpo.
 // `quien` es quien escribe. Sin el, las citas no se miran — que es lo correcto
 // para cualquier llamada que no sepa de quien es el mensaje.
+//
+// Reacción, SKDM y voto de encuesta no cargan URL. Recorrer el sobre entero
+// (citas, botones, vCards) en cada uno de esos era trabajo muerto en el camino
+// caliente: en un grupo activo llegan más reacciones que mensajes. protocolMessage
+// y editedMessage NO están aquí: un edit sí puede colar un enlace.
+const SIN_ENLACE = new Set([
+  'reactionMessage', 'encReactionMessage',
+  'senderKeyDistributionMessage', 'pollUpdateMessage',
+  'messageContextInfo',
+]);
 function clasificarMensaje(message, quien = null) {
+  if (!message) return 'none';
   if (esInvitacionNativa(message)) return 'invite';
+  const keys = Object.keys(message);
+  if (keys.length && keys.every((k) => SIN_ENLACE.has(k))) return 'none';
   return classifyLinks(textoParaEnlaces(message, 0, quien));
 }
 

@@ -20,7 +20,7 @@
 
 const path = require('path');
 const { canonicalJid } = require('./wa');
-const { atomicWriteJson, readJsonOrEnoent, claveDia } = require('./helpers');
+const { readJsonOrEnoent, claveDia, createDebouncedSaver } = require('./helpers');
 const { RACHA, DIA } = require('./economia');
 const logger = require('./logger');
 
@@ -28,7 +28,12 @@ const RACHA_FILE = path.join(__dirname, '../../data/racha.json');
 
 let store = null;
 let loadPromise = null;
-let saveTimer = null;
+const saver = createDebouncedSaver(
+  () => store,
+  RACHA_FILE,
+  18000,
+  (e) => logger.error(`rachaStore: fallo al guardar: ${e.message}`),
+);
 
 async function load() {
   if (store) return;
@@ -44,14 +49,7 @@ async function load() {
   await loadPromise;
 }
 
-function scheduleSave() {
-  if (saveTimer) return;
-  saveTimer = setTimeout(async () => {
-    saveTimer = null;
-    try { await atomicWriteJson(RACHA_FILE, store); }
-    catch (e) { logger.error(`rachaStore: fallo al guardar: ${e.message}`); }
-  }, 5000);
-}
+function scheduleSave() { saver.schedule(); }
 
 // El día al que pertenece un instante. Es el día del bot entero (DIA), no uno
 // propio: la racha cortaba a las 5 de la mañana hora de Madrid y el contador de
@@ -71,7 +69,10 @@ function esElSiguiente(a, b) {
   if (!a || !b) return false;
   const [ay, am, ad] = a.split('-').map(Number);
   const siguiente = new Date(Date.UTC(ay, am - 1, ad + 1));
-  return FORMATO.format(siguiente) === b || siguiente.toISOString().slice(0, 10) === b;
+  // Date.UTC ya da YYYY-MM-DD estable. Había un FORMATO que no existía en este
+  // fichero: tiraba ReferenceError en cada cambio de día y la racha se tragaba
+  // el error (checkCasinoMilestone .catch), así que no cobraba ni avisaba.
+  return siguiente.toISOString().slice(0, 10) === b;
 }
 
 // Anota un mensaje y devuelve qué ha pasado con la racha de esa persona:
@@ -141,11 +142,7 @@ async function verRacha(groupJid, userJid, ahora = Date.now()) {
 }
 
 async function flushRacha() {
-  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
-  if (store) {
-    try { await atomicWriteJson(RACHA_FILE, store); }
-    catch (e) { logger.error(`rachaStore: fallo al flush: ${e.message}`); }
-  }
+  await saver.flush();
 }
 
 // Solo para las pruebas: vacía el estado en memoria.

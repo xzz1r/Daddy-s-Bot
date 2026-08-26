@@ -437,7 +437,13 @@ async function atomicWriteJson(file, data) {
   try {
     // Compact JSON: these are machine-only files written every few seconds on
     // the debounced path — pretty-printing just doubles size and CPU/disk.
-    await fs.outputFile(tmp, JSON.stringify(data));
+    //
+    // Un setImmediate ANTES de stringify: messageCounts/aura pueden ser cientos
+    // de KB y clavar el event loop si caen en el mismo tick que un handleMessage.
+    // El objeto se muta en JS síncrono, así que el yield no ve un snapshot a medias.
+    await new Promise((r) => setImmediate(r));
+    const json = JSON.stringify(data);
+    await fs.outputFile(tmp, json);
     // rename, NO fs.move fs.move con overwrite hace remove(dest) ANTES del
     // rename (fs-extra/lib/move/move.js:28-35), así que deja una ventana en la
     // que el fichero de datos NO existe: un corte justo ahí se lleva el store
@@ -641,6 +647,7 @@ async function flushPickHistory() { _guardarYa(); }
 // Una sola copia, y por eso: tres copias del mismo calculo son tres sitios
 // donde arreglarlo y dos que se van a olvidar.
 const _formatos = new Map();
+let _claveMemo = { bucket: -1, zona: '', corte: -1, val: '' };
 function _partes(ts, zona) {
   let f = _formatos.get(zona);
   if (!f) {
@@ -658,17 +665,30 @@ function _partes(ts, zona) {
 }
 
 function claveDia(ts, zona, horaCorte = 0) {
+  // Mismo segundo, mismo resultado: casino + racha lo piden en cada mensaje
+  // del grupo y Intl.formatToParts no es barato. Un segundo de cache es exacto.
+  const bucket = ts - (ts % 1000);
+  if (_claveMemo.val
+      && _claveMemo.bucket === bucket
+      && _claveMemo.zona === zona
+      && _claveMemo.corte === horaCorte) {
+    return _claveMemo.val;
+  }
   const p = _partes(ts, zona);
   // El % 24 es defensivo: en este Node la medianoche llega como "00", pero
   // hour12:false la devuelve como "24" en otros entornos de ICU y ahi la
   // comparacion de abajo mandaria la medianoche al dia anterior. No lo cubre
   // ninguna prueba porque aqui no se puede reproducir; queda dicho.
   const hora = p.hour % 24;
+  let val;
   if (hora >= horaCorte) {
-    return `${p.year}-${String(p.month).padStart(2, '0')}-${String(p.day).padStart(2, '0')}`;
+    val = `${p.year}-${String(p.month).padStart(2, '0')}-${String(p.day).padStart(2, '0')}`;
+  } else {
+    const ayer = new Date(Date.UTC(p.year, p.month - 1, p.day, 12) - 24 * 3600 * 1000);
+    val = ayer.toISOString().slice(0, 10);
   }
-  const ayer = new Date(Date.UTC(p.year, p.month - 1, p.day, 12) - 24 * 3600 * 1000);
-  return ayer.toISOString().slice(0, 10);
+  _claveMemo = { bucket, zona, corte: horaCorte, val };
+  return val;
 }
 
 // Cuanto falta para el proximo corte. Se busca el instante EXACTO en que cambia
@@ -695,6 +715,63 @@ function aviso(pool, chat, etiqueta) {
   return pickFresh(pool, `${chat}|aviso|${etiqueta}`);
 }
 
+// Escritor con debounce + candado. El patrón viejo (`saveTimer = null` ANTES
+// del await) dejaba dos atomicWriteJson del mismo fichero en vuelo: el rename
+// más lento podía pisar el snapshot nuevo con uno viejo, y en un grupo activo
+// cuatro stores stringifyaban a la vez y clavaban el event loop.
+//
+// `dirty` se vuelve a poner si alguien muta durante el await; al terminar se
+// reprograma. flush() espera al que está en curso (apagado) y no reescribe si
+// no hay nada pendiente.
+function createDebouncedSaver(getData, file, delayMs, onError) {
+  let timer = null;
+  let writing = false;
+  let dirty = false;
+  const waiters = [];
+
+  function schedule() {
+    dirty = true;
+    if (timer || writing) return;
+    timer = setTimeout(() => {
+      timer = null;
+      flush().catch((e) => { if (onError) onError(e); });
+    }, delayMs);
+    timer.unref?.();
+  }
+
+  function despertar() {
+    const q = waiters.splice(0);
+    for (const r of q) r();
+  }
+
+  async function flush() {
+    if (timer) { clearTimeout(timer); timer = null; }
+    for (;;) {
+      while (writing) {
+        dirty = true;
+        await new Promise((r) => waiters.push(r));
+      }
+      if (!dirty) return;
+      const data = getData();
+      if (!data) { dirty = false; return; }
+      writing = true;
+      dirty = false;
+      try {
+        await atomicWriteJson(file, data);
+      } catch (e) {
+        dirty = true;
+        if (onError) { onError(e); return; }
+        throw e;
+      } finally {
+        writing = false;
+        despertar();
+      }
+    }
+  }
+
+  return { schedule, flush };
+}
+
 module.exports = {
   aviso,
   claveDia, msHastaCorte,
@@ -706,4 +783,4 @@ module.exports = {
   // necesite la comprobacion tiene tieneArsenal, que ya lo hace bien.
   tieneArsenal,
   parseCantidad, resolverCantidad, etiquetaRiesgo, limpiarToken,
-  fmt, ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, withTimeout, shuffle, streamToBuffer, atomicWriteJson, readJsonOrEnoent, barrerHuerfanos, MAX_DOWNLOAD_BYTES, MAX_MEDIA_BYTES, createSemaphore, ffmpegSemaphore, ffmpegToBuffer };
+  fmt, ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, withTimeout, shuffle, streamToBuffer, atomicWriteJson, readJsonOrEnoent, barrerHuerfanos, MAX_DOWNLOAD_BYTES, MAX_MEDIA_BYTES, createSemaphore, ffmpegSemaphore, ffmpegToBuffer, createDebouncedSaver };

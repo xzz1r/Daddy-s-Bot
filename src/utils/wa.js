@@ -5,6 +5,12 @@ const fs = require('fs');
 const path = require('path');
 const config = require('../config');
 
+const OWNER_DIGITS = String(config.ownerNumber).replace(/\D/g, '');
+const ALL_OWNER_DIGITS = [
+  OWNER_DIGITS,
+  ...(config.coOwners || []).map(n => String(n).replace(/\D/g, '')),
+];
+
 // ── Learned owner-JID set ────────────────────────────────────────────────────
 // The message counter runs in the hot path, BEFORE any group metadata fetch, so
 // resolving an incoming LID → phone there is unreliable (in LID-only groups the
@@ -310,11 +316,7 @@ function isOwner(jid, fromMe, groupMeta) {
   // El principal va SIEMPRE el primero, así que un índice 0 significa que el que
   // coincidió es él. Antes se resolvía todo una segunda vez solo para averiguar
   // eso, repitiendo el barrido completo de participantes.
-  const owners = [
-    String(config.ownerNumber).replace(/\D/g, ''),
-    ...(config.coOwners || []).map(n => String(n).replace(/\D/g, '')),
-  ];
-  const i = matchOwnerIndex(jid, groupMeta, owners);
+  const i = matchOwnerIndex(jid, groupMeta, ALL_OWNER_DIGITS);
   if (i === 0) noteOwnerJid(jid);
   return i >= 0;
 }
@@ -331,7 +333,7 @@ function isOwner(jid, fromMe, groupMeta) {
 function isMainOwner(jid, fromMe, groupMeta) {
   if (fromMe) return true;
   if (isKnownOwnerJid(jid)) return true;
-  const ok = matchesOwners(jid, groupMeta, [String(config.ownerNumber).replace(/\D/g, '')]);
+  const ok = matchesOwners(jid, groupMeta, [OWNER_DIGITS]);
   if (ok) noteOwnerJid(jid);
   return ok;
 }
@@ -357,25 +359,66 @@ function isBotJid(sock, jid) {
 // True if the bot itself holds admin in this group. Lets moderation features
 // tell the difference between "nobody broke a rule" and "I can't act because
 // I'm not admin".
+const botAdminPorMeta = new WeakMap();
 function isBotAdmin(sock, groupMeta) {
   if (!groupMeta?.participants || !sock?.user) return false;
-  return groupMeta.participants.some(p =>
-    p && (p.admin === 'admin' || p.admin === 'superadmin') &&
-    [p.id, p.lid, p.phoneNumber].some(f => f && isBotJid(sock, f))
-  );
+  const cached = botAdminPorMeta.get(groupMeta);
+  if (cached !== undefined) return cached;
+  let ok = false;
+  const mine = [sock.user.id, sock.user.lid].filter(Boolean);
+  for (const j of mine) {
+    const p = participantePorJid(groupMeta, bareJid(j));
+    if (p && (p.admin === 'admin' || p.admin === 'superadmin')) { ok = true; break; }
+  }
+  if (!ok) {
+    ok = groupMeta.participants.some(p =>
+      p && (p.admin === 'admin' || p.admin === 'superadmin') &&
+      [p.id, p.lid, p.phoneNumber].some(f => f && isBotJid(sock, f))
+    );
+  }
+  botAdminPorMeta.set(groupMeta, ok);
+  return ok;
 }
 
+const adminPorLista = new WeakMap();
 function isAdmin(participants, jid) {
   if (!participants || !jid) return false;
-  // Comparar solo bareJid fallaba en grupos LID: la mención llega como
-  // teléfono y el participante está como @lid. canonicalJid cruza el mapa.
-  const claves = new Set([bareJid(jid), canonicalJid(jid)].filter(Boolean));
-  const p = participants.find(x =>
-    [x?.id, x?.lid, x?.phoneNumber].some(f => f && (
+  let idx = adminPorLista.get(participants);
+  if (!idx) {
+    idx = new Map();
+    for (const x of participants) {
+      if (!x) continue;
+      const flag = x.admin === 'admin' || x.admin === 'superadmin';
+      for (const f of [x.id, x.lid, x.phoneNumber]) {
+        if (f) idx.set(bareJid(f), flag);
+      }
+    }
+    adminPorLista.set(participants, idx);
+  }
+  const bare = bareJid(jid);
+  if (idx.has(bare)) return idx.get(bare);
+  const can = canonicalJid(jid);
+  if (can !== bare && idx.has(can)) return idx.get(can);
+  // Forma que no está en la metadata (teléfono vs @lid, mapeo aprendido
+  // después). Se recorre una vez y, SI HAY HIT, se cachea.
+  //
+  // El NO no se cachea: el mapeo lid→teléfono puede aprenderse un mensaje
+  // después y un negativo congelado dejaría de reconocer a un admin para
+  // siempre en este objeto de metadata (10 min de TTL).
+  const claves = new Set([bare, can].filter(Boolean));
+  for (const x of participants) {
+    if (!x) continue;
+    const hit = [x.id, x.lid, x.phoneNumber].some(f => f && (
       claves.has(bareJid(f)) || claves.has(canonicalJid(f))
-    ))
-  );
-  return p?.admin === 'admin' || p?.admin === 'superadmin';
+    ));
+    if (hit) {
+      const flag = x.admin === 'admin' || x.admin === 'superadmin';
+      idx.set(bare, flag);
+      if (can) idx.set(can, flag);
+      return flag;
+    }
+  }
+  return false;
 }
 
 // Claves de todos los que están AHORA MISMO en el grupo, en todas sus formas
@@ -585,7 +628,7 @@ async function fetchPfpUrl(sock, jid, tipo = 'image', intentos = 2) {
       // tres peticiones y dos segundos para que te lo denieguen tres veces.
       if (esFotoRestringida(err)) { err.restringida = true; throw err; }
       ultimoError = err;
-      if (i < intentos) await new Promise((r) => setTimeout(r, 700 * (i + 1)));
+      if (i < intentos) await new Promise((r) => setTimeout(r, 250 * (i + 1)));
     }
   }
   throw ultimoError;

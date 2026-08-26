@@ -493,7 +493,7 @@ ok(/transferAura/.test(src('dar.js')), '!dar sigue usando transferAura: el cargo
 {
   const { PRECIOS, ARRANQUE } = require(`${R}/src/utils/economia`);
   ok(PRECIOS.tovid > PRECIOS.toimg,
-    `!tovid por encima de !toimg (${PRECIOS.tovid} > ${PRECIOS.toimg}): recodifica el video entero con preset slow`);
+    `!tovid por encima de !toimg (${PRECIOS.tovid} > ${PRECIOS.toimg}): recodifica el video entero`);
   // !play por encima de los conversores, y no es estetico. Es el unico comando
   // con un limite EXTERNO y finito: gasta cuota mensual de RapidAPI, y al
   // agotarse deja de funcionar para todo el grupo hasta que renueve. Un sticker

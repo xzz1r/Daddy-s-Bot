@@ -185,7 +185,8 @@ async function rapidConvert(videoId, provider) {
     if (status === 'fail' || status === 'error') {
       throw new Error(data.msg || 'la API no pudo convertir el video');
     }
-    await sleep(2500); // processing / in queue
+    const POLL = [800, 1500];
+    await sleep(POLL[i] ?? 2500); // processing / in queue
   }
   throw new Error('la conversión tardó demasiado');
 }
