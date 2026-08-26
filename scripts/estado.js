@@ -189,17 +189,44 @@ if (local && bot) {
   const arranque = bot.pm2_env?.pm_uptime || 0;
   const linea = sh(`pm2 logs bot --out --lines 400 --nostream 2>/dev/null | grep "commit cargado" | tail -1`, 20000);
   const enMemoria = (linea.match(/commit cargado\s*:\s*([0-9a-f]{7,})/) || [])[1];
-  const marca = (linea.match(/(\d{4}-\d{2}-\d{2}T[\d:.]+)/) || [])[1];
-  const escritaEn = marca ? Date.parse(marca) : NaN;
-  const esDeAhora = Number.isFinite(escritaEn) && escritaEn >= arranque;
+  // CUANTO LLEVA EL PROCESO EN MARCHA, y no la fecha de la linea del log.
+  //
+  // Aqui se intentaba sacar una fecha ISO del propio log, y el log no la lleva:
+  // el bot imprime esa linea con un console.log pelado. La expresion no casaba
+  // nunca, el dato salia NaN y la rama que de verdad importa —"lleva horas
+  // corriendo codigo viejo"— quedaba inalcanzable, tapada por un "espera un
+  // momento" perpetuo.
+  //
+  // pm_uptime si es un dato real y lo da pm2 directamente. Si el proceso lleva
+  // menos de un minuto, todavia puede estar conectando y la huella vieja del
+  // log se explica sola. Pasado ese minuto, una huella que no cuadra ya no
+  // tiene excusa.
+  const recienArrancado = arranque > 0 && (Date.now() - arranque) < 60000;
 
+  // EL ORDEN DE ESTAS RAMAS IMPORTA, y estaba al reves.
+  //
+  // La marca de tiempo se miraba ANTES que la huella, y ahi habia dos fallos
+  // encadenados. Uno: la linea del log no lleva fecha —el bot la imprime con un
+  // console.log pelado, sin el prefijo del logger—, asi que la expresion que
+  // buscaba una fecha ISO no encontraba nada NUNCA. Y dos: al no encontrarla,
+  // `esDeAhora` era siempre falso y este aviso se quedaba encendido para
+  // siempre, sin forma de apagarlo ni esperando ni reiniciando.
+  //
+  // Un aviso que no se puede apagar es peor que no tenerlo: se lee dos veces,
+  // se aprende a saltarselo, y de paso se aprende a saltarse los de al lado.
+  //
+  // La huella manda. Si el commit del log es el del disco, el bot corre lo que
+  // toca y da igual cuando se escribiera esa linea: no hay otra forma de que
+  // ese hash este ahi. La fecha solo sirve para el caso en que NO coinciden,
+  // que es donde de verdad hace falta distinguir "recien reiniciado, aun
+  // conectando" de "lleva horas corriendo codigo viejo".
   if (!enMemoria) {
     aviso('el bot aún no ha dicho qué commit carga (¿todavía conectando?)', 'espera unos segundos y repite: npm run estado');
-  } else if (!esDeAhora) {
-    aviso(`reiniciado hace nada: la última huella del log (${enMemoria}) es del arranque anterior`,
-      'espera a que conecte y repite: npm run estado');
   } else if (enMemoria.startsWith(local) || local.startsWith(enMemoria)) {
     bien(`el bot en marcha corre ${enMemoria}, que es el del disco`);
+  } else if (recienArrancado) {
+    aviso(`reiniciado hace nada: la última huella del log (${enMemoria}) es del arranque anterior`,
+      'espera a que conecte y repite: npm run estado');
   } else {
     mal(`el bot corre ${enMemoria} pero en disco está ${local}: se actualizó sin reiniciar`,
       'pm2 restart bot --update-env');

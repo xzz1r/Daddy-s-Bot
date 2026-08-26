@@ -3776,6 +3776,29 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     exige(!/Ya estas en Node \$\{DESTINO\}\.[\s\S]{0,80}?exit 0/.test(n22),
       'node22.sh vuelve a salirse cuando Node ya esta en el destino: se saltaria pm2 y las dependencias de un intento a medias');
 
+    // NINGUN AVISO DE `estado` PUEDE QUEDARSE ENCENDIDO PARA SIEMPRE.
+    //
+    // Paso, y estuvo asi desde que lo escribi: el aviso de "reiniciado hace
+    // nada" comparaba la fecha de una linea del log que NO LLEVA FECHA. La
+    // expresion no casaba nunca, el dato salia NaN y el aviso no habia forma de
+    // apagarlo — ni esperando, ni reiniciando, ni actualizando. Y de rebote
+    // tapaba la rama que de verdad importa, la de "lleva horas corriendo codigo
+    // viejo", que quedaba inalcanzable.
+    //
+    // Se comprueba lo que fallo: que la decision se tome con la HUELLA primero
+    // (si el commit del log es el del disco, esta al dia y da igual la hora) y
+    // que lo de "recien arrancado" salga de pm_uptime, que es un dato que
+    // existe, y no de una fecha inventada.
+    const est = soloCodigo('scripts/estado.js');
+    exige(!/\d\{4\}\}?-\\d\{2\}.*T/.test(est) && !/escritaEn/.test(est),
+      'estado.js vuelve a sacar la hora de una linea de log que no la lleva: el aviso se queda encendido para siempre');
+    exige(/recienArrancado/.test(est) && /pm_uptime/.test(est),
+      'estado.js ya no usa pm_uptime para saber si el bot acaba de arrancar');
+    const iHuella = est.indexOf('enMemoria.startsWith(local)');
+    const iRecien = est.indexOf('recienArrancado)');
+    exige(iHuella > 0 && iRecien > 0 && iHuella < iRecien,
+      'en estado.js la huella dejo de mirarse antes que el "recien arrancado": con el bot al dia volveria a salir un aviso que no se puede apagar');
+
     if (fallos === antes) console.log(verde('   ✓ los cuatro guiones parsean, y los dos limites siguen donde deben'));
   }
 
