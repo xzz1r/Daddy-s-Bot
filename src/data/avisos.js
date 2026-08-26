@@ -38,32 +38,45 @@ const SOLO_GRUPOS = [
   'Aquí no pasa nada. Pruébalo en el grupo.',
 ];
 
-// Comando del dueño y lo ha escrito otro. Se lee en el grupo.
+// LO MISMO, UN ESCALON MAS ARRIBA: esto salta cuando un miembro toca algo del
+// tier de owner. Mismo criterio —se ataca el rango, no a la persona— pero aqui
+// la distancia es mayor y las frases lo dicen: no es que le falte poco, es que
+// no esta ni cerca.
 const SIN_PERMISO = [
-  'Eso no es tuyo y lo sabes. Baja las manos.',
-  'No. Y preguntar otra vez tampoco lo va a cambiar.',
-  'Ese botón no es para ti. Ni el de al lado.',
-  'Tienes exactamente el permiso que te has ganado: ninguno.',
-  'No mandas aquí. Escribir el comando no te asciende.',
-  'Ni de coña. Eso lo toca quien puede, y no eres tú.',
-  'Ese comando existe, pero no para ti. Suele pasar.',
-  'No. Y que lo hayas intentado queda por escrito.',
-  'Para eso hay que ser alguien en este grupo.',
-  'Prueba con un comando de tu nivel. Hay varios.',
+  'Eso es de arriba. Tú ni siquiera estás cerca del escalón de abajo.',
+  'No, y no es un fallo del bot: es que te ha mirado el rango y sigue.',
+  'Ese comando tiene dueño, y no vas a ser tú ni este año ni el que viene.',
+  'No mandas. Escribirlo con seguridad tampoco cambia lo que eres en este grupo.',
+  'Para eso hay que ser alguien, y el grupo lo tiene bastante claro contigo.',
+  'No. Ese permiso se da, no se coge, y a ti nadie te lo va a dar.',
+  'Ni de coña. Eso lo toca quien decide, y tú aquí no decides ni el tema.',
+  'Ese botón está a la vista para que sepas exactamente lo que no eres.',
+  'No. Lo has intentado, se te ha visto, y ha quedado peor de lo que crees.',
+  'Ese comando es para gente con rango. Tú tienes tiempo, que no es lo mismo.',
 ];
 
-// Comando de admins y lo ha escrito un miembro raso. Se lee en el grupo.
+// UN MIEMBRO ACABA DE TOCAR UN COMANDO DE ADMIN, Y LO HA VISTO EL GRUPO.
+//
+// Estos avisos iban flojos: seis de los diez eran la misma plantilla —"De
+// admins." mas un empujoncito— y el empujoncito no llegaba al hueso. El aviso
+// lo lee todo el mundo, no solo el que lo escribio, asi que es el unico momento
+// del dia en que el bot puede recordarle a alguien su sitio en publico.
+//
+// Y EL ATAQUE VA AL RANGO, no a la persona. No es "eres tonto": es que llevas
+// aqui el mismo tiempo que ellos y sigues sin galones, que nadie va a proponer
+// tu nombre, y que el comando no ha fallado — te ha reconocido y por eso no
+// hace nada. Eso escuece mas que un insulto porque es verificable.
 const SOLO_ADMINS = [
-  'Eso es de admins. Tú miras.',
-  'De admins. Y no, no lo eres por escribirlo.',
-  'Ese comando es para los que mandan. Tú aporta contenido.',
-  'No eres admin. Se nota hasta sin mirarlo.',
-  'De admins. Sigue intentándolo y quizá algún día. Quizá.',
-  'Eso lo hacen los admins. Tú puedes ver cómo lo hacen.',
-  'No. Ese es de los que tienen la corona.',
-  'De admins, y tú llevas aquí de decorado.',
-  'Ese comando pide galones. Tú vas en camiseta.',
-  'De admins. Lo tuyo es otra sección del menú.',
+  'Eso es de admins. Llevas aquí lo mismo que ellos y sigues sin serlo. Piensa por qué.',
+  'De admins. Y si a estas alturas no te lo han dado, es que nadie lo ha pensado.',
+  'Ese comando pide rango. El tuyo es "está en el grupo", y ahí se acaba.',
+  'No eres admin. Escribirlo delante de todos tampoco ayuda a que te lo den.',
+  'De admins. Tú decides aquí exactamente lo mismo que decides fuera: nada.',
+  'Ese lo tocan los que mandan. Lo tuyo es llevar tiempo mirando cómo lo hacen.',
+  'No. Y nadie va a proponer tu nombre, por si esperabas que saliera solo.',
+  'De admins. El grupo ya decidió tu sitio, y no lo decidió esta semana.',
+  'El comando no ha fallado: te ha reconocido perfectamente y por eso no hace nada.',
+  'No tienes rango. Tienes antigüedad, que aquí no vale para absolutamente nada.',
 ];
 
 // Se ha puesto a si mismo de objetivo. Se lee en el grupo.

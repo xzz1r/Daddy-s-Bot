@@ -3251,6 +3251,36 @@ async function capaStores() {
     }
 
     // Y QUE NO VUELVAN LAS FRASES A MANO. Se busca el string plano en src/.
+    // LOS DOS AVISOS DE RANGO: NI PLANTILLA NI LENGUAJE DE SISTEMA.
+    //
+    // SOLO_ADMINS llego a ser seis veces el mismo molde: "De admins." mas un
+    // empujoncito. Eso informa y no pica, y este aviso lo lee el grupo entero,
+    // no solo quien escribio el comando — es el unico momento del dia en que el
+    // bot puede recordarle a alguien su sitio en publico.
+    //
+    // AQUI VIVIO UNA GUARDA QUE PEDIA PALABRAS DE RANGO ("rango", "galones",
+    // "manda"...) en el 70 % de las frases. La quite: fallaba contra las frases
+    // buenas. "Ese comando tiene dueño, y no vas a ser tu ni este año ni el que
+    // viene" ataca el rango de lleno y no usa ninguna de esas palabras. Estaba
+    // midiendo vocabulario y llamandolo intencion, que es justo el error que ya
+    // me costo el pool de !aura.
+    //
+    // Se queda lo que SI es objetivo: que no sean todas el mismo molde, y que
+    // no se conviertan en un mensaje de sistema. Lo segundo es el modo real de
+    // que esto se pudra — alguien "arregla" un aviso y lo deja en
+    // "La operacion ha sido rechazada" — y se mide por las palabras que ningun
+    // aviso de este bot deberia decir nunca.
+    for (const nombre of ['SOLO_ADMINS', 'SIN_PERMISO']) {
+      const pool = AV[nombre];
+      const molde = pool.filter((f) => /^(De admins|Solo admins|No tienes permiso)\b/i.test(f)).length;
+      exige(molde <= 3,
+        `${nombre}: ${molde} de ${pool.length} frases arrancan con la misma plantilla, y asi se leen como un error del sistema`);
+      const BUROCRACIA = /\b(operaci[oó]n|solicitud|petici[oó]n|autorizaci[oó]n|validar|restringid|no disponible|disponible para|sistema|procesar|ejecutar|lo siento)\b/i;
+      const frias = pool.filter((f) => BUROCRACIA.test(f));
+      exige(frias.length === 0,
+        `${nombre} suena a mensaje de sistema y no a este bot: ${frias[0] || ''}`);
+    }
+
     const planas = ["'Solo en grupos.'", "'No tienes permiso para usar esto.'",
       "'Solo admins pueden usar este comando.'", "'Solo funciona en grupos.'",
       "'Este duelo no es para ti.'", "'No tienes permiso para mutear a un admin.'"];
