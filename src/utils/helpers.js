@@ -712,7 +712,12 @@ function msHastaCorte(ts, zona, horaCorte = 0) {
 // La clave lleva el chat: dos grupos distintos no se comen la rotacion el uno al
 // otro, y el mismo aviso repetido dos veces seguidas en el mismo sitio canta.
 function aviso(pool, chat, etiqueta) {
-  return pickFresh(pool, `${chat}|aviso|${etiqueta}`);
+  const frase = pickFresh(pool, `${chat}|aviso|${etiqueta}`);
+  // La cabecera —"Solo admins."— va delante y en su propia linea. Solo la
+  // tienen los avisos que niegan por rango; el resto devuelve la frase pelada,
+  // exactamente como antes.
+  const cab = require('../data/avisos').cabeceraDe?.(pool);
+  return cab ? `${cab}\n${frase}` : frase;
 }
 
 // Escritor con debounce + candado. El patrón viejo (`saveTimer = null` ANTES

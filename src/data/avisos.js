@@ -38,43 +38,47 @@ const SOLO_GRUPOS = [
   'Aquí no pasa nada. Pruébalo en el grupo.',
 ];
 
-// LO MISMO, UN ESCALON MAS ARRIBA: esto salta cuando un miembro toca algo del
-// tier de owner. Mismo criterio —se ataca el rango, no a la persona— pero aqui
-// la distancia es mayor y las frases lo dicen: no es que le falte poco, es que
-// no esta ni cerca.
+// LO MISMO UN ESCALON MAS ARRIBA: salta cuando un miembro toca algo del tier de
+// owner. La cabecera dice "Solo admins superiores" y no "solo el dueño", que es
+// como lo llama el menu: nombrar a un dueño en un aviso que lee todo el grupo
+// es señalar a una persona, y eso no lo hace el bot en ningun sitio.
 const SIN_PERMISO = [
-  'Eso es de arriba. Tú ni siquiera estás cerca del escalón de abajo.',
-  'No, y no es un fallo del bot: es que te ha mirado el rango y sigue.',
-  'Ese comando tiene dueño, y no vas a ser tú ni este año ni el que viene.',
-  'No mandas. Escribirlo con seguridad tampoco cambia lo que eres en este grupo.',
+  'Ni siquiera estás cerca del escalón de abajo, no digamos del de arriba.',
+  'No es un fallo del bot: te ha mirado el rango y ha seguido a lo suyo.',
+  'Ese comando ya tiene quien lo use, y no vas a ser tú ni este año ni el que viene.',
+  'Escribirlo con seguridad tampoco cambia lo que eres en este grupo.',
   'Para eso hay que ser alguien, y el grupo lo tiene bastante claro contigo.',
-  'No. Ese permiso se da, no se coge, y a ti nadie te lo va a dar.',
-  'Ni de coña. Eso lo toca quien decide, y tú aquí no decides ni el tema.',
+  'Ese permiso se da, no se coge, y a ti nadie te lo va a dar.',
+  'Eso lo toca quien decide, y tú aquí no decides ni el tema de conversación.',
   'Ese botón está a la vista para que sepas exactamente lo que no eres.',
-  'No. Lo has intentado, se te ha visto, y ha quedado peor de lo que crees.',
+  'Lo has intentado, se te ha visto, y ha quedado peor de lo que crees.',
   'Ese comando es para gente con rango. Tú tienes tiempo, que no es lo mismo.',
 ];
 
 // UN MIEMBRO ACABA DE TOCAR UN COMANDO DE ADMIN, Y LO HA VISTO EL GRUPO.
 //
-// Estos avisos iban flojos: seis de los diez eran la misma plantilla —"De
-// admins." mas un empujoncito— y el empujoncito no llegaba al hueso. El aviso
-// lo lee todo el mundo, no solo el que lo escribio, asi que es el unico momento
-// del dia en que el bot puede recordarle a alguien su sitio en publico.
+// El aviso va en dos partes: una cabecera fija que DICE de quien es el comando,
+// y debajo el remate. Antes la etiqueta iba dentro de cada frase —"De admins."
+// mas un empujoncito— y eso costaba las dos cosas: media frase se gastaba en
+// repetir lo mismo, y quien lo leia con prisa se quedaba en el empujoncito sin
+// enterarse de por que no habia funcionado.
 //
-// Y EL ATAQUE VA AL RANGO, no a la persona. No es "eres tonto": es que llevas
-// aqui el mismo tiempo que ellos y sigues sin galones, que nadie va a proponer
-// tu nombre, y que el comando no ha fallado — te ha reconocido y por eso no
-// hace nada. Eso escuece mas que un insulto porque es verificable.
+// Partido, la cabecera informa siempre y el remate puede dedicarse entero a lo
+// suyo. Es el mismo arreglo que en !r con `Aviso:`, y por el mismo motivo.
+//
+// EL ATAQUE VA AL RANGO, no a la persona. No es "eres tonto", que no dice nada:
+// es que llevas aqui el mismo tiempo que ellos y sigues sin galones, que nadie
+// va a proponer tu nombre, que el comando no ha fallado — te ha reconocido y
+// por eso no hace nada. Eso escuece mas que un insulto porque es verificable.
 const SOLO_ADMINS = [
-  'Eso es de admins. Llevas aquí lo mismo que ellos y sigues sin serlo. Piensa por qué.',
-  'De admins. Y si a estas alturas no te lo han dado, es que nadie lo ha pensado.',
+  'Llevas aquí lo mismo que ellos y sigues sin galones. Piensa por qué.',
+  'Y si a estas alturas no te lo han dado, es que nadie lo ha pensado.',
   'Ese comando pide rango. El tuyo es "está en el grupo", y ahí se acaba.',
-  'No eres admin. Escribirlo delante de todos tampoco ayuda a que te lo den.',
-  'De admins. Tú decides aquí exactamente lo mismo que decides fuera: nada.',
+  'Escribirlo delante de todos tampoco ayuda a que te lo acaben dando.',
+  'Tú decides aquí exactamente lo mismo que decides fuera: nada.',
   'Ese lo tocan los que mandan. Lo tuyo es llevar tiempo mirando cómo lo hacen.',
-  'No. Y nadie va a proponer tu nombre, por si esperabas que saliera solo.',
-  'De admins. El grupo ya decidió tu sitio, y no lo decidió esta semana.',
+  'Y nadie va a proponer tu nombre, por si esperabas que saliera solo.',
+  'El grupo ya decidió tu sitio, y no lo decidió precisamente esta semana.',
   'El comando no ha fallado: te ha reconocido perfectamente y por eso no hace nada.',
   'No tienes rango. Tienes antigüedad, que aquí no vale para absolutamente nada.',
 ];
@@ -122,4 +126,18 @@ const DUELO_AJENO = [
   'Ese duelo no te incluye, y eso ya dice bastante de ti.',
 ];
 
-module.exports = { SOLO_GRUPOS, SIN_PERMISO, SOLO_ADMINS, A_TI_MISMO, CONTRA_UN_ADMIN, DUELO_AJENO };
+// CABECERA POR POOL. Solo la tienen los avisos que niegan por RANGO: ahi hace
+// falta decir de quien es el comando. Los demas (a ti mismo, duelo ajeno, solo
+// grupos) ya se explican solos y una cabecera seria ruido.
+//
+// Va en un Map del propio array a su texto para no tener que cambiar la firma de
+// aviso() ni tocar los seis sitios que lo llaman: el que tiene cabecera la
+// recibe, el que no, sigue igual.
+const CABECERAS = new Map([
+  [SOLO_ADMINS, '*Solo admins.*'],
+  [SIN_PERMISO, '*Solo admins superiores.*'],
+]);
+function cabeceraDe(pool) { return CABECERAS.get(pool) || null; }
+
+module.exports = {
+  cabeceraDe, SOLO_GRUPOS, SIN_PERMISO, SOLO_ADMINS, A_TI_MISMO, CONTRA_UN_ADMIN, DUELO_AJENO };

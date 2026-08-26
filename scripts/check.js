@@ -1919,7 +1919,10 @@ async function capaStores() {
     // !purge. Lo que importa es que conteste una sola vez, que sea el aviso de
     // admins, y que groupParticipantsUpdate ni se llame (revienta si se llama).
     const { SOLO_ADMINS: POOL_ADM } = require(path.join(R, 'src/data/avisos'));
-    exige(silenciosoKick.length === 1 && POOL_ADM.includes((silenciosoKick[0].text || '').trim()),
+    // `includes` del texto entero ya no vale: el aviso es cabecera + frase, asi
+    // que se busca la FRASE DENTRO de lo que salio. Sigue comprobando lo mismo
+    // —que el aviso es el de admins— sin atarse a como se componga.
+    exige(silenciosoKick.length === 1 && POOL_ADM.some((f) => (silenciosoKick[0].text || '').includes(f)),
       `!kick no corta a quien no es admin (contesto ${silenciosoKick.length} vez/veces: "${(silenciosoKick[0]?.text || '').slice(0, 60)}")`);
 
     const msgsNA = [];
@@ -3217,7 +3220,10 @@ async function capaStores() {
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
     const AV = require(path.join(R, 'src/data/avisos'));
 
-    for (const [nombre, pool] of Object.entries(AV)) {
+    // Solo los ARRAYS son pools. El modulo exporta ademas cabeceraDe(), y
+    // recorrer los exports a ciegas la trataba como un pool de una frase.
+    const POOLS = Object.entries(AV).filter(([, v]) => Array.isArray(v));
+    for (const [nombre, pool] of POOLS) {
       exige(pool.length >= 8, `${nombre} tiene ${pool.length} frases: con menos de 8 se repiten a la vista`);
       exige(new Set(pool).size === pool.length, `${nombre} tiene frases repetidas`);
       exige(pool.every((f) => f.length <= 90), `${nombre} tiene frases largas: un aviso se lee de un vistazo o no se lee`);
@@ -3245,7 +3251,7 @@ async function capaStores() {
     // cosas" al endurecer el aviso de !kick: el bot habla igual para todos y una
     // conjugacion de España en un aviso canta mas que en una frase larga.
     const peninsular = /\b(vosotros|valéis|estáis|sois|tenéis|dadme|dejad|mirad|escribid|poneos|hacedlo|idos)\b/i;
-    for (const [nombre, pool] of Object.entries(AV)) {
+    for (const [nombre, pool] of POOLS) {
       const conVos = pool.filter((f) => peninsular.test(f));
       exige(conVos.length === 0, `${nombre} conjuga en vosotros: ${conVos[0] || ''}`);
     }
@@ -3279,6 +3285,22 @@ async function capaStores() {
       const frias = pool.filter((f) => BUROCRACIA.test(f));
       exige(frias.length === 0,
         `${nombre} suena a mensaje de sistema y no a este bot: ${frias[0] || ''}`);
+
+      // LA CABECERA TIENE QUE ESTAR, Y TIENE QUE DECIR DE QUIEN ES EL COMANDO.
+      // Sin ella el aviso pasa a ser solo un insulto y el que lo recibe no se
+      // entera de por que no le ha funcionado, que es la mitad del trabajo.
+      const cab = AV.cabeceraDe(pool);
+      exige(!!cab && /admin/i.test(cab),
+        `${nombre} se quedo sin cabecera: el aviso insulta pero ya no dice de quien es el comando`);
+      // Y NO PUEDE NOMBRAR AL DUEÑO. Este aviso lo lee el grupo entero; el menu
+      // llama a ese tier "ADMINS SUPERIORES" justo por eso.
+      exige(!/\b(dueñ[oa]|owner|creador|jefe)\b/i.test(cab || ''),
+        `la cabecera de ${nombre} nombra al dueño: "${cab}"`);
+      // Y LA FRASE NO LA REPITE. Si vuelve a empezar por "De admins." se gasta
+      // media frase diciendo lo que la cabecera ya dijo.
+      const repiten = pool.filter((f) => /^(de |solo )?admins?\b/i.test(f));
+      exige(repiten.length === 0,
+        `${nombre}: ${repiten.length} frase(s) repiten la cabecera en vez de rematar: ${repiten[0] || ''}`);
     }
 
     const planas = ["'Solo en grupos.'", "'No tienes permiso para usar esto.'",
