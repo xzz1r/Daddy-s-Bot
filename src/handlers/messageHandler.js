@@ -1229,6 +1229,26 @@ async function handleMessage(sock, msg) {
   // pueda enviar algo queda detras. Ver ownerEnPrivado.
   if (!jid.endsWith('@g.us') && !ownerEnPrivado(msg, sender)) return;
 
+  // EL VISTO, A TODO, SIEMPRE. Y AQUI, NO EN EL BLOQUE DE COMANDOS.
+  //
+  // Estaba en el `finally` del try de los comandos, o sea DETRAS de todas las
+  // puertas: solo se marcaban como leidos los mensajes que eran un comando. El
+  // resto —la conversacion normal del grupo, que es casi todo— se quedaba sin
+  // doble check azul y desde fuera el bot parecia dormido.
+  //
+  // Va con setImmediate y sin await por un motivo concreto: el acuse es una
+  // escritura al socket igual que una respuesta, y puesto por delante deja la
+  // respuesta esperando detras. Cediendo un tick, el comando alcanza a encolar
+  // lo suyo primero y el visto sale despues sin que nadie lo note.
+  //
+  // En el privado de un desconocido NO se marca, y no por ahorro: el bot tiene
+  // que ser invisible ahi. Un check azul sin respuesta dice "te he leido y paso
+  // de ti", que es peor que no aparecer. Esta linea va detras de esa puerta a
+  // proposito.
+  if (config.autoRead && !msg.key.fromMe) {
+    setImmediate(() => { sock.readMessages?.([msg.key]).catch(() => {}); });
+  }
+
   // Non-blocking counters — never delay command execution.
   // Don't count the bot's own messages so the owner doesn't inflate their rank.
   incrementStat('messagesReceived');
@@ -2338,11 +2358,8 @@ async function handleMessage(sock, msg) {
       text: `Error inesperado: ${err.message}` + (cobradoAqui > 0 ? `\n_Te devuelvo los ${cobradoAqui} de aura._` : ''),
     }, { quoted: msg }).catch(() => {});
   } finally {
-    // Y aqui, cuando la respuesta ya esta encolada. Sin await: no se le hace
-    // esperar a nadie por un acuse de lectura.
-    if (config.autoRead && !msg.key.fromMe) {
-      sock.readMessages?.([msg.key]).catch(() => {});
-    }
+    // El visto ya se mando arriba, para TODO mensaje y no solo para los
+    // comandos. Aqui solo queda la medicion.
     const tardo = Date.now() - t0Cmd;
     if (tardo >= LENTO_MS) logger.warn(`LENTO: ${config.prefix}${command} tardo ${tardo} ms`);
   }

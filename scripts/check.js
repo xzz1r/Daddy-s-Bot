@@ -3339,15 +3339,41 @@ async function capaStores() {
         `${c}: antes de contestar se encola "${ev[0] || 'nada'}" — eso es un viaje a WhatsApp por delante de cada respuesta (orden: ${ev.join(' → ') || 'vacio'})`);
     }
 
-    // Y que el visto siga estando DESPUES del switch en el fichero. La prueba de
-    // arriba lo pilla, pero esta dice donde mirar cuando falle.
-    const mhV = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
-    const iVisto = mhV.indexOf('sock.readMessages?.');
-    const iSwitch = mhV.indexOf('switch (command)');
-    exige(iVisto > iSwitch,
-      'el visto volvio a mandarse antes del switch: retrasa un viaje entero cada respuesta');
+    // EL VISTO LLEGA A TODO, no solo a lo que es un comando.
+    //
+    // Estuvo en el `finally` del try de los comandos, o sea detras de todas las
+    // puertas: la conversacion normal del grupo —que es casi todo— se quedaba
+    // sin doble check azul y el bot parecia dormido. Se comprueba con mensajes
+    // que NO son comandos, que es justo lo que se quedaba fuera.
+    //
+    // Aqui vivio una guarda que miraba en que LINEA del fichero estaba el
+    // visto. Se cayo sola en cuanto el visto se movio de sitio por un motivo
+    // legitimo: lo que importa no es donde este escrito, sino que llegue a
+    // todos los mensajes y que no se ponga por delante de la respuesta. Las dos
+    // cosas se miden aqui.
+    for (const [nombre, message] of [
+      ['texto normal', { conversation: 'hola que tal' }],
+      ['foto', { imageMessage: { mimetype: 'image/jpeg' } }],
+      ['reaccion', { reactionMessage: { key: { id: 'x' }, text: '👍' } }],
+    ]) {
+      const ev = [];
+      const s2 = {
+        user: { id: BOTV },
+        sendMessage: async () => { ev.push('respuesta'); return {}; },
+        readMessages: async () => { ev.push('visto'); },
+        sendPresenceUpdate: async () => { ev.push('presencia'); },
+        groupMetadata: async () => ({ id: GV, subject: 'G', participants: partsV }),
+        groupParticipantsUpdate: async () => [],
+        groupFetchAllParticipating: async () => ({}),
+      };
+      await handleMessage(s2, { key: { remoteJid: GV, participant: YOV, fromMe: false, id: `W${Math.random()}` },
+        message, pushName: 'x', messageTimestamp: Math.floor(Date.now() / 1000) });
+      await new Promise((r) => setTimeout(r, 120));
+      exige(ev.includes('visto'),
+        `un ${nombre} no se marca como leido: el grupo ve al bot sin abrir sus mensajes`);
+    }
 
-    if (fallos === antes) console.log(verde('   ✓ la respuesta es lo primero que sale, en los tres comandos probados'));
+    if (fallos === antes) console.log(verde('   ✓ lo lee todo, y la respuesta sale antes que el acuse'));
   }
 
   // ── 29. NADIE SALE CON 0 MENSAJES HABIENDO ESCRITO ───────────────────────
