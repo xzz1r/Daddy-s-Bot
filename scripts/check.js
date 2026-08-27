@@ -3491,25 +3491,31 @@ async function capaStores() {
         }
       }
 
-      // LA SEGUNDA SOLICITUD NO ESPERA AL SONDEO.
+      // LA SOLICITUD NUEVA SE APRUEBA AL LLEGAR, Y NO POR group.join-request.
       //
-      // Esto se vio en el grupo: encender el modo metia a la que ya estaba
-      // esperando —porque encenderlo vacia la cola— y la SIGUIENTE se quedaba
-      // parada. El sondeo va cada tres minutos y era la unica via, para algo
-      // que WhatsApp avisa al instante con group.join-request.
+      // Esto costo dos rondas. El evento de Baileys parecia lo correcto y no
+      // sirve: solo lo emite para UN tipo de aviso —el 172, cuando un NO-admin
+      // añade a alguien— y lo dice su propio codigo, con un "TODO: Add other
+      // events" al lado (Utils/process-message.js). El caso normal, alguien que
+      // pide entrar por el enlace, llega como el aviso 144 y de ese no emite
+      // nada. Por eso el modo aceptaba al encenderlo —eso vacia la cola a mano—
+      // y despues se quedaba mudo.
       //
-      // Se comprueba sobre el fuente de bot.js porque el manejador vive dentro
-      // de connectToWhatsApp y no se puede invocar sin abrir un socket: que
-      // escuche el evento, que mire el modo, y que llame a aceptarPendientes en
-      // vez de fiarse del JID que trae el evento (la lista es la fuente
-      // autoritativa; adivinar el formato del JID ya costo una ronda).
+      // Se comprueba sobre el fuente porque el manejador vive dentro de
+      // connectToWhatsApp: que se enganche al aviso EN CRUDO (que si llega
+      // siempre) y que cubra los dos tipos, no solo el que Baileys emite.
       {
         const botSrc = soloCodigo('src/bot.js');
-        exige(/group\.join-request[\s\S]{0,2500}?isAutoAceptarEnabled\(id\)/.test(botSrc),
-          'el evento de solicitud no mira si el grupo tiene autoaccept: la segunda solicitud espera tres minutos al sondeo');
-        exige(/isAutoAceptarEnabled\(id\)[\s\S]{0,900}?aceptarPendientes\(sock, id\)/.test(botSrc),
-          'el evento aprueba por su cuenta en vez de usar la lista de solicitudes, que es la que da el JID con el formato bueno');
-        exige(/clearTimeout\(autoAcceptPendiente\.get\(id\)\)/.test(botSrc),
+        // La LLAMADA, no la definicion. Con `[\s\S]{0,900}?` el patron llegaba
+        // hasta la propia funcion mas abajo y daba por buena una version en la
+        // que la llamada estaba quitada. La comprobacion se cazo a si misma.
+        exige(/(?<!function )avisarSolicitudNueva\(msg\);/.test(botSrc),
+          'autoaccept ya no se engancha al aviso de sistema: vuelve a depender de un evento que Baileys casi nunca emite');
+        exige(/STUB_SOLICITUD = new Set\(\[\s*144\s*,\s*172\s*\]\)/.test(botSrc),
+          'la lista de avisos de solicitud ya no cubre el 144 y el 172: el 144 es el caso normal, pedir entrar por el enlace');
+        exige(/avisarSolicitudNueva[\s\S]{0,1200}?aceptarPendientes\(sock, grupo\)/.test(botSrc),
+          'el aviso aprueba por su cuenta en vez de usar la lista de solicitudes, que es la que da el JID con el formato bueno');
+        exige(/avisarSolicitudNueva[\s\S]{0,600}?clearTimeout\(autoAcceptPendiente\.get\(grupo\)\)/.test(botSrc),
           'sin juntar las rafagas: cinco solicitudes de golpe lanzan cinco barridos contra WhatsApp');
       }
 

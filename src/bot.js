@@ -23,6 +23,11 @@ const config = require('./config');
 // temporizadores corriendo a la vez.
 let refrescoPresencia = null;
 
+// Los avisos de sistema que significan "alguien ha pedido entrar". El 144 es el
+// caso normal (por enlace) y el 172 cuando un no-admin añade a alguien; los dos
+// abren una solicitud que hay que aprobar.
+const STUB_SOLICITUD = new Set([144, 172]);
+
 // Barridos de autoaccept pendientes, por grupo. Junta las rafagas: si llegan
 // cinco solicitudes seguidas se hace UN barrido, no cinco.
 const autoAcceptPendiente = new Map();
@@ -1619,7 +1624,22 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
       // motivo REAL de un alta. Se anotan siempre, venga el lote como 'notify' o
       // como 'append', porque de ellos depende no castigar a un admin por
       // aceptar una solicitud.
-      if (msg?.messageStubType) anotarAlta(msg);
+      if (msg?.messageStubType) {
+        anotarAlta(msg);
+        // UNA SOLICITUD NUEVA LLEGA POR AQUI, NO POR group.join-request.
+        //
+        // El evento de Baileys parecia lo correcto y no sirve para este caso.
+        // Solo lo emite para UN tipo de aviso —el 172, cuando un NO-admin añade
+        // a alguien— y lo dice su propio codigo, con un "TODO: Add other
+        // events" al lado (Utils/process-message.js). El caso normal, alguien
+        // que pide entrar por el enlace, llega como el aviso 144 y de ese
+        // Baileys no emite nada. Por eso el modo aceptaba al encenderlo (que
+        // vacia la cola a mano) y despues se quedaba mudo.
+        //
+        // Se engancha al aviso en crudo, que si llega siempre y ya se estaba
+        // recibiendo aqui para otra cosa.
+        avisarSolicitudNueva(msg);
+      }
     }
     if (type !== 'notify') return;
     for (const msg of messages) {
@@ -1632,6 +1652,27 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
   });
 
   return sock;
+}
+
+// Alguien ha pedido entrar: si el grupo tiene autoaccept, se barre la cola.
+//
+// Con retardo para juntar rafagas —cinco solicitudes de golpe son UN barrido— y
+// llamando a aceptarPendientes en vez de sacar el JID del aviso: la lista de
+// solicitudes es la fuente autoritativa y es el camino que ya funciona.
+function avisarSolicitudNueva(msg) {
+  const grupo = msg?.key?.remoteJid;
+  if (!grupo || !STUB_SOLICITUD.has(Number(msg.messageStubType))) return;
+  if (!isAutoAceptarEnabled(grupo)) return;
+  logger.info(`solicitud de entrada en ${grupo} (aviso ${msg.messageStubType}); autoaccept la va a aprobar`);
+  clearTimeout(autoAcceptPendiente.get(grupo));
+  const t = setTimeout(() => {
+    autoAcceptPendiente.delete(grupo);
+    aceptarPendientes(sock, grupo)
+      .then((r) => { if (r?.aprobados) logger.info(`autoaccept en ${grupo}: ${r.aprobados} aprobada(s) al vuelo`); })
+      .catch((e) => logger.warn(`autoaccept en ${grupo}: ${e.message}`));
+  }, 1500);
+  t.unref?.();
+  autoAcceptPendiente.set(grupo, t);
 }
 
 let _shuttingDown = false;
