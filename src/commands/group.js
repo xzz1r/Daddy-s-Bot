@@ -863,10 +863,9 @@ function numeroDeArgs(args) {
 // cualquiera de forma automatica cambia quien esta en el grupo sin que nadie
 // mire, y esa decision es del dueño.
 //
-// Lo que NO hace, y se dice en la respuesta para que no haya sorpresas: no
-// acepta a los vetados. A esos les rechaza la solicitud. Aceptar "a todos" de
-// verdad significaria volver a meter justo a los que el bot echo por subir
-// historias con enlace o por ser cuentas de negocio.
+// SOLO APRUEBA SOLICITUDES. No añade a nadie ni invita: si nadie ha llamado a
+// la puerta, esto no hace nada. Y no filtra por la lista negra — guardOnJoin ya
+// mira el veto en cada alta y echa al vetado al entrar.
 async function cmdAutoAceptar(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
@@ -898,8 +897,8 @@ async function cmdAutoAceptar(sock, msg, args, groupMeta) {
   const puede = isBotAdmin(sock, groupMeta);
   return sock.sendMessage(jid, {
     text: '*Autoaceptar encendido.*\n' +
-      'Apruebo solo las solicitudes de entrada, de una en una.\n' +
-      '_A los vetados les rechazo la solicitud: no vuelven a entrar por aquí._' +
+      'Apruebo las solicitudes de entrada, de una en una.\n' +
+      '_No añado a nadie: solo abro a quien ya ha pedido entrar._' +
       (puede ? '' : '\n\n*No soy admin, así que ahora mismo no puedo aprobar nada.* Dame admin.'),
   }, { quoted: msg });
 }

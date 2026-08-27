@@ -247,51 +247,46 @@ function _reset() { store = null; loadPromise = null; ultimoSondeo.clear(); fren
 function _marcarSondeo(grupo, ts = Date.now()) { ultimoSondeo.set(grupo, ts); }
 function _frenado(grupo) { return frenados.get(grupo) || null; }
 
-// ACEPTA LAS SOLICITUDES PENDIENTES DE UN GRUPO. Devuelve lo que hizo.
+// ACEPTA LAS SOLICITUDES PENDIENTES DE UN GRUPO. Devuelve cuantas aprobo.
 //
-// NO ACEPTA A TODOS, Y ESO NO ES UN MATIZ. El bot mantiene una lista negra: ahi
-// acaban los que subieron una historia con enlace al grupo, las cuentas de
-// negocio y a quien se haya vetado a mano. Aceptar "a todos" de verdad
-// significaria volver a meter justo a esos, que es lo unico que la lista negra
-// existe para impedir. Al vetado se le RECHAZA la solicitud, no se le ignora:
-// dejarla pendiente la deja ahi para que un admin la apruebe sin saber.
+// SOLO APRUEBA LO QUE YA ESTA PEDIDO. No mete a nadie, no invita, no busca: si
+// no hay solicitud, aqui no pasa nada. La diferencia importa — un bot que añade
+// gente y uno que aprueba a quien llamo a la puerta no son la misma cosa.
 //
-// Y va de una en una con pausa. Aprobar veinte de golpe son veinte llamadas
+// Y NO FILTRA POR LA LISTA NEGRA, a proposito. Hubo una version que rechazaba
+// al vetado en la puerta y sobraba: guardOnJoin ya mira la lista negra en CADA
+// alta y lo echa al entrar, asi que era una segunda capa sobre algo cubierto, y
+// una que costaba una consulta por solicitud. La unica rendija es tener el
+// antifake apagado, que es justo lo que apaga esa guarda; con el encendido —que
+// es como viene— el vetado no dura dentro ni un segundo.
+//
+// Va de una en una con pausa. Aprobar veinte de golpe son veinte llamadas
 // seguidas a WhatsApp; con una cuenta en revision eso es exactamente el patron
-// que no conviene. Diez por ciclo es de sobra: el sondeo vuelve a pasar.
+// que no conviene. Diez por ciclo basta: el sondeo vuelve a pasar.
 const PAUSA_APROBAR = 1500;
 const MAX_POR_CICLO = 10;
 
-async function aceptarPendientes(sock, grupo, { estaVetado } = {}) {
+async function aceptarPendientes(sock, grupo) {
   if (typeof sock?.groupRequestParticipantsUpdate !== 'function') return null;
   let lista;
   try { lista = await sock.groupRequestParticipantsList(grupo); }
   catch { return null; }
-  if (!lista || !lista.length) return { aprobados: 0, rechazados: 0 };
+  if (!lista || !lista.length) return { aprobados: 0 };
 
-  const aprobar = [], rechazar = [];
+  let aprobados = 0;
   for (const p of lista.slice(0, MAX_POR_CICLO)) {
     const jid = p?.jid || p?.phone_number || p?.lid;
     if (!jid) continue;
-    let vetado = false;
-    try { vetado = estaVetado ? await estaVetado(jid) : false; } catch { vetado = false; }
-    (vetado ? rechazar : aprobar).push(jid);
-  }
-
-  let aprobados = 0, rechazados = 0;
-  for (const [jids, accion] of [[rechazar, 'reject'], [aprobar, 'approve']]) {
-    for (const jid of jids) {
-      try {
-        await sock.groupRequestParticipantsUpdate(grupo, [jid], accion);
-        if (accion === 'approve') { aprobados++; await olvidarSolicitud(grupo, jid); }
-        else { rechazados++; await olvidarSolicitud(grupo, jid); }
-      } catch (e) {
-        logger.warn(`autoaceptar: no pude ${accion === 'approve' ? 'aprobar' : 'rechazar'} a ${jid} en ${grupo}: ${e.message}`);
-      }
-      await new Promise((r) => setTimeout(r, PAUSA_APROBAR));
+    try {
+      await sock.groupRequestParticipantsUpdate(grupo, [jid], 'approve');
+      aprobados++;
+      await olvidarSolicitud(grupo, jid);
+    } catch (e) {
+      logger.warn(`autoaceptar: no pude aprobar a ${jid} en ${grupo}: ${e.message}`);
     }
+    await new Promise((r) => setTimeout(r, PAUSA_APROBAR));
   }
-  return { aprobados, rechazados };
+  return { aprobados };
 }
 
 module.exports = {

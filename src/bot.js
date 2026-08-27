@@ -40,7 +40,7 @@ const { flushCache } = require('./utils/musicCache');
 const { flush: flushPfpHashes } = require('./utils/pfpStore');
 const { flush: flushPfpCache } = require('./utils/pfpCache');
 const { sweepAllGroups, maybeIndex } = require('./utils/pfpIndexer');
-const { flushBanlist, banAccount, isBanned } = require('./utils/banlist');
+const { flushBanlist, banAccount } = require('./utils/banlist');
 const { flushLinkPerms } = require('./utils/linkPerms');
 const { flushRobo } = require('./utils/roboStore');
 const { guardOnJoin, allForms } = require('./commands/fk');
@@ -216,17 +216,9 @@ async function sondearSolicitudes() {
     // temporizador porque el sondeo ya sabe cuando hay cola y cuando el grupo
     // esta frenado: montar un segundo ciclo seria preguntar dos veces lo mismo.
     if (!n || !isAutoAceptarEnabled(g)) continue;
-    const r = await aceptarPendientes(sock, g, {
-      // La lista negra manda por encima del modo. Ver la nota en
-      // aceptarPendientes: aceptar "a todos" de verdad significaria volver a
-      // meter justo a los que el bot echo.
-      estaVetado: async (jid) => {
-        try { return await isBanned(allForms(jid, null)); } catch { return false; }
-      },
-    }).catch((e) => { logger.warn(`autoaceptar en ${g}: ${e.message}`); return null; });
-    if (r && (r.aprobados || r.rechazados)) {
-      logger.info(`autoaceptar en ${g}: ${r.aprobados} dentro, ${r.rechazados} rechazado(s) por estar vetados`);
-    }
+    const r = await aceptarPendientes(sock, g)
+      .catch((e) => { logger.warn(`autoaceptar en ${g}: ${e.message}`); return null; });
+    if (r?.aprobados) logger.info(`autoaceptar en ${g}: ${r.aprobados} solicitud(es) aprobada(s)`);
   }
 }
 
