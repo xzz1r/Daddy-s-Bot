@@ -345,6 +345,7 @@ ${esAdmin ? `
 ━━━━━ *ADMINS SUPERIORES* ━━━━━
 *${p}demote* · *${p}on* / *${p}off* — apagar el bot en este grupo
 _Van con on/off:_ *${p}antilink* · *${p}antifoto* · *${p}antiempresa* · *${p}antiadmin* · *${p}adminmode* · *${p}aura*
+*${p}autoaceptar* on/off — aprueba solo las solicitudes de entrada (a los vetados no)
 *${p}resetcount* · *${p}resetaura* · *${p}clearcache* · *${p}setkey* · *${p}diag*
 ` : ''}
 _${p}ping · ${p}info · ${p}whoami_

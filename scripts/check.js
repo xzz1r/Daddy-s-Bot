@@ -3339,6 +3339,40 @@ async function capaStores() {
         `MAL_ESCRITO vuelve a dar clase en vez de atacar: ${lecciones[0] || ''}`);
     }
 
+    // AUTOACEPTAR NO PUEDE METER A UN VETADO.
+    //
+    // Es un modo que ABRE la puerta, y el unico modo del bot que lo hace. "Que
+    // acepte a todos" leido al pie de la letra significa volver a meter justo a
+    // los que el bot echo —historias con enlace, cuentas de negocio, vetados a
+    // mano—, que es lo unico que la lista negra existe para impedir.
+    //
+    // Se comprueba con una cola de verdad: dos limpios y un vetado.
+    {
+      const { aceptarPendientes } = require(path.join(R, 'src/utils/joinRequests'));
+      const GA = '000000035@g.us';
+      const LIMPIO = '34600000351@s.whatsapp.net';
+      const VETADO = '34600000359@s.whatsapp.net';
+      const hechas = [];
+      const sockA = {
+        groupRequestParticipantsList: async () => [{ jid: LIMPIO }, { jid: VETADO }],
+        groupRequestParticipantsUpdate: async (g, jids, accion) => { hechas.push(`${accion}:${jids[0]}`); return []; },
+      };
+      const r = await aceptarPendientes(sockA, GA, { estaVetado: async (j) => j === VETADO });
+      exige(r && r.aprobados === 1 && r.rechazados === 1,
+        `autoaceptar: con un vetado en la cola dio ${JSON.stringify(r)} (deberia aprobar 1 y rechazar 1)`);
+      exige(hechas.includes(`approve:${LIMPIO}`),
+        'autoaceptar no aprueba al que no esta vetado: entonces no sirve para nada');
+      exige(!hechas.includes(`approve:${VETADO}`),
+        'AUTOACEPTAR APRUEBA A UN VETADO: vuelve a meter a quien el bot echo');
+      exige(hechas.includes(`reject:${VETADO}`),
+        'al vetado se le deja la solicitud pendiente en vez de rechazarla: un admin puede aprobarla sin saber');
+      // Y que venga APAGADO. Un modo que mete gente sin que nadie mire no puede
+      // encenderse solo por existir.
+      const { isAutoAceptarEnabled } = require(path.join(R, 'src/utils/state'));
+      exige(isAutoAceptarEnabled('000000036@g.us') === false,
+        'autoaceptar viene encendido por defecto: un grupo nuevo aceptaria a cualquiera sin que nadie lo pida');
+    }
+
     // NINGUN COMANDO PUEDE DEPENDER DE LA TILDE.
     //
     // *!menú* e *!inútil* no funcionaban: los `case` son 'menu' e 'inutil', asi

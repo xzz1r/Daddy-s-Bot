@@ -156,5 +156,13 @@ const toggleAntiLink        = (jid, enable) => setMembership('antiLinkDisabled',
 const isAuraEnabled         = (jid)         => !hasMembership('auraDisabled',        jid);
 const toggleAura            = (jid, enable) => setMembership('auraDisabled',         jid, !enable);
 
-module.exports = { initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, flushState, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness, isAntiLinkEnabled, toggleAntiLink, isAntiFakeEnabled, toggleAntiFake, isSoloAdminsEnabled, toggleSoloAdmins, isAuraEnabled, toggleAura };
+// AUTOACEPTAR ES OPT-IN (por defecto APAGADO), y al reves que los demas modos.
+//
+// Los otros vienen encendidos porque protegen. Este ABRE la puerta: acepta solo
+// las solicitudes de entrada del grupo. Un modo que mete gente sin que nadie
+// mire tiene que encenderse a mano y a proposito, nunca por venir de serie.
+const isAutoAceptarEnabled  = (jid)         => hasMembership('autoAceptar',          jid);
+const toggleAutoAceptar     = (jid, enable) => setMembership('autoAceptar',          jid, enable);
+
+module.exports = { initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, flushState, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness, isAntiLinkEnabled, toggleAntiLink, isAntiFakeEnabled, toggleAntiFake, isSoloAdminsEnabled, toggleSoloAdmins, isAuraEnabled, toggleAura, isAutoAceptarEnabled, toggleAutoAceptar };
 

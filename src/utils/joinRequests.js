@@ -247,7 +247,55 @@ function _reset() { store = null; loadPromise = null; ultimoSondeo.clear(); fren
 function _marcarSondeo(grupo, ts = Date.now()) { ultimoSondeo.set(grupo, ts); }
 function _frenado(grupo) { return frenados.get(grupo) || null; }
 
+// ACEPTA LAS SOLICITUDES PENDIENTES DE UN GRUPO. Devuelve lo que hizo.
+//
+// NO ACEPTA A TODOS, Y ESO NO ES UN MATIZ. El bot mantiene una lista negra: ahi
+// acaban los que subieron una historia con enlace al grupo, las cuentas de
+// negocio y a quien se haya vetado a mano. Aceptar "a todos" de verdad
+// significaria volver a meter justo a esos, que es lo unico que la lista negra
+// existe para impedir. Al vetado se le RECHAZA la solicitud, no se le ignora:
+// dejarla pendiente la deja ahi para que un admin la apruebe sin saber.
+//
+// Y va de una en una con pausa. Aprobar veinte de golpe son veinte llamadas
+// seguidas a WhatsApp; con una cuenta en revision eso es exactamente el patron
+// que no conviene. Diez por ciclo es de sobra: el sondeo vuelve a pasar.
+const PAUSA_APROBAR = 1500;
+const MAX_POR_CICLO = 10;
+
+async function aceptarPendientes(sock, grupo, { estaVetado } = {}) {
+  if (typeof sock?.groupRequestParticipantsUpdate !== 'function') return null;
+  let lista;
+  try { lista = await sock.groupRequestParticipantsList(grupo); }
+  catch { return null; }
+  if (!lista || !lista.length) return { aprobados: 0, rechazados: 0 };
+
+  const aprobar = [], rechazar = [];
+  for (const p of lista.slice(0, MAX_POR_CICLO)) {
+    const jid = p?.jid || p?.phone_number || p?.lid;
+    if (!jid) continue;
+    let vetado = false;
+    try { vetado = estaVetado ? await estaVetado(jid) : false; } catch { vetado = false; }
+    (vetado ? rechazar : aprobar).push(jid);
+  }
+
+  let aprobados = 0, rechazados = 0;
+  for (const [jids, accion] of [[rechazar, 'reject'], [aprobar, 'approve']]) {
+    for (const jid of jids) {
+      try {
+        await sock.groupRequestParticipantsUpdate(grupo, [jid], accion);
+        if (accion === 'approve') { aprobados++; await olvidarSolicitud(grupo, jid); }
+        else { rechazados++; await olvidarSolicitud(grupo, jid); }
+      } catch (e) {
+        logger.warn(`autoaceptar: no pude ${accion === 'approve' ? 'aprobar' : 'rechazar'} a ${jid} en ${grupo}: ${e.message}`);
+      }
+      await new Promise((r) => setTimeout(r, PAUSA_APROBAR));
+    }
+  }
+  return { aprobados, rechazados };
+}
+
 module.exports = {
+  aceptarPendientes,
   notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, sondeoReciente, colaConocida,
   reactivarSondeo, frenoNuevo, flushJoinRequests, SONDEO_VALIDO_MS,
   _reset, _marcarSondeo, _frenado,

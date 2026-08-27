@@ -3,7 +3,8 @@ const { isOwner, isAdmin, isBotJid, isBotAdmin, isGroupAdmin, getTarget, getSend
 const { streamToBuffer, MAX_DOWNLOAD_BYTES, atomicWriteJson, readJsonOrEnoent, pickFresh } = require('../utils/helpers');
 const path = require('path');
 const logger = require('../utils/logger');
-const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled, toggleSoloAdmins, isSoloAdminsEnabled } = require('../utils/state');
+const config = require('../config');
+const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled, toggleSoloAdmins, isSoloAdminsEnabled, toggleAutoAceptar, isAutoAceptarEnabled } = require('../utils/state');
 const { businessEvidence } = require('../utils/businessCheck');
 const { getMemberFacts, recordFacts } = require('../utils/nickStore');
 const { banAccount } = require('../utils/banlist');
@@ -855,6 +856,54 @@ function numeroDeArgs(args) {
 //   cualquier otro       → borrado + expulsión directa del que lo envió.
 // Quien tenga el *!allow* publica sin que se le borre nada.
 // Los admins del grupo quedan siempre exentos.
+// !autoaceptar on|off — el bot aprueba solo las solicitudes de entrada.
+//
+// Del tier de owner y no de admins, a proposito: esto no modera, ABRE LA
+// PUERTA. Un admin puede echar a alguien y se deshace; dejar entrar a
+// cualquiera de forma automatica cambia quien esta en el grupo sin que nadie
+// mire, y esa decision es del dueño.
+//
+// Lo que NO hace, y se dice en la respuesta para que no haya sorpresas: no
+// acepta a los vetados. A esos les rechaza la solicitud. Aceptar "a todos" de
+// verdad significaria volver a meter justo a los que el bot echo por subir
+// historias con enlace o por ser cuentas de negocio.
+async function cmdAutoAceptar(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  if (!jid.endsWith('@g.us')) {
+    return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
+  }
+  const sender = getSender(msg);
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
+  }
+
+  const arg = (args[0] || '').toLowerCase();
+  if (arg !== 'on' && arg !== 'off') {
+    const estado = isAutoAceptarEnabled(jid) ? 'ENCENDIDO' : 'apagado';
+    return sock.sendMessage(jid, {
+      text: `*Autoaceptar:* ${estado}.\n_${config.prefix}autoaceptar on / off_`,
+    }, { quoted: msg });
+  }
+
+  const encender = arg === 'on';
+  toggleAutoAceptar(jid, encender);
+
+  if (!encender) {
+    return sock.sendMessage(jid, { text: '*Autoaceptar apagado.* Las solicitudes vuelven a esperar a un admin.' }, { quoted: msg });
+  }
+
+  // SI EL BOT NO ES ADMIN, ESTO NO HACE NADA Y HAY QUE DECIRLO AHORA.
+  // Encender un modo que no puede actuar y quedarse callado es la forma mas
+  // barata de que alguien crea que el grupo esta cubierto cuando no lo esta.
+  const puede = isBotAdmin(sock, groupMeta);
+  return sock.sendMessage(jid, {
+    text: '*Autoaceptar encendido.*\n' +
+      'Apruebo solo las solicitudes de entrada, de una en una.\n' +
+      '_A los vetados les rechazo la solicitud: no vuelven a entrar por aquí._' +
+      (puede ? '' : '\n\n*No soy admin, así que ahora mismo no puedo aprobar nada.* Dame admin.'),
+  }, { quoted: msg });
+}
+
 async function cmdAntiLink(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   if (!jid.endsWith('@g.us')) {
@@ -1193,5 +1242,6 @@ async function cmdPresentarse(sock, msg, args, groupMeta) {
 }
 
 module.exports = {
+  cmdAutoAceptar,
   cmdPresentarse,
   cmdSoloAdmins, cmdTodos, cmdKick, avisoDeKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, muteUser, unmuteUser, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdAdm };

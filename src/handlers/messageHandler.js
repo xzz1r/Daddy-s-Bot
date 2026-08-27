@@ -36,7 +36,7 @@ const { cmdK, privadoDelOwner, hallarMedio } = require('../commands/k');
 const { cmdCount, cmdResetCount } = require('../commands/count');
 const cmdRelevance = lazyCmd('../commands/relevance', 'cmdRelevance');
 const { cmdG, cmdSetKey } = require('../commands/ai');
-const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdSoloAdmins, cmdAdm, cmdPresentarse } = require('../commands/group');
+const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAntiLink, cmdAutoAceptar, cmdAllow, cmdClose, cmdOpen, cmdSoloAdmins, cmdAdm, cmdPresentarse } = require('../commands/group');
 const cmdShip = lazyCmd('../commands/ship', 'cmdShip');
 const { cmdTtp } = require('../commands/ttp');
 const { cmdToImg, cmdToVid } = require('../commands/toimg');
@@ -2002,6 +2002,15 @@ async function handleMessage(sock, msg) {
       case 'soloadmin':
         await cmdSoloAdmins(sock, msg, args, groupMeta);
         break;
+
+      case 'autoaceptar':
+
+      case 'autoaprobar':
+
+        await cmdAutoAceptar(sock, msg, args, groupMeta);
+
+        break;
+
 
       case 'antilink':
         await cmdAntiLink(sock, msg, args, groupMeta);

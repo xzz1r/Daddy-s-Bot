@@ -23,12 +23,12 @@ const config = require('./config');
 // temporizadores corriendo a la vez.
 let refrescoPresencia = null;
 const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
-const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, flushState } = require('./utils/state');
+const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, isAutoAceptarEnabled, flushState } = require('./utils/state');
 const { isOwner, sameUser, isBotAdmin, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto } = require('./utils/wa');
 // anotarAlta apunta el motivo de cada alta; motivoDelAlta lo consulta cuando hay
 // que decidir si un alta fue a dedo (la unica que se sanciona).
 const { anotarAlta, motivoDelAlta, ALTA_ADD } = require('./utils/joinReason');
-const { notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, reactivarSondeo, frenoNuevo, flushJoinRequests, sondeoReciente, colaConocida } = require('./utils/joinRequests');
+const { notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, aceptarPendientes, reactivarSondeo, frenoNuevo, flushJoinRequests, sondeoReciente, colaConocida } = require('./utils/joinRequests');
 const { flushCounts } = require('./utils/messageCounter');
 const { flushNames, recordName, cuantosNombres } = require('./utils/nombreStore');
 const { flushPickHistory } = require('./utils/helpers');
@@ -40,7 +40,7 @@ const { flushCache } = require('./utils/musicCache');
 const { flush: flushPfpHashes } = require('./utils/pfpStore');
 const { flush: flushPfpCache } = require('./utils/pfpCache');
 const { sweepAllGroups, maybeIndex } = require('./utils/pfpIndexer');
-const { flushBanlist, banAccount } = require('./utils/banlist');
+const { flushBanlist, banAccount, isBanned } = require('./utils/banlist');
 const { flushLinkPerms } = require('./utils/linkPerms');
 const { flushRobo } = require('./utils/roboStore');
 const { guardOnJoin, allForms } = require('./commands/fk');
@@ -210,7 +210,23 @@ async function sondearSolicitudes() {
   for (const g of await listaDeGrupos()) {
     const n = await sondear(sock, g);
     if (n) logger.info(`solicitudes pendientes en ${g}: ${n}`);
-    if (n === null) await explicarFreno(g);
+    if (n === null) { await explicarFreno(g); continue; }
+
+    // AUTOACEPTAR, si el grupo lo tiene encendido. Va aqui y no en su propio
+    // temporizador porque el sondeo ya sabe cuando hay cola y cuando el grupo
+    // esta frenado: montar un segundo ciclo seria preguntar dos veces lo mismo.
+    if (!n || !isAutoAceptarEnabled(g)) continue;
+    const r = await aceptarPendientes(sock, g, {
+      // La lista negra manda por encima del modo. Ver la nota en
+      // aceptarPendientes: aceptar "a todos" de verdad significaria volver a
+      // meter justo a los que el bot echo.
+      estaVetado: async (jid) => {
+        try { return await isBanned(allForms(jid, null)); } catch { return false; }
+      },
+    }).catch((e) => { logger.warn(`autoaceptar en ${g}: ${e.message}`); return null; });
+    if (r && (r.aprobados || r.rechazados)) {
+      logger.info(`autoaceptar en ${g}: ${r.aprobados} dentro, ${r.rechazados} rechazado(s) por estar vetados`);
+    }
   }
 }
 
