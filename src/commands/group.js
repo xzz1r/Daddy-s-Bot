@@ -935,6 +935,19 @@ async function cmdAutoAceptar(sock, msg, args, groupMeta) {
 
   const r = await aceptarPendientes(sock, jid).catch(() => null);
   const hechas = r?.aprobados || 0;
+
+  // NI UNA APROBADA HABIENDO COLA ES UN FALLO, y hay que decirlo asi.
+  //
+  // Antes esto salia como "Habia 1 esperando y he metido a 0", que se lee como
+  // una respuesta normal cuando en realidad es el bot fallando en silencio.
+  if (!hechas) {
+    return sock.sendMessage(jid, {
+      text: '*Autoaccept encendido*, pero no he podido aprobar ninguna.\n' +
+        `Hay *${pendientes}* esperando y WhatsApp me las ha rechazado o no las entiendo.\n` +
+        `_Mándale esto a quien lleva el bot:_ \`pm2 logs bot --lines 40 --nostream | grep autoaceptar\``,
+    }, { quoted: msg });
+  }
+
   return sock.sendMessage(jid, {
     text: '*Autoaccept encendido.*\n' +
       `Había *${pendientes}* esperando y he metido a *${hechas}*.` +

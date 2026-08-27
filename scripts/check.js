@@ -3441,6 +3441,47 @@ async function capaStores() {
       })()),
         'encender autoaccept ya no vacia la cola en el momento: hay que esperar al sondeo y parece roto');
 
+      // EL JID SALE DEL SOBRE VENGA CON EL NOMBRE QUE VENGA.
+      //
+      // groupRequestParticipantsList devuelve los atributos XML en crudo de
+      // WhatsApp, no un objeto con forma conocida. Dar por hecho que la clave se
+      // llama `jid` era adivinar: con otro nombre se leia undefined, se saltaba
+      // la solicitud y se reportaban CERO aprobadas sin un solo error. Eso es
+      // exactamente lo que se vio en el grupo — "hay una pendiente y no la
+      // acepta", sin nada en el log.
+      {
+        const { jidDeSolicitud } = require(path.join(R, 'src/utils/joinRequests'));
+        for (const [attrs, esperado] of [
+          [{ jid: '34600@s.whatsapp.net', t: '1700' }, '34600@s.whatsapp.net'],
+          [{ lid: '111111@lid', request_method: 'invite_link' }, '111111@lid'],
+          [{ phone_number: '34600@s.whatsapp.net' }, '34600@s.whatsapp.net'],
+          // El que importa: un nombre de atributo que no esta en ninguna lista.
+          [{ requester_jid: '34600@s.whatsapp.net', t: '1700' }, '34600@s.whatsapp.net'],
+          [{ t: '1700', request_method: 'invite_link' }, null],
+        ]) {
+          const dio = jidDeSolicitud(attrs) || null;
+          exige(dio === esperado,
+            `jidDeSolicitud(${JSON.stringify(attrs)}) da ${dio} y no ${esperado}: una solicitud se quedaria sin aprobar en silencio`);
+        }
+      }
+
+      // Y UN 'ninguna aprobada' HABIENDO COLA SE DICE COMO FALLO, no como
+      // recuento. "Habia 1 y he metido a 0" se lee como algo normal.
+      exige(/no he podido aprobar ninguna/i.test(await (async () => {
+        let t = '';
+        const muda = {
+          user: { id: BOTB },
+          groupRequestParticipantsList: async () => [{ t: '1700', request_method: 'invite_link' }],
+          groupRequestParticipantsUpdate: async () => [],
+          sendMessage: async (j, c) => { t = c.text || ''; return {}; },
+        };
+        await cmdAutoAceptar(muda,
+          { key: { remoteJid: '000000040@g.us', participant: ADMB, fromMe: false, id: 'Q3' }, message: { conversation: 'x' } },
+          ['on'], { id: '000000040@g.us', participants: partsB });
+        return t;
+      })()),
+        'con cola y cero aprobadas, autoaccept lo cuenta como si fuera normal en vez de decir que fallo');
+
       // Y SI NO SE PUEDE LEER LA COLA, SE DICE EN EL GRUPO. Callarselo deja al
       // admin creyendo que esta encendido y funcionando.
       exige(/no puedo leer las solicitudes/i.test(await (async () => {

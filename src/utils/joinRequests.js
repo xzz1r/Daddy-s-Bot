@@ -266,31 +266,63 @@ function _frenado(grupo) { return frenados.get(grupo) || null; }
 const PAUSA_APROBAR = 1500;
 const MAX_POR_CICLO = 10;
 
+// DE QUE CAMPO SALE EL JID DE QUIEN PIDE ENTRAR.
+//
+// groupRequestParticipantsList devuelve los ATRIBUTOS XML EN CRUDO de WhatsApp
+// (`participants.map(v => v.attrs)` en Socket/groups.js), no un objeto con
+// forma conocida. Yo di por hecho que la clave se llamaba `jid`, y si WhatsApp
+// la manda con cualquier otro nombre —y con LID los nombres cambian— se leia
+// undefined, se saltaba la solicitud y se reportaban CERO aprobadas sin un solo
+// error. Adivinar el nombre de la clave fue el fallo.
+//
+// Asi que no se adivina: se coge el primer valor que TENGA FORMA DE JID, mirando
+// primero los nombres conocidos y despues cualquier atributo. Un JID se
+// reconoce solo —lleva @s.whatsapp.net, @lid o @c.us— y ningun otro atributo de
+// ese nodo (la hora, el metodo de entrada) se le parece.
+function jidDeSolicitud(attrs) {
+  if (!attrs || typeof attrs !== 'object') return null;
+  const esJid = (v) => typeof v === 'string' && /@(s\.whatsapp\.net|lid|c\.us)$/i.test(v);
+  for (const k of ['jid', 'phone_number', 'lid', 'participant', 'user', 'from']) {
+    if (esJid(attrs[k])) return attrs[k];
+  }
+  for (const v of Object.values(attrs)) if (esJid(v)) return v;
+  return null;
+}
+
 async function aceptarPendientes(sock, grupo) {
   if (typeof sock?.groupRequestParticipantsUpdate !== 'function') return null;
   let lista;
   try { lista = await sock.groupRequestParticipantsList(grupo); }
   catch { return null; }
-  if (!lista || !lista.length) return { aprobados: 0 };
+  if (!lista || !lista.length) return { aprobados: 0, sinJid: 0 };
 
-  let aprobados = 0;
+  let aprobados = 0, sinJid = 0;
   for (const p of lista.slice(0, MAX_POR_CICLO)) {
-    const jid = p?.jid || p?.phone_number || p?.lid;
-    if (!jid) continue;
+    const jid = jidDeSolicitud(p);
+    if (!jid) {
+      // Si aun asi no se encuentra, se dice CON EL SOBRE DELANTE. Callarse aqui
+      // es lo que convirtio esto en "no acepta y no se sabe por que".
+      sinJid++;
+      logger.warn(`autoaceptar: solicitud sin JID reconocible en ${grupo}. Atributos: ${JSON.stringify(p)}`);
+      continue;
+    }
     try {
-      await sock.groupRequestParticipantsUpdate(grupo, [jid], 'approve');
-      aprobados++;
-      await olvidarSolicitud(grupo, jid);
+      const res = await sock.groupRequestParticipantsUpdate(grupo, [jid], 'approve');
+      // WhatsApp NO lanza cuando rechaza: devuelve el error dentro del status.
+      // Contarlo como aprobado era mentir en el recuento.
+      const estado = Array.isArray(res) ? (res[0]?.status || '200') : '200';
+      if (String(estado) === '200') { aprobados++; await olvidarSolicitud(grupo, jid); }
+      else logger.warn(`autoaceptar: WhatsApp rechazo aprobar a ${jid} en ${grupo} (status ${estado})`);
     } catch (e) {
       logger.warn(`autoaceptar: no pude aprobar a ${jid} en ${grupo}: ${e.message}`);
     }
     await new Promise((r) => setTimeout(r, PAUSA_APROBAR));
   }
-  return { aprobados };
+  return { aprobados, sinJid };
 }
 
 module.exports = {
-  aceptarPendientes,
+  aceptarPendientes, jidDeSolicitud,
   notarSolicitud, olvidarSolicitud, estabaPendiente, sondear, sondeoReciente, colaConocida,
   reactivarSondeo, frenoNuevo, flushJoinRequests, SONDEO_VALIDO_MS,
   _reset, _marcarSondeo, _frenado,
