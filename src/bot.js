@@ -22,6 +22,10 @@ const config = require('./config');
 // pelos y se lee fatal. Fuera de la funcion para que una reconexion no deje dos
 // temporizadores corriendo a la vez.
 let refrescoPresencia = null;
+
+// Barridos de autoaccept pendientes, por grupo. Junta las rafagas: si llegan
+// cinco solicitudes seguidas se hace UN barrido, no cinco.
+const autoAcceptPendiente = new Map();
 const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, isAutoAceptarEnabled, flushState } = require('./utils/state');
 const { isOwner, sameUser, isBotAdmin, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto } = require('./utils/wa');
@@ -901,6 +905,32 @@ async function connectToWhatsApp() {
       notarSolicitud(id, quien).catch(() => {});
       if (participant && participantPn) notarSolicitud(id, participant).catch(() => {});
       logger.info(`solicitud de entrada en ${id}: ${quien}`);
+
+      // Y SI EL GRUPO TIENE AUTOACCEPT, SE APRUEBA AHORA, no en el sondeo.
+      //
+      // El sondeo va cada tres minutos y era la unica via: la primera solicitud
+      // entraba (porque encender el modo vacia la cola en el momento) y la
+      // siguiente se quedaba esperando, que es justo lo que se vio. Tres
+      // minutos de espera para algo que WhatsApp avisa al instante.
+      //
+      // Se llama a aceptarPendientes en vez de aprobar el JID del evento: la
+      // lista de solicitudes es la fuente autoritativa —de ahi sale el JID con
+      // el formato que WhatsApp acepta— y es el camino que ya funciona. Fiarse
+      // del JID del evento seria volver a adivinar el formato.
+      //
+      // El retardo junta las rafagas: cinco solicitudes de golpe son un solo
+      // barrido en vez de cinco, y la lista ya las trae todas.
+      if (isAutoAceptarEnabled(id)) {
+        clearTimeout(autoAcceptPendiente.get(id));
+        const t = setTimeout(() => {
+          autoAcceptPendiente.delete(id);
+          aceptarPendientes(sock, id)
+            .then((r) => { if (r?.aprobados) logger.info(`autoaccept en ${id}: ${r.aprobados} aprobada(s) al vuelo`); })
+            .catch((e) => logger.warn(`autoaccept en ${id}: ${e.message}`));
+        }, 1500);
+        t.unref?.();
+        autoAcceptPendiente.set(id, t);
+      }
     } else {
       // revocada o rechazada: ya no espera nada, así que si un admin la mete
       // más tarde sí es un alta a dedo.

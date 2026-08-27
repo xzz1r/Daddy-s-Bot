@@ -3465,6 +3465,28 @@ async function capaStores() {
         }
       }
 
+      // LA SEGUNDA SOLICITUD NO ESPERA AL SONDEO.
+      //
+      // Esto se vio en el grupo: encender el modo metia a la que ya estaba
+      // esperando —porque encenderlo vacia la cola— y la SIGUIENTE se quedaba
+      // parada. El sondeo va cada tres minutos y era la unica via, para algo
+      // que WhatsApp avisa al instante con group.join-request.
+      //
+      // Se comprueba sobre el fuente de bot.js porque el manejador vive dentro
+      // de connectToWhatsApp y no se puede invocar sin abrir un socket: que
+      // escuche el evento, que mire el modo, y que llame a aceptarPendientes en
+      // vez de fiarse del JID que trae el evento (la lista es la fuente
+      // autoritativa; adivinar el formato del JID ya costo una ronda).
+      {
+        const botSrc = soloCodigo('src/bot.js');
+        exige(/group\.join-request[\s\S]{0,2500}?isAutoAceptarEnabled\(id\)/.test(botSrc),
+          'el evento de solicitud no mira si el grupo tiene autoaccept: la segunda solicitud espera tres minutos al sondeo');
+        exige(/isAutoAceptarEnabled\(id\)[\s\S]{0,900}?aceptarPendientes\(sock, id\)/.test(botSrc),
+          'el evento aprueba por su cuenta en vez de usar la lista de solicitudes, que es la que da el JID con el formato bueno');
+        exige(/clearTimeout\(autoAcceptPendiente\.get\(id\)\)/.test(botSrc),
+          'sin juntar las rafagas: cinco solicitudes de golpe lanzan cinco barridos contra WhatsApp');
+      }
+
       // Y UN 'ninguna aprobada' HABIENDO COLA SE DICE COMO FALLO, no como
       // recuento. "Habia 1 y he metido a 0" se lee como algo normal.
       exige(/no he podido aprobar ninguna/i.test(await (async () => {
