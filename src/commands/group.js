@@ -5,6 +5,7 @@ const path = require('path');
 const logger = require('../utils/logger');
 const config = require('../config');
 const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled, toggleSoloAdmins, isSoloAdminsEnabled, toggleAutoAceptar, isAutoAceptarEnabled } = require('../utils/state');
+const { aceptarPendientes } = require('../utils/joinRequests');
 const { businessEvidence } = require('../utils/businessCheck');
 const { getMemberFacts, recordFacts } = require('../utils/nickStore');
 const { banAccount } = require('../utils/banlist');
@@ -895,12 +896,50 @@ async function cmdAutoAceptar(sock, msg, args, groupMeta) {
   // SI EL BOT NO ES ADMIN, ESTO NO HACE NADA Y HAY QUE DECIRLO AHORA.
   // Encender un modo que no puede actuar y quedarse callado es la forma mas
   // barata de que alguien crea que el grupo esta cubierto cuando no lo esta.
-  const puede = isBotAdmin(sock, groupMeta);
+  if (!isBotAdmin(sock, groupMeta)) {
+    return sock.sendMessage(jid, {
+      text: '*Autoaccept encendido*, pero no soy admin.\n' +
+        'Sin admin no puedo aprobar nada. Dame admin y empiezo solo.',
+    }, { quoted: msg });
+  }
+
+  // SE VACIA LA COLA AHORA MISMO, NO EN LA SIGUIENTE PASADA.
+  //
+  // El sondeo va cada tres minutos, asi que encender el modo y no ver nada era
+  // lo normal — y desde fuera no se distingue de que este roto. Peor: si la
+  // cola no se puede leer (el grupo no pide aprobacion para entrar, o WhatsApp
+  // dice que no), el fallo se quedaba en el log de la VPS, donde no lo ve nadie.
+  //
+  // Se hace la primera pasada aqui y se cuenta el resultado. Lo que pase, se
+  // dice: cuantas he aprobado, que no habia ninguna, o por que no he podido.
+  let cola = null;
+  try {
+    cola = await sock.groupRequestParticipantsList(jid);
+  } catch (e) {
+    return sock.sendMessage(jid, {
+      text: '*Autoaccept encendido*, pero no puedo leer las solicitudes.\n' +
+        '_Casi siempre es que el grupo no tiene puesto "Aprobar nuevos participantes" ' +
+        'en los ajustes. Sin eso no hay solicitudes que aprobar._\n' +
+        `_(${e.message})_`,
+    }, { quoted: msg });
+  }
+
+  const pendientes = (cola || []).length;
+  if (!pendientes) {
+    return sock.sendMessage(jid, {
+      text: '*Autoaccept encendido.*\n' +
+        'Ahora mismo no hay ninguna solicitud esperando. En cuanto llegue una, la apruebo.\n' +
+        '_No añado a nadie: solo abro a quien ya ha pedido entrar._',
+    }, { quoted: msg });
+  }
+
+  const r = await aceptarPendientes(sock, jid).catch(() => null);
+  const hechas = r?.aprobados || 0;
   return sock.sendMessage(jid, {
     text: '*Autoaccept encendido.*\n' +
-      'Apruebo las solicitudes de entrada, de una en una.\n' +
-      '_No añado a nadie: solo abro a quien ya ha pedido entrar._' +
-      (puede ? '' : '\n\n*No soy admin, así que ahora mismo no puedo aprobar nada.* Dame admin.'),
+      `Había *${pendientes}* esperando y he metido a *${hechas}*.` +
+      (hechas < pendientes ? ` Las otras ${pendientes - hechas} van en la próxima pasada.` : '') +
+      '\n_No añado a nadie: solo abro a quien ya ha pedido entrar._',
   }, { quoted: msg });
 }
 

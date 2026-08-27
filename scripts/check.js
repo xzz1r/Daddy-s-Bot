@@ -3390,6 +3390,7 @@ async function capaStores() {
       // Inventarle la metadata al comando es probar justo lo que no fallaba.
       // Ahora entra por handleMessage, como un mensaje del grupo.
       const { handleMessage } = require(path.join(R, 'src/handlers/messageHandler'));
+      const { cmdAutoAceptar } = require(path.join(R, 'src/commands/group'));
       const GB = '000000037@g.us';
       const BOTB = '549199@s.whatsapp.net';
       const ADMB = '34600000371@s.whatsapp.net';
@@ -3419,6 +3420,44 @@ async function capaStores() {
       // sintoma que se vio en el grupo, y venia de llegar sin metadata.
       exige(!/No soy admin/i.test(delAdmin),
         'el bot dice que no es admin siendo admin: llega sin la metadata del grupo');
+      // ENCENDERLO VACIA LA COLA AHORA, Y DICE QUE HA PASADO.
+      //
+      // El sondeo va cada tres minutos: encender el modo y no ver nada era lo
+      // normal, y desde fuera no se distingue de que este roto. Peor todavia si
+      // la cola no se puede leer —el grupo sin "aprobar nuevos participantes"—,
+      // porque ese fallo se quedaba en el log de la VPS y no lo veia nadie.
+      exige(/Había \*3\* esperando y he metido a \*3\*/.test(await (async () => {
+        let t = '';
+        const conCola = {
+          user: { id: BOTB },
+          groupRequestParticipantsList: async () => [{ jid: 'a@s.whatsapp.net' }, { jid: 'b@s.whatsapp.net' }, { jid: 'c@s.whatsapp.net' }],
+          groupRequestParticipantsUpdate: async () => [],
+          sendMessage: async (j, c) => { t = c.text || ''; return {}; },
+        };
+        await cmdAutoAceptar(conCola,
+          { key: { remoteJid: '000000038@g.us', participant: ADMB, fromMe: false, id: 'Q1' }, message: { conversation: 'x' } },
+          ['on'], { id: '000000038@g.us', participants: partsB });
+        return t;
+      })()),
+        'encender autoaccept ya no vacia la cola en el momento: hay que esperar al sondeo y parece roto');
+
+      // Y SI NO SE PUEDE LEER LA COLA, SE DICE EN EL GRUPO. Callarselo deja al
+      // admin creyendo que esta encendido y funcionando.
+      exige(/no puedo leer las solicitudes/i.test(await (async () => {
+        let t = '';
+        const rota = {
+          user: { id: BOTB },
+          groupRequestParticipantsList: async () => { throw new Error('forbidden'); },
+          groupRequestParticipantsUpdate: async () => [],
+          sendMessage: async (j, c) => { t = c.text || ''; return {}; },
+        };
+        await cmdAutoAceptar(rota,
+          { key: { remoteJid: '000000039@g.us', participant: ADMB, fromMe: false, id: 'Q2' }, message: { conversation: 'x' } },
+          ['on'], { id: '000000039@g.us', participants: partsB });
+        return t;
+      })()),
+        'si la cola no se puede leer, autoaccept se lo calla y el admin cree que funciona');
+
       const { SOLO_ADMINS: POOL_AA } = require(path.join(R, 'src/data/avisos'));
       const delRaso = await escribir(RASOB, '!autoaccept on');
       exige(POOL_AA.some((f) => delRaso.includes(f)),
