@@ -92,6 +92,12 @@ const { aviso } = require('../utils/helpers');
 
 // Commands that need group metadata — skip the network call for everything else
 const NEEDS_META = new Set([
+  // autoaccept mira DOS cosas que solo estan en la metadata: si quien lo pide es
+  // admin y si el bot lo es. Sin ella daba las dos por falsas: contestaba "no
+  // soy admin" siendo admin, y a un admin que no fuera el owner se llevaba un
+  // "Solo admins". El comando acababa en manos del owner sin que nadie lo
+  // hubiera decidido.
+  'autoaccept', 'autoapprove', 'autoaceptar', 'autoaprobar',
   'on','off','tagall','todos','all','everyone',
   'kick','expulsar','del','borrar','delete',
   // sacar/echar/silenciar/callar/banear/ban/desbanear/unban ESTABAN FUERA, y sus

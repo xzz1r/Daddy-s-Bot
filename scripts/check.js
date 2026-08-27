@@ -3378,30 +3378,51 @@ async function capaStores() {
       exige(isAutoAceptarEnabled('000000036@g.us') === false,
         'autoaccept viene encendido por defecto: un grupo nuevo aceptaria a cualquiera sin que nadie lo pida');
 
-      // LO ENCIENDEN LOS ADMINS, y a un miembro raso se le corta. Abrir a quien
-      // YA pidio entrar es el trabajo que un admin hace a mano veinte veces al
-      // dia; no es un poder nuevo. Pero tiene que seguir siendo suyo.
-      const { cmdAutoAceptar } = require(path.join(R, 'src/commands/group'));
+      // LO ENCIENDEN LOS ADMINS, Y SE PRUEBA POR EL CAMINO REAL.
+      //
+      // La primera version de esta comprobacion llamaba a cmdAutoAceptar
+      // directamente con una metadata hecha a mano. Pasaba en verde y el
+      // comando estaba roto en produccion: el despachador NO le pasaba la
+      // metadata —faltaba en NEEDS_META— asi que llegaba con groupMeta vacia y
+      // daba las dos cosas por falsas. Contestaba "no soy admin" siendo admin,
+      // y a un admin que no fuera el owner le soltaba "Solo admins".
+      //
+      // Inventarle la metadata al comando es probar justo lo que no fallaba.
+      // Ahora entra por handleMessage, como un mensaje del grupo.
+      const { handleMessage } = require(path.join(R, 'src/handlers/messageHandler'));
       const GB = '000000037@g.us';
       const BOTB = '549199@s.whatsapp.net';
       const ADMB = '34600000371@s.whatsapp.net';
       const RASOB = '34600000372@s.whatsapp.net';
-      const metaB = { id: GB, subject: 'G', participants: [
-        { id: BOTB, admin: 'admin' }, { id: ADMB, admin: 'admin' }, { id: RASOB }] };
-      const pide = async (quien) => {
-        let t = '';
-        await cmdAutoAceptar({ user: { id: BOTB }, sendMessage: async (j, c) => { t = c.text || ''; return {}; } },
-          { key: { remoteJid: GB, participant: quien, fromMe: false, id: 'Z' + Math.random() }, message: { conversation: 'x' } },
-          [], metaB);
-        return t;
+      const partsB = [{ id: BOTB, admin: 'admin' }, { id: ADMB, admin: 'admin' }, { id: RASOB }];
+      const escribir = async (quien, texto) => {
+        const dicho = [];
+        const s2 = {
+          user: { id: BOTB },
+          sendPresenceUpdate: async () => {}, readMessages: async () => {},
+          sendMessage: async (j, c) => { dicho.push(c.text || ''); return {}; },
+          groupMetadata: async () => ({ id: GB, subject: 'G', participants: partsB }),
+          groupParticipantsUpdate: async () => [],
+          groupFetchAllParticipating: async () => ({ [GB]: { id: GB, participants: partsB } }),
+          onWhatsApp: async (j) => [{ exists: true, jid: j }],
+          profilePictureUrl: async () => null,
+        };
+        await handleMessage(s2, { key: { remoteJid: GB, participant: quien, fromMe: false, id: 'Z' + Math.random() },
+          message: { conversation: texto }, pushName: 'x', messageTimestamp: Math.floor(Date.now() / 1000) });
+        await new Promise((r) => setTimeout(r, 150));
+        return dicho.join('\n');
       };
+      const delAdmin = await escribir(ADMB, '!autoaccept on');
+      exige(/Autoaccept encendido/i.test(delAdmin),
+        `un admin no puede encender autoaccept por el camino real: "${delAdmin.slice(0, 60)}"`);
+      // Y LA QUEJA DE "NO SOY ADMIN" NO PUEDE SALIR SIENDO ADMIN. Ese fue el
+      // sintoma que se vio en el grupo, y venia de llegar sin metadata.
+      exige(!/No soy admin/i.test(delAdmin),
+        'el bot dice que no es admin siendo admin: llega sin la metadata del grupo');
       const { SOLO_ADMINS: POOL_AA } = require(path.join(R, 'src/data/avisos'));
-      const delAdmin = await pide(ADMB);
-      exige(/Autoaccept/i.test(delAdmin),
-        `un admin no puede tocar autoaccept: contesto "${delAdmin.slice(0, 50)}"`);
-      const delRaso = await pide(RASOB);
+      const delRaso = await escribir(RASOB, '!autoaccept on');
       exige(POOL_AA.some((f) => delRaso.includes(f)),
-        `un miembro raso puede tocar autoaccept: contesto "${delRaso.slice(0, 50)}"`);
+        `un miembro raso puede tocar autoaccept: "${delRaso.slice(0, 60)}"`);
     }
 
     // NINGUN COMANDO PUEDE DEPENDER DE LA TILDE.
