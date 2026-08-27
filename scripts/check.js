@@ -3376,7 +3376,32 @@ async function capaStores() {
         'autoaceptar actua con la cola vacia: no puede añadir a nadie que no lo haya pedido');
       const { isAutoAceptarEnabled } = require(path.join(R, 'src/utils/state'));
       exige(isAutoAceptarEnabled('000000036@g.us') === false,
-        'autoaceptar viene encendido por defecto: un grupo nuevo aceptaria a cualquiera sin que nadie lo pida');
+        'autoaccept viene encendido por defecto: un grupo nuevo aceptaria a cualquiera sin que nadie lo pida');
+
+      // LO ENCIENDEN LOS ADMINS, y a un miembro raso se le corta. Abrir a quien
+      // YA pidio entrar es el trabajo que un admin hace a mano veinte veces al
+      // dia; no es un poder nuevo. Pero tiene que seguir siendo suyo.
+      const { cmdAutoAceptar } = require(path.join(R, 'src/commands/group'));
+      const GB = '000000037@g.us';
+      const BOTB = '549199@s.whatsapp.net';
+      const ADMB = '34600000371@s.whatsapp.net';
+      const RASOB = '34600000372@s.whatsapp.net';
+      const metaB = { id: GB, subject: 'G', participants: [
+        { id: BOTB, admin: 'admin' }, { id: ADMB, admin: 'admin' }, { id: RASOB }] };
+      const pide = async (quien) => {
+        let t = '';
+        await cmdAutoAceptar({ user: { id: BOTB }, sendMessage: async (j, c) => { t = c.text || ''; return {}; } },
+          { key: { remoteJid: GB, participant: quien, fromMe: false, id: 'Z' + Math.random() }, message: { conversation: 'x' } },
+          [], metaB);
+        return t;
+      };
+      const { SOLO_ADMINS: POOL_AA } = require(path.join(R, 'src/data/avisos'));
+      const delAdmin = await pide(ADMB);
+      exige(/Autoaccept/i.test(delAdmin),
+        `un admin no puede tocar autoaccept: contesto "${delAdmin.slice(0, 50)}"`);
+      const delRaso = await pide(RASOB);
+      exige(POOL_AA.some((f) => delRaso.includes(f)),
+        `un miembro raso puede tocar autoaccept: contesto "${delRaso.slice(0, 50)}"`);
     }
 
     // NINGUN COMANDO PUEDE DEPENDER DE LA TILDE.

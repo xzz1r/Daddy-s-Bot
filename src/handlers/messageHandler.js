@@ -2003,12 +2003,13 @@ async function handleMessage(sock, msg) {
         await cmdSoloAdmins(sock, msg, args, groupMeta);
         break;
 
+      // El nombre va en ingles; los dos en español se quedan de alias porque
+      // ya se habian anunciado.
+      case 'autoaccept':
+      case 'autoapprove':
       case 'autoaceptar':
-
       case 'autoaprobar':
-
         await cmdAutoAceptar(sock, msg, args, groupMeta);
-
         break;
 
 

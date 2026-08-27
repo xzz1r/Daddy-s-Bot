@@ -341,11 +341,11 @@ ${esAdmin ? `
 *${p}close* · *${p}open* · *${p}count* ${c('count')} · *${p}scan*
 *${p}marcarfake* · *${p}fkban* · *${p}fkunban* · *${p}fklist* · *${p}antifake* on/off
 *${p}notifadmin* on/off · *${p}promote* — con el anti-admin puesto sube un nivel
+*${p}autoaccept* on/off — aprueba las solicitudes de entrada (no añade a nadie)
 ` : ''}${esOwner ? `
 ━━━━━ *ADMINS SUPERIORES* ━━━━━
 *${p}demote* · *${p}on* / *${p}off* — apagar el bot en este grupo
 _Van con on/off:_ *${p}antilink* · *${p}antifoto* · *${p}antiempresa* · *${p}antiadmin* · *${p}adminmode* · *${p}aura*
-*${p}autoaceptar* on/off — aprueba las solicitudes de entrada (no añade a nadie)
 *${p}resetcount* · *${p}resetaura* · *${p}clearcache* · *${p}setkey* · *${p}diag*
 ` : ''}
 _${p}ping · ${p}info · ${p}whoami_

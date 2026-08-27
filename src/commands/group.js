@@ -856,12 +856,13 @@ function numeroDeArgs(args) {
 //   cualquier otro       → borrado + expulsión directa del que lo envió.
 // Quien tenga el *!allow* publica sin que se le borre nada.
 // Los admins del grupo quedan siempre exentos.
-// !autoaceptar on|off — el bot aprueba solo las solicitudes de entrada.
+// !autoaccept on|off — el bot aprueba las solicitudes de entrada.
 //
-// Del tier de owner y no de admins, a proposito: esto no modera, ABRE LA
-// PUERTA. Un admin puede echar a alguien y se deshace; dejar entrar a
-// cualquiera de forma automatica cambia quien esta en el grupo sin que nadie
-// mire, y esa decision es del dueño.
+// DE ADMINS, no solo del owner. Lo puse primero en el tier de arriba razonando
+// que "abre la puerta", pero abrir a quien YA ha pedido entrar es exactamente
+// el trabajo que un admin hace a mano veinte veces al dia: esto se lo ahorra,
+// no le da un poder que no tuviera. Y quien puede echar a cualquiera con !kick
+// puede dejar entrar a quien ya llamo a la puerta.
 //
 // SOLO APRUEBA SOLICITUDES. No añade a nadie ni invita: si nadie ha llamado a
 // la puerta, esto no hace nada. Y no filtra por la lista negra — guardOnJoin ya
@@ -872,15 +873,15 @@ async function cmdAutoAceptar(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   const sender = getSender(msg);
-  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
+  if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
   }
 
   const arg = (args[0] || '').toLowerCase();
   if (arg !== 'on' && arg !== 'off') {
     const estado = isAutoAceptarEnabled(jid) ? 'ENCENDIDO' : 'apagado';
     return sock.sendMessage(jid, {
-      text: `*Autoaceptar:* ${estado}.\n_${config.prefix}autoaceptar on / off_`,
+      text: `*Autoaccept:* ${estado}.\n_${config.prefix}autoaccept on / off_`,
     }, { quoted: msg });
   }
 
@@ -888,7 +889,7 @@ async function cmdAutoAceptar(sock, msg, args, groupMeta) {
   toggleAutoAceptar(jid, encender);
 
   if (!encender) {
-    return sock.sendMessage(jid, { text: '*Autoaceptar apagado.* Las solicitudes vuelven a esperar a un admin.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: '*Autoaccept apagado.* Las solicitudes vuelven a esperar a un admin.' }, { quoted: msg });
   }
 
   // SI EL BOT NO ES ADMIN, ESTO NO HACE NADA Y HAY QUE DECIRLO AHORA.
@@ -896,7 +897,7 @@ async function cmdAutoAceptar(sock, msg, args, groupMeta) {
   // barata de que alguien crea que el grupo esta cubierto cuando no lo esta.
   const puede = isBotAdmin(sock, groupMeta);
   return sock.sendMessage(jid, {
-    text: '*Autoaceptar encendido.*\n' +
+    text: '*Autoaccept encendido.*\n' +
       'Apruebo las solicitudes de entrada, de una en una.\n' +
       '_No añado a nadie: solo abro a quien ya ha pedido entrar._' +
       (puede ? '' : '\n\n*No soy admin, así que ahora mismo no puedo aprobar nada.* Dame admin.'),
