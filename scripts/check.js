@@ -3325,6 +3325,32 @@ async function capaStores() {
         `${nombre}: ${repiten.length} frase(s) repiten la cabecera en vez de rematar: ${repiten[0] || ''}`);
     }
 
+    // LAS FRASES DE !aura CABEN DE UN VISTAZO.
+    //
+    // Se habian ido a una mediana de 85 caracteres y un maximo de 128: dos y
+    // tres lineas en un movil, en un mensaje que sale varias veces al dia. Eso
+    // no es contenido, es ruido — y el remate se pierde dentro.
+    //
+    // Se mide el TOPE, no el estilo: 85 caracteres es una linea larga de movil.
+    // Lo que se diga dentro no lo vigila esto.
+    {
+      const auraSrc = fs.readFileSync(path.join(R, 'src/commands/aura.js'), 'utf8');
+      const ini = auraSrc.indexOf('const AURA = {');
+      const bloque = auraSrc.slice(ini, auraSrc.indexOf('\n};', ini));
+      const porTramo = {};
+      for (const m of bloque.matchAll(/^  ([a-zA-Z_0-9]+): \[/gm)) {
+        const fin = bloque.indexOf('\n  ],', m.index);
+        porTramo[m[1]] = [...bloque.slice(m.index, fin).matchAll(/^    '(.*)',$/gm)].map((x) => x[1]);
+      }
+      exige(Object.keys(porTramo).length >= 5, 'no encuentro los tramos de !aura');
+      for (const [tramo, frases] of Object.entries(porTramo)) {
+        const largas = frases.filter((f) => f.length > 85);
+        exige(largas.length === 0,
+          `!aura ${tramo}: ${largas.length} frase(s) de mas de 85 caracteres, y esto sale varias veces al dia: "${(largas[0] || '').slice(0, 60)}…"`);
+        exige(new Set(frases).size === frases.length, `!aura ${tramo} tiene frases repetidas`);
+      }
+    }
+
     // EL AVISO DE COMANDO MAL ESCRITO ATACA, NO DA CLASE.
     //
     // La primera version eran consejos con tono de superioridad —"aprenderte la

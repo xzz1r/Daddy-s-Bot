@@ -1,4 +1,4 @@
-const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser, soloMiembros } = require('../utils/wa');
 const { getAura, addAura, drainAura } = require('../utils/auraStore');
 const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/helpers');
 const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA } = require('../utils/economia');
@@ -2049,7 +2049,15 @@ async function topLadrones(sock, msg, jid, groupMeta) {
   // robos siempre le fallan sería anunciar un premio que nadie va a cobrar
   // jamás, y eso acaba viéndose. El segundo puesto es "va fuerte este mes" y
   // nadie le da más vueltas.
-  const lista = real.filter(x => !isMainOwner(x.jid, false, groupMeta));
+  // SOLO LOS QUE SIGUEN EN EL GRUPO, y el filtro va ANTES de insertar la ficha
+  // del owner para no arriesgarse a tirarla por una forma de JID que no case.
+  //
+  // El cartel salia con gente que ya no esta: rankingLadrones guarda a todo el
+  // que haya robado en siete dias, y de ahi no se borra a nadie al irse. Poner
+  // recompensa por una cabeza que no esta en el grupo es anunciar un premio que
+  // nadie puede cobrar — el mismo fallo que ya se arreglo en !count, !top5 y
+  // !fantasmas, y por eso se usa el mismo filtro.
+  const lista = soloMiembros(real, groupMeta).filter(x => !isMainOwner(x.jid, false, groupMeta));
   const yoJid = ownerJidDelGrupo(groupMeta);
   const ficha = yoJid ? fichaFalsaBuscado(jid, lista[0]) : null;
   if (ficha) {
