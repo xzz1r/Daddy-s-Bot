@@ -4261,9 +4261,16 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
       // imprimir una pista es la de anota(); cualquier otra se escapa del modo
       // resumen y sale huerfana.
       const estSrc = fs.readFileSync(path.join(R, 'scripts/estado.js'), 'utf8');
-      const pistas = estSrc.split('\n').filter((l) => /console\.log\(/.test(l) && /→/.test(l));
-      exige(pistas.length === 1,
-        `estado.js imprime pistas desde ${pistas.length} sitios: solo anota() puede, o la pista sale suelta en el resumen`);
+      // Sitios legitimos hay DOS —anota() para el detalle y el renderizador del
+      // resumen—, asi que contarlos no vale; contarlos fue mi primer intento y
+      // acuso al codigo bueno. Lo que distingue a la pista huerfana es que su
+      // texto va ESCRITO A MANO en el console.log en vez de salir del `arreglo`
+      // del renglon al que pertenece.
+      const pistasFijas = estSrc.split('\n')
+        .filter((l) => /console\.log\(/.test(l) && /→/.test(l))
+        .filter((l) => !/→\s*\$\{/.test(l));
+      exige(pistasFijas.length === 0,
+        `estado.js escribe una pista a mano en vez de colgarla de su renglon: sale suelta en el resumen — ${(pistasFijas[0] || '').trim().slice(0, 60)}`);
 
       const sinColor = (t) => t.replace(/\x1b\[[0-9;]*m/g, '');
       for (const salida of [corto, largo]) {
