@@ -4245,6 +4245,36 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
         'el resumen ya no es mas corto que el detalle');
       exige(/estado -v/.test(corto),
         'el resumen no dice como ver el detalle: quien necesite mas no sabra que existe');
+
+      // NINGUNA PISTA HUERFANA. Cada "→ haz esto" tiene que ir pegada al
+      // renglon que la explica.
+      //
+      // Paso: una pista se imprimia con un console.log suelto en vez de por el
+      // mecanismo normal, asi que en el resumen —donde los renglones se guardan
+      // y se pintan al final— se escapaba y salia ARRIBA DEL TODO, antes de la
+      // cabecera y sin el aviso al que pertenece. Se lee como si el bot pidiera
+      // algo porque si.
+      // Y SOBRE EL FUENTE, porque la comprobacion de abajo no llega a todas las
+      // ramas: esta capa corre `estado` sin git ni pm2, asi que la rama que
+      // tuvo el fallo —la que lee el log de pm2— no se ejecuta aqui nunca. La
+      // regla es simple y cubre el fichero entero: la UNICA linea que puede
+      // imprimir una pista es la de anota(); cualquier otra se escapa del modo
+      // resumen y sale huerfana.
+      const estSrc = fs.readFileSync(path.join(R, 'scripts/estado.js'), 'utf8');
+      const pistas = estSrc.split('\n').filter((l) => /console\.log\(/.test(l) && /→/.test(l));
+      exige(pistas.length === 1,
+        `estado.js imprime pistas desde ${pistas.length} sitios: solo anota() puede, o la pista sale suelta en el resumen`);
+
+      const sinColor = (t) => t.replace(/\x1b\[[0-9;]*m/g, '');
+      for (const salida of [corto, largo]) {
+        const lineas = sinColor(salida).split('\n');
+        for (let i = 0; i < lineas.length; i++) {
+          if (!/^\s*→/.test(lineas[i])) continue;
+          const previa = lineas[i - 1] || '';
+          exige(/[✔!✘]/.test(previa),
+            `pista huerfana en \`estado\`: "${lineas[i].trim().slice(0, 50)}" no va detras de ningun aviso`);
+        }
+      }
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
     }

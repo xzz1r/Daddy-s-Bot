@@ -320,8 +320,17 @@ if (errLog) {
   if (!vistas.length) {
     bien('el log de errores no tiene ninguna señal conocida de caída');
   } else if (enMarcha) {
-    for (const [, que] of vistas) bien(`ya resuelto — en el log viejo: ${que}`);
-    console.log(`      \x1b[36m→ pm2 flush   (limpia el historial para que no vuelva a salir)\x1b[0m`);
+    // LA PISTA VA POR anota(), NO POR console.log.
+    //
+    // Estaba suelta y por eso salia huerfana: en el modo resumen los demas
+    // renglones se guardan y se pintan al final, y este se escapaba del
+    // mecanismo y aparecia ARRIBA DEL TODO, antes de la cabecera y sin la linea
+    // a la que pertenece. Una pista sin su aviso no se entiende y encima
+    // ensucia justo la salida que se lee de un vistazo.
+    vistas.forEach(([, que], i) => {
+      anota('ok', `ya resuelto — en el log viejo: ${que}`,
+        i === 0 ? 'pm2 flush   (limpia el historial para que no vuelva a salir)' : null);
+    });
   } else {
     for (const [, que, arreglo] of vistas) aviso(`en el log: ${que}`, arreglo);
   }
