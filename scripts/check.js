@@ -3559,6 +3559,29 @@ async function capaStores() {
         `un miembro raso puede tocar autoaccept: "${delRaso.slice(0, 60)}"`);
     }
 
+    // NADA DE LO QUE SALE DEL BOT LLEVA UNA CUENTA DEL DUEÑO.
+    //
+    // Estaba pasando y en el peor sitio: el autor del sticker era 'xz1s' —una
+    // cuenta del dueño— y el id del pack, 'com.xz1s.daddysbot'. Eso no es un
+    // dato interno: WhatsApp lo escribe en los metadatos del sticker y lo
+    // enseña en la ficha del pack, asi que cada sticker que hizo el bot lleva
+    // ese nombre encima y sale del grupo con el, reenviado a donde sea.
+    //
+    // Se comprueba sobre los valores de verdad, no sobre el fuente: lo que
+    // importa es lo que acaba dentro del fichero que se manda.
+    {
+      const cfg = require(path.join(R, 'src/config.js'));
+      const stSrc = soloCodigo('src/utils/sticker.js');
+      const packId = (stSrc.match(/'sticker-pack-id':\s*'([^']+)'/) || [])[1] || '';
+      const CUENTAS = /\b(xz1s|xzz1r)\b/i;
+      exige(!CUENTAS.test(cfg.sticker?.author || ''),
+        `el autor del sticker lleva una cuenta del dueño ("${cfg.sticker?.author}"): lo ve cualquiera que reciba un sticker`);
+      exige(!CUENTAS.test(cfg.sticker?.pack || ''),
+        `el nombre del pack lleva una cuenta del dueño ("${cfg.sticker?.pack}")`);
+      exige(!CUENTAS.test(packId),
+        `el id del pack lleva una cuenta del dueño ("${packId}"): viaja dentro del sticker`);
+    }
+
     // !g NO PUEDE DELATAR QUE DETRAS HAY UN MODELO.
     //
     // El SYSTEM_PROMPT ya se lo pide, pero un prompt es una PETICION: basta con

@@ -246,7 +246,8 @@ async function runFfmpeg(inputFile, outputFile, options, format = 'webp') {
 //     which silently disables saving it to personal favorites.
 function buildExif(pack, author) {
   const json = JSON.stringify({
-    'sticker-pack-id': 'com.xz1s.daddysbot',
+    // Sin la cuenta de nadie dentro: este id viaja en el sticker y se lee.
+    'sticker-pack-id': 'com.daddysbot.stickers',
     'sticker-pack-name': pack,
     'sticker-pack-publisher': author,
     'emojis': [],

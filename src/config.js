@@ -58,9 +58,18 @@ const config = {
   // Solo digitos, en formato internacional y sin el +.
   contacto: '573246561597',
 
+  // EL AUTOR DEL STICKER LO VE TODO EL QUE LO RECIBE.
+  //
+  // Aqui ponia 'xz1s', que es una cuenta del dueño. Y no es un dato interno:
+  // WhatsApp lo escribe en los metadatos del sticker y lo enseña en la ficha del
+  // pack, asi que cada sticker que ha hecho el bot lleva ese nombre encima y
+  // sale del grupo con el —reenviado a cualquier otro chat, a cualquier otra
+  // persona—. Lo mismo con el id del pack, que era 'com.xz1s.daddysbot'.
+  //
+  // El bot firma como el bot. Ninguna cuenta de nadie.
   sticker: {
     pack: "𝐃𝐀𝐃𝐃𝐘'𝐒 𝐁𝐎𝐓",
-    author: 'xz1s',
+    author: "𝐃𝐀𝐃𝐃𝐘'𝐒 𝐁𝐎𝐓",
   },
 };
 
