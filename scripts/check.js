@@ -4252,6 +4252,39 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     exige(iHuella > 0 && iRecien > 0 && iHuella < iRecien,
       'en estado.js la huella dejo de mirarse antes que el "recien arrancado": con el bot al dia volveria a salir un aviso que no se puede apagar');
 
+    // NI EL DESPLIEGUE PUEDE ACUSAR CON UNA HUELLA VIEJA.
+    //
+    // MISMO FALLO, OTRO FICHERO, Y ESTE SI SALIO A LA CARA. actualizar.sh
+    // dormia doce segundos a ciegas y leia la ultima linea de "commit cargado".
+    // El bot escribe esa linea AL CONECTAR, y conectar tarda mas de doce
+    // segundos a menudo, asi que el guion leia la huella del arranque ANTERIOR
+    // y gritaba "el codigo nuevo NO se esta ejecutando" con el despliegue ya
+    // hecho — y encima reiniciaba el bot otra vez para nada. Paso con la salida
+    // delante y el commit correcto en disco.
+    //
+    // No se vigila la redaccion del aviso, que cambiara: se vigila el hecho de
+    // que la huella vieja no puede acusar. Tres cosas, y las tres tienen que
+    // seguir siendo verdad:
+    const act = fs.readFileSync(path.join(R, 'scripts/actualizar.sh'), 'utf8')
+      .split('\n').map((l) => l.replace(/(^|\s)#.*$/, '')).join('\n');
+    const iAntes = act.indexOf('HUELLAS_ANTES=');
+    const iReinicio = act.indexOf('pm2 restart bot');
+    // 1) Se cuentan las huellas ANTES de reiniciar. Sin ese recuento no hay
+    //    forma de distinguir "aun no ha conectado" de "corre codigo viejo":
+    //    las dos se ven igual, una huella antigua en el log.
+    exige(iAntes > 0 && iReinicio > 0 && iAntes < iReinicio,
+      'actualizar.sh ya no cuenta las huellas antes de reiniciar: no puede distinguir "aun no ha conectado" de "corre codigo viejo"');
+    // 2) La huella solo se lee si ha aparecido una NUEVA. Es la condicion que
+    //    faltaba: leerla sin comparar es leer la del arranque anterior.
+    const iPuerta = act.indexOf('HUELLAS_AHORA}" -gt "${HUELLAS_ANTES}" ]; then');
+    const iLee = act.indexOf('CARGADO="$(pm2 logs');
+    exige(iPuerta > 0 && iLee > iPuerta,
+      'actualizar.sh vuelve a leer el commit del log sin comprobar que sea de este arranque: acusara al bot con la huella del anterior');
+    // 3) Y no se espera un numero fijo de segundos. Doce era la apuesta que
+    //    perdia; cualquier constante a ciegas vuelve a perderla.
+    exige(!/sleep\s+\d\d+/.test(act),
+      'actualizar.sh vuelve a esperar un numero fijo de segundos a que el bot conecte: si tarda mas, lee la huella del arranque anterior');
+
     // UN MODULO QUE SE USA Y NO SE IMPORTA.
     //
     // Paso en bot.js: se escribio `config.autoRead` y bot.js no importaba

@@ -184,6 +184,14 @@ fi
 # hace sola aunque nadie se acuerde del cron.
 bash scripts/respaldo.sh || echo "  (aviso: no se pudo hacer la copia de data/, se sigue igual)"
 
+# CUANTAS HUELLAS HAY EN EL LOG ANTES DE REINICIAR.
+#
+# El bot escribe "commit cargado : X" AL CONECTAR, y conectar tarda. Sin este
+# recuento no hay forma de distinguir "todavia no ha conectado" de "esta
+# corriendo codigo viejo": las dos se ven igual, una huella antigua en el log.
+# Contando antes, la huella que valga es la que APAREZCA DESPUES.
+HUELLAS_ANTES="$(pm2 logs bot --lines 400 --nostream 2>/dev/null | grep -c 'commit cargado' || echo 0)"
+
 # Sin esto el código nuevo no llega a ejecutarse. --update-env relee el .env,
 # que es justo lo que hace falta cuando lo que cambió fue una key.
 pm2 restart bot --update-env >/dev/null || pm2 start ecosystem.config.js >/dev/null
@@ -203,13 +211,24 @@ else
 fi
 echo "════════════════════════════════════════════"
 
-# El bot imprime su commit AL CONECTAR, no al arrancar. Sin esta espera, la
-# comprobacion de "¿corre lo que hay en disco?" mira un log que todavia es del
-# proceso anterior y da un falso "se actualizo sin reiniciar" que asusta sin
-# motivo. Doce segundos bastan para una conexion normal.
+# El bot imprime su commit AL CONECTAR, no al arrancar. Se espera a que
+# APAREZCA UNA HUELLA NUEVA en el log, no un numero fijo de segundos.
+#
+# Antes eran doce segundos a ciegas, y eso era una apuesta: si la conexion
+# tardaba mas —y tarda a menudo—, el script leia la huella del arranque
+# ANTERIOR, cantaba "el codigo nuevo NO se esta ejecutando", reiniciaba el bot
+# otra vez sin necesidad y volvia a mirar demasiado pronto. Paso con la salida
+# delante: el despliegue habia ido bien y el script decia lo contrario.
 echo
-echo "→ Esperando a que el bot conecte..."
-sleep 12
+echo -n "→ Esperando a que el bot conecte"
+HUELLAS_AHORA="${HUELLAS_ANTES}"
+for _ in $(seq 1 30); do
+  sleep 2
+  HUELLAS_AHORA="$(pm2 logs bot --lines 400 --nostream 2>/dev/null | grep -c 'commit cargado' || echo 0)"
+  [ "${HUELLAS_AHORA}" -gt "${HUELLAS_ANTES}" ] && break
+  echo -n "."
+done
+echo
 
 npm run --silent estado
 
@@ -223,21 +242,35 @@ npm run --silent estado
 # `npm run estado` ya lo detectaba, pero como un aviso suave entre otros diez, y
 # un aviso suave al final de una pared de texto no lo lee nadie. Aqui se compara
 # a proposito y, si no cuadra, se reintenta el reinicio UNA vez y se grita.
-CARGADO="$(pm2 logs bot --lines 200 --nostream 2>/dev/null | grep 'commit cargado' | tail -1 | grep -oE '[0-9a-f]{7,40}$' || true)"
 CORTO="$(git rev-parse --short HEAD)"
+
+# SOLO SE ACUSA CON UNA HUELLA NUEVA DELANTE. Si no ha aparecido ninguna, el
+# bot no ha conectado todavia y de eso no se deduce nada: acusar ahi es lo que
+# provocaba el reinicio extra y el susto.
+if [ "${HUELLAS_AHORA}" -gt "${HUELLAS_ANTES}" ]; then
+  CARGADO="$(pm2 logs bot --lines 400 --nostream 2>/dev/null | grep 'commit cargado' | tail -1 | grep -oE '[0-9a-f]{7,40}$' || true)"
+else
+  CARGADO=""
+fi
 
 if [ -n "${CARGADO}" ] && [ "${CARGADO}" != "${CORTO}" ]; then
   echo
   echo "  El proceso corre ${CARGADO} y en disco esta ${CORTO}. Reintentando el reinicio..."
   pm2 restart bot --update-env >/dev/null 2>&1 || true
-  sleep 12
-  CARGADO="$(pm2 logs bot --lines 200 --nostream 2>/dev/null | grep 'commit cargado' | tail -1 | grep -oE '[0-9a-f]{7,40}$' || true)"
+  HUELLAS_ANTES="${HUELLAS_AHORA}"
+  for _ in $(seq 1 30); do
+    sleep 2
+    HUELLAS_AHORA="$(pm2 logs bot --lines 400 --nostream 2>/dev/null | grep -c 'commit cargado' || echo 0)"
+    [ "${HUELLAS_AHORA}" -gt "${HUELLAS_ANTES}" ] && break
+  done
+  CARGADO="$(pm2 logs bot --lines 400 --nostream 2>/dev/null | grep 'commit cargado' | tail -1 | grep -oE '[0-9a-f]{7,40}$' || true)"
 fi
 
 echo
 if [ -z "${CARGADO}" ]; then
-  echo "  No he podido leer que commit corre el bot (aun no ha conectado)."
-  echo "  Compruebalo en un minuto:  pm2 logs bot --lines 5 --nostream | grep 'commit cargado'"
+  echo "  El bot aun no ha conectado, asi que todavia no ha dicho que commit carga."
+  echo "  Esto NO es un fallo: en disco esta ${CORTO} y el proceso se reinicio."
+  echo "  Confirmalo en un minuto:  pm2 logs bot --lines 5 --nostream | grep 'commit cargado'"
 elif [ "${CARGADO}" = "${CORTO}" ]; then
   echo "  ✓ El bot corre lo que hay en disco (${CORTO})."
 else
