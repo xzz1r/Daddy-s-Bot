@@ -617,7 +617,35 @@ function esFotoRestringida(err) {
 // de devolver null, para que quien llama no confunda un hipo de red con una
 // foto oculta). Sin esto, cualquier timeout o límite de peticiones de
 // WhatsApp hacía que el bot dijera "no tiene foto" cuando en realidad no supo.
+// SE PIDE POR LAS DOS FORMAS DE LA PERSONA, Y ESTE ERA EL FALLO GORDO.
+//
+// En un grupo LID la mencion llega como @lid, y a `profilePictureUrl` se le
+// pasaba tal cual. WhatsApp rechaza esa consulta —no sirve la foto por un LID
+// crudo— con un 403/not-authorized, que es EXACTAMENTE la misma respuesta que
+// da cuando la foto es privada de verdad. El bot lo leia como privacidad y
+// contestaba "tiene la foto limitada a sus contactos" a gente con la foto
+// PUBLICA. Y pasaba casi siempre, porque casi todas las menciones son @lid.
+//
+// Se prueba primero la forma canonica (el telefono, cuando se conoce) y solo
+// despues la cruda. Y una foto solo se declara restringida si LAS DOS formas
+// lo dicen: con una sola no se distingue "no me la enseña" de "no sabes
+// preguntar".
 async function fetchPfpUrl(sock, jid, tipo = 'image', intentos = 2) {
+  const canon = canonicalJid(jid);
+  const formas = canon && canon !== bareJid(jid) ? [canon, jid] : [jid];
+  let restringidaEnTodas = null;
+  for (const forma of formas) {
+    try {
+      return await intentarPfp(sock, forma, tipo, intentos);
+    } catch (err) {
+      if (!err?.restringida) throw err;   // fallo de red: no lo tapa otra forma
+      restringidaEnTodas = err;
+    }
+  }
+  throw restringidaEnTodas;
+}
+
+async function intentarPfp(sock, jid, tipo, intentos) {
   let ultimoError = null;
   for (let i = 0; i <= intentos; i++) {
     try {

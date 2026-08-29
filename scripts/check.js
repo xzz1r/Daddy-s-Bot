@@ -3559,6 +3559,49 @@ async function capaStores() {
         `un miembro raso puede tocar autoaccept: "${delRaso.slice(0, 60)}"`);
     }
 
+    // LA FOTO SE PIDE POR LAS DOS FORMAS ANTES DE LLAMARLA PRIVADA.
+    //
+    // En un grupo LID la mencion llega como @lid y se le pasaba tal cual a
+    // profilePictureUrl. WhatsApp rechaza esa consulta con un 403, que es la
+    // MISMA respuesta que da cuando la foto es privada de verdad, asi que el
+    // bot contestaba "tiene la foto limitada a sus contactos" a gente con la
+    // foto publica. Y pasaba casi siempre, porque casi todas las menciones son
+    // @lid.
+    {
+      const { fetchPfpUrl, rememberMapping } = require(path.join(R, 'src/utils/wa'));
+      const LIDP = '111111111199@lid';
+      const TELP = '34600000199@s.whatsapp.net';
+      rememberMapping(LIDP, TELP);
+      const err403 = () => { const e = new Error('forbidden'); e.data = 403; return e; };
+
+      // Foto PUBLICA: el @lid la niega, el telefono la sirve.
+      const pedidos = [];
+      const url = await fetchPfpUrl({
+        profilePictureUrl: async (j) => { pedidos.push(j); if (j === TELP) return 'https://x/f.jpg'; throw err403(); },
+      }, LIDP, 'image', 0);
+      exige(url === 'https://x/f.jpg',
+        'con la foto publica y una mencion por @lid, !pfp sigue sin encontrarla y la llama privada');
+
+      // Y AL REVES: si la que falla es la canonica, se sigue probando la otra.
+      // Pasa cuando el mapeo lid→telefono esta mal o caduco: rendirse en la
+      // primera negativa daria "foto privada" teniendo la buena a un intento.
+      const pedidos2 = [];
+      const url2 = await fetchPfpUrl({
+        profilePictureUrl: async (j) => { pedidos2.push(j); if (j === LIDP) return 'https://x/g.jpg'; throw err403(); },
+      }, LIDP, 'image', 0);
+      exige(url2 === 'https://x/g.jpg',
+        `!pfp se rinde en la primera forma que dice restringida y no prueba la otra (pidio: ${pedidos2.join(', ')})`);
+
+      // Y una PRIVADA de verdad sigue saliendo como privada: si esto se pierde,
+      // el mensaje deja de existir y todo pasa a ser "fallo de red".
+      let marcada = false;
+      try {
+        await fetchPfpUrl({ profilePictureUrl: async () => { throw err403(); } }, LIDP, 'image', 0);
+      } catch (e) { marcada = !!e?.restringida; }
+      exige(marcada,
+        'una foto privada de verdad ya no se marca como restringida: el aviso de privacidad deja de salir nunca');
+    }
+
     // NINGUN COMANDO PUEDE DEPENDER DE LA TILDE.
     //
     // *!menú* e *!inútil* no funcionaban: los `case` son 'menu' e 'inutil', asi
