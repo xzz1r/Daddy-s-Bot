@@ -57,7 +57,7 @@ const { businessEvidence } = require('./utils/businessCheck');
 const { aplicarParticipantes, aplicarAUno, formasDe } = require('./utils/participantes');
 const { getMemberFacts } = require('./utils/nickStore');
 const { ensureTemp, barrerHuerfanos, withTimeout } = require('./utils/helpers');
-const { gitCommit } = require('./utils/version');
+const { COMMIT_ARRANQUE } = require('./utils/version');
 const { VF_STATIC } = require('./utils/sticker');
 const logger = require('./utils/logger');
 
@@ -757,7 +757,7 @@ async function connectToWhatsApp() {
       // `pad=512:512`, es que el proceso quedó con código viejo: hay que
       // pararlo del todo y volver a hacer `npm start`.
       const specCompliant = /pad=512:512/.test(VF_STATIC);
-      console.log(`  commit cargado : ${gitCommit()}`);
+      console.log(`  commit cargado : ${COMMIT_ARRANQUE}`);
       console.log(`  filtro sticker : ${VF_STATIC}`);
       console.log(`canvas 512 : ${specCompliant ? 'SI (spec WhatsApp, relleno transparente, sin estirar)' : 'NO (código viejo, canvas no cuadrado)'}\n`);
 

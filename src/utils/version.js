@@ -31,4 +31,23 @@ function gitCommit() {
   }
 }
 
-module.exports = { gitCommit };
+// LA HUELLA SE CONGELA AL CARGAR EL MODULO, Y ESA ES TODA LA GRACIA.
+//
+// gitCommit() lee el disco EN EL MOMENTO en que se la llama, y eso servia para
+// cualquier cosa menos para lo unico que hace falta: saber que codigo hay
+// CARGADO EN MEMORIA. El bot la llamaba al conectar, o sea minutos despues de
+// arrancar, asi que un proceso viejo que se reconectara despues de un `git
+// pull` imprimia el commit NUEVO — el hash del codigo que precisamente no
+// estaba ejecutando. La comprobacion mentia justo en el caso que existe para
+// detectar.
+//
+// Paso al reves y por eso se vio: durante un despliegue, el proceso viejo se
+// reconecto mientras el pull todavia no habia terminado y firmo con el hash
+// anterior. El guion lo leyo como "el bot corre codigo viejo" y armo el lio.
+//
+// Congelada al cargar el modulo —milisegundos despues de arrancar el proceso—
+// el valor es el del codigo que node acaba de leer del disco. Un proceso viejo
+// ya no puede firmar con un hash nuevo pase lo que pase despues.
+const COMMIT_ARRANQUE = gitCommit();
+
+module.exports = { gitCommit, COMMIT_ARRANQUE };

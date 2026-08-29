@@ -220,7 +220,7 @@ echo "════════════════════════�
 # otra vez sin necesidad y volvia a mirar demasiado pronto. Paso con la salida
 # delante: el despliegue habia ido bien y el script decia lo contrario.
 echo
-echo -n "→ Esperando a que el bot conecte"
+echo -n "→ Esperando a que el bot arranque"
 HUELLAS_AHORA="${HUELLAS_ANTES}"
 for _ in $(seq 1 30); do
   sleep 2
@@ -268,9 +268,8 @@ fi
 
 echo
 if [ -z "${CARGADO}" ]; then
-  echo "  El bot aun no ha conectado, asi que todavia no ha dicho que commit carga."
-  echo "  Esto NO es un fallo: en disco esta ${CORTO} y el proceso se reinicio."
-  echo "  Confirmalo en un minuto con:  npm run estado"
+  echo "  El proceso no ha firmado su arranque en un minuto. Mira que ha pasado:"
+  echo "    pm2 logs bot --lines 40 --nostream"
 elif [ "${CARGADO}" = "${CORTO}" ]; then
   echo "  ✓ El bot corre lo que hay en disco (${CORTO})."
 else

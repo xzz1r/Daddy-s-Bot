@@ -3580,6 +3580,23 @@ async function capaStores() {
         `el nombre del pack lleva una cuenta del dueño ("${cfg.sticker?.pack}")`);
       exige(!CUENTAS.test(packId),
         `el id del pack lleva una cuenta del dueño ("${packId}"): viaja dentro del sticker`);
+      // Y TAMPOCO EN EL ARRANQUE. Se me escapo: el banner de index.js ponia
+      // "by <cuenta del dueño>" y llevaba ahi desde el principio. Sale en la
+      // consola de la VPS, si, pero tambien esta escrito en un repo publico y
+      // en cualquier captura del arranque que se comparta. La guarda anterior
+      // solo miraba los stickers, asi que este no lo cazaba nadie.
+      // Se mira el CODIGO ENTERO, no las lineas que parecen una salida. Lo
+      // intente asi primero y no cazaba nada: el banner del arranque es una
+      // plantilla de varias lineas y la que lleva el nombre no tiene al lado
+      // ningun console.log con el que reconocerla. Un handle del dueño escrito
+      // en el codigo no tiene ningun uso legitimo, asi que no hace falta
+      // adivinar si acaba en pantalla: sobra estando.
+      for (const rel of ['index.js', 'src/bot.js', 'src/config.js']) {
+        for (const [i, linea] of soloCodigo(rel).split('\n').entries()) {
+          exige(!CUENTAS.test(linea),
+            `${rel}:${i + 1} lleva una cuenta del dueño: ${linea.trim().slice(0, 60)}`);
+        }
+      }
     }
 
     // !g NO PUEDE DELATAR QUE DETRAS HAY UN MODELO.
@@ -4301,6 +4318,39 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
         exige(n && Number(n[1]) >= 100,
           `${rel} busca la huella en solo ${n ? n[1] : '?'} lineas de log: sale vacio y parece que el bot no ha arrancado`);
       }
+    }
+
+    // Y 5) LA HUELLA TIENE QUE SER LA DEL CODIGO EN MEMORIA, NO LA DEL DISCO.
+    //
+    // ESTA ES LA BUENA, la que hacia mentir a todas las demas. gitCommit() lee
+    // .git EN EL MOMENTO en que se la llama, y el bot la llamaba AL CONECTAR:
+    // minutos despues de arrancar. Un proceso viejo que se reconectara despues
+    // de un `git pull` firmaba con el hash NUEVO — el del codigo que
+    // precisamente no estaba ejecutando. La comprobacion mentia justo en el
+    // caso para el que existe.
+    //
+    // Se exige lo que lo arregla: que el valor se congele al cargar el modulo
+    // y que lo que se imprime sea ESE valor, no una lectura nueva. Y que salga
+    // al arrancar el proceso, no solo al conectar, que era lo que dejaba la
+    // ventana de minutos donde el log seguia mostrando el arranque anterior.
+    {
+      const ver = soloCodigo('src/utils/version.js');
+      exige(/const COMMIT_ARRANQUE = gitCommit\(\)/.test(ver),
+        'version.js ya no congela la huella al cargar: un proceso viejo puede firmar con el hash nuevo tras un pull');
+      for (const rel of ['index.js', 'src/bot.js']) {
+        const src = soloCodigo(rel);
+        for (const linea of src.split('\n')) {
+          if (!linea.includes('commit cargado')) continue;
+          exige(!/gitCommit\(\)/.test(linea),
+            `${rel} imprime la huella leyendo el disco en ese momento: un proceso viejo firmaria con el hash nuevo`);
+        }
+      }
+      const idx = soloCodigo('index.js');
+      exige(/commit cargado/.test(idx),
+        'index.js ya no imprime la huella al arrancar: hasta que el bot conecte, el log sigue enseñando la del arranque anterior');
+      // Y que salga ANTES de conectar, o sea antes de arrancar el bot.
+      exige(idx.indexOf('commit cargado') < idx.indexOf('connectToWhatsApp()'),
+        'en index.js la huella se imprime despues de lanzar la conexion: vuelve la ventana en la que el log miente');
     }
 
     // UN MODULO QUE SE USA Y NO SE IMPORTA.
