@@ -4285,6 +4285,24 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     exige(!/sleep\s+\d\d+/.test(act),
       'actualizar.sh vuelve a esperar un numero fijo de segundos a que el bot conecte: si tarda mas, lee la huella del arranque anterior');
 
+    // Y 4) NI SE PIDEN CUATRO LINEAS DE LOG PARA BUSCAR ALGO QUE ESTA ARRIBA.
+    //
+    // La huella se imprime AL CONECTAR, y justo despues el bot escupe el
+    // arranque entero: el resumen, los grupos, los avisos. Para cuando alguien
+    // mira, esa linea lleva un buen rato fuera de las ultimas cinco. Pedir
+    // pocas lineas no da error: da VACIO, que se lee igual que "no esta" y es
+    // exactamente el falso negativo que estamos intentando quitar de aqui.
+    // Me paso a mi: puse `--lines 5` en la pista que da el guion y no encontro
+    // nada teniendo el bot al dia delante.
+    for (const [rel, texto] of [['scripts/actualizar.sh', act], ['scripts/estado.js', soloCodigo('scripts/estado.js')]]) {
+      for (const linea of texto.split('\n')) {
+        if (!linea.includes('commit cargado') || !linea.includes('pm2 logs')) continue;
+        const n = linea.match(/--lines\s+(\d+)/);
+        exige(n && Number(n[1]) >= 100,
+          `${rel} busca la huella en solo ${n ? n[1] : '?'} lineas de log: sale vacio y parece que el bot no ha arrancado`);
+      }
+    }
+
     // UN MODULO QUE SE USA Y NO SE IMPORTA.
     //
     // Paso en bot.js: se escribio `config.autoRead` y bot.js no importaba

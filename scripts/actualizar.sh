@@ -270,7 +270,7 @@ echo
 if [ -z "${CARGADO}" ]; then
   echo "  El bot aun no ha conectado, asi que todavia no ha dicho que commit carga."
   echo "  Esto NO es un fallo: en disco esta ${CORTO} y el proceso se reinicio."
-  echo "  Confirmalo en un minuto:  pm2 logs bot --lines 5 --nostream | grep 'commit cargado'"
+  echo "  Confirmalo en un minuto con:  npm run estado"
 elif [ "${CARGADO}" = "${CORTO}" ]; then
   echo "  ✓ El bot corre lo que hay en disco (${CORTO})."
 else
