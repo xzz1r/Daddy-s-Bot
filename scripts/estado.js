@@ -179,12 +179,13 @@ if (!bot) {
 // pm2 no reinicia, el bot en memoria sigue con el codigo viejo, y desde fuera
 // todo parece actualizado.
 //
-// El bot imprime su commit AL CONECTAR, no al arrancar, y conectar tarda unos
-// segundos. Por eso hay que mirar CUANDO se escribio esa linea: justo despues de
-// un reinicio, la ultima del log es todavia la del proceso anterior, y comparar
-// a ciegas acusaba de "se actualizo sin reiniciar" a un bot recien reiniciado
-// que estaba perfectamente. Si la linea es mas vieja que el arranque actual, lo
-// unico honesto es decir que aun no ha conectado.
+// El bot imprime su commit AL ARRANCAR (index.js), a los milisegundos de nacer
+// el proceso, y el valor va congelado desde que se carga el modulo. Antes solo
+// salia al conectar, y como conectar tarda —o no llega—, la ultima linea del log
+// era todavia la del proceso anterior: comparar a ciegas acusaba de "se actualizo
+// sin reiniciar" a un bot recien reiniciado que estaba perfectamente. Ahora la
+// huella del log es la del proceso vivo, y la rama de "recien arrancado" solo
+// cubre el hueco de los primeros segundos.
 if (local && bot) {
   const arranque = bot.pm2_env?.pm_uptime || 0;
   const linea = sh(`pm2 logs bot --out --lines 400 --nostream 2>/dev/null | grep "commit cargado" | tail -1`, 20000);
@@ -294,6 +295,37 @@ if (!fs.existsSync(authDir) || !fs.existsSync(path.join(authDir, 'creds.json')))
   const edad = Math.round((Date.now() - fs.statSync(path.join(authDir, 'creds.json')).mtimeMs) / 60000);
   if (edad > 60 * 24 * 7) aviso(`la sesión no se toca desde hace ${Math.floor(edad / 1440)} días: puede estar muerta`, 'pm2 logs bot --lines 30');
   else bien('sesión de WhatsApp presente', true);
+}
+
+// ¿Y ESTA CONECTADO DE VERDAD? "Sesión presente" solo dice que existe el fichero
+// de credenciales, que es un dato del disco. Un proceso que arranco y nunca
+// llego a abrir la sesion tiene esas credenciales igual de presentes y salia
+// aqui en verde, con pm2 diciendo "online" y el bot mudo en el grupo.
+//
+// Paso: un despliegue reinicio el bot dos veces seguidas —la segunda por un
+// falso aviso del guion— y el proceso se quedo una hora sin conectar. Todo
+// verde: pm2 online, credenciales presentes, y nada en el grupo.
+//
+// Se mira por POSICION en el log, no por fechas, que esas lineas no las llevan.
+// Cada arranque escribe UNA huella y, si conecta, un "conectado" DESPUES. Si la
+// ultima huella no tiene ningun "conectado" por debajo, el proceso vivo no ha
+// conectado. Los primeros dos minutos no cuentan: conectar tarda.
+if (bot) {
+  const arranque = bot.pm2_env?.pm_uptime || 0;
+  const enMarcha = arranque > 0 ? Date.now() - arranque : 0;
+  const log = sh(`pm2 logs bot --out --lines 400 --nostream 2>/dev/null`, 20000);
+  if (log && enMarcha > 120000) {
+    const lineas = log.split('\n');
+    const iHuella = lineas.map((l) => /commit cargado/.test(l)).lastIndexOf(true);
+    const iConectado = lineas.map((l) => /Daddy's Bot conectado/.test(l)).lastIndexOf(true);
+    // Solo se opina si la huella del arranque vivo esta dentro de lo leido; si
+    // no aparece, el log ya ha dado la vuelta y de ahi no se deduce nada.
+    if (iHuella >= 0 && iConectado < iHuella) {
+      const mins = Math.round(enMarcha / 60000);
+      mal(`el proceso lleva ${mins > 90 ? `${Math.round(mins / 60)}h` : `${mins}min`} arrancado y no ha llegado a conectar con WhatsApp`,
+        'pm2 logs bot --lines 40 --nostream   → mira por qué, y luego: pm2 restart bot --update-env');
+    }
+  }
 }
 
 // 4. Lo que diga el log. Se buscan las frases EXACTAS que imprime el bot al

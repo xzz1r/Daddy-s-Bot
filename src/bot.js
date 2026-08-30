@@ -57,7 +57,6 @@ const { businessEvidence } = require('./utils/businessCheck');
 const { aplicarParticipantes, aplicarAUno, formasDe } = require('./utils/participantes');
 const { getMemberFacts } = require('./utils/nickStore');
 const { ensureTemp, barrerHuerfanos, withTimeout } = require('./utils/helpers');
-const { COMMIT_ARRANQUE } = require('./utils/version');
 const { VF_STATIC } = require('./utils/sticker');
 const logger = require('./utils/logger');
 
@@ -752,12 +751,14 @@ async function connectToWhatsApp() {
       // Explicit save on full connection to ensure session is complete
       await saveCreds();
       console.log(`\nDaddy's Bot conectado\n`);
-      // Huella del código realmente cargado en memoria. Si tras un `git pull` el
-      // commit de aquí no coincide con `git log -1`, o el filtro NO muestra
-      // `pad=512:512`, es que el proceso quedó con código viejo: hay que
-      // pararlo del todo y volver a hacer `npm start`.
+      // LA HUELLA YA NO SE IMPRIME AQUI. La escribe index.js al arrancar, que es
+      // cuando el dato significa algo. Repetirla aqui no añadia informacion —es
+      // la misma constante— y encima dejaba DOS lineas con la misma etiqueta en
+      // el log, que es justo lo que impide saber, mirando el log, si el proceso
+      // que arranco llego a conectar o se quedo por el camino. Con una sola
+      // huella por arranque, un "Daddy's Bot conectado" despues de ella
+      // significa conectado, y su ausencia significa que no.
       const specCompliant = /pad=512:512/.test(VF_STATIC);
-      console.log(`  commit cargado : ${COMMIT_ARRANQUE}`);
       console.log(`  filtro sticker : ${VF_STATIC}`);
       console.log(`canvas 512 : ${specCompliant ? 'SI (spec WhatsApp, relleno transparente, sin estirar)' : 'NO (código viejo, canvas no cuadrado)'}\n`);
 

@@ -4351,6 +4351,40 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
       // Y que salga ANTES de conectar, o sea antes de arrancar el bot.
       exige(idx.indexOf('commit cargado') < idx.indexOf('connectToWhatsApp()'),
         'en index.js la huella se imprime despues de lanzar la conexion: vuelve la ventana en la que el log miente');
+
+      // UNA SOLA HUELLA POR ARRANQUE. El bot la escribia dos veces —al arrancar
+      // y al conectar— con la misma etiqueta, y con dos lineas iguales por
+      // arranque no hay forma de saber, mirando el log, si el proceso que
+      // arranco llego a conectar: es la comprobacion de abajo la que se queda
+      // sin poder responder.
+      let sitios = 0;
+      const andarSrc = (d) => {
+        for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+          const f = path.join(d, e.name);
+          if (e.isDirectory()) andarSrc(f);
+          else if (e.name.endsWith('.js')) {
+            for (const l of soloCodigo(path.relative(R, f)).split('\n')) {
+              if (l.includes('commit cargado')) sitios++;
+            }
+          }
+        }
+      };
+      andarSrc(path.join(R, 'src'));
+      for (const l of idx.split('\n')) if (l.includes('commit cargado')) sitios++;
+      exige(sitios === 1,
+        `la huella se imprime en ${sitios} sitios: con mas de una linea por arranque no se puede saber si el proceso llego a conectar`);
+
+      // Y ESTADO TIENE QUE AVISAR DE UN BOT ARRANCADO QUE NO CONECTA.
+      //
+      // "Sesion de WhatsApp presente" solo mira que exista creds.json, que es un
+      // dato del disco: un proceso que arranco y nunca abrio la sesion salia en
+      // verde con pm2 diciendo "online" y el bot mudo en el grupo. Paso, y estuvo
+      // asi una hora sin que ninguna comprobacion lo dijera.
+      const estSrc = soloCodigo('scripts/estado.js');
+      exige(/Daddy's Bot conectado/.test(estSrc) && /lastIndexOf/.test(estSrc),
+        'estado.js ya no comprueba si el bot llego a conectar: un proceso arrancado y mudo vuelve a salir todo en verde');
+      exige(/enMarcha > 120000/.test(estSrc),
+        'estado.js ya no da margen antes de acusar de no conectar: acusaria a un bot que acaba de arrancar y aun esta conectando');
     }
 
     // UN MODULO QUE SE USA Y NO SE IMPORTA.
