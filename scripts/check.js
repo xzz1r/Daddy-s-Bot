@@ -4220,6 +4220,88 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     if (fallos === antes) console.log(verde('   ✓ no rebaja lo ya indexado, y sigue indexando lo caducado'));
   }
 
+  // ── 32b. EL INTERRUPTOR DE LA ECONOMIA TAPA LO QUE MUEVE SALDO, Y SOLO ESO
+  //
+  // *!aura off* congela la dinamica. Antes la lista de comandos que tapa se
+  // DERIVABA con un regex sobre el fuente del dispatcher, y eso fallaba por los
+  // dos lados a la vez:
+  //
+  //   · capturaba de mas: !buscados, !cartel, !bote y !caja cuelgan de cmdRobo y
+  //     solo CONSULTAN, asi que con la economia apagada el bot se negaba hasta a
+  //     enseñar el cartel de buscados;
+  //   · y se rompia con un comentario: el regex exige el `await` pegado al
+  //     ultimo `case`, asi que meter una linea de comentario entre medias —el
+  //     estilo de esta casa— dejaba esos comandos SIN interruptor, en silencio.
+  //
+  // Ahora las listas son explicitas y esta guarda es lo que impide que se
+  // pudran, que era el unico motivo de derivarlas. Se recorren los `case` que
+  // acaban en cmdDar/cmdRobo/cmdDuel y se exige que CADA UNO este clasificado:
+  // o mueve saldo, o solo consulta. Un alias nuevo sin clasificar sale en rojo.
+  {
+    console.log('\n32b. EL INTERRUPTOR DE LA ECONOMIA');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { CMDS_AURA, SOLO_CONSULTA } = require(path.join(R, 'src/handlers/messageHandler'));
+
+    // Los `case` que llegan a un comando que toca el saldo. Se lee el fuente
+    // solo para SABER QUE COMANDOS EXISTEN, no para decidir su clasificacion:
+    // si el regex falla, la guarda se queda sin material y lo dice, en vez de
+    // dar por buena una lista vacia como hacia la derivacion.
+    const src = soloCodigo('src/handlers/messageHandler.js');
+    const zona = src.slice(src.indexOf('switch (command)'));
+    // Se acumulan las etiquetas `case` consecutivas y, en cuanto aparece la
+    // PRIMERA linea de cuerpo, se decide con ella y se vacia el acumulador.
+    // Escrito de otra forma —dejando el acumulador vivo cuando el cuerpo no era
+    // el que se buscaba— las etiquetas se arrastraban de un bloque al siguiente
+    // y la guarda pedia clasificar *!musica* como comando de economia.
+    const etiquetas = [];
+    let bloque = [];
+    for (const linea of zona.split('\n')) {
+      const t = linea.trim();
+      if (!t) continue;
+      const c = t.match(/^case '([^']+)':\s*(.*)$/);
+      if (c) {
+        bloque.push(c[1]);
+        if (!c[2]) continue;              // etiqueta sola: sigue el bloque
+        if (/\b(cmdDar|cmdRobo|cmdDuel)\s*\(/.test(c[2])) etiquetas.push(...bloque);
+        bloque = [];
+        continue;
+      }
+      if (!bloque.length) continue;       // cuerpo de un bloque que no nos toca
+      if (/\b(cmdDar|cmdRobo|cmdDuel)\s*\(/.test(t)) etiquetas.push(...bloque);
+      bloque = [];                        // primera linea de cuerpo: se decide y se cierra
+    }
+    const vistos = [...new Set(etiquetas)];
+    exige(vistos.length >= 20,
+      `solo he encontrado ${vistos.length} comandos que toquen el saldo: la lectura del dispatcher ha dejado de funcionar y esta guarda no vale`);
+    for (const c of vistos) {
+      exige(CMDS_AURA.has(c) || SOLO_CONSULTA.has(c),
+        `*!${c}* llega a un comando que mueve saldo y no esta clasificado: metelo en CMDS_AURA o en SOLO_CONSULTA`);
+    }
+    // Y ninguno puede estar en las dos.
+    for (const c of CMDS_AURA) {
+      exige(!SOLO_CONSULTA.has(c), `*!${c}* esta en CMDS_AURA y en SOLO_CONSULTA a la vez`);
+    }
+    // Las consultas que de verdad solo consultan tienen que seguir sueltas.
+    for (const c of ['buscados', 'cartel', 'bote', 'caja', 'wanted', 'recompensas', 'registradora', 'mostwanted']) {
+      exige(!CMDS_AURA.has(c),
+        `*!${c}* solo consulta y el interruptor lo tapa: apagar el juego no puede apagar el marcador`);
+    }
+    // Y las que mueven saldo tienen que seguir tapadas.
+    for (const c of ['robo', 'robar', 'duel', 'dar', 'donar', 'asalto', 'atraco', 'contrarobo', 'regalar', 'transferir', 'pagar']) {
+      exige(CMDS_AURA.has(c), `*!${c}* mueve saldo y ha dejado de estar en CMDS_AURA: se juega con la economia apagada`);
+    }
+    // La tienda: el catalogo libre, la compra parada DENTRO de laTienda.
+    const roboSrc = soloCodigo('src/commands/robo.js');
+    exige(/auraApagada\(jid\)/.test(roboSrc),
+      'la tienda ya no mira el interruptor por dentro: o se compra con la economia apagada, o el catalogo queda a oscuras');
+    const iCat = roboSrc.indexOf('LA TIENDA DEL LADRÓN');
+    const iPara = roboSrc.indexOf('auraApagada(jid)');
+    exige(iCat > 0 && iPara > iCat,
+      'el freno de la tienda esta ANTES del catalogo: con la economia apagada no se puede ni mirar el escaparate');
+    if (fallos === antes) console.log(verde('   ✓ lo que mueve saldo esta tapado, lo que solo consulta sigue respondiendo'));
+  }
+
   // ── 33a. EL CASTELLANO QUE SALE DEL BOT ──────────────────────────────────
   //
   // DOS FALLOS QUE NADIE MIRABA PORQUE NO ROMPEN NADA, y por eso llevaban meses.

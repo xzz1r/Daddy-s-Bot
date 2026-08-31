@@ -48,7 +48,13 @@ async function avisarApagada(sock, jid, msg) {
   ultimoAviso.set(jid, ahora);
 
   await sock.sendMessage(jid, {
-    text: 'La dinámica de aura está apagada. El saldo de cada uno sigue intacto y *!aura top* se puede seguir mirando.',
+    // SE NOMBRA LO QUE SIGUE ABIERTO, y ahora es mas que antes. El aviso solo
+    // citaba *!aura top* porque durante un tiempo era lo unico que respondia:
+    // el interruptor tapaba tambien el bote, la caja y el cartel de buscados,
+    // que no mueven un aura. Corregido eso, decirlo aqui es lo que hace que se
+    // note, porque nadie prueba un comando que el bot acaba de negarle.
+    text: 'La dinámica de aura está apagada. Nadie roba, apuesta ni transfiere hasta que se vuelva a encender.\n'
+      + 'El saldo de cada uno sigue intacto, y siguen abiertos *!aura top*, *!bote*, *!caja*, *!buscados* y la tienda.',
   }, { quoted: msg }).catch(() => {});
 }
 

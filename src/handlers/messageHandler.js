@@ -282,31 +282,57 @@ const FUENTE_PROPIA = (() => {
 // !contrarobo y !atraco. O sea que el interruptor tapaba el nombre principal y
 // dejaba abierta la puerta de al lado.
 //
-// El motivo del podrido es el de siempre: dos sitios que tienen que decir lo
-// mismo y solo uno se toca al añadir un alias. Asi que ahora sale del propio
-// dispatcher, igual que COMANDOS_CONOCIDOS: se buscan los bloques de `case`
-// consecutivos que acaban llamando a uno de los comandos que tocan el saldo, y
-// se cogen TODAS sus etiquetas. Añadir un alias nuevo lo mete solo.
+// SE ESCRIBE A MANO, Y NO ES UN PASO ATRAS: LO ERA SACARLO DEL TEXTO FUENTE.
 //
-// cmdAura queda fuera a proposito: ese si mira el interruptor por dentro (ver
-// auraApagada en aura.js), y ademas tiene ramas que deben seguir contestando
-// con la economia apagada, como la guia y el propio !aura on.
-const CMDS_AURA = (() => {
-  const aMano = ['robo', 'robar', 'duel', 'duelo', '1v1', 'dar', 'donar'];
-  try {
-    const src = FUENTE_PROPIA;
-    const bloques = /((?:\s*case '[^']+':[^\n]*\n)+)\s*await (cmdDar|cmdRobo|cmdDuel)\(/g;
-    const fuera = new Set(aMano);
-    for (const m of src.matchAll(bloques)) {
-      for (const c of m[1].matchAll(/case '([^']+)'/g)) fuera.add(c[1]);
-    }
-    return fuera;
-  } catch {
-    // Si el fichero no se puede leer, la lista a mano es el suelo: mejor tapar
-    // de menos que quedarse sin interruptor del todo.
-    return new Set(aMano);
-  }
-})();
+// La version anterior lo derivaba con un regex sobre este mismo fichero —los
+// bloques de `case` consecutivos antes de un `await cmdRobo(`— para que añadir
+// un alias lo metiera solo. Sonaba bien y tenia dos fallos, los dos
+// comprobados ejecutandolo:
+//
+//   1) CAPTURABA DE MAS. `!buscados`, `!cartel`, `!bote`, `!caja` y sus alias
+//      cuelgan de cmdRobo y SOLO CONSULTAN: un ranking, el saldo del bote, el
+//      de la caja. Con la economia apagada el bot se negaba hasta a enseñar el
+//      cartel de buscados. Y eso contradice lo que este mismo bot ya hace en
+//      !aura, donde la consulta de saldo sigue respondiendo con la dinamica en
+//      pausa a proposito: apagar el juego no tiene por que apagar el marcador.
+//
+//   2) SE ROMPIA CON UN COMENTARIO. El regex exige que el `await` vaya pegado
+//      al ultimo `case`. Meter una linea de comentario entre medias —el estilo
+//      de esta casa, en cada decision— vaciaba la captura de ese bloque y esos
+//      comandos se quedaban SIN interruptor, en silencio y sin que nada lo
+//      dijera. Probado: con un comentario en medio, `!robo` deja de estar.
+//
+// Una lista a mano se pudre si nadie la vigila; el problema nunca fue la lista,
+// fue que no habia guarda. Ahora la hay: `npm run check` recorre los `case` que
+// van a cmdDar/cmdRobo/cmdDuel y exige que CADA UNO este clasificado aqui o en
+// SOLO_CONSULTA. Un alias nuevo sin clasificar pone el check en rojo.
+//
+// cmdAura queda fuera a proposito: mira el interruptor por dentro (ver
+// auraApagada en aura.js) y tiene ramas que deben seguir contestando con la
+// economia apagada, como la guia y el propio !aura on. La tienda igual: el
+// catalogo se enseña y la compra se para, y eso se decide dentro de laTienda
+// porque el mismo comando hace las dos cosas segun lleve o no un objeto detras.
+const CMDS_AURA = new Set([
+  'robo', 'robar',
+  'duel', 'duelo', '1v1',
+  'dar', 'donar', 'regalar', 'transferir', 'pagar',
+  'asalto', 'asaltar',
+  'atraco', 'atracar',
+  'contrarobo', 'contraataque', 'contraatacar', 'vengarse',
+]);
+
+// Los que cuelgan de los mismos comandos y SOLO LEEN. Se listan aparte, y no
+// como un simple "los que no estan", para que la guarda pueda distinguir un
+// comando clasificado como consulta de uno que se olvido de clasificar.
+//
+// tienda/shop/comprar estan aqui porque su freno vive dentro de laTienda: el
+// escaparate se ve siempre, la compra se para. Taparlos desde fuera apagaria
+// tambien el escaparate.
+const SOLO_CONSULTA = new Set([
+  'bote', 'caja', 'registradora',
+  'buscados', 'wanted', 'mostwanted', 'recompensas', 'cartel',
+  'tienda', 'shop', 'comprar',
+]);
 
 // Comandos que TRABAJAN sobre la foto o el vídeo que llevan adjunto. La guarda
 // de medios sin "ver una vez" los deja pasar: mandar una foto con el pie *!s*
@@ -2427,6 +2453,7 @@ async function handleMessage(sock, msg) {
 }
 
 module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGroupMeta, PERMISO_ENLACE,
+  CMDS_AURA, SOLO_CONSULTA,
   // Exportados para poder probar la deteccion de enlaces sin montar un socket.
   clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa,
   // Y la puerta del privado, por lo mismo: se prueba sola.

@@ -1,4 +1,5 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser, soloMiembros } = require('../utils/wa');
+const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
 const { getAura, addAura, drainAura } = require('../utils/auraStore');
 const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/helpers');
 const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA } = require('../utils/economia');
@@ -1721,6 +1722,16 @@ async function laTienda(sock, msg, jid, sender, args, groupMeta) {
       mentions: [sender],
     }, { quoted: msg });
   }
+
+  // LA COMPRA SE PARA CON LA ECONOMIA APAGADA; EL CATALOGO DE ARRIBA NO.
+  //
+  // *!aura off* congela lo que MUEVE saldo. El dispatcher lo hace por nombre de
+  // comando, y con la tienda eso no basta: el mismo *!tienda* enseña el
+  // catalogo si va solo y COMPRA si lleva un objeto detras. Tapar el comando
+  // entero dejaba el escaparate a oscuras sin motivo, y dejarlo pasar entero
+  // permitia comprar con la economia en pausa. La linea esta aqui, que es donde
+  // se sabe cual de las dos cosas esta pasando.
+  if (auraApagada(jid)) return avisarApagada(sock, jid, msg);
 
   const obj = OBJETOS[que];
   // Quien intento atracar la tienda no compra en ella hasta que se le pase. Va
