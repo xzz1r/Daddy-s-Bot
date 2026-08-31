@@ -4220,6 +4220,61 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     if (fallos === antes) console.log(verde('   ✓ no rebaja lo ya indexado, y sigue indexando lo caducado'));
   }
 
+  // ── 31b. LAS TILDES DE LAS FRASES QUE VE EL GRUPO ────────────────────────
+  //
+  // 307 frases decian "traicion", "razon", "cabron", "aqui", "asi" o "dia". No
+  // rompen nada: simplemente el grupo las lee mal escritas todos los dias, y en
+  // un bot cuyo producto ES el texto, eso es el producto roto.
+  //
+  // La lista NO se saco de memoria, se saco del propio corpus: palabras que
+  // aparecen escritas de las DOS formas en los mismos ficheros, filtradas a
+  // aquellas cuya forma sin tilde no es una palabra castellana. Por eso no
+  // entran "que/qué", "como/cómo", "robo/robó" ni "una/uña", que son pares de
+  // palabras DISTINTAS y corregirlas a ciegas destrozaria las frases. Tampoco
+  // entra "aun/aún", que depende de si significa "todavia" o "incluso".
+  //
+  // Y aparte la regla de los encliticos, que no admite excepcion: un gerundio o
+  // un infinitivo con pronombre pegado SIEMPRE lleva tilde (guardandote ->
+  // guardándote, pensarselo -> pensárselo). Esa se puede aplicar a ciegas
+  // porque no depende del significado.
+  {
+    console.log('\n31b. LAS TILDES DE LAS FRASES');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const SIN_TILDE = new RegExp('\\b(' + 'ademas|adios|ahi|aplicacion|aportacion|aqui|asi|atencion|avion|cabron|cancion|combinacion|comparacion|construccion|conversacion|conviccion|corazon|credito|deberia|deberian|definicion|despues|dia|diagnostico|dias|dificil|direccion|diria|educacion|eleccion|ereccion|estacion|estaria|estariamos|evolucion|explicacion|facil|ficcion|fria|frio|funcion|ganzua|habitacion|habria|habrian|haria|ilusion|informacion|intencion|inversion|invitacion|medicion|medico|monton|motivacion|movil|numero|numeros|pension|podria|podrian|posicion|precision|presion|proteccion|puntuacion|querria|razon|relacion|reputacion|sabado|segun|seleccion|sensacion|suscripcion|tambien|tendria|tendrian|tia|tio|traicion|ultima|ultimo|ultimos|util|version' + ')\\b', 'i');
+    const GER = /\b[a-zñ]{2,}?(ando|iendo|yendo)(me|te|se|lo|la|le|los|las|les|nos)\b/i;
+    const INF = /\b[a-zñ]{2,}?[aei]r(me|te|se|nos)(lo|la|le|los|las|les)\b/i;
+    let revisadas = 0;
+    const ficheros = [];
+    const andarA = (dir) => {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        const f = path.join(dir, e.name);
+        if (e.isDirectory()) andarA(f);
+        else if (e.name.endsWith('.js')) ficheros.push(path.relative(R, f));
+      }
+    };
+    andarA(path.join(R, 'src'));
+    for (const rel of ficheros) {
+      const lineas = fs.readFileSync(path.join(R, rel), 'utf8').split('\n');
+      for (const [i, l] of lineas.entries()) {
+        const m = l.match(/^\s*'((?:[^'\\]|\\.)*)',?\s*$/);
+        if (!m) continue;
+        revisadas++;
+        const t = m[1];
+        const sin = t.match(SIN_TILDE);
+        exige(!sin, `${rel}:${i + 1} escribe "${sin ? sin[1] : ''}" sin tilde: el grupo lo lee mal escrito`);
+        for (const re of [GER, INF]) {
+          const g = t.match(re);
+          if (g && !/[áéíóú]/.test(g[0])) {
+            exige(false, `${rel}:${i + 1} escribe "${g[0]}" sin tilde: gerundio o infinitivo con pronombre pegado siempre la lleva`);
+          }
+        }
+      }
+    }
+    exige(revisadas > 5000, `solo he revisado ${revisadas} frases: el barrido ha dejado de funcionar`);
+    if (fallos === antes) console.log(verde(`   ✓ ${revisadas} frases sin faltas de tilde conocidas`));
+  }
+
   // ── 32a. NINGUNA LLAMADA A WHATSAPP SE ESPERA PARA SIEMPRE ───────────────
   //
   // UN SOCKET COLGADO NO LANZA: SE QUEDA. Un try/catch alrededor no atrapa nada,

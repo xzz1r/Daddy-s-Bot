@@ -113,7 +113,7 @@ let MEMBER_PHRASES = [
     'Tercero. El que se conforma con el podio nunca sube de ahí. Y tú llevas conformándote un rato.',
     'Bronce. Un puesto honesto: dice exactamente lo que aportas, ni más ni menos.',
     'Tercer lugar. Podrías apretar y no lo haces. Eso ya no es falta de tiempo, es falta de ganas.',
-    'Tercero. Te salva la constancia, no el volumen. Si aflojas una semana, adios podio.',
+    'Tercero. Te salva la constancia, no el volumen. Si aflojas una semana, adiós podio.',
     'Bronce. Estás donde estás porque el cuarto es todavía más flojo. Duro pero honesto.',
     'Tercer puesto. El grupo te lee, te contesta y luego sigue con lo suyo. Presencia sin peso.',
     'Tercero. Ni protagonista ni extra: secundario con frase. Peor sitio hay.',
