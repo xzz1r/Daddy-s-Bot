@@ -1,6 +1,6 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const { isOwner, isAdmin, isBotJid, isBotAdmin, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid, sameUser, esMiembroActual } = require('../utils/wa');
-const { streamToBuffer, MAX_DOWNLOAD_BYTES, atomicWriteJson, readJsonOrEnoent, pickFresh } = require('../utils/helpers');
+const { streamToBuffer, MAX_DOWNLOAD_BYTES, atomicWriteJson, readJsonOrEnoent, pickFresh, withTimeout } = require('../utils/helpers');
 const path = require('path');
 const logger = require('../utils/logger');
 const config = require('../config');
@@ -914,7 +914,8 @@ async function cmdAutoAceptar(sock, msg, args, groupMeta) {
   // dice: cuantas he aprobado, que no habia ninguna, o por que no he podido.
   let cola = null;
   try {
-    cola = await sock.groupRequestParticipantsList(jid);
+    // Tope: sin el, *!autoaccept* podia quedarse sin contestar para siempre.
+    cola = await withTimeout(sock.groupRequestParticipantsList(jid), 10000);
   } catch (e) {
     return sock.sendMessage(jid, {
       text: '*Autoaccept encendido*, pero no puedo leer las solicitudes.\n' +
@@ -1253,7 +1254,7 @@ async function cmdPresentarse(sock, msg, args, groupMeta) {
   };
 
   let grupos = {};
-  try { grupos = await sock.groupFetchAllParticipating(); }
+  try { grupos = await withTimeout(sock.groupFetchAllParticipating(), 15000); }
   catch (e) {
     // Sin la lista, al menos el grupo desde el que se pidio. Quedarse sin hacer
     // nada por un fallo de red seria peor que hacer la mitad.

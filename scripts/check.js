@@ -4220,6 +4220,53 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     if (fallos === antes) console.log(verde('   ✓ no rebaja lo ya indexado, y sigue indexando lo caducado'));
   }
 
+  // ── 32a. NINGUNA LLAMADA A WHATSAPP SE ESPERA PARA SIEMPRE ───────────────
+  //
+  // UN SOCKET COLGADO NO LANZA: SE QUEDA. Un try/catch alrededor no atrapa nada,
+  // porque no hay error que atrapar — hay una promesa que no se resuelve nunca y
+  // un comando que no contesta jamas. El bot tenia tope en groupMetadata desde
+  // hace tiempo, con el comentario puesto explicando justo esto, y las otras
+  // trece llamadas de red se habian quedado sin el.
+  //
+  // La peor era la de expulsar: sin tope, un *!kick* podia quedarse mudo para
+  // siempre con el admin mirando el chat sin saber si echo a alguien o no.
+  //
+  // Se comprueba sobre el codigo sin comentarios: la explicacion de arriba
+  // nombra las mismas funciones y se cazaria a si misma.
+  {
+    console.log('\n32a. NINGUNA LLAMADA A WHATSAPP SIN TOPE');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    // SE BUSCA LA LLAMADA, NO LA SINTAXIS. Primero escribi `await sock.X(` y la
+    // guarda encontro CERO: al ponerles el tope, la forma pasa a ser
+    // `await withTimeout(sock.X(...))` y el `await` deja de ir pegado. O sea que
+    // la guarda solo reconocia el codigo ROTO y daba por bueno cualquier numero
+    // de llamadas nuevas. Se mira `sock.X(` a secas y se exige el tope al lado.
+    const RED = /\bsock\.(groupMetadata|profilePictureUrl|fetchStatus|onWhatsApp|groupParticipantsUpdate|groupRequestParticipantsList|groupFetchAllParticipating)\s*\(/;
+    const ficheros = ['index.js'];
+    const andarT = (dir) => {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        const f = path.join(dir, e.name);
+        if (e.isDirectory()) andarT(f);
+        else if (e.name.endsWith('.js')) ficheros.push(path.relative(R, f));
+      }
+    };
+    andarT(path.join(R, 'src'));
+    let vistas = 0;
+    for (const rel of ficheros) {
+      for (const [i, l] of soloCodigo(rel).split('\n').entries()) {
+        const m = l.match(RED);
+        if (!m) continue;
+        vistas++;
+        exige(l.includes('withTimeout'),
+          `${rel}:${i + 1} llama a sock.${m[1]}() sin tope: si el socket se queda colgado, ese comando no contesta nunca`);
+      }
+    }
+    exige(vistas >= 10,
+      `solo he encontrado ${vistas} llamadas de red: el barrido ha dejado de funcionar y esta guarda no vale`);
+    if (fallos === antes) console.log(verde(`   ✓ las ${vistas} llamadas de red llevan tope`));
+  }
+
   // ── 32b. EL INTERRUPTOR DE LA ECONOMIA TAPA LO QUE MUEVE SALDO, Y SOLO ESO
   //
   // *!aura off* congela la dinamica. Antes la lista de comandos que tapa se

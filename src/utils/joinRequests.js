@@ -2,7 +2,19 @@
 
 const path = require('path');
 const { bareJid, canonicalJid } = require('./wa');
-const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
+const { atomicWriteJson, readJsonOrEnoent, withTimeout } = require('./helpers');
+
+// NINGUNA LLAMADA A WHATSAPP SE ESPERA PARA SIEMPRE.
+//
+// Un WebSocket colgado no LANZA: se queda. Un try/catch no sirve de nada ahi,
+// porque no hay error que atrapar — hay una promesa que no se resuelve nunca y
+// un comando que no contesta jamas. El bot ya tenia tope en groupMetadata por
+// exactamente este motivo, con el comentario puesto, y el resto de llamadas de
+// red se habian quedado sin el.
+//
+// El sondeo de solicitudes corre en bucle: una lectura colgada aqui no dejaba
+// pasar ninguna de las siguientes.
+const TOPE_COLA = 10000;
 const logger = require('./logger');
 
 // Quien tenía una solicitud de entrada PENDIENTE en cada grupo.
@@ -155,7 +167,7 @@ async function sondear(sock, grupo) {
 
   let lista;
   try {
-    lista = await sock.groupRequestParticipantsList(grupo);
+    lista = await withTimeout(sock.groupRequestParticipantsList(grupo), TOPE_COLA);
   } catch (e) {
     const msg = e?.message || String(e);
     const prohibido = PROHIBIDO.test(msg);
@@ -292,7 +304,7 @@ function jidDeSolicitud(attrs) {
 async function aceptarPendientes(sock, grupo) {
   if (typeof sock?.groupRequestParticipantsUpdate !== 'function') return null;
   let lista;
-  try { lista = await sock.groupRequestParticipantsList(grupo); }
+  try { lista = await withTimeout(sock.groupRequestParticipantsList(grupo), TOPE_COLA); }
   catch { return null; }
   if (!lista || !lista.length) return { aprobados: 0, sinJid: 0 };
 

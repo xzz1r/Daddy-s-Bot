@@ -20,6 +20,9 @@
 // aviso se manda ANTES del ban: la idea es que lo vean. Si el kick falla, el
 // grupo vio el aviso igual — mejor eso que echar a alguien en silencio.
 const { getSender, isMainOwner, isOwner, isBotJid, isBotAdmin, bareJid, canonicalJid, extractText, extractQuotedText } = require('../utils/wa');
+// Tope a onWhatsApp: sin el, el comando mas destructivo del bot podia quedarse
+// colgado sin decir si hizo algo o no.
+const { withTimeout } = require('../utils/helpers');
 const { banAccount } = require('../utils/banlist');
 const { extractNumber } = require('./pfp');
 const { findPhoneNumbersInText } = require('libphonenumber-js');
@@ -295,7 +298,7 @@ async function barrerGrupos(sock, grupos, cuentas, hacerAviso) {
 
 async function resolverCuenta(sock, digitos, groupMeta, protegido = null) {
   try {
-    const res = await sock.onWhatsApp(`${digitos}@s.whatsapp.net`);
+    const res = await withTimeout(sock.onWhatsApp(`${digitos}@s.whatsapp.net`), 8000);
     const hit = Array.isArray(res) ? res.find((r) => r?.exists) : null;
     if (!hit?.jid) return { error: `+${digitos} no tiene cuenta de WhatsApp (o no es visible).` };
     const objetivo = hit.jid;
@@ -351,7 +354,7 @@ async function cmdPurgaNumero(sock, msg, args, groupMeta) {
 
   let grupos;
   try {
-    grupos = await sock.groupFetchAllParticipating();
+    grupos = await withTimeout(sock.groupFetchAllParticipating(), 15000);
   } catch (e) {
     return sock.sendMessage(jid, { text: `No pude listar los grupos: ${e.message}` }, { quoted: msg });
   }
@@ -518,7 +521,7 @@ async function cmdPurge(sock, msg, args, groupMeta) {
 
   let grupos;
   try {
-    grupos = await sock.groupFetchAllParticipating();
+    grupos = await withTimeout(sock.groupFetchAllParticipating(), 15000);
   } catch (e) {
     return sock.sendMessage(jid, { text: `No pude listar los grupos: ${e.message}` }, { quoted: msg });
   }

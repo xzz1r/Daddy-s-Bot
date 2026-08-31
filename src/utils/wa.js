@@ -4,6 +4,15 @@
 const fs = require('fs');
 const path = require('path');
 const config = require('../config');
+const { withTimeout } = require('./helpers');
+
+// NINGUNA CONSULTA A WHATSAPP SE ESPERA PARA SIEMPRE.
+//
+// Un socket colgado no LANZA: se queda. El try/catch de abajo no atrapa nada
+// porque no hay error, hay una promesa que no se resuelve. Ocho segundos es lo
+// mismo que ya usa la consulta de metadata del grupo, por el mismo motivo y con
+// el mismo comentario escrito al lado desde hace tiempo.
+const TOPE_CONSULTA = 8000;
 
 const OWNER_DIGITS = String(config.ownerNumber).replace(/\D/g, '');
 const ALL_OWNER_DIGITS = [
@@ -565,7 +574,9 @@ function extractQuotedText(msg) {
 // se sabe). Nunca lanza: quien llama solo tiene que mirar el resultado.
 async function fetchAbout(sock, jid) {
   try {
-    const list = await sock.fetchStatus(jid);
+    // Tope: fetchStatus se queda colgado con el socket a medias y !roast se
+    // quedaba esperando una bio que no iba a llegar nunca.
+    const list = await withTimeout(sock.fetchStatus(jid), TOPE_CONSULTA);
     const entry = Array.isArray(list) ? list[0] : list;
     // Segun la version, el nodo llega envuelto en .status o plano.
     const st = entry?.status && typeof entry.status === 'object' ? entry.status : entry;
@@ -649,7 +660,7 @@ async function intentarPfp(sock, jid, tipo, intentos) {
   let ultimoError = null;
   for (let i = 0; i <= intentos; i++) {
     try {
-      return await sock.profilePictureUrl(jid, tipo);
+      return await withTimeout(sock.profilePictureUrl(jid, tipo), TOPE_CONSULTA);
     } catch (err) {
       if (esFalloDeSinFoto(err)) return null;
       // Restringida: NO se reintenta. Reintentar un permiso denegado es gastar

@@ -57,6 +57,11 @@ const { businessEvidence } = require('./utils/businessCheck');
 const { aplicarParticipantes, aplicarAUno, formasDe } = require('./utils/participantes');
 const { getMemberFacts } = require('./utils/nickStore');
 const { ensureTemp, barrerHuerfanos, withTimeout } = require('./utils/helpers');
+
+// Tope comun para las consultas de red que no lo tenian. Un socket colgado no
+// LANZA: se queda, y el try/catch de al lado no atrapa nada porque no hay error
+// que atrapar. Es el mismo numero que ya usaba la consulta de metadata.
+const TOPE_RED = 8000;
 const { VF_STATIC } = require('./utils/sticker');
 const logger = require('./utils/logger');
 
@@ -190,7 +195,7 @@ async function listaDeGrupos() {
   if (ahora < gruposEsperaHasta) return gruposConocidos;
 
   try {
-    gruposMeta = await sock.groupFetchAllParticipating();
+    gruposMeta = await withTimeout(sock.groupFetchAllParticipating(), TOPE_RED);
     gruposConocidos = Object.keys(gruposMeta || {});
     gruposTs = ahora;
     gruposFallos = 0;
@@ -1052,7 +1057,7 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
       await recordFacts(kickId, { biz: true }).catch(() => {});
       if (phoneJid && phoneJid !== kickId) await recordFacts(phoneJid, { biz: true }).catch(() => {});
 
-      const meta = await sock.groupMetadata(groupJid).catch(() => null);
+      const meta = await withTimeout(sock.groupMetadata(groupJid), TOPE_RED).catch(() => null);
       if (!await aplicarAUno(sock, groupJid, kickId, 'remove', meta)) {
         return logger.warn(`Anti-empresa: kick rechazado para ${kickId} en ${groupJid}`);
       }
@@ -1708,12 +1713,33 @@ async function gracefulShutdown(code = 0) {
 process.on('SIGINT', () => gracefulShutdown(0));
 process.on('SIGTERM', () => gracefulShutdown(0));
 
+// UNA EXCEPCION NO CAPTURADA TIENE QUE MATAR EL PROCESO, NO SOLO ANOTARSE.
+//
+// Esto escribia una linea y seguia corriendo. Node se para por defecto en este
+// caso justamente porque despues de una excepcion que nadie atrapo NO SE SABE
+// EN QUE ESTADO QUEDO NADA: la pila se corto donde se corto, y si fue en mitad
+// de una mutacion de un almacen, lo que queda en memoria es medio cambio. El
+// bot seguia adelante con eso y lo escribia a disco en el siguiente guardado.
+//
+// En un bot cuya regla es que en los conteos no puede haber errores, eso es lo
+// contrario de robusto: parece que aguanta y lo que hace es propagar el daño.
+// Un proceso muerto lo levanta pm2 en dos segundos y arranca con lo ultimo que
+// se guardo bien; un proceso vivo con el estado roto no lo arregla nadie.
+//
+// Se vuelca antes de salir, con el mismo tope que el apagado normal, y se sale
+// con codigo 1 para que pm2 lo cuente como caida y no como parada limpia.
 process.on('uncaughtException', (err) => {
-  logger.error(`Excepción no capturada: ${err.message}`);
+  logger.error(`Excepción no capturada: ${err?.stack || err?.message || err}`);
+  logger.error('El estado en memoria ya no es de fiar: guardo lo que se pueda y salgo (pm2 reinicia).');
+  gracefulShutdown(1);
 });
 
+// Una promesa rechazada sin catch SI se puede anotar y seguir: el fallo esta
+// contenido en esa promesa y el resto del proceso no ha perdido el hilo. Node
+// tambien la mata por defecto en las versiones nuevas, y ahi si conviene
+// desviarse: una consulta de red que rechaza no puede tirar el bot.
 process.on('unhandledRejection', (reason) => {
-  logger.error(`Promesa rechazada: ${reason}`);
+  logger.error(`Promesa rechazada: ${reason?.stack || reason}`);
 });
 
 // listaDeGrupos y el inyector de socket se exportan para poder probar el freno

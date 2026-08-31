@@ -5,6 +5,9 @@ const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { computeHash } = require('../utils/phash');
 const { recordAndMatch } = require('../utils/pfpStore');
 const pfpCache = require('../utils/pfpCache');
+// Tope a onWhatsApp: un WebSocket colgado no lanza, se queda, y sin tope *!pfp*
+// se quedaba sin contestar para siempre.
+const { withTimeout } = require('../utils/helpers');
 
 function fechaCorta(ts) {
   if (!ts) return '';
@@ -68,7 +71,7 @@ async function resolveTarget(sock, msg, args) {
 
   // onWhatsApp confirma que el número tiene cuenta y devuelve su JID canónico.
   try {
-    const res = await sock.onWhatsApp(`${digits}@s.whatsapp.net`);
+    const res = await withTimeout(sock.onWhatsApp(`${digits}@s.whatsapp.net`), 8000);
     const hit = Array.isArray(res) ? res.find(r => r?.exists) : null;
     if (hit?.jid) return { jid: hit.jid };
     return { error: `El número +${digits} no tiene cuenta de WhatsApp (o no es visible).` };

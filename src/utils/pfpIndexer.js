@@ -4,6 +4,7 @@ const pfpStore = require('./pfpStore');
 const { recordAndMatch } = pfpStore;
 const pfpCache = require('./pfpCache');
 const { canonicalJid, fetchPfpUrl } = require('./wa');
+const { withTimeout } = require('./helpers');
 const logger = require('./logger');
 
 // Indexado AUTOMÁTICO de fotos de perfil. El historial de huellas se construye
@@ -171,7 +172,7 @@ async function sweepAllGroups(sock, yaPedidos = null) {
 
   let groups = yaPedidos;
   if (!groups) {
-    try { groups = await sock.groupFetchAllParticipating(); }
+    try { groups = await withTimeout(sock.groupFetchAllParticipating(), 15000); }
     catch (e) { logger.warn(`pfpIndexer: no pude listar grupos: ${e.message}`); return; }
   }
 

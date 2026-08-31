@@ -20,6 +20,20 @@
 // LA REGLA: lo que no se puede confirmar NO se da por hecho. Es la misma que ya
 // gobierna el antiempresa con sus tres estados, aplicada al otro lado.
 const { bareJid, canonicalJid, sameUser } = require('./wa');
+const { withTimeout } = require('./helpers');
+
+// NINGUNA LLAMADA A WHATSAPP SE ESPERA PARA SIEMPRE.
+//
+// Un WebSocket colgado no LANZA: se queda. Un try/catch no sirve de nada ahi,
+// porque no hay error que atrapar — hay una promesa que no se resuelve nunca y
+// un comando que no contesta jamas. El bot ya tenia tope en groupMetadata por
+// exactamente este motivo, con el comentario puesto, y el resto de llamadas de
+// red se habian quedado sin el.
+//
+// Aqui pesa mas que en ningun otro sitio: esta es la funcion que expulsa,
+// asciende y degrada. Sin tope, un *!kick* podia quedarse sin contestar para
+// siempre, con el admin mirando el chat sin saber si echo a alguien o no.
+const TOPE_PARTICIPANTES = 15000;
 
 // Todas las formas conocidas de una persona. Se saca de la metadata porque el
 // mapa LID↔telefono esta frio despues de cada reinicio, y ahi es justo cuando
@@ -51,7 +65,7 @@ async function aplicarParticipantes(sock, groupJid, ids, accion, groupMeta = nul
 
   let res;
   try {
-    res = await sock.groupParticipantsUpdate(groupJid, pedidos, accion);
+    res = await withTimeout(sock.groupParticipantsUpdate(groupJid, pedidos, accion), TOPE_PARTICIPANTES);
   } catch (err) {
     // La llamada entera fallo: NADIE cambio. Antes varios sitios se comian la
     // excepcion y seguian como si hubiera ido bien.
