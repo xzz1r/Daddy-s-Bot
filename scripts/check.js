@@ -4353,6 +4353,38 @@ console.log(JSON.stringify({
       }
     }
     exige(revisadas > 5000, `solo he revisado ${revisadas} frases: el barrido ha dejado de funcionar`);
+
+    // NINGUNA FRASE PUEDE LLEVAR BASURA DE UNA SUSTITUCION MAL HECHA.
+    //
+    // ESTO ME PASO A MI, ARREGLANDO LAS TILDES. El regex que ponia la tilde a
+    // los gerundios calculaba la vocal por posicion, y en los que acaban en
+    // -ando esa posicion es una 'n': TILDE['n'] es undefined, asi que
+    // "meandose" salio como "meaundefineddose". Nueve frases quedaron con la
+    // palabra "undefined" incrustada, listas para salir al grupo.
+    //
+    // Y no lo caza nada de lo que ya habia: no es un placeholder suelto, no es
+    // una falta de tilde y el fichero compila perfectamente. Solo se veia
+    // leyendo el diff frase por frase, que es lo que hay que hacer y lo que no
+    // siempre se hace. La verificacion que yo mismo escribi tampoco lo vio,
+    // porque listaba las palabras que SI habian recibido tilde y las rotas no
+    // estaban entre ellas.
+    {
+      // SIN LIMITES DE PALABRA, y esto la guarda tambien se lo hizo a si misma.
+      // La escribi con \b y no cazaba nada: en "cagaundefineddola" la basura va
+      // INCRUSTADA dentro de la palabra, entre letras, que es exactamente como
+      // aparece cuando una sustitucion falla a mitad. Con \b solo cazaria un
+      // "undefined" suelto, que es el caso que no pasa nunca.
+      const BASURA = /(undefined|NaN|\[object Object\])/;
+      for (const rel of ficheros) {
+        const lineas = fs.readFileSync(path.join(R, rel), 'utf8').split('\n');
+        for (const [i, l] of lineas.entries()) {
+          const m = l.match(/^\s*'((?:[^'\\]|\\.)*)',?\s*$/);
+          if (!m) continue;
+          const b = m[1].match(BASURA);
+          exige(!b, `${rel}:${i + 1} lleva "${b ? b[1] : ''}" dentro de la frase: es basura de una sustitucion mal hecha y sale tal cual al grupo`);
+        }
+      }
+    }
     if (fallos === antes) console.log(verde(`   ✓ ${revisadas} frases sin faltas de tilde conocidas`));
   }
 

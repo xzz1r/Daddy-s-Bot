@@ -169,7 +169,7 @@ const AURA_LINES = [
   'Aquí se paga por mover el culo y se cobra por no rajarse. Lo demas son excusas de mierda de gente que no da la cara.',
   'El aura no miente, cabrón. Es el espejo del grupo y a la mayoria de hijos de puta no les gusta lo que ven.',
   'Dos formas de subir: escribiendo o tirando dados. Pero solo una es gratis. La otra te puede dejar en la puta ruina.',
-  'La economia del grupo no se entiende leyendo, se entiende sudaundefineddola. Escribe o quitate de en medio, coño.',
+  'La economia del grupo no se entiende leyendo, se entiende sudándola. Escribe o quitate de en medio, coño.',
   'El que escribe mas gana mas y el que no escribe se hunde. Sin excepciones, sin consuelo y sin un puto violin de fondo.',
 ];
 
