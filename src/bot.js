@@ -858,12 +858,44 @@ async function connectToWhatsApp() {
         })();
       }
 
-      // Barrido inicial del historial de huellas: indexa en segundo plano las
-      // fotos de los miembros de todos los grupos. Escalonado por su propia cola,
-      // no bloquea el arranque. A partir de aquí se mantiene solo con cada mensaje.
-      mapaDeGrupos()
-        .then((mapa) => sweepAllGroups(sock, mapa))
-        .catch(e => logger.warn(`pfpIndexer: barrido falló: ${e.message}`));
+      // BARRIDO INICIAL DE FOTOS: NO EN LA PRIMERA MEDIA HORA, Y NO CON LA
+      // SESION RECIEN VINCULADA.
+      //
+      // Lo que hacia: en cuanto conecta, encolar la foto de perfil de CADA
+      // miembro de CADA grupo y descargarlas una a una. En un grupo de 200 son
+      // 200 consultas de perfil mas 200 descargas de imagen seguidas, y empezaba
+      // a los pocos segundos de abrir la sesion.
+      //
+      // Visto desde fuera eso es exactamente un raspador de fotos de perfil
+      // estrenando cuenta, y encaja con el patron que se estaba viendo: la
+      // cuenta entrando en revision a las pocas horas de usarla.
+      //
+      // No se quita la funcion, se quita la PRISA. Se espera media hora de
+      // conexion estable antes de empezar, y solo si la sesion no es de hoy:
+      // una recien vinculada es justo la que no puede permitirse ese patron.
+      // El indexado normal —una foto por persona que escribe, con tres dias de
+      // margen— sigue igual y es el que de verdad mantiene !fk al dia; el
+      // barrido solo rellena a los que no han escrito todavia.
+      //
+      // Se puede forzar con BARRIDO_INICIAL=ya en .env si hace falta.
+      {
+        const forzar = String(process.env.BARRIDO_INICIAL || '').toLowerCase() === 'ya';
+        const edadSesion = (() => {
+          try { return Date.now() - fs.statSync(path.join(AUTH_DIR, 'creds.json')).mtimeMs; }
+          catch { return 0; }
+        })();
+        const sesionNueva = edadSesion < 24 * 3600 * 1000;
+        if (forzar || !sesionNueva) {
+          const arranque = setTimeout(() => {
+            mapaDeGrupos()
+              .then((mapa) => sweepAllGroups(sock, mapa))
+              .catch(e => logger.warn(`pfpIndexer: barrido falló: ${e.message}`));
+          }, forzar ? 0 : 30 * 60 * 1000);
+          arranque.unref?.();
+        } else {
+          logger.info('pfpIndexer: barrido inicial omitido, la sesion es de hoy. Se indexa segun escriba la gente.');
+        }
+      }
 
       // Lista de solicitudes de entrada pendientes. Es lo único que permite
       // saber, cuando un admin mete a alguien, si lo estaba APROBANDO o lo

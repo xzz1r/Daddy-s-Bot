@@ -4230,6 +4230,47 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     if (fallos === antes) console.log(verde('   ✓ no rebaja lo ya indexado, y sigue indexando lo caducado'));
   }
 
+  // ── 30a. LA CUENTA RECIEN VINCULADA NO SE PONE A RASPAR FOTOS ────────────
+  //
+  // El barrido inicial encolaba la foto de perfil de CADA miembro de CADA grupo
+  // a los pocos segundos de abrir la sesion, y las descargaba una a una. En un
+  // grupo de 200 son 200 consultas de perfil mas 200 descargas de imagen
+  // seguidas, con la sesion recien estrenada.
+  //
+  // Visto desde fuera eso es un raspador de fotos de perfil estrenando cuenta,
+  // y encajaba con lo que se estaba viendo: la cuenta entrando en revision a
+  // las pocas horas de usarla.
+  //
+  // No se comprueba el retardo exacto, se comprueba lo que importa: que exista
+  // una espera y que una sesion del dia no dispare el barrido.
+  {
+    console.log('\n30a. LA CUENTA RECIEN VINCULADA NO RASPA FOTOS');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const bot = soloCodigo('src/bot.js');
+    const i = bot.indexOf('sweepAllGroups(sock, mapa)');
+    exige(i > 0, 'ha desaparecido el barrido inicial de fotos');
+    const bloque = bot.slice(Math.max(0, i - 1200), i + 200);
+    exige(/sesionNueva|edadSesion/.test(bloque),
+      'el barrido inicial ya no mira la edad de la sesion: una cuenta recien vinculada se pone a pedir la foto de todo el grupo');
+    exige(/setTimeout/.test(bloque),
+      'el barrido inicial vuelve a lanzarse nada mas conectar, sin esperar');
+    // Y el indexado normal tiene que seguir con su pausa entre consultas.
+    const idx = soloCodigo('src/utils/pfpIndexer.js');
+    const pausa = idx.match(/PAUSA_MS = (\d+)/);
+    exige(pausa && Number(pausa[1]) >= 1000,
+      `el indexador baja fotos cada ${pausa ? pausa[1] : '?'} ms: eso es una rafaga contra el mismo endpoint`);
+    // El valor es una EXPRESION (`3 * 86400000`), no un numero suelto: leerlo
+    // con \d+ capturaba el 3 y la guarda fallaba sobre codigo correcto. Se
+    // evalua la expresion, que aqui es aritmetica pura del propio fichero.
+    const ttl = idx.match(/INDEX_TTL_MS = ([\d*\s+]+);/);
+    // eslint-disable-next-line no-eval
+    const ttlMs = ttl ? Number(eval(ttl[1])) : 0;
+    exige(ttlMs >= 86400000,
+      `el indexador re-descarga la misma foto cada ${ttlMs} ms: menos de un dia es volver a pedir lo que ya tiene`);
+    if (fallos === antes) console.log(verde('   ✓ el barrido espera, respeta la sesion nueva, y el indexado va pausado'));
+  }
+
   // ── 30b. PM2 TIENE QUE ESPERAR A QUE EL BOT TERMINE DE GUARDAR ───────────
   //
   // ESTO HACIA INUTIL EL APAGADO ORDENADO Y NO SE VEIA. Al recibir SIGINT el bot
