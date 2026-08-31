@@ -3627,7 +3627,17 @@ async function capaStores() {
           for (const [i, linea] of codigo.entries()) {
             // Solo dentro de comillas: un numero suelto en el codigo es una
             // constante (milisegundos, precios), no un telefono.
-            for (const m of linea.matchAll(/['"`]\+?(\d[\d\s().-]{9,24})['"`@]/g)) {
+            // NO SOLO PEGADOS A UNA COMILLA, y por ahi se colo uno.
+          //
+          // La primera version exigia que el numero fuera justo detras de una
+          // comilla, y en !adm el telefono iba EN MITAD de una plantilla
+          // ("wa.me/54911... — +54 9 11 ..."). La guarda paso en verde con un
+          // numero real que el bot mandaba al grupo entero con mencion a todos.
+          //
+          // Ahora se mira cualquier tira de digitos suelta en una linea de
+          // codigo. Se excluyen los que van pegados a una letra o a un punto
+          // —versiones, milisegundos, rutas— y los marcadores de ejemplo.
+          for (const m of linea.matchAll(/(?<![\w.])\+?(\d[\d\s().-]{9,24})(?![\w.])/g)) {
               const d = m[1].replace(/\D/g, '');
               if (d.length < 10 || d.length > 15) continue;
               if (esRelleno(d)) continue;

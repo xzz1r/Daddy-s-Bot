@@ -245,8 +245,20 @@ async function cmdAdm(sock, msg, args, groupMeta) {
     `Se abren plazas de administración en el grupo.\n\n` +
     `No se busca a cualquiera: hace falta *criterio*, cabeza fría y saber cuándo ` +
     `no hacer nada. El que quiera el cargo por el cargo, que ni escriba.\n\n` +
-    `*Para más información:*\n` +
-    `wa.me/5491168789916 — +54 9 11 6878-9916\n\n` +
+    // EL NUMERO SALE DE .env, NO DEL CODIGO.
+    //
+    // Aqui habia un telefono real escrito a mano, y este comando lo manda al
+    // GRUPO ENTERO con una mencion silenciosa a todos los miembros. O sea que
+    // el numero llegaba a todo el mundo como notificacion personal, y ademas
+    // quedaba escrito en un repositorio publico.
+    //
+    // Es el mismo fallo que ya se saco de config.js, y se colo por el mismo
+    // sitio: la guarda buscaba numeros pegados a una comilla y este iba en
+    // mitad de una plantilla. Sin CONTACTO puesto, el bloque no sale.
+    (config.contacto
+      ? `*Para más información:*\n` +
+        `wa.me/${config.contacto}\n\n`
+      : '') +
     `_Las plazas se dan a dedo. Que se te vea el criterio antes de pedirla._`;
 
   return sock.sendMessage(jid, { text, mentions: participants.map((p) => p.id) });
