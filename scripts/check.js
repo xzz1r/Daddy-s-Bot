@@ -4220,6 +4220,32 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     if (fallos === antes) console.log(verde('   ✓ no rebaja lo ya indexado, y sigue indexando lo caducado'));
   }
 
+  // ── 30b. PM2 TIENE QUE ESPERAR A QUE EL BOT TERMINE DE GUARDAR ───────────
+  //
+  // ESTO HACIA INUTIL EL APAGADO ORDENADO Y NO SE VEIA. Al recibir SIGINT el bot
+  // vuelca todos los almacenes pendientes y se da tres segundos para hacerlo.
+  // Pero pm2, si nadie le dice otra cosa, manda SIGKILL a los 1600 ms: el
+  // presupuesto del bot era INALCANZABLE y en cada `pm2 restart` —o sea en cada
+  // despliegue— el proceso moria a mitad del volcado.
+  //
+  // Se comprueba la RELACION entre los dos numeros, no los numeros: subir el
+  // volcado a cinco segundos esta bien mientras pm2 espere mas.
+  {
+    console.log('\n30b. PM2 ESPERA A QUE EL BOT GUARDE');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const eco = require(path.join(R, 'ecosystem.config.js')).apps?.[0] || {};
+    const botSrc = soloCodigo('src/bot.js');
+    const m = botSrc.match(/Promise\.race\(\[flushes, new Promise\(r => setTimeout\(r, (\d+)\)\)\]\)/);
+    exige(!!m, 'no encuentro el presupuesto de volcado en gracefulShutdown: esta guarda no puede comprobar nada');
+    const volcado = m ? Number(m[1]) : 0;
+    exige(Number.isFinite(eco.kill_timeout),
+      'ecosystem.config.js no fija kill_timeout: pm2 usa 1600 ms por defecto y mata al bot a mitad del volcado en cada despliegue');
+    exige(Number(eco.kill_timeout) > volcado,
+      `pm2 mata a los ${eco.kill_timeout} ms y el bot se da ${volcado} ms para guardar: se pierde lo que no le de tiempo a escribir`);
+    if (fallos === antes) console.log(verde(`   ✓ el bot vuelca en ${volcado} ms y pm2 le da ${eco.kill_timeout}`));
+  }
+
   // ── 31a. UN @lid AJENO NO PUEDE ACABAR SIENDO EL DUEÑO ───────────────────
   //
   // AGUJERO DE PERMISOS, REPRODUCIDO. matchOwnerIndex metia en la comparacion

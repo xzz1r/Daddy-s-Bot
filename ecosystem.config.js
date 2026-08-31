@@ -57,6 +57,24 @@ module.exports = {
     max_restarts: 10,
     min_uptime: '60s',
 
+    // ─── CUANTO SE LE DEJA AL BOT PARA GUARDAR AL MORIR ─────────────────────
+    //
+    // ESTO FALTABA Y HACIA INUTIL EL APAGADO ORDENADO. Al recibir SIGINT el bot
+    // vuelca todos los almacenes pendientes —conteos, aura, casino, racha,
+    // nombres...— y se da tres segundos para hacerlo antes de salir.
+    //
+    // Pero pm2, si no se le dice otra cosa, manda SIGKILL a los 1600 ms. O sea
+    // que el presupuesto de tres segundos era INALCANZABLE: en cada `pm2
+    // restart` —y hay uno en cada despliegue— el proceso moria a mitad del
+    // volcado y se perdia lo que no hubiera dado tiempo a escribir. En un bot
+    // cuya regla es que en los conteos no puede haber errores, eso es
+    // exactamente el error, repetido en cada actualizacion.
+    //
+    // Ocho segundos deja margen de sobra sobre los tres que se pide el bot, y
+    // no retrasa nada: el proceso sale solo en cuanto termina de volcar, sin
+    // esperar a agotar el plazo.
+    kill_timeout: 8000,
+
     // No vigilar ficheros: `data/` cambia constantemente (aura, contadores,
     // cachés) y con watch activado el bot se reiniciaría solo cada pocos
     // segundos, perdiendo la sesión cada vez.
