@@ -274,8 +274,26 @@ function matchOwnerIndex(jid, groupMeta, owners) {
   const cachedPhone = lidToPhone.get(bare);
   if (cachedPhone) candidates.add(cachedPhone);
 
+  // LOS DIGITOS DE UN @lid NO SE COMPARAN CONTRA UN TELEFONO.
+  //
+  // Aqui entraba TODO candidato, el @lid crudo incluido, y sus digitos pasaban
+  // por phoneMatch, que hace coincidencia POR SUFIJO a partir de diez digitos.
+  // O sea que un @lid cuyos ultimos digitos coincidieran con el numero del
+  // owner lo convertia en owner.
+  //
+  // La probabilidad es minima; la contradiccion no. isBotJid, en este mismo
+  // fichero, dice literalmente que LID y telefono viven en espacios distintos y
+  // que cruzar sus digitos arriesga un falso positivo, y por eso solo compara
+  // cuando los dos lados son telefono. Dos funciones del mismo fichero no
+  // pueden seguir criterios opuestos sobre la misma pregunta.
+  //
+  // Un @lid sigue sirviendo para ENCONTRAR a la persona —por el indice de
+  // participantes y por el mapa aprendido, que es como se resuelve de verdad—,
+  // pero no para compararse contra un numero de telefono.
   for (const c of candidates) {
-    const num = String(c).replace(/@[^@]+$/, '').replace(/\D/g, '');
+    const cs = String(c);
+    if (cs.endsWith('@lid')) continue;
+    const num = cs.replace(/@[^@]+$/, '').replace(/\D/g, '');
     if (!num) continue;
     const i = owners.findIndex(o => phoneMatch(num, o));
     if (i >= 0) return i;

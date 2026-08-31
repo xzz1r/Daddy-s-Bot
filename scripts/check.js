@@ -4220,6 +4220,61 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     if (fallos === antes) console.log(verde('   ✓ no rebaja lo ya indexado, y sigue indexando lo caducado'));
   }
 
+  // ── 31a. UN @lid AJENO NO PUEDE ACABAR SIENDO EL DUEÑO ───────────────────
+  //
+  // AGUJERO DE PERMISOS, REPRODUCIDO. matchOwnerIndex metia en la comparacion
+  // TODOS los candidatos, el @lid crudo incluido, y pasaba sus digitos por
+  // phoneMatch — que hace coincidencia POR SUFIJO a partir de diez digitos. Un
+  // @lid cualquiera que acabe en los digitos del owner quedaba reconocido como
+  // owner: exencion de cobros, de conteo, y acceso a !p, !purge y al resto.
+  //
+  // Y era una contradiccion dentro del mismo fichero: isBotJid dice literalmente
+  // que LID y telefono viven en espacios distintos y que cruzar sus digitos
+  // arriesga un falso positivo, y por eso solo compara cuando los dos lados son
+  // telefono. Dos funciones vecinas con criterios opuestos sobre lo mismo.
+  //
+  // Se prueba EJECUTANDO, y las dos direcciones importan igual: cerrar el
+  // agujero no puede costar el reconocimiento del dueño, que es de lo que
+  // cuelga toda la maquinaria de exencion.
+  {
+    console.log('\n31a. UN @lid AJENO NO PUEDE SER EL DUEÑO');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const dirO = fs.mkdtempSync(path.join(os.tmpdir(), 'owner-'));
+    try {
+      const guion = path.join(dirO, 'o.js');
+      fs.writeFileSync(guion, `
+const fs=require('fs'),os=require('os'),path=require('path');
+const ROOT=fs.mkdtempSync(path.join(os.tmpdir(),'ow-'));
+fs.cpSync(${JSON.stringify(path.join(R, 'src'))},path.join(ROOT,'src'),{recursive:true});
+fs.mkdirSync(path.join(ROOT,'data'));
+try{fs.symlinkSync(${JSON.stringify(path.join(R, 'node_modules'))},path.join(ROOT,'node_modules'),'dir');}catch{}
+process.env.OWNER_NUMBER='34600111222';
+const {isMainOwner,isOwner}=require(path.join(ROOT,'src/utils/wa'));
+const TEL='34600111222@s.whatsapp.net', LID='919191919191@lid';
+const AJENO='999934600111222@lid';   // acaba EXACTAMENTE en los digitos del owner
+const metaLid={participants:[{id:LID,phoneNumber:TEL}]};
+console.log(JSON.stringify({
+  porTelefono: isMainOwner(TEL,false,null),
+  porLidConMeta: isMainOwner(LID,false,metaLid),
+  porLidAprendido: isMainOwner(LID,false,null),
+  ajenoEsOwner: isMainOwner(AJENO,false,null) || isOwner(AJENO,false,null),
+}));
+`);
+      const r = JSON.parse(execSync(`node ${guion}`, { encoding: 'utf8', timeout: 60000 }).trim().split('\n').pop());
+      exige(r.porTelefono, 'el dueño ha dejado de reconocerse por su telefono');
+      exige(r.porLidConMeta, 'el dueño ha dejado de reconocerse por su @lid con la metadata del grupo delante');
+      exige(r.porLidAprendido, 'el dueño ha dejado de reconocerse por su @lid ya aprendido: se le cobraria y se le contaria');
+      exige(!r.ajenoEsOwner,
+        'un @lid ajeno que acaba en los digitos del dueño se reconoce como dueño: exencion de cobros y acceso a !p y !purge');
+    } catch (e) {
+      exige(false, `no pude probar el reconocimiento del dueño: ${String(e.message).split('\n')[0]}`);
+    } finally {
+      fs.rmSync(dirO, { recursive: true, force: true });
+    }
+    if (fallos === antes) console.log(verde('   ✓ el dueño se reconoce por sus tres vias y ningun @lid ajeno lo suplanta'));
+  }
+
   // ── 31b. LAS TILDES DE LAS FRASES QUE VE EL GRUPO ────────────────────────
   //
   // 307 frases decian "traicion", "razon", "cabron", "aqui", "asi" o "dia". No

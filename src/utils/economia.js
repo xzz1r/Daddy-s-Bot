@@ -602,7 +602,42 @@ const PRIMERA_DEL_DIA = 59;
 // en un huso que no pinta nada aqui. Tres relojes distintos para un bot que
 // dice "hoy" en tres sitios era una explicacion pendiente cada vez que alguien
 // preguntaba por que su racha cambio antes que su contador.
-const DIA = { zona: 'America/New_York', horaCorte: 0 };
+// EL HUSO SE PUEDE CAMBIAR SIN TOCAR CODIGO, Y CONVIENE MIRARLO.
+//
+// 'America/New_York' estaba clavado aqui y de el cuelgan la racha, el objetivo
+// del dia y los bonos por actividad. Para un grupo que habla castellano eso
+// tiene dos consecuencias que nadie eligio:
+//
+//   · En España el dia nuevo empieza a las 6 de la mañana, asi que lo que se
+//     escribe de madrugada cuenta para el dia ANTERIOR.
+//   · Y como Nueva York cambia de horario de verano en fechas de EE. UU.
+//     —distintas de las europeas, e inexistentes en Colombia o Mexico—, la hora
+//     local del corte SE MUEVE UNA HORA DOS VECES AL AÑO. En algo que decide
+//     rachas y paga bonos, eso es un error de conteo que aparece y desaparece
+//     solo, y que ademas no se puede explicar a nadie.
+//
+// Se deja el valor de antes por defecto A PROPOSITO: cambiarlo de golpe
+// moveria el corte para todo el mundo y romperia rachas en curso, y esa es una
+// decision del dueño, no de un despliegue. Para cambiarlo, en .env:
+//
+//   DIA_ZONA=Europe/Madrid     (o America/Bogota, America/Mexico_City...)
+//   DIA_HORA_CORTE=0           (0 = medianoche; 5 = el dia empieza a las 5)
+//
+// Si el huso escrito no existe, se avisa y se sigue con el de antes en vez de
+// reventar: un .env mal escrito no puede tumbar el bot al arrancar.
+const DIA = (() => {
+  const zona = (process.env.DIA_ZONA || 'America/New_York').trim();
+  const hora = Number.parseInt(process.env.DIA_HORA_CORTE ?? '0', 10);
+  const horaCorte = Number.isInteger(hora) && hora >= 0 && hora <= 23 ? hora : 0;
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: zona });
+  } catch {
+    // eslint-disable-next-line no-console
+    console.warn(`[economia] DIA_ZONA="${zona}" no es un huso valido; sigo con America/New_York.`);
+    return { zona: 'America/New_York', horaCorte };
+  }
+  return { zona, horaCorte };
+})();
 // Nombre viejo, mismo objeto: lo lee casinoStore y no vale la pena romperlo.
 const CONTADOR = DIA;
 

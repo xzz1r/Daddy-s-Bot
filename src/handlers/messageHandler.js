@@ -108,7 +108,7 @@ const NEEDS_META = new Set([
   'sacar','echar','silenciar','callar',
   // !r menciona a TODO el grupo para que vean el aviso; la orden es solo para
   // los nuevos. Sin metadata no hay lista y el ping sale vacio.
-  'r','presentarse','presentacion','presentación',
+  'r','presentarse','presentacion',
   'banear','ban','fkban','desbanear','unban','fkunban',
   // !p / !purge comprueban isMainOwner y sin metadata no resolverian su LID:
   // el comando mas destructivo del bot se le quedaria mudo justo al unico que
@@ -127,7 +127,7 @@ const NEEDS_META = new Set([
   's','sticker','stk',   // cmdSticker SI recibe groupMeta
   // Los que cobran aura SI necesitan groupMeta: auraCobro exime al owner tier y
   // sin la metadata no puede resolver quien lo es, asi que al owner le cobraria.
-  'play','playsong','playaudio','musica','música','cancion','canción','song',
+  'play','playsong','playaudio','musica','cancion','song',
   'g','ai','pfp','foto',
   // piropo y wingman COBRAN (30, como !rizz) y no estaban aqui, asi que cobraban
   // sin metadata: sin ella isOwner no puede reconocer al owner tier en un grupo
@@ -150,7 +150,7 @@ const NEEDS_META = new Set([
   'crack','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','l','ganador',
   'puta','guarra','fiel','infiel','linda','fea','incel',
   'rizz',
-  'aura','guia','guía','aurahelp','guiaaura',   // la guia entra por cmdAura, que exime al owner de pagar
+  'aura','guia','aurahelp','guiaaura',   // la guia entra por cmdAura, que exime al owner de pagar
   'resetaura','inactivos','inactivo','fantasma','fantasmas','mog','moggear','roast','flamear',
   'duel','duelo','1v1',
   'robo','robar',
@@ -1840,6 +1840,30 @@ async function handleMessage(sock, msg) {
     if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) return;
   }
 
+  // Dinamica de aura en pausa (*!aura off*): los comandos que MUEVEN aura no se
+  // ejecutan. La comprobacion vive aqui, en un solo sitio y sobre una lista, en
+  // vez de repetida dentro de cada comando: asi un comando nuevo de la familia
+  // no puede quedarse sin interruptor por olvido.
+  //
+  // Y VA ANTES DEL COBRO, NO DESPUES. Estaba detras, y ese orden es el mismo
+  // fallo que ya costo dos veces en este fichero: a un miembro se le cobraban
+  // 25 y despues *!count* le contestaba "solo los admins", y a otro se le
+  // cobraba *!vs* para salir por una puerta silenciosa. En los dos casos el
+  // dinero se iba y el comando no se ejecutaba, porque el catch de abajo solo
+  // devuelve el aura si salta una EXCEPCION, y un return no lo es.
+  //
+  // Hoy ningun comando esta a la vez en COBRO_CENTRAL y en CMDS_AURA, asi que
+  // no se notaba. Pero la estructura era la que falla, y el dia que alguien
+  // meta uno en las dos tablas se cobraria por un comando congelado. Comprobar
+  // antes no cuesta nada: es una consulta en memoria.
+  //
+  // !aura no esta en la lista porque es mixto — su tirada si se para, pero
+  // consultar un saldo o el ranking no, y eso se decide dentro del comando.
+  if (jid.endsWith('@g.us') && CMDS_AURA.has(command) && auraApagada(jid)) {
+    await avisarApagada(sock, jid, msg);
+    return;
+  }
+
   // Cobro central. Va antes del switch para que un comando sin saldo no llegue
   // ni a ejecutarse. El owner tier no paga (lo resuelve cobrarAura).
   const conceptoCobro = COBRO_CENTRAL[command];
@@ -1870,18 +1894,6 @@ async function handleMessage(sock, msg) {
       return;
     }
     cobradoAqui = pago.pagado || 0;
-  }
-
-  // Dinamica de aura en pausa (*!aura off*): los comandos que MUEVEN aura no se
-  // ejecutan. La comprobacion vive aqui, en un solo sitio y sobre una lista, en
-  // vez de repetida dentro de cada comando: asi un comando nuevo de la familia
-  // no puede quedarse sin interruptor por olvido.
-  //
-  // !aura no esta en la lista porque es mixto — su tirada si se para, pero
-  // consultar un saldo o el ranking no, y eso se decide dentro del comando.
-  if (jid.endsWith('@g.us') && CMDS_AURA.has(command) && auraApagada(jid)) {
-    await avisarApagada(sock, jid, msg);
-    return;
   }
 
   try {

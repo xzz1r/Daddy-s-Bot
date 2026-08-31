@@ -765,7 +765,22 @@ function createDebouncedSaver(getData, file, delayMs, onError) {
         await atomicWriteJson(file, data);
       } catch (e) {
         dirty = true;
-        if (onError) { onError(e); return; }
+        if (onError) {
+          onError(e);
+          // Y SE VUELVE A PROGRAMAR. Antes se salia dejando `dirty` en true y
+          // sin temporizador: los datos se quedaban en memoria hasta que
+          // alguien llamara a schedule() otra vez. En un grupo activo eso pasa
+          // en segundos y no se notaba; en una hora tranquila, esos conteos se
+          // quedaban sin escribir hasta el apagado — o se perdian si el proceso
+          // moria antes. Un fallo de escritura es justo cuando MAS falta hace
+          // reintentar, no cuando menos.
+          //
+          // Va detras del finally que libera `writing`, con un setTimeout que
+          // cede el tick: reintentar dentro del catch, con la escritura aun
+          // marcada como en curso, solo consigue que schedule() se salga.
+          setTimeout(() => { if (dirty) schedule(); }, delayMs).unref?.();
+          return;
+        }
         throw e;
       } finally {
         writing = false;

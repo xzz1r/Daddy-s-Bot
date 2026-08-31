@@ -295,7 +295,7 @@ let BIO_FULL = [
   '%N, tienes bio porque creíste que te definía bien. El grupo la lee y te define perfectamente, sí, pero en la categoría que menos esperabas: inútil con autoestima intacta e incongruente. Perfecto.',
 ];
 
-// ─── SOLO ACTIVIDAD (%N + %C) — tiered, solo para inactivos ───────────────────
+// ─── SOLO ACTIVIDAD (%N + %MSG) — tiered, solo para inactivos ───────────────────
 
 function getActivityPhrases(count) {
   const c = fmt(count);
@@ -574,7 +574,7 @@ async function cmdRoast(sock, msg, groupMeta) {
       case 'activity': {
         const pool = getActivityPhrases(msgCount);
         tpl = freshPick(pool, usedTpls);
-        roastText = tpl.replace(/%N/g, displayName).replace(/%C/g, fmt(msgCount));
+        roastText = tpl.replace(/%N/g, displayName).replace(/%MSG/g, fmt(msgCount));
         break;
       }
     }
