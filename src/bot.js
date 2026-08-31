@@ -202,7 +202,7 @@ async function listaDeGrupos() {
     // Una sola línea por bloqueo, no una por intento, y por info: no poder
     // listar los grupos en un ciclo no rompe nada, se reintenta solo.
     logger.info(
-      `solicitudes: no pude listar grupos (${e.message}).` +
+      `solicitudes: no pude listar grupos (${e.message}). ` +
       `Reintento en ${Math.round(espera / 60000)} min` +
       (gruposConocidos.length ? `; sigo con los ${gruposConocidos.length} que ya conocía.` : '.')
     );
@@ -241,10 +241,10 @@ async function explicarFreno(grupo) {
   if (!meta) return;
     logger.info(
     isBotAdmin(sock, meta)
-      ? `solicitudes: en ${grupo} SI soy admin, asi que el problema es del grupo:` +
-        `no tiene activada la aprobacion de entradas. Sin ella no hay solicitudes.` +
+      ? `solicitudes: en ${grupo} SI soy admin, asi que el problema es del grupo: ` +
+        `no tiene activada la aprobacion de entradas. Sin ella no hay solicitudes ` +
         `que leer, y el anti-admin no puede distinguir una aprobacion de un alta a dedo.`
-      : `solicitudes: en ${grupo} NO soy admin, por eso no puedo leer las solicitudes.` +
+      : `solicitudes: en ${grupo} NO soy admin, por eso no puedo leer las solicitudes. ` +
         `Dame admin y vuelvo a intentarlo solo.`
   );
 }
@@ -383,7 +383,7 @@ async function getBaileysVersion() {
     return version;
   } catch (err) {
     logger.warn(
-      `No pude consultar la versión de WhatsApp (${err.message}).` +
+      `No pude consultar la versión de WhatsApp (${err.message}). ` +
       `Sigo con la que trae Baileys: el bot arranca igual.`);
     return undefined;
   }
@@ -670,13 +670,13 @@ async function connectToWhatsApp() {
             // tras QR sin que nadie los escanee es justo la actividad que
             // puede convertir una restriccion temporal en una permanente.
             logger.error(
-              `Sesión cerrada ${ciclosLogout} veces seguidas. Dejo de reintentar solo:` +
-              `puede que WhatsApp tenga la cuenta restringida (revisa el teléfono).` +
-              `Cuando esté resuelto, arrancá el bot a mano: pm2 restart bot.`
+              `Sesión cerrada ${ciclosLogout} veces seguidas. Dejo de reintentar solo: ` +
+              `puede que WhatsApp tenga la cuenta restringida (revisa el teléfono). ` +
+              `Cuando esté resuelto, arranca el bot a mano: pm2 restart bot.`
             );
             anotarParada('sesion-cerrada',
-              `WhatsApp cerró la sesión ${ciclosLogout} veces seguidas. El bot dejó de reintentar.` +
-              `a propósito: encadenar QR puede convertir una restricción temporal en permanente.` +
+              `WhatsApp cerró la sesión ${ciclosLogout} veces seguidas. El bot dejó de reintentar ` +
+              `a propósito: encadenar QR puede convertir una restricción temporal en permanente. ` +
               `Revisa el teléfono (Dispositivos vinculados) y arranca a mano con: pm2 restart bot`);
             detenido = true;
             try { sock.ev.removeAllListeners(); } catch {}
@@ -686,7 +686,7 @@ async function connectToWhatsApp() {
           }
 
           // Confirmed logout — wipe and show QR
-          logger.error('Sesión definitivamente cerrada. Escaneá el QR de nuevo.');
+          logger.error('Sesión definitivamente cerrada. Escanea el QR de nuevo.');
           await fs.remove(AUTH_DIR);
           reconnectAttempts = 0;
           scheduleReconnect(2000);
@@ -713,8 +713,8 @@ async function connectToWhatsApp() {
       const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), ESPERA_RECONEXION_MAX);
       if (reconnectAttempts === MAX_RECONNECTS) {
             logger.error(
-          `Van ${reconnectAttempts} intentos de reconexión fallidos. Sigo intentándolo.` +
-          `cada ${Math.round(ESPERA_RECONEXION_MAX / 60000)} min: si esto no se arregla solo.` +
+          `Van ${reconnectAttempts} intentos de reconexión fallidos. Sigo intentándolo ` +
+          `cada ${Math.round(ESPERA_RECONEXION_MAX / 60000)} min. Si esto no se arregla solo, ` +
           `mira la red de la VPS.`);
         // NO se escribe parado.json: el bot SIGUE reconectando. estado.js trata
         // ese fichero como "se paró", y mentir ahí es peor que un log.

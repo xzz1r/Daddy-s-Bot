@@ -3597,6 +3597,46 @@ async function capaStores() {
             `${rel}:${i + 1} lleva una cuenta del dueño: ${linea.trim().slice(0, 60)}`);
         }
       }
+
+      // Y NINGUN NUMERO DE TELEFONO REAL ESCRITO EN EL CODIGO.
+      //
+      // La guarda de arriba busca HANDLES, y por eso llevaba meses en verde con
+      // un telefono real dentro de config.js: el menu lo sacaba con la frase
+      // "Contactar al creador del bot", asi que cualquiera que escribiera !help
+      // se llevaba un numero y a quien pertenece el bot. Y estando en el codigo
+      // quedaba tambien en el repositorio y en su historial.
+      //
+      // Un numero de verdad no tiene por que estar aqui NUNCA: los que hacen
+      // falta salen de .env (OWNER_NUMBER, CO_OWNERS, SHIP_ALTO, CONTACTO). Se
+      // recorre src/ e index.js enteros, sin comentarios, y se aceptan solo los
+      // marcadores evidentes — los que son un digito repetido o acaban en una
+      // tira de ceros, que es como se escriben los ejemplos.
+      {
+        const esRelleno = (d) => /^(\d)\1+$/.test(d) || /0{4,}$/.test(d) || /^123456/.test(d);
+        const ficheros = ['index.js'];
+        const andarN = (dir) => {
+          for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+            const f = path.join(dir, e.name);
+            if (e.isDirectory()) andarN(f);
+            else if (e.name.endsWith('.js')) ficheros.push(path.relative(R, f));
+          }
+        };
+        andarN(path.join(R, 'src'));
+        for (const rel of ficheros) {
+          const codigo = soloCodigo(rel).split('\n');
+          for (const [i, linea] of codigo.entries()) {
+            // Solo dentro de comillas: un numero suelto en el codigo es una
+            // constante (milisegundos, precios), no un telefono.
+            for (const m of linea.matchAll(/['"`]\+?(\d[\d\s().-]{9,24})['"`@]/g)) {
+              const d = m[1].replace(/\D/g, '');
+              if (d.length < 10 || d.length > 15) continue;
+              if (esRelleno(d)) continue;
+              exige(false,
+                `${rel}:${i + 1} lleva un telefono real escrito en el codigo (${d.slice(0, 3)}…${d.slice(-2)}): sacalo a .env`);
+            }
+          }
+        }
+      }
     }
 
     // !g NO PUEDE DELATAR QUE DETRAS HAY UN MODELO.
@@ -4178,6 +4218,131 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
       fs.rmSync(dirP, { recursive: true, force: true });
     }
     if (fallos === antes) console.log(verde('   ✓ no rebaja lo ya indexado, y sigue indexando lo caducado'));
+  }
+
+  // ── 33a. EL CASTELLANO QUE SALE DEL BOT ──────────────────────────────────
+  //
+  // DOS FALLOS QUE NADIE MIRABA PORQUE NO ROMPEN NADA, y por eso llevaban meses.
+  //
+  // 1) FRASES PEGADAS. Once concatenaciones en bot.js unian dos trozos sin un
+  //    espacio entre medias: "Sigo intentandolo.cada 5 min", "no hay
+  //    solicitudes.que leer". Esa segunda ni siquiera estaba solo pegada:
+  //    estaba PARTIDA, con un punto metido en mitad de la frase. Y una de ellas
+  //    es la que `npm run estado` imprime cuando el bot se rinde porque la
+  //    cuenta puede estar restringida — o sea el peor momento para tener que
+  //    descifrar el texto.
+  //
+  // 2) VOSEO. "arranca" y "escanea" estaban escritos en rioplatense en un bot
+  //    que habla castellano neutro, y en el mismo fichero que cinco lineas
+  //    despues los escribe bien. La contradiccion estaba dentro de una funcion.
+  //
+  // Se comprueba sobre TODO el codigo, no solo bot.js, y sin comentarios: un
+  // comentario puede citar el error que explica (ya me ha pasado tres veces).
+  {
+    console.log('\n33a. EL CASTELLANO QUE SALE DEL BOT');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const ficheros = ['index.js'];
+    const andarC = (dir) => {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        const f = path.join(dir, e.name);
+        if (e.isDirectory()) andarC(f);
+        else if (e.name.endsWith('.js')) ficheros.push(path.relative(R, f));
+      }
+    };
+    andarC(path.join(R, 'src'));
+
+    // El voseo, con limites de palabra de verdad: sin ellos "mirandolo" y
+    // "proponertelo" salian como falsos positivos y la guarda seria inservible.
+    //
+    // Y SIN DISTINGUIR MAYUSCULAS, que ahi se me cazo la propia guarda: la
+    // escribi solo en minusculas y el fallo real del bot era "Escanea" con E
+    // mayuscula al empezar la frase, o sea el sitio mas probable de todos. El
+    // mutante paso en verde y la guarda no valia para nada.
+    const VOSEO = /(^|[^a-záéíóúñA-ZÁÉÍÓÚÑ])(arrancá|escaneá|mirá|poné|hacé|tenés|querés|podés|andá|revisá|probá|volvé|dejá|entrá|vení|sabés|decí)([^a-záéíóúñA-ZÁÉÍÓÚÑ]|$)/i;
+
+    for (const rel of ficheros) {
+      const lineas = soloCodigo(rel).split('\n');
+      for (const [i, l] of lineas.entries()) {
+        const v = l.match(VOSEO);
+        exige(!v, `${rel}:${i + 1} habla en voseo ("${v ? v[2] : ''}"): el bot habla castellano neutro`);
+      }
+      // Trozos pegados: una linea que acaba en `"..." +` y la siguiente empieza
+      // por otra cadena, sin espacio ni salto entre las dos.
+      for (let i = 0; i < lineas.length - 1; i++) {
+        const a = lineas[i].trim(), b = lineas[i + 1].trim();
+        if (!/\+\s*$/.test(a)) continue;
+        const ma = a.match(/(["'`])((?:[^\\]|\\.)*?)\1\s*\+\s*$/);
+        const mb = b.match(/^(["'`])((?:[^\\]|\\.)*?)\1/);
+        if (!ma || !mb || !ma[2] || !mb[2]) continue;
+        const fin = ma[2], ini = mb[2];
+        if (/\s$/.test(fin) || /\\n$/.test(fin)) continue;
+        if (/^\s/.test(ini) || /^\\n/.test(ini)) continue;
+        exige(false,
+          `${rel}:${i + 1} pega dos trozos sin espacio: "…${fin.slice(-20)}" + "${ini.slice(0, 20)}…"`);
+      }
+    }
+    if (fallos === antes) console.log(verde('   ✓ sin voseo y sin frases pegadas en todo el codigo'));
+  }
+
+  // ── 33b. LOS RANKINGS MENCIONAN A UNA PERSONA, NO A UN NUMERO INTERNO ────
+  //
+  // PASO, Y SOLO EN UNO DE LOS DOS ALMACENES. messageCounter lo corrigio en su
+  // dia —prefiere la forma canonica como representante— y auraStore se quedo
+  // con la clave cruda. Resultado: con los mismos datos delante, *!count*
+  // mencionaba bien y *!top* pintaba el @lid en crudo, un numero que no es de
+  // nadie, que WhatsApp no convierte en nombre y que ademas no notifica.
+  //
+  // Se prueba EJECUTANDO los dos almacenes de verdad, no leyendo su fuente: lo
+  // que importa es el JID con el que se menciona, y eso solo se ve corriendo.
+  // Y se prueban las DOS direcciones, porque un arreglo que canonice a lo bruto
+  // seria peor: un @lid del que no se conoce el telefono TIENE que seguir
+  // saliendo como @lid en vez de inventarse una forma que no existe.
+  {
+    console.log('\n33b. LOS RANKINGS MENCIONAN A UNA PERSONA, NO A UN @lid');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const dirR = fs.mkdtempSync(path.join(os.tmpdir(), 'rank-'));
+    try {
+      const guion = path.join(dirR, 'r.js');
+      fs.writeFileSync(guion, `
+const fs=require('fs'),os=require('os'),path=require('path');
+const ROOT=fs.mkdtempSync(path.join(os.tmpdir(),'rk-'));
+fs.cpSync(${JSON.stringify(path.join(R, 'src'))},path.join(ROOT,'src'),{recursive:true});
+fs.mkdirSync(path.join(ROOT,'data'));
+try{fs.symlinkSync(${JSON.stringify(path.join(R, 'node_modules'))},path.join(ROOT,'node_modules'),'dir');}catch{}
+process.chdir(ROOT);
+const {rememberMapping}=require(path.join(ROOT,'src/utils/wa'));
+const aura=require(path.join(ROOT,'src/utils/auraStore'));
+const mc=require(path.join(ROOT,'src/utils/messageCounter'));
+const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SUELTO='828282828282@lid';
+(async()=>{
+  // Acumula bajo el @lid ANTES de que se conozca la pareja (lo normal tras un
+  // reinicio en un grupo direccionado por LID), y solo despues se aprende.
+  await mc.increment(G,LID,null);
+  await aura.addAura(G,LID,500);
+  await aura.addAura(G,SUELTO,300);
+  rememberMapping(LID,TEL);
+  const cuenta=(await mc.getActiveUsers(G,1)).map(x=>x.jid);
+  const top=(await aura.getAuraRanking(G)).map(x=>x.jid);
+  console.log(JSON.stringify({cuenta,top,TEL,SUELTO}));
+})();
+`);
+      const salida = execSync(`node ${guion}`, { encoding: 'utf8', timeout: 60000 });
+      const r = JSON.parse(salida.trim().split('\n').pop());
+      exige(r.cuenta.includes(r.TEL),
+        `!count menciona ${r.cuenta.join(',')} en vez del telefono: el ranking pinta un numero que no es de nadie`);
+      exige(r.top.includes(r.TEL),
+        `!top (aura) menciona ${r.top.join(',')} en vez del telefono: el @lid en crudo no es de nadie y no notifica`);
+      exige(r.top.includes(r.SUELTO),
+        'un @lid sin telefono conocido ha dejado de salir tal cual: se esta inventando una forma que no existe');
+    } catch (e) {
+      exige(false, `no pude probar los rankings: ${String(e.message).split('\n')[0]}`);
+    } finally {
+      fs.rmSync(dirR, { recursive: true, force: true });
+    }
+    if (fallos === antes) console.log(verde('   ✓ !count y !top mencionan el telefono, y el @lid sin resolver sigue intacto'));
   }
 
   // ── 34. LOS GUIONES DE DESPLIEGUE Y LOS DOS LIMITES QUE SE AJUSTARON ─────

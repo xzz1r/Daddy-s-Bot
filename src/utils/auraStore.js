@@ -343,11 +343,26 @@ async function getAuraRanking(groupJid) {
   const por = new Map(); // clave canónica -> { jid, aura, extras }
   for (const k in g) {
     const id = canonicalJid(k);
+    // EL REPRESENTANTE ES LA FORMA CANONICA, NO LA CLAVE CRUDA.
+    //
+    // Aqui se guardaba `k` tal cual y solo se cambiaba si aparecia una segunda
+    // forma sin @lid. O sea que a quien tenia UN SOLO monton guardado bajo su
+    // @lid —lo normal si acumulo aura antes de que el bot aprendiera su
+    // telefono, que es lo que pasa tras cada reinicio en un grupo LID— el
+    // ranking le pintaba el @lid en crudo: un numero que no es de nadie, que
+    // WhatsApp no convierte en nombre y que ademas no le notifica.
+    //
+    // canonicalJid ya devuelve el telefono en cuanto se conoce la pareja, asi
+    // que basta con preferirlo. El @lid solo sobrevive cuando de verdad no se
+    // sabe el telefono. Es exactamente lo que hace mergeByPerson en
+    // messageCounter, donde este mismo fallo se corrigio y aqui se quedo: por
+    // eso !count mencionaba bien y !top no, con los mismos datos delante.
+    const rep = id.endsWith('@lid') ? k : id;
     const prev = por.get(id);
-    if (!prev) { por.set(id, { jid: k, aura: g[k], extras: 0 }); continue; }
+    if (!prev) { por.set(id, { jid: rep, aura: g[k], extras: 0 }); continue; }
     prev.aura += g[k];
     prev.extras++;
-    if (!k.endsWith('@lid')) prev.jid = k; // el teléfono es el que se puede mencionar
+    if (!rep.endsWith('@lid')) prev.jid = rep; // el teléfono es el que se puede mencionar
   }
   return [...por.values()]
     .map(({ jid, aura, extras }) => ({ jid, aura: aura - STARTING_AURA * extras }))

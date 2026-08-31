@@ -52,11 +52,22 @@ const config = {
   rapidApiKey: process.env.RAPIDAPI_KEY || '',
   rapidApiHost: process.env.RAPIDAPI_HOST || 'youtube-mp36.p.rapidapi.com',
 
-  // Numero de contacto que se enseña en el menu. Va aqui y no escrito dentro
-  // del texto porque es un dato de identidad del bot, igual que el nombre y el
-  // autor de los stickers: los tres se cambian juntos y en un solo sitio.
-  // Solo digitos, en formato internacional y sin el +.
-  contacto: '573246561597',
+  // Numero de contacto del menu. VACIO POR DEFECTO, Y A PROPOSITO.
+  //
+  // Aqui habia un numero de telefono real escrito a mano, y el menu lo sacaba
+  // con la frase "Contactar al creador del bot". O sea que cualquiera que
+  // escribiera !help se llevaba un numero y a quien pertenece el bot — que es
+  // justo lo que no puede pasar. Y estando escrito en el codigo, ademas
+  // quedaba en el repositorio y en su historial, donde no lo borra ponerlo
+  // privado despues.
+  //
+  // Es la misma politica que ya seguian CO_OWNERS y SHIP_ALTO doce lineas mas
+  // arriba: ningun numero real en el codigo. Aquella se aplico a los dos datos
+  // internos y se salto justo en el unico que salia por pantalla.
+  //
+  // Si esta vacio, el menu no enseña ninguna linea de contacto. Quien quiera
+  // una la pone en .env como CONTACTO=..., solo digitos y sin el +.
+  contacto: (process.env.CONTACTO || '').replace(/\D/g, ''),
 
   // EL AUTOR DEL STICKER LO VE TODO EL QUE LO RECIBE.
   //
