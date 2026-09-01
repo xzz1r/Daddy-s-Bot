@@ -317,6 +317,10 @@ ${p}help · ${p}ayuda · ${p}menu · ${p}commands`;
 async function cmdHelp(sock, msg, groupMeta, args = []) {
   const jid = msg.key.remoteJid;
   const p = config.prefix;
+  // "*!* o */*", sacado de la lista. Escrito a mano, el dia que se anyada o se
+  // quite un prefijo la cabecera del menu se queda mintiendo, que es la unica
+  // linea del bot que explica como se le habla.
+  const PREFIJOS = config.prefijos.map((x) => `*${x}*`).join(' o ');
 
   // EL MENU SE ADAPTA A QUIEN LO PIDE. Antes era uno solo y le enseñaba a
   // cualquier miembro las cuatro lineas de ADMIN, las cinco de SISTEMA y un
@@ -382,7 +386,7 @@ async function cmdHelp(sock, msg, groupMeta, args = []) {
 
   const text = completo ? textoCompleto(p, c, esAdmin, esOwner) :
 `*${config.botName}*
-_Todo lleva *${p}* o */* delante · el número es lo que cuesta en aura_
+_Todo lleva ${PREFIJOS} delante · el número es lo que cuesta en aura_
 
 ━━ *HERRAMIENTAS* ━━
 *${p}play* ${c('play')} <nombre> · *${p}s* ${c('sticker')} · *${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')}

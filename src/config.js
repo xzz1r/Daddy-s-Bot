@@ -1,9 +1,18 @@
+// LOS PREFIJOS, EN ORDEN. El primero es el canonico: el que se imprime en el
+// menu, en los avisos y en el corrector. Los demas se aceptan igual pero no se
+// enseñan.
+//
+// Darle la vuelta al bot entero —que pase a hablar de */aura* en vez de
+// *!aura*— es cambiar el orden de esta lista y nada mas: el menu, la tienda y
+// los avisos salen todos de aqui.
+const PREFIJOS = ['!', '/'];
+
 const config = {
-  // EL PREFIJO QUE SE ENSEÑA. Uno solo, y es el de siempre.
+  // EL PREFIJO QUE SE ENSEÑA. Uno solo, y es el primero de la lista.
   //
   // El menu, los avisos y el corrector imprimen este. Enseñar los dos en cada
   // linea doblaria la longitud del menu para decir lo mismo dos veces.
-  prefix: '!',
+  prefix: PREFIJOS[0],
 
   // LOS PREFIJOS QUE SE ENTIENDEN. Lo que el bot ACEPTA, que no es lo mismo que
   // lo que enseña.
@@ -13,9 +22,10 @@ const config = {
   // prefijo equivocado: parece un bot caido. Quien escriba */aura* recibe su
   // tirada; el menu le seguira diciendo *!aura*.
   //
-  // El primero de la lista es el canonico y tiene que ser `prefix`: eso lo
-  // vigila `npm run check`.
-  prefijos: ['!', '/'],
+  // El primero es el canonico y ES `prefix`, no una copia que haya que mantener
+  // igual a mano. `npm run check` sigue comprobandolo por si alguien vuelve a
+  // escribir el simbolo suelto ahi arriba.
+  prefijos: PREFIJOS,
   botName: "Daddy's Bot",
   ownerNumber: process.env.OWNER_NUMBER || '5491100000000',
   // Co-owners: mismos privilegios que el owner. Se definen en .env como
