@@ -190,7 +190,29 @@ bash scripts/respaldo.sh || echo "  (aviso: no se pudo hacer la copia de data/, 
 # recuento no hay forma de distinguir "todavia no ha conectado" de "esta
 # corriendo codigo viejo": las dos se ven igual, una huella antigua en el log.
 # Contando antes, la huella que valga es la que APAREZCA DESPUES.
-HUELLAS_ANTES="$(pm2 logs bot --lines 400 --nostream 2>/dev/null | grep -c 'commit cargado' || echo 0)"
+# CONTAR HUELLAS SIN QUE SALGAN DOS NUMEROS, Y AQUI ME LA PEGUE.
+#
+# Estaba escrito `grep -c ... || echo 0`, y eso NO devuelve un numero: devuelve
+# DOS. `grep -c` imprime el 0 cuando no encuentra nada Y ADEMAS sale con codigo
+# 1, asi que el `|| echo 0` dispara tambien y la variable acaba valiendo "0\n0".
+# A partir de ahi cada comparacion escupe "integer expression expected", el
+# bucle no puede romperse nunca y el guion acaba diciendo que el bot no arranco
+# teniendolo delante y funcionando.
+#
+# `|| true` es lo correcto: grep ya imprime el numero, lo unico que hay que
+# tragarse es su codigo de salida. El `tr -cd` deja solo digitos por si pm2
+# falla del todo y no imprime nada.
+#
+# Y se usa --out, como estado.js: sin el, pm2 mezcla la salida de error y el
+# recuento no cuadra con el que hace la otra herramienta sobre el mismo log.
+huellas() {
+  local n
+  n="$(pm2 logs bot --out --lines 400 --nostream 2>/dev/null | grep -c 'commit cargado' || true)"
+  n="$(printf '%s' "${n}" | tr -cd '0-9')"
+  printf '%s' "${n:-0}"
+}
+
+HUELLAS_ANTES="$(huellas)"
 
 # Sin esto el código nuevo no llega a ejecutarse. --update-env relee el .env,
 # que es justo lo que hace falta cuando lo que cambió fue una key.
@@ -224,7 +246,7 @@ echo -n "→ Esperando a que el bot arranque"
 HUELLAS_AHORA="${HUELLAS_ANTES}"
 for _ in $(seq 1 30); do
   sleep 2
-  HUELLAS_AHORA="$(pm2 logs bot --lines 400 --nostream 2>/dev/null | grep -c 'commit cargado' || echo 0)"
+  HUELLAS_AHORA="$(huellas)"
   [ "${HUELLAS_AHORA}" -gt "${HUELLAS_ANTES}" ] && break
   echo -n "."
 done
@@ -248,7 +270,7 @@ CORTO="$(git rev-parse --short HEAD)"
 # bot no ha conectado todavia y de eso no se deduce nada: acusar ahi es lo que
 # provocaba el reinicio extra y el susto.
 if [ "${HUELLAS_AHORA}" -gt "${HUELLAS_ANTES}" ]; then
-  CARGADO="$(pm2 logs bot --lines 400 --nostream 2>/dev/null | grep 'commit cargado' | tail -1 | grep -oE '[0-9a-f]{7,40}$' || true)"
+  CARGADO="$(pm2 logs bot --out --lines 400 --nostream 2>/dev/null | grep 'commit cargado' | tail -1 | grep -oE '[0-9a-f]{7,40}$' || true)"
 else
   CARGADO=""
 fi
@@ -260,10 +282,10 @@ if [ -n "${CARGADO}" ] && [ "${CARGADO}" != "${CORTO}" ]; then
   HUELLAS_ANTES="${HUELLAS_AHORA}"
   for _ in $(seq 1 30); do
     sleep 2
-    HUELLAS_AHORA="$(pm2 logs bot --lines 400 --nostream 2>/dev/null | grep -c 'commit cargado' || echo 0)"
+    HUELLAS_AHORA="$(huellas)"
     [ "${HUELLAS_AHORA}" -gt "${HUELLAS_ANTES}" ] && break
   done
-  CARGADO="$(pm2 logs bot --lines 400 --nostream 2>/dev/null | grep 'commit cargado' | tail -1 | grep -oE '[0-9a-f]{7,40}$' || true)"
+  CARGADO="$(pm2 logs bot --out --lines 400 --nostream 2>/dev/null | grep 'commit cargado' | tail -1 | grep -oE '[0-9a-f]{7,40}$' || true)"
 fi
 
 echo

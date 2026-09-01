@@ -4928,6 +4928,23 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     exige(!/sleep\s+\d\d+/.test(act),
       'actualizar.sh vuelve a esperar un numero fijo de segundos a que el bot conecte: si tarda mas, lee la huella del arranque anterior');
 
+    // Y 3b) LO QUE SE COMPARA TIENE QUE SER UN NUMERO, UNO SOLO.
+    //
+    // PASO EN LA VPS Y LLENO LA PANTALLA. Estaba escrito
+    // `grep -c ... || echo 0`, y eso NO devuelve un numero: devuelve DOS.
+    // `grep -c` imprime el 0 cuando no encuentra nada Y ADEMAS sale con codigo
+    // 1, asi que el `|| echo 0` dispara tambien y la variable acaba valiendo
+    // "0\n0". A partir de ahi cada comparacion escupe "integer expression
+    // expected", el bucle no puede romperse nunca y el guion acaba diciendo que
+    // el bot no arranco teniendolo delante y funcionando.
+    //
+    // Se vigilan las dos mitades: que no vuelva el patron, y que el recuento
+    // pase por un sitio que garantice un entero.
+    exige(!/grep -c[^\n]*\|\|\s*echo/.test(act),
+      'actualizar.sh vuelve a contar con `grep -c ... || echo`: grep imprime el 0 Y sale con codigo 1, asi que la variable acaba con DOS numeros y toda comparacion revienta');
+    exige(/huellas\(\)\s*\{/.test(act) && /tr -cd '0-9'/.test(act),
+      'actualizar.sh ya no filtra el recuento de huellas a digitos: cualquier ruido de pm2 vuelve a romper la comparacion');
+
     // Y 4) NI SE PIDEN CUATRO LINEAS DE LOG PARA BUSCAR ALGO QUE ESTA ARRIBA.
     //
     // La huella se imprime AL CONECTAR, y justo despues el bot escupe el
