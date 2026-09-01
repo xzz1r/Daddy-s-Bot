@@ -2443,7 +2443,7 @@ async function handleMessage(sock, msg) {
       case 'help':
       case 'menu':
       case 'commands':
-        await cmdHelp(sock, msg, groupMeta);
+        await cmdHelp(sock, msg, groupMeta, args);
         break;
 
       // ¿QUERIAS DECIR...? Antes un comando mal escrito no hacia NADA.

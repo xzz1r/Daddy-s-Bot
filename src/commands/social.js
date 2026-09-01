@@ -247,7 +247,74 @@ async function cmdCasino(sock, msg, groupMeta) {
 }
 
 // !Commands / !ayuda / !help / !menu
-async function cmdHelp(sock, msg, groupMeta) {
+// LA LISTA ENTERA, SOLO SI SE PIDE (*!help todo*).
+//
+// Aqui si van todos los alias, porque quien llega a esta pantalla ha tenido que
+// pedirla: no la va a encontrar de sorpresa ni le va a tapar lo que buscaba.
+// Es la diferencia entre una referencia y un muro — la misma informacion, pero
+// una la abres tu y la otra te cae encima.
+function textoCompleto(p, c, esAdmin, esOwner) {
+  return `*TODOS LOS COMANDOS*
+_Cada línea: el nombre y todas sus formas. Cualquiera vale._
+
+━━━━━ *HERRAMIENTAS* ━━━━━
+${p}play · ${p}musica · ${p}cancion · ${p}song · ${p}playsong · ${p}playaudio
+${p}s · ${p}sticker · ${p}stk
+${p}toimg · ${p}stimg  ·  ${p}tovid  ·  ${p}ttp · ${p}texto
+${p}pfp · ${p}foto  ·  ${p}fk · ${p}verificar · ${p}verify · ${p}check
+${p}cachelist · ${p}listacache · ${p}cache
+
+━━━━━ *DINÁMICAS* ━━━━━
+${p}roast · ${p}quemar · ${p}destruir · ${p}flamear
+${p}mog · ${p}moggear  ·  ${p}ship  ·  ${p}rizz · ${p}piropo · ${p}wingman
+${p}top5 · ${p}top10
+${p}puta ${p}guarra ${p}maricon ${p}incel ${p}gay ${p}femboy ${p}cerdo ${p}rata
+${p}simp ${p}friki ${p}inutil ${p}perdedor · ${p}l  ·  ${p}fea ${p}infiel ${p}iq
+${p}feminidad ${p}masculinidad ${p}linda ${p}hot ${p}sexy ${p}fiel ${p}crack ${p}ganador
+
+━━━━━ *AURA* ━━━━━
+${p}aura  ·  ${p}saldo · ${p}miaura  ·  ${p}top · ${p}ranking · ${p}auratop
+${p}hoy  ·  ${p}casino  ·  ${p}apostar · ${p}apuesta · ${p}apuestas
+${p}duel · ${p}duelo · ${p}1v1
+${p}dar · ${p}regalar · ${p}transferir · ${p}pagar · ${p}donar
+${p}guia · ${p}aurahelp · ${p}guiaaura
+
+━━━━━ *ROBO* ━━━━━
+${p}robo · ${p}robar
+${p}contrarobo · ${p}contraataque · ${p}contraatacar · ${p}vengarse
+${p}buscados · ${p}cartel · ${p}wanted · ${p}mostwanted · ${p}recompensas
+${p}tienda · ${p}shop  ·  ${p}comprar  ·  ${p}bote  ·  ${p}caja · ${p}registradora
+${p}asalto · ${p}asaltar  ·  ${p}atraco · ${p}atracar
+${p}zulo · ${p}escondite  ·  ${p}tapar · ${p}enterrar  ·  ${p}cavar · ${p}desenterrar
+
+━━━━━ *ACTIVIDAD* ━━━━━
+${p}relevancia · ${p}importancia · ${p}relevance
+${p}vs · ${p}versus  ·  ${p}fantasmas · ${p}fantasma · ${p}muertos
+${p}inactivos · ${p}inactivo
+${esAdmin ? `
+━━━━━ *ADMIN* ━━━━━
+${p}kick · ${p}expulsar · ${p}sacar · ${p}echar
+${p}del · ${p}borrar · ${p}delete  ·  ${p}mute · ${p}silenciar · ${p}callar
+${p}unmute · ${p}desmute  ·  ${p}tagall · ${p}todos · ${p}all · ${p}everyone
+${p}close · ${p}cerrar  ·  ${p}open · ${p}abrir  ·  ${p}count
+${p}promote · ${p}ascender  ·  ${p}allow · ${p}permitir  ·  ${p}r · ${p}presentarse · ${p}presentacion
+${p}scan · ${p}escanear  ·  ${p}marcarfake · ${p}fake
+${p}fkban · ${p}banear · ${p}ban  ·  ${p}fkunban · ${p}desbanear · ${p}unban
+${p}fklist · ${p}listanegra  ·  ${p}antifake · ${p}antifk
+${p}notifadmin  ·  ${p}autoaccept · ${p}autoaceptar · ${p}autoapprove · ${p}autoaprobar
+` : ''}${esOwner ? `
+━━━━━ *ADMINS SUPERIORES* ━━━━━
+${p}on · ${p}off  ·  ${p}demote · ${p}degradar
+${p}antilink · ${p}antifoto · ${p}antiempresa · ${p}antibusiness · ${p}antiadmin
+${p}adminmode · ${p}soloadmins · ${p}soloadmin  ·  ${p}aura on/off
+${p}resetcount · ${p}resetconteo  ·  ${p}resetaura
+${p}clearcache · ${p}borracache  ·  ${p}diag
+` : ''}
+${p}ping · ${p}info · ${p}estado · ${p}status · ${p}whoami
+${p}help · ${p}ayuda · ${p}menu · ${p}commands`;
+}
+
+async function cmdHelp(sock, msg, groupMeta, args = []) {
   const jid = msg.key.remoteJid;
   const p = config.prefix;
 
@@ -300,97 +367,58 @@ async function cmdHelp(sock, msg, groupMeta) {
   // otra. Hay un test que compara este menu con la tabla real.
   const c = (n) => `\`${PRECIOS[n]}\``;
 
-  const text =
+  // EL MENU CORTO ES EL MENU. La lista completa vive en *!help todo*.
+  //
+  // La version anterior listaba los 190 comandos con todos sus alias y salian
+  // 89 lineas. Un menu de 89 lineas no se lee: se cierra. Y un menu que se
+  // cierra no informa de nada, asi que "estan todos" dejaba de ser una virtud y
+  // pasaba a ser el problema.
+  //
+  // Aqui va UNA linea por familia y el nombre canonico a secas. Los alias no
+  // hacen falta para descubrir nada: el bot los acepta igual, y quien se
+  // equivoque tiene el "¿querias decir...?" detras. Quien quiera la lista
+  // entera la pide, y entonces si la lee porque la ha buscado.
+  const completo = ['todo', 'todos', 'all', 'completo', 'full'].includes(String(args[0] || '').toLowerCase());
+
+  const text = completo ? textoCompleto(p, c, esAdmin, esOwner) :
 `*${config.botName}*
-_Todo lleva *${p}* delante. El número es lo que cuesta en aura._
-_Donde pone *·* son la misma orden escrita de otra forma._
+_Todo lleva *${p}* delante · el número es lo que cuesta en aura_
+_Sin @ va sobre ti, con @ sobre esa persona_
 
-━━━━━ *HERRAMIENTAS* ━━━━━
-*${p}play* ${c('play')} <nombre> · ${p}musica · ${p}cancion · ${p}song
-*${p}s* ${c('sticker')} · ${p}sticker · ${p}stk — imagen o vídeo a sticker
-*${p}toimg* ${c('toimg')} · ${p}stimg — sticker a imagen
-*${p}tovid* ${c('tovid')} — sticker animado a vídeo
-*${p}ttp* ${c('ttp')} <texto> · ${p}texto — texto a sticker
-*${p}pfp* ${c('pfp')} · ${p}foto — la foto de perfil de alguien
-*${p}fk* ${c('fk')} @user · ${p}verificar · ${p}check — busca la cara por internet
-*${p}cachelist* ${c('cachelist')} · ${p}cache — canciones ya descargadas
-
-━━━━━ *DINÁMICAS* ━━━━━
-_Sin @ va sobre ti · con @ va sobre esa persona._
-*${p}roast* ${c('roast')} · ${p}quemar · ${p}destruir · ${p}flamear
-*${p}mog* ${c('mog')} @a @b · ${p}moggear — quién aplasta a quién
-*${p}ship* ${c('ship')} @a @b — compatibilidad
+━━ *DINÁMICAS* ━━
+*${p}roast* ${c('roast')} · *${p}mog* ${c('mog')} @a @b · *${p}ship* ${c('ship')} @a @b
 *${p}rizz* ${c('rizz')} · *${p}piropo* ${c('piropo')} · *${p}wingman* ${c('wingman')}
-*${p}top5* ${c('top5')} · *${p}top10* ${c('top10')} — ranking del <tema> que pidas
-_Y los de una palabra, ${PRECIOS.percent} cada uno, de más crudo a más suave:_
-*${p}puta* *${p}guarra* *${p}maricon* *${p}incel* *${p}gay* *${p}femboy*
-*${p}cerdo* *${p}rata* *${p}simp* *${p}friki* *${p}inutil* *${p}perdedor* (${p}l)
-*${p}fea* *${p}infiel* *${p}iq* *${p}feminidad* *${p}masculinidad*
-*${p}linda* *${p}hot* *${p}sexy* *${p}fiel* *${p}crack* *${p}ganador*
+*${p}top5* ${c('top5')} · *${p}top10* ${c('top10')} <tema> · *${p}iq* ${c('percent')}
+_De una palabra, ${PRECIOS.percent} cada uno:_
+*${p}puta ${p}guarra ${p}maricon ${p}incel ${p}gay ${p}femboy ${p}cerdo ${p}rata*
+*${p}simp ${p}friki ${p}inutil ${p}perdedor ${p}fea ${p}infiel ${p}fiel*
+*${p}feminidad ${p}masculinidad ${p}linda ${p}hot ${p}sexy ${p}crack ${p}ganador*
 
-━━━━━ *AURA* ━━━━━
-_Gratis: no cobran, pero mueven tu saldo._
-*${p}aura* — la tirada del día
-*${p}saldo* · ${p}miaura — lo que tienes
-*${p}top* · ${p}ranking · ${p}auratop — los más ricos
-*${p}hoy* — tus mensajes y bonos de hoy · *${p}casino* — cómo se gana
-*${p}apostar* mitad / todo / 2k / 50% · ${p}apuesta
-*${p}duel* @user · ${p}duelo · ${p}1v1 — a cara o cruz contra alguien
-*${p}dar* @user <cant.> · ${p}regalar · ${p}transferir · ${p}pagar · ${p}donar
-*${p}guia* · ${p}aurahelp — cómo funciona todo esto
+━━ *AURA Y ROBO* ━━
+*${p}aura* la tirada · *${p}saldo* · *${p}top* · *${p}hoy* · *${p}guia*
+*${p}apostar* mitad/todo/2k · *${p}duel* @user · *${p}dar* @user <cant.>
+*${p}robo* @user <cant.> · *${p}contrarobo* · *${p}buscados*
+*${p}tienda* · *${p}comprar* <objeto> · *${p}bote* · *${p}caja*
+*${p}asalto* · *${p}atraco* — contra la casa, no contra nadie
+*${p}zulo* · *${p}tapar* <cant.> · *${p}cavar* <cant.> — a salvo del robo
 
-━━━━━ *ROBO* ━━━━━
-*${p}robo* @user <cant.> · ${p}robar
-*${p}contrarobo* · ${p}contraataque · ${p}vengarse — 90 s para devolvérsela
-*${p}buscados* · ${p}cartel · ${p}wanted · ${p}recompensas — los más ladrones
-*${p}tienda* · ${p}shop — el catálogo · *${p}comprar* <objeto>
-*${p}bote* · *${p}caja* — lo que hay en el pozo y en la tienda
-*${p}asalto* · ${p}asaltar — reventar el bote
-*${p}atraco* · ${p}atracar — reventar la caja de la tienda
-*${p}zulo* · ${p}escondite — lo que tienes enterrado
-*${p}tapar* <cant.> — esconder · *${p}cavar* <cant.> — sacarlo
-_También valen ${p}enterrar y ${p}desenterrar._
-_Lo enterrado no te lo roba nadie, pero sacarlo cuesta._
-
-━━━━━ *ACTIVIDAD* ━━━━━
-*${p}relevancia* ${c('relevancia')} · ${p}importancia — cuánto pintas aquí
-*${p}vs* ${c('vs')} @a @b · ${p}versus — quién habla más de los dos
-*${p}fantasmas* ${c('fantasmas')} · ${p}muertos — los que menos escriben
-*${p}inactivos* ${c('inactivos')} — los que no llegan al mínimo, con aviso de expulsión
+━━ *ACTIVIDAD Y ARCHIVOS* ━━
+*${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b · *${p}fantasmas* ${c('fantasmas')} · *${p}inactivos* ${c('inactivos')}
+*${p}play* ${c('play')} <nombre> · *${p}s* ${c('sticker')} · *${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')}
+*${p}ttp* ${c('ttp')} <texto> · *${p}pfp* ${c('pfp')} · *${p}fk* ${c('fk')} @user
 ${esAdmin ? `
-━━━━━ *ADMIN* ━━━━━
-*${p}kick* @user · ${p}expulsar · ${p}sacar · ${p}echar
-*${p}del* · ${p}borrar — borra el mensaje citado
-*${p}mute* @user · ${p}silenciar · ${p}callar · *${p}unmute* · ${p}desmute
-*${p}tagall* <mensaje> · ${p}todos · ${p}all — avisa a todos sin poner un @
-*${p}r* — pide a los NUEVOS que se presenten (foto y edad), en todos los grupos
-*${p}close* · ${p}cerrar · *${p}open* · ${p}abrir — quién puede escribir
-*${p}count* ${c('count')} — ranking de mensajes
-*${p}promote* @user · ${p}ascender — con el anti-admin puesto sube un nivel
-*${p}allow* @user · ${p}permitir — le deja pasar un enlace
-*${p}scan* · ${p}escanear — repasa el grupo entero buscando cuentas raras
-*${p}marcarfake* @user · ${p}fake · *${p}fklist* · ${p}listanegra
-*${p}fkban* @user · ${p}banear · *${p}fkunban* · ${p}desbanear
-*${p}antifake* on/off · ${p}antifk
-*${p}notifadmin* on/off — avisa de ascensos y destituciones
-*${p}autoaccept* on/off · ${p}autoaceptar — aprueba solicitudes (no añade a nadie)
+━━ *ADMIN* ━━
+*${p}kick* · *${p}del* · *${p}mute* · *${p}unmute* · *${p}tagall* · *${p}allow*
+*${p}close* · *${p}open* · *${p}count* ${c('count')} · *${p}promote* · *${p}scan*
+*${p}r* — pide a los nuevos que se presenten, sin un @ a la vista
+*${p}marcarfake* · *${p}fkban* · *${p}fkunban* · *${p}fklist*
+*${p}antifake* · *${p}notifadmin* · *${p}autoaccept* — on/off
 ` : ''}${esOwner ? `
-━━━━━ *ADMINS SUPERIORES* ━━━━━
-*${p}on* / *${p}off* — encender y apagar el bot en este grupo
-*${p}demote* @user · ${p}degradar
-_Van con on/off:_ *${p}antilink* · *${p}antifoto* · *${p}antiempresa* · *${p}antiadmin* · *${p}adminmode* · *${p}aura*
-*${p}resetcount* · ${p}resetconteo — pone los mensajes a cero
-*${p}resetaura* — pone el aura a cero
-*${p}clearcache* · ${p}borracache — vacía las canciones guardadas
-*${p}diag* — diagnóstico de la conexión
+━━ *SUPERIORES* ━━
+*${p}on*/*${p}off* · *${p}demote* · *${p}resetcount* · *${p}resetaura* · *${p}clearcache* · *${p}diag*
+_on/off:_ *${p}antilink* *${p}antifoto* *${p}antiempresa* *${p}antiadmin* *${p}adminmode* *${p}aura*
 ` : ''}
-*${p}ping* · *${p}info* (${p}estado, ${p}status) · *${p}whoami*
-*${p}help* · ${p}ayuda · ${p}menu · ${p}commands — esto que estás leyendo
-_También responden, por si los escribes así:_
-_${p}playsong ${p}playaudio ${p}listacache ${p}relevance ${p}presentarse ${p}presentacion_
-_${p}everyone ${p}antibusiness ${p}soloadmins ${p}soloadmin ${p}autoapprove ${p}autoaprobar_
-_${p}verify ${p}ban ${p}unban ${p}delete ${p}apuestas ${p}guiaaura ${p}contraatacar_
-_${p}registradora ${p}mostwanted ${p}fantasma ${p}inactivo_${config.contacto ? `
+_${p}ping · ${p}info · ${p}whoami · *${p}help todo* para la lista entera_${config.contacto ? `
 _Contacto: wa.me/${config.contacto}_` : ''}`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });

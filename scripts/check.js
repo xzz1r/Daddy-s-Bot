@@ -4309,12 +4309,16 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
       '*!visto* ya no comprueba isMainOwner: lo podria usar un co-owner o, peor, cualquiera');
     exige(/return;/.test(cuerpo.slice(0, cuerpo.indexOf('\n', cuerpo.indexOf('isMainOwner')) + 2)),
       '*!visto* contesta algo a quien no puede usarlo: cualquier respuesta confirma que el comando existe');
-    // Y AL REVES: TODO LO QUE NO ES OCULTO TIENE QUE SALIR.
+    // Y AL REVES: TODO LO QUE NO ES OCULTO TIENE QUE ESTAR DOCUMENTADO.
     //
     // El menu se escribe a mano y el dispatcher crece solo, asi que se desfasan
-    // sin que nadie lo note: llegaron a faltar 95 comandos de 195. La mitad
-    // eran alias, pero un alias que el bot acepta y el menu no nombra es un
-    // comando que existe y no usa nadie.
+    // sin que nadie lo note: llegaron a faltar 95 comandos de 195.
+    //
+    // PERO NO EN EL MENU CORTO. Meterlos todos ahi dio 89 lineas, y un menu de
+    // 89 lineas no se lee: se cierra. La lista completa vive en *!help todo* y
+    // es ESA la que tiene que estar al dia. El menu corto puede enseñar lo que
+    // quiera; lo que no puede es que un comando no aparezca en NINGUNA de las
+    // dos, porque entonces existe y no lo sabe nadie.
     {
       const zona = src.slice(src.indexOf('switch (command)'));
       const cmds = [...new Set([...zona.matchAll(/^\s*case '([^']+)':/gm)].map((m) => m[1]))];
