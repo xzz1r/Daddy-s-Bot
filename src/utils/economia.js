@@ -1282,6 +1282,41 @@ const REGALO_MIN = 1;
 //
 // No lleva tope a proposito. Mover una fortuna TIENE que ser caro: el tope
 // convertiria el impuesto en calderilla justo en las cantidades donde importa.
+// ─── EL ZULO ────────────────────────────────────────────────────────────────
+//
+// Un sitio donde esconder aura para que NADIE te la pueda robar. Ni !robo, ni
+// !contrarobo, ni el objetivo del día.
+//
+// EXISTE PORQUE FALTABA UNA DECISIÓN. Hasta ahora la única defensa contra el
+// robo era el escudo: 180 de aura, 24 horas, y a comprarlo otra vez. Eso es un
+// gasto, no una elección — o pagas o te roban, y el que puede pagarlo lo paga
+// siempre. El zulo obliga a decidir cada día cuánto dejas a la vista, y esa
+// decisión no se compra: se calcula.
+//
+// Y NO ES UN BANCO, ES UN AGUJERO. Las tres reglas son lo que impide que mate
+// al robo, que es el juego que sostiene medio bot:
+//
+//   · CAPACIDAD. Cabe lo que cabe. El que tiene mucho sigue teniendo mucho a la
+//     vista, así que sigue mereciendo la pena ir a por él.
+//   · COMISIÓN AL SACAR. Esconder aura tiene precio, así que guardarlo todo
+//     "por si acaso" cuesta dinero de verdad. Va por encima del impuesto de las
+//     transferencias a propósito: mover aura es normal, esconderla es un lujo.
+//   · ENFRIAMIENTO AL METER. Sin esto bastaba con enterrarlo TODO en cuanto
+//     alguien te apunta, y el robo se convertía en un juego de reflejos. Con
+//     dos horas, esconderse es una decisión que se toma ANTES, no una huida.
+//
+// El aura enterrada SÍ cuenta para el ranking. Si no contara, todo el mundo
+// enterraría para caerse de *!top* y dejar de ser objetivo del día: el zulo
+// protege tu dinero, no tu reputación.
+const ZULO = {
+  capacidad: 2000,        // un zulo es un agujero, no una cámara acorazada
+  comision: 0.15,         // lo que cuesta desenterrar (el impuesto normal es 0,12)
+  comisionMinima: 1,      // sacar algo siempre cuesta algo
+  minimoEnterrar: 50,     // por debajo de esto no merece la pena ni cavar
+  enfriamientoMs: 2 * 3600000,   // dos horas entre entierro y entierro
+  alBote: 1,              // la comisión entera va al bote: no se destruye aura
+};
+
 const IMPUESTO = {
   porcentaje: 0.12,
   minimo: 1,      // toda transferencia paga al menos esto
@@ -1336,6 +1371,7 @@ function tirar([min, max]) {
 }
 
 module.exports = {
+  ZULO,
   MILLONARIO, ARRANQUE, SUELO_TODOS,
   TIRADA, TIRADA_MIN, TIRADA_MAX, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE,
   PRIMERA_DEL_DIA, HITOS, CONTADOR, DIA,

@@ -12,7 +12,7 @@ const AURA_FILE = path.join(__dirname, '../../data/aura.json');
 // son 100, o sea un 2 %" y las tres cifras se quedaron viejas a la vez en
 // cuanto se reequilibró la economía. Un comentario con números de otro fichero
 // es una copia que nadie actualiza.
-const { ARRANQUE: STARTING_AURA, SUELO_TODOS } = require('./economia');
+const { ARRANQUE: STARTING_AURA, SUELO_TODOS, ZULO } = require('./economia');
 
 // Escalas anteriores, necesarias para reescalar lo que ya está guardado.
 // Cada entrada es el salto DESDE esa versión a la siguiente.
@@ -102,7 +102,7 @@ function migrarEscala() {
 
   let tocados = 0;
   for (const grupo in store) {
-    if (grupo === CLAVE_ESCALA) continue;
+    if (grupo === CLAVE_ESCALA || grupo === CLAVE_ZULO || grupo === CLAVE_ZULO_TS) continue;
     const g = store[grupo];
     if (!g || typeof g !== 'object') continue;
     for (const k in g) {
@@ -139,6 +139,20 @@ function migrarEscala() {
 // subir el suelo, basta con incrementar SUELO_VERSION para que la operación se
 // repita una vez más y solo una.
 const CLAVE_SUELO = '__suelo';
+
+// EL ZULO VIVE AQUI DENTRO, no en un fichero aparte, y es a proposito: mover
+// aura entre el saldo y el escondite tiene que ser UNA sola escritura. Con dos
+// ficheros, un corte entre la una y la otra deja aura duplicada o evaporada, y
+// en esta economia eso es lo unico que no se puede permitir.
+//
+// Va como clave de primer nivel, igual que __escala y __suelo. Las claves de
+// ese nivel son JID de grupo, asi que un nombre con dos barras bajas no puede
+// chocar con ninguno. Aun asi las dos migraciones lo saltan explicitamente: que
+// hoy se salve por el `typeof !== 'number'` de mas abajo es suerte, no diseño.
+const CLAVE_ZULO = '__zulo';
+// Ultimo entierro por persona, para el enfriamiento. Se guarda con el zulo
+// porque es parte de la misma decision.
+const CLAVE_ZULO_TS = '__zulots';
 const SUELO_VERSION = 1;
 
 function aplicarSuelo() {
@@ -147,7 +161,8 @@ function aplicarSuelo() {
 
   let subidos = 0;
   for (const grupo in store) {
-    if (grupo === CLAVE_ESCALA || grupo === CLAVE_SUELO) continue;
+    if (grupo === CLAVE_ESCALA || grupo === CLAVE_SUELO
+        || grupo === CLAVE_ZULO || grupo === CLAVE_ZULO_TS) continue;
     const g = store[grupo];
     if (!g || typeof g !== 'object') continue;
     for (const k in g) {
@@ -333,6 +348,114 @@ async function spendAura(groupJid, userJid, amount, minimo = 0) {
   });
 }
 
+// ─── EL ZULO ────────────────────────────────────────────────────────────────
+//
+// Aura escondida. No se puede robar, no se puede apostar y no se puede gastar:
+// para usarla hay que desenterrarla, y eso cuesta.
+//
+// Se guarda por la MISMA clave canonica que el saldo, asi que hereda el
+// arreglo del LID: quien acumulo bajo su @lid y luego se supo su telefono no
+// acaba con dos escondites.
+
+function zuloDe(groupJid) {
+  if (!store[CLAVE_ZULO]) store[CLAVE_ZULO] = {};
+  if (!store[CLAVE_ZULO][groupJid]) store[CLAVE_ZULO][groupJid] = {};
+  return store[CLAVE_ZULO][groupJid];
+}
+
+function tsDe(groupJid) {
+  if (!store[CLAVE_ZULO_TS]) store[CLAVE_ZULO_TS] = {};
+  if (!store[CLAVE_ZULO_TS][groupJid]) store[CLAVE_ZULO_TS][groupJid] = {};
+  return store[CLAVE_ZULO_TS][groupJid];
+}
+
+// Cuanto tiene enterrado. Colapsa las formas por si quedo algo bajo un @lid.
+async function verZulo(groupJid, userJid) {
+  await load();
+  const z = zuloDe(groupJid);
+  const key = foldPerson(z, userJid);
+  return z[key] || 0;
+}
+
+// Cuanto falta para poder volver a enterrar. 0 = ya puede.
+async function esperaZulo(groupJid, userJid) {
+  await load();
+  const t = tsDe(groupJid)[canonicalJid(userJid)] || 0;
+  return Math.max(0, ZULO.enfriamientoMs - (Date.now() - t));
+}
+
+// ENTERRAR. Saldo -> zulo. Atomico: las dos mitades dentro del mismo bloque
+// serializado, porque un corte entre ellas duplicaria o evaporaria aura.
+async function enterrar(groupJid, userJid, cuanto) {
+  await load();
+  const qKey = `${groupJid}|${canonicalJid(userJid)}`;
+  return serialized(qKey, () => {
+    const n = Math.floor(cuanto);
+    if (!(n >= ZULO.minimoEnterrar)) return { ok: false, motivo: 'minimo' };
+
+    const ts = tsDe(groupJid);
+    const kTs = canonicalJid(userJid);
+    const espera = ZULO.enfriamientoMs - (Date.now() - (ts[kTs] || 0));
+    if (espera > 0) return { ok: false, motivo: 'enfriamiento', espera };
+
+    const z = zuloDe(groupJid);
+    const kZ = foldPerson(z, userJid);
+    const dentro = z[kZ] || 0;
+    const hueco = ZULO.capacidad - dentro;
+    if (hueco <= 0) return { ok: false, motivo: 'lleno', dentro };
+
+    if (!store[groupJid]) store[groupJid] = {};
+    const kA = foldPerson(store[groupJid], userJid);
+    const saldo = store[groupJid][kA] === undefined ? STARTING_AURA : store[groupJid][kA];
+
+    // Lo que de verdad se entierra: ni mas de lo que cabe, ni mas de lo que hay.
+    const real = Math.min(n, hueco, saldo);
+    if (real < ZULO.minimoEnterrar) {
+      return saldo < ZULO.minimoEnterrar
+        ? { ok: false, motivo: 'sinsaldo', saldo }
+        : { ok: false, motivo: 'lleno', dentro };
+    }
+
+    store[groupJid][kA] = saldo - real;
+    z[kZ] = dentro + real;
+    ts[kTs] = Date.now();
+    scheduleSave();
+    return { ok: true, enterrado: real, dentro: z[kZ], saldo: store[groupJid][kA], hueco: ZULO.capacidad - z[kZ] };
+  });
+}
+
+// DESENTERRAR. Zulo -> saldo, menos comision. Igual de atomico.
+async function desenterrar(groupJid, userJid, cuanto) {
+  await load();
+  const qKey = `${groupJid}|${canonicalJid(userJid)}`;
+  return serialized(qKey, () => {
+    const z = zuloDe(groupJid);
+    const kZ = foldPerson(z, userJid);
+    const dentro = z[kZ] || 0;
+    if (dentro <= 0) return { ok: false, motivo: 'vacio' };
+
+    const pedido = Math.floor(cuanto);
+    if (!(pedido > 0)) return { ok: false, motivo: 'cantidad' };
+
+    // Se saca lo que se pida o lo que haya, lo que sea menor: pedir de mas no
+    // es un error del que teclea, es que ya no se acuerda de cuanto guardo.
+    const sacado = Math.min(pedido, dentro);
+    const comision = Math.max(ZULO.comisionMinima, Math.round(sacado * ZULO.comision));
+    const neto = sacado - comision;
+    if (neto <= 0) return { ok: false, motivo: 'migaja', sacado, comision };
+
+    if (!store[groupJid]) store[groupJid] = {};
+    const kA = foldPerson(store[groupJid], userJid);
+    const saldo = store[groupJid][kA] === undefined ? STARTING_AURA : store[groupJid][kA];
+
+    z[kZ] = dentro - sacado;
+    if (z[kZ] === 0) delete z[kZ];
+    store[groupJid][kA] = saldo + neto;
+    scheduleSave();
+    return { ok: true, sacado, comision, neto, dentro: z[kZ] || 0, saldo: store[groupJid][kA] };
+  });
+}
+
 async function getAuraRanking(groupJid) {
   await load();
   const g = store[groupJid];
@@ -364,6 +487,24 @@ async function getAuraRanking(groupJid) {
     prev.extras++;
     if (!rep.endsWith('@lid')) prev.jid = rep; // el teléfono es el que se puede mencionar
   }
+  // LO ENTERRADO CUENTA PARA EL RANKING, y esa es la mitad del diseño del zulo.
+  //
+  // Si no contara, esconder aura serviria para dos cosas a la vez: dejar de ser
+  // robable Y caerse de *!top*. Y caerse del top es caerse de la lista de la
+  // que sale el objetivo del dia, asi que todo el mundo enterraria por sistema
+  // y el juego se apagaria solo.
+  //
+  // Contandolo, el zulo protege tu DINERO y no tu reputacion: sigues siendo el
+  // mas rico del grupo, con una diana igual de grande, solo que lo que tienes
+  // guardado no te lo pueden tocar.
+  const escondido = store[CLAVE_ZULO]?.[groupJid] || {};
+  for (const k in escondido) {
+    const id = canonicalJid(k);
+    const prev = por.get(id);
+    if (prev) prev.aura += escondido[k];
+    else por.set(id, { jid: id.endsWith('@lid') ? k : id, aura: STARTING_AURA + escondido[k], extras: 0 });
+  }
+
   return [...por.values()]
     .map(({ jid, aura, extras }) => ({ jid, aura: aura - STARTING_AURA * extras }))
     // Fuera los que estan a cero o en rojo. Un top es de los que van ganando;
@@ -409,4 +550,5 @@ async function flushAura() {
   await saver.flush();
 }
 
-module.exports = { getAura, addAura, spendAura, drainAura, transferAura, getAuraRanking, resetAura, flushAura, STARTING_AURA };
+module.exports = { getAura, addAura, spendAura, drainAura, transferAura, getAuraRanking, resetAura, flushAura, STARTING_AURA,
+  verZulo, esperaZulo, enterrar, desenterrar };

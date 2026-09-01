@@ -4634,6 +4634,89 @@ console.log(JSON.stringify({
     if (fallos === antes) console.log(verde('   ✓ sin voseo y sin frases pegadas en todo el codigo'));
   }
 
+  // ── 33c. EL ZULO NO PUEDE CREAR NI DESTRUIR AURA ─────────────────────────
+  //
+  // Es la unica pieza del bot que MUEVE aura entre dos sitios, y por eso es la
+  // unica que puede duplicarla o evaporarla. Un fallo aqui no da error: da un
+  // ranking que no cuadra, y eso no se ve hasta que alguien suma a mano.
+  //
+  // Se comprueba EJECUTANDO el almacen de verdad, no leyendo el fuente. Cuatro
+  // cosas, y las cuatro son la razon de que el zulo exista:
+  //
+  //   1. lo enterrado sobrevive a un robo que se lo lleva TODO;
+  //   2. la suma visible+enterrado solo baja por la comision, ni un aura mas;
+  //   3. el agujero tiene fondo (si no, nadie volveria a ser robable);
+  //   4. y no se puede enterrar dos veces seguidas, que es lo que convertiria
+  //      el robo en un juego de reflejos.
+  {
+    console.log('\n33c. EL ZULO NO CREA NI DESTRUYE AURA');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { ARRANQUE: ARRANQUE_AURA } = require(path.join(R, 'src/utils/economia'));
+    const dirZ = fs.mkdtempSync(path.join(os.tmpdir(), 'zulo-'));
+    try {
+      const guion = path.join(dirZ, 'z.js');
+      fs.writeFileSync(guion, `
+const fs=require('fs'),os=require('os'),path=require('path');
+const ROOT=fs.mkdtempSync(path.join(os.tmpdir(),'zl-'));
+fs.cpSync(${JSON.stringify(path.join(R, 'src'))},path.join(ROOT,'src'),{recursive:true});
+fs.mkdirSync(path.join(ROOT,'data'));
+try{fs.symlinkSync(${JSON.stringify(path.join(R, 'node_modules'))},path.join(ROOT,'node_modules'),'dir');}catch{}
+const a=require(path.join(ROOT,'src/utils/auraStore'));
+const {ZULO}=require(path.join(ROOT,'src/utils/economia'));
+const G='120@g.us', V='34622222222@s.whatsapp.net';
+(async()=>{
+  await a.addAura(G,V,4000);
+  const total=async()=>(await a.getAura(G,V))+(await a.verZulo(G,V));
+  const t0=await total();
+  // 3) el agujero tiene fondo: se pide mas de lo que cabe
+  const e=await a.enterrar(G,V,ZULO.capacidad+5000);
+  const trasEnterrar=await total();
+  // 4) segundo entierro seguido
+  const e2=await a.enterrar(G,V,100);
+  // 1) el ladron se lo lleva TODO lo visible
+  await a.drainAura(G,V,999999);
+  const zuloTrasRobo=await a.verZulo(G,V);
+  // 2) conservacion al sacar
+  const antesSacar=await total();
+  const d=await a.desenterrar(G,V,500);
+  const despuesSacar=await total();
+  console.log(JSON.stringify({
+    t0, trasEnterrar, enterrado:e.enterrado, cap:ZULO.capacidad,
+    segundo:e2.ok, motivo2:e2.motivo, zuloTrasRobo,
+    antesSacar, despuesSacar, comision:d.comision,
+  }));
+})();
+`);
+      const r = JSON.parse(execSync(`node ${guion}`, { encoding: 'utf8', timeout: 60000 }).trim().split('\n').pop());
+      exige(r.trasEnterrar === r.t0,
+        `enterrar cambio el total: ${r.t0} -> ${r.trasEnterrar}. El zulo esta creando o destruyendo aura`);
+      // EL TOPE SE MIDE CONTRA ALGO DE FUERA, no contra si mismo. Escribi
+      // `enterrado <= capacidad` y la guarda pasaba en verde con la capacidad
+      // puesta en cien millones: comparaba la constante consigo misma. El limite
+      // tiene que ser absoluto, porque lo que protege es que al mas rico del
+      // grupo le siga quedando algo fuera que merezca la pena robar.
+      const TOPE_ZULO = 20 * ARRANQUE_AURA;
+      exige(r.cap > 0 && r.cap <= TOPE_ZULO,
+        `el zulo admite ${r.cap} (el limite razonable son ${TOPE_ZULO}, veinte veces el arranque): con un agujero asi nadie vuelve a ser robable`);
+      exige(r.enterrado <= r.cap,
+        `se han enterrado ${r.enterrado} con una capacidad de ${r.cap}: el tope no se esta aplicando`);
+      exige(r.segundo === false && r.motivo2 === 'enfriamiento',
+        'se puede enterrar dos veces seguidas: esconderse a la carrera vuelve a ser gratis y el robo pasa a ser un juego de reflejos');
+      exige(r.zuloTrasRobo === r.enterrado,
+        `el robo se ha llevado lo enterrado (quedaban ${r.zuloTrasRobo} de ${r.enterrado}): el zulo no sirve para nada`);
+      exige(r.despuesSacar === r.antesSacar - r.comision,
+        `desenterrar descuadra: ${r.antesSacar} - ${r.comision} deberia dar ${r.antesSacar - r.comision} y da ${r.despuesSacar}`);
+      exige(r.comision > 0,
+        'desenterrar ha dejado de costar: sin comision, esconderlo todo siempre es la jugada correcta y el robo se apaga');
+    } catch (e) {
+      exige(false, `no pude probar el zulo: ${String(e.message).split('\n')[0]}`);
+    } finally {
+      fs.rmSync(dirZ, { recursive: true, force: true });
+    }
+    if (fallos === antes) console.log(verde('   ✓ el aura se conserva, el agujero tiene fondo y el robo no lo alcanza'));
+  }
+
   // ── 33b. LOS RANKINGS MENCIONAN A UNA PERSONA, NO A UN NUMERO INTERNO ────
   //
   // PASO, Y SOLO EN UNO DE LOS DOS ALMACENES. messageCounter lo corrigio en su

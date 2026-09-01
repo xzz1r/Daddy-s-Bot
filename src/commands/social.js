@@ -328,6 +328,8 @@ _Gratis: no cobran, pero mueven tu saldo._
 *${p}dar* @user <cant.> · *${p}tienda* · *${p}comprar* <objeto>
 *${p}bote* · *${p}caja* — lo que hay en el pozo y en la tienda
 *${p}asalto* · *${p}atraco* — reventarlos: es contra la casa, no contra nadie
+*${p}zulo* — lo que tienes escondido. *${p}enterrar* / *${p}desenterrar* para moverlo
+_Lo enterrado no te lo puede robar nadie, pero sacarlo cuesta._
 *${p}guia* — cómo funciona todo esto
 
 ━━━━━ *ACTIVIDAD* ━━━━━

@@ -42,6 +42,7 @@ const CONTRATO = {
   'src/utils/auraCobro.js':        { permite: [],                              sustituye: '(no usa placeholders)' },
   'src/data/fidelityPhrases.js':   { permite: ['[nombre]'],                    sustituye: 'src/commands/percent.js' },
   'src/data/apuestaPhrases.js':    { permite: ['%A', '%C', '%S'],              sustituye: 'src/commands/aura.js' },
+  'src/data/zuloPhrases.js':       { permite: ['%N', '%C', '%Z', '%S'],       sustituye: 'src/commands/zulo.js' },
   'src/data/cooldownPhrases.js':   { permite: [],                              sustituye: '(no usa placeholders)' },
   'src/data/rachaPhrases.js':      { permite: ['%N', '%P', '%D'],              sustituye: 'src/utils/casino.js' },
   'src/data/roboExtraPhrases.js':  { permite: ['%A', '%C', '%N', '%V', '%H'],  sustituye: 'src/commands/robo.js' },

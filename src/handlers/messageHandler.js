@@ -73,6 +73,7 @@ const cmdAura = lazyCmd('../commands/aura', 'cmdAura');
 const { resetAura } = require('../utils/auraStore');
 const { cmdMog } = require('../commands/mog');
 const cmdRobo = lazyCmd('../commands/robo', 'cmdRobo');
+const cmdZulo = lazyCmd('../commands/zulo', 'cmdZulo');
 const { cmdDuel } = require('../commands/duel');
 const { cmdScan } = require('../commands/scan');
 const { cmdAntiFoto } = require('../commands/cleanup');
@@ -193,6 +194,9 @@ const NEEDS_META = new Set([
   'hoy','saldo','miaura',
   'tienda','shop','comprar','bote',
   'asalto','asaltar',
+  // El zulo mueve saldo y vive en la misma familia que el robo: entra por lo
+  // mismo que sus hermanos.
+  'zulo','enterrar','desenterrar','escondite',
   'regalar','transferir','pagar','dar','donar',
   'ayuda','help','menu','commands',
 ]);
@@ -319,6 +323,8 @@ const CMDS_AURA = new Set([
   'asalto', 'asaltar',
   'atraco', 'atracar',
   'contrarobo', 'contraataque', 'contraatacar', 'vengarse',
+  // Enterrar y desenterrar mueven saldo: con la economia apagada, no.
+  'enterrar', 'desenterrar',
 ]);
 
 // Los que cuelgan de los mismos comandos y SOLO LEEN. Se listan aparte, y no
@@ -332,6 +338,10 @@ const SOLO_CONSULTA = new Set([
   'bote', 'caja', 'registradora',
   'buscados', 'wanted', 'mostwanted', 'recompensas', 'cartel',
   'tienda', 'shop', 'comprar',
+  // *!zulo* a secas solo mira lo que hay enterrado. Es el mismo caso que
+  // *!bote* o *!caja*: apagar el juego no puede dejar el marcador a oscuras.
+  // Sus dos verbos SI estan tapados, arriba.
+  'zulo', 'escondite',
 ]);
 
 // Comandos que TRABAJAN sobre la foto o el vídeo que llevan adjunto. La guarda
@@ -2334,6 +2344,19 @@ async function handleMessage(sock, msg) {
       case 'vengarse':
         await cmdRobo(sock, msg, ['contra', ...args], groupMeta);
         break;
+      // EL ZULO. Los verbos tienen nombre propio porque nadie escribe
+      // "!zulo enterrar" cuando lo que piensa es "enterrar".
+      case 'zulo':
+      case 'escondite':
+        await cmdZulo(sock, msg, args, groupMeta);
+        break;
+      case 'enterrar':
+        await cmdZulo(sock, msg, ['enterrar', ...args], groupMeta);
+        break;
+      case 'desenterrar':
+        await cmdZulo(sock, msg, ['desenterrar', ...args], groupMeta);
+        break;
+
       case 'asalto':
       case 'asaltar':
         await cmdRobo(sock, msg, ['asalto', ...args], groupMeta);
