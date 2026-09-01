@@ -3036,10 +3036,16 @@ async function capaStores() {
     exige(/rand < OWNER_SOSO\) return suaveMalo\(\)/.test(pct) && /rand < OWNER_SOSO\) return suave\(\)/.test(pct),
       'las dos ramas del owner volvieron a llevar el reparto a pelo: se desincronizan al primer ajuste');
     {
-      const cuerpo = pct.slice(pct.indexOf('function rollPercent'), pct.indexOf('\n}\n', pct.indexOf('function rollPercent')) + 2);
-      const consts = pct.match(/const OWNER_SOSO\s*=\s*([\d.]+);[\s\S]*?const OWNER_BUENO\s*=\s*([\d.]+);/);
-      // eslint-disable-next-line no-eval
-      const rollPercent = eval(`(() => { const OWNER_SOSO=${consts?.[1]}, OWNER_BUENO=${consts?.[2]}; ${cuerpo} return rollPercent; })()`);
+      // SE EJECUTA LA FUNCION DE VERDAD, no una copia recortada del fuente.
+      //
+      // Antes se cogia el texto de rollPercent con un slice y se pasaba por
+      // eval() inyectandole las dos constantes del owner a mano. Funcionaba
+      // mientras la funcion no dependiera de nada mas; en cuanto el reparto por
+      // rol paso a salir de una tabla —para que el motor y `npm run progreso`
+      // no tuvieran dos copias—, el eval reventaba con "TRAMO_ALTO is not
+      // defined". Una guarda que se rompe al reordenar el fichero que vigila no
+      // estaba vigilando el comportamiento, estaba vigilando la forma del texto.
+      const { rollPercent } = require(path.join(R, 'src/commands/percent'));
       const N = 40000;
       const medir = (good, own) => {
         let suma = 0, mal = 0;
@@ -4380,6 +4386,154 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     exige(nodeMin >= 22,
       `package.json dice engines.node ${pkg.engines?.node} y el repo trae scripts/node22.sh: uno de los dos miente`);
     if (fallos === antes) console.log(verde(`   ✓ .env.example cuadra con las ${usadas.size} variables que lee el codigo`));
+  }
+
+  // ── 29c. LA GUIA NO MIENTE ────────────────────────────────────────────────
+  //
+  // GUIA.md es lo que lee quien escribe las frases: le dice que tramo se lee
+  // mas, cuantas frases escribir en cada uno y que placeholders puede usar. Es
+  // documentacion que MANDA TRABAJO, y por eso envejecer le sale caro — no da
+  // un error, hace que alguien escriba doscientas frases donde no se leen.
+  //
+  // Ya paso dos veces con el mismo numero. El reparto de los positivos cambio
+  // de 17/31/52 a 6/18/76 en el motor, y ni la guia ni `npm run progreso` se
+  // enteraron: la guia siguio pidiendo frases para el tramo equivocado y el
+  // medidor siguio dando por bueno el pool que mas se lee. Tambien cito durante
+  // meses cuatro duplicados que ya no existian y un fichero de 6.000 lineas que
+  // ya estaba partido en dos.
+  //
+  // Aqui se compara lo que la guia PROMETE con lo que el codigo HACE. Todo lo
+  // que se comprueba es un numero o un nombre, nunca una redaccion: la guia
+  // puede reescribirse entera mientras las cifras cuadren.
+  {
+    console.log('\n29c. LA GUIA NO MIENTE');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const guia = fs.readFileSync(path.join(R, 'GUIA.md'), 'utf8');
+    const pct = require(path.join(R, 'src/commands/percent'));
+
+    // 1) NINGUN COMANDO FANTASMA. Un `!algo` que ya no existe manda a escribir
+    //    frases para un pool muerto. '!comando' es el generico de los ejemplos.
+    {
+      const mhSrc = fs.readFileSync(path.join(R, "src/handlers/messageHandler.js"), "utf8");
+      const zona = mhSrc.slice(mhSrc.indexOf("switch (command)"));
+      const casos = new Set([...zona.matchAll(/^\s*case '([^']+)':/gm)].map((m) => m[1]));
+      const fantasmas = [...new Set([...guia.matchAll(/!([a-zá-úñ0-9]+)/g)].map((m) => m[1]))]
+        .filter((c) => c !== 'comando' && !casos.has(c));
+      exige(fantasmas.length === 0,
+        `la guia nombra ${fantasmas.length} comando(s) que el bot ya no acepta: ${fantasmas.join(', ')}`);
+    }
+
+    // 2) LA POLARIDAD DE CADA COMANDO. La guia la llama "el error numero uno al
+    //    escribir contenido": una frase brutal en el pool `low` de !fea sale
+    //    como "eres 5% fea: [insulto]". Si la tabla de la guia se desfasa, ese
+    //    error deja de ser evitable leyendo la guia.
+    {
+      const LAB = require(path.join(R, 'src/data/percentLabels'));
+      const claves = Object.keys(LAB).filter((k) => LAB[k] && typeof LAB[k].goodIsHigh === 'boolean');
+      const realBuenoAlto = claves.filter((k) => LAB[k].goodIsHigh).sort();
+      const realBuenoBajo = claves.filter((k) => !LAB[k].goodIsHigh).sort();
+      const fila = guia.match(/\| (incel[^|]*)\| ([^|]*)\|/);
+      if (!fila) {
+        exige(false, 'la guia ya no trae la tabla de goodIsHigh: es lo primero que hay que mirar antes de escribir un pool');
+      } else {
+        const leer = (c) => c.split(',').map((x) => x.trim()).filter(Boolean).sort();
+        exige(leer(fila[1]).join(' ') === realBuenoBajo.join(' '),
+          `la guia lista mal los comandos donde ALTO es la paliza. Sobran o faltan: ${
+            [...leer(fila[1]).filter((x) => !realBuenoBajo.includes(x)),
+              ...realBuenoBajo.filter((x) => !leer(fila[1]).includes(x))].join(', ') || '(orden distinto)'}`);
+        exige(leer(fila[2]).join(' ') === realBuenoAlto.join(' '),
+          `la guia lista mal los comandos donde ALTO es el halago. Sobran o faltan: ${
+            [...leer(fila[2]).filter((x) => !realBuenoAlto.includes(x)),
+              ...realBuenoAlto.filter((x) => !leer(fila[2]).includes(x))].join(', ') || '(orden distinto)'}`);
+      }
+    }
+
+    // 3) LA TABLA DE REPARTO. Es la que decide donde va el trabajo de contenido.
+    for (const [pol, fila] of [['Negativo', 'negativo'], ['Positivo', 'positivo']]) {
+      for (const [quien, clave] of [['miembro', 'miembro'], ['admin', 'admin']]) {
+        const rx = new RegExp(`\\*\\*${pol}\\*\\*[^|]*${quien}[^|]*\\|([^|]*)\\|([^|]*)\\|([^|]*)\\|`);
+        const m = guia.match(rx);
+        if (!m) { exige(false, `la guia ya no trae la fila "${pol} -> ${quien}" de la tabla de reparto`); continue; }
+        const dice = m.slice(1, 4).map((c) => Number(String(c).replace(/[^0-9]/g, '')));
+        const real = pct.DISTRIBUCION[fila][clave];
+        const esperado = [real.high, real.mid, real.low].map((x) => Math.round(x * 100));
+        exige(dice.join('/') === esperado.join('/'),
+          `la guia dice que ${pol.toLowerCase()} -> ${quien} reparte ${dice.join('/')} y el motor reparte ${esperado.join('/')}`);
+      }
+    }
+
+    // 4) LAS FRONTERAS DE LOS TRAMOS Y EL REPARTO DEL OWNER.
+    exige(guia.includes(`high (≥${pct.TRAMO_ALTO})`) && guia.includes(`low (≤${pct.TRAMO_BAJO})`),
+      `la guia no dice las fronteras que usa el motor (alto ≥${pct.TRAMO_ALTO}, bajo ≤${pct.TRAMO_BAJO})`);
+    {
+      const soso = Math.round(pct.OWNER_SOSO * 100);
+      const bueno = Math.round(pct.OWNER_BUENO * 100);
+      const mal = 100 - soso - bueno;
+      const m = guia.match(/\*\*(\d+) % banda sosa · (\d+) %[^·]*· (\d+) %/);
+      exige(m && Number(m[1]) === soso && Number(m[2]) === bueno && Number(m[3]) === mal,
+        `la guia cuenta el amaño del dueño como ${m ? m.slice(1, 4).join('/') : '(no lo cuenta)'} y el codigo lo reparte ${soso}/${bueno}/${mal}`);
+    }
+
+    // 5) LOS COMANDOS QUE MANDA EJECUTAR TIENEN QUE EXISTIR.
+    {
+      const scripts = require(path.join(R, 'package.json')).scripts || {};
+      for (const m of guia.matchAll(/npm run ([a-z0-9-]+)/g)) {
+        exige(!!scripts[m[1]], `la guia manda ejecutar \`npm run ${m[1]}\` y package.json no lo tiene`);
+      }
+    }
+
+    // 6) LA TABLA DE PLACEHOLDERS. En los dos sentidos: ni ficheros que ya no
+    //    estan en el contrato, ni ficheros del contrato que la guia se calla.
+    {
+      const ph = fs.readFileSync(path.join(R, 'scripts/placeholders.js'), 'utf8');
+      const bloque = ph.slice(ph.indexOf('const CONTRATO = {'), ph.indexOf('\n};', ph.indexOf('const CONTRATO = {')));
+      const contrato = [...bloque.matchAll(/'([^']+\.js)':\s*\{\s*permite:\s*\[(.*?)\],\s*sustituye/g)]
+        .map((m) => ({
+          base: m[1].split('/').pop(),
+          permite: [...m[2].matchAll(/'([^']+)'/g)].map((x) => x[1]),
+        }));
+      const seccion = guia.slice(guia.indexOf('## 8.'), guia.indexOf('## 9.'));
+      for (const f of contrato) {
+        exige(seccion.includes(f.base),
+          `${f.base} tiene contrato de placeholders y la guia no lo nombra: quien escriba ahi no sabe que puede usar`);
+      }
+      const conocidos = new Map(contrato.map((f) => [f.base, f.permite]));
+      for (const m of seccion.matchAll(/`([a-zA-Z]+\.js)`/g)) {
+        exige(conocidos.has(m[1]), `la guia da placeholders para ${m[1]} y ese fichero no esta en el contrato`);
+      }
+      // Y FILA POR FILA, LOS PLACEHOLDERS EN SI. Que el fichero este nombrado no
+      // sirve de nada si al lado pone un hueco que su consumidor no sustituye:
+      // eso es exactamente el fallo de *!maricon* —292 frases con %N donde solo
+      // valia [nombre]— que dio origen al validador. La guia lo estaba repitiendo
+      // en pequeño: prometia `[nombre]` en iq.js, que solo acepta %IQ.
+      for (const linea of seccion.split('\n')) {
+        if (!linea.startsWith('|') || !linea.includes('`')) continue;
+        const col = linea.split('|').filter((c) => c.trim());
+        if (col.length < 2) continue;
+        const ficheros = [...col[0].matchAll(/`([a-zA-Z]+\.js)`/g)].map((m) => m[1]).filter((f) => conocidos.has(f));
+        if (!ficheros.length) continue;
+        const dice = [...new Set([...col[1].matchAll(/`(%[A-Z]+|\[nombre\]|\{N\})`/g)].map((m) => m[1]))].sort();
+        for (const f of ficheros) {
+          const real = [...conocidos.get(f)].sort();
+          exige(dice.join(' ') === real.join(' '),
+            `la guia dice que en ${f} se puede usar [${dice.join(' ') || 'nada'}] y el contrato permite [${real.join(' ') || 'nada'}]`);
+        }
+      }
+    }
+
+    // 7) LA VENTANA ANTI-REPETICION, que es de donde salen los topes de pool.
+    {
+      const h = soloCodigo('src/utils/helpers.js');
+      const ventana = h.match(/function pickFresh\(pool, key, window = (\d+)\)/);
+      const trozo = h.match(/pool\.length \* (0?\.\d+)/);
+      const dicho = guia.match(/no se repite hasta que han salido \*{0,2}otras (\d+)/);
+      exige(ventana && dicho && dicho[1] === ventana[1],
+        `la guia no dice la ventana real (${ventana ? ventana[1] : '?'} frases)`);
+      exige(trozo && guia.includes(`**${Math.round(Number(trozo[1]) * 100)} % del pool**`),
+        `la guia no dice el tope real de bloqueo (${trozo ? Math.round(Number(trozo[1]) * 100) : '?'} %)`);
+    }
+    if (fallos === antes) console.log(verde('   ✓ la guia dice los mismos numeros y los mismos nombres que el codigo'));
   }
 
   // ── 30c. LOS COMANDOS OCULTOS SIGUEN OCULTOS ─────────────────────────────

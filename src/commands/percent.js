@@ -6,8 +6,11 @@ const { SIN_SERVICIO } = require('../utils/auraCobro');
 // Es un rango y no un número fijo a propósito: un 0% (o un 100%) clavado en
 // cada tirada canta que hay amaño y delata al dueño. Variando dentro de la
 // franja el resultado sigue siendo siempre favorable, pero parece azar.
-// La polaridad se define por comando (no basta con goodIsHigh: la "feminidad"
-// es positiva pero para el owner debe salir baja, como el chiste recurrente).
+// Este mapa ya solo lo usan !fiel e !infiel (ver OWNER_FORCE, mas abajo). El
+// resto pasa por la curva de rollPercent, que tiene sus propias bandas para el
+// dueño: aqui decia que a la "feminidad" le salia baja a proposito y eso dejo de
+// ser verdad el dia que se quito del mapa — hoy es un comando positivo y al
+// dueño le sale ALTA, media 69 sobre 200.000 tiradas.
 const OWNER_LOW  = [3, 30];   // peyorativos: siempre bajo, tope 30 (tier low ≤30), nunca 0 pelado
 // Cada cuanto se le aplica el amaño al dueño en fiel/infiel. El resto de veces
 // se queda la tirada uniforme, que es el contrato de esos dos comandos.
@@ -76,11 +79,39 @@ function rollRange([min, max]) {
 // OWNER_SOSO/OWNER_BUENO para que no haya cifras sueltas aqui que se queden
 // viejas al primer ajuste. Hoy: 42 % banda sosa, 50 % la franja que le
 // favorece, 8 % fallo real como cualquiera.
+// LA TABLA DE ARRIBA, PERO EJECUTABLE.
+//
+// Estaba escrita dos veces: el comentario con los porcentajes y, mas abajo,
+// cuatro parejas de numeros sueltos (0.87/0.96, 0.86/0.95…) que eran los que
+// mandaban de verdad. Cuando el reparto de los positivos cambio de 17/31/52 a
+// 6/18/76 se movieron los numeros y no el comentario, y `npm run progreso` —que
+// tenia una TERCERA copia— siguio repartiendo el trabajo de contenido segun la
+// tabla vieja durante semanas: mandaba escribir para el tramo equivocado.
+//
+// Ahora hay una sola copia, se exporta, y la lee todo el que la necesite.
+const DISTRIBUCION = {
+  // peyorativos (goodIsHigh:false): al grupo le sale ALTO, que es la paliza
+  negativo: { miembro: { high: 0.87, mid: 0.09, low: 0.04 },
+    admin: { high: 0.86, mid: 0.09, low: 0.05 } },
+  // favorables (goodIsHigh:true): al grupo le sale BAJO, que es la paliza
+  positivo: { miembro: { high: 0.06, mid: 0.18, low: 0.76 },
+    admin: { high: 0.07, mid: 0.19, low: 0.74 } },
+};
+
+// Las fronteras de los tramos. 70 es high y 30 es low: cerradas, sin huecos.
+const TRAMO_ALTO = 70;
+const TRAMO_BAJO = 30;
+const tramoDe = (p) => (p >= TRAMO_ALTO ? 'high' : p <= TRAMO_BAJO ? 'low' : 'mid');
+
 function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
   const rand = Math.random();
-  const hi = () => 70 + Math.floor(Math.random() * 31);
-  const mid = () => 31 + Math.floor(Math.random() * 39);
-  const lo = () => Math.floor(Math.random() * 31);
+  const hi = () => TRAMO_ALTO + Math.floor(Math.random() * (101 - TRAMO_ALTO));
+  const mid = () => TRAMO_BAJO + 1 + Math.floor(Math.random() * (TRAMO_ALTO - TRAMO_BAJO - 1));
+  const lo = () => Math.floor(Math.random() * (TRAMO_BAJO + 1));
+  // Reparte segun la fila que toque: primero el tramo mas probable de esa fila,
+  // luego el medio, y lo que queda es el tercero.
+  const reparte = (d, primero, segundo, tercero) => (rand < d[primero] ? 1
+    : rand < d[primero] + d[segundo] ? 2 : 3);
 
   // ─── La banda del owner ────────────────────────────────────────────────────
   //
@@ -116,14 +147,9 @@ function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
       if (rand < OWNER_SOSO + OWNER_BUENO) return lo();
       return hi();
     }
-    if (targetIsAdmin) {
-      if (rand < 0.86) return hi();
-      if (rand < 0.95) return mid();
-      return lo();
-    }
-    if (rand < 0.87) return hi();
-    if (rand < 0.96) return mid();
-    return lo();
+    const d = DISTRIBUCION.negativo[targetIsAdmin ? 'admin' : 'miembro'];
+    const cual = reparte(d, 'high', 'mid', 'low');
+    return cual === 1 ? hi() : cual === 2 ? mid() : lo();
   } else {
     // Positivos: el grupo saca BAJO. Misma idea al reves.
     if (targetIsOwner) {
@@ -131,14 +157,9 @@ function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
       if (rand < OWNER_SOSO + OWNER_BUENO) return hi();
       return lo();
     }
-    if (targetIsAdmin) {
-      if (rand < 0.07) return hi();
-      if (rand < 0.26) return mid();
-      return lo();
-    }
-    if (rand < 0.06) return hi();
-    if (rand < 0.24) return mid();
-    return lo();
+    const d = DISTRIBUCION.positivo[targetIsAdmin ? 'admin' : 'miembro'];
+    const cual = reparte(d, 'high', 'mid', 'low');
+    return cual === 1 ? hi() : cual === 2 ? mid() : lo();
   }
 }
 
@@ -183,13 +204,13 @@ async function runPercent(sock, msg, key, groupMeta) {
     if (Math.random() < OWNER_AMANYO) percent = rollRange(OWNER_FORCE[key]);
   }
 
-  const tier = percent >= 70 ? 'high' : percent <= 30 ? 'low' : 'mid';
+  const tier = tramoDe(percent);
   const nm = `@${target.split('@')[0]}`;
   // Algunos rasgos (perdedor/ganador) traen [nombre] embebido en la frase; el
   // resto no lo usa, así que el replace es un no-op para ellos.
   const verdict = String(pickFresh(cfg[tier], `${jid}|${key}|${tier}`) || '').replace(/\[nombre\]/g, nm);
   if (!verdict) return SIN_SERVICIO;
-  const showExtreme = cfg.goodIsHigh && percent >= 70 && cfg.extreme?.length;
+  const showExtreme = cfg.goodIsHigh && percent >= TRAMO_ALTO && cfg.extreme?.length;
 
   const text =
     `*${nm} es ${percent}% ${cfg.name}*\n\n` +
@@ -207,6 +228,10 @@ module.exports = {
   // salian porcentajes altisimos: en una uniforme, tres de cada diez tiradas
   // pasan de 70. El sesgo del bot no es un detalle estetico, es la regla.
   rollPercent,
+  // La tabla y las fronteras se exportan para que nadie tenga una segunda copia:
+  // las lee `npm run progreso` para repartir el trabajo de contenido y las lee
+  // `npm run check` para comprobar que la guia no promete otra cosa.
+  DISTRIBUCION, TRAMO_ALTO, TRAMO_BAJO, OWNER_SOSO, OWNER_BUENO,
   cmdIncel:         makeCmd('incel'),
   cmdLinda:         makeCmd('linda'),
   cmdFea:           makeCmd('fea'),

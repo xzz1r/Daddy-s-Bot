@@ -6,9 +6,12 @@
 // y permite comparaciones que un porcentaje no da: un 65 de IQ se compara con un
 // animal o con un objeto, un 95 con alguien concreto, un 130 ya impone.
 //
-// TOTALMENTE ALEATORIO: no hay sesgo por rol ni amaño del owner. Aquí a todo
-// el mundo le puede caer un 62 o un 141. (!linda y !fea ya van por la curva
-// de percent.js; este no.)
+// TOTALMENTE ALEATORIO: no hay sesgo por rol ni amaño del owner. Aquí a todo el
+// mundo le puede caer un 62 o un 141.
+//
+// Es el unico que queda asi. !linda y !fea lo eran y pasaron a la curva —
+// repartian un piropo el 31 % de las veces siendo de los mas usados—, y !fiel e
+// !infiel tiran uniforme pero SI llevan el amaño del dueño.
 
 const { getTargetOrSelf } = require('../utils/wa');
 const { pickFresh } = require('../utils/helpers');

@@ -927,9 +927,13 @@ function textoAuraInfo() {
   // donde se lee. La tienda ya explica *!comprar* y *!atraco* al abrirla, y el
   // mensaje de un robo ya avisa de *!contrarobo* con los segundos que quedan.
   //
-  // Por eso *!dar* SI esta aqui: es la unica puerta que no se anuncia en ningun
-  // otro sitio, asi que fuera de la guia deja de existir. Si algun dia se
-  // anuncia sola, puede salir.
+  // Por eso *!dar* y *!vault* SI estan aqui: son las dos puertas que no se
+  // anuncian en ningun otro sitio, asi que fuera de la guia dejan de existir. Si
+  // algun dia se anuncian solas, pueden salir.
+  //
+  // La caja ademas es lo unico que se puede hacer CONTRA el robo, y el robo es
+  // la mitad del juego: una guia que explica como quitarle aura a otro y no como
+  // proteger la tuya cuenta media partida.
   //
   // Un solo numero, y sacado de la constante: el arranque, que es lo que da la
   // escala de todo lo demas.
@@ -941,6 +945,7 @@ La moneda del grupo. Empiezas con *${fmt(ARRANQUE)}* y casi todo cuesta.
 
 *!aura* — te da o te quita, a suerte
 *!robo* @alguien [cuánto] — se lo quitas
+*!vault* — lo guardas donde no te lo roban
 *!duel* @alguien — 1v1
 *!aura apostar* [cuánto] — te lo juegas
 *!tienda* — te compras algo

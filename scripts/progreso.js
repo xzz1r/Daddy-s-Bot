@@ -25,8 +25,24 @@ const fs=require('fs'),path=require('path');
 const { tieneArsenal } = require('../src/utils/helpers');
 const R=path.resolve(__dirname,'..');
 const ES=/^\s*(['"`])(.{20,})\1,?\s*$/;
-const TRAF={false:{high:.87,mid:.09,low:.04},true:{high:.06,mid:.18,low:.76}};
-const UNIF={high:31/101,mid:39/101,low:31/101};
+// EL REPARTO SE LEE DEL MOTOR, NO SE COPIA.
+//
+// Aqui habia una copia a mano de las dos curvas, y la de los positivos se quedo
+// en 17/31/52 cuando el bot ya tiraba 6/18/76. Consecuencia: este guion —que es
+// el que dice DONDE hace falta escribir— pedia 50 frases para un tramo que se
+// lee el 18 % de las veces y daba por bueno el que se lee el 76 %. Un numero
+// inventado con pinta de medido es peor que no medir.
+process.env.OWNER_NUMBER = process.env.OWNER_NUMBER || '33600000000';
+const { DISTRIBUCION, TRAMO_ALTO, TRAMO_BAJO } = require('../src/commands/percent');
+const TRAF = { false: DISTRIBUCION.negativo.miembro, true: DISTRIBUCION.positivo.miembro };
+// !fiel e !infiel tiran uniforme 0-100, asi que su trafico es el ancho de cada
+// tramo. Se calcula de las mismas fronteras para que no se quede viejo si se
+// mueven.
+const UNIF = {
+  high: (101 - TRAMO_ALTO) / 101,
+  mid: (TRAMO_ALTO - TRAMO_BAJO - 1) / 101,
+  low: (TRAMO_BAJO + 1) / 101,
+};
 
 // ── percent.js ───────────────────────────────────────────────────────────────
 const L=fs.readFileSync(path.join(R,'src/data/percentLabels.js'),'utf8').split('\n');

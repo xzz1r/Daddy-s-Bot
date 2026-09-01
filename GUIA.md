@@ -23,13 +23,14 @@ quitó y **el bot deja de cargar**. Ya pasó: una llamada a `ordenarPorDureza`
 —función eliminada— volvió con un merge y tumbó `percent.js`, `wingman.js` y
 `messageHandler.js` de golpe.
 
-**Tres cosas del motor cambiaron y afectan a cómo escribes:**
+**Cuatro cosas del motor cambiaron y afectan a cómo escribes:**
 
 | Qué | Antes | Ahora |
 |---|---|---|
 | Elección de frase | sesgada a la cabeza del pool (8:1) | **plana**: todas igual de probables |
 | Orden por dureza | ordenaba al arrancar | **eliminado**, no existe |
 | Tamaño de pool | por nombre de tramo | **por tráfico** (sección 9) |
+| Reparto de los positivos | high 17 % · mid 31 % · low 52 % | **high 6 % · mid 18 % · low 76 %** |
 
 La consecuencia práctica está en la sección 5.1 y es la más importante: **la peor
 frase de un pool ahora sale tanto como la mejor.**
@@ -39,8 +40,15 @@ frase de un pool ahora sale tanto como la mejor.**
 polaridad). Si editas `percent.js` pensando que ahí van las frases, estás
 tocando el motor.
 
-**Nadie ha tocado tus frases.** Los conflictos de la última integración se
-resolvieron todos a tu favor.
+**Lo que falta no se escribe aquí. Se pregunta:**
+
+```
+npm run progreso
+```
+
+Sale la lista ordenada por impacto real y con las cifras del día. Una lista a
+mano en esta guía envejece en horas — la que había aquí llegó a mandar trabajo a
+tramos que ya estaban hechos y a citar cuatro duplicados que ya no existían.
 
 ---
 
@@ -77,9 +85,11 @@ index.js                 arranca el proceso
 ```
 
 Lo único que hace falta retener: **`src/commands/` es lógica, `src/data/` es
-contenido.** Los % ya están partidos: motor en `percent.js`, frases en
-`src/data/percentLabels.js`. `robo.js`, `wingman.js` y `roast.js` todavía mezclan
-las dos cosas.
+contenido.** Los % ya están partidos: motor en `percent.js` (230 líneas),
+frases en `src/data/percentLabels.js`. `robo.js`, `wingman.js` y `roast.js`
+tienen ya su fichero de frases al lado, pero todavía guardan pools dentro, y ahí
+la regla de la sección 10 bis manda: **toca el pool, nunca el código que hay
+entre pools.**
 
 ---
 
@@ -149,9 +159,19 @@ comando, no de quien lo escribe. Probabilidad de caer en cada tramo:
 | **Positivo** → admin | 7 % | 19 % | 74 % |
 
 Traducido: **al grupo le sale mal casi siempre.** Un miembro cualquiera recibe
-el tramo brutal en ~87 % de las tiradas negativas, y falla el halago en ~94 % de
-las positivas. Las dos polaridades pegan parecido a propósito: un `!sexy` alto
-se comentaba; un `!rata` insultando no. Eso es el chiste central del bot.
+el tramo brutal en ~87 % de las tiradas negativas y en ~76 % de las positivas.
+Eso es intencionado y es el chiste central del bot.
+
+**Las dos filas de positivos cambiaron** (eran 17/31/52). Los halagos perdonaban
+mucho más que los insultos: uno de cada seis `!sexy` salía con un piropo de
+verdad, y en el grupo eso se leyó como "a estos les sale bien todo". A nadie le
+extraña que `!rata` insulte —se da por hecho—, pero un `!sexy` al 84 % sí se
+comenta. Ahora las dos polaridades pegan parecido.
+
+Esa tabla no está copiada aquí a mano: sale de `DISTRIBUCION`, en
+`src/commands/percent.js`, que es la misma constante que usa el motor para tirar
+y `npm run progreso` para repartir el trabajo. `npm run check` compara esta
+sección con ella.
 
 **Consecuencia directa para el contenido:** el tramo brutal es el que la gente
 lee constantemente. Los tramos suaves casi no se ven. La calidad y la cantidad
@@ -165,23 +185,28 @@ está comentado en el código: salir 97 o 3 siempre no parece suerte, parece
 programado, y el grupo lo notó.
 
 Por eso el owner tiene bandas deliberadamente sosas (45-75 en positivos, 25-55
-en negativos) y **un 8 % de las veces le sale mal de verdad, como a cualquiera**
-(el resto se reparte entre banda sosa 42 % y franja que le favorece 50 %).
-No salir nunca mal es, en sí mismo, el patrón que delata.
+en negativos). El reparto de hoy es **42 % banda sosa · 50 % la franja que le
+favorece · 8 % un resultado malo de verdad, como a cualquiera**. No salir nunca
+mal es, en sí mismo, el patrón que delata.
 
-`!fiel` e `!infiel` tiran uniforme 0-100 (con amaño del owner aparte). `!iq`
-tiene su propia curva de tramos, también sin sesgo por rol. `!linda` y `!fea`
-ya van por la curva del resto. `!feminidad` al owner le sale baja a propósito
-(el chiste recurrente).
+(Era 62/20/18 y lo bajó el dueño: perdía tres de cada diez y no era eso lo que
+se pidió del amaño. Lo que no se tocó es la FORMA de los números — se sigue
+tirando de bandas anchas, así que no vuelven los 97 y 99 repetidos que el grupo
+cazó en su día.)
+
+`!iq` está fuera del amaño a propósito: es aleatorio puro para todo el mundo.
+`!fiel` e `!infiel` tiran uniforme, pero el amaño del dueño sí se les aplica
+(sección 4). **`!linda` y `!fea` ya no están fuera** — pasaron a la curva como
+el resto, porque repartían un piropo el 31 % de las veces y son de los más
+usados: buena parte de aquel "a estos les sale bien todo" venía de esos dos.
 
 Al escribir no hay que hacer nada especial con esto — solo saber que el owner
 cae sobre todo en `mid`, así que **los pools `mid` no son relleno**: son lo que
 el dueño del bot lee de sí mismo.
 
 *(Ojo: esto es el amaño de los comandos de porcentaje. La economía de `!aura` es
-otra cosa y también cambió — miembro 75 %, admin 82 %, owner 88 %, con techos
-propios que no se solapan. No afecta a lo que escribes, pero si tocas frases de
-`aura` conviene saber que ahora se gana bastante más de lo que se pierde.)*
+otra cosa. No afecta a lo que escribes, pero si tocas frases de `aura` conviene
+saber que se gana bastante más de lo que se pierde.)*
 
 ### 3.5 — El pool `extreme`
 
@@ -206,8 +231,14 @@ nombre del rasgo**, porque ya están escritos justo encima.
 
 ## 4. `!fiel` e `!infiel`: la excepción
 
-Estos dos **no usan las distribuciones de arriba**. Tiran uniforme 0-100: cada
-número tiene la misma probabilidad. Solo se aplica el amaño del owner.
+Estos dos **son ya los únicos que no usan las distribuciones de arriba**. Tiran
+uniforme 0-100: cada número tiene la misma probabilidad, así que sus tres tramos
+salen casi igual (31 / 39 / 31 %). Solo se aplica el amaño del owner, y ahí un
+85 % de las veces — el 15 % restante se queda la tirada uniforme, que es el
+contrato de estos dos comandos.
+
+Una medida de fidelidad amañada por rol no mide nada: por eso se quedan fuera de
+la curva mientras `!linda` y `!fea` entraron.
 
 Sus frases viven ya separadas, en `src/data/fidelityPhrases.js`, y son el modelo
 a seguir para todo lo demás.
@@ -333,18 +364,24 @@ Ya pasó — `!maricon` se escribió con `%N` mientras `percent.js` sustituye
 `[nombre]`, y durante 292 frases el grupo leyó *"%N sale con un cero..."*. Por
 eso existe el validador.
 
+**La tabla que manda es `CONTRATO`, en `scripts/placeholders.js`.** Esta es su
+copia legible; si las dos discrepan, la del código tiene razón.
+
 | Dónde escribes | Placeholders permitidos |
 |---|---|
-| `percentLabels.js`, `fidelityPhrases.js` | `[nombre]` |
-| `roast.js`, `roastPhrases.js`, `relevance.js`, `wingman.js`, `wingmanPhrases.js` | `%N` nombre, `%C` contexto, `%MSG` mensajes, `%PAIS` país |
-| `robo.js`, `roboPhrases.js`, `roboExtraPhrases.js` | `%A` autor, `%V` víctima, `%C` cantidad, `%N` nombre |
+| `percent.js`, `percentLabels.js`, `fidelityPhrases.js` | `[nombre]` |
+| `roast.js`, `roastPhrases.js` | `%N` nombre, `%MSG` mensaje citado, `%PAIS` país |
+| `relevance.js` | `%N` nombre, `%MSG` mensaje citado |
+| `wingman.js`, `wingmanPhrases.js` | `%N` nombre |
+| `robo.js`, `roboPhrases.js`, `roboExtraPhrases.js` | `%A` autor, `%V` víctima, `%C` cantidad, `%N` nombre, `%H` hora |
 | `apuestaPhrases.js` (aura) | `%A` apostador, `%C` cantidad, `%S` saldo final |
+| `vaultPhrases.js` (la caja) | `%N` nombre, `%C` cantidad, `%Z` lo guardado, `%S` saldo a la vista |
 | `rachaPhrases.js` | `%N` nombre, `%D` días de racha, `%P` días perdidos |
 | `activity.js`, `duel.js` | `%W` ganador, `%L` perdedor |
 | `mog.js` | `%M` / `%L` |
+| `iq.js` | `%IQ` |
 | `topsRandom.js` | `{N}` |
-| `iq.js` | `%IQ` cifra, `[nombre]` |
-| `ship.js`, `social.js`, `aura.js` | **ninguno** |
+| `ship.js`, `social.js`, `aura.js`, `cooldownPhrases.js`, `auraCobro.js` | **ninguno** |
 
 `[nombre]` es **opcional** en `percentLabels.js`: si la frase no lo lleva, no pasa
 nada. Mézclalo — que todas las frases empiecen con el nombre canta.
@@ -361,19 +398,34 @@ sale es `high`, con el 87 % de las tiradas. En los **positivos** (`linda`,
 `ganador`, `sexy`, `crack`, `feminidad`, `masculinidad`) el que más sale es
 **`low`**, con el 76 %, y `high` solo el 6 %.
 
+La regla, aplicada al tráfico de cada pool:
+
+```
+  se lee ≥ 50 % de las veces   →  100 frases
+  se lee ≥ 25 %                →   50
+  el resto                     →   25
+```
+
 **El dueño bajó los topes a la mitad**: con la elección plana (sección 5.1) la
 peor frase de un pool sale tanto como la mejor, así que el relleno no es neutro
 —hace daño—. Mejor pool corto y filoso que inflado.
 
 | | high | mid | low |
 |---|---|---|---|
-| **Negativos** | **100** | 25 | 25 |
-| **Positivos** | 25 | 50 | **100** |
+| **Negativos** | **100** (87 %) | 25 (9 %) | 25 (4 %) |
+| **Positivos** | 25 (6 %) | 25 (18 %) | **100** (76 %) |
+| **`fiel` / `infiel`** | 50 (31 %) | 50 (39 %) | 50 (31 %) |
 
-Unas 150 por comando. **Aplicar la regla por el nombre del tramo en vez de por
-el tráfico es el error que ya se cometió una vez**: dejó a `!linda`, `!sexy`,
-`!crack` y `!ganador` con 100 frases en el tramo que se ve el 6 % de las veces
-y 25 en el que se ve el 76 %. Cuatro veces más frases donde casi nadie mira.
+**Aplicar la regla por el nombre del tramo en vez de por el tráfico es el error
+que ya se cometió una vez**: dejó a `!linda`, `!sexy`, `!crack` y `!ganador` con
+100 frases en el tramo que se ve el 6 % de las veces y 25 en el que se ve el
+76 %.
+
+Y se cometió una segunda vez, en el propio medidor: `npm run progreso` guardaba
+su copia de la tabla de tráfico y se quedó en el reparto viejo de los positivos
+(17/31/52) cuando el motor ya tiraba 6/18/76. Durante semanas pidió 50 frases
+para un tramo que se lee el 18 % y daba por bueno el que se lee el 76 %. Hoy lee
+la tabla del motor; no hay segunda copia.
 
 Fuera de `percentLabels.js` la regla es la misma pero mirando el pool concreto:
 
@@ -385,37 +437,45 @@ Fuera de `percentLabels.js` la regla es la misma pero mirando el pool concreto:
 | Apuesta de aura (cooldown 3 h) | ~60 |
 | Hitos de racha | ~50 |
 
-**`!fiel` e `!infiel` son la excepción y no siguen esta tabla**: tiran uniforme,
-así que sus tres tramos salen casi igual (31/39/31 %). Reparto equilibrado, unas
-100 por tramo — que es lo que ya tienen. No les apliques el 200/50/50.
+**`!fiel` e `!infiel` son la excepción**: tiran uniforme, así que sus tres
+tramos salen casi igual (31/39/31 %) y les toca reparto equilibrado. Es la fila
+de abajo de la tabla.
 
 ---
 
 ## 10. Antes de entregar
 
-Cuatro comandos, y **ninguno sustituye a otro**:
+Cinco comandos, y **ninguno sustituye a otro**:
 
 ```
 npm install
-npm run check
+npm run check          ← el que manda
 npm run placeholders
 npm run pools
+npm run conteos
 npm run progreso
 ```
 
-**`npm run check` es el que importa y es nuevo.** Cuatro capas:
+**`npm run check` es el que importa.** Empezó con cuatro capas y hoy son 44. Las
+cuatro primeras siguen siendo las que pillan lo que rompe el bot al escribir
+frases:
 
 1. **Compila** — cada `.js` es JavaScript válido. Pilla comillas sin escapar y
    frases partidas en dos líneas, los dos fallos que ya tumbaron el bot.
 2. **Carga** — cada módulo importa. Pilla requires rotos y funciones que ya no
    existen.
-3. **Responde** — ejecuta 29 comandos 60 veces cada uno. Pilla excepciones y
+3. **Responde** — ejecuta los comandos muchas veces cada uno. Pilla excepciones y
    placeholders que llegan sin sustituir.
 4. **Guardan** — comprueba que aura, casino, racha, contador y banlist se
    comportan. Se salta sola si el bot está corriendo, para no pisarle los datos.
 
-Las capas 2 a 4 necesitan `npm install`. La 1 corre siempre y es la que detecta
-el bot caído.
+Las otras cuarenta son del motor —permisos, economía, red, despliegue— y no hace
+falta entenderlas para escribir. Dos sí tocan al contenido y conviene saberlas:
+**31b** revisa las tildes de las 9.600 frases y **33a** caza voseo, frases
+pegadas y basura tipo `undefined` incrustada dentro de un texto.
+
+Las capas 2 en adelante necesitan `npm install`. La 1 corre siempre y es la que
+detecta el bot caído.
 
 **Aviso que ya costó caro:** `placeholders` y `pools` salieron EN VERDE con el
 bot sin arrancar, porque comparan líneas con expresiones regulares y no compilan
@@ -428,7 +488,7 @@ Checklist:
 - [ ] ¿Los placeholders son los permitidos para ese fichero? (sección 8)
 - [ ] ¿Una frase por línea, comillas simples, coma final?
 - [ ] ¿Sin duplicados exactos dentro del mismo pool?
-- [ ] Los cuatro comandos en verde
+- [ ] Los cinco comandos en verde
 
 ---
 
@@ -498,7 +558,13 @@ git pull origin main
   rachas diarias. El estado se guarda en disco con escritura atómica. Tono de
   las apuestas: crónica de sucesos, no roast — ganar suena a hazaña, perder a
   velatorio con sorna. El bot no consuela.
-- **Robo** (`!robo`): el pool más grande fuera de `percent.js` (1.148 frases).
+- **Robo** (`!robo`): el pool más grande fuera de `percentLabels.js`.
+- **La caja** (`!vault` · `!lock` · `!unlock`): se guarda aura donde no se puede
+  robar, con un enfriamiento al meter y una comisión al sacar que va al bote.
+  Sus frases están en `src/data/vaultPhrases.js` y su registro es propio: **no
+  es un banco**. Aquí nadie "realiza una operación" — se echa el candado y se
+  mira por encima del hombro. El bot no felicita al que guarda: le recuerda que
+  esconder es de cobardes y que sacarlo va a costarle dinero.
 - **Racha**: solo habla en hitos (7, 15, 30, 50, 100, 200, 365 días) y al romper
   una racha larga. El resto de días paga en silencio, a propósito.
 - **Multimedia**: stickers, `!play`, `!toimg`. Sin frases; no es terreno de contenido.
