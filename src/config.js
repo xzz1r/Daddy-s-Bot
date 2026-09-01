@@ -1,5 +1,21 @@
 const config = {
+  // EL PREFIJO QUE SE ENSEÑA. Uno solo, y es el de siempre.
+  //
+  // El menu, los avisos y el corrector imprimen este. Enseñar los dos en cada
+  // linea doblaria la longitud del menu para decir lo mismo dos veces.
   prefix: '!',
+
+  // LOS PREFIJOS QUE SE ENTIENDEN. Lo que el bot ACEPTA, que no es lo mismo que
+  // lo que enseña.
+  //
+  // La barra se admite porque es lo que escriben los dedos al venir de casi
+  // cualquier otra app, y porque un comando que no responde no parece un
+  // prefijo equivocado: parece un bot caido. Quien escriba */aura* recibe su
+  // tirada; el menu le seguira diciendo *!aura*.
+  //
+  // El primero de la lista es el canonico y tiene que ser `prefix`: eso lo
+  // vigila `npm run check`.
+  prefijos: ['!', '/'],
   botName: "Daddy's Bot",
   ownerNumber: process.env.OWNER_NUMBER || '5491100000000',
   // Co-owners: mismos privilegios que el owner. Se definen en .env como
@@ -83,5 +99,24 @@ const config = {
     author: "𝐃𝐀𝐃𝐃𝐘'𝐒 𝐁𝐎𝐓",
   },
 };
+
+// Con que prefijo viene un texto, o null si no viene con ninguno. Es la unica
+// forma de preguntar "¿esto es un comando?": comparar contra `prefix` a pelo
+// deja fuera la barra en el sitio donde se olvide, y esos olvidos no dan error
+// —simplemente ese camino deja de reconocer la mitad de los comandos.
+function prefijoDe(text) {
+  if (typeof text !== 'string') return null;
+  for (const p of config.prefijos) if (text.startsWith(p)) return p;
+  return null;
+}
+
+// El texto sin su prefijo. Cadena vacia si no era un comando.
+function sinPrefijo(text) {
+  const p = prefijoDe(text);
+  return p === null ? '' : text.slice(p.length);
+}
+
+config.prefijoDe = prefijoDe;
+config.sinPrefijo = sinPrefijo;
 
 module.exports = config;

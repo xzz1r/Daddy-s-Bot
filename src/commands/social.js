@@ -133,7 +133,7 @@ Mensajes:  ${state.stats?.messagesReceived || 0}
 Comandos:  ${state.stats?.commandsExecuted || 0}
 Stickers:  ${state.stats?.stickersCreated || 0}
 Musica:    ${state.stats?.musicPlayed || 0}
-Prefijo:   ${config.prefix}`;
+Prefijo:   ${config.prefijos.join('  ')}`;
 
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
@@ -382,7 +382,7 @@ async function cmdHelp(sock, msg, groupMeta, args = []) {
 
   const text = completo ? textoCompleto(p, c, esAdmin, esOwner) :
 `*${config.botName}*
-_Todo lleva *${p}* delante · el número es lo que cuesta en aura_
+_Todo lleva *${p}* o */* delante · el número es lo que cuesta en aura_
 
 ━━ *HERRAMIENTAS* ━━
 *${p}play* ${c('play')} <nombre> · *${p}s* ${c('sticker')} · *${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')}

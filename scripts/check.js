@@ -5150,6 +5150,118 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     if (fallos === antes) console.log(verde('   ✓ !count y !top mencionan el telefono, y el @lid sin resolver sigue intacto'));
   }
 
+  // ── 35. LOS DOS PREFIJOS HACEN EXACTAMENTE LO MISMO ──────────────────────
+  //
+  // El bot entiende *!aura* y */aura*. Eso no es una opcion de configuracion:
+  // es una condicion que tienen que cumplir SEIS sitios distintos del
+  // dispatcher —la puerta de los comandos, la de los mensajes propios, la del
+  // bot apagado, la de los sobres sin contenido, la de los comandos de media y
+  // el corrector—, y cada uno tenia su `text.startsWith(config.prefix)` a pelo.
+  //
+  // Olvidarse de uno NO da error. Da algo peor: la barra funciona en casi todo
+  // y deja de funcionar en un rincon —los stickers, o el *!on* con el bot
+  // apagado— sin ningun sintoma en el log. Quien lo sufra pensara que el bot
+  // falla a ratos.
+  //
+  // Se prueba MANDANDO LOS DOS por el dispatcher de verdad y comparando la
+  // respuesta, no leyendo el fuente.
+  {
+    console.log('\n35. LOS DOS PREFIJOS HACEN LO MISMO');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const cfg = require(path.join(R, 'src/config'));
+    exige(Array.isArray(cfg.prefijos) && cfg.prefijos[0] === cfg.prefix,
+      `el prefijo que se imprime (${cfg.prefix}) tiene que ser el primero de los que se aceptan [${(cfg.prefijos || []).join(' ')}]`);
+    // Nadie puede volver a preguntar por el prefijo canonico para saber si algo
+    // es un comando: eso es justo lo que deja fuera a la barra.
+    {
+      const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+      const sueltos = [...mh.matchAll(/startsWith\(config\.prefix\)/g)].length;
+      exige(sueltos === 0,
+        `quedan ${sueltos} sitio(s) preguntando startsWith(config.prefix): ahi la barra no funciona y no lo dice nadie`);
+    }
+    const dirP = fs.mkdtempSync(path.join(os.tmpdir(), 'pref-'));
+    try {
+      const guion = path.join(dirP, 'p.js');
+      fs.writeFileSync(guion, `
+const fs=require('fs'),os=require('os'),path=require('path');
+const ROOT=fs.mkdtempSync(path.join(os.tmpdir(),'pf-'));
+fs.cpSync(${JSON.stringify(path.join(R, 'src'))},path.join(ROOT,'src'),{recursive:true});
+fs.mkdirSync(path.join(ROOT,'data'));
+try{fs.symlinkSync(${JSON.stringify(path.join(R, 'node_modules'))},path.join(ROOT,'node_modules'),'dir');}catch{}
+process.env.OWNER_NUMBER='34600111222';
+const {handleMessage}=require(path.join(ROOT,'src/handlers/messageHandler'));
+const G='000000035@g.us', BOT='549199@s.whatsapp.net';
+const gente=[];for(let i=0;i<12;i++)gente.push('34655440'+(100+i)+'@s.whatsapp.net');
+const partes=[{id:BOT,admin:'admin'},{id:'34600111222@s.whatsapp.net',admin:'admin'},
+  ...gente.map(id=>({id,admin:'admin'}))];
+const out=[];
+const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{},
+  sendMessage:async(j,c)=>{if(c.text)out.push(c.text);return{}},
+  groupMetadata:async()=>({id:G,subject:'G',participants:partes}),
+  groupFetchAllParticipating:async()=>({[G]:{id:G,participants:partes}}),
+  onWhatsApp:async(j)=>[{exists:true,jid:j}],sendReaction:async()=>{}};
+const di=async(quien,t)=>{out.length=0;
+  await handleMessage(sock,{key:{remoteJid:G,participant:quien,fromMe:false,id:'P'+Math.random()},
+    message:{conversation:t},pushName:'x',messageTimestamp:Math.floor(Date.now()/1000)});
+  await new Promise(r=>setTimeout(r,250));
+  return out.join(' ');};
+(async()=>{
+  const r={};
+  let i=0;
+  // Comandos de respuesta ESTABLE: el mismo texto siempre, para poder comparar.
+  for(const c of ['ping','whoami','info']){
+    r[c]=[await di(gente[i++],'!'+c), await di(gente[i++],'/'+c)];
+  }
+  // El corrector tiene que contestar con el prefijo que se escribio.
+  r.corrector=[await di(gente[i++],'!pinng'), await di(gente[i++],'/pinng')];
+  // CON EL BOT APAGADO SOLO PASA "on", y esa puerta tiene que entender los dos
+  // prefijos. Se apaga DE VERDAD —!off es solo del dueño— y se comprueba por el
+  // HECHO: con el bot apagado, un comando normal no contesta.
+  const DUENO='34600111222@s.whatsapp.net';
+  r.apagado={};
+  await di(DUENO,'!off');
+  r.apagado.mudoConBarra = await di(gente[i],'/ping');
+  r.apagado.enciendeBarra = await di(DUENO,'/on');
+  r.apagado.pingTrasBarra = await di(gente[i],'/ping');
+  await di(DUENO,'!off');
+  r.apagado.mudoConBang = await di(gente[i],'!ping');
+  r.apagado.enciendeBang = await di(DUENO,'!on');
+  r.apagado.pingTrasBang = await di(gente[i],'!ping');
+  console.log(JSON.stringify(r));
+})();
+`);
+      const r = JSON.parse(execSync(`node ${guion}`, { encoding: 'utf8', timeout: 120000 }).trim().split('\n').pop());
+      for (const c of ['ping', 'whoami', 'info']) {
+        const [conBang, conBarra] = r[c];
+        exige(conBarra && conBarra.length > 0, `*/${c}* no contesta nada y *!${c}* si: la barra no llega a ese comando`);
+        // `info` trae el uptime, que cambia entre las dos llamadas: se compara
+        // la forma, no el texto entero.
+        exige(conBarra.split('\n').length === conBang.split('\n').length,
+          `*/${c}* y *!${c}* contestan cosas distintas`);
+      }
+      exige(/^\*\/pinng\*/.test(r.corrector[1]),
+        `el corrector contesta "${String(r.corrector[1]).split('\n')[0]}" a quien escribio */pinng*: con el otro prefijo delante parece que la barra no vale`);
+      exige(/^\*!pinng\*/.test(r.corrector[0]),
+        'el corrector ha dejado de contestar con el prefijo canonico a quien escribe con el canonico');
+      // Primero, que el apagado apague de verdad: si no, lo de abajo pasa en
+      // verde sin haber probado nada. Es el fallo que tuvo esta misma guarda:
+      // apagaba con un admin cualquiera, y *!off* es solo del dueño, asi que el
+      // bot nunca llego a estar apagado y las dos comprobaciones no comprobaban.
+      exige(!r.apagado.mudoConBarra && !r.apagado.mudoConBang,
+        'el bot no se ha apagado, asi que la puerta del *on* no se ha probado: la guarda estaria pasando en verde sin comprobar nada');
+      exige(r.apagado.enciendeBarra && r.apagado.pingTrasBarra,
+        'con el bot apagado, */on* no lo enciende: la unica puerta que queda abierta no entiende la barra');
+      exige(r.apagado.enciendeBang && r.apagado.pingTrasBang,
+        'con el bot apagado, *!on* ha dejado de encenderlo');
+    } catch (e) {
+      exige(false, `no pude probar los dos prefijos: ${String(e.message).split('\n')[0]}`);
+    } finally {
+      fs.rmSync(dirP, { recursive: true, force: true });
+    }
+    if (fallos === antes) console.log(verde(`   ✓ ${cfg.prefijos.join(' y ')} entran por la misma puerta, y el bot contesta con el que se uso`));
+  }
+
   // ── 34. LOS GUIONES DE DESPLIEGUE Y LOS DOS LIMITES QUE SE AJUSTARON ─────
   //
   // LOS .sh NO LOS COMPILA NADIE. La capa 1 compila los .js, pero un error de

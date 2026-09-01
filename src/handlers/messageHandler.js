@@ -657,8 +657,8 @@ function normalizarComando(x) {
 }
 
 function esComandoDeMedia(text) {
-  if (!text.startsWith(config.prefix)) return false;
-  const first = normalizarComando(text.slice(config.prefix.length).trim().split(/\s+/, 1)[0]);
+  if (config.prefijoDe(text) === null) return false;
+  const first = normalizarComando(config.sinPrefijo(text).trim().split(/\s+/, 1)[0]);
   return MEDIA_CMDS.has(first);
 }
 
@@ -1299,7 +1299,7 @@ async function handleMessage(sock, msg) {
 
   // Skip own messages that aren't commands (avoids bot responding to itself)
   // fromMe = true when the owner sends from their linked phone — still allow commands
-  if (msg.key.fromMe && !text.startsWith(config.prefix)) return;
+  if (msg.key.fromMe && config.prefijoDe(text) === null) return;
 
   // La puerta del privado, y va aqui arriba a proposito: por delante de los
   // comandos, del visto, de la moderacion y de los contadores. Todo lo que
@@ -1446,8 +1446,7 @@ async function handleMessage(sock, msg) {
   // Sync in-memory check — no async overhead.
   // Exact-command match so things like "!once" don't bypass disabled state.
   if (!isBotEnabled(jid)) {
-    const rest = text.startsWith(config.prefix) ? text.slice(config.prefix.length) : '';
-    const firstWord = normalizarComando(rest.split(/\s+/, 1)[0]);
+    const firstWord = normalizarComando(config.sinPrefijo(text).split(/\s+/, 1)[0]);
     if (firstWord !== 'on') return;
   }
 
@@ -1474,7 +1473,7 @@ async function handleMessage(sock, msg) {
   if (jid.endsWith('@g.us')) {
     // Reacción / SKDM / voto: la actividad ya se anotó arriba. No hay nada
     // que moderar y el árbol de antilink/medios era trabajo muerto.
-    if (esSobreSinContenido(msg.message) && !text.startsWith(config.prefix)) return;
+    if (esSobreSinContenido(msg.message) && config.prefijoDe(text) === null) return;
     anotarTipoDesconocido(msg.message, jid, sender);
     const deteccion = estadoCrudo;
     if (deteccion) {
@@ -1791,9 +1790,13 @@ async function handleMessage(sock, msg) {
     }
   }
 
-  if (!text.startsWith(config.prefix)) return;
+  // EL PREFIJO QUE SE USO, no el canonico. A partir de aqui todo lo que le
+  // conteste a esta persona lleva el suyo: quien escribe */aura* y lee "era
+  // *!aurra*" piensa que el bot no entiende la barra, y deja de usarla.
+  const prefUsado = config.prefijoDe(text);
+  if (prefUsado === null) return;
 
-  const args = text.slice(config.prefix.length).trim().split(/\s+/);
+  const args = text.slice(prefUsado.length).trim().split(/\s+/);
   const command = normalizarComando(args.shift());
   if (!command) return;
 
@@ -1817,7 +1820,7 @@ async function handleMessage(sock, msg) {
   // escrito para este mismo motivo. La optimizacion existia y se deshizo al
   // mover la llamada aqui dentro.
 
-  logger.cmd(sender.split('@')[0], `${config.prefix}${command} ${args.join(' ')}`);
+  logger.cmd(sender.split('@')[0], `${prefUsado}${command} ${args.join(' ')}`);
   // Cuanto tarda el comando en QUEDAR CONTESTADO, medido de verdad.
   //
   // "El bot va lento" no se puede arreglar a ojo: el coste local de un comando
@@ -2461,7 +2464,7 @@ async function handleMessage(sock, msg) {
           // La correccion primero —es la parte util— y el remate debajo. Mismo
           // reparto que los avisos de rango: informar y picar no compiten.
           await sock.sendMessage(jid, {
-            text: `*${config.prefix}${command}* no existe. Era *${config.prefix}${sug}*.\n` +
+            text: `*${prefUsado}${command}* no existe. Era *${prefUsado}${sug}*.\n` +
                   aviso(MAL_ESCRITO, jid, 'malescrito'),
           }, { quoted: msg }).catch(() => {});
         }
@@ -2508,7 +2511,7 @@ async function handleMessage(sock, msg) {
     // El visto ya se mando arriba, para TODO mensaje y no solo para los
     // comandos. Aqui solo queda la medicion.
     const tardo = Date.now() - t0Cmd;
-    if (tardo >= LENTO_MS) logger.warn(`LENTO: ${config.prefix}${command} tardo ${tardo} ms`);
+    if (tardo >= LENTO_MS) logger.warn(`LENTO: ${prefUsado || config.prefix}${command} tardo ${tardo} ms`);
   }
 
 }
