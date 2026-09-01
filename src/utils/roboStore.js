@@ -16,7 +16,20 @@
 const path = require('path');
 const { canonicalJid } = require('./wa');
 const { readJsonOrEnoent, createDebouncedSaver } = require('./helpers');
+const { OBJETOS } = require('./economia');
 const logger = require('./logger');
+
+// Los objetos que se CUENTAN, sacados del catalogo: los que tienen usos. El
+// resto son ventanas de tiempo y se guardan como una caducidad.
+//
+// Iba escrito a mano —['ganzua','amuleto','seguro']— y era correcto el dia que
+// se escribio. Es una copia de un dato que ya vive en economia.js, asi que el
+// dia que la tienda venda un cuarto objeto con usos, esa lista se queda corta
+// sin avisar: al juntar el inventario LID con el del telefono, en vez de sumar
+// los usos se quedaria el mayor. Comprar dos y quedarse con uno.
+const CON_USOS = new Set(Object.entries(OBJETOS)
+  .filter(([, o]) => typeof o.usos === 'number')
+  .map(([nombre]) => nombre));
 
 const ROBO_FILE = path.join(__dirname, '../../data/robo.json');
 
@@ -102,7 +115,7 @@ function foldObjetos(objetos, persona) {
       if (typeof valor !== 'number') { merged[campo] = valor; continue; }
       // Usos (ganzúa, amuleto, seguro): se suman. Caducidades y marcas de
       // tiempo: se queda la más lejana, que es la que todavía protege.
-      if (campo === 'ganzua' || campo === 'amuleto' || campo === 'seguro') {
+      if (CON_USOS.has(campo)) {
         merged[campo] = (merged[campo] || 0) + valor;
       } else {
         merged[campo] = Math.max(merged[campo] || 0, valor);
