@@ -132,6 +132,31 @@ const toggleAntiAdmin       = (jid, enable) => setMembership('antiAdminEnabled',
 const isAntiBusinessEnabled = (jid)         => hasMembership('antiBusinessEnabled',  jid);
 const toggleAntiBusiness    = (jid, enable) => setMembership('antiBusinessEnabled',  jid, enable);
 
+// EL VISTO. Es GLOBAL, no por grupo: la presencia y las confirmaciones de
+// lectura son de la CUENTA entera, no de un chat. Encenderlo en un grupo y
+// apagarlo en otro no es algo que WhatsApp permita, asi que fingirlo aqui
+// seria mentir en la interfaz.
+//
+// Vive en el estado y no en config.js porque tiene que poder apagarse SIN
+// tocar ficheros ni reiniciar: es la palanca que se usa cuando la cuenta
+// empieza a oler a automatizacion, y en ese momento no se entra por SSH.
+//
+// El valor de config.autoRead sigue mandando la PRIMERA vez —es el arranque de
+// fabrica—; a partir de ahi manda lo que haya guardado.
+function vistoActivo(porDefecto) {
+  const v = _state?.autoRead;
+  return typeof v === 'boolean' ? v : Boolean(porDefecto);
+}
+
+async function ponerVisto(enable) {
+  _state.autoRead = Boolean(enable);
+  // Se escribe AL MOMENTO, igual que el resto de interruptores. Este en
+  // concreto se toca cuando algo va mal con la cuenta, y perderlo en un
+  // reinicio seria volver a encender lo que se acaba de apagar a proposito.
+  await saveState(_state);
+  return _state.autoRead;
+}
+
 // Modo solo-admins (opt-in): con esto encendido, los comandos del bot solo
 // responden a admins y al owner tier. Los miembros normales no reciben ni un
 // "no puedes": el bot simplemente los ignora, para no llenar el chat de
@@ -164,5 +189,5 @@ const toggleAura            = (jid, enable) => setMembership('auraDisabled',    
 const isAutoAceptarEnabled  = (jid)         => hasMembership('autoAceptar',          jid);
 const toggleAutoAceptar     = (jid, enable) => setMembership('autoAceptar',          jid, enable);
 
-module.exports = { initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, flushState, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness, isAntiLinkEnabled, toggleAntiLink, isAntiFakeEnabled, toggleAntiFake, isSoloAdminsEnabled, toggleSoloAdmins, isAuraEnabled, toggleAura, isAutoAceptarEnabled, toggleAutoAceptar };
+module.exports = { vistoActivo, ponerVisto, initState, getState, setState, isBotEnabled, toggleGroup, incrementStat, flushState, isAdminNotifyEnabled, toggleAdminNotify, isAntiAdminEnabled, toggleAntiAdmin, isAntiBusinessEnabled, toggleAntiBusiness, isAntiLinkEnabled, toggleAntiLink, isAntiFakeEnabled, toggleAntiFake, isSoloAdminsEnabled, toggleSoloAdmins, isAuraEnabled, toggleAura, isAutoAceptarEnabled, toggleAutoAceptar };
 

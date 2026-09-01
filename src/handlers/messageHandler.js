@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { pickFresh, withTimeout } = require('../utils/helpers');
 const config = require('../config');
-const { isBotEnabled, incrementStat, isAntiLinkEnabled, isSoloAdminsEnabled, isAntiBusinessEnabled } = require('../utils/state');
+const { isBotEnabled, incrementStat, isAntiLinkEnabled, isSoloAdminsEnabled, isAntiBusinessEnabled, vistoActivo } = require('../utils/state');
 const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
 const { cobrar: cobrarAura, devolver: devolverAura, textoSinSaldo } = require('../utils/auraCobro');
 const { PRECIOS, SUELO_TODOS } = require('../utils/economia');
@@ -35,8 +35,7 @@ const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdK, privadoDelOwner, hallarMedio } = require('../commands/k');
 const { cmdCount, cmdResetCount } = require('../commands/count');
 const cmdRelevance = lazyCmd('../commands/relevance', 'cmdRelevance');
-const { cmdG, cmdSetKey } = require('../commands/ai');
-const { cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAntiLink, cmdAutoAceptar, cmdAllow, cmdClose, cmdOpen, cmdSoloAdmins, cmdAdm, cmdPresentarse } = require('../commands/group');
+const { cmdVisto, cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAntiLink, cmdAutoAceptar, cmdAllow, cmdClose, cmdOpen, cmdSoloAdmins, cmdAdm, cmdPresentarse } = require('../commands/group');
 const cmdShip = lazyCmd('../commands/ship', 'cmdShip');
 const { cmdTtp } = require('../commands/ttp');
 const { cmdToImg, cmdToVid } = require('../commands/toimg');
@@ -129,7 +128,7 @@ const NEEDS_META = new Set([
   // Los que cobran aura SI necesitan groupMeta: auraCobro exime al owner tier y
   // sin la metadata no puede resolver quien lo es, asi que al owner le cobraria.
   'play','playsong','playaudio','musica','cancion','song',
-  'g','ai','pfp','foto',
+  'pfp','foto',
   // piropo y wingman COBRAN (30, como !rizz) y no estaban aqui, asi que cobraban
   // sin metadata: sin ella isOwner no puede reconocer al owner tier en un grupo
   // LID y se le cobraba a quien va exento. Lo mismo con los alias en español de
@@ -179,7 +178,10 @@ const NEEDS_META = new Set([
   'casino',
   // Owner-gated commands also need meta in groups to resolve LID → phone
   // for isOwner checks (otherwise co-owners always fail in modern groups).
-  'clearcache','borracache','setkey','whoami',
+  'clearcache','borracache','whoami',
+  // !visto comprueba isMainOwner: sin metadata no resuelve su LID en un grupo
+  // moderno y el dueño se quedaria fuera de su propio interruptor.
+  'visto',
   // !cachelist cobra por el dispatcher. Sin metadata isOwner no resuelve el LID
   // y se le cobra al owner las 12 de aura.
   'cachelist','listacache','cache',
@@ -258,7 +260,7 @@ for (const c of CMDS_PORCENTAJE) COBRO_CENTRAL[c] = 'percent';
 // falla. Cobrarlos también aquí sería cobrar dos veces.
 const COBRAN_SOLOS = new Set([
   'play', 'playsong', 'playaudio', 's', 'sticker', 'stk', 'toimg', 'tovid',
-  'g', 'ai', 'pfp', 'fk', 'verificar', 'verify', 'check', 'top5', 'top10',
+  'pfp', 'fk', 'verificar', 'verify', 'check', 'top5', 'top10',
   // vs/versus cobran dentro de cmdVs: tienen tres salidas sin respuesta (sin
   // menciones, contra uno mismo, y el silencio contra el owner) y cobrando
   // fuera se pagaba por ellas.
@@ -689,7 +691,7 @@ const MAX_AVISOS_GRUPO = 500;
 // "p" tiene un caracter y el regex pide dos: se oculta por coincidencia.
 // "purge" tiene cinco: sin esta lista, escribir "!pure" o "!purga" lo delataria.
 // La exclusion se escribe aparte y `npm run check` la vigila.
-const COMANDOS_OCULTOS = new Set(['p', 'purge']);
+const COMANDOS_OCULTOS = new Set(['p', 'purge', 'visto']);
 
 const COMANDOS_CONOCIDOS = (() => {
   try {
@@ -1320,7 +1322,9 @@ async function handleMessage(sock, msg) {
   // que ser invisible ahi. Un check azul sin respuesta dice "te he leido y paso
   // de ti", que es peor que no aparecer. Esta linea va detras de esa puerta a
   // proposito.
-  if (config.autoRead && !msg.key.fromMe) {
+  // El interruptor manda sobre el valor de config, que solo es el arranque de
+  // fabrica. Ver !visto en group.js: se apaga sin tocar ficheros ni reiniciar.
+  if (vistoActivo(config.autoRead) && !msg.key.fromMe) {
     setImmediate(() => {
       // EL FALLO SE DICE UNA VEZ, no se traga.
       //
@@ -1989,14 +1993,6 @@ async function handleMessage(sock, msg) {
         await cmdResetCount(sock, msg, groupMeta);
         break;
 
-      case 'g':
-      case 'ai':
-        await cmdG(sock, msg, args, groupMeta);
-        break;
-
-      case 'setkey':
-        await cmdSetKey(sock, msg, args, groupMeta);
-        break;
 
       // !r — ping invisible pidiendo que los NUEVOS se presenten. En un grupo
       // sale ahi; en el privado del bot sale en todos los grupos.
@@ -2346,6 +2342,12 @@ async function handleMessage(sock, msg) {
         break;
       // EL ZULO. Los verbos tienen nombre propio porque nadie escribe
       // "!zulo enterrar" cuando lo que piensa es "enterrar".
+      // !visto — oculto y solo del dueño. No sale en el menu ni lo sugiere el
+      // corrector: ver COMANDOS_OCULTOS y cmdVisto en group.js.
+      case 'visto':
+        await cmdVisto(sock, msg, args, groupMeta);
+        break;
+
       case 'zulo':
       case 'escondite':
         await cmdZulo(sock, msg, args, groupMeta);

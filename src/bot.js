@@ -32,7 +32,7 @@ const STUB_SOLICITUD = new Set([144, 172]);
 // cinco solicitudes seguidas se hace UN barrido, no cinco.
 const autoAcceptPendiente = new Map();
 const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
-const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, isAutoAceptarEnabled, flushState } = require('./utils/state');
+const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, isAutoAceptarEnabled, flushState, vistoActivo } = require('./utils/state');
 const { isOwner, sameUser, isBotAdmin, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto } = require('./utils/wa');
 // anotarAlta apunta el motivo de cada alta; motivoDelAlta lo consulta cuando hay
 // que decidir si un alta fue a dedo (la unica que se sanciona).
@@ -509,7 +509,7 @@ async function connectToWhatsApp() {
     // desconectado— dejan de poder coexistir. Con autoRead en false el bot
     // vuelve a ser invisible y no marca nada, que es coherente. Lo que no puede
     // haber es un ajuste encendido que otro anula en silencio.
-    markOnlineOnConnect: config.autoRead,
+    markOnlineOnConnect: vistoActivo(config.autoRead),
     generateHighQualityLinkPreview: false,
     getMessage: async () => undefined,
     // El valor por defecto de la propia libreria es 30_000; este bot lo tenia
@@ -807,7 +807,7 @@ async function connectToWhatsApp() {
       //
       // Asi que se dicen las tres al conectar. Una linea en el log vale mas que
       // otra ronda de hipotesis.
-      if (config.autoRead) {
+      if (vistoActivo(config.autoRead)) {
         (async () => {
           const nombre = sock.authState?.creds?.me?.name || sock.user?.name || '';
           let priv = 'no consultada';
@@ -838,7 +838,7 @@ async function connectToWhatsApp() {
           if (!nombre) {
             logger.warn('EL VISTO NO SE VA A VER: la cuenta del bot no tiene nombre de perfil, y sin nombre WhatsApp ignora la presencia. Ponle un nombre desde el movil del bot (Ajustes → Perfil) y reinicia.');
           } else if (enLinea === false) {
-            logger.warn(`EL VISTO NO SE VA A VER: la sesion se anuncio como desconectada (autoRead=${config.autoRead}). Revisa markOnlineOnConnect.`);
+            logger.warn(`EL VISTO NO SE VA A VER: la sesion se anuncio como desconectada (visto=${vistoActivo(config.autoRead)}). Revisa markOnlineOnConnect.`);
           } else if (enLinea === null) {
             logger.warn(`EL VISTO PUEDE NO VERSE: WhatsApp no ha confirmado la presencia (envio: ${presencia}). nombre="${nombre}", confirmaciones=${priv}`);
           } else {

@@ -1,10 +1,10 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const { isOwner, isAdmin, isBotJid, isBotAdmin, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid, sameUser, esMiembroActual } = require('../utils/wa');
+const { isOwner, isMainOwner, isAdmin, isBotJid, isBotAdmin, isGroupAdmin, getTarget, getSender, bareJid, canonicalJid, sameUser, esMiembroActual } = require('../utils/wa');
 const { streamToBuffer, MAX_DOWNLOAD_BYTES, atomicWriteJson, readJsonOrEnoent, pickFresh, withTimeout } = require('../utils/helpers');
 const path = require('path');
 const logger = require('../utils/logger');
 const config = require('../config');
-const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled, toggleSoloAdmins, isSoloAdminsEnabled, toggleAutoAceptar, isAutoAceptarEnabled } = require('../utils/state');
+const { toggleAdminNotify, isAdminNotifyEnabled, toggleAntiAdmin, isAntiAdminEnabled, toggleAntiBusiness, isAntiBusinessEnabled, toggleAntiLink, isAntiLinkEnabled, toggleSoloAdmins, isSoloAdminsEnabled, toggleAutoAceptar, isAutoAceptarEnabled, vistoActivo, ponerVisto } = require('../utils/state');
 const { aceptarPendientes } = require('../utils/joinRequests');
 const { businessEvidence } = require('../utils/businessCheck');
 const { getMemberFacts, recordFacts } = require('../utils/nickStore');
@@ -262,6 +262,61 @@ async function cmdAdm(sock, msg, args, groupMeta) {
     `_Las plazas se dan a dedo. Que se te vea el criterio antes de pedirla._`;
 
   return sock.sendMessage(jid, { text, mentions: participants.map((p) => p.id) });
+}
+
+// !visto — enciende y apaga el visto y la presencia. INVISIBLE Y SOLO DEL DUEÑO.
+//
+// POR QUE EXISTE. Con el visto encendido el bot marca como leido CADA mensaje
+// al instante y se anuncia en linea las 24 horas. Ninguna persona hace eso, y
+// es la firma de automatizacion mas reconocible que le queda a la cuenta.
+// Cuando WhatsApp empieza a mirar de cerca, esta es la primera palanca que hay
+// que poder bajar — y en ese momento nadie quiere entrar por SSH a editar un
+// fichero y reiniciar.
+//
+// POR QUE NO SE ANUNCIA. No sale en el menu, no lo sugiere el "¿querias
+// decir...?" y a quien no sea el dueño le contesta con SILENCIO, no con un "no
+// puedes": un "no puedes" confirma que el comando existe. Un comando que
+// cambia como se comporta la cuenta entera no tiene por que saber nadie que
+// esta ahi.
+//
+// EL CAMBIO ES INMEDIATO PARA EL VISTO Y DIFERIDO PARA LA PRESENCIA. Marcar
+// leido se decide en cada mensaje, asi que apagarlo surte efecto en el
+// siguiente. Anunciarse en linea se negocia al abrir la sesion
+// (markOnlineOnConnect), asi que para dejar de aparecer conectado hace falta
+// reconectar. Se dice en la respuesta en vez de fingir que ya esta hecho.
+async function cmdVisto(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  const sender = getSender(msg);
+  if (!isMainOwner(sender, msg.key.fromMe, groupMeta)) return;   // silencio
+
+  const arg = String(args[0] || '').toLowerCase();
+  const actual = vistoActivo(config.autoRead);
+
+  if (!['on', 'off', 'si', 'sí', 'no'].includes(arg)) {
+    return sock.sendMessage(jid, {
+      text: `*VISTO:* ${actual ? 'encendido' : 'apagado'}\n` +
+        `_${actual
+          ? 'El bot marca leído todo y aparece en línea siempre. Es la señal más automática que da la cuenta.'
+          : 'El bot no marca leído ni aparece en línea. Menos ruido para WhatsApp.'}_\n` +
+        `_Se cambia con *${config.prefix}visto on* / *${config.prefix}visto off*._`,
+    }, { quoted: msg });
+  }
+
+  const quiero = arg === 'on' || arg === 'si' || arg === 'sí';
+  if (quiero === actual) {
+    return sock.sendMessage(jid, {
+      text: `_El visto ya estaba ${actual ? 'encendido' : 'apagado'}._`,
+    }, { quoted: msg });
+  }
+
+  await ponerVisto(quiero);
+  return sock.sendMessage(jid, {
+    text: quiero
+      ? `*VISTO ENCENDIDO*\n_Desde el próximo mensaje se marca todo como leído._\n` +
+        `_Para aparecer *en línea* hace falta reconectar: pm2 restart bot._`
+      : `*VISTO APAGADO*\n_Desde el próximo mensaje no se marca nada._\n` +
+        `_Seguirás apareciendo en línea hasta que se reconecte: pm2 restart bot._`,
+  }, { quoted: msg });
 }
 
 // !kick @user — remove a member (admin only).
@@ -1307,6 +1362,7 @@ async function cmdPresentarse(sock, msg, args, groupMeta) {
 }
 
 module.exports = {
+  cmdVisto,
   cmdAutoAceptar,
   cmdPresentarse,
   cmdSoloAdmins, cmdTodos, cmdKick, avisoDeKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, muteUser, unmuteUser, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdAdm };

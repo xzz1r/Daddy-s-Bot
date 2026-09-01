@@ -118,11 +118,6 @@ if (!fs.existsSync(envPath)) {
   if (!env.OWNER_NUMBER) mal('falta OWNER_NUMBER: el bot no sabe quién es el dueño', 'añádelo al .env');
   else bien('OWNER_NUMBER configurado');
 
-  if (env.GROK_API_KEY || env.XAI_API_KEY || env.AI_API_KEY
-      || fs.existsSync(path.join(RAIZ, 'data/ai-key.txt'))
-      || fs.existsSync(path.join(RAIZ, 'data/grok-key.txt'))) bien('key de !g presente');
-  else aviso('sin key de !g: no responderá', 'usa !setkey <key> desde WhatsApp');
-
   // SHIP_ALTO se comprueba aqui porque es la unica pieza de configuracion que no
   // se puede verificar de ninguna otra forma: si el bot no la ve, el !ship sale
   // bajo — que es EXACTAMENTE lo que sale cuando la config esta bien y el amaño
