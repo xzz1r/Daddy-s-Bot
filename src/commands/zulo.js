@@ -3,9 +3,12 @@
 // Tres formas de usarlo, todas con nombre propio porque nadie escribe un
 // subcomando cuando lo que piensa es un verbo:
 //
-//   !zulo                  ver lo que tienes enterrado
-//   !enterrar <cantidad>   meterlo (gratis, con enfriamiento)
-//   !desenterrar <cant>    sacarlo (con comisión al bote)
+//   !zulo             ver lo que tienes enterrado
+//   !tapar <cantidad>  meterlo (gratis, con enfriamiento)
+//   !cavar <cantidad>  sacarlo (con comisión al bote)
+//
+// !enterrar y !desenterrar siguen valiendo, pero son el alias: ocho y once
+// letras para algo que se teclea con prisa era pedir que nadie lo usara.
 //
 // LA COMISIÓN VA AL BOTE, no se destruye. Si se evaporase, cada uso del zulo
 // encogería la economía del grupo un poco, y a los meses eso se nota en el
@@ -48,7 +51,7 @@ async function cmdZulo(sock, msg, args, groupMeta) {
   const sub = String(args[0] || '').toLowerCase();
 
   // ── ENTERRAR ──────────────────────────────────────────────────────────────
-  if (['enterrar', 'meter', 'guardar', 'esconder'].includes(sub)) {
+  if (['tapar', 'enterrar', 'meter', 'guardar', 'esconder'].includes(sub)) {
     const saldo = await getAura(jid, sender);
     // Entiende "todo", "mitad", "50%" y la cifra a secas, igual que las
     // apuestas: obligar a teclear el número exacto era la mitad de los errores
@@ -91,7 +94,7 @@ async function cmdZulo(sock, msg, args, groupMeta) {
   }
 
   // ── DESENTERRAR ───────────────────────────────────────────────────────────
-  if (['desenterrar', 'sacar', 'recuperar', 'cavar'].includes(sub)) {
+  if (['cavar', 'desenterrar', 'sacar', 'recuperar'].includes(sub)) {
     const dentro = await verZulo(jid, sender);
     if (dentro <= 0) {
       return sock.sendMessage(jid, {
@@ -134,7 +137,7 @@ async function cmdZulo(sock, msg, args, groupMeta) {
   if (dentro <= 0) {
     return sock.sendMessage(jid, {
       text: `*TU ZULO*\n${frase(RX.VACIO, jid, 'vacio')}\n\n` +
-        `_Se entierra con *!enterrar <cantidad>*. Cabe hasta *${fmt(ZULO.capacidad)}*._`,
+        `_Se entierra con *!tapar <cantidad>*. Cabe hasta *${fmt(ZULO.capacidad)}*._`,
       mentions: [sender],
     }, { quoted: msg });
   }

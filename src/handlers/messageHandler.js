@@ -198,7 +198,7 @@ const NEEDS_META = new Set([
   'asalto','asaltar',
   // El zulo mueve saldo y vive en la misma familia que el robo: entra por lo
   // mismo que sus hermanos.
-  'zulo','enterrar','desenterrar','escondite',
+  'zulo','escondite','tapar','cavar','enterrar','desenterrar',
   'regalar','transferir','pagar','dar','donar',
   'ayuda','help','menu','commands',
 ]);
@@ -325,8 +325,8 @@ const CMDS_AURA = new Set([
   'asalto', 'asaltar',
   'atraco', 'atracar',
   'contrarobo', 'contraataque', 'contraatacar', 'vengarse',
-  // Enterrar y desenterrar mueven saldo: con la economia apagada, no.
-  'enterrar', 'desenterrar',
+  // Tapar y cavar mueven saldo: con la economia apagada, no.
+  'tapar', 'cavar', 'enterrar', 'desenterrar',
 ]);
 
 // Los que cuelgan de los mismos comandos y SOLO LEEN. Se listan aparte, y no
@@ -2352,9 +2352,16 @@ async function handleMessage(sock, msg) {
       case 'escondite':
         await cmdZulo(sock, msg, args, groupMeta);
         break;
+      // TAPAR Y CAVAR, no ENTERRAR y DESENTERRAR. Ocho y once letras para algo
+      // que se teclea con prisa era pedir que nadie lo usara, y las dos
+      // opciones obvias estaban pilladas: *!sacar* es alias de expulsar y
+      // *!abrir* abre el grupo. Cinco letras cada una y el hilo del agujero
+      // intacto: se tapa para esconder, se cava para ir a por ello.
+      case 'tapar':
       case 'enterrar':
         await cmdZulo(sock, msg, ['enterrar', ...args], groupMeta);
         break;
+      case 'cavar':
       case 'desenterrar':
         await cmdZulo(sock, msg, ['desenterrar', ...args], groupMeta);
         break;

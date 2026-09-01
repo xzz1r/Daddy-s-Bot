@@ -348,7 +348,8 @@ _Gratis: no cobran, pero mueven tu saldo._
 *${p}asalto* · ${p}asaltar — reventar el bote
 *${p}atraco* · ${p}atracar — reventar la caja de la tienda
 *${p}zulo* · ${p}escondite — lo que tienes enterrado
-*${p}enterrar* <cant.> · *${p}desenterrar* <cant.>
+*${p}tapar* <cant.> — esconder · *${p}cavar* <cant.> — sacarlo
+_También valen ${p}enterrar y ${p}desenterrar._
 _Lo enterrado no te lo roba nadie, pero sacarlo cuesta._
 
 ━━━━━ *ACTIVIDAD* ━━━━━
