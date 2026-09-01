@@ -383,40 +383,42 @@ async function cmdHelp(sock, msg, groupMeta, args = []) {
   const text = completo ? textoCompleto(p, c, esAdmin, esOwner) :
 `*${config.botName}*
 _Todo lleva *${p}* delante · el número es lo que cuesta en aura_
-_Sin @ va sobre ti, con @ sobre esa persona_
 
-━━ *DINÁMICAS* ━━
-*${p}roast* ${c('roast')} · *${p}mog* ${c('mog')} @a @b · *${p}ship* ${c('ship')} @a @b
-*${p}rizz* ${c('rizz')} · *${p}piropo* ${c('piropo')} · *${p}wingman* ${c('wingman')}
-*${p}top5* ${c('top5')} · *${p}top10* ${c('top10')} <tema> · *${p}iq* ${c('percent')}
-_De una palabra, ${PRECIOS.percent} cada uno:_
-*${p}puta ${p}guarra ${p}maricon ${p}incel ${p}gay ${p}femboy ${p}cerdo ${p}rata*
-*${p}simp ${p}friki ${p}inutil ${p}perdedor ${p}fea ${p}infiel ${p}fiel*
-*${p}feminidad ${p}masculinidad ${p}linda ${p}hot ${p}sexy ${p}crack ${p}ganador*
-
-━━ *AURA Y ROBO* ━━
-*${p}aura* la tirada · *${p}saldo* · *${p}top* · *${p}hoy* · *${p}guia*
-*${p}apostar* mitad/todo/2k · *${p}duel* @user · *${p}dar* @user <cant.>
-*${p}robo* @user <cant.> · *${p}contrarobo* · *${p}buscados*
-*${p}tienda* · *${p}comprar* <objeto> · *${p}bote* · *${p}caja*
-*${p}asalto* · *${p}atraco* — contra la casa, no contra nadie
-*${p}zulo* · *${p}tapar* <cant.> · *${p}cavar* <cant.> — a salvo del robo
-
-━━ *ACTIVIDAD Y ARCHIVOS* ━━
-*${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b · *${p}fantasmas* ${c('fantasmas')} · *${p}inactivos* ${c('inactivos')}
+━━ *HERRAMIENTAS* ━━
 *${p}play* ${c('play')} <nombre> · *${p}s* ${c('sticker')} · *${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')}
 *${p}ttp* ${c('ttp')} <texto> · *${p}pfp* ${c('pfp')} · *${p}fk* ${c('fk')} @user
+
+━━ *DINÁMICAS* ━━
+_Sin @ va sobre ti, con @ sobre esa persona_
+*${p}roast* ${c('roast')} · *${p}mog* ${c('mog')} @a @b · *${p}ship* ${c('ship')} @a @b
+*${p}top5* ${c('top5')} · *${p}top10* ${c('top10')} <tema>
+*${p}rizz* ${c('rizz')} · *${p}piropo* ${c('piropo')} · *${p}wingman* ${c('wingman')}
+_De una palabra, ${PRECIOS.percent} cada uno, de más crudo a más suave:_
+*${p}puta ${p}guarra ${p}maricon ${p}incel ${p}gay ${p}femboy ${p}cerdo ${p}rata*
+*${p}simp ${p}friki ${p}inutil ${p}perdedor ${p}fea ${p}infiel ${p}iq ${p}feminidad*
+*${p}masculinidad ${p}linda ${p}hot ${p}sexy ${p}fiel ${p}crack ${p}ganador*
+
+━━ *AURA Y ROBO* ━━
+*${p}robo* @user <cant.> · *${p}contrarobo* · *${p}buscados*
+*${p}asalto* · *${p}atraco* — contra la casa, no contra nadie
+*${p}zulo* · *${p}tapar* <cant.> · *${p}cavar* <cant.> — a salvo del robo
+*${p}apostar* mitad/todo/2k · *${p}duel* @user · *${p}dar* @user <cant.>
+*${p}tienda* · *${p}comprar* <objeto> · *${p}bote* · *${p}caja*
+*${p}aura* la tirada · *${p}saldo* · *${p}top* · *${p}hoy* · *${p}guia*
+
+━━ *ACTIVIDAD* ━━
+*${p}inactivos* ${c('inactivos')} · *${p}fantasmas* ${c('fantasmas')} · *${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b
 ${esAdmin ? `
 ━━ *ADMIN* ━━
-*${p}kick* · *${p}del* · *${p}mute* · *${p}unmute* · *${p}tagall* · *${p}allow*
-*${p}close* · *${p}open* · *${p}count* ${c('count')} · *${p}promote* · *${p}scan*
+*${p}kick* · *${p}mute* · *${p}unmute* · *${p}del* · *${p}tagall* · *${p}allow*
+*${p}fkban* · *${p}fkunban* · *${p}marcarfake* · *${p}fklist* · *${p}scan*
+*${p}close* · *${p}open* · *${p}promote* · *${p}count* ${c('count')}
 *${p}r* — pide a los nuevos que se presenten, sin un @ a la vista
-*${p}marcarfake* · *${p}fkban* · *${p}fkunban* · *${p}fklist*
 *${p}antifake* · *${p}notifadmin* · *${p}autoaccept* — on/off
 ` : ''}${esOwner ? `
 ━━ *SUPERIORES* ━━
-*${p}on*/*${p}off* · *${p}demote* · *${p}resetcount* · *${p}resetaura* · *${p}clearcache* · *${p}diag*
-_on/off:_ *${p}antilink* *${p}antifoto* *${p}antiempresa* *${p}antiadmin* *${p}adminmode* *${p}aura*
+*${p}demote* · *${p}resetaura* · *${p}resetcount* · *${p}on*/*${p}off* · *${p}clearcache* · *${p}diag*
+_on/off:_ *${p}antiadmin* *${p}antilink* *${p}antiempresa* *${p}antifoto* *${p}adminmode* *${p}aura*
 ` : ''}
 _${p}ping · ${p}info · ${p}whoami · *${p}help todo* para la lista entera_${config.contacto ? `
 _Contacto: wa.me/${config.contacto}_` : ''}`;
