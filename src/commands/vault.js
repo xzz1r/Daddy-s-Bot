@@ -7,10 +7,7 @@
 //   !lock <cantidad>   meterlo (gratis, con enfriamiento)
 //   !unlock <cantidad> sacarlo (con comisión al bote)
 //
-// !safe y !stash valen igual. Los nombres viejos —!zulo, !tapar, !cavar y los
-// dos verbos largos— siguen respondiendo para quien ya los tenía en los dedos,
-// pero no se anuncian en ningún sitio: están para no dejar a nadie tirado, no
-// para que nadie los aprenda.
+// !safe y !stash valen igual.
 //
 // LA COMISIÓN VA AL BOTE, no se destruye. Si se evaporase, cada uso de la caja
 // encogería la economía del grupo un poco, y a los meses eso se nota en el
@@ -43,12 +40,10 @@ const frase = (pool, jid, clave, datos = {}) =>
     .replace(/%Z/g, datos.Z === undefined ? '' : fmt(datos.Z))
     .replace(/%S/g, datos.S === undefined ? '' : fmt(datos.S));
 
-// Los verbos, con sus alias viejos detrás. Se comparan aquí dentro y no solo
-// en el dispatcher a proposito: ver el comentario del freno, mas abajo.
-const METER = ['lock', 'stash', 'meter', 'guardar', 'esconder',
-  'tapar', 'enterrar'];
-const SACAR = ['unlock', 'sacar', 'abrir', 'recuperar',
-  'cavar', 'desenterrar'];
+// Los verbos. Se comparan aqui dentro y no solo en el dispatcher a proposito:
+// ver el comentario del freno, mas abajo.
+const METER = ['lock', 'stash', 'meter', 'guardar', 'esconder'];
+const SACAR = ['unlock', 'sacar', 'abrir', 'recuperar'];
 
 async function cmdVault(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;

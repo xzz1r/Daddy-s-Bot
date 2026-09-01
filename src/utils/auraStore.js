@@ -149,15 +149,48 @@ const CLAVE_SUELO = '__suelo';
 // ese nivel son JID de grupo, asi que un nombre con dos barras bajas no puede
 // chocar con ninguno. Aun asi las dos migraciones lo saltan explicitamente: que
 // hoy se salve por el `typeof !== 'number'` de mas abajo es suerte, no diseño.
-// EL NOMBRE DE LA CLAVE NO SE TOCA. Es texto en aura.json y ya hay grupos con
-// aura guardada debajo: cambiarlo por '__caja' seria dar por perdido todo lo
-// que hay dentro sin decirselo a nadie. El identificador se lee en castellano,
-// el literal se queda como nacio.
-const CLAVE_CAJA = '__zulo';
+const CLAVE_CAJA = '__caja';
 // Ultimo cierre por persona, para el enfriamiento. Se guarda con la caja
 // porque es parte de la misma decision.
-const CLAVE_CAJA_TS = '__zulots';
+const CLAVE_CAJA_TS = '__cajats';
 const SUELO_VERSION = 1;
+
+// LA CAJA NACIO CON OTRO NOMBRE Y HAY GRUPOS CON AURA GUARDADA DEBAJO.
+//
+// El nombre viejo se fue del bot entero, pero en aura.json es TEXTO: un fichero
+// escrito ayer sigue teniendo las dos claves antiguas, y arrancar sin mirarlas
+// habria dejado esa aura fuera del saldo, fuera de la caja y fuera del ranking
+// —ni robada ni gastada: desaparecida— sin un solo error en el log.
+//
+// Se mueve una vez, al cargar, y solo si no hay ya algo en la clave nueva. Las
+// dos entradas viejas se borran ahi mismo, asi que la migracion no se repite y
+// el nombre no vuelve a aparecer en el fichero.
+const CLAVES_VIEJAS = [['__zulo', CLAVE_CAJA], ['__zulots', CLAVE_CAJA_TS]];
+
+function migrarNombreCaja() {
+  if (!store) return;
+  let movidos = 0, habia = false;
+  for (const [vieja, nueva] of CLAVES_VIEJAS) {
+    if (!(vieja in store)) continue;
+    habia = true;
+    const dentro = store[vieja];
+    delete store[vieja];
+    if (!dentro || typeof dentro !== 'object') continue;
+    if (!store[nueva]) store[nueva] = {};
+    for (const grupo in dentro) {
+      // Si las dos existen —restaurar una copia vieja encima de una nueva— se
+      // queda la nueva: es la que el bot ha estado escribiendo.
+      if (store[nueva][grupo] === undefined) { store[nueva][grupo] = dentro[grupo]; movidos++; }
+    }
+  }
+  // SE GUARDA AUNQUE NO SE HAYA MOVIDO NADA. Borrar la clave vieja solo de
+  // memoria dejaba el nombre en el fichero hasta el siguiente apunte de aura,
+  // que puede ser dentro de horas o de dias.
+  if (habia) {
+    logger.info(`auraStore: caja bajo el nombre viejo (${movidos} grupo(s) movidos); el fichero queda con el nuevo.`);
+    scheduleSave();
+  }
+}
 
 function aplicarSuelo() {
   if (!store) return;
@@ -183,7 +216,7 @@ async function load() {
   if (store) return;
   if (!loadPromise) {
     loadPromise = readJsonOrEnoent(AURA_FILE, {})
-      .then((d) => { store = d; migrarEscala(); aplicarSuelo(); })
+      .then((d) => { store = d; migrarNombreCaja(); migrarEscala(); aplicarSuelo(); })
       .catch((e) => {
         loadPromise = null;
         logger.warn(`auraStore: lectura falló (${e.message}); no se toca el archivo`);

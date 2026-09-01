@@ -4856,7 +4856,54 @@ const G='120@g.us', V='34622222222@s.whatsapp.net';
     } finally {
       fs.rmSync(dirZ, { recursive: true, force: true });
     }
-    if (fallos === antes) console.log(verde('   ✓ el aura se conserva, la caja tiene fondo y el robo no la alcanza'));
+    // Y LO QUE HAY GUARDADO SOBREVIVE AL CAMBIO DE NOMBRE.
+    //
+    // La caja nacio llamandose de otra manera y ese nombre es TEXTO dentro de
+    // aura.json: el fichero que el bot tiene escrito ahora mismo sigue con las
+    // claves viejas. Arrancar sin mirarlas no da ningun error —deja el aura
+    // guardada fuera del saldo, fuera de la caja y fuera del ranking, que es la
+    // unica forma de perder aura sin que nadie se entere.
+    //
+    // Se prueba con un aura.json escrito a mano EN EL FORMATO VIEJO, arrancando
+    // el almacen de verdad encima.
+    {
+      const dirM = fs.mkdtempSync(path.join(os.tmpdir(), 'migra-'));
+      try {
+        const guion = path.join(dirM, 'm.js');
+        fs.writeFileSync(guion, `
+const fs=require('fs'),os=require('os'),path=require('path');
+const ROOT=fs.mkdtempSync(path.join(os.tmpdir(),'mg-'));
+fs.cpSync(${JSON.stringify(path.join(R, 'src'))},path.join(ROOT,'src'),{recursive:true});
+fs.mkdirSync(path.join(ROOT,'data'));
+try{fs.symlinkSync(${JSON.stringify(path.join(R, 'node_modules'))},path.join(ROOT,'node_modules'),'dir');}catch{}
+const G='120@g.us', V='34622222222@s.whatsapp.net';
+const AHORA=Date.now();
+fs.writeFileSync(path.join(ROOT,'data','aura.json'),JSON.stringify({
+  [G]:{[V]:900}, '__zulo':{[G]:{[V]:700}}, '__zulots':{[G]:{[V]:AHORA}}, '__escala':3, '__suelo':1,
+}));
+const a=require(path.join(ROOT,'src/utils/auraStore'));
+(async()=>{
+  const dentro=await a.verCaja(G,V), saldo=await a.getAura(G,V), espera=await a.esperaCaja(G,V);
+  await a.flushAura();
+  await new Promise(r=>setTimeout(r,300));
+  const disco=JSON.parse(fs.readFileSync(path.join(ROOT,'data','aura.json'),'utf8'));
+  console.log(JSON.stringify({dentro, saldo, espera, claves:Object.keys(disco)}));
+})();
+`);
+        const m = JSON.parse(execSync(`node ${guion}`, { encoding: 'utf8', timeout: 60000 }).trim().split('\n').pop());
+        exige(m.dentro === 700,
+          `un aura.json con la caja bajo el nombre viejo llega con ${m.dentro} dentro en vez de 700: esa aura ha desaparecido del saldo y del ranking a la vez`);
+        exige(m.saldo === 900, `el saldo visible se ha movido con la migracion: ${m.saldo} en vez de 900`);
+        exige(m.espera > 0, 'el enfriamiento no ha viajado: quien acababa de cerrar la caja puede volver a cerrarla al instante');
+        exige(!m.claves.includes('__zulo') && !m.claves.includes('__zulots'),
+          `el nombre viejo sigue escrito en aura.json: ${m.claves.join(' ')}`);
+      } catch (e) {
+        exige(false, `no pude probar la migracion de la caja: ${String(e.message).split('\n')[0]}`);
+      } finally {
+        fs.rmSync(dirM, { recursive: true, force: true });
+      }
+    }
+    if (fallos === antes) console.log(verde('   ✓ el aura se conserva, la caja tiene fondo, el robo no la alcanza y lo guardado sobrevive al cambio de nombre'));
   }
 
   // ── 33b. LOS RANKINGS MENCIONAN A UNA PERSONA, NO A UN NUMERO INTERNO ────

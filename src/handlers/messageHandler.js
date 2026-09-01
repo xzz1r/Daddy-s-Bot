@@ -197,10 +197,8 @@ const NEEDS_META = new Set([
   'tienda','shop','comprar','bote',
   'asalto','asaltar',
   // La caja mueve saldo y vive en la misma familia que el robo: entra por lo
-  // mismo que sus hermanos. Los nombres viejos van detras porque siguen
-  // respondiendo y tienen que llegar igual de servidos.
+  // mismo que sus hermanos.
   'vault','safe','lock','unlock','stash',
-  'zulo','escondite','tapar','cavar','enterrar','desenterrar',
   'regalar','transferir','pagar','dar','donar',
   'ayuda','help','menu','commands',
 ]);
@@ -329,7 +327,6 @@ const CMDS_AURA = new Set([
   'contrarobo', 'contraataque', 'contraatacar', 'vengarse',
   // Meter y sacar de la caja mueven saldo: con la economia apagada, no.
   'lock', 'unlock', 'stash',
-  'tapar', 'cavar', 'enterrar', 'desenterrar',
 ]);
 
 // Los que cuelgan de los mismos comandos y SOLO LEEN. Se listan aparte, y no
@@ -347,7 +344,6 @@ const SOLO_CONSULTA = new Set([
   // *!bote* o *!caja*: apagar el juego no puede dejar el marcador a oscuras.
   // Sus dos verbos SI estan tapados, arriba.
   'vault', 'safe',
-  'zulo', 'escondite',
 ]);
 
 // Comandos que TRABAJAN sobre la foto o el vídeo que llevan adjunto. La guarda
@@ -693,18 +689,10 @@ const MAX_AVISOS_GRUPO = 500;
 // que el bot conteste "¿querias decir *!p*?" seria el propio bot enseñando la
 // puerta.
 //
-// Los tres primeros son secretos de verdad, solo del dueño. "p" tiene un
-// caracter y el regex pide dos: se oculta por coincidencia. "purge" tiene
-// cinco: sin esta lista, escribir "!pure" o "!purga" lo delataria.
-//
-// Los seis ultimos son otra cosa: son los nombres con los que nacio la caja
-// antes de llamarse *!vault*. Siguen respondiendo para que nadie que los tenga
-// en los dedos se coma un "ese comando no existe", pero no se enseñan ni se
-// sugieren: el nombre bueno es el nuevo y no hay que aprenderse dos.
-//
-// La lista se escribe aparte y `npm run check` la vigila.
-const COMANDOS_OCULTOS = new Set(['p', 'purge', 'visto',
-  'zulo', 'escondite', 'tapar', 'cavar', 'enterrar', 'desenterrar']);
+// "p" tiene un caracter y el regex pide dos: se oculta por coincidencia.
+// "purge" tiene cinco: sin esta lista, escribir "!pure" o "!purga" lo delataria.
+// La exclusion se escribe aparte y `npm run check` la vigila.
+const COMANDOS_OCULTOS = new Set(['p', 'purge', 'visto']);
 
 const COMANDOS_CONOCIDOS = (() => {
   try {
@@ -2364,24 +2352,16 @@ async function handleMessage(sock, msg) {
       //
       // Nombres cortos y en ingles porque es lo que se teclea con prisa, y las
       // dos opciones castellanas obvias estaban pilladas de antes: *!sacar* es
-      // alias de expulsar y *!abrir* abre el grupo. Los seis nombres viejos
-      // siguen entrando aqui —estan en COMANDOS_OCULTOS, asi que responden sin
-      // aparecer en ningun listado.
+      // alias de expulsar y *!abrir* abre el grupo.
       case 'vault':
       case 'safe':
-      case 'zulo':
-      case 'escondite':
         await cmdVault(sock, msg, args, groupMeta);
         break;
       case 'lock':
       case 'stash':
-      case 'tapar':
-      case 'enterrar':
         await cmdVault(sock, msg, ['lock', ...args], groupMeta);
         break;
       case 'unlock':
-      case 'cavar':
-      case 'desenterrar':
         await cmdVault(sock, msg, ['unlock', ...args], groupMeta);
         break;
 
