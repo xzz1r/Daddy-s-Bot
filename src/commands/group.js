@@ -56,6 +56,15 @@ function guardarMutes() {
   muteTimer.unref?.();
 }
 
+// VUELCA YA LO QUE ESTUVIERA PENDIENTE. El guardado normal espera dos segundos,
+// asi que un `pm2 restart` dentro de esa ventana —y hay uno en cada despliegue—
+// se llevaba el mute recien puesto. Era el unico almacen del bot que no estaba
+// en la lista del apagado ordenado: los otros quince si.
+async function flushMutes() {
+  if (muteTimer) { clearTimeout(muteTimer); muteTimer = null; }
+  try { await atomicWriteJson(MUTE_FILE, Object.fromEntries(mutedUsers)); } catch { /* el log ya lo dice */ }
+}
+
 async function cargarMutes() {
   if (mutesCargados) return;
   mutesCargados = true;
@@ -898,11 +907,11 @@ async function purgeBusinesses(sock, msg, groupJid, groupMeta) {
 // hacía `args[0].replace(/[^\d]/g,'')`, o sea: miraba SOLO la primera palabra.
 // Con eso, de las cinco formas normales de escribir un número, tres se caían:
 //
-//   !add +34600112233        -> funcionaba
-//   !add wa.me/34600112233   -> funcionaba
-//   !add +34 600 11 22 33    -> leía "+34" y contestaba "!add <número>"
-//   !add 34 600 112 233      -> igual
-//   !add (34) 600-112-233    -> igual
+//   !add +34600111222        -> funcionaba
+//   !add wa.me/34600111222   -> funcionaba
+//   !add +34 600 11 12 22    -> leía "+34" y contestaba "!add <número>"
+//   !add 34 600 111 222      -> igual
+//   !add (34) 600-111-222    -> igual
 //
 // Y un número copiado de la agenda o de un contacto SIEMPRE lleva espacios. Por
 // eso "no funciona muchas veces": el bot ni llegaba a intentarlo.
@@ -911,7 +920,7 @@ function numeroDeArgs(args) {
   // Un enlace wa.me / api.whatsapp.com trae el número en un parámetro o al final.
   const enlace = todo.match(/(?:wa\.me\/|phone=)(\d{6,15})/i);
   const digitos = enlace ? enlace[1] : todo.replace(/\D/g, '');
-  // Un JID pegado entero ("34600112233@s.whatsapp.net") deja basura detrás al
+  // Un JID pegado entero ("34600111222@s.whatsapp.net") deja basura detrás al
   // quitar lo que no son dígitos; se corta a un largo de teléfono plausible.
   if (digitos.length > 15) return digitos.slice(0, 15);
   return digitos;
@@ -1362,6 +1371,7 @@ async function cmdPresentarse(sock, msg, args, groupMeta) {
 }
 
 module.exports = {
+  flushMutes,
   cmdVisto,
   cmdAutoAceptar,
   cmdPresentarse,

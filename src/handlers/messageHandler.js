@@ -2484,8 +2484,18 @@ async function handleMessage(sock, msg) {
       await devolverAura(jid, sender, cobradoAqui).catch(() => {});
     }
 
+    // LA TRAZA NO SALE AL GRUPO. `err.message` trae rutas del servidor, nombres
+    // de fichero, salidas de ffmpeg y a veces el comando entero que se ejecuto.
+    // Eso, en un chat que lee todo el mundo, es contarle a cualquiera como esta
+    // montado el bot y donde vive. Y no le sirve de nada a quien lo lee: no va a
+    // arreglar un ENOENT de un temporal.
+    //
+    // El detalle ya esta en el log, con el comando delante. Aqui va lo unico
+    // que le importa a quien escribio: que ha fallado y que no ha pagado.
+    logger.error(`Command ${command} de ${String(sender).split('@')[0]} en ${jid}: ${err?.stack || err?.message || err}`);
     sock.sendMessage(jid, {
-      text: `Error inesperado: ${err.message}` + (cobradoAqui > 0 ? `\n_Te devuelvo los ${cobradoAqui} de aura._` : ''),
+      text: 'Eso ha petado. No es cosa tuya.'
+        + (cobradoAqui > 0 ? `\n_Te devuelvo los ${cobradoAqui} de aura._` : ''),
     }, { quoted: msg }).catch(() => {});
   } finally {
     // El visto ya se mando arriba, para TODO mensaje y no solo para los

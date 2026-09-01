@@ -21,6 +21,7 @@ const { ZULO } = require('../utils/economia');
 const { getSender } = require('../utils/wa');
 const { pickFresh, fmt, aviso, parseCantidad, resolverCantidad } = require('../utils/helpers');
 const { SOLO_GRUPOS } = require('../data/avisos');
+const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
 const RX = require('../data/zuloPhrases');
 const logger = require('../utils/logger');
 
@@ -49,6 +50,21 @@ async function cmdZulo(sock, msg, args, groupMeta) {
   const sender = getSender(msg);
   const nm = `@${sender.split('@')[0]}`;
   const sub = String(args[0] || '').toLowerCase();
+
+  // EL FRENO VA AQUI DENTRO, NO SOLO EN EL DISPATCHER, y este agujero era mio.
+  //
+  // El dispatcher congela por NOMBRE DE COMANDO: *!tapar* y *!cavar* estan en
+  // CMDS_AURA, *!zulo* esta en SOLO_CONSULTA porque a secas solo mira. Pero
+  // cmdZulo acepta el verbo como subcomando, asi que con la economia apagada
+  // *!zulo tapar 100* y *!escondite cavar* movian saldo por la puerta de al
+  // lado. Mirar la primera palabra no basta cuando la segunda tambien manda.
+  //
+  // Es exactamente el mismo caso que la tienda —*!tienda* enseña y
+  // *!tienda socio* compra— y alli ya se resolvio poniendo el freno dentro.
+  // Lo apliqué a la tienda y no a mi propio comando.
+  const mueve = ['tapar', 'enterrar', 'meter', 'guardar', 'esconder',
+    'cavar', 'desenterrar', 'sacar', 'recuperar'].includes(sub);
+  if (mueve && auraApagada(jid)) return avisarApagada(sock, jid, msg);
 
   // ── ENTERRAR ──────────────────────────────────────────────────────────────
   if (['tapar', 'enterrar', 'meter', 'guardar', 'esconder'].includes(sub)) {

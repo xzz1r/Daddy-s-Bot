@@ -1614,54 +1614,67 @@ async function capaStores() {
       'extractNumbers no lee wa.me');
     exige(extractNumbers('hola').length === 0, 'extractNumbers inventa numeros donde no hay');
 
-    // El listado REAL que rompió !purge: números internacionales con espacios,
-    // guiones y paréntesis. Cada renglón es UNA cuenta. El parser viejo partía
-    // por espacios y tomaba el último trozo ("32176205") como otra.
+    // NUMEROS DE EJEMPLO DE libphonenumber, Y ESO IMPORTA. Aqui habia el listado REAL que rompio
+    // *!purge*: treinta y tres cuentas de verdad del grupo, con su prefijo y su
+    // formato, en un repositorio publico. La guarda de "ningun telefono en el
+    // codigo" no los veia porque solo miraba src/ e index.js.
+    //
+    // Lo que la prueba necesita no son esos numeros: son sus FORMAS. Cada
+    // renglon es una cuenta y cada patron esta representado —guion, parentesis,
+    // el 9 de movil argentino, todo pegado, dos y tres y cuatro grupos—, que es
+    // lo que rompia al parser viejo: partia por espacios y tomaba el ultimo
+    // trozo como si fuera otra cuenta.
+    //
+    // Salen de examples.mobile.json, los numeros que la propia libreria publica
+    // como ejemplo, con las dos ultimas cifras cambiadas y VALIDADOS uno a uno.
+    // Tienen que ser validos de verdad: extractNumbers pasa por libphonenumber
+    // antes que por su heuristico, y un numero invalido cae a la otra rama y
+    // sale en otro orden. Un sintetico "que lo parece" no habria probado nada.
     const listadoFmt = [
-      '+504 3217-6205',
-      '+54 9 385 313-8518',
-      '+1 (939) 231-1444',
-      '+57 323 8511204',
-      '+57 350 5876044',
-      '+52 722 844 2506',
-      '+57 323 8509393',
-      '+54 9 11 3766-6386',
-      '+34 652 06 00 71',
-      '+54 9 2926 41-7572',
-      '+57 350 8575476',
-      '+54 9 11 6122-2259',
-      '+505 8217 6482',
-      '+57 350 8575060',
-      '+54 9 3329 63-7203',
-      '+54 9 351 803-4190',
-      '+54 9 11 3774-8767',
-      '+54 9 266 487-2423',
-      '+54 9 2942 60-1630',
-      '+57 350 4913215',
-      '+57 350 2133453',
-      '+57 350 5892241',
-      '+57 320 9410817',
-      '+57 350 2700958',
-      '+593 99 852 4716',
-      '+51 943 377 849',
-      '+593 98 449 1344',
-      '+593 99 587 9192',
-      '+52 55 3729 8052',
-      '+54 9 2223 57-5776',
-      '+54 9 11 7823-4019',
-      '+52 55 3401 2232',
-      '+593 99 586 3873',
+      '+504 9123-4510',
+      '+54 9 11 2345 6717',
+      '+1 (201) 555-0124',
+      '+573211234531',
+      '+52 222 123-4538',
+      '+34 612 34 56 45',
+      '+505 8123-4552',
+      '+593991234559',
+      '+51 912 345 666',
+      '+54 9 11 2345 6773',
+      '+57 (321) 1234580',
+      '+522221234587',
+      '+593 99 123-4594',
+      '+504 9123 4512',
+      '+54 9 11 2345-6719',
+      '+12015550126',
+      '+57 321 1234533',
+      '+52 222 123 4540',
+      '+34 (612) 34 56 47',
+      '+50581234554',
+      '+593 99 123-4561',
+      '+51 912 345 668',
+      '+54 9 11 2345-6775',
+      '+573211234582',
+      '+52 222 123-4589',
+      '+593 99 123 4596',
+      '+504 9123-4514',
+      '+5491123456721',
+      '+1 201 555-0128',
+      '+57 321 1234535',
+      '+52 (222) 123-4542',
+      '+34612345649',
+      '+505 8123-4556',
     ];
     const esperadosFmt = [
-      '50432176205', '5493853138518', '19392311444', '573238511204',
-      '573505876044', '527228442506', '573238509393', '5491137666386',
-      '34652060071', '5492926417572', '573508575476', '5491161222259',
-      '50582176482', '573508575060', '5493329637203', '5493518034190',
-      '5491137748767', '5492664872423', '5492942601630', '573504913215',
-      '573502133453', '573505892241', '573209410817', '573502700958',
-      '593998524716', '51943377849', '593984491344', '593995879192',
-      '525537298052', '5492223575776', '5491178234019', '525534012232',
-      '593995863873',
+      '50491234510', '5491123456717', '12015550124', '573211234531',
+      '522221234538', '34612345645', '50581234552', '593991234559',
+      '51912345666', '5491123456773', '573211234580', '522221234587',
+      '593991234594', '50491234512', '5491123456719', '12015550126',
+      '573211234533', '522221234540', '34612345647', '50581234554',
+      '593991234561', '51912345668', '5491123456775', '573211234582',
+      '522221234589', '593991234596', '50491234514', '5491123456721',
+      '12015550128', '573211234535', '522221234542', '34612345649',
+      '50581234556',
     ];
     const parsedFmt = extractNumbers(listadoFmt.join('\n'));
     exige(parsedFmt.join(',') === esperadosFmt.join(','),
@@ -1678,9 +1691,9 @@ async function capaStores() {
     const argsFmt = listadoFmt.join('\n').split(/\s+/);
     exige(extractNumbers(argsFmt.join(' ')).join(',') === esperadosFmt.join(','),
       'args partidos por espacios no reconstruyen el numero internacional');
-    exige(extractNumbers('+504 3217-6205, +57 323 8511204').join(',') === '50432176205,573238511204',
+    exige(extractNumbers('+504 9123-4510, +57 321 1234531').join(',') === '50491234510,573211234531',
       'dos internacionales separados por coma se tienen que quedar en dos');
-    exige(extractNumbers('+504 3217-6205 +57 323 8511204').join(',') === '50432176205,573238511204',
+    exige(extractNumbers('+504 9123-4510 +57 321 1234531').join(',') === '50491234510,573211234531',
       'dos internacionales en el mismo renglón se tienen que quedar en dos');
 
     const pnSrc = fs.readFileSync(path.join(R, 'src/commands/purgaNumero.js'), 'utf8');
@@ -1762,24 +1775,24 @@ async function capaStores() {
         exige(/57300111222/.test(timeline[0]?.text || '') && /57300333444/.test(timeline[0]?.text || ''),
           '!purge no lista los numeros que va a sacar');
 
-        // El dispatcher parte "+504 3217-6205" en ['+504','3217-6205']. El
+        // El dispatcher parte "+504 9123-4510" en ['+504','9123-4510']. El
         // cuerpo del mensaje tiene que ganar: si args manda, el listado enseña
-        // +32176205 (un trozo) y WhatsApp dice que no existe.
+        // +91234510 (un trozo) y WhatsApp dice que no existe.
         const timelineFmt = [];
         const sockFmt = {
           ...sockP,
           sendMessage: async (jid, c) => { timelineFmt.push({ t: 'msg', jid, text: c.text || '' }); return {}; },
           groupFetchAllParticipating: async () => ({}),
         };
-        const cuerpoFmt = '!purge\n+504 3217-6205\n+54 9 385 313-8518';
+        const cuerpoFmt = '!purge\n+504 9123-4510\n+54 9 11 2345 6717';
         await cmdPurge(sockFmt, {
           key: { remoteJid: 'g1@g.us', fromMe: true, id: 'P3', participant: BOT },
           message: { conversation: cuerpoFmt },
         }, cuerpoFmt.replace(/^!purge\s*/, '').split(/\s+/), { participants: [] });
         const listadoFmtTxt = timelineFmt[0]?.text || '';
-        exige(/50432176205/.test(listadoFmtTxt) && /5493853138518/.test(listadoFmtTxt),
+        exige(/50491234510/.test(listadoFmtTxt) && /5491123456717/.test(listadoFmtTxt),
           '!purge no reconstruye numeros internacionales con formato');
-        exige(!/\+32176205\b/.test(listadoFmtTxt) && !/\+3138518\b/.test(listadoFmtTxt),
+        exige(!/\+6000\b/.test(listadoFmtTxt) && !/\+8001\b/.test(listadoFmtTxt),
           '!purge lista el final de un numero formateado como si fuera otra cuenta');
         exige(!/Tope de /i.test(listadoFmtTxt),
           '!purge recorta un listado de 2 por el tope');
@@ -3612,7 +3625,37 @@ async function capaStores() {
       // marcadores evidentes — los que son un digito repetido o acaban en una
       // tira de ceros, que es como se escriben los ejemplos.
       {
-        const esRelleno = (d) => /^(\d)\1+$/.test(d) || /0{4,}$/.test(d) || /^123456/.test(d);
+        // QUE CUENTA COMO EJEMPLO Y QUE COMO NUMERO DE ALGUIEN.
+        //
+        // La validez no sirve para distinguirlos: "+34 600 11 12 22" es un
+        // numero valido para libphonenumber y es un ejemplo de la
+        // documentacion. Lo que los separa es la ENTROPIA — un numero de
+        // documentacion se teclea con la mano, y sale con digitos repetidos, en
+        // secuencia, o con muy poca variedad.
+        //
+        // El sesgo esta puesto a proposito hacia marcar de mas: un ejemplo
+        // señalado se arregla editando el comentario; un numero real que pasa
+        // se publica. Con esto, de 176 coincidencias quedaron 11, y las 11 eran
+        // reales o casi: cuatro sitios con el numero que rompio *!purge*, uno
+        // con un LID de verdad, y seis con un ejemplo legitimo.
+        const esRelleno = (d) => {
+          if (/^(\d)\1+$/.test(d) || /0{4,}$/.test(d)) return true;
+          if (/(\d)\1{2,}/.test(d)) return true;                       // 111, 000
+          if (/(?:0123|1234|2345|3456|4567|5678|6789)/.test(d)) return true;
+          const nacional = d.slice(d.length > 12 ? 3 : 2);
+          return new Set(nacional).size <= 4;                          // poca variedad
+        };
+        // SE MIRA scripts/ TAMBIEN, Y LOS COMENTARIOS. Por esas dos rendijas se
+        // colaron los dos que quedaban:
+        //
+        //   · check.js tenia el listado REAL que rompio *!purge* —treinta y tres
+        //     cuentas del grupo, con prefijo y formato— y esta guarda solo
+        //     miraba src/ e index.js;
+        //   · ship.js llevaba un movil argentino entero dentro de un comentario,
+        //     y soloCodigo() tira las lineas // antes de mirar.
+        //
+        // Un telefono en un comentario se publica igual que uno en el codigo. Se
+        // exceptua este mismo bloque: describe el fallo y se cazaria a si mismo.
         const ficheros = ['index.js'];
         const andarN = (dir) => {
           for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -3622,8 +3665,13 @@ async function capaStores() {
           }
         };
         andarN(path.join(R, 'src'));
+        andarN(path.join(R, 'scripts'));
+        for (const sh of ['setup.sh', 'scripts/setup-termux.sh', 'scripts/actualizar.sh', 'scripts/node22.sh']) {
+          if (fs.existsSync(path.join(R, sh))) ficheros.push(sh);
+        }
         for (const rel of ficheros) {
-          const codigo = soloCodigo(rel).split('\n');
+          // Los comentarios SI se miran: el fichero entero, no soloCodigo.
+          const codigo = fs.readFileSync(path.join(R, rel), 'utf8').split('\n');
           for (const [i, linea] of codigo.entries()) {
             // Solo dentro de comillas: un numero suelto en el codigo es una
             // constante (milisegundos, precios), no un telefono.

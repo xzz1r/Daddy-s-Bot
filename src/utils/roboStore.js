@@ -37,9 +37,25 @@ let saveTimer = null;
 async function load() {
   if (store) return;
   if (!loadPromise) {
+    // UN FALLO DE LECTURA NO PUEDE ACABAR EN UN FICHERO VACIO.
+    //
+    // Esto ponia `store = {}` y seguia. Un JSON corrupto, un EMFILE o un EACCES
+    // dejaban el almacen en blanco, y como loadPromise no se anulaba tampoco se
+    // reintentaba: el siguiente !robo, el siguiente scheduleSave o el volcado
+    // del apagado escribian ese vacio ENCIMA del fichero bueno. Bote, caja,
+    // escudos, indultos y el ranking de la semana, fuera, sin un solo error a
+    // la vista porque el bot seguia contestando.
+    //
+    // auraStore, casinoStore, rachaStore y messageCounter ya hacian lo
+    // contrario —lanzar y no tocar el archivo— y state.js acaba de sumarse.
+    // Este era el que quedaba, y es el que mueve dinero.
     loadPromise = readJsonOrEnoent(ROBO_FILE, {})
       .then((d) => { store = d && typeof d === 'object' ? d : {}; })
-      .catch((e) => { logger.error(`roboStore: no pude leer: ${e.message}`); store = {}; });
+      .catch((e) => {
+        loadPromise = null;   // se puede reintentar; NUNCA vaciar y sobrescribir
+        logger.error(`roboStore: no pude leer data/robo.json (${e.message}); no se toca el archivo`);
+        throw e;
+      });
   }
   await loadPromise;
 }

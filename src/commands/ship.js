@@ -8,11 +8,14 @@ const { aviso } = require('../utils/helpers');
 // ¿Es este JID uno de los numeros de config.shipAlto?
 //
 // NO SE PUEDE COMPARAR EL NUMERO A PELO, y el caso que lo obliga es argentino.
-// WhatsApp se come el 9 de movil de Argentina en el JID: quien marca
-// +54 9 297 506-9854 aparece muchas veces como 542975069854@s.whatsapp.net, sin
-// el nueve. Comparar la cadena tal cual fallaria justo con el numero para el
-// que se ha pedido esto, y fallaria en silencio — el ship saldria bajo y nadie
-// sabria por que.
+// WhatsApp se come el 9 de movil de Argentina en el JID: quien marca con el
+// nueve (+54 9 XXX ...) aparece muchas veces como 54XXX...@s.whatsapp.net, sin
+// el. Comparar la cadena tal cual fallaria justo con el numero para el que se
+// ha pedido esto, y fallaria en silencio — el ship saldria bajo y nadie sabria
+// por que.
+//
+// El ejemplo iba con un movil real escrito entero, y este fichero se lee en un
+// repositorio publico. La regla no necesita el numero de nadie para explicarse.
 //
 // Asi que se comparan tres cosas, en este orden:
 //   1. el JID canonico, por si es un @lid ya resuelto a telefono;

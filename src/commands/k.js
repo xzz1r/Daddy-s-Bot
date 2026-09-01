@@ -95,7 +95,7 @@ function autorDelCitado(ctx, jid) {
   //
   // Antes se cogia el participant en crudo y se le pegaba un '+' delante. En un
   // grupo LID —que es lo normal ya— eso no es un telefono: es el identificador
-  // interno de WhatsApp, y salia "imagen de +89210866430183", un numero de
+  // interno de WhatsApp, y salia "imagen de +89######## ######", un numero de
   // catorce digitos que no existe y que no sirve para buscar a nadie.
   //
   // canonicalJid traduce el LID al telefono con el mapa que el bot ya mantiene.

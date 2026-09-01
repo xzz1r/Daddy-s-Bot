@@ -90,8 +90,9 @@ function avisoDePurge(hits) {
 // Extrae VARIOS números de un bloque de texto sin fusionarlos y sin romper
 // uno formateado en trozos.
 //
-// El caso que lo rompió: "+504 3217-6205" (un número) se partía por espacios
-// y el último trozo con 7+ dígitos ("32176205") se tomaba por otra cuenta.
+// El caso que lo rompió: un "+504 9123-4510" (un número) se partía por
+// espacios y el último trozo con 7+ dígitos ("91234510") se tomaba por otra
+// cuenta.
 // onWhatsApp decía que no existía, llenaba el tope con basura y los números
 // de verdad del pegado se quedaban sin tocar.
 //
@@ -161,7 +162,7 @@ function partirSegmentos(linea) {
 }
 
 // Un candidato que es la cola de otro del mismo listado es el resto de un
-// número con formato ("3217-6205" de "+504 3217-6205"), no una cuenta aparte.
+// número con formato ("9123-4510" de "+504 9123-4510"), no una cuenta aparte.
 function sinFragmentos(nums) {
   return nums.filter((d) => !nums.some((otro) => otro !== d && otro.endsWith(d)));
 }

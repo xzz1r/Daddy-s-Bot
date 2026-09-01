@@ -19,6 +19,10 @@ data/*.tmp
 data/ownerJids.json
 data/lidMap.json
 data/robo.json
+# mutes.json era el UNICO de data/ sin ignorar, y eso rompia el despliegue: al
+# primer !mute, git status lo veia como fichero nuevo, actualizar.sh se negaba a
+# actualizar y el arreglo que imprime —git clean -fd— lo borraba.
+data/mutes.json
 # Ventana anti-repeticion de frases. Es estado del grupo y ademas cambia con
 # cada mensaje: subirlo seria ruido puro en cada commit.
 data/pickhistory.json

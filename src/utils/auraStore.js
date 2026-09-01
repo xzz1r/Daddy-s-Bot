@@ -543,6 +543,15 @@ async function resetAura(groupJid) {
   const alSuelo = {};
   for (const k in g) alSuelo[canonicalJid(k)] = SUELO_TODOS;
   store[groupJid] = alSuelo;
+  // EL ZULO TAMBIEN SE VACIA, y no hacerlo dejaba el reset a medias.
+  //
+  // El aviso dice que el marcador vuelve al suelo para todo el mundo. Sin esto
+  // era mentira para quien tuviera algo enterrado: el ranking suma lo escondido
+  // (ver getAuraRanking), asi que esa persona seguia arriba del todo con dos
+  // mil intocables mientras al resto se le ponia a 150. Y encima premiaba
+  // esconder justo antes de un reset.
+  if (store[CLAVE_ZULO]) delete store[CLAVE_ZULO][groupJid];
+  if (store[CLAVE_ZULO_TS]) delete store[CLAVE_ZULO_TS][groupJid];
   scheduleSave();
 }
 
