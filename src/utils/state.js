@@ -29,10 +29,29 @@ async function loadState() {
     // Deep-merge stats so a partial on-disk object (e.g. missing startTime, or a
     // newly-added counter) keeps the defaults instead of dropping them.
     return { ...defaultState, ...parsed, stats: { ...defaultState.stats, ...(parsed.stats || {}) } };
-  } catch {
-    // Corrupt JSON is genuinely unrecoverable (very rare with atomic writes) —
-    // reset to defaults so the bot can still boot.
-    return { ...defaultState };
+  } catch (e) {
+    // UN JSON CORRUPTO NO PUEDE VOLVER A LOS VALORES DE FABRICA.
+    //
+    // Aqui ponia "reset to defaults so the bot can still boot", y arrancar no
+    // era el problema: el problema es CON QUE arranca. Este fichero guarda los
+    // interruptores de moderacion —grupos apagados, antilink, antiadmin,
+    // antiempresa, modo solo-admins, autoaccept— y ahora tambien el del visto.
+    //
+    // Volver a defaults los enciende TODOS en silencio. Y el del visto es el
+    // peor de la lista: es el que se apaga precisamente cuando la cuenta esta
+    // en el punto de mira, asi que reencenderlo solo es deshacer la unica
+    // medida que se habia tomado, sin decirselo a nadie.
+    //
+    // messageCounter ya decidio lo contrario para los conteos, con estas
+    // palabras: "no se toca el archivo". Dos ficheros del mismo bot no pueden
+    // seguir criterios opuestos sobre la misma pregunta.
+    //
+    // Se propaga. El arranque falla ruidoso, pm2 reintenta, y los datos siguen
+    // en disco esperando a que alguien los mire. Un bot que no arranca se
+    // arregla; un bot que arranca con la moderacion abierta, no se nota.
+    e.message = `data/state.json esta corrupto: ${e.message}. NO se ha tocado. `
+      + 'Revisalo o restaura con `npm run restaurar`.';
+    throw e;
   }
 }
 

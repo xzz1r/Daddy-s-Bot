@@ -4250,6 +4250,59 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     if (fallos === antes) console.log(verde(`   ✓ el bot vuelca en ${volcado} ms y pm2 le da ${eco.kill_timeout}`));
   }
 
+  // ── 29b. LA DOCUMENTACION NO PUEDE PROMETER LO QUE YA NO EXISTE ──────────
+  //
+  // .env.example seguia pidiendo AI_API_KEY una hora despues de borrar *!g*, y
+  // package.json describia el bot como "Musica, Tops, Stickers HD" con
+  // engines >=20 mientras el repo trae un guion para subir a Node 22.
+  //
+  // No es cosmetica: quien clona el repo o toca el .env se cree lo que pone, y
+  // este bot ya se ha comido un merge malo por una guia vieja. La misma regla
+  // que se aplica a las frases —que digan lo que el codigo hace— vale para los
+  // ficheros que se leen antes que el codigo.
+  //
+  // Se comprueba lo que se puede comprobar solo: que .env.example no pida
+  // variables que ya nadie lee, y que las que el codigo SI lee esten dichas.
+  {
+    console.log('\n29b. LA DOCUMENTACION NO MIENTE');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const env = fs.existsSync(path.join(R, '.env.example'))
+      ? fs.readFileSync(path.join(R, '.env.example'), 'utf8') : '';
+    exige(env.length > 0, 'falta .env.example');
+
+    // Las que el codigo lee de verdad, sacadas del codigo.
+    const usadas = new Set();
+    const andarE = (dir) => {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        const f = path.join(dir, e.name);
+        if (e.isDirectory()) andarE(f);
+        else if (e.name.endsWith('.js')) {
+          for (const m of soloCodigo(path.relative(R, f)).matchAll(/process\.env\.([A-Z_][A-Z0-9_]*)/g)) usadas.add(m[1]);
+        }
+      }
+    };
+    andarE(path.join(R, 'src'));
+    // NODE_ENV y las de node no son configuracion del bot.
+    for (const x of ['NODE_ENV', 'NODE_OPTIONS', 'TZ']) usadas.delete(x);
+
+    for (const v of usadas) {
+      exige(new RegExp(`^#?\\s*${v}=`, 'm').test(env),
+        `.env.example no menciona ${v}, y el codigo la lee: quien configure el bot no sabe que existe`);
+    }
+    // Y al reves: nada que ya no se lea.
+    for (const m of env.matchAll(/^([A-Z_][A-Z0-9_]*)=/gm)) {
+      exige(usadas.has(m[1]),
+        `.env.example pide ${m[1]} y no la lee nadie: promete algo que el bot ya no hace`);
+    }
+    // package.json tiene que decir la version de node que el repo usa de verdad.
+    const pkg = require(path.join(R, 'package.json'));
+    const nodeMin = Number(String(pkg.engines?.node || '').replace(/\D/g, '')) || 0;
+    exige(nodeMin >= 22,
+      `package.json dice engines.node ${pkg.engines?.node} y el repo trae scripts/node22.sh: uno de los dos miente`);
+    if (fallos === antes) console.log(verde(`   ✓ .env.example cuadra con las ${usadas.size} variables que lee el codigo`));
+  }
+
   // ── 30c. LOS COMANDOS OCULTOS SIGUEN OCULTOS ─────────────────────────────
   //
   // *!p*, *!purge* y *!visto* no salen en el menu y contestan con SILENCIO a
