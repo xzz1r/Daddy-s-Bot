@@ -285,7 +285,7 @@ ${p}contrarobo · ${p}contraataque · ${p}contraatacar · ${p}vengarse
 ${p}buscados · ${p}cartel · ${p}wanted · ${p}mostwanted · ${p}recompensas
 ${p}tienda · ${p}shop  ·  ${p}comprar  ·  ${p}bote  ·  ${p}caja · ${p}registradora
 ${p}asalto · ${p}asaltar  ·  ${p}atraco · ${p}atracar
-${p}zulo · ${p}escondite  ·  ${p}tapar · ${p}enterrar  ·  ${p}cavar · ${p}desenterrar
+${p}vault · ${p}safe  ·  ${p}lock · ${p}stash  ·  ${p}unlock
 
 ━━━━━ *ACTIVIDAD* ━━━━━
 ${p}relevancia · ${p}importancia · ${p}relevance
@@ -401,7 +401,7 @@ _De una palabra, ${PRECIOS.percent} cada uno, de más crudo a más suave:_
 ━━ *AURA Y ROBO* ━━
 *${p}robo* @user <cant.> · *${p}contrarobo* · *${p}buscados*
 *${p}asalto* · *${p}atraco* — contra la casa, no contra nadie
-*${p}zulo* · *${p}tapar* <cant.> · *${p}cavar* <cant.> — a salvo del robo
+*${p}vault* · *${p}lock* <cant.> · *${p}unlock* <cant.> — a salvo del robo
 *${p}apostar* mitad/todo/2k · *${p}duel* @user · *${p}dar* @user <cant.>
 *${p}tienda* · *${p}comprar* <objeto> · *${p}bote* · *${p}caja*
 *${p}aura* la tirada · *${p}saldo* · *${p}top* · *${p}hoy* · *${p}guia*

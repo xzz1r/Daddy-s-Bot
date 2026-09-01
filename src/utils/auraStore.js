@@ -12,7 +12,7 @@ const AURA_FILE = path.join(__dirname, '../../data/aura.json');
 // son 100, o sea un 2 %" y las tres cifras se quedaron viejas a la vez en
 // cuanto se reequilibró la economía. Un comentario con números de otro fichero
 // es una copia que nadie actualiza.
-const { ARRANQUE: STARTING_AURA, SUELO_TODOS, ZULO } = require('./economia');
+const { ARRANQUE: STARTING_AURA, SUELO_TODOS, CAJA } = require('./economia');
 
 // Escalas anteriores, necesarias para reescalar lo que ya está guardado.
 // Cada entrada es el salto DESDE esa versión a la siguiente.
@@ -102,7 +102,7 @@ function migrarEscala() {
 
   let tocados = 0;
   for (const grupo in store) {
-    if (grupo === CLAVE_ESCALA || grupo === CLAVE_ZULO || grupo === CLAVE_ZULO_TS) continue;
+    if (grupo === CLAVE_ESCALA || grupo === CLAVE_CAJA || grupo === CLAVE_CAJA_TS) continue;
     const g = store[grupo];
     if (!g || typeof g !== 'object') continue;
     for (const k in g) {
@@ -140,8 +140,8 @@ function migrarEscala() {
 // repita una vez más y solo una.
 const CLAVE_SUELO = '__suelo';
 
-// EL ZULO VIVE AQUI DENTRO, no en un fichero aparte, y es a proposito: mover
-// aura entre el saldo y el escondite tiene que ser UNA sola escritura. Con dos
+// LA CAJA VIVE AQUI DENTRO, no en un fichero aparte, y es a proposito: mover
+// aura entre el saldo y la caja tiene que ser UNA sola escritura. Con dos
 // ficheros, un corte entre la una y la otra deja aura duplicada o evaporada, y
 // en esta economia eso es lo unico que no se puede permitir.
 //
@@ -149,10 +149,14 @@ const CLAVE_SUELO = '__suelo';
 // ese nivel son JID de grupo, asi que un nombre con dos barras bajas no puede
 // chocar con ninguno. Aun asi las dos migraciones lo saltan explicitamente: que
 // hoy se salve por el `typeof !== 'number'` de mas abajo es suerte, no diseño.
-const CLAVE_ZULO = '__zulo';
-// Ultimo entierro por persona, para el enfriamiento. Se guarda con el zulo
+// EL NOMBRE DE LA CLAVE NO SE TOCA. Es texto en aura.json y ya hay grupos con
+// aura guardada debajo: cambiarlo por '__caja' seria dar por perdido todo lo
+// que hay dentro sin decirselo a nadie. El identificador se lee en castellano,
+// el literal se queda como nacio.
+const CLAVE_CAJA = '__zulo';
+// Ultimo cierre por persona, para el enfriamiento. Se guarda con la caja
 // porque es parte de la misma decision.
-const CLAVE_ZULO_TS = '__zulots';
+const CLAVE_CAJA_TS = '__zulots';
 const SUELO_VERSION = 1;
 
 function aplicarSuelo() {
@@ -162,7 +166,7 @@ function aplicarSuelo() {
   let subidos = 0;
   for (const grupo in store) {
     if (grupo === CLAVE_ESCALA || grupo === CLAVE_SUELO
-        || grupo === CLAVE_ZULO || grupo === CLAVE_ZULO_TS) continue;
+        || grupo === CLAVE_CAJA || grupo === CLAVE_CAJA_TS) continue;
     const g = store[grupo];
     if (!g || typeof g !== 'object') continue;
     for (const k in g) {
@@ -348,70 +352,70 @@ async function spendAura(groupJid, userJid, amount, minimo = 0) {
   });
 }
 
-// ─── EL ZULO ────────────────────────────────────────────────────────────────
+// ─── LA CAJA ────────────────────────────────────────────────────────────────
 //
 // Aura escondida. No se puede robar, no se puede apostar y no se puede gastar:
-// para usarla hay que desenterrarla, y eso cuesta.
+// para usarla hay que sacarla, y eso cuesta.
 //
 // Se guarda por la MISMA clave canonica que el saldo, asi que hereda el
 // arreglo del LID: quien acumulo bajo su @lid y luego se supo su telefono no
-// acaba con dos escondites.
+// acaba con dos cajas.
 
-function zuloDe(groupJid) {
-  if (!store[CLAVE_ZULO]) store[CLAVE_ZULO] = {};
-  if (!store[CLAVE_ZULO][groupJid]) store[CLAVE_ZULO][groupJid] = {};
-  return store[CLAVE_ZULO][groupJid];
+function cajaDe(groupJid) {
+  if (!store[CLAVE_CAJA]) store[CLAVE_CAJA] = {};
+  if (!store[CLAVE_CAJA][groupJid]) store[CLAVE_CAJA][groupJid] = {};
+  return store[CLAVE_CAJA][groupJid];
 }
 
 function tsDe(groupJid) {
-  if (!store[CLAVE_ZULO_TS]) store[CLAVE_ZULO_TS] = {};
-  if (!store[CLAVE_ZULO_TS][groupJid]) store[CLAVE_ZULO_TS][groupJid] = {};
-  return store[CLAVE_ZULO_TS][groupJid];
+  if (!store[CLAVE_CAJA_TS]) store[CLAVE_CAJA_TS] = {};
+  if (!store[CLAVE_CAJA_TS][groupJid]) store[CLAVE_CAJA_TS][groupJid] = {};
+  return store[CLAVE_CAJA_TS][groupJid];
 }
 
-// Cuanto tiene enterrado. Colapsa las formas por si quedo algo bajo un @lid.
-async function verZulo(groupJid, userJid) {
+// Cuanto tiene dentro. Colapsa las formas por si quedo algo bajo un @lid.
+async function verCaja(groupJid, userJid) {
   await load();
-  const z = zuloDe(groupJid);
+  const z = cajaDe(groupJid);
   const key = foldPerson(z, userJid);
   return z[key] || 0;
 }
 
-// Cuanto falta para poder volver a enterrar. 0 = ya puede.
-async function esperaZulo(groupJid, userJid) {
+// Cuanto falta para poder volver a guardar. 0 = ya puede.
+async function esperaCaja(groupJid, userJid) {
   await load();
   const t = tsDe(groupJid)[canonicalJid(userJid)] || 0;
-  return Math.max(0, ZULO.enfriamientoMs - (Date.now() - t));
+  return Math.max(0, CAJA.enfriamientoMs - (Date.now() - t));
 }
 
-// ENTERRAR. Saldo -> zulo. Atomico: las dos mitades dentro del mismo bloque
+// METER. Saldo -> caja. Atomico: las dos mitades dentro del mismo bloque
 // serializado, porque un corte entre ellas duplicaria o evaporaria aura.
-async function enterrar(groupJid, userJid, cuanto) {
+async function meterEnCaja(groupJid, userJid, cuanto) {
   await load();
   const qKey = `${groupJid}|${canonicalJid(userJid)}`;
   return serialized(qKey, () => {
     const n = Math.floor(cuanto);
-    if (!(n >= ZULO.minimoEnterrar)) return { ok: false, motivo: 'minimo' };
+    if (!(n >= CAJA.minimoGuardar)) return { ok: false, motivo: 'minimo' };
 
     const ts = tsDe(groupJid);
     const kTs = canonicalJid(userJid);
-    const espera = ZULO.enfriamientoMs - (Date.now() - (ts[kTs] || 0));
+    const espera = CAJA.enfriamientoMs - (Date.now() - (ts[kTs] || 0));
     if (espera > 0) return { ok: false, motivo: 'enfriamiento', espera };
 
-    const z = zuloDe(groupJid);
+    const z = cajaDe(groupJid);
     const kZ = foldPerson(z, userJid);
     const dentro = z[kZ] || 0;
-    const hueco = ZULO.capacidad - dentro;
+    const hueco = CAJA.capacidad - dentro;
     if (hueco <= 0) return { ok: false, motivo: 'lleno', dentro };
 
     if (!store[groupJid]) store[groupJid] = {};
     const kA = foldPerson(store[groupJid], userJid);
     const saldo = store[groupJid][kA] === undefined ? STARTING_AURA : store[groupJid][kA];
 
-    // Lo que de verdad se entierra: ni mas de lo que cabe, ni mas de lo que hay.
+    // Lo que de verdad entra: ni mas de lo que cabe, ni mas de lo que hay.
     const real = Math.min(n, hueco, saldo);
-    if (real < ZULO.minimoEnterrar) {
-      return saldo < ZULO.minimoEnterrar
+    if (real < CAJA.minimoGuardar) {
+      return saldo < CAJA.minimoGuardar
         ? { ok: false, motivo: 'sinsaldo', saldo }
         : { ok: false, motivo: 'lleno', dentro };
     }
@@ -420,16 +424,16 @@ async function enterrar(groupJid, userJid, cuanto) {
     z[kZ] = dentro + real;
     ts[kTs] = Date.now();
     scheduleSave();
-    return { ok: true, enterrado: real, dentro: z[kZ], saldo: store[groupJid][kA], hueco: ZULO.capacidad - z[kZ] };
+    return { ok: true, guardado: real, dentro: z[kZ], saldo: store[groupJid][kA], hueco: CAJA.capacidad - z[kZ] };
   });
 }
 
-// DESENTERRAR. Zulo -> saldo, menos comision. Igual de atomico.
-async function desenterrar(groupJid, userJid, cuanto) {
+// SACAR. Caja -> saldo, menos comision. Igual de atomico.
+async function sacarDeCaja(groupJid, userJid, cuanto) {
   await load();
   const qKey = `${groupJid}|${canonicalJid(userJid)}`;
   return serialized(qKey, () => {
-    const z = zuloDe(groupJid);
+    const z = cajaDe(groupJid);
     const kZ = foldPerson(z, userJid);
     const dentro = z[kZ] || 0;
     if (dentro <= 0) return { ok: false, motivo: 'vacio' };
@@ -440,7 +444,7 @@ async function desenterrar(groupJid, userJid, cuanto) {
     // Se saca lo que se pida o lo que haya, lo que sea menor: pedir de mas no
     // es un error del que teclea, es que ya no se acuerda de cuanto guardo.
     const sacado = Math.min(pedido, dentro);
-    const comision = Math.max(ZULO.comisionMinima, Math.round(sacado * ZULO.comision));
+    const comision = Math.max(CAJA.comisionMinima, Math.round(sacado * CAJA.comision));
     const neto = sacado - comision;
     if (neto <= 0) return { ok: false, motivo: 'migaja', sacado, comision };
 
@@ -487,17 +491,17 @@ async function getAuraRanking(groupJid) {
     prev.extras++;
     if (!rep.endsWith('@lid')) prev.jid = rep; // el teléfono es el que se puede mencionar
   }
-  // LO ENTERRADO CUENTA PARA EL RANKING, y esa es la mitad del diseño del zulo.
+  // LO GUARDADO CUENTA PARA EL RANKING, y esa es la mitad del diseño de la caja.
   //
   // Si no contara, esconder aura serviria para dos cosas a la vez: dejar de ser
   // robable Y caerse de *!top*. Y caerse del top es caerse de la lista de la
-  // que sale el objetivo del dia, asi que todo el mundo enterraria por sistema
+  // que sale el objetivo del dia, asi que todo el mundo guardaria por sistema
   // y el juego se apagaria solo.
   //
-  // Contandolo, el zulo protege tu DINERO y no tu reputacion: sigues siendo el
+  // Contandolo, la caja protege tu DINERO y no tu reputacion: sigues siendo el
   // mas rico del grupo, con una diana igual de grande, solo que lo que tienes
   // guardado no te lo pueden tocar.
-  const escondido = store[CLAVE_ZULO]?.[groupJid] || {};
+  const escondido = store[CLAVE_CAJA]?.[groupJid] || {};
   for (const k in escondido) {
     const id = canonicalJid(k);
     const prev = por.get(id);
@@ -543,15 +547,15 @@ async function resetAura(groupJid) {
   const alSuelo = {};
   for (const k in g) alSuelo[canonicalJid(k)] = SUELO_TODOS;
   store[groupJid] = alSuelo;
-  // EL ZULO TAMBIEN SE VACIA, y no hacerlo dejaba el reset a medias.
+  // LA CAJA TAMBIEN SE VACIA, y no hacerlo dejaba el reset a medias.
   //
   // El aviso dice que el marcador vuelve al suelo para todo el mundo. Sin esto
-  // era mentira para quien tuviera algo enterrado: el ranking suma lo escondido
+  // era mentira para quien tuviera algo guardado: el ranking suma lo escondido
   // (ver getAuraRanking), asi que esa persona seguia arriba del todo con dos
   // mil intocables mientras al resto se le ponia a 150. Y encima premiaba
   // esconder justo antes de un reset.
-  if (store[CLAVE_ZULO]) delete store[CLAVE_ZULO][groupJid];
-  if (store[CLAVE_ZULO_TS]) delete store[CLAVE_ZULO_TS][groupJid];
+  if (store[CLAVE_CAJA]) delete store[CLAVE_CAJA][groupJid];
+  if (store[CLAVE_CAJA_TS]) delete store[CLAVE_CAJA_TS][groupJid];
   scheduleSave();
 }
 
@@ -560,4 +564,4 @@ async function flushAura() {
 }
 
 module.exports = { getAura, addAura, spendAura, drainAura, transferAura, getAuraRanking, resetAura, flushAura, STARTING_AURA,
-  verZulo, esperaZulo, enterrar, desenterrar };
+  verCaja, esperaCaja, meterEnCaja, sacarDeCaja };

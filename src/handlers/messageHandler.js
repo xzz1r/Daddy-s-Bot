@@ -72,7 +72,7 @@ const cmdAura = lazyCmd('../commands/aura', 'cmdAura');
 const { resetAura } = require('../utils/auraStore');
 const { cmdMog } = require('../commands/mog');
 const cmdRobo = lazyCmd('../commands/robo', 'cmdRobo');
-const cmdZulo = lazyCmd('../commands/zulo', 'cmdZulo');
+const cmdVault = lazyCmd('../commands/vault', 'cmdVault');
 const { cmdDuel } = require('../commands/duel');
 const { cmdScan } = require('../commands/scan');
 const { cmdAntiFoto } = require('../commands/cleanup');
@@ -196,8 +196,10 @@ const NEEDS_META = new Set([
   'hoy','saldo','miaura',
   'tienda','shop','comprar','bote',
   'asalto','asaltar',
-  // El zulo mueve saldo y vive en la misma familia que el robo: entra por lo
-  // mismo que sus hermanos.
+  // La caja mueve saldo y vive en la misma familia que el robo: entra por lo
+  // mismo que sus hermanos. Los nombres viejos van detras porque siguen
+  // respondiendo y tienen que llegar igual de servidos.
+  'vault','safe','lock','unlock','stash',
   'zulo','escondite','tapar','cavar','enterrar','desenterrar',
   'regalar','transferir','pagar','dar','donar',
   'ayuda','help','menu','commands',
@@ -325,7 +327,8 @@ const CMDS_AURA = new Set([
   'asalto', 'asaltar',
   'atraco', 'atracar',
   'contrarobo', 'contraataque', 'contraatacar', 'vengarse',
-  // Tapar y cavar mueven saldo: con la economia apagada, no.
+  // Meter y sacar de la caja mueven saldo: con la economia apagada, no.
+  'lock', 'unlock', 'stash',
   'tapar', 'cavar', 'enterrar', 'desenterrar',
 ]);
 
@@ -340,9 +343,10 @@ const SOLO_CONSULTA = new Set([
   'bote', 'caja', 'registradora',
   'buscados', 'wanted', 'mostwanted', 'recompensas', 'cartel',
   'tienda', 'shop', 'comprar',
-  // *!zulo* a secas solo mira lo que hay enterrado. Es el mismo caso que
+  // *!vault* a secas solo mira lo que hay dentro. Es el mismo caso que
   // *!bote* o *!caja*: apagar el juego no puede dejar el marcador a oscuras.
   // Sus dos verbos SI estan tapados, arriba.
+  'vault', 'safe',
   'zulo', 'escondite',
 ]);
 
@@ -678,8 +682,9 @@ const MAX_AVISOS_GRUPO = 500;
 // desfasada: se anyade un comando, nadie se acuerda del array, y el bot acaba
 // sugiriendo comandos que ya no existen o ignorando los nuevos. Leyendo la
 // fuente no hay dos sitios que puedan discrepar.
-// Comandos que NO existen para nadie salvo el owner, y que por tanto no pueden
-// asomar por ningun lado: ni en el menu, ni en el "¿querias decir...?".
+//
+// Lo que el bot acepta pero NO anuncia en ningun sitio: ni en el menu, ni en el
+// "¿querias decir...?".
 //
 // Un comando que responde con silencio a quien no lo puede usar solo esta
 // oculto si el bot no lo nombra en ningun otro sitio. El sugeridor es el hueco
@@ -688,10 +693,18 @@ const MAX_AVISOS_GRUPO = 500;
 // que el bot conteste "¿querias decir *!p*?" seria el propio bot enseñando la
 // puerta.
 //
-// "p" tiene un caracter y el regex pide dos: se oculta por coincidencia.
-// "purge" tiene cinco: sin esta lista, escribir "!pure" o "!purga" lo delataria.
-// La exclusion se escribe aparte y `npm run check` la vigila.
-const COMANDOS_OCULTOS = new Set(['p', 'purge', 'visto']);
+// Los tres primeros son secretos de verdad, solo del dueño. "p" tiene un
+// caracter y el regex pide dos: se oculta por coincidencia. "purge" tiene
+// cinco: sin esta lista, escribir "!pure" o "!purga" lo delataria.
+//
+// Los seis ultimos son otra cosa: son los nombres con los que nacio la caja
+// antes de llamarse *!vault*. Siguen respondiendo para que nadie que los tenga
+// en los dedos se coma un "ese comando no existe", pero no se enseñan ni se
+// sugieren: el nombre bueno es el nuevo y no hay que aprenderse dos.
+//
+// La lista se escribe aparte y `npm run check` la vigila.
+const COMANDOS_OCULTOS = new Set(['p', 'purge', 'visto',
+  'zulo', 'escondite', 'tapar', 'cavar', 'enterrar', 'desenterrar']);
 
 const COMANDOS_CONOCIDOS = (() => {
   try {
@@ -2340,30 +2353,36 @@ async function handleMessage(sock, msg) {
       case 'vengarse':
         await cmdRobo(sock, msg, ['contra', ...args], groupMeta);
         break;
-      // EL ZULO. Los verbos tienen nombre propio porque nadie escribe
-      // "!zulo enterrar" cuando lo que piensa es "enterrar".
       // !visto — oculto y solo del dueño. No sale en el menu ni lo sugiere el
       // corrector: ver COMANDOS_OCULTOS y cmdVisto en group.js.
       case 'visto':
         await cmdVisto(sock, msg, args, groupMeta);
         break;
 
+      // LA CAJA. Los verbos tienen nombre propio porque nadie escribe
+      // "!vault lock" cuando lo que piensa es "lock".
+      //
+      // Nombres cortos y en ingles porque es lo que se teclea con prisa, y las
+      // dos opciones castellanas obvias estaban pilladas de antes: *!sacar* es
+      // alias de expulsar y *!abrir* abre el grupo. Los seis nombres viejos
+      // siguen entrando aqui —estan en COMANDOS_OCULTOS, asi que responden sin
+      // aparecer en ningun listado.
+      case 'vault':
+      case 'safe':
       case 'zulo':
       case 'escondite':
-        await cmdZulo(sock, msg, args, groupMeta);
+        await cmdVault(sock, msg, args, groupMeta);
         break;
-      // TAPAR Y CAVAR, no ENTERRAR y DESENTERRAR. Ocho y once letras para algo
-      // que se teclea con prisa era pedir que nadie lo usara, y las dos
-      // opciones obvias estaban pilladas: *!sacar* es alias de expulsar y
-      // *!abrir* abre el grupo. Cinco letras cada una y el hilo del agujero
-      // intacto: se tapa para esconder, se cava para ir a por ello.
+      case 'lock':
+      case 'stash':
       case 'tapar':
       case 'enterrar':
-        await cmdZulo(sock, msg, ['enterrar', ...args], groupMeta);
+        await cmdVault(sock, msg, ['lock', ...args], groupMeta);
         break;
+      case 'unlock':
       case 'cavar':
       case 'desenterrar':
-        await cmdZulo(sock, msg, ['desenterrar', ...args], groupMeta);
+        await cmdVault(sock, msg, ['unlock', ...args], groupMeta);
         break;
 
       case 'asalto':
