@@ -933,6 +933,21 @@ async function capaStores() {
     else console.log(verde('   ✓ ningun cobro lee el saldo y lo resta mas tarde'));
   }
 
+  // Un return no es una excepción: el catch del dispatcher no reembolsa. Si
+  // esto desaparece, roast sin objetivo y ttp vacío vuelven a cobrar por nada.
+  {
+    const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+    const cobro = fs.readFileSync(path.join(R, 'src/utils/auraCobro.js'), 'utf8');
+    if (/esSinServicio\(resultado\)/.test(mh) && /SIN_SERVICIO/.test(cobro)
+        && /return SIN_SERVICIO/.test(fs.readFileSync(path.join(R, 'src/commands/roast.js'), 'utf8'))
+        && /return SIN_SERVICIO/.test(fs.readFileSync(path.join(R, 'src/commands/ttp.js'), 'utf8'))) {
+      console.log(verde('   ✓ si el comando no presta servicio, se devuelve el aura'));
+    } else {
+      fallos++;
+      console.log(rojo('   ✗ falta el reembolso de SIN_SERVICIO: se vuelve a cobrar por un roast sin objetivo o un !ttp vacío'));
+    }
+  }
+
   // ── 6. LOS COMANDOS DE PAGO NO SALEN GRATIS POR PRIVADO ───────────────────
   {
     const mh = fs.readFileSync(path.join(R, "src/handlers/messageHandler.js"), 'utf8');
@@ -2090,6 +2105,7 @@ async function capaStores() {
     const antes = fallos;
     const FICHEROS = ['src/commands/percent.js', 'src/data/percentLabels.js', 'src/commands/robo.js',
                       'src/commands/wingman.js', 'src/data/roboExtraPhrases.js',
+                      'src/data/roboPhrases.js', 'src/data/roastPhrases.js', 'src/data/wingmanPhrases.js',
                       'src/data/fidelityPhrases.js'];
     const ES = /^\s*(['"`])(.{25,}?)\1,\s*$/;
     let clones = 0;
@@ -2365,6 +2381,7 @@ async function capaStores() {
       admin: { kick: 'cmdKick', del: 'cmdDel', mute: 'cmdMute', unmute: 'cmdUnmute',
         tagall: 'cmdTodos', allow: 'cmdAllow', close: 'cmdClose', open: 'cmdOpen',
         r: 'cmdPresentarse',
+        inactivos: 'cmdInactivos',
         count: 'cmdCount', scan: 'cmdScan', marcarfake: 'cmdMarkFake', fkban: 'cmdFkBan',
         fkunban: 'cmdFkUnban', fklist: 'cmdFkList', antifake: 'cmdAntiFake', notifadmin: 'cmdNotifAdmin' },
       owner: { demote: 'cmdDemote', on: 'cmdOn', off: 'cmdOff', antilink: 'cmdAntiLink',
@@ -3145,13 +3162,11 @@ async function capaStores() {
 
     const salida = await lanzar(ADM_R);
     const av = salida.find((x) => x.a === GR);
-    // SALE EN TODOS LOS GRUPOS aunque se escriba en uno. Es una ronda de
-    // presentaciones: se pide una vez y llega a todas partes. Si esto se
-    // rompiera, el aviso saldria igual en el grupo donde se escribio y nadie
-    // notaria que a los demas no les llego nada.
+    // Desde un grupo, SOLO ese grupo. Un admin satélite no patea al resto.
+    // La ronda global se pide desde el privado del owner.
     const conAviso = salida.filter((x) => /PRESENTACIÓN/.test(x.text || '')).map((x) => x.a);
-    exige(conAviso.includes(GR) && conAviso.includes(GR2),
-      `!r solo ha salido en ${conAviso.length} grupo(s) de 2: se escriba donde se escriba tiene que ir a todos`);
+    exige(conAviso.includes(GR) && !conAviso.includes(GR2),
+      `!r desde un grupo ha salido en [${conAviso.join(', ')}]: tiene que ir solo a ese grupo`);
     exige(!!av, '!r no manda nada en el grupo');
     exige(!av || (av.mentions || []).length === partes.length,
       `!r menciona a ${(av?.mentions || []).length} de ${partes.length}: al resto no le llega la notificacion`);
@@ -3179,9 +3194,25 @@ async function capaStores() {
     // Confirmaciones al admin: tambien dicen que es de los nuevos. Si el aviso
     // del grupo lo deja claro y el recuento no, a la segunda se pide otra vez
     // para todo el mundo.
-    const recuento = salida.find((x) => x.a === GR && /pedida/i.test(x.text || ''));
-    exige(!recuento || /nuev/i.test(recuento.text || ''),
-      'el recuento de !r no dice que era para los nuevos');
+    // Desde el privado del owner, sí va a todos.
+    {
+      const cfgR = require(path.join(R, 'src/config'));
+      const OWN_R = `${String(cfgR.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
+      const outP = [];
+      const sP = {
+        user: { id: BOT_R },
+        sendMessage: async (j, c) => { outP.push({ a: j, ...c }); return {}; },
+        groupFetchAllParticipating: async () => ({
+          [GR]: { subject: 'Uno', participants: partes },
+          [GR2]: { subject: 'Dos', participants: partes },
+        }),
+      };
+      await cmdPresentarse(sP, { key: { remoteJid: OWN_R, fromMe: false, id: 'RP' },
+        message: { conversation: '!r' } }, [], null);
+      const avisosP = outP.filter((x) => /PRESENTACIÓN/.test(x.text || '')).map((x) => x.a);
+      exige(avisosP.includes(GR) && avisosP.includes(GR2),
+        `!r desde el privado del owner ha salido en [${avisosP.join(', ')}]: tiene que ir a todos los grupos`);
+    }
 
     const menu = fs.readFileSync(path.join(R, 'src/commands/social.js'), 'utf8');
     exige(/\*\$\{p\}r\*.*nuev/i.test(menu),

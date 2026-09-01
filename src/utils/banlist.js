@@ -90,7 +90,7 @@ async function unbanAccount(forms) {
   for (const f of objetivo) {
     if (store.accounts[f]) { delete store.accounts[f]; removed++; }
   }
-  if (removed) scheduleSave();
+  if (removed) await flushBanlist();
   return removed;
 }
 

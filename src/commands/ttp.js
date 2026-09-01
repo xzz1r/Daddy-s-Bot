@@ -5,6 +5,7 @@ const { ffmpegPath } = require('../utils/ffmpeg');
 const { tempFile, cleanTemp, ffmpegSemaphore } = require('../utils/helpers');
 const { imageToSticker } = require('../utils/sticker');
 const { getSender } = require('../utils/wa');
+const { SIN_SERVICIO } = require('../utils/auraCobro');
 const logger = require('../utils/logger');
 
 ffmpeg.setFfmpegPath(ffmpegPath);
@@ -160,10 +161,12 @@ async function cmdTtp(sock, msg, args) {
     // Antes se volvia en silencio. Quien escribe *!ttp* a secas se queda sin
     // saber si el comando existe, si fallo o si el bot esta muerto, y la
     // mayoria no lo vuelve a intentar.
-    return sock.sendMessage(jid, { text: 'Dime qué poner: *!ttp tu texto*' }, { quoted: msg });
+    await sock.sendMessage(jid, { text: 'Dime qué poner: *!ttp tu texto*' }, { quoted: msg });
+    return SIN_SERVICIO;
   }
   if (text.length > 120) {
-    return sock.sendMessage(jid, { text: 'Máximo 120 caracteres.' }, { quoted: msg });
+    await sock.sendMessage(jid, { text: 'Máximo 120 caracteres.' }, { quoted: msg });
+    return SIN_SERVICIO;
   }
 
   try {
@@ -175,7 +178,8 @@ async function cmdTtp(sock, msg, args) {
     await sock.sendMessage(jid, { sticker: stickerBuffer }, { quoted: msg });
   } catch (err) {
     logger.error(`TTP error: ${err.message}`);
-    await sock.sendMessage(jid, { text: `Error al crear sticker: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: 'No pude crear el sticker. Prueba con menos texto o más tarde.' }, { quoted: msg });
+    return SIN_SERVICIO;
   }
 }
 

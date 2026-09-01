@@ -206,7 +206,8 @@ async function fkOnImage(sock, msg, img) {
   const jid = msg.key.remoteJid;
   const buf = await downloadImage(img);
   if (!buf) {
-    return sock.sendMessage(jid, { text: 'No pude descargar esa imagen.' }, { quoted: msg });
+    await sock.sendMessage(jid, { text: 'No pude descargar esa imagen.' }, { quoted: msg });
+    return false;
   }
 
   // Búsqueda inversa en paralelo (sube la imagen al host + APIs faciales).
@@ -235,6 +236,7 @@ async function fkOnImage(sock, msg, img) {
     caption: header + lines.join('\n') + '\n\n' + search + footer,
     mentions,
   }, { quoted: msg });
+  return true;
 }
 
 async function cmdFk(sock, msg, args, groupMeta) {
@@ -248,14 +250,18 @@ async function cmdFk(sock, msg, args, groupMeta) {
   const quienPide = getSender(msg);
   const pago = await cobrar(jid, quienPide, 'fk', { fromMe: msg.key.fromMe, groupMeta });
   if (!pago.ok) {
-    return sock.sendMessage(jid, { text: textoSinSaldo('fk', pago) }, { quoted: msg });
+    return sock.sendMessage(jid, { text: textoSinSaldo('fk', pago, jid) }, { quoted: msg });
   }
   // Solo se cobra si hay analisis. Si no hay a quien analizar, o si el objetivo
   // es del tier owner (veredicto fijo, sin trabajo detras), se devuelve.
   const reembolsar = () => devolver(jid, quienPide, pago.pagado).catch(() => {});
 
   const img = findImage(msg);
-  if (img) return fkOnImage(sock, msg, img);
+  if (img) {
+    const ok = await fkOnImage(sock, msg, img);
+    if (!ok) await reembolsar();
+    return;
+  }
 
   const { jid: target, error } = await resolveTarget(sock, msg, args);
   if (error) {

@@ -17,6 +17,7 @@ const { pickFresh, fmt } = require('../utils/helpers');
 const { getUserCount } = require('../utils/messageCounter');
 const { SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
+const { SIN_SERVICIO } = require('../utils/auraCobro');
 
 const MID_MIN  = 300;
 const HIGH_MIN = 700;
@@ -364,7 +365,7 @@ async function cmdRelevance(sock, msg, groupMeta) {
   // en *!count*, no sale en los tops y no sale en *!vs* — pero *!relevancia* le
   // atribuía casi dos mil. Cualquiera que compare las dos cosas ve que ahí pasa
   // algo. Un dato inventado que choca con los demás delata más que no responder.
-  if (isMainOwner(target, false, groupMeta)) return;
+  if (isMainOwner(target, false, groupMeta)) return SIN_SERVICIO;
 
   const count = await getUserCount(jid, target);
 
@@ -405,13 +406,5 @@ async function cmdRelevance(sock, msg, groupMeta) {
 
   await sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });
 }
-
-
-// El bot abre con lo mas fuerte que tiene: los pools de insultos se ordenan
-// de mas duro a mas suave UNA vez, al cargar, y pickFresh sesga la eleccion
-// hacia la cabecera. Los pools neutros (cabeceras, cierres) no se tocan:
-// ahi la "dureza" no significa nada.
-PARASITO = PARASITO;
-INTERMEDIO = INTERMEDIO;
 
 module.exports = { cmdRelevance };

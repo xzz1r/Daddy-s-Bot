@@ -8,7 +8,7 @@
 // Escribir frases "a ojo" no detecta esto, porque el problema no está en la
 // frase: está en el cruce entre CUÁNTAS hay y CADA CUÁNTO se lee ese tramo. Un
 // pool de 50 es enorme para un tramo que sale el 4 % de las veces y ridículo
-// para uno que sale el 52 %.
+// para uno que sale el 76 %.
 //
 // Aquí se cruzan las dos cosas. Igual que scripts/placeholders.js, esto lee el
 // código fuente en vez de importarlo: LABELS no se exporta, y parsear el texto
@@ -27,7 +27,7 @@ const R = path.resolve(__dirname, '..');
 // los pools por el miembro corriente es lo correcto: es quien más los lee.
 const TRAFICO = {
   false: { high: 0.87, mid: 0.09, low: 0.04 },  // goodIsHigh:false — peyorativos
-  true:  { high: 0.17, mid: 0.31, low: 0.52 },  // goodIsHigh:true  — positivos
+  true:  { high: 0.06, mid: 0.18, low: 0.76 },  // goodIsHigh:true  — positivos
 };
 
 // !fiel e !infiel son la excepción: declaran `roll: rollUniform` y tiran plano
@@ -137,7 +137,7 @@ function contarAnidado(rel, nombreConst) {
   return out;
 }
 
-const rizz = contarAnidado('src/commands/wingman.js', 'RIZZ');
+const rizz = contarAnidado('src/data/wingmanPhrases.js', 'RIZZ');
 for (const tramo of ['high', 'mid', 'low']) {
   if (typeof rizz[tramo] !== 'number') continue;
   const traf = TRAFICO.true; // rollPercent(true) en cmdRizz
@@ -146,10 +146,10 @@ for (const tramo of ['high', 'mid', 'low']) {
 
 const EXTRA_ARRAYS = [
   // Cada uso de !wingman gasta una. Con 25, la ventana deja 10 libres.
-  { rel: 'src/commands/wingman.js', nombre: 'WINGMAN_CIERRES', cmd: 'wingman', tramo: 'cierres', prob: 1 },
-  { rel: 'src/commands/wingman.js', nombre: 'WINGMAN_ANECDOTAS', cmd: 'wingman', tramo: 'anecdotas', prob: 1 },
+  { rel: 'src/data/wingmanPhrases.js', nombre: 'WINGMAN_CIERRES', cmd: 'wingman', tramo: 'cierres', prob: 1 },
+  { rel: 'src/data/wingmanPhrases.js', nombre: 'WINGMAN_ANECDOTAS', cmd: 'wingman', tramo: 'anecdotas', prob: 1 },
   // Va en el titular de cada robo fallido. Con 15 se recita.
-  { rel: 'src/commands/robo.js', nombre: 'ROBO_FALLO_REMATE', cmd: 'robo', tramo: 'remate', prob: 0.50 },
+  { rel: 'src/data/roboPhrases.js', nombre: 'ROBO_FALLO_REMATE', cmd: 'robo', tramo: 'remate', prob: 0.50 },
 ];
 for (const e of EXTRA_ARRAYS) {
   const n = contarExternos(e.rel)[e.nombre] || 0;
@@ -180,9 +180,9 @@ const FLOJO = (f) => !CRITICO(f) && f.prob >= 0.30 && f.libres <= 20 && !ROTO(f)
 //
 // POR TRAFICO, NO POR NOMBRE DE TRAMO. Es la misma trampa de siempre: en los
 // comandos positivos (sexy, crack, ganador, feminidad, masculinidad) el
-// tramo que se lee es `low` con el 52 %, y `high` solo el 17 %. Aplicar
-// "high=100, el resto 25" por el nombre le da cuatro veces mas frases al tramo
-// que se ve tres veces menos. !linda y !fea tiran uniforme, como fiel/infiel.
+// tramo que se lee es `low` con el 76 %, y `high` solo el 6 %. Aplicar
+// "high=100, el resto 25" por el nombre le da las frases al tramo que casi
+// no se ve. !fiel e !infiel tiran uniforme; !linda y !fea ya van por la curva.
 //
 //   el que mas sale 100 · el intermedio 50 · el raro 25
 const objetivo = (f) => (f.prob >= 0.50 ? 100 : f.prob >= 0.25 ? 50 : 25);

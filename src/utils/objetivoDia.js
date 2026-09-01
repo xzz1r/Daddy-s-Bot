@@ -1,18 +1,21 @@
 // Objetivo del día: un miembro al azar, no el nº1, no el owner.
 //
 // Sale del hash (grupo, día), el mismo truco que la ficha falsa del owner:
-// estable las 24 h, distinto cada día, sin guardar nada en disco. El corte
-// del día es el del bot entero (DIA: medianoche de Nueva York), el mismo que el
-// contador de mensajes y la racha, para que no rote a media tarde por irse a
-// medianoche UTC ni a una hora distinta que los otros dos.
+// estable las 24 h, distinto cada día. El corte del día es el del bot entero
+// (DIA), el mismo que el contador de mensajes y la racha. La decisión se
+// guarda en disco: si solo vive en RAM, un restart de pm2 vuelve a sortear.
 'use strict';
 
+const path = require('path');
 const { OBJETIVO_DIA, ROBO, ARRANQUE, DIA } = require('./economia');
 const { ruido } = require('./fachada');
-const { claveDia } = require('./helpers');
+const { claveDia, readJsonOrEnoent, createDebouncedSaver } = require('./helpers');
 const { isMainOwner, canonicalJid, soloMiembros } = require('./wa');
 const { getAuraRanking } = require('./auraStore');
 const tienda = require('./roboStore');
+const logger = require('./logger');
+
+const FILE = path.join(__dirname, '../../data/objetivoDia.json');
 
 function diaClave(ts = Date.now()) {
   return claveDia(ts, DIA.zona, DIA.horaCorte);
@@ -41,8 +44,37 @@ function mismo(a, b) {
 // guarda; despues solo se comprueba que el elegido siga valiendo. Si sigue,
 // gana, aunque debajo se haya movido todo.
 const decidido = new Map();   // grupo -> { dia, jid }
+let loadPromise = null;
+const saver = createDebouncedSaver(
+  () => Object.fromEntries(decidido),
+  FILE,
+  4000,
+  (e) => logger.error(`objetivoDia: fallo al guardar: ${e.message}`),
+);
+
+async function load() {
+  if (loadPromise) return loadPromise;
+  loadPromise = readJsonOrEnoent(FILE, {})
+    .then((d) => {
+      if (!d || typeof d !== 'object') return;
+      for (const [g, v] of Object.entries(d)) {
+        if (v && typeof v.dia === 'string' && v.jid) decidido.set(g, { dia: v.dia, jid: v.jid });
+      }
+    })
+    .catch((e) => {
+      loadPromise = null;
+      logger.warn(`objetivoDia: lectura falló (${e.message}); no se toca el archivo`);
+      throw e;
+    });
+  return loadPromise;
+}
+
+async function flushObjetivoDia() {
+  await saver.flush();
+}
 
 async function objetivoDelDia(grupo, groupMeta) {
+  await load();
   const ranking = soloMiembros(await getAuraRanking(grupo), groupMeta)
     .filter((r) => r.aura >= ROBO.minVictima);
   if (ranking.length < 2) return null;
@@ -121,6 +153,7 @@ async function objetivoDelDia(grupo, groupMeta) {
   if (!elegido) return null;
   if (decidido.size >= 500) decidido.delete(decidido.keys().next().value);
   decidido.set(grupo, { dia: hoy, jid: elegido.jid });
+  saver.schedule();
   return { jid: elegido.jid, bonoBotin: OBJETIVO_DIA.bonoBotin, bonoProbabilidad: OBJETIVO_DIA.bonoProbabilidad };
 }
 
@@ -128,4 +161,4 @@ function esObjetivoDelDia(obj, quien) {
   return Boolean(obj && quien && mismo(obj.jid, quien));
 }
 
-module.exports = { objetivoDelDia, esObjetivoDelDia, diaClave };
+module.exports = { objetivoDelDia, esObjetivoDelDia, diaClave, flushObjetivoDia };

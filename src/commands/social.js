@@ -290,13 +290,13 @@ ${p}vault · ${p}safe  ·  ${p}lock · ${p}stash  ·  ${p}unlock
 ━━━━━ *ACTIVIDAD* ━━━━━
 ${p}relevancia · ${p}importancia · ${p}relevance
 ${p}vs · ${p}versus  ·  ${p}fantasmas · ${p}fantasma · ${p}muertos
-${p}inactivos · ${p}inactivo
 ${esAdmin ? `
 ━━━━━ *ADMIN* ━━━━━
 ${p}kick · ${p}expulsar · ${p}sacar · ${p}echar
 ${p}del · ${p}borrar · ${p}delete  ·  ${p}mute · ${p}silenciar · ${p}callar
 ${p}unmute · ${p}desmute  ·  ${p}tagall · ${p}todos · ${p}all · ${p}everyone
 ${p}close · ${p}cerrar  ·  ${p}open · ${p}abrir  ·  ${p}count
+${p}inactivos · ${p}inactivo
 ${p}promote · ${p}ascender  ·  ${p}allow · ${p}permitir  ·  ${p}r · ${p}presentarse · ${p}presentacion
 ${p}scan · ${p}escanear  ·  ${p}marcarfake · ${p}fake
 ${p}fkban · ${p}banear · ${p}ban  ·  ${p}fkunban · ${p}desbanear · ${p}unban
@@ -407,12 +407,12 @@ _De una palabra, ${PRECIOS.percent} cada uno, de más crudo a más suave:_
 *${p}aura* la tirada · *${p}saldo* · *${p}top* · *${p}hoy* · *${p}guia*
 
 ━━ *ACTIVIDAD* ━━
-*${p}inactivos* ${c('inactivos')} · *${p}fantasmas* ${c('fantasmas')} · *${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b
+*${p}fantasmas* ${c('fantasmas')} · *${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b
 ${esAdmin ? `
 ━━ *ADMIN* ━━
 *${p}kick* · *${p}mute* · *${p}unmute* · *${p}del* · *${p}tagall* · *${p}allow*
 *${p}fkban* · *${p}fkunban* · *${p}marcarfake* · *${p}fklist* · *${p}scan*
-*${p}close* · *${p}open* · *${p}promote* · *${p}count* ${c('count')}
+*${p}close* · *${p}open* · *${p}promote* · *${p}count* ${c('count')} · *${p}inactivos* ${c('inactivos')}
 *${p}r* — pide a los nuevos que se presenten, sin un @ a la vista
 *${p}antifake* · *${p}notifadmin* · *${p}autoaccept* — on/off
 ` : ''}${esOwner ? `

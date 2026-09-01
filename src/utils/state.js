@@ -110,6 +110,7 @@ function incrementStat(key) {
       _saveTimer = null;
       saveState(_state).catch(() => {});
     }, 20000);
+    _saveTimer.unref?.();
   }
 }
 

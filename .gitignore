@@ -29,6 +29,8 @@ data/pickhistory.json
 # La racha de dias seguidos de cada uno. Es estado del grupo, como el resto:
 # subirlo al repo publicaria quien aparece cada dia y a que hora.
 data/racha.json
+# Objetivo del día: si sube al repo, un reset --hard pisa el cartel en curso.
+data/objetivoDia.json
 # Como firma cada uno sus mensajes. Es una lista de nombres reales atada a
 # telefonos reales: no sube al repo ni por asomo. Y ademas tiene que quedar
 # fuera para que el `git reset --hard` del despliegue no lo pise en la VPS.

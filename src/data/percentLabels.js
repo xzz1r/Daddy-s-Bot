@@ -9,7 +9,7 @@ const {
 
 const LABELS = {
 
-  // ===== POSITIVOS =====
+  // incel es peyorativo (goodIsHigh: false). Los halagos empiezan en linda.
 
   incel: {
     name: 'incel',

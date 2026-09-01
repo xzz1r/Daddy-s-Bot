@@ -53,6 +53,7 @@ const { flushBanlist, banAccount } = require('./utils/banlist');
 const { flushLinkPerms } = require('./utils/linkPerms');
 const { flushMutes } = require('./commands/group');
 const { flushRobo } = require('./utils/roboStore');
+const { flushObjetivoDia } = require('./utils/objetivoDia');
 const { guardOnJoin, allForms } = require('./commands/fk');
 const { businessEvidence } = require('./utils/businessCheck');
 const { aplicarParticipantes, aplicarAUno, formasDe } = require('./utils/participantes');
@@ -1724,19 +1725,19 @@ async function gracefulShutdown(code = 0) {
   // few seconds of stats, message counts, and music index updates are lost.
   // Race against a hard 3s cap so a single hung flush can't block exit forever
   // (the supervisor would otherwise SIGKILL us and we'd lose ALL pending flushes).
+  // Estos dos son síncronos y no pueden colgarse: van ANTES de la carrera.
+  // Si un flush async se come los 3 s, igual se han escrito los JID de owner
+  // y el mapa LID. Perderlos hace que tras el reinicio el dueño no se reconozca
+  // por su @lid.
+  flushOwnerJids();
+  flushLidMap();
   const flushes = Promise.allSettled([
     flushState(), flushCounts(), flushAura(), flushCache(),
     flushCasino(), flushPfpHashes(), flushBanlist(), flushPfpCache(), flushNicks(), flushLinkPerms(),
     flushJoinRequests(), flushRobo(), flushMutes(), flushRacha(), flushNames(), flushPickHistory(),
+    flushObjetivoDia(),
   ]);
   await Promise.race([flushes, new Promise(r => setTimeout(r, 3000))]);
-  // Este es síncrono y no puede colgarse, así que va fuera de la carrera: es el
-  // que guarda los JID de owner aprendidos, y perderlos hace que tras el
-  // reinicio el bot no reconozca al dueño hasta que un comando traiga metadata.
-  flushOwnerJids();
-  // Y el mapa LID↔teléfono, por lo mismo: perderlo obliga a reaprenderlo, y
-  // mientras tanto el owner no se reconoce por su @lid.
-  flushLidMap();
   if (sock) {
     try { sock.end(); } catch {}
   }

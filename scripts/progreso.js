@@ -25,7 +25,7 @@ const fs=require('fs'),path=require('path');
 const { tieneArsenal } = require('../src/utils/helpers');
 const R=path.resolve(__dirname,'..');
 const ES=/^\s*(['"`])(.{20,})\1,?\s*$/;
-const TRAF={false:{high:.87,mid:.09,low:.04},true:{high:.17,mid:.31,low:.52}};
+const TRAF={false:{high:.87,mid:.09,low:.04},true:{high:.06,mid:.18,low:.76}};
 const UNIF={high:31/101,mid:39/101,low:31/101};
 
 // ── percent.js ───────────────────────────────────────────────────────────────
@@ -66,7 +66,8 @@ const OTROS=['src/commands/robo.js','src/commands/aura.js','src/commands/roast.j
  'src/commands/relevance.js','src/commands/ship.js','src/commands/iq.js','src/commands/count.js',
  'src/commands/activity.js','src/commands/wingman.js','src/commands/mog.js','src/commands/duel.js',
  'src/commands/social.js','src/commands/topsRandom.js','src/data/apuestaPhrases.js',
- 'src/data/rachaPhrases.js','src/data/roboExtraPhrases.js','src/data/cooldownPhrases.js','src/utils/casino.js','src/utils/auraCobro.js'];
+ 'src/data/rachaPhrases.js','src/data/roboExtraPhrases.js','src/data/roboPhrases.js',
+ 'src/data/roastPhrases.js','src/data/wingmanPhrases.js','src/data/cooldownPhrases.js','src/utils/casino.js','src/utils/auraCobro.js'];
 for(const rel of OTROS){
   const src=fs.readFileSync(path.join(R,rel),'utf8').split('\n');
   let nom=null,cur=[];
@@ -85,8 +86,8 @@ for(const f of filas){
   const n=f.P.length;
   // Los topes que fijo el dueño, A LA MITAD del estandar anterior, y por
   // TRAFICO — no por nombre de tramo. En los positivos el tramo que se lee es
-  // `low` con el 52 %; ir por el nombre le daria las frases al `high`, que solo
-  // sale el 17 %.
+  // `low` con el 76 %; ir por el nombre le daria las frases al `high`, que solo
+  // sale el 6 %.
   //   el que mas sale 100 · el intermedio 50 · el raro 25
   const objetivo = f.traf>=0.50 ? 100 : f.traf>=0.25 ? 50 : 25;
   const con=f.P.filter(tieneArsenal).length;

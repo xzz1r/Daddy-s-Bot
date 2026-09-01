@@ -111,7 +111,9 @@ async function contarTirada(groupJid, userJid) {
   await load();
   const key = canonicalJid(userJid);
   const g = freshBucket(groupJid);
-  const n = (g.tiradas[key] || 0) + 1;
+  // Misma persona, mismas tiradas: si no se colapsan, un @lid y un teléfono
+  // dan hasta el doble de tiradas de pago al día.
+  const n = colapsar(g.tiradas, key) + 1;
   g.tiradas[key] = n;
   scheduleSave();
   return n;
@@ -123,7 +125,15 @@ async function tiradasDeHoy(groupJid, userJid) {
   const g = store[groupJid];
   if (!g || typeof g.dia !== 'string' || !g.tiradas) return 0;
   if (g.dia !== diaDe(Date.now())) return 0;
-  return g.tiradas[canonicalJid(userJid)] || 0;
+  const key = canonicalJid(userJid);
+  let total = 0;
+  const keyEsLid = typeof key === 'string' && key.endsWith('@lid');
+  for (const k in g.tiradas) {
+    if (k === key) { total += g.tiradas[k]; continue; }
+    if (!keyEsLid && !String(k).endsWith('@lid')) continue;
+    if (canonicalJid(k) === key) total += g.tiradas[k];
+  }
+  return total;
 }
 
 // ─── Hitos ya cobrados hoy ───────────────────────────────────────────────────

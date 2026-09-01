@@ -34,11 +34,10 @@ quitó y **el bot deja de cargar**. Ya pasó: una llamada a `ordenarPorDureza`
 La consecuencia práctica está en la sección 5.1 y es la más importante: **la peor
 frase de un pool ahora sale tanto como la mejor.**
 
-**Pendiente de contenido cuando vuelvas:**
-
-- `rata`, `incel`, `simp`, `friki`, `perdedor`, `femboy` — tramo `high`
-- **4 duplicados exactos que hay que quitar**: `percent.js` líneas 4050, 4051 y
-  4052 repiten la 3853 en `friki.high`; la 6195 repite la 6075 en `guarra.high`
+**Dónde están las frases de %:** en `src/data/percentLabels.js`, no en
+`src/commands/percent.js`. Ese fichero es solo el motor (tirada, amaño,
+polaridad). Si editas `percent.js` pensando que ahí van las frases, estás
+tocando el motor.
 
 **Nadie ha tocado tus frases.** Los conflictos de la última integración se
 resolvieron todos a tu favor.
@@ -78,8 +77,9 @@ index.js                 arranca el proceso
 ```
 
 Lo único que hace falta retener: **`src/commands/` es lógica, `src/data/` es
-contenido.** Hoy la separación está a medias — `percent.js` mezcla las dos cosas
-en 6.000 líneas — y conviene terminarla.
+contenido.** Los % ya están partidos: motor en `percent.js`, frases en
+`src/data/percentLabels.js`. `robo.js`, `wingman.js` y `roast.js` todavía mezclan
+las dos cosas.
 
 ---
 
@@ -145,12 +145,13 @@ comando, no de quien lo escribe. Probabilidad de caer en cada tramo:
 |---|---|---|---|
 | **Negativo** → miembro | **87 %** | 9 % | 4 % |
 | **Negativo** → admin | 86 % | 9 % | 5 % |
-| **Positivo** → miembro | 17 % | 31 % | **52 %** |
-| **Positivo** → admin | 19 % | 31 % | 50 % |
+| **Positivo** → miembro | **6 %** | 18 % | **76 %** |
+| **Positivo** → admin | 7 % | 19 % | 74 % |
 
 Traducido: **al grupo le sale mal casi siempre.** Un miembro cualquiera recibe
-el tramo brutal en ~87 % de las tiradas negativas, y falla el halago en ~83 % de
-las positivas. Eso es intencionado y es el chiste central del bot.
+el tramo brutal en ~87 % de las tiradas negativas, y falla el halago en ~94 % de
+las positivas. Las dos polaridades pegan parecido a propósito: un `!sexy` alto
+se comentaba; un `!rata` insultando no. Eso es el chiste central del bot.
 
 **Consecuencia directa para el contenido:** el tramo brutal es el que la gente
 lee constantemente. Los tramos suaves casi no se ven. La calidad y la cantidad
@@ -164,11 +165,14 @@ está comentado en el código: salir 97 o 3 siempre no parece suerte, parece
 programado, y el grupo lo notó.
 
 Por eso el owner tiene bandas deliberadamente sosas (45-75 en positivos, 25-55
-en negativos) y **un 18 % de las veces le sale mal de verdad, como a cualquiera**.
+en negativos) y **un 8 % de las veces le sale mal de verdad, como a cualquiera**
+(el resto se reparte entre banda sosa 42 % y franja que le favorece 50 %).
 No salir nunca mal es, en sí mismo, el patrón que delata.
 
-`!linda`, `!fea` e `!iq` están fuera del amaño a propósito: son aleatorios puros
-para todo el mundo.
+`!fiel` e `!infiel` tiran uniforme 0-100 (con amaño del owner aparte). `!iq`
+tiene su propia curva de tramos, también sin sesgo por rol. `!linda` y `!fea`
+ya van por la curva del resto. `!feminidad` al owner le sale baja a propósito
+(el chiste recurrente).
 
 Al escribir no hay que hacer nada especial con esto — solo saber que el owner
 cae sobre todo en `mid`, así que **los pools `mid` no son relleno**: son lo que
@@ -331,17 +335,18 @@ eso existe el validador.
 
 | Dónde escribes | Placeholders permitidos |
 |---|---|
-| `percent.js`, `fidelityPhrases.js` | `[nombre]` |
-| `roast.js`, `relevance.js`, `wingman.js` | `%N` nombre, `%C` contexto |
-| `robo.js`, `roboExtraPhrases.js` | `%A` autor, `%V` víctima, `%C` cantidad, `%N` nombre |
+| `percentLabels.js`, `fidelityPhrases.js` | `[nombre]` |
+| `roast.js`, `roastPhrases.js`, `relevance.js`, `wingman.js`, `wingmanPhrases.js` | `%N` nombre, `%C` contexto, `%MSG` mensajes, `%PAIS` país |
+| `robo.js`, `roboPhrases.js`, `roboExtraPhrases.js` | `%A` autor, `%V` víctima, `%C` cantidad, `%N` nombre |
 | `apuestaPhrases.js` (aura) | `%A` apostador, `%C` cantidad, `%S` saldo final |
 | `rachaPhrases.js` | `%N` nombre, `%D` días de racha, `%P` días perdidos |
 | `activity.js`, `duel.js` | `%W` ganador, `%L` perdedor |
 | `mog.js` | `%M` / `%L` |
 | `topsRandom.js` | `{N}` |
-| `ship.js`, `iq.js`, `social.js`, `aura.js` | **ninguno** |
+| `iq.js` | `%IQ` cifra, `[nombre]` |
+| `ship.js`, `social.js`, `aura.js` | **ninguno** |
 
-`[nombre]` es **opcional** en `percent.js`: si la frase no lo lleva, no pasa
+`[nombre]` es **opcional** en `percentLabels.js`: si la frase no lo lleva, no pasa
 nada. Mézclalo — que todas las frases empiecen con el nombre canta.
 
 ---
@@ -349,12 +354,12 @@ nada. Mézclalo — que todas las frases empiecen con el nombre canta.
 ## 9. Cuántas frases escribir
 
 **Por tráfico, no por nombre de tramo.** Es la corrección más importante de esta
-guía y ya se aplicó a todo `percent.js`.
+guía y ya se aplicó a todo `percentLabels.js`.
 
 En comandos **negativos** (`fea`, `guarra`, `cerdo`, `rata`…) el tramo que más
 sale es `high`, con el 87 % de las tiradas. En los **positivos** (`linda`,
 `ganador`, `sexy`, `crack`, `feminidad`, `masculinidad`) el que más sale es
-**`low`**, con el 52 %, y `high` solo el 17 %.
+**`low`**, con el 76 %, y `high` solo el 6 %.
 
 **El dueño bajó los topes a la mitad**: con la elección plana (sección 5.1) la
 peor frase de un pool sale tanto como la mejor, así que el relleno no es neutro
@@ -367,10 +372,10 @@ peor frase de un pool sale tanto como la mejor, así que el relleno no es neutro
 
 Unas 150 por comando. **Aplicar la regla por el nombre del tramo en vez de por
 el tráfico es el error que ya se cometió una vez**: dejó a `!linda`, `!sexy`,
-`!crack` y `!ganador` con 100 frases en el tramo que se ve el 17 % de las veces
-y 25 en el que se ve el 52 %. Cuatro veces más frases donde casi nadie mira.
+`!crack` y `!ganador` con 100 frases en el tramo que se ve el 6 % de las veces
+y 25 en el que se ve el 76 %. Cuatro veces más frases donde casi nadie mira.
 
-Fuera de `percent.js` la regla es la misma pero mirando el pool concreto:
+Fuera de `percentLabels.js` la regla es la misma pero mirando el pool concreto:
 
 | Cuándo sale ese pool | Frases |
 |---|---|

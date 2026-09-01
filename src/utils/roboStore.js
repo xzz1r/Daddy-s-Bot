@@ -15,7 +15,7 @@
 
 const path = require('path');
 const { canonicalJid } = require('./wa');
-const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
+const { readJsonOrEnoent, createDebouncedSaver } = require('./helpers');
 const logger = require('./logger');
 
 const ROBO_FILE = path.join(__dirname, '../../data/robo.json');
@@ -32,7 +32,12 @@ const MAX_GOLPES = 400;
 
 let store = null;
 let loadPromise = null;
-let saveTimer = null;
+const saver = createDebouncedSaver(
+  () => store,
+  ROBO_FILE,
+  3000,
+  (e) => logger.error(`roboStore: fallo al guardar: ${e.message}`),
+);
 
 async function load() {
   if (store) return;
@@ -60,21 +65,54 @@ async function load() {
   await loadPromise;
 }
 
-function scheduleSave() {
-  if (saveTimer) return;
-  saveTimer = setTimeout(async () => {
-    saveTimer = null;
-    try { await atomicWriteJson(ROBO_FILE, store); }
-    catch (e) { logger.error(`roboStore: fallo al guardar: ${e.message}`); }
-  }, 3000);
-}
+function scheduleSave() { saver.schedule(); }
 
 async function flushRobo() {
-  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
-  if (store) {
-    try { await atomicWriteJson(ROBO_FILE, store); }
-    catch (e) { logger.error(`roboStore: fallo al flush: ${e.message}`); }
+  await saver.flush();
+}
+
+// Junta inventario LID/teléfono. Sin esto, el escudo comprado bajo @lid
+// desaparece al resolverse el teléfono y se puede volver a pagar.
+function foldObjetos(objetos, persona) {
+  const key = canonicalJid(persona);
+  if (!objetos || typeof objetos !== 'object') return key;
+  const partes = [];
+  const extra = [];
+  if (objetos[key] && typeof objetos[key] === 'object') partes.push(objetos[key]);
+  const keyEsLid = typeof key === 'string' && key.endsWith('@lid');
+  for (const k of Object.keys(objetos)) {
+    if (k === key) continue;
+    if (!keyEsLid && !k.endsWith('@lid')) continue;
+    if (canonicalJid(k) !== key) continue;
+    if (objetos[k] && typeof objetos[k] === 'object') partes.push(objetos[k]);
+    extra.push(k);
   }
+  if (partes.length <= 1) {
+    if (partes.length === 1 && objetos[key] === undefined) {
+      objetos[key] = partes[0];
+      if (extra[0]) delete objetos[extra[0]];
+      scheduleSave();
+    }
+    return key;
+  }
+  const merged = {};
+  for (const o of partes) {
+    for (const [campo, valor] of Object.entries(o)) {
+      if (valor == null) continue;
+      if (typeof valor !== 'number') { merged[campo] = valor; continue; }
+      // Usos (ganzúa, amuleto, seguro): se suman. Caducidades y marcas de
+      // tiempo: se queda la más lejana, que es la que todavía protege.
+      if (campo === 'ganzua' || campo === 'amuleto' || campo === 'seguro') {
+        merged[campo] = (merged[campo] || 0) + valor;
+      } else {
+        merged[campo] = Math.max(merged[campo] || 0, valor);
+      }
+    }
+  }
+  for (const k of extra) delete objetos[k];
+  objetos[key] = merged;
+  scheduleSave();
+  return key;
 }
 
 function grupo(g) {
@@ -156,13 +194,15 @@ async function anotarAtraco(g) {
 // economia.js.
 async function ultimaVentaja(g, quien) {
   await load();
-  return grupo(g).objetos[canonicalJid(quien)]?.ultimaVentaja || 0;
+  const x = grupo(g);
+  const k = foldObjetos(x.objetos, quien);
+  return x.objetos[k]?.ultimaVentaja || 0;
 }
 
 async function anotarVentaja(g, quien) {
   await load();
   const x = grupo(g);
-  const k = canonicalJid(quien);
+  const k = foldObjetos(x.objetos, quien);
   if (!x.objetos[k]) x.objetos[k] = {};
   x.objetos[k].ultimaVentaja = Date.now();
   scheduleSave();
@@ -176,7 +216,7 @@ async function anotarVentaja(g, quien) {
 async function vetarDeTienda(g, quien, hasta) {
   await load();
   const x = grupo(g);
-  const k = canonicalJid(quien);
+  const k = foldObjetos(x.objetos, quien);
   if (!x.objetos[k]) x.objetos[k] = {};
   x.objetos[k].vetoTienda = hasta;
   scheduleSave();
@@ -185,7 +225,8 @@ async function vetarDeTienda(g, quien, hasta) {
 async function vetoTienda(g, quien) {
   await load();
   const x = grupo(g);
-  const v = x.objetos[canonicalJid(quien)]?.vetoTienda || 0;
+  const k = foldObjetos(x.objetos, quien);
+  const v = x.objetos[k]?.vetoTienda || 0;
   return v > Date.now() ? v : 0;
 }
 
@@ -227,14 +268,14 @@ async function vaciarBote(g) {
 async function objetosDe(g, persona) {
   await load();
   const x = grupo(g);
-  const k = canonicalJid(persona);
+  const k = foldObjetos(x.objetos, persona);
   return x.objetos[k] || {};
 }
 
 async function darObjeto(g, persona, objeto, valor) {
   await load();
   const x = grupo(g);
-  const k = canonicalJid(persona);
+  const k = foldObjetos(x.objetos, persona);
   if (!x.objetos[k]) x.objetos[k] = {};
   x.objetos[k][objeto] = valor;
   scheduleSave();
@@ -243,7 +284,7 @@ async function darObjeto(g, persona, objeto, valor) {
 async function gastarGanzua(g, persona) {
   await load();
   const x = grupo(g);
-  const k = canonicalJid(persona);
+  const k = foldObjetos(x.objetos, persona);
   const o = x.objetos[k];
   if (!o || !(o.ganzua > 0)) return false;
   o.ganzua -= 1;
@@ -304,7 +345,7 @@ async function tieneSocio(g, persona) {
 async function gastarUso(g, persona, objeto) {
   await load();
   const x = grupo(g);
-  const k = canonicalJid(persona);
+  const k = foldObjetos(x.objetos, persona);
   const o = x.objetos[k];
   if (!o || !(o[objeto] > 0)) return false;
   o[objeto] -= 1;

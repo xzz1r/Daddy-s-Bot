@@ -62,7 +62,8 @@ async function businessEvidence(sock, jid) {
 
   let profile;
   try {
-    profile = await sock.getBusinessProfile(jid);
+    const { withTimeout } = require('./helpers');
+    profile = await withTimeout(sock.getBusinessProfile(jid), 8000);
   } catch (e) {
     return { estado: 'desconocido', fields: [], motivo: `la consulta falló (${e?.message || 'error'})` };
   }

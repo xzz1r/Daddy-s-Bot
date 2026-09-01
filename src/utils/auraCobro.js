@@ -48,6 +48,15 @@ async function devolver(groupJid, senderJid, pagado) {
   await addAura(groupJid, senderJid, pagado);
 }
 
+// El dispatcher cobra ANTES del switch. Un `return` no es una excepción, así
+// que el catch no reembolsa: el usuario pagaba por un roast sin objetivo, un
+// !ttp vacío o un !relevancia al owner (silencio a propósito). Quien no presta
+// el servicio devuelve esta marca y el dispatcher deshace el cobro, en silencio.
+const SIN_SERVICIO = Object.freeze({ sinServicio: true });
+function esSinServicio(x) {
+  return x === SIN_SERVICIO;
+}
+
 // Burlas para el que no llega. Es el momento más divertido del comando: alguien
 // ha ido a gastar y no tiene. El bot no consuela, se ríe.
 //
@@ -133,4 +142,4 @@ function textoSinSaldo(concepto, { precio, saldo }, jid) {
     `_Se gana con *!aura* y con los bonos de 200, 500 y 1000 mensajes del día. Cada ${fmt(ACTIVIDAD_MSGS)} mensajes que escribes tus tiradas ganan suerte para siempre._`;
 }
 
-module.exports = { cobrar, devolver, textoSinSaldo, MISERIA };
+module.exports = { cobrar, devolver, textoSinSaldo, MISERIA, SIN_SERVICIO, esSinServicio };

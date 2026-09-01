@@ -4,6 +4,7 @@ const { canonicalJid } = require('../utils/wa');
 const config = require('../config');
 const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
+const { SIN_SERVICIO } = require('../utils/auraCobro');
 
 // ¿Es este JID uno de los numeros de config.shipAlto?
 //
@@ -383,7 +384,8 @@ async function cmdShip(sock, msg, args, groupMeta) {
     .map(p => p.id)
     .filter(id => id && !isBotJid(sock, id) && !isMainOwner(id, false, groupMeta));
   if (participantIds.length < 2) {
-    return sock.sendMessage(jid, { text: 'Necesito al menos 2 miembros en el grupo.' }, { quoted: msg });
+    await sock.sendMessage(jid, { text: 'Necesito al menos 2 miembros en el grupo.' }, { quoted: msg });
+    return SIN_SERVICIO;
   }
 
   const ctx = msg.message?.extendedTextMessage?.contextInfo;
@@ -416,14 +418,16 @@ async function cmdShip(sock, msg, args, groupMeta) {
     a = sender;
     const resto = participantIds.filter(id => !sameUser(id, sender));
     if (!resto.length) {
-      return sock.sendMessage(jid, { text: 'No hay nadie más en el grupo con quien shipearte.' }, { quoted: msg });
+      await sock.sendMessage(jid, { text: 'No hay nadie más en el grupo con quien shipearte.' }, { quoted: msg });
+      return SIN_SERVICIO;
     }
     b = shuffle(resto)[0];
   }
 
   // No shippear a alguien consigo mismo (igual que !mog y !vs).
   if (sameUser(a, b)) {
-    return sock.sendMessage(jid, { text: aviso(A_TI_MISMO, jid, 'yo') }, { quoted: msg });
+    await sock.sendMessage(jid, { text: aviso(A_TI_MISMO, jid, 'yo') }, { quoted: msg });
+    return SIN_SERVICIO;
   }
 
   // Rig a favor del owner principal: si participa, la compatibilidad es alta pero

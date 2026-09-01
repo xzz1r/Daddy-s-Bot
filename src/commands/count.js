@@ -386,14 +386,4 @@ async function cmdResetCount(sock, msg, groupMeta) {
   }, { quoted: msg });
 }
 
-// Los pools se exportan para que las pruebas puedan comprobar de que bolsa
-// salio cada frase en vez de adivinarlo por palabras sueltas.
-
-// El bot abre con lo mas fuerte que tiene: los pools de insultos se ordenan
-// de mas duro a mas suave UNA vez, al cargar, y pickFresh sesga la eleccion
-// hacia la cabecera. Los pools neutros (cabeceras, cierres) no se tocan:
-// ahi la "dureza" no significa nada.
-for (let i = 0; i < MEMBER_PHRASES.length; i++) MEMBER_PHRASES[i] = MEMBER_PHRASES[i];
-for (let i = 0; i < ADMIN_PHRASES.length; i++) ADMIN_PHRASES[i] = ADMIN_PHRASES[i];
-
 module.exports = { cmdCount, cmdResetCount, MEMBER_PHRASES, ADMIN_PHRASES, fechaCorta };

@@ -87,7 +87,7 @@ async function allow(grupo, jid) {
   const nuevo = !rec?.ok;
   // Al dar el permiso se le perdonan los avisos: ya no tiene sentido contarlos.
   g[k] = { ok: true, avisos: 0, ts: Date.now(), desde: Date.now() };
-  scheduleSave();
+  await flushLinkPerms();
   return nuevo;
 }
 
@@ -98,7 +98,7 @@ async function disallow(grupo, jid) {
   const { g, k, rec } = ficha(grupo, jid);
   if (!rec?.ok) return false;
   g[k] = { ok: false, avisos: 0, ts: Date.now() };
-  scheduleSave();
+  await flushLinkPerms();
   return true;
 }
 

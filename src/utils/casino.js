@@ -1,7 +1,7 @@
 // Bonos de aura por actividad: premian a los miembros activos cada 200/500/1000
-// mensajes dentro de una ventana de 24h (el contador vive en casinoStore.js y es
-// independiente del de !count; se reinicia a diario, así que los hitos son una
-// carrera nueva cada día). Tiene estructura de tragaperras (tramos, botes,
+// mensajes del día de calendario (el contador vive en casinoStore.js y es
+// independiente del de !count; se reinicia al corte de DIA, así que los hitos
+// son una carrera nueva cada día). Tiene estructura de tragaperras (tramos, botes,
 // premio variable) pero lo que se reparte es AURA, no fichas de casino.
 // Uses variable ratio reinforcement (the most addictive slot mechanic) — the amount
 // varies unpredictably within each tier so players never know what they'll get.

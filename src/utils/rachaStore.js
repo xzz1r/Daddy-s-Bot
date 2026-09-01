@@ -6,11 +6,9 @@
 // eso no se puede calcular con una ventana que empieza cuando alguien escribió
 // por primera vez en el grupo: dos personas tendrían días distintos.
 //
-// EL DÍA CAMBIA A LAS 5 DE LA MAÑANA, no a medianoche. En un grupo que habla de
-// noche, cortar a las 00:00 significa que quien sigue la conversación a las
-// 00:30 empieza un día nuevo con un mensaje suelto y pierde la racha al día
-// siguiente por no llegar al mínimo. A las cinco no escribe nadie, así que el
-// corte no le rompe la noche a nadie.
+// El corte del día es el del bot entero (DIA en economia.js), no uno propio.
+// Antes esta ficha cortaba a las 5 de Madrid y el contador a medianoche de
+// Nueva York: dos "hoy" a una hora de distancia. Ya no.
 //
 // store = { [groupJid]: { [personaCanonica]: { dia, msgs, dias, ultimo } } }
 //   dia    — el día que se está contando ahora mismo (YYYY-MM-DD)
@@ -51,6 +49,46 @@ async function load() {
 
 function scheduleSave() { saver.schedule(); }
 
+// Junta las formas LID/teléfono de la misma persona. Sin esto, la racha se
+// parte en dos y o se pierde la larga o se cobra el goteo dos veces.
+function foldRacha(g, userJid) {
+  const key = canonicalJid(userJid);
+  const partes = [];
+  const extra = [];
+  if (g[key] && typeof g[key] === 'object') partes.push(g[key]);
+  const keyEsLid = typeof key === 'string' && key.endsWith('@lid');
+  for (const k of Object.keys(g)) {
+    if (k === key) continue;
+    if (!keyEsLid && !k.endsWith('@lid')) continue;
+    if (canonicalJid(k) !== key) continue;
+    if (g[k] && typeof g[k] === 'object') partes.push(g[k]);
+    extra.push(k);
+  }
+  if (partes.length <= 1) {
+    if (partes.length === 1 && g[key] === undefined) {
+      g[key] = partes[0];
+      if (extra[0]) delete g[extra[0]];
+      scheduleSave();
+    }
+    return key;
+  }
+  const merged = { dia: null, msgs: 0, dias: 0, ultimo: null };
+  for (const p of partes) {
+    if (!merged.dia || (p.dia && p.dia > merged.dia)) {
+      merged.dia = p.dia;
+      merged.msgs = p.msgs || 0;
+    } else if (p.dia === merged.dia) {
+      merged.msgs += p.msgs || 0;
+    }
+    merged.dias = Math.max(merged.dias, p.dias || 0);
+    if (!merged.ultimo || (p.ultimo && p.ultimo > merged.ultimo)) merged.ultimo = p.ultimo;
+  }
+  for (const k of extra) delete g[k];
+  g[key] = merged;
+  scheduleSave();
+  return key;
+}
+
 // El día al que pertenece un instante. Es el día del bot entero (DIA), no uno
 // propio: la racha cortaba a las 5 de la mañana hora de Madrid y el contador de
 // mensajes a medianoche de Nueva York, o sea dos "hoy" a una hora de distancia.
@@ -83,10 +121,10 @@ function esElSiguiente(a, b) {
 // El pago y el aviso son cosa de quien llame; aquí solo se lleva la cuenta.
 async function anotarMensaje(groupJid, userJid, ahora = Date.now()) {
   await load();
-  const key = canonicalJid(userJid);
   const hoy = diaDe(ahora);
 
   const g = store[groupJid] || (store[groupJid] = {});
+  const key = foldRacha(g, userJid);
   const p = g[key] || (g[key] = { dia: hoy, msgs: 0, dias: 0, ultimo: null });
 
   // Cambio de día: se cierra el contador de mensajes y se empieza de cero.
@@ -129,7 +167,7 @@ async function verRacha(groupJid, userJid, ahora = Date.now()) {
   await load();
   const g = store[groupJid];
   if (!g) return { dias: 0, hoyCuenta: false, msgs: 0 };
-  const p = g[canonicalJid(userJid)];
+  const p = g[foldRacha(g, userJid)];
   if (!p) return { dias: 0, hoyCuenta: false, msgs: 0 };
 
   const hoy = diaDe(ahora);

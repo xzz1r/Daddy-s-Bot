@@ -307,7 +307,7 @@ async function resolverCuenta(sock, digitos, groupMeta, protegido = null) {
     if (esIntocable(objetivo, groupMeta, protegido)) return { skip: true };
     return { digitos, objetivo, formas: formasDeCuenta(objetivo, digitos) };
   } catch (e) {
-    return { error: `No pude comprobar +${digitos}: ${e.message}` };
+    return { error: `No pude comprobar +${digitos}. Inténtalo de nuevo.` };
   }
 }
 
@@ -357,7 +357,7 @@ async function cmdPurgaNumero(sock, msg, args, groupMeta) {
   try {
     grupos = await withTimeout(sock.groupFetchAllParticipating(), 15000);
   } catch (e) {
-    return sock.sendMessage(jid, { text: `No pude listar los grupos: ${e.message}` }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No pude listar los grupos. Inténtalo de nuevo.' }, { quoted: msg });
   }
 
   for (const meta of Object.values(grupos || {})) {
@@ -524,7 +524,7 @@ async function cmdPurge(sock, msg, args, groupMeta) {
   try {
     grupos = await withTimeout(sock.groupFetchAllParticipating(), 15000);
   } catch (e) {
-    return sock.sendMessage(jid, { text: `No pude listar los grupos: ${e.message}` }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No pude listar los grupos. Inténtalo de nuevo.' }, { quoted: msg });
   }
 
   // Ampliar formas con lo que haya en los grupos (LID ↔ teléfono).

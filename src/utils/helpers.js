@@ -397,7 +397,16 @@ async function ffmpegToBuffer(args, input = null, timeoutMs = 10000) {
         try { ff.kill('SIGKILL'); } catch {}
         done(reject, new Error('ffmpeg timeout'));
       }, timeoutMs);
-      ff.stdout.on('data', d => chunks.push(d));
+      let total = 0;
+      ff.stdout.on('data', d => {
+        total += d.length;
+        if (total > MAX_MEDIA_BYTES) {
+          try { ff.kill('SIGKILL'); } catch {}
+          done(reject, new Error(`ffmpeg demasiado grande (>${Math.round(MAX_MEDIA_BYTES / 1024 / 1024)}MB)`));
+          return;
+        }
+        chunks.push(d);
+      });
       ff.on('error', e => done(reject, e));
       ff.on('close', code => {
         const out = Buffer.concat(chunks);

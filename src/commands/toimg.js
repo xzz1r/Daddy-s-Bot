@@ -188,7 +188,7 @@ async function cmdToVid(sock, msg, groupMeta) {
 
   const pago = await cobrar(jid, senderJid, 'tovid', { fromMe: msg.key.fromMe, groupMeta });
   if (!pago.ok) {
-    return sock.sendMessage(jid, { text: textoSinSaldo('tovid', pago) }, { quoted: msg });
+    return sock.sendMessage(jid, { text: textoSinSaldo('tovid', pago, jid) }, { quoted: msg });
   }
   const reembolsar = () => devolver(jid, senderJid, pago.pagado).catch(() => {});
 
@@ -228,7 +228,7 @@ async function cmdToVid(sock, msg, groupMeta) {
   } catch (err) {
     logger.error(`tovid error: ${err.message}`);
     await reembolsar();
-    await sock.sendMessage(jid, { text: `No pude convertir a video: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: 'No pude convertir a video. Prueba con otro sticker o video.' }, { quoted: msg });
   }
 }
 
@@ -247,7 +247,7 @@ async function cmdToImg(sock, msg, groupMeta) {
 
   const pago = await cobrar(jid, senderJid, 'toimg', { fromMe: msg.key.fromMe, groupMeta });
   if (!pago.ok) {
-    return sock.sendMessage(jid, { text: textoSinSaldo('toimg', pago) }, { quoted: msg });
+    return sock.sendMessage(jid, { text: textoSinSaldo('toimg', pago, jid) }, { quoted: msg });
   }
   const reembolsar = () => devolver(jid, senderJid, pago.pagado).catch(() => {});
 
@@ -321,7 +321,7 @@ async function cmdToImg(sock, msg, groupMeta) {
   } catch (err) {
     logger.error(`toimg error: ${err.message}`);
     await reembolsar();
-    await sock.sendMessage(jid, { text: `No pude extraer el contenido: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: 'No pude extraer el contenido. Prueba con otro archivo.' }, { quoted: msg });
   }
 }
 

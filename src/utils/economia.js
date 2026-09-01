@@ -27,14 +27,9 @@
 // escribir — cobrado en un sitio donde se disfruta en vez de caer de fondo.
 //
 // Y el freno que permite que las tiradas paguen de verdad es TIRADAS_PAGADAS:
-// solo las cinco primeras del día cobran. De ahí en adelante se sigue jugando,
-// pero a valor esperado cero.
-//
-//   perfil        msgs/día   tirando   racha   bonos   total   antes   cmds/día
-//   fantasma            30        +7      20       0      27       1       0,8
-//   normal             200       +58      20      16      94      20       2,7
-//   activo             500       +62      20      97     179     107       5,2
-//   muy activo       1.200       +62      20     315     397     337      11,4
+// solo esas del día cobran. De ahí en adelante se sigue jugando, pero a valor
+// esperado cero. Las cifras vivas están en las constantes de este fichero;
+// un recuadro aquí se queda viejo en el primer reajuste.
 //
 // La columna de la racha es plana a propósito: son los mismos 20 al día para
 // todo el mundo, así que en términos relativos levanta muchísimo al de abajo y
@@ -1143,7 +1138,7 @@ const RECOMPENSA = {
 const DUELO = {
   suelo: 10,
   porDefecto: 40,
-  techo: 300,             // más que el robo (200), porque aquí el otro acepta
+  techo: 300,             // más que un robo típico: aquí el otro acepta
   fraccionRival: 0.35,    // ni más de un tercio de lo que tiene el más pobre
 
   // El duelo del owner ERA UN 100 % LITERAL (`side = 'c'`). Se quedo asi cuando

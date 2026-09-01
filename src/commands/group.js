@@ -438,7 +438,7 @@ async function cmdKick(sock, msg, args, groupMeta) {
       mentions: [...fallidos, ...skipped.map(s => s.jid)],
     }, { quoted: msg });
   } catch (err) {
-    await sock.sendMessage(jid, { text: `No pude expulsar: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: 'No pude expulsar. Inténtalo de nuevo.' }, { quoted: msg });
   }
 }
 
@@ -487,7 +487,7 @@ async function cmdDel(sock, msg, groupMeta) {
     // delete any message including the admin's command.
     sock.sendMessage(jid, { delete: msg.key }).catch(() => {});
   } catch (err) {
-    await sock.sendMessage(jid, { text: `No pude borrar el mensaje: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: 'No pude borrar el mensaje. Inténtalo de nuevo.' }, { quoted: msg });
   }
 }
 
@@ -600,7 +600,7 @@ async function cmdPromote(sock, msg, args, groupMeta) {
       mentions: [target],
     }, { quoted: msg });
   } catch (err) {
-    await sock.sendMessage(jid, { text: `No pude ascender al usuario: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: 'No pude ascender. Inténtalo de nuevo.' }, { quoted: msg });
   }
 }
 
@@ -640,7 +640,7 @@ async function cmdDemote(sock, msg, args, groupMeta) {
       mentions: [target],
     }, { quoted: msg });
   } catch (err) {
-    await sock.sendMessage(jid, { text: `No pude degradar al usuario: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: 'No pude degradar. Inténtalo de nuevo.' }, { quoted: msg });
   }
 }
 
@@ -996,8 +996,7 @@ async function cmdAutoAceptar(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, {
       text: '*Autoaccept encendido*, pero no puedo leer las solicitudes.\n' +
         '_Casi siempre es que el grupo no tiene puesto "Aprobar nuevos participantes" ' +
-        'en los ajustes. Sin eso no hay solicitudes que aprobar._\n' +
-        `_(${e.message})_`,
+        'en los ajustes. Sin eso no hay solicitudes que aprobar._',
     }, { quoted: msg });
   }
 
@@ -1151,7 +1150,7 @@ async function cmdClose(sock, msg, groupMeta) {
     await sock.groupSettingUpdate(jid, 'announcement');
     await sock.sendMessage(jid, { text: 'Grupo *cerrado*. Solo los admins pueden escribir.' }, { quoted: msg });
   } catch (err) {
-    await sock.sendMessage(jid, { text: `No pude cerrar el grupo: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: 'No pude cerrar el grupo. Inténtalo de nuevo.' }, { quoted: msg });
   }
 }
 
@@ -1169,7 +1168,7 @@ async function cmdOpen(sock, msg, groupMeta) {
     await sock.groupSettingUpdate(jid, 'not_announcement');
     await sock.sendMessage(jid, { text: 'Grupo *abierto*. Todos pueden escribir.' }, { quoted: msg });
   } catch (err) {
-    await sock.sendMessage(jid, { text: `No pude abrir el grupo: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: 'No pude abrir el grupo. Inténtalo de nuevo.' }, { quoted: msg });
   }
 }
 
@@ -1314,11 +1313,11 @@ async function cmdPresentarse(sock, msg, args, groupMeta) {
     return;   // en privado, silencio
   }
 
-  // SALE EN TODOS LOS GRUPOS, se escriba donde se escriba.
+  // En un grupo, SOLO ese grupo. Desde el privado del owner, todos.
   //
-  // La primera version solo lo soltaba en el grupo donde se escribia, y desde
-  // el privado en todos. Es una ronda de presentaciones: se pide una vez y
-  // tiene que llegar a todas partes, no repetir el comando grupo por grupo.
+  // Un admin de un grupo satélite no puede patear al resto: el aviso es una
+  // ronda de presentaciones de ESA sala. La ronda global se pide desde el
+  // privado, que ya es solo del owner.
   //
   // La frase se sortea POR GRUPO. Con el mismo texto en todos a la vez, el
   // primero que compare dos grupos ve que detras hay un boton.
@@ -1329,16 +1328,16 @@ async function cmdPresentarse(sock, msg, args, groupMeta) {
     return true;
   };
 
+  if (enGrupo) {
+    const ok = await soltar(jid, groupMeta?.participants);
+    if (!ok) return sock.sendMessage(jid, { text: 'No pude mandarlo a este grupo.' }, { quoted: msg });
+    return;
+  }
+
   let grupos = {};
   try { grupos = await withTimeout(sock.groupFetchAllParticipating(), 15000); }
   catch (e) {
-    // Sin la lista, al menos el grupo desde el que se pidio. Quedarse sin hacer
-    // nada por un fallo de red seria peor que hacer la mitad.
-    if (enGrupo && groupMeta?.participants?.length) {
-      await soltar(jid, groupMeta.participants);
-      return sock.sendMessage(jid, { text: `_No pude listar los demás grupos (${e.message}), así que solo ha salido aquí._` }, { quoted: msg });
-    }
-    return sock.sendMessage(jid, { text: `No pude listar los grupos: ${e.message}` }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No pude listar los grupos. Inténtalo de nuevo.' }, { quoted: msg });
   }
 
   const enviados = [], fallidos = [];
@@ -1351,16 +1350,6 @@ async function cmdPresentarse(sock, msg, args, groupMeta) {
 
   if (!enviados.length) {
     return sock.sendMessage(jid, { text: 'No pude mandarlo a ningún grupo.' }, { quoted: msg });
-  }
-
-  // Desde un grupo, el aviso ya se ve ahi: basta una linea diciendo que tambien
-  // fue a los demas. La lista entera solo tiene sentido en el privado.
-  if (enGrupo) {
-    const otros = enviados.length - 1;
-    if (otros <= 0) return;
-    return sock.sendMessage(jid, {
-      text: `_También pedida a los nuevos en ${otros} grupo(s) más._`,
-    }, { quoted: msg });
   }
 
   return sock.sendMessage(jid, {

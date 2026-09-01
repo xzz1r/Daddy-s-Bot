@@ -1,6 +1,6 @@
 'use strict';
 
-const { bareJid } = require('./wa');
+const { bareJid, canonicalJid, rememberMapping } = require('./wa');
 
 // Por qué entró alguien al grupo.
 //
@@ -41,24 +41,35 @@ function anotarAlta(msg) {
 
   for (const raw of (msg.messageStubParameters || [])) {
     // Los parámetros son objetos JSON del participante; en versiones viejas
-    // venía el JID a pelo.
-    let id = null;
+    // venía el JID a pelo. Se guardan TODAS las formas: el stub puede traer
+    // @lid y el evento de participantes el teléfono, y con una sola clave el
+    // motivo no casaba y el anti-admin se quedaba ciego (falso negativo).
+    const ids = [];
     try {
       const o = JSON.parse(raw);
-      id = o?.id || o?.phoneNumber || o?.lid || null;
+      if (o?.lid && o?.phoneNumber) rememberMapping(o.lid, o.phoneNumber);
+      else if (o?.id?.endsWith?.('@lid') && o?.phoneNumber) rememberMapping(o.id, o.phoneNumber);
+      for (const f of [o?.id, o?.phoneNumber, o?.lid]) if (f) ids.push(f);
     } catch {
-      id = (typeof raw === 'string' && raw.includes('@')) ? raw : null;
+      if (typeof raw === 'string' && raw.includes('@')) ids.push(raw);
     }
-    if (!id) continue;
+    if (!ids.length) continue;
 
-    const k = `${grupo}|${bareJid(id)}`;
-    if (altas.size >= MAX && !altas.has(k)) altas.delete(altas.keys().next().value);
-    altas.set(k, { tipo, ts: Date.now() });
-
-    const pend = esperando.get(k);
-    if (pend) {
-      esperando.delete(k);
-      for (const r of pend) r(tipo);
+    const visto = { tipo, ts: Date.now() };
+    const claves = new Set();
+    for (const id of ids) {
+      claves.add(`${grupo}|${bareJid(id)}`);
+      const canon = canonicalJid(id);
+      if (canon) claves.add(`${grupo}|${bareJid(canon)}`);
+    }
+    for (const k of claves) {
+      if (altas.size >= MAX && !altas.has(k)) altas.delete(altas.keys().next().value);
+      altas.set(k, visto);
+      const pend = esperando.get(k);
+      if (pend) {
+        esperando.delete(k);
+        for (const r of pend) r(tipo);
+      }
     }
   }
 }
@@ -66,21 +77,35 @@ function anotarAlta(msg) {
 // Espera hasta `ms` a saber por qué entró `jid`. Devuelve el tipo, o null si no
 // se pudo averiguar. Quien llame debe tratar el null como "no se sabe" y NO
 // como "alta a dedo": degradar y expulsar es irreversible.
+function clavesDe(grupo, jid) {
+  const out = new Set([`${grupo}|${bareJid(jid)}`]);
+  const canon = canonicalJid(jid);
+  if (canon) out.add(`${grupo}|${bareJid(canon)}`);
+  return [...out];
+}
+
 function motivoDelAlta(grupo, jid, ms = 5000) {
-  const k = `${grupo}|${bareJid(jid)}`;
-  const ya = altas.get(k);
-  if (ya && Date.now() - ya.ts < TTL) return Promise.resolve(ya.tipo);
+  for (const k of clavesDe(grupo, jid)) {
+    const ya = altas.get(k);
+    if (ya && Date.now() - ya.ts < TTL) return Promise.resolve(ya.tipo);
+  }
 
   return new Promise((resolve) => {
-    const lista = esperando.get(k) || [];
-    lista.push(resolve);
-    esperando.set(k, lista);
+    const claves = clavesDe(grupo, jid);
+    const onTipo = (tipo) => resolve(tipo);
+    for (const k of claves) {
+      const lista = esperando.get(k) || [];
+      lista.push(onTipo);
+      esperando.set(k, lista);
+    }
     setTimeout(() => {
-      const l = esperando.get(k);
-      if (!l) return;
-      const i = l.indexOf(resolve);
-      if (i >= 0) l.splice(i, 1);
-      if (!l.length) esperando.delete(k);
+      for (const k of claves) {
+        const l = esperando.get(k);
+        if (!l) continue;
+        const i = l.indexOf(onTipo);
+        if (i >= 0) l.splice(i, 1);
+        if (!l.length) esperando.delete(k);
+      }
       resolve(null);
     }, ms);
   });

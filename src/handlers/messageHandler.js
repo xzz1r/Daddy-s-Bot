@@ -3,7 +3,7 @@ const { pickFresh, withTimeout } = require('../utils/helpers');
 const config = require('../config');
 const { isBotEnabled, incrementStat, isAntiLinkEnabled, isSoloAdminsEnabled, isAntiBusinessEnabled, vistoActivo } = require('../utils/state');
 const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
-const { cobrar: cobrarAura, devolver: devolverAura, textoSinSaldo } = require('../utils/auraCobro');
+const { cobrar: cobrarAura, devolver: devolverAura, textoSinSaldo, esSinServicio } = require('../utils/auraCobro');
 const { PRECIOS, SUELO_TODOS } = require('../utils/economia');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
 const { recordName } = require('../utils/nombreStore');
@@ -232,15 +232,14 @@ const COBRO_CENTRAL = {
   // ese comando". Se le cobraba al usuario por un comando que el bot no tiene.
   // O se implementa el case, o no se cobra; lo segundo es lo honesto.
   rizz: 'rizz', piropo: 'piropo', wingman: 'wingman',
-  // 'count' NO esta, y es a proposito. El cobro central corre ANTES del switch,
-  // asi que a un miembro se le cobraban 25 y despues cmdCount le contestaba
-  // "solo los admins": pagaba por un rechazo. El catch solo devuelve el aura si
-  // salta una excepcion, y un return no lo es. Se cobra dentro de cmdCount,
-  // despues del permiso.
+  // 'count' e 'inactivos' NO estan, y es a proposito. El cobro central corre
+  // ANTES del switch, asi que a un miembro se le cobraba y despues el comando
+  // contestaba "solo los admins": pagaba por un rechazo. El catch solo
+  // devuelve el aura si salta una excepcion, y un return no lo es. Se cobran
+  // dentro, despues del permiso.
   relevancia: 'relevancia', relevance: 'relevancia', importancia: 'relevancia',
   vs: 'vs', versus: 'vs',
   fantasmas: 'fantasmas', fantasma: 'fantasmas', muertos: 'fantasmas',
-  inactivos: 'inactivos', inactivo: 'inactivos',
   ttp: 'ttp', texto: 'ttp',
   cachelist: 'cachelist', listacache: 'cachelist', cache: 'cachelist',
 };
@@ -1912,6 +1911,7 @@ async function handleMessage(sock, msg) {
   }
 
   try {
+    let resultado;
     switch (command) {
       case 'musica':
       case 'cancion':
@@ -1925,7 +1925,7 @@ async function handleMessage(sock, msg) {
       case 'cachelist':
       case 'listacache':
       case 'cache':
-        await cmdCacheList(sock, msg);
+        resultado = await cmdCacheList(sock, msg);
         break;
 
       case 'clearcache':
@@ -1980,13 +1980,13 @@ async function handleMessage(sock, msg) {
         await cmdCount(sock, msg, groupMeta, args);
         break;
 
-      case 'fiel':      await cmdFiel(sock, msg, groupMeta); break;
-      case 'infiel':    await cmdInfiel(sock, msg, groupMeta); break;
+      case 'fiel':      resultado = await cmdFiel(sock, msg, groupMeta); break;
+      case 'infiel':    resultado = await cmdInfiel(sock, msg, groupMeta); break;
 
       case 'importancia':
       case 'relevancia':
       case 'relevance':
-        await cmdRelevance(sock, msg, groupMeta);
+        resultado = await cmdRelevance(sock, msg, groupMeta);
         break;
 
       case 'resetcount':
@@ -2152,12 +2152,12 @@ async function handleMessage(sock, msg) {
         break;
 
       case 'ship':
-        await cmdShip(sock, msg, args, groupMeta);
+        resultado = await cmdShip(sock, msg, args, groupMeta);
         break;
 
       case 'texto':
       case 'ttp':
-        await cmdTtp(sock, msg, args);
+        resultado = await cmdTtp(sock, msg, args);
         break;
 
       case 'toimg':
@@ -2174,31 +2174,31 @@ async function handleMessage(sock, msg) {
         await cmdPfp(sock, msg, args, groupMeta);
         break;
 
-      case 'gay':        await cmdGay(sock, msg, groupMeta); break;
-      case 'simp':       await cmdSimp(sock, msg, groupMeta); break;
+      case 'gay':        resultado = await cmdGay(sock, msg, groupMeta); break;
+      case 'simp':       resultado = await cmdSimp(sock, msg, groupMeta); break;
       case 'sexy':
-      case 'hot':        await cmdHot(sock, msg, groupMeta); break;
-      case 'rata':       await cmdRata(sock, msg, groupMeta); break;
-      case 'maricon':    await cmdMaricon(sock, msg, groupMeta); break;
-      case 'friki':      await cmdFriki(sock, msg, groupMeta); break;
-      case 'crack':          await cmdCrack(sock, msg, groupMeta); break;
+      case 'hot':        resultado = await cmdHot(sock, msg, groupMeta); break;
+      case 'rata':       resultado = await cmdRata(sock, msg, groupMeta); break;
+      case 'maricon':    resultado = await cmdMaricon(sock, msg, groupMeta); break;
+      case 'friki':      resultado = await cmdFriki(sock, msg, groupMeta); break;
+      case 'crack':          resultado = await cmdCrack(sock, msg, groupMeta); break;
       case 'iq':             await cmdIQ(sock, msg); break;
-      case 'cerdo':          await cmdCerdo(sock, msg, groupMeta); break;
-      case 'feminidad':      await cmdFeminidad(sock, msg, groupMeta); break;
-      case 'masculinidad':   await cmdMasculinidad(sock, msg, groupMeta); break;
-      case 'inutil':         await cmdInutil(sock, msg, groupMeta); break;
-      case 'femboy':         await cmdFemboy(sock, msg, groupMeta); break;
+      case 'cerdo':          resultado = await cmdCerdo(sock, msg, groupMeta); break;
+      case 'feminidad':      resultado = await cmdFeminidad(sock, msg, groupMeta); break;
+      case 'masculinidad':   resultado = await cmdMasculinidad(sock, msg, groupMeta); break;
+      case 'inutil':         resultado = await cmdInutil(sock, msg, groupMeta); break;
+      case 'femboy':         resultado = await cmdFemboy(sock, msg, groupMeta); break;
       // *!L* es el nombre bueno; *!perdedor* se queda como alias porque el
       // comando se llamo asi hasta hoy y no tiene sentido romperle el habito a
       // nadie por un cambio de nombre. Mismo criterio que !contrarobo.
       case 'l':
-      case 'perdedor':       await cmdPerdedor(sock, msg, groupMeta); break;
-      case 'ganador':        await cmdGanador(sock, msg, groupMeta); break;
-      case 'puta':           await cmdPuta(sock, msg, groupMeta); break;
-      case 'guarra':         await cmdGuarra(sock, msg, groupMeta); break;
-      case 'incel':          await cmdIncel(sock, msg, groupMeta); break;
-      case 'linda':          await cmdLinda(sock, msg, groupMeta); break;
-      case 'fea':            await cmdFea(sock, msg, groupMeta); break;
+      case 'perdedor':       resultado = await cmdPerdedor(sock, msg, groupMeta); break;
+      case 'ganador':        resultado = await cmdGanador(sock, msg, groupMeta); break;
+      case 'puta':           resultado = await cmdPuta(sock, msg, groupMeta); break;
+      case 'guarra':         resultado = await cmdGuarra(sock, msg, groupMeta); break;
+      case 'incel':          resultado = await cmdIncel(sock, msg, groupMeta); break;
+      case 'linda':          resultado = await cmdLinda(sock, msg, groupMeta); break;
+      case 'fea':            resultado = await cmdFea(sock, msg, groupMeta); break;
 
       case 'rizz':           await cmdRizz(sock, msg, groupMeta); break;
       // piropo y wingman no USAN groupMeta (no miran roles). SI estan en
@@ -2285,14 +2285,14 @@ async function handleMessage(sock, msg) {
 
       case 'mog':
       case 'moggear':
-        await cmdMog(sock, msg, groupMeta);
+        resultado = await cmdMog(sock, msg, groupMeta);
         break;
 
       case 'quemar':
       case 'destruir':
       case 'roast':
       case 'flamear':
-        await cmdRoast(sock, msg, groupMeta);
+        resultado = await cmdRoast(sock, msg, groupMeta);
         break;
 
       case 'regalar':
@@ -2467,6 +2467,14 @@ async function handleMessage(sock, msg) {
         }
         break;
       }
+    }
+    // Un return no es una excepción: el catch de abajo no reembolsa. Los
+    // comandos que no prestaron el servicio (roast sin objetivo, ttp vacío,
+    // relevancia al owner) devuelven SIN_SERVICIO y aquí se deshace el cobro,
+    // en silencio, para no añadir un mensaje donde el comando eligió callarse.
+    if (esSinServicio(resultado) && cobradoAqui > 0) {
+      await devolverAura(jid, sender, cobradoAqui).catch(() => {});
+      cobradoAqui = 0;
     }
   } catch (err) {
     logger.error(`Command ${command} error: ${err.message}`);

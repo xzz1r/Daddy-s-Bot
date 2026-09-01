@@ -200,7 +200,7 @@ async function cmdK(sock, msg, groupMeta, borrar = true) {
   } catch (e) {
     logger.warn(`!k: no pude enviar el ${medio.nombre} al privado: ${e.message}`);
     await sock.sendMessage(destino, {
-      text: `Tengo el ${medio.nombre} pero no pude enviártelo (${e.message}).`,
+      text: `Tengo el ${medio.nombre} pero no pude enviártelo.`,
     }).catch(() => {});
   }
 }

@@ -20,8 +20,8 @@ sudo apt-get install -y ffmpeg git curl ca-certificates
 
 echo "==> [3/6] Comprobando Node.js..."
 if ! command -v node >/dev/null 2>&1; then
-  echo "    Node no está, instalando Node 20..."
-  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+  echo "    Node no está, instalando Node 22..."
+  curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
   sudo apt-get install -y nodejs
 fi
 echo "    Node: $(node -v)"

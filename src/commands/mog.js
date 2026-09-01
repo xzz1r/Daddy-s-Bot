@@ -5,6 +5,7 @@ const { pickFresh } = require('../utils/helpers');
 const { ownerGana } = require('../utils/rigOwner');
 const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
+const { SIN_SERVICIO } = require('../utils/auraCobro');
 
 // Rigged by role, but not blatantly: the owner has a real edge yet can still
 // lose, admins have a slighter edge, members fight on equal ground.
@@ -136,12 +137,16 @@ async function cmdMog(sock, msg, groupMeta) {
   let a, b;
   if (mentioned.length >= 2) [a, b] = mentioned.slice(0, 2);
   else if (mentioned.length === 1) { a = sender; b = mentioned[0]; }
-  else return sock.sendMessage(jid, {
-    text: 'Menciona a dos: *!mog @uno @otro*',
-  }, { quoted: msg });
+  else {
+    await sock.sendMessage(jid, {
+      text: 'Menciona a dos: *!mog @uno @otro*',
+    }, { quoted: msg });
+    return SIN_SERVICIO;
+  }
 
   if (sameUser(a, b)) {
-    return sock.sendMessage(jid, { text: aviso(A_TI_MISMO, jid, 'yo') }, { quoted: msg });
+    await sock.sendMessage(jid, { text: aviso(A_TI_MISMO, jid, 'yo') }, { quoted: msg });
+    return SIN_SERVICIO;
   }
 
   const participants = groupMeta?.participants || [];
@@ -179,12 +184,5 @@ async function cmdMog(sock, msg, groupMeta) {
 
   await sock.sendMessage(jid, { text, mentions: [a, b] }, { quoted: msg });
 }
-
-
-// El bot abre con lo mas fuerte que tiene: los pools de insultos se ordenan
-// de mas duro a mas suave UNA vez, al cargar, y pickFresh sesga la eleccion
-// hacia la cabecera. Los pools neutros (cabeceras, cierres) no se tocan:
-// ahi la "dureza" no significa nada.
-MOG_PHRASES = MOG_PHRASES;
 
 module.exports = { cmdMog };

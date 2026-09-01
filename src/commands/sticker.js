@@ -84,7 +84,7 @@ async function cmdSticker(sock, msg, groupMeta) {
   // Si algo falla despues, se devuelve.
   const pago = await cobrar(jid, senderJid, 'sticker', { fromMe: msg.key.fromMe, groupMeta });
   if (!pago.ok) {
-    return sock.sendMessage(jid, { text: textoSinSaldo('sticker', pago) }, { quoted: msg });
+    return sock.sendMessage(jid, { text: textoSinSaldo('sticker', pago, jid) }, { quoted: msg });
   }
   const reembolsar = () => devolver(jid, senderJid, pago.pagado).catch(() => {});
 
@@ -99,7 +99,7 @@ async function cmdSticker(sock, msg, groupMeta) {
   } catch (err) {
     logger.error(`Sticker download error: ${err.message}`);
     await reembolsar();
-    return sock.sendMessage(jid, { text: `Error descargando: ${err.message}` }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No pude descargar eso. Prueba otra vez.' }, { quoted: msg });
   }
 
   // Fire notice before encoding — videos/GIFs can take several seconds on Termux.
@@ -145,7 +145,7 @@ async function cmdSticker(sock, msg, groupMeta) {
   } catch (err) {
     logger.error(`Sticker conversion error: ${err.message}`);
     await reembolsar();
-    return sock.sendMessage(jid, { text: `Error al convertir: ${err.message}` }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'No pude convertir eso a sticker. Prueba con otra imagen o video.' }, { quoted: msg });
   }
 
   try {
@@ -179,7 +179,7 @@ async function cmdSticker(sock, msg, groupMeta) {
   } catch (err) {
     logger.error(`Sticker send error: ${err.message}`);
     await reembolsar();
-    await sock.sendMessage(jid, { text: `Error al enviar sticker: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: 'No pude enviar el sticker. Prueba otra vez.' }, { quoted: msg });
   }
 }
 

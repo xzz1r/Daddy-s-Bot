@@ -83,7 +83,7 @@ async function cmdTopRandom(sock, msg, n, args, groupMeta) {
   const concepto = `top${n}`;
   const pago = await cobrar(jid, quienPide, concepto, { fromMe: msg.key.fromMe, groupMeta });
   if (!pago.ok) {
-    return sock.sendMessage(jid, { text: textoSinSaldo(concepto, pago) }, { quoted: msg });
+    return sock.sendMessage(jid, { text: textoSinSaldo(concepto, pago, jid) }, { quoted: msg });
   }
 
   // Solo miembros actuales. El contador guarda los mensajes de todo el que haya

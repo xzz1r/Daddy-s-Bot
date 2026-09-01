@@ -1,5 +1,6 @@
 const { isOwner, isMainOwner, isAdmin, getTargetOrSelf } = require('../utils/wa');
 const { pickFresh } = require('../utils/helpers');
+const { SIN_SERVICIO } = require('../utils/auraCobro');
 // Rig del owner principal: cuando el TARGET es el owner, el % se fuerza al
 // RANGO que le favorece y luego la lógica de frase corre sobre ese valor.
 // Es un rango y no un número fijo a propósito: un 0% (o un 100%) clavado en
@@ -107,9 +108,9 @@ function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
   if (!goodIsHigh) {
     // Peyorativos: aqui el grupo saca ALTO (70-100) y quedar bien es sacar bajo.
     // Al owner le sale la banda sosa la mayoria de las veces, muy bajo de vez en
-    // cuando, y —esto es lo que lo hace creible— un 18 % de las veces le sale
-    // ALTO de verdad, igual que a cualquiera. Sin esa parte, no salir nunca mal
-    // es en si mismo el patron que canta.
+    // cuando, y —esto es lo que lo hace creible— el resto (1 - OWNER_SOSO -
+    // OWNER_BUENO) le sale ALTO de verdad, igual que a cualquiera. Sin esa
+    // parte, no salir nunca mal es en si mismo el patron que canta.
     if (targetIsOwner) {
       if (rand < OWNER_SOSO) return suaveMalo();
       if (rand < OWNER_SOSO + OWNER_BUENO) return lo();
@@ -187,7 +188,7 @@ async function runPercent(sock, msg, key, groupMeta) {
   // Algunos rasgos (perdedor/ganador) traen [nombre] embebido en la frase; el
   // resto no lo usa, así que el replace es un no-op para ellos.
   const verdict = String(pickFresh(cfg[tier], `${jid}|${key}|${tier}`) || '').replace(/\[nombre\]/g, nm);
-  if (!verdict) return;
+  if (!verdict) return SIN_SERVICIO;
   const showExtreme = cfg.goodIsHigh && percent >= 70 && cfg.extreme?.length;
 
   const text =

@@ -106,7 +106,7 @@ async function cmdPfp(sock, msg, args, groupMeta) {
   const quienPide = getSender(msg);
   const pago = await cobrar(jid, quienPide, 'pfp', { fromMe: msg.key.fromMe, groupMeta });
   if (!pago.ok) {
-    return sock.sendMessage(jid, { text: textoSinSaldo('pfp', pago) }, { quoted: msg });
+    return sock.sendMessage(jid, { text: textoSinSaldo('pfp', pago, jid) }, { quoted: msg });
   }
   // Se cobra al entrar, pero solo se cobra de verdad si el bot entrega algo.
   // Si no hay a quien mirar, o si la consulta falla por red, se devuelve: nadie

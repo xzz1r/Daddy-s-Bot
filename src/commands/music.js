@@ -3,7 +3,7 @@ const { cleanTemp } = require('../utils/helpers');
 const { incrementStat } = require('../utils/state');
 const { getCached, setCached, listCached, clearCache } = require('../utils/musicCache');
 const { getSender, canonicalJid, isMainOwner } = require('../utils/wa');
-const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
+const { cobrar, devolver, textoSinSaldo, SIN_SERVICIO } = require('../utils/auraCobro');
 const { fraseCooldown, PLAY } = require('../data/cooldownPhrases');
 const logger = require('../utils/logger');
 const fs = require('fs-extra');
@@ -52,7 +52,7 @@ async function cmdPlay(sock, msg, args, groupMeta) {
   const quienPide = getSender(msg);
   const pago = await cobrar(jid, quienPide, 'play', { fromMe: msg.key.fromMe, groupMeta });
   if (!pago.ok) {
-    return sock.sendMessage(jid, { text: textoSinSaldo('play', pago) }, { quoted: msg });
+    return sock.sendMessage(jid, { text: textoSinSaldo('play', pago, jid) }, { quoted: msg });
   }
   const reembolsar = () => devolver(jid, quienPide, pago.pagado).catch(() => {});
 
@@ -116,7 +116,7 @@ async function cmdPlay(sock, msg, args, groupMeta) {
   } catch (err) {
     logger.error(`Send audio error: ${err.message}`);
     await reembolsar();
-    await sock.sendMessage(jid, { text: `Error al enviar audio: ${err.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: 'No pude enviar la canción. Prueba otra vez.' }, { quoted: msg });
   }
 
   // Cache and cleanup (only if it was a fresh download). Pass the buffer we
@@ -141,7 +141,9 @@ async function cmdCacheList(sock, msg) {
   try {
     list = await listCached();
   } catch (err) {
-    return sock.sendMessage(jid, { text: `Error al leer el cache: ${err.message}` }, { quoted: msg });
+    logger.error(`cachelist: ${err.message}`);
+    await sock.sendMessage(jid, { text: 'No pude leer la caché ahora mismo.' }, { quoted: msg });
+    return SIN_SERVICIO;
   }
   if (!list.length) {
     return sock.sendMessage(jid, { text: 'No hay canciones en cache todavía.' }, { quoted: msg });
@@ -163,7 +165,8 @@ async function cmdClearCache(sock, msg) {
     await clearCache();
     await sock.sendMessage(jid, { text: 'Cache de musica borrado.' }, { quoted: msg });
   } catch (err) {
-    await sock.sendMessage(jid, { text: `Error al borrar cache: ${err.message}` }, { quoted: msg });
+    logger.error(`clearcache: ${err.message}`);
+    await sock.sendMessage(jid, { text: 'No pude borrar la caché.' }, { quoted: msg });
   }
 }
 

@@ -1,8 +1,8 @@
 const { getActiveUsers } = require('../utils/messageCounter');
-const { isOwner, isMainOwner, getSender, sameUser, soloMiembros, bareJid, canonicalJid, isBotJid } = require('../utils/wa');
+const { isOwner, isMainOwner, isGroupAdmin, getSender, sameUser, soloMiembros, bareJid, canonicalJid, isBotJid } = require('../utils/wa');
 const { cobrar, textoSinSaldo } = require('../utils/auraCobro');
 const { shuffle, pickFresh } = require('../utils/helpers');
-const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
+const { A_TI_MISMO, SOLO_GRUPOS, SOLO_ADMINS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
 const logger = require('../utils/logger');
 
@@ -364,10 +364,21 @@ async function cmdInactivos(sock, msg, groupMeta) {
   if (!jid.endsWith('@g.us')) {
     return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
+  const sender = getSender(msg);
+  // Mass-mention + amenaza de expulsión: es de admins, como !tagall. El cobro
+  // va DESPUES del permiso, igual que !count: si no, un miembro pagaba 35 por
+  // un "solo admins".
+  if (!isGroupAdmin(sender, msg.key.fromMe, groupMeta)) {
+    return sock.sendMessage(jid, { text: aviso(SOLO_ADMINS, jid, 'admins') }, { quoted: msg });
+  }
   if (!groupMeta?.participants?.length) {
     return sock.sendMessage(jid, {
       text: 'No pude leer la lista de miembros del grupo ahora mismo. Prueba otra vez en un rato.',
     }, { quoted: msg });
+  }
+  const pago = await cobrar(jid, sender, 'inactivos', { fromMe: msg.key.fromMe, groupMeta });
+  if (!pago.ok) {
+    return sock.sendMessage(jid, { text: textoSinSaldo('inactivos', pago, jid) }, { quoted: msg });
   }
 
   // Dos fuentes que hay que cruzar:
@@ -511,15 +522,5 @@ async function cmdInactivos(sock, msg, groupMeta) {
 
   await sock.sendMessage(jid, { text, mentions: flojos.map(u => u.jid) }, { quoted: msg });
 }
-
-
-// El bot abre con lo mas fuerte que tiene: los pools de insultos se ordenan
-// de mas duro a mas suave UNA vez, al cargar, y pickFresh sesga la eleccion
-// hacia la cabecera. Los pools neutros (cabeceras, cierres) no se tocan:
-// ahi la "dureza" no significa nada.
-VS_ROASTS = VS_ROASTS;
-GHOST_ROASTS = GHOST_ROASTS;
-AVISO_PURGA = AVISO_PURGA;
-AMENAZAS = AMENAZAS;
 
 module.exports = { cmdVs, cmdFantasmas, cmdInactivos };
