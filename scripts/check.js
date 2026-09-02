@@ -4807,6 +4807,16 @@ console.log(JSON.stringify({
   // palabras DISTINTAS y corregirlas a ciegas destrozaria las frases. Tampoco
   // entra "aun/aún", que depende de si significa "todavia" o "incluso".
   //
+  // La lista se amplio con veinte palabras mas —ladron, parasito, ridiculo,
+  // rapido, ojala, unico, escandalo, loteria, recien, atrevio, telefono…— que
+  // estaban mal escritas en 44 frases y que esta guarda no miraba. Mismo
+  // criterio: su forma sin tilde no es una palabra castellana. Quedan fuera a
+  // proposito 'maquina' (el/ella maquina) y 'musica' (nombre de comando), que
+  // si tienen forma valida sin tilde — y 'ladrones', que es LLANA acabada en -s
+  // y por tanto se escribe sin tilde aunque su singular la lleve. Meterlo en la
+  // lista puso la guarda en rojo contra dos frases bien escritas; el error era
+  // de la lista, no del corpus.
+  //
   // Y aparte la regla de los encliticos, que no admite excepcion: un gerundio o
   // un infinitivo con pronombre pegado SIEMPRE lleva tilde (guardandote ->
   // guardándote, pensarselo -> pensárselo). Esa se puede aplicar a ciegas
@@ -4815,7 +4825,7 @@ console.log(JSON.stringify({
     console.log('\n31b. LAS TILDES DE LAS FRASES');
     const antes = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
-    const SIN_TILDE = new RegExp('\\b(' + 'ademas|adios|ahi|aplicacion|aportacion|aqui|asi|atencion|avion|cabron|cancion|combinacion|comparacion|construccion|conversacion|conviccion|corazon|credito|deberia|deberian|definicion|despues|dia|diagnostico|dias|dificil|direccion|diria|educacion|eleccion|ereccion|estacion|estaria|estariamos|evolucion|explicacion|facil|ficcion|fria|frio|funcion|ganzua|habitacion|habria|habrian|haria|ilusion|informacion|intencion|inversion|invitacion|medicion|medico|monton|motivacion|movil|numero|numeros|pension|podria|podrian|posicion|precision|presion|proteccion|puntuacion|querria|razon|relacion|reputacion|sabado|segun|seleccion|sensacion|suscripcion|tambien|tendria|tendrian|tia|tio|traicion|ultima|ultimo|ultimos|util|version' + ')\\b', 'i');
+    const SIN_TILDE = new RegExp('\\b(' + 'ademas|adios|ahi|aplicacion|aportacion|aqui|asi|atencion|avion|cabron|cancion|combinacion|comparacion|construccion|conversacion|conviccion|corazon|credito|deberia|deberian|definicion|despues|dia|diagnostico|dias|dificil|direccion|diria|educacion|eleccion|ereccion|estacion|estaria|estariamos|evolucion|explicacion|facil|ficcion|fria|frio|funcion|ganzua|habitacion|habria|habrian|haria|ilusion|informacion|intencion|inversion|invitacion|medicion|medico|monton|motivacion|movil|numero|numeros|pension|podria|podrian|posicion|precision|presion|proteccion|puntuacion|querria|razon|relacion|reputacion|sabado|segun|seleccion|sensacion|suscripcion|tambien|tendria|tendrian|tia|tio|traicion|ultima|ultimo|ultimos|util|version|ladron|parasito|parasitos|ridiculo|ridicula|ridiculos|rapido|rapida|ojala|unico|unica|escandalo|loteria|recien|atrevio|subirias|seguiras|telefono|telefonos' + ')\\b', 'i');
     const GER = /\b[a-zñ]{2,}?(ando|iendo|yendo)(me|te|se|lo|la|le|los|las|les|nos)\b/i;
     const INF = /\b[a-zñ]{2,}?[aei]r(me|te|se|nos)(lo|la|le|los|las|les)\b/i;
     let revisadas = 0;

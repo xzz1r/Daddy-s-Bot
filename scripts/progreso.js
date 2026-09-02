@@ -157,3 +157,78 @@ for(const f of fallan.sort((x,y)=>y.traf-x.traf).slice(0,16)){
     [!f.okTam?'tamaño':null,!f.okFilo?'filo':null].filter(Boolean).join(' + '));
 }
 console.log('\n  ('+fallan.length+' pools por debajo del estandar en total)');
+
+// ─── DOS COSAS QUE EL TAMANYO NO VE ──────────────────────────────────────────
+//
+// Un pool puede cumplir tamanyo y filo y seguir sonando a fabrica. Estas dos
+// miden eso, y van aqui y no en `npm run check` a proposito: son deuda de
+// CONTENIDO, se arreglan reescribiendo, y no pueden bloquear un despliegue.
+
+// 1. CASI-CLONES. La misma frase con dos palabras cambiadas. El validador de
+// duplicados exactos no los ve —son textos distintos— y con la eleccion plana
+// el grupo oye el eco antes de agotar la ventana de 50.
+//
+// COMPARAR TODAS CONTRA TODAS SON 47 MILLONES DE PAREJAS: 27 segundos, y esto
+// se ejecuta a diario. Se indexa por palabra y solo se comparan las frases que
+// comparten al menos tres palabras largas, que es condicion necesaria para
+// parecerse al 72 %. Mismo resultado, dos ordenes de magnitud menos de trabajo.
+{
+  const norm=t=>t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/\[nombre\]|%[A-Z]+|\{[a-z]+\}/g,' ').replace(/[^a-z0-9ñ ]/g,' ')
+    .split(/\s+/).filter(w=>w.length>3);
+  const jac=(A,B)=>{let i=0;for(const x of A)if(B.has(x))i++;
+    return i/(A.size+B.size-i);};
+  const UMBRAL=0.72;
+  // Todas las frases del corpus, con su pool y su bolsa de palabras.
+  const todas=[];
+  filas.forEach((f,k)=>f.P.forEach((txt,idx)=>todas.push({k,idx,txt,S:new Set(norm(txt))})));
+  const indice=new Map();
+  todas.forEach((f,n)=>{ for(const w of f.S){ if(!indice.has(w))indice.set(w,[]); indice.get(w).push(n); } });
+  let dentro=0,entre=0; const ej=[];
+  const vistos=new Set();
+  for(let n=0;n<todas.length;n++){
+    const a=todas[n];
+    const cuenta=new Map();
+    for(const w of a.S) for(const m of indice.get(w)) if(m>n) cuenta.set(m,(cuenta.get(m)||0)+1);
+    for(const [m,comunes] of cuenta){
+      if(comunes<3)continue;
+      const b=todas[m];
+      if(jac(a.S,b.S)<UMBRAL)continue;
+      const par=`${n}|${m}`; if(vistos.has(par))continue; vistos.add(par);
+      if(a.k===b.k){ dentro++;
+        if(ej.length<3)ej.push(`${filas[a.k].cmd} ${filas[a.k].tr}: «${a.txt.slice(0,52)}…» / «${b.txt.slice(0,52)}…»`);
+      } else entre++;
+    }
+  }
+  console.log('\nCASI-CLONES (misma frase con dos palabras cambiadas):');
+  console.log('  '+dentro+' dentro de un mismo tramo · '+entre+' repetidas entre tramos distintos');
+  for(const e of ej) console.log('   · '+e);
+}
+
+// 2. POLARIDAD. En un comando peyorativo, el tramo BAJO es el cumplido; en uno
+// favorable, el alto. Si el tramo que hace de cumplido pega MAS que el que hace
+// de paliza, quien saca un 4 % lee un insulto donde le tocaba un halago.
+//
+// Se compara cada comando CONSIGO MISMO y con margen. Un bot que alaba en crudo
+// —"leal de cojones"— no es un fallo; lo que no puede ser es que el cumplido sea
+// varias veces mas bruto que la paliza del mismo comando.
+{
+  const dens=P=>P.filter(tieneArsenal).length/P.length;
+  const porCmd=new Map();
+  for(const f of filas){
+    if(!f.cmd.startsWith('!'))continue;
+    if(!porCmd.has(f.cmd))porCmd.set(f.cmd,{});
+    porCmd.get(f.cmd)[f.brutal?'paliza':'otro_'+f.tr]=f.P;
+  }
+  const invertidos=[];
+  for(const [cmd,tramos] of porCmd){
+    const pal=tramos.paliza; if(!pal)continue;
+    const cum=tramos.otro_low||tramos.otro_high; if(!cum)continue;
+    const a=dens(cum),b=dens(pal);
+    if(a>b*1.5&&a-b>0.20) invertidos.push({cmd,a,b});
+  }
+  console.log('\nPOLARIDAD INVERTIDA (el cumplido pega mas que la paliza):');
+  if(!invertidos.length) console.log('  ninguno');
+  for(const i of invertidos.sort((x,y)=>(y.a-y.b)-(x.a-x.b)))
+    console.log('  '+i.cmd.padEnd(16)+'cumplido '+Math.round(i.a*100)+' % de arsenal · paliza '+Math.round(i.b*100)+' %');
+}

@@ -31,8 +31,12 @@ const CONTRATO = {
   'src/commands/percent.js':       { permite: ['[nombre]'],                    sustituye: 'src/commands/percent.js' },
   'src/data/percentLabels.js':     { permite: ['[nombre]'],                    sustituye: 'src/commands/percent.js' },
   'src/commands/relevance.js':     { permite: ['%N', '%MSG'],                    sustituye: 'src/commands/relevance.js' },
-  'src/commands/roast.js':         { permite: ['%N', '%MSG', '%PAIS'],           sustituye: 'src/commands/roast.js' },
-  'src/data/roastPhrases.js':      { permite: ['%N', '%MSG', '%PAIS'],           sustituye: 'src/commands/roast.js' },
+  // %PAIS SALIO DEL CONTRATO CON LA FEATURE. El roast por pais se quito y no
+  // queda una sola frase que lo use, pero el contrato lo seguia permitiendo:
+  // un permiso para un hueco que ya no rellena nadie es una invitacion a
+  // escribir 300 frases que saldrian con el %PAIS crudo en el grupo.
+  'src/commands/roast.js':         { permite: ['%N', '%MSG'],                   sustituye: 'src/commands/roast.js' },
+  'src/data/roastPhrases.js':      { permite: ['%N', '%MSG'],                   sustituye: 'src/commands/roast.js' },
   'src/commands/robo.js':          { permite: ['%A', '%C', '%N', '%V', '%H'],  sustituye: 'src/commands/robo.js' },
   'src/data/roboPhrases.js':       { permite: ['%A', '%C', '%N', '%V', '%H'],  sustituye: 'src/commands/robo.js' },
   'src/commands/wingman.js':       { permite: ['%N'],                          sustituye: 'src/commands/wingman.js' },

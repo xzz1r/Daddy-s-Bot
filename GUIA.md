@@ -394,7 +394,7 @@ copia legible; si las dos discrepan, la del código tiene razón.
 | Dónde escribes | Placeholders permitidos |
 |---|---|
 | `percent.js`, `percentLabels.js`, `fidelityPhrases.js` | `[nombre]` |
-| `roast.js`, `roastPhrases.js` | `%N` nombre, `%MSG` mensaje citado, `%PAIS` país |
+| `roast.js`, `roastPhrases.js` | `%N` nombre, `%MSG` mensaje citado |
 | `relevance.js` | `%N` nombre, `%MSG` mensaje citado |
 | `wingman.js`, `wingmanPhrases.js` | `%N` nombre |
 | `robo.js`, `roboPhrases.js`, `roboExtraPhrases.js` | `%A` autor, `%V` víctima, `%C` cantidad, `%N` nombre, `%H` hora |
@@ -543,11 +543,11 @@ en el chat.
 
 **5. No se rellena un pool clonando frases.** Los pools de país de `!roast`
 figuraban con 50 y 20 frases; de contenido real había 10 y 5. El resto eran la
-misma frase con una coletilla pegada encima (`…prepotencia El grupo ya hizo la
-resta.`, sin punto). Un pool inflado es peor que un pool corto: el validador lo
-da por bueno y el grupo ve la misma frase con distinto final. Doce países
-—GT, CU, BO, DO, HN, PY, SV, NI, CR, PA, UY, PR— siguen sin una sola frase
-propia: las 10 que tienen son genéricas con `%PAIS` sustituido.
+misma frase con una coletilla pegada encima. Un pool inflado es peor que un pool
+corto: el validador lo da por bueno y el grupo ve la misma frase con distinto
+final. **El roast por país acabó quitándose entero** — no quedan frases ni
+`%PAIS` en el contrato—, pero el incidente se queda escrito porque el método de
+relleno es lo que hay que no repetir.
 
 **6. Un script no junta líneas de código. Esto tumbó `!aura` en producción.**
 Una pasada dejó 30 líneas de `aura.js` metidas en UNA sola de 2.198 caracteres,
