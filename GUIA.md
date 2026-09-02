@@ -329,6 +329,100 @@ reinicio de pm2 ya no borra la ventana.
 
 ---
 
+## 5 bis. El humor del bot, al pie de la letra
+
+Esta sección no es de estilo: es el criterio con el que se acepta o se tira una
+frase. Todo lo que hay aquí está sacado del corpus que **ya funciona**, no de
+una idea de cómo debería sonar.
+
+### Las seis reglas
+
+**1. La frase termina en una imagen concreta, no en un insulto.** El insulto es
+el material; la imagen es el chiste. Si quitas los tacos y no queda nada, no hay
+frase.
+
+> «Tu cuarto tiene ecosistema propio: hay cosas viviendo en esos platos que la
+> ciencia aún no clasificó. Eres patrimonio biológico de la mugre.»
+
+Eso es `cerdo.high`. El insulto está, pero lo que se recuerda es el plato.
+
+**2. El dato técnico, dicho en serio, es más cruel que el adjetivo.** El bot
+mide. No dice «eres feo»: dice qué hueso.
+
+> «Tienes el arco cigomático plano y el mentón retraído.»
+> «Canthal tilt positivo y una armonía que la gente paga miles por fingir.»
+
+**3. El bot narra un veredicto, no participa en la conversación.** Habla como
+quien lee un parte, no como quien está picado.
+
+> «Fealdad inexistente. El bot ha rebuscado en cada rasgo y ha vuelto con las
+> manos vacías.»
+> «El aura se ha equivocado y no piensa rectificar.»
+
+**4. Frases cortas y planas, con el peso al final.** Sujeto, golpe, punto.
+
+> «De ganador, el discurso. De resultado, una puta nada.»
+> «Prometes mucho y sostienes una mierda. Lo que cuenta es lo que sostienes. Tú
+> sueltas. Siempre.»
+
+**5. El taco va dentro de la frase, nunca pegado detrás.** Pegar `, joder` al
+final sube el arsenal que mide `npm run progreso` y deja el texto peor. Es
+trampa y se nota.
+
+> Bien: «Suerte de gilipollas y ni una gota de mérito.»
+> Mal: «No has ganado nada. Y, cabrón, punto final del parte.»
+
+**6. El halago también cobra.** Cuando toca cumplido, se dice de verdad y se
+cobra al final. Un halago limpio es tan defecto como un insulto en el tramo del
+halago.
+
+> «Estructura buena, piel buena, proporciones buenas. Aburrido de leer y
+> molesto de aceptar.»
+
+### El refuerzo: cómo escribe Rockstar
+
+Sirve para lo que al bot le falta hoy, que es el registro de sus **instituciones**
+—la tienda, el bote, la caja, el cartel de buscados, el asalto—. Cuatro cosas
+que se copian y una que no.
+
+**Se copia:**
+
+- **El detalle mundano como remate.** No «te robaron»: te robaron y el ladrón
+  se paró a contar el dinero delante de ti. Rockstar no describe el atraco,
+  describe al tipo que se queja del tráfico mientras huye.
+- **La voz burocrática aplicada a la violencia.** Comisiones, plazos, letra
+  pequeña, condiciones. La caja cobra por abrirse y lo dice como un banco lo
+  diría: *«Y la comisión pagada, que aquí nada es gratis.»* Ese es el tono
+  exacto para `!tienda`, `!vault`, `!bote` y `!asalto`.
+- **La parodia de producto.** Los objetos de la tienda son productos con
+  promesas. Se venden como se vende una garantía extendida: prometiendo mucho y
+  cubriendo poco.
+- **La crueldad es siempre sobre la conducta y la fantasía propia**, nunca sobre
+  lo que alguien es de nacimiento. Rockstar se ríe del que se cree alguien, no
+  del que nació donde nació. El bot ya funciona así y no se mueve de ahí.
+
+**No se copia:**
+
+- **Nada americano.** Ni marcas, ni radio, ni acento. Aquí es un grupo de
+  WhatsApp.
+- **Guiñar al público.** Rockstar nunca dice «qué gracioso es esto», y el bot
+  tampoco puede. Fuera las frases donde el bot habla de sí mismo como programa:
+  *«el bot casi se apaga de aburrimiento procesándote»* rompe el personaje.
+  El bot no se aburre: dicta.
+- **El chiste largo.** Una frase, una línea. Lo que necesita párrafo se queda
+  fuera.
+
+### El error que más se repite
+
+Un chiste bueno repetido ochenta veces con otras palabras. `incel.high` tiene la
+misma tesis —teoría sin práctica— desde la frase 27 hasta el final. Eso no es un
+pool de cien frases: son tres frases y noventa y siete ecos.
+
+Con la elección plana (sección 5.1), **el eco sale tanto como el original**.
+`npm run progreso` los cuenta y los enseña con ejemplos.
+
+---
+
 ## 6. Dónde falta contenido
 
 **No lo mires aquí: pregúntaselo al repo.** Esta sección tenía una tabla escrita
