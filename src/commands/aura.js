@@ -663,8 +663,9 @@ const AURA = {
 
 
 
-// Cada tramo se ordena de mas duro a mas suave: el bot saca primero lo peor.
-for (const tramo of Object.keys(AURA)) AURA[tramo] = AURA[tramo];
+// Los tramos NO se ordenan. Quedaba aqui un bucle que se asignaba cada tramo a
+// si mismo —resto de cuando existia ordenarPorDureza— y corria en cada arranque
+// sin hacer absolutamente nada. La eleccion es plana: ver helpers.js.
 
 // !aura top — leaderboard of accumulated aura in the group.
 // El ranking lleva cooldown POR GRUPO, no por persona.
@@ -964,11 +965,11 @@ _Cada comando te explica sus reglas cuando lo usas. No hay que aprenderse nada._
 // !aura apostar — la mitad del saldo a una carta
 // ═══════════════════════════════════════════════════════════════════════════
 
-// El pool de derrota SI se ordena de mas duro a mas suave: son burlas, y el bot
-// abre con lo peor que tiene, igual que en el resto de comandos. El de victoria
-// NO: son cronicas de una hazaña, todas dicen lo mismo con otras palabras, y
-// ordenarlas por tacos solo pondria delante las que mas suenan a insulto — el
-// efecto contrario al que busca. Mismo criterio que OWNER_ROAST.
+// Ninguno de los dos se ordena: la eleccion es plana (ver helpers.js). La
+// distincion que habia escrita aqui —derrota ordenada por dureza, victoria no—
+// describia un mecanismo que ya no existe. Lo que sigue siendo cierto es el
+// criterio de ESCRITURA: la derrota es burla y la victoria es cronica, asi que
+// medir la victoria por tacos pondria delante lo que menos pega con su tono.
 const POOL_APUESTA_GANA = APUESTA_GANA;
 const POOL_APUESTA_PIERDE = APUESTA_PIERDE;
 

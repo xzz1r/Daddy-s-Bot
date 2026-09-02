@@ -63,10 +63,37 @@ for(const l of fs.readFileSync(path.join(R,'src/data/fidelityPhrases.js'),'utf8'
   if(/^\];$/.test(l)){a=null;continue;}
   const f=l.match(ES); if(a&&f)fid[a].push(f[2]);
 }
+// UN COMANDO CON TIRADA PROPIA NO SIGUE NINGUNA DE LAS DOS CURVAS.
+//
+// *!feminidad* lleva su `roll` dentro de percentLabels.js —el chiste del alpha,
+// que al dueño le salga baja— y esa funcion pisa entera la curva del motor: al
+// resto del grupo le sale high el 45 % y mid el 45 %, no el 6/18/76 de los
+// positivos. Este guion lo estaba pesando con la curva general, asi que creia
+// que su tramo alto se lee el 6 % cuando se lee el 45 %: mandaba el trabajo de
+// contenido al tramo equivocado.
+//
+// No se apunta a mano la curva de cada excepcion —seria la cuarta copia del
+// mismo dato—: se MIDE tirando la funcion de verdad. Cualquier tirada propia
+// que se añada manyana queda medida sola.
+const MUESTRAS = 60000;
+function curvaMedida(roll){
+  let h=0,m=0,l=0;
+  for(let i=0;i<MUESTRAS;i++){
+    const v=roll(false,false);            // el grupo, no el dueño
+    if(v>=TRAMO_ALTO)h++; else if(v<=TRAMO_BAJO)l++; else m++;
+  }
+  return {high:h/MUESTRAS, mid:m/MUESTRAS, low:l/MUESTRAS};
+}
+// Las tiradas propias viven en el fichero de datos, no en el texto que se parsea
+// arriba: se piden al modulo ya cargado.
+const LABELS_VIVOS = require('../src/data/percentLabels');
+
 const filas=[];
 for(const [n,c] of Object.entries(labels)){
   if(c.gh===undefined)continue;
-  const traf=c.u?UNIF:TRAF[String(c.gh)];
+  const propio = LABELS_VIVOS[n] && typeof LABELS_VIVOS[n].roll === 'function' && !c.u
+    ? curvaMedida(LABELS_VIVOS[n].roll) : null;
+  const traf=propio||(c.u?UNIF:TRAF[String(c.gh)]);
   for(const tr of ['high','mid','low']){
     let P=c.p[tr];
     if(P==='ext')P=fid[(n+'_'+tr).toUpperCase()]||[];

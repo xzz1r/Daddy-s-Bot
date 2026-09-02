@@ -89,8 +89,9 @@ const DESENLACES = {
 // Cada desenlace tiene su propio pool: el texto de un golpe maestro no puede
 // ser el mismo que el de un robo justito, y el de un desastre (donde la víctima
 // COBRA) desentonaba del todo mezclado con los de fallo normal.
-// Ordenados de mas duro a mas suave al cargar: el bot abre con lo peor de cada
-// desenlace y guarda lo tibio para cuando se le agote el arsenal.
+// YA NO SE ORDENAN. La eleccion dentro del pool es plana desde que se quito
+// ordenarPorDureza (ver helpers.js), asi que la peor frase de un desenlace sale
+// tanto como la mejor: lo que importa es el SUELO del pool, no su cabeza.
 const FRASES_POR_DESENLACE = {
   maestro:  () => ROB_MAESTRO,
   limpio:   () => ROB_WIN,

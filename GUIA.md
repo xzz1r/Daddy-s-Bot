@@ -208,6 +208,30 @@ el dueño del bot lee de sí mismo.
 otra cosa. No afecta a lo que escribes, pero si tocas frases de `aura` conviene
 saber que se gana bastante más de lo que se pierde.)*
 
+### 3.4 bis — `!feminidad` no usa la tabla: tiene **tirada propia**
+
+Es la única excepción viva dentro de los 21. Su curva no sale de `DISTRIBUCION`
+sino de una función escrita al lado de sus frases, en `percentLabels.js`, y esa
+función pisa entera la del motor:
+
+| `!feminidad` | high | mid | low | media |
+|---|---|---|---|---|
+| al dueño | 4 % | 11 % | **85 %** | 22 |
+| a cualquier otro | 45 % | 45 % | 10 % | 62 |
+
+Las dos mitades son deliberadas y hay que escribir para ellas:
+
+- **Al dueño le sale baja el 85 % de las veces.** Es el chiste recurrente del
+  alpha, y es lo único de este comando que no se toca.
+- **Al resto le sale mid o high el 90 %.** Es decir: aquí `low` casi no se lee y
+  `high` y `mid` se leen a partes iguales — justo al revés que en los demás
+  positivos, donde el que manda es `low` con el 76 %.
+
+Al escribir: los pools `high` y `mid` de este comando son los que se leen, y
+necesitan tamaño de tramo principal los dos. `npm run progreso` ya lo mide
+tirando la función de verdad, así que sale con sus porcentajes reales y no con
+los de la tabla general.
+
 ### 3.5 — El pool `extreme`
 
 Cinco comandos (`sexy`, `crack`, `feminidad`, `masculinidad`, `ganador`) tienen

@@ -11,22 +11,9 @@ const {
   NAME_ONLY, BIO_EMPTY, BIO_FULL, OWNER_ROAST,
 } = require('../data/roastPhrases');
 
-
-
-// ─── Formato ──────────────────────────────────────────────────────────────────
-// ═══════════════════════════════════════════════════════════════════════════════
-// FRASES COMBINADAS — atacan nombre + bio + actividad a la vez
-// COMBINED_INACTIVE: para usuarios con < 150 mensajes (mencionan inactividad)
-// COMBINED_ACTIVE: para usuarios con >= 150 mensajes (sin insultar la actividad)
-// ═══════════════════════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════════════════════
-// FRASES DE VARIABLE ÚNICA — ~200 frases, ~50 por variable
-// ═══════════════════════════════════════════════════════════════════════════════
-
-// ─── SOLO NOMBRE (%N) — 50 frases ─────────────────────────────────────────────
-// ─── SOLO BIO VACÍA — 25 frases ────────────────────────────────────────────────
-// ─── SOLO BIO CON CONTENIDO (%N) — 25 frases ──────────────────────────────────
-// ─── SOLO ACTIVIDAD (%N + %MSG) — tiered, solo para inactivos ───────────────────
+// Los pools viven en src/data/roastPhrases.js. Aqui quedaban sus cabeceras
+// —ocho lineas de separadores anunciando bloques de frases que ya no estan— de
+// cuando el texto vivia en este fichero.
 
 function getActivityPhrases(count) {
   const c = fmt(count);
@@ -169,10 +156,10 @@ function freshCat(options, recentCats) {
 // nadie sospeche que es el dueño (por eso NO se rechaza el roast: se responde con
 // el mismo formato que a cualquiera, solo que el contenido lo alaba).
 //
-// Este pool es la ÚNICA excepción al orden por dureza: todas las frases dicen lo
-// mismo con otras palabras (creído pero con razón), así que no hay una "más
-// fuerte" que sacar primero. Ordenarlo por tacos solo pondría delante las que
-// más suenan a insulto, que es justo el efecto contrario al que busca.
+// Nada se ordena por dureza desde hace tiempo (ver helpers.js), pero el criterio
+// de ESCRITURA de este pool sigue valiendo: todas las frases dicen lo mismo con
+// otras palabras (creído pero con razón), así que aquí medir por tacos solo
+// premiaría a las que más suenan a insulto, que es el efecto contrario.
 // ═══════════════════════════════════════════════════════════════════════════════
 // COMANDO
 // ═══════════════════════════════════════════════════════════════════════════════

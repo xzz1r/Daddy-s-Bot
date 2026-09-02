@@ -48,7 +48,6 @@ const config = {
     .map(n => n.replace(/\D/g, ''))
     .filter(Boolean),
 
-  // Solo se usa en comandos (messageHandler), no en cada mensaje del grupo.
   // EL VISTO, Y CON EL LA PRESENCIA. Encenderlo hace dos cosas a la vez y hay
   // que saberlo: el bot marca como leido todo lo que le llega en los grupos, y
   // para que eso se VEA tiene que anunciarse en linea (WhatsApp no pinta el

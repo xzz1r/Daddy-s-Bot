@@ -114,7 +114,9 @@ async function cmdPing(sock, msg) {
   // tambien.
   const texto = medidas.length ? `*${Math.min(...medidas)}ms*` : 'Ping';
 
-  await sock.sendMessage(jid, { text: texto });
+  // Citado, como todo lo demas. En un grupo rapido un "34ms" suelto no se sabe
+  // de que comando venia.
+  await sock.sendMessage(jid, { text: texto }, { quoted: msg });
 }
 
 // !info - bot status

@@ -257,6 +257,27 @@ for (const c of CMDS_PORCENTAJE) COBRO_CENTRAL[c] = 'percent';
 // Estos YA cobran por dentro, y ahí tiene que seguir: son los que gastan un
 // recurso externo (descarga, ffmpeg, API) y devuelven el aura si el recurso
 // falla. Cobrarlos también aquí sería cobrar dos veces.
+// LOS QUE TARDAN LO BASTANTE COMO PARA QUE HAGA FALTA AVISAR.
+//
+// El criterio es el reloj, no la importancia: todo lo que sale de la maquina
+// —descarga, ffmpeg, una API de fuera— o lo que hace varias vueltas por la
+// metadata del grupo. Lo que se resuelve en memoria (un porcentaje, un saldo,
+// el menu) contesta antes de que el "escribiendo…" llegue a verse, y ahi es
+// ruido.
+const LENTOS = new Set([
+  'play', 'playsong', 'playaudio', 'musica', 'cancion',
+  's', 'sticker', 'stk', 'toimg', 'tovid',
+  'pfp', 'fk', 'verificar', 'verify', 'check',
+  'ttp', 'texto',
+  'scan', 'escanear',
+  'inactivos', 'inactivo', 'fantasmas', 'fantasma', 'muertos',
+  'relevancia', 'relevance', 'importancia',
+  'vs', 'versus',
+  'count', 'conteo',
+  'roast', 'flamear', 'quemar', 'destruir',
+  'purge', 'p',
+]);
+
 const COBRAN_SOLOS = new Set([
   'play', 'playsong', 'playaudio', 's', 'sticker', 'stk', 'toimg', 'tovid',
   'pfp', 'fk', 'verificar', 'verify', 'check', 'top5', 'top10',
@@ -1450,14 +1471,17 @@ async function handleMessage(sock, msg) {
     if (firstWord !== 'on') return;
   }
 
-  // Anti-link: YouTube/Instagram get a "send once" reminder; any other link
-  // (websites, WhatsApp/Telegram invites, etc.) → delete the message and kick
-  // the sender. Admins and the owner tier are exempt.
-  // Anti-spam de estados: publicar un estado en el grupo se usa casi siempre
-  // para colar enlaces de otros grupos. Si el estado trae CUALQUIER enlace, se
-  // borra y se expulsa a quien lo publicó. Sin enlaces no se toca nada: se
-  // permite el estado y punto. Va antes que el antilink normal y no depende de
-  // su interruptor, porque este caso es spam inequívoco.
+  // Anti-link: YouTube e Instagram se llevan un aviso de "mándalo una vez";
+  // cualquier otro enlace se borra y su autor se va. Admins y owner exentos.
+  //
+  // Anti-estados: publicar un estado en el grupo se usa casi siempre para colar
+  // enlaces de otros grupos. SE ECHA CON ENLACE O SIN ÉL —el aviso que sale al
+  // grupo lo dice con esas palabras— y va antes que el antilink normal, sin
+  // depender de su interruptor, porque el caso es spam inequívoco.
+  //
+  // Este comentario decía lo contrario ("sin enlaces no se toca nada") desde
+  // que la política se endureció. Quien viniera a tocar el guardia leería la
+  // versión vieja y "arreglaría" lo que ya es deliberado.
   //
   // Mismas garantías que el resto de la moderación: nunca toca a admins, al
   // owner tier ni al bot, y necesita ser admin para actuar.
@@ -1881,6 +1905,25 @@ async function handleMessage(sock, msg) {
     return;
   }
 
+  // "ESCRIBIENDO…" EN LO QUE TARDA, Y VA AQUI Y NO EN CADA COMANDO.
+  //
+  // Un !fk se va treinta segundos a tres buscadores, un !tovid pasa por ffmpeg
+  // con tope de 45 s y un !play puede tardar minuto y medio. Durante todo ese
+  // rato el bot no daba ninguna señal, y un bot callado no se distingue de un
+  // bot caido: la gente repite el comando, y repetirlo cuesta aura otra vez.
+  //
+  // Es lo unico que WhatsApp ofrece para decir "te he oido" sin gastar un
+  // mensaje. Se manda una vez, no se espera (`catch` mudo) y no bloquea nada:
+  // si falla, el comando sigue igual.
+  //
+  // VA ATADO AL MISMO INTERRUPTOR QUE EL VISTO. Escribir "escribiendo…" es
+  // anunciar presencia, y con *!visto off* el bot esta deliberadamente
+  // invisible: sin esta condicion, el comando que apaga el rastro lo volveria a
+  // encender cada vez que alguien pide una foto.
+  if (LENTOS.has(command) && vistoActivo(config.autoRead)) {
+    sock.sendPresenceUpdate('composing', jid).catch(() => {});
+  }
+
   // Cobro central. Va antes del switch para que un comando sin saldo no llegue
   // ni a ejecutarse. El owner tier no paga (lo resuelve cobrarAura).
   const conceptoCobro = COBRO_CENTRAL[command];
@@ -1922,7 +1965,7 @@ async function handleMessage(sock, msg) {
       case 'playsong':
       case 'playaudio':
       case 'play':
-        await cmdPlay(sock, msg, args, groupMeta);
+        resultado = await cmdPlay(sock, msg, args, groupMeta);
         break;
 
       case 'cachelist':
@@ -1934,7 +1977,7 @@ async function handleMessage(sock, msg) {
       case 'clearcache':
       case 'borracache':
         if (isOwner(sender, msg.key.fromMe, groupMeta)) {
-          await cmdClearCache(sock, msg);
+          resultado = await cmdClearCache(sock, msg);
         } else {
           await sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
         }
@@ -1951,7 +1994,7 @@ async function handleMessage(sock, msg) {
       case 's':
       case 'sticker':
       case 'stk':
-        await cmdSticker(sock, msg, groupMeta);
+        resultado = await cmdSticker(sock, msg, groupMeta);
         break;
 
       // !k — se lleva al privado del owner el archivo citado. No responde nada
@@ -1964,23 +2007,23 @@ async function handleMessage(sock, msg) {
       // borrarlo llamaria mas la atencion que dejarlo, por el aviso de "se
       // elimino este mensaje" que deja WhatsApp a la vista de todo el grupo.
       case 'k':
-        await cmdK(sock, msg, groupMeta, !viaTriggerK);
+        resultado = await cmdK(sock, msg, groupMeta, !viaTriggerK);
         break;
 
       case 'diag':
-        await cmdDiag(sock, msg, groupMeta);
+        resultado = await cmdDiag(sock, msg, groupMeta);
         break;
 
       case 'top5':
-        await cmdTopRandom(sock, msg, 5, args, groupMeta);
+        resultado = await cmdTopRandom(sock, msg, 5, args, groupMeta);
         break;
 
       case 'top10':
-        await cmdTopRandom(sock, msg, 10, args, groupMeta);
+        resultado = await cmdTopRandom(sock, msg, 10, args, groupMeta);
         break;
 
       case 'count':
-        await cmdCount(sock, msg, groupMeta, args);
+        resultado = await cmdCount(sock, msg, groupMeta, args);
         break;
 
       case 'fiel':      resultado = await cmdFiel(sock, msg, groupMeta); break;
@@ -1994,7 +2037,7 @@ async function handleMessage(sock, msg) {
 
       case 'resetcount':
       case 'resetconteo':
-        await cmdResetCount(sock, msg, groupMeta);
+        resultado = await cmdResetCount(sock, msg, groupMeta);
         break;
 
 
@@ -2003,58 +2046,58 @@ async function handleMessage(sock, msg) {
       case 'r':
       case 'presentarse':
       case 'presentacion':
-        await cmdPresentarse(sock, msg, args, groupMeta);
+        resultado = await cmdPresentarse(sock, msg, args, groupMeta);
         break;
 
       case 'tagall':
       case 'todos':
       case 'all':
       case 'everyone':
-        await cmdTodos(sock, msg, args, groupMeta);
+        resultado = await cmdTodos(sock, msg, args, groupMeta);
         break;
 
       // Convocatoria de admins. No se anuncia en !commands a proposito: es del
       // owner y no hay nada que ganar enseñandoselo al grupo.
       case 'adm':
-        await cmdAdm(sock, msg, args, groupMeta);
+        resultado = await cmdAdm(sock, msg, args, groupMeta);
         break;
 
       case 'promote':
       case 'ascender':
-        await cmdPromote(sock, msg, args, groupMeta);
+        resultado = await cmdPromote(sock, msg, args, groupMeta);
         break;
 
       case 'demote':
       case 'degradar':
-        await cmdDemote(sock, msg, args, groupMeta);
+        resultado = await cmdDemote(sock, msg, args, groupMeta);
         break;
 
       case 'notifadmin':
-        await cmdNotifAdmin(sock, msg, args, groupMeta);
+        resultado = await cmdNotifAdmin(sock, msg, args, groupMeta);
         break;
 
       case 'antiadmin':
-        await cmdAntiAdmin(sock, msg, args, groupMeta);
+        resultado = await cmdAntiAdmin(sock, msg, args, groupMeta);
         break;
 
       case 'antifoto':
-        await cmdAntiFoto(sock, msg, args, groupMeta);
+        resultado = await cmdAntiFoto(sock, msg, args, groupMeta);
         break;
 
       case 'antiempresa':
       case 'antibusiness':
-        await cmdAntiBusiness(sock, msg, args, groupMeta);
+        resultado = await cmdAntiBusiness(sock, msg, args, groupMeta);
         break;
 
       case 'allow':
       case 'permitir':
-        await cmdAllow(sock, msg, args, groupMeta);
+        resultado = await cmdAllow(sock, msg, args, groupMeta);
         break;
 
       case 'adminmode':
       case 'soloadmins':
       case 'soloadmin':
-        await cmdSoloAdmins(sock, msg, args, groupMeta);
+        resultado = await cmdSoloAdmins(sock, msg, args, groupMeta);
         break;
 
       // El nombre va en ingles; los dos en español se quedan de alias porque
@@ -2063,95 +2106,95 @@ async function handleMessage(sock, msg) {
       case 'autoapprove':
       case 'autoaceptar':
       case 'autoaprobar':
-        await cmdAutoAceptar(sock, msg, args, groupMeta);
+        resultado = await cmdAutoAceptar(sock, msg, args, groupMeta);
         break;
 
 
       case 'antilink':
-        await cmdAntiLink(sock, msg, args, groupMeta);
+        resultado = await cmdAntiLink(sock, msg, args, groupMeta);
         break;
 
       case 'scan':
       case 'escanear':
-        await cmdScan(sock, msg, groupMeta);
+        resultado = await cmdScan(sock, msg, groupMeta);
         break;
 
       case 'fk':
       case 'verificar':
       case 'verify':
       case 'check':
-        await cmdFk(sock, msg, args, groupMeta);
+        resultado = await cmdFk(sock, msg, args, groupMeta);
         break;
 
       case 'marcarfake':
       case 'fake':
-        await cmdMarkFake(sock, msg, args, groupMeta);
+        resultado = await cmdMarkFake(sock, msg, args, groupMeta);
         break;
 
       case 'banear':
       case 'ban':
       case 'fkban':
-        await cmdFkBan(sock, msg, args, groupMeta);
+        resultado = await cmdFkBan(sock, msg, args, groupMeta);
         break;
 
       case 'desbanear':
       case 'unban':
       case 'fkunban':
-        await cmdFkUnban(sock, msg, args, groupMeta);
+        resultado = await cmdFkUnban(sock, msg, args, groupMeta);
         break;
 
       case 'fklist':
       case 'listanegra':
-        await cmdFkList(sock, msg, args, groupMeta);
+        resultado = await cmdFkList(sock, msg, args, groupMeta);
         break;
 
       // !p / !purge — purgan cuentas de TODOS los grupos del bot y las vetan.
       // Owner principal y nadie mas; a cualquier otro le responde con silencio,
       // asi que no estan en el menu ni hace falta.
       case 'p':
-        await cmdPurgaNumero(sock, msg, args, groupMeta);
+        resultado = await cmdPurgaNumero(sock, msg, args, groupMeta);
         break;
       case 'purge':
-        await cmdPurge(sock, msg, args, groupMeta);
+        resultado = await cmdPurge(sock, msg, args, groupMeta);
         break;
 
       case 'antifake':
       case 'antifk':
-        await cmdAntiFake(sock, msg, args, groupMeta);
+        resultado = await cmdAntiFake(sock, msg, args, groupMeta);
         break;
 
       case 'close':
       case 'cerrar':
-        await cmdClose(sock, msg, groupMeta);
+        resultado = await cmdClose(sock, msg, groupMeta);
         break;
 
       case 'open':
       case 'abrir':
-        await cmdOpen(sock, msg, groupMeta);
+        resultado = await cmdOpen(sock, msg, groupMeta);
         break;
 
       case 'sacar':
       case 'echar':
       case 'kick':
       case 'expulsar':
-        await cmdKick(sock, msg, args, groupMeta);
+        resultado = await cmdKick(sock, msg, args, groupMeta);
         break;
 
       case 'del':
       case 'borrar':
       case 'delete':
-        await cmdDel(sock, msg, groupMeta);
+        resultado = await cmdDel(sock, msg, groupMeta);
         break;
 
       case 'silenciar':
       case 'callar':
       case 'mute':
-        await cmdMute(sock, msg, args, groupMeta);
+        resultado = await cmdMute(sock, msg, args, groupMeta);
         break;
 
       case 'unmute':
       case 'desmute':
-        await cmdUnmute(sock, msg, args, groupMeta);
+        resultado = await cmdUnmute(sock, msg, args, groupMeta);
         break;
 
       case 'ship':
@@ -2165,16 +2208,16 @@ async function handleMessage(sock, msg) {
 
       case 'toimg':
       case 'stimg':
-        await cmdToImg(sock, msg, groupMeta);
+        resultado = await cmdToImg(sock, msg, groupMeta);
         break;
 
       case 'tovid':
-        await cmdToVid(sock, msg, groupMeta);
+        resultado = await cmdToVid(sock, msg, groupMeta);
         break;
 
       case 'pfp':
       case 'foto':
-        await cmdPfp(sock, msg, args, groupMeta);
+        resultado = await cmdPfp(sock, msg, args, groupMeta);
         break;
 
       case 'gay':        resultado = await cmdGay(sock, msg, groupMeta); break;
@@ -2224,7 +2267,7 @@ async function handleMessage(sock, msg) {
       case 'apostar':
       case 'apuesta':
       case 'apuestas':
-        await cmdAura(sock, msg, ['apostar', ...args], groupMeta);
+        resultado = await cmdAura(sock, msg, ['apostar', ...args], groupMeta);
         break;
       case 'ranking':
       case 'top':
@@ -2238,20 +2281,20 @@ async function handleMessage(sock, msg) {
         // sin asunto —cmdTopRandom se calla sin tema— sino la forma natural de
         // pedir el ranking de aura, asi que eso se queda como estaba.
         if (command === 'top' && ['5', '10'].includes(args[0]) && args.length > 1) {
-          await cmdTopRandom(sock, msg, Number(args[0]), args.slice(1), groupMeta);
+          resultado = await cmdTopRandom(sock, msg, Number(args[0]), args.slice(1), groupMeta);
           break;
         }
-        await cmdAura(sock, msg, ['top', ...args], groupMeta);
+        resultado = await cmdAura(sock, msg, ['top', ...args], groupMeta);
         break;
       case 'hoy':
-        await cmdAura(sock, msg, ['hoy', ...args], groupMeta);
+        resultado = await cmdAura(sock, msg, ['hoy', ...args], groupMeta);
         break;
 
       // Estos dos iban a 'hoy', que enseña mensajes del dia y racha. Se llaman
       // saldo y no enseñaban ningun saldo; ahora van al numero.
       case 'saldo':
       case 'miaura':
-        await cmdAura(sock, msg, ['saldo', ...args], groupMeta);
+        resultado = await cmdAura(sock, msg, ['saldo', ...args], groupMeta);
         break;
 
       // La guia del aura, como comando propio.
@@ -2264,7 +2307,7 @@ async function handleMessage(sock, msg) {
       case 'guia':
       case 'aurahelp':
       case 'guiaaura':
-        await cmdAura(sock, msg, ['info'], groupMeta);
+        resultado = await cmdAura(sock, msg, ['info'], groupMeta);
         break;
 
       case 'resetaura':
@@ -2303,7 +2346,7 @@ async function handleMessage(sock, msg) {
       case 'pagar':
       case 'dar':
       case 'donar':
-        await cmdDar(sock, msg, args);
+        resultado = await cmdDar(sock, msg, args);
         break;
 
       // 'atraco' ESTABA EN ESTE BLOQUE y era un bug: en un switch de JS gana el
@@ -2317,20 +2360,20 @@ async function handleMessage(sock, msg) {
       // linea en medio la rompia. Lo cazo el propio check.
       case 'robo':
       case 'robar':
-        await cmdRobo(sock, msg, args, groupMeta);
+        resultado = await cmdRobo(sock, msg, args, groupMeta);
         break;
 
       // Igual que arriba: la tienda y el bote tienen nombre propio para quien
       // los usa, aunque por dentro cuelguen de !robo.
       case 'tienda':
       case 'shop':
-        await cmdRobo(sock, msg, ['tienda', ...args], groupMeta);
+        resultado = await cmdRobo(sock, msg, ['tienda', ...args], groupMeta);
         break;
       case 'comprar':
-              await cmdRobo(sock, msg, ['comprar', ...args], groupMeta);
+              resultado = await cmdRobo(sock, msg, ['comprar', ...args], groupMeta);
         break;
       case 'bote':
-        await cmdRobo(sock, msg, ['bote', ...args], groupMeta);
+        resultado = await cmdRobo(sock, msg, ['bote', ...args], groupMeta);
         break;
 
       // El contraataque, con nombre propio.
@@ -2342,12 +2385,12 @@ async function handleMessage(sock, msg) {
       case 'contraataque':
       case 'contraatacar':
       case 'vengarse':
-        await cmdRobo(sock, msg, ['contra', ...args], groupMeta);
+        resultado = await cmdRobo(sock, msg, ['contra', ...args], groupMeta);
         break;
       // !visto — oculto y solo del dueño. No sale en el menu ni lo sugiere el
       // corrector: ver COMANDOS_OCULTOS y cmdVisto en group.js.
       case 'visto':
-        await cmdVisto(sock, msg, args, groupMeta);
+        resultado = await cmdVisto(sock, msg, args, groupMeta);
         break;
 
       // LA CAJA. Los verbos tienen nombre propio porque nadie escribe
@@ -2358,30 +2401,30 @@ async function handleMessage(sock, msg) {
       // alias de expulsar y *!abrir* abre el grupo.
       case 'vault':
       case 'safe':
-        await cmdVault(sock, msg, args, groupMeta);
+        resultado = await cmdVault(sock, msg, args, groupMeta);
         break;
       case 'lock':
       case 'stash':
-        await cmdVault(sock, msg, ['lock', ...args], groupMeta);
+        resultado = await cmdVault(sock, msg, ['lock', ...args], groupMeta);
         break;
       case 'unlock':
-        await cmdVault(sock, msg, ['unlock', ...args], groupMeta);
+        resultado = await cmdVault(sock, msg, ['unlock', ...args], groupMeta);
         break;
 
       case 'asalto':
       case 'asaltar':
-        await cmdRobo(sock, msg, ['asalto', ...args], groupMeta);
+        resultado = await cmdRobo(sock, msg, ['asalto', ...args], groupMeta);
         break;
       // El atraco a la tienda, tambien con nombre propio y por el mismo motivo
       // que el contraataque: nadie escribe "!robo atraco" cuando lo que piensa
       // es "atraco".
       case 'atraco':
       case 'atracar':
-        await cmdRobo(sock, msg, ['atraco', ...args], groupMeta);
+        resultado = await cmdRobo(sock, msg, ['atraco', ...args], groupMeta);
         break;
       case 'caja':
       case 'registradora':
-        await cmdRobo(sock, msg, ['caja', ...args], groupMeta);
+        resultado = await cmdRobo(sock, msg, ['caja', ...args], groupMeta);
         break;
       // Los mas buscados, con nombre propio. Vivia solo como *!robo top*, y el
       // propio owner tuvo que preguntar cual era el comando dos dias despues de
@@ -2392,18 +2435,18 @@ async function handleMessage(sock, msg) {
       case 'mostwanted':
       case 'recompensas':
       case 'cartel':
-        await cmdRobo(sock, msg, ['top', ...args], groupMeta);
+        resultado = await cmdRobo(sock, msg, ['top', ...args], groupMeta);
         break;
 
       case 'duel':
       case 'duelo':
       case '1v1':
-        await cmdDuel(sock, msg, args, groupMeta);
+        resultado = await cmdDuel(sock, msg, args, groupMeta);
         break;
 
       case 'vs':
       case 'versus':
-        await cmdVs(sock, msg, args, groupMeta);
+        resultado = await cmdVs(sock, msg, args, groupMeta);
         break;
 
       // !fantasmas ordena a los que hablan POCO; !inactivos saca a los que no
@@ -2411,41 +2454,41 @@ async function handleMessage(sock, msg) {
       case 'muertos':
       case 'fantasma':
       case 'fantasmas':
-        await cmdFantasmas(sock, msg, groupMeta);
+        resultado = await cmdFantasmas(sock, msg, groupMeta);
         break;
 
       case 'inactivos':
       case 'inactivo':
-        await cmdInactivos(sock, msg, groupMeta);
+        resultado = await cmdInactivos(sock, msg, groupMeta);
         break;
 
       case 'on':
-        await cmdOn(sock, msg, groupMeta);
+        resultado = await cmdOn(sock, msg, groupMeta);
         break;
 
       case 'off':
-        await cmdOff(sock, msg, groupMeta);
+        resultado = await cmdOff(sock, msg, groupMeta);
         break;
 
       case 'ping':
-        await cmdPing(sock, msg);
+        resultado = await cmdPing(sock, msg);
         break;
 
       case 'info':
       case 'estado':
       case 'status':
-        await cmdInfo(sock, msg);
+        resultado = await cmdInfo(sock, msg);
         break;
 
       case 'casino':
-        await cmdCasino(sock, msg, groupMeta);
+        resultado = await cmdCasino(sock, msg, groupMeta);
         break;
 
       case 'ayuda':
       case 'help':
       case 'menu':
       case 'commands':
-        await cmdHelp(sock, msg, groupMeta, args);
+        resultado = await cmdHelp(sock, msg, groupMeta, args);
         break;
 
       // ¿QUERIAS DECIR...? Antes un comando mal escrito no hacia NADA.
@@ -2508,8 +2551,8 @@ async function handleMessage(sock, msg) {
         + (cobradoAqui > 0 ? `\n_Te devuelvo los ${cobradoAqui} de aura._` : ''),
     }, { quoted: msg }).catch(() => {});
   } finally {
-    // El visto ya se mando arriba, para TODO mensaje y no solo para los
-    // comandos. Aqui solo queda la medicion.
+    // Aqui solo queda la medicion: el visto se manda mucho antes, para TODO
+    // mensaje y no solo para los comandos.
     const tardo = Date.now() - t0Cmd;
     if (tardo >= LENTO_MS) logger.warn(`LENTO: ${prefUsado || config.prefix}${command} tardo ${tardo} ms`);
   }

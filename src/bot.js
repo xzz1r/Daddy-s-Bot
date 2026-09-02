@@ -65,6 +65,7 @@ const { ensureTemp, barrerHuerfanos, withTimeout } = require('./utils/helpers');
 // que atrapar. Es el mismo numero que ya usaba la consulta de metadata.
 const TOPE_RED = 8000;
 const { VF_STATIC } = require('./utils/sticker');
+const { recordar: recordarMensaje, recuperar: recuperarMensaje } = require('./utils/mensajesRecientes');
 const logger = require('./utils/logger');
 
 const AUTH_DIR = path.join(__dirname, '../data/auth');
@@ -425,7 +426,7 @@ async function connectToWhatsApp() {
   // Traza del arranque. Sin esto, un arranque que se atasca deja EXACTAMENTE el
   // mismo log que uno que va bien —el banner y nada más— y no hay forma de
   // saber en qué paso se quedó. Son tres líneas y solo salen al arrancar.
-  logger.info('arranque: estado cargado, leyendo la sesión...');
+  logger.paso('estado cargado, leyendo la sesión...');
   // VINCULAR POR CODIGO EXIGE EMPEZAR DE CERO, Y ESTO CUESTA CINCO INTENTOS
   // ENTENDERLO SI NO SE MIRA EL CODIGO DE BAILEYS.
   //
@@ -479,9 +480,9 @@ async function connectToWhatsApp() {
   }
 
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
-  logger.info('arranque: sesión leída, consultando la versión de WhatsApp...');
+  logger.paso('sesión leída, consultando la versión de WhatsApp...');
   const version = await getBaileysVersion();
-  logger.info(`arranque: versión ${version ? version.join('.') : 'por defecto'}, abriendo la conexión...`);
+  logger.paso(`versión ${version ? version.join('.') : 'por defecto'}, abriendo la conexión...`);
 
   sock = makeWASocket({
     version,
@@ -513,7 +514,10 @@ async function connectToWhatsApp() {
     // haber es un ajuste encendido que otro anula en silencio.
     markOnlineOnConnect: vistoActivo(config.autoRead),
     generateHighQualityLinkPreview: false,
-    getMessage: async () => undefined,
+    // Un reintento de un mensaje NUESTRO se resuelve aqui. Devolver undefined
+    // siempre significaba que quien no pudiera descifrar una respuesta se
+    // quedaba sin ella para siempre. Ver mensajesRecientes.js.
+    getMessage: recuperarMensaje,
     // El valor por defecto de la propia libreria es 30_000; este bot lo tenia
     // en 10_000 (el triple de frecuente) sin necesidad probada. Mas trafico de
     // fondo del que la libreria considera normal no aporta nada y es exactamente
@@ -1660,6 +1664,8 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
 
   sock.ev.on('messages.upsert', ({ messages, type }) => {
     for (const msg of messages) {
+      // Lo que manda el bot se guarda por si hay que reenviarlo (getMessage).
+      if (msg?.key?.fromMe && msg.message) recordarMensaje(msg.key, msg.message);
       // Los mensajes de sistema (sin .message, solo messageStubType) traen el
       // motivo REAL de un alta. Se anotan siempre, venga el lote como 'notify' o
       // como 'append', porque de ellos depende no castigar a un admin por

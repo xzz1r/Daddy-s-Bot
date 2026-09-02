@@ -13,6 +13,15 @@ const logger = {
   bot:     (msg)         => VERBOSE && console.log(chalk.magenta(`[${timestamp()}] [BOT] `) + msg),
   cmd:     (user, text)  => VERBOSE && console.log(chalk.blue(`[${timestamp()}] [CMD] `) + user + ' › ' + text),
   error:   (msg)         => console.error(chalk.red(`[${timestamp()}] [ERROR] `) + msg),
+
+  // SIEMPRE VISIBLE, como warn y error. Es para los pocos hitos del arranque:
+  // "estado cargado", "sesion leida", "abriendo la conexion".
+  //
+  // Esas tres lineas existen para saber DONDE se quedo colgado un arranque, y
+  // estaban en logger.info — o sea, apagadas salvo con LOG_LEVEL=verbose, que
+  // en el VPS no se usa. Una traza de diagnostico que no se ve en produccion no
+  // es una traza: es una linea de codigo que no hace nada el dia que hace falta.
+  paso:    (msg)         => console.log(chalk.cyan(`[${timestamp()}] [ARRANQUE] `) + msg),
 };
 
 module.exports = logger;

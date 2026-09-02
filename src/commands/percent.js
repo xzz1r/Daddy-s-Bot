@@ -164,6 +164,10 @@ function rollPercent(goodIsHigh, targetIsAdmin, targetIsOwner) {
 }
 
 const LABELS = require('../data/percentLabels');
+// Los que tiran uniforme. Es una lista y no dos nombres sueltos porque la leen
+// tambien `npm run check` y `npm run progreso`: si se queda escrita en tres
+// sitios, el dia que cambie se queda vieja en dos.
+const UNIFORMES = ['fiel', 'infiel'];
 // LOS QUE TIRAN UNIFORME, Y NADA MAS.
 //
 // !linda y !fea salieron de aqui: repartian un piropo el 31 % de las veces
@@ -178,7 +182,7 @@ const LABELS = require('../data/percentLabels');
 // misma decision escrita al lado de las frases, y las dos tienen que decir lo
 // mismo: quitar solo una deja el fichero de datos mintiendo sobre lo que hace
 // el bot. Lo comprueba `npm run check`.
-for (const k of ['fiel', 'infiel']) {
+for (const k of UNIFORMES) {
   if (LABELS[k]) LABELS[k].roll = rollUniform;
 }
 
@@ -231,7 +235,7 @@ module.exports = {
   // La tabla y las fronteras se exportan para que nadie tenga una segunda copia:
   // las lee `npm run progreso` para repartir el trabajo de contenido y las lee
   // `npm run check` para comprobar que la guia no promete otra cosa.
-  DISTRIBUCION, TRAMO_ALTO, TRAMO_BAJO, OWNER_SOSO, OWNER_BUENO,
+  DISTRIBUCION, TRAMO_ALTO, TRAMO_BAJO, OWNER_SOSO, OWNER_BUENO, UNIFORMES,
   cmdIncel:         makeCmd('incel'),
   cmdLinda:         makeCmd('linda'),
   cmdFea:           makeCmd('fea'),

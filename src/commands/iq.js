@@ -278,9 +278,9 @@ const GENIO = [
   'Con %IQ tienes el cerebro más potente de la sala y la puta sala es un chat donde alguien ha mandado un sticker de un gato. Menudo genio de los cojones.',
 ];
 
-// Los tramos peyorativos se ordenan de mas duro a mas suave: el bot abre con la
-// comparacion mas humillante que tiene. Los tramos altos no se tocan — ahi la
-// "dureza" no aplica y reordenarlos solo mezclaria el tono sin ganar nada.
+// Los tramos no se ordenan: la eleccion es plana (ver helpers.js). En los
+// peyorativos eso significa que la comparacion mas floja sale tanto como la mas
+// humillante, asi que el pool no puede llevar relleno.
 const POOLS = {
   abismo: ABISMO,
   bajo:   BAJO,

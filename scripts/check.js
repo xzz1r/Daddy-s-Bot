@@ -344,7 +344,11 @@ async function capaStores() {
   // los alias, no solo que arranca.
   {
     const src = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
-    const bloques = /((?:\s*case '[^']+':[^\n]*\n)+)\s*await (cmdDar|cmdRobo|cmdDuel)\(/g;
+    // `resultado = await cmdX(` y `await cmdX(` valen las dos: desde que el
+    // reembolso obliga a capturar lo que devuelve cada comando, el dispatcher
+    // escribe la primera forma. Un parser atado a UNA de las dos se cae con el
+    // siguiente refactor y deduce cero comandos, que es justo lo que paso.
+    const bloques = /((?:\s*case '[^']+':[^\n]*\n)+)\s*(?:resultado = )?await (cmdDar|cmdRobo|cmdDuel)\(/g;
     const hallados = new Set();
     for (const m of src.matchAll(bloques)) {
       for (const c of m[1].matchAll(/case '([^']+)'/g)) hallados.add(c[1]);
@@ -933,19 +937,108 @@ async function capaStores() {
     else console.log(verde('   ✓ ningun cobro lee el saldo y lo resta mas tarde'));
   }
 
-  // Un return no es una excepción: el catch del dispatcher no reembolsa. Si
-  // esto desaparece, roast sin objetivo y ttp vacío vuelven a cobrar por nada.
+  // NADIE PAGA POR UN COMANDO QUE NO HIZO NADA, y esto se prueba COBRANDO.
+  //
+  // Un return no es una excepcion: el catch del dispatcher no reembolsa. El
+  // comando que no presta servicio devuelve SIN_SERVICIO y el dispatcher
+  // deshace el cobro.
+  //
+  // Aqui habia una comprobacion de TEXTO: buscaba `esSinServicio(resultado)` en
+  // el dispatcher y `return SIN_SERVICIO` en dos ficheros. Eso pasa en verde
+  // mientras las cadenas existan, aunque el reembolso no llegue a ocurrir —y el
+  // agujero real no es que falte la marca, es que el `case` no capture lo que
+  // devuelve el comando, que son dos sitios distintos. Ahora se mide el SALDO.
   {
+    // 1) TODOS los casos capturan. El que llama a un comando y tira el valor
+    // devuelto no reembolsa nunca, y no hay forma de notarlo leyendo su codigo.
     const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
-    const cobro = fs.readFileSync(path.join(R, 'src/utils/auraCobro.js'), 'utf8');
-    if (/esSinServicio\(resultado\)/.test(mh) && /SIN_SERVICIO/.test(cobro)
-        && /return SIN_SERVICIO/.test(fs.readFileSync(path.join(R, 'src/commands/roast.js'), 'utf8'))
-        && /return SIN_SERVICIO/.test(fs.readFileSync(path.join(R, 'src/commands/ttp.js'), 'utf8'))) {
-      console.log(verde('   ✓ si el comando no presta servicio, se devuelve el aura'));
-    } else {
-      fallos++;
-      console.log(rojo('   ✗ falta el reembolso de SIN_SERVICIO: se vuelve a cobrar por un roast sin objetivo o un !ttp vacío'));
+    const zona = mh.slice(mh.indexOf('switch (command)'));
+    const sinCaptura = [];
+    let etiquetas = [], cuerpo = [];
+    const cerrar = () => {
+      if (etiquetas.length) {
+        const t = cuerpo.join('\n');
+        if (/await cmd[A-Za-z]/.test(t) && !t.includes('resultado = await')) sinCaptura.push(etiquetas[0]);
+      }
+      etiquetas = []; cuerpo = [];
+    };
+    for (const l of zona.split('\n')) {
+      const m = l.match(/^      case '([^']+)':/);
+      if (m) { if (cuerpo.length) cerrar(); etiquetas.push(m[1]); continue; }
+      if (etiquetas.length) cuerpo.push(l);
+      if (/^\s+break;/.test(l)) cerrar();
     }
+    cerrar();
+    if (sinCaptura.length) {
+      fallos++;
+      console.log(rojo(`   ✗ ${sinCaptura.length} comando(s) tiran lo que devuelve su handler, asi que no pueden reembolsar: ${sinCaptura.slice(0, 6).join(', ')}`));
+    }
+
+    // 2) Y el reembolso OCURRE. Cuatro caminos que no prestan servicio, por el
+    // dispatcher de verdad, mirando el saldo antes y despues.
+    const dirS = fs.mkdtempSync(path.join(os.tmpdir(), 'sinserv-'));
+    try {
+      const guion = path.join(dirS, 's.js');
+      fs.writeFileSync(guion, `
+const fs=require('fs'),os=require('os'),path=require('path');
+const ROOT=fs.mkdtempSync(path.join(os.tmpdir(),'ss-'));
+fs.cpSync(${JSON.stringify(path.join(R, 'src'))},path.join(ROOT,'src'),{recursive:true});
+fs.mkdirSync(path.join(ROOT,'data'));
+try{fs.symlinkSync(${JSON.stringify(path.join(R, 'node_modules'))},path.join(ROOT,'node_modules'),'dir');}catch{}
+process.env.OWNER_NUMBER='34600111222';
+const {handleMessage}=require(path.join(ROOT,'src/handlers/messageHandler'));
+const a=require(path.join(ROOT,'src/utils/auraStore'));
+const G='000000036@g.us', BOT='549199@s.whatsapp.net', DUENO='34600111222@s.whatsapp.net';
+const gente=[];for(let i=0;i<8;i++)gente.push('34655660'+(100+i)+'@s.whatsapp.net');
+const partes=[{id:BOT,admin:'admin'},{id:DUENO},...gente.map(id=>({id}))];
+const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{},
+  sendMessage:async()=>({}),groupMetadata:async()=>({id:G,subject:'G',participants:partes}),
+  groupFetchAllParticipating:async()=>({[G]:{id:G,participants:partes}}),
+  onWhatsApp:async(j)=>[{exists:true,jid:j}],sendReaction:async()=>{}};
+const di=async(quien,texto,extra)=>{
+  await handleMessage(sock,Object.assign({key:{remoteJid:G,participant:quien,fromMe:false,id:'S'+Math.random()},
+    message:{conversation:texto},pushName:'x',messageTimestamp:Math.floor(Date.now()/1000)},extra||{}));
+  await new Promise(r=>setTimeout(r,350));
+};
+(async()=>{
+  const out={};
+  let i=0;
+  const cobra=async(texto,extra)=>{
+    const q=gente[i++];
+    await a.addAura(G,q,3000);
+    const antes=await a.getAura(G,q);
+    await di(q,texto,extra);
+    return (await a.getAura(G,q))-antes;
+  };
+  out.roast=await cobra('!roast');
+  out.ttp=await cobra('!ttp');
+  out.mog=await cobra('!mog');
+  out.relevancia=await cobra('!relevancia @34600111222',
+    {message:{extendedTextMessage:{text:'!relevancia @34600111222',contextInfo:{mentionedJid:[DUENO]}}}});
+  // Y uno que SI presta servicio: tiene que cobrar.
+  out.fea=await cobra('!fea');
+  console.log(JSON.stringify(out));
+})();
+`);
+      const r = JSON.parse(execSync(`node ${guion}`, { encoding: 'utf8', timeout: 120000 }).trim().split('\n').pop());
+      for (const [cmd, delta] of Object.entries(r)) {
+        if (cmd === 'fea') continue;
+        if (delta !== 0) {
+          fallos++;
+          console.log(rojo(`   ✗ *!${cmd}* sin objetivo se ha llevado ${Math.abs(delta)} de aura: se paga por un comando que no contesta`));
+        }
+      }
+      if (r.fea >= 0) {
+        fallos++;
+        console.log(rojo(`   ✗ *!fea* ya no cobra (${r.fea}): el reembolso se esta comiendo cobros buenos`));
+      }
+    } catch (e) {
+      fallos++;
+      console.log(rojo(`   ✗ no pude probar el reembolso: ${String(e.message).split('\n')[0]}`));
+    } finally {
+      fs.rmSync(dirS, { recursive: true, force: true });
+    }
+    if (!sinCaptura.length) console.log(verde('   ✓ el que no presta servicio no cobra, y el que lo presta sigue cobrando'));
   }
 
   // ── 6. LOS COMANDOS DE PAGO NO SALEN GRATIS POR PRIVADO ───────────────────
@@ -2979,8 +3072,12 @@ async function capaStores() {
     // y !fea de la curva.
     //
     // Se comprueba la coincidencia, no QUIENES son: la lista puede cambiar.
-    const enCodigo = new Set([...(pct.match(/for \(const k of \[([^\]]*)\]\) \{\n\s*if \(LABELS\[k\]\) LABELS\[k\]\.roll = rollUniform;/) || [])[1]
-      ?.matchAll(/'([^']+)'/g) || []].map((m) => m[1]));
+    // La lista se lee de la constante EXPORTADA, no del texto del bucle. Estaba
+    // atada a la forma exacta del `for (const k of ['fiel', 'infiel'])`, asi que
+    // sacar esos dos nombres a una constante —para no tenerlos escritos en tres
+    // guiones— dejaba esta guarda deduciendo cero y en rojo por un refactor que
+    // no cambiaba ningun comportamiento.
+    const enCodigo = new Set(require(path.join(R, 'src/commands/percent')).UNIFORMES || []);
     const enDatos = new Set();
     for (const m of pools.matchAll(/\n  ([a-zá-úñ]+):\s*\{[\s\S]{0,300}?uniforme:\s*true/g)) enDatos.add(m[1]);
     exige(enCodigo.size > 0, 'no encuentro la lista de comandos que tiran uniforme en percent.js');
@@ -4460,6 +4557,24 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
         const esperado = [real.high, real.mid, real.low].map((x) => Math.round(x * 100));
         exige(dice.join('/') === esperado.join('/'),
           `la guia dice que ${pol.toLowerCase()} -> ${quien} reparte ${dice.join('/')} y el motor reparte ${esperado.join('/')}`);
+      }
+    }
+
+    // 3 bis) TODA TIRADA PROPIA TIENE QUE ESTAR DECLARADA EN LA GUIA.
+    //
+    // *!feminidad* lleva su curva escrita al lado de sus frases y pisa la del
+    // motor. La guia describia la tabla general y no la mencionaba, asi que
+    // decia lo contrario de lo que hace el bot en ese comando: que su tramo
+    // alto se lee el 6 % cuando se lee el 45 %. Y eso no lo cazaba ninguna de
+    // las comprobaciones de arriba, porque todas miran la tabla general.
+    {
+      const LAB2 = require(path.join(R, 'src/data/percentLabels'));
+      const propias = Object.keys(LAB2).filter((k) => LAB2[k]
+        && typeof LAB2[k].roll === 'function' && !pct.UNIFORMES.includes(k));
+      for (const cmd of propias) {
+        const declarada = new RegExp(`!${cmd}[^\\n]*tirada propia|tirada propia[^\\n]*!${cmd}`, 'i').test(guia);
+        exige(declarada,
+          `*!${cmd}* tiene su propia tirada y pisa la tabla del motor, y la guia no lo dice: quien escriba sus pools lo hara para el tramo equivocado`);
       }
     }
 

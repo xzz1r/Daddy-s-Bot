@@ -1,6 +1,5 @@
 const { shuffle, pickFresh } = require('../utils/helpers');
-const { getSender, isMainOwner, isBotJid, bareJid, sameUser } = require('../utils/wa');
-const { canonicalJid } = require('../utils/wa');
+const { getSender, isMainOwner, isBotJid, bareJid, sameUser, canonicalJid } = require('../utils/wa');
 const config = require('../config');
 const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
@@ -430,8 +429,6 @@ async function cmdShip(sock, msg, args, groupMeta) {
     return SIN_SERVICIO;
   }
 
-  // Rig a favor del owner principal: si participa, la compatibilidad es alta pero
-  // VARIABLE (88-100), no siempre 100, para que no se note el amaño.
   // Al owner principal se le shipea SIEMPRE bajo, 0-12, por pedido expreso suyo:
   // no le gustan los ships en él y punto.
   //
