@@ -412,6 +412,54 @@ que se copian y una que no.
 - **El chiste largo.** Una frase, una línea. Lo que necesita párrafo se queda
   fuera.
 
+### Que no parezca escrito por una máquina
+
+Es la regla que está por encima de las otras seis, porque es la única cuyo
+incumplimiento no se arregla reescribiendo una frase: se arregla tirando el
+lote entero.
+
+**El rastro no es lo que parece.** Busqué en las 9.700 frases los tics
+clásicos: *"no solo… sino"* (1), conectores de redacción tipo *"dicho esto"* o
+*"cabe destacar"* (0 reales), disculpas, matices, emoji de adorno (0). El corpus
+está limpio de eso. Lo que sí hay es esto, por orden de gravedad:
+
+**1. La variación de una sola tesis. Este es el rastro de verdad.** Un humano
+que escribe cien insultos se cansa del ángulo y cambia de tema. Una máquina
+produce cien versiones del mismo. `incel.high` lleva la misma idea —teoría sin
+práctica— desde la frase 27 hasta el final, cambiando el decorado: enciclopedia,
+guía turística, laboratorio, grada. Hoy hay **257 casi-clones dentro de un mismo
+tramo**. Eso, y no un tic de vocabulario, es lo que hace que el grupo note que
+detrás no hay nadie.
+
+La prueba: si dos frases del mismo pool se pueden resumir con la misma línea,
+sobra una. Escribe menos y escribe distinto.
+
+**2. El paralelismo de plantilla.** Sesenta y cinco frases abren con *"Ni X ni
+Y"*. Una construcción repetida a esa escala se lee como un molde relleno, aunque
+cada relleno sea distinto. Vale como recurso; no vale como arranque por defecto.
+
+**3. El bot hablando de sí mismo como programa.** El bot es una voz que dicta un
+veredicto, no un software que se queja de su carga de trabajo. *"El bot casi se
+apaga de aburrimiento procesándote"* rompe el personaje en una línea: admite que
+hay un proceso, y donde hay un proceso no hay nadie mirándote.
+
+Que el bot se nombre en tercera persona SÍ vale, y es parte de la voz: *"El bot
+ha rebuscado en cada rasgo y ha vuelto con las manos vacías"*. La diferencia es
+autoridad contra maquinaria.
+
+(Hablar de *el algoritmo* como se habla de Instagram o TikTok no cuenta: eso es
+jerga del grupo y está bien usado en las cincuenta frases que lo hacen.)
+
+**4. Dos hábitos de escritura, no de habla.** La raya larga (—) dentro de una
+frase y el punto y coma. Nadie escribe eso en un grupo de WhatsApp. Hay once y
+cincuenta y ocho respectivamente. No es urgente, pero cada uno delata que el
+texto se redactó, no se soltó.
+
+**Lo que NO significa esta regla:** no significa escribir mal. El bot tiene las
+tildes puestas y la sintaxis correcta a propósito — es un narrador, no un
+miembro más del grupo tecleando con prisa. Un bot que escribe "q" y "xq" no
+parece más humano: parece un bot imitando a un humano, que es peor.
+
 ### El error que más se repite
 
 Un chiste bueno repetido ochenta veces con otras palabras. `incel.high` tiene la
