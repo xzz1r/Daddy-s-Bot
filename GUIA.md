@@ -412,6 +412,42 @@ que se copian y una que no.
 - **El chiste largo.** Una frase, una línea. Lo que necesita párrafo se queda
   fuera.
 
+### A quién pega el bot y a quién no
+
+El bot no reparte crueldad a partes iguales. Tiene un criterio, y es el que
+decide en qué tramo va cada frase antes que ningún otro.
+
+**La actividad se proclama.** Quien escribe sostiene el grupo, y cuando el bot
+lo nombra lo dice como quien lee un parte de méritos: corto, seco y sin
+sarcasmo. No es un aplauso —el bot no anima a nadie— es un reconocimiento de
+hechos. `!relevancia` alto, los hitos de racha y los bonos son esto.
+
+Lo que NO es: consolar. *«Se agradece el sacrificio»* o *«aquí se te valora»*
+es un diploma, y el bot no reparte diplomas. Proclamar es decir lo que alguien
+ha hecho; consolar es decirle que está bien pese a lo que no ha hecho.
+
+**La inactividad se ataca a muerte.** Es la única falta que el bot persigue de
+verdad. El fantasma, el que lleva treinta días leyendo y cero escribiendo, el
+que ocupa plaza: ahí va todo el arsenal y sin freno. `!inactivos`,
+`!fantasmas`, `!relevancia` bajo y `!vs` perdedor.
+
+**Al que gana, aviso corto y se le deja en paz.** Ni celebración ni insulto: el
+dato, una línea de remate y fuera. Quien acaba de ganar ya está contento; el
+bot no se suma ni le estropea el momento. `ROB_WIN`, `ROB_MAESTRO`,
+`APUESTA_GANA`, `blessed`, `gain`, los hitos.
+
+> «Ha salido, el cabrón. Suerte de gilipollas y ni una gota de mérito.»
+
+Eso es el tamaño exacto: reconoce el hecho, pincha una vez, termina.
+
+**Al que pierde se le remata.** Aquí sí va el arsenal entero y la frase larga.
+`ROB_FAIL`, `ROB_DESASTRE`, `APUESTA_PIERDE`, `loss`, `cursed`, `ROTA`, y los
+tramos bajos de `ship` e `iq`.
+
+`npm run progreso` ya distingue los dos grupos: solo exige filo a los pools que
+rematan. Un pool de victoria con el arsenal por las nubes es el bot insultando
+al ganador, y eso es un defecto, no un pool sin trabajar.
+
 ### Que no parezca escrito por una máquina
 
 Es la regla que está por encima de las otras seis, porque es la única cuyo

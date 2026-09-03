@@ -114,7 +114,17 @@ const OTROS=['src/commands/robo.js','src/commands/aura.js','src/commands/roast.j
 for(const rel of OTROS){
   const src=fs.readFileSync(path.join(R,rel),'utf8').split('\n');
   let nom=null,cur=[];
-  const cerrar=()=>{ if(nom&&cur.length)filas.push({cmd:path.basename(rel).replace('.js',''),tr:nom,P:cur,traf:0.31,brutal:true}); nom=null;cur=[]; };
+  // NO TODO POOL TIENE QUE HACER DANYO, y exigirselo a todos era pedir que el
+  // bot se ensañe con quien acaba de ganar.
+  //
+  // La doctrina del bot: al que gana se le da un aviso corto y se le deja en
+  // paz; al que pierde se le remata. Un pool de victoria con el arsenal por las
+  // nubes es el bot insultando al ganador, y este guion lo estaba pidiendo:
+  // marcaba `brutal: true` para TODOS los pools de fuera de percent.js, asi que
+  // ROB_WIN, APUESTA_GANA, blessed, gain y los hitos de racha salian en la
+  // lista de "falta filo" — mandando trabajo justo al reves de lo que toca.
+  const GANA = /^(ROB_WIN|ROB_MAESTRO|APUESTA_GANA|blessed|gain|HITO|redemption|perfect|high|ROBO_FALLO_REMATE)$/;
+  const cerrar=()=>{ if(nom&&cur.length)filas.push({cmd:path.basename(rel).replace('.js',''),tr:nom,P:cur,traf:0.31,brutal:!GANA.test(nom)}); nom=null;cur=[]; };
   for(const l of src){
     let m=l.match(/^const ([A-Z_][A-Z0-9_]*) = \[$/)||l.match(/^\s{2}([A-Za-z_][A-Za-z0-9_]*): \[$/);
     if(m){cerrar();nom=m[1];continue;}
