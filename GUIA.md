@@ -414,35 +414,52 @@ que se copian y una que no.
 
 ### A quién pega el bot y a quién no
 
-El bot no reparte crueldad a partes iguales. Tiene un criterio, y es el que
-decide en qué tramo va cada frase antes que ningún otro.
+El bot no reparte crueldad a partes iguales. Tiene un criterio, y decide en qué
+tramo va cada frase antes que ninguna otra cosa.
 
-**La actividad se proclama.** Quien escribe sostiene el grupo, y cuando el bot
-lo nombra lo dice como quien lee un parte de méritos: corto, seco y sin
-sarcasmo. No es un aplauso —el bot no anima a nadie— es un reconocimiento de
-hechos. `!relevancia` alto, los hitos de racha y los bonos son esto.
+**La actividad se proclama.** Quien escribe sostiene el grupo. Cuando el bot lo
+nombra lo dice como quien lee un parte de méritos: corto, seco, sin sarcasmo.
+No es un aplauso —el bot no anima a nadie— es un reconocimiento de hechos.
 
-Lo que NO es: consolar. *«Se agradece el sacrificio»* o *«aquí se te valora»*
-es un diploma, y el bot no reparte diplomas. Proclamar es decir lo que alguien
-ha hecho; consolar es decirle que está bien pese a lo que no ha hecho.
+> «Llevas el grupo a hombros como una puta mula de carga, y ni te quejas.»
+> «Tu nombre sale en más conversaciones que el de cualquier otro. No por
+> casualidad.»
+
+Eso es proclamar: se reconoce lo que ha hecho y el taco va de refuerzo, no en
+su contra.
+
+Hay **dos formas de fallar aquí, y las dos están en el corpus**:
+
+- **Consolar.** *«Se agradece el sacrificio»*, *«aquí se te valora»*. Es un
+  diploma, y el bot no reparte diplomas.
+- **Burlarse del que aporta.** *«Se puede vivir prácticamente dentro de un chat
+  de WhatsApp»*, *«ni una puta vida fuera de esto»*, *«tiene un chat y una
+  alarma»*. El bot está castigando exactamente la conducta que quiere. Al que
+  sostiene el grupo no se le llama pringado por sostenerlo.
 
 **La inactividad se ataca a muerte.** Es la única falta que el bot persigue de
 verdad. El fantasma, el que lleva treinta días leyendo y cero escribiendo, el
-que ocupa plaza: ahí va todo el arsenal y sin freno. `!inactivos`,
-`!fantasmas`, `!relevancia` bajo y `!vs` perdedor.
+que ocupa plaza: ahí va todo el arsenal y sin freno.
 
-**Al que gana, aviso corto y se le deja en paz.** Ni celebración ni insulto: el
-dato, una línea de remate y fuera. Quien acaba de ganar ya está contento; el
-bot no se suma ni le estropea el momento. `ROB_WIN`, `ROB_MAESTRO`,
-`APUESTA_GANA`, `blessed`, `gain`, los hitos.
+**Al que gana no se le quita la victoria.** Un aviso corto y se le deja en paz:
+el dato, un remate de una línea y fuera. Ni celebración ni insulto.
 
-> «Ha salido, el cabrón. Suerte de gilipollas y ni una gota de mérito.»
+La regla exacta: **el chiste puede ir sobre la mesa, sobre el grupo o sobre la
+suerte, pero no sobre el que acaba de ganar.**
 
-Eso es el tamaño exacto: reconoce el hecho, pincha una vez, termina.
+> Bien: «La mesa paga y se queda mirando al cabrón con odio.»
+> Bien: «Nadie sabía cómo quitarte el respeto que acabas de ganar.»
+> Mal: «Sumaste algo. No es para celebrar, pero al menos hoy no diste el
+> papelón de siempre.»
+> Mal: «Te dieron el pan de la cesta que nadie cogió. Gratis, duro, y tú
+> haciendo fiesta.»
+
+Los dos malos son de `gain`, el pool de la subida pequeña de aura, y ahí está
+escrito así de arriba abajo: la ganancia se usa como palo para pegarle al que
+gana. Las imágenes son buenas —café de máquina, miga de croissant, modo ahorro
+de batería—; lo que sobra es el remate contra la persona.
 
 **Al que pierde se le remata.** Aquí sí va el arsenal entero y la frase larga.
-`ROB_FAIL`, `ROB_DESASTRE`, `APUESTA_PIERDE`, `loss`, `cursed`, `ROTA`, y los
-tramos bajos de `ship` e `iq`.
 
 `npm run progreso` ya distingue los dos grupos: solo exige filo a los pools que
 rematan. Un pool de victoria con el arsenal por las nubes es el bot insultando
