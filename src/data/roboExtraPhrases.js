@@ -421,7 +421,7 @@ const CONTRA_GANA = [
   '%A disfruto del botin lo que dura un cafe. %V ya tiene %C de vuelta.',
   'Contraataque limpio: %C de %A al bolsillo de %V. Por listo.',
   '%V no se lo pensó. %A ahora tiene %C menos y una lección encima.',
-  '%A robo y %V cobro el doble. Las cuentas del karma salen rápido hoy.',
+  '%A robó y %V cobró el doble. Las cuentas del karma salen rápido hoy.',
   '%C. %V acaba de convertir un robo en una inversión.',
   '%A se fue con lo ajeno y ha vuelto sin lo propio. %V se lleva %C.',
   'Devuelto con intereses. %A debería haber elegido a otro.',
