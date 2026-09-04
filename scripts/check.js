@@ -5339,7 +5339,33 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     } catch (e) {
       exige(false, `no pude probar el marcado: ${String(e.message).split('\n')[0]}`);
     }
-    if (fallos === antes) console.log(verde('   ✓ la marca respeta los fotogramas parciales y sigue arreglando el fantasma en los propios'));
+    // Y LA ESCALERA DE CALIDAD, QUE AHORA SE PUEDE AMPLIAR POR ARRIBA.
+    //
+    // El escalon de arranque de cada duracion iba por indice a pelo, asi que
+    // meter uno nuevo al principio corria todos los demas y un video de seis
+    // segundos empezaba dos escalones mas arriba de lo previsto. Ahora la marca
+    // `desde` vive en el propio escalon; esto comprueba que sigue siendo
+    // coherente, sin gastar una sola codificacion.
+    {
+      const src = fs.readFileSync(path.join(R, 'src/utils/sticker.js'), 'utf8');
+      const bloque = src.match(/const ANIM_TIERS = \[([\s\S]*?)\n\];/);
+      exige(!!bloque, 'no encuentro ANIM_TIERS en sticker.js');
+      if (bloque) {
+        const tiers = [...bloque[1].matchAll(/\{ fps: (\d+), quality: (\d+), size: (\d+)(?:, desde: (\d+))? \}/g)]
+          .map((m) => ({ fps: +m[1], quality: +m[2], size: +m[3], desde: m[4] ? +m[4] : undefined }));
+        exige(tiers.length >= 5, `ANIM_TIERS se lee mal: ${tiers.length} escalones`);
+        const tope = Math.max(...tiers.map((t) => t.quality));
+        exige(tiers[0] && tiers[0].quality === tope,
+          `el primer escalon es q${tiers[0]?.quality} y el mejor de la escalera es q${tope}: se prueba primero uno peor del que cabe`);
+        const marcas = tiers.map((t, i) => ({ i, d: t.desde })).filter((x) => x.d !== undefined);
+        exige(marcas.length >= 3, `solo ${marcas.length} escalones llevan la marca 'desde': las duraciones largas arrancarian arriba del todo`);
+        for (let k = 1; k < marcas.length; k++) {
+          exige(marcas[k].d > marcas[k - 1].d && marcas[k].i > marcas[k - 1].i,
+            `las marcas 'desde' no van de menos a mas (${marcas[k - 1].d}s en el escalon ${marcas[k - 1].i}, ${marcas[k].d}s en el ${marcas[k].i}): un video largo arrancaria mas arriba que uno corto`);
+        }
+      }
+    }
+    if (fallos === antes) console.log(verde('   ✓ la marca respeta los fotogramas parciales y la escalera arranca por lo mejor que cabe'));
   }
 
   // ── 35. LOS DOS PREFIJOS HACEN EXACTAMENTE LO MISMO ──────────────────────

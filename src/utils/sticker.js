@@ -420,7 +420,10 @@ function addStickerMeta(webpBuffer, author) {
 // dropped step by step only if the previous attempt overshot it — the first
 // pass (q=90) is "maximum possible quality" and is kept whenever it fits.
 const STATIC_TARGET_BYTES = 100 * 1024;
-const STATIC_QUALITY_TIERS = [90, 80, 65, 50, 35];
+// Empieza en 100 porque cabe de sobra: una imagen de 512x512 con grano sale a
+// 22 KB con q100 contra un tope interno de 100 KB. El escalon de q90 costaba
+// calidad para ahorrar ocho kilobytes que nadie estaba pidiendo.
+const STATIC_QUALITY_TIERS = [100, 90, 80, 65, 50, 35];
 
 function encodeStaticWebp(inputFile, outputFile, quality) {
   return runFfmpeg(inputFile, outputFile, [
@@ -474,11 +477,21 @@ const MAX_STICKER_BYTES = 1024 * 1024;
 // Quality and, as a last resort, canvas size are the only levers used to control
 // file weight. Tiers are tried in order until one fits under MAX_STICKER_BYTES.
 const ANIM_TIERS = [
+  // EL PRIMER ESCALON ERA q85 Y SOBRABA PRESUPUESTO. Medido sobre contenido
+  // normal, un clip de cuatro segundos sale a 215 KB con q85 y a 341 KB con
+  // q95, contra un tope de 1 MB: se estaba mandando el sticker a un quinto de
+  // lo que WhatsApp admite. El q95 va delante, y si no cabe la escalera cae
+  // sola al siguiente como ha hecho siempre — no hay nada que decidir a mano.
+  { fps: 30, quality: 95, size: 512 },
   { fps: 30, quality: 85, size: 512 },
   { fps: 30, quality: 75, size: 512 },
-  { fps: 24, quality: 80, size: 512 },
-  { fps: 24, quality: 70, size: 512 },
-  { fps: 24, quality: 60, size: 512 },
+  // `desde` marca en que escalon arranca un video segun lo que dure. Va en el
+  // propio escalon y no en una tabla de indices aparte: la escalera NO baja de
+  // calidad de forma monotona —aqui q80 va despues de q75 porque baja los fps
+  // en vez de la calidad— asi que cualquier regla por numero se equivoca.
+  { fps: 24, quality: 80, size: 512, desde: 3 },
+  { fps: 24, quality: 70, size: 512, desde: 5 },
+  { fps: 24, quality: 60, size: 512, desde: 8 },
   { fps: 24, quality: 50, size: 512 },
   { fps: 24, quality: 60, size: 384 },
   { fps: 24, quality: 45, size: 384 },
@@ -492,7 +505,7 @@ const ANIM_TIERS = [
 // Lets videoToSticker predict a tier's output size from one real encode of a
 // different tier, instead of having to run ffmpeg again just to find out it
 // still overshoots — each skipped tier saves a multi-second re-encode.
-const QUALITY_SIZE_FACTOR = { 85: 1.0, 80: 0.853, 75: 0.737, 70: 0.704, 60: 0.649, 50: 0.591, 45: 0.558, 35: 0.482 };
+const QUALITY_SIZE_FACTOR = { 95: 1.47, 85: 1.0, 80: 0.853, 75: 0.737, 70: 0.704, 60: 0.649, 50: 0.591, 45: 0.558, 35: 0.482 };
 const CANVAS_SIZE_FACTOR = { 512: 1.0, 384: 0.70 };
 
 function predictTierBytes(tier, refTier, refBytes) {
@@ -537,11 +550,16 @@ function getVideoDurationS(inputFile) {
 // Pick the first tier index likely to produce a file ≤ 1MB without re-encoding.
 // Rough estimate, real content varies widely, so stay conservative (prefer one
 // re-encode over sending a blurry sticker).
+// EL ESCALON DE ARRANQUE LO DICE EL PROPIO ESCALON. Esto devolvia indices a
+// pelo —0, 2, 3, 4— y cualquier escalon nuevo al principio de ANIM_TIERS los
+// corria todos: un video de seis segundos pasaba a arrancar mas arriba de lo
+// previsto y se comia codificaciones de sobra antes de bajar. Con la marca
+// `desde` en cada escalon, la escalera puede crecer por arriba sin tocar esto.
 function startTierIndex(durationS) {
-  if (!durationS || durationS < 3) return 0;  // short / unknown: max quality
-  if (durationS < 5) return 2;                 // ~3-5 s
-  if (durationS < 8) return 3;                 // ~5-8 s
-  return 4;                                     // long: skip the top tiers
+  const d = durationS || 0;
+  let idx = 0;
+  ANIM_TIERS.forEach((t, i) => { if (t.desde !== undefined && d >= t.desde) idx = i; });
+  return idx;
 }
 
 // Use the plain `libwebp` encoder, NOT `libwebp_anim`. libwebp_anim applies
