@@ -126,8 +126,14 @@ async function cmdSticker(sock, msg, groupMeta) {
       ]);
     } else if (found.type === 'sticker') {
       // Re-encode existing sticker to re-stamp metadata with our pack
+      // SE MIRA EL FICHERO, NO LA ETIQUETA. `isAnimated` lo pone WhatsApp en el
+      // proto del sticker, pero un .webp animado que llega como imagen o como
+      // documento no trae ese campo y su mimetype es 'image/webp' a secas: se
+      // colaba por la rama de los estaticos. Los bytes no mienten y el detector
+      // ya existe —se usa doce lineas mas abajo para el mensaje de salida.
       const mime = found.msg.mimetype || '';
-      const isAnimated = found.msg.isAnimated === true || mime.includes('animated');
+      const isAnimated = found.msg.isAnimated === true || mime.includes('animated')
+        || isAnimatedWebP(buffer);
       stickerBuffer = isAnimated
         ? await videoToSticker(buffer, author)
         : await imageToSticker(buffer, author);

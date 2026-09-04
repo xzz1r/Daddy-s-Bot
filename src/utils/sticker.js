@@ -285,23 +285,36 @@ function injectExifIntoWebP(webp, exifBuf) {
   if (chunkType === 'VP8X') {
     const out = Buffer.from(webp);
 
-    // Every frame our encoder produces covers the FULL canvas (x=0, y=0,
-    // w=h=canvas size) — ffmpeg's pad filter guarantees that. So blend mode
-    // never needs to matter: this frame's pixels (including its own alpha)
-    // are the entire picture, there's nothing of the previous frame left to
-    // show through. We force blend=no (replace) on every single frame
-    // regardless of whether it carries real alpha (VP8L/ALPH, from the
-    // transparent pad border) or not (plain VP8). Without this, WhatsApp's
-    // renderer alpha-blends a frame's semi-transparent edge pixels against
-    // whatever the PREVIOUS frame drew there — different video content each
-    // frame — producing a translucent ghost/"doubled" smear at the seam
-    // between the opaque content and the transparent padding. libwebp also
-    // always sets the VP8X Alpha flag (0x10) even for fully opaque animations
-    // with no real alpha at all, so we track per-frame whether alpha is real
-    // and only keep the flag set when at least one frame actually has it.
+    // BLEND=NO SOLO EN LOS FOTOGRAMAS QUE CUBREN EL LIENZO ENTERO.
+    //
+    // Los que produce nuestro encoder lo cubren siempre (x=0, y=0, w=h=lienzo,
+    // se lo garantiza el filtro pad de ffmpeg), y ahi forzar "reemplaza en vez
+    // de mezclar" arregla un defecto real: sin eso el renderer de WhatsApp
+    // mezcla los pixeles semitransparentes del borde contra lo que dibujo el
+    // fotograma ANTERIOR —contenido distinto en cada uno— y deja un fantasma
+    // translucido en la costura entre la imagen y el borde transparente.
+    //
+    // PERO AQUI NO SOLO ENTRAN STICKERS NUESTROS. Un .webp animado que llega
+    // hecho por otro —cualquier sticker de otro pack— viene casi siempre con
+    // fotogramas PARCIALES: cada uno guarda solo el rectangulo que cambia y el
+    // resto se hereda del anterior. A esos, forzarles blend=no les dice al
+    // renderer que reemplacen todo el rectangulo, transparencia incluida, en
+    // vez de dejar ver lo que habia debajo. El resultado son huecos: manchas
+    // blancas donde tendria que seguir viendose el fotograma anterior.
+    //
+    // Por eso ahora se mira cada fotograma: si cubre el lienzo entero, se le
+    // pone blend=no —donde es seguro y donde arregla el fantasma—; si es
+    // parcial, se respeta lo que decidio quien lo creo.
+    //
+    // libwebp ademas siempre marca el flag Alpha (0x10) del VP8X aunque la
+    // animacion sea del todo opaca, asi que se comprueba fotograma a fotograma
+    // si hay alpha de verdad y solo se deja puesto cuando lo hay.
     const isAnim = !!(out[20] & 0x02); // Animation bit
     if (isAnim) {
       let hasAlpha = false;
+      // El lienzo, del propio VP8X: 'VP8X'(4) + tamanyo(4) + flags(4) = 24.
+      const lienzoW = out.readUIntLE(24, 3);
+      const lienzoH = out.readUIntLE(27, 3);
       let p = 12;
       while (p + 8 <= out.length) {
         const ct = out.slice(p, p + 4).toString();
@@ -309,7 +322,16 @@ function injectExifIntoWebP(webp, exifBuf) {
         if (ct === 'ANMF' && cs > 16) {
           const inner = out.slice(p + 24, p + 28).toString();
           if (inner === 'VP8L' || inner === 'ALPH') hasAlpha = true;
-          out[p + 23] |= 0x02; // bit 1 = blend=no (replace, don't blend) — always
+          // ANMF: x(3) y(3) w-1(3) h-1(3) duracion(3) flags(1). Las medidas van
+          // guardadas menos uno, igual que las del lienzo, asi que se comparan
+          // tal cual sin sumar nada a ninguna de las dos.
+          const fx = out.readUIntLE(p + 8, 3);
+          const fy = out.readUIntLE(p + 11, 3);
+          const fw = out.readUIntLE(p + 14, 3);
+          const fh = out.readUIntLE(p + 17, 3);
+          if (fx === 0 && fy === 0 && fw === lienzoW && fh === lienzoH) {
+            out[p + 23] |= 0x02; // bit 1 = blend=no (reemplaza, no mezcla)
+          }
         }
         p += 8 + cs + (cs % 2);
       }

@@ -5275,6 +5275,73 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     if (fallos === antes) console.log(verde('   ✓ !count y !top mencionan el telefono, y el @lid sin resolver sigue intacto'));
   }
 
+  // ── 36. LA MARCA NO ROMPE LOS STICKERS DE OTROS ──────────────────────────
+  //
+  // Al inyectar la marca en un .webp animado se le pone blend=no a los
+  // fotogramas: le dice al renderer que REEMPLACE el rectangulo en vez de
+  // mezclarlo con lo que hay debajo. En los stickers que hace el bot eso es
+  // correcto y arregla un fantasma real —todos sus fotogramas cubren el lienzo
+  // entero, se lo garantiza el filtro pad de ffmpeg—, pero se estaba aplicando
+  // a TODOS, y un webp animado hecho por otro casi siempre guarda solo el
+  // rectangulo que cambia en cada fotograma. A esos, reemplazar en vez de
+  // mezclar les borra lo que habia debajo: manchas blancas dentro del sticker.
+  //
+  // Se prueba con un webp animado fabricado a mano, con un fotograma que cubre
+  // el lienzo y otro parcial, por la puerta real (imageToSticker).
+  {
+    console.log('\n36. LA MARCA NO ROMPE LOS STICKERS DE OTROS');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const anmf = (x, y, w, h, dentro) => {
+      const datos = Buffer.concat([Buffer.from(dentro, 'ascii'), Buffer.alloc(8)]);
+      const cuerpo = Buffer.alloc(16 + datos.length);
+      cuerpo.writeUIntLE(x, 0, 3); cuerpo.writeUIntLE(y, 3, 3);
+      cuerpo.writeUIntLE(w - 1, 6, 3); cuerpo.writeUIntLE(h - 1, 9, 3);
+      cuerpo.writeUIntLE(40, 12, 3); cuerpo[15] = 0;
+      datos.copy(cuerpo, 16);
+      const c = Buffer.alloc(8 + cuerpo.length);
+      c.write('ANMF', 0, 'ascii'); c.writeUInt32LE(cuerpo.length, 4); cuerpo.copy(c, 8);
+      return c;
+    };
+    const vp8x = Buffer.alloc(18);
+    vp8x.write('VP8X', 0, 'ascii'); vp8x.writeUInt32LE(10, 4);
+    vp8x.writeUInt32LE(0x02 | 0x10, 8);
+    vp8x.writeUIntLE(511, 12, 3); vp8x.writeUIntLE(511, 15, 3);
+    const anim = Buffer.alloc(14);
+    anim.write('ANIM', 0, 'ascii'); anim.writeUInt32LE(6, 4);
+    anim.writeUInt32LE(0xFFFFFFFF, 8); anim.writeUInt16LE(0, 12);
+    const cuerpo = Buffer.concat([vp8x, anim, anmf(0, 0, 512, 512, 'ALPH'), anmf(10, 10, 100, 100, 'ALPH')]);
+    const head = Buffer.alloc(12);
+    head.write('RIFF', 0, 'ascii'); head.writeUInt32LE(cuerpo.length + 4, 4); head.write('WEBP', 8, 'ascii');
+    const entrada = Buffer.concat([head, cuerpo]);
+
+    const leer = (buf) => {
+      const out = []; let p = 12;
+      while (p + 8 <= buf.length) {
+        const ct = buf.slice(p, p + 4).toString(); const cs = buf.readUInt32LE(p + 4);
+        if (ct === 'ANMF') out.push({ completo: buf.readUIntLE(p + 14, 3) === 511, blendNo: !!(buf[p + 23] & 0x02) });
+        p += 8 + cs + (cs % 2);
+      }
+      return out;
+    };
+    try {
+      const { imageToSticker } = require(path.join(R, 'src/utils/sticker'));
+      const salida = await imageToSticker(entrada, 'check');
+      const f = leer(salida);
+      exige(f.length === 2, `el marcado ha perdido fotogramas: quedan ${f.length} de 2`);
+      if (f.length === 2) {
+        exige(f[0].blendNo === true,
+          'el fotograma que cubre el lienzo ha dejado de llevar blend=no: vuelve el fantasma en la costura del borde transparente');
+        exige(f[1].blendNo === false,
+          'a un fotograma PARCIAL se le pone blend=no: eso borra lo que hay debajo y deja manchas blancas dentro de los stickers que no ha hecho el bot');
+      }
+      exige(salida.includes(Buffer.from('EXIF', 'ascii')), 'el sticker sale sin la marca');
+    } catch (e) {
+      exige(false, `no pude probar el marcado: ${String(e.message).split('\n')[0]}`);
+    }
+    if (fallos === antes) console.log(verde('   ✓ la marca respeta los fotogramas parciales y sigue arreglando el fantasma en los propios'));
+  }
+
   // ── 35. LOS DOS PREFIJOS HACEN EXACTAMENTE LO MISMO ──────────────────────
   //
   // El bot entiende *!aura* y */aura*. Eso no es una opcion de configuracion:
