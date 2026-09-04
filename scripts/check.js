@@ -5365,6 +5365,32 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
         }
       }
     }
+    // Y EL MODELO DE PREDICCION TIENE QUE CUBRIR TODO LO QUE USE DE REFERENCIA.
+    //
+    // La escalera salta escalones estimando cuanto pesarian a partir de UNA
+    // codificacion real. Esa estimacion sale de unos multiplicadores medidos de
+    // q85 hacia abajo, y por encima no se cumplen: en un GIF de colores planos
+    // q95 pesa OCHO veces lo que q85, no 1,47. Tomandolo de referencia, la
+    // prediccion daba por imposibles todos los escalones de 512 px y el sticker
+    // acababa a 384 — peor que antes de anyadir el escalon bueno.
+    //
+    // La regla que queda: un escalon por encima de REF_MAX_QUALITY se puede
+    // intentar, pero no puede ser referencia; y todo el que SI pueda serlo
+    // tiene que tener su multiplicador medido.
+    {
+      const st = require(path.join(R, 'src/utils/sticker'));
+      exige(typeof st.REF_MAX_QUALITY === 'number', 'sticker.js ya no dice hasta donde llega el modelo de prediccion');
+      if (typeof st.REF_MAX_QUALITY === 'number') {
+        const sinMedir = (st.ANIM_TIERS || [])
+          .filter((t) => t.quality <= st.REF_MAX_QUALITY && st.QUALITY_SIZE_FACTOR[t.quality] === undefined)
+          .map((t) => `q${t.quality}`);
+        exige(sinMedir.length === 0,
+          `${sinMedir.join(', ')} puede(n) servir de referencia y no tienen multiplicador medido: la escalera saltaria escalones a ciegas`);
+        const src2 = fs.readFileSync(path.join(R, 'src/utils/sticker.js'), 'utf8');
+        exige(/refBytes = buf\.length/.test(src2) && /quality <= REF_MAX_QUALITY[^\n]*refBytes = buf\.length/.test(src2),
+          'la referencia de la prediccion ya no se limita a los escalones medidos: un q95 que no cabe volveria a mandar el sticker a 384 px');
+      }
+    }
     if (fallos === antes) console.log(verde('   ✓ la marca respeta los fotogramas parciales y la escalera arranca por lo mejor que cabe'));
   }
 

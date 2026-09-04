@@ -505,6 +505,11 @@ const ANIM_TIERS = [
 // Lets videoToSticker predict a tier's output size from one real encode of a
 // different tier, instead of having to run ffmpeg again just to find out it
 // still overshoots — each skipped tier saves a multi-second re-encode.
+// Hasta donde llega el modelo de prediccion. Por encima de esta calidad los
+// multiplicadores de abajo NO se cumplen —libwebp deja de comprimir de forma
+// proporcional— asi que un escalon por encima puede intentarse, pero nunca
+// puede servir de REFERENCIA para estimar los demas.
+const REF_MAX_QUALITY = 85;
 const QUALITY_SIZE_FACTOR = { 95: 1.47, 85: 1.0, 80: 0.853, 75: 0.737, 70: 0.704, 60: 0.649, 50: 0.591, 45: 0.558, 35: 0.482 };
 const CANVAS_SIZE_FACTOR = { 512: 1.0, 384: 0.70 };
 
@@ -642,7 +647,20 @@ async function videoToSticker(videoBuffer, author) {
       } catch { continue; }  // tier failed, try next
       buf = await fs.readFile(outputFile);
       if (buf.length < 100) continue;
-      refBytes = buf.length; refTier = tier;
+      // EL ESCALON DE ARRIBA NO SIRVE PARA PREDECIR NADA.
+      //
+      // Los multiplicadores de QUALITY_SIZE_FACTOR se midieron de q85 hacia
+      // abajo, y ahi se cumplen. Por encima de q85 libwebp deja de comprimir de
+      // forma proporcional: en un GIF de colores planos, q95 pesa OCHO veces lo
+      // que q85, no 1,47. Tomandolo como referencia, la prediccion daba por
+      // imposibles TODOS los escalones de 512 px y el sticker terminaba a 384 —
+      // peor de lo que salia antes de tocar nada.
+      //
+      // Asi que un q95 que no cabe se descarta y ya esta: el siguiente escalon
+      // se codifica de verdad y es ese el que queda de referencia. Cuesta una
+      // codificacion, que es justo lo que ya se paga por intentar la calidad
+      // buena.
+      if (tier.quality <= REF_MAX_QUALITY) { refBytes = buf.length; refTier = tier; }
       if (buf.length <= MAX_STICKER_BYTES) { smallest = buf; break; }
       if (!smallest || buf.length < smallest.length) smallest = buf;
     }
@@ -664,4 +682,4 @@ async function gifToSticker(gifBuffer, author) {
   return videoToSticker(gifBuffer, author);
 }
 
-module.exports = { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC };
+module.exports = { ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC };
