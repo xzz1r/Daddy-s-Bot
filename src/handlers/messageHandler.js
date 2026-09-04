@@ -432,7 +432,16 @@ async function borrarMensaje(sock, jid, msg, sender, motivo) {
     });
     return true;
   } catch (e) {
-    logger.warn(`no pude borrar ${motivo} en ${jid} de +${String(sender).split('@')[0]}: ${e?.message || e}`);
+    // CON DETALLE SUFICIENTE PARA NO NECESITAR UNA SEGUNDA VEZ.
+    //
+    // Baileys manda esto como borrado de ADMIN —`edit='8'`, el mismo que usa la
+    // app cuando un admin quita el mensaje de otro—, asi que si el servidor lo
+    // rechaza el motivo es suyo y hay que verlo entero: que tipo de sobre era,
+    // con que clave se pidio y que contesto. Un `not-authorized` a secas no
+    // distingue "no eres admin" de "este tipo de mensaje no se puede revocar".
+    const tipos = Object.keys(msg?.message || {}).join(',') || 'sin message';
+    logger.warn(`no pude borrar ${motivo} en ${jid} de +${String(sender).split('@')[0]}`
+      + ` — tipos=[${tipos}] id=${idABorrar(msg)} respuesta: ${e?.output?.content?.[0]?.attrs?.type || e?.message || e}`);
     return false;
   }
 }
