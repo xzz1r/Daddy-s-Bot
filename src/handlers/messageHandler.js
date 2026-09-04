@@ -412,6 +412,31 @@ function idABorrar(msg) {
   );
 }
 
+// BORRA Y DICE SI NO PUDO.
+//
+// Las llamadas a borrar llevaban todas `.catch(() => {})`. Si WhatsApp rechaza
+// el borrado —el bot dejo de ser admin a mitad, el mensaje ya es viejo, la
+// clave no es la que espera— no se enteraba nadie: el bot anunciaba "Borrado."
+// con el mensaje todavia puesto delante del grupo, y en el log no quedaba ni
+// rastro. Es exactamente el fallo que ya se corrigio con las expulsiones que se
+// anunciaban sin haber ocurrido, y estaba repetido aqui.
+async function borrarMensaje(sock, jid, msg, sender, motivo) {
+  try {
+    await sock.sendMessage(jid, {
+      delete: {
+        remoteJid: jid,
+        fromMe: Boolean(msg?.key?.fromMe),
+        id: idABorrar(msg),
+        participant: sender,
+      },
+    });
+    return true;
+  } catch (e) {
+    logger.warn(`no pude borrar ${motivo} en ${jid} de +${String(sender).split('@')[0]}: ${e?.message || e}`);
+    return false;
+  }
+}
+
 // Esta era la UNICA de las siete copias que lo hacia bien, y solo porque ya se
 // habia corregido aqui despues de que el bot anunciara expulsiones que no
 // ocurrieron. Ahora la regla vive en un sitio y las siete la comparten.
@@ -1517,7 +1542,7 @@ async function handleMessage(sock, msg) {
         return;
       }
 
-      sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: idABorrar(msg), participant: sender } }).catch(() => {});
+      const borrado = await borrarMensaje(sock, jid, msg, sender, 'un estado subido al grupo');
 
       // La sanción depende de lo seguro que sea el diagnóstico.
       //
@@ -1531,9 +1556,11 @@ async function handleMessage(sock, msg) {
       if (!seguro) {
         // Heurística: se borra y se avisa, nada más. No cuesta el grupo.
         sock.sendMessage(jid, {
-          text: `@${sender.split('@')[0]}, los estados no se publican aquí. Borrado.`,
+          text: `@${sender.split('@')[0]}, los estados no se publican aquí.`
+            + (borrado ? ' Borrado.' : ' No he podido borrarlo: que lo quite un admin.'),
           mentions: [sender],
         }).catch(() => {});
+        if (!borrado) anotarTropiezo(`Estado en ${jid} de +${sender.split('@')[0]}: detectado pero NO borrado. Quitalo a mano.`);
         return;
       }
 
@@ -1593,7 +1620,7 @@ async function handleMessage(sock, msg) {
             }
             return;
           }
-          sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: idABorrar(msg), participant: sender } }).catch(() => {});
+          borrarMensaje(sock, jid, msg, sender, 'un estado subido al grupo');
           const fuera = await expulsar(sock, jid, sender, meta);
           if (puedeAnunciar(jid, sender)) {
             sock.sendMessage(jid, {
@@ -1629,7 +1656,7 @@ async function handleMessage(sock, msg) {
           }
           return;
         }
-        sock.sendMessage(jid, { delete: { remoteJid: jid, fromMe: false, id: idABorrar(msg), participant: sender } }).catch(() => {});
+        borrarMensaje(sock, jid, msg, sender, 'un estado subido al grupo');
 
         const { avisos, restantes, ban } = await noteWarning(jid, claveDePersona(sender, meta));
         const num = sender.split('@')[0];
