@@ -678,9 +678,9 @@ async function cmdDiag(sock, msg, groupMeta) {
     text += `\n*Sobres desconocidos vistos (${lista.length}):*\n`;
     for (const d of lista.slice(0, 6)) {
       const hace = Math.round((Date.now() - d.ts) / 60000);
-      // UN @lid NO ES UN TELEFONO. Se imprimia como "+168118374686783", que
-      // parece un numero y no lo es: es el identificador interno que WhatsApp
-      // le da a una persona cuando el grupo va por LID. Enseñarlo con un + al
+      // UN @lid NO ES UN TELEFONO. Se imprimia con un + delante, y con quince
+      // digitos eso parece un numero sin serlo: es el identificador interno que
+      // WhatsApp le da a una persona cuando el grupo va por LID. Con el + al
       // lado invita a buscar a alguien que no existe.
       const quien = !d.de ? '?'
         : String(d.de).endsWith('@lid') ? `LID ${String(d.de).split('@')[0]}`
