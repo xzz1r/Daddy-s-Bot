@@ -127,14 +127,47 @@ async function traerAccion(cat, nsfw) {
   // fuente sea poner una linea en el .env y nada mas.
   const r = data?.results?.[0] || (data?.url ? { url: data.url } : null);
   if (!r?.url) throw new Error('la web no ha devuelto ningun gif');
-  if (cache.has(r.url)) return { mp4: cache.get(r.url), anime: r.anime_name };
-  const gif = await axios.get(r.url, {
+  if (cache.has(r.url)) return cache.get(r.url);
+  const bajado = await axios.get(r.url, {
     responseType: 'arraybuffer', timeout: 15000,
     maxContentLength: TOPE_DESCARGA, maxBodyLength: TOPE_DESCARGA,
   });
-  const mp4 = await gifAMp4(Buffer.from(gif.data));
-  recordar(r.url, mp4);
-  return { mp4, anime: r.anime_name };
+  const bytes = Buffer.from(bajado.data);
+
+  // NO TODA FUENTE DEVUELVE UN GIF. La de las acciones normales si, pero en
+  // cuanto se apunta a otra web —lo que hace ACCION_NSFW_API— empiezan a llegar
+  // jpeg, png y mp4 sueltos. Pasar un jpeg por el conversor de gifs da un mp4 de
+  // un fotograma o un error, y el comando moria diciendo que no pudo traer nada.
+  //
+  // Se mira lo que ha llegado DE VERDAD, por los bytes y no por la extension de
+  // la URL, que miente a menudo:
+  //   · GIF -> a MP4, que es lo unico que WhatsApp reproduce en bucle.
+  //   · MP4 -> tal cual.
+  //   · imagen fija -> se manda como imagen, sin tocar ffmpeg.
+  const tipo = queEs(bytes);
+  if (tipo === 'imagen') {
+    recordar(r.url, { imagen: bytes });
+    return { imagen: bytes };
+  }
+  if (tipo === 'mp4') {
+    recordar(r.url, { mp4: bytes });
+    return { mp4: bytes };
+  }
+  const mp4 = await gifAMp4(bytes);
+  recordar(r.url, { mp4 });
+  return { mp4 };
+}
+
+// Por la cabecera, no por la extension.
+function queEs(b) {
+  if (b.length < 12) return 'otro';
+  if (b.slice(0, 3).toString('latin1') === 'GIF') return 'gif';
+  if (b.slice(4, 8).toString('latin1') === 'ftyp') return 'mp4';
+  if (b[0] === 0xFF && b[1] === 0xD8) return 'imagen';                     // jpeg
+  if (b.slice(1, 4).toString('latin1') === 'PNG') return 'imagen';          // png
+  if (b.slice(0, 4).toString('latin1') === 'RIFF'
+      && b.slice(8, 12).toString('latin1') === 'WEBP') return 'imagen';     // webp
+  return 'gif';   // que lo intente el conversor; si no puede, se devuelve el aura
 }
 
 function hazAccion(nombre) {
@@ -199,7 +232,11 @@ function hazAccion(nombre) {
       video: traido.mp4,
       gifPlayback: true,
       mimetype: 'video/mp4',
-      caption: frase + (traido.anime ? `\n\n_${traido.anime}_` : '') + remate,
+      // EL NOMBRE DEL ANIME NO VA. Rompia el chiste: la frase remata, y debajo
+      // aparecia un titulo japones que devolvia al lector a que esto es un gif
+      // sacado de una web. Se sigue pidiendo a la API porque viene en la misma
+      // respuesta, pero no se enseña.
+      caption: frase + remate,
       mentions: [quien, objetivo],
     }, { quoted: msg });
   };

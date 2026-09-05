@@ -14,6 +14,16 @@
 //
 // Las agresivas van sobre %V, nunca sobre %A. Es la misma regla del robo: al
 // que gana no se le quita la victoria.
+//
+// GROK: SUBE LA CRUDEZA EN LAS DIEZ, no solo en FUCK. Lo que hay escrito abajo
+// es el esqueleto —el angulo de cada una— pero se quedo corto de tono: son
+// comandos que se piden entre colegas para picarse, y salieron demasiado
+// educados. El liston esta en el pool FUCK, mas abajo, y en las frases
+// explicitas de !wingman.
+//
+// En las cariñosas eso significa guarras y no cursis: un abrazo que se pasa de
+// las manos, un mimo que nadie ha pedido. En las agresivas, que el golpe duela
+// y se note donde. Sin eufemismos y sin quedarse a medias.
 
 const HUG = [
   '%A abraza a %V. Uno de los dos lo necesitaba y no era %V.',
@@ -125,16 +135,30 @@ const BONK = [
   '%A corrige a %V a golpes. Método antiguo y sigue funcionando.',
 ];
 
+// GROK: ESTE ES EL LISTON DE CRUDEZA PARA TODAS LAS DEMAS.
+//
+// El gif que acompaña es SFW y va a seguir siendolo: la web de la que salen no
+// tiene otra cosa. Asi que el peso lo lleva ENTERO el texto — si la frase es
+// tibia, el comando se queda en un beso de anime y no hay chiste.
+//
+// El registro es el que ya tiene !wingman en sus frases explicitas, no uno
+// nuevo: crudo, directo, sin eufemismos de instituto. La regla de GUIA.md 5 bis
+// sigue mandando — imagen concreta al final, frases cortas, el taco DENTRO— y
+// aqui se le suma que puede ser todo lo guarra que haga falta.
+//
+// Lo que no cambia: el chiste va sobre los dos que salen, y nunca describe a
+// nadie que no sea del grupo.
 const FUCK = [
-  '%A se lleva a %V. Lo que pase después no lo cuenta el bot.',
-  '%A y %V desaparecen del chat. Volverán con cara de nada.',
-  '%A se lo monta con %V. El grupo entero fingiendo que no lo ha visto.',
-  '%A va a por %V sin rodeos. Rodeos era lo que le faltaba.',
-  '%A y %V. Ya está. Se veía venir desde hace meses y ha costado 120 de aura.',
-  '%A arrastra a %V fuera de plano. Discreción cero, ganas todas.',
-  '%A se cobra lo de %V. Nadie ha preguntado si %V debía algo.',
-  '%A y %V se lo montan delante de todos. Vergüenza ninguna.',
+  '%A se lleva a %V al baño y ninguno de los dos vuelve a mirar igual al resto.',
+  '%A se folla a %V delante de todo el grupo. Ni una disculpa, ni falta que hace.',
+  '%A pone a %V a cuatro patas y el chat entero se hace el sueco.',
+  '%A se mete en %V hasta el fondo. Doce meses de tensión resueltos en dos minutos.',
+  '%V acaba con las rodillas rojas y %A con cara de haber ganado algo. Los dos aciertan.',
+  '%A revienta a %V. Mañana los dos van a escribir aquí como si nada.',
+  '%A se corre encima de %V y %V da las gracias. Ahí está todo el vínculo, resumido.',
+  '%A se lo hace a %V como llevaba meses contándolo por privado. Al final era verdad.',
 ];
+
 
 // ─── EL REMATE AL QUE LO PIDE ────────────────────────────────────────────────
 //
