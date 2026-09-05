@@ -1211,6 +1211,15 @@ const DUELO = {
 //     el único freno que tiene, porque la cuota no se puede ampliar gastando más
 //     CPU.
 const PRECIOS = {
+  // Los comandos de accion (!hug, !punch, !slap…). No cuesta 60 por lo que
+  // gasta —bajar un gif y convertirlo esta por debajo de un sticker— sino por
+  // lo que invita a hacer: van dirigidos a alguien y piden repetirse contra
+  // medio grupo. Con 150 de arranque son dos usos, y ese es el freno.
+  accion: 60,
+  // El doble. No porque gaste mas —gasta lo mismo— sino porque lo que arriesga
+  // es otra cosa: una cuenta que reparte esto a diario dura lo que dura. El
+  // precio es el unico freno que no depende de que nadie vigile.
+  accionNsfw: 120,
   // ─── Lo que consume recursos de verdad ─────────────────────────────────────
   tovid: 70,   // transcodifica el vídeo entero (CRF 12); lo más caro en CPU
   sticker: 45, // !s — un ffmpeg por cada uno

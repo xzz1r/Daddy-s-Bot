@@ -5394,6 +5394,68 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     if (fallos === antes) console.log(verde('   ✓ la marca respeta los fotogramas parciales y la escalera arranca por lo mejor que cabe'));
   }
 
+  // ── 37. NINGUNA ACCION PISA UN COMANDO QUE YA EXISTIA ────────────────────
+  //
+  // Los comandos de accion se anyaden en bloque —diez acciones, veintiocho
+  // nombres— y ahi es facil llevarse por delante uno que ya estaba. Paso al
+  // escribirlos: *!kick* iba a mandar un gif de anime, y *!kick* es el comando
+  // que EXPULSA del grupo. Y *!bite* quedaba a una letra de *!bote*, que es la
+  // caja comun y se usa a diario: quien escribiera mal el bote se comia un
+  // mordisco de 60 de aura.
+  //
+  // Las dos reglas: ningun nombre de accion puede coincidir con otro comando, y
+  // ninguno puede quedarse a una sola letra de otro, que es donde el corrector
+  // de erratas deja de saber a cual referirse.
+  {
+    console.log('\n37. NINGUNA ACCION PISA UN COMANDO QUE YA EXISTIA');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { ACCIONES } = require(path.join(R, 'src/commands/acciones'));
+    const nombres = Object.values(ACCIONES).flatMap((a) => a.cmds);
+    exige(nombres.length > 0, 'no encuentro los nombres de las acciones');
+
+    const mh = soloCodigo('src/handlers/messageHandler.js');
+    const zona = mh.slice(mh.indexOf('switch (command)'));
+    const casos = [...zona.matchAll(/^\s*case '([^']+)':/gm)].map((m) => m[1]);
+    const otros = casos.filter((c) => !nombres.includes(c));
+
+    // 1) cada nombre esta en el switch UNA vez
+    for (const n of nombres) {
+      const veces = casos.filter((c) => c === n).length;
+      exige(veces === 1, `*!${n}* aparece ${veces} veces en el switch: si es 0 el comando no existe, y si es 2 el segundo esta muerto`);
+    }
+    // 2) ninguno pisa un comando de otra familia
+    for (const n of nombres) {
+      exige(!otros.includes(n), `la accion *!${n}* pisa un comando que ya existia y hacia otra cosa`);
+    }
+    // 3) ninguno a una letra de otro comando
+    const dist = (a, b) => {
+      if (Math.abs(a.length - b.length) > 1) return 9;
+      let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+      for (let i = 1; i <= a.length; i++) {
+        const fila = [i];
+        for (let j = 1; j <= b.length; j++) {
+          fila[j] = Math.min(prev[j] + 1, fila[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        }
+        prev = fila;
+      }
+      return prev[b.length];
+    };
+    for (const n of nombres) {
+      const cerca = otros.filter((o) => o.length >= 3 && dist(n, o) === 1);
+      exige(cerca.length === 0,
+        `la accion *!${n}* esta a una letra de ${cerca.map((c) => `*!${c}*`).join(', ')}: una errata cobra ${'' } el precio de la accion por el comando equivocado`);
+    }
+    // 4) y ninguno lleva un caracter que la normalizacion se coma: un case con
+    // eñe o con tilde no se alcanza NUNCA, porque el dispatcher normaliza antes
+    // de comparar. Pasa desapercibido: el comando simplemente no existe.
+    for (const n of nombres) {
+      const normal = n.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ñ/g, 'n');
+      exige(n === normal, `la accion *!${n}* lleva tilde o eñe: el dispatcher normaliza antes de comparar, asi que ese case no se alcanza nunca (tendria que ser *!${normal}*)`);
+    }
+    if (fallos === antes) console.log(verde(`   ✓ los ${nombres.length} nombres de accion son unicos, no pisan nada y se pueden teclear`));
+  }
+
   // ── 35. LOS DOS PREFIJOS HACEN EXACTAMENTE LO MISMO ──────────────────────
   //
   // El bot entiende *!aura* y */aura*. Eso no es una opcion de configuracion:

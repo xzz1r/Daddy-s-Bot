@@ -597,6 +597,7 @@ copia legible; si las dos discrepan, la del código tiene razón.
 | `vaultPhrases.js` (la caja) | `%N` nombre, `%C` cantidad, `%Z` lo guardado, `%S` saldo a la vista |
 | `rachaPhrases.js` | `%N` nombre, `%D` días de racha, `%P` días perdidos |
 | `activity.js`, `duel.js` | `%W` ganador, `%L` perdedor |
+| `accionPhrases.js` | `%A` quien la hace, `%V` quien la recibe |
 | `mog.js` | `%M` / `%L` |
 | `iq.js` | `%IQ` |
 | `topsRandom.js` | `{N}` |

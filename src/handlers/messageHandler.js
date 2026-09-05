@@ -82,6 +82,7 @@ const cmdInactivos = lazyCmd('../commands/activity', 'cmdInactivos');
 const { cmdPurgaNumero, cmdPurge } = require('../commands/purgaNumero');
 const cmdRoast = lazyCmd('../commands/roast', 'cmdRoast');
 const { cmdDar } = require('../commands/dar');
+const acciones = require('../commands/acciones');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, cmdCasino } = require('../commands/social');
 const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, extractText, getSender, canonicalJid, sameUser, indexGroupMeta } = require('../utils/wa');
 const logger = require('../utils/logger');
@@ -89,6 +90,17 @@ const logger = require('../utils/logger');
 const { clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa, PERMISO_ENLACE, puedeAnunciar, anotarTropiezo, perfilMirado } = require('../utils/antilink');
 const { SIN_PERMISO, SOLO_GRUPOS, MAL_ESCRITO } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
+
+// LOS COMANDOS DE ACCION, EN UN SITIO. Se sacan del propio modulo para no
+// tenerlos escritos seis veces —dispatcher, cobro, metadata, lentos y las dos
+// vistas del menu—, que es exactamente como se desincronizan.
+const NOMBRES_ACCION = Object.keys(acciones.ACCIONES);
+const ALIAS_ACCION = NOMBRES_ACCION.flatMap((n) => acciones.ACCIONES[n].cmds);
+// Del nombre TECLEADO al handler. Los alias no pueden colgar de un `case` que
+// llame al canonico a mano: se olvida uno y ese alias sale gratis o revienta.
+const ACCION_DE = {};
+for (const n of NOMBRES_ACCION) for (const c of acciones.ACCIONES[n].cmds) ACCION_DE[c] = acciones[n];
+const accionPorNombre = (c) => ACCION_DE[c];
 
 // Commands that need group metadata — skip the network call for everything else
 const NEEDS_META = new Set([
@@ -200,6 +212,9 @@ const NEEDS_META = new Set([
   // mismo que sus hermanos.
   'vault','safe','lock','unlock','stash',
   'regalar','transferir','pagar','dar','donar',
+  // Las acciones van dirigidas a alguien: sin metadata el @ no se resuelve y en
+  // un grupo LID acaba mencionando a quien no es.
+  ...ALIAS_ACCION,
   'ayuda','help','menu','commands',
 ]);
 
@@ -276,6 +291,8 @@ const LENTOS = new Set([
   'count', 'conteo',
   'roast', 'flamear', 'quemar', 'destruir',
   'purge', 'p',
+  // Bajan un gif de fuera y lo pasan por ffmpeg.
+  ...ALIAS_ACCION,
 ]);
 
 const COBRAN_SOLOS = new Set([
@@ -285,6 +302,9 @@ const COBRAN_SOLOS = new Set([
   // menciones, contra uno mismo, y el silencio contra el owner) y cobrando
   // fuera se pagaba por ellas.
   'vs', 'versus',
+  // Las acciones cobran dentro: piden un gif a una web de fuera y devuelven el
+  // aura si no llega.
+  ...ALIAS_ACCION,
 ]);
 
 // El fuente de este mismo fichero, leido UNA vez.
@@ -2460,6 +2480,50 @@ async function handleMessage(sock, msg) {
         break;
       case 'unlock':
         resultado = await cmdVault(sock, msg, ['unlock', ...args], groupMeta);
+        break;
+
+      // LAS ACCIONES. Un solo destino para los treinta y un nombres: el modulo
+      // sabe cual le toca por el nombre tecleado.
+      //
+      // UNO POR LINEA, aunque ocupe treinta y una. Los validadores leen los
+      // `case` con un patron de principio de linea, asi que dos en la misma
+      // cuentan como uno: los alias desapareceran de la comprobacion del menu y
+      // de la clasificacion del interruptor de aura sin que nadie lo note.
+      //
+      // Y SIN TILDES NI EÑES: el dispatcher normaliza antes de comparar, asi que
+      // un case con eñe no se alcanza jamas. Por eso es *!punetazo*.
+      case 'hug':
+      case 'abrazo':
+      case 'abrazar':
+      case 'kiss':
+      case 'beso':
+      case 'besar':
+      case 'cuddle':
+      case 'mimo':
+      case 'acurrucar':
+      case 'pat':
+      case 'caricia':
+      case 'acariciar':
+      case 'poke':
+      case 'toque':
+      case 'picar':
+      case 'punch':
+      case 'puno':
+      case 'punetazo':
+      case 'slap':
+      case 'torta':
+      case 'bofetada':
+      case 'morder':
+      case 'mordisco':
+      case 'patada':
+      case 'patear':
+      case 'bonk':
+      case 'zurra':
+      case 'mazazo':
+      case 'fuck':
+      case 'follar':
+      case 'joder':
+        resultado = await accionPorNombre(command)(sock, msg, args, groupMeta);
         break;
 
       case 'asalto':
