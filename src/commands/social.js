@@ -396,7 +396,7 @@ async function cmdHelp(sock, msg, groupMeta, args = []) {
 
   const text = completo ? textoCompleto(p, c, esAdmin, esOwner) :
 `*${config.botName}*
-_Todo lleva ${PREFIJOS} delante · el número es lo que cuesta en aura_
+_Todo lleva ${PREFIJOS} delante. El número es lo que cuesta; sin número no cobra._
 
 ━━ *HERRAMIENTAS* ━━
 *${p}play* ${c('play')} <nombre> · *${p}s* ${c('sticker')} · *${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')}
@@ -421,7 +421,7 @@ _De una palabra, ${PRECIOS.percent} cada uno, de más crudo a más suave:_
 *${p}aura* la tirada · *${p}saldo* · *${p}top* · *${p}hoy* · *${p}guia*
 
 ━━ *ACCIONES* ━━
-_Sobre alguien, ${c('accion')} cada una_
+_Sobre alguien, ${c('accion')} cada una. También en castellano: *${p}abrazo*, *${p}torta*, *${p}patada*…_
 *${p}hug* · *${p}kiss* · *${p}cuddle* · *${p}pat* · *${p}poke*
 *${p}punch* · *${p}slap* · *${p}morder* · *${p}patada* · *${p}bonk*
 *${p}fuck* ${c('accionNsfw')} — la cara
