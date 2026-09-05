@@ -678,7 +678,14 @@ async function cmdDiag(sock, msg, groupMeta) {
     text += `\n*Sobres desconocidos vistos (${lista.length}):*\n`;
     for (const d of lista.slice(0, 6)) {
       const hace = Math.round((Date.now() - d.ts) / 60000);
-      text += `\n• *${d.sobre}* — hace ${hace} min, de +${d.de || '?'}\n`;
+      // UN @lid NO ES UN TELEFONO. Se imprimia como "+168118374686783", que
+      // parece un numero y no lo es: es el identificador interno que WhatsApp
+      // le da a una persona cuando el grupo va por LID. Enseñarlo con un + al
+      // lado invita a buscar a alguien que no existe.
+      const quien = !d.de ? '?'
+        : String(d.de).endsWith('@lid') ? `LID ${String(d.de).split('@')[0]}`
+          : `+${String(d.de).split('@')[0]}`;
+      text += `\n• *${d.sobre}* — hace ${hace} min, de ${quien}\n`;
       text += '```' + JSON.stringify(d.forma).slice(0, 320) + '```\n';
     }
     text += '\n_Si alguno de estos coincide con una historia subida al grupo, pásamelo y lo añado a la lista vigilada._';
@@ -1133,6 +1140,14 @@ const TIPOS_CONOCIDOS = new Set([
   'buttonsResponseMessage', 'templateButtonReplyMessage', 'interactiveMessage',
   'interactiveResponseMessage', 'albumMessage', 'eventMessage', 'commentMessage',
   'keepInChatMessage', 'stickerSyncRmrMessage', 'encReactionMessage',
+  // UNA EDICION, NO UNA HISTORIA. Aparecio en *!diag* como sobre desconocido y
+  // el propio aviso invita a anyadir a la lista vigilada lo que parezca un
+  // estado. Este NO lo es: su proto solo admite tres variantes —UNKNOWN,
+  // EVENT_EDIT y MESSAGE_EDIT—, o sea alguien editando un mensaje o un evento.
+  // Meterlo entre los estados haria que el bot echara y vetara a quien corrige
+  // una errata. Va aqui, entre los conocidos, para que la lista de desconocidos
+  // se quede limpia y un sobre de estado NUEVO se vea a la primera.
+  'secretEncryptedMessage',
   ...SOBRES_ESTADO,
 ]);
 const tiposVistos = new Set();
@@ -1167,7 +1182,7 @@ function anotarTipoDesconocido(message, jid, sender) {
       sobre: k,
       ts: Date.now(),
       grupo: jid || null,
-      de: sender ? sender.split('@')[0] : null,
+      de: sender || null,
       forma: formaDe(message[k]),
     });
   }
