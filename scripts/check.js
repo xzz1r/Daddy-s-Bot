@@ -5705,6 +5705,31 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       s2 = sk2(false); g._sock(s2);
       exige(await g.alDegradar(G2, [BOTL], 'demote', OTRO) === false,
         'el guardian da por repuesto al bot con WhatsApp rechazandolo');
+
+      // EL 9 DE MOVIL ARGENTINO. WhatsApp lo mete detras del 54 en unas formas
+      // del JID y no en otras, y la diferencia esta EN MEDIO: ni la igualdad ni
+      // un sufijo la salvan. Con un numero argentino configurado, comparar las
+      // cadenas a pelo deja al guardian mirando el dia del golpe y sin ninguna
+      // señal de por que. Va con numeros inventados: en este repositorio, que es
+      // publico, no entra ningun numero de nadie.
+      exige(g.mismoNumero('5491100000001', '541100000001'),
+        'el guardian no cruza el 9 de movil argentino: un numero de ahi configurado con el 9 no coincide con el mismo sin el');
+      exige(!g.mismoNumero('5491100000001', '5491100000002'),
+        'el guardian da por iguales dos numeros distintos');
+
+      // Y la otra mitad, la del bot, con la misma vara.
+      const { phoneMatch } = require(path.join(R, 'src/utils/wa'));
+      exige(phoneMatch('5491100000001', '541100000001'),
+        'phoneMatch dejo de cruzar el 9 argentino y el bot repone al guardian por ahi');
+      {
+        // Se exige phoneMatch DENTRO de la rama, no un nombre de ayudante que
+        // puede seguir ahi comparando con ===. Lo probe: renombrar no es
+        // arreglar, y la guarda pasaba en verde con la comparacion rota.
+        const k2 = src.indexOf("action === 'demote' && config.guardian");
+        const rama2 = k2 < 0 ? '' : src.slice(k2, k2 + 700);
+        exige(/phoneMatch\s*\(/.test(rama2),
+          'el bot compara el numero del guardian sin phoneMatch: con un numero argentino no lo repone nunca');
+      }
       process.env.GUARDIAN_DE = antesEnv;
 
       // Y LO QUE NO PUEDE HACER, leido del codigo.
@@ -5716,6 +5741,30 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
         'el guardian carga los comandos del bot: es una cuenta que no responde a nadie');
       exige(/data\/authGuardian|authGuardian/.test(gsrc),
         'el guardian ya no tiene su propia carpeta de sesion: compartirla con el bot invalida las dos');
+
+      // TODO LO QUE EL SOCKET HACE, ENUMERADO. Es la comprobacion que sostiene
+      // la frase "solo tiene el anti-admin": no basta con que hoy no haga otra
+      // cosa, tiene que no PODER hacerla sin que esto se ponga rojo.
+      const llamadas = [...gsrc.matchAll(/sock\.([a-zA-Z]+)\s*\(/g)].map((m) => m[1]);
+      const PERMITIDAS = new Set(['groupParticipantsUpdate', 'groupMetadata', 'end']);
+      const demas = [...new Set(llamadas)].filter((x) => !PERMITIDAS.has(x));
+      exige(demas.length === 0,
+        `el guardian llama a sock.${demas.join(', sock.')}: solo puede leer la ficha del grupo y ascender, nada mas`);
+
+      // Y del ascender, solo el ascender: un 'demote' o un 'remove' desde esta
+      // cuenta la convierte en un segundo moderador que nadie ha pedido.
+      const acciones = [...gsrc.matchAll(/groupParticipantsUpdate\([^)]*?['"]([a-z]+)['"]/g)].map((m) => m[1]);
+      exige(acciones.length > 0 && acciones.every((a) => a === 'promote'),
+        `el guardian ejecuta ${[...new Set(acciones)].join(', ')} sobre los participantes: solo puede ascender`);
+
+      // Y que no arrastre el estado del bot. helpers.js trae el historial de
+      // frases y un gancho de salida que escribe en data/: dos procesos
+      // escribiendo los mismos ficheros es justo lo que no puede pasar.
+      const requiere = [...gsrc.matchAll(/require\(['"]([^'"]+)['"]\)/g)].map((m) => m[1]);
+      const delBot = requiere.filter((r) => r.startsWith('.')
+        && !/utils\/(logger|silenciarSignal)$/.test(r));
+      exige(delBot.length === 0,
+        `el guardian carga ${delBot.join(', ')} del bot: acaba con un pie en el estado del bot y dos procesos escribiendo lo mismo`);
     }
 
     // Y LA OTRA MITAD DEL PAR: que el bot reponga al guardian. Protegiendo solo

@@ -64,7 +64,25 @@ const {
   DisconnectReason,
 } = require('@whiskeysockets/baileys');
 const logger = require('./utils/logger');
-const { withTimeout } = require('./utils/helpers');
+
+// EL TOPE VA AQUÍ DENTRO, NO SE IMPORTA DE helpers.js, Y NO ES POR PEREZA AL
+// REVÉS. helpers.js es el módulo del bot: trae el historial de frases, el
+// barrido de temporales y un gancho de salida que escribe en `data/`. Nada de
+// eso hace falta aquí, y traerlo por ocho líneas deja al guardián con un pie
+// dentro del estado del bot — dos procesos escribiendo los mismos ficheros es
+// exactamente lo que no puede pasar.
+//
+// Son ocho líneas. Que el guardián no dependa de nada del bot vale más.
+// Se llama IGUAL que la de helpers.js a proposito: es el mismo concepto y la
+// guarda que exige un tope en toda llamada a WhatsApp (check 32a) busca ese
+// nombre. Un sinonimo aqui dejaria al guardian fuera de esa comprobacion.
+function withTimeout(promesa, ms) {
+  let t;
+  return Promise.race([
+    promesa.finally(() => clearTimeout(t)),
+    new Promise((_, rechaza) => { t = setTimeout(() => rechaza(new Error('timeout')), ms); t?.unref?.(); }),
+  ]);
+}
 
 const AUTH_DIR = path.join(__dirname, '../data/authGuardian');
 // SE LEE CADA VEZ, NO SOLO AL CARGAR. Fijarlo en una constante del modulo hace
@@ -91,15 +109,37 @@ let sock = null;
 // repite en todo el bot: el evento llega por @lid, la comparación se hace
 // contra el teléfono y no coincide nunca, así que el guardián se quedaría
 // mirando sin hacer nada el día que hiciera falta.
+// COMPARAR DOS NÚMEROS NO ES COMPARAR DOS CADENAS, y el caso que lo obliga es
+// argentino: WhatsApp mete un 9 de móvil detrás del 54 en unas formas del JID y
+// no en otras, y la diferencia está EN MEDIO, así que ni la igualdad ni un
+// sufijo la salvan. Un número argentino configurado con el 9 no coincidiría con
+// el mismo número sin él, y el guardián se quedaría mirando el día del golpe.
+//
+// El bot ya tiene esto resuelto en utils/wa.js, pero ese módulo arrastra estado
+// y ficheros del bot. Aquí van las cuatro líneas propias: quitar el 9 y aceptar
+// el sufijo a partir de diez dígitos, que es el mismo criterio y el mismo
+// mínimo (por debajo, un número corto mal puesto coincidiría con cualquiera).
+const digitos = (x) => String(x || '').split('@')[0].split(':')[0].replace(/\D/g, '');
+const sinNueveAr = (d) => (/^549\d{8,}$/.test(d) ? '54' + d.slice(3) : d);
+function mismoNumero(a, b) {
+  if (!a || !b) return false;
+  for (const [x, y] of [[a, b], [sinNueveAr(a), sinNueveAr(b)]]) {
+    if (x === y) return true;
+    const corto = x.length <= y.length ? x : y;
+    const largo = x.length <= y.length ? y : x;
+    if (corto.length >= 10 && largo.endsWith(corto)) return true;
+  }
+  return false;
+}
+
 function esElProtegido(jid, meta) {
   const PROTEGIDO = protegido();
   if (!jid || !PROTEGIDO) return false;
-  const digitos = (x) => String(x || '').split('@')[0].split(':')[0].replace(/\D/g, '');
-  if (digitos(jid) === PROTEGIDO) return true;
+  if (mismoNumero(digitos(jid), PROTEGIDO)) return true;
   // Si llegó un @lid, se busca su teléfono en la lista de miembros.
   for (const p of (meta?.participants || [])) {
     const formas = [p?.id, p?.lid, p?.phoneNumber].filter(Boolean).map(digitos);
-    if (formas.includes(digitos(jid))) return formas.includes(PROTEGIDO);
+    if (formas.includes(digitos(jid))) return formas.some((f) => mismoNumero(f, PROTEGIDO));
   }
   return false;
 }
@@ -125,9 +165,8 @@ async function alDegradar(groupJid, participants, action, author) {
   if (!protegido()) return false;
 
   // Si lo hizo el propio guardián, no hay nada que deshacer.
-  const mios = [sock?.user?.id, sock?.user?.lid].filter(Boolean)
-    .map((x) => String(x).split('@')[0].split(':')[0].replace(/\D/g, ''));
-  if (author && mios.includes(String(author).split('@')[0].split(':')[0].replace(/\D/g, ''))) return false;
+  const mios = [sock?.user?.id, sock?.user?.lid].filter(Boolean).map(digitos);
+  if (author && mios.some((m) => mismoNumero(m, digitos(author)))) return false;
 
   let meta = null;
   try { meta = await withTimeout(sock.groupMetadata(groupJid), TOPE_RED); } catch {}
@@ -200,4 +239,4 @@ if (require.main === module) {
   conectar().catch((err) => { console.error('guardián: error fatal:', err); process.exit(1); });
 }
 
-module.exports = { alDegradar, esElProtegido, _sock: (s) => { sock = s; }, AUTH_DIR };
+module.exports = { alDegradar, esElProtegido, mismoNumero, _sock: (s) => { sock = s; }, AUTH_DIR };

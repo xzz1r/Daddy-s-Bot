@@ -764,6 +764,7 @@ module.exports = {
   isBotJid,
   isBotAdmin,
   esBotCreador,
+  phoneMatch,
   isGroupAdmin,
   getSender,
   getTarget,

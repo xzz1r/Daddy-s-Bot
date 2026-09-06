@@ -33,7 +33,7 @@ const STUB_SOLICITUD = new Set([144, 172]);
 const autoAcceptPendiente = new Map();
 const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, isAutoAceptarEnabled, flushState, vistoActivo } = require('./utils/state');
-const { isOwner, sameUser, isBotAdmin, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto } = require('./utils/wa');
+const { isOwner, sameUser, isBotAdmin, phoneMatch, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto } = require('./utils/wa');
 const { anotarDeuda, cobrarDeuda, flushDeuda } = require('./utils/adminDeuda');
 // anotarAlta apunta el motivo de cada alta; motivoDelAlta lo consulta cuando hay
 // que decidir si un alta fue a dedo (la unica que se sanciona).
@@ -1571,12 +1571,19 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
     // preferencia del grupo sobre quién manda, es el bot manteniendo en pie su
     // propia defensa. Y no se anuncia nada: la reposición ya sale en el aviso
     // de sistema de WhatsApp.
+    //
+    // Y SE COMPARA CON phoneMatch, NO CON ===. WhatsApp mete un 9 de movil
+    // detras del 54 en unas formas del JID argentino y no en otras, y la
+    // diferencia esta EN MEDIO: comparar las cadenas a pelo deja al guardian sin
+    // reponer justo cuando toca, y sin ninguna señal de por que.
     if (action === 'demote' && config.guardian && !fromBot) {
       const digitos = (x) => String(x || '').split('@')[0].split(':')[0].replace(/\D/g, '');
-      const caido = partJids.filter((j) => digitos(j) === config.guardian
-        || (meta?.participants || []).some((p) =>
-          [p?.id, p?.lid, p?.phoneNumber].filter(Boolean).map(digitos).includes(digitos(j))
-          && [p?.id, p?.lid, p?.phoneNumber].filter(Boolean).map(digitos).includes(config.guardian)));
+      const esGuardian = (x) => phoneMatch(digitos(x), config.guardian);
+      const caido = partJids.filter((j) => esGuardian(j)
+        || (meta?.participants || []).some((p) => {
+          const formas = [p?.id, p?.lid, p?.phoneNumber].filter(Boolean);
+          return formas.map(digitos).includes(digitos(j)) && formas.some(esGuardian);
+        }));
       if (caido.length) {
         const r = await aplicarParticipantes(sock, groupJid, caido, 'promote', meta);
         if (r.ok?.length) logger.warn(`le he devuelto el admin al guardián en ${groupJid}`);
