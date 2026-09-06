@@ -14,7 +14,9 @@
 // 1. LA ACCIÓN SE REPRODUCE NORMAL. %A le hace el gesto a %V. El gif ya se ve,
 //    la frase comenta la escena (público, duración, sonido), no la vuelve a
 //    contar y no la convierte en otra cosa. Un beso es un beso.
-// 2. LO GUARRO VA EN LOS SEXUALES. FUCK carga el texto entero: el gif es SFW.
+// 2. LO GUARRO VA EN LOS SEXUALES. FUCK carga el texto entero. El gif es
+//    anime al azar, así que la frase comenta y no receta un plano: si describe
+//    un azulejo, un coche o una postura, la imagen no va a coincidir.
 // 3. EL CHISTE DE LA ACCIÓN ES %V, NUNCA %A. A quien gana no se le quita.
 // 4. EL ROAST ES OTRA LÍNEA. Va debajo, en cursiva, y no habla del gesto:
 //    se ríe de que %A lo haya hecho a través de una pantalla.
@@ -350,36 +352,36 @@ const BONK = [
 ];
 
 const FUCK = [
-  '%A se lleva a %V al baño, le baja los vaqueros a medias y se la mete de pie, contra el azulejo, hasta que a %V se le va el nombre.',
-  '%A se folla a %V delante de todo el grupo. Le abre las piernas, se la clava y no para. A %V se le oye. Qué asco de altavoz, y qué rico.',
-  '%A pone a %V a cuatro patas, le escupe en el culo y se la mete hasta el fondo. El chat se hace el sueco. %V no puede: tiene la cara en el suelo y la polla de %A dentro.',
-  '%A le folla el chocho a %V contra la pared, vaqueros a un lado, y se corre dentro. A %V se le escurre por el muslo el resto del día. Recuerdito, joder.',
-  '%A le abre el culo a %V de dos manos y se la mete despacio, hasta que %V pide que pare. No pares. %A empuja. %V gime. El gemido es el sí.',
-  '%A le llena la boca a %V de polla hasta la campanilla. %V babea, tose y sigue. %A le aparta el pelo y le folla la garganta. Traga, cabrón.',
-  '%A se corre encima de %V, en la cara, en las tetas, en la boca. %V da las gracias con la lengua. Ahí está todo el vínculo, pringado y suyo. Qué asco de altar.',
-  '%A le chupa el coño a %V hasta dejarlo hecho un pantano, le mete dos dedos y luego la polla. %V se corre en la mano de %A y todavía abre más. Guarro, y de los dos.',
-  '%A folla a %V por detrás en el rellano, una mano en la boca y la otra en el pelo. El vecino oye a %V. El gemido baja un piso. %V se tapa tarde, joder.',
-  '%A le parte el culo a %V a hostia de cadera, agarrado del pelo, hasta que a %V se le pone la voz ronca. No de hablar. De tomarla. Mañana se sienta de lado.',
-  'En el coche, asientos echados, alarma sonando, %A se folla a %V. Que suene. Está a otra cosa: a dejarle el asiento mojado, chocho y semen, un desastre.',
-  '%A le folla las tetas a %V, se corre en el pecho y se lo limpia con la lengua. Luego se la mete en la boca para que %V pruebe lo que hay. Feo. Guarro. Y a %V le queda de puta madre.',
-  '%A pone a %V encima, de silla, y le dice que rebote. %V aplasta, gime y se le va el aire a %A. %A no para. %V tampoco. El suelo está perdido. El coño, más.',
-  '%A le come el culo a %V, lengua hasta donde no se habla en la mesa, y luego se la mete ahí también. %V dice joder. Joder no es que no. %A empuja hasta que %V se le olvida el no.',
-  '%A se corre dentro de %V y no saca la polla. Se la deja puesta, palpitando, mientras a %V se le escurre por el muslo. El problema, de cintura para abajo, tiene nombre. Qué asco de recuerdo, y qué vicio.',
-  '%A le hace una rusa a %V entre las tetas y acaba en la barbilla. Le sube la cara y se la mete en la boca. %V traga. Si escupe, se la vuelve a meter. Trato de cerdo, firmado con baba.',
-  '%A folla a %V en la ducha hasta que se acaba el agua caliente. Luego con el agua fría. Luego en la toalla, que ya está perdida, con %V abierto y goteando. Cardio de puta, y de los dos.',
-  '%A le mete los dedos a %V mientras le chupa el clítoris, sin prisa, hasta que se le dobla la espalda. Luego le clava la polla en ese mismo temblor. %V dice basta y abre más. Mentiroso de coño.',
-  'Tanga de %V apartada con un dedo, sin quitársela. %A se la clava así. Atajo. El mejor. %V moja la tela y la polla. %A se corre a medio vestir, animal de mierda y de ganas.',
-  '%A le folla la boca a %V hasta dejarle la barra de labios por el palo. %V mira. Si babea, mejor. %A se corre en la lengua y le pide que trague. %V traga. El beso de después sabe a los dos, qué asco tan rico.',
-  '%A pone a %V de cuchara, le abre un muslo y se la mete hondo, perezoso, hasta el fondo. Sin luz. Sin prisa. El culo de %V contra él y %A perdiendo el puto sentido dentro.',
-  '%A le llena a %V el culo de saliva, se la mete y le deja las nalgas coloradas de hostias y de polla. Mañana %V se sienta y se acuerda. De %A. De cómo se la partió. Guarro de silla.',
-  '%A se folla a %V en la encimera, nevera abierta, platos al suelo. El yogur se pone malo. %V se pone peor: abierta, mojada, con la polla de %A hasta el útero y un gemido que no iba a soltar.',
-  '%A le corre el rímel a %V a hostia de cadera, follándoselo de frente, hasta que se le saltan las lágrimas. Lágrimas de rico. Baba. Pelo pegado. %V pide más. El más es polla. El rímel es el parte.',
-  '%A le clava la polla a %V en el descansillo, mano en la boca, pantalones en los tobillos. Si %V gime alto, se la mete más. Si se calla, también. No hay escapatoria. Hay culo y hay prisa y hay semen.',
-  '%A se corre entre las nalgas de %V y se lo deja todo pringado. Que se vista así. Que camine así. Que el algodón se entere primero. %V se lo pone encima, guarro de secreto, y se le escurre por el culo el resto de la tarde.',
-  '%A le folla a %V el chocho y el culo en la misma sesión, sin limpiar, de un agujero al otro. %V ya no sabe cuál pide. Pide. %A elige. El colchón está perdido. %V también, de rodillas y de semen.',
-  '%A le hace venirse a %V dos veces con la lengua y a la tercera se la mete. Si a la tercera ya no puede, se la mete igual. Lo hablan encima, con %V temblando y la polla de %A hasta el fondo, joder.',
-  '%A usa a %V de puta cinco minutos: pelo de asa, polla en la garganta, culo al aire, y un "traga" que %V obedece. Cinco minutos. O veinte. %V se limpia con la camiseta de %A. La camiseta se jubila. %V, no: pide otra ronda.',
-  '%A se la mete a %V nada más entrar por la puerta. Sin hola. El hola es la polla. El adiós, también. %V contra la puerta, un muslo arriba, el chocho tomado, y el gemido firmando el parte. Conversación resuelta, cabrones los dos.',
+  '%A se folla a %V. Ni una disculpa. Ni falta que hace.',
+  '%A se lleva a %V y ninguno de los dos vuelve a mirar igual al resto.',
+  '%A se lo hace a %V delante del grupo. El chat entero se hace el sueco.',
+  '%A se mete en %V hasta el fondo. Doce meses de tensión resueltos en dos minutos y en el gemido de %V.',
+  '%A revienta a %V. Mañana %V va a escribir aquí como si el culo no le doliera. Le duele. Se le lee.',
+  '%A se corre y %V da las gracias. Ahí está todo el vínculo, resumido. Qué asco de altar.',
+  '%A se lo folla a %V como llevaba meses contándolo por privado. Al final era verdad.',
+  '%A deja a %V con la polla todavía en la cabeza. Se le ve en cómo se sienta después.',
+  '%A folla a %V hasta que se le va la voz. La voz era lo decente. Ahora gime, joder, y ya.',
+  '%V anda como el chiste. El chiste lo lleva dentro. %A no pregunta. Se le ve en el paso.',
+  '%A se corre dentro de %V y no saca. El problema de %V, de cintura para abajo, tiene nombre. Qué asco de recuerdo.',
+  '%A le parte el culo a %V. Mañana se sienta de lado y finge una contractura. Nadie se la cree.',
+  '%V pide más. El más es polla. %A se la da. El grupo oye el más, qué asco de altavoz.',
+  '%A se lo clava a %V sin romance y sin prisa de irse. %V tampoco tiene prisa. Los dos mienten luego.',
+  '%A deja a %V hecho un desastre y %V se viste encima. El resto del día es un secreto que se le pega a la piel, guarro y suyo.',
+  '%A folla a %V hasta vaciarse y le pide otra ronda. %V dice basta y abre. Mentiroso de coño.',
+  'A %V se le olvida el nombre. %A se lo va recordando. A hostia de cadera. Joder.',
+  '%A se corre en %V y le pide que no se limpie todavía. %V no se limpia. Qué asco de bueno.',
+  '%A se lo clava a %V sucio y sin avisar más. %V avisa después, con un gemido que no iba a soltar.',
+  '%A se corre y besa a %V después. %V traga la prueba. El beso sabe a los dos. Qué asco tan rico.',
+  '%A se acaba en %V. %V se acaba en %A. Luego los dos escriben como si nada. Joder.',
+  '%A no pregunta cómo está %V. Se le ve. Se le oye. Se le nota al sentarse. Puta cojera de cama.',
+  '%A se lo monta con %V sin quitar ni la vergüenza. La de %V queda en el suelo. La polla, no.',
+  '%A llena a %V y %V se va así. El secreto se escurre solo. Qué vicio. Qué miseria tan rica.',
+  '%A se folla a %V hasta que %V pide que pare. No pares. Pide otra cosa. %V pide otra cosa.',
+  '%A se corre pensando en %V desde hace tiempo. Hoy no piensa: se lo folla. %V se entera de golpe.',
+  'Lo de %A y %V no cabe en una frase educada. Cabe en cómo se sienta %V mañana y en lo que no va a contar.',
+  'Sucio, rápido y sin hablar. %A se folla a %V. El hablar era lo que sobraba. %V gime y ya está dicho.',
+  '%A se corre dentro y %V se viste. Prioridades, coño. El resto del día le recuerda quién fue.',
+  '%A usa a %V y %V se deja usar. Cinco minutos. O veinte. %V pide otra ronda, el muy guarro.',
 ];
 
 // Se pega DEBAJO de la frase de la acción, en cursiva, y no habla de la acción:
