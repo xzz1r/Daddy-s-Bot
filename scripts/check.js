@@ -5775,6 +5775,50 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       exige(demas.length === 0,
         `el guardian llama a sock.${demas.join(', sock.')}: solo puede leer la ficha del grupo y ascender, nada mas`);
 
+      // ── LA VINCULACIÓN, POR CÓDIGO Y NO POR QR ────────────────────────
+      //
+      // El QR sirve cuando hay dos pantallas: una que lo enseña y un movil que
+      // lo escanea. Administrando por SSH desde el propio movil no vale — el QR
+      // sale en la misma pantalla con la que habria que escanearlo. El guardian
+      // ya sabe su numero (el GUARDIAN del .env), asi que pide el codigo solo.
+      exige(/requestPairingCode\s*\(/.test(gsrc),
+        'el guardian ya no pide codigo de vinculacion: vuelve a hacer falta escanear un QR, que por SSH desde el movil no se puede');
+
+      // Y EL BORRADO DE CREDENCIALES A MEDIAS, que es la trampa que costo cinco
+      // intentos en el bot: pedir un codigo deja `me` escrito antes de que nadie
+      // lo teclee, y si la vinculacion no se completa todos los arranques
+      // siguientes salen 401 para siempre. Se prueba de verdad, con carpetas de
+      // credenciales reales, porque es un BORRADO: equivocarse de condicion aqui
+      // es cargarse una sesion buena en cada arranque.
+      {
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ddb-chk-creds-'));
+        const D = g.AUTH_DIR;
+        const poner = (creds) => {
+          fs.rmSync(D, { recursive: true, force: true });
+          fs.mkdirSync(D, { recursive: true });
+          fs.writeFileSync(path.join(D, 'creds.json'), JSON.stringify(creds));
+          fs.writeFileSync(path.join(D, 'marca.txt'), 'x');
+        };
+        const habia = fs.existsSync(D);
+        const respaldo = habia ? path.join(dir, 'auth') : null;
+        if (habia) fs.cpSync(D, respaldo, { recursive: true });
+        try {
+          poner({ me: { id: '549@s.whatsapp.net', name: '~' }, pairingCode: 'ABC' });
+          exige(await g.limpiarCredencialesAMedias() === true && !fs.existsSync(path.join(D, 'marca.txt')),
+            'el guardian no borra el muñon de una vinculacion sin terminar: todos los arranques siguientes darian 401 hasta que alguien borre la carpeta a mano');
+          poner({ me: { id: '549@s.whatsapp.net' }, account: { details: 'x' } });
+          exige(await g.limpiarCredencialesAMedias() === false && fs.existsSync(path.join(D, 'marca.txt')),
+            'el guardian BORRA una sesion buena: se desvincularia solo en cada arranque');
+          poner({ me: { id: '549@s.whatsapp.net' }, account: { details: 'x' }, registered: false });
+          exige(await g.limpiarCredencialesAMedias() === false && fs.existsSync(path.join(D, 'marca.txt')),
+            'el guardian mira `registered` en vez de `account`: el QR nunca escribe registered, asi que borraria una sesion escaneada en cada arranque');
+        } finally {
+          fs.rmSync(D, { recursive: true, force: true });
+          if (respaldo) fs.cpSync(respaldo, D, { recursive: true });
+          fs.rmSync(dir, { recursive: true, force: true });
+        }
+      }
+
       // Y del ascender, solo el ascender: un 'demote' o un 'remove' desde esta
       // cuenta la convierte en un segundo moderador que nadie ha pedido.
       const acciones = [...gsrc.matchAll(/groupParticipantsUpdate\([^)]*?['"]([a-z]+)['"]/g)].map((m) => m[1]);

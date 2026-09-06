@@ -121,6 +121,18 @@ function numeroAnotado() {
 
 const protegido = () => String(process.env.GUARDIAN_DE || '').replace(/\D/g, '') || numeroAnotado();
 
+// SU PROPIO número: el de la cuenta que va a ser el guardián. Es el mismo
+// GUARDIAN que ya lleva el .env para que el bot sepa a quién reponer, así que no
+// hay una segunda variable que mantener igual a mano.
+const miNumero = () => String(process.env.GUARDIAN || '').replace(/\D/g, '');
+
+// Cuántos códigos se piden antes de parar. Encadenar peticiones de vinculación
+// es de las cosas que agravan una restricción de cuenta, y una cuenta guardiana
+// vetada no guarda nada. Si tres códigos no se han usado, el problema no es el
+// código: es que nadie está delante del móvil.
+const MAX_CODIGOS = 3;
+let codigosPedidos = 0;
+
 // Reconexión con espera creciente, igual que el bot: reintentar cada segundo
 // contra un WhatsApp que dice que no es la forma de que te veten la cuenta.
 // TOPE PARA CUALQUIER LLAMADA AL SOCKET. Baileys no lo trae: si la conexion se
@@ -213,6 +225,20 @@ async function alDegradar(groupJid, participants, action, author) {
   return reponer(groupJid, caidos);
 }
 
+// Aparte y exportada: es un borrado de credenciales, o sea lo que mas cuesta si
+// se equivoca de condicion, y solo ocurre en un arranque tras una vinculacion a
+// medias. Sin poder probarla, la unica forma de saber si acierta seria dejar una
+// vinculacion a medias a proposito y ver que pasa.
+async function limpiarCredencialesAMedias() {
+  const previo = await useMultiFileAuthState(AUTH_DIR);
+  const c = previo.state?.creds;
+  if (!c?.me || c.account) return false;
+  await fs.remove(AUTH_DIR);
+  await fs.ensureDir(AUTH_DIR);
+  logger.warn('guardián: había credenciales a medias (una vinculación sin terminar). Empiezo de cero.');
+  return true;
+}
+
 async function conectar() {
   // NO SE MUERE SI TODAVÍA NO HAY NÚMERO, y antes sí: en un arranque en frío los
   // dos procesos suben a la vez, el bot tarda unos segundos en conectar y el
@@ -226,6 +252,23 @@ async function conectar() {
   }
 
   await fs.ensureDir(AUTH_DIR);
+
+  // CREDENCIALES A MEDIAS: SE MIRA `account`, NO `registered`.
+  //
+  // Es la misma trampa que ya costó cinco intentos en el bot, y aquí habría
+  // costado otros cinco. Pedir un código de vinculación deja escrito `creds.me`
+  // ANTES de que nadie lo teclee. Si la vinculación no se completa —el código
+  // caduca, se teclea tarde, se cae la conexión— el arranque siguiente encuentra
+  // ese `me`, intenta INICIAR SESIÓN con unas credenciales que nunca llegaron a
+  // registrarse, y WhatsApp contesta 401. A partir de ahí da igual lo rápido que
+  // se teclee: todos los intentos salen 401 hasta que alguien borra la carpeta a
+  // mano.
+  //
+  // Lo que distingue una sesión de verdad de ese muñón es `account`, que solo se
+  // escribe cuando la vinculación se completó. `registered` NO vale: el QR no lo
+  // pone nunca, así que mirarlo borraría una sesión buena en cada arranque.
+  await limpiarCredencialesAMedias();
+
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
   let version;
   try { ({ version } = await fetchLatestBaileysVersion()); } catch {}
@@ -248,8 +291,48 @@ async function conectar() {
 
   sock.ev.on('creds.update', saveCreds);
 
+  // ─── VINCULACIÓN POR CÓDIGO ─────────────────────────────────────────────
+  //
+  // Sin QR y sin cámara. El guardián ya sabe su propio número —es el GUARDIAN
+  // del .env— así que pide el código él solo la primera vez y lo saca por
+  // pantalla. Ocho caracteres que se le pasan al co-owner por donde sea, y este
+  // los teclea en:
+  //
+  //   WhatsApp → Dispositivos vinculados → Vincular un dispositivo
+  //   → "Vincular con el número de teléfono"
+  //
+  // El QR sigue saliendo si no hay número puesto, como respaldo.
+  const porCodigo = Boolean(miNumero()) && !state.creds?.registered;
+  if (porCodigo) {
+    if (codigosPedidos >= MAX_CODIGOS) {
+      logger.error(`guardián: van ${codigosPedidos} códigos y ninguno se ha usado. Paro: encadenar peticiones es lo que agrava una restricción de cuenta.`);
+      logger.error('guardián: ten el móvil ABIERTO en "Vincular con el número de teléfono" ANTES de arrancarlo.');
+      try { sock.ev.removeAllListeners(); } catch {}
+      try { sock.end(); } catch {}
+      return;
+    }
+    codigosPedidos++;
+    // El socket se guarda en una local: si la conexión se cae en estos tres
+    // segundos, `sock` ya apunta a otro (o a nada) y esto reventaría.
+    const miSock = sock;
+    setTimeout(async () => {
+      try {
+        if (miSock !== sock) return;
+        const codigo = await miSock.requestPairingCode(miNumero());
+        const bonito = String(codigo).match(/.{1,4}/g)?.join('-') || codigo;
+        console.log(`\n  CÓDIGO DE VINCULACIÓN DEL GUARDIÁN: ${bonito}\n`);
+        console.log(`  En el móvil de +${miNumero()}:`);
+        console.log('  WhatsApp → Dispositivos vinculados → Vincular un dispositivo');
+        console.log('  → "Vincular con el número de teléfono" → teclea el código.');
+        console.log('  Caduca en un par de minutos.\n');
+      } catch (e) {
+        logger.error(`guardián: no pude pedir el código (${e.message}). Comprueba que GUARDIAN lleva prefijo de país y solo dígitos.`);
+      }
+    }, 3000).unref?.();
+  }
+
   sock.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
-    if (qr) {
+    if (qr && !porCodigo) {
       console.log('\nEscanea este QR con el número del guardián:\n');
       qrcode.generate(qr, { small: true });
     }
@@ -283,4 +366,4 @@ if (require.main === module) {
   conectar().catch((err) => { console.error('guardián: error fatal:', err); process.exit(1); });
 }
 
-module.exports = { alDegradar, esElProtegido, mismoNumero, _sock: (s) => { sock = s; }, AUTH_DIR };
+module.exports = { alDegradar, esElProtegido, mismoNumero, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };
