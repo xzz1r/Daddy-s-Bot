@@ -15,123 +15,124 @@
 // Las agresivas van sobre %V, nunca sobre %A. Es la misma regla del robo: al
 // que gana no se le quita la victoria.
 //
-// GROK: SUBE LA CRUDEZA EN LAS DIEZ, no solo en FUCK. Lo que hay escrito abajo
-// es el esqueleto —el angulo de cada una— pero se quedo corto de tono: son
-// comandos que se piden entre colegas para picarse, y salieron demasiado
-// educados. El liston esta en el pool FUCK, mas abajo, y en las frases
-// explicitas de !wingman.
+// GROK: EL TONO YA ESTA PUESTO, LO QUE FALTA ES CANTIDAD. Cada pool lleva ocho
+// frases y necesita treinta. El liston es lo que hay escrito: no lo suavices.
 //
-// En las cariñosas eso significa guarras y no cursis: un abrazo que se pasa de
-// las manos, un mimo que nadie ha pedido. En las agresivas, que el golpe duela
-// y se note donde. Sin eufemismos y sin quedarse a medias.
+// La crudeza va SEGUN EL COMANDO, que es donde estaba el fallo de la primera
+// tanda. En las cariñosas es guarra —el abrazo con las manos donde no tocaba,
+// el mimo que acaba en otra cosa—, no cursi. En las violentas es fisica: donde
+// pega, que se rompe y como suena. Un !punch no se resuelve con un taco al
+// final, se resuelve diciendo que a %V no le va a cerrar la mandibula.
+//
+// Sin eufemismos, sin quedarse a medias y sin salirse de los dos que aparecen.
 
 const HUG = [
-  '%A abraza a %V. Uno de los dos lo necesitaba y no era %V.',
-  '%A se lanza a por %V. Contacto humano por vía administrativa.',
-  '%A abraza a %V y no suelta. Eso ya no es cariño, es una llave.',
-  '%A rodea a %V con los brazos. %V mira al frente calculando cuánto queda.',
-  '%A abraza a %V delante de todos. Un gesto precioso que ha costado 60 de aura.',
-  '%A abraza a %V. Dos segundos. Los justos para que sea raro.',
-  '%A busca a %V para un abrazo. Encontrarlo era la parte difícil.',
-  '%A abraza a %V y aprieta un poco de más. Ahí hay algo sin resolver.',
+  '%A se pega a %V con las manos donde no tocaba. El abrazo era la excusa.',
+  '%A abraza a %V y aprovecha para meterle mano. Nadie ha dicho nada, que es lo grave.',
+  '%A rodea a %V y se le nota todo. Literalmente todo.',
+  '%A abraza a %V dos segundos de más y con la cadera de menos. Cuentas claras.',
+  '%A se lanza a %V. Empieza en abrazo y acaba donde acaban estas cosas.',
+  '%A abraza a %V como quien palpa la mercancía antes de comprar.',
+  '%A se agarra a %V y no piensa soltar hasta que se le baje.',
+  '%A abraza a %V. El apretón de arriba era protocolo; el de abajo, la intención.',
 ];
 
 const KISS = [
-  '%A besa a %V. En el grupo, delante de todos, sin avisar.',
-  '%A le planta un beso a %V. %V lo procesará más tarde, en casa.',
-  '%A besa a %V y el chat se queda quieto un segundo. Solo uno.',
-  '%A besa a %V. Lo ha pagado, así que técnicamente cuenta.',
-  '%A va a por %V. Nadie lo ha impedido, que también dice algo.',
-  '%A besa a %V con una seguridad que no tiene en ningún otro sitio.',
-  '%A besa a %V. Se acabó lo de disimular, y menos mal.',
-  '%A besa a %V. El grupo lo ha visto. No hay marcha atrás.',
+  '%A le mete la lengua a %V hasta la campanilla. Sin preguntar y sin necesidad.',
+  '%A besa a %V con lengua, saliva y público. Los tres ingredientes.',
+  '%A se come la boca de %V delante del grupo entero. Cero vergüenza.',
+  '%A besa a %V y le muerde el labio. Eso ya no es un beso, es un aviso.',
+  '%A le come la boca a %V. Doce meses de tensión resueltos en cuatro segundos.',
+  '%A besa a %V y le deja la cara empapada. Técnica, ninguna. Ganas, todas.',
+  '%A se lía con %V. Mañana los dos van a escribir aquí como si nada.',
+  '%A besa a %V como si le debiera dinero y lo cobrara en especie.',
 ];
 
 const CUDDLE = [
-  '%A se acurruca con %V. La escena dura hasta que alguien la nombre.',
-  '%A se pega a %V como si tuviera derecho. Nadie se lo ha dado.',
-  '%A busca hueco al lado de %V. Lo encuentra, para desgracia de %V.',
-  '%A se acurruca con %V. Diez minutos y ya se le ha dormido el brazo.',
-  '%A se arrima a %V. Empezó como un gesto y va camino de mudanza.',
-  '%A se acurruca con %V y cierra los ojos. %V calcula la distancia a la puerta.',
-  '%A se acomoda encima de %V. Con confianza y sin permiso.',
-  '%A se acurruca con %V. Bonito hasta que alguien recuerda quién es %A.',
+  '%A se acurruca con %V y se le pone dura a los diez segundos. Todos lo hemos visto.',
+  '%A se pega a %V por detrás y se acopla como si tuviera plaza reservada.',
+  '%A se mete en la cama de %V sin preguntar. Ya no se va.',
+  '%A abraza a %V por detrás con más entusiasmo del que cabe en un abrazo.',
+  '%A se acurruca con %V y le respira en el cuello. Sutil como un ladrillo.',
+  '%A se acopla a %V. Empezó de cucharita y va camino de otra cosa.',
+  '%A se enrosca en %V y le mete la pierna en medio. Con confianza y sin permiso.',
+  '%A se acurruca con %V. Diez minutos y ya está buscando el elástico.',
 ];
 
 const PAT = [
-  '%A le da palmaditas a %V en la cabeza. Como a un perro, y encantado.',
-  '%A acaricia la cabeza de %V. El gesto exacto para alguien que no da más.',
-  '%A le da un par de toques a %V. Consuelo del que se dispensa de pie.',
-  '%A le toca la cabeza a %V. Ha bajado el brazo, que ya es esfuerzo.',
-  '%A acaricia a %V. Es lo que se hace con lo que no se puede arreglar.',
-  '%A le da palmaditas a %V. Ánimo por el precio mínimo.',
-  '%A le acaricia el pelo a %V. Ni ha mirado. Ha alargado la mano y ya.',
-  '%A le da unas palmaditas a %V. Cariño con la mano abierta y poco más.',
+  '%A le acaricia la cabeza a %V. A %V le gusta más de lo que debería.',
+  '%A le toca la cabeza a %V y a %V se le pone cara de perro contento. Vergüenza ajena.',
+  '%A acaricia a %V. Un gesto para arriba y toda la intención para abajo.',
+  '%A le da palmaditas a %V. En la cabeza, de momento.',
+  '%A le acaricia el pelo a %V. La mano ha bajado dos veces. Las hemos contado.',
+  '%A trata a %V como a una mascota. Y a %V le vale, que es lo peor.',
+  '%A acaricia a %V con esa condescendencia que a %V le pone.',
+  '%A le pasa la mano a %V por la cabeza. Se le ha ido a otro sitio y ha vuelto.',
 ];
 
 const POKE = [
-  '%A le da un toque a %V. Sin motivo, sin plan, sin nada que decir después.',
-  '%A pincha a %V. Ha gastado aura en eso. Que se entienda.',
-  '%A toca a %V con un dedo y espera. Esa es toda la propuesta.',
-  '%A molesta a %V. Objetivo cumplido en dos décimas.',
-  '%A pincha a %V y se aparta. La técnica del que no sabe empezar una charla.',
-  '%A le da toquecitos a %V. La forma más cara de decir hola.',
+  '%A pincha a %V con el dedo. Con el dedo, de momento.',
+  '%A le da un toque a %V donde no toca. Y se hace el tonto.',
+  '%A pincha a %V y se aparta. La técnica del que no se atreve a más.',
+  '%A toca a %V. Un dedo, cero conversación y toda la intención.',
   '%A pincha a %V hasta que reacciona. Reaccionar era el juego entero.',
-  '%A toca a %V. Nada más. Ni una palabra. Un dedo y su ausencia.',
+  '%A molesta a %V con el dedo. Sesenta de aura para rozarle el costado.',
+  '%A le da toquecitos a %V. Es lo más lejos que va a llegar y lo sabe.',
+  '%A pincha a %V. En el hombro. Qué decepción para todos.',
 ];
 
 const PUNCH = [
-  '%A le mete un puñetazo a %V. Merecido y con retraso.',
-  '%A cruza la cara de %V. El grupo tomaba notas desde hace semanas.',
-  '%A golpea a %V. %V se queda mirando el suelo buscando una explicación.',
-  '%A le da a %V donde le va a doler mañana también.',
-  '%A revienta a %V de un golpe. No hay ronda dos porque no hace falta.',
-  '%A pega a %V. %V lo va a contar como un accidente. No lo era.',
-  '%A le suelta un directo a %V. Corto, limpio y sin discurso.',
-  '%A golpea a %V y sigue a lo suyo. Ni se ha despeinado.',
+  '%A le parte la cara a %V. Se oye el crujido y nadie mueve un dedo.',
+  '%A revienta a %V de un puñetazo. Se le ha caído algo al suelo y no era el móvil.',
+  '%A le cruza la cara a %V. Mañana no va a poder masticar por ese lado.',
+  '%A golpea a %V donde le va a doler al respirar durante una semana.',
+  '%A le mete un directo a %V. %V ha visto la luz y no era la de casa.',
+  '%A parte a %V por la mitad. Merecido, con retraso y con público.',
+  '%A pega a %V hasta que deja de contestar. Ese era el objetivo.',
+  '%A le arranca la sonrisa a %V de un golpe. Y un par de cosas más.',
 ];
 
 const SLAP = [
   '%A le cruza la cara a %V. El sonido llega antes que la vergüenza.',
-  '%A abofetea a %V. Se oye en todo el grupo y nadie lo lamenta.',
-  '%A le da una torta a %V. Correctiva, dicen.',
-  '%A le suelta un guantazo a %V. Le quedan las marcas de los dedos y la duda.',
-  '%A abofetea a %V. Le ha dado la vuelta a la cara y a la conversación.',
+  '%A abofetea a %V con la mano abierta, que es peor y lo sabe.',
+  '%A le suelta un guantazo a %V. Cinco dedos marcados y una lección.',
+  '%A le da una torta a %V que le gira la cara y la conversación.',
+  '%A abofetea a %V. A %V le ha gustado, y ese es otro problema.',
+  '%A le cruza la cara a %V de revés. El detalle del revés lo dice todo.',
+  '%A abofetea a %V hasta que le pita el oído. Correctivo completo.',
   '%A le mete una torta a %V. Ya se hablaba de que tocaba.',
-  '%A cruza la cara de %V y se queda tan ancho. Ese es el nivel de respeto.',
-  '%A abofetea a %V. Con la mano abierta, que es peor.',
 ];
 
 const BITE = [
-  '%A muerde a %V. Sin avisar, que es como se muerde.',
-  '%A le hinca el diente a %V. La marca dura más que la anécdota.',
-  '%A muerde a %V y no suelta. Eso ya es otra cosa.',
-  '%A muerde a %V. Nadie sabe si iba en broma y %V tampoco.',
-  '%A le pega un bocado a %V. Un gesto muy claro y muy mal explicado.',
-  '%A muerde a %V. Le quedan los dientes marcados y las preguntas.',
-  '%A muerde a %V en mitad de la nada. Sin contexto y sin arrepentimiento.',
+  '%A muerde a %V en el cuello y no suelta. Ahí queda la marca hasta el jueves.',
+  '%A le hinca el diente a %V. Con ganas, con saliva y con testigos.',
+  '%A muerde a %V donde va a tener que dar explicaciones en casa.',
+  '%A le pega un bocado a %V. Nadie sabe si iba en broma y %V tampoco.',
+  '%A muerde a %V y le deja los dientes marcados. Firmado, vamos.',
+  '%A muerde a %V en el hombro. Lo de después ya no lo cuenta el bot.',
+  '%A le muerde el labio a %V hasta que sangra un poco. Cosas suyas.',
   '%A muerde a %V. En un grupo normal esto tendría consecuencias.',
 ];
 
 const KICK = [
-  '%A le mete una patada a %V. De abajo arriba y sin avisar.',
-  '%A patea a %V. %V ha salido del encuadre y de la conversación.',
-  '%A le da una patada a %V. El impulso venía de lejos.',
-  '%A patea a %V como quien cierra un tema.',
+  '%A le mete una patada a %V en los huevos. De abajo arriba y con puntera.',
+  '%A patea a %V y lo saca del encuadre y de la conversación.',
+  '%A le da una patada a %V que le reordena los órganos.',
+  '%A patea a %V como quien cierra un tema para siempre.',
   '%A le suelta una patada a %V. Se ha oído hasta en el otro grupo.',
   '%A patea a %V y ni mira dónde cae. Ese detalle lo dice todo.',
   '%A le da a %V con el pie. Con la mano habría sido demasiado honor.',
-  '%A patea a %V. Rápido, feo y efectivo.',
+  '%A patea a %V en el suelo. Ahí ya no hace falta, pero se hace igual.',
 ];
 
 const BONK = [
-  '%A le da un mazazo a %V. Correctivo, del que se aplica en la cabeza.',
-  '%A zurra a %V. Se veía venir desde el primer mensaje del día.',
+  '%A le da un mazazo a %V en la cabeza. Se le ha reiniciado algo.',
+  '%A zurra a %V hasta que se le quita la tontería. Diez minutos.',
   '%A le arrea a %V. No es violencia, es mantenimiento.',
-  '%A castiga a %V. El grupo asiente en silencio.',
+  '%A castiga a %V delante de todos. La parte pública era el objetivo.',
+  '%A le sacude a %V. Y a %V se le ha bajado la calentura de golpe.',
   '%A le da lo suyo a %V. Nadie va a preguntar por qué.',
-  '%A zurra a %V delante de todos. La parte pública era el objetivo.',
-  '%A le sacude a %V. Y a %V se le ha quitado la tontería, de momento.',
+  '%A zurra a %V. Se lo llevaba pidiendo desde el primer mensaje del día.',
   '%A corrige a %V a golpes. Método antiguo y sigue funcionando.',
 ];
 

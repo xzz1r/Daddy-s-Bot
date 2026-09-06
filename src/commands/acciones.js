@@ -124,13 +124,32 @@ async function gifAMp4(gif) {
   }
 }
 
+// Monta la direccion para una categoria. Las APIs de gifs de anime no usan
+// todas la misma forma:
+//
+//   nekos.best   https://nekos.best/api/v2/CATEGORIA
+//   purrbot      https://purrbot.site/api/img/sfw/CATEGORIA/gif
+//
+// Por eso ACCION_NSFW_API admite un {cat} donde vaya la categoria. Si no lo
+// lleva, se pega al final, que es el caso facil. Asi cambiar de fuente es pegar
+// UNA linea en el .env, sin tocar codigo ni volver a desplegar nada nuevo.
+function direccionDe(base, cat) {
+  return base.includes('{cat}') ? base.replace(/\{cat\}/g, cat) : `${base}${cat}`;
+}
+
 async function traerAccion(cat, nsfw) {
   const base = nsfw && API_NSFW ? API_NSFW : API;
-  const { data } = await axios.get(`${base}${cat}`, { timeout: 12000 });
+  const { data } = await axios.get(direccionDe(base, cat), { timeout: 12000 });
   // Cada web contesta a su manera: nekos.best mete todo en results[], y las
   // demas suelen devolver {url} a secas. Se aceptan las dos para que cambiar de
   // fuente sea poner una linea en el .env y nada mas.
-  const r = data?.results?.[0] || (data?.url ? { url: data.url } : null);
+  // Cada API llama de otra forma al campo con la direccion: nekos.best lo mete
+  // en results[], purrbot lo llama `link` y la mayoria `url`. Se aceptan las
+  // tres para que la fuente sea intercambiable de verdad.
+  const r = data?.results?.[0]
+    || (data?.url ? { url: data.url } : null)
+    || (data?.link ? { url: data.link } : null)
+    || (data?.images?.[0]?.url ? { url: data.images[0].url } : null);
   if (!r?.url) throw new Error('la web no ha devuelto ningun gif');
   if (cache.has(r.url)) return cache.get(r.url);
   const bajado = await axios.get(r.url, {
