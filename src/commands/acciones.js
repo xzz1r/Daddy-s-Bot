@@ -271,6 +271,31 @@ function hazAccion(nombre) {
       }, { quoted: msg });
     }
 
+    // ─── LAS EXPLICITAS NO VAN CONTRA EL TIER DUEÑO ─────────────────────────
+    //
+    // *!fuck* y *!anal* no se le pueden mandar a nadie del tier dueño. Las otras
+    // nueve si: un abrazo o una torta van a quien sea.
+    //
+    // Y SE NIEGA COMO SI FALLARA LA WEB, no con un "a ese no". Esto es lo unico
+    // delicado del comando y conviene que quede escrito:
+    //
+    // Un rechazo con nombre y apellidos —"a ese no puedes"— solo ocurre con UNA
+    // persona del grupo, asi que a la segunda vez el grupo ha aprendido quien
+    // manda en el bot. Y que eso no se sepa es la regla que esta por encima de
+    // todo lo demas aqui.
+    //
+    // La respuesta de la web caida, en cambio, ya existe, sale de verdad cada
+    // pocos dias —es un recurso de fuera— y no enseña ninguna regla: enseña que
+    // una API va regular, que es cierto. Cuesta lo mismo (nada: no se cobra) y
+    // no delata a nadie.
+    //
+    // Se comprueba ANTES de cobrar, o el rechazo saldria pagado.
+    if (nsfw && isOwner(objetivo, false, groupMeta)) {
+      return sock.sendMessage(jid, {
+        text: 'No he podido traer el gif. No te he cobrado.',
+      }, { quoted: msg });
+    }
+
     const concepto = nsfw ? 'accionNsfw' : 'accion';
     const pago = await cobrar(jid, quien, concepto, { fromMe: msg.key.fromMe, groupMeta });
     if (!pago.ok) {

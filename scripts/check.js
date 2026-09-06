@@ -6156,6 +6156,61 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     if (fallos === antes) console.log(verde(`   ✓ los ${deEstado.length} ficheros de estado de data/ estan fuera del repositorio`));
   }
 
+  // ── 42. LAS ACCIONES EXPLICITAS NO VAN CONTRA EL TIER DUEÑO ──────────────
+  //
+  // Decision del dueño. Y lo delicado no es la negativa: es COMO se niega.
+  //
+  // Un rechazo con nombre —"a ese no puedes"— solo ocurre con una persona del
+  // grupo, asi que a la segunda vez el grupo ha aprendido quien manda en el bot.
+  // Que eso no se sepa es la regla que esta por encima de todo lo demas aqui, de
+  // modo que se contesta lo MISMO que cuando se cae la web: una respuesta que ya
+  // existe, que sale de verdad cada pocos dias y que no enseña ninguna regla.
+  //
+  // Se comprueban las tres cosas: que no mande el gif, que no cobre, y que el
+  // texto sea exactamente el de la web caida.
+  {
+    console.log('\n42. LAS ACCIONES EXPLICITAS NO VAN CONTRA EL TIER DUEÑO');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const acc = require(path.join(R, 'src/commands/acciones'));
+    const cfg = require(path.join(R, 'src/config'));
+    const OWN = `${String(cfg.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
+    const A = '34600000002@s.whatsapp.net';
+    const BOT = '549199@s.whatsapp.net';
+    const GJ = '000000000@g.us';
+    const meta = { id: GJ, subject: 'G', participants: [{ id: BOT, admin: 'admin' }, { id: OWN, admin: 'admin' }, { id: A }] };
+
+    const nsfw = Object.keys(acc.ACCIONES).filter((n) => acc.ACCIONES[n].nsfw && acc.ACTIVAS.includes(n));
+    exige(nsfw.length > 0, 'no hay ninguna accion explicita activa: esta capa no esta mirando nada');
+
+    for (const n of nsfw) {
+      const out = [];
+      const sk = { user: { id: BOT }, sendMessage: async (j, c) => { out.push(c); return {}; },
+        groupMetadata: async () => meta };
+      const msg = { key: { remoteJid: GJ, participant: A, fromMe: false, id: 'X' },
+        message: { extendedTextMessage: { text: `!${n} @x`, contextInfo: { mentionedJid: [OWN] } } } };
+      await acc[n](sk, msg, [], meta);
+      const texto = out.map((c) => c.text || '').join('\n');
+      exige(!out.some((c) => c.video || c.image),
+        `*!${n}* manda el gif contra el tier dueño`);
+      exige(/No he podido traer el gif/.test(texto),
+        `*!${n}* contesta al tier dueño algo distinto de la caida de la web (${JSON.stringify(texto).slice(0, 80)}): un rechazo con nombre solo le pasa a una persona, asi que a la segunda vez el grupo sabe quien manda en el bot`);
+    }
+
+    // Y el rechazo va ANTES de cobrar: leido del codigo, porque probar el cobro
+    // aqui escribiria en el aura de verdad.
+    {
+      const src2 = soloCodigo('src/commands/acciones.js');
+      const iNeg = src2.indexOf('nsfw && isOwner(objetivo');
+      const iCobro = src2.indexOf('const concepto = nsfw');
+      exige(iNeg >= 0 && iCobro >= 0 && iNeg < iCobro,
+        'el blindaje del tier dueño va DESPUES del cobro: el rechazo saldria pagado');
+    }
+
+    if (fallos === antes) console.log(verde(`   ✓ *!${nsfw.join('* y *!')}* no van contra el tier dueño, y se niegan sin delatarlo`));
+  }
+
   // ── 39. !purgeall NO SE LLEVA POR DELANTE A QUIEN NO DEBE ────────────────
   //
   // Es el comando mas destructivo del bot: saca y veta a TODO el grupo, y la
