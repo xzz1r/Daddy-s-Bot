@@ -2583,6 +2583,9 @@ async function handleMessage(sock, msg) {
       case 'fuck':
       case 'follar':
       case 'joder':
+      case 'anal':
+      case 'culo':
+      case 'porculo':
         // SIN FRASES, NADA. Si el pool de esa accion todavia no existe no hay
         // handler que llamar: se sale en silencio, sin cobrar y sin contestar,
         // igual que si el comando no se hubiera escrito nunca. El `case` sigue

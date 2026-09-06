@@ -70,6 +70,10 @@ const ACCIONES = {
   //   cat      la de la web SFW, que es a donde va si no hay fuente puesta
   //   catNsfw  la de la web NSFW, que es la que manda en cuanto la hay
   fuck:   { cat: 'kiss', catNsfw: 'fuck', pool: RX.FUCK, cmds: ['fuck', 'follar', 'joder'], nsfw: true },
+  // Lo mismo que *!fuck* y por los mismos motivos: cuesta el doble y la web SFW
+  // no tiene nada que se le parezca, asi que sin fuente puesta cae en `kiss`
+  // igual que aquel. Con la fuente, pide su propia categoria.
+  anal:   { cat: 'kiss', catNsfw: 'anal', pool: RX.ANAL, cmds: ['anal', 'culo', 'porculo'], nsfw: true },
 };
 
 // SIN FRASES NO HAY COMANDO.

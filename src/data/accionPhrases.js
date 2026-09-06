@@ -7,6 +7,25 @@
 // sale crudo en el grupo. Lo salta el propio comando para el dueño: ver
 // hazAccion en src/commands/acciones.js.
 //
+// ─── FALTA UN POOL: ANAL. GROK ───────────────────────────────────────────────
+//
+// El comando *!anal* ya está montado y probado —cuesta 120 como *!fuck*, tiene
+// su propia categoría de gif y sus alias *!culo* y *!porculo*— pero NO EXISTE
+// hasta que este fichero exporte `ANAL` con frases dentro: no sale en el menú,
+// no se puede teclear, no cobra y no contesta. Es el contrato de siempre.
+//
+// Treinta frases, mismo formato que las demás, con %A y %V.
+//
+// EL REGISTRO ES EL DE FUCK, que es el pool de referencia: explícito de verdad,
+// no insinuado. Lo que cambia es qué se cuenta, y ahí va el chiste — la postura,
+// el que no se esperaba llegar hasta ahí, quién pidió parar y quién no paró, y
+// cómo se sienta %V al día siguiente. El gif es anime al azar, así que la frase
+// COMENTA la escena y no receta un plano: si describe una habitación, un mueble
+// o una postura concreta, la imagen no va a coincidir.
+//
+// Y el chiste sigue apuntando a %V, nunca a %A. La regla 5 del género vale
+// igual: cualquiera del grupo puede caer en cualquiera de las dos menciones.
+//
 // ─── EL TONO ─────────────────────────────────────────────────────────────────
 //
 // Manda GUIA.md 5 bis, y el corte es este:
@@ -14,7 +33,7 @@
 // 1. LA ACCIÓN SE REPRODUCE NORMAL. %A le hace el gesto a %V. El gif ya se ve,
 //    la frase comenta la escena (público, duración, sonido), no la vuelve a
 //    contar y no la convierte en otra cosa. Un beso es un beso.
-// 2. LO GUARRO VA EN LOS SEXUALES. FUCK carga el texto entero. El gif es
+// 2. LO GUARRO VA EN LOS SEXUALES. FUCK y ANAL cargan el texto entero. El gif es
 //    anime al azar, así que la frase comenta y no receta un plano: si describe
 //    un azulejo, un coche o una postura, la imagen no va a coincidir.
 // 3. EL CHISTE DE LA ACCIÓN ES %V, NUNCA %A. A quien gana no se le quita.
