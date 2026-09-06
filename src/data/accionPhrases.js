@@ -20,6 +20,22 @@
 // 3. EL CHISTE DE LA ACCIÓN ES %V, NUNCA %A. A quien gana no se le quita.
 // 4. EL ROAST ES OTRA LÍNEA. Va debajo, en cursiva, y no habla del gesto:
 //    se ríe de que %A lo haya hecho a través de una pantalla.
+// 5. NI %A NI %V TIENEN GÉNERO. Son dos menciones: cualquiera del grupo puede
+//    caer en cualquiera de las dos, y en el grupo hay mujeres. Una frase que
+//    dice «él» o cierra en -o falla el día que le toca a ellas, y no falla
+//    despacio: sale con su nombre delante. En el resto del bot esto se cuida
+//    solo —de 8.000 frases, 132 dicen «él»— y aquí hay que cuidarlo igual.
+//    Se arregla sin esfuerzo: «%V se queda quieto» → «%V no se mueve». El truco
+//    es hablar de lo que pasa, no de cómo es quien lo recibe.
+//
+//    HAY CINCO VIVAS, y son estas — arréglalas de paso:
+//      HUG    «%V se queda quieto, que es cómo se recibe»
+//      HUG    «%A abraza a %V contra él y no hay hueco»
+//      CUDDLE «%V y él ocupan el mismo»
+//      PAT    «%V se queda quieto, que es el truco»
+//      PUNCH  «Las piernas han decidido por él»
+//    («El chat se queda quieto» y «El dibujo se queda quieto» NO son de estas:
+//    ahí el masculino es de una cosa, no de una persona. Se quedan como están.)
 
 const HUG = [
   '%A abraza a %V. Delante de todos, sin avisar.',
@@ -394,6 +410,41 @@ const FUCK = [
 //     qué clase de persona abre el chat para hacerle a alguien, en un
 //     rectángulo, lo que no le hace a dos metros con el cuerpo.
 //   · Sirve para las once, así que no menciones ninguna en concreto.
+// ─── ROAST_USUARIO: HAY QUE REESCRIBIRLO. GROK ──────────────────────────────
+//
+// Estas sesenta están escritas y funcionan, pero son un molde. No es opinión:
+// `npm run progreso` lo mide y lo saca en el apartado MOLDE.
+//
+//   · TREINTA DE LAS SESENTA CIERRAN CON LA MISMA FORMA: «<insulto> de <cosa>».
+//     Pringado de brillo. Cutre de wifi. Escoria de platea. Don nadie de
+//     bolsillo. Un pool sano del bot repite su forma de cierre entre el 3 % y
+//     el 19 % de las veces. Este va al 50 %.
+//   · CUARENTA Y DOS DE LAS SESENTA TIRAN DE LA MISMA IMAGEN: el cristal, la
+//     pantalla, el rectángulo, el bolsillo, el teclado. Es la regla 1 de
+//     GUIA 5 bis —la variación de una sola tesis— y es EL rastro de máquina:
+//     cien versiones del mismo chiste en vez de cien chistes.
+//   · DIECINUEVE DE LAS SESENTA LLAMAN «él» A QUIEN ESCRIBE. Ver la regla 5 de
+//     arriba.
+//
+// Y ESTE POOL ES EL QUE MENOS SE LO PUEDE PERMITIR, porque no sale de vez en
+// cuando: sale DEBAJO DE CADA ACCIÓN, once comandos, todas las veces. Es la
+// línea del bot que más se lee, así que es la primera donde el grupo va a oír
+// que detrás no hay nadie.
+//
+// QUÉ SE PIDE: los mismos sesenta, reescritos. El encargo no cambia —el retrato
+// de quien paga 60 de aura por mandar un abrazo animado a alguien que tiene a
+// dos metros— pero el retrato tiene más de un ángulo, y ahora mismo solo se
+// está usando uno. La pantalla ya está contada. Quedan la cuenta, la hora, el
+// historial, lo que espera después de mandarlo, lo que hace cuando no contestan,
+// a cuánta gente se lo ha mandado ya, y lo que dice de él que esto le parezca
+// un plan.
+//
+// CÓMO SE COMPRUEBA, sin preguntarme a mí:
+//
+//   npm run progreso        ← el apartado MOLDE tiene que bajar del 30 %
+//
+// Y las de siempre: `npm run check && npm run placeholders`. Los otros once
+// pools están bien: no los toques.
 const ROAST_USUARIO = [
   '%A lo ha hecho a través de un cristal. El cristal no devuelve el calor. Él se conforma, pringado de brillo.',
   'A %A le queda el teléfono entre el cuerpo y el mundo. El mundo puede esperar. El cristal, no. Qué miseria de piel.',
