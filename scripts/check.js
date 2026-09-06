@@ -5690,6 +5690,30 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       const antesEnv = process.env.GUARDIAN_DE;
       process.env.GUARDIAN_DE = '5491199999999';
 
+      // EL NUMERO NO LO TECLEA NADIE: lo anota el bot al conectar y el guardian
+      // lo lee. Pedir dieciseis digitos a mano en un .env es pedir el fallo, y
+      // el fallo aqui es mudo: con un digito cambiado el guardian ve la
+      // degradacion y no reconoce al bot, el dia que hacia falta.
+      {
+        const gsrc2 = soloCodigo('src/guardian.js');
+        // La CONSTANTE, no el nombre suelto: el mensaje de error tambien cita el
+        // fichero, asi que buscarlo a secas pasaba en verde con la ruta
+        // cambiada. Lo probe.
+        exige(/FICHERO_NUMERO\s*=\s*path\.join\([^)]*numeroBot\.json/.test(gsrc2),
+          'el guardian ya no lee el numero que anota el bot: vuelve a depender de que alguien lo escriba a mano sin equivocarse');
+        exige(!/creds\.json/.test(gsrc2),
+          'el guardian abre creds.json: ahi dentro estan las claves de la sesion del bot, y lo unico que necesita es un numero de telefono');
+        exige(/data\/numeroBot\.json/.test(soloCodigo('src/bot.js')),
+          'el bot ya no anota su numero al conectar: el guardian se queda sin saber a quien protege');
+        // Y que el guardian NO se muera si aun no hay numero: en un arranque en
+        // frio los dos suben a la vez y el bot tarda unos segundos en conectar.
+        // Muriendose ahi, pm2 lo reintenta diez veces y lo deja por muerto.
+        const i3 = gsrc2.indexOf('async function conectar');
+        const arranque = i3 < 0 ? '' : gsrc2.slice(i3, i3 + 700);
+        exige(!/process\.exit\(1\)/.test(arranque.slice(0, arranque.indexOf('useMultiFileAuthState'))),
+          'el guardian se muere al arrancar si el bot no ha conectado todavia: en un arranque en frio eso es un bucle de reinicios');
+      }
+
       let s2 = sk2(); g._sock(s2);
       exige(await g.alDegradar(G2, [BOTL], 'demote', OTRO) === true && s2.h[0] === 'promote',
         'el guardian no repone al bot cuando le quitan el admin llegando por @lid: es justo la forma en que llega en un grupo de verdad');

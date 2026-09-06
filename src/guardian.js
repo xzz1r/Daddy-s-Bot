@@ -85,11 +85,41 @@ function withTimeout(promesa, ms) {
 }
 
 const AUTH_DIR = path.join(__dirname, '../data/authGuardian');
-// SE LEE CADA VEZ, NO SOLO AL CARGAR. Fijarlo en una constante del modulo hace
-// que dependa del orden en que se cargan las cosas —quien ponga la variable
-// despues del require se queda sin guardian y sin aviso— y deja la unica
-// funcion que importa aqui imposible de probar sin trucos.
-const protegido = () => String(process.env.GUARDIAN_DE || '').replace(/\D/g, '');
+// ─── A QUIÉN PROTEGE ────────────────────────────────────────────────────────
+//
+// NO HACE FALTA ESCRIBIRLO EN NINGÚN SITIO. El bot anota su propio número al
+// conectarse, y el guardián lo lee de ahí. Pedirle a una persona que teclee
+// dieciséis dígitos en un .env es pedir el fallo: un dígito mal y el guardián
+// mira la degradación sin reconocer al bot —el día que hacía falta, y sin dar
+// un solo error, porque para él simplemente degradaron a otro.
+//
+// GUARDIAN_DE sigue existiendo y MANDA por encima del fichero, para el caso en
+// que el guardián corra en otra máquina y no tenga el `data/` del bot delante.
+//
+// SE LEE CADA VEZ, no se fija al cargar. Fijarlo haría que dependiera del orden
+// en que arrancan los dos procesos: un guardián levantado antes de que el bot
+// llegue a conectarse se quedaría con la cadena vacía para siempre. Así, en
+// cuanto el bot conecta, el guardián lo sabe sin reiniciar nada.
+const FICHERO_NUMERO = path.join(__dirname, '../data/numeroBot.json');
+let _cache = { mtime: -1, numero: '' };
+
+function numeroAnotado() {
+  try {
+    // Por mtime: el caso normal es leer una vez y no volver a tocar el disco.
+    // Se vuelve a leer solo si el fichero cambió, o sea si el bot se vinculó a
+    // otro número — que es justo cuando esto tiene que enterarse.
+    const m = fs.statSync(FICHERO_NUMERO).mtimeMs;
+    if (m !== _cache.mtime) {
+      const d = JSON.parse(fs.readFileSync(FICHERO_NUMERO, 'utf8'));
+      _cache = { mtime: m, numero: String(d?.numero || '').replace(/\D/g, '') };
+    }
+    return _cache.numero;
+  } catch {
+    return '';   // aún no ha conectado nunca, u otra máquina
+  }
+}
+
+const protegido = () => String(process.env.GUARDIAN_DE || '').replace(/\D/g, '') || numeroAnotado();
 
 // Reconexión con espera creciente, igual que el bot: reintentar cada segundo
 // contra un WhatsApp que dice que no es la forma de que te veten la cuenta.
@@ -162,7 +192,12 @@ async function reponer(groupJid, quienes) {
 
 async function alDegradar(groupJid, participants, action, author) {
   if (action !== 'demote') return false;
-  if (!protegido()) return false;
+  if (!protegido()) {
+    // Callarse aquí sería lo peor: es el único momento en que este proceso
+    // tenía que servir para algo.
+    logger.error(`guardián: han degradado a alguien en ${groupJid} y no sé a quién protejo. Revisa data/numeroBot.json o pon GUARDIAN_DE.`);
+    return false;
+  }
 
   // Si lo hizo el propio guardián, no hay nada que deshacer.
   const mios = [sock?.user?.id, sock?.user?.lid].filter(Boolean).map(digitos);
@@ -179,9 +214,15 @@ async function alDegradar(groupJid, participants, action, author) {
 }
 
 async function conectar() {
+  // NO SE MUERE SI TODAVÍA NO HAY NÚMERO, y antes sí: en un arranque en frío los
+  // dos procesos suben a la vez, el bot tarda unos segundos en conectar y el
+  // guardián se moría antes de que el número existiera. Con el reinicio
+  // automático de pm2 eso era un bucle de diez intentos y a la basura.
+  //
+  // Se avisa y se sigue: el número se lee en cada evento, así que en cuanto el
+  // bot conecte, el guardián ya sabe a quién protege sin tocar nada.
   if (!protegido()) {
-    logger.error('guardián: falta GUARDIAN_DE en el .env (el número del bot al que protege). No arranco.');
-    process.exit(1);
+    logger.warn('guardián: todavía no sé a quién protejo (el bot no ha conectado aún). Sigo esperando; lo sabré en cuanto conecte.');
   }
 
   await fs.ensureDir(AUTH_DIR);
@@ -214,7 +255,10 @@ async function conectar() {
     }
     if (connection === 'open') {
       espera = ESPERA_MIN;
-      logger.info(`guardián en línea. Protegiendo a +${protegido()}.`);
+      const aQuien = protegido();
+      logger.info(aQuien
+        ? `guardián en línea. Protegiendo a +${aQuien}.`
+        : 'guardián en línea, pero aún no sé a quién protejo: esperando a que el bot conecte.');
     }
     if (connection === 'close') {
       const code = lastDisconnect?.error?.output?.statusCode;

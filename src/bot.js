@@ -59,7 +59,7 @@ const { guardOnJoin, allForms } = require('./commands/fk');
 const { businessEvidence } = require('./utils/businessCheck');
 const { aplicarParticipantes, aplicarAUno, formasDe } = require('./utils/participantes');
 const { getMemberFacts } = require('./utils/nickStore');
-const { ensureTemp, barrerHuerfanos, withTimeout } = require('./utils/helpers');
+const { ensureTemp, barrerHuerfanos, withTimeout, atomicWriteJson } = require('./utils/helpers');
 
 // Tope comun para las consultas de red que no lo tenian. Un socket colgado no
 // LANZA: se queda, y el try/catch de al lado no atrapa nada porque no hay error
@@ -760,6 +760,27 @@ async function connectToWhatsApp() {
       // don't have to rebuild the Set on every notification.
       const myJids = [sock.user?.id, sock.user?.lid].filter(Boolean);
       botIds = new Set(myJids.map(j => j.split('@')[0].split(':')[0]));
+
+      // EL NUMERO DEL BOT, ESCRITO DONDE EL GUARDIAN PUEDA LEERLO.
+      //
+      // El guardian necesita saber a quien protege, y hacerselo escribir a mano
+      // en el .env es pedir un numero de dieciseis digitos a un humano: un
+      // digito mal y el guardian mira la degradacion sin reconocer al bot, el
+      // dia que hacia falta y sin dar un solo error. Aqui sale de la sesion, que
+      // es la fuente de verdad, y no lo teclea nadie.
+      //
+      // Y va en SU PROPIO fichero, no se le manda a leer data/auth/creds.json.
+      // Ahi dentro estan las claves de la sesion: que otro proceso las abra para
+      // sacar un numero de telefono —que no es un secreto— es abrir la puerta
+      // equivocada por comodidad. Esto es un fichero de un campo y sin nada
+      // privado.
+      try {
+        const numero = String(sock.user?.id || '').split('@')[0].split(':')[0].replace(/\D/g, '');
+        if (numero) {
+          await atomicWriteJson(path.join(__dirname, '../data/numeroBot.json'), { numero, ts: Date.now() });
+        }
+      } catch (e) { logger.warn(`no pude anotar el numero del bot para el guardian: ${e.message}`); }
+
       // Explicit save on full connection to ensure session is complete
       await saveCreds();
       console.log(`\nDaddy's Bot conectado\n`);
