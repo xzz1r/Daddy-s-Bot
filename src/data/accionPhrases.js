@@ -33,9 +33,10 @@
 // 1. LA ACCIÓN SE REPRODUCE NORMAL. %A le hace el gesto a %V. El gif ya se ve,
 //    la frase comenta la escena (público, duración, sonido), no la vuelve a
 //    contar y no la convierte en otra cosa. Un beso es un beso.
-// 2. LO GUARRO VA EN LOS SEXUALES. FUCK y ANAL cargan el texto entero. El gif es
-//    anime al azar, así que la frase comenta y no receta un plano: si describe
-//    un azulejo, un coche o una postura, la imagen no va a coincidir.
+// 2. LO GUARRO VA EN LOS SEXUALES. FUCK y ANAL cargan el texto entero. El gif
+//    es anime al azar: no recetes el plano del dibujo. La postura va en el
+//    chiste del cuerpo de %V (cómo queda, quién pidió parar, cómo se sienta
+//    mañana), no en una didascalia de coche o de azulejo.
 // 3. EL CHISTE DE LA ACCIÓN ES %V, NUNCA %A. A quien gana no se le quita.
 // 4. EL ROAST ES OTRO MENSAJE. No va en el caption del gif: se manda después,
 //    en cursiva, y no habla del gesto. Humilla a %A delante del grupo por
@@ -55,15 +56,8 @@
 //    solo —de 8.000 frases, 132 dicen «él»— y aquí hay que cuidarlo igual.
 //    Se arregla sin esfuerzo: «%V se queda quieto» → «%V no se mueve». El truco
 //    es hablar de lo que pasa, no de cómo es quien lo recibe.
-//
-//    HAY CINCO VIVAS, y son estas — arréglalas de paso:
-//      HUG    «%V se queda quieto, que es cómo se recibe»
-//      HUG    «%A abraza a %V contra él y no hay hueco»
-//      CUDDLE «%V y él ocupan el mismo»
-//      PAT    «%V se queda quieto, que es el truco»
-//      PUNCH  «Las piernas han decidido por él»
-//    («El chat se queda quieto» y «El dibujo se queda quieto» NO son de estas:
-//    ahí el masculino es de una cosa, no de una persona. Se quedan como están.)
+//    («El chat se queda quieto» y «El dibujo se queda quieto» valen: el
+//    masculino es de una cosa, no de una persona.)
 
 const HUG = [
   '%A abraza a %V. Delante de todos, sin avisar.',
@@ -395,37 +389,45 @@ const BONK = [
   'Un correctivo de %A a la sien de %V. La sien lo archiva en educación.',
 ];
 
+// Treinta. Registro sucio, frases cortas. El chiste está en una de estas:
+// la postura, quién no se esperaba llegar ahí, quién pidió parar, cómo se
+// sienta al día siguiente. El golpe es %V. Ni «él» ni adjetivo en -o.
+//
+// Mojar de verdad: ritmo, lengua, dedos, tiempo. Entrar en seco no moja,
+// enseña. El «tengo que mear» a veces no es el baño. El «para» de después
+// es el centro pidiendo tregua, no un no. La película escupe y entra;
+// eso duele y seca. Aquí se baja primero.
 const FUCK = [
-  '%A se corre dentro de %V y no saca. %V se viste encima y escribe buenas en el grupo. Buenas es lo que se le escurre por los muslos el resto del día. Un recuerdito de polla. Joder, se le nota al cruzar las piernas.',
-  '%A se corre en la cara de %V y le dice que no se limpie todavía. %V se limpia con dos dedos y se los chupa, mirando. El grupo no había pedido postre. Lo tiene delante, con la cara pringada y pidiendo otro plato.',
-  '%A se la mete en la boca a %V solo para verle los ojos. %V babea y se le saltan las lágrimas. Así se sabe que va en serio. Si tose, %A no saca: aparta la baba con el pulgar y sigue. Los ojos eran el cuentakilómetros. Van a fondo.',
-  '%A se planta la cara entre las nalgas y los muslos de %V y no saca la lengua ni para respirar. %V tira del pelo para que pare. El pelo se tira. La lengua, no. %V se corre encima de la cara que pedía tregua. Tregua denegada.',
-  '%A folla a %V tan rico que %V suelta un nombre que no es el de %A. %A no se ofende: se la mete más fuerte hasta que el nombre correcto sale solo, entre babas, con la polla hasta el fondo. El otro nombre se jubila. Este culo ya tiene nombre.',
-  '%A se folla a %V con los pantalones a media pierna y sin quitar ni los calcetines. Los calcetines. %V se corre con ellos puestos y se le queda esa imagen para siempre. Un polvo de perro. Un orgasmo de verdad. Los calcetines no se lo merecían, y aun así %V pide otra.',
-  '%A le abre las nalgas a %V y le come el orto como si hubiera un premio dentro. Lo hay: el gemido. %V lo suelta tan alto que el perro del vecino ladra. El perro tiene oído. Con ese gemido %V lo ha sacado a la calle sin abrir la puerta.',
-  '%A le mete dos dedos a %V en el culo y se los curva buscando el punto. Lo encuentra. %V da un salto que no iba a dar en público. %A sonríe y no saca los dedos. El punto se queda trabajado. Mañana, en el metro, un bache se lo recuerda entero.',
-  '%A se corre en la boca de %V y le tapa los labios con la mano para que no escupe. %V traga porque no hay otra. Luego abre para enseñar. Vacío. %A asiente. %V pide un chicle. El chicle no cubre leche. Ni de coña. La lengua tampoco, pero %V la usa igual.',
-  '%A folla a %V tan hondo que se le queda la voz ronca. No de hablar. De aguantar la polla. Mañana %V dice que es el aire acondicionado. El caramelo de la tos no cubre polla. El grupo oye el aire y no compra ni el sobre.',
-  '%A le pregunta a %V si duele. Duele. %V dice que más. El más y el duele salen de la misma boca, qué lío de cerdo. %A se la clava hasta que el duele se queda sin aliento y el más manda solo, con el culo ya en otra liga.',
-  '%A despierta a %V metiéndosela ya, con los ojos todavía cerrados. Buenos días es un gemido a destiempo. %V abre los ojos a mitad de polla y no protesta. Protestar sería perderse el mejor sueño de la semana, y ya está dentro, joder, hasta el fondo.',
-  '%A se folla a %V en el descansillo, entre el felpudo y el buzón. Si baja el vecino, que se eduque. %V se tapa la boca y se oye el golpe de caderas contra el buzón igual. El correo llega tarde. %V llega antes, chorreando contra el felpudo.',
-  '%A tumba a %V y chupa entre las piernas hasta que las caderas se levantan solas. %A las baja con un brazo y sigue. Las caderas insisten. Pierden. %V se corre con las caderas presas y con un joder que no iba a decir tan alto. Lo ha dicho. El techo lo tiene grabado.',
-  '%A se corre entre las nalgas de %V y le da dos palmaditas: ya puedes irte. %V se va así, el vaquero pringado por dentro. En el ascensor se le ve la cara. El de la segunda no sabe por qué. El vaquero sí. El vaquero es un soplón de semen y no sabe callarse.',
-  '%A le folla a %V tan en el punto que %V moja hasta las muñecas de %A. Qué asco. Qué rico. %A no para: usa eso de lubricante y se la mete más. %V dice qué vergüenza. La vergüenza chorrea. %A agradece el detalle y no saca.',
-  '%A tumba a %V sobre la mesa de la cocina y se la mete apartando el tupper con el codo. El tupper cae. El pollo para mañana se jode. %V se corre entre migas. La cena era otra. El fregadero espera. El fregadero se puede esperar. El culo, no.',
-  '%A se hace una coleta con el pelo de %V y tira. La polla entra hasta donde %V no esperaba que cupiera. Cabe. %V tose y pone los ojos en blanco. %A no suelta la coleta. El peluquero no tira así. El peluquero cobra menos y no se corre en la garganta.',
-  '%A le pone una mano en el cuello a %V, sin apretar, y se la mete mirando. %V traga saliva. Tragar con la polla dentro es un arte. %V no es artista. Aprende. Se le ve el pulso en la garganta, a golpe de cadera. %V pierde la cuenta. %A, no.',
-  '%A folla a %V tan lento que desespera y tan rápido que se le saltan las lágrimas. %V pregunta cuál de los dos. %A dice los dos. Los dos caben. %V no. Se le oye no caber, y pide el lento otra vez para mentir un poco y correrse igual de sucio.',
-  '%A deja a %V el culo y las caderas marcados de dedos y de polla. Mañana un mapa. Hoy un polvo. %V firma con un gemido. En la playa van a preguntar. %V va a decir el gimnasio. El gimnasio no aprieta así, ni de coña, ni con el entrenador mirando.',
-  '%A se corre en los labios de %V y se lo unta como si fuera barra de labios. %A sonríe. %V no sabe qué hacer con la cara. Lamerse. Se lame. %A se la mete en la boca a continuación, para no desperdiciar el maquillaje. El maquillaje era leche. Le queda de puta madre.',
-  '%A se folla a %V delante del espejo. Que se vea la cara. Que se vea cómo se la meten. %V mira, se corre, y quiere apartar la vista. No puede: %A le sujeta la cara contra el cristal. La clase no acaba hasta que %V se vea la cara que pone al tomarla entera.',
-  '%A le da a %V por el culo hasta que se oye en el piso de abajo. El vecino se pone los cascos. %V se pone la almohada. La almohada no basta. %A no baja el volumen. El vecino cambia de casa o de fetiche. Las dos cosas le salen a cuenta, y %V sigue gemiendo.',
-  '%A está viendo el partido con %V y se la mete entera, sin quitar la vista del área. El partido sigue. %V también, a gemir bajito para no tapar el gol. El gol llega. %V se corre en fuera de juego. El VAR no pita el semen. Qué liga más sucia, y qué segundo tiempo.',
-  '%A le pone el móvil a %V en la cara, grabando, y se la mete. %V dice borra eso. %A dice después. Después %V se corre en el vídeo. El vídeo no se borra. A las tres de la mañana %V lo pide por privado. Lo de borra eso era una mentira con gemido.',
-  '%A le da a %V con la polla en las mejillas, en la boca, en la frente, como un cerdo feliz, y no entra. Hace esperar. %V babea al vacío. Cuando entra, %V da las gracias. Las gracias se atragantan. Mejor. La garganta ya estaba lista. Faltaba el por favor, y ha salido.',
-  '%A se corre en el pelo de %V. En el pelo. %V dice cabrón y no se ducha. Se va así a dormir, con la leche cuajando. Por la mañana el gel no basta. %A ofrece ayuda con la lengua. No ayuda. Empeora. %V deja que empeore. Mañana otra vez el gel. Y la lengua. Y el no basta.',
-  '%A se la mete a %V aunque %V diga que no da más. No da más y abre. Cansancio de boca. El cuerpo pide otra. %A folla más despacio. Despacio y hasta el fondo, coño. El no da más dura veinte minutos más y acaba en un sí que no se oía venir.',
-  '%A se tumba y pone a %V a caballo. %V rebota dos veces bien y a la tercera se le ve que no sabe. %A agarra las caderas y dirige. %V aprende a golpes de cadera. A la sexta ya es un puto talento. A la décima se corre y se cae hacia delante, con la polla todavía dentro. %V pide el bis sin voz.',
+  '%A se pone debajo y no sale. %V se sienta en esa cara y se le van las rodillas. El suelo se entera primero.',
+  '%A pone a %V a cuatro y se queda atrás, con la boca. %V baja el pecho. El charco, no.',
+  'Una pierna de %V al borde del lavabo. %A no entra: lengua en el mismo sitio, el mismo ritmo. El azulejo se pone imposible.',
+  '%A mete un cojín bajo el culo de %V y curva los dedos. El ángulo es de cerdo. %V moja en cuanto dan con el punto y no se apartan.',
+  '%A arrincona a %V contra la pared, una pierna enganchada al codo. Entre las piernas ya chorrea y todavía no ha entrado nadie.',
+  '%A se tumba y pone a %V a frotar contra un muslo. La postura de revista no mojaba. El muslo sí. %V se corre en el muslo, qué rabia.',
+  '%A pone a %V de lado y no deja cerrar. Los muslos tiemblan abiertos. Cerrar era el plan. El plan se empapó.',
+  '%A sienta a %V al borde, piernas al cuello, y se queda en el clítoris. %V ve el techo. El techo no baja a ayudar.',
+  '%A baja y se queda. %V iba a durar. Se corre con la boca todavía ahí, con cara de esto no. Esto sí.',
+  '%A curva dos dedos hacia arriba y chupa a la vez. %V suelta un tengo que mear que no es mear. Es el suelo, joder.',
+  '%A ni entra. Dedos y lengua hasta que %V moja las muñecas. %V decía que no se ponía así. Se ha puesto así.',
+  '%A le come el coño a %V tres minutos, el mismo ritmo, sin inventar. %V se corre de algo tan simple y se le oye la sorpresa.',
+  '%A besa el cuello y los muslos y no toca el centro. %V ya empapa lo que lleva puesto. El centro llega tarde a propósito.',
+  '%A escupe para entrar. %V se encoge: eso no moja, duele. %A baja y se queda. Cuando entra de verdad, ya chorrea.',
+  '%A se come a %V de rodillas en la cocina. %V se agarraba a la encimera para no llegar. Llega. La encimera queda marcada.',
+  '%V pide que entre. %A sigue con la boca. Cuando entra, ya chorrea. Entrar en seco era el plan de otro.',
+  '%A se queda en el clítoris después. %V dice para. Las caderas no firman. %A hace caso a las caderas.',
+  '%V tira del pelo de %A para que pare. El pelo se tira. La lengua no. %V se corre encima de la tregua.',
+  '%V dice que no da más. Abre igual. %A baja el ritmo y no saca los dedos. El no da más acaba en un sí sin voz.',
+  '%A entra cuando ya moja. %V pide más despacio. Despacio y hondo. El más despacio era para durar. No dura.',
+  '%V pide un segundo. %A para la boca un segundo. El segundo se acaba. %V moja el segundo entero.',
+  '%A va al punto y no se mueve. %V dice saca. Luego dice no. El no gana. El asiento pierde.',
+  '%V avisa que va a manchar. %A no se aparta. Mancha. La cara de %A queda de prueba. %V pide perdón y otra.',
+  '%A frotando, sin entrar. %V se ríe de lo poco que es. A la quinta se le corta la risa. El poco era todo.',
+  '%A se pasa el rato con los dedos curvados en el punto, sin prisa. Al día siguiente %V se sienta en el bus y se le ve la cara.',
+  '%A abre a %V de dos manos y se queda a comer. Mañana la silla de la oficina. Hoy el charco.',
+  '%A se la come hasta que las piernas de %V dicen basta. Basta es un decir. Cruzarlas mañana en el grupo es un trámite sucio.',
+  '%A deja a %V el coño hinchado y las sábanas perdidas. En el bar %V pide de pie. De pie también tira.',
+  '%A folla a %V ya chorreando, hasta que las caderas dicen que no hay más. Hay más. Mañana el taburete delata.',
+  '%A no saca la lengua ni para respirar. %V se corre y se queda temblando. Al día siguiente los vaqueros piden tregua. Los vaqueros pierden.',
 ];
 
 // OTRO MENSAJE. No va en el caption. Humilla a quien ha pedido el comando,
