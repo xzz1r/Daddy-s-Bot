@@ -15,9 +15,8 @@
 //    la frase comenta la escena (público, duración, sonido), no la vuelve a
 //    contar y no la convierte en otra cosa. Un beso es un beso.
 // 2. LO GUARRO VA EN LOS SEXUALES. FUCK y ANAL cargan el texto entero. El gif
-//    es anime al azar: no recetes el plano del dibujo. La postura va en el
-//    chiste del cuerpo de %V (cómo queda, quién pidió parar, cómo se sienta
-//    mañana), no en una didascalia de coche o de azulejo.
+//    es anime al azar: no recetes el plano. ANAL comenta lo que se ve (el culo,
+//    la cara, el empujón), no un cuarto ni el día siguiente.
 // 3. EL CHISTE DE LA ACCIÓN ES %V, NUNCA %A. A quien gana no se le quita.
 // 4. EL ROAST ES OTRO MENSAJE. No va en el caption del gif: se manda después,
 //    en cursiva, y no habla del gesto. Humilla a %A delante del grupo por
@@ -411,41 +410,40 @@ const FUCK = [
   '%A no saca la lengua ni para respirar. %V se corre y se queda temblando. Al día siguiente los vaqueros piden tregua. Los vaqueros pierden.',
 ];
 
-// Treinta. Mismo registro que FUCK, otra cuenta: el culo. No se recicla
-// una línea de arriba. El chiste es la postura, el clic que no se esperaba,
-// el para del aro, y cómo se sienta %V mañana. Dedo y espera primero;
-// en seco duele y cierra. El golpe es %V. Ni «él» ni adjetivo en -o.
+// Treinta. El gif ya es el polvo: explícito, por el culo, al azar.
+// La frase comenta lo que se ve —cara, sonido, el para, el hondo— no un
+// cuarto ni el día siguiente. El golpe es %V. Ni «él» ni adjetivo en -o.
 const ANAL = [
-  '%A pone a %V a cuatro y no empuja. Espera en el aro. %V baja el pecho y el aro cede. El pecho no vuelve a subir.',
-  '%A tumba a %V de lado y entra sin prisa. De lado cabe más de lo que %V había firmado. El contrato se revisa hondo.',
-  '%A dobla a %V por la cintura y se queda atrás. El culo de %V es el argumento. La cara, contra lo que haya.',
-  '%A sienta a %V encima, bajando. %V controla el primer tramo y se le va la voz en el segundo. El segundo no estaba en el plan.',
-  '%A pone a %V con una rodilla al borde y la otra fuera. El ángulo es sucio. %V lo nota en el aro, no en el discurso.',
-  '%A abre las nalgas de %V y no entra. Lengua en el orto primero. %V no tenía ese preámbulo en la lista.',
-  '%A pone la cara de %V en la almohada y el culo al aire. %V dice algo a la funda. La funda no negocia.',
-  '%A sube las caderas de %V con un cojín y entra mirando el arco. El arco no estaba en la ficha de %V.',
-  '%A mete un dedo y se queda. %V dice que con eso vale. No vale. El segundo dedo llega y %V se oye sorprenderse.',
-  '%A pasa el aro y se para. %V no se esperaba el clic. El clic es el cuerpo diciendo ya estás dentro, joder.',
-  '%V decía que hasta ahí. Ahí era la punta. %A sigue un poco. El poco le cambia la cara a %V.',
-  '%A entra despacio y %V suelta un tengo que ir al baño que no es el baño. Es más atrás. A %V se le corta la risa.',
-  '%V iba a probar un segundo. El segundo se queda. %A no saca. %V tampoco pide que saque. Qué lío de culo.',
-  '%A no fuerza. Espera. %V empuja un poco hacia atrás, que es como se abre. %V no sabía ese truco. Ahora manda el culo.',
-  '%A llega más hondo de lo que %V tenía mapeado. El mapa era corto. %V lo actualiza con un gemido sucio.',
-  '%V juraba que eso no. Las caderas firman que sí. %A lee las caderas. El juramento se jubila.',
-  '%V dice para en el aro. %A para. Un minuto. El minuto abre. %V no vuelve a decir para con la misma boca.',
-  '%V tira de la sábana para que %A no siga. La sábana se arruga. %A sigue más despacio. Despacio era lo que pedía el culo, no el no.',
-  '%V dice saca. Luego dice despacio. %A elige despacio. %V se oye contradecirse. El culo, no.',
-  '%A va rápido y el aro de %V se cierra. Hay que salir y volver a pedir permiso. %V da el permiso con menos voz.',
-  '%A se queda sin saliva a mitad. %V dice para de verdad. En seco el culo no folla, duele. %A para y busca.',
-  '%V pide un segundo en la entrada. %A no empuja. El segundo se alarga. Cuando entra, %V ya no está en guardia.',
-  '%V dice no más hondo. %A no saca: se queda donde está y folla corto. El no más hondo se cumple a medias, sucio.',
-  '%A se para porque %V lo pide. El aro sigue latiendo. %V dice vale, sigue. El vale sale más bajo que el para.',
-  '%A se pasa el rato en el culo de %V hasta que el aro se acostumbra. Al día siguiente %V se sienta de un lado. El otro está de baja.',
-  '%A deja el culo de %V trabajado y lento. Mañana la silla de madera. %V la ve y sigue de pie.',
-  '%A no saca hasta el final. %V se queda el pulso en el orto. Al día siguiente reírse duele. El chiste del grupo, también.',
-  '%A folla el culo de %V con paciencia de cerdo. Por la mañana los vaqueros de %V piden otra talla. No hay. Hay andar raro.',
-  '%A termina y le da dos palmaditas al culo de %V. Ya está. Mañana %V pone un cojín en el sofá y no explica.',
-  '%A entra, espera, entra más. %V se acostumbra y se le oye. Al día siguiente estornudar es un error. %V lo descubre en el grupo.',
+  '%A se la mete a %V por el culo. Delante de todos. A %V se le acaba lo que iba a decir.',
+  '%A folla a %V por detrás y no saca. %V mira al frente. El frente no ayuda.',
+  '%A entra en el culo de %V. Se oye. El grupo también. %V más.',
+  '%A se la clava a %V atrás, hondo. La cara de %V lo cuenta sola.',
+  '%A le abre el culo a %V y se queda dentro. %V no se esperaba el hondo.',
+  '%A folla el culo de %V delante de todos. %V tapa la boca. No basta.',
+  '%A se planta detrás de %V y entra. %V suelta un joder que no iba a soltar.',
+  '%A no saca. %V tampoco pide que saque. El culo de %V ya no tiene hueco.',
+  '%A se la mete a %V por detrás hasta donde cabe. Cabe. A %V se le van los ojos.',
+  '%A entra despacio en el culo de %V. %V dice para. El para no llega a tiempo.',
+  '%A tira de las caderas de %V y entra atrás. %V va al encuentro. Sucio.',
+  '%A le da por el culo a %V con ganas. A %V se le oye el golpe. El grupo finge sordera.',
+  '%A folla a %V por detrás hasta que se le corta la voz. De %V no quedaba otra cosa entera.',
+  '%A entra y se queda. A %V se le ve en la cara que ya está dentro. Del todo.',
+  '%V pide más despacio. %A folla el culo más despacio y más hondo. El hondo no se había pedido.',
+  '%A se la mete a %V atrás sin avisar. El aviso es el gemido. %V lo suelta entero.',
+  '%A no para. El culo de %V ya no discute. %V sí, un poco, y se le oye perder.',
+  '%A entra en %V por detrás y empuja. %V baja la cabeza. Bajarla no es un no.',
+  '%A le parte el culo a %V a empujones. Cada uno le cambia la cara. La de ahora no es la de antes.',
+  '%A se la mete a %V hondo y se para. Para que %V lo sienta. %V lo siente. Demasiado.',
+  '%A folla a %V por el culo como si no hubiera público. Hay público. A %V se le olvida.',
+  '%A entra. %V abre. A %V se le ve el resto en los ojos.',
+  '%A se la clava a %V por detrás y no pide permiso. La cara de %V dice joder. Vale por firma.',
+  '%A le da a %V por el culo hasta que %V pide tregua. Tregua denegada. Sigue el empujón.',
+  '%A folla el culo de %V y le sujeta las caderas. %V no se va. No hay a dónde.',
+  '%A se la mete a %V atrás y el sonido es húmedo. %V se oye. El grupo, desgraciadamente, también.',
+  '%A entra hondo en el culo de %V. %V no se esperaba llegar ahí. Ahí ya está.',
+  '%A no saca del culo de %V. El empujón se queda. %V también, a duras penas.',
+  '%A se la mete a %V por detrás y %V se muerde el labio. El labio no tapa el gemido. Nada lo tapa.',
+  '%A folla a %V por el culo hasta que a %V se le pone la mirada idiota. El culo manda. La cara obedece.',
 ];
 
 // OTRO MENSAJE. No va en el caption. Humilla a quien ha pedido el comando,
