@@ -7,6 +7,15 @@
 // sale crudo en el grupo. Lo salta el propio comando para el dueño: ver
 // hazAccion en src/commands/acciones.js.
 //
+// ─── FALTA UNA EN ROAST_USUARIO. GROK ────────────────────────────────────────
+//
+// Quedan 59 en vez de 60. Se borró una que decía «estás usando un BOT de pago».
+// El bot puede nombrarse a sí mismo —la guía lo permite y es parte de la voz—
+// pero era la única de las 390 que lo hacía, y esto es ROAST_USUARIO: el pool
+// cuyo trabajo es precisamente que no parezca escrito por una máquina. Esa
+// palabra suelta era justo la que lo recordaba. Escribe otra sin nombrarlo; el
+// chiste no la necesitaba.
+
 // ─── EL TONO ─────────────────────────────────────────────────────────────────
 //
 // Manda GUIA.md 5 bis, y el corte es este:
