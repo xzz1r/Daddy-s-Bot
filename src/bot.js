@@ -1535,6 +1535,26 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
     // legible: se levanta el freno del sondeo en vez de esperar las seis horas.
     if (action === 'promote' && partJids.some(isBotJid)) reactivarSondeo(groupJid);
 
+    // ─── AL BOT LE HAN QUITADO EL ADMIN ────────────────────────────────────
+    //
+    // Es el unico caso en el que el bot no puede defenderse: sin admin no puede
+    // reponerse a si mismo ni degradar a quien se lo quito, asi que los reverts
+    // de mas abajo se quedan sin nada que hacer y salen callados.
+    //
+    // Y CALLADOS DEL TODO ERA EL PROBLEMA. A partir de ese momento el antilink
+    // ve los enlaces y no los borra, las historias se quedan, *!kick* contesta
+    // que no es admin y nadie se entera hasta que alguien lo nota por casualidad
+    // dias despues. Lo unico que quedaba era un WARN en el log del servidor, que
+    // no lo lee nadie a diario.
+    //
+    // EL AVISO VA AL PRIVADO DEL DUEÑO, NO AL GRUPO. En el grupo seria el bot
+    // señalando a quien manda en el —y quien acaba de quitarle el admin ya sabe
+    // lo que ha hecho: el aviso no es para el, es para el unico que puede
+    // devolverselo.
+    if (action === 'demote' && partJids.some(isBotJid) && !fromBot) {
+      await avisarDegradacion(sock, groupJid, meta, author);
+    }
+
     // Anti-admin: revert any promote that didn't come from the bot.
     // Owner/co-owner promotions are exempt — they have authority to grant admin.
     if (action === 'promote' && !fromBot && !esOwnerAmplio(author, authorPn, meta) && isAntiAdminEnabled(groupJid)) {
@@ -1784,6 +1804,32 @@ process.on('unhandledRejection', (reason) => {
 
 // listaDeGrupos y el inyector de socket se exportan para poder probar el freno
 // del sondeo sin abrir una conexion real a WhatsApp.
+// El aviso de "me han quitado el admin". Vive aparte y se exporta para poder
+// probarlo sin abrir una conexion de verdad a WhatsApp: el manejador de eventos
+// no se puede invocar desde fuera, y un aviso que solo se dispara el dia que
+// pasa la desgracia es justo el que no se puede dejar sin probar.
+async function avisarDegradacion(sock, groupJid, meta, author) {
+  logger.warn(`me han quitado el admin en ${groupJid} (autor: ${author || '?'})`);
+  const num = String(config.ownerNumber || '').replace(/\D/g, '');
+  if (!num) return false;
+  const donde = meta?.subject ? `*${meta.subject}*` : 'un grupo';
+  const quien = author ? `@${String(author).split('@')[0]}` : 'Alguien';
+  try {
+    await sock.sendMessage(`${num}@s.whatsapp.net`, {
+      text: '*Me han quitado el admin.*\n' +
+        `Grupo: ${donde}\n` +
+        `Ha sido: ${quien}\n\n` +
+        '_Hasta que me lo devuelvan no borro enlaces, no borro historias y no puedo expulsar. ' +
+        'Lo demás sigue igual._',
+      mentions: author ? [author] : [],
+    });
+    return true;
+  } catch (e) {
+    logger.warn(`aviso de degradacion al dueño: ${e.message}`);
+    return false;
+  }
+}
+
 function _sockDePrueba(s) {
   sock = s;
   gruposConocidos = [];
@@ -1793,4 +1839,4 @@ function _sockDePrueba(s) {
   gruposFallos = 0;
 }
 
-module.exports = { connectToWhatsApp, listaDeGrupos, sondearSolicitudes, _sockDePrueba };
+module.exports = { connectToWhatsApp, listaDeGrupos, sondearSolicitudes, avisarDegradacion, _sockDePrueba };

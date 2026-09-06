@@ -5522,6 +5522,56 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     if (fallos === antes) console.log(verde(`   ✓ los ${nombres.length} nombres de accion son unicos, no pisan nada y se pueden teclear`));
   }
 
+  // ── 38. SI AL BOT LE QUITAN EL ADMIN, EL DUEÑO SE ENTERA ─────────────────
+  //
+  // Es el unico ataque del que el bot no puede defenderse solo: sin admin no
+  // puede reponerse a si mismo ni degradar a quien se lo quito, asi que los tres
+  // reverts se quedan sin nada que hacer y salen callados. Y callado del todo
+  // era el problema: a partir de ahi el antilink ve los enlaces y no los borra,
+  // las historias se quedan y *!kick* contesta que no es admin, sin que nadie se
+  // entere hasta que alguien lo nota dias despues.
+  //
+  // Dos cosas, y la segunda importa tanto como la primera: que avise, y que
+  // avise EN PRIVADO. En el grupo seria el bot señalando a quien acaba de
+  // quitarle el admin —que ya sabe lo que ha hecho— delante de todos.
+  {
+    console.log('\n38. SI AL BOT LE QUITAN EL ADMIN, EL DUEÑO SE ENTERA');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const bot = require(path.join(R, 'src/bot'));
+    exige(typeof bot.avisarDegradacion === 'function',
+      'bot.js ya no exporta avisarDegradacion: el aviso no se puede probar y solo se dispara el dia que pasa');
+
+    if (typeof bot.avisarDegradacion === 'function') {
+      const cfg = require(path.join(R, 'src/config'));
+      const OWN = `${String(cfg.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
+      const env = [];
+      const sock = { sendMessage: async (j, c) => { env.push({ j, t: c.text || '' }); return {}; } };
+      const ok = await bot.avisarDegradacion(sock, '000000000@g.us', { subject: 'G' }, '34600000002@s.whatsapp.net');
+      exige(ok === true && env.length === 1, 'el aviso de degradacion no sale');
+      exige(env.every((e) => !String(e.j).endsWith('@g.us')),
+        'el aviso de degradacion va al GRUPO: seria el bot señalando delante de todos a quien acaba de quitarle el admin');
+      exige(env.every((e) => e.j === OWN),
+        `el aviso de degradacion no va al privado del dueño (fue a ${env.map((e) => e.j).join(', ')})`);
+
+      // Y que no reviente si no se puede mandar: esto corre dentro del manejador
+      // de eventos, y una excepcion ahi se lleva por delante el resto del evento.
+      let revento = false;
+      try { await bot.avisarDegradacion({ sendMessage: async () => { throw new Error('x'); } }, 'g', null, null); }
+      catch { revento = true; }
+      exige(!revento, 'avisarDegradacion propaga la excepcion: un fallo de envio tumbaria el manejador de eventos entero');
+    }
+
+    // Y que el manejador lo LLAME cuando el degradado es el bot. Declarar la
+    // funcion y no invocarla es peor que no tenerla: parece cubierto.
+    const src = soloCodigo('src/bot.js');
+    exige(/action === 'demote' && partJids\.some\(isBotJid\)[^\n]*\n?[^\n]*avisarDegradacion/.test(src),
+      'el manejador ya no avisa cuando el degradado es el bot: el aviso existe y no lo dispara nadie');
+
+    if (fallos === antes) console.log(verde('   ✓ el bot avisa al privado del dueño cuando pierde el admin'));
+  }
+
   // ── 35. LOS DOS PREFIJOS HACEN EXACTAMENTE LO MISMO ──────────────────────
   //
   // El bot entiende *!aura* y */aura*. Eso no es una opcion de configuracion:
