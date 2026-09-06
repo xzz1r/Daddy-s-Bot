@@ -133,9 +133,26 @@ for(const rel of OTROS){
   }
   cerrar();
 }
+// ── las acciones: al corpus si, a la cuenta no ───────────────────────────────
+//
+// accionPhrases.js entra en las dos medidas de contenido de abajo —casi-clones
+// y molde— pero NO en la cuenta de tamanyo y filo, y no por indulgencia:
+//
+//   · el tamanyo lo fijo el duenyo en treinta por pool, no en los cien/
+//     cincuenta/veinticinco de percent.js. Medirlo con la vara de los otros
+//     daria doce pools "por debajo del estandar" que estan exactamente donde se
+//     pidieron, y una deuda inventada tapa la de verdad;
+//   · el filo tampoco: HUG y PAT no tienen que hacer danyo. Exigirles arsenal
+//     seria el mismo error que exigirselo a ROB_WIN, que ya se corrigio aqui.
+//
+// Lo que si aplica igual es no sonar a fabrica, y eso es lo que se mide.
+for(const [nom,P] of Object.entries(require('../src/data/accionPhrases'))){
+  if(Array.isArray(P)&&P.length) filas.push({cmd:'accionPhrases',tr:nom,P,traf:0,brutal:false,soloContenido:true});
+}
+
 // ── evaluacion ───────────────────────────────────────────────────────────────
-let pesoOk=0,pesoTot=0,cumplen=0;const fallan=[];
-for(const f of filas){
+let pesoOk=0,pesoTot=0,cumplen=0;const fallan=[];const medidas=filas.filter(f=>!f.soloContenido);
+for(const f of medidas){
   const n=f.P.length;
   // Los topes que fijo el dueño, A LA MITAD del estandar anterior, y por
   // TRAFICO — no por nombre de tramo. En los positivos el tramo que se lee es
@@ -157,7 +174,7 @@ for(const f of filas){
 }
 console.log('PROGRESO REAL, ponderado por cuanto se lee cada pool\n');
 console.log('  '+(pesoOk/pesoTot*100).toFixed(0)+' % de lo que el grupo lee ya cumple tamanyo y filo.');
-console.log('  '+cumplen+' de '+filas.length+' pools cumplen (sin ponderar).');
+console.log('  '+cumplen+' de '+medidas.length+' pools cumplen (sin ponderar).');
 console.log('');
 console.log('LO QUE FALTA, por impacto:');
 console.log('  pool                          se lee  frases  arsenal  falla');
@@ -215,7 +232,50 @@ console.log('\n  ('+fallan.length+' pools por debajo del estandar en total)');
   for(const e of ej) console.log('   · '+e);
 }
 
-// 2. POLARIDAD. En un comando peyorativo, el tramo BAJO es el cumplido; en uno
+// 2. EL MOLDE. La misma FORMA repetida, aunque cada relleno sea distinto.
+//
+// Es la regla 2 de "que no parezca escrito por una maquina" (GUIA 5 bis), y
+// hasta ahora no la medía nadie: los casi-clones comparan PALABRAS, asi que
+// sesenta frases con el mismo esqueleto y sesenta vocabularios distintos pasan
+// limpias. El grupo, en cambio, oye el esqueleto — es lo que hace que la
+// septima frase suene a la primera sin repetir una sola palabra.
+//
+// Se mira el CIERRE, que es donde se nota: la ultima frase de cada texto,
+// reducida a su forma —las palabras de contenido pasan a ser un punto, las
+// funcionales se quedan— y se cuenta cuantas comparten la misma. Un pool sano
+// del bot anda entre el 3 % y el 19 %. Al escribir esto, ROAST_USUARIO cerraba
+// el 50 % de sus sesenta frases con «· de ·»: cuarenta remates con la forma
+// "<insulto> de <cosa>". Y esa linea sale DEBAJO DE CADA ACCION, que es el
+// sitio del bot donde menos puede repetirse una forma.
+{
+  const FUN=new Set(['de','del','la','el','los','las','que','no','y','en','con','sin','a','al','por',
+    'un','una','se','le','lo','es','ya','mas','ni','como','para','su','te','me','ha','hay']);
+  const ultima=f=>{const t=f.trim().split(/(?<=[.!?])\s+/).filter(Boolean);return t[t.length-1]||f;};
+  const forma=f=>ultima(f).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9ñ ]/g,' ').split(/\s+/).filter(Boolean).slice(-4)
+    .map(w=>FUN.has(w)?w:'·').join(' ');
+  const UMBRAL=0.30;
+  const moldes=[];
+  for(const f of filas){
+    if(f.P.length<25)continue;   // por debajo de eso el porcentaje no dice nada
+    const c=new Map();
+    for(const t of f.P){const g=forma(t);c.set(g,(c.get(g)||0)+1);}
+    const [g,n]=[...c].sort((a,b)=>b[1]-a[1])[0];
+    moldes.push({cmd:f.cmd,tr:f.tr,g,n,tot:f.P.length,r:n/f.P.length});
+  }
+  moldes.sort((a,b)=>b.r-a.r);
+  const pasan=moldes.filter(m=>m.r>=UMBRAL);
+  console.log('\nMOLDE (la misma forma de cierre repetida en el pool):');
+  if(!pasan.length) console.log(moldes.length
+    ? '  ninguno por encima del '+Math.round(UMBRAL*100)+' %  ·  el peor: '+
+      moldes[0].cmd+' '+moldes[0].tr+' '+Math.round(moldes[0].r*100)+' % «'+moldes[0].g+'»'
+    : '  ningun pool llega a 25 frases: no hay nada que medir');
+  for(const m of pasan.slice(0,6))
+    console.log('  '+(m.cmd+' '+m.tr).padEnd(30)+String(Math.round(m.r*100)+'%').padStart(5)+
+      '  '+m.n+' de '+m.tot+' cierran con «'+m.g+'»');
+}
+
+// 3. POLARIDAD. En un comando peyorativo, el tramo BAJO es el cumplido; en uno
 // favorable, el alto. Si el tramo que hace de cumplido pega MAS que el que hace
 // de paliza, quien saca un 4 % lee un insulto donde le tocaba un halago.
 //

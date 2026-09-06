@@ -471,7 +471,7 @@ Es la regla que está por encima de las otras seis, porque es la única cuyo
 incumplimiento no se arregla reescribiendo una frase: se arregla tirando el
 lote entero.
 
-**El rastro no es lo que parece.** Busqué en las 9.700 frases los tics
+**El rastro no es lo que parece.** Busqué en las 10.000 frases los tics
 clásicos: *"no solo… sino"* (1), conectores de redacción tipo *"dicho esto"* o
 *"cabe destacar"* (0 reales), disculpas, matices, emoji de adorno (0). El corpus
 está limpio de eso. Lo que sí hay es esto, por orden de gravedad:
@@ -480,8 +480,8 @@ está limpio de eso. Lo que sí hay es esto, por orden de gravedad:
 que escribe cien insultos se cansa del ángulo y cambia de tema. Una máquina
 produce cien versiones del mismo. `incel.high` lleva la misma idea —teoría sin
 práctica— desde la frase 27 hasta el final, cambiando el decorado: enciclopedia,
-guía turística, laboratorio, grada. Hoy hay **257 casi-clones dentro de un mismo
-tramo**. Eso, y no un tic de vocabulario, es lo que hace que el grupo note que
+guía turística, laboratorio, grada. Al escribir esto había **257 casi-clones dentro de un mismo
+tramo**; hoy quedan **93**. Eso, y no un tic de vocabulario, es lo que hace que el grupo note que
 detrás no hay nadie.
 
 La prueba: si dos frases del mismo pool se pueden resumir con la misma línea,
@@ -676,7 +676,7 @@ npm run conteos
 npm run progreso
 ```
 
-**`npm run check` es el que importa.** Empezó con cuatro capas y hoy son 44. Las
+**`npm run check` es el que importa.** Empezó con cuatro capas y hoy son 49. Las
 cuatro primeras siguen siendo las que pillan lo que rompe el bot al escribir
 frases:
 
@@ -689,9 +689,9 @@ frases:
 4. **Guardan** — comprueba que aura, casino, racha, contador y banlist se
    comportan. Se salta sola si el bot está corriendo, para no pisarle los datos.
 
-Las otras cuarenta son del motor —permisos, economía, red, despliegue— y no hace
+Las otras cuarenta y cinco son del motor —permisos, economía, red, despliegue— y no hace
 falta entenderlas para escribir. Dos sí tocan al contenido y conviene saberlas:
-**31b** revisa las tildes de las 9.600 frases y **33a** caza voseo, frases
+**31b** revisa las tildes de las 10.000 frases y **33a** caza voseo, frases
 pegadas y basura tipo `undefined` incrustada dentro de un texto.
 
 Las capas 2 en adelante necesitan `npm install`. La 1 corre siempre y es la que
@@ -708,7 +708,16 @@ Checklist:
 - [ ] ¿Los placeholders son los permitidos para ese fichero? (sección 8)
 - [ ] ¿Una frase por línea, comillas simples, coma final?
 - [ ] ¿Sin duplicados exactos dentro del mismo pool?
+- [ ] ¿`progreso` no saca casi-clones ni **molde** de lo que acabas de escribir?
 - [ ] Los cinco comandos en verde
+
+**El molde** es la medida nueva de `npm run progreso`, y mide la regla 2 de la
+sección 5 bis: la misma FORMA repetida aunque cada relleno sea distinto. Los
+casi-clones comparan palabras, así que sesenta frases con el mismo esqueleto y
+sesenta vocabularios pasan limpias — y el grupo oye el esqueleto igual. Se mira
+cómo CIERRA cada frase. Un pool sano del bot anda entre el 3 % y el 19 %; por
+encima del 30 % es un molde y hay que reescribir. Pasó con `ROAST_USUARIO`, que
+cerraba la mitad de sus sesenta frases con la forma *"<insulto> de <cosa>"*.
 
 ---
 
@@ -787,4 +796,18 @@ git pull origin main
   esconder es de cobardes y que sacarlo va a costarle dinero.
 - **Racha**: solo habla en hitos (7, 15, 30, 50, 100, 200, 365 días) y al romper
   una racha larga. El resto de días paga en silencio, a propósito.
+- **Acciones** (`!hug` · `!kiss` · `!punch` · `!fuck` y compañía): mandan un gif
+  de anime dirigido a alguien, cuestan 60 —el `!fuck`, 120— y llevan una frase
+  con las dos menciones. Once pools de treinta en `src/data/accionPhrases.js`,
+  más `ROAST_USUARIO`, que son sesenta. Tres cosas propias:
+  **la frase no describe la acción, la comenta** (el gif ya se ve, contar otra
+  vez lo que pasa es escribir el pie de una foto); **la crudeza va según el
+  comando** —guarra y no cursi en las cariñosas, física en las violentas—; y
+  **el chiste apunta a quien la recibe, nunca a quien la manda**. La excepción es
+  `ROAST_USUARIO`, que va debajo en cursiva y existe justo para lo contrario: se
+  ríe de quien ha pagado 60 de aura por mandar un abrazo animado. Al tier dueño
+  no se le remata, y eso lo salta el propio comando.
+  **Sin frases no hay comando**: mientras un pool no exista, esa acción no sale
+  en el menú, no la sugiere el corrector, no cobra y no contesta. Se enciende
+  sola al exportar el pool.
 - **Multimedia**: stickers, `!play`, `!toimg`. Sin frases; no es terreno de contenido.
