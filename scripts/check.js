@@ -5891,6 +5891,62 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     if (fallos === antes) console.log(verde('   ✓ el dueño se entera, la deuda se cobra y el par se repone solo'));
   }
 
+  // ── 40. EL ROAST DE LAS ACCIONES SALE DOSIFICADO ─────────────────────────
+  //
+  // Sale UNA de cada cinco acciones, no en todas. Decision del dueño y con
+  // motivo: estos comandos se usan en rafaga contra medio grupo, asi que un
+  // segundo mensaje debajo de cada uno deja de leerse a las tres veces.
+  //
+  // Se comprueba la CADENCIA de verdad, contando los turnos, y no que exista la
+  // constante: poner el numero y luego mandar el roast igual en todas es
+  // exactamente el fallo que nadie ve en el codigo y el grupo ve al segundo.
+  {
+    console.log('\n40. EL ROAST DE LAS ACCIONES SALE DOSIFICADO');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const acc = require(path.join(R, 'src/commands/acciones'));
+    exige(Number.isInteger(acc.ROAST_CADA) && acc.ROAST_CADA > 1,
+      'ROAST_CADA ya no es un numero mayor que uno: el roast vuelve a salir en cada accion');
+
+    // La cadencia se lee del codigo del handler, que es quien la aplica. Se
+    // simula el contador con la misma cuenta para ver el patron que sale.
+    const src2 = soloCodigo('src/commands/acciones.js');
+    exige(/turnoRoast\.get\(jid\)/.test(src2) && /% ROAST_CADA === 0/.test(src2),
+      'el roast ya no mira el turno del grupo: o sale siempre, o no sale nunca');
+
+    // Y la propiedad que importa, con la aritmetica de verdad: en N acciones
+    // salen exactamente N/ROAST_CADA roasts, y ninguno antes del quinto.
+    {
+      const N = acc.ROAST_CADA * 3;
+      let turno = 0;
+      const patron = [];
+      for (let i = 0; i < N; i++) {
+        const n = turno + 1;
+        turno = n % acc.ROAST_CADA;
+        patron.push(n % acc.ROAST_CADA === 0 ? 'R' : '.');
+      }
+      exige(patron.filter((x) => x === 'R').length === 3,
+        `la cadencia del roast no da tres en ${N} acciones: ${patron.join('')}`);
+      exige(patron.slice(0, acc.ROAST_CADA - 1).every((x) => x === '.'),
+        `el roast sale antes de la accion ${acc.ROAST_CADA}: ${patron.join('')}`);
+    }
+
+    // EL CONTADOR ES POR GRUPO. Uno solo para todo el bot haria que las
+    // acciones de un grupo se comieran el turno de otro.
+    exige(acc._turnoRoast instanceof Map,
+      'el turno del roast ya no es un mapa por grupo: un solo contador global mezcla los grupos');
+
+    // Y LAS DEL TIER DUEÑO NO SUMAN. Si sumaran, sus acciones se comerian el
+    // turno de otro y el roast saldria cada seis, cada ocho, o no saldria.
+    const i = src2.indexOf('turnoRoast.get(jid)');
+    const arriba = i < 0 ? '' : src2.slice(Math.max(0, i - 300), i);
+    exige(/!isOwner\([^)]*\)[^{]*&&/.test(arriba),
+      'el turno del roast se cuenta tambien para el tier dueño: sus acciones le robarian el turno al resto y la cadencia dejaria de cuadrar');
+
+    if (fallos === antes) console.log(verde(`   ✓ el roast sale una de cada ${acc.ROAST_CADA}, por grupo, y el dueño no gasta turno`));
+  }
+
   // ── 39. !purgeall NO SE LLEVA POR DELANTE A QUIEN NO DEBE ────────────────
   //
   // Es el comando mas destructivo del bot: saca y veta a TODO el grupo, y la

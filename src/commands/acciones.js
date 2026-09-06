@@ -89,6 +89,24 @@ const hayFrases = (p) => Array.isArray(p) && p.length > 0;
 const ACTIVAS = Object.keys(ACCIONES).filter((n) => hayFrases(ACCIONES[n].pool));
 const ALIAS_ACTIVOS = ACTIVAS.flatMap((n) => ACCIONES[n].cmds);
 
+// CADA CUANTAS ACCIONES SALE EL ROAST.
+//
+// Decision del dueño, y con motivo: estos comandos se usan en rafaga contra
+// medio grupo, asi que un segundo mensaje debajo de cada uno deja de leerse a
+// las tres veces y pasa a ser ruido. Una de cada cinco lo devuelve a lo que
+// era.
+//
+// LA CUENTA ES POR GRUPO, no por persona, porque lo que se esta dosificando es
+// el ruido del chat y eso no lo mide una persona sola: cinco personas mandando
+// una accion cada una llenan el grupo igual que una mandando cinco.
+//
+// Y VIVE EN MEMORIA a proposito. Es lo unico del bot que puede reiniciarse a
+// cero sin que nadie pierda nada: un despliegue adelanta o retrasa UN roast.
+// Guardarlo en disco seria una escritura mas por cada accion para cuidar un
+// numero que a nadie le importa.
+const ROAST_CADA = 5;
+const turnoRoast = new Map();
+
 const API = 'https://nekos.best/api/v2/';
 
 // LA FUENTE NSFW NO VIENE PUESTA, Y ES A PROPOSITO.
@@ -291,9 +309,22 @@ function hazAccion(nombre) {
     // foto: se lee como continuacion de la escena y no como paliza. Quien usa
     // el comando se lleva, delante del grupo, lo que dice de el usarlo. Al tier
     // dueño no: el bot no le falta al respeto al que lo administra.
+    //
+    // PERO NO EN TODAS. Una de cada cinco, y esa es la diferencia entre un
+    // remate y una coletilla: un segundo mensaje debajo de CADA accion —y estos
+    // se usan en rafaga, contra medio grupo— deja de leerse a las tres veces.
+    // Espaciado, vuelve a ser lo que era, un corte que nadie esperaba.
+    //
+    // SOLO CUENTAN LAS QUE PUEDEN LLEVARLO. Las del tier dueño no suman: si
+    // sumaran, sus acciones se comerian el turno de otro y el roast saldria
+    // cada seis, cada ocho, o no saldria — y desde fuera pareceria roto.
     if (!isOwner(quien, msg.key.fromMe, groupMeta) && hayFrases(RX.ROAST_USUARIO)) {
-      const remate = `_${pickFresh(RX.ROAST_USUARIO, `${jid}|accion|remate`).replace(/%A/g, nA)}_`;
-      await sock.sendMessage(jid, { text: remate, mentions: [quien] }, { quoted: msg });
+      const n = (turnoRoast.get(jid) || 0) + 1;
+      turnoRoast.set(jid, n % ROAST_CADA);
+      if (n % ROAST_CADA === 0) {
+        const remate = `_${pickFresh(RX.ROAST_USUARIO, `${jid}|accion|remate`).replace(/%A/g, nA)}_`;
+        await sock.sendMessage(jid, { text: remate, mentions: [quien] }, { quoted: msg });
+      }
     }
   };
 }
@@ -304,4 +335,4 @@ function hazAccion(nombre) {
 const comandos = {};
 for (const nombre of ACTIVAS) comandos[nombre] = hazAccion(nombre);
 
-module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ...comandos, _cache: cache };
+module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, ...comandos, _cache: cache, _turnoRoast: turnoRoast };
