@@ -774,10 +774,24 @@ async function connectToWhatsApp() {
       // sacar un numero de telefono —que no es un secreto— es abrir la puerta
       // equivocada por comodidad. Esto es un fichero de un campo y sin nada
       // privado.
+      //
+      // Y SE ANOTA TAMBIEN EL @lid, QUE ES LO QUE DE VERDAD HACIA FALTA. En un
+      // grupo LID —o sea, en todos los de ahora— la degradacion del bot llega
+      // identificada SOLO por su @lid, sin telefono al lado. El guardian, que
+      // solo tenia el numero, no podia saber que ese @lid era el bot: veia la
+      // degradacion, no reconocia a nadie y se quedaba quieto. Pasó en
+      // produccion, dos pruebas seguidas, y el log lo enseño:
+      //
+      //   evento demote ... sobre [["<lid del bot>"]]
+      //   degradacion ... y ninguno era el bot. Protejo a: <telefono>
+      //
+      // El bot SI sabe cual es su propio @lid. Solo habia que escribirlo.
       try {
-        const numero = String(sock.user?.id || '').split('@')[0].split(':')[0].replace(/\D/g, '');
-        if (numero) {
-          await atomicWriteJson(path.join(__dirname, '../data/numeroBot.json'), { numero, ts: Date.now() });
+        const soloDigitos = (x) => String(x || '').split('@')[0].split(':')[0].replace(/\D/g, '');
+        const numero = soloDigitos(sock.user?.id);
+        const lid = soloDigitos(sock.user?.lid);
+        if (numero || lid) {
+          await atomicWriteJson(path.join(__dirname, '../data/numeroBot.json'), { numero, lid, ts: Date.now() });
         }
       } catch (e) { logger.warn(`no pude anotar el numero del bot para el guardian: ${e.message}`); }
 

@@ -205,9 +205,9 @@ function guardarVistos(v) {
     fs.renameSync(tmp, FICHERO_VISTOS);
   } catch (e) { logger.warn(`guardián: no pude guardar la lista de grupos: ${e.message}`); }
 }
-let _cache = { mtime: -1, numero: '' };
+let _cache = { mtime: -1, numero: '', lid: '' };
 
-function numeroAnotado() {
+function anotado() {
   try {
     // Por mtime: el caso normal es leer una vez y no volver a tocar el disco.
     // Se vuelve a leer solo si el fichero cambió, o sea si el bot se vinculó a
@@ -215,13 +215,28 @@ function numeroAnotado() {
     const m = fs.statSync(FICHERO_NUMERO).mtimeMs;
     if (m !== _cache.mtime) {
       const d = JSON.parse(fs.readFileSync(FICHERO_NUMERO, 'utf8'));
-      _cache = { mtime: m, numero: String(d?.numero || '').replace(/\D/g, '') };
+      _cache = {
+        mtime: m,
+        numero: String(d?.numero || '').replace(/\D/g, ''),
+        lid: String(d?.lid || '').replace(/\D/g, ''),
+      };
     }
-    return _cache.numero;
+    return _cache;
   } catch {
-    return '';   // aún no ha conectado nunca, u otra máquina
+    return { numero: '', lid: '' };   // aún no ha conectado nunca, u otra máquina
   }
 }
+
+const numeroAnotado = () => anotado().numero;
+
+// EL @lid DEL BOT, QUE ES LO QUE DE VERDAD LLEGA. En un grupo LID —o sea, en
+// todos los de ahora— la degradación del bot llega identificada solo por su
+// @lid, sin teléfono al lado. Sin esto, el guardián veía la degradación, no
+// reconocía a nadie y se quedaba quieto: pasó dos veces en producción.
+//
+// Va aparte del número porque un @lid NO es un teléfono: no se le puede quitar
+// el 9 argentino ni comparar por sufijo. Se compara entero o no se compara.
+const lidProtegido = () => String(process.env.GUARDIAN_LID || '').replace(/\D/g, '') || anotado().lid;
 
 const protegido = () => String(process.env.GUARDIAN_DE || '').replace(/\D/g, '') || numeroAnotado();
 
@@ -314,10 +329,14 @@ function filtroJid(jid) {
 
 function esElProtegido(p, meta) {
   const PROTEGIDO = protegido();
-  if (!p || !PROTEGIDO) return false;
+  const LID = lidProtegido();
+  if (!p || (!PROTEGIDO && !LID)) return false;
 
   const formas = formasDe(p).map(digitos);
-  if (formas.some((f) => mismoNumero(f, PROTEGIDO))) return true;
+  // El @lid primero: es la forma en la que llega de verdad. Igualdad exacta,
+  // sin los apaños de teléfono.
+  if (LID && formas.includes(LID)) return true;
+  if (PROTEGIDO && formas.some((f) => mismoNumero(f, PROTEGIDO))) return true;
 
   // Y si el evento solo trajo un @lid a secas, se busca su teléfono en la ficha
   // del grupo. Es el camino de respaldo: con los objetos de arriba casi nunca
@@ -349,7 +368,7 @@ async function reponer(groupJid, quienes) {
 
 async function alDegradar(groupJid, participants, action, author) {
   if (action !== 'demote') return false;
-  if (!protegido()) {
+  if (!protegido() && !lidProtegido()) {
     // Callarse aquí sería lo peor: es el único momento en que este proceso
     // tenía que servir para algo.
     logger.error(`guardián: han degradado a alguien en ${groupJid} y no sé a quién protejo. Revisa data/numeroBot.json o pon GUARDIAN_DE.`);
@@ -371,7 +390,7 @@ async function alDegradar(groupJid, participants, action, author) {
     // Con esto, el próximo fallo se lee en `pm2 logs guardian` y ya dice qué
     // llegó y contra qué se comparó.
     logger.warn(`guardián: degradación en ${groupJid} y ninguno era el bot. `
-      + `Llegó: ${JSON.stringify((participants || []).map(formasDe))}. Protejo a: ${protegido() || '(a nadie)'}`);
+      + `Llegó: ${JSON.stringify((participants || []).map(formasDe))}. Protejo a: ${protegido() || '(sin numero)'} / lid ${lidProtegido() || '(sin lid)'}`);
     return false;
   }
 
@@ -399,7 +418,7 @@ async function limpiarCredencialesAMedias() {
 
 // El repaso al conectar. Devuelve cuantos ha repuesto, para poder probarlo.
 async function repasarGrupos() {
-  if (!protegido()) return 0;
+  if (!protegido() && !lidProtegido()) return 0;
   let grupos;
   try { grupos = await withTimeout(sock.groupFetchAllParticipating(), TOPE_RED); }
   catch (e) { logger.warn(`guardián: no pude repasar los grupos: ${e.message}`); return 0; }
@@ -464,7 +483,7 @@ async function conectar() {
   //
   // Se avisa y se sigue: el número se lee en cada evento, así que en cuanto el
   // bot conecte, el guardián ya sabe a quién protege sin tocar nada.
-  if (!protegido()) {
+  if (!protegido() && !lidProtegido()) {
     logger.warn('guardián: todavía no sé a quién protejo (el bot no ha conectado aún). Sigo esperando; lo sabré en cuanto conecte.');
   }
 
@@ -594,8 +613,8 @@ async function conectar() {
     if (connection === 'open') {
       espera = ESPERA_MIN;
       const aQuien = protegido();
-      logger.info(aQuien
-        ? `guardián en línea. Protegiendo a +${aQuien}.`
+      logger.info(aQuien || lidProtegido()
+        ? `guardián en línea. Protegiendo a +${aQuien || '?'} (lid ${lidProtegido() || 'sin anotar'}).`
         : 'guardián en línea, pero aún no sé a quién protejo: esperando a que el bot conecte.');
       // El repaso va DESPUÉS de anunciar la conexión y sin bloquearla: si la
       // consulta de grupos tarda o falla, el guardián sigue en pie y escuchando,
@@ -629,4 +648,4 @@ if (require.main === module) {
   conectar().catch((err) => { console.error('guardián: error fatal:', err); process.exit(1); });
 }
 
-module.exports = { alDegradar, esElProtegido, mismoNumero, formasDe, repasarGrupos, _filtroJid: filtroJid, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };
+module.exports = { alDegradar, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };

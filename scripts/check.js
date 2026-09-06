@@ -5725,6 +5725,46 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
         && s2.h[0] === 'promote',
         'el guardian no repone al bot con la forma real del evento (objeto {id,phoneNumber}): es como llega SIEMPRE en un grupo de verdad');
 
+      // EL CASO REAL DE PRODUCCION, copiado del log: en un grupo LID la
+      // degradacion del bot llega SOLO con su @lid, sin telefono al lado y sin
+      // nada util en la ficha del grupo. El guardian solo tenia el numero, asi
+      // que veia la degradacion, no reconocia a nadie y se quedaba quieto. Dos
+      // pruebas seguidas en el grupo de verdad, y el log lo enseño:
+      //
+      //   evento demote ... sobre [["<lid del bot>"]]
+      //   degradacion ... y ninguno era el bot. Protejo a: <telefono>
+      //
+      // Los numeros de aqui abajo son INVENTADOS, con la forma de los de verdad:
+      // este repositorio es publico y la guarda de telefonos me pillo al copiar
+      // los del log tal cual, que es exactamente su trabajo.
+      //
+      // El bot anota su propio @lid al conectar; esto comprueba que se use.
+      {
+        const F = path.join(R, 'data/numeroBot.json');
+        const habiaN = fs.existsSync(F) ? fs.readFileSync(F) : null;
+        try {
+          fs.writeFileSync(F, JSON.stringify({ numero: '570000000001', lid: '200000000000001' }));
+          const envL = process.env.GUARDIAN_DE; const envLid = process.env.GUARDIAN_LID;
+          delete process.env.GUARDIAN_DE; delete process.env.GUARDIAN_LID;
+          try {
+            const sk5 = { user: { id: GUA },
+              groupMetadata: async () => ({ id: G2, participants: [{ id: '200000000000001@lid' }] }),
+              groupParticipantsUpdate: async (j, p) => p.map((x) => ({ status: '200', jid: x })) };
+            g._sock(sk5);
+            exige(await g.alDegradar(G2, [{ id: '200000000000001@lid' }], 'demote', '200000000000009@lid') === true,
+              'el guardian no reconoce al bot cuando la degradacion llega SOLO con su @lid: es como llega de verdad en un grupo LID, y por eso no repuso nada dos veces seguidas');
+          } finally {
+            if (envL === undefined) delete process.env.GUARDIAN_DE; else process.env.GUARDIAN_DE = envL;
+            if (envLid === undefined) delete process.env.GUARDIAN_LID; else process.env.GUARDIAN_LID = envLid;
+          }
+        } finally {
+          fs.rmSync(F, { force: true });
+          if (habiaN) fs.writeFileSync(F, habiaN);
+        }
+      }
+      exige(/lid/.test(soloCodigo('src/bot.js').slice(soloCodigo('src/bot.js').indexOf('numeroBot.json') - 400, soloCodigo('src/bot.js').indexOf('numeroBot.json') + 200)),
+        'el bot ya no anota su @lid: el guardian se queda otra vez sin poder reconocerlo en un grupo LID');
+
       // Y la de siempre: un @lid a secas, que se resuelve con la ficha del grupo.
       s2 = sk2(); g._sock(s2);
       exige(await g.alDegradar(G2, [{ id: BOTL }], 'demote', OTRO) === true,
