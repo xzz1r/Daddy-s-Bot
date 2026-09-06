@@ -796,9 +796,9 @@ git pull origin main
   esconder es de cobardes y que sacarlo va a costarle dinero.
 - **Racha**: solo habla en hitos (7, 15, 30, 50, 100, 200, 365 días) y al romper
   una racha larga. El resto de días paga en silencio, a propósito.
-- **Acciones** (`!hug` · `!kiss` · `!punch` · `!fuck` y compañía): mandan un gif
-  de anime dirigido a alguien, cuestan 60 —el `!fuck`, 120— y llevan una frase
-  con las dos menciones. Once pools de treinta en `src/data/accionPhrases.js`,
+- **Acciones** (`!hug` · `!kiss` · `!punch` · `!fuck` · `!anal` y compañía): mandan un gif
+  de anime dirigido a alguien, cuestan 60 —`!fuck` y `!anal`, 120— y llevan una frase
+  con las dos menciones. Doce pools de treinta en `src/data/accionPhrases.js`,
   más `ROAST_USUARIO`, que son sesenta. Tres cosas propias:
   **la frase no describe la acción, la comenta** (el gif ya se ve, contar otra
   vez lo que pasa es escribir el pie de una foto); **la crudeza va según el
