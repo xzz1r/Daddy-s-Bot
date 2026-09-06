@@ -2513,8 +2513,10 @@ async function handleMessage(sock, msg) {
       case 'slap':
       case 'torta':
       case 'bofetada':
+      case 'chomp':
       case 'morder':
       case 'mordisco':
+      case 'stomp':
       case 'patada':
       case 'patear':
       case 'bonk':

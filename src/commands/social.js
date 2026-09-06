@@ -281,6 +281,14 @@ ${p}duel · ${p}duelo · ${p}1v1
 ${p}dar · ${p}regalar · ${p}transferir · ${p}pagar · ${p}donar
 ${p}guia · ${p}aurahelp · ${p}guiaaura
 
+━━━━━ *ACCIONES* ━━━━━
+${p}hug · ${p}abrazo · ${p}abrazar  ·  ${p}kiss · ${p}beso · ${p}besar
+${p}cuddle · ${p}mimo · ${p}acurrucar  ·  ${p}pat · ${p}caricia · ${p}acariciar
+${p}poke · ${p}toque · ${p}picar  ·  ${p}punch · ${p}puno · ${p}punetazo
+${p}slap · ${p}torta · ${p}bofetada  ·  ${p}chomp · ${p}morder · ${p}mordisco
+${p}stomp · ${p}patada · ${p}patear  ·  ${p}bonk · ${p}zurra · ${p}mazazo
+${p}fuck · ${p}follar · ${p}joder
+
 ━━━━━ *ROBO* ━━━━━
 ${p}robo · ${p}robar
 ${p}contrarobo · ${p}contraataque · ${p}contraatacar · ${p}vengarse
@@ -288,14 +296,6 @@ ${p}buscados · ${p}cartel · ${p}wanted · ${p}mostwanted · ${p}recompensas
 ${p}tienda · ${p}shop  ·  ${p}comprar  ·  ${p}bote  ·  ${p}caja · ${p}registradora
 ${p}asalto · ${p}asaltar  ·  ${p}atraco · ${p}atracar
 ${p}vault · ${p}safe  ·  ${p}lock · ${p}stash  ·  ${p}unlock
-
-━━━━━ *ACCIONES* ━━━━━
-${p}hug · ${p}abrazo · ${p}abrazar  ·  ${p}kiss · ${p}beso · ${p}besar
-${p}cuddle · ${p}mimo · ${p}acurrucar  ·  ${p}pat · ${p}caricia · ${p}acariciar
-${p}poke · ${p}toque · ${p}picar  ·  ${p}punch · ${p}puno · ${p}punetazo
-${p}slap · ${p}torta · ${p}bofetada  ·  ${p}morder · ${p}mordisco
-${p}patada · ${p}patear  ·  ${p}bonk · ${p}zurra · ${p}mazazo
-${p}fuck · ${p}follar · ${p}joder
 
 ━━━━━ *ACTIVIDAD* ━━━━━
 ${p}relevancia · ${p}importancia · ${p}relevance
@@ -412,6 +412,12 @@ _De una palabra, ${PRECIOS.percent} cada uno, de más crudo a más suave:_
 *${p}simp ${p}friki ${p}inutil ${p}perdedor ${p}fea ${p}infiel ${p}iq ${p}feminidad*
 *${p}masculinidad ${p}linda ${p}hot ${p}sexy ${p}fiel ${p}crack ${p}ganador*
 
+━━ *ACCIONES* ━━
+_Sobre alguien, ${c('accion')} cada una_
+*${p}hug* · *${p}kiss* · *${p}cuddle* · *${p}pat* · *${p}poke*
+*${p}punch* · *${p}slap* · *${p}chomp* · *${p}stomp* · *${p}bonk*
+*${p}fuck* ${c('accionNsfw')}
+
 ━━ *AURA Y ROBO* ━━
 *${p}robo* @user <cant.> · *${p}contrarobo* · *${p}buscados*
 *${p}asalto* · *${p}atraco* — contra la casa, no contra nadie
@@ -419,12 +425,6 @@ _De una palabra, ${PRECIOS.percent} cada uno, de más crudo a más suave:_
 *${p}apostar* mitad/todo/2k · *${p}duel* @user · *${p}dar* @user <cant.>
 *${p}tienda* · *${p}comprar* <objeto> · *${p}bote* · *${p}caja*
 *${p}aura* la tirada · *${p}saldo* · *${p}top* · *${p}hoy* · *${p}guia*
-
-━━ *ACCIONES* ━━
-_Sobre alguien, ${c('accion')} cada una. También en castellano: *${p}abrazo*, *${p}torta*, *${p}patada*…_
-*${p}hug* · *${p}kiss* · *${p}cuddle* · *${p}pat* · *${p}poke*
-*${p}punch* · *${p}slap* · *${p}morder* · *${p}patada* · *${p}bonk*
-*${p}fuck* ${c('accionNsfw')} — la cara
 
 ━━ *ACTIVIDAD* ━━
 *${p}fantasmas* ${c('fantasmas')} · *${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b

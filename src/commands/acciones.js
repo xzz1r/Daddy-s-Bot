@@ -34,10 +34,15 @@ const logger = require('../utils/logger');
 //
 //   · KICK no puede llamarse *!kick*: ese comando YA existe y EXPULSA del
 //     grupo. Un gif de anime robandole el nombre al comando que echa gente es
-//     la peor confusion posible, asi que se queda en *!patada*.
+//     la peor confusion posible. Se llama *!stomp*, que es una patada y no
+//     suena a echar a nadie.
 //   · BITE no puede llamarse *!bite*: esta a UNA letra de *!bote*, que es la
 //     caja comun y se usa a diario. Quien escriba mal el bote se comeria un
-//     mordisco de 60 de aura. Se queda en *!morder*.
+//     mordisco de 60 de aura. Se llama *!chomp*.
+//
+// Los nombres en castellano siguen funcionando —*!torta*, *!abrazo*, *!patada*—
+// pero NO se anuncian en el menu corto: el bot habla en ingles aqui y una lista
+// mezclada quedaba pobre. Estan en *!help todo*, que es la referencia.
 //
 // Lo comprueba `npm run check`: ningun nombre de accion puede pisar un comando
 // existente ni quedarse a una letra de otro.
@@ -49,8 +54,8 @@ const ACCIONES = {
   poke:   { cat: 'poke',   pool: RX.POKE,   cmds: ['poke', 'toque', 'picar'] },
   punch:  { cat: 'punch',  pool: RX.PUNCH,  cmds: ['punch', 'puno', 'punetazo'] },
   slap:   { cat: 'slap',   pool: RX.SLAP,   cmds: ['slap', 'torta', 'bofetada'] },
-  bite:   { cat: 'bite',   pool: RX.BITE,   cmds: ['morder', 'mordisco'] },
-  kick:   { cat: 'kick',   pool: RX.KICK,   cmds: ['patada', 'patear'] },
+  bite:   { cat: 'bite',   pool: RX.BITE,   cmds: ['chomp', 'morder', 'mordisco'] },
+  kick:   { cat: 'kick',   pool: RX.KICK,   cmds: ['stomp', 'patada', 'patear'] },
   bonk:   { cat: 'bonk',   pool: RX.BONK,   cmds: ['bonk', 'zurra', 'mazazo'] },
   // La cara. Cuesta el doble justamente para que no se use en bucle: el riesgo
   // de este comando no es la CPU, es la cuenta.
