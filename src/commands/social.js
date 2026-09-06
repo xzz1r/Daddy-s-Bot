@@ -5,6 +5,7 @@ const { getCasinoCount, msUntilReset, tiradasDeHoy, hitosCobrados } = require('.
 const { verRacha } = require('../utils/rachaStore');
 const { nextMilestone } = require('../utils/casino');
 const { PRECIOS, APUESTA, CONTRA, ACTIVIDAD_MSGS, TIRADAS_PAGADAS, RACHA } = require('../utils/economia');
+const { ACCIONES, ACTIVAS } = require('./acciones');
 const config = require('../config');
 const logger = require('../utils/logger');
 const { SIN_PERMISO, SOLO_GRUPOS } = require('../data/avisos');
@@ -255,6 +256,46 @@ async function cmdCasino(sock, msg, groupMeta) {
 // pedirla: no la va a encontrar de sorpresa ni le va a tapar lo que buscaba.
 // Es la diferencia entre una referencia y un muro — la misma informacion, pero
 // una la abres tu y la otra te cae encima.
+// EL BLOQUE DE ACCIONES SE DIBUJA SOLO, Y SI NO HAY NINGUNA NO SE DIBUJA.
+//
+// Las frases de estos comandos las escribe Grok, y hasta que un pool no existe
+// la accion esta apagada: no tiene handler y no contesta. Escrita a mano, esta
+// seccion anunciaria once comandos de los que a lo mejor funcionan tres —que es
+// la unica cosa que el menu no puede hacer— asi que se genera de la misma tabla
+// de la que sale el dispatcher. Lo que no esta activo, no se nombra; y el dia
+// que se activen todas, aparecen aqui solas.
+//
+// Las dos vistas salen del mismo sitio a proposito: el menu corto da el nombre
+// en ingles y *!help todo* da ademas los alias en castellano.
+function filas(items, porFila, junta) {
+  const out = [];
+  for (let i = 0; i < items.length; i += porFila) out.push(items.slice(i, i + porFila).join(junta));
+  return out;
+}
+
+// La lista entera, con todos los alias: dos acciones por linea.
+function bloqueAccionesTodo(p) {
+  if (!ACTIVAS.length) return '';
+  const cada = ACTIVAS.map((n) => ACCIONES[n].cmds.map((x) => `${p}${x}`).join(' · '));
+  return `\n━━━━━ *ACCIONES* ━━━━━\n${filas(cada, 2, '  ·  ').join('\n')}\n`;
+}
+
+// El menu corto: solo el nombre en ingles, y el precio pegado al que cuesta el
+// doble.
+function bloqueAcciones(p, c) {
+  if (!ACTIVAS.length) return '';
+  const nombre = (n) => `*${p}${ACCIONES[n].cmds[0]}*`;
+  const sfw = ACTIVAS.filter((n) => !ACCIONES[n].nsfw);
+  const nsfw = ACTIVAS.filter((n) => ACCIONES[n].nsfw);
+  const lineas = [];
+  if (sfw.length) {
+    lineas.push(`_Sobre alguien, ${c('accion')} cada una_`);
+    lineas.push(...filas(sfw.map(nombre), 5, ' · '));
+  }
+  if (nsfw.length) lineas.push(`${nsfw.map(nombre).join(' · ')} ${c('accionNsfw')}`);
+  return `\n━━ *ACCIONES* ━━\n${lineas.join('\n')}\n`;
+}
+
 function textoCompleto(p, c, esAdmin, esOwner) {
   return `*TODOS LOS COMANDOS*
 _Cada línea: el nombre y todas sus formas. Cualquiera vale._
@@ -280,15 +321,7 @@ ${p}hoy  ·  ${p}casino  ·  ${p}apostar · ${p}apuesta · ${p}apuestas
 ${p}duel · ${p}duelo · ${p}1v1
 ${p}dar · ${p}regalar · ${p}transferir · ${p}pagar · ${p}donar
 ${p}guia · ${p}aurahelp · ${p}guiaaura
-
-━━━━━ *ACCIONES* ━━━━━
-${p}hug · ${p}abrazo · ${p}abrazar  ·  ${p}kiss · ${p}beso · ${p}besar
-${p}cuddle · ${p}mimo · ${p}acurrucar  ·  ${p}pat · ${p}caricia · ${p}acariciar
-${p}poke · ${p}toque · ${p}picar  ·  ${p}punch · ${p}puno · ${p}punetazo
-${p}slap · ${p}torta · ${p}bofetada  ·  ${p}chomp · ${p}morder · ${p}mordisco
-${p}stomp · ${p}patada · ${p}patear  ·  ${p}bonk · ${p}zurra · ${p}mazazo
-${p}fuck · ${p}follar · ${p}joder
-
+${bloqueAccionesTodo(p)}
 ━━━━━ *ROBO* ━━━━━
 ${p}robo · ${p}robar
 ${p}contrarobo · ${p}contraataque · ${p}contraatacar · ${p}vengarse
@@ -411,13 +444,7 @@ _De una palabra, ${PRECIOS.percent} cada uno, de más crudo a más suave:_
 *${p}puta ${p}guarra ${p}maricon ${p}incel ${p}gay ${p}femboy ${p}cerdo ${p}rata*
 *${p}simp ${p}friki ${p}inutil ${p}perdedor ${p}fea ${p}infiel ${p}iq ${p}feminidad*
 *${p}masculinidad ${p}linda ${p}hot ${p}sexy ${p}fiel ${p}crack ${p}ganador*
-
-━━ *ACCIONES* ━━
-_Sobre alguien, ${c('accion')} cada una_
-*${p}hug* · *${p}kiss* · *${p}cuddle* · *${p}pat* · *${p}poke*
-*${p}punch* · *${p}slap* · *${p}chomp* · *${p}stomp* · *${p}bonk*
-*${p}fuck* ${c('accionNsfw')}
-
+${bloqueAcciones(p, c)}
 ━━ *AURA Y ROBO* ━━
 *${p}robo* @user <cant.> · *${p}contrarobo* · *${p}buscados*
 *${p}asalto* · *${p}atraco* — contra la casa, no contra nadie

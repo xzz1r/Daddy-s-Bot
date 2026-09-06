@@ -4731,10 +4731,55 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
       // el corrector tampoco lo sugiere y no aparecer en el menu es lo
       // coherente. *!adm* y *!k* son las dos excepciones de siempre: atajos de
       // comandos que SI estan documentados con su nombre largo.
-      const OCULTOS = new Set([...ocultosDecl, 'adm', 'k']);
+      //
+      // Y LAS ACCIONES SIN FRASES TAMPOCO, PORQUE EL BOT NO LAS ACEPTA. Su
+      // `case` sigue en el switch —el nombre queda reservado para que ningun
+      // comando futuro se lo lleve— pero sin pool no hay handler: el bot se
+      // calla, no cobra y el corrector no las ofrece. Anunciarlas seria el
+      // fallo, no callarlas. Se miran aparte, unas lineas mas abajo.
+      //
+      // Las acciones salen enteras de esta cuenta, encendidas y apagadas, y no
+      // por indulgencia: su bloque del menu NO ESTA ESCRITO en social.js, se
+      // genera de la tabla del dispatcher, asi que buscarlo con un regex en el
+      // fichero no encuentra nada aunque el menu lo pinte perfecto. Se
+      // comprueban pintando el menu de verdad, unas lineas mas abajo, y ahi se
+      // miran las dos direcciones.
+      const acc = require(path.join(R, 'src/commands/acciones'));
+      const apagadas = new Set(Object.keys(acc.ACCIONES)
+        .filter((n) => !acc.ACTIVAS.includes(n))
+        .flatMap((n) => acc.ACCIONES[n].cmds));
+      const todasAcciones = Object.values(acc.ACCIONES).flatMap((a) => a.cmds);
+      const OCULTOS = new Set([...ocultosDecl, 'adm', 'k', ...todasAcciones]);
       const faltan = cmds.filter((c) => !enMenu.has(c) && !OCULTOS.has(c));
       exige(faltan.length === 0,
         `${faltan.length} comando(s) que el bot acepta no salen en el menu: ${faltan.slice(0, 8).join(', ')}${faltan.length > 8 ? '…' : ''}`);
+
+      // EL BLOQUE DE ACCIONES NO SE ESCRIBE, SE GENERA — asi que no vale
+      // buscarlo en el fichero: hay que PINTAR el menu y leer lo que sale.
+      //
+      // Las dos direcciones, que es donde esta el fallo posible: una accion que
+      // funciona y no se anuncia (existe y no lo sabe nadie) y una accion
+      // apagada que si se anuncia (el menu ofrece algo que no contesta). La
+      // segunda es la de hoy, con los doce pools todavia sin escribir.
+      const GRUPO2 = '000000000@g.us';
+      const RASO2 = '34600000003@s.whatsapp.net';
+      const meta2 = { id: GRUPO2, participants: [{ id: RASO2 }] };
+      const pinta = async (argv) => {
+        let t = '';
+        const s2 = { sendMessage: async (j, cc) => { t = cc.text || ''; return {}; } };
+        await require(path.join(R, 'src/commands/social')).cmdHelp(
+          s2, { key: { remoteJid: GRUPO2, participant: RASO2, fromMe: false, id: 'X' } }, meta2, argv);
+        return t;
+      };
+      const pintado = `${await pinta(['todo'])}\n${await pinta([])}`;
+      for (const n of acc.ALIAS_ACTIVOS) {
+        exige(new RegExp(`[!/]${n}\\b`).test(pintado),
+          `la accion *!${n}* ya tiene frases y funciona, pero el menu no la nombra: existe y no lo sabe nadie`);
+      }
+      for (const n of apagadas) {
+        exige(!new RegExp(`[!/]${n}\\b`).test(pintado),
+          `el menu anuncia *!${n}* y esa accion no tiene frases: el bot la ignora, asi que estaria ofreciendo algo que no contesta`);
+      }
     }
     if (fallos === antes) console.log(verde('   ✓ !p, !purge y !visto no salen en el menu ni los sugiere el corrector'));
   }

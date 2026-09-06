@@ -62,6 +62,23 @@ const ACCIONES = {
   fuck:   { cat: 'kiss',   pool: RX.FUCK,   cmds: ['fuck', 'follar', 'joder'], nsfw: true },
 };
 
+// SIN FRASES NO HAY COMANDO.
+//
+// Las frases son de Grok y viven en accionPhrases.js. Mientras un pool no
+// exista, la accion entera esta APAGADA: no sale en el menu, no se puede
+// teclear, no cobra y no contesta nada. No es un caso raro que haya que
+// recordar: es el estado en el que nacio esto.
+//
+// Se apaga sola, mirando el pool. Nada de una lista de "activas" escrita a
+// mano, que es exactamente lo que se queda desincronizado el dia que llegue el
+// segundo lote y nadie se acuerde de anyadir el nombre.
+//
+// Y ROAST_USUARIO aparte: es un pool solo, el remate que va debajo. Si falta
+// ese, las acciones funcionan igual pero sin remate. No se apaga nada por el.
+const hayFrases = (p) => Array.isArray(p) && p.length > 0;
+const ACTIVAS = Object.keys(ACCIONES).filter((n) => hayFrases(ACCIONES[n].pool));
+const ALIAS_ACTIVOS = ACTIVAS.flatMap((n) => ACCIONES[n].cmds);
+
 const API = 'https://nekos.best/api/v2/';
 
 // LA FUENTE NSFW NO VIENE PUESTA, Y ES A PROPOSITO.
@@ -248,7 +265,7 @@ function hazAccion(nombre) {
     // AL TIER DUEÑO NO. Es el unico que no se lleva la coña, igual que no paga
     // los comandos: el bot no le falta al respeto al que lo administra delante
     // del grupo.
-    const remate = isOwner(quien, msg.key.fromMe, groupMeta)
+    const remate = isOwner(quien, msg.key.fromMe, groupMeta) || !hayFrases(RX.ROAST_USUARIO)
       ? ''
       : `\n\n_${pickFresh(RX.ROAST_USUARIO, `${jid}|accion|remate`).replace(/%A/g, nA)}_`;
 
@@ -266,7 +283,10 @@ function hazAccion(nombre) {
   };
 }
 
+// Solo se fabrica el handler de las que tienen frases. Las demas ni existen
+// como funcion: quien pregunte por ellas se lleva un undefined, que es lo que
+// el dispatcher y el menu miran para no ofrecerlas.
 const comandos = {};
-for (const nombre of Object.keys(ACCIONES)) comandos[nombre] = hazAccion(nombre);
+for (const nombre of ACTIVAS) comandos[nombre] = hazAccion(nombre);
 
-module.exports = { ACCIONES, ...comandos, _cache: cache };
+module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ...comandos, _cache: cache };

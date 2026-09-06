@@ -94,8 +94,15 @@ const { aviso } = require('../utils/helpers');
 // LOS COMANDOS DE ACCION, EN UN SITIO. Se sacan del propio modulo para no
 // tenerlos escritos seis veces —dispatcher, cobro, metadata, lentos y las dos
 // vistas del menu—, que es exactamente como se desincronizan.
-const NOMBRES_ACCION = Object.keys(acciones.ACCIONES);
-const ALIAS_ACCION = NOMBRES_ACCION.flatMap((n) => acciones.ACCIONES[n].cmds);
+//
+// Y se sacan las ACTIVAS, no todas: una accion sin frases escritas esta
+// apagada, y aqui eso significa que no pide metadata, no entra en el
+// interruptor del aura y no tiene handler. El `case` sigue en el switch —hace
+// falta para que los validadores vean que el nombre esta reservado— pero cae
+// en un handler que no existe y el comando se comporta como si nadie hubiera
+// escrito nada.
+const NOMBRES_ACCION = acciones.ACTIVAS;
+const ALIAS_ACCION = acciones.ALIAS_ACTIVOS;
 // Del nombre TECLEADO al handler. Los alias no pueden colgar de un `case` que
 // llame al canonico a mano: se olvida uno y ese alias sale gratis o revienta.
 const ACCION_DE = {};
@@ -781,8 +788,17 @@ const COMANDOS_CONOCIDOS = (() => {
     // fichero (~100 KB cada uno) en el require, bloqueando el arranque para
     // leer exactamente lo mismo dos veces.
     const src = FUENTE_PROPIA;
+    // Y fuera las acciones apagadas. El corrector se saca de los `case`, y una
+    // accion sin frases conserva el suyo: sin esto, escribir "!hig" contestaria
+    // "¿querias decir *!hug*?" y *!hug* no hace nada todavia. Ofrecer un
+    // comando que no responde es peor que no ofrecer ninguno.
+    const apagadas = new Set(
+      Object.keys(acciones.ACCIONES)
+        .filter((n) => !acciones.ACTIVAS.includes(n))
+        .flatMap((n) => acciones.ACCIONES[n].cmds),
+    );
     return [...new Set([...src.matchAll(/^\s*case '([a-zá-úñ0-9_]+)':/gmi)].map(m => m[1]))]
-      .filter((c) => c.length >= 2 && !COMANDOS_OCULTOS.has(c));
+      .filter((c) => c.length >= 2 && !COMANDOS_OCULTOS.has(c) && !apagadas.has(c));
   } catch { return []; }
 })();
 
@@ -2525,7 +2541,14 @@ async function handleMessage(sock, msg) {
       case 'fuck':
       case 'follar':
       case 'joder':
-        resultado = await accionPorNombre(command)(sock, msg, args, groupMeta);
+        // SIN FRASES, NADA. Si el pool de esa accion todavia no existe no hay
+        // handler que llamar: se sale en silencio, sin cobrar y sin contestar,
+        // igual que si el comando no se hubiera escrito nunca. El `case` sigue
+        // aqui para que el nombre quede reservado y ningun comando futuro se lo
+        // lleve por delante.
+        if (accionPorNombre(command)) {
+          resultado = await accionPorNombre(command)(sock, msg, args, groupMeta);
+        }
         break;
 
       case 'asalto':
