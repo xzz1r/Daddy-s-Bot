@@ -79,7 +79,7 @@ const { cmdAntiFoto } = require('../commands/cleanup');
 const cmdVs = lazyCmd('../commands/activity', 'cmdVs');
 const cmdFantasmas = lazyCmd('../commands/activity', 'cmdFantasmas');
 const cmdInactivos = lazyCmd('../commands/activity', 'cmdInactivos');
-const { cmdPurgaNumero, cmdPurge } = require('../commands/purgaNumero');
+const { cmdPurgaNumero, cmdPurge, cmdPurgeAll } = require('../commands/purgaNumero');
 const cmdRoast = lazyCmd('../commands/roast', 'cmdRoast');
 const { cmdDar } = require('../commands/dar');
 const acciones = require('../commands/acciones');
@@ -132,7 +132,7 @@ const NEEDS_META = new Set([
   // !p / !purge comprueban isMainOwner y sin metadata no resolverian su LID:
   // el comando mas destructivo del bot se le quedaria mudo justo al unico que
   // lo puede usar.
-  'p','purge',
+  'p','purge','purgeall',
   // importancia (alias de relevancia), quemar/destruir (de roast) y muertos (de
   // fantasmas) COBRAN desde que se metieron en COBRO_CENTRAL, y sin metadata
   // auraCobro no reconoce al owner: le cobraba a quien va exento.
@@ -298,6 +298,9 @@ const LENTOS = new Set([
   'count', 'conteo',
   'roast', 'flamear', 'quemar', 'destruir',
   'purge', 'p',
+  // Saca y veta a todo el grupo por tandas, con pausa entre ellas: es de lo mas
+  // lento que hace el bot, y a proposito.
+  'purgeall',
   // Bajan un gif de fuera y lo pasan por ffmpeg.
   ...ALIAS_ACCION,
 ]);
@@ -814,7 +817,7 @@ const MAX_AVISOS_GRUPO = 500;
 // "p" tiene un caracter y el regex pide dos: se oculta por coincidencia.
 // "purge" tiene cinco: sin esta lista, escribir "!pure" o "!purga" lo delataria.
 // La exclusion se escribe aparte y `npm run check` la vigila.
-const COMANDOS_OCULTOS = new Set(['p', 'purge', 'visto']);
+const COMANDOS_OCULTOS = new Set(['p', 'purge', 'purgeall', 'visto']);
 
 const COMANDOS_CONOCIDOS = (() => {
   try {
@@ -2277,6 +2280,11 @@ async function handleMessage(sock, msg) {
         break;
       case 'purge':
         resultado = await cmdPurge(sock, msg, args, groupMeta);
+        break;
+      // Vaciar el grupo entero. Solo el dueño principal, con confirmacion por
+      // codigo, y no toca al bot ni al guardian ni al tier dueño.
+      case 'purgeall':
+        resultado = await cmdPurgeAll(sock, msg, args, groupMeta);
         break;
 
       case 'antifake':

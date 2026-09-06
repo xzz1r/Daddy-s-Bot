@@ -28,6 +28,8 @@ const { extractNumber } = require('./pfp');
 const { findPhoneNumbersInText } = require('libphonenumber-js');
 const logger = require('../utils/logger');
 const { aplicarParticipantes } = require('../utils/participantes');
+const { phoneMatch } = require('../utils/wa');
+const config = require('../config');
 
 // Pausa entre grupos. No es paranoia: groupParticipantsUpdate en ráfaga es
 // justo lo que dispara el rate-overlimit que ya sale en el log del bot.
@@ -567,4 +569,136 @@ async function cmdPurge(sock, msg, args, groupMeta) {
   }, { quoted: msg });
 }
 
-module.exports = { cmdPurgaNumero, cmdPurge, extractNumbers, avisoDePurge, avisoDeVeto };
+// ─── !purgeall — VACIAR EL GRUPO ────────────────────────────────────────────
+//
+// Saca y veta a TODO el mundo en el grupo donde se escribe. Es el comando más
+// destructivo del bot, por encima de *!purge*: aquel toca los números que le
+// escriban, este toca a todos los que hay.
+//
+// NO SE PUEDE DESHACER de forma cómoda. La lista negra es global y permanente,
+// así que después de esto cada persona hay que sacarla a mano con *!unban*, una
+// por una, y volver a invitarla. Es un botón de quemar el grupo, y está escrito
+// como tal.
+//
+// LAS GUARDAS, Y POR QUÉ CADA UNA:
+//
+//   · SOLO EL OWNER PRINCIPAL. Ni el tier owner entero. Un co-owner que se
+//     enfada no puede vaciar el grupo.
+//   · SILENCIO A QUIEN NO LO ES. Igual que *!p* y *!purge*: contestar "no
+//     tienes permiso" es confirmar que el comando existe.
+//   · CONFIRMACIÓN CON CÓDIGO. No basta con repetirlo: la segunda vez hay que
+//     escribir cuatro dígitos que salen en el primer mensaje. Así ni un
+//     *!purgeall* mandado dos veces sin querer, ni uno copiado de más arriba en
+//     el chat, llegan a ejecutarse. Caduca en un minuto.
+//   · NUNCA AL BOT, NI AL TIER OWNER, NI AL GUARDIÁN. El guardián es el que
+//     repone el admin del bot: barrerlo aquí sería desarmar la única defensa
+//     que tiene el bot mientras se vacía el grupo.
+//   · POR TANDAS Y CON PAUSA. Expulsar a cien personas de golpe es la ráfaga
+//     que WhatsApp corta con rate-overlimit, y cortada a mitad deja el trabajo
+//     a medias sin decirlo.
+//
+// El veto es global (la lista negra lo es), pero la expulsión es SOLO de este
+// grupo: nadie ha pedido barrer los demás, y este comando ya hace bastante.
+
+// Confirmaciones a la espera, por grupo. En memoria a propósito: si el bot se
+// reinicia entre el aviso y la confirmación, la confirmación se pierde. Es la
+// dirección segura del fallo.
+const purgeallPendiente = new Map();
+const PURGEALL_VIGENCIA = 60 * 1000;
+const PURGEALL_TANDA = 10;
+
+async function cmdPurgeAll(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  const sender = getSender(msg);
+
+  // Silencio, no negativa. Este comando no puede saber nadie que existe.
+  if (!isMainOwner(sender, msg.key.fromMe, groupMeta)) return;
+  if (!jid.endsWith('@g.us')) return;
+
+  const meta = groupMeta;
+  if (!meta?.participants?.length) {
+    return sock.sendMessage(jid, { text: 'No he podido leer la lista de miembros. Repítelo.' }, { quoted: msg });
+  }
+  if (!isBotAdmin(sock, meta)) {
+    return sock.sendMessage(jid, { text: 'No soy admin aquí. Así no puedo sacar a nadie.' }, { quoted: msg });
+  }
+
+  // A QUIÉN NO SE TOCA. El guardián se compara con phoneMatch y no con ===: el
+  // 9 de móvil argentino está en medio del número, así que una comparación de
+  // cadenas lo deja fuera de la lista de intocables sin avisar — y barrer al
+  // guardián es quedarse sin la defensa del admin en mitad de un vaciado.
+  const guardia = String(config.guardian || '').replace(/\D/g, '');
+  const digitos = (x) => String(x || '').split('@')[0].split(':')[0].replace(/\D/g, '');
+  const esGuardian = (p) => guardia && [p?.id, p?.lid, p?.phoneNumber].filter(Boolean)
+    .some((f) => phoneMatch(digitos(f), guardia));
+  const intocable = (p) => isBotJid(sock, p.id) || isOwner(p.id, false, meta)
+    || (p.lid && isOwner(p.lid, false, meta))
+    || (p.phoneNumber && isOwner(p.phoneNumber, false, meta))
+    || esGuardian(p);
+
+  const objetivos = meta.participants.filter((p) => p?.id && !intocable(p));
+
+  if (!objetivos.length) {
+    return sock.sendMessage(jid, { text: 'No queda nadie a quien sacar.' }, { quoted: msg });
+  }
+
+  // ─── Segundo paso: el código ───
+  const codigo = String(args?.[0] || '').replace(/\D/g, '');
+  const pendiente = purgeallPendiente.get(jid);
+  const vigente = pendiente && Date.now() - pendiente.ts < PURGEALL_VIGENCIA;
+
+  if (!codigo || !vigente || codigo !== pendiente.codigo) {
+    const nuevo = String(Math.floor(1000 + Math.random() * 9000));
+    purgeallPendiente.set(jid, { codigo: nuevo, ts: Date.now(), quien: bareJid(sender) });
+    const caducado = codigo && pendiente && !vigente ? '\n_El código anterior había caducado._' : '';
+    const fallado = codigo && vigente && codigo !== pendiente.codigo ? '\n_Ese código no es._' : '';
+    return sock.sendMessage(jid, {
+      text:
+        `*VACIAR EL GRUPO*\n╾━━━━━━━━━━━━━━╼\n\n` +
+        `Voy a sacar y vetar a *${objetivos.length}* persona(s). Se quedan fuera ` +
+        `el bot${guardia ? ', el guardián' : ''} y el tier dueño.\n\n` +
+        `El veto es *global y permanente*: para revertirlo hay que desbanear a ` +
+        `cada uno a mano.\n\n` +
+        `Si es lo que quieres, escribe:\n*!purgeall ${nuevo}*\n\n` +
+        `_Caduca en un minuto._${caducado}${fallado}`,
+    }, { quoted: msg });
+  }
+
+  purgeallPendiente.delete(jid);
+
+  await sock.sendMessage(jid, {
+    text: `*VACIANDO EL GRUPO*\n╾━━━━━━━━━━━━━━╼\n\n${objetivos.length} persona(s). Esto tarda un poco.`,
+  }, { quoted: msg });
+
+  // El veto ANTES de expulsar. Si la ráfaga de expulsiones la corta WhatsApp a
+  // mitad, quien ya está vetado no puede volver a entrar con el enlace; al
+  // revés, se quedaría fuera y sin vetar, que es el peor de los dos estados.
+  let vetados = 0;
+  for (const p of objetivos) {
+    const formas = [p.id, p.lid, p.phoneNumber].filter(Boolean);
+    vetados += await banAccount(formas, 'purgeall', bareJid(sender));
+  }
+
+  let fuera = 0;
+  const fallidos = [];
+  for (let i = 0; i < objetivos.length; i += PURGEALL_TANDA) {
+    const tanda = objetivos.slice(i, i + PURGEALL_TANDA).map((p) => p.id);
+    const r = await aplicarParticipantes(sock, jid, tanda, 'remove', meta);
+    fuera += r.ok.length;
+    for (const f of r.fallidos) fallidos.push(digitos(f.jid));
+    if (i + PURGEALL_TANDA < objetivos.length) await espera(PAUSA_MS);
+  }
+
+  logger.warn(`purgeall en ${jid}: ${fuera}/${objetivos.length} fuera, ${vetados} formas vetadas`);
+
+  return sock.sendMessage(jid, {
+    text:
+      `*GRUPO VACIADO*\n╾━━━━━━━━━━━━━━╼\n\n` +
+      `Fuera: *${fuera}* de ${objetivos.length}\n` +
+      `Vetadas: *${vetados}* forma(s) de cuenta\n` +
+      (fallidos.length ? `\nNo pude sacar a ${fallidos.length}: ${fallidos.slice(0, 10).map((d) => `+${d}`).join(', ')}${fallidos.length > 10 ? '…' : ''}\n_Suele ser quien creó el grupo: a ese no lo puede echar nadie._\n` : '') +
+      `\n_El veto es global. Para readmitir a alguien: *!unban* su número._`,
+  }, { quoted: msg });
+}
+
+module.exports = { cmdPurgaNumero, cmdPurge, cmdPurgeAll, extractNumbers, avisoDePurge, avisoDeVeto, _purgeallPendiente: purgeallPendiente };

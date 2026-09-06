@@ -5891,6 +5891,92 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     if (fallos === antes) console.log(verde('   ✓ el dueño se entera, la deuda se cobra y el par se repone solo'));
   }
 
+  // ── 39. !purgeall NO SE LLEVA POR DELANTE A QUIEN NO DEBE ────────────────
+  //
+  // Es el comando mas destructivo del bot: saca y veta a TODO el grupo, y la
+  // lista negra es global y permanente, asi que deshacerlo es desbanear a cada
+  // uno a mano. No hay margen para que una de sus guardas se caiga sin que nadie
+  // lo note.
+  //
+  // AQUI NO SE EJECUTA NADA, y es deliberado: `npm run check` corre a diario
+  // sobre el repositorio de verdad, asi que probar la ejecucion escribiria
+  // numeros inventados en la lista negra real. Se prueba el PRIMER paso —el que
+  // dice a cuantos va a sacar y pide el codigo— porque ahi es donde vive la
+  // unica propiedad que importa: a quien mete en la lista y a quien no. Ese paso
+  // no toca ni un fichero.
+  {
+    console.log('\n39. !purgeall NO SE LLEVA POR DELANTE A QUIEN NO DEBE');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const { cmdPurgeAll } = require(path.join(R, 'src/commands/purgaNumero'));
+    const cfg3 = require(path.join(R, 'src/config'));
+    const OWN3 = `${String(cfg3.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
+    const CO3 = `${String(cfg3.coOwners?.[0] || '34600000123').replace(/\D/g, '')}@s.whatsapp.net`;
+    const BOT3 = '549199@s.whatsapp.net';
+    // El guardian LISTADO SIN EL 9 y configurado CON el: es la forma en que
+    // WhatsApp los manda distinto, y comparando cadenas se colaria en la purga.
+    const GUA3 = '541100000077@s.whatsapp.net';
+    const GJ3 = '000000000@g.us';
+    const RASOS = ['5211111111111', '5212222222222', '5213333333333'].map((n) => `${n}@s.whatsapp.net`);
+    const parts3 = [{ id: BOT3, admin: 'admin' }, { id: OWN3, admin: 'admin' }, { id: CO3 },
+      { id: GUA3, admin: 'admin' }, ...RASOS.map((id) => ({ id }))];
+    const meta3 = { id: GJ3, subject: 'G', participants: parts3 };
+
+    const pedir = async (quien, args = []) => {
+      const out = [];
+      const tocado = [];
+      const sk = {
+        user: { id: BOT3 },
+        sendMessage: async (j, c) => { out.push(c.text || ''); return {}; },
+        groupMetadata: async () => meta3,
+        groupParticipantsUpdate: async (j, p, a) => { tocado.push(...p.map((x) => `${a}:${x}`)); return p.map((x) => ({ status: '200', jid: x })); },
+      };
+      await cmdPurgeAll(sk, { key: { remoteJid: GJ3, participant: quien, fromMe: false, id: 'X' } }, args, meta3);
+      return { texto: out.join('\n'), tocado };
+    };
+
+    const guardaAntes = cfg3.guardian;
+    cfg3.guardian = '5491100000077';
+    try {
+      // 1. SILENCIO a quien no es el dueño principal. Contestar cualquier cosa
+      // —hasta un "no puedes"— confirma que el comando existe.
+      exige((await pedir(RASOS[0])).texto === '', 'un miembro raso recibe respuesta de *!purgeall*: eso ya le confirma que el comando existe');
+      exige((await pedir(CO3)).texto === '', 'un co-owner recibe respuesta de *!purgeall*: es del dueño principal, y en silencio para el resto');
+
+      // 2. El dueño: pide codigo y NO toca a nadie todavia.
+      const p1 = await pedir(OWN3);
+      const cod = (p1.texto.match(/!purgeall (\d{4})/) || [])[1];
+      exige(Boolean(cod), '*!purgeall* ya no pide confirmacion con codigo: dos mensajes seguidos sin querer vaciarian el grupo');
+      exige(p1.tocado.length === 0, '*!purgeall* saca gente en el PRIMER paso, antes de confirmar nada');
+
+      // 3. Y LA CUENTA. Son tres rasos de siete miembros: el bot, el dueño, el
+      // co-owner y el guardian se quedan fuera. Si esta cifra sube, alguno de
+      // los cuatro esta entrando en la purga.
+      const n = Number((p1.texto.match(/\*(\d+)\* persona/) || [])[1]);
+      exige(n === RASOS.length,
+        `*!purgeall* va a sacar a ${n} de ${parts3.length} y solo hay ${RASOS.length} que se puedan tocar: se esta llevando al bot, al tier dueño o al guardian`);
+
+      // 4. Un codigo equivocado no ejecuta.
+      const malo = await pedir(OWN3, ['0000']);
+      exige(malo.tocado.length === 0, '*!purgeall* con el codigo equivocado ejecuta igual');
+    } finally {
+      cfg3.guardian = guardaAntes;
+    }
+
+    // 5. Y no puede asomar por ningun lado: ni en el menu ni en el corrector.
+    {
+      const mh2 = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+      const menu2 = fs.readFileSync(path.join(R, 'src/commands/social.js'), 'utf8');
+      exige(/COMANDOS_OCULTOS = new Set\(\[[^\]]*'purgeall'/.test(mh2),
+        '*!purgeall* no esta en COMANDOS_OCULTOS: el corrector lo ofreceria a cualquiera que escriba *!purgeal*');
+      exige(!/\$\{p\}purgeall\b/.test(menu2),
+        '*!purgeall* ha aparecido en el menu');
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ *!purgeall* es del dueño, pide codigo y respeta al bot, al tier dueño y al guardian'));
+  }
+
   // ── 35. LOS DOS PREFIJOS HACEN EXACTAMENTE LO MISMO ──────────────────────
   //
   // El bot entiende *!aura* y */aura*. Eso no es una opcion de configuracion:
