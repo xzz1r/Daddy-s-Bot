@@ -43,6 +43,16 @@ const config = {
   //
   // Se guardan como digitos a secas; la comparacion la hace ship.js, que se
   // encarga del lio de los JID argentinos (ver alli).
+  // EL GUARDIÁN. El número de la segunda cuenta que repone el admin del bot
+  // cuando alguien se lo quita (ver src/guardian.js). Se protegen los dos: el
+  // guardián repone al bot y el bot repone al guardián, así que para desarmarlo
+  // hay que degradar a los dos en menos de lo que tardan en reponerse.
+  //
+  // Vacío por defecto y no pasa nada: sin él, quitarle el admin al bot sigue
+  // costando la deuda —se cobra en cuanto se lo devuelvan— pero no se repone
+  // solo.
+  guardian: (process.env.GUARDIAN || '').replace(/\D/g, ''),
+
   shipAlto: (process.env.SHIP_ALTO || '')
     .split(',')
     .map(n => n.replace(/\D/g, ''))

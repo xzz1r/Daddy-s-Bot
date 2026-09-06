@@ -5577,7 +5577,9 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
         'el manejador ya no avisa cuando el degradado es el bot: el aviso existe y no lo dispara nadie');
       exige(/anotarDeuda\(/.test(rama),
         'el manejador ya no apunta la deuda al quitarle el admin al bot: no habra nada que cobrar despues');
-      const j = src.indexOf("action === 'promote' && partJids.some(isBotJid)");
+      // La ULTIMA aparicion, no la primera: la primera es la que levanta el
+      // freno del sondeo y no tiene nada que ver con la deuda.
+      const j = src.lastIndexOf("action === 'promote' && partJids.some(isBotJid)");
       exige(j >= 0 && /saldarDeudaDeAdmin\(/.test(src.slice(j, j + 500)),
         'el manejador ya no cobra la deuda cuando le devuelven el admin al bot');
     }
@@ -5659,7 +5661,66 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       console.log(rojo('   ✗ bot.js ya no exporta saldarDeudaDeAdmin: el cobro no se puede probar'));
     }
 
-    if (fallos === antes) console.log(verde('   ✓ el dueño se entera, y quitarle el admin al bot no sale gratis'));
+    // ── EL GUARDIÁN: la segunda cuenta que repone el admin ──────────────
+    //
+    // Es lo unico que convierte el golpe en algo que no funciona, en vez de en
+    // algo que se paga despues. Y lo que lo hace seguro de tener es la lista de
+    // cosas que NO hace: una segunda cuenta automatizada es una segunda cuenta
+    // que WhatsApp puede vetar, y lo que hace que la veten es comportarse como
+    // un bot. Esta escucha un evento y asciende. Si algun dia alguien le añade
+    // "y de paso que conteste a...", esa cuenta pasa a ser carne de veto.
+    {
+      const g = require(path.join(R, 'src/guardian'));
+      const gsrc = soloCodigo('src/guardian.js');
+      const G2 = '000000000@g.us';
+      const BOTL = '111111111111@lid', BOTT = '5491199999999@s.whatsapp.net';
+      const GUA = '5491188888888@s.whatsapp.net', OTRO = '5491177777777@s.whatsapp.net';
+      const meta3 = { id: G2, participants: [{ id: BOTL, phoneNumber: BOTT }, { id: GUA }, { id: OTRO }] };
+      const sk2 = (ok = true) => {
+        const h = [];
+        return { h, user: { id: GUA }, groupMetadata: async () => meta3,
+          groupParticipantsUpdate: async (j, p, a) => { h.push(a); return p.map((x) => ({ status: ok ? '200' : '403', jid: x })); } };
+      };
+      const antesEnv = process.env.GUARDIAN_DE;
+      process.env.GUARDIAN_DE = '5491199999999';
+
+      let s2 = sk2(); g._sock(s2);
+      exige(await g.alDegradar(G2, [BOTL], 'demote', OTRO) === true && s2.h[0] === 'promote',
+        'el guardian no repone al bot cuando le quitan el admin llegando por @lid: es justo la forma en que llega en un grupo de verdad');
+      // El autor NO puede ser el propio guardian aqui: esa via ya sale por otra
+      // puerta —no deshace lo suyo— y taparia justo lo que se quiere mirar, que
+      // es si distingue al bot de cualquier otro degradado.
+      s2 = sk2(); g._sock(s2);
+      exige(await g.alDegradar(G2, [OTRO], 'demote', BOTT) === false && !s2.h.length,
+        'el guardian repone a quien no es el bot: asciende por su cuenta a cualquiera que pierda el admin, en cualquier grupo');
+      s2 = sk2(); g._sock(s2);
+      exige(await g.alDegradar(G2, [BOTL], 'promote', OTRO) === false && !s2.h.length,
+        'el guardian reacciona a un ascenso: solo tiene que mirar las degradaciones');
+      s2 = sk2(false); g._sock(s2);
+      exige(await g.alDegradar(G2, [BOTL], 'demote', OTRO) === false,
+        'el guardian da por repuesto al bot con WhatsApp rechazandolo');
+      process.env.GUARDIAN_DE = antesEnv;
+
+      // Y LO QUE NO PUEDE HACER, leido del codigo.
+      exige(!/sendMessage\s*\(/.test(gsrc),
+        'el guardian manda mensajes: tiene que ser una cuenta muda, es lo que la mantiene fuera del radar');
+      exige(!/messages\.upsert/.test(gsrc),
+        'el guardian escucha mensajes: solo tiene que mirar quien sube y baja de admin');
+      exige(!/require\(['"]\.\/handlers/.test(gsrc) && !/require\(['"]\.\/commands/.test(gsrc),
+        'el guardian carga los comandos del bot: es una cuenta que no responde a nadie');
+      exige(/data\/authGuardian|authGuardian/.test(gsrc),
+        'el guardian ya no tiene su propia carpeta de sesion: compartirla con el bot invalida las dos');
+    }
+
+    // Y LA OTRA MITAD DEL PAR: que el bot reponga al guardian. Protegiendo solo
+    // a uno, degradar primero al guardian y luego al bot deja a los dos fuera.
+    {
+      const k = src.indexOf("action === 'demote' && config.guardian");
+      exige(k >= 0 && /aplicarParticipantes\([^)]*'promote'/.test(src.slice(k, k + 700)),
+        'el bot ya no repone al guardian: degradando primero al guardian, el par se cae entero');
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ el dueño se entera, la deuda se cobra y el par se repone solo'));
   }
 
   // ── 35. LOS DOS PREFIJOS HACEN EXACTAMENTE LO MISMO ──────────────────────

@@ -87,5 +87,42 @@ module.exports = {
       // llegar al max_memory_restart de arriba.
       NODE_OPTIONS: '--max-old-space-size=384',
     },
+  }, {
+    // ─── EL GUARDIÁN ─────────────────────────────────────────────────────────
+    //
+    // La segunda cuenta, la que le devuelve el admin al bot cuando alguien se lo
+    // quita. Va aquí para que arranque y se reinicie con el resto, pero es un
+    // proceso APARTE a propósito: su sesión de WhatsApp es otra, y si se cae no
+    // se lleva el bot por delante.
+    //
+    // NO SE ARRANCA SOLO. `pm2 start ecosystem.config.js` levantaría los dos, y
+    // el guardián sin vincular se queda pidiendo un QR que nadie va a escanear.
+    // Se arranca a mano la primera vez, se escanea, y a partir de ahí ya vive
+    // aquí:
+    //
+    //   pm2 start ecosystem.config.js --only guardian
+    //   pm2 save
+    //
+    // RAM: pide mucha menos que el bot. No guarda estado, no cachea nada, no
+    // procesa mensajes — solo mantiene la sesión abierta y escucha un evento.
+    // Por eso el techo es la cuarta parte: en una máquina de 1 GB con el bot ya
+    // dentro, eso es lo que hay.
+    name: 'guardian',
+    script: 'src/guardian.js',
+    cwd: __dirname,
+    instances: 1,
+    exec_mode: 'fork',
+    max_memory_restart: '120M',
+    merge_logs: true,
+    time: true,
+    autorestart: true,
+    restart_delay: 5000,
+    max_restarts: 10,
+    min_uptime: '60s',
+    watch: false,
+    env: {
+      NODE_ENV: 'production',
+      NODE_OPTIONS: '--max-old-space-size=96',
+    },
   }],
 };

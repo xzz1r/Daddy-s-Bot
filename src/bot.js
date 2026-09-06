@@ -1561,6 +1561,29 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
       await avisarDegradacion(sock, groupJid, meta, author);
     }
 
+    // ─── AL GUARDIÁN TAMBIÉN SE LE REPONE ──────────────────────────────────
+    //
+    // La otra mitad del par. El guardián le devuelve el admin al bot cuando se
+    // lo quitan, y esto hace lo mismo al revés: si solo se protegiera uno,
+    // degradar primero al guardián y luego al bot dejaría a los dos fuera.
+    //
+    // Va SIEMPRE, no depende del interruptor del anti-admin: no es una
+    // preferencia del grupo sobre quién manda, es el bot manteniendo en pie su
+    // propia defensa. Y no se anuncia nada: la reposición ya sale en el aviso
+    // de sistema de WhatsApp.
+    if (action === 'demote' && config.guardian && !fromBot) {
+      const digitos = (x) => String(x || '').split('@')[0].split(':')[0].replace(/\D/g, '');
+      const caido = partJids.filter((j) => digitos(j) === config.guardian
+        || (meta?.participants || []).some((p) =>
+          [p?.id, p?.lid, p?.phoneNumber].filter(Boolean).map(digitos).includes(digitos(j))
+          && [p?.id, p?.lid, p?.phoneNumber].filter(Boolean).map(digitos).includes(config.guardian)));
+      if (caido.length) {
+        const r = await aplicarParticipantes(sock, groupJid, caido, 'promote', meta);
+        if (r.ok?.length) logger.warn(`le he devuelto el admin al guardián en ${groupJid}`);
+        else logger.error(`no he podido devolverle el admin al guardián en ${groupJid}`);
+      }
+    }
+
     // ─── Y SE COBRA CUANDO LE DEVUELVEN EL ADMIN ───────────────────────────
     //
     // Quitarle el admin al bot era la unica agresion que salia gratis: contra si
