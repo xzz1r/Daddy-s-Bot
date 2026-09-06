@@ -77,7 +77,6 @@ const {
   makeCacheableSignalKeyStore,
   fetchLatestBaileysVersion,
   DisconnectReason,
-  isJidGroup,
 } = require('@whiskeysockets/baileys');
 
 // OPCIONALES, LAS TRES. Están en el repositorio del bot y no tienen por qué
@@ -305,6 +304,14 @@ function formasDe(p) {
 
 const idDe = (p) => (typeof p === 'string' ? p : p?.id);
 
+// Vive aparte para poder ejecutarlo en las pruebas: un filtro que decide si el
+// unico evento que importa llega o no, no puede comprobarse leyendo una linea.
+function filtroJid(jid) {
+  const j = String(jid || '');
+  return j.endsWith('@s.whatsapp.net') || j.endsWith('@lid')
+    || j === 'status@broadcast' || j.endsWith('@broadcast') || j.endsWith('@newsletter');
+}
+
 function esElProtegido(p, meta) {
   const PROTEGIDO = protegido();
   if (!p || !PROTEGIDO) return false;
@@ -513,7 +520,15 @@ async function conectar() {
     // LOS GRUPOS NO SE PUEDEN IGNORAR, y hay que saber por qué: el filtro
     // trabaja por interlocutor y no por tipo de aviso, así que ignorar un grupo
     // se llevaría por delante justo el evento que este proceso existe para ver.
-    shouldIgnoreJid: (jid) => !isJidGroup(jid),
+    // SE DESCARTA LO QUE SE SABE QUE SOBRA, NO "TODO LO QUE NO SEA UN GRUPO".
+    //
+    // Estaba al reves —ignorar todo lo que no fuera @g.us— y esa forma tiene un
+    // fallo que no se ve: si un aviso de grupo llega con un remitente de una
+    // forma que no esperabamos, se descarta ENTERO y en silencio. O sea que la
+    // optimizacion podia estar comiendose justo el evento por el que existe este
+    // proceso. Con la lista al derecho, lo raro pasa: como mucho cuesta un
+    // descifrado de mas, y eso es infinitamente mas barato que un guardian mudo.
+    shouldIgnoreJid: filtroJid,
 
     // Y el historial tampoco. Al vincular, WhatsApp empuja lo reciente de la
     // cuenta; procesarlo es trabajo y memoria para armar unos chats que nadie va
@@ -599,7 +614,11 @@ async function conectar() {
     }
   });
 
+  // SE APUNTA TODO LO QUE LLEGA, no solo lo que se actua. Sin esta linea, un
+  // guardian que no reacciona y un guardian al que no le llega nada se leen
+  // exactamente igual en el log —vacio— y son dos problemas en sitios opuestos.
   sock.ev.on('group-participants.update', ({ id, participants, action, author }) => {
+    logger.info(`guardián: evento ${action} en ${id} por ${author || '?'} sobre ${JSON.stringify((participants || []).map(formasDe))}`);
     alDegradar(id, participants, action, author)
       .catch((e) => logger.error(`guardián: ${e.message}`));
   });
@@ -610,4 +629,4 @@ if (require.main === module) {
   conectar().catch((err) => { console.error('guardián: error fatal:', err); process.exit(1); });
 }
 
-module.exports = { alDegradar, esElProtegido, mismoNumero, formasDe, repasarGrupos, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };
+module.exports = { alDegradar, esElProtegido, mismoNumero, formasDe, repasarGrupos, _filtroJid: filtroJid, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };

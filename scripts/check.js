@@ -5816,15 +5816,17 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       // unico evento que este proceso existe para ver. Se comprueba con el
       // isJidGroup de Baileys, no con una idea de como se escriben los JID.
       {
-        const { isJidGroup } = require(path.join(R, 'node_modules/@whiskeysockets/baileys'));
-        const m = gsrc.match(/shouldIgnoreJid:\s*\(jid\)\s*=>\s*([^,\n]+)/);
-        exige(Boolean(m),
-          'el guardian ya no filtra por interlocutor: vuelve a descifrar los privados y los estados de esa cuenta para no mirarlos');
-        if (m) {
-          // eslint-disable-next-line no-new-func
-          const filtro = new Function('isJidGroup', `return (jid) => ${m[1]};`)(isJidGroup);
+        // El filtro se EJECUTA, cargando el modulo, en vez de reconstruirlo con
+        // un regex: la version anterior de esta guarda leia una sola linea y se
+        // habria quedado ciega en cuanto el filtro creciera.
+        const filtro = require(path.join(R, 'src/guardian'))._filtroJid;
+        exige(typeof filtro === 'function',
+          'el guardian ya no expone su filtro por interlocutor: no se puede comprobar que deje pasar los grupos');
+        if (typeof filtro === 'function') {
           exige(filtro('000000000@g.us') === false,
             'el guardian ignora los grupos: ahi es donde llegan las degradaciones, o sea que no se enteraria de nada');
+          exige(filtro('raro-sin-arroba') === false && filtro('') === false,
+            'el guardian descarta lo que no reconoce: si un aviso de grupo llega con una forma inesperada se lo come entero y en silencio, que es justo lo que no puede pasar');
           exige(filtro('5491100000001@s.whatsapp.net') === true && filtro('status@broadcast') === true,
             'el guardian ya no descarta los privados y los estados: es justo lo que le hace ocupar como el bot');
         }
