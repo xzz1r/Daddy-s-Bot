@@ -5566,10 +5566,100 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     // Y que el manejador lo LLAME cuando el degradado es el bot. Declarar la
     // funcion y no invocarla es peor que no tenerla: parece cubierto.
     const src = soloCodigo('src/bot.js');
-    exige(/action === 'demote' && partJids\.some\(isBotJid\)[^\n]*\n?[^\n]*avisarDegradacion/.test(src),
-      'el manejador ya no avisa cuando el degradado es el bot: el aviso existe y no lo dispara nadie');
+    // La rama entera, desde el `if` hasta su cierre: dentro tienen que estar las
+    // DOS cosas —apuntar la deuda y avisar al dueño—, y leerlas por separado en
+    // todo el fichero no valdria: cualquier otra llamada las daria por buenas.
+    {
+      const i = src.indexOf("action === 'demote' && partJids.some(isBotJid)");
+      const rama = i < 0 ? '' : src.slice(i, i + 500);
+      exige(i >= 0, 'el manejador ya no tiene la rama del degradado que es el bot');
+      exige(/avisarDegradacion\(/.test(rama),
+        'el manejador ya no avisa cuando el degradado es el bot: el aviso existe y no lo dispara nadie');
+      exige(/anotarDeuda\(/.test(rama),
+        'el manejador ya no apunta la deuda al quitarle el admin al bot: no habra nada que cobrar despues');
+      const j = src.indexOf("action === 'promote' && partJids.some(isBotJid)");
+      exige(j >= 0 && /saldarDeudaDeAdmin\(/.test(src.slice(j, j + 500)),
+        'el manejador ya no cobra la deuda cuando le devuelven el admin al bot');
+    }
 
-    if (fallos === antes) console.log(verde('   ✓ el bot avisa al privado del dueño cuando pierde el admin'));
+    // ── Y LA DEUDA: quitarle el admin al bot no puede salir gratis ──────
+    //
+    // No se puede impedir —contra si mismo el bot no revierte nada— asi que se
+    // apunta quien fue y se cobra en cuanto alguien le devuelve el admin. Lo
+    // que se vigila aqui es que el cobro llegue de verdad, que sobreviva a un
+    // reinicio (es lo unico que hace util la deuda: entre el golpe y la
+    // reparacion pueden pasar dias y pm2 reinicia por mucho menos) y que
+    // respete las dos condiciones de siempre.
+    if (typeof bot.saldarDeudaDeAdmin === 'function') {
+      const { anotarDeuda, flushDeuda, _file } = require(path.join(R, 'src/utils/adminDeuda'));
+      const { toggleAntiAdmin, isAntiAdminEnabled } = require(path.join(R, 'src/utils/state'));
+      const GJ = '000000000@g.us';
+      const cfg2 = require(path.join(R, 'src/config'));
+      const OWN2 = `${String(cfg2.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
+      const ATA = '34600000002@s.whatsapp.net';
+      const meta2 = { id: GJ, subject: 'G', participants: [{ id: OWN2, admin: 'admin' }, { id: ATA, admin: 'admin' }] };
+      const sk = (env, ok = true) => ({
+        sendMessage: async (j, c) => { env.push({ j, t: c.text || '' }); return {}; },
+        groupParticipantsUpdate: async (j, p) => p.map((x) => ({ status: ok ? '200' : '403', jid: x })),
+        groupMetadata: async () => meta2,
+      });
+      const antesFlag = isAntiAdminEnabled(GJ);
+      await toggleAntiAdmin(GJ, true);
+
+      let env = [];
+      await anotarDeuda(GJ, ATA);
+      exige(await bot.saldarDeudaDeAdmin(sk(env), GJ, meta2) === 'saldada' && env.length === 1,
+        'la deuda de admin no se cobra al devolverle el admin al bot: quitarselo vuelve a salir gratis');
+      exige(await bot.saldarDeudaDeAdmin(sk([]), GJ, meta2) === 'sin-deuda',
+        'la deuda no se borra al cobrarla: se cobraria dos veces');
+
+      // Que quede ESCRITA, no solo en memoria.
+      await anotarDeuda(GJ, ATA);
+      await flushDeuda();
+      let enDisco = null;
+      try { enDisco = JSON.parse(fs.readFileSync(_file, 'utf8')); } catch {}
+      exige(enDisco?.[GJ]?.autor === ATA,
+        'la deuda de admin no llega al disco: un reinicio entre el golpe y la reparacion la perdona sola');
+
+      // Y QUE LA PROGRAME AL APUNTARLA, no solo al cerrar. La comprobacion de
+      // arriba pasa con el guardado diferido quitado, porque flushDeuda escribe
+      // igual lo que haya en memoria: cubre el reinicio limpio (pm2 restart, un
+      // despliegue) y no el que importa —un SIGKILL o un corte de luz justo
+      // despues del golpe—, que es exactamente cuando a alguien le interesaria
+      // que la deuda no existiera. Se lee del codigo porque el rebote son
+      // segundos y esto no puede quedarse esperandolos.
+      {
+        const dsrc = soloCodigo('src/utils/adminDeuda.js');
+        const i2 = dsrc.indexOf('async function anotarDeuda');
+        const cuerpo2 = i2 < 0 ? '' : dsrc.slice(i2, dsrc.indexOf('\n}', i2));
+        exige(/saver\.schedule\(\)/.test(cuerpo2),
+          'anotarDeuda ya no programa el guardado: la deuda solo llegaria al disco si el bot cierra bien, y un SIGKILL la perdona');
+      }
+
+      // Al tier dueño no, y con el interruptor apagado tampoco.
+      await anotarDeuda(GJ, OWN2);
+      exige(await bot.saldarDeudaDeAdmin(sk([]), GJ, meta2) === 'perdonada',
+        'la deuda de admin se le cobra al tier dueño');
+      await toggleAntiAdmin(GJ, false);
+      await anotarDeuda(GJ, ATA);
+      exige(await bot.saldarDeudaDeAdmin(sk([]), GJ, meta2) === 'apagado',
+        'la deuda de admin se cobra con el anti-admin apagado: el interruptor deja de mandar');
+
+      // Y si WhatsApp rechaza el degradado, NO se anuncia una reversion falsa.
+      await toggleAntiAdmin(GJ, true);
+      await anotarDeuda(GJ, ATA);
+      env = [];
+      exige(await bot.saldarDeudaDeAdmin(sk(env, false), GJ, meta2) === 'fallo' && env.length === 0,
+        'con el degradado rechazado por WhatsApp el bot anuncia igual que ha saldado la cuenta');
+
+      await toggleAntiAdmin(GJ, antesFlag);
+      try { fs.unlinkSync(_file); } catch {}
+    } else {
+      fallos++;
+      console.log(rojo('   ✗ bot.js ya no exporta saldarDeudaDeAdmin: el cobro no se puede probar'));
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ el dueño se entera, y quitarle el admin al bot no sale gratis'));
   }
 
   // ── 35. LOS DOS PREFIJOS HACEN EXACTAMENTE LO MISMO ──────────────────────

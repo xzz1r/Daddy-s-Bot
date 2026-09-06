@@ -407,6 +407,30 @@ function isBotAdmin(sock, groupMeta) {
   return ok;
 }
 
+// ¿Es el bot el CREADOR del grupo? Es la unica proteccion de verdad que existe
+// contra que le quiten el admin, y no la da el codigo: la da WhatsApp. Al
+// creador —`superadmin` en la metadata— no le puede quitar el admin ningun otro
+// admin. Al resto, cualquiera de ellos.
+//
+// De ahi que esto no sea un detalle informativo: mientras el bot sea un admin
+// corriente, cualquier admin del grupo puede desarmarlo entero —antilink,
+// historias, expulsiones— y lo unico que el bot puede hacer es avisar y apuntar
+// la deuda. Si el bot creo el grupo, ese ataque no existe.
+//
+// No se puede cambiar sobre un grupo ya creado: se decide el dia que se crea.
+function esBotCreador(sock, groupMeta) {
+  if (!groupMeta?.participants || !sock?.user) return false;
+  const mine = [sock.user.id, sock.user.lid].filter(Boolean);
+  for (const j of mine) {
+    const p = participantePorJid(groupMeta, bareJid(j));
+    if (p?.admin === 'superadmin') return true;
+  }
+  return groupMeta.participants.some(p =>
+    p?.admin === 'superadmin' &&
+    [p.id, p.lid, p.phoneNumber].some(f => f && isBotJid(sock, f))
+  );
+}
+
 const adminPorLista = new WeakMap();
 function isAdmin(participants, jid) {
   if (!participants || !jid) return false;
@@ -739,6 +763,7 @@ module.exports = {
   soloMiembros,
   isBotJid,
   isBotAdmin,
+  esBotCreador,
   isGroupAdmin,
   getSender,
   getTarget,

@@ -84,7 +84,7 @@ const cmdRoast = lazyCmd('../commands/roast', 'cmdRoast');
 const { cmdDar } = require('../commands/dar');
 const acciones = require('../commands/acciones');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, cmdCasino } = require('../commands/social');
-const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, extractText, getSender, canonicalJid, sameUser, indexGroupMeta } = require('../utils/wa');
+const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, esBotCreador, extractText, getSender, canonicalJid, sameUser, indexGroupMeta } = require('../utils/wa');
 const logger = require('../utils/logger');
 
 const { clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa, PERMISO_ENLACE, puedeAnunciar, anotarTropiezo, perfilMirado } = require('../utils/antilink');
@@ -691,7 +691,21 @@ async function cmdDiag(sock, msg, groupMeta) {
   const si = (b) => (b ? 'SI' : 'NO');
 
   let text = '*DIAGNOSTICO DE GUARDAS*\n╾━━━━━━━━━━━━━━╼\n\n';
-  text += `Soy admin aquí: *${si(meta && isBotAdmin(sock, meta))}*\n`;
+  // NO BASTA CON DECIR SI ES ADMIN. Lo que decide si el bot se puede desarmar es
+  // COMO lo es: al creador del grupo no le puede quitar el admin nadie —lo
+  // impide WhatsApp, no el codigo— y a un admin corriente se lo quita cualquier
+  // otro admin en dos toques. Es la mayor debilidad que tiene el bot y no se
+  // veia por ningun sitio.
+  const soyAdmin = Boolean(meta && isBotAdmin(sock, meta));
+  const soyCreador = Boolean(meta && esBotCreador(sock, meta));
+  text += `Soy admin aquí: *${si(soyAdmin)}*`;
+  if (soyAdmin) {
+    text += soyCreador
+      ? ' — creador del grupo, *nadie me lo puede quitar*\n'
+      : ' — admin normal, *cualquier admin puede quitármelo*\n';
+  } else {
+    text += '\n';
+  }
   text += `Anti-link: *${si(isAntiLinkEnabled(jid))}*\n`;
   text += `Anti-empresa: *${si(isAntiBusinessEnabled(jid))}*\n`;
   text += `Modo admin: *${si(isSoloAdminsEnabled(jid))}*\n\n`;

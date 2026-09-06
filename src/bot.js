@@ -34,6 +34,7 @@ const autoAcceptPendiente = new Map();
 const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, isAutoAceptarEnabled, flushState, vistoActivo } = require('./utils/state');
 const { isOwner, sameUser, isBotAdmin, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto } = require('./utils/wa');
+const { anotarDeuda, cobrarDeuda, flushDeuda } = require('./utils/adminDeuda');
 // anotarAlta apunta el motivo de cada alta; motivoDelAlta lo consulta cuando hay
 // que decidir si un alta fue a dedo (la unica que se sanciona).
 const { anotarAlta, motivoDelAlta, ALTA_ADD } = require('./utils/joinReason');
@@ -1552,7 +1553,27 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
     // lo que ha hecho: el aviso no es para el, es para el unico que puede
     // devolverselo.
     if (action === 'demote' && partJids.some(isBotJid) && !fromBot) {
+      // La deuda se apunta SIEMPRE, este el anti-admin encendido o no. Lo que
+      // decide el interruptor es si se cobra, y eso se mira al devolverle el
+      // admin: apuntarla no le hace nada a nadie y no tenerla apuntada es no
+      // poder decidir despues.
+      if (author && !esOwnerAmplio(author, authorPn, meta)) await anotarDeuda(groupJid, author);
       await avisarDegradacion(sock, groupJid, meta, author);
+    }
+
+    // ─── Y SE COBRA CUANDO LE DEVUELVEN EL ADMIN ───────────────────────────
+    //
+    // Quitarle el admin al bot era la unica agresion que salia gratis: contra si
+    // mismo no puede revertir nada, asi que el anti-admin no llegaba a
+    // ejecutarse y ahi se acababa el asunto. Ahora se apunta y se cobra en
+    // cuanto vuelve a tener con que.
+    //
+    // NO ES VENGANZA A DESTIEMPO: es el mismo revert de siempre, ejecutado en
+    // cuanto hay permiso para ejecutarlo. Y va con las mismas dos condiciones
+    // que el resto —el interruptor encendido y nunca contra el tier dueño— mas
+    // una caducidad de siete dias, que vive en adminDeuda.js.
+    if (action === 'promote' && partJids.some(isBotJid)) {
+      await saldarDeudaDeAdmin(sock, groupJid, meta);
     }
 
     // Anti-admin: revert any promote that didn't come from the bot.
@@ -1761,7 +1782,7 @@ async function gracefulShutdown(code = 0) {
     flushState(), flushCounts(), flushAura(), flushCache(),
     flushCasino(), flushPfpHashes(), flushBanlist(), flushPfpCache(), flushNicks(), flushLinkPerms(),
     flushJoinRequests(), flushRobo(), flushMutes(), flushRacha(), flushNames(), flushPickHistory(),
-    flushObjetivoDia(),
+    flushObjetivoDia(), flushDeuda(),
   ]);
   await Promise.race([flushes, new Promise(r => setTimeout(r, 3000))]);
   if (sock) {
@@ -1804,6 +1825,35 @@ process.on('unhandledRejection', (reason) => {
 
 // listaDeGrupos y el inyector de socket se exportan para poder probar el freno
 // del sondeo sin abrir una conexion real a WhatsApp.
+// Cobrar la deuda del admin. Aparte y exportada por el mismo motivo que el
+// aviso: el manejador de eventos no se puede invocar desde fuera, y esto solo
+// corre el dia que alguien devuelve un admin que otro habia quitado.
+//
+// Devuelve lo que ha pasado de verdad, no lo que ha intentado: 'saldada',
+// 'sin-deuda', 'apagado' (el interruptor), 'perdonada' (era del tier dueño) o
+// 'fallo' (WhatsApp no dejo degradar). El manejador no lo usa; las pruebas si, y
+// un booleano no distingue "no habia nada que cobrar" de "no he podido".
+async function saldarDeudaDeAdmin(sock, groupJid, meta) {
+  const deuda = await cobrarDeuda(groupJid);
+  if (!deuda) return 'sin-deuda';
+  if (!isAntiAdminEnabled(groupJid)) return 'apagado';
+  if (isOwner(deuda.autor, false, meta)) return 'perdonada';
+
+  const quien = `@${String(deuda.autor).split('@')[0]}`;
+  let castigado = [];
+  try { castigado = (await aplicarParticipantes(sock, groupJid, [deuda.autor], 'demote', meta)).ok || []; }
+  catch (e) { logger.warn(`deuda de admin en ${groupJid}: ${e.message}`); }
+  if (!castigado.length) {
+    logger.warn(`deuda de admin en ${groupJid}: no pude degradar a ${deuda.autor}`);
+    return 'fallo';
+  }
+  sock.sendMessage(groupJid, {
+    text: '*Cuenta saldada.*\n' + `${quien} me quitó el admin. Ya lo tengo otra vez. Él no.`,
+    mentions: [deuda.autor],
+  }).catch(() => {});
+  return 'saldada';
+}
+
 // El aviso de "me han quitado el admin". Vive aparte y se exporta para poder
 // probarlo sin abrir una conexion de verdad a WhatsApp: el manejador de eventos
 // no se puede invocar desde fuera, y un aviso que solo se dispara el dia que
@@ -1839,4 +1889,4 @@ function _sockDePrueba(s) {
   gruposFallos = 0;
 }
 
-module.exports = { connectToWhatsApp, listaDeGrupos, sondearSolicitudes, avisarDegradacion, _sockDePrueba };
+module.exports = { connectToWhatsApp, listaDeGrupos, sondearSolicitudes, avisarDegradacion, saldarDeudaDeAdmin, _sockDePrueba };
