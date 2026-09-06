@@ -5828,11 +5828,26 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       // Y que no arrastre el estado del bot. helpers.js trae el historial de
       // frases y un gancho de salida que escribe en data/: dos procesos
       // escribiendo los mismos ficheros es justo lo que no puede pasar.
+      // TIENE QUE PODER CORRER SUELTO, fuera de este repositorio y con una sola
+      // dependencia. No es limpieza: esta pensado para correr en la maquina de
+      // OTRA persona —la dueña de esa cuenta de WhatsApp, que asi no cede su
+      // sesion a nadie— y pedirle que se clone el bot entero para usar estas
+      // lineas no tiene sentido. Cada require nuevo que no sea de Node o de
+      // Baileys rompe eso, y se rompe sin ruido: aqui sigue funcionando.
       const requiere = [...gsrc.matchAll(/require\(['"]([^'"]+)['"]\)/g)].map((m) => m[1]);
-      const delBot = requiere.filter((r) => r.startsWith('.')
-        && !/utils\/(logger|silenciarSignal)$/.test(r));
+      const delBot = requiere.filter((r) => r.startsWith('.'));
       exige(delBot.length === 0,
-        `el guardian carga ${delBot.join(', ')} del bot: acaba con un pie en el estado del bot y dos procesos escribiendo lo mismo`);
+        `el guardian carga ${delBot.join(', ')} del repositorio: deja de poder correrse suelto, y acaba con un pie en el estado del bot`);
+
+      const NODE = new Set(['path', 'fs', 'fs/promises', 'os', 'crypto', 'util', 'events', 'child_process']);
+      const fuera = requiere.filter((r) => !r.startsWith('.') && !NODE.has(r)
+        && r !== '@whiskeysockets/baileys');
+      exige(fuera.length === 0,
+        `el guardian exige ${fuera.join(', ')} aparte de Baileys: quien lo corra suelto se lo encuentra roto. Cargalo con opcional() si de verdad hace falta`);
+
+      // Y las opcionales, que no son las mismas: esas SI pueden faltar.
+      exige(/const opcional = \(m\) => \{ try \{ return require\(m\); \} catch/.test(gsrc),
+        'el guardian ya no carga sus dependencias opcionales a prueba de fallos: sin dotenv o sin pino se caeria al arrancar');
     }
 
     // Y LA OTRA MITAD DEL PAR: que el bot reponga al guardian. Protegiendo solo

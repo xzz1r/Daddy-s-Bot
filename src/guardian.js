@@ -47,15 +47,30 @@
 //
 // Se vincula igual que el bot, con su propio QR, y guarda su sesión en
 // data/authGuardian: no comparte una sola credencial con el bot.
+// ─── SE PUEDE CORRER SUELTO, FUERA DE ESTE REPOSITORIO ──────────────────────
+//
+// Este fichero no necesita NADA del bot. Ni un módulo, ni una carpeta, ni el
+// resto del repositorio: basta con copiarlo a un directorio vacío e instalar
+// una sola dependencia.
+//
+//   npm init -y
+//   npm install @whiskeysockets/baileys --omit=optional
+//   GUARDIAN=<su número> GUARDIAN_DE=<el del bot> node guardian.js
+//
+// Eso son 31 MB de dependencias contra los 125 MB del bot, y ninguna copia de
+// su código. Importa porque el guardián está pensado para correr en la máquina
+// de OTRA persona —la dueña de esa cuenta de WhatsApp, que así no cede su
+// sesión a nadie— y pedirle que se clone el bot entero para usar 369 líneas no
+// tiene ningún sentido.
+//
+// Todo lo que sigue está escrito con esa condición: lo poco que hacía falta de
+// utils/ va copiado aquí abajo, cortado a lo mínimo, y las tres dependencias
+// que no son imprescindibles se cargan sólo si están.
 'use strict';
 
-require('dotenv').config();
-require('./utils/silenciarSignal').silenciarSignal();
-
 const path = require('path');
-const fs = require('fs-extra');
-const pino = require('pino');
-const qrcode = require('qrcode-terminal');
+const fs = require('fs');
+const fsp = require('fs/promises');
 const {
   default: makeWASocket,
   useMultiFileAuthState,
@@ -63,7 +78,62 @@ const {
   fetchLatestBaileysVersion,
   DisconnectReason,
 } = require('@whiskeysockets/baileys');
-const logger = require('./utils/logger');
+
+// OPCIONALES, LAS TRES. Están en el repositorio del bot y no tienen por qué
+// estar fuera. Ninguna hace falta para lo que este proceso hace.
+const opcional = (m) => { try { return require(m); } catch { return null; } };
+
+// dotenv: sin él se leen las variables del entorno a secas, o de un .env al
+// lado con un lector de cuatro líneas. No merece una dependencia.
+const dotenv = opcional('dotenv');
+if (dotenv) dotenv.config();
+else {
+  try {
+    for (const l of fs.readFileSync(path.join(process.cwd(), '.env'), 'utf8').split('\n')) {
+      const m = l.match(/^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.*)\s*$/);
+      if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2].replace(/^['"]|['"]$/g, '');
+    }
+  } catch { /* sin .env: se usan las variables del entorno */ }
+}
+
+// pino: viene dentro de Baileys, así que en la práctica siempre está. Si algún
+// día deja de venir, un objeto mudo hace el mismo papel: a Baileys se le pasa
+// el logger en silencio de todas formas.
+const pino = opcional('pino');
+const mudo = () => { const l = { level: 'silent', child: () => mudo() }; for (const n of ['trace', 'debug', 'info', 'warn', 'error', 'fatal']) l[n] = () => {}; return l; };
+const silencioso = () => (pino ? pino({ level: 'silent' }) : mudo());
+
+// qrcode-terminal: sólo para el QR de respaldo. La vinculación normal es por
+// código y no lo necesita.
+const qrcode = opcional('qrcode-terminal');
+
+// EL LOG, CORTADO A LO MÍNIMO. El del bot pinta con colores y trae niveles que
+// aquí no se usan; esto es la misma forma de línea sin la dependencia.
+const hora = () => new Date().toLocaleTimeString('es-AR', { hour12: false });
+const logger = {
+  info: (m) => console.log(`[${hora()}] [INFO] ${m}`),
+  warn: (m) => console.log(`[${hora()}] [WARN] ${m}`),
+  error: (m) => console.error(`[${hora()}] [ERROR] ${m}`),
+};
+
+// CALLAR A libsignal. Imprime con console.info directamente —el logger
+// silencioso de Baileys no le afecta— y no vuelca una línea: vuelca el objeto
+// de sesión entero, treinta líneas por cada sesión que cierra. En una máquina
+// pequeña eso es escribir megas de log por nada. Se filtran SOLO sus mensajes
+// conocidos, por su texto: un silenciador general de console.info se llevaría
+// por delante avisos que sí importan.
+{
+  const RUIDO = [/^Closing session:/, /^Removing old closed session:/,
+    /^Closing open session in favor of incoming prekey bundle/, /^Session error:/,
+    /^Failed to decrypt message with any known session/];
+  for (const nivel of ['info', 'warn', 'log']) {
+    const original = console[nivel].bind(console);
+    console[nivel] = (...args) => {
+      if (typeof args[0] === 'string' && RUIDO.some((r) => r.test(args[0]))) return;
+      original(...args);
+    };
+  }
+}
 
 // EL TOPE VA AQUÍ DENTRO, NO SE IMPORTA DE helpers.js, Y NO ES POR PEREZA AL
 // REVÉS. helpers.js es el módulo del bot: trae el historial de frases, el
@@ -233,8 +303,8 @@ async function limpiarCredencialesAMedias() {
   const previo = await useMultiFileAuthState(AUTH_DIR);
   const c = previo.state?.creds;
   if (!c?.me || c.account) return false;
-  await fs.remove(AUTH_DIR);
-  await fs.ensureDir(AUTH_DIR);
+  await fsp.rm(AUTH_DIR, { recursive: true, force: true });
+  await fsp.mkdir(AUTH_DIR, { recursive: true });
   logger.warn('guardián: había credenciales a medias (una vinculación sin terminar). Empiezo de cero.');
   return true;
 }
@@ -251,7 +321,7 @@ async function conectar() {
     logger.warn('guardián: todavía no sé a quién protejo (el bot no ha conectado aún). Sigo esperando; lo sabré en cuanto conecte.');
   }
 
-  await fs.ensureDir(AUTH_DIR);
+  await fsp.mkdir(AUTH_DIR, { recursive: true });
 
   // CREDENCIALES A MEDIAS: SE MIRA `account`, NO `registered`.
   //
@@ -275,10 +345,10 @@ async function conectar() {
 
   sock = makeWASocket({
     version,
-    logger: pino({ level: 'silent' }),
+    logger: silencioso(),
     auth: {
       creds: state.creds,
-      keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' })),
+      keys: makeCacheableSignalKeyStore(state.keys, silencioso()),
     },
     printQRInTerminal: false,
     // NI VISTO NI PRESENCIA. El guardián no tiene por qué aparecer en línea: no
@@ -333,8 +403,12 @@ async function conectar() {
 
   sock.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
     if (qr && !porCodigo) {
-      console.log('\nEscanea este QR con el número del guardián:\n');
-      qrcode.generate(qr, { small: true });
+      if (qrcode) {
+        console.log('\nEscanea este QR con el número del guardián:\n');
+        qrcode.generate(qr, { small: true });
+      } else {
+        logger.error('guardián: hay que vincular y no tengo con qué. Pon GUARDIAN=<tu número> y se vincula por código, que es lo normal.');
+      }
     }
     if (connection === 'open') {
       espera = ESPERA_MIN;
