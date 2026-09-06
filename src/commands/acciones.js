@@ -59,7 +59,17 @@ const ACCIONES = {
   bonk:   { cat: 'bonk',   pool: RX.BONK,   cmds: ['bonk', 'zurra', 'mazazo'] },
   // La cara. Cuesta el doble justamente para que no se use en bucle: el riesgo
   // de este comando no es la CPU, es la cuenta.
-  fuck:   { cat: 'kiss',   pool: RX.FUCK,   cmds: ['fuck', 'follar', 'joder'], nsfw: true },
+  //
+  // DOS CATEGORIAS, Y NO ES UN CAPRICHO. La web SFW de serie no tiene ninguna
+  // categoria que valga para esto —lo mas parecido es `kiss`, y de ahi salio el
+  // beso sin sentido que se vio en el grupo—, mientras que las webs NSFW la
+  // llaman `fuck` y no tienen `kiss`. Una sola categoria falla siempre en uno de
+  // los dos lados: o manda un beso teniendo la fuente puesta, o pide una
+  // categoria que no existe y devuelve el aura.
+  //
+  //   cat      la de la web SFW, que es a donde va si no hay fuente puesta
+  //   catNsfw  la de la web NSFW, que es la que manda en cuanto la hay
+  fuck:   { cat: 'kiss', catNsfw: 'fuck', pool: RX.FUCK, cmds: ['fuck', 'follar', 'joder'], nsfw: true },
 };
 
 // SIN FRASES NO HAY COMANDO.
@@ -154,9 +164,13 @@ function direccionDe(base, cat) {
   return base.includes('{cat}') ? base.replace(/\{cat\}/g, cat) : `${base}${cat}`;
 }
 
-async function traerAccion(cat, nsfw) {
-  const base = nsfw && API_NSFW ? API_NSFW : API;
-  const { data } = await axios.get(direccionDe(base, cat), { timeout: 12000 });
+async function traerAccion(cat, nsfw, catNsfw) {
+  // La fuente y la categoria van JUNTAS: cambiar de web sin cambiar de
+  // categoria es pedirle a una el nombre que usa la otra.
+  const conFuente = nsfw && API_NSFW;
+  const base = conFuente ? API_NSFW : API;
+  const cual = conFuente ? (catNsfw || cat) : cat;
+  const { data } = await axios.get(direccionDe(base, cual), { timeout: 12000 });
   // Cada web contesta a su manera: nekos.best mete todo en results[], y las
   // demas suelen devolver {url} a secas. Se aceptan las dos para que cambiar de
   // fuente sea poner una linea en el .env y nada mas.
@@ -212,7 +226,7 @@ function queEs(b) {
 }
 
 function hazAccion(nombre) {
-  const { cat, pool, nsfw } = ACCIONES[nombre];
+  const { cat, catNsfw, pool, nsfw } = ACCIONES[nombre];
 
   return async function ejecutar(sock, msg, args, groupMeta) {
     const jid = msg.key.remoteJid;
@@ -243,7 +257,7 @@ function hazAccion(nombre) {
 
     let traido;
     try {
-      traido = await traerAccion(cat, nsfw);
+      traido = await traerAccion(cat, nsfw, catNsfw);
     } catch (e) {
       logger.warn(`accion ${nombre}: ${e.message}`);
       await devolver(jid, quien, pago.pagado).catch(() => {});

@@ -5498,6 +5498,27 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       const normal = n.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ñ/g, 'n');
       exige(n === normal, `la accion *!${n}* lleva tilde o eñe: el dispatcher normaliza antes de comparar, asi que ese case no se alcanza nunca (tendria que ser *!${normal}*)`);
     }
+    // 5) LA ACCION NSFW TIENE QUE DECLARAR SU PROPIA CATEGORIA.
+    //
+    // La web SFW de serie y las webs NSFW no llaman igual a lo mismo, y en el
+    // caso de *!fuck* ni siquiera existe en las dos: la de serie tiene `kiss` y
+    // no `fuck`; las otras tienen `fuck` y no `kiss`. Con una sola categoria el
+    // comando falla en uno de los dos lados haga lo que haga — y ya fallo en el
+    // grupo, mandando un beso donde se habia pedido otra cosa.
+    for (const [n, a] of Object.entries(ACCIONES)) {
+      if (!a.nsfw) continue;
+      exige(typeof a.catNsfw === 'string' && a.catNsfw.length > 0,
+        `la accion *!${a.cmds[0]}* es nsfw y no declara catNsfw: con la fuente puesta pedira la categoria de la web SFW, que alli no existe`);
+      exige(a.catNsfw !== a.cat,
+        `la accion *!${a.cmds[0]}* tiene catNsfw igual que cat: entonces no sirve de nada tenerlo`);
+    }
+    // Y que el motor la USE. Declararla y no leerla es peor que no tenerla:
+    // parece arreglado y manda lo mismo de antes.
+    {
+      const acc = soloCodigo('src/commands/acciones.js');
+      exige(/conFuente \? \(catNsfw \|\| cat\) : cat/.test(acc),
+        'traerAccion ya no elige la categoria segun la fuente: con la fuente NSFW puesta volveria a pedir la categoria de la web SFW');
+    }
     if (fallos === antes) console.log(verde(`   ✓ los ${nombres.length} nombres de accion son unicos, no pisan nada y se pueden teclear`));
   }
 
