@@ -21,6 +21,14 @@
 // 4. EL ROAST ES OTRO MENSAJE. No va en el caption del gif: se manda después,
 //    en cursiva, y no habla del gesto. Humilla a %A delante del grupo por
 //    usar un comando de pago como único contacto.
+//
+//    Y NO SALE EN TODAS: una de cada cinco acciones del grupo (ROAST_CADA, en
+//    acciones.js). Estos comandos se usan en ráfaga contra medio grupo y un
+//    segundo mensaje debajo de cada uno dejaba de leerse a las tres veces.
+//    Para quien escribe esto significa lo contrario de lo que parece: cada una
+//    de las sesenta se lee MENOS veces, así que tienen que aguantar salir
+//    solas, sin la acción delante amortiguándolas. Una frase de relleno aquí
+//    canta más que en cualquier otro pool.
 // 5. NI %A NI %V TIENEN GÉNERO. Son dos menciones: cualquiera del grupo puede
 //    caer en cualquiera de las dos, y en el grupo hay mujeres. Una frase que
 //    dice «él» o cierra en -o falla el día que le toca a ellas, y no falla
