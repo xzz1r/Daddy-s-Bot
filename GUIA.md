@@ -804,9 +804,10 @@ git pull origin main
   vez lo que pasa es escribir el pie de una foto); **la crudeza va según el
   comando** —guarra y no cursi en las cariñosas, física en las violentas—; y
   **el chiste apunta a quien la recibe, nunca a quien la manda**. La excepción es
-  `ROAST_USUARIO`, que va debajo en cursiva y existe justo para lo contrario: se
-  ríe de quien ha pagado 60 de aura por mandar un abrazo animado. Al tier dueño
-  no se le remata, y eso lo salta el propio comando.
+  `ROAST_USUARIO`, que va **en un mensaje aparte**, en cursiva, y existe justo
+  para lo contrario: se ríe de quien ha pagado aura por mandar un gesto animado
+  a alguien que tiene a dos metros. No es pie de foto. Al tier dueño no se le
+  remata, y eso lo salta el propio comando.
   **Sin frases no hay comando**: mientras un pool no exista, esa acción no sale
   en el menú, no la sugiere el corrector, no cobra y no contesta. Se enciende
   sola al exportar el pool.

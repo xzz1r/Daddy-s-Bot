@@ -83,8 +83,8 @@ const ACCIONES = {
 // mano, que es exactamente lo que se queda desincronizado el dia que llegue el
 // segundo lote y nadie se acuerde de anyadir el nombre.
 //
-// Y ROAST_USUARIO aparte: es un pool solo, el remate que va debajo. Si falta
-// ese, las acciones funcionan igual pero sin remate. No se apaga nada por el.
+// Y ROAST_USUARIO aparte: es un pool solo, OTRO mensaje. Si falta ese, las
+// acciones funcionan igual pero sin remate. No se apaga nada por el.
 const hayFrases = (p) => Array.isArray(p) && p.length > 0;
 const ACTIVAS = Object.keys(ACCIONES).filter((n) => hayFrases(ACCIONES[n].pool));
 const ALIAS_ACTIVOS = ACTIVAS.flatMap((n) => ACCIONES[n].cmds);
@@ -272,28 +272,29 @@ function hazAccion(nombre) {
       .replace(/%A/g, nA)
       .replace(/%V/g, nV);
 
-    // EL REMATE AL QUE LO PIDE. Decision del dueño: quien usa estos comandos se
-    // lleva un recordatorio de lo que dice de el usarlos. Va debajo, en cursiva,
-    // separado de la frase de la accion.
-    //
-    // AL TIER DUEÑO NO. Es el unico que no se lleva la coña, igual que no paga
-    // los comandos: el bot no le falta al respeto al que lo administra delante
-    // del grupo.
-    const remate = isOwner(quien, msg.key.fromMe, groupMeta) || !hayFrases(RX.ROAST_USUARIO)
-      ? ''
-      : `\n\n_${pickFresh(RX.ROAST_USUARIO, `${jid}|accion|remate`).replace(/%A/g, nA)}_`;
+    // EL NOMBRE DEL ANIME NO VA. Rompia el chiste: la frase remata, y debajo
+    // aparecia un titulo japones que devolvia al lector a que esto es un gif
+    // sacado de una web. Se sigue pidiendo a la API porque viene en la misma
+    // respuesta, pero no se enseña.
+    const media = traido.imagen
+      ? { image: traido.imagen, caption: frase, mentions: [quien, objetivo] }
+      : {
+          video: traido.mp4,
+          gifPlayback: true,
+          mimetype: 'video/mp4',
+          caption: frase,
+          mentions: [quien, objetivo],
+        };
+    await sock.sendMessage(jid, media, { quoted: msg });
 
-    return sock.sendMessage(jid, {
-      video: traido.mp4,
-      gifPlayback: true,
-      mimetype: 'video/mp4',
-      // EL NOMBRE DEL ANIME NO VA. Rompia el chiste: la frase remata, y debajo
-      // aparecia un titulo japones que devolvia al lector a que esto es un gif
-      // sacado de una web. Se sigue pidiendo a la API porque viene en la misma
-      // respuesta, pero no se enseña.
-      caption: frase + remate,
-      mentions: [quien, objetivo],
-    }, { quoted: msg });
+    // EL ROAST VA EN OTRO MENSAJE. Pegarlo al caption lo convierte en pie de
+    // foto: se lee como continuacion de la escena y no como paliza. Quien usa
+    // el comando se lleva, delante del grupo, lo que dice de el usarlo. Al tier
+    // dueño no: el bot no le falta al respeto al que lo administra.
+    if (!isOwner(quien, msg.key.fromMe, groupMeta) && hayFrases(RX.ROAST_USUARIO)) {
+      const remate = `_${pickFresh(RX.ROAST_USUARIO, `${jid}|accion|remate`).replace(/%A/g, nA)}_`;
+      await sock.sendMessage(jid, { text: remate, mentions: [quien] }, { quoted: msg });
+    }
   };
 }
 

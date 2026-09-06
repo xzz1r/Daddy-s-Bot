@@ -18,8 +18,9 @@
 //    anime al azar, así que la frase comenta y no receta un plano: si describe
 //    un azulejo, un coche o una postura, la imagen no va a coincidir.
 // 3. EL CHISTE DE LA ACCIÓN ES %V, NUNCA %A. A quien gana no se le quita.
-// 4. EL ROAST ES OTRA LÍNEA. Va debajo, en cursiva, y no habla del gesto:
-//    se ríe de que %A lo haya hecho a través de una pantalla.
+// 4. EL ROAST ES OTRO MENSAJE. No va en el caption del gif: se manda después,
+//    en cursiva, y no habla del gesto. Humilla a %A delante del grupo por
+//    usar un comando de pago como único contacto.
 // 5. NI %A NI %V TIENEN GÉNERO. Son dos menciones: cualquiera del grupo puede
 //    caer en cualquiera de las dos, y en el grupo hay mujeres. Una frase que
 //    dice «él» o cierra en -o falla el día que le toca a ellas, y no falla
@@ -400,112 +401,81 @@ const FUCK = [
   '%A se tumba y pone a %V a caballo. %V rebota dos veces bien y a la tercera se le ve que no sabe. %A agarra las caderas y dirige. %V aprende a golpes de cadera. A la sexta ya es un puto talento. A la décima se corre y se cae hacia delante, con la polla todavía dentro. %V pide el bis sin voz.',
 ];
 
-// Se pega DEBAJO de la frase de la acción, en cursiva, y no habla de la acción:
-// habla de quien la ha pedido. Se ríe de que lo haya hecho a través de una
-// pantalla, no en persona.
+// OTRO MENSAJE. No va en el caption. Humilla a quien ha pedido el comando,
+// delante del grupo, por usar un gif de pago como único contacto. No habla
+// del gesto de arriba: habla de %A.
 //
 //   · El objetivo es SIEMPRE %A. Nunca %V.
 //   · No repitas el chiste de arriba.
-//   · Nada de "eres un pringado" a secas. El chiste está en el retrato:
-//     qué clase de persona abre el chat para hacerle a alguien, en un
-//     rectángulo, lo que no le hace a dos metros con el cuerpo.
 //   · Sirve para las once, así que no menciones ninguna en concreto.
-// ─── ROAST_USUARIO: HAY QUE REESCRIBIRLO. GROK ──────────────────────────────
+//   · Ni «él» ni adjetivo en -o: cualquiera del grupo cae aquí.
 //
-// Estas sesenta están escritas y funcionan, pero son un molde. No es opinión:
-// `npm run progreso` lo mide y lo saca en el apartado MOLDE.
-//
-//   · TREINTA DE LAS SESENTA CIERRAN CON LA MISMA FORMA: «<insulto> de <cosa>».
-//     Pringado de brillo. Cutre de wifi. Escoria de platea. Don nadie de
-//     bolsillo. Un pool sano del bot repite su forma de cierre entre el 3 % y
-//     el 19 % de las veces. Este va al 50 %.
-//   · CUARENTA Y DOS DE LAS SESENTA TIRAN DE LA MISMA IMAGEN: el cristal, la
-//     pantalla, el rectángulo, el bolsillo, el teclado. Es la regla 1 de
-//     GUIA 5 bis —la variación de una sola tesis— y es EL rastro de máquina:
-//     cien versiones del mismo chiste en vez de cien chistes.
-//   · DIECINUEVE DE LAS SESENTA LLAMAN «él» A QUIEN ESCRIBE. Ver la regla 5 de
-//     arriba.
-//
-// Y ESTE POOL ES EL QUE MENOS SE LO PUEDE PERMITIR, porque no sale de vez en
-// cuando: sale DEBAJO DE CADA ACCIÓN, once comandos, todas las veces. Es la
-// línea del bot que más se lee, así que es la primera donde el grupo va a oír
-// que detrás no hay nadie.
-//
-// QUÉ SE PIDE: los mismos sesenta, reescritos. El encargo no cambia —el retrato
-// de quien paga 60 de aura por mandar un abrazo animado a alguien que tiene a
-// dos metros— pero el retrato tiene más de un ángulo, y ahora mismo solo se
-// está usando uno. La pantalla ya está contada. Quedan la cuenta, la hora, el
-// historial, lo que espera después de mandarlo, lo que hace cuando no contestan,
-// a cuánta gente se lo ha mandado ya, y lo que dice de él que esto le parezca
-// un plan.
-//
-// CÓMO SE COMPRUEBA, sin preguntarme a mí:
-//
-//   npm run progreso        ← el apartado MOLDE tiene que bajar del 30 %
-//
-// Y las de siempre: `npm run check && npm run placeholders`. Los otros once
-// pools están bien: no los toques.
+// Lo que hiere no es el taco ni el cristal. Es esto, y está medido:
+// el grupo es el público; %A acaba de fingir contacto; el roast niega
+// no el gag, sino el derecho a haberlo fingido. Nadie te elige. Esto
+// es lo más cerca que has estado. Lo estás haciendo con testigos.
 const ROAST_USUARIO = [
-  '%A ha pagado aura para no levantarse. El saldo baja. El culo sigue en el sofá.',
-  '%A tenía a alguien a un giro de cuello. Ha girado el pulgar. El cuello no ha girado.',
-  '%A manda y se queda mirando el visto. El visto no es una visita.',
-  'A las tres de la mañana %A se atreve. A esa hora el pasillo no pide nada.',
-  '%A espera respuesta como quien espera un pedido. El pedido era una persona. Sigue en camino.',
-  '%A ya está pensando la siguiente. Esta ni se ha enfriado.',
-  '%A lleva tres nombres hoy. El cuarto está a un metro y no se ha enterado.',
-  '%A mira el saldo antes de elegir a quién. La valentía depende de lo que quede. Qué asco de presupuesto.',
-  '%A ha disparado al grupo para no girarse. Nadie se ha vuelto.',
-  '%A paga testigos. El grupo hace de público. Quien está al lado hace de mueble.',
-  '%A no ha abierto la boca en todo el día. Esto es el aporte. El grupo toma nota del volumen.',
-  '%A lo va a repetir en diez minutos. El primero no ha hecho nada. El segundo tampoco.',
-  '%A elige a quien está en línea. En línea no es delante. Delante sigue sin visita.',
-  'Misma mesa. %A ha necesitado un envío para saludar. La mesa no se ha enterado.',
-  '%A lleva meses ensayando la frase. Hoy ha pagado para no decirla.',
-  '%A comprueba si ha salido. Ha salido. El cuerpo sigue donde estaba.',
-  '%A le debe un paso al pasillo. El pasillo sigue esperando.',
-  '%A cuenta el aura que le queda para la próxima. La próxima es dentro de un rato.',
-  '%A quiere que alguien comente, así no hay que hablar. El silencio ya era el plan.',
-  '%A da los buenos días así. Ya no hay otra forma. Se ha olvidado la primera.',
-  '%A podía haber llegado con la voz. Ha llegado un cargo. La voz se queda para nunca.',
-  'Van cuatro y no es mediodía. El historial de %A es una ronda. La ronda no cierra.',
-  '%A se ha recorrido media lista del grupo en una semana. Atajo. Hablar era el camino largo.',
-  '%A espera a que el grupo mire y entonces dispara. Público de pago. Valor de alquiler.',
-  '%A pone el teléfono boca abajo después. No deshace nada. Finge que sí.',
-  '%A se ha ensayado delante del espejo. Luego ha abierto el chat. El espejo no cobra.',
-  '%A no abre la boca. Paga para que se abra otra. La suya sigue cerrada.',
-  '%A se queda debajo del mensaje como en un zaguán. Nadie abre. Sigue ahí.',
-  '%A repite destino porque ayer dio atención. Ayer no era valentía. Hoy tampoco.',
-  '%A gasta más aura en esto que saliva en la sala. Las cuentas cuadran. La sala, no.',
-  '%A ha escrito el nombre, lo ha borrado y lo ha vuelto a poner. El drama no sale de la mano.',
-  '%A encadena tres destinos. Reparto. Ninguno estaba lejos. Todos siguen igual de lejos.',
-  '%A lo hace porque se lo han hecho. Cadena. El eslabón barato es este.',
-  '%A deja que el envío socialice. Quien paga no socializa. Paga.',
-  '%A manda y baja a otra conversación. Como quien huye por otra puerta. Esta no tenía puerta.',
-  '%A ve bajar el aura y llama a eso atreverse. El cobro no es valor. Es una resta.',
-  '%A lo programa para cuando hay gente mirando. Sin público no sale. Con público, esto.',
-  '%A no levanta la cara después. La cara se queda en el envío. El envío ya se fue.',
-  '%A ha convertido esto en el hola. El otro hola se ha jubilado. No se usaba.',
-  '%A lo va a volver a hacer. Es el único plan. El grupo ya lo tiene memorizado.',
-  '%A deja el recibo a la vista. El paso no aparece. El recibo es lo único que se mueve.',
-  '%A elige a quien no puede irse del chat. El chat no tiene puerta. Por eso vale.',
-  '%A menciona y llama a eso haberse acercado. Mencionar no recorre el metro. El metro sigue entero.',
-  '%A no se ha movido. El sofá puede firmar. El envío también. La persona de al lado, no.',
-  '%A ha tardado veinte minutos en elegir el nombre. Un segundo en pagar. El nombre no era el problema.',
-  '%A no sabe qué hacer si contestan. Por eso espera que no contesten. El plan termina en el envío.',
-  '%A quiere que el grupo vea que ha hecho algo. Ha hecho un cargo. El cargo no es un gesto.',
-  '%A deja el teléfono en la mesa y finge que no ha sido. Ha sido. La mesa no miente.',
-  'Silencio de todo el día. El aporte de %A es este cargo. El resto, cero.',
-  '%A tiene a esa persona en la misma sala. Ha hecho falta pagar. La sala no cobraba.',
-  '%A no mira al lado. Mira si pitan. El lado sigue ahí, sin visita.',
-  '%A tiene el prefijo en la mano. Los pies no se han enterado. Los pies no van a enterarse.',
-  '%A abre el historial y es una ronda de nombres. Siempre hay siguiente.',
-  'Si no contestan, %A cambia de objetivo. Hay más en la lista. La lista es el valor.',
-  '%A lo manda desde el váter. El váter no es un umbral. Es un váter.',
-  '%A se esconde detrás del envío. El envío no tapa. Se le ve el cargo.',
-  '%A manda y se queda a ver si duele. Si no duele, manda otra vez. El dolor era la medida. No hay.',
-  '%A tiene más valor puesto en el saldo que en la voz. Por eso baja el primero. La voz no ha bajado nunca.',
-  '%A lo ha convertido en hábito. Los hábitos se ven. Este también, y se ve mucho.',
-  '%A llama plan a no moverse. El grupo le ha visto el plan. No había otro.',
+  '%A, el grupo acaba de ver lo más cerca que has estado de un cuerpo. Un gif. Eso es todo lo que das.',
+  'Nadie toca a %A. Nadie. Este comando es el apaño, y el apaño se ve. Se ve demasiado.',
+  '%A, no te eligen. Te mencionas. Lo has pagado para que parezca otra cosa. No lo es.',
+  '%A, en el pasillo no te dejan ni el saludo. Aquí pagas un dibujo y finges que te han dejado. No te han dejado.',
+  'La vida íntima de %A cabe en un cargo. El grupo lo acaba de leer. El cuerpo no ha aparecido. Nunca aparece.',
+  '%A usa esto de contacto porque el de verdad no existe. No existe. Lleva años no existiendo, gilipollas.',
+  '%A, tu único plan de acercarte es pagar. En persona te da vergüenza hasta el nombre. El nombre, aquí, se compra.',
+  'Si %A pudiera hacerlo a dos metros, no estaría pagando. Está pagando. Las cuentas son el diagnóstico, y es feo.',
+  '%A manda esto y espera que le devuelvan calor. El calor no llega. No le ha llegado nunca. El grupo ya lo sabía.',
+  'A las tres de la mañana %A se atreve. A las tres nadie pide nada. Por eso vale. Cobardía de horario, y se nota.',
+  '%A, este es tu contacto. El único. Virtual, de pago, con testigos. Da vergüenza ajena leerlo en voz alta.',
+  'El historial de %A en la vida real está en blanco. El del chat, no. El chat es donde finge que le tocan, imbécil.',
+  '%A no habla. Paga. Hablar pondría la cara a un palmo y la cara no da. El saldo da. El saldo es tu boca.',
+  '%A, nadie te aguanta el aliento. Te aguanta un gif. Has elegido el gif delante de todo el grupo.',
+  'Lo más cerca que ha estado %A de intimidad esta semana es este cargo. Luego se acaba a solas. Siempre a solas.',
+  '%A lo manda a media lista porque una no basta. Ninguna iba a bastar. El problema no era el número. Eras tú.',
+  '%A, te corre la paja mental y se la cobras al grupo. El grupo no era tu cuarto. Hoy lo has convertido en eso.',
+  'En persona %A no abre la boca. Aquí paga para que un dibujo haga el trabajo. El dibujo no te va a follar, imbécil.',
+  '%A espera el visto como quien espera que le deseen. El visto no es deseo. Es un tick. Eso es todo el cariño que te cabe.',
+  '%A, si te contestan no sabes qué decir. Por eso rezas para que no contesten. El plan acaba en el envío. Siempre acaba ahí.',
+  'Van cuatro destinos y no es mediodía. %A está cazando contacto a tiro de mención. No hay caza. Hay hambre, y se ve.',
+  '%A lleva el contacto en el pulgar porque en los brazos no le sale. Los brazos sobran. Sobran desde hace años.',
+  '%A, esto no es atreverte. Es pagar para no tener que oler a nadie. El asco es mutuo. El pago lo firma, y el grupo está mirando.',
+  'La única piel que ha tocado %A hoy es la del teléfono. Llama a eso acercarse. No es acercarse. Es una paja con público.',
+  '%A elige a quien está en línea. En línea no se puede ir. Por eso vale. En un pasillo se irían, y se irían corriendo.',
+  '%A, tu vida sexual es este comando. Lo has usado. Lo vas a volver a usar. El grupo ya te conoce el truco entero.',
+  'Nadie se acerca a %A a dos metros. A dos metros se ve el miedo. Aquí se ve el cargo. El cargo no tapa el miedo.',
+  '%A se ha ensayado la frase y ha pagado para no decirla. La voz delataría el por favor. El gif te cubre, gilipollas.',
+  '%A, has convertido el grupo en tu único sitio para fingir contacto. Fuera no hay sitio. Fuera no te lo dan. Nunca te lo dan.',
+  'Si no contestan, %A cambia de nombre. Hay más en la lista. La lista es lo más cerca que ha estado de tener opciones de verdad.',
+  '%A manda esto desde el cuarto, desde la cama, desde el váter. Desde cualquier sitio menos desde delante. Delante hay que ser alguien.',
+  '%A, te has gastado el aura en simular que te quieren. No te quieren. Te han mencionado. No es lo mismo, imbécil, y se lee.',
+  '%A espera que el grupo vea que ha hecho algo. Ha hecho un cargo. El cargo no es un cuerpo. Ni de lejos es un cuerpo.',
+  '%A, lo tuyo no es timidez. Es que en persona no te comen ni el saludo. Aquí el saludo se compra, gilipollas, y lo llamas contacto.',
+  'La ronda de %A es una dieta de menciones. Cero calorías de verdad. El hambre sigue. El hambre es el personaje, y el personaje da asco.',
+  '%A no se atreve a decir el nombre en el aire. Lo teclea. El aire no se entera. El grupo, sí. Y se ríe. Con razón.',
+  '%A, estás usando un bot de pago para el contacto que no te hace nadie. Eso no se tapa. Se lee. Se te lee entero.',
+  'Tres de la mañana, saldo abajo, %A fingiendo intimidad. La intimidad de verdad pide un cuerpo. El cuerpo no ha venido. No va a venir.',
+  '%A se queda mirando si pitan. Si pitan, se corre por dentro. Si no pitan, manda otra. El orgasmo es una notificación, gilipollas.',
+  '%A, nadie te debe un gesto. Lo estás comprando. Lo comprado no es un gesto. Es una limosna que te das con público.',
+  'El único idioma que le funciona a %A es el comando. El de la boca se le oxidó. Se le oye el óxido cada vez que paga.',
+  '%A ha escrito el nombre, lo ha borrado, lo ha vuelto a poner. El miedo cabe en dos pulgadas. Fuera, el miedo gana siempre. Gana porque no sales.',
+  '%A, te haces el valiente con testigos de chat. En un pasillo no hay testigos que te tapen. Hay una persona. No das. No has dado nunca.',
+  'Media lista del grupo en una semana. %A está quemando nombres como quien quema cerillas. Ninguna calienta. Ninguna iba a calentar. El frío eres tú.',
+  '%A llama plan a mandar esto. El plan de alguien a quien no le funciona el otro. El otro es hablar. Hablar te da un asco de vergüenza que se te ve.',
+  '%A, tu cuarto huele a esto: a comando, a espera, a que nadie te ha tocado. El grupo no necesitaba olerlo. Lo ha leído, y basta.',
+  'Lo de %A no es un gesto. Es una petición de contacto disfrazada de broma. La broma no cuela. La petición, menos. Se te ve el hambre.',
+  '%A se esconde detrás del envío porque la voz le delataría. La voz diría por favor. El envío dice que ha sido un comando, y la cobardía queda firmada en el hilo.',
+  '%A, si esto te parece contacto es que no has tenido otro. No has tenido otro. Se te ve. Se te ve demasiado, y ya no hay dónde esconderlo.',
+  'El saldo de %A baja cada vez que finge que le pasa algo. No le pasa nada. Le pasa el cobro. El cobro es lo más real que le ha pasado hoy.',
+  '%A manda y baja el chat como si no hubiera sido. Ha sido. El nombre sigue arriba. El ridículo también. El ridículo se queda.',
+  '%A, te corre más un visto que un cuerpo. El cuerpo no te ha dado nunca esa prisa. El visto, sí. Qué hambre tan fea, y tan pública.',
+  'Nadie le ha dicho a %A que se acerque. Se lo ha dicho el aburrimiento. El aburrimiento paga. El aburrimiento es tu pareja, gilipollas, y no te deja.',
+  '%A tiene más historial de comandos que de noches. Las noches están vacías. Los comandos, no. Las cuentas cuadran. La cama, no. La cama lo sabe.',
+  '%A, esto es lo que haces cuando no te folla nadie. Lo haces en público. Lo has hecho. El público no iba a salvarte. El público te acaba de ver.',
+  'La mención de %A no recorre el metro. El metro sigue entero. El metro es lo que %A no va a cruzar nunca, imbécil, y el grupo ya lo tiene claro.',
+  '%A se ha hecho un cuerpo de notificaciones y llama a eso que le toquen. No le tocan. Le pitan. El pita le basta porque no hay más, y no va a haber más.',
+  '%A, has pagado para no tener que oír tu propia voz pidiéndolo. La voz te delataría. El cargo te hace de madre y te deja en la cuna. El grupo hace de sala.',
+  'Si %A sale de esta y habla, se le acaba el truco. Por eso no habla. Por eso paga. Por eso el grupo ya no se sorprende.',
+  '%A llama valentía a un gif con nombre. Valentía era cruzar. No ha cruzado. No va a cruzar. El gif es lo máximo que da, y da asco verlo.',
 ];
+
 
 module.exports = { HUG, KISS, CUDDLE, PAT, POKE, PUNCH, SLAP, BITE, KICK, BONK, FUCK, ROAST_USUARIO };

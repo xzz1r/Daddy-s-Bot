@@ -5518,6 +5518,12 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       const acc = soloCodigo('src/commands/acciones.js');
       exige(/conFuente \? \(catNsfw \|\| cat\) : cat/.test(acc),
         'traerAccion ya no elige la categoria segun la fuente: con la fuente NSFW puesta volveria a pedir la categoria de la web SFW');
+      // El roast NO puede volver al caption. Pegado al gif se lee como pie de
+      // foto y deja de humillar: es exactamente lo que se vio en el grupo.
+      exige(!/frase\s*\+\s*remate/.test(acc),
+        'el roast de la accion volvio al caption del gif: tiene que ir en un mensaje aparte');
+      exige(/text:\s*remate/.test(acc),
+        'el roast de la accion no se manda como texto suelto: el grupo tiene que verlo en su propio globo');
     }
     if (fallos === antes) console.log(verde(`   ✓ los ${nombres.length} nombres de accion son unicos, no pisan nada y se pueden teclear`));
   }
