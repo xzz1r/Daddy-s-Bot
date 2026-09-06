@@ -245,14 +245,47 @@ function mismoNumero(a, b) {
   return false;
 }
 
-function esElProtegido(jid, meta) {
+// LOS PARTICIPANTES LLEGAN COMO OBJETOS, NO COMO CADENAS, y aquí estuvo el
+// fallo que dejó al guardián mirando dos degradaciones sin mover un dedo.
+//
+// Baileys entrega { id, phoneNumber, lid, username, admin } en cada cambio de
+// participantes (Utils/process-message.js: `messageStubParameters.map(JSON.parse)`).
+// Tratando eso como un JID, `String(objeto)` da "[object Object]", no hay un
+// dígito que sacar, no coincide con nadie y la función devuelve `false` sin
+// hacer ruido. Que es exactamente lo que se vio: el bot degradado, el guardián
+// conectado, y nada.
+//
+// El bot ya normalizaba esto en bot.js con su comentario y todo. El guardián
+// no. Escribí su prueba pasándole cadenas —inventé la forma del evento en vez
+// de sacarla de Baileys— así que la prueba pasaba en verde sobre algo que en
+// producción no ocurre nunca.
+//
+// Y el objeto trae REGALO: `phoneNumber` y `lid` juntos. O sea que en un grupo
+// LID ya no hace falta la ficha del grupo para saber de quién es ese @lid: viene
+// en el propio evento.
+function formasDe(p) {
+  if (!p) return [];
+  if (typeof p === 'string') return [p];
+  return [p.id, p.phoneNumber, p.lid].filter(Boolean);
+}
+
+const idDe = (p) => (typeof p === 'string' ? p : p?.id);
+
+function esElProtegido(p, meta) {
   const PROTEGIDO = protegido();
-  if (!jid || !PROTEGIDO) return false;
-  if (mismoNumero(digitos(jid), PROTEGIDO)) return true;
-  // Si llegó un @lid, se busca su teléfono en la lista de miembros.
-  for (const p of (meta?.participants || [])) {
-    const formas = [p?.id, p?.lid, p?.phoneNumber].filter(Boolean).map(digitos);
-    if (formas.includes(digitos(jid))) return formas.some((f) => mismoNumero(f, PROTEGIDO));
+  if (!p || !PROTEGIDO) return false;
+
+  const formas = formasDe(p).map(digitos);
+  if (formas.some((f) => mismoNumero(f, PROTEGIDO))) return true;
+
+  // Y si el evento solo trajo un @lid a secas, se busca su teléfono en la ficha
+  // del grupo. Es el camino de respaldo: con los objetos de arriba casi nunca
+  // hace falta, pero un @lid sin pareja seguiría sin resolverse.
+  for (const q of (meta?.participants || [])) {
+    const suyas = [q?.id, q?.lid, q?.phoneNumber].filter(Boolean).map(digitos);
+    if (suyas.some((x) => formas.includes(x))) {
+      return suyas.some((f) => mismoNumero(f, PROTEGIDO));
+    }
   }
   return false;
 }
@@ -289,11 +322,20 @@ async function alDegradar(groupJid, participants, action, author) {
   let meta = null;
   try { meta = await withTimeout(sock.groupMetadata(groupJid), TOPE_RED); } catch {}
 
-  const caidos = (participants || []).filter((j) => esElProtegido(j, meta));
-  if (!caidos.length) return false;
+  const caidos = (participants || []).filter((p) => esElProtegido(p, meta));
+  if (!caidos.length) {
+    // NO SE SALE EN SILENCIO. Este era el agujero: si la comparación fallaba
+    // —y falló— no quedaba ni una línea en el log, así que desde fuera el
+    // guardián parecía dormido y por dentro estaba trabajando y sin acertar.
+    // Con esto, el próximo fallo se lee en `pm2 logs guardian` y ya dice qué
+    // llegó y contra qué se comparó.
+    logger.warn(`guardián: degradación en ${groupJid} y ninguno era el bot. `
+      + `Llegó: ${JSON.stringify((participants || []).map(formasDe))}. Protejo a: ${protegido() || '(a nadie)'}`);
+    return false;
+  }
 
   logger.warn(`guardián: le han quitado el admin al bot en ${groupJid}. Reponiendo.`);
-  return reponer(groupJid, caidos);
+  return reponer(groupJid, caidos.map(idDe).filter(Boolean));
 }
 
 // Aparte y exportada: es un borrado de credenciales, o sea lo que mas cuesta si
@@ -467,4 +509,4 @@ if (require.main === module) {
   conectar().catch((err) => { console.error('guardián: error fatal:', err); process.exit(1); });
 }
 
-module.exports = { alDegradar, esElProtegido, mismoNumero, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };
+module.exports = { alDegradar, esElProtegido, mismoNumero, formasDe, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };

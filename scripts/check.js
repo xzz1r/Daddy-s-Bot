@@ -5714,20 +5714,45 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
           'el guardian se muere al arrancar si el bot no ha conectado todavia: en un arranque en frio eso es un bucle de reinicios');
       }
 
+      // LA FORMA DEL EVENTO SE COPIA DE BAILEYS, NO SE INVENTA. Los participantes
+      // llegan como OBJETOS { id, phoneNumber, lid, admin } —ver
+      // Utils/process-message.js, que hace messageStubParameters.map(JSON.parse)—
+      // y esta guarda los pasaba como cadenas. Resultado: verde aqui y el
+      // guardian mirando dos degradaciones de verdad sin mover un dedo, porque
+      // String(objeto) no tiene ni un digito que sacar.
       let s2 = sk2(); g._sock(s2);
-      exige(await g.alDegradar(G2, [BOTL], 'demote', OTRO) === true && s2.h[0] === 'promote',
-        'el guardian no repone al bot cuando le quitan el admin llegando por @lid: es justo la forma en que llega en un grupo de verdad');
+      exige(await g.alDegradar(G2, [{ id: BOTL, phoneNumber: BOTT, admin: null }], 'demote', OTRO) === true
+        && s2.h[0] === 'promote',
+        'el guardian no repone al bot con la forma real del evento (objeto {id,phoneNumber}): es como llega SIEMPRE en un grupo de verdad');
+
+      // Y la de siempre: un @lid a secas, que se resuelve con la ficha del grupo.
+      s2 = sk2(); g._sock(s2);
+      exige(await g.alDegradar(G2, [{ id: BOTL }], 'demote', OTRO) === true,
+        'el guardian no resuelve un @lid suelto con la ficha del grupo');
+
+      // Lo que sale hacia WhatsApp tienen que ser JIDs. Mandarle los objetos es
+      // la otra mitad del mismo fallo, y esa no se ve hasta que la llamada
+      // vuelve rechazada.
+      {
+        const h = [];
+        const sk3 = { user: { id: GUA }, groupMetadata: async () => meta3,
+          groupParticipantsUpdate: async (j, p) => { h.push(...p); return p.map((x) => ({ status: '200', jid: x })); } };
+        g._sock(sk3);
+        await g.alDegradar(G2, [{ id: BOTL, phoneNumber: BOTT }], 'demote', OTRO);
+        exige(h.length > 0 && h.every((x) => typeof x === 'string'),
+          `el guardian le manda objetos a WhatsApp en vez de JIDs: la reposicion vuelve rechazada (${JSON.stringify(h[0])})`);
+      }
       // El autor NO puede ser el propio guardian aqui: esa via ya sale por otra
       // puerta —no deshace lo suyo— y taparia justo lo que se quiere mirar, que
       // es si distingue al bot de cualquier otro degradado.
       s2 = sk2(); g._sock(s2);
-      exige(await g.alDegradar(G2, [OTRO], 'demote', BOTT) === false && !s2.h.length,
+      exige(await g.alDegradar(G2, [{ id: OTRO }], 'demote', BOTT) === false && !s2.h.length,
         'el guardian repone a quien no es el bot: asciende por su cuenta a cualquiera que pierda el admin, en cualquier grupo');
       s2 = sk2(); g._sock(s2);
-      exige(await g.alDegradar(G2, [BOTL], 'promote', OTRO) === false && !s2.h.length,
+      exige(await g.alDegradar(G2, [{ id: BOTL, phoneNumber: BOTT }], 'promote', OTRO) === false && !s2.h.length,
         'el guardian reacciona a un ascenso: solo tiene que mirar las degradaciones');
       s2 = sk2(false); g._sock(s2);
-      exige(await g.alDegradar(G2, [BOTL], 'demote', OTRO) === false,
+      exige(await g.alDegradar(G2, [{ id: BOTL, phoneNumber: BOTT }], 'demote', OTRO) === false,
         'el guardian da por repuesto al bot con WhatsApp rechazandolo');
 
       // EL 9 DE MOVIL ARGENTINO. WhatsApp lo mete detras del 54 en unas formas
