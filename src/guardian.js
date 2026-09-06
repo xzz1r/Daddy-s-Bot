@@ -77,6 +77,7 @@ const {
   makeCacheableSignalKeyStore,
   fetchLatestBaileysVersion,
   DisconnectReason,
+  isJidGroup,
 } = require('@whiskeysockets/baileys');
 
 // OPCIONALES, LAS TRES. Están en el repositorio del bot y no tienen por qué
@@ -357,6 +358,32 @@ async function conectar() {
     markOnlineOnConnect: false,
     syncFullHistory: false,
     browser: ['Ubuntu', 'Chrome', '120.0.0'],
+
+    // ─── TODO LO QUE NO ES UN GRUPO, NI SE MIRA ──────────────────────────
+    //
+    // Esto es lo que hace que el guardián no pese. Un dispositivo vinculado
+    // recibe TODO lo de la cuenta: los privados, los estados que sube medio
+    // mundo, las novedades. Baileys los descifra uno a uno —CPU, memoria, y una
+    // sesión de cifrado guardada en disco por cada interlocutor nuevo—, y aquí
+    // no se usa ni uno solo: este proceso solo mira quién sube y quién baja de
+    // admin, que llega como aviso de grupo.
+    //
+    // Con esto, WhatsApp los sigue mandando pero se descartan ANTES de
+    // descifrarlos, con su acuse y sin tocar el almacén de claves.
+    //
+    // LOS GRUPOS NO SE PUEDEN IGNORAR, y hay que saber por qué: el filtro
+    // trabaja por interlocutor y no por tipo de aviso, así que ignorar un grupo
+    // se llevaría por delante justo el evento que este proceso existe para ver.
+    shouldIgnoreJid: (jid) => !isJidGroup(jid),
+
+    // Y el historial tampoco. Al vincular, WhatsApp empuja lo reciente de la
+    // cuenta; procesarlo es trabajo y memoria para armar unos chats que nadie va
+    // a leer. Ni se abre.
+    shouldSyncHistoryMessage: () => false,
+
+    // Ni los ecos de lo que hace este mismo proceso: el único que hace es
+    // ascender al bot, y ya sabe que lo ha hecho.
+    emitOwnEvents: false,
   });
 
   sock.ev.on('creds.update', saveCreds);

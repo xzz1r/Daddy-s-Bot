@@ -5775,6 +5775,36 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       exige(demas.length === 0,
         `el guardian llama a sock.${demas.join(', sock.')}: solo puede leer la ficha del grupo y ascender, nada mas`);
 
+      // ── LO QUE NO ES UN GRUPO NI SE MIRA ──────────────────────────────
+      //
+      // Es lo que hace que el guardian no pese en la maquina del bot. Un
+      // dispositivo vinculado recibe TODO lo de la cuenta —privados, estados,
+      // novedades— y Baileys lo descifra uno a uno: CPU, memoria y una sesion de
+      // cifrado guardada en disco por cada interlocutor nuevo. Nada de eso se
+      // usa aqui. Sin este filtro, el guardian crece igual que el bot para no
+      // mirar ni una linea de lo que guarda.
+      //
+      // Y NO PUEDE IGNORAR LOS GRUPOS: el filtro trabaja por interlocutor y no
+      // por tipo de aviso, asi que ignorar un grupo se llevaria por delante el
+      // unico evento que este proceso existe para ver. Se comprueba con el
+      // isJidGroup de Baileys, no con una idea de como se escriben los JID.
+      {
+        const { isJidGroup } = require(path.join(R, 'node_modules/@whiskeysockets/baileys'));
+        const m = gsrc.match(/shouldIgnoreJid:\s*\(jid\)\s*=>\s*([^,\n]+)/);
+        exige(Boolean(m),
+          'el guardian ya no filtra por interlocutor: vuelve a descifrar los privados y los estados de esa cuenta para no mirarlos');
+        if (m) {
+          // eslint-disable-next-line no-new-func
+          const filtro = new Function('isJidGroup', `return (jid) => ${m[1]};`)(isJidGroup);
+          exige(filtro('000000000@g.us') === false,
+            'el guardian ignora los grupos: ahi es donde llegan las degradaciones, o sea que no se enteraria de nada');
+          exige(filtro('5491100000001@s.whatsapp.net') === true && filtro('status@broadcast') === true,
+            'el guardian ya no descarta los privados y los estados: es justo lo que le hace ocupar como el bot');
+        }
+        exige(/shouldSyncHistoryMessage:\s*\(\)\s*=>\s*false/.test(gsrc),
+          'el guardian procesa el historial que WhatsApp empuja al vincular: es memoria y trabajo para armar unos chats que nadie va a leer');
+      }
+
       // ── LA VINCULACIÓN, POR CÓDIGO Y NO POR QR ────────────────────────
       //
       // El QR sirve cuando hay dos pantallas: una que lo enseña y un movil que
