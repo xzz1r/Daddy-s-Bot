@@ -1,80 +1,456 @@
 // Frases de los comandos de acción: *!hug*, *!kiss*, *!punch* y compañía.
 //
-// ESTE FICHERO ESTÁ VACÍO A PROPÓSITO Y ES TRABAJO DE GROK. El motor está
-// hecho y probado; lo único que falta son las frases. Mientras un pool no
-// exista, su comando NO EXISTE: no aparece en el menú, no se puede escribir y
-// no cobra nada. En cuanto se exporte con frases dentro, el comando aparece
-// solo. No hay que tocar ninguna otra cosa.
-//
-// ─── QUÉ HAY QUE ESCRIBIR ────────────────────────────────────────────────────
-//
-// Once pools, treinta frases cada uno:
-//
-//   HUG · KISS · CUDDLE · PAT · POKE      las cariñosas
-//   PUNCH · SLAP · BITE · KICK · BONK     las violentas
-//   FUCK                                  la explícita, cuesta el doble
-//
-// Y uno más, ROAST_USUARIO, de sesenta.
-//
-// ─── LOS PLACEHOLDERS ────────────────────────────────────────────────────────
-//
-//   %A = quien hace la acción      %V = quien la recibe
+// %A = quien hace la acción      %V = quien la recibe
 //
 // Los dos se sustituyen por una mención. No hay más: `npm run placeholders`
-// revienta con cualquier otro.
+// revienta con cualquier otro. ROAST_USUARIO solo lleva %A: si aparece %V,
+// sale crudo en el grupo. Lo salta el propio comando para el dueño: ver
+// hazAccion en src/commands/acciones.js.
 //
 // ─── EL TONO ─────────────────────────────────────────────────────────────────
 //
-// Manda GUIA.md 5 bis entera, y encima de eso, tres cosas propias de aquí:
+// Manda GUIA.md 5 bis entera, y encima de eso:
 //
-// 1. LA FRASE NO DESCRIBE LA ACCIÓN, LA COMENTA. El gif ya se ve. Contar otra
-//    vez que uno abraza al otro es escribir el pie de una foto.
-//
-// 2. LA CRUDEZA VA SEGÚN EL COMANDO, y aquí es donde se decide si esto
-//    funciona o no:
-//
-//    · En las cariñosas, guarra y no cursi. Un abrazo no es un momento bonito:
-//      es alguien con las manos donde no tocaba. El registro es el de las
-//      frases explícitas de !wingman, que ya están escritas y son la
-//      referencia.
-//    · En las violentas, física. Dónde pega, qué se rompe y cómo suena. Un
-//      !punch no se arregla pegándole un taco al final.
-//
-// 3. EL OBJETIVO DEL CHISTE ES %V, NUNCA %A. Es la misma regla del robo: al
-//    que gana no se le quita la victoria. La excepción es ROAST_USUARIO, que
-//    existe justamente para lo contrario.
-//
-// ─── ROAST_USUARIO ───────────────────────────────────────────────────────────
-//
-// Se pega DEBAJO de la frase de la acción, en cursiva, y no habla de la acción:
-// habla de quien la ha pedido. Idea del dueño, con sus palabras: quien usa
-// estos comandos es un marginado, y el bot se lo recuerda cada vez.
-//
-//   · El objetivo es SIEMPRE %A. Nunca %V, que bastante tiene con recibirla.
-//   · No repitas el chiste de arriba. Esa frase ya se rió del golpe; esta se
-//     ríe de que haya pagado 60 de aura por un gif.
-//   · Nada de "eres un pringado" a secas. El chiste está en el retrato: qué
-//     clase de persona abre un chat para mandarle un abrazo animado a alguien
-//     que tiene a dos metros.
-//   · Sirve para las once, así que no menciones ninguna en concreto.
-//
-// AL DUEÑO NO SE LE REMATA. Lo salta el propio comando: ver hazAccion en src/commands/acciones.js.
-//
-// ─── ANTES DE ENTREGAR ───────────────────────────────────────────────────────
-//
-//   npm run check && npm run placeholders && npm run pools && npm run progreso
-//
-// Los pools nuevos entran solos en los cuatro. Si progreso saca casi-clones de
-// lo que acabas de escribir, sobran frases: bórralas antes de entregar.
-//
-// ─── SE PUEDE ENTREGAR A TROZOS ──────────────────────────────────────────────
-//
-// No hace falta traer los doce de golpe. Cada pool que se exporte con frases
-// dentro enciende SU comando y nada más: aparece en el menú corto, en
-// *!help todo* y en el dispatcher, y los que sigan sin escribir se quedan
-// apagados como están hoy. El menú se genera de esa misma tabla, así que no hay
-// nada que tocar a mano en social.js — y `npm run check` (capa 30c) revienta en
-// las dos direcciones: si una acción encendida no sale en el menú, y si el menú
-// anuncia una que no tiene frases.
+// 1. LA FRASE NO DESCRIBE LA ACCIÓN, LA COMENTA. El gif ya se ve.
+// 2. LA CRUDEZA VA SEGÚN EL COMANDO.
+//    · Cariñosas: guarra y no cursi. Un abrazo es alguien con las manos donde
+//      no tocaba. El registro es el de las frases explícitas de !wingman.
+//    · Violentas: física. Dónde pega, qué se rompe y cómo suena.
+//    · FUCK: el gif es SFW; el peso lo lleva entero el texto.
+// 3. EL OBJETIVO DEL CHISTE ES %V, NUNCA %A. La excepción es ROAST_USUARIO.
 
-module.exports = {};
+const HUG = [
+  '%A se pega a %V con las manos donde no tocaba. El abrazo era la excusa.',
+  '%A abraza a %V y aprovecha para meterle mano. %V no ha dicho nada, que es lo grave.',
+  '%A rodea a %V y se le nota todo. A %V también se le nota que no se aparta.',
+  '%A abraza a %V dos segundos de más y con la cadera de menos. %V ha hecho las cuentas y se ha quedado.',
+  '%A se lanza a %V. Empieza en abrazo y acaba donde acaban estas cosas, con %V ya enterado del mapa.',
+  '%A abraza a %V como quien palpa la mercancía. %V está en oferta y no se ha bajado del gancho.',
+  '%A se agarra a %V y no piensa soltar hasta que se le baje. %V hace de mueble, y de mueble húmedo.',
+  '%A abraza a %V. El apretón de arriba era protocolo. El de abajo, la intención. %V notó el segundo.',
+  '%V encuentra la pared con la espalda y no la suelta. El abrazo de %A ya es un callejón.',
+  'La camiseta de %V se sube con el abrazo de %A y %V no se la baja. Pasan minutos. Pasan manos.',
+  'El grupo mira al techo. %V mira a nada. El abrazo de %A sigue, que es la forma más barata de decir sí.',
+  '%V suelta esa risa. La que pide que %A pare y espera que no pare. El abrazo ya tiene veredicto.',
+  'A %V se le marca un churrete en el pantalón y el abrazo de %A ya ha terminado. La prueba, no. Qué asco de sello.',
+  'Los brazos de %V cuelgan. No es timidez. Es un perchero pidiendo plaza en el pecho de %A.',
+  'La rodilla de %A se cuela entre las de %V. %V abre un centímetro. El centímetro es el obituario.',
+  '%A huele el pelo de %V como fruta en el mercado. Madura, decide. %V no discute el precio.',
+  '%A aprieta a %V contra la nevera. La nevera está más fría que la protesta, que no llega.',
+  '%V suelta un sonido contra el pecho de %A. No una palabra. La palabra habría pedido una columna vertebral.',
+  'A %V le queda la mano de %A impresa en el culo. Mañana se sienta encima de la firma.',
+  '%A aparca la cara en el cuello de %V. El parquímetro ha caducado. Sigue ahí. %V no pone el parte.',
+  'Cinturón de %A contra cinturón de %V. El café de %V está en el suelo. Las prioridades de %V también.',
+  '%A levanta a %V y las manos aterrizan en el muslo. %V se agarra. Al manoseo, no al equilibrio.',
+  '%V da las gracias por el abrazo de %A. El abrazo tenía los dedos dentro de la cinturilla.',
+  '%A usa a %V de abrigo y no piensa colgarlo. %V se deja llevar como una prenda de saldo.',
+  'Se acaba el abrazo de %A. %V no da el primer paso atrás. Ese orden es todo el diagnóstico.',
+  '%A aprieta a %V hasta que el aire es un lujo. %V paga en silencio y en humedad.',
+  'Alguien tendría que decir algo. Ese alguien es %V. %V está ocupado dejando que %A le suba la camiseta.',
+  '%A le cuenta las costillas a %V por detrás. Inventario. Stock: un cuerpo, dueño en trámite.',
+  'El abrazo de %A trae un frote. %V lo va a llamar accidente en la cena. En la cena, no ahora.',
+  '%V se va a casa oliendo a %A y no se cambia la camiseta. El abrazo sigue en la tela, y en otra parte.',
+];
+
+const KISS = [
+  '%A le mete la lengua a %V hasta la campanilla. Sin preguntar y sin que %V cierre la boca.',
+  '%A besa a %V con lengua, saliva y público. %V aporta la saliva. El público, las ganas de no verlo.',
+  '%A se come la boca de %V delante del grupo. A %V se le olvida que tiene manos.',
+  '%A besa a %V y le muerde el labio. Eso ya no es un beso. Es un aviso, y %V lo guarda.',
+  '%A le come la boca a %V. Doce meses de tensión resueltos en cuatro segundos y en la cara de %V.',
+  '%A besa a %V y le deja la cara empapada. Técnica, ninguna. %V se limpia con el revés y no se queja. Qué asco de cara, y qué ganas.',
+  '%A se lía con %V. Mañana %V va a escribir aquí como si la boca no le doliera.',
+  '%A besa a %V como si le cobrara una deuda. %V paga en especie y deja propina de saliva.',
+  'A %V se le empañan las gafas. El beso de %A no era tierno. Era un clima.',
+  '%V abre la boca demasiado rápido. Eso delata más que el beso de %A.',
+  'Del beso de %A a %V queda un hilo de saliva. El hilo es el único contrato que %V ha firmado hoy.',
+  '%A besa a %V como quien limpia un plato. %V es el plato. El plato no protesta.',
+  'El cuello de %V se echa hacia atrás. El grupo archiva el ángulo. %A sigue dentro de la boca.',
+  '%V suelta un ruido. No una frase. El beso de %A le ha ocupado el único sitio donde %V era persona.',
+  'A %V le queda el labio hinchado. Ese es el recibo. %A no pide copia: ya está en la cara.',
+  '%A baja el beso a la mandíbula de %V. La mandíbula no era el destino. El destino está más abajo y %V lo sabe.',
+  'El grupo se calla. La boca de %V está ocupada. %A no va a devolverla limpia.',
+  '%V traga. No es saliva suya. El beso de %A viene con envío.',
+  'El beso de %A trae una mano en el cuello de %V. Ternura, le llaman. A %V se le pone la cara colorada.',
+  '%V se limpia la boca y se le ve el temblor. El temblor es la crítica del beso de %A.',
+  '%A le besa a %V la comisura y luego la boca entera. La comisura era mentira. %V se la creyó un segundo.',
+  'Las manos de %V no saben dónde ir. Van a la camisa de %A. Queda constancia.',
+  'Un beso de %A echa de un bar. Aquí %V se queda y encima se le pone cara de haber ganado.',
+  '%A le come el labio inferior a %V hasta el hierro. %V se prueba la sangre como si fuera suya.',
+  'A %V se le corre el rímel medio milímetro. El beso de %A no perdona el maquillaje ni la dignidad.',
+  '%V tenía algo que decir. Lo tenía en la boca. %A se lo ha quitado con la lengua.',
+  'El beso de %A acaba. A %V se le ve el hilo. Se lo parte con la mano, tarde y con público.',
+  '%A besa a %V contra el marco de la puerta. El marco aguanta. La reputación de %V, no.',
+  'Sabe a lo que %V estaba bebiendo. %A no ha preguntado. %V no ha ofrecido. El beso cobra igual.',
+  '%V se queda con la boca abierta un segundo de más. El segundo es de %A. %V se lo deja.',
+];
+
+const CUDDLE = [
+  '%A se acurruca con %V y se le pone la polla dura a los diez segundos. %V lo ha notado. El grupo también.',
+  '%A se pega a %V por detrás y se acopla como si tuviera plaza reservada. %V es el aparcamiento.',
+  '%A se mete en la cama de %V sin preguntar. Ya no se va. %V ha hecho sitio con las piernas, que es peor.',
+  '%A abraza a %V por detrás con más entusiasmo del que cabe en un abrazo. A %V se le nota en la cara.',
+  '%A se le pega al cuello de %V y le respira encima. Sutil como un ladrillo. A %V se le pone la piel de otro sitio.',
+  '%A se acopla a %V. Empezó de cucharita y va camino de otra cosa. %V no ha invertido el orden.',
+  '%A se enrosca en %V y le mete la pierna en medio. Con confianza y sin que %V cierre.',
+  '%A ya está debajo de la manta con %V. Diez minutos y ya busca el elástico. El elástico de %V, concretamente.',
+  'La cucharita chica es %V y no se apuntó. %A presiona. %V finge que duerme. El fingir se le da regular.',
+  'La mano de %A va en la tripa de %V y resbala. El frío era la coartada. El elástico, el delito.',
+  '%V es la almohada. A la almohada le meten mano. %A no pide otra.',
+  'El mimo de %A tiene ritmo de cadera. %V respira a ese ritmo y va a jurar que era sueño.',
+  'Debajo de la manta, la manta de %V es una escena. %A no la va a levantar. No hace falta.',
+  'La camiseta de %V sirve de asa. %A tira. %V se deja acercar como quien no tiene otro plan.',
+  '%A se duerme en el pecho de %V y babea. Romántico. %V no se mueve por si acaso es otra cosa.',
+  'El mimo trae horario de erección. El de %A. El cuerpo de %V hace de despertador.',
+  'A %V se le ha dormido el brazo. A %A no se le ha dormido nada. %V está al tanto de las dos noticias.',
+  '%A encaja en %V como si hubiera medido el hueco. %V es el hueco. El hueco no se queja.',
+  'De este mimo las sábanas de %V salen para quemarlas. %A ya ha firmado el parte con la cadera.',
+  'Nariz en la nuca de %V, polla en el surco, y %A lo sigue llamando siesta. %V también, alto y claro, mintiendo.',
+  '%V dice que está a gusto. Está atrapado. %A lo sabe. El sofá es cómplice.',
+  'El mimo de %A acaba en un frote que los dos van a negar. El primero en negarlo será %V, con la voz todavía rota.',
+  'El sofá no da. %A lo hace más pequeño a propósito. %V cabe justo donde %A quiere que quepa.',
+  'La respiración de %V cambia. Eso no es sueño. %A sigue. %V no despierta porque no estaba dormido.',
+  'Un muslo de %A sobre la entrepierna de %V. Peso, no cariño. %V se queda quieto como un mueble caro.',
+  '%A se queda a dormir. Sin invitación. Dentro, casi. %V apaga la luz como quien cierra un trato.',
+  '%V es la cucharita con un problema apretándole el culo. El problema tiene nombre. El nombre es %A.',
+  'El mimo deja una mancha y un nombre: %V. %A se gira hacia la pared. %V se queda con la sábana y la prueba.',
+  'La mano de %A se mete bajo la camiseta de %V porque hace frío. Hace el mismo frío de siempre. %V no la saca.',
+  'A %V se le oye el corazón en el oído de %A. Y otra cosa, más abajo, que no es el corazón y %V no va a nombrar.',
+];
+
+const PAT = [
+  '%A le acaricia la cabeza a %V. A %V le gusta más de lo que debería, y se le ve.',
+  '%A le toca la cabeza a %V y a %V se le pone cara de perro contento. Vergüenza ajena, y propia.',
+  '%A acaricia a %V. Un gesto para arriba y toda la intención para abajo. %V sigue el viaje con los ojos.',
+  '%A le da palmaditas a %V. En la cabeza, de momento. %V ya tiene el cuello listo por si baja.',
+  '%A le acaricia el pelo a %V. La mano ha bajado dos veces. Las hemos contado. %V no ha contado nada: se ha quedado.',
+  '%A trata a %V como a una mascota. Y a %V le vale, que es lo peor. Qué vergüenza de collar.',
+  '%A acaricia a %V con esa condescendencia que a %V le pone. Se le nota en la boca, entreabierta.',
+  '%A le pasa la mano a %V por la cabeza. Se le ha ido a otro sitio y ha vuelto. %V ha echado de menos el desvío.',
+  '%V se recuesta en la mano de %A. Eso ya no es una caricia. Es un dictamen de perrera.',
+  'La palmadita de %A acaba en la mejilla de %V y luego en la boca. %V no gira la cara a tiempo. A tiempo de qué.',
+  '%A le rasca detrás de la oreja a %V. El pie de %V no se mueve. Todavía. El todavía es el chiste.',
+  'Trato de bueno. %V lo acepta. %A sigue. El grupo aprende el nombre verdadero de %V, y no sale en el DNI.',
+  'Palmaditas en público. La dignidad de %V pide un permiso. No se lo dan. %A tampoco se lo pide.',
+  'La mano de %A es suave. La sonrisa no. %V traga saliva, que es exactamente lo que no había que hacer.',
+  '%V baja la mirada. Error. La mano de %A ya no está en el pelo y %V se ha enterado por el frío que deja.',
+  'Cabeza, cuello, y la línea que %V dijo que no se cruzaba. %A la cruza. %V la vuelve a dibujar más abajo.',
+  '%A trata a %V como al gato en celo que apareció en el sofá. %V ronronea. Sin metáfora. Con la garganta.',
+  'El cuero cabelludo de %V no es el punto. El punto es que %V no se mueve. %A toma nota con los dedos.',
+  'Una caricia lenta que a %V le abre un poco la boca. Poco. Bastante. %A no necesita más informe.',
+  'El grupo ve a %V hacerse pequeño bajo una mano. La mano es de %A. El pequeño, de todos.',
+  '%A le pone los nudillos bajo la barbilla a %V. Levanta. Mira. Siéntate. %V se sienta.',
+  '%V suelta un sonido de perrera. %A no se extraña. Nadie se extraña. Ese era el trabajo de %V.',
+  'La mano de %A en el pelo de %V tira un poco. %V no se queja. La queja se le ha ido al mismo sitio que el orgullo.',
+  'Cariño de lo que se posee. %V es lo poseído. %A no enseña papeles. No hacen falta.',
+  'Las rodillas de %V hacen algo. Las rodillas han chivado a %V. %A ya lo sabía.',
+  'La palmadita de %A iba a la cabeza. Ha aterrizado en el muslo de %V. %V da las gracias al desvío.',
+  '%A no llama a %V por su nombre y lo acaricia igual. El nombre era lo único que le quedaba. Ya no.',
+  'Este toque entrena. %V aprende. %A repite. A la tercera, %V ya se acerca solo.',
+  '%V espera la siguiente. Eso es propiedad. %A cobra el alquiler con la palma.',
+  'Un rascado en la cabeza y a %V se le arquea la espalda. Especie equivocada. Reacción correcta. %A sonríe.',
+];
+
+const POKE = [
+  '%A pincha a %V con el dedo. Con el dedo, de momento. %V ya está esperando el resto, el muy guarro.',
+  '%A le da un toque a %V donde no toca. Y se hace el tonto. %V no se hace el tonto: se le ha visto el salto.',
+  '%A pincha a %V y se aparta. %V se queda con el sitio caliente y con la frase a medias.',
+  '%A toca a %V. Un dedo, cero conversación y toda la intención. %V aporta el silencio, que es su especialidad.',
+  '%A pincha a %V hasta que reacciona. Reaccionar era el juego entero, y %V ha jugado.',
+  '%A molesta a %V con el dedo en el costado. El costado no era el mapa. El mapa baja, y %V lo tiene plegado.',
+  '%A le da toquecitos a %V. %V no retira la mano de %A. Ese es todo el diálogo.',
+  '%A pincha a %V. En el hombro. %V esperaba más abajo y se le ha notado la decepción en los ojos.',
+  'El dedo de %A busca la cinturilla de %V. La encuentra. %V tose. La tos no es un no.',
+  'El toque de %A aterriza en el pecho de %V y se queda un segundo de más. El segundo es el mensaje. %V lo ha leído entero.',
+  '%A pincha la mejilla de %V y luego el labio. El labio era el plan. %V abre, un poco, como un imbécil útil.',
+  'Un dedo de %A en las costillas de %V que resbala a la cadera. La cadera no se aparta. Queda el recado.',
+  '%A pincha hasta que %V le aparta la mano. El manotazo era el premio. %A sonríe. %V también, tarde.',
+  'El toque de %A es la excusa para medir lo cerca que se puede uno poner de %V. Muy cerca. %V no ha puesto el metro.',
+  '%A pincha la tripa de %V. No miraba a la tripa. %V se da cuenta y se cubre tarde, y mal.',
+  'Un toque de %A en el culo de %V que van a llamar pinchazo si alguien pregunta. Nadie pregunta. %V tampoco.',
+  '%A pincha el cuello de %V por detrás. El aliento va de regalo. A %V se le para el pulgar en el hilo.',
+  'El dedo de %A encuentra un lunar en %V. El lunar no era el destino. El destino sigue bajando y %V no frena.',
+  '%A pincha y mira la cara de %V buscando el sí que %V no va a decir. El sí está en los ojos, barato.',
+  'Un toque de %A en el muslo interno de %V. Deportivo, dicen. %V se queda con las piernas en un ángulo nuevo.',
+  '%V da un respingo. %A archiva el respingo. El archivo de %V ya tiene tomo.',
+  '%A pincha el mismo sitio de %V hasta que es un moratón o una petición. %V no aclara cuál. No hace falta.',
+  'El toque de %A a través de la camiseta de %V encuentra un pezón y finge sorpresa. %V no finge nada. Se le ve.',
+  'Un dedo de %A en la clavícula de %V. La clavícula lleva hacia abajo. %V conoce el camino y no lo cierra.',
+  '%A pincha a %V debajo de la mesa. La mesa es cómplice. Las rodillas de %V también.',
+  'El toque es un golpe en una puerta que %A piensa abrir. %V no ha echado el pestillo. Nunca lo echa.',
+  '%V dice que lo deje. No se aparta. %A lo deja un segundo. El segundo es cortesía. Luego sigue.',
+  '%A pincha la zona baja de la espalda de %V, justo encima del vaquero. El vaquero es una sugerencia. %V, otra.',
+  'Un empujón de %A con puntería de la décima vez. %V salta como la primera. El salto es el espectáculo.',
+  'El hombro de %V era mentira. La cintura no lo es nunca. %A lo sabe. %V lo confirma sin hablar.',
+];
+
+const PUNCH = [
+  '%A le parte la cara a %V. Se oye el crujido y nadie mueve un dedo. %V tampoco, que ya es costumbre.',
+  '%A revienta a %V de un puñetazo. Se le ha caído algo al suelo y no era el móvil. Era un diente.',
+  '%A le cruza la cara a %V. Mañana no va a poder masticar por ese lado. El otro lado tampoco tenía mucho que decir.',
+  '%A golpea a %V donde le va a doler al respirar durante una semana. Cada inspiración, un recordatorio con el nombre de %A.',
+  '%A le mete un directo a %V. %V ha visto la luz y no era la de casa. Era el flash del suelo.',
+  '%A parte a %V por la mitad. Merecido, con retraso y con público. %V se dobla como quien ya conocía el final.',
+  '%A pega a %V hasta que deja de contestar. Ese era el objetivo. %V siempre ha sido fácil de silenciar.',
+  '%A le arranca la sonrisa a %V de un golpe. Y un par de cosas más. El esmalte, por ejemplo.',
+  'La nariz de %V se va de lado. La conversación se va con ella. %A no recoge ninguna de las dos.',
+  'El sonido es húmedo. Eso es cartílago de %V. %A lo ha oído antes en otras caras peores. Esta encaja.',
+  'El hígado de %V recibe el puño de %A. %V se pliega como la colada. La colada, al menos, se levanta.',
+  'A %V se le oye clic en la mandíbula. Va a hacer clic meses. Cada clic, este rato. Cada rato, %A.',
+  'Los nudillos de %A entran en los dientes de %V. Los dientes pierden. %V los busca con la lengua, tarde.',
+  'El puñetazo de %A le cierra un ojo a %V para la foto. La foto es este chat. El ojo, un adorno morado.',
+  'La cabeza de %V da un latigazo. El cuello guarda el recibo. %A no pide firma: ya está en el moretón.',
+  'Un recto de %A a la boca de %V. El labio se abre como fruta pasada. El gusto es hierro. El hierro es de %V.',
+  'El puño de %A se clava en el esternón de %V. El aire se va. El orgullo sale segundo y no vuelve.',
+  'El pómulo de %V suena a campana barata bajo %A. %V responde con el suelo. El suelo no le discute el nivel.',
+  'El puñetazo de %A hace volar la saliva de %V un metro. El metro es público. %V es el que limpia.',
+  'A %V le pita un oído. Al grupo no. El golpe de %A ha afinado el lado por el que %V escuchaba las tonterías.',
+  'Un gancho de %A a la sien de %V. Se apagan las luces. Se acaba la conversación. %V no las vuelve a encender hoy.',
+  'La costilla de %V cede. Se oye el ceder. %A no se sorprende: %V siempre ha sonado a hueco.',
+  'El golpe de %A deja a %V con un diente en la lengua. Lo escupe. Nadie lo recoge. Nadie iba a recoger nada de %V.',
+  'La nariz de %V le llena de sangre la camisa que le gustaba. La camisa era lo más decente. %A no se limpia las manos.',
+  'El puño de %A encuentra el mismo ojo de %V dos veces. La segunda era educativa. %V es mal alumno.',
+  'Puñetazo de %A al estómago. A %V le vuelve la cena. La cena era mejor dentro. Como las opiniones de %V.',
+  'La cabeza de %V pega en la pared después del puño. Dos ruidos. Ninguno pidiendo perdón. %A no los esperaba.',
+  'La boca de %V tiene otra forma ahora. La forma nueva no le da para el chiste que le iba a soltar a %A.',
+  'El golpe de %A le saca el móvil a %V y la dignidad con él. El móvil tiene funda. La dignidad, no.',
+  '%V se sienta sin decidirlo. Las piernas han decidido por él. %A no lo ayuda a levantarse. No hay que.',
+];
+
+const SLAP = [
+  '%A le cruza la cara a %V. El sonido llega antes que la vergüenza. A %V le dura más la segunda.',
+  '%A abofetea a %V con la mano abierta, que es peor y lo sabe. %V también lo sabe: se le ha quedado la mejilla cantando.',
+  '%A le suelta un guantazo a %V. Cinco dedos marcados y una lección. %V se examina en el reflejo del móvil y suspende.',
+  '%A le da una torta a %V que le gira la cara y la conversación. La conversación no vuelve. La cara, a duras penas.',
+  '%A abofetea a %V. A %V le ha gustado, y ese es otro problema. Se le ve en cómo no se cubre.',
+  '%A le cruza la cara a %V de revés. El detalle del revés lo dice todo. %V se lleva la mano a la boca como si hubiera dicho algo útil. No.',
+  '%A abofetea a %V hasta que le pita el oído. Correctivo completo. %V oye menos y entiende más, por una vez.',
+  '%A le mete una torta a %V. Ya se hablaba de que tocaba. %V era el único que no se había enterado.',
+  'La bofetada de %A deja la mejilla de %V caliente y la boca abierta. La boca abierta era el estado natural. Ahora tiene color.',
+  'La cabeza de %V gira noventa grados. El resto llega tarde. %A espera. No mucho.',
+  'Palma de %A abierta a la boca de %V. Las palabras se quedan en el aire, donde valían lo mismo: nada.',
+  'La torta de %A le tira a %V el pendiente al suelo. El pendiente era lo único que le colgaba con gracia. Ahora no.',
+  'Cinco dedos en rojo en la cara de %V. Trabajo firmado. %A no pone fecha. %V la pone cada vez que se mira.',
+  'Una bofetada de %A tan limpia que el grupo aplaude una vez y finge que no. %V se queda con el aplauso y la marca.',
+  'A %V se le llenan los ojos. No es de sentimientos. Es de física. %A no le pasa un pañuelo.',
+  'La torta de %A le saca a %V el chicle. El chicle era lo más inteligente que tenía en la boca.',
+  'Revés de %A a la boca de %V. Labio, anillo, silencio. El silencio le sienta mejor que el discurso.',
+  'El sonido de %A es un látigo. %V es el poste. El poste no se queja. Nunca se ha quejado a tiempo.',
+  'La bofetada de %A gira a %V hacia la puerta. Pista. %V no la coge. Coge la mejilla.',
+  '%V se sujeta la mejilla. Está más caliente que la excusa. %A no pide la excusa. Ya está cobrada.',
+  'Dos tortas de %A. La segunda porque la primera le quedó bien a %V en la cara. A %V le queda bien el correctivo. Qué miseria.',
+  'Una marca de mano que se lee desde el sofá. El texto dice %V. El autor, %A.',
+  'La mano abierta de %A encuentra la mejilla con la que %V habla. Por fin un uso.',
+  'La torta de %A es tan fuerte que la otra mejilla de %V le pega en el hombro. Rebote. %V siempre ha sido de rebotar mal.',
+  'Las gafas de %V abandonan la cara por %A. Eran la parte lista. Ahora están en el suelo, con el resto de su argumento.',
+  'La bofetada de %A le cruza a %V un hilo de saliva de lado. El hilo era más honesto que la frase que traía.',
+  'El correctivo de %A es público. El escozor es privado. A %V le duran los dos, que es lo único que le dura.',
+  'Primero la nuca, luego la cara de %V. Temario de %A. %V suspende los dos exámenes en el mismo minuto.',
+  '%V sonríe después. Ese es el diagnóstico. %A no receta nada: ya ha aplicado el tratamiento.',
+  'La torta de %A termina la frase que %V estaba escribiendo. Por fin un punto final que se entiende.',
+];
+
+const BITE = [
+  '%A muerde a %V en el cuello y no suelta. Ahí queda la marca hasta el jueves. El jueves, %V pondrá cuello alto y mentirá.',
+  '%A le hinca el diente a %V. Con ganas, con saliva y con testigos. %V pone la cara de quien iba a quejarse y se le olvida.',
+  '%A muerde a %V donde va a tener que dar explicaciones en casa. Las explicaciones no le van a salir. Nunca le salen.',
+  '%A le pega un bocado a %V. Nadie sabe si iba en broma y %V tampoco. A %V se le ve el encogimiento y el sí, pegados.',
+  '%A muerde a %V y le deja los dientes marcados. Firmado, vamos. %V es el papel.',
+  'En el hombro de %V aterriza la boca de %A. Lo de después no cabe en esta frase. A %V se le ha ido el color del otro hombro también.',
+  '%A le muerde el labio a %V hasta que sangra un poco. Cosas suyas. %V se prueba el hierro y no escupe.',
+  '%A le deja la marca a %V. En un grupo normal esto tendría consecuencias. Aquí %V se queda quieto, que ya es una.',
+  'El bocado va a la clavícula de %V, la que se ve con el pico. El pico era una invitación. %A ha contestado con los dientes.',
+  'La piel de %V se rompe. Un poco. Bastante. %A lame. %V deja que lameen. El orden es el chiste.',
+  '%A muerde el muslo interno de %V. El muslo iba vestido, un rato. El rato se acabó. %V no lo ha vuelto a vestir.',
+  'Dientes de %A en el lóbulo de %V. La oreja no es el apetito. El apetito baja. %V inclina la cabeza y ayuda, el muy cerdo.',
+  'El mordisco deja en %V un collar de moratones que no ha comprado. %A no da ticket. %V lo lleva igual.',
+  '%V sisea. Eso no es un no. %A lo traduce bien. %V no corrige la traducción.',
+  '%A muerde a través de la camiseta de %V. La camiseta pierde. %V también, y se le ve el pezón por el agujero nuevo.',
+  'Un bocado de %A en la muñeca de %V, como unas esposas. Propiedad. %V gira la muñeca para que se vea mejor, el pringado.',
+  '%A muerde el labio de abajo de %V y saca sangre que prueban los dos. %V traga su parte como si fuera un secreto bueno.',
+  'El cuello de %V está morado para la cena, obra de %A. La cena tiene preguntas. %V tiene un jersey. El jersey no llega.',
+  '%A muerde el culo de %V, el que mañana va a sentar y va a recordar. Cada silla, una clase. Cada clase, %A.',
+  'Piel de %V entre los dientes de %A. Ese es el recuerdo. %V se mira el hueco y no se enfada. Se toca.',
+  'El mordisco de %A empieza de broma y acaba con un tirón de %V. El tirón llega tarde. El diente llegó primero.',
+  'Dientes de %A en el pezón de %V a través de la tela. La tela ya es un rumor. %V cruza los brazos. Tarde y mal.',
+  'Un bocado de %A en la línea de la mandíbula de %V. Cerca de la boca. No la boca. Peor. %V abre la boca igual, inútil.',
+  '%V va a tener que llevar un cuello que no ha elegido. %A lo eligió con la mandíbula. %V paga el armario.',
+  'El mordisco de %A está húmedo. La disculpa no va a llegar. %V tampoco la pide, que es su forma de pedir más.',
+  'El bocado hace que %V se agarre al pelo. El agarre es la crítica. %A no lee críticas: muerde. %V se queda con un puñado y sin queja.',
+  'En el omóplato de %V, por detrás, la boca de %A mientras %V está en el fregadero. Los platos esperan. %V no. %V se muerde el labio él solo.',
+  '%A rompe piel a propósito. Accidente es el cuento para luego. %V ya está ensayando el cuento y se le ve el ensayo.',
+  'El pulso de %V está en la boca de %A. Ese era el punto. A %V se le dispara el pulso, el muy colaborador.',
+  'Un chupetón con dientes. La versión de aficionado era un beso. %V no es para aficionados. %A lo ha clasificado bien.',
+];
+
+const KICK = [
+  '%A le mete una patada a %V en los huevos. De abajo arriba y con puntera. A %V se le va la voz una octava, para siempre.',
+  '%A patea a %V y lo saca del encuadre y de la conversación. %V era prescindible en las dos.',
+  '%A le da una patada a %V que le reordena los órganos. El orden nuevo no mejora el conjunto.',
+  '%A patea a %V como quien cierra un tema para siempre. El tema era %V. Queda cerrado. Por fin.',
+  '%A le suelta una patada a %V. Se ha oído hasta en el otro grupo. En este, %V se oye menos, que es un alivio.',
+  '%A patea a %V y ni mira dónde cae. Ese detalle lo dice todo. %V cae donde cae siempre: en medio, estorbando.',
+  '%A le da a %V con el pie. Con la mano habría sido demasiado honor. El pie es el rango de %V.',
+  '%A patea a %V en el suelo. Ahí ya no hace falta, pero se hace igual. %V en el suelo es su sitio natural.',
+  'La patada de %A le tuerce a %V la rodilla al revés. La rodilla protesta. %V no llegó a protestar nunca a tiempo.',
+  'La bota de %A entra en el estómago de %V. Aire, luego asco, luego el silencio que el grupo le debía.',
+  'La patada de %A levanta a %V un palmo. La gravedad hace el resto. %V y la gravedad ya se conocían: siempre tira hacia abajo.',
+  'Espinilla de %A al muslo de %V. Pierna muerta. Discusión muerta. %V cojea y el argumento cojea con él.',
+  'Patada a las costillas de %V en el suelo. El suelo ya era la lección. %A añade un capítulo. %V no tiene editorial.',
+  'La puntera de %A encuentra el riñón de %V. %V descubre que tiene uno. Le duraba más no sabiéndolo.',
+  'La patada de %A manda a %V contra la silla de atrás. La silla aguanta. %V no. Las sillas tienen más oficio.',
+  'Un puntapié de %A a la cadera de %V. La cadera se sale de la conversación. %V se queda a medias, como siempre.',
+  'Desde el suelo, %A le parte la cara a %V con el pie. Antideportiva. Precisa. A %V le sale el suelo en la boca, que es su tierra.',
+  'Los huevos de %V suben. La voz les acompaña. %A no pide bis. El bis sería cruel. Esto ya basta.',
+  'La patada de %A dobla a %V sobre la mesa. La mesa aguanta. %V no. Encima mancha. El pack completo.',
+  'Tacón de %A al empeine de %V. Pequeño, rastrero, inolvidable. %V va a cojear y va a decir que fue el bordillo. El bordillo no pega así.',
+  'Patada al pecho que sienta a %V contra la pared. La pared no lo invita. %A tampoco. Nadie lo invita.',
+  'El sonido de %A es un bombo. El bombo es el cuerpo de %V. Hueco, como se sospechaba.',
+  'La patada deja la suela impresa en la camisa de %V. Talla: esta. Firma: %A. Destinatario: el suelo.',
+  '%V gatea. La patada de %A lo encuentra gateando. Esa es la política. %V ya iba a cuatro, psicológicamente.',
+  'Patada de %A en carrera. La carrera era gratis. El aterrizaje le cuesta a %V el aire y el resto de la tarde.',
+  'De abajo arriba, el pie de %A le entra a %V en la boca. Dientes, luego baldosa. %V cuenta los dos con la lengua, y le faltan.',
+  'A %V se le duerme la pierna. Volver andando es una teoría. %A no llama un taxi. No es su muerto.',
+  'La patada de %A saca el aire y la gracia. A %V le quedaba poco de las dos. Ahora, cero.',
+  'El pie de %A se queda un segundo en el pecho de %V. Firma. %V no se la discute. No puede. No respira.',
+  '%A le planta el pie en la columna a %V. Las manos de %V olvidan lo que estaban haciendo. Estaban haciendo el ridículo. Descansan.',
+];
+
+const BONK = [
+  '%A le da un mazazo a %V en la cabeza. Se le ha reiniciado algo. No era mucho. Vuelve a arrancar igual de tonto.',
+  '%A zurra a %V hasta que se le quita la tontería. Diez minutos. En %V la tontería tiene recarga rápida.',
+  '%A le arrea a %V. No es violencia, es mantenimiento. %V es el aparato que nadie quiere pero hay que pegarle para que pare.',
+  '%A castiga a %V delante de todos. La parte pública era el objetivo. A %V el público le dura más que el chichón.',
+  '%A le sacude a %V. Y a %V se le ha bajado la calentura de golpe. Le quedaba esa. Ahora, la frente.',
+  '%A le da lo suyo a %V. Nadie va a preguntar por qué. Con %V la pregunta sobra desde el primer mensaje.',
+  '%A zurra a %V. Se lo llevaba pidiendo desde el primer mensaje del día. %V insiste en firmar cada petición con la boca.',
+  '%A corrige a %V a golpes. Método antiguo y sigue funcionando. En %V, lo único que funciona es esto.',
+  'El porrazo le pone a %V los ojos bizcos. Los dos miran igual de poco. %A no se esfuerza en enfocarlos.',
+  'El objeto de %A encuentra el cráneo de %V. La idea se sale del edificio. No era una idea. Era un ruido. El ruido cesa.',
+  'Un crac en la coronilla de %V. La corona no se la había merecido. El crac, sí. %A reparte justicia de ferretería.',
+  'El golpe de %A es tan limpio que la frase de %V se corta en medio de una vocal. La vocal no se la merece nadie. Menos %V.',
+  '%A pega dos veces en el mismo sitio de %V. El primero era un aviso que %V no pilla nunca. El segundo ya es el idioma.',
+  'El mazazo de %A le resuena a %V en los empastes. Lo único metálico que tenía. Ahora suena a barato, que encaja.',
+  '%V ve un fogonazo. No es inspiración. %A apaga. %V se queda a oscuras, su hábitat.',
+  'Un golpe de %A. Un sentarse. Un silencio. Temario en tres tiempos. %V suspende los tres y pide revisión. No hay revisión.',
+  'El porrazo de %A saca la idea y deja el cuerpo de %V. El cuerpo tampoco aportaba. Se queda por peso.',
+  'La cabeza de %V suena a metal de saldo. %V es el metal. %A es el golpe. El grupo es el que no pide bis.',
+  'El golpe de %A hace que %V suelte lo que estaba usando para hacerse el listo. Las manos vacías le sientan mejor.',
+  'Mazazo en la frente de %V. Ahí vivía el problema. %A ha desahuciado. El problema busca otro piso en el mismo cráneo.',
+  'A %V le pitan los oídos en estéreo. El grupo en mono, sin impresionarse. %A no baja el volumen. Lo sube al hueso.',
+  'Un golpe de %A que deja la cara de %V en ajustes de fábrica: tonto. El tono de fábrica era este. Se confirma.',
+  '%A le pega a %V la cabeza contra la superficie más cercana. Eficiente. %V siempre ha sido de aprovechar el mobiliario, a su pesar.',
+  'La herramienta da igual. El chichón de %V no. %A no firma. El chichón firma por los dos.',
+  'El porrazo deja un bulto del que %V va a mentir. Se dio con una puerta. La puerta no apunta tan bien como %A.',
+  'A %V se le dobla la vista. Ninguna de las dos copias parece lista. %A no elige. Las deja las dos.',
+  'Un golpe de %A al cráneo que le corta a %V el número. El número era malo. El corte es un favor al grupo.',
+  '%A zurra hasta que a %V se le cae la sonrisa. La sonrisa era prestada. El golpe la devuelve al cajón.',
+  'El sonido de %A es coco. La leche es lo que %V iba a decir. Se derrama. Nadie la recoge. Estaba agria.',
+  'Un correctivo de %A a la sien de %V. La sien lo archiva en educación. %V nunca ha aprobado esa asignatura. Hoy, menos.',
+];
+
+const FUCK = [
+  '%A se lleva a %V al baño y ninguno de los dos vuelve a mirar igual al resto. A %V se le ve en cómo se sienta después.',
+  '%A se folla a %V delante de todo el grupo. Ni una disculpa. A %V se le oye, qué asco de altavoz.',
+  '%A pone a %V a cuatro patas y el chat entero se hace el sueco. %V no puede hacerse el sueco: tiene la cara en el suelo.',
+  '%A se mete en %V hasta el fondo. Doce meses de tensión resueltos en dos minutos y en el gemido de %V.',
+  '%V acaba con las rodillas rojas y %A con cara de haber ganado algo. Las rodillas no mienten. %V tampoco, ya.',
+  '%A revienta a %V. Mañana %V va a escribir aquí como si el culo no le doliera. Le duele. Se le lee en el "buenos días".',
+  '%A se corre encima de %V y %V da las gracias. Ahí está todo el vínculo, resumido. En la cara, qué asco de altar.',
+  '%A se lo folla a %V como llevaba meses contándolo por privado. Al final era verdad. A %V se le nota que el privado se le quedaba corto, y el coño también.',
+  'A %V se le acaba la garganta hecha una funda de la polla de %A. %A se limpia en el labio. %V traga y pregunta si hay más, el muy cerdo.',
+  '%A folla a %V hasta que se le va la voz. La voz era lo único decente que le quedaba a %V. Ahora gime, joder, y ya.',
+  '%A deja a %V con el semen escurriéndole por el muslo, con la misma ropa. %V camina así el resto del día. El secreto se le pega a la pierna, guarro y suyo.',
+  'El culo de %V tiene otro color. Ese es el sello. %A no usa tinta. %V se sienta de lado y finge una contractura.',
+  '%A le folla la boca a %V primero para que el grupo no tenga que oírlo. %V babea igual. El grupo oye el babeo.',
+  '%V se corre en el suelo y todavía pide perdón. Retrato. %A se lo vuelve a meter para que se le olvide la disculpa.',
+  '%A abre a %V encima de la mesa. La mesa se limpia. %V no. A %V le queda la encimera en la mejilla y el culo hecho una mierda de pantano.',
+  '%V se deja meter la polla con una mano en la pared y la cara en la pintura. La pintura se lleva la frente. %A se lleva el resto.',
+  '%A se corre dentro de %V y no saca la polla. El problema de %V, de cintura para abajo, tiene nombre y se le escurre. Qué asco de recuerdo.',
+  'A %V se le ha corrido el rímel y todavía pide más. %A se lo da. El más es polla. El rímel es el parte.',
+  '%A usa el pelo de %V de asa y le parte el culo a hostia de cadera. Las manos de %V no sirven de nada. Están en el colchón, abiertas, de adorno.',
+  '%A se folla a %V en el rellano. El vecino oye a %V, que es el punto. %V se tapa la boca. Tarde. El gemido ya bajó un piso.',
+  'El agujero de %V era un rumor hasta que dejó de serlo. %A lo ha confirmado hasta el fondo. %V confirma con un "joder" que no es queja.',
+  '%A deja saliva en la espalda de %V y un corrimiento donde se queda. %V se viste encima. El algodón se entera primero.',
+  '%V anda como el chiste. El chiste lo lleva dentro, puta cojera de cama. %A no pregunta cómo está. Se le ve en el paso.',
+  '%A le da la vuelta a %V dos veces. A la segunda, %V ya no pregunta. A la tercera, %V pone el culo solo, el muy enseñado, el muy puta.',
+  'La saliva de %V en la polla de %A es lo único honesto que ha dicho %V hoy. Lo demás era ruido. Esto, babas y oficio.',
+  '%A folla a %V a través del orgasmo y del que %V no había presupuestado. El segundo le dobla las piernas. %V dice basta y abre más.',
+  'Los vaqueros de %V a los tobillos, la dignidad a la misma altura. %A le mete la polla y empuja. %V resbala hacia delante, hacia nada, hacia más.',
+  '%A hace que %V le pida la polla. Luego hace que %V se la tome. Orden de operaciones. %V aprende el temario de rodillas, el muy guarro.',
+  'La tripa de %V contra el fregadero. El resto es instrucción. %A dicta con la polla. %V firma con un gemido que no iba a soltar, joder.',
+  '%A se corre en la boca de %V y lo besa después. %V traga la prueba. El beso sabe a los dos. A %V le gusta, qué asco tan suyo.',
+];
+
+// Se pega DEBAJO de la frase de la acción, en cursiva, y no habla de la acción:
+// habla de quien la ha pedido. Quien usa estos comandos es un marginado, y el
+// bot se lo recuerda cada vez.
+//
+//   · El objetivo es SIEMPRE %A. Nunca %V.
+//   · No repitas el chiste de arriba.
+//   · Nada de "eres un pringado" a secas. El chiste está en el retrato.
+//   · Sirve para las once, así que no menciones ninguna en concreto.
+const ROAST_USUARIO = [
+  'Y %A ha pagado por esto. Con aura de verdad, que se gana escribiendo. Él ha pagado para no tener que abrir la boca.',
+  '%A tenía dos metros y una frase. Ha elegido el chat. El pasillo sigue ahí, vacío, como él.',
+  '%A tiene boca. La ha usado para teclear. La otra función se le atrofió en el sofá, pringado de asiento fijo.',
+  'El resto del grupo está hablando. %A manda un dibujo. Un adulto, un clip, una miseria con mención.',
+  '%A se expresa en anime. A esta edad. El vocabulario se le quedó en una carpeta de gifs y no ha vuelto, cutre de doblaje.',
+  '%A ha encontrado su techo social. Da con la cabeza. El techo es este menú. No hay piso de arriba, don nadie.',
+  '%A tiene la tarde libre. Esto es el proyecto. Otros salen. Él abre un catálogo de gestos ajenos, inútil de ocio.',
+  'Existe el privado. %A ha elegido el grupo. Así no oye la respuesta. Así no tiene que ser una persona, cobarde de auditorio.',
+  'El dibujo es de otro. La idea es de otro. %A solo ha puesto el dinero y esa cara de haber hecho algo. Qué vergüenza de autor.',
+  '%A ha convertido un impulso en un cargo. El impulso era tocar a alguien. El cargo es lo más cerca que va a llegar, muerto de hambre.',
+  '%A necesita un menú para tener un gesto. Sin lista, se le acaba la persona. Con lista, se le acaba el aura, fracasado de catálogo.',
+  'Dos segundos de vídeo. La economía emocional de %A, en alta definición y en nada más. Miseria con reproducción automática.',
+  'Nadie se lo ha pedido a %A. Ese es justo el problema. Él insiste en regalar lo que nadie cobra ni gratis, parásito de un no.',
+  '%A ha encontrado la forma más cara de no decir nada. El silencio ya era su fuerte. Ahora es de pago, gilipollas con tarifa.',
+  'Hay gente escribiendo frases. %A está de compras. El carrito lleva un clip y su dignidad, arrugada. Basura de pasillo.',
+  '%A ha subcontratado la boca. La suya cobraba demasiado: una frase, un temblor, el riesgo de que le contesten. Escoria de mostrador.',
+  '%A ensaya el contacto en una lista. El contacto de verdad se le da como el sol: lo ha oído nombrar. Patético de teoría.',
+  '%A tiene la habilidad social de una máquina expendedora. Mete moneda. Espera gesto. Nadie le coge lo que cae. Puto recinto vacío.',
+  '%A no es capaz de mirar a la cara. Es capaz de mencionar. La mención es su forma de no estar en la habitación, inútil de umbral.',
+  '%A se cree que esto cuenta como quedar. Quedar es un cuerpo en una puerta. Él es un dedo en una pantalla, pringado de cristal.',
+  'Están en el mismo sofá. %A usa una mención. El sofá podría hablar y todavía se le adelantaría. Ridículo de dos plazas.',
+  '%A ha cogido la opción de pago de un gesto que es gratis. El recargo es su carácter. Sale caro y sale cutre.',
+  '%A prefiere gastar a hablar. Hablar le obliga a ser alguien. Gastar le deja ser este pringado con saldo.',
+  'El clip dura dos segundos. El expediente de %A, el resto de la semana. El grupo no lo archiva en secretos: en evidencias. Qué asco de prueba.',
+  'La iniciativa de %A es una barra y un nombre. Otros entran. Él busca en la ayuda. La ayuda no enseña a ser persona, desperdicio de manual.',
+  '%A usa el teclado como cuerpo. El cuerpo de verdad se le ha quedado en la silla, caducado, con las manos frías. Guarro de sedentario.',
+  '%A ha pagado para saltarse el pasillo. En el pasillo hay que olerse. Él no da para olor. Da para cargo. Miseria de atajo.',
+  '%A trata al grupo como un tablero con fichas. Los demás son gente. Él es un inventario con hambre. Cero a la izquierda con lista.',
+  '%A abre el chat, se salta la conversación y compra el movimiento. Así se liga cuando no se es nadie: se paga el decorado, fracasado de cartón.',
+  '%A podía haber dicho una palabra. Una. Ha abierto esto. La palabra se le ha perdido entre el saldo y el miedo, inútil de diccionario.',
+  'El aura era para jugársela o para robar. %A se la ha gastado en un dibujo. Prioridades de quien no tiene vida que arriesgar, don nadie de saldo.',
+  '%A vive a través de los fotogramas de otros. Los suyos no existen. No hay cámara que lo ponga en una escena de verdad. Patético de metraje ajeno.',
+  '%A lo hace en público para no oír la respuesta. En privado le tendrían que decir que no. Aquí le dicen un clip y se conforma, el muerto de hambre.',
+  '%A ha encontrado la manera de tocar a alguien sin levantarse. El milagro del fracasado: contacto a domicilio, él siempre en casa.',
+  '%A se paga un pulso falso. El suyo no le da para cruzar una habitación. El aura sí le da para fingir que cruzó. Vergüenza de cuentapasos.',
+  'Lo más valiente que ha hecho %A hoy es una mención. Mañana repetirá. El valor se le recarga en el enchufe, no en las tripas. Cutre de batería.',
+  'A dos metros, un teclado por medio, y a %A se le ha perdido la columna. La busca en el menú. El menú no trae vértebras. Puto invertebrado de chat.',
+  'El cuerpo de %A no se usa. El chat, sí. Hay gente que se ducha para verse. Él se carga el saldo para que lo vean. Asco de escaparate.',
+  'El grupo le ha visto a %A escribirlo. Eso ya es la autopsia. El cadáver sigue tecleando, por si el ridículo no había quedado claro.',
+  '%A no consigue una mirada en persona, así que compra una escena. La escena dura lo que tarda el grupo en cambiar de tema. Poco. Basura de extra.',
+  '%A tiene el anime como primera lengua del cariño. La segunda no le salió. La tercera es pagar. Las tres suenan a vacío. Gilipollas de doblaje casero.',
+  '%A paga para que lo vean haciendo lo que no haría con la luz de la habitación. Aquí hay luz. Hay testigos. Hay este payaso. Escoria con público.',
+  'La vida social de %A trae tarifa. Sin tarifa no hay gesto. Sin gesto no hay %A. Hay un hueco con foto de perfil. Miseria de alta.',
+  '%A necesita un recibo para un sentimiento. Sin cargo, no le cuenta. Con cargo, le cuenta esto: que es un don nadie con ticket.',
+  '%A ha elegido la opción que trae pie de foto porque él no tiene uno. Lo que diría no cabe en una persona. Cabe en una miseria.',
+  '%A prefiere que lo pongan a parir antes que pasar desapercibido. Aquí está. Se le ha concedido el asco. Enhorabuena, parásito.',
+  '%A tiene el número. Ha usado el grupo. El número implica voz. El grupo implica público. Él elige público y se ahorra la voz, pringado de altavoz ajeno.',
+  '%A escribe lo bastante para ganar aura y no tiene nada que decir. El saldo le sobra. La persona, no: no hay. Inútil de nómina.',
+  '%A mete moneda y espera que caiga una persona. No cae. Cae un clip. Él lo recoge como si fuera un cuerpo. Qué hambre. Qué nada. Puto gancho vacío.',
+  '%A se cree que pagar lo hace menos triste. Pagar lo hace más triste y con ticket. El ticket no se lo va a comer nadie. Él tampoco come otra cosa, cutre.',
+  '%A podía haber ido a la otra habitación. Ha abierto el chat. La otra habitación tiene una puerta. La puerta le gana el pulso desde hace años, cobarde de pomo.',
+  'La presencia de %A es una mención y un vídeo. Sin los dos, no está. Con los dos, tampoco. Está este hueco con nombre. Desperdicio de lista.',
+  '%A ha subcontratado las manos a una búsqueda. Las suyas sirven para el móvil. Para la piel, no. La piel pide alguien. Sale él. Se acaba el pedido, fracasado de almacén.',
+  '%A se ha pasado la tarde buscando el gesto en una lista, no la frase. La frase era hola. Se le ha hecho larga. Se le hacen largas todas, menos el pago. Patético de menú.',
+  'La sala está llena de gente. %A le ha mandado un clip a una de ellas. A dos metros. Con aura. Con esa cara de haber cruzado un océano. Ha cruzado un hilo. Ridículo de cable.',
+  '%A necesita público para lo que otros hacen en un pasillo. Sin público no le vale. Le vale el asco. El asco es público. Trato hecho, escoria.',
+  '%A pone el teléfono entre él y cualquiera que le guste. El teléfono es el condón de su personalidad: no siente nada y se cree seguro. Guarro de plástico.',
+  '%A ha pagado para no oírse decirlo. Su voz le da vergüenza. Con razón. El cargo le da paz. Una paz de muerto. Una paz de pringado.',
+  'La única forma que tiene %A de tocar a alguien es esta, que le permite seguir sentado. Sentado es su patriotismo. Sentado se le va la vida. Sentado manda esto. Puto trono de mierda.',
+  '%A tiene una lista de gente y una lista de gestos y nunca la frase de en medio. La de en medio era ser persona. No le cabe. Le cabe el menú. Don nadie de índice.',
+];
+
+module.exports = { HUG, KISS, CUDDLE, PAT, POKE, PUNCH, SLAP, BITE, KICK, BONK, FUCK, ROAST_USUARIO };
