@@ -496,7 +496,6 @@ const ROAST_USUARIO = [
   '%A, lo tuyo no es timidez. Es que en persona no te comen ni el saludo. Aquí el saludo se compra, gilipollas, y lo llamas contacto.',
   'La ronda de %A es una dieta de menciones. Cero calorías de verdad. El hambre sigue. El hambre es el personaje, y el personaje da asco.',
   '%A no se atreve a decir el nombre en el aire. Lo teclea. El aire no se entera. El grupo, sí. Y se ríe. Con razón.',
-  '%A, estás usando un bot de pago para el contacto que no te hace nadie. Eso no se tapa. Se lee. Se te lee entero.',
   'Tres de la mañana, saldo abajo, %A fingiendo intimidad. La intimidad de verdad pide un cuerpo. El cuerpo no ha venido. No va a venir.',
   '%A se queda mirando si pitan. Si pitan, se corre por dentro. Si no pitan, manda otra. El orgasmo es una notificación, gilipollas.',
   '%A, nadie te debe un gesto. Lo estás comprando. Lo comprado no es un gesto. Es una limosna que te das con público.',
