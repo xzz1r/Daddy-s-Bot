@@ -16,7 +16,7 @@
 // aprendió a no hacer.
 const axios = require('axios');
 const fs = require('fs-extra');
-const { getSender, getTarget, sameUser, isOwner } = require('../utils/wa');
+const { getSender, getTarget, sameUser, isOwner, isMainOwner } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { pickFresh, tempFile, cleanTemp, ffmpegSemaphore } = require('../utils/helpers');
 const { ffmpegPath } = require('../utils/ffmpeg');
@@ -271,10 +271,13 @@ function hazAccion(nombre) {
       }, { quoted: msg });
     }
 
-    // ─── LAS EXPLICITAS NO VAN CONTRA EL TIER DUEÑO ─────────────────────────
+    // ─── LAS EXPLICITAS NO VAN CONTRA EL DUEÑO ──────────────────────────────
     //
-    // *!fuck* y *!anal* no se le pueden mandar a nadie del tier dueño. Las otras
-    // nueve si: un abrazo o una torta van a quien sea.
+    // *!fuck* y *!anal* no se le pueden mandar al dueño PRINCIPAL. Las otras
+    // nueve si: un abrazo o una torta van a quien sea, el incluido.
+    //
+    // Y SOLO A EL, no al tier owner entero: es decision suya y la escribio asi.
+    // Un co-owner es una persona del grupo como las demas para estos dos.
     //
     // Y SE NIEGA COMO SI FALLARA LA WEB, no con un "a ese no". Esto es lo unico
     // delicado del comando y conviene que quede escrito:
@@ -290,7 +293,7 @@ function hazAccion(nombre) {
     // no delata a nadie.
     //
     // Se comprueba ANTES de cobrar, o el rechazo saldria pagado.
-    if (nsfw && isOwner(objetivo, false, groupMeta)) {
+    if (nsfw && isMainOwner(objetivo, false, groupMeta)) {
       return sock.sendMessage(jid, {
         text: 'No he podido traer el gif. No te he cobrado.',
       }, { quoted: msg });

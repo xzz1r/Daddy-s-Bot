@@ -6156,7 +6156,7 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     if (fallos === antes) console.log(verde(`   ✓ los ${deEstado.length} ficheros de estado de data/ estan fuera del repositorio`));
   }
 
-  // ── 42. LAS ACCIONES EXPLICITAS NO VAN CONTRA EL TIER DUEÑO ──────────────
+  // ── 42. LAS ACCIONES EXPLICITAS NO VAN CONTRA EL DUEÑO ───────────────────
   //
   // Decision del dueño. Y lo delicado no es la negativa: es COMO se niega.
   //
@@ -6169,7 +6169,7 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
   // Se comprueban las tres cosas: que no mande el gif, que no cobre, y que el
   // texto sea exactamente el de la web caida.
   {
-    console.log('\n42. LAS ACCIONES EXPLICITAS NO VAN CONTRA EL TIER DUEÑO');
+    console.log('\n42. LAS ACCIONES EXPLICITAS NO VAN CONTRA EL DUEÑO');
     const antes = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
 
@@ -6193,22 +6193,79 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       await acc[n](sk, msg, [], meta);
       const texto = out.map((c) => c.text || '').join('\n');
       exige(!out.some((c) => c.video || c.image),
-        `*!${n}* manda el gif contra el tier dueño`);
+        `*!${n}* manda el gif contra el dueño`);
       exige(/No he podido traer el gif/.test(texto),
         `*!${n}* contesta al tier dueño algo distinto de la caida de la web (${JSON.stringify(texto).slice(0, 80)}): un rechazo con nombre solo le pasa a una persona, asi que a la segunda vez el grupo sabe quien manda en el bot`);
+    }
+
+    // Y AL CO-OWNER SI LE LLEGAN. Es decision del dueño: el blindaje es suyo y
+    // de nadie mas. Confundir los dos niveles aqui es lo que haria que el
+    // blindaje dejara de apuntar a una sola persona.
+    //
+    // VA EN OTRO PROCESO, y no por gusto: wa.js congela la lista de co-owners al
+    // cargarse (ALL_OWNER_DIGITS), asi que tocar config.coOwners a estas alturas
+    // NO cambia nada. Lo escribi primero de esa forma y la comprobacion pasaba en
+    // verde con el blindaje abierto al tier entero — una guarda que aprueba el
+    // codigo roto, que es peor que no tenerla. Con CO_OWNERS en el entorno del
+    // proceso hijo, la lista se congela ya con el co-owner dentro.
+    {
+      // El guion va a un fichero temporal: incrustarlo en `node -e` obliga a
+      // escapar comillas dentro de comillas dentro de comillas, y ahi es donde
+      // se rompe.
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ddb-coown-'));
+      const guionF = path.join(tmpDir, 'p.js');
+      fs.writeFileSync(guionF, [
+        `const acc = require(${JSON.stringify(path.join(R, 'src/commands/acciones'))});`,
+        "const CO = '34600000123@s.whatsapp.net', A = '34600000002@s.whatsapp.net';",
+        "const BOT = '549199@s.whatsapp.net', GJ = '000000000@g.us';",
+        "const meta = { id: GJ, subject: 'G', participants: [{ id: BOT, admin: 'admin' }, { id: CO }, { id: A }] };",
+        '(async () => {',
+        '  const salida = {};',
+        '  for (const n of Object.keys(acc.ACCIONES)) {',
+        '    if (!acc.ACCIONES[n].nsfw || !acc.ACTIVAS.includes(n)) continue;',
+        '    const out = [];',
+        '    const sk = { user: { id: BOT }, sendMessage: async (j, c) => { out.push(c); return {}; }, groupMetadata: async () => meta };',
+        "    const msg = { key: { remoteJid: GJ, participant: A, fromMe: false, id: 'X' },",
+        "      message: { extendedTextMessage: { text: '!' + n + ' @x', contextInfo: { mentionedJid: [CO] } } } };",
+        '    await acc[n](sk, msg, [], meta);',
+        "    salida[n] = out.map((c) => c.text || '').join(' | ');",
+        '  }',
+        "  console.log('RESULTADO' + JSON.stringify(salida));",
+        '  process.exit(0);',
+        '})();',
+      ].join('\n'));
+      let res = {};
+      try {
+        const bruto = execSync(`node ${JSON.stringify(guionF)}`, {
+          encoding: 'utf8', timeout: 60000, cwd: R,
+          env: { ...process.env, CO_OWNERS: '34600000123', ACCION_NSFW_API: '' },
+        });
+        const linea = bruto.split('\n').find((l) => l.startsWith('RESULTADO'));
+        res = linea ? JSON.parse(linea.slice('RESULTADO'.length)) : {};
+        if (!linea) { fallos++; console.log(rojo('   ✗ la prueba del co-owner no devolvio nada')); }
+      } catch (e) {
+        fallos++;
+        console.log(rojo(`   ✗ no pude probar el caso del co-owner: ${String(e.message).slice(0, 140)}`));
+      } finally {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      }
+      for (const [n, texto] of Object.entries(res)) {
+        exige(!/No he podido traer el gif/.test(texto),
+          `*!${n}* tambien blinda al co-owner: el dueño lo quiso solo para el, y protegiendo a dos el disfraz de "se cayo la web" se repite con dos personas distintas`);
+      }
     }
 
     // Y el rechazo va ANTES de cobrar: leido del codigo, porque probar el cobro
     // aqui escribiria en el aura de verdad.
     {
       const src2 = soloCodigo('src/commands/acciones.js');
-      const iNeg = src2.indexOf('nsfw && isOwner(objetivo');
+      const iNeg = src2.indexOf('nsfw && isMainOwner(objetivo');
       const iCobro = src2.indexOf('const concepto = nsfw');
       exige(iNeg >= 0 && iCobro >= 0 && iNeg < iCobro,
-        'el blindaje del tier dueño va DESPUES del cobro: el rechazo saldria pagado');
+        'el blindaje del dueño va DESPUES del cobro, o ya no usa isMainOwner: el rechazo saldria pagado');
     }
 
-    if (fallos === antes) console.log(verde(`   ✓ *!${nsfw.join('* y *!')}* no van contra el tier dueño, y se niegan sin delatarlo`));
+    if (fallos === antes) console.log(verde(`   ✓ *!${nsfw.join('* y *!')}* no van contra el dueño —y solo contra el—, y se niegan sin delatarlo`));
   }
 
   // ── 39. !purgeall NO SE LLEVA POR DELANTE A QUIEN NO DEBE ────────────────
