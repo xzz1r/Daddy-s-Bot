@@ -217,6 +217,20 @@ HUELLAS_ANTES="$(huellas)"
 # Sin esto el código nuevo no llega a ejecutarse. --update-env relee el .env,
 # que es justo lo que hace falta cuando lo que cambió fue una key.
 pm2 restart bot --update-env >/dev/null || pm2 start ecosystem.config.js >/dev/null
+
+# Y EL GUARDIAN CON EL, SI ESTA. Es otro proceso, o sea que un despliegue lo
+# dejaba corriendo el codigo viejo indefinidamente — y a nadie se le ocurre
+# reiniciarlo a mano porque el bot si se reinicia solo y todo parece al dia.
+#
+# El orden importa: el bot arranca primero y anota su numero y su @lid, asi que
+# el guardian lo lee ya escrito en vez de esperar a la siguiente vez.
+#
+# Solo si pm2 lo conoce: quien no tenga guardian no ve ni un error de mas.
+if pm2 describe guardian >/dev/null 2>&1; then
+  pm2 restart guardian --update-env >/dev/null 2>&1 || true
+  echo "  · guardián reiniciado también"
+fi
+
 pm2 save --force >/dev/null
 
 # Veredicto explícito. Sin esto no había forma de saber si el comando había

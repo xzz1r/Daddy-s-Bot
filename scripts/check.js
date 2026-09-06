@@ -6017,6 +6017,22 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
         'el bot ya no repone al guardian: degradando primero al guardian, el par se cae entero');
     }
 
+    // ── EL DESPLIEGUE REINICIA TAMBIEN AL GUARDIAN ──────────────────────
+    //
+    // Es otro proceso: un despliegue lo dejaba corriendo el codigo viejo
+    // indefinidamente, y nadie lo nota porque el bot SI se reinicia solo y todo
+    // parece al dia. Con el guardian eso significa correr durante semanas con un
+    // fallo ya arreglado.
+    {
+      const act = fs.readFileSync(path.join(R, 'scripts/actualizar.sh'), 'utf8');
+      exige(/pm2 restart guardian/.test(act),
+        'el despliegue no reinicia al guardian: se queda con el codigo viejo y nadie se entera, porque el bot si se actualiza');
+      exige(act.indexOf('pm2 restart bot') < act.indexOf('pm2 restart guardian'),
+        'el guardian se reinicia ANTES que el bot: leeria el numero y el @lid del bot antes de que este los anote');
+      exige(/pm2 describe guardian/.test(act),
+        'el despliegue reinicia al guardian sin comprobar que exista: quien no lo tenga se come un error en cada actualizacion');
+    }
+
     if (fallos === antes) console.log(verde('   ✓ el dueño se entera, la deuda se cobra y el par se repone solo'));
   }
 
