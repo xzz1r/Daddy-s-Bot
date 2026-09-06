@@ -172,6 +172,40 @@ const AUTH_DIR = path.join(__dirname, '../data/authGuardian');
 // llegue a conectarse se quedaría con la cadena vacía para siempre. Así, en
 // cuanto el bot conecta, el guardián lo sabe sin reiniciar nada.
 const FICHERO_NUMERO = path.join(__dirname, '../data/numeroBot.json');
+
+// ─── LOS GRUPOS DONDE EL BOT ES ADMIN ───────────────────────────────────────
+//
+// El guardián solo sirve si está conectado en el momento del golpe, y eso no se
+// puede garantizar: se reinicia, se le cae la red, se despliega. En esa ventana
+// pueden quitarle el admin al bot y el evento no lo ve nadie — no vuelve más
+// tarde, se pierde.
+//
+// Así que al conectar REPASA en vez de esperar: mira los grupos y, si en alguno
+// el bot ya no es admin, se lo devuelve. Es el mismo trabajo, aplicado al estado
+// en vez de al aviso.
+//
+// PERO SOLO DONDE LO VIO SIENDO ADMIN ANTES, y esto es lo que lo hace seguro. Sin
+// esa condición, el primer repaso ascendería al bot en TODOS los grupos
+// compartidos, incluidos aquellos donde el dueño decidió a propósito no dárselo.
+// Un guardián que reparte admin por su cuenta es peor que no tenerlo.
+//
+// Se aprende solo: cada repaso apunta dónde lo ve admin. El primero no hace
+// nada, que es la dirección segura.
+const FICHERO_VISTOS = path.join(__dirname, '../data/guardianVistos.json');
+
+function leerVistos() {
+  try { return JSON.parse(fs.readFileSync(FICHERO_VISTOS, 'utf8')) || {}; }
+  catch { return {}; }
+}
+
+function guardarVistos(v) {
+  try {
+    fs.mkdirSync(path.dirname(FICHERO_VISTOS), { recursive: true });
+    const tmp = `${FICHERO_VISTOS}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(v));
+    fs.renameSync(tmp, FICHERO_VISTOS);
+  } catch (e) { logger.warn(`guardián: no pude guardar la lista de grupos: ${e.message}`); }
+}
 let _cache = { mtime: -1, numero: '' };
 
 function numeroAnotado() {
@@ -335,6 +369,10 @@ async function alDegradar(groupJid, participants, action, author) {
   }
 
   logger.warn(`guardián: le han quitado el admin al bot en ${groupJid}. Reponiendo.`);
+  // Se apunta el grupo: si el bot estaba admin aquí, el repaso de la próxima
+  // reconexión tiene derecho a reponerlo sin preguntar.
+  const vistos = leerVistos();
+  if (!vistos[groupJid]) { vistos[groupJid] = Date.now(); guardarVistos(vistos); }
   return reponer(groupJid, caidos.map(idDe).filter(Boolean));
 }
 
@@ -352,7 +390,66 @@ async function limpiarCredencialesAMedias() {
   return true;
 }
 
+// El repaso al conectar. Devuelve cuantos ha repuesto, para poder probarlo.
+async function repasarGrupos() {
+  if (!protegido()) return 0;
+  let grupos;
+  try { grupos = await withTimeout(sock.groupFetchAllParticipating(), TOPE_RED); }
+  catch (e) { logger.warn(`guardián: no pude repasar los grupos: ${e.message}`); return 0; }
+
+  const vistos = leerVistos();
+  let repuestos = 0;
+  let cambio = false;
+
+  for (const [gJid, meta] of Object.entries(grupos || {})) {
+    const bot = (meta?.participants || []).find((p) => esElProtegido(p, meta));
+    if (!bot) continue;
+
+    const esAdmin = bot.admin === 'admin' || bot.admin === 'superadmin';
+    if (esAdmin) {
+      if (!vistos[gJid]) { vistos[gJid] = Date.now(); cambio = true; }
+      continue;
+    }
+    // No es admin. Solo se repone donde ya se le vio siéndolo.
+    if (!vistos[gJid]) continue;
+
+    logger.warn(`guardián: al reconectar, el bot ya no era admin en ${gJid}. Reponiendo.`);
+    if (await reponer(gJid, [bot.id])) repuestos++;
+  }
+
+  if (cambio) guardarVistos(vistos);
+  if (repuestos) logger.warn(`guardián: repuestos ${repuestos} admin(es) que se perdieron mientras no estaba`);
+  return repuestos;
+}
+
+// Reconexion programada UNA sola vez. Sin este candado, dos 'close' seguidos
+// —que los hay: WhatsApp cierra y el socket avisa mas de una vez— programaban
+// dos reconexiones, y a los pocos segundos habia DOS sesiones con las mismas
+// credenciales echandose la una a la otra en bucle. El bot ya tropezo con esto y
+// lleva su propia defensa; aqui no habia ninguna.
+let reconexionPendiente = null;
+
+function programarReconexion(ms) {
+  if (reconexionPendiente) return;
+  reconexionPendiente = setTimeout(() => {
+    reconexionPendiente = null;
+    conectar().catch((e) => logger.error(`guardián: ${e.message}`));
+  }, ms);
+  reconexionPendiente.unref?.();
+}
+
 async function conectar() {
+  // Y LA OTRA MITAD DEL CANDADO: si ya habia un socket, se cierra antes de abrir
+  // el siguiente. El temporizador de arriba impide dos reconexiones a la vez,
+  // pero conectar() tambien se llama al arrancar, y un arranque que coincida con
+  // una reconexion deja las dos sesiones vivas igual.
+  if (sock) {
+    logger.warn('guardián: ya había una conexión abierta, la cierro antes de abrir la nueva');
+    try { sock.ev.removeAllListeners(); } catch {}
+    try { sock.end(); } catch {}
+    sock = null;
+  }
+
   // NO SE MUERE SI TODAVÍA NO HAY NÚMERO, y antes sí: en un arranque en frío los
   // dos procesos suben a la vez, el bot tarda unos segundos en conectar y el
   // guardián se moría antes de que el número existiera. Con el reinicio
@@ -485,6 +582,10 @@ async function conectar() {
       logger.info(aQuien
         ? `guardián en línea. Protegiendo a +${aQuien}.`
         : 'guardián en línea, pero aún no sé a quién protejo: esperando a que el bot conecte.');
+      // El repaso va DESPUÉS de anunciar la conexión y sin bloquearla: si la
+      // consulta de grupos tarda o falla, el guardián sigue en pie y escuchando,
+      // que es su trabajo principal.
+      repasarGrupos().catch((e) => logger.warn(`guardián: repaso al conectar: ${e.message}`));
     }
     if (connection === 'close') {
       const code = lastDisconnect?.error?.output?.statusCode;
@@ -493,7 +594,7 @@ async function conectar() {
         process.exit(1);
       }
       logger.warn(`guardián: conexión caída (${code || '?'}), reintento en ${Math.round(espera / 1000)}s`);
-      setTimeout(() => { conectar().catch((e) => logger.error(`guardián: ${e.message}`)); }, espera);
+      programarReconexion(espera);
       espera = Math.min(espera * 2, ESPERA_MAX);
     }
   });
@@ -509,4 +610,4 @@ if (require.main === module) {
   conectar().catch((err) => { console.error('guardián: error fatal:', err); process.exit(1); });
 }
 
-module.exports = { alDegradar, esElProtegido, mismoNumero, formasDe, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };
+module.exports = { alDegradar, esElProtegido, mismoNumero, formasDe, repasarGrupos, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };

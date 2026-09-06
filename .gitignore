@@ -46,6 +46,9 @@ data/numeroBot.json
 # Quien le quito el admin al bot y cuando. Estado del grupo, y con un telefono
 # dentro.
 data/adminDeuda.json
+# Los grupos donde el guardian ha visto al bot con admin. Es lo que le permite
+# reponerlo al reconectar sin repartir admin donde nadie se lo dio.
+data/guardianVistos.json
 data/pfpcache/
 data/music_cache/
 temp/

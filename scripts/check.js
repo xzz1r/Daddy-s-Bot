@@ -5795,7 +5795,9 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       // la frase "solo tiene el anti-admin": no basta con que hoy no haga otra
       // cosa, tiene que no PODER hacerla sin que esto se ponga rojo.
       const llamadas = [...gsrc.matchAll(/sock\.([a-zA-Z]+)\s*\(/g)].map((m) => m[1]);
-      const PERMITIDAS = new Set(['groupParticipantsUpdate', 'groupMetadata', 'end']);
+      // groupFetchAllParticipating es del repaso al reconectar: leer en que
+      // grupos esta. Sigue siendo LEER y ASCENDER, nada mas.
+      const PERMITIDAS = new Set(['groupParticipantsUpdate', 'groupMetadata', 'groupFetchAllParticipating', 'ev', 'end']);
       const demas = [...new Set(llamadas)].filter((x) => !PERMITIDAS.has(x));
       exige(demas.length === 0,
         `el guardian llama a sock.${demas.join(', sock.')}: solo puede leer la ficha del grupo y ascender, nada mas`);
@@ -5829,6 +5831,66 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
         exige(/shouldSyncHistoryMessage:\s*\(\)\s*=>\s*false/.test(gsrc),
           'el guardian procesa el historial que WhatsApp empuja al vincular: es memoria y trabajo para armar unos chats que nadie va a leer');
       }
+
+      // ── EL REPASO AL RECONECTAR ───────────────────────────────────────
+      //
+      // El guardian solo sirve si esta conectado en el momento del golpe, y eso
+      // no se puede garantizar: se reinicia, se le cae la red, se despliega. En
+      // esa ventana pueden quitarle el admin al bot y ese aviso no vuelve nunca.
+      // Al conectar repasa el estado en vez de esperar avisos.
+      //
+      // Y SOLO DONDE LO VIO SIENDO ADMIN ANTES. Sin esa condicion, el primer
+      // repaso ascenderia al bot en TODOS los grupos compartidos, incluidos
+      // aquellos donde el dueño decidio a proposito no darselo: un guardian que
+      // reparte admin por su cuenta es peor que no tenerlo. Se comprueban las
+      // dos direcciones, porque cada una falla de una forma distinta y grave.
+      {
+        const G1 = '120001@g.us', G2 = '120002@g.us';
+        const BL = '111111111111@lid';
+        const mundo = (adminEnG1) => ({
+          [G1]: { id: G1, participants: [{ id: BL, phoneNumber: BOTT, admin: adminEnG1 }, { id: GUA, admin: 'admin' }] },
+          [G2]: { id: G2, participants: [{ id: BL, phoneNumber: BOTT, admin: null }, { id: GUA, admin: 'admin' }] },
+        });
+        const sk4 = (m) => { const h = []; return { h, user: { id: GUA },
+          groupFetchAllParticipating: async () => m,
+          groupMetadata: async (j) => m[j],
+          groupParticipantsUpdate: async (j, p, a) => { h.push({ j, a }); return p.map((x) => ({ status: '200', jid: x })); } }; };
+
+        const vistosFile = path.join(R, 'data/guardianVistos.json');
+        const habiaV = fs.existsSync(vistosFile) ? fs.readFileSync(vistosFile) : null;
+        // El numero protegido se restauro unas lineas mas arriba; aqui hace
+        // falta otra vez, o el repaso sale sin saber a quien mirar y estas dos
+        // comprobaciones pasarian en verde por el motivo equivocado.
+        const envRepaso = process.env.GUARDIAN_DE;
+        process.env.GUARDIAN_DE = '5491199999999';
+        try {
+          fs.rmSync(vistosFile, { force: true });
+          let s4 = sk4(mundo('admin')); g._sock(s4);
+          exige(await g.repasarGrupos() === 0 && s4.h.length === 0,
+            'el primer repaso del guardian asciende al bot: repartiria admin en grupos donde el dueño decidio no darselo');
+          s4 = sk4(mundo(null)); g._sock(s4);
+          exige(await g.repasarGrupos() === 1 && s4.h.some((x) => x.j === G1 && x.a === 'promote'),
+            'el guardian no repone el admin que se perdio mientras no estaba: ese aviso no vuelve nunca');
+          exige(!s4.h.some((x) => x.j === G2),
+            'el guardian asciende al bot en un grupo donde nunca fue admin');
+        } finally {
+          process.env.GUARDIAN_DE = envRepaso;
+          fs.rmSync(vistosFile, { force: true });
+          if (habiaV) fs.writeFileSync(vistosFile, habiaV);
+        }
+      }
+
+      // ── LA RECONEXION, UNA SOLA VEZ ───────────────────────────────────
+      //
+      // Dos 'close' seguidos —que los hay— programaban dos reconexiones, y a los
+      // pocos segundos habia DOS sesiones con las mismas credenciales echandose
+      // la una a la otra en bucle. El bot ya tropezo con esto y lleva su
+      // defensa; el guardian no tenia ninguna, y encima nunca cerraba el socket
+      // viejo antes de abrir el nuevo.
+      exige(/if \(reconexionPendiente\) return;/.test(gsrc),
+        'el guardian programa una reconexion por cada aviso de caida: dos avisos seguidos dejan dos sesiones peleandose con las mismas credenciales');
+      exige(/if \(sock\) \{[\s\S]{0,220}sock\.end\(\)/.test(gsrc),
+        'el guardian no cierra el socket viejo antes de abrir el nuevo: un arranque que coincida con una reconexion deja las dos sesiones vivas');
 
       // ── LA VINCULACIÓN, POR CÓDIGO Y NO POR QR ────────────────────────
       //
