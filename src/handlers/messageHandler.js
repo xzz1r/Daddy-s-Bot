@@ -697,6 +697,26 @@ async function cmdDiag(sock, msg, groupMeta) {
   text += `Modo admin: *${si(isSoloAdminsEnabled(jid))}*\n\n`;
   text += `Sobres de estado vigilados: *${SOBRES_ESTADO.length}*\n`;
 
+  // LA FUENTE DEL GIF EXPLICITO, VISTA DESDE DENTRO DEL PROCESO.
+  //
+  // Se pone en el .env y el bot la lee con dotenv, no pm2: `pm2 env` no la
+  // enseña NUNCA aunque este cargada, porque pm2 no la ha inyectado el. Sin
+  // esta linea la unica forma de comprobar si *!fuck* tiene fuente era
+  // ejecutarlo en el grupo, que es exactamente lo que no se quiere hacer para
+  // salir de dudas.
+  //
+  // Va el HOST, no la direccion entera: esto se lee en un movil y las capturas
+  // se reenvian.
+  {
+    const fuente = (process.env.ACCION_NSFW_API || '').trim();
+    let donde = 'sin poner — *!fuck* tira de la web normal';
+    if (fuente) {
+      try { donde = `*${new URL(fuente.replace('{cat}', 'x')).host}*`; }
+      catch { donde = '*puesta, pero no es una direccion valida*'; }
+    }
+    text += `Fuente del gif explicito: ${donde}\n`;
+  }
+
   const lista = sobresDesconocidos();
   if (!lista.length) {
     text += '\n_No ha llegado ningún sobre desconocido desde que arrancó el bot._\n';
