@@ -25,7 +25,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { execSync } = require('child_process');
+const { execSync, spawnSync } = require('child_process');
 
 // LEER FUENTE SIN COMENTARIOS.
 //
@@ -5970,6 +5970,70 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       'el turno del roast se cuenta tambien para el tier dueño: sus acciones le robarian el turno al resto y la cadencia dejaria de cuadrar');
 
     if (fallos === antes) console.log(verde(`   ✓ el roast sale una de cada ${acc.ROAST_CADA}, por grupo, y el dueño no gasta turno`));
+  }
+
+  // ── 41. TODO LO QUE EL BOT ESCRIBE EN data/ ESTA IGNORADO ────────────────
+  //
+  // ESTO YA ROMPIO EL DESPLIEGUE DOS VECES, y la segunda fue esta semana. Un
+  // fichero de estado nuevo sin su linea en .gitignore hace que `git status` lo
+  // vea como fichero nuevo; actualizar.sh se niega a actualizar por "cambios
+  // locales sin guardar", y el arreglo que imprime —`git clean -fd`— LO BORRA.
+  //
+  // La primera vez fue mutes.json. La segunda, la carpeta de la sesion del
+  // guardian: ahi el `git clean` no borraba un contador, borraba las
+  // credenciales de una cuenta de WhatsApp, o sea que cada actualizacion habria
+  // exigido volver a vincular al guardian con otra persona delante.
+  //
+  // Asi que no se comprueba una lista escrita a mano: se sacan del CODIGO todas
+  // las rutas bajo data/ y se le pregunta a git por cada una. Un fichero de
+  // estado nuevo entra solo en esta comprobacion el dia que alguien lo escriba.
+  {
+    console.log('\n41. TODO LO QUE EL BOT ESCRIBE EN data/ ESTA IGNORADO');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const rutas = new Set();
+    const andar41 = (dir) => {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        const f = path.join(dir, e.name);
+        if (e.isDirectory()) { andar41(f); continue; }
+        if (!e.name.endsWith('.js')) continue;
+        const txt = fs.readFileSync(f, 'utf8');
+        for (const m of txt.matchAll(/['"`](?:\.\.\/)+data\/([A-Za-z0-9_.-]+)['"`\/]/g)) rutas.add(m[1]);
+      }
+    };
+    andar41(path.join(R, 'src'));
+
+    // Los pools de frases viven en src/data/, no en data/: el regex de arriba
+    // los pilla por el nombre y esos SI van al repositorio.
+    const enRepo = new Set(fs.readdirSync(path.join(R, 'src/data')).map((f) => f.replace(/\.js$/, '')));
+    const deEstado = [...rutas].filter((r) => !enRepo.has(r.replace(/\.js$/, '')));
+    exige(deEstado.length > 0, 'no encuentro ninguna ruta de data/ en el codigo: el regex de esta capa ha dejado de valer');
+
+    const sinIgnorar = [];
+    for (const r of deEstado) {
+      // Se le pregunta a git, que es quien decide de verdad. Un fichero que aun
+      // no existe no se puede consultar, asi que se crea uno de mentira dentro
+      // (y se borra) solo si hace falta.
+      const rel = `data/${r}`;
+      const abs = path.join(R, rel);
+      let creado = null;
+      if (!fs.existsSync(abs)) {
+        // Si el nombre no lleva extension es una carpeta (auth, authGuardian,
+        // pfpcache, music_cache): git ignora carpetas por su linea con barra.
+        if (r.includes('.')) { fs.writeFileSync(abs, ''); creado = abs; }
+        else { fs.mkdirSync(path.join(abs), { recursive: true }); fs.writeFileSync(path.join(abs, '.probe'), ''); creado = abs; }
+      }
+      const objetivo = r.includes('.') ? rel : `${rel}/.probe`;
+      const res = spawnSync('git', ['check-ignore', '-q', objetivo], { cwd: R });
+      if (res.status !== 0) sinIgnorar.push(rel);
+      if (creado) fs.rmSync(creado, { recursive: true, force: true });
+    }
+
+    exige(sinIgnorar.length === 0,
+      `${sinIgnorar.join(', ')} no esta(n) en .gitignore: al primer uso el despliegue se para por "cambios locales", y el arreglo que imprime (git clean -fd) los BORRA`);
+
+    if (fallos === antes) console.log(verde(`   ✓ los ${deEstado.length} ficheros de estado de data/ estan fuera del repositorio`));
   }
 
   // ── 39. !purgeall NO SE LLEVA POR DELANTE A QUIEN NO DEBE ────────────────

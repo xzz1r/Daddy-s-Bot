@@ -35,6 +35,17 @@ data/objetivoDia.json
 # telefonos reales: no sube al repo ni por asomo. Y ademas tiene que quedar
 # fuera para que el `git reset --hard` del despliegue no lo pise en la VPS.
 data/nombres.json
+# La sesion del guardian. Es OTRA cuenta de WhatsApp: sus credenciales no suben
+# al repositorio ni por asomo. Y encima, sin esta linea el despliegue se paraba
+# y el arreglo que imprime —git clean -fd— la borraba, o sea que habria que
+# volver a vincular al guardian en cada actualizacion.
+data/authGuardian/
+# El numero del bot, que el escribe al conectar para que el guardian sepa a
+# quien protege. Es un telefono real: fuera del repositorio publico.
+data/numeroBot.json
+# Quien le quito el admin al bot y cuando. Estado del grupo, y con un telefono
+# dentro.
+data/adminDeuda.json
 data/pfpcache/
 data/music_cache/
 temp/
