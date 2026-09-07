@@ -6334,7 +6334,41 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
         'la despensa ya no se poda al guardar: veinte categorias de gifs de hasta 1,5 MB creciendo sin tope en una maquina de 1 GB');
     }
 
-    if (fallos === antes) console.log(verde('   ✓ la despensa se mira antes de la red y se repone despues de responder'));
+    // ── LA REPOSICION PIDE LA MISMA CATEGORIA QUE LA PETICION ───────────
+    //
+    // Aqui se colo el fallo que ya se habia arreglado una vez por delante: la
+    // reposicion llamaba con catNsfw en null, asi que para *!fuck* bajaba un gif
+    // de la categoria SFW de respaldo —un beso— y lo guardaba bajo la clave de
+    // la explicita. El siguiente *!fuck* se llevaba ese beso.
+    //
+    // Y el validador que existia no lo veia: comprobaba la peticion EN VIVO, que
+    // estaba bien, y no la reposicion. Por eso esta mira la firma entera.
+    {
+      const src3 = soloCodigo('src/commands/acciones.js');
+      exige(/function reponerDespensa\(cat, nsfw, catNsfw, clave\)/.test(src3),
+        'reponerDespensa ya no recibe catNsfw: rellenaria la despensa de las explicitas con gifs de la categoria de respaldo');
+      const iR = src3.indexOf('function reponerDespensa');
+      const cuerpoR = iR < 0 ? '' : src3.slice(iR, src3.indexOf('\n}', iR));
+      exige(/traerAccion\(cat, nsfw, catNsfw, true\)/.test(cuerpoR),
+        'la reposicion no le pasa catNsfw a traerAccion: la despensa de *!fuck* se llenaria de besos');
+    }
+
+    // ── Y EL GIF SE MANDA PEQUEÑO ───────────────────────────────────────
+    //
+    // Con la despensa, bajar y convertir ya no le hacen esperar a nadie: lo
+    // unico que queda en el camino caliente es SUBIRLO, y eso depende del
+    // tamaño. Medido sobre un gif de 2 MB, pasar de crf 23 a tamaño original
+    // (376 KB) a crf 28 con ancho <= 400 (101 KB) es cuatro veces menos que
+    // subir, y lo que se recorta no se veia: la burbuja lo pinta a unos 300 px.
+    {
+      const src3 = soloCodigo('src/commands/acciones.js');
+      exige(/min\(400,iw\)/.test(src3) && /'-crf', '28'/.test(src3),
+        'el conversor de las acciones volvio a dejar el gif a tamaño y calidad completos: cuatro veces mas que subir por unos pixeles que no se ven');
+      exige(/:-2"/.test(src3) || /:-2'/.test(src3),
+        'el escalado ya no fuerza altura par: H.264 no acepta impares y el comando muere entero');
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ la despensa se mira antes de la red, repone su propia categoria y manda el gif ligero'));
   }
 
   // ── 39. !purgeall NO SE LLEVA POR DELANTE A QUIEN NO DEBE ────────────────

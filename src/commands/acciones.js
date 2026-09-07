@@ -254,19 +254,26 @@ function guardarEnDespensa(clave, medio) {
 // Repone en segundo plano. No se espera, no se avisa y no se propaga: si la web
 // está caída, el siguiente comando lo descubrirá por el camino normal y
 // devolverá el aura como siempre. Un fallo aquí no puede tocar a nadie.
-function reponerDespensa(cat, nsfw, clave) {
+//
+// EL catNsfw TIENE QUE VIAJAR HASTA AQUI, y aqui lo perdi. Reponia llamando con
+// `catNsfw = null`, asi que para *!fuck* bajaba un gif de la categoria SFW de
+// respaldo —un beso— y lo guardaba bajo la clave de la explicita. El siguiente
+// *!fuck* se llevaba ese beso de la despensa: exactamente el fallo que ya se vio
+// en el grupo, resucitado por la puerta de atras y sin que ningun validador lo
+// mirara, porque el que existia comprobaba la peticion en vivo y no la reposicion.
+function reponerDespensa(cat, nsfw, catNsfw, clave) {
   const d = despensa.get(clave);
   if (d && d.cola.length >= LISTOS_POR_CAT) return;
   if (reponiendo.has(clave)) return;
   reponiendo.add(clave);
-  traerAccion(cat, nsfw, null, true)
+  traerAccion(cat, nsfw, catNsfw, true)
     .then((m) => {
       guardarEnDespensa(clave, m);
       reponiendo.delete(clave);
       // Y otra vuelta hasta llenar. De una en una y encadenadas: dos peticiones
       // a la vez a la misma web es como se empieza a parecer a un scraper.
       const d2 = despensa.get(clave);
-      if (!d2 || d2.cola.length < LISTOS_POR_CAT) reponerDespensa(cat, nsfw, clave);
+      if (!d2 || d2.cola.length < LISTOS_POR_CAT) reponerDespensa(cat, nsfw, catNsfw, clave);
     })
     .catch((e) => { logger.warn(`despensa ${clave}: ${e.message}`); reponiendo.delete(clave); });
 }
@@ -287,9 +294,26 @@ async function gifAMp4(gif) {
       // Las dimensiones PARES son obligatorias para H.264, y un gif de
       // reacción viene a 500x281 con toda tranquilidad. Sin el scale, ffmpeg
       // falla con "height not divisible by 2" y el comando muere entero.
+      // MAS PEQUEÑO, QUE ES LO QUE QUEDA POR OPTIMIZAR. Con la despensa, bajar y
+      // convertir ya no le hacen esperar a nadie: lo unico que queda en el
+      // camino caliente es SUBIRLO a WhatsApp, y eso depende del tamaño.
+      //
+      // Medido sobre un gif de 2 MB:
+      //
+      //   crf 23, tamaño original   376 KB
+      //   crf 28, tamaño original   171 KB
+      //   crf 28, ancho <= 400      101 KB   <- este
+      //   crf 30, ancho <= 320       55 KB   (ya se ve blando)
+      //
+      // Cuatro veces menos que subir. Y 400 px de ancho sobran: la burbuja de
+      // WhatsApp pinta esto a unos 300, asi que lo que se recorta no se veia.
+      //
+      // `min(400,iw)` solo ENCOGE — un gif pequeño no se estira, que quedaria
+      // peor que dejarlo como estaba. El -2 mantiene la altura par, que es
+      // obligatorio para H.264 y ya costo un fallo aqui.
       const ff = spawn(ffmpegPath, ['-y', '-i', entrada,
         '-movflags', 'faststart', '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
-        '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2', '-crf', '23',
+        '-vf', "scale='min(400,iw)':-2", '-crf', '28',
         '-preset', 'veryfast', '-an', salida]);
       const mata = setTimeout(() => { try { ff.kill('SIGKILL'); } catch {} reject(new Error('ffmpeg tardo demasiado')); }, 20000);
       ff.on('error', (e) => { clearTimeout(mata); reject(e); });
@@ -447,6 +471,7 @@ function hazAccion(nombre) {
     }
 
     let traido;
+    const t0 = Date.now();
     try {
       traido = await traerAccion(cat, nsfw, catNsfw);
     } catch (e) {
@@ -476,12 +501,23 @@ function hazAccion(nombre) {
           caption: frase,
           mentions: [quien, objetivo],
         };
+    const tTraer = Date.now() - t0;
+    const t1 = Date.now();
     await sock.sendMessage(jid, media, { quoted: msg });
+    const tSubir = Date.now() - t1;
+
+    // EL DESGLOSE, SOLO CUANDO TARDA. Sin esto, "va lento" no se puede
+    // diagnosticar: traer el gif y subirlo a WhatsApp son dos problemas
+    // distintos, con arreglos distintos, y el log decia solo el total.
+    if (tTraer + tSubir > 1500) {
+      logger.warn(`accion ${nombre}: ${tTraer + tSubir} ms (traer ${tTraer}, subir ${tSubir}, `
+        + `${Math.round(pesaDe(traido) / 1024)} KB, despensa ${despensa.get(claveDespensa(cat, nsfw, catNsfw))?.cola.length ?? 0})`);
+    }
 
     // SE REPONE LO GASTADO, sin esperar. Va DESPUES de mandar el gif a
     // proposito: si fuera antes, el comando estaria esperando a que se prepare
     // el de la proxima vez, que es justo lo que se venia a quitar de en medio.
-    reponerDespensa(cat, nsfw, claveDespensa(cat, nsfw, catNsfw));
+    reponerDespensa(cat, nsfw, catNsfw, claveDespensa(cat, nsfw, catNsfw));
 
     // EL ROAST VA EN OTRO MENSAJE. Pegarlo al caption lo convierte en pie de
     // foto: se lee como continuacion de la escena y no como paliza. Quien usa
