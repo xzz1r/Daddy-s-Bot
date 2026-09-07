@@ -6315,10 +6315,18 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     // reves, el comando estaria esperando a preparar el de la proxima vez, que
     // es justo lo que se venia a quitar de en medio.
     const src2 = soloCodigo('src/commands/acciones.js');
-    const iSacar = src2.indexOf('sacarDeDespensa(');
-    const iRed = src2.indexOf('await axios.get(direccionDe(');
-    exige(iSacar >= 0 && iRed >= 0 && iSacar < iRed,
-      'la despensa se mira despues de salir a la red, o ya no se mira: entonces no sirve para nada');
+    // DENTRO DE traerAccion, no en todo el fichero: `sacarDeDespensa(` aparece
+    // tambien en su propia definicion, que va antes de todo, asi que buscarlo a
+    // secas daba iSacar < iRed SIEMPRE. La guarda pasaba en verde con la
+    // consulta movida detras de la red. Lo probe.
+    {
+      const iT = src2.indexOf('async function traerAccion');
+      const cuerpoT = iT < 0 ? '' : src2.slice(iT, src2.indexOf('\n}', iT));
+      const iSacar = cuerpoT.indexOf('sacarDeDespensa(');
+      const iRed = cuerpoT.indexOf('await axios.get(direccionDe(');
+      exige(iSacar >= 0 && iRed >= 0 && iSacar < iRed,
+        'la despensa se mira despues de salir a la red, o ya no se mira dentro de traerAccion: entonces no sirve para nada');
+    }
     const iEnviar = src2.indexOf('await sock.sendMessage(jid, media');
     // La ULTIMA aparicion: la primera esta dentro del propio reponer, que se
     // llama a si mismo para terminar de llenar.

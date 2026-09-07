@@ -181,11 +181,18 @@ const API = 'https://nekos.best/api/v2/';
 const API_NSFW = (process.env.ACCION_NSFW_API || '').trim();
 const TOPE_DESCARGA = 8 * 1024 * 1024;   // un gif de reacción pesa cientos de KB
 
-// Lo ya convertido, por URL. La API repite gifs de un catálogo finito, así que
-// sin esto el mismo gif pasa por ffmpeg una y otra vez. Vive en memoria y se
-// pierde al reiniciar, que es justo lo que se quiere: no ensucia el disco.
-const CACHE_MAX = 40;
-const cache = new Map();
+// LA CACHE POR URL SE QUITO, y conviene saber por que estaba y por que ya no.
+//
+// Guardaba hasta cuarenta MP4 ya convertidos indexados por su direccion, para
+// que un gif repetido no volviera a pasar por ffmpeg. Tenia sentido cuando
+// bajar y convertir ocurria con alguien esperando delante.
+//
+// Con la despensa ya no: ese trabajo esta fuera del camino caliente, asi que lo
+// unico que ahorraba era esfuerzo en segundo plano — y lo cobraba en memoria,
+// hasta doce megas de buffers en una maquina de 1 GB donde el bot ya ronda los
+// ciento cuarenta y la despensa se lleva otros veinticuatro.
+//
+// Dos almacenes de lo mismo, uno de ellos sin efecto visible. Fuera.
 
 // ─── LA DESPENSA: GIFS YA LISTOS, ANTES DE QUE NADIE LOS PIDA ───────────────
 //
@@ -329,12 +336,6 @@ function reponerDespensa(cat, nsfw, catNsfw, clave) {
     .catch((e) => { logger.warn(`despensa ${clave}: ${e.message}`); reponiendo.delete(clave); });
 }
 
-function recordar(url, mp4) {
-  if (cache.has(url)) cache.delete(url);
-  else if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value);
-  cache.set(url, mp4);
-}
-
 async function gifAMp4(gif) {
   const entrada = tempFile('gif');
   const salida = tempFile('mp4');
@@ -445,7 +446,6 @@ async function traerAccion(cat, nsfw, catNsfw, deDespensa = false) {
     || (data?.link ? { url: data.link } : null)
     || (data?.images?.[0]?.url ? { url: data.images[0].url } : null);
   if (!r?.url) throw new Error('la web no ha devuelto ningun gif');
-  if (cache.has(r.url)) return cache.get(r.url);
   const bajado = await axios.get(r.url, {
     responseType: 'arraybuffer', timeout: 15000,
     maxContentLength: TOPE_DESCARGA, maxBodyLength: TOPE_DESCARGA,
@@ -464,15 +464,12 @@ async function traerAccion(cat, nsfw, catNsfw, deDespensa = false) {
   //   · imagen fija -> se manda como imagen, sin tocar ffmpeg.
   const tipo = queEs(bytes);
   if (tipo === 'imagen') {
-    recordar(r.url, { imagen: bytes });
     return { imagen: bytes };
   }
   if (tipo === 'mp4') {
-    recordar(r.url, { mp4: bytes });
     return { mp4: bytes };
   }
   const { buf: mp4, thumb } = await gifAMp4(bytes);
-  recordar(r.url, { mp4, thumb });
   return { mp4, thumb };
 }
 
@@ -639,4 +636,4 @@ function hazAccion(nombre) {
 const comandos = {};
 for (const nombre of ACTIVAS) comandos[nombre] = hazAccion(nombre);
 
-module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, calentarDespensa, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, ...comandos, _cache: cache, _turnoRoast: turnoRoast };
+module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, calentarDespensa, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, ...comandos, _turnoRoast: turnoRoast };
