@@ -16,7 +16,7 @@
 // aprendió a no hacer.
 const axios = require('axios');
 const fs = require('fs-extra');
-const { getSender, getTarget, sameUser, isOwner, isMainOwner } = require('../utils/wa');
+const { getSender, getTarget, sameUser, isOwner, isMainOwner, canonicalJid } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { pickFresh, tempFile, cleanTemp, ffmpegSemaphore } = require('../utils/helpers');
 const { ffmpegPath } = require('../utils/ffmpeg');
@@ -547,8 +547,19 @@ function hazAccion(nombre) {
       }, { quoted: msg });
     }
 
-    const nA = `@${quien.split('@')[0]}`;
-    const nV = `@${objetivo.split('@')[0]}`;
+    // SE MENCIONA EL TELEFONO, NO EL @lid. En un grupo LID —o sea, en todos los
+    // de ahora— lo que trae la mencion del mensaje es un @lid, y WhatsApp no
+    // sabe a quien pintar con eso: en el grupo sale un "@UnNameD" en vez del
+    // nombre. Se vio en produccion, en un *!cuddle*.
+    //
+    // canonicalJid traduce el @lid al telefono con el mapa que el bot ya
+    // mantiene (lo llena indexGroupMeta, que corre porque estas acciones piden
+    // metadata). Si no hubiera traduccion, se queda como estaba: peor un @lid
+    // crudo que un comando que revienta.
+    const objCanon = canonicalJid(objetivo) || objetivo;
+    const quienCanon = canonicalJid(quien) || quien;
+    const nA = `@${quienCanon.split('@')[0]}`;
+    const nV = `@${objCanon.split('@')[0]}`;
     const frase = pickFresh(pool, `${jid}|accion|${nombre}`)
       .replace(/%A/g, nA)
       .replace(/%V/g, nV);
@@ -558,7 +569,7 @@ function hazAccion(nombre) {
     // sacado de una web. Se sigue pidiendo a la API porque viene en la misma
     // respuesta, pero no se enseña.
     const media = traido.imagen
-      ? { image: traido.imagen, caption: frase, mentions: [quien, objetivo] }
+      ? { image: traido.imagen, caption: frase, mentions: [quienCanon, objCanon] }
       : {
           video: traido.mp4,
           gifPlayback: true,
@@ -567,7 +578,7 @@ function hazAccion(nombre) {
           // propio ffmpeg, y null no. Ver la nota en gifAMp4.
           jpegThumbnail: traido.thumb || null,
           caption: frase,
-          mentions: [quien, objetivo],
+          mentions: [quienCanon, objCanon],
         };
     const tTraer = Date.now() - t0;
     const t1 = Date.now();
@@ -605,7 +616,7 @@ function hazAccion(nombre) {
       turnoRoast.set(jid, n % ROAST_CADA);
       if (n % ROAST_CADA === 0) {
         const remate = `_${pickFresh(RX.ROAST_USUARIO, `${jid}|accion|remate`).replace(/%A/g, nA)}_`;
-        await sock.sendMessage(jid, { text: remate, mentions: [quien] }, { quoted: msg });
+        await sock.sendMessage(jid, { text: remate, mentions: [quienCanon] }, { quoted: msg });
       }
     }
   };
