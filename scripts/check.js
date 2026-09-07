@@ -1043,12 +1043,63 @@ const di=async(quien,texto,extra)=>{
 
   // ── 6. LOS COMANDOS DE PAGO NO SALEN GRATIS POR PRIVADO ───────────────────
   {
-    const mh = fs.readFileSync(path.join(R, "src/handlers/messageHandler.js"), 'utf8');
-    if (/!jid\.endsWith\('@g\.us'\) && conceptoCobro/.test(mh)) {
-      console.log(verde('   ✓ los comandos de pago no se sirven gratis por privado'));
+    // ESTO BUSCABA UN TROZO DE TEXTO Y NADA MAS. Quitando el `return` que corta
+    // la ejecucion —dejando el aviso, para que la condicion siga escrita— el
+    // comando se sirve igual y gratis, y la guarda no se enteraba. Probado.
+    //
+    // Y AL REESCRIBIRLA ME EQUIVOQUE DE PERSONA, que es lo que la dejo vacua una
+    // segunda vez: probe con un desconocido, y a esos el bot los descarta MUCHO
+    // antes, en la puerta del privado (ownerEnPrivado). Nunca llegaban a la
+    // linea del cobro, asi que el comando no se servia ni con la guarda rota y
+    // la prueba pasaba igual.
+    //
+    // Quien llega de verdad a esa linea es un CO-OWNER: entra al privado del bot
+    // pero no es el dueño principal, o sea que no esta exento de pagar. Y va en
+    // un proceso APARTE porque wa.js congela la lista de co-owners al cargarse:
+    // tocar la config a estas alturas no cambiaria nada, igual que ya pasaba en
+    // la capa de las acciones explicitas.
+    const dirD = fs.mkdtempSync(path.join(os.tmpdir(), 'ddb-dm-'));
+    const guionD = path.join(dirD, 'd.js');
+    fs.writeFileSync(guionD, [
+      `const { handleMessage } = require(${JSON.stringify(path.join(R, 'src/handlers/messageHandler'))});`,
+      "const CO = '34600000123@s.whatsapp.net';",
+      '(async () => {',
+      '  const salida = [];',
+      '  const sk = { user: { id: "549199@s.whatsapp.net" },',
+      '    sendMessage: async (j, c) => { salida.push(c.text || (c.image ? "[IMG]" : "")); return {}; },',
+      '    readMessages: async () => {}, groupMetadata: async () => null, sendPresenceUpdate: async () => {} };',
+      "  for (const cmd of ['iq', 'gay', 'ship', 'fea']) {",
+      '    await handleMessage(sk, { key: { remoteJid: CO, fromMe: false, id: "D" + Math.random() },',
+      '      messageTimestamp: Math.floor(Date.now() / 1000), message: { conversation: "!" + cmd } }).catch(() => {});',
+      '  }',
+      '  await new Promise((r) => setTimeout(r, 200));',
+      '  console.log("DM" + JSON.stringify(salida));',
+      '  process.exit(0);',
+      '})();',
+    ].join('\n'));
+    let dm = [];
+    try {
+      const bruto = execSync(`node ${JSON.stringify(guionD)}`, {
+        encoding: 'utf8', timeout: 90000, cwd: R,
+        env: { ...process.env, CO_OWNERS: '34600000123' }, stdio: ['ignore', 'pipe', 'ignore'],
+      });
+      const linea = bruto.split('\n').find((l) => l.startsWith('DM'));
+      dm = linea ? JSON.parse(linea.slice(2)) : [];
+    } catch { dm = []; } finally { fs.rmSync(dirD, { recursive: true, force: true }); }
+    const txtDm = dm.join('\n');
+    // Servido gratis = ha contestado con el resultado del comando. Todos estos
+    // sacan un porcentaje o una barra; el aviso de "esto se juega en el grupo"
+    // no lleva ninguna de las dos cosas.
+    const sirvioGratis = /\d+\s*%/.test(txtDm) || /[▓█]/.test(txtDm);
+    const dijoDonde = /se juega en el grupo/i.test(txtDm);
+    if (!sirvioGratis && dijoDonde) {
+      console.log(verde('   ✓ los comandos de pago no se sirven gratis por privado, y dicen donde se juegan'));
+    } else if (!sirvioGratis && dm.length === 0) {
+      fallos++;
+      console.log(rojo('   ✗ no pude probar el privado: la prueba no devolvio nada, asi que esta guarda no esta mirando nada'));
     } else {
       fallos++;
-      console.log(rojo('   ✗ falta la guarda de privado: los comandos de pago vuelven a ser gratis en DM'));
+      console.log(rojo('   ✗ un comando de pago se ha servido entero por privado: ahi no hay aura que cobrar, asi que sale gratis'));
     }
   }
 
@@ -1248,8 +1299,51 @@ const di=async(quien,texto,extra)=>{
 
     // Y echar sin vetar es una puerta giratoria: con el enlace del grupo, vuelve
     // a entrar. Es la unica guarda grave que no baneaba.
+    // ERA DE TEXTO Y SE COLABA. Envolviendo la llamada en `if (false)` —la
+    // cuenta business se sigue expulsando pero ya no se vetea— el texto sigue en
+    // el fichero y la guarda daba verde. O sea que la puerta giratoria que esta
+    // capa dice cerrar se reabria sin que nadie se enterara. Probado.
+    //
+    // Ahora se ejecuta el camino entero y se le pregunta a la lista negra.
+    //
+    // El numero es imposible a proposito (999...) y se desbanea en un `finally`:
+    // esto escribe en la lista negra de verdad, que es la razon por la que aqui
+    // no se probaba nada.
     exige(/banAccount\(allForms\(sender, meta\), `cuenta business/.test(mhSrc),
       'el antiempresa expulsa sin meter en la lista negra: vuelve a entrar con el enlace del grupo');
+    {
+      const { isBanned, unbanAccount, flushBanlist } = require(path.join(R, 'src/utils/banlist'));
+      const { handleMessage } = require(path.join(R, 'src/handlers/messageHandler'));
+      const GB = '000000008@g.us';
+      const empresa = `9990000${Math.floor(Math.random() * 90000 + 10000)}@s.whatsapp.net`;
+      const metaB = { id: GB, subject: 'G', participants: [
+        { id: '549199@s.whatsapp.net', admin: 'admin' }, { id: empresa }] };
+      // EL ANTIEMPRESA VA APAGADO POR GRUPO: sin encenderlo, la funcion vuelve
+      // en la primera linea y la prueba salia roja contra codigo correcto.
+      const st = require(path.join(R, 'src/utils/state'));
+      const estabaAB = st.isAntiBusinessEnabled(GB);
+      let vetada = false;
+      try {
+        if (!estabaAB) st.toggleAntiBusiness(GB, true);
+        const sk = { user: { id: '549199@s.whatsapp.net' },
+          sendMessage: async () => ({}), readMessages: async () => {},
+          groupMetadata: async () => metaB, sendPresenceUpdate: async () => {},
+          groupParticipantsUpdate: async () => [{ status: '200' }] };
+        await handleMessage(sk, {
+          key: { remoteJid: GB, participant: empresa, fromMe: false, id: 'B' + Math.random() },
+          pushName: 'Tienda', messageTimestamp: Math.floor(Date.now() / 1000),
+          verifiedBizName: 'Tienda SL',
+          message: { conversation: 'hola' },
+        });
+        await new Promise((r) => setTimeout(r, 250));
+        vetada = await isBanned([empresa]);
+      } catch { vetada = false; } finally {
+        try { await unbanAccount([empresa]); await flushBanlist(); } catch {}
+        try { if (!estabaAB) st.toggleAntiBusiness(GB, false); } catch {}
+      }
+      exige(vetada,
+        'una cuenta business se expulsa pero NO entra en la lista negra: con el enlace del grupo vuelve a entrar, y hay que echarla otra vez, y otra');
+    }
 
     // LAS OTRAS DOS PUERTAS TAMBIEN VETAN, y hasta ahora esto solo vigilaba la
     // de mensajes. Por eso el test seguia verde con el join y el purge echando
@@ -2094,12 +2188,42 @@ const di=async(quien,texto,extra)=>{
 
   // ── 7. LOS MUTEOS SOBREVIVEN AL REINICIO ──────────────────────────────────
   {
+    // TAMBIEN ERA DE TEXTO: pedia que las dos llamadas al fichero existieran.
+    // Quitando del bucle de lectura la linea que vuelve a meter cada mute en el
+    // mapa, el fichero se lee igual —las dos llamadas siguen ahi— y los muteos
+    // ya no se aplican tras un reinicio. Probado.
+    //
+    // Se comprueba el viaje entero y en un proceso APARTE: mutear, volcar a
+    // disco, arrancar de cero y preguntar si sigue muteado. En este mismo
+    // proceso no valdria, porque el mapa ya esta en memoria y contestaria que si
+    // sin haber leido nada.
     const gr = fs.readFileSync(path.join(R, "src/commands/group.js"), 'utf8');
-    if (/atomicWriteJson\(MUTE_FILE/.test(gr) && /readJsonOrEnoent\(MUTE_FILE/.test(gr)) {
-      console.log(verde('   ✓ los muteos se guardan en disco'));
+    const dirM = fs.mkdtempSync(path.join(os.tmpdir(), 'ddb-mute-'));
+    const guionM = path.join(dirM, 'm.js');
+    const G = require(path.join(R, 'src/commands/group'));
+    const gJid = '000000000@g.us';
+    const vJid = `34600006${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`;
+    let sobrevive = false;
+    try {
+      G.muteUser(gJid, vJid, Date.now() + 3600000);
+      await G.flushMutes();
+      fs.writeFileSync(guionM, [
+        `const G = require(${JSON.stringify(path.join(R, 'src/commands/group'))});`,
+        'setTimeout(() => {',
+        `  console.log('MUTE' + (G.isMuted(${JSON.stringify(gJid)}, ${JSON.stringify(vJid)}) ? '1' : '0'));`,
+        '  process.exit(0);',
+        '}, 600);',
+      ].join('\n'));
+      const out = execSync(`node ${JSON.stringify(guionM)}`, { encoding: 'utf8', timeout: 60000, cwd: R, stdio: ['ignore', 'pipe', 'ignore'] });
+      sobrevive = /MUTE1/.test(out);
+      G.unmuteUser(gJid, vJid);
+      await G.flushMutes();
+    } catch { sobrevive = false; } finally { fs.rmSync(dirM, { recursive: true, force: true }); }
+    if (sobrevive && /atomicWriteJson\(MUTE_FILE/.test(gr)) {
+      console.log(verde('   ✓ un mute puesto ahora sigue puesto despues de reiniciar'));
     } else {
       fallos++;
-      console.log(rojo('   ✗ los muteos volvieron a vivir solo en memoria: `npm run update` los borra'));
+      console.log(rojo('   ✗ los muteos no sobreviven al reinicio: `npm run update` los borra y el silenciado vuelve a hablar'));
     }
   }
 
@@ -2956,8 +3080,26 @@ const di=async(quien,texto,extra)=>{
     exige(/tope \$\{fmt\(maxStake\)\}/.test(rb) && !/\$\{fmt\(stake\)\} de \$\{fmt\(maxStake\)\}/.test(rb),
       'la nota vuelve a repetir la cifra pedida: ya sale dos veces mas arriba');
     // El consejo de la cifra no puede volver a salir en cada robo.
-    exige(/pistaCifra\(jid, sender\)/.test(rb) && /function pistaCifra/.test(rb),
-      'el consejo de *!robo @alguien 200* volvio a salir en todos los robos: un consejo repetido cien veces no enseña nada');
+    // OTRA QUE ERA VACUA. Pedia que la llamada y la funcion existieran como
+    // texto. Quitandole a `pistaCifra` la linea que recuerda a quien ya lo ha
+    // visto, la funcion sigue ahi, se sigue llamando, y el consejo sale en TODOS
+    // los robos — que es justo lo que esta capa dice impedir. Se llama dos veces
+    // y se mira lo unico que importa: que la segunda diga que no.
+    {
+      const { pistaCifra } = require(path.join(R, 'src/commands/robo'));
+      exige(typeof pistaCifra === 'function',
+        'robo.js ya no exporta pistaCifra: no hay forma de comprobar que el consejo se dosifica');
+      if (typeof pistaCifra === 'function') {
+        const g = `000000000@g.us`;
+        const quien = `34600009${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`;
+        exige(pistaCifra(g, quien) === true, 'el consejo de la cifra no sale ni la primera vez');
+        exige(pistaCifra(g, quien) === false,
+          'el consejo de *!robo @alguien 200* vuelve a salir en todos los robos: repetido cien veces no enseña nada');
+        // Y a otra persona SI le sale: el freno es por persona, no global.
+        exige(pistaCifra(g, `34600009${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`) === true,
+          'el consejo se apaga para todo el grupo cuando lo ve uno: entonces no lo aprende nadie mas');
+      }
+    }
     // Y no se explica con una frase lo que el numero de al lado ya dice.
     exige(!/Se le cayó todo encima/.test(rb),
       'volvio la linea que narra lo que las cifras de dos lineas mas abajo ya enseñan');
@@ -3017,6 +3159,24 @@ const di=async(quien,texto,extra)=>{
     const cachea = /if \(!fromCache && !result\.compartido\) \{/.test(mu);
     exige(borra && cachea,
       'una peticion compartida volvio a borrar o recachear el fichero de otra: audio roto para quien lo bajo');
+    // Y LA OTRA MITAD, QUE ES LA QUE FALTABA. Las dos condiciones de arriba
+    // miran `result.compartido`, pero quien pone esa marca es downloader.js, no
+    // music.js. Quitandole el `compartido: true` al seguidor del single-flight,
+    // las dos condiciones de music.js siguen escritas tal cual —pasaban el
+    // .test()— y el seguidor volvia a borrar el fichero del que lo bajo, que es
+    // exactamente el fallo que esta capa dice impedir. Probado.
+    //
+    // Sigue siendo una comprobacion de texto, y conviene decirlo: probar esto
+    // ejecutando pediria refactorizar downloader.js para poder sustituirle la
+    // red, y el fallo no da para tanto. Lo que si cambia es DONDE mira: antes
+    // vigilaba music.js, que solo lee la marca, y no el fichero que la pone.
+    {
+      const dlSrc = soloCodigo('src/utils/downloader.js');
+      const iSeguidor = dlSrc.indexOf('const yaVa = enVuelo.get(clave)');
+      const cuerpo = iSeguidor < 0 ? '' : dlSrc.slice(iSeguidor, iSeguidor + 400);
+      exige(/compartido: true/.test(cuerpo),
+        'el seguidor del single-flight de *!play* ya no se marca como compartido: va a borrarle el fichero al que lo bajo mientras lo esta leyendo');
+    }
 
     // SoundCloud en paralelo: el que llega tarde tambien ocupa disco.
     exige(/cleanTemp\(h\.value\.filePath\)/.test(dl),
@@ -3137,7 +3297,59 @@ const di=async(quien,texto,extra)=>{
     exige(/momentum\.anotar\(jid, sender, 'tilt', 'robo'\)/.test(auraSrc), 'un desastre de !aura tiene que dejar tilt el siguiente !robo');
 
     const roboSrc = fs.readFileSync(path.join(R, 'src/commands/robo.js'), 'utf8');
-    exige(/chanceVisible/.test(roboSrc) && /ROBO_OWNER_VISIBLE/.test(roboSrc), '!robo sigue enseñando la banda falsa, no el 62 %');
+    // ESTA GUARDA ERA VACUA Y DEJABA PASAR EL FALLO QUE DECIA VIGILAR.
+    //
+    // Comprobaba que las palabras `chanceVisible` y `ROBO_OWNER_VISIBLE`
+    // aparecieran en el fichero. Con eso, sustituir todo el calculo por
+    // `chanceVisible = chanceFinal` —o sea, enseñarle al owner su probabilidad
+    // real, que es exactamente lo que delata el amaño— pasaba en verde. Probado
+    // rompiendolo.
+    //
+    // Ahora se EJECUTA la funcion. Y se ejecuta con el jitter apagado, porque
+    // con el ±3 % aleatorio dentro haria falta repetirlo muchas veces para estar
+    // seguro de algo.
+    {
+      const { chanceVisibleDe } = require(path.join(R, 'src/commands/robo'));
+      const { ROBO_OWNER_VISIBLE } = require(path.join(R, 'src/utils/economia'));
+      exige(typeof chanceVisibleDe === 'function',
+        'robo.js ya no exporta chanceVisibleDe: la fachada del owner vuelve a ser incomprobable desde fuera');
+      if (typeof chanceVisibleDe === 'function') {
+        // Un miembro ve su numero de verdad. Si esto cambia, el bot le estaria
+        // mintiendo a todo el grupo y no solo tapando al dueño.
+        exige(chanceVisibleDe(false, 0.37, 500, 1000, null, true) === 0.37,
+          'a un miembro cualquiera se le enseña una probabilidad que no es la suya');
+        // Y al owner, NUNCA la suya, pida lo que pida.
+        for (const real of [0.62, 0.75, 0.9]) {
+          for (const pedido of [0, 250, 500, 1000]) {
+            const visto = chanceVisibleDe(true, real, pedido, 1000, null, true);
+            exige(Math.abs(visto - real) > 0.05,
+              `pidiendo ${pedido} se le enseña al owner ${Math.round(visto * 100)} % y su probabilidad real es ${Math.round(real * 100)} %: eso es lo que delata el amaño`);
+            exige(visto >= ROBO_OWNER_VISIBLE.min && visto <= ROBO_OWNER_VISIBLE.max,
+              `la cifra que ve el owner (${Math.round(visto * 100)} %) se sale de la banda de un miembro`);
+          }
+        }
+        // Y NO PUEDE SER SIEMPRE LA MISMA. Un numero fijo que se repite en cada
+        // tirada delata igual que enseñar el real: fue el fallo original.
+        const cien = Array.from({ length: 100 }, () => chanceVisibleDe(true, 0.62, 400, 1000, null));
+        exige(new Set(cien.map((x) => Math.round(x * 100))).size >= 3,
+          'la cifra que ve el owner sale siempre igual: un numero fijo que se repite es lo que canta');
+      }
+
+      // Y QUE *!robo* LA USE. Esto se me escapo al reescribir la guarda: probaba
+      // la funcion, que estaba perfecta, y no que el comando la llamara.
+      // Sustituyendo la llamada por `chanceVisible = chanceFinal` la funcion
+      // seguia bien y el validador seguia en verde, con el owner viendo su
+      // probabilidad real en el grupo. Probado, y verde.
+      //
+      // El call site se comprueba por texto y no ejecutando *!robo*, y conviene
+      // decir por que: *!robo* mueve saldo de verdad, asi que ejecutarlo aqui
+      // escribiria en el aura real del grupo. Por eso la expresion se pide
+      // ENTERA y exacta: asi no basta con dejar el nombre de la funcion suelto.
+      const iCmd = roboSrc.indexOf('async function cmdRobo');
+      const cuerpoCmd = iCmd < 0 ? '' : roboSrc.slice(iCmd);
+      exige(/let chanceVisible = chanceVisibleDe\(ladronEsOwner, chanceFinal, stake, maxStake, mom\);/.test(cuerpoCmd),
+        '*!robo* ya no pasa por chanceVisibleDe: la funcion puede estar perfecta, pero al owner se le esta enseñando otra cosa');
+    }
     exige(/ownerGana\(jid, ROBO_OWNER_EXITO\)/.test(roboSrc), 'el dado real del owner en !robo no se tocó');
     exige(/momentum\.consumir\(jid, sender, 'robo'\)/.test(roboSrc), '!robo gasta la racha que viene de !aura');
     exige(/momentum\.anotar\(jid, sender, 'caliente', 'aura'\)/.test(roboSrc), 'un golpe maestro calienta la próxima !aura');
@@ -4498,9 +4710,32 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     const bot = soloCodigo('src/bot.js');
     const i = bot.indexOf('sweepAllGroups(sock, mapa)');
     exige(i > 0, 'ha desaparecido el barrido inicial de fotos');
+    // ESTO ERA VACUO. Buscaba las palabras `sesionNueva` y `setTimeout` en los
+    // 1.200 caracteres anteriores a la llamada, sin comprobar que gobernaran
+    // nada. Cambiando la condicion por `if (forzar || !sesionNueva || true)`, el
+    // barrido se lanza SIEMPRE —incluido con una cuenta recien vinculada, que es
+    // el raspador de fotos que esta capa dice impedir— y las dos palabras siguen
+    // ahi. Probado.
+    //
+    // La condicion se lee entera y se EVALUA con los dos casos que importan:
+    // sesion de hoy (no debe barrer) y sesion vieja (debe barrer).
     const bloque = bot.slice(Math.max(0, i - 1200), i + 200);
-    exige(/sesionNueva|edadSesion/.test(bloque),
-      'el barrido inicial ya no mira la edad de la sesion: una cuenta recien vinculada se pone a pedir la foto de todo el grupo');
+    const cond = bloque.match(/if \((forzar[^)]*sesionNueva[^)]*)\) \{/);
+    exige(!!cond,
+      'la guarda del barrido inicial ya no es un `if (forzar ... sesionNueva ...)`: no se puede comprobar que la edad de la sesion mande');
+    if (cond) {
+      let evalua;
+      try { evalua = new Function('forzar', 'sesionNueva', `return (${cond[1]});`); } catch { evalua = null; }
+      exige(!!evalua, 'no pude evaluar la condicion del barrido inicial');
+      if (evalua) {
+        exige(evalua(false, true) === false,
+          'con la sesion recien vinculada el barrido se lanza igual: la cuenta nueva se pone a pedir la foto de todo el grupo, que es como te restringen el primer dia');
+        exige(evalua(false, false) === true,
+          'con una sesion vieja el barrido ya no se lanza nunca: entonces las huellas no se construyen solas');
+        exige(evalua(true, true) === true,
+          'el barrido forzado a mano dejo de funcionar');
+      }
+    }
     exige(/setTimeout/.test(bloque),
       'el barrido inicial vuelve a lanzarse nada mas conectar, sin esperar');
     // Y el indexado normal tiene que seguir con su pausa entre consultas.
@@ -5156,7 +5391,15 @@ console.log(JSON.stringify({
         const m = l.match(RED);
         if (!m) continue;
         vistas++;
-        exige(l.includes('withTimeout'),
+        // NO BASTA CON QUE LA PALABRA ESTE EN LA LINEA. Asi escrito, dejar la
+        // llamada desnuda y poner `// withTimeout: ...` en un comentario al
+        // final pasaba en verde, y esa llamada se queda sin tope de verdad: un
+        // socket colgado deja el comando mudo para siempre. Probado.
+        //
+        // Tiene que estar ENVUELTA: `withTimeout(` justo antes de `sock.`, con
+        // un `await` opcional en medio.
+        exige(new RegExp(`withTimeout\\(\\s*(?:await\\s+)?${m[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`).test(l)
+              || /withTimeout\(\s*(?:await\s+)?sock\./.test(l),
           `${rel}:${i + 1} llama a sock.${m[1]}() sin tope: si el socket se queda colgado, ese comando no contesta nunca`);
       }
     }
@@ -5237,9 +5480,45 @@ console.log(JSON.stringify({
       exige(CMDS_AURA.has(c), `*!${c}* mueve saldo y ha dejado de estar en CMDS_AURA: se juega con la economia apagada`);
     }
     // La tienda: el catalogo libre, la compra parada DENTRO de laTienda.
+    // ERA LA UNICA DEFENSA DE LA TIENDA Y ERA DE TEXTO. Envolviendo el freno en
+    // `if (false) { auraApagada(jid); ... }`, el texto sigue ahi y en la misma
+    // posicion, y se puede comprar con la economia apagada. Probado.
+    //
+    // Ahora se ejecuta: se apaga el aura del grupo de mentira, se pide comprar y
+    // se mira que conteste que esta apagada y que NO entregue nada. El apagado
+    // es en memoria y se deshace al salir, asi que esto no toca el aura de
+    // verdad — que es lo que hacia que aqui no se probara nada.
     const roboSrc = soloCodigo('src/commands/robo.js');
     exige(/auraApagada\(jid\)/.test(roboSrc),
       'la tienda ya no mira el interruptor por dentro: o se compra con la economia apagada, o el catalogo queda a oscuras');
+    {
+      const sw = require(path.join(R, 'src/utils/auraSwitch'));
+      const GT = `000000009@g.us`;
+      const comprador = `34600005${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`;
+      const estaba = sw.isAuraEnabled(GT);
+      let dijoApagada = false; let entrego = false;
+      {
+        try {
+          if (estaba) sw.toggleAura(GT, false);
+          const salida = [];
+          const sk = { user: { id: '549199@s.whatsapp.net' },
+            sendMessage: async (j, c) => { salida.push(c.text || ''); return {}; },
+            groupMetadata: async () => ({ id: GT, participants: [{ id: comprador }] }) };
+          const msgT = { key: { remoteJid: GT, participant: comprador, fromMe: false, id: 'T' + Math.random() },
+            message: { conversation: '!comprar ganzua' } };
+          const { cmdRobo } = require(path.join(R, 'src/commands/robo'));
+          await cmdRobo(sk, msgT, ['comprar', 'ganzua'], { id: GT, participants: [{ id: comprador }] }).catch(() => {});
+          const txt = salida.join('\n');
+          dijoApagada = /apagad|pausa|desactivad/i.test(txt);
+          entrego = /comprad|te llevas|en el inventario/i.test(txt);
+        } catch { /* si revienta, no ha entregado nada */ }
+        finally { try { if (estaba) sw.toggleAura(GT, true); } catch {} }
+        exige(!entrego,
+          'la tienda entrega el objeto con la economia apagada: apagar el juego tiene que apagar tambien la tienda');
+        exige(dijoApagada,
+          'la tienda no dice que la economia esta apagada: quien compra se queda sin saber por que no pasa nada');
+      }
+    }
     const iCat = roboSrc.indexOf('LA TIENDA DEL LADRÓN');
     const iPara = roboSrc.indexOf('auraApagada(jid)');
     exige(iCat > 0 && iPara > iCat,
@@ -6206,10 +6485,21 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     // parece al dia. Con el guardian eso significa correr durante semanas con un
     // fallo ya arreglado.
     {
-      const act = fs.readFileSync(path.join(R, 'scripts/actualizar.sh'), 'utf8');
+      // SE LEEN LOS COMANDOS, NO EL FICHERO ENTERO. Escrito con el fichero crudo,
+      // un comentario suelto que mencionara "pm2 restart bot" mas arriba movia
+      // el indexOf y el orden parecia correcto aunque en la ejecucion real el
+      // guardian arrancara primero. Probado: se invirtio el orden de verdad y la
+      // guarda siguio en verde.
+      //
+      // La capa 34, unas lineas mas abajo, ya limpiaba los comentarios para su
+      // propia comprobacion. Aqui se quedo sin hacer.
+      const actCrudo = fs.readFileSync(path.join(R, 'scripts/actualizar.sh'), 'utf8');
+      const act = actCrudo.split('\n').map((l) => l.replace(/(^|\s)#.*$/, '')).join('\n');
       exige(/pm2 restart guardian/.test(act),
         'el despliegue no reinicia al guardian: se queda con el codigo viejo y nadie se entera, porque el bot si se actualiza');
-      exige(act.indexOf('pm2 restart bot') < act.indexOf('pm2 restart guardian'),
+      const iBot = act.search(/^\s*pm2 restart bot\b/m);
+      const iGuard = act.search(/^\s*pm2 restart guardian\b/m);
+      exige(iBot >= 0 && iGuard >= 0 && iBot < iGuard,
         'el guardian se reinicia ANTES que el bot: leeria el numero y el @lid del bot antes de que este los anote');
       exige(/pm2 describe guardian/.test(act),
         'el despliegue reinicia al guardian sin comprobar que exista: quien no lo tenga se come un error en cada actualizacion');
@@ -6694,8 +6984,59 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
         // una web que ya esta dando errores, sin que nadie lo vea.
         const iRep = src4.indexOf('function reponerDespensa');
         const cuerpoRep = iRep < 0 ? '' : src4.slice(iRep, src4.indexOf('\n}\n', iRep));
-        exige(/if \(!fue\) return;/.test(cuerpoRep),
-          'la reposicion vuelve a encadenarse tambien cuando la peticion falla: con la web caida eso es un bucle de peticiones sin freno');
+        exige(/if \(!crecio\) return;/.test(cuerpoRep),
+          'la reposicion vuelve a encadenarse por "ha traido algo" en vez de por "hay mas que antes": si la poda borra lo que acaba de llegar, se llama a si misma sin parar y el bot se cuelga entero');
+        // Y SE PRUEBA DE VERDAD, porque leer la condicion no basta para algo
+        // cuyo sintoma es que el proceso deja de responder.
+        //
+        // Se mete en la despensa un fichero mas grande que el tope entero: la
+        // poda lo borra en el acto, la cola sigue vacia, y con la condicion
+        // vieja la funcion se llamaba a si misma sin timer de por medio.
+        // Reproducido: noventa peticiones por segundo y un setTimeout de cuatro
+        // segundos que no llego a dispararse jamas. En la VPS de un core, el bot
+        // colgado sin una sola linea en el log.
+        //
+        // Corre en un proceso APARTE a proposito: si volviera el bucle, se
+        // llevaria por delante este validador entero.
+        {
+          const dirB = fs.mkdtempSync(path.join(os.tmpdir(), 'ddb-bucle-'));
+          const guionB = path.join(dirB, 'b.js');
+          fs.writeFileSync(guionB, [
+            `const axios = require(${JSON.stringify(path.join(R, 'node_modules/axios'))});`,
+            'let peticiones = 0;',
+            'const GORDO = Buffer.alloc(30 * 1024 * 1024, 0x41); GORDO[0] = 0xFF; GORDO[1] = 0xD8;',
+            'axios.get = async (u, o) => { peticiones++;',
+            '  if (o && o.responseType === "arraybuffer") return { data: GORDO };',
+            '  return { data: { results: [{ url: "x" }] } }; };',
+            `const acc = require(${JSON.stringify(path.join(R, 'src/commands/acciones'))});`,
+            'let latidos = 0; const iv = setInterval(() => { latidos++; }, 200);',
+            'const A = acc.ACCIONES.hug;',
+            'const clave = acc._claveDespensa(A.cat, A.nsfw, A.catNsfw);',
+            '// se fuerza el camino de reposicion metiendo y sacando de la despensa',
+            'acc._traerAccion(A.cat, A.nsfw, A.catNsfw, true).then((m) => {',
+            '  const d = acc._despensa.get(clave) || { cola: [], ts: Date.now() };',
+            '  d.cola.push(m); acc._despensa.set(clave, d);',
+            '}).catch(() => {});',
+            'setTimeout(() => { clearInterval(iv);',
+            '  console.log("RES" + JSON.stringify({ peticiones, latidos }));',
+            '  process.exit(0); }, 3000);',
+          ].join('\n'));
+          let res = null;
+          try {
+            const bruto = execSync(`node ${JSON.stringify(guionB)}`, { encoding: 'utf8', timeout: 30000, cwd: R, stdio: ['ignore', 'pipe', 'ignore'] });
+            const linea = (bruto.split('\n').find((l) => l.startsWith('RES')) || '').slice(3);
+            res = linea ? JSON.parse(linea) : null;
+          } catch { res = null; }
+          exige(res !== null,
+            'la prueba del bucle de la despensa no termino: eso ya es la señal — el proceso se quedo sin atender ni sus propios temporizadores');
+          if (res) {
+            exige(res.latidos >= 10,
+              `el temporizador de 200 ms latio ${res.latidos} veces en tres segundos en vez de unas quince: el event loop se esta quedando sin aire`);
+            exige(res.peticiones <= 10,
+              `la despensa hizo ${res.peticiones} peticiones en tres segundos: eso es el bucle de reposicion, y con el el bot deja de responder`);
+          }
+          fs.rmSync(dirB, { recursive: true, force: true });
+        }
       }
 
       exige(/jpegThumbnail: traido\.thumb \|\| null/.test(src4),

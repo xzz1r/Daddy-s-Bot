@@ -379,9 +379,31 @@ function reponerDespensa(cat, nsfw, catNsfw, clave) {
   // cuatro sitios que tenian que cuadrar, y bastaba con que uno se quedara
   // arriba para que la despensa dejara de rellenarse hasta el siguiente
   // reinicio, sin un solo mensaje de error.
-  let fue = false;
+  // SE MIRA SI LA DESPENSA HA CRECIDO, NO SI LA PETICION HA IDO BIEN. Y esto
+  // es lo que separa un relleno de un bot colgado.
+  //
+  // Antes bastaba con que la peticion trajera algo para volver a intentarlo. El
+  // problema: `guardarEnDespensa` llama a `podarDespensa`, y si lo que acaba de
+  // llegar pesa mas que el tope entero, la poda borra esa categoria completa.
+  // La peticion habia ido bien, la cola seguia vacia, y la funcion se llamaba a
+  // si misma. Sin timer de por medio.
+  //
+  // Reproducido con un fichero de 30 MB contra un tope de 24: noventa peticiones
+  // por segundo y el event loop MUERTO — un `setTimeout` de cuatro segundos
+  // programado antes del bucle no llego a dispararse nunca. En la VPS de un core
+  // eso es el bot entero colgado, sin excepcion y sin una linea en el log.
+  //
+  // Hoy no se puede alcanzar: el tope de descarga son 8 MB y caben dos por
+  // categoria, o sea 16 contra 24. Pero eso son tres constantes, y basta con
+  // mover una. La condicion correcta no es "ha traido algo", es "hay mas que
+  // antes": si lo que meto desaparece, no lo vuelvo a intentar.
+  let crecio = false;
   const trabajo = enFondo(() => traerAccion(cat, nsfw, catNsfw, true)
-    .then((m) => { guardarEnDespensa(clave, m); fue = true; })
+    .then((m) => {
+      const antes = despensa.get(clave)?.cola.length || 0;
+      guardarEnDespensa(clave, m);
+      crecio = (despensa.get(clave)?.cola.length || 0) > antes;
+    })
     .catch((e) => { logger.warn(`despensa ${clave}: ${e.message}`); }));
   if (!trabajo) { reponiendo.delete(clave); return; }
   trabajo.finally(() => {
@@ -394,7 +416,7 @@ function reponerDespensa(cat, nsfw, catNsfw, clave) {
     // asi que reintentar seria un bucle de peticiones a una web que ya esta
     // fallando, a toda velocidad y sin que nadie lo vea. Se deja como esta y ya
     // lo intentara la proxima accion que alguien use.
-    if (!fue) return;
+    if (!crecio) return;
     const d2 = despensa.get(clave);
     if (!d2 || d2.cola.length < LISTOS_POR_CAT) reponerDespensa(cat, nsfw, catNsfw, clave);
   });

@@ -169,6 +169,58 @@ if (!bot) {
   } else bien('arrancado con ecosystem.config.js (tope de RAM puesto)');
 }
 
+// ─── El guardián ─────────────────────────────────────────────────────────────
+//
+// AQUI NO SE MIRABA. Todo lo de arriba busca el proceso llamado `bot` y ya:
+// `lista.find(p => p.name === 'bot')`. El guardián podía estar parado, o
+// reiniciándose en bucle, y `npm run estado` decía que todo iba bien.
+//
+// Y es justo el proceso del que no te enteras por otra vía. El bot se nota
+// cuando falla —deja de contestar—; el guardián no hace nada visible hasta el
+// día que le quitan el admin al bot, y ese día es tarde para descubrir que
+// llevaba semanas caído.
+//
+// Ya pasó una vez por aquí: su `max_memory_restart` estaba en 120M y arrancaba
+// con 111 MB de RSS, así que pm2 lo mataba y lo levantaba una y otra vez. En el
+// log eso no se lee como un fallo, se lee como un reinicio limpio.
+{
+  const g = lista.find((p) => p.name === 'guardian');
+  if (!g) {
+    // No es un fallo: el guardián es opcional y hay quien no lo tiene montado.
+    aviso('el guardián no está levantado en pm2 (sin él, quitarle el admin al bot lo deja ciego)',
+      'pm2 start ecosystem.config.js --only guardian && pm2 save');
+  } else {
+    const env = g.pm2_env || {};
+    if (env.status === 'online') {
+      const mins = Math.floor((Date.now() - (env.pm_uptime || Date.now())) / 60000);
+      bien(`guardián en marcha desde hace ${mins >= 1440 ? Math.floor(mins / 1440) + 'd' : mins >= 60 ? Math.floor(mins / 60) + 'h' : mins + 'min'}`, true);
+    } else {
+      mal(`el guardián está en estado "${env.status}": si le quitan el admin al bot, no lo va a devolver nadie`,
+        'pm2 logs guardian --lines 50');
+    }
+
+    // La RAM CONTRA SU PROPIO TECHO, no contra un número escrito a mano. El
+    // techo del bot y el del guardián son distintos, y comparar los dos con la
+    // misma cifra es como se pasa por alto justo el que va apretado.
+    const mb = Math.round((g.monit?.memory || 0) / 1024 / 1024);
+    const techo = Number(String(env.max_memory_restart || '').replace(/\D/g, ''))
+      || Math.round((env.max_memory_restart || 0) / 1024 / 1024);
+    if (techo && mb > techo * 0.85) {
+      mal(`el guardián usa ${mb} MB y su tope es ${techo} MB: pm2 lo va a matar y lo va a volver a levantar en bucle`,
+        'sube max_memory_restart en ecosystem.config.js y pm2 reload ecosystem.config.js');
+    } else if (techo) bien(`guardián en ${mb} MB de ${techo} MB`);
+
+    // Y el contador de reinicios: para el guardián el listón es MUCHO más bajo
+    // que para el bot. El bot se reinicia en cada despliegue; el guardián no
+    // debería reiniciarse casi nunca.
+    const r = env.restart_time || 0;
+    if (r > 20) {
+      aviso(`el guardián lleva ${r} reinicios: eso no son despliegues, algo lo está tirando`,
+        'pm2 logs guardian --err --lines 50');
+    }
+  }
+}
+
 // ¿El PROCESO corre el codigo del disco? Son dos cosas distintas y confundirlas
 // es el fallo mas facil de cometer: `git pull` cambia el disco, pero hasta que
 // pm2 no reinicia, el bot en memoria sigue con el codigo viejo, y desde fuera

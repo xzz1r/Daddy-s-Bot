@@ -829,6 +829,37 @@ async function topLadrones(sock, msg, jid, groupMeta) {
 // El consejo de la cifra: una vez al dia por persona y grupo. Repetido en cada
 // robo era una linea fija debajo de todos los mensajes del grupo.
 const pistaVista = new Map();   // `${grupo}|${persona}` -> diaClave
+// LA FACHADA DEL OWNER, EN UNA FUNCION Y EXPORTADA, Y NO POR ELEGANCIA.
+//
+// Esto vivia dentro de cmdRobo, o sea que no habia forma de llamarlo desde
+// fuera: `npm run check` solo podia comprobar que las palabras `chanceVisible`
+// y `ROBO_OWNER_VISIBLE` aparecieran en el fichero. Con eso, sustituir todo el
+// calculo por `chanceVisible = chanceFinal` —que es enseñarle al owner su
+// probabilidad real, justo lo que delata el amaño— pasaba en verde. Probado.
+//
+// Sacada aqui, el validador la EJECUTA y comprueba lo unico que importa: que al
+// owner nunca se le enseñe su numero, y que lo que se le enseñe viva en la
+// banda de un miembro cualquiera. Es la misma forma que ya tenia `!aura` con
+// pApuestaVisible, que por eso si estaba bien vigilado.
+//
+// `sinJitter` es para el validador: sin el, el ±3 % aleatorio obliga a repetir
+// la comprobacion muchas veces para estar seguro.
+function chanceVisibleDe(esOwner, chanceReal, stake, maxStake, mom, sinJitter = false) {
+  if (!esOwner) return chanceReal;
+  const { min, max } = ROBO_OWNER_VISIBLE;
+  const codicia = maxStake > 0 ? Math.min(1, stake / maxStake) : 0;
+  const centro = max - (max - min) * codicia;              // pedir mas, enseñar menos
+  const jitter = sinJitter ? 0 : (Math.random() - 0.5) * 0.06;  // ±3 puntos, para que no se repita
+  let v = Math.min(max, Math.max(min, centro + jitter));
+  // El momentum tambien mueve la cifra que se ve, para que la linea de "racha
+  // caliente" no acompañe a un % identico al de siempre. Dentro de la banda.
+  if (mom) {
+    v += mom.tipo === 'caliente' ? 0.03 : -0.03;
+    v = Math.min(max, Math.max(min, v));
+  }
+  return v;
+}
+
 function pistaCifra(grupo, quien) {
   const hoy = diaClave();
   const k = `${grupo}|${canonicalJid(quien)}`;
@@ -1049,23 +1080,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   //
   // Se mueve dentro de la banda real de un miembro y baja un poco cuanto mas se
   // pide, para que siga teniendo la logica que cualquiera espera ver.
-  let chanceVisible = ladronEsOwner
-    ? (() => {
-        const { min, max } = ROBO_OWNER_VISIBLE;
-        const codicia = maxStake > 0 ? Math.min(1, stake / maxStake) : 0;
-        const centro = max - (max - min) * codicia;         // pedir mas, enseñar menos
-        const jitter = (Math.random() - 0.5) * 0.06;        // ±3 puntos, para que no se repita
-        return Math.min(max, Math.max(min, centro + jitter));
-      })()
-    : chanceFinal;
-  // El momentum del owner también mueve la cifra que se ve, para que la línea
-  // de "racha caliente" no acompañe a un % idéntico al de siempre. Se queda
-  // dentro de la banda de un miembro.
-  if (ladronEsOwner && mom) {
-    const { min, max } = ROBO_OWNER_VISIBLE;
-    chanceVisible += mom.tipo === 'caliente' ? 0.03 : -0.03;
-    chanceVisible = Math.min(max, Math.max(min, chanceVisible));
-  }
+  let chanceVisible = chanceVisibleDe(ladronEsOwner, chanceFinal, stake, maxStake, mom);
 
   // Víctima = owner principal → el robo falla siempre.
   // Atacante = owner principal → ownerGana(ROBO_OWNER_EXITO), no el 100 %.
@@ -1308,4 +1323,4 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   return sock.sendMessage(jid, { text, mentions: [sender, target] });
 }
 
-module.exports = { cmdRobo, DESENLACES, elegirDesenlace, ajustarProbabilidad, castigoPorCifra, fraccionPedida, escudoRestante, anotarIntento, anotarRoboExitoso, anotarFama, rachaDe };
+module.exports = { cmdRobo, chanceVisibleDe, pistaCifra, DESENLACES, elegirDesenlace, ajustarProbabilidad, castigoPorCifra, fraccionPedida, escudoRestante, anotarIntento, anotarRoboExitoso, anotarFama, rachaDe };

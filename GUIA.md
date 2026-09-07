@@ -713,6 +713,14 @@ saberlas:
   misma frase salga en dos resultados de `!robo`: si el texto de un robo normal
   es el de uno maestro, el resultado deja de decir nada. Había 26, y alguna
   mentía —en el pool de robo *parcial* había frases que decían «saqueo total».
+- **Diez capas se reescribieron** porque comprobaban TEXTO y no comportamiento:
+  buscaban una palabra en el código fuente, y bastaba con dejar la palabra donde
+  estaba y romper lo de al lado para que pasaran en verde. Es la enfermedad
+  crónica de este validador y ya había mordido tres veces. Ahora ejecutan: el
+  amaño del dueño en `!robo` se calcula y se compara, un mute se pone y se lee
+  desde un proceso nuevo, una cuenta business se procesa y se le pregunta a la
+  lista negra, la tienda se intenta con la economía apagada. Cada una probada
+  rompiendo el código a propósito y comprobando que se pone roja.
 - **44** no deja pasar una frase que dé por hecho que quien la lee es un tío.
   «Eres el que reenvía capturas» le llega a una tía en masculino y con su nombre
   delante. La forma neutra es *eres quien*; para *eres el tío que*, *eres de esa
