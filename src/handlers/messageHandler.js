@@ -2562,9 +2562,6 @@ async function handleMessage(sock, msg) {
       case 'pat':
       case 'caricia':
       case 'acariciar':
-      case 'poke':
-      case 'toque':
-      case 'picar':
       case 'punch':
       case 'punetazo':
       case 'golpe':
@@ -2590,12 +2587,14 @@ async function handleMessage(sock, msg) {
       case 'acabar':
       case 'tickle':
       case 'cosquillas':
+      case 'nom':
+      case 'mordisquear':
+      case 'peck':
+      case 'piquito':
+      case 'besito':
       case 'handhold':
       case 'mano':
       case 'manos':
-      case 'highfive':
-      case 'chocar':
-      case 'choca':
       case 'stare':
       case 'mirar':
       case 'mirada':

@@ -70,13 +70,23 @@ const ACCIONES = {
   kiss:   { cat: 'kiss',   es: 'beso',       pool: RX.KISS,   cmds: ['kiss', 'beso', 'besar'] },
   cuddle: { cat: 'cuddle', es: 'acurrucar',  pool: RX.CUDDLE, cmds: ['cuddle', 'acurrucar', 'arrimar'] },
   pat:    { cat: 'pat',    es: 'caricia',    pool: RX.PAT,    cmds: ['pat', 'caricia', 'acariciar'] },
-  poke:   { cat: 'poke',   es: 'picar',      pool: RX.POKE,   cmds: ['poke', 'picar', 'toque'] },
   punch:  { cat: 'punch',  es: 'puñetazo',   pool: RX.PUNCH,  cmds: ['punch', 'punetazo', 'golpe'] },
   slap:   { cat: 'slap',   es: 'cachetada',  pool: RX.SLAP,   cmds: ['slap', 'cachetada', 'bofetada'] },
   bite:   { cat: 'bite',   es: 'mordisco',   pool: RX.BITE,   cmds: ['chomp', 'mordisco', 'morder'] },
   kick:   { cat: 'kick',   es: 'patada',     pool: RX.KICK,   cmds: ['stomp', 'patada', 'patear'] },
   bonk:   { cat: 'bonk',   es: 'martillazo', pool: RX.BONK,   cmds: ['bonk', 'martillazo', 'coscorron'] },
-  // ─── LAS OCHO DE LA SEGUNDA TANDA ─────────────────────────────────────────
+  // ─── SE QUITARON DOS, Y POR REDUNDANTES ───────────────────────────────────
+  //
+  // *!poke* era un dedo en el costado: *!tickle* ocupa el mismo sitio fisico y
+  // tiene chiste. *!highfive* era el unico de camaraderia limpia en una lista
+  // que va de cariño invasivo y palizas, y se notaba: fue el pool que mas me
+  // costo escribir y el que peor quedo.
+  //
+  // Una accion de mas no es gratis: ensucia el menu, se lleva un hueco de la
+  // despensa y reparte el uso entre veintitantos comandos en vez de concentrarlo
+  // en los que funcionan.
+  //
+  // ─── LAS DE LA SEGUNDA TANDA ──────────────────────────────────────────────
   //
   // Se eligieron para que la lista dejara de ser "cariño o paliza". Las diez
   // primeras solo tenian esos dos registros; estas meten la burla, la
@@ -87,8 +97,9 @@ const ACCIONES = {
   // existen alli, y una categoria inventada monta un comando que cobra, falla y
   // devuelve el aura cada vez sin que nadie sepa por que.
   tickle:   { cat: 'tickle',   es: 'cosquillas', pool: RX.TICKLE,   cmds: ['tickle', 'cosquillas'] },
+  nom:      { cat: 'nom',      es: 'mordisquear', pool: RX.NOM,     cmds: ['nom', 'mordisquear'] },
+  peck:     { cat: 'peck',     es: 'piquito',    pool: RX.PECK,     cmds: ['peck', 'piquito', 'besito'] },
   handhold: { cat: 'handhold', es: 'de la mano', pool: RX.HANDHOLD, cmds: ['handhold', 'mano', 'manos'] },
-  highfive: { cat: 'highfive', es: 'chocar',     pool: RX.HIGHFIVE, cmds: ['highfive', 'chocar', 'choca'] },
   stare:    { cat: 'stare',    es: 'mirar',      pool: RX.STARE,    cmds: ['stare', 'mirar', 'mirada'] },
   laugh:    { cat: 'laugh',    es: 'burla',      pool: RX.LAUGH,    cmds: ['laugh', 'burla', 'reirse'] },
   yeet:     { cat: 'yeet',     es: 'lanzar',     pool: RX.YEET,     cmds: ['yeet', 'lanzar', 'tirar'] },
