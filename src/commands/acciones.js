@@ -40,23 +40,36 @@ const logger = require('../utils/logger');
 //     caja comun y se usa a diario. Quien escriba mal el bote se comeria un
 //     mordisco de 60 de aura. Se llama *!chomp*.
 //
-// Los nombres en castellano siguen funcionando —*!torta*, *!abrazo*, *!patada*—
-// pero NO se anuncian en el menu corto: el bot habla en ingles aqui y una lista
-// mezclada quedaba pobre. Estan en *!help todo*, que es la referencia.
+// LOS NOMBRES EN CASTELLANO SALEN EN EL MENU, entre parentesis detras del
+// ingles. Antes solo estaban en *!help todo* y eso obligaba a pedir la lista
+// larga para descubrir que *!abrazo* existia.
+//
+// Y SE ELIGEN POR QUE SE ENTIENDAN EN TODAS PARTES, no por sonar bien aqui.
+// Cayeron cuatro que solo se entienden en España o que significan otra cosa al
+// cruzar el charco:
+//
+//   zurra, mazazo   ->  coscorron, martillazo   (que ademas es lo que hace el gif)
+//   torta           ->  cachetada               ("torta" en media America es un pastel)
+//   mimo            ->  arrimar                 (y acurrucar, que ya estaba)
+//   puno, punetazo  ->  golpe                   (con eñe el case no se alcanza jamas:
+//                                                el dispatcher normaliza antes de
+//                                                comparar, y sin ella "punetazo" es una
+//                                                palabra que no existe)
+//   porculo         ->  fuera                   (solo España, y *!culo* ya vale)
 //
 // Lo comprueba `npm run check`: ningun nombre de accion puede pisar un comando
 // existente ni quedarse a una letra de otro.
 const ACCIONES = {
   hug:    { cat: 'hug',    pool: RX.HUG,    cmds: ['hug', 'abrazo', 'abrazar'] },
   kiss:   { cat: 'kiss',   pool: RX.KISS,   cmds: ['kiss', 'beso', 'besar'] },
-  cuddle: { cat: 'cuddle', pool: RX.CUDDLE, cmds: ['cuddle', 'mimo', 'acurrucar'] },
+  cuddle: { cat: 'cuddle', pool: RX.CUDDLE, cmds: ['cuddle', 'acurrucar', 'arrimar'] },
   pat:    { cat: 'pat',    pool: RX.PAT,    cmds: ['pat', 'caricia', 'acariciar'] },
   poke:   { cat: 'poke',   pool: RX.POKE,   cmds: ['poke', 'toque', 'picar'] },
-  punch:  { cat: 'punch',  pool: RX.PUNCH,  cmds: ['punch', 'puno', 'punetazo'] },
-  slap:   { cat: 'slap',   pool: RX.SLAP,   cmds: ['slap', 'torta', 'bofetada'] },
+  punch:  { cat: 'punch',  pool: RX.PUNCH,  cmds: ['punch', 'golpe'] },
+  slap:   { cat: 'slap',   pool: RX.SLAP,   cmds: ['slap', 'cachetada', 'bofetada'] },
   bite:   { cat: 'bite',   pool: RX.BITE,   cmds: ['chomp', 'morder', 'mordisco'] },
   kick:   { cat: 'kick',   pool: RX.KICK,   cmds: ['stomp', 'patada', 'patear'] },
-  bonk:   { cat: 'bonk',   pool: RX.BONK,   cmds: ['bonk', 'zurra', 'mazazo'] },
+  bonk:   { cat: 'bonk',   pool: RX.BONK,   cmds: ['bonk', 'coscorron', 'martillazo'] },
   // La cara. Cuesta el doble justamente para que no se use en bucle: el riesgo
   // de este comando no es la CPU, es la cuenta.
   //
@@ -73,7 +86,7 @@ const ACCIONES = {
   // Lo mismo que *!fuck* y por los mismos motivos: cuesta el doble y la web SFW
   // no tiene nada que se le parezca, asi que sin fuente puesta cae en `kiss`
   // igual que aquel. Con la fuente, pide su propia categoria.
-  anal:   { cat: 'kiss', catNsfw: 'anal', pool: RX.ANAL, cmds: ['anal', 'culo', 'porculo'], nsfw: true },
+  anal:   { cat: 'kiss', catNsfw: 'anal', pool: RX.ANAL, cmds: ['anal', 'culo'], nsfw: true },
 };
 
 // SIN FRASES NO HAY COMANDO.

@@ -2557,8 +2557,8 @@ async function handleMessage(sock, msg) {
       case 'beso':
       case 'besar':
       case 'cuddle':
-      case 'mimo':
       case 'acurrucar':
+      case 'arrimar':
       case 'pat':
       case 'caricia':
       case 'acariciar':
@@ -2566,10 +2566,9 @@ async function handleMessage(sock, msg) {
       case 'toque':
       case 'picar':
       case 'punch':
-      case 'puno':
-      case 'punetazo':
+      case 'golpe':
       case 'slap':
-      case 'torta':
+      case 'cachetada':
       case 'bofetada':
       case 'chomp':
       case 'morder':
@@ -2578,14 +2577,13 @@ async function handleMessage(sock, msg) {
       case 'patada':
       case 'patear':
       case 'bonk':
-      case 'zurra':
-      case 'mazazo':
+      case 'coscorron':
+      case 'martillazo':
       case 'fuck':
       case 'follar':
       case 'joder':
       case 'anal':
       case 'culo':
-      case 'porculo':
         // SIN FRASES, NADA. Si el pool de esa accion todavia no existe no hay
         // handler que llamar: se sale en silencio, sin cobrar y sin contestar,
         // igual que si el comando no se hubiera escrito nunca. El `case` sigue

@@ -284,13 +284,23 @@ function bloqueAccionesTodo(p) {
 // doble.
 function bloqueAcciones(p, c) {
   if (!ACTIVAS.length) return '';
-  const nombre = (n) => `*${p}${ACCIONES[n].cmds[0]}*`;
+  // EL NOMBRE EN INGLES Y EL CASTELLANO DETRAS. Aqui estaba solo el ingles y
+  // eso obligaba a pedir *!help todo* para descubrir que *!abrazo* existia — o
+  // sea, a saber de antemano lo que se venia a buscar.
+  //
+  // Solo el PRIMER alias, no los dos: con doce acciones, meter los dos convierte
+  // cuatro lineas en ocho para decir lo mismo. El segundo sigue funcionando y
+  // sigue en la lista larga.
+  const nombre = (n) => {
+    const [ing, es] = ACCIONES[n].cmds;
+    return es ? `*${p}${ing}* _${es}_` : `*${p}${ing}*`;
+  };
   const sfw = ACTIVAS.filter((n) => !ACCIONES[n].nsfw);
   const nsfw = ACTIVAS.filter((n) => ACCIONES[n].nsfw);
   const lineas = [];
   if (sfw.length) {
     lineas.push(`_Sobre alguien, ${c('accion')} cada una_`);
-    lineas.push(...filas(sfw.map(nombre), 5, ' · '));
+    lineas.push(...filas(sfw.map(nombre), 3, ' · '));
   }
   if (nsfw.length) lineas.push(`${nsfw.map(nombre).join(' · ')} ${c('accionNsfw')}`);
   return `\n━━ *ACCIONES* ━━\n${lineas.join('\n')}\n`;
