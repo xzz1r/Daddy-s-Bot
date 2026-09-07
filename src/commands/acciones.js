@@ -400,11 +400,20 @@ function reponerDespensa(cat, nsfw, catNsfw, clave) {
   });
 }
 
-async function gifAMp4(gif) {
+// `fondo` en true = esto lo esta preparando la despensa y no hay nadie
+// esperandolo. Entonces NO se hace cola: se coge la plaza de ffmpeg solo si esta
+// libre ahora mismo, y si no, se abandona. En la VPS el semaforo tiene UNA plaza
+// (ver la nota de NUCLEOS en helpers), asi que ponerse en la cola significaria
+// que alguien espera su sticker detras de un trabajo que no ha pedido nadie.
+//
+// Abandonar no pierde nada: esa categoria se rellena la proxima vez que alguien
+// la use, que es justo el momento en el que importa.
+async function gifAMp4(gif, fondo = false) {
   const entrada = tempFile('gif');
   const salida = tempFile('mp4');
+  if (fondo && !ffmpegSemaphore.tryAcquire()) throw new Error('ffmpeg ocupado, ya se rellenara');
   await fs.writeFile(entrada, gif);
-  await ffmpegSemaphore.acquire();
+  if (!fondo) await ffmpegSemaphore.acquire();
   try {
     await new Promise((resolve, reject) => {
       // Las dimensiones PARES son obligatorias para H.264, y un gif de
@@ -533,7 +542,7 @@ async function traerAccion(cat, nsfw, catNsfw, deDespensa = false) {
   if (tipo === 'mp4') {
     return { mp4: bytes };
   }
-  const { buf: mp4, thumb } = await gifAMp4(bytes);
+  const { buf: mp4, thumb } = await gifAMp4(bytes, deDespensa);
   return { mp4, thumb };
 }
 

@@ -352,30 +352,65 @@ async function streamToBuffer(stream, maxBytes) {
 // processes run at once — a phone CPU that's fine with 2 concurrent encodes
 // falls over with 6. Extra acquire() calls queue and resolve as slots free,
 // same shape as the download queue in utils/downloader.js.
+//
+// Y CON UNA PUERTA QUE NO ESPERA, `tryAcquire`, para el trabajo que nadie ha
+// pedido. Rellenar la despensa de gifs pasa por aqui igual que el sticker que
+// alguien esta mirando llegar, y en la VPS —donde abajo se ve que solo hay UNA
+// plaza— ponerse en la cola significa que una persona espera detras de un
+// trabajo que no ha pedido. `tryAcquire` coge la plaza solo si esta libre AHORA
+// y devuelve false si no; el fondo se rinde y lo intenta luego, que es lo que
+// ya hacia a otro nivel.
+//
+// Probe antes una cola de prioridad —el fondo detras de la gente— y no cambio
+// nada medible: el relleno ya esta capado a uno a la vez, asi que nunca hay dos
+// esperando a los que reordenar. Diez lineas que no movian un milisegundo.
 function createSemaphore(limit) {
   let active = 0;
   const queue = [];
   function acquire() {
     return new Promise((resolve) => {
-      const tryRun = () => {
-        if (active < limit) { active++; resolve(); }
-        else queue.push(tryRun);
-      };
-      tryRun();
+      if (active < limit) { active++; resolve(); return; }
+      queue.push(resolve);
     });
   }
-  function release() {
-    active--;
-    const next = queue.shift();
-    if (next) next();
+  function tryAcquire() {
+    if (active >= limit) return false;
+    active++;
+    return true;
   }
-  return { acquire, release };
+  function release() {
+    const next = queue.shift();
+    if (next) next();          // el hueco pasa de mano en mano sin bajar `active`
+    else active--;
+  }
+  return { acquire, tryAcquire, release, _plazas: limit, _libres: () => limit - active };
 }
 
 // Shared across every command that spawns ffmpeg (stickers, !toimg, !ttp) so
-// the cap is process-wide, not per-file. Limit of 2 mirrors the existing,
-// already-proven MAX_CONCURRENT_DOWNLOADS in utils/downloader.js.
-const ffmpegSemaphore = createSemaphore(2);
+// the cap is process-wide, not per-file.
+//
+// UNA PLAZA POR CORE, Y COMO MUCHO DOS. Estaba fijo en 2 y en la VPS de verdad
+// —un core— eso era mas lento, no mas rapido: dos ffmpeg en un core no van en
+// paralelo, se reparten el mismo core y tardan el doble cada uno. Medido con
+// dos stickers a la vez y `taskset -c 0`:
+//
+//   plazas   el primero espera   el ultimo
+//     1          1026 ms          2038 ms
+//     2          2253 ms          2256 ms
+//
+// O sea que la segunda plaza no adelanta a nadie y hace que el primero espere
+// mas del doble. Con cuatro cores se invierte —ahi si van en paralelo de verdad
+// y dos plazas casi doblan el rendimiento— asi que el numero no puede ser una
+// constante: sale del numero de cores que ve el proceso.
+//
+// El tope de 2 se queda: por encima de eso lo que falta en una maquina de 1 GB
+// no es CPU, es memoria, y seis ffmpeg a la vez la tumban tenga los cores que
+// tenga.
+const NUCLEOS = (() => {
+  try { return require('os').availableParallelism?.() || require('os').cpus().length || 1; }
+  catch { return 1; }
+})();
+const ffmpegSemaphore = createSemaphore(Math.max(1, Math.min(2, NUCLEOS)));
 
 // Run ffmpeg reading `input` (a Buffer, or null) from stdin and resolving its
 // stdout as a Buffer. Two things every ad-hoc ffmpeg spawn MUST have but the

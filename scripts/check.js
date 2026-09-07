@@ -2220,6 +2220,119 @@ const di=async(quien,texto,extra)=>{
       for (const d of dondeClones) console.log(rojo(`       ${d}`));
     }
 
+    // ── Y LOS CASI-CLONES, QUE ERAN 165 ────────────────────────────────
+    //
+    // Arriba se cazan los duplicados EXACTOS. Lo que se colaba por debajo es la
+    // misma frase con una palabra cambiada:
+    //
+    //   «...para tapar un hueco que sigue igual de grande»
+    //   «...para tapar un vacio que sigue igual de grande»
+    //
+    // Para quien lo lee son la misma frase, y el pool decia tener 99. Habia 165
+    // asi, casi todas en robo: ROB_FAIL declaraba 312 frases y daba 273 chistes
+    // distintos. Y no es solo que se repita: la ventana anti-repeticion se
+    // calcula sobre el TAMAÑO del pool, asi que un pool inflado se cree con mas
+    // variedad de la que tiene y deja salir el clon antes de tiempo.
+    //
+    // La medida es distancia de edicion POR PALABRAS: dos frases del mismo pool
+    // que se diferencian en menos del 18 % de sus palabras son la misma. Solo
+    // frases de diez palabras para arriba, porque en una corta cambiar dos
+    // palabras si cambia el chiste. Cuesta medio segundo sobre las 8.500.
+    {
+      const D = path.join(R, 'src/data');
+      const toks = (t) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9ñ[\]% ]/g, ' ').split(/\s+/).filter(Boolean);
+      const dist = (a, b, max) => {
+        if (Math.abs(a.length - b.length) > max) return max + 1;
+        let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+        for (let i = 1; i <= a.length; i++) {
+          const fila = [i]; let mejor = i;
+          for (let j = 1; j <= b.length; j++) {
+            fila[j] = Math.min(prev[j] + 1, fila[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+            if (fila[j] < mejor) mejor = fila[j];
+          }
+          if (mejor > max) return max + 1;
+          prev = fila;
+        }
+        return prev[b.length];
+      };
+      const pools = []; const vis = new Set();
+      for (const f of fs.readdirSync(D).filter((x) => x.endsWith('.js'))) {
+        let mod; try { mod = require(path.join(D, f)); } catch { continue; }
+        const rec = (o, ruta, d) => {
+          if (d > 3) return;
+          if (Array.isArray(o) && o.length && o.every((x) => typeof x === 'string')) {
+            if (vis.has(o)) return; vis.add(o); pools.push({ f, ruta, P: o }); return;
+          }
+          if (o && typeof o === 'object') for (const k of Object.keys(o)) rec(o[k], ruta ? `${ruta}.${k}` : k, d + 1);
+        };
+        rec(mod, '', 0);
+      }
+      const casi = [];
+      for (const { f, ruta, P } of pools) {
+        const T = P.map(toks);
+        const ya = new Set();
+        for (let i = 0; i < T.length; i++) {
+          if (ya.has(i) || T[i].length < 10) continue;
+          for (let j = i + 1; j < T.length; j++) {
+            if (ya.has(j) || T[j].length < 10) continue;
+            const max = Math.max(2, Math.round(Math.min(T[i].length, T[j].length) * 0.18));
+            if (dist(T[i], T[j], max) <= max) {
+              ya.add(P[i].length <= P[j].length ? i : j);
+              if (casi.length < 3) casi.push(`${f}:${ruta} «${P[i].slice(0, 44)}…» / «${P[j].slice(0, 44)}…»`);
+              else casi.push('');
+            }
+          }
+        }
+      }
+      if (casi.length) {
+        fallos++;
+        console.log(rojo(`   ✗ ${casi.length} casi-clon(es): la misma frase con una palabra cambiada infla el pool y se lee como una repeticion`));
+        for (const c of casi.filter(Boolean)) console.log(rojo(`       ${c}`));
+      }
+
+      // ── Y LA MISMA FRASE EN DOS RESULTADOS DE *!robo* ──────────────
+      //
+      // Peor que repetirse: si el mismo texto sale en ROB_WIN y en ROB_MAESTRO,
+      // el resultado deja de significar nada — se lee igual un robo normal que
+      // uno doble. Habia 26, y algunas ademas mentian: en ROB_PARCIAL —media
+      // apuesta— habia frases que decian "saqueo total" y "lo vacio".
+      //
+      // Se comparan los cinco resultados entre si, que son los tramos de UN
+      // comando. Dos comandos distintos compartiendo una frase no entra aqui:
+      // *!fiel* alto y *!infiel* bajo quieren decir lo mismo y compartirla es lo
+      // correcto.
+      {
+        const RXr = require(path.join(R, 'src/data/roboPhrases.js'));
+        const RES = ['ROB_WIN', 'ROB_MAESTRO', 'ROB_PARCIAL', 'ROB_FAIL', 'ROB_DESASTRE'];
+        const bolsa = (t) => new Set(toks(t));
+        const jac = (A, B) => { let i = 0; for (const x of A) if (B.has(x)) i++; return i / (A.size + B.size - i); };
+        const cruz = [];
+        for (let x = 0; x < RES.length; x++) for (let y = x + 1; y < RES.length; y++) {
+          const A = RXr[RES[x]]; const B = RXr[RES[y]];
+          if (!Array.isArray(A) || !Array.isArray(B)) continue;
+          const SB = B.map(bolsa);
+          A.forEach((t) => { const SA = bolsa(t);
+            for (const s2 of SB) if (jac(SA, s2) >= 0.72) cruz.push(`${RES[x]} y ${RES[y]}: \u00ab${t.slice(0, 50)}\u2026\u00bb`);
+          });
+        }
+        if (cruz.length) {
+          fallos++;
+          console.log(rojo(`   \u2717 ${cruz.length} frase(s) de *!robo* en dos resultados a la vez: entonces el resultado no dice nada`));
+          for (const c of cruz.slice(0, 3)) console.log(rojo(`       ${c}`));
+        }
+      }
+
+      // Y QUE LA MEDIDA SIGA VIENDO. Sin esto, un parentesis mal puesto la deja
+      // aprobando las 8.500 frases por no mirarlas.
+      const a = toks('Tu habitacion es un museo de cosas que compraste para tapar un hueco que sigue igual de grande');
+      const b = toks('Tu habitacion es un museo de cosas que compraste para tapar un vacio que sigue igual de grande');
+      if (dist(a, b, 4) > 4) {
+        fallos++;
+        console.log(rojo('   ✗ la medida de casi-clones ya no ve dos frases identicas salvo una palabra'));
+      }
+    }
+
     // Familias: mismo arranque de cinco palabras dentro del mismo tramo. Se
     // toleran DOS —una coincidencia pasa— y a la tercera es un molde.
     const src = fs.readFileSync(path.join(R, 'src/data/percentLabels.js'), 'utf8');
@@ -6549,7 +6662,7 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     // "la parte lista" son correctas y un validador que las cante se acaba
     // apagando. Sobre las 689 frases de hoy no salta ni una.
     {
-      console.log('\n44. LAS FRASES DE ACCION VALEN PARA CUALQUIERA DEL GRUPO');
+      console.log('\n44. LAS FRASES VALEN PARA CUALQUIERA DEL GRUPO');
       const antes = fallos;
       const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   \u2717 ${queja}`)); } };
       const RXa = require(path.join(R, 'src/data/accionPhrases.js'));
@@ -6592,7 +6705,112 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       exige(ciegos.length === 0,
         `la regla de genero ya no ve lo que tiene que ver: "${ciegos[0]}" le pasa por delante y no dice nada`);
 
-      if (fallos === antes) console.log(verde('   \u2713 ninguna frase de accion da por hecho el genero de quien la manda ni de quien la recibe'));
+      // ── Y LO MISMO EN LAS OTRAS 8.017 FRASES DEL BOT ───────────────
+      //
+      // "Eres el que reenvia capturas con comentario propio." A una tia le
+      // llega en masculino, con su nombre delante. Habia 81 asi repartidas por
+      // los pools mas leidos —rata, simp, incel, fidelidad, infiel— y el unico
+      // guardian de genero que existia miraba los remates de *!r*.
+      //
+      // Se comprueban SOLO las dos construcciones que no admiten discusion:
+      // "eres el que" (la neutral es "eres quien") y "eres el tio/tipo que" (la
+      // neutral es "eres de esa gente que"). Un "cabron" suelto al final de la
+      // frase no entra aqui: eso es el registro del bot y se usa igual con
+      // cualquiera, no es una concordancia rota.
+      //
+      // Y quedan fuera los comandos que van DE genero a proposito —masculinidad,
+      // feminidad, gay, maricon, femboy, puta, guarra—, donde decir "tio" es el
+      // tema y no un descuido.
+      {
+        const TEMATICOS = /^(masculinidad|feminidad|gay|maricon|femboy|puta|guarra|linda|zorra|virgen)\b/;
+        const ROTAS = [
+          [/\beres\s+el\s+que\b/i, 'eres el que  →  eres quien'],
+          [/\beres\s+(?:el|un|otro|ese|este)\s+(?:t[íi]o|tipo|chaval|pavo|colega)\s+que\b/i, 'eres el tipo que  →  eres de esa gente que'],
+        ];
+        const dir = path.join(R, 'src/data');
+        const malas = [];
+        for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.js'))) {
+          let mod; try { mod = require(path.join(dir, f)); } catch { continue; }
+          const rec = (o, ruta, d) => {
+            if (d > 3) return;
+            if (Array.isArray(o) && o.length && o.every((x) => typeof x === 'string')) {
+              if (TEMATICOS.test(ruta)) return;
+              o.forEach((t, i) => { for (const [rx, como] of ROTAS) if (rx.test(t)) malas.push(`${f}:${ruta}[${i}] (${como})`); });
+              return;
+            }
+            if (o && typeof o === 'object') for (const k of Object.keys(o)) rec(o[k], ruta ? `${ruta}.${k}` : k, d + 1);
+          };
+          rec(mod, '', 0);
+        }
+        exige(malas.length === 0,
+          `frases que dan por hecho que quien las lee es un tio (${malas.length}): ${malas.slice(0, 3).join(' · ')}`);
+      }
+
+      if (fallos === antes) console.log(verde('   \u2713 ninguna frase del bot da por hecho el genero de quien la manda ni de quien la recibe'));
+    }
+
+    // ── 45. EL SEMAFORO DE FFMPEG SE AJUSTA A LA MAQUINA ────────────────
+    //
+    // Estaba fijo en dos plazas y en la VPS —un core— eso era MAS LENTO. Dos
+    // ffmpeg en un core no van en paralelo: se reparten el mismo core y tardan
+    // el doble cada uno. Medido con dos stickers a la vez y `taskset -c 0`:
+    //
+    //   plazas   el primero espera   el ultimo
+    //     1          1026 ms          2038 ms
+    //     2          2253 ms          2256 ms
+    //
+    // La segunda plaza no adelanta a nadie y hace que el primero espere mas del
+    // doble. Con cuatro cores se invierte. Asi que el numero no puede ser una
+    // constante, y el tope de 2 se queda porque por encima lo que falta en 1 GB
+    // no es CPU, es memoria.
+    {
+      console.log('\n45. EL SEMAFORO DE FFMPEG SE AJUSTA A LA MAQUINA');
+      const antes = fallos;
+      const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   \u2717 ${queja}`)); } };
+      const src = soloCodigo('src/utils/helpers.js');
+      exige(/createSemaphore\(Math\.max\(1, Math\.min\(2, NUCLEOS\)\)\)/.test(src),
+        'el semaforo de ffmpeg volvio a un numero fijo de plazas: en la VPS de un core, dos plazas hacen que el primero espere el doble');
+      exige(/availableParallelism/.test(src),
+        'el numero de plazas ya no sale de los cores que ve el proceso');
+
+      const h = require(path.join(R, 'src/utils/helpers'));
+      const nucleos = (() => { try { return os.availableParallelism?.() || os.cpus().length || 1; } catch { return 1; } })();
+      // Se mira el numero CONFIGURADO, no las plazas libres ahora mismo: las
+      // capas de este validador corren en paralelo y la de stickers puede tener
+      // una cogida justo en este instante. Escrito con `_libres` fallaba a
+      // ratos, que es la peor clase de validador: el que a veces acusa.
+      exige(h.ffmpegSemaphore._plazas === Math.max(1, Math.min(2, nucleos)),
+        `el semaforo tiene ${h.ffmpegSemaphore._plazas} plazas y esta maquina ${nucleos} core(s): con mas plazas que cores solo se reparten el mismo core y todos esperan mas`);
+
+      // Y EL CONTADOR TIENE QUE CUADRAR. Un semaforo que se queda con plazas de
+      // menos no da un error: solo va cada vez mas lento hasta que un dia no
+      // pasa nadie. Se prueba de verdad, no leyendo el fichero.
+      for (const lim of [1, 2, 3]) {
+        const sem = h.createSemaphore(lim);
+        let dentro = 0; let pico = 0;
+        await Promise.all(Array.from({ length: 12 }, async () => {
+          await sem.acquire();
+          dentro++; if (dentro > pico) pico = dentro;
+          await new Promise((r) => setTimeout(r, 2));
+          dentro--; sem.release();
+        }));
+        exige(pico === lim, `un semaforo de ${lim} plazas dejo entrar a ${pico} a la vez`);
+        exige(sem._libres() === lim, `un semaforo de ${lim} plazas se quedo con ${sem._libres()} libres al terminar: pierde plazas y acaba parando el bot`);
+      }
+
+      // La puerta que NO espera: es lo que impide que un relleno de la despensa
+      // deje a alguien haciendo cola por su sticker.
+      {
+        const sem = h.createSemaphore(1);
+        exige(sem.tryAcquire() === true, 'tryAcquire no coge una plaza libre');
+        exige(sem.tryAcquire() === false, 'tryAcquire coge una plaza ocupada: entonces el fondo SI hace cola y alguien espera detras');
+        sem.release();
+        exige(sem.tryAcquire() === true, 'tryAcquire no ve la plaza que se acaba de soltar');
+      }
+      exige(/if \(fondo && !ffmpegSemaphore\.tryAcquire\(\)\)/.test(soloCodigo('src/commands/acciones.js')),
+        'el relleno de la despensa volvio a hacer cola en el semaforo: con una sola plaza, eso es alguien esperando su sticker detras de un gif que no ha pedido');
+
+      if (fallos === antes) console.log(verde(`   \u2713 el semaforo de ffmpeg tiene ${h.ffmpegSemaphore._plazas} plaza(s) para ${nucleos} core(s), no pierde ninguna, y el fondo no hace cola`));
     }
 
 

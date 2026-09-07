@@ -81,7 +81,7 @@ const GENERICO = [
   'La impaciencia te delata más que cualquier tirada, cualquier robo, cualquier canción.',
   'Hay un cartel. Hay un tiempo. Hay un tú ignorando las dos cosas.',
   'El grupo te aguantó el primero. El segundo ya es abuso de hospitalidad.',
-  'No es que vaya lento. Es que tú vas vacío y lo llenas a golpes de comando.',
+  'No es que vaya lento. Es que no tienes nada dentro y lo llenas a golpes de comando.',
   'Quieto. Eso también es una habilidad. No la tienes.',
   'El receso te queda grande. Como casi todo lo que pide un mínimo de carácter.',
   'Estás haciendo cola delante de un mostrador cerrado y encima te quejas del horario.',
@@ -408,19 +408,15 @@ const AURA_TOP_ANSIAS = [
   'Cuentas tus propios aplausos. Salieron pocos porque el concierto ya acabó. Quedaste tú con el oído encendido.',
   'Estás lustrando un trofeo que ya brilla. El brillo no aumenta. Aumenta lo cutre de la gamuza.',
   'Pedir el puto recuento desde el primero es el flex más pobre que se puede hacer aquí.',
-  'Ya saliste en la foto. Otra con el mismo gesto de "¿sigo saliendo?" da vergüenza.',
   'Hay gente debajo mirando. Tú arriba pidiendo el listado como quien pasa asistencia. El hambre se te ve.',
-  'Nadie te bajó. Te has bajado tú solito viniendo a preguntar. Qué miseria de primer puesto.',
   'Los de arriba no piden el puto recuento. Lo dan por hecho. Tú estás pidiendo.',
   'Pedir captura del propio nombre es inseguridad con marco de oro. Qué asco de flex.',
   'Vanidad con cronómetro. El puesto no se evapora. Tu disimulo, sí. Y el ridículo, también.',
-  'Ya te vieron primero. Insistir cansa hasta al que te aplaude.',
 ];
 
 // !aura top — el que NO está. Envidia.
 const AURA_TOP_POBRE = [
   'Para lo que sales tú en esa puta lista, tampoco corre prisa. El turismo no tiene cola de emergencia.',
-  'Con tu saldo, el puto ranking es turismo. Y ni siquiera pagaste la entrada.',
   'Mirar el puto top no te sube el aura. Escribir, sí. Prueba eso en vez del binocular.',
   'Tanto interés en una puta lista donde no apareces es casi ternura. Casi. El resto es envidia.',
   'el puto top no ha cambiado y tú tampoco. Ahí está el problema entero.',
@@ -495,9 +491,6 @@ const AURA_TOP_POBRE = [
   'Lees la invitación por encima del hombro de otro. No dice tu nombre. Dice tu oficio: mirón, cutre de sobre.',
   'Mides tu altura contra una marca que no alcanzaste. La pared no se apiada. El lápiz tampoco. El que se acorta eres tú, basura de regla.',
   'Con tu saldo el puto ranking es turismo. Y ni siquiera pagaste la entrada.',
-  'Tres horas. Podrías haber escrito. Has elegido la puta ventana. El escaparate no suma.',
-  'el puto top no te debe un cameo. No hay aparición especial para el que solo mira.',
-  'Ni estás ni se te espera. Buena curiosidad de escaparate.',
 ];
 
 // !robo — 6 min. Manos calientes, huellas, ansia de botín.
@@ -646,7 +639,6 @@ const ROBO_ASALTO = [
   'El tarro de lo fallado todavía rueda por el empujón. Pararlo con la otra mano no te hace dueño. Te hace cerámica con pulso.',
   'Hay una ranura demasiado estrecha para tu ansia. Forzarla con la palanca otra vez es de cabrón con alcancía sorda.',
   'El fondo común tiene tu aliento en la ranura. Soplar otra vez no lo llena a tu favor. Lo llena de ti, basura de colecta.',
-  'La caja común no es un premio de consuelo para el que acaba de robar mal.',
 ];
 
 // Víctima recién robada, escudo natural 7 min. Sin @ ni %V.

@@ -122,7 +122,7 @@ const APUESTA_PIERDE = [
   'Cae. Con %S encima y la boca cerrada por una vez, joder.',
   'Pierde. Que lo mire bien, cabrón, porque va a repetirlo el jueves.',
   'La mesa no perdona a los que llegan sonriendo. %S, imbécil.',
-  '%A se queda seco. Un clásico del que no aprende ni Dios.',
+  '%A se queda sin nada. Un clásico del que no aprende ni Dios.',
   'Al menos ha entretenido al grupo un rato, que ya es algo, payaso.',
   'Fuera del bote y fuera de la conversación. %S y a callar, gilipollas.',
   'Se lo come la mesa. Ni las gracias le ha dado, la muy cabrona.',

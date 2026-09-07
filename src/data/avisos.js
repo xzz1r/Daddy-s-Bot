@@ -186,7 +186,6 @@ const CONTRA_UN_ADMIN = [
   'No. Ese está por encima de ti, y se nota hasta en el intento.',
   'A los admins no se les toca. A ti sí, y por algo será.',
   'Ese no. Métete con los de tu liga, que hay de sobra.',
-  'A un admin no. Lo tuyo es aguantar, no repartir.',
   'No puedes. Y él sí puede contigo, por si se te ocurre insistir.',
   'Contra un admin no. Elige mejor a quién le tienes ganas.',
   'No. Los galones existen exactamente para esto.',
@@ -208,7 +207,6 @@ const CONTRA_UN_ADMIN = [
   'Ese lleva galones desde antes de que se te ocurriera.',
   'Contra un admin no. Ni con suerte ni con público.',
   'No puedes. Y él no necesita este comando para devolvértela.',
-  'A ese no. Elige mejor a quién le tienes ganas.',
   'Ese no. Prueba con alguien tan poca cosa como tú.',
 ];
 

@@ -686,7 +686,7 @@ comando no ha funcionado nunca. Por eso no entra en `check`: un validador que
 depende de que una web ajena esté en pie se pone rojo por motivos que no tienen
 nada que ver con el código.
 
-**`npm run check` es el que importa.** Empezó con cuatro capas y hoy son 55. Las
+**`npm run check` es el que importa.** Empezó con cuatro capas y hoy son 57. Las
 cuatro primeras siguen siendo las que pillan lo que rompe el bot al escribir
 frases:
 
@@ -699,10 +699,26 @@ frases:
 4. **Guardan** — comprueba que aura, casino, racha, contador y banlist se
    comportan. Se salta sola si el bot está corriendo, para no pisarle los datos.
 
-Las otras cincuenta y una son del motor —permisos, economía, red, despliegue— y no hace
-falta entenderlas para escribir. Dos sí tocan al contenido y conviene saberlas:
-**31b** revisa las tildes de las 10.000 frases y **33a** caza voseo, frases
-pegadas y basura tipo `undefined` incrustada dentro de un texto.
+Las otras cincuenta y tres son del motor —permisos, economía, red, despliegue— y
+no hace falta entenderlas para escribir. Cuatro sí tocan al contenido y conviene
+saberlas:
+
+- **31b** revisa las tildes de las 10.000 frases.
+- **33a** caza voseo, frases pegadas y basura tipo `undefined` dentro de un texto.
+- **17** ya no busca solo frases repetidas exactas: también las que se
+  diferencian en una palabra. «…para tapar un hueco que sigue igual de grande» y
+  «…para tapar un vacío que sigue igual de grande» son la misma frase para quien
+  la lee, y había 165 así. Cuentan doble en el tamaño del pool y encima engañan a
+  la ventana anti-repetición, que se calcula sobre ese tamaño. Y no deja que la
+  misma frase salga en dos resultados de `!robo`: si el texto de un robo normal
+  es el de uno maestro, el resultado deja de decir nada. Había 26, y alguna
+  mentía —en el pool de robo *parcial* había frases que decían «saqueo total».
+- **44** no deja pasar una frase que dé por hecho que quien la lee es un tío.
+  «Eres el que reenvía capturas» le llega a una tía en masculino y con su nombre
+  delante. La forma neutra es *eres quien*; para *eres el tío que*, *eres de esa
+  gente que*. Un «cabrón» suelto al final no cuenta: eso es el registro del bot y
+  se usa igual con cualquiera. Los comandos que van de género a propósito
+  —`!masculinidad`, `!feminidad`, `!gay`, `!femboy`— quedan fuera de la regla.
 
 Las capas 2 en adelante necesitan `npm install`. La 1 corre siempre y es la que
 detecta el bot caído.
@@ -848,4 +864,10 @@ git pull origin main
   fingiendo que se cayó la web, porque un rechazo con nombre solo le pasa a una
   persona y a la segunda vez el grupo sabe quién manda en el bot.
 
-- **Multimedia**: stickers, `!play`, `!toimg`. Sin frases; no es terreno de contenido.
+- **Multimedia**: stickers, `!play`, `!toimg`. Sin frases; no es terreno de
+  contenido. Una cosa del motor que conviene saber: todo lo que llama a ffmpeg
+  pasa por un semáforo compartido, y sus plazas salen del número de cores de la
+  máquina. En la VPS —un core— es UNA. Dos ffmpeg en un core no van en paralelo,
+  se reparten el mismo core, así que con dos plazas el primero que pide un
+  sticker esperaba más del doble (2253 ms frente a 1026 ms, medido con dos a la
+  vez). Con cuatro cores la máquina sí puede con dos y las coge.
