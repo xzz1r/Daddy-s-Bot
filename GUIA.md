@@ -674,9 +674,19 @@ npm run placeholders
 npm run pools
 npm run conteos
 npm run progreso
+npm run acciones       ← solo si tocas las acciones (sale a internet)
 ```
 
-**`npm run check` es el que importa.** Empezó con cuatro capas y hoy son 49. Las
+`npm run acciones` es el único que **sale a internet**: le pregunta a la web de
+gifs por cada categoría que tiene configurada el bot. Existe porque una
+categoría mal escrita no se ve — el comando queda montado, sale en el menú,
+alguien lo escribe, la web contesta 404, el bot devuelve el aura y dice que no
+pudo traer nada. Desde fuera parece que la web va mal un día; en realidad ese
+comando no ha funcionado nunca. Por eso no entra en `check`: un validador que
+depende de que una web ajena esté en pie se pone rojo por motivos que no tienen
+nada que ver con el código.
+
+**`npm run check` es el que importa.** Empezó con cuatro capas y hoy son 55. Las
 cuatro primeras siguen siendo las que pillan lo que rompe el bot al escribir
 frases:
 
@@ -689,7 +699,7 @@ frases:
 4. **Guardan** — comprueba que aura, casino, racha, contador y banlist se
    comportan. Se salta sola si el bot está corriendo, para no pisarle los datos.
 
-Las otras cuarenta y cinco son del motor —permisos, economía, red, despliegue— y no hace
+Las otras cincuenta y una son del motor —permisos, economía, red, despliegue— y no hace
 falta entenderlas para escribir. Dos sí tocan al contenido y conviene saberlas:
 **31b** revisa las tildes de las 10.000 frases y **33a** caza voseo, frases
 pegadas y basura tipo `undefined` incrustada dentro de un texto.
@@ -796,19 +806,46 @@ git pull origin main
   esconder es de cobardes y que sacarlo va a costarle dinero.
 - **Racha**: solo habla en hitos (7, 15, 30, 50, 100, 200, 365 días) y al romper
   una racha larga. El resto de días paga en silencio, a propósito.
-- **Acciones** (`!hug` · `!kiss` · `!punch` · `!fuck` · `!anal` y compañía): mandan un gif
-  de anime dirigido a alguien, cuestan 60 —`!fuck` y `!anal`, 120— y llevan una frase
-  con las dos menciones. Doce pools de treinta en `src/data/accionPhrases.js`,
-  más `ROAST_USUARIO`, que son sesenta. Tres cosas propias:
-  **la frase no describe la acción, la comenta** (el gif ya se ve, contar otra
-  vez lo que pasa es escribir el pie de una foto); **la crudeza va según el
-  comando** —guarra y no cursi en las cariñosas, física en las violentas—; y
-  **el chiste apunta a quien la recibe, nunca a quien la manda**. La excepción es
-  `ROAST_USUARIO`, que va **en un mensaje aparte**, en cursiva, y existe justo
-  para lo contrario: se ríe de quien ha pagado aura por mandar un gesto animado
-  a alguien que tiene a dos metros. No es pie de foto. Al tier dueño no se le
-  remata, y eso lo salta el propio comando.
+- **Acciones** (veintiuna: `!hug` · `!cuddle` · `!punch` · `!stare` · `!fuck` y
+  compañía): mandan un gif de anime dirigido a alguien y llevan una frase con
+  las dos menciones. Cuestan 60; las tres explícitas —`!fuck`, `!anal`, `!cum`—
+  120. Veintiún pools de treinta en `src/data/accionPhrases.js`, más
+  `ROAST_USUARIO`.
+
+  **Los cuatro registros**, que es lo que hay que tener en la cabeza antes de
+  escribir una sola frase:
+
+  | Registro | Cuáles | Dónde está el chiste |
+  |---|---|---|
+  | Sumisión | `!cuddle` `!pat` `!handhold` `!feed` `!nom` `!peck` `!tickle` | en que **quien recibe cede**: hace sitio sin que se lo pidan, agacha la cabeza, abre la boca. Su decisión, no el gesto |
+  | Violencia | `!punch` `!slap` `!stomp` `!bonk` `!chomp` `!yeet` `!shoot` | física: dónde pega, qué se rompe, cómo suena. No se arregla con un taco al final |
+  | Incomodidad | `!stare` `!laugh` | no se toca a nadie y marca igual. `!laugh` es el único donde el chiste no es quien lo recibe, sino que no lo era |
+  | Explícito | `!fuck` `!anal` `!cum` | crudo de verdad, no insinuado. `!cum` cuenta el después: cómo queda quien lo recibe |
+
+  Y tres reglas que valen para las veintiuna: **la frase no describe la acción,
+  la comenta** (el gif ya se ve; contar otra vez lo que pasa es escribir el pie
+  de una foto); **el chiste apunta a quien la recibe, nunca a quien la manda**;
+  y **ni %A ni %V tienen género** — cualquiera del grupo cae en cualquiera de
+  las dos menciones, así que una frase que dice «él» o cierra en -o falla el día
+  que le toca a ellas, con su nombre delante.
+
+  `ROAST_USUARIO` es la excepción a todo: va **en otro mensaje**, en cursiva, y
+  se ríe de quien ha pagado aura por mandar un gesto animado a alguien que tiene
+  a dos metros. **Sale una de cada cinco acciones del grupo**, no en todas — se
+  usan en ráfaga y un segundo mensaje debajo de cada una deja de leerse a las
+  tres veces. Que salga menos significa que cada una de esas frases se lee menos
+  y tiene que aguantar sola: una de relleno ahí canta más que en cualquier otro
+  pool. Al tier dueño no se le remata, y sus acciones tampoco gastan turno.
+
   **Sin frases no hay comando**: mientras un pool no exista, esa acción no sale
   en el menú, no la sugiere el corrector, no cobra y no contesta. Se enciende
-  sola al exportar el pool.
+  sola al exportar el pool, y `npm run check` revienta si el menú anuncia una
+  apagada o se calla una encendida.
+
+  Dos cosas del motor que conviene saber aunque no se toquen: el gif se prepara
+  **antes** de que nadie lo pida (la despensa, en `commands/acciones.js`), y
+  `!fuck`, `!anal` y `!cum` **no funcionan contra el dueño** — se niegan
+  fingiendo que se cayó la web, porque un rechazo con nombre solo le pasa a una
+  persona y a la segunda vez el grupo sabe quién manda en el bot.
+
 - **Multimedia**: stickers, `!play`, `!toimg`. Sin frases; no es terreno de contenido.
