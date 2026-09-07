@@ -226,6 +226,21 @@ const TOPE_DESPENSA = 24 * 1024 * 1024;
 const despensa = new Map();      // clave -> { cola: [], ts }
 const reponiendo = new Set();    // para no pedir dos veces lo mismo a la vez
 
+// UN SOLO TRABAJO DE FONDO A LA VEZ, Y ESTO NO ES UN DETALLE.
+//
+// ffmpeg corre detras de un semaforo compartido con los stickers, *!toimg* y
+// *!ttp*, con DOS plazas para todo el bot. Rellenar la despensa tambien pasa por
+// ahi, y sin este freno varias categorias rellenandose a la vez podian ocupar
+// las dos plazas: entonces alguien manda una foto para hacer un sticker y su
+// comando se queda esperando a un trabajo que no le importa a nadie.
+//
+// Con el tope en uno, el fondo nunca puede llenar el semaforo: siempre queda
+// una plaza para quien esta esperando delante de la pantalla. Y si llega otra
+// peticion de relleno mientras hay una en marcha, se descarta sin mas — esa
+// categoria se rellenara la proxima vez que alguien la use, que es justo el
+// momento en el que importa.
+let fondoEnCurso = 0;
+
 // LA CLAVE SE CALCULA EN UN SITIO. Escrita dos veces —al sacar y al reponer—
 // se desincroniza el dia que alguien toque la fuente, y el sintoma seria que la
 // despensa se llena y nunca se usa: cada comando volveria a pagar el viaje
@@ -310,10 +325,14 @@ function calentarDespensa() {
     const a = ACCIONES[nombre];
     const clave = claveDespensa(a.cat, a.nsfw, a.catNsfw);
     if (despensa.get(clave)?.cola.length) { calentando = setTimeout(siguiente, 50); calentando.unref?.(); return; }
+    fondoEnCurso++;
     traerAccion(a.cat, a.nsfw, a.catNsfw, true)
       .then((m) => guardarEnDespensa(clave, m))
       .catch(() => { /* la web falla: ya se vera cuando alguien lo pida */ })
-      .finally(() => { calentando = setTimeout(siguiente, ESPERA_ENTRE_CALENTADOS); calentando.unref?.(); });
+      .finally(() => {
+        fondoEnCurso--;
+        calentando = setTimeout(siguiente, ESPERA_ENTRE_CALENTADOS); calentando.unref?.();
+      });
   };
   calentando = setTimeout(siguiente, ESPERA_PRIMER_CALENTADO);
   calentando.unref?.();
@@ -323,17 +342,20 @@ function reponerDespensa(cat, nsfw, catNsfw, clave) {
   const d = despensa.get(clave);
   if (d && d.cola.length >= LISTOS_POR_CAT) return;
   if (reponiendo.has(clave)) return;
+  if (fondoEnCurso >= 1) return;   // ver la nota de fondoEnCurso
   reponiendo.add(clave);
+  fondoEnCurso++;
   traerAccion(cat, nsfw, catNsfw, true)
     .then((m) => {
       guardarEnDespensa(clave, m);
       reponiendo.delete(clave);
+      fondoEnCurso--;
       // Y otra vuelta hasta llenar. De una en una y encadenadas: dos peticiones
       // a la vez a la misma web es como se empieza a parecer a un scraper.
       const d2 = despensa.get(clave);
       if (!d2 || d2.cola.length < LISTOS_POR_CAT) reponerDespensa(cat, nsfw, catNsfw, clave);
     })
-    .catch((e) => { logger.warn(`despensa ${clave}: ${e.message}`); reponiendo.delete(clave); });
+    .catch((e) => { logger.warn(`despensa ${clave}: ${e.message}`); reponiendo.delete(clave); fondoEnCurso--; });
 }
 
 async function gifAMp4(gif) {
@@ -636,4 +658,4 @@ function hazAccion(nombre) {
 const comandos = {};
 for (const nombre of ACTIVAS) comandos[nombre] = hazAccion(nombre);
 
-module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, calentarDespensa, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, ...comandos, _turnoRoast: turnoRoast };
+module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, calentarDespensa, _fondo: () => fondoEnCurso, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, ...comandos, _turnoRoast: turnoRoast };

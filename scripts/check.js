@@ -6407,6 +6407,25 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       // sea un proceso mas dentro del camino caliente y en el unico core de la
       // VPS: es lo que hacia que subir 13 KB tardara 1699 ms. Se manda aunque
       // sea null, porque lo que dispara el ffmpeg de Baileys es `undefined`.
+      // ── EL FONDO NO PUEDE QUITARLE LA VEZ A NADIE ──────────────────
+      //
+      // ffmpeg corre detras de un semaforo compartido con los stickers,
+      // *!toimg* y *!ttp*, y tiene DOS plazas para todo el bot. Rellenar la
+      // despensa tambien pasa por ahi: sin tope, varias categorias rellenandose
+      // a la vez ocupan las dos y el sticker de alguien se queda esperando a un
+      // trabajo que no le importa a nadie. Con el tope en uno siempre queda una
+      // plaza para quien esta delante de la pantalla.
+      exige(/fondoEnCurso >= 1\) return;/.test(src4),
+        'el relleno de la despensa ya no se limita a uno a la vez: puede ocupar las dos plazas de ffmpeg y dejar esperando un sticker');
+      {
+        const iRep = src4.indexOf('function reponerDespensa');
+        const cuerpoRep = iRep < 0 ? '' : src4.slice(iRep, src4.indexOf('\n}', iRep));
+        const sube = (cuerpoRep.match(/fondoEnCurso\+\+/g) || []).length;
+        const baja = (cuerpoRep.match(/fondoEnCurso--/g) || []).length;
+        exige(sube > 0 && baja >= sube,
+          `el contador de trabajos de fondo sube ${sube} veces y baja ${baja}: si se queda arriba, la despensa deja de rellenarse para siempre`);
+      }
+
       exige(/jpegThumbnail: traido\.thumb \|\| null/.test(src4),
         'el mensaje de video ya no lleva miniatura: Baileys lanzara su propio ffmpeg al enviarlo, dentro del camino caliente');
     }
