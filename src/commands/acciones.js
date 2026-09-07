@@ -16,7 +16,7 @@
 // aprendió a no hacer.
 const axios = require('axios');
 const fs = require('fs-extra');
-const { getSender, getTarget, sameUser, isOwner, isMainOwner, canonicalJid } = require('../utils/wa');
+const { getSender, getTarget, sameUser, isOwner, isMainOwner, canonicalJid, indexGroupMeta } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { pickFresh, tempFile, cleanTemp, ffmpegSemaphore } = require('../utils/helpers');
 const { ffmpegPath } = require('../utils/ffmpeg');
@@ -235,11 +235,30 @@ const reponiendo = new Set();    // para no pedir dos veces lo mismo a la vez
 // comando se queda esperando a un trabajo que no le importa a nadie.
 //
 // Con el tope en uno, el fondo nunca puede llenar el semaforo: siempre queda
-// una plaza para quien esta esperando delante de la pantalla. Y si llega otra
-// peticion de relleno mientras hay una en marcha, se descarta sin mas — esa
-// categoria se rellenara la proxima vez que alguien la use, que es justo el
-// momento en el que importa.
+// una plaza para quien esta esperando delante de la pantalla.
+//
+// Y EL TOPE VIVE EN UNA SOLA PUERTA, `enFondo`, porque la primera vez lo escribi
+// suelto y me quedo a medias: la reposicion miraba el contador antes de subirlo,
+// pero el calentado del arranque lo subia sin mirar nada. O sea que durante los
+// diez minutos posteriores a cada despliegue —cuando el calentado esta en
+// marcha— bastaba con que alguien usara una accion para tener DOS trabajos de
+// fondo a la vez y las dos plazas de ffmpeg ocupadas. Medido: pico de 2.
+//
+// El validador tampoco lo veia: buscaba el texto del freno en el fichero y
+// contaba subidas y bajadas dentro de la reposicion, que estaba bien. Con una
+// puerta unica no hay dos sitios que puedan discrepar.
 let fondoEnCurso = 0;
+
+// Corre `fn` como trabajo de fondo si hay hueco. Devuelve null —y no hace nada—
+// cuando ya hay uno en marcha, para que quien llama decida: la reposicion se
+// rinde (esa categoria se rellenara la proxima vez que alguien la use, que es
+// cuando importa) y el calentado reintenta, porque su trabajo es dejarlas todas
+// listas y saltarse una es dejar esa accion lenta hasta el proximo despliegue.
+function enFondo(fn) {
+  if (fondoEnCurso >= 1) return null;
+  fondoEnCurso++;
+  return Promise.resolve().then(fn).finally(() => { fondoEnCurso--; });
+}
 
 // LA CLAVE SE CALCULA EN UN SITIO. Escrita dos veces —al sacar y al reponer—
 // se desincroniza el dia que alguien toque la fuente, y el sintoma seria que la
@@ -314,7 +333,19 @@ function guardarEnDespensa(clave, medio) {
 // importantes que hacer con ese único core.
 const ESPERA_PRIMER_CALENTADO = 60 * 1000;
 const ESPERA_ENTRE_CALENTADOS = 30 * 1000;
+// Cuando el hueco de fondo esta cogido no se espera media pausa entera: en
+// cuanto se libere hay trabajo que hacer, y cinco segundos no se parecen a una
+// rafaga contra la web porque en ese hueco no se pide nada.
+const ESPERA_OCUPADO = 5 * 1000;
 let calentando = null;
+
+// Todos los temporizadores del calentado por el mismo sitio: `unref` para que
+// una despensa a medias no impida que el proceso termine, y una sola variable
+// que apunte al pendiente.
+function luego(fn, ms) {
+  calentando = setTimeout(fn, ms);
+  calentando.unref?.();
+}
 
 function calentarDespensa() {
   if (calentando) return;
@@ -324,38 +355,49 @@ function calentarDespensa() {
     if (!nombre) { calentando = null; logger.info('despensa de acciones lista'); return; }
     const a = ACCIONES[nombre];
     const clave = claveDespensa(a.cat, a.nsfw, a.catNsfw);
-    if (despensa.get(clave)?.cola.length) { calentando = setTimeout(siguiente, 50); calentando.unref?.(); return; }
-    fondoEnCurso++;
-    traerAccion(a.cat, a.nsfw, a.catNsfw, true)
+    if (despensa.get(clave)?.cola.length) { luego(siguiente, 50); return; }
+    // Si el hueco de fondo esta cogido —lo tipico es que lo tenga la reposicion
+    // de una accion que alguien acaba de usar—, esta categoria se DEVUELVE a la
+    // cola y se reintenta. Saltarsela dejaria esa accion sin preparar hasta el
+    // proximo despliegue, que es justo lo que el calentado viene a evitar.
+    const trabajo = enFondo(() => traerAccion(a.cat, a.nsfw, a.catNsfw, true)
       .then((m) => guardarEnDespensa(clave, m))
-      .catch(() => { /* la web falla: ya se vera cuando alguien lo pida */ })
-      .finally(() => {
-        fondoEnCurso--;
-        calentando = setTimeout(siguiente, ESPERA_ENTRE_CALENTADOS); calentando.unref?.();
-      });
+      .catch(() => { /* la web falla: ya se vera cuando alguien lo pida */ }));
+    if (!trabajo) { cola.unshift(nombre); luego(siguiente, ESPERA_OCUPADO); return; }
+    trabajo.finally(() => luego(siguiente, ESPERA_ENTRE_CALENTADOS));
   };
-  calentando = setTimeout(siguiente, ESPERA_PRIMER_CALENTADO);
-  calentando.unref?.();
+  luego(siguiente, ESPERA_PRIMER_CALENTADO);
 }
 
 function reponerDespensa(cat, nsfw, catNsfw, clave) {
   const d = despensa.get(clave);
   if (d && d.cola.length >= LISTOS_POR_CAT) return;
   if (reponiendo.has(clave)) return;
-  if (fondoEnCurso >= 1) return;   // ver la nota de fondoEnCurso
   reponiendo.add(clave);
-  fondoEnCurso++;
-  traerAccion(cat, nsfw, catNsfw, true)
-    .then((m) => {
-      guardarEnDespensa(clave, m);
-      reponiendo.delete(clave);
-      fondoEnCurso--;
-      // Y otra vuelta hasta llenar. De una en una y encadenadas: dos peticiones
-      // a la vez a la misma web es como se empieza a parecer a un scraper.
-      const d2 = despensa.get(clave);
-      if (!d2 || d2.cola.length < LISTOS_POR_CAT) reponerDespensa(cat, nsfw, catNsfw, clave);
-    })
-    .catch((e) => { logger.warn(`despensa ${clave}: ${e.message}`); reponiendo.delete(clave); fondoEnCurso--; });
+  // El contador de fondo lo sube y lo baja `enFondo`, y lo baja en un `finally`:
+  // pase lo que pase ahi dentro, el hueco se devuelve. Escrito a mano eran
+  // cuatro sitios que tenian que cuadrar, y bastaba con que uno se quedara
+  // arriba para que la despensa dejara de rellenarse hasta el siguiente
+  // reinicio, sin un solo mensaje de error.
+  let fue = false;
+  const trabajo = enFondo(() => traerAccion(cat, nsfw, catNsfw, true)
+    .then((m) => { guardarEnDespensa(clave, m); fue = true; })
+    .catch((e) => { logger.warn(`despensa ${clave}: ${e.message}`); }));
+  if (!trabajo) { reponiendo.delete(clave); return; }
+  trabajo.finally(() => {
+    reponiendo.delete(clave);
+    // Y otra vuelta hasta llenar, PERO SOLO SI LA ANTERIOR TRAJO ALGO. De una
+    // en una y encadenadas: dos peticiones a la vez a la misma web es como se
+    // empieza a parecer a un scraper.
+    //
+    // Y con la web caida no se reintenta: la despensa nunca llegaria a llenarse,
+    // asi que reintentar seria un bucle de peticiones a una web que ya esta
+    // fallando, a toda velocidad y sin que nadie lo vea. Se deja como esta y ya
+    // lo intentara la proxima accion que alguien use.
+    if (!fue) return;
+    const d2 = despensa.get(clave);
+    if (!d2 || d2.cola.length < LISTOS_POR_CAT) reponerDespensa(cat, nsfw, catNsfw, clave);
+  });
 }
 
 async function gifAMp4(gif) {
@@ -553,7 +595,35 @@ function hazAccion(nombre) {
     // no delata a nadie.
     //
     // Se comprueba ANTES de cobrar, o el rechazo saldria pagado.
-    if (nsfw && isMainOwner(objetivo, false, groupMeta)) {
+    //
+    // Y SI NO SE PUEDE SABER QUIEN ES, TAMPOCO. Medido: con la metadata del
+    // grupo caida y el mapa de @lid frio —o sea, en los primeros segundos
+    // despues de un reinicio—, la mencion llega como un @lid que no se puede
+    // traducir a un telefono, isMainOwner no encuentra a nadie y el blindaje se
+    // abria. Las tres explicitas funcionaban contra el dueño.
+    //
+    // Se niega igual. La cuenta es facil: negar de mas cuesta que un dia raro
+    // *!fuck* diga que la web va mal —que es lo que dice cuando la web va mal de
+    // verdad, y pasa cada pocos dias—, y no cobra. Dejarlo pasar cuesta que el
+    // blindaje no exista justo el rato en que nadie lo esta mirando. No hay
+    // discusion: la regla del anonimato esta por encima de que un comando salga
+    // siempre.
+    //
+    // Y solo aplica al @lid SIN TRADUCIR. Una mencion en forma de telefono se
+    // compara por digitos y no necesita metadata para nada, asi que este caso no
+    // le toca y el comando sigue funcionando como siempre.
+    //
+    // Y EL MAPA SE LLENA ANTES DE PREGUNTAR. Lo escribi al reves y salio caro:
+    // canonicalJid traduce con un mapa que llena indexGroupMeta, y quien lo
+    // llamaba era isMainOwner, DESPUES. Asi que la primera pregunta se hacia
+    // siempre con el mapa vacio: todas las menciones parecian sin resolver y las
+    // tres explicitas se negaban contra CUALQUIERA, no solo contra el dueño.
+    // Escrito aqui, y no confiado al efecto lateral de otra funcion, que es
+    // justo lo que hizo falta para verlo.
+    if (groupMeta) indexGroupMeta(groupMeta);
+    const sinResolver = String(objetivo).endsWith('@lid')
+      && String(canonicalJid(objetivo) || objetivo).endsWith('@lid');
+    if (nsfw && (sinResolver || isMainOwner(objetivo, false, groupMeta))) {
       return sock.sendMessage(jid, {
         text: 'No he podido traer el gif. No te he cobrado.',
       }, { quoted: msg });

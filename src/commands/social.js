@@ -260,7 +260,7 @@ async function cmdCasino(sock, msg, groupMeta) {
 //
 // Las frases de estos comandos las escribe Grok, y hasta que un pool no existe
 // la accion esta apagada: no tiene handler y no contesta. Escrita a mano, esta
-// seccion anunciaria once comandos de los que a lo mejor funcionan tres —que es
+// seccion anunciaria veintiun comandos de los que a lo mejor funcionan tres —que es
 // la unica cosa que el menu no puede hacer— asi que se genera de la misma tabla
 // de la que sale el dispatcher. Lo que no esta activo, no se nombra; y el dia
 // que se activen todas, aparecen aqui solas.
@@ -288,9 +288,9 @@ function bloqueAcciones(p, c) {
   // eso obligaba a pedir *!help todo* para descubrir que *!abrazo* existia — o
   // sea, a saber de antemano lo que se venia a buscar.
   //
-  // Solo el PRIMER alias, no los dos: con doce acciones, meter los dos convierte
-  // cuatro lineas en ocho para decir lo mismo. El segundo sigue funcionando y
-  // sigue en la lista larga.
+  // Solo el PRIMER alias, no los dos: con veintiuna acciones, meter los dos
+  // convierte siete lineas en catorce para decir lo mismo. El segundo sigue
+  // funcionando y sigue en la lista larga.
   const nombre = (n) => {
     const a = ACCIONES[n];
     return a.es ? `*${p}${a.cmds[0]}* _${a.es}_` : `*${p}${a.cmds[0]}*`;

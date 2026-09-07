@@ -2540,10 +2540,11 @@ async function handleMessage(sock, msg) {
         resultado = await cmdVault(sock, msg, ['unlock', ...args], groupMeta);
         break;
 
-      // LAS ACCIONES. Un solo destino para los treinta y un nombres: el modulo
-      // sabe cual le toca por el nombre tecleado.
+      // LAS ACCIONES. Un solo destino para los sesenta nombres —veintiuna
+      // acciones con dos o tres formas cada una—: el modulo sabe cual le toca
+      // por el nombre tecleado.
       //
-      // UNO POR LINEA, aunque ocupe treinta y una. Los validadores leen los
+      // UNO POR LINEA, aunque ocupe sesenta. Los validadores leen los
       // `case` con un patron de principio de linea, asi que dos en la misma
       // cuentan como uno: los alias desapareceran de la comprobacion del menu y
       // de la clasificacion del interruptor de aura sin que nadie lo note.

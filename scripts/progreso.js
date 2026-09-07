@@ -275,6 +275,47 @@ console.log('\n  ('+fallan.length+' pools por debajo del estandar en total)');
       '  '+m.n+' de '+m.tot+' cierran con «'+m.g+'»');
 }
 
+// 2b. ECO. La otra forma de molde, y la que se me escapaba a mi: el cierre
+// repite una palabra de la primera oracion y la sentencia. "…y le aprieta el
+// brazo. El brazo dice mas que el beso." Suelta esta bien —es un recurso del
+// bot— pero cuando es el UNICO recurso del pool se oye a la tercera seguida, y
+// las acciones se usan en rafaga.
+//
+// Se mide aparte del molde de arriba porque son cosas distintas: aquel mira la
+// FORMA del cierre (que palabras funcionales lleva), este mira si el cierre
+// vuelve sobre una palabra que ya estaba. Un pool puede pasar el primero y
+// suspender este.
+//
+// El umbral es el mismo 30 %. Medido al escribirlo: los pools de acciones iban
+// del 7 % al 40 %, con PECK en 12 de 30 y SHOOT en 11 de 30.
+{
+  const UMBRAL_ECO = 0.30;
+  const palabras = (t) => (t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .match(/[a-zñ]{5,}/g) || []);
+  const ecos = [];
+  for (const f of filas) {
+    if (f.P.length < 25) continue;
+    let n = 0;
+    for (const t of f.P) {
+      const o = t.trim().split(/(?<=[.!?])\s+/).filter(Boolean);
+      if (o.length < 2) continue;
+      const antes = new Set(palabras(o.slice(0, -1).join(' ')));
+      if (palabras(o[o.length - 1]).some((w) => antes.has(w))) n++;
+    }
+    ecos.push({ cmd: f.cmd, tr: f.tr, n, tot: f.P.length, r: n / f.P.length });
+  }
+  ecos.sort((a, b) => b.r - a.r);
+  const pasan = ecos.filter((m) => m.r >= UMBRAL_ECO);
+  console.log('\nECO (el cierre repite una palabra del principio y la sentencia):');
+  if (!pasan.length) console.log(ecos.length
+    ? '  ninguno por encima del ' + Math.round(UMBRAL_ECO * 100) + ' %  ·  el peor: '
+      + ecos[0].cmd + ' ' + ecos[0].tr + ' ' + Math.round(ecos[0].r * 100) + ' %'
+    : '  ningun pool llega a 25 frases: no hay nada que medir');
+  for (const m of pasan.slice(0, 6))
+    console.log('  ' + (m.cmd + ' ' + m.tr).padEnd(30) + String(Math.round(m.r * 100) + '%').padStart(5)
+      + '  ' + m.n + ' de ' + m.tot + ' cierran volviendo sobre una palabra ya dicha');
+}
+
 // 3. POLARIDAD. En un comando peyorativo, el tramo BAJO es el cumplido; en uno
 // favorable, el alto. Si el tramo que hace de cumplido pega MAS que el que hace
 // de paliza, quien saca un 4 % lee un insulto donde le tocaba un halago.

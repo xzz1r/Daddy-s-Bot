@@ -6268,10 +6268,73 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     // aqui escribiria en el aura de verdad.
     {
       const src2 = soloCodigo('src/commands/acciones.js');
-      const iNeg = src2.indexOf('nsfw && isMainOwner(objetivo');
+      const iNeg = src2.indexOf('isMainOwner(objetivo, false, groupMeta)');
       const iCobro = src2.indexOf('const concepto = nsfw');
       exige(iNeg >= 0 && iCobro >= 0 && iNeg < iCobro,
         'el blindaje del dueño va DESPUES del cobro, o ya no usa isMainOwner: el rechazo saldria pagado');
+      // Y EL MAPA DE @lid SE LLENA ANTES DE PREGUNTAR. canonicalJid traduce con
+      // un mapa que llena indexGroupMeta; si nadie lo llama primero, la
+      // traduccion se hace en vacio. Escrito al reves, las tres explicitas se
+      // negaban contra todo el grupo en vez de contra el dueño.
+      const iIdx = src2.indexOf('indexGroupMeta(groupMeta)');
+      exige(iIdx >= 0 && iIdx < iNeg,
+        'el blindaje pregunta por el @lid antes de llenar el mapa que lo traduce: o se abre contra el dueño, o se cierra contra todo el grupo');
+    }
+
+    // ── Y AHORA CON LA FORMA EN QUE LLEGA DE VERDAD: UN @lid ─────────────
+    //
+    // Arriba se prueba con menciones en forma de telefono, que es la comoda de
+    // escribir y la que NO ocurre: en un grupo LID —o sea, en todos los de
+    // ahora— la mencion llega como @lid y el telefono viaja aparte, dentro de la
+    // metadata. Probar solo la forma comoda es como se dio por bueno el guardian
+    // que trataba los participantes como cadenas.
+    //
+    // Y se prueban las dos direcciones, porque las dos han fallado:
+    //   · el dueño por @lid tiene que quedar blindado;
+    //   · un miembro cualquiera por @lid NO, o el comando se niega contra todos.
+    {
+      const OWN_LID = '111122223333@lid';
+      const V_LID = '444455556666@lid';
+      const A_LID = '999988887777@lid';
+      const metaLid = { id: GJ, subject: 'G', participants: [
+        { id: BOT, admin: 'admin' },
+        { id: OWN_LID, lid: OWN_LID, phoneNumber: OWN, admin: 'admin' },
+        { id: V_LID, lid: V_LID, phoneNumber: '34600000009@s.whatsapp.net' },
+        { id: A_LID, lid: A_LID, phoneNumber: A },
+      ] };
+      const tira = async (n, aQuien, meta2) => {
+        const out = [];
+        const sk = { user: { id: BOT }, sendMessage: async (j, c) => { out.push(c); return {}; },
+          groupMetadata: async () => metaLid };
+        const msg = { key: { remoteJid: GJ, participant: A_LID, fromMe: false, id: 'X' },
+          message: { extendedTextMessage: { text: `!${n} @x`, contextInfo: { mentionedJid: [aQuien] } } } };
+        await acc[n](sk, msg, [], meta2);
+        return { texto: out.map((c) => c.text || '').join('\n'), medio: out.some((c) => c.video || c.image) };
+      };
+      for (const n of nsfw) {
+        const dueno = await tira(n, OWN_LID, metaLid);
+        exige(/No he podido traer el gif/.test(dueno.texto) && !dueno.medio,
+          `*!${n}* deja pasar al dueño cuando la mencion llega como @lid, que es como llega siempre en un grupo de ahora`);
+        // Sin metadata —los primeros segundos tras un reinicio, o un fallo al
+        // pedirla— el @lid no se puede traducir y no hay forma de saber quien
+        // es. Se niega igual: negar de mas cuesta un "la web va mal" en un dia
+        // raro; dejarlo pasar cuesta el blindaje entero.
+        //
+        // Y SE PRUEBA CON UN @lid QUE NADIE HA VISTO NUNCA, no con el del dueño.
+        // Escrito con el del dueño la comprobacion pasaba en verde con el codigo
+        // roto, y no por casualidad: wa.js APRENDE los @lid del dueño que ya ha
+        // confirmado (noteOwnerJid), asi que despues de las pruebas de arriba lo
+        // reconocia de memoria y el blindaje aguantaba por el atajo, no por la
+        // regla que se queria comprobar. Con un @lid desconocido no hay atajo
+        // posible: o se niega por no poder traducirlo, o no se niega.
+        const NADIE = '777766665555@lid';
+        const aOscuras = await tira(n, NADIE, null);
+        exige(/No he podido traer el gif/.test(aOscuras.texto) && !aOscuras.medio,
+          `*!${n}* sigue adelante con una mencion @lid que no puede traducir: ahi no sabe si el objetivo es el dueño, y en la duda tiene que negarse`);
+        const cualquiera = await tira(n, V_LID, metaLid);
+        exige(!/No he podido traer el gif/.test(cualquiera.texto),
+          `*!${n}* se niega tambien contra un miembro cualquiera mencionado por @lid: el blindaje dejo de apuntar a una persona y paso a apagar el comando`);
+      }
     }
 
     if (fallos === antes) console.log(verde(`   ✓ *!${nsfw.join('* y *!')}* no van contra el dueño —y solo contra el—, y se niegan sin delatarlo`));
@@ -6415,15 +6478,51 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       // a la vez ocupan las dos y el sticker de alguien se queda esperando a un
       // trabajo que no le importa a nadie. Con el tope en uno siempre queda una
       // plaza para quien esta delante de la pantalla.
-      exige(/fondoEnCurso >= 1\) return;/.test(src4),
-        'el relleno de la despensa ya no se limita a uno a la vez: puede ocupar las dos plazas de ffmpeg y dejar esperando un sticker');
+      //
+      // ESTA COMPROBACION ESTUVO MAL Y DEJO PASAR EL FALLO QUE DECIA VIGILAR.
+      // Buscaba el texto del freno en cualquier parte del fichero y contaba
+      // subidas y bajadas del contador dentro de la reposicion. Las dos cosas
+      // eran ciertas, y aun asi el calentado del arranque subia el contador sin
+      // mirarlo: durante los diez minutos siguientes a cada despliegue bastaba
+      // con que alguien usara una accion para tener dos trabajos de fondo y las
+      // dos plazas de ffmpeg cogidas. Medido con el semaforo instrumentado:
+      // pico de 2.
+      //
+      // Contar por fichero, y no por funcion, es lo que arregla la clase entera:
+      // mientras el contador solo pueda subir DENTRO de `enFondo`, no hay dos
+      // sitios que puedan discrepar y no importa cuantos llamantes nuevos
+      // aparezcan.
       {
+        const iF = src4.indexOf('function enFondo');
+        const cuerpoF = iF < 0 ? '' : src4.slice(iF, src4.indexOf('\n}', iF));
+        exige(iF >= 0 && /fondoEnCurso >= 1\) return null;/.test(cuerpoF),
+          'enFondo ya no frena: el relleno de la despensa puede ocupar las dos plazas de ffmpeg y dejar esperando un sticker');
+        exige(/\.finally\(\(\) => \{ fondoEnCurso--; \}\)/.test(cuerpoF),
+          'enFondo ya no devuelve el hueco en un finally: un fallo dentro dejaria el contador arriba y la despensa sin rellenarse hasta el proximo reinicio');
+        const subidas = (src4.match(/fondoEnCurso\+\+/g) || []).length;
+        const subeFuera = (cuerpoF.match(/fondoEnCurso\+\+/g) || []).length;
+        exige(subidas === 1 && subeFuera === 1,
+          `el contador de trabajos de fondo sube en ${subidas} sitios del fichero: tiene que subir SOLO dentro de enFondo, o vuelve a haber dos frenos que no se hablan`);
+        const bajadas = (src4.match(/fondoEnCurso--/g) || []).length;
+        exige(bajadas === 1,
+          `el contador de fondo baja en ${bajadas} sitios: con mas de uno se puede bajar dos veces por el mismo trabajo y quedarse en negativo, que es no tener freno`);
+        // Y LOS DOS LLAMANTES TIENEN QUE PASAR POR AHI. Sin esto, uno nuevo
+        // puede llamar a traerAccion en segundo plano por su cuenta y el
+        // contador seguiria cuadrando perfectamente.
+        for (const f of ['calentarDespensa', 'reponerDespensa']) {
+          const i = src4.indexOf(`function ${f}`);
+          const cuerpo = i < 0 ? '' : src4.slice(i, src4.indexOf('\n}\n', i));
+          exige(/enFondo\(/.test(cuerpo),
+            `${f} lanza trabajo de fondo sin pasar por enFondo: se salta el freno y puede ocupar las dos plazas de ffmpeg`);
+        }
+        // Y LA REPOSICION NO PUEDE REINTENTAR CONTRA UNA WEB CAIDA. La vuelta
+        // que llena la despensa esta bien; encadenarla tambien cuando la
+        // peticion ha fallado es un bucle de peticiones a toda velocidad contra
+        // una web que ya esta dando errores, sin que nadie lo vea.
         const iRep = src4.indexOf('function reponerDespensa');
-        const cuerpoRep = iRep < 0 ? '' : src4.slice(iRep, src4.indexOf('\n}', iRep));
-        const sube = (cuerpoRep.match(/fondoEnCurso\+\+/g) || []).length;
-        const baja = (cuerpoRep.match(/fondoEnCurso--/g) || []).length;
-        exige(sube > 0 && baja >= sube,
-          `el contador de trabajos de fondo sube ${sube} veces y baja ${baja}: si se queda arriba, la despensa deja de rellenarse para siempre`);
+        const cuerpoRep = iRep < 0 ? '' : src4.slice(iRep, src4.indexOf('\n}\n', iRep));
+        exige(/if \(!fue\) return;/.test(cuerpoRep),
+          'la reposicion vuelve a encadenarse tambien cuando la peticion falla: con la web caida eso es un bucle de peticiones sin freno');
       }
 
       exige(/jpegThumbnail: traido\.thumb \|\| null/.test(src4),
@@ -6432,6 +6531,70 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
 
     if (fallos === antes) console.log(verde('   ✓ la despensa se mira antes de la red, repone lo suyo, manda ligero y se llena sola sin rafagas'));
   }
+    // ── LAS FRASES DE ACCION NO PUEDEN TENER GENERO ─────────────────────
+    //
+    // Ni %A ni %V lo tienen: cualquiera del grupo cae en cualquiera de las dos
+    // menciones. Una frase que dice "%V se queda quieto" sale con el nombre de
+    // una tia delante el dia que le toca, y ahi el chiste se cae del todo — deja
+    // de hablar de quien lo recibe para hablar de otra persona que no existe.
+    //
+    // Y NO ES HIPOTETICO: habia veintitres asi escritas, mias, en los pools que
+    // escribi yo. "se pone rojo", "se hace pequeño", "se le nota satisfecho", y
+    // ocho donde el "lo" se referia a %V —"%A levanta a %V y lo suelta"—, que es
+    // lo mismo por la puerta de al lado. Ninguna la vio nadie porque el unico
+    // guardian de genero que habia miraba los remates de *!r*.
+    //
+    // La regla va ANCLADA al sujeto (%A o %V, un verbo copulativo, y despues el
+    // adjetivo) en vez de buscar palabras sueltas, porque "una marca pequeña" y
+    // "la parte lista" son correctas y un validador que las cante se acaba
+    // apagando. Sobre las 689 frases de hoy no salta ni una.
+    {
+      console.log('\n44. LAS FRASES DE ACCION VALEN PARA CUALQUIERA DEL GRUPO');
+      const antes = fallos;
+      const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   \u2717 ${queja}`)); } };
+      const RXa = require(path.join(R, 'src/data/accionPhrases.js'));
+
+      const COPULA = '(?:se\\s+)?(?:queda|quedan|pone|ponen|hace|hacen|siente|sienten|sale|salen'
+        + '|acaba|acaban|est[\u00e1a]|va|van|parece|parecen|sigue|siguen|vuelve|vuelven)';
+      const ADJ = '(?:quiet|roj|satisfech|pegad|peque\u00f1|encantad|enredad|entregad|rendid|sumis'
+        + '|callad|sentad|tumbad|dormid|list|tont|content|cansad|muert|jodid|acabad|perdid|tranquil'
+        + '|dispuest|ties|hart|[\u00fau]ltim|segur|nervios|agradecid|avisad|servid|salvad|desnud'
+        + '|mojad|obedient)[oa]s?';
+      // Sujeto, copula y adjetivo dentro de la MISMA oracion: los limites de
+      // 25 caracteres y el [^.] son lo que impide que "%A ... . Una marca
+      // pequeña" cuente como concordancia.
+      const CONCORDANCIA = new RegExp('%[AV][^.]{0,25}\\b' + COPULA + '\\b[^.]{0,25}\\b' + ADJ + '\\b', 'i');
+      // Y el clitico: "a %V ... lo suelta". `le` seria neutro; `lo` no.
+      const CLITICO = /\b(?:a|de|con|sobre|encima de)\s+%V\b[^.]{0,30}\b(?:lo|los)\s+(?:suelta|tapa|levanta|carga|tira|agarra|coge|empuja|sujeta|arrastra|aparta|saca|sienta|tumba)\b/i;
+      // Estos no pueden concordar con un objeto: en una frase de accion no hay
+      // ninguno al que se le note satisfecho.
+      const SOLO_PERSONA = /\b(satisfech|sumis|obedient|agradecid|rendid|entregad|desnud|encantad|nervios|arrepentid|orgullos|avergonzad)[oa]s?\b/i;
+
+      const malas = [];
+      for (const k of Object.keys(RXa)) {
+        if (!Array.isArray(RXa[k])) continue;
+        RXa[k].forEach((f, i) => {
+          if (CONCORDANCIA.test(f) || CLITICO.test(f) || SOLO_PERSONA.test(f)) malas.push(`${k}[${i}]`);
+        });
+      }
+      exige(malas.length === 0,
+        `frases de accion con genero marcado (${malas.length}): ${malas.slice(0, 4).join(' ')} — %A y %V le tocan a cualquiera del grupo`);
+
+      // Y QUE LA REGLA SIGA VIENDO. Un validador de texto se vacia solo el dia
+      // que alguien toca un parentesis: si estas tres no saltan, arriba no hay
+      // nada comprobandose y las 689 frases pasan por estar bien escritas.
+      const cebos = [
+        '%V se queda quieto y no dice nada.',
+        '%A agarra a %V y lo suelta a distancia.',
+        '%A termina encima de %V. Se le nota satisfecho.',
+      ];
+      const ciegos = cebos.filter((c) => !CONCORDANCIA.test(c) && !CLITICO.test(c) && !SOLO_PERSONA.test(c));
+      exige(ciegos.length === 0,
+        `la regla de genero ya no ve lo que tiene que ver: "${ciegos[0]}" le pasa por delante y no dice nada`);
+
+      if (fallos === antes) console.log(verde('   \u2713 ninguna frase de accion da por hecho el genero de quien la manda ni de quien la recibe'));
+    }
+
 
   // ── 39. !purgeall NO SE LLEVA POR DELANTE A QUIEN NO DEBE ────────────────
   //
