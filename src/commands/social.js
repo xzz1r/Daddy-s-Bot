@@ -292,8 +292,8 @@ function bloqueAcciones(p, c) {
   // cuatro lineas en ocho para decir lo mismo. El segundo sigue funcionando y
   // sigue en la lista larga.
   const nombre = (n) => {
-    const [ing, es] = ACCIONES[n].cmds;
-    return es ? `*${p}${ing}* _${es}_` : `*${p}${ing}*`;
+    const a = ACCIONES[n];
+    return a.es ? `*${p}${a.cmds[0]}* _${a.es}_` : `*${p}${a.cmds[0]}*`;
   };
   const sfw = ACTIVAS.filter((n) => !ACCIONES[n].nsfw);
   const nsfw = ACTIVAS.filter((n) => ACCIONES[n].nsfw);

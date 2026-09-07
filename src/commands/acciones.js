@@ -48,28 +48,50 @@ const logger = require('../utils/logger');
 // Cayeron cuatro que solo se entienden en España o que significan otra cosa al
 // cruzar el charco:
 //
-//   zurra, mazazo   ->  coscorron, martillazo   (que ademas es lo que hace el gif)
-//   torta           ->  cachetada               ("torta" en media America es un pastel)
-//   mimo            ->  arrimar                 (y acurrucar, que ya estaba)
-//   puno, punetazo  ->  golpe                   (con eñe el case no se alcanza jamas:
-//                                                el dispatcher normaliza antes de
-//                                                comparar, y sin ella "punetazo" es una
-//                                                palabra que no existe)
-//   porculo         ->  fuera                   (solo España, y *!culo* ya vale)
+// Y EL MENU LOS ESCRIBE BIEN, con su eñe y su tilde: `es` es la forma que se
+// LEE, y `cmds` las que se TECLEAN. Son dos cosas distintas y hacian falta las
+// dos.
+//
+// El dispatcher normaliza antes de comparar —quita tildes y eñes— asi que un
+// `case` con eñe no se alcanza nunca y el alias tiene que guardarse como
+// *punetazo*. Eso funciona: quien escribe "puñetazo" llega igual. Lo que no
+// valia era ENSEÑARLO asi en el menu, que es donde se lee. Con `es` aparte, el
+// menu dice *puñetazo* y el dispatcher sigue casando *punetazo*.
+//
+// (Y conste que *!punetazo* nunca estuvo roto. Lo dije y era falso: el alias
+// respondia perfectamente, lo que fallaba era como se veia.)
 //
 // Lo comprueba `npm run check`: ningun nombre de accion puede pisar un comando
 // existente ni quedarse a una letra de otro.
 const ACCIONES = {
-  hug:    { cat: 'hug',    pool: RX.HUG,    cmds: ['hug', 'abrazo', 'abrazar'] },
-  kiss:   { cat: 'kiss',   pool: RX.KISS,   cmds: ['kiss', 'beso', 'besar'] },
-  cuddle: { cat: 'cuddle', pool: RX.CUDDLE, cmds: ['cuddle', 'acurrucar', 'arrimar'] },
-  pat:    { cat: 'pat',    pool: RX.PAT,    cmds: ['pat', 'caricia', 'acariciar'] },
-  poke:   { cat: 'poke',   pool: RX.POKE,   cmds: ['poke', 'toque', 'picar'] },
-  punch:  { cat: 'punch',  pool: RX.PUNCH,  cmds: ['punch', 'golpe'] },
-  slap:   { cat: 'slap',   pool: RX.SLAP,   cmds: ['slap', 'cachetada', 'bofetada'] },
-  bite:   { cat: 'bite',   pool: RX.BITE,   cmds: ['chomp', 'morder', 'mordisco'] },
-  kick:   { cat: 'kick',   pool: RX.KICK,   cmds: ['stomp', 'patada', 'patear'] },
-  bonk:   { cat: 'bonk',   pool: RX.BONK,   cmds: ['bonk', 'coscorron', 'martillazo'] },
+  hug:    { cat: 'hug',    es: 'abrazo',     pool: RX.HUG,    cmds: ['hug', 'abrazo', 'abrazar'] },
+  kiss:   { cat: 'kiss',   es: 'beso',       pool: RX.KISS,   cmds: ['kiss', 'beso', 'besar'] },
+  cuddle: { cat: 'cuddle', es: 'acurrucar',  pool: RX.CUDDLE, cmds: ['cuddle', 'acurrucar', 'arrimar'] },
+  pat:    { cat: 'pat',    es: 'caricia',    pool: RX.PAT,    cmds: ['pat', 'caricia', 'acariciar'] },
+  poke:   { cat: 'poke',   es: 'picar',      pool: RX.POKE,   cmds: ['poke', 'picar', 'toque'] },
+  punch:  { cat: 'punch',  es: 'puñetazo',   pool: RX.PUNCH,  cmds: ['punch', 'punetazo', 'golpe'] },
+  slap:   { cat: 'slap',   es: 'cachetada',  pool: RX.SLAP,   cmds: ['slap', 'cachetada', 'bofetada'] },
+  bite:   { cat: 'bite',   es: 'mordisco',   pool: RX.BITE,   cmds: ['chomp', 'mordisco', 'morder'] },
+  kick:   { cat: 'kick',   es: 'patada',     pool: RX.KICK,   cmds: ['stomp', 'patada', 'patear'] },
+  bonk:   { cat: 'bonk',   es: 'martillazo', pool: RX.BONK,   cmds: ['bonk', 'martillazo', 'coscorron'] },
+  // ─── LAS OCHO DE LA SEGUNDA TANDA ─────────────────────────────────────────
+  //
+  // Se eligieron para que la lista dejara de ser "cariño o paliza". Las diez
+  // primeras solo tenian esos dos registros; estas meten la burla, la
+  // incomodidad, la sumision y el ridiculo, que dan mucho mas juego en un grupo.
+  //
+  // Todas las categorias estan COMPROBADAS contra la web (`npm run acciones`).
+  // Se quedaron fuera `bully`, `glomp`, `kill` y `cringe`: suenan bien pero no
+  // existen alli, y una categoria inventada monta un comando que cobra, falla y
+  // devuelve el aura cada vez sin que nadie sepa por que.
+  tickle:   { cat: 'tickle',   es: 'cosquillas', pool: RX.TICKLE,   cmds: ['tickle', 'cosquillas'] },
+  handhold: { cat: 'handhold', es: 'de la mano', pool: RX.HANDHOLD, cmds: ['handhold', 'mano', 'manos'] },
+  highfive: { cat: 'highfive', es: 'chocar',     pool: RX.HIGHFIVE, cmds: ['highfive', 'chocar', 'choca'] },
+  stare:    { cat: 'stare',    es: 'mirar',      pool: RX.STARE,    cmds: ['stare', 'mirar', 'mirada'] },
+  laugh:    { cat: 'laugh',    es: 'burla',      pool: RX.LAUGH,    cmds: ['laugh', 'burla', 'reirse'] },
+  yeet:     { cat: 'yeet',     es: 'lanzar',     pool: RX.YEET,     cmds: ['yeet', 'lanzar', 'tirar'] },
+  shoot:    { cat: 'shoot',    es: 'disparar',   pool: RX.SHOOT,    cmds: ['shoot', 'disparar', 'tiro'] },
+  feed:     { cat: 'feed',     es: 'dar de comer', pool: RX.FEED,   cmds: ['feed', 'comer', 'comida'] },
   // La cara. Cuesta el doble justamente para que no se use en bucle: el riesgo
   // de este comando no es la CPU, es la cuenta.
   //
@@ -82,11 +104,11 @@ const ACCIONES = {
   //
   //   cat      la de la web SFW, que es a donde va si no hay fuente puesta
   //   catNsfw  la de la web NSFW, que es la que manda en cuanto la hay
-  fuck:   { cat: 'kiss', catNsfw: 'fuck', pool: RX.FUCK, cmds: ['fuck', 'follar', 'joder'], nsfw: true },
+  fuck:   { cat: 'kiss', catNsfw: 'fuck', es: 'follar', pool: RX.FUCK, cmds: ['fuck', 'follar', 'joder'], nsfw: true },
   // Lo mismo que *!fuck* y por los mismos motivos: cuesta el doble y la web SFW
   // no tiene nada que se le parezca, asi que sin fuente puesta cae en `kiss`
   // igual que aquel. Con la fuente, pide su propia categoria.
-  anal:   { cat: 'kiss', catNsfw: 'anal', pool: RX.ANAL, cmds: ['anal', 'culo'], nsfw: true },
+  anal:   { cat: 'kiss', catNsfw: 'anal', es: 'culo', pool: RX.ANAL, cmds: ['anal', 'culo'], nsfw: true },
 };
 
 // SIN FRASES NO HAY COMANDO.

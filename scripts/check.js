@@ -4870,7 +4870,16 @@ console.log(JSON.stringify({
     console.log('\n31b. LAS TILDES DE LAS FRASES');
     const antes = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
-    const SIN_TILDE = new RegExp('\\b(' + 'ademas|adios|ahi|aplicacion|aportacion|aqui|asi|atencion|avion|cabron|cancion|combinacion|comparacion|construccion|conversacion|conviccion|corazon|credito|deberia|deberian|definicion|despues|dia|diagnostico|dias|dificil|direccion|diria|educacion|eleccion|ereccion|estacion|estaria|estariamos|evolucion|explicacion|facil|ficcion|fria|frio|funcion|ganzua|habitacion|habria|habrian|haria|ilusion|informacion|intencion|inversion|invitacion|medicion|medico|monton|motivacion|movil|numero|numeros|pension|podria|podrian|posicion|precision|presion|proteccion|puntuacion|querria|razon|relacion|reputacion|sabado|segun|seleccion|sensacion|suscripcion|tambien|tendria|tendrian|tia|tio|traicion|ultima|ultimo|ultimos|util|version|ladron|parasito|parasitos|ridiculo|ridicula|ridiculos|rapido|rapida|ojala|unico|unica|escandalo|loteria|recien|atrevio|subirias|seguiras|telefono|telefonos' + ')\\b', 'i');
+    // LA FRONTERA NO PUEDE SER \\b, Y ME COSTO UNA FRASE BUENA.
+    //
+    // En JavaScript \\b mira [A-Za-z0-9_], asi que una vocal acentuada cuenta
+    // como frontera de palabra: "funciono" con tilde final —funcionó— casaba con
+    // "funcion" y esta guarda pedia arreglar una palabra que estaba PERFECTA. La
+    // arregle, y la deje mal escrita de verdad.
+    //
+    // Con la mirada de aqui abajo, la lista solo salta cuando detras no hay otra
+    // letra: funcionó, razón y compañia pasan; "funcion" a secas, no.
+    const SIN_TILDE = new RegExp('(?<![a-záéíóúñü])(' + 'ademas|adios|ahi|aplicacion|aportacion|aqui|asi|atencion|avion|cabron|cancion|combinacion|comparacion|construccion|conversacion|conviccion|corazon|credito|deberia|deberian|definicion|despues|dia|diagnostico|dias|dificil|direccion|diria|educacion|eleccion|ereccion|estacion|estaria|estariamos|evolucion|explicacion|facil|ficcion|fria|frio|funcion|ganzua|habitacion|habria|habrian|haria|ilusion|informacion|intencion|inversion|invitacion|medicion|medico|monton|motivacion|movil|numero|numeros|pension|podria|podrian|posicion|precision|presion|proteccion|puntuacion|querria|razon|relacion|reputacion|sabado|segun|seleccion|sensacion|suscripcion|tambien|tendria|tendrian|tia|tio|traicion|ultima|ultimo|ultimos|util|version|ladron|parasito|parasitos|ridiculo|ridicula|ridiculos|rapido|rapida|ojala|unico|unica|escandalo|loteria|recien|atrevio|subirias|seguiras|telefono|telefonos' + ')(?![a-záéíóúñü])', 'i');
     const GER = /\b[a-zñ]{2,}?(ando|iendo|yendo)(me|te|se|lo|la|le|los|las|les|nos)\b/i;
     const INF = /\b[a-zñ]{2,}?[aei]r(me|te|se|nos)(lo|la|le|los|las|les)\b/i;
     let revisadas = 0;
