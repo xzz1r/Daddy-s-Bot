@@ -103,21 +103,37 @@ module.exports = {
     //   pm2 start ecosystem.config.js --only guardian
     //   pm2 save
     //
-    // RAM: pide mucha menos que el bot. No guarda estado, no cachea nada, no
-    // procesa mensajes — solo mantiene la sesión abierta y escucha un evento. Y
-    // descarta antes de descifrar todo lo que no sea de un grupo, que es lo que
-    // le impide crecer como el bot. Medido recién arrancado: 22 MB contra 139.
+    // RAM: pide menos que el bot. No guarda estado, no cachea nada, no procesa
+    // mensajes — solo mantiene la sesión abierta y escucha un evento. Y descarta
+    // antes de descifrar todo lo que no sea de un grupo, que es lo que le impide
+    // crecer como el bot.
     //
-    // El techo es la cuarta parte del suyo. En una máquina de 1 GB con el bot ya
-    // dentro, eso es lo que hay — y se deja holgado a propósito: un techo
-    // apretado no ahorra memoria, provoca reinicios, y un guardián reiniciándose
-    // es un guardián ausente justo cuando hace falta.
+    // EL TECHO ESTUVO EN 120M Y ERA UNA TRAMPA. La cifra salía de medir 22 MB
+    // recién arrancado, pero esos 22 MB eran `heapUsed` y `max_memory_restart`
+    // de pm2 se mide en RSS. Medido de verdad, con estas mismas NODE_OPTIONS:
+    //
+    //   guardián recién cargado:  RSS 111 MB   ·   heapUsed 27 MB
+    //
+    // O sea que arrancaba a 9 MB de su propio techo, sin haber hecho nada
+    // todavía. En cuanto abre el socket y bufferea cualquier cosa lo cruza, pm2
+    // lo mata y lo vuelve a levantar — y lo peor es que eso NO se lee como un
+    // fallo en el log: se lee como un reinicio limpio.
+    //
+    // De esos 111 MB, 65 son Baileys (el protocolo de WhatsApp, 4 MB de
+    // protobuf generado) y no se pueden quitar: el guardián necesita la misma
+    // librería que el bot para mantener una sesión.
+    //
+    // Subirlo a 200M no gasta un byte más. La memoria ya está gastada; el techo
+    // solo decide si pm2 lo mata o no. Y es exactamente lo que avisaba el
+    // comentario que estaba aquí: un techo apretado no ahorra memoria, provoca
+    // reinicios, y un guardián reiniciándose es un guardián ausente justo
+    // cuando hace falta.
     name: 'guardian',
     script: 'src/guardian.js',
     cwd: __dirname,
     instances: 1,
     exec_mode: 'fork',
-    max_memory_restart: '120M',
+    max_memory_restart: '200M',
     merge_logs: true,
     time: true,
     autorestart: true,

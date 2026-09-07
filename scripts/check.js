@@ -4838,7 +4838,19 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     {
       const zona = src.slice(src.indexOf('switch (command)'));
       const cmds = [...new Set([...zona.matchAll(/^\s*case '([^']+)':/gm)].map((m) => m[1]))];
-      const enMenu = new Set([...menu.matchAll(/\$\{p\}([a-z0-9]+)/g)].map((m) => m[1]));
+      // SE NORMALIZA ANTES DE COMPARAR, y esto no es un detalle de regex.
+      //
+      // El menu enseña *!musica* con tilde y *!puñetazo* con eñe, porque es como
+      // se escriben y las dos formas se teclean igual (el dispatcher quita
+      // tildes y eñes antes de comparar). Esta linea buscaba `[a-z0-9]+`, o sea
+      // que en cuanto el menu escribio bien esas cinco palabras dejaron de
+      // contar como documentadas y la capa acuso de que faltaban del menu.
+      //
+      // El fallo era de la comprobacion, no del menu: hay que comparar por la
+      // forma TECLEADA, que es la unica que los dos lados comparten.
+      const sinTilde = (x) => String(x).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\u00f1/g, 'n');
+      const enMenu = new Set([...menu.matchAll(/\$\{p\}([a-z0-9\u00e1\u00e9\u00ed\u00f3\u00fa\u00f1\u00fc]+)/gi)]
+        .map((m) => sinTilde(m[1].toLowerCase())));
       // Lo que no tiene que salir en el menu sale de COMANDOS_OCULTOS, que es
       // donde el dispatcher decide a quien no nombra: si un comando esta ahi,
       // el corrector tampoco lo sugiere y no aparecer en el menu es lo
@@ -4884,7 +4896,9 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
           s2, { key: { remoteJid: GRUPO2, participant: RASO2, fromMe: false, id: 'X' } }, meta2, argv);
         return t;
       };
-      const pintado = `${await pinta(['todo'])}\n${await pinta([])}`;
+      // Y el menu pintado, por la misma razon: dentro sale *!puñetazo* y el
+      // alias que se busca es *punetazo*.
+      const pintado = sinTilde(`${await pinta(['todo'])}\n${await pinta([])}`);
       for (const n of acc.ALIAS_ACTIVOS) {
         exige(new RegExp(`[!/]${n}\\b`).test(pintado),
           `la accion *!${n}* ya tiene frases y funciona, pero el menu no la nombra: existe y no lo sabe nadie`);
@@ -4895,6 +4909,52 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
       }
     }
     if (fallos === antes) console.log(verde('   ✓ !p, !purge y !visto no salen en el menu ni los sugiere el corrector'));
+  }
+
+  // ── 46. LO QUE EL MENU ENSEÑA SE PUEDE TECLEAR ───────────────────────────
+  //
+  // El dispatcher quita tildes y eñes antes de comparar, asi que un `case` con
+  // eñe no se alcanza jamas y el alias se guarda como *punetazo*. Eso funciona:
+  // quien escribe "puñetazo" llega igual.
+  //
+  // Lo que no valia era ENSEÑARLO asi. El menu es el unico sitio donde el bot
+  // documenta su propio idioma, y ahi salian *!punetazo*, *!coscorron*,
+  // *!reirse*, *!musica* y *!cancion*: cinco faltas de ortografia en la pantalla
+  // que explica como se le habla.
+  //
+  // La tabla que lo arregla vive en social.js (COMO_SE_ESCRIBE) y es a mano,
+  // porque de "punetazo" no se puede deducir donde iba la eñe. Una tabla a mano
+  // se desincroniza sola, asi que aqui se comprueban las dos direcciones:
+  //
+  //   · cada clave tiene que ser un comando que el bot acepta de verdad;
+  //   · y el valor, al normalizarlo, tiene que dar EXACTAMENTE la clave — o sea,
+  //     que lo que se enseña se pueda teclear. Sin esto, un dia el menu anuncia
+  //     algo que no responde, que es peor que la falta de ortografia.
+  {
+    console.log('\n46. LO QUE EL MENU ENSEÑA SE PUEDE TECLEAR');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { normalizarComando } = require(path.join(R, 'src/handlers/messageHandler'));
+    const soc = fs.readFileSync(path.join(R, 'src/commands/social.js'), 'utf8');
+    const m = soc.match(/const COMO_SE_ESCRIBE = \{([\s\S]*?)\};/);
+    exige(!!m, 'social.js ya no tiene la tabla COMO_SE_ESCRIBE: el menu volvera a escribir *!punetazo* y *!musica* sin tilde');
+    if (m) {
+      const tabla = Object.fromEntries([...m[1].matchAll(/^\s*([a-z0-9_]+):\s*'([^']+)',/gm)].map((x) => [x[1], x[2]]));
+      exige(Object.keys(tabla).length > 0, 'la tabla COMO_SE_ESCRIBE se ha quedado vacia');
+      const disp = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+      const reales = new Set([...disp.matchAll(/^\s*case '([a-z0-9_]+)':/gm)].map((x) => x[1]));
+      for (const [clave, valor] of Object.entries(tabla)) {
+        exige(reales.has(clave),
+          `COMO_SE_ESCRIBE tiene "${clave}", que no es un comando: el menu ensenyaria algo que el bot no acepta`);
+        exige(normalizarComando(valor) === clave,
+          `el menu ensenyaria *!${valor}*, que al teclearlo llega como *!${normalizarComando(valor)}* y no como *!${clave}*`);
+        exige(valor !== clave,
+          `"${clave}" esta en COMO_SE_ESCRIBE sin cambiar nada: sobra`);
+      }
+      exige(/comoSeEscribe\(x\)/.test(soc),
+        'la lista larga del menu dejo de pasar por comoSeEscribe: vuelve a ensenyar los alias sin tilde');
+    }
+    if (fallos === antes) console.log(verde('   ✓ el menu escribe los comandos con su tilde y su eñe, y todos se pueden teclear asi'));
   }
 
   // ── 31a. UN @lid AJENO NO PUEDE ACABAR SIENDO EL DUEÑO ───────────────────
@@ -7027,6 +7087,47 @@ const di=async(quien,t)=>{out.length=0;
     console.log('\n34. LOS GUIONES DE DESPLIEGUE Y SUS LIMITES');
     const antes = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    // ── EL TECHO DE MEMORIA SE MIDE EN RSS, Y ESO YA COSTO UNA TRAMPA ────
+    //
+    // `max_memory_restart` de pm2 mira el RSS del proceso. El techo del guardian
+    // se puso en 120M a partir de una medida de 22 MB "recien arrancado" — pero
+    // esos 22 MB eran `heapUsed`, que en Node es una fraccion del RSS. Medido de
+    // verdad, el guardian arranca con 111 MB de RSS: a nueve megas de su propio
+    // techo, sin haber hecho nada. En cuanto abre el socket lo cruza, pm2 lo
+    // mata y lo levanta otra vez, y eso en el log no se lee como un fallo: se
+    // lee como un reinicio limpio.
+    //
+    // Aqui se ARRANCA cada proceso de verdad en un hijo, se lee su RSS y se
+    // exige que el techo sea al menos vez y media eso. Leer la constante y
+    // creersela es exactamente como se colo el 120M.
+    {
+      // Se REQUIERE el fichero en vez de leerlo con un regex: escrito con regex,
+      // meter un comentario largo entre `name` y `max_memory_restart` hacia que
+      // ese proceso desapareciera de la lista y la capa dejaba de mirarlo. Me
+      // paso al escribir esto.
+      const apps = (require(path.join(R, 'ecosystem.config.js')).apps || [])
+        .filter((a) => a && a.name && typeof a.max_memory_restart === 'string')
+        .map((a) => ({ nombre: a.name, techo: Number(String(a.max_memory_restart).replace(/\D/g, '')) }));
+      exige(apps.length >= 2, `ecosystem.config.js declara ${apps.length} proceso(s) con techo de memoria; se esperaban al menos 2 (bot y guardian)`);
+      const guion = {
+        bot: "require('./src/handlers/messageHandler.js'); require('./src/bot.js');",
+        guardian: "require('./src/guardian.js');",
+      };
+      for (const { nombre, techo } of apps) {
+        if (!guion[nombre]) continue;
+        let rss = 0;
+        try {
+          const salida = execSync(`node -e ${JSON.stringify(`${guion[nombre]}setTimeout(()=>{console.log('RSS'+Math.round(process.memoryUsage().rss/1048576));process.exit(0)},1200)`)}`,
+            { encoding: 'utf8', timeout: 60000, cwd: R, env: { ...process.env, NODE_ENV: 'production' }, stdio: ['ignore', 'pipe', 'ignore'] });
+          const m = salida.match(/RSS(\d+)/);
+          rss = m ? Number(m[1]) : 0;
+        } catch { rss = 0; }
+        if (!rss) { fallos++; console.log(rojo(`   ✗ no pude medir cuanta memoria pide *${nombre}* al arrancar`)); continue; }
+        exige(techo >= rss * 1.5,
+          `*${nombre}* arranca con ${rss} MB de RSS y su max_memory_restart es ${techo}M: pm2 lo matara en cuanto haga algo, y un reinicio en bucle no se lee como fallo en el log`);
+      }
+    }
 
     for (const sh of ['scripts/actualizar.sh', 'scripts/node22.sh', 'scripts/respaldo.sh', 'scripts/restaurar.sh']) {
       const ruta = path.join(R, sh);

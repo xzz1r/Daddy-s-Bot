@@ -273,10 +273,38 @@ function filas(items, porFila, junta) {
   return out;
 }
 
+// ─── COMO SE TECLEA UN COMANDO Y COMO SE ESCRIBE NO SON LO MISMO ────────────
+//
+// El dispatcher quita tildes y eñes antes de comparar (normalizarComando), asi
+// que un `case` con eñe no se alcanza jamas y el alias tiene que guardarse como
+// *punetazo*. Eso funciona: quien escribe "puñetazo" llega igual.
+//
+// Lo que no vale es ENSEÑARLO asi. El menu es el unico sitio donde el bot
+// documenta su propio idioma, y ahi salia *!punetazo*, *!coscorron*, *!reirse*,
+// *!musica* y *!cancion*. Cinco faltas de ortografia en la pantalla que explica
+// como se le habla, y en un bot cuya regla numero uno es no parecer una maquina.
+//
+// Las dos formas funcionan al teclear, asi que ensenyar la buena no rompe nada:
+// solo deja de dar la impresion de que el bot no sabe escribir.
+//
+// El menu CORTO de las acciones ya lo resolvia por su cuenta con el campo `es`
+// de la tabla de acciones. Esta tabla es para todo lo demas, y `npm run check`
+// comprueba las dos cosas: que cada clave sea un comando de verdad, y que al
+// normalizar el valor salga exactamente la clave — o sea, que lo que se enseña
+// se pueda teclear.
+const COMO_SE_ESCRIBE = {
+  punetazo: 'puñetazo',
+  coscorron: 'coscorrón',
+  reirse: 'reírse',
+  musica: 'música',
+  cancion: 'canción',
+};
+const comoSeEscribe = (x) => COMO_SE_ESCRIBE[x] || x;
+
 // La lista entera, con todos los alias: dos acciones por linea.
 function bloqueAccionesTodo(p) {
   if (!ACTIVAS.length) return '';
-  const cada = ACTIVAS.map((n) => ACCIONES[n].cmds.map((x) => `${p}${x}`).join(' · '));
+  const cada = ACTIVAS.map((n) => ACCIONES[n].cmds.map((x) => `${p}${comoSeEscribe(x)}`).join(' · '));
   return `\n━━━━━ *ACCIONES* ━━━━━\n${filas(cada, 2, '  ·  ').join('\n')}\n`;
 }
 
@@ -311,7 +339,7 @@ function textoCompleto(p, c, esAdmin, esOwner) {
 _Cada línea: el nombre y todas sus formas. Cualquiera vale._
 
 ━━━━━ *HERRAMIENTAS* ━━━━━
-${p}play · ${p}musica · ${p}cancion · ${p}song · ${p}playsong · ${p}playaudio
+${p}play · ${p}música · ${p}canción · ${p}song · ${p}playsong · ${p}playaudio
 ${p}s · ${p}sticker · ${p}stk
 ${p}toimg · ${p}stimg  ·  ${p}tovid  ·  ${p}ttp · ${p}texto
 ${p}pfp · ${p}foto  ·  ${p}fk · ${p}verificar · ${p}verify · ${p}check
