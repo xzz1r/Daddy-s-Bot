@@ -6368,7 +6368,42 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
         'el escalado ya no fuerza altura par: H.264 no acepta impares y el comando muere entero');
     }
 
-    if (fallos === antes) console.log(verde('   ✓ la despensa se mira antes de la red, repone su propia categoria y manda el gif ligero'));
+    // ── Y SE LLENA SOLA AL ARRANCAR, DESPACIO ───────────────────────────
+    //
+    // La despensa empieza vacia en cada reinicio y hay un reinicio en cada
+    // despliegue: sin esto, la primera vez de las veintiuna acciones paga el
+    // viaje entero. Medido en la VPS: 2987 ms de traer con la despensa a cero.
+    //
+    // Pero DE UNA EN UNA Y CON PAUSA LARGA. Un bot recien conectado pegandole
+    // veintiuna peticiones seguidas a la misma web es el patron por el que
+    // cortan el acceso — esa web ya bloqueo esta maquina una vez esta semana.
+    // Por eso se comprueban las dos cosas: que llene, y que no sea una rafaga.
+    {
+      const src4 = soloCodigo('src/commands/acciones.js');
+      exige(typeof acc.calentarDespensa === 'function',
+        'las acciones ya no calientan la despensa al arrancar: la primera de cada una vuelve a pagar el viaje entero en cada despliegue');
+      const iC = src4.indexOf('function calentarDespensa');
+      const cuerpoC = iC < 0 ? '' : src4.slice(iC, src4.indexOf('\n}\n', iC));
+      exige(/ESPERA_ENTRE_CALENTADOS/.test(cuerpoC),
+        'el calentado ya no espera entre categorias: veintiuna peticiones seguidas a la misma web es como se consigue que te corten');
+      const m = src4.match(/const ESPERA_ENTRE_CALENTADOS = (\d+) \* 1000;/);
+      exige(m && Number(m[1]) >= 10,
+        `la pausa entre calentados es de ${m ? m[1] : '?'} s: demasiado poco, eso ya es una rafaga`);
+      exige(/if \(calentando\) return;/.test(cuerpoC),
+        'calentarDespensa se puede lanzar dos veces a la vez: dos recorridos en paralelo doblan las peticiones');
+      exige(/calentarDespensa\(\)/.test(soloCodigo('src/bot.js')),
+        'el bot ya no arranca el calentado al conectar: la despensa se queda vacia hasta que alguien use cada accion');
+
+      // Y LA MINIATURA VA EN EL MENSAJE. Sin `jpegThumbnail`, Baileys lanza OTRO
+      // ffmpeg al enviar para sacar una de 32x32 (Utils/messages-media.js), o
+      // sea un proceso mas dentro del camino caliente y en el unico core de la
+      // VPS: es lo que hacia que subir 13 KB tardara 1699 ms. Se manda aunque
+      // sea null, porque lo que dispara el ffmpeg de Baileys es `undefined`.
+      exige(/jpegThumbnail: traido\.thumb \|\| null/.test(src4),
+        'el mensaje de video ya no lleva miniatura: Baileys lanzara su propio ffmpeg al enviarlo, dentro del camino caliente');
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ la despensa se mira antes de la red, repone lo suyo, manda ligero y se llena sola sin rafagas'));
   }
 
   // ── 39. !purgeall NO SE LLEVA POR DELANTE A QUIEN NO DEBE ────────────────

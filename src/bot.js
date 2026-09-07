@@ -795,6 +795,12 @@ async function connectToWhatsApp() {
         }
       } catch (e) { logger.warn(`no pude anotar el numero del bot para el guardian: ${e.message}`); }
 
+      // La despensa de las acciones se llena sola a partir de aqui, una cada
+      // treinta segundos. Ver la nota en commands/acciones.js: es lo que evita
+      // que la primera vez de cada accion pague el viaje entero despues de cada
+      // despliegue.
+      try { require('./commands/acciones').calentarDespensa(); } catch (e) { logger.warn(`despensa: ${e.message}`); }
+
       // Explicit save on full connection to ensure session is complete
       await saveCreds();
       console.log(`\nDaddy's Bot conectado\n`);

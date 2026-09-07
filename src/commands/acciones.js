@@ -45,8 +45,10 @@ const logger = require('../utils/logger');
 // larga para descubrir que *!abrazo* existia.
 //
 // Y SE ELIGEN POR QUE SE ENTIENDAN EN TODAS PARTES, no por sonar bien aqui.
-// Cayeron cuatro que solo se entienden en España o que significan otra cosa al
-// cruzar el charco:
+// Cayeron los que solo se entienden en España o que significan otra cosa al
+// cruzar el charco: *zurra* y *mazazo* por *martillazo* (que ademas es lo que
+// hace el gif), *torta* por *cachetada* —torta en media America es un pastel—,
+// *mimo* por *acurrucar*, y *porculo* fuera, que *!culo* ya vale.
 //
 // Y EL MENU LOS ESCRIBE BIEN, con su eñe y su tilde: `es` es la forma que se
 // LEE, y `cmds` las que se TECLEAN. Son dos cosas distintas y hacian falta las
@@ -261,6 +263,44 @@ function guardarEnDespensa(clave, medio) {
 // *!fuck* se llevaba ese beso de la despensa: exactamente el fallo que ya se vio
 // en el grupo, resucitado por la puerta de atras y sin que ningun validador lo
 // mirara, porque el que existia comprobaba la peticion en vivo y no la reposicion.
+// ─── LLENAR LA DESPENSA AL ARRANCAR, MUY DESPACIO ──────────────────────────
+//
+// La despensa empieza vacía en cada reinicio, y hay un reinicio en cada
+// despliegue. O sea que la primera vez de CADA acción pagaba el viaje entero:
+// medido en la VPS, 2987 ms de traer para un *!cum* con la despensa a cero.
+// Veintiuna acciones son veintiuna primeras veces lentas después de cada
+// actualización.
+//
+// Así que se llena sola al arrancar. Pero DE UNA EN UNA Y CON PAUSA LARGA: un
+// bot recién conectado que le pega veintiuna peticiones seguidas a la misma web
+// es exactamente el patrón por el que cortan el acceso, y esa web ya me bloqueó
+// una vez esta semana por menos. Con treinta segundos entre cada una tarda diez
+// minutos en estar todo listo y no se parece a nada.
+//
+// Empieza un minuto después de conectar: al arrancar, el bot tiene cosas más
+// importantes que hacer con ese único core.
+const ESPERA_PRIMER_CALENTADO = 60 * 1000;
+const ESPERA_ENTRE_CALENTADOS = 30 * 1000;
+let calentando = null;
+
+function calentarDespensa() {
+  if (calentando) return;
+  const cola = ACTIVAS.slice();
+  const siguiente = () => {
+    const nombre = cola.shift();
+    if (!nombre) { calentando = null; logger.info('despensa de acciones lista'); return; }
+    const a = ACCIONES[nombre];
+    const clave = claveDespensa(a.cat, a.nsfw, a.catNsfw);
+    if (despensa.get(clave)?.cola.length) { calentando = setTimeout(siguiente, 50); calentando.unref?.(); return; }
+    traerAccion(a.cat, a.nsfw, a.catNsfw, true)
+      .then((m) => guardarEnDespensa(clave, m))
+      .catch(() => { /* la web falla: ya se vera cuando alguien lo pida */ })
+      .finally(() => { calentando = setTimeout(siguiente, ESPERA_ENTRE_CALENTADOS); calentando.unref?.(); });
+  };
+  calentando = setTimeout(siguiente, ESPERA_PRIMER_CALENTADO);
+  calentando.unref?.();
+}
+
 function reponerDespensa(cat, nsfw, catNsfw, clave) {
   const d = despensa.get(clave);
   if (d && d.cola.length >= LISTOS_POR_CAT) return;
@@ -324,7 +364,32 @@ async function gifAMp4(gif) {
     });
     const buf = await fs.readFile(salida);
     if (buf.length < 100) throw new Error('MP4 vacio');
-    return buf;
+
+    // LA MINIATURA, AQUI Y NO AL ENVIAR. Baileys, si el mensaje de video no
+    // trae `jpegThumbnail`, lanza OTRO ffmpeg en el momento de mandarlo para
+    // sacar una miniatura de 32x32 (Utils/messages-media.js: generateThumbnail).
+    // O sea: un proceso mas, dentro del camino caliente, en el unico core de la
+    // VPS — y eso explica que subir 13 KB tardara 1699 ms.
+    //
+    // Hecha aqui va con el resto del trabajo pesado: en la despensa, antes de
+    // que nadie pida nada. Si falla, se manda sin ella y Baileys hace lo de
+    // siempre: una miniatura no vale un comando roto.
+    let thumb = null;
+    try {
+      const jpg = tempFile('jpg');
+      try {
+        await new Promise((resolve, reject) => {
+          const ff2 = spawn(ffmpegPath, ['-y', '-i', salida, '-frames:v', '1',
+            '-vf', "scale='min(64,iw)':-2", '-q:v', '8', jpg]);
+          const mata2 = setTimeout(() => { try { ff2.kill('SIGKILL'); } catch {} reject(new Error('thumb')); }, 8000);
+          ff2.on('error', (e) => { clearTimeout(mata2); reject(e); });
+          ff2.on('close', (c) => { clearTimeout(mata2); c === 0 ? resolve() : reject(new Error(`thumb ${c}`)); });
+        });
+        thumb = await fs.readFile(jpg);
+      } finally { await cleanTemp(jpg); }
+    } catch { /* sin miniatura: Baileys la hara, que es como estaba antes */ }
+
+    return { buf, thumb };
   } finally {
     ffmpegSemaphore.release();
     await cleanTemp(entrada);
@@ -395,9 +460,9 @@ async function traerAccion(cat, nsfw, catNsfw, deDespensa = false) {
     recordar(r.url, { mp4: bytes });
     return { mp4: bytes };
   }
-  const mp4 = await gifAMp4(bytes);
-  recordar(r.url, { mp4 });
-  return { mp4 };
+  const { buf: mp4, thumb } = await gifAMp4(bytes);
+  recordar(r.url, { mp4, thumb });
+  return { mp4, thumb };
 }
 
 // Por la cabecera, no por la extension.
@@ -498,6 +563,9 @@ function hazAccion(nombre) {
           video: traido.mp4,
           gifPlayback: true,
           mimetype: 'video/mp4',
+          // Va aunque sea null: `undefined` es lo que hace que Baileys lance su
+          // propio ffmpeg, y null no. Ver la nota en gifAMp4.
+          jpegThumbnail: traido.thumb || null,
           caption: frase,
           mentions: [quien, objetivo],
         };
@@ -549,4 +617,4 @@ function hazAccion(nombre) {
 const comandos = {};
 for (const nombre of ACTIVAS) comandos[nombre] = hazAccion(nombre);
 
-module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, ...comandos, _cache: cache, _turnoRoast: turnoRoast };
+module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, calentarDespensa, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, ...comandos, _cache: cache, _turnoRoast: turnoRoast };
