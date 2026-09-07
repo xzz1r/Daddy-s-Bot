@@ -2585,6 +2585,9 @@ async function handleMessage(sock, msg) {
       case 'joder':
       case 'anal':
       case 'culo':
+      case 'cum':
+      case 'correrse':
+      case 'acabar':
       case 'tickle':
       case 'cosquillas':
       case 'handhold':

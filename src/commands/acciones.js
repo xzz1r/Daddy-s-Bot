@@ -109,6 +109,9 @@ const ACCIONES = {
   // no tiene nada que se le parezca, asi que sin fuente puesta cae en `kiss`
   // igual que aquel. Con la fuente, pide su propia categoria.
   anal:   { cat: 'kiss', catNsfw: 'anal', es: 'culo', pool: RX.ANAL, cmds: ['anal', 'culo'], nsfw: true },
+  // El final. Mismo trato que los otros dos: 120, categoria propia comprobada
+  // contra la fuente, y la web SFW no tiene nada que se le parezca.
+  cum:    { cat: 'kiss', catNsfw: 'cum', es: 'correrse', pool: RX.CUM, cmds: ['cum', 'correrse', 'acabar'], nsfw: true },
 };
 
 // SIN FRASES NO HAY COMANDO.

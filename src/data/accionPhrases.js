@@ -814,4 +814,43 @@ const FEED = [
   '%A termina de darle de comer a %V y le da una palmada. La palmada cierra el trámite.',
 ];
 
-module.exports = { HUG, TICKLE, HANDHOLD, HIGHFIVE, STARE, LAUGH, YEET, SHOOT, FEED, KISS, CUDDLE, PAT, POKE, PUNCH, SLAP, BITE, KICK, BONK, FUCK, ANAL, ROAST_USUARIO };
+// EL FINAL. Registro de FUCK y ANAL: explicito de verdad, no insinuado. Lo que
+// cambia es el momento — aqui ya paso todo y lo que se cuenta es como queda
+// %V: lo que traga, lo que le chorrea, los dos segundos de mas que sigue ahi.
+//
+// Y el chiste sigue apuntando a %V. %A acaba y se va; el que se queda con la
+// escena encima es el otro.
+const CUM = [
+  '%A se corre encima de %V. Sin avisar, que avisar era para otra clase de escena.',
+  '%A acaba en la cara de %V. %V ni se aparta, y eso lo cuenta todo.',
+  '%V termina con la cara pringada y el grupo entero de testigo. %A ya se está subiendo la ropa.',
+  '%A se corre dentro y se queda quieto. %V nota el cambio de temperatura antes que nada.',
+  'Le chorrea por la barbilla a %V. %A mira cómo baja y no ayuda.',
+  '%A revienta encima de %V. Lo que sale es de %A, la vergüenza es de %V.',
+  '%V abre la boca sin que nadie se lo pida. %A no desaprovecha una invitación así.',
+  '%A se corre y %V traga. Tragó antes de decidirlo, que es lo peor.',
+  'A %V le queda en el pelo lo de %A. Se va a acordar cada vez que se lo lave.',
+  '%A acaba sobre %V y le da dos palmaditas en la mejilla. Las palmaditas eran lo humillante.',
+  '%A se vacía encima de %V. %V no ha dicho una palabra desde entonces.',
+  '%V se lo limpia con el dorso de la mano y se queda mirándolo. %A ya estaba en otra cosa.',
+  '%A se corre en el pecho de %V y lo esparce con un dedo. Ese dedo sobraba y ahí está.',
+  '%V recibe lo de %A con los ojos cerrados. Cerrarlos fue lo único que pudo elegir.',
+  '%A termina y %V sigue de rodillas dos segundos de más. Esos dos segundos los vio el grupo.',
+  'Le cae en la lengua a %V. %A espera a que trague para retirarse.',
+  '%A acaba sobre %V y suspira. El suspiro es de alivio y no es de %V.',
+  '%V queda goteando. %A le pasa el pulgar por el labio y lo empuja para dentro.',
+  '%A se corre y el ruido que hace %V no era el que tenía ensayado.',
+  'Le llega a la garganta a %V. %A cuenta hasta tres antes de soltarle la cabeza.',
+  '%A se corre y sale del encuadre. %V se queda ahí, con lo puesto.',
+  '%V intenta hablar con lo que le dejó %A dentro. Lo que sale no son palabras.',
+  '%A acaba en el estómago de %V y lo deja escurrir. Nadie tenía prisa por limpiarlo.',
+  '%V se pasa la lengua por el labio y mira alrededor. %A ya se ha ido, y %V se acordó tarde de que había gente.',
+  '%A termina encima de %V y se queda mirando lo que ha hecho. Se le nota satisfecho.',
+  'Lo de %A se le queda pegado en las pestañas a %V. Parpadea y solo lo empeora.',
+  '%A se corre y %V da las gracias. Nadie le enseñó eso, le salió solo.',
+  '%V lo aguanta todo sin cerrar la boca. %A no le da opción de cerrarla.',
+  '%A acaba sobre %V, se aparta y no vuelve a mirar. Lo peor de la escena es esa parte.',
+  'Queda un hilo entre %A y %V. %V lo corta con la mano y se le queda en los dedos.',
+];
+
+module.exports = { HUG, CUM, TICKLE, HANDHOLD, HIGHFIVE, STARE, LAUGH, YEET, SHOOT, FEED, KISS, CUDDLE, PAT, POKE, PUNCH, SLAP, BITE, KICK, BONK, FUCK, ANAL, ROAST_USUARIO };
