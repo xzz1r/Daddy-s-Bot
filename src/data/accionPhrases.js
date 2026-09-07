@@ -354,36 +354,52 @@ const BONK = [
 // enseña. El «tengo que mear» a veces no es el baño. El «para» de después
 // es el centro pidiendo tregua, no un no. La película escupe y entra;
 // eso duele y seca. Aquí se baja primero.
+//
+// ─── ESTE POOL ESTÁ EXENTO DE LA REGLA DE GÉNERO, Y ES DECISIÓN DEL DUEÑO ───
+//
+// La regla general del fichero es que ni %A ni %V tienen género: cualquiera del
+// grupo cae en cualquiera de las dos menciones, así que una frase que dice «él»
+// o cierra en -o falla el día que le toca a ellas, con su nombre delante. Eso
+// vale para las otras veinte acciones y `npm run check` lo vigila.
+//
+// Aquí NO. Dieciséis de estas treinta dan por hecho que quien recibe es mujer
+// —coño, clítoris, moja, chorrea, el charco— y así es como se quieren. Se
+// reescribieron una vez para hacerlas neutras y el dueño lo revirtió: «estaba
+// bien así». Es su bot y su grupo; sabe quién lo usa y con quién.
+//
+// Queda escrito aquí para que no se vuelva a «arreglar» solo. Quien pase por
+// este fichero buscando concordancias rotas: estas no lo son, son una decisión.
+// Las otras veinte acciones sí, y ahí sí hay que mirar.
 const FUCK = [
   '%A se pone debajo y no sale. %V se sienta en esa cara y se le van las rodillas. El suelo se entera primero.',
-  '%A pone a %V a cuatro y se queda atrás, con la boca. %V baja el pecho y sube todo lo demás.',
+  '%A pone a %V a cuatro y se queda atrás, con la boca. %V baja el pecho. El charco, no.',
   'Una pierna de %V al borde del lavabo. %A no entra: lengua en el mismo sitio, el mismo ritmo. El azulejo se pone imposible.',
-  '%A mete un cojín bajo el culo de %V y curva los dedos. El ángulo es de cerdo. Dan con el punto y no se apartan de ahí.',
-  '%A arrincona a %V contra la pared, una pierna enganchada al codo. A %V ya le tiembla la que aguanta y todavía no ha entrado nadie.',
-  '%A se tumba y pone a %V a frotar contra un muslo. La postura de revista no servía. El muslo sí. %V se corre en el muslo, qué rabia.',
+  '%A mete un cojín bajo el culo de %V y curva los dedos. El ángulo es de cerdo. %V moja en cuanto dan con el punto y no se apartan.',
+  '%A arrincona a %V contra la pared, una pierna enganchada al codo. Entre las piernas ya chorrea y todavía no ha entrado nadie.',
+  '%A se tumba y pone a %V a frotar contra un muslo. La postura de revista no mojaba. El muslo sí. %V se corre en el muslo, qué rabia.',
   '%A pone a %V de lado y no deja cerrar. Los muslos tiemblan abiertos. Cerrar era el plan. El plan se empapó.',
-  '%A sienta a %V al borde, piernas al cuello, y se queda ahí sin cambiar de sitio. %V ve el techo. El techo no baja a ayudar.',
+  '%A sienta a %V al borde, piernas al cuello, y se queda en el clítoris. %V ve el techo. El techo no baja a ayudar.',
   '%A baja y se queda. %V iba a durar. Se corre con la boca todavía ahí, con cara de esto no. Esto sí.',
   '%A curva dos dedos hacia arriba y chupa a la vez. %V suelta un tengo que mear que no es mear. Es el suelo, joder.',
-  '%A ni entra. Dedos y lengua hasta que a %V le fallan las rodillas. %V decía que no se ponía así. Se ha puesto así.',
-  '%A se queda abajo tres minutos, el mismo ritmo, sin inventar nada. %V se corre de algo tan simple y se le oye la sorpresa.',
-  '%A besa el cuello y los muslos y no toca el centro. %V ya no aguanta la ropa puesta. El centro llega tarde a propósito.',
-  '%A escupe para entrar. %V se encoge: así no, duele. %A baja y se queda. Cuando entra de verdad, ya no hace falta escupir.',
+  '%A ni entra. Dedos y lengua hasta que %V moja las muñecas. %V decía que no se ponía así. Se ha puesto así.',
+  '%A le come el coño a %V tres minutos, el mismo ritmo, sin inventar. %V se corre de algo tan simple y se le oye la sorpresa.',
+  '%A besa el cuello y los muslos y no toca el centro. %V ya empapa lo que lleva puesto. El centro llega tarde a propósito.',
+  '%A escupe para entrar. %V se encoge: eso no moja, duele. %A baja y se queda. Cuando entra de verdad, ya chorrea.',
   '%A se come a %V de rodillas en la cocina. %V se agarraba a la encimera para no llegar. Llega. La encimera queda marcada.',
-  '%V pide que entre. %A sigue con la boca. Cuando entra, ya no hay nada que preparar. Entrar en seco era el plan de otro.',
-  '%A se queda ahí después de que %V acabe. %V dice para. Las caderas no firman. %A hace caso a las caderas.',
+  '%V pide que entre. %A sigue con la boca. Cuando entra, ya chorrea. Entrar en seco era el plan de otro.',
+  '%A se queda en el clítoris después. %V dice para. Las caderas no firman. %A hace caso a las caderas.',
   '%V tira del pelo de %A para que pare. El pelo se tira. La lengua no. %V se corre encima de la tregua.',
   '%V dice que no da más. Abre igual. %A baja el ritmo y no saca los dedos. El no da más acaba en un sí sin voz.',
-  '%A entra cuando %V ya no puede esperar más. %V pide despacio. Despacio y hondo. El despacio era para durar. No dura.',
-  '%V pide un segundo. %A para la boca un segundo. El segundo se acaba. %V lo ha pasado entero temblando.',
+  '%A entra cuando ya moja. %V pide más despacio. Despacio y hondo. El más despacio era para durar. No dura.',
+  '%V pide un segundo. %A para la boca un segundo. El segundo se acaba. %V moja el segundo entero.',
   '%A va al punto y no se mueve. %V dice saca. Luego dice no. El no gana. El asiento pierde.',
   '%V avisa que va a manchar. %A no se aparta. Mancha. La cara de %A queda de prueba. %V pide perdón y otra.',
   '%A frotando, sin entrar. %V se ríe de lo poco que es. A la quinta se le corta la risa. El poco era todo.',
   '%A se pasa el rato con los dedos curvados en el punto, sin prisa. Al día siguiente %V se sienta en el bus y se le ve la cara.',
-  '%A abre a %V de dos manos y se queda a comer. Mañana la silla de la oficina va a doler. Hoy eso no le importa a nadie.',
+  '%A abre a %V de dos manos y se queda a comer. Mañana la silla de la oficina. Hoy el charco.',
   '%A se la come hasta que las piernas de %V dicen basta. Basta es un decir. Cruzarlas mañana en el grupo es un trámite sucio.',
-  '%A deja a %V en carne viva y las sábanas perdidas. En el bar %V pide de pie. De pie también tira.',
-  '%A folla a %V hasta que las caderas dicen que no hay más. Hay más. Mañana el taburete delata.',
+  '%A deja a %V el coño hinchado y las sábanas perdidas. En el bar %V pide de pie. De pie también tira.',
+  '%A folla a %V ya chorreando, hasta que las caderas dicen que no hay más. Hay más. Mañana el taburete delata.',
   '%A no saca la lengua ni para respirar. %V se corre y se queda temblando. Al día siguiente los vaqueros piden tregua. Los vaqueros pierden.',
 ];
 
