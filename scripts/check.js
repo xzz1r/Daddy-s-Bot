@@ -6277,6 +6277,66 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     if (fallos === antes) console.log(verde(`   ✓ *!${nsfw.join('* y *!')}* no van contra el dueño —y solo contra el—, y se niegan sin delatarlo`));
   }
 
+  // ── 43. LA DESPENSA SACA EL TRABAJO DEL CAMINO CALIENTE ──────────────────
+  //
+  // Un comando de accion hacia tres viajes con alguien esperando delante: pedir
+  // la direccion, bajar el gif y pasarlo por ffmpeg. Medido, algo mas de un
+  // segundo en maquina rapida y tres o cuatro en la de verdad. Ninguno de los
+  // tres necesita que nadie espere, asi que se hacen antes.
+  //
+  // Lo que se vigila es la PROPIEDAD, no la implementacion: la segunda vez que
+  // se pide la misma categoria no puede volver a salir a la red. Con un servidor
+  // local que tarda a proposito, eso se mide en milisegundos y no se discute.
+  {
+    console.log('\n43. LA DESPENSA SACA EL TRABAJO DEL CAMINO CALIENTE');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const acc = require(path.join(R, 'src/commands/acciones'));
+    exige(acc._despensa instanceof Map,
+      'las acciones ya no tienen despensa: cada uso vuelve a pagar el viaje entero con alguien esperando');
+
+    // LA PROPIEDAD, MEDIDA: con algo en la despensa, pedir esa categoria NO
+    // puede salir a la red. Se comprueba apuntando la fuente a un sitio que no
+    // existe — si tocara la red, fallaria; si contesta, es que vino de dentro.
+    {
+      const clave = acc._claveDespensa('pruebadespensa', false, null);
+      const falso = { mp4: Buffer.from('x') };
+      acc._despensa.set(clave, { cola: [falso], ts: Date.now() });
+      let vino = null;
+      try { vino = await acc._traerAccion('pruebadespensa', false, null, false); } catch { /* si sale a la red, revienta */ }
+      exige(vino === falso,
+        'pedir una categoria que ya estaba lista vuelve a salir a la red: la despensa se llena y no se usa, y cada comando sigue pagando el viaje entero');
+      acc._despensa.delete(clave);
+    }
+
+    // La propiedad de verdad, leida del codigo: que la despensa se consulte
+    // ANTES de salir a la red, y que se reponga DESPUES de mandar el gif. Al
+    // reves, el comando estaria esperando a preparar el de la proxima vez, que
+    // es justo lo que se venia a quitar de en medio.
+    const src2 = soloCodigo('src/commands/acciones.js');
+    const iSacar = src2.indexOf('sacarDeDespensa(');
+    const iRed = src2.indexOf('await axios.get(direccionDe(');
+    exige(iSacar >= 0 && iRed >= 0 && iSacar < iRed,
+      'la despensa se mira despues de salir a la red, o ya no se mira: entonces no sirve para nada');
+    const iEnviar = src2.indexOf('await sock.sendMessage(jid, media');
+    // La ULTIMA aparicion: la primera esta dentro del propio reponer, que se
+    // llama a si mismo para terminar de llenar.
+    const iReponer = src2.lastIndexOf('reponerDespensa(cat, nsfw');
+    exige(iEnviar >= 0 && iReponer >= 0 && iEnviar < iReponer,
+      'se repone la despensa ANTES de mandar el gif: el comando volveria a esperar por el de la proxima vez');
+    // La PODA dentro de guardarEnDespensa, no el nombre suelto en el fichero:
+    // renombrar la funcion y dejar de llamarla pasaba en verde. Lo probe.
+    {
+      const iG = src2.indexOf('function guardarEnDespensa');
+      const cuerpoG = iG < 0 ? '' : src2.slice(iG, src2.indexOf('\n}', iG));
+      exige(/TOPE_DESPENSA/.test(src2) && /podarDespensa\(\)/.test(cuerpoG),
+        'la despensa ya no se poda al guardar: veinte categorias de gifs de hasta 1,5 MB creciendo sin tope en una maquina de 1 GB');
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ la despensa se mira antes de la red y se repone despues de responder'));
+  }
+
   // ── 39. !purgeall NO SE LLEVA POR DELANTE A QUIEN NO DEBE ────────────────
   //
   // Es el comando mas destructivo del bot: saca y veta a TODO el grupo, y la

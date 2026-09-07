@@ -171,6 +171,103 @@ const TOPE_DESCARGA = 8 * 1024 * 1024;   // un gif de reacción pesa cientos de 
 const CACHE_MAX = 40;
 const cache = new Map();
 
+// ─── LA DESPENSA: GIFS YA LISTOS, ANTES DE QUE NADIE LOS PIDA ───────────────
+//
+// POR QUÉ EL COMANDO IBA LENTO. Entre que alguien escribía *!hug* y salía el
+// gif pasaban tres cosas, todas por delante de la respuesta:
+//
+//   1. pedirle una dirección a la web    ~250-550 ms
+//   2. bajarse el gif (hasta 1,5 MB)     ~200-800 ms
+//   3. pasarlo por ffmpeg a MP4          ~60-200 ms aquí, mucho más en el
+//                                         único core de una VPS pequeña
+//
+// Medido: algo más de un segundo en una máquina rápida, tres o cuatro en la de
+// verdad. Y ninguno de los tres necesita que nadie esté esperando delante.
+//
+// Así que se hacen ANTES. Se guarda un par de gifs ya convertidos por categoría
+// y el comando se lleva uno hecho: en el camino caliente solo queda subirlo a
+// WhatsApp, que es lo único que no se puede adelantar. Al terminar se repone lo
+// gastado sin que nadie mire.
+//
+// LA PRIMERA VEZ DE CADA CATEGORÍA SIGUE SIENDO LENTA, y no hay forma de
+// evitarlo: no se puede tener listo lo que nadie ha pedido nunca. Se llena sola
+// con el uso, y llenarla al arrancar seria pegarle veinte peticiones seguidas a
+// la web en cada despliegue, que es como se consigue que te corten.
+//
+// EL TOPE ES DE MEMORIA, NO DE UNIDADES. Un gif de reacción va de 27 KB a
+// 1,5 MB, así que "dos por categoría" no dice nada sobre lo que ocupa. Con
+// veinte acciones y este tope no pasa de 24 MB, en una máquina de 1 GB donde el
+// bot ronda los 140.
+const LISTOS_POR_CAT = 2;
+const TOPE_DESPENSA = 24 * 1024 * 1024;
+const despensa = new Map();      // clave -> { cola: [], ts }
+const reponiendo = new Set();    // para no pedir dos veces lo mismo a la vez
+
+// LA CLAVE SE CALCULA EN UN SITIO. Escrita dos veces —al sacar y al reponer—
+// se desincroniza el dia que alguien toque la fuente, y el sintoma seria que la
+// despensa se llena y nunca se usa: cada comando volveria a pagar el viaje
+// entero sin que nada pareciera roto.
+function claveDespensa(cat, nsfw, catNsfw) {
+  const conFuente = nsfw && API_NSFW;
+  return `${conFuente ? API_NSFW : API}|${conFuente ? (catNsfw || cat) : cat}`;
+}
+
+const pesaDe = (m) => (m?.mp4?.length || m?.imagen?.length || 0);
+
+function pesoDespensa() {
+  let t = 0;
+  for (const { cola } of despensa.values()) for (const m of cola) t += pesaDe(m);
+  return t;
+}
+
+// Se tira por CATEGORÍA entera, la menos usada. Quitar una unidad suelta de
+// cada sitio dejaría todas a medias, que es el peor reparto posible: ninguna
+// llegaría a estar lista y el trabajo de haberlas preparado se pierde igual.
+function podarDespensa() {
+  while (pesoDespensa() > TOPE_DESPENSA && despensa.size) {
+    let vieja = null;
+    for (const [k, v] of despensa) if (!vieja || v.ts < despensa.get(vieja).ts) vieja = k;
+    despensa.delete(vieja);
+  }
+}
+
+function sacarDeDespensa(clave) {
+  const d = despensa.get(clave);
+  if (!d?.cola.length) return null;
+  d.ts = Date.now();
+  return d.cola.shift();
+}
+
+function guardarEnDespensa(clave, medio) {
+  if (!medio) return;
+  const d = despensa.get(clave) || { cola: [], ts: Date.now() };
+  if (d.cola.length >= LISTOS_POR_CAT) return;
+  d.cola.push(medio);
+  d.ts = Date.now();
+  despensa.set(clave, d);
+  podarDespensa();
+}
+
+// Repone en segundo plano. No se espera, no se avisa y no se propaga: si la web
+// está caída, el siguiente comando lo descubrirá por el camino normal y
+// devolverá el aura como siempre. Un fallo aquí no puede tocar a nadie.
+function reponerDespensa(cat, nsfw, clave) {
+  const d = despensa.get(clave);
+  if (d && d.cola.length >= LISTOS_POR_CAT) return;
+  if (reponiendo.has(clave)) return;
+  reponiendo.add(clave);
+  traerAccion(cat, nsfw, null, true)
+    .then((m) => {
+      guardarEnDespensa(clave, m);
+      reponiendo.delete(clave);
+      // Y otra vuelta hasta llenar. De una en una y encadenadas: dos peticiones
+      // a la vez a la misma web es como se empieza a parecer a un scraper.
+      const d2 = despensa.get(clave);
+      if (!d2 || d2.cola.length < LISTOS_POR_CAT) reponerDespensa(cat, nsfw, clave);
+    })
+    .catch((e) => { logger.warn(`despensa ${clave}: ${e.message}`); reponiendo.delete(clave); });
+}
+
 function recordar(url, mp4) {
   if (cache.has(url)) cache.delete(url);
   else if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value);
@@ -221,12 +318,18 @@ function direccionDe(base, cat) {
   return base.includes('{cat}') ? base.replace(/\{cat\}/g, cat) : `${base}${cat}`;
 }
 
-async function traerAccion(cat, nsfw, catNsfw) {
+// `deDespensa` en true significa "estoy rellenando por adelantado": se salta la
+// despensa para no devolver lo que ya estaba guardado y volver a guardarlo.
+async function traerAccion(cat, nsfw, catNsfw, deDespensa = false) {
   // La fuente y la categoria van JUNTAS: cambiar de web sin cambiar de
   // categoria es pedirle a una el nombre que usa la otra.
   const conFuente = nsfw && API_NSFW;
   const base = conFuente ? API_NSFW : API;
   const cual = conFuente ? (catNsfw || cat) : cat;
+  if (!deDespensa) {
+    const listo = sacarDeDespensa(claveDespensa(cat, nsfw, catNsfw));
+    if (listo) return listo;
+  }
   const { data } = await axios.get(direccionDe(base, cual), { timeout: 12000 });
   // Cada web contesta a su manera: nekos.best mete todo en results[], y las
   // demas suelen devolver {url} a secas. Se aceptan las dos para que cambiar de
@@ -372,6 +475,11 @@ function hazAccion(nombre) {
         };
     await sock.sendMessage(jid, media, { quoted: msg });
 
+    // SE REPONE LO GASTADO, sin esperar. Va DESPUES de mandar el gif a
+    // proposito: si fuera antes, el comando estaria esperando a que se prepare
+    // el de la proxima vez, que es justo lo que se venia a quitar de en medio.
+    reponerDespensa(cat, nsfw, claveDespensa(cat, nsfw, catNsfw));
+
     // EL ROAST VA EN OTRO MENSAJE. Pegarlo al caption lo convierte en pie de
     // foto: se lee como continuacion de la escena y no como paliza. Quien usa
     // el comando se lleva, delante del grupo, lo que dice de el usarlo. Al tier
@@ -402,4 +510,4 @@ function hazAccion(nombre) {
 const comandos = {};
 for (const nombre of ACTIVAS) comandos[nombre] = hazAccion(nombre);
 
-module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, ...comandos, _cache: cache, _turnoRoast: turnoRoast };
+module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, ...comandos, _cache: cache, _turnoRoast: turnoRoast };
