@@ -732,6 +732,14 @@ saberlas:
 Las capas 2 en adelante necesitan `npm install`. La 1 corre siempre y es la que
 detecta el bot caído.
 
+`npm run update` reinicia el bot **y el guardián**, en ese orden y pasándole
+`ecosystem.config.js`. Lo de pasarle el fichero no es cosmético: `pm2 restart
+bot` reinicia el proceso con la configuración que pm2 tiene guardada de cuando
+se arrancó, no con la del fichero, y `--update-env` solo refresca las variables
+de entorno. O sea que cambiar `max_memory_restart` o `NODE_OPTIONS` no se
+aplicaba nunca: el fichero decía una cosa, el proceso corría con otra, y el
+despliegue parecía perfecto. Ya pasó con el techo del guardián.
+
 `npm run estado` mira además dos cosas de espacio, y las mira **en la máquina**
 porque dependen de lo que haya instalado: los objetos sueltos de git (un
 `git gc` los empaqueta sin tocar la historia) y si el ffmpeg empaquetado —65 MB—

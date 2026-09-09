@@ -6608,10 +6608,29 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       const act = actCrudo.split('\n').map((l) => l.replace(/(^|\s)#.*$/, '')).join('\n');
       exige(/pm2 restart guardian/.test(act),
         'el despliegue no reinicia al guardian: se queda con el codigo viejo y nadie se entera, porque el bot si se actualiza');
-      const iBot = act.search(/^\s*pm2 restart bot\b/m);
-      const iGuard = act.search(/^\s*pm2 restart guardian\b/m);
+      // El reinicio puede escribirse de dos formas y las dos son validas:
+      // por nombre (`pm2 restart bot`) o pasando el ecosystem con `--only bot`,
+      // que es la que ademas RELEE la configuracion. Lo que se vigila es el
+      // orden, no la forma, asi que se aceptan las dos.
+      const iBot = act.search(/^\s*pm2 restart (?:bot\b|ecosystem\.config\.js[^\n]*--only bot\b)/m);
+      const iGuard = act.search(/^\s*pm2 restart (?:guardian\b|ecosystem\.config\.js[^\n]*--only guardian\b)/m);
       exige(iBot >= 0 && iGuard >= 0 && iBot < iGuard,
         'el guardian se reinicia ANTES que el bot: leeria el numero y el @lid del bot antes de que este los anote');
+
+      // Y EL REINICIO TIENE QUE RELEER ecosystem.config.js. Esto no es un
+      // detalle de forma: `pm2 restart bot` reinicia el proceso con la
+      // configuracion que pm2 tiene GUARDADA de cuando se arranco, no con la del
+      // fichero, y `--update-env` solo refresca las variables de entorno. O sea
+      // que cambiar `max_memory_restart` o `NODE_OPTIONS` en el ecosystem no se
+      // aplicaba nunca: el fichero decia una cosa, el proceso corria con otra, y
+      // el despliegue parecia perfecto.
+      //
+      // Paso de verdad con el techo del guardian: se subio de 120M a 200M y
+      // habria seguido muriendo a los 120 despliegue tras despliegue.
+      for (const quien of ['bot', 'guardian']) {
+        exige(new RegExp(`pm2 restart ecosystem\\.config\\.js[^\\n]*--only ${quien}\\b`).test(act),
+          `el despliegue reinicia *${quien}* por nombre y no pasando el ecosystem: los cambios de configuracion —el tope de memoria, las NODE_OPTIONS— no se aplican nunca y nadie se entera`);
+      }
       exige(/pm2 describe guardian/.test(act),
         'el despliegue reinicia al guardian sin comprobar que exista: quien no lo tenga se come un error en cada actualizacion');
     }

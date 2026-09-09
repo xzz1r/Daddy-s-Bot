@@ -216,7 +216,22 @@ HUELLAS_ANTES="$(huellas)"
 
 # Sin esto el código nuevo no llega a ejecutarse. --update-env relee el .env,
 # que es justo lo que hace falta cuando lo que cambió fue una key.
-pm2 restart bot --update-env >/dev/null || pm2 start ecosystem.config.js >/dev/null
+#
+# Y SE REINICIA PASANDO EL ECOSYSTEM, NO EL NOMBRE. Esto no es cosmético y ya
+# costó un despliegue a medias.
+#
+# `pm2 restart bot` reinicia el proceso con la configuración que pm2 tiene
+# GUARDADA de cuando se arrancó, no con la del fichero. `--update-env` solo
+# relee las variables de entorno. O sea que cambiar `max_memory_restart`, el
+# `NODE_OPTIONS` o cualquier otra opción en ecosystem.config.js no se aplicaba
+# nunca: el fichero decía una cosa y el proceso corría con otra, y desde fuera
+# el despliegue parecía perfecto.
+#
+# Pasándole el fichero, pm2 vuelve a leerlo y aplica lo que haya cambiado.
+# `--only` mantiene el orden de abajo, que sí importa.
+pm2 restart ecosystem.config.js --only bot --update-env >/dev/null \
+  || pm2 restart bot --update-env >/dev/null \
+  || pm2 start ecosystem.config.js --only bot >/dev/null
 
 # Y EL GUARDIAN CON EL, SI ESTA. Es otro proceso, o sea que un despliegue lo
 # dejaba corriendo el codigo viejo indefinidamente — y a nadie se le ocurre
@@ -226,8 +241,15 @@ pm2 restart bot --update-env >/dev/null || pm2 start ecosystem.config.js >/dev/n
 # el guardian lo lee ya escrito en vez de esperar a la siguiente vez.
 #
 # Solo si pm2 lo conoce: quien no tenga guardian no ve ni un error de mas.
+#
+# Y SOLO SI PM2 YA LO CONOCE, sin pasarle el ecosystem a secas: `pm2 restart
+# ecosystem.config.js` a pelo levantaría el guardián en máquinas donde nadie lo
+# ha montado, y ese proceso se quedaría pidiendo un QR que no va a escanear
+# nadie. El `--only guardian` va DENTRO del if, que es donde ya se sabe que
+# existe.
 if pm2 describe guardian >/dev/null 2>&1; then
-  pm2 restart guardian --update-env >/dev/null 2>&1 || true
+  pm2 restart ecosystem.config.js --only guardian --update-env >/dev/null 2>&1 \
+    || pm2 restart guardian --update-env >/dev/null 2>&1 || true
   echo "  · guardián reiniciado también"
 fi
 
