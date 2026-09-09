@@ -18,7 +18,8 @@
     "conteos": "node scripts/conteos.js",
     "node22": "bash scripts/node22.sh",
     "acciones": "node scripts/acciones.js",
-    "analogias": "node scripts/analogias.js"
+    "analogias": "node scripts/analogias.js",
+    "frases": "node scripts/frases.js"
   },
   "repository": {
     "type": "git",

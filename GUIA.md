@@ -675,7 +675,7 @@ de abajo de la tabla.
 
 ## 10. Antes de entregar
 
-Cinco comandos, y **ninguno sustituye a otro**:
+Estos comandos, y **ninguno sustituye a otro**:
 
 ```
 npm install
@@ -685,24 +685,43 @@ npm run pools
 npm run conteos
 npm run progreso
 npm run acciones       ← solo si tocas las acciones (sale a internet)
-npm run analogias      ← las frases que comparan en vez de atacar
+npm run analogias      ← cuenta las líneas marcadas `// ANALOGÍA` que faltan
+npm run frases         ← mide siete defectos de escritura en las 8.449 frases
 ```
 
-`npm run analogias` busca un defecto de escritura concreto: la frase que
-compara en vez de atacar. «Eres más fiel que un perro callejero», «tu lealtad es
-como el wifi del vecino». En esas el chiste es el objeto y la persona no
-aparece — se le pueden mandar a cualquiera del grupo sin cambiar una letra, y por
-eso no tocan a nadie. Un insulto que vale para todos no va dirigido a nadie.
+Los dos últimos miran las frases, y **no miran lo mismo**.
 
-No entra `como quien` + verbo: eso describe una actitud y es el registro bueno
-del bot. La diferencia está en si la frase sigue teniendo algo que decir cuando
-le quitas la comparación.
+`npm run analogias` cuenta marcas. Son las 225 líneas con `// ANALOGÍA` que
+quedan por reescribir en `AURA.gain`, `AURA.loss`, el cooldown de `!aura`,
+`MAL_ESCRITO` y tres líneas del roast de acciones. El encargo entero está en
+`PENDIENTE.md`. Devuelve 1 mientras quede alguna y 0 al cerrar, así que sirve de
+puerta: mientras no dé cero, el trabajo no está hecho.
 
-Medido hoy: 229 en todo el bot, y **191 de ellas en `fidelityPhrases.js`**, que
-tiene entre el 21 % y el 46 % de cada uno de sus seis pools construido así. En el
-resto del corpus el recurso aparece en el 1-5 %, que es normal. O sea que no es
-un problema del bot: es un fichero, y encima el que más se lee, porque es a la
-vez `!fiel` y `!infiel`. El encargo está escrito en su cabecera.
+`npm run frases` no cuenta marcas: **mide el texto**, las 8.449 frases, sin que
+nadie haya tenido que etiquetar nada. Busca siete defectos:
+
+| familia | qué es | hoy |
+|---|---|---|
+| `nadie` | la frase no menciona a la persona: vale para cualquiera | 1099 |
+| `analogia` | el chiste es el objeto («tu lealtad es como el wifi del vecino») | 230 |
+| `coletilla` | frase neutra y el insulto pegado detrás con una coma | 595 |
+| `eco` | abre repitiendo la etiqueta del comando («Rata que…» en `!rata`) | 426 |
+| `molde` | cuatro o más del mismo pool empiezan igual | 1790 |
+| `enlatado` | el mismo bloque de cinco palabras en cuatro frases o más | 410 |
+| `roto` | daño mecánico de una edición masiva anterior | 0 |
+
+Son 3.456 frases distintas con al menos un defecto: el **41 %** del bot.
+
+`nadie` es la que más explica y la que ninguna expresión regular veía antes,
+porque estas frases no comparan con «como» ni con «más que»: sueltan una imagen
+y se van. «Café de máquina: dos sorbos y a cenicero.» No hay comparación que
+cazar, y tampoco hay nadie dentro. En `AURA.gain`, 74 de 120 frases no mencionan
+a quien acaba de ganar.
+
+`npm run frases --techo` compara con la foto del día que se midió y falla si
+alguna familia ha CRECIDO. Reescribir un pool tiene que bajar estos números;
+cuando bajen, se bajan también en la cabecera de `scripts/frases.js` y el techo
+se queda apretado.
 
 `npm run acciones` es el único que **sale a internet**: le pregunta a la web de
 gifs por cada categoría que tiene configurada el bot. Existe porque una
@@ -774,6 +793,16 @@ necesita ffprobe para la duración del audio y el sondeo de vídeo; si esas dos
 cosas funcionan es porque ya hay un ffmpeg del sistema, y ese trae los dos. El
 diagnóstico lo dice y la decisión es del dueño: quitar la dependencia
 equivocándose deja al bot sin stickers, sin `!play` y sin acciones a la vez.
+
+El contador de reinicios de pm2 **no es una medida, es una cicatriz**.
+`restart_time` es acumulado desde que se creó el proceso y no baja nunca: ni con
+un despliegue, ni cuando se arregla lo que estaba tirando el proceso. Solo lo
+pone a cero `pm2 reset <app>`. El guardián llegó a 2954 reinicios con el techo
+de RAM 9 MB por debajo de su propio consumo, y cuando se subió el techo el aviso
+habría seguido saliendo igual, porque 2954 es historia. Un aviso que no se apaga
+al arreglar la causa se acaba ignorando justo el día que dice la verdad. Así que
+`npm run estado` mira el **ritmo**: cuánto ha subido desde la última vez que se
+miró, guardado en `data/estadoReinicios.json`. Callado si no sube.
 
 **Aviso que ya costó caro:** `placeholders` y `pools` salieron EN VERDE con el
 bot sin arrancar, porque comparan líneas con expresiones regulares y no compilan
