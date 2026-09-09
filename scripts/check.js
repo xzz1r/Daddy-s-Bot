@@ -8033,6 +8033,86 @@ const di=async(quien,t)=>{out.length=0;
     if (fallos === antes) console.log(verde('   ✓ el modo corto resume, pero no oculta ni un aviso'));
   }
 
+  // ── 48. EL DIAGNOSTICO DEL GUARDIAN DICE POR QUE, NO CUANTAS VECES ───────
+  //
+  // Aqui hubo dos avisos que existian y no servian, y los dos callaron durante
+  // los 2954 reinicios del guardian:
+  //
+  //   1. El contador de pm2 es ACUMULADO y no baja al arreglar la causa, asi
+  //      que decia lo mismo antes y despues. Ahora se mide el ritmo.
+  //   2. La comparacion de RAM contra el techo NO SALTO NUNCA, porque pm2
+  //      devuelve `max_memory_restart` en BYTES y el codigo se quedaba con los
+  //      digitos tal cual: comparaba 111 MB contra 209715200. Justo la
+  //      comprobacion puesta para avisar de un techo apretado.
+  //
+  // Por eso esto se prueba EJECUTANDO estado con un pm2 de mentira: es la unica
+  // forma de que una guarda de estas no vuelva a quedarse muda sin que se note.
+  {
+    console.log('\n48. EL DIAGNOSTICO DEL GUARDIAN DICE POR QUE');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'guardia-'));
+    const marca = path.join(R, 'data/estadoReinicios.json');
+    const cuaderno = path.join(R, 'data/guardianVidas.json');
+    const salvar = (f) => (fs.existsSync(f) ? fs.readFileSync(f) : null);
+    const previoMarca = salvar(marca);
+    const previoCuaderno = salvar(cuaderno);
+    try {
+      fs.writeFileSync(path.join(dir, 'pm2'), '#!/bin/sh\nif [ "$1" = "jlist" ]; then cat "$FAKE_PM2"; else echo ""; fi\n');
+      fs.chmodSync(path.join(dir, 'pm2'), 0o755);
+      fs.symlinkSync(process.execPath, path.join(dir, 'node'));
+      // 200M tal y como lo devuelve pm2 de verdad: en bytes.
+      const jlist = path.join(dir, 'pm2.json');
+      const proc = (nombre, rss) => ({ name: nombre, monit: { memory: rss * 1048576 },
+        pm2_env: { status: 'online', pm_uptime: Date.now(), restart_time: 10, max_memory_restart: 200 * 1048576 } });
+      const correr = (rssGuardian, vidas) => {
+        fs.writeFileSync(jlist, JSON.stringify([proc('bot', 140), proc('guardian', rssGuardian)]));
+        if (vidas) fs.writeFileSync(cuaderno, JSON.stringify(vidas)); else fs.rmSync(cuaderno, { force: true });
+        fs.rmSync(marca, { force: true });
+        try {
+          return execSync(`node ${path.join(R, 'scripts/estado.js')} -v`,
+            // El PATH lleva `dir` DELANTE, no en lugar de: el pm2 de mentira
+            // tiene que ganarle al de verdad, pero sigue necesitando `cat` y
+            // `sh`. Con el PATH a secas el stub no encontraba `cat`, devolvia
+            // vacio, y estado se iba por la rama de "no hay guardian": las tres
+            // comprobaciones en positivo fallaban y las dos en negativo pasaban
+            // sin probar nada. Justo la forma en que una guarda miente.
+            { encoding: 'utf8', env: { ...process.env, PATH: `${dir}:${process.env.PATH}`, FAKE_PM2: jlist }, timeout: 30000, stdio: ['ignore', 'pipe', 'ignore'] });
+        } catch (e) { return e.stdout || ''; }
+      };
+      const limpio = (t) => t.replace(/\x1b\[[0-9;]*m/g, '');
+
+      // 1. El techo en bytes se entiende como MB: 179 de 200 tiene que saltar.
+      exige(/su tope es 200 MB/.test(limpio(correr(179, null))),
+        'el techo de RAM del guardian se lee mal: pm2 lo devuelve en bytes y la comparacion vuelve a estar muerta, que es lo que dejo pasar 2954 reinicios');
+      // 2. Con la RAM holgada no puede quejarse: un aviso que salta siempre no es un aviso.
+      exige(!/pm2 lo va a matar/.test(limpio(correr(110, null))),
+        'el aviso del techo salta con el guardian a 110 MB de 200: eso es ruido en cada arranque');
+      // 3. El cuaderno: SIGTERM con la RAM alta es pm2 matandolo por memoria.
+      exige(/matando pm2 por memoria/.test(limpio(correr(110, [{ ts: Date.now(), que: 'SIGTERM', detalle: 'de fuera', rss: 190 }]))),
+        'estado no distingue un SIGTERM por memoria: es exactamente el final que no deja NADA en el log de errores');
+      // 4. El mismo SIGTERM con la RAM baja es un despliegue y no se avisa.
+      exige(!/matando pm2 por memoria/.test(limpio(correr(110, [{ ts: Date.now(), que: 'SIGTERM', detalle: 'de fuera', rss: 120 }]))),
+        'un SIGTERM normal de despliegue sale como si fuera un problema: eso convierte cada actualizacion en una alarma');
+      // 5. Y una muerte propia se cuenta como lo que es, con su motivo.
+      exige(/se murio solo|se murió solo/.test(limpio(correr(110, [{ ts: Date.now(), que: 'excepción sin capturar', detalle: 'socket hang up', rss: 118 }]))),
+        'estado no dice nada cuando el guardian se muere por una excepcion: vuelve a haber que adivinar por que se reinicia');
+
+      // Y el guardian tiene que ESCRIBIR ese cuaderno, no solo estado leerlo.
+      const gSrc = fs.readFileSync(path.join(R, 'src/guardian.js'), 'utf8');
+      for (const gancho of ['uncaughtException', 'unhandledRejection', 'SIGTERM']) {
+        exige(new RegExp(`${gancho}`).test(gSrc) && /apuntarVida\(/.test(gSrc),
+          `el guardian ya no apunta su final en ${gancho}: sin eso, estado no tiene nada que leer`);
+      }
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+      // Se deja la maquina del dueño como estaba.
+      if (previoMarca) fs.writeFileSync(marca, previoMarca); else fs.rmSync(marca, { force: true });
+      if (previoCuaderno) fs.writeFileSync(cuaderno, previoCuaderno); else fs.rmSync(cuaderno, { force: true });
+    }
+    if (fallos === antes) console.log(verde('   ✓ el techo se lee en MB, y el cuaderno distingue un despliegue de una muerte'));
+  }
+
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────
   //
   // Tres cosas que se tocan juntas cuando se busca que el bot conteste antes,

@@ -804,6 +804,28 @@ al arreglar la causa se acaba ignorando justo el día que dice la verdad. Así q
 `npm run estado` mira el **ritmo**: cuánto ha subido desde la última vez que se
 miró, guardado en `data/estadoReinicios.json`. Callado si no sube.
 
+Y el contador sigue sin decir **por qué**. Peor: la comprobación que había para
+avisar de un techo apretado **no saltó nunca**, porque pm2 devuelve
+`max_memory_restart` en bytes y el código se quedaba con los dígitos tal cual, o
+sea que comparaba 111 MB contra 209715200. Estuvo muda exactamente durante los
+reinicios que existía para cazar.
+
+Así que ahora el guardián deja escrito él mismo cuándo nace y cómo muere, en
+`data/guardianVidas.json` (las últimas 20 vidas, con la RSS de cada final). Son
+cuatro finales y se distinguen entre sí:
+
+| final | qué fue |
+|---|---|
+| `SIGTERM` con la RAM cerca del techo | lo mató pm2 por memoria |
+| `SIGTERM` con la RAM baja | un despliegue o un `pm2 restart` |
+| excepción sin capturar | un fallo de verdad, con su línea |
+| sesión cerrada desde el teléfono | hay que volver a vincular |
+
+Un proceso al que pm2 mata por memoria **no escribe ni un error**: se lee igual
+que un reinicio limpio, y por eso hacía falta que lo apuntara el propio proceso.
+`npm run estado` lo lee y lo dice. La capa 48 lo prueba ejecutando `estado` con
+un pm2 de mentira, porque las dos guardas anteriores de esto fallaron callando.
+
 **Aviso que ya costó caro:** `placeholders` y `pools` salieron EN VERDE con el
 bot sin arrancar, porque comparan líneas con expresiones regulares y no compilan
 nada. Por eso `check` es obligatorio.

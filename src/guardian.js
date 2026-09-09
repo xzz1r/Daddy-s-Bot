@@ -155,6 +155,58 @@ function withTimeout(promesa, ms) {
 }
 
 const AUTH_DIR = path.join(__dirname, '../data/authGuardian');
+
+// ─── POR QUÉ SE MUERE ───────────────────────────────────────────────────────
+//
+// El contador de pm2 dice CUÁNTAS veces se ha reiniciado y no dice ni una
+// palabra de por qué. Con el techo de RAM apretado eso ya costó caro: pm2 lo
+// mataba y lo levantaba, y en el log no quedaba nada, porque un proceso al que
+// matan por memoria no escribe ningún error — se lee exactamente igual que un
+// reinicio limpio.
+//
+// Así que el proceso deja escrito él mismo cuándo nace y cómo muere. Son cuatro
+// finales posibles y se distinguen entre sí:
+//
+//   · SIGTERM con la RAM cerca del techo   → lo mató pm2 por memoria
+//   · SIGTERM con la RAM baja              → un despliegue o un `pm2 restart`
+//   · excepción sin capturar               → un fallo de verdad, con su línea
+//   · la sesión cerrada desde el teléfono  → hay que volver a vincular
+//
+// Sin dependencias y con todo el fallo tragado: esto es un cuaderno, y un
+// cuaderno que tira el proceso al que apunta no vale nada.
+const VIDAS = path.join(__dirname, '../data/guardianVidas.json');
+const VIDAS_QUE_CABEN = 20;
+
+function apuntarVida(que, detalle) {
+  try {
+    let v = [];
+    try { v = JSON.parse(fs.readFileSync(VIDAS, 'utf8')); } catch { /* aún no hay */ }
+    if (!Array.isArray(v)) v = [];
+    v.push({ ts: Date.now(), que, detalle: detalle || '', rss: Math.round(process.memoryUsage.rss() / 1048576) });
+    fs.writeFileSync(VIDAS, JSON.stringify(v.slice(-VIDAS_QUE_CABEN)));
+  } catch { /* si no se puede escribir, el guardián sigue siendo lo primero */ }
+}
+
+// SÍNCRONO Y AL FINAL, a propósito: cuando llega SIGTERM quedan milisegundos, y
+// un `writeFile` asíncrono no llega a terminar. Es la única escritura del
+// proceso y pesa menos de 2 KB.
+if (require.main === module) {
+  apuntarVida('arranca');
+  process.on('uncaughtException', (e) => {
+    apuntarVida('excepción sin capturar', `${e && e.message} · ${String((e && e.stack) || '').split('\n')[1] || ''}`.trim());
+    console.error('guardián: excepción sin capturar:', e);
+    process.exit(1);
+  });
+  process.on('unhandledRejection', (e) => {
+    apuntarVida('promesa rechazada sin capturar', (e && e.message) || String(e));
+    console.error('guardián: promesa rechazada sin capturar:', e);
+    process.exit(1);
+  });
+  for (const señal of ['SIGTERM', 'SIGINT']) {
+    process.on(señal, () => { apuntarVida(señal, 'de fuera: despliegue, pm2 restart, o el tope de RAM'); process.exit(0); });
+  }
+}
+
 // ─── A QUIÉN PROTEGE ────────────────────────────────────────────────────────
 //
 // NO HACE FALTA ESCRIBIRLO EN NINGÚN SITIO. El bot anota su propio número al
@@ -627,6 +679,7 @@ async function conectar() {
       const code = lastDisconnect?.error?.output?.statusCode;
       if (code === DisconnectReason.loggedOut) {
         logger.error('guardián: la sesión se ha cerrado desde el teléfono. Borra data/authGuardian y vuelve a vincular.');
+        apuntarVida('sesión cerrada desde el teléfono', 'hay que volver a vincular: borra data/authGuardian');
         process.exit(1);
       }
       logger.warn(`guardián: conexión caída (${code || '?'}), reintento en ${Math.round(espera / 1000)}s`);
@@ -647,7 +700,11 @@ async function conectar() {
 
 if (require.main === module) {
   console.log(`\n  Guardián de Daddy's Bot — solo repone el admin, nada más\n`);
-  conectar().catch((err) => { console.error('guardián: error fatal:', err); process.exit(1); });
+  conectar().catch((err) => {
+    apuntarVida('no pudo ni conectar', (err && err.message) || String(err));
+    console.error('guardián: error fatal:', err);
+    process.exit(1);
+  });
 }
 
-module.exports = { alDegradar, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };
+module.exports = { alDegradar, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };

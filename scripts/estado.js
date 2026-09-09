@@ -290,8 +290,15 @@ if (!bot) {
     // techo del bot y el del guardián son distintos, y comparar los dos con la
     // misma cifra es como se pasa por alto justo el que va apretado.
     const mb = Math.round((g.monit?.memory || 0) / 1024 / 1024);
-    const techo = Number(String(env.max_memory_restart || '').replace(/\D/g, ''))
-      || Math.round((env.max_memory_restart || 0) / 1024 / 1024);
+    // PM2 LO DEVUELVE EN BYTES, aunque en ecosystem.config.js ponga '200M'.
+    // Esto estaba escrito al revés —se quedaba con los dígitos tal cual— así que
+    // `techo` valía 209715200 y la comparación de abajo no saltó NUNCA. O sea
+    // que la comprobación que existía justo para avisar de un techo apretado
+    // estuvo muda todo el tiempo que el guardián se estuvo reiniciando por eso.
+    // El corte en 4096 es porque nadie escribe un tope de 4 GB en una máquina
+    // de 1 GB: por encima de eso, son bytes.
+    const crudo = Number(String(env.max_memory_restart ?? '').replace(/\D/g, '')) || 0;
+    const techo = crudo > 4096 ? Math.round(crudo / 1048576) : crudo;
     if (techo && mb > techo * 0.85) {
       mal(`el guardián usa ${mb} MB y su tope es ${techo} MB: pm2 lo va a matar y lo va a volver a levantar en bucle`,
         'sube max_memory_restart en ecosystem.config.js y pm2 reload ecosystem.config.js');
@@ -300,6 +307,29 @@ if (!bot) {
     // Para el guardián el listón es MUCHO más bajo que para el bot: el bot se
     // reinicia en cada despliegue, el guardián casi nunca.
     reinicios('guardián', env.restart_time || 0, 1, 'pm2 logs guardian --err --lines 50');
+
+    // Y EL CUADERNO DEL GUARDIÁN: por qué se murió, no cuántas veces. Lo
+    // escribe él mismo al arrancar y al morir (ver src/guardian.js), porque un
+    // proceso al que pm2 mata por memoria no deja NADA en el log de errores y
+    // se lee igual que un reinicio limpio.
+    try {
+      const vidas = JSON.parse(fs.readFileSync(path.join(RAIZ, 'data/guardianVidas.json'), 'utf8'));
+      const finales = vidas.filter((v) => v.que !== 'arranca');
+      const ultimo = finales[finales.length - 1];
+      if (ultimo) {
+        const cerca = techo && ultimo.rss >= techo * 0.85;
+        const cuando = new Date(ultimo.ts).toLocaleString('es-ES');
+        if (/SIG/.test(ultimo.que) && cerca) {
+          mal(`al guardián lo está matando pm2 por memoria: la última vez a ${ultimo.rss} MB con el tope en ${techo} MB (${cuando})`,
+            'sube max_memory_restart en ecosystem.config.js y pm2 restart ecosystem.config.js --only guardian');
+        } else if (!/SIG/.test(ultimo.que)) {
+          mal(`el guardián se murió solo: ${ultimo.que}${ultimo.detalle ? ` — ${ultimo.detalle}` : ''} (${cuando}, ${ultimo.rss} MB)`,
+            'pm2 logs guardian --err --lines 50');
+        } else bien(`guardián: el último final fue un ${ultimo.que} normal a ${ultimo.rss} MB`);
+        const solos = finales.filter((v) => !/SIG/.test(v.que)).length;
+        if (solos > 1) aviso(`${solos} de los últimos ${finales.length} finales del guardián no fueron despliegues`, 'pm2 logs guardian --err --lines 50');
+      }
+    } catch { /* sin cuaderno todavía: lo escribe el guardián en su próximo arranque */ }
   }
 }
 

@@ -65,3 +65,6 @@ data/estadoReinicios.json
 # La despensa de las acciones en disco: MP4 ya convertidos, incluidos los de
 # los comandos NSFW. Nunca sube al repositorio.
 data/despensa/
+
+# El cuaderno del guardian: cuando nace y como muere. Es de ESTA maquina.
+data/guardianVidas.json
