@@ -732,6 +732,15 @@ saberlas:
 Las capas 2 en adelante necesitan `npm install`. La 1 corre siempre y es la que
 detecta el bot caído.
 
+`npm run estado` mira además dos cosas de espacio, y las mira **en la máquina**
+porque dependen de lo que haya instalado: los objetos sueltos de git (un
+`git gc` los empaqueta sin tocar la historia) y si el ffmpeg empaquetado —65 MB—
+es una segunda copia. Ese paquete trae ffmpeg pero **no trae ffprobe**, y el bot
+necesita ffprobe para la duración del audio y el sondeo de vídeo; si esas dos
+cosas funcionan es porque ya hay un ffmpeg del sistema, y ese trae los dos. El
+diagnóstico lo dice y la decisión es del dueño: quitar la dependencia
+equivocándose deja al bot sin stickers, sin `!play` y sin acciones a la vez.
+
 **Aviso que ya costó caro:** `placeholders` y `pools` salieron EN VERDE con el
 bot sin arrancar, porque comparan líneas con expresiones regulares y no compilan
 nada. Por eso `check` es obligatorio.

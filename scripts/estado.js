@@ -169,6 +169,46 @@ if (!bot) {
   } else bien('arrancado con ecosystem.config.js (tope de RAM puesto)');
 }
 
+// ─── Espacio que se puede recuperar ──────────────────────────────────────────
+//
+// Dos cosas concretas, y las dos hay que mirarlas EN LA MAQUINA porque dependen
+// de lo que haya instalado. Van aquí y no en un informe suelto porque un dato
+// que solo existe en una conversación se pierde; en `npm run estado` lo vuelves
+// a ver cada vez que miras cómo va el bot.
+{
+  // 1. Objetos sueltos de git. Un `git gc` los empaqueta y no toca ni la
+  //    historia ni el árbol de trabajo.
+  const cuenta = sh('git count-objects -v') || '';
+  const sueltos = Number((cuenta.match(/^count:\s*(\d+)/m) || [])[1] || 0);
+  const kb = Number((cuenta.match(/^size:\s*(\d+)/m) || [])[1] || 0);
+  if (sueltos > 800) {
+    aviso(`${sueltos} objetos sueltos de git ocupando ${Math.round(kb / 1024)} MB`, 'git gc');
+  }
+
+  // 2. El ffmpeg empaquetado ocupa 65 MB y SOLO trae ffmpeg, no ffprobe. El bot
+  //    necesita ffprobe (la duración del audio y el sondeo de vídeo), así que si
+  //    funcionan es porque ya hay un ffmpeg del sistema — y ese trae los dos.
+  //    En ese caso los 65 MB son una segunda copia que no abre nadie.
+  //
+  //    No se decide aquí: se dice, y lo decide el dueño. Quitar la dependencia
+  //    equivocándose deja al bot sin stickers, sin !play y sin acciones a la vez.
+  const hayFfprobe = !!sh('command -v ffprobe 2>/dev/null');
+  let pesaEmpaquetado = 0;
+  try {
+    const dir = path.join(RAIZ, 'node_modules/@ffmpeg-installer');
+    if (fs.existsSync(dir)) {
+      const du = sh(`du -sm ${JSON.stringify(dir)} 2>/dev/null`) || '';
+      pesaEmpaquetado = Number((du.match(/^(\d+)/) || [])[1] || 0);
+    }
+  } catch { /* si no se puede medir, no se dice nada */ }
+  if (pesaEmpaquetado > 20 && hayFfprobe) {
+    aviso(`el ffmpeg empaquetado ocupa ${pesaEmpaquetado} MB y esta máquina ya tiene ffmpeg propio (ffprobe responde)`,
+      'npm uninstall @ffmpeg-installer/ffmpeg && npm run check   → si el check sigue verde, te ahorras esos MB');
+  } else if (pesaEmpaquetado > 20) {
+    bien(`el ffmpeg empaquetado (${pesaEmpaquetado} MB) hace falta: aquí no hay ffprobe del sistema`);
+  }
+}
+
 // ─── El guardián ─────────────────────────────────────────────────────────────
 //
 // AQUI NO SE MIRABA. Todo lo de arriba busca el proceso llamado `bot` y ya:
