@@ -379,6 +379,13 @@ halago.
 > «Estructura buena, piel buena, proporciones buenas. Aburrido de leer y
 > molesto de aceptar.»
 
+**7. Nada de analogía barata.** Si el chiste es el objeto («eres más fiel que
+un perro», «tu lealtad es como el wifi del vecino»), la frase no va. Se le
+puede mandar a cualquiera del grupo sin cambiar una letra, y por eso no
+duele. Habla de lo que esa persona *hace*. Hay 221 frases marcadas con
+`// ANALOGÍA` pendientes de reescribir: `PENDIENTE.md`. `como quien` + verbo
+sí vale: colorea una actitud, no sustituye al ataque.
+
 ### El refuerzo: cómo escribe Rockstar
 
 Sirve para lo que al bot le falta hoy, que es el registro de sus **instituciones**

@@ -7,35 +7,33 @@
 //   INFIEL → goodIsHigh: false. high = brutal, low = halago.
 
 // ═══════════════════════════════════════════════════════════════════════════
-// PARA GROK — ESTE FICHERO HAY QUE REESCRIBIRLO ENTERO
+// PARA GROK — REESCRIBE SOLO LAS LÍNEAS CON `// ANALOGÍA`
 // ═══════════════════════════════════════════════════════════════════════════
 //
-// EL ENCARGO, EN UNA LÍNEA: fuera las analogías, ataques directos.
+// Brief completo: PENDIENTE.md (raíz del repo). Este bloque es el recordatorio
+// pegado al fichero donde vas a trabajar.
 //
-// Palabras del dueño: «todos los insultos del bot son analogías baratas, sin
-// coherencia, estúpidas y sin jugo real. Prefiero ataques directos y con
-// coherencia».
+// EL ENCARGO: fuera las analogías, ataques directos. Palabras del dueño:
+// «todos los insultos del bot son analogías baratas, sin coherencia, estúpidas
+// y sin jugo real. Prefiero ataques directos y con coherencia».
 //
-// ─── DÓNDE ESTÁ EL PROBLEMA ────────────────────────────────────────────────
+// ─── QUÉ HAY QUE TOCAR ─────────────────────────────────────────────────────
 //
-// Medido sobre las 8.000 frases del bot (`npm run analogias`): hay 229 frases
-// construidas sobre una comparación, y 191 están AQUÍ. En todo el resto del bot
-// el recurso aparece en el 1-5 % de las frases, que es lo normal. En este
-// fichero:
+// Las líneas de ESTE fichero que terminan en `// ANALOGÍA`. Más seis en
+// percentLabels.js (gay.mid ×4, simp.high ×1, inutil.high ×1). El inventario
+// con número de línea está en PENDIENTE.md.
 //
-//   INFIEL_MID    46 de 101   46 %
-//   INFIEL_HIGH   37 de 101   37 %
-//   FIEL_LOW      33 de 101   33 %
-//   FIEL_MID      31 de 101   31 %
-//   FIEL_HIGH     23 de 101   23 %
-//   INFIEL_LOW    21 de 101   21 %
+//   INFIEL_MID    48
+//   INFIEL_HIGH   39
+//   FIEL_MID      38
+//   FIEL_LOW      34
+//   FIEL_HIGH     30
+//   INFIEL_LOW    26
 //
-// O sea que no es un problema del bot: es este fichero, que está construido casi
-// entero sobre el mismo recurso. Y se lee el doble que cualquier otro, porque es
-// a la vez *!fiel* y *!infiel*.
+// NO reescribas el fichero entero. Hay ~600 frases aquí y ~215 son el
+// problema. Las demás ya hablan de la persona: machacarlas es peor.
 //
-// `npm run analogias --lista` las saca todas con su índice. Se puede volver a
-// ejecutar para ver cuánto queda.
+// `npm run analogias` cuenta las marcas que quedan. Cero = acabado.
 //
 // ─── POR QUÉ NO FUNCIONAN ──────────────────────────────────────────────────
 //
@@ -47,9 +45,9 @@
 // pueden mandar a cualquiera del grupo sin cambiar una letra, y por eso no
 // tocan a nadie. Un insulto que vale para todos no va dirigido a nadie.
 //
-// Y encima el objeto obliga a explicarse. La mitad de estas frases gastan la
-// segunda oración en justificar la comparación —«con la diferencia de que…»,
-// «pero esta mola», «que no es difícil, pero…»— en vez de rematar.
+// Y encima el objeto obliga a explicarse. La mitad gastan la segunda oración
+// en justificar la comparación —«con la diferencia de que…», «pero esta mola»,
+// «que no es difícil, pero…»— en vez de rematar.
 //
 // ─── QUÉ SE PIDE EN SU LUGAR ───────────────────────────────────────────────
 //
@@ -78,7 +76,7 @@
 //     «él», ni adjetivos en -o predicados de la persona. `npm run check` lo
 //     comprueba y se pone rojo.
 //   · Ni dos frases iguales con una palabra cambiada. La capa 17 las caza.
-//   · 101 por pool, que es lo que hay ahora. No las bajes.
+//   · 101 por pool, que es lo que hay ahora. No las bajes. Sustituye, no borres.
 //
 // Cuando termines: `npm run check`, `npm run analogias` y `npm run progreso`.
 // ═══════════════════════════════════════════════════════════════════════════
@@ -89,62 +87,62 @@
 
 const FIEL_HIGH = [
   'Joder, [nombre], eres tan fiel que das miedo. La clase de lealtad que hace que la gente sospeche que escondes algo peor.',
-  'Fiel como un puto labrador viejo: ni se va, ni ladra, ni deja de estar ahí. Incomodo de lo leal que es.',
+  'Fiel como un puto labrador viejo: ni se va, ni ladra, ni deja de estar ahí. Incomodo de lo leal que es.', // ANALOGÍA
   '[nombre] es de los que se quedan cuando la mierda salpica. Y no porque le guste la mierda, sino porque tiene mas cojones que sentido comun.',
   'Hostia, que alguien le ponga una placa a este cabrón. Leal hasta un punto que ya roza la enfermedad mental.',
   'La fidelidad de [nombre] es tan solida que podrias construir un bloque de pisos encima y no se raja ni la primera baldosa, el muy bestia.',
-  'Eres mas fiel que un perro callejero al primer gilipollas que le da un trozo de pan. Pero lo digo con carino.',
+  'Eres mas fiel que un perro callejero al primer gilipollas que le da un trozo de pan. Pero lo digo con carino.', // ANALOGÍA
   'Coño, si la lealtad fuese una ETS, tu serias una puta epidemia. Contagias confianza a todo el que se te acerca.',
   'Joder, [nombre], tienes una lealtad que parece defecto de fabrica. Como si te hubiesen soldado los principios al craneo.',
   'Este hijo de puta es tan fiel que si le dijeras que te espere en el infierno, ya estaría ahí guardándote sitio.',
-  'Tu lealtad es como una cucaracha nuclear: sobrevive a todo, no hay quien la mate y esta ahí cuando el mundo se acaba.',
+  'Tu lealtad es como una cucaracha nuclear: sobrevive a todo, no hay quien la mate y esta ahí cuando el mundo se acaba.', // ANALOGÍA
   '[nombre] tiene mas lealtad en el dedo menique que la mayoria de cabrones en todo su puto cuerpo. Y le sobra.',
   'Mira, hay gente que promete y luego se hace la muerta. Y luego esta este cabrón, que cumple hasta lo que no ha prometido.',
   'Hostia puta, eres tan de fiar que resulta sospechoso. La gente normal no es así. Tu tienes algun cable cruzado del bueno.',
-  'Fiel como la gravedad: siempre ahí, sin que nadie te lo pida, jodiéndote las rodillas pero sujetando todo el tinglado.',
+  'Fiel como la gravedad: siempre ahí, sin que nadie te lo pida, jodiéndote las rodillas pero sujetando todo el tinglado.', // ANALOGÍA
   'Joder, [nombre] es la clase de persona que te ayuda a mover un cadaver sin preguntar. No porque sea imbecil, sino porque es leal de cojones.',
   'Si la fidelidad se cotizase en bolsa, este cabrón seria el puto Warren Buffett de no fallar a nadie.',
-  'Coño, tienes mas lealtad que un guardaespaldas del narco. Con la diferencia de que a ti no te pagan, lo haces gratis, que es peor.',
-  'La lealtad de [nombre] aguanta mas presión que los cimientos de una catedral. Y lleva mas años en pie que la mayoria.',
-  'Eres fiel como un reloj de los viejos: no necesita pilas, no necesita wifi, simplemente funciona porque le sale de los cojones.',
+  'Coño, tienes mas lealtad que un guardaespaldas del narco. Con la diferencia de que a ti no te pagan, lo haces gratis, que es peor.', // ANALOGÍA
+  'La lealtad de [nombre] aguanta mas presión que los cimientos de una catedral. Y lleva mas años en pie que la mayoria.', // ANALOGÍA
+  'Eres fiel como un reloj de los viejos: no necesita pilas, no necesita wifi, simplemente funciona porque le sale de los cojones.', // ANALOGÍA
   'Joder, este es de los que te cubren en una pelea de bar y encima piden perdon por no haber llegado antes. Enfermo de leal.',
   '[nombre] es tan fiel que si le pones los cuernos, la gente del barrio te lincha a ti. Ha creado una puta secta de confianza.',
   'Tu lealtad tiene la consistencia de un ladrillo. Que no es bonito ni glamuroso, pero sobre eso construyes una casa.',
   'Hostia, mira, yo he visto gente fiel, pero lo tuyo ya es un trastorno. Un trastorno bonito de cojones, eso si.',
   'Este cabrón es tan leal que le podrias dejar la tarjeta de crédito, la contraseña del móvil y las llaves de casa. Y no porque sea tonto.',
   '[nombre] tiene una lealtad que debería estar en un museo. Detras de un cristal. Con un cartel que diga: joder, esto existia de verdad.',
-  'Coño, eres mas fiable que la muerte. Que es lo único seguro en esta vida, y ahora resulta que tu también.',
+  'Coño, eres mas fiable que la muerte. Que es lo único seguro en esta vida, y ahora resulta que tu también.', // ANALOGÍA
   'La palabra de [nombre] vale mas que un contrato firmado ante notario, tres testigos y un cura. El muy cabrón no falla.',
-  'Tu fidelidad es como el hormigon armado: fea de mirar, pero joder, aguanta lo que le eches sin partirse.',
+  'Tu fidelidad es como el hormigon armado: fea de mirar, pero joder, aguanta lo que le eches sin partirse.', // ANALOGÍA
   'Eres tan fiel que das asco. En serio. Tanta lealtad junta en una persona no debería ser legal. Resulta perturbador.',
   'Joder, [nombre], si alguna vez te clonaran tendriamos que cerrar los juzgados de familia. No habría divorcios, coño.',
-  'Fiel como la mierda al zapato: no hay quien te separe de los tuyos, por mucho que el camino sea una pocilga.',
-  'Hostia, este cabrón tiene mas principios que el puto codigo civil. Y los cumple mejor, además.',
+  'Fiel como la mierda al zapato: no hay quien te separe de los tuyos, por mucho que el camino sea una pocilga.', // ANALOGÍA
+  'Hostia, este cabrón tiene mas principios que el puto codigo civil. Y los cumple mejor, además.', // ANALOGÍA
   '[nombre] es de los que cuando dice para siempre, quiere decir para siempre. Que se sepa que esa gente existe, joder.',
-  'Tu nivel de lealtad es como encontrar un billete de quinientos en la calle: nadie se lo cree hasta que lo tiene delante.',
+  'Tu nivel de lealtad es como encontrar un billete de quinientos en la calle: nadie se lo cree hasta que lo tiene delante.', // ANALOGÍA
   'Coño, eres el tipo de persona que hace que los demas parezcan unos miserables traidores por comparación. Gracias por eso.',
   'La fidelidad de [nombre] no se compra, no se vende y no se negocia. Viene de serie como los huevos: o los tienes o no.',
   'Joder, si esta persona te falla a ti, ya puedes perder la fe en la humanidad entera porque no queda nada detras.',
-  'Eres mas constante que un dolor de muelas. Con la diferencia de que a ti se te quiere tener cerca.',
+  'Eres mas constante que un dolor de muelas. Con la diferencia de que a ti se te quiere tener cerca.', // ANALOGÍA
   '[nombre] tiene la lealtad de un kamikaze: no se va a ir, no se va a rajar, y si se hunde el barco se hunde contigo. Joder.',
-  'Tu fidelidad da mas seguridad que un chaleco antibalas, un bunker y una cuenta en Suiza juntos. Y sale gratis, coño.',
-  'Hostia puta, alguien tan fiel en esta epoca es como ver un unicornio cagando arcoiris. No debería existir pero ahí esta.',
+  'Tu fidelidad da mas seguridad que un chaleco antibalas, un bunker y una cuenta en Suiza juntos. Y sale gratis, coño.', // ANALOGÍA
+  'Hostia puta, alguien tan fiel en esta epoca es como ver un unicornio cagando arcoiris. No debería existir pero ahí esta.', // ANALOGÍA
   'Este cabrón es leal hasta cuando duerme. Apuesto a que hasta en sueños le guarda el sitio a alguien.',
   'Joder, [nombre], eres la prueba viviente de que la lealtad no ha muerto. Esta en la UCI, vale, pero tu la mantienes viva.',
-  'Tienes mas fidelidad que un soldado japones de los que seguian en la selva treinta años después de la guerra. Sin coña.',
-  'Coño, tu lealtad es como el wifi del vecino: siempre ahí, siempre fiable, y la mayoria no se merece tenerla gratis.',
+  'Tienes mas fidelidad que un soldado japones de los que seguian en la selva treinta años después de la guerra. Sin coña.', // ANALOGÍA
+  'Coño, tu lealtad es como el wifi del vecino: siempre ahí, siempre fiable, y la mayoria no se merece tenerla gratis.', // ANALOGÍA
   '[nombre] es tan de fiar que podrias usar su palabra como aval en el banco. Y el banco aceptaria, los muy cabrones.',
   'La lealtad de este cabrón es antinatural. Como un salmon nadando contracorriente pero sin quejarse ni una puta vez.',
   'Joder, eres fiel como los impuestos: pase lo que pase, ahí estas. Pero tu, a diferencia de Hacienda, caes bien.',
   'Eres tan leal que si te hicieran una autopsia encontrarian la palabra compromiso grabada en cada puto hueso.',
   '[nombre] tiene mas lealtad acumulada que deuda tiene este pais. Y eso es decir mucho, hostia.',
-  'Tu fidelidad me da miedo, cabrón. Es como esa calma antes del terremoto, pero el terremoto nunca llega porque tu no fallas.',
+  'Tu fidelidad me da miedo, cabrón. Es como esa calma antes del terremoto, pero el terremoto nunca llega porque tu no fallas.', // ANALOGÍA
   'Hostia, [nombre] es el tipo de leal que te hace sentir culpable por haber dudado de la humanidad. Maldito seas, cabrón bueno.',
   'Si metieran tu lealtad en una botella y la vendieran, se forraban. Pero no se puede embotellar lo que llevas dentro, joder.',
-  'Eres mas firme que una estaca en el culo de un vampiro. Incapaz de moverte, incapaz de fallar, incapaz de soltar. Admirable.',
-  'Coño, [nombre], tu lealtad sobrevive a las discusiones, a la distancia y al paso del tiempo. Es como una cucaracha pero en bonito.',
+  'Eres mas firme que una estaca en el culo de un vampiro. Incapaz de moverte, incapaz de fallar, incapaz de soltar. Admirable.', // ANALOGÍA
+  'Coño, [nombre], tu lealtad sobrevive a las discusiones, a la distancia y al paso del tiempo. Es como una cucaracha pero en bonito.', // ANALOGÍA
   'Joder, este es de los que te guardan el secreto hasta la tumba. Y si hace falta, también después de muerto.',
-  'La fidelidad de este cabrón tiene mas capas que una puta cebolla. Y al pelarla no lloras, que es lo bueno.',
+  'La fidelidad de este cabrón tiene mas capas que una puta cebolla. Y al pelarla no lloras, que es lo bueno.', // ANALOGÍA
   '[nombre] es tan fiel que cuando juega al Monopoly no hace trampas. Si eso no es prueba de lealtad, que baje Dios y lo vea.',
   'Tu lealtad es la hostia. Y no la hostia del cura, la hostia buena, la que te pega la vida y te deja el ojo morado de lo real.',
   'Mira, cabrón, ser fiel hoy en día con Tinder, Instagram y toda esa mierda tiene el merito de aguantar una guerra sin armas.',
@@ -153,17 +151,17 @@ const FIEL_HIGH = [
   'Este cabrón es tan leal que si le dices que salte, no pregunta que tan alto: pregunta si necesitas que salte otra vez, el muy bestia.',
   '[nombre] es fiel como las deudas: no desaparece, no se olvida de ti y esta ahí en las buenas y en las muy putas malas.',
   'Coño, tienes una lealtad que hace que los perros parezcan traidores a tu lado. Y los perros son lo maximo.',
-  'Tu fidelidad es como un tatuaje en la cara: no la puedes esconder, no la puedes quitar, y todo el mundo la ve. Respeto, joder.',
+  'Tu fidelidad es como un tatuaje en la cara: no la puedes esconder, no la puedes quitar, y todo el mundo la ve. Respeto, joder.', // ANALOGÍA
   'Joder, este no te deja tirado ni en un apocalipsis zombie. Mientras otros corren, este cabrón te espera con un bate.',
   '[nombre] tiene una fidelidad tan bruta que parece sacada de una pelicula mala. Pero no, es real. Y eso la hace aun mas rara.',
   'Hostia puta, eres tan fiel que deberían estudiarte en la universidad. Tesis doctoral sobre por que cojones no te rindes nunca.',
-  'La lealtad de [nombre] es como una ETS incurable: una vez que la pillas, la tienes para siempre. Pero esta mola.',
+  'La lealtad de [nombre] es como una ETS incurable: una vez que la pillas, la tienes para siempre. Pero esta mola.', // ANALOGÍA
   'Tu eres de los que comparten la última cerveza, cabrón. Y eso en mi codigo moral te pone por encima del Papa.',
   'Coño, [nombre], tu fidelidad aguanta mas que la bateria de un Nokia 3310. Y eso ya es decir que eres inmortal, joder.',
   'Este cabrón tiene un compromiso tan serio con la lealtad que debería casarse con ella. Ah, espera, ya lo ha hecho.',
   'Joder, eres la clase de fiel que no existe en las peliculas porque el guionista diría que no es creible. Demasiado bueno para ser ficción.',
   '[nombre] es tan leal que si la lealtad fuese una religion, este cabrón seria el papa, el profeta y el puto monaguillo a la vez.',
-  'Tu lealtad es como el olor a ajo: penetrante, imposible de ignorar y se queda con todo el que te conoce. Joder.',
+  'Tu lealtad es como el olor a ajo: penetrante, imposible de ignorar y se queda con todo el que te conoce. Joder.', // ANALOGÍA
   'Hostia, [nombre], tienes mas fibra moral que cable tiene Movistar tendido. Y funciona mejor, además.',
   'Mira, la gente leal como tu es la que evita que este mundo se convierta en una puta jungla de mierda. De nada, sociedad.',
   'Coño, si te pusieras un precio por hora de lealtad, nadie podría pagarte. Eres un lujo, cabrón, y ni lo sabes.',
@@ -171,21 +169,21 @@ const FIEL_HIGH = [
   'Joder, [nombre] es el amigo que te dice la verdad a la cara mientras el resto te miente sonriendo. Fiel de los que duelen.',
   'Este cabrón no te apunala por la espalda ni con un arma cargada y una razón de peso. Lealtad a prueba de todo, hostia.',
   '[nombre] tiene la lealtad de un puto samurai: antes muerto que traidor. Y sin todo el drama del harakiri, que es lo bueno.',
-  'Eres mas fiable que el amanecer, cabrón. Que puede llover, nevar o caer mierda del cielo, pero tu vas a estar ahí.',
-  'Joder, tu lealtad es como un herpes: no se va nunca. Pero un herpes bueno, si eso existiese. Creo que acabo de inventarlo.',
+  'Eres mas fiable que el amanecer, cabrón. Que puede llover, nevar o caer mierda del cielo, pero tu vas a estar ahí.', // ANALOGÍA
+  'Joder, tu lealtad es como un herpes: no se va nunca. Pero un herpes bueno, si eso existiese. Creo que acabo de inventarlo.', // ANALOGÍA
   'Hostia, [nombre], contigo la palabra confianza se queda corta. Habría que inventar una nueva que signifique mas, joder.',
   'La fidelidad de este cabrón tiene fecha de caducidad: nunca. Es leche del tetrabrik eterno de los cojones.',
   'Coño, eres tan leal que incluso tus enemigos te respetan. Y eso en un mundo de hipocritas vale su peso en mierda de oro.',
   '[nombre] es de los que cuando el barco se hunde, en vez de buscar un bote, se pone a tapar agujeros con las manos. Cabrón heroico.',
-  'Tu eres fiel como una hipoteca a cuarenta años: siempre presente, imposible de ignorar y al final todo el mundo te agradece.',
+  'Tu eres fiel como una hipoteca a cuarenta años: siempre presente, imposible de ignorar y al final todo el mundo te agradece.', // ANALOGÍA
   'Joder, si midieran la lealtad con un alcoholimetro, a ti te retiraban el carnet de tanto que llevas encima.',
-  'Hostia puta, la lealtad de [nombre] es como una bomba nuclear de confianza. No la sueltas a menudo, pero cuando esta ahí, se nota, coño.',
+  'Hostia puta, la lealtad de [nombre] es como una bomba nuclear de confianza. No la sueltas a menudo, pero cuando esta ahí, se nota, coño.', // ANALOGÍA
   'Este cabrón lleva la fidelidad cosida a los huevos. Y no de forma metaforica, es que literalmente no puede separarse de ella.',
-  '[nombre] tiene mas lealtad que neuronas tiene un terraplanista. Que no es difícil, pero viniendo de alguien real, impresiona.',
+  '[nombre] tiene mas lealtad que neuronas tiene un terraplanista. Que no es difícil, pero viniendo de alguien real, impresiona.', // ANALOGÍA
   'Coño, tu fidelidad es la única constante en un universo de mierda. Como la velocidad de la luz, pero mas útil en el día a día.',
   'Joder, eres tan fiel que si alguien te engaña, el universo entero sabe que el problema es del otro. Tu expediente esta limpio, cabrón.',
   'Eres leal como un arma oxidada en la mesilla de noche: nadie sabe si funciona hasta que importa, y siempre funciona, hostia.',
-  '[nombre], tu lealtad es como una infeccion: se pega. La gente a tu alrededor empieza a ser mejor persona y ni sabe por que, el muy cabrón.',
+  '[nombre], tu lealtad es como una infeccion: se pega. La gente a tu alrededor empieza a ser mejor persona y ni sabe por que, el muy cabrón.', // ANALOGÍA
   'Joder, la fidelidad de este cabrón no caduca, no se agota y no se rinde. Como un cuñado en una sobremesa de domingo pero versión buena.',
   'Hostia, [nombre] es tan fiel que las palomas mensajeras le tienen envidia. El entrega el mensaje, vuelve a casa y no se caga en nadie.',
   'Coño, la lealtad de [nombre] ya no es una virtud, es un puto diagnóstico. Pero de los que el médico ve y dice joder, ojalá fuera contagioso.',
@@ -196,107 +194,107 @@ const FIEL_HIGH = [
 // ═══════════════════════════════════════════════════════════════════════════
 
 const FIEL_MID = [
-  'Joder, [nombre], eres fiel como una bombilla que parpadea: a veces das luz, a veces dejas a oscuras, y nadie sabe cuando te vas a fundir del todo.',
-  'Tu lealtad es como la cobertura en un pueblo de mierda: va y viene, y justo cuando mas la necesitas se corta.',
+  'Joder, [nombre], eres fiel como una bombilla que parpadea: a veces das luz, a veces dejas a oscuras, y nadie sabe cuando te vas a fundir del todo.', // ANALOGÍA
+  'Tu lealtad es como la cobertura en un pueblo de mierda: va y viene, y justo cuando mas la necesitas se corta.', // ANALOGÍA
   'Ni fiel ni traidor, el puto limbo de los tibios. Estas ahí flotando sin comprometerte con nada ni con nadie, gilipollas.',
   '[nombre] tiene la lealtad de un gato: se queda mientras le des de comer y se larga en cuanto huele atun al otro lado. Puro interes.',
   'Hostia, tu fidelidad depende del día de la semana. Los lunes leal, los viernes ya estas mirando opciones como un puto catalogo de Ikea.',
   'Coño, eres fiel por inercia, no por convicción. El día que la inercia se pare vas a salir volando hacia la primera mierda que pase.',
-  'Tu compromiso es como un condon del chino: parece que aguanta, pero nadie con dos dedos de frente se fiaria de verdad.',
+  'Tu compromiso es como un condon del chino: parece que aguanta, pero nadie con dos dedos de frente se fiaria de verdad.', // ANALOGÍA
   '[nombre] esta en esa zona gris donde ni te acusan ni te defienden. El purgatorio de los que no tienen cojones para elegir bando.',
   'Joder, tienes la lealtad de un puto politico en campaña: prometes mucho, cumples la mitad y luego culpas a las circunstancias.',
   'Eres fiel a ratos, como las putas farolas solares. Cuando hace sol todo bien, pero en cuanto oscurece te apagas.',
   '[nombre] guarda conversaciones como quien guarda cupones: no los usa, pero le jode tirarlos por si acaso valen para algo.',
-  'Hostia puta, tu fidelidad tiene mas altibajos que la bolsa en un lunes negro. Nadie sabe donde invertir contigo.',
-  'Coño, eres como esos yogures que no sabes si estan caducados: no huelen mal del todo, pero nadie con sentido comun se los come.',
+  'Hostia puta, tu fidelidad tiene mas altibajos que la bolsa en un lunes negro. Nadie sabe donde invertir contigo.', // ANALOGÍA
+  'Coño, eres como esos yogures que no sabes si estan caducados: no huelen mal del todo, pero nadie con sentido comun se los come.', // ANALOGÍA
   'Tu lealtad es un wifi sin contraseña: cualquiera se conecta, va lento de cojones y se cae cuando mas falta hace.',
   '[nombre] es de los que te guardan el sitio en el bar pero se beben tu cerveza mientras tanto. Fiel a medias, como todo lo que hace.',
   'Joder, no eres un traidor, eres un puto aficionado de la lealtad. Te apuntas cuando hay buen tiempo y te das de baja cuando llueve.',
-  'Tu compromiso es como una erección después de diez cervezas: la intención esta, pero el resultado es bastante discutible.',
-  'Hostia, [nombre], eres mas impredecible que una cagada después de kebab. Nadie sabe si hoy toca fiel o toca que la cagues.',
+  'Tu compromiso es como una erección después de diez cervezas: la intención esta, pero el resultado es bastante discutible.', // ANALOGÍA
+  'Hostia, [nombre], eres mas impredecible que una cagada después de kebab. Nadie sabe si hoy toca fiel o toca que la cagues.', // ANALOGÍA
   'Tienes la consistencia moral de un flan sin cuajar. Se sostiene si nadie lo toca, pero al minimo empujon se desparrama todo.',
   'Coño, eres el tipico que dice yo nunca haría eso con la misma boca que usa para hacerlo tres meses después. Clasico.',
   '[nombre] no traiciona, simplemente se olvida de que tenia compromisos. Que es peor, porque ni mala intención tiene, el muy imbecil.',
-  'Tu fidelidad es como el pene de un viejo: unas veces funciona y otras no, y nadie sabe cuando va a responder, joder.',
-  'Joder, tu lealtad tiene mas grietas que un piso de Idealista por doscientos euros al mes. Se ve el desastre pero te lo venden bonito.',
+  'Tu fidelidad es como el pene de un viejo: unas veces funciona y otras no, y nadie sabe cuando va a responder, joder.', // ANALOGÍA
+  'Joder, tu lealtad tiene mas grietas que un piso de Idealista por doscientos euros al mes. Se ve el desastre pero te lo venden bonito.', // ANALOGÍA
   'Eres fiel hasta que alguien te pone una cerveza fría y una sonrisa. Entonces tus principios se derriten como mantequilla en sarten.',
   '[nombre] tiene la fidelidad de un taximetro: funciona mientras pagues, y en cuanto dejas de poner no avanza ni un metro, el cabrón.',
-  'Hostia, ni te vas ni te quedas del todo. Eres como una puta puerta batiente: estas dentro y fuera a la vez sin decidirte nunca.',
+  'Hostia, ni te vas ni te quedas del todo. Eres como una puta puerta batiente: estas dentro y fuera a la vez sin decidirte nunca.', // ANALOGÍA
   'Tu palabra tiene la firmeza de un moco colgando: aguanta un rato ahí, pero todo el mundo sabe que va a caer en algun momento.',
   'Coño, [nombre], tienes la lealtad de un perro que menea la cola a todo el que pasa. Fiel a todos es fiel a ninguno, gilipollas.',
-  'Eres el Thermomix de la fidelidad: haces de todo un poco pero nada bien. Ni leal ni traidor, simplemente mediocre.',
-  'Joder, tu compromiso es como hacer dieta un lunes: dura hasta que ves una pizza, y la pizza siempre aparece.',
+  'Eres el Thermomix de la fidelidad: haces de todo un poco pero nada bien. Ni leal ni traidor, simplemente mediocre.', // ANALOGÍA
+  'Joder, tu compromiso es como hacer dieta un lunes: dura hasta que ves una pizza, y la pizza siempre aparece.', // ANALOGÍA
   '[nombre] es fiel mientras no le cueste nada. En cuanto hay que poner algo de su parte, se convierte en Houdini con huevos.',
   'Hostia puta, tienes la lealtad de un mechero del chino: funciona las tres primeras veces y luego ya es cuestion de suerte.',
-  'Tu fidelidad es como una polla dibujada en un pupitre: parece que esta ahí para siempre, pero con un poco de esfuerzo se borra.',
+  'Tu fidelidad es como una polla dibujada en un pupitre: parece que esta ahí para siempre, pero con un poco de esfuerzo se borra.', // ANALOGÍA
   'Ni eres de fiar ni eres una amenaza. Eres el puto NPC de las relaciones: estas ahí, ocupas espacio, pero no haces nada relevante.',
   '[nombre] tiene principios, pero los guarda en el cajon de los calcetines sin pareja. Sabe que estan, pero nunca los encuentra cuando hacen falta.',
   'Coño, eres fiel por descarte, no por elección. Si tuvieras mas opciones ya habriamos visto tu verdadera cara.',
   'Tu lealtad aguanta lo mismo que un papel higienico mojado: cubre lo basico si no aprietas, pero en cuanto aprietas se rompe todo.',
   'Joder, [nombre] es el clasico que no te apuñala por la espalda pero te deja solo en el callejon oscuro. Media lealtad, cero cojones.',
-  'Eres fiel como un borracho es elocuente: a ratos parece que si, pero nadie con dos dedos de frente se lo creeria del todo.',
-  'Hostia, tu compromiso es como una suscripción de gimnasio: pagas el primer mes motivado y el segundo ya ni apareces.',
+  'Eres fiel como un borracho es elocuente: a ratos parece que si, pero nadie con dos dedos de frente se lo creeria del todo.', // ANALOGÍA
+  'Hostia, tu compromiso es como una suscripción de gimnasio: pagas el primer mes motivado y el segundo ya ni apareces.', // ANALOGÍA
   '[nombre] cambia de lealtad como de ropa interior: cada dos días, y a veces ni eso. Que asco de consistencia, joder.',
-  'Tu fidelidad es como el horoscopo: unas veces aciertas y otras no, y la gente que se lo cree acaba igual de jodida.',
-  'Coño, eres tan fiable como un pedo silencioso: nadie sabe cuando va a llegar, pero cuando llega, la cosa apesta.',
+  'Tu fidelidad es como el horoscopo: unas veces aciertas y otras no, y la gente que se lo cree acaba igual de jodida.', // ANALOGÍA
+  'Coño, eres tan fiable como un pedo silencioso: nadie sabe cuando va a llegar, pero cuando llega, la cosa apesta.', // ANALOGÍA
   '[nombre] tiene la palabra de un vendedor de coches usados: suena bien, parece solida, pero en cuanto la pruebas sale humo por todos lados.',
   'Joder, ni frío ni caliente. Eres el agua del grifo templada de cojones: no satisface a nadie y todo el mundo preferiria otra cosa.',
   'Tu lealtad tiene la vida útil de un Bic naranja: funciona un rato y luego deja de pintar cuando mas lo necesitas.',
   'Hostia, [nombre], eres el empate a cero de la fidelidad: no pierdes, no ganas, y todo el mundo se va del estadio aburrido.',
   'Eres fiel cuando te vigilan y te relajas cuando no. Eso no es lealtad, es un examen con el profesor mirando, gilipollas.',
-  '[nombre] es como un semaforo en ambar permanente: nadie sabe si frenar o acelerar contigo, y siempre acaba en accidente.',
-  'Coño, tu fidelidad es como un souffle: se infla cuando la cosa va bien y se hunde en cuanto abres la puerta del horno.',
+  '[nombre] es como un semaforo en ambar permanente: nadie sabe si frenar o acelerar contigo, y siempre acaba en accidente.', // ANALOGÍA
+  'Coño, tu fidelidad es como un souffle: se infla cuando la cosa va bien y se hunde en cuanto abres la puerta del horno.', // ANALOGÍA
   'Joder, tienes la consistencia de un helado en agosto: empiezas solido y acabas hecho un charco de mierda en el suelo.',
-  'Tu compromiso es como el autobus de un pueblo: a veces viene, a veces no, y cuando viene llega tarde y lleno de mierda.',
+  'Tu compromiso es como el autobus de un pueblo: a veces viene, a veces no, y cuando viene llega tarde y lleno de mierda.', // ANALOGÍA
   '[nombre] no es traidor, es un puto freelance de la lealtad: trabaja para quien pague mejor en cada momento, sin contrato fijo.',
-  'Hostia puta, eres fiel como un GPS sin datos: la dirección general la tienes, pero los detalles te los inventas sobre la marcha.',
+  'Hostia puta, eres fiel como un GPS sin datos: la dirección general la tienes, pero los detalles te los inventas sobre la marcha.', // ANALOGÍA
   'Tu lealtad necesita wifi para funcionar. En cuanto pierde la conexion con lo comodo, deja de cargar y se queda en blanco.',
-  'Coño, [nombre], tu fidelidad es como una tirita en una herida de bala: el gesto esta, pero no cubre una puta mierda.',
+  'Coño, [nombre], tu fidelidad es como una tirita en una herida de bala: el gesto esta, pero no cubre una puta mierda.', // ANALOGÍA
   'Eres el tipico que ayuda a mudarse pero se larga antes de montar los muebles. Presente en lo fácil, ausente en lo jodido.',
-  'Joder, tu moral tiene mas agujeros que un queso suizo. Parece solida de lejos, pero cuando te acercas se ve toda la mierda.',
+  'Joder, tu moral tiene mas agujeros que un queso suizo. Parece solida de lejos, pero cuando te acercas se ve toda la mierda.', // ANALOGÍA
   '[nombre] promete con la boca grande y cumple con el culo pequeño. Ese desajuste entre lo que dice y lo que hace ya cansa.',
-  'Hostia, eres como una cita del dentista: todo el mundo sabe que deberias ir, pero nadie confia en que aparezcas.',
-  'Tu fidelidad es como el agua de Valencia: parece suave pero te pega la hostia cuando menos te lo esperas.',
+  'Hostia, eres como una cita del dentista: todo el mundo sabe que deberias ir, pero nadie confia en que aparezcas.', // ANALOGÍA
+  'Tu fidelidad es como el agua de Valencia: parece suave pero te pega la hostia cuando menos te lo esperas.', // ANALOGÍA
   'Ni fiel ni infiel: eres la puta tierra de nadie. Un campo minado donde cualquier paso puede salir bien o volarte la pierna.',
   '[nombre] tiene la lealtad de un puto alumno de intercambio: esta un rato, se integra lo justo y se larga sin despedirse.',
-  'Coño, tu compromiso es como un castillo de arena: bonito de ver, imposible de mantener y la primera ola se lo lleva por delante.',
+  'Coño, tu compromiso es como un castillo de arena: bonito de ver, imposible de mantener y la primera ola se lo lleva por delante.', // ANALOGÍA
   'Joder, [nombre] es de los que te dan la mano y luego miran si les quedan los cinco dedos. Confianza cero en ambas direcciones.',
   'Eres fiel por pereza, que es la forma mas puta de ser fiel. El día que te de por mover el culo, la cagamos todos.',
-  'Tu lealtad es como una cerveza sin alcohol: tiene la forma, el color y hasta el nombre, pero le falta lo que importa, joder.',
+  'Tu lealtad es como una cerveza sin alcohol: tiene la forma, el color y hasta el nombre, pero le falta lo que importa, joder.', // ANALOGÍA
   'Hostia puta, [nombre] tiene la fiabilidad de un paraguas del bazar: lo abres con fe y a los dos minutos se te da la vuelta.',
-  'Eres tan consistente como el tiempo en primavera: sol, lluvia, granizo y otra vez sol, todo en la misma puta mañana.',
+  'Eres tan consistente como el tiempo en primavera: sol, lluvia, granizo y otra vez sol, todo en la misma puta mañana.', // ANALOGÍA
   '[nombre] es fiel mientras la relación sea un buffet libre. En cuanto toca pagar la cuenta, busca la puerta de atras, el muy rata.',
   'Coño, tienes la fidelidad de una impresora: funciona cuando le sale de los cojones y siempre se atasca justo en el peor momento.',
-  'Tu compromiso es como una promesa de Año Nuevo: emocionante el 1 de enero, olvidada el 15 y muerta para febrero. Clasico.',
+  'Tu compromiso es como una promesa de Año Nuevo: emocionante el 1 de enero, olvidada el 15 y muerta para febrero. Clasico.', // ANALOGÍA
   'Joder, [nombre] no engaña por principios, no engaña por falta de habilidad social. El día que aprenda a ligar la cagamos.',
   'Eres el puto Schrodinger de la lealtad: hasta que no abres la caja, eres fiel e infiel al mismo tiempo. Nadie sabe que coño eres.',
   'Hostia, tu fidelidad va como el trafico en hora punta: avanza, se para, avanza, se para. No llegas a ningun sitio.',
   '[nombre] es leal cuando hay testigos y sospechoso cuando esta solo. Esa diferencia entre el publico y el privado da mucho asco.',
   'Tu palabra vale lo que un billete del Monopoly: dentro del juego tiene sentido, fuera no compras ni un chicle con ella.',
-  'Coño, eres mas volatil que la gasolina en verano. Un chispazo y tu fidelidad explota en mil pedazos de mierda.',
+  'Coño, eres mas volatil que la gasolina en verano. Un chispazo y tu fidelidad explota en mil pedazos de mierda.', // ANALOGÍA
   'Joder, [nombre] es de esos que se comprometen con la misma seriedad con la que un crio promete portarse bien: dura hasta el postre.',
-  'Tu lealtad es como un pedo en un jacuzzi: sube a la superficie tarde o temprano, y cuando sale, la cosa apesta y mucho.',
+  'Tu lealtad es como un pedo en un jacuzzi: sube a la superficie tarde o temprano, y cuando sale, la cosa apesta y mucho.', // ANALOGÍA
   'Hostia, eres fiel por geografia: si vivieras en otra ciudad con otra gente, tu lealtad ya habría cambiado de codigo postal.',
   '[nombre] tiene la consistencia emocional de un chicle pegado en el zapato: se estira, se encoge, y al final no sirve para una mierda.',
   'Ni de fiar ni de temer: eres el puto termino medio en todo. Mediocre hasta en la lealtad, que hay que tener cojones.',
-  'Coño, tu fidelidad es como un contrato de practicas: temporal, mal pagado y todo el mundo sabe que no va a durar.',
+  'Coño, tu fidelidad es como un contrato de practicas: temporal, mal pagado y todo el mundo sabe que no va a durar.', // ANALOGÍA
   '[nombre] no traiciona a lo grande, decepciona a lo pequeño. Que es como morir de mil cortes en vez de una puñalada. Mismo resultado.',
   'Joder, eres el empate perpetuo de la lealtad: nunca ganas ni pierdes, y todo el mundo se va a casa decepcionado.',
   'Tu compromiso tiene la misma firmeza que una polla de goma: la forma esta, pero falta la sustancia de verdad.',
   'Hostia, [nombre], tu fidelidad depende de la temperatura del momento. Frío te quedas, caliente te largas. Termometro con patas.',
   'Eres fiable como un reloj de arena sin arena: la estructura esta, pero no mide ni una puta mierda. Decorativo y nada mas.',
-  '[nombre] es como un Kinder Sorpresa de la lealtad: nunca sabes que coño te va a tocar dentro, y la mayoria de veces es basura.',
+  '[nombre] es como un Kinder Sorpresa de la lealtad: nunca sabes que coño te va a tocar dentro, y la mayoria de veces es basura.', // ANALOGÍA
   'Coño, tu lealtad va con intermitentes: a veces a la izquierda, a veces a la derecha, y la mayoria del tiempo ni los pones.',
-  'Joder, eres fiel como un puto VHS: funcionas si alguien tiene paciencia contigo, pero ya nadie tiene paciencia para esa mierda.',
-  'Tu palabra es como un chicle sin azucar: pierde el sabor a los cinco minutos y la gente la escupe sin pensárselo dos veces.',
+  'Joder, eres fiel como un puto VHS: funcionas si alguien tiene paciencia contigo, pero ya nadie tiene paciencia para esa mierda.', // ANALOGÍA
+  'Tu palabra es como un chicle sin azucar: pierde el sabor a los cinco minutos y la gente la escupe sin pensárselo dos veces.', // ANALOGÍA
   '[nombre] tiene la lealtad de un mando a distancia: funciona cuando quiere, desaparece cuando mas falta hace y nadie lo busca.',
-  'Hostia puta, tu fidelidad es como los abdominales en enero: mucha motivación al principio, cero resultados y abandono total.',
+  'Hostia puta, tu fidelidad es como los abdominales en enero: mucha motivación al principio, cero resultados y abandono total.', // ANALOGÍA
   'Eres de esa gente que compra seguro de viaje pero no viaja. Todo listo para la traición que luego no cometes. Cobarde hasta en eso.',
   '[nombre] no es leal, es indeciso. Y un indeciso con acceso a Tinder es una bomba de relojeria con mecha mojada.',
-  'Coño, tu compromiso es como una pegatina vieja: medio pegada, medio despegada, y con un aspecto lamentable.',
+  'Coño, tu compromiso es como una pegatina vieja: medio pegada, medio despegada, y con un aspecto lamentable.', // ANALOGÍA
   'Joder, tu fidelidad va como un microondas: por fuera todo caliente y por dentro crudo. Pura apariencia sin sustancia.',
   '[nombre] esta en esa mierda de zona donde nadie le daria las llaves de casa pero tampoco le cerraria la puerta. Limbo puro.',
-  'Hostia, ni traicionas ni proteges. Eres como un puto cono de trafico: estas ahí en medio, no haces nada y todo el mundo te esquiva.',
+  'Hostia, ni traicionas ni proteges. Eres como un puto cono de trafico: estas ahí en medio, no haces nada y todo el mundo te esquiva.', // ANALOGÍA
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -304,46 +302,46 @@ const FIEL_MID = [
 // ═══════════════════════════════════════════════════════════════════════════
 
 const FIEL_LOW = [
-  'Joder, [nombre], eres tan fiel como un billete falso: pasas de mano en mano y todo el que te pilla se siente estafado.',
-  'Tu lealtad es como la virginidad de un actor porno: se perdio hace tanto que ya nadie recuerda que existio.',
+  'Joder, [nombre], eres tan fiel como un billete falso: pasas de mano en mano y todo el que te pilla se siente estafado.', // ANALOGÍA
+  'Tu lealtad es como la virginidad de un actor porno: se perdio hace tanto que ya nadie recuerda que existio.', // ANALOGÍA
   'Hostia puta, te han puesto mas cuernos que a un reno en Navidad, pero es que tu los pones con la naturalidad de un puto profesional.',
   '[nombre] tiene mas traiciones en el historial que cagadas tiene un palomar. Y huelen igual de mal, el muy cerdo.',
   'Coño, tu palabra vale menos que un moco en una servilleta usada. La das, se arruga y la tiras sin pensártelo, basura.',
   'Eres el puto Judas del grupo pero sin la decencia de devolver las treinta monedas. Traidor y encima rata, vaya combo.',
-  '[nombre] cambia de lealtad mas rápido que un chaval de quince años cambia de paja. Cada día una nueva, sin compromiso ninguno.',
+  '[nombre] cambia de lealtad mas rápido que un chaval de quince años cambia de paja. Cada día una nueva, sin compromiso ninguno.', // ANALOGÍA
   'Joder, si la traición fuese un deporte olimpico, tu serias el puto Usain Bolt. Record mundial en joder a la gente.',
   'Tu fidelidad murio antes de nacer, como un aborto moral que ni la ciencia puede explicar. Naciste sin esa pieza.',
   'Hostia, [nombre] es tan desleal que si le prestas un boli lo devuelve sin tinta y mordido. Y encima te dice que ya estaba así.',
-  'Coño, tienes mas caras que un dado de rol. Y en todas sale el mismo resultado: traidor hijo de la gran puta.',
+  'Coño, tienes mas caras que un dado de rol. Y en todas sale el mismo resultado: traidor hijo de la gran puta.', // ANALOGÍA
   'Eres la clase de escoria que vende a su madre por un kebab con extra de carne. Y luego regateas el precio, rata.',
   '[nombre] traiciona con la frecuencia de quien se lava los dientes: dos veces al día y a veces tres si hay oportunidad.',
-  'Joder, tu lealtad es como el papel de vater de un bar: aspera, escasa y nadie en su sano juicio querría depender de ella.',
+  'Joder, tu lealtad es como el papel de vater de un bar: aspera, escasa y nadie en su sano juicio querría depender de ella.', // ANALOGÍA
   'Tienes la fidelidad de una veleta oxidada: giras para donde sople, y cuando no sopla, giras igualmente porque te sale de los cojones.',
   '[nombre] tiene el compromiso de un tío meándose en un portal: duro lo justo, dejo todo hecho una mierda y se largo sin mirar atras.',
   'Hostia puta, eres tan traidor que Brutus te miraria y diría joder, este tío se pasa, y yo apuñale a Cesar.',
   'Coño, si te dejaran solo con la Mona Lisa la venderias en Wallapop por veinte euros y un intercambio. Desleal hasta con el arte.',
-  'Tu concepto de fidelidad es como el WiFi gratis de un McDonalds: existe en teoria, pero en la practica es tan mierda que nadie lo usa.',
-  'Lo de [nombre] es mas falso que un billete de tres euros pintado con rotulador. Y aun así hay gilipollas que se lo tragan.',
+  'Tu concepto de fidelidad es como el WiFi gratis de un McDonalds: existe en teoria, pero en la practica es tan mierda que nadie lo usa.', // ANALOGÍA
+  'Lo de [nombre] es mas falso que un billete de tres euros pintado con rotulador. Y aun así hay gilipollas que se lo tragan.', // ANALOGÍA
   'Joder, eres de esa clase que le pega una patada a un perro y luego pregunta por que no le quieren los animales.',
-  'Tu historial de traiciones tiene mas capitulos que Cuentame. Y el argumento siempre es el mismo: tu jodiendo a alguien.',
+  'Tu historial de traiciones tiene mas capitulos que Cuentame. Y el argumento siempre es el mismo: tu jodiendo a alguien.', // ANALOGÍA
   '[nombre] tiene la moral de un puto tiburon de feria: todo dientes, todo plastico y diseñado para sacarle la pasta a los demas.',
   'Hostia, si la deslealtad fuese una ETS, tu serias la puta pandemia del siglo. Contagias traición con solo abrir la boca.',
   'Coño, tu compromiso dura lo que tarda en enfriarse un cafe. Y te lo bebes así, tibio, como haces con todo en tu mierda de vida.',
   'Tienes tan poca palabra que hasta tu sombra se aleja de ti cuando nadie mira. La única lealtad que tienes es la de tu propia mierda.',
   '[nombre] promete con la misma solemnidad con la que un crio jura que no ha sido el: mirándote a los ojos mientras miente de puta madre.',
   'Joder, tienes mas puñaladas traperas que un patio de prision. Y la mayoria se las has clavado a gente que te queria, escoria.',
-  'Tu lealtad es como un culo después de Taco Bell: explosiva, impredecible y deja un desastre que nadie quiere limpiar.',
+  'Tu lealtad es como un culo después de Taco Bell: explosiva, impredecible y deja un desastre que nadie quiere limpiar.', // ANALOGÍA
   'Hostia, [nombre] traiciona como otros respiran: sin pensar, sin parar y con la puta naturalidad del que no sabe hacer otra cosa.',
-  'Coño, eres mas rastrero que una babosa en un sotano humedo. Dejas un rastro de mierda por donde pasas y nadie quiere tocarte.',
+  'Coño, eres mas rastrero que una babosa en un sotano humedo. Dejas un rastro de mierda por donde pasas y nadie quiere tocarte.', // ANALOGÍA
   'Tu fidelidad tiene la profundidad de un charco de meado de perro: se ve el fondo, apesta y nadie quiere pisar ahí.',
   '[nombre] es el cabrón que te roba la novia y luego te pide consejo para la relación. Descarado de cojones, como siempre.',
   'Joder, si montaras un negocio de lealtad, quebrarias en una hora. No tienes materia prima, no tienes producto, no tienes nada.',
-  'Tu compromiso se evapora mas rápido que el alcohol en una puta herida. Escuece un segundo y desaparece para siempre.',
+  'Tu compromiso se evapora mas rápido que el alcohol en una puta herida. Escuece un segundo y desaparece para siempre.', // ANALOGÍA
   '[nombre] es tan de fiar como un pedo silencioso en un ascensor: llega sin avisar, apesta y todo el mundo sabe que fuiste tu.',
   'Hostia puta, eres tan traidor que hasta los politicos te señalan y dicen hostia, al lado de ese tío yo soy un puto santo.',
-  'Coño, tu lealtad es como una braga rota: no sujeta nada, no cubre nada y todo el mundo ve lo que no debería verse.',
+  'Coño, tu lealtad es como una braga rota: no sujeta nada, no cubre nada y todo el mundo ve lo que no debería verse.', // ANALOGÍA
   'Eres la definición andante de hijo de puta con DNI. Si buscas traición en el diccionario, sale tu cara y tu codigo postal.',
-  '[nombre] tiene la palabra mas vacia que el cerebro de un terraplanista. Y eso, joder, ya es alcanzar niveles astronomicos de vacio.',
+  '[nombre] tiene la palabra mas vacia que el cerebro de un terraplanista. Y eso, joder, ya es alcanzar niveles astronomicos de vacio.', // ANALOGÍA
   'Joder, te han dado mas oportunidades que a un preso en tercer grado y las has cagado todas con la precisión de un reloj suizo.',
   'Tu fidelidad cabe en un dedal y aun sobra espacio para meter toda tu verguenza, que también es microscopica.',
   'Hostia, [nombre] es el tipo de persona que te denuncia a la policia y luego te visita en la carcel para preguntarte que tal.',
@@ -351,56 +349,56 @@ const FIEL_LOW = [
   'Tu compromiso tiene la esperanza de vida de una mosca en noviembre: corta, triste y llena de mierda.',
   '[nombre] traiciona como quien se rasca los huevos: de forma automatica, sin pensar y con una frecuencia que ya es preocupante.',
   'Joder, si la lealtad fuese un organo, tu lo habrias vendido en el mercado negro hace años. Y probablemente por cuatro duros.',
-  'Eres mas cinico que un dentista comiendo caramelos: sabes exactamente el daño que haces y te la suda, mierda humana.',
+  'Eres mas cinico que un dentista comiendo caramelos: sabes exactamente el daño que haces y te la suda, mierda humana.', // ANALOGÍA
   'Lo de [nombre] es tan falso que si se tragara un termometro no le subiria la temperatura. Frío de cojones por dentro y por fuera.',
   'Hostia, tu historial de traiciones necesita un disco duro externo. El móvil ya no tiene espacio para tanta mierda.',
   'Coño, eres el tipico que te invita a cenar para después pedirte que pagues tu. Generosidad cero, deslealtad infinita.',
-  'Tu lealtad es como el pelo de un calvo: todo el mundo sabe que no esta, pero tu sigues peinándote como si existiera.',
-  '[nombre] tiene mas vidas que un gato, pero todas las usa para joder a alguien distinto. Nueve traiciones garantizadas.',
-  'Joder, tu fidelidad es como la pasta de dientes de un avión: tamaño miniatura, dura un viaje y nadie la quiere de verdad.',
+  'Tu lealtad es como el pelo de un calvo: todo el mundo sabe que no esta, pero tu sigues peinándote como si existiera.', // ANALOGÍA
+  '[nombre] tiene mas vidas que un gato, pero todas las usa para joder a alguien distinto. Nueve traiciones garantizadas.', // ANALOGÍA
+  'Joder, tu fidelidad es como la pasta de dientes de un avión: tamaño miniatura, dura un viaje y nadie la quiere de verdad.', // ANALOGÍA
   'Eres de esa escoria que le copia los deberes al compañero y luego le acusa de copiar. Traidor con aliño de gilipollas.',
   '[nombre] tiene la lealtad de una prostituta de carretera pero sin la honestidad de cobrar por adelantado. Al menos ellas van de frente.',
-  'Hostia puta, tu compromiso es como una erección de las cuatro de la mañana: aparece sin motivo, dura poco y no le sirve a nadie.',
+  'Hostia puta, tu compromiso es como una erección de las cuatro de la mañana: aparece sin motivo, dura poco y no le sirve a nadie.', // ANALOGÍA
   'Coño, eres tan desleal que si fueras pais te habrían invadido por tus propios aliados. Nadie quiere estar en tu bando.',
-  'Tu palabra tiene menos valor que una moneda de chocolate: se derrite en cuanto la aprietas y no puedes comprar nada con ella.',
+  'Tu palabra tiene menos valor que una moneda de chocolate: se derrite en cuanto la aprietas y no puedes comprar nada con ella.', // ANALOGÍA
   '[nombre] cambia de amigos como de calzoncillos en un maraton: cada pocos kilometros, porque todo lo que toca acaba sudado y asqueroso.',
   'Joder, la última vez que fuiste fiel a algo fue a tu mano derecha, y eso porque la izquierda no tenia suficiente tecnica.',
-  'Tu fidelidad es como buscar señal en un bunker nuclear: puedes intentarlo, pero todo el mundo sabe que es imposible.',
+  'Tu fidelidad es como buscar señal en un bunker nuclear: puedes intentarlo, pero todo el mundo sabe que es imposible.', // ANALOGÍA
   'Hostia, [nombre] es la persona que todos ponen de ejemplo cuando quieren explicar por que la humanidad esta jodida. Y con razón.',
   'Coño, tienes la fidelidad de un mosquito: chupas lo que necesitas, molestas a todo el mundo y te largas sin que nadie pueda pillarte.',
-  'Eres mas traicionero que un escalon mojado: no se ve venir, te partes la hostia y cuando te recuperas ya se ha secado la prueba.',
+  'Eres mas traicionero que un escalon mojado: no se ve venir, te partes la hostia y cuando te recuperas ya se ha secado la prueba.', // ANALOGÍA
   '[nombre] es tan poco fiable que si dijera que mañana sale el sol, yo me compraria un paraguas. Por si acaso y con motivo.',
   'Joder, tu lealtad es un oximoron. Como decir jumbo shrimp, inteligencia militar o compromiso de [nombre]. Combinaciones imposibles.',
-  'Tu historial de fidelidad es mas corto que la polla de un hamster. Y al menos el hamster la usa con honestidad.',
-  'Hostia puta, [nombre] tiene menos principios que un McPollo tiene pollo. Y mira que el McPollo ya es cuestionable de cojones.',
+  'Tu historial de fidelidad es mas corto que la polla de un hamster. Y al menos el hamster la usa con honestidad.', // ANALOGÍA
+  'Hostia puta, [nombre] tiene menos principios que un McPollo tiene pollo. Y mira que el McPollo ya es cuestionable de cojones.', // ANALOGÍA
   'Coño, si tu lealtad fuese un billete de metro, ya habría caducado en la máquina antes de que llegaras a la puta estación.',
   'Eres quien le dice al camarero que la comida esta mala para no pagar y luego se come las sobras del otro. Miseria y deslealtad.',
   '[nombre] rompe promesas como palillos chinos: de dos en dos, con un chasquido y sin importarle una mierda el destrozo.',
   'Joder, eres tan traidor que si Jesus te hubiera conocido, Judas le habría parecido un puto angel en comparación.',
-  'Tu compromiso es como una tapa de cerveza: se abre con facilidad, se tira sin pensar y nadie la recoge del puto suelo.',
+  'Tu compromiso es como una tapa de cerveza: se abre con facilidad, se tira sin pensar y nadie la recoge del puto suelo.', // ANALOGÍA
   '[nombre] tiene la fiabilidad de un globo en una fabrica de alfileres: es cuestion de tiempo, no de si va a explotar o no.',
   'Hostia, tu fidelidad tiene la misma credibilidad que un politico diciendo que no va a subir impuestos. Nadie te cree.',
-  'Coño, eres mas resbaladizo que una anguila con vaselina. Nadie puede agarrarte, nadie puede fiarse y nadie quiere tocarte.',
-  'Tu lealtad es como una tienda de Todo a Cien: parece que hay mucho dentro pero todo es de mierda y se rompe al primer uso.',
+  'Coño, eres mas resbaladizo que una anguila con vaselina. Nadie puede agarrarte, nadie puede fiarse y nadie quiere tocarte.', // ANALOGÍA
+  'Tu lealtad es como una tienda de Todo a Cien: parece que hay mucho dentro pero todo es de mierda y se rompe al primer uso.', // ANALOGÍA
   '[nombre] es el tipo que te clava un cuchillo en la espalda y luego te pregunta si le puedes sacar el cuchillo porque lo necesita.',
   'Joder, si la deslealtad diese puntos de fidelidad, tu tendrias un viaje gratis alrededor del mundo en primera clase.',
   'Tu compromiso dura lo que dura un hielo en el desierto del Sahara. Un puto segundo, y lo que queda es un charco patetico.',
   'Hostia, [nombre] es tan traidor que le pondria los cuernos hasta a una cabra. Y la cabra ya los tiene de serie, imaginatelo.',
-  'Coño, tu palabra es como un pañuelo de papel: la usas una vez, la tiras y nadie en su puto juicio la recogeria del suelo.',
+  'Coño, tu palabra es como un pañuelo de papel: la usas una vez, la tiras y nadie en su puto juicio la recogeria del suelo.', // ANALOGÍA
   'Eres el amigo que te vende a la policia por una multa de aparcamiento. Delator de mierda y por un precio ridículo.',
   '[nombre] tiene la fidelidad de un mando de tele sin pilas: la forma esta, pero no funciona ni aunque le des hostias.',
   'Joder, si montaran un museo de la deslealtad, tu serias la pieza central y la explicación del cartel diría simplemente: mierda.',
-  'Tu lealtad es como un fantasma: todo el mundo habla de ella pero nadie la ha visto nunca. Y probablemente no existe.',
-  'Hostia puta, [nombre] es mas traidor que un GPS que te lleva por peajes. Te jode el bolsillo y encima te dice que es el camino mas corto.',
-  'Coño, tu compromiso es como una bolsa de basura: sirve para cargar mierda un rato y después se tira sin mirar dentro.',
+  'Tu lealtad es como un fantasma: todo el mundo habla de ella pero nadie la ha visto nunca. Y probablemente no existe.', // ANALOGÍA
+  'Hostia puta, [nombre] es mas traidor que un GPS que te lleva por peajes. Te jode el bolsillo y encima te dice que es el camino mas corto.', // ANALOGÍA
+  'Coño, tu compromiso es como una bolsa de basura: sirve para cargar mierda un rato y después se tira sin mirar dentro.', // ANALOGÍA
   'Eres tan desleal que si tu perra te mordiera, le darias la razón. Hasta los animales saben que no te mereces su confianza.',
   '[nombre] tiene la moral de una alcantarilla: todo baja, nada sube y el olor te avisa de que te mantengas lejos.',
-  'Joder, tu fidelidad es como la conexion Bluetooth de un coche viejo: se intenta, no conecta y al final vas con el cable.',
+  'Joder, tu fidelidad es como la conexion Bluetooth de un coche viejo: se intenta, no conecta y al final vas con el cable.', // ANALOGÍA
   'Eres la prueba viviente de que la evolución también produce errores. Darwin te habría puesto como ejemplo de lo que no debería sobrevivir.',
   '[nombre] es tan poco fiable que si fuera preservativo, ya tendría diecisiete hijos y una demanda colectiva.',
-  'Hostia, tu lealtad tiene menos capas que un chicle masticado: fino, pegajoso y asqueroso de mirar.',
-  'Coño, tu palabra es mas falsa que las tetas de una presentadora de Telecinco. Y al menos las de ella tienen garantia.',
-  'Tu fidelidad es como el wifi de un hospital: existe en teoria, nadie sabe la contraseña y cuando la tienes no funciona.',
+  'Hostia, tu lealtad tiene menos capas que un chicle masticado: fino, pegajoso y asqueroso de mirar.', // ANALOGÍA
+  'Coño, tu palabra es mas falsa que las tetas de una presentadora de Telecinco. Y al menos las de ella tienen garantia.', // ANALOGÍA
+  'Tu fidelidad es como el wifi de un hospital: existe en teoria, nadie sabe la contraseña y cuando la tienes no funciona.', // ANALOGÍA
   '[nombre] no tiene lealtad, tiene alergia al compromiso. En cuanto se acerca algo serio, le sale un sarpullido de huevon.',
   'Joder, si te rascas un poco la superficie, debajo de tu fachada no hay nada. Eres una puta cascara de nuez vacia y traicionera.',
   'Tu compromiso tiene la duracion de una story de Instagram: veinticuatro horas y desaparece como si nunca hubiera existido.',
@@ -412,8 +410,8 @@ const FIEL_LOW = [
 // ═══════════════════════════════════════════════════════════════════════════
 
 const INFIEL_HIGH = [
-  'Joder, [nombre], eres mas infiel que el puto diablo en una convencion de monjas. Has roto mas camas que promesas, y eso ya es decir.',
-  'Tu polla tiene mas kilometros que un Seat Ibiza de repartidor. Y como ese Ibiza, ya no la quiere nadie.',
+  'Joder, [nombre], eres mas infiel que el puto diablo en una convencion de monjas. Has roto mas camas que promesas, y eso ya es decir.', // ANALOGÍA
+  'Tu polla tiene mas kilometros que un Seat Ibiza de repartidor. Y como ese Ibiza, ya no la quiere nadie.', // ANALOGÍA
   'Hostia puta, cambias de pareja como de canal de television: con el pulgar, sin levantarte del sofa y sin prestarle atención a ninguno.',
   '[nombre] tiene mas contactos calientes que un extintor en un incendio. Y apaga menos fuegos de los que provoca, el muy cerdo.',
   'Coño, engañas con la naturalidad de un niño robando chuches: sin culpa, sin verguenza y con los bolsillos llenos de pruebas.',
@@ -421,22 +419,22 @@ const INFIEL_HIGH = [
   '[nombre] se ha tirado a medio codigo postal y aun le quedan calles por recorrer. Un puto Google Maps de la infidelidad.',
   'Joder, tu compromiso en pareja dura lo que tarda una pizza en llegar: treinta minutos y ya estas pensando en otro menu.',
   'Hostia, tienes mas cuernos puestos que la Sierra de Gredos. Y en la Sierra al menos las cabras no se enteran.',
-  'Tu fidelidad es como el bigote de un adolescente: se nota que intentas, pero nadie se lo toma en serio, gilipollas.',
+  'Tu fidelidad es como el bigote de un adolescente: se nota que intentas, pero nadie se lo toma en serio, gilipollas.', // ANALOGÍA
   '[nombre] borra chats con la velocidad de un cirujano. Tiene los dedos mas rapidos borrando pruebas que escribiendo te quiero.',
   'Coño, eres un puto multicines de la infidelidad: varias salas, horarios diferentes y siempre hay función para todos los publicos.',
   'Tu pareja te espera en casa mientras tu haces horas extra de mierda. Y las horas extra no son en la oficina.',
   '[nombre] tiene el móvil mas protegido que Fort Knox. Tres contraseñas, huella dactilar y un sistema de borrado automatico, el muy cabrón.',
   'Joder, si pagaran por infidelidades, tu ya te habrias jubilado. Con pensión completa y piso en la playa.',
-  'Hostia puta, tu lealtad en pareja es como un unicornio: bonita idea, pero no existe y nadie la ha visto nunca, mierda.',
+  'Hostia puta, tu lealtad en pareja es como un unicornio: bonita idea, pero no existe y nadie la ha visto nunca, mierda.', // ANALOGÍA
   'Eres de esa gente que va al funeral de una relación con el traje puesto para la siguiente boda. Reciclaje emocional de cabrón.',
-  '[nombre] tiene mas lios que un ovillo de lana en una casa con gatos. Enredado de cojones y sin posibilidad de arreglo.',
-  'Coño, tu pene tiene mas aventuras que Indiana Jones. Y como Indiana, siempre acaba en sitios donde no debería estar.',
-  'Tu historial sentimental parece un menu de All You Can Eat: comes de todo, no disfrutas nada y siempre te vas con dolor de barriga.',
+  '[nombre] tiene mas lios que un ovillo de lana en una casa con gatos. Enredado de cojones y sin posibilidad de arreglo.', // ANALOGÍA
+  'Coño, tu pene tiene mas aventuras que Indiana Jones. Y como Indiana, siempre acaba en sitios donde no debería estar.', // ANALOGÍA
+  'Tu historial sentimental parece un menu de All You Can Eat: comes de todo, no disfrutas nada y siempre te vas con dolor de barriga.', // ANALOGÍA
   '[nombre] engaña con la regularidad de un despertador: todos los días a la misma hora, sin falta y sin remordimiento, la basura.',
-  'Joder, eres mas infiel que un politico con sus promesas electorales. Y al menos el politico espera cuatro años para mentir otra vez.',
-  'Hostia, si tu cama hablara, contaria mas historias que las Mil y Una Noches. Y todas acabarian con alguien llorando.',
-  'Tu compromiso de pareja es como un menu del día: barato, rápido y lo cambias cada veinticuatro horas.',
-  '[nombre] tiene una agenda de contactos que parece el censo electoral. Y ha votado en todas las circunscripciones, el muy guarro.',
+  'Joder, eres mas infiel que un politico con sus promesas electorales. Y al menos el politico espera cuatro años para mentir otra vez.', // ANALOGÍA
+  'Hostia, si tu cama hablara, contaria mas historias que las Mil y Una Noches. Y todas acabarian con alguien llorando.', // ANALOGÍA
+  'Tu compromiso de pareja es como un menu del día: barato, rápido y lo cambias cada veinticuatro horas.', // ANALOGÍA
+  '[nombre] tiene una agenda de contactos que parece el censo electoral. Y ha votado en todas las circunscripciones, el muy guarro.', // ANALOGÍA
   'Coño, engañas a tu pareja con tanta frecuencia que ya deberias estar en nomina de otra persona. Profesional de la mierda.',
   'Tu fidelidad tiene la vida útil de un cubito de hielo en el infierno: antes de existir ya se ha derretido, gilipollas.',
   '[nombre] no tiene exs, tiene un puto archivo historico. Y todas las carpetas tienen la misma etiqueta: traición.',
@@ -444,74 +442,74 @@ const INFIEL_HIGH = [
   'Hostia puta, tu polla tiene mas millas acumuladas que una tarjeta de vuelo frecuente. Ya podrias canjearlo por un viaje al carajo.',
   'Eres la clase de basura que le dice te quiero a tres personas distintas el mismo día y se queda tan pancho.',
   '[nombre] miente sobre su pareja como los pescadores sobre el tamaño del pez: con entusiasmo, sin verguenza y exagerando todo.',
-  'Coño, tu relación es como una puerta giratoria: siempre hay alguien entrando mientras otro sale. Circulacion continua de mierda.',
+  'Coño, tu relación es como una puerta giratoria: siempre hay alguien entrando mientras otro sale. Circulacion continua de mierda.', // ANALOGÍA
   'Tu pareja confia en ti como un pollo confia en el que le da de comer: sin saber que le estan engordando para el matadero.',
-  '[nombre] es mas resbaladizo que una pista de hielo con aceite. Nadie puede sujetarle porque siempre esta deslizándose hacia otra cama.',
+  '[nombre] es mas resbaladizo que una pista de hielo con aceite. Nadie puede sujetarle porque siempre esta deslizándose hacia otra cama.', // ANALOGÍA
   'Joder, si tus cuernos fueran antenas, tu pareja captaria señal hasta en el puto Amazonas.',
   'Hostia, tienes la fidelidad de un perro callejero pero sin la excusa de no tener dueño. Tu tienes y aun así meas en otros jardines.',
-  'Tu compromiso es como un castillo de naipes en un huracan: nunca tuvo posibilidad de sostenerse y todo el mundo lo sabia menos tu pareja.',
+  'Tu compromiso es como un castillo de naipes en un huracan: nunca tuvo posibilidad de sostenerse y todo el mundo lo sabia menos tu pareja.', // ANALOGÍA
   '[nombre] engaña con la destreza de un mago de feria: todo el publico sabe que es un truco, pero la victima sigue sin enterarse.',
   'Coño, eres tan infiel que ya deberias venir con una etiqueta de advertencia sanitaria pegada en la frente.',
   'Tu polla tiene su propio codigo QR para los check-ins en cada cama nueva. Digitalizacion de la infidelidad, el muy cerdo.',
-  '[nombre] tiene mas secretos que la CIA y menos escrupulos que la mafia. Combinación perfecta para ser el peor hijo de puta del grupo.',
+  '[nombre] tiene mas secretos que la CIA y menos escrupulos que la mafia. Combinación perfecta para ser el peor hijo de puta del grupo.', // ANALOGÍA
   'Joder, engañas con la misma regularidad con la que comes. Tres veces al día, algun picoteo y de vez en cuando un atracon nocturno.',
-  'Hostia puta, tu relación es como un queso gruyere: mas agujeros que sustancia y cada vez huele peor.',
+  'Hostia puta, tu relación es como un queso gruyere: mas agujeros que sustancia y cada vez huele peor.', // ANALOGÍA
   'Eres el puto Netflix de las relaciones: tienes varios perfiles activos, no pagas lo que deberias y compartes la cuenta con desconocidos.',
   '[nombre] es tan infiel que podría dar clases magistrales en la universidad. Catedra de Deslealtad Aplicada, con practicas incluidas.',
-  'Coño, tu bragueta tiene mas aperturas que la Bolsa de Nueva York. Y como en la Bolsa, siempre hay alguien que pierde.',
+  'Coño, tu bragueta tiene mas aperturas que la Bolsa de Nueva York. Y como en la Bolsa, siempre hay alguien que pierde.', // ANALOGÍA
   'Tu fidelidad se mide en minutos, no en años. Y ni en minutos quedas bien, cabrón.',
   '[nombre] tiene el cuello de goma: gira trescientos sesenta grados cada vez que pasa alguien. Buho infiel de los cojones.',
   'Joder, si la infidelidad cotizara en bolsa, tu serias el puto indice de referencia. El IBEX de los cuernos.',
-  'Hostia, eres como un taxi: te montas, pagas el viaje y al llegar te bajas sin mirar atras. Servicio publico del sexo.',
+  'Hostia, eres como un taxi: te montas, pagas el viaje y al llegar te bajas sin mirar atras. Servicio publico del sexo.', // ANALOGÍA
   'Tu pareja necesita un detective privado, no un consejero matrimonial. La terapia no arregla a la gente que nace rota como tu.',
   '[nombre] se ha follado a medio grupo de amigos y la otra mitad le tiene en la lista de espera. Cola de carniceria del cabrón.',
-  'Coño, tu compromiso es como una canción del verano: suena tres meses, la odias y al año siguiente ni la recuerdas, basura.',
+  'Coño, tu compromiso es como una canción del verano: suena tres meses, la odias y al año siguiente ni la recuerdas, basura.', // ANALOGÍA
   'Eres de esa clase que llora viendo peliculas romanticas y luego sale a hacer exactamente lo contrario, mierda.',
   '[nombre] tiene mas match en aplicaciones que likes tiene un gato en Instagram. Y a los gatos al menos les quieren de verdad.',
   'Joder, tu polla necesita un abogado porque la cantidad de conflictos de interes que tiene ya es un caso penal.',
   'Hostia puta, engañar es tu cardio. Lo haces todos los días, mantienes el ritmo y ni sudas la camiseta.',
-  'Tu relación es como una funda de móvil del bazar: la pones sabiendo que no va a durar y la cambias en cuanto se raya un poco.',
+  'Tu relación es como una funda de móvil del bazar: la pones sabiendo que no va a durar y la cambias en cuanto se raya un poco.', // ANALOGÍA
   '[nombre] es tan infiel que su pareja debería recibir prestacion por desempleo emocional. Abandonada en el puesto de trabajo.',
   'Coño, tienes mas dobles vidas que un espia de la Guerra Fría. La diferencia es que el espia al menos servia a un bando.',
-  'Tu lealtad de pareja es como un WiFi de bar: la contraseña la tiene todo el mundo y la conexion es una mierda.',
+  'Tu lealtad de pareja es como un WiFi de bar: la contraseña la tiene todo el mundo y la conexion es una mierda.', // ANALOGÍA
   '[nombre] no tiene corazón, tiene un hostal: entra gente, sale gente y nadie se queda mas de una noche. Sin servicio de desayuno.',
   'Joder, eres de esa gente que se descarga Tinder en la boda y lo usa durante la ceremonia. Sin verguenza y sin clase, escoria.',
-  'Hostia, tu bragueta se abre mas veces que el telediario. Y como el telediario, siempre da malas noticias a tu pareja.',
-  'Eres mas promiscuo que una fuente publica: todo el mundo bebe de ti y nadie sabe lo que ha metido el anterior.',
+  'Hostia, tu bragueta se abre mas veces que el telediario. Y como el telediario, siempre da malas noticias a tu pareja.', // ANALOGÍA
+  'Eres mas promiscuo que una fuente publica: todo el mundo bebe de ti y nadie sabe lo que ha metido el anterior.', // ANALOGÍA
   '[nombre] engaña con el piloto automatico puesto. No piensa, no siente, simplemente ejecuta. Máquina de destruir relaciones.',
-  'Coño, tu historial es mas largo que la lista de la compra de una familia numerosa. Y todo es basura.',
-  'Tu pareja es como un billete de metro: la usas para ir de un sitio a otro y la tiras cuando llegas a donde realmente querias ir.',
+  'Coño, tu historial es mas largo que la lista de la compra de una familia numerosa. Y todo es basura.', // ANALOGÍA
+  'Tu pareja es como un billete de metro: la usas para ir de un sitio a otro y la tiras cuando llegas a donde realmente querias ir.', // ANALOGÍA
   '[nombre] tiene la moral de un semaforo estropeado: siempre en verde, para todo el mundo, a todas horas. Accidentes garantizados.',
-  'Joder, si tu polla tuviera memoria, escribiria unas memorias mas largas que las del puto Quijote. Y con mas aventuras.',
-  'Hostia puta, eres como un centro comercial: muchas tiendas, muchos visitantes y nada que valga la pena comprar de verdad.',
+  'Joder, si tu polla tuviera memoria, escribiria unas memorias mas largas que las del puto Quijote. Y con mas aventuras.', // ANALOGÍA
+  'Hostia puta, eres como un centro comercial: muchas tiendas, muchos visitantes y nada que valga la pena comprar de verdad.', // ANALOGÍA
   'Tu compromiso de pareja tiene la consistencia de la mayonesa casera: se corta al minimo movimiento y deja todo hecho un asco.',
-  '[nombre] es mas infiel que las traducciones de Google. Distorsiona todo, pierde el sentido y siempre hay algo que no encaja.',
-  'Coño, tu polla tiene mas historias que un bar de pueblo. Y todas acaban igual: con alguien borracho y arrepentido.',
+  '[nombre] es mas infiel que las traducciones de Google. Distorsiona todo, pierde el sentido y siempre hay algo que no encaja.', // ANALOGÍA
+  'Coño, tu polla tiene mas historias que un bar de pueblo. Y todas acaban igual: con alguien borracho y arrepentido.', // ANALOGÍA
   'Eres quien dice te quiero y piensa en otra. Multitarea emocional de mierda, el especialista del engaño sin esfuerzo.',
   '[nombre] podría abrir una franquicia con sus infidelidades. Varias sedes, mismo servicio de mierda y cero control de calidad.',
-  'Joder, tu lealtad de pareja tiene menos duracion que un orgasmo precoz. Y al menos el orgasmo da placer a alguien durante un segundo.',
-  'Hostia, eres como una rotonda: todo el mundo pasa, nadie se queda y siempre hay alguien que se pierde y acaba donde no debia.',
+  'Joder, tu lealtad de pareja tiene menos duracion que un orgasmo precoz. Y al menos el orgasmo da placer a alguien durante un segundo.', // ANALOGÍA
+  'Hostia, eres como una rotonda: todo el mundo pasa, nadie se queda y siempre hay alguien que se pierde y acaba donde no debia.', // ANALOGÍA
   'Tu pareja necesita mas una aseguradora que un anillo. Porque lo tuyo es un siniestro total.',
   '[nombre] se acuesta con la misma facilidad con la que un borracho se cae. Sin control, sin dirección y siempre acabando en el suelo.',
-  'Coño, tu fidelidad es como un avión de papel: vuela un segundo, se cae y nadie la recoge porque no vale nada.',
+  'Coño, tu fidelidad es como un avión de papel: vuela un segundo, se cae y nadie la recoge porque no vale nada.', // ANALOGÍA
   'Eres la Wikipedia de la infidelidad: información para todos, accesible a cualquier hora y que cualquiera puede editar.',
   '[nombre] es el tipo de cabrón que le pone los cuernos a su pareja y luego le regala flores. Con la tarjeta de crédito de ella.',
-  'Joder, si tu cama fuera una pista de aterrizaje, tendría mas trafico que el aeropuerto de Barajas en Semana Santa.',
+  'Joder, si tu cama fuera una pista de aterrizaje, tendría mas trafico que el aeropuerto de Barajas en Semana Santa.', // ANALOGÍA
   'Hostia puta, tienes la exclusividad de una fuente publica: cualquiera puede beber, a cualquier hora y sin pedir permiso.',
-  'Tu relación de pareja es como una cinta de correr: mucho movimiento, ningun avance y al final acabas exactamente donde empezaste.',
+  'Tu relación de pareja es como una cinta de correr: mucho movimiento, ningun avance y al final acabas exactamente donde empezaste.', // ANALOGÍA
   '[nombre] miente con la fluidez de un presentador de telediario. La diferencia es que el presentador al menos tiene guion, el cabrón no.',
   'Coño, tu historial sentimental debería venir con un disclaimer legal: peligro biologico, no tocar sin protección y a ser posible no tocar.',
-  'Eres de esa basura que tiene mas cuentas de citas que cuentas bancarias. Y todas con mas actividad que las del banco.',
-  '[nombre] ha puesto mas cuernos que un ganadero de toros bravos. Y al menos el ganadero cobra por ello.',
-  'Joder, tu compromiso es como un condon pinchado: parece que cumple pero no protege de una puta mierda.',
+  'Eres de esa basura que tiene mas cuentas de citas que cuentas bancarias. Y todas con mas actividad que las del banco.', // ANALOGÍA
+  '[nombre] ha puesto mas cuernos que un ganadero de toros bravos. Y al menos el ganadero cobra por ello.', // ANALOGÍA
+  'Joder, tu compromiso es como un condon pinchado: parece que cumple pero no protege de una puta mierda.', // ANALOGÍA
   'Hostia, engañas a tu pareja con la misma cara con la que le dices buenos días. Psicopata emocional de manual.',
-  'Tu infidelidad tiene mas temporadas que Los Simpson. Y como Los Simpson, los últimos capitulos son basura pero no se acaba nunca.',
+  'Tu infidelidad tiene mas temporadas que Los Simpson. Y como Los Simpson, los últimos capitulos son basura pero no se acaba nunca.', // ANALOGÍA
   '[nombre] es el cabrón que va al cine con la novia y liga con la de la fila de atras. Multitarea de mierda.',
   'Coño, tu polla debería tener su propia aplicación de gestion de citas. Un puto CRM de infidelidades.',
   'Eres tan infiel que si existiera una vacuna contra la deslealtad, necesitarias quince dosis y aun así seguirias contagiando.',
   '[nombre] tiene la relación como un coche de alquiler: la usa, la maltrata y la devuelve sin limpiar ni pagar los daños.',
   'Joder, tu pareja debería cobrar un sueldo por aguantarte. Con plus de peligrosidad y horas nocturnas.',
-  'Hostia puta, si te pusieran un rastreador en la polla, el mapa tendría mas rutas que un GPS de repartidor de Amazon.',
+  'Hostia puta, si te pusieran un rastreador en la polla, el mapa tendría mas rutas que un GPS de repartidor de Amazon.', // ANALOGÍA
   'Coño, [nombre], eres tan infiel que tu funeral va a parecer una reunion de antiguos alumnos. Todo el mundo se conoce, pero nadie sabe como.',
 ];
 
@@ -521,104 +519,104 @@ const INFIEL_HIGH = [
 
 const INFIEL_MID = [
   'Joder, [nombre], ni eres infiel del todo ni eres fiel del todo. Eres el puto limbo con patas y una erección selectiva.',
-  'Tu fidelidad es como un microondas: va a ratos, calienta lo justo y nunca sabes si lo que sale esta bien hecho o crudo por dentro.',
+  'Tu fidelidad es como un microondas: va a ratos, calienta lo justo y nunca sabes si lo que sale esta bien hecho o crudo por dentro.', // ANALOGÍA
   'Hostia, ni te acuestas con nadie ni dejas de mirar a todo el mundo. Eres el miron profesional de las relaciones.',
-  '[nombre] tiene el WhatsApp mas comprometido que un traficante y menos pruebas que un asesino en serie inteligente. Sospechoso.',
+  '[nombre] tiene el WhatsApp mas comprometido que un traficante y menos pruebas que un asesino en serie inteligente. Sospechoso.', // ANALOGÍA
   'Coño, coqueteas con la linea pero no la cruzas. Eso no te hace fiel, te hace un cobarde con ganas de joder, gilipollas.',
-  'Tu compromiso de pareja es como una dieta intermitente: unos días lo cumples y otros te pones hasta el culo de mierda.',
+  'Tu compromiso de pareja es como una dieta intermitente: unos días lo cumples y otros te pones hasta el culo de mierda.', // ANALOGÍA
   '[nombre] tiene la fidelidad de una antena TDT: a veces pilla señal, a veces no, y siempre se ve pixelada de cojones.',
   'Joder, ni engañas ni tranquilizas. Eres el ruido blanco de las relaciones: siempre ahí, molestando sin que nadie sepa por que.',
-  'Hostia puta, tu lealtad de pareja es como el agua de la ducha en un hotel barato: nunca sabes si va a salir fría o caliente.',
-  'Eres como un examen con las respuestas a lapiz: todo borrable, todo provisional y nada que inspire confianza.',
+  'Hostia puta, tu lealtad de pareja es como el agua de la ducha en un hotel barato: nunca sabes si va a salir fría o caliente.', // ANALOGÍA
+  'Eres como un examen con las respuestas a lapiz: todo borrable, todo provisional y nada que inspire confianza.', // ANALOGÍA
   '[nombre] no engaña pero tampoco cierra la puerta del todo. Deja una rendija por si hay corriente de aire de otra cama.',
   'Coño, tu fidelidad depende del baremo del día. Los lunes leal, los viernes un peligro y los sabados no se sabe, gilipollas.',
-  'Tu compromiso es como una suscripción de prueba: gratuita, temporal y todo el mundo sabe que no la vas a renovar.',
-  '[nombre] tiene la mirada mas desviada que un bizco en una montaña rusa. Mirando a todos lados menos donde debería.',
-  'Joder, eres el Schrodinger de la infidelidad: hasta que tu pareja abra la caja, eres fiel e infiel al mismo tiempo.',
-  'Hostia, tu zona gris es mas amplia que el culo de tu tía en Navidad. Y como ese culo, nadie quiere sentarse al lado.',
-  'Tu fidelidad es como una conexion Bluetooth de los cojones: a veces se engancha, a veces no y siempre tarda mas de lo que debería.',
+  'Tu compromiso es como una suscripción de prueba: gratuita, temporal y todo el mundo sabe que no la vas a renovar.', // ANALOGÍA
+  '[nombre] tiene la mirada mas desviada que un bizco en una montaña rusa. Mirando a todos lados menos donde debería.', // ANALOGÍA
+  'Joder, eres el Schrodinger de la infidelidad: hasta que tu pareja abra la caja, eres fiel e infiel al mismo tiempo.', // ANALOGÍA
+  'Hostia, tu zona gris es mas amplia que el culo de tu tía en Navidad. Y como ese culo, nadie quiere sentarse al lado.', // ANALOGÍA
+  'Tu fidelidad es como una conexion Bluetooth de los cojones: a veces se engancha, a veces no y siempre tarda mas de lo que debería.', // ANALOGÍA
   '[nombre] no es infiel confirmado, es infiel en periodo de pruebas. Beta tester de la deslealtad, probando funcionalidades.',
   'Coño, tu compromiso va y viene como la marea. La diferencia es que la marea al menos tiene un puto horario predecible.',
   'Eres el tipico que dice que no ha pasado nada pero tiene el móvil con mas capas de seguridad que el pentagono.',
   '[nombre] tiene la lealtad de pareja de un interruptor de la luz: on, off, on, off. Nadie sabe en que posición va a estar.',
-  'Joder, tu fidelidad es como un churro de feria: parece apetecible por fuera pero por dentro esta cruda y te sienta mal.',
+  'Joder, tu fidelidad es como un churro de feria: parece apetecible por fuera pero por dentro esta cruda y te sienta mal.', // ANALOGÍA
   'Hostia puta, ni eres un santo ni eres un demonio. Eres el puto funcionario de la infidelidad: haces lo minimo sin mojarte.',
-  'Tu compromiso es como una hamaca: comodo cuando no pesa nada y se vuelca en cuanto alguien se mueve un poco, basura.',
+  'Tu compromiso es como una hamaca: comodo cuando no pesa nada y se vuelca en cuanto alguien se mueve un poco, basura.', // ANALOGÍA
   '[nombre] coquetea por deporte olimpico pero nunca llega a la final. Semifinalista cronico de la infidelidad, el cobarde.',
   'Coño, tu lealtad de pareja tiene la misma fiabilidad que un coche de autoescuela: va a trompicones y todo el mundo le pita.',
   'Eres de esa gente que se come el menu del día con ojos de bufet libre. Pides lo que hay pero te quedas mirando lo que no has pedido.',
   '[nombre] tiene conversaciones que no enseñaria ni bajo tortura china. No son prueba de nada, pero tampoco de inocencia.',
   'Joder, tu fidelidad depende de la hora del día como la oferta de una pizzeria. A partir de las once todo vale.',
-  'Hostia, eres como un perro con dos platos: comes de uno pero siempre estas mirando al otro por si tiene algo mejor.',
-  'Tu compromiso es como un elastico viejo de calzoncillo: se estira, se estira, y nadie sabe cuando va a dar de si.',
+  'Hostia, eres como un perro con dos platos: comes de uno pero siempre estas mirando al otro por si tiene algo mejor.', // ANALOGÍA
+  'Tu compromiso es como un elastico viejo de calzoncillo: se estira, se estira, y nadie sabe cuando va a dar de si.', // ANALOGÍA
   '[nombre] no ha cruzado la linea pero ha meado justo al borde. Que tecnicamente no es faltar, pero los zapatos se mojan.',
-  'Coño, tu moral de pareja es como una balda de estanteria barata: aguanta los libros finos pero en cuanto pones el gordo se viene abajo.',
+  'Coño, tu moral de pareja es como una balda de estanteria barata: aguanta los libros finos pero en cuanto pones el gordo se viene abajo.', // ANALOGÍA
   'Eres el tipico que no engaña porque no le salen las cuentas, no porque no quiera. Infiel fracasado, la variante mas triste.',
   '[nombre] tiene la fidelidad de una veleta en un día sin viento: de momento quieta, pero todo el mundo sabe que va a girar.',
   'Joder, ni tu madre apostaria dinero por tu fidelidad. Y tu madre te quiere. Eso dice todo lo que hay que decir.',
-  'Hostia puta, tu lealtad de pareja es como el gazpacho: parece que esta frío y estable hasta que alguien lo agita, gilipollas.',
-  'Tu compromiso sentimental tiene mas asteriscos que los terminos y condiciones de Apple. Todo parece bien hasta que lees la letra pequeña.',
+  'Hostia puta, tu lealtad de pareja es como el gazpacho: parece que esta frío y estable hasta que alguien lo agita, gilipollas.', // ANALOGÍA
+  'Tu compromiso sentimental tiene mas asteriscos que los terminos y condiciones de Apple. Todo parece bien hasta que lees la letra pequeña.', // ANALOGÍA
   '[nombre] flirtea con la misma naturalidad con la que respira. Dice que no significa nada, pero a nadie le sale así de natural sin practica.',
-  'Coño, eres como un mapa de carreteras sin actualizar: la dirección general la tienes, pero los detalles estan todos mal.',
-  'Tu fidelidad es como un bronceado de spray: se ve bien de lejos pero de cerca se nota que es falsa y se va con la primera ducha.',
+  'Coño, eres como un mapa de carreteras sin actualizar: la dirección general la tienes, pero los detalles estan todos mal.', // ANALOGÍA
+  'Tu fidelidad es como un bronceado de spray: se ve bien de lejos pero de cerca se nota que es falsa y se va con la primera ducha.', // ANALOGÍA
   '[nombre] no engaña pero tiene el kit de emergencia preparado. Condones en la cartera por si acaso. Y ese si acaso huele fatal.',
   'Joder, eres el puto termometro del grupo: cambias según el ambiente. Si hay calor te subes, si hay frío te bajas. Cero criterio.',
-  'Hostia, tu compromiso de pareja es como un paraguas barato: lo abres con esperanza, se te da la vuelta con el primer viento y te mojas igual.',
+  'Hostia, tu compromiso de pareja es como un paraguas barato: lo abres con esperanza, se te da la vuelta con el primer viento y te mojas igual.', // ANALOGÍA
   'Eres quien dice que no ha hecho nada pero se pone rojo como un pimiento del piquillo cada vez que le preguntan, cabrón.',
   '[nombre] tiene la coartada preparada para cosas que supuestamente no ha hecho. Ese nivel de preparacion delata mas que una prueba.',
-  'Coño, tu fidelidad es como un semaforo en ambar permanente: nadie sabe si parar o acelerar y siempre se acaba en hostia.',
-  'Tu lealtad de pareja es como el pan del Mercadona a las ocho de la tarde: blanda, sospechosa y nadie la elegiria si tuviera opciones.',
+  'Coño, tu fidelidad es como un semaforo en ambar permanente: nadie sabe si parar o acelerar y siempre se acaba en hostia.', // ANALOGÍA
+  'Tu lealtad de pareja es como el pan del Mercadona a las ocho de la tarde: blanda, sospechosa y nadie la elegiria si tuviera opciones.', // ANALOGÍA
   '[nombre] no es infiel, es infiel en pausa. Como un video de YouTube con la publicidad: esta parado pero sabes que va a seguir.',
   'Joder, ni la cagues ni hagas algo bueno. Eres el puto embotellamiento emocional: no avanzas, no retrocedes, solo estorbas.',
-  'Hostia puta, tu compromiso es como una barbacoa en un piso: la intención esta, el resultado es humo, y los vecinos se quejan.',
+  'Hostia puta, tu compromiso es como una barbacoa en un piso: la intención esta, el resultado es humo, y los vecinos se quejan.', // ANALOGÍA
   'Tu fidelidad tiene la solidez de una silla de Ikea sin dos tornillos: se sienta alguien y crujen todas las piezas.',
   '[nombre] tiene mas likes sospechosos que seguidores normales. Esas interacciones de madrugada no son casualidad, gilipollas.',
   'Coño, eres fiel por GPS: si alguien te rastrea cumples, si pierdes cobertura haces lo que te sale de los cojones.',
-  'Tu compromiso sentimental es como un chicle pegado en la suela: aguanta mientras camines en llano, en cuanto subes se queda atras.',
+  'Tu compromiso sentimental es como un chicle pegado en la suela: aguanta mientras camines en llano, en cuanto subes se queda atras.', // ANALOGÍA
   '[nombre] no engaña, pero si le pusieran un detector de mentiras mientras habla de su fidelidad, la máquina explotaria de mierda.',
-  'Joder, tu lealtad de pareja es como una cena de empresa: sonrisas falsas, conversación vacia y todo el mundo deseando irse a otra parte.',
+  'Joder, tu lealtad de pareja es como una cena de empresa: sonrisas falsas, conversación vacia y todo el mundo deseando irse a otra parte.', // ANALOGÍA
   'Hostia, eres de esa gente que no ha robado nunca pero deja la puerta del coche abierta por si ve algo interesante dentro.',
-  'Tu fidelidad es como un zumo de brick: parece natural por fuera pero por dentro tiene mas conservantes que fruta de verdad.',
+  'Tu fidelidad es como un zumo de brick: parece natural por fuera pero por dentro tiene mas conservantes que fruta de verdad.', // ANALOGÍA
   '[nombre] tiene la exclusividad de pareja de un parque publico: tecnicamente tiene horario, pero siempre hay alguien que se cuela.',
-  'Coño, ni engañas ni das seguridad. Eres como un extintor caducado: esta en la pared, tranquiliza de lejos, pero nadie se fia.',
+  'Coño, ni engañas ni das seguridad. Eres como un extintor caducado: esta en la pared, tranquiliza de lejos, pero nadie se fia.', // ANALOGÍA
   'Eres de esa gente que borra el historial de navegacion por higiene digital. Claro que si, campeon. Higiene digital, dice el cabrón.',
-  '[nombre] es como una máquina expendedora de la fidelidad: metes la moneda y nunca sabes si te va a dar lo que has pedido o una mierda.',
+  '[nombre] es como una máquina expendedora de la fidelidad: metes la moneda y nunca sabes si te va a dar lo que has pedido o una mierda.', // ANALOGÍA
   'Joder, tu compromiso de pareja tiene la durabilidad de una bolsa de plastico fina: sirve para un viaje y se rompe al segundo.',
-  'Hostia puta, tu relación es como un partido de tenis: vas y vienes, cambian los lados y nadie sabe quien lleva ventaja.',
-  'Tu fidelidad es como un mueble de carton: se ve bonito en la foto pero en cuanto le pones peso real se desmorona todo.',
+  'Hostia puta, tu relación es como un partido de tenis: vas y vienes, cambian los lados y nadie sabe quien lleva ventaja.', // ANALOGÍA
+  'Tu fidelidad es como un mueble de carton: se ve bonito en la foto pero en cuanto le pones peso real se desmorona todo.', // ANALOGÍA
   '[nombre] no engaña fisicamente pero su cabeza ya esta en otra postal. Infidelidad mental cronica, la versión cobarde.',
-  'Coño, eres como una puerta sin cerrojo: no la has abierto, pero cualquiera podría entrar si empuja un poco. Invitación abierta.',
-  'Tu compromiso es como la lluvia en agosto: cuando cae todos se sorprenden porque nadie se lo esperaba.',
+  'Coño, eres como una puerta sin cerrojo: no la has abierto, pero cualquiera podría entrar si empuja un poco. Invitación abierta.', // ANALOGÍA
+  'Tu compromiso es como la lluvia en agosto: cuando cae todos se sorprenden porque nadie se lo esperaba.', // ANALOGÍA
   '[nombre] tiene mas ambiguedad sentimental que un poema de Neruda. La diferencia es que Neruda al menos escribia bonito.',
-  'Joder, ni eres el malo de la pelicula ni eres el bueno. Eres el puto extra que sale de fondo y nadie recuerda, gilipollas.',
-  'Hostia, tu fidelidad es como un bollo de chocolate del chino: por fuera parece que hay chocolate pero por dentro solo hay aire.',
-  'Tu relación tiene mas grietas que la fachada de un piso de los años sesenta. Y como esas fachadas, nadie quiere pagar el arreglo.',
+  'Joder, ni eres el malo de la pelicula ni eres el bueno. Eres el puto extra que sale de fondo y nadie recuerda, gilipollas.', // ANALOGÍA
+  'Hostia, tu fidelidad es como un bollo de chocolate del chino: por fuera parece que hay chocolate pero por dentro solo hay aire.', // ANALOGÍA
+  'Tu relación tiene mas grietas que la fachada de un piso de los años sesenta. Y como esas fachadas, nadie quiere pagar el arreglo.', // ANALOGÍA
   '[nombre] es fiel por temporadas como quien ve series: engancha un tiempo, se aburre y lo deja sin terminar. Patron de mierda.',
-  'Coño, tu compromiso es como un calcetin con agujero: tecnicamente puesto, pero falla justo donde mas se nota.',
+  'Coño, tu compromiso es como un calcetin con agujero: tecnicamente puesto, pero falla justo donde mas se nota.', // ANALOGÍA
   'Eres quien dice que su relación va genial mientras mantiene tres conversaciones sospechosas abiertas. Genial dice, el cabrón.',
   '[nombre] no ha engañado pero tiene la mirada de quien lo esta considerando seriamente. Esos ojos no mienten, gilipollas.',
   'Joder, tu lealtad de pareja funciona como el ADSL rural: la mayoria del tiempo va lenta, se corta sin avisar y nadie se explica por que paga.',
-  'Hostia puta, eres como un yogur en la fecha de caducidad: igual esta bien, igual esta mal, pero nadie con sentido comun se lo come.',
-  'Tu fidelidad es como una serie de Netflix mediocre: la sigues por inercia, no por interes, y sabes que el final va a ser una mierda.',
-  '[nombre] tiene el historial de busqueda mas sospechoso que un politico antes de elecciones. Todo limpio, demasiado limpio.',
-  'Coño, tu compromiso de pareja es como un filtro de Instagram: cambia la realidad, esconde los defectos y al final todo es mentira.',
+  'Hostia puta, eres como un yogur en la fecha de caducidad: igual esta bien, igual esta mal, pero nadie con sentido comun se lo come.', // ANALOGÍA
+  'Tu fidelidad es como una serie de Netflix mediocre: la sigues por inercia, no por interes, y sabes que el final va a ser una mierda.', // ANALOGÍA
+  '[nombre] tiene el historial de busqueda mas sospechoso que un politico antes de elecciones. Todo limpio, demasiado limpio.', // ANALOGÍA
+  'Coño, tu compromiso de pareja es como un filtro de Instagram: cambia la realidad, esconde los defectos y al final todo es mentira.', // ANALOGÍA
   'Eres de esa gente que no ha suspendido pero tiene un tres con siete raspando. Aprobado de mierda y con la mitad copiada.',
   '[nombre] no engaña pero huele a infiel como un bar huele a fritura: no ves el aceite, pero sabes que esta ahí por los poros.',
-  'Joder, tu fidelidad es como un control de alcoholemia en Navidad: todo el mundo sabe que va a haber sorpresas desagradables.',
+  'Joder, tu fidelidad es como un control de alcoholemia en Navidad: todo el mundo sabe que va a haber sorpresas desagradables.', // ANALOGÍA
   'Hostia, ni te comprometes ni te largas. Eres la puta mosca del verano de las relaciones: zumbando, molestando y sin aportar nada.',
-  'Tu relación es como una piscina municipal: mucha gente ha pasado por ahí, el mantenimiento es minimo y siempre hay tiritas flotando.',
+  'Tu relación es como una piscina municipal: mucha gente ha pasado por ahí, el mantenimiento es minimo y siempre hay tiritas flotando.', // ANALOGÍA
   '[nombre] tiene mas secretos a medias que un concurso de television. Todos saben que hay premio, pero nadie sabe cuanto va a costar.',
-  'Coño, tu lealtad sentimental es como una farola fundida: el poste esta, pero no ilumina una mierda.',
-  'Eres como un buffet de hotel de dos estrellas: hay de todo pero nada merece la pena y siempre te vas con hambre y malestar.',
+  'Coño, tu lealtad sentimental es como una farola fundida: el poste esta, pero no ilumina una mierda.', // ANALOGÍA
+  'Eres como un buffet de hotel de dos estrellas: hay de todo pero nada merece la pena y siempre te vas con hambre y malestar.', // ANALOGÍA
   '[nombre] tiene conversaciones que no son de amigos pero tampoco son de amantes. Ese terreno de nadie tiene nombre: cobardia.',
-  'Joder, tu compromiso es como un platano de Canarias: amarillo por fuera, blando por dentro y con manchas que nadie quiere mirar.',
+  'Joder, tu compromiso es como un platano de Canarias: amarillo por fuera, blando por dentro y con manchas que nadie quiere mirar.', // ANALOGÍA
   'Hostia puta, ni engañas ni la quieres como para no engañar. Esa indiferencia disfrazada de fidelidad es lo mas triste que hay.',
-  'Tu fidelidad es como un ascensor de un edificio viejo: a veces sube, a veces baja, a veces se para y hay que llamar al tecnico.',
+  'Tu fidelidad es como un ascensor de un edificio viejo: a veces sube, a veces baja, a veces se para y hay que llamar al tecnico.', // ANALOGÍA
   '[nombre] no ha hecho nada pero tiene la cara de quien ha pensado en todo. Esa cara de poker de mierda no engaña a nadie.',
-  'Coño, tu relación es como una mesa de tres patas: se sostiene si no la tocas, pero al minimo movimiento se cae todo al suelo.',
+  'Coño, tu relación es como una mesa de tres patas: se sostiene si no la tocas, pero al minimo movimiento se cae todo al suelo.', // ANALOGÍA
   'Eres quien dice que no pasa nada mientras su pareja encuentra un pelo que no es suyo. Siempre del gato. Claro, el gato.',
   '[nombre] es fiel por defecto y sospechoso por elección. Esa combinación de mierda es la que mantiene a su pareja en vilo.',
-  'Joder, tu compromiso sentimental es como un coche con check engine encendido: funciona, pero todos saben que algo va mal.',
+  'Joder, tu compromiso sentimental es como un coche con check engine encendido: funciona, pero todos saben que algo va mal.', // ANALOGÍA
   'Hostia, ni eres el peor ni eres el mejor. Eres la puta media aritmetica de la infidelidad: ni frío ni caliente. Tibio de cojones.',
   '[nombre] esta a un WhatsApp de ser infiel y a un like de ser sospechoso. Esa distancia tan corta ya dice bastante, gilipollas.',
 ];
@@ -632,25 +630,25 @@ const INFIEL_LOW = [
   'Hostia, eres tan fiel que resulta perturbador. La gente normal engaña al menos un poco, tu ni eso. Algo falla en tu cabeza y es bonito.',
   'Coño, tu nivel de infidelidad es tan bajo que podrias usarlo como ejemplo en un juzgado de familia. El acusado no jode ni a tiros.',
   '[nombre] es tan leal que su pareja debería hacerse un seguro, no por si la engaña, sino por si le atropella un bus de lo segura que esta.',
-  'Tu puntuación de infiel es mas baja que la autoestima de un calvo en una tienda de peines. Y lo digo como halago.',
+  'Tu puntuación de infiel es mas baja que la autoestima de un calvo en una tienda de peines. Y lo digo como halago.', // ANALOGÍA
   'Joder, eres la clase de persona que devuelve la cartera con la pasta dentro. Fiel hasta un punto que ya roza la gilipollez, y mola.',
-  '[nombre] tiene el historial mas limpio que la conciencia de un recién nacido. Sin una puta mancha, sin un borron, sin nada.',
+  '[nombre] tiene el historial mas limpio que la conciencia de un recién nacido. Sin una puta mancha, sin un borron, sin nada.', // ANALOGÍA
   'Hostia puta, tu nivel de infidelidad es cero como el número de personas que han sobrevivido a jugar a la ruleta rusa con todas las balas. Imposible.',
   'Coño, eres tan fiel que si tu pareja te dejara en una habitación con veinte modelos, saldrias preguntando donde esta el wifi para llamarla.',
-  'Tu lealtad es como un herpes genital del bueno: no se va nunca, siempre esta ahí y tu pareja se ha acostumbrado a vivir con ella.',
+  'Tu lealtad es como un herpes genital del bueno: no se va nunca, siempre esta ahí y tu pareja se ha acostumbrado a vivir con ella.', // ANALOGÍA
   '[nombre] tiene la infidelidad de un monje tibetano con los cojones de hormigon: simplemente no existe y punto, el muy santo.',
   'Joder, sacas menos en infidelidad que yo saco en el gimnasio. Y eso es decir que no sacas una puta mierda, cabrón leal.',
   'Eres tan fiel que si la fidelidad fuese un deporte, te habrían hecho controles antidoping porque nadie se cree que sea natural.',
-  'Hostia, [nombre] es mas fiable que la muerte. Que es la única certeza en esta vida, y ahora resulta que este cabrón también lo es.',
+  'Hostia, [nombre] es mas fiable que la muerte. Que es la única certeza en esta vida, y ahora resulta que este cabrón también lo es.', // ANALOGÍA
   'Tu nivel de infidelidad es tan bajo que las estadisticas te excluyen por considerarte un error de medición, gilipollas leal.',
   'Coño, eres el puto Messi de no engañar. Talento natural para la fidelidad, sin esfuerzo aparente y jodiendo las estadisticas.',
   '[nombre] no engaña ni en los sueños. Ese cabrón sueña que le ponen los cuernos y se despierta indignado. Fiel hasta dormido.',
   'Joder, tu puntuación de infiel esta por debajo del nivel del mar. Como Holanda, pero sin tulipanes, solo lealtad.',
-  'Tu fidelidad es como una cucaracha: sobrevive a todo, nadie puede con ella y estara ahí cuando todo lo demas se haya ido a la mierda.',
+  'Tu fidelidad es como una cucaracha: sobrevive a todo, nadie puede con ella y estara ahí cuando todo lo demas se haya ido a la mierda.', // ANALOGÍA
   'Hostia puta, [nombre] tiene menos infidelidad que pelos tiene un huevo. Y el huevo al menos tiene cascara, este cabrón no tiene nada.',
   'Eres tan leal que si te clonaran habría que cerrar Tinder. No habría mercado para la infidelidad, joder.',
   '[nombre] es el único cabrón al que le puedes dejar el móvil desbloqueado encima de la mesa sin que te suba la ansiedad.',
-  'Coño, tu compromiso de pareja es mas solido que una mierda de tres días de estreñimiento. Inamovible y a prueba de todo.',
+  'Coño, tu compromiso de pareja es mas solido que una mierda de tres días de estreñimiento. Inamovible y a prueba de todo.', // ANALOGÍA
   'Joder, eres tan fiel que das asco. Pero del bueno, del asco que produce ver algo tan jodidamente puro en un mundo de mierda.',
   '[nombre] tiene la infidelidad por debajo del umbral de deteccion. Como los pedos silenciosos pero al reves: ni se nota ni esta.',
   'Hostia, tu nivel de lealtad hace que los perros se sientan unos aficionados de mierda. El labrador del parque llora de envidia.',
@@ -659,75 +657,75 @@ const INFIEL_LOW = [
   'Coño, tienes mas fidelidad que sentido comun, y eso ya es bastante. Pero joder, que bien queda en el expediente.',
   'Joder, [nombre] es el tipo de persona que te ayuda a enterrar el cadaver y luego se queda a barrer las huellas. Leal de cojones.',
   'Eres tan fiel que tu pareja podría mandarte a una despedida de soltera en Benidorm y volveras solo con quemaduras de sol.',
-  'Hostia puta, tu infidelidad es como el monstruo del lago Ness: todo el mundo habla de ella pero nadie la ha visto nunca.',
+  'Hostia puta, tu infidelidad es como el monstruo del lago Ness: todo el mundo habla de ella pero nadie la ha visto nunca.', // ANALOGÍA
   'Tu lealtad es tan bestia que deberían estudiarla en la facultad de medicina como anomalia genetica. Tesis doctoral: por que cojones no falla.',
   '[nombre] tiene la moral de un samurai con los cojones de un vikingo. No se rinde, no traiciona y tiene una polla que sabe a quien pertenece.',
-  'Coño, eres mas fiel que un tatuaje en la cara: siempre ahí, imposible de esconder y todo el mundo lo ve.',
+  'Coño, eres mas fiel que un tatuaje en la cara: siempre ahí, imposible de esconder y todo el mundo lo ve.', // ANALOGÍA
   'Joder, tu nivel de infidelidad es tan bajo que si fuera temperatura estaríamos hablando del cero absoluto. Menos doscientos setenta y tres grados de traición.',
   '[nombre] no engaña ni cuando le dan la oportunidad en bandeja de plata con servilleta y cubiertos incluidos. Ni así, hostia.',
-  'Tu fidelidad es como la mierda de un elefante: enorme, imposible de ignorar y todo el que la ve dice joder, eso si que es gordo.',
+  'Tu fidelidad es como la mierda de un elefante: enorme, imposible de ignorar y todo el que la ve dice joder, eso si que es gordo.', // ANALOGÍA
   'Hostia, eres tan leal que si existiera una app para medir la fidelidad, la reventerias y el teléfono echaria humo.',
-  '[nombre] es fiel como un puto Kalashnikov: funciona en el barro, en el frío, en el desierto y después de cuarenta años sin limpiarlo.',
+  '[nombre] es fiel como un puto Kalashnikov: funciona en el barro, en el frío, en el desierto y después de cuarenta años sin limpiarlo.', // ANALOGÍA
   'Coño, tu puntuación de infiel es tan ridícula que parece un chiste. Pero no es un chiste, es que eres así de cabrón bueno.',
-  'Joder, tu lealtad tiene mas capas que una cebolla. Y al pelarla no lloras, te encuentras mas lealtad. Hasta el nucleo, hostia.',
+  'Joder, tu lealtad tiene mas capas que una cebolla. Y al pelarla no lloras, te encuentras mas lealtad. Hasta el nucleo, hostia.', // ANALOGÍA
   'Eres el único al que se le puede contar un secreto sin que acabe en un grupo de WhatsApp en veinte minutos. Caja fuerte con patas.',
   '[nombre] tiene la fidelidad de un misil teledirigido: una vez apunta, no se desvia ni aunque le metan interferencias, el cabrón.',
   'Hostia puta, sacas menos en infidelidad que un pez en un examen de ciclismo. Simplemente no esta en tu naturaleza, joder.',
-  'Tu compromiso es como un puto diamante: duro, caro de encontrar y casi imposible de romper. Y brillante de cojones.',
+  'Tu compromiso es como un puto diamante: duro, caro de encontrar y casi imposible de romper. Y brillante de cojones.', // ANALOGÍA
   '[nombre] es tan fiel que si le pusieran delante a toda la selección brasileña en bikini, pediria que le pasaran el mando de la tele.',
   'Coño, tu nivel de traición es tan inexistente que ni con microscopio electronico lo encontrarias. Invisible.',
-  'Joder, eres como un vault del banco suizo de la lealtad: lo que entra no sale, nadie sabe que hay dentro y todo esta a salvo.',
+  'Joder, eres como un vault del banco suizo de la lealtad: lo que entra no sale, nadie sabe que hay dentro y todo esta a salvo.', // ANALOGÍA
   '[nombre] tiene menos infidelidad que vocabulario tiene un mudo. Y no es por falta de oportunidades, es por exceso de cojones.',
   'Tu fidelidad es la hostia. No la hostia del cura, la hostia buena, la que te pega la vida y te deja el ojo morado de lo real que es.',
   'Hostia, eres tan fiel que si te reencarnases volverias como un golden retriever: leal, baboso y con la lengua fuera esperando a su dueño.',
-  '[nombre] es mas leal que la puta gravedad. Siempre ahí, sin que nadie se lo pida, sujetando el tinglado sin cobrar horas extra.',
-  'Coño, tu nivel de infidelidad es como buscar señal en un bunker: puedes intentarlo, pero no vas a encontrar una mierda.',
+  '[nombre] es mas leal que la puta gravedad. Siempre ahí, sin que nadie se lo pida, sujetando el tinglado sin cobrar horas extra.', // ANALOGÍA
+  'Coño, tu nivel de infidelidad es como buscar señal en un bunker: puedes intentarlo, pero no vas a encontrar una mierda.', // ANALOGÍA
   'Joder, [nombre] es tan fiel que sus amigos le usan como ejemplo cuando sus novias les preguntan por que no son como el. Gracias, cabrón.',
-  'Tu lealtad es como la salsa del kebab: esta por todas partes, lo impregna todo y una vez que la pruebas ya no puedes vivir sin ella.',
-  'Eres fiel como un reloj suizo: preciso, constante y tan caro de encontrar que la gente normal se conforma con un Casio.',
+  'Tu lealtad es como la salsa del kebab: esta por todas partes, lo impregna todo y una vez que la pruebas ya no puedes vivir sin ella.', // ANALOGÍA
+  'Eres fiel como un reloj suizo: preciso, constante y tan caro de encontrar que la gente normal se conforma con un Casio.', // ANALOGÍA
   '[nombre] tiene la infidelidad de un Nokia 3310: simplemente no existe. Ese cabrón esta diseñado para aguantar sin romperse.',
   'Hostia puta, tu nivel de fidelidad hace que Romeo parezca un puto amateur. Y Romeo se murio por Julieta, tu ni eso necesitas.',
   'Coño, eres tan leal que podrían dejarte las llaves del Ferrari, la tarjeta de crédito y la novia y no tocarias ninguna. Bueno, el Ferrari quiza.',
   '[nombre] es la prueba de que la evolución a veces acierta. Entre millones de monos con móvil, sale uno que no manda fotos de la polla a desconocidas.',
   'Joder, tu puntuación de infiel es un insulto para los infieles. Les haces sentir peor de lo que ya se sienten, cabrón.',
   'Tu compromiso tiene la solidez de una puerta de prision: no se abre ni con explosivos, ni con sobornos, ni con buenas intenciones.',
-  'Hostia, [nombre] es tan fiel que si fuera un pais seria Suiza: neutral, fiable y con los cojones bien guardados en un bunker.',
+  'Hostia, [nombre] es tan fiel que si fuera un pais seria Suiza: neutral, fiable y con los cojones bien guardados en un bunker.', // ANALOGÍA
   'Eres el tipo de persona que hace que la gente crea que el amor eterno existe. Y eso, viniendo de un cabrón como tu, tiene mucho merito.',
   '[nombre] tiene mas lealtad en una ceja que la mayoria de cabrones tienen en todo el cuerpo. Y le sobra para prestarla, joder.',
   'Coño, tu nivel de infidelidad es tan bajo que los celos de tu pareja se han jubilado por falta de trabajo. Expediente cerrado.',
   'Joder, eres el puto antivirus de las relaciones: detectas la amenaza, la bloqueas y la eliminas antes de que haga daño. Premium.',
   '[nombre] no es infiel ni por asomo, ni por error, ni por accidente, ni borracho, ni dormido. Ese nivel de control asusta.',
-  'Tu fidelidad es como la receta de la Coca-Cola: nadie sabe como cojones funciona pero el resultado es adictivo de la hostia.',
+  'Tu fidelidad es como la receta de la Coca-Cola: nadie sabe como cojones funciona pero el resultado es adictivo de la hostia.', // ANALOGÍA
   'Hostia puta, eres tan leal que hasta tu perro te mira y piensa joder, este tío me da verguenza de lo fiel que es.',
-  '[nombre] es fiel como la hipoteca: siempre ahí, treinta años de compromiso y sin posibilidad de escape. Pero a diferencia de la hipoteca, este mola.',
+  '[nombre] es fiel como la hipoteca: siempre ahí, treinta años de compromiso y sin posibilidad de escape. Pero a diferencia de la hipoteca, este mola.', // ANALOGÍA
   'Coño, tu compromiso de pareja es tan solido que se podría usar como material de construcción. Hormigon emocional armado.',
   'Joder, [nombre] es la clase de fiel que no existe en las peliculas porque el guionista diría que es demasiado inverosimil.',
-  'Tu nivel de infidelidad es como un número imaginario: existe en teoria pero en la practica no tiene presencia en el mundo real.',
+  'Tu nivel de infidelidad es como un número imaginario: existe en teoria pero en la practica no tiene presencia en el mundo real.', // ANALOGÍA
   'Eres tan fiel que tus colegas te usan como escudo humano cuando sus parejas sospechan. Si el va con [nombre] entonces no ha pasado nada.',
   'Hostia, [nombre] tiene la lealtad de un puto roble: raices profundas, tronco gordo y ni el viento mas cabrón lo tumba.',
   'Tu puntuación de infiel es tan baja que necesitaria notacion cientifica para expresarla. Cero coma cero cero cero una mierda.',
   '[nombre] es el único cabrón del grupo al que puedes presentarle tu novia sin que te suba la bilirrubina. Paz total y merecida.',
-  'Coño, tu fidelidad es como encontrar aparcamiento en el centro un sábado: nadie se lo cree hasta que lo ve, y cuando lo ve se queda con la boca abierta.',
+  'Coño, tu fidelidad es como encontrar aparcamiento en el centro un sábado: nadie se lo cree hasta que lo ve, y cuando lo ve se queda con la boca abierta.', // ANALOGÍA
   'Joder, eres mas fiel que ese jersey viejo de mierda que no tiras porque ya es parte de ti. Irremplazable y con bolitas.',
   '[nombre] tiene menos posibilidades de ser infiel que un cactus de morirse de sed. Simplemente no esta en su naturaleza, hostia.',
   'Tu lealtad es tan absurdamente grande que a veces da miedo. Como encontrarte un tiburon haciendo yoga: no debería existir pero ahí esta.',
   'Hostia puta, [nombre] es fiel hasta cuando discute con su pareja. Ni en la pelea mas gorda se le pasa por la cabeza. Enfermo de leal.',
-  'Eres como una puta roca en medio de una tormenta de mierda: no te mueves, no te quejas y cuando pasa la tormenta sigues ahí, cabrón.',
+  'Eres como una puta roca en medio de una tormenta de mierda: no te mueves, no te quejas y cuando pasa la tormenta sigues ahí, cabrón.', // ANALOGÍA
   '[nombre] tiene la fidelidad grabada en el ADN. Si le hicieran una prueba genetica, encontrarian un gen de lealtad del tamaño de un cojon.',
   'Coño, tu compromiso es tan serio que debería tener su propio codigo penal. Infringirlo seria delito con pena maxima.',
   'Joder, eres tan leal que si un día te pillaran siendo infiel, saldrian en las noticias. Titular: cae el último fiel del pais.',
   '[nombre] es el tipo de cabrón que te coge el teléfono a las cuatro de la mañana, te recoge a ochenta kilometros y encima te invita al desayuno.',
   'Tu nivel de infidelidad es negativo. No solo no engañas, sino que tu presencia mejora la fidelidad de los que te rodean, joder.',
   'Hostia, [nombre] tiene la lealtad de un guardaespaldas de dictador pero sin la parte de servir a un hijo de puta. Solo la parte buena.',
-  'Eres mas fiel que el olor a fritanga en un piso pequeño: imposible de quitar, omnipresente y todo el mundo lo nota, cabrón.',
+  'Eres mas fiel que el olor a fritanga en un piso pequeño: imposible de quitar, omnipresente y todo el mundo lo nota, cabrón.', // ANALOGÍA
   '[nombre] es tan de fiar que si la confianza fuese dinero, seria el puto Amancio Ortega del grupo. Forrado de lealtad.',
   'Coño, tu puntuación de infiel es la prueba de que Dios existe. Alguien tuvo que diseñar a este cabrón con los valores a tope.',
   'Joder, [nombre] es la clase de persona a la que le das las llaves de casa, la contraseña del banco y la ubicacion de tu amante. Momento, que este no tiene.',
-  'Tu fidelidad es como la cucaracha: sobrevive al apocalipsis nuclear y sigue ahí cuando ya no queda nada. Indestructible de los cojones.',
+  'Tu fidelidad es como la cucaracha: sobrevive al apocalipsis nuclear y sigue ahí cuando ya no queda nada. Indestructible de los cojones.', // ANALOGÍA
   'Hostia puta, eres tan leal que si mañana te despertaras en otro cuerpo, lo primero que harias seria buscar a los tuyos. Enfermo bueno.',
   '[nombre] no falla ni cuando el universo conspira para que falle. Ese nivel de tozudez leal es digno de estudio cientifico, joder.',
   'Coño, eres el golden retriever del grupo: leal, cariñoso, algo bobo y con una capacidad de amar que da verguenza ajena. En el buen sentido.',
-  'Tu nivel de infidelidad es como el segundo piso de un bungalow: no existe. Simplemente no esta.',
+  'Tu nivel de infidelidad es como el segundo piso de un bungalow: no existe. Simplemente no esta.', // ANALOGÍA
   'Hostia, [nombre], tu lealtad ya no es una virtud, es un puto diagnóstico. Pero de los que el médico ve y dice joder, ojalá fuera contagioso, cabrón.',
 ];
 

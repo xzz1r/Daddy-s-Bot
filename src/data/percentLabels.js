@@ -1,5 +1,8 @@
 // Pools de frases de los comandos de porcentaje.
 // La lógica (tirada, amaño, polaridad) vive en commands/percent.js.
+//
+// Seis analogías baratas marcadas con `// ANALOGÍA` (gay.mid ×4, simp.high,
+// inutil.high). El grueso está en fidelityPhrases.js. Brief: PENDIENTE.md.
 'use strict';
 
 const {
@@ -1475,12 +1478,12 @@ const LABELS = {
       'Joder, cada vez que sale el tema te pones nervioso como un gilipollas en un examen que no estudió. Algo escondes, cabrón.',
       'Tu radar de tíos atractivos funciona mejor que Google Maps. Un hetero normal no detecta un culo bonito a trescientos metros, hostia.',
       'Tienes vibraciones de "experimenté en la universidad y me gustó más de lo que admito". Eso no es una fase, gilipollas, es un patrón.',
-      'Tu heterosexualidad es como una conexión wifi inestable: funciona a ratos, se cae sin aviso y nadie sabe cuándo coño va a volver.',
+      'Tu heterosexualidad es como una conexión wifi inestable: funciona a ratos, se cae sin aviso y nadie sabe cuándo coño va a volver.', // ANALOGÍA
       'Mierda, tus defensas cuando alguien te llama gay son tan elaboradas que parecen un puto TFG. Los inocentes no preparan alegatos.',
       'Tienes la misma energía que el cabrón que busca "masajes relajantes entre hombres" y jura que es solo por el estrés laboral.',
       'Joder, no sales gay pero sales lo suficientemente ambiguo como para que tu madre lleve tres años preguntándose si tendrá nietos.',
       'Tu forma de describir a otros tíos tiene un nivel de detalle que los heteros reservan para describir coches o culos de tías. Sospechoso de cojones.',
-      'Puta madre, eres como un semáforo en ámbar permanente. Ni paras ni arrancas, y todos los que vienen detrás se desesperan.',
+      'Puta madre, eres como un semáforo en ámbar permanente. Ni paras ni arrancas, y todos los que vienen detrás se desesperan.', // ANALOGÍA
       'Coño, no eres gay confirmado pero apuestas fuerte en la subasta cuando sale un moreno de ojos claros. El bolsillo te delata.',
       'Hostia, tu playlist tiene más Beyoncé y Lady Gaga que la de un drag queen profesional. No es prueba definitiva pero es un puto indicio.',
       'Cabrón, no sales maricón entero pero tu media naranja estadísticamente tiene un cincuenta por ciento de probabilidades de tener polla.',
@@ -1488,9 +1491,9 @@ const LABELS = {
       'Joder, no confirmo que seas gay pero sí que tu zona de confort incluye cosas que la mayoría de heteros ni contempla. Ahí lo dejo.',
       'Coño, eres de esa gente que en una despedida de soltero mira al stripper con más atención que a las strippers. Y luego dice que valoraba la coreografía.',
       'Puta madre, tienes la capacidad de detectar si un tío va al gimnasio con solo verle la espalda. Ese superpoder no viene de serie en los heteros.',
-      'Tu orientación sexual es como la economía española: nadie la entiende del todo, los datos se contradicen y siempre está a punto de cambiar.',
+      'Tu orientación sexual es como la economía española: nadie la entiende del todo, los datos se contradicen y siempre está a punto de cambiar.', // ANALOGÍA
       'Hostia, no digo que seas gay pero si te dieran a elegir entre una tía buena y un masaje de un tío con manos grandes, lo piensas demasiado.',
-      'Tu versión de hetero es como una camiseta de mercadillo: parece original de lejos pero de cerca se ven las costuras falsas por todos lados.',
+      'Tu versión de hetero es como una camiseta de mercadillo: parece original de lejos pero de cerca se ven las costuras falsas por todos lados.', // ANALOGÍA
     ],
     low: [
       'Gay inexistente. El comando ha mirado cada gesto y no ha encontrado uno.',
@@ -1540,7 +1543,7 @@ const LABELS = {
       'Tu única estrategia es estar. Estar no es una estrategia, es un mueble.',
       'Aceptas migajas y las llamas señales. Las señales no se piden ni se interpretan tanto.',
       'Llevas años financiando caprichos ajenos con el dinero que no tienes. Y sin recibo.',
-      'Tu manera de estar en su vida es como el fondo de pantalla: siempre ahí, nunca mirado.',
+      'Tu manera de estar en su vida es como el fondo de pantalla: siempre ahí, nunca mirado.', // ANALOGÍA
       'Simp con más disculpas dadas que recibidas en una proporción verdaderamente ridícula.',
       'Simp con el trato de un mueble y la disponibilidad de un empleado. Peor combinación imposible.',
       'Simp de mierda con la costumbre de excusar cada desprecio con explicaciones que te inventas tú. Puta fábrica de coartadas ajenas y sin sueldo.',
@@ -2442,7 +2445,7 @@ const LABELS = {
       'Si la inutilidad pagara, serías el primer millonario de tu familia. Pero ni eso: hasta en tu especialidad eres amateur.',
       'Te encargan algo y ya están buscando quién lo arregle después. Eres un trámite doble: tu trabajo y el de rehacerlo.',
       'Llevas la vida entera de brazos cruzados esperando que algo pase solo, y no pasa nada, porque para que pase habría que mover el culo y eso te queda enorme, vago de mierda.',
-      'Eres como un consolador sin pilas: tienes la forma de algo con función y ahí se acaba el parecido. Decorativo, inútil y ahí tirado en un cajón que nadie abre. Puro estorbo con apariencia de servir.',
+      'Eres como un consolador sin pilas: tienes la forma de algo con función y ahí se acaba el parecido. Decorativo, inútil y ahí tirado en un cajón que nadie abre. Puro estorbo con apariencia de servir.', // ANALOGÍA
       'Las plantas de plástico aportan más a una casa que tú a cualquier proyecto. Al menos ellas no comen, no cagan y no abren la puta boca para no decir nada. Tú haces las tres y encima pides wifi.',
       'Ese potencial del que tanto presumías te lo inventaste tú solo. Década y media después no has dado ni un palo al agua, y ya nadie espera nada de un inútil como tú.',
       'Tu día productivo consiste en hacer la cama, cascártela dos veces y necesitar una siesta para recuperarte del esfuerzo. Eres un protector de pantalla con DNI y menos utilidad que un preservativo pinchado.',
