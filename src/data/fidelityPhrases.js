@@ -7,6 +7,83 @@
 //   INFIEL → goodIsHigh: false. high = brutal, low = halago.
 
 // ═══════════════════════════════════════════════════════════════════════════
+// PARA GROK — ESTE FICHERO HAY QUE REESCRIBIRLO ENTERO
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// EL ENCARGO, EN UNA LÍNEA: fuera las analogías, ataques directos.
+//
+// Palabras del dueño: «todos los insultos del bot son analogías baratas, sin
+// coherencia, estúpidas y sin jugo real. Prefiero ataques directos y con
+// coherencia».
+//
+// ─── DÓNDE ESTÁ EL PROBLEMA ────────────────────────────────────────────────
+//
+// Medido sobre las 8.000 frases del bot (`npm run analogias`): hay 229 frases
+// construidas sobre una comparación, y 191 están AQUÍ. En todo el resto del bot
+// el recurso aparece en el 1-5 % de las frases, que es lo normal. En este
+// fichero:
+//
+//   INFIEL_MID    46 de 101   46 %
+//   INFIEL_HIGH   37 de 101   37 %
+//   FIEL_LOW      33 de 101   33 %
+//   FIEL_MID      31 de 101   31 %
+//   FIEL_HIGH     23 de 101   23 %
+//   INFIEL_LOW    21 de 101   21 %
+//
+// O sea que no es un problema del bot: es este fichero, que está construido casi
+// entero sobre el mismo recurso. Y se lee el doble que cualquier otro, porque es
+// a la vez *!fiel* y *!infiel*.
+//
+// `npm run analogias --lista` las saca todas con su índice. Se puede volver a
+// ejecutar para ver cuánto queda.
+//
+// ─── POR QUÉ NO FUNCIONAN ──────────────────────────────────────────────────
+//
+//   «Eres más fiel que un perro callejero al primer gilipollas que le da pan.»
+//   «Tu lealtad es como el wifi del vecino: siempre ahí y nadie la merece.»
+//   «Eres más firme que una estaca en el culo de un vampiro.»
+//
+// En las tres el chiste es el OBJETO. La persona no aparece: esas frases se le
+// pueden mandar a cualquiera del grupo sin cambiar una letra, y por eso no
+// tocan a nadie. Un insulto que vale para todos no va dirigido a nadie.
+//
+// Y encima el objeto obliga a explicarse. La mitad de estas frases gastan la
+// segunda oración en justificar la comparación —«con la diferencia de que…»,
+// «pero esta mola», «que no es difícil, pero…»— en vez de rematar.
+//
+// ─── QUÉ SE PIDE EN SU LUGAR ───────────────────────────────────────────────
+//
+// Habla de la PERSONA y de lo que hace. Nombra la conducta, no un símil:
+//
+//   ANTES  Eres más falso que un billete de tres euros pintado con rotulador.
+//   ASÍ    Dices que sí a todo y no cumples ni una. Al final ya nadie te lo
+//          pide, que es peor que un no.
+//
+//   ANTES  Tu lealtad es como una cucaracha: sobrevive a todo.
+//   ASÍ    Sigues ahí cuando ya no queda nada que ganar. Eso no se finge y por
+//          eso incomoda.
+//
+//   ANTES  Eres el puto Netflix de las relaciones: varios perfiles activos.
+//   ASÍ    Tienes tres conversaciones abiertas y a las tres les dices lo mismo.
+//          Se te va a caer por el orden de los mensajes, no por la mentira.
+//
+// Las tres de la derecha se pueden verificar: describen algo que alguien hace.
+// Las de la izquierda no describen nada.
+//
+// ─── LAS REGLAS QUE YA TENÍA ESTE FICHERO Y SIGUEN EN PIE ──────────────────
+//
+//   · FIEL alto y FIEL medio son HALAGO; FIEL bajo es paliza. En INFIEL está al
+//     revés. Un halago que insulta rompe el comando.
+//   · Nada de género: `[nombre]` le toca a cualquiera del grupo, así que ni
+//     «él», ni adjetivos en -o predicados de la persona. `npm run check` lo
+//     comprueba y se pone rojo.
+//   · Ni dos frases iguales con una palabra cambiada. La capa 17 las caza.
+//   · 101 por pool, que es lo que hay ahora. No las bajes.
+//
+// Cuando termines: `npm run check`, `npm run analogias` y `npm run progreso`.
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════════════════
 // !fiel — TIER ALTO (70-100%): lealtad real. Halago.
 // ═══════════════════════════════════════════════════════════════════════════
 

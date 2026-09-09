@@ -676,7 +676,24 @@ npm run pools
 npm run conteos
 npm run progreso
 npm run acciones       ← solo si tocas las acciones (sale a internet)
+npm run analogias      ← las frases que comparan en vez de atacar
 ```
+
+`npm run analogias` busca un defecto de escritura concreto: la frase que
+compara en vez de atacar. «Eres más fiel que un perro callejero», «tu lealtad es
+como el wifi del vecino». En esas el chiste es el objeto y la persona no
+aparece — se le pueden mandar a cualquiera del grupo sin cambiar una letra, y por
+eso no tocan a nadie. Un insulto que vale para todos no va dirigido a nadie.
+
+No entra `como quien` + verbo: eso describe una actitud y es el registro bueno
+del bot. La diferencia está en si la frase sigue teniendo algo que decir cuando
+le quitas la comparación.
+
+Medido hoy: 229 en todo el bot, y **191 de ellas en `fidelityPhrases.js`**, que
+tiene entre el 21 % y el 46 % de cada uno de sus seis pools construido así. En el
+resto del corpus el recurso aparece en el 1-5 %, que es normal. O sea que no es
+un problema del bot: es un fichero, y encima el que más se lee, porque es a la
+vez `!fiel` y `!infiel`. El encargo está escrito en su cabecera.
 
 `npm run acciones` es el único que **sale a internet**: le pregunta a la web de
 gifs por cada categoría que tiene configurada el bot. Existe porque una
