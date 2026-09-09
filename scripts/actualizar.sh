@@ -133,6 +133,31 @@ npm install --omit=dev --ignore-scripts --no-fund --no-audit --loglevel=error
 # residuo de una instalación vieja — así que no hay nada que se quede sin él.
 rm -rf node_modules/sharp node_modules/@img
 
+# EL FFMPEG EMPAQUETADO, CUANDO ESTA MAQUINA YA TIENE EL SUYO. Son 66 MB, mas
+# que el resto de node_modules junto, y el bot solo usa uno de los dos.
+#
+# La condicion es ffmpeg Y ffprobe del sistema, y ffprobe es la que decide: el
+# paquete trae ffmpeg pero NO trae ffprobe, y el bot necesita ffprobe para la
+# duracion del audio y el sondeo de video. O sea que si ffprobe responde, esta
+# maquina ya tiene un ffmpeg completo instalado y el paquete es una copia que no
+# abre nadie.
+#
+# NO SE TOCA package.json. Se borra la carpeta, igual que con sharp, por dos
+# razones: el fichero esta en git y modificarlo bloquearia el siguiente
+# despliegue con "hay cambios locales", y hay maquinas —Termux, un portatil
+# recien clonado— donde este paquete es el unico ffmpeg que hay.
+#
+# Y SE BORRA ANTES DE `check`, a proposito. Asi la comprobacion se hace contra
+# el ffmpeg que va a usar el bot de verdad. Si el del sistema no sirviera, el
+# check sale rojo, el despliegue se para sin tocar el proceso que corre, y la
+# proxima pasada lo reinstala.
+if command -v ffprobe >/dev/null 2>&1 && command -v ffmpeg >/dev/null 2>&1; then
+  if [ -d node_modules/@ffmpeg-installer ]; then
+    rm -rf node_modules/@ffmpeg-installer
+    echo "  · quitados 66 MB del ffmpeg empaquetado (esta máquina tiene el suyo)"
+  fi
+fi
+
 # ─── Antes de reiniciar: ¿arranca esto? ──────────────────────────────────────
 #
 # EXISTE PORQUE YA SE DESPLEGO CODIGO CAIDO. Un lote de frases entro con una
@@ -330,6 +355,7 @@ if [ -z "${CARGADO}" ]; then
   echo "    pm2 logs bot --lines 40 --nostream"
 elif [ "${CARGADO}" = "${CORTO}" ]; then
   echo "  ✓ El bot corre lo que hay en disco (${CORTO})."
+  mantenimiento
 else
   echo "════════════════════════════════════════════"
   echo "  ATENCION: el bot sigue en ${CARGADO} y en disco esta ${CORTO}."
@@ -339,6 +365,54 @@ else
   exit 1
 fi
 
+}
+
+# ─── LO QUE ANTES ERA UNA LISTA DE COMANDOS PARA COPIAR A MANO ───────────────
+#
+# `npm run estado` avisaba de tres cosas y para cada una imprimia el comando que
+# habia que escribir. Eso funciona una vez; a la tercera actualizacion con el
+# mismo aviso delante, el aviso deja de leerse. Si el arreglo es una orden fija,
+# sin decisiones, lo hace el despliegue.
+#
+# VA AL FINAL Y SOLO CON EL BOT YA VERIFICADO. Ninguna de estas cosas puede
+# retrasar un reinicio ni dejar el bot parado mientras se ejecutan.
+mantenimiento() {
+  # 1. LOS OBJETOS SUELTOS DE GIT. Cada despliegue trae objetos nuevos y ninguno
+  #    se empaqueta solo hasta llegar al umbral de `gc.auto`, que en este repo se
+  #    pasa de largo: 4283 objetos ocupando 56 MB en una maquina de 1 GB. `git
+  #    gc` los empaqueta y no toca ni la historia ni el arbol de trabajo.
+  local sueltos
+  sueltos="$(git count-objects -v 2>/dev/null | awk '/^count:/{print $2}' || true)"
+  sueltos="$(printf '%s' "${sueltos}" | tr -cd '0-9')"
+  if [ "${sueltos:-0}" -gt 800 ]; then
+    echo "  · empaquetando ${sueltos} objetos sueltos de git..."
+    git gc --quiet 2>/dev/null || true
+  fi
+
+  # 2. EL CRON DE LA COPIA. `npm run update` hace una copia en cada despliegue,
+  #    pero entre despliegue y despliegue pasan dias. Una copia diaria a las 5 de
+  #    la manyana cuesta dos segundos y es la diferencia entre perder una tarde y
+  #    perder un mes de aura.
+  #
+  #    Se reconoce por el comentario del final de la linea, no por la ruta: asi
+  #    mover el bot de carpeta no deja dos crones haciendo lo mismo.
+  #
+  #    SE LEE ENTERO ANTES DE ESCRIBIR, y esto lo encontre probandolo: escrito
+  #    como `{ crontab -l; echo nueva; } | crontab -`, los dos lados del pipe
+  #    arrancan a la vez, asi que el `crontab -` puede truncar antes de que el
+  #    `crontab -l` haya terminado de leer. En la prueba se llevo por delante un
+  #    cron que no era del bot. Con el contenido en una variable no hay carrera.
+  if command -v crontab >/dev/null 2>&1; then
+    local cron_actual
+    cron_actual="$(crontab -l 2>/dev/null || true)"
+    if ! printf '%s\n' "${cron_actual}" | grep -q 'daddysbot-respaldo'; then
+      if printf '%s\n%s\n' "${cron_actual}" \
+        "0 5 * * * cd $(pwd) && /usr/bin/env bash scripts/respaldo.sh >/dev/null 2>&1  # daddysbot-respaldo" \
+        | grep -v '^[[:space:]]*$' | crontab - 2>/dev/null; then
+        echo "  · puesta la copia diaria de data/ a las 5:00 (cron)"
+      fi
+    fi
+  fi
 }
 
 main "$@"

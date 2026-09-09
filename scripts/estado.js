@@ -229,7 +229,11 @@ if (!bot) {
   const sueltos = Number((cuenta.match(/^count:\s*(\d+)/m) || [])[1] || 0);
   const kb = Number((cuenta.match(/^size:\s*(\d+)/m) || [])[1] || 0);
   if (sueltos > 800) {
-    aviso(`${sueltos} objetos sueltos de git ocupando ${Math.round(kb / 1024)} MB`, 'git gc');
+    // Ya no se pide a mano: lo empaqueta el propio despliegue al final, con el
+    // bot ya verificado. Se sigue diciendo porque entre despliegue y despliegue
+    // vuelven a acumularse y conviene ver cuánto.
+    aviso(`${sueltos} objetos sueltos de git ocupando ${Math.round(kb / 1024)} MB`,
+      'npm run update   ← los empaqueta solo al terminar');
   }
 
   // 2. El ffmpeg empaquetado ocupa 65 MB y SOLO trae ffmpeg, no ffprobe. El bot
@@ -237,8 +241,11 @@ if (!bot) {
   //    funcionan es porque ya hay un ffmpeg del sistema — y ese trae los dos.
   //    En ese caso los 65 MB son una segunda copia que no abre nadie.
   //
-  //    No se decide aquí: se dice, y lo decide el dueño. Quitar la dependencia
-  //    equivocándose deja al bot sin stickers, sin !play y sin acciones a la vez.
+  //    Ya no se decide a mano. El despliegue borra la carpeta cuando esta
+  //    máquina tiene ffmpeg Y ffprobe propios, y lo hace ANTES del `check`: si
+  //    el del sistema no sirviera, el check sale rojo, el despliegue se para sin
+  //    tocar el proceso que corre, y la siguiente pasada lo reinstala. Aquí solo
+  //    queda decirlo si por lo que sea sigue ahí.
   const hayFfprobe = !!sh('command -v ffprobe 2>/dev/null');
   let pesaEmpaquetado = 0;
   try {
@@ -250,7 +257,7 @@ if (!bot) {
   } catch { /* si no se puede medir, no se dice nada */ }
   if (pesaEmpaquetado > 20 && hayFfprobe) {
     aviso(`el ffmpeg empaquetado ocupa ${pesaEmpaquetado} MB y esta máquina ya tiene ffmpeg propio (ffprobe responde)`,
-      'npm uninstall @ffmpeg-installer/ffmpeg && npm run check   → si el check sigue verde, te ahorras esos MB');
+      'npm run update   ← lo quita solo, y si el del sistema fallara el check lo pararía antes de reiniciar');
   } else if (pesaEmpaquetado > 20) {
     bien(`el ffmpeg empaquetado (${pesaEmpaquetado} MB) hace falta: aquí no hay ffprobe del sistema`);
   }
@@ -323,8 +330,22 @@ if (!bot) {
           mal(`al guardián lo está matando pm2 por memoria: la última vez a ${ultimo.rss} MB con el tope en ${techo} MB (${cuando})`,
             'sube max_memory_restart en ecosystem.config.js y pm2 restart ecosystem.config.js --only guardian');
         } else if (!/SIG/.test(ultimo.que)) {
+          // Y SE TRAE EL ERROR SOLO. Decir «mira el log» es dejar la mitad del
+          // trabajo hecho, y un aviso que pide lo mismo en cada actualización
+          // acaba sin mirarse. Si pm2 guardó algo, va aquí como la pista.
+          const err = (sh('pm2 logs guardian --err --lines 200 --nostream 2>/dev/null') || '')
+            .split('\n').map((l) => l.trim())
+            // Fuera las dos líneas que pm2 pone siempre: el `[TAILING]` y la
+            // ruta del fichero de log. Lo que sobrevive es texto del proceso.
+            .filter((l) => l && !/^\[TAILING\]/.test(l) && !/\.pm2[/\\]logs[/\\]/.test(l));
+          // La última línea de un volcado es casi siempre un marco de pila
+          // (`at Fulano (...)`), que no dice qué pasó. Se prefiere la última
+          // que NO lo sea, que es donde va el mensaje.
+          const utiles = err.filter((l) => !/\bat\s+\S+\s*\(/.test(l));
+          const fuente = utiles.length ? utiles : err;
+          const linea = fuente.length ? fuente[fuente.length - 1].slice(0, 160) : '';
           mal(`el guardián se murió solo: ${ultimo.que}${ultimo.detalle ? ` — ${ultimo.detalle}` : ''} (${cuando}, ${ultimo.rss} MB)`,
-            'pm2 logs guardian --err --lines 50');
+            linea ? `en el log queda: ${linea}` : 'pm2 logs guardian --err --lines 50   (el log de error está vacío)');
         } else bien(`guardián: el último final fue un ${ultimo.que} normal a ${ultimo.rss} MB`);
         const solos = finales.filter((v) => !/SIG/.test(v.que)).length;
         if (solos > 1) aviso(`${solos} de los últimos ${finales.length} finales del guardián no fueron despliegues`, 'pm2 logs guardian --err --lines 50');

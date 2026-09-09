@@ -785,6 +785,33 @@ de entorno. O sea que cambiar `max_memory_restart` o `NODE_OPTIONS` no se
 aplicaba nunca: el fichero decía una cosa, el proceso corría con otra, y el
 despliegue parecía perfecto. Ya pasó con el techo del guardián.
 
+`npm run update` **también hace el mantenimiento**, al final y solo con el bot
+ya verificado corriendo el commit nuevo. Antes esto eran tres avisos con su
+comando para copiar a mano, y un aviso que sale igual en cada actualización deja
+de leerse a la tercera. Si el arreglo es una orden fija y sin decisiones, lo hace
+el despliegue:
+
+- **`git gc`** cuando pasan de 800 los objetos sueltos. Llegaron a 4283 ocupando
+  56 MB. No toca ni la historia ni el árbol de trabajo.
+- **El ffmpeg empaquetado fuera**, cuando esta máquina tiene ffmpeg *y* ffprobe
+  propios. Son 66 MB. Decide ffprobe: el paquete trae ffmpeg pero no ffprobe, y
+  el bot necesita ffprobe, así que si ffprobe responde es que aquí ya hay un
+  ffmpeg completo. **No se toca `package.json`**: se borra la carpeta, como con
+  sharp, porque el fichero está en git y modificarlo bloquearía el siguiente
+  despliegue, y porque en Termux ese paquete es el único ffmpeg que hay. Se
+  borra **antes** del `check`, así que la comprobación se hace contra el ffmpeg
+  que va a usar el bot de verdad; si no sirviera, el check sale rojo, el
+  despliegue se para sin tocar el proceso que corre y la siguiente pasada lo
+  reinstala.
+- **El cron de la copia diaria** a las 5:00, si no está puesto. El despliegue ya
+  hace una copia, pero entre despliegue y despliegue pasan días. Se reconoce por
+  un comentario al final de la línea, no por la ruta, así que mover el bot de
+  carpeta no deja dos crones haciendo lo mismo. Y el crontab se lee entero antes
+  de escribirlo: montado como `{ crontab -l; echo nueva; } | crontab -` los dos
+  lados del pipe arrancan a la vez y el segundo puede truncar antes de que el
+  primero termine de leer. En la prueba se llevó por delante un cron que no era
+  del bot.
+
 `npm run estado` mira además dos cosas de espacio, y las mira **en la máquina**
 porque dependen de lo que haya instalado: los objetos sueltos de git (un
 `git gc` los empaqueta sin tocar la historia) y si el ffmpeg empaquetado —65 MB—
