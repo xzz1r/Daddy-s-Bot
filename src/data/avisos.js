@@ -304,6 +304,46 @@ const CABECERAS = new Map([
 ]);
 function cabeceraDe(pool) { return CABECERAS.get(pool) || null; }
 
+// ─── EL CARTEL DEL DIA ───────────────────────────────────────────────────────
+//
+// El objetivo del dia existia desde hace tiempo: un miembro sorteado cada
+// veinticuatro horas al que robar paga mas y sale mejor. Lo que no existia era
+// que alguien se enterase. El bonus se aplicaba en silencio y solo se descubria
+// DESPUES, en una linea al final de un robo que habia salido bien.
+//
+// O sea: maquinaria construida, calculada todos los dias, generando cero
+// movimiento. Esto es lo que la saca a la luz.
+//
+// SALE UNA VEZ AL DIA Y CUANDO EL GRUPO YA ESTA DESPIERTO, no a la hora del
+// corte. Un mensaje a las cinco de la mañana lo lee el scroll, no la gente: se
+// suelta con el primer mensaje del dia, que es cuando hay alguien delante.
+//
+// Y NO SE DICE EL BONUS EN NUMEROS. "Robarle a X paga un 35 % mas" es una hoja
+// de calculo; lo que mueve al grupo es saber a quien le toca hoy.
+const OBJETIVO_DIA_CARTEL = [
+  'Hoy le toca a %V. El que llegue primero se lo lleva mejor.',
+  'Objetivo de hoy: %V. Suerte con eso, o suerte a los demás.',
+  'El cartel de hoy lleva la cara de %V. Ya sabéis dónde mirar.',
+  '%V amanece con precio. Hasta el corte de mañana.',
+  'Hoy se roba a %V y sale más a cuenta que cualquier otro día.',
+  'La diana de hoy es %V. No la he elegido yo, la ha elegido el día.',
+  '%V es el objetivo de hoy. Que conste que avisé.',
+  'Hoy hay temporada abierta con %V. Mañana le tocará a otro.',
+  'El nombre de hoy es %V. Lo que hagáis con él es cosa vuestra.',
+  '%V sale hoy en el cartel. Veinticuatro horas y se cambia.',
+  'Objetivo del día: %V. El grupo ya lo sabe, así que %V también.',
+  'Hoy le ha tocado a %V. Ni por bueno ni por malo: por sorteo.',
+  '%V va a tener un día largo. El cartel es suyo hasta mañana.',
+  'Se abre el día con %V en la diana. Que corra la voz.',
+  'Hoy: %V. No hay más información y no hace falta más.',
+  '%V es lo que hay hoy. Aprovechad o no, pero el día es ese.',
+  'El sorteo de hoy ha salido %V. Sin apelación y sin repetir.',
+  'Hoy el bot señala a %V. Mañana señalará a otro, tranquilos.',
+  '%V, hoy vas con diana. El resto, ya sabéis.',
+  'Diana del día: %V. Hasta el corte, y luego a empezar de cero.',
+];
+
 module.exports = {
+  OBJETIVO_DIA_CARTEL,
   cabeceraDe,
   MAL_ESCRITO, SOLO_GRUPOS, SIN_PERMISO, SOLO_ADMINS, A_TI_MISMO, CONTRA_UN_ADMIN, DUELO_AJENO };

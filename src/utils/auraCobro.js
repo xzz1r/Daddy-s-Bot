@@ -6,18 +6,53 @@
 // por una canción que no llegó.
 
 const { spendAura, addAura } = require('./auraStore');
-const { PRECIOS, SALDO_MINIMO, ACTIVIDAD_MSGS, OBJETOS } = require('./economia');
+const { PRECIOS, SALDO_MINIMO, ACTIVIDAD_MSGS, OBJETOS, DIA } = require('./economia');
 // require perezoso: roboStore importa de aqui? No, pero se deja explicito para
 // que quede claro que este modulo depende del inventario.
 const { tieneSocio } = require('./roboStore');
-const { fmt, pickFresh } = require('./helpers');
-const { isOwner } = require('./wa');
+const { fmt, pickFresh, claveDia } = require('./helpers');
+const { isOwner, canonicalJid } = require('./wa');
 
 // Intenta cobrar `concepto` al remitente. Devuelve:
 //   { ok: true,  pagado, saldo }        — cobrado, adelante
 //   { ok: false, precio, saldo }        — no le llega, el comando debe abortar
 //
 // El owner tier no paga: administra el bot, no lo consume.
+// EL CONTADOR DE RAFAGA. Cuenta cuantas veces ha usado ESTE concepto ESTA
+// persona en ESTE grupo hoy. Se limpia solo al cambiar el dia, asi que no crece:
+// como mucho tiene una entrada por persona, grupo y comando de un solo dia.
+const RAFAGA = { gratis: 3, multiplicador: 2 };
+const usos = new Map();       // 'grupo|persona|concepto' -> veces
+let diaUsos = null;
+
+// El mismo corte de dia que el contador de mensajes, la racha y el objetivo del
+// dia. Usar el del reloj del servidor partiria la rafaga a medianoche UTC, que
+// no es cuando cambia el dia para este grupo.
+const hoyClave = () => claveDia(Date.now(), DIA.zona, DIA.horaCorte);
+
+function apuntarUso(groupJid, senderJid, concepto) {
+  const hoy = hoyClave();
+  if (diaUsos !== hoy) { usos.clear(); diaUsos = hoy; }
+  const k = `${groupJid}|${canonicalJid(senderJid)}|${concepto}`;
+  const n = (usos.get(k) || 0) + 1;
+  usos.set(k, n);
+  return n;
+}
+
+function descontarUso(groupJid, senderJid, concepto) {
+  if (diaUsos !== hoyClave()) return;
+  const k = `${groupJid}|${canonicalJid(senderJid)}|${concepto}`;
+  const n = usos.get(k);
+  if (n > 1) usos.set(k, n - 1); else usos.delete(k);
+}
+
+// Cuantas le quedan a precio normal. Lo usa el texto de "no te llega" para
+// explicar por que hoy le sale mas caro que ayer.
+function usosDe(groupJid, senderJid, concepto) {
+  if (diaUsos !== hoyClave()) return 0;
+  return usos.get(`${groupJid}|${canonicalJid(senderJid)}|${concepto}`) || 0;
+}
+
 async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta = null } = {}) {
   const base = PRECIOS[concepto];
   if (!base) return { ok: true, pagado: 0, saldo: null };
@@ -33,19 +68,55 @@ async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta
     }
   } catch { /* si el fichero de objetos falla, se cobra el precio entero */ }
 
+  // ─── LA CUARTA DEL DIA CUESTA EL DOBLE ──────────────────────────────────
+  //
+  // El precio es el unico freno que no depende de que nadie vigile, y estaba
+  // frenando al reves. Medida la curva de ingresos: el que escribe mil mensajes
+  // al dia cobra 366 y el normal 49. Con un precio fijo, el que mas ruido puede
+  // hacer es justo el que no lo nota, y el freno solo aprieta a quien no
+  // molestaba.
+  //
+  // Asi que el freno deja de estar en el precio y pasa a estar en la RAFAGA.
+  // Las tres primeras del dia valen lo de siempre; de la cuarta en adelante,
+  // el doble. Diez acciones seguidas pasan de costar 600 a costar 1.020, que
+  // para el de mil mensajes son tres dias de ingresos.
+  //
+  // TRES Y NO UNA: el objetivo no es que nadie use el bot, es que una rafaga
+  // contra medio grupo cueste. Tres seguidas es una conversacion; diez es otra
+  // cosa.
+  //
+  // POR GRUPO Y POR PERSONA, y en memoria. Lo que se dosifica es el ruido de un
+  // chat concreto, y un despliegue que reinicie el contador regala como mucho
+  // tres usos a precio viejo — mas barato que otro fichero en disco al que
+  // acordarse de hacerle copia.
+  // SE CUENTA LO QUE SE USA, NO LO QUE SE INTENTA. Escrito al reves —subiendo
+  // el contador aqui, antes de cobrar— a quien no le llegaba el saldo se le
+  // apuntaba el intento igual: cinco intentos sin aura y, cuando por fin la
+  // tenia, le salia al doble sin haber usado nada. Aqui solo se LEE; se apunta
+  // abajo, y solo si el cobro ha salido.
+  if (usosDe(groupJid, senderJid, concepto) >= RAFAGA.gratis) {
+    precio = Math.round(precio * RAFAGA.multiplicador);
+  }
+
   // Comprobar y descontar tiene que ser UNA sola operacion: si se hace en dos
   // pasos, dos comandos simultaneos del mismo usuario leen el mismo saldo antes
   // de que ninguno escriba y los dos cobran. Con el saldo justo eso dejaba al
   // usuario en negativo comprando, que es lo que SALDO_MINIMO impide.
   const r = await spendAura(groupJid, senderJid, precio, SALDO_MINIMO);
   if (!r.ok) return { ok: false, precio, saldo: r.saldo };
-  return { ok: true, pagado: precio, saldo: r.current, precioBase: base };
+  apuntarUso(groupJid, senderJid, concepto);
+  return { ok: true, pagado: precio, saldo: r.current, precioBase: base, rafaga: precio > base };
 }
 
 // Devuelve lo cobrado. Se llama cuando el recurso falló después del cobro.
-async function devolver(groupJid, senderJid, pagado) {
+async function devolver(groupJid, senderJid, pagado, concepto = null) {
   if (!pagado) return;
   await addAura(groupJid, senderJid, pagado);
+  // Y SE BORRA EL USO. Un comando devuelto no ha ocurrido: si el gif no llego o
+  // el roast no tenia a quien, esa vez no puede contar para encarecer la
+  // siguiente. Sin esto, una tarde con la web caida dejaba a alguien pagando el
+  // doble por comandos que nunca vio.
+  if (concepto) descontarUso(groupJid, senderJid, concepto);
 }
 
 // El dispatcher cobra ANTES del switch. Un `return` no es una excepción, así
@@ -137,9 +208,17 @@ function textoSinSaldo(concepto, { precio, saldo }, jid) {
   // La burla rota por grupo: pickFresh evita que salga la misma dos veces
   // seguidas, que es lo que convierte un chiste en un mensaje de error.
   const burla = pickFresh(MISERIA, `${jid || 'x'}|miseria`);
+  // SI HOY LE SALE MAS CARO, SE DICE. Un precio que sube sin avisar se lee como
+  // un fallo del bot, no como un freno: la primera reaccion de cualquiera es
+  // "me esta cobrando mal". Con la linea puesta, el mismo mensaje explica que
+  // lleva cuatro seguidas y que por eso vale el doble.
+  const base = PRECIOS[concepto];
+  const recargo = base && precio > base
+    ? `\n_Van *${RAFAGA.gratis}* hoy a precio normal, así que esta y las siguientes valen el doble. Mañana vuelve a ${fmt(base)}._`
+    : '';
   return `${burla}\n\n` +
-    `_Cuesta *${fmt(precio)}* y tienes *${fmt(saldo)}*._\n` +
-    `_Se gana con *!aura* y con los bonos de 200, 500 y 1000 mensajes del día. Cada ${fmt(ACTIVIDAD_MSGS)} mensajes que escribes tus tiradas ganan suerte para siempre._`;
+    `_Cuesta *${fmt(precio)}* y tienes *${fmt(saldo)}*._${recargo}\n` +
+    `_Se gana con *!aura* y con los bonos de 50, 100, 200, 500 y 1000 mensajes del día. Cada ${fmt(ACTIVIDAD_MSGS)} mensajes que escribes tus tiradas ganan suerte para siempre._`;
 }
 
-module.exports = { cobrar, devolver, textoSinSaldo, MISERIA, SIN_SERVICIO, esSinServicio };
+module.exports = { cobrar, devolver, textoSinSaldo, MISERIA, SIN_SERVICIO, esSinServicio, RAFAGA, usosDe, _usos: usos };

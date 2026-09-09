@@ -380,7 +380,8 @@ async function alDegradar(groupJid, participants, action, author) {
   if (author && mios.some((m) => mismoNumero(m, digitos(author)))) return false;
 
   let meta = null;
-  try { meta = await withTimeout(sock.groupMetadata(groupJid), TOPE_RED); } catch {}
+  try { meta = await withTimeout(sock.groupMetadata(groupJid), TOPE_RED); }
+  catch (e) { logger.unaVez('guardian: ficha del grupo', e); }
 
   const caidos = (participants || []).filter((p) => esElProtegido(p, meta));
   if (!caidos.length) {
@@ -507,7 +508,8 @@ async function conectar() {
 
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
   let version;
-  try { ({ version } = await fetchLatestBaileysVersion()); } catch {}
+  try { ({ version } = await fetchLatestBaileysVersion()); }
+  catch (e) { logger.unaVez('guardian: version de baileys', e); }
 
   sock = makeWASocket({
     version,

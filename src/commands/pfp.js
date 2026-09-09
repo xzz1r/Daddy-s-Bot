@@ -111,7 +111,8 @@ async function cmdPfp(sock, msg, args, groupMeta) {
   // Se cobra al entrar, pero solo se cobra de verdad si el bot entrega algo.
   // Si no hay a quien mirar, o si la consulta falla por red, se devuelve: nadie
   // paga por un mensaje de error que ademas le va a obligar a repetir.
-  const reembolsar = () => devolver(jid, quienPide, pago.pagado).catch(() => {});
+  const reembolsar = () => devolver(jid, quienPide, pago.pagado, 'pfp')
+    .catch((e) => logger.unaVez('devolver aura (pfp)', e));
 
   // Sin mención ni argumentos → tu propia foto.
   const hasMention = !!getTarget(msg);

@@ -9,7 +9,7 @@
 //
 // Tres fuentes, y cada una premia una cosa distinta a propósito:
 //
-//   · LOS HITOS de 200/500/1000 mensajes del día premian el VOLUMEN.
+//   · LOS HITOS de 50/100/200/500/1000 mensajes del día premian el VOLUMEN.
 //   · LA VETERANÍA premia el TOTAL acumulado: cada 1.000 mensajes de !count
 //     tus tiradas ganan suerte, para siempre.
 //   · LA RACHA premia APARECER: un pago plano por cada día seguido en el que
@@ -636,7 +636,30 @@ const DIA = (() => {
 // Nombre viejo, mismo objeto: lo lee casinoStore y no vale la pena romperlo.
 const CONTADOR = DIA;
 
+// LOS DOS PRIMEROS SON NUEVOS, Y LO QUE ARREGLAN NO SE VEIA A OJO.
+//
+// Con los tres umbrales de antes, la curva de ingresos era PLANA justo donde
+// vive el grupo entero. Medido sobre estas mismas constantes:
+//
+//   10 a 199 mensajes  ->  33 al dia    (el mismo pago para los dos extremos)
+//   200 a 499          ->  49
+//   500 a 999          ->  114
+//   1000 o mas         ->  334
+//
+// O sea que escribir diez mensajes pagaba exactamente lo mismo que escribir
+// ciento noventa y nueve. El primer escalon estaba en 200 y los saltos buenos
+// pedian 500 y 1000 al dia, que no los hace casi nadie. La doctrina de este
+// fichero dice que se premia el volumen, y para el noventa por ciento del grupo
+// el volumen no existia: el que suelta cuatro cosas y el que sostiene la
+// conversacion cobraban igual.
+//
+// Con 50 y 100 la curva pasa a 33 / 49 / 65 / 81 / 146 / 366: hay gradiente
+// donde hay gente. Los dos nuevos son tier 1, el mas pequeño, asi que el que ya
+// escribia mil al dia solo sube de 334 a 366 — esto no es un regalo al de
+// arriba, es que el de abajo deje de estar plano.
 const HITOS = [
+  { n: 50,   tier: 1 },
+  { n: 100,  tier: 1 },
   { n: 200,  tier: 1 },
   { n: 500,  tier: 2 },
   { n: 1000, tier: 3 },

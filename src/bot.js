@@ -950,9 +950,9 @@ async function connectToWhatsApp() {
       // estaba añadiendo a dedo. Se sondea al conectar y cada pocos minutos,
       // porque WhatsApp no avisa de las aprobaciones y una solicitud puede
       // llevar semanas ahí parada.
-      sondearSolicitudes().catch(() => {});
+      sondearSolicitudes().catch((e) => logger.unaVez('sondear solicitudes', e));
       if (!timerSolicitudes) {
-        timerSolicitudes = setInterval(() => { sondearSolicitudes().catch(() => {}); }, INTERVALO_SOLICITUDES);
+        timerSolicitudes = setInterval(() => { sondearSolicitudes().catch((e) => logger.unaVez('sondear solicitudes', e)); }, INTERVALO_SOLICITUDES);
         timerSolicitudes.unref();
       }
 
@@ -993,7 +993,7 @@ async function connectToWhatsApp() {
     const quien = participantPn || participant;
     if (!id || !quien) return;
     if (action === 'created') {
-      notarSolicitud(id, quien).catch(() => {});
+      notarSolicitud(id, quien).catch((e) => logger.unaVez('anotar solicitud', e));
       if (participant && participantPn) notarSolicitud(id, participant).catch(() => {});
       logger.info(`solicitud de entrada en ${id}: ${quien}`);
 

@@ -88,7 +88,8 @@ const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, esBotCreador, extractTex
 const logger = require('../utils/logger');
 
 const { clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa, PERMISO_ENLACE, puedeAnunciar, anotarTropiezo, perfilMirado } = require('../utils/antilink');
-const { SIN_PERMISO, SOLO_GRUPOS, MAL_ESCRITO } = require('../data/avisos');
+const { SIN_PERMISO, SOLO_GRUPOS, MAL_ESCRITO, OBJETIVO_DIA_CARTEL } = require('../data/avisos');
+const { cartelDelDia } = require('../utils/objetivoDia');
 const { aviso } = require('../utils/helpers');
 
 // LOS COMANDOS DE ACCION, EN UN SITIO. Se sacan del propio modulo para no
@@ -542,7 +543,8 @@ async function expulsarBusinessDetectado(sock, jid, sender, msg, motivo = 'cuent
     // solo se le expulsa vuelve a entrar y hay que echarlo otra vez, y otra.
     // La lista negra ya la aplica guardOnJoin al entrar, asi que no hace falta
     // inventar nada: el owner puede deshacerlo con *!fkunban*.
-    await banAccount(allForms(sender, meta), `cuenta business en ${jid} (${motivo})`, 'auto').catch(() => {});
+    await banAccount(allForms(sender, meta), `cuenta business en ${jid} (${motivo})`, 'auto')
+      .catch((e) => logger.unaVez('vetar cuenta business', e));
     if (puedeAnunciar(jid, sender)) {
       sock.sendMessage(jid, {
         text: `*Anti-empresa:* @${num} es cuenta de WhatsApp Business. Expulsada y vetada.`,
@@ -652,7 +654,7 @@ async function historiaPorBroadcast(sock, msg, deteccion) {
       continue;
     }
     const razon = conEnlace ? `historia con enlace subida al grupo ${g}` : `historia subida al grupo ${g}`;
-    await banAccount(allForms(autor, meta), razon, 'auto').catch(() => {});
+    await banAccount(allForms(autor, meta), razon, 'auto').catch((e) => logger.unaVez('vetar por antiadmin', e));
     const fuera = await expulsar(sock, g, autor, meta);
     logger.warn(`historia en ${g} de ${autor}: vetado, expulsado=${fuera}`);
     sock.sendMessage(g, {
@@ -1512,7 +1514,31 @@ async function handleMessage(sock, msg) {
       && !esSobreSinContenido(msg.message)) {
     // `senderPn` es la otra forma de quien escribe, sacada del propio mensaje.
     // Va aqui para que el conteo quede cruzable con la lista de miembros.
-    incrementMsgCount(jid, sender, senderPn).catch(() => {});
+    incrementMsgCount(jid, sender, senderPn).catch((e) => logger.unaVez('contar mensaje', e));
+
+    // ─── EL CARTEL DEL DIA, CON EL PRIMER MENSAJE ──────────────────────────
+    //
+    // El objetivo del dia llevaba tiempo calculandose en silencio: daba bonus de
+    // botin y de probabilidad, y nadie —ni el grupo ni el propio objetivo— se
+    // enteraba jamas. Solo salia DESPUES, en una linea al final de un robo que
+    // ya habia salido bien.
+    //
+    // Va aqui, en el primer mensaje del dia, y no en un temporizador a la hora
+    // del corte: un anuncio a las cinco de la mañana lo lee el scroll. Y va con
+    // setImmediate y sin await por lo mismo que el visto — mirar el ranking es
+    // una lectura de disco, y ponerla por delante deja la respuesta del comando
+    // esperando detras de algo que no ha pedido nadie.
+    setImmediate(() => {
+      cartelDelDia(jid, peekGroupMeta(jid))
+        .then((objetivo) => {
+          if (!objetivo) return;
+          const canon = canonicalJid(objetivo) || objetivo;
+          const texto = pickFresh(OBJETIVO_DIA_CARTEL, `${jid}|cartel`)
+            .replace(/%V/g, `@${canon.split('@')[0]}`);
+          return sock.sendMessage(jid, { text: texto, mentions: [canon] });
+        })
+        .catch((e) => logger.warn(`cartel del dia en ${jid}: ${e?.message || e}`));
+    });
     // verifiedBizName solo viaja en mensajes de cuentas Business: se anota como
     // prueba directa para !antiempresa, sin gastar una consulta de perfil.
     //
@@ -1544,7 +1570,8 @@ async function handleMessage(sock, msg) {
       // `verifiedBizName` es prueba DIRECTA de WhatsApp: viaja en el propio
       // mensaje, no hace falta ninguna consulta de perfil y funciona igual con
       // @lid, que es donde la comprobación de entrada era ciega.
-      expulsarBusinessDetectado(sock, jid, sender, msg, 'nombre verificado de negocio').catch(() => {});
+      expulsarBusinessDetectado(sock, jid, sender, msg, 'nombre verificado de negocio')
+        .catch((e) => logger.unaVez('expulsar business', e));
     } else if (isAntiBusinessEnabled(jid) && !isOwner(sender, msg.key.fromMe, peekGroupMeta(jid))) {
       // Sin badge: se mira lo ya fichado. Es una lectura de disco, no una
       // consulta de red, asi que puede correr en cada mensaje sin coste.
@@ -1579,7 +1606,7 @@ async function handleMessage(sock, msg) {
         return expulsarBusinessDetectado(sock, jid, sender, msg, ev.fields.join(', '));
       }).catch(() => {});
     }
-    checkCasinoMilestone(sock, jid, sender).catch(() => {});
+    checkCasinoMilestone(sock, jid, sender).catch((e) => logger.unaVez('hito del dia', e));
     // Historial de huellas AUTOMÁTICO: indexa la foto de quien escribe (con
     // guarda TTL, así baja cada foto como mucho una vez cada pocos días). Es el
     // motor que hace que !fk detecte multicuentas sin registrar nada a mano.
@@ -1674,7 +1701,7 @@ async function handleMessage(sock, msg) {
       // Y por decision del owner: subir spam a la historia del grupo se paga
       // con la lista negra, no con un "vuelve cuando quieras".
       const forms = allForms(sender, meta);
-      await banAccount(forms, `historia subida al grupo ${jid}`, 'auto').catch(() => {});
+      await banAccount(forms, `historia subida al grupo ${jid}`, 'auto').catch((e) => logger.unaVez('vetar por historia', e));
       const fuera = await expulsar(sock, jid, sender, meta);
       sock.sendMessage(jid, {
         text: `@${sender.split('@')[0]} fuera y a la lista negra por subir una historia al grupo. Aquí no se suben estados, ni con enlaces ni sin ellos.`,
@@ -1763,7 +1790,7 @@ async function handleMessage(sock, msg) {
           // ya se ha borrado y el aviso ya esta contado: lo unico que compra es
           // no acabar en la lista negra por este. Al siguiente, sin indulto, si.
           if (await gastarIndulto(jid, claveDePersona(sender, meta))) {
-            await resetWarnings(jid, claveDePersona(sender, meta)).catch(() => {});
+            await resetWarnings(jid, claveDePersona(sender, meta)).catch((e) => logger.unaVez('reiniciar avisos', e));
             sock.sendMessage(jid, {
               text: `@${num} se libra por el *indulto*, que se acaba de gastar. ` +
                     `El enlace se borra igual y el siguiente ya no lo para nadie.`,
@@ -1775,8 +1802,9 @@ async function handleMessage(sock, msg) {
           // Los avisos se ponen a cero al banear, igual que hace el contador de
           // rafagas de medios: si vuelve al grupo, empieza otra vez con sus dos
           // avisos y no con un ban inmediato del que nadie le habria advertido.
-          await resetWarnings(jid, claveDePersona(sender, meta)).catch(() => {});
-          await banAccount(allForms(sender, meta), `spam de enlaces sin permiso en ${jid}`, 'auto').catch(() => {});
+          await resetWarnings(jid, claveDePersona(sender, meta)).catch((e) => logger.unaVez('reiniciar avisos', e));
+          await banAccount(allForms(sender, meta), `spam de enlaces sin permiso en ${jid}`, 'auto')
+            .catch((e) => logger.unaVez('vetar por enlaces', e));
           const fuera = await expulsar(sock, jid, sender, meta);
           if (puedeAnunciar(jid, sender)) sock.sendMessage(jid, {
             text: fuera
@@ -1865,7 +1893,8 @@ async function handleMessage(sock, msg) {
 
         if (yaAvisado(jid, sender)) {
           olvidarAviso(jid, sender);
-          await banAccount(allForms(sender, meta), `spam de stickers en ${jid}`, 'auto').catch(() => {});
+          await banAccount(allForms(sender, meta), `spam de stickers en ${jid}`, 'auto')
+            .catch((e) => logger.unaVez('vetar por stickers', e));
           const fuera = await expulsar(sock, jid, sender, meta);
           sock.sendMessage(jid, {
             text: fuera
@@ -2729,7 +2758,8 @@ async function handleMessage(sock, msg) {
     // relevancia al owner) devuelven SIN_SERVICIO y aquí se deshace el cobro,
     // en silencio, para no añadir un mensaje donde el comando eligió callarse.
     if (esSinServicio(resultado) && cobradoAqui > 0) {
-      await devolverAura(jid, sender, cobradoAqui).catch(() => {});
+      await devolverAura(jid, sender, cobradoAqui, conceptoCobro)
+        .catch((e) => logger.unaVez('devolver aura', e));
       cobradoAqui = 0;
     }
   } catch (err) {
@@ -2744,7 +2774,8 @@ async function handleMessage(sock, msg) {
     // Los comandos que se cobran por dentro (COBRAN_SOLOS) ya devuelven ellos
     // mismos cuando falla su recurso; aqui solo se deshace lo que se cobro aqui.
     if (cobradoAqui > 0) {
-      await devolverAura(jid, sender, cobradoAqui).catch(() => {});
+      await devolverAura(jid, sender, cobradoAqui, conceptoCobro)
+        .catch((e) => logger.unaVez('devolver aura', e));
     }
 
     // LA TRAZA NO SALE AL GRUPO. `err.message` trae rutas del servidor, nombres

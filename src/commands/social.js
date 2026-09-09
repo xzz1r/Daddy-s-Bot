@@ -6,6 +6,7 @@ const { verRacha } = require('../utils/rachaStore');
 const { nextMilestone } = require('../utils/casino');
 const { PRECIOS, APUESTA, CONTRA, ACTIVIDAD_MSGS, TIRADAS_PAGADAS, RACHA } = require('../utils/economia');
 const { ACCIONES, ACTIVAS } = require('./acciones');
+const { RAFAGA } = require('../utils/auraCobro');
 const config = require('../config');
 const logger = require('../utils/logger');
 const { SIN_PERMISO, SOLO_GRUPOS } = require('../data/avisos');
@@ -327,7 +328,9 @@ function bloqueAcciones(p, c) {
   const nsfw = ACTIVAS.filter((n) => ACCIONES[n].nsfw);
   const lineas = [];
   if (sfw.length) {
-    lineas.push(`_Sobre alguien, ${c('accion')} cada una_`);
+    // EL RECARGO SE DICE AQUI, en la unica linea donde alguien mira el precio
+    // antes de gastar. Un precio que sube sin avisar se lee como un fallo.
+    lineas.push(`_Sobre alguien, ${c('accion')} cada una · de la ${RAFAGA.gratis + 1}ª del día, el doble_`);
     lineas.push(...filas(sfw.map(nombre), 3, ' · '));
   }
   if (nsfw.length) lineas.push(`${nsfw.map(nombre).join(' · ')} ${c('accionNsfw')}`);

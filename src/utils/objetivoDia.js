@@ -161,4 +161,45 @@ function esObjetivoDelDia(obj, quien) {
   return Boolean(obj && quien && mismo(obj.jid, quien));
 }
 
-module.exports = { objetivoDelDia, esObjetivoDelDia, diaClave, flushObjetivoDia };
+// ─── EL CARTEL SE CUELGA UNA VEZ AL DIA ─────────────────────────────────────
+//
+// Todo lo de arriba lleva tiempo calculandose para nada: el bonus se aplicaba
+// en silencio y el objetivo solo se descubria DESPUES, en una linea al final de
+// un robo que ya habia salido bien. Maquinaria construida generando cero
+// movimiento.
+//
+// SE CUELGA CON EL PRIMER MENSAJE DEL DIA, no a la hora del corte. Un anuncio a
+// las cinco de la mañana lo lee el scroll; soltado cuando alguien escribe, lo
+// lee gente. No hace falta ningun temporizador, ni un cron, ni que el bot este
+// despierto a una hora concreta: se cuelga solo cuando el grupo se despierta.
+//
+// EN MEMORIA Y A PROPOSITO. Lo unico que se recuerda aqui es "ya lo he dicho
+// hoy en este grupo". Si hay un despliegue a media mañana se dice dos veces, y
+// esa es la peor consecuencia posible: un mensaje repetido en todo el dia. La
+// alternativa —otro fichero en disco, otra escritura, otro sitio del que
+// acordarse al restaurar— cuesta mas que el problema que evita.
+//
+// Y SI NO HAY OBJETIVO, NO SE DICE NADA. Un grupo con dos personas o sin nadie
+// con aura suficiente no tiene cartel, y anunciar que hoy no hay cartel es
+// ruido puro.
+const anunciado = new Map();   // grupo -> dia que ya se anuncio
+
+async function cartelDelDia(grupo, groupMeta) {
+  const hoy = diaClave();
+  if (anunciado.get(grupo) === hoy) return null;
+  // Se marca ANTES de resolver: si dos mensajes entran a la vez —y entran— el
+  // segundo tiene que encontrarse la puerta cerrada, no esperar a que el
+  // primero termine de mirar el ranking.
+  anunciado.set(grupo, hoy);
+  try {
+    const obj = await objetivoDelDia(grupo, groupMeta);
+    if (!obj || !obj.jid) { anunciado.delete(grupo); return null; }
+    return obj.jid;
+  } catch (e) {
+    anunciado.delete(grupo);
+    logger.warn(`objetivoDia: no pude colgar el cartel en ${grupo}: ${e.message}`);
+    return null;
+  }
+}
+
+module.exports = { objetivoDelDia, esObjetivoDelDia, diaClave, flushObjetivoDia, cartelDelDia, _anunciado: anunciado };

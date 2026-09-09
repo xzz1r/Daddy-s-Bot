@@ -1636,6 +1636,12 @@ const di=async(quien,texto,extra)=>{
         const cuerpo = src.slice(m.index + m[0].length, i - 1)
           // fuera comentarios: los explicativos mencionan `msg` constantemente
           .replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+        // Y UNA FUNCION QUE DECLARA SU PROPIO `msg` TAMPOCO LO HEREDA. Faltaba
+        // este caso: la guarda solo miraba los parametros, asi que un
+        // `const msg = ...` dentro del cuerpo —perfectamente legitimo— se
+        // acusaba como si el nombre viniera de fuera. Me paso escribiendo el
+        // helper de logs y era un falso positivo, no un fallo.
+        if (/\b(?:const|let|var)\s+msg\b\s*=/.test(cuerpo)) continue;
         // Una funcion anidada que SI declara msg se lleva sus usos con ella.
         if (/function[^(]*\([^)]*\bmsg\b/.test(cuerpo) || /\(\s*msg\s*[,)]|\bmsg\s*=>/.test(cuerpo)) continue;
         // Solo cuenta `msg` LEIDO como variable. Ni `{ msg: algo }` (ahi es la

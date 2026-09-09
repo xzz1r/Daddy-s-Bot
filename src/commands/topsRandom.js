@@ -4,6 +4,7 @@ const { shuffle, pickFresh } = require('../utils/helpers');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
+const logger = require('../utils/logger');
 
 // Remate del ranking. Sale UNO por top, al final del bloque.
 //
@@ -101,7 +102,7 @@ async function cmdTopRandom(sock, msg, n, args, groupMeta) {
   const users = soloMiembros(await getActiveUsers(jid, MIN_MENSAJES), groupMeta)
     .filter(u => !isMainOwner(u.jid, false, groupMeta));
   if (users.length < n) {
-    await devolver(jid, quienPide, pago.pagado).catch(() => {});
+    await devolver(jid, quienPide, pago.pagado, concepto).catch((e) => logger.unaVez('devolver aura (tops)', e));
     return sock.sendMessage(jid, {
       text: `No hay suficientes miembros activos. Necesito ${n}, hay ${users.length}.`,
     }, { quoted: msg });

@@ -86,7 +86,8 @@ async function cmdSticker(sock, msg, groupMeta) {
   if (!pago.ok) {
     return sock.sendMessage(jid, { text: textoSinSaldo('sticker', pago, jid) }, { quoted: msg });
   }
-  const reembolsar = () => devolver(jid, senderJid, pago.pagado).catch(() => {});
+  const reembolsar = () => devolver(jid, senderJid, pago.pagado, 'sticker')
+    .catch((e) => logger.unaVez('devolver aura (sticker)', e));
 
   let buffer;
   try {
