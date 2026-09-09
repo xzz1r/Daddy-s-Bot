@@ -52,6 +52,11 @@ const CONTRATO = {
   'src/data/accionPhrases.js':     { permite: ['%A', '%V'],                    sustituye: 'src/commands/acciones.js' },
   'src/data/vaultPhrases.js':      { permite: ['%N', '%C', '%Z', '%S'],       sustituye: 'src/commands/vault.js' },
   'src/data/cooldownPhrases.js':   { permite: [],                              sustituye: '(no usa placeholders)' },
+  // avisos.js casi no lleva huecos: son frases que se mandan tal cual. La
+  // excepcion es el cartel del objetivo del dia, que nombra a la persona — y lo
+  // sustituye el manejador de mensajes, no un comando, porque el cartel se
+  // cuelga solo con el primer mensaje del dia y no lo pide nadie.
+  'src/data/avisos.js':            { permite: ['%V'],                          sustituye: 'src/handlers/messageHandler.js' },
   'src/data/rachaPhrases.js':      { permite: ['%N', '%P', '%D'],              sustituye: 'src/utils/casino.js' },
   'src/data/roboExtraPhrases.js':  { permite: ['%A', '%C', '%N', '%V', '%H'],  sustituye: 'src/commands/robo.js' },
 };

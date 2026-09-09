@@ -412,6 +412,9 @@ const AURA_TOP_ANSIAS = [
   'Los de arriba no piden el puto recuento. Lo dan por hecho. Tú estás pidiendo.',
   'Pedir captura del propio nombre es inseguridad con marco de oro. Qué asco de flex.',
   'Vanidad con cronómetro. El puesto no se evapora. Tu disimulo, sí. Y el ridículo, también.',
+  'Estás arriba. Preguntar por la lista desde ahí es pedir que te lo repitan.',
+  'Ya lo sabes. Lo estás pidiendo para que lo lea otro, y el otro tampoco te lo va a decir.',
+  'Sales primero y aun así vuelves a mirar. Eso no es curiosidad, es necesitarlo.',
 ];
 
 // !aura top — el que NO está. Envidia.
@@ -491,6 +494,10 @@ const AURA_TOP_POBRE = [
   'Lees la invitación por encima del hombro de otro. No dice tu nombre. Dice tu oficio: mirón, cutre de sobre.',
   'Mides tu altura contra una marca que no alcanzaste. La pared no se apiada. El lápiz tampoco. El que se acorta eres tú, basura de regla.',
   'Con tu saldo el puto ranking es turismo. Y ni siquiera pagaste la entrada.',
+  'Preguntar por el ranking con tu saldo es abrir el escaparate sabiendo que no entras.',
+  'La lista no te va a nombrar hoy tampoco. Y mañana depende de ti, no de ella.',
+  'Cada consulta tuya confirma lo mismo. Ahórrate la confirmación y escribe algo.',
+  'Miras la lista como quien mira el menú de un sitio caro. Se mira gratis, sí.',
 ];
 
 // !robo — 6 min. Manos calientes, huellas, ansia de botín.
@@ -639,6 +646,7 @@ const ROBO_ASALTO = [
   'El tarro de lo fallado todavía rueda por el empujón. Pararlo con la otra mano no te hace dueño. Te hace cerámica con pulso.',
   'Hay una ranura demasiado estrecha para tu ansia. Forzarla con la palanca otra vez es de cabrón con alcancía sorda.',
   'El fondo común tiene tu aliento en la ranura. Soplar otra vez no lo llena a tu favor. Lo llena de ti, basura de colecta.',
+  'El asalto tiene su tiempo. Insistir antes no lo adelanta, solo te deja en evidencia.',
 ];
 
 // Víctima recién robada, escudo natural 7 min. Sin @ ni %V.

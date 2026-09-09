@@ -598,6 +598,7 @@ copia legible; si las dos discrepan, la del código tiene razón.
 | `rachaPhrases.js` | `%N` nombre, `%D` días de racha, `%P` días perdidos |
 | `activity.js`, `duel.js` | `%W` ganador, `%L` perdedor |
 | `accionPhrases.js` | `%A` quien la hace, `%V` quien la recibe |
+| `avisos.js` | `%V` la persona del cartel del día. **Solo el pool `OBJETIVO_DIA_CARTEL` lo usa**; el resto de avisos van sin huecos, se mandan tal cual. Lo sustituye el manejador de mensajes, no un comando, porque ese cartel se cuelga solo con el primer mensaje del día y no lo pide nadie |
 | `mog.js` | `%M` / `%L` |
 | `iq.js` | `%IQ` |
 | `topsRandom.js` | `{N}` |
@@ -686,7 +687,7 @@ comando no ha funcionado nunca. Por eso no entra en `check`: un validador que
 depende de que una web ajena esté en pie se pone rojo por motivos que no tienen
 nada que ver con el código.
 
-**`npm run check` es el que importa.** Empezó con cuatro capas y hoy son 57. Las
+**`npm run check` es el que importa.** Empezó con cuatro capas y hoy son 58. Las
 cuatro primeras siguen siendo las que pillan lo que rompe el bot al escribir
 frases:
 
@@ -699,7 +700,7 @@ frases:
 4. **Guardan** — comprueba que aura, casino, racha, contador y banlist se
    comportan. Se salta sola si el bot está corriendo, para no pisarle los datos.
 
-Las otras cincuenta y tres son del motor —permisos, economía, red, despliegue— y
+Las otras cincuenta y cuatro son del motor —permisos, economía, red, despliegue— y
 no hace falta entenderlas para escribir. Cuatro sí tocan al contenido y conviene
 saberlas:
 
@@ -871,6 +872,34 @@ git pull origin main
   `!fuck`, `!anal` y `!cum` **no funcionan contra el dueño** — se niegan
   fingiendo que se cayó la web, porque un rechazo con nombre solo le pasa a una
   persona y a la segunda vez el grupo sabe quién manda en el bot.
+
+- **El cartel del día** (`avisos.js`, pool `OBJETIVO_DIA_CARTEL`): lo único que
+  el bot dice sin que nadie le hable y que no es moderación. El objetivo del día
+  llevaba tiempo calculándose en silencio —daba bonus de botín y de
+  probabilidad— y no se enteraba nadie, ni el grupo ni el propio objetivo: solo
+  salía después, en una línea al final de un robo que ya había salido bien.
+  Ahora se cuelga con el **primer mensaje del día** de cada grupo, no a la hora
+  del corte, porque un anuncio a las cinco de la mañana lo lee el scroll. Si no
+  hay objetivo posible, silencio: anunciar que hoy no hay cartel es ruido.
+
+- **El remate del día** en los porcentajes (`utils/percentDia.js`): los
+  veintiún comandos de `%` son el 87 % de lo que el grupo lee y son **una sola
+  mecánica repetida veintiuna veces**. Lo que se gasta no son las frases, es la
+  forma, que nunca cambia. Este remate la mueve sin escribir un pool nuevo: en
+  vez de más frases, hechos que el bot ya tenía delante y no usaba — el más alto
+  del día, el más bajo, un empate exacto con otra persona, o que ya lo habías
+  preguntado. Sale **una de cada tres** y solo si hay algo que decir. Si saliera
+  siempre dejaría de leerse y pasaría a ser parte del formato, que es justo lo
+  que viene a romper.
+
+- **El recargo de ráfaga** (`utils/auraCobro.js`): las tres primeras veces que
+  usas un comando de pago valen su precio; de la cuarta en adelante, el doble.
+  El motivo es de economía, no de CPU: medida la curva de ingresos, el que
+  escribe mil mensajes al día cobra 366 y el normal 49, así que con precio fijo
+  el freno apretaba a quien no molestaba. Se cuenta lo que se **usa**, no lo que
+  se intenta, y un comando devuelto descuenta su uso. Y se dice en el menú y en
+  el mensaje de «no te llega»: un precio que sube sin avisar se lee como un
+  fallo del bot.
 
 - **Multimedia**: stickers, `!play`, `!toimg`. Sin frases; no es terreno de
   contenido. Una cosa del motor que conviene saber: todo lo que llama a ffmpeg

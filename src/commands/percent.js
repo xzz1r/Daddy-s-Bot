@@ -1,6 +1,7 @@
 const { isOwner, isMainOwner, isAdmin, getTargetOrSelf } = require('../utils/wa');
 const { pickFresh } = require('../utils/helpers');
 const { SIN_SERVICIO } = require('../utils/auraCobro');
+const { anotarYRematar } = require('../utils/percentDia');
 // Rig del owner principal: cuando el TARGET es el owner, el % se fuerza al
 // RANGO que le favorece y luego la lógica de frase corre sobre ese valor.
 // Es un rango y no un número fijo a propósito: un 0% (o un 100%) clavado en
@@ -216,12 +217,30 @@ async function runPercent(sock, msg, key, groupMeta) {
   if (!verdict) return SIN_SERVICIO;
   const showExtreme = cfg.goodIsHigh && percent >= TRAMO_ALTO && cfg.extreme?.length;
 
+  // EL REMATE DEL DIA. No es otra frase de otro pool: es lo que el bot ya sabe
+  // que ha salido hoy en este chat —el mas alto, el mas bajo, un empate exacto,
+  // o que ya lo habias preguntado— dicho en una linea. Los veintiun comandos de
+  // porcentaje son una sola mecanica repetida veintiuna veces, y lo que se gasta
+  // no son las frases, es la FORMA, que nunca cambia. Esto la mueve sin escribir
+  // un pool nuevo.
+  //
+  // Sale una de cada tres y solo si hay algo que decir. Es la misma leccion que
+  // el remate de las acciones: una coletilla que sale siempre deja de leerse.
+  const nombreDe = (j) => `@${String(j).split('@')[0]}`;
+  const remate = anotarYRematar(jid, key, target, percent, nombreDe);
+
   const text =
     `*${nm} es ${percent}% ${cfg.name}*\n\n` +
     `${verdict}` +
-    (showExtreme ? `\n\n${pickFresh(cfg.extreme, `${jid}|${key}|extreme`).replace(/\[nombre\]/g, nm)}` : '');
+    (showExtreme ? `\n\n${pickFresh(cfg.extreme, `${jid}|${key}|extreme`).replace(/\[nombre\]/g, nm)}` : '') +
+    (remate ? `\n\n_${remate}_` : '');
 
-  await sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });
+  // Si el remate nombra a otra persona, tiene que ir mencionada o sale un numero
+  // crudo en vez de un nombre.
+  const mencion = remate && remate.includes('@')
+    ? [target, ...[...remate.matchAll(/@(\d+)/g)].map((m) => `${m[1]}@s.whatsapp.net`)]
+    : [target];
+  await sock.sendMessage(jid, { text, mentions: [...new Set(mencion)] }, { quoted: msg });
 }
 
 const makeCmd = (key) => (sock, msg, groupMeta) => runPercent(sock, msg, key, groupMeta);

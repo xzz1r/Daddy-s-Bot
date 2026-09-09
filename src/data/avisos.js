@@ -208,6 +208,8 @@ const CONTRA_UN_ADMIN = [
   'Contra un admin no. Ni con suerte ni con público.',
   'No puedes. Y desde arriba no hace falta este comando para devolvértela.',
   'Ese no. Prueba con alguien tan poca cosa como tú.',
+  'Ahí no. Elige a alguien que no pueda contestarte con el botón.',
+  'No. Hay gente a la que se le tose y gente a la que no. Tú toses hacia abajo.',
 ];
 
 // Se ha metido en un duelo de otros dos. Se lee en el grupo.

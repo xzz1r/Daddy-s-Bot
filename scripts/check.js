@@ -5152,6 +5152,111 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     if (fallos === antes) console.log(verde('   ✓ !p, !purge y !visto no salen en el menu ni los sugiere el corrector'));
   }
 
+  // ── 47. LO QUE EL BOT EMPIEZA POR SU CUENTA ──────────────────────────────
+  //
+  // Tres cosas nuevas que no las pide nadie, y las tres tienen el mismo riesgo:
+  // si se disparan de mas, el bot pasa de gracioso a pesado, y eso no se
+  // arregla con un despliegue porque el grupo ya te ha cogido mania.
+  //
+  //   · el cartel del objetivo del dia: UNA vez al dia y por grupo;
+  //   · el recargo de rafaga: las tres primeras al precio de siempre;
+  //   · el remate del dia en los porcentajes: una de cada tres.
+  //
+  // Se prueban EJECUTANDO. Leer la constante no sirve: lo que falla en estas
+  // cosas no es el numero, es el sitio desde el que se cuenta.
+  {
+    console.log('\n47. LO QUE EL BOT EMPIEZA POR SU CUENTA');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    // ── EL CARTEL SALE UNA VEZ Y SOLO UNA ────────────────────────────────
+    {
+      const { cartelDelDia, _anunciado } = require(path.join(R, 'src/utils/objetivoDia'));
+      const { addAura } = require(path.join(R, 'src/utils/auraStore'));
+      const GC = '000000047@g.us';
+      const gente = Array.from({ length: 5 }, (_, i) => `34600047${String(i).padStart(3, '0')}@s.whatsapp.net`);
+      const metaC = { id: GC, subject: 'G', participants: [
+        { id: '549199@s.whatsapp.net', admin: 'admin' }, ...gente.map((g) => ({ id: g })) ] };
+      for (const g of gente) await addAura(GC, g, 500);
+      _anunciado.delete(GC);
+      const salidas = [];
+      for (let i = 0; i < 6; i++) salidas.push(await cartelDelDia(GC, metaC));
+      const conCartel = salidas.filter(Boolean);
+      exige(conCartel.length === 1,
+        `el cartel del dia salio ${conCartel.length} veces en seis mensajes: una vez es un aviso, seis es un bot pesado`);
+
+      // Y EN UN GRUPO SIN NADIE A QUIEN SEÑALAR, SILENCIO. Anunciar que hoy no
+      // hay cartel es ruido puro, y ademas delata que el mecanismo existe.
+      const GV = '000000048@g.us';
+      _anunciado.delete(GV);
+      const vacio = await cartelDelDia(GV, { id: GV, participants: [{ id: '549199@s.whatsapp.net' }] });
+      exige(vacio === null, 'el bot anuncia un cartel en un grupo donde no hay objetivo posible');
+      // Y si no habia nadie, no puede quedarse marcado como "ya dicho hoy": el
+      // dia que entre gente al grupo, el cartel tiene que poder salir.
+      exige(!_anunciado.has(GV),
+        'un grupo sin objetivo se queda marcado como anunciado: el cartel no volveria a salir en todo el dia aunque entre gente');
+    }
+
+    // ── LA RAFAGA: TRES AL PRECIO DE SIEMPRE, LUEGO EL DOBLE ─────────────
+    {
+      const { cobrar, devolver, RAFAGA } = require(path.join(R, 'src/utils/auraCobro'));
+      const { addAura } = require(path.join(R, 'src/utils/auraStore'));
+      const { PRECIOS } = require(path.join(R, 'src/utils/economia'));
+      const GR = '000000049@g.us';
+      const quien = `34600049${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`;
+      await addAura(GR, quien, 20000);
+      const pagados = [];
+      for (let i = 0; i < RAFAGA.gratis + 2; i++) {
+        const r = await cobrar(GR, quien, 'accion', {});
+        pagados.push(r.ok ? r.pagado : -1);
+      }
+      const base = PRECIOS.accion;
+      exige(pagados.slice(0, RAFAGA.gratis).every((x) => x === base),
+        `las primeras ${RAFAGA.gratis} acciones del dia no cuestan lo de siempre: ${pagados.join(',')}`);
+      exige(pagados.slice(RAFAGA.gratis).every((x) => x === base * RAFAGA.multiplicador),
+        `de la ${RAFAGA.gratis + 1}ª en adelante no se cobra el doble: ${pagados.join(',')}`);
+
+      // Y UN COMANDO DEVUELTO NO CUENTA. Sin esto, una tarde con la web caida
+      // deja a alguien pagando el doble por gifs que no llego a ver.
+      const otro = `34600049${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`;
+      await addAura(GR, otro, 20000);
+      for (let i = 0; i < RAFAGA.gratis; i++) {
+        const r = await cobrar(GR, otro, 'accion', {});
+        await devolver(GR, otro, r.pagado, 'accion');
+      }
+      const tras = await cobrar(GR, otro, 'accion', {});
+      exige(tras.pagado === base,
+        `despues de ${RAFAGA.gratis} cobros DEVUELTOS la siguiente ya cuesta ${tras.pagado}: se estan contando usos que no ocurrieron`);
+
+      // Y quien lo intenta sin saldo tampoco gasta turno.
+      const pobre = `34600049${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`;
+      for (let i = 0; i < 5; i++) await cobrar(GR, pobre, 'accion', {});
+      await addAura(GR, pobre, 20000);
+      const primera = await cobrar(GR, pobre, 'accion', {});
+      exige(primera.pagado === base,
+        'cinco intentos sin saldo encarecen la primera de verdad: se cuenta lo que se intenta en vez de lo que se usa');
+    }
+
+    // ── EL REMATE DEL DIA NO PUEDE SER PARTE DEL FORMATO ─────────────────
+    {
+      const { anotarYRematar, CADA } = require(path.join(R, 'src/utils/percentDia'));
+      const GP = '000000050@g.us';
+      const nombre = (j) => `@${String(j).split('@')[0]}`;
+      // La primera del dia no tiene con que compararse: no puede rematar.
+      const uno = anotarYRematar(GP, 'rata', '34600050001@s.whatsapp.net', 50, nombre);
+      exige(uno === null, 'la primera tirada del dia ya saca remate, y no hay nada con lo que compararla');
+      let remates = 0;
+      for (let i = 0; i < 30; i++) {
+        if (anotarYRematar(GP, 'rata', `3460005${1000 + i}@s.whatsapp.net`, i * 3, nombre)) remates++;
+      }
+      exige(remates > 0, 'el remate del dia no sale nunca: entonces sobra el modulo entero');
+      exige(remates <= Math.ceil(31 / CADA),
+        `el remate salio ${remates} veces en 31 tiradas: sale demasiado y se convierte en parte del formato, que es lo que se venia a romper`);
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ el cartel sale una vez al dia, la rafaga cobra el doble a la cuarta y el remate no es parte del formato'));
+  }
+
   // ── 46. LO QUE EL MENU ENSEÑA SE PUEDE TECLEAR ───────────────────────────
   //
   // El dispatcher quita tildes y eñes antes de comparar, asi que un `case` con

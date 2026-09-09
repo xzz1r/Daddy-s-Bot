@@ -266,6 +266,7 @@ const INVENTARIO_VACIO = [
   'Tu inventario es un espejo: no hay nada y aun así molesta mirarlo.',
   'Sin objetos. Aquí se viene comprado de casa.',
   'No hay nada. Vas a depender del azar, que es tu socio menos fiable.',
+  'Cero objetos. Vas a lo que vas con lo puesto, que es nada.',
 ];
 
 const COMPRA_OK = [
@@ -464,6 +465,7 @@ const CONTRA_PIERDE = [
   '%A ni se lo esperaba y %V le ha hecho un segundo regalo de %C.',
   'Doble derrota. %V no solo no recupero: financio a %A.',
   'Y así es como %V paso de victima a patrocinador.',
+  '%A se defendió y salió peor. La venganza también se puede perder, y acabas de enseñar cómo.',
 ];
 
 const CONTRA_TARDE = [
@@ -496,6 +498,7 @@ const CONTRA_TARDE = [
   'Fuera de tiempo. La próxima vez responde en caliente o no respondas.',
   'Se te ha pasado el arroz. Y el robo.',
   'Cerrado. Tu aura se fue y tu llegaste al funeral.',
+  'Tarde. El que te robó ya se lo ha gastado y tú todavía estás escribiendo el comando.',
 ];
 
 // ─── El más buscado ──────────────────────────────────────────────────────────
@@ -529,6 +532,7 @@ const DIANA_GOLPE = [
   'Diana derribada por %A. %C cambian de manos y el ranking tiembla.',
   'Ir primero tiene premio y también tiene precio: %C, pagados hoy.',
   '%A cobra %C del que iba de invencible. Ya no lo parece tanto.',
+  'Ha caído el que iba primero. %C menos, y el resto de la lista respirando.',
 ];
 
 // ─── Los desenlaces nuevos del contraataque ──────────────────────────────────
