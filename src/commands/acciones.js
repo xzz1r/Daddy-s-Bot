@@ -16,6 +16,7 @@
 // aprendió a no hacer.
 const axios = require('axios');
 const fs = require('fs-extra');
+const path = require('path');
 const { getSender, getTarget, sameUser, isOwner, isMainOwner, canonicalJid, indexGroupMeta } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { pickFresh, tempFile, cleanTemp, ffmpegSemaphore } = require('../utils/helpers');
@@ -226,6 +227,127 @@ const TOPE_DESPENSA = 24 * 1024 * 1024;
 const despensa = new Map();      // clave -> { cola: [], ts }
 const reponiendo = new Set();    // para no pedir dos veces lo mismo a la vez
 
+// ─── Y LA DESPENSA SOBREVIVE AL REINICIO ───────────────────────────────────
+//
+// EL PROBLEMA QUE QUEDABA. La despensa vivía solo en memoria, así que cada
+// despliegue la vaciaba y la primera vez de cada acción volvía a pagar el
+// viaje entero. Medido en la VPS el 9 de septiembre, justo después de un
+// `npm run update`:
+//
+//   accion fuck: 15105 ms (traer 15105, subir 0, 37 KB, despensa 0)
+//   accion anal:  7606 ms (traer 7606,  subir 0, 55 KB, despensa 2)
+//
+// Quince segundos. Y el calentado no llega a tiempo a propósito: va de una en
+// una con treinta segundos de pausa, así que tarda unos once minutos en dejarlo
+// todo listo. Esa lentitud es deliberada —pegarle veintiuna peticiones seguidas
+// a la misma web es como te cortan el acceso, y ya pasó una vez— así que la
+// respuesta NO es calentar más rápido.
+//
+// La respuesta es no tener que calentar. Lo que se preparó antes del reinicio
+// sigue siendo válido después: son ficheros MP4 ya convertidos. Se guardan en
+// disco según se preparan y se leen al arrancar. El comando que se usa un
+// minuto después de un despliegue va tan rápido como el de ayer, y de paso la
+// web recibe MENOS peticiones, que es justo lo que la pausa larga protegía.
+//
+// LOS FICHEROS SON EL ÍNDICE. Un `indice.json` aparte se desincroniza el día
+// que el proceso muera a mitad de escritura y deje un fichero sin apuntar o un
+// apunte sin fichero. Aquí el nombre del fichero LLEVA la clave dentro, así que
+// leer el directorio es reconstruir la despensa, y lo que sobre se borra solo.
+//
+// LO QUE HAY DENTRO. Los MP4 de las acciones normales son gifs de anime; los de
+// las NSFW, lo que sean. Van a `data/`, que está fuera de git entero —el
+// repositorio es público y esto no se sube nunca— y ocupan como mucho el tope
+// de la despensa, 24 MB.
+const DESPENSA_DIR = path.join(__dirname, '../../data/despensa');
+// Un MP4 de hace dos días sigue reproduciéndose igual, pero una despensa que no
+// caduca deja de rotar: las mismas dos unidades por categoría para siempre. Con
+// un día se conserva lo que vale —el hueco después de un despliegue— y se sigue
+// renovando el contenido.
+const EDAD_MAXIMA = 24 * 60 * 60 * 1000;
+
+// El nombre lleva la clave dentro, y la clave lleva la URL de la fuente, que en
+// las NSFW es justo lo que no puede quedar escrito en claro en ningún sitio. Se
+// guarda su hash: sirve igual para agrupar y no dice de dónde salió.
+const huella = (clave) => require('crypto').createHash('sha1').update(clave).digest('hex').slice(0, 16);
+// El lote se calcula UNA VEZ por unidad y lo comparten sus dos ficheros. La
+// primera version lo calculaba dentro de cada nombre, asi que el MP4 y su
+// miniatura salian con sufijos distintos, no se agrupaban al leer, y la
+// miniatura se quedaba huerfana y se borraba sola. Sintoma: acciones que
+// volvian del disco sin miniatura y Baileys lanzando su propio ffmpeg.
+const loteNuevo = (clave) => `${huella(clave)}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+// Escribir y borrar no pueden tocar el camino caliente ni tumbar el bot: la
+// despensa es una optimización, y una optimización que rompe el comando al que
+// ayuda no ayuda. Todo va sin esperar y con el fallo tragado.
+const enDisco = new Map();       // item -> [ficheros suyos]
+let avisadoDisco = false;
+function disco(fn) {
+  Promise.resolve().then(fn).catch((e) => {
+    if (avisadoDisco) return;
+    avisadoDisco = true;
+    logger.warn(`despensa en disco: ${e.message} (sigue funcionando en memoria)`);
+  });
+}
+
+function guardarEnDisco(clave, medio) {
+  const partes = [];
+  if (medio.mp4) partes.push(['mp4', medio.mp4]);
+  else if (medio.imagen) partes.push(['img', medio.imagen]);
+  else return;
+  if (medio.thumb) partes.push(['thb', medio.thumb]);
+  const lote = loteNuevo(clave);
+  const ficheros = partes.map(([tipo]) => path.join(DESPENSA_DIR, `${lote}.${tipo}`));
+  enDisco.set(medio, ficheros);
+  disco(async () => {
+    await fs.ensureDir(DESPENSA_DIR);
+    for (let i = 0; i < partes.length; i++) await fs.writeFile(ficheros[i], partes[i][1]);
+  });
+}
+
+function borrarDeDisco(medio) {
+  const ficheros = enDisco.get(medio);
+  if (!ficheros) return;
+  enDisco.delete(medio);
+  disco(() => Promise.all(ficheros.map((f) => fs.remove(f))));
+}
+
+// Al arrancar: se lee el directorio, se agrupa por huella y se reconstruye. Lo
+// caducado y lo que no case con ninguna categoría viva se borra aquí mismo, que
+// es la única limpieza que necesita este sitio.
+async function restaurarDespensa() {
+  if (!await fs.pathExists(DESPENSA_DIR)) return 0;
+  const vivas = new Map();
+  for (const nombre of ACTIVAS) {
+    const a = ACCIONES[nombre];
+    vivas.set(huella(claveDespensa(a.cat, a.nsfw, a.catNsfw)), claveDespensa(a.cat, a.nsfw, a.catNsfw));
+  }
+  const porLote = new Map();
+  for (const f of await fs.readdir(DESPENSA_DIR)) {
+    const m = /^([0-9a-f]{16})-(\d+)-([a-z0-9]+)\.(mp4|img|thb)$/.exec(f);
+    const lleno = path.join(DESPENSA_DIR, f);
+    if (!m || !vivas.has(m[1]) || Date.now() - Number(m[2]) > EDAD_MAXIMA) { await fs.remove(lleno); continue; }
+    const lote = `${m[1]}-${m[2]}-${m[3]}`;
+    if (!porLote.has(lote)) porLote.set(lote, { clave: vivas.get(m[1]), ts: Number(m[2]), ficheros: {} });
+    porLote.get(lote).ficheros[m[4]] = lleno;
+  }
+  let n = 0;
+  for (const { clave, ficheros } of [...porLote.values()].sort((a, b) => a.ts - b.ts)) {
+    const cuerpo = ficheros.mp4 || ficheros.img;
+    // Un lote al que le falta el cuerpo es una escritura que se quedó a medias.
+    if (!cuerpo) { for (const f of Object.values(ficheros)) await fs.remove(f); continue; }
+    const medio = ficheros.mp4 ? { mp4: await fs.readFile(cuerpo) } : { imagen: await fs.readFile(cuerpo) };
+    if (ficheros.thb) medio.thumb = await fs.readFile(ficheros.thb);
+    // Si la categoría ya está llena, este lote sobra: se borra en vez de
+    // quedarse ocupando disco para siempre sin que nadie lo lea.
+    const d = despensa.get(clave);
+    if (d && d.cola.length >= LISTOS_POR_CAT) { for (const f of Object.values(ficheros)) await fs.remove(f); continue; }
+    enDisco.set(medio, Object.values(ficheros));
+    guardarEnDespensa(clave, medio, true);
+    n++;
+  }
+  return n;
+}
+
 // UN SOLO TRABAJO DE FONDO A LA VEZ, Y ESTO NO ES UN DETALLE.
 //
 // ffmpeg corre detras de un semaforo compartido con los stickers, *!toimg* y
@@ -284,6 +406,7 @@ function podarDespensa() {
   while (pesoDespensa() > TOPE_DESPENSA && despensa.size) {
     let vieja = null;
     for (const [k, v] of despensa) if (!vieja || v.ts < despensa.get(vieja).ts) vieja = k;
+    for (const m of despensa.get(vieja).cola) borrarDeDisco(m);
     despensa.delete(vieja);
   }
 }
@@ -292,16 +415,22 @@ function sacarDeDespensa(clave) {
   const d = despensa.get(clave);
   if (!d?.cola.length) return null;
   d.ts = Date.now();
-  return d.cola.shift();
+  const medio = d.cola.shift();
+  borrarDeDisco(medio);
+  return medio;
 }
 
-function guardarEnDespensa(clave, medio) {
+function guardarEnDespensa(clave, medio, delDisco = false) {
   if (!medio) return;
+  // El desglose de tiempos es de ESTA peticion. Guardado en la despensa se
+  // serviria manana como si fuera de manana, y el log mentiria.
+  delete medio._t;
   const d = despensa.get(clave) || { cola: [], ts: Date.now() };
   if (d.cola.length >= LISTOS_POR_CAT) return;
   d.cola.push(medio);
   d.ts = Date.now();
   despensa.set(clave, d);
+  if (!delDisco) guardarEnDisco(clave, medio);
   podarDespensa();
 }
 
@@ -349,6 +478,9 @@ function luego(fn, ms) {
 
 function calentarDespensa() {
   if (calentando) return;
+  // Ocupado desde ya: leer el disco es asincrono y sin esta marca una segunda
+  // llamada durante la lectura arrancaria una segunda cola de calentado.
+  calentando = true;
   const cola = ACTIVAS.slice();
   const siguiente = () => {
     const nombre = cola.shift();
@@ -366,7 +498,14 @@ function calentarDespensa() {
     if (!trabajo) { cola.unshift(nombre); luego(siguiente, ESPERA_OCUPADO); return; }
     trabajo.finally(() => luego(siguiente, ESPERA_ENTRE_CALENTADOS));
   };
-  luego(siguiente, ESPERA_PRIMER_CALENTADO);
+  // LO PRIMERO ES EL DISCO. Lo que quedo preparado antes del reinicio ya esta
+  // convertido: leerlo cuesta milisegundos y ahorra una peticion a la web por
+  // cada categoria que vuelva llena. El calentado empieza despues y se salta
+  // solo las que ya lo estan.
+  restaurarDespensa()
+    .then((n) => { if (n) logger.info(`despensa: ${n} unidad(es) recuperadas de antes del reinicio`); })
+    .catch((e) => logger.warn(`despensa en disco: ${e.message} (se calienta desde cero)`))
+    .finally(() => luego(siguiente, ESPERA_PRIMER_CALENTADO));
 }
 
 function reponerDespensa(cat, nsfw, catNsfw, clave) {
@@ -529,7 +668,14 @@ async function traerAccion(cat, nsfw, catNsfw, deDespensa = false) {
     const listo = sacarDeDespensa(claveDespensa(cat, nsfw, catNsfw));
     if (listo) return listo;
   }
+  // EL DESGLOSE DE LOS TRES PASOS. El log decia `traer 15105` y ese numero no
+  // se puede arreglar: pedirle la direccion a la web, bajarse el fichero y
+  // pasarlo por ffmpeg son tres problemas distintos y el arreglo de cada uno es
+  // otro. Con el reparto, la proxima vez que tarde ya dice cual fue.
+  const t = { api: 0, bajar: 0, convertir: 0 };
+  const marca = Date.now();
   const { data } = await axios.get(direccionDe(base, cual), { timeout: 12000 });
+  t.api = Date.now() - marca;
   // Cada web contesta a su manera: nekos.best mete todo en results[], y las
   // demas suelen devolver {url} a secas. Se aceptan las dos para que cambiar de
   // fuente sea poner una linea en el .env y nada mas.
@@ -541,10 +687,12 @@ async function traerAccion(cat, nsfw, catNsfw, deDespensa = false) {
     || (data?.link ? { url: data.link } : null)
     || (data?.images?.[0]?.url ? { url: data.images[0].url } : null);
   if (!r?.url) throw new Error('la web no ha devuelto ningun gif');
+  const marca2 = Date.now();
   const bajado = await axios.get(r.url, {
     responseType: 'arraybuffer', timeout: 15000,
     maxContentLength: TOPE_DESCARGA, maxBodyLength: TOPE_DESCARGA,
   });
+  t.bajar = Date.now() - marca2;
   const bytes = Buffer.from(bajado.data);
 
   // NO TODA FUENTE DEVUELVE UN GIF. La de las acciones normales si, pero en
@@ -558,14 +706,12 @@ async function traerAccion(cat, nsfw, catNsfw, deDespensa = false) {
   //   · MP4 -> tal cual.
   //   · imagen fija -> se manda como imagen, sin tocar ffmpeg.
   const tipo = queEs(bytes);
-  if (tipo === 'imagen') {
-    return { imagen: bytes };
-  }
-  if (tipo === 'mp4') {
-    return { mp4: bytes };
-  }
+  if (tipo === 'imagen') return { imagen: bytes, _t: t };
+  if (tipo === 'mp4') return { mp4: bytes, _t: t };
+  const marca3 = Date.now();
   const { buf: mp4, thumb } = await gifAMp4(bytes, deDespensa);
-  return { mp4, thumb };
+  t.convertir = Date.now() - marca3;
+  return { mp4, thumb, _t: t };
 }
 
 // Por la cabecera, no por la extension.
@@ -720,7 +866,9 @@ function hazAccion(nombre) {
     // diagnosticar: traer el gif y subirlo a WhatsApp son dos problemas
     // distintos, con arreglos distintos, y el log decia solo el total.
     if (tTraer + tSubir > 1500) {
-      logger.warn(`accion ${nombre}: ${tTraer + tSubir} ms (traer ${tTraer}, subir ${tSubir}, `
+      const t = traido._t;
+      const reparto = t ? ` [web ${t.api}, bajar ${t.bajar}, ffmpeg ${t.convertir}]` : '';
+      logger.warn(`accion ${nombre}: ${tTraer + tSubir} ms (traer ${tTraer}${reparto}, subir ${tSubir}, `
         + `${Math.round(pesaDe(traido) / 1024)} KB, despensa ${despensa.get(claveDespensa(cat, nsfw, catNsfw))?.cola.length ?? 0})`);
     }
 
@@ -759,4 +907,4 @@ function hazAccion(nombre) {
 const comandos = {};
 for (const nombre of ACTIVAS) comandos[nombre] = hazAccion(nombre);
 
-module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, calentarDespensa, _fondo: () => fondoEnCurso, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, ...comandos, _turnoRoast: turnoRoast };
+module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, calentarDespensa, _restaurarDespensa: restaurarDespensa, _guardarEnDespensa: guardarEnDespensa, _sacarDeDespensa: sacarDeDespensa, _DESPENSA_DIR: DESPENSA_DIR, _fondo: () => fondoEnCurso, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, ...comandos, _turnoRoast: turnoRoast };

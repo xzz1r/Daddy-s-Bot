@@ -945,6 +945,32 @@ git pull origin main
   fingiendo que se cayó la web, porque un rechazo con nombre solo le pasa a una
   persona y a la segunda vez el grupo sabe quién manda en el bot.
 
+  La despensa **sobrevive al reinicio**. Vivía solo en memoria, así que cada
+  despliegue la vaciaba, y el calentado tarda unos once minutos a propósito: va
+  de una en una con treinta segundos de pausa porque veintiuna peticiones
+  seguidas a la misma web es como te cortan el acceso, y ya pasó. O sea que
+  después de cada actualización había una ventana larga en la que cada acción
+  volvía a pagar el viaje entero. Medido en la VPS el 9 de septiembre, justo
+  después de un `npm run update`:
+
+  ```
+  accion fuck: 15105 ms (traer 15105, subir 0, 37 KB, despensa 0)
+  accion anal:  7606 ms (traer 7606,  subir 0, 55 KB, despensa 2)
+  ```
+
+  La respuesta no es calentar más rápido, que es justo lo que la pausa larga
+  evita. Es no tener que calentar: lo preparado antes del reinicio son MP4 ya
+  convertidos y siguen valiendo. Se guardan en `data/despensa/` según se
+  preparan y se leen al arrancar, así que el comando de un minuto después de un
+  despliegue va como el de ayer y la web recibe **menos** peticiones. Caducan a
+  las 24 h para que el contenido siga rotando. El nombre del fichero lleva
+  dentro el hash de la categoría, así que el directorio **es** el índice: no hay
+  un `indice.json` que pueda desincronizarse, y lo que sobra se borra al leer.
+
+  Y cuando una acción tarda, el log ya dice **dónde**: `traer 15105 [web 400,
+  bajar 260, ffmpeg 14400]`. Los tres pasos son tres problemas distintos con
+  arreglos distintos, y un solo número no se puede arreglar.
+
 - **El cartel del día** (`avisos.js`, pool `OBJETIVO_DIA_CARTEL`): lo único que
   el bot dice sin que nadie le hable y que no es moderación. El objetivo del día
   llevaba tiempo calculándose en silencio —daba bonus de botín y de

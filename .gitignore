@@ -61,3 +61,7 @@ temp/
 
 # La marca del ritmo de reinicios: es de ESTA maquina, no del repositorio.
 data/estadoReinicios.json
+
+# La despensa de las acciones en disco: MP4 ya convertidos, incluidos los de
+# los comandos NSFW. Nunca sube al repositorio.
+data/despensa/

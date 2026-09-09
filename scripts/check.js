@@ -7173,6 +7173,64 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
         'el mensaje de video ya no lleva miniatura: Baileys lanzara su propio ffmpeg al enviarlo, dentro del camino caliente');
     }
 
+    // ── Y SOBREVIVE AL REINICIO ─────────────────────────────────────────
+    //
+    // El calentado tarda once minutos a proposito, asi que despues de cada
+    // despliegue hay una ventana larga con la despensa vacia. Medido en la VPS
+    // justo despues de un `npm run update`: *!fuck* tardo 15105 ms. Lo que se
+    // preparo antes del reinicio sigue valiendo —son MP4 ya convertidos— asi
+    // que se guarda en disco y se lee al arrancar.
+    //
+    // SE COMPRUEBA EL VIAJE ENTERO, no que exista la funcion: guardar, olvidar
+    // la memoria como haria un reinicio, y recuperar el MISMO buffer con su
+    // miniatura. La primera version de este codigo agrupaba mal los ficheros y
+    // perdia las miniaturas por el camino; una guarda que solo mirase el texto
+    // habria pasado en verde.
+    {
+      const fsx = require('fs-extra');
+      const dir = acc._DESPENSA_DIR;
+      const previo = await fsx.pathExists(dir) ? await fsx.readdir(dir) : null;
+      // Una accion DE VERDAD: al leer el disco solo se recuperan las
+      // categorias que siguen existiendo, asi que una inventada se borraria
+      // sola y la prueba pasaria en verde sin probar nada.
+      const real = acc.ACCIONES[acc.ACTIVAS[0]];
+      const clave = acc._claveDespensa(real.cat, real.nsfw, real.catNsfw);
+      const cuerpo = Buffer.from('prueba-de-despensa-en-disco');
+      const thumb = Buffer.from('miniatura');
+      acc._guardarEnDespensa(clave, { mp4: cuerpo, thumb });
+      await new Promise((r) => setTimeout(r, 400));
+
+      // El "reinicio": el modulo se recarga y su despensa nace vacia.
+      for (const k of Object.keys(require.cache)) if (k.endsWith('commands/acciones.js')) delete require.cache[k];
+      const acc2 = require(path.join(R, 'src/commands/acciones'));
+      exige(acc2._despensa.size === 0, 'la despensa no nace vacia tras recargar: la prueba no vale');
+      await acc2._restaurarDespensa();
+      const cola = acc2._despensa.get(clave)?.cola || [];
+      const vuelto = cola.find((x) => x.mp4 && Buffer.compare(x.mp4, cuerpo) === 0);
+      exige(!!vuelto,
+        'la despensa no sobrevive al reinicio: despues de cada despliegue vuelve a haber once minutos en los que cada accion paga el viaje entero (medido: 15105 ms)');
+      exige(!!vuelto && vuelto.thumb && Buffer.compare(vuelto.thumb, thumb) === 0,
+        'lo recuperado del disco viene sin miniatura: Baileys lanza su propio ffmpeg al enviar, en el unico core de la VPS y con alguien esperando');
+
+      // Y lo consumido deja de ocupar disco.
+      if (vuelto) {
+        // POR DIFERENCIA DE FICHEROS, NO POR CUENTA. Las capas corren en
+        // paralelo y el calentado de otra puede estar escribiendo en este mismo
+        // directorio: contar cuantos hay da rojo sin que nada este mal. Lo que
+        // se exige es que desaparezca alguno de LOS QUE HABIA.
+        const antesF = await fsx.readdir(dir);
+        acc2._sacarDeDespensa(clave);
+        await new Promise((r) => setTimeout(r, 400));
+        const despuesF = new Set(await fsx.readdir(dir));
+        exige(antesF.some((f) => !despuesF.has(f)),
+          'consumir una unidad no borra su fichero: el directorio crece sin tope hasta llenar el disco de la VPS');
+      }
+      // Se deja como estaba: esto corre en la maquina del dueño.
+      for (const f of await fsx.readdir(dir)) if (!previo || !previo.includes(f)) await fsx.remove(path.join(dir, f));
+      if (!previo) await fsx.remove(dir);
+      for (const k of Object.keys(require.cache)) if (k.endsWith('commands/acciones.js')) delete require.cache[k];
+    }
+
     if (fallos === antes) console.log(verde('   ✓ la despensa se mira antes de la red, repone lo suyo, manda ligero y se llena sola sin rafagas'));
   }
     // ── LAS FRASES DE ACCION NO PUEDEN TENER GENERO ─────────────────────
