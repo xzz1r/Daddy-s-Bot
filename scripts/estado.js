@@ -138,6 +138,55 @@ if (!fs.existsSync(envPath)) {
   }
 }
 
+// ─── EL CONTADOR DE REINICIOS NO ES UNA MEDIDA, ES UNA CICATRIZ ──────────────
+//
+// `restart_time` de pm2 es ACUMULADO desde que se creó el proceso, y no baja
+// nunca: ni con `pm2 restart`, ni con un despliegue, ni cuando se arregla lo
+// que estaba tirando el proceso. Solo lo pone a cero `pm2 reset <app>`.
+//
+// Esto lo aprendimos caro. El guardián estuvo con el techo de RAM 9 MB por
+// debajo de su propio consumo, pm2 lo mataba y lo levantaba en bucle, y el
+// contador llegó a 2954. Se arregló el techo… y el aviso siguió saliendo igual,
+// porque 2954 es historia, no presente. Un aviso que no se apaga al arreglar la
+// causa no es un aviso: es ruido, y el ruido se acaba ignorando justo el día
+// que dice la verdad.
+//
+// Así que lo que se mira es el RITMO: cuánto ha subido el contador desde la
+// última vez que se miró. Eso sí distingue "esto está pasando ahora" de "esto
+// pasó y ya está resuelto".
+const MARCA = path.join(RAIZ, 'data/estadoReinicios.json');
+function reinicios(quien, ahora, tope, arreglo) {
+  let previo = {};
+  try { previo = JSON.parse(fs.readFileSync(MARCA, 'utf8')); } catch {}
+  const antes = previo[quien];
+  const guardar = () => {
+    previo[quien] = { n: ahora, ts: Date.now() };
+    try { fs.writeFileSync(MARCA, JSON.stringify(previo, null, 2)); } catch {}
+  };
+
+  // Sin marca previa, o con el contador por debajo del que había (alguien hizo
+  // `pm2 reset`, o pm2 recreó el proceso): no hay ritmo que medir todavía.
+  if (!antes || ahora < antes.n) {
+    guardar();
+    if (ahora > 200) {
+      aviso(`${quien}: ${ahora} reinicios acumulados, pero no sé de cuándo son`,
+        `pm2 reset ${quien === 'guardián' ? 'guardian' : 'bot'}   ← pone el contador a cero y así el próximo aviso significa algo`);
+    } else bien(`${quien}: ${ahora} reinicios acumulados (primera medida)`);
+    return;
+  }
+
+  const subio = ahora - antes.n;
+  const horas = Math.max(1, Math.round((Date.now() - antes.ts) / 3600000));
+  guardar();
+  if (subio > tope) {
+    aviso(`${quien}: ${subio} reinicios en las últimas ${horas} h, y eso no son despliegues`, arreglo);
+  } else if (subio > 0) {
+    bien(`${quien}: ${subio} reinicio(s) en ${horas} h (los despliegues cuentan)`);
+  } else {
+    bien(`${quien}: sin reiniciarse desde hace ${horas} h`);
+  }
+}
+
 // ─── Proceso ─────────────────────────────────────────────────────────────────
 titulo('Proceso');
 let lista = [];
@@ -159,9 +208,7 @@ if (!bot) {
   if (ram > 400) aviso(`usando ${ram} MB de RAM, va justo`, 'pm2 restart all');
   else bien(`${ram} MB de RAM`);
 
-  // Reinicios: unos pocos son normales (actualizaciones). Muchos, no.
-  const r = env.restart_time || 0;
-  if (r > 200) aviso(`${r} reinicios acumulados; si sube solo, algo lo está tirando`, 'pm2 logs --err --lines 50');
+  reinicios('bot', env.restart_time || 0, 3, 'pm2 logs bot --err --lines 50');
 
   if (!env.max_memory_restart) {
     aviso('arrancado sin ecosystem.config.js: no hay tope de RAM ni de logs',
@@ -250,14 +297,9 @@ if (!bot) {
         'sube max_memory_restart en ecosystem.config.js y pm2 reload ecosystem.config.js');
     } else if (techo) bien(`guardián en ${mb} MB de ${techo} MB`);
 
-    // Y el contador de reinicios: para el guardián el listón es MUCHO más bajo
-    // que para el bot. El bot se reinicia en cada despliegue; el guardián no
-    // debería reiniciarse casi nunca.
-    const r = env.restart_time || 0;
-    if (r > 20) {
-      aviso(`el guardián lleva ${r} reinicios: eso no son despliegues, algo lo está tirando`,
-        'pm2 logs guardian --err --lines 50');
-    }
+    // Para el guardián el listón es MUCHO más bajo que para el bot: el bot se
+    // reinicia en cada despliegue, el guardián casi nunca.
+    reinicios('guardián', env.restart_time || 0, 1, 'pm2 logs guardian --err --lines 50');
   }
 }
 

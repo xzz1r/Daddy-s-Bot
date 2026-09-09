@@ -58,3 +58,6 @@ temp/
 # Nunca borrar la carpeta data/ con git clean
 !data/.gitkeep
 !temp/.gitkeep
+
+# La marca del ritmo de reinicios: es de ESTA maquina, no del repositorio.
+data/estadoReinicios.json
