@@ -379,12 +379,14 @@ halago.
 > «Estructura buena, piel buena, proporciones buenas. Aburrido de leer y
 > molesto de aceptar.»
 
-**7. Nada de analogía barata.** Si el chiste es el objeto («eres más fiel que
-un perro», «tu lealtad es como el wifi del vecino»), la frase no va. Se le
-puede mandar a cualquiera del grupo sin cambiar una letra, y por eso no
-duele. Habla de lo que esa persona *hace*. Hay 221 frases marcadas con
-`// ANALOGÍA` pendientes de reescribir: `PENDIENTE.md`. `como quien` + verbo
-sí vale: colorea una actitud, no sustituye al ataque.
+**7. Nada de analogía barata.** Si el chiste es el objeto («Café de máquina:
+dos sorbos y a cenicero», «Nokia que aún enciende», «Besas el cubilete
+vacío»), la frase no va. Se le puede mandar a cualquiera del grupo sin
+cambiar una letra, y por eso no duele. Habla de lo que esa persona *acaba
+de hacer*. Hay 225 frases marcadas con `// ANALOGÍA` en `AURA.gain` /
+`AURA.loss`, el cooldown de `!aura` y `MAL_ESCRITO`: `PENDIENTE.md`.
+`como quien` + verbo sí vale: colorea una actitud, no sustituye al ataque.
+`!fiel` / `!infiel` no entra en este encargo.
 
 ### El refuerzo: cómo escribe Rockstar
 

@@ -1,8 +1,7 @@
 # PENDIENTE — analogías baratas (Grok terminal)
 
-Encargo del dueño, 9 sep 2026. **No está hecho: hay que reescribir las frases
-marcadas.** Este fichero es el brief. Las frases están marcadas en el código
-con `// ANALOGÍA`.
+Encargo del dueño, 9 sep 2026. **No está hecho.** 225 frases marcadas
+con `// ANALOGÍA`. Este fichero es el brief.
 
 ## El encargo, en una línea
 
@@ -12,344 +11,360 @@ Palabras del dueño: «todos los insultos del bot son analogías baratas, sin
 coherencia, estúpidas y sin jugo real. Prefiero ataques directos y con
 coherencia».
 
+Y después aclaró **dónde**: no en `!fiel` / `!infiel`. En `!aura gana`,
+`!aura pierde`, la respuesta cuando alguien escribe mal un comando, el
+roast de quien usa acciones, y el mismo registro en el cooldown de `!aura`.
+
 ## Qué hacer
 
-1. `grep -n "ANALOGÍA" src/data/fidelityPhrases.js src/data/percentLabels.js`
+1. `grep -n "ANALOGÍA" src/commands/aura.js src/data/cooldownPhrases.js src/data/avisos.js src/data/accionPhrases.js`
    — esas líneas, y solo esas.
 2. Reescribe cada una **en el sitio**. Quita el `// ANALOGÍA` cuando la frase
    nueva ya no compare a la persona con un objeto.
-3. **No reescribas el fichero entero.** En `fidelityPhrases.js` hay ~600
-   frases y solo ~215 son el problema. Las demás ya hablan de la persona.
-   Machacarlas es peor que dejarlas.
-4. No toques el motor (`src/commands/`, `src/utils/`, `src/handlers/`).
-5. Al terminar: `npm run check && npm run analogias && npm run progreso`.
-   `npm run analogias` tiene que devolver **0 pendientes** (exit 0).
+3. **No reescribas el pool entero** si hay líneas sin marca: esas ya hablan
+   de la persona o son ejemplos del dueño (intocables, al inicio de
+   `blessed` / `loss` / `cursed`).
+4. `!fiel` / `!infiel` (`fidelityPhrases.js`) **no se toca**. Es dinámica.
+5. No toques el motor. No toques importes, probabilidades ni cooldowns.
+6. Al terminar: `npm run check && npm run analogias`. `npm run analogias`
+   tiene que devolver **0 pendientes** (exit 0).
 
 ## Por qué no funcionan
 
-El chiste es el OBJETO, no la persona:
+El chiste es el OBJETO, no quien acaba de tirar:
 
-- «Eres más fiel que un perro callejero al primer gilipollas que le da pan.»
-- «Tu lealtad es como el wifi del vecino: siempre ahí y nadie la merece.»
-- «Eres más firme que una estaca en el culo de un vampiro.»
+- «Café de máquina: dos sorbos y a cenicero.»
+- «Nokia que aún enciende. No sabe cómo apagarse. El saldo tampoco.»
+- «Bajaste como baja un calcetín.»
+- «Besas el cubilete vacío.»
+- «La galleta de la suerte ya está abierta.»
 
 Se le pueden mandar a cualquiera del grupo sin cambiar una letra. Un insulto
 que vale para todos no va dirigido a nadie. Y la mitad gastan la segunda
-oración justificando la comparación («con la diferencia de que…», «pero esta
-mola») en vez de rematar.
+oración justificando la comparación en vez de rematar.
 
 ## Qué se pide en su lugar
 
-Habla de la PERSONA y de lo que hace. Nombra la conducta. Si le quitas la
-comparación y no queda nada, la frase era basura.
+Habla de la PERSONA y de lo que acaba de pasar (ganó poco, perdió, spameó
+`!aura`, escribió mal el comando, pagó un gif para fingir contacto).
 
 ```
-ANTES  Eres más falso que un billete de tres euros pintado con rotulador.
-ASÍ    Dices que sí a todo y no cumples ni una. Al final ya nadie te lo pide,
-       que es peor que un no.
+ANTES  Nokia que aún enciende. No sabe cómo apagarse. El saldo tampoco.
+ASÍ    Has ganado y el ranking ni se ha enterado. El número se mueve,
+       tú no.
 
-ANTES  Tu lealtad es como una cucaracha: sobrevive a todo.
-ASÍ    Sigues ahí cuando ya no queda nada que ganar. Eso no se finge y por
-       eso incomoda.
+ANTES  Bajaste como baja un calcetín: solo, sin ceremonia.
+ASÍ    Perdiste y el grupo siguió hablando. Ni un visto. Eso es lo que
+       pesas aquí.
 
-ANTES  Eres el puto Netflix de las relaciones: varios perfiles activos.
-ASÍ    Tienes tres conversaciones abiertas y a las tres les dices lo mismo.
-       Se te va a caer por el orden de los mensajes, no por la mentira.
+ANTES  Besas el cubilete vacío. El cuero no tiene más números.
+ASÍ    Acabas de tirar. Pedir otra ahora es decirle al grupo que una
+       no te llenó. Nada te llena.
+
+ANTES  Analfabetismo con wifi.
+ASÍ    Lo tenías copiado ahí arriba y lo has escrito mal igual.
+       Ni copiando.
 ```
 
-Las de la derecha se pueden verificar: describen algo que alguien hace.
+Las de la derecha se pueden verificar: describen lo que acaba de hacer.
+
+El registro bueno ya está en `AURA.blessed` y en los cinco ejemplos
+intocables de `loss` / `cursed`. Cópialo: el grupo reacciona a ESA
+persona, no a un nokia.
 
 ## Qué NO es analogía barata (no las toques)
 
-- `como quien` + verbo: `%A besa a %V como quien firma algo`. Colorea una
-  actitud. Es el registro bueno.
-- Remate `más X que tú` donde el sujeto sigue siendo la persona:
-  «El algoritmo tiene más dignidad que tú.»
-- Dato concreto de la persona con un `más que` de escala:
-  «Tu cama tiene más migas que una panadería.» (es SU cama)
-- Modismo «más cojones que sentido común».
-
-## Reglas del fichero que siguen en pie
-
-Lee `GUIA.md` §5 bis antes de escribir. En `fidelityPhrases.js` además:
-
-- FIEL alto y FIEL medio = HALAGO. FIEL bajo = paliza. En INFIEL al revés.
-  Un halago que insulta rompe el comando.
-- Nada de género: `[nombre]` le toca a cualquiera. Ni «él», ni adjetivos en
-  -o predicados de la persona. `npm run check` lo pilla.
-- Ni dos frases iguales con una palabra cambiada. La capa 17 las caza.
-- 101 por pool. No las bajes. Sustituye, no borres.
-- Polaridad, placeholders y arsenal: igual que el resto del corpus.
+- `como quien` + verbo: «Perdiste aura como quien pierde un botón.»
+- Los cinco ejemplos del dueño al inicio de `blessed`, `loss` y `cursed`
+  (marcados `intocables`).
+- `ROAST_USUARIO` en general: ese pool ya ataca la conducta (pagar un
+  gif para fingir contacto). Solo hay tres líneas marcadas ahí.
+- `fidelityPhrases.js`. Dinámica. Fuera de este encargo.
 
 ## Dónde está cada una
 
-Total marcado: **221**. Casi todo en `fidelityPhrases.js` (el fichero de `!fiel` / `!infiel`). Seis en `percentLabels.js`.
+Total marcado: **225**.
 
 | Pool | Cuántas |
 |---|---|
-| `src/data/fidelityPhrases.js · INFIEL_MID` | 48 |
-| `src/data/fidelityPhrases.js · INFIEL_HIGH` | 39 |
-| `src/data/fidelityPhrases.js · FIEL_MID` | 38 |
-| `src/data/fidelityPhrases.js · FIEL_LOW` | 34 |
-| `src/data/fidelityPhrases.js · FIEL_HIGH` | 30 |
-| `src/data/fidelityPhrases.js · INFIEL_LOW` | 26 |
-| `src/data/percentLabels.js · gay.mid` | 4 |
-| `src/data/percentLabels.js · simp.high` | 1 |
-| `src/data/percentLabels.js · inutil.high` | 1 |
+| `src/commands/aura.js · AURA.gain` | 94 |
+| `src/commands/aura.js · AURA.loss` | 58 |
+| `src/data/cooldownPhrases.js · AURA_TIRADA` | 33 |
+| `src/commands/aura.js · AURA.spiral` | 13 |
+| `src/data/avisos.js · MAL_ESCRITO` | 5 |
+| `src/commands/aura.js · AURA.blessed` | 4 |
+| `src/commands/aura.js · AURA.cursed` | 4 |
+| `src/data/cooldownPhrases.js · GENERICO` | 4 |
+| `src/data/cooldownPhrases.js · AURA_APOSTAR` | 3 |
+| `src/data/accionPhrases.js · ROAST_USUARIO` | 3 |
+| `src/data/cooldownPhrases.js · AURA_TOP_ANSIAS` | 2 |
+| `src/data/cooldownPhrases.js · AURA_TOP_POBRE` | 2 |
 
 ## Inventario completo
 
-Índice = número de línea en el fichero. Reescribe esa línea.
+Índice = número de línea. Reescribe esa línea.
 
-### src/data/fidelityPhrases.js · FIEL_HIGH  (30)
+### src/commands/aura.js · AURA.blessed  (4)
 
-- `L90` Fiel como un puto labrador viejo: ni se va, ni ladra, ni deja de estar ahí. Incomodo de lo leal que es.
-- `L94` Eres mas fiel que un perro callejero al primer gilipollas que le da un trozo de pan. Pero lo digo con carino.
-- `L98` Tu lealtad es como una cucaracha nuclear: sobrevive a todo, no hay quien la mate y esta ahí cuando el mundo se acaba.
-- `L102` Fiel como la gravedad: siempre ahí, sin que nadie te lo pida, jodiéndote las rodillas pero sujetando todo el tinglado.
-- `L105` Coño, tienes mas lealtad que un guardaespaldas del narco. Con la diferencia de que a ti no te pagan, lo haces gratis, que es peor.
-- `L106` La lealtad de [nombre] aguanta mas presión que los cimientos de una catedral. Y lleva mas años en pie que la mayoria.
-- `L107` Eres fiel como un reloj de los viejos: no necesita pilas, no necesita wifi, simplemente funciona porque le sale de los cojones.
-- `L114` Coño, eres mas fiable que la muerte. Que es lo único seguro en esta vida, y ahora resulta que tu también.
-- `L116` Tu fidelidad es como el hormigon armado: fea de mirar, pero joder, aguanta lo que le eches sin partirse.
-- `L119` Fiel como la mierda al zapato: no hay quien te separe de los tuyos, por mucho que el camino sea una pocilga.
-- `L120` Hostia, este cabrón tiene mas principios que el puto codigo civil. Y los cumple mejor, además.
-- `L122` Tu nivel de lealtad es como encontrar un billete de quinientos en la calle: nadie se lo cree hasta que lo tiene delante.
-- `L126` Eres mas constante que un dolor de muelas. Con la diferencia de que a ti se te quiere tener cerca.
-- `L128` Tu fidelidad da mas seguridad que un chaleco antibalas, un bunker y una cuenta en Suiza juntos. Y sale gratis, coño.
-- `L129` Hostia puta, alguien tan fiel en esta epoca es como ver un unicornio cagando arcoiris. No debería existir pero ahí esta.
-- `L132` Tienes mas fidelidad que un soldado japones de los que seguian en la selva treinta años después de la guerra. Sin coña.
-- `L133` Coño, tu lealtad es como el wifi del vecino: siempre ahí, siempre fiable, y la mayoria no se merece tenerla gratis.
-- `L139` Tu fidelidad me da miedo, cabrón. Es como esa calma antes del terremoto, pero el terremoto nunca llega porque tu no fallas.
-- `L142` Eres mas firme que una estaca en el culo de un vampiro. Incapaz de moverte, incapaz de fallar, incapaz de soltar. Admirable.
-- `L143` Coño, [nombre], tu lealtad sobrevive a las discusiones, a la distancia y al paso del tiempo. Es como una cucaracha pero en bonito.
-- `L145` La fidelidad de este cabrón tiene mas capas que una puta cebolla. Y al pelarla no lloras, que es lo bueno.
-- `L154` Tu fidelidad es como un tatuaje en la cara: no la puedes esconder, no la puedes quitar, y todo el mundo la ve. Respeto, joder.
-- `L158` La lealtad de [nombre] es como una ETS incurable: una vez que la pillas, la tienes para siempre. Pero esta mola.
-- `L164` Tu lealtad es como el olor a ajo: penetrante, imposible de ignorar y se queda con todo el que te conoce. Joder.
-- `L172` Eres mas fiable que el amanecer, cabrón. Que puede llover, nevar o caer mierda del cielo, pero tu vas a estar ahí.
-- `L173` Joder, tu lealtad es como un herpes: no se va nunca. Pero un herpes bueno, si eso existiese. Creo que acabo de inventarlo.
-- `L178` Tu eres fiel como una hipoteca a cuarenta años: siempre presente, imposible de ignorar y al final todo el mundo te agradece.
-- `L180` Hostia puta, la lealtad de [nombre] es como una bomba nuclear de confianza. No la sueltas a menudo, pero cuando esta ahí, se nota, coño.
-- `L182` [nombre] tiene mas lealtad que neuronas tiene un terraplanista. Que no es difícil, pero viniendo de alguien real, impresiona.
-- `L186` [nombre], tu lealtad es como una infeccion: se pega. La gente a tu alrededor empieza a ser mejor persona y ni sabe por que, el muy cabrón.
+- `L187` El puto grupo te ha mirado como se mira un radar en negativo: "este no era el blip".
+- `L197` Has apagado el modo burla como se apaga una tele a las tres.
+- `L212` Te han hecho sitio de mala gana, como en un ascensor lleno.
+- `L224` Eres el radar que no debería pitar y está pitando.
 
-### src/data/fidelityPhrases.js · FIEL_LOW  (34)
+### src/commands/aura.js · AURA.cursed  (4)
 
-- `L305` Joder, [nombre], eres tan fiel como un billete falso: pasas de mano en mano y todo el que te pilla se siente estafado.
-- `L306` Tu lealtad es como la virginidad de un actor porno: se perdio hace tanto que ya nadie recuerda que existio.
-- `L311` [nombre] cambia de lealtad mas rápido que un chaval de quince años cambia de paja. Cada día una nueva, sin compromiso ninguno.
-- `L315` Coño, tienes mas caras que un dado de rol. Y en todas sale el mismo resultado: traidor hijo de la gran puta.
-- `L318` Joder, tu lealtad es como el papel de vater de un bar: aspera, escasa y nadie en su sano juicio querría depender de ella.
-- `L323` Tu concepto de fidelidad es como el WiFi gratis de un McDonalds: existe en teoria, pero en la practica es tan mierda que nadie lo usa.
-- `L324` Lo de [nombre] es mas falso que un billete de tres euros pintado con rotulador. Y aun así hay gilipollas que se lo tragan.
-- `L326` Tu historial de traiciones tiene mas capitulos que Cuentame. Y el argumento siempre es el mismo: tu jodiendo a alguien.
-- `L333` Tu lealtad es como un culo después de Taco Bell: explosiva, impredecible y deja un desastre que nadie quiere limpiar.
-- `L335` Coño, eres mas rastrero que una babosa en un sotano humedo. Dejas un rastro de mierda por donde pasas y nadie quiere tocarte.
-- `L339` Tu compromiso se evapora mas rápido que el alcohol en una puta herida. Escuece un segundo y desaparece para siempre.
-- `L342` Coño, tu lealtad es como una braga rota: no sujeta nada, no cubre nada y todo el mundo ve lo que no debería verse.
-- `L344` [nombre] tiene la palabra mas vacia que el cerebro de un terraplanista. Y eso, joder, ya es alcanzar niveles astronomicos de vacio.
-- `L352` Eres mas cinico que un dentista comiendo caramelos: sabes exactamente el daño que haces y te la suda, mierda humana.
-- `L356` Tu lealtad es como el pelo de un calvo: todo el mundo sabe que no esta, pero tu sigues peinándote como si existiera.
-- `L357` [nombre] tiene mas vidas que un gato, pero todas las usa para joder a alguien distinto. Nueve traiciones garantizadas.
-- `L358` Joder, tu fidelidad es como la pasta de dientes de un avión: tamaño miniatura, dura un viaje y nadie la quiere de verdad.
-- `L361` Hostia puta, tu compromiso es como una erección de las cuatro de la mañana: aparece sin motivo, dura poco y no le sirve a nadie.
-- `L363` Tu palabra tiene menos valor que una moneda de chocolate: se derrite en cuanto la aprietas y no puedes comprar nada con ella.
-- `L366` Tu fidelidad es como buscar señal en un bunker nuclear: puedes intentarlo, pero todo el mundo sabe que es imposible.
-- `L369` Eres mas traicionero que un escalon mojado: no se ve venir, te partes la hostia y cuando te recuperas ya se ha secado la prueba.
-- `L372` Tu historial de fidelidad es mas corto que la polla de un hamster. Y al menos el hamster la usa con honestidad.
-- `L373` Hostia puta, [nombre] tiene menos principios que un McPollo tiene pollo. Y mira que el McPollo ya es cuestionable de cojones.
-- `L378` Tu compromiso es como una tapa de cerveza: se abre con facilidad, se tira sin pensar y nadie la recoge del puto suelo.
-- `L381` Coño, eres mas resbaladizo que una anguila con vaselina. Nadie puede agarrarte, nadie puede fiarse y nadie quiere tocarte.
-- `L382` Tu lealtad es como una tienda de Todo a Cien: parece que hay mucho dentro pero todo es de mierda y se rompe al primer uso.
-- `L387` Coño, tu palabra es como un pañuelo de papel: la usas una vez, la tiras y nadie en su puto juicio la recogeria del suelo.
-- `L391` Tu lealtad es como un fantasma: todo el mundo habla de ella pero nadie la ha visto nunca. Y probablemente no existe.
-- `L392` Hostia puta, [nombre] es mas traidor que un GPS que te lleva por peajes. Te jode el bolsillo y encima te dice que es el camino mas corto.
-- `L393` Coño, tu compromiso es como una bolsa de basura: sirve para cargar mierda un rato y después se tira sin mirar dentro.
-- `L396` Joder, tu fidelidad es como la conexion Bluetooth de un coche viejo: se intenta, no conecta y al final vas con el cable.
-- `L399` Hostia, tu lealtad tiene menos capas que un chicle masticado: fino, pegajoso y asqueroso de mirar.
-- `L400` Coño, tu palabra es mas falsa que las tetas de una presentadora de Telecinco. Y al menos las de ella tienen garantia.
-- `L401` Tu fidelidad es como el wifi de un hospital: existe en teoria, nadie sabe la contraseña y cuando la tienes no funciona.
+- `L586` Perdiste con la elegancia de un saco de mierda cayendo por las escaleras.
+- `L602` Has dejado el ambiente de pedo en ascensor con diez pisos.
+- `L638` Has hecho el equivalente a vomitar en la mesa y seguir comiendo.
+- `L657` El ambiente se ha puesto de ascensor parado entre dos pisos.
 
-### src/data/fidelityPhrases.js · FIEL_MID  (38)
+### src/commands/aura.js · AURA.gain  (94)
 
-- `L197` Joder, [nombre], eres fiel como una bombilla que parpadea: a veces das luz, a veces dejas a oscuras, y nadie sabe cuando te vas a fundir del todo.
-- `L198` Tu lealtad es como la cobertura en un pueblo de mierda: va y viene, y justo cuando mas la necesitas se corta.
-- `L203` Tu compromiso es como un condon del chino: parece que aguanta, pero nadie con dos dedos de frente se fiaria de verdad.
-- `L208` Hostia puta, tu fidelidad tiene mas altibajos que la bolsa en un lunes negro. Nadie sabe donde invertir contigo.
-- `L209` Coño, eres como esos yogures que no sabes si estan caducados: no huelen mal del todo, pero nadie con sentido comun se los come.
-- `L213` Tu compromiso es como una erección después de diez cervezas: la intención esta, pero el resultado es bastante discutible.
-- `L214` Hostia, [nombre], eres mas impredecible que una cagada después de kebab. Nadie sabe si hoy toca fiel o toca que la cagues.
-- `L218` Tu fidelidad es como el pene de un viejo: unas veces funciona y otras no, y nadie sabe cuando va a responder, joder.
-- `L219` Joder, tu lealtad tiene mas grietas que un piso de Idealista por doscientos euros al mes. Se ve el desastre pero te lo venden bonito.
-- `L222` Hostia, ni te vas ni te quedas del todo. Eres como una puta puerta batiente: estas dentro y fuera a la vez sin decidirte nunca.
-- `L225` Eres el Thermomix de la fidelidad: haces de todo un poco pero nada bien. Ni leal ni traidor, simplemente mediocre.
-- `L226` Joder, tu compromiso es como hacer dieta un lunes: dura hasta que ves una pizza, y la pizza siempre aparece.
-- `L229` Tu fidelidad es como una polla dibujada en un pupitre: parece que esta ahí para siempre, pero con un poco de esfuerzo se borra.
-- `L235` Eres fiel como un borracho es elocuente: a ratos parece que si, pero nadie con dos dedos de frente se lo creeria del todo.
-- `L236` Hostia, tu compromiso es como una suscripción de gimnasio: pagas el primer mes motivado y el segundo ya ni apareces.
-- `L238` Tu fidelidad es como el horoscopo: unas veces aciertas y otras no, y la gente que se lo cree acaba igual de jodida.
-- `L239` Coño, eres tan fiable como un pedo silencioso: nadie sabe cuando va a llegar, pero cuando llega, la cosa apesta.
-- `L245` [nombre] es como un semaforo en ambar permanente: nadie sabe si frenar o acelerar contigo, y siempre acaba en accidente.
-- `L246` Coño, tu fidelidad es como un souffle: se infla cuando la cosa va bien y se hunde en cuanto abres la puerta del horno.
-- `L248` Tu compromiso es como el autobus de un pueblo: a veces viene, a veces no, y cuando viene llega tarde y lleno de mierda.
-- `L250` Hostia puta, eres fiel como un GPS sin datos: la dirección general la tienes, pero los detalles te los inventas sobre la marcha.
-- `L252` Coño, [nombre], tu fidelidad es como una tirita en una herida de bala: el gesto esta, pero no cubre una puta mierda.
-- `L254` Joder, tu moral tiene mas agujeros que un queso suizo. Parece solida de lejos, pero cuando te acercas se ve toda la mierda.
-- `L256` Hostia, eres como una cita del dentista: todo el mundo sabe que deberias ir, pero nadie confia en que aparezcas.
-- `L257` Tu fidelidad es como el agua de Valencia: parece suave pero te pega la hostia cuando menos te lo esperas.
-- `L260` Coño, tu compromiso es como un castillo de arena: bonito de ver, imposible de mantener y la primera ola se lo lleva por delante.
-- `L263` Tu lealtad es como una cerveza sin alcohol: tiene la forma, el color y hasta el nombre, pero le falta lo que importa, joder.
-- `L265` Eres tan consistente como el tiempo en primavera: sol, lluvia, granizo y otra vez sol, todo en la misma puta mañana.
-- `L268` Tu compromiso es como una promesa de Año Nuevo: emocionante el 1 de enero, olvidada el 15 y muerta para febrero. Clasico.
-- `L274` Coño, eres mas volatil que la gasolina en verano. Un chispazo y tu fidelidad explota en mil pedazos de mierda.
-- `L276` Tu lealtad es como un pedo en un jacuzzi: sube a la superficie tarde o temprano, y cuando sale, la cosa apesta y mucho.
-- `L280` Coño, tu fidelidad es como un contrato de practicas: temporal, mal pagado y todo el mundo sabe que no va a durar.
-- `L286` [nombre] es como un Kinder Sorpresa de la lealtad: nunca sabes que coño te va a tocar dentro, y la mayoria de veces es basura.
-- `L288` Joder, eres fiel como un puto VHS: funcionas si alguien tiene paciencia contigo, pero ya nadie tiene paciencia para esa mierda.
-- `L289` Tu palabra es como un chicle sin azucar: pierde el sabor a los cinco minutos y la gente la escupe sin pensárselo dos veces.
-- `L291` Hostia puta, tu fidelidad es como los abdominales en enero: mucha motivación al principio, cero resultados y abandono total.
-- `L294` Coño, tu compromiso es como una pegatina vieja: medio pegada, medio despegada, y con un aspecto lamentable.
-- `L297` Hostia, ni traicionas ni proteges. Eres como un puto cono de trafico: estas ahí en medio, no haces nada y todo el mundo te esquiva.
+- `L233` Café de máquina: dos sorbos y a cenicero. El ranking ni se ha enterado.
+- `L234` Miga de croissant en la barba. El saldo se mueve. El grupo, no.
+- `L235` Modo ahorro de batería: dura más. El chat sigue igual.
+- `L236` El wifi del vecino llega flojo y se corta en cuanto te fías.
+- `L237` El ticket del súper tiene más presencia que este resultado.
+- `L238` Like de compromiso. Verde, sí. El grupo sigue a lo suyo.
+- `L239` El kiosko te ha dado el cambio. Cuéntalo en voz alta y se acaba el turno.
+- `L240` Hoy el aura te trató como a un cliente habitual: sin palos.
+- `L241` El banco te mira igual de mal. Hoy no te cobra.
+- `L242` Notificación de más uno. El teléfono ni vibra. El chat tampoco.
+- `L243` Pizza fría a las cuatro. Nadie la reclamó. Ahora está en tu plato.
+- `L245` Asiento del fondo del bus. Llegas. Nadie se ha girado.
+- `L246` La cola avanzó un puesto. Sigues viendo la nuca del de delante.
+- `L247` Cupón que caduca mañana. El azar se arrepiente rápido.
+- `L249` Marca blanca del súper. Misma función, cara cutre, y el número en verde.
+- `L251` Nokia que aún enciende. No sabe cómo apagarse. El saldo tampoco.
+- `L252` Brick de leche a punto de caducar. Lo abres hoy o huele mañana.
+- `L254` Ración de cortesía que no pediste. El camarero ya está en otra mesa.
+- `L256` Te pagaron en puntos del súper. El sandwichera sale en 2041.
+- `L257` Te han puesto en copia de un correo que no era para ti. Has aparecido. Punto.
+- `L258` Un chupito de cortesía. Ni copa, ni hielo, ni segunda ronda.
+- `L259` Te ha tocado el relleno del bocadillo: atún del barato.
+- `L260` Te ha tocado el asiento del cine que nadie quería.
+- `L261` Wifi de treinta minutos en el aeropuerto. Navega.
+- `L262` Sello de pagado en una factura de tres euros. El cajero ni ha levantado la vista.
+- `L263` La ola ha sido de un solo tipo. Una mano. Y se baja.
+- `L264` Caramelo de menta del plato de la entrada. Gratis, duro y de nadie.
+- `L265` Subiste como el agua del vaso: por capilaridad, sin que nadie lo pidiera.
+- `L266` El número de espera ha bajado uno. Sigues en la sala.
+- `L267` Envío estándar: llega tarde y sin aviso.
+- `L269` Recorte del cupón: vale para la próxima, que igual no llega.
+- `L270` Subida de termostato de un grado. Sigues en manga larga.
+- `L271` Último palito de la bolsa. El paquete se acaba en el siguiente.
+- `L272` Te pagaron el cubierto y el agua. El resto de la carta sigue siendo para otros.
+- `L273` Cabezazo de cortesía. Contacto, sí. Gol, no.
+- `L274` Subiste lo que sube un globo pinchado: un palmo, y se oye el aire.
+- `L275` Hueles un segundo y el bote se queda en el escaparate.
+- `L276` Verde de semáforo en ámbar. Pasa. Si te confías, el siguiente no espera.
+- `L277` Hielo que sobró del cubo. Frío prestado. Mañana es un charco.
+- `L278` Cabe en el vueltos de un café. Ni el camarero te ha deseado nada.
+- `L279` Planta de plástico del súper: sigue viva porque nadie ha tenido tiempo de matarla.
+- `L280` Tiempo añadido. Un minuto. El partido ya estaba decidido.
+- `L281` Llaves del trastero. No del piso. Del trastero.
+- `L282` Subiste como el pan de molde: una rebanada, y la bolsa sigue llena de aire.
+- `L283` Un guiño. Un guiño, no un beso.
+- `L284` Subida de andén: el tren no para, pero ya no estás en las vías.
+- `L285` Pan de la cesta que nadie cogió. Gratis y duro.
+- `L286` Post-it verde en la frente. El resto del expediente, igual.
+- `L287` Modo invitado: entras, no guardas nada, y mañana ni se acuerda el chat.
+- `L288` Sumas lo que suma un voto nulo: sale en el acta y no cambia nada.
+- `L289` Asiento plegable del pasillo. Llegas sentado. El paisaje es el de siempre.
+- `L290` Cama de hotel de tres estrellas: sosa y con el minibar cerrado.
+- `L291` Un peldaño de parking: no ves la calle, pero ya no estás en el sótano.
+- `L292` Chupito de hierbas que regalan a las once. Lo ponen y recogen el vaso.
+- `L294` Bolsa de plástico de pago. La llevas. El ticket, dentro.
+- `L295` Te dio para el café solo, no para el con leche. Pide eso y no mires la vitrina.
+- `L296` De extra en la escena. Sale el nombre en los créditos del final, en gris.
+- `L297` Trozo de chorizo que cae de la tapa. El plato era de otro. El trozo, tuyo.
+- `L298` La mesa paga en céntimos y sigue a lo suyo.
+- `L300` El aura te dio un hueso. El chat no ha levantado la cabeza.
+- `L303` El segundo del bar. Ni menú, ni corona, ni foto. Lo que sobra.
+- `L304` El like de tu tía en el estado. Cariño obligatorio, cero ganas.
+- `L305` Has recogido del suelo lo que otro soltó. El suelo paga cuando le da la gana.
+- `L307` Fila de espera que avanzó un puesto. El mostrador sigue lejos.
+- `L308` Cómetelo antes de que se enfríe y nadie pregunte de quién era.
+- `L311` Subiste como sube el IVA: poco, inevitable, y a nadie le hace ilusión.
+- `L312` Lo justo para no salir en rojo en el puto ticket. El cajero ni te ha mirado.
+- `L314` Transferencia corta. Acepta y no pongas concepto.
+- `L315` Un número que no da ni para el gordo ni para el café.
+- `L317` Funciona el mando y nadie te va a pedir el canal.
+- `L318` Te ha salido el parche oficial. Sigue siendo el mismo juego, con un parche.
+- `L319` Has ganado lo mismo que se pierde en un café. El saldo, un café más alto.
+- `L320` Subiste lo que sube el sueldo en un restaurante: un insulto disfrazado de cifra.
+- `L325` No tocas el volante, no eliges la radio, y aun así el coche ha avanzado un palmo.
+- `L326` La mesa suelta migajas y se queda tan ancha. Hoy te ha tocado una.
+- `L328` El saldo pica hacia arriba como pica un mosco: se nota y se olvida.
+- `L329` El aura ha firmado con letra pequeña. La letra grande se la queda otro día.
+- `L333` Sello en la tarjeta de fidelidad. El premio gordo sigue en el horizonte.
+- `L334` El recambio de la cafetera: sale, quema el vaso, y ya.
+- `L335` La mesa ha tenido que soltarlo. Poco. Lo ha soltado igual.
+- `L336` El semáforo te ha dejado pasar en el último amarillo. El cruce, hecho.
+- `L337` Un palmo de sombra. El toldo es de otro. El palmo, tuyo.
+- `L338` El portero automático te ha abierto. Un segundo. Luego vuelve a cerrar.
+- `L339` La máquina del metro te ha devuelto el céntimo de más. El tren no espera.
+- `L340` La radio del taxi ha acertado una. El taxista ni se ha inmutado.
+- `L341` El despertador ha sonado un minuto más tarde. El minuto, ganado.
+- `L342` El ascensor ha parado en tu piso sin que nadie pulsara el de al lado.
+- `L343` El mando ha encontrado la pila. El canal, el de siempre.
+- `L344` La cola del pan ha avanzado dos. El de delante sigue pidiendo roscos.
+- `L345` El parquímetro te ha regalado cinco minutos. El aviso naranja, después.
+- `L346` La lavadora ha terminado en el primer ciclo. Nadie estaba esperando el pitido.
+- `L347` El timbre ha sonado y era el del rellano de al lado. Hoy no tocaba palo.
+- `L348` El cubata de cortesía del cierre. Lo ponen cuando ya no hay hielo.
+- `L349` La mesa ha pagado con calderilla. La calderilla cuenta. El camarero, a otra.
 
-### src/data/fidelityPhrases.js · INFIEL_HIGH  (39)
+### src/commands/aura.js · AURA.loss  (58)
 
-- `L413` Joder, [nombre], eres mas infiel que el puto diablo en una convencion de monjas. Has roto mas camas que promesas, y eso ya es decir.
-- `L414` Tu polla tiene mas kilometros que un Seat Ibiza de repartidor. Y como ese Ibiza, ya no la quiere nadie.
-- `L422` Tu fidelidad es como el bigote de un adolescente: se nota que intentas, pero nadie se lo toma en serio, gilipollas.
-- `L428` Hostia puta, tu lealtad en pareja es como un unicornio: bonita idea, pero no existe y nadie la ha visto nunca, mierda.
-- `L430` [nombre] tiene mas lios que un ovillo de lana en una casa con gatos. Enredado de cojones y sin posibilidad de arreglo.
-- `L431` Coño, tu pene tiene mas aventuras que Indiana Jones. Y como Indiana, siempre acaba en sitios donde no debería estar.
-- `L432` Tu historial sentimental parece un menu de All You Can Eat: comes de todo, no disfrutas nada y siempre te vas con dolor de barriga.
-- `L434` Joder, eres mas infiel que un politico con sus promesas electorales. Y al menos el politico espera cuatro años para mentir otra vez.
-- `L435` Hostia, si tu cama hablara, contaria mas historias que las Mil y Una Noches. Y todas acabarian con alguien llorando.
-- `L436` Tu compromiso de pareja es como un menu del día: barato, rápido y lo cambias cada veinticuatro horas.
-- `L437` [nombre] tiene una agenda de contactos que parece el censo electoral. Y ha votado en todas las circunscripciones, el muy guarro.
-- `L445` Coño, tu relación es como una puerta giratoria: siempre hay alguien entrando mientras otro sale. Circulacion continua de mierda.
-- `L447` [nombre] es mas resbaladizo que una pista de hielo con aceite. Nadie puede sujetarle porque siempre esta deslizándose hacia otra cama.
-- `L450` Tu compromiso es como un castillo de naipes en un huracan: nunca tuvo posibilidad de sostenerse y todo el mundo lo sabia menos tu pareja.
-- `L454` [nombre] tiene mas secretos que la CIA y menos escrupulos que la mafia. Combinación perfecta para ser el peor hijo de puta del grupo.
-- `L456` Hostia puta, tu relación es como un queso gruyere: mas agujeros que sustancia y cada vez huele peor.
-- `L459` Coño, tu bragueta tiene mas aperturas que la Bolsa de Nueva York. Y como en la Bolsa, siempre hay alguien que pierde.
-- `L463` Hostia, eres como un taxi: te montas, pagas el viaje y al llegar te bajas sin mirar atras. Servicio publico del sexo.
-- `L466` Coño, tu compromiso es como una canción del verano: suena tres meses, la odias y al año siguiente ni la recuerdas, basura.
-- `L471` Tu relación es como una funda de móvil del bazar: la pones sabiendo que no va a durar y la cambias en cuanto se raya un poco.
-- `L474` Tu lealtad de pareja es como un WiFi de bar: la contraseña la tiene todo el mundo y la conexion es una mierda.
-- `L477` Hostia, tu bragueta se abre mas veces que el telediario. Y como el telediario, siempre da malas noticias a tu pareja.
-- `L478` Eres mas promiscuo que una fuente publica: todo el mundo bebe de ti y nadie sabe lo que ha metido el anterior.
-- `L480` Coño, tu historial es mas largo que la lista de la compra de una familia numerosa. Y todo es basura.
-- `L481` Tu pareja es como un billete de metro: la usas para ir de un sitio a otro y la tiras cuando llegas a donde realmente querias ir.
-- `L483` Joder, si tu polla tuviera memoria, escribiria unas memorias mas largas que las del puto Quijote. Y con mas aventuras.
-- `L484` Hostia puta, eres como un centro comercial: muchas tiendas, muchos visitantes y nada que valga la pena comprar de verdad.
-- `L486` [nombre] es mas infiel que las traducciones de Google. Distorsiona todo, pierde el sentido y siempre hay algo que no encaja.
-- `L487` Coño, tu polla tiene mas historias que un bar de pueblo. Y todas acaban igual: con alguien borracho y arrepentido.
-- `L490` Joder, tu lealtad de pareja tiene menos duracion que un orgasmo precoz. Y al menos el orgasmo da placer a alguien durante un segundo.
-- `L491` Hostia, eres como una rotonda: todo el mundo pasa, nadie se queda y siempre hay alguien que se pierde y acaba donde no debia.
-- `L494` Coño, tu fidelidad es como un avión de papel: vuela un segundo, se cae y nadie la recoge porque no vale nada.
-- `L497` Joder, si tu cama fuera una pista de aterrizaje, tendría mas trafico que el aeropuerto de Barajas en Semana Santa.
-- `L499` Tu relación de pareja es como una cinta de correr: mucho movimiento, ningun avance y al final acabas exactamente donde empezaste.
-- `L502` Eres de esa basura que tiene mas cuentas de citas que cuentas bancarias. Y todas con mas actividad que las del banco.
-- `L503` [nombre] ha puesto mas cuernos que un ganadero de toros bravos. Y al menos el ganadero cobra por ello.
-- `L504` Joder, tu compromiso es como un condon pinchado: parece que cumple pero no protege de una puta mierda.
-- `L506` Tu infidelidad tiene mas temporadas que Los Simpson. Y como Los Simpson, los últimos capitulos son basura pero no se acaba nunca.
-- `L512` Hostia puta, si te pusieran un rastreador en la polla, el mapa tendría mas rutas que un GPS de repartidor de Amazon.
+- `L364` A estas alturas podría ser tu puto fondo de pantalla.
+- `L370` Tu número duró menos que un fuera de juego. Ridículo.
+- `L371` Tu puta pérdida tiene esa misma energía.
+- `L372` Joder, un estado que caduca en 24 horas.
+- `L373` Joder, la notificación silenciada. El teléfono ni se ha molestado en vibrar por ti.
+- `L374` Joder, la silla de plástico que nadie retira después de la fiesta.
+- `L376` Ni el filtro te tiene respeto. Te deja pasar. Qué asco de trato.
+- `L377` El puto grupo le ha dado a skip. Tú eres el anuncio.
+- `L378` Nota adhesiva que se cae de la nevera. El imán no te quería tanto, fracasado.
+- `L380` Tu puta pérdida va al cajón de los cargadores huérfanos.
+- `L382` Paraguas olvidado en el bar: lo miran un día y lo tiran. Cutre y puntual.
+- `L385` Coño, el wifi que pica una vez y se cae.
+- `L386` Alarma que snoozeas. El golpe es pequeño y ya lo tenías en el cuerpo, cabrón.
+- `L393` Desaparece uno y el otro se queda viudo. Como tu saldo, miseria.
+- `L394` El aura te cobró el cubierto. Ni plato. Ni segundo. Solo el cubierto, gilipollas.
+- `L395` Bajaste como baja un calcetín: solo, sin ceremonia, y se te ve el tobillo.
+- `L396` Te han pasado el trapo. Ni fregado. Trapo. Lo justo para que no se note el polvo.
+- `L398` Te restaron lo que se lleva el IVA: lo sabías, lo odias, y pagas igual.
+- `L400` Bajaste como el hielo del vaso: se nota al final, cuando ya está aguado.
+- `L401` Te han dado el visto de compromiso. Obligatorio, frío, y a otra cosa.
+- `L403` El aura te ha hecho una transferencia al revés.
+- `L404` Te quitaron el asiento del pasillo. Sigues en el vagón. Viajas peor, que es lo tuyo.
+- `L405` Bajas despacio y sin funeral, como una planta de IKEA.
+- `L407` Pagas de más y nadie te espera en llegadas.
+- `L409` El aura te ha puesto en cc de un recorte. Has salido. El puto hilo sigue sin ti.
+- `L410` Bajaste como el pan de molde: una rebanada menos, y la bolsa parece igual de llena.
+- `L411` Te restaron el cubito. El vaso sigue. La bebida sabe igual de regular.
+- `L414` Te han pinchado la rueda y sigues. El coche baja un palmo. Nadie llama al grúa.
+- `L416` El aura te ha dejado el último palito... y te lo ha quitado. Lo querías. Da más pena.
+- `L417` Bajaste como el brillo de un chrome a las tres: se nota si miras, y nadie mira.
+- `L418` Has salido de la tienda más pobre y con menos dignidad.
+- `L419` El puto grupo te usó de ruido blanco. Bajaste el volumen un punto. El podcast seguía.
+- `L420` Te restaron lo que se lleva el perro del parque: porque estaba ahí.
+- `L423` Te quitaron el hielo y te dejaron el agua. Sigues bebiendo. El gin se lo quedó otro.
+- `L426` Te han dado el recorte del cupón caducado. Lo tenías. Ya no vale. Típico.
+- `L427` Un uno por ciento, y ni lo has sacado del bolsillo a mirar.
+- `L428` El aura te cobró el peaje de tres euros. La autopista sigue. Tú sales más corto.
+- `L429` Te restaron el pan de la cesta. El segundo plato no era para ti de todas formas.
+- `L432` Bajaste como un calcetín en el tendedero: un palmo, y el viento ni te nombra.
+- `L433` Te han pasado factura del café que no pediste. Lo pagas. No lo bebes. Callas.
+- `L434` El aura te ha hecho un cabezazo suave. Contacto. Falta. Ni penalti. Ni VAR. Nada.
+- `L435` La masa sigue. El queso era lo único que te gustaba.
+- `L436` Bajada de esas que caben en el vueltos que no te dieron.
+- `L438` Un agujero de polilla en algo que ya estaba viejo.
+- `L439` Pérdida de silla reservada con un abrigo. El abrigo era de otro. Tú te quedas de pie.
+- `L440` El aura te ha puesto el semáforo en ámbar y lo has cruzado mal.
+- `L442` Te cobraron el recargo de madrugada. El taxi te deja igual de lejos, ahora más pobre.
+- `L444` Te restaron el último chicle del paquete.
+- `L445` Un grado menos y sigues pasando frío. El casero no viene.
+- `L446` Cama de albergue: corta, dura y con el ronquido de al lado.
+- `L448` Pérdida de esas que se miden en migas. El mantel se sacude y tú caes al suelo.
+- `L450` Bajaste como el wifi del tren: se corta, vuelve, se corta, y el viaje no te espera.
+- `L451` Come con las manos, que para lo que hay ya te vale.
+- `L452` El aura te ha puesto de extra y te ha recortado el segundo.
+- `L453` Te han dado el número 87 de la cola y ha salido el 86 dos veces.
+- `L456` Te quitaron lo que se lleva el viento de una terraza: la servilleta, no el plato.
+- `L458` El aura te cobró el café solo cuando pediste con leche.
+- `L460` Te restaron el panecillo de cortesía. El restaurante sigue lleno. Tu mesa, no.
 
-### src/data/fidelityPhrases.js · INFIEL_LOW  (26)
+### src/commands/aura.js · AURA.spiral  (13)
 
-- `L633` Tu puntuación de infiel es mas baja que la autoestima de un calvo en una tienda de peines. Y lo digo como halago.
-- `L635` [nombre] tiene el historial mas limpio que la conciencia de un recién nacido. Sin una puta mancha, sin un borron, sin nada.
-- `L638` Tu lealtad es como un herpes genital del bueno: no se va nunca, siempre esta ahí y tu pareja se ha acostumbrado a vivir con ella.
-- `L642` Hostia, [nombre] es mas fiable que la muerte. Que es la única certeza en esta vida, y ahora resulta que este cabrón también lo es.
-- `L647` Tu fidelidad es como una cucaracha: sobrevive a todo, nadie puede con ella y estara ahí cuando todo lo demas se haya ido a la mierda.
-- `L651` Coño, tu compromiso de pareja es mas solido que una mierda de tres días de estreñimiento. Inamovible y a prueba de todo.
-- `L660` Hostia puta, tu infidelidad es como el monstruo del lago Ness: todo el mundo habla de ella pero nadie la ha visto nunca.
-- `L663` Coño, eres mas fiel que un tatuaje en la cara: siempre ahí, imposible de esconder y todo el mundo lo ve.
-- `L666` Tu fidelidad es como la mierda de un elefante: enorme, imposible de ignorar y todo el que la ve dice joder, eso si que es gordo.
-- `L668` [nombre] es fiel como un puto Kalashnikov: funciona en el barro, en el frío, en el desierto y después de cuarenta años sin limpiarlo.
-- `L670` Joder, tu lealtad tiene mas capas que una cebolla. Y al pelarla no lloras, te encuentras mas lealtad. Hasta el nucleo, hostia.
-- `L674` Tu compromiso es como un puto diamante: duro, caro de encontrar y casi imposible de romper. Y brillante de cojones.
-- `L677` Joder, eres como un vault del banco suizo de la lealtad: lo que entra no sale, nadie sabe que hay dentro y todo esta a salvo.
-- `L681` [nombre] es mas leal que la puta gravedad. Siempre ahí, sin que nadie se lo pida, sujetando el tinglado sin cobrar horas extra.
-- `L682` Coño, tu nivel de infidelidad es como buscar señal en un bunker: puedes intentarlo, pero no vas a encontrar una mierda.
-- `L684` Tu lealtad es como la salsa del kebab: esta por todas partes, lo impregna todo y una vez que la pruebas ya no puedes vivir sin ella.
-- `L685` Eres fiel como un reloj suizo: preciso, constante y tan caro de encontrar que la gente normal se conforma con un Casio.
-- `L692` Hostia, [nombre] es tan fiel que si fuera un pais seria Suiza: neutral, fiable y con los cojones bien guardados en un bunker.
-- `L698` Tu fidelidad es como la receta de la Coca-Cola: nadie sabe como cojones funciona pero el resultado es adictivo de la hostia.
-- `L700` [nombre] es fiel como la hipoteca: siempre ahí, treinta años de compromiso y sin posibilidad de escape. Pero a diferencia de la hipoteca, este mola.
-- `L703` Tu nivel de infidelidad es como un número imaginario: existe en teoria pero en la practica no tiene presencia en el mundo real.
-- `L708` Coño, tu fidelidad es como encontrar aparcamiento en el centro un sábado: nadie se lo cree hasta que lo ve, y cuando lo ve se queda con la boca abierta.
-- `L713` Eres como una puta roca en medio de una tormenta de mierda: no te mueves, no te quejas y cuando pasa la tormenta sigues ahí, cabrón.
-- `L720` Eres mas fiel que el olor a fritanga en un piso pequeño: imposible de quitar, omnipresente y todo el mundo lo nota, cabrón.
-- `L724` Tu fidelidad es como la cucaracha: sobrevive al apocalipsis nuclear y sigue ahí cuando ya no queda nada. Indestructible de los cojones.
-- `L728` Tu nivel de infidelidad es como el segundo piso de un bungalow: no existe. Simplemente no esta.
+- `L481` Hipoteca de aura negativa: pagas cada mes y el piso sigue siendo un puto agujero.
+- `L482` Joder, la temporada siete de tu fracaso. Nadie pidió renovación. Netflix tampoco.
+- `L483` El GPS solo sabe decir "sigue todo recto hacia abajo". Y le haces caso, cabrón.
+- `L491` Joder, el ascensor que solo tiene botón menos uno.
+- `L500` Carpeta de descensos con subcarpetas. Has tenido que hacer árbol de directorios.
+- `L501` Línea de metro que solo para en sótanos. El mapa eres tú, y no hay transbordo.
+- `L502` Grifo que gotea hacia abajo. Nadie llama al fontanero. El cubo eres tú y ya rebosó.
+- `L509` Hoyos de golf: cada uno más hondo. Nadie te va a aplaudir el putt, inútil.
+- `L513` Cama de clavos en el -2. Ya no pincha. Te has calloso el fracaso.
+- `L514` Rampa de parking hacia el -4. Las luces parpadean. El coche eres tú.
+- `L526` Escalera mecánica en bajada, rota, y tú andando igual.
+- `L535` Rampa de skate hacia un bordillo. Te caes. Subes. Te caes. El vídeo ya no se graba.
+- `L547` Usando la rampa al revés. El que la diseñó no pensó en ti.
 
-### src/data/fidelityPhrases.js · INFIEL_MID  (48)
+### src/data/accionPhrases.js · ROAST_USUARIO  (3)
 
-- `L522` Tu fidelidad es como un microondas: va a ratos, calienta lo justo y nunca sabes si lo que sale esta bien hecho o crudo por dentro.
-- `L524` [nombre] tiene el WhatsApp mas comprometido que un traficante y menos pruebas que un asesino en serie inteligente. Sospechoso.
-- `L526` Tu compromiso de pareja es como una dieta intermitente: unos días lo cumples y otros te pones hasta el culo de mierda.
-- `L529` Hostia puta, tu lealtad de pareja es como el agua de la ducha en un hotel barato: nunca sabes si va a salir fría o caliente.
-- `L530` Eres como un examen con las respuestas a lapiz: todo borrable, todo provisional y nada que inspire confianza.
-- `L533` Tu compromiso es como una suscripción de prueba: gratuita, temporal y todo el mundo sabe que no la vas a renovar.
-- `L534` [nombre] tiene la mirada mas desviada que un bizco en una montaña rusa. Mirando a todos lados menos donde debería.
-- `L535` Joder, eres el Schrodinger de la infidelidad: hasta que tu pareja abra la caja, eres fiel e infiel al mismo tiempo.
-- `L536` Hostia, tu zona gris es mas amplia que el culo de tu tía en Navidad. Y como ese culo, nadie quiere sentarse al lado.
-- `L537` Tu fidelidad es como una conexion Bluetooth de los cojones: a veces se engancha, a veces no y siempre tarda mas de lo que debería.
-- `L542` Joder, tu fidelidad es como un churro de feria: parece apetecible por fuera pero por dentro esta cruda y te sienta mal.
-- `L544` Tu compromiso es como una hamaca: comodo cuando no pesa nada y se vuelca en cuanto alguien se mueve un poco, basura.
-- `L550` Hostia, eres como un perro con dos platos: comes de uno pero siempre estas mirando al otro por si tiene algo mejor.
-- `L551` Tu compromiso es como un elastico viejo de calzoncillo: se estira, se estira, y nadie sabe cuando va a dar de si.
-- `L553` Coño, tu moral de pareja es como una balda de estanteria barata: aguanta los libros finos pero en cuanto pones el gordo se viene abajo.
-- `L557` Hostia puta, tu lealtad de pareja es como el gazpacho: parece que esta frío y estable hasta que alguien lo agita, gilipollas.
-- `L558` Tu compromiso sentimental tiene mas asteriscos que los terminos y condiciones de Apple. Todo parece bien hasta que lees la letra pequeña.
-- `L560` Coño, eres como un mapa de carreteras sin actualizar: la dirección general la tienes, pero los detalles estan todos mal.
-- `L561` Tu fidelidad es como un bronceado de spray: se ve bien de lejos pero de cerca se nota que es falsa y se va con la primera ducha.
-- `L564` Hostia, tu compromiso de pareja es como un paraguas barato: lo abres con esperanza, se te da la vuelta con el primer viento y te mojas igual.
-- `L567` Coño, tu fidelidad es como un semaforo en ambar permanente: nadie sabe si parar o acelerar y siempre se acaba en hostia.
-- `L568` Tu lealtad de pareja es como el pan del Mercadona a las ocho de la tarde: blanda, sospechosa y nadie la elegiria si tuviera opciones.
-- `L571` Hostia puta, tu compromiso es como una barbacoa en un piso: la intención esta, el resultado es humo, y los vecinos se quejan.
-- `L575` Tu compromiso sentimental es como un chicle pegado en la suela: aguanta mientras camines en llano, en cuanto subes se queda atras.
-- `L577` Joder, tu lealtad de pareja es como una cena de empresa: sonrisas falsas, conversación vacia y todo el mundo deseando irse a otra parte.
-- `L579` Tu fidelidad es como un zumo de brick: parece natural por fuera pero por dentro tiene mas conservantes que fruta de verdad.
-- `L581` Coño, ni engañas ni das seguridad. Eres como un extintor caducado: esta en la pared, tranquiliza de lejos, pero nadie se fia.
-- `L583` [nombre] es como una máquina expendedora de la fidelidad: metes la moneda y nunca sabes si te va a dar lo que has pedido o una mierda.
-- `L585` Hostia puta, tu relación es como un partido de tenis: vas y vienes, cambian los lados y nadie sabe quien lleva ventaja.
-- `L586` Tu fidelidad es como un mueble de carton: se ve bonito en la foto pero en cuanto le pones peso real se desmorona todo.
-- `L588` Coño, eres como una puerta sin cerrojo: no la has abierto, pero cualquiera podría entrar si empuja un poco. Invitación abierta.
-- `L589` Tu compromiso es como la lluvia en agosto: cuando cae todos se sorprenden porque nadie se lo esperaba.
-- `L591` Joder, ni eres el malo de la pelicula ni eres el bueno. Eres el puto extra que sale de fondo y nadie recuerda, gilipollas.
-- `L592` Hostia, tu fidelidad es como un bollo de chocolate del chino: por fuera parece que hay chocolate pero por dentro solo hay aire.
-- `L593` Tu relación tiene mas grietas que la fachada de un piso de los años sesenta. Y como esas fachadas, nadie quiere pagar el arreglo.
-- `L595` Coño, tu compromiso es como un calcetin con agujero: tecnicamente puesto, pero falla justo donde mas se nota.
-- `L599` Hostia puta, eres como un yogur en la fecha de caducidad: igual esta bien, igual esta mal, pero nadie con sentido comun se lo come.
-- `L600` Tu fidelidad es como una serie de Netflix mediocre: la sigues por inercia, no por interes, y sabes que el final va a ser una mierda.
-- `L601` [nombre] tiene el historial de busqueda mas sospechoso que un politico antes de elecciones. Todo limpio, demasiado limpio.
-- `L602` Coño, tu compromiso de pareja es como un filtro de Instagram: cambia la realidad, esconde los defectos y al final todo es mentira.
-- `L605` Joder, tu fidelidad es como un control de alcoholemia en Navidad: todo el mundo sabe que va a haber sorpresas desagradables.
-- `L607` Tu relación es como una piscina municipal: mucha gente ha pasado por ahí, el mantenimiento es minimo y siempre hay tiritas flotando.
-- `L609` Coño, tu lealtad sentimental es como una farola fundida: el poste esta, pero no ilumina una mierda.
-- `L610` Eres como un buffet de hotel de dos estrellas: hay de todo pero nada merece la pena y siempre te vas con hambre y malestar.
-- `L612` Joder, tu compromiso es como un platano de Canarias: amarillo por fuera, blando por dentro y con manchas que nadie quiere mirar.
-- `L614` Tu fidelidad es como un ascensor de un edificio viejo: a veces sube, a veces baja, a veces se para y hay que llamar al tecnico.
-- `L616` Coño, tu relación es como una mesa de tres patas: se sostiene si no la tocas, pero al minimo movimiento se cae todo al suelo.
-- `L619` Joder, tu compromiso sentimental es como un coche con check engine encendido: funciona, pero todos saben que algo va mal.
+- `L490` La ronda de %A es una dieta de menciones. Cero calorías, y aun así repite plato tres veces al día.
+- `L495` El único idioma que le funciona a %A es el comando. El de la boca se le oxidó. Se le oye el óxido cada vez que paga.
+- `L512` %A, has pagado para no tener que oír tu propia voz pidiéndolo. La voz te delataría. El cargo te hace de madre y te deja en la cuna. El grupo hace de sala.
 
-### src/data/percentLabels.js · gay.mid  (4)
+### src/data/avisos.js · MAL_ESCRITO  (5)
 
-- `L1481` Tu heterosexualidad es como una conexión wifi inestable: funciona a ratos, se cae sin aviso y nadie sabe cuándo coño va a volver.
-- `L1486` Puta madre, eres como un semáforo en ámbar permanente. Ni paras ni arrancas, y todos los que vienen detrás se desesperan.
-- `L1494` Tu orientación sexual es como la economía española: nadie la entiende del todo, los datos se contradicen y siempre está a punto de cambiar.
-- `L1496` Tu versión de hetero es como una camiseta de mercadillo: parece original de lejos pero de cerca se ven las costuras falsas por todos lados.
+- `L265` Analfabetismo con wifi. Te lo escribo yo, que tú no llegas.
+- `L269` Cinco letras te han ganado y encima ni te has enterado.
+- `L278` Cinco letras. Cinco. Y han podido contigo.
+- `L284` Eso no era un examen y lo has suspendido igual.
+- `L285` Una palabra corta te ha ganado delante de todos.
 
-### src/data/percentLabels.js · inutil.high  (1)
+### src/data/cooldownPhrases.js · AURA_APOSTAR  (3)
 
-- `L2448` Eres como un consolador sin pilas: tienes la forma de algo con función y ahí se acaba el parecido. Decorativo, inútil y ahí tirado en un cajón que nadie abre. Puro estorbo con apariencia de servir.
+- `L260` La mesa no es un chicle. Una vez y a la puta calle un rato. El asiento no se reserva con ansias.
+- `L286` Estás tratando la puta mesa como un cajero. No dispensa a demanda. Ni a ti.
+- `L315` La caja de cartas se cerró. Meter los dedos entre el naipe es de gilipollas con anillo de jugador.
 
-### src/data/percentLabels.js · simp.high  (1)
+### src/data/cooldownPhrases.js · AURA_TIRADA  (33)
 
-- `L1546` Tu manera de estar en su vida es como el fondo de pantalla: siempre ahí, nunca mirado.
+- `L144` Estás tratando el dado como una puta máquina de café. No lo es. Es un receso y tú un capricho.
+- `L179` El comando no es un chicle. No se pide otro con el primero todavía en la boca. Traga.
+- `L180` Estás tratando tu aura como una uña. Te la comes de nervios, don nadie.
+- `L184` Pedir otra tirada ahora es el equivalente a preguntar "¿ya?" en un viaje de tres calles.
+- `L187` Un resultado por visita. La tienda de al lado tampoco te deja llevarte dos.
+- `L188` Estás enfriando el puto dado con la respiración. Suéltalo. No se cocina otro número a soplidos.
+- `L194` Estás pidiendo bis de una puta canción de diez segundos. El DJ no te mira. Con razón.
+- `L198` El marcador no es un espejo. Deja de ir cada rato a ver si te cambió la cara. No te cambió.
+- `L210` Ya tuviste tu escena. El telón bajó. No hay segundo acto a demanda. Baja del escenario.
+- `L213` El dado se siente observado. Déjalo en paz. A ti también te vendría bien.
+- `L216` Soplas un puto dado que ya está muerto. El número no resucita. Tú sí te ves de velorio barato.
+- `L217` La moneda ya cayó. Volverla a lanzar ahora es de tramposo con las manos temblando de puto vicio.
+- `L218` Te pesas otra vez en la misma báscula. El puto número no adelgazó. Adelgazó tu disimulo.
+- `L219` La galleta de la suerte ya está abierta. El papelito no se reescribe porque tú lo mires con asco.
+- `L220` Sacudes la bola ocho después de que habló. La respuesta sigue siendo no. El ridículo, sí.
+- `L221` El naipe ya está boca arriba. Taparlo con la palma no cambia el palo, gilipollas de mesa.
+- `L222` Estás fotografiando el puto resultado para que salga otro. La cámara no edita azar. Te edita a ti.
+- `L223` La bola ya cayó al tubo. Pedir recuento de una sola bola es de fracasado con megáfono.
+- `L224` Le pides al asador que te haga otra vez el mismo filete. El filete está en el plato. Tú estás en el chiste.
+- `L225` Besas el cubilete vacío. El cuero no tiene más números. Tiene tu saliva de ansioso, qué miseria.
+- `L227` La vela del pastel ya está apagada y pides otro soplido. El deseo se gastó. Quedaste tú, don nadie.
+- `L228` Refrescas el puto resultado de un partido que ya pitó final. El empate de carácter eres tú.
+- `L229` Partiste el hueso de la suerte. Las dos mitades ya hablaron. Tirar de un palo muerto no te alarga el deseo.
+- `L230` El termómetro ya marcó y lo sacudes para inventarte otra fiebre. El azar no finge esa basura.
+- `L231` Estás soplando cartas como si el viento de tu boca valiera más que la que ya salió.
+- `L232` La foto instantánea ya salió nítida. Agitarla ahora no cambia la cara. Cambia lo inútil de tus muñecas.
+- `L233` Le hablas al cubilete como a un sordo. El sordo eres tú: el puto número te lo dijo en la cara y pediste subtítulos.
+- `L235` Raspas la mesa con el canto de la mano pidiendo suerte extra. La madera no es un dado. Eres un pringado con barniz.
+- `L236` La bola ya se sentó. Meter el dedo para acomodarla no mueve el número. Mueve lo cutre de tus uñas.
+- `L239` Pides una segunda opinión a un cubo de plástico. El plástico ya votó. El jurado del grupo también.
+- `L240` Estás lamiendo el número como si el sabor fuera a subir. El sabor es plástico. El hambre es tuya, mierda de rito.
+- `L242` Estás tratando !aura como un chicle. El sabor se fue. Lo que queda es goma.
+- `L245` Has hecho del dado una uña. Te la comes de nervios. El puto grupo ve las manos.
+
+### src/data/cooldownPhrases.js · AURA_TOP_ANSIAS  (2)
+
+- `L355` Pedir el puto top estando en él es como preguntar si sigues vivo. Sí. El certificado ya salió.
+- `L396` Te pesas otra vez ahora que ganaste. El puto número de la báscula no te sube el puesto. Te baja el disimulo.
+
+### src/data/cooldownPhrases.js · AURA_TOP_POBRE  (2)
+
+- `L432` Consultar el puto top con tu saldo es como leer la carta sin cartera. El mesero ya bosteza.
+- `L476` El podio no es un reclamo. Aunque tú lo trates como un escaparate de centro comercial.
+
+### src/data/cooldownPhrases.js · GENERICO  (4)
+
+- `L99` El semáforo está en rojo y pitas. El cruce no acelera. Tú sí te encoges.
+- `L106` Machacas el piso en el ascensor. No viene más rápido. Viene tu miseria en un cubo de acero.
+- `L113` Descolgaste un teléfono que acaba de colgar. El tono de ocupado te queda como un traje.
+- `L116` El chicle ya no tiene gusto y lo masticas igual. Eso no es hambre. Es el hobby del que no tiene tema.
 
 ## Ideas (no son este encargo)
 
-El dueño pidió ideas molonas aparte. Están al final de `AGENTS.md`.
-No las implementes mientras queden analogías pendientes.
+Están al final de `AGENTS.md`. No las implementes mientras queden analogías.

@@ -96,24 +96,24 @@ const GENERICO = [
   'El grupo no te debe entretenimiento a demanda. Menos todavía en este minuto.',
   'El microondas sigue contando y tú ya abriste. Lo crudo no es la comida. Eres tú.',
   'Estás golpeando un baño ocupado. Adentro hay un no. Afuera hay un gilipollas con la vejiga de carácter.',
-  'El semáforo está en rojo y pitas. El cruce no acelera. Tú sí te encoges.',
+  'El semáforo está en rojo y pitas. El cruce no acelera. Tú sí te encoges.', // ANALOGÍA
   'Sacudes la máquina con la moneda todavía cayendo. Eso no cobra premio. Eso da asco.',
   'El sobre ya está abierto. Meter el dedo otra vez no saca otra carta, solo tu vicio de pringado.',
   'Levantas la tetera antes de que hierva. Te quemas con el gesto patético y el agua sigue cruda.',
   'Recargas una página que ya cargó. El texto no cambia. Cambia lo ridículo de tu pulso.',
   'El timbre ya sonó. La casa ya oyó. El sordo eres tú y joder qué bien se te oye el vicio.',
   'Abres el horno a mitad. Se te baja el bizcocho y el poco carácter que te quedaba.',
-  'Machacas el piso en el ascensor. No viene más rápido. Viene tu miseria en un cubo de acero.',
+  'Machacas el piso en el ascensor. No viene más rápido. Viene tu miseria en un cubo de acero.', // ANALOGÍA
   'Desenchufas al tres por ciento y lo clavas otra vez. Esa ansia no carga más rápido. Carga el hueco.',
   'Le das al dispensador de jabón que acaba de escupir. La palma ya está llena. El segundo chorro es tu puta costumbre de no parar.',
   'El comprobante ya salió de la impresora. Pedir otro no te adelanta. Te deja dos papeles y cero oficio.',
   'Empujas una persiana bajada. El local cerró. Tu puta hambre de espectáculo, no.',
   'Raspas un boleto ya rasposo. Debajo hay cartón. Encima, tu cara de don nadie.',
   'El inodoro sigue lleno y tiras otra vez. No baja más. Baja tu vergüenza al desagüe y ni así se va.',
-  'Descolgaste un teléfono que acaba de colgar. El tono de ocupado te queda como un traje.',
+  'Descolgaste un teléfono que acaba de colgar. El tono de ocupado te queda como un traje.', // ANALOGÍA
   'Le gritas al repartidor que aún pica cebolla. El pedido no vuela. Tú sí quedas de caza barata.',
   'Cortas una frase a la mitad. La frase era no. El corte se oye cutre y con público.',
-  'El chicle ya no tiene gusto y lo masticas igual. Eso no es hambre. Es el hobby del que no tiene tema.',
+  'El chicle ya no tiene gusto y lo masticas igual. Eso no es hambre. Es el hobby del que no tiene tema.', // ANALOGÍA
   'Abres la nevera, la cierras, la abres. Sigue vacía. Hasta el frío ya te tiene fichado de fracasado.',
   'Le pides al de la barra que te cobre un vaso que todavía no te sirvieron. La caja no adelanta. Tú sí quedas de cliente de aire.',
   'Cruzas en rojo con el pecho hinchado. No llegas antes. Llegas de anuncio de imprudente.',
@@ -141,7 +141,7 @@ const AURA_TIRADA = [
   'El marcador no se aburre de ti. Tú te aburres de no controlarlo y se te nota el asco propio.',
   'Pedir otra ahora es decirle al chat que una no te llenó. Nada te llena, y esa es tu puta biografía.',
   'El aura ya te dio lo suyo. Lo demás es vicio con disfraz de estrategia. Qué vergüenza de plan.',
-  'Estás tratando el dado como una puta máquina de café. No lo es. Es un receso y tú un capricho.',
+  'Estás tratando el dado como una puta máquina de café. No lo es. Es un receso y tú un capricho.', // ANALOGÍA
   'La última tirada todavía está en pantalla. Léela. Trágatela. El que no aguanta eso no juega.',
   'No es que el aura se esconda. Es que no sabes estar sin ella. Abstinencia de tres pesos.',
   'Machacar !aura no es farmear. Es un tic. Y se te ve, patético.',
@@ -176,26 +176,26 @@ const AURA_TIRADA = [
   'Machacar ahora no cambia el saldo. Cambia lo que el grupo piensa de tu pulso. Miseria. Miseria.',
   'La última tirada sigue vigente. No ha caducado. Has caducado tú, y se nota.',
   'Si ganar te puso ansioso, imagina perder y volver en diez segundos. Eres eso.',
-  'El comando no es un chicle. No se pide otro con el primero todavía en la boca. Traga.',
-  'Estás tratando tu aura como una uña. Te la comes de nervios, don nadie.',
+  'El comando no es un chicle. No se pide otro con el primero todavía en la boca. Traga.', // ANALOGÍA
+  'Estás tratando tu aura como una uña. Te la comes de nervios, don nadie.', // ANALOGÍA
   'Ya salió. Si no te gusta, escribe. Eso sí mueve el puto marcador. Esto es un tic.',
   'Diez minutos de cola para un puto dado. Hay quien espera más por menos y no monta este circo.',
   'El aura no se entera de tus prisas. El puto grupo sí. Y se está riendo bajito de tu hambre.',
-  'Pedir otra tirada ahora es el equivalente a preguntar "¿ya?" en un viaje de tres calles.',
+  'Pedir otra tirada ahora es el equivalente a preguntar "¿ya?" en un viaje de tres calles.', // ANALOGÍA
   'Te falta el intervalo. Te sobra el dedo. El diagnóstico cabe en una palabra: vicio.',
   'La suerte tiene horario. Tú tienes abstinencia. Manda el horario. Tú, a sentarte.',
-  'Un resultado por visita. La tienda de al lado tampoco te deja llevarte dos.',
-  'Estás enfriando el puto dado con la respiración. Suéltalo. No se cocina otro número a soplidos.',
+  'Un resultado por visita. La tienda de al lado tampoco te deja llevarte dos.', // ANALOGÍA
+  'Estás enfriando el puto dado con la respiración. Suéltalo. No se cocina otro número a soplidos.', // ANALOGÍA
   'Si esto es tu entretenimiento, el grupo acaba de descubrir lo vacío que vienes. Qué asco. Qué asco.',
   'La tirada ya está en el acta. No hay apelación. El juez se fue a otra mesa.',
   'Quieres un desempate contra ti mismo. El árbitro se ha ido y no vuelve por tu berrinche.',
   'El aura te dio lo que te iba a dar. Lo demás es teatro de impaciencia.',
   'Hay un tiempo entre un puto número y el siguiente. Se llama carácter. El pedido se perdió.',
-  'Estás pidiendo bis de una puta canción de diez segundos. El DJ no te mira. Con razón.',
+  'Estás pidiendo bis de una puta canción de diez segundos. El DJ no te mira. Con razón.', // ANALOGÍA
   'La adicción al puto dado no te hace jugador. Te hace cliente de tu propio tic. Paga en silencio.',
   'Ya tiraste. El resto es receso. Úsalo para existir sin marcar un palito.',
   'Si el puto número fue bueno, disfrútalo. Si fue malo, aguántalo. En los dos casos: espera.',
-  'El marcador no es un espejo. Deja de ir cada rato a ver si te cambió la cara. No te cambió.',
+  'El marcador no es un espejo. Deja de ir cada rato a ver si te cambió la cara. No te cambió.', // ANALOGÍA
   'Pedir otra ahora es decirle al puto chat que no tienes tema. El tema eras tú. Se acabó el repertorio.',
   'Diez minutos. En ese rato otros escriben. Tú estás en la sala de recarga, patético.',
   'El dado no te debe una explicación. Te debe exactamente cero. Cobra el receso.',
@@ -207,42 +207,42 @@ const AURA_TIRADA = [
   'Te dura menos la puta tirada que el eco de haberla pedido. Qué hambre más triste.',
   'Hay gente que tira y sigue hablando. Tú tiras y te quedas mirando el botón. Miseria.',
   'El receso existe para que dejes de parecer un contador. Aprovecha, fracasado.',
-  'Ya tuviste tu escena. El telón bajó. No hay segundo acto a demanda. Baja del escenario.',
+  'Ya tuviste tu escena. El telón bajó. No hay segundo acto a demanda. Baja del escenario.', // ANALOGÍA
   'Pedir otra es convertir el azar en un capricho. El azar no hace caprichos ni a ti.',
   'Diez minutos no es una eternidad. Eres tú el que la está dramatizando como un velorio.',
-  'El dado se siente observado. Déjalo en paz. A ti también te vendría bien.',
+  'El dado se siente observado. Déjalo en paz. A ti también te vendría bien.', // ANALOGÍA
   'La tirada anterior todavía te está mirando. Devuélvele la mirada y cállate.',
   'Estás en modo recarga y el puto grupo en modo conversación. Sobra el que no habla: tú.',
-  'Soplas un puto dado que ya está muerto. El número no resucita. Tú sí te ves de velorio barato.',
-  'La moneda ya cayó. Volverla a lanzar ahora es de tramposo con las manos temblando de puto vicio.',
-  'Te pesas otra vez en la misma báscula. El puto número no adelgazó. Adelgazó tu disimulo.',
-  'La galleta de la suerte ya está abierta. El papelito no se reescribe porque tú lo mires con asco.',
-  'Sacudes la bola ocho después de que habló. La respuesta sigue siendo no. El ridículo, sí.',
-  'El naipe ya está boca arriba. Taparlo con la palma no cambia el palo, gilipollas de mesa.',
-  'Estás fotografiando el puto resultado para que salga otro. La cámara no edita azar. Te edita a ti.',
-  'La bola ya cayó al tubo. Pedir recuento de una sola bola es de fracasado con megáfono.',
-  'Le pides al asador que te haga otra vez el mismo filete. El filete está en el plato. Tú estás en el chiste.',
-  'Besas el cubilete vacío. El cuero no tiene más números. Tiene tu saliva de ansioso, qué miseria.',
+  'Soplas un puto dado que ya está muerto. El número no resucita. Tú sí te ves de velorio barato.', // ANALOGÍA
+  'La moneda ya cayó. Volverla a lanzar ahora es de tramposo con las manos temblando de puto vicio.', // ANALOGÍA
+  'Te pesas otra vez en la misma báscula. El puto número no adelgazó. Adelgazó tu disimulo.', // ANALOGÍA
+  'La galleta de la suerte ya está abierta. El papelito no se reescribe porque tú lo mires con asco.', // ANALOGÍA
+  'Sacudes la bola ocho después de que habló. La respuesta sigue siendo no. El ridículo, sí.', // ANALOGÍA
+  'El naipe ya está boca arriba. Taparlo con la palma no cambia el palo, gilipollas de mesa.', // ANALOGÍA
+  'Estás fotografiando el puto resultado para que salga otro. La cámara no edita azar. Te edita a ti.', // ANALOGÍA
+  'La bola ya cayó al tubo. Pedir recuento de una sola bola es de fracasado con megáfono.', // ANALOGÍA
+  'Le pides al asador que te haga otra vez el mismo filete. El filete está en el plato. Tú estás en el chiste.', // ANALOGÍA
+  'Besas el cubilete vacío. El cuero no tiene más números. Tiene tu saliva de ansioso, qué miseria.', // ANALOGÍA
   'Estás contando los puntos con el dedo como si el de más fuera a nacer de milagro.',
-  'La vela del pastel ya está apagada y pides otro soplido. El deseo se gastó. Quedaste tú, don nadie.',
-  'Refrescas el puto resultado de un partido que ya pitó final. El empate de carácter eres tú.',
-  'Partiste el hueso de la suerte. Las dos mitades ya hablaron. Tirar de un palo muerto no te alarga el deseo.',
-  'El termómetro ya marcó y lo sacudes para inventarte otra fiebre. El azar no finge esa basura.',
-  'Estás soplando cartas como si el viento de tu boca valiera más que la que ya salió.',
-  'La foto instantánea ya salió nítida. Agitarla ahora no cambia la cara. Cambia lo inútil de tus muñecas.',
-  'Le hablas al cubilete como a un sordo. El sordo eres tú: el puto número te lo dijo en la cara y pediste subtítulos.',
+  'La vela del pastel ya está apagada y pides otro soplido. El deseo se gastó. Quedaste tú, don nadie.', // ANALOGÍA
+  'Refrescas el puto resultado de un partido que ya pitó final. El empate de carácter eres tú.', // ANALOGÍA
+  'Partiste el hueso de la suerte. Las dos mitades ya hablaron. Tirar de un palo muerto no te alarga el deseo.', // ANALOGÍA
+  'El termómetro ya marcó y lo sacudes para inventarte otra fiebre. El azar no finge esa basura.', // ANALOGÍA
+  'Estás soplando cartas como si el viento de tu boca valiera más que la que ya salió.', // ANALOGÍA
+  'La foto instantánea ya salió nítida. Agitarla ahora no cambia la cara. Cambia lo inútil de tus muñecas.', // ANALOGÍA
+  'Le hablas al cubilete como a un sordo. El sordo eres tú: el puto número te lo dijo en la cara y pediste subtítulos.', // ANALOGÍA
   'Estás pidiendo que te devuelvan la jugada. El azar no hace devoluciones. Esa caja ya cerró.',
-  'Raspas la mesa con el canto de la mano pidiendo suerte extra. La madera no es un dado. Eres un pringado con barniz.',
-  'La bola ya se sentó. Meter el dedo para acomodarla no mueve el número. Mueve lo cutre de tus uñas.',
+  'Raspas la mesa con el canto de la mano pidiendo suerte extra. La madera no es un dado. Eres un pringado con barniz.', // ANALOGÍA
+  'La bola ya se sentó. Meter el dedo para acomodarla no mueve el número. Mueve lo cutre de tus uñas.', // ANALOGÍA
   'Estás leyendo el puto número al revés por si suma más. No suma. Resta y te deja en evidencia.',
   'El dado se recostó. Tú no. La diferencia entre un objeto y un cabrón de hábito es esa.',
-  'Pides una segunda opinión a un cubo de plástico. El plástico ya votó. El jurado del grupo también.',
-  'Estás lamiendo el número como si el sabor fuera a subir. El sabor es plástico. El hambre es tuya, mierda de rito.',
+  'Pides una segunda opinión a un cubo de plástico. El plástico ya votó. El jurado del grupo también.', // ANALOGÍA
+  'Estás lamiendo el número como si el sabor fuera a subir. El sabor es plástico. El hambre es tuya, mierda de rito.', // ANALOGÍA
   'El dado todavía tiene tu huella. No lo recojas. No va a salir otro número por insistir.',
-  'Estás tratando !aura como un chicle. El sabor se fue. Lo que queda es goma.',
+  'Estás tratando !aura como un chicle. El sabor se fue. Lo que queda es goma.', // ANALOGÍA
   'Joder, hasta el marcador bosteza. Y el marcador no tiene párpados.',
   'Hay gente hablando. Tú estás soplando el dado. Se oye el aire y da asco.',
-  'Has hecho del dado una uña. Te la comes de nervios. El puto grupo ve las manos.',
+  'Has hecho del dado una uña. Te la comes de nervios. El puto grupo ve las manos.', // ANALOGÍA
   'Diez minutos y ya es crisis. El templo se te cae con una brisa, patético.',
   'Estás midiendo el día en palitos. Por eso el día te cabe en un post-it de miseria.',
   'El azar fichó la salida. Tú estás en la puta puerta con el currículum. No hay vacante.',
@@ -257,7 +257,7 @@ const AURA_APOSTAR = [
   'Acabas de apostar. El saldo ya se enteró. Tú todavía no, cabrón.',
   'Perseguir la pérdida en caliente es el hobby más caro que tienes. Y el más tonto.',
   'Ganaste y quieres repetir. Eso también es una forma de no saber parar. El puto vicio no distingue color.',
-  'La mesa no es un chicle. Una vez y a la puta calle un rato. El asiento no se reserva con ansias.',
+  'La mesa no es un chicle. Una vez y a la puta calle un rato. El asiento no se reserva con ansias.', // ANALOGÍA
   'El tapete necesita aire. Tú también, aunque no lo admitas. Sal a la acera.',
   'Ya empujaste. Lo que pides ahora es deshacerlo o doblarlo. Las dos, de pobre. Elige el receso.',
   'Tres horas entre apuestas. El que no aguanta eso no aguanta un mal día. Ni esta puta mesa.',
@@ -283,7 +283,7 @@ const AURA_APOSTAR = [
   'La apuesta ya se resolvió. Lo que pides es reabrir el féretro. El muerto ya está contado.',
   'Si ganaste, cobra en silencio. Si perdiste, cobra el receso. En los dos casos: fuera de la puta mesa.',
   'El crupier no está sordo. Está ocupado con gente que sí sabe esperar. Tú no eres esa gente.',
-  'Estás tratando la puta mesa como un cajero. No dispensa a demanda. Ni a ti.',
+  'Estás tratando la puta mesa como un cajero. No dispensa a demanda. Ni a ti.', // ANALOGÍA
   'La última ficha todavía hace ruido. No pongas otra encima. El puto tapete pide silencio.',
   'Tres horas entre un sí y el siguiente. El que se queja de eso no debería jugar.',
   'La mesa tiene memoria corta. Tú tienes hambre larga. Gana la puta mesa.',
@@ -312,7 +312,7 @@ const AURA_APOSTAR = [
   'El portero te conoce. Por eso no te vuelve a abrir tan pronto, cabrón.',
   'El cenicero está lleno de tu ronda. No hay otra colilla ahora. Hay pasillo y tu cara de perseguir.',
   'El guardarropa todavía tiene tu chaqueta. Eso no te reserva mesa. Te reserva la vergüenza de no saber irte.',
-  'La caja de cartas se cerró. Meter los dedos entre el naipe es de gilipollas con anillo de jugador.',
+  'La caja de cartas se cerró. Meter los dedos entre el naipe es de gilipollas con anillo de jugador.', // ANALOGÍA
   'El cordón de terciopelo está enganchado. Tu pecho no lo desengancha. El jefe de mesa ya te fichó el hambre.',
   'La silla sigue caliente con tu asiento. Sentarte otra vez es sentarte encima de ti. Qué repetición más pobre.',
   'El cigarro se consumió solo. Pedir otra mano para no apagarlo es el hobby del cabrón que no para.',
@@ -352,7 +352,7 @@ const AURA_TOP_ANSIAS = [
   'Tu nombre sigue en la tabla. No se borra de tanto no mirarlo.',
   'Hay quien está arriba y calla. Tú estás arriba y pasas lista. El silencio te queda grande.',
   'El ranking no es un aplauso a demanda. Ya tuviste el tuyo. El bis no está en el menú.',
-  'Pedir el puto top estando en él es como preguntar si sigues vivo. Sí. El certificado ya salió.',
+  'Pedir el puto top estando en él es como preguntar si sigues vivo. Sí. El certificado ya salió.', // ANALOGÍA
   'La lista no se ha movido. Tu ego sí, y para abajo. Qué vergüenza de descenso interno.',
   'Tres horas. El puesto aguanta. Tu necesidad de verlo, no. Esa es la tabla real, y duele el ridículo.',
   'Estás en el cuadro y tocas el marco. El cuadro no se cae. El que queda mal eres tú, y se te ve el asco propio.',
@@ -393,7 +393,7 @@ const AURA_TOP_ANSIAS = [
   'Hay un receso entre un puto recuento y otro. Los primeros también lo cumplen. O los bajan de oficio.',
   'Tu nombre en grande y tú pidiendo la letra más grande. Qué vergüenza más íntima, y pública.',
   'Estás lamiendo tu propio nombre en la placa. El grabado no se profundiza. Se profundiza el asco.',
-  'Te pesas otra vez ahora que ganaste. El puto número de la báscula no te sube el puesto. Te baja el disimulo.',
+  'Te pesas otra vez ahora que ganaste. El puto número de la báscula no te sube el puesto. Te baja el disimulo.', // ANALOGÍA
   'Pones tu propia nota de voz en bucle. Ya ganaste. El bucle es de gilipollas con eco.',
   'El azulejo del baño te devuelve. No es el puto ranking. Es tu cara pidiendo bis a una pared húmeda.',
   'Repites el discurso de victoria para un pasillo vacío. El pasillo no aplaude. El eco te deja patético.',
@@ -429,7 +429,7 @@ const AURA_TOP_POBRE = [
   'No sales. No vas a salir mirando. Ponte a escribir o acepta la grada.',
   'Fascinante obsesión con un puto podio que te queda a un país de distancia.',
   'El ranking sigue igual, y tú sigues igual de abajo. Constancia, al menos, en lo irrelevante.',
-  'Consultar el puto top con tu saldo es como leer la carta sin cartera. El mesero ya bosteza.',
+  'Consultar el puto top con tu saldo es como leer la carta sin cartera. El mesero ya bosteza.', // ANALOGÍA
   'Ni estás ni se te espera. Pero oye, buena curiosidad de escaparate.',
   'Deja de vigilar a los que ganan y ponte a competir de una vez. El binocular no suma.',
   'El podio no se mira, se ocupa. Tú de momento miras, y se te ve la baba.',
@@ -473,7 +473,7 @@ const AURA_TOP_POBRE = [
   'La tabla no cambia porque tú la extrañes. Cambia porque alguien hace algo. Tú extrañas.',
   'Pedir el puto recuento desde el sótano no te sube. Te deja el cuello torcido y la cuenta igual.',
   'Hay diez. Tú eres el once en espíritu y el cero en la hoja. Duele porque es exacto, y público.',
-  'El podio no es un reclamo. Aunque tú lo trates como un escaparate de centro comercial.',
+  'El podio no es un reclamo. Aunque tú lo trates como un escaparate de centro comercial.', // ANALOGÍA
   'Sigues sin salir y sigues preguntando. Eso ya es un género literario. Malo y repetido.',
   'La lista te ignora con profesionalidad. Aprende: también se puede no existir con estilo. Tú todavía no.',
   'Tres horas de no estar. El récord que sí puedes sostener.',

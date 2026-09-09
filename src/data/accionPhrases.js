@@ -487,12 +487,12 @@ const ROAST_USUARIO = [
   '%A, te has gastado el aura en simular que te quieren. No te quieren. Te han mencionado. No es lo mismo, imbécil, y se lee.',
   '%A espera que el grupo vea que ha hecho algo. Ha hecho un cargo. El cargo no es un cuerpo. Ni de lejos es un cuerpo.',
   '%A, lo tuyo no es timidez. Es que en persona no te comen ni el saludo. Aquí el saludo se compra, gilipollas, y lo llamas contacto.',
-  'La ronda de %A es una dieta de menciones. Cero calorías, y aun así repite plato tres veces al día.',
+  'La ronda de %A es una dieta de menciones. Cero calorías, y aun así repite plato tres veces al día.', // ANALOGÍA
   '%A no se atreve a decir el nombre en el aire. Lo teclea. El aire no se entera. El grupo, sí. Y se ríe. Con razón.',
   'Tres de la mañana, saldo abajo, %A fingiendo intimidad. La intimidad de verdad pide un cuerpo. El cuerpo no ha venido. No va a venir.',
   '%A se queda mirando si pitan. Un tick doble le sube más que nadie a quien haya tocado este año.',
   '%A, nadie te debe un gesto. Lo estás comprando. Lo comprado no es un gesto. Es una limosna que te das con público.',
-  'El único idioma que le funciona a %A es el comando. El de la boca se le oxidó. Se le oye el óxido cada vez que paga.',
+  'El único idioma que le funciona a %A es el comando. El de la boca se le oxidó. Se le oye el óxido cada vez que paga.', // ANALOGÍA
   '%A ha escrito el nombre, lo ha borrado, lo ha vuelto a poner. El miedo cabe en dos pulgadas. Fuera, el miedo gana siempre. Gana porque no sales.',
   '%A, te haces el valiente con testigos de chat. En un pasillo no hay testigos que te tapen. Hay una persona. No das. No has dado nunca.',
   'Media lista del grupo en una semana. %A está quemando nombres como quien quema cerillas. Ninguna calienta. Ninguna iba a calentar. El frío eres tú.',
@@ -509,7 +509,7 @@ const ROAST_USUARIO = [
   '%A, esto es lo que haces cuando no te folla nadie. Lo haces en público. Lo has hecho. El público no iba a salvarte. El público te acaba de ver.',
   'La mención de %A cruza el grupo en medio segundo. Los dos metros hasta la persona llevan años sin cruzarse.',
   '%A se ha hecho un cuerpo de notificaciones y llama a eso que le toquen. No le tocan. Le pitan. El pita le basta porque no hay más, y no va a haber más.',
-  '%A, has pagado para no tener que oír tu propia voz pidiéndolo. La voz te delataría. El cargo te hace de madre y te deja en la cuna. El grupo hace de sala.',
+  '%A, has pagado para no tener que oír tu propia voz pidiéndolo. La voz te delataría. El cargo te hace de madre y te deja en la cuna. El grupo hace de sala.', // ANALOGÍA
   'Si %A sale de esta y habla, se le acaba el truco. Por eso no habla. Por eso paga. Por eso el grupo ya no se sorprende.',
   '%A llama valentía a un gif con nombre. Valentía era cruzar. No ha cruzado. No va a cruzar. El gif es lo máximo que da, y da asco verlo.',
   '%A ha tardado más en elegir a quién que lo que dura el gif. Esa es toda la vida social que ha tenido hoy.',

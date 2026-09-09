@@ -125,6 +125,10 @@ function rollAura(targetIsOwner, targetIsAdmin, plusActividad = 0, dePago = true
 }
 
 
+// AURA.gain y AURA.loss: analogías baratas. El chiste es el objeto (wifi,
+// nokia, brick de leche, calcetín), no quien acaba de ganar o perder.
+// Líneas con `// ANALOGÍA` — brief en PENDIENTE.md. Los cinco ejemplos
+// marcados «intocables» en blessed/loss/cursed no se tocan.
 const AURA = {
   blessed: [
     // ── Ejemplos del usuario (intocables) ──
@@ -180,7 +184,7 @@ const AURA = {
     'Has obligado a tragar saliva a gente que traga poco.',
     'El que te tenía de puto fondo de pantalla de risa ha tenido que cambiarlo.',
     'Has ganado con la cara de quien no debería.',
-    'El puto grupo te ha mirado como se mira un radar en negativo: "este no era el blip".',
+    'El puto grupo te ha mirado como se mira un radar en negativo: "este no era el blip".', // ANALOGÍA
     'Alguien ha ido a buscar la trampa. No la hay. Has sido tú, y eso les jode más.',
     'Todo lo que tenían preparado para ti se les ha caducado.',
     'Te han dado el respeto de la deuda: te miran, no pagan con palabras, y se van.',
@@ -190,7 +194,7 @@ const AURA = {
     'Has ganado sucio de tan limpio: sin debate, sin asterisco, sin "sí, pero".',
     'El que iba a mandar el "otra vez tú" se ha encontrado con que esta vez no.',
     'Te han hecho el respeto de los funerales invertido: no estás muerto.',
-    'Has apagado el modo burla como se apaga una tele a las tres.',
+    'Has apagado el modo burla como se apaga una tele a las tres.', // ANALOGÍA
     'El puto grupo te ha recálculado el precio. Has subido. Les ha salido caro admitirlo.',
     'Alguien ha escrito tu puto nombre y lo ha borrado.',
     'Has hecho que el "seguro que pierde" se atragante.',
@@ -205,7 +209,7 @@ const AURA = {
     'Alguien ha puesto "joder" y se ha quedado ahí.',
     'Te miran de reojo, que es el único respeto honesto que hay aquí.',
     'La broma de siempre ya no encaja, cabrón.',
-    'Te han hecho sitio de mala gana, como en un ascensor lleno.',
+    'Te han hecho sitio de mala gana, como en un ascensor lleno.', // ANALOGÍA
     'Hoy el punchline eras tú, y no del lado que ellos querían.',
     'El karaoke se ha callado. Canta bajo, que esto no dura.',
     'Has ganado y el puto ranking ha hecho un ruido que nadie quería oír.',
@@ -217,7 +221,7 @@ const AURA = {
     'Has hecho que el "este no" se convierta en "este sí" durante un minuto.',
     'Te han pagado en silencio, que aquí es moneda alta.',
     'Has ganado de una forma que obliga a recalcular el chiste del puto grupo.',
-    'Eres el radar que no debería pitar y está pitando.',
+    'Eres el radar que no debería pitar y está pitando.', // ANALOGÍA
     'El que te tenía de comodín de risa se ha quedado sin comodín. Que improvise, joder.',
     'Has obligado a que te traguen sin salsa.',
     'El aura te ha hecho un corte de manga colectivo al repertorio.',
@@ -226,123 +230,123 @@ const AURA = {
     'Se lo han tragado con miedo a que se les note.',
   ],
   gain: [
-    'Café de máquina: dos sorbos y a cenicero. El ranking ni se ha enterado.',
-    'Miga de croissant en la barba. El saldo se mueve. El grupo, no.',
-    'Modo ahorro de batería: dura más. El chat sigue igual.',
-    'El wifi del vecino llega flojo y se corta en cuanto te fías.',
-    'El ticket del súper tiene más presencia que este resultado.',
-    'Like de compromiso. Verde, sí. El grupo sigue a lo suyo.',
-    'El kiosko te ha dado el cambio. Cuéntalo en voz alta y se acaba el turno.',
-    'Hoy el aura te trató como a un cliente habitual: sin palos.',
-    'El banco te mira igual de mal. Hoy no te cobra.',
-    'Notificación de más uno. El teléfono ni vibra. El chat tampoco.',
-    'Pizza fría a las cuatro. Nadie la reclamó. Ahora está en tu plato.',
+    'Café de máquina: dos sorbos y a cenicero. El ranking ni se ha enterado.', // ANALOGÍA
+    'Miga de croissant en la barba. El saldo se mueve. El grupo, no.', // ANALOGÍA
+    'Modo ahorro de batería: dura más. El chat sigue igual.', // ANALOGÍA
+    'El wifi del vecino llega flojo y se corta en cuanto te fías.', // ANALOGÍA
+    'El ticket del súper tiene más presencia que este resultado.', // ANALOGÍA
+    'Like de compromiso. Verde, sí. El grupo sigue a lo suyo.', // ANALOGÍA
+    'El kiosko te ha dado el cambio. Cuéntalo en voz alta y se acaba el turno.', // ANALOGÍA
+    'Hoy el aura te trató como a un cliente habitual: sin palos.', // ANALOGÍA
+    'El banco te mira igual de mal. Hoy no te cobra.', // ANALOGÍA
+    'Notificación de más uno. El teléfono ni vibra. El chat tampoco.', // ANALOGÍA
+    'Pizza fría a las cuatro. Nadie la reclamó. Ahora está en tu plato.', // ANALOGÍA
     'Ganas, sí. Lo justo para que no se note en la tabla, joder.',
-    'Asiento del fondo del bus. Llegas. Nadie se ha girado.',
-    'La cola avanzó un puesto. Sigues viendo la nuca del de delante.',
-    'Cupón que caduca mañana. El azar se arrepiente rápido.',
+    'Asiento del fondo del bus. Llegas. Nadie se ha girado.', // ANALOGÍA
+    'La cola avanzó un puesto. Sigues viendo la nuca del de delante.', // ANALOGÍA
+    'Cupón que caduca mañana. El azar se arrepiente rápido.', // ANALOGÍA
     'Una subida tan pequeña que redondeando no existe. Cuenta igual.',
-    'Marca blanca del súper. Misma función, cara cutre, y el número en verde.',
+    'Marca blanca del súper. Misma función, cara cutre, y el número en verde.', // ANALOGÍA
     'Sube el número y no se mueve la tabla. El puesto sigue donde estaba.',
-    'Nokia que aún enciende. No sabe cómo apagarse. El saldo tampoco.',
-    'Brick de leche a punto de caducar. Lo abres hoy o huele mañana.',
+    'Nokia que aún enciende. No sabe cómo apagarse. El saldo tampoco.', // ANALOGÍA
+    'Brick de leche a punto de caducar. Lo abres hoy o huele mañana.', // ANALOGÍA
     'Has ganado algo que mañana no vas a recordar. El dato es de hoy.',
-    'Ración de cortesía que no pediste. El camarero ya está en otra mesa.',
+    'Ración de cortesía que no pediste. El camarero ya está en otra mesa.', // ANALOGÍA
     'La tabla no se ha enterado, y hace bien. Esto no mueve un puto puesto.',
-    'Te pagaron en puntos del súper. El sandwichera sale en 2041.',
-    'Te han puesto en copia de un correo que no era para ti. Has aparecido. Punto.',
-    'Un chupito de cortesía. Ni copa, ni hielo, ni segunda ronda.',
-    'Te ha tocado el relleno del bocadillo: atún del barato.',
-    'Te ha tocado el asiento del cine que nadie quería.',
-    'Wifi de treinta minutos en el aeropuerto. Navega.',
-    'Sello de pagado en una factura de tres euros. El cajero ni ha levantado la vista.',
-    'La ola ha sido de un solo tipo. Una mano. Y se baja.',
-    'Caramelo de menta del plato de la entrada. Gratis, duro y de nadie.',
-    'Subiste como el agua del vaso: por capilaridad, sin que nadie lo pidiera.',
-    'El número de espera ha bajado uno. Sigues en la sala.',
-    'Envío estándar: llega tarde y sin aviso.',
+    'Te pagaron en puntos del súper. El sandwichera sale en 2041.', // ANALOGÍA
+    'Te han puesto en copia de un correo que no era para ti. Has aparecido. Punto.', // ANALOGÍA
+    'Un chupito de cortesía. Ni copa, ni hielo, ni segunda ronda.', // ANALOGÍA
+    'Te ha tocado el relleno del bocadillo: atún del barato.', // ANALOGÍA
+    'Te ha tocado el asiento del cine que nadie quería.', // ANALOGÍA
+    'Wifi de treinta minutos en el aeropuerto. Navega.', // ANALOGÍA
+    'Sello de pagado en una factura de tres euros. El cajero ni ha levantado la vista.', // ANALOGÍA
+    'La ola ha sido de un solo tipo. Una mano. Y se baja.', // ANALOGÍA
+    'Caramelo de menta del plato de la entrada. Gratis, duro y de nadie.', // ANALOGÍA
+    'Subiste como el agua del vaso: por capilaridad, sin que nadie lo pidiera.', // ANALOGÍA
+    'El número de espera ha bajado uno. Sigues en la sala.', // ANALOGÍA
+    'Envío estándar: llega tarde y sin aviso.', // ANALOGÍA
     'Un ok en el puto chat. Ni sticker. Ni un jaja. Ok.',
-    'Recorte del cupón: vale para la próxima, que igual no llega.',
-    'Subida de termostato de un grado. Sigues en manga larga.',
-    'Último palito de la bolsa. El paquete se acaba en el siguiente.',
-    'Te pagaron el cubierto y el agua. El resto de la carta sigue siendo para otros.',
-    'Cabezazo de cortesía. Contacto, sí. Gol, no.',
-    'Subiste lo que sube un globo pinchado: un palmo, y se oye el aire.',
-    'Hueles un segundo y el bote se queda en el escaparate.',
-    'Verde de semáforo en ámbar. Pasa. Si te confías, el siguiente no espera.',
-    'Hielo que sobró del cubo. Frío prestado. Mañana es un charco.',
-    'Cabe en el vueltos de un café. Ni el camarero te ha deseado nada.',
-    'Planta de plástico del súper: sigue viva porque nadie ha tenido tiempo de matarla.',
-    'Tiempo añadido. Un minuto. El partido ya estaba decidido.',
-    'Llaves del trastero. No del piso. Del trastero.',
-    'Subiste como el pan de molde: una rebanada, y la bolsa sigue llena de aire.',
-    'Un guiño. Un guiño, no un beso.',
-    'Subida de andén: el tren no para, pero ya no estás en las vías.',
-    'Pan de la cesta que nadie cogió. Gratis y duro.',
-    'Post-it verde en la frente. El resto del expediente, igual.',
-    'Modo invitado: entras, no guardas nada, y mañana ni se acuerda el chat.',
-    'Sumas lo que suma un voto nulo: sale en el acta y no cambia nada.',
-    'Asiento plegable del pasillo. Llegas sentado. El paisaje es el de siempre.',
-    'Cama de hotel de tres estrellas: sosa y con el minibar cerrado.',
-    'Un peldaño de parking: no ves la calle, pero ya no estás en el sótano.',
-    'Chupito de hierbas que regalan a las once. Lo ponen y recogen el vaso.',
+    'Recorte del cupón: vale para la próxima, que igual no llega.', // ANALOGÍA
+    'Subida de termostato de un grado. Sigues en manga larga.', // ANALOGÍA
+    'Último palito de la bolsa. El paquete se acaba en el siguiente.', // ANALOGÍA
+    'Te pagaron el cubierto y el agua. El resto de la carta sigue siendo para otros.', // ANALOGÍA
+    'Cabezazo de cortesía. Contacto, sí. Gol, no.', // ANALOGÍA
+    'Subiste lo que sube un globo pinchado: un palmo, y se oye el aire.', // ANALOGÍA
+    'Hueles un segundo y el bote se queda en el escaparate.', // ANALOGÍA
+    'Verde de semáforo en ámbar. Pasa. Si te confías, el siguiente no espera.', // ANALOGÍA
+    'Hielo que sobró del cubo. Frío prestado. Mañana es un charco.', // ANALOGÍA
+    'Cabe en el vueltos de un café. Ni el camarero te ha deseado nada.', // ANALOGÍA
+    'Planta de plástico del súper: sigue viva porque nadie ha tenido tiempo de matarla.', // ANALOGÍA
+    'Tiempo añadido. Un minuto. El partido ya estaba decidido.', // ANALOGÍA
+    'Llaves del trastero. No del piso. Del trastero.', // ANALOGÍA
+    'Subiste como el pan de molde: una rebanada, y la bolsa sigue llena de aire.', // ANALOGÍA
+    'Un guiño. Un guiño, no un beso.', // ANALOGÍA
+    'Subida de andén: el tren no para, pero ya no estás en las vías.', // ANALOGÍA
+    'Pan de la cesta que nadie cogió. Gratis y duro.', // ANALOGÍA
+    'Post-it verde en la frente. El resto del expediente, igual.', // ANALOGÍA
+    'Modo invitado: entras, no guardas nada, y mañana ni se acuerda el chat.', // ANALOGÍA
+    'Sumas lo que suma un voto nulo: sale en el acta y no cambia nada.', // ANALOGÍA
+    'Asiento plegable del pasillo. Llegas sentado. El paisaje es el de siempre.', // ANALOGÍA
+    'Cama de hotel de tres estrellas: sosa y con el minibar cerrado.', // ANALOGÍA
+    'Un peldaño de parking: no ves la calle, pero ya no estás en el sótano.', // ANALOGÍA
+    'Chupito de hierbas que regalan a las once. Lo ponen y recogen el vaso.', // ANALOGÍA
     'Un visto en verde. El doble tick, y nada detrás.',
-    'Bolsa de plástico de pago. La llevas. El ticket, dentro.',
-    'Te dio para el café solo, no para el con leche. Pide eso y no mires la vitrina.',
-    'De extra en la escena. Sale el nombre en los créditos del final, en gris.',
-    'Trozo de chorizo que cae de la tapa. El plato era de otro. El trozo, tuyo.',
-    'La mesa paga en céntimos y sigue a lo suyo.',
+    'Bolsa de plástico de pago. La llevas. El ticket, dentro.', // ANALOGÍA
+    'Te dio para el café solo, no para el con leche. Pide eso y no mires la vitrina.', // ANALOGÍA
+    'De extra en la escena. Sale el nombre en los créditos del final, en gris.', // ANALOGÍA
+    'Trozo de chorizo que cae de la tapa. El plato era de otro. El trozo, tuyo.', // ANALOGÍA
+    'La mesa paga en céntimos y sigue a lo suyo.', // ANALOGÍA
     'Pequeña subida. El grupo lo vio, bostezó y siguió con lo suyo.',
-    'El aura te dio un hueso. El chat no ha levantado la cabeza.',
+    'El aura te dio un hueso. El chat no ha levantado la cabeza.', // ANALOGÍA
     'Sticker de pulgar. El cumplido más vago del puto chat, y ha salido.',
     'El visto sin respuesta. Subiste. Nadie tenía nada que decir encima.',
-    'El segundo del bar. Ni menú, ni corona, ni foto. Lo que sobra.',
-    'El like de tu tía en el estado. Cariño obligatorio, cero ganas.',
-    'Has recogido del suelo lo que otro soltó. El suelo paga cuando le da la gana.',
+    'El segundo del bar. Ni menú, ni corona, ni foto. Lo que sobra.', // ANALOGÍA
+    'El like de tu tía en el estado. Cariño obligatorio, cero ganas.', // ANALOGÍA
+    'Has recogido del suelo lo que otro soltó. El suelo paga cuando le da la gana.', // ANALOGÍA
     'Has subido lo que se sube sin querer. El número está, el discurso no.',
-    'Fila de espera que avanzó un puesto. El mostrador sigue lejos.',
-    'Cómetelo antes de que se enfríe y nadie pregunte de quién era.',
+    'Fila de espera que avanzó un puesto. El mostrador sigue lejos.', // ANALOGÍA
+    'Cómetelo antes de que se enfríe y nadie pregunte de quién era.', // ANALOGÍA
     'Hoy no hubo palo. El aura se ha limitado a no morder.',
     'Un puñado pequeño. Positivo. La tabla ni pestañea.',
-    'Subiste como sube el IVA: poco, inevitable, y a nadie le hace ilusión.',
-    'Lo justo para no salir en rojo en el puto ticket. El cajero ni te ha mirado.',
+    'Subiste como sube el IVA: poco, inevitable, y a nadie le hace ilusión.', // ANALOGÍA
+    'Lo justo para no salir en rojo en el puto ticket. El cajero ni te ha mirado.', // ANALOGÍA
     'Joder, una ganancia de esas que dan más pereza que alegría.',
-    'Transferencia corta. Acepta y no pongas concepto.',
-    'Un número que no da ni para el gordo ni para el café.',
+    'Transferencia corta. Acepta y no pongas concepto.', // ANALOGÍA
+    'Un número que no da ni para el gordo ni para el café.', // ANALOGÍA
     'Verde en la pantalla y silencio en el grupo. No se ha dado cuenta nadie.',
-    'Funciona el mando y nadie te va a pedir el canal.',
-    'Te ha salido el parche oficial. Sigue siendo el mismo juego, con un parche.',
-    'Has ganado lo mismo que se pierde en un café. El saldo, un café más alto.',
-    'Subiste lo que sube el sueldo en un restaurante: un insulto disfrazado de cifra.',
+    'Funciona el mando y nadie te va a pedir el canal.', // ANALOGÍA
+    'Te ha salido el parche oficial. Sigue siendo el mismo juego, con un parche.', // ANALOGÍA
+    'Has ganado lo mismo que se pierde en un café. El saldo, un café más alto.', // ANALOGÍA
+    'Subiste lo que sube el sueldo en un restaurante: un insulto disfrazado de cifra.', // ANALOGÍA
     'Coño, sumar esto cuesta más energía de la que da.',
     'Te ha tocado ganar y suena a céntimos. La prensa del grupo ni abre el teletipo.',
     'El puto grupo está mirando el partido. Este número no lo para.',
     'Ganancia sin consecuencias. Ni las buenas ni las malas.',
-    'No tocas el volante, no eliges la radio, y aun así el coche ha avanzado un palmo.',
-    'La mesa suelta migajas y se queda tan ancha. Hoy te ha tocado una.',
+    'No tocas el volante, no eliges la radio, y aun así el coche ha avanzado un palmo.', // ANALOGÍA
+    'La mesa suelta migajas y se queda tan ancha. Hoy te ha tocado una.', // ANALOGÍA
     'Joder, el aura ha hecho la mínima. La mínima cuenta. El marcador, en verde.',
-    'El saldo pica hacia arriba como pica un mosco: se nota y se olvida.',
-    'El aura ha firmado con letra pequeña. La letra grande se la queda otro día.',
+    'El saldo pica hacia arriba como pica un mosco: se nota y se olvida.', // ANALOGÍA
+    'El aura ha firmado con letra pequeña. La letra grande se la queda otro día.', // ANALOGÍA
     'Has ganado y el grupo ni ha parado el hilo. El hilo mandaba más.',
     'Joder, sumaste monedas. No da para titular. Da para el marcador.',
     'Sigues donde estabas en la tabla. El saldo, un pelín menos abajo.',
-    'Sello en la tarjeta de fidelidad. El premio gordo sigue en el horizonte.',
-    'El recambio de la cafetera: sale, quema el vaso, y ya.',
-    'La mesa ha tenido que soltarlo. Poco. Lo ha soltado igual.',
-    'El semáforo te ha dejado pasar en el último amarillo. El cruce, hecho.',
-    'Un palmo de sombra. El toldo es de otro. El palmo, tuyo.',
-    'El portero automático te ha abierto. Un segundo. Luego vuelve a cerrar.',
-    'La máquina del metro te ha devuelto el céntimo de más. El tren no espera.',
-    'La radio del taxi ha acertado una. El taxista ni se ha inmutado.',
-    'El despertador ha sonado un minuto más tarde. El minuto, ganado.',
-    'El ascensor ha parado en tu piso sin que nadie pulsara el de al lado.',
-    'El mando ha encontrado la pila. El canal, el de siempre.',
-    'La cola del pan ha avanzado dos. El de delante sigue pidiendo roscos.',
-    'El parquímetro te ha regalado cinco minutos. El aviso naranja, después.',
-    'La lavadora ha terminado en el primer ciclo. Nadie estaba esperando el pitido.',
-    'El timbre ha sonado y era el del rellano de al lado. Hoy no tocaba palo.',
-    'El cubata de cortesía del cierre. Lo ponen cuando ya no hay hielo.',
-    'La mesa ha pagado con calderilla. La calderilla cuenta. El camarero, a otra.',
+    'Sello en la tarjeta de fidelidad. El premio gordo sigue en el horizonte.', // ANALOGÍA
+    'El recambio de la cafetera: sale, quema el vaso, y ya.', // ANALOGÍA
+    'La mesa ha tenido que soltarlo. Poco. Lo ha soltado igual.', // ANALOGÍA
+    'El semáforo te ha dejado pasar en el último amarillo. El cruce, hecho.', // ANALOGÍA
+    'Un palmo de sombra. El toldo es de otro. El palmo, tuyo.', // ANALOGÍA
+    'El portero automático te ha abierto. Un segundo. Luego vuelve a cerrar.', // ANALOGÍA
+    'La máquina del metro te ha devuelto el céntimo de más. El tren no espera.', // ANALOGÍA
+    'La radio del taxi ha acertado una. El taxista ni se ha inmutado.', // ANALOGÍA
+    'El despertador ha sonado un minuto más tarde. El minuto, ganado.', // ANALOGÍA
+    'El ascensor ha parado en tu piso sin que nadie pulsara el de al lado.', // ANALOGÍA
+    'El mando ha encontrado la pila. El canal, el de siempre.', // ANALOGÍA
+    'La cola del pan ha avanzado dos. El de delante sigue pidiendo roscos.', // ANALOGÍA
+    'El parquímetro te ha regalado cinco minutos. El aviso naranja, después.', // ANALOGÍA
+    'La lavadora ha terminado en el primer ciclo. Nadie estaba esperando el pitido.', // ANALOGÍA
+    'El timbre ha sonado y era el del rellano de al lado. Hoy no tocaba palo.', // ANALOGÍA
+    'El cubata de cortesía del cierre. Lo ponen cuando ya no hay hielo.', // ANALOGÍA
+    'La mesa ha pagado con calderilla. La calderilla cuenta. El camarero, a otra.', // ANALOGÍA
     'El ranking te ha dejado en el mismo sitio con el número un poco menos feo.',
     'El chat ha hecho un visto colectivo y ha vuelto al audio de antes.',
     'El aura ha soltado lo justo para no salir en rojo. Lo justo, y se ha ido.',
@@ -357,103 +361,103 @@ const AURA = {
     // ── Reescritas y nuevas ──
     'Perdiste poco, pero también tenías poco. Proporcionalmente, una miseria.',
     'Te quitaron aura y el puto grupo siguió hablando de comida.',
-    'A estas alturas podría ser tu puto fondo de pantalla.',
+    'A estas alturas podría ser tu puto fondo de pantalla.', // ANALOGÍA
     'Fallaste en algo fácil, gilipollas, y a nadie le ha sorprendido.',
     'Bajaste otro escalón sin que nadie te empujara. El mérito es tuyo entero, cabrón.',
     'El puto grupo vio tu pérdida y la archivó con las demás.',
     'Perdiste aura como quien pierde un botón: sin enterarte, pringado.',
     'Ya sabes por qué: porque eres tú, gilipollas.',
-    'Tu número duró menos que un fuera de juego. Ridículo.',
-    'Tu puta pérdida tiene esa misma energía.',
-    'Joder, un estado que caduca en 24 horas.',
-    'Joder, la notificación silenciada. El teléfono ni se ha molestado en vibrar por ti.',
-    'Joder, la silla de plástico que nadie retira después de la fiesta.',
+    'Tu número duró menos que un fuera de juego. Ridículo.', // ANALOGÍA
+    'Tu puta pérdida tiene esa misma energía.', // ANALOGÍA
+    'Joder, un estado que caduca en 24 horas.', // ANALOGÍA
+    'Joder, la notificación silenciada. El teléfono ni se ha molestado en vibrar por ti.', // ANALOGÍA
+    'Joder, la silla de plástico que nadie retira después de la fiesta.', // ANALOGÍA
     'Te quitan poco, y con eso basta para dejarte donde siempre, cabrón.',
-    'Ni el filtro te tiene respeto. Te deja pasar. Qué asco de trato.',
-    'El puto grupo le ha dado a skip. Tú eres el anuncio.',
-    'Nota adhesiva que se cae de la nevera. El imán no te quería tanto, fracasado.',
+    'Ni el filtro te tiene respeto. Te deja pasar. Qué asco de trato.', // ANALOGÍA
+    'El puto grupo le ha dado a skip. Tú eres el anuncio.', // ANALOGÍA
+    'Nota adhesiva que se cae de la nevera. El imán no te quería tanto, fracasado.', // ANALOGÍA
     'Joder, tu nombre en visto a las tres de la mañana.',
-    'Tu puta pérdida va al cajón de los cargadores huérfanos.',
+    'Tu puta pérdida va al cajón de los cargadores huérfanos.', // ANALOGÍA
     'Has perdido lo justo para que nadie se entere y tú sí, pringado.',
-    'Paraguas olvidado en el bar: lo miran un día y lo tiran. Cutre y puntual.',
+    'Paraguas olvidado en el bar: lo miran un día y lo tiran. Cutre y puntual.', // ANALOGÍA
     'Joder, has perdido y ni te has parado a mirar cuánto. Ya lo sabías.',
     'Has perdido un puesto y el de la caja ni te ha visto, don nadie.',
-    'Coño, el wifi que pica una vez y se cae.',
-    'Alarma que snoozeas. El golpe es pequeño y ya lo tenías en el cuerpo, cabrón.',
+    'Coño, el wifi que pica una vez y se cae.', // ANALOGÍA
+    'Alarma que snoozeas. El golpe es pequeño y ya lo tenías en el cuerpo, cabrón.', // ANALOGÍA
     'Pierdes poco y seguido, que es la forma más tonta de quedarse sin nada, gilipollas.',
     'Le has dado a tirar esperando otra cosa, pringado. No sé por qué.',
     'Bajas un poco y sigues como si nada. Esa tranquilidad es justo el problema, inútil.',
     'Una bajada discreta, de las que no se cuentan pero se acumulan, pringado.',
     'El siguiente tarda, y es tu culpa por llegar así, fracasado.',
     'Otra pérdida de las tuyas: pequeña, puntual, previsible. Basura rutinaria.',
-    'Desaparece uno y el otro se queda viudo. Como tu saldo, miseria.',
-    'El aura te cobró el cubierto. Ni plato. Ni segundo. Solo el cubierto, gilipollas.',
-    'Bajaste como baja un calcetín: solo, sin ceremonia, y se te ve el tobillo.',
-    'Te han pasado el trapo. Ni fregado. Trapo. Lo justo para que no se note el polvo.',
+    'Desaparece uno y el otro se queda viudo. Como tu saldo, miseria.', // ANALOGÍA
+    'El aura te cobró el cubierto. Ni plato. Ni segundo. Solo el cubierto, gilipollas.', // ANALOGÍA
+    'Bajaste como baja un calcetín: solo, sin ceremonia, y se te ve el tobillo.', // ANALOGÍA
+    'Te han pasado el trapo. Ni fregado. Trapo. Lo justo para que no se note el polvo.', // ANALOGÍA
     'Coño, perder así no da ni para queja. Y tú tampoco ibas a quejarte.',
-    'Te restaron lo que se lleva el IVA: lo sabías, lo odias, y pagas igual.',
+    'Te restaron lo que se lleva el IVA: lo sabías, lo odias, y pagas igual.', // ANALOGÍA
     'El grupo te archivó en "recuerdos". Ahí no entra nadie a mirar, cabrón.',
-    'Bajaste como el hielo del vaso: se nota al final, cuando ya está aguado.',
-    'Te han dado el visto de compromiso. Obligatorio, frío, y a otra cosa.',
+    'Bajaste como el hielo del vaso: se nota al final, cuando ya está aguado.', // ANALOGÍA
+    'Te han dado el visto de compromiso. Obligatorio, frío, y a otra cosa.', // ANALOGÍA
     'Menos aura y la misma actitud. Ahí está el problema de fondo.',
-    'El aura te ha hecho una transferencia al revés.',
-    'Te quitaron el asiento del pasillo. Sigues en el vagón. Viajas peor, que es lo tuyo.',
-    'Bajas despacio y sin funeral, como una planta de IKEA.',
+    'El aura te ha hecho una transferencia al revés.', // ANALOGÍA
+    'Te quitaron el asiento del pasillo. Sigues en el vagón. Viajas peor, que es lo tuyo.', // ANALOGÍA
+    'Bajas despacio y sin funeral, como una planta de IKEA.', // ANALOGÍA
     'El chat puso "jaja" a otra cosa mientras tú salías en rojo. Prioridades, inútil.',
-    'Pagas de más y nadie te espera en llegadas.',
+    'Pagas de más y nadie te espera en llegadas.', // ANALOGÍA
     'No has perdido gran cosa. Tampoco tenías gran cosa, pringado.',
-    'El aura te ha puesto en cc de un recorte. Has salido. El puto hilo sigue sin ti.',
-    'Bajaste como el pan de molde: una rebanada menos, y la bolsa parece igual de llena.',
-    'Te restaron el cubito. El vaso sigue. La bebida sabe igual de regular.',
+    'El aura te ha puesto en cc de un recorte. Has salido. El puto hilo sigue sin ti.', // ANALOGÍA
+    'Bajaste como el pan de molde: una rebanada menos, y la bolsa parece igual de llena.', // ANALOGÍA
+    'Te restaron el cubito. El vaso sigue. La bebida sabe igual de regular.', // ANALOGÍA
     'Has bajado, el grupo sigue igual y mañana lo repites. Todo previsible.',
     'El ranking no se ha movido. Para moverse haría falta que importaras, pringado.',
-    'Te han pinchado la rueda y sigues. El coche baja un palmo. Nadie llama al grúa.',
+    'Te han pinchado la rueda y sigues. El coche baja un palmo. Nadie llama al grúa.', // ANALOGÍA
     'Pérdida pequeña y aburrida, como tu manera de jugar, gilipollas.',
-    'El aura te ha dejado el último palito... y te lo ha quitado. Lo querías. Da más pena.',
-    'Bajaste como el brillo de un chrome a las tres: se nota si miras, y nadie mira.',
-    'Has salido de la tienda más pobre y con menos dignidad.',
-    'El puto grupo te usó de ruido blanco. Bajaste el volumen un punto. El podcast seguía.',
-    'Te restaron lo que se lleva el perro del parque: porque estaba ahí.',
+    'El aura te ha dejado el último palito... y te lo ha quitado. Lo querías. Da más pena.', // ANALOGÍA
+    'Bajaste como el brillo de un chrome a las tres: se nota si miras, y nadie mira.', // ANALOGÍA
+    'Has salido de la tienda más pobre y con menos dignidad.', // ANALOGÍA
+    'El puto grupo te usó de ruido blanco. Bajaste el volumen un punto. El podcast seguía.', // ANALOGÍA
+    'Te restaron lo que se lleva el perro del parque: porque estaba ahí.', // ANALOGÍA
     'El grupo ha visto tu número y ha seguido a lo suyo. Ni eso te has ganado.',
     'El aura te ha puesto un "ok" en rojo. Ni sticker. Ni pena. Ok, fracasado.',
-    'Te quitaron el hielo y te dejaron el agua. Sigues bebiendo. El gin se lo quedó otro.',
+    'Te quitaron el hielo y te dejaron el agua. Sigues bebiendo. El gin se lo quedó otro.', // ANALOGÍA
     'Has restado. Nadie va a comentarlo y mañana ni tú te acuerdas.',
     'El chat archivó tu nombre junto a "el de siempre".',
-    'Te han dado el recorte del cupón caducado. Lo tenías. Ya no vale. Típico.',
-    'Un uno por ciento, y ni lo has sacado del bolsillo a mirar.',
-    'El aura te cobró el peaje de tres euros. La autopista sigue. Tú sales más corto.',
-    'Te restaron el pan de la cesta. El segundo plato no era para ti de todas formas.',
+    'Te han dado el recorte del cupón caducado. Lo tenías. Ya no vale. Típico.', // ANALOGÍA
+    'Un uno por ciento, y ni lo has sacado del bolsillo a mirar.', // ANALOGÍA
+    'El aura te cobró el peaje de tres euros. La autopista sigue. Tú sales más corto.', // ANALOGÍA
+    'Te restaron el pan de la cesta. El segundo plato no era para ti de todas formas.', // ANALOGÍA
     'Tirada de las que no duelen, y por eso repites. Ahí está el truco, gilipollas.',
     'El puto grupo te puso en silenciar un día más. Hoy se ha notado. Mañana también.',
-    'Bajaste como un calcetín en el tendedero: un palmo, y el viento ni te nombra.',
-    'Te han pasado factura del café que no pediste. Lo pagas. No lo bebes. Callas.',
-    'El aura te ha hecho un cabezazo suave. Contacto. Falta. Ni penalti. Ni VAR. Nada.',
-    'La masa sigue. El queso era lo único que te gustaba.',
-    'Bajada de esas que caben en el vueltos que no te dieron.',
+    'Bajaste como un calcetín en el tendedero: un palmo, y el viento ni te nombra.', // ANALOGÍA
+    'Te han pasado factura del café que no pediste. Lo pagas. No lo bebes. Callas.', // ANALOGÍA
+    'El aura te ha hecho un cabezazo suave. Contacto. Falta. Ni penalti. Ni VAR. Nada.', // ANALOGÍA
+    'La masa sigue. El queso era lo único que te gustaba.', // ANALOGÍA
+    'Bajada de esas que caben en el vueltos que no te dieron.', // ANALOGÍA
     'El puto chat te usó de ejemplo en voz baja.',
-    'Un agujero de polilla en algo que ya estaba viejo.',
-    'Pérdida de silla reservada con un abrigo. El abrigo era de otro. Tú te quedas de pie.',
-    'El aura te ha puesto el semáforo en ámbar y lo has cruzado mal.',
+    'Un agujero de polilla en algo que ya estaba viejo.', // ANALOGÍA
+    'Pérdida de silla reservada con un abrigo. El abrigo era de otro. Tú te quedas de pie.', // ANALOGÍA
+    'El aura te ha puesto el semáforo en ámbar y lo has cruzado mal.', // ANALOGÍA
     'Bajaste el brillo y el grupo ni pestañeó.',
-    'Te cobraron el recargo de madrugada. El taxi te deja igual de lejos, ahora más pobre.',
+    'Te cobraron el recargo de madrugada. El taxi te deja igual de lejos, ahora más pobre.', // ANALOGÍA
     'El puto grupo te tiene en "familia" para no ver las notificaciones.',
-    'Te restaron el último chicle del paquete.',
-    'Un grado menos y sigues pasando frío. El casero no viene.',
-    'Cama de albergue: corta, dura y con el ronquido de al lado.',
+    'Te restaron el último chicle del paquete.', // ANALOGÍA
+    'Un grado menos y sigues pasando frío. El casero no viene.', // ANALOGÍA
+    'Cama de albergue: corta, dura y con el ronquido de al lado.', // ANALOGÍA
     'No te han expulsado. Te han recordado que existes mal.',
-    'Pérdida de esas que se miden en migas. El mantel se sacude y tú caes al suelo.',
+    'Pérdida de esas que se miden en migas. El mantel se sacude y tú caes al suelo.', // ANALOGÍA
     'El puto chat te dejó en "escribiendo…" y se le pasó. Ni mensaje. Ni pena. Se le pasó.',
-    'Bajaste como el wifi del tren: se corta, vuelve, se corta, y el viaje no te espera.',
-    'Come con las manos, que para lo que hay ya te vale.',
-    'El aura te ha puesto de extra y te ha recortado el segundo.',
-    'Te han dado el número 87 de la cola y ha salido el 86 dos veces.',
+    'Bajaste como el wifi del tren: se corta, vuelve, se corta, y el viaje no te espera.', // ANALOGÍA
+    'Come con las manos, que para lo que hay ya te vale.', // ANALOGÍA
+    'El aura te ha puesto de extra y te ha recortado el segundo.', // ANALOGÍA
+    'Te han dado el número 87 de la cola y ha salido el 86 dos veces.', // ANALOGÍA
     'Ni el sticker de caca. Demasiado trabajo para lo que eres.',
     'Has salido en rojo y han vuelto al programa.',
-    'Te quitaron lo que se lleva el viento de una terraza: la servilleta, no el plato.',
+    'Te quitaron lo que se lleva el viento de una terraza: la servilleta, no el plato.', // ANALOGÍA
     'Pierdes con la misma cara de siempre. Ya ni sorprende, que es peor que perder.',
-    'El aura te cobró el café solo cuando pediste con leche.',
+    'El aura te cobró el café solo cuando pediste con leche.', // ANALOGÍA
     'El grupo ya te tenía en cero. Hoy han confirmado el mute.',
-    'Te restaron el panecillo de cortesía. El restaurante sigue lleno. Tu mesa, no.',
+    'Te restaron el panecillo de cortesía. El restaurante sigue lleno. Tu mesa, no.', // ANALOGÍA
     'Otra vez lo que ya se sabía. Sorpresa cero, gilipollas.',
   ],
   spiral: [
@@ -474,9 +478,9 @@ const AURA = {
     'Joder, tu historial parece un tobogán y tú sigues subiendo solo para tirarte.',
     'El puto fondo de pantalla rojo ya te queda de uniforme. Lavarlo no cambia el color.',
     'Vas a mirar el saldo, vas a cerrar los ojos y vas a volver a tirar.',
-    'Hipoteca de aura negativa: pagas cada mes y el piso sigue siendo un puto agujero.',
-    'Joder, la temporada siete de tu fracaso. Nadie pidió renovación. Netflix tampoco.',
-    'El GPS solo sabe decir "sigue todo recto hacia abajo". Y le haces caso, cabrón.',
+    'Hipoteca de aura negativa: pagas cada mes y el piso sigue siendo un puto agujero.', // ANALOGÍA
+    'Joder, la temporada siete de tu fracaso. Nadie pidió renovación. Netflix tampoco.', // ANALOGÍA
+    'El GPS solo sabe decir "sigue todo recto hacia abajo". Y le haces caso, cabrón.', // ANALOGÍA
     'Silla reservada en el infierno con tu puto nombre en un post-it. Nadie la discute.',
     'Sigues en negativo y sigues tirando. Eso ya no es mala suerte, es un plan.',
     'Joder, otra vez. El grupo ya no mira el número, mira cuánto tardas en volver a darle.',
@@ -484,7 +488,7 @@ const AURA = {
     'Recaída de alguien que nunca salió. No hay recaída. Hay continuidad, pringado.',
     'Ni siquiera es dramático ya. Es administrativo, cabrón.',
     'Debes aura y en vez de parar pides más. Así se llega exactamente a donde estás.',
-    'Joder, el ascensor que solo tiene botón menos uno.',
+    'Joder, el ascensor que solo tiene botón menos uno.', // ANALOGÍA
     'La playa se te ha quedado lejos y sigues nadando hacia dentro.',
     'Te has acostumbrado al menos delante del número. Eso sí que asusta.',
     'Cuenta atrás invertida: cada puta tirada suma un día más de sótano.',
@@ -493,21 +497,21 @@ const AURA = {
     'Coño, la alarma que ya ni suena. El golpe eres tú. El cuerpo lo tiene metido.',
     'Ya eres la mancha que el grupo usa de referencia: "junto a esa".',
     'El grupo ya no se ríe del número. Se ríe de que sigas dándole al botón, pringado.',
-    'Carpeta de descensos con subcarpetas. Has tenido que hacer árbol de directorios.',
-    'Línea de metro que solo para en sótanos. El mapa eres tú, y no hay transbordo.',
-    'Grifo que gotea hacia abajo. Nadie llama al fontanero. El cubo eres tú y ya rebosó.',
+    'Carpeta de descensos con subcarpetas. Has tenido que hacer árbol de directorios.', // ANALOGÍA
+    'Línea de metro que solo para en sótanos. El mapa eres tú, y no hay transbordo.', // ANALOGÍA
+    'Grifo que gotea hacia abajo. Nadie llama al fontanero. El cubo eres tú y ya rebosó.', // ANALOGÍA
     'Esta racha no la tiene nadie por azar. Hay que ponerle empeño, y tú se lo pones.',
     'El grupo apuesta a cuántas más aguantas antes de parar. Nadie apuesta a que pares.',
     'Pozo con eco. Gritas "ya está" y te devuelve "todavía no", gilipollas.',
     'Joder, si esto fuera un trabajo te habrían echado en la primera semana.',
     'Estabas en rojo y lo acabas de pintar más rojo. Enhorabuena, supongo.',
     'Temporada de lluvias en tu puto marcador. No hay paraguas. Hay pala. Sigue.',
-    'Hoyos de golf: cada uno más hondo. Nadie te va a aplaudir el putt, inútil.',
+    'Hoyos de golf: cada uno más hondo. Nadie te va a aplaudir el putt, inútil.', // ANALOGÍA
     'Joder, ni el bot finge ya sorpresa. Sale tu nombre y sale el menos.',
     'Sigues restando desde un sitio donde ya no quedaba nada que restar.',
     'Otra por debajo de cero. Ya ni sumas: restas con método.',
-    'Cama de clavos en el -2. Ya no pincha. Te has calloso el fracaso.',
-    'Rampa de parking hacia el -4. Las luces parpadean. El coche eres tú.',
+    'Cama de clavos en el -2. Ya no pincha. Te has calloso el fracaso.', // ANALOGÍA
+    'Rampa de parking hacia el -4. Las luces parpadean. El coche eres tú.', // ANALOGÍA
     'Otra abajo. A este ritmo el cero te va a parecer una meta ambiciosa.',
     'Ya no pierdes aura, la donas. Y encima con constancia, gilipollas.',
     'Coño, el saldo es el mismo chiste desde hace días y tú sigues contándolo.',
@@ -519,7 +523,7 @@ const AURA = {
     'Ya no te mira nadie. Sigues tirando para ti solo, que es lo peor de todo.',
     'Llevas tanto en negativo que salir de ahí sería la noticia del día.',
     'Esto no es una mala racha. Una mala racha se acaba, cabrón.',
-    'Escalera mecánica en bajada, rota, y tú andando igual.',
+    'Escalera mecánica en bajada, rota, y tú andando igual.', // ANALOGÍA
     'Joder, esperar suerte a estas alturas es optimismo clínico.',
     'Cada vez que tiras confirmas la teoría del grupo sobre ti. Y era una teoría dura.',
     'El menos ya no es un resultado, es tu marca personal.',
@@ -528,7 +532,7 @@ const AURA = {
     'Sumas otra derrota a una lista que ya no cabe en una pantalla.',
     'Estás cavando y lo llamas jugar. El puto grupo lo ve, tú no, fracasado.',
     'Coño, tu saldo baja tan seguido que ya nadie lo comenta. Se da por hecho.',
-    'Rampa de skate hacia un bordillo. Te caes. Subes. Te caes. El vídeo ya no se graba.',
+    'Rampa de skate hacia un bordillo. Te caes. Subes. Te caes. El vídeo ya no se graba.', // ANALOGÍA
     'Otra menos y ni te has inmutado, que es lo que de verdad da pena.',
     'A ti el azar no te trata mal. Te trata como te lo has ganado, pringado.',
     'Coño, ni forzándolo se pierde tanto seguido. Y tú no lo estás forzando.',
@@ -540,7 +544,7 @@ const AURA = {
     'Sigues abajo, sigues tirando y sigues bajando. El orden no cambia nunca.',
     'Joder, tienes el récord del grupo y es justo el que nadie quiere.',
     'Nadie te va a decir que pares. Es demasiado entretenido verte seguir.',
-    'Usando la rampa al revés. El que la diseñó no pensó en ti.',
+    'Usando la rampa al revés. El que la diseñó no pensó en ti.', // ANALOGÍA
     'El saldo baja, tú tiras, el saldo baja. Llevamos días con este bucle.',
     'Joder, tienes menos aura que cuando empezaste y más tiradas que nadie.',
     'Nadie del grupo ha perdido tanto en tan poco. Ese sí es tu título.',
@@ -579,7 +583,7 @@ const AURA = {
     'Joder, hoy batiste un récord que nadie quería ver roto.',
     'Con público, con testigos y con capturas que van a durar. Vergüenza en diferido.',
     'Joder, perdiste tanto que la cifra ya no da risa.',
-    'Perdiste con la elegancia de un saco de mierda cayendo por las escaleras.',
+    'Perdiste con la elegancia de un saco de mierda cayendo por las escaleras.', // ANALOGÍA
     'Sacaste un número que el puto grupo va a usar como unidad de medida del desastre.',
     'Hoy batiste un fondo que nadie sabía que existía, gilipollas.',
     'Todos pensaron lo mismo: "menos mal que no soy yo". El alivio era asco.',
@@ -595,7 +599,7 @@ const AURA = {
     'Un "joder" que se ha muerto a mitad. No había segunda palabra que no te dejara peor.',
     'El puto ranking se ha abierto solo para enseñar el agujero.',
     'Alguien ha comprobado si el bot se había roto. No se había roto. Eres tú, gilipollas.',
-    'Has dejado el ambiente de pedo en ascensor con diez pisos.',
+    'Has dejado el ambiente de pedo en ascensor con diez pisos.', // ANALOGÍA
     'El que dijo "esta vez gana" se está comiendo la frase con tenedor.',
     'Con foco, con público y sin orquesta que tape el golpe.',
     'Hasta el cronista se sintió incómodo anunciándolo, joder. Y ha visto cosas.',
@@ -631,7 +635,7 @@ const AURA = {
     'La gente ha hecho esa risa nerviosa que no es risa.',
     'El cronista se ha quedado sin adjetivo y ha escrito "esto".',
     'Alguien ha ido a ver si podías borrar el mensaje. No se puede. Qué suerte la nuestra.',
-    'Has hecho el equivalente a vomitar en la mesa y seguir comiendo.',
+    'Has hecho el equivalente a vomitar en la mesa y seguir comiendo.', // ANALOGÍA
     'El puto grupo te ha concedido el silencio de los accidentes.',
     'Has puesto tu puto nombre al lado de "no mirar". El aviso llega tarde. Ya han mirado.',
     'El hilo de antes se ha muerto de vergüenza ajena.',
@@ -650,7 +654,7 @@ const AURA = {
     'Nadie quería retomar con tu puto número todavía en pantalla.',
     'Alguien ha tapado el nombre con el dedo para enseñar solo la cifra.',
     'Has hecho que hasta el que disfruta viendo palos diga "bah, esto ya no".',
-    'El ambiente se ha puesto de ascensor parado entre dos pisos.',
+    'El ambiente se ha puesto de ascensor parado entre dos pisos.', // ANALOGÍA
     'Has salido en el parte como "incidente".',
     'Te han dado el respeto invertido: no te bardean porque da cosa. Da cosa. Atesora eso.',
     'Has convertido tu puto nombre en una unidad de palo.',

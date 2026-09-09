@@ -262,11 +262,11 @@ const DUELO_AJENO = [
 // comando es reirse de uno mismo.
 const MAL_ESCRITO = [
   'No sabes escribir. Ni una palabra de cinco letras con el modelo delante.',
-  'Analfabetismo con wifi. Te lo escribo yo, que tú no llegas.',
+  'Analfabetismo con wifi. Te lo escribo yo, que tú no llegas.', // ANALOGÍA
   'Un comando. Una palabra. Y la has roto igual.',
   'Ni eso sabes hacer. Literalmente ni eso.',
   'Lo tenías copiado ahí arriba y lo has escrito mal de todas formas.',
-  'Cinco letras te han ganado y encima ni te has enterado.',
+  'Cinco letras te han ganado y encima ni te has enterado.', // ANALOGÍA
   'Te falla la cabeza antes que el dedo, y eso ya es decir mucho.',
   'Esto no pide saber nada de nada y tú has encontrado cómo fallarlo.',
   'Escribirlo mal no es tener prisa. Es no dar para más.',
@@ -275,14 +275,14 @@ const MAL_ESCRITO = [
   'Lo tenías escrito arriba y lo has copiado mal.',
   'Ni con el comando delante. Impresionante.',
   'Escribes como aportas, o sea que mal y poco.',
-  'Cinco letras. Cinco. Y han podido contigo.',
+  'Cinco letras. Cinco. Y han podido contigo.', // ANALOGÍA
   'No es prisa. Es que no das para más.',
   'Te lo tengo que adivinar yo. Todos los días igual.',
   'Fallas lo que no tiene dificultad. Piensa en eso.',
   'Ni el teclado tiene la culpa esta vez.',
   'Escribirlo bien era el mínimo y no has llegado.',
-  'Eso no era un examen y lo has suspendido igual.',
-  'Una palabra corta te ha ganado delante de todos.',
+  'Eso no era un examen y lo has suspendido igual.', // ANALOGÍA
+  'Una palabra corta te ha ganado delante de todos.', // ANALOGÍA
   'No sabes escribir el comando que quieres usar. Ahí lo dejo.',
   'Te lo corrijo yo, que si no no sales de ahí.',
   'Lo has intentado y ha salido otra cosa. Como siempre.',
