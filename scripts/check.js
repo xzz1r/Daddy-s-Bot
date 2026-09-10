@@ -8113,6 +8113,97 @@ const di=async(quien,t)=>{out.length=0;
     if (fallos === antes) console.log(verde('   ✓ el techo se lee en MB, y el cuaderno distingue un despliegue de una muerte'));
   }
 
+  // ── 49. EL ESTADO SE BORRA PARA TODOS, NO SOLO PARA EL BOT ───────────────
+  //
+  // La sospecha del dueño, con el spam saliendo a diario: que el bot estuviera
+  // borrando el estado SOLO PARA EL. Es una duda razonable, porque las dos
+  // cosas se ven exactamente igual desde el movil de quien mira el grupo.
+  //
+  // Y en Baileys la diferencia es UNA condicion (Socket/messages-send.js):
+  //
+  //   if (isJidGroup(delete.remoteJid) && !delete.fromMe) edit = '8'   ← todos
+  //   else                                                edit = '7'   ← solo yo
+  //
+  // O sea que basta con que el `remoteJid` no sea el del grupo, o que `fromMe`
+  // venga en true, para que el borrado se convierta en un borrado para uno
+  // mismo — sin error, sin aviso y con el mensaje intacto delante del grupo.
+  //
+  // Se comprueba EJECUTANDO el manejador con cada uno de los sobres vigilados y
+  // aplicando esa misma condicion a la clave que sale. Leer el codigo no vale:
+  // lo que decide es la clave que se construye, no lo que ponga al lado.
+  {
+    console.log('\n49. EL ESTADO SE BORRA PARA TODOS, NO SOLO PARA EL BOT');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { isJidGroup } = require('@whiskeysockets/baileys');
+    const { handleMessage } = require(path.join(R, 'src/handlers/messageHandler'));
+    const bit = require(path.join(R, 'src/utils/bitacoraEstados'));
+    const SOBRES = ['groupStatusMessage', 'groupStatusMessageV2', 'groupStatusMentionMessage',
+      'statusMentionMessage', 'statusAddYours', 'statusNotificationMessage',
+      'statusQuestionAnswerMessage', 'statusStickerInteractionMessage', 'statusQuotedMessage'];
+    const BOT49 = '34600000049@s.whatsapp.net';
+    const ADM49 = '34622222249@s.whatsapp.net';
+    const MAL49 = '34611111149@s.whatsapp.net';
+    const previoBit = fs.existsSync(bit._FICHERO) ? fs.readFileSync(bit._FICHERO) : null;
+    try {
+      fs.rmSync(bit._FICHERO, { force: true });
+      // CADA CASO EN SU PROPIO GRUPO: la metadata se cachea, asi que reusar el
+      // mismo jid hace que el segundo caso conteste con el meta del primero. Me
+      // paso montando esto: el caso "sin admin" salia como borrado.
+      let n = 0;
+      const disparar = async (sobre, quien, botAdmin) => {
+        const G = `1203630000000004${String(n++).padStart(2, '0')}@g.us`;
+        const visto = [];
+        const sock = {
+          user: { id: BOT49 },
+          sendMessage: async (jid, content) => { visto.push({ jid, content }); return {}; },
+          readMessages: async () => {}, sendPresenceUpdate: async () => {},
+          groupMetadata: async () => ({ id: G, subject: 'G', participants: [
+            { id: BOT49, ...(botAdmin ? { admin: 'admin' } : {}) }, { id: ADM49, admin: 'admin' }, { id: MAL49 }] }),
+          groupParticipantsUpdate: async () => [], profilePictureUrl: async () => null,
+        };
+        await handleMessage(sock, {
+          key: { remoteJid: G, fromMe: false, id: `X${sobre}${n}`, participant: quien },
+          messageTimestamp: Math.floor(Date.now() / 1000), pushName: 'X',
+          message: { [sobre]: { message: { imageMessage: { caption: 'x' } } } },
+        });
+        await new Promise((r) => setTimeout(r, 120));
+        return visto.find((v) => v.content && v.content.delete)?.content.delete || null;
+      };
+
+      const soloParaMi = [];
+      const sinIntento = [];
+      for (const sobre of SOBRES) {
+        const k = await disparar(sobre, MAL49, true);
+        if (!k) { sinIntento.push(sobre); continue; }
+        // La condicion de Baileys, clavada.
+        if (!(isJidGroup(k.remoteJid) && !k.fromMe)) soloParaMi.push(sobre);
+        // Y el participante: sin el, el servidor no sabe de quien es el mensaje
+        // que se le pide quitar y el borrado de admin no se aplica.
+        if (!k.participant) soloParaMi.push(`${sobre} (sin participant)`);
+      }
+      exige(sinIntento.length === 0,
+        `hay sobres de estado que ya no se borran (${sinIntento.join(', ')}): el estado se queda puesto y nadie se entera`);
+      exige(soloParaMi.length === 0,
+        `el borrado del estado se manda como borrado para UNO MISMO en: ${soloParaMi.join(', ')} — el bot lo ve desaparecer y el grupo lo sigue viendo`);
+
+      // Y LOS TRES FINALES QUEDAN APUNTADOS. El que mas importa es `protegido`:
+      // si quien sube el estado a diario es admin, el bot no hace nada y antes
+      // tampoco lo decia, asi que se leia igual que "no lo detecta".
+      await disparar('groupStatusMessageV2', ADM49, true);
+      await disparar('groupStatusMessageV2', MAL49, false);
+      const r = bit.resumen(24);
+      exige(!!r && r.cuenta.borrado > 0, 'la bitácora no apunta los estados que SÍ se borran');
+      exige(!!r && r.cuenta.protegido === 1,
+        'un estado de un admin no queda apuntado: sin eso, "el bot no lo detecta" y "el bot no lo toca porque es admin" se leen igual y tienen arreglos opuestos');
+      exige(!!r && r.cuenta['sin-admin'] === 1,
+        'un estado que no se pudo borrar por no ser admin no queda apuntado');
+    } finally {
+      if (previoBit) fs.writeFileSync(bit._FICHERO, previoBit); else fs.rmSync(bit._FICHERO, { force: true });
+    }
+    if (fallos === antes) console.log(verde('   ✓ los nueve sobres de estado se borran para todo el grupo, y cada final queda apuntado'));
+  }
+
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────
   //
   // Tres cosas que se tocan juntas cuando se busca que el bot conteste antes,

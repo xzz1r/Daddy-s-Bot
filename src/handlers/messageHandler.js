@@ -86,6 +86,7 @@ const acciones = require('../commands/acciones');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, cmdCasino } = require('../commands/social');
 const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, esBotCreador, extractText, getSender, canonicalJid, sameUser, indexGroupMeta } = require('../utils/wa');
 const logger = require('../utils/logger');
+const bitacoraEstados = require('../utils/bitacoraEstados');
 
 const { clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa, PERMISO_ENLACE, puedeAnunciar, anotarTropiezo, perfilMirado } = require('../utils/antilink');
 const { SIN_PERMISO, SOLO_GRUPOS, MAL_ESCRITO, OBJETIVO_DIA_CARTEL } = require('../data/avisos');
@@ -653,6 +654,11 @@ async function historiaPorBroadcast(sock, msg, deteccion) {
       }).catch(() => {});
       continue;
     }
+    // Por aqui NO se puede borrar: el mensaje vive en status@broadcast, no en el
+    // grupo, y un borrado de admin solo vale dentro del grupo. Queda apuntado
+    // para que el resumen no confunda «no se detecto» con «se detecto y no se
+    // pudo quitar», que es justo la diferencia que hacia falta saber.
+    bitacoraEstados.apuntar({ grupo: g, quien: autor, motivo: deteccion.motivo, seguro: deteccion.seguro, resultado: bitacoraEstados.RESULTADOS.BROADCAST });
     const razon = conEnlace ? `historia con enlace subida al grupo ${g}` : `historia subida al grupo ${g}`;
     await banAccount(allForms(autor, meta), razon, 'auto').catch((e) => logger.unaVez('vetar por antiadmin', e));
     const fuera = await expulsar(sock, g, autor, meta);
@@ -1660,13 +1666,27 @@ async function handleMessage(sock, msg) {
         isGroupAdmin(sender, msg.key.fromMe, meta) ||
         esOwnerDelMensaje(msg, sender, senderPn, meta);
 
-      if (protegido) return;
+      // EL SALTO POR PROTEGIDO YA NO ES SILENCIOSO, y era el hueco mas grande
+      // del diagnostico: si quien sube el estado a diario es admin del grupo o
+      // del tier dueño, el bot no hacia nada Y NO DECIA NADA. Desde fuera se ve
+      // igual que un bot que no detecta el estado, que es un problema
+      // completamente distinto y con otro arreglo.
+      if (protegido) {
+        logger.info(`estado en grupo ${jid} de +${String(sender).split('@')[0]}: no se toca, es admin o tier dueño`);
+        bitacoraEstados.apuntar({ grupo: jid, quien: sender, motivo: porQue, seguro, resultado: bitacoraEstados.RESULTADOS.PROTEGIDO });
+        return;
+      }
       if (!isBotAdmin(sock, meta)) {
         logger.warn(`estado en grupo ${jid}: no soy admin, no puedo borrarlo ni expulsar`);
+        bitacoraEstados.apuntar({ grupo: jid, quien: sender, motivo: porQue, seguro, resultado: bitacoraEstados.RESULTADOS.SIN_ADMIN });
         return;
       }
 
       const borrado = await borrarMensaje(sock, jid, msg, sender, 'un estado subido al grupo');
+      bitacoraEstados.apuntar({
+        grupo: jid, quien: sender, motivo: porQue, seguro,
+        resultado: borrado ? bitacoraEstados.RESULTADOS.BORRADO : bitacoraEstados.RESULTADOS.NO_BORRADO,
+      });
 
       // La sanción depende de lo seguro que sea el diagnóstico.
       //
@@ -1744,7 +1764,7 @@ async function handleMessage(sock, msg) {
             }
             return;
           }
-          borrarMensaje(sock, jid, msg, sender, 'un estado subido al grupo');
+          borrarMensaje(sock, jid, msg, sender, 'un enlace no permitido');
           const fuera = await expulsar(sock, jid, sender, meta);
           if (puedeAnunciar(jid, sender)) {
             sock.sendMessage(jid, {
@@ -1780,7 +1800,7 @@ async function handleMessage(sock, msg) {
           }
           return;
         }
-        borrarMensaje(sock, jid, msg, sender, 'un estado subido al grupo');
+        borrarMensaje(sock, jid, msg, sender, 'un enlace de red social');
 
         const { avisos, restantes, ban } = await noteWarning(jid, claveDePersona(sender, meta));
         const num = sender.split('@')[0];

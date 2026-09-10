@@ -853,6 +853,29 @@ que un reinicio limpio, y por eso hacía falta que lo apuntara el propio proceso
 `npm run estado` lo lee y lo dice. La capa 48 lo prueba ejecutando `estado` con
 un pm2 de mentira, porque las dos guardas anteriores de esto fallaron callando.
 
+Los **estados subidos al grupo** dejan bitácora. El spam seguía saliendo a
+diario y la sospecha era que el bot los borraba **solo para él**. En Baileys esa
+diferencia es una condición sola: si la clave del borrado lleva el JID del grupo
+y `fromMe: false`, sale como borrado de admin y lo quita para todos; si no, sale
+como borrado para uno mismo, sin error y con el mensaje intacto delante del
+grupo. Probado con los nueve sobres vigilados, la clave se construye bien en los
+nueve, y la capa 49 lo comprueba **ejecutando** el manejador y aplicando esa
+misma condición a la clave que sale.
+
+Lo que sí faltaba era saber por qué un estado no llega a borrarse. Hay cuatro
+salidas y tres no dejaban rastro:
+
+| salida | qué pasaba antes |
+|---|---|
+| quien lo sube es admin o tier dueño | se saltaba **en silencio** |
+| el bot no es admin en ese momento | un warn y nada más |
+| el sobre no se reconoce | cae como mensaje normal (`!diag` lo caza) |
+| llega por `status@broadcast` | no se puede borrar desde ahí |
+
+Ahora cada estado detectado apunta su final en `data/estadosVistos.json` y
+`npm run estado` lo resume de las últimas 24 h. «Sigue saliendo» y «no se
+detecta» se leían igual desde fuera y tienen arreglos opuestos.
+
 **Aviso que ya costó caro:** `placeholders` y `pools` salieron EN VERDE con el
 bot sin arrancar, porque comparan líneas con expresiones regulares y no compilan
 nada. Por eso `check` es obligatorio.

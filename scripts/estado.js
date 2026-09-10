@@ -354,6 +354,44 @@ if (!bot) {
   }
 }
 
+// ─── Los estados subidos al grupo ────────────────────────────────────────────
+//
+// EL SPAM QUE SEGUIA SALIENDO A DIARIO. El bot detecta el estado y lo borra —el
+// borrado se construye como borrado de ADMIN, probado con los nueve sobres
+// vigilados— pero hay cuatro salidas por las que puede no llegar a quitarse, y
+// tres de ellas no dejaban rastro. Ahora cada estado detectado apunta su final
+// (src/utils/bitacoraEstados.js) y aqui se resume.
+//
+// Sin esto, «sigue saliendo» y «no se detecta» se leen igual desde fuera, y son
+// problemas distintos con arreglos distintos.
+{
+  let resumen = null;
+  try { ({ resumen } = require(path.join(RAIZ, 'src/utils/bitacoraEstados'))); } catch { /* módulo nuevo */ }
+  const r = resumen ? resumen(24) : null;
+  if (r) {
+    const c = r.cuenta;
+    const parte = Object.entries(c).map(([k, v]) => `${v} ${k}`).join(', ');
+    if (c.protegido) {
+      aviso(`${c.protegido} estado(s) en 24 h de gente a la que el bot no toca (admin o tier dueño): por eso siguen saliendo`,
+        'quítale el admin a quien los sube, o pásale la moderación de estados por encima del rango');
+    }
+    if (c['sin-admin']) {
+      mal(`${c['sin-admin']} estado(s) en 24 h que el bot no pudo borrar por no ser admin`,
+        'dale admin al bot en ese grupo');
+    }
+    if (c['no-borrado']) {
+      mal(`${c['no-borrado']} estado(s) en 24 h detectados y NO borrados: WhatsApp rechazó la revocación`,
+        'pm2 logs bot --lines 200 | grep "no pude borrar"   ← ahí está la respuesta del servidor');
+    }
+    if (c['por-broadcast']) {
+      aviso(`${c['por-broadcast']} historia(s) en 24 h llegaron por status@broadcast: desde ahí no se pueden borrar`,
+        'al autor se le expulsa igual; la historia la quita él desde su estado');
+    }
+    if (c.borrado === r.total) bien(`${r.total} estado(s) en 24 h, todos borrados`);
+    else bien(`estados en 24 h: ${parte}`);
+  }
+}
+
 // ¿El PROCESO corre el codigo del disco? Son dos cosas distintas y confundirlas
 // es el fallo mas facil de cometer: `git pull` cambia el disco, pero hasta que
 // pm2 no reinicia, el bot en memoria sigue con el codigo viejo, y desde fuera

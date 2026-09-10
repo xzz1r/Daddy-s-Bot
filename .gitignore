@@ -68,3 +68,6 @@ data/despensa/
 
 # El cuaderno del guardian: cuando nace y como muere. Es de ESTA maquina.
 data/guardianVidas.json
+
+# La bitacora de estados subidos al grupo: numeros del grupo, no sube nunca.
+data/estadosVistos.json
