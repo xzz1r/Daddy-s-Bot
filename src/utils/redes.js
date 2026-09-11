@@ -228,6 +228,7 @@ async function porApi(url, plataforma) {
   if (!candidatos.length) return null;
 
   let ultimoError = null;
+  let soloAudio = 0;
   for (let i = 0; i < candidatos.length; i++) {
     const enlace = candidatos[i];
     const ext = (String(enlace).split('?')[0].split('.').pop() || 'mp4').toLowerCase();
@@ -239,18 +240,32 @@ async function porApi(url, plataforma) {
       ultimoError = e;
       continue;
     }
-    // Si es un formato que WhatsApp no reproduce en todas partes y todavia
-    // quedan opciones, se prueba la siguiente. Si era la ultima, se manda:
-    // un video que a lo mejor no se ve es mejor que ninguno.
-    if (!esImagen(ext) && i < candidatos.length - 1) {
-      const codec = await codecDe(fichero);
-      if (!REPRODUCE_BIEN(codec)) {
-        logger.info(`redes: el mejor venia en ${codec}, que no se reproduce en todos los telefonos; voy al siguiente`);
+    if (!esImagen(ext)) {
+      const medio = await analizarMedio(fichero);
+      // SIN PISTA DE VIDEO NO HAY VIDEO, y esto se comprueba SIEMPRE, tambien
+      // en el ultimo candidato. Antes el ultimo se aceptaba a ciegas, y por ahi
+      // se colo un MP3 con nombre de mp4.
+      if (medio.probado && !medio.video) {
+        soloAudio++;
+        logger.info('redes: ese enlace no trae vídeo, solo audio; pruebo el siguiente');
+        await fs.remove(fichero).catch(() => {});
+        continue;
+      }
+      // El formato que no se reproduce en todos los telefonos solo se descarta
+      // si queda alguna opcion detras: mejor uno dudoso que ninguno.
+      if (medio.probado && !REPRODUCE_BIEN(medio.video) && i < candidatos.length - 1) {
+        logger.info(`redes: el mejor venia en ${medio.video}, que no se reproduce en todos los telefonos; voy al siguiente`);
         await fs.remove(fichero).catch(() => {});
         continue;
       }
     }
     return fichero;
+  }
+  // SI TODOS LOS ENLACES ERAN AUDIO, el motivo no es que la API fallara: es que
+  // eso no es un video. Dicho de la otra forma, quien lo pego se queda pensando
+  // que el bot esta roto.
+  if (soloAudio && soloAudio === candidatos.length) {
+    throw new Error('eso no es un vídeo: el enlace solo trae la canción (suele pasar con las publicaciones de fotos)');
   }
   if (ultimoError) {
     // LA API DIO EL ENLACE Y LO QUE FALLO FUE BAJARLO, que son dos problemas
@@ -360,20 +375,30 @@ const EXTRA_DB = (() => {
 // Así que se pide el mejor, se mira QUÉ llegó, y si es HEVC se coge el
 // siguiente. Recodificar no es opción: pasar 1080x1920 a H.264 en el único core
 // de la VPS son decenas de segundos con alguien esperando.
-function codecDe(fichero) {
+//
+// Y SE MIRA TAMBIÉN QUE HAYA VÍDEO, que es el caso que se escapó. Una
+// publicación de FOTOS de TikTok tiene enlace de vídeo igual, pero lo que hay
+// detrás es la canción: un MP3 de 210 KB. El bot lo guardaba con extensión
+// `.mp4` y lo mandaba tan tranquilo, y WhatsApp contestaba «something is wrong
+// with the video file» — con razón, porque no era un vídeo.
+function analizarMedio(fichero) {
   return new Promise((resolve) => {
     const proc = spawn(ffmpegPath, ['-hide_banner', '-i', fichero, '-t', '0', '-f', 'null', '-']);
     let texto = '';
     const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} }, 20000);
     proc.stderr?.on('data', (d) => { texto += d.toString(); });
-    proc.on('error', () => { clearTimeout(matar); resolve(null); });
+    proc.on('error', () => { clearTimeout(matar); resolve({ probado: false, video: null, audio: false }); });
     proc.on('close', () => {
       clearTimeout(matar);
+      // Sin ninguna linea de Stream no es que no haya video: es que ffmpeg no
+      // pudo leer el fichero, y eso es otra cosa.
+      const probado = /Stream #\d+:\d+/.test(texto);
       const m = /Stream #\d+:\d+.*: Video: (\w+)/.exec(texto);
-      resolve(m ? m[1].toLowerCase() : null);
+      resolve({ probado, video: m ? m[1].toLowerCase() : null, audio: /: Audio: /.test(texto) });
     });
   });
 }
+
 //
 // Y SE PUEDE DECIDIR LO CONTRARIO, porque es una decision del dueño y no del
 // codigo: si en el grupo todos llevan telefonos que abren HEVC, prefiere el de
@@ -655,6 +680,15 @@ async function traer(url, plataforma) {
     const tipo = esImagen(ext) ? 'imagen' : esVideo(ext) ? 'video' : 'video';
 
     if (tipo === 'video') {
+      // ULTIMA RED: venga de la API, de yt-dlp o de donde sea, lo que se manda
+      // como video tiene que TENER video. WhatsApp contesta «something is wrong
+      // with the video file» y quien lo pego no se entera de por que.
+      const medio = await analizarMedio(fichero);
+      if (medio.probado && !medio.video) {
+        throw new Error(medio.audio
+          ? 'eso no es un vídeo: el enlace solo trae la canción (suele pasar con las publicaciones de fotos)'
+          : 'eso no trae vídeo');
+      }
       const nivelado = await conAudioNivelado(fichero);
       if (nivelado !== fichero) {
         fichero = nivelado;
@@ -677,4 +711,4 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _codecDe: codecDe, _API_DE: API_DE };
+module.exports = { traer, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE };

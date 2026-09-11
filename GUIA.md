@@ -1226,6 +1226,17 @@ git pull origin main
   llegó y, si es HEVC, se coge el siguiente. Recodificar no es opción: pasar
   1080x1920 a H.264 en un core son decenas de segundos con alguien esperando.
 
+  **Y lo que se manda como vídeo tiene que tener vídeo.** Pasó en el grupo:
+  WhatsApp contestó *«something is wrong with the video file»*. Lo que le había
+  llegado era un MP3 de 210 KB con nombre `.mp4`. Una publicación de **fotos** de
+  TikTok tiene enlace de vídeo igual, pero detrás está la canción.
+
+  Se coló por dos agujeros a la vez: el último candidato se aceptaba sin mirar, y
+  un sondeo que fallaba se daba por bueno. Ahora se comprueba **siempre**, se
+  distingue «no hay pista de vídeo» de «no pude mirar el fichero», y si ninguno
+  trae vídeo se dice en el grupo con esas palabras, que es el otro motivo —con el
+  tamaño— que no se arregla reintentando.
+
   **Y el tope lo pone WhatsApp, no nosotros.** `MAX_BYTES` son 25 MB y viene de
   `!play`, donde el límite es el ancho de banda. Aquí manda otra cosa: el cliente
   de WhatsApp no acepta vídeo por encima de **16 MB**, así que mandar 20 no es

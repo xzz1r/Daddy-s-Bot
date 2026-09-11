@@ -85,14 +85,18 @@ async function hazRed(sock, msg, args, groupMeta, plataforma) {
   } catch (e) {
     logger.warn(`${plataforma}: ${e.message}`);
     await devolverAura();
-    // SI ES POR TAMAÑO SE DICE, porque eso no se arregla reintentando y quien lo
-    // pega merece saber por que. El resto de motivos son cosa del dueño y salen
-    // en `npm run estado`, no en el grupo.
+    // HAY DOS MOTIVOS QUE SE DICEN EN EL GRUPO, y los dos por lo mismo: no se
+    // arreglan reintentando y no son cosa del dueño, asi que quien pego el
+    // enlace merece saberlo. Que pese de mas, y que eso no sea un video. El
+    // resto de motivos salen en `npm run estado`, no aqui.
     const porTamano = /WhatsApp no pasa de|pesa \d+ MB/.test(e.message);
+    const sinVideo = /no es un vídeo|no trae vídeo/.test(e.message);
     return sock.sendMessage(jid, {
       text: porTamano
         ? `Ese vídeo ${e.message.replace(/^.*?(pesa)/, '$1')} MB. No te he cobrado.`
-        : `No he podido traerlo de ${nombre}. No te he cobrado.`,
+        : sinVideo
+          ? `${e.message.charAt(0).toUpperCase()}${e.message.slice(1)}. No te he cobrado.`
+          : `No he podido traerlo de ${nombre}. No te he cobrado.`,
     }, { quoted: msg });
   }
 

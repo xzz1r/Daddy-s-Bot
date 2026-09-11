@@ -8560,6 +8560,42 @@ const di=async(quien,t)=>{out.length=0;
           'el tope se mira antes de subir el audio: entonces no mide lo que se manda');
       }
 
+      // ── Y LO QUE SE MANDA COMO VIDEO TIENE QUE TENER VIDEO ─────────
+      //
+      // Paso en el grupo: WhatsApp contesto «something is wrong with the video
+      // file». Lo que le habia llegado era un MP3 de 210 KB con nombre .mp4.
+      // Una publicacion de FOTOS de TikTok tiene enlace de video igual, pero
+      // detras esta la cancion, y el bot lo mandaba tan tranquilo — el ultimo
+      // candidato se aceptaba SIN mirar, y no mirar es como se cuela esto.
+      {
+        const soloAudio = path.join(dir, 'soloaudio.mp4');
+        execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y',
+          '-f', 'lavfi', '-i', 'sine=frequency=440:duration=2',
+          '-c:a', 'aac', soloAudio], { timeout: 60000, stdio: 'ignore' });
+        const m1 = await redes._analizarMedio(soloAudio);
+        exige(m1.probado && !m1.video && m1.audio,
+          `un fichero de solo audio no se reconoce como tal (${JSON.stringify(m1)}): así es como se manda un MP3 llamándolo vídeo`);
+        // Uno nuevo: `flojo` ya lo consumio el nivelado de arriba, que borra el
+        // original cuando consigue el nuevo.
+        const conVideo = path.join(dir, 'convideo.mp4');
+        execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y',
+          '-f', 'lavfi', '-i', 'color=c=red:s=160x120:d=1',
+          '-c:v', 'libx264', '-pix_fmt', 'yuv420p', conVideo], { timeout: 60000, stdio: 'ignore' });
+        const m2 = await redes._analizarMedio(conVideo);
+        exige(m2.probado && m2.video === 'h264',
+          `un vídeo normal no se reconoce (${JSON.stringify(m2)}): entonces se rechazaría todo`);
+        const m3 = await redes._analizarMedio(path.join(dir, 'no-existe.mp4'));
+        exige(m3.probado === false,
+          'un fichero ilegible se da por comprobado: sin distinguir «no hay vídeo» de «no pude mirar», se rechaza lo bueno');
+
+        // Y que `traer` corte por ahi, no solo que sepa mirarlo.
+        const red = fs.readFileSync(path.join(R, 'src/utils/redes.js'), 'utf8');
+        const i = red.indexOf('async function traer(');
+        const cuerpo = i < 0 ? '' : red.slice(i, red.indexOf('\nmodule.exports', i));
+        exige(/analizarMedio\(/.test(cuerpo) && /!medio\.video/.test(cuerpo),
+          'traer() ya no comprueba que haya pista de vídeo antes de mandarlo');
+      }
+
       // Y UN VIDEO SIN AUDIO NO SE PIERDE POR EL CAMINO. Es el caso que mas
       // facil se rompe: un fallo del normalizador no puede costar el vídeo.
       const mudo = path.join(dir, 'mudo.mp4');
