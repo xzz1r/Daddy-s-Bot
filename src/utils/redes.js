@@ -61,7 +61,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const axios = require('axios');
 const { acquireDownloadSlot, releaseDownloadSlot, ytdlp, downloadUrlToFile, hayYtDlp, MAX_BYTES, TEMP_DIR } = require('./downloader');
-const { ffmpegSemaphore } = require('./helpers');
+const { ffmpegSemaphore, pickFresh, shuffle } = require('./helpers');
 const { ffmpegPath } = require('./ffmpeg');
 const { spawn } = require('child_process');
 const logger = require('./logger');
@@ -326,29 +326,53 @@ function medirFichero(fichero) {
 // `montarPase` mide la primera foto y pasa aqui el lienzo ya decidido; esta
 // funcion solo se encarga de que quepa y de que las medidas sean pares, que
 // yuv420p no admite impares y el encoder revienta.
-function montarConFfmpeg(lista, musica, ancho, alto, crf, salida) {
+//
+// ─── Y POR QUE NO SE USA EL DEMUXER `concat` ────────────────────────────────
+//
+// Se usaba, y ESE era el «se salta algunas imagenes» que se veia en el grupo.
+//
+// El demuxer `concat` da por hecho que todas las entradas tienen el mismo
+// tamaño: es un pegado a nivel de flujo, no de imagen. Cuando la segunda foto
+// mide otra cosa —y en un carrusel de Instagram eso es lo normal, cada una se
+// sube como se subio— deja de aceptarlas y se queda con la primera.
+//
+// Medido, cinco fotos de cinco tamaños distintos: el pase salia de 2,54 s en
+// vez de 12,5. O sea, una foto de cinco. No fallaba, no avisaba, y desde fuera
+// parecia que «a veces» se saltaba alguna.
+//
+// Con `filter_complex` cada foto entra como su PROPIA entrada, se escala y se
+// rellena hasta el lienzo por separado, y solo despues se pegan. Los tamaños
+// distintos dejan de importar porque cuando llegan al pegado ya son iguales.
+function montarConFfmpeg(fotos, musica, porFoto, ancho, alto, crf, salida) {
   const par = (n) => (n % 2 ? n + 1 : n);
   const w = par(Math.max(2, ancho));
   const h = par(Math.max(2, alto));
-  const args = ['-hide_banner', '-loglevel', 'error', '-y',
-    '-f', 'concat', '-safe', '0', '-i', lista];
+  const dur = porFoto.toFixed(3);
+
+  const args = ['-hide_banner', '-loglevel', 'error', '-y'];
+  for (const foto of fotos) args.push('-loop', '1', '-t', dur, '-i', foto);
   if (musica) args.push('-i', musica);
-  args.push(
-    '-vf', `scale=${w}:${h}:force_original_aspect_ratio=decrease,`
-      + `pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2:color=black,setsar=1,fps=24,format=yuv420p`,
-    '-c:v', 'libx264', '-preset', 'veryfast', '-crf', String(crf),
-    // Baseline y nivel 4.0: lo que abre cualquier teléfono, que es el mismo
-    // criterio por el que se descarta el HEVC unas líneas más arriba.
-    '-profile:v', 'baseline', '-level', '4.0',
-  );
-  if (musica) args.push('-c:a', 'aac', '-b:a', '128k', '-ar', '44100', '-shortest');
+
+  const encaja = `scale=${w}:${h}:force_original_aspect_ratio=decrease,`
+    + `pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2:color=black,setsar=1,fps=24`;
+  const pasos = fotos.map((_, i) => `[${i}:v]${encaja}[v${i}]`);
+  pasos.push(`${fotos.map((_, i) => `[v${i}]`).join('')}concat=n=${fotos.length}:v=1:a=0[v]`);
+
+  args.push('-filter_complex', pasos.join(';'), '-map', '[v]');
+  if (musica) args.push('-map', `${fotos.length}:a`, '-c:a', 'aac', '-b:a', '128k', '-ar', '44100', '-shortest');
   else args.push('-an');
-  args.push('-movflags', '+faststart', salida);
+  args.push(
+    '-c:v', 'libx264', '-preset', 'veryfast', '-crf', String(crf),
+    // Baseline y nivel 4.0: lo que abre cualquier telefono, que es el mismo
+    // criterio por el que se descarta el HEVC unas lineas mas arriba.
+    '-profile:v', 'baseline', '-level', '4.0', '-pix_fmt', 'yuv420p',
+    '-movflags', '+faststart', salida,
+  );
 
   return new Promise((resolve) => {
     const proc = spawn(ffmpegPath, args);
     let error = '';
-    const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} }, 120000);
+    const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} }, 180000);
     proc.stderr?.on('data', (t) => { error += t.toString(); });
     proc.on('error', () => { clearTimeout(matar); resolve(null); });
     proc.on('close', async (codigo) => {
@@ -441,17 +465,9 @@ async function montarPase(fotos, musicaUrl, audioYaBajado) {
       // cuarenta de pase que nadie va a ver y que no cabría en 16 MB.
       if (porFoto * enDisco.length > DURACION_TOPE) porFoto = DURACION_TOPE / enDisco.length;
 
-      // El demuxer `concat` necesita la ÚLTIMA entrada repetida: sin ella se
-      // come la duración de la última foto y el pase acaba un fotograma antes.
-      const lista = path.join(TEMP_DIR, `pase_${Date.now()}_lista_${Math.random().toString(36).slice(2)}.txt`);
-      const lineas = enDisco.map((f) => `file '${f.replace(/'/g, "'\\''")}'\nduration ${porFoto.toFixed(3)}`);
-      lineas.push(`file '${enDisco[enDisco.length - 1].replace(/'/g, "'\\''")}'`);
-      await fs.writeFile(lista, lineas.join('\n') + '\n');
-      basura.push(lista);
-
       const salida = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.mp4`);
       const grande = lienzo(1920);
-      let hecho = await montarConFfmpeg(lista, musica, grande.ancho, grande.alto, 26, salida);
+      let hecho = await montarConFfmpeg(enDisco, musica, porFoto, grande.ancho, grande.alto, 26, salida);
       if (!hecho) return null;
 
       const { size } = await fs.stat(hecho).catch(() => ({ size: 0 }));
@@ -460,7 +476,7 @@ async function montarPase(fotos, musicaUrl, audioYaBajado) {
         await fs.remove(hecho).catch(() => {});
         const segundo = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.mp4`);
         const chico = lienzo(1280);
-        hecho = await montarConFfmpeg(lista, musica, chico.ancho, chico.alto, 30, segundo);
+        hecho = await montarConFfmpeg(enDisco, musica, porFoto, chico.ancho, chico.alto, 30, segundo);
         if (!hecho) return null;
       }
       await limpiar();
@@ -896,6 +912,134 @@ async function conAudioNivelado(fichero) {
 // deberia haber mirado desde el principio.
 const UA_MOVIL = 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36';
 
+// ─── !pin CON UN NOMBRE, NO CON UN ENLACE ───────────────────────────────────
+//
+// Lo pidio el dueño despues de que una del grupo, que usa otros bots, dijera:
+// «el comando pin es para que pongas pin y el nombre de lo que quieras buscar,
+// no el enlace». Y tiene razon en que es lo natural: a Pinterest se va a buscar
+// cosas, no a abrir un pin concreto que ya tienes delante.
+//
+// El enlace SIGUE funcionando. Son dos usos del mismo comando y se distinguen
+// solos: si lo que viene detras es una direccion de Pinterest, se trae ese pin;
+// si es texto, se busca.
+//
+// COMO SE BUSCA, Y POR QUE ASI. La via oficial pide credenciales y su endpoint
+// interno contesta 403 desde un servidor (probado). La pagina de busqueda
+// normal, en cambio, contesta 200 con las imagenes dentro del HTML: setenta y
+// cinco direcciones utiles en una sola peticion, sin clave y sin sesion. Es la
+// misma via que ya usa `porPinterest` para un pin suelto, con la misma cabecera
+// de movil.
+//
+// LA MISMA IMAGEN SALE HASTA EN CUATRO TAMAÑOS —originals, 736x, 564x, 474x—
+// asi que se agrupan por su huella (el nombre del fichero, que es el mismo en
+// todas) y de cada pin se guarda LA MEJOR que aparezca. Sin agrupar, una
+// busqueda de cuarenta pines parecia de ciento sesenta y la mitad de las veces
+// salia la miniatura.
+//
+// Las fotos de perfil quedan fuera solas: las suyas llevan `_RS` en el tamaño
+// (`75x75_RS`) y el patron no lo acepta.
+const PIN_BUSCAR = 'https://www.pinterest.com/search/pins/?rs=typed&q=';
+const RX_PIN = /https:\/\/i\.pinimg\.com\/(originals|\d{2,4}x\d{0,4})\/((?:[0-9a-f]{2}\/){3}[0-9a-f]{16,})\.(jpg|jpeg|png|webp)/gi;
+// EL TAMAÑO SE PIDE, NO SE ACEPTA EL QUE VENGA.
+//
+// La primera version se quedaba con la mejor direccion que apareciera en el
+// HTML, y eso daba fotos de 60x60: en la pagina de resultados muchos pines solo
+// salen como miniatura. Probado con tres busquedas, dos devolvieron 2 KB.
+//
+// Pero el tamaño es parte de la RUTA y el resto no cambia, asi que la miniatura
+// de un pin dice tambien donde esta el original. Comprobado con el mismo pin:
+//
+//   originals  141.639 bytes        564x   44.397
+//   736x        68.286              474x   33.328
+//   60x60        1.620
+//
+// Asi que de cada pin se guarda su huella y se prueban los tamaños de mayor a
+// menor. El primero que baje, ese se manda.
+const CALIDAD = ['originals', '736x', '564x', '474x'];
+const MAX_PINES = 40;
+const INTENTOS_PIN = 4;
+const LARGO_BUSQUEDA = 80;
+
+// Saca de la pagina de resultados un pin por huella, con sus tamaños a probar.
+function pinesDe(html) {
+  const pines = new Map();   // huella -> { huella, candidatos: [] }
+  for (const m of String(html).matchAll(RX_PIN)) {
+    const [, , ruta, ext] = m;
+    if (pines.has(ruta)) continue;
+    if (pines.size >= MAX_PINES) break;
+    pines.set(ruta, {
+      huella: ruta,
+      candidatos: CALIDAD.map((t) => `https://i.pinimg.com/${t}/${ruta}.${ext}`),
+    });
+  }
+  return [...pines.values()];
+}
+
+// Busca y devuelve la imagen ya en disco, con la misma forma que `traer`.
+// `clave` es para no repetir: la misma busqueda en el mismo grupo no saca la
+// misma foto dos veces seguidas.
+async function buscar(texto, clave) {
+  const consulta = String(texto || '').replace(/\s+/g, ' ').trim().slice(0, LARGO_BUSQUEDA);
+  if (!consulta) throw new Error('dime qué buscar');
+  await acquireDownloadSlot();
+  let fichero = null;
+  try {
+    let html = '';
+    try {
+      const { data } = await axios.get(PIN_BUSCAR + encodeURIComponent(consulta), {
+        timeout: 20000,
+        headers: { 'User-Agent': UA_MOVIL, 'Accept-Language': 'es-ES,es;q=0.9' },
+      });
+      html = String(data || '');
+    } catch (e) {
+      throw new Error(`Pinterest no contestó (${e.response?.status || e.code || e.message})`);
+    }
+    const pines = pinesDe(html);
+    if (!pines.length) throw new Error(`no encontré nada con «${consulta}»`);
+
+    // El primero se elige evitando los ultimos que salieron con esa misma
+    // busqueda; los demas, al azar, y solo se usan si el primero no se deja
+    // bajar.
+    const huellas = pines.map((p) => p.huella);
+    const fresca = pickFresh(huellas, clave, 12);
+    const orden = [];
+    const primero = pines.find((p) => p.huella === fresca);
+    if (primero) orden.push(primero);
+    for (const p of shuffle(pines)) if (!orden.includes(p)) orden.push(p);
+
+    let ultimo = null;
+    for (const pin of orden.slice(0, INTENTOS_PIN)) {
+      for (const url of pin.candidatos) {
+        const ext = extensionDe(url) || 'jpg';
+        fichero = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`);
+        try {
+          await downloadUrlToFile(url, fichero);
+          const { size } = await fs.stat(fichero);
+          if (size < 2048) throw new Error('llegó una miniatura');
+          if (size > TOPE_WHATSAPP) throw new Error('pesa demasiado');
+          // Que sea una foto DE VERDAD y no una pagina de error con nombre de
+          // jpg: es la misma comprobacion que se le hace a los vídeos.
+          const medio = await analizarMedio(fichero);
+          if (!medio.probado || !ESTATICOS.has(medio.video)) throw new Error('no es una imagen');
+          return { fichero, tipo: 'imagen', ext, bytes: size };
+        } catch (e) {
+          ultimo = e;
+          await fs.remove(fichero).catch(() => {});
+          fichero = null;
+        }
+      }
+    }
+    throw new Error(`encontré pines pero no pude bajar ninguno (${ultimo?.message || 'sin motivo'})`);
+  } catch (e) {
+    if (fichero) await fs.remove(fichero).catch(() => {});
+    apuntarFallo('pinterest', e.message);
+    throw e;
+  } finally {
+    releaseDownloadSlot();
+  }
+}
+
+
 // Las dos ordenes posibles del atributo. En la pagina de Pinterest el `content`
 // va ANTES que el `property`, asi que una expresion sola no las caza: lo
 // comprobe mirando el HTML de verdad.
@@ -1167,5 +1311,5 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
+module.exports = { traer, buscar, _pinesDe: pinesDe, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
   _montarPase: montarPase, _comoEnlaces: comoEnlaces, _porYtDlpFotos: porYtDlpFotos, _fotosDeFicha: fotosDeFicha, _esSinVideo: esSinVideo, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };

@@ -11,7 +11,7 @@
 // reencoda, no se carga en memoria y no se guarda nada.
 
 const fs = require('fs-extra');
-const { traer, enlaceDe, plataformaDe, hayComoTraer, PLATAFORMAS } = require('../utils/redes');
+const { traer, buscar, enlaceDe, plataformaDe, hayComoTraer, PLATAFORMAS } = require('../utils/redes');
 const { getSender, canonicalJid } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const logger = require('../utils/logger');
@@ -44,13 +44,34 @@ async function hazRed(sock, msg, args, groupMeta, plataforma) {
   // SIN ENLACE NO SE COBRA. Cobrar y después decir "pon un enlace" es cobrar
   // por un rechazo, que es lo mismo que ya se corrigió en las acciones.
   const url = enlaceDe(texto, plataforma);
-  if (!url) {
+
+  // ─── *!pin* TAMBIÉN BUSCA, QUE ES PARA LO QUE SE USA ──────────────────────
+  //
+  // Lo pidió el dueño después de que una del grupo, que usa otros bots, dijera
+  // que «el comando pin es para que pongas pin y el nombre de lo que quieras
+  // buscar, no el enlace». Y es lo natural: a Pinterest se va a buscar cosas,
+  // no a abrir un pin que ya tienes delante.
+  //
+  // El enlace no se toca: son dos usos del mismo comando y se distinguen solos
+  // —si detrás hay una dirección de Pinterest se trae ese pin, y si hay texto
+  // se busca—, así que nadie pierde lo que ya sabía escribir.
+  //
+  // Y NO SE LE CUELA UN ENLACE DE OTRA RED COMO BÚSQUEDA. Quien pega un TikTok
+  // en *!pin* se ha equivocado de comando; buscar «https://vt.tiktok.com/…» en
+  // Pinterest sería contestarle cualquier cosa en vez de decírselo.
+  const otra = plataformaDe(texto);
+  const busqueda = !url && plataforma === 'pinterest' && texto.trim() && !otra
+    ? texto.trim()
+    : null;
+
+  if (!url && !busqueda) {
     // Y si pegó uno de OTRA red, se le dice cuál era el suyo en vez de un "uso:"
     // genérico: el error casi siempre es ese, no el de no poner nada.
-    const otra = plataformaDe(texto);
     const aviso = otra && otra !== plataforma
       ? `Ese enlace es de ${PLATAFORMAS[otra].nombre}. Aquí va el de ${nombre}.`
-      : `Pega el enlace de ${nombre} detrás del comando.`;
+      : plataforma === 'pinterest'
+        ? `Escribe qué buscar detrás del comando, o pega el enlace de ${nombre}.`
+        : `Pega el enlace de ${nombre} detrás del comando.`;
     return sock.sendMessage(jid, { text: aviso }, { quoted: msg });
   }
 
@@ -59,7 +80,10 @@ async function hazRed(sock, msg, args, groupMeta, plataforma) {
   // segundos y devolver el aura es gastarle el tiempo a alguien para acabar
   // donde ya se sabía. Y el mensaje no dice qué falta: eso es cosa del dueño y
   // sale en `npm run estado`, no en el grupo.
-  if (!hayComoTraer(plataforma)) {
+  // La búsqueda no pasa por la API ni por yt-dlp: lee la página de resultados y
+  // ya. Así que esta puerta no la afecta — y si la afectara, *!pin gatos*
+  // diría «no está disponible» en una máquina donde funciona perfectamente.
+  if (!busqueda && !hayComoTraer(plataforma)) {
     logger.warn(`${plataforma}: sin API y sin yt-dlp, no hay por dónde traerlo`);
     return sock.sendMessage(jid, { text: `${nombre} no está disponible ahora mismo.` }, { quoted: msg });
   }
@@ -101,16 +125,24 @@ async function hazRed(sock, msg, args, groupMeta, plataforma) {
   // La mencion se queda solo para los avisos de error, donde no hay video que
   // colgar de la cita y lo unico que hace falta es que le llegue el aviso a
   // quien lo pidio.
+  //
+  // Y SOLO SI HAY ENLACE QUE BORRAR. Un *!pin gatos* no tiene ninguno, asi que
+  // borrarlo no quita nada del grupo: deja un «este mensaje fue eliminado por
+  // el admin» a cambio de nada, y encima hace desaparecer lo que se pidio.
   const quienCanon = canonicalJid(quien) || quien;
   const deQuien = { mentions: [quienCanon] };
-  sock.sendMessage(jid, {
-    delete: { remoteJid: jid, fromMe: Boolean(msg.key.fromMe), id: msg.key.id, participant: quien },
-  }).catch(() => {});
+  if (url) {
+    sock.sendMessage(jid, {
+      delete: { remoteJid: jid, fromMe: Boolean(msg.key.fromMe), id: msg.key.id, participant: quien },
+    }).catch(() => {});
+  }
 
   let traido = null;
   const t0 = Date.now();
   try {
-    traido = await traer(url, plataforma);
+    traido = busqueda
+      ? await buscar(busqueda, `pin|${jid}|${busqueda.toLowerCase()}`)
+      : await traer(url, plataforma);
   } catch (e) {
     logger.warn(`${plataforma}: ${e.message}`);
     await devolverAura();
@@ -120,15 +152,22 @@ async function hazRed(sock, msg, args, groupMeta, plataforma) {
     // resto de motivos salen en `npm run estado`, no aqui.
     const porTamano = /WhatsApp no pasa de|pesa \d+ MB/.test(e.message);
     const sinVideo = /no es un vídeo|no trae vídeo/.test(e.message);
+    // Y el tercero: no hay nada con ese nombre. Es el unico motivo de una
+    // busqueda que quien la escribio puede arreglar — escribiendo otra cosa.
+    const sinResultados = /no encontré nada/.test(e.message);
     const num = `@${String(quienCanon).split('@')[0]}`;
-    return sock.sendMessage(jid, {
-      text: porTamano
-        ? `${num} ese vídeo ${e.message.replace(/^.*?(pesa)/, '$1')} MB. No te he cobrado.`
-        : sinVideo
-          ? `${num} ${e.message}. No te he cobrado.`
-          : `${num} no he podido traerlo de ${nombre}. No te he cobrado.`,
-      ...deQuien,
-    });
+    const texto = porTamano
+      ? `${num} ese vídeo ${e.message.replace(/^.*?(pesa)/, '$1')} MB. No te he cobrado.`
+      : sinVideo || sinResultados
+        ? `${num} ${e.message}. No te he cobrado.`
+        : busqueda
+          ? `${num} no he podido buscar en ${nombre} ahora mismo. No te he cobrado.`
+          : `${num} no he podido traerlo de ${nombre}. No te he cobrado.`;
+    // La busqueda no borra el mensaje, asi que el aviso puede citarlo y no
+    // hace falta la mencion.
+    return busqueda
+      ? sock.sendMessage(jid, { text: texto.replace(`${num} `, '') }, { quoted: msg })
+      : sock.sendMessage(jid, { text: texto, ...deQuien });
   }
 
   const tBajar = Date.now() - t0;

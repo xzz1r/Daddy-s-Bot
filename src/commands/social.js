@@ -474,7 +474,8 @@ async function cmdHelp(sock, msg, groupMeta, args = []) {
 _Todo lleva ${PREFIJOS} delante. El número es lo que cuesta; sin número no cobra._
 
 ━━ *HERRAMIENTAS* ━━
-*${p}play* ${c('play')} <nombre> · *${p}tt* ${c('redes')} · *${p}ig* ${c('redes')} · *${p}pin* ${c('redes')} <enlace>
+*${p}play* ${c('play')} <nombre> · *${p}tt* ${c('redes')} <enlace> · *${p}ig* ${c('redes')} <enlace>
+*${p}pin* ${c('redes')} <qué buscar> — o un enlace de Pinterest
 *${p}s* ${c('sticker')} · *${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')}
 *${p}ttp* ${c('ttp')} <texto> · *${p}pfp* ${c('pfp')} · *${p}fk* ${c('fk')} @user
 

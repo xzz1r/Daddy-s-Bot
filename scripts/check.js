@@ -9003,6 +9003,39 @@ const di=async(quien,t)=>{out.length=0;
         }
       }
 
+      // ── Y NO SE SALTA NINGUNA FOTO ──────────────────────────────────────
+      //
+      // Esto se vio en el grupo: «se salta algunas imagenes». El demuxer
+      // `concat` da por hecho que todas las entradas miden lo mismo —es un
+      // pegado de flujo, no de imagen— y en cuanto la segunda foto tiene otro
+      // tamaño deja de aceptarlas. En un carrusel de Instagram eso es lo
+      // normal: cada foto se subio como se subio.
+      //
+      // Medido antes del arreglo, cinco fotos de cinco tamaños distintos: el
+      // pase duraba 2,54 s en vez de 12,5. Una foto de cinco, sin error y sin
+      // aviso. Por eso la prueba mide la DURACION y no que el fichero exista.
+      {
+        const tam = ['1080x1350', '640x480', '1080x1920', '800x800', '1200x628'];
+        const col = ['red', 'green', 'blue', 'yellow', 'magenta'];
+        const sueltas = [];
+        for (let i = 0; i < 5; i++) {
+          const f = path.join(dir, `mix${i}.jpg`);
+          execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi',
+            '-i', `color=c=${col[i]}:s=${tam[i]}:d=1`, '-frames:v', '1', f], { timeout: 60000 });
+          sueltas.push(`${base}/mix${i}.jpg`);
+        }
+        const salida = await redes._montarPase(sueltas, null, null);
+        exige(!!salida, 'un pase de fotos de tamaños distintos no se monta');
+        if (salida) {
+          const medida = await redes._medirFichero(salida);
+          // Cinco fotos sin canción son 2,5 s cada una. Con una sola serían 2,5
+          // en total, que es exactamente el sintoma que se veia.
+          exige(medida.segundos > 11,
+            `el pase dura ${medida.segundos} s en vez de 12,5: se está saltando fotos cuando no miden todas lo mismo`);
+          fs.rmSync(salida, { force: true });
+        }
+      }
+
       // 2. UNA SOLA FOTO Y SIN CANCION NO SE MONTA: se manda la foto. Montar un
       //    MP4 de una imagen quieta es peor que la imagen.
       {
@@ -9248,6 +9281,98 @@ const di=async(quien,t)=>{out.length=0;
     }
 
     if (fallos === antes) console.log(verde('   ✓ carrusel, foto suelta y reel: cada uno sale como lo que es'));
+  }
+
+  // ── 56. *!pin* BUSCA POR NOMBRE, NO SOLO POR ENLACE ──────────────────────
+  //
+  // Lo pidio el dueño: «el comando pin es para que pongas pin y el nombre de lo
+  // que quieras buscar, no el enlace». Y el enlace sigue valiendo, asi que el
+  // comando tiene dos usos y lo que hay que medir es que NO se pisen.
+  //
+  // La lectura de la pagina de resultados se prueba con el HTML de verdad
+  // guardado aqui, no con uno inventado: lo que rompe esto es el formato real
+  // de las direcciones de Pinterest, con sus cuatro tamaños de la misma foto.
+  {
+    console.log('\n56. *!pin* CON UN NOMBRE DETRAS');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const redes = require(path.join(R, 'src/utils/redes'));
+    const pd = redes._pinesDe;
+
+    // Un trozo de pagina como la que devuelve Pinterest: la misma foto en
+    // cuatro tamaños, otra solo como miniatura, y dos fotos de perfil.
+    const pagina = `
+      <img src="https://i.pinimg.com/474x/d9/31/10/d93110f6b9985f63323ebffc35e7945e.jpg">
+      <img src="https://i.pinimg.com/736x/d9/31/10/d93110f6b9985f63323ebffc35e7945e.jpg">
+      <img src="https://i.pinimg.com/originals/d9/31/10/d93110f6b9985f63323ebffc35e7945e.jpg">
+      <img src="https://i.pinimg.com/60x60/ed/88/9b/ed889bed6715fb437ad2553bf20fbd0b.jpg">
+      <img src="https://i.pinimg.com/75x75_RS/aa/bb/cc/aabbccddeeff00112233445566778899.jpg">
+      <img src="https://i.pinimg.com/140x140_RS/11/22/33/11223344556677889900aabbccddeeff.jpg">`;
+    const pines = pd(pagina);
+    exige(pines.length === 2,
+      `de esa página salen ${pines.length} pines en vez de 2: o se cuentan los tamaños como pines distintos, o entran las fotos de perfil`);
+    // LA MISMA FOTO EN CUATRO TAMAÑOS ES UN PIN, NO CUATRO. Sin agrupar, una
+    // busqueda de cuarenta parecia de ciento sesenta.
+    exige(new Set(pines.map((x) => x.huella)).size === pines.length, 'hay pines repetidos');
+    // Y LAS DE PERFIL FUERA: llevan `_RS` en el tamaño.
+    exige(!JSON.stringify(pines).includes('_RS'), 'se cuela una foto de perfil como resultado');
+
+    // EL TAMAÑO SE PIDE, NO SE ACEPTA EL QUE VENGA. Este era el fallo de la
+    // primera version: se quedaba con la mejor direccion que apareciera en el
+    // HTML, y de tres busquedas dos devolvieron una foto de 60x60 y 2 KB.
+    const soloMiniatura = pines.find((x) => x.huella.startsWith('ed/88'));
+    exige(!!soloMiniatura, 'el pin que solo salía como miniatura se descarta entero');
+    exige(soloMiniatura && soloMiniatura.candidatos[0].includes('/originals/'),
+      'al pin que solo salía como miniatura no se le pide el original: se mandaría una foto de 60x60');
+    exige(soloMiniatura && soloMiniatura.candidatos.length >= 3,
+      'un pin no tiene tamaños de respaldo: si el original no existe, se queda sin nada');
+    exige(pd('<img src="https://ejemplo.com/foto.jpg">').length === 0,
+      'una imagen que no es de Pinterest se cuenta como pin');
+    exige(pd('').length === 0, 'una página vacía devuelve pines');
+
+    // Y LOS DOS USOS DEL COMANDO, POR SEPARADO. Lo que no puede pasar es que el
+    // enlace deje de funcionar por haber añadido la busqueda, ni que la
+    // busqueda borre el mensaje: sin enlace no hay nada que quitar del grupo, y
+    // borrarlo solo deja un «eliminado por el admin» y hace desaparecer lo que
+    // se pidió.
+    {
+      const cmd = require(path.join(R, 'src/commands/redes'));
+      const { addAura } = require(path.join(R, 'src/utils/auraStore'));
+      const corre = async (args, id) => {
+        const G = `1203630056${Math.floor(Math.random() * 9000 + 1000)}@g.us`;
+        const YO = `3460000056${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`;
+        await addAura(G, YO, 5000);
+        const con = [];
+        const sock = { sendMessage: async (j, c, o) => { con.push({ c, o }); return {}; } };
+        await cmd.cmdPinterest(sock, { key: { remoteJid: G, fromMe: false, id, participant: YO } },
+          args, { id: G, participants: [{ id: YO }] });
+        return con;
+      };
+      const conTexto = await corre(['gatos', 'monos'], 'PIN56A');
+      exige(!conTexto.some((x) => x.c.delete),
+        'una búsqueda borra el mensaje: no hay ningún enlace que quitar y encima desaparece lo que se pidió');
+      const soloUso = conTexto.find((x) => x.c.text && /Escribe qué buscar|Pega el enlace/.test(x.c.text));
+      exige(!soloUso, 'un texto detrás de *!pin* se toma por «falta el enlace» en vez de buscarlo');
+
+      const conEnlace = await corre(['https://www.pinterest.com/pin/123456789/'], 'PIN56B');
+      exige(conEnlace.some((x) => x.c.delete),
+        'con un enlace ya no se borra el mensaje: el enlace se queda puesto en el grupo');
+
+      const vacio = await corre([], 'PIN56C');
+      exige(vacio.some((x) => x.c.text && /Escribe qué buscar/.test(x.c.text)),
+        '*!pin* a secas no dice que ahora también busca');
+      exige(!vacio.some((x) => x.c.delete), 'se borra el mensaje de quien escribió *!pin* sin nada');
+
+      // Y un enlace de OTRA red no se busca en Pinterest: es que se equivocó de
+      // comando, y buscarlo le contestaría cualquier cosa.
+      const otraRed = await corre(['https://vt.tiktok.com/ZSqDyW1bA/'], 'PIN56D');
+      exige(otraRed.some((x) => x.c.text && /TikTok/.test(x.c.text)),
+        'un enlace de TikTok en *!pin* se busca como si fuera texto en vez de decirle que se equivocó');
+      exige(!otraRed.some((x) => x.c.image || x.c.video), 'un enlace de TikTok en *!pin* devuelve algo');
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ *!pin gatos* busca y *!pin <enlace>* trae el pin, sin pisarse'));
   }
 
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────
