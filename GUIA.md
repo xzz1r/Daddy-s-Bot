@@ -1158,27 +1158,49 @@ git pull origin main
   huecos de descarga para todo el bot y los comparte con `!play`: sin eso, uno
   pegando enlaces seguidos deja al grupo sin música y sin acciones.
 
-  **El audio se nivela, y llegaba casi mudo.** Medido sobre un TikTok real: la
-  media estaba en -24,2 dB y el audio venía en HE-AACv2 a 32 kb/s. Son dos cosas
-  a la vez, y por eso se notaba tanto: viene bajo de origen, y viene en un
-  formato que muchos reproductores decodifican a medias y suena aún más flojo.
-  Se arregla lo mismo con las dos, reencodando **solo el audio** a AAC normal y
-  nivelándolo. El vídeo se copia tal cual, así que no se toca un fotograma.
+  **El audio se sube, y llegaba casi mudo.** Medido sobre un TikTok real: media
+  -24,2 dB y audio en HE-AACv2 a 32 kb/s. Dos cosas a la vez: viene bajo de
+  origen, y viene en un formato que muchos reproductores decodifican a medias y
+  suena aún más apagado.
+
+  La primera versión usaba `loudnorm` y `dynaudnorm`, y **sonaba peor que el
+  original**. Los dos son filtros **dinámicos**: no suben el volumen, comprimen
+  el rango, y sobre música eso se oye como bombeo. Aquí no hacía falta comprimir:
+  el audio viene bajo pero intacto, con el pico a -10,9 dB, o sea con once
+  decibelios de sitio libre hasta el techo. Se mide el pico, se sube justo hasta
+  dejar 1 dB de margen, y ya. Ganancia pura, sin tocar la dinámica.
 
   | | antes | después |
   |---|---|---|
-  | media | -24,2 dB | -15,3 dB |
-  | audio | HE-AACv2 32 kb/s | AAC-LC 128 kb/s |
+  | media | -24,2 dB | -14,3 dB |
+  | pico | -10,9 dB | -1,3 dB |
+  | audio | HE-AACv2 32 kb/s | AAC-LC 192 kb/s |
+  | coste | | 58 ms medir + 374 ms aplicar |
 
-  Se **nivela**, no se sube el volumen a pelo: `volume=+9dB` reventaría el pico
-  de un vídeo que ya venga alto. `loudnorm` es la norma EBU R128, apunta a una
-  sonoridad concreta y trae limitador. Pero en pasada única necesita unos
-  segundos para medir y **por debajo devuelve basura sin avisar**: un clip de 2 s
-  salía a -50 dB. Como TikTok está lleno de clips de dos segundos, por debajo de
-  cuatro se usa `dynaudnorm`, que trabaja por ventanas y funciona con cualquier
-  duración. La duración se lee con `ffprobe`, que es leer una cabecera; si no se
-  puede saber, se elige el que no rompe. Y si ffmpeg falla, se manda el original:
-  un vídeo bajo de volumen es mejor que ningún vídeo.
+  Cuatro veces más rápido que `loudnorm`, y funciona con **cualquier duración**,
+  así que desaparece el caso raro de los clips cortos (por debajo de cuatro
+  segundos `loudnorm` devolvía basura sin avisar: un clip de 2 s salía a -50 dB).
+  Si el pico ya está arriba no se toca nada, y si ffmpeg falla se manda el
+  original.
+
+  **El vídeo, lo más HD que WhatsApp sepa reproducir.** El mismo enlace de TikTok
+  tiene dos vídeos y no se parecen:
+
+  | | resolución | códec | tamaño |
+  |---|---|---|---|
+  | normal | 576x1024 | H.264 | 1,1 MB |
+  | HD | 1080x1920 | HEVC | 1,5 MB |
+
+  Se pide siempre el mejor, pero el HD viene en **HEVC**, y eso no es
+  intercambiable: WhatsApp reproduce H.264 en todas partes y el HEVC se le
+  atraganta según el teléfono. Un vídeo de 1080 que a media docena del grupo no
+  se les abre es peor que uno de 576 que ve todo el mundo. Así que se mira qué
+  llegó y, si es HEVC, se coge el siguiente. Recodificar no es opción: pasar
+  1080x1920 a H.264 en un core son decenas de segundos con alguien esperando.
+
+  Es decisión del dueño, no del código: con `REDES_HEVC=1` en el `.env` se manda
+  el mejor y punto. Y al proveedor de TikTok hay que **pedirle** el HD, con
+  `&hd=1` al final de `TIKTOK_API`.
 
   **Y pedir un vídeo no puede costarte el grupo.** `!tt <enlace>` es, para el
   antilink, un mensaje con un enlace: lo borraba, contaba aviso y al tercero

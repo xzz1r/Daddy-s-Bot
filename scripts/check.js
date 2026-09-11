@@ -8484,26 +8484,20 @@ const di=async(quien,t)=>{out.length=0;
       // Leyendo `e.stderr` de una excepcion que nunca ocurre, esto devolvia
       // null siempre y la comprobacion salia roja con el codigo bien.
       const { spawnSync } = require('child_process');
-      const nivelDe = (f) => {
+      const nivelDe = (f, cual = 'mean_volume') => {
         const r = spawnSync(ffmpegPath, ['-hide_banner', '-i', f, '-af', 'volumedetect', '-f', 'null', '-'],
           { timeout: 60000, encoding: 'utf8' });
-        const m = /mean_volume:\s*(-?[\d.]+) dB/.exec(String(r.stderr || ''));
+        const m = new RegExp(`${cual}:\\s*(-?[\\d.]+) dB`).exec(String(r.stderr || ''));
         return m ? Number(m[1]) : null;
       };
 
       const redes = require(path.join(R, 'src/utils/redes'));
 
-      // LA ELECCION DE FILTRO, que es donde esta el riesgo de verdad: un clip
-      // corto por el camino de loudnorm sale MAS mudo que como entro, y sin un
-      // solo aviso. Se comprueba aparte porque depende de saber la duracion, y
-      // saberla depende de que la maquina tenga ffprobe: sin el se elige el que
-      // no rompe, y eso tambien se exige aqui.
-      exige(redes._filtroPara(20) === redes._AUDIO_NIVELADO,
-        'un vídeo largo ya no se nivela con loudnorm: se pierde el nivelado bueno');
-      exige(redes._filtroPara(2) === redes._AUDIO_CORTO,
-        'un clip de 2 s se manda por loudnorm: sale MÁS mudo de lo que entró, y sin avisar');
-      exige(redes._filtroPara(null) === redes._AUDIO_CORTO,
-        'sin saber la duración se elige loudnorm: en una máquina sin ffprobe, todos los clips cortos saldrían rotos');
+      // EL PICO SE MIDE DE VERDAD. Todo lo demas cuelga de ese numero: si sale
+      // mal, la ganancia sale mal y el video se manda saturado o igual de mudo.
+      const picoMedido = await redes._picoDe(flojo);
+      exige(picoMedido !== null && picoMedido < -20,
+        `el pico del tono de prueba sale ${picoMedido}: no se esta midiendo el audio`);
 
       // SE MIDE ANTES DE NIVELAR: el normalizador borra el original cuando
       // consigue el nuevo, asi que medirlo despues devolvia null y la queja
@@ -8515,6 +8509,11 @@ const di=async(quien,t)=>{out.length=0;
         const despues = nivelDe(nivelado);
         exige(despues !== null && antesN !== null && despues > antesN + 8,
           `el audio no sube: entró a ${antesN} dB y sale a ${despues} dB`);
+        // Y SIN SATURAR: la ganancia sale de medir el pico y dejarle margen. Si
+        // se pasa, el video llega distorsionado, que es peor que llegar bajo.
+        const picoFinal = nivelDe(nivelado, 'max_volume');
+        exige(picoFinal === null || picoFinal <= -0.2,
+          `el audio sale saturado (pico ${picoFinal} dB): la ganancia no respeta el margen`);
         // Y sin saturar: el limitador de loudnorm tiene que dejar cabeza.
         await fs.promises.rm(nivelado, { force: true });
       }
@@ -8531,7 +8530,7 @@ const di=async(quien,t)=>{out.length=0;
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
     }
-    if (fallos === antes) console.log(verde('   ✓ el audio que llega flojo se sube y se limita, y un vídeo mudo sigue llegando entero'));
+    if (fallos === antes) console.log(verde('   ✓ el audio que llega flojo se sube sin saturar, y un vídeo mudo sigue llegando entero'));
   }
 
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────

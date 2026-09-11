@@ -8,9 +8,12 @@
 //
 // ─── LO QUE NO SE HACE, Y ES LO QUE LO MANTIENE BARATO ──────────────────────
 //
-// 1. NO SE REENCODA. TikTok e Instagram ya entregan H.264 en MP4, que es lo que
-//    WhatsApp reproduce. Pasarlo por ffmpeg en el único core de la VPS es lo que
-//    convertiría esto en el comando más caro del bot, y no añade nada.
+// 1. NO SE TOCA EL VÍDEO. TikTok e Instagram ya entregan H.264 en MP4, que es lo
+//    que WhatsApp reproduce. Reencodar el vídeo en el único core de la VPS es lo
+//    que convertiría esto en el comando más caro del bot, y no añade nada.
+//    Del audio sí se ocupa —viene bajo y en un formato que muchos reproductores
+//    decodifican a medias— pero con `-c:v copy`: no se toca un fotograma, y son
+//    unos cientos de milisegundos.
 //
 // 2. NO SE CARGA EN MEMORIA. `!play` lee el fichero entero a un Buffer porque un
 //    MP3 son cuatro megas; un reel son veinticinco. Se manda como
@@ -59,7 +62,7 @@ const path = require('path');
 const axios = require('axios');
 const { acquireDownloadSlot, releaseDownloadSlot, ytdlp, downloadUrlToFile, hayYtDlp, MAX_BYTES, TEMP_DIR } = require('./downloader');
 const { ffmpegSemaphore } = require('./helpers');
-const { ffmpegPath, ffprobePath } = require('./ffmpeg');
+const { ffmpegPath } = require('./ffmpeg');
 const { spawn } = require('child_process');
 const logger = require('./logger');
 
@@ -207,30 +210,53 @@ async function porApi(url, plataforma) {
   // Cada servicio llama de otra forma al enlace directo. `hdplay` va antes que
   // `play` porque es el mismo video sin marca de agua y en mejor calidad;
   // `wmplay` NO entra en la lista: ese es el que la lleva.
+  // EN ORDEN DE CALIDAD. `hdplay` primero, que es el de 1080; `play` despues.
+  // Cada servicio usa sus nombres, asi que se aceptan los habituales. `wmplay`
+  // NO esta: ese es el que lleva la marca de agua.
   const d = data || {};
-  let enlace = d.url || d.link || d.video || d.download
-    || d.data?.hdplay || d.data?.play || d.data?.url || d.result?.url || null;
-  if (!enlace) return null;
+  const candidatos = [d.data?.hdplay, d.hdplay, d.url, d.link, d.video, d.download,
+    d.data?.play, d.data?.url, d.result?.url]
+    .filter((x) => typeof x === 'string' && x.trim())
+    .map((x) => { // algunos devuelven la ruta sin dominio
+      if (/^https?:\/\//i.test(x)) return x;
+      try { return new URL(x, destino).href; } catch { return null; }
+    })
+    .filter(Boolean);
+  if (!candidatos.length) return null;
 
-  // Algunos devuelven la ruta sin dominio. Se resuelve contra el de la propia
-  // API, que es de donde viene.
-  if (!/^https?:\/\//i.test(enlace)) {
-    try { enlace = new URL(enlace, destino).href; } catch { return null; }
+  let ultimoError = null;
+  for (let i = 0; i < candidatos.length; i++) {
+    const enlace = candidatos[i];
+    const ext = (String(enlace).split('?')[0].split('.').pop() || 'mp4').toLowerCase();
+    const fichero = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.${esImagen(ext) ? ext : 'mp4'}`);
+    try {
+      await downloadUrlToFile(enlace, fichero);
+    } catch (e) {
+      await fs.remove(fichero).catch(() => {});
+      ultimoError = e;
+      continue;
+    }
+    // Si es un formato que WhatsApp no reproduce en todas partes y todavia
+    // quedan opciones, se prueba la siguiente. Si era la ultima, se manda:
+    // un video que a lo mejor no se ve es mejor que ninguno.
+    if (!esImagen(ext) && i < candidatos.length - 1) {
+      const codec = await codecDe(fichero);
+      if (!REPRODUCE_BIEN(codec)) {
+        logger.info(`redes: el mejor venia en ${codec}, que no se reproduce en todos los telefonos; voy al siguiente`);
+        await fs.remove(fichero).catch(() => {});
+        continue;
+      }
+    }
+    return fichero;
   }
-
-  const ext = (String(enlace).split('?')[0].split('.').pop() || 'mp4').toLowerCase();
-  const fichero = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.${esImagen(ext) ? ext : 'mp4'}`);
-  try {
-    await downloadUrlToFile(enlace, fichero);
-  } catch (e) {
+  if (ultimoError) {
     // LA API DIO EL ENLACE Y LO QUE FALLO FUE BAJARLO, que son dos problemas
     // distintos: el primero se arregla cambiando de servicio y el segundo no
     // —los bytes vienen del CDN de la plataforma a NUESTRA maquina— asi que
     // confundirlos manda a cambiar lo que funciona.
-    await fs.remove(fichero).catch(() => {});
-    throw new Error(`la API dio el enlace pero no pude bajarlo: ${e.message}`);
+    throw new Error(`la API dio el enlace pero no pude bajarlo: ${ultimoError.message}`);
   }
-  return fichero;
+  return null;
 }
 
 // ─── EL AUDIO, QUE LLEGABA CASI MUDO ────────────────────────────────────────
@@ -262,52 +288,97 @@ async function porApi(url, plataforma) {
 //
 // Y SI FALLA, SE MANDA EL ORIGINAL. Un vídeo bajo de volumen es mucho mejor que
 // ningún vídeo: esto es una mejora, no un requisito.
-// DOS FILTROS, Y EL SEGUNDO NO ES UN CAPRICHO.
+// SE MIDE Y SE SUBE LO JUSTO. Nada de filtros dinamicos.
 //
-// `loudnorm` es la norma EBU R128 y es el bueno… si el clip dura lo suficiente.
-// En pasada única necesita unos segundos para medir, y por debajo de eso NO
-// avisa: devuelve basura. Medido con un tono de -51 dB:
+// La primera version usaba `loudnorm` (norma EBU R128) y, para los clips
+// cortos, `dynaudnorm`. Sonaba PEOR que el original, y el dueño lo noto a la
+// primera. Los dos son filtros DINAMICOS: no suben el volumen, comprimen el
+// rango. Sobre musica —que es el noventa por ciento de TikTok— eso se oye como
+// bombeo, y sobre material ya comprimido como el de estas webs, peor todavia.
+// Y `loudnorm` en pasada unica encima necesita varios segundos para medir: por
+// debajo devuelve basura sin avisar (un clip de 2 s salia a -50 dB).
 //
-//   clip de 6 s → -13.3 dB   (perfecto)
-//   clip de 2 s → -50.3 dB   (lo deja igual de mudo, y sin una sola queja)
+// Lo que hace falta aqui no es comprimir: es SUBIR. El audio de TikTok viene
+// bajo pero intacto, con el pico a -10.9 dB, o sea con once decibelios de sitio
+// libre hasta el techo. Se mide el pico, se sube justo hasta dejar 1 dB de
+// margen, y ya. Ganancia pura: ni comprime, ni bombea, ni toca la dinamica.
 //
-// Y TikTok está lleno de clips de dos segundos. Así que por debajo del umbral
-// se usa `dynaudnorm`, que trabaja por ventanas y funciona con cualquier
-// duración: sobre ese mismo tono lo subió a -33.2 dB. Menos fino, pero nunca
-// destroza.
-const AUDIO_NIVELADO = 'loudnorm=I=-14:TP=-1.5:LRA=11';
-const AUDIO_CORTO = 'dynaudnorm=f=200:g=5';
-const SEGUNDOS_MINIMOS = 4;
+//   medir    58 ms   (solo el audio, el video ni se decodifica)
+//   aplicar 374 ms   (contra 1400 ms de loudnorm)
+//   media   -24.2 dB -> -14.3 dB   ·   pico -10.9 dB -> -1.3 dB
+//
+// Y funciona con CUALQUIER duracion, asi que desaparece el caso raro de los
+// clips cortos y el ffprobe que hacia falta para detectarlos.
+const MARGEN_DB = 1;       // lo que se deja libre hasta el techo
+const GANANCIA_MAXIMA = 20; // en un clip casi mudo, subir mas es subir el ruido
+const YA_ESTA_ALTO = -1.5;  // con el pico aqui arriba no hay nada que ganar
 
-// La eleccion vive en una funcion suya para poder comprobarla sin depender de
-// que la maquina tenga ffprobe: sin duracion se elige el que no rompe.
-const filtroPara = (segundos) => ((segundos != null && segundos >= SEGUNDOS_MINIMOS) ? AUDIO_NIVELADO : AUDIO_CORTO);
-
-// La duración se lee de la cabecera, no se decodifica nada: son milisegundos.
-// Si no se puede saber, se asume corto y se usa el filtro que no rompe.
-function duracionDe(fichero) {
+// ─── EL MEJOR VÍDEO QUE WHATSAPP SEPA REPRODUCIR ────────────────────────────
+//
+// El dueño: «se deben enviar lo más HD posible». Y sí, hay HD: en TikTok el
+// mismo enlace tiene dos vídeos, y medidos uno al lado del otro no se parecen:
+//
+//   normal  576x1024   H.264   1,1 MB
+//   HD     1080x1920   HEVC    1,5 MB
+//
+// Pero el HD viene en HEVC (H.265), y eso NO es intercambiable: WhatsApp
+// reproduce H.264 en todas partes y el HEVC se le atraganta según el teléfono.
+// Un vídeo de 1080 que a media docena del grupo no se les abre es peor que uno
+// de 576 que ve todo el mundo.
+//
+// Así que se pide el mejor, se mira QUÉ llegó, y si es HEVC se coge el
+// siguiente. Recodificar no es opción: pasar 1080x1920 a H.264 en el único core
+// de la VPS son decenas de segundos con alguien esperando.
+function codecDe(fichero) {
   return new Promise((resolve) => {
-    const proc = spawn(ffprobePath, ['-v', 'error', '-show_entries', 'format=duration',
-      '-of', 'default=noprint_wrappers=1:nokey=1', fichero]);
-    let salida = '';
-    const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} }, 10000);
-    proc.stdout?.on('data', (d) => { salida += d.toString(); });
+    const proc = spawn(ffmpegPath, ['-hide_banner', '-i', fichero, '-t', '0', '-f', 'null', '-']);
+    let texto = '';
+    const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} }, 20000);
+    proc.stderr?.on('data', (d) => { texto += d.toString(); });
     proc.on('error', () => { clearTimeout(matar); resolve(null); });
-    proc.on('close', () => { clearTimeout(matar); const n = parseFloat(salida); resolve(Number.isFinite(n) ? n : null); });
+    proc.on('close', () => {
+      clearTimeout(matar);
+      const m = /Stream #\d+:\d+.*: Video: (\w+)/.exec(texto);
+      resolve(m ? m[1].toLowerCase() : null);
+    });
+  });
+}
+//
+// Y SE PUEDE DECIDIR LO CONTRARIO, porque es una decision del dueño y no del
+// codigo: si en el grupo todos llevan telefonos que abren HEVC, prefiere el de
+// 1080. Con REDES_HEVC=1 en el .env se manda el mejor y punto.
+const ACEPTA_HEVC = /^(1|si|sí|true|yes)$/i.test(String(process.env.REDES_HEVC || '').trim());
+const REPRODUCE_BIEN = (codec) => ACEPTA_HEVC || !codec || !['hevc', 'h265', 'av1', 'vp9'].includes(codec);
+
+// El pico, del propio ffmpeg. `-vn` es lo que lo hace barato: sin esto
+// decodifica el video entero para no mirarlo.
+function picoDe(fichero) {
+  return new Promise((resolve) => {
+    const proc = spawn(ffmpegPath, ['-hide_banner', '-i', fichero, '-vn', '-af', 'volumedetect', '-f', 'null', '-']);
+    let texto = '';
+    const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} }, 30000);
+    proc.stderr?.on('data', (d) => { texto += d.toString(); });
+    proc.on('error', () => { clearTimeout(matar); resolve(null); });
+    proc.on('close', () => {
+      clearTimeout(matar);
+      const m = /max_volume:\s*(-?[\d.]+) dB/.exec(texto);
+      resolve(m ? Number(m[1]) : null);
+    });
   });
 }
 
-function normalizarAudio(entrada, filtro) {
+function subirAudio(entrada, ganancia) {
   const salida = entrada.replace(/\.mp4$/i, '') + `_n${Math.random().toString(36).slice(2, 6)}.mp4`;
   return new Promise((resolve) => {
     const proc = spawn(ffmpegPath, [
       '-hide_banner', '-loglevel', 'error', '-y',
       '-i', entrada,
       '-c:v', 'copy',
-      '-af', filtro,
-      '-c:a', 'aac', '-b:a', '128k', '-ar', '44100',
-      // Para que WhatsApp pueda empezar a reproducir sin bajarse el fichero
-      // entero. Cuesta cero: solo mueve la cabecera al principio.
+      '-af', `volume=${ganancia}dB`,
+      // 192k porque la fuente viene en HE-AACv2 a 32 kb/s: ese formato lo
+      // decodifican a medias muchos reproductores y suena apagado. Pasarlo a
+      // AAC normal con holgura lo arregla y no vuelve a perder nada.
+      '-c:a', 'aac', '-b:a', '192k', '-ar', '44100',
       '-movflags', '+faststart',
       salida,
     ]);
@@ -318,10 +389,8 @@ function normalizarAudio(entrada, filtro) {
     proc.on('close', async (codigo) => {
       clearTimeout(matar);
       if (codigo !== 0) {
-        // Lo normal aquí es un vídeo SIN pista de audio. No es un fallo que
-        // merezca ruido: se manda tal cual y ya.
-        if (error && !/does not contain any stream|Output file .* does not contain/i.test(error)) {
-          logger.warn(`redes: no pude nivelar el audio: ${error.trim().split('\n').pop()?.slice(0, 90)}`);
+        if (error && !/does not contain any stream/i.test(error)) {
+          logger.warn(`redes: no pude subir el audio: ${error.trim().split('\n').pop()?.slice(0, 90)}`);
         }
         await fs.remove(salida).catch(() => {});
         return resolve(null);
@@ -338,11 +407,16 @@ function normalizarAudio(entrada, filtro) {
 // el audio de un TikTok no se ejecute encima del sticker de otro.
 async function conAudioNivelado(fichero) {
   if (!/\.mp4$/i.test(fichero)) return fichero;
-  const segundos = await duracionDe(fichero);
-  const filtro = filtroPara(segundos);
   await ffmpegSemaphore.acquire();
   try {
-    const nuevo = await normalizarAudio(fichero, filtro);
+    const pico = await picoDe(fichero);
+    // Sin pista de audio no hay pico que medir, y no hay nada que hacer.
+    if (pico == null) return fichero;
+    // Ya viene alto: tocarlo solo seria perder calidad por reencodar.
+    if (pico >= YA_ESTA_ALTO) return fichero;
+    const ganancia = Math.min(GANANCIA_MAXIMA, Math.round((-MARGEN_DB - pico) * 10) / 10);
+    if (ganancia <= 0) return fichero;
+    const nuevo = await subirAudio(fichero, ganancia);
     if (!nuevo) return fichero;
     await fs.remove(fichero).catch(() => {});
     return nuevo;
@@ -513,4 +587,4 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _duracionDe: duracionDe, _filtroPara: filtroPara, _AUDIO_NIVELADO: AUDIO_NIVELADO, _AUDIO_CORTO: AUDIO_CORTO, _API_DE: API_DE };
+module.exports = { traer, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _picoDe: picoDe, _codecDe: codecDe, _API_DE: API_DE };
