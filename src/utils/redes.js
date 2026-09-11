@@ -138,6 +138,13 @@ const FALLOS = path.join(__dirname, '../../data/redesFallos.json');
 // dueño es qué poner en el .env.
 function enCristiano(motivo) {
   const m = String(motivo || '');
+  // LO DE LA API, PRIMERO. Cuando hay API el mensaje lleva los dos motivos
+  // pegados, y el de yt-dlp habla de bloqueo: mirado en orden de palabras, un
+  // «Free Api Limit» se traducia como «la web bloquea al servidor» y mandaba a
+  // poner una API que ya estaba puesta.
+  if (/no pude bajarlo/i.test(m)) return 'la API dio el enlace pero el vídeo no se deja bajar desde aquí';
+  if (/la API dice/i.test(m)) return m.replace(/ · y yt-dlp:.*$/s, '').slice(0, 90);
+  if (/la API no devolvió/i.test(m)) return 'la API no devolvió ningún enlace';
   if (/no se pudo ejecutar|ENOENT|not found/i.test(m)) return 'no encuentro yt-dlp';
   if (/cookies|logged-in|login|empty media response/i.test(m)) return 'pide sesión iniciada';
   if (/Unexpected response|Unsupported URL|403|captcha|blocked|not available/i.test(m)) return 'la web bloquea al servidor';
@@ -175,15 +182,51 @@ async function porApi(url, plataforma) {
   const destino = API.includes('{url}')
     ? API.replace('{url}', encodeURIComponent(url))
     : `${API}${API.includes('?') ? '&' : '?'}url=${encodeURIComponent(url)}`;
-  const { data } = await axios.get(destino, { timeout: 20000 });
-  // Cada servicio llama de otra forma al enlace directo. Se aceptan las formas
-  // habituales para que cambiar de proveedor sea tocar una línea del .env.
-  const enlace = data?.url || data?.link || data?.video || data?.download
-    || data?.data?.play || data?.data?.url || data?.result?.url || null;
+
+  // UN REINTENTO SI LA API DICE QUE VAS MUY RAPIDO. Las gratuitas suelen
+  // limitar a una peticion por segundo, y con dos personas pegando enlaces a la
+  // vez eso pasa solo. Rendirse ahi mandaba el comando a yt-dlp —que si esta
+  // bloqueado— y el fallo acababa contado como «la web bloquea», que no era.
+  let data = null;
+  for (let intento = 0; intento < 2; intento++) {
+    ({ data } = await axios.get(destino, { timeout: 20000 }));
+    const dice = `${data?.msg || data?.message || ''}`;
+    if (!/limit|rate|too many|slow down/i.test(dice)) break;
+    if (intento === 0) await new Promise((r) => setTimeout(r, 1300));
+  }
+
+  // El servicio contesta 200 y dentro dice que no. Sin esto, un «Free Api
+  // Limit» se leia como «la API no trae enlace» y se perdia el motivo.
+  if (data && (data.code === -1 || data.status === 'error') && (data.msg || data.message)) {
+    throw new Error(`la API dice: ${String(data.msg || data.message).slice(0, 90)}`);
+  }
+
+  // Cada servicio llama de otra forma al enlace directo. `hdplay` va antes que
+  // `play` porque es el mismo video sin marca de agua y en mejor calidad;
+  // `wmplay` NO entra en la lista: ese es el que la lleva.
+  const d = data || {};
+  let enlace = d.url || d.link || d.video || d.download
+    || d.data?.hdplay || d.data?.play || d.data?.url || d.result?.url || null;
   if (!enlace) return null;
+
+  // Algunos devuelven la ruta sin dominio. Se resuelve contra el de la propia
+  // API, que es de donde viene.
+  if (!/^https?:\/\//i.test(enlace)) {
+    try { enlace = new URL(enlace, destino).href; } catch { return null; }
+  }
+
   const ext = (String(enlace).split('?')[0].split('.').pop() || 'mp4').toLowerCase();
   const fichero = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.${esImagen(ext) ? ext : 'mp4'}`);
-  await downloadUrlToFile(enlace, fichero);
+  try {
+    await downloadUrlToFile(enlace, fichero);
+  } catch (e) {
+    // LA API DIO EL ENLACE Y LO QUE FALLO FUE BAJARLO, que son dos problemas
+    // distintos: el primero se arregla cambiando de servicio y el segundo no
+    // —los bytes vienen del CDN de la plataforma a NUESTRA maquina— asi que
+    // confundirlos manda a cambiar lo que funciona.
+    await fs.remove(fichero).catch(() => {});
+    throw new Error(`la API dio el enlace pero no pude bajarlo: ${e.message}`);
+  }
   return fichero;
 }
 
@@ -288,9 +331,12 @@ async function traer(url, plataforma) {
   await acquireDownloadSlot();
   let fichero = null;
   try {
+    let fallaApi = null;
     try {
       fichero = await porApi(url, plataforma);
+      if (!fichero && API_DE[plataforma]) fallaApi = 'la API no devolvió ningún enlace';
     } catch (e) {
+      fallaApi = e.message;
       logger.warn(`redes: la API falló para ${plataforma}: ${e.message}`);
     }
     // Pinterest tiene via propia y va ANTES que yt-dlp: yt-dlp solo entiende
@@ -302,8 +348,17 @@ async function traer(url, plataforma) {
         logger.warn(`redes: pinterest por etiquetas falló: ${e.message}`);
       }
     }
-    if (!fichero) fichero = await porYtDlp(url, plataforma);
-    if (!fichero) throw new Error('no pude sacar el vídeo de ahí');
+    // EL MOTIVO DE LA API NO LO TAPA EL DE YT-DLP. Con una API puesta, el fallo
+    // que importa es el suyo: yt-dlp es el respaldo y se sabe que esta
+    // bloqueado, asi que contar SOLO su mensaje decia «la web bloquea al
+    // servidor» cuando lo que habia pasado era otra cosa, y mandaba a arreglar
+    // donde no era.
+    try {
+      if (!fichero) fichero = await porYtDlp(url, plataforma);
+    } catch (e) {
+      throw new Error(fallaApi ? `${fallaApi} · y yt-dlp: ${e.message}` : e.message);
+    }
+    if (!fichero) throw new Error(fallaApi || 'no pude sacar el vídeo de ahí');
 
     const { size } = await fs.stat(fichero);
     if (size < 1024) throw new Error('lo que bajó está vacío');
