@@ -14,11 +14,17 @@
 'use strict';
 require('dotenv').config();
 const axios = require('axios');
-const { ACCIONES, ACTIVAS } = require('../src/commands/acciones');
+// LA FUENTE SE LE PREGUNTA AL BOT, no se vuelve a escribir aqui.
+//
+// Estaba copiada: `const API = 'https://nekos.best/api/v2/'`. El dia que una
+// categoria dejo de venir de esa web —*!kill*, que viene de otra— este script
+// habria seguido preguntandole a nekos.best por una categoria que no tiene, y
+// habria dicho que el comando esta roto estando perfecto. Una comprobacion que
+// mira un sitio distinto del que mira el bot no comprueba nada, que es
+// exactamente lo que ya costo una tarde con yt-dlp.
+const { ACCIONES, ACTIVAS, _fuenteDe: fuenteDe, _direccionDe: direccion } = require('../src/commands/acciones');
 
-const API = 'https://nekos.best/api/v2/';
 const API_NSFW = (process.env.ACCION_NSFW_API || '').trim();
-const direccion = (base, cat) => (base.includes('{cat}') ? base.replace(/\{cat\}/g, cat) : `${base}${cat}`);
 
 (async () => {
   const verde = (t) => `\x1b[32m${t}\x1b[0m`;
@@ -31,13 +37,13 @@ const direccion = (base, cat) => (base.includes('{cat}') ? base.replace(/\{cat\}
 
   for (const [nombre, a] of Object.entries(ACCIONES)) {
     const nsfw = a.nsfw && API_NSFW;
-    const base = nsfw ? API_NSFW : API;
+    const base = fuenteDe(a.cat, a.nsfw);
     const cat = nsfw ? (a.catNsfw || a.cat) : a.cat;
     const url = direccion(base, cat);
     let estado;
     try {
       const { data } = await axios.get(url, { timeout: 12000 });
-      const hay = data?.results?.[0]?.url || data?.url || data?.link || data?.images?.[0]?.url;
+      const hay = data?.results?.[0]?.url || data?.url || data?.link || data?.response || data?.images?.[0]?.url;
       estado = hay ? verde('trae gif') : rojo('contesta pero SIN gif');
       if (!hay) malas++;
     } catch (e) {

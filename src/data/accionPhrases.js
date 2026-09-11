@@ -694,39 +694,46 @@ const YEET = [
   '%A lanza a %V, se da la vuelta y sigue con lo suyo. Lo suyo nunca fue %V.',
 ];
 
-// DISPARAR. La mas seca de todas. Frases cortas, sin adornos: se dispara y se
-// acabo la conversacion. El humor esta en la calma de %A, no en la sangre.
-const SHOOT = [
-  '%A le dispara a %V. Sin discurso previo, que los discursos los da quien duda.',
-  'Un disparo de %A y %V se sienta en el suelo despacio, como si eso lo arreglara.',
-  '%A apunta a %V. %V empieza a explicarse. %A dispara a mitad de la explicación.',
-  '%V no vio venir el gesto. Nadie lo ve venir de %A.',
-  '%A le dispara a %V y sopla el humo. Lo de soplar el humo es innecesario y por eso lo hace.',
-  '%A dispara y %V cae hacia atrás con cara de no entender nada. Llevaba media hora buscándoselo.',
-  '%A le mete un tiro a %V y sigue como si nada. Como si nada es el estilo.',
-  '%V pregunta por qué con un hilo de voz. El agujero contesta antes que %A.',
-  '%A le dispara a %V desde lejos. Ni se molestó en acercarse.',
-  'Un tiro limpio a %V. Limpio para %A, no para %V.',
-  '%A saca, apunta y dispara antes de que %V termine el saludo.',
-  '%A ya ha guardado el arma y %V todavía se mira el pecho. Sigue sin creérselo.',
-  '%A dispara. %V se apoya en la pared. La pared aguanta más que %V.',
-  'El disparo de %A suena una vez. %V lo va a oír durante un rato.',
-  '%A le dispara a %V y guarda el arma sin prisa. %V todavía está buscando dónde apoyarse.',
-  '%V ni siquiera le había hecho nada a %A. Es que no hacía falta.',
-  '%A dispara a bocajarro y la camisa de %V cambia de color antes que la cara.',
-  '%A dispara, %V da dos pasos y se sienta. Sentarse fue lo más digno que le quedaba.',
-  '%A apunta bien. %V lleva toda la vida siendo un blanco fácil.',
-  'Un tiro de %A a %V y el silencio del grupo. El silencio dura más que el tiro.',
-  '%A le dispara a %V y %V se mira las manos buscando dónde. Está más abajo.',
-  '%V estaba hablando cuando %A disparó. Ya no.',
-  '%A le vacía el cargador a %V. Con el primero ya sobraba: %V se cayó en el primero.',
-  '%A dispara y %V se lleva la mano al pecho como en las películas. Aquí no hay cámara lenta.',
-  '%A le dispara a %V y se encoge de hombros. El grupo se ríe antes que %V.',
-  'El arma de %A apuntaba a %V desde hacía un rato. %V no miró.',
-  '%A dispara a %V y el eco tarda en irse. %V también.',
-  '%A dispara y %V se queja del ruido. Del ruido, fíjate.',
-  '%A le dispara a %V con la puntería de quien lo tenía pensado.',
-  'Un disparo, %V en el suelo y %A recogiendo sus cosas. El orden es ese.',
+// MATAR. La mas seca de todas. Frases cortas, sin adornos: se acaba con alguien
+// y se acaba la conversacion. El humor esta en la calma de %A, no en la sangre.
+//
+// Y SIN ARMA. Aqui habia un pool de DISPARAR con treinta frases de tiros, y era
+// bueno — pero los gifs de esta categoria son de cuchillo, de espada y de lo
+// que haga falta. Una frase que dice «le dispara» debajo de un gif de un
+// cuchillo es justo lo que este fichero lleva media docena de comentarios
+// diciendo que no se hace: el comando enseña una cosa y dice otra. Asi que
+// ninguna frase nombra el arma, y valen para cualquier gif que traiga la web.
+const KILL = [
+  '%A mata a %V sin levantar la voz. Levantar la voz es de quien todavía se lo está pensando.',
+  '%V empieza una frase y %A la termina de otra manera.',
+  '%A acaba con %V en un segundo y medio. El medio segundo fue por educación.',
+  '%V ni se defendió. Tampoco es que le diera tiempo.',
+  'Se acabó %V. %A ya está en otra cosa.',
+  '%A se lleva a %V por delante y sigue andando. Ni una mirada atrás.',
+  '%V se dio cuenta tarde de que %A iba en serio.',
+  '%A remata a %V y el grupo tarda dos segundos en reaccionar. %V no reacciona.',
+  '%V pidió hablarlo. %A ya lo había hablado consigo mismo.',
+  '%A liquida a %V con la tranquilidad de quien lo tenía pendiente desde hace días.',
+  'A %V se le acaba el turno. Los turnos los reparte %A.',
+  '%A termina con %V y se limpia las manos. Lo de limpiarse es por costumbre.',
+  '%V cae y el grupo mira a %A. %A se encoge de hombros.',
+  '%A mata a %V por lo de la otra vez. %V ni se acordaba de lo de la otra vez.',
+  '%V dejó de hablar a mitad. El punto lo puso %A.',
+  'Nadie vio moverse a %A. A %V lo vieron caer todos.',
+  '%A acaba con %V delante de todo el grupo. Delante de todo el grupo era la idea.',
+  '%V tenía una última pregunta. %A no es de contestar preguntas.',
+  '%A se carga a %V y pide perdón al grupo. Al grupo, no a %V.',
+  'Lo de %V duró lo que %A quiso que durara.',
+  '%A mata a %V y se queda tan ancho. Lo raro sería lo contrario.',
+  '%V se lo veía venir desde hacía rato y aun así se quedó quieto.',
+  '%A termina con %V en silencio. El ruido lo pone el grupo después.',
+  '%V cierra los ojos. %A no tiene por qué.',
+  '%A se quita a %V de en medio y vuelve a lo que estaba haciendo. Estaba haciendo algo más importante.',
+  '%V se apoya en %A al caer. %A se aparta.',
+  '%A acaba con %V y el grupo sigue escribiendo. Aquí no se para por tan poco.',
+  'A %V lo mata %A y nadie pide explicaciones. Nadie las pide nunca.',
+  '%A le quita a %V las ganas de contestar. Y el resto también.',
+  'Queda %A de pie y ya está. La lista era de dos y %V estaba en ella.',
 ];
 
 // DAR DE COMER. Parece la mas tierna y es una de sumision: quien abre la boca
@@ -875,4 +882,4 @@ const PECK = [
   '%A besa a %V y le deja el labio brillando. %V no se lo limpia.',
 ];
 
-module.exports = { HUG, NOM, PECK, CUM, TICKLE, HANDHOLD,  STARE, LAUGH, YEET, SHOOT, FEED, KISS, CUDDLE, PAT,  PUNCH, SLAP, BITE, KICK, BONK, FUCK, ANAL, ROAST_USUARIO };
+module.exports = { HUG, NOM, PECK, CUM, TICKLE, HANDHOLD,  STARE, LAUGH, YEET, KILL, FEED, KISS, CUDDLE, PAT,  PUNCH, SLAP, BITE, KICK, BONK, FUCK, ANAL, ROAST_USUARIO };

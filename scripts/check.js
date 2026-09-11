@@ -6168,6 +6168,59 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       exige(/text:\s*remate/.test(acc),
         'el roast de la accion no se manda como texto suelto: el grupo tiene que verlo en su propio globo');
     }
+    // 6. LA CATEGORIA QUE VIENE DE OTRA WEB.
+    //
+    // *!kill* no esta en nekos.best. Viene de kawaii.red, y eso abre cuatro
+    // formas nuevas de romperlo sin que se note desde fuera:
+    //
+    //   · una clave mal escrita en FUENTE_POR_CAT manda la categoria a la web
+    //     de siempre, que contesta 404, y el comando cobra y devuelve el aura
+    //     para siempre;
+    //   · la despensa guarda por clave, y si la clave no lleva la web dentro,
+    //     los gifs de una acaban saliendo por la otra;
+    //   · kawaii.red llama `response` a lo que las demas llaman `url`, asi que
+    //     sin esa forma la web contesta bien y el bot dice que no trae nada;
+    //   · y el respaldo tiene que apuntar a una categoria que exista de verdad.
+    {
+      const acc = require(path.join(R, 'src/commands/acciones'));
+      const cats = new Set(Object.values(acc.ACCIONES).flatMap((a) => [a.cat, a.catNsfw].filter(Boolean)));
+      for (const cat of Object.keys(acc._FUENTE_POR_CAT)) {
+        exige(cats.has(cat),
+          `FUENTE_POR_CAT tiene *${cat}*, que no es la categoria de ninguna accion: esa web no se usa y la accion que la necesitaba pide la de siempre`);
+      }
+      for (const [cat, r] of Object.entries(acc._RESPALDO_POR_CAT)) {
+        exige(cats.has(cat), `RESPALDO_POR_CAT tiene *${cat}*, que no es la categoria de ninguna accion`);
+        exige(r && typeof r.base === 'string' && /^https?:\/\//.test(r.base) && typeof r.cat === 'string' && r.cat,
+          `el respaldo de *${cat}* no dice a que web ni a que categoria ir`);
+      }
+      // La fuente de una categoria propia NO puede ser la de siempre: si lo es,
+      // la tabla no se esta leyendo y todo vuelve a nekos.best en silencio.
+      for (const cat of Object.keys(acc._FUENTE_POR_CAT)) {
+        exige(acc._fuenteDe(cat, false) === acc._FUENTE_POR_CAT[cat],
+          `*${cat}* deberia salir de su propia web y sale de la de siempre: la tabla esta puesta y no se lee`);
+      }
+      const unaNormal = Object.values(acc.ACCIONES).find((a) => !a.nsfw && !acc._FUENTE_POR_CAT[a.cat]);
+      exige(!!unaNormal && acc._fuenteDe(unaNormal.cat, false) === 'https://nekos.best/api/v2/',
+        'una accion normal ya no sale de nekos.best: la tabla de fuentes se esta comiendo a las demas');
+
+      // La clave de la despensa lleva la web dentro. Sin eso, dos categorias
+      // que se llamen igual en dos webs comparten cola.
+      for (const cat of Object.keys(acc._FUENTE_POR_CAT)) {
+        exige(acc._claveDespensa(cat, false, null).startsWith(acc._FUENTE_POR_CAT[cat]),
+          `la clave de despensa de *${cat}* no lleva su web dentro: los gifs de una web saldrian por la otra`);
+      }
+
+      // Y las formas de respuesta, que es lo que no se ve hasta que alguien
+      // escribe el comando.
+      const dg = acc._direccionDelGif;
+      exige(dg({ results: [{ url: 'https://a/1.gif' }] })?.url === 'https://a/1.gif', 'ya no se lee la forma de nekos.best');
+      exige(dg({ response: 'https://k/kill1.gif' })?.url === 'https://k/kill1.gif',
+        'ya no se lee `response`: es la forma de kawaii.red, o sea la de *!kill*, y sin ella la web contesta bien y el bot dice que no trae nada');
+      exige(dg({ link: 'https://p/x.gif' })?.url === 'https://p/x.gif', 'ya no se lee `link`');
+      exige(dg({ url: 'https://u/y.gif' })?.url === 'https://u/y.gif', 'ya no se lee `url`');
+      exige(dg({ response: 'esto no es una direccion' }) === null, 'se acepta como gif algo que no es una direccion');
+      exige(dg({}) === null && dg(null) === null, 'una respuesta vacia se da por buena');
+    }
     if (fallos === antes) console.log(verde(`   ✓ los ${nombres.length} nombres de accion son unicos, no pisan nada y se pueden teclear`));
   }
 

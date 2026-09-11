@@ -94,9 +94,12 @@ const ACCIONES = {
   // incomodidad, la sumision y el ridiculo, que dan mucho mas juego en un grupo.
   //
   // Todas las categorias estan COMPROBADAS contra la web (`npm run acciones`).
-  // Se quedaron fuera `bully`, `glomp`, `kill` y `cringe`: suenan bien pero no
-  // existen alli, y una categoria inventada monta un comando que cobra, falla y
+  // Se quedaron fuera `bully`, `glomp` y `cringe`: suenan bien pero no existen
+  // alli, y una categoria inventada monta un comando que cobra, falla y
   // devuelve el aura cada vez sin que nadie sepa por que.
+  //
+  // `kill` estuvo en esa lista y ya no: no esta en nekos.best, pero SI en otra
+  // web, y por eso existe FUENTE_POR_CAT. Ver alli.
   tickle:   { cat: 'tickle',   es: 'cosquillas', pool: RX.TICKLE,   cmds: ['tickle', 'cosquillas'] },
   nom:      { cat: 'nom',      es: 'mordisquear', pool: RX.NOM,     cmds: ['nom', 'mordisquear'] },
   peck:     { cat: 'peck',     es: 'piquito',    pool: RX.PECK,     cmds: ['peck', 'piquito', 'besito'] },
@@ -104,7 +107,7 @@ const ACCIONES = {
   stare:    { cat: 'stare',    es: 'mirar',      pool: RX.STARE,    cmds: ['stare', 'mirar', 'mirada'] },
   laugh:    { cat: 'laugh',    es: 'burla',      pool: RX.LAUGH,    cmds: ['laugh', 'burla', 'reirse'] },
   yeet:     { cat: 'yeet',     es: 'lanzar',     pool: RX.YEET,     cmds: ['yeet', 'lanzar', 'tirar'] },
-  shoot:    { cat: 'shoot',    es: 'disparar',   pool: RX.SHOOT,    cmds: ['shoot', 'disparar', 'tiro'] },
+  kill:     { cat: 'kill',     es: 'matar',      pool: RX.KILL,     cmds: ['kill', 'matar', 'rematar'] },
   feed:     { cat: 'feed',     es: 'dar de comer', pool: RX.FEED,   cmds: ['feed', 'comer', 'comida'] },
   // La cara. Cuesta el doble justamente para que no se use en bucle: el riesgo
   // de este comando no es la CPU, es la cuenta.
@@ -180,6 +183,51 @@ const API = 'https://nekos.best/api/v2/';
 // de quien escribe el codigo. Con la variable puesta funciona igual; sin ella,
 // *!fuck* es un comando mas con las frases mas subidas.
 const API_NSFW = (process.env.ACCION_NSFW_API || '').trim();
+
+// ─── LA CATEGORIA QUE NO ESTA EN LA WEB DE SIEMPRE ──────────────────────────
+//
+// *!shoot* se cayo y en su sitio esta *!kill*. Lo pidio el dueño: «!shoot solo
+// muestra una mona china disparando». Y tenia razon en el fondo — la categoria
+// entera de nekos.best va de chicas de anime con pistola, siempre el mismo
+// registro, y en un grupo eso se agota a la tercera.
+//
+// El problema es que nekos.best NO tiene `kill`, y este fichero ya lo decia
+// unas lineas mas arriba. Tampoco la tienen otakugifs ni purrbot (comprobado,
+// no supuesto: sus dos listas de categorias no la traen), y waifu.pics, que si
+// la tiene, llevaba el dia entero devolviendo 502 en TODAS sus rutas.
+//
+// La que si la trae y responde es kawaii.red. Medido: 25 peticiones seguidas
+// sin un solo fallo, 447 ms de media, quince gifs distintos y todos de anime.
+//
+// Va en una tabla y no pegada a la accion porque quien decide la web es la
+// CATEGORIA: la clave de la despensa se calcula a partir de ella en tres sitios
+// distintos, y con la fuente colgando de la accion habria que pasarla por
+// parametro en los ocho. Aqui se resuelve en una funcion y no cambia ninguna
+// firma.
+//
+// La direccion es SFW y por eso puede estar escrita aqui. La de ACCION_NSFW_API
+// sigue sin estarlo, por los mismos dos motivos de siempre.
+const FUENTE_POR_CAT = {
+  kill: 'https://kawaii.red/api/gif/{cat}/token=anonymous/',
+};
+
+// Y SI ESA WEB SE CAE, EL COMANDO NO SE MUERE.
+//
+// Una fuente de fuera se cae —waifu.pics lo estaba haciendo mientras escribia
+// esto— y un *!kill* que cobra, falla y devuelve el aura cada vez es un comando
+// roto aunque el aura vuelva. El respaldo es `shoot` de nekos.best: son gifs de
+// otra arma, pero las frases del pool no nombran ninguna a proposito, asi que
+// encajan igual.
+const RESPALDO_POR_CAT = {
+  kill: { base: 'https://nekos.best/api/v2/', cat: 'shoot' },
+};
+
+// La web de una categoria, en un solo sitio. La NSFW manda cuando esta puesta;
+// si no, la propia de la categoria; si no, la de siempre.
+function fuenteDe(cat, nsfw) {
+  if (nsfw && API_NSFW) return API_NSFW;
+  return FUENTE_POR_CAT[cat] || API;
+}
 const TOPE_DESCARGA = 8 * 1024 * 1024;   // un gif de reacción pesa cientos de KB
 
 // LA CACHE POR URL SE QUITO, y conviene saber por que estaba y por que ya no.
@@ -388,7 +436,7 @@ function enFondo(fn) {
 // entero sin que nada pareciera roto.
 function claveDespensa(cat, nsfw, catNsfw) {
   const conFuente = nsfw && API_NSFW;
-  return `${conFuente ? API_NSFW : API}|${conFuente ? (catNsfw || cat) : cat}`;
+  return `${fuenteDe(cat, nsfw)}|${conFuente ? (catNsfw || cat) : cat}`;
 }
 
 const pesaDe = (m) => (m?.mp4?.length || m?.imagen?.length || 0);
@@ -656,13 +704,34 @@ function direccionDe(base, cat) {
   return base.includes('{cat}') ? base.replace(/\{cat\}/g, cat) : `${base}${cat}`;
 }
 
+// Y LA RESPUESTA TAMPOCO TIENE LA MISMA FORMA EN DOS WEBS.
+//
+//   nekos.best   { results: [ { url } ] }
+//   purrbot      { link }
+//   kawaii.red   { response }
+//   la mayoria   { url }
+//
+// Va en su propia funcion para que se pueda comprobar sin salir a internet: una
+// forma que falte no da error, da «la web no ha devuelto ningun gif» con la web
+// contestando perfectamente, y eso es de las cosas que se tarda una tarde en
+// encontrar mirando el sitio equivocado.
+function direccionDelGif(data) {
+  const directa = (x) => (typeof x === 'string' && /^https?:\/\//i.test(x) ? { url: x } : null);
+  return directa(data?.results?.[0]?.url)
+    || directa(data?.url)
+    || directa(data?.link)
+    || directa(data?.response)
+    || directa(data?.images?.[0]?.url)
+    || null;
+}
+
 // `deDespensa` en true significa "estoy rellenando por adelantado": se salta la
 // despensa para no devolver lo que ya estaba guardado y volver a guardarlo.
 async function traerAccion(cat, nsfw, catNsfw, deDespensa = false) {
   // La fuente y la categoria van JUNTAS: cambiar de web sin cambiar de
   // categoria es pedirle a una el nombre que usa la otra.
   const conFuente = nsfw && API_NSFW;
-  const base = conFuente ? API_NSFW : API;
+  const base = fuenteDe(cat, nsfw);
   const cual = conFuente ? (catNsfw || cat) : cat;
   if (!deDespensa) {
     const listo = sacarDeDespensa(claveDespensa(cat, nsfw, catNsfw));
@@ -674,7 +743,18 @@ async function traerAccion(cat, nsfw, catNsfw, deDespensa = false) {
   // otro. Con el reparto, la proxima vez que tarde ya dice cual fue.
   const t = { api: 0, bajar: 0, convertir: 0 };
   const marca = Date.now();
-  const { data } = await axios.get(direccionDe(base, cual), { timeout: 12000 });
+  // Y SI LA WEB DE ESA CATEGORIA SE CAE, SE PRUEBA LA DE RESPALDO. Una fuente
+  // de fuera se cae, y sin esto el comando se queda cobrando y devolviendo el
+  // aura hasta que alguien mire el log.
+  let data = null;
+  try {
+    ({ data } = await axios.get(direccionDe(base, cual), { timeout: 12000 }));
+  } catch (e) {
+    const r = !conFuente && RESPALDO_POR_CAT[cual];
+    if (!r) throw e;
+    logger.warn(`accion ${cual}: la web falló (${e.response?.status || e.message}); tiro del respaldo`);
+    ({ data } = await axios.get(direccionDe(r.base, r.cat), { timeout: 12000 }));
+  }
   t.api = Date.now() - marca;
   // Cada web contesta a su manera: nekos.best mete todo en results[], y las
   // demas suelen devolver {url} a secas. Se aceptan las dos para que cambiar de
@@ -682,10 +762,7 @@ async function traerAccion(cat, nsfw, catNsfw, deDespensa = false) {
   // Cada API llama de otra forma al campo con la direccion: nekos.best lo mete
   // en results[], purrbot lo llama `link` y la mayoria `url`. Se aceptan las
   // tres para que la fuente sea intercambiable de verdad.
-  const r = data?.results?.[0]
-    || (data?.url ? { url: data.url } : null)
-    || (data?.link ? { url: data.link } : null)
-    || (data?.images?.[0]?.url ? { url: data.images[0].url } : null);
+  const r = direccionDelGif(data);
   if (!r?.url) throw new Error('la web no ha devuelto ningun gif');
   const marca2 = Date.now();
   const bajado = await axios.get(r.url, {
@@ -907,4 +984,4 @@ function hazAccion(nombre) {
 const comandos = {};
 for (const nombre of ACTIVAS) comandos[nombre] = hazAccion(nombre);
 
-module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, calentarDespensa, _restaurarDespensa: restaurarDespensa, _guardarEnDespensa: guardarEnDespensa, _sacarDeDespensa: sacarDeDespensa, _DESPENSA_DIR: DESPENSA_DIR, _fondo: () => fondoEnCurso, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, ...comandos, _turnoRoast: turnoRoast };
+module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, calentarDespensa, _restaurarDespensa: restaurarDespensa, _guardarEnDespensa: guardarEnDespensa, _sacarDeDespensa: sacarDeDespensa, _DESPENSA_DIR: DESPENSA_DIR, _fondo: () => fondoEnCurso, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, _fuenteDe: fuenteDe, _FUENTE_POR_CAT: FUENTE_POR_CAT, _RESPALDO_POR_CAT: RESPALDO_POR_CAT, _direccionDe: direccionDe, _direccionDelGif: direccionDelGif, ...comandos, _turnoRoast: turnoRoast };

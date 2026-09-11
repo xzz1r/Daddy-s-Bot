@@ -2758,9 +2758,9 @@ async function handleMessage(sock, msg, opciones = {}) {
       case 'yeet':
       case 'lanzar':
       case 'tirar':
-      case 'shoot':
-      case 'disparar':
-      case 'tiro':
+      case 'kill':
+      case 'matar':
+      case 'rematar':
       case 'feed':
       case 'comer':
       case 'comida':

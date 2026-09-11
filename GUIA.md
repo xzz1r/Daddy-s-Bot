@@ -1015,7 +1015,7 @@ git pull origin main
   | Registro | Cuáles | Dónde está el chiste |
   |---|---|---|
   | Sumisión | `!cuddle` `!pat` `!handhold` `!feed` `!nom` `!peck` `!tickle` | en que **quien recibe cede**: hace sitio sin que se lo pidan, agacha la cabeza, abre la boca. Su decisión, no el gesto |
-  | Violencia | `!punch` `!slap` `!stomp` `!bonk` `!chomp` `!yeet` `!shoot` | física: dónde pega, qué se rompe, cómo suena. No se arregla con un taco al final |
+  | Violencia | `!punch` `!slap` `!stomp` `!bonk` `!chomp` `!yeet` `!kill` | física: dónde pega, qué se rompe, cómo suena. No se arregla con un taco al final |
   | Incomodidad | `!stare` `!laugh` | no se toca a nadie y marca igual. `!laugh` es el único donde el chiste no es quien lo recibe, sino que no lo era |
   | Explícito | `!fuck` `!anal` `!cum` | crudo de verdad, no insinuado. `!cum` cuenta el después: cómo queda quien lo recibe |
 
