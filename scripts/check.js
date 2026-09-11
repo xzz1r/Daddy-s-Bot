@@ -8451,9 +8451,11 @@ const di=async(quien,t)=>{out.length=0;
         // (sin enlace, en espera, sin saldo) contestan citandolo, y citar a un
         // muerto no se entiende.
         //
-        // Y lo que se manda despues NO puede citar el comando: el recuadro de
-        // la cita lleva dentro su texto, o sea el enlace, justo despues de
-        // haberlo borrado.
+        // Y LO QUE SE MANDA DESPUES SI CITA. Aqui se comprobaba lo contrario:
+        // que no citara, porque el recuadro de la cita enseña el enlace que se
+        // acaba de borrar. El dueño lo decidio al reves y la razon es mejor —la
+        // cita es lo que dice de QUIEN es el video, y con tres personas pidiendo
+        // a la vez una mencion no lo resuelve— asi que la capa mide ahora eso.
         {
           const G2 = `12036300000000${Math.floor(Math.random() * 900 + 100)}@g.us`;
           const YO2 = `3460000${Math.floor(Math.random() * 9000 + 1000)}@s.whatsapp.net`;
@@ -8467,10 +8469,8 @@ const di=async(quien,t)=>{out.length=0;
           exige(!!borrado && borrado.c.delete.id === 'MSGRED1',
             'el comando con el enlace se queda en el grupo: era justo lo que se venía a quitar');
           const media = con.find((x) => x.c.video || x.c.image);
-          exige(!!media && !media.o,
-            'el vídeo se manda citando el comando: la cita enseña el enlace que se acaba de borrar');
-          exige(!!media && Array.isArray(media.c.mentions) && media.c.mentions.length === 1,
-            'el vídeo sale sin mencionar a quien lo pidió: sin cita y sin mención, nadie sabe de quién es');
+          exige(!!media && !!media.o && media.o.quoted && media.o.quoted.key?.id === 'MSGRED1',
+            'el vídeo no cita el comando: en un grupo con tres peticiones a la vez, nadie sabe cuál es el suyo');
 
           // Y sin enlace NO se borra nada: ese mensaje no se ha ejecutado.
           const sin = [];
@@ -8839,6 +8839,183 @@ const di=async(quien,t)=>{out.length=0;
     }
 
     if (fallos === antes) console.log(verde('   ✓ el spam que entra durante una reconexion se borra, sin contestar ordenes viejas ni repetirse'));
+  }
+
+  // ── 54. UNA PUBLICACION DE FOTOS ES UN VIDEO IGUAL ───────────────────────
+  //
+  // En TikTok, una de cada pocas publicaciones que se comparten no es un video:
+  // son fotos pasando sobre una cancion. Se pegan con el mismo enlace y en el
+  // grupo se ven igual, pero detras no hay pista de video — el `play` de la API
+  // es un MP3. El bot contestaba «eso no es un video: el enlace solo trae la
+  // cancion», que es verdad y no le sirve a nadie: quien lo pego esta viendo la
+  // publicacion en su telefono.
+  //
+  // Ahora se monta el pase: las fotos una detras de otra con la cancion encima,
+  // y sale un MP4 normal. Esta capa lo mide de verdad —servidor local, JPEG
+  // reales, ffmpeg de verdad— porque es la clase de cosa que «parece» funcionar
+  // leyendo el codigo y saca un fichero de cero bytes.
+  {
+    console.log('\n54. UNA PUBLICACION DE FOTOS SE MANDA COMO VIDEO');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const http = require('http');
+    const { execFileSync } = require('child_process');
+    const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+    const redes = require(path.join(R, 'src/utils/redes'));
+
+    // Lo que lee cada servicio, y lo que NO debe leer. `imagenesDe` se come
+    // cuatro formatos distintos porque cada API llama de otra forma a lo mismo.
+    {
+      const uno = redes._imagenesDe({ data: { images: ['https://a/1.jpg', 'https://a/2.jpg'] } });
+      exige(uno.length === 2, `la lista de fotos plana no se lee (${uno.length})`);
+      const dos = redes._imagenesDe({ data: { image_post_info: { images: [{ display_image: { url_list: ['https://a/3.jpg'] } }] } } });
+      exige(dos.length === 1, 'el formato con display_image.url_list no se lee: es el que devuelve TikTok en crudo');
+      const rep = redes._imagenesDe({ images: ['https://a/1.jpg', 'https://a/1.jpg'] });
+      exige(rep.length === 1, 'la misma foto repetida entra dos veces en el pase');
+      exige(redes._imagenesDe({ images: ['no-es-una-direccion', 42, null] }).length === 0,
+        'se cuela como foto algo que no es una direccion');
+      exige(redes._imagenesDe({}).length === 0, 'sin fotos devuelve algo: entonces se montaria un pase vacio');
+      exige(redes._musicaDe({ data: { play: 'https://a/s.mp3' } }) === 'https://a/s.mp3',
+        '`play` no se toma como cancion: en una publicacion de fotos ESE campo es el audio');
+      exige(redes._musicaDe({}) === null, 'sin cancion devuelve algo');
+    }
+
+    // Y el montaje entero, con ficheros reales servidos por HTTP.
+    const sinProxy = [process.env.NO_PROXY, process.env.no_proxy];
+    process.env.NO_PROXY = process.env.no_proxy = '127.0.0.1,localhost';
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pase54-'));
+    let srv = null;
+    try {
+      const foto = (n, tam, color) => {
+        execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi',
+          '-i', `color=c=${color}:s=${tam}:d=1`, '-frames:v', '1', path.join(dir, n)], { timeout: 60000 });
+      };
+      foto('a.jpg', '1080x1920', 'red');
+      foto('b.jpg', '1080x1920', 'green');
+      foto('c.jpg', '640x480', 'blue');
+      execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi',
+        '-i', 'sine=frequency=440:duration=8', '-c:a', 'libmp3lame', path.join(dir, 'son.mp3')], { timeout: 90000 });
+      execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi',
+        '-i', 'color=c=white:s=320x240:d=2', '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
+        path.join(dir, 'v.mp4')], { timeout: 90000 });
+
+      srv = http.createServer((req, res) => {
+        const ruta = req.url.split('?')[0].slice(1);
+        // La API de mentira: contesta como una publicacion de fotos de verdad,
+        // con `play` apuntando a la cancion y ni un solo enlace de video.
+        if (ruta === 'api-fotos') {
+          res.writeHead(200, { 'content-type': 'application/json' });
+          return res.end(JSON.stringify({ code: 0, data: {
+            play: `http://127.0.0.1:${srv.address().port}/son.mp3`,
+            music: `http://127.0.0.1:${srv.address().port}/son.mp3`,
+            images: [`http://127.0.0.1:${srv.address().port}/a.jpg`, `http://127.0.0.1:${srv.address().port}/b.jpg`],
+          } }));
+        }
+        // Y la de un video NORMAL que ademas trae su portada en `images`.
+        if (ruta === 'api-video') {
+          res.writeHead(200, { 'content-type': 'application/json' });
+          return res.end(JSON.stringify({ code: 0, data: {
+            play: `http://127.0.0.1:${srv.address().port}/v.mp4`,
+            images: [`http://127.0.0.1:${srv.address().port}/a.jpg`],
+          } }));
+        }
+        const f = path.join(dir, ruta);
+        if (!fs.existsSync(f)) { res.writeHead(404); return res.end(); }
+        res.writeHead(200);
+        return fs.createReadStream(f).pipe(res);
+      });
+      await new Promise((r) => srv.listen(0, '127.0.0.1', r));
+      const base = `http://127.0.0.1:${srv.address().port}`;
+
+      // 1. El pase, montado y medido: tiene que ser un H.264 con audio, a la
+      //    resolucion de las fotos y no a la mitad.
+      {
+        const salida = await redes._montarPase([`${base}/a.jpg`, `${base}/b.jpg`, `${base}/c.jpg`], `${base}/son.mp3`, null);
+        exige(!!salida, 'el pase de fotos no se monta: la publicacion sigue sin poder mandarse');
+        if (salida) {
+          const medida = await redes._medirFichero(salida);
+          const analisis = await redes._analizarMedio(salida);
+          exige(analisis.video === 'h264', `el pase sale en ${analisis.video}: WhatsApp no lo reproduce en todos los telefonos`);
+          exige(analisis.audio === true, 'el pase sale mudo aunque habia cancion');
+          // LAS DOS MEDIDAS, no solo el alto. Con el alto a secas, un lienzo
+          // de 608x1080 —la mitad de ancho que la foto original— pasaba el
+          // control: 1080 estaba, pero en el lado que no era.
+          exige(medida.ancho >= 1080 && medida.alto >= 1920,
+            `el pase sale a ${medida.ancho}x${medida.alto} desde fotos de 1080x1920: se pidió lo más HD posible y eso es menos que el original`);
+          exige(medida.segundos > 3, `el pase dura ${medida.segundos} s: se corto`);
+          const { size } = fs.statSync(salida);
+          exige(size < 16 * 1024 * 1024, `el pase pesa ${Math.round(size / 1048576)} MB y WhatsApp no pasa de 16`);
+          fs.rmSync(salida, { force: true });
+        }
+      }
+
+      // 2. UNA SOLA FOTO Y SIN CANCION NO SE MONTA: se manda la foto. Montar un
+      //    MP4 de una imagen quieta es peor que la imagen.
+      {
+        const salida = await redes._montarPase([`${base}/a.jpg`], null, null);
+        exige(!!salida && /\.(jpe?g|png|webp)$/i.test(salida),
+          `una foto suelta sale como ${salida ? path.extname(salida) : 'nada'} en vez de como foto`);
+        if (salida) fs.rmSync(salida, { force: true });
+      }
+
+      // 3. Y si no se puede bajar ni una, no se inventa nada.
+      exige((await redes._montarPase([`${base}/no-existe.jpg`], null, null)) === null,
+        'con las fotos rotas devuelve algo: se mandaria un fichero vacio');
+
+      // 4. LO QUE IMPORTA DE VERDAD: la via completa. Una API que contesta una
+      //    publicacion de fotos tiene que acabar en un video, no en el error.
+      const antesApi = redes._API_DE.tiktok;
+      try {
+        redes._API_DE.tiktok = `${base}/api-fotos`;
+        // El fallo de antes era una EXCEPCION («eso no es un vídeo»), y una
+        // excepcion aqui mata la capa entera en vez de contarse como un fallo
+        // con su motivo. Se atrapa para que la queja diga lo que pasa.
+        const fichero = await redes._porApi('https://www.tiktok.com/@x/photo/123', 'tiktok')
+          .catch((e) => { fallos++; console.log(rojo(`   ✗ una publicación de fotos sigue acabando en error: ${e.message}`)); return null; });
+        exige(!fichero || /\.mp4$/i.test(fichero),
+          'una publicacion de fotos no acaba en un vídeo: es el fallo que el dueño llamó grave');
+        if (fichero) {
+          const analisis = await redes._analizarMedio(fichero);
+          exige(analisis.probado && analisis.video === 'h264',
+            `lo que sale de la via completa no es un vídeo reproducible (${JSON.stringify(analisis)})`);
+          fs.rmSync(fichero, { force: true });
+        }
+      } finally {
+        redes._API_DE.tiktok = antesApi;
+      }
+
+      // 5. Y NO AL REVES: un video de verdad con un campo `images` al lado —la
+      //    portada, que varias APIs devuelven— se manda tal cual. Cambiar un
+      //    video que funciona por un montaje de su portada seria peor que el
+      //    fallo que se venia a arreglar, y se nota solo cuando ya esta puesto.
+      //
+      //    Se distingue por el tamaño: el video de prueba es 320x240 y el pase
+      //    saldria a 1080 de alto, asi que no hay forma de confundirlos.
+      {
+        const antesApi2 = redes._API_DE.tiktok;
+        try {
+          redes._API_DE.tiktok = `${base}/api-video`;
+          const fichero = await redes._porApi('https://www.tiktok.com/@x/video/123', 'tiktok');
+          exige(!!fichero, 'un vídeo normal con portada ya no se baja');
+          if (fichero) {
+            const medida = await redes._medirFichero(fichero);
+            exige(medida.ancho === 320 && medida.alto === 240,
+              `el vídeo salió a ${medida.ancho}x${medida.alto}: se cambió un vídeo que funcionaba por un pase de su portada`);
+            fs.rmSync(fichero, { force: true });
+          }
+        } finally {
+          redes._API_DE.tiktok = antesApi2;
+        }
+      }
+    } finally {
+      if (srv) srv.close();
+      fs.rmSync(dir, { recursive: true, force: true });
+      if (sinProxy[0] === undefined) delete process.env.NO_PROXY; else process.env.NO_PROXY = sinProxy[0];
+      if (sinProxy[1] === undefined) delete process.env.no_proxy; else process.env.no_proxy = sinProxy[1];
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ las fotos con canción salen como un vídeo de 1080, y un vídeo de verdad no se toca'));
   }
 
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────

@@ -89,10 +89,18 @@ async function hazRed(sock, msg, args, groupMeta, plataforma) {
   // en esas el mensaje tiene que seguir ahi: la respuesta va citandolo, y citar
   // a un muerto no se entiende.
   //
-  // Y POR ESO LO DE ABAJO YA NO CITA. El recuadro de la cita lleva dentro el
-  // texto del mensaje citado, o sea que citar el comando volveria a enseñar el
-  // enlace justo despues de haberlo borrado. Se menciona a quien lo pidio, que
-  // es lo que hacia falta de la cita.
+  // Y SE SIGUE CITANDO, aunque el mensaje citado ya no este.
+  //
+  // Aqui lo quite: el recuadro de la cita lleva dentro el texto del citado, asi
+  // que citar el comando vuelve a enseñar el enlace justo despues de borrarlo.
+  // El dueño lo decidio al reves, y tiene razon en lo que importa: la cita es
+  // lo que dice DE QUIEN es el video, y en un grupo donde tres personas piden a
+  // la vez eso no lo resuelve una mencion. El enlace del recuadro no se lo va a
+  // copiar nadie letra por letra.
+  //
+  // La mencion se queda solo para los avisos de error, donde no hay video que
+  // colgar de la cita y lo unico que hace falta es que le llegue el aviso a
+  // quien lo pidio.
   const quienCanon = canonicalJid(quien) || quien;
   const deQuien = { mentions: [quienCanon] };
   sock.sendMessage(jid, {
@@ -133,9 +141,9 @@ async function hazRed(sock, msg, args, groupMeta, plataforma) {
     // de Baileys al enviar es `undefined`, y ese proceso de más en el único core
     // de la VPS es lo que hacía que subir 13 KB tardara 1699 ms.
     const medio = traido.tipo === 'imagen'
-      ? { image: { url: traido.fichero }, ...deQuien }
-      : { video: { url: traido.fichero }, mimetype: 'video/mp4', jpegThumbnail: null, ...deQuien };
-    await sock.sendMessage(jid, medio);
+      ? { image: { url: traido.fichero } }
+      : { video: { url: traido.fichero }, mimetype: 'video/mp4', jpegThumbnail: null };
+    await sock.sendMessage(jid, medio, { quoted: msg });
   } catch (e) {
     logger.warn(`${plataforma}: no pude mandarlo (${e.message})`);
     await devolverAura();

@@ -184,6 +184,252 @@ function hayComoTraer(plataforma) {
 const esVideo = (ext) => ['mp4', 'mov', 'webm', 'mkv'].includes(ext);
 const esImagen = (ext) => ['jpg', 'jpeg', 'png', 'webp'].includes(ext);
 
+// ─── LAS PUBLICACIONES DE FOTOS: UN PASE DE IMÁGENES CON SU CANCIÓN ─────────
+//
+// En TikTok no todo lo que se comparte como «vídeo» es un vídeo. La modalidad
+// de FOTOS —varias imágenes pasando sobre una canción— se pega con el mismo
+// enlace, sale en la misma pestaña y la gente la manda igual. Pero detrás no
+// hay pista de vídeo: el `play` de la API es un MP3.
+//
+// Hasta ahora eso acababa en «eso no es un vídeo: el enlace solo trae la
+// canción». Es verdad y no sirve de nada: quien lo pegó ve una publicación
+// normal y el bot le dice que no existe. El dueño lo llamó grave, y lo es —es
+// una de cada cuatro publicaciones que se comparten.
+//
+// Lo que se hace es lo que hace TikTok: montar el pase. Las fotos una detrás de
+// otra, encima la canción, y sale un MP4 normal que WhatsApp reproduce sin
+// saber que nació de siete JPEG.
+//
+// DECISIONES, Y POR QUÉ:
+//
+//   · Se monta SOLO cuando no hay vídeo de verdad. Algunas APIs devuelven un
+//     campo `images` con la PORTADA de un vídeo normal, y montar un pase con
+//     eso sería cambiar un vídeo que funciona por un montaje. Así que el orden
+//     es: primero los candidatos de vídeo; solo si todos resultan ser la
+//     canción —o si no había ninguno— se mira si hay fotos.
+//   · La canción que ya se bajó se REUTILIZA. Al descartar los candidatos por
+//     ser audio, el MP3 ya está en disco: volver a pedirlo sería una petición
+//     de más al CDN por nada.
+//   · Cada foto dura lo que le toca para que la canción quepa entera, entre 2 y
+//     5 segundos. Con `-shortest` acaba el que primero termine, así que ni se
+//     corta la última foto a la mitad ni quedan diez segundos de negro.
+//   · Lienzo por la PRIMERA foto: si es vertical, 1080x1920; si es apaisada,
+//     1920x1080. Las demás se escalan dentro y se rellena el hueco. Un lienzo
+//     fijo dejaba las apaisadas como una raya en medio de dos franjas negras.
+//   · Y si se pasa de los 16 MB de WhatsApp, se vuelve a montar más pequeño una
+//     vez. No hay tercera: a la segunda ya cabe cualquier pase razonable.
+const MAX_FOTOS = 20;
+const SEG_POR_FOTO_MIN = 2;
+const SEG_POR_FOTO_MAX = 5;
+const SEG_POR_FOTO_SIN_MUSICA = 2.5;
+// Minuto y medio de pase eran once segundos de ffmpeg aqui y bastantes mas en
+// el unico core de la VPS, con alguien esperando. Un minuto cubre de sobra
+// cualquier publicacion de fotos real y deja el montaje en unos segundos.
+const DURACION_TOPE = 60;
+
+// De dónde saca cada servicio la lista de fotos. Son los nombres que usan los
+// habituales; una entrada puede ser la dirección a secas o un objeto.
+function imagenesDe(d) {
+  const crudas = []
+    .concat(d?.data?.images || [])
+    .concat(d?.images || [])
+    .concat(d?.result?.images || [])
+    .concat(d?.data?.image_post_info?.images || [])
+    .concat(d?.data?.image_data?.no_watermark_image_list || []);
+  const vistas = new Set();
+  const fuera = [];
+  for (const cruda of crudas) {
+    const dir = typeof cruda === 'string'
+      ? cruda
+      : cruda?.display_image?.url_list?.[0] || cruda?.url_list?.[0] || cruda?.url || cruda?.link || null;
+    if (typeof dir !== 'string' || !/^https?:\/\//i.test(dir)) continue;
+    if (vistas.has(dir)) continue;
+    vistas.add(dir);
+    fuera.push(dir);
+    if (fuera.length >= MAX_FOTOS) break;
+  }
+  return fuera;
+}
+
+// La canción. `play` entra aquí a propósito: en una publicación de fotos ese
+// campo NO es el vídeo, es el audio, y es justo el que ya se descartó arriba.
+function musicaDe(d) {
+  const posibles = [d?.data?.music, d?.music, d?.data?.music_info?.play,
+    d?.music_info?.play, d?.data?.play, d?.play];
+  for (const p of posibles) {
+    if (typeof p === 'string' && /^https?:\/\//i.test(p)) return p;
+  }
+  return null;
+}
+
+// Duración y tamaño en una sola lectura, del propio ffmpeg: no hay ffprobe
+// garantizado en la VPS y esto ya se hace así en analizarMedio.
+function medirFichero(fichero) {
+  return new Promise((resolve) => {
+    const proc = spawn(ffmpegPath, ['-hide_banner', '-i', fichero, '-t', '0', '-f', 'null', '-']);
+    let texto = '';
+    const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} }, 20000);
+    proc.stderr?.on('data', (t) => { texto += t.toString(); });
+    proc.on('error', () => { clearTimeout(matar); resolve({ segundos: 0, ancho: 0, alto: 0 }); });
+    proc.on('close', () => {
+      clearTimeout(matar);
+      const d = /Duration: (\d+):(\d+):(\d+\.?\d*)/.exec(texto);
+      const t = /Stream #\d+:\d+.*: Video:.*?, (\d+)x(\d+)/.exec(texto);
+      resolve({
+        segundos: d ? Number(d[1]) * 3600 + Number(d[2]) * 60 + Number(d[3]) : 0,
+        ancho: t ? Number(t[1]) : 0,
+        alto: t ? Number(t[2]) : 0,
+      });
+    });
+  });
+}
+
+// `ladoLargo` es el LADO LARGO del lienzo, no el ancho: en vertical 1920 son
+// 1080x1920, que es el tamaño nativo con el que TikTok guarda estas fotos.
+// Estaba tomado como ancho y salian pases de 608x1080 — la mitad de resolucion
+// de la que traia la foto original, justo lo contrario de lo que se pidio.
+function montarConFfmpeg(lista, musica, ladoLargo, vertical, crf, salida) {
+  const ancho = vertical ? Math.round(ladoLargo * 9 / 16) : ladoLargo;
+  const alto  = vertical ? ladoLargo : Math.round(ladoLargo * 9 / 16);
+  // Par obligatorio: yuv420p no admite dimensiones impares y el encoder falla.
+  const par = (n) => (n % 2 ? n + 1 : n);
+  const w = par(ancho);
+  const h = par(alto);
+  const args = ['-hide_banner', '-loglevel', 'error', '-y',
+    '-f', 'concat', '-safe', '0', '-i', lista];
+  if (musica) args.push('-i', musica);
+  args.push(
+    '-vf', `scale=${w}:${h}:force_original_aspect_ratio=decrease,`
+      + `pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2:color=black,setsar=1,fps=24,format=yuv420p`,
+    '-c:v', 'libx264', '-preset', 'veryfast', '-crf', String(crf),
+    // Baseline y nivel 4.0: lo que abre cualquier teléfono, que es el mismo
+    // criterio por el que se descarta el HEVC unas líneas más arriba.
+    '-profile:v', 'baseline', '-level', '4.0',
+  );
+  if (musica) args.push('-c:a', 'aac', '-b:a', '128k', '-ar', '44100', '-shortest');
+  else args.push('-an');
+  args.push('-movflags', '+faststart', salida);
+
+  return new Promise((resolve) => {
+    const proc = spawn(ffmpegPath, args);
+    let error = '';
+    const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} }, 120000);
+    proc.stderr?.on('data', (t) => { error += t.toString(); });
+    proc.on('error', () => { clearTimeout(matar); resolve(null); });
+    proc.on('close', async (codigo) => {
+      clearTimeout(matar);
+      if (codigo !== 0) {
+        logger.warn(`redes: no pude montar el pase de fotos: ${error.trim().split('\n').pop()?.slice(0, 120)}`);
+        await fs.remove(salida).catch(() => {});
+        return resolve(null);
+      }
+      const { size } = await fs.stat(salida).catch(() => ({ size: 0 }));
+      if (size < 1024) { await fs.remove(salida).catch(() => {}); return resolve(null); }
+      resolve(salida);
+    });
+  });
+}
+
+async function montarPase(fotos, musicaUrl, audioYaBajado) {
+  if (!fotos.length) return null;
+  const basura = [];
+  const limpiar = async () => { for (const f of basura) await fs.remove(f).catch(() => {}); };
+
+  try {
+    // Las fotos, una a una y perdonando las que fallen: que el CDN tire una de
+    // siete no puede costar la publicación entera.
+    const enDisco = [];
+    for (let i = 0; i < fotos.length; i++) {
+      const ext = (String(fotos[i]).split('?')[0].split('.').pop() || '').toLowerCase();
+      const destino = path.join(TEMP_DIR, `pase_${Date.now()}_${i}_${Math.random().toString(36).slice(2)}.${esImagen(ext) ? ext : 'jpg'}`);
+      try {
+        await downloadUrlToFile(fotos[i], destino);
+        const { size } = await fs.stat(destino);
+        if (size < 512) throw new Error('vacía');
+        basura.push(destino);
+        enDisco.push(destino);
+      } catch {
+        await fs.remove(destino).catch(() => {});
+      }
+    }
+    if (!enDisco.length) return null;
+
+    // La canción: la que ya se bajó al descartar los candidatos, o la que diga
+    // la API. Si no hay ninguna, el pase sale mudo y sigue siendo la
+    // publicación — muda es mejor que nada.
+    let musica = null;
+    if (audioYaBajado && await fs.pathExists(audioYaBajado)) {
+      musica = audioYaBajado;
+    } else if (musicaUrl) {
+      const destino = path.join(TEMP_DIR, `pase_${Date.now()}_son_${Math.random().toString(36).slice(2)}.mp3`);
+      try {
+        await downloadUrlToFile(musicaUrl, destino);
+        const { size } = await fs.stat(destino);
+        if (size < 1024) throw new Error('vacía');
+        basura.push(destino);
+        musica = destino;
+      } catch {
+        await fs.remove(destino).catch(() => {});
+      }
+    }
+
+    // UNA SOLA FOTO Y SIN CANCIÓN NO ES UN PASE: es una foto. Montar un MP4 de
+    // dos segundos con una imagen quieta es peor que mandar la imagen.
+    if (enDisco.length === 1 && !musica) {
+      const sola = enDisco[0];
+      basura.splice(basura.indexOf(sola), 1);
+      await limpiar();
+      return sola;
+    }
+
+    await ffmpegSemaphore.acquire();
+    try {
+      const primera = await medirFichero(enDisco[0]);
+      const vertical = !(primera.ancho && primera.alto && primera.ancho > primera.alto);
+
+      let porFoto = SEG_POR_FOTO_SIN_MUSICA;
+      if (musica) {
+        const son = await medirFichero(musica);
+        if (son.segundos > 0) {
+          porFoto = Math.min(SEG_POR_FOTO_MAX, Math.max(SEG_POR_FOTO_MIN, son.segundos / enDisco.length));
+        }
+      }
+      // El tope está para el caso de veinte fotos a cinco segundos: un minuto y
+      // cuarenta de pase que nadie va a ver y que no cabría en 16 MB.
+      if (porFoto * enDisco.length > DURACION_TOPE) porFoto = DURACION_TOPE / enDisco.length;
+
+      // El demuxer `concat` necesita la ÚLTIMA entrada repetida: sin ella se
+      // come la duración de la última foto y el pase acaba un fotograma antes.
+      const lista = path.join(TEMP_DIR, `pase_${Date.now()}_lista_${Math.random().toString(36).slice(2)}.txt`);
+      const lineas = enDisco.map((f) => `file '${f.replace(/'/g, "'\\''")}'\nduration ${porFoto.toFixed(3)}`);
+      lineas.push(`file '${enDisco[enDisco.length - 1].replace(/'/g, "'\\''")}'`);
+      await fs.writeFile(lista, lineas.join('\n') + '\n');
+      basura.push(lista);
+
+      const salida = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.mp4`);
+      let hecho = await montarConFfmpeg(lista, musica, 1920, vertical, 26, salida);
+      if (!hecho) return null;
+
+      const { size } = await fs.stat(hecho).catch(() => ({ size: 0 }));
+      if (size > TOPE_WHATSAPP) {
+        logger.info(`redes: el pase salió de ${Math.round(size / 1048576)} MB; lo monto más pequeño`);
+        await fs.remove(hecho).catch(() => {});
+        const segundo = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.mp4`);
+        hecho = await montarConFfmpeg(lista, musica, 1280, vertical, 30, segundo);
+        if (!hecho) return null;
+      }
+      await limpiar();
+      return hecho;
+    } finally {
+      ffmpegSemaphore.release();
+    }
+  } catch (e) {
+    logger.warn(`redes: el pase de fotos falló (${e.message})`);
+    await limpiar();
+    return null;
+  }
+}
+
 // ── Vía 1: la API del .env ──────────────────────────────────────────────────
 async function porApi(url, plataforma) {
   const API = API_DE[plataforma];
@@ -225,10 +471,22 @@ async function porApi(url, plataforma) {
       try { return new URL(x, destino).href; } catch { return null; }
     })
     .filter(Boolean);
-  if (!candidatos.length) return null;
+
+  // Las fotos se miran AQUI pero se usan al final: ver la nota de montarPase.
+  const fotos = imagenesDe(d);
+  if (!candidatos.length) {
+    return fotos.length ? montarPase(fotos, musicaDe(d), null) : null;
+  }
 
   let ultimoError = null;
   let soloAudio = 0;
+  // La canción de una posible publicación de fotos, si aparece por el camino.
+  let cancion = null;
+  const tirarCancion = async () => {
+    if (!cancion) return;
+    const f = cancion; cancion = null;
+    await fs.remove(f).catch(() => {});
+  };
   for (let i = 0; i < candidatos.length; i++) {
     const enlace = candidatos[i];
     const ext = (String(enlace).split('?')[0].split('.').pop() || 'mp4').toLowerCase();
@@ -248,7 +506,11 @@ async function porApi(url, plataforma) {
       if (medio.probado && !medio.video) {
         soloAudio++;
         logger.info('redes: ese enlace no trae vídeo, solo audio; pruebo el siguiente');
-        await fs.remove(fichero).catch(() => {});
+        // La primera se GUARDA: si esto acaba siendo una publicación de fotos,
+        // esa es la canción del pase y ya está bajada. Volver a pedírsela al
+        // CDN sería una petición de más para traer los mismos bytes.
+        if (!cancion && medio.audio) cancion = fichero;
+        else await fs.remove(fichero).catch(() => {});
         continue;
       }
       // El formato que no se reproduce en todos los telefonos solo se descarta
@@ -259,14 +521,27 @@ async function porApi(url, plataforma) {
         continue;
       }
     }
+    // Se encontró vídeo de verdad: la canción que se había guardado por si
+    // acaso ya no hace falta.
+    await tirarCancion();
     return fichero;
   }
   // SI TODOS LOS ENLACES ERAN AUDIO, el motivo no es que la API fallara: es que
   // eso no es un video. Dicho de la otra forma, quien lo pego se queda pensando
   // que el bot esta roto.
   if (soloAudio && soloAudio === candidatos.length) {
+    // AQUI ESTABA EL «no es un vídeo». Y era verdad, pero quien pegó el enlace
+    // ve una publicación normal en su TikTok. Si hay fotos, se monta el pase y
+    // se manda; el error solo queda para cuando de verdad no hay nada.
+    if (fotos.length) {
+      const pase = await montarPase(fotos, musicaDe(d), cancion);
+      await tirarCancion();
+      if (pase) return pase;
+    }
+    await tirarCancion();
     throw new Error('eso no es un vídeo: el enlace solo trae la canción (suele pasar con las publicaciones de fotos)');
   }
+  await tirarCancion();
   if (ultimoError) {
     // LA API DIO EL ENLACE Y LO QUE FALLO FUE BAJARLO, que son dos problemas
     // distintos: el primero se arregla cambiando de servicio y el segundo no
@@ -711,4 +986,5 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE };
+module.exports = { traer, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
+  _montarPase: montarPase, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };
