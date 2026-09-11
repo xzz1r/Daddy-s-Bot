@@ -472,4 +472,12 @@ async function downloadAudio(query) {
   }
 }
 
-module.exports = { downloadAudio, ordenDeKeys, sinCuota, PROVIDERS };
+// LO QUE COMPARTE CON `redes.js`, exportado en vez de copiado. El hueco de
+// descarga, el lanzador de yt-dlp y la bajada con tope son exactamente el mismo
+// problema para una cancion que para un video de TikTok, y dos copias del
+// control de concurrencia son dos limites distintos que se creen el mismo.
+module.exports = {
+  downloadAudio, ordenDeKeys, sinCuota, PROVIDERS,
+  acquireDownloadSlot, releaseDownloadSlot, ytdlp, downloadUrlToFile,
+  YT_DLP, MAX_BYTES, TEMP_DIR,
+};

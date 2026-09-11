@@ -8204,6 +8204,137 @@ const di=async(quien,t)=>{out.length=0;
     if (fallos === antes) console.log(verde('   ✓ los nueve sobres de estado se borran para todo el grupo, y cada final queda apuntado'));
   }
 
+  // ── 50. !tt, !ig y !pin: EL VIDEO SIN GUARDARSE Y SIN COMERSE LA RAM ─────
+  //
+  // Tres comandos que bajan un fichero de hasta 25 MB en una maquina de 1 GB.
+  // Lo que los mantiene baratos son tres decisiones que NO se ven leyendo el
+  // codigo por encima, y que el dia que alguien "limpie" se pierden sin que
+  // nada falle a la vista:
+  //
+  //   1. Se manda { video: { url: fichero } } — Baileys abre un
+  //      createReadStream con una ruta (Utils/messages-media.js:264). Cambiarlo
+  //      por un Buffer es meter 25 MB en el heap del bot por cada envio.
+  //   2. jpegThumbnail va en null, no undefined. Lo que dispara el ffmpeg
+  //      interno de Baileys al enviar es undefined, y ese proceso de mas en el
+  //      unico core es lo que hacia que subir 13 KB tardara 1699 ms.
+  //   3. El fichero se borra SIEMPRE al terminar. El dueño lo pidio explicito:
+  //      el bot no guarda videos de nadie.
+  //
+  // Y las dos reglas de dinero que ya costaron caras en otros comandos: no se
+  // cobra por un rechazo, y si no llega el video se devuelve el aura.
+  {
+    console.log('\n50. !tt, !ig Y !pin: NI SE GUARDA NI SE COME LA RAM');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const fsx = require('fs-extra');
+
+    // El motor se sustituye por uno de mentira ANTES de cargar los comandos:
+    // commands/redes.js desestructura `traer` al requerirse, asi que parchearlo
+    // despues no cambiaria nada. Es el mismo motivo por el que hay que limpiar
+    // la cache primero.
+    const rutaRedes = require.resolve(path.join(R, 'src/utils/redes'));
+    const rutaCmd = require.resolve(path.join(R, 'src/commands/redes'));
+    const previoRedes = require.cache[rutaRedes];
+    const previoCmd = require.cache[rutaCmd];
+    delete require.cache[rutaCmd];
+    const redes = require(rutaRedes);
+    const traerReal = redes.traer;
+    try {
+      let ficheroFalso = null;
+      let fallar = false;
+      redes.traer = async () => {
+        if (fallar) throw new Error('la web no contesta');
+        ficheroFalso = path.join(os.tmpdir(), `red-prueba-${Date.now()}.mp4`);
+        await fsx.writeFile(ficheroFalso, Buffer.alloc(2048, 1));
+        return { fichero: ficheroFalso, tipo: 'video', ext: 'mp4', bytes: 2048 };
+      };
+      const cmd = require(rutaCmd);
+
+      const G50 = `1203630000000005${Date.now() % 100}@g.us`;
+      const { addAura, getAura } = require(path.join(R, 'src/utils/auraStore'));
+
+      // CADA CASO CON SU PERSONA. Hay ocho segundos de espera por usuario —el
+      // freno de los dos huecos de descarga— asi que encadenar las pruebas con
+      // el mismo remitente hace que la segunda conteste «espera 8 s» y la
+      // comprobacion mida eso en vez de lo que venia a medir. Me paso: el caso
+      // del reembolso salia rojo porque nunca llegaba a intentar la descarga.
+      let nPersona = 0;
+      const correr = async (args, mismaPersona = false) => {
+        if (!mismaPersona) nPersona++;
+        const quien = `3460000005${nPersona}@s.whatsapp.net`;
+        await addAura(G50, quien, 5000);
+        // El saldo se lee, no se supone: una cuenta nueva arranca con el aura
+        // de bienvenida, asi que `addAura(5000)` no deja 5000. Comparar contra
+        // una constante daba rojo con el codigo bien.
+        const saldoAntes = await getAura(G50, quien);
+        const visto = [];
+        const sock = { sendMessage: async (jid, content) => { visto.push({ jid, content }); return {}; } };
+        const msg = { key: { remoteJid: G50, fromMe: false, id: `R${Math.random()}`, participant: quien } };
+        await cmd.cmdTikTok(sock, msg, args, { id: G50, participants: [{ id: quien }] });
+        return { visto, quien, saldoAntes };
+      };
+
+      // 1. SIN ENLACE NO SE COBRA. Cobrar y luego pedir el enlace es cobrar por
+      //    un rechazo, que es lo que ya se corrigio en las acciones.
+      const r1 = await correr([]);
+      exige((await getAura(G50, r1.quien)) === r1.saldoAntes,
+        'se cobra por escribir !tt sin enlace: eso es cobrar por un rechazo');
+      exige(r1.visto.some((x) => /enlace/i.test(x.content.text || '')), '!tt sin enlace no dice qué falta');
+
+      // 2. UN ENLACE DE OTRA RED dice cuál era el suyo, y tampoco cobra.
+      const r2 = await correr(['https://www.instagram.com/reel/Cabc123/']);
+      exige((await getAura(G50, r2.quien)) === r2.saldoAntes,
+        'se cobra por pegar un enlace de otra plataforma en !tt');
+      exige(r2.visto.some((x) => /Instagram/i.test(x.content.text || '')),
+        'con un enlace de Instagram en !tt no se dice que el comando era !ig: el error tipico se queda sin respuesta util');
+
+      // 3. EL ENVIO: desde disco, con la miniatura en null, y el fichero borrado.
+      const r3 = await correr(['https://vm.tiktok.com/ZMprueba/']);
+      const v3 = r3.visto;
+      const envio = v3.find((x) => x.content && x.content.video);
+      exige(!!envio, '!tt con un enlace bueno no manda el vídeo');
+      if (envio) {
+        exige(envio.content.video && typeof envio.content.video === 'object' && typeof envio.content.video.url === 'string',
+          'el vídeo se manda como Buffer: son hasta 25 MB en el heap del bot por envío, en una máquina de 1 GB');
+        exige('jpegThumbnail' in envio.content && envio.content.jpegThumbnail === null,
+          'jpegThumbnail no va en null: con undefined, Baileys lanza SU ffmpeg al enviar, en el único core y con alguien esperando');
+      }
+      exige(ficheroFalso && !(await fsx.pathExists(ficheroFalso)),
+        'el vídeo se queda en disco después de mandarlo: el dueño pidió que no se guarde nada');
+
+      // 4. SI NO LLEGA EL VIDEO, SE DEVUELVE EL AURA.
+      fallar = true;
+      const r4 = await correr(['https://vm.tiktok.com/ZMotra/']);
+      exige((await getAura(G50, r4.quien)) === r4.saldoAntes,
+        'no se devuelve el aura cuando el vídeo no llega: se paga por nada');
+      exige(r4.visto.some((x) => /no te he cobrado/i.test(x.content.text || '')),
+        'cuando falla no se dice que no se ha cobrado');
+
+      // 5. Y LA ESPERA EXISTE: el segundo enlace seguido de la MISMA persona no
+      //    sale. Son dos huecos de descarga para todo el bot.
+      fallar = false;
+      const r5 = await correr(['https://vm.tiktok.com/ZMuna/']);
+      const r5b = await correr(['https://vm.tiktok.com/ZMdos/'], true);
+      exige(r5b.visto.some((x) => /espera/i.test(x.content.text || '')),
+        'se pueden pedir enlaces seguidos sin espera: uno solo ocupa los dos huecos de descarga del bot');
+
+      // 6. Y LOS TRES ESTAN ENCHUFADOS AL DESPACHADOR Y AL COBRO.
+      const mh = soloCodigo('src/handlers/messageHandler.js');
+      for (const c of ['tt', 'tiktok', 'ig', 'insta', 'instagram', 'pin', 'pinterest']) {
+        exige(new RegExp(`case '${c}':`).test(mh), `!${c} no está en el switch: el comando no existe`);
+        exige(new RegExp(`${c}: 'redes'`).test(mh), `!${c} no cobra: sale gratis mientras sus hermanos cuestan`);
+      }
+      const { PRECIOS } = require(path.join(R, 'src/utils/economia'));
+      exige(typeof PRECIOS.redes === 'number' && PRECIOS.redes > 0, 'el concepto `redes` no tiene precio');
+    } finally {
+      redes.traer = traerReal;
+      delete require.cache[rutaCmd];
+      if (previoCmd) require.cache[rutaCmd] = previoCmd;
+      if (previoRedes) require.cache[rutaRedes] = previoRedes;
+    }
+    if (fallos === antes) console.log(verde('   ✓ el vídeo va desde disco, sin ffmpeg de más, se borra al mandarlo y no se cobra si no llega'));
+  }
+
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────
   //
   // Tres cosas que se tocan juntas cuando se busca que el bot conteste antes,

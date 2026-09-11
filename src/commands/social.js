@@ -346,6 +346,7 @@ ${p}play · ${p}música · ${p}canción · ${p}song · ${p}playsong · ${p}playa
 ${p}s · ${p}sticker · ${p}stk
 ${p}toimg · ${p}stimg  ·  ${p}tovid  ·  ${p}ttp · ${p}texto
 ${p}pfp · ${p}foto  ·  ${p}fk · ${p}verificar · ${p}verify · ${p}check
+${p}tt · ${p}tiktok  ·  ${p}ig · ${p}insta · ${p}instagram  ·  ${p}pin · ${p}pinterest
 ${p}cachelist · ${p}listacache · ${p}cache
 
 ━━━━━ *DINÁMICAS* ━━━━━
@@ -475,6 +476,7 @@ _Todo lleva ${PREFIJOS} delante. El número es lo que cuesta; sin número no cob
 ━━ *HERRAMIENTAS* ━━
 *${p}play* ${c('play')} <nombre> · *${p}s* ${c('sticker')} · *${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')}
 *${p}ttp* ${c('ttp')} <texto> · *${p}pfp* ${c('pfp')} · *${p}fk* ${c('fk')} @user
+*${p}tt* ${c('redes')} · *${p}ig* ${c('redes')} · *${p}pin* ${c('redes')} <enlace> — el vídeo sin marca de agua
 
 ━━ *DINÁMICAS* ━━
 _Sin @ va sobre ti, con @ sobre esa persona_

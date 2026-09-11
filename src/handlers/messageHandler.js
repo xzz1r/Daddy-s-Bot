@@ -30,6 +30,12 @@ function lazyCmd(rel, name) {
 const cmdPlay = lazyCmd('../commands/music', 'cmdPlay');
 const cmdCacheList = lazyCmd('../commands/music', 'cmdCacheList');
 const cmdClearCache = lazyCmd('../commands/music', 'cmdClearCache');
+// Perezosos tambien: arrastran utils/redes.js y este a downloader.js, que
+// construye su lista de proveedores al cargarse. Eso no tiene por que pasar en
+// el arranque de un bot que a lo mejor no recibe un enlace en todo el dia.
+const cmdTikTok = lazyCmd('../commands/redes', 'cmdTikTok');
+const cmdInstagram = lazyCmd('../commands/redes', 'cmdInstagram');
+const cmdPinterest = lazyCmd('../commands/redes', 'cmdPinterest');
 const cmdSticker = lazyCmd('../commands/sticker', 'cmdSticker');
 const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdK, privadoDelOwner, hallarMedio } = require('../commands/k');
@@ -256,6 +262,12 @@ const COBRO_CENTRAL = {
   // ese comando". Se le cobraba al usuario por un comando que el bot no tiene.
   // O se implementa el case, o no se cobra; lo segundo es lo honesto.
   rizz: 'rizz', piropo: 'piropo', wingman: 'wingman',
+  // Los tres de redes cobran DENTRO (estan en COBRAN_SOLOS): devuelven el aura
+  // si el video no llega. Aqui entran igual para que la puerta del privado
+  // —«eso se juega en el grupo»— los cubra como a los demas de pago.
+  tt: 'redes', tiktok: 'redes',
+  ig: 'redes', insta: 'redes', instagram: 'redes',
+  pin: 'redes', pinterest: 'redes',
   // 'count' e 'inactivos' NO estan, y es a proposito. El cobro central corre
   // ANTES del switch, asi que a un miembro se le cobraba y despues el comando
   // contestaba "solo los admins": pagaba por un rechazo. El catch solo
@@ -290,6 +302,7 @@ for (const c of CMDS_PORCENTAJE) COBRO_CENTRAL[c] = 'percent';
 // ruido.
 const LENTOS = new Set([
   'play', 'playsong', 'playaudio', 'musica', 'cancion',
+  'tt', 'tiktok', 'ig', 'insta', 'instagram', 'pin', 'pinterest',
   's', 'sticker', 'stk', 'toimg', 'tovid',
   'pfp', 'fk', 'verificar', 'verify', 'check',
   'ttp', 'texto',
@@ -309,6 +322,7 @@ const LENTOS = new Set([
 
 const COBRAN_SOLOS = new Set([
   'play', 'playsong', 'playaudio', 's', 'sticker', 'stk', 'toimg', 'tovid',
+  'tt', 'tiktok', 'ig', 'insta', 'instagram', 'pin', 'pinterest',
   'pfp', 'fk', 'verificar', 'verify', 'check', 'top5', 'top10',
   // vs/versus cobran dentro de cmdVs: tienen tres salidas sin respuesta (sin
   // menciones, contra uno mismo, y el silencio contra el owner) y cobrando
@@ -2139,6 +2153,22 @@ async function handleMessage(sock, msg) {
       case 'playaudio':
       case 'play':
         resultado = await cmdPlay(sock, msg, args, groupMeta);
+        break;
+
+      case 'tt':
+      case 'tiktok':
+        resultado = await cmdTikTok(sock, msg, args, groupMeta);
+        break;
+
+      case 'ig':
+      case 'insta':
+      case 'instagram':
+        resultado = await cmdInstagram(sock, msg, args, groupMeta);
+        break;
+
+      case 'pin':
+      case 'pinterest':
+        resultado = await cmdPinterest(sock, msg, args, groupMeta);
         break;
 
       case 'cachelist':

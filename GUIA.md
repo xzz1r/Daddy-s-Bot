@@ -1071,6 +1071,40 @@ git pull origin main
   el mensaje de «no te llega»: un precio que sube sin avisar se lee como un
   fallo del bot.
 
+- **Redes** (`!tt`, `!ig`, `!pin`): el vídeo que alguien pega, sin marca de
+  agua. Tres comandos y no uno, por decisión del dueño: son tres plataformas y
+  se piden distinto. Lo que comparten —cobrar, bajar, mandar, borrar y devolver
+  el aura si no llega nada— se escribe una vez en `commands/redes.js`; el motor
+  está en `utils/redes.js`.
+
+  Lo que los mantiene baratos son tres decisiones que no se ven leyendo por
+  encima, y la capa 50 las prueba ejecutando:
+
+  | decisión | por qué |
+  |---|---|
+  | se manda `{ video: { url: fichero } }` | Baileys abre ahí un `createReadStream`; con un Buffer serían 25 MB de heap por envío |
+  | `jpegThumbnail` en `null`, no `undefined` | `undefined` es lo que dispara el ffmpeg interno de Baileys al enviar |
+  | nunca pasa por ffmpeg | TikTok e Instagram ya entregan H.264; reencodar en un core es lo que lo haría caro |
+
+  **No se guarda nada.** El fichero se borra en el `finally`, salga bien o mal, y
+  lo que quede atrás por un corte lo recoge el barrido horario de `temp`.
+
+  **De dónde salen.** Primero la API de esa plataforma si está puesta en el
+  `.env` (`TIKTOK_API`, `INSTAGRAM_API`, `PINTEREST_API`, o `REDES_API` para las
+  tres), y si no, `yt-dlp`. La API va primero porque descarga en la IP del
+  servicio: TikTok e Instagram acaban bloqueando a las IP de datacenter, y esto
+  corre en una VPS. Si la API falla se cae a `yt-dlp` sin ruido. Pinterest no
+  tiene ese problema y se apaña con `yt-dlp`.
+
+  **La marca de agua** en TikTok no es otro vídeo, es otro **formato** del mismo
+  enlace: el marcado es `download_addr` y el limpio es `play_addr`. El selector
+  descarta por nombre cualquier formato que hable de marca de agua, y solo cae al
+  mejor a secas si no queda ninguno limpio.
+
+  **El freno no es el precio.** Son ocho segundos por persona, porque hay dos
+  huecos de descarga para todo el bot y los comparte con `!play`: sin eso, uno
+  pegando enlaces seguidos deja al grupo sin música y sin acciones.
+
 - **Multimedia**: stickers, `!play`, `!toimg`. Sin frases; no es terreno de
   contenido. Una cosa del motor que conviene saber: todo lo que llama a ffmpeg
   pasa por un semáforo compartido, y sus plazas salen del número de cores de la

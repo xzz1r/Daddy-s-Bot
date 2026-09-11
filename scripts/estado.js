@@ -15,6 +15,15 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
+// EL .env, CARGADO ANTES QUE NADA. `index.js` es el unico sitio que llamaba a
+// dotenv, asi que cualquier comprobacion de aqui que preguntara por una
+// variable del .env veia el entorno pelado y contestaba "no esta puesta" con la
+// variable puesta. Se colo asi la de las APIs de redes: `estado` pedia instalar
+// yt-dlp a quien ya lo tenia resuelto por fuera.
+//
+// No pisa lo que ya venga del entorno: dotenv solo rellena lo que falta.
+try { require('dotenv').config({ path: path.join(__dirname, '../.env') }); } catch { /* sin dotenv o sin .env: se sigue igual */ }
+
 const RAIZ = path.join(__dirname, '..');
 // Todo lleva timeout: si la red va mal, `git fetch` puede quedarse colgado
 // minutos y esta revisión tiene que terminar siempre, aunque sea con dudas.
@@ -260,6 +269,46 @@ if (!bot) {
       'npm run update   ← lo quita solo, y si el del sistema fallara el check lo pararía antes de reiniciar');
   } else if (pesaEmpaquetado > 20) {
     bien(`el ffmpeg empaquetado (${pesaEmpaquetado} MB) hace falta: aquí no hay ffprobe del sistema`);
+  }
+}
+
+// ─── yt-dlp: lo que hace funcionar !play, !tt, !ig y !pin ────────────────────
+//
+// No es una dependencia de npm, asi que `npm install` no lo trae y nada se queja
+// si falta: el respaldo de !play y los tres comandos de redes se caen de uno en
+// uno, cada uno con su propio "no pude traerlo", y desde fuera parece que las
+// webs van mal. Aqui se dice una vez y claro.
+{
+  const donde = sh('command -v yt-dlp 2>/dev/null');
+  if (!donde) {
+    // QUE FALTE NO ES LO MISMO PARA TODOS. Quien tenga API de terceros puesta en
+    // las tres plataformas no necesita yt-dlp para nada de redes; !play si lo
+    // sigue queriendo para su respaldo de SoundCloud. Decirle «te faltan tres
+    // comandos» a quien no le faltan es como se enseña a ignorar los avisos.
+    // El comando NO se deduce del nombre de la plataforma: `!tt` no es
+    // «tiktok».slice(0,2). Escrito asi salia «!ti, !in, !pi», tres comandos que
+    // no existen, en el aviso que se supone que te dice que escribir.
+    const COMANDO = { tiktok: '!tt', instagram: '!ig', pinterest: '!pin' };
+    let sinApi = ['tiktok', 'instagram', 'pinterest'];
+    try {
+      const { hayApi } = require(path.join(RAIZ, 'src/utils/redes'));
+      sinApi = sinApi.filter((x) => !hayApi(x));
+    } catch { /* módulo nuevo o .env sin cargar: se avisa de las tres */ }
+    aviso(sinApi.length
+      ? `falta yt-dlp: ${sinApi.map((x) => COMANDO[x]).join(', ')} no pueden bajar nada y !play se queda sin respaldo`
+      : 'falta yt-dlp: las redes van por API, pero !play se queda sin respaldo',
+      'pipx install yt-dlp   (o: pip install --user yt-dlp)');
+  } else {
+    // Y la VERSION importa mas que en otros sitios: TikTok e Instagram cambian
+    // a menudo y una copia de hace medio anyo deja de sacar el video sin decir
+    // por que. El formato de version de yt-dlp es la fecha, asi que se lee.
+    const v = (sh('yt-dlp --version 2>/dev/null') || '').trim();
+    const m = /^(\d{4})\.(\d{2})\.(\d{2})/.exec(v);
+    const dias = m ? Math.round((Date.now() - Date.UTC(+m[1], +m[2] - 1, +m[3])) / 86400000) : null;
+    if (dias != null && dias > 120) {
+      aviso(`yt-dlp es de hace ${dias} dias (${v}): TikTok e Instagram ya habran cambiado`,
+        'pipx upgrade yt-dlp   (o: pip install -U yt-dlp)');
+    } else bien(`yt-dlp ${v || 'presente'}`);
   }
 }
 
