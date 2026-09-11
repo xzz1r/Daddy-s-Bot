@@ -20,7 +20,8 @@
     "acciones": "node scripts/acciones.js",
     "analogias": "node scripts/analogias.js",
     "frases": "node scripts/frases.js",
-    "audio": "node scripts/audio.js"
+    "audio": "node scripts/audio.js",
+    "enlace": "node scripts/enlace.js"
   },
   "repository": {
     "type": "git",

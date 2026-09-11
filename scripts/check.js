@@ -9071,6 +9071,139 @@ const di=async(quien,t)=>{out.length=0;
     if (fallos === antes) console.log(verde('   ✓ las fotos con canción salen como un vídeo de 1080, y un vídeo de verdad no se toca'));
   }
 
+  // ── 55. UN POST DE INSTAGRAM QUE NO ES UN REEL ───────────────────────────
+  //
+  // En el grupo salio «no he podido traerlo de Instagram. No te he cobrado» con
+  // la API contestando perfectamente. El motivo: la lista de campos de los que
+  // el bot saca el medio solo miraba CADENAS, y un post de Instagram que no es
+  // un reel no trae ningun campo de video — trae la lista de medios del post, y
+  // esa llega como ARRAY. Un array no pasa un `typeof x === 'string'`, asi que
+  // la lista salia vacia, porApi devolvia null sin motivo, el fallo lo acababa
+  // dando yt-dlp (al que Instagram bloquea desde un datacenter) y el grupo leia
+  // un error que no tenia nada que ver.
+  //
+  // Los servicios de Instagram no se ponen de acuerdo en como llamar a esa
+  // lista, asi que esta capa prueba las formas que usan de verdad, con un
+  // servidor local y ficheros reales. Y prueba tambien el caso contrario: que
+  // un reel siga llegando tal cual, sin convertirse en un pase de sus fotos.
+  {
+    console.log('\n55. UN POST DE FOTOS DE INSTAGRAM TAMBIEN SE MANDA');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const http = require('http');
+    const { execFileSync } = require('child_process');
+    const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+    const redes = require(path.join(R, 'src/utils/redes'));
+
+    // Las formas sueltas, sin red de por medio.
+    {
+      const ce = redes._comoEnlaces;
+      exige(ce('https://a/1.jpg', 'https://base/').length === 1, 'una dirección suelta ya no se lee');
+      exige(ce(['https://a/1.jpg', 'https://a/2.jpg'], 'https://base/').length === 2,
+        'una LISTA de direcciones ya no se lee: es la forma en la que Instagram devuelve un post');
+      exige(ce([{ url: 'https://a/1.jpg' }, { link: 'https://a/2.jpg' }], 'https://base/').length === 2,
+        'una lista de objetos con la dirección dentro ya no se lee');
+      exige(ce('/relativa/1.jpg', 'https://base/x')[0] === 'https://base/relativa/1.jpg',
+        'una ruta sin dominio ya no se resuelve contra la de la API');
+      exige(ce(null, 'https://base/').length === 0 && ce([], 'https://base/').length === 0,
+        'un campo vacío devuelve algo');
+      // Y la extensión, que es lo que separa una foto de un vídeo.
+      exige(redes._extensionDe('https://cdn/x.jpg?a=1&b=2#z') === 'jpg',
+        'la extensión se lee con los parámetros pegados: entonces ninguna foto de un CDN se reconoce como foto');
+      exige(redes._extensionDe('https://cdn/dl?id=1') === '', 'una dirección sin extensión devuelve una');
+    }
+
+    const sinProxy = [process.env.NO_PROXY, process.env.no_proxy];
+    process.env.NO_PROXY = process.env.no_proxy = '127.0.0.1,localhost';
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ig55-'));
+    let srv = null;
+    try {
+      const foto = (n, tam, color) => execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y',
+        '-f', 'lavfi', '-i', `color=c=${color}:s=${tam}:d=1`, '-frames:v', '1', path.join(dir, n)], { timeout: 60000 });
+      foto('a.jpg', '1080x1350', 'red');
+      foto('b.jpg', '1080x1350', 'green');
+      execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi',
+        '-i', 'color=c=white:s=320x240:d=2', '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
+        path.join(dir, 'v.mp4')], { timeout: 60000 });
+
+      let base = '';
+      // Las formas que usan los servicios de Instagram de verdad.
+      const respuestas = {
+        // carrusel de fotos, la lista bajo `medias`
+        carrusel: () => ({ status: 'ok', data: { medias: [{ url: `${base}/a.jpg`, type: 'image' }, { url: `${base}/b.jpg`, type: 'image' }] } }),
+        // una sola foto, la lista bajo `url`
+        unafoto: () => ({ data: { url: [{ url: `${base}/a.jpg`, type: 'jpg' }] } }),
+        // un reel, tambien en lista: no puede acabar convertido en un pase
+        reel: () => ({ url: [{ url: `${base}/v.mp4`, type: 'mp4' }] }),
+        // la direccion sin extension detras de la cual hay un JPEG
+        sinext: () => ({ data: { url: `${base}/dl` } }),
+        // y una respuesta que no trae nada
+        vacio: () => ({ data: {} }),
+      };
+      srv = http.createServer((req, res) => {
+        const ruta = req.url.split('?')[0].slice(1);
+        if (respuestas[ruta]) {
+          res.writeHead(200, { 'content-type': 'application/json' });
+          return res.end(JSON.stringify(respuestas[ruta]()));
+        }
+        const f = path.join(dir, ruta === 'dl' ? 'a.jpg' : ruta);
+        if (!fs.existsSync(f)) { res.writeHead(404); return res.end(); }
+        res.writeHead(200);
+        return fs.createReadStream(f).pipe(res);
+      });
+      await new Promise((r) => srv.listen(0, '127.0.0.1', r));
+      base = `http://127.0.0.1:${srv.address().port}`;
+
+      const antesApi = redes._API_DE.instagram;
+      const probar = async (caso) => {
+        redes._API_DE.instagram = `${base}/${caso}`;
+        const f = await redes._porApi('https://www.instagram.com/p/ABC123/', 'instagram')
+          .catch((e) => { fallos++; console.log(rojo(`   ✗ el caso «${caso}» acabó en error: ${e.message}`)); return null; });
+        if (!f) return null;
+        const medida = await redes._medirFichero(f);
+        const { size } = fs.statSync(f);
+        fs.rmSync(f, { force: true });
+        return { ext: path.extname(f).toLowerCase(), ...medida, size };
+      };
+      try {
+        const carrusel = await probar('carrusel');
+        exige(carrusel && carrusel.ext === '.mp4' && carrusel.segundos > 1,
+          `un carrusel de fotos no sale como pase (${JSON.stringify(carrusel)}): es el caso de la captura del grupo`);
+        // Y SIN FRANJAS NEGRAS. Instagram publica en 4:5 y el lienzo era 9:16
+        // fijo: un cuarto de la pantalla en negro.
+        exige(carrusel && carrusel.ancho === 1080 && carrusel.alto === 1350,
+          `el pase de Instagram sale a ${carrusel?.ancho}x${carrusel?.alto} desde fotos de 1080x1350: son franjas negras por un lienzo que no es el de la foto`);
+
+        const una = await probar('unafoto');
+        exige(una && ['.jpg', '.jpeg'].includes(una.ext),
+          `un post de una sola foto sale como ${una?.ext} en vez de como foto`);
+
+        const reel = await probar('reel');
+        exige(reel && reel.ancho === 320 && reel.alto === 240,
+          `el reel salió a ${reel?.ancho}x${reel?.alto}: se cambió un vídeo que funcionaba por un montaje`);
+
+        const sinext = await probar('sinext');
+        exige(sinext && ['.jpg', '.jpeg'].includes(sinext.ext),
+          `una dirección sin extensión con un JPEG detrás sale como ${sinext?.ext}: WhatsApp contesta que el vídeo está mal`);
+
+        redes._API_DE.instagram = `${base}/vacio`;
+        const vacio = await redes._porApi('https://www.instagram.com/p/ABC123/', 'instagram').catch(() => null);
+        exige(vacio === null, 'una respuesta sin medios devuelve algo en vez de rendirse');
+        if (vacio) fs.rmSync(vacio, { force: true });
+      } finally {
+        redes._API_DE.instagram = antesApi;
+      }
+    } finally {
+      if (srv) srv.close();
+      fs.rmSync(dir, { recursive: true, force: true });
+      if (sinProxy[0] === undefined) delete process.env.NO_PROXY; else process.env.NO_PROXY = sinProxy[0];
+      if (sinProxy[1] === undefined) delete process.env.no_proxy; else process.env.no_proxy = sinProxy[1];
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ carrusel, foto suelta y reel: cada uno sale como lo que es'));
+  }
+
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────
   //
   // Tres cosas que se tocan juntas cuando se busca que el bot conteste antes,

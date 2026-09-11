@@ -181,8 +181,41 @@ function hayComoTraer(plataforma) {
   return !!API_DE[plataforma] || hayYtDlp();
 }
 
+// La extension REAL de una direccion, sin la interrogacion y sin el ancla. Los
+// CDN de Instagram y TikTok cuelgan media docena de parametros detras del
+// `.jpg`, asi que partir por el ultimo punto a secas devuelve basura.
+function extensionDe(u) {
+  const limpio = String(u || '').split('#')[0].split('?')[0];
+  const ultimo = limpio.split('/').pop() || '';
+  const punto = ultimo.lastIndexOf('.');
+  return punto < 0 ? '' : ultimo.slice(punto + 1).toLowerCase();
+}
+
+// Un campo de la respuesta puede venir de cuatro formas y las cuatro son
+// normales: la direccion a secas, un objeto que la lleva dentro, una lista de
+// direcciones o una lista de objetos. Se aceptan todas y se devuelven absolutas.
+function comoEnlaces(valor, base) {
+  const fuera = [];
+  const uno = (v) => {
+    const dir = typeof v === 'string'
+      ? v
+      : (v?.url || v?.link || v?.download_url || v?.src || v?.play || null);
+    if (typeof dir !== 'string' || !dir.trim()) return;
+    if (/^https?:\/\//i.test(dir)) { fuera.push(dir); return; }
+    try { fuera.push(new URL(dir, base).href); } catch { /* ruta imposible */ }
+  };
+  if (Array.isArray(valor)) for (const v of valor.slice(0, 20)) uno(v);
+  else uno(valor);
+  return fuera;
+}
+
 const esVideo = (ext) => ['mp4', 'mov', 'webm', 'mkv'].includes(ext);
 const esImagen = (ext) => ['jpg', 'jpeg', 'png', 'webp'].includes(ext);
+const esEnlaceDeImagen = (u) => esImagen(extensionDe(u));
+// Los codecs con los que ffmpeg describe una FOTO. Los pone en la misma linea
+// de «Video:» que un vídeo de verdad, y por eso hay que nombrarlos: sin esta
+// lista, un JPEG bajado con nombre de .mp4 pasa por vídeo.
+const ESTATICOS = new Set(['mjpeg', 'png', 'webp', 'bmp', 'tiff']);
 
 // ─── LAS PUBLICACIONES DE FOTOS: UN PASE DE IMÁGENES CON SU CANCIÓN ─────────
 //
@@ -284,17 +317,19 @@ function medirFichero(fichero) {
   });
 }
 
-// `ladoLargo` es el LADO LARGO del lienzo, no el ancho: en vertical 1920 son
-// 1080x1920, que es el tamaño nativo con el que TikTok guarda estas fotos.
-// Estaba tomado como ancho y salian pases de 608x1080 — la mitad de resolucion
-// de la que traia la foto original, justo lo contrario de lo que se pidio.
-function montarConFfmpeg(lista, musica, ladoLargo, vertical, crf, salida) {
-  const ancho = vertical ? Math.round(ladoLargo * 9 / 16) : ladoLargo;
-  const alto  = vertical ? ladoLargo : Math.round(ladoLargo * 9 / 16);
-  // Par obligatorio: yuv420p no admite dimensiones impares y el encoder falla.
+// EL LIENZO SALE DE LA PRIMERA FOTO, no de una proporcion fija.
+//
+// Primero fue 9:16 siempre. Va bien con TikTok, que es vertical entero, y mal
+// con Instagram, que publica en 4:5: un carrusel de 1080x1350 salia metido en
+// 1080x1920 con dos franjas negras que ocupaban un cuarto de la pantalla.
+//
+// `montarPase` mide la primera foto y pasa aqui el lienzo ya decidido; esta
+// funcion solo se encarga de que quepa y de que las medidas sean pares, que
+// yuv420p no admite impares y el encoder revienta.
+function montarConFfmpeg(lista, musica, ancho, alto, crf, salida) {
   const par = (n) => (n % 2 ? n + 1 : n);
-  const w = par(ancho);
-  const h = par(alto);
+  const w = par(Math.max(2, ancho));
+  const h = par(Math.max(2, alto));
   const args = ['-hide_banner', '-loglevel', 'error', '-y',
     '-f', 'concat', '-safe', '0', '-i', lista];
   if (musica) args.push('-i', musica);
@@ -384,8 +419,16 @@ async function montarPase(fotos, musicaUrl, audioYaBajado) {
 
     await ffmpegSemaphore.acquire();
     try {
+      // El lienzo: la proporcion de la primera foto, con el lado largo a 1920
+      // como mucho. Si no se pudo medir, vertical 9:16, que es el caso comun.
       const primera = await medirFichero(enDisco[0]);
-      const vertical = !(primera.ancho && primera.alto && primera.ancho > primera.alto);
+      const lienzo = (largo) => {
+        if (!primera.ancho || !primera.alto) {
+          return { ancho: Math.round(largo * 9 / 16), alto: largo };
+        }
+        const escala = Math.min(1, largo / Math.max(primera.ancho, primera.alto));
+        return { ancho: Math.round(primera.ancho * escala), alto: Math.round(primera.alto * escala) };
+      };
 
       let porFoto = SEG_POR_FOTO_SIN_MUSICA;
       if (musica) {
@@ -407,7 +450,8 @@ async function montarPase(fotos, musicaUrl, audioYaBajado) {
       basura.push(lista);
 
       const salida = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.mp4`);
-      let hecho = await montarConFfmpeg(lista, musica, 1920, vertical, 26, salida);
+      const grande = lienzo(1920);
+      let hecho = await montarConFfmpeg(lista, musica, grande.ancho, grande.alto, 26, salida);
       if (!hecho) return null;
 
       const { size } = await fs.stat(hecho).catch(() => ({ size: 0 }));
@@ -415,7 +459,8 @@ async function montarPase(fotos, musicaUrl, audioYaBajado) {
         logger.info(`redes: el pase salió de ${Math.round(size / 1048576)} MB; lo monto más pequeño`);
         await fs.remove(hecho).catch(() => {});
         const segundo = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.mp4`);
-        hecho = await montarConFfmpeg(lista, musica, 1280, vertical, 30, segundo);
+        const chico = lienzo(1280);
+        hecho = await montarConFfmpeg(lista, musica, chico.ancho, chico.alto, 30, segundo);
         if (!hecho) return null;
       }
       await limpiar();
@@ -463,17 +508,38 @@ async function porApi(url, plataforma) {
   // Cada servicio usa sus nombres, asi que se aceptan los habituales. `wmplay`
   // NO esta: ese es el que lleva la marca de agua.
   const d = data || {};
-  const candidatos = [d.data?.hdplay, d.hdplay, d.url, d.link, d.video, d.download,
-    d.data?.play, d.data?.url, d.result?.url]
-    .filter((x) => typeof x === 'string' && x.trim())
-    .map((x) => { // algunos devuelven la ruta sin dominio
-      if (/^https?:\/\//i.test(x)) return x;
-      try { return new URL(x, destino).href; } catch { return null; }
-    })
-    .filter(Boolean);
+  // TODO LO QUE PUEDA SER UN MEDIO, Y DESPUES SE SEPARA.
+  //
+  // Esta lista solo miraba CADENAS. Y una publicacion de Instagram que no es un
+  // reel no trae ningun campo de video: trae la lista de medios del post, que
+  // llega como ARRAY —`url: [{url, type}]`, `medias: [...]`, `media: [...]`,
+  // segun el servicio— y un array no pasa el `typeof x === 'string'`. O sea que
+  // la lista salia vacia, porApi devolvia null sin motivo, el fallo lo acababa
+  // dando yt-dlp (que Instagram bloquea desde un datacenter) y en el grupo salia
+  // «no he podido traerlo de Instagram» con la API contestando perfectamente.
+  //
+  // Ahora se recoge todo —cadena, objeto `{url}` o lista de cualquiera de los
+  // dos— y se separa por la extension: lo que es foto va al pase, lo demas se
+  // prueba como video. El orden de la lista se respeta, que es lo que pone el
+  // `hdplay` de TikTok por delante del `play`.
+  const bruto = [d.data?.hdplay, d.hdplay, d.url, d.link, d.video, d.download,
+    d.data?.play, d.data?.url, d.result?.url,
+    d.medias, d.data?.medias, d.media, d.data?.media, d.result?.medias];
+  const todos = [];
+  for (const campo of bruto) {
+    for (const enlace of comoEnlaces(campo, destino)) {
+      if (!todos.includes(enlace)) todos.push(enlace);
+    }
+  }
+  const candidatos = todos.filter((u) => !esEnlaceDeImagen(u));
 
   // Las fotos se miran AQUI pero se usan al final: ver la nota de montarPase.
-  const fotos = imagenesDe(d);
+  // Las que declara la API y, ademas, las que hayan salido de la lista de
+  // medios: en un post de fotos de Instagram esas son TODAS las que hay.
+  const fotos = [];
+  for (const f of [...imagenesDe(d), ...todos.filter(esEnlaceDeImagen)]) {
+    if (!fotos.includes(f)) fotos.push(f);
+  }
   if (!candidatos.length) {
     return fotos.length ? montarPase(fotos, musicaDe(d), null) : null;
   }
@@ -482,6 +548,8 @@ async function porApi(url, plataforma) {
   let soloAudio = 0;
   // La canción de una posible publicación de fotos, si aparece por el camino.
   let cancion = null;
+  // Y la foto que llegue disfrazada de vídeo, por lo mismo.
+  let fotoSuelta = null;
   const tirarCancion = async () => {
     if (!cancion) return;
     const f = cancion; cancion = null;
@@ -489,7 +557,7 @@ async function porApi(url, plataforma) {
   };
   for (let i = 0; i < candidatos.length; i++) {
     const enlace = candidatos[i];
-    const ext = (String(enlace).split('?')[0].split('.').pop() || 'mp4').toLowerCase();
+    const ext = extensionDe(enlace) || 'mp4';
     const fichero = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.${esImagen(ext) ? ext : 'mp4'}`);
     try {
       await downloadUrlToFile(enlace, fichero);
@@ -503,6 +571,19 @@ async function porApi(url, plataforma) {
       // SIN PISTA DE VIDEO NO HAY VIDEO, y esto se comprueba SIEMPRE, tambien
       // en el ultimo candidato. Antes el ultimo se aceptaba a ciegas, y por ahi
       // se colo un MP3 con nombre de mp4.
+      // UNA FOTO CON NOMBRE DE VIDEO. Pasa cuando la direccion no lleva
+      // extension —`…/dl?id=123`, que es como entregan varios servicios— y
+      // detras hay un JPEG. ffmpeg lo ve como «Video: mjpeg», asi que la guarda
+      // de arriba lo daba por bueno y salia un .mp4 que era una foto: WhatsApp
+      // contesta que el video esta mal y nadie entiende por que.
+      if (medio.probado && ESTATICOS.has(medio.video)) {
+        logger.info(`redes: ese enlace era una foto (${medio.video}), no un vídeo; la guardo por si el post es de fotos`);
+        const comoFoto = fichero.replace(/\.mp4$/i, '.jpg');
+        await fs.move(fichero, comoFoto, { overwrite: true }).catch(() => {});
+        if (!fotoSuelta && await fs.pathExists(comoFoto)) fotoSuelta = comoFoto;
+        else await fs.remove(comoFoto).catch(() => {});
+        continue;
+      }
       if (medio.probado && !medio.video) {
         soloAudio++;
         logger.info('redes: ese enlace no trae vídeo, solo audio; pruebo el siguiente');
@@ -521,27 +602,35 @@ async function porApi(url, plataforma) {
         continue;
       }
     }
-    // Se encontró vídeo de verdad: la canción que se había guardado por si
-    // acaso ya no hace falta.
+    // Se encontró vídeo de verdad: lo que se había guardado por si acaso ya no
+    // hace falta.
     await tirarCancion();
+    if (fotoSuelta) { await fs.remove(fotoSuelta).catch(() => {}); fotoSuelta = null; }
     return fichero;
   }
   // SI TODOS LOS ENLACES ERAN AUDIO, el motivo no es que la API fallara: es que
   // eso no es un video. Dicho de la otra forma, quien lo pego se queda pensando
   // que el bot esta roto.
-  if (soloAudio && soloAudio === candidatos.length) {
-    // AQUI ESTABA EL «no es un vídeo». Y era verdad, pero quien pegó el enlace
-    // ve una publicación normal en su TikTok. Si hay fotos, se monta el pase y
-    // se manda; el error solo queda para cuando de verdad no hay nada.
-    if (fotos.length) {
-      const pase = await montarPase(fotos, musicaDe(d), cancion);
-      await tirarCancion();
-      if (pase) return pase;
-    }
+  // NINGUN CANDIDATO ERA UN VIDEO. Antes de darse por vencido, el post puede
+  // ser de fotos: las que declare la API, o la que haya llegado disfrazada de
+  // vídeo. Este es el caso de Instagram, donde un post normal no tiene ningún
+  // campo de vídeo y todo lo que hay son imágenes.
+  if (fotos.length) {
+    const pase = await montarPase(fotos, musicaDe(d), cancion);
     await tirarCancion();
-    throw new Error('eso no es un vídeo: el enlace solo trae la canción (suele pasar con las publicaciones de fotos)');
+    if (pase) {
+      if (fotoSuelta) await fs.remove(fotoSuelta).catch(() => {});
+      return pase;
+    }
   }
   await tirarCancion();
+  if (fotoSuelta) return fotoSuelta;
+  if (soloAudio && soloAudio === candidatos.length) {
+    // AQUI ESTABA EL «no es un vídeo». Y era verdad, pero quien pegó el enlace
+    // ve una publicación normal en su TikTok. El error solo queda para cuando
+    // de verdad no hay ni vídeo ni fotos.
+    throw new Error('eso no es un vídeo: el enlace solo trae la canción (suele pasar con las publicaciones de fotos)');
+  }
   if (ultimoError) {
     // LA API DIO EL ENLACE Y LO QUE FALLO FUE BAJARLO, que son dos problemas
     // distintos: el primero se arregla cambiando de servicio y el segundo no
@@ -987,4 +1076,4 @@ async function traer(url, plataforma) {
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
 module.exports = { traer, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
-  _montarPase: montarPase, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };
+  _montarPase: montarPase, _comoEnlaces: comoEnlaces, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };
