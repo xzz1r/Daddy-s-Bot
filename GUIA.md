@@ -1121,20 +1121,27 @@ git pull origin main
   `.env` (`TIKTOK_API`, `INSTAGRAM_API`, `PINTEREST_API`, o `REDES_API` para las
   tres), y si no, `yt-dlp`. Si la API falla se cae a `yt-dlp` sin ruido.
 
-  **Para TikTok e Instagram la API no es un adorno: es la única vía.** Medido
-  desde una VPS y con `yt-dlp` al día:
+  **Solo TikTok necesita un tercero.** Medido desde una VPS con `yt-dlp` al día,
+  y con enlaces **vivos**, que es donde me equivoqué dos veces:
 
-  | plataforma | qué contesta | qué significa |
+  | plataforma | qué contesta | qué es de verdad |
   |---|---|---|
   | TikTok | `Unexpected response from webpage request` | bloquea al servidor |
-  | Instagram | `empty media response` | pide sesión iniciada |
+  | Instagram | `empty media response` | **estrangula, no bloquea** |
   | Pinterest | `No video formats found` | **es una foto** |
 
-  Las dos primeras bloquean a una IP de datacenter y no se arreglan con código.
-  **Pinterest sí, y ahí me equivoqué**: di por cerrada una puerta que estaba
-  abierta porque probé con un `pin.it` muerto. Uno vivo redirige perfectamente y
-  yt-dlp se baja su JSON sin problema. El error real era otro: el extractor de
-  Pinterest de yt-dlp solo entiende pines de **vídeo**, y la mayoría son fotos.
+  Solo la primera es un muro. Las otras dos las di por cerradas sin serlo:
+
+  **Pinterest** lo probé con un `pin.it` muerto y acabó en la portada. Uno vivo
+  redirige perfectamente. El error real era que el extractor de Pinterest de
+  yt-dlp solo entiende pines de **vídeo**, y la mayoría son fotos.
+
+  **Instagram** lo probé con un identificador inventado. Con reels reales sale,
+  pero hay límite por IP y por rato: tres seguidos y el segundo y el tercero
+  fallan con un mensaje que culpa a la falta de sesión y no es eso. Repetidos
+  unos segundos después salen a la primera. Eso explica lo que se veía desde
+  fuera, «hay vídeos de IG que no envía», unos sí y otros no sin patrón. Se
+  reintenta con espera creciente y los tres salen.
 
   Así que Pinterest tiene vía propia y va antes que yt-dlp: se lee la página del
   pin y se saca el medio de sus etiquetas `og:`, que es lo que usa cualquier chat

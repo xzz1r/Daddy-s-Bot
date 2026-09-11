@@ -4,20 +4,7 @@ Bot de WhatsApp. El contenido vive en `src/data/` (y los pools de `!aura`
 en `src/commands/aura.js`). El motor en `src/commands/` y `src/utils/`.
 Cómo se escribe una frase: `GUIA.md`. Cómo se valida: `npm run check`.
 
-## Lo último que pidió el dueño (11 sep): proveedor para `!ig`
-
-`!tt`, `!ig` y `!pin` bajan el vídeo que alguien pega, sin marca de agua.
-TikTok funciona con un servicio de terceros verificado y Pinterest tiene vía
-propia. Queda **solo Instagram**: desde la VPS bloquea a la IP del servidor
-y pide sesión iniciada, así que necesita un tercero, y hay que encontrarlo y
-probarlo.
-
-- Brief: [`PENDIENTE-REDES.md`](PENDIENTE-REDES.md)
-- Motor: `src/utils/redes.js` · comandos: `src/commands/redes.js`
-- Si el servicio encaja en el contrato que ya hay, no se toca código.
-- **No despliegues.** El visto bueno lo da el dueño.
-
-## Lo anterior, que sigue abierto
+## Pendiente ahora mismo (haz esto primero)
 
 Hay **225 frases** marcadas con `// ANALOGÍA`. El dueño: analogías baratas
 fuera, ataques directos y con coherencia.
@@ -41,8 +28,7 @@ fuera, ataques directos y con coherencia.
   dueño al inicio de `blessed` / `loss` / `cursed` no se tocan.
 - Acabado = `npm run analogias` exit 0 y `npm run check` verde.
 
-Si el usuario pide otra cosa y todavía quedan marcas, avísale — salvo lo
-de redes de arriba, que lo pidió él después y va por delante.
+Si el usuario pide otra cosa y todavía quedan marcas, avísale.
 
 ## Ideas (no implementar mientras queden analogías)
 

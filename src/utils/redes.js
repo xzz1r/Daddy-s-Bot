@@ -502,7 +502,30 @@ async function porYtDlp(url, plataforma) {
     '-o', `${base}.%(ext)s`,
     url,
   ];
-  await ytdlp(args, TIEMPO_MAXIMO);
+  // INSTAGRAM NO BLOQUEA: ESTRANGULA. Y esa diferencia lo es todo.
+  //
+  // Probado con tres reels reales, seguidos: el primero salio, los otros dos
+  // fallaron con «Instagram sent an empty media response», que su propio mensaje
+  // atribuye a falta de sesion. No era eso. Repetidos unos segundos despues, los
+  // dos salieron a la primera. Lo que hay es un limite por IP y por rato, no una
+  // puerta cerrada — y explica lo que veia el dueño: «hay videos de IG que no
+  // envia», unos si y otros no, sin patron aparente.
+  //
+  // Asi que se reintenta con espera creciente en vez de rendirse. Ocupa el hueco
+  // de descarga unos segundos mas; la alternativa es contestar que no a algo que
+  // habria salido.
+  const REINTENTOS = [0, 4000, 9000];
+  let ultimo = null;
+  for (const espera of REINTENTOS) {
+    if (espera) await new Promise((r) => setTimeout(r, espera));
+    try { await ytdlp(args, TIEMPO_MAXIMO); ultimo = null; break; } catch (e) {
+      ultimo = e;
+      const estrangulado = /empty media response|rate.?limit|429|too many|temporarily/i.test(e.message || '');
+      if (!estrangulado) break;
+    }
+  }
+  if (ultimo) throw ultimo;
+
   const dir = path.dirname(base);
   const prefijo = path.basename(base);
   const dejados = (await fs.readdir(dir)).filter((f) => f.startsWith(prefijo));
