@@ -5192,15 +5192,18 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     const antes = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
 
-    // ── EL CARTEL SALE DOS VECES AL DIA, Y SOBREVIVE AL REINICIO ─────────
+    // ── EL CARTEL: A LAS 12 Y A LAS 0, Y SOBREVIVE AL REINICIO ──────────
     //
-    // El dueño lo dijo asi: «el bot spamea demasiado esa mierda, que solo lo
-    // diga dos veces al dia». La causa no era el contador sino DONDE vivia: en
-    // un Map en memoria, o sea que cada reinicio lo borraba y el cartel volvia a
-    // salir con el primer mensaje. Un dia con ocho despliegues, ocho carteles.
+    // El dueño lo pidio asi: «que solo lo diga dos veces al dia», y despues «a
+    // las 12 del mediodia y de la noche». Reloj de pared, no «cada doce horas».
+    //
+    // Y lo que fallaba de verdad no era el numero: la marca de «ya lo dije»
+    // vivia en un Map en memoria, asi que cada reinicio la borraba y el cartel
+    // volvia a colgarse con el primer mensaje. Un dia con ocho despliegues, ocho
+    // carteles.
     {
       const oD = require(path.join(R, 'src/utils/objetivoDia'));
-      const { cartelDelDia, _decidido, CARTELES_POR_DIA, HUECO_ENTRE_CARTELES } = oD;
+      const { cartelDelDia, _decidido, _franjaDe, HORAS_CARTEL } = oD;
       const { addAura } = require(path.join(R, 'src/utils/auraStore'));
       const GC = '000000047@g.us';
       const gente = Array.from({ length: 5 }, (_, i) => `34600047${String(i).padStart(3, '0')}@s.whatsapp.net`);
@@ -5209,36 +5212,43 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
       for (const g of gente) await addAura(GC, g, 500);
       // PRIMERO SE FUERZA LA LECTURA DEL DISCO Y DESPUES SE LIMPIA. Al reves no
       // vale: `cartelDelDia` hace `load()` por dentro, y esa lectura restaura la
-      // entrada que acabas de borrar — con el contador de una pasada anterior.
-      // Me paso montando esto: el cartel salia cero veces.
+      // entrada que acabas de borrar — con la marca de una pasada anterior. Me
+      // paso montando esto: el cartel salia cero veces.
       await oD.objetivoDelDia(GC, metaC).catch(() => {});
       _decidido.delete(GC);
 
-      // Seis mensajes seguidos: solo el primero cuelga cartel. El segundo del
-      // dia tiene que esperar su hueco, no salir detras del primero.
+      // LAS FRANJAS, PRIMERO. Todo lo demas cuelga de que esten bien cortadas.
+      const enHora = (iso) => _franjaDe(new Date(iso).getTime());
+      exige(HORAS_CARTEL.join(',') === '0,12', `las horas del cartel son ${HORAS_CARTEL}: el dueño pidio las 12 y las 0`);
+      exige(enHora('2026-09-11T04:30:00Z') === enHora('2026-09-11T15:00:00Z'),
+        'las 0:30 y las 11:00 caen en franjas distintas: entonces el cartel sale dos veces antes de comer');
+      exige(enHora('2026-09-11T15:00:00Z') !== enHora('2026-09-11T16:30:00Z'),
+        'las 11:00 y las 12:30 caen en la misma franja: entonces el de mediodía no sale');
+      exige(enHora('2026-09-12T03:59:00Z') !== enHora('2026-09-12T04:01:00Z'),
+        'la medianoche no abre franja nueva: el cartel de la noche no saldría');
+
+      // Seis mensajes seguidos: UNO. La segunda franja ya no es cosa del reloj
+      // de la prueba, asi que se simula moviendo la marca guardada.
       const salidas = [];
       for (let i = 0; i < 6; i++) salidas.push(await cartelDelDia(GC, metaC));
       exige(salidas.filter(Boolean).length === 1,
-        `el cartel salio ${salidas.filter(Boolean).length} veces seguidas: dos al dia no son dos en el mismo minuto`);
-
-      // Pasado el hueco sale el segundo, y ahi se acaba el dia.
+        `el cartel salio ${salidas.filter(Boolean).length} veces en la misma franja: tiene que salir una`);
       const v = _decidido.get(GC);
-      exige(!!v && v.carteles === 1, 'el contador de carteles no queda guardado con la decision del dia');
-      v.ultimoCartel = Date.now() - HUECO_ENTRE_CARTELES - 1000;
-      exige(await cartelDelDia(GC, metaC) !== null,
-        `pasadas ${HUECO_ENTRE_CARTELES / 3600000} h no sale el segundo cartel: el dueño pidio dos, no uno`);
-      _decidido.get(GC).ultimoCartel = Date.now() - HUECO_ENTRE_CARTELES - 1000;
-      exige(await cartelDelDia(GC, metaC) === null,
-        `sale un tercer cartel: el tope son ${CARTELES_POR_DIA} al dia`);
+      exige(!!v && v.franja === _franjaDe(), 'la franja no queda guardada con la decisión del día');
+
+      // Cambia la franja -> vuelve a salir. Una sola vez.
+      v.franja = 'otra-franja';
+      exige(await cartelDelDia(GC, metaC) !== null, 'al cambiar de franja el cartel no vuelve a salir');
+      exige(await cartelDelDia(GC, metaC) === null, 'en la franja nueva el cartel sale dos veces');
 
       // Y SOBREVIVE AL REINICIO, que es lo que fallaba. Se simula recargando el
-      // modulo: si el contador no vuelve del disco, el cartel se reabre solo.
+      // modulo: si la marca no vuelve del disco, el cartel se reabre solo.
       await oD.flushObjetivoDia();
       const ruta = require.resolve(path.join(R, 'src/utils/objetivoDia'));
       delete require.cache[ruta];
       const oD2 = require(ruta);
       exige(await oD2.cartelDelDia(GC, metaC) === null,
-        'tras un reinicio el cartel vuelve a salir: la marca vivia solo en memoria y cada despliegue la borraba');
+        'tras un reinicio el cartel vuelve a salir: la marca vivía solo en memoria y cada despliegue la borraba');
       delete require.cache[ruta];
 
       // Y EN UN GRUPO SIN NADIE A QUIEN SEÑALAR, SILENCIO. Anunciar que hoy no
@@ -5247,10 +5257,9 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
       _decidido.delete(GV);
       const vacio = await cartelDelDia(GV, { id: GV, participants: [{ id: '549199@s.whatsapp.net' }] });
       exige(vacio === null, 'el bot anuncia un cartel en un grupo donde no hay objetivo posible');
-      // Y si no habia nadie, no puede quedarse marcado: el dia que entre gente,
-      // el cartel tiene que poder salir.
-      exige(!_decidido.has(GV) || !(_decidido.get(GV).carteles > 0),
-        'un grupo sin objetivo se queda marcado como anunciado: el cartel no volveria a salir aunque entre gente');
+      // Y no puede gastar su franja: el dia que entre gente, tiene que salir.
+      exige(!_decidido.has(GV) || !_decidido.get(GV).franja,
+        'un grupo sin objetivo gasta su franja igual: el cartel no saldría aunque entrara gente');
 
       // Se deja el fichero del dueño como estaba: estos dos grupos son de
       // mentira y no tienen por que quedarse ahi.
@@ -5316,7 +5325,7 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
         `el remate salio ${remates} veces en 31 tiradas: sale demasiado y se convierte en parte del formato, que es lo que se venia a romper`);
     }
 
-    if (fallos === antes) console.log(verde('   ✓ el cartel sale dos veces al dia y sobrevive al reinicio, la rafaga cobra el doble a la cuarta y el remate no es parte del formato'));
+    if (fallos === antes) console.log(verde('   ✓ el cartel sale a las 12 y a las 0 y sobrevive al reinicio, la rafaga cobra el doble a la cuarta y el remate no es parte del formato'));
   }
 
   // ── 46. LO QUE EL MENU ENSEÑA SE PUEDE TECLEAR ───────────────────────────
@@ -8419,15 +8428,61 @@ const di=async(quien,t)=>{out.length=0;
             message: { extendedTextMessage: { text: texto, contextInfo: {} } },
           });
           await new Promise((r) => setTimeout(r, 250));
+          const media = visto.some((c) => c.video || c.image);
           return {
-            castigado: visto.some((c) => c.delete) || visto.some((c) => /expulsado|lista negra|enlace no permitido/i.test(c.text || '')),
-            video: visto.some((c) => c.video),
+            // CASTIGADO NO ES «HUBO UN BORRADO». Desde que el comando borra su
+            // propio mensaje para no dejar el enlace en el grupo, un borrado
+            // solo es castigo cuando NO vino acompañado del vídeo. Sin esta
+            // distincion, la comprobacion daba rojo con el codigo bien.
+            castigado: visto.some((c) => /expulsado|lista negra|enlace no permitido/i.test(c.text || ''))
+              || (visto.some((c) => c.delete) && !media),
+            video: media,
           };
         };
 
         // LAS TRES, Y SUS ALIAS. La exencion se escribio mirando !tt y es justo
         // asi como se queda una de las tres fuera sin que nada falle a la
         // vista: el comando funciona, y el baneo llega tres usos despues.
+        // ── Y EL ENLACE NO SE QUEDA EN EL GRUPO ────────────────────────
+        //
+        // Lo pidio el dueño: «que no haya links en el grupo». El comando lleva
+        // la direccion dentro, asi que hay que borrarlo — pero DESPUES de
+        // cobrar, no antes: las salidas en las que el comando no se ejecuta
+        // (sin enlace, en espera, sin saldo) contestan citandolo, y citar a un
+        // muerto no se entiende.
+        //
+        // Y lo que se manda despues NO puede citar el comando: el recuadro de
+        // la cita lleva dentro su texto, o sea el enlace, justo despues de
+        // haberlo borrado.
+        {
+          const G2 = `12036300000000${Math.floor(Math.random() * 900 + 100)}@g.us`;
+          const YO2 = `3460000${Math.floor(Math.random() * 9000 + 1000)}@s.whatsapp.net`;
+          await addAura(G2, YO2, 5000);
+          const con = [];
+          const sock2 = { sendMessage: async (j, c, o) => { con.push({ c, o }); return {}; } };
+          const llave = { remoteJid: G2, fromMe: false, id: 'MSGRED1', participant: YO2 };
+          await cmd.cmdTikTok(sock2, { key: llave }, ['https://vt.tiktok.com/ZSqDyW1bA/'],
+            { id: G2, participants: [{ id: YO2 }] });
+          const borrado = con.find((x) => x.c.delete);
+          exige(!!borrado && borrado.c.delete.id === 'MSGRED1',
+            'el comando con el enlace se queda en el grupo: era justo lo que se venía a quitar');
+          const media = con.find((x) => x.c.video || x.c.image);
+          exige(!!media && !media.o,
+            'el vídeo se manda citando el comando: la cita enseña el enlace que se acaba de borrar');
+          exige(!!media && Array.isArray(media.c.mentions) && media.c.mentions.length === 1,
+            'el vídeo sale sin mencionar a quien lo pidió: sin cita y sin mención, nadie sabe de quién es');
+
+          // Y sin enlace NO se borra nada: ese mensaje no se ha ejecutado.
+          const sin = [];
+          const sock3 = { sendMessage: async (j, c, o) => { sin.push({ c, o }); return {}; } };
+          await cmd.cmdTikTok(sock3, { key: { ...llave, id: 'MSGRED2', participant: `34600001${Math.floor(Math.random() * 900)}@s.whatsapp.net` } },
+            [], { id: G2, participants: [{ id: YO2 }] });
+          exige(!sin.some((x) => x.c.delete),
+            'se borra el mensaje de quien escribió el comando sin enlace: no se ha ejecutado nada');
+          exige(sin.some((x) => x.o && x.o.quoted),
+            'la respuesta de «falta el enlace» no cita: sin cita, en un grupo con ruido no se sabe a quién va');
+        }
+
         const SUYOS = [
           ['!tt https://vt.tiktok.com/ZSqDyW1bA/', '!tt'],
           ['!tiktok https://www.tiktok.com/@a/video/123', '!tiktok'],

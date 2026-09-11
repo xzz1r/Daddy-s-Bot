@@ -78,6 +78,27 @@ async function hazRed(sock, msg, args, groupMeta, plataforma) {
   }
   const devolverAura = () => devolver(jid, quien, pago.pagado, 'redes').catch(() => {});
 
+  // ─── EL ENLACE SE BORRA EN CUANTO EL BOT SE PONE A ELLO ───────────────────
+  //
+  // Lo pidio el dueño: «que no haya links en el grupo». El comando lleva la
+  // direccion dentro, asi que dejarlo puesto es dejar el enlace puesto, y el
+  // grupo se llena de direcciones de TikTok que ya nadie va a tocar.
+  //
+  // SE BORRA DESPUES DE COBRAR, no antes. Antes estan las tres salidas en las
+  // que el comando no llega a ejecutarse —sin enlace, en espera, sin saldo— y
+  // en esas el mensaje tiene que seguir ahi: la respuesta va citandolo, y citar
+  // a un muerto no se entiende.
+  //
+  // Y POR ESO LO DE ABAJO YA NO CITA. El recuadro de la cita lleva dentro el
+  // texto del mensaje citado, o sea que citar el comando volveria a enseñar el
+  // enlace justo despues de haberlo borrado. Se menciona a quien lo pidio, que
+  // es lo que hacia falta de la cita.
+  const quienCanon = canonicalJid(quien) || quien;
+  const deQuien = { mentions: [quienCanon] };
+  sock.sendMessage(jid, {
+    delete: { remoteJid: jid, fromMe: Boolean(msg.key.fromMe), id: msg.key.id, participant: quien },
+  }).catch(() => {});
+
   let traido = null;
   const t0 = Date.now();
   try {
@@ -91,13 +112,15 @@ async function hazRed(sock, msg, args, groupMeta, plataforma) {
     // resto de motivos salen en `npm run estado`, no aqui.
     const porTamano = /WhatsApp no pasa de|pesa \d+ MB/.test(e.message);
     const sinVideo = /no es un vídeo|no trae vídeo/.test(e.message);
+    const num = `@${String(quienCanon).split('@')[0]}`;
     return sock.sendMessage(jid, {
       text: porTamano
-        ? `Ese vídeo ${e.message.replace(/^.*?(pesa)/, '$1')} MB. No te he cobrado.`
+        ? `${num} ese vídeo ${e.message.replace(/^.*?(pesa)/, '$1')} MB. No te he cobrado.`
         : sinVideo
-          ? `${e.message.charAt(0).toUpperCase()}${e.message.slice(1)}. No te he cobrado.`
-          : `No he podido traerlo de ${nombre}. No te he cobrado.`,
-    }, { quoted: msg });
+          ? `${num} ${e.message}. No te he cobrado.`
+          : `${num} no he podido traerlo de ${nombre}. No te he cobrado.`,
+      ...deQuien,
+    });
   }
 
   const tBajar = Date.now() - t0;
@@ -110,15 +133,16 @@ async function hazRed(sock, msg, args, groupMeta, plataforma) {
     // de Baileys al enviar es `undefined`, y ese proceso de más en el único core
     // de la VPS es lo que hacía que subir 13 KB tardara 1699 ms.
     const medio = traido.tipo === 'imagen'
-      ? { image: { url: traido.fichero } }
-      : { video: { url: traido.fichero }, mimetype: 'video/mp4', jpegThumbnail: null };
-    await sock.sendMessage(jid, medio, { quoted: msg });
+      ? { image: { url: traido.fichero }, ...deQuien }
+      : { video: { url: traido.fichero }, mimetype: 'video/mp4', jpegThumbnail: null, ...deQuien };
+    await sock.sendMessage(jid, medio);
   } catch (e) {
     logger.warn(`${plataforma}: no pude mandarlo (${e.message})`);
     await devolverAura();
     return sock.sendMessage(jid, {
-      text: `Lo bajé pero WhatsApp no lo aceptó. No te he cobrado.`,
-    }, { quoted: msg });
+      text: `@${String(quienCanon).split('@')[0]} lo bajé pero WhatsApp no lo aceptó. No te he cobrado.`,
+      ...deQuien,
+    });
   } finally {
     // SE BORRA SIEMPRE, salga bien o mal. El bot no guarda vídeos de nadie: lo
     // que se quede atrás por un corte lo recoge el barrido horario de temp.

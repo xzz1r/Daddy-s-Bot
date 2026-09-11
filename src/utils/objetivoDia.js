@@ -62,10 +62,9 @@ async function load() {
           decidido.set(g, {
             dia: v.dia,
             jid: v.jid,
-            // SIN ESTO EL ARREGLO NO SIRVE DE NADA: si el contador no vuelve
-            // del disco, cada reinicio lo pone a cero y el cartel sale otra vez.
-            carteles: Number(v.carteles) || 0,
-            ultimoCartel: Number(v.ultimoCartel) || 0,
+            // SIN ESTO EL ARREGLO NO SIRVE DE NADA: si la franja no vuelve del
+            // disco, cada reinicio la olvida y el cartel sale otra vez.
+            franja: typeof v.franja === 'string' ? v.franja : '',
           });
         }
       }
@@ -191,47 +190,53 @@ function esObjetivoDelDia(obj, quien) {
 // Y SI NO HAY OBJETIVO, NO SE DICE NADA. Un grupo con dos personas o sin nadie
 // con aura suficiente no tiene cartel, y anunciar que hoy no hay cartel es
 // ruido puro.
-// ─── EL CARTEL: DOS VECES AL DIA Y BIEN SEPARADAS ──────────────────────────
+// ─── EL CARTEL: A LAS 12 DEL MEDIODIA Y A LAS 12 DE LA NOCHE ───────────────
 //
-// El dueño: «el bot spamea demasiado esa mierda, que solo lo diga dos veces al
-// día». Y tenia razon, pero la causa no era el contador: era DONDE vivia.
+// El dueño: «que solo lo diga dos veces al dia», y despues: «a las 12 del
+// mediodia y de la noche». O sea RELOJ DE PARED, no «cada doce horas»: dos
+// carteles separados por doce horas pero a las 3 y a las 15 no son lo que pidio.
 //
-// La marca de «ya lo anuncie hoy» estaba en un Map en memoria, asi que cada
-// reinicio la borraba y el cartel volvia a salir con el primer mensaje. Un dia
-// con ocho despliegues son ocho carteles, y desde fuera eso es spam sin mas.
+// El bot no habla solo, asi que «a las 12» significa CON EL PRIMER MENSAJE
+// despues de las 12. Si el grupo duerme hasta las dos, el cartel sale a las dos;
+// lo que no puede es salir dos veces en la misma franja.
 //
-// Ahora se guarda DONDE YA SE GUARDABA la decision del dia —el mismo fichero,
-// el mismo saver— asi que un reinicio ya no reabre la puerta. Y se permiten
-// dos, no una, con un hueco de cuatro horas entre medias: dos seguidas no son
-// «dos veces al dia», son la misma cosa repetida.
-const CARTELES_POR_DIA = 2;
-const HUECO_ENTRE_CARTELES = 4 * 60 * 60 * 1000;
+// Y ANTES ESTABA EN MEMORIA, que era el fallo de verdad: un Map que cada
+// reinicio borraba, asi que el cartel volvia a colgarse con el primer mensaje.
+// Un dia con ocho despliegues son ocho carteles. Ahora la marca se guarda donde
+// ya se guardaba la decision del dia — mismo fichero, mismo saver — y un
+// reinicio no reabre nada.
+const HORAS_CARTEL = [0, 12];
+
+// La franja en la que cae un instante, con la FECHA LOCAL dentro para que a
+// medianoche empiecen dos franjas nuevas y no una. Se saca de la zona del bot y
+// no de `diaClave`, que depende de `horaCorte`: hoy vale 0 y coinciden, pero el
+// dia que alguien mueva el corte a las 5, las franjas seguirian siendo las 12 y
+// las 0 de reloj, que es lo que se pidio.
+function franjaDe(ts = Date.now()) {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', {
+    timeZone: DIA.zona,
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hour12: false,
+  }).formatToParts(new Date(ts)).filter((x) => x.type !== 'literal').map((x) => [x.type, x.value]));
+  const hora = Number(p.hour) % 24;
+  // La ultima hora de la lista que ya haya pasado.
+  const desde = HORAS_CARTEL.filter((h) => hora >= h).pop() ?? HORAS_CARTEL[0];
+  return `${p.year}-${p.month}-${p.day}|${String(desde).padStart(2, '0')}`;
+}
 
 async function cartelDelDia(grupo, groupMeta) {
   await load();
-  const hoy = diaClave();
-  const ahora = Date.now();
+  const franja = franjaDe();
   const v = decidido.get(grupo);
-
-  // El contador vive junto a la decision y se reinicia solo al cambiar el dia,
-  // porque la entrada entera se reescribe cuando se decide el objetivo nuevo.
-  if (v && v.dia === hoy) {
-    if ((v.carteles || 0) >= CARTELES_POR_DIA) return null;
-    if (v.ultimoCartel && ahora - v.ultimoCartel < HUECO_ENTRE_CARTELES) return null;
-  }
+  if (v && v.franja === franja) return null;
 
   try {
     const obj = await objetivoDelDia(grupo, groupMeta);
     if (!obj || !obj.jid) return null;
-    // Se apunta DESPUES de saber que hay a quien anunciar, pero antes de
-    // devolverlo: si dos mensajes entran a la vez, el segundo ya encuentra el
-    // contador subido.
+    // Se apunta DESPUES de saber que hay a quien señalar —un grupo sin objetivo
+    // no puede gastar su franja— y antes de devolverlo, para que dos mensajes
+    // simultaneos no cuelguen dos carteles.
     const actual = decidido.get(grupo);
-    if (actual && actual.dia === hoy) {
-      actual.carteles = (actual.carteles || 0) + 1;
-      actual.ultimoCartel = ahora;
-      saver.schedule();
-    }
+    if (actual) { actual.franja = franja; saver.schedule(); }
     return obj.jid;
   } catch (e) {
     logger.warn(`objetivoDia: no pude colgar el cartel en ${grupo}: ${e.message}`);
@@ -239,4 +244,4 @@ async function cartelDelDia(grupo, groupMeta) {
   }
 }
 
-module.exports = { objetivoDelDia, esObjetivoDelDia, diaClave, flushObjetivoDia, cartelDelDia, _decidido: decidido, CARTELES_POR_DIA, HUECO_ENTRE_CARTELES };
+module.exports = { objetivoDelDia, esObjetivoDelDia, diaClave, flushObjetivoDia, cartelDelDia, _decidido: decidido, _franjaDe: franjaDe, HORAS_CARTEL };

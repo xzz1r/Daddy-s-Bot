@@ -1169,6 +1169,15 @@ git pull origin main
   descarta por nombre cualquier formato que hable de marca de agua, y solo cae al
   mejor a secas si no queda ninguno limpio.
 
+  **El enlace no se queda en el grupo.** El comando lleva la dirección dentro,
+  así que el bot borra el mensaje en cuanto se pone a ello. Se borra **después de
+  cobrar**, no antes: las tres salidas en las que el comando no llega a
+  ejecutarse —sin enlace, en espera, sin saldo— contestan citándolo, y citar a un
+  muerto no se entiende. Y por eso lo que se manda después **no cita**: el
+  recuadro de la cita lleva dentro el texto del mensaje citado, o sea el enlace,
+  justo después de haberlo borrado. Se menciona a quien lo pidió, que es lo que
+  hacía falta de la cita.
+
   **El freno no es el precio.** Son ocho segundos por persona, porque hay dos
   huecos de descarga para todo el bot y los comparte con `!play`: sin eso, uno
   pegando enlaces seguidos deja al grupo sin música y sin acciones.
