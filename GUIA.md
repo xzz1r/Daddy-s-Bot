@@ -1190,6 +1190,27 @@ git pull origin main
   Si el pico ya está arriba no se toca nada, y si ffmpeg falla se manda el
   original.
 
+  **Si aun así suena bajo**, no es el fichero. Medido en LUFS, que es la escala
+  del oído, y no en pico:
+
+  | | como viene | como se manda |
+  |---|---|---|
+  | TikTok | -23,4 LUFS | -13,7 LUFS |
+  | reel de Instagram | -14,5 LUFS | no se toca |
+
+  Los dos acaban donde emiten Spotify y YouTube. Lo que pasa es que la app de
+  TikTok **normaliza al reproducir** y WhatsApp no: el fichero es el mismo, quien
+  cambia es el reproductor. Y al lado de un audio de voz o de un vídeo grabado
+  con el móvil, que van muy por encima, un vídeo correcto suena bajo.
+
+  Para pasar de ahí hay que comprimir, no hay otra: con el pico ya arriba, lo
+  único que sube el volumen medio es recortar los picos. `REDES_AUDIO_EXTRA` dice
+  cuántos decibelios de eso se aceptan, y de serie son **cero**. Con 3, el TikTok
+  pasa de -13,7 a -11,3 LUFS y el rango baja de 3,8 a 3,5, que es casi nada.
+
+  Y para verlo con números en vez de a oído: `npm run audio <enlace>`. Baja el
+  vídeo por el mismo camino que el bot y dice qué le hace.
+
   **El vídeo, lo más HD que WhatsApp sepa reproducir.** El mismo enlace de TikTok
   tiene dos vídeos y no se parecen:
 

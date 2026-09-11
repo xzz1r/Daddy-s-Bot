@@ -314,7 +314,35 @@ async function porApi(url, plataforma) {
 // clips cortos y el ffprobe que hacia falta para detectarlos.
 const MARGEN_DB = 1;       // lo que se deja libre hasta el techo
 const GANANCIA_MAXIMA = 20; // en un clip casi mudo, subir mas es subir el ruido
-const YA_ESTA_ALTO = -1.5;  // con el pico aqui arriba no hay nada que ganar
+
+// LA SONORIDAD, QUE ES LO QUE OYE EL OIDO, y no el pico.
+//
+// El dueño: «suena mas bajo en WhatsApp que en TikTok». Medido, tenia razon y la
+// explicacion no es el fichero:
+//
+//   reel de Instagram  -14.5 LUFS   el bot NO lo toca, ya venia a nivel
+//   TikTok             -23.4 LUFS   el bot le sube 9.9 y lo deja en -13.5
+//
+// Los dos acaban donde emiten Spotify y YouTube. Lo que pasa es que la app de
+// TikTok normaliza al reproducir y WhatsApp no: el fichero es el mismo, quien
+// cambia es el reproductor.
+//
+// Mirar solo el pico tiene un agujero: un audio con el pico ya arriba pero
+// flojo de media no recibe nada, por mucho que suene bajo. Asi que se mira
+// tambien la sonoridad y se coge la ganancia MENOR de las dos. Con EXTRA en 0
+// —lo de serie— el resultado es identico al de antes, porque el pico manda
+// siempre; lo que anyade es no pasarse cuando el pico engaña.
+const OBJETIVO_LUFS = -11;
+
+// SUBIR MAS QUE ESO YA ES COMPRIMIR, y comprimir es lo que sonaba mal. Aqui se
+// dice CUANTOS decibelios de compresion se aceptan, y de serie son cero: el
+// audio sale con ganancia pura y nada mas. Medido, tres decibelios de mas
+// cuestan alrededor de uno de rango dinamico, que es poco y se nota bastante.
+// Es decision del dueño, asi que es un numero del .env y no una constante.
+const EXTRA_DB = (() => {
+  const n = Number(String(process.env.REDES_AUDIO_EXTRA || '0').replace(',', '.'));
+  return Number.isFinite(n) ? Math.max(0, Math.min(6, n)) : 0;
+})();
 
 // ─── EL MEJOR VÍDEO QUE WHATSAPP SEPA REPRODUCIR ────────────────────────────
 //
@@ -353,31 +381,48 @@ function codecDe(fichero) {
 const ACEPTA_HEVC = /^(1|si|sí|true|yes)$/i.test(String(process.env.REDES_HEVC || '').trim());
 const REPRODUCE_BIEN = (codec) => ACEPTA_HEVC || !codec || !['hevc', 'h265', 'av1', 'vp9'].includes(codec);
 
-// El pico, del propio ffmpeg. `-vn` es lo que lo hace barato: sin esto
-// decodifica el video entero para no mirarlo.
-function picoDe(fichero) {
+// Pico Y sonoridad, del propio ffmpeg y en UNA pasada. `-vn` es lo que lo hace
+// barato: sin eso decodifica el video entero para no mirarlo.
+function medirAudio(fichero) {
   return new Promise((resolve) => {
-    const proc = spawn(ffmpegPath, ['-hide_banner', '-i', fichero, '-vn', '-af', 'volumedetect', '-f', 'null', '-']);
+    const proc = spawn(ffmpegPath, ['-hide_banner', '-i', fichero, '-vn',
+      '-af', `loudnorm=I=${OBJETIVO_LUFS}:TP=-${MARGEN_DB}:print_format=json`, '-f', 'null', '-']);
     let texto = '';
-    const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} }, 30000);
+    const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} }, 60000);
     proc.stderr?.on('data', (d) => { texto += d.toString(); });
     proc.on('error', () => { clearTimeout(matar); resolve(null); });
     proc.on('close', () => {
       clearTimeout(matar);
-      const m = /max_volume:\s*(-?[\d.]+) dB/.exec(texto);
-      resolve(m ? Number(m[1]) : null);
+      const m = /\{[^{}]*"input_i"[^{}]*\}/s.exec(texto);
+      if (!m) return resolve(null);
+      try {
+        const d = JSON.parse(m[0]);
+        const lufs = Number(d.input_i);
+        const pico = Number(d.input_tp);
+        // Un silencio absoluto sale como -inf y no hay nada que subir.
+        if (!Number.isFinite(lufs) || !Number.isFinite(pico)) return resolve(null);
+        resolve({ lufs, pico });
+      } catch { resolve(null); }
     });
   });
 }
 
-function subirAudio(entrada, ganancia) {
+function subirAudio(entrada, ganancia, conLimitador = false) {
   const salida = entrada.replace(/\.mp4$/i, '') + `_n${Math.random().toString(36).slice(2, 6)}.mp4`;
   return new Promise((resolve) => {
     const proc = spawn(ffmpegPath, [
       '-hide_banner', '-loglevel', 'error', '-y',
       '-i', entrada,
       '-c:v', 'copy',
-      '-af', `volume=${ganancia}dB`,
+      // El limitador SOLO cuando se pide subir por encima de lo que aguanta el
+      // pico. Sin el, eso saldria distorsionado; con el, se comen los picos y
+      // nada mas. Si EXTRA_DB es 0 —lo de serie— esto no se usa nunca.
+      //
+      // `level=disabled` NO es opcional. Por defecto `alimiter` RENORMALIZA la
+      // salida hasta su propio techo, o sea que despues de recortar vuelve a
+      // subir: medido, dejaba el pico real en +0.8 dB, que es distorsion. Con
+      // esa opcion se queda en -0.1 y el rango dinamico apenas se mueve.
+      '-af', conLimitador ? `volume=${ganancia}dB,alimiter=limit=0.85:level=disabled:attack=5:release=250` : `volume=${ganancia}dB`,
       // 192k porque la fuente viene en HE-AACv2 a 32 kb/s: ese formato lo
       // decodifican a medias muchos reproductores y suena apagado. Pasarlo a
       // AAC normal con holgura lo arregla y no vuelve a perder nada.
@@ -412,14 +457,21 @@ async function conAudioNivelado(fichero) {
   if (!/\.mp4$/i.test(fichero)) return fichero;
   await ffmpegSemaphore.acquire();
   try {
-    const pico = await picoDe(fichero);
-    // Sin pista de audio no hay pico que medir, y no hay nada que hacer.
-    if (pico == null) return fichero;
-    // Ya viene alto: tocarlo solo seria perder calidad por reencodar.
-    if (pico >= YA_ESTA_ALTO) return fichero;
-    const ganancia = Math.min(GANANCIA_MAXIMA, Math.round((-MARGEN_DB - pico) * 10) / 10);
-    if (ganancia <= 0) return fichero;
-    const nuevo = await subirAudio(fichero, ganancia);
+    const medida = await medirAudio(fichero);
+    // Sin pista de audio no hay nada que medir ni que hacer.
+    if (!medida) return fichero;
+    // Lo que pide la sonoridad, y lo que deja el pico sin distorsionar.
+    const porSonoridad = OBJETIVO_LUFS - medida.lufs;
+    const porPico = -MARGEN_DB - medida.pico;
+    const ganancia = Math.min(
+      GANANCIA_MAXIMA,
+      porSonoridad,
+      porPico + EXTRA_DB,
+      Math.max(porPico, 0) + EXTRA_DB,
+    );
+    // Medio decibelio no lo oye nadie y cuesta un reencodado.
+    if (ganancia < 0.5) return fichero;
+    const nuevo = await subirAudio(fichero, Math.round(ganancia * 10) / 10, ganancia > porPico);
     if (!nuevo) return fichero;
     await fs.remove(fichero).catch(() => {});
     return nuevo;
@@ -618,4 +670,4 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _picoDe: picoDe, _codecDe: codecDe, _API_DE: API_DE };
+module.exports = { traer, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _codecDe: codecDe, _API_DE: API_DE };

@@ -19,7 +19,8 @@
     "node22": "bash scripts/node22.sh",
     "acciones": "node scripts/acciones.js",
     "analogias": "node scripts/analogias.js",
-    "frases": "node scripts/frases.js"
+    "frases": "node scripts/frases.js",
+    "audio": "node scripts/audio.js"
   },
   "repository": {
     "type": "git",
