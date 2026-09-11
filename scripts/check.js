@@ -5192,32 +5192,71 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     const antes = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
 
-    // ── EL CARTEL SALE UNA VEZ Y SOLO UNA ────────────────────────────────
+    // ── EL CARTEL SALE DOS VECES AL DIA, Y SOBREVIVE AL REINICIO ─────────
+    //
+    // El dueño lo dijo asi: «el bot spamea demasiado esa mierda, que solo lo
+    // diga dos veces al dia». La causa no era el contador sino DONDE vivia: en
+    // un Map en memoria, o sea que cada reinicio lo borraba y el cartel volvia a
+    // salir con el primer mensaje. Un dia con ocho despliegues, ocho carteles.
     {
-      const { cartelDelDia, _anunciado } = require(path.join(R, 'src/utils/objetivoDia'));
+      const oD = require(path.join(R, 'src/utils/objetivoDia'));
+      const { cartelDelDia, _decidido, CARTELES_POR_DIA, HUECO_ENTRE_CARTELES } = oD;
       const { addAura } = require(path.join(R, 'src/utils/auraStore'));
       const GC = '000000047@g.us';
       const gente = Array.from({ length: 5 }, (_, i) => `34600047${String(i).padStart(3, '0')}@s.whatsapp.net`);
       const metaC = { id: GC, subject: 'G', participants: [
         { id: '549199@s.whatsapp.net', admin: 'admin' }, ...gente.map((g) => ({ id: g })) ] };
       for (const g of gente) await addAura(GC, g, 500);
-      _anunciado.delete(GC);
+      // PRIMERO SE FUERZA LA LECTURA DEL DISCO Y DESPUES SE LIMPIA. Al reves no
+      // vale: `cartelDelDia` hace `load()` por dentro, y esa lectura restaura la
+      // entrada que acabas de borrar — con el contador de una pasada anterior.
+      // Me paso montando esto: el cartel salia cero veces.
+      await oD.objetivoDelDia(GC, metaC).catch(() => {});
+      _decidido.delete(GC);
+
+      // Seis mensajes seguidos: solo el primero cuelga cartel. El segundo del
+      // dia tiene que esperar su hueco, no salir detras del primero.
       const salidas = [];
       for (let i = 0; i < 6; i++) salidas.push(await cartelDelDia(GC, metaC));
-      const conCartel = salidas.filter(Boolean);
-      exige(conCartel.length === 1,
-        `el cartel del dia salio ${conCartel.length} veces en seis mensajes: una vez es un aviso, seis es un bot pesado`);
+      exige(salidas.filter(Boolean).length === 1,
+        `el cartel salio ${salidas.filter(Boolean).length} veces seguidas: dos al dia no son dos en el mismo minuto`);
+
+      // Pasado el hueco sale el segundo, y ahi se acaba el dia.
+      const v = _decidido.get(GC);
+      exige(!!v && v.carteles === 1, 'el contador de carteles no queda guardado con la decision del dia');
+      v.ultimoCartel = Date.now() - HUECO_ENTRE_CARTELES - 1000;
+      exige(await cartelDelDia(GC, metaC) !== null,
+        `pasadas ${HUECO_ENTRE_CARTELES / 3600000} h no sale el segundo cartel: el dueño pidio dos, no uno`);
+      _decidido.get(GC).ultimoCartel = Date.now() - HUECO_ENTRE_CARTELES - 1000;
+      exige(await cartelDelDia(GC, metaC) === null,
+        `sale un tercer cartel: el tope son ${CARTELES_POR_DIA} al dia`);
+
+      // Y SOBREVIVE AL REINICIO, que es lo que fallaba. Se simula recargando el
+      // modulo: si el contador no vuelve del disco, el cartel se reabre solo.
+      await oD.flushObjetivoDia();
+      const ruta = require.resolve(path.join(R, 'src/utils/objetivoDia'));
+      delete require.cache[ruta];
+      const oD2 = require(ruta);
+      exige(await oD2.cartelDelDia(GC, metaC) === null,
+        'tras un reinicio el cartel vuelve a salir: la marca vivia solo en memoria y cada despliegue la borraba');
+      delete require.cache[ruta];
 
       // Y EN UN GRUPO SIN NADIE A QUIEN SEÑALAR, SILENCIO. Anunciar que hoy no
       // hay cartel es ruido puro, y ademas delata que el mecanismo existe.
       const GV = '000000048@g.us';
-      _anunciado.delete(GV);
+      _decidido.delete(GV);
       const vacio = await cartelDelDia(GV, { id: GV, participants: [{ id: '549199@s.whatsapp.net' }] });
       exige(vacio === null, 'el bot anuncia un cartel en un grupo donde no hay objetivo posible');
-      // Y si no habia nadie, no puede quedarse marcado como "ya dicho hoy": el
-      // dia que entre gente al grupo, el cartel tiene que poder salir.
-      exige(!_anunciado.has(GV),
-        'un grupo sin objetivo se queda marcado como anunciado: el cartel no volveria a salir en todo el dia aunque entre gente');
+      // Y si no habia nadie, no puede quedarse marcado: el dia que entre gente,
+      // el cartel tiene que poder salir.
+      exige(!_decidido.has(GV) || !(_decidido.get(GV).carteles > 0),
+        'un grupo sin objetivo se queda marcado como anunciado: el cartel no volveria a salir aunque entre gente');
+
+      // Se deja el fichero del dueño como estaba: estos dos grupos son de
+      // mentira y no tienen por que quedarse ahi.
+      _decidido.delete(GC);
+      _decidido.delete(GV);
+      await oD.flushObjetivoDia();
     }
 
     // ── LA RAFAGA: TRES AL PRECIO DE SIEMPRE, LUEGO EL DOBLE ─────────────
@@ -5277,7 +5316,7 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
         `el remate salio ${remates} veces en 31 tiradas: sale demasiado y se convierte en parte del formato, que es lo que se venia a romper`);
     }
 
-    if (fallos === antes) console.log(verde('   ✓ el cartel sale una vez al dia, la rafaga cobra el doble a la cuarta y el remate no es parte del formato'));
+    if (fallos === antes) console.log(verde('   ✓ el cartel sale dos veces al dia y sobrevive al reinicio, la rafaga cobra el doble a la cuarta y el remate no es parte del formato'));
   }
 
   // ── 46. LO QUE EL MENU ENSEÑA SE PUEDE TECLEAR ───────────────────────────

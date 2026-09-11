@@ -1080,6 +1080,14 @@ git pull origin main
   del corte, porque un anuncio a las cinco de la mañana lo lee el scroll. Si no
   hay objetivo posible, silencio: anunciar que hoy no hay cartel es ruido.
 
+  **Dos veces al día, y bien separadas.** Salía muchas más, y la causa no era el
+  contador sino dónde vivía: en un `Map` en memoria, así que cada reinicio lo
+  borraba y el cartel volvía a colgarse con el primer mensaje. Un día con ocho
+  despliegues son ocho carteles, y desde fuera eso es un bot pesado y nada más.
+  Ahora se guarda junto a la decisión del día, en el mismo fichero y con el mismo
+  saver, así que un reinicio ya no reabre la puerta. Y son dos con **cuatro horas
+  de hueco**: dos seguidas no son dos veces al día, son la misma cosa repetida.
+
 - **El remate del día** en los porcentajes (`utils/percentDia.js`): los
   veintiún comandos de `%` son el 87 % de lo que el grupo lee y son **una sola
   mecánica repetida veintiuna veces**. Lo que se gasta no son las frases, es la

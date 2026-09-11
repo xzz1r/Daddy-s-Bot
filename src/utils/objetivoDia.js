@@ -58,7 +58,16 @@ async function load() {
     .then((d) => {
       if (!d || typeof d !== 'object') return;
       for (const [g, v] of Object.entries(d)) {
-        if (v && typeof v.dia === 'string' && v.jid) decidido.set(g, { dia: v.dia, jid: v.jid });
+        if (v && typeof v.dia === 'string' && v.jid) {
+          decidido.set(g, {
+            dia: v.dia,
+            jid: v.jid,
+            // SIN ESTO EL ARREGLO NO SIRVE DE NADA: si el contador no vuelve
+            // del disco, cada reinicio lo pone a cero y el cartel sale otra vez.
+            carteles: Number(v.carteles) || 0,
+            ultimoCartel: Number(v.ultimoCartel) || 0,
+          });
+        }
       }
     })
     .catch((e) => {
@@ -182,24 +191,52 @@ function esObjetivoDelDia(obj, quien) {
 // Y SI NO HAY OBJETIVO, NO SE DICE NADA. Un grupo con dos personas o sin nadie
 // con aura suficiente no tiene cartel, y anunciar que hoy no hay cartel es
 // ruido puro.
-const anunciado = new Map();   // grupo -> dia que ya se anuncio
+// ─── EL CARTEL: DOS VECES AL DIA Y BIEN SEPARADAS ──────────────────────────
+//
+// El dueño: «el bot spamea demasiado esa mierda, que solo lo diga dos veces al
+// día». Y tenia razon, pero la causa no era el contador: era DONDE vivia.
+//
+// La marca de «ya lo anuncie hoy» estaba en un Map en memoria, asi que cada
+// reinicio la borraba y el cartel volvia a salir con el primer mensaje. Un dia
+// con ocho despliegues son ocho carteles, y desde fuera eso es spam sin mas.
+//
+// Ahora se guarda DONDE YA SE GUARDABA la decision del dia —el mismo fichero,
+// el mismo saver— asi que un reinicio ya no reabre la puerta. Y se permiten
+// dos, no una, con un hueco de cuatro horas entre medias: dos seguidas no son
+// «dos veces al dia», son la misma cosa repetida.
+const CARTELES_POR_DIA = 2;
+const HUECO_ENTRE_CARTELES = 4 * 60 * 60 * 1000;
 
 async function cartelDelDia(grupo, groupMeta) {
+  await load();
   const hoy = diaClave();
-  if (anunciado.get(grupo) === hoy) return null;
-  // Se marca ANTES de resolver: si dos mensajes entran a la vez —y entran— el
-  // segundo tiene que encontrarse la puerta cerrada, no esperar a que el
-  // primero termine de mirar el ranking.
-  anunciado.set(grupo, hoy);
+  const ahora = Date.now();
+  const v = decidido.get(grupo);
+
+  // El contador vive junto a la decision y se reinicia solo al cambiar el dia,
+  // porque la entrada entera se reescribe cuando se decide el objetivo nuevo.
+  if (v && v.dia === hoy) {
+    if ((v.carteles || 0) >= CARTELES_POR_DIA) return null;
+    if (v.ultimoCartel && ahora - v.ultimoCartel < HUECO_ENTRE_CARTELES) return null;
+  }
+
   try {
     const obj = await objetivoDelDia(grupo, groupMeta);
-    if (!obj || !obj.jid) { anunciado.delete(grupo); return null; }
+    if (!obj || !obj.jid) return null;
+    // Se apunta DESPUES de saber que hay a quien anunciar, pero antes de
+    // devolverlo: si dos mensajes entran a la vez, el segundo ya encuentra el
+    // contador subido.
+    const actual = decidido.get(grupo);
+    if (actual && actual.dia === hoy) {
+      actual.carteles = (actual.carteles || 0) + 1;
+      actual.ultimoCartel = ahora;
+      saver.schedule();
+    }
     return obj.jid;
   } catch (e) {
-    anunciado.delete(grupo);
     logger.warn(`objetivoDia: no pude colgar el cartel en ${grupo}: ${e.message}`);
     return null;
   }
 }
 
-module.exports = { objetivoDelDia, esObjetivoDelDia, diaClave, flushObjetivoDia, cartelDelDia, _anunciado: anunciado };
+module.exports = { objetivoDelDia, esObjetivoDelDia, diaClave, flushObjetivoDia, cartelDelDia, _decidido: decidido, CARTELES_POR_DIA, HUECO_ENTRE_CARTELES };
