@@ -939,6 +939,72 @@ async function porPinterest(url) {
 // después se busca qué dejó. Preguntarle a yt-dlp cómo se llamó el fichero
 // necesita `--print after_move:filepath`, que no está en las versiones viejas, y
 // esto tiene que funcionar con la que haya instalada en la máquina.
+// ─── SIN API, LAS FOTOS TAMBIEN SE SACAN CON YT-DLP ─────────────────────────
+//
+// EL CASO REAL, Y POR QUE NO BASTABA CON LO DE ANTES. Todo el trabajo de las
+// publicaciones de fotos estaba en la via de la API. Y en la VPS no hay API de
+// Instagram puesta —`npm run enlace` lo dice en su primera linea: «API puesta
+// para Instagram: no»— asi que ese camino no se recorre nunca y el enlace acaba
+// entero en yt-dlp.
+//
+// Ahi yt-dlp contesta «No video formats found!». Y tiene razon: no las hay. El
+// post son tres FOTOS, y el selector le esta pidiendo el mejor VIDEO.
+//
+// Lo importante de ese error es lo que descarta: Instagram NO esta bloqueando
+// al servidor. yt-dlp entro, resolvio el post y enumero sus tres partes. Lo
+// unico que falta es pedirle las imagenes en vez de un video.
+//
+// Y se le piden con `--ignore-no-formats-error`, que es la opcion que hace que
+// no tire la entrada entera cuando no encuentra formatos: sin ella el JSON trae
+// tres entradas VACIAS (comprobado), y con ella cada una llega con sus trece
+// tamaños de la misma foto. El ultimo es el original, sin recorte de tamaño en
+// los parametros. Medido: 2,2 s de metadatos y la foto entera detras.
+const TOPE_FOTOS_YTDLP = 20;
+
+// QUE ERRORES SIGNIFICAN «ESTO NO ES UN VIDEO» Y CUALES NO.
+//
+// La diferencia importa y no es de matiz. «No video formats found» quiere decir
+// que el enlace es bueno, yt-dlp entro y lo que hay dentro no es un video: ahi
+// toca pedir las fotos. «Instagram sent an empty media response» quiere decir
+// que la IP va estrangulada y hay que REINTENTAR: pedirle las fotos a eso seria
+// cambiar un reel que habria salido por un pase que no existe.
+const esSinVideo = (mensaje) => /no video formats?|requested format/i.test(String(mensaje || ''));
+
+function fotosDeFicha(ficha) {
+  const trozos = Array.isArray(ficha?.entries) && ficha.entries.length ? ficha.entries : [ficha];
+  const fuera = [];
+  for (const t of trozos) {
+    if (!t) continue;
+    // Las miniaturas van de peor a mejor, asi que la ultima es la buena. Si no
+    // hay lista, vale `thumbnail` a secas.
+    const lista = Array.isArray(t.thumbnails) ? t.thumbnails : [];
+    const mejor = lista.length ? lista[lista.length - 1]?.url : t.thumbnail;
+    if (typeof mejor === 'string' && /^https?:\/\//i.test(mejor) && !fuera.includes(mejor)) {
+      fuera.push(mejor);
+      if (fuera.length >= TOPE_FOTOS_YTDLP) break;
+    }
+  }
+  return fuera;
+}
+
+// Devuelve el pase ya montado, o null si ahi no habia fotos tampoco.
+// `cancion` es el fichero de audio que ya se hubiera bajado, si lo hay.
+async function porYtDlpFotos(url, cancion = null) {
+  let crudo = null;
+  try {
+    crudo = await ytdlp(['-J', '--no-warnings', '--ignore-no-formats-error', url], 60000);
+  } catch (e) {
+    logger.info(`redes: yt-dlp no supo describir el enlace (${e.message.slice(0, 80)})`);
+    return null;
+  }
+  let ficha = null;
+  try { ficha = JSON.parse(crudo); } catch { return null; }
+  const fotos = fotosDeFicha(ficha);
+  if (!fotos.length) return null;
+  logger.info(`redes: no era un vídeo, son ${fotos.length} foto(s); monto el pase`);
+  return montarPase(fotos, null, cancion);
+}
+
 async function porYtDlp(url, plataforma) {
   const base = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}`);
   const args = [
@@ -972,7 +1038,15 @@ async function porYtDlp(url, plataforma) {
       if (!estrangulado) break;
     }
   }
-  if (ultimo) throw ultimo;
+  if (ultimo) {
+    // «No video formats found» no es un fallo de red ni un bloqueo: es que eso
+    // no es un video. Antes de rendirse, se le piden las fotos.
+    if (esSinVideo(ultimo.message)) {
+      const pase = await porYtDlpFotos(url);
+      if (pase) return pase;
+    }
+    throw ultimo;
+  }
 
   const dir = path.dirname(base);
   const prefijo = path.basename(base);
@@ -1040,8 +1114,8 @@ async function traer(url, plataforma) {
     // no le llega. Mas alla de ese numero no sirve de nada.
     if (size > TOPE_WHATSAPP) throw new Error(`pesa ${Math.round(size / 1048576)} MB y WhatsApp no pasa de ${Math.floor(TOPE_WHATSAPP / 1048576)}`);
 
-    let ext = (fichero.split('.').pop() || '').toLowerCase();
-    const tipo = esImagen(ext) ? 'imagen' : esVideo(ext) ? 'video' : 'video';
+    let ext = extensionDe(fichero) || (fichero.split('.').pop() || '').toLowerCase();
+    let tipo = esImagen(ext) ? 'imagen' : 'video';
 
     if (tipo === 'video') {
       // ULTIMA RED: venga de la API, de yt-dlp o de donde sea, lo que se manda
@@ -1049,6 +1123,24 @@ async function traer(url, plataforma) {
       // with the video file» y quien lo pego no se entera de por que.
       const medio = await analizarMedio(fichero);
       if (medio.probado && !medio.video) {
+        // EL OTRO CAMINO DE UNA PUBLICACION DE FOTOS, y estaba abierto.
+        //
+        // Cuando no hay API, yt-dlp baja lo unico que encuentra: la cancion. No
+        // da error —el fichero existe y es valido— asi que la rama de «no video
+        // formats» no se enteraba y esto acababa aqui, en un mensaje que dice
+        // la verdad y deja al que pego el enlace sin su publicacion. Se le
+        // vuelve a preguntar por las fotos, y la cancion ya bajada es la del
+        // pase: no se pide dos veces.
+        const pase = await porYtDlpFotos(url, medio.audio ? fichero : null);
+        if (pase) {
+          await fs.remove(fichero).catch(() => {});
+          fichero = pase;
+          ext = extensionDe(fichero) || 'mp4';
+          tipo = esImagen(ext) ? 'imagen' : 'video';
+          const s3 = await fs.stat(fichero);
+          if (s3.size > TOPE_WHATSAPP) throw new Error(`pesa ${Math.round(s3.size / 1048576)} MB y WhatsApp no pasa de ${Math.floor(TOPE_WHATSAPP / 1048576)}`);
+          return { fichero, tipo, ext, bytes: s3.size };
+        }
         throw new Error(medio.audio
           ? 'eso no es un vídeo: el enlace solo trae la canción (suele pasar con las publicaciones de fotos)'
           : 'eso no trae vídeo');
@@ -1056,7 +1148,7 @@ async function traer(url, plataforma) {
       const nivelado = await conAudioNivelado(fichero);
       if (nivelado !== fichero) {
         fichero = nivelado;
-        ext = (fichero.split('.').pop() || '').toLowerCase();
+        ext = extensionDe(fichero) || 'mp4';
         const s2 = await fs.stat(fichero).catch(() => ({ size }));
         return { fichero, tipo, ext, bytes: s2.size };
       }
@@ -1076,4 +1168,4 @@ async function traer(url, plataforma) {
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
 module.exports = { traer, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
-  _montarPase: montarPase, _comoEnlaces: comoEnlaces, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };
+  _montarPase: montarPase, _comoEnlaces: comoEnlaces, _porYtDlpFotos: porYtDlpFotos, _fotosDeFicha: fotosDeFicha, _esSinVideo: esSinVideo, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };

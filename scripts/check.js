@@ -9201,6 +9201,52 @@ const di=async(quien,t)=>{out.length=0;
       if (sinProxy[1] === undefined) delete process.env.no_proxy; else process.env.no_proxy = sinProxy[1];
     }
 
+    // ── Y SIN API, QUE ES COMO ESTA LA VPS ──────────────────────────────────
+    //
+    // Todo lo de arriba vive en la via de la API. En la maquina de verdad no hay
+    // API de Instagram puesta —`npm run enlace` lo dice en su primera linea— asi
+    // que el enlace acaba entero en yt-dlp, y ahi el post de fotos contesta «No
+    // video formats found». Tiene razon: no las hay, son tres fotos y se le esta
+    // pidiendo el mejor video.
+    //
+    // Lo que decide ese camino son dos cosas, y las dos se miden aqui: QUE
+    // errores significan «esto no es un video», y de donde salen las fotos de la
+    // ficha que devuelve yt-dlp.
+    {
+      const redes2 = require(path.join(R, 'src/utils/redes'));
+      const sv = redes2._esSinVideo;
+      exige(sv('[Instagram] Dcb6wcZoroX: No video formats found!; please report this issue on https://github.com/yt-dlp/yt-dlp/issues'),
+        'el «No video formats found» de yt-dlp ya no se reconoce: es EXACTAMENTE el error de la captura del grupo, y sin reconocerlo no se piden las fotos');
+      exige(sv('Requested format is not available'), 'el «requested format» tampoco se reconoce');
+      // Y AL REVES, que es donde se rompe de verdad: el estrangulamiento de
+      // Instagram se REINTENTA. Tomarlo por «no es un video» cambiaria un reel
+      // que habria salido a la segunda por un pase que no existe.
+      exige(!sv('Instagram sent an empty media response. Check if this post is accessible'),
+        'el estrangulamiento de Instagram se toma por «no es un vídeo»: un reel que saldría al reintentar acabaría en un pase vacío');
+      exige(!sv('HTTP Error 429: Too Many Requests') && !sv('') && !sv(null),
+        'un fallo de red cualquiera se toma por «no es un vídeo»');
+
+      // La ficha de yt-dlp. Las miniaturas van de PEOR a MEJOR, asi que la buena
+      // es la ultima: quedarse con la primera manda una foto de 150x150.
+      const fdf = redes2._fotosDeFicha;
+      const conMiniaturas = (n) => ({ thumbnails: [...Array(13)].map((_, i) => ({ url: `https://cdn/${n}_${i}.jpg` })) });
+      const carrusel = { _type: 'playlist', entries: [conMiniaturas('a'), conMiniaturas('b'), conMiniaturas('c')] };
+      const sacadas = fdf(carrusel);
+      exige(sacadas.length === 3, `de un carrusel de 3 salen ${sacadas.length} fotos`);
+      exige(sacadas[0] === 'https://cdn/a_12.jpg',
+        `se coge la miniatura ${sacadas[0]} en vez de la última: las de yt-dlp van de peor a mejor, así que esa es la pequeña`);
+      exige(fdf({ thumbnails: [{ url: 'https://cdn/x_0.jpg' }, { url: 'https://cdn/x_1.jpg' }] })[0] === 'https://cdn/x_1.jpg',
+        'un post de una sola foto no se lee: no todos vienen como lista');
+      exige(fdf({ thumbnail: 'https://cdn/solo.jpg' }).length === 1,
+        'una ficha con `thumbnail` a secas y sin lista se queda sin foto');
+      exige(fdf({ entries: [conMiniaturas('a'), conMiniaturas('a')] }).length === 1,
+        'la misma foto repetida entra dos veces en el pase');
+      exige(fdf({ entries: [...Array(40)].map((_, i) => conMiniaturas(`f${i}`)) }).length === 20,
+        'un carrusel enorme no tiene tope: cuarenta fotos son un pase que no cabe en WhatsApp');
+      exige(fdf({}).length === 0 && fdf(null).length === 0 && fdf({ entries: [null, null] }).length === 0,
+        'una ficha sin fotos devuelve algo: se montaría un pase vacío');
+    }
+
     if (fallos === antes) console.log(verde('   ✓ carrusel, foto suelta y reel: cada uno sale como lo que es'));
   }
 
