@@ -8363,10 +8363,23 @@ const di=async(quien,t)=>{out.length=0;
           };
         };
 
-        const bueno = await lanzar('!tt https://vt.tiktok.com/ZSqDyW1bA/');
-        exige(!bueno.castigado,
-          'pedir un vídeo con !tt cuenta como colar un enlace: al tercero, baneado por usar un comando del bot');
-        exige(bueno.video, '!tt con su enlace ya no manda el vídeo');
+        // LAS TRES, Y SUS ALIAS. La exencion se escribio mirando !tt y es justo
+        // asi como se queda una de las tres fuera sin que nada falle a la
+        // vista: el comando funciona, y el baneo llega tres usos despues.
+        const SUYOS = [
+          ['!tt https://vt.tiktok.com/ZSqDyW1bA/', '!tt'],
+          ['!tiktok https://www.tiktok.com/@a/video/123', '!tiktok'],
+          ['!ig https://www.instagram.com/reel/Cabc123/', '!ig'],
+          ['!insta https://instagram.com/p/Cxyz/', '!insta'],
+          ['!pin https://pin.it/2wUMHRx8y', '!pin'],
+          ['!pinterest https://www.pinterest.es/pin/123/', '!pinterest'],
+        ];
+        for (const [texto, nombre] of SUYOS) {
+          const r = await lanzar(texto);
+          exige(!r.castigado,
+            `pedir un vídeo con ${nombre} cuenta como colar un enlace: al tercero, baneado por usar un comando del bot`);
+          exige(r.video, `${nombre} con su enlace ya no manda nada`);
+        }
 
         const colado = await lanzar('!tt https://chat.whatsapp.com/ABC123');
         exige(colado.castigado,
