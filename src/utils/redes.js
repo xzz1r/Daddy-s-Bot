@@ -423,10 +423,12 @@ function subirAudio(entrada, ganancia, conLimitador = false) {
       // subir: medido, dejaba el pico real en +0.8 dB, que es distorsion. Con
       // esa opcion se queda en -0.1 y el rango dinamico apenas se mueve.
       '-af', conLimitador ? `volume=${ganancia}dB,alimiter=limit=0.85:level=disabled:attack=5:release=250` : `volume=${ganancia}dB`,
-      // 192k porque la fuente viene en HE-AACv2 a 32 kb/s: ese formato lo
-      // decodifican a medias muchos reproductores y suena apagado. Pasarlo a
-      // AAC normal con holgura lo arregla y no vuelve a perder nada.
-      '-c:a', 'aac', '-b:a', '192k', '-ar', '44100',
+      // 128k: la fuente viene en HE-AACv2 a 32-64 kb/s —un formato que muchos
+      // reproductores decodifican a medias y suena apagado— asi que pasarla a
+      // AAC normal a 128 es transparente de sobra. Estaba en 192 y engordaba el
+      // fichero el doble sin que nadie oyera la diferencia, y el tamaño aqui
+      // importa: el tope de WhatsApp son 16 MB.
+      '-c:a', 'aac', '-b:a', '128k', '-ar', '44100',
       '-movflags', '+faststart',
       salida,
     ]);
@@ -463,16 +465,21 @@ async function conAudioNivelado(fichero) {
     // Lo que pide la sonoridad, y lo que deja el pico sin distorsionar.
     const porSonoridad = OBJETIVO_LUFS - medida.lufs;
     const porPico = -MARGEN_DB - medida.pico;
-    const ganancia = Math.min(
-      GANANCIA_MAXIMA,
-      porSonoridad,
-      porPico + EXTRA_DB,
-      Math.max(porPico, 0) + EXTRA_DB,
-    );
+    const ganancia = Math.min(GANANCIA_MAXIMA, porSonoridad, porPico + EXTRA_DB);
     // Medio decibelio no lo oye nadie y cuesta un reencodado.
     if (ganancia < 0.5) return fichero;
     const nuevo = await subirAudio(fichero, Math.round(ganancia * 10) / 10, ganancia > porPico);
     if (!nuevo) return fichero;
+    // SUBIR EL AUDIO ENGORDA EL FICHERO, y el tope de WhatsApp se miro ANTES de
+    // hacerlo. Un video de 15,8 MB pasaba el control y salia de aqui con 16,5:
+    // justo el envio que no llega, y por una mejora de sonido. Si se pasa, se
+    // queda el original, que cabia.
+    const { size } = await fs.stat(nuevo).catch(() => ({ size: 0 }));
+    if (size > TOPE_WHATSAPP) {
+      logger.info('redes: el audio subido se pasaba del tope de WhatsApp; mando el original');
+      await fs.remove(nuevo).catch(() => {});
+      return fichero;
+    }
     await fs.remove(fichero).catch(() => {});
     return nuevo;
   } catch {

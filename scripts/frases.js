@@ -4,7 +4,8 @@
 //   npm run frases                  resumen: cuantas hay de cada cosa y donde
 //   npm run frases <familia>        solo esa familia, con su sitio y su texto
 //   npm run frases <familia> --pool <trozo>   filtra por pool
-//   npm run frases --techo         falla si alguna familia ha crecido
+//   npm run frases -- --techo      falla si alguna familia ha crecido
+//                                 (el `--` es de npm: sin el no pasa la opcion)
 //
 // El dueño lo dijo asi: «todos los insultos del bot son analogias baratas, sin
 // coherencia, estupidas y sin jugo real. Prefiero ataques directos y con

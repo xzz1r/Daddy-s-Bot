@@ -93,6 +93,29 @@ function resumenBreve(fallos) {
 
 let fallos = 0;
 
+// ─── UNA CAPA QUE SE MUERE POR DENTRO TIENE QUE CONTAR COMO FALLO ───────────
+//
+// Esto lo descubri verificando, y es el agujero mas grande que ha tenido este
+// fichero: la capa 52 llevaba rato reventando en su primera linea —llamaba a
+// una funcion que yo mismo habia renombrado— y el check seguia diciendo
+// «sin fallos». Sus comprobaciones no se ejecutaban, y desde fuera se leia
+// exactamente igual que si hubieran pasado todas.
+//
+// El motivo: el check hace `require` de src/bot.js, y bot.js instala un
+// manejador global de promesas rechazadas que las apunta y sigue. Para el bot
+// eso es correcto —una consulta de red que rechaza no puede tirarlo— pero aqui
+// convierte cualquier capa rota en una capa invisible.
+//
+// Node llama a TODOS los manejadores registrados, asi que con este de aqui el
+// del bot sigue haciendo lo suyo y ademas se cuenta como fallo. Un validador
+// que se calla cuando se rompe es peor que no tenerlo.
+process.on('unhandledRejection', (razon) => {
+  fallos++;
+  const donde = String(razon?.stack || '').split('\n')[1]?.trim() || '';
+  console.log(rojo(`   \u2717 una capa se murió por dentro: ${razon?.message || razon}`));
+  if (donde) console.log(rojo(`     ${donde}`));
+});
+
 function ficherosJs() {
   const out = [];
   (function walk(dir) {
@@ -8495,9 +8518,11 @@ const di=async(quien,t)=>{out.length=0;
 
       // EL PICO SE MIDE DE VERDAD. Todo lo demas cuelga de ese numero: si sale
       // mal, la ganancia sale mal y el video se manda saturado o igual de mudo.
-      const picoMedido = await redes._picoDe(flojo);
-      exige(picoMedido !== null && picoMedido < -20,
-        `el pico del tono de prueba sale ${picoMedido}: no se esta midiendo el audio`);
+      const medido = await redes._medirAudio(flojo);
+      exige(medido !== null && medido.pico < -20,
+        `el pico del tono de prueba sale ${medido && medido.pico}: no se esta midiendo el audio`);
+      exige(medido !== null && medido.lufs < -20,
+        `la sonoridad del tono sale ${medido && medido.lufs}: sin ese numero la ganancia se calcula a ciegas`);
 
       // SE MIDE ANTES DE NIVELAR: el normalizador borra el original cuando
       // consigue el nuevo, asi que medirlo despues devolvia null y la queja
@@ -8516,6 +8541,23 @@ const di=async(quien,t)=>{out.length=0;
           `el audio sale saturado (pico ${picoFinal} dB): la ganancia no respeta el margen`);
         // Y sin saturar: el limitador de loudnorm tiene que dejar cabeza.
         await fs.promises.rm(nivelado, { force: true });
+      }
+
+      // Y SUBIR EL AUDIO NO PUEDE PASARSE DEL TOPE DE WHATSAPP. El tamaño se
+      // mira ANTES de tocar el audio, y tocarlo engorda el fichero: un video
+      // de 15,8 MB pasaba el control y salia con 16,5, que es justo el envio
+      // que no llega — y por una mejora de sonido.
+      {
+        const red = fs.readFileSync(path.join(R, 'src/utils/redes.js'), 'utf8');
+        const i = red.indexOf('async function conAudioNivelado');
+        const cuerpo = i < 0 ? '' : red.slice(i, red.indexOf('\n}', i));
+        exige(/TOPE_WHATSAPP/.test(cuerpo),
+          'el nivelado de audio ya no comprueba el tope de WhatsApp: un vídeo al borde sale pasado y no llega');
+        // Y la comprobacion tiene que ir DESPUES de generar el fichero nuevo.
+        const iNuevo = cuerpo.indexOf('subirAudio(');
+        const iTope = cuerpo.indexOf('TOPE_WHATSAPP');
+        exige(iNuevo >= 0 && iTope > iNuevo,
+          'el tope se mira antes de subir el audio: entonces no mide lo que se manda');
       }
 
       // Y UN VIDEO SIN AUDIO NO SE PIERDE POR EL CAMINO. Es el caso que mas

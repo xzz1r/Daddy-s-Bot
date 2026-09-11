@@ -718,7 +718,7 @@ y se van. «Café de máquina: dos sorbos y a cenicero.» No hay comparación qu
 cazar, y tampoco hay nadie dentro. En `AURA.gain`, 74 de 120 frases no mencionan
 a quien acaba de ganar.
 
-`npm run frases --techo` compara con la foto del día que se midió y falla si
+`npm run frases -- --techo` compara con la foto del día que se midió y falla si
 alguna familia ha CRECIDO. Reescribir un pool tiene que bajar estos números;
 cuando bajen, se bajan también en la cabecera de `scripts/frases.js` y el techo
 se queda apretado.
