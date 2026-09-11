@@ -4,12 +4,13 @@ Bot de WhatsApp. El contenido vive en `src/data/` (y los pools de `!aura`
 en `src/commands/aura.js`). El motor en `src/commands/` y `src/utils/`.
 Cómo se escribe una frase: `GUIA.md`. Cómo se valida: `npm run check`.
 
-## Lo último que pidió el dueño (11 sep): proveedor para `!ig` y `!pin`
+## Lo último que pidió el dueño (11 sep): proveedor para `!ig`
 
 `!tt`, `!ig` y `!pin` bajan el vídeo que alguien pega, sin marca de agua.
-TikTok ya funciona con un servicio de terceros verificado. Instagram y
-Pinterest no: desde la VPS las dos bloquean a la IP del servidor, así que
-también necesitan un tercero, y hay que encontrarlo y probarlo.
+TikTok funciona con un servicio de terceros verificado y Pinterest tiene vía
+propia. Queda **solo Instagram**: desde la VPS bloquea a la IP del servidor
+y pide sesión iniciada, así que necesita un tercero, y hay que encontrarlo y
+probarlo.
 
 - Brief: [`PENDIENTE-REDES.md`](PENDIENTE-REDES.md)
 - Motor: `src/utils/redes.js` · comandos: `src/commands/redes.js`

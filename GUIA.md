@@ -1121,19 +1121,28 @@ git pull origin main
   `.env` (`TIKTOK_API`, `INSTAGRAM_API`, `PINTEREST_API`, o `REDES_API` para las
   tres), y si no, `yt-dlp`. Si la API falla se cae a `yt-dlp` sin ruido.
 
-  **Y la API no es un adorno: es la única vía.** Medido el día del estreno,
+  **Para TikTok e Instagram la API no es un adorno: es la única vía.** Medido
   desde una VPS y con `yt-dlp` al día:
 
-  | plataforma | qué contesta |
-  |---|---|
-  | TikTok | `Unexpected response from webpage request` |
-  | Instagram | `Instagram sent an empty media response` (pide sesión) |
-  | Pinterest | `pin.it` acaba en la portada, `Unsupported URL` |
+  | plataforma | qué contesta | qué significa |
+  |---|---|---|
+  | TikTok | `Unexpected response from webpage request` | bloquea al servidor |
+  | Instagram | `empty media response` | pide sesión iniciada |
+  | Pinterest | `No video formats found` | **es una foto** |
 
-  Las tres bloquean a una IP de datacenter, que es lo que es una VPS. Pedírselo
-  directamente no es una vía peor, es una vía cerrada. El último fallo de cada
-  plataforma queda apuntado y `npm run estado` lo traduce a qué poner en el
-  `.env`, en vez de dejar un párrafo de yt-dlp en el log.
+  Las dos primeras bloquean a una IP de datacenter y no se arreglan con código.
+  **Pinterest sí, y ahí me equivoqué**: di por cerrada una puerta que estaba
+  abierta porque probé con un `pin.it` muerto. Uno vivo redirige perfectamente y
+  yt-dlp se baja su JSON sin problema. El error real era otro: el extractor de
+  Pinterest de yt-dlp solo entiende pines de **vídeo**, y la mayoría son fotos.
+
+  Así que Pinterest tiene vía propia y va antes que yt-dlp: se lee la página del
+  pin y se saca el medio de sus etiquetas `og:`, que es lo que usa cualquier chat
+  para pintar la previsualización. Sirve para foto y para vídeo, sin API y sin
+  login. Si la foto viene en la versión de 736 px, se prueba la original.
+
+  El último fallo de cada plataforma queda apuntado y `npm run estado` lo traduce
+  a qué poner en el `.env`, en vez de dejar un párrafo de yt-dlp en el log.
 
   **Y si no hay por dónde** —ni API ni `yt-dlp`— el comando no cobra ni lo
   intenta: contesta que esa red no está disponible y ya. Cobrar, esperar veinte

@@ -1,33 +1,38 @@
-# PENDIENTE — proveedor de terceros para `!ig` y `!pin` (Grok terminal)
+# PENDIENTE — proveedor de terceros para `!ig` (Grok terminal)
 
-Encargo del dueño, 11 sep 2026. **No está hecho.** TikTok ya funciona;
-faltan Instagram y Pinterest.
+Encargo del dueño, 11 sep 2026. **Queda solo Instagram.** TikTok funciona con
+un servicio de terceros verificado; Pinterest ya no necesita ninguno.
 
 **No despliegues.** El visto bueno lo da el dueño: tú dejas el código y la
 verificación hechos.
 
 ## El encargo, en una línea
 
-Encontrar un servicio de terceros que saque el reel de Instagram y el pin de
-Pinterest, verificarlo de verdad, y dejarlo documentado.
+Encontrar un servicio de terceros que saque el reel de Instagram, verificarlo
+de verdad, y dejarlo documentado.
 
 ## Por qué hace falta un tercero, y no es opinión
 
 Medido el 11 de septiembre desde la VPS, con `yt-dlp 2026.08.19`, o sea con
 la herramienta al día y bien encontrada:
 
-| plataforma | qué contesta |
-|---|---|
-| TikTok | `Unexpected response from webpage request` |
-| Instagram | `Instagram sent an empty media response` — pide sesión iniciada |
-| Pinterest | `pin.it` acaba en la portada → `Unsupported URL` |
+| plataforma | qué contesta | qué significa |
+|---|---|---|
+| TikTok | `Unexpected response from webpage request` | bloquea al servidor |
+| Instagram | `empty media response` | pide sesión iniciada |
 
-Las tres bloquean a una IP de datacenter, que es lo que es la VPS. Pedírselo
+Las dos bloquean a una IP de datacenter, que es lo que es la VPS. Pedírselo
 directamente no es una vía peor: es una vía cerrada. El tercero sirve porque
 la descarga la hace **su** máquina, no la nuestra.
 
-Con Pinterest se probó además a seguir el redirección de `pin.it` con
-User-Agent de navegador. Acaba igual, en la portada. No insistas por ahí.
+**Pinterest ya está resuelto y NO lleva API.** Lo que había escrito aquí antes
+era falso y conviene saber por qué, porque es el error fácil: probé con un
+`pin.it` muerto, acabó en la portada, y di por cerrada una puerta abierta. Uno
+vivo redirige perfectamente y yt-dlp se baja su JSON sin que nadie le corte. El
+error real era `No video formats found`: el extractor de Pinterest de yt-dlp
+solo entiende pines de **vídeo** y la mayoría son fotos. Ahora hay vía propia
+(`porPinterest` en `src/utils/redes.js`) que lee las etiquetas `og:` de la
+página. No la toques salvo que se rompa.
 
 ## Lo que ya está hecho (no lo rehagas)
 
@@ -88,10 +93,6 @@ const fs = require('fs-extra');
 EOF
 node /tmp/v.js
 ```
-
-Lo mismo para Pinterest, con `PINTEREST_API` y `'pinterest'`. Ahí lo que
-llega puede ser una imagen: entonces `r.tipo` sale `imagen` y la prueba de
-la cabecera MP4 no aplica.
 
 Y míralo con los ojos: **abre el fichero que baja**. Un reel con el logo de
 la app encima cumple todas las comprobaciones automáticas y no vale.

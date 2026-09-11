@@ -119,10 +119,11 @@ function plataformaDe(texto) {
 //
 //   TikTok     «Unexpected response from webpage request»  → bloquea al servidor
 //   Instagram  «Instagram sent an empty media response»    → pide sesión
-//   Pinterest  pin.it acaba en la portada, «Unsupported URL» → también bloquea
+//   Pinterest  «No video formats found»                    → es una FOTO
 //
-// O sea que desde un datacenter las tres necesitan un tercero. No es una
-// sospecha: es lo que contestaron. Y el grupo no tiene por qué enterarse de eso
+// Las dos primeras necesitan un tercero: bloquean a la IP de un datacenter, y
+// eso no se arregla con código. La tercera NO, y ahí me equivoqué: ver la nota
+// en `porPinterest`. Y el grupo no tiene por qué enterarse de eso
 // —al que pega el enlace le basta con «no pude»—, pero el dueño sí, y no puede
 // ser a base de bucear en el log. Aquí se guarda el último fallo de cada
 // plataforma y `npm run estado` lo traduce.
@@ -186,6 +187,61 @@ async function porApi(url, plataforma) {
   return fichero;
 }
 
+// ── Vía propia de Pinterest: las etiquetas de la página ─────────────────────
+//
+// ESTO DESMIENTE LO QUE YO MISMO ESCRIBI AQUI. Di por hecho que Pinterest
+// bloqueaba al servidor porque un `pin.it` acababa en la portada. Estaba mal por
+// dos motivos, y los dos se ven probando con un enlace vivo:
+//
+//   1. Aquel enlace estaba muerto. Uno bueno redirige perfectamente al pin, y
+//      yt-dlp se baja su JSON sin que nadie le cierre la puerta.
+//   2. El error de verdad era otro: `No video formats found`. El extractor de
+//      Pinterest de yt-dlp solo entiende pines de VIDEO, y la mayoria de los
+//      pines son FOTOS. Con una foto no falla la red: falla el extractor.
+//
+// La pagina del pin trae la direccion del medio en sus propias etiquetas
+// `og:`, que es lo que usa cualquier chat para pintar la previsualizacion.
+// Funciona para foto y para video, no necesita API ni login, y es lo que
+// deberia haber mirado desde el principio.
+const UA_MOVIL = 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36';
+
+// Las dos ordenes posibles del atributo. En la pagina de Pinterest el `content`
+// va ANTES que el `property`, asi que una expresion sola no las caza: lo
+// comprobe mirando el HTML de verdad.
+function metaDe(html, prop) {
+  const a = new RegExp(`<meta[^>]+(?:property|name)=["']${prop}["'][^>]*content=["']([^"']+)["']`, 'i').exec(html);
+  if (a) return a[1];
+  const b = new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]*(?:property|name)=["']${prop}["']`, 'i').exec(html);
+  return b ? b[1] : null;
+}
+
+async function porPinterest(url) {
+  const { data: html } = await axios.get(url, {
+    timeout: 20000, maxRedirects: 5, responseType: 'text',
+    headers: { 'User-Agent': UA_MOVIL, 'Accept-Language': 'es-ES,es;q=0.9' },
+  });
+  if (typeof html !== 'string') return null;
+
+  const video = metaDe(html, 'og:video:secure_url') || metaDe(html, 'og:video');
+  const imagen = metaDe(html, 'og:image');
+  const enlace = video || imagen;
+  if (!enlace) return null;
+
+  const ext = video ? 'mp4' : ((enlace.split('?')[0].split('.').pop() || 'jpg').toLowerCase());
+  const fichero = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.${esImagen(ext) || video ? ext : 'jpg'}`);
+
+  // La foto viene en la version de 736 px. La original esta en la misma ruta con
+  // `originals` en vez del tamaño; si no existe, se queda la que dio la pagina.
+  if (!video && /\/\d+x\//.test(enlace)) {
+    try {
+      await downloadUrlToFile(enlace.replace(/\/\d+x\//, '/originals/'), fichero);
+      return fichero;
+    } catch { /* no habia original: se sigue con la que vino */ }
+  }
+  await downloadUrlToFile(enlace, fichero);
+  return fichero;
+}
+
 // ── Vía 2: yt-dlp ───────────────────────────────────────────────────────────
 //
 // La salida NO se adivina por el nombre: se le da una plantilla con %(ext)s y
@@ -237,6 +293,15 @@ async function traer(url, plataforma) {
     } catch (e) {
       logger.warn(`redes: la API falló para ${plataforma}: ${e.message}`);
     }
+    // Pinterest tiene via propia y va ANTES que yt-dlp: yt-dlp solo entiende
+    // pines de video, y la mayoria son fotos.
+    if (!fichero && plataforma === 'pinterest') {
+      try {
+        fichero = await porPinterest(url);
+      } catch (e) {
+        logger.warn(`redes: pinterest por etiquetas falló: ${e.message}`);
+      }
+    }
     if (!fichero) fichero = await porYtDlp(url, plataforma);
     if (!fichero) throw new Error('no pude sacar el vídeo de ahí');
 
@@ -260,4 +325,4 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _API_DE: API_DE };
+module.exports = { traer, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _API_DE: API_DE };
