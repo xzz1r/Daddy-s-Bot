@@ -1198,6 +1198,14 @@ git pull origin main
   llegó y, si es HEVC, se coge el siguiente. Recodificar no es opción: pasar
   1080x1920 a H.264 en un core son decenas de segundos con alguien esperando.
 
+  **Y el tope lo pone WhatsApp, no nosotros.** `MAX_BYTES` son 25 MB y viene de
+  `!play`, donde el límite es el ancho de banda. Aquí manda otra cosa: el cliente
+  de WhatsApp no acepta vídeo por encima de **16 MB**, así que mandar 20 no es
+  «un poco grande», es un envío que falla o que a la otra persona le llega roto.
+  Más allá de ese número no sirve de nada, así que se corta ahí y se dice en el
+  grupo: es el único motivo de fallo que no se arregla reintentando, y quien pegó
+  el enlace merece saberlo.
+
   Es decisión del dueño, no del código: con `REDES_HEVC=1` en el `.env` se manda
   el mejor y punto. Y al proveedor de TikTok hay que **pedirle** el HD, con
   `&hd=1` al final de `TIKTOK_API`.

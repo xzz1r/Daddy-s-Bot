@@ -77,6 +77,9 @@ const API_DE = {
   pinterest: (process.env.PINTEREST_API || process.env.REDES_API || '').trim(),
 };
 const TIEMPO_MAXIMO = 120000;
+// Lo que WhatsApp acepta como video en un mensaje. Por encima, el envio falla o
+// le llega roto a quien lo recibe: no es un limite nuestro que podamos subir.
+const TOPE_WHATSAPP = 16 * 1024 * 1024;
 
 // El id de cada plataforma es el mismo que usa el comando, para que un error no
 // tenga que traducirse por el camino.
@@ -495,7 +498,7 @@ async function porYtDlp(url, plataforma) {
     '--no-playlist', '--no-warnings', '--no-progress',
     // El tope va aquí y no después de bajar: cortar a los 25 MB cuando ya están
     // en disco es gastar el ancho de banda igual.
-    '--max-filesize', `${Math.floor(MAX_BYTES / 1048576)}M`,
+    '--max-filesize', `${Math.floor(TOPE_WHATSAPP / 1048576)}M`,
     '-o', `${base}.%(ext)s`,
     url,
   ];
@@ -559,7 +562,12 @@ async function traer(url, plataforma) {
 
     const { size } = await fs.stat(fichero);
     if (size < 1024) throw new Error('lo que bajó está vacío');
-    if (size > MAX_BYTES) throw new Error(`pesa más de ${Math.floor(MAX_BYTES / 1048576)} MB`);
+    // EL TOPE ES EL DE WHATSAPP, NO EL NUESTRO. MAX_BYTES son 25 MB y viene de
+    // !play, donde el limite es el ancho de banda. Aqui manda otra cosa: el
+    // cliente de WhatsApp no acepta video por encima de 16 MB, asi que mandar
+    // 20 no es «un poco grande», es un envio que falla o que a la otra persona
+    // no le llega. Mas alla de ese numero no sirve de nada.
+    if (size > TOPE_WHATSAPP) throw new Error(`pesa ${Math.round(size / 1048576)} MB y WhatsApp no pasa de ${Math.floor(TOPE_WHATSAPP / 1048576)}`);
 
     let ext = (fichero.split('.').pop() || '').toLowerCase();
     const tipo = esImagen(ext) ? 'imagen' : esVideo(ext) ? 'video' : 'video';
