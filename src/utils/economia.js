@@ -1248,11 +1248,10 @@ const PRECIOS = {
   sticker: 45, // !s — un ffmpeg por cada uno
   toimg: 45,
   play: 50,    // canción: ancho de banda + cuota de RapidAPI + ffmpeg
-  // !tt, !ig, !pin. Cuesta MENOS que una canción y no es un descuido: no pasa
-  // por ffmpeg y no se guarda en caché, así que el trabajo real es bajar y
-  // subir. Lo que frena aquí no es la CPU, es que son dos descargas a la vez
-  // para todo el bot y un enlace pegado en bucle deja al grupo sin !play.
-  redes: 45,
+  // !tt, !ig, !pin. LO MISMO QUE UNA CANCIÓN, por decisión del dueño, y encaja:
+  // bajan de fuera, ocupan los mismos dos huecos de descarga que !play y desde
+  // que se nivela el audio pasan por ffmpeg igual que ella.
+  redes: 50,
   fk: 35,      // análisis de cuenta falsa
   ttp: 30,     // texto a sticker
   // !pfp es el mas caro del bot Y EL UNICO QUE SIEMPRE DEVUELVE SI NO ENTREGA.

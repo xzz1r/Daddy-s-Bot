@@ -810,6 +810,36 @@ function esComandoDeMedia(text) {
   return MEDIA_CMDS.has(first);
 }
 
+// ─── PEDIR UN VIDEO NO ES COLAR UN ENLACE ───────────────────────────────────
+//
+// `!tt <enlace>` es, para el antilink, un mensaje con un enlace de TikTok. O
+// sea que el guardia lo borraba, contaba aviso, y al TERCERO baneaba — por usar
+// un comando del propio bot, que ademas cobra por usarse. Un comando que te
+// gana un baneo no es un comando, es una trampa.
+//
+// La exencion es ESTRECHA a proposito, porque aqui es facil abrir un boquete:
+// no basta con que el mensaje empiece por `!tt`. Tiene que ser un comando de
+// redes, el enlace tiene que ser DE SU PLATAFORMA, y no puede venir ningun otro
+// enlace detras. Asi `!tt chat.whatsapp.com/...` sigue cayendo, que es
+// exactamente el atajo que alguien probaria.
+const CMD_REDES = {
+  tt: 'tiktok', tiktok: 'tiktok',
+  ig: 'instagram', insta: 'instagram', instagram: 'instagram',
+  pin: 'pinterest', pinterest: 'pinterest',
+};
+function esPeticionDeRedes(text) {
+  if (!text || config.prefijoDe(text) === null) return false;
+  const cmd = normalizarComando(config.sinPrefijo(text).trim().split(/\s+/, 1)[0]);
+  const plataforma = CMD_REDES[cmd];
+  if (!plataforma) return false;
+  let suyo = null;
+  try { suyo = require('../utils/redes').enlaceDe(text, plataforma); } catch { return false; }
+  if (!suyo) return false;
+  // Lo que queda al quitar SU enlace no puede llevar otro.
+  const resto = text.split(suyo).join(' ');
+  return !/https?:\/\/|wa\.me\/|chat\.whatsapp\.com|t\.me\//i.test(resto);
+}
+
 // Throttle whitelist reminder to once per user per 5 min (no spam on every YT link).
 const ANTILINK_REMINDER_TTL = 5 * 60 * 1000;
 const antilinkReminders = new Map(); // 'groupJid|sender' -> timestamp
@@ -1749,7 +1779,7 @@ async function handleMessage(sock, msg) {
   // OJO: la condición ya no exige `text`. Una invitación nativa de grupo
   // (groupInviteMessage) no tiene NI UNA letra de texto, así que con el
   // `text &&` de antes el guardia ni se ejecutaba y el enlace entraba limpio.
-  if (jid.endsWith('@g.us') && isAntiLinkEnabled(jid)) {
+  if (jid.endsWith('@g.us') && isAntiLinkEnabled(jid) && !esPeticionDeRedes(text)) {
     const verdict = clasificarMensaje(msg.message, sender);
     if (verdict !== 'none') {
       const meta = await getGroupMeta(sock, jid);

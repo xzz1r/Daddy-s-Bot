@@ -8326,6 +8326,56 @@ const di=async(quien,t)=>{out.length=0;
       }
       const { PRECIOS } = require(path.join(R, 'src/utils/economia'));
       exige(typeof PRECIOS.redes === 'number' && PRECIOS.redes > 0, 'el concepto `redes` no tiene precio');
+      exige(PRECIOS.redes === PRECIOS.play,
+        `!tt cuesta ${PRECIOS.redes} y !play ${PRECIOS.play}: el dueño los quiere al mismo precio`);
+
+      // ── Y PEDIR UN VIDEO NO PUEDE COSTARTE EL GRUPO ────────────────────
+      //
+      // `!tt <enlace>` es, para el antilink, un mensaje con un enlace. Lo
+      // borraba, contaba aviso, y al TERCERO baneaba: por usar un comando del
+      // propio bot, que encima cobra. Pero la exencion es facil de abrir
+      // demasiado, asi que se prueban los cuatro casos, y DOS de ellos tienen
+      // que seguir cayendo.
+      {
+        const { handleMessage } = require(path.join(R, 'src/handlers/messageHandler'));
+        const { addAura } = require(path.join(R, 'src/utils/auraStore'));
+        const BOT = '34600000088@s.whatsapp.net';
+        const lanzar = async (texto) => {
+          const G = `12036300000000${Math.floor(Math.random() * 900 + 100)}@g.us`;
+          const YO = `3460000${Math.floor(Math.random() * 9000 + 1000)}@s.whatsapp.net`;
+          await addAura(G, YO, 5000);
+          const visto = [];
+          const sock = {
+            user: { id: BOT }, sendMessage: async (j, c) => { visto.push(c); return {}; },
+            readMessages: async () => {}, sendPresenceUpdate: async () => {},
+            groupParticipantsUpdate: async () => [], profilePictureUrl: async () => null,
+            groupMetadata: async () => ({ id: G, subject: 'G', participants: [{ id: BOT, admin: 'admin' }, { id: YO }] }),
+          };
+          await handleMessage(sock, {
+            key: { remoteJid: G, fromMe: false, id: `A${Math.random()}`, participant: YO },
+            messageTimestamp: Math.floor(Date.now() / 1000), pushName: 'X',
+            message: { extendedTextMessage: { text: texto, contextInfo: {} } },
+          });
+          await new Promise((r) => setTimeout(r, 250));
+          return {
+            castigado: visto.some((c) => c.delete) || visto.some((c) => /expulsado|lista negra|enlace no permitido/i.test(c.text || '')),
+            video: visto.some((c) => c.video),
+          };
+        };
+
+        const bueno = await lanzar('!tt https://vt.tiktok.com/ZSqDyW1bA/');
+        exige(!bueno.castigado,
+          'pedir un vídeo con !tt cuenta como colar un enlace: al tercero, baneado por usar un comando del bot');
+        exige(bueno.video, '!tt con su enlace ya no manda el vídeo');
+
+        const colado = await lanzar('!tt https://chat.whatsapp.com/ABC123');
+        exige(colado.castigado,
+          '!tt con una invitación a otro grupo se salta el antilink: escribir !tt delante es todo lo que hace falta para colar lo que sea');
+
+        const mezcla = await lanzar('!tt https://vt.tiktok.com/ZSq/ y https://chat.whatsapp.com/AB');
+        exige(mezcla.castigado,
+          'su enlace MÁS una invitación pasa limpio: basta con acompañar la invitación de un tiktok');
+      }
     } finally {
       redes.traer = traerReal;
       delete require.cache[rutaCmd];
@@ -8383,6 +8433,92 @@ const di=async(quien,t)=>{out.length=0;
       if (previo) fs.writeFileSync(g._ARMADO, ''); else fs.rmSync(g._ARMADO, { force: true });
     }
     if (fallos === antes) console.log(verde('   ✓ sin que alguien lo pida a mano no sale ni un código, y el que sale desarma el siguiente'));
+  }
+
+  // ── 52. EL VIDEO DE FUERA NO LLEGA CASI MUDO ─────────────────────────────
+  //
+  // El dueño: «los vídeos salen con volumen muy bajo». Medido sobre uno real de
+  // TikTok: media -24.2 dB y audio en HE-AACv2 a 32 kb/s. Son dos cosas a la
+  // vez — viene bajo Y viene en un formato que muchos reproductores decodifican
+  // a medias— y las dos se arreglan reencodando SOLO el audio.
+  //
+  // Se prueba MIDIENDO, que es la unica forma de que esto signifique algo: se
+  // fabrica un tono flojo, se pasa por el normalizador y se comprueba que sale
+  // mas alto. Una guarda que solo mirase si el comando lleva `loudnorm` pasaria
+  // en verde con el filtro mal puesto.
+  {
+    console.log('\n52. EL VIDEO DE FUERA NO LLEGA CASI MUDO');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+    const { execFileSync } = require('child_process');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'audio-'));
+    try {
+      const flojo = path.join(dir, 'flojo.mp4');
+      // Un tono muy por debajo sobre un video minimo, de SEIS segundos. Con dos
+      // no valdria de prueba: loudnorm en pasada unica necesita unos segundos
+      // para medir y por debajo devuelve basura sin avisar (medido: un clip de
+      // 2 s salia a -50 dB). De ahi el filtro alternativo, que se comprueba
+      // aparte.
+      execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y',
+        '-f', 'lavfi', '-i', 'color=c=black:s=160x120:d=6',
+        '-f', 'lavfi', '-i', 'sine=frequency=440:duration=6',
+        '-af', 'volume=-30dB', '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
+        '-c:a', 'aac', '-shortest', flojo], { timeout: 60000, stdio: 'ignore' });
+
+      // spawnSync, NO execFileSync: ffmpeg escribe la medida en stderr y sale con
+      // 0, asi que execFileSync no lanza y su valor de retorno es SOLO stdout.
+      // Leyendo `e.stderr` de una excepcion que nunca ocurre, esto devolvia
+      // null siempre y la comprobacion salia roja con el codigo bien.
+      const { spawnSync } = require('child_process');
+      const nivelDe = (f) => {
+        const r = spawnSync(ffmpegPath, ['-hide_banner', '-i', f, '-af', 'volumedetect', '-f', 'null', '-'],
+          { timeout: 60000, encoding: 'utf8' });
+        const m = /mean_volume:\s*(-?[\d.]+) dB/.exec(String(r.stderr || ''));
+        return m ? Number(m[1]) : null;
+      };
+
+      const redes = require(path.join(R, 'src/utils/redes'));
+
+      // LA ELECCION DE FILTRO, que es donde esta el riesgo de verdad: un clip
+      // corto por el camino de loudnorm sale MAS mudo que como entro, y sin un
+      // solo aviso. Se comprueba aparte porque depende de saber la duracion, y
+      // saberla depende de que la maquina tenga ffprobe: sin el se elige el que
+      // no rompe, y eso tambien se exige aqui.
+      exige(redes._filtroPara(20) === redes._AUDIO_NIVELADO,
+        'un vídeo largo ya no se nivela con loudnorm: se pierde el nivelado bueno');
+      exige(redes._filtroPara(2) === redes._AUDIO_CORTO,
+        'un clip de 2 s se manda por loudnorm: sale MÁS mudo de lo que entró, y sin avisar');
+      exige(redes._filtroPara(null) === redes._AUDIO_CORTO,
+        'sin saber la duración se elige loudnorm: en una máquina sin ffprobe, todos los clips cortos saldrían rotos');
+
+      // SE MIDE ANTES DE NIVELAR: el normalizador borra el original cuando
+      // consigue el nuevo, asi que medirlo despues devolvia null y la queja
+      // salia con un «entró a null dB» que no acusaba de nada.
+      const antesN = nivelDe(flojo);
+      const nivelado = await redes._conAudioNivelado(flojo);
+      exige(nivelado !== flojo, 'el normalizador de audio no hizo nada: los vídeos siguen saliendo al volumen que vengan');
+      if (nivelado !== flojo) {
+        const despues = nivelDe(nivelado);
+        exige(despues !== null && antesN !== null && despues > antesN + 8,
+          `el audio no sube: entró a ${antesN} dB y sale a ${despues} dB`);
+        // Y sin saturar: el limitador de loudnorm tiene que dejar cabeza.
+        await fs.promises.rm(nivelado, { force: true });
+      }
+
+      // Y UN VIDEO SIN AUDIO NO SE PIERDE POR EL CAMINO. Es el caso que mas
+      // facil se rompe: un fallo del normalizador no puede costar el vídeo.
+      const mudo = path.join(dir, 'mudo.mp4');
+      execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y',
+        '-f', 'lavfi', '-i', 'color=c=blue:s=160x120:d=1',
+        '-c:v', 'libx264', '-pix_fmt', 'yuv420p', mudo], { timeout: 60000, stdio: 'ignore' });
+      const salidaMuda = await redes._conAudioNivelado(mudo);
+      exige(fs.existsSync(salidaMuda), 'un vídeo sin pista de audio se pierde al intentar nivelarlo');
+      if (salidaMuda !== mudo) await fs.promises.rm(salidaMuda, { force: true });
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+    if (fallos === antes) console.log(verde('   ✓ el audio que llega flojo se sube y se limita, y un vídeo mudo sigue llegando entero'));
   }
 
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────

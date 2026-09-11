@@ -58,6 +58,9 @@ const fs = require('fs-extra');
 const path = require('path');
 const axios = require('axios');
 const { acquireDownloadSlot, releaseDownloadSlot, ytdlp, downloadUrlToFile, hayYtDlp, MAX_BYTES, TEMP_DIR } = require('./downloader');
+const { ffmpegSemaphore } = require('./helpers');
+const { ffmpegPath, ffprobePath } = require('./ffmpeg');
+const { spawn } = require('child_process');
 const logger = require('./logger');
 
 // UNA API POR PLATAFORMA, y con una comun de respaldo. Es lo que pidio el dueño
@@ -230,6 +233,126 @@ async function porApi(url, plataforma) {
   return fichero;
 }
 
+// ─── EL AUDIO, QUE LLEGABA CASI MUDO ────────────────────────────────────────
+//
+// El dueño: «los vídeos salen con volumen muy bajo». Medido sobre uno real:
+//
+//   antes   mean -24.2 dB   ·   audio HE-AACv2 a 32 kb/s
+//   después mean -15.3 dB   ·   audio AAC-LC  a 128 kb/s
+//
+// Son dos problemas a la vez, y por eso se notaba tanto:
+//
+//   1. VIENE BAJO DE ORIGEN. Una media de -24 dB es muy poco; lo normal en
+//      contenido nivelado ronda -16. Y queda margen: el pico estaba en -10.9 dB,
+//      o sea once decibelios sin usar hasta el techo.
+//   2. VIENE EN HE-AACv2, que es AAC comprimido a lo bestia con estéreo
+//      paramétrico. Muchos reproductores no lo decodifican entero y se quedan
+//      con el núcleo, que suena más flojo y más apagado todavía.
+//
+// Se arregla lo mismo con las dos: reencodar SOLO el audio a AAC normal y
+// nivelarlo. El vídeo se copia tal cual (`-c:v copy`), o sea que no se toca ni
+// un fotograma y el coste es el de una pista de audio de veinte segundos: 1,4 s
+// aquí, unos pocos en la VPS.
+//
+// SE NIVELA, NO SE SUBE EL VOLUMEN A PELO. `volume=+9dB` revienta el pico de un
+// vídeo que ya venga alto. `loudnorm` es la norma EBU R128: apunta a una
+// sonoridad concreta y trae limitador, así que sube lo flojo, baja lo que se
+// pase y nada satura. El objetivo -14 LUFS es el que usan las plataformas de
+// streaming.
+//
+// Y SI FALLA, SE MANDA EL ORIGINAL. Un vídeo bajo de volumen es mucho mejor que
+// ningún vídeo: esto es una mejora, no un requisito.
+// DOS FILTROS, Y EL SEGUNDO NO ES UN CAPRICHO.
+//
+// `loudnorm` es la norma EBU R128 y es el bueno… si el clip dura lo suficiente.
+// En pasada única necesita unos segundos para medir, y por debajo de eso NO
+// avisa: devuelve basura. Medido con un tono de -51 dB:
+//
+//   clip de 6 s → -13.3 dB   (perfecto)
+//   clip de 2 s → -50.3 dB   (lo deja igual de mudo, y sin una sola queja)
+//
+// Y TikTok está lleno de clips de dos segundos. Así que por debajo del umbral
+// se usa `dynaudnorm`, que trabaja por ventanas y funciona con cualquier
+// duración: sobre ese mismo tono lo subió a -33.2 dB. Menos fino, pero nunca
+// destroza.
+const AUDIO_NIVELADO = 'loudnorm=I=-14:TP=-1.5:LRA=11';
+const AUDIO_CORTO = 'dynaudnorm=f=200:g=5';
+const SEGUNDOS_MINIMOS = 4;
+
+// La eleccion vive en una funcion suya para poder comprobarla sin depender de
+// que la maquina tenga ffprobe: sin duracion se elige el que no rompe.
+const filtroPara = (segundos) => ((segundos != null && segundos >= SEGUNDOS_MINIMOS) ? AUDIO_NIVELADO : AUDIO_CORTO);
+
+// La duración se lee de la cabecera, no se decodifica nada: son milisegundos.
+// Si no se puede saber, se asume corto y se usa el filtro que no rompe.
+function duracionDe(fichero) {
+  return new Promise((resolve) => {
+    const proc = spawn(ffprobePath, ['-v', 'error', '-show_entries', 'format=duration',
+      '-of', 'default=noprint_wrappers=1:nokey=1', fichero]);
+    let salida = '';
+    const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} }, 10000);
+    proc.stdout?.on('data', (d) => { salida += d.toString(); });
+    proc.on('error', () => { clearTimeout(matar); resolve(null); });
+    proc.on('close', () => { clearTimeout(matar); const n = parseFloat(salida); resolve(Number.isFinite(n) ? n : null); });
+  });
+}
+
+function normalizarAudio(entrada, filtro) {
+  const salida = entrada.replace(/\.mp4$/i, '') + `_n${Math.random().toString(36).slice(2, 6)}.mp4`;
+  return new Promise((resolve) => {
+    const proc = spawn(ffmpegPath, [
+      '-hide_banner', '-loglevel', 'error', '-y',
+      '-i', entrada,
+      '-c:v', 'copy',
+      '-af', filtro,
+      '-c:a', 'aac', '-b:a', '128k', '-ar', '44100',
+      // Para que WhatsApp pueda empezar a reproducir sin bajarse el fichero
+      // entero. Cuesta cero: solo mueve la cabecera al principio.
+      '-movflags', '+faststart',
+      salida,
+    ]);
+    let error = '';
+    const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} }, 60000);
+    proc.stderr?.on('data', (d) => { error += d.toString(); });
+    proc.on('error', () => { clearTimeout(matar); resolve(null); });
+    proc.on('close', async (codigo) => {
+      clearTimeout(matar);
+      if (codigo !== 0) {
+        // Lo normal aquí es un vídeo SIN pista de audio. No es un fallo que
+        // merezca ruido: se manda tal cual y ya.
+        if (error && !/does not contain any stream|Output file .* does not contain/i.test(error)) {
+          logger.warn(`redes: no pude nivelar el audio: ${error.trim().split('\n').pop()?.slice(0, 90)}`);
+        }
+        await fs.remove(salida).catch(() => {});
+        return resolve(null);
+      }
+      const { size } = await fs.stat(salida).catch(() => ({ size: 0 }));
+      if (size < 1024) { await fs.remove(salida).catch(() => {}); return resolve(null); }
+      resolve(salida);
+    });
+  });
+}
+
+// El semáforo es el MISMO que usan los stickers, *!toimg* y *!ttp*, y en la VPS
+// tiene una sola plaza porque tiene un solo core. Se coge aquí para que nivelar
+// el audio de un TikTok no se ejecute encima del sticker de otro.
+async function conAudioNivelado(fichero) {
+  if (!/\.mp4$/i.test(fichero)) return fichero;
+  const segundos = await duracionDe(fichero);
+  const filtro = filtroPara(segundos);
+  await ffmpegSemaphore.acquire();
+  try {
+    const nuevo = await normalizarAudio(fichero, filtro);
+    if (!nuevo) return fichero;
+    await fs.remove(fichero).catch(() => {});
+    return nuevo;
+  } catch {
+    return fichero;
+  } finally {
+    ffmpegSemaphore.release();
+  }
+}
+
 // ── Vía propia de Pinterest: las etiquetas de la página ─────────────────────
 //
 // ESTO DESMIENTE LO QUE YO MISMO ESCRIBI AQUI. Di por hecho que Pinterest
@@ -364,8 +487,18 @@ async function traer(url, plataforma) {
     if (size < 1024) throw new Error('lo que bajó está vacío');
     if (size > MAX_BYTES) throw new Error(`pesa más de ${Math.floor(MAX_BYTES / 1048576)} MB`);
 
-    const ext = (fichero.split('.').pop() || '').toLowerCase();
+    let ext = (fichero.split('.').pop() || '').toLowerCase();
     const tipo = esImagen(ext) ? 'imagen' : esVideo(ext) ? 'video' : 'video';
+
+    if (tipo === 'video') {
+      const nivelado = await conAudioNivelado(fichero);
+      if (nivelado !== fichero) {
+        fichero = nivelado;
+        ext = (fichero.split('.').pop() || '').toLowerCase();
+        const s2 = await fs.stat(fichero).catch(() => ({ size }));
+        return { fichero, tipo, ext, bytes: s2.size };
+      }
+    }
     return { fichero, tipo, ext, bytes: size };
   } catch (e) {
     if (fichero) await fs.remove(fichero).catch(() => {});
@@ -380,4 +513,4 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _API_DE: API_DE };
+module.exports = { traer, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _duracionDe: duracionDe, _filtroPara: filtroPara, _AUDIO_NIVELADO: AUDIO_NIVELADO, _AUDIO_CORTO: AUDIO_CORTO, _API_DE: API_DE };

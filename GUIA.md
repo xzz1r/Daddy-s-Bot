@@ -1158,6 +1158,37 @@ git pull origin main
   huecos de descarga para todo el bot y los comparte con `!play`: sin eso, uno
   pegando enlaces seguidos deja al grupo sin música y sin acciones.
 
+  **El audio se nivela, y llegaba casi mudo.** Medido sobre un TikTok real: la
+  media estaba en -24,2 dB y el audio venía en HE-AACv2 a 32 kb/s. Son dos cosas
+  a la vez, y por eso se notaba tanto: viene bajo de origen, y viene en un
+  formato que muchos reproductores decodifican a medias y suena aún más flojo.
+  Se arregla lo mismo con las dos, reencodando **solo el audio** a AAC normal y
+  nivelándolo. El vídeo se copia tal cual, así que no se toca un fotograma.
+
+  | | antes | después |
+  |---|---|---|
+  | media | -24,2 dB | -15,3 dB |
+  | audio | HE-AACv2 32 kb/s | AAC-LC 128 kb/s |
+
+  Se **nivela**, no se sube el volumen a pelo: `volume=+9dB` reventaría el pico
+  de un vídeo que ya venga alto. `loudnorm` es la norma EBU R128, apunta a una
+  sonoridad concreta y trae limitador. Pero en pasada única necesita unos
+  segundos para medir y **por debajo devuelve basura sin avisar**: un clip de 2 s
+  salía a -50 dB. Como TikTok está lleno de clips de dos segundos, por debajo de
+  cuatro se usa `dynaudnorm`, que trabaja por ventanas y funciona con cualquier
+  duración. La duración se lee con `ffprobe`, que es leer una cabecera; si no se
+  puede saber, se elige el que no rompe. Y si ffmpeg falla, se manda el original:
+  un vídeo bajo de volumen es mejor que ningún vídeo.
+
+  **Y pedir un vídeo no puede costarte el grupo.** `!tt <enlace>` es, para el
+  antilink, un mensaje con un enlace: lo borraba, contaba aviso y al tercero
+  baneaba, por usar un comando del propio bot que encima cobra. Ahora está
+  exento, pero de forma **estrecha**: tiene que ser un comando de redes, el
+  enlace tiene que ser de su plataforma, y no puede venir ningún otro enlace
+  detrás. Así `!tt chat.whatsapp.com/…` sigue cayendo, que es exactamente el
+  atajo que alguien probaría. La capa 50 comprueba los cuatro casos, y dos de
+  ellos tienen que seguir cayendo.
+
 - **Multimedia**: stickers, `!play`, `!toimg`. Sin frases; no es terreno de
   contenido. Una cosa del motor que conviene saber: todo lo que llama a ffmpeg
   pasa por un semáforo compartido, y sus plazas salen del número de cores de la
