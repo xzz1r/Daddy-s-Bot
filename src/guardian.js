@@ -203,6 +203,12 @@ function apuntarVida(que, detalle) {
 // arreglar desde aqui— pero convierte tres intentos por minuto en uno cada
 // cinco, que es la diferencia entre un log ilegible y una linea cada rato.
 function esperaAntesDeInsistir() {
+  // SALVO QUE ALGUIEN ESTE ESPERANDO DELANTE. La espera existe para que un
+  // proceso que no puede arreglarse solo no renazca cada cinco segundos; pero si
+  // acaban de armar la vinculacion es que hay una persona con el movil abierto
+  // en la pantalla de vincular, y el codigo caduca en un par de minutos. Hacerle
+  // esperar cinco es garantizar que llegue tarde.
+  if (vinculacionArmada()) return 0;
   try {
     const v = JSON.parse(fs.readFileSync(VIDAS, 'utf8'));
     const finales = Array.isArray(v) ? v.filter((x) => x.que !== 'arranca') : [];
