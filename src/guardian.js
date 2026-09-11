@@ -207,7 +207,12 @@ function esperaAntesDeInsistir() {
     const v = JSON.parse(fs.readFileSync(VIDAS, 'utf8'));
     const finales = Array.isArray(v) ? v.filter((x) => x.que !== 'arranca') : [];
     const ultimo = finales[finales.length - 1];
-    if (!ultimo || !/sesión cerrada/.test(ultimo.que)) return 0;
+    // LAS DOS FORMAS DE «esto no se arregla reintentando»: la sesion cerrada y
+    // el estar esperando a que alguien pida vincular. La primera version solo
+    // miraba la sesion cerrada, asi que con la puerta de vinculacion puesta el
+    // proceso volvia a arrancar cada cinco segundos: no mandaba codigos —para
+    // eso esta la puerta— pero se pasaba el dia naciendo y muriendo.
+    if (!ultimo || !/sesión cerrada|esperando a que alguien pida vincular/.test(ultimo.que)) return 0;
     if (Date.now() - ultimo.ts > 10 * 60 * 1000) return 0;
     return 5 * 60 * 1000;
   } catch { return 0; }

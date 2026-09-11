@@ -340,8 +340,15 @@ if (!bot) {
   catch { fallos = {}; }
   const COMANDO = { tiktok: '!tt', instagram: '!ig', pinterest: '!pin' };
   const RECIENTE = 7 * 24 * 3600000;
+  // NI UN FALLO DE ANTES DE ESTE PROCESO. Paso justo al desplegar el arreglo de
+  // Pinterest: `estado` seguia enseñando el «No video formats found» de doce
+  // minutos antes y pidiendo una API que ya no hacia falta. Un fallo lo produjo
+  // un codigo que puede que ya no exista, asi que acusar con el reinicio de por
+  // medio es mandar a arreglar algo que igual esta arreglado.
+  const desdeElArranque = bot?.pm2_env?.pm_uptime || 0;
   for (const [red, f] of Object.entries(fallos)) {
     if (!f || Date.now() - f.ts > RECIENTE) continue;
+    if (desdeElArranque && f.ts < desdeElArranque) continue;
     const cuando = new Date(f.ts).toLocaleString('es-ES');
     const variable = `${red.toUpperCase()}_API`;
     if (!hayApi(red)) {
