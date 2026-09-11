@@ -74,3 +74,6 @@ data/estadosVistos.json
 
 # El ultimo fallo de !tt, !ig y !pin: de ESTA maquina, para npm run estado.
 data/redesFallos.json
+
+# La senyal de "quiero vincular el guardian ahora": es un acto de esta maquina.
+data/vincularGuardian

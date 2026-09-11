@@ -8335,6 +8335,56 @@ const di=async(quien,t)=>{out.length=0;
     if (fallos === antes) console.log(verde('   ✓ el vídeo va desde disco, sin ffmpeg de más, se borra al mandarlo y no se cobra si no llega'));
   }
 
+  // ── 51. EL GUARDIAN NO MANDA CODIGOS QUE NADIE HA PEDIDO ─────────────────
+  //
+  // Paso de verdad, y a una persona: la sesion del guardian se cerro desde el
+  // telefono, pm2 lo reiniciaba en bucle, y cada arranque pedia codigo de
+  // vinculacion. Al co-owner le llegaron en rafaga al movil sin haber pedido
+  // ninguno. El tope de tres codigos existia, pero es POR PROCESO: cada
+  // reinicio lo ponia a cero, asi que no topaba nada.
+  //
+  // Ahora pedir un codigo es un acto deliberado: hace falta que exista
+  // data/vincularGuardian, y se borra en cuanto sale uno.
+  //
+  // LO QUE ESTA CAPA PUEDE Y NO PUEDE. El interruptor se prueba ejecutando. La
+  // puerta vive dentro de conectar(), que abre un socket a WhatsApp, y un
+  // validador que sale a la red no es un validador: eso se comprueba sobre el
+  // fuente, y lo que se exige es el ORDEN —la puerta antes de la peticion— que
+  // es justo lo que fallaba.
+  {
+    console.log('\n51. EL GUARDIAN NO MANDA CODIGOS QUE NADIE HA PEDIDO');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const g = require(path.join(R, 'src/guardian'));
+    const previo = fs.existsSync(g._ARMADO);
+    try {
+      fs.rmSync(g._ARMADO, { force: true });
+      exige(g._vinculacionArmada() === false, 'sin el fichero, el guardián se cree armado para pedir código');
+      fs.writeFileSync(g._ARMADO, '');
+      exige(g._vinculacionArmada() === true, 'con el fichero puesto, el guardián no se da por armado y nunca vincularía');
+      g._desarmarVinculacion();
+      exige(g._vinculacionArmada() === false,
+        'pedir un código no desarma: si nadie lo teclea, el siguiente arranque manda otro y vuelve la ráfaga');
+
+      const src = soloCodigo('src/guardian.js');
+      const iPuerta = src.indexOf('vinculacionArmada()');
+      const iPide = src.indexOf('requestPairingCode');
+      exige(iPuerta >= 0 && iPide >= 0 && iPuerta < iPide,
+        'la comprobación de armado va DESPUÉS de pedir el código, o ya no está: el código sale igual');
+      // Y que la puerta PARE de verdad. Comprobar solo el orden dejaba pasar un
+      // `if` que avisa y sigue.
+      const trozo = src.slice(iPuerta, iPide);
+      exige(/process\.exit\(/.test(trozo),
+        'la puerta avisa pero no para: el proceso sigue y acaba pidiendo el código igual');
+      const iDesarma = src.indexOf('desarmarVinculacion()', iPide);
+      exige(iDesarma > iPide && iDesarma - iPide < 500,
+        'el desarmado no va pegado a la petición: entre medias cabe un fallo que deje el fichero puesto y otro código en camino');
+    } finally {
+      if (previo) fs.writeFileSync(g._ARMADO, ''); else fs.rmSync(g._ARMADO, { force: true });
+    }
+    if (fallos === antes) console.log(verde('   ✓ sin que alguien lo pida a mano no sale ni un código, y el que sale desarma el siguiente'));
+  }
+
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────
   //
   // Tres cosas que se tocan juntas cuando se busca que el bot conteste antes,

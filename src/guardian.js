@@ -327,6 +327,28 @@ const miNumero = () => String(process.env.GUARDIAN || '').replace(/\D/g, '');
 const MAX_CODIGOS = 3;
 let codigosPedidos = 0;
 
+// ─── VINCULAR SE PIDE A MANO, Y ESTO NO ES BUROCRACIA ───────────────────────
+//
+// Paso de verdad: la sesión del guardián se cerró desde el teléfono, pm2 lo
+// reiniciaba en bucle, y cada arranque pedía código de vinculación otra vez. Al
+// co-owner le llegaron los códigos en ráfaga al móvil, sin haber pedido
+// ninguno. El tope de tres códigos existía, pero es POR PROCESO: cada reinicio
+// lo ponía a cero, así que no topaba nada.
+//
+// Así que ahora pedir un código es un acto DELIBERADO de una persona que tiene
+// el móvil delante:
+//
+//   1. se crea el fichero  data/vincularGuardian
+//   2. se arranca el guardián
+//   3. pide UN código y BORRA el fichero
+//
+// Sin fichero no se pide nada: se dice qué falta y el proceso sale con 78, o
+// sea que pm2 lo deja parado en vez de volver a intentarlo. Un bucle ya no
+// puede spamear a nadie, porque el bucle no crea ficheros.
+const ARMADO = path.join(__dirname, '../data/vincularGuardian');
+const vinculacionArmada = () => { try { return fs.existsSync(ARMADO); } catch { return false; } };
+const desarmarVinculacion = () => { try { fs.rmSync(ARMADO, { force: true }); } catch { /* da igual */ } };
+
 // Reconexión con espera creciente, igual que el bot: reintentar cada segundo
 // contra un WhatsApp que dice que no es la forma de que te veten la cuenta.
 // TOPE PARA CUALQUIER LLAMADA AL SOCKET. Baileys no lo trae: si la conexion se
@@ -649,7 +671,22 @@ async function conectar() {
   //   → "Vincular con el número de teléfono"
   //
   // El QR sigue saliendo si no hay número puesto, como respaldo.
-  const porCodigo = Boolean(miNumero()) && !state.creds?.registered;
+  const hayQueVincular = !state.creds?.registered;
+
+  // NADIE PIDE UN CODIGO QUE NADIE ESPERA. Si hace falta vincular pero no se ha
+  // armado, se dice y se para: pm2 lo deja quieto (stop_exit_codes) y el movil
+  // del co-owner no recibe nada.
+  if (hayQueVincular && !vinculacionArmada()) {
+    logger.error('guardián: hay que vincular, pero nadie lo ha pedido. NO voy a mandar ningún código.');
+    logger.error('guardián: cuando tengas el móvil abierto en «Vincular con el número de teléfono»:');
+    logger.error(`guardián:   touch ${ARMADO} && pm2 start ecosystem.config.js --only guardian`);
+    apuntarVida('esperando a que alguien pida vincular', 'toca data/vincularGuardian con el móvil delante');
+    try { sock.ev.removeAllListeners(); } catch {}
+    try { sock.end(); } catch {}
+    process.exit(SALIDA_SESION_MUERTA);
+  }
+
+  const porCodigo = Boolean(miNumero()) && hayQueVincular;
   if (porCodigo) {
     if (codigosPedidos >= MAX_CODIGOS) {
       logger.error(`guardián: van ${codigosPedidos} códigos y ninguno se ha usado. Paro: encadenar peticiones es lo que agrava una restricción de cuenta.`);
@@ -666,6 +703,10 @@ async function conectar() {
       try {
         if (miSock !== sock) return;
         const codigo = await miSock.requestPairingCode(miNumero());
+        // SE DESARMA EN CUANTO SALE UNO. Si nadie lo teclea, el siguiente
+        // arranque no manda otro: hay que volver a pedirlo a mano. Es la
+        // diferencia entre un código y una ráfaga de códigos.
+        desarmarVinculacion();
         const bonito = String(codigo).match(/.{1,4}/g)?.join('-') || codigo;
         console.log(`\n  CÓDIGO DE VINCULACIÓN DEL GUARDIÁN: ${bonito}\n`);
         console.log(`  En el móvil de +${miNumero()}:`);
@@ -741,4 +782,4 @@ if (require.main === module) {
   } else arrancar();
 }
 
-module.exports = { alDegradar, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };
+module.exports = { alDegradar, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _ARMADO: ARMADO, _vinculacionArmada: vinculacionArmada, _desarmarVinculacion: desarmarVinculacion, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };

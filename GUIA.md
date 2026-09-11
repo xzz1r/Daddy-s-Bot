@@ -831,6 +831,26 @@ al arreglar la causa se acaba ignorando justo el día que dice la verdad. Así q
 `npm run estado` mira el **ritmo**: cuánto ha subido desde la última vez que se
 miró, guardado en `data/estadoReinicios.json`. Callado si no sube.
 
+**Vincular el guardián se pide a mano, y esto le pasó a una persona.** Con la
+sesión cerrada y pm2 reiniciándolo en bucle, cada arranque pedía código de
+vinculación: al co-owner le llegaron en ráfaga al móvil sin haber pedido
+ninguno. El tope de tres códigos existía, pero es **por proceso**, y cada
+reinicio lo ponía a cero.
+
+Ahora el guardián no pide nada si nadie lo ha pedido. Con el móvil ya abierto en
+«Vincular con el número de teléfono»:
+
+```
+touch data/vincularGuardian
+pm2 start ecosystem.config.js --only guardian
+pm2 logs guardian
+```
+
+Pide **un** código y borra el fichero. Si nadie lo teclea, el siguiente arranque
+no manda otro: hay que volver a pedirlo. Sin el fichero, dice qué falta y sale
+con 78, o sea que pm2 lo deja parado. Un bucle ya no puede spamear a nadie,
+porque un bucle no crea ficheros. La capa 51 lo comprueba.
+
 Y reiniciar **no arregla una sesión cerrada**. Cuando la del guardián se cierra
 desde el teléfono, WhatsApp contesta 401 y no hay nada que el proceso pueda
 hacer: hay que borrar `data/authGuardian` y volver a vincular, a mano. Salía con
