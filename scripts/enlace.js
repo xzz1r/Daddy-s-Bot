@@ -1,6 +1,10 @@
 // ¿QUÉ LE CONTESTA LA API CUANDO UN ENLACE NO SALE?
 //
-//   npm run enlace -- https://www.instagram.com/p/XXXXXXXX/
+//   npm run enlace -- "https://www.instagram.com/p/XXXXXXXX/"
+//
+// LAS COMILLAS NO SON ADORNO. Una direccion de Instagram lleva `?` y `&`
+// dentro, y sin comillas la terminal parte la linea en el `&` y se lleva la
+// mitad. Con comillas llega entera.
 //
 // EXISTE PORQUE EL FALLO SE VE DESDE EL SITIO EQUIVOCADO. En el grupo sale «no
 // he podido traerlo de Instagram» y eso es lo mismo para ocho causas distintas:
@@ -59,9 +63,16 @@ function describe(valor, sangria = '  ') {
 }
 
 (async () => {
-  const url = process.argv.slice(2).find((a) => /^https?:\/\//i.test(a));
+  // Los picos de un ejemplo escrito a mano (`<direccion>`) no llegan nunca
+  // —la terminal los toma como redireccion y ni arranca esto— pero si llegan
+  // pegados de otra forma, se quitan y ya.
+  const url = process.argv.slice(2)
+    .map((a) => a.replace(/^[<"']+|[>"']+$/g, ''))
+    .find((a) => /^https?:\/\//i.test(a));
   if (!url) {
-    console.log('\n  Uso: npm run enlace -- <la dirección del vídeo o del post>\n');
+    console.log('\n  Uso: npm run enlace -- "https://…"');
+    console.log('  Con comillas: una dirección de Instagram lleva ? y & dentro, y sin');
+    console.log('  ellas la terminal parte la línea por la mitad.\n');
     process.exit(1);
   }
   const plataforma = redes.plataformaDe(url);
