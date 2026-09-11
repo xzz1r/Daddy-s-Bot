@@ -8705,6 +8705,142 @@ const di=async(quien,t)=>{out.length=0;
     if (fallos === antes) console.log(verde('   ✓ el audio que llega flojo se sube sin saturar, y un vídeo mudo sigue llegando entero'));
   }
 
+  // ── 53. LO QUE LLEGA MIENTRAS EL BOT NO ESTA TAMBIEN SE MODERA ────────────
+  //
+  // El caso real: cuatro enlaces de invitacion seguidos en un grupo, ninguno
+  // borrado, nadie expulsado, y el bot contestando con normalidad un minuto
+  // antes. El antilink estaba bien — lo que fallaba es que esos cuatro mensajes
+  // nunca llegaron a el. Baileys etiqueta el lote con `node.attrs.offline ?
+  // 'append' : 'notify'`, y bot.js tiraba entero todo lo que no fuera 'notify'.
+  // O sea: todo lo publicado durante una reconexion entraba sin guardias.
+  //
+  // Esta capa mide las cuatro cosas que sostienen el arreglo, en los dos
+  // sentidos. No basta con que el mensaje diferido se modere: tiene que NO
+  // ejecutar comandos (un !play de hace diez minutos no lo espera nadie, y
+  // cobrarlo dos veces es peor que no responderlo) y NO contarse dos veces.
+  {
+    console.log('\n53. UN ENLACE QUE LLEGA TARDE SE BORRA IGUAL');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const { handleMessage } = require(path.join(R, 'src/handlers/messageHandler'));
+    const INVITE = 'https://chat.whatsapp.com/JJswfylh8lxH9tDzLGeZK0?s=cl&p=a&mlu=4';
+
+    // Cada prueba estrena grupo: la metadata se cachea por JID y reusar uno
+    // haria que la segunda prueba midiera la respuesta de la primera.
+    const armar = (n) => {
+      const grupo = `12005553${n}@g.us`;
+      const BOT = '5491999953@s.whatsapp.net';
+      const YO  = `3460000053${n}@s.whatsapp.net`;
+      const reg = { textos: [], borrados: 0, expulsados: 0 };
+      const sock = {
+        user: { id: BOT },
+        readMessages: async () => {},
+        groupMetadata: async () => ({ id: grupo, subject: 'S', participants: [{ id: BOT, admin: 'admin' }, { id: YO }] }),
+        groupParticipantsUpdate: async (_g, _p, accion) => { if (accion === 'remove') reg.expulsados++; return []; },
+        sendMessage: async (_j, contenido) => {
+          if (contenido?.delete) reg.borrados++;
+          else if (contenido?.text) reg.textos.push(contenido.text);
+          return {};
+        },
+      };
+      return { sock, reg, YO, grupo };
+    };
+    const sobre = (ctx, id, texto) => ({
+      key: { remoteJid: ctx.grupo, participant: ctx.YO, fromMe: false, id },
+      message: { conversation: texto },
+      pushName: 'tarde',
+      messageTimestamp: Math.floor(Date.now() / 1000),
+    });
+
+    // 1. Diferido: se borra y se expulsa exactamente igual que en directo.
+    {
+      const ctx = armar('01');
+      await handleMessage(ctx.sock, sobre(ctx, 'D53A', INVITE), { diferido: true });
+      exige(ctx.reg.borrados > 0 && ctx.reg.expulsados > 0,
+        `una invitacion que llega en el lote offline no se borra (${ctx.reg.borrados}) ni expulsa (${ctx.reg.expulsados}): es el agujero por el que entro el spam`);
+    }
+
+    // 2. Y el mismo mensaje no se atiende dos veces. Sin esta red, el lote
+    //    offline mas la entrega en directo serian dos expulsiones por uno.
+    {
+      const ctx = armar('02');
+      const m = sobre(ctx, 'D53B', INVITE);
+      await handleMessage(ctx.sock, m, { diferido: true });
+      const primera = ctx.reg.borrados + ctx.reg.expulsados;
+      await handleMessage(ctx.sock, m);
+      exige(primera > 0 && ctx.reg.borrados + ctx.reg.expulsados === primera,
+        `el mismo id se proceso dos veces (${primera} -> ${ctx.reg.borrados + ctx.reg.expulsados}): dobles cobros y dobles expulsiones`);
+    }
+
+    // 3. Un comando diferido NO se ejecuta. Es la mitad del trato: se reprocesa
+    //    para moderar, no para contestar tarde ni para volver a cobrar.
+    {
+      const ctx = armar('03');
+      await handleMessage(ctx.sock, sobre(ctx, 'D53C', '!aura'), { diferido: true });
+      exige(ctx.reg.textos.length === 0,
+        `un comando del lote offline contesto igualmente (${JSON.stringify(ctx.reg.textos).slice(0, 120)}): se responderia a ordenes viejas`);
+    }
+
+    // 4. Y en directo ese mismo comando SI contesta — si no, la comprobacion de
+    //    arriba pasaria por estar todo roto, que es como se aprueba una capa
+    //    vacia.
+    {
+      const ctx = armar('04');
+      await handleMessage(ctx.sock, sobre(ctx, 'D53D', '!aura'));
+      exige(ctx.reg.textos.length > 0,
+        'el comando tampoco contesta en directo: la prueba del diferido no mide nada');
+    }
+
+    // 5. LA PUERTA DE BOT.JS, ejecutada de verdad y no leida por encima.
+    //    Se saca el cuerpo real de moderarDiferido del fichero y se corre con
+    //    las dependencias de mentira, asi se mide lo que hay escrito.
+    {
+      const src = fs.readFileSync(path.join(R, 'src/bot.js'), 'utf8');
+      exige(!/if \(type !== 'notify'\) return;/.test(src),
+        'bot.js vuelve a tirar el lote entero que no es «notify»: el agujero original, otra vez');
+
+      const i = src.indexOf('function moderarDiferido(');
+      exige(i > 0, 'moderarDiferido ya no existe en bot.js');
+      const ventana = /VENTANA_DIFERIDO_MS\s*=\s*([^;]+);/.exec(src);
+      exige(!!ventana, 'no hay ventana de antiguedad para el lote diferido: se moderaria el historial entero');
+      if (i > 0 && ventana) {
+        const cuerpo = src.slice(i, src.indexOf('\n}\n', i) + 3);
+        let atendidos = [];
+        const fabrica = new Function('handleMessage', 'sock', 'logger', 'VENTANA_DIFERIDO_MS',
+          `${cuerpo}; return moderarDiferido;`);
+        const md = fabrica(
+          async (_s, m) => { atendidos.push(m.key.id); },
+          {}, { error: () => {} }, eval(ventana[1]),
+        );
+        const ahora = Math.floor(Date.now() / 1000);
+        const msg = (id, extra) => ({
+          key: { remoteJid: '120005553@g.us', fromMe: false, id },
+          message: { conversation: 'x' },
+          messageTimestamp: ahora,
+          ...extra,
+        });
+        md(msg('A'));
+        exige(atendidos.includes('A'), 'un mensaje reciente del lote offline no llega a moderarse');
+        atendidos = [];
+        md({ ...msg('B'), messageTimestamp: ahora - 3 * 24 * 3600 });
+        exige(atendidos.length === 0,
+          'un mensaje de hace tres dias se modera: una sincronizacion de historial expulsaria a medio grupo');
+        atendidos = [];
+        md({ ...msg('C'), messageTimestamp: 0 });
+        exige(atendidos.length === 0, 'un mensaje sin marca de tiempo se modera a ciegas');
+        atendidos = [];
+        md({ ...msg('D'), key: { remoteJid: '120005553@g.us', fromMe: true, id: 'D' } });
+        exige(atendidos.length === 0, 'el bot se modera a si mismo en el lote diferido');
+        atendidos = [];
+        md({ ...msg('E'), key: { remoteJid: '34600000000@s.whatsapp.net', fromMe: false, id: 'E' } });
+        exige(atendidos.length === 0, 'un privado entra por la via de moderacion diferida');
+      }
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ el spam que entra durante una reconexion se borra, sin contestar ordenes viejas ni repetirse'));
+  }
+
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────
   //
   // Tres cosas que se tocan juntas cuando se busca que el bot conteste antes,

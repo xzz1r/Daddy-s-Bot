@@ -936,6 +936,14 @@ function puedeSugerir(quien) {
   return true;
 }
 const antilinkNoAdminWarn = new Map(); // 'groupJid' -> timestamp (bot-not-admin notice)
+
+// Ids ya atendidos, para que un mensaje no se procese dos veces. Es un anillo:
+// al llegar al tope se tira el mas antiguo, que es el orden en que los devuelve
+// un Set. 5.000 ids son unos pocos minutos de un grupo muy movido y ocupan
+// nada; lo que importa es cubrir la ventana en la que un mensaje puede llegar
+// por el lote offline Y en directo.
+const mensajesAtendidos = new Set();
+const MAX_IDS_ATENDIDOS = 5000;
 const videoOnceWarn = new Map();       // 'groupJid|sender|vo' -> timestamp del ultimo aviso
 
 // Group metadata cache: 30s TTL, bounded at 500 entries (FIFO eviction).
@@ -1412,7 +1420,26 @@ function avisarVistoRoto(motivo) {
   logger.warn(`el visto no se esta mandando: ${motivo}`);
 }
 
-async function handleMessage(sock, msg) {
+// EL LOTE `append` NO ES BASURA: ES LO QUE LLEGO MIENTRAS EL BOT NO ESTABA.
+//
+// Baileys marca cada mensaje con el tipo del lote, y ese tipo sale de UNA
+// linea suya: `upsertMessage(msg, node.attrs.offline ? 'append' : 'notify')`
+// (Socket/messages-recv.js). O sea que `append` no significa "historial
+// viejo": significa "este mensaje te lo manda el servidor porque estabas
+// desconectado cuando se envio". bot.js descartaba el lote entero, asi que
+// TODO lo que se publicara en el grupo durante una reconexion —y el guardian
+// lleva miles de reinicios— entraba sin pasar por un solo guardia. Cuatro
+// enlaces de invitacion seguidos, ni borrados ni expulsado nadie, con el bot
+// contestando con normalidad un minuto antes: eso es este agujero.
+//
+// Se reprocesa, pero SOLO la moderacion (`opciones.diferido`). Los comandos no:
+// ejecutar un *!play* de hace diez minutos porque el socket volvio es una
+// respuesta que ya no espera nadie, y cobrarla dos veces es peor. Tampoco
+// cuentan los contadores ni el aura, por lo mismo — el conteo no puede depender
+// de cuando volvio la conexion.
+async function handleMessage(sock, msg, opciones = {}) {
+  // `diferido`: este mensaje llego tarde (lote offline). Solo moderacion.
+  const diferido = opciones.diferido === true;
   // EL NOMBRE SE ANOTA LO PRIMERO DE TODO, antes de cualquier return.
   //
   // Estaba doscientas lineas mas abajo y detras de tres puertas cerradas, y por
@@ -1439,6 +1466,18 @@ async function handleMessage(sock, msg) {
   }
 
   if (!msg.message) return;
+
+  // UN MENSAJE SE ATIENDE UNA SOLA VEZ, venga por donde venga.
+  //
+  // Con el lote offline ya reprocesandose, el mismo id puede llegar dos veces
+  // (el servidor lo reenvia y despues el socket lo recibe en directo). Sin esta
+  // red, eso serian dos conteos, dos cobros y dos expulsiones por un mensaje.
+  const idMensaje = msg.key?.id;
+  if (idMensaje) {
+    if (mensajesAtendidos.has(idMensaje)) return;
+    if (mensajesAtendidos.size >= MAX_IDS_ATENDIDOS) mensajesAtendidos.delete(mensajesAtendidos.values().next().value);
+    mensajesAtendidos.add(idMensaje);
+  }
   // Se comprueba ANTES de desenvolver: unwrapEnvelope destruye la prueba.
   const eraViewOnce = isViewOnce(msg.message);
   // Y lo mismo con el estado, por el mismo motivo: unwrapEnvelope ahora tambien
@@ -1538,7 +1577,7 @@ async function handleMessage(sock, msg) {
 
   // Non-blocking counters — never delay command execution.
   // Don't count the bot's own messages so the owner doesn't inflate their rank.
-  incrementStat('messagesReceived');
+  if (!diferido) incrementStat('messagesReceived');
   // El owner principal no cuenta para el ranking de actividad (!count): sus
   // mensajes no deben inflar la tabla. Los co-owners y el resto sí cuentan.
   // Se comprueba de dos formas para que sea fiable incluso en grupos LID:
@@ -1560,7 +1599,7 @@ async function handleMessage(sock, msg) {
   // No es cosa del camino rapido de las reacciones: pasaba igual antes, porque
   // el conteo va por delante de esa puerta. Se corta aqui, en el conteo, que es
   // donde esta el error. Un voto de encuesta y un SKDM entran por lo mismo.
-  if (!msg.key.fromMe && jid.endsWith('@g.us') && sender && !senderIsMainOwner
+  if (!diferido && !msg.key.fromMe && jid.endsWith('@g.us') && sender && !senderIsMainOwner
       && !esSobreSinContenido(msg.message)) {
     // `senderPn` es la otra forma de quien escribe, sacada del propio mensaje.
     // Va aqui para que el conteo quede cruzable con la lista de miembros.
@@ -2030,6 +2069,11 @@ async function handleMessage(sock, msg) {
       return; // no sigue procesandose
     }
   }
+
+  // Aqui acaba la moderacion y empiezan los comandos. Un mensaje diferido no
+  // pasa de esta linea: ya se le han aplicado los guardias, que es para lo
+  // unico que se reprocesa.
+  if (diferido) return;
 
   // EL PREFIJO QUE SE USO, no el canonico. A partir de aqui todo lo que le
   // conteste a esta persona lleva el suyo: quien escribe */aura* y lee "era

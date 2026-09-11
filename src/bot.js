@@ -1799,7 +1799,22 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
         avisarSolicitudNueva(msg);
       }
     }
-    if (type !== 'notify') return;
+    // LO QUE LLEGO MIENTRAS EL BOT NO ESTABA TAMBIEN SE MODERA.
+    //
+    // `append` es, palabra por palabra, `node.attrs.offline ? 'append' :
+    // 'notify'` en Socket/messages-recv.js de Baileys: el lote que el servidor
+    // suelta al reconectar. Descartarlo entero significaba que cualquier cosa
+    // publicada durante una reconexion —y con miles de reinicios del guardian
+    // eso pasa a diario— no pasaba por el antilink, ni por el guardia de
+    // estados, ni por el de medios.
+    //
+    // Solo moderacion, y solo si es reciente: un lote de sincronizacion de
+    // historial trae mensajes de hace dias, y expulsar hoy a alguien por un
+    // enlace de la semana pasada seria peor que el agujero.
+    if (type !== 'notify') {
+      for (const msg of messages) moderarDiferido(msg);
+      return;
+    }
     for (const msg of messages) {
       // handleMessage runs first so its sock.sendMessage is queued BEFORE readMessages.
       // Swapping the order would add one extra WA round-trip in front of every command response.
@@ -1810,6 +1825,26 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
   });
 
   return sock;
+}
+
+// Cuanto puede tardar un mensaje del lote offline en seguir mereciendo
+// moderacion. Quince minutos cubren una reconexion normal (el guardian levanta
+// el bot en segundos) y dejan fuera cualquier sincronizacion de historial.
+const VENTANA_DIFERIDO_MS = 15 * 60 * 1000;
+
+// Modera un mensaje que llego tarde. Nada de comandos ni contadores: eso lo
+// decide handleMessage con la opcion `diferido`.
+function moderarDiferido(msg) {
+  if (!msg?.message || msg.key?.fromMe) return;
+  if (!msg.key?.remoteJid?.endsWith('@g.us')) return;
+  const bruto = msg.messageTimestamp;
+  const seg = Number(typeof bruto?.toNumber === 'function' ? bruto.toNumber() : bruto || 0);
+  // Sin marca de tiempo no se arriesga: no hay forma de saber si es de hace un
+  // minuto o de hace un mes.
+  if (!seg) return;
+  if (Date.now() - seg * 1000 > VENTANA_DIFERIDO_MS) return;
+  handleMessage(sock, msg, { diferido: true })
+    .catch(err => logger.error(`moderacion diferida: ${err.message}`));
 }
 
 // Alguien ha pedido entrar: si el grupo tiene autoaccept, se barre la cola.
