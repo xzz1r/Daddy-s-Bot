@@ -174,6 +174,10 @@ const AUTH_DIR = path.join(__dirname, '../data/authGuardian');
 //
 // Sin dependencias y con todo el fallo tragado: esto es un cuaderno, y un
 // cuaderno que tira el proceso al que apunta no vale nada.
+// EX_CONFIG de sysexits: la configuracion esta mal y no se arregla sola. Va
+// emparejado con `stop_exit_codes: [78]` en ecosystem.config.js.
+const SALIDA_SESION_MUERTA = 78;
+
 const VIDAS = path.join(__dirname, '../data/guardianVidas.json');
 const VIDAS_QUE_CABEN = 20;
 
@@ -190,6 +194,25 @@ function apuntarVida(que, detalle) {
 // SÍNCRONO Y AL FINAL, a propósito: cuando llega SIGTERM quedan milisegundos, y
 // un `writeFile` asíncrono no llega a terminar. Es la única escritura del
 // proceso y pesa menos de 2 KB.
+// Y SI PM2 NO ENTIENDE `stop_exit_codes`, QUE NO INSISTA CADA VEINTE SEGUNDOS.
+//
+// El de arriba es el arreglo bueno, pero depende de una opcion que las versiones
+// viejas de pm2 ignoran, y entonces el bucle vuelve. Esto es el cinturon: si la
+// vida anterior murio por la sesion cerrada hace menos de diez minutos, se
+// espera cinco antes de volver a intentarlo. No arregla nada —no hay nada que
+// arreglar desde aqui— pero convierte tres intentos por minuto en uno cada
+// cinco, que es la diferencia entre un log ilegible y una linea cada rato.
+function esperaAntesDeInsistir() {
+  try {
+    const v = JSON.parse(fs.readFileSync(VIDAS, 'utf8'));
+    const finales = Array.isArray(v) ? v.filter((x) => x.que !== 'arranca') : [];
+    const ultimo = finales[finales.length - 1];
+    if (!ultimo || !/sesión cerrada/.test(ultimo.que)) return 0;
+    if (Date.now() - ultimo.ts > 10 * 60 * 1000) return 0;
+    return 5 * 60 * 1000;
+  } catch { return 0; }
+}
+
 if (require.main === module) {
   apuntarVida('arranca');
   process.on('uncaughtException', (e) => {
@@ -680,7 +703,13 @@ async function conectar() {
       if (code === DisconnectReason.loggedOut) {
         logger.error('guardián: la sesión se ha cerrado desde el teléfono. Borra data/authGuardian y vuelve a vincular.');
         apuntarVida('sesión cerrada desde el teléfono', 'hay que volver a vincular: borra data/authGuardian');
-        process.exit(1);
+        // SALE CON 78 Y NO CON 1, y no es cosmético: ecosystem.config.js lleva
+        // `stop_exit_codes: [78]`, así que pm2 lo deja PARADO en vez de volver a
+        // levantarlo. Reiniciar no arregla una sesión cerrada —hace falta borrar
+        // las credenciales y volver a vincular, a mano— así que el bucle solo
+        // quemaba CPU y log: mil doscientos reinicios en siete horas, tres por
+        // minuto, en una máquina de un core.
+        process.exit(SALIDA_SESION_MUERTA);
       }
       logger.warn(`guardián: conexión caída (${code || '?'}), reintento en ${Math.round(espera / 1000)}s`);
       programarReconexion(espera);
@@ -700,11 +729,16 @@ async function conectar() {
 
 if (require.main === module) {
   console.log(`\n  Guardián de Daddy's Bot — solo repone el admin, nada más\n`);
-  conectar().catch((err) => {
+  const arrancar = () => conectar().catch((err) => {
     apuntarVida('no pudo ni conectar', (err && err.message) || String(err));
     console.error('guardián: error fatal:', err);
     process.exit(1);
   });
+  const espera = esperaAntesDeInsistir();
+  if (espera) {
+    logger.error(`guardián: la sesión seguía cerrada hace un momento. Espero ${Math.round(espera / 60000)} min antes de reintentar. Esto NO se arregla solo: borra data/authGuardian y vuelve a vincular.`);
+    setTimeout(arrancar, espera);
+  } else arrancar();
 }
 
 module.exports = { alDegradar, esElProtegido, mismoNumero, formasDe, repasarGrupos, lidProtegido, _filtroJid: filtroJid, _VIDAS: VIDAS, _apuntarVida: apuntarVida, _reconexion: () => reconexionPendiente, limpiarCredencialesAMedias, _sock: (s) => { sock = s; }, AUTH_DIR };

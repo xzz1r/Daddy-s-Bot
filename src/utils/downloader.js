@@ -30,13 +30,33 @@ const MAX_BYTES = 25 * 1024 * 1024;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// DONDE ESTA YT-DLP, Y POR QUE ESTA LISTA ES LARGA.
+//
+// Esto costo que !tt, !ig y !pin no funcionaran el dia que se estrenaron, con
+// yt-dlp instalado y `npm run estado` en verde.
+//
+// `pip install --user yt-dlp` y `pipx install yt-dlp` —las dos formas normales
+// de instalarlo en Ubuntu sin tocar el sistema— lo dejan en ~/.local/bin. Esa
+// carpeta esta en el PATH de la terminal del dueño, asi que `command -v yt-dlp`
+// escrito a mano lo encuentra. Pero el bot no corre en esa terminal: corre bajo
+// pm2, con el PATH que el demonio de pm2 heredo el dia que arranco, y ahi
+// ~/.local/bin no suele estar.
+//
+// O sea que la terminal decia que si y el proceso decia que no, y las dos cosas
+// eran verdad. Por eso la ruta del home va la PRIMERA y por eso `npm run estado`
+// pregunta por esta misma funcion en vez de por `command -v`: una comprobacion
+// que mira un sitio distinto del que mira el bot no comprueba nada.
 function detectYtDlp() {
+  const home = (() => { try { return require('os').homedir(); } catch { return null; } })();
   const candidates = [
+    home && path.join(home, '.local/bin/yt-dlp'),
     '/data/data/com.termux/files/home/.local/bin/yt-dlp',
     '/data/data/com.termux/files/usr/bin/yt-dlp',
     '/usr/local/bin/yt-dlp',
     '/usr/bin/yt-dlp',
-  ];
+    '/snap/bin/yt-dlp',
+    '/opt/homebrew/bin/yt-dlp',
+  ].filter(Boolean);
   for (const p of candidates) {
     if (fs.existsSync(p)) return p;
   }
@@ -45,6 +65,15 @@ function detectYtDlp() {
     if (which) return which;
   } catch {}
   return 'yt-dlp';
+}
+
+// ¿EXISTE DE VERDAD, o solo es un nombre que se pasa a spawn con la esperanza de
+// que el PATH lo resuelva? `detectYtDlp` devuelve 'yt-dlp' a secas cuando no
+// encontro nada, y eso desde fuera se lee igual que haberlo encontrado.
+function hayYtDlp() {
+  if (YT_DLP !== 'yt-dlp') return fs.existsSync(YT_DLP);
+  try { execSync('yt-dlp --version', { stdio: 'ignore', timeout: 8000 }); return true; }
+  catch { return false; }
 }
 
 const YT_DLP = detectYtDlp();
@@ -478,6 +507,6 @@ async function downloadAudio(query) {
 // control de concurrencia son dos limites distintos que se creen el mismo.
 module.exports = {
   downloadAudio, ordenDeKeys, sinCuota, PROVIDERS,
-  acquireDownloadSlot, releaseDownloadSlot, ytdlp, downloadUrlToFile,
+  acquireDownloadSlot, releaseDownloadSlot, ytdlp, downloadUrlToFile, hayYtDlp,
   YT_DLP, MAX_BYTES, TEMP_DIR,
 };

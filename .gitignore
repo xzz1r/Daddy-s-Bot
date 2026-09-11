@@ -71,3 +71,6 @@ data/guardianVidas.json
 
 # La bitacora de estados subidos al grupo: numeros del grupo, no sube nunca.
 data/estadosVistos.json
+
+# El ultimo fallo de !tt, !ig y !pin: de ESTA maquina, para npm run estado.
+data/redesFallos.json

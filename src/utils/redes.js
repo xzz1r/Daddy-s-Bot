@@ -57,7 +57,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const axios = require('axios');
-const { acquireDownloadSlot, releaseDownloadSlot, ytdlp, downloadUrlToFile, MAX_BYTES, TEMP_DIR } = require('./downloader');
+const { acquireDownloadSlot, releaseDownloadSlot, ytdlp, downloadUrlToFile, hayYtDlp, MAX_BYTES, TEMP_DIR } = require('./downloader');
 const logger = require('./logger');
 
 // UNA API POR PLATAFORMA, y con una comun de respaldo. Es lo que pidio el dueño
@@ -111,6 +111,57 @@ function enlaceDe(texto, plataforma) {
 function plataformaDe(texto) {
   for (const [k, p] of Object.entries(PLATAFORMAS)) if (p.rx.test(String(texto || ''))) return k;
   return null;
+}
+
+// ─── POR QUÉ NO SALIÓ, Y EN CRISTIANO ───────────────────────────────────────
+//
+// Medido el día del estreno, desde una VPS y con yt-dlp al día:
+//
+//   TikTok     «Unexpected response from webpage request»  → bloquea al servidor
+//   Instagram  «Instagram sent an empty media response»    → pide sesión
+//   Pinterest  pin.it acaba en la portada, «Unsupported URL» → también bloquea
+//
+// O sea que desde un datacenter las tres necesitan un tercero. No es una
+// sospecha: es lo que contestaron. Y el grupo no tiene por qué enterarse de eso
+// —al que pega el enlace le basta con «no pude»—, pero el dueño sí, y no puede
+// ser a base de bucear en el log. Aquí se guarda el último fallo de cada
+// plataforma y `npm run estado` lo traduce.
+// EN data/, CON SU RUTA ESCRITA, no colgando de TEMP_DIR. Lo puse como
+// `path.join(TEMP_DIR, '..')` dando por hecho que temp vivia dentro de data, y
+// no: TEMP_DIR es <repo>/temp, asi que el fichero acababa en la RAIZ del
+// repositorio. Y ahi no es que quede feo: `npm run update` se para en seco con
+// "hay cambios locales sin guardar" y no vuelve a desplegar nada.
+const FALLOS = path.join(__dirname, '../../data/redesFallos.json');
+
+// El mensaje de yt-dlp es un párrafo con enlaces a GitHub. Lo que necesita el
+// dueño es qué poner en el .env.
+function enCristiano(motivo) {
+  const m = String(motivo || '');
+  if (/no se pudo ejecutar|ENOENT|not found/i.test(m)) return 'no encuentro yt-dlp';
+  if (/cookies|logged-in|login|empty media response/i.test(m)) return 'pide sesión iniciada';
+  if (/Unexpected response|Unsupported URL|403|captcha|blocked|not available/i.test(m)) return 'la web bloquea al servidor';
+  if (/timeout/i.test(m)) return 'tardó demasiado';
+  return m.slice(0, 80);
+}
+
+function apuntarFallo(plataforma, motivo) {
+  try {
+    let v = {};
+    try { v = JSON.parse(fs.readFileSync(FALLOS, 'utf8')) || {}; } catch { /* aún no hay */ }
+    v[plataforma] = { ts: Date.now(), motivo: enCristiano(motivo), porApi: !!API_DE[plataforma] };
+    fs.writeFileSync(FALLOS, JSON.stringify(v));
+  } catch { /* un cuaderno no puede tumbar un comando */ }
+}
+
+function ultimosFallos() {
+  try { return JSON.parse(fs.readFileSync(FALLOS, 'utf8')) || {}; } catch { return {}; }
+}
+
+// ¿Hay por dónde? Sin API para esa plataforma y sin yt-dlp no hay nada que
+// intentar: cobrar, esperar veinte segundos y devolver el aura es gastarle el
+// tiempo a alguien para acabar donde ya se sabía.
+function hayComoTraer(plataforma) {
+  return !!API_DE[plataforma] || hayYtDlp();
 }
 
 const esVideo = (ext) => ['mp4', 'mov', 'webm', 'mkv'].includes(ext);
@@ -198,6 +249,7 @@ async function traer(url, plataforma) {
     return { fichero, tipo, ext, bytes: size };
   } catch (e) {
     if (fichero) await fs.remove(fichero).catch(() => {});
+    apuntarFallo(plataforma, e.message);
     throw e;
   } finally {
     releaseDownloadSlot();
@@ -208,4 +260,4 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, enlaceDe, plataformaDe, hayApi, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _API_DE: API_DE };
+module.exports = { traer, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _API_DE: API_DE };

@@ -11,7 +11,7 @@
 // reencoda, no se carga en memoria y no se guarda nada.
 
 const fs = require('fs-extra');
-const { traer, enlaceDe, plataformaDe, PLATAFORMAS } = require('../utils/redes');
+const { traer, enlaceDe, plataformaDe, hayComoTraer, PLATAFORMAS } = require('../utils/redes');
 const { getSender, canonicalJid } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const logger = require('../utils/logger');
@@ -52,6 +52,16 @@ async function hazRed(sock, msg, args, groupMeta, plataforma) {
       ? `Ese enlace es de ${PLATAFORMAS[otra].nombre}. Aquí va el de ${nombre}.`
       : `Pega el enlace de ${nombre} detrás del comando.`;
     return sock.sendMessage(jid, { text: aviso }, { quoted: msg });
+  }
+
+  // SIN POR DONDE TRAERLO, NI SE COBRA NI SE INTENTA. Sin API para esa
+  // plataforma y sin yt-dlp no hay nada que probar: cobrar, esperar veinte
+  // segundos y devolver el aura es gastarle el tiempo a alguien para acabar
+  // donde ya se sabía. Y el mensaje no dice qué falta: eso es cosa del dueño y
+  // sale en `npm run estado`, no en el grupo.
+  if (!hayComoTraer(plataforma)) {
+    logger.warn(`${plataforma}: sin API y sin yt-dlp, no hay por dónde traerlo`);
+    return sock.sendMessage(jid, { text: `${nombre} no está disponible ahora mismo.` }, { quoted: msg });
   }
 
   const quien = getSender(msg);

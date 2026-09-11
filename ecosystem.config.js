@@ -140,6 +140,24 @@ module.exports = {
     restart_delay: 5000,
     max_restarts: 10,
     min_uptime: '60s',
+    // REINICIAR NO ARREGLA UNA SESION CERRADA, Y ESTO COSTO MIL DOSCIENTOS
+    // REINICIOS EN SIETE HORAS.
+    //
+    // Cuando la sesion del guardian se cierra desde el telefono, WhatsApp
+    // contesta 401 y el proceso no tiene nada que hacer: hace falta borrar
+    // data/authGuardian y volver a vincular, a mano. Pero el proceso salia con
+    // codigo 1, pm2 lo volvia a levantar, volvia a recibir el 401 y vuelta a
+    // empezar — tres veces por minuto, indefinidamente, quemando CPU y log en
+    // una maquina de un core.
+    //
+    // Con esto el guardian sale con 78 en ese caso concreto y pm2 lo deja
+    // PARADO. Un guardian parado se ve en `pm2 ls` y `npm run estado` lo canta;
+    // un guardian reiniciandose cada veinte segundos parece que funciona.
+    //
+    // El 78 es EX_CONFIG de sysexits: "la configuracion esta mal y no se
+    // arregla sola". Cualquier otro fallo sigue saliendo con 1 y reiniciandose,
+    // que para todo lo demas es lo correcto.
+    stop_exit_codes: [78],
     watch: false,
     env: {
       NODE_ENV: 'production',

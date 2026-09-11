@@ -279,7 +279,18 @@ if (!bot) {
 // uno, cada uno con su propio "no pude traerlo", y desde fuera parece que las
 // webs van mal. Aqui se dice una vez y claro.
 {
-  const donde = sh('command -v yt-dlp 2>/dev/null');
+  // SE PREGUNTA POR LA MISMA FUNCION QUE USA EL BOT, no por `command -v`.
+  //
+  // Esto fallo el dia del estreno: `pip install --user` deja yt-dlp en
+  // ~/.local/bin, que esta en el PATH de la terminal del dueño pero no en el que
+  // heredo el demonio de pm2. `command -v` desde aqui decia que si, el bot decia
+  // que no, y las dos cosas eran verdad. Una comprobacion que mira un sitio
+  // distinto del que mira el bot no comprueba nada.
+  let donde = null;
+  try {
+    const dl = require(path.join(RAIZ, 'src/utils/downloader'));
+    donde = dl.hayYtDlp() ? dl.YT_DLP : null;
+  } catch { donde = sh('command -v yt-dlp 2>/dev/null'); }
   if (!donde) {
     // QUE FALTE NO ES LO MISMO PARA TODOS. Quien tenga API de terceros puesta en
     // las tres plataformas no necesita yt-dlp para nada de redes; !play si lo
@@ -302,13 +313,44 @@ if (!bot) {
     // Y la VERSION importa mas que en otros sitios: TikTok e Instagram cambian
     // a menudo y una copia de hace medio anyo deja de sacar el video sin decir
     // por que. El formato de version de yt-dlp es la fecha, asi que se lee.
-    const v = (sh('yt-dlp --version 2>/dev/null') || '').trim();
+    const v = (sh(`${donde} --version 2>/dev/null`) || '').trim();
     const m = /^(\d{4})\.(\d{2})\.(\d{2})/.exec(v);
     const dias = m ? Math.round((Date.now() - Date.UTC(+m[1], +m[2] - 1, +m[3])) / 86400000) : null;
     if (dias != null && dias > 120) {
       aviso(`yt-dlp es de hace ${dias} dias (${v}): TikTok e Instagram ya habran cambiado`,
         'pipx upgrade yt-dlp   (o: pip install -U yt-dlp)');
     } else bien(`yt-dlp ${v || 'presente'}`);
+  }
+}
+
+// ─── Por qué no salen los vídeos de !tt, !ig y !pin ──────────────────────────
+//
+// Medido el día del estreno, desde esta misma clase de máquina y con yt-dlp al
+// día: TikTok contesta «Unexpected response», Instagram pide sesión iniciada y
+// el enlace corto de Pinterest acaba en la portada. Las tres bloquean a una IP
+// de datacenter, que es lo que es una VPS. O sea que pedírselo directamente no
+// es una vía peor: es una vía cerrada, y la API de terceros no es un adorno.
+//
+// El grupo no tiene por qué enterarse —al que pega el enlace le basta con «no
+// pude»— pero el dueño sí, y no a base de bucear en el log.
+{
+  let fallos = {};
+  let hayApi = () => false;
+  try { ({ ultimosFallos: fallos, hayApi } = require(path.join(RAIZ, 'src/utils/redes'))); fallos = fallos(); }
+  catch { fallos = {}; }
+  const COMANDO = { tiktok: '!tt', instagram: '!ig', pinterest: '!pin' };
+  const RECIENTE = 7 * 24 * 3600000;
+  for (const [red, f] of Object.entries(fallos)) {
+    if (!f || Date.now() - f.ts > RECIENTE) continue;
+    const cuando = new Date(f.ts).toLocaleString('es-ES');
+    const variable = `${red.toUpperCase()}_API`;
+    if (!hayApi(red)) {
+      aviso(`${COMANDO[red] || red} falló: ${f.motivo} (${cuando})`,
+        `pon ${variable} en el .env: desde una VPS estas webs no se dejan`);
+    } else {
+      mal(`${COMANDO[red] || red} falló CON su API puesta: ${f.motivo} (${cuando})`,
+        `comprueba ${variable}: el servicio puede haber cambiado o caducado`);
+    }
   }
 }
 

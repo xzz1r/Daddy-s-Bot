@@ -831,6 +831,14 @@ al arreglar la causa se acaba ignorando justo el día que dice la verdad. Así q
 `npm run estado` mira el **ritmo**: cuánto ha subido desde la última vez que se
 miró, guardado en `data/estadoReinicios.json`. Callado si no sube.
 
+Y reiniciar **no arregla una sesión cerrada**. Cuando la del guardián se cierra
+desde el teléfono, WhatsApp contesta 401 y no hay nada que el proceso pueda
+hacer: hay que borrar `data/authGuardian` y volver a vincular, a mano. Salía con
+código 1, pm2 lo levantaba, volvía el 401, y vuelta: 1223 reinicios en siete
+horas. Ahora sale con 78 y `ecosystem.config.js` lleva `stop_exit_codes: [78]`,
+así que pm2 lo deja **parado**. Un guardián parado se ve; uno reiniciándose cada
+veinte segundos parece que funciona.
+
 Y el contador sigue sin decir **por qué**. Peor: la comprobación que había para
 avisar de un techo apretado **no saltó nunca**, porque pm2 devuelve
 `max_memory_restart` en bytes y el código se quedaba con los dígitos tal cual, o
@@ -1091,10 +1099,26 @@ git pull origin main
 
   **De dónde salen.** Primero la API de esa plataforma si está puesta en el
   `.env` (`TIKTOK_API`, `INSTAGRAM_API`, `PINTEREST_API`, o `REDES_API` para las
-  tres), y si no, `yt-dlp`. La API va primero porque descarga en la IP del
-  servicio: TikTok e Instagram acaban bloqueando a las IP de datacenter, y esto
-  corre en una VPS. Si la API falla se cae a `yt-dlp` sin ruido. Pinterest no
-  tiene ese problema y se apaña con `yt-dlp`.
+  tres), y si no, `yt-dlp`. Si la API falla se cae a `yt-dlp` sin ruido.
+
+  **Y la API no es un adorno: es la única vía.** Medido el día del estreno,
+  desde una VPS y con `yt-dlp` al día:
+
+  | plataforma | qué contesta |
+  |---|---|
+  | TikTok | `Unexpected response from webpage request` |
+  | Instagram | `Instagram sent an empty media response` (pide sesión) |
+  | Pinterest | `pin.it` acaba en la portada, `Unsupported URL` |
+
+  Las tres bloquean a una IP de datacenter, que es lo que es una VPS. Pedírselo
+  directamente no es una vía peor, es una vía cerrada. El último fallo de cada
+  plataforma queda apuntado y `npm run estado` lo traduce a qué poner en el
+  `.env`, en vez de dejar un párrafo de yt-dlp en el log.
+
+  **Y si no hay por dónde** —ni API ni `yt-dlp`— el comando no cobra ni lo
+  intenta: contesta que esa red no está disponible y ya. Cobrar, esperar veinte
+  segundos y devolver el aura es gastarle el tiempo a alguien para acabar donde
+  ya se sabía.
 
   **La marca de agua** en TikTok no es otro vídeo, es otro **formato** del mismo
   enlace: el marcado es `download_addr` y el limpio es `play_addr`. El selector
