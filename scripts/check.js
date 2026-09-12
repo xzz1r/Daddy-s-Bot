@@ -10076,24 +10076,25 @@ const di=async(quien,t)=>{out.length=0;
     }
 
 
-    // 13. EL AVISO DE ADMIN SALE PARA TODOS, TAMBIEN PARA EL DUEÑO.
+    // 13. EL AVISO DE ADMIN CALLA LO DEL TIER DUEÑO.
     //
-    // Se saltaba cuando el autor era del tier dueño, y eso convertia el SILENCIO
-    // en la señal: en un grupo con los avisos puestos, el unico ascenso sin
-    // anuncio era el suyo. Lo contrario del anonimato que el bot mantiene en
-    // todas partes.
-    //
-    // El salto por `fromBot` si se queda: ese ascenso viene de *!promote*, que ya
-    // contesta en el mismo grupo.
+    // Ni lo que hace el bot con su numero ni lo que hace el dueño con el suyo.
+    // Es decision suya y esta capa existe porque YO la cambie una vez en la
+    // direccion contraria: me parecio que anunciar a todos menos a el convertia
+    // el silencio en la señal. Ni era cierto —lo del bot tambien va callado— ni
+    // era mia la decision.
     {
       const bot = soloCodigo('src/bot.js');
       const i = bot.indexOf('isAdminNotifyEnabled(groupJid)) {');
       exige(i > 0, 'no encuentro el aviso de cambio de admin en bot.js');
       const linea = i > 0 ? bot.slice(bot.lastIndexOf('\n', i) + 1, i + 40) : '';
-      exige(!/esOwnerAmplio/.test(linea),
-        'el aviso de admin vuelve a saltarse cuando lo hace el dueño: entonces el silencio es la señal de quién manda en el bot');
+      // EL TIER DUEÑO NO SE ANUNCIA. Ni el bot con su numero ni el dueño con el
+      // suyo: decision suya, dicha con esas palabras. Lo cambie una vez en la
+      // direccion contraria por un razonamiento mio y no era mi decision.
+      exige(/esOwnerAmplio/.test(linea),
+        'el aviso de admin vuelve a anunciar lo que hace el dueño: el tier dueño va callado, y es una decisión suya');
       exige(/!fromBot/.test(linea),
-        'el aviso de admin ya no se salta cuando lo hace el bot: *!promote* ya contesta y saldría dicho dos veces');
+        'el aviso de admin ya no se salta cuando lo hace el bot: el tier dueño va callado, y el bot es parte de él');
 
       // Y LA DEGRADACION DEL DUEÑO TIENE QUE DEJAR RASTRO. Sin esto, cuando la
       // protección no llega a hacer nada no queda una sola línea que lo diga.

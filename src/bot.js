@@ -1796,24 +1796,25 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
       return;
     }
 
-    // ─── EL AVISO SALE PARA TODOS, TAMBIEN PARA EL DUEÑO ──────────────────────
+    // ─── EL TIER DUEÑO NO SE ANUNCIA, Y ES DELIBERADO ─────────────────────────
     //
-    // Aqui se saltaba el aviso cuando el autor era del tier dueño. La razon
-    // escrita era que «tienen autoridad, sus movimientos son esperados y se
-    // quedan callados», y suena razonable hasta que se mira desde el grupo:
+    // Ni lo que hace el bot con su propio numero, ni lo que hace el dueño con el
+    // suyo. Decision suya, dicha con estas palabras: «cuando el numero del bot
+    // da un admin no debe notificar, al igual que yo con mi numero principal;
+    // basicamente tier owner».
     //
-    //   todo cambio de admin sale anunciado MENOS los del dueño.
+    // Lo cambie una vez en la direccion contraria por un razonamiento mio —que
+    // anunciar a todos menos al dueño convierte el silencio en la señal— y me
+    // equivoque de dos maneras: el silencio tampoco lo señala a el, porque los
+    // movimientos del bot tambien van callados, y de todas formas no era mi
+    // decision. Queda escrito para que no se vuelva a «arreglar» solo.
     //
-    // O sea que el silencio ERA la señal. En un grupo con los avisos puestos,
-    // el unico ascenso sin anuncio es el suyo, y eso es justo lo contrario del
-    // anonimato que este bot mantiene en todas partes. Anunciarlos a todos por
-    // igual no enseña nada nuevo —WhatsApp ya pone su propio aviso de sistema
-    // diciendo quien ascendio a quien— y quita el hueco.
-    //
-    // El salto por `fromBot` SI se queda: cuando el ascenso lo hace el bot es
-    // porque alguien escribio *!promote*, y ese comando ya contesta «@X ahora es
-    // admin» en el mismo grupo. Un segundo mensaje seria decirlo dos veces.
-    if (!fromBot && isAdminNotifyEnabled(groupJid)) {
+    // `esOwnerAmplio` y NO `isOwner`: es el mismo criterio que usan los tres
+    // reverts de arriba. El amplio prueba tambien el phoneNumber que trae el
+    // evento, asi que un owner cuyo LID aun no estuviera mapeado pasaba los
+    // reverts sin tocar (bien) pero luego SI salia anunciado aqui, que es justo
+    // lo que no debe notificarse de el.
+    if (!fromBot && !esOwnerAmplio(author, authorPn, meta) && isAdminNotifyEnabled(groupJid)) {
       const text = action === 'promote'
         ? `${authorTag} ha dado admin a ${targets}.`
         : `${authorTag} ha quitado admin a ${targets}.`;
