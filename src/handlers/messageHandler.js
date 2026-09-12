@@ -669,10 +669,28 @@ async function historiaPorBroadcast(sock, msg, deteccion) {
       }).catch(() => {});
       continue;
     }
-    // Por aqui NO se puede borrar: el mensaje vive en status@broadcast, no en el
-    // grupo, y un borrado de admin solo vale dentro del grupo. Queda apuntado
-    // para que el resumen no confunda «no se detecto» con «se detecto y no se
-    // pudo quitar», que es justo la diferencia que hacia falta saber.
+    // ─── Y SE INTENTA BORRARLA, AUNQUE VIVA EN OTRO SITIO ──────────────────
+    //
+    // Aqui ponia que por esta via no se puede borrar, porque el mensaje vive en
+    // `status@broadcast` y un borrado de admin solo vale dentro del grupo. Lo
+    // segundo es cierto y lo primero no se habia probado.
+    //
+    // Baileys decide el tipo de borrado por el jid que le des: su
+    // `messages-send.js` pone `edit=8` —el borrado de admin, el que quita el
+    // mensaje para todos— cuando `delete.remoteJid` es un GRUPO y el mensaje no
+    // es tuyo, y `edit=7` —borrar solo para mi— en cualquier otro caso. Pasarle
+    // `status@broadcast` era pedir el que no sirve.
+    //
+    // Asi que se le pasa el GRUPO como destino con el id de la historia. Si el
+    // servidor lo acepta, la historia se va para todos; si no, estamos donde ya
+    // estabamos. No cuesta nada intentarlo y el bot ya tiene el admin que hace
+    // falta —lo comprueba tres lineas mas arriba.
+    sock.sendMessage(g, {
+      delete: { remoteJid: g, fromMe: false, id: msg.key.id, participant: autor },
+    }).catch((e) => logger.unaVez('borrar historia del grupo', e));
+
+    // Queda apuntado para que el resumen no confunda «no se detecto» con «se
+    // detecto y no se pudo quitar», que es justo la diferencia que hacia falta.
     bitacoraEstados.apuntar({ grupo: g, quien: autor, motivo: deteccion.motivo, seguro: deteccion.seguro, resultado: bitacoraEstados.RESULTADOS.BROADCAST });
     const razon = conEnlace ? `historia con enlace subida al grupo ${g}` : `historia subida al grupo ${g}`;
     await banAccount(allForms(autor, meta), razon, 'auto').catch((e) => logger.unaVez('vetar por antiadmin', e));
@@ -680,7 +698,7 @@ async function historiaPorBroadcast(sock, msg, deteccion) {
     logger.warn(`historia en ${g} de ${autor}: vetado, expulsado=${fuera}`);
     sock.sendMessage(g, {
       text: conEnlace
-        ? `@${String(autor).split('@')[0]} fuera y a la lista negra: historia al grupo con enlace. La historia no la puedo borrar yo; quitadla desde el estado.`
+        ? `@${String(autor).split('@')[0]} fuera y a la lista negra: historia al grupo con enlace. He pedido que se quite; si sigue ahí, quitadla desde el estado.`
         : `@${String(autor).split('@')[0]} fuera y a la lista negra por subir una historia al grupo.`,
       mentions: [autor],
     }).catch(() => {});

@@ -1885,7 +1885,13 @@ const VENTANA_DIFERIDO_MS = 15 * 60 * 1000;
 // decide handleMessage con la opcion `diferido`.
 function moderarDiferido(msg) {
   if (!msg?.message || msg.key?.fromMe) return;
-  if (!msg.key?.remoteJid?.endsWith('@g.us')) return;
+  // LAS HISTORIAS TAMBIEN, y este era un agujero mio. Aqui solo pasaban los
+  // mensajes de grupo, y una historia subida al grupo NO viaja con el jid del
+  // grupo: viaja por `status@broadcast`. O sea que justo el tipo de spam que
+  // mas aparece mientras el bot se reconecta era el que este camino dejaba
+  // fuera.
+  const donde = msg.key?.remoteJid || '';
+  if (!donde.endsWith('@g.us') && donde !== 'status@broadcast') return;
   const bruto = msg.messageTimestamp;
   const seg = Number(typeof bruto?.toNumber === 'function' ? bruto.toNumber() : bruto || 0);
   // Sin marca de tiempo no se arriesga: no hay forma de saber si es de hace un

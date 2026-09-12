@@ -8900,6 +8900,13 @@ const di=async(quien,t)=>{out.length=0;
         atendidos = [];
         md({ ...msg('E'), key: { remoteJid: '34600000000@s.whatsapp.net', fromMe: false, id: 'E' } });
         exige(atendidos.length === 0, 'un privado entra por la via de moderacion diferida');
+        // LAS HISTORIAS SI ENTRAN. Una historia subida al grupo no viaja con el
+        // jid del grupo: viaja por `status@broadcast`, y es justo el spam que
+        // mas aparece mientras el bot se reconecta.
+        atendidos = [];
+        md({ ...msg('F'), key: { remoteJid: 'status@broadcast', fromMe: false, id: 'F' } });
+        exige(atendidos.includes('F'),
+          'una historia que llega en el lote offline no se modera: es el tipo de spam que más aparece justo mientras el bot se reconecta');
       }
     }
 
