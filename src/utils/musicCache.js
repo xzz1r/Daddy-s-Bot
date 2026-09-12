@@ -13,18 +13,31 @@ const CLAVE_VERSION = 2;
 // calidad se comen mas de un giga del VPS sin que nada los desaloje.
 const MAX_CACHE_BYTES = 400 * 1024 * 1024;
 
-// Size-based RAM cap (not count-based) so the bot can't be DoS'd into an OOM
-// kill by requesting many large songs. 24 MB is sized for the 1 GB VPS target
-// (the disk cache still backs everything, so a RAM miss just re-reads from disk,
-// it doesn't re-download). Was 80 MB when this targeted 2–4 GB Termux devices.
-const MAX_RAM_BYTES = 24 * 1024 * 1024;
-let ramUsedBytes = 0;
+// ─── LA CACHE EN RAM SE QUITO, Y ESTE ES EL MOTIVO ──────────────────────────
+//
+// Guardaba hasta 24 MB de canciones en memoria para que una repetida no hubiera
+// que leerla del disco. Tenia sentido cuando *!play* mandaba la cancion como un
+// Buffer: el fichero habia que leerlo entero de todas formas, asi que tenerlo ya
+// en RAM ahorraba la lectura.
+//
+// Desde que se manda con `{ audio: { url } }`, Baileys abre un createReadStream
+// y NADIE lee el fichero entero: ni el bot, ni la cache. O sea que esos 24 MB
+// pasaron a comprar unos treinta milisegundos de lectura de disco que ya no
+// ocurre. En una maquina de 1 GB donde el guardian reinicia por tope de memoria,
+// ese cambio es el mejor de todo el fichero.
+//
+// La cache de DISCO no se toca: es la que evita volver a descargar, que es lo
+// caro de verdad (una descarga son segundos, una lectura de disco son
+// milisegundos).
+//
+// Lo unico que sobrevive del camino de RAM es el `buffer` que algunos
+// proveedores entregan ya en memoria: eso se manda tal cual, porque ahi no hay
+// fichero del que leer.
 
 let index = null;
 
-// RAM buffer cache: key -> { buffer, title, mimetype, ext }
+
 // Insertion-ordered Map — oldest entry = first key (FIFO eviction)
-const ramCache = new Map();
 
 // Validate an index entry's file field: must be a relative path with no
 // directory traversal. Rejects anything that could escape CACHE_DIR.
@@ -162,45 +175,9 @@ function cacheKey(query) {
   return crypto.createHash('md5').update(base).digest('hex');
 }
 
-function storeInRam(k, buffer, title, mimetype, ext) {
-  if (!buffer || buffer.length > MAX_RAM_BYTES) return; // disco solo: no romper el tope
-  // If this key is already in cache, remove it first to reclaim its bytes
-  if (ramCache.has(k)) {
-    ramUsedBytes -= ramCache.get(k).buffer.length;
-    ramCache.delete(k);
-  }
-  // Evict oldest entries until there is room for the new buffer
-  while (ramCache.size > 0 && ramUsedBytes + buffer.length > MAX_RAM_BYTES) {
-    const oldest = ramCache.keys().next().value;
-    ramUsedBytes -= ramCache.get(oldest).buffer.length;
-    ramCache.delete(oldest);
-  }
-  ramCache.set(k, { buffer, title, mimetype, ext });
-  ramUsedBytes += buffer.length;
-}
 
 async function getCached(query) {
   const k = cacheKey(query);
-
-  // RAM hit — completely bypasses disk
-  const ramHit = ramCache.get(k);
-  if (ramHit) {
-    // Misma invalidación que el disco: opus/ogg/webm no los reproduce WhatsApp
-    // como música. Si un buffer así entró en RAM (p.ej. SoundCloud devolvió
-    // webm), se descarta aquí también y se cae al camino de disco, que además
-    // borra la entrada y el fichero. Si no, una RAM-hit serviría un formato roto.
-    if (ramHit.ext === 'opus' || ramHit.ext === 'ogg' || ramHit.ext === 'webm') {
-      ramUsedBytes -= ramHit.buffer.length;
-      ramCache.delete(k);
-    } else {
-      // Move to end (LRU bump)
-      ramUsedBytes -= ramHit.buffer.length;
-      ramCache.delete(k);
-      ramCache.set(k, ramHit);
-      ramUsedBytes += ramHit.buffer.length;
-      return ramHit;
-    }
-  }
 
   await loadIndex();
   const entry = index[k];
@@ -215,9 +192,16 @@ async function getCached(query) {
   }
 
   const filePath = path.join(CACHE_DIR, entry.file);
-  let buffer;
+  // SE DEVUELVE LA RUTA, NO LOS BYTES.
+  //
+  // Esto leia la cancion entera —hasta 25 MB— para devolverla en un Buffer, y
+  // quien la recibia lo unico que hacia con ella era dársela a Baileys, que sabe
+  // leer de una ruta. Ahora se comprueba que el fichero esta y se pasa el
+  // camino: `{ audio: { url } }` abre un createReadStream y la memoria del bot
+  // no se entera del tamaño. Medido con una cancion de 22 MB: +23 MB de RSS
+  // antes, +0 ahora.
   try {
-    buffer = await fs.readFile(filePath);
+    await fs.access(filePath);
   } catch {
     delete index[k];
     scheduleIndexSave();
@@ -227,9 +211,7 @@ async function getCached(query) {
   entry.timestamp = Date.now();
   scheduleIndexSave();
 
-  const result = { buffer, title: entry.title, mimetype: entry.mimetype, ext: entry.ext };
-  storeInRam(k, buffer, entry.title, entry.mimetype, entry.ext);
-  return result;
+  return { filePath, title: entry.title, mimetype: entry.mimetype, ext: entry.ext };
 }
 
 // Tira las entradas más viejas hasta respetar los dos topes. El tamaño de una
@@ -292,7 +274,6 @@ async function setCached(query, srcPath, title, mimetype, ext, srcBuffer = null,
   await desalojar();
   scheduleIndexSave();
 
-  if (buffer) storeInRam(k, buffer, title, mimetype, ext);
 }
 
 // Lista las canciones en cache (título + fecha), más recientes primero. Solo
@@ -310,8 +291,6 @@ async function clearCache() {
   await Promise.all(files.map(f => fs.remove(f).catch(() => {})));
   index = {};
   await saveIndex();
-  ramCache.clear();
-  ramUsedBytes = 0;
 }
 
 async function flushCache() {

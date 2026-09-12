@@ -9428,9 +9428,12 @@ const di=async(quien,t)=>{out.length=0;
 
           let base = '';
           let vacio = false;
+          let visitasPagina = 0;
+          let caducarUnaVez = false;
           srv = http.createServer((req, res) => {
             const ruta = req.url.split('?')[0];
             if (ruta === '/pagina') {
+              visitasPagina++;
               // Con cookie: sin ella el código ni intenta el buscador.
               res.writeHead(200, {
                 'content-type': 'text/html',
@@ -9439,6 +9442,10 @@ const di=async(quien,t)=>{out.length=0;
               return res.end(`<img src="https://i.pinimg.com/736x/aa/bb/cc/aabbccddeeff00112233445566778899.jpg">`);
             }
             if (ruta === '/recurso') {
+              // Cookie caducada: el primer intento contesta 403 y el siguiente
+              // ya va bien. Es lo que hace Pinterest cuando la sesion anonima
+              // vence, y sin reintento serian media hora de busquedas rotas.
+              if (caducarUnaVez) { caducarUnaVez = false; res.writeHead(403); return res.end('no'); }
               res.writeHead(200, { 'content-type': 'application/json' });
               return res.end(JSON.stringify({ resource_response: { data: { results: vacio ? [] : [
                 { images: { orig: { url: `${base}/buscador.jpg` } } },
@@ -9474,6 +9481,36 @@ const di=async(quien,t)=>{out.length=0;
               : 'con el buscador diciendo que no tiene nada, se manda una foto igualmente: esa sale de la página, o sea del relleno');
           if (nada.fichero) fs.rmSync(nada.fichero, { force: true });
           vacio = false;
+
+          // Y LAS COOKIES SE GUARDAN. La pagina solo existe para leer dos
+          // cabeceras y pesa un mega: visitarla en cada busqueda son 865 ms y
+          // 1.038 KB tirados. Medido de verdad: mediana de 1.925 ms por busqueda
+          // sin guardarlas contra 1.003 ms guardandolas.
+          //
+          // Se cuenta cuantas veces se pide la pagina en TRES busquedas: con la
+          // memoria puesta tiene que ser una.
+          redes._olvidarGalletas();
+          visitasPagina = 0;
+          for (let i = 0; i < 3; i++) {
+            const x = await redes.buscar(`lo que sea ${i}`, null).catch(() => null);
+            if (x?.fichero) fs.rmSync(x.fichero, { force: true });
+          }
+          exige(visitasPagina === 1,
+            `la página de Pinterest se pidió ${visitasPagina} veces en 3 búsquedas: las cookies no son de la consulta, son de la sesión, y cada visita es un mega y casi un segundo`);
+
+          // Y CUANDO LA COOKIE GUARDADA CADUCA, se va a por otra. Sin esto, la
+          // primera cookie que Pinterest invalide deja media hora de búsquedas
+          // contestando «no encontré nada» con el buscador entero en pie.
+          const antesDeCaducar = visitasPagina;
+          caducarUnaVez = true;
+          const trasCaducar = await redes.buscar('despues de caducar', null).catch((e) => ({ error: e.message }));
+          exige(!trasCaducar.error,
+            `con la cookie caducada la búsqueda falla en vez de pedir otra: ${trasCaducar.error || ''}`);
+          exige(visitasPagina === antesDeCaducar + 1,
+            'con la cookie caducada no se volvió a por la página: la memoria de cookies se queda con una que ya no vale');
+          if (trasCaducar.fichero) fs.rmSync(trasCaducar.fichero, { force: true });
+          caducarUnaVez = false;
+          redes._olvidarGalletas();
         } finally {
           redes._PIN.pagina = antesPin.pagina;
           redes._PIN.recurso = antesPin.recurso;
@@ -9901,6 +9938,41 @@ const di=async(quien,t)=>{out.length=0;
             `${fichero} manda un vídeo sin jpegThumbnail: Baileys lanzará su propio ffmpeg por fuera del semáforo`);
         }
       }
+    }
+
+
+    // 10. *!play* NO CARGA LA CANCION EN LA RAM, y *!pin* no se baja un mega
+    //     por cada busqueda.
+    {
+      const mc = soloCodigo('src/utils/musicCache.js');
+      exige(!/ramCache/.test(mc),
+        'vuelve la caché en RAM de las canciones: 24 MB de memoria permanente para ahorrar una lectura de disco que ya no ocurre, en una máquina de 1 GB');
+      const i = mc.indexOf('async function getCached(');
+      const cuerpo = i < 0 ? '' : mc.slice(i, mc.indexOf('\n}', i));
+      exige(i > 0, 'no encuentro getCached');
+      exige(!/readFile\(filePath\)/.test(cuerpo),
+        'getCached vuelve a leer la canción entera: son hasta 25 MB de RSS para dársela a Baileys, que sabe leer de una ruta');
+      exige(/filePath/.test(cuerpo), 'getCached ya no devuelve la ruta: entonces no hay de dónde leerla');
+
+      const mus = soloCodigo('src/commands/music.js');
+      exige(/audio: audioBuffer \|\| \{ url: result\.filePath \}/.test(mus),
+        '*!play* vuelve a mandar la canción desde un Buffer en vez de desde el disco');
+
+      // La duracion no puede depender solo de ffprobe: si no esta, el filtro que
+      // descarta las previews de 30 s se queda muerto y el grupo recibe recortes.
+      const dl = soloCodigo('src/utils/downloader.js');
+      exige(/duracionPorFfmpeg\(/.test(dl),
+        'la duración de la canción vuelve a salir solo de ffprobe: sin ffprobe devuelve null siempre y el filtro de las previews de 30 s deja de filtrar');
+      const j = dl.indexOf('function audioDuration(');
+      const cuerpoDur = j < 0 ? '' : dl.slice(j, dl.indexOf('\n}', j));
+      const salidas = (cuerpoDur.match(/conRespaldo\(\)/g) || []).length;
+      exige(salidas >= 3,
+        `el respaldo de la duración está en ${salidas} de las tres salidas: el caso real (ffprobe que no existe) sale por «error», no por «close»`);
+
+      // Y las cookies de Pinterest se guardan: la pagina pesa un mega y solo se
+      // visita para leer dos cabeceras.
+      const red = soloCodigo('src/utils/redes.js');
+
     }
 
     if (fallos === antes) console.log(verde('   ✓ mismo comportamiento, el dinero se apunta antes de pagarse y ffmpeg no se queda sin plaza'));

@@ -4,7 +4,7 @@ const path = require('path');
 const axios = require('axios');
 const config = require('../config');
 const { tempFile, cleanTemp } = require('./helpers');
-const { ffprobePath } = require('./ffmpeg');
+const { ffmpegPath, ffprobePath } = require('./ffmpeg');
 const { cacheKey } = require('./musicCache');
 const logger = require('./logger');
 
@@ -143,13 +143,48 @@ function audioDuration(file) {
       // ffprobePath, NO el nombre pelado: con el ffmpeg empaquetado no hay ningun
       // ffprobe en PATH, asi que el spawn fallaba y la duracion salia null SIEMPRE,
       // dejando muerto el filtro que descarta las previews de 30 segundos.
+      //
+      // Y AUN ASI PUEDE NO ESTAR: si la maquina no tiene ffprobe en ningun sitio,
+      // `ffprobePath` acaba siendo la cadena pelada y el spawn vuelve a fallar.
+      // Por eso hay respaldo con ffmpeg unas lineas mas abajo — ffmpeg si esta
+      // siempre, y su `-i` escupe la duracion igual. Sin ese respaldo, el filtro
+      // de las previews de 30 segundos se queda muerto sin avisar, y el grupo
+      // recibe recortes en vez de canciones.
       proc = spawn(ffprobePath, ['-v', 'error', '-show_entries', 'format=duration',
         '-of', 'default=noprint_wrappers=1:nokey=1', file]);
-    } catch { return resolve(null); }
-    const timer = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} resolve(null); }, 15000);
+    } catch { return duracionPorFfmpeg(file).then(resolve); }
+    // El respaldo va en los TRES finales, no solo en el `close`. El caso real
+    // —ffprobe que no existe— sale por `error`, no por `close`: probado en una
+    // maquina sin ffprobe, con el respaldo solo en `close` la duracion seguia
+    // saliendo null y el filtro de previews seguia muerto.
+    const conRespaldo = () => duracionPorFfmpeg(file).then(resolve);
+    const timer = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} conRespaldo(); }, 15000);
     proc.stdout?.on('data', (d) => { out += d.toString(); });
+    proc.on('error', () => { clearTimeout(timer); conRespaldo(); });
+    proc.on('close', () => {
+      clearTimeout(timer);
+      const n = parseFloat(out.trim());
+      if (Number.isFinite(n)) return resolve(n);
+      conRespaldo();
+    });
+  });
+}
+
+// El respaldo: ffmpeg siempre esta, y su `-i` imprime la duracion en stderr.
+function duracionPorFfmpeg(file) {
+  return new Promise((resolve) => {
+    let texto = '';
+    let proc;
+    try { proc = spawn(ffmpegPath, ['-hide_banner', '-i', file, '-t', '0', '-f', 'null', '-']); }
+    catch { return resolve(null); }
+    const timer = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} resolve(null); }, 15000);
+    proc.stderr?.on('data', (d) => { texto += d.toString(); });
     proc.on('error', () => { clearTimeout(timer); resolve(null); });
-    proc.on('close', () => { clearTimeout(timer); const n = parseFloat(out.trim()); resolve(Number.isFinite(n) ? n : null); });
+    proc.on('close', () => {
+      clearTimeout(timer);
+      const m = /Duration: (\d+):(\d+):(\d+\.?\d*)/.exec(texto);
+      resolve(m ? Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]) : null);
+    });
   });
 }
 
@@ -506,6 +541,7 @@ async function downloadAudio(query) {
 // problema para una cancion que para un video de TikTok, y dos copias del
 // control de concurrencia son dos limites distintos que se creen el mismo.
 module.exports = {
+  _audioDuration: audioDuration, _duracionPorFfmpeg: duracionPorFfmpeg,
   downloadAudio, ordenDeKeys, sinCuota, PROVIDERS,
   acquireDownloadSlot, releaseDownloadSlot, ytdlp, downloadUrlToFile, hayYtDlp,
   YT_DLP, MAX_BYTES, TEMP_DIR,

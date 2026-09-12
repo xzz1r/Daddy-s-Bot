@@ -1050,37 +1050,74 @@ function pinesDeResultados(crudos) {
   return pines;
 }
 
-async function pedirAPinterest(consulta) {
-  const pagina = PIN.pagina + encodeURIComponent(consulta);
-  const comun = { 'User-Agent': UA_ESCRITORIO, 'Accept-Language': 'es-ES,es;q=0.9' };
+// ─── LAS COOKIES SE GUARDAN: NO SON DE LA BUSQUEDA, SON DE LA SESION ────────
+//
+// La visita a la pagina existe SOLO para recoger el csrftoken, y esa pagina pesa
+// un mega. Medido: 865 ms y 1.038 KB para leer dos cabeceras.
+//
+// Y las mismas cookies valen para OTRA busqueda distinta: comprobado, se pidio
+// «gatos», se guardaron sus cookies y con ellas «naruto» contesto 200 con sus
+// dieciocho pines. No son de la consulta, son de la sesion anonima.
+//
+// Asi que se guardan media hora. La primera busqueda tras arrancar paga la
+// pagina; las demas van directas al buscador: de 2.259 ms a 1.394, y sin
+// bajarse un mega cada vez, que en una VPS con datos contados tampoco da igual.
+//
+// Si el buscador contesta 403 con las cookies guardadas —han caducado o
+// Pinterest las ha invalidado— se tiran y se vuelve a por la pagina UNA vez. Sin
+// eso, media hora de busquedas rotas por una cookie vieja.
+const GALLETAS_MS = 30 * 60_000;
+let galletasGuardadas = null;   // { cookie, csrf, ts }
+
+async function traerGalletas(pagina, comun, forzar = false) {
+  if (!forzar && galletasGuardadas && Date.now() - galletasGuardadas.ts < GALLETAS_MS) {
+    return { ...galletasGuardadas, html: '' };
+  }
   const portada = await axios.get(pagina, {
     timeout: 20000, headers: comun, maxRedirects: 5, validateStatus: () => true,
   });
   const html = String(portada.data || '');
-  const galletas = (portada.headers['set-cookie'] || []).map((c) => c.split(';')[0]).join('; ');
-  const csrf = (/csrftoken=([^;]+)/.exec(galletas) || [])[1];
+  const cookie = (portada.headers['set-cookie'] || []).map((c) => c.split(';')[0]).join('; ');
+  const csrf = (/csrftoken=([^;]+)/.exec(cookie) || [])[1];
+  if (cookie) galletasGuardadas = { cookie, csrf, ts: Date.now() };
+  return { cookie, csrf, html };
+}
+
+async function pedirAPinterest(consulta) {
+  const pagina = PIN.pagina + encodeURIComponent(consulta);
+  const comun = { 'User-Agent': UA_ESCRITORIO, 'Accept-Language': 'es-ES,es;q=0.9' };
+  let { cookie: galletas, csrf, html } = await traerGalletas(pagina, comun);
   if (!galletas) return { pines: [], html, contesto: false };
 
   const cuerpo = { options: { query: consulta, scope: 'pins', bookmarks: [''] }, context: {} };
   const destino = PIN.recurso
     + `?source_url=${encodeURIComponent(`/search/pins/?q=${consulta}`)}`
     + `&data=${encodeURIComponent(JSON.stringify(cuerpo))}`;
+  const preguntar = async () => axios.get(destino, {
+    timeout: 20000, validateStatus: () => true,
+    headers: {
+      ...comun,
+      Accept: 'application/json, text/javascript, */*; q=0.01',
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-APP-VERSION': 'ba7f6d6',
+      'X-Pinterest-AppState': 'active',
+      'X-Pinterest-Source-Url': `/search/pins/?q=${consulta}`,
+      'X-Pinterest-PWS-Handler': 'www/search/[scope].js',
+      Referer: pagina,
+      Cookie: galletas,
+      ...(csrf ? { 'X-CSRFToken': csrf } : {}),
+    },
+  });
+
   try {
-    const r = await axios.get(destino, {
-      timeout: 20000, validateStatus: () => true,
-      headers: {
-        ...comun,
-        Accept: 'application/json, text/javascript, */*; q=0.01',
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-APP-VERSION': 'ba7f6d6',
-        'X-Pinterest-AppState': 'active',
-        'X-Pinterest-Source-Url': `/search/pins/?q=${consulta}`,
-        'X-Pinterest-PWS-Handler': 'www/search/[scope].js',
-        Referer: pagina,
-        Cookie: galletas,
-        ...(csrf ? { 'X-CSRFToken': csrf } : {}),
-      },
-    });
+    let r = await preguntar();
+    // Cookie caducada: se tira la guardada, se vuelve a por la pagina y se
+    // pregunta otra vez. Una sola vez, que si tampoco vale no es la cookie.
+    if (r.status === 403 || r.status === 401) {
+      galletasGuardadas = null;
+      ({ cookie: galletas, csrf, html } = await traerGalletas(pagina, comun, true));
+      if (galletas) r = await preguntar();
+    }
     const crudos = r.data?.resource_response?.data?.results;
     // `contesto` distingue dos cosas que antes se confundian, y la confusion se
     // vio en el grupo: el buscador que NO responde (403, red, cambio de nombre)
@@ -1433,5 +1470,5 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, buscar, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
+module.exports = { traer, buscar, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
   _montarPase: montarPase, _comoEnlaces: comoEnlaces, _porYtDlpFotos: porYtDlpFotos, _fotosDeFicha: fotosDeFicha, _esSinVideo: esSinVideo, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };
