@@ -93,21 +93,35 @@ async function cmdPlay(sock, msg, args, groupMeta) {
     }
   }
 
-  // Send audio — use RAM buffer if available, otherwise read from disk.
-  // The buffer read here is reused for caching below so a freshly downloaded
-  // file is never read from disk twice.
+  // ─── LA CANCION SE MANDA DESDE EL DISCO, NO DESDE LA RAM ──────────────────
+  //
+  // Esto leia el fichero ENTERO a un Buffer —hasta 25 MB— solo para pasarselo a
+  // Baileys, que lo unico que hace con el es subirlo. Y Baileys sabe leer de una
+  // ruta: con `{ audio: { url } }` abre un createReadStream y la RAM del bot no
+  // se entera del tamaño. Es exactamente lo que ya hace utils/redes.js con los
+  // videos, y por escrito explica por que.
+  //
+  // En una maquina de 1 GB donde el bot ronda los 140 MB, un pico de 25 MB (mas
+  // otros 25 mientras el Buffer se copia) es de las cosas que acaban en un
+  // reinicio por tope de memoria.
+  //
+  // Cuando la cancion viene ya en RAM —la trae asi el proveedor— se manda como
+  // estaba: no hay fichero del que leer.
   let audioBuffer = null;
   try {
-    audioBuffer = result.buffer || await fs.readFile(result.filePath);
+    audioBuffer = result.buffer || null;
+    const bytes = audioBuffer
+      ? audioBuffer.length
+      : await fs.stat(result.filePath).then((x) => x.size).catch(() => 0);
 
-    if (audioBuffer.length > 25 * 1024 * 1024) {
+    if (bytes > 25 * 1024 * 1024) {
       if (!fromCache && !result.compartido) cleanTemp(result.filePath).catch(() => {});
       await reembolsar();
       return sock.sendMessage(jid, { text: 'La canción pesa más de 25MB y no puede enviarse.' }, { quoted: msg });
     }
 
     await sock.sendMessage(jid, {
-      audio: audioBuffer,
+      audio: audioBuffer || { url: result.filePath },
       mimetype: result.mimetype || 'audio/mp4',
       fileName: `${result.title}.${result.ext || 'm4a'}`,
       ptt: false,

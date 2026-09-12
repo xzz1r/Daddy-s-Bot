@@ -264,10 +264,16 @@ async function setCached(query, srcPath, title, mimetype, ext, srcBuffer = null,
   const cacheFile = `${k}${path.extname(srcPath)}`;
   const destPath = path.join(CACHE_DIR, cacheFile);
 
-  let buffer = srcBuffer;
+  // SIN BUFFER SE COPIA EN FLUJO, no se lee el fichero entero para escribirlo.
+  //
+  // Antes, si no le daban el buffer, esto hacia readFile + writeFile: una
+  // cancion de 25 MB eran 25 MB de RAM para mover bytes de un sitio a otro del
+  // mismo disco. `fs.copy` lo hace en flujo. Con buffer se sigue escribiendo
+  // directo, que ahi ya esta en memoria y leerlo otra vez seria peor.
+  const buffer = srcBuffer;
   try {
-    if (!buffer) buffer = await fs.readFile(srcPath);
-    await fs.writeFile(destPath, buffer);
+    if (buffer) await fs.writeFile(destPath, buffer);
+    else await fs.copy(srcPath, destPath);
   } catch {
     await fs.copy(srcPath, destPath).catch(() => {});
   }
