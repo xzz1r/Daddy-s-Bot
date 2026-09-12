@@ -42,6 +42,8 @@ function soloCodigo(rutaRelativa) {
 }
 const vm = require('vm');
 const Module = require('module');
+// Para distinguir una IP de un telefono en el detector de numeros reales.
+const net = require('net');
 
 const R = path.resolve(__dirname, '..');
 const rojo = (s) => `\x1b[31m${s}\x1b[0m`;
@@ -853,6 +855,12 @@ async function capaStores() {
 }
 
 (async () => {
+  // LAS PRUEBAS SIRVEN SUS PROPIOS FICHEROS DESDE 127.0.0.1, y el freno de
+  // salidas (src/utils/redSegura.js) esta para impedir exactamente eso. Se le
+  // abre la puerta del loopback aqui, que es lo unico que abre: el metadata del
+  // VPS sigue cerrado, y la capa 61 la vuelve a cerrar del todo para medir el
+  // freno de verdad.
+  require(path.join(R, 'src/utils/redSegura')).permitirLoopback(true);
   for (const c of comandos) {
     for (let i = 0; i < TIRADAS; i++) {
       try {
@@ -4186,6 +4194,14 @@ const di=async(quien,texto,extra)=>{
           // codigo. Se excluyen los que van pegados a una letra o a un punto
           // —versiones, milisegundos, rutas— y los marcadores de ejemplo.
           for (const m of linea.matchAll(/(?<![\w.])\+?(\d[\d\s().-]{9,24})(?![\w.])/g)) {
+              // UNA IP NO ES UN TELEFONO. 169.254.169.254 —el metadata del
+              // VPS, que sale en los comentarios y en las pruebas del freno de
+              // salidas— se queda en doce digitos seguidos al quitarle los
+              // puntos, que es justo el largo de un movil. Se comprueba antes
+              // de contar digitos, porque despues ya no hay forma de saberlo.
+              // (Y el ejemplo de esos doce digitos no se escribe aqui: esta
+              // linea la lee el propio detector y se delataria sola.)
+              if (net.isIP(m[1].trim())) continue;
               const d = m[1].replace(/\D/g, '');
               if (d.length < 10 || d.length > 15) continue;
               if (esRelleno(d)) continue;
@@ -10247,6 +10263,358 @@ const di=async(quien,t)=>{out.length=0;
     }
 
     if (fallos === antes) console.log(verde('   ✓ todas de una vez, el sticker se convierte y el pin sale por relevancia'));
+  }
+
+  // ── 60. UNA HISTORIA QUE NO DICE A QUE GRUPO VA ──────────────────────────
+  //
+  // Meses de "las historias con enlace siguen ahi". El guardia estaba entero:
+  // reconocia el sobre, leia el enlace, sabia expulsar. Lo que fallaba es que
+  // no sabia DONDE.
+  //
+  // El destino de una historia de grupo viaja en `statusMentions` /
+  // `statusMentionSources`, campos de WebMessageInfo. WhatsApp no siempre los
+  // manda. Cuando no los manda, el bot escribia «sin grupo identificable» en un
+  // log que nadie lee y se callaba — indistinguible, desde el grupo, de no
+  // haberla visto.
+  //
+  // Que no venga el grupo no quiere decir que no venga QUIEN: `key.participant`
+  // esta siempre. Y de los grupos del bot solo puede haber subido la historia a
+  // aquellos en los que esta. Asi que con una invitacion dentro se actua en
+  // todos ellos.
+  //
+  // LA INVITACION ES LA CONDICION, no un adorno. Sin ella esta via no toca a
+  // nadie: echar a alguien de tres grupos por una historia que no se sabe donde
+  // se subio, y que a lo mejor no se subio a ninguno, cuesta mas de lo que
+  // arregla. Con un chat.whatsapp.com dentro es la misma infraccion que en el
+  // chat ya cuesta el grupo.
+  //
+  // TODOS LOS GRUPOS SE CREAN ANTES DE LA PRIMERA HISTORIA, y no es un detalle
+  // de montaje: el censo se guarda un minuto, asi que un grupo creado despues
+  // no sale en el. Montado al reves, "a este no se le expulsa" salia verde
+  // porque el grupo no existia para el censo, no porque la guarda funcionara.
+  // Asi pasaron dos de estas comprobaciones la primera vez que las escribi.
+  {
+    console.log('\n60. UNA HISTORIA QUE NO DICE A QUE GRUPO VA');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const mh = require(path.join(R, 'src/handlers/messageHandler'));
+    const { handleMessage, getGroupMeta } = mh;
+    const INVITE60 = 'https://chat.whatsapp.com/JJswfylh8lxH9tDzLGeZK0';
+    const BOT60 = '34600000060@s.whatsapp.net';
+
+    const REO_A = '34611111160@s.whatsapp.net';   // dos grupos, con invitacion
+    const REO_B = '34622222260@s.whatsapp.net';   // un grupo, SIN invitacion
+    const REO_C = '34633333360@s.whatsapp.net';   // la rafaga
+    const REO_D = '34644444460@s.whatsapp.net';   // con destino declarado
+    const JEFE  = '34655555560@s.whatsapp.net';   // admin
+    const REO_F = '34666666660@s.whatsapp.net';   // con el censo caido
+    const AJENO = '34699999960@s.whatsapp.net';
+
+    const reg = { censos: 0, expulsados: [], borrados: [] };
+    let censoRompe = false;
+    const mundo = new Map();   // jid -> participantes. Lo que sabe WhatsApp.
+    const G = (n) => `12036000000060${String(n).padStart(3, '0')}@g.us`;
+    const crear = (n, miembros) => { mundo.set(G(n), [{ id: BOT60, admin: 'admin' }, ...miembros]); return G(n); };
+
+    const GA1 = crear(1, [{ id: REO_A }]);
+    const GA2 = crear(2, [{ id: REO_A }]);
+    const GAJENO = crear(3, [{ id: AJENO }]);
+    const GB = crear(4, [{ id: REO_B }]);
+    const GC = crear(5, [{ id: REO_C }]);
+    const GD = crear(6, [{ id: REO_D }]);
+    const GE = crear(7, [{ id: JEFE, admin: 'admin' }]);
+    const GF = crear(8, [{ id: REO_F }]);
+
+    const sockDe = () => ({
+      user: { id: BOT60 },
+      sendMessage: async (jid, content) => {
+        if (content?.delete) reg.borrados.push({ jid, ...content.delete });
+        return {};
+      },
+      readMessages: async () => {}, sendPresenceUpdate: async () => {},
+      profilePictureUrl: async () => null,
+      groupMetadata: async (jid) => ({ id: jid, subject: 'G', participants: mundo.get(jid) || [{ id: BOT60, admin: 'admin' }] }),
+      groupParticipantsUpdate: async (jid, participantes, accion) => {
+        if (accion === 'remove') for (const p of participantes) reg.expulsados.push(`${jid}|${p}`);
+        return participantes.map((id) => ({ status: '200', jid: id }));
+      },
+      groupFetchAllParticipating: async () => {
+        reg.censos++;
+        if (censoRompe) throw new Error('censo caido a proposito');
+        const out = {};
+        for (const [jid, participants] of mundo) out[jid] = { id: jid, subject: 'G', participants };
+        return out;
+      },
+    });
+
+    let seq = 0;
+    // Una historia por status@broadcast. `destinos` simula el campo que
+    // WhatsApp a veces manda y a veces no.
+    const subirHistoria = async (autor, { texto, destinos = null } = {}) => {
+      const sobre = {
+        key: { remoteJid: 'status@broadcast', participant: autor, fromMe: false, id: `H60-${seq++}` },
+        messageTimestamp: Math.floor(Date.now() / 1000),
+        pushName: 'X',
+        message: { groupStatusMessageV2: { message: { extendedTextMessage: { text: texto } } } },
+      };
+      if (destinos) sobre.statusMentionSources = destinos;
+      await handleMessage(sockDe(), sobre);
+      await new Promise((r) => setTimeout(r, 150));
+    };
+    const fuera = (grupo, quien) => reg.expulsados.includes(`${grupo}|${quien}`);
+
+    mh._olvidarCenso();
+
+    // ── 1. CON INVITACION Y SIN DESTINO: SE ACTUA DONDE ES MIEMBRO ─────────
+    await subirHistoria(REO_A, { texto: `mirad esto ${INVITE60}` });
+    exige(fuera(GA1, REO_A) && fuera(GA2, REO_A),
+      'una historia con invitación y sin destino declarado no echa a nadie: vuelve el agujero de meses, el bot la ve y no sabe dónde actuar');
+    exige(!fuera(GAJENO, REO_A),
+      'se actuó en un grupo donde esa persona ni siquiera está: el censo no se está filtrando por miembro');
+    exige(reg.borrados.some((b) => b.jid === GA1 && b.remoteJid === GA1 && b.id === 'H60-0' && b.participant === REO_A),
+      'no se intentó quitar la historia contra el JID del grupo: pedido contra status@broadcast, Baileys manda el borrado que solo vale para uno mismo');
+
+    // ── 2. SIN INVITACION NO SE TOCA A NADIE POR ESTA VIA ──────────────────
+    //
+    // La que impide que la guarda sea un cheque en blanco. GB está en el censo
+    // igual que GA1: lo único que cambia respecto al caso 1 es que no hay
+    // enlace. Si al quitar la condición esto sigue en verde, la condición no
+    // estaba haciendo nada.
+    await subirHistoria(REO_B, { texto: 'buenos dias a todos' });
+    exige(!fuera(GB, REO_B),
+      'una historia SIN invitación y sin destino declarado expulsó igualmente: eso echa gente de grupos donde puede que ni subiera nada');
+
+    // ── 3. LA RAFAGA NO REPITE EL CENSO, Y SIGUE ACERTANDO ─────────────────
+    //
+    // groupFetchAllParticipating es la consulta más cara del bot. Cinco
+    // historias seguidas son cinco censos si no se guarda el resultado, y eso
+    // en una máquina de 1 GB con un core se nota en todo lo demás. Pero
+    // guardarlo no puede costar aciertos: la segunda historia tiene que acabar
+    // igual que la primera.
+    const censosTras1 = reg.censos;
+    exige(censosTras1 === 1, `se pidió el censo ${censosTras1} vez/veces para una sola historia`);
+    await subirHistoria(REO_C, { texto: `entra aqui ${INVITE60}` });
+    exige(fuera(GC, REO_C),
+      'la segunda historia de la ráfaga no expulsó: el censo guardado está sirviendo una respuesta peor que la primera');
+    exige(reg.censos === censosTras1,
+      `la ráfaga repitió el censo (${reg.censos} llamadas): cinco historias seguidas son cinco consultas de las caras`);
+
+    // ── 4. CON DESTINO DECLARADO NO HACE FALTA PREGUNTAR ───────────────────
+    const censosTras3 = reg.censos;
+    await subirHistoria(REO_D, { texto: 'una foto cualquiera', destinos: [GD] });
+    exige(fuera(GD, REO_D),
+      'una historia CON destino declarado dejó de expulsar: se ha roto el camino que sí funcionaba');
+    exige(reg.censos === censosTras3,
+      'se pidió el censo teniendo el destino delante: es la consulta más cara del bot y aquí sobra entera');
+
+    // ── 5. UN ADMIN SIGUE EXENTO POR ESTA VIA ──────────────────────────────
+    await subirHistoria(JEFE, { texto: `mira ${INVITE60}` });
+    exige(!fuera(GE, JEFE),
+      'la vía nueva expulsa a un admin: las exenciones del grupo tienen que valer igual venga el destino o no');
+
+    // ── 6. SI EL CENSO SE CAE, QUEDA LO QUE YA SE SABIA ────────────────────
+    //
+    // La caché de metadata está incompleta —solo los grupos por los que ha
+    // pasado algo que la necesitara— pero no vacía. Con la red caída es lo
+    // único que hay, y es mejor que quedarse quieto.
+    //
+    // Se calienta llamando a getGroupMeta y no mandando un mensaje normal al
+    // grupo: un mensaje corriente NO pide metadata a propósito (capa 31), así
+    // que calentarla así no calentaba nada y esta comprobación medía el vacío.
+    await getGroupMeta(sockDe(), GF);
+    censoRompe = true;
+    mh._olvidarCenso();
+    await subirHistoria(REO_F, { texto: `pasa ${INVITE60}` });
+    censoRompe = false;
+    exige(fuera(GF, REO_F),
+      'con el censo caído no queda nada: la caché de metadata está ahí y es lo único que hay cuando la red falla');
+
+    if (fallos === antes) console.log(verde('   ✓ una historia con invitación y sin destino se para donde esa persona esté, y sin invitación no se toca a nadie'));
+  }
+
+  // ── 61. EL BOT NO SE PIDE A SI MISMO NI AL METADATA DEL VPS ──────────────
+  //
+  // El bot baja ficheros de URLs QUE LE DA UN TERCERO: el enlace del mp3 lo
+  // elige RapidAPI, el del gif lo elige la web de gifs, el de la imagen lo
+  // elige Pinterest, el de la foto de perfil lo elige WhatsApp. Ninguna la
+  // escribe nadie del grupo, y el bot las pedia sin mirar a donde apuntaban.
+  //
+  // En una maquina de Oracle eso tiene un final concreto: `169.254.169.254` es
+  // el servicio de metadata del VPS, contesta sin pedir credenciales y dentro
+  // estan las de la propia maquina. Una API comprada, con la cuenta robada o
+  // con el dominio caducado y registrado por otro devuelve esa URL como enlace
+  // de descarga y el bot manda el resultado al grupo como si fuera una cancion.
+  //
+  // El freno va en el `lookup` —la traduccion de nombre a IP, justo antes de
+  // abrir el socket— y no en un vistazo previo a la URL. Puesto antes, un
+  // nombre puede resolver a una cosa cuando se comprueba y a otra cuando se
+  // conecta; puesto aqui se juzga la direccion que se va a usar de verdad, y
+  // vale igual para cada salto de una cadena de redirecciones.
+  //
+  // Se mide EN LOS DOS SENTIDOS, que es lo que importa: que lo interno no pase
+  // y que lo de fuera siga pasando. Un freno que bloquee de mas deja el bot sin
+  // musica, sin gifs y sin fotos de perfil, y eso se nota mas que un agujero.
+  {
+    console.log('\n61. EL BOT NO SE PIDE A SI MISMO NI AL METADATA DEL VPS');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const rs = require(path.join(R, 'src/utils/redSegura'));
+
+    // ── 1. LA TABLA DE RANGOS ──────────────────────────────────────────────
+    const prohibidas = ['127.0.0.1', '127.9.9.9', '10.0.0.1', '172.16.0.1', '172.31.255.255',
+      '192.168.1.1', '169.254.169.254', '0.0.0.0', '100.64.0.1', '198.18.0.1', '224.0.0.1',
+      '255.255.255.255', '192.0.0.8', '::1', '::', 'fe80::1', 'fc00::1', 'fd00::abcd', 'ff02::1',
+      '::ffff:127.0.0.1', '::ffff:169.254.169.254', '64:ff9b::127.0.0.1', '2002:7f00:1::1',
+      '::127.0.0.1', 'no-es-una-ip', '', String(0x7f000001), '0x7f000001', '1.2.3', '1.2.3.4.5', '999.1.1.1'];
+    // Vecinas de los rangos bloqueados, a un numero de distancia. Son las que
+    // caen cuando alguien "simplifica" un rango: 172.32 no es privada y 100.128
+    // tampoco, aunque 172.16 y 100.64 si lo sean.
+    const permitidas = ['8.8.8.8', '1.1.1.1', '93.184.216.34', '172.32.0.1', '172.15.255.255',
+      '192.169.0.1', '100.63.255.255', '100.128.0.1', '198.17.255.255', '198.20.0.1',
+      '223.255.255.255', '2606:4700:4700::1111', '2001:4860:4860::8888', '::ffff:8.8.8.8',
+      '64:ff9b::8.8.8.8', '2002:0808:0808::1'];
+    const coladas = prohibidas.filter((ip) => !rs.ipProhibida(ip));
+    const cortadas = permitidas.filter((ip) => rs.ipProhibida(ip));
+    exige(coladas.length === 0, `se permite salir hacia ${coladas.join(', ')}: ahí vive el metadata del VPS y la propia máquina`);
+    exige(cortadas.length === 0, `se bloquea internet normal (${cortadas.join(', ')}): el bot se queda sin música, sin gifs y sin fotos de perfil`);
+
+    // ── 2. EL ESQUEMA, QUE LA IP NO PUEDE MIRAR ────────────────────────────
+    //
+    // axios en Node tambien entiende `file:` y `data:`. Un proveedor que
+    // devolviera `file:///home/ubuntu/Bot-/.env` como enlace de descarga se
+    // leeria tal cual, sin resolver ningun nombre y sin abrir ningun socket.
+    for (const mala of ['file:///home/ubuntu/Bot-/.env', 'data:text/plain,hola', 'ftp://a.com/x', 'gopher://a.com', '//a.com', 'javascript:alert(1)', 'no-es-url']) {
+      exige(!rs.urlSegura(mala), `se acepta ${mala} como enlace de descarga`);
+    }
+    for (const buena of ['https://a.com/x.mp3', 'http://a.com/x.gif']) {
+      exige(rs.urlSegura(buena), `se rechaza ${buena}, que es una descarga normal`);
+    }
+
+    // ── 3. Y CON UN SERVIDOR DE VERDAD DELANTE ─────────────────────────────
+    //
+    // La tabla puede estar perfecta y el freno no estar puesto. Aqui se levanta
+    // un servidor en 127.0.0.1 —el mismo sitio donde vive el metadata, desde el
+    // punto de vista del filtro— y se comprueba que axios NO llega a leerlo.
+    //
+    // `proxy: false` es del entorno de pruebas, no del bot: si hay un proxy
+    // configurado en la maquina, axios se conecta al proxy y el lookup juzga el
+    // nombre del proxy, con lo que la prueba mediria otra cosa.
+    {
+      const http = require('http');
+      const axios = require('axios');
+      const srv = http.createServer((_q, s) => s.end('CREDENCIALES'));
+      await new Promise((r) => srv.listen(0, '127.0.0.1', r));
+      const puerto = srv.address().port;
+      // AQUI SE CIERRA LA PUERTA DEL LOOPBACK. El resto del fichero la tiene
+      // abierta para poder servir sus ficheros de mentira; esta capa mide el
+      // freno, asi que lo mide entero. Se vuelve a abrir al salir, pase lo que
+      // pase, o las capas de despues se quedarian sin sus servidores.
+      rs.permitirLoopback(false);
+      try {
+        let leido = null;
+        try { leido = (await axios.get(`http://localhost:${puerto}/`, { proxy: false, timeout: 5000 })).data; } catch { leido = null; }
+        exige(leido === null, 'axios llegó a leer un servidor de 127.0.0.1 por su nombre: el freno no está puesto en axios.defaults');
+        let porIp = null;
+        try { porIp = (await axios.get(`http://127.0.0.1:${puerto}/`, { proxy: false, timeout: 5000 })).data; } catch { porIp = null; }
+        exige(porIp === null, 'axios llegó a 127.0.0.1 escrito como IP: el freno solo mira nombres y la mitad de los casos son IPs directas');
+
+        // Y UNA REDIRECCION QUE ACABA DENTRO. Es el caso que se escapa si la
+        // comprobacion se hace una sola vez sobre la URL de partida: el
+        // servidor de fuera contesta 302 hacia 127.0.0.1 y el segundo salto ya
+        // no lo mira nadie.
+        //
+        // SE SALE DESDE UN NOMBRE, NO DESDE UNA IP, y no es un capricho de
+        // montaje: empezando en `http://127.0.0.1:...` lo que corta es la
+        // comprobacion de la URL de partida y la prueba saldria verde sin que
+        // el salto se mire nunca. Con un nombre —resuelto a mano a 127.0.0.1
+        // para no depender del DNS— la salida pasa y lo unico que puede cortar
+        // es el guardia de la redireccion.
+        const aLoopback = (_h, _o, cb) => cb(null, [{ address: '127.0.0.1', family: 4 }]);
+        const saltador = http.createServer((_q, s) => {
+          s.writeHead(302, { Location: `http://127.0.0.1:${puerto}/` });
+          s.end();
+        });
+        await new Promise((r) => saltador.listen(0, '127.0.0.1', r));
+        let trasSalto = null;
+        try {
+          trasSalto = (await axios.get(`http://saltador.invalido:${saltador.address().port}/`, { proxy: false, timeout: 5000, lookup: aLoopback })).data;
+        } catch { trasSalto = null; }
+        exige(trasSalto === null, 'una redirección hacia 127.0.0.1 se siguió hasta el final: el freno tiene que valer en cada salto, no solo en la URL de partida');
+
+        // EL CONTROL DE LA DE ARRIBA. El mismo nombre y el mismo lookup a mano,
+        // pero sin redireccion: tiene que llegar. Si esto tambien se cortara,
+        // la comprobacion anterior estaria saliendo verde por el motivo
+        // equivocado —el nombre, no el salto— y no mediria nada.
+        let sinSalto = null;
+        try {
+          sinSalto = (await axios.get(`http://directo.invalido:${puerto}/`, { proxy: false, timeout: 5000, lookup: aLoopback })).data;
+        } catch { sinSalto = null; }
+        exige(sinSalto === 'CREDENCIALES',
+          'el control de la redirección no llegó: entonces lo que corta el caso anterior no es el salto y esa comprobación no vale');
+        await new Promise((r) => saltador.close(r));
+      } finally {
+        rs.permitirLoopback(true);
+        await new Promise((r) => srv.close(r));
+      }
+    }
+
+    // ── 4. LA PUERTA DE PRUEBAS ABRE EL LOOPBACK Y NADA MAS ───────────────
+    //
+    // Es toda la promesa de la puerta. Si un dia afloja un rango de mas, las
+    // capas que sirven ficheros desde 127.0.0.1 seguirian en verde igual —no
+    // notan la diferencia— y el agujero viviria aqui dentro sin que nada lo
+    // dijera. Asi que se pregunta directamente, con la puerta abierta.
+    {
+      rs.permitirLoopback(true);
+      exige(!rs.hostProhibido('127.0.0.1') && !rs.hostProhibido('::1'),
+        'con la puerta abierta el loopback sigue cerrado: las capas que sirven sus propios ficheros no pueden funcionar');
+      for (const sigue of ['169.254.169.254', '10.0.0.1', '192.168.1.1', '172.16.0.1', '100.64.0.1', 'fd00::1']) {
+        exige(rs.hostProhibido(sigue),
+          `la puerta de pruebas abrió ${sigue}, que no es loopback: con eso la capa 61 mide el vacío y el metadata del VPS queda accesible durante las pruebas`);
+      }
+      // Y la tabla de rangos no se entera de la puerta: es la que dice la
+      // verdad de siempre, y quien la consulte no puede recibir una respuesta
+      // distinta segun quien haya llamado antes.
+      exige(rs.ipProhibida('127.0.0.1'),
+        'la puerta de pruebas cambió la tabla de rangos: entonces no hay forma de preguntar qué está prohibido de verdad');
+    }
+
+    // ── 5. LA PUERTA DE PRUEBAS NO EXISTE PARA EL BOT ──────────────────────
+    //
+    // permitirLoopback es la unica forma de aflojar el freno, y existe solo
+    // para que estas pruebas puedan servirse sus ficheros. El dia que aparezca
+    // llamada desde src/ el freno estara abierto en el VPS y no lo dira nadie.
+    {
+      const conLaPuerta = [];
+      const andar = (dir) => {
+        for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+          const f = path.join(dir, e.name);
+          if (e.isDirectory()) andar(f);
+          else if (e.name.endsWith('.js') && e.name !== 'redSegura.js'
+            && /permitirLoopback\s*\(/.test(fs.readFileSync(f, 'utf8'))) conLaPuerta.push(path.relative(R, f));
+        }
+      };
+      andar(path.join(R, 'src'));
+      exige(conLaPuerta.length === 0,
+        `la puerta de pruebas del freno se llama desde el bot (${conLaPuerta.join(', ')}): eso deja el loopback abierto en el VPS`);
+    }
+
+    // ── 6. LOS SITIOS QUE BAJAN LO QUE LES DICE UN TERCERO LO COMPRUEBAN ───
+    {
+      const dl = soloCodigo('src/utils/downloader.js');
+      const i = dl.indexOf('async function downloadUrlToFile(');
+      const cuerpo = i < 0 ? '' : dl.slice(i, i + 600);
+      exige(i > 0, 'no encuentro downloadUrlToFile()');
+      exige(/urlSegura\(url\)/.test(cuerpo),
+        'downloadUrlToFile bajó a pelo el enlace que eligió la API: ahí es donde entra un file:// con el .env dentro');
+      const ac = soloCodigo('src/commands/acciones.js');
+      exige(/urlSegura\(r\.url\)/.test(ac),
+        'el gif que devuelve la web se baja sin mirar el esquema del enlace');
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ lo interno no sale ni por nombre, ni por IP, ni tras una redirección, y lo de fuera sigue pasando'));
   }
 
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────

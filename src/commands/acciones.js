@@ -15,6 +15,9 @@
 // comando que no ha traído nada es exactamente lo que el resto del bot ya
 // aprendió a no hacer.
 const axios = require('axios');
+// Arma el freno de salidas (ver src/utils/redSegura.js): sin esto, una URL
+// que devuelva una API de fuera puede apuntar al metadata del VPS.
+const { urlSegura, DestinoProhibido } = require('../utils/redSegura');
 const fs = require('fs-extra');
 const path = require('path');
 const { getSender, getTarget, sameUser, isOwner, isMainOwner, canonicalJid, indexGroupMeta } = require('../utils/wa');
@@ -828,6 +831,9 @@ async function traerAccion(cat, nsfw, catNsfw, deDespensa = false) {
   // tres para que la fuente sea intercambiable de verdad.
   const r = direccionDelGif(data);
   if (!r?.url) throw new Error('la web no ha devuelto ningun gif');
+  // La direccion del gif la pone la web, no el grupo. Mismo motivo que en
+  // downloader.js: el freno de IPs no mira el esquema y aqui hace falta.
+  if (!urlSegura(r.url)) throw new DestinoProhibido('la web devolvió un enlace que no es http(s)');
   const marca2 = Date.now();
   const bajado = await axios.get(r.url, {
     responseType: 'arraybuffer', timeout: 15000,

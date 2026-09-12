@@ -610,6 +610,64 @@ function gruposDeLaHistoria(obj, vistos = new Set(), salida = new Set()) {
   return salida;
 }
 
+// Grupos del bot en los que ESA persona esta dentro.
+//
+// La lista buena es la de WhatsApp: groupFetchAllParticipating devuelve TODOS
+// los grupos del bot con sus miembros. La cache de metadata solo tiene los
+// grupos por los que ha pasado un mensaje hace poco, asi que preguntarle a ella
+// primero daria una respuesta a medias —«esta en este grupo» cuando esta en
+// tres— y en un reinicio reciente no daria ninguna.
+//
+// Es la consulta mas cara del bot, y por eso no se llama desde el camino normal
+// de mensajes: aqui solo llega una historia con una invitacion dentro, que es
+// rara. Aun asi se guarda un minuto y se comparte el vuelo, para que una rafaga
+// —cinco historias seguidas de cinco personas— no la dispare cinco veces. Un
+// minuto de desfase en la lista de miembros no cambia a quien hay que echar.
+//
+// Si el censo falla —red caida, timeout— se tira de la cache de metadata, que
+// estara incompleta pero no esta vacia. Mejor echar a alguien del grupo donde
+// se le ha visto que no echarlo de ninguno.
+const CENSO_MS = 60_000;
+let censo = null;        // { ts, grupos }
+let censoEnVuelo = null;
+
+async function censoDeGrupos(sock) {
+  if (censo && Date.now() - censo.ts < CENSO_MS) return censo.grupos;
+  if (!censoEnVuelo) {
+    censoEnVuelo = withTimeout(sock.groupFetchAllParticipating(), 15000)
+      .then((todos) => {
+        if (!todos) return null;
+        censo = { ts: Date.now(), grupos: todos };
+        return todos;
+      })
+      .catch((e) => { logger.unaVez('censo de grupos para historias', e); return null; })
+      .finally(() => { censoEnVuelo = null; });
+  }
+  return censoEnVuelo;
+}
+
+async function gruposConEsteMiembro(sock, autor) {
+  const dentro = (participantes) => (participantes || []).some((p) => {
+    const formas = [p?.id, p?.lid, p?.phoneNumber].filter(Boolean);
+    return formas.some((f) => sameUser(f, autor));
+  });
+
+  const todos = await censoDeGrupos(sock);
+  const encontrados = [];
+  if (todos) {
+    for (const [jid, meta] of Object.entries(todos)) {
+      if (jid.endsWith('@g.us') && dentro(meta?.participants)) encontrados.push(jid);
+    }
+    return encontrados;
+  }
+
+  for (const [jid, entrada] of metaCache) {
+    if (!jid.endsWith('@g.us')) continue;
+    if (entrada?.meta && dentro(entrada.meta.participants)) encontrados.push(jid);
+  }
+  return encontrados;
+}
+
 async function historiaPorBroadcast(sock, msg, deteccion) {
   const autor = msg.key.participant || msg.participant;
   // SE BUSCA EN EL SOBRE ENTERO, NO EN `msg.message`. AQUI ESTABA EL FALLO.
@@ -641,12 +699,37 @@ async function historiaPorBroadcast(sock, msg, deteccion) {
   const veredicto = classifyLinks(textoParaEnlaces(msg.message) || '');
   const conEnlace = veredicto === 'invite' || veredicto === 'blocked' || esInvitacionNativa(msg.message);
 
-  // Sin destino no se puede sancionar a nadie: no sabriamos en que grupo. Queda
-  // el registro para poder afinar con un caso real en vez de a ciegas.
+  // ─── SIN DESTINO IDENTIFICADO, PERO CON UNA INVITACION DENTRO ─────────────
+  //
+  // Aqui se salia. «No sabriamos en que grupo», se apuntaba en el log y se
+  // acababa. Y ese `return` es la razon por la que esto lleva meses sin
+  // funcionar: el destino de una historia de grupo viene en `statusMentions` o
+  // en `statusMentionSources`, WhatsApp no siempre los manda, y cuando no los
+  // manda el bot se quedaba mirando.
+  //
+  // Que no se sepa el grupo no quiere decir que no se sepa QUIEN. El autor si
+  // viene siempre — es `msg.key.participant`— y de los grupos del bot solo puede
+  // haber subido la historia a aquellos en los que esta. Asi que cuando la
+  // historia trae una invitacion a otro grupo dentro, se actua en todos los
+  // grupos donde el bot es admin Y esa persona es miembro.
+  //
+  // LA INVITACION ES LA CONDICION, no un adorno: sin ella no se toca a nadie por
+  // esta via. Una historia cualquiera sin destino conocido sigue saliendo por
+  // donde salia. Con un chat.whatsapp.com dentro es la misma infraccion que en
+  // el chat cuesta el grupo, y el dueño ya decidio que esa se paga con la lista
+  // negra.
+  if (autor && !grupos.length && conEnlace) {
+    for (const jid of await gruposConEsteMiembro(sock, autor)) grupos.push(jid);
+    if (grupos.length) {
+      logger.warn(`historia sin destino declarado de ${autor}: trae invitacion, actuo en ${grupos.length} grupo(s) donde es miembro`);
+    }
+  }
+
   if (!autor || !grupos.length) {
-    logger.info(
+    logger.warn(
       `historia por broadcast (${deteccion.motivo}) de ${autor || 'desconocido'}: ` +
-      `sin grupo identificable — tipos=[${Object.keys(msg.message || {}).join(',')}]`);
+      `sin grupo identificable y ${conEnlace ? 'CON' : 'sin'} invitacion — ` +
+      `claves del sobre=[${Object.keys(msg || {}).join(',')}] tipos=[${Object.keys(msg.message || {}).join(',')}]`);
     return;
   }
 
@@ -2995,4 +3078,8 @@ module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGro
   // Exportados para poder probar la deteccion de enlaces sin montar un socket.
   clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa,
   // Y la puerta del privado, por lo mismo: se prueba sola.
-  ownerEnPrivado };
+  ownerEnPrivado,
+  // Tira el censo de grupos guardado. Solo lo usa la capa 60 de scripts/check.js
+  // para poder medir el camino de "el censo se cayo", que con el resultado del
+  // minuto anterior en memoria no se llegaria a recorrer nunca.
+  _olvidarCenso: () => { censo = null; } };

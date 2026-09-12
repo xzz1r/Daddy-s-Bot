@@ -1,4 +1,6 @@
 const axios = require('axios');
+// Arma el freno de salidas a redes internas (ver src/utils/redSegura.js).
+require('./redSegura');
 const FormData = require('form-data');
 const config = require('../config');
 const logger = require('./logger');

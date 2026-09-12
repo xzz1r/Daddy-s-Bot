@@ -2,6 +2,9 @@ const { spawn, execSync } = require('child_process');
 const fs = require('fs-extra');
 const path = require('path');
 const axios = require('axios');
+// Arma el freno de salidas (ver src/utils/redSegura.js): sin esto, una URL
+// que devuelva una API de fuera puede apuntar al metadata del VPS.
+const { urlSegura, DestinoProhibido } = require('./redSegura');
 const config = require('../config');
 const { tempFile, cleanTemp } = require('./helpers');
 const { ffmpegPath, ffprobePath } = require('./ffmpeg');
@@ -122,7 +125,13 @@ function acquireDownloadSlot() {
 }
 
 function releaseDownloadSlot() {
-  activeDownloads--;
+  // SUELO EN CERO, igual que en el semaforo de ffmpeg de helpers.js y por lo
+  // mismo. Un release de mas —dos caminos de error que sueltan el mismo slot—
+  // deja el contador en negativo, y entonces `activeDownloads < 2` es cierto
+  // siempre: el tope de dos descargas a la vez desaparece sin que falle nada a
+  // la vista, y la maquina —un core y 1 GB— se come todos los yt-dlp que
+  // lleguen. Se rompe en la direccion contraria a la fuga y por eso no se nota.
+  activeDownloads = Math.max(0, activeDownloads - 1);
   const next = downloadQueue.shift();
   if (next) next();
 }
@@ -257,6 +266,12 @@ async function rapidConvert(videoId, provider) {
 
 // Descarga una URL directa a un archivo, con tope de tamaño.
 async function downloadUrlToFile(url, dest) {
+  // ESTA URL NO LA ESCRIBE NADIE DEL GRUPO: LA ELIGE LA API. El `lookup` con
+  // freno ya impide que apunte a una IP interna, pero no puede con el esquema,
+  // y axios en Node tambien entiende `file:` y `data:`: un proveedor que
+  // devolviera `file:///home/ubuntu/Bot-/.env` como enlace de descarga se
+  // leeria tal cual y saldria al grupo como si fuera una cancion.
+  if (!urlSegura(url)) throw new DestinoProhibido('el enlace de la API no es http(s)');
   const resp = await axios.get(url, { responseType: 'stream', timeout: 120000, maxRedirects: 5 });
   await new Promise((resolve, reject) => {
     const w = fs.createWriteStream(dest);

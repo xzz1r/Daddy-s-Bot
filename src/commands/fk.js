@@ -1,4 +1,6 @@
 const axios = require('axios');
+// Arma el freno de salidas a redes internas (ver src/utils/redSegura.js).
+require('../utils/redSegura');
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const {
   getSender, isOwner, isMainOwner, isGroupAdmin, isBotJid, canonicalJid, bareJid, sameUser, fetchAbout, fetchPfpUrl,

@@ -1,4 +1,6 @@
 const axios = require('axios');
+// Arma el freno de salidas a redes internas (ver src/utils/redSegura.js).
+require('./redSegura');
 const { computeHash } = require('./phash');
 const pfpStore = require('./pfpStore');
 const { recordAndMatch } = pfpStore;

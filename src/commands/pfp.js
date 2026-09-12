@@ -1,4 +1,6 @@
 const axios = require('axios');
+// Arma el freno de salidas a redes internas (ver src/utils/redSegura.js).
+require('../utils/redSegura');
 const logger = require('../utils/logger');
 const { getTarget, getSender, canonicalJid, fetchPfpUrl } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');

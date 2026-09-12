@@ -60,6 +60,9 @@
 const fs = require('fs-extra');
 const path = require('path');
 const axios = require('axios');
+// Arma el freno de salidas (ver src/utils/redSegura.js): sin esto, una URL
+// que devuelva una API de fuera puede apuntar al metadata del VPS.
+const { urlSegura, DestinoProhibido } = require('./redSegura');
 const { acquireDownloadSlot, releaseDownloadSlot, ytdlp, downloadUrlToFile, hayYtDlp, MAX_BYTES, TEMP_DIR } = require('./downloader');
 const { ffmpegSemaphore, pickFresh } = require('./helpers');
 const { ffmpegPath } = require('./ffmpeg');

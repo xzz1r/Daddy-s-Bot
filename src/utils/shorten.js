@@ -1,4 +1,6 @@
 const axios = require('axios');
+// Arma el freno de salidas a redes internas (ver src/utils/redSegura.js).
+require('./redSegura');
 
 // Acorta URLs para que los enlaces de búsqueda inversa —que llevan dentro la
 // URL del host codificada y salen larguísimos— aparezcan compactos y no llenen

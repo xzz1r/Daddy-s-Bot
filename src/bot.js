@@ -15,6 +15,27 @@ const qrcode = require('qrcode-terminal');
 // ReferenceError JUSTO al conectar — el peor momento posible y el unico en que
 // se ejecuta, asi que no se veia hasta tener el bot delante.
 const config = require('./config');
+// Arma el freno de salidas a redes internas. Se carga aqui, en el arranque del
+// bot, ademas de en cada modulo que sale a internet: asi ninguna ruta queda sin
+// el. Ver src/utils/redSegura.js.
+require('./utils/redSegura');
+
+// ─── LO QUE ESCRIBE EL BOT NO LO LEE NADIE MAS ──────────────────────────────
+//
+// En `data/auth` viven las credenciales de la sesion de WhatsApp. Con ellas,
+// cualquiera entra en la cuenta del bot: lee todos los grupos, escribe en su
+// nombre y echa a quien quiera. Y estaban naciendo con 644 —cualquier usuario
+// de la maquina las lee— porque nadie habia tocado la umask y la de por defecto
+// es 022.
+//
+// Se pone 077 aqui arriba, antes de que se cree nada: lo que el bot escriba a
+// partir de ahora —credenciales, data/*.json, temporales— nace 600, y las
+// carpetas 700. Lo de antes se corrige a mano mas abajo, que la umask solo vale
+// para lo que se crea.
+//
+// No rompe nada: el bot corre con un solo usuario y nadie mas necesita leer
+// esos ficheros.
+process.umask(0o077);
 
 // Temporizador del refresco de presencia. Vive aqui, junto a los imports, y no
 // al lado de donde se usa: se declara con `let` y se lee desde una funcion que
@@ -70,6 +91,20 @@ const { recordar: recordarMensaje, recuperar: recuperarMensaje } = require('./ut
 const logger = require('./utils/logger');
 
 const AUTH_DIR = path.join(__dirname, '../data/auth');
+
+// Deja una carpeta y todo lo que cuelga de ella en 700/600. Sin ruido si algo
+// falla: no poder cerrar un permiso no es motivo para no arrancar el bot.
+async function cerrarPermisos(dir) {
+  try {
+    await fs.chmod(dir, 0o700);
+    for (const f of await fs.readdir(dir)) {
+      const ruta = path.join(dir, f);
+      const st = await fs.stat(ruta);
+      if (st.isDirectory()) await cerrarPermisos(ruta);
+      else await fs.chmod(ruta, 0o600);
+    }
+  } catch {}
+}
 
 // Marca de "me he parado y no voy a reintentar solo".
 //
@@ -413,6 +448,10 @@ async function connectToWhatsApp() {
   }
 
   await fs.ensureDir(AUTH_DIR);
+  // La umask de arriba solo vale para lo que se cree a partir de ahora. Una
+  // instalacion que ya venia de antes tiene las credenciales en 644, asi que se
+  // cierran aqui, en cada arranque: es barato y no depende de acordarse.
+  await cerrarPermisos(AUTH_DIR);
   await ensureTemp();
 
   // Restos de la vez anterior. Si al bot lo mataron a media escritura atomica
