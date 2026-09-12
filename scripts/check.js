@@ -3885,14 +3885,26 @@ const di=async(quien,texto,extra)=>{
       const hechas = [];
       const sockA = {
         groupRequestParticipantsList: async () => [{ jid: UNO }, { jid: DOS }],
-        groupRequestParticipantsUpdate: async (g, jids, accion) => { hechas.push(`${accion}:${jids[0]}`); return []; },
+        groupRequestParticipantsUpdate: async (g, jids, accion) => {
+          for (const j of jids) hechas.push(`${accion}:${j}`);
+          return [];
+        },
       };
       const r = await aceptarPendientes(sockA, GA);
       exige(r && r.aprobados === 2, `autoaceptar aprobo ${r?.aprobados} de 2 solicitudes pendientes`);
       exige(hechas.every((h) => h.startsWith('approve:')),
         `autoaceptar hace algo que no es aprobar: ${hechas.join(', ')}`);
+      // SE CUENTAN LAS PERSONAS, NO LAS LLAMADAS.
+      //
+      // Aqui ponia `hechas.length === 2` contando LLAMADAS, con el comentario
+      // «ni de mas ni en lote». Lo que hay que vigilar es que no se apruebe a
+      // nadie que no lo hubiera pedido, y eso son las PERSONAS tocadas. Que
+      // vayan en una llamada o en dos es otra cosa — y ahora van en una a
+      // proposito, porque de una en una eran segundo y medio cada una.
       exige(hechas.length === 2,
-        `autoaceptar toco ${hechas.length} veces la lista para 2 solicitudes: ni de mas ni en lote`);
+        `autoaceptar tocó a ${hechas.length} personas para 2 solicitudes: ni de más ni de menos`);
+      exige(hechas.includes(`approve:${UNO}`) && hechas.includes(`approve:${DOS}`),
+        `autoaceptar no aprobó exactamente a los dos que lo habían pedido: ${hechas.join(', ')}`);
       // SIN COLA, NADA. Un modo que abre la puerta no puede inventarse altas.
       const vacio = [];
       const r2 = await aceptarPendientes({
@@ -10095,6 +10107,138 @@ const di=async(quien,t)=>{out.length=0;
     }
 
     if (fallos === antes) console.log(verde('   ✓ mismo comportamiento, el dinero se apunta antes de pagarse y ffmpeg no se queda sin plaza'));
+  }
+
+  // ── 59. LO QUE EL DUEÑO DIJO QUE NO FUNCIONABA ───────────────────────────
+  //
+  // Tres cosas de la misma tanda, y las tres eran ciertas:
+  //   · *!tovid* nunca funciono con stickers (con videos si);
+  //   · *!pin* no encontraba lo que en Pinterest sale a la primera;
+  //   · el autoaccept tardaba una eternidad con varias solicitudes.
+  {
+    console.log('\n59. *!tovid* CON STICKERS, *!pin* POR RELEVANCIA Y EL AUTOACCEPT DE GOLPE');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    // ── 1. EL AUTOACCEPT APRUEBA TODAS EN UNA SOLA PETICION ────────────────
+    //
+    // Iba de una en una con segundo y medio de pausa y tope de diez por ciclo:
+    // diez solicitudes eran mas de quince segundos y la once esperaba al
+    // siguiente sondeo. `groupRequestParticipantsUpdate` acepta una LISTA y la
+    // manda en una sola peticion, asi que la rafaga que justificaba la pausa no
+    // existe.
+    {
+      const jr = require(path.join(R, 'src/utils/joinRequests'));
+      const lista = [...Array(23)].map((_, i) => ({ jid: `34600${String(7000 + i)}@s.whatsapp.net` }));
+      const lotes = [];
+      const sock = {
+        groupRequestParticipantsList: async () => lista,
+        groupRequestParticipantsUpdate: async (g, jids) => { lotes.push(jids.length); return jids.map((j) => ({ status: '200', jid: j })); },
+      };
+      const t0 = Date.now();
+      const r = await jr.aceptarPendientes(sock, '120363000059001@g.us');
+      const ms = Date.now() - t0;
+      exige(r && r.aprobados === 23, `de 23 solicitudes se aprobaron ${r?.aprobados}: se están quedando fuera`);
+      exige(lotes.length === 1, `se hicieron ${lotes.length} peticiones a WhatsApp para 23 solicitudes: van todas en una`);
+      exige(ms < 1000, `tardó ${ms} ms en aprobar 23 sin red de por medio: han vuelto las pausas entre una y otra`);
+
+      // Y UN RECHAZO NO SE CUENTA COMO APROBADO. WhatsApp no lanza: devuelve el
+      // error dentro del estado de cada participante.
+      const sock2 = {
+        groupRequestParticipantsList: async () => lista.slice(0, 4),
+        groupRequestParticipantsUpdate: async (g, jids) => jids.map((j, i) => ({ status: i === 1 ? '403' : '200', jid: j })),
+      };
+      const r2 = await jr.aceptarPendientes(sock2, '120363000059002@g.us');
+      exige(r2 && r2.aprobados === 3,
+        `con uno rechazado de cuatro se cuentan ${r2?.aprobados} aprobados: el recuento estaría mintiendo`);
+
+      // Y una solicitud sin JID reconocible se cuenta aparte, no se traga.
+      const sock3 = {
+        groupRequestParticipantsList: async () => [{ hora: '123' }, { jid: '34600700099@s.whatsapp.net' }],
+        groupRequestParticipantsUpdate: async (g, jids) => jids.map((j) => ({ status: '200', jid: j })),
+      };
+      const r3 = await jr.aceptarPendientes(sock3, '120363000059003@g.us');
+      exige(r3 && r3.aprobados === 1 && r3.sinJid === 1,
+        `una solicitud sin JID se traga en silencio (${JSON.stringify(r3)})`);
+    }
+
+    // ── 2. *!tovid* SOBRE UN STICKER ANIMADO ───────────────────────────────
+    //
+    // ffmpeg NO sabe abrir un WebP animado —comprobado con el binario del bot:
+    // el estatico si, el animado no, ni con `-f webp_pipe` ni forzando el
+    // decodificador— asi que la conversion fallaba SIEMPRE y el comando caia a
+    // su respaldo. Ahora el fichero se parte aqui: cada fotograma sale envuelto
+    // como WebP estatico, que si abre.
+    {
+      const { execFileSync } = require('child_process');
+      const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+      const st = require(path.join(R, 'src/utils/sticker'));
+      const toimg = require(path.join(R, 'src/commands/toimg'));
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tv59-'));
+      try {
+        const v = path.join(dir, 'v.mp4');
+        execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi',
+          '-i', 'testsrc2=size=256x256:duration=2:rate=12', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', v],
+          { timeout: 200000 });
+        const sticker = await st.videoToSticker(fs.readFileSync(v), 'p');
+
+        // Que ffmpeg siga sin poder con el: si algun dia puede, este camino
+        // sobra, pero mientras no pueda es el unico que hay.
+        const desmontado = st.desmontarWebpAnimado(sticker);
+        exige(!!desmontado, 'el desmontador ya no reconoce un WebP animado hecho por el propio bot');
+        exige(desmontado && desmontado.cuadros.length > 5,
+          `solo se sacan ${desmontado?.cuadros?.length} fotogramas de una animación de 2 s: el vídeo saldría a trompicones`);
+        exige(desmontado && desmontado.completos,
+          'los fotogramas de un sticker propio salen marcados como parche: entonces nunca se usaría el camino bueno');
+
+        // El camino viejo REVIENTA con un WebP animado, asi que si el nuevo no
+        // entra la excepcion sube y se lleva la capa por delante. Se atrapa para
+        // que el fallo se cuente con su motivo, que es de lo que va esto.
+        const mp4 = await toimg._convertToMp4(sticker).catch((e) => {
+          fallos++;
+          console.log(rojo(`   ✗ *!tovid* sobre un sticker animado sigue reventando: ${String(e.message).slice(0, 90)}`));
+          return null;
+        });
+        exige(!mp4 || mp4.length > 1000, '*!tovid* devuelve un vídeo vacío para un sticker animado');
+        if (mp4) {
+          const f = path.join(dir, 'o.mp4');
+          fs.writeFileSync(f, mp4);
+          const { spawnSync } = require('child_process');
+          const r = spawnSync(ffmpegPath, ['-hide_banner', '-i', f, '-f', 'null', '-'], { encoding: 'utf8', timeout: 60000 });
+          const d = /Duration: (\d+):(\d+):([\d.]+)/.exec(r.stderr || '');
+          const seg = d ? Number(d[2]) * 60 + Number(d[3]) : 0;
+          exige(/Video: h264/.test(r.stderr || ''), 'el vídeo de *!tovid* no sale en H.264: WhatsApp no lo reproduce en todos los teléfonos');
+          exige(seg > 1, `el vídeo dura ${seg} s cuando la animación dura 2: se están perdiendo fotogramas`);
+        }
+
+        // UN STICKER CON FOTOGRAMAS PARCHE NO SE MONTA A CIEGAS. Componer eso
+        // pide decodificar el VP8 aqui dentro; ponerlos en fila daria un vídeo
+        // con las piezas descolocadas, y eso es peor que no convertir.
+        const falso = { ancho: 100, alto: 100, completos: false, cuadros: [{ ms: 100, x: 10, y: 10, w: 50, h: 50 }] };
+        exige(falso.completos === false, 'la marca de «parche» ya no existe');
+      } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    }
+
+    // ── 3. *!pin* ELIGE ENTRE LOS PRIMEROS ─────────────────────────────────
+    //
+    // El buscador devuelve los resultados ORDENADOS por relevancia y el bot
+    // sorteaba entre los quince por igual: cuatro de cada cinco veces salia uno
+    // de la cola. En la web no se nota porque se ve la cuadricula entera; aqui
+    // sale una sola.
+    {
+      const red = soloCodigo('src/utils/redes.js');
+      const i = red.indexOf('async function buscar(');
+      const cuerpo = i < 0 ? '' : red.slice(i, red.indexOf('\n  } catch', i));
+      exige(i > 0, 'no encuentro buscar()');
+      exige(/CABEZA/.test(cuerpo) && /pines\.slice\(0, CABEZA\)/.test(cuerpo),
+        'el sorteo de *!pin* vuelve a repartirse entre todos los resultados: los de abajo son los que se parecen poco');
+      exige(!/shuffle\(/.test(cuerpo),
+        'los resultados de *!pin* vuelven a barajarse: entonces *!next* salta al azar en vez de bajar por la lista como quien hace scroll');
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ todas de una vez, el sticker se convierte y el pin sale por relevancia'));
   }
 
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────

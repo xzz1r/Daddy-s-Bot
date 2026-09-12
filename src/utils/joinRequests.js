@@ -272,11 +272,26 @@ function _frenado(grupo) { return frenados.get(grupo) || null; }
 // antifake apagado, que es justo lo que apaga esa guarda; con el encendido —que
 // es como viene— el vetado no dura dentro ni un segundo.
 //
-// Va de una en una con pausa. Aprobar veinte de golpe son veinte llamadas
-// seguidas a WhatsApp; con una cuenta en revision eso es exactamente el patron
-// que no conviene. Diez por ciclo basta: el sondeo vuelve a pasar.
-const PAUSA_APROBAR = 1500;
-const MAX_POR_CICLO = 10;
+// ─── TODAS DE UNA VEZ, Y NO ES LO MISMO QUE «TODAS SEGUIDAS» ────────────────
+//
+// Aqui ponia que aprobar veinte de golpe son veinte llamadas seguidas a
+// WhatsApp, y que con una cuenta en revision ese patron no conviene. El
+// razonamiento era bueno; la conclusion, no: se iba de UNA EN UNA con segundo y
+// medio de pausa y tope de diez por ciclo. Diez solicitudes eran mas de quince
+// segundos, y la once esperaba al siguiente sondeo.
+//
+// Lo que cambia la cuenta es que `groupRequestParticipantsUpdate` acepta una
+// LISTA de jids y la manda en UNA sola peticion —lo hace su propio codigo:
+// `participants.map(jid => ({ tag: 'participant', attrs: { jid } }))` dentro de
+// un unico `groupQuery`, y contesta con el estado de cada uno. O sea que
+// aprobar veinte a la vez no son veinte llamadas: es una.
+//
+// Asi que se mandan todas juntas. La pausa desaparece porque desaparece la
+// rafaga que la justificaba, y el tope pasa a ser el tamaño del lote, no del
+// ciclo: si hay ochenta pendientes se hacen dos lotes con un respiro corto en
+// medio, no ocho ciclos de diez.
+const POR_LOTE = 50;
+const PAUSA_ENTRE_LOTES = 800;
 
 // DE QUE CAMPO SALE EL JID DE QUIEN PIDE ENTRAR.
 //
@@ -309,7 +324,8 @@ async function aceptarPendientes(sock, grupo) {
   if (!lista || !lista.length) return { aprobados: 0, sinJid: 0 };
 
   let aprobados = 0, sinJid = 0;
-  for (const p of lista.slice(0, MAX_POR_CICLO)) {
+  const jids = [];
+  for (const p of lista) {
     const jid = jidDeSolicitud(p);
     if (!jid) {
       // Si aun asi no se encuentra, se dice CON EL SOBRE DELANTE. Callarse aqui
@@ -318,17 +334,36 @@ async function aceptarPendientes(sock, grupo) {
       logger.warn(`autoaceptar: solicitud sin JID reconocible en ${grupo}. Atributos: ${JSON.stringify(p)}`);
       continue;
     }
+    jids.push(jid);
+  }
+  if (!jids.length) return { aprobados, sinJid };
+
+  for (let i = 0; i < jids.length; i += POR_LOTE) {
+    const lote = jids.slice(i, i + POR_LOTE);
+    let res = null;
     try {
-      const res = await sock.groupRequestParticipantsUpdate(grupo, [jid], 'approve');
-      // WhatsApp NO lanza cuando rechaza: devuelve el error dentro del status.
-      // Contarlo como aprobado era mentir en el recuento.
-      const estado = Array.isArray(res) ? (res[0]?.status || '200') : '200';
-      if (String(estado) === '200') { aprobados++; await olvidarSolicitud(grupo, jid); }
-      else logger.warn(`autoaceptar: WhatsApp rechazo aprobar a ${jid} en ${grupo} (status ${estado})`);
+      res = await sock.groupRequestParticipantsUpdate(grupo, lote, 'approve');
     } catch (e) {
-      logger.warn(`autoaceptar: no pude aprobar a ${jid} en ${grupo}: ${e.message}`);
+      logger.warn(`autoaceptar: no pude aprobar el lote de ${lote.length} en ${grupo}: ${e.message}`);
+      continue;
     }
-    await new Promise((r) => setTimeout(r, PAUSA_APROBAR));
+    // WhatsApp NO lanza cuando rechaza: devuelve el error dentro del status, uno
+    // por participante. Contarlos todos como aprobados seria mentir en el
+    // recuento, que es de las pocas cosas que este bot no se permite.
+    //
+    // La respuesta se cruza POR JID cuando lo trae, y por posicion cuando no:
+    // Baileys devuelve `{ status, jid }` por participante y en el mismo orden,
+    // pero el jid puede volver en otra forma (lid contra telefono) y entonces
+    // buscar por nombre no encuentra nada.
+    const filas = Array.isArray(res) ? res : [];
+    for (let k = 0; k < lote.length; k++) {
+      const jid = lote[k];
+      const fila = filas.find((f) => f?.jid === jid) || filas[k];
+      const estado = String(fila?.status ?? (filas.length ? '?' : '200'));
+      if (estado === '200') { aprobados++; await olvidarSolicitud(grupo, jid); }
+      else logger.warn(`autoaceptar: WhatsApp rechazo aprobar a ${jid} en ${grupo} (status ${estado})`);
+    }
+    if (i + POR_LOTE < jids.length) await new Promise((r) => setTimeout(r, PAUSA_ENTRE_LOTES));
   }
   return { aprobados, sinJid };
 }

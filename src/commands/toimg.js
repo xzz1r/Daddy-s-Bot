@@ -15,9 +15,10 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs-extra');
+const { spawn } = require('child_process');
 const { ffmpegPath } = require('../utils/ffmpeg');
 const { tempFile, cleanTemp, streamToBuffer, ffmpegSemaphore, MAX_MEDIA_BYTES } = require('../utils/helpers');
-const { isAnimatedWebP, extractFirstAnmfFrame } = require('../utils/sticker');
+const { desmontarWebpAnimado, isAnimatedWebP, extractFirstAnmfFrame } = require('../utils/sticker');
 const { getSender } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const logger = require('../utils/logger');
@@ -153,11 +154,92 @@ async function convertToJpeg(inputBuf) {
   }
 }
 
+// Monta el MP4 a partir de los fotogramas ya sacados del WebP. Cada uno entra
+// como su propia entrada con su duracion, igual que el pase de fotos de
+// utils/redes.js y por el mismo motivo: el demuxer `concat` da por hecho que
+// todas las entradas miden lo mismo y se come las que no.
+async function mp4DeCuadros(desmontado) {
+  const { cuadros } = desmontado;
+  const sueltos = [];
+  const salida = tempFile('mp4');
+  try {
+    for (let i = 0; i < cuadros.length; i++) {
+      const f = tempFile('webp');
+      await fs.writeFile(f, cuadros[i].webp);
+      sueltos.push(f);
+    }
+    const args = ['-hide_banner', '-loglevel', 'error', '-y'];
+    for (let i = 0; i < sueltos.length; i++) {
+      // La duracion la dice el propio fichero; 100 ms es lo que pone libwebp
+      // cuando no la trae, que es el mismo valor que usa el visor de WhatsApp.
+      const seg = Math.max(0.02, (cuadros[i].ms || 100) / 1000);
+      args.push('-loop', '1', '-t', seg.toFixed(3), '-i', sueltos[i]);
+    }
+    const cadena = 'scale=trunc(iw/2)*2:trunc(ih/2)*2,setsar=1,fps=25,format=yuv420p';
+    const pasos = sueltos.map((_, i) => `[${i}:v]${cadena}[v${i}]`);
+    pasos.push(`${sueltos.map((_, i) => `[v${i}]`).join('')}concat=n=${sueltos.length}:v=1:a=0[v]`);
+    args.push('-filter_complex', pasos.join(';'), '-map', '[v]',
+      '-c:v', 'libx264', '-crf', '12', '-preset', 'veryfast',
+      '-movflags', 'faststart', '-an', salida);
+
+    await ffmpegSemaphore.acquire();
+    try {
+      await new Promise((resolve, reject) => {
+        const proc = spawn(ffmpegPath, args);
+        let err = '';
+        const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} reject(new Error('timeout')); }, 90000);
+        proc.stderr?.on('data', (d) => { err += d.toString(); });
+        proc.on('error', (e) => { clearTimeout(matar); reject(e); });
+        proc.on('close', (c) => {
+          clearTimeout(matar);
+          if (c === 0) resolve();
+          else reject(new Error(err.trim().split('\n').pop() || `codigo ${c}`));
+        });
+      });
+    } finally {
+      ffmpegSemaphore.release();
+    }
+    const buf = await fs.readFile(salida);
+    return buf.length > 100 ? buf : null;
+  } catch (e) {
+    logger.unaVez('tovid desde los fotogramas del webp', e);
+    return null;
+  } finally {
+    for (const f of sueltos) await cleanTemp(f);
+    await cleanTemp(salida);
+  }
+}
+
 // Convierte un WebP animado a MP4 (H.264). pix_fmt yuv420p + dimensiones pares
 // son obligatorios para que WhatsApp y la mayoría de reproductores lo lean. Sin
 // audio (los stickers no lo tienen). Depende de que el ffmpeg del sistema tenga
 // el demuxer de WebP animado (el mismo que usa la conversión a GIF de !toimg).
 async function convertToMp4(inputBuf) {
+  // ─── EL CAMINO QUE HACE QUE ESTO FUNCIONE DE VERDAD ───────────────────────
+  //
+  // El dueño: «lo de /tovid nunca ha funcionado con stickers, con videos
+  // funciona bien». Y no era cosa de su maquina: ffmpeg NO SABE abrir un WebP
+  // animado. Comprobado con el binario del bot — un WebP estatico lo decodifica
+  // sin problema y uno animado no lo abre ni a secas, ni con `-f webp_pipe`, ni
+  // forzando `-c:v libwebp`. O sea que el `runFfmpegConvert` de abajo fallaba
+  // SIEMPRE y el comando caia a su respaldo de «no se pudo convertir».
+  //
+  // La salida es partir el fichero nosotros: cada fotograma de un WebP animado
+  // va dentro del contenedor ya comprimido, y envuelto en una cabecera RIFF
+  // minima es un WebP ESTATICO, que ffmpeg si abre. Se sacan todos con sus
+  // duraciones y se montan en fila.
+  //
+  // Si el sticker viene con fotogramas PARCHE —trozos mas pequeños que el
+  // lienzo— no se toca: componer eso pide decodificar el VP8 aqui dentro, y
+  // ponerlos en fila daria un video con las piezas descolocadas. En ese caso se
+  // deja pasar al camino de siempre, que fallara, y el comando hara lo que ya
+  // hacia. Mejor eso que un video mal hecho.
+  const desmontado = desmontarWebpAnimado(inputBuf);
+  if (desmontado && desmontado.completos && desmontado.cuadros.length > 1) {
+    const mp4 = await mp4DeCuadros(desmontado);
+    if (mp4) return mp4;
+  }
+
   const inputFile = tempFile('webp');
   const outputFile = tempFile('mp4');
   await fs.writeFile(inputFile, inputBuf);
@@ -339,4 +421,4 @@ async function cmdToImg(sock, msg, groupMeta) {
   }
 }
 
-module.exports = { cmdToImg, cmdToVid, findMedia, medioObjetivo };
+module.exports = { cmdToImg, cmdToVid, findMedia, medioObjetivo, _convertToMp4: convertToMp4, _mp4DeCuadros: mp4DeCuadros };

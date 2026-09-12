@@ -61,7 +61,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const axios = require('axios');
 const { acquireDownloadSlot, releaseDownloadSlot, ytdlp, downloadUrlToFile, hayYtDlp, MAX_BYTES, TEMP_DIR } = require('./downloader');
-const { ffmpegSemaphore, pickFresh, shuffle } = require('./helpers');
+const { ffmpegSemaphore, pickFresh } = require('./helpers');
 const { ffmpegPath } = require('./ffmpeg');
 const { spawn } = require('child_process');
 const logger = require('./logger');
@@ -1156,15 +1156,31 @@ async function buscar(texto, clave) {
     if (!contesto) pines = pinesDe(html);
     if (!pines.length) throw new Error(`no encontré nada con «${consulta}»`);
 
-    // El primero se elige evitando los ultimos que salieron con esa misma
-    // busqueda; los demas, al azar, y solo se usan si el primero no se deja
+    // ─── SE ELIGE ENTRE LOS PRIMEROS, NO ENTRE TODOS ──────────────────────
+    //
+    // El dueño: «sigue sin encontrar memes racistas, en una busqueda comun de
+    // Pinterest eso sale todo normal». Y es verdad que sale: mirando los quince
+    // resultados de «memes racistas argentinos» uno a uno, los de arriba son
+    // exactamente lo que se pide.
+    //
+    // El problema era COMO se elegia. El buscador devuelve los resultados
+    // ORDENADOS por relevancia, y el bot sorteaba entre los quince por igual:
+    // cuatro de cada cinco veces salia uno de la cola, que es donde Pinterest
+    // pone lo que se parece poco. En la web eso no se nota porque la persona ve
+    // la cuadricula entera y elige; aqui solo sale una.
+    //
+    // Ahora el sorteo es entre los CINCO PRIMEROS —sigue sin repetir, que para
+    // eso esta pickFresh— y los demas quedan detras EN ORDEN DE RELEVANCIA, no
+    // barajados: asi *!next* baja por la lista como quien hace scroll, en vez de
+    // saltar al azar. Los de mas abajo solo salen si los de arriba no se dejan
     // bajar.
-    const huellas = pines.map((p) => p.huella);
-    const fresca = pickFresh(huellas, clave, 12);
+    const CABEZA = 5;
+    const cabeza = pines.slice(0, CABEZA);
+    const fresca = pickFresh(cabeza.map((p) => p.huella), clave, CABEZA - 2);
     const orden = [];
-    const primero = pines.find((p) => p.huella === fresca);
+    const primero = cabeza.find((p) => p.huella === fresca);
     if (primero) orden.push(primero);
-    for (const p of shuffle(pines)) if (!orden.includes(p)) orden.push(p);
+    for (const p of pines) if (!orden.includes(p)) orden.push(p);
 
     let ultimo = null;
     for (const pin of orden.slice(0, INTENTOS_PIN)) {

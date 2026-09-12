@@ -1011,6 +1011,18 @@ async function connectToWhatsApp() {
       //
       // El retardo junta las rafagas: cinco solicitudes de golpe son un solo
       // barrido en vez de cinco, y la lista ya las trae todas.
+      //
+      // TRESCIENTOS MILISEGUNDOS, NO MIL QUINIENTOS. El retardo esta para juntar
+      // lo que llega junto, y lo que llega junto llega en el mismo instante: los
+      // avisos de WhatsApp de una rafaga entran con milisegundos de diferencia,
+      // no con segundos. Segundo y medio no juntaba mas solicitudes que
+      // trescientos — lo unico que añadia era segundo y medio de espera para
+      // quien esta mirando la pantalla del grupo.
+      //
+      // Y desde que la aprobacion va en UNA sola peticion con todos los jids
+      // dentro (ver joinRequests.js), lo que venga despues del barrido no cuesta
+      // una rafaga: cuesta otra peticion.
+      const ESPERA_RAFAGA = 300;
       if (isAutoAceptarEnabled(id)) {
         clearTimeout(autoAcceptPendiente.get(id));
         const t = setTimeout(() => {
@@ -1018,7 +1030,7 @@ async function connectToWhatsApp() {
           aceptarPendientes(sock, id)
             .then((r) => { if (r?.aprobados) logger.info(`autoaccept en ${id}: ${r.aprobados} aprobada(s) al vuelo`); })
             .catch((e) => logger.warn(`autoaccept en ${id}: ${e.message}`));
-        }, 1500);
+        }, ESPERA_RAFAGA);
         t.unref?.();
         autoAcceptPendiente.set(id, t);
       }

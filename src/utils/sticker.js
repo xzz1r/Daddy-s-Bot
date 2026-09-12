@@ -61,6 +61,77 @@ function extractFirstAnmfFrame(animBuf) {
   return null;
 }
 
+// ─── DESMONTAR UN WEBP ANIMADO EN SUS FOTOGRAMAS ────────────────────────────
+//
+// EXISTE PORQUE FFMPEG NO SABE ABRIRLOS, Y ESO NO TIENE ARREGLO POR FUERA.
+// Comprobado con el binario que usa el bot: un WebP ESTATICO lo decodifica sin
+// problema, y uno ANIMADO no lo abre de ninguna forma — ni a secas, ni con
+// `-f webp_pipe`, ni forzando `-c:v libwebp`. Por eso *!tovid* sobre un sticker
+// no ha funcionado nunca, mientras que sobre un video va bien: son dos caminos
+// distintos y solo uno pasa por aqui.
+//
+// La salida es partirlo nosotros. Un WebP animado es un contenedor RIFF con una
+// cadena de trozos ANMF, y cada ANMF lleva SU fotograma ya comprimido dentro,
+// con su duracion y su posicion. Sacar cada uno y envolverlo en una cabecera
+// RIFF minima da un WebP ESTATICO — que es justo lo que ffmpeg si abre.
+//
+// El fichero ya sabia hacer esto para UN fotograma (`extractFirstAnmfFrame`,
+// para la miniatura). Esto es lo mismo para todos, con sus tiempos.
+//
+// LO QUE NO SE INVENTA: un ANMF puede ser un PARCHE —un trozo mas pequeño que el
+// lienzo, colocado en una posicion y mezclado con lo que ya habia— y componer
+// eso de verdad exigiria decodificar el VP8 aqui dentro. Cuando el fichero viene
+// asi se dice que no y el comando cae a su respaldo de siempre, que es mandar el
+// fichero. Mejor eso que un video con los fotogramas descolocados.
+function leer24(buf, pos) {
+  return buf[pos] | (buf[pos + 1] << 8) | (buf[pos + 2] << 16);
+}
+
+function desmontarWebpAnimado(animBuf) {
+  if (!animBuf || animBuf.length < 16) return null;
+  if (animBuf.slice(0, 4).toString('latin1') !== 'RIFF') return null;
+  if (animBuf.slice(8, 12).toString('latin1') !== 'WEBP') return null;
+
+  let ancho = 0;
+  let alto = 0;
+  const cuadros = [];
+  let pos = 12;
+  while (pos + 8 <= animBuf.length) {
+    const tipo = animBuf.slice(pos, pos + 4).toString('latin1');
+    const largo = animBuf.readUInt32LE(pos + 4);
+    if (largo < 0 || pos + 8 + largo > animBuf.length) break;
+
+    if (tipo === 'VP8X' && largo >= 10) {
+      // El lienzo: tres bytes de ancho y tres de alto, menos uno cada uno.
+      ancho = leer24(animBuf, pos + 12) + 1;
+      alto = leer24(animBuf, pos + 15) + 1;
+    } else if (tipo === 'ANMF' && largo > 16) {
+      const x = leer24(animBuf, pos + 8) * 2;
+      const y = leer24(animBuf, pos + 11) * 2;
+      const w = leer24(animBuf, pos + 14) + 1;
+      const h = leer24(animBuf, pos + 17) + 1;
+      const ms = leer24(animBuf, pos + 20);
+      const cuerpo = animBuf.slice(pos + 24, pos + 8 + largo);
+      const riff = 4 + cuerpo.length;
+      const suelto = Buffer.allocUnsafe(8 + riff);
+      suelto.write('RIFF', 0, 'ascii');
+      suelto.writeUInt32LE(riff, 4);
+      suelto.write('WEBP', 8, 'ascii');
+      cuerpo.copy(suelto, 12);
+      cuadros.push({ webp: suelto, ms, x, y, w, h });
+    }
+    pos += 8 + largo + (largo % 2);
+  }
+
+  if (!cuadros.length) return null;
+  // Sin lienzo declarado se toma el del primer fotograma, que es lo que hay.
+  if (!ancho || !alto) { ancho = cuadros[0].w; alto = cuadros[0].h; }
+  // Todos a pantalla completa: es la unica forma en la que ponerlos en fila da
+  // el mismo resultado que componerlos.
+  const completos = cuadros.every((c) => c.x === 0 && c.y === 0 && c.w === ancho && c.h === alto);
+  return { ancho, alto, cuadros, completos };
+}
+
 // Thumbnail filter: scale to fit a 96px box keeping the source aspect ratio,
 // then center it on a transparent 96x96 canvas. WhatsApp's sticker spec is a
 // fixed square canvas — the padding is fully transparent so it's invisible
@@ -808,4 +879,4 @@ async function gifToSticker(gifBuffer, author, rutaOrigen = null) {
   return videoToSticker(gifBuffer, author, rutaOrigen);
 }
 
-module.exports = { _VF_ANIM: VF_ANIM, detectExt, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC };
+module.exports = { _VF_ANIM: VF_ANIM, detectExt, desmontarWebpAnimado, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC };
