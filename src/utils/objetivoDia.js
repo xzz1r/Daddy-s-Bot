@@ -81,10 +81,19 @@ async function flushObjetivoDia() {
   await saver.flush();
 }
 
-async function objetivoDelDia(grupo, groupMeta) {
+// `rankingYaHecho` es la lista COMPLETA de miembros con aura, sin recortar, para
+// quien ya la tenga en la mano. *!top* la acaba de construir tres lineas antes y
+// aqui se rehacia entera: medido en un grupo de 250, el comando costaba 524 us
+// de los cuales 250 eran esta segunda vuelta. No es una cache —no se guarda
+// nada, no caduca nada— es pasar un argumento que ya existe.
+//
+// SIN RECORTAR, y por eso el parametro no es el ranking que *!top* enseña: el
+// `find` de mas abajo necesita la lista entera. Con el top-10 el objetivo
+// dejaria de encontrarse en cuanto cayera al puesto once.
+async function objetivoDelDia(grupo, groupMeta, rankingYaHecho = null) {
   await load();
-  const ranking = soloMiembros(await getAuraRanking(grupo), groupMeta)
-    .filter((r) => r.aura >= ROBO.minVictima);
+  const base = rankingYaHecho || soloMiembros(await getAuraRanking(grupo), groupMeta);
+  const ranking = base.filter((r) => r.aura >= ROBO.minVictima);
   if (ranking.length < 2) return null;
 
   const hoy = diaClave();

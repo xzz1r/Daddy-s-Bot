@@ -836,8 +836,11 @@ async function showRanking(sock, msg, groupMeta) {
   // aura, no de actividad. No dice cuanto escribe nadie ni de donde salio ese
   // saldo, asi que aparecer en el no delata ni su rango ni sus mensajes — que es
   // lo que se protege en !count, !relevancia, !vs, !inactivos y los tops al azar.
-  const ranking = soloMiembros(await getAuraRanking(jid), groupMeta)
-    .slice(0, 10);
+  // La lista entera se guarda: el objetivo del dia la necesita sin recortar y la
+  // rehacia por su cuenta tres lineas mas abajo. Medido en un grupo de 250: 250
+  // us de los 524 que costaba el comando, en construir dos veces lo mismo.
+  const rankingCompleto = soloMiembros(await getAuraRanking(jid), groupMeta);
+  const ranking = rankingCompleto.slice(0, 10);
   if (ranking.length === 0) {
     ultimoRanking.delete(jid);
     return sock.sendMessage(jid, { text: 'Nadie ha medido su aura todavía. Usa *!aura*.' }, { quoted: msg });
@@ -867,7 +870,7 @@ async function showRanking(sock, msg, groupMeta) {
   let text = '*RANKING DE AURA*\n\n';
   const mentions = [];
   let objDia = null;
-  try { objDia = await objetivoDelDia(jid, groupMeta); } catch { /* el top sale igual */ }
+  try { objDia = await objetivoDelDia(jid, groupMeta, rankingCompleto); } catch { /* el top sale igual */ }
   ranking.forEach((r, i) => {
     const marca = (objDia && esObjetivoDelDia(objDia, r.jid)) ? ' — *objetivo del día*' : '';
     text += `*${i + 1}.* @${r.jid.split('@')[0]} — ${fmt(r.aura)}${marca}\n`;

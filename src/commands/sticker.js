@@ -1,6 +1,7 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, MAX_STICKER_BYTES } = require('../utils/sticker');
-const { streamToBuffer, MAX_MEDIA_BYTES } = require('../utils/helpers');
+const { imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, detectExt, MAX_STICKER_BYTES } = require('../utils/sticker');
+const fs = require('fs-extra');
+const { streamToBuffer, tempFile, cleanTemp, MAX_MEDIA_BYTES } = require('../utils/helpers');
 const { getSender, isOwner } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const { incrementStat } = require('../utils/state');
@@ -117,13 +118,25 @@ async function cmdSticker(sock, msg, groupMeta) {
   // El ffmpeg empaquetado no decodifica su propio WebP animado, así que la
   // miniatura hay que sacarla del mp4/gif original; si falta, WhatsApp apila
   // dos fotogramas y el sticker se ve partido.
+  // ─── EL MEDIO SE ESCRIBE UNA VEZ, NO DOS ──────────────────────────────────
+  //
+  // La miniatura y el sticker necesitan los mismos bytes en un fichero, y cada
+  // uno escribia SU copia: dos temporales de hasta 24 MB para el mismo video, en
+  // una maquina de 1 GB. Medido con uno de 22,6 MB: +54 MB de pico contra +19
+  // escribiendo una sola vez.
+  //
+  // Se escribe aqui, se les pasa el camino a los dos, y se borra al final pase
+  // lo que pase. Los dos lo LEEN, ninguno lo toca.
+  let rutaOrigen = null;
   let sourceThumb = null;
   let stickerBuffer;
   try {
     if (found.type === 'video') {
+      rutaOrigen = tempFile(detectExt(buffer) || 'mp4');
+      await fs.writeFile(rutaOrigen, buffer);
       [sourceThumb, stickerBuffer] = await Promise.all([
-        generateSourceThumb(buffer).catch(() => null),
-        videoToSticker(buffer, author),
+        generateSourceThumb(rutaOrigen).catch(() => null),
+        videoToSticker(buffer, author, rutaOrigen),
       ]);
     } else if (found.type === 'sticker') {
       // Re-encode existing sticker to re-stamp metadata with our pack
@@ -141,9 +154,14 @@ async function cmdSticker(sock, msg, groupMeta) {
     } else {
       const mime = found.msg.mimetype || '';
       if (mime.includes('gif')) {
+        // Mismo trato que el video: un solo temporal para los dos. Un GIF pesa
+        // menos, pero la razon es la misma y tener dos caminos distintos para lo
+        // mismo es como se desincronizan.
+        rutaOrigen = tempFile(detectExt(buffer) || 'gif');
+        await fs.writeFile(rutaOrigen, buffer);
         [sourceThumb, stickerBuffer] = await Promise.all([
-          generateSourceThumb(buffer).catch(() => null),
-          gifToSticker(buffer, author),
+          generateSourceThumb(rutaOrigen).catch(() => null),
+          gifToSticker(buffer, author, rutaOrigen),
         ]);
       } else {
         stickerBuffer = await imageToSticker(buffer, author);
@@ -153,6 +171,10 @@ async function cmdSticker(sock, msg, groupMeta) {
     logger.error(`Sticker conversion error: ${err.message}`);
     await reembolsar();
     return sock.sendMessage(jid, { text: 'No pude convertir eso a sticker. Prueba con otra imagen o video.' }, { quoted: msg });
+  } finally {
+    // El temporal compartido se borra aqui, salga bien o mal: es el unico sitio
+    // por el que pasan los dos caminos.
+    if (rutaOrigen) await cleanTemp(rutaOrigen).catch(() => {});
   }
 
   try {

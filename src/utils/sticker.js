@@ -1,4 +1,5 @@
 const zlib = require('zlib');
+const path = require('path');
 const { ffmpegPath, ffprobePath } = require('./ffmpeg');
 const { spawn } = require('child_process');
 const ffmpeg = require('fluent-ffmpeg');
@@ -73,12 +74,21 @@ const VF_THUMB = `scale=96:96:force_original_aspect_ratio=decrease,pad=96:96:(ow
 // cases. Without pngThumbnail WhatsApp composites its own static preview by
 // stacking the first two animation frames — producing the "split in two" artifact.
 // Calling this on the ORIGINAL source (mp4/gif) before WebP encoding works fine.
-async function generateSourceThumb(srcBuffer) {
-  const ext = detectExt(srcBuffer);
+// `origen` puede ser el Buffer o la RUTA de un fichero que ya este escrito.
+//
+// Con el Buffer, esto escribia el medio ENTERO en un temporal solo para sacarle
+// un fotograma — y el que lo llama ya habia escrito esos mismos bytes en otro
+// temporal para codificar el sticker. Dos copias de hasta 24 MB en una maquina
+// de 1 GB, medidas: +54 MB de pico con Buffer contra +19 MB escribiendo una vez.
+//
+// Cuando llega una ruta, el fichero es del que llama y NO se borra aqui.
+async function generateSourceThumb(origen) {
+  const esRuta = typeof origen === 'string';
+  const ext = esRuta ? (path.extname(origen).slice(1) || 'mp4') : detectExt(origen);
   if (!ext || ext === 'webp') return null;  // can't decode webp, skip
-  const inputFile = tempFile(ext);
+  const inputFile = esRuta ? origen : tempFile(ext);
   const outputFile = tempFile('png');
-  await fs.writeFile(inputFile, srcBuffer);
+  if (!esRuta) await fs.writeFile(inputFile, origen);
   try {
     await runFfmpeg(inputFile, outputFile, [
       '-map', '0:v:0',
@@ -91,7 +101,7 @@ async function generateSourceThumb(srcBuffer) {
   } catch {
     return null;
   } finally {
-    await cleanTemp(inputFile);
+    if (!esRuta) await cleanTemp(inputFile);
     await cleanTemp(outputFile);
   }
 }
@@ -718,15 +728,17 @@ async function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512, f
   }
 }
 
-async function videoToSticker(videoBuffer, author) {
+// `rutaOrigen`: si el que llama ya escribio el medio en un temporal, se usa ese
+// y no se escribe una segunda copia. El fichero sigue siendo suyo y lo borra el.
+async function videoToSticker(videoBuffer, author, rutaOrigen = null) {
   const detected = detectExt(videoBuffer);
 
   if (detected === 'webp') return addStickerMeta(videoBuffer, author);
 
   const ext = detected || 'mp4';
-  const inputFile = tempFile(ext);
+  const inputFile = rutaOrigen || tempFile(ext);
   const outputFile = tempFile('webp');
-  await fs.writeFile(inputFile, videoBuffer);
+  if (!rutaOrigen) await fs.writeFile(inputFile, videoBuffer);
 
   try {
     const medidas = await medidasDe(inputFile);
@@ -781,7 +793,10 @@ async function videoToSticker(videoBuffer, author) {
     if (!out || out.length < 100) throw new Error('Sticker animado vacío');
     return addStickerMeta(out, author);
   } finally {
-    await cleanTemp(inputFile);
+    // El temporal solo se borra si lo hemos creado aqui: cuando llega por
+    // `rutaOrigen` es del que llama, y borrarlo le quitaria de debajo el fichero
+    // que la miniatura esta usando en paralelo.
+    if (!rutaOrigen) await cleanTemp(inputFile);
     await cleanTemp(outputFile);
   }
 }
@@ -789,8 +804,8 @@ async function videoToSticker(videoBuffer, author) {
 // Raw GIF (image/gif attachment) → animated sticker. detectExt sees 'gif',
 // so videoToSticker writes a .gif temp file and ffmpeg reads it once through
 // with the same square-fit tiers — no separate code path needed.
-async function gifToSticker(gifBuffer, author) {
-  return videoToSticker(gifBuffer, author);
+async function gifToSticker(gifBuffer, author, rutaOrigen = null) {
+  return videoToSticker(gifBuffer, author, rutaOrigen);
 }
 
-module.exports = { _VF_ANIM: VF_ANIM, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC };
+module.exports = { _VF_ANIM: VF_ANIM, detectExt, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC };

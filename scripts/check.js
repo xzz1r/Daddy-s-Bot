@@ -9975,6 +9975,94 @@ const di=async(quien,t)=>{out.length=0;
 
     }
 
+
+    // 11. EL MEDIO SE ESCRIBE UNA VEZ, Y EL STICKER SALE IGUAL.
+    //
+    // La miniatura y el sticker necesitan los mismos bytes en un fichero y cada
+    // uno escribia su copia: dos temporales de hasta 24 MB para el mismo video.
+    // Esto es un cambio de los que no se ven —el sticker sale igual— asi que se
+    // comprueba las dos cosas: que solo se escribe una vez, y que lo que sale
+    // es IDENTICO byte a byte.
+    {
+      const { execFileSync } = require('child_process');
+      const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+      const st = require(path.join(R, 'src/utils/sticker'));
+      const { tempFile, cleanTemp } = require(path.join(R, 'src/utils/helpers'));
+      const fse = require(path.join(R, 'node_modules/fs-extra'));
+      const crypto = require('crypto');
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'stk58-'));
+      const escritas = [];
+      const realWrite = fse.writeFile.bind(fse);
+      try {
+        const v = path.join(dir, 'v.mp4');
+        execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi',
+          '-i', 'testsrc2=size=320x180:duration=3:rate=24', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', v],
+          { timeout: 120000 });
+        const buf = fs.readFileSync(v);
+        const md5 = (b) => crypto.createHash('md5').update(b).digest('hex');
+
+        const viejo = await Promise.all([
+          st.generateSourceThumb(buf).catch(() => null),
+          st.videoToSticker(buf, 'p'),
+        ]);
+
+        // Ahora el camino nuevo, contando lo que se escribe a disco.
+        fse.writeFile = async (f, d, ...r) => { escritas.push((d && d.length) || 0); return realWrite(f, d, ...r); };
+        const ruta = tempFile('mp4');
+        await fse.writeFile(ruta, buf);
+        const nuevo = await Promise.all([
+          st.generateSourceThumb(ruta).catch(() => null),
+          st.videoToSticker(buf, 'p', ruta),
+        ]);
+        fse.writeFile = realWrite;
+        await cleanTemp(ruta);
+
+        const grandes = escritas.filter((n) => n >= buf.length);
+        exige(grandes.length === 1,
+          `el medio se escribió ${grandes.length} veces en vez de una: son dos temporales de hasta 24 MB para el mismo vídeo en una máquina de 1 GB`);
+        exige(md5(viejo[1]) === md5(nuevo[1]),
+          'el sticker cambia al compartir el temporal: el ahorro no vale nada si el resultado no es el mismo');
+        exige((!viejo[0] && !nuevo[0]) || (viejo[0] && nuevo[0] && md5(viejo[0]) === md5(nuevo[0])),
+          'la miniatura cambia al compartir el temporal');
+      } finally {
+        fse.writeFile = realWrite;
+        fs.rmSync(dir, { recursive: true, force: true });
+      }
+    }
+
+    // 12. *!top* NO CONSTRUYE EL RANKING DOS VECES.
+    {
+      const au = soloCodigo('src/commands/aura.js');
+      exige(/objetivoDelDia\(jid, groupMeta, rankingCompleto\)/.test(au),
+        '*!top* vuelve a dejar que el objetivo del día rehaga el ranking entero: 250 us de los 524 que costaba, en construir dos veces lo mismo');
+      // Y el que se pasa tiene que ser el COMPLETO, no el top-10: con el
+      // recortado el objetivo deja de encontrarse en cuanto cae al puesto once.
+      exige(/rankingCompleto = soloMiembros/.test(au) && /rankingCompleto\.slice\(0, 10\)/.test(au),
+        'se pasa una lista recortada al objetivo del día: entonces el objetivo desaparece del cartel en cuanto sale del top 10');
+
+      // Y QUE EL PARAMETRO SE USE DE VERDAD, no solo que se pase. Un grupo sin
+      // una sola linea de aura no tiene objetivo posible; si al darle una lista
+      // a mano sale uno, es que la esta leyendo.
+      {
+        const od = require(path.join(R, 'src/utils/objetivoDia'));
+        const G = `12036300058${Math.floor(Math.random() * 9000 + 1000)}@g.us`;
+        const gente = [1, 2, 3, 4].map((i) => `34600005${i}${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`);
+        const meta = { id: G, participants: gente.map((id) => ({ id })) };
+        od._decidido.delete(G);
+        od._sinObjetivo.delete(G);
+        const aCiegas = await od.objetivoDelDia(G, meta).catch(() => null);
+        exige(!aCiegas, 'un grupo sin aura ya tiene objetivo: la prueba de abajo no distingue nada');
+        od._decidido.delete(G);
+        od._sinObjetivo.delete(G);
+        const aMano = gente.map((jid, i) => ({ jid, aura: 50000 - i * 10 }));
+        const conLista = await od.objetivoDelDia(G, meta, aMano).catch(() => null);
+        exige(!!conLista && gente.includes(conLista.jid),
+          'objetivoDelDia ignora el ranking que se le pasa y lo rehace por su cuenta: entonces el parámetro no ahorra nada');
+        od._decidido.delete(G);
+        od._sinObjetivo.delete(G);
+      }
+    }
+
     if (fallos === antes) console.log(verde('   ✓ mismo comportamiento, el dinero se apunta antes de pagarse y ffmpeg no se queda sin plaza'));
   }
 
