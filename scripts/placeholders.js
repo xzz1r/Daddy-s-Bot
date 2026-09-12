@@ -66,6 +66,28 @@ const CONTRATO = {
 // código, que también llevan % y corchetes.
 const ES_FRASE = /^\s*(['"`])(.{25,})\1,?\s*$/;
 
+// Y UNA PROPIEDAD DE OBJETO NO ES UNA FRASE, aunque lo parezca.
+//
+// `ES_FRASE` es glotona: en una linea como
+//
+//     'X-Pinterest-PWS-Handler': 'www/search/[scope].js',
+//
+// se traga desde la primera comilla hasta la ultima, asi que la ve como UNA
+// frase cuyo texto es `X-Pinterest-PWS-Handler': 'www/search/[scope].js`. Y ahi
+// dentro hay un `[scope]`, que ni es un placeholder ni lo sustituye nadie:
+// es el nombre que Pinterest le da a su ruta en una cabecera obligatoria.
+//
+// Eso bloqueo un despliegue entero con «usa [scope] y no esta declarado en
+// CONTRATO». Y la cabecera no se puede quitar: sin ella el buscador contesta
+// 403 (probado, 200 con ella y 403 sin ella).
+//
+// La linea se reconoce por lo que es —una clave entrecomillada seguida de dos
+// puntos— y se salta. Las frases de los pools son elementos de un array y nunca
+// llevan clave delante, asi que esto no abre ninguna puerta: lo que se cuela
+// por aqui es codigo, que es justo lo que el comentario de arriba ya decia que
+// habia que dejar fuera.
+const ES_PROPIEDAD = /^\s*(['"`])[^'"`]*\1\s*:/;
+
 // %X y %PALABRA en mayúsculas, [loquesea] y {loquesea}. Son las formas que usa
 // el bot; cualquier otra cosa con % (un 70 %, un 100 %) no se toca.
 //
@@ -101,6 +123,26 @@ for (const abs of walk(path.join(R, 'src'))) {
 
   const encontrados = new Map();   // placeholder -> [{linea, texto}]
   lineas.forEach((l, i) => {
+    if (ES_PROPIEDAD.test(l)) {
+      // Y EL AGUJERO QUE ABRE ESA EXCEPCION SE TAPA AQUI MISMO.
+      //
+      // Saltarse las propiedades de objeto vale porque los pools son ARRAYS:
+      // sus frases nunca llevan una clave delante. Comprobado, hoy no hay ni
+      // una en src/data escrita asi. Pero el dia que alguien escriba un pool
+      // como objeto, sus placeholders dejarian de revisarse EN SILENCIO, que es
+      // exactamente el fallo que este fichero existe para impedir.
+      //
+      // Asi que en los ficheros de frases esa forma no se permite: si una linea
+      // de src/data es una clave con un texto largo detras y ese texto lleva un
+      // hueco, se canta.
+      if (rel.startsWith(path.join('src', 'data')) && /%[A-Z]+\b|\[[a-zA-Z_]+\]/.test(l)) {
+        fallos++;
+        console.log(`\nFALLO  ${rel}:${i + 1} escribe una frase con hueco como propiedad de objeto.`);
+        console.log('       Los pools son arrays; ahi los placeholders SI se revisan.');
+        console.log(`       ${l.trim().slice(0, 110)}`);
+      }
+      return;
+    }
     const m = l.match(ES_FRASE);
     if (!m) return;
     frasesRevisadas++;

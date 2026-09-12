@@ -197,7 +197,7 @@ if ! npm run --silent check -- --breve; then
   echo "════════════════════════════════════════════"
   echo "  NO SE REINICIA: el código nuevo no pasa la comprobación."
   echo "  El bot sigue corriendo con la versión anterior."
-  echo "  Detalle completo de las 32 capas:  npm run check"
+  echo "  Detalle completo de todas las capas:  npm run check"
   echo "  Arregla lo de arriba y vuelve a lanzar: npm run update"
   echo "════════════════════════════════════════════"
   exit 1
