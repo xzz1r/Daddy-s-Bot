@@ -64,7 +64,7 @@ const axios = require('axios');
 // que devuelva una API de fuera puede apuntar al metadata del VPS.
 const { urlSegura, DestinoProhibido } = require('./redSegura');
 const { acquireDownloadSlot, releaseDownloadSlot, ytdlp, downloadUrlToFile, hayYtDlp, MAX_BYTES, TEMP_DIR } = require('./downloader');
-const { ffmpegSemaphore, pickFresh } = require('./helpers');
+const { ffmpegSemaphore } = require('./helpers');
 const { ffmpegPath } = require('./ffmpeg');
 const { spawn } = require('child_process');
 const logger = require('./logger');
@@ -952,7 +952,7 @@ const PIN = {
 // Para el buscador de verdad hace falta parecer un navegador de escritorio: con
 // el de movil, Pinterest sirve la pagina ligera y su endpoint contesta 403.
 const UA_ESCRITORIO = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
-const MAX_RESULTADOS = 20;
+const MAX_RESULTADOS = 24;
 const RX_PIN = /https:\/\/i\.pinimg\.com\/(originals|\d{2,4}x\d{0,4})\/((?:[0-9a-f]{2}\/){3}[0-9a-f]{16,})\.(jpg|jpeg|png|webp)/gi;
 // EL TAMAÑO SE PIDE, NO SE ACEPTA EL QUE VENGA.
 //
@@ -971,8 +971,35 @@ const RX_PIN = /https:\/\/i\.pinimg\.com\/(originals|\d{2,4}x\d{0,4})\/((?:[0-9a
 // menor. El primero que baje, ese se manda.
 const CALIDAD = ['originals', '736x', '564x', '474x'];
 const MAX_PINES = 40;
-const INTENTOS_PIN = 4;
+const INTENTOS_PIN = 6;
 const LARGO_BUSQUEDA = 80;
+
+// Palabras que no distinguen una búsqueda de otra. Si entran al marcador,
+// «sticker racista Argentina» y «meme de la Argentina» empatan en «de» y
+// «la», y el pin genérico sube sin haber dicho sticker ni racista.
+const STOP_BUSQUEDA = new Set([
+  'de', 'la', 'el', 'los', 'las', 'un', 'una', 'uno', 'unos', 'unas',
+  'y', 'o', 'del', 'al', 'en', 'con', 'por', 'para', 'the', 'and', 'or',
+  'to', 'in', 'on', 'for', 'of', 'an', 'que', 'qué', 'como', 'más', 'mas',
+  'muy', 'sin', 'esto', 'esta', 'este', 'ese', 'esa', 'eso', 'lo',
+]);
+// Lo que escribe el grupo no es lo que escribe Pinterest en el pin: «gatos»
+// sale como «cat», «sticker» como «pegatina», «racista» como «racism». Sin
+// esto el marcador mira otra lengua y tira el resultado bueno.
+const SINONIMOS = {
+  gato: ['gatos', 'gatito', 'gatitos', 'michi', 'michis', 'cat', 'cats', 'kitten', 'kitty'],
+  gatos: ['gato', 'gatito', 'gatitos', 'cat', 'cats', 'kitten'],
+  sticker: ['stickers', 'stiker', 'stikers', 'pegatina', 'pegatinas', 'calco', 'calcos'],
+  stickers: ['sticker', 'stiker', 'pegatina', 'pegatinas', 'calco'],
+  racista: ['racist', 'racismo', 'racism'],
+  racist: ['racista', 'racismo', 'racism'],
+  meme: ['memes', 'humor'],
+  memes: ['meme'],
+  dibujo: ['dibujos', 'drawing', 'drawings'],
+  dibujos: ['dibujo', 'drawing'],
+  perro: ['perros', 'dog', 'dogs', 'puppy'],
+  perros: ['perro', 'dog', 'dogs'],
+};
 
 // Saca de la pagina de resultados un pin por huella, con sus tamaños a probar.
 function pinesDe(html) {
@@ -1033,11 +1060,152 @@ function huellaDe(url) {
   return m ? m[1] : String(url);
 }
 
+function normalizarBusqueda(s) {
+  return String(s || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function tokensDe(s) {
+  return normalizarBusqueda(s).split(/\s+/).filter((t) => t.length >= 3 && !STOP_BUSQUEDA.has(t));
+}
+
+function raizDe(t) {
+  let r = String(t || '');
+  if (r.length >= 6 && /(aciones|acion|ciones|cion)$/.test(r)) r = r.replace(/(aciones|acion|ciones|cion)$/, '');
+  else if (r.length >= 5 && /(amente|mente)$/.test(r)) r = r.replace(/(amente|mente)$/, '');
+  else if (r.length >= 5 && /(es|as|os)$/.test(r)) r = r.slice(0, -2);
+  else if (r.length >= 4 && r.endsWith('s')) r = r.slice(0, -1);
+  if (r.length >= 5 && /[ao]$/.test(r)) r = r.slice(0, -1);
+  return r;
+}
+
+function variantesDe(tok) {
+  const out = new Set([tok]);
+  if (tok.endsWith('s') && tok.length > 4) out.add(tok.slice(0, -1));
+  else out.add(`${tok}s`);
+  const r = raizDe(tok);
+  if (r.length >= 4) out.add(r);
+  for (const s of SINONIMOS[tok] || []) out.add(s);
+  return [...out];
+}
+
+// El titulo, el alt automatico y el tablero. Ahi es donde se ve si el pin
+// ES lo que se pidio. Las «busquedas relacionadas» van aparte: en un gato
+// argentino Pinterest cuelga «Harry Potter» y «Ninjago», y si eso cuenta
+// igual que el titulo, una busqueda de Harry Potter saca el gato.
+function partesDePin(p) {
+  if (!p) return { fuerte: '', extra: '' };
+  if (typeof p.texto === 'string' && !p.images) {
+    return { fuerte: p.texto, extra: typeof p.extra === 'string' ? p.extra : '' };
+  }
+  const board = p.board && typeof p.board === 'object' ? p.board : {};
+  const join = p.pin_join && typeof p.pin_join === 'object' ? p.pin_join : {};
+  const anns = Array.isArray(join.visual_annotation)
+    ? join.visual_annotation.filter((x) => typeof x === 'string').join(' ')
+    : (typeof join.visual_annotation === 'string' ? join.visual_annotation : '');
+  const resumen = p.rich_summary && typeof p.rich_summary === 'object' ? p.rich_summary : {};
+  const limpio = (xs) => xs.filter((x) => typeof x === 'string' && x.trim() && x.trim() !== '.').join(' ');
+  return {
+    fuerte: limpio([
+      p.grid_title, p.title, p.description, p.seo_alt_text, p.alt_text,
+      p.auto_alt_text, p.closeup_unified_description, p.grid_description, p.seo_title,
+      resumen.display_name, resumen.excerpt,
+    ]),
+    extra: limpio([board.name, anns]),
+  };
+}
+
+function textoDePin(p) {
+  if (!p) return '';
+  if (typeof p.texto === 'string') {
+    return p.extra ? `${p.texto} ${p.extra}` : p.texto;
+  }
+  const { fuerte, extra } = partesDePin(p);
+  return `${fuerte} ${extra}`.trim();
+}
+
+function cubreToken(tok, fuerte, extra) {
+  const vars = variantesDe(tok);
+  if (vars.some((v) => v.length >= 3 && fuerte.includes(v))) return 'fuerte';
+  if (vars.some((v) => v.length >= 3 && extra.includes(v))) return 'extra';
+  const r = raizDe(tok);
+  if (r.length >= 5) {
+    const encaja = (w) => {
+      if (w.length < 4) return false;
+      const rw = raizDe(w);
+      return rw === r || rw.startsWith(r) || r.startsWith(rw);
+    };
+    if (fuerte.split(' ').some(encaja)) return 'fuerte';
+    if (extra.split(' ').some(encaja)) return 'extra';
+  }
+  return '';
+}
+
+function puntuar(consulta, pin, pos = 0) {
+  const qTokens = tokensDe(consulta);
+  const frase = normalizarBusqueda(consulta);
+  const { fuerte: fRaw, extra: eRaw } = partesDePin(pin);
+  const fuerte = normalizarBusqueda(fRaw);
+  const extra = normalizarBusqueda(eRaw);
+  let pts = Math.max(0, 12 - pos);
+  let cubiertos = 0;
+  if (frase && fuerte.includes(frase)) pts += 80;
+  else if (frase && extra.includes(frase)) pts += 25;
+  for (const tok of qTokens) {
+    const donde = cubreToken(tok, fuerte, extra);
+    if (donde === 'fuerte') { pts += 18; cubiertos++; }
+    else if (donde === 'extra') { pts += 7; cubiertos++; }
+  }
+  for (let i = 0; i < qTokens.length - 1; i++) {
+    const bi = `${qTokens[i]} ${qTokens[i + 1]}`;
+    if (fuerte.includes(bi)) pts += 25;
+    else if (extra.includes(bi)) pts += 8;
+  }
+  if (qTokens.length) pts += Math.round(30 * cubiertos / qTokens.length);
+  return { pts, cubiertos, qlen: qTokens.length };
+}
+
+// Reordena por lo que el pin DICE, no por el sitio en el que Pinterest lo
+// colgó. Medido con «sticker racista Argentina»: el primero del buscador era
+// un cartel en una fachada (cero palabras de la consulta) y el sticker
+// argentino iba tercero. El bot sorteaba entre los cinco primeros, así que
+// cuatro de cada cinco veces salía basura. Ahora el que cubre más palabras
+// va primero, y el que no cubre ninguna se cae si hay otros que sí.
+function ordenarPines(pines, consulta) {
+  if (!Array.isArray(pines) || pines.length <= 1) return pines || [];
+  const anotados = pines.map((p, i) => {
+    const pos = p.pos != null ? p.pos : i;
+    return { pin: p, pos, ...puntuar(consulta, p, pos) };
+  });
+  anotados.sort((a, b) => b.pts - a.pts || a.pos - b.pos);
+  const qlen = tokensDe(consulta).length;
+  let lista = anotados;
+  if (qlen >= 2) {
+    const maxC = Math.max(0, ...anotados.map((x) => x.cubiertos));
+    if (maxC > 0) {
+      let minimo = maxC;
+      let buenos = anotados.filter((x) => x.cubiertos >= minimo);
+      if (buenos.length < 3 && minimo > 1) {
+        minimo -= 1;
+        buenos = anotados.filter((x) => x.cubiertos >= minimo);
+      }
+      if (buenos.length >= 2) lista = buenos;
+    }
+  }
+  return lista.map((x) => x.pin);
+}
+
 function pinesDeResultados(crudos) {
   const pines = [];
   for (const p of crudos) {
     // Los anuncios fuera: nadie ha pedido un anuncio.
     if (!p || p.is_promoted || p.promoted_is_removable) continue;
+    // «otras búsquedas», usuarios, tableros: no son un pin.
+    if (p.type && p.type !== 'pin') continue;
     const im = p.images || {};
     // De mayor a menor, y `orig` es como llama este endpoint al original.
     const candidatos = ['orig', '736x', '564x', '474x', '236x']
@@ -1047,10 +1215,44 @@ function pinesDeResultados(crudos) {
     // por ejemplo— y esos no traen imagenes. Sin esta linea, el primero de
     // «gatos» era uno de ellos.
     if (!candidatos.length) continue;
-    pines.push({ huella: huellaDe(candidatos[0]), candidatos });
+    const { fuerte, extra } = partesDePin(p);
+    pines.push({ huella: huellaDe(candidatos[0]), candidatos, texto: fuerte, extra });
     if (pines.length >= MAX_RESULTADOS) break;
   }
   return pines;
+}
+
+// Lo que ya se mandó de esa búsqueda en ese grupo. No es pickFresh: aquel
+// sortea entre los que quedan, y eso es justo lo que hacía que *!next*
+// saltara a un pin mediocre en vez de bajar al siguiente más concreto.
+const MAX_VISTOS = 500;
+const vistosPorClave = new Map();
+
+function vistosDe(clave) {
+  if (!clave) return new Set();
+  return new Set(vistosPorClave.get(clave) || []);
+}
+
+function marcarVisto(clave, huella) {
+  if (!clave || !huella) return;
+  let hist = vistosPorClave.get(clave);
+  if (vistosPorClave.has(clave)) vistosPorClave.delete(clave);
+  else if (vistosPorClave.size >= MAX_VISTOS) vistosPorClave.delete(vistosPorClave.keys().next().value);
+  if (!hist) hist = [];
+  hist.push(huella);
+  if (hist.length > 40) hist.shift();
+  vistosPorClave.set(clave, hist);
+}
+
+function siguientePin(pines, clave, { reciclar = false } = {}) {
+  if (!Array.isArray(pines) || !pines.length) return null;
+  if (!clave) return pines[0];
+  const vistos = vistosDe(clave);
+  const next = pines.find((p) => !vistos.has(p.huella));
+  if (next) return next;
+  if (!reciclar) return null;
+  vistosPorClave.delete(clave);
+  return pines[0];
 }
 
 // ─── LAS COOKIES SE GUARDAN: NO SON DE LA BUSQUEDA, SON DE LA SESION ────────
@@ -1086,15 +1288,39 @@ async function traerGalletas(pagina, comun, forzar = false) {
   return { cookie, csrf, html };
 }
 
-async function pedirAPinterest(consulta) {
-  const pagina = PIN.pagina + encodeURIComponent(consulta);
-  const comun = { 'User-Agent': UA_ESCRITORIO, 'Accept-Language': 'es-ES,es;q=0.9' };
-  let { cookie: galletas, csrf, html } = await traerGalletas(pagina, comun);
-  if (!galletas) return { pines: [], html, contesto: false };
+// Lo que manda la web cuando TÚ escribes la consulta. Sin `rs=typed` y sin
+// `term_meta[]=palabra|typed`, Pinterest trata la petición como sugerencia
+// y mezcla pines «parecidos». El HTML de la página ya llevaba `rs=typed`;
+// el endpoint, no — y el endpoint es del que salen los resultados.
+function sourceUrlDe(consulta) {
+  const q = encodeURIComponent(consulta);
+  const terms = String(consulta).trim().split(/\s+/).filter(Boolean)
+    .map((p) => `term_meta[]=${encodeURIComponent(p)}|typed`)
+    .join('&');
+  return `/search/pins/?q=${q}&rs=typed${terms ? `&${terms}` : ''}`;
+}
 
-  const cuerpo = { options: { query: consulta, scope: 'pins', bookmarks: [''] }, context: {} };
+async function pedirAPinterest(consulta, bookmark = '') {
+  const pagina = PIN.pagina + encodeURIComponent(consulta);
+  const comun = { 'User-Agent': UA_ESCRITORIO, 'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8' };
+  let { cookie: galletas, csrf, html } = await traerGalletas(pagina, comun);
+  if (!galletas) return { pines: [], html, contesto: false, bookmark: '' };
+
+  const sourceUrl = sourceUrlDe(consulta);
+  const cuerpo = {
+    options: {
+      query: consulta,
+      scope: 'pins',
+      rs: 'typed',
+      page_size: 25,
+      auto_correction_disabled: false,
+      redux_normalize_feed: true,
+      bookmarks: [bookmark || ''],
+    },
+    context: {},
+  };
   const destino = PIN.recurso
-    + `?source_url=${encodeURIComponent(`/search/pins/?q=${consulta}`)}`
+    + `?source_url=${encodeURIComponent(sourceUrl)}`
     + `&data=${encodeURIComponent(JSON.stringify(cuerpo))}`;
   const preguntar = async () => axios.get(destino, {
     timeout: 20000, validateStatus: () => true,
@@ -1104,7 +1330,7 @@ async function pedirAPinterest(consulta) {
       'X-Requested-With': 'XMLHttpRequest',
       'X-APP-VERSION': 'ba7f6d6',
       'X-Pinterest-AppState': 'active',
-      'X-Pinterest-Source-Url': `/search/pins/?q=${consulta}`,
+      'X-Pinterest-Source-Url': sourceUrl,
       'X-Pinterest-PWS-Handler': 'www/search/[scope].js',
       Referer: pagina,
       Cookie: galletas,
@@ -1122,71 +1348,93 @@ async function pedirAPinterest(consulta) {
       if (galletas) r = await preguntar();
     }
     const crudos = r.data?.resource_response?.data?.results;
+    const siguiente = r.data?.resource_response?.bookmark
+      || (Array.isArray(r.data?.resource_response?.bookmarks) ? r.data.resource_response.bookmarks[0] : '')
+      || '';
     // `contesto` distingue dos cosas que antes se confundian, y la confusion se
     // vio en el grupo: el buscador que NO responde (403, red, cambio de nombre)
     // y el buscador que responde «de eso no tengo nada». En el primer caso vale
     // la pena leer la pagina; en el segundo NO, porque la pagina siempre trae
     // relleno y lo unico que se consigue es mandar cualquier cosa como si fuera
     // el resultado. Asi salio el icono de Instagram en el grupo.
-    if (Array.isArray(crudos)) return { pines: pinesDeResultados(crudos), html, contesto: true };
+    if (Array.isArray(crudos)) {
+      return {
+        pines: pinesDeResultados(crudos),
+        html,
+        contesto: true,
+        bookmark: siguiente && siguiente !== '-end-' ? siguiente : '',
+      };
+    }
     logger.info(`redes: el buscador de Pinterest contestó ${r.status} sin resultados; tiro de la página`);
   } catch (e) {
     logger.info(`redes: el buscador de Pinterest falló (${e.message.slice(0, 60)}); tiro de la página`);
   }
-  return { pines: [], html, contesto: false };
+  return { pines: [], html, contesto: false, bookmark: '' };
 }
 
 // Busca y devuelve la imagen ya en disco, con la misma forma que `traer`.
 // `clave` es para no repetir: la misma busqueda en el mismo grupo no saca la
-// misma foto dos veces seguidas.
-async function buscar(texto, clave) {
+// misma foto dos veces seguidas. `pinesDados` es la lista ya ranqueada de un
+// *!next*: no se vuelve a preguntar a Pinterest, se baja el siguiente.
+async function buscar(texto, clave, pinesDados = null) {
   const consulta = String(texto || '').replace(/\s+/g, ' ').trim().slice(0, LARGO_BUSQUEDA);
   if (!consulta) throw new Error('dime qué buscar');
   await acquireDownloadSlot();
   let fichero = null;
   try {
-    let pines = [];
+    let pines = Array.isArray(pinesDados) && pinesDados.length ? pinesDados : null;
     let html = '';
     let contesto = false;
-    try {
-      ({ pines, html, contesto } = await pedirAPinterest(consulta));
-    } catch (e) {
-      throw new Error(`Pinterest no contestó (${e.response?.status || e.code || e.message})`);
+    if (!pines) {
+      try {
+        const uno = await pedirAPinterest(consulta);
+        pines = uno.pines;
+        html = uno.html;
+        contesto = uno.contesto;
+        // ─── SI LA PRIMERA PAGINA NO DICE LO QUE SE PIDIO, LA SEGUNDA ────
+        //
+        // Pinterest recorta consultas feas («racista») y rellena la primera
+        // pagina con pines que solo comparten UNA palabra. Medido: de diez,
+        // el tope era «sticker»+«argentina» y «racista» no aparecia. En la
+        // pagina siguiente si salian pines que hablaban de racismo. Una
+        // sola pagina de mas, y solo cuando faltan palabras, no siempre.
+        const qlen = tokensDe(consulta).length;
+        const maxC = Math.max(0, ...pines.map((p, i) => puntuar(consulta, p, i).cubiertos));
+        if (contesto && qlen >= 2 && maxC < qlen && uno.bookmark) {
+          const dos = await pedirAPinterest(consulta, uno.bookmark);
+          if (dos.contesto && dos.pines.length) {
+            const visto = new Set(pines.map((p) => p.huella));
+            for (const p of dos.pines) if (!visto.has(p.huella)) pines.push(p);
+          }
+        }
+      } catch (e) {
+        throw new Error(`Pinterest no contestó (${e.response?.status || e.code || e.message})`);
+      }
+      // El respaldo SOLO si el buscador no contesto. Si contesto y no trajo nada,
+      // es que no hay nada: leer la pagina entonces es mandar su relleno como si
+      // fuera el resultado.
+      if (!contesto) pines = pinesDe(html);
+      pines = ordenarPines(pines, consulta);
     }
-    // El respaldo SOLO si el buscador no contesto. Si contesto y no trajo nada,
-    // es que no hay nada: leer la pagina entonces es mandar su relleno como si
-    // fuera el resultado.
-    if (!contesto) pines = pinesDe(html);
     if (!pines.length) throw new Error(`no encontré nada con «${consulta}»`);
 
-    // ─── SE ELIGE ENTRE LOS PRIMEROS, NO ENTRE TODOS ──────────────────────
+    // ─── EL MAS CONCRETO QUE AUN NO SALIO, NO UN SORTEO ENTRE LOS CINCO ──
     //
-    // El dueño: «sigue sin encontrar memes racistas, en una busqueda comun de
-    // Pinterest eso sale todo normal». Y es verdad que sale: mirando los quince
-    // resultados de «memes racistas argentinos» uno a uno, los de arriba son
-    // exactamente lo que se pide.
+    // El dueño: «sigue sin encontrar memes racistas» y «el buscador es una
+    // porquería». El arreglo anterior sorteaba entre los cinco primeros del
+    // buscador. Eso asume que Pinterest ordena bien —y a una visita anónima
+    // no le ordena: el #1 de «sticker racista Argentina» era un cartel en
+    // una fachada, sin sticker, sin racista y sin Argentina.
     //
-    // El problema era COMO se elegia. El buscador devuelve los resultados
-    // ORDENADOS por relevancia, y el bot sorteaba entre los quince por igual:
-    // cuatro de cada cinco veces salia uno de la cola, que es donde Pinterest
-    // pone lo que se parece poco. En la web eso no se nota porque la persona ve
-    // la cuadricula entera y elige; aqui solo sale una.
-    //
-    // Ahora el sorteo es entre los CINCO PRIMEROS —sigue sin repetir, que para
-    // eso esta pickFresh— y los demas quedan detras EN ORDEN DE RELEVANCIA, no
-    // barajados: asi *!next* baja por la lista como quien hace scroll, en vez de
-    // saltar al azar. Los de mas abajo solo salen si los de arriba no se dejan
-    // bajar.
-    const CABEZA = 5;
-    const cabeza = pines.slice(0, CABEZA);
-    const fresca = pickFresh(cabeza.map((p) => p.huella), clave, CABEZA - 2);
-    const orden = [];
-    const primero = cabeza.find((p) => p.huella === fresca);
-    if (primero) orden.push(primero);
-    for (const p of pines) if (!orden.includes(p)) orden.push(p);
-
+    // Ahora se reordena por las palabras de la consulta (titulo + alt) y se
+    // baja por esa lista. *!next* es el siguiente, no otro al azar.
+    const intentados = new Set();
     let ultimo = null;
-    for (const pin of orden.slice(0, INTENTOS_PIN)) {
+    for (let n = 0; n < INTENTOS_PIN; n++) {
+      const pin = siguientePin(pines, clave, { reciclar: n === 0 });
+      if (!pin || intentados.has(pin.huella)) break;
+      intentados.add(pin.huella);
+      marcarVisto(clave, pin.huella);
       for (const url of pin.candidatos) {
         const ext = extensionDe(url) || 'jpg';
         fichero = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`);
@@ -1199,7 +1447,7 @@ async function buscar(texto, clave) {
           // jpg: es la misma comprobacion que se le hace a los vídeos.
           const medio = await analizarMedio(fichero);
           if (!medio.probado || !ESTATICOS.has(medio.video)) throw new Error('no es una imagen');
-          return { fichero, tipo: 'imagen', ext, bytes: size };
+          return { fichero, tipo: 'imagen', ext, bytes: size, pines };
         } catch (e) {
           ultimo = e;
           await fs.remove(fichero).catch(() => {});
@@ -1489,5 +1737,5 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, buscar, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
+module.exports = { traer, buscar, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
   _montarPase: montarPase, _comoEnlaces: comoEnlaces, _porYtDlpFotos: porYtDlpFotos, _fotosDeFicha: fotosDeFicha, _esSinVideo: esSinVideo, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };

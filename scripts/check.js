@@ -9422,7 +9422,7 @@ const di=async(quien,t)=>{out.length=0;
         'el orden de los resultados no se respeta: el buscador los devuelve por relevancia y esa es toda la gracia');
 
       exige(pdr([]).length === 0, 'una respuesta vacía devuelve resultados');
-      exige(pdr([...Array(60)].map((_, i) => conImagenes(String(i % 10) + 'f'))).length <= 20,
+      exige(pdr([...Array(60)].map((_, i) => conImagenes(String(i % 10) + 'f'))).length <= 24,
         'no hay tope de resultados');
 
       // La huella agrupa la misma foto venga del tamaño que venga: es lo que
@@ -9431,6 +9431,94 @@ const di=async(quien,t)=>{out.length=0;
       exige(h('https://i.pinimg.com/originals/aa/bb/cc/aabbccddeeff00112233445566778899.jpg')
         === h('https://i.pinimg.com/736x/aa/bb/cc/aabbccddeeff00112233445566778899.jpg'),
         'la misma foto en dos tamaños da dos huellas: entonces «no repetir» no funciona');
+
+      // EL TITULO SE GUARDA. Sin el, el marcador no tiene con qué saber si el
+      // pin es lo que se pidió, y volvemos a mandar el primero que Pinterest
+      // colgó — que en «sticker racista Argentina» era un cartel de fachada.
+      const conTitulo = pdr([conImagenes('ee', { grid_title: 'sticker de gato', seo_alt_text: 'a cat sticker' })]);
+      exige(conTitulo[0] && /sticker/.test(conTitulo[0].texto || ''),
+        'el título del pin se tira: entonces no hay con qué medir si es lo que se pidió');
+      exige(pdr([conImagenes('ff', { type: 'query', grid_title: 'otras búsquedas' })]).length === 0,
+        'un módulo de «otras búsquedas» (type=query) entra como pin');
+    }
+
+    // ── EL PIN QUE DICE LO QUE SE PIDIÓ VA PRIMERO, NO EL QUE PINTEREST PUSO ─
+    //
+    // El dueño: el buscador es una porquería y manda cosas random. El arreglo
+    // anterior fiaba el orden de Pinterest y sorteaba entre los cinco primeros.
+    // Medido en vivo: el #1 de «sticker racista Argentina» era un cartel en
+    // una fachada (cero palabras) y el sticker argentino iba tercero. Sin
+    // reordenar por el texto, da igual haber cambiado de endpoint.
+    {
+      const ord = redes._ordenarPines;
+      const pin = (huella, texto, extra = '') => ({ huella, candidatos: [`http://x/${huella}`], texto, extra });
+      const lista = [
+        pin('fachada', 'a sign that is on the side of a building with words written in spanish'),
+        pin('michi', 'argentina modo michi', 'Countryballs Argentina Harry Potter Ninjago'),
+        pin('sticker', 'a cartoon character holding the flag of argentina', 'Flork Argentino Argentina Sticker'),
+        pin('mundial', 'WORLD CUP 2026 a cat sitting next to a sign'),
+      ];
+      const out = ord(lista, 'sticker racista Argentina');
+      exige(out[0] && out[0].huella === 'sticker',
+        `el primero de «sticker racista Argentina» es «${out[0] && out[0].huella}» en vez del sticker: se sigue fiando del orden de Pinterest`);
+      exige(!out.some((p) => p.huella === 'fachada'),
+        'el cartel de la fachada (cero palabras de la consulta) sigue en la lista y *!pin* puede mandarlo');
+      exige(!out.some((p) => p.huella === 'mundial'),
+        'un pin de mundial de gatos entra como resultado de «sticker racista Argentina»');
+
+      // «argentino» tiene que contar como «argentina». Si no, el sticker
+      // bueno («Meowl argentino») pierde contra uno que repite la palabra
+      // exacta en un tablero de ruido.
+      const gentilicio = ord([
+        pin('exacta', 'bandera de argentina foto'),
+        pin('gentilicio', 'sticker flork argentino'),
+      ], 'sticker argentina');
+      exige(gentilicio[0] && gentilicio[0].huella === 'gentilicio',
+        `«sticker argentino» pierde contra una foto de la bandera: el gentilicio no cuenta como la palabra`);
+
+      // Una palabra sola no tira los pines en inglés. «gatos» tiene que
+      // aceptar «cat» o el grupo recibe solo los que Pinterest etiquetó en
+      // español, que suelen ser los peores.
+      const gatos = ord([
+        pin('en', 'a white cat wearing a blue hat'),
+        pin('es', 'foto de gatos para perfil'),
+        pin('ruido', 'a black and white photo of a building'),
+      ], 'gatos');
+      exige(gatos[0] && (gatos[0].huella === 'es' || gatos[0].huella === 'en'),
+        `«gatos» empieza por «${gatos[0] && gatos[0].huella}» en vez de un gato`);
+      exige(gatos.some((p) => p.huella === 'en'),
+        'un gato etiquetado en inglés se tira en una búsqueda de «gatos»');
+
+      // Sin texto en ningún pin, se deja el orden que vino. Es el respaldo
+      // de la página, que no trae títulos.
+      const mudos = ord([pin('a', ''), pin('b', ''), pin('c', '')], 'lo que sea');
+      exige(mudos.length === 3 && mudos[0].huella === 'a' && mudos[2].huella === 'c',
+        'sin títulos se reordena igual: el respaldo de la página perdería hasta el orden que trae');
+    }
+
+    // *!next* BAJA POR LA LISTA, NO VUELVE A SORTEAR.
+    {
+      redes._olvidarVistos();
+      const pines = ['1', '2', '3', '4', '5'].map((h) => ({ huella: h, candidatos: ['x'] }));
+      const clave = 'pin|g|consulta';
+      const vistos = [];
+      for (let i = 0; i < 3; i++) {
+        const p = redes._siguientePin(pines, clave);
+        vistos.push(p && p.huella);
+        if (p) redes._marcarVisto(clave, p.huella);
+      }
+      exige(vistos.join(',') === '1,2,3',
+        `*!next* recorre ${vistos.join(',')} en vez de 1,2,3: volvió a sortear entre los de arriba`);
+      exige(redes._siguientePin([], clave) == null, '*!next* sobre una lista vacía inventa un pin');
+      exige(redes._siguientePin(pines, null).huella === '1',
+        'sin clave (el validador) no se coge el primero: se sortearía y el mock dejaría de ser determinista');
+      // Agotada la lista, reciclar vuelve al más concreto, no se queda mudo.
+      redes._olvidarVistos();
+      for (const p of pines) redes._marcarVisto(clave, p.huella);
+      const deNuevo = redes._siguientePin(pines, clave, { reciclar: true });
+      exige(deNuevo && deNuevo.huella === '1',
+        'con la lista agotada *!next* no recicla al primero y el comando se queda sin foto');
+      redes._olvidarVistos();
     }
 
       // Y DE CUAL DE LAS DOS VIAS SALE LA FOTO, medido y no leido.
@@ -9731,6 +9819,14 @@ const di=async(quien,t)=>{out.length=0;
       exige(otroGrupo.some((x) => /Responde con/.test(x.c.text || '')),
         'un *!next* en OTRO grupo continúa una búsqueda que no es suya');
       cmd._busquedas.delete('ID-BUENO');
+
+      // Y LA LISTA SE GUARDA Y SE REUSA. Sin esto *!next* vuelve a preguntar
+      // a Pinterest, el orden cambia y el «siguiente» no es el siguiente.
+      const src = soloCodigo('src/commands/redes.js');
+      exige(/traido\.pines/.test(src),
+        '*!next* ya no guarda la lista ranqueada: vuelve a buscar y el orden cambia');
+      exige(/v\.pines/.test(src),
+        '*!next* no pasa la lista guardada al buscador: pregunta otra vez y no baja al siguiente');
     }
 
     if (fallos === antes) console.log(verde('   ✓ el gif no se repite y *!next* solo continúa lo que es suyo'));
@@ -10245,21 +10341,28 @@ const di=async(quien,t)=>{out.length=0;
       }
     }
 
-    // ── 3. *!pin* ELIGE ENTRE LOS PRIMEROS ─────────────────────────────────
+    // ── 3. *!pin* MANDA LO QUE SE PIDIÓ, NO UN SORTEO ENTRE LOS PRIMEROS ──
     //
-    // El buscador devuelve los resultados ORDENADOS por relevancia y el bot
-    // sorteaba entre los quince por igual: cuatro de cada cinco veces salia uno
-    // de la cola. En la web no se nota porque se ve la cuadricula entera; aqui
-    // sale una sola.
+    // El buscador de Pinterest, a una visita anónima, NO ordena por lo
+    // pedido: el #1 de «sticker racista Argentina» era un cartel de fachada.
+    // Sortear entre los cinco primeros (el arreglo anterior) manda esa
+    // basura cuatro de cada cinco veces. Tiene que reordenar por el texto
+    // del pin y bajar por esa lista, sin pickFresh y sin barajar.
     {
       const red = soloCodigo('src/utils/redes.js');
       const i = red.indexOf('async function buscar(');
       const cuerpo = i < 0 ? '' : red.slice(i, red.indexOf('\n  } catch', i));
       exige(i > 0, 'no encuentro buscar()');
-      exige(/CABEZA/.test(cuerpo) && /pines\.slice\(0, CABEZA\)/.test(cuerpo),
-        'el sorteo de *!pin* vuelve a repartirse entre todos los resultados: los de abajo son los que se parecen poco');
+      exige(/ordenarPines\(/.test(cuerpo),
+        'los resultados de *!pin* no se reordenan por si dicen lo que se pidió: se vuelve a fiar del orden de Pinterest');
+      exige(/siguientePin\(/.test(cuerpo),
+        '*!next* ya no baja por la lista ranqueada: o sortea o se queda siempre con el primero');
+      exige(!/pickFresh\(/.test(cuerpo) && !/CABEZA/.test(cuerpo),
+        '*!pin* vuelve a sortear entre los primeros: entonces sale el 4º o el 5º, que es donde Pinterest pone lo que se parece poco');
       exige(!/shuffle\(/.test(cuerpo),
-        'los resultados de *!pin* vuelven a barajarse: entonces *!next* salta al azar en vez de bajar por la lista como quien hace scroll');
+        'los resultados de *!pin* vuelven a barajarse: entonces *!next* salta al azar en vez de bajar por la lista');
+      exige(/rs:\s*['"]typed['"]/.test(red) && /term_meta/.test(red),
+        'la petición al buscador ya no marca la consulta como escrita: Pinterest la trata como sugerencia y mezcla relleno');
     }
 
     if (fallos === antes) console.log(verde('   ✓ todas de una vez, el sticker se convierte y el pin sale por relevancia'));

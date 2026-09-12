@@ -49,18 +49,21 @@ function enEspera(jid) {
 // Y encadena: el resultado de un *!next* se apunta igual, asi que se puede
 // seguir dandole a la ultima imagen indefinidamente.
 //
-// No se guarda la lista de pines, solo el texto: se vuelve a buscar. Cuesta
-// segundo y medio y a cambio no hay que mantener en memoria las fotos de todas
-// las busquedas del dia, ni sirven resultados de hace horas. Que no repita lo
-// vale `pickFresh`, que ya lleva la cuenta de lo ultimo que salio con esa misma
-// busqueda en ese mismo grupo.
+// Se guarda la lista ya ranqueada (huellas y URLs, no las fotos). *!next*
+// baja al siguiente de ESA lista en vez de volver a preguntar a Pinterest
+// y que el orden cambie. Las fotos no viven aqui: se bajan al mandarlas y
+// se borran igual que siempre.
 const MAX_BUSQUEDAS = 500;
-const busquedas = new Map();   // id del mensaje del bot -> { consulta, jid }
+const busquedas = new Map();   // id del mensaje del bot -> { consulta, jid, pines }
 
-function recordarBusqueda(id, jid, consulta) {
+function recordarBusqueda(id, jid, consulta, pines) {
   if (!id) return;
   if (busquedas.size >= MAX_BUSQUEDAS) busquedas.delete(busquedas.keys().next().value);
-  busquedas.set(id, { consulta, jid });
+  busquedas.set(id, {
+    consulta,
+    jid,
+    pines: Array.isArray(pines) && pines.length ? pines : undefined,
+  });
 }
 
 function busquedaCitada(msg) {
@@ -73,7 +76,7 @@ function busquedaCitada(msg) {
   return v;
 }
 
-async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = null) {
+async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = null, pinesDados = null) {
   const jid = msg.key.remoteJid;
   const nombre = PLATAFORMAS[plataforma].nombre;
   const texto = args.join(' ');
@@ -178,7 +181,7 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
   const t0 = Date.now();
   try {
     traido = busqueda
-      ? await buscar(busqueda, `pin|${jid}|${busqueda.toLowerCase()}`)
+      ? await buscar(busqueda, `pin|${jid}|${busqueda.toLowerCase()}`, pinesDados)
       : await traer(url, plataforma);
   } catch (e) {
     logger.warn(`${plataforma}: ${e.message}`);
@@ -222,7 +225,7 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
     const enviado = await sock.sendMessage(jid, medio, { quoted: msg });
     // Para que *!next* pueda continuar por aqui. Solo las busquedas: a un
     // enlace concreto no hay «siguiente» que darle.
-    if (busqueda) recordarBusqueda(enviado?.key?.id, jid, busqueda);
+    if (busqueda) recordarBusqueda(enviado?.key?.id, jid, busqueda, traido.pines || pinesDados);
   } catch (e) {
     logger.warn(`${plataforma}: no pude mandarlo (${e.message})`);
     await devolverAura();
@@ -255,7 +258,7 @@ async function cmdNext(sock, msg, args, groupMeta) {
       text: 'Responde con *!next* a una foto que haya mandado el bot buscando algo.',
     }, { quoted: msg });
   }
-  return hazRed(sock, msg, [], groupMeta, 'pinterest', v.consulta);
+  return hazRed(sock, msg, [], groupMeta, 'pinterest', v.consulta, v.pines);
 }
 
 const cmdTikTok    = (sock, msg, args, groupMeta) => hazRed(sock, msg, args, groupMeta, 'tiktok');
