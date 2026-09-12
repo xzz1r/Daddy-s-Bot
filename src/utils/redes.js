@@ -938,7 +938,18 @@ const UA_MOVIL = 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, lik
 //
 // Las fotos de perfil quedan fuera solas: las suyas llevan `_RS` en el tamaño
 // (`75x75_RS`) y el patron no lo acepta.
-const PIN_BUSCAR = 'https://www.pinterest.com/search/pins/?rs=typed&q=';
+// Las dos direcciones van en un objeto y no en dos constantes sueltas para que
+// el validador pueda apuntarlas a un servidor de mentira y comprobar de cual de
+// las dos sale el resultado. Sin eso, el arreglo entero —pedirle los resultados
+// al buscador en vez de leer la pagina— se puede deshacer sin que nada falle.
+const PIN = {
+  pagina: 'https://www.pinterest.com/search/pins/?rs=typed&q=',
+  recurso: 'https://www.pinterest.com/resource/BaseSearchResource/get/',
+};
+// Para el buscador de verdad hace falta parecer un navegador de escritorio: con
+// el de movil, Pinterest sirve la pagina ligera y su endpoint contesta 403.
+const UA_ESCRITORIO = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+const MAX_RESULTADOS = 20;
 const RX_PIN = /https:\/\/i\.pinimg\.com\/(originals|\d{2,4}x\d{0,4})\/((?:[0-9a-f]{2}\/){3}[0-9a-f]{16,})\.(jpg|jpeg|png|webp)/gi;
 // EL TAMAÑO SE PIDE, NO SE ACEPTA EL QUE VENGA.
 //
@@ -975,6 +986,100 @@ function pinesDe(html) {
   return [...pines.values()];
 }
 
+// ─── DE DONDE SALEN LOS RESULTADOS DE VERDAD ────────────────────────────────
+//
+// LA PRIMERA VERSION LEIA LA PAGINA A PELO Y DEVOLVIA CUALQUIER COSA. El dueño:
+// «busco /pin sticker racista Argentina y me envía cosas random».
+//
+// Y no era que la pagina trajera otra busqueda. Medido: cuatro busquedas muy
+// distintas comparten UNA sola imagen, asi que el contenido si es de cada
+// consulta. El problema es con QUE viene mezclado. A una visita anonima
+// Pinterest le rellena la pagina con contenido generico y personalizado de
+// relleno, y eso entra revuelto con los resultados: de las seis primeras
+// imagenes de «gatos», tres eran fotos de uñas. Ademas, la primera de todas no
+// era ni un resultado — era el icono de Instagram, metido en una regla de CSS.
+//
+// Como el bot elegia una al azar entre cuarenta, la mitad de las veces salia
+// del relleno. Y con una busqueda concreta —donde los resultados buenos son
+// pocos— casi siempre.
+//
+// LO QUE SI DEVUELVE LOS RESULTADOS es el mismo endpoint que usa la web cuando
+// haces scroll. Contesta 403 a secas, y por eso lo descarte la primera vez.
+// Pero no pide cuenta: pide lo que pediria un navegador. Se visita la pagina,
+// se recogen sus cookies —ahi viene el csrftoken— y con ellas el endpoint
+// contesta 200 con los resultados ORDENADOS por relevancia y sin una sola
+// imagen de relleno. Comprobado con tres busquedas: «gatos» devuelve gatos,
+// «arquitectura brutalista» devuelve edificios, y la que no funcionaba devuelve
+// lo que se le pidio.
+//
+// La pagina se descarga igual, asi que no cuesta una peticion de mas: la
+// primera visita hace falta para las cookies, y su HTML se guarda como
+// respaldo por si el endpoint deja de contestar algun dia.
+function huellaDe(url) {
+  const m = /\/(?:originals|\d{2,4}x\d{0,4})\/((?:[0-9a-f]{2}\/){3}[0-9a-f]{16,})\./i.exec(String(url));
+  return m ? m[1] : String(url);
+}
+
+function pinesDeResultados(crudos) {
+  const pines = [];
+  for (const p of crudos) {
+    // Los anuncios fuera: nadie ha pedido un anuncio.
+    if (!p || p.is_promoted || p.promoted_is_removable) continue;
+    const im = p.images || {};
+    // De mayor a menor, y `orig` es como llama este endpoint al original.
+    const candidatos = ['orig', '736x', '564x', '474x', '236x']
+      .map((k) => im[k]?.url)
+      .filter((u) => typeof u === 'string' && /^https?:\/\//i.test(u));
+    // Entre los resultados vienen modulos que no son pines —«otras busquedas»,
+    // por ejemplo— y esos no traen imagenes. Sin esta linea, el primero de
+    // «gatos» era uno de ellos.
+    if (!candidatos.length) continue;
+    pines.push({ huella: huellaDe(candidatos[0]), candidatos });
+    if (pines.length >= MAX_RESULTADOS) break;
+  }
+  return pines;
+}
+
+async function pedirAPinterest(consulta) {
+  const pagina = PIN.pagina + encodeURIComponent(consulta);
+  const comun = { 'User-Agent': UA_ESCRITORIO, 'Accept-Language': 'es-ES,es;q=0.9' };
+  const portada = await axios.get(pagina, {
+    timeout: 20000, headers: comun, maxRedirects: 5, validateStatus: () => true,
+  });
+  const html = String(portada.data || '');
+  const galletas = (portada.headers['set-cookie'] || []).map((c) => c.split(';')[0]).join('; ');
+  const csrf = (/csrftoken=([^;]+)/.exec(galletas) || [])[1];
+  if (!galletas) return { pines: [], html };
+
+  const cuerpo = { options: { query: consulta, scope: 'pins', bookmarks: [''] }, context: {} };
+  const destino = PIN.recurso
+    + `?source_url=${encodeURIComponent(`/search/pins/?q=${consulta}`)}`
+    + `&data=${encodeURIComponent(JSON.stringify(cuerpo))}`;
+  try {
+    const r = await axios.get(destino, {
+      timeout: 20000, validateStatus: () => true,
+      headers: {
+        ...comun,
+        Accept: 'application/json, text/javascript, */*; q=0.01',
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-APP-VERSION': 'ba7f6d6',
+        'X-Pinterest-AppState': 'active',
+        'X-Pinterest-Source-Url': `/search/pins/?q=${consulta}`,
+        'X-Pinterest-PWS-Handler': 'www/search/[scope].js',
+        Referer: pagina,
+        Cookie: galletas,
+        ...(csrf ? { 'X-CSRFToken': csrf } : {}),
+      },
+    });
+    const crudos = r.data?.resource_response?.data?.results;
+    if (Array.isArray(crudos)) return { pines: pinesDeResultados(crudos), html };
+    logger.info(`redes: el buscador de Pinterest contestó ${r.status} sin resultados; tiro de la página`);
+  } catch (e) {
+    logger.info(`redes: el buscador de Pinterest falló (${e.message.slice(0, 60)}); tiro de la página`);
+  }
+  return { pines: [], html };
+}
+
 // Busca y devuelve la imagen ya en disco, con la misma forma que `traer`.
 // `clave` es para no repetir: la misma busqueda en el mismo grupo no saca la
 // misma foto dos veces seguidas.
@@ -984,17 +1089,17 @@ async function buscar(texto, clave) {
   await acquireDownloadSlot();
   let fichero = null;
   try {
+    let pines = [];
     let html = '';
     try {
-      const { data } = await axios.get(PIN_BUSCAR + encodeURIComponent(consulta), {
-        timeout: 20000,
-        headers: { 'User-Agent': UA_MOVIL, 'Accept-Language': 'es-ES,es;q=0.9' },
-      });
-      html = String(data || '');
+      ({ pines, html } = await pedirAPinterest(consulta));
     } catch (e) {
       throw new Error(`Pinterest no contestó (${e.response?.status || e.code || e.message})`);
     }
-    const pines = pinesDe(html);
+    // El respaldo: leer la pagina a pelo. Trae relleno mezclado —por eso ya no
+    // es lo primero— pero es mejor que no contestar el dia que el endpoint
+    // cambie de nombre.
+    if (!pines.length) pines = pinesDe(html);
     if (!pines.length) throw new Error(`no encontré nada con «${consulta}»`);
 
     // El primero se elige evitando los ultimos que salieron con esa misma
@@ -1311,5 +1416,5 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, buscar, _pinesDe: pinesDe, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
+module.exports = { traer, buscar, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
   _montarPase: montarPase, _comoEnlaces: comoEnlaces, _porYtDlpFotos: porYtDlpFotos, _fotosDeFicha: fotosDeFicha, _esSinVideo: esSinVideo, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };

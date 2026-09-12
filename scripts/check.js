@@ -9331,6 +9331,140 @@ const di=async(quien,t)=>{out.length=0;
       'una imagen que no es de Pinterest se cuenta como pin');
     exige(pd('').length === 0, 'una página vacía devuelve pines');
 
+    // ── Y LOS RESULTADOS SALEN DEL BUSCADOR, NO DE LA PAGINA ────────────────
+    //
+    // El dueño: «busco /pin sticker racista Argentina y me envía cosas random».
+    //
+    // No era que la pagina trajera otra busqueda: cuatro busquedas muy distintas
+    // comparten UNA sola imagen, asi que el contenido si es de cada consulta. Lo
+    // que pasa es con QUE viene mezclado. A una visita anonima Pinterest le
+    // rellena la pagina con contenido generico, y eso entra revuelto: de las seis
+    // primeras imagenes de «gatos», tres eran fotos de uñas, y la primera de
+    // todas era el icono de Instagram metido en una regla de CSS. Eligiendo al
+    // azar entre cuarenta, la mitad de las veces salia del relleno.
+    //
+    // Ahora se le piden al endpoint que usa la propia web al hacer scroll, que
+    // devuelve los resultados ORDENADOS y sin relleno. Lo que se mide aqui es lo
+    // que hay que hacerle a esa respuesta, que es donde se rompe.
+    {
+      const pdr = redes._pinesDeResultados;
+      const conImagenes = (n, extra = {}) => ({
+        images: {
+          orig: { url: `https://i.pinimg.com/originals/${n}/11/22/${n}11223344556677889900aabbccdd.jpg` },
+          '736x': { url: `https://i.pinimg.com/736x/${n}/11/22/${n}11223344556677889900aabbccdd.jpg` },
+          '236x': { url: `https://i.pinimg.com/236x/${n}/11/22/${n}11223344556677889900aabbccdd.jpg` },
+        },
+        ...extra,
+      });
+
+      // EL ORIGINAL PRIMERO. Si sale el 236x, se manda una miniatura.
+      const uno = pdr([conImagenes('aa')]);
+      exige(uno.length === 1 && uno[0].candidatos[0].includes('/originals/'),
+        `del resultado sale ${uno[0]?.candidatos?.[0]} en vez del original: se mandaría una miniatura`);
+      exige(uno[0].candidatos.length >= 3,
+        'un resultado no tiene tamaños de respaldo: si el original no se deja bajar, se queda sin nada');
+
+      // LOS MODULOS QUE NO SON PINES. Entre los resultados vienen cosas como
+      // «otras búsquedas», sin imagenes. El primero de «gatos» era uno de esos.
+      const conBasura = pdr([{ args: [], text: 'Explora' }, null, conImagenes('bb')]);
+      exige(conBasura.length === 1,
+        `entran ${conBasura.length} en vez de 1: un módulo sin imágenes se cuenta como resultado y el comando se queda sin nada que mandar`);
+
+      // LOS ANUNCIOS FUERA. Nadie ha pedido un anuncio.
+      exige(pdr([conImagenes('cc', { is_promoted: true }), conImagenes('dd')]).length === 1,
+        'un anuncio entra como resultado');
+
+      // Y EL ORDEN SE RESPETA, que es lo unico que hace que la primera sea la
+      // mas relevante. Si se mezclara aqui, daria igual haber cambiado de sitio.
+      const tres = pdr([conImagenes('aa'), conImagenes('bb'), conImagenes('cc')]);
+      exige(tres.length === 3 && tres[0].candidatos[0].includes('/aa/') && tres[2].candidatos[0].includes('/cc/'),
+        'el orden de los resultados no se respeta: el buscador los devuelve por relevancia y esa es toda la gracia');
+
+      exige(pdr([]).length === 0, 'una respuesta vacía devuelve resultados');
+      exige(pdr([...Array(60)].map((_, i) => conImagenes(String(i % 10) + 'f'))).length <= 20,
+        'no hay tope de resultados');
+
+      // La huella agrupa la misma foto venga del tamaño que venga: es lo que
+      // impide que la misma salga dos veces seguidas.
+      const h = redes._huellaDe;
+      exige(h('https://i.pinimg.com/originals/aa/bb/cc/aabbccddeeff00112233445566778899.jpg')
+        === h('https://i.pinimg.com/736x/aa/bb/cc/aabbccddeeff00112233445566778899.jpg'),
+        'la misma foto en dos tamaños da dos huellas: entonces «no repetir» no funciona');
+    }
+
+      // Y DE CUAL DE LAS DOS VIAS SALE LA FOTO, medido y no leido.
+      //
+      // Esta es la que faltaba. Se puede deshacer el arreglo entero —ignorar lo
+      // que devuelve el buscador y volver a leer la pagina— sin que ninguna de
+      // las comprobaciones de arriba se entere: todas miran piezas sueltas.
+      //
+      // Asi que se montan las dos vias con contenido DISTINTO y se mira cual
+      // llega: la pagina sirve una foto de 400x400 y el buscador una de 200x300.
+      // Si sale la de 400x400, el bot volvio a leer la pagina.
+      {
+        const http = require('http');
+        const { execFileSync } = require('child_process');
+        const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+        const sinProxy = [process.env.NO_PROXY, process.env.no_proxy];
+        process.env.NO_PROXY = process.env.no_proxy = '127.0.0.1,localhost';
+        const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pin56-'));
+        let srv = null;
+        const antesPin = { ...redes._PIN };
+        try {
+          // `testsrc` y no un color liso: un JPEG de un rectangulo blanco pesa
+          // menos de 2 KB y el propio codigo lo rechaza por «miniatura», que es
+          // lo que tiene que hacer. La prueba mediria su propia guarda.
+          const foto = (n, tam) => execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y',
+            '-f', 'lavfi', '-i', `testsrc=size=${tam}:duration=1`, '-frames:v', '1', '-q:v', '2',
+            path.join(dir, n)], { timeout: 60000 });
+          foto('pagina.jpg', '400x400');
+          foto('buscador.jpg', '200x300');
+
+          let base = '';
+          srv = http.createServer((req, res) => {
+            const ruta = req.url.split('?')[0];
+            if (ruta === '/pagina') {
+              // Con cookie: sin ella el código ni intenta el buscador.
+              res.writeHead(200, {
+                'content-type': 'text/html',
+                'set-cookie': ['csrftoken=falso123; Path=/', '_pinterest_sess=x; Path=/'],
+              });
+              return res.end(`<img src="https://i.pinimg.com/736x/aa/bb/cc/aabbccddeeff00112233445566778899.jpg">`);
+            }
+            if (ruta === '/recurso') {
+              res.writeHead(200, { 'content-type': 'application/json' });
+              return res.end(JSON.stringify({ resource_response: { data: { results: [
+                { images: { orig: { url: `${base}/buscador.jpg` } } },
+              ] } } }));
+            }
+            const f = path.join(dir, ruta.slice(1));
+            if (!fs.existsSync(f)) { res.writeHead(404); return res.end(); }
+            res.writeHead(200);
+            return fs.createReadStream(f).pipe(res);
+          });
+          await new Promise((r) => srv.listen(0, '127.0.0.1', r));
+          base = `http://127.0.0.1:${srv.address().port}`;
+          redes._PIN.pagina = `${base}/pagina?q=`;
+          redes._PIN.recurso = `${base}/recurso`;
+
+          const salida = await redes.buscar('lo que sea', null).catch((e) => ({ error: e.message }));
+          exige(!salida.error, `la búsqueda falló con el buscador respondiendo: ${salida.error || ''}`);
+          if (!salida.error) {
+            const medida = await redes._medirFichero(salida.fichero);
+            exige(medida.ancho === 200 && medida.alto === 300,
+              `la foto salió a ${medida.ancho}x${medida.alto}: eso es la de la página, no la del buscador — se volvió a leer la página y con ella vuelve el relleno`);
+            fs.rmSync(salida.fichero, { force: true });
+          }
+        } finally {
+          redes._PIN.pagina = antesPin.pagina;
+          redes._PIN.recurso = antesPin.recurso;
+          if (srv) srv.close();
+          fs.rmSync(dir, { recursive: true, force: true });
+          if (sinProxy[0] === undefined) delete process.env.NO_PROXY; else process.env.NO_PROXY = sinProxy[0];
+          if (sinProxy[1] === undefined) delete process.env.no_proxy; else process.env.no_proxy = sinProxy[1];
+        }
+      }
+
     // Y LOS DOS USOS DEL COMANDO, POR SEPARADO. Lo que no puede pasar es que el
     // enlace deje de funcionar por haber añadido la busqueda, ni que la
     // busqueda borre el mensaje: sin enlace no hay nada que quitar del grupo, y
