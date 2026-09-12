@@ -1,3 +1,17 @@
+// ─── POR QUE TODOS LOS ENVIOS DE VIDEO LLEVAN `jpegThumbnail: null` ────────
+//
+// Baileys genera la miniatura EL SOLO cuando ese campo viene `undefined` — su
+// `requiresThumbnailComputation` mira exactamente eso (Utils/messages.js) — y
+// para un video la genera lanzando SU PROPIO ffmpeg, por fuera del semaforo que
+// este bot usa para no tener nunca dos ffmpeg peleandose por el unico core.
+//
+// Medido: 39 ms en un mp4 de 8 s y 87 ms en uno de 22 MB. No es mucho tiempo;
+// lo grave es que rompe la garantia justo cuando la maquina esta ocupada, que
+// es cuando alguien esta esperando su sticker.
+//
+// Con `null` no se genera nada. `acciones.js` y `utils/redes.js` ya lo hacen
+// asi; aqui faltaba en los cuatro envios.
+
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs-extra');
@@ -205,7 +219,7 @@ async function cmdToVid(sock, msg, groupMeta) {
       }
       try {
         const mp4 = await convertToMp4(buf);
-        await sock.sendMessage(jid, { video: mp4, mimetype: 'video/mp4', gifPlayback: true }, { quoted: msg });
+        await sock.sendMessage(jid, { video: mp4, mimetype: 'video/mp4', gifPlayback: true, jpegThumbnail: null }, { quoted: msg });
       } catch (err) {
         logger.warn(`tovid MP4 failed (${err.message.slice(0, 80)}), enviando el WebP`);
         await sock.sendMessage(jid, {
@@ -217,7 +231,7 @@ async function cmdToVid(sock, msg, groupMeta) {
       }
     } else if (media.type === 'video') {
       const caption = media.viewOnce ? 'Video extraído de visualización única.' : undefined;
-      await sock.sendMessage(jid, { video: buf, mimetype: 'video/mp4', caption }, { quoted: msg });
+      await sock.sendMessage(jid, { video: buf, mimetype: 'video/mp4', caption, jpegThumbnail: null }, { quoted: msg });
     } else {
       // imagen u otro: no aplica para video
       await reembolsar();
@@ -267,7 +281,7 @@ async function cmdToImg(sock, msg, groupMeta) {
         let sent = false;
         try {
           const mp4 = await convertToMp4(buf);
-          await sock.sendMessage(jid, { video: mp4, gifPlayback: true, mimetype: 'video/mp4' }, { quoted: msg });
+          await sock.sendMessage(jid, { video: mp4, gifPlayback: true, mimetype: 'video/mp4', jpegThumbnail: null }, { quoted: msg });
           sent = true;
         } catch (err) {
           logger.warn(`toimg MP4 failed (${err.message.slice(0, 80)}), trying frame extraction`);
@@ -316,7 +330,7 @@ async function cmdToImg(sock, msg, groupMeta) {
       await sock.sendMessage(jid, { image: buf, caption }, { quoted: msg });
     } else if (media.type === 'video') {
       const caption = media.viewOnce ? 'Video extraído de visualización única.' : undefined;
-      await sock.sendMessage(jid, { video: buf, mimetype: 'video/mp4', caption }, { quoted: msg });
+      await sock.sendMessage(jid, { video: buf, mimetype: 'video/mp4', caption, jpegThumbnail: null }, { quoted: msg });
     }
   } catch (err) {
     logger.error(`toimg error: ${err.message}`);

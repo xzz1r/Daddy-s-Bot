@@ -1,6 +1,19 @@
 const chalk = require('chalk');
 
-const timestamp = () => new Date().toLocaleTimeString('es-AR', { hour12: false });
+// LA HORA, CON EL FORMATEADOR HECHO UNA VEZ.
+//
+// Era `new Date().toLocaleTimeString('es-AR', { hour12: false })`, y eso
+// construye un formateador nuevo en cada linea. Medido: 62,6 us por linea
+// contra 1,45 us reutilizandolo.
+//
+// No esta en el camino de cada mensaje —`info`, `bot` y `cmd` estan detras de
+// LOG_LEVEL=verbose, que en la VPS no se usa, y JS ni llama a esto si la guarda
+// es falsa— pero `warn` y `error` SI lo pagan siempre, y son los que salen
+// cuando algo va mal, que es justo cuando la maquina esta peor.
+const FORMATO_HORA = new Intl.DateTimeFormat('es-AR', {
+  hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+});
+const timestamp = () => FORMATO_HORA.format(new Date());
 const VERBOSE = process.env.LOG_LEVEL === 'verbose';
 
 const logger = {

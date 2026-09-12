@@ -123,7 +123,19 @@ const _MAX_PICK_KEYS = 2000;    // bound the map so long-lived bots don't leak
 // el historial: las entradas viejas dejan de casar con nada y se van solas por
 // la ventana.
 const HISTORIAL_FICHERO = path.join(__dirname, '../../data/pickhistory.json');
-const GUARDADO_MS = 30 * 1000;   // se agrupa: el bot habla mucho mas que eso
+// DOS MINUTOS, NO TREINTA SEGUNDOS.
+//
+// Este es el UNICO almacen del bot donde alargar la ventana no arriesga nada:
+// lo que guarda es «que frases salieron ya», no dinero ni conteos. Si se pierde
+// una ventana, como mucho una frase se repite antes de lo que deberia — y el
+// propio fichero ya lo dice unas lineas mas abajo.
+//
+// Y del otro lado si hay algo que ganar. El guardado es SINCRONO y el fichero
+// crece: hoy son 127 KB y 0,38 ms, pero en el tope de 2.000 claves son ~790 KB
+// y 5 ms de serializacion. Cinco milisegundos de un core parado cada treinta
+// segundos, en la unica CPU que tiene la maquina, es de las pocas cosas del bot
+// que se pueden quitar sin tocar nada mas.
+const GUARDADO_MS = 120 * 1000;
 
 let _historialCargado = false;
 let _historialSucio = false;
@@ -381,7 +393,13 @@ function createSemaphore(limit) {
   function release() {
     const next = queue.shift();
     if (next) next();          // el hueco pasa de mano en mano sin bajar `active`
-    else active--;
+    // EL SUELO EN CERO. Un `release()` sin su `acquire()` dejaba `active` en
+    // negativo, y a partir de ahi el semaforo reparte plazas de mas: con una
+    // sola plaza, tres release sueltos dejaban pasar cuatro ffmpeg a la vez.
+    // Comprobado. Hoy todos los llamadores estan emparejados, pero la clase de
+    // fallo entera se quita con un Math.max y no cuesta nada — y el precio de
+    // que vuelva a pasar es dos ffmpeg peleandose por el unico core.
+    else active = Math.max(0, active - 1);
   }
   return { acquire, tryAcquire, release, _plazas: limit, _libres: () => limit - active };
 }

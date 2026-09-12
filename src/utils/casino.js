@@ -12,7 +12,7 @@ const { incrementCasinoCount } = require('./casinoStore');
 const { anotarMensaje } = require('./rachaStore');
 const { getAura, addAura } = require('./auraStore');
 const { BONOS, REDENCION, PRIMERA_DEL_DIA, HITOS, RACHA, rango } = require('./economia');
-const { hitosCobrados, apuntarHito } = require('./casinoStore');
+const { hitosCobrados, apuntarHito, flushCasino } = require('./casinoStore');
 const { HITO: RACHA_HITO, ROTA: RACHA_ROTA } = require('../data/rachaPhrases');
 const { pickFresh, fmt } = require('./helpers');
 const { isBotEnabled, isAuraEnabled } = require('./state');
@@ -246,6 +246,26 @@ async function checkCasinoMilestone(sock, jid, sender) {
   // adelanto: los mensajes se procesan en paralelo y dos que crucen el umbral a
   // la vez cobrarian los dos el bono. Esta es la unica linea que lo impide.
   if (!(await apuntarHito(jid, sender, toca.n))) return;
+
+  // LA MARCA VA AL DISCO ANTES QUE EL DINERO, y esto no es un lujo.
+  //
+  // La marca vive en casino.json y el pago en aura.json, y cada fichero tiene su
+  // propia ventana de guardado: 15 s el primero, 8 s el segundo. O sea que entre
+  // los 8 y los 15 segundos el disco dice «ya cobro el bono» y a la vez «no ha
+  // cobrado ningun hito». Reproducido leyendo los dos ficheros a los 4, 10 y 16
+  // segundos de un hito: a los 10 el aura estaba puesta y la marca no.
+  //
+  // Un reinicio en esa ventana —y el guardian reinicia por tope de RAM, que es
+  // justo un corte sin aviso— vuelve a pagar el hito entero al arrancar. Aura
+  // creada de la nada y sin una linea en el log.
+  //
+  // Con el volcado aqui, el unico desenlace malo posible es el contrario: la
+  // marca puesta y el pago perdido, o sea alguien que se queda SIN su bono. Eso
+  // se ve y se puede arreglar; el dinero inventado no se ve.
+  //
+  // Cuesta una escritura de 0,44 ms y ocurre como mucho cinco veces al dia por
+  // persona.
+  await flushCasino().catch(() => {});
 
   const tier = toca.tier;
   const currentAura = await getAura(jid, sender);

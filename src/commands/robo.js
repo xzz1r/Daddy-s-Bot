@@ -1,6 +1,25 @@
 const { isOwner, isMainOwner, isAdmin, getSender, getTarget, canonicalJid, sameUser, soloMiembros } = require('../utils/wa');
 const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
-const { getAura, addAura, drainAura, spendAura } = require('../utils/auraStore');
+// ─── POR QUE HAY VOLCADOS DE AURA A MANO EN ESTE FICHERO ────────────────────
+//
+// Un robo mueve DOS ficheros: el saldo esta en aura.json y el bote, los golpes y
+// las recompensas en robo.json. Cada uno tiene su propia ventana de guardado, y
+// no son iguales: robo.json vuelca a los 3 segundos y aura.json a los 8.
+//
+// O sea que durante cinco segundos el disco puede tener el bote ya cobrado y el
+// cargo todavia sin hacer. Reproducido: un robo fallido de 300 dejaba, a los 4
+// segundos, el bote con 300 y a la victima con su saldo intacto. Un corte ahi
+// —y el guardian reinicia por tope de RAM— arranca con 300 de aura salidas de
+// la nada.
+//
+// Lo que hace el volcado de aura antes de tocar robo.json es ORDENAR el disco:
+// asi el unico desenlace malo posible es el contrario, el cargo hecho y el
+// abono perdido. Eso es aura que desaparece, que se nota y se puede devolver;
+// la que se inventa no se nota nunca.
+//
+// Cuesta 0,44 ms medidos por robo.
+
+const { getAura, addAura, drainAura, spendAura, flushAura } = require('../utils/auraStore');
 const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/helpers');
 const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA, SALDO_MINIMO } = require('../utils/economia');
 const { ownerGana } = require('../utils/rigOwner');
@@ -367,6 +386,9 @@ async function asaltarBote(sock, msg, jid, sender, groupMeta) {
     // La entrada engorda el bote MENOS la comisión, que se destruye. Si entrara
     // entera, el asalto no drenaría nada: todo lo que se mete acaba saliendo en
     // el siguiente reventón, y el robo dejaría de ser el sumidero del sistema.
+    // El cargo (spendAura, unas lineas arriba) al disco antes que el abono al
+    // bote: es el mismo orden que en el resto del fichero, y por lo mismo.
+    await flushAura().catch(() => {});
     const ahora = await tienda.aportarAlBote(jid, BOTE.entrada * (1 - BOTE.comision));
     return sock.sendMessage(jid, {
       text: `*ASALTO FALLIDO*\n\n${fraseCon(RX.BOTE_FALLA, `${jid}|bote|falla`, { '%A': a })}\n\n_El bote sube a *${fmt(ahora)}*._`,
@@ -613,6 +635,10 @@ async function contraatacar(sock, msg, jid, sender, groupMeta) {
     // dejaría a alguien en negativo por una dinámica opcional.
     const { cobrado: real } = await drainAura(jid, p.ladron, Math.round(p.cuanto * des.mult));
     const vN = await addAura(jid, sender, real);
+    // El aura al disco antes de apuntar el golpe: aqui el movimiento es dentro
+    // del mismo fichero y no puede descuadrar, pero la recompensa que deja
+    // `anotarGolpe` en robo.json SI es un pago futuro. Mismo orden que el resto.
+    await flushAura().catch(() => {});
     await tienda.anotarGolpe(jid, sender, real);
     const pool = clave === 'demoledor' ? RX.CONTRA_DEMOLEDOR
                : clave === 'raspado'   ? RX.CONTRA_RASPADO
@@ -1234,6 +1260,8 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       RECOMPENSA.tope,
       Math.round(monto * RECOMPENSA.fraccionDeGolpe),
     );
+    // EL CARGO VA AL DISCO ANTES QUE EL ABONO. Ver la nota de arriba del fichero.
+    await flushAura().catch(() => {});
     await tienda.anotarGolpe(jid, sender, monto, enSuCabeza);
 
     // Y si la victima llevaba precio, el ladron lo cobra. Esto es lo que hace
@@ -1287,7 +1315,11 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // Ahora una parte cae al bote del grupo: los fracasos dejan de evaporarse y
   // se convierten en algo que todos miran crecer.
   let boteAhora = 0;
-  if (clave !== 'desastre') boteAhora = await tienda.aportarAlBote(jid, monto * BOTE.fraccionDeFallo);
+  if (clave !== 'desastre') {
+    // EL CARGO VA AL DISCO ANTES QUE EL ABONO. Ver la nota de arriba del fichero.
+    await flushAura().catch(() => {});
+    boteAhora = await tienda.aportarAlBote(jid, monto * BOTE.fraccionDeFallo);
+  }
   const phrase = pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag);
   const text =
     `${titulo}\n` +

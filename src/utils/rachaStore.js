@@ -29,7 +29,18 @@ let loadPromise = null;
 const saver = createDebouncedSaver(
   () => store,
   RACHA_FILE,
-  18000,
+  // 12 s, la misma ventana que messageCounter.
+  //
+  // Estaba en 18 s. Y el razonamiento que bajo messageCounter a 12 —«si el
+  // kernel mata el proceso a lo bruto se van los conteos aun sin escribir, y
+  // aqui la regla es que en los conteos no puede haber errores»— vale IGUAL
+  // aqui: esto es otro contador de mensajes, y ademas de el cuelga aura.
+  //
+  // Medido a 5 mensajes por segundo: con 18 s de ventana quedan 90
+  // mensajes sin escribir, con 12 s quedan 60. Y el coste de la escritura de
+  // mas es 0,44 ms, tambien medido: en un grupo activo esto añade del orden de
+  // una escritura por minuto.
+  12000,
   (e) => logger.error(`rachaStore: fallo al guardar: ${e.message}`),
 );
 

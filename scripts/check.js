@@ -9664,6 +9664,248 @@ const di=async(quien,t)=>{out.length=0;
     if (fallos === antes) console.log(verde('   ✓ el gif no se repite y *!next* solo continúa lo que es suyo'));
   }
 
+  // ── 58. LO QUE SE HIZO POR VELOCIDAD NO PUEDE CAMBIAR LO QUE HACE ────────
+  //
+  // Esta capa existe por un repaso de velocidad. Lo que se toco ahi es
+  // peligroso de una forma concreta: son cambios que NO se ven. Un formateador
+  // izado, una guarda de longitud, un freno partido en dos y dos volcados a
+  // disco puestos en otro orden. Ninguno cambia lo que el grupo lee — hasta que
+  // uno de ellos si lo cambia, y entonces no hay sintoma, solo un comando que
+  // deja de responder o aura que aparece de la nada.
+  //
+  // Y hay dos que son de EXACTITUD, no de velocidad: el bono del hito y el bote
+  // del robo se pagaban en un fichero y se apuntaban en otro, con ventanas de
+  // guardado distintas. Eso deja al disco diciendo dos cosas incompatibles
+  // durante segundos.
+  {
+    console.log('\n58. EL REPASO DE VELOCIDAD NO CAMBIO NINGUN COMPORTAMIENTO');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    // 1. LA GUARDA DE LONGITUD DE *!k*. El disparador se escribe hablando
+    //    —«welcome», «¿dirías algo?»— y la guarda mira el largo para no hacer
+    //    cinco pasadas sobre cada mensaje del grupo. Si mira el largo CRUDO en
+    //    vez del recortado, treinta espacios delante de «welcome» dejan de
+    //    disparar el comando. Paso de verdad al escribirlo.
+    {
+      const mh = soloCodigo('src/handlers/messageHandler.js');
+      const i = mh.indexOf('function esTriggerK(');
+      const cuerpo = i < 0 ? '' : mh.slice(i, mh.indexOf('\n}', i));
+      exige(i > 0, 'esTriggerK ya no existe');
+      exige(/trim\(\)[\s\S]*length\s*>/.test(cuerpo),
+        'la guarda de longitud de esTriggerK mira el texto sin recortar: «      welcome» dejaría de disparar *!k*');
+
+      // Y el comportamiento, comparado contra la version sin guarda.
+      const TRIGGERS = ['welcome', 'diria algo', 'dirias algo'];
+      const BORDES = /^[\s¿¡"'“”«»(\[]+|[\s?!¿¡.,;:"'“”«»)\]…]+$/g;
+      const sinGuarda = (t) => TRIGGERS.includes(String(t).trim().toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '').replace(BORDES, '').replace(/\s+/g, ' '));
+      const casos = ['welcome', 'Welcome!', '¿welcome?', '  WELCOME  ', 'diria algo', '¿Diría algo?',
+        'dirias algo', '«Dirías algo»', 'no diria algo asi', 'hola', `${' '.repeat(30)}welcome`,
+        '\t\n welcome \n', 'x'.repeat(200), '', '¡¡¡DIRÍAS ALGO!!!'];
+      const conGuarda = (t) => {
+        if (!t) return false;
+        const r = String(t).trim();
+        if (r.length > 20) return false;
+        return sinGuarda(r);
+      };
+      const distintos = casos.filter((c) => sinGuarda(c) !== conGuarda(c));
+      exige(distintos.length === 0,
+        `la guarda cambia el resultado en ${distintos.length} caso(s), el primero ${JSON.stringify(distintos[0])}`);
+    }
+
+    // 2. EL FRENO DE LAS CORRECCIONES, partido en dos para no buscar la
+    //    sugerencia cuando va a tirarse. Lo que no puede pasar es que deje de
+    //    frenar, ni que un comando SIN correccion posible gaste el freno.
+    {
+      const { handleMessage } = require(path.join(R, 'src/handlers/messageHandler'));
+      const G = `12036300058${Math.floor(Math.random() * 900 + 100)}@g.us`;
+      const BOT = '5491999958@s.whatsapp.net';
+      let textos = [];
+      const sock = {
+        user: { id: BOT }, readMessages: async () => {}, sendPresenceUpdate: async () => {},
+        sendMessage: async (j, c) => { if (c.text) textos.push(c.text); return { key: { id: 'x' } }; },
+        groupMetadata: async () => ({ id: G, participants: [{ id: BOT, admin: 'admin' }] }),
+        groupParticipantsUpdate: async () => [],
+      };
+      let n = 0;
+      const sobre = (t, q) => ({
+        key: { remoteJid: G, participant: q, fromMe: false, id: `S58-${n++}` },
+        message: { conversation: t }, pushName: 'p', messageTimestamp: Math.floor(Date.now() / 1000),
+      });
+      const corrige = () => textos.some((t) => /no existe\. Era/.test(t));
+      const A = `3460000581${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`;
+      const B = `3460000582${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`;
+      const C = `3460000583${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`;
+
+      textos = []; await handleMessage(sock, sobre('!pinggg', A));
+      exige(corrige(), 'una errata ya no se corrige: el corrector se ha quedado sin llamar');
+      textos = []; await handleMessage(sock, sobre('!aurra', A));
+      exige(!corrige(), 'la segunda errata seguida SÍ se corrige: el freno de 30 s dejó de frenar');
+      textos = []; await handleMessage(sock, sobre('!pinggg', B));
+      exige(corrige(), 'el freno de una persona frena a otra: es por persona, no global');
+      // Y lo fino: un comando sin correccion posible no puede gastar el freno.
+      textos = []; await handleMessage(sock, sobre('!zqxwvk', C));
+      textos = []; await handleMessage(sock, sobre('!pinggg', C));
+      exige(corrige(),
+        'un comando sin corrección posible gastó el freno: la siguiente errata de verdad se queda sin aviso');
+    }
+
+    // 3. EL HITO SE APUNTA EN DISCO ANTES DE PAGARSE.
+    //
+    //    La marca vive en casino.json (12 s de ventana) y el pago en aura.json
+    //    (8 s). Sin el volcado, entre los 8 y los 12 segundos el disco dice «ya
+    //    cobró» y «no ha cobrado ningún hito» a la vez, y un corte ahí repaga el
+    //    bono al arrancar. Aura de la nada.
+    {
+      const cas = soloCodigo('src/utils/casino.js');
+      const i = cas.indexOf('apuntarHito(jid, sender, toca.n)');
+      const j = cas.indexOf('addAura(jid, sender, amount)');
+      exige(i > 0 && j > i, 'no encuentro el orden apuntarHito → addAura en casino.js');
+      const entre = i > 0 && j > i ? cas.slice(i, j) : '';
+      exige(/flushCasino\(/.test(entre),
+        'entre apuntar el hito y pagarlo ya no se vuelca casino.json: un corte en esa ventana repaga el bono entero');
+    }
+
+    // 4. Y EL ROBO, LO MISMO: el cargo al disco antes que el abono.
+    //
+    //    El saldo esta en aura.json (8 s) y el bote en robo.json (3 s). El
+    //    fichero de destino volcaba ANTES que el de origen, asi que el disco
+    //    podia quedarse con el bote cobrado y la victima intacta.
+    {
+      //
+      // LA REGLA, ESCRITA COMO REGLA Y NO COMO UNA LISTA DE LINEAS: solo
+      // importan los sitios donde el AURA es el origen. Si el origen es el bote
+      // —reventarlo, vaciar la caja— el fichero de destino es aura.json, que
+      // vuelca mas tarde, y entonces el disco solo puede perder aura, que es el
+      // lado seguro. Asi que se busca cada escritura a robo.json que venga
+      // precedida de un cargo de aura, y se exige el volcado en medio.
+      const rob = soloCodigo('src/commands/robo.js');
+      const escrituras = [...rob.matchAll(/tienda\.(aportarAlBote|anotarGolpe)\(/g)];
+      exige(escrituras.length >= 4, `solo encuentro ${escrituras.length} escrituras a robo.json: el fichero ha cambiado de forma`);
+      let mirados = 0;
+      for (const m of escrituras) {
+        const antesDe = rob.slice(Math.max(0, m.index - 700), m.index);
+        // La excepcion, y es la unica: cuando el origen es el bote o la caja
+        // —reventarlo, atracarla— el destino es aura.json, que vuelca MAS TARDE
+        // que robo.json. Ahi el disco solo puede perder aura, nunca inventarla,
+        // asi que no hace falta ordenar nada.
+        if (/vaciarBote\(|sacarDeCaja\(/.test(antesDe)) continue;
+        mirados++;
+        exige(/flushAura\(/.test(antesDe),
+          `hay un ${m[1]} que se apunta sin volcar el aura justo antes: el disco puede quedarse con el abono hecho y el cargo sin hacer, o sea aura inventada`);
+      }
+      exige(mirados >= 4,
+        `solo ${mirados} de las ${escrituras.length} escrituras a robo.json pasan por la regla: el fichero cambió de forma y esto ya no mide lo que dice`);
+    }
+
+    // 5. LOS FORMATEADORES IZADOS. Construir un Intl.DateTimeFormat cuesta 60 us
+    //    y los dos sitios donde estaba lo hacían en cada llamada.
+    {
+      for (const [fichero, donde] of [['src/utils/objetivoDia.js', 'franjaDe'], ['src/utils/logger.js', 'timestamp']]) {
+        const src = soloCodigo(fichero);
+        const i = src.indexOf(`${donde === 'timestamp' ? 'const timestamp' : 'function franjaDe'}`);
+        const cuerpo = i < 0 ? '' : src.slice(i, i + 500);
+        exige(i > 0, `no encuentro ${donde} en ${fichero}`);
+        exige(!/new Intl\.DateTimeFormat/.test(cuerpo) && !/toLocaleTimeString/.test(cuerpo),
+          `${donde} vuelve a construir el formateador en cada llamada: son 60 us por mensaje tirados en fabricar el mismo objeto inmutable`);
+      }
+      // Y que siga devolviendo lo mismo.
+      const od = require(path.join(R, 'src/utils/objetivoDia'));
+      const f = od._franjaDe(Date.UTC(2026, 8, 12, 17, 30));
+      exige(/^\d{4}-\d{2}-\d{2}\|(00|12)$/.test(f), `franjaDe devuelve «${f}», que no tiene la forma de siempre`);
+      exige(od._franjaDe(Date.UTC(2026, 8, 12, 17, 30)) === f, 'franjaDe no es estable para el mismo instante');
+    }
+
+    // 6. UN GRUPO SIN OBJETIVO NO PUEDE RECALCULAR EL RANKING EN CADA MENSAJE.
+    {
+      const od = soloCodigo('src/utils/objetivoDia.js');
+      const i = od.indexOf('async function cartelDelDia(');
+      const cuerpo = i < 0 ? '' : od.slice(i, od.indexOf('\n}', i));
+      exige(/sinObjetivo/.test(cuerpo),
+        'cartelDelDia ya no se acuerda de los grupos sin objetivo: vuelve a rehacer el ranking entero en cada mensaje, para nada');
+      const odm = require(path.join(R, 'src/utils/objetivoDia'));
+      exige(odm._sinObjetivo instanceof Map, 'la memoria de «aquí no hay objetivo» no es un Map');
+    }
+
+
+    // 7. LA PLAZA DEL SEMAFORO NO SE PUEDE PERDER.
+    //
+    // `gifAMp4` cogia la plaza dos lineas antes del `try`, con un
+    // `await fs.writeFile` en medio. Si esa escritura reventaba —sin disco, sin
+    // permisos— el `finally` que la suelta todavia no existia y la plaza se
+    // quedaba cogida para siempre. En la VPS hay UNA: a partir de ahi no vuelve
+    // a salir un sticker, ni un !toimg, ni un !ttp, ni un vídeo de !tt hasta el
+    // siguiente reinicio, y sin una linea en el log.
+    {
+      const { createSemaphore } = require(path.join(R, 'src/utils/helpers'));
+      const sem = createSemaphore(1);
+      // El suelo en cero: un release suelto no puede repartir plazas de mas.
+      sem.release(); sem.release(); sem.release();
+      let repartidas = 0;
+      while (sem.tryAcquire() && repartidas < 6) repartidas++;
+      exige(repartidas === 1,
+        `tras tres release sueltos el semáforo reparte ${repartidas} plazas en vez de 1: dos ffmpeg a la vez en el único core`);
+
+      // Y el orden de las lineas en gifAMp4.
+      const acc = soloCodigo('src/commands/acciones.js');
+      const i = acc.indexOf('async function gifAMp4(');
+      const cuerpo = i < 0 ? '' : acc.slice(i, acc.indexOf('\n  try {', i));
+      exige(i > 0, 'no encuentro gifAMp4');
+      const escribe = cuerpo.indexOf('fs.writeFile(');
+      const coge = cuerpo.indexOf('tryAcquire()');
+      exige(escribe > 0 && coge > escribe,
+        'gifAMp4 vuelve a coger la plaza del semáforo antes de escribir el fichero: si esa escritura falla, la plaza se pierde para siempre y ffmpeg se muere hasta el reinicio');
+    }
+
+    // 8. EL STICKER ANIMADO: NI INVENTA FOTOGRAMAS NI CODIFICA SIN TOPE.
+    {
+      const stk = soloCodigo('src/utils/sticker.js');
+      const i = stk.indexOf('const VF_ANIM =');
+      const cuerpo = i < 0 ? '' : stk.slice(i, stk.indexOf('};', i));
+      exige(i > 0, 'no encuentro VF_ANIM');
+      // Y se mide, no se lee: `fpsOrigen` puede seguir escrito en la funcion y
+      // no decidir nada. Paso exactamente eso al escribir la capa.
+      const { _VF_ANIM: vf } = require(path.join(R, 'src/utils/sticker'));
+      exige(!/fps=/.test(vf(30, 512, 12)),
+        'VF_ANIM sigue poniendo fps=30 delante de un gif de 12: el filtro no interpola, REPITE, así que duplica cada fotograma y el codificador los escribe todos enteros');
+      exige(/fps=30/.test(vf(30, 512, 60)),
+        'VF_ANIM ya no BAJA los fps de un vídeo de 60: eso sí hay que hacerlo, y era para lo que servía el filtro');
+      exige(/fps=30/.test(vf(30, 512, 0)),
+        'sin saber los fps del origen, VF_ANIM deja de poner el filtro: a ciegas hay que dejarlo como estaba');
+      exige(/inputOptions\(\['-t'/.test(stk),
+        'el tope de duración del sticker animado ya no va como opción de ENTRADA: puesto a la salida, ffmpeg decodifica el vídeo entero y tira lo que sobra');
+      exige(/TOPE_ANIMADO_S\s*=\s*\d+/.test(stk), 'no hay tope de duración para el sticker animado');
+
+      // Y la duracion no puede depender solo de ffprobe, que puede no existir.
+      exige(/porFfmpeg\(/.test(stk) && /medidasDe\(/.test(stk),
+        'la duración vuelve a salir solo de ffprobe: si ffprobe no está, devuelve 0 y la escalera arranca siempre en el escalón más caro (13 s de más medidos en un vídeo de 8 s)');
+      // Un escalon que revienta tiene que dejar rastro.
+      const j = stk.indexOf('await encodeAnimWebp(');
+      const tras = j > 0 ? stk.slice(j, j + 400) : '';
+      exige(/logger\.unaVez\(/.test(tras),
+        'el catch del escalón vuelve a estar mudo: la escalera entera se cae y lo único que se ve es «sticker animado vacío», que no dice por qué');
+    }
+
+    // 9. NINGUN ENVIO DE VIDEO PUEDE LANZAR EL FFMPEG DE BAILEYS.
+    //
+    // Baileys genera la miniatura sola cuando `jpegThumbnail` viene `undefined`,
+    // y para un video lo hace lanzando su propio ffmpeg POR FUERA del semaforo.
+    {
+      for (const fichero of ['src/commands/toimg.js', 'src/commands/redes.js', 'src/commands/acciones.js']) {
+        const src = soloCodigo(fichero);
+        const envios = [...src.matchAll(/\{\s*video:/g)];
+        for (const m of envios) {
+          const trozo = src.slice(m.index, m.index + 300);
+          exige(/jpegThumbnail/.test(trozo),
+            `${fichero} manda un vídeo sin jpegThumbnail: Baileys lanzará su propio ffmpeg por fuera del semáforo`);
+        }
+      }
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ mismo comportamiento, el dinero se apunta antes de pagarse y ffmpeg no se queda sin plaza'));
+  }
+
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────
   //
   // Tres cosas que se tocan juntas cuando se busca que el bot conteste antes,

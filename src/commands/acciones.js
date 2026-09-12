@@ -640,8 +640,22 @@ function reponerDespensa(cat, nsfw, catNsfw, clave) {
 async function gifAMp4(gif, fondo = false) {
   const entrada = tempFile('gif');
   const salida = tempFile('mp4');
-  if (fondo && !ffmpegSemaphore.tryAcquire()) throw new Error('ffmpeg ocupado, ya se rellenara');
+  // LA PLAZA SE COGE PEGADA AL `try`, Y ESTO NO ES ESTILO.
+  //
+  // Estaba cogida DOS LINEAS ANTES, con un `await fs.writeFile` en medio. El
+  // `finally` que la suelta vive dentro del `try`, asi que si esa escritura
+  // reventaba —sin disco, sin permisos, demasiados ficheros abiertos— la plaza
+  // se quedaba cogida PARA SIEMPRE.
+  //
+  // Reproducido con el semaforo de verdad: tras un fallo de escritura, la
+  // siguiente peticion de plaza devuelve false. Y en la VPS hay UNA plaza, o
+  // sea que a partir de ese momento no vuelve a salir ni un sticker, ni un
+  // !toimg, ni un !ttp, ni un vídeo de !tt hasta el siguiente reinicio. Sin una
+  // linea en el log, porque `acquire()` no tiene tope de espera: se queda ahi.
+  //
+  // Ahora se escribe primero y se pide la plaza despues, justo antes del `try`.
   await fs.writeFile(entrada, gif);
+  if (fondo && !ffmpegSemaphore.tryAcquire()) throw new Error('ffmpeg ocupado, ya se rellenara');
   if (!fondo) await ffmpegSemaphore.acquire();
   try {
     await new Promise((resolve, reject) => {

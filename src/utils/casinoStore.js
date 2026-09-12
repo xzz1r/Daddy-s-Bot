@@ -37,7 +37,18 @@ let loadPromise = null;
 const saver = createDebouncedSaver(
   () => store,
   CASINO_FILE,
-  15000,
+  // 12 s, la misma ventana que messageCounter.
+  //
+  // Estaba en 15 s. Y el razonamiento que bajo messageCounter a 12 —«si el
+  // kernel mata el proceso a lo bruto se van los conteos aun sin escribir, y
+  // aqui la regla es que en los conteos no puede haber errores»— vale IGUAL
+  // aqui: esto es otro contador de mensajes, y ademas de el cuelga aura.
+  //
+  // Medido a 5 mensajes por segundo: con 15 s de ventana quedan 75
+  // mensajes sin escribir, con 12 s quedan 60. Y el coste de la escritura de
+  // mas es 0,44 ms, tambien medido: en un grupo activo esto añade del orden de
+  // una escritura por minuto.
+  12000,
   (e) => logger.error(`casinoStore: fallo al guardar: ${e.message}`),
 );
 

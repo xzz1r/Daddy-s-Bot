@@ -212,16 +212,48 @@ const HORAS_CARTEL = [0, 12];
 // no de `diaClave`, que depende de `horaCorte`: hoy vale 0 y coinciden, pero el
 // dia que alguien mueva el corte a las 5, las franjas seguirian siendo las 12 y
 // las 0 de reloj, que es lo que se pidio.
+//
+// EL FORMATEADOR SE CONSTRUYE UNA VEZ, y no en cada llamada.
+//
+// Estaba dentro de la funcion, y esta funcion corre en CADA mensaje de grupo.
+// Medido con 20.000 llamadas: 69,5 us construyendolo cada vez contra 5,7 us
+// reutilizandolo. Son 64 us por mensaje tirados en fabricar doce veces por
+// minuto el mismo objeto inmutable.
+//
+// helpers.js ya habia aprendido esto —tiene un Map de formatos con un comentario
+// que dice «Intl.formatToParts no es barato»— y aqui se volvio a escribir mal.
+const FORMATO_FRANJA = new Intl.DateTimeFormat('en-GB', {
+  timeZone: DIA.zona,
+  year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hour12: false,
+});
+
 function franjaDe(ts = Date.now()) {
-  const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', {
-    timeZone: DIA.zona,
-    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hour12: false,
-  }).formatToParts(new Date(ts)).filter((x) => x.type !== 'literal').map((x) => [x.type, x.value]));
+  const p = Object.fromEntries(FORMATO_FRANJA
+    .formatToParts(new Date(ts)).filter((x) => x.type !== 'literal').map((x) => [x.type, x.value]));
   const hora = Number(p.hour) % 24;
   // La ultima hora de la lista que ya haya pasado.
   const desde = HORAS_CARTEL.filter((h) => hora >= h).pop() ?? HORAS_CARTEL[0];
   return `${p.year}-${p.month}-${p.day}|${String(desde).padStart(2, '0')}`;
 }
+
+// UN GRUPO SIN OBJETIVO NO PUEDE RECALCULAR EL RANKING EN CADA MENSAJE.
+//
+// Cuando no hay a quien señalar —un grupo nuevo con menos de dos personas con
+// aura, o uno pequeño donde el owner y los dos primeros agotan a los
+// elegibles— esto salia por el `return null` de abajo SIN marcar la franja. Y
+// sin marca, el atajo de arriba no salta nunca: el ranking entero y la lista de
+// miembros se rehacian con cada mensaje, para nada.
+//
+// Medido en un grupo de 250 sin objetivo posible: 337 us por mensaje, contra 65
+// us cuando si lo hay. En uno de 500, 579 us.
+//
+// No se marca la franja entera —eso dejaria al grupo sin cartel hasta doce
+// horas despues de volverse elegible, y el comentario de abajo explica por que
+// la franja no se gasta sin señalar a nadie— sino que se anota el «aqui hoy no
+// hay» durante unos minutos. El grupo que empieza a tener objetivo lo estrena
+// en cuanto pasa ese rato, y mientras tanto no se paga el recuento.
+const SIN_OBJETIVO_MS = 10 * 60_000;
+const sinObjetivo = new Map();   // grupo -> ts del ultimo intento en vacio
 
 async function cartelDelDia(grupo, groupMeta) {
   await load();
@@ -229,9 +261,17 @@ async function cartelDelDia(grupo, groupMeta) {
   const v = decidido.get(grupo);
   if (v && v.franja === franja) return null;
 
+  const vacio = sinObjetivo.get(grupo);
+  if (vacio && Date.now() - vacio < SIN_OBJETIVO_MS) return null;
+
   try {
     const obj = await objetivoDelDia(grupo, groupMeta);
-    if (!obj || !obj.jid) return null;
+    if (!obj || !obj.jid) {
+      if (sinObjetivo.size >= 500) sinObjetivo.delete(sinObjetivo.keys().next().value);
+      sinObjetivo.set(grupo, Date.now());
+      return null;
+    }
+    sinObjetivo.delete(grupo);
     // Se apunta DESPUES de saber que hay a quien señalar —un grupo sin objetivo
     // no puede gastar su franja— y antes de devolverlo, para que dos mensajes
     // simultaneos no cuelguen dos carteles.
@@ -244,4 +284,4 @@ async function cartelDelDia(grupo, groupMeta) {
   }
 }
 
-module.exports = { objetivoDelDia, esObjetivoDelDia, diaClave, flushObjetivoDia, cartelDelDia, _decidido: decidido, _franjaDe: franjaDe, HORAS_CARTEL };
+module.exports = { objetivoDelDia, esObjetivoDelDia, diaClave, flushObjetivoDia, cartelDelDia, _decidido: decidido, _franjaDe: franjaDe, _sinObjetivo: sinObjetivo, HORAS_CARTEL };

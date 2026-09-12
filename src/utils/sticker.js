@@ -193,12 +193,43 @@ function pngGrisLiso(lado, tono = 0x80) {
 // underlying file canvas is square because WhatsApp requires it to be.
 // format=rgba preserves any genuine transparency the source already had.
 const VF_STATIC = `scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=0x00000000,setsar=1,format=rgba`;
-const VF_ANIM = (fps, size = 512) =>
-  `fps=${fps},scale=${size}:${size}:force_original_aspect_ratio=decrease,pad=${size}:${size}:(ow-iw)/2:(oh-ih)/2:color=0x00000000,setsar=1,format=rgba`;
+// ─── Y EL `fps` SOLO SI HAY QUE BAJARLO, NUNCA PARA SUBIRLO ────────────────
+//
+// El filtro `fps` no interpola: REPITE. Poner `fps=30` delante de un gif de 12
+// no lo hace mas fluido, mete dos copias identicas de cada fotograma. Y el
+// codificador de esta tuberia escribe CADA fotograma entero —no guarda
+// diferencias— asi que cada copia se paga dos veces: en CPU y en bytes.
+//
+// Comprobado sacando los treinta primeros fotogramas de un gif de 12 fps
+// despues del filtro: solo doce eran distintos, dieciocho eran copias byte a
+// byte. Y medido sobre ese mismo gif de tres segundos:
+//
+//   con fps=30 (lo de antes) : escalera entera 4.348 ms, acaba en q85 y 868 KB
+//   con los fps del origen   :   una pasada 921 ms, sale en q95 y 501 KB
+//
+// O sea tres segundos y medio menos Y mejor calidad, porque al pesar la mitad
+// no hace falta bajar de escalon.
+//
+// Esto no contradice lo de «24-30 fps» que pide el comentario de abajo: hoy no
+// hay treinta fotogramas de movimiento, hay doce con marcas de tiempo de
+// treinta. Si el origen viene a 60, el filtro sigue bajandolo a 30, que es para
+// lo que servia.
+const VF_ANIM = (fps, size = 512, fpsOrigen = 0) => {
+  const cadena = `scale=${size}:${size}:force_original_aspect_ratio=decrease,`
+    + `pad=${size}:${size}:(ow-iw)/2:(oh-ih)/2:color=0x00000000,setsar=1,format=rgba`;
+  // Sin saber los fps del origen se deja como estaba: bajarlos de mas seria
+  // perder movimiento de verdad, y eso si se ve.
+  const sobran = fpsOrigen > 0 && fpsOrigen <= fps + 0.5;
+  return sobran ? cadena : `fps=${fps},${cadena}`;
+};
 
 // Hard kill if ffmpeg runs longer than this — on Termux a hung encode can
 // otherwise pin a CPU core forever and zombie the command.
 const FFMPEG_TIMEOUT_MS = 45_000;
+
+// Lo que WhatsApp reproduce de un sticker animado. Ver la nota del tope en la
+// orden de ffmpeg de mas abajo.
+const TOPE_ANIMADO_S = 8;
 
 // Acquires the shared ffmpeg slot before spawning, so e.g. 4 people sending
 // !s at once on a 2-core phone run 2-at-a-time instead of all 4 simultaneously.
@@ -525,6 +556,57 @@ function predictTierBytes(tier, refTier, refBytes) {
 // ffprobe directly (instead of fluent-ffmpeg's callback) so the 5s timeout can
 // SIGKILL a probe that hangs on a malformed/hostile video — otherwise every
 // such request would leak a lingering ffprobe process.
+// ─── LA DURACION SE LE PREGUNTA A FFMPEG, NO A FFPROBE ──────────────────────
+//
+// Esto usaba `ffprobe` y nada mas. Y `ffprobe` PUEDE NO EXISTIR: el paquete
+// @ffmpeg-installer solo trae el `ffmpeg`, asi que en una maquina sin ffmpeg de
+// sistema la llamada revienta con ENOENT, el `catch` se la traga y devuelve 0.
+//
+// Cero significa «no se cuanto dura», y `startTierIndex(0)` es 0, o sea que la
+// escalera arranca SIEMPRE en el escalon mas caro. Medido en esa situacion: un
+// video de 8 segundos son cuatro codificaciones y 22,9 s de un core, cuando
+// sabiendo la duracion serian 10,0 s. Trece segundos de core por no saber un
+// numero que ya estaba ahi.
+//
+// En la VPS hoy no pasa —el despliegue borra el ffmpeg empaquetado justo cuando
+// el sistema tiene ffmpeg Y ffprobe, asi que alli ffprobe existe— pero es una
+// bomba con temporizador para cualquier otra maquina, y una que no deja rastro.
+//
+// Asi que si ffprobe falla, se le pregunta a ffmpeg, que siempre esta: `ffmpeg
+// -i fichero` escupe la duracion y los fps en la primera linea de Stream. Son 9
+// ms medidos, y es la misma tecnica que ya usa utils/redes.js.
+function porFfmpeg(inputFile) {
+  return new Promise((resolve) => {
+    let texto = '';
+    let proc;
+    try { proc = spawn(ffmpegPath, ['-hide_banner', '-i', inputFile, '-t', '0', '-f', 'null', '-']); }
+    catch { return resolve({ segundos: 0, fps: 0 }); }
+    const t = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} resolve({ segundos: 0, fps: 0 }); }, 8000);
+    proc.stderr?.on('data', (d) => { texto += d.toString(); });
+    proc.on('error', () => { clearTimeout(t); resolve({ segundos: 0, fps: 0 }); });
+    proc.on('close', () => {
+      clearTimeout(t);
+      const d = /Duration: (\d+):(\d+):(\d+\.?\d*)/.exec(texto);
+      const f = /,\s*([\d.]+)\s*fps[,\s]/.exec(texto);
+      resolve({
+        segundos: d ? Number(d[1]) * 3600 + Number(d[2]) * 60 + Number(d[3]) : 0,
+        fps: f ? Number(f[1]) : 0,
+      });
+    });
+  });
+}
+
+// Duracion Y fotogramas por segundo del origen, con ffprobe si esta y con
+// ffmpeg si no. Los fps hacen falta para no inventarse fotogramas: ver VF_ANIM.
+async function medidasDe(inputFile) {
+  const porSonda = await getVideoDurationS(inputFile);
+  const porFf = await porFfmpeg(inputFile);
+  return {
+    segundos: porSonda > 0 ? porSonda : porFf.segundos,
+    fps: porFf.fps,
+  };
+}
+
 function getVideoDurationS(inputFile) {
   return new Promise((resolve) => {
     let settled = false;
@@ -575,7 +657,7 @@ function startTierIndex(durationS) {
 // "split in two" sticker. Plain `libwebp` emits every frame as a FULL keyframe
 // (full canvas, no blending), which WhatsApp renders faithfully. Output is a bit
 // larger, which the size-tiering loop in videoToSticker already handles.
-async function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512) {
+async function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512, fpsOrigen = 0) {
   await ffmpegSemaphore.acquire();
   try {
     return await new Promise((resolve, reject) => {
@@ -583,9 +665,29 @@ async function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512) {
       let timer = null;
       const cmd = ffmpeg(inputFile)
         .setFfmpegPath(ffmpegPath)
+        // ─── EL TOPE DE DURACION, Y VA COMO OPCION DE ENTRADA ────────────────
+        //
+        // Sin tope, un video largo se codifica ENTERO y varias veces. Medido:
+        // uno de quince segundos son tres pasadas y 30,8 s del unico core, y
+        // acaba saliendo a 384 px con calidad 35 porque a 512 no cabia. Y peor:
+        // el coste es lineal (26,4 ms por fotograma, medido a 4, 8, 15 y 30
+        // segundos), asi que por encima de unos 57 segundos TODOS los escalones
+        // de 512 revientan por el tope de 45 s, y como el fallo de un escalon
+        // solo hace `continue`, se encadenan siete timeouts: cinco minutos de
+        // core pinchado por un video que nadie va a ver entero.
+        //
+        // Ocho segundos es lo que WhatsApp reproduce de un sticker animado, asi
+        // que cortar ahi no quita nada que se vea. Y el resultado es MEJOR que
+        // el de hoy: ese video de quince segundos sale ahora en una sola pasada,
+        // a 512 px, en vez de en tres y a 384.
+        //
+        // `inputOptions` y no `outputOptions`: como opcion de entrada, ffmpeg
+        // deja de LEER al llegar al tope. Puesta a la salida decodifica el
+        // video entero y tira lo que sobra.
+        .inputOptions(['-t', String(TOPE_ANIMADO_S)])
         .outputOptions([
           '-map', '0:v:0',
-          '-vf', VF_ANIM(fps, size),
+          '-vf', VF_ANIM(fps, size, fpsOrigen),
           '-c:v', 'libwebp',
           '-loop', '0',
           '-an',
@@ -627,7 +729,9 @@ async function videoToSticker(videoBuffer, author) {
   await fs.writeFile(inputFile, videoBuffer);
 
   try {
-    const durationS = await getVideoDurationS(inputFile);
+    const medidas = await medidasDe(inputFile);
+    const durationS = medidas.segundos;
+    const fpsOrigen = medidas.fps;
     const startIdx = startTierIndex(durationS);
 
     let buf = null;
@@ -643,8 +747,15 @@ async function videoToSticker(videoBuffer, author) {
       }
       const { fps, quality, size } = tier;
       try {
-        await encodeAnimWebp(inputFile, outputFile, fps, quality, size);
-      } catch { continue; }  // tier failed, try next
+        await encodeAnimWebp(inputFile, outputFile, fps, quality, size, fpsOrigen);
+      } catch (e) {
+        // UN ESCALON QUE FALLA DEJA RASTRO. Este catch estaba mudo, y con el
+        // mudo la unica señal de que la escalera entera se cae es un «sticker
+        // animado vacio» al final, que no dice nada de por que. Se cuenta una
+        // vez por motivo, que es lo que hace logger.unaVez.
+        logger.unaVez(`sticker animado q${tier.quality}@${tier.size}`, e);
+        continue;
+      }
       buf = await fs.readFile(outputFile);
       if (buf.length < 100) continue;
       // EL ESCALON DE ARRIBA NO SIRVE PARA PREDECIR NADA.
@@ -682,4 +793,4 @@ async function gifToSticker(gifBuffer, author) {
   return videoToSticker(gifBuffer, author);
 }
 
-module.exports = { ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC };
+module.exports = { _VF_ANIM: VF_ANIM, ANIM_TIERS, QUALITY_SIZE_FACTOR, REF_MAX_QUALITY, imageToSticker, videoToSticker, gifToSticker, generateAnimatedThumb, generateSourceThumb, isAnimatedWebP, extractFirstAnmfFrame, MAX_STICKER_BYTES, VF_STATIC };
