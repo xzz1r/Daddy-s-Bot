@@ -1685,6 +1685,28 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
     // preferencia del grupo. Antes esto dependía del interruptor y quedaba la
     // incoherencia de protegerle de la expulsión siempre y de la degradación
     // solo a veces — la misma agresión con dos criterios.
+    // ─── TODA DEGRADACION DEJA RASTRO ────────────────────────────────────────
+    //
+    // Las degradaciones son raras —un puñado al mes en un grupo normal— asi que
+    // apuntarlas todas no ensucia nada, y es lo unico que convierte un «no me
+    // protegio» en algo que se puede mirar. Sin esta linea, cuando la proteccion
+    // no llega a ejecutarse no queda ni una señal de cual de las cuatro puertas
+    // se cerro.
+    if (action === 'demote') {
+      const tocaAlDueño = (participants || [])
+        .map((p) => (typeof p === 'string' ? { id: p } : p))
+        .some((o) => o?.id && [o.id, o.lid, o.phoneNumber].filter(Boolean).some((f) => isOwner(f, false, meta)));
+      logger.warn(`degradacion en ${groupJid}: a ${partJids.join(', ') || '?'} · autor ${author || 'sin autor'}`
+        + ` · ¿es el dueño? ${tocaAlDueño ? 'SI' : 'no'} · ¿autor del tier dueño? ${esOwnerAmplio(author, authorPn, meta) ? 'si' : 'no'}`
+        + ` · ¿del bot? ${fromBot ? 'si' : 'no'} · ¿soy admin? ${meta ? (isBotAdmin(sock, meta) ? 'si' : 'NO') : 'sin metadata'}`);
+      // Y si le han quitado el admin al dueño y esta rama no va a poder hacer
+      // nada, se le dice a el en vez de callarse.
+      if (tocaAlDueño && (!meta || !isBotAdmin(sock, meta))) {
+        await avisarDueñoSinAdmin(sock, groupJid, meta, author,
+          meta ? 'yo tampoco soy admin en ese grupo' : 'no pude leer la metadata del grupo');
+      }
+    }
+
     if (action === 'demote' && !fromBot && author && !esOwnerAmplio(author, authorPn, meta)) {
       const ownerDegradado = (participants || [])
         .map(p => (typeof p === 'string' ? { id: p } : p))
@@ -1724,6 +1746,12 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
           text: partes.join('\n'),
           mentions: [...aRestaurar, ...(author ? [author] : [])],
         }).catch(() => {});
+        // El grupo lee «no he podido devolvérselo», pero el dueño puede no estar
+        // mirando el grupo en ese momento — y es el unico que puede arreglarlo.
+        const dueñoSinReponer = ownerDegradado.filter((j) => !repuestos.includes(j));
+        if (dueñoSinReponer.length) {
+          await avisarDueñoSinAdmin(sock, groupJid, meta, author, 'WhatsApp rechazó devolvértelo');
+        }
         return;
       }
     }
@@ -1964,6 +1992,37 @@ async function saldarDeudaDeAdmin(sock, groupJid, meta) {
 // probarlo sin abrir una conexion de verdad a WhatsApp: el manejador de eventos
 // no se puede invocar desde fuera, y un aviso que solo se dispara el dia que
 // pasa la desgracia es justo el que no se puede dejar sin probar.
+// AL DUEÑO LE HAN QUITADO EL ADMIN Y EL BOT NO HA PODIDO DEVOLVERSELO.
+//
+// La proteccion del dueño estaba escrita y no dejaba NINGUN rastro cuando no
+// llegaba a hacer nada: si el bot no es admin, si la metadata no llego, o si
+// WhatsApp rechaza el promote, el bloque entero salia callado. Desde fuera eso
+// es exactamente lo que el dueño vio: «se supone que me protege y no lo hace»,
+// sin una linea en ningun sitio que dijera por que.
+//
+// Ahora se le avisa por privado, igual que cuando al bot le quitan el admin a
+// el: es el unico que puede arreglarlo y el unico que tiene que enterarse.
+async function avisarDueñoSinAdmin(sock, groupJid, meta, author, motivo) {
+  logger.warn(`al dueño le quitaron el admin en ${groupJid} y no pude reponerlo (${motivo}; autor: ${author || '?'})`);
+  const num = String(config.ownerNumber || '').replace(/\D/g, '');
+  if (!num) return false;
+  const donde = meta?.subject ? `*${meta.subject}*` : 'un grupo';
+  try {
+    await sock.sendMessage(`${num}@s.whatsapp.net`, {
+      text: '*Te han quitado el admin y no he podido devolvértelo.*\n' +
+        `Grupo: ${donde}\n` +
+        `Ha sido: ${author ? `@${String(author).split('@')[0]}` : 'no lo dice WhatsApp'}\n` +
+        `Por qué no pude: ${motivo}\n\n` +
+        '_Devuélvetelo a mano cuando puedas._',
+      mentions: author ? [author] : [],
+    });
+    return true;
+  } catch (e) {
+    logger.warn(`aviso al dueño sin admin: ${e.message}`);
+    return false;
+  }
+}
+
 async function avisarDegradacion(sock, groupJid, meta, author) {
   logger.warn(`me han quitado el admin en ${groupJid} (autor: ${author || '?'})`);
   const num = String(config.ownerNumber || '').replace(/\D/g, '');
