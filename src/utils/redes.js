@@ -973,10 +973,20 @@ const LARGO_BUSQUEDA = 80;
 
 // Saca de la pagina de resultados un pin por huella, con sus tamaños a probar.
 function pinesDe(html) {
+  const texto = String(html);
   const pines = new Map();   // huella -> { huella, candidatos: [] }
-  for (const m of String(html).matchAll(RX_PIN)) {
+  for (const m of texto.matchAll(RX_PIN)) {
     const [, , ruta, ext] = m;
     if (pines.has(ruta)) continue;
+    // LO QUE ESTA DENTRO DE UN `url(...)` NO ES UN RESULTADO, ES DECORACION.
+    //
+    // El icono de Instagram vive en una regla de CSS de la propia pagina
+    // —`:root{--instagram-background-url:url(https://i.pinimg.com/originals/…)}`—
+    // y como estaba antes que cualquier pin, era el primero de la lista. En el
+    // grupo salio tal cual: un cuadro con el degradado rosa y naranja como
+    // respuesta a una busqueda.
+    const antes = texto.slice(Math.max(0, m.index - 5), m.index);
+    if (antes.includes('url(')) continue;
     if (pines.size >= MAX_PINES) break;
     pines.set(ruta, {
       huella: ruta,
@@ -1049,7 +1059,7 @@ async function pedirAPinterest(consulta) {
   const html = String(portada.data || '');
   const galletas = (portada.headers['set-cookie'] || []).map((c) => c.split(';')[0]).join('; ');
   const csrf = (/csrftoken=([^;]+)/.exec(galletas) || [])[1];
-  if (!galletas) return { pines: [], html };
+  if (!galletas) return { pines: [], html, contesto: false };
 
   const cuerpo = { options: { query: consulta, scope: 'pins', bookmarks: [''] }, context: {} };
   const destino = PIN.recurso
@@ -1072,12 +1082,18 @@ async function pedirAPinterest(consulta) {
       },
     });
     const crudos = r.data?.resource_response?.data?.results;
-    if (Array.isArray(crudos)) return { pines: pinesDeResultados(crudos), html };
+    // `contesto` distingue dos cosas que antes se confundian, y la confusion se
+    // vio en el grupo: el buscador que NO responde (403, red, cambio de nombre)
+    // y el buscador que responde «de eso no tengo nada». En el primer caso vale
+    // la pena leer la pagina; en el segundo NO, porque la pagina siempre trae
+    // relleno y lo unico que se consigue es mandar cualquier cosa como si fuera
+    // el resultado. Asi salio el icono de Instagram en el grupo.
+    if (Array.isArray(crudos)) return { pines: pinesDeResultados(crudos), html, contesto: true };
     logger.info(`redes: el buscador de Pinterest contestó ${r.status} sin resultados; tiro de la página`);
   } catch (e) {
     logger.info(`redes: el buscador de Pinterest falló (${e.message.slice(0, 60)}); tiro de la página`);
   }
-  return { pines: [], html };
+  return { pines: [], html, contesto: false };
 }
 
 // Busca y devuelve la imagen ya en disco, con la misma forma que `traer`.
@@ -1091,15 +1107,16 @@ async function buscar(texto, clave) {
   try {
     let pines = [];
     let html = '';
+    let contesto = false;
     try {
-      ({ pines, html } = await pedirAPinterest(consulta));
+      ({ pines, html, contesto } = await pedirAPinterest(consulta));
     } catch (e) {
       throw new Error(`Pinterest no contestó (${e.response?.status || e.code || e.message})`);
     }
-    // El respaldo: leer la pagina a pelo. Trae relleno mezclado —por eso ya no
-    // es lo primero— pero es mejor que no contestar el dia que el endpoint
-    // cambie de nombre.
-    if (!pines.length) pines = pinesDe(html);
+    // El respaldo SOLO si el buscador no contesto. Si contesto y no trajo nada,
+    // es que no hay nada: leer la pagina entonces es mandar su relleno como si
+    // fuera el resultado.
+    if (!contesto) pines = pinesDe(html);
     if (!pines.length) throw new Error(`no encontré nada con «${consulta}»`);
 
     // El primero se elige evitando los ultimos que salieron con esa misma

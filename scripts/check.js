@@ -9329,6 +9329,12 @@ const di=async(quien,t)=>{out.length=0;
       'un pin no tiene tamaños de respaldo: si el original no existe, se queda sin nada');
     exige(pd('<img src="https://ejemplo.com/foto.jpg">').length === 0,
       'una imagen que no es de Pinterest se cuenta como pin');
+    // EL ADORNO DE LA PROPIA PAGINA NO ES UN RESULTADO. El icono de Instagram
+    // vive en una regla de CSS y, como va antes que cualquier pin, era el
+    // primero de la lista: en el grupo salio el cuadro con el degradado rosa y
+    // naranja como respuesta a una busqueda.
+    exige(pd(':root{--instagram-background-url:url(https://i.pinimg.com/originals/d5/3b/01/d53b014d86a6b6761bf649a0ed813c2b.png)}').length === 0,
+      'una imagen metida en una regla de CSS se cuenta como resultado: es el degradado que salió en el grupo');
     exige(pd('').length === 0, 'una página vacía devuelve pines');
 
     // ── Y LOS RESULTADOS SALEN DEL BUSCADOR, NO DE LA PAGINA ────────────────
@@ -9421,6 +9427,7 @@ const di=async(quien,t)=>{out.length=0;
           foto('buscador.jpg', '200x300');
 
           let base = '';
+          let vacio = false;
           srv = http.createServer((req, res) => {
             const ruta = req.url.split('?')[0];
             if (ruta === '/pagina') {
@@ -9433,7 +9440,7 @@ const di=async(quien,t)=>{out.length=0;
             }
             if (ruta === '/recurso') {
               res.writeHead(200, { 'content-type': 'application/json' });
-              return res.end(JSON.stringify({ resource_response: { data: { results: [
+              return res.end(JSON.stringify({ resource_response: { data: { results: vacio ? [] : [
                 { images: { orig: { url: `${base}/buscador.jpg` } } },
               ] } } }));
             }
@@ -9455,6 +9462,18 @@ const di=async(quien,t)=>{out.length=0;
               `la foto salió a ${medida.ancho}x${medida.alto}: eso es la de la página, no la del buscador — se volvió a leer la página y con ella vuelve el relleno`);
             fs.rmSync(salida.fichero, { force: true });
           }
+
+          // Y EL CASO QUE SALIO EN EL GRUPO: el buscador CONTESTA y dice que no
+          // tiene nada. Entonces NO se lee la página, porque su relleno se
+          // mandaría como si fuera el resultado. Se dice que no hay y ya.
+          vacio = true;
+          const nada = await redes.buscar('lo que sea', null).catch((e) => ({ error: e.message }));
+          exige(nada.error && /no encontré nada/.test(nada.error),
+            nada.error
+              ? `con el buscador diciendo que no tiene nada, el error es «${nada.error}» en vez de «no encontré nada»`
+              : 'con el buscador diciendo que no tiene nada, se manda una foto igualmente: esa sale de la página, o sea del relleno');
+          if (nada.fichero) fs.rmSync(nada.fichero, { force: true });
+          vacio = false;
         } finally {
           redes._PIN.pagina = antesPin.pagina;
           redes._PIN.recurso = antesPin.recurso;
@@ -9507,6 +9526,142 @@ const di=async(quien,t)=>{out.length=0;
     }
 
     if (fallos === antes) console.log(verde('   ✓ *!pin gatos* busca y *!pin <enlace>* trae el pin, sin pisarse'));
+  }
+
+  // ── 57. NI EL MISMO GIF DOS VECES NI *!next* SIN BUSQUEDA ────────────────
+  //
+  // Dos cosas que el dueño vio en el grupo el mismo dia.
+  //
+  // «Se repitio dos veces seguidas un mismo GIF». Y es de esperar sin hacer
+  // nada: estas webs tienen entre diez y veinte gifs por categoria y sirven uno
+  // al azar, sin memoria. La despensa lo empeora, porque guarda dos por
+  // categoria y los pide por separado: si los dos salen iguales, el grupo ve el
+  // mismo gif dos veces seguidas SEGURO.
+  //
+  // Y *!next*, que continua una busqueda de *!pin* respondiendo a la foto.
+  {
+    console.log('\n57. NI EL MISMO GIF DOS VECES NI *!next* PERDIDO');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const acc = require(path.join(R, 'src/commands/acciones'));
+    // La memoria de lo ultimo servido, que es lo que decide si se vuelve a
+    // pedir. Es un anillo: al llenarse tira lo mas viejo.
+    {
+      const g = acc._gifsRecientes;
+      g.clear();
+      exige(!acc._yaSalio('k', 'https://a/1.gif'), 'una dirección nueva sale como ya vista');
+      acc._apuntarGif('k', 'https://a/1.gif');
+      exige(acc._yaSalio('k', 'https://a/1.gif'), 'la dirección que acaba de salir no se recuerda: el gif se repetirá');
+      exige(!acc._yaSalio('otra', 'https://a/1.gif'),
+        'la memoria no va por categoría: un gif de *!hug* bloquearía uno de *!kill*');
+      for (let i = 0; i < 10; i++) acc._apuntarGif('k', `https://a/n${i}.gif`);
+      exige(!acc._yaSalio('k', 'https://a/1.gif'),
+        'la memoria no caduca: con la categoría entera bloqueada no quedaría ningún gif que servir');
+      const lista = g.get('k') || [];
+      exige(lista.length <= 6, `la memoria guarda ${lista.length} direcciones: sin tope se bloquea el catálogo entero`);
+      g.clear();
+    }
+
+    // Y QUE SE VUELVA A PEDIR DE VERDAD, no solo que se recuerde. Se monta una
+    // web que sirve SIEMPRE el mismo gif las dos primeras veces y otro distinto
+    // la tercera: si el bot no reintenta, se queda con el repetido.
+    {
+      const http = require('http');
+      const { execFileSync } = require('child_process');
+      const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+      const sinProxy = [process.env.NO_PROXY, process.env.no_proxy];
+      process.env.NO_PROXY = process.env.no_proxy = '127.0.0.1,localhost';
+      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gif57-'));
+      let srv = null;
+      const antesFuente = acc._FUENTE_POR_CAT.kill;
+      try {
+        // Dos gifs de tamaños distintos, para poder decir cuál llegó.
+        for (const [n, tam] of [['viejo.gif', '64x64'], ['nuevo.gif', '128x128']]) {
+          execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi',
+            '-i', `testsrc=size=${tam}:duration=1:rate=8`, path.join(dir, n)], { timeout: 60000 });
+        }
+        let peticiones = 0;
+        let base = '';
+        srv = http.createServer((req, res) => {
+          const ruta = req.url.split('?')[0];
+          if (ruta.startsWith('/api')) {
+            peticiones++;
+            const cual = peticiones <= 2 ? 'viejo.gif' : 'nuevo.gif';
+            res.writeHead(200, { 'content-type': 'application/json' });
+            return res.end(JSON.stringify({ url: `${base}/${cual}` }));
+          }
+          const f = path.join(dir, ruta.slice(1));
+          if (!fs.existsSync(f)) { res.writeHead(404); return res.end(); }
+          res.writeHead(200);
+          return fs.createReadStream(f).pipe(res);
+        });
+        await new Promise((r) => srv.listen(0, '127.0.0.1', r));
+        base = `http://127.0.0.1:${srv.address().port}`;
+        acc._FUENTE_POR_CAT.kill = `${base}/api/{cat}`;
+        acc._gifsRecientes.clear();
+
+        const uno = await acc._traerAccion('kill', false, null, true);
+        exige(!!uno?.mp4, 'el primer gif de la web de mentira no llega');
+        const dos = await acc._traerAccion('kill', false, null, true);
+        exige(!!dos?.mp4, 'el segundo gif no llega');
+        exige(peticiones >= 3,
+          `la web recibió ${peticiones} peticiones: al repetir el gif no se le pidió otro, así que el grupo lo ve dos veces seguidas`);
+        exige(uno.mp4.length !== dos.mp4.length,
+          'los dos gifs seguidos son el mismo: es exactamente lo que se vio en el grupo');
+      } finally {
+        acc._FUENTE_POR_CAT.kill = antesFuente;
+        acc._gifsRecientes.clear();
+        if (srv) srv.close();
+        fs.rmSync(dir, { recursive: true, force: true });
+        if (sinProxy[0] === undefined) delete process.env.NO_PROXY; else process.env.NO_PROXY = sinProxy[0];
+        if (sinProxy[1] === undefined) delete process.env.no_proxy; else process.env.no_proxy = sinProxy[1];
+      }
+    }
+
+    // ── *!next* ────────────────────────────────────────────────────────────
+    //
+    // Continua la busqueda de la foto a la que se responde, y se recuerda por el
+    // ID DEL MENSAJE DEL BOT. Eso es lo que hace que funcione con tres busquedas
+    // vivas a la vez en el mismo grupo.
+    {
+      const cmd = require(path.join(R, 'src/commands/redes'));
+      const G = `12036300057${Math.floor(Math.random() * 900 + 100)}@g.us`;
+      const YO = `3460000057${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`;
+      const conQuote = (id, idCitado) => ({
+        key: { remoteJid: G, fromMe: false, id, participant: YO },
+        message: { extendedTextMessage: { text: '!next', contextInfo: { stanzaId: idCitado } } },
+      });
+
+      // Sin responder a nada, no hay busqueda que continuar y se dice.
+      const sueltos = [];
+      await cmd.cmdNext({ sendMessage: async (j, c, o) => { sueltos.push({ c, o }); return {}; } },
+        { key: { remoteJid: G, fromMe: false, id: 'N1', participant: YO }, message: { conversation: '!next' } },
+        [], { id: G, participants: [{ id: YO }] });
+      exige(sueltos.some((x) => /Responde con/.test(x.c.text || '')),
+        '*!next* a secas no explica que hay que responder a una foto del bot');
+      exige(sueltos.every((x) => !x.c.image), '*!next* sin responder a nada manda una foto igualmente');
+
+      // Respondiendo a un mensaje que el bot no recuerda, tampoco.
+      const ajenos = [];
+      await cmd.cmdNext({ sendMessage: async (j, c, o) => { ajenos.push({ c, o }); return {}; } },
+        conQuote('N2', 'ID-QUE-NO-EXISTE'), [], { id: G, participants: [{ id: YO }] });
+      exige(ajenos.some((x) => /Responde con/.test(x.c.text || '')),
+        'responder con *!next* a cualquier mensaje se toma por una búsqueda');
+
+      // Y la memoria: lo que se apunta se encuentra, y solo en su grupo.
+      cmd._busquedas.set('ID-BUENO', { consulta: 'gatos', jid: G });
+      const otroGrupo = [];
+      await cmd.cmdNext({ sendMessage: async (j, c, o) => { otroGrupo.push({ c, o }); return {}; } },
+        { key: { remoteJid: '120363000000999@g.us', fromMe: false, id: 'N3', participant: YO },
+          message: { extendedTextMessage: { text: '!next', contextInfo: { stanzaId: 'ID-BUENO' } } } },
+        [], { id: G, participants: [{ id: YO }] });
+      exige(otroGrupo.some((x) => /Responde con/.test(x.c.text || '')),
+        'un *!next* en OTRO grupo continúa una búsqueda que no es suya');
+      cmd._busquedas.delete('ID-BUENO');
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ el gif no se repite y *!next* solo continúa lo que es suyo'));
   }
 
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────

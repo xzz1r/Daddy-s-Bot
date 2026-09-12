@@ -36,7 +36,44 @@ function enEspera(jid) {
   return 0;
 }
 
-async function hazRed(sock, msg, args, groupMeta, plataforma) {
+// ─── *!next*: OTRO RESULTADO DE LA MISMA BUSQUEDA ───────────────────────────
+//
+// Lo pidio el dueño: «viene bien que al responderle a la imagen que el bot haya
+// enviado, se le ponga /next, y ponga otro resultado de la misma busqueda».
+//
+// La busqueda se recuerda por el ID DEL MENSAJE QUE MANDO EL BOT, no por
+// persona ni por grupo. Es lo que hace que funcione con varias busquedas vivas
+// a la vez: en un grupo donde tres han pedido tres cosas distintas, cada *!next*
+// continua la que tiene delante, porque se responde a UNA imagen concreta.
+//
+// Y encadena: el resultado de un *!next* se apunta igual, asi que se puede
+// seguir dandole a la ultima imagen indefinidamente.
+//
+// No se guarda la lista de pines, solo el texto: se vuelve a buscar. Cuesta
+// segundo y medio y a cambio no hay que mantener en memoria las fotos de todas
+// las busquedas del dia, ni sirven resultados de hace horas. Que no repita lo
+// vale `pickFresh`, que ya lleva la cuenta de lo ultimo que salio con esa misma
+// busqueda en ese mismo grupo.
+const MAX_BUSQUEDAS = 500;
+const busquedas = new Map();   // id del mensaje del bot -> { consulta, jid }
+
+function recordarBusqueda(id, jid, consulta) {
+  if (!id) return;
+  if (busquedas.size >= MAX_BUSQUEDAS) busquedas.delete(busquedas.keys().next().value);
+  busquedas.set(id, { consulta, jid });
+}
+
+function busquedaCitada(msg) {
+  const ctx = msg.message?.extendedTextMessage?.contextInfo;
+  const id = ctx?.stanzaId;
+  if (!id) return null;
+  const v = busquedas.get(id);
+  // Del mismo grupo: un id de otro chat no continua aqui.
+  if (!v || v.jid !== msg.key.remoteJid) return null;
+  return v;
+}
+
+async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = null) {
   const jid = msg.key.remoteJid;
   const nombre = PLATAFORMAS[plataforma].nombre;
   const texto = args.join(' ');
@@ -60,9 +97,9 @@ async function hazRed(sock, msg, args, groupMeta, plataforma) {
   // en *!pin* se ha equivocado de comando; buscar «https://vt.tiktok.com/…» en
   // Pinterest sería contestarle cualquier cosa en vez de decírselo.
   const otra = plataformaDe(texto);
-  const busqueda = !url && plataforma === 'pinterest' && texto.trim() && !otra
+  const busqueda = consultaDada || (!url && plataforma === 'pinterest' && texto.trim() && !otra
     ? texto.trim()
-    : null;
+    : null);
 
   if (!url && !busqueda) {
     // Y si pegó uno de OTRA red, se le dice cuál era el suyo en vez de un "uso:"
@@ -182,7 +219,10 @@ async function hazRed(sock, msg, args, groupMeta, plataforma) {
     const medio = traido.tipo === 'imagen'
       ? { image: { url: traido.fichero } }
       : { video: { url: traido.fichero }, mimetype: 'video/mp4', jpegThumbnail: null };
-    await sock.sendMessage(jid, medio, { quoted: msg });
+    const enviado = await sock.sendMessage(jid, medio, { quoted: msg });
+    // Para que *!next* pueda continuar por aqui. Solo las busquedas: a un
+    // enlace concreto no hay «siguiente» que darle.
+    if (busqueda) recordarBusqueda(enviado?.key?.id, jid, busqueda);
   } catch (e) {
     logger.warn(`${plataforma}: no pude mandarlo (${e.message})`);
     await devolverAura();
@@ -206,8 +246,20 @@ async function hazRed(sock, msg, args, groupMeta, plataforma) {
   }
 }
 
+// *!next* sobre la imagen que mando el bot: otra de la misma busqueda.
+async function cmdNext(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  const v = busquedaCitada(msg);
+  if (!v) {
+    return sock.sendMessage(jid, {
+      text: 'Responde con *!next* a una foto que haya mandado el bot buscando algo.',
+    }, { quoted: msg });
+  }
+  return hazRed(sock, msg, [], groupMeta, 'pinterest', v.consulta);
+}
+
 const cmdTikTok    = (sock, msg, args, groupMeta) => hazRed(sock, msg, args, groupMeta, 'tiktok');
 const cmdInstagram = (sock, msg, args, groupMeta) => hazRed(sock, msg, args, groupMeta, 'instagram');
 const cmdPinterest = (sock, msg, args, groupMeta) => hazRed(sock, msg, args, groupMeta, 'pinterest');
 
-module.exports = { cmdTikTok, cmdInstagram, cmdPinterest, _hazRed: hazRed, _ESPERA_MS: ESPERA_MS };
+module.exports = { cmdTikTok, cmdInstagram, cmdPinterest, cmdNext, _busquedas: busquedas, _hazRed: hazRed, _ESPERA_MS: ESPERA_MS };

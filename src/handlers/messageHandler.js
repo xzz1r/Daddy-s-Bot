@@ -36,6 +36,7 @@ const cmdClearCache = lazyCmd('../commands/music', 'cmdClearCache');
 const cmdTikTok = lazyCmd('../commands/redes', 'cmdTikTok');
 const cmdInstagram = lazyCmd('../commands/redes', 'cmdInstagram');
 const cmdPinterest = lazyCmd('../commands/redes', 'cmdPinterest');
+const cmdNext = lazyCmd('../commands/redes', 'cmdNext');
 const cmdSticker = lazyCmd('../commands/sticker', 'cmdSticker');
 const { cmdTopRandom } = require('../commands/topsRandom');
 const { cmdK, privadoDelOwner, hallarMedio } = require('../commands/k');
@@ -2243,6 +2244,14 @@ async function handleMessage(sock, msg, opciones = {}) {
       case 'pin':
       case 'pinterest':
         resultado = await cmdPinterest(sock, msg, args, groupMeta);
+        break;
+      // *!next* sobre la foto que mando el bot: otra de la misma busqueda. No
+      // lleva argumentos —la busqueda sale del mensaje al que se responde— asi
+      // que no puede confundirse con nada.
+      case 'next':
+      case 'otra':
+      case 'siguiente':
+        resultado = await cmdNext(sock, msg, args, groupMeta);
         break;
 
       case 'cachelist':

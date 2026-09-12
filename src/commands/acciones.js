@@ -270,6 +270,26 @@ const TOPE_DESCARGA = 8 * 1024 * 1024;   // un gif de reacción pesa cientos de 
 // 1,5 MB, así que "dos por categoría" no dice nada sobre lo que ocupa. Con
 // veinte acciones y este tope no pasa de 24 MB, en una máquina de 1 GB donde el
 // bot ronda los 140.
+// Las ultimas direcciones servidas de cada categoria, para no repetir gif. Seis
+// es mas que las dos que caben en la despensa y menos que el catalogo de la
+// categoria mas pobre: bloquear mas seria quedarse sin de donde elegir.
+const RECIENTES_POR_CAT = 6;
+const gifsRecientes = new Map();   // clave -> [direcciones]
+
+function yaSalio(clave, url) {
+  return (gifsRecientes.get(clave) || []).includes(url);
+}
+
+function apuntarGif(clave, url) {
+  const lista = gifsRecientes.get(clave) || [];
+  if (!lista.includes(url)) lista.push(url);
+  while (lista.length > RECIENTES_POR_CAT) lista.shift();
+  gifsRecientes.set(clave, lista);
+  // Sin tope, una instalacion con veinte categorias guarda ciento veinte
+  // direcciones y ya esta; el tope esta por si alguien mete cien categorias.
+  if (gifsRecientes.size > 200) gifsRecientes.delete(gifsRecientes.keys().next().value);
+}
+
 const LISTOS_POR_CAT = 2;
 const TOPE_DESPENSA = 24 * 1024 * 1024;
 const despensa = new Map();      // clave -> { cola: [], ts }
@@ -733,8 +753,9 @@ async function traerAccion(cat, nsfw, catNsfw, deDespensa = false) {
   const conFuente = nsfw && API_NSFW;
   const base = fuenteDe(cat, nsfw);
   const cual = conFuente ? (catNsfw || cat) : cat;
+  const clave = claveDespensa(cat, nsfw, catNsfw);
   if (!deDespensa) {
-    const listo = sacarDeDespensa(claveDespensa(cat, nsfw, catNsfw));
+    const listo = sacarDeDespensa(clave);
     if (listo) return listo;
   }
   // EL DESGLOSE DE LOS TRES PASOS. El log decia `traer 15105` y ese numero no
@@ -746,15 +767,44 @@ async function traerAccion(cat, nsfw, catNsfw, deDespensa = false) {
   // Y SI LA WEB DE ESA CATEGORIA SE CAE, SE PRUEBA LA DE RESPALDO. Una fuente
   // de fuera se cae, y sin esto el comando se queda cobrando y devolviendo el
   // aura hasta que alguien mire el log.
-  let data = null;
-  try {
-    ({ data } = await axios.get(direccionDe(base, cual), { timeout: 12000 }));
-  } catch (e) {
-    const r = !conFuente && RESPALDO_POR_CAT[cual];
-    if (!r) throw e;
-    logger.warn(`accion ${cual}: la web falló (${e.response?.status || e.message}); tiro del respaldo`);
-    ({ data } = await axios.get(direccionDe(r.base, r.cat), { timeout: 12000 }));
+  const pedir = async () => {
+    try {
+      return (await axios.get(direccionDe(base, cual), { timeout: 12000 })).data;
+    } catch (e) {
+      const r = !conFuente && RESPALDO_POR_CAT[cual];
+      if (!r) throw e;
+      logger.warn(`accion ${cual}: la web falló (${e.response?.status || e.message}); tiro del respaldo`);
+      return (await axios.get(direccionDe(r.base, r.cat), { timeout: 12000 })).data;
+    }
+  };
+
+  // ─── QUE NO SALGA DOS VECES EL MISMO GIF ──────────────────────────────────
+  //
+  // El dueño lo vio en el grupo: «se repitió dos veces seguidas un mismo GIF».
+  //
+  // Y es de esperar sin hacer nada: estas webs tienen entre diez y veinte gifs
+  // por categoria y sirven uno AL AZAR, sin memoria. Con diez, la probabilidad
+  // de que el siguiente sea el mismo es una de cada diez — y la despensa lo
+  // empeora, porque guarda dos por categoria y los pide por separado: si los
+  // dos salen iguales, el grupo ve el mismo gif dos veces seguidas seguro.
+  //
+  // Se lleva la cuenta de las ultimas direcciones servidas de cada categoria y,
+  // si la que llega ya esta en esa lista, se vuelve a pedir. Dos reintentos
+  // como mucho: con diez gifs, tres tiradas dejan la probabilidad de repetir en
+  // una de cada mil, y mas intentos serian peticiones de mas contra una web que
+  // ya se sabe que corta si se la aprieta.
+  //
+  // La memoria es por CATEGORIA y no por grupo: lo que se esta evitando es que
+  // la fuente sirva lo mismo, y eso no depende de quien lo pida.
+  let data = await pedir();
+  for (let intento = 0; intento < 2; intento++) {
+    const dir = direccionDelGif(data)?.url;
+    if (!dir || !yaSalio(clave, dir)) break;
+    logger.info(`accion ${cual}: la web repitió gif; pido otro`);
+    data = await pedir();
   }
+  const elegido = direccionDelGif(data)?.url;
+  if (elegido) apuntarGif(clave, elegido);
   t.api = Date.now() - marca;
   // Cada web contesta a su manera: nekos.best mete todo en results[], y las
   // demas suelen devolver {url} a secas. Se aceptan las dos para que cambiar de
@@ -984,4 +1034,4 @@ function hazAccion(nombre) {
 const comandos = {};
 for (const nombre of ACTIVAS) comandos[nombre] = hazAccion(nombre);
 
-module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, calentarDespensa, _restaurarDespensa: restaurarDespensa, _guardarEnDespensa: guardarEnDespensa, _sacarDeDespensa: sacarDeDespensa, _DESPENSA_DIR: DESPENSA_DIR, _fondo: () => fondoEnCurso, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, _fuenteDe: fuenteDe, _FUENTE_POR_CAT: FUENTE_POR_CAT, _RESPALDO_POR_CAT: RESPALDO_POR_CAT, _direccionDe: direccionDe, _direccionDelGif: direccionDelGif, ...comandos, _turnoRoast: turnoRoast };
+module.exports = { ACCIONES, ACTIVAS, ALIAS_ACTIVOS, ROAST_CADA, calentarDespensa, _restaurarDespensa: restaurarDespensa, _guardarEnDespensa: guardarEnDespensa, _sacarDeDespensa: sacarDeDespensa, _DESPENSA_DIR: DESPENSA_DIR, _fondo: () => fondoEnCurso, _despensa: despensa, _traerAccion: traerAccion, _claveDespensa: claveDespensa, _yaSalio: yaSalio, _apuntarGif: apuntarGif, _gifsRecientes: gifsRecientes, _fuenteDe: fuenteDe, _FUENTE_POR_CAT: FUENTE_POR_CAT, _RESPALDO_POR_CAT: RESPALDO_POR_CAT, _direccionDe: direccionDe, _direccionDelGif: direccionDelGif, ...comandos, _turnoRoast: turnoRoast };
