@@ -1784,16 +1784,24 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
       return;
     }
 
-    // Regular notification (skip if the bot itself did the action — !promote/!demote
-    // already responds). Owner/co-owner actions are never announced: they have the
-    // authority, so their promotes/demotes are expected and stay silent.
-    // esOwnerAmplio, NO isOwner: es el mismo criterio que usan los tres reverts
-    // de arriba, y aquí se usaba el estrecho. La diferencia importa — el amplio
-    // prueba también el phoneNumber que trae el evento, así que un owner cuyo
-    // LID aún no estuviera mapeado pasaba los reverts sin tocar (bien) pero
-    // luego SÍ salía anunciado aquí, que es justo la actividad que no debe
-    // notificarse de él.
-    if (!fromBot && !esOwnerAmplio(author, authorPn, meta) && isAdminNotifyEnabled(groupJid)) {
+    // ─── EL AVISO SALE PARA TODOS, TAMBIEN PARA EL DUEÑO ──────────────────────
+    //
+    // Aqui se saltaba el aviso cuando el autor era del tier dueño. La razon
+    // escrita era que «tienen autoridad, sus movimientos son esperados y se
+    // quedan callados», y suena razonable hasta que se mira desde el grupo:
+    //
+    //   todo cambio de admin sale anunciado MENOS los del dueño.
+    //
+    // O sea que el silencio ERA la señal. En un grupo con los avisos puestos,
+    // el unico ascenso sin anuncio es el suyo, y eso es justo lo contrario del
+    // anonimato que este bot mantiene en todas partes. Anunciarlos a todos por
+    // igual no enseña nada nuevo —WhatsApp ya pone su propio aviso de sistema
+    // diciendo quien ascendio a quien— y quita el hueco.
+    //
+    // El salto por `fromBot` SI se queda: cuando el ascenso lo hace el bot es
+    // porque alguien escribio *!promote*, y ese comando ya contesta «@X ahora es
+    // admin» en el mismo grupo. Un segundo mensaje seria decirlo dos veces.
+    if (!fromBot && isAdminNotifyEnabled(groupJid)) {
       const text = action === 'promote'
         ? `${authorTag} ha dado admin a ${targets}.`
         : `${authorTag} ha quitado admin a ${targets}.`;

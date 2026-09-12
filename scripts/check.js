@@ -10063,6 +10063,37 @@ const di=async(quien,t)=>{out.length=0;
       }
     }
 
+
+    // 13. EL AVISO DE ADMIN SALE PARA TODOS, TAMBIEN PARA EL DUEÑO.
+    //
+    // Se saltaba cuando el autor era del tier dueño, y eso convertia el SILENCIO
+    // en la señal: en un grupo con los avisos puestos, el unico ascenso sin
+    // anuncio era el suyo. Lo contrario del anonimato que el bot mantiene en
+    // todas partes.
+    //
+    // El salto por `fromBot` si se queda: ese ascenso viene de *!promote*, que ya
+    // contesta en el mismo grupo.
+    {
+      const bot = soloCodigo('src/bot.js');
+      const i = bot.indexOf('isAdminNotifyEnabled(groupJid)) {');
+      exige(i > 0, 'no encuentro el aviso de cambio de admin en bot.js');
+      const linea = i > 0 ? bot.slice(bot.lastIndexOf('\n', i) + 1, i + 40) : '';
+      exige(!/esOwnerAmplio/.test(linea),
+        'el aviso de admin vuelve a saltarse cuando lo hace el dueño: entonces el silencio es la señal de quién manda en el bot');
+      exige(/!fromBot/.test(linea),
+        'el aviso de admin ya no se salta cuando lo hace el bot: *!promote* ya contesta y saldría dicho dos veces');
+
+      // Y LA DEGRADACION DEL DUEÑO TIENE QUE DEJAR RASTRO. Sin esto, cuando la
+      // protección no llega a hacer nada no queda una sola línea que lo diga.
+      const j = bot.indexOf("if (action === 'demote') {");
+      exige(j > 0, 'ya no se apunta ninguna degradación: cuando la protección del dueño no actúa, no queda rastro de por qué');
+      const cuerpo = j > 0 ? bot.slice(j, j + 1400) : '';
+      exige(/logger\.warn\(/.test(cuerpo) && /tocaAlDue/.test(cuerpo),
+        'la traza de la degradación ya no dice si el degradado era el dueño: es el dato por el que se mira');
+      exige(/avisarDue.oSinAdmin\(/.test(cuerpo),
+        'al dueño ya no se le avisa cuando le quitan el admin y el bot no puede devolvérselo: se queda sin admin y sin enterarse');
+    }
+
     if (fallos === antes) console.log(verde('   ✓ mismo comportamiento, el dinero se apunta antes de pagarse y ffmpeg no se queda sin plaza'));
   }
 
