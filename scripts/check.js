@@ -113,9 +113,30 @@ let fallos = 0;
 // que se calla cuando se rompe es peor que no tenerlo.
 process.on('unhandledRejection', (razon) => {
   fallos++;
+  // ─── Y SE MARCA LA SALIDA EN ROJO AQUI MISMO ──────────────────────────────
+  //
+  // SUMAR EL FALLO NO BASTABA, y esto dejo pasar un despliegue.
+  //
+  // Todas las capas viven dentro de UN solo `(async () => { ... })()`. Cuando
+  // una revienta, la promesa de ese bloque se rechaza y con ella se va el resto
+  // del fichero: las capas siguientes no llegan a correr y —lo grave— tampoco
+  // llega el `process.exit(fallos ? 1 : 0)` del final, que es lo unico que
+  // ponia el codigo de salida. El proceso terminaba SOLO, con un 0 impecable.
+  //
+  // Y scripts/actualizar.sh se guia por ese codigo: `if ! npm run check`. Asi
+  // que una capa muerta se veia en pantalla como una linea roja, no paraba
+  // nada, y el bot se desplegaba con un trozo de la verificacion sin ejecutar.
+  // Paso de verdad: la capa 66 pedia el ffmpeg empaquetado, que el despliegue
+  // BORRA en las maquinas que traen el suyo, asi que moria solo en el VPS —en
+  // local todo verde— y se llevo por delante las capas de despues.
+  //
+  // `exitCode` y no `exit()`: dejar que el proceso acabe solo permite que salgan
+  // los demas avisos pendientes, y el 1 ya queda puesto pase lo que pase.
+  process.exitCode = 1;
   const donde = String(razon?.stack || '').split('\n')[1]?.trim() || '';
   console.log(rojo(`   \u2717 una capa se murió por dentro: ${razon?.message || razon}`));
   if (donde) console.log(rojo(`     ${donde}`));
+  console.log(rojo('     (las capas siguientes NO se han ejecutado)'));
 });
 
 function ficherosJs() {
@@ -11337,7 +11358,12 @@ const di=async(quien,t)=>{out.length=0;
 
     const http = require('http');
     const { execFileSync } = require('child_process');
-    const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+    // EL HELPER DEL PROYECTO, NO EL PAQUETE A PELO. El despliegue BORRA el
+    // ffmpeg empaquetado en las maquinas que traen el suyo —66 MB que sobran—
+    // asi que `require('@ffmpeg-installer/ffmpeg')` revienta justo en el VPS y
+    // en ningun sitio mas. Esta capa se murio alli entera, y en local seguia
+    // verde. src/utils/ffmpeg.js prueba el empaquetado, luego el del sistema.
+    const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
     const redes = require(path.join(R, 'src/utils/redes'));
     const { _hazRed: hazRed } = require(path.join(R, 'src/commands/redes'));
     require(path.join(R, 'src/utils/redSegura')).permitirLoopback(true);
@@ -11577,6 +11603,87 @@ const di=async(quien,t)=>{out.length=0;
     }
 
     if (fallos === antes) console.log(verde('   ✓ las 750 dicen lo que pasa, y las marcas siguen mirando de verdad'));
+  }
+
+  // ── 68. UNA CAPA MUERTA PARA EL DESPLIEGUE ───────────────────────────────
+  //
+  // Esto dejo pasar un despliegue de verdad y merece quedar escrito.
+  //
+  // Todas las capas viven dentro de UN `(async () => { ... })()`. Cuando una
+  // revienta —un require que no existe, por ejemplo— la promesa de ese bloque
+  // se rechaza y se lleva por delante el resto del fichero: las capas de
+  // despues no corren, y tampoco corre el `process.exit(fallos ? 1 : 0)` del
+  // final, que era lo unico que ponia el codigo de salida. El proceso acababa
+  // solo, con un 0 impecable.
+  //
+  // scripts/actualizar.sh se guia por ese codigo (`if ! npm run check`). Asi
+  // que se veia una linea roja en pantalla, no paraba nada, y el bot salia con
+  // un trozo de la verificacion sin ejecutar.
+  //
+  // El caso real: la capa 66 pedia `@ffmpeg-installer/ffmpeg` a pelo, y el
+  // despliegue BORRA ese paquete en las maquinas que traen su propio ffmpeg
+  // —66 MB que sobran—. Moria solo en el VPS; en local, todo verde.
+  {
+    console.log('\n68. UNA CAPA MUERTA PARA EL DESPLIEGUE');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const { execFileSync } = require('child_process');
+    const os2 = require('os');
+    const dir = fs.mkdtempSync(path.join(os2.tmpdir(), 'capa68-'));
+    try {
+      // Se reproduce la forma EXACTA de check.js: manejador + capas dentro de
+      // un solo async, una que revienta, y el exit del final detras.
+      const cabecera = fs.readFileSync(path.join(R, 'scripts/check.js'), 'utf8');
+      const i = cabecera.indexOf("process.on('unhandledRejection'");
+      exige(i > 0, 'ya no hay manejador de capa muerta en check.js');
+      const manejador = i > 0 ? cabecera.slice(i, cabecera.indexOf('\n});', i) + 4) : '';
+      exige(/process\.exitCode\s*=\s*1/.test(manejador),
+        'el manejador de capa muerta no marca la salida en rojo: una capa que revienta se lleva las siguientes Y deja el código de salida en 0, así que el despliegue sigue con la verificación a medias');
+
+      const guion = path.join(dir, 'r.js');
+      fs.writeFileSync(guion, `
+let fallos = 0;
+const rojo = (t) => t;
+${manejador}
+(async () => {
+  require('modulo-que-no-existe-en-ningun-sitio');
+  process.exit(fallos ? 1 : 0);
+})();
+`);
+      let codigo = 0;
+      try { execFileSync(process.execPath, [guion], { encoding: 'utf8', timeout: 20000, stdio: 'pipe' }); }
+      catch (e) { codigo = e.status || 1; }
+      exige(codigo !== 0,
+        'una capa que revienta deja el código de salida en 0: `npm run check` sale verde con parte de la suite sin ejecutar y el despliegue no se entera');
+
+      // Y EL CONTROL: sin nada que reviente, el mismo montaje sale en 0. Si
+      // esto fallara, lo de arriba estaria en verde por el motivo equivocado
+      // —salir siempre en rojo— y `npm run update` no volveria a desplegar.
+      const bueno = path.join(dir, 'b.js');
+      fs.writeFileSync(bueno, `
+let fallos = 0;
+const rojo = (t) => t;
+${manejador}
+(async () => { process.exit(fallos ? 1 : 0); })();
+`);
+      let codigoBueno = 0;
+      try { execFileSync(process.execPath, [bueno], { encoding: 'utf8', timeout: 20000, stdio: 'pipe' }); }
+      catch (e) { codigoBueno = e.status || 1; }
+      exige(codigoBueno === 0,
+        'sin ninguna capa rota el código de salida ya no es 0: así `npm run update` no podría desplegar nunca');
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+
+    // Y NINGUNA CAPA PIDE EL FFMPEG EMPAQUETADO A PELO. Es la forma concreta en
+    // que esto se rompio, y solo se ve en el VPS.
+    const src = fs.readFileSync(path.join(R, 'scripts/check.js'), 'utf8');
+    const aPelo = src.split('\n').filter((l) => /require\(['"]@ffmpeg-installer\/ffmpeg['"]\)/.test(l) && !/^\s*\/\//.test(l));
+    exige(aPelo.length === 0,
+      'una capa pide @ffmpeg-installer/ffmpeg directamente: el despliegue borra ese paquete en las máquinas con ffmpeg propio, así que esa capa muere solo en el VPS. Usa src/utils/ffmpeg.js');
+
+    if (fallos === antes) console.log(verde('   ✓ una capa que revienta para el despliegue, y ninguna depende del ffmpeg empaquetado'));
   }
 
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────
