@@ -121,7 +121,27 @@ async function cmdListaNegra(sock, msg, args, groupMeta) {
   const resto = (args || []).slice(1).join(' ');
   const todo = (args || []).join(' ');
 
-  if (!args?.length || VER.has(primera)) {
+  // ─── SIN ARGUMENTOS NO SE VUELCA LA LISTA ────────────────────────────────
+  //
+  // Antes `!listanegra` a secas escupia la primera de doce paginas. El dueño:
+  // «no quiero ver una lista tan extensa, solo añadir numeros». Y tiene razon en
+  // el fondo: la lista la llena el BOT solo —de 333 cuentas, casi todas las
+  // metio el automatico— asi que leerla no dice nada que sirva. Lo que se hace
+  // a mano es meter numeros.
+  //
+  // El volcado sigue estando en `!listanegra ver` para cuando de verdad haga
+  // falta buscar a alguien.
+  if (!args?.length) {
+    const total = await banCount();
+    return sock.sendMessage(jid, {
+      text: `*LISTA NEGRA* — ${total} cuenta${total === 1 ? '' : 's'} dentro.\n\n`
+        + 'Para meter números:\n`!listanegra 573001112233 573004445566`\n\n'
+        + 'Para sacarlos:\n`!listanegra quitar 573001112233`\n\n'
+        + '_También vale citando un mensaje o mencionando._\n'
+        + '_`!listanegra ver` la enseña entera, pero es larga y la llena el bot solo._',
+    }, { quoted: msg });
+  }
+  if (VER.has(primera)) {
     return verLista(sock, jid, msg, Number(args?.[1]) || 1);
   }
 
@@ -184,24 +204,37 @@ async function cmdListaNegra(sock, msg, args, groupMeta) {
       : undefined;
   }
 
-  let yaEstaban = 0;
+  // Se pregunta ANTES de meter: despues estan todas y no habria forma de
+  // distinguir «lo acabo de meter» de «ya estaba». Y se guarda CUAL, no cuantos:
+  // «uno ya estaba» no dice cual de los cinco, que es justo lo que hace falta
+  // saber para no repetir la orden.
+  const nuevos = [];
+  const repetidos = [];
   for (const c of buenas) {
-    // Se pregunta ANTES de meter: despues todas estan y no habria forma de
-    // distinguir «lo acabo de meter» de «ya estaba», que es justo lo que el
-    // dueño necesita saber para no repetir ordenes.
-    if (await isBanned(c.formas).catch(() => null)) yaEstaban++;
+    const corto = shortAcc(canonicalJid(c.etiqueta) || c.etiqueta);
+    if (await isBanned(c.formas).catch(() => null)) repetidos.push(corto);
+    else nuevos.push(corto);
     await banAccount(c.formas, `listanegra por ${bareJid(sender)}`, bareJid(sender));
   }
 
-  const { fuera, sinPoder } = await echarDeTodos(sock, buenas.map((c) => c.formas));
+  // Solo se barren los grupos si hay alguien NUEVO. Si los cinco ya estaban, ya
+  // se les echo en su dia: repetir la consulta mas cara del bot para no echar a
+  // nadie es trabajo por gusto.
+  const { fuera, sinPoder } = nuevos.length
+    ? await echarDeTodos(sock, buenas.map((c) => c.formas))
+    : { fuera: 0, sinPoder: 0 };
   const total = await banCount();
-  const nombres = buenas.map((c) => shortAcc(canonicalJid(c.etiqueta) || c.etiqueta)).join(', ');
 
-  const lineas = [`*LISTA NEGRA*\n╾━━━━━━━━━━━━━━╼\n`, `A la basura: ${nombres}`];
-  if (yaEstaban) lineas.push(`(${yaEstaban} ya estaba${yaEstaban === 1 ? '' : 'n'}, para que veas lo poco que han aprendido)`);
+  const lineas = ['*LISTA NEGRA*\n╾━━━━━━━━━━━━━━╼\n'];
+  if (nuevos.length) lineas.push(`A la basura: ${nuevos.join(', ')}`);
+  if (repetidos.length) {
+    lineas.push(repetidos.length === 1
+      ? `${repetidos[0]} ya estaba dentro.`
+      : `Ya estaban dentro: ${repetidos.join(', ')}`);
+  }
   if (fuera) lineas.push(`Echados de ${fuera} grupo${fuera === 1 ? '' : 's'}.`);
   if (sinPoder) lineas.push(`En ${sinPoder} se me quedan dentro: ahí no soy admin y no puedo hacer nada.`);
-  lineas.push(`\nSi asoman por cualquier grupo, fuera antes de saludar.`);
+  if (nuevos.length) lineas.push('\nSi asoman por cualquier grupo, fuera antes de saludar.');
   lineas.push(`Van ${total} en la lista.`);
 
   return sock.sendMessage(jid, { text: lineas.join('\n') }, { quoted: msg });

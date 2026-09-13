@@ -11,7 +11,7 @@
 // reencoda, no se carga en memoria y no se guarda nada.
 
 const fs = require('fs-extra');
-const { traer, buscar, enlaceDe, plataformaDe, hayComoTraer, PLATAFORMAS } = require('../utils/redes');
+const { traer, buscar, buscarVarios, enlaceDe, plataformaDe, hayComoTraer, PLATAFORMAS } = require('../utils/redes');
 const { getSender, canonicalJid } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const logger = require('../utils/logger');
@@ -75,6 +75,15 @@ function busquedaCitada(msg) {
   if (!v || v.jid !== msg.key.remoteJid) return null;
   return v;
 }
+
+// ─── CUANTAS FOTOS MANDA UN *!pin* ──────────────────────────────────────────
+//
+// Cinco. El dueño lo vio en otros bots —«envian mas de 10 fotos al mismo
+// tiempo»— y eligio cinco a proposito: «para que no sea mucho spam».
+//
+// Solo la BUSQUEDA manda varias. *!next* sigue dando una —«otra» es una, no
+// otras cinco— y un enlace concreto trae lo que hay en ese enlace y ya.
+const FOTOS_POR_PIN = 5;
 
 async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = null, pinesDados = null) {
   const jid = msg.key.remoteJid;
@@ -181,7 +190,8 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
   const t0 = Date.now();
   try {
     traido = busqueda
-      ? await buscar(busqueda, `pin|${jid}|${busqueda.toLowerCase()}`, pinesDados)
+      ? await buscarVarios(busqueda, `pin|${jid}|${busqueda.toLowerCase()}`, pinesDados,
+        pinesDados ? 1 : FOTOS_POR_PIN)
       : await traer(url, plataforma);
   } catch (e) {
     logger.warn(`${plataforma}: ${e.message}`);
@@ -219,13 +229,60 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
     // Y `jpegThumbnail: null`, no `undefined`: lo que dispara el ffmpeg interno
     // de Baileys al enviar es `undefined`, y ese proceso de más en el único core
     // de la VPS es lo que hacía que subir 13 KB tardara 1699 ms.
-    const medio = traido.tipo === 'imagen'
-      ? { image: { url: traido.fichero } }
-      : { video: { url: traido.fichero }, mimetype: 'video/mp4', jpegThumbnail: null };
-    const enviado = await sock.sendMessage(jid, medio, { quoted: msg });
+    // ─── UNA BUSQUEDA MANDA VARIAS; UN ENLACE, LA SUYA ────────────────────
+    //
+    // `buscarVarios` devuelve una lista; `traer` (un enlace concreto) devuelve
+    // un medio suelto. Se normalizan aqui para que abajo haya un solo camino.
+    const lote = Array.isArray(traido.medios) ? traido.medios : [traido];
+
+    // ─── EN ALBUM, NO EN CINCO MENSAJES ───────────────────────────────────
+    //
+    // Cinco fotos sueltas son cinco burbujas empujando el chat hacia arriba, y
+    // lo que pidio el dueño fue justo lo contrario: varias fotos SIN que sea
+    // mucho spam. WhatsApp las agrupa en una sola burbuja si van colgadas de un
+    // `albumMessage`.
+    //
+    // EL SOBRE SE MANDA DESPUES DE BAJARLAS, y ese orden es todo el asunto:
+    // lleva escrito CUANTAS fotos esperar. Mandarlo antes y que luego falle una
+    // descarga deja un album esperando para siempre una foto que no existe.
+    // Aqui se manda con el numero que de verdad hay en la mano.
+    //
+    // Con una sola no hay album que montar: una burbuja de album con una foto
+    // dentro se ve peor que la foto.
+    const ids = [];
+    let padre = null;
+    if (lote.length > 1) {
+      padre = await sock.sendMessage(jid, {
+        album: { expectedImageCount: lote.length, expectedVideoCount: 0 },
+      }, { quoted: msg }).catch((e) => {
+        // Si el album no sale, no se pierde el comando: van sueltas.
+        logger.warn(`${plataforma}: no pude abrir el album (${e.message}); las mando sueltas`);
+        return null;
+      });
+      if (padre?.key?.id) ids.push(padre.key.id);
+    }
+
+    for (const m of lote) {
+      const medio = m.tipo === 'imagen'
+        ? { image: { url: m.fichero } }
+        : { video: { url: m.fichero }, mimetype: 'video/mp4', jpegThumbnail: null };
+      // La cita solo en la primera cuando no hay album: colgar las cinco del
+      // mismo mensaje repite el recuadro cinco veces.
+      const extra = padre?.key ? { albumParentKey: padre.key } : {};
+      const opciones = (!padre && ids.length === 0) ? { quoted: msg } : {};
+      const enviado = await sock.sendMessage(jid, { ...medio, ...extra }, opciones);
+      if (enviado?.key?.id) ids.push(enviado.key.id);
+    }
+
     // Para que *!next* pueda continuar por aqui. Solo las busquedas: a un
     // enlace concreto no hay «siguiente» que darle.
-    if (busqueda) recordarBusqueda(enviado?.key?.id, jid, busqueda, traido.pines || pinesDados);
+    //
+    // Se apuntan TODOS los ids, el del album incluido: si se mandan cinco
+    // fotos, *!next* tiene que funcionar respondiendo a cualquiera de ellas y
+    // no solo a una que nadie sabria cual es.
+    if (busqueda) {
+      for (const id of ids) recordarBusqueda(id, jid, busqueda, traido.pines || pinesDados);
+    }
   } catch (e) {
     logger.warn(`${plataforma}: no pude mandarlo (${e.message})`);
     await devolverAura();
@@ -236,7 +293,9 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
   } finally {
     // SE BORRA SIEMPRE, salga bien o mal. El bot no guarda vídeos de nadie: lo
     // que se quede atrás por un corte lo recoge el barrido horario de temp.
-    await fs.remove(traido.fichero).catch(() => {});
+    for (const m of (Array.isArray(traido.medios) ? traido.medios : [traido])) {
+      if (m?.fichero) await fs.remove(m.fichero).catch(() => {});
+    }
   }
 
   const tSubir = Date.now() - t1;
@@ -245,7 +304,8 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
   // arreglar.
   if (tBajar + tSubir > 4000) {
     logger.warn(`${plataforma}: ${tBajar + tSubir} ms (bajar ${tBajar}, subir ${tSubir}, `
-      + `${Math.round(traido.bytes / 1024)} KB, ${traido.ext})`);
+      + `${Math.round(((Array.isArray(traido.medios) ? traido.medios : [traido])
+        .reduce((a, m) => a + (m?.bytes || 0), 0)) / 1024)} KB, ${traido.ext || 'jpg'})`);
   }
 }
 

@@ -10423,10 +10423,14 @@ const di=async(quien,t)=>{out.length=0;
     // basura cuatro de cada cinco veces. Tiene que reordenar por el texto
     // del pin y bajar por esa lista, sin pickFresh y sin barajar.
     {
+      // SE MIRA `buscarVarios`, QUE ES DONDE VIVE AHORA. `buscar()` quedo como
+      // un envoltorio de una linea desde que *!pin* manda cinco fotos, asi que
+      // buscar el ranking ahi dentro daba rojo con el ranking intacto: la
+      // comprobacion apuntaba a la funcion equivocada, no al codigo roto.
       const red = soloCodigo('src/utils/redes.js');
-      const i = red.indexOf('async function buscar(');
+      const i = red.indexOf('async function buscarVarios(');
       const cuerpo = i < 0 ? '' : red.slice(i, red.indexOf('\n  } catch', i));
-      exige(i > 0, 'no encuentro buscar()');
+      exige(i > 0, 'no encuentro buscarVarios()');
       exige(/ordenarPines\(/.test(cuerpo),
         'los resultados de *!pin* no se reordenan por si dicen lo que se pidió: se vuelve a fiar del orden de Pinterest');
       exige(/siguientePin\(/.test(cuerpo),
@@ -11311,6 +11315,203 @@ const di=async(quien,t)=>{out.length=0;
       'los límites del número cambiaron: por debajo de 8 o por encima de 15 (E.164) se rechazarían números reales');
 
     if (fallos === antes) console.log(verde('   ✓ un número partido por la shell ya no pide un código imposible, y uno bueno pasa'));
+  }
+
+  // ── 66. *!pin* MANDA CINCO EN UN ALBUM, NO CINCO MENSAJES ────────────────
+  //
+  // El dueño lo vio en otros bots —«envian mas de 10 fotos al mismo tiempo»— y
+  // pidio cinco, «para que no sea mucho spam». Las dos mitades de esa frase
+  // importan: varias fotos SIN llenar el chat de burbujas. Por eso van colgadas
+  // de un `albumMessage` y no sueltas.
+  //
+  // LO QUE PUEDE SALIR MAL Y NO SE VE: el sobre del album lleva escrito CUANTAS
+  // fotos esperar. Si se manda antes de bajarlas y luego falla una descarga,
+  // queda un album esperando para siempre una foto que no existe. Por eso se
+  // manda DESPUES, con el numero que de verdad hay en la mano — y eso es lo que
+  // mide esta capa: que el numero del sobre y las fotos que llegan sean el
+  // mismo, pase lo que pase con las descargas.
+  {
+    console.log('\n66. *!pin* MANDA CINCO EN UN ALBUM, NO CINCO MENSAJES');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const http = require('http');
+    const { execFileSync } = require('child_process');
+    const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+    const redes = require(path.join(R, 'src/utils/redes'));
+    const { _hazRed: hazRed } = require(path.join(R, 'src/commands/redes'));
+    require(path.join(R, 'src/utils/redSegura')).permitirLoopback(true);
+
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pin66-'));
+    const antesPin = { ...redes._PIN };
+    const sinProxy = [process.env.NO_PROXY, process.env.no_proxy];
+    process.env.NO_PROXY = process.env.no_proxy = '127.0.0.1,localhost';
+    let srv = null;
+    try {
+      // Fotos de verdad: un rectangulo liso pesa menos de 2 KB y el propio
+      // codigo lo rechaza por «miniatura». La prueba mediria su guarda.
+      for (let i = 0; i < 8; i++) {
+        execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi',
+          '-i', `testsrc=size=${300 + i * 10}x300:duration=1`, '-frames:v', '1', '-q:v', '2',
+          path.join(dir, `f${i}.jpg`)], { timeout: 60000 });
+      }
+      let base = '';
+      let rotas = 0;          // cuantas descargas se contestan con error
+      srv = http.createServer((req, res) => {
+        const ruta = req.url.split('?')[0];
+        if (ruta === '/pagina') {
+          res.writeHead(200, { 'content-type': 'text/html',
+            'set-cookie': ['csrftoken=falso123; Path=/', '_pinterest_sess=x; Path=/'] });
+          return res.end('<img src="https://i.pinimg.com/736x/aa/bb/cc/aabbccddeeff00112233445566778899.jpg">');
+        }
+        if (ruta === '/recurso') {
+          res.writeHead(200, { 'content-type': 'application/json' });
+          return res.end(JSON.stringify({ resource_response: { data: { results:
+            [...Array(8)].map((_, i) => ({
+              id: `pin${i}`, grid_title: 'gato gracioso',
+              images: { orig: { url: `${base}/f${i}.jpg` } },
+            })) } } }));
+        }
+        // Las primeras `rotas` descargas fallan: es lo normal en Pinterest
+        // (miniaturas, enlaces muertos) y es el caso que descuadra el album.
+        if (rotas > 0) { rotas--; res.writeHead(404); return res.end(); }
+        const f = path.join(dir, ruta.slice(1));
+        if (!fs.existsSync(f)) { res.writeHead(404); return res.end(); }
+        res.writeHead(200);
+        return fs.createReadStream(f).pipe(res);
+      });
+      await new Promise((r) => srv.listen(0, '127.0.0.1', r));
+      base = `http://127.0.0.1:${srv.address().port}`;
+      redes._PIN.pagina = `${base}/pagina?q=`;
+      redes._PIN.recurso = `${base}/recurso`;
+
+      const BOT66 = '34600000066@s.whatsapp.net';
+
+      // CADA LLAMADA EN SU GRUPO: la clave de «pines ya vistos» lleva el jid y
+      // la consulta, asi que repetir las dos haria que la segunda tanda saltara
+      // todos los pines de la primera y no midiera nada.
+      // Y CADA UNA CON SU PERSONA. *!pin* tiene un freno por usuario —«espera 8
+      // s», que existe porque solo hay dos descargas a la vez para todo el
+      // grupo— y dos peticiones seguidas del mismo la segunda sale frenada. La
+      // prueba mediria ese freno en vez de lo que viene a medir. Me paso.
+      let n66 = 0;
+      const pedirPin = async (texto) => {
+        const G66 = `12036300000006600${++n66}@g.us`;
+        const YO66 = `3461111116${n66}@s.whatsapp.net`;
+        const meta66 = { id: G66, subject: 'G', participants: [{ id: BOT66, admin: 'admin' }, { id: YO66 }] };
+        const enviados = [];
+        const sock = {
+          user: { id: BOT66 },
+          sendMessage: async (jid, c) => {
+            const key = { remoteJid: jid, id: `M66-${enviados.length}`, fromMe: true };
+            enviados.push(c);
+            return { key };
+          },
+          readMessages: async () => {}, sendPresenceUpdate: async () => {},
+          groupMetadata: async () => meta66, groupParticipantsUpdate: async () => [],
+        };
+        const msg = { key: { remoteJid: G66, participant: YO66, fromMe: false, id: `P66-${Date.now()}${Math.random()}` },
+          messageTimestamp: Math.floor(Date.now() / 1000), pushName: 'X',
+          message: { conversation: `!pin ${texto}` } };
+        await hazRed(sock, msg, texto.split(' '), meta66, 'pinterest');
+        return enviados;
+      };
+
+      // ── 1. CINCO FOTOS, UN SOLO ALBUM ────────────────────────────────────
+      const salida = await pedirPin('gatos graciosos');
+      const albumes = salida.filter((c) => c.album);
+      const fotos = salida.filter((c) => c.image);
+      const textos = salida.filter((c) => c.text);
+      exige(textos.length === 0,
+        `*!pin* contestó con texto (${textos.map((t) => String(t.text).slice(0, 40)).join(' | ')}): debería haber mandado fotos`);
+      exige(fotos.length === 5, `*!pin* mandó ${fotos.length} foto(s) y tienen que ser 5`);
+      exige(albumes.length === 1, `se abrieron ${albumes.length} álbumes: cinco fotos van en UNO`);
+
+      // ── 2. EL NUMERO DEL SOBRE ES EL DE LAS FOTOS QUE LLEGAN ─────────────
+      //
+      // Si no cuadra, WhatsApp deja el álbum esperando una foto que no existe.
+      if (albumes.length === 1) {
+        exige(albumes[0].album.expectedImageCount === fotos.length,
+          `el álbum dice esperar ${albumes[0].album.expectedImageCount} fotos y llegan ${fotos.length}: se queda esperando para siempre`);
+        exige((albumes[0].album.expectedVideoCount || 0) === 0,
+          'el álbum anuncia vídeos y *!pin* con búsqueda solo manda fotos');
+        // Y cada foto tiene que ir COLGADA de él, o salen sueltas igual.
+        const colgadas = fotos.filter((f) => f.albumParentKey);
+        exige(colgadas.length === fotos.length,
+          `${fotos.length - colgadas.length} foto(s) no van colgadas del álbum: saldrían como burbujas sueltas`);
+      }
+
+      // ── 3. NINGUNA FOTO SE QUEDA EN temp/ ────────────────────────────────
+      //
+      // Cinco por comando en una VPS con disco contado: si no se borran, se
+      // llena sola. Se mandan como { url: ruta } y el fichero es lo que queda.
+      const rutas = fotos.map((f) => f.image?.url).filter(Boolean);
+      exige(rutas.length === fotos.length, 'alguna foto no se mandó desde disco: eso mete la foto entera en la RAM del bot');
+      const quedan = rutas.filter((r2) => fs.existsSync(r2));
+      exige(quedan.length === 0, `quedaron ${quedan.length} foto(s) en temp/ después de mandarlas`);
+
+      // ── 4. CON MENOS DE CINCO, EL SOBRE DICE LAS QUE HAY ─────────────────
+      //
+      // ESTA ES LA QUE DE VERDAD PROTEGE, y me di cuenta por una mutacion que
+      // sobrevivio: clave el numero del sobre a 5 a mano y todo seguia verde,
+      // porque en los demas casos llegan cinco y 5 === 5. Sin un caso donde
+      // lleguen MENOS, la comprobacion del numero no comprueba nada.
+      //
+      // Aqui se tumban las descargas hasta que solo quedan tres buenas: el
+      // sobre tiene que decir tres, no cinco. Si dice cinco, WhatsApp deja el
+      // album esperando para siempre dos fotos que no existen.
+      rotas = 6;
+      const pocas = await pedirPin('gato gracioso');
+      const albPocas = pocas.filter((c) => c.album);
+      const fotPocas = pocas.filter((c) => c.image);
+      exige(fotPocas.length > 0 && fotPocas.length < 5,
+        `llegaron ${fotPocas.length} fotos y la prueba necesita entre 1 y 4 para medir el número del sobre`);
+      if (albPocas.length === 1) {
+        exige(albPocas[0].album.expectedImageCount === fotPocas.length,
+          `el álbum dice ${albPocas[0].album.expectedImageCount} y llegan ${fotPocas.length}: se queda esperando fotos que no existen`);
+      }
+      rotas = 0;
+
+      // ── 5. CON DESCARGAS ROTAS, EL ALBUM SIGUE CUADRANDO ─────────────────
+      //
+      // Es el caso que hace que el orden importe. Se tumban tres descargas: se
+      // mandan las que se puedan, pero el sobre tiene que decir ESE numero.
+      rotas = 3;
+      // Las mismas palabras que los pines: si se busca otra cosa, el ranking los
+      // descarta por irrelevantes —hace bien— y esto mediria eso y no el fallo
+      // de descarga. Me paso al escribirla.
+      const conFallos = await pedirPin('gato gracioso');
+      const alb2 = conFallos.filter((c) => c.album);
+      const fot2 = conFallos.filter((c) => c.image);
+      exige(fot2.length >= 1, 'con tres descargas rotas no llegó ninguna foto: se pierde el comando entero por unas cuantas caídas');
+      if (alb2.length === 1) {
+        exige(alb2[0].album.expectedImageCount === fot2.length,
+          `con descargas rotas el álbum dice ${alb2[0].album.expectedImageCount} y llegan ${fot2.length}`);
+      } else {
+        exige(fot2.length === 1,
+          `sin álbum llegaron ${fot2.length} fotos sueltas: con más de una hay que agruparlas`);
+      }
+
+      // ── 6. *!next* SIGUE FUNCIONANDO DESDE CUALQUIERA DE LAS CINCO ───────
+      //
+      // Antes había un solo mensaje al que responder. Ahora hay seis —el álbum
+      // y sus cinco fotos— y nadie sabe cuál es «el bueno»: tienen que valer
+      // todos, o *!next* parece roto la mayoría de las veces.
+      const src = soloCodigo('src/commands/redes.js');
+      exige(/for \(const id of ids\) recordarBusqueda\(/.test(src),
+        '*!next* solo se apunta en uno de los mensajes: respondiendo a otra de las fotos no continuaría');
+    } finally {
+      redes._PIN.pagina = antesPin.pagina;
+      redes._PIN.recurso = antesPin.recurso;
+      if (srv) await new Promise((r) => srv.close(r));
+      fs.rmSync(dir, { recursive: true, force: true });
+      process.env.NO_PROXY = sinProxy[0] ?? '';
+      process.env.no_proxy = sinProxy[1] ?? '';
+      if (!process.env.NO_PROXY) delete process.env.NO_PROXY;
+      if (!process.env.no_proxy) delete process.env.no_proxy;
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ cinco fotos en un solo álbum, el número cuadra aunque fallen descargas, y nada se queda en temp/'));
   }
 
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────

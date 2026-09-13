@@ -1376,11 +1376,32 @@ async function pedirAPinterest(consulta, bookmark = '') {
 // `clave` es para no repetir: la misma busqueda en el mismo grupo no saca la
 // misma foto dos veces seguidas. `pinesDados` es la lista ya ranqueada de un
 // *!next*: no se vuelve a preguntar a Pinterest, se baja el siguiente.
-async function buscar(texto, clave, pinesDados = null) {
+// ─── VARIOS PINES DE UNA VEZ ────────────────────────────────────────────────
+//
+// *!pin* mandaba uno. El dueño lo vio en otros bots —«envian mas de 10 fotos al
+// mismo tiempo»— y pidio cinco, que es bastante menos spam y sigue dando de
+// donde elegir.
+//
+// Un solo `acquireDownloadSlot` para las cinco, no uno por foto: el tope de
+// descargas simultaneas existe para que una VPS de un core no se atragante, y
+// pedir cinco plazas por comando lo vacia en cuanto dos personas escriben a la
+// vez. Dentro se bajan una detras de otra.
+//
+// El presupuesto de intentos sube con lo que se pide: no todos los pines bajan
+// —miniaturas, paginas de error con nombre de jpg— y con el presupuesto de uno
+// solo se conseguirian dos o tres.
+//
+// Devuelve las que HAYA podido bajar, aunque sean menos de las pedidas. Cuatro
+// fotos son un buen resultado; fallar entero por la quinta, no.
+async function buscarVarios(texto, clave, pinesDados = null, cuantos = 1) {
   const consulta = String(texto || '').replace(/\s+/g, ' ').trim().slice(0, LARGO_BUSQUEDA);
   if (!consulta) throw new Error('dime qué buscar');
   await acquireDownloadSlot();
   let fichero = null;
+  // Fuera del try A PROPOSITO: si algo revienta a mitad de la tanda, el catch
+  // tiene que poder borrar lo que ya se bajo. Declarado dentro, el catch no lo
+  // ve —es otro bloque— y esos ficheros se quedaban en temp/ hasta el barrido.
+  const medios = [];
   try {
     let pines = Array.isArray(pinesDados) && pinesDados.length ? pinesDados : null;
     let html = '';
@@ -1430,7 +1451,8 @@ async function buscar(texto, clave, pinesDados = null) {
     // baja por esa lista. *!next* es el siguiente, no otro al azar.
     const intentados = new Set();
     let ultimo = null;
-    for (let n = 0; n < INTENTOS_PIN; n++) {
+    const tope = INTENTOS_PIN + Math.max(0, cuantos - 1) * 2;
+    for (let n = 0; n < tope && medios.length < cuantos; n++) {
       const pin = siguientePin(pines, clave, { reciclar: n === 0 });
       if (!pin || intentados.has(pin.huella)) break;
       intentados.add(pin.huella);
@@ -1447,7 +1469,9 @@ async function buscar(texto, clave, pinesDados = null) {
           // jpg: es la misma comprobacion que se le hace a los vídeos.
           const medio = await analizarMedio(fichero);
           if (!medio.probado || !ESTATICOS.has(medio.video)) throw new Error('no es una imagen');
-          return { fichero, tipo: 'imagen', ext, bytes: size, pines };
+          medios.push({ fichero, tipo: 'imagen', ext, bytes: size });
+          fichero = null;   // ya es de `medios`: el catch de fuera no debe borrarlo
+          break;            // esta pin ya dio foto; a por la siguiente
         } catch (e) {
           ultimo = e;
           await fs.remove(fichero).catch(() => {});
@@ -1455,9 +1479,12 @@ async function buscar(texto, clave, pinesDados = null) {
         }
       }
     }
+    if (medios.length) return { medios, pines };
     throw new Error(`encontré pines pero no pude bajar ninguno (${ultimo?.message || 'sin motivo'})`);
   } catch (e) {
     if (fichero) await fs.remove(fichero).catch(() => {});
+    // Lo ya bajado en esta tanda tambien se tira: nadie lo va a mandar.
+    for (const m of medios) await fs.remove(m.fichero).catch(() => {});
     apuntarFallo('pinterest', e.message);
     throw e;
   } finally {
@@ -1465,6 +1492,14 @@ async function buscar(texto, clave, pinesDados = null) {
   }
 }
 
+
+// La de siempre, para quien solo quiere una: *!next* y los enlaces sueltos. Se
+// mantiene la forma exacta que devolvia antes —un objeto plano con `fichero`—
+// para no tocar a quien ya la llamaba.
+async function buscar(texto, clave, pinesDados = null) {
+  const { medios, pines } = await buscarVarios(texto, clave, pinesDados, 1);
+  return { ...medios[0], pines };
+}
 
 // Las dos ordenes posibles del atributo. En la pagina de Pinterest el `content`
 // va ANTES que el `property`, asi que una expresion sola no las caza: lo
@@ -1737,5 +1772,5 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, buscar, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
+module.exports = { traer, buscar, buscarVarios, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
   _montarPase: montarPase, _comoEnlaces: comoEnlaces, _porYtDlpFotos: porYtDlpFotos, _fotosDeFicha: fotosDeFicha, _esSinVideo: esSinVideo, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };
