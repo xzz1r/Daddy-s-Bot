@@ -10834,10 +10834,16 @@ const di=async(quien,t)=>{out.length=0;
         if (previo) estado.toggleAntiFake(G62, false);
         exige(!estado.isAntiFakeEnabled(G62), 'no pude apagar el anti-fake para la prueba');
         reg.quitados.length = 0;
+        reg.textos.length = 0;
         await guardOnJoin(sock62, G62, [{ id: MALO62 }], meta62);
         await new Promise((r) => setTimeout(r, 120));
         exige(reg.quitados.includes(`${G62}|${MALO62}`),
           'con el anti-fake APAGADO, un número de la lista negra entra al grupo y se queda: es la rendija que el propio joinRequests.js tenía escrita');
+        // Y SIN ANUNCIARLO. A quien ya está tachado no se le dedica un mensaje
+        // en el grupo: el aviso solo le daba conversación —y un @— a alguien
+        // que entró para nada, y dejaba en el chat el rastro de que estuvo.
+        exige(!reg.textos.some((t) => /lista negra|vetado|expulsado/i.test(t)),
+          'el bot anunció en el grupo la expulsión de un vetado: eso es ruido y le deja rastro a quien no lo merece');
 
         // Y el que NO está vetado sigue entrando: la guarda no echa a cualquiera.
         reg.quitados.length = 0;
@@ -10873,7 +10879,50 @@ const di=async(quien,t)=>{out.length=0;
       exige(contraDueño === '',
         'con el tier owner hay que callar: una respuesta distinta para el dueño es una forma de encontrarlo');
 
-      // ── 6. EL MENÚ NO LO ANUNCIA A QUIEN NO PUEDE ───────────────────────
+      // ── 6. AL VETADO SE LE RECHAZA EN LA PUERTA, NO SE LE METE Y SE LE ECHA
+      //
+      // El autoaccept aprobaba a cualquiera que llamara y guardOnJoin lo echaba
+      // medio segundo despues. No es lo mismo: entra, ve el grupo —quien esta,
+      // de que se habla, las fotos— y encima el grupo se come el aviso de la
+      // expulsion. Con un numero ya tachado no hay nada que decidir.
+      //
+      // Y EL RECUENTO NO PUEDE MENTIR: cero aprobadas porque estaban todas
+      // vetadas es un acierto, no un fallo, y antes salia por la rama de "no he
+      // podido aprobar ninguna, manda los logs".
+      {
+        const jr = require(path.join(R, 'src/utils/joinRequests'));
+        const VETADO62 = '34677777762@s.whatsapp.net';
+        const LIMPIO62 = '34688888862@s.whatsapp.net';
+        await banlist.banAccount([VETADO62], 'prueba capa 62', 'test');
+        const acciones = [];
+        const sockJR = {
+          groupRequestParticipantsList: async () => ([{ jid: VETADO62 }, { jid: LIMPIO62 }]),
+          groupRequestParticipantsUpdate: async (_g, participantes, accion) => {
+            acciones.push({ accion, participantes: [...participantes] });
+            return participantes.map((id) => ({ status: '200', jid: id }));
+          },
+        };
+        const r = await jr.aceptarPendientes(sockJR, G62);
+        const aprobados = acciones.filter((a) => a.accion === 'approve').flatMap((a) => a.participantes);
+        const rechazados = acciones.filter((a) => a.accion === 'reject').flatMap((a) => a.participantes);
+        exige(rechazados.includes(VETADO62),
+          'una solicitud de alguien en la lista negra se aprueba y se echa después: entra, ve el grupo y el grupo se come el aviso de la expulsión');
+        exige(!aprobados.includes(VETADO62), 'al vetado se le aprobó la entrada además de rechazarla');
+        exige(aprobados.includes(LIMPIO62),
+          'el filtro de la lista negra se llevó por delante a quien NO está vetado: eso deja el autoaccept sin aceptar a nadie');
+        exige(r?.rechazados === 1 && r?.aprobados === 1,
+          `el recuento no cuadra (aprobados=${r?.aprobados}, rechazados=${r?.rechazados}): el bot informa de lo que hizo y eso no se puede redondear`);
+        await banlist.unbanAccount([VETADO62]).catch(() => {});
+
+        // Y con la lista negra vacía no se rechaza a nadie: la guarda no puede
+        // ser un filtro que se dispara solo.
+        acciones.length = 0;
+        const r2 = await jr.aceptarPendientes(sockJR, G62);
+        exige((r2?.rechazados || 0) === 0 && acciones.every((a) => a.accion === 'approve'),
+          'sin nadie en la lista negra el autoaccept sigue rechazando: el filtro se dispara solo');
+      }
+
+      // ── 7. EL MENÚ NO LO ANUNCIA A QUIEN NO PUEDE ───────────────────────
       const soc = fs.readFileSync(path.join(R, 'src/commands/social.js'), 'utf8');
       const bloqueAdmin = soc.slice(soc.indexOf('esAdmin ?'), soc.indexOf('esOwner ?'));
       exige(!/listanegra/.test(bloqueAdmin),

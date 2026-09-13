@@ -1011,6 +1011,18 @@ async function cmdAutoAceptar(sock, msg, args, groupMeta) {
 
   const r = await aceptarPendientes(sock, jid).catch(() => null);
   const hechas = r?.aprobados || 0;
+  const vetadas = r?.rechazados || 0;
+
+  // CERO APROBADAS PORQUE ESTABAN TODAS VETADAS NO ES UN FALLO. Es el bot
+  // haciendo exactamente lo que tiene que hacer, y sin esto salia por la rama
+  // de abajo: "no he podido aprobar ninguna, manda los logs". Mandar a alguien
+  // a leer logs por un acierto es peor que no decir nada.
+  if (!hechas && vetadas) {
+    return sock.sendMessage(jid, {
+      text: '*Autoaccept encendido.*\n' +
+        `Las *${vetadas}* que esperaban están en la lista negra: rechazadas, no entran.`,
+    }, { quoted: msg });
+  }
 
   // NI UNA APROBADA HABIENDO COLA ES UN FALLO, y hay que decirlo asi.
   //
@@ -1027,7 +1039,10 @@ async function cmdAutoAceptar(sock, msg, args, groupMeta) {
   return sock.sendMessage(jid, {
     text: '*Autoaccept encendido.*\n' +
       `Había *${pendientes}* esperando y he metido a *${hechas}*.` +
-      (hechas < pendientes ? ` Las otras ${pendientes - hechas} van en la próxima pasada.` : '') +
+      (vetadas ? ` ${vetadas} en lista negra, rechazadas.` : '') +
+      // Las vetadas NO van en la proxima pasada: ya estan resueltas. Contarlas
+      // como pendientes hacia que el bot prometiera volver a por ellas.
+      (hechas + vetadas < pendientes ? ` Las otras ${pendientes - hechas - vetadas} van en la próxima pasada.` : '') +
       '\n_No añado a nadie: solo abro a quien ya ha pedido entrar._',
   }, { quoted: msg });
 }

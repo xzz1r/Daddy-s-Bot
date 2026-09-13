@@ -2,6 +2,7 @@
 
 const path = require('path');
 const { bareJid, canonicalJid } = require('./wa');
+const { isBanned } = require('./banlist');
 const { atomicWriteJson, readJsonOrEnoent, withTimeout } = require('./helpers');
 
 // NINGUNA LLAMADA A WHATSAPP SE ESPERA PARA SIEMPRE.
@@ -265,12 +266,22 @@ function _frenado(grupo) { return frenados.get(grupo) || null; }
 // no hay solicitud, aqui no pasa nada. La diferencia importa — un bot que añade
 // gente y uno que aprueba a quien llamo a la puerta no son la misma cosa.
 //
-// Y NO FILTRA POR LA LISTA NEGRA, a proposito. Hubo una version que rechazaba
-// al vetado en la puerta y sobraba: guardOnJoin ya mira la lista negra en CADA
-// alta y lo echa al entrar, asi que era una segunda capa sobre algo cubierto, y
-// una que costaba una consulta por solicitud. La unica rendija es tener el
-// antifake apagado, que es justo lo que apaga esa guarda; con el encendido —que
-// es como viene— el vetado no dura dentro ni un segundo.
+// Y AL VETADO SE LE RECHAZA EN LA PUERTA. Aqui ponia lo contrario —que filtrar
+// sobraba porque guardOnJoin ya lo echa al entrar, y que costaba una consulta
+// por solicitud— y las dos mitades estaban mal.
+//
+// La del coste, de hecho: `isBanned` no es una consulta, es buscar en un Map
+// que ya esta en memoria. No cuesta red ni cuesta disco.
+//
+// Y la otra es peor. Aprobar a alguien para echarlo medio segundo despues no es
+// lo mismo que no dejarle pasar: entra, ve el grupo —quien esta, de que se
+// habla, las fotos— y encima el grupo se come el aviso de la expulsion. Con un
+// numero ya tachado no hay nada que decidir en la puerta: se rechaza la
+// solicitud y no llega a entrar.
+//
+// guardOnJoin sigue estando, y sigue haciendo falta: por la puerta de las
+// solicitudes no se entra siempre —esta el enlace de invitacion y esta que un
+// admin te añada a dedo— y eso lo cubre la otra guarda.
 //
 // ─── TODAS DE UNA VEZ, Y NO ES LO MISMO QUE «TODAS SEGUIDAS» ────────────────
 //
@@ -321,7 +332,7 @@ async function aceptarPendientes(sock, grupo) {
   let lista;
   try { lista = await withTimeout(sock.groupRequestParticipantsList(grupo), TOPE_COLA); }
   catch { return null; }
-  if (!lista || !lista.length) return { aprobados: 0, sinJid: 0 };
+  if (!lista || !lista.length) return { aprobados: 0, sinJid: 0, rechazados: 0 };
 
   let aprobados = 0, sinJid = 0;
   const jids = [];
@@ -336,10 +347,42 @@ async function aceptarPendientes(sock, grupo) {
     }
     jids.push(jid);
   }
-  if (!jids.length) return { aprobados, sinJid };
 
-  for (let i = 0; i < jids.length; i += POR_LOTE) {
-    const lote = jids.slice(i, i + POR_LOTE);
+  // ─── LOS TACHADOS NO PASAN LA PUERTA ──────────────────────────────────────
+  //
+  // Se parte la cola en dos y se manda cada mitad con su accion. Rechazar va en
+  // lotes igual que aprobar, por el mismo motivo: una sola peticion por lote.
+  const vetados = [];
+  const limpios = [];
+  for (const jid of jids) {
+    // Las dos formas: la solicitud trae una sola, y la lista negra guarda
+    // telefono y LID por separado. Sin canonicalJid, un vetado que pide entrar
+    // con la forma que no se guardo pasa como si nada.
+    const formas = [bareJid(jid), canonicalJid(jid)].filter(Boolean);
+    const veto = await isBanned(formas).catch(() => null);
+    if (veto) vetados.push(jid); else limpios.push(jid);
+  }
+
+  let rechazados = 0;
+  for (let i = 0; i < vetados.length; i += POR_LOTE) {
+    const lote = vetados.slice(i, i + POR_LOTE);
+    try {
+      await sock.groupRequestParticipantsUpdate(grupo, lote, 'reject');
+      rechazados += lote.length;
+      for (const jid of lote) await olvidarSolicitud(grupo, jid);
+      logger.warn(`autoaceptar: ${lote.length} solicitud(es) rechazadas en ${grupo} por estar en la lista negra`);
+    } catch (e) {
+      // Que no se pueda rechazar no puede convertirse en aprobar: se quedan
+      // pendientes y guardOnJoin los recoge si llegan a entrar por otra via.
+      logger.warn(`autoaceptar: no pude rechazar el lote de ${lote.length} en ${grupo}: ${e.message}`);
+    }
+    if (i + POR_LOTE < vetados.length) await new Promise((r) => setTimeout(r, PAUSA_ENTRE_LOTES));
+  }
+
+  if (!limpios.length) return { aprobados, sinJid, rechazados };
+
+  for (let i = 0; i < limpios.length; i += POR_LOTE) {
+    const lote = limpios.slice(i, i + POR_LOTE);
     let res = null;
     try {
       res = await sock.groupRequestParticipantsUpdate(grupo, lote, 'approve');
@@ -363,9 +406,9 @@ async function aceptarPendientes(sock, grupo) {
       if (estado === '200') { aprobados++; await olvidarSolicitud(grupo, jid); }
       else logger.warn(`autoaceptar: WhatsApp rechazo aprobar a ${jid} en ${grupo} (status ${estado})`);
     }
-    if (i + POR_LOTE < jids.length) await new Promise((r) => setTimeout(r, PAUSA_ENTRE_LOTES));
+    if (i + POR_LOTE < limpios.length) await new Promise((r) => setTimeout(r, PAUSA_ENTRE_LOTES));
   }
-  return { aprobados, sinJid };
+  return { aprobados, sinJid, rechazados };
 }
 
 module.exports = {

@@ -693,14 +693,18 @@ async function vetadosAlEntrar(sock, groupJid, joiners, groupMeta) {
     const bannedAs = await isBanned(forms).catch(() => null);
     if (!bannedAs) continue;
     echados.add(obj.id);
-    // Se anuncia solo si salio. Antes el aviso iba dentro del try junto al
-    // kick, asi que una expulsion rechazada por codigo (sin excepcion)
-    // publicaba "Expulsado" con la cuenta todavia dentro.
+    // ─── Y SE VA SIN QUE NADIE SE ENTERE ──────────────────────────────────
+    //
+    // Aqui se anunciaba «fulano esta vetado, expulsado», con mencion incluida.
+    // El dueño lo corto y tiene razon: a quien ya esta tachado no se le dedica
+    // un mensaje en el grupo. Lo unico que hacia el aviso era dar conversacion
+    // —y un @ — a alguien que entro para nada, y dejar en el chat el rastro de
+    // que estuvo.
+    //
+    // Queda en el log, que es donde tiene que estar: ahi sirve para saber que
+    // paso si alguien pregunta, y no le da a nadie un minuto de fama.
     if (await aplicarAUno(sock, groupJid, obj.id, 'remove', groupMeta)) {
-      await sock.sendMessage(groupJid, {
-        text: `*Lista negra:* @${String(obj.id).split('@')[0]} está vetado (${shortAcc(bannedAs)}). Expulsado.`,
-        mentions: [obj.id],
-      }).catch(() => {});
+      logger.info(`lista negra: ${obj.id} entro en ${groupJid} y se fue (vetado como ${shortAcc(bannedAs)})`);
     } else {
       logger.warn(`lista negra: kick de vetado no confirmado en ${groupJid}`);
     }

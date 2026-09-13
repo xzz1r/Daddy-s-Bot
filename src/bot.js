@@ -271,6 +271,7 @@ async function sondearSolicitudes() {
     const r = await aceptarPendientes(sock, g)
       .catch((e) => { logger.warn(`autoaceptar en ${g}: ${e.message}`); return null; });
     if (r?.aprobados) logger.info(`autoaceptar en ${g}: ${r.aprobados} solicitud(es) aprobada(s)`);
+    if (r?.rechazados) logger.warn(`autoaceptar en ${g}: ${r.rechazados} rechazada(s) por lista negra`);
   }
 }
 
