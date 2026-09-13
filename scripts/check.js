@@ -11514,6 +11514,71 @@ const di=async(quien,t)=>{out.length=0;
     if (fallos === antes) console.log(verde('   ✓ cinco fotos en un solo álbum, el número cuadra aunque fallen descargas, y nada se queda en temp/'));
   }
 
+  // ── 67. CADA FRASE DE ACCION DICE LO QUE PASA ────────────────────────────
+  //
+  // Esto salio en el grupo con *!spank* y el dueño lo llamo por su nombre:
+  //
+  //   «%V se agarra a la sabana. %A le da tiempo a agarrarse bien.»
+  //   «%V baja el pecho sin que nadie se lo mande.»
+  //
+  // Son planos de REACCION sin el ACTO. Leyendo eso nadie sabe que ha habido un
+  // azote: sin contexto no hay chiste, y sin acto no hay contexto. Y no se ve
+  // al escribirlo, porque cada frase por separado suena bien: el fallo esta en
+  // lo que FALTA.
+  //
+  // Medido la primera vez: 214 de 750. No era cosa de un comando.
+  //
+  // La comprobacion vive en scripts/actos.js —con sus marcas, que son la parte
+  // que hay que mantener— y aqui solo se ejecuta, para que no haga falta
+  // acordarse de correrla. No sale a internet, asi que puede estar en `check`.
+  {
+    console.log('\n67. CADA FRASE DE ACCION DICE LO QUE PASA');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const { execFileSync } = require('child_process');
+    let salida = '';
+    let codigo = 0;
+    try {
+      salida = execFileSync(process.execPath, [path.join(R, 'scripts/actos.js')],
+        { encoding: 'utf8', timeout: 60000 });
+    } catch (e) {
+      salida = `${e.stdout || ''}${e.stderr || ''}`;
+      codigo = e.status || 1;
+    }
+    const m = salida.match(/(\d+) de (\d+) frases no nombran su acto/);
+    exige(codigo === 0 && !m,
+      m ? `${m[1]} de ${m[2]} frases de acción no nombran su acto: desde el grupo no se entiende qué ha pasado (npm run actos -- --ver)`
+        : 'npm run actos no pudo comprobar las frases');
+
+    // Y QUE LAS MARCAS NO SE VACIEN PARA QUE PASE. Es la forma obvia de
+    // «arreglar» esto sin arreglar nada: ensanchar una marca hasta que acepte
+    // cualquier cosa. Me paso tres veces afinandolas de buena fe, asi que la
+    // trampa esta a un paso.
+    const src = fs.readFileSync(path.join(R, 'scripts/actos.js'), 'utf8');
+    const i = src.indexOf('const MARCAS = {');
+    exige(i > 0, 'ya no hay tabla de marcas en scripts/actos.js');
+    if (i > 0) {
+      const cuerpo = src.slice(i, src.indexOf('\n};', i));
+      const lineas = [...cuerpo.matchAll(/^\s{2}(\w+):\s+\/(.+)\/i,$/gm)];
+      exige(lineas.length >= 20, `solo quedan ${lineas.length} acciones con marcas: las que falten no se comprueban`);
+      const vacias = lineas.filter(([, , rx]) => rx.trim().length < 12 || rx === '.');
+      exige(vacias.length === 0,
+        `hay marcas que aceptan casi cualquier cosa (${vacias.map((v) => v[1]).join(', ')}): eso pone la capa en verde sin mirar nada`);
+    }
+
+    // Y LOS POOLS APARCADOS TAMBIEN. No tienen comando —su categoria no existe
+    // en la fuente— asi que `actos` no los mira, pero el dia que se activen
+    // entran tal cual estan. Se comprueba a mano que no esten vacios.
+    const RXa = require(path.join(R, 'src/data/accionPhrases.js'));
+    for (const k of ['SEDUCE', 'PREG', 'UNDRESS', 'LICKASS', 'GROPE']) {
+      exige(Array.isArray(RXa[k]) && RXa[k].length >= 25,
+        `el pool aparcado ${k} se quedó en ${RXa[k]?.length || 0} frases: si su categoría aparece, el comando nace cojo`);
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ las 750 dicen lo que pasa, y las marcas siguen mirando de verdad'));
+  }
+
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────
   //
   // Tres cosas que se tocan juntas cuando se busca que el bot conteste antes,
