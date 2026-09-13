@@ -86,35 +86,146 @@ function muteKey(groupJid, userJid) {
   return `${groupJid}|${canonicalJid(userJid)}`;
 }
 
+// UN MUTEO SE GUARDA BAJO LAS DOS FORMAS DE LA PERSONA, y hasta ahora bajo una.
+//
+// canonicalJid() colapsa @lid y telefono a la misma clave SOLO CUANDO YA CONOCE
+// el par; si no, se queda con lo que le den. Y las dos puntas de este almacen
+// miran desde sitios distintos:
+//
+//   · se mutea desde una MENCION, que casi siempre llega en forma de telefono
+//   · se comprueba contra msg.key.participant, que en un grupo LID es el @lid
+//
+// O sea que basta con que el par no estuviera aprendido en el momento de poner
+// el muteo para que la clave quede escrita en una forma por la que despues no
+// pregunta nadie. El mute existe, esta en disco, sobrevive al reinicio, y no
+// silencia a nadie. Sin un solo error en el log.
+//
+// No es teorico: el par se aprende del `participantAlt` de cada mensaje, asi
+// que un reinicio deja la tabla vacia y el primer !mute de la manana cae justo
+// en esa ventana.
+//
+// Se escribe bajo las dos y se pregunta por las dos. Duplicar la entrada de un
+// silenciado cuesta una linea en un Map con tope de 5000.
+function clavesDeMute(groupJid, userJid) {
+  const canon = `${groupJid}|${canonicalJid(userJid)}`;
+  const plana = `${groupJid}|${bareJid(userJid)}`;
+  return canon === plana ? [canon] : [canon, plana];
+}
+
 function muteUser(groupJid, userJid, expireTs) {
-  const k = muteKey(groupJid, userJid);
-  if (mutedUsers.size >= MAX_MUTED && !mutedUsers.has(k)) {
-    mutedUsers.delete(mutedUsers.keys().next().value);
+  for (const k of clavesDeMute(groupJid, userJid)) {
+    if (mutedUsers.size >= MAX_MUTED && !mutedUsers.has(k)) {
+      mutedUsers.delete(mutedUsers.keys().next().value);
+    }
+    mutedUsers.set(k, expireTs);
   }
-  mutedUsers.set(k, expireTs);
   guardarMutes();
 }
 
 function isMuted(groupJid, userJid) {
-  const k = muteKey(groupJid, userJid);
-  const exp = mutedUsers.get(k);
-  if (!exp) return false;
-  if (Date.now() > exp) { mutedUsers.delete(k); guardarMutes(); return false; }
-  return true;
+  return getMuteRemaining(groupJid, userJid) > 0;
 }
 
-// Returns ms remaining on the mute, or 0 if not muted / already expired.
+// Lo que le queda al muteo en ms, o 0 si no esta muteado o ya se le paso.
+// Es la UNICA puerta que mira el reloj: isMuted pasa por aqui, asi que no hay
+// dos sitios que puedan discrepar sobre si un muteo sigue vivo.
 function getMuteRemaining(groupJid, userJid) {
-  const exp = mutedUsers.get(muteKey(groupJid, userJid));
-  if (!exp) return 0;
-  const r = exp - Date.now();
-  return r > 0 ? r : 0;
+  const ahora = Date.now();
+  let queda = 0;
+  let caducoAlguna = false;
+  for (const k of clavesDeMute(groupJid, userJid)) {
+    const exp = mutedUsers.get(k);
+    if (!exp) continue;
+    if (ahora >= exp) { mutedUsers.delete(k); caducoAlguna = true; continue; }
+    queda = Math.max(queda, exp - ahora);
+  }
+  if (caducoAlguna) guardarMutes();
+  return queda;
 }
 
 function unmuteUser(groupJid, userJid) {
-  const habia = mutedUsers.delete(muteKey(groupJid, userJid));
+  let habia = false;
+  for (const k of clavesDeMute(groupJid, userJid)) {
+    if (mutedUsers.delete(k)) habia = true;
+  }
   if (habia) guardarMutes();
   return habia;
+}
+
+// ─── EL TIEMPO DE UN MUTEO SE LEE ENTERO, Y SI NO SE ENTIENDE SE DICE ───────
+//
+// Lo que habia era esto:  `args.find(a => /^\d+$/.test(a))`
+//
+// Un numero pelado y nada mas. Todo lo demas se caia por el borde EN SILENCIO
+// hasta el defecto de diez minutos, asi que:
+//
+//   !mute @fulano 2h    ->  diez minutos, y contesta "muteado 10 minutos"
+//   !mute @fulano 1d    ->  diez minutos
+//   !mute @fulano 90s   ->  diez minutos
+//
+// El admin lee la orden que ESCRIBIO, no la respuesta, asi que se entera de que
+// no ha pasado cuando el otro vuelve a hablar. Y con el borrado de mensajes
+// encima, equivocarse de duracion ya no es un detalle.
+//
+// Ahora: unidades en sus formas de aqui, piezas sumadas (`1h30m`), numero pelado
+// = minutos (que es como se venia usando, no se le cambia la costumbre a nadie),
+// y lo que no se entiende se contesta en vez de tragarselo.
+const MUTE_MIN_MS = 30 * 1000;
+const MUTE_MAX_MS = 7 * 24 * 60 * 60 * 1000;
+const MUTE_DEFECTO_MS = 10 * 60 * 1000;
+
+const UNIDADES_MUTE = [
+  [/^(?:s|seg|segs|segundo|segundos)$/, 1000],
+  [/^(?:m|min|mins|minuto|minutos)$/, 60 * 1000],
+  [/^(?:h|hr|hrs|hora|horas)$/, 60 * 60 * 1000],
+  [/^(?:d|dia|dias|día|días)$/, 24 * 60 * 60 * 1000],
+];
+
+// Devuelve { ms } | { ms, ajustado: 'min'|'max' } | { error: true }.
+function parsearDuracionMute(texto) {
+  const t = String(texto || '').trim().toLowerCase();
+  if (!t) return { ms: MUTE_DEFECTO_MS, porDefecto: true };
+
+  const PIEZA = /(\d+)\s*([a-zíáé]*)/g;
+  const piezas = [...t.matchAll(PIEZA)];
+  if (!piezas.length) return { error: true };
+  // Y QUE NO SOBRE NADA. Sin esto, "10 minutos porfa" se lee como diez minutos
+  // y "mañana" como un error, que es justo al reves de lo que parece: lo que no
+  // se entiende tiene que cantar, no colarse a medias.
+  if (t.replace(PIEZA, ' ').trim()) return { error: true };
+
+  let ms = 0;
+  for (const [, num, uni] of piezas) {
+    const n = parseInt(num, 10);
+    if (!Number.isFinite(n)) return { error: true };
+    if (!uni) { ms += n * 60 * 1000; continue; }
+    const u = UNIDADES_MUTE.find(([rx]) => rx.test(uni));
+    if (!u) return { error: true };
+    ms += n * u[1];
+  }
+  if (!ms) return { error: true };
+  // Se recorta, pero se DICE que se ha recortado: un tope silencioso es el
+  // mismo fallo que el defecto silencioso de antes, por la otra punta.
+  if (ms < MUTE_MIN_MS) return { ms: MUTE_MIN_MS, ajustado: 'min' };
+  if (ms > MUTE_MAX_MS) return { ms: MUTE_MAX_MS, ajustado: 'max' };
+  return { ms };
+}
+
+// "2 horas y 30 minutos", "45 segundos", "3 días". Dos piezas como mucho: el
+// resto es ruido en un mensaje que se lee de pasada.
+function formatoDuracion(ms) {
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  const d = Math.floor(total / 86400);
+  const h = Math.floor((total % 86400) / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const sg = total % 60;
+  const partes = [];
+  if (d) partes.push(`${d} día${d === 1 ? '' : 's'}`);
+  if (h) partes.push(`${h} hora${h === 1 ? '' : 's'}`);
+  if (m) partes.push(`${m} minuto${m === 1 ? '' : 's'}`);
+  if (sg && !d && !h) partes.push(`${sg} segundo${sg === 1 ? '' : 's'}`);
+  if (!partes.length) return '0 segundos';
+  return partes.slice(0, 2).join(' y ');
 }
 
 // Periodic sweep — isMuted only evicts entries that get queried after expiry,
@@ -516,30 +627,38 @@ async function cmdMute(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: aviso(CONTRA_UN_ADMIN, jid, 'admin') }, { quoted: msg });
   }
 
-  const explicit = args.find(a => /^\d+$/.test(a));
   const num = target.split('@')[0];
+  // La mencion viaja en el texto como una palabra mas (`@34...`), asi que si no
+  // se quita de aqui el numero de telefono se lee como duracion.
+  const pedido = args.filter((a) => !a.startsWith('@')).join(' ').trim();
 
-  // If already muted and no new duration given, report remaining time
-  // instead of silently re-muting at the default (10m). Avoids the footgun
-  // of "I thought I muted them for an hour but it's actually 10 minutes".
-  if (!explicit) {
-    const remaining = getMuteRemaining(jid, target);
-    if (remaining > 0) {
-      const mins = Math.ceil(remaining / 60_000);
+  // Ya muteado y sin tiempo nuevo: se dice lo que le queda en vez de volver a
+  // silenciarlo al defecto. Evita el «pensaba que lo habia callado una hora».
+  if (!pedido) {
+    const queda = getMuteRemaining(jid, target);
+    if (queda > 0) {
       return sock.sendMessage(jid, {
-        text: `@${num} ya está muteado. Le quedan *${mins}* minuto${mins === 1 ? '' : 's'}.`,
+        text: `@${num} ya está muteado. Le quedan *${formatoDuracion(queda)}*.`,
         mentions: [target],
       }, { quoted: msg });
     }
   }
 
-  const minutes = Math.min(Math.max(parseInt(explicit || '10', 10), 1), 1440);
-  muteUser(jid, target, Date.now() + minutes * 60_000);
+  const d = parsearDuracionMute(pedido);
+  if (d.error) {
+    return sock.sendMessage(jid, {
+      text: `No entiendo *${pedido}* como tiempo, así que no he muteado a nadie.\n`
+        + `Así sí: *30* (minutos) · *45s* · *2h* · *1d* · *1h30m*.`,
+    }, { quoted: msg });
+  }
 
-  await sock.sendMessage(jid, {
-    text: `@${num} muteado *${minutes}* minuto${minutes === 1 ? '' : 's'}.`,
-    mentions: [target],
-  }, { quoted: msg });
+  muteUser(jid, target, Date.now() + d.ms);
+
+  let texto = `@${num} muteado *${formatoDuracion(d.ms)}*. Todo lo que escriba se borra.`;
+  if (d.ajustado === 'min') texto += `\nEl mínimo es ${formatoDuracion(MUTE_MIN_MS)}.`;
+  if (d.ajustado === 'max') texto += `\nEl máximo es ${formatoDuracion(MUTE_MAX_MS)}.`;
+
+  await sock.sendMessage(jid, { text: texto, mentions: [target] }, { quoted: msg });
 }
 
 // !unmute @user — quita el mute (admin only)
@@ -1379,4 +1498,4 @@ module.exports = {
   cmdVisto,
   cmdAutoAceptar,
   cmdPresentarse,
-  cmdSoloAdmins, cmdTodos, cmdKick, avisoDeKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, muteUser, unmuteUser, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdAdm };
+  cmdSoloAdmins, cmdTodos, cmdKick, avisoDeKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, muteUser, unmuteUser, getMuteRemaining, parsearDuracionMute, formatoDuracion, MUTE_MIN_MS, MUTE_MAX_MS, MUTE_DEFECTO_MS, cmdAntiLink, cmdAllow, cmdClose, cmdOpen, cmdAdm };

@@ -11871,6 +11871,269 @@ ${manejador}
     if (fallos === antes) console.log(verde('   ✓ las 270 explicitas cierran a tres tiempos y ninguna cierra como otra'));
   }
 
+  // El guion que corre el hijo de la capa 70. Vive aqui como texto porque tiene
+  // que espiar el contador ANTES del primer require de messageHandler.
+  const MEMORIA_CAPA_70 = String.raw`
+'use strict';
+require('dotenv').config({ quiet: true });
+const path = require('path');
+const R = __RAIZ__;
+const quejas = [];
+const exige = (c, q) => { if (!c) quejas.push(q); };
+
+// EL ESPIA VA PRIMERO. messageHandler desestructura increment al requerirse,
+// asi que parchearlo despues no tocaria la referencia que usa.
+let contados = [];
+const mc = require(path.join(R, 'src/utils/messageCounter'));
+const incrementoReal = mc.increment;
+mc.increment = async (...a) => { contados.push(a); return incrementoReal.apply(null, a); };
+
+const G = require(path.join(R, 'src/commands/group'));
+const WA = require(path.join(R, 'src/utils/wa'));
+const { handleMessage } = require(path.join(R, 'src/handlers/messageHandler'));
+
+const BOT = '549000001@s.whatsapp.net';
+let n = 0;
+const puestos = [];
+const mutear = (g, quien, ms) => { G.muteUser(g, quien, Date.now() + ms); puestos.push([g, quien]); };
+
+function socket({ soyAdmin = true, participantes = [] } = {}) {
+  const enviados = [];
+  return {
+    enviados,
+    user: { id: BOT },
+    sendMessage: async (jid, c) => { enviados.push({ jid, c }); return { key: { id: 'x' } }; },
+    readMessages: async () => {},
+    groupParticipantsUpdate: async () => [],
+    groupMetadata: async (id) => ({
+      id, subject: 'G',
+      participants: [{ id: BOT, admin: soyAdmin ? 'admin' : null }, ...participantes],
+    }),
+  };
+}
+const mensaje = (g, quien, texto, extra = {}) => ({
+  key: { remoteJid: g, participant: quien, fromMe: false, id: 'M' + (++n) },
+  message: extra.message || { conversation: texto },
+  pushName: 'x',
+  messageTimestamp: Math.floor(Date.now() / 1000),
+});
+const borrados = (s) => s.enviados.filter((e) => e.c && e.c.delete);
+
+(async () => {
+  try {
+    // 1. muteado -> se borra y NO cuenta.
+    {
+      const g = '120000701@g.us', v = '34600000701@s.whatsapp.net';
+      const s = socket({ participantes: [{ id: v }] });
+      contados = [];
+      mutear(g, v, 60000);
+      await handleMessage(s, mensaje(g, v, 'hola grupo'));
+      const b = borrados(s);
+      exige(b.length === 1, 'un silenciado escribio y se pidieron ' + b.length + ' borrados: el mute tiene que quitarle el mensaje de delante del grupo, no solo frenarle los comandos');
+      exige(b.length === 1 && b[0].c.delete.remoteJid === g && b[0].c.delete.participant === v && b[0].c.delete.fromMe === false,
+        'el borrado no se pide contra el mensaje del silenciado: sin remoteJid y participant buenos WhatsApp no revoca nada y el mensaje se queda puesto');
+      exige(contados.length === 0,
+        'un mensaje que el bot borra para todo el grupo ha contado en el ranking: nadie llego a leerlo y la tabla de !count deja de cuadrar con lo que se ve');
+    }
+
+    // 2. control: sin mute, ni se borra ni se deja de contar.
+    {
+      const g = '120000702@g.us', v = '34600000702@s.whatsapp.net';
+      const s = socket({ participantes: [{ id: v }] });
+      contados = [];
+      await handleMessage(s, mensaje(g, v, 'hola'));
+      exige(borrados(s).length === 0, 'se borro el mensaje de alguien que NO estaba muteado');
+      exige(contados.length === 1, 'un mensaje corriente dejo de contar: la guarda del mute se ha comido el camino de todo el mundo');
+    }
+
+    // 3. el tier dueño no lo silencia nadie.
+    {
+      const g = '120000703@g.us';
+      const due = String(require(path.join(R, 'src/config')).ownerNumber).replace(/\D/g, '') + '@s.whatsapp.net';
+      const s = socket({ participantes: [{ id: due }] });
+      mutear(g, due, 60000);
+      await handleMessage(s, mensaje(g, due, 'sigo mandando yo'));
+      exige(borrados(s).length === 0,
+        'un mute contra el dueño le borra los mensajes: un mute viejo o puesto con mala idea lo dejaria fuera de su propio bot');
+    }
+
+    // 4. el mute se pone sobre el @lid y sigue valiendo cuando se aprende el telefono.
+    {
+      const g = '120000704@g.us';
+      const tel = '34600000704@s.whatsapp.net', lid = '99900000704@lid';
+      const s = socket({ participantes: [{ id: lid }] });
+      exige(WA.canonicalJid(lid) === lid, 'el par lid/telefono ya estaba aprendido: esta prueba no llega a probar nada');
+      mutear(g, lid, 60000);
+      WA.rememberMapping(lid, tel);
+      exige(WA.canonicalJid(lid) === tel, 'el par no se aprendio: la prueba no cambia de forma y no comprueba lo que dice');
+      const m = mensaje(g, lid, 'sigo hablando');
+      m.key.participantAlt = tel;
+      m.key.addressingMode = 'lid';
+      await handleMessage(s, m);
+      exige(borrados(s).length === 1,
+        'el mute puesto sobre un @lid deja de valer en cuanto se aprende su telefono: en un grupo LID la mencion trae el @lid, asi que el primer mute despues de cada reinicio no silencia a nadie y no sale nada en el log');
+    }
+
+    // 5. sin admin no se borra, y entonces el mensaje SI cuenta.
+    {
+      const g = '120000705@g.us', v = '34600000705@s.whatsapp.net';
+      const s = socket({ soyAdmin: false, participantes: [{ id: v }] });
+      contados = [];
+      mutear(g, v, 60000);
+      await handleMessage(s, mensaje(g, v, 'hola'));
+      exige(borrados(s).length === 0, 'se pidio un borrado sin ser admin del grupo');
+      exige(contados.length === 1,
+        'sin admin el mensaje se queda en el grupo y aun asi no ha contado: el ranking pierde un mensaje que todos estan viendo');
+    }
+
+    // 6. una reaccion no se manda a borrar.
+    {
+      const g = '120000706@g.us', v = '34600000706@s.whatsapp.net';
+      const s = socket({ participantes: [{ id: v }] });
+      mutear(g, v, 60000);
+      await handleMessage(s, mensaje(g, v, null, {
+        message: { reactionMessage: { key: { remoteJid: g, fromMe: false, id: 'Z' }, text: '\u{1F44D}' } },
+      }));
+      exige(borrados(s).length === 0,
+        'se pidio el borrado de una reaccion: no hay mensaje que quitar de la pantalla y es un viaje a WhatsApp por cada emoji de un silenciado');
+    }
+
+    // 7. caducado -> vuelve a hablar y vuelve a contar.
+    {
+      const g = '120000707@g.us', v = '34600000707@s.whatsapp.net';
+      const s = socket({ participantes: [{ id: v }] });
+      contados = [];
+      mutear(g, v, -1);
+      exige(!G.isMuted(g, v), 'un mute con la hora ya pasada sigue contando como puesto');
+      await handleMessage(s, mensaje(g, v, 'ya puedo'));
+      exige(borrados(s).length === 0, 'se borro el mensaje de alguien con el mute ya caducado');
+      exige(contados.length === 1, 'con el mute caducado el mensaje sigue sin contar');
+    }
+
+    // 8. el tiempo que se pide es el que se pone.
+    {
+      const casos = [['', 600000], ['30', 1800000], ['45s', 45000], ['2h', 7200000],
+        ['1d', 86400000], ['1h30m', 5400000], ['90 min', 5400000], ['3 dias', 259200000]];
+      for (const [txt, ms] of casos) {
+        const d = G.parsearDuracionMute(txt);
+        exige(!d.error && d.ms === ms, '"' + txt + '" se leyo como ' + (d.error ? 'error' : d.ms + ' ms') + ' y son ' + ms + ' ms');
+      }
+      for (const malo of ['abc', 'mañana', '10 minutos porfa', '0', 'un rato', '2x']) {
+        exige(G.parsearDuracionMute(malo).error === true,
+          '"' + malo + '" no da error: se lo traga hasta el defecto de diez minutos sin decir nada, que es exactamente el fallo que esto arregla');
+      }
+      const tope = G.parsearDuracionMute('99d');
+      exige(tope.ms === G.MUTE_MAX_MS && tope.ajustado === 'max', 'el tope del mute no se aplica o se aplica sin avisar');
+      const suelo = G.parsearDuracionMute('1s');
+      exige(suelo.ms === G.MUTE_MIN_MS && suelo.ajustado === 'min', 'el minimo del mute no se aplica o se aplica sin avisar');
+      exige(G.formatoDuracion(5400000) === '1 hora y 30 minutos', 'formato raro para 90 min: ' + G.formatoDuracion(5400000));
+      exige(G.formatoDuracion(45000) === '45 segundos', 'formato raro para 45 s: ' + G.formatoDuracion(45000));
+    }
+
+    // 9. !mute @x 2h no mutea diez minutos, y lo dice.
+    {
+      const g = '120000709@g.us', adm = '34600000709@s.whatsapp.net', v = '34600000809@s.whatsapp.net';
+      const s = socket({ participantes: [{ id: adm, admin: 'admin' }, { id: v }] });
+      const meta = await s.groupMetadata(g);
+      const m = mensaje(g, adm, 'x');
+      m.message = { extendedTextMessage: { text: 'x', contextInfo: { mentionedJid: [v] } } };
+      puestos.push([g, v]);
+      await G.cmdMute(s, m, ['@' + v.split('@')[0], '2h'], meta);
+      const queda = G.getMuteRemaining(g, v);
+      exige(queda > 7100000 && queda <= 7200000,
+        '!mute @x 2h dejo ' + Math.round(queda / 60000) + ' minutos: el tiempo que escribe el admin se esta tirando y se cae al defecto');
+      const dicho = s.enviados.map((e) => (e.c && e.c.text) || '').join(' ');
+      exige(/2 horas/.test(dicho), 'la respuesta no dice el tiempo de verdad: "' + dicho + '"');
+      exige(/borra/.test(dicho), 'la respuesta del mute no avisa de que ahora se le borra lo que escriba');
+    }
+
+    // 10. una duracion que no se entiende NO mutea.
+    {
+      const g = '120000710@g.us', adm = '34600000710@s.whatsapp.net', v = '34600000810@s.whatsapp.net';
+      const s = socket({ participantes: [{ id: adm, admin: 'admin' }, { id: v }] });
+      const meta = await s.groupMetadata(g);
+      const m = mensaje(g, adm, 'x');
+      m.message = { extendedTextMessage: { text: 'x', contextInfo: { mentionedJid: [v] } } };
+      puestos.push([g, v]);
+      await G.cmdMute(s, m, ['@' + v.split('@')[0], 'mañana'], meta);
+      exige(G.getMuteRemaining(g, v) === 0,
+        'una duracion que el bot no entiende acaba muteando igual: el admin cree que ha puesto una cosa y el bot ha puesto otra');
+      exige(/No entiendo/.test(s.enviados.map((e) => (e.c && e.c.text) || '').join(' ')),
+        'no se avisa de que el tiempo no se ha entendido');
+    }
+  } catch (e) {
+    quejas.push('la prueba del mute revento: ' + (e && e.stack ? e.stack.split('\n')[0] : e));
+  } finally {
+    // LO QUE MUTEA EL HIJO, LO DESMUTEA EL HIJO. Este almacen es el de verdad:
+    // data/mutes.json es el mismo fichero que usa el bot en la VPS.
+    for (const [g, q] of puestos) G.unmuteUser(g, q);
+    try { await G.flushMutes(); } catch { /* el log ya lo dice */ }
+  }
+  console.log('CAPA70:' + JSON.stringify(quejas));
+  process.exit(0);
+})();
+`;
+
+  // ── 70. UN SILENCIADO NO HABLA, Y EL RELOJ DICE LA VERDAD ───────────────
+  //
+  // El mute solo frenaba COMANDOS, y esa puerta estaba ciento cincuenta lineas
+  // por debajo del reconocimiento del prefijo. O sea que a quien estaba muteado
+  // se le caia el *!aura* y se le quedaba en pie todo lo demas: el spam, la
+  // discusion, los audios. El castigo era «no puedes jugar con el bot».
+  //
+  // Ahora el bot le BORRA lo que escriba, para todos. Y eso arrastra dos cosas
+  // que no son el borrado y que son justo las que se rompen solas:
+  //
+  //   · lo que se borra NO PUEDE CONTAR en el ranking. Nadie llego a leerlo.
+  //   · si el bot no puede borrar —no es admin, o WhatsApp lo rechaza— el
+  //     mensaje se queda en el grupo, asi que TIENE que contar. Dar por no
+  //     escrito lo que sigue en pantalla es el fallo de las expulsiones que se
+  //     anunciaban sin ocurrir, otra vez.
+  //
+  // Y EL RELOJ. `!mute @x 2h` dejaba diez minutos: la duracion se leia con
+  // `/^\d+$/`, asi que cualquier cosa con letras se caia por el borde en
+  // silencio hasta el defecto. El admin lee la orden que escribio, no la
+  // respuesta, y se entera de que no ha pasado cuando el otro vuelve a hablar.
+  //
+  // VA EN UN PROCESO APARTE porque el contador de mensajes hay que espiarlo
+  // ANTES de que messageHandler lo capture al requerirse, y aqui arriba ya lo
+  // han cargado otras capas. Lo que el hijo mutea, el hijo lo desmutea.
+  {
+    console.log('\n70. UN SILENCIADO NO HABLA, Y EL RELOJ DICE LA VERDAD');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { execFileSync } = require('child_process');
+    const os2 = require('os');
+    const dirM = fs.mkdtempSync(path.join(os2.tmpdir(), 'capa70-'));
+    try {
+      // EL HIJO VIVE EN /tmp, DONDE NO HAY node_modules. Un `require('dotenv')`
+      // por nombre no se resuelve contra el cwd, se resuelve contra la carpeta
+      // del fichero: sin este enlace el hijo revienta en su tercera linea y la
+      // capa acusa al mute de algo que no ha pasado. Ya paso una vez con axios.
+      try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(dirM, 'node_modules'), 'dir'); } catch { /* si falla, el hijo lo dira */ }
+      const guion = path.join(dirM, 'm.js');
+      fs.writeFileSync(guion, MEMORIA_CAPA_70.replace(/__RAIZ__/g, JSON.stringify(R)));
+      let salida = '';
+      try {
+        salida = execFileSync(process.execPath, [guion],
+          { encoding: 'utf8', timeout: 120000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (e) {
+        salida = `${e.stdout || ''}${e.stderr || ''}`;
+      }
+      const linea = salida.split('\n').reverse().find((l) => l.startsWith('CAPA70:'));
+      exige(!!linea, `la prueba del mute no llego a contestar: ${salida.slice(-400).trim()}`);
+      if (linea) {
+        let quejas = [];
+        try { quejas = JSON.parse(linea.slice('CAPA70:'.length)); } catch { quejas = ['no pude leer el resultado']; }
+        for (const q of quejas) exige(false, q);
+      }
+    } finally {
+      fs.rmSync(dirM, { recursive: true, force: true });
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ lo que escribe un silenciado se borra y no cuenta, y el tiempo pedido es el que se pone'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     process.exit(fallos ? 1 : 0);

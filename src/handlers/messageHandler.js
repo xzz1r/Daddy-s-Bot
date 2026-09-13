@@ -494,6 +494,48 @@ async function borrarMensaje(sock, jid, msg, sender, motivo) {
   }
 }
 
+// ─── UN SILENCIADO NO HABLA: LO QUE ESCRIBA SE BORRA PARA TODOS ─────────────
+//
+// El mute solo frenaba COMANDOS. Vivia ciento cincuenta lineas mas abajo, justo
+// detras del reconocimiento del prefijo, asi que a quien estaba muteado se le
+// caia el `!aura` y se le quedaba en pie todo lo demas: el spam, la discusion,
+// los audios. Silenciar a alguien que puede seguir escribiendo no silencia a
+// nadie; el castigo era «no puedes jugar con el bot».
+//
+// Ahora se borra. El bot quita el mensaje PARA TODOS —el mismo borrado de admin
+// que usan el antilink y el anti-estados, `edit='8'`— y el mensaje deja de
+// existir para el grupo.
+//
+// SIN ANUNCIAR NADA. El muteo ya se anuncio cuando se puso: un aviso por cada
+// mensaje borrado convierte el castigo en el doble de ruido del que quita, y es
+// exactamente lo que se decidio para la lista negra.
+//
+// LO QUE NO SE BORRA:
+//   · el tier dueño, que no lo silencia nadie (misma regla que abajo)
+//   · los sobres sin contenido —reacciones, votos, SKDM—: no hay mensaje que
+//     quitar de la pantalla, y pedir el borrado de una reaccion es un viaje a
+//     WhatsApp que no hace nada
+//   · lo que el propio bot manda
+const avisadoSinAdminMute = new Map();
+const AVISO_MUTE_SIN_ADMIN_MS = 60 * 60 * 1000;
+
+// Devuelve true si el mensaje se ha quitado de la pantalla del grupo.
+async function borrarDeSilenciado(sock, jid, msg, sender, meta) {
+  if (esSobreSinContenido(msg.message)) return false;
+  // SIN ADMIN NO HAY BORRADO, y eso no puede pasar en silencio: desde el grupo
+  // se ve un mute que no hace nada, que es el fallo que este cambio arregla.
+  if (!isBotAdmin(sock, meta)) {
+    const ultimo = avisadoSinAdminMute.get(jid) || 0;
+    if (Date.now() - ultimo > AVISO_MUTE_SIN_ADMIN_MS) {
+      avisadoSinAdminMute.set(jid, Date.now());
+      if (avisadoSinAdminMute.size > 200) avisadoSinAdminMute.delete(avisadoSinAdminMute.keys().next().value);
+      logger.warn(`mute en ${jid}: no soy admin, no puedo borrar lo que escribe +${String(sender).split('@')[0]}`);
+    }
+    return false;
+  }
+  return borrarMensaje(sock, jid, msg, sender, 'un mensaje de alguien silenciado');
+}
+
 // Esta era la UNICA de las siete copias que lo hacia bien, y solo porque ya se
 // habia corregido aqui despues de que el bot anunciara expulsiones que no
 // ocurrieron. Ahora la regla vive en un sitio y las siete la comparten.
@@ -1748,6 +1790,29 @@ async function handleMessage(sock, msg, opciones = {}) {
   // Non-blocking counters — never delay command execution.
   // Don't count the bot's own messages so the owner doesn't inflate their rank.
   if (!diferido) incrementStat('messagesReceived');
+
+  // ─── EL MUTEO, ANTES QUE NADA ───────────────────────────────────────────
+  //
+  // Va aqui arriba, por delante del conteo, y no donde estaba (detras del
+  // prefijo), por dos motivos:
+  //
+  //   1. Un mensaje que el bot BORRA para todo el grupo no puede contar en el
+  //      ranking de actividad. Nadie lo ha llegado a leer; sumarlo seria contar
+  //      algo que no existe, y la tabla de !count tiene que cuadrar con lo que
+  //      se ve en la pantalla.
+  //   2. Todo lo que viene despues —aura, hitos, huellas, antilink, medios,
+  //      comandos— sobra para alguien que esta callado.
+  //
+  // Y SOLO SE DA POR NO ESCRITO SI SE HA BORRADO DE VERDAD. Si el bot no es
+  // admin, o si WhatsApp rechaza el borrado, el mensaje sigue en el grupo: se
+  // sigue el camino normal —cuenta, y el muteo frena los comandos como siempre—
+  // en vez de fingir que no esta ahi. Anunciar un borrado que no ha ocurrido es
+  // el fallo que ya se corrigio en las expulsiones y en el antilink.
+  if (!msg.key.fromMe && jid.endsWith('@g.us') && sender && isMuted(jid, sender)) {
+    const metaMute = await getGroupMeta(sock, jid);
+    if (!isOwner(sender, msg.key.fromMe, metaMute)
+        && await borrarDeSilenciado(sock, jid, msg, sender, metaMute)) return;
+  }
   // El owner principal no cuenta para el ranking de actividad (!count): sus
   // mensajes no deben inflar la tabla. Los co-owners y el resto sí cuentan.
   // Se comprueba de dos formas para que sea fiable incluso en grupos LID:
@@ -2255,8 +2320,17 @@ async function handleMessage(sock, msg, opciones = {}) {
   const command = normalizarComando(args.shift());
   if (!command) return;
 
-  // Check mute before anything else — but the owner tier is never silenced, so a
-  // stale or malicious mute can't lock the owner/co-owner out of their own bot.
+  // LA SEGUNDA CERRADURA DEL MUTEO, y sigue haciendo falta.
+  //
+  // La primera esta arriba del todo y borra el mensaje entero; cuando borra, no
+  // se llega hasta aqui. Pero cuando NO puede borrar —el bot no es admin en ese
+  // grupo, o WhatsApp rechaza la revocacion— el mensaje sigue su camino, y
+  // entonces esto es lo unico que impide que un silenciado siga usando el bot.
+  //
+  // O sea que no es codigo muerto: es el caso degradado, que es justo el que se
+  // olvida. El tier dueño nunca cae en ninguna de las dos, para que un muteo
+  // viejo o puesto con mala idea no deje al dueño fuera de su propio bot.
+  //
   // peekGroupMeta y no null: es la unica comprobacion de owner del fichero que
   // renunciaba a la metadata, justo en la exencion que promete que a él no le
   // silencia nadie. Con la metadata resuelve todas sus formas de JID.

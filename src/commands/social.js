@@ -504,7 +504,8 @@ ${bloqueAcciones(p, c)}
 *${p}fantasmas* ${c('fantasmas')} · *${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b
 ${esAdmin ? `
 ━━ *ADMIN* ━━
-*${p}kick* · *${p}mute* · *${p}unmute* · *${p}del* · *${p}tagall* · *${p}allow*
+*${p}kick* · *${p}unmute* · *${p}del* · *${p}tagall* · *${p}allow*
+*${p}mute* @user <tiempo> — le borro todo lo que escriba (30 · 45s · 2h · 1d)
 *${p}fkban* · *${p}fkunban* · *${p}marcarfake* · *${p}fklist* · *${p}scan*
 *${p}close* · *${p}open* · *${p}promote* · *${p}count* ${c('count')} · *${p}inactivos* ${c('inactivos')}
 *${p}r* — pide a los nuevos que se presenten, sin un @ a la vista
