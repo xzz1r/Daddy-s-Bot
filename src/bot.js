@@ -1240,9 +1240,23 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
     // Bot detection covers both phone JID (older groups) and LID (newer groups).
     // botIds is precomputed at 'connection: open' to skip the rebuild per event.
     const isBotJid = (jid) => {
-      if (!jid || !botIds) return false;
+      if (!jid) return false;
       const base = String(jid).split('@')[0].split(':')[0];
-      return botIds.has(base);
+      if (botIds) return botIds.has(base);
+      // ─── Y SI TODAVIA NO ESTA CONSTRUIDO, SE MIRA LA SESION ──────────────
+      //
+      // `botIds` se rellena en 'connection: open' y se pone a null en CADA
+      // reconexion. En esa ventana esto devolvia false para todo, o sea que un
+      // movimiento del PROPIO bot se leia como de otro: se anunciaba en el
+      // grupo «fulano ha dado admin a X» con el fulano siendo el bot, que es
+      // justo lo que el tier dueño no hace. Y el anti-admin lo trataba como un
+      // cambio ajeno, o sea que el bot podia ir a revertirse a si mismo.
+      //
+      // Falla hacia el lado equivocado: no reconocerse cuesta ruido en el grupo
+      // y una reversion absurda; reconocerse de mas no cuesta nada, porque lo
+      // unico que hay al otro lado es la sesion del propio bot.
+      return [sock.user?.id, sock.user?.lid].filter(Boolean)
+        .some((j) => String(j).split('@')[0].split(':')[0] === base);
     };
 
     // Anti-business: kick WhatsApp Business accounts that just joined.

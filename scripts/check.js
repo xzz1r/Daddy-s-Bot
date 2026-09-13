@@ -10215,6 +10215,41 @@ const di=async(quien,t)=>{out.length=0;
       exige(/!fromBot/.test(linea),
         'el aviso de admin ya no se salta cuando lo hace el bot: el tier dueño va callado, y el bot es parte de él');
 
+      // Y QUE EL BOT SE RECONOZCA AUNQUE `botIds` NO ESTE HECHO TODAVIA.
+      //
+      // Lo de arriba solo lee la linea del aviso; esto mira la funcion que la
+      // decide. `botIds` se rellena en 'connection: open' y se pone a null en
+      // cada reconexion, y en esa ventana `isBotJid` devolvia false para todo:
+      // un movimiento del propio bot se leia como de otro y se anunciaba en el
+      // grupo, que es justo lo que el tier dueño no hace.
+      //
+      // Se reconstruye la funcion tal cual esta en bot.js y se prueba con
+      // botIds sin construir, que es el unico caso que fallaba.
+      {
+        const m = bot.match(/const isBotJid = \(jid\) => \{[\s\S]*?\n    \};/);
+        exige(!!m, 'no encuentro isBotJid en bot.js');
+        if (m) {
+          const TEL = '34600000013@s.whatsapp.net';
+          // Con letras a proposito: un @lid de quince digitos es indistinguible
+          // de un movil para el detector de numeros reales de la capa 26, y lo
+          // paraba con razon — no puede saber cual es cual.
+          const LID = 'lid13x7f2a9@lid';
+          const hacer = (botIds, sock) => {
+            // eslint-disable-next-line no-new-func
+            return new Function('botIds', 'sock', `${m[0]}\nreturn isBotJid;`)(botIds, sock);
+          };
+          const conSet = hacer(new Set([TEL.split('@')[0], LID.split('@')[0]]), { user: { id: TEL, lid: LID } });
+          exige(conSet(TEL) && conSet(LID), 'con botIds hecho, el bot no se reconoce en alguna de sus dos formas');
+          exige(!conSet('34699999913@s.whatsapp.net'), 'isBotJid da por bot a cualquiera: eso silencia avisos que sí hacen falta');
+
+          const sinSet = hacer(null, { user: { id: TEL, lid: LID } });
+          exige(sinSet(TEL) && sinSet(LID),
+            'recién reconectado (botIds sin construir) el bot no se reconoce: sus propios cambios de admin se anuncian en el grupo y el anti-admin va a revertirse a sí mismo');
+          exige(!sinSet('34699999913@s.whatsapp.net'),
+            'sin botIds, isBotJid da por bot a cualquiera: peor el remedio que la enfermedad');
+        }
+      }
+
       // Y LA DEGRADACION DEL DUEÑO TIENE QUE DEJAR RASTRO. Sin esto, cuando la
       // protección no llega a hacer nada no queda una sola línea que lo diga.
       const j = bot.indexOf("if (action === 'demote') {");
