@@ -21,7 +21,8 @@
     "analogias": "node scripts/analogias.js",
     "frases": "node scripts/frases.js",
     "audio": "node scripts/audio.js",
-    "enlace": "node scripts/enlace.js"
+    "enlace": "node scripts/enlace.js",
+    "actos": "node scripts/actos.js"
   },
   "repository": {
     "type": "git",
