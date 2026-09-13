@@ -46,6 +46,9 @@ const Module = require('module');
 const net = require('net');
 
 const R = path.resolve(__dirname, '..');
+// Para incrustar rutas en los guiones de los procesos hijos sin pelearse con
+// las comillas dentro de comillas.
+const json = (x) => JSON.stringify(x);
 const rojo = (s) => `\x1b[31m${s}\x1b[0m`;
 const verde = (s) => `\x1b[32m${s}\x1b[0m`;
 
@@ -6987,86 +6990,118 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     const antes = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
 
-    const acc = require(path.join(R, 'src/commands/acciones'));
+    // ─── TODO EN UN PROCESO HIJO, Y CON LA RED CORTADA ──────────────────────
+    //
+    // ESTA CAPA PARO UN DESPLIEGUE POR UN MOTIVO QUE NO ERA. Miraba el TEXTO:
+    // si salia «No he podido traer el gif», daba por hecho que el blindaje
+    // habia actuado. Pero ese texto es EXACTAMENTE el que sale cuando la web se
+    // cae de verdad —el disfraz es el punto entero del blindaje— asi que un
+    // `timeout of 12000ms exceeded` de nekos.best se leia como «*!fuck* blinda
+    // al co-owner» y bloqueaba el despliegue con el codigo perfecto.
+    //
+    // Por el texto NO se pueden distinguir: estan hechos para ser iguales. Hay
+    // que mirar otra cosa, y la hay: el blindaje devuelve ANTES de `cobrar`
+    // (acciones.js, justo antes del `const pago = await cobrar(...)`). Asi que
+    // la pregunta buena no es que dijo, sino SI LLEGO A COBRAR.
+    //
+    //   · blindado  -> cobrar no se llama nunca
+    //   · no blindado -> cobrar se llama, pase lo que pase con la web
+    //
+    // Y de paso se le corta la red: la comprobacion deja de depender de que una
+    // web de fuera este en pie —que es la regla que scripts/acciones.js ya tiene
+    // escrita— y deja de tardar doce segundos por cada timeout.
+    //
+    // Los dos casos van en el MISMO proceso hijo. En el padre no se puede:
+    // acciones.js captura `cobrar` al cargarse y ya esta cargado por capas
+    // anteriores, asi que parchearlo aqui no llegaria. Y wa.js congela la lista
+    // de co-owners al cargarse, asi que CO_OWNERS tiene que estar en el entorno
+    // del hijo desde el principio.
     const cfg = require(path.join(R, 'src/config'));
+    const acc = require(path.join(R, 'src/commands/acciones'));
     const OWN = `${String(cfg.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
     const A = '34600000002@s.whatsapp.net';
     const BOT = '549199@s.whatsapp.net';
     const GJ = '000000000@g.us';
     const meta = { id: GJ, subject: 'G', participants: [{ id: BOT, admin: 'admin' }, { id: OWN, admin: 'admin' }, { id: A }] };
 
-    const nsfw = Object.keys(acc.ACCIONES).filter((n) => acc.ACCIONES[n].nsfw && acc.ACTIVAS.includes(n));
-    exige(nsfw.length > 0, 'no hay ninguna accion explicita activa: esta capa no esta mirando nada');
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ddb-blindaje-'));
+    const guionF = path.join(tmpDir, 'p.js');
+    fs.writeFileSync(guionF, [
+      '// La red, cortada: que no salga una sola peticion de aqui.',
+      '// Por RUTA ABSOLUTA: el guion vive en /tmp y alli no hay node_modules,',
+      '// asi que un require("axios") a secas no resuelve y el hijo ni arranca.',
+      `const axios = require(${json(path.join(R, 'node_modules/axios'))});`,
+      "axios.get = async () => { throw new Error('red cortada en la prueba'); };",
+      "axios.post = axios.get;",
+      '// Y el cobro, contado. Se parchea ANTES de cargar acciones.js, que es',
+      '// quien lo captura por destructuring al requerirse.',
+      `const cobro = require(${json(path.join(R, 'src/utils/auraCobro'))});`,
+      'let cobros = 0;',
+      'const originalCobrar = cobro.cobrar;',
+      'cobro.cobrar = async (...a) => { cobros++; return originalCobrar(...a); };',
+      `const acc = require(${json(path.join(R, 'src/commands/acciones'))});`,
+      `const OWN = ${json(OWN)};`,
+      "const CO = '34600000123@s.whatsapp.net', A = '34600000002@s.whatsapp.net';",
+      "const BOT = '549199@s.whatsapp.net', GJ = '000000000@g.us';",
+      'const meta = { id: GJ, subject: \'G\', participants: [{ id: BOT, admin: \'admin\' }, { id: OWN, admin: \'admin\' }, { id: CO }, { id: A }] };',
+      '(async () => {',
+      '  const salida = {};',
+      '  for (const n of Object.keys(acc.ACCIONES)) {',
+      '    if (!acc.ACCIONES[n].nsfw || !acc.ACTIVAS.includes(n)) continue;',
+      '    salida[n] = {};',
+      "    for (const [etq, objetivo] of [['owner', OWN], ['coowner', CO]]) {",
+      '      const out = [];',
+      '      cobros = 0;',
+      '      const sk = { user: { id: BOT }, sendMessage: async (j, c) => { out.push(c); return {}; }, groupMetadata: async () => meta };',
+      "      const msg = { key: { remoteJid: GJ, participant: A, fromMe: false, id: 'X' },",
+      "        message: { extendedTextMessage: { text: '!' + n + ' @x', contextInfo: { mentionedJid: [objetivo] } } } };",
+      '      try { await acc[n](sk, msg, [], meta); } catch (e) { out.push({ text: \'REVENTO: \' + e.message }); }',
+      "      salida[n][etq] = { cobros, texto: out.map((c) => c.text || '').join(' | '),",
+      '        medios: out.filter((c) => c.video || c.image).length };',
+      '    }',
+      '  }',
+      "  console.log('RESULTADO' + JSON.stringify(salida));",
+      '  process.exit(0);',
+      '})();',
+    ].join('\n'));
 
-    for (const n of nsfw) {
-      const out = [];
-      const sk = { user: { id: BOT }, sendMessage: async (j, c) => { out.push(c); return {}; },
-        groupMetadata: async () => meta };
-      const msg = { key: { remoteJid: GJ, participant: A, fromMe: false, id: 'X' },
-        message: { extendedTextMessage: { text: `!${n} @x`, contextInfo: { mentionedJid: [OWN] } } } };
-      await acc[n](sk, msg, [], meta);
-      const texto = out.map((c) => c.text || '').join('\n');
-      exige(!out.some((c) => c.video || c.image),
-        `*!${n}* manda el gif contra el dueño`);
-      exige(/No he podido traer el gif/.test(texto),
-        `*!${n}* contesta al tier dueño algo distinto de la caida de la web (${JSON.stringify(texto).slice(0, 80)}): un rechazo con nombre solo le pasa a una persona, asi que a la segunda vez el grupo sabe quien manda en el bot`);
+    let res = {};
+    try {
+      const bruto = execSync(`node ${JSON.stringify(guionF)}`, {
+        encoding: 'utf8', timeout: 120000, cwd: R,
+        env: { ...process.env, CO_OWNERS: '34600000123', ACCION_NSFW_API: '' },
+      });
+      const linea = bruto.split('\n').find((l) => l.startsWith('RESULTADO'));
+      res = linea ? JSON.parse(linea.slice('RESULTADO'.length)) : {};
+      if (!linea) { fallos++; console.log(rojo('   ✗ la prueba del blindaje no devolvio nada')); }
+    } catch (e) {
+      fallos++;
+      console.log(rojo(`   ✗ no pude probar el blindaje: ${String(e.message).slice(0, 140)}`));
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
     }
 
-    // Y AL CO-OWNER SI LE LLEGAN. Es decision del dueño: el blindaje es suyo y
-    // de nadie mas. Confundir los dos niveles aqui es lo que haria que el
-    // blindaje dejara de apuntar a una sola persona.
-    //
-    // VA EN OTRO PROCESO, y no por gusto: wa.js congela la lista de co-owners al
-    // cargarse (ALL_OWNER_DIGITS), asi que tocar config.coOwners a estas alturas
-    // NO cambia nada. Lo escribi primero de esa forma y la comprobacion pasaba en
-    // verde con el blindaje abierto al tier entero — una guarda que aprueba el
-    // codigo roto, que es peor que no tenerla. Con CO_OWNERS en el entorno del
-    // proceso hijo, la lista se congela ya con el co-owner dentro.
-    {
-      // El guion va a un fichero temporal: incrustarlo en `node -e` obliga a
-      // escapar comillas dentro de comillas dentro de comillas, y ahi es donde
-      // se rompe.
-      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ddb-coown-'));
-      const guionF = path.join(tmpDir, 'p.js');
-      fs.writeFileSync(guionF, [
-        `const acc = require(${JSON.stringify(path.join(R, 'src/commands/acciones'))});`,
-        "const CO = '34600000123@s.whatsapp.net', A = '34600000002@s.whatsapp.net';",
-        "const BOT = '549199@s.whatsapp.net', GJ = '000000000@g.us';",
-        "const meta = { id: GJ, subject: 'G', participants: [{ id: BOT, admin: 'admin' }, { id: CO }, { id: A }] };",
-        '(async () => {',
-        '  const salida = {};',
-        '  for (const n of Object.keys(acc.ACCIONES)) {',
-        '    if (!acc.ACCIONES[n].nsfw || !acc.ACTIVAS.includes(n)) continue;',
-        '    const out = [];',
-        '    const sk = { user: { id: BOT }, sendMessage: async (j, c) => { out.push(c); return {}; }, groupMetadata: async () => meta };',
-        "    const msg = { key: { remoteJid: GJ, participant: A, fromMe: false, id: 'X' },",
-        "      message: { extendedTextMessage: { text: '!' + n + ' @x', contextInfo: { mentionedJid: [CO] } } } };",
-        '    await acc[n](sk, msg, [], meta);',
-        "    salida[n] = out.map((c) => c.text || '').join(' | ');",
-        '  }',
-        "  console.log('RESULTADO' + JSON.stringify(salida));",
-        '  process.exit(0);',
-        '})();',
-      ].join('\n'));
-      let res = {};
-      try {
-        const bruto = execSync(`node ${JSON.stringify(guionF)}`, {
-          encoding: 'utf8', timeout: 60000, cwd: R,
-          env: { ...process.env, CO_OWNERS: '34600000123', ACCION_NSFW_API: '' },
-        });
-        const linea = bruto.split('\n').find((l) => l.startsWith('RESULTADO'));
-        res = linea ? JSON.parse(linea.slice('RESULTADO'.length)) : {};
-        if (!linea) { fallos++; console.log(rojo('   ✗ la prueba del co-owner no devolvio nada')); }
-      } catch (e) {
-        fallos++;
-        console.log(rojo(`   ✗ no pude probar el caso del co-owner: ${String(e.message).slice(0, 140)}`));
-      } finally {
-        fs.rmSync(tmpDir, { recursive: true, force: true });
-      }
-      for (const [n, texto] of Object.entries(res)) {
-        exige(!/No he podido traer el gif/.test(texto),
-          `*!${n}* tambien blinda al co-owner: el dueño lo quiso solo para el, y protegiendo a dos el disfraz de "se cayo la web" se repite con dos personas distintas`);
-      }
+    // La lista de explicitas activas, para el resto de la capa y para el
+    // resumen. Antes salia de un filtro aqui arriba; ahora la da el proceso
+    // hijo, que es quien las ha ejercitado de verdad.
+    const nsfw = Object.keys(res);
+    exige(nsfw.length > 0, 'no hay ninguna accion explicita activa: esta capa no esta mirando nada');
+
+    for (const [n, caso] of Object.entries(res)) {
+      // ── EL DUEÑO: NI GIF, NI COBRO, Y CON LA CARA DE LA WEB CAIDA ────────
+      exige(caso.owner.medios === 0, `*!${n}* manda el gif contra el dueño`);
+      exige(caso.owner.cobros === 0,
+        `*!${n}* llegó a cobrar antes de negarse contra el dueño (${caso.owner.cobros}): el blindaje tiene que salir ANTES, o se le cobra por un rechazo`);
+      exige(/No he podido traer el gif/.test(caso.owner.texto),
+        `*!${n}* contesta al dueño algo distinto de la caida de la web (${JSON.stringify(caso.owner.texto).slice(0, 80)}): un rechazo con nombre solo le pasa a una persona, asi que a la segunda vez el grupo sabe quien manda en el bot`);
+
+      // ── Y AL CO-OWNER SI LE LLEGAN ──────────────────────────────────────
+      //
+      // Decision del dueño: el blindaje es suyo y de nadie mas. Se mira el
+      // COBRO y no el texto: con la red cortada el texto es el mismo en los dos
+      // casos, que es justo el disfraz que hace falta.
+      exige(caso.coowner.cobros > 0,
+        `*!${n}* tambien blinda al co-owner: el dueño lo quiso solo para el, y protegiendo a dos el disfraz de "se cayo la web" se repite con dos personas distintas`);
     }
 
     // Y el rechazo va ANTES de cobrar: leido del codigo, porque probar el cobro
