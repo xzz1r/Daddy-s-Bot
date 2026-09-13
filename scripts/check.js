@@ -11794,6 +11794,83 @@ ${manejador}
     if (fallos === antes) console.log(verde('   ✓ admin por @lid, reacciones mudas, stores sin pisarse'));
   }
 
+  // ── 69. LAS EXPLICITAS REMATAN, Y NO REMATAN TODAS IGUAL ────────────────
+  //
+  // El dueño mandó dos frases suyas del grupo con lo que les faltaba:
+  //
+  //   «%V dice que le duele con la polla de %A entera en el culo, y no se
+  //    aparta ni un centimetro.»          → le faltaba «la guarra, pide mas y mas»
+  //   «%V se queda con el culo abierto despues. %A lo mira sin decir nada.»
+  //                                       → le faltaba «(y decide ir mas profundo)»
+  //
+  // Acto y reaccion ya estaban. Lo que no habia era el TERCER TIEMPO, el que
+  // cierra. Las 270 frases de los nueve pools explicitos lo llevan ahora.
+  //
+  // Y LA OTRA MITAD DEL ENCARGO: «que no sea repetitivo en las frases». Un
+  // pool de treinta cierres que todos dicen «pide mas» es peor que dejarlo en
+  // dos tiempos, asi que aqui se mide tambien la variedad, no solo que haya
+  // tercer golpe. El comando es caro y sale poco: cuando sale tiene que sonar
+  // distinto.
+  //
+  // El contador de tiempos es una heuristica —corta por punto, por coma con
+  // conector y por dos puntos—, asi que debajo van los CEBOS: las dos frases
+  // de arriba tal y como estaban antes. Si alguna de las dos deja de contar
+  // como corta, la regla se ha quedado ciega y esto no vale nada.
+  {
+    console.log('\n69. LAS EXPLICITAS REMATAN, Y NO REMATAN TODAS IGUAL');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const RXn = require(path.join(R, 'src/data/accionPhrases.js'));
+    const NSFW = ['FUCK', 'ANAL', 'CUM', 'SEDUCE', 'PREG', 'UNDRESS', 'SPANK', 'LICKASS', 'GROPE'];
+
+    const CORTE = /(?<=[.!?])\s+|[,:]\s+|\s+(?=y\s|pero\s|hasta\s+que\s|mientras\s|cuando\s|aunque\s|porque\s|sin\s+que\s)/;
+    const tiempos = (f) => f.split(CORTE).filter((x) => x.trim().length > 3).length;
+    const cierre = (f) => { const o = f.split(/(?<=[.!?])\s+/).filter(Boolean); return o[o.length - 1].trim(); };
+
+    const cortas = [];
+    for (const k of NSFW) {
+      exige(Array.isArray(RXn[k]) && RXn[k].length === 30, `${k} ya no tiene 30 frases`);
+      for (const [i, f] of (RXn[k] || []).entries()) if (tiempos(f) < 3) cortas.push(`${k}[${i}]`);
+    }
+    exige(cortas.length === 0,
+      `frases explicitas sin el tercer tiempo (${cortas.length}): ${cortas.slice(0, 4).join(' ')} — acto y reaccion no cierran nada, es justo lo que el dueño mando arreglar`);
+
+    // LOS CEBOS. Las dos frases del dueño, tal cual estaban antes del encargo.
+    const cebos = [
+      '%V dice que le duele con la polla de %A entera en el culo, y no se aparta ni un centimetro.',
+      '%V se queda con el culo abierto despues. %A lo mira sin decir nada.',
+      '%A le azota el culo a la guarra de %V y le gusta tanto que pide otro.',
+    ];
+    const ciegos = cebos.filter((c) => tiempos(c) >= 3);
+    exige(ciegos.length === 0,
+      `el contador de tiempos ya no distingue dos golpes de tres: "${ciegos[0]}" le pasa por delante como buena`);
+
+    // NI UN CIERRE REPETIDO EN TODO EL FICHERO, y variedad dentro de cada pool.
+    const vistos = new Map();
+    const repes = [];
+    for (const k of NSFW) for (const [i, f] of (RXn[k] || []).entries()) {
+      const c = cierre(f).toLowerCase();
+      if (vistos.has(c)) repes.push(`${k}[${i}] = ${vistos.get(c)}`); else vistos.set(c, `${k}[${i}]`);
+    }
+    exige(repes.length === 0,
+      `cierres calcados entre frases explicitas (${repes.length}): ${repes.slice(0, 3).join(' · ')} — el tercer tiempo deja de tener gracia en cuanto se repite`);
+
+    for (const k of NSFW) {
+      const cs = (RXn[k] || []).map(cierre);
+      if (!cs.length) continue;
+      const arranques = new Set(cs.map((c) => c.toLowerCase().replace(/[^a-záéíóúñ% ]/g, '').trim().split(/\s+/).slice(0, 2).join(' ')));
+      // Medido al escribirlos: el peor pool arranca de 23 formas distintas.
+      exige(arranques.size >= 20,
+        `${k} cierra sus 30 frases de solo ${arranques.size} maneras distintas: desde el grupo se lee como una sola frase repetida`);
+      const pidiendo = cs.filter((c) => /pid|suplic/i.test(c)).length;
+      // Medido: como mucho 6 de 30. El tope deja sitio para editar sin que salte.
+      exige(pidiendo <= 10,
+        `${k} remata ${pidiendo} de 30 frases pidiendo mas: el chiste del tercer tiempo no puede ser siempre el mismo`);
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ las 270 explicitas cierran a tres tiempos y ninguna cierra como otra'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     process.exit(fallos ? 1 : 0);
