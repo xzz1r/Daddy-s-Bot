@@ -11211,6 +11211,77 @@ const di=async(quien,t)=>{out.length=0;
     if (fallos === antes) console.log(verde('   ✓ el muñón viejo se barre, el del código en vuelo se respeta y la sesión buena no se toca'));
   }
 
+  // ── 65. EL NUMERO DE --codigo SE CUENTA ANTES DE PEDIR NADA ──────────────
+  //
+  // Dos intentos de vinculacion fallidos y el fallo no estaba en WhatsApp: la
+  // shell parte los argumentos por los espacios. Escribir el numero como se lee
+  // —`--codigo +34 600 111 222`— deja tres palabras sueltas en `argv`, y solo se
+  // recogia la primera: `+34`, que sin lo que no es digito se queda en `34`.
+  //
+  // Con eso se pedia un codigo de vinculacion para el numero «34». WhatsApp lo
+  // generaba tan tranquilo —como jid es valido, solo que no es de nadie— y salia
+  // por pantalla un codigo que no podia funcionar en ningun telefono.
+  //
+  // Y NO LANZABA NADA, que es lo que lo hizo invisible: el catch de esa parte
+  // solo atrapa lo que lanza requestPairingCode, y esto no lanza.
+  {
+    console.log('\n65. EL NUMERO DE --codigo SE CUENTA ANTES DE PEDIR NADA');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const bot = soloCodigo('src/bot.js');
+
+    // 1. El parseo, tal cual esta en el fichero, contra las tres formas de
+    //    escribirlo. La de los espacios es la que fallaba.
+    const m = bot.match(/const numeroPar = argCodigo !== -1 \? (.*?) : '';/);
+    exige(!!m, 'ya no encuentro cómo se lee el número de --codigo en bot.js');
+    if (m) {
+      const leer = new Function('process', 'argCodigo', `return ${m[1]};`);
+      const como = (argv) => {
+        const i = argv.indexOf('--codigo');
+        return leer({ argv }, i);
+      };
+      const partido = como(['--codigo', '+34', '600', '111222']);
+      const juntoConComillas = como(['--codigo', '+34 600 111222']);
+      const pelado = como(['--codigo', '34600111222']);
+      exige(juntoConComillas === '34600111222' && pelado === '34600111222',
+        'el número bien escrito ya no se lee entero: se pediría el código para otro número');
+      // Esto SIGUE partiendose —la shell manda, no el bot— y por eso hace falta
+      // la guarda de abajo: lo que no puede pasar es que se pida un codigo con
+      // ese resto.
+      exige(partido.length < 8,
+        'la prueba ya no reproduce el caso de los espacios: entonces no está midiendo el fallo que costó dos intentos');
+    }
+
+    // 2. Y LA GUARDA: con un resto corto NO se pide ningun codigo.
+    //
+    // Es lo unico que de verdad protege. Sin ella, el bot imprime un codigo
+    // perfectamente valido para un numero que no es de nadie, y quien lo teclea
+    // no tiene forma de saber por que no entra.
+    const iGuarda = bot.indexOf('MIN_DIGITOS_NUMERO');
+    exige(iGuarda > 0,
+      'no hay comprobación del largo del número: un número partido por la shell vuelve a pedir un código imposible de usar');
+    if (iGuarda > 0) {
+      const trozo = bot.slice(iGuarda, iGuarda + 1200);
+      exige(/numeroPar\.length < MIN_DIGITOS_NUMERO \|\| numeroPar\.length > MAX_DIGITOS_NUMERO/.test(trozo),
+        'la comprobación del largo ya no mira los dos extremos');
+      exige(/detenido = true/.test(trozo),
+        'con un número inválido el bot sigue adelante: acabará pidiendo el código igual');
+      // Y el aviso tiene que explicar lo de los espacios, que es la causa real.
+      exige(/espacios/.test(trozo),
+        'el aviso no menciona los espacios: es justo lo que pasó, y sin decirlo la persona vuelve a escribirlo igual');
+      // El numero NO se escribe entero en el log: esto acaba pegado en un chat.
+      exige(!/\$\{numeroPar\}/.test(trozo),
+        'el aviso imprime el número entero en el log: eso acaba pegado en un chat más veces de las que parece');
+    }
+
+    // 3. Y un número bueno no puede quedar bloqueado por la guarda.
+    exige(/MIN_DIGITOS_NUMERO = 8/.test(bot) && /MAX_DIGITOS_NUMERO = 15/.test(bot),
+      'los límites del número cambiaron: por debajo de 8 o por encima de 15 (E.164) se rechazarían números reales');
+
+    if (fallos === antes) console.log(verde('   ✓ un número partido por la shell ya no pide un código imposible, y uno bueno pasa'));
+  }
+
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────
   //
   // Tres cosas que se tocan juntas cuando se busca que el bot conteste antes,

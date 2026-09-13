@@ -631,8 +631,47 @@ async function connectToWhatsApp() {
   //
   // El numero va con prefijo de pais y SOLO digitos: nada de +, espacios ni
   // guiones. Es el numero de la cuenta que va a SER el bot.
+  // ─── EL NUMERO SE COMPRUEBA ANTES DE PEDIR NADA ──────────────────────────
+  //
+  // ESTO COSTO DOS INTENTOS Y UNA TARDE, y el fallo no estaba en WhatsApp.
+  //
+  // La shell parte los argumentos por los espacios. Escribir el numero como se
+  // lee —`--codigo +NN NNN NNNNNNN`, con espacios— deja en `argv` tres palabras
+  // sueltas, y aqui solo se recogia la primera: el prefijo, que al quitarle lo
+  // que no es digito se queda en dos cifras. Con eso se pedia un codigo de
+  // vinculacion PARA ESE PREFIJO, WhatsApp lo generaba tan tranquilo —como jid
+  // es valido, solo que no es de nadie— y salia por pantalla un codigo que no
+  // podia funcionar en ningun telefono. Desde fuera: «el codigo no funciona».
+  //
+  // (El ejemplo va con enes y no con un numero de verdad: este repositorio es
+  // publico y el detector de la capa 26 para cualquier telefono real escrito
+  // aqui dentro. Me lo paro a mi al escribir esta misma nota.)
+  //
+  // Y no saltaba ningun error, que es lo que lo hizo invisible: el catch de
+  // abajo solo atrapa lo que LANZA requestPairingCode, y esto no lanza.
+  //
+  // Asi que ahora se cuenta. Un numero con prefijo de pais son entre 8 y 15
+  // digitos (el tope de E.164); lo que quede por debajo casi siempre es esto
+  // mismo, asi que se dice con el nombre y medio puesto en vez de dejar que la
+  // persona lo descubra tecleando codigos muertos.
+  const MIN_DIGITOS_NUMERO = 8;
+  const MAX_DIGITOS_NUMERO = 15;
   const argCodigo = process.argv.indexOf('--codigo');
   const numeroPar = argCodigo !== -1 ? String(process.argv[argCodigo + 1] || '').replace(/\D/g, '') : '';
+  if (argCodigo !== -1 && (numeroPar.length < MIN_DIGITOS_NUMERO || numeroPar.length > MAX_DIGITOS_NUMERO)) {
+    // No se escribe el numero entero en el log: esto acaba pegado en un chat
+    // mas veces de las que parece. Con el largo sobra para entenderlo.
+    logger.error(
+      `--codigo recibio ${numeroPar.length} digito(s) y hacen falta entre ` +
+      `${MIN_DIGITOS_NUMERO} y ${MAX_DIGITOS_NUMERO}. No pido ningun codigo.`);
+    logger.error(
+      'Casi siempre es que el numero llevaba espacios y la shell lo partio. ' +
+      'Va TODO junto y sin signos, o entre comillas:  node index.js --codigo 34600111222');
+    detenido = true;
+    try { sock.ev.removeAllListeners(); } catch {}
+    try { sock.end(); } catch {}
+    return;
+  }
   pidiendoCodigo = Boolean(numeroPar);
   if (numeroPar && !sock.authState?.creds?.registered) {
     if (codigosPedidos >= MAX_CODIGOS) {
