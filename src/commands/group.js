@@ -1020,7 +1020,7 @@ async function cmdAutoAceptar(sock, msg, args, groupMeta) {
   if (!hechas && vetadas) {
     return sock.sendMessage(jid, {
       text: '*Autoaccept encendido.*\n' +
-        `Las *${vetadas}* que esperaban están en la lista negra: rechazadas, no entran.`,
+        `Las *${vetadas}* que llamaban a la puerta están en la lista negra. Rechazadas. Ni entran ni se enteran.`,
     }, { quoted: msg });
   }
 

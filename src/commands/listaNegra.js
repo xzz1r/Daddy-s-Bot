@@ -58,7 +58,7 @@ function pinta(cuenta) {
 async function verLista(sock, jid, msg, pagina) {
   const cuentas = await listBanned();
   if (!cuentas.length) {
-    return sock.sendMessage(jid, { text: 'La lista negra está vacía.' }, { quoted: msg });
+    return sock.sendMessage(jid, { text: 'La lista negra está vacía. De momento nadie se lo ha ganado.' }, { quoted: msg });
   }
   // Una cuenta puede estar guardada en varias formas (telefono y LID) y son la
   // misma persona. Enseñarlas por separado hace que la lista parezca el doble
@@ -151,7 +151,7 @@ async function cmdListaNegra(sock, msg, args, groupMeta) {
   });
   if (unicas.length > TOPE_POR_ORDEN) {
     return sock.sendMessage(jid, {
-      text: `Son ${unicas.length} números de una vez y el tope es ${TOPE_POR_ORDEN}. Pártelo, que deshacer esto es uno por uno.`,
+      text: `${unicas.length} números de golpe y el tope es ${TOPE_POR_ORDEN}. Pártelo: deshacer esto se hace uno por uno y no lo voy a hacer yo.`,
     }, { quoted: msg });
   }
 
@@ -161,8 +161,8 @@ async function cmdListaNegra(sock, msg, args, groupMeta) {
     const total = await banCount();
     return sock.sendMessage(jid, {
       text: sacadas
-        ? `Fuera de la lista negra: ${unicas.map((c) => shortAcc(canonicalJid(c.etiqueta) || c.etiqueta)).join(', ')}.\nQuedan ${total} entradas.`
-        : 'Ninguno de esos estaba en la lista negra.',
+        ? `Perdonados: ${unicas.map((c) => shortAcc(canonicalJid(c.etiqueta) || c.etiqueta)).join(', ')}. Allá tú.\nQuedan ${total} en la lista.`
+        : 'Ninguno de esos estaba en la lista negra. Te los has inventado.',
     }, { quoted: msg });
   }
 
@@ -197,12 +197,12 @@ async function cmdListaNegra(sock, msg, args, groupMeta) {
   const total = await banCount();
   const nombres = buenas.map((c) => shortAcc(canonicalJid(c.etiqueta) || c.etiqueta)).join(', ');
 
-  const lineas = [`*LISTA NEGRA*\n╾━━━━━━━━━━━━━━╼\n`, `Metidos: ${nombres}`];
-  if (yaEstaban) lineas.push(`(${yaEstaban} ya estaba${yaEstaban === 1 ? '' : 'n'})`);
-  if (fuera) lineas.push(`Expulsados de ${fuera} grupo${fuera === 1 ? '' : 's'}.`);
-  if (sinPoder) lineas.push(`En ${sinPoder} no pude: no soy admin ahí.`);
-  lineas.push(`\nSi vuelven a entrar en cualquier grupo, fuera al instante.`);
-  lineas.push(`Total en la lista: ${total} entradas.`);
+  const lineas = [`*LISTA NEGRA*\n╾━━━━━━━━━━━━━━╼\n`, `A la basura: ${nombres}`];
+  if (yaEstaban) lineas.push(`(${yaEstaban} ya estaba${yaEstaban === 1 ? '' : 'n'}, para que veas lo poco que han aprendido)`);
+  if (fuera) lineas.push(`Echados de ${fuera} grupo${fuera === 1 ? '' : 's'}.`);
+  if (sinPoder) lineas.push(`En ${sinPoder} se me quedan dentro: ahí no soy admin y no puedo hacer nada.`);
+  lineas.push(`\nSi asoman por cualquier grupo, fuera antes de saludar.`);
+  lineas.push(`Van ${total} en la lista.`);
 
   return sock.sendMessage(jid, { text: lineas.join('\n') }, { quoted: msg });
 }
