@@ -1005,6 +1005,23 @@ const BLEH = [
 // es antes. %V ve la maniobra entera —se la ve venir, la nombra, se rie de
 // ella— y cae igual. Si el pool termina el acto, deja de ser esto y se solapa
 // con *!fuck*, que ya existe. Aqui se corta justo antes, siempre.
+// ─── LAS CINCO APARCADAS ────────────────────────────────────────────────────
+//
+// SEDUCE, PREG, UNDRESS, LICKASS y GROPE estan escritas y NO tienen comando.
+//
+// `npm run acciones` contra la fuente NSFW de verdad contesto 403 en las cinco:
+// esa web no tiene esas categorias con ese nombre. Un comando que cobra, falla
+// y devuelve el aura cada vez es peor que no tenerlo —desde el grupo no se lee
+// «esa categoria no existe», se lee que el bot esta roto— asi que salieron de
+// ACCIONES en acciones.js.
+//
+// Las frases se quedan porque el trabajo esta hecho y porque el fallo puede ser
+// solo de NOMBRE: `npm run acciones -- --probar` sondea alias contra la fuente
+// (pregnant, creampie, rimming, undressing...) y, si alguno sirve, volver a
+// montar el comando es una linea en ACCIONES.
+//
+// Si alguna vez se decide que no vuelven, esto se borra entero. Mientras tanto
+// no molesta: los validadores las cuentan, y ningun comando las lee.
 const SEDUCE = [
   '%A se acerca a %V y no llega a tocar. %V recorre el resto del camino como un perro.',
   '%A le habla a %V al oído de cualquier gilipollez. A %V se le pone la piel de gallina igual.',

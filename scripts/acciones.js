@@ -26,10 +26,80 @@ const { ACCIONES, ACTIVAS, _fuenteDe: fuenteDe, _direccionDe: direccion } = requ
 
 const API_NSFW = (process.env.ACCION_NSFW_API || '').trim();
 
+// ─── MODO SONDEO: ¿COMO LLAMA ESTA WEB A ESO? ───────────────────────────────
+//
+//   npm run acciones -- --probar preg pregnant creampie
+//   npm run acciones -- --probar            (prueba la lista de abajo)
+//
+// EXISTE POR UN CASO CONCRETO. Entraron seis acciones explicitas nuevas y cinco
+// contestaron 403: `seduce`, `preg`, `undress`, `lickass` y `grope` no existen
+// con ESE nombre en la fuente configurada. Lo que no se sabe es si el concepto
+// no esta o si la web lo llama de otra manera, y eso no se puede adivinar desde
+// fuera: la direccion vive en el .env del servidor.
+//
+// Adivinar nombres y dejarlos escritos es exactamente el fallo contra el que
+// avisa este script. Asi que en vez de adivinar, se pregunta.
+//
+// Se va MAS DESPACIO que el repaso normal (un segundo entre intentos) a
+// proposito: si un 403 fuera del limite de peticiones y no de la categoria, una
+// rafaga lo haria pasar por «no existe» y se descartaria un nombre bueno.
+const CANDIDATOS = {
+  seduce:  ['seduce', 'seduction', 'seducing', 'tease', 'teasing', 'flirt', 'lewd', 'ero'],
+  preg:    ['preg', 'pregnant', 'pregnancy', 'creampie', 'breed', 'breeding', 'nakadashi'],
+  undress: ['undress', 'undressing', 'strip', 'stripping', 'striptease', 'nude', 'naked', 'changing'],
+  lickass: ['lickass', 'rimming', 'rimjob', 'analingus', 'asslick', 'ass', 'kuni', 'pussylick', 'lick'],
+  grope:   ['grope', 'groping', 'fondle', 'grab', 'molest', 'boobs', 'tits', 'oppai', 'boobjob'],
+};
+
+async function sondear(pedidos) {
+  const verde = (t) => `\x1b[32m${t}\x1b[0m`;
+  const rojo = (t) => `\x1b[31m${t}\x1b[0m`;
+  const gris = (t) => `\x1b[90m${t}\x1b[0m`;
+  if (!API_NSFW) {
+    console.log(rojo('\n  Sin ACCION_NSFW_API puesta no hay nada que sondear.\n'));
+    process.exit(1);
+  }
+  const grupos = pedidos.length
+    ? { 'a mano': pedidos }
+    : CANDIDATOS;
+
+  console.log('\nSONDEO DE NOMBRES CONTRA LA FUENTE NSFW\n');
+  const buenos = [];
+  for (const [concepto, nombres] of Object.entries(grupos)) {
+    console.log(gris(`  ── ${concepto} ──`));
+    for (const cat of nombres) {
+      const url = direccion(API_NSFW, cat);
+      let estado;
+      try {
+        const { data } = await axios.get(url, { timeout: 12000 });
+        const hay = data?.results?.[0]?.url || data?.url || data?.link || data?.response || data?.images?.[0]?.url;
+        if (hay) { estado = verde('SIRVE'); buenos.push(`${concepto}: ${cat}`); }
+        else estado = rojo('contesta sin gif');
+      } catch (e) {
+        estado = gris(`no (${e.response?.status || e.code || e.message})`);
+      }
+      console.log(`     ${String(cat).padEnd(14)} ${estado}`);
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+  }
+  console.log('');
+  if (buenos.length) {
+    console.log(verde(`  Sirven ${buenos.length}:`));
+    for (const b of buenos) console.log(`    · ${b}`);
+    console.log(gris('\n  Pasa esta lista y se montan los comandos con esos nombres.\n'));
+  } else {
+    console.log(rojo('  Ninguno sirve: esa web no tiene esas categorias con ningun nombre de los probados.\n'));
+  }
+}
+
 (async () => {
   const verde = (t) => `\x1b[32m${t}\x1b[0m`;
   const rojo = (t) => `\x1b[31m${t}\x1b[0m`;
   const gris = (t) => `\x1b[90m${t}\x1b[0m`;
+
+  const iProbar = process.argv.indexOf('--probar');
+  if (iProbar >= 0) return sondear(process.argv.slice(iProbar + 1).filter((x) => !x.startsWith('-')));
+
   let malas = 0;
 
   console.log('\nCATEGORÍAS DE LAS ACCIONES\n');

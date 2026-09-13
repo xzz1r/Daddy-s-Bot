@@ -2933,22 +2933,16 @@ async function handleMessage(sock, msg, opciones = {}) {
       case 'bleh':
       case 'lengua':
       case 'mueca':
-      case 'seduce':
-      case 'seducir':
-      case 'ligar':
-      case 'preg':
-      case 'prenar':
-      case 'embarazar':
-      case 'undress':
-      case 'desnudar':
-      case 'desvestir':
+      // De las seis explicitas que entraron solo quedo *!spank*: `npm run
+      // acciones` contra la fuente NSFW contesto 403 en las otras cinco, o sea
+      // que esa web no tiene esas categorias. Sus `case` se quitaron tambien —
+      // un comando que el bot ACEPTA y no hace nada es peor que uno que no
+      // conoce: no sale en el menu, no avisa, y no hay forma de saber por que
+      // no pasa nada. Las frases siguen escritas por si es cosa del nombre
+      // (ver la nota en accionPhrases.js).
       case 'spank':
       case 'azote':
       case 'azotar':
-      case 'lickass':
-      case 'lamer':
-      case 'grope':
-      case 'manosear':
         // SIN FRASES, NADA. Si el pool de esa accion todavia no existe no hay
         // handler que llamar: se sale en silencio, sin cobrar y sin contestar,
         // igual que si el comando no se hubiera escrito nunca. El `case` sigue

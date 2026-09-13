@@ -150,33 +150,24 @@ const ACCIONES = {
   // El final. Mismo trato que los otros dos: 120, categoria propia comprobada
   // contra la fuente, y la web SFW no tiene nada que se le parezca.
   cum:    { cat: 'kiss', catNsfw: 'cum', es: 'correrse', pool: RX.CUM, cmds: ['cum', 'correrse', 'acabar'], nsfw: true },
-  // ─── Y SEIS EXPLICITAS MAS ──────────────────────────────────────────────
+  // ─── Y UNA EXPLICITA MAS: LA QUE LA FUENTE SIRVE DE VERDAD ──────────────
   //
-  // Mismo trato que las tres de arriba, porque tienen el mismo problema: la
-  // categoria solo existe en la fuente NSFW. Lo comprobe contra las dos webs
-  // SFW y ninguna de las seis esta en ninguna de las dos.
+  // Entraron seis y se queda UNA. `npm run acciones` contra la fuente de verdad
+  // —la que vive en el .env del servidor, que desde fuera no se ve— contesto
+  // 403 en cinco: seduce, preg, undress, lickass y grope no existen ahi. No era
+  // un limite de peticiones: `spank` pasa DESPUES de tres fallos seguidos, asi
+  // que el 403 es por categoria, y salio igual en dos pasadas distintas.
   //
-  // EL `cat` DE RESPALDO NO ES UN ACIERTO, ES UN MAL MENOR, igual que el de
-  // *!fuck*: sin ACCION_NSFW_API puesta, *!spank* manda una cachetada y
-  // *!undress* un beso. Enseña otra cosa distinta de la que dice —que es
-  // justo lo que este fichero lleva advirtiendo desde arriba— y se acepta
-  // aqui por lo mismo que se acepto alli: es preferible a un comando que
-  // cobra, falla y devuelve el aura cada vez. Con la fuente puesta, que es
-  // como esta el bot, esta linea no se ejecuta nunca.
+  // Se quitan porque un comando que cobra, falla y devuelve el aura CADA vez es
+  // peor que no tenerlo: desde el grupo no se lee «esa categoria no existe», se
+  // lee que el bot esta roto. Las frases se quedan escritas (ver
+  // accionPhrases.js): el dia que se sepa como las llama esa web es una linea.
   //
-  // `slap` para *!spank* y `wink` para *!seduce* porque son lo mas parecido
-  // que existe de verdad en nekos.best; el resto cae en `kiss` como las tres
-  // de antes, que no tienen nada que se les acerque.
-  //
-  // NINGUNA DE LAS SEIS ESTA COMPROBADA CONTRA LA FUENTE NSFW: esa web vive en
-  // el .env del servidor y desde fuera no se ve. `npm run acciones` en el VPS
-  // es quien lo dice, y lo que salga rojo se quita con una linea.
-  seduce:  { cat: 'wink', catNsfw: 'seduce',  es: 'seducir',  pool: RX.SEDUCE,  cmds: ['seduce', 'seducir', 'ligar'], nsfw: true },
-  preg:    { cat: 'kiss', catNsfw: 'preg',    es: 'preñar',   pool: RX.PREG,    cmds: ['preg', 'prenar', 'embarazar'], nsfw: true },
-  undress: { cat: 'kiss', catNsfw: 'undress', es: 'desnudar', pool: RX.UNDRESS, cmds: ['undress', 'desnudar', 'desvestir'], nsfw: true },
-  spank:   { cat: 'slap', catNsfw: 'spank',   es: 'azote',    pool: RX.SPANK,   cmds: ['spank', 'azote', 'azotar'], nsfw: true },
-  lickass: { cat: 'kiss', catNsfw: 'lickass', es: 'lamer',    pool: RX.LICKASS, cmds: ['lickass', 'lamer'], nsfw: true },
-  grope:   { cat: 'kiss', catNsfw: 'grope',   es: 'manosear', pool: RX.GROPE,   cmds: ['grope', 'manosear'], nsfw: true },   // 'sobar' fuera: a una letra de !robar
+  // *!spank* SI. Y merece la pena decirlo porque este fichero llevaba una nota
+  // afirmando que «ninguna fuente decente lo tiene en su catalogo»: era cierto
+  // de las webs SFW —nekos.best y kawaii.red siguen sin tenerlo— y falso de la
+  // NSFW. La nota se corrigio; esto lo confirma con la fuente delante.
+  spank:   { cat: 'slap', catNsfw: 'spank', es: 'azote', pool: RX.SPANK, cmds: ['spank', 'azote', 'azotar'], nsfw: true },
 };
 
 // SIN FRASES NO HAY COMANDO.
