@@ -189,6 +189,29 @@ let pidiendoCodigo = false;
 // en diez segundos.
 const MAX_CODIGOS = 3;
 let codigosPedidos = 0;
+
+// ─── HAY UN CODIGO VIVO AHI FUERA ──────────────────────────────────────────
+//
+// Esto existe porque la limpieza de «credenciales a medias» de mas abajo estaba
+// MATANDO el emparejamiento mientras se tecleaba.
+//
+// `requestPairingCode` escribe `creds.me` y la clave efimera del emparejamiento
+// ANTES de devolver el codigo, y eso deja unas credenciales con `me` y sin
+// `account` — que es exactamente la firma de «vinculacion sin terminar» que la
+// limpieza busca para borrar. Correcto al ARRANCAR (un muñon de un intento
+// anterior solo da 401), y desastroso EN VUELO: basta con que el socket se
+// cierre una vez —Baileys agota sus refs de QR y cierra— para que la
+// reconexion entre en connectToWhatsApp, borre data/auth y se lleve por delante
+// la clave a la que estaba atado el codigo que la persona tiene en la pantalla.
+// Desde fuera: «tecleo el codigo y no funciona».
+//
+// Y encima se pedia otro distinto acto seguido, asi que en pantalla quedaban
+// dos codigos y el bueno era el ultimo.
+//
+// La distincion que faltaba es de QUIEN es el muñon: uno de otro arranque se
+// borra, y el que acaba de escribir ESTE proceso se respeta. Un proceso nuevo
+// nace con esto en false, asi que la limpieza de arranque sigue igual.
+let codigoEnVuelo = false;
 const MAX_CICLOS_LOGOUT = 2;
 
 // Cada cuánto se relee la lista de solicitudes pendientes de cada grupo. Es una
@@ -514,7 +537,10 @@ async function connectToWhatsApp() {
   {
     const previo = await useMultiFileAuthState(AUTH_DIR);
     const c = previo.state?.creds;
-    if (c?.me && !c.account) {
+    // `!codigoEnVuelo`: ver la nota junto a esa variable. Un muñon de otro
+    // arranque se borra; el que acabamos de escribir al pedir el codigo, no,
+    // porque es la clave a la que esta atado el codigo que hay en pantalla.
+    if (c?.me && !c.account && !codigoEnVuelo) {
       await fs.remove(AUTH_DIR);
       logger.warn('habia credenciales a medias (vinculacion sin terminar): se parte de cero');
     }
@@ -633,7 +659,11 @@ async function connectToWhatsApp() {
       try {
         if (miSock !== sock) return;   // este socket ya no es el vivo
         const codigo = await miSock.requestPairingCode(numeroPar);
+        codigoEnVuelo = true;
         const bonito = String(codigo).match(/.{1,4}/g)?.join('-') || codigo;
+        if (codigosPedidos > 1) {
+          console.log('\n  (el codigo anterior ya no vale: usa este)');
+        }
         console.log(`\n  CODIGO DE VINCULACION: ${bonito}\n`);
         console.log('  WhatsApp → Dispositivos vinculados → Vincular un dispositivo');
         console.log('  → "Vincular con el número de teléfono" → teclea el codigo.');

@@ -1437,7 +1437,15 @@ const di=async(quien,texto,extra)=>{
     // arranque.
     exige(!/!c\.registered/.test(botSrc),
       'la limpieza de credenciales volvio a mirar `registered`: el QR nunca lo pone, asi que borrara la sesion buena en cada arranque');
-    exige(/if \(c\?\.me && !c\.account\)/.test(botSrc)
+    // SE MIRA EL PRINCIPIO DE LA CONDICION, NO LA LINEA ENTERA. Estaba clavada
+    // al texto exacto `if (c?.me && !c.account)` y eso no distingue «han
+    // quitado la limpieza» —lo que vigila— de «la limpieza ha ganado un
+    // guardian», que es lo que paso: le falto `&& !codigoEnVuelo` para no
+    // borrar el emparejamiento que se esta tecleando, y esta guarda se puso
+    // roja por un arreglo. Lo que de verdad importa aqui es que la limpieza
+    // exista y que se apoye en `account`; que la condicion entera se comporte
+    // bien en los tres estados lo mide la capa 64, evaluandola de verdad.
+    exige(/if \(c\?\.me && !c\.account\b/.test(botSrc)
        && /await fs\.remove\(AUTH_DIR\)/.test(botSrc),
       'el arranque ya no limpia las credenciales a medias: seran 401 hasta que alguien borre data/auth a mano');
 
@@ -11144,6 +11152,63 @@ const di=async(quien,t)=>{out.length=0;
     }
 
     if (fallos === antes) console.log(verde('   ✓ los cinco tipos llegan, la palabra suelta no se borra, y un archivo caducado se vuelve a pedir'));
+  }
+
+  // ── 64. EL CODIGO DE VINCULACION SOBREVIVE A UNA RECONEXION ──────────────
+  //
+  // «No funciona el codigo que envia la VPS», y el codigo estaba bien: lo que
+  // fallaba es que se moria solo mientras se tecleaba.
+  //
+  // `requestPairingCode` escribe `creds.me` y la clave efimera del
+  // emparejamiento ANTES de devolver el codigo. Eso deja unas credenciales con
+  // `me` y sin `account`, que es EXACTAMENTE la firma de «vinculacion sin
+  // terminar» que la limpieza de connectToWhatsApp busca para borrar.
+  //
+  // Esa limpieza esta bien puesta —un muñon de un intento anterior solo da 401
+  // y hay que barrerlo— pero corre en CADA reconexion, no solo al arrancar. Y
+  // durante el emparejamiento hay reconexion segura: Baileys agota sus refs de
+  // QR (60 s cada una) y cierra el socket. Al reconectar se borraba data/auth y
+  // con ella la clave a la que estaba atado el codigo de la pantalla.
+  //
+  // Lo que faltaba es distinguir DE QUIEN es el muñon: uno de otro arranque se
+  // borra; el que acaba de escribir este mismo proceso, no.
+  {
+    console.log('\n64. EL CODIGO DE VINCULACION SOBREVIVE A UNA RECONEXION');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const bot = soloCodigo('src/bot.js');
+    const m = bot.match(/if \(c\?\.me && !c\.account(.*?)\) \{/);
+    exige(!!m, 'ya no encuentro la limpieza de credenciales a medias en bot.js');
+    if (m) {
+      // Se evalua LA CONDICION QUE HAY EN EL FICHERO, no una copia escrita
+      // aqui: copiarla es lo que dejo a *!k* sin cobertura de verdad.
+      const cond = new Function('c', 'codigoEnVuelo', `return ${m[1] ? `c?.me && !c.account${m[1]}` : 'c?.me && !c.account'};`);
+      // El muñon exacto que deja requestPairingCode (Socket/socket.js): me con
+      // name '~' y el pairingCode, y ni rastro de account.
+      const munon = { me: { id: '34600@s.whatsapp.net', name: '~' }, pairingCode: 'ABCD1234' };
+      const buena = { me: { id: '34600@s.whatsapp.net' }, account: { details: 'x' } };
+
+      exige(cond(munon, false) === true,
+        'un muñón de un intento ANTERIOR ya no se borra al arrancar: esas credenciales solo dan 401 y no hay forma de vincular hasta borrarlas a mano');
+      exige(cond(munon, true) === false,
+        'una reconexión durante el emparejamiento borra las credenciales del código que hay en pantalla: por eso «el código no funciona»');
+      exige(cond(buena, false) === false && cond(buena, true) === false,
+        'una sesión COMPLETA se está borrando: eso desvincula el bot al arrancar');
+    }
+
+    // Y la bandera tiene que ponerse donde se pide el codigo, no en otro sitio.
+    const iPide = bot.indexOf('requestPairingCode(numeroPar)');
+    exige(iPide > 0, 'ya no se pide el código de vinculación en bot.js');
+    if (iPide > 0) {
+      exige(/codigoEnVuelo\s*=\s*true/.test(bot.slice(iPide, iPide + 300)),
+        'la bandera no se levanta justo al obtener el código: entre pedirlo y marcarlo cabe la reconexión que lo mata');
+    }
+    // Nace apagada: un proceso nuevo TIENE que barrer el muñón viejo.
+    exige(/let codigoEnVuelo = false/.test(bot),
+      'la bandera ya no nace apagada: un arranque nuevo se saltaría la limpieza y quedaría en 401 para siempre');
+
+    if (fallos === antes) console.log(verde('   ✓ el muñón viejo se barre, el del código en vuelo se respeta y la sesión buena no se toca'));
   }
 
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────
