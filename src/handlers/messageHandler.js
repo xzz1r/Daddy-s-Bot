@@ -48,6 +48,7 @@ const { cmdTtp } = require('../commands/ttp');
 const { cmdToImg, cmdToVid } = require('../commands/toimg');
 const { cmdPfp } = require('../commands/pfp');
 const { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdFkList, cmdAntiFake } = require('../commands/fk');
+const { cmdListaNegra } = require('../commands/listaNegra');
 const { maybeIndex } = require('../utils/pfpIndexer');
 const cmdGay = lazyCmd('../commands/percent', 'cmdGay');
 const cmdSimp = lazyCmd('../commands/percent', 'cmdSimp');
@@ -2567,8 +2568,17 @@ async function handleMessage(sock, msg, opciones = {}) {
         break;
 
       case 'fklist':
-      case 'listanegra':
         resultado = await cmdFkList(sock, msg, args, groupMeta);
+        break;
+
+      // !listanegra — la lista negra global, y ya no es un alias de !fklist.
+      //
+      // Era el mismo comando, o sea: solo de lectura y abierto a los admins del
+      // grupo. Ahora es suyo —del dueño y los co-dueños— y hace las tres cosas:
+      // ver, meter numeros y sacarlos. *!fklist* sigue donde estaba para que un
+      // admin pueda mirar sin poder tocar.
+      case 'listanegra':
+        resultado = await cmdListaNegra(sock, msg, args, groupMeta);
         break;
 
       // !p / !purge — purgan cuentas de TODOS los grupos del bot y las vetan.

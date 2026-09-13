@@ -661,11 +661,62 @@ async function cmdAntiFake(sock, msg, args, groupMeta) {
 
 // ─── Guard de entradas (llamado desde bot.js en group-participants add) ──────
 
+// ─── LA LISTA NEGRA NO DEPENDE DE NINGUN INTERRUPTOR ────────────────────────
+//
+// Esto vivia dentro de guardOnJoin, detras de `if (!isAntiFakeEnabled) return`,
+// y con el anti-fake apagado un vetado entraba por la puerta y se quedaba. El
+// propio joinRequests.js lo tenia escrito: «la unica rendija es tener el
+// antifake apagado». Era esta.
+//
+// Y no es lo mismo que la huella de fotos. La huella es una SOSPECHA —dos
+// cuentas con la misma foto— y por eso solo avisa, y por eso tiene sentido
+// poder apagarla. Un veto es una DECISION YA TOMADA sobre esa cuenta: o vale
+// siempre o no vale para nada. Un interruptor de grupo no puede deshacer lo que
+// el dueño decidio para todos sus grupos.
+//
+// Devuelve el conjunto de los que echo, para que la parte de la huella no
+// gaste una consulta de foto en alguien que ya esta fuera.
+async function vetadosAlEntrar(sock, groupJid, joiners, groupMeta) {
+  const echados = new Set();
+  for (const p of joiners) {
+    const obj = typeof p === 'string' ? { id: p } : (p || {});
+    if (!obj.id) continue;
+    if (isBotJid(sock, obj.id) ||
+        isOwner(obj.id, false, groupMeta) ||
+        (obj.lid && isOwner(obj.lid, false, groupMeta)) ||
+        (obj.phoneNumber && isOwner(obj.phoneNumber, false, groupMeta))) {
+      continue;
+    }
+    const forms = [obj.id, obj.lid, obj.phoneNumber].filter(Boolean).map(bareJid);
+    forms.push(canonicalJid(obj.id));
+
+    const bannedAs = await isBanned(forms).catch(() => null);
+    if (!bannedAs) continue;
+    echados.add(obj.id);
+    // Se anuncia solo si salio. Antes el aviso iba dentro del try junto al
+    // kick, asi que una expulsion rechazada por codigo (sin excepcion)
+    // publicaba "Expulsado" con la cuenta todavia dentro.
+    if (await aplicarAUno(sock, groupJid, obj.id, 'remove', groupMeta)) {
+      await sock.sendMessage(groupJid, {
+        text: `*Lista negra:* @${String(obj.id).split('@')[0]} está vetado (${shortAcc(bannedAs)}). Expulsado.`,
+        mentions: [obj.id],
+      }).catch(() => {});
+    } else {
+      logger.warn(`lista negra: kick de vetado no confirmado en ${groupJid}`);
+    }
+  }
+  return echados;
+}
+
 async function guardOnJoin(sock, groupJid, joiners, groupMeta) {
+  // Primero el veto, y este va SIEMPRE, encendido o apagado el anti-fake.
+  const yaFuera = await vetadosAlEntrar(sock, groupJid, joiners, groupMeta)
+    .catch((e) => { logger.warn(`lista negra al entrar: ${e.message}`); return new Set(); });
+
   if (!isAntiFakeEnabled(groupJid)) return;
   const now = Date.now();
 
-  // Por cada entrante: lista negra → kick; huella de foto → alerta.
+  // Y la huella de la foto, que es una sospecha y por eso si se puede apagar.
   for (const p of joiners) {
     const obj = typeof p === 'string' ? { id: p } : (p || {});
     if (!obj.id) continue;
@@ -677,24 +728,8 @@ async function guardOnJoin(sock, groupJid, joiners, groupMeta) {
         (obj.phoneNumber && isOwner(obj.phoneNumber, false, groupMeta))) {
       continue;
     }
-    const forms = [obj.id, obj.lid, obj.phoneNumber].filter(Boolean).map(bareJid);
-    forms.push(canonicalJid(obj.id));
-
-    const bannedAs = await isBanned(forms).catch(() => null);
-    if (bannedAs) {
-      // Se anuncia solo si salio. Antes el aviso iba dentro del try junto al
-      // kick, asi que una expulsion rechazada por codigo (sin excepcion)
-      // publicaba "Expulsado" con la cuenta todavia dentro.
-      if (await aplicarAUno(sock, groupJid, obj.id, 'remove', groupMeta)) {
-        await sock.sendMessage(groupJid, {
-          text: `*Anti-fake:* @${String(obj.id).split('@')[0]} está en la lista negra (${shortAcc(bannedAs)}). Expulsado.`,
-          mentions: [obj.id],
-        }).catch(() => {});
-      } else {
-        logger.warn(`anti-fake: kick de baneado no confirmado en ${groupJid}`);
-      }
-      continue;
-    }
+    // Al que ya echo el veto no se le mira la foto: no esta.
+    if (yaFuera.has(obj.id)) continue;
 
     // Huella de la foto en segundo plano: no bloquea el resto de entradas.
     (async () => {
@@ -728,4 +763,4 @@ async function guardOnJoin(sock, groupJid, joiners, groupMeta) {
   }
 }
 
-module.exports = { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdFkList, cmdAntiFake, guardOnJoin, allForms };
+module.exports = { cmdFk, cmdMarkFake, cmdFkBan, cmdFkUnban, cmdFkList, cmdAntiFake, guardOnJoin, vetadosAlEntrar, allForms, shortAcc };

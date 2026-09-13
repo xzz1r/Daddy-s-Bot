@@ -308,9 +308,9 @@ const VF_ANIM = (fps, size = 512, fpsOrigen = 0) => {
 // otherwise pin a CPU core forever and zombie the command.
 const FFMPEG_TIMEOUT_MS = 45_000;
 
-// Lo que WhatsApp reproduce de un sticker animado. Ver la nota del tope en la
+// Cuanto se queda de un video al hacerlo sticker. Ver la nota del tope en la
 // orden de ffmpeg de mas abajo.
-const TOPE_ANIMADO_S = 8;
+const TOPE_ANIMADO_S = 10;
 
 // Acquires the shared ffmpeg slot before spawning, so e.g. 4 people sending
 // !s at once on a 2-core phone run 2-at-a-time instead of all 4 simultaneously.
@@ -757,10 +757,30 @@ async function encodeAnimWebp(inputFile, outputFile, fps, quality, size = 512, f
         // solo hace `continue`, se encadenan siete timeouts: cinco minutos de
         // core pinchado por un video que nadie va a ver entero.
         //
-        // Ocho segundos es lo que WhatsApp reproduce de un sticker animado, asi
-        // que cortar ahi no quita nada que se vea. Y el resultado es MEJOR que
-        // el de hoy: ese video de quince segundos sale ahora en una sola pasada,
-        // a 512 px, en vez de en tres y a 384.
+        // DIEZ SEGUNDOS, Y ANTES PONIA OCHO. El ocho venia de que «es lo que
+        // WhatsApp reproduce de un sticker animado», que es una afirmacion que
+        // no trae de donde sale y que desde aqui no se puede comprobar: eso lo
+        // decide el telefono que lo recibe, no el que lo hace.
+        //
+        // Lo que si se puede medir es lo que cuesta, y medido esta. En el
+        // escalon donde arranca de verdad un video de ocho segundos o mas
+        // —`desde: 8`, o sea 24 fps y q60 a 512 px— contra el tope de 1 MB:
+        //
+        //   contenido normal  ·  8 s: 132 KB   10 s: 166 KB
+        //   contenido dificil ·  8 s: 728 KB   10 s: 898 KB
+        //
+        // O sea 1,25x exacto, que es lo que crecen los fotogramas: 192 -> 240.
+        // Cabe en los dos casos y SIN CAMBIAR DE ESCALON, que es lo que
+        // importaba: `desde: 8` ya mete en el mismo peldaño a todo lo que dure
+        // ocho segundos o mas, asi que subir el tope no baja la calidad de
+        // nadie. Solo son un 25% mas de fotogramas que codificar.
+        //
+        // Y cortar sigue siendo necesario: el coste es lineal (26,4 ms por
+        // fotograma, medido a 4, 8, 15 y 30 segundos), asi que sin tope un
+        // video de un minuto revienta el limite de 45 s en todos los escalones
+        // de 512 y encadena siete timeouts.
+        //
+        // Si algun dia se ve que el telefono corta antes, esto es UN NUMERO.
         //
         // `inputOptions` y no `outputOptions`: como opcion de entrada, ffmpeg
         // deja de LEER al llegar al tope. Puesta a la salida decodifica el

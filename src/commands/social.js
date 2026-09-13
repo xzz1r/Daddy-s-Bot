@@ -386,11 +386,12 @@ ${p}inactivos · ${p}inactivo
 ${p}promote · ${p}ascender  ·  ${p}allow · ${p}permitir  ·  ${p}r · ${p}presentarse · ${p}presentacion
 ${p}scan · ${p}escanear  ·  ${p}marcarfake · ${p}fake
 ${p}fkban · ${p}banear · ${p}ban  ·  ${p}fkunban · ${p}desbanear · ${p}unban
-${p}fklist · ${p}listanegra  ·  ${p}antifake · ${p}antifk
+${p}fklist  ·  ${p}antifake · ${p}antifk
 ${p}notifadmin  ·  ${p}autoaccept · ${p}autoaceptar · ${p}autoapprove · ${p}autoaprobar
 ` : ''}${esOwner ? `
 ━━━━━ *ADMINS SUPERIORES* ━━━━━
 ${p}on · ${p}off  ·  ${p}demote · ${p}degradar
+${p}listanegra
 ${p}antilink · ${p}antifoto · ${p}antiempresa · ${p}antibusiness · ${p}antiadmin
 ${p}adminmode · ${p}soloadmins · ${p}soloadmin  ·  ${p}aura on/off
 ${p}resetcount · ${p}resetconteo  ·  ${p}resetaura
@@ -511,6 +512,7 @@ ${esAdmin ? `
 ` : ''}${esOwner ? `
 ━━ *SUPERIORES* ━━
 *${p}demote* · *${p}resetaura* · *${p}resetcount* · *${p}on*/*${p}off* · *${p}clearcache* · *${p}diag*
+*${p}listanegra* — la lista negra global: ver, meter números y sacarlos
 _on/off:_ *${p}antiadmin* *${p}antilink* *${p}antiempresa* *${p}antifoto* *${p}adminmode* *${p}aura*
 ` : ''}
 _${p}ping · ${p}info · ${p}whoami · *${p}help todo* para la lista entera_${config.contacto ? `

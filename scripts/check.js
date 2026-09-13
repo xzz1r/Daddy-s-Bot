@@ -10720,6 +10720,171 @@ const di=async(quien,t)=>{out.length=0;
     if (fallos === antes) console.log(verde('   ✓ lo interno no sale ni por nombre, ni por IP, ni tras una redirección, y lo de fuera sigue pasando'));
   }
 
+  // ── 62. LA LISTA NEGRA ES DEL DUEÑO Y NO LA APAGA NADIE ──────────────────
+  //
+  // Dos cosas distintas que se habian quedado pegadas.
+  //
+  // 1. EL VETO DEPENDIA DE UN INTERRUPTOR. La expulsion del vetado al entrar
+  //    vivia dentro de guardOnJoin, detras de `if (!isAntiFakeEnabled) return`.
+  //    Con el anti-fake apagado, un numero de la lista negra entraba por la
+  //    puerta y se quedaba. El propio joinRequests.js lo tenia escrito —«la
+  //    unica rendija es tener el antifake apagado»— y era esta.
+  //
+  //    La huella de fotos SI puede apagarse: es una sospecha, dos cuentas con
+  //    la misma foto, y solo avisa. Un veto es una decision ya tomada sobre esa
+  //    cuenta: o vale siempre o no vale. Un interruptor de un grupo no puede
+  //    deshacer lo que el dueño decidio para todos.
+  //
+  // 2. *!listanegra* ERA UN ALIAS DE *!fklist*: solo lectura y abierto a los
+  //    admins. Ahora es del tier owner y hace las tres cosas.
+  //
+  // Y la puerta se mide en los dos sentidos. Que el dueño entre no prueba nada
+  // si no se comprueba tambien que un admin rebota — y que rebota EN SILENCIO,
+  // porque un "solo el dueño puede" convierte el comando en una forma de
+  // averiguar quien es el dueño probandolo por el grupo.
+  {
+    console.log('\n62. LA LISTA NEGRA ES DEL DUEÑO Y NO LA APAGA NADIE');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const { cmdListaNegra, _echarDeTodos: echarDeTodos } = require(path.join(R, 'src/commands/listaNegra'));
+    const { guardOnJoin } = require(path.join(R, 'src/commands/fk'));
+    const banlist = require(path.join(R, 'src/utils/banlist'));
+    const estado = require(path.join(R, 'src/utils/state'));
+    const cfg = require(path.join(R, 'src/config'));
+
+    const OWN62 = `${String(cfg.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
+    const ADM62 = '34622222262@s.whatsapp.net';
+    const RASO62 = '34633333362@s.whatsapp.net';
+    const MALO62 = '34644444462@s.whatsapp.net';
+    const BOT62 = '34600000062@s.whatsapp.net';
+    const G62 = '120363000000062001@g.us';
+    const G62B = '120363000000062002@g.us';
+
+    const meta62 = { id: G62, subject: 'G', participants: [
+      { id: BOT62, admin: 'admin' }, { id: OWN62, admin: 'admin' }, { id: ADM62, admin: 'admin' }, { id: RASO62 }] };
+
+    const reg = { textos: [], quitados: [] };
+    const sock62 = {
+      user: { id: BOT62 },
+      sendMessage: async (j, c) => { if (c?.text) reg.textos.push(c.text); return {}; },
+      readMessages: async () => {}, sendPresenceUpdate: async () => {},
+      groupMetadata: async (j) => (j === G62B
+        ? { id: G62B, subject: 'H', participants: [{ id: BOT62, admin: 'admin' }, { id: MALO62 }] }
+        : meta62),
+      groupParticipantsUpdate: async (j, p, acc) => {
+        if (acc === 'remove') for (const x of p) reg.quitados.push(`${j}|${x}`);
+        return p.map((id) => ({ status: '200', jid: id }));
+      },
+      groupFetchAllParticipating: async () => ({
+        [G62]: meta62,
+        [G62B]: { id: G62B, subject: 'H', participants: [{ id: BOT62, admin: 'admin' }, { id: MALO62 }] },
+      }),
+    };
+
+    const correr = async (quien, args) => {
+      reg.textos.length = 0;
+      await cmdListaNegra(sock62, {
+        key: { remoteJid: G62, participant: quien, fromMe: false, id: `LN${Date.now()}${Math.random()}` },
+        message: { conversation: '!listanegra' },
+      }, args, meta62);
+      return reg.textos.join('\n');
+    };
+
+    try {
+      // ── 1. LA PUERTA ────────────────────────────────────────────────────
+      //
+      // El admin y el raso no solo no pueden: no reciben NADA. Si contestara
+      // algo, probar el comando por el grupo diria quien es el dueño.
+      const delAdmin = await correr(ADM62, ['34699999901']);
+      exige(delAdmin === '', `un admin usó *!listanegra* y el bot le contestó ("${delAdmin.slice(0, 60)}"): eso es de admins superiores, y contestar delata al dueño`);
+      exige(!(await banlist.isBanned([`34699999901@s.whatsapp.net`])),
+        'un admin metió un número en la lista negra global: la lista es del dueño, no de cada grupo');
+      const delRaso = await correr(RASO62, ['34699999902']);
+      exige(delRaso === '', 'un miembro raso recibió respuesta de *!listanegra*');
+
+      // ── 2. EL DUEÑO SÍ, Y ECHA DE TODOS LOS GRUPOS ──────────────────────
+      //
+      // No solo del grupo donde se escribe: una lista negra que deja al vetado
+      // sentado en el grupo de al lado es media lista negra. MALO62 está en
+      // G62B, no en G62, y tiene que salir igual.
+      reg.quitados.length = 0;
+      const salida = await correr(OWN62, [MALO62.split('@')[0]]);
+      exige(await banlist.isBanned([MALO62]), 'el dueño metió un número y no quedó en la lista negra');
+      exige(reg.quitados.includes(`${G62B}|${MALO62}`),
+        'al vetado no lo echaron del OTRO grupo donde estaba: una lista negra que solo vale en el grupo donde se escribe no es global');
+      exige(/LISTA NEGRA/i.test(salida), 'el dueño no recibió confirmación de lo que acaba de hacer');
+
+      // Y EN ESE BARRIDO EL DUEÑO NO CAE. Se le reconoce con la ficha de CADA
+      // grupo, no con la del grupo donde se escribió: en otro grupo el dueño
+      // aparece con otra forma (@lid) y la comprobación de origen no la ve. Si
+      // esto falla, el bot echa al dueño de su propio grupo — y es el único
+      // error de aquí que no se puede arreglar desde dentro del bot.
+      reg.quitados.length = 0;
+      await echarDeTodos(sock62, [[OWN62, `${String(cfg.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`]]);
+      exige(!reg.quitados.some((x) => x.endsWith(`|${OWN62}`)),
+        'el barrido por todos los grupos echó al DUEÑO: en otro grupo llega con otra forma y hay que reconocerlo con la ficha de ese grupo');
+
+      // ── 3. Y AL ENTRAR SE LE ECHA CON EL ANTI-FAKE APAGADO ──────────────
+      //
+      // ESTA ES LA DE VERDAD. Con el interruptor encendido esto ya funcionaba;
+      // el agujero era justo el caso de abajo, y llevaba ahí desde siempre.
+      const previo = estado.isAntiFakeEnabled(G62);
+      try {
+        if (previo) estado.toggleAntiFake(G62, false);
+        exige(!estado.isAntiFakeEnabled(G62), 'no pude apagar el anti-fake para la prueba');
+        reg.quitados.length = 0;
+        await guardOnJoin(sock62, G62, [{ id: MALO62 }], meta62);
+        await new Promise((r) => setTimeout(r, 120));
+        exige(reg.quitados.includes(`${G62}|${MALO62}`),
+          'con el anti-fake APAGADO, un número de la lista negra entra al grupo y se queda: es la rendija que el propio joinRequests.js tenía escrita');
+
+        // Y el que NO está vetado sigue entrando: la guarda no echa a cualquiera.
+        reg.quitados.length = 0;
+        await guardOnJoin(sock62, G62, [{ id: RASO62 }], meta62);
+        await new Promise((r) => setTimeout(r, 120));
+        exige(!reg.quitados.length,
+          'la guarda de la lista negra echó a alguien que NO está vetado: eso vacía el grupo');
+
+        // Y al tier owner no le toca ni estando en la lista.
+        reg.quitados.length = 0;
+        await guardOnJoin(sock62, G62, [{ id: OWN62 }], meta62);
+        await new Promise((r) => setTimeout(r, 120));
+        exige(!reg.quitados.length, 'la guarda de la lista negra actuó contra el tier owner');
+      } finally {
+        if (previo) estado.toggleAntiFake(G62, true);
+      }
+
+      // ── 4. QUITAR DESHACE DE VERDAD ─────────────────────────────────────
+      //
+      // Una cuenta se guarda en varias formas a la vez (teléfono y LID). Si
+      // quitar solo borra la que se escribió, el bot dice "fuera" y la persona
+      // sigue vetada para siempre — que es irreparable en la práctica, porque
+      // a esa altura ya la expulsaste y no puedes mencionarla.
+      await correr(OWN62, ['quitar', MALO62.split('@')[0]]);
+      exige(!(await banlist.isBanned([MALO62])), 'quitar de la lista negra no quitó nada');
+
+      // ── 5. NI AL BOT NI AL DUEÑO ────────────────────────────────────────
+      const contraBot = await correr(OWN62, [BOT62.split('@')[0]]);
+      exige(!(await banlist.isBanned([BOT62])), 'el bot se metió a sí mismo en la lista negra');
+      exige(contraBot !== '', 'con el bot sí se contesta: no se descubre nada, ya se sabe cuál es');
+      const contraDueño = await correr(OWN62, [OWN62.split('@')[0]]);
+      exige(!(await banlist.isBanned([OWN62])), 'el dueño se pudo meter a sí mismo en la lista negra global');
+      exige(contraDueño === '',
+        'con el tier owner hay que callar: una respuesta distinta para el dueño es una forma de encontrarlo');
+
+      // ── 6. EL MENÚ NO LO ANUNCIA A QUIEN NO PUEDE ───────────────────────
+      const soc = fs.readFileSync(path.join(R, 'src/commands/social.js'), 'utf8');
+      const bloqueAdmin = soc.slice(soc.indexOf('esAdmin ?'), soc.indexOf('esOwner ?'));
+      exige(!/listanegra/.test(bloqueAdmin),
+        'el menú sigue enseñando *!listanegra* en el bloque de admins, y ahí ya no les funciona');
+    } finally {
+      await banlist.unbanAccount([MALO62, BOT62, OWN62, '34699999901@s.whatsapp.net', '34699999902@s.whatsapp.net']).catch(() => {});
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ solo el dueño la toca, echa de todos los grupos, y el veto no lo apaga ningún interruptor'));
+  }
+
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────
   //
   // Tres cosas que se tocan juntas cuando se busca que el bot conteste antes,
