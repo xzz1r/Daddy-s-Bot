@@ -10934,6 +10934,183 @@ const di=async(quien,t)=>{out.length=0;
     if (fallos === antes) console.log(verde('   ✓ solo el dueño la toca, echa de todos los grupos, y el veto no lo apaga ningún interruptor'));
   }
 
+  // ── 63. *!k* Y SUS DISPARADORES ──────────────────────────────────────────
+  //
+  // *!k* llevaba sin cobertura de verdad. La que habia comparaba `esTriggerK`
+  // contra UNA COPIA DE SI MISMA escrita al lado —misma lista, mismo regex— asi
+  // que solo probaba que la guarda de longitud no cambiaba nada. El comando
+  // entero (quien puede usarlo, si contesta en el grupo, si se borra el
+  // disparador, si el archivo llega) no lo miraba nadie.
+  //
+  // Y debajo habia un fallo de verdad, que es justo lo que pasa cuando una
+  // comprobacion se mira al espejo.
+  //
+  // LAS URLS DE WHATSAPP CADUCAN. Pasados unos dias el CDN contesta 410 Gone y
+  // *!k* decia «WhatsApp ya no lo tiene o venia dañado»: con una foto reciente
+  // funcionaba y con una de la semana pasada no. Eso no se lee como «el archivo
+  // caduco», se lee como que el comando esta roto.
+  //
+  // Para eso existe el media retry —pedirle al servidor que lo vuelva a subir—
+  // y Baileys lo trae hecho en `downloadMediaMessage`. NO SIRVE: su guarda es
+  // `typeof error?.status === 'number'`, pero el error lo lanza su propio
+  // getHttpStream como `new Boom(..., { statusCode })`, y Boom deja eso en
+  // `.output.statusCode`, no en `.status`. La condicion es falsa siempre. Se
+  // comprueba aqui abajo para que el dia que lo arreglen arriba se vea.
+  {
+    console.log('\n63. *!k* Y SUS DISPARADORES');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    const { handleMessage } = require(path.join(R, 'src/handlers/messageHandler'));
+    const k = require(path.join(R, 'src/commands/k'));
+    const cfg = require(path.join(R, 'src/config'));
+
+    const OWN63 = `${String(cfg.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
+    const G63 = '120363000000063001@g.us';
+    const BOT63 = '34600000063@s.whatsapp.net';
+    const OTRO63 = '34655555563@s.whatsapp.net';
+    const meta63 = { id: G63, subject: 'G', participants: [
+      { id: BOT63, admin: 'admin' }, { id: OWN63, admin: 'admin' }, { id: OTRO63 }] };
+    const nodo63 = () => ({ mimetype: 'image/jpeg', url: 'https://x/y', mediaKey: Buffer.alloc(32) });
+
+    let n63 = 0;
+    const correr = async ({ texto, quien = OWN63, citado = null, propio = null }) => {
+      const out = [];
+      const sock = {
+        user: { id: BOT63 },
+        sendMessage: async (j, c) => { out.push({ j, c }); return {}; },
+        readMessages: async () => {}, sendPresenceUpdate: async () => {},
+        profilePictureUrl: async () => null,
+        groupMetadata: async () => meta63, groupParticipantsUpdate: async () => [],
+      };
+      const message = propio
+        ? { imageMessage: { ...nodo63(), caption: texto } }
+        : { extendedTextMessage: { text: texto,
+            contextInfo: citado ? { stanzaId: 'Q63', participant: OTRO63, quotedMessage: citado } : undefined } };
+      await handleMessage(sock, {
+        key: { remoteJid: G63, participant: quien, fromMe: false, id: `K63-${n63++}` },
+        messageTimestamp: Math.floor(Date.now() / 1000), pushName: 'X', message,
+      });
+      await new Promise((r) => setTimeout(r, 400));
+      return {
+        priv: out.filter((o) => !o.j.endsWith('@g.us')).length,
+        grupo: out.filter((o) => o.j.endsWith('@g.us') && o.c && !o.c.delete).length,
+        del: out.filter((o) => o.c && o.c.delete).length,
+      };
+    };
+
+    // ── 1. CADA TIPO DE ARCHIVO LLEGA AL PRIVADO ───────────────────────────
+    const tipos = {
+      sticker: { stickerMessage: nodo63() }, imagen: { imageMessage: nodo63() },
+      video: { videoMessage: nodo63() }, audio: { audioMessage: nodo63() },
+      documento: { documentMessage: nodo63() },
+      // Los dos sobres: *!k* existe justo para los de ver-una-vez.
+      'ver-una-vez': { viewOnceMessageV2: { message: { imageMessage: nodo63() } } },
+      'efimero': { ephemeralMessage: { message: { imageMessage: nodo63() } } },
+    };
+    for (const [nombre, m] of Object.entries(tipos)) {
+      const r = await correr({ texto: '!k', citado: m });
+      exige(r.priv === 1, `*!k* citando un ${nombre} no manda nada al privado del dueño`);
+    }
+    exige((await correr({ texto: '!k', propio: true })).priv === 1,
+      '*!k* como pie de la propia foto no manda nada: es la forma de mandarse un archivo de una vez');
+
+    // ── 2. LA PUERTA, EN LOS DOS SENTIDOS ──────────────────────────────────
+    const deOtro = await correr({ texto: '!k', citado: tipos.imagen, quien: OTRO63 });
+    exige(deOtro.priv === 0 && deOtro.grupo === 0 && deOtro.del === 0,
+      'un miembro cualquiera usó *!k* y el bot hizo algo: esto es del dueño y con los demás no contesta ni para negarse');
+
+    // ── 3. EL DISPARADOR TECLEADO SE BORRA; LA PALABRA SUELTA NO ───────────
+    //
+    // Es toda la razon de que existan los disparadores de palabra: «!k» escrito
+    // canta y por eso se borra, pero borrar un «Welcome» real deja el aviso de
+    // «se eliminó este mensaje» a la vista del grupo, que llama mas la atencion
+    // que dejarlo puesto.
+    exige((await correr({ texto: '!k', citado: tipos.imagen })).del === 1,
+      '*!k* tecleado ya no se borra del grupo: queda a la vista que se usó un comando');
+    for (const palabra of ['Welcome', 'welcome!', '¿Diría algo?', 'dirias algo']) {
+      const r = await correr({ texto: palabra, citado: tipos.imagen });
+      exige(r.priv === 1, `«${palabra}» citando una foto no disparó *!k*`);
+      exige(r.del === 0, `«${palabra}» se borró del grupo: es una palabra corriente y borrarla llama más la atención que dejarla`);
+      exige(r.grupo === 0, `«${palabra}» contestó algo en el grupo`);
+    }
+    // Y sin archivo no se dispara nada: si no, cualquier saludo real del grupo
+    // arrancaría el comando entero por una coincidencia de texto.
+    const saludo = await correr({ texto: 'Welcome' });
+    exige(saludo.priv === 0 && saludo.grupo === 0 && saludo.del === 0,
+      'un «Welcome» sin archivo disparó el comando: dar la bienvenida es lo más normal del grupo');
+    const deOtroPalabra = await correr({ texto: 'Welcome', citado: tipos.imagen, quien: OTRO63 });
+    exige(deOtroPalabra.priv === 0, 'un miembro cualquiera disparó *!k* con una palabra suelta');
+
+    // ── 4. EL ARCHIVO CADUCADO SE VUELVE A PEDIR ───────────────────────────
+    //
+    // Lo de arriba pasaba con la caché de WhatsApp caliente. Esto es lo que
+    // rompía de verdad: se levanta un CDN de mentira donde la primera dirección
+    // ya caducó (410) y la resubida devuelve una nueva.
+    {
+      const http = require('http');
+      let caducada = 0, nueva = 0, resubidas = 0, keyBuena = true;
+      const srv = http.createServer((q, s) => {
+        if (q.url.startsWith('/viejo')) { caducada++; s.writeHead(410); s.end(); }
+        else { nueva++; s.writeHead(200); s.end(Buffer.alloc(64)); }
+      });
+      await new Promise((r) => srv.listen(0, '127.0.0.1', r));
+      try {
+        const base = `http://127.0.0.1:${srv.address().port}`;
+        // SIN directPath a propósito: Baileys lo prefiere sobre `url` y lo
+        // convierte en https contra el host de WhatsApp, así que la petición no
+        // llegaría a este servidor y la prueba mediría otra cosa.
+        const nodoLocal = (u) => ({ mimetype: 'image/jpeg', url: base + u, mediaKey: Buffer.alloc(32) });
+        const medio = { nodo: nodoLocal('/viejo'), tipo: 'image', nombre: 'imagen',
+          contenido: { imageMessage: nodoLocal('/viejo') } };
+        const sobre = { key: { remoteJid: G63, id: 'ORIG63', participant: OTRO63, fromMe: false },
+          message: medio.contenido };
+        const sock = { user: { id: BOT63 }, updateMediaMessage: async (m) => {
+          resubidas++;
+          if (m?.key?.id !== 'ORIG63') keyBuena = false;
+          return { key: m.key, message: { imageMessage: nodoLocal('/nuevo') } };
+        } };
+        // Acaba en "bad decrypt" porque los bytes de relleno no son media real:
+        // llegar hasta descifrar ya significa que la resubida salió y se bajó.
+        await k._bajarMedio(sock, sobre, medio).catch(() => {});
+        exige(caducada === 1, 'no se llegó a pedir la dirección caducada: la prueba no está midiendo la descarga');
+        exige(resubidas === 1,
+          `la resubida se pidió ${resubidas} veces: con 0, un archivo de hace unos días sigue sin poder traerse y *!k* parece roto`);
+        exige(keyBuena,
+          'la resubida se pidió con la key del *!k* y no con la del mensaje citado: WhatsApp resubiría otro archivo');
+        exige(nueva === 1, 'no se bajó de la dirección nueva que devolvió la resubida');
+
+        // Y EL CONTROL: sin resubida disponible tiene que seguir fallando. Si
+        // esto pasara, lo de arriba saldría verde sin que el reintento exista.
+        caducada = 0;
+        let fallo = null;
+        await k._bajarMedio({}, sobre, medio).catch((e) => { fallo = e; });
+        exige(fallo !== null && caducada === 1,
+          'sin resubida disponible el archivo caducado se descarga igual: entonces la comprobación de arriba no mide el reintento');
+      } finally {
+        await new Promise((r) => srv.close(r));
+      }
+    }
+
+    // ── 5. Y POR QUE NO SE USA EL REINTENTO DE BAILEYS ─────────────────────
+    //
+    // Queda escrito en una comprobación y no solo en un comentario: el día que
+    // lo arreglen arriba, esto se pone rojo y se puede tirar el nuestro.
+    {
+      const { Boom } = require('@hapi/boom');
+      const e = new Boom('x', { statusCode: 410 });
+      exige(typeof e.status !== 'number',
+        'Boom ya expone .status: el reintento de downloadMediaMessage de Baileys por fin funciona y el nuestro sobra');
+      exige(e.output?.statusCode === 410,
+        'Boom dejó de poner el código en .output.statusCode: hay que revisar de dónde lee codigoDe()');
+      const src = soloCodigo('src/commands/k.js');
+      exige(/output\?\.statusCode/.test(src),
+        'codigoDe() dejó de mirar .output.statusCode, que es el único sitio donde Boom pone el código de verdad');
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ los cinco tipos llegan, la palabra suelta no se borra, y un archivo caducado se vuelve a pedir'));
+  }
+
   // ── 31. VELOCIDAD SIN REGRESIONES DE CALIDAD ─────────────────────────────
   //
   // Tres cosas que se tocan juntas cuando se busca que el bot conteste antes,

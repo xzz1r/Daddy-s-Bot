@@ -64,9 +64,74 @@ function hallarMedio(message) {
   const m = desenvolver(message);
   if (!m) return null;
   for (const [campo, tipo, nombre] of TIPOS) {
-    if (m[campo]) return { nodo: m[campo], tipo, nombre };
+    // `contenido` es el mensaje YA desenvuelto que contiene el medio, no solo
+    // el nodo. Hace falta entero para poder pedir la resubida: ver bajarMedio.
+    if (m[campo]) return { nodo: m[campo], tipo, nombre, contenido: m };
   }
   return null;
+}
+
+// ─── BAJAR EL ARCHIVO, Y PEDIRLO OTRA VEZ SI YA NO ESTA ─────────────────────
+//
+// AQUI ESTABA EL FALLO, y explica por que *!k* parecia funcionar a ratos.
+//
+// Se bajaba de la URL del CDN de WhatsApp y ya. Esas URLs CADUCAN: pasados unos
+// dias el servidor contesta 410 Gone —o 404—, se lanzaba, y el comando decia
+// «WhatsApp ya no lo tiene o venia dañado». Con una foto de hace un rato iba y
+// con una de hace unos dias no. Desde fuera eso no se lee como «el archivo
+// caduco»: se lee como que el comando esta roto.
+//
+// Y WhatsApp SI lo tiene. Para esto existe el media retry: se le pide al
+// servidor que vuelva a subir el archivo y se baja de la URL nueva.
+//
+// ─── Y POR QUE NO SE USA EL DE BAILEYS ─────────────────────────────────────
+//
+// Baileys trae eso hecho en `downloadMediaMessage`... y NO FUNCIONA. Su
+// reintento esta guardado asi (Utils/messages.js:836):
+//
+//     typeof error?.status === 'number' && REUPLOAD_REQUIRED_STATUS.includes(error.status)
+//
+// pero el error que llega lo lanza su propio `getHttpStream` como
+// `new Boom(..., { statusCode: response.status })`, y Boom NO expone `.status`:
+// lo deja en `.output.statusCode`. Comprobado aparte: `new Boom('x', {
+// statusCode: 410 }).status` es `undefined`, asi que esa condicion es falsa
+// SIEMPRE y la resubida no se pide nunca. Cambiar a esa funcion habria dejado
+// el fallo exactamente donde estaba, con mejor aspecto.
+//
+// Asi que el reintento se hace aqui, leyendo el codigo donde de verdad esta y
+// aceptando las tres formas por si algun dia lo arreglan arriba.
+//
+// Se baja en `stream` y se corta con MAX_MEDIA_BYTES, como antes: en una
+// maquina de 1 GB un documento de 200 MB entrando entero en memoria tira el bot.
+const CODIGOS_RESUBIDA = [410, 404];
+
+function codigoDe(e) {
+  const c = e?.output?.statusCode ?? e?.statusCode ?? e?.status;
+  return typeof c === 'number' ? c : null;
+}
+
+async function bajarPorNodo(nodo, tipo) {
+  const stream = await downloadContentFromMessage(nodo, tipo);
+  return streamToBuffer(stream, MAX_MEDIA_BYTES);
+}
+
+async function bajarMedio(sock, sobre, medio) {
+  try {
+    return await bajarPorNodo(medio.nodo, medio.tipo);
+  } catch (e) {
+    const codigo = codigoDe(e);
+    if (!CODIGOS_RESUBIDA.includes(codigo)) throw e;
+    if (typeof sock?.updateMediaMessage !== 'function' || !sobre?.key?.id) throw e;
+
+    logger.info(`!k: el archivo caduco (${codigo}); le pido a WhatsApp que lo vuelva a subir`);
+    // updateMediaMessage devuelve el mensaje con la URL nueva. Se vuelve a
+    // buscar el medio dentro porque el nodo cambia: el de antes apunta a la
+    // direccion muerta.
+    const renovado = await sock.updateMediaMessage(sobre);
+    const otro = hallarMedio(renovado?.message);
+    if (!otro) throw e;
+    return bajarPorNodo(otro.nodo, otro.tipo);
+  }
 }
 
 // El privado al que se manda. En un grupo con LID el remitente llega como @lid
@@ -154,7 +219,8 @@ async function cmdK(sock, msg, groupMeta, borrar = true) {
   }
 
   const ctx = msg.message?.extendedTextMessage?.contextInfo;
-  const medio = hallarMedio(ctx?.quotedMessage) || hallarMedio(msg.message);
+  const citado = hallarMedio(ctx?.quotedMessage);
+  const medio = citado || hallarMedio(msg.message);
 
   if (!medio) {
     return sock.sendMessage(destino, {
@@ -162,10 +228,26 @@ async function cmdK(sock, msg, groupMeta, borrar = true) {
     }).catch(() => {});
   }
 
+  // El sobre que se le pasa a la resubida. Con un mensaje CITADO hay que
+  // reconstruirlo: la key del archivo es la del mensaje original —su stanzaId y
+  // quien lo mando—, no la del «!k» que lo cita. Con el medio propio, el sobre
+  // ya es este mensaje.
+  const sobre = citado
+    ? {
+      key: {
+        remoteJid: jid,
+        id: ctx?.stanzaId,
+        participant: ctx?.participant,
+        fromMe: Boolean(ctx?.participant && sock?.user?.id
+          && bareJid(ctx.participant) === bareJid(sock.user.id)),
+      },
+      message: medio.contenido,
+    }
+    : { key: msg.key, message: medio.contenido };
+
   let buf;
   try {
-    const stream = await downloadContentFromMessage(medio.nodo, medio.tipo);
-    buf = await streamToBuffer(stream, MAX_MEDIA_BYTES);
+    buf = await bajarMedio(sock, sobre, medio);
   } catch (e) {
     logger.warn(`!k: no pude descargar el ${medio.nombre}: ${e.message}`);
     return sock.sendMessage(destino, {
@@ -205,4 +287,4 @@ async function cmdK(sock, msg, groupMeta, borrar = true) {
   }
 }
 
-module.exports = { cmdK, hallarMedio, privadoDelOwner };
+module.exports = { cmdK, hallarMedio, privadoDelOwner, _bajarMedio: bajarMedio };
