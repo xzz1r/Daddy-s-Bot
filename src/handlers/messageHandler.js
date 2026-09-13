@@ -834,6 +834,37 @@ async function cmdDiag(sock, msg, groupMeta) {
   } else {
     text += '\n';
   }
+  // ─── EL TIER DUEÑO, VISTO DESDE DENTRO ───────────────────────────────────
+  //
+  // *!listanegra*, *!k* y los interruptores del grupo son del tier dueño, o sea
+  // del dueño principal Y de los co-dueños. Y cuando a un co-dueño no le
+  // funciona uno de esos comandos, el bot le contesta con SILENCIO a proposito
+  // —contestar «no puedes» delata quien manda aqui— asi que desde fuera no hay
+  // forma de distinguir «no estoy en CO_OWNERS» de «el comando esta roto».
+  //
+  // La causa casi siempre es la misma: el numero no esta en CO_OWNERS del .env,
+  // o esta con un digito cambiado. Esto lo enseña sin abrir el .env.
+  //
+  // VA MASCARADO. Este informe se manda al privado, pero acaba pegado en un
+  // chat mas veces de las que parece: con los dos ultimos digitos sobra para
+  // reconocer un numero propio y no sirve para nada a quien no lo sepa ya.
+  {
+    const tier = [config.ownerNumber, ...(config.coOwners || [])]
+      .map((n) => String(n || '').replace(/\D/g, '')).filter(Boolean);
+    text += `\nTier dueño: *${tier.length}* número(s)`;
+    text += tier.length > 1 ? ` (1 principal + ${tier.length - 1} co-dueño/s)\n` : ' — *sin co-dueños configurados*\n';
+    for (let i = 0; i < tier.length; i++) {
+      const suyo = `${tier[i]}@s.whatsapp.net`;
+      const dentro = (meta?.participants || []).some((p) =>
+        [p?.id, p?.lid, p?.phoneNumber].filter(Boolean).some((f) => sameUser(f, suyo)));
+      const quien = i === 0 ? 'principal' : `co-dueño ${i}`;
+      // «Aquí no está» no es un fallo por si solo —un co-dueño puede no estar en
+      // este grupo— pero si dice que el comando no le va, es lo primero que hay
+      // que mirar.
+      text += `  · ${quien} (…${tier[i].slice(-2)}): ${dentro ? 'en este grupo' : 'NO está en este grupo'}\n`;
+    }
+    text += '\n';
+  }
   text += `Anti-link: *${si(isAntiLinkEnabled(jid))}*\n`;
   text += `Anti-empresa: *${si(isAntiBusinessEnabled(jid))}*\n`;
   text += `Modo admin: *${si(isSoloAdminsEnabled(jid))}*\n\n`;

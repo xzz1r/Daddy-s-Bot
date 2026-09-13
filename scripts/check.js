@@ -4337,6 +4337,37 @@ const di=async(quien,texto,extra)=>{
     console.log('\n27. EL BOT NO DELATA A SU DUEÑO');
     const antes = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+
+    // ── EL INFORME DE *!diag* ENSEÑA EL TIER MASCARADO, NUNCA ENTERO ────────
+    //
+    // *!diag* dice ahora cuantos numeros tiene el tier dueño y cuales estan en
+    // este grupo, porque a un co-dueño el bot le contesta con SILENCIO cuando
+    // no le reconoce y desde fuera no se distingue «no estoy en CO_OWNERS» de
+    // «el comando esta roto».
+    //
+    // Pero el informe acaba pegado en un chat mas veces de las que parece, asi
+    // que de cada numero solo pueden salir los dos ultimos digitos. Con eso se
+    // reconoce un numero propio y no le sirve de nada a quien no lo sepa ya.
+    {
+      const mhSrcDiag = soloCodigo('src/handlers/messageHandler.js');
+      const i = mhSrcDiag.indexOf('Tier dueño:');
+      exige(i > 0, '*!diag* ya no dice quién forma el tier dueño: sin eso, un co-dueño al que el bot no reconoce no tiene forma de saberlo');
+      if (i > 0) {
+        const bloque = mhSrcDiag.slice(i - 900, i + 900);
+        exige(/slice\(-2\)/.test(bloque),
+          'el informe de *!diag* imprime números del tier sin mascarar: ese texto acaba pegado en un chat');
+        // Se miran SOLO las lineas que escriben en el informe. La primera
+        // version miraba el bloque entero y se marcaba a si misma: dentro se
+        // construye `${tier[i]}@s.whatsapp.net` para COMPARAR contra los
+        // participantes, que no sale por ningun lado. Un falso positivo en una
+        // guarda de anonimato es peor que ninguno —se desactiva y deja de mirar
+        // tambien lo de verdad— y eso ya esta escrito doce lineas mas abajo.
+        const escrituras = bloque.split('\n').filter((l) => /text \+=/.test(l));
+        const enteras = escrituras.filter((l) => /tier\[i\]/.test(l) && !/slice\(-2\)/.test(l));
+        exige(enteras.length === 0,
+          `el informe de *!diag* escribe el número entero del tier (${enteras.length} línea/s): solo pueden salir los dos últimos dígitos`);
+      }
+    }
     // El escaner tiene que distinguir tres cosas que se parecen en una linea:
     //
     //   · 'owner' a secas es una CLAVE interna (P_POSITIVA[rol], etc.), no un
