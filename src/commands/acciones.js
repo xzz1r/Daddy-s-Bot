@@ -30,9 +30,13 @@ const logger = require('../utils/logger');
 
 // Comando -> categoría de nekos.best y pool de frases.
 //
-// *!spank* NO está: ninguna fuente decente lo tiene en su catálogo sin ropa de
-// por medio, y un comando que enseña otra cosa distinta de la que dice es peor
-// que no tenerlo. Lo más parecido que sí existe es *!bonk*.
+// *!spank* ESTUVO FUERA por esto: «ninguna fuente decente lo tiene en su
+// catálogo sin ropa de por medio». Seguía siendo verdad de las webs SFW —lo
+// comprobé otra vez contra las dos, y ni nekos.best (63 categorías) ni
+// kawaii.red (76) tienen `spank`— pero dejó de serlo el día que se configuró
+// ACCION_NSFW_API: ahí sí vive, igual que `fuck`, `anal` y `cum`. Entra con el
+// mismo trato que esas tres y con la misma condición: `npm run acciones` es
+// quien dice si la categoría existe de verdad en la fuente puesta.
 // `cat` es la categoria de la web; `cmds` son los nombres que se teclean. Son
 // dos cosas distintas y aqui hay dos casos donde no coinciden:
 //
@@ -124,6 +128,20 @@ const ACCIONES = {
   //
   //   cat      la de la web SFW, que es a donde va si no hay fuente puesta
   //   catNsfw  la de la web NSFW, que es la que manda en cuanto la hay
+  // ─── LA TERCERA TANDA: TRES QUE NO PIDEN NADA ───────────────────────────
+  //
+  // `sleep`, `pout` y `bleh` existen en nekos.best —comprobadas contra su
+  // /endpoints, no supuestas— asi que funcionan sin configurar nada.
+  //
+  // Las tres son gifs de UNA persona: alguien durmiendo, alguien con morros,
+  // alguien sacando la lengua. Aqui todas las acciones van dirigidas a otra, y
+  // las tres aguantan la direccion sin forzarla: dormirse ENCIMA de alguien,
+  // ponerle morros A alguien, sacarle la lengua A alguien. Si no aguantara, la
+  // accion no entraria: un pool que pelea contra su gif se nota en la primera
+  // frase.
+  sleep:  { cat: 'sleep',  es: 'dormir',   pool: RX.SLEEP,  cmds: ['sleep', 'dormir', 'siesta'] },
+  pout:   { cat: 'pout',   es: 'puchero',  pool: RX.POUT,   cmds: ['pout', 'puchero', 'morros'] },
+  bleh:   { cat: 'bleh',   es: 'lengua',   pool: RX.BLEH,   cmds: ['bleh', 'lengua', 'mueca'] },
   fuck:   { cat: 'kiss', catNsfw: 'fuck', es: 'follar', pool: RX.FUCK, cmds: ['fuck', 'follar', 'joder'], nsfw: true },
   // Lo mismo que *!fuck* y por los mismos motivos: cuesta el doble y la web SFW
   // no tiene nada que se le parezca, asi que sin fuente puesta cae en `kiss`
@@ -132,6 +150,33 @@ const ACCIONES = {
   // El final. Mismo trato que los otros dos: 120, categoria propia comprobada
   // contra la fuente, y la web SFW no tiene nada que se le parezca.
   cum:    { cat: 'kiss', catNsfw: 'cum', es: 'correrse', pool: RX.CUM, cmds: ['cum', 'correrse', 'acabar'], nsfw: true },
+  // ─── Y SEIS EXPLICITAS MAS ──────────────────────────────────────────────
+  //
+  // Mismo trato que las tres de arriba, porque tienen el mismo problema: la
+  // categoria solo existe en la fuente NSFW. Lo comprobe contra las dos webs
+  // SFW y ninguna de las seis esta en ninguna de las dos.
+  //
+  // EL `cat` DE RESPALDO NO ES UN ACIERTO, ES UN MAL MENOR, igual que el de
+  // *!fuck*: sin ACCION_NSFW_API puesta, *!spank* manda una cachetada y
+  // *!undress* un beso. Enseña otra cosa distinta de la que dice —que es
+  // justo lo que este fichero lleva advirtiendo desde arriba— y se acepta
+  // aqui por lo mismo que se acepto alli: es preferible a un comando que
+  // cobra, falla y devuelve el aura cada vez. Con la fuente puesta, que es
+  // como esta el bot, esta linea no se ejecuta nunca.
+  //
+  // `slap` para *!spank* y `wink` para *!seduce* porque son lo mas parecido
+  // que existe de verdad en nekos.best; el resto cae en `kiss` como las tres
+  // de antes, que no tienen nada que se les acerque.
+  //
+  // NINGUNA DE LAS SEIS ESTA COMPROBADA CONTRA LA FUENTE NSFW: esa web vive en
+  // el .env del servidor y desde fuera no se ve. `npm run acciones` en el VPS
+  // es quien lo dice, y lo que salga rojo se quita con una linea.
+  seduce:  { cat: 'wink', catNsfw: 'seduce',  es: 'seducir',  pool: RX.SEDUCE,  cmds: ['seduce', 'seducir', 'ligar'], nsfw: true },
+  preg:    { cat: 'kiss', catNsfw: 'preg',    es: 'preñar',   pool: RX.PREG,    cmds: ['preg', 'prenar', 'embarazar'], nsfw: true },
+  undress: { cat: 'kiss', catNsfw: 'undress', es: 'desnudar', pool: RX.UNDRESS, cmds: ['undress', 'desnudar', 'desvestir'], nsfw: true },
+  spank:   { cat: 'slap', catNsfw: 'spank',   es: 'azote',    pool: RX.SPANK,   cmds: ['spank', 'azote', 'azotar'], nsfw: true },
+  lickass: { cat: 'kiss', catNsfw: 'lickass', es: 'lamer',    pool: RX.LICKASS, cmds: ['lickass', 'lamer'], nsfw: true },
+  grope:   { cat: 'kiss', catNsfw: 'grope',   es: 'manosear', pool: RX.GROPE,   cmds: ['grope', 'manosear'], nsfw: true },   // 'sobar' fuera: a una letra de !robar
 };
 
 // SIN FRASES NO HAY COMANDO.

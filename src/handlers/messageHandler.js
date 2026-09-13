@@ -2920,6 +2920,35 @@ async function handleMessage(sock, msg, opciones = {}) {
       case 'feed':
       case 'comer':
       case 'comida':
+      // ─── La tercera tanda ────────────────────────────────────────────────
+      // Tres que no piden nada (nekos.best las sirve de serie) y seis que solo
+      // existen en la fuente NSFW. Van en el mismo bloque porque el reparto lo
+      // hace accionPorNombre, no el switch: aqui solo se reserva el nombre.
+      case 'sleep':
+      case 'dormir':
+      case 'siesta':
+      case 'pout':
+      case 'puchero':
+      case 'morros':
+      case 'bleh':
+      case 'lengua':
+      case 'mueca':
+      case 'seduce':
+      case 'seducir':
+      case 'ligar':
+      case 'preg':
+      case 'prenar':
+      case 'embarazar':
+      case 'undress':
+      case 'desnudar':
+      case 'desvestir':
+      case 'spank':
+      case 'azote':
+      case 'azotar':
+      case 'lickass':
+      case 'lamer':
+      case 'grope':
+      case 'manosear':
         // SIN FRASES, NADA. Si el pool de esa accion todavia no existe no hay
         // handler que llamar: se sale en silencio, sin cobrar y sin contestar,
         // igual que si el comando no se hubiera escrito nunca. El `case` sigue
