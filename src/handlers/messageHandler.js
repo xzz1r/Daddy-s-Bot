@@ -891,7 +891,11 @@ async function cmdDiag(sock, msg, groupMeta) {
   // chat mas veces de las que parece: con los dos ultimos digitos sobra para
   // reconocer un numero propio y no sirve para nada a quien no lo sepa ya.
   {
-    const propias = (config.ownerNumbers || [config.ownerNumber])
+    // ownerNumbers, en plural y sin respaldo al singular: config.js lo construye
+    // siempre como lista. Un `|| [config.ownerNumber]` aqui seria colgar del
+    // numero suelto —la PRIMERA linea— una parte del informe que habla de
+    // todas, y es justo lo que la capa 71 no deja pasar.
+    const propias = config.ownerNumbers
       .map((n) => String(n || '').replace(/\D/g, '')).filter(Boolean);
     const tier = [...propias, ...(config.coOwners || [])]
       .map((n) => String(n || '').replace(/\D/g, '')).filter(Boolean);

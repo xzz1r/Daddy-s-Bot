@@ -12436,6 +12436,55 @@ const meta = { id: GJ, subject: 'G', participants: [
       fs.rmSync(dir71, { recursive: true, force: true });
     }
 
+    // ── NINGUNA VENTAJA PUEDE COLGAR DEL NUMERO SUELTO ──────────────────
+    //
+    // `config.ownerNumber` es UNA linea: la primera. `config.ownerNumbers` son
+    // todas. Cualquier ventaja escrita contra el singular se la queda solo la
+    // primera linea, y el dueño se encuentra con que desde su otro numero
+    // cuenta en el ranking, paga, o se le puede apuntar con una explicita —sin
+    // que nada falle ni salga en ningun log.
+    //
+    // Hoy las cuarenta y pico ventajas preguntan por isMainOwner, que mira la
+    // lista entera. El singular queda SOLO para ESCRIBIRLE (los dos avisos de
+    // «me han quitado el admin» y el destino de ultimo recurso de !k), donde
+    // hace falta una y solo una, y para el respaldo de wa.js cuando la lista
+    // viene vacia.
+    //
+    // Asi que se cierra por fichero: si el singular aparece en cualquier otro
+    // sitio, es que alguien esta decidiendo algo con media identidad del dueño.
+    {
+      const PERMITIDOS = new Set(['src/bot.js', 'src/utils/wa.js', 'src/commands/k.js']);
+      const intrusos = [];
+      const andar = (dir) => {
+        for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+          const abs = path.join(dir, e.name);
+          if (e.isDirectory()) { andar(abs); continue; }
+          if (!e.name.endsWith('.js')) continue;
+          const rel = path.relative(R, abs).split(path.sep).join('/');
+          if (PERMITIDOS.has(rel)) continue;
+          // SIN COMENTARIOS. Esta misma capa se puso roja por un comentario que
+          // EXPLICABA por que no se usa el singular: un escaneo que lee las
+          // notas acaba acusando a quien documenta la regla.
+          const txt = soloCodigo(rel);
+          // ownerNumbers (plural) es el bueno: se excluye del hallazgo.
+          for (const m of txt.matchAll(/config\.ownerNumber\b(?!s)/g)) {
+            const linea = txt.slice(0, m.index).split('\n').length;
+            intrusos.push(`${rel}:${linea}`);
+          }
+        }
+      };
+      andar(path.join(R, 'src'));
+      exige(intrusos.length === 0,
+        `hay ${intrusos.length} sitio(s) decidiendo con el número suelto del dueño (${intrusos.slice(0, 3).join(' · ')}): config.ownerNumber es solo la PRIMERA línea, así que lo que cuelgue de ahí deja fuera la segunda — desde su otro número el dueño contaría en !count, pagaría, o las explícitas le podrían apuntar, y nada lo diría`);
+
+      // Y EL CONTROL: que la regla siga viendo. Si el patron deja de encontrar
+      // los usos legitimos que SI hay, es que ha dejado de mirar y lo de arriba
+      // esta en verde por no buscar nada.
+      const bot = soloCodigo('src/bot.js');
+      exige(/config\.ownerNumber\b(?!s)/.test(bot),
+        'la regla del número suelto ya no encuentra ni los usos legítimos de bot.js: ha dejado de mirar');
+    }
+
     if (fallos === antes) console.log(verde('   ✓ las líneas del dueño son él —ni cuentan ni pagan ni se les apunta—, se le escribe a una sola, y el co-dueño paga'));
   }
 
