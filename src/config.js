@@ -7,6 +7,32 @@
 // los avisos salen todos de aqui.
 const PREFIJOS = ['!', '/'];
 
+// ─── EL DUEÑO PUEDE SER MAS DE UN NUMERO ────────────────────────────────────
+//
+// Hasta ahora OWNER_NUMBER era UNO, y el tier se completaba con CO_OWNERS. Pero
+// co-dueño NO es lo mismo que dueño, y la diferencia se nota en sitios que no
+// son de permisos:
+//
+//   · el principal no cuenta en el ranking de !count; los co-dueños si
+//   · las acciones explicitas no se pueden dirigir contra el principal; contra
+//     un co-dueño si (y eso esta puesto a proposito, con su capa que lo vigila)
+//   · los avisos de «me han quitado el admin» van al principal
+//   · en privado, el principal no paga por usar comandos
+//
+// Asi que quien tiene dos lineas propias —y las usa como la misma persona— no
+// puede meter la segunda en CO_OWNERS sin quedarse a medias: sale en su propia
+// tabla de actividad y el bot le deja ser objetivo de un *!fuck*.
+//
+// OWNER_NUMBER acepta lista separada por comas. TODOS son dueño principal a
+// efectos de identidad; el PRIMERO es ademas el canonico, que es a donde se
+// escribe cuando hay que escribirle (los avisos de admin). Dos destinos para
+// el mismo aviso serian dos notificaciones del mismo problema a la misma
+// persona.
+const OWNER_NUMBERS = String(process.env.OWNER_NUMBER || '5491100000000')
+  .split(',')
+  .map((n) => n.replace(/\D/g, ''))
+  .filter(Boolean);
+
 const config = {
   // EL PREFIJO QUE SE ENSEÑA. Uno solo, y es el primero de la lista.
   //
@@ -27,14 +53,24 @@ const config = {
   // escribir el simbolo suelto ahi arriba.
   prefijos: PREFIJOS,
   botName: "Daddy's Bot",
-  ownerNumber: process.env.OWNER_NUMBER || '5491100000000',
-  // Co-owners: mismos privilegios que el owner. Se definen en .env como
-  // CO_OWNERS=numero1,numero2 para no dejar ningún número real escrito en el
-  // código. Vacío por defecto.
+  // TODAS las lineas del dueño. Identidad: cualquiera de estas es el dueño.
+  ownerNumbers: OWNER_NUMBERS,
+  // LA CANONICA, y solo para ESCRIBIRLE. Se queda como string porque es lo que
+  // esperan los cinco sitios que abren un privado con el dueño.
+  ownerNumber: OWNER_NUMBERS[0] || '',
+  // Co-owners: mismos privilegios de MANDO que el dueño, pero no son el dueño
+  // (ver la nota de arriba). Se definen en .env como CO_OWNERS=numero1,numero2
+  // para no dejar ningún número real escrito en el código. Vacío por defecto.
+  //
+  // Y se quita de aqui lo que ya este en OWNER_NUMBER: al pasar una linea de
+  // co-dueña a dueña se queda escrita en los dos sitios durante un rato, y un
+  // numero que aparece en las dos listas es el que hace que !diag cuente tres
+  // donde hay dos y que nadie sepa en que tier esta de verdad.
   coOwners: (process.env.CO_OWNERS || '')
     .split(',')
     .map(n => n.replace(/\D/g, ''))
-    .filter(Boolean),
+    .filter(Boolean)
+    .filter((n, i, a) => a.indexOf(n) === i && !OWNER_NUMBERS.includes(n)),
   // Amaño de !ship: con estos numeros, al owner le sale compatibilidad ALTA en
   // vez del 0-12 que le sale con todo el mundo. Se definen en .env como
   // SHIP_ALTO=numero1,numero2 por el mismo motivo que CO_OWNERS — no dejar

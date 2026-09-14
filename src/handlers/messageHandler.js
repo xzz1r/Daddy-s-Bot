@@ -891,15 +891,24 @@ async function cmdDiag(sock, msg, groupMeta) {
   // chat mas veces de las que parece: con los dos ultimos digitos sobra para
   // reconocer un numero propio y no sirve para nada a quien no lo sepa ya.
   {
-    const tier = [config.ownerNumber, ...(config.coOwners || [])]
+    const propias = (config.ownerNumbers || [config.ownerNumber])
       .map((n) => String(n || '').replace(/\D/g, '')).filter(Boolean);
+    const tier = [...propias, ...(config.coOwners || [])]
+      .map((n) => String(n || '').replace(/\D/g, '')).filter(Boolean);
+    const co = tier.length - propias.length;
     text += `\nTier dueño: *${tier.length}* número(s)`;
-    text += tier.length > 1 ? ` (1 principal + ${tier.length - 1} co-dueño/s)\n` : ' — *sin co-dueños configurados*\n';
+    text += ` (${propias.length} ${propias.length === 1 ? 'línea tuya' : 'líneas tuyas'}`;
+    text += co ? ` + ${co} co-dueño/s)\n` : ', *sin co-dueños*)\n';
     for (let i = 0; i < tier.length; i++) {
       const suyo = `${tier[i]}@s.whatsapp.net`;
       const dentro = (meta?.participants || []).some((p) =>
         [p?.id, p?.lid, p?.phoneNumber].filter(Boolean).some((f) => sameUser(f, suyo)));
-      const quien = i === 0 ? 'principal' : `co-dueño ${i}`;
+      // Cual es cual importa: una linea tuya no cuenta en !count y no se puede
+      // usar de objetivo en las explicitas; un co-dueño si, y esa es justo la
+      // pregunta que trae a nadie a leer este informe.
+      const quien = i < propias.length
+        ? (propias.length === 1 ? 'principal' : `tuyo ${i + 1}`)
+        : `co-dueño ${i - propias.length + 1}`;
       // «Aquí no está» no es un fallo por si solo —un co-dueño puede no estar en
       // este grupo— pero si dice que el comando no le va, es lo primero que hay
       // que mirar.

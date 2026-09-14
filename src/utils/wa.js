@@ -14,9 +14,19 @@ const { withTimeout } = require('./helpers');
 // el mismo comentario escrito al lado desde hace tiempo.
 const TOPE_CONSULTA = 8000;
 
-const OWNER_DIGITS = String(config.ownerNumber).replace(/\D/g, '');
+// LAS LINEAS DEL DUEÑO VAN PRIMERO, Y PUEDEN SER VARIAS.
+//
+// El orden de esta lista no es cosmetico: matchOwnerIndex devuelve la POSICION
+// del que ha coincidido, y de esa posicion sale la respuesta a «¿es el dueño o
+// un co-dueño?». Con las del dueño delante, la pregunta es un `<` en vez de
+// otro barrido entero de participantes.
+const OWNER_DIGITS_LISTA = (config.ownerNumbers && config.ownerNumbers.length
+  ? config.ownerNumbers
+  : [config.ownerNumber]).map(n => String(n || '').replace(/\D/g, '')).filter(Boolean);
+// La canonica, para lo poco que sigue necesitando UNA sola.
+const OWNER_DIGITS = OWNER_DIGITS_LISTA[0] || '';
 const ALL_OWNER_DIGITS = [
-  OWNER_DIGITS,
+  ...OWNER_DIGITS_LISTA,
   ...(config.coOwners || []).map(n => String(n).replace(/\D/g, '')),
 ];
 
@@ -340,15 +350,21 @@ function isOwner(jid, fromMe, groupMeta) {
   // dejaba de proteger al dueño. El set solo contiene el owner principal ya
   // verificado, así que no relaja nada.
   if (isKnownOwnerJid(jid)) return true;
-  // El principal va SIEMPRE el primero, así que un índice 0 significa que el que
-  // coincidió es él. Antes se resolvía todo una segunda vez solo para averiguar
-  // eso, repitiendo el barrido completo de participantes.
+  // Las del dueño van SIEMPRE delante, así que un índice por debajo de cuántas
+  // hay significa que el que coincidió es él. Antes se resolvía todo una
+  // segunda vez solo para averiguar eso, repitiendo el barrido completo de
+  // participantes.
+  //
+  // Era `i === 0` de cuando el dueño era un numero y solo uno. Con dos lineas,
+  // ese cero dejaba la segunda fuera del set de JID aprendidos: seguiria siendo
+  // dueño, pero solo cuando hubiera metadata delante — y el contador de
+  // mensajes, que es el que la excluye del ranking, corre sin ella.
   const i = matchOwnerIndex(jid, groupMeta, ALL_OWNER_DIGITS);
-  if (i === 0) noteOwnerJid(jid);
+  if (i >= 0 && i < OWNER_DIGITS_LISTA.length) noteOwnerJid(jid);
   return i >= 0;
 }
 
-// True only for the primary owner (config.ownerNumber), not the co-owners.
+// True only for the owner's own lines (config.ownerNumbers), not the co-owners.
 // Used to exclude the owner's own messages from the activity ranking (!count)
 // without also excluding co-owners.
 //
@@ -360,7 +376,7 @@ function isOwner(jid, fromMe, groupMeta) {
 function isMainOwner(jid, fromMe, groupMeta) {
   if (fromMe) return true;
   if (isKnownOwnerJid(jid)) return true;
-  const ok = matchesOwners(jid, groupMeta, [OWNER_DIGITS]);
+  const ok = matchesOwners(jid, groupMeta, OWNER_DIGITS_LISTA);
   if (ok) noteOwnerJid(jid);
   return ok;
 }

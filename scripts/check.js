@@ -7042,14 +7042,19 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
       `const acc = require(${json(path.join(R, 'src/commands/acciones'))});`,
       `const OWN = ${json(OWN)};`,
       "const CO = '34600000123@s.whatsapp.net', A = '34600000002@s.whatsapp.net';",
+      // LA SEGUNDA LINEA DEL DUEÑO. OWNER_NUMBER acepta lista, y todas son el
+      // dueño a efectos de identidad: si el blindaje solo mirara la primera, la
+      // segunda seria objetivo valido de un *!fuck* y el disfraz de «se cayo la
+      // web» se le acabaria repitiendo a la misma persona desde el otro numero.
+      "const OWN2 = '34600000777@s.whatsapp.net';",
       "const BOT = '549199@s.whatsapp.net', GJ = '000000000@g.us';",
-      'const meta = { id: GJ, subject: \'G\', participants: [{ id: BOT, admin: \'admin\' }, { id: OWN, admin: \'admin\' }, { id: CO }, { id: A }] };',
+      'const meta = { id: GJ, subject: \'G\', participants: [{ id: BOT, admin: \'admin\' }, { id: OWN, admin: \'admin\' }, { id: OWN2 }, { id: CO }, { id: A }] };',
       '(async () => {',
       '  const salida = {};',
       '  for (const n of Object.keys(acc.ACCIONES)) {',
       '    if (!acc.ACCIONES[n].nsfw || !acc.ACTIVAS.includes(n)) continue;',
       '    salida[n] = {};',
-      "    for (const [etq, objetivo] of [['owner', OWN], ['coowner', CO]]) {",
+      "    for (const [etq, objetivo] of [['owner', OWN], ['owner2', OWN2], ['coowner', CO]]) {",
       '      const out = [];',
       '      cobros = 0;',
       '      const sk = { user: { id: BOT }, sendMessage: async (j, c) => { out.push(c); return {}; }, groupMetadata: async () => meta };',
@@ -7069,7 +7074,14 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
     try {
       const bruto = execSync(`node ${JSON.stringify(guionF)}`, {
         encoding: 'utf8', timeout: 120000, cwd: R,
-        env: { ...process.env, CO_OWNERS: '34600000123', ACCION_NSFW_API: '' },
+        env: {
+          ...process.env,
+          // La primera tiene que seguir siendo la de verdad: el resto de la
+          // capa compara contra OWN, que el padre saco de la configuracion.
+          OWNER_NUMBER: `${String(cfg.ownerNumber).replace(/\D/g, '')},34600000777`,
+          CO_OWNERS: '34600000123',
+          ACCION_NSFW_API: '',
+        },
       });
       const linea = bruto.split('\n').find((l) => l.startsWith('RESULTADO'));
       res = linea ? JSON.parse(linea.slice('RESULTADO'.length)) : {};
@@ -7094,6 +7106,13 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
         `*!${n}* llegó a cobrar antes de negarse contra el dueño (${caso.owner.cobros}): el blindaje tiene que salir ANTES, o se le cobra por un rechazo`);
       exige(/No he podido traer el gif/.test(caso.owner.texto),
         `*!${n}* contesta al dueño algo distinto de la caida de la web (${JSON.stringify(caso.owner.texto).slice(0, 80)}): un rechazo con nombre solo le pasa a una persona, asi que a la segunda vez el grupo sabe quien manda en el bot`);
+
+      // ── Y LA SEGUNDA LINEA DEL DUEÑO, IGUAL QUE LA PRIMERA ──────────────
+      exige(caso.owner2.medios === 0, `*!${n}* manda el gif contra la segunda línea del dueño`);
+      exige(caso.owner2.cobros === 0,
+        `*!${n}* no blinda la segunda línea del dueño (cobró ${caso.owner2.cobros}): OWNER_NUMBER acepta lista y todas son él, así que dejar fuera la segunda le pone un objetivo válido con su otro número`);
+      exige(/No he podido traer el gif/.test(caso.owner2.texto),
+        `*!${n}* contesta a la segunda línea del dueño algo distinto de la caída de la web: el disfraz tiene que ser el mismo o el grupo distingue las dos negativas`);
 
       // ── Y AL CO-OWNER SI LE LLEGAN ──────────────────────────────────────
       //
@@ -12159,6 +12178,200 @@ const borrados = (s) => s.enviados.filter((e) => e.c && e.c.delete);
     }
 
     if (fallos === antes) console.log(verde('   ✓ lo que escribe un silenciado se borra y no cuenta, y el tiempo pedido es el que se pone'));
+  }
+
+  // El guion del hijo de la capa 71. Es texto por lo mismo que el de la 70: el
+  // espia del contador tiene que estar puesto antes del primer require.
+  const MEMORIA_CAPA_71 = String.raw`
+'use strict';
+require('dotenv').config({ quiet: true });
+const fs = require('fs');
+const path = require('path');
+const R = __RAIZ__;
+// El set de JID de dueño aprendidos se guarda en disco. Esta prueba usa numeros
+// inventados, asi que se devuelve el fichero como estaba: si no, el bot de la
+// VPS arranca creyendo que un LID de mentira es su dueño.
+const FICH = path.join(R, 'data/ownerJids.json');
+const previo = (() => { try { return fs.readFileSync(FICH); } catch { return null; } })();
+
+const quejas = [];
+const exige = (c, q) => { if (!c) quejas.push(q); };
+
+let contados = [];
+const mc = require(path.join(R, 'src/utils/messageCounter'));
+const incrementoReal = mc.increment;
+mc.increment = async (...a) => { contados.push(a); return incrementoReal.apply(null, a); };
+
+const cfg = require(path.join(R, 'src/config'));
+const WA = require(path.join(R, 'src/utils/wa'));
+const { handleMessage } = require(path.join(R, 'src/handlers/messageHandler'));
+
+const FR = '33600000001';     // la primera linea: la canonica
+const CO = '573000000002';    // la segunda linea del mismo dueño
+const TER = '34700000004';    // una tercera, y en el grupo llega como @lid
+const TER_LID = '99900000004@lid';
+const COO = '34700000003';    // un co-dueño de verdad
+const FUERA = '34700000009';  // alguien del grupo
+const j = (n) => n + '@s.whatsapp.net';
+const BOT = '549000009@s.whatsapp.net';
+const GJ = '000000071@g.us';
+const meta = { id: GJ, subject: 'G', participants: [
+  { id: BOT, admin: 'admin' }, { id: j(FR) }, { id: j(CO) },
+  { id: TER_LID, phoneNumber: j(TER) },
+  { id: j(COO) }, { id: j(FUERA) },
+] };
+
+(async () => {
+  try {
+    // ── LO QUE SE LEE DEL ENTORNO ─────────────────────────────────────────
+    exige(cfg.ownerNumbers.join(',') === FR + ',' + CO + ',' + TER,
+      'OWNER_NUMBER con dos numeros no se lee como dos lineas del dueño: se leyo [' + cfg.ownerNumbers.join(',') + ']');
+    exige(cfg.ownerNumber === FR,
+      'la linea canonica ya no es la primera de la lista (' + cfg.ownerNumber + '): es a donde el bot le escribe cuando le quitan el admin, y cambiarla manda el aviso al numero equivocado');
+    exige(cfg.coOwners.join(',') === COO,
+      'el numero que esta en OWNER_NUMBER y en CO_OWNERS a la vez sigue contando como co-dueño: [' + cfg.coOwners.join(',') + ']. !diag cuenta uno de mas y nadie sabe en que tier esta');
+
+    // ── IDENTIDAD ─────────────────────────────────────────────────────────
+    for (const [n, como] of [[FR, 'la primera linea'], [CO, 'la segunda linea']]) {
+      exige(WA.isMainOwner(j(n), false, meta) === true,
+        como + ' del dueño no sale como dueño: cuenta en !count y las explicitas la pueden apuntar');
+      exige(WA.isOwner(j(n), false, meta) === true, como + ' del dueño no sale ni en el tier');
+    }
+    exige(WA.isMainOwner(j(COO), false, meta) === false,
+      'un co-dueño pasa por dueño: dejaria de contar en el ranking y se llevaria el blindaje de las explicitas, que el dueño quiso solo para el');
+    exige(WA.isOwner(j(COO), false, meta) === true, 'el co-dueño se ha caido del tier');
+    exige(WA.isMainOwner(j(FUERA), false, meta) === false, 'alguien del grupo pasa por dueño');
+    exige(WA.isOwner(j(FUERA), false, meta) === false, 'alguien del grupo entra en el tier');
+
+    // ── Y SIN METADATA DELANTE ────────────────────────────────────────────
+    // El contador corre antes de pedir la metadata, asi que la exclusion tiene
+    // que valer tambien a secas. Es lo que hace el set de JID aprendidos, y su
+    // condicion era «indice 0» de cuando el dueño era un numero y uno solo.
+    exige(WA.isMainOwner(j(CO), false, null) === true,
+      'la segunda linea del dueño solo se reconoce con la metadata delante: el contador de mensajes corre sin ella, asi que ahi volveria a contar');
+
+    // EL CAMINO QUE SE ROMPIO DE VERDAD, y hay que recorrerlo en este orden.
+    //
+    // Una linea que llega al grupo como @lid solo se puede reconocer por la
+    // metadata; despues se APRENDE, y a partir de ahi vale sin ella. Quien
+    // aprende es la comprobacion que se haga primero, y en un grupo lo primero
+    // que pasa suele ser un comando —isOwner— antes que ningun conteo.
+    //
+    // isOwner apuntaba al que coincidia en el INDICE 0, de cuando el dueño era
+    // un numero y solo uno. Con tres lineas, la segunda y la tercera no se
+    // aprendian nunca por esa via: seguian siendo dueño con metadata delante, y
+    // dejaban de serlo en el contador, que corre sin ella. Por eso la tercera
+    // se toca AQUI solo con isOwner, y se pregunta despues sin metadata.
+    exige(WA.isKnownOwnerJid(TER_LID) === false, 'el @lid de la tercera linea ya estaba aprendido antes de empezar: esta prueba no comprueba nada');
+    exige(WA.isOwner(TER_LID, false, meta) === true, 'la tercera linea del dueño, en forma @lid, no entra en el tier ni con la metadata delante');
+    // LO QUE SE MIRA ES QUE SE HAYA APRENDIDO, no solo que conteste bien ahora.
+    //
+    // El mapa LID->telefono tapa el agujero mientras dura, pero tiene tope de
+    // 2000 y se vacia en cada arranque. El set de JID aprendidos es el que se
+    // guarda en disco y se lee antes del primer mensaje, y es lo unico que hace
+    // que el dueño no cuente en su propia tabla justo despues de un reinicio.
+    // Sin esta linea, la comprobacion de abajo pasa por el mapa y no por el set.
+    exige(WA.isKnownOwnerJid(TER_LID) === true,
+      'comprobar el tier con la metadata delante no aprende el @lid de la segunda ni la tercera linea del dueño: el mapa LID->telefono lo tapa mientras dura (tope 2000, y se vacia al arrancar), pero tras un reinicio esas lineas cuentan en !count hasta el primer comando con metadata');
+    exige(WA.isMainOwner(TER_LID, false, null) === true,
+      'una linea del dueño que llega como @lid no se aprende al comprobar el tier: con la metadata delante es el dueño y en el contador de mensajes —que corre sin ella— vuelve a contar, asi que sale en su propio !count');
+
+    // ── EL RANKING ────────────────────────────────────────────────────────
+    const sock = {
+      user: { id: BOT },
+      sendMessage: async () => ({}),
+      readMessages: async () => {},
+      groupParticipantsUpdate: async () => [],
+      groupMetadata: async () => meta,
+    };
+    let n = 0;
+    const msg = (quien) => ({
+      key: { remoteJid: GJ, participant: j(quien), fromMe: false, id: 'O' + (++n) },
+      message: { conversation: 'hola' },
+      pushName: 'x',
+      messageTimestamp: Math.floor(Date.now() / 1000),
+    });
+    for (const [quien, debeContar, como] of [
+      [FR, false, 'la primera linea del dueño'],
+      [CO, false, 'la segunda linea del dueño'],
+      [COO, true, 'un co-dueño'],
+      [FUERA, true, 'alguien del grupo'],
+    ]) {
+      contados = [];
+      await handleMessage(sock, msg(quien));
+      exige(contados.length === (debeContar ? 1 : 0),
+        debeContar
+          ? como + ' ha dejado de contar en el ranking: la tabla de !count pierde mensajes que todos han visto'
+          : como + ' ha contado en el ranking de !count: el dueño no infla su propia tabla, y esa es la diferencia entre dueño y co-dueño');
+    }
+  } catch (e) {
+    quejas.push('la prueba del dueño de dos numeros revento: ' + (e && e.stack ? e.stack.split('\n')[0] : e));
+  } finally {
+    try { if (previo === null) fs.rmSync(FICH, { force: true }); else fs.writeFileSync(FICH, previo); } catch { /* nada que hacer */ }
+  }
+  console.log('CAPA71:' + JSON.stringify(quejas));
+  process.exit(0);
+})();
+`;
+
+  // ── 71. EL DUEÑO PUEDE SER DOS NUMEROS Y SEGUIR SIENDO UNO ──────────────
+  //
+  // El dueño tiene dos lineas propias y las usa como la misma persona. Meter la
+  // segunda en CO_OWNERS le daba el MANDO pero no la IDENTIDAD, y la diferencia
+  // no es de permisos:
+  //
+  //   · un co-dueño CUENTA en el ranking de !count; el dueño no
+  //   · a un co-dueño se le puede dirigir un *!fuck*; al dueño no
+  //   · en privado, el dueño no paga por los comandos
+  //
+  // O sea que desde su segunda linea salia en su propia tabla de actividad y
+  // era objetivo valido de las explicitas. Ahora OWNER_NUMBER acepta lista:
+  // todas son el dueño, y la PRIMERA es ademas la canonica —a donde se le
+  // escribe cuando el bot tiene que avisarle de algo—, porque dos avisos del
+  // mismo problema a la misma persona son uno de mas.
+  //
+  // EN UN PROCESO APARTE, y por dos motivos a la vez: wa.js congela las listas
+  // de dueño y co-dueños al cargarse (asi que OWNER_NUMBER tiene que estar en
+  // el entorno desde el principio), y al contador de mensajes hay que ponerle
+  // el espia ANTES del primer require de messageHandler.
+  {
+    console.log('\n71. EL DUEÑO PUEDE SER DOS NUMEROS Y SEGUIR SIENDO UNO');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { execFileSync } = require('child_process');
+    const os3 = require('os');
+    const dir71 = fs.mkdtempSync(path.join(os3.tmpdir(), 'capa71-'));
+    try {
+      // El hijo vive en /tmp: sin este enlace, un require por nombre no resuelve
+      // y la capa acusaria al codigo de algo que es del guion. Ya paso con axios.
+      try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(dir71, 'node_modules'), 'dir'); } catch { /* el hijo lo dira */ }
+      fs.writeFileSync(path.join(dir71, 'o.js'), MEMORIA_CAPA_71.replace(/__RAIZ__/g, json(R)));
+      let salida = '';
+      try {
+        salida = execFileSync(process.execPath, [path.join(dir71, 'o.js')], {
+          encoding: 'utf8', timeout: 120000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'],
+          env: {
+            ...process.env,
+            OWNER_NUMBER: '33600000001,573000000002,34700000004',
+            // El duplicado va a proposito: al pasar una linea de co-dueña a
+            // dueña se queda escrita en los dos sitios, y esa es la ventana en
+            // la que !diag cuenta uno de mas y nadie sabe en que tier esta.
+            CO_OWNERS: '34700000003,573000000002',
+          },
+        });
+      } catch (e) { salida = `${e.stdout || ''}${e.stderr || ''}`; }
+      const linea = salida.split('\n').reverse().find((l) => l.startsWith('CAPA71:'));
+      exige(!!linea, `la prueba del dueño de dos numeros no contesto: ${salida.slice(-400).trim()}`);
+      if (linea) {
+        let quejas = [];
+        try { quejas = JSON.parse(linea.slice('CAPA71:'.length)); } catch { quejas = ['no pude leer el resultado']; }
+        for (const q of quejas) exige(false, q);
+      }
+    } finally {
+      fs.rmSync(dir71, { recursive: true, force: true });
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ las dos líneas del dueño son él: ni cuentan en el ranking ni se les puede apuntar, y se le escribe a una sola'));
   }
 
   if (BREVE) {
