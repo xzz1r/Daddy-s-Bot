@@ -12202,6 +12202,14 @@ const mc = require(path.join(R, 'src/utils/messageCounter'));
 const incrementoReal = mc.increment;
 mc.increment = async (...a) => { contados.push(a); return incrementoReal.apply(null, a); };
 
+// Y EL COBRO, CONTADO Y SIN TOCAR EL DISCO. auraCobro captura spendAura por
+// destructuring al requerirse, asi que el parche va antes del primer require.
+// Cobrar de verdad escribiria en el almacen de aura del bot de la VPS con
+// personas y grupo inventados.
+let cobros = [];
+const almacen = require(path.join(R, 'src/utils/auraStore'));
+almacen.spendAura = async (g, u, cantidad) => { cobros.push([g, u, cantidad]); return { ok: true, cobrado: cantidad, current: 1000 }; };
+
 const cfg = require(path.join(R, 'src/config'));
 const WA = require(path.join(R, 'src/utils/wa'));
 const { handleMessage } = require(path.join(R, 'src/handlers/messageHandler'));
@@ -12304,6 +12312,32 @@ const meta = { id: GJ, subject: 'G', participants: [
           ? como + ' ha dejado de contar en el ranking: la tabla de !count pierde mensajes que todos han visto'
           : como + ' ha contado en el ranking de !count: el dueño no infla su propia tabla, y esa es la diferencia entre dueño y co-dueño');
     }
+
+    // ── QUIEN PAGA POR UN COMANDO EN EL GRUPO ─────────────────────────────
+    //
+    // El dueño no paga: administra el bot. El CO-DUEÑO SI, y lo pidio asi el
+    // dueño — usa *!sticker* y las acciones como cualquiera del grupo, y si el
+    // aura no le cuesta nada a quien mas la usa, la tabla no mide nada.
+    //
+    // Esto era 'isOwner' —el tier entero— y por eso el co-dueño iba gratis.
+    const { cobrar } = require(path.join(R, 'src/utils/auraCobro'));
+    for (const [quien, pagaEsperado, como] of [
+      [FR, false, 'la primera linea del dueño'],
+      [CO, false, 'la segunda linea del dueño'],
+      [COO, true, 'un co-dueño'],
+      [FUERA, true, 'alguien del grupo'],
+    ]) {
+      cobros = [];
+      const r = await cobrar(GJ, j(quien), 'sticker', { fromMe: false, groupMeta: meta });
+      const pago = cobros.length > 0;
+      exige(pago === pagaEsperado, pagaEsperado
+        ? como + ' no paga por un comando del grupo: va exento como si fuera el dueño, y el dueño dijo que en la mesa juegan todos menos el'
+        : como + ' esta pagando por un comando del grupo: administra el bot, no lo consume');
+      exige((r.exento === true) === !pagaEsperado,
+        como + ' devuelve la marca de exento al reves: ' + JSON.stringify(r));
+      if (pago) exige(cobros[0][2] > 0, como + ' pasa por el cobro pero con precio 0: eso es ir gratis por la puerta de al lado');
+    }
+
   } catch (e) {
     quejas.push('la prueba del dueño de dos numeros revento: ' + (e && e.stack ? e.stack.split('\n')[0] : e));
   } finally {
@@ -12314,7 +12348,7 @@ const meta = { id: GJ, subject: 'G', participants: [
 })();
 `;
 
-  // ── 71. EL DUEÑO PUEDE SER DOS NUMEROS Y SEGUIR SIENDO UNO ──────────────
+  // ── 71. EL DUEÑO SON SUS NUMEROS; EL CO-DUEÑO PAGA COMO TODOS ───────────
   //
   // El dueño tiene dos lineas propias y las usa como la misma persona. Meter la
   // segunda en CO_OWNERS le daba el MANDO pero no la IDENTIDAD, y la diferencia
@@ -12335,7 +12369,7 @@ const meta = { id: GJ, subject: 'G', participants: [
   // el entorno desde el principio), y al contador de mensajes hay que ponerle
   // el espia ANTES del primer require de messageHandler.
   {
-    console.log('\n71. EL DUEÑO PUEDE SER DOS NUMEROS Y SEGUIR SIENDO UNO');
+    console.log('\n71. EL DUEÑO SON SUS NUMEROS; EL CO-DUEÑO PAGA COMO TODOS');
     const antes = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
     const { execFileSync } = require('child_process');
@@ -12371,7 +12405,7 @@ const meta = { id: GJ, subject: 'G', participants: [
       fs.rmSync(dir71, { recursive: true, force: true });
     }
 
-    if (fallos === antes) console.log(verde('   ✓ las dos líneas del dueño son él: ni cuentan en el ranking ni se les puede apuntar, y se le escribe a una sola'));
+    if (fallos === antes) console.log(verde('   ✓ las líneas del dueño son él —ni cuentan ni pagan ni se les apunta—, se le escribe a una sola, y el co-dueño paga'));
   }
 
   if (BREVE) {
