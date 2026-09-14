@@ -124,8 +124,50 @@ if (!fs.existsSync(envPath)) {
   const cortas = keys.filter(k => k.length < 30).length;
   if (cortas) mal(`${cortas} de las keys parece incompleta (menos de 30 caracteres)`, 'revisa que no falte ningún trozo al pegarla');
 
-  if (!env.OWNER_NUMBER) mal('falta OWNER_NUMBER: el bot no sabe quién es el dueño', 'añádelo al .env');
-  else bien('OWNER_NUMBER configurado');
+  // ─── EL TIER, CON SUS NUMEROS ENMASCARADOS ────────────────────────────
+  //
+  // «OWNER_NUMBER configurado» era todo lo que decia esto, y no vale para la
+  // pregunta que se hace de verdad: ¿estan mis DOS lineas puestas, y quien mas
+  // hay en el tier? OWNER_NUMBER acepta lista desde que el dueño tiene dos
+  // numeros propios, asi que un simple «configurado» tapa el caso de que la
+  // segunda se haya quedado fuera — y eso no falla por ningun sitio: el bot
+  // funciona igual, solo que desde ese numero el dueño cuenta en su propio
+  // !count, paga los comandos y las explicitas le pueden apuntar.
+  //
+  // Y lo enseña ENMASCARADO, a los dos ultimos digitos, por lo mismo que el
+  // informe de !diag: este comando acaba pegado en un chat mas veces de las
+  // que parece, y con los dos ultimos basta para reconocer un numero propio.
+  //
+  // Existe tambien para no depender de un `node -e` escrito a mano: uno sin
+  // `require('dotenv')` delante lee la configuracion SIN el .env y contesta el
+  // numero de ejemplo de config.js, que es un +54 que no es de nadie. Paso.
+  const propias = String(env.OWNER_NUMBER || '').split(',').map(n => n.replace(/\D/g, '')).filter(Boolean);
+  const codueños = String(env.CO_OWNERS || '').split(',').map(n => n.replace(/\D/g, '')).filter(Boolean)
+    .filter(n => !propias.includes(n));
+  const cola = (ns) => ns.map(n => `+${n.slice(0, 2)} …${n.slice(-2)}`).join(' y ');
+  if (!propias.length) {
+    mal('falta OWNER_NUMBER: el bot no sabe quién es el dueño', 'añádelo al .env');
+  } else {
+    const raros = propias.filter(n => n.length < 8 || n.length > 15);
+    if (raros.length) {
+      mal(`OWNER_NUMBER tiene ${raros.length} número(s) con una longitud imposible`,
+        'repásalo: se esperan de 8 a 15 dígitos, con o sin el + y los espacios');
+    } else if (propias.length === 1) {
+      bien(`dueño: ${cola(propias)}`, true);
+    } else {
+      bien(`dueño: ${propias.length} líneas suyas — ${cola(propias)}`, true);
+    }
+    // Un numero en las dos listas no es un fallo —config.js lo quita de
+    // CO_OWNERS— pero deja el .env diciendo una cosa y el bot haciendo otra.
+    const enLasDos = String(env.CO_OWNERS || '').split(',').map(n => n.replace(/\D/g, ''))
+      .filter(n => propias.includes(n));
+    if (enLasDos.length) {
+      aviso(`${enLasDos.length} número(s) están en OWNER_NUMBER y en CO_OWNERS a la vez`,
+        'el bot los cuenta solo como dueño; quítalos de CO_OWNERS para que el .env diga lo mismo');
+    }
+  }
+  if (codueños.length) bien(`co-dueños: ${codueños.length} (…${codueños.map(n => n.slice(-2)).join(', …')})`);
+  else bien('sin co-dueños: el tier es solo del dueño');
 
   // SHIP_ALTO se comprueba aqui porque es la unica pieza de configuracion que no
   // se puede verificar de ninguna otra forma: si el bot no la ve, el !ship sale
