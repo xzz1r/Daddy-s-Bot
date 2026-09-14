@@ -159,50 +159,47 @@ function unmuteUser(groupJid, userJid) {
 // Un numero pelado y nada mas. Todo lo demas se caia por el borde EN SILENCIO
 // hasta el defecto de diez minutos, asi que:
 //
-//   !mute @fulano 2h    ->  diez minutos, y contesta "muteado 10 minutos"
+//   !mute @fulano 60h   ->  diez minutos, y contesta "muteado 10 minutos"
 //   !mute @fulano 1d    ->  diez minutos
-//   !mute @fulano 90s   ->  diez minutos
+//   !mute @fulano 60s   ->  diez minutos
 //
 // El admin lee la orden que ESCRIBIO, no la respuesta, asi que se entera de que
 // no ha pasado cuando el otro vuelve a hablar. Y con el borrado de mensajes
 // encima, equivocarse de duracion ya no es un detalle.
 //
-// Ahora: unidades en sus formas de aqui, piezas sumadas (`1h30m`), numero pelado
-// = minutos (que es como se venia usando, no se le cambia la costumbre a nadie),
-// y lo que no se entiende se contesta en vez de tragarselo.
+// UNA FORMA Y UNA SOLA:  60s · 60m · 60h · 7d
+//
+// Decision del dueño, y va contra la primera version de este arreglo, que
+// aceptaba de todo —`90 min`, `2 horas`, `1h30m`, `30` a secas— por miedo a
+// romperle la costumbre a alguien. Aceptar de todo no es amable: es una lista
+// de formas que hay que recordar, y en el medio esta el numero pelado, que es
+// justo el que NO se puede leer sin adivinar. `!mute @fulano 60` son sesenta
+// segundos para el que lo escribe y sesenta minutos para el que lo lee.
+//
+// Numero pegado a una letra. Sin numero pelado, sin palabras, sin sumar piezas.
+// Lo que no tenga esa forma se contesta —incluido el numero solo, que ademas
+// recibe su propio aviso: lo que le falta es la unidad, no la sintaxis— y no
+// mutea a nadie.
 const MUTE_MIN_MS = 30 * 1000;
 const MUTE_MAX_MS = 7 * 24 * 60 * 60 * 1000;
 const MUTE_DEFECTO_MS = 10 * 60 * 1000;
 
-const UNIDADES_MUTE = [
-  [/^(?:s|seg|segs|segundo|segundos)$/, 1000],
-  [/^(?:m|min|mins|minuto|minutos)$/, 60 * 1000],
-  [/^(?:h|hr|hrs|hora|horas)$/, 60 * 60 * 1000],
-  [/^(?:d|dia|dias|día|días)$/, 24 * 60 * 60 * 1000],
-];
+const UNIDADES_MUTE = { s: 1000, m: 60 * 1000, h: 60 * 60 * 1000, d: 24 * 60 * 60 * 1000 };
+// El espacio va opcional (`60 m` vale) porque no puede confundirse con nada:
+// lo que se quita es la ambigüedad del numero solo, no la tolerancia al dedo.
+// El tope de seis cifras es para que un `999999999999d` no se convierta en una
+// cuenta que ya no cabe en un entero seguro antes de llegar al recorte.
+const FORMA_MUTE = /^(\d{1,6})\s*([smhd])$/;
 
-// Devuelve { ms } | { ms, ajustado: 'min'|'max' } | { error: true }.
+// Devuelve { ms } | { ms, ajustado: 'min'|'max' } | { error: true, sinUnidad? }.
 function parsearDuracionMute(texto) {
   const t = String(texto || '').trim().toLowerCase();
   if (!t) return { ms: MUTE_DEFECTO_MS, porDefecto: true };
 
-  const PIEZA = /(\d+)\s*([a-zíáé]*)/g;
-  const piezas = [...t.matchAll(PIEZA)];
-  if (!piezas.length) return { error: true };
-  // Y QUE NO SOBRE NADA. Sin esto, "10 minutos porfa" se lee como diez minutos
-  // y "mañana" como un error, que es justo al reves de lo que parece: lo que no
-  // se entiende tiene que cantar, no colarse a medias.
-  if (t.replace(PIEZA, ' ').trim()) return { error: true };
+  const m = FORMA_MUTE.exec(t);
+  if (!m) return /^\d+$/.test(t) ? { error: true, sinUnidad: true } : { error: true };
 
-  let ms = 0;
-  for (const [, num, uni] of piezas) {
-    const n = parseInt(num, 10);
-    if (!Number.isFinite(n)) return { error: true };
-    if (!uni) { ms += n * 60 * 1000; continue; }
-    const u = UNIDADES_MUTE.find(([rx]) => rx.test(uni));
-    if (!u) return { error: true };
-    ms += n * u[1];
-  }
+  const ms = parseInt(m[1], 10) * UNIDADES_MUTE[m[2]];
   if (!ms) return { error: true };
   // Se recorta, pero se DICE que se ha recortado: un tope silencioso es el
   // mismo fallo que el defecto silencioso de antes, por la otra punta.
@@ -646,9 +643,14 @@ async function cmdMute(sock, msg, args, groupMeta) {
 
   const d = parsearDuracionMute(pedido);
   if (d.error) {
+    // El numero solo lleva su propio aviso: no es que la orden este mal escrita,
+    // es que le falta decir de que. Un "no entiendo" ahi manda a releer la
+    // sintaxis cuando lo unico que hay que añadir es una letra.
+    const que = d.sinUnidad
+      ? `*${pedido}* ¿de qué? Ponle la unidad.`
+      : `No entiendo *${pedido}* como tiempo.`;
     return sock.sendMessage(jid, {
-      text: `No entiendo *${pedido}* como tiempo, así que no he muteado a nadie.\n`
-        + `Así sí: *30* (minutos) · *45s* · *2h* · *1d* · *1h30m*.`,
+      text: `${que} No he muteado a nadie.\nAsí sí: *60s* · *60m* · *60h* · *7d*.`,
     }, { quoted: msg });
   }
 

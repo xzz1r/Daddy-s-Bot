@@ -505,7 +505,7 @@ ${bloqueAcciones(p, c)}
 ${esAdmin ? `
 ━━ *ADMIN* ━━
 *${p}kick* · *${p}unmute* · *${p}del* · *${p}tagall* · *${p}allow*
-*${p}mute* @user <tiempo> — le borro todo lo que escriba (30 · 45s · 2h · 1d)
+*${p}mute* @user <tiempo> — le borro todo lo que escriba (*60s* · *60m* · *60h* · *7d*)
 *${p}fkban* · *${p}fkunban* · *${p}marcarfake* · *${p}fklist* · *${p}scan*
 *${p}close* · *${p}open* · *${p}promote* · *${p}count* ${c('count')} · *${p}inactivos* ${c('inactivos')}
 *${p}r* — pide a los nuevos que se presenten, sin un @ a la vista

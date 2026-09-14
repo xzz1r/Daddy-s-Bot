@@ -12010,18 +12010,27 @@ const borrados = (s) => s.enviados.filter((e) => e.c && e.c.delete);
       exige(contados.length === 1, 'con el mute caducado el mensaje sigue sin contar');
     }
 
-    // 8. el tiempo que se pide es el que se pone.
+    // 8. UNA FORMA Y UNA SOLA: 60s / 60m / 60h / 7d.
     {
-      const casos = [['', 600000], ['30', 1800000], ['45s', 45000], ['2h', 7200000],
-        ['1d', 86400000], ['1h30m', 5400000], ['90 min', 5400000], ['3 dias', 259200000]];
+      const casos = [['', 600000], ['60s', 60000], ['60m', 3600000], ['60h', 216000000],
+        ['7d', 604800000], ['45s', 45000], ['90m', 5400000], ['1d', 86400000],
+        ['60 m', 3600000], ['60S', 60000]];
       for (const [txt, ms] of casos) {
         const d = G.parsearDuracionMute(txt);
         exige(!d.error && d.ms === ms, '"' + txt + '" se leyo como ' + (d.error ? 'error' : d.ms + ' ms') + ' y son ' + ms + ' ms');
       }
-      for (const malo of ['abc', 'mañana', '10 minutos porfa', '0', 'un rato', '2x']) {
+      // Y LO QUE YA NO VALE. El numero pelado es el importante: un 60 a secas
+      // son sesenta segundos para quien lo escribe y sesenta minutos para quien
+      // lo lee, y por eso se quito. Si vuelve a colarse, vuelve la adivinanza.
+      for (const malo of ['30', '60', 'abc', 'mañana', '10 minutos porfa', '0', '0s',
+        'un rato', '2x', '1h30m', '90 min', '2 horas', '3 dias']) {
         exige(G.parsearDuracionMute(malo).error === true,
-          '"' + malo + '" no da error: se lo traga hasta el defecto de diez minutos sin decir nada, que es exactamente el fallo que esto arregla');
+          '"' + malo + '" se acepta como duracion: la forma es una sola (60s/60m/60h/7d) y cualquier otra cosa tiene que contestarse, no adivinarse');
       }
+      exige(G.parsearDuracionMute('60').sinUnidad === true,
+        'un numero sin unidad no se distingue del resto de errores: lo que le falta es una letra, y el aviso tiene que decir eso y no mandar a releer la sintaxis');
+      exige(G.parsearDuracionMute('2x').sinUnidad !== true,
+        'algo que no es un numero pelado se esta marcando como si le faltara la unidad');
       const tope = G.parsearDuracionMute('99d');
       exige(tope.ms === G.MUTE_MAX_MS && tope.ajustado === 'max', 'el tope del mute no se aplica o se aplica sin avisar');
       const suelo = G.parsearDuracionMute('1s');
@@ -12058,8 +12067,26 @@ const borrados = (s) => s.enviados.filter((e) => e.c && e.c.delete);
       await G.cmdMute(s, m, ['@' + v.split('@')[0], 'mañana'], meta);
       exige(G.getMuteRemaining(g, v) === 0,
         'una duracion que el bot no entiende acaba muteando igual: el admin cree que ha puesto una cosa y el bot ha puesto otra');
-      exige(/No entiendo/.test(s.enviados.map((e) => (e.c && e.c.text) || '').join(' ')),
-        'no se avisa de que el tiempo no se ha entendido');
+      const dicho10 = s.enviados.map((e) => (e.c && e.c.text) || '').join(' ');
+      exige(/No entiendo/.test(dicho10), 'no se avisa de que el tiempo no se ha entendido');
+      exige(/60s/.test(dicho10) && /60m/.test(dicho10) && /60h/.test(dicho10),
+        'el aviso no enseña la forma buena: decir que algo esta mal sin decir como se escribe deja al admin probando a ciegas');
+    }
+
+    // 11. un numero pelado tampoco mutea, y el aviso dice que falta la unidad.
+    {
+      const g = '120000711@g.us', adm = '34600000711@s.whatsapp.net', v = '34600000811@s.whatsapp.net';
+      const s = socket({ participantes: [{ id: adm, admin: 'admin' }, { id: v }] });
+      const meta = await s.groupMetadata(g);
+      const m = mensaje(g, adm, 'x');
+      m.message = { extendedTextMessage: { text: 'x', contextInfo: { mentionedJid: [v] } } };
+      puestos.push([g, v]);
+      await G.cmdMute(s, m, ['@' + v.split('@')[0], '60'], meta);
+      exige(G.getMuteRemaining(g, v) === 0,
+        '!mute @x 60 mutea igual: sesenta es sesenta segundos para quien lo escribe y sesenta minutos para quien lo lee, y esa adivinanza es la que se quito');
+      const dicho11 = s.enviados.map((e) => (e.c && e.c.text) || '').join(' ');
+      exige(/unidad/i.test(dicho11),
+        'a un numero sin unidad se le contesta lo mismo que a "mañana": lo unico que le falta es una letra y el aviso tiene que decirlo');
     }
   } catch (e) {
     quejas.push('la prueba del mute revento: ' + (e && e.stack ? e.stack.split('\n')[0] : e));
