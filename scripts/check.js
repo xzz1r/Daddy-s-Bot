@@ -7883,6 +7883,37 @@ const di=async(quien,t)=>{out.length=0;
     const antes = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
 
+    // ── UN RESPALDO DEL .env NO PUEDE PARAR EL DESPLIEGUE ───────────────
+    //
+    // PASO DE VERDAD. Para meter una linea nueva en el tier del dueño se hizo
+    // `cp .env .env.bak` antes de tocarlo —lo sensato— y eso dejo un fichero
+    // sin seguir dentro del repositorio. actualizar.sh se niega a desplegar con
+    // el arbol sucio, y hace bien, asi que el .env quedo cambiado y el bot sin
+    // reiniciar: corriendo con la configuracion vieja y sin que nada lo dijera.
+    //
+    // Y el arreglo que ese mismo guion imprime es `git clean -fd`, que BORRA el
+    // respaldo. O sea que la forma obvia de desatascarlo se lleva por delante
+    // justo lo que se estaba guardando.
+    //
+    // Es la tercera vez con la misma forma: ya paso con data/mutes.json y con
+    // la sesion del guardian. Se le pregunta a git, que es quien decide.
+    {
+      const { execFileSync } = require('child_process');
+      for (const nombre of ['.env.bak', '.env.2026-01-01.bak', '.env.backup']) {
+        const abs = path.join(R, nombre);
+        let creado = false;
+        if (!fs.existsSync(abs)) { fs.writeFileSync(abs, 'x'); creado = true; }
+        let ignorado = false;
+        try {
+          execFileSync('git', ['check-ignore', '-q', nombre], { cwd: R, stdio: 'ignore' });
+          ignorado = true;
+        } catch { ignorado = false; }
+        if (creado) fs.rmSync(abs, { force: true });
+        exige(ignorado,
+          `${nombre} no esta en .gitignore: un respaldo del .env al lado del .env deja el arbol sucio, actualizar.sh se niega a desplegar —el .env cambiado y el bot sin reiniciar— y el \`git clean -fd\` que imprime como arreglo se lleva el respaldo por delante`);
+      }
+    }
+
     // ── EL TECHO DE MEMORIA SE MIDE EN RSS, Y ESO YA COSTO UNA TRAMPA ────
     //
     // `max_memory_restart` de pm2 mira el RSS del proceso. El techo del guardian

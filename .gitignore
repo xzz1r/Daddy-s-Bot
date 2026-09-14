@@ -53,6 +53,19 @@ data/pfpcache/
 data/music_cache/
 temp/
 .env
+# Y CUALQUIER RESPALDO DEL .env. Esto paro un despliegue de verdad: para meter
+# una linea nueva en el tier del dueño se hizo `cp .env .env.bak` antes de
+# tocarlo —lo sensato— y eso dejo un fichero sin seguir dentro del repositorio.
+# actualizar.sh se niega a desplegar con el arbol sucio (y hace bien), asi que
+# el .env quedo cambiado y el bot sin reiniciar: corriendo con la configuracion
+# de antes y sin que nada lo dijera.
+#
+# Peor todavia: el arreglo que imprime ese guion es `git clean -fd`, que BORRA
+# el respaldo. El mismo fallo que ya costo data/mutes.json y la sesion del
+# guardian, por tercera vez.
+.env.bak
+.env.*.bak
+.env.backup
 *.log
 
 # Nunca borrar la carpeta data/ con git clean
