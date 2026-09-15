@@ -13397,6 +13397,232 @@ const ficheroDe = async (ext) => {
     if (fallos === antes) console.log(verde('   ✓ *!x* trae foto, gif y vídeo, el gif se ve como gif, y el comando está en el menú'));
   }
 
+  const MEMORIA_CAPA_75 = String.raw`
+'use strict';
+require('dotenv').config({ quiet: true });
+const path = require('path');
+const fs = require('fs-extra');
+const R = __RAIZ__;
+const quejas = [];
+const exige = (c, q) => { if (!c) quejas.push(q); };
+
+// EL ESPIA VA PRIMERO: redes.js desestructura downloadUrlToFile al requerirse,
+// asi que parchearlo despues no tocaria la referencia que usa. Me paso al
+// escribir esta misma prueba y la mutacion sobrevivio.
+const rutaDl = require.resolve(path.join(R, 'src/utils/downloader'));
+const dlReal = require(rutaDl);
+let enVuelo = 0, pico = 0;
+const MARCA = {}, TARDA = {}, nombres = [];
+let FALLA = null;
+require.cache[rutaDl].exports = Object.assign({}, dlReal, {
+  downloadUrlToFile: async (url, dest) => {
+    if (FALLA && url.indexOf(FALLA) >= 0) throw new Error('caida fingida');
+    enVuelo++; if (enVuelo > pico) pico = enVuelo;
+    nombres.push(path.basename(dest));
+    await new Promise((r) => setTimeout(r, TARDA[url] == null ? 40 : TARDA[url]));
+    enVuelo--;
+    if (MARCA[url] == null) throw new Error('url sin marca: ' + url);
+    await fs.outputFile(dest, Buffer.alloc(8192, MARCA[url]));
+  },
+  ytdlp: async () => JSON.stringify({ entries: SUELTAS.map((u) => ({ url: u, ext: 'jpg', thumbnails: [{ url: u }] })) }),
+});
+
+const SUELTAS = ['https://s.invalid/uno.jpg', 'https://s.invalid/dos.jpg', 'https://s.invalid/tres.jpg'];
+const redes = require(path.join(R, 'src/utils/redes'));
+const axios = require('axios');
+
+// LAS CUATRO FOTOS DE UN TUIT. La ULTIMA en pedirse es la que MENOS tarda: si
+// el orden saliera por llegada en vez de por posicion, saldria la primera.
+const FOTOS = ['https://pbs.invalid/a.jpg', 'https://pbs.invalid/b.jpg',
+               'https://pbs.invalid/c.jpg', 'https://pbs.invalid/d.jpg'];
+FOTOS.forEach((u, i) => {
+  const pedida = u + '?name=orig';
+  TARDA[pedida] = [160, 120, 80, 5][i];
+  MARCA[pedida] = 11 + i;
+});
+SUELTAS.forEach((u, i) => { TARDA[u] = [160, 80, 5][i]; MARCA[u] = 21 + i; });
+
+const FICHA = {
+  text: 'un tuit con cuatro fotos',
+  display_text_range: [0, 24],
+  mediaDetails: FOTOS.map((u) => ({ type: 'photo', media_url_https: u })),
+};
+
+// NI UN VIAJE A LA RED. Una capa que sale a internet falla el dia que la VPS
+// no tiene linea, y entonces deja de decir nada sobre el bot.
+let fuga = null;
+axios.get = async (url) => {
+  if (/cdn\.syndication\.twimg\.com/.test(url)) return { data: FICHA };
+  fuga = url; throw new Error('la prueba no sale a la red');
+};
+axios.head = async () => { fuga = 'head'; throw new Error('la prueba no sale a la red'); };
+
+const limpiar = async (ms) => { for (const m of (ms || [])) await fs.remove(m.fichero).catch(() => {}); };
+
+(async () => {
+  // ── 1. LAS CUATRO A LA VEZ, Y EN EL ORDEN DEL TUIT ─────────────────────
+  const r = await redes._porX('https://x.com/alguien/status/1234567890');
+  exige(r && r.medios && r.medios.length === 4,
+    'un tuit de 4 fotos trae ' + ((r && r.medios) ? r.medios.length : 0) + ': se pierden fotos del post');
+  if (r && r.medios && r.medios.length === 4) {
+    const salieron = r.medios.map((m) => fs.readFileSync(m.fichero)[0]);
+    exige(salieron.join(',') === '11,12,13,14',
+      'las fotos salen en el orden de llegada (' + salieron.join(',') + ') y no en el del tuit: ' +
+      'el orden de un post lo eligio quien lo publico y a menudo es la gracia');
+    // ESTO es lo que distingue en fila de a la vez, y no depende de la carga
+    // de la maquina: un reloj de pared si, y la VPS tiene un solo nucleo.
+    exige(pico === 4, 'las fotos se bajan de una en una (pico de ' + pico + ' a la vez): ' +
+      'cuatro viajes seguidos son cuatro veces la espera delante de cada *!x*');
+    exige(new Set(nombres).size === nombres.length,
+      'dos bajadas simultaneas se llaman igual y se pisan el fichero');
+  }
+  await limpiar(r && r.medios);
+
+  // ── 2. SI UNA SE CAE, LAS OTRAS SALEN Y NO SE DESCOLOCAN ───────────────
+  FALLA = 'b.jpg'; pico = 0; nombres.length = 0;
+  const r2 = await redes._porX('https://x.com/alguien/status/1234567890');
+  exige(r2 && r2.medios.length === 3,
+    'si una foto del tuit falla salen ' + ((r2 && r2.medios) ? r2.medios.length : 0) + ' y no 3');
+  if (r2 && r2.medios.length === 3) {
+    const q = r2.medios.map((m) => fs.readFileSync(m.fichero)[0]).join(',');
+    exige(q === '11,13,14', 'con una foto caida las otras salen como ' + q + ': hay un hueco o se descolocan');
+  }
+  await limpiar(r2 && r2.medios);
+  FALLA = null;
+
+  // ── 3. EL TEXTO DEL TUIT SIGUE SALIENDO ────────────────────────────────
+  exige(r && r.texto === 'un tuit con cuatro fotos', 'el titular del tuit se perdio por el camino');
+
+  // ── 4. LOS PESOS DE UN VIDEO, TODOS A LA VEZ, Y GANA LA QUE CABE ───────
+  const V = ['https://video.invalid/alta.mp4', 'https://video.invalid/media.mp4', 'https://video.invalid/baja.mp4'];
+  const PESO = {}; PESO[V[0]] = 90 * 1048576; PESO[V[1]] = 9 * 1048576; PESO[V[2]] = 2 * 1048576;
+  const ESPERA = {}; ESPERA[V[0]] = 120; ESPERA[V[1]] = 80; ESPERA[V[2]] = 5;
+  let picoH = 0, enH = 0;
+  axios.head = async (url) => {
+    enH++; if (enH > picoH) picoH = enH;
+    await new Promise((res) => setTimeout(res, ESPERA[url] == null ? 5 : ESPERA[url]));
+    enH--;
+    return { status: 200, headers: { 'content-length': String(PESO[url]) } };
+  };
+  const det = { type: 'video', video_info: { variants: [
+    { content_type: 'video/mp4', bitrate: 9000000, url: V[0] },
+    { content_type: 'video/mp4', bitrate: 2000000, url: V[1] },
+    { content_type: 'video/mp4', bitrate: 500000, url: V[2] },
+  ] } };
+  const eleg = await redes._varianteQueCabe(det);
+  exige(eleg === V[1], 'de un video largo elige ' + (eleg ? path.basename(eleg) : 'nada') +
+    ' en vez de la mejor que cabe: o no entra en WhatsApp o sale peor de lo que podria');
+  exige(picoH === 3, 'los pesos de las calidades se preguntan de uno en uno (pico ' + picoH + '): ' +
+    'son tres esperas puestas en fila delante de cada video');
+
+  // ── 5. SIN PESO DECLARADO SE PRUEBA LA MEJOR; SI NINGUNA CABE, LA MENOR ─
+  axios.head = async () => ({ status: 200, headers: {} });
+  exige(await redes._varianteQueCabe(det) === V[0],
+    'si el servidor no dice el peso se descarta la mejor a ciegas');
+  const GORDO = {}; GORDO[V[0]] = 90e6; GORDO[V[1]] = 80e6; GORDO[V[2]] = 70e6;
+  axios.head = async (url) => ({ status: 200, headers: { 'content-length': String(GORDO[url]) } });
+  exige(await redes._varianteQueCabe(det) === V[2],
+    'si ninguna calidad cabe no se queda la mas pequeña: el aviso diria un peso que nadie iba a mandar');
+
+  // ── 6. LAS FOTOS SUELTAS, IGUAL ────────────────────────────────────────
+  pico = 0; nombres.length = 0;
+  const sueltas = await redes._porFotosSueltas('https://x.com/a/status/9');
+  exige(!!sueltas, 'la via de fotos sueltas no devolvio nada: si esto se salta, ' +
+    'esta capa deja de mirar ese camino sin avisar');
+  if (sueltas) {
+    exige(sueltas.length === 3, 'la via de fotos sueltas trae ' + sueltas.length + ' de 3');
+    const o = sueltas.map((m) => fs.readFileSync(m.fichero)[0]).join(',');
+    exige(o === '21,22,23', 'las fotos sueltas salen como ' + o + ': no es el orden del post');
+    exige(pico === 3, 'las fotos sueltas se bajan de una en una (pico ' + pico + ')');
+    await limpiar(sueltas);
+  }
+
+  exige(!fuga, 'la capa se salio a la red (' + fuga + '): una prueba que necesita linea no prueba nada el dia que no la hay');
+  console.log('CAPA75:' + JSON.stringify(quejas));
+})().catch((e) => {
+  console.log('CAPA75:' + JSON.stringify(['la prueba de las bajadas revento: ' + (e && e.message)]));
+});
+`;
+
+  // ── 75. LO QUE TRAE UN POST SALE ENTERO Y EN SU ORDEN ───────────────────
+  //
+  // El dueño lo pidio asi: «lo principal es la calidad y velocidad». Y las dos
+  // cosas se estorban en el mismo sitio, que es este.
+  //
+  // LA VELOCIDAD. Un tuit de cuatro fotos son cuatro bajadas, y puestas en fila
+  // son cuatro viajes de ida y vuelta al CDN uno detras de otro. Medido contra
+  // el CDN de X de verdad: 964, 988 y 1348 ms, unos 250 ms por foto. Lanzadas a
+  // la vez, 224 ms — la espera de UNA, no la suma. Lo mismo con los pesos de
+  // las calidades de un video: tres preguntas sueltas al mismo servidor que no
+  // dependen unas de otras.
+  //
+  // LA CALIDAD, que es donde esto se puede ir al carajo sin que se note. Bajar
+  // en paralelo es facil; bajar en paralelo Y RESPETAR EL ORDEN no, porque lo
+  // que sale por la puerta ya no es el orden en que se pidio sino el orden en
+  // que contesto el servidor. Y el orden de un post no es un detalle: lo eligio
+  // quien lo publico, y a menudo ES la gracia (un antes y un despues, una
+  // secuencia, un remate). Un album que llega barajado esta roto aunque tenga
+  // las cuatro fotos.
+  //
+  // Por eso esta capa no mide con un reloj de pared —la VPS tiene UN nucleo y
+  // eso se vuelve un fallo intermitente el dia que hay carga; ya me paso— sino
+  // dos cosas que no dependen de la maquina: CUANTAS hay en vuelo a la vez, y
+  // EN QUE ORDEN salen. Cada fichero lleva dentro una marca que dice cual es,
+  // y la ultima en pedirse es la que menos tarda: si el orden saliera por
+  // llegada, saldria la primera y la marca lo canta.
+  //
+  // Escribiendo esto la mutacion «en paralelo pero por orden de llegada»
+  // SOBREVIVIO dos veces: la primera porque las cuatro urls de prueba median
+  // igual y la marca salia identica en las cuatro, y la segunda porque la via
+  // de fotos sueltas devolvia null —los ficheros de prueba pesaban 2 KB y esa
+  // via descarta por debajo de 4 KB, que es donde vive el icono de la cuenta— y
+  // el `if` se la saltaba en silencio. Las dos cosas estan puestas a proposito
+  // como estan: marcas distintas de verdad, y un null es una queja.
+  {
+    console.log('\n75. LO QUE TRAE UN POST SALE ENTERO Y EN SU ORDEN');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   \u2717 ${queja}`)); } };
+    const { execFileSync } = require('child_process');
+    const os75 = require('os');
+    const dir75 = fs.mkdtempSync(path.join(os75.tmpdir(), 'capa75-'));
+    try {
+      try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(dir75, 'node_modules'), 'dir'); } catch { /* el hijo lo dira */ }
+      fs.writeFileSync(path.join(dir75, 'p.js'), MEMORIA_CAPA_75.replace(/__RAIZ__/g, json(R)));
+      let salida = '';
+      try {
+        salida = execFileSync(process.execPath, [path.join(dir75, 'p.js')],
+          { encoding: 'utf8', timeout: 120000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (e) { salida = `${e.stdout || ''}${e.stderr || ''}`; }
+      const linea = salida.split('\n').reverse().find((l) => l.startsWith('CAPA75:'));
+      exige(!!linea, `la prueba de las bajadas no contestó: ${salida.slice(-400).trim()}`);
+      if (linea) {
+        let quejas = [];
+        try { quejas = JSON.parse(linea.slice('CAPA75:'.length)); } catch { quejas = ['no pude leer el resultado']; }
+        for (const q of quejas) exige(false, q);
+      }
+    } finally {
+      fs.rmSync(dir75, { recursive: true, force: true });
+    }
+
+    // Y QUE NADIE VUELVA A PONERLAS EN FILA. Las tres vias que bajan varias
+    // cosas de un mismo post tienen que lanzarlas juntas; un `for` con un
+    // `await` dentro delante de una bajada es justo lo que esto quita.
+    const rd = soloCodigo('src/utils/redes.js');
+    exige(/const pesos = await Promise\.all\(urls\.map/.test(rd),
+      'los pesos de las calidades han vuelto a preguntarse en fila');
+    exige(/const bajados = await Promise\.all\(detalles\.slice/.test(rd),
+      'las fotos de un tuit han vuelto a bajarse de una en una');
+    exige(/const bajadas = await Promise\.all\(fotos\.slice/.test(rd),
+      'las fotos sueltas han vuelto a bajarse de una en una');
+    // El indice en el nombre no lo puede probar una prueba —dos nombres al azar
+    // no chocan aunque los pidas mil veces— pero sin el, cuatro bajadas a la vez
+    // comparten el mismo Date.now() y lo unico que las separa es la suerte.
+    exige(/red_\$\{Date\.now\(\)\}_\$\{i\}_/.test(rd),
+      'el nombre del fichero ya no lleva el numero: dos bajadas simultaneas dependen del azar para no pisarse');
+
+    if (fallos === antes) console.log(verde('   \u2713 un post sale entero, a la vez y en el orden de quien lo publicó'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     process.exit(fallos ? 1 : 0);

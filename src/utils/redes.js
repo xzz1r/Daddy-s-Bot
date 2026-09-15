@@ -1897,11 +1897,15 @@ async function pesaDe(url) {
 async function varianteQueCabe(detalle) {
   const urls = variantesMp4(detalle);
   if (urls.length <= 1) return urls[0] || null;
-  for (const u of urls) {
-    const pesa = await pesaDe(u);
+  // LOS TRES PESOS A LA VEZ. Preguntados en fila son tres viajes de ida y
+  // vuelta puestos uno detras de otro —unos cientos de milisegundos— delante
+  // de cada video, y no dependen unos de otros: son tres preguntas sueltas al
+  // mismo servidor.
+  const pesos = await Promise.all(urls.map((u) => pesaDe(u)));
+  for (let i = 0; i < urls.length; i++) {
     // Si el servidor no dice cuanto pesa, se prueba esta: el tope de mas abajo
     // sigue puesto y dira lo que hay. Es mejor que descartarla a ciegas.
-    if (pesa === null || pesa <= TOPE_WHATSAPP) return u;
+    if (pesos[i] === null || pesos[i] <= TOPE_WHATSAPP) return urls[i];
   }
   // Ninguna cabe. Se coge la mas pequeña para que el aviso diga un peso real y
   // no el de la que nadie iba a mandar.
@@ -1950,31 +1954,47 @@ async function porX(url) {
 
   if (!detalles.length) return { medios: [], texto };
 
-  const medios = [];
-  for (const d of detalles.slice(0, TOPE_FOTOS_X)) {
+  // ─── LAS CUATRO A LA VEZ, Y EN SU ORDEN ────────────────────────────────
+  //
+  // Bajadas en fila son cuatro viajes de ida y vuelta puestos uno detras de
+  // otro. Medido con un tuit de cuatro fotos del CDN de X: 964, 988 y 1348 ms,
+  // unos 250 ms por foto, y ninguna depende de la anterior.
+  //
+  // El orden se respeta porque `Promise.all` devuelve en el orden del mapa, no
+  // en el de llegada — y el orden de un tuit de fotos no es un detalle: es el
+  // que eligio quien lo publico, y a menudo es la gracia (un antes y un
+  // despues, una secuencia, un remate). Aqui no se reordena por nada.
+  //
+  // Va dentro del hueco de descarga que `traer` ya tiene cogido: son cuatro
+  // ficheros de un mismo comando, no cuatro comandos.
+  const bajados = await Promise.all(detalles.slice(0, TOPE_FOTOS_X).map(async (d, i) => {
     const tipo = String(d?.type || '').toLowerCase();
     const esVideo = tipo === 'video' || tipo === 'animated_gif';
     // Un gif trae una sola variante y pesa lo que pesa: no hay nada que elegir.
     const enlace = esVideo
       ? (tipo === 'animated_gif' ? mejorVariante(d) : await varianteQueCabe(d))
       : d?.media_url_https;
-    if (typeof enlace !== 'string' || !/^https?:\/\//i.test(enlace)) continue;
+    if (typeof enlace !== 'string' || !/^https?:\/\//i.test(enlace)) return null;
 
     // Las fotos se piden en su tamaño original: sin esto llegan recortadas a la
     // version que usa la tarjeta incrustada.
     const pedir = esVideo ? enlace : `${enlace}${enlace.includes('?') ? '&' : '?'}name=orig`;
     const ext = esVideo ? 'mp4' : (extensionDe(enlace) || 'jpg');
-    const fichero = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`);
+    // EL NUMERO VA EN EL NOMBRE. Bajando las cuatro a la vez, `Date.now()` es
+    // el mismo para todas y lo unico que las separaria seria el azar. Con el
+    // puesto, dos ficheros de una misma tanda no pueden llamarse igual ni
+    // aunque el azar repita.
+    const fichero = path.join(TEMP_DIR, `red_${Date.now()}_${i}_${Math.random().toString(36).slice(2)}.${ext}`);
     try {
       await downloadUrlToFile(pedir, fichero);
       const { size } = await fs.stat(fichero);
-      if (size < 1024) { await fs.remove(fichero).catch(() => {}); continue; }
+      if (size < 1024) { await fs.remove(fichero).catch(() => {}); return null; }
       if (size > TOPE_WHATSAPP) {
         await fs.remove(fichero).catch(() => {});
         logger.info(`redes: un medio del tuit pesa ${Math.round(size / 1048576)} MB y se queda fuera`);
-        continue;
+        return null;
       }
-      medios.push({
+      return {
         fichero,
         tipo: esVideo ? 'video' : 'imagen',
         ext,
@@ -1983,12 +2003,14 @@ async function porX(url) {
         // la red llama gif, asi que no hace falta adivinarlo por la pista de
         // sonido: eso se queda para lo que llegue por yt-dlp.
         ...(tipo === 'animated_gif' ? { animado: true } : {}),
-      });
+      };
     } catch (e) {
       logger.info(`redes: no pude bajar un medio del tuit (${e.message.slice(0, 60)})`);
       await fs.remove(fichero).catch(() => {});
+      return null;
     }
-  }
+  }));
+  const medios = bajados.filter(Boolean);
   return { medios, texto };
 }
 
@@ -2015,22 +2037,26 @@ async function porFotosSueltas(url) {
   const fotos = fotosDeFicha(ficha);
   if (!fotos.length) return null;
 
-  const medios = [];
-  for (const enlace of fotos.slice(0, TOPE_FOTOS_X)) {
+  // A la vez y en su orden, por lo mismo que en `porX`: son fotos sueltas de
+  // una misma publicacion, ninguna depende de la anterior, y el orden es el de
+  // quien la publico.
+  const bajadas = await Promise.all(fotos.slice(0, TOPE_FOTOS_X).map(async (enlace, i) => {
     const ext = extensionDe(enlace);
-    const fichero = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.${esImagen(ext) ? ext : 'jpg'}`);
+    const fichero = path.join(TEMP_DIR, `red_${Date.now()}_${i}_${Math.random().toString(36).slice(2)}.${esImagen(ext) ? ext : 'jpg'}`);
     try {
       await downloadUrlToFile(enlace, fichero);
       const { size } = await fs.stat(fichero);
       // Una miniatura de 3 KB no es la foto del tuit: es el icono de la cuenta.
-      if (size < 4096) { await fs.remove(fichero).catch(() => {}); continue; }
-      if (size > TOPE_WHATSAPP) { await fs.remove(fichero).catch(() => {}); continue; }
-      medios.push({ fichero, tipo: 'imagen', ext: extensionDe(fichero) || 'jpg', bytes: size });
+      if (size < 4096) { await fs.remove(fichero).catch(() => {}); return null; }
+      if (size > TOPE_WHATSAPP) { await fs.remove(fichero).catch(() => {}); return null; }
+      return { fichero, tipo: 'imagen', ext: extensionDe(fichero) || 'jpg', bytes: size };
     } catch (e) {
       logger.info(`redes: no pude bajar una foto del tuit (${e.message.slice(0, 60)})`);
       await fs.remove(fichero).catch(() => {});
+      return null;
     }
-  }
+  }));
+  const medios = bajadas.filter(Boolean);
   if (!medios.length) return null;
   logger.info(`redes: el enlace no traia video, son ${medios.length} foto(s)`);
   return medios;
