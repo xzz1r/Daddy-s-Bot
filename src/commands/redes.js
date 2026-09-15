@@ -84,6 +84,9 @@ function busquedaCitada(msg) {
 // Solo la BUSQUEDA manda varias. *!next* sigue dando una —«otra» es una, no
 // otras cinco— y un enlace concreto trae lo que hay en ese enlace y ya.
 const FOTOS_POR_PIN = 5;
+// WhatsApp corta los pies largos con un «ver más» y un tuit puede llevar cuatro
+// mil caracteres. Por encima de esto el pie deja de ser un pie.
+const TOPE_PIE = 900;
 
 async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = null, pinesDados = null) {
   const jid = msg.key.remoteJid;
@@ -201,7 +204,9 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
     // enlace merece saberlo. Que pese de mas, y que eso no sea un video. El
     // resto de motivos salen en `npm run estado`, no aqui.
     const porTamano = /WhatsApp no pasa de|pesa \d+ MB/.test(e.message);
-    const sinVideo = /no es un vídeo|no trae vídeo/.test(e.message);
+    // «ni fotos ni vídeo» es el tuit de solo texto: se dice tal cual, que es
+    // distinto de «no he podido traerlo».
+    const sinVideo = /no es un vídeo|no trae vídeo|no trae ni fotos/.test(e.message);
     // Y el tercero: no hay nada con ese nombre. Es el unico motivo de una
     // busqueda que quien la escribio puede arreglar — escribiendo otra cosa.
     const sinResultados = /no encontré nada/.test(e.message);
@@ -267,18 +272,35 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
       if (padre?.key?.id) ids.push(padre.key.id);
     }
 
+    // ─── EL TEXTO DEL TUIT VA DE PIE ──────────────────────────────────────
+    //
+    // Lo pidio el dueño: «hay alguna forma de ver los headlines del tweet?».
+    // Sin el, lo que llega al grupo es una imagen suelta sin contexto —y en un
+    // tuit el texto SUELE SER la mitad del chiste, o la noticia entera—.
+    //
+    // Va como pie del PRIMER medio y no en un mensaje aparte: un mensaje mas es
+    // otra burbuja empujando el chat, que es justo lo que se evito montando el
+    // album. Y WhatsApp corta los pies muy largos con un «ver mas», asi que se
+    // recorta antes: un tuit puede llevar cuatro mil caracteres.
+    let pieTuit = String(traido.texto || '').trim();
+    if (pieTuit.length > TOPE_PIE) pieTuit = `${pieTuit.slice(0, TOPE_PIE - 1).trimEnd()}…`;
+
+    let primero = true;
     for (const m of lote) {
       // `animado` viene marcado desde utils/redes.js cuando lo que se bajo es
       // un MP4 sin pista de audio, que es como X sirve los GIF. Con
       // gifPlayback WhatsApp lo pone en bucle y sin controles, igual que se ve
       // en la propia red; sin el llega como un clip mudo con boton de play.
+      const pie = (primero && pieTuit) ? { caption: pieTuit } : {};
+      primero = false;
       const medio = m.tipo === 'imagen'
-        ? { image: { url: m.fichero } }
+        ? { image: { url: m.fichero }, ...pie }
         : {
           video: { url: m.fichero },
           mimetype: 'video/mp4',
           jpegThumbnail: null,
           ...(m.animado ? { gifPlayback: true } : {}),
+          ...pie,
         };
       // La cita solo en la primera cuando no hay album: colgar las cinco del
       // mismo mensaje repite el recuadro cinco veces.

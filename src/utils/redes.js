@@ -1596,9 +1596,6 @@ async function porPinterest(url) {
 // tamaños de la misma foto. El ultimo es el original, sin recorte de tamaño en
 // los parametros. Medido: 2,2 s de metadatos y la foto entera detras.
 const TOPE_FOTOS_YTDLP = 20;
-// Un tuit no deja poner mas de cuatro imagenes, asi que pedir mas es bajar
-// miniaturas de la cuenta que no vienen a cuento.
-const TOPE_FOTOS_X = 4;
 
 // QUE ERRORES SIGNIFICAN «ESTO NO ES UN VIDEO» Y CUALES NO.
 //
@@ -1624,6 +1621,164 @@ function fotosDeFicha(ficha) {
     }
   }
   return fuera;
+}
+
+// ─── X: LA FICHA PUBLICA DEL TUIT ───────────────────────────────────────────
+//
+// ESTO EXISTE PORQUE LO OTRO NO FUNCIONABA, y lo comprobe tarde. El camino de
+// fotos se apoyaba en las miniaturas que describe yt-dlp, y en X NO LAS HAY:
+// medido contra un tuit con foto de verdad, `yt-dlp -J` contesta
+//
+//     thumbnails: 0   ·   thumbnail: false   ·   formats: 0
+//
+// O sea que un tuit de fotos no daba error por ningun sitio: daba una lista
+// vacia, y el comando contestaba «no he podido traerlo» con la foto ahi puesta.
+// Es lo que vio el dueño: «no envio ninguna».
+//
+// La ficha publica de X si las da, todas, y sin clave ninguna: es el mismo sitio
+// del que tiran las tarjetas de tuit incrustadas en cualquier pagina. Devuelve
+//
+//   · `mediaDetails[]`  — cada medio con su TIPO: photo, video o animated_gif
+//   · `photos[]`        — las fotos, hasta las cuatro que deja poner un tuit
+//   · `text`            — el texto del tuit
+//   · `quoted_tweet`    — el tuit citado, con su texto y sus medios
+//
+// El TIPO que viene aqui manda sobre la heuristica del audio: un animated_gif es
+// un gif porque lo dice X, no porque no suene.
+//
+// Y NO ES UN SERVICIO DE TERCEROS: es el dominio de la propia red, igual que
+// `porPinterest` lee la pagina de Pinterest. Por eso va en el codigo y no en el
+// .env — lo que va al .env es la eleccion de a que PROVEEDOR se conecta el bot,
+// y aqui no hay proveedor que elegir.
+// El id, sin minimo de cifras. Lo puse en cinco por costumbre y el primer tuit
+// de la historia —jack/status/20— se quedaba fuera: el comando se iba a yt-dlp
+// y contestaba otra cosa. Los ids de hoy son de diecinueve, pero poner un suelo
+// que no hace falta solo sirve para que algo se caiga por debajo.
+const RX_ID_X = /(?:twitter\.com|x\.com|fxtwitter\.com|vxtwitter\.com|fixupx\.com)\/[^/]+\/status(?:es)?\/(\d{1,25})/i;
+const FICHA_X = 'https://cdn.syndication.twimg.com/tweet-result';
+// Un tuit no deja poner mas de cuatro imagenes.
+const TOPE_FOTOS_X = 4;
+
+// t.co no lleva el id dentro: hay que preguntarle a donde va.
+async function resolverAcortadorX(url) {
+  if (!/\/\/(?:[\w-]+\.)?t\.co\//i.test(url)) return url;
+  try {
+    const r = await axios.get(url, {
+      timeout: 15000, maxRedirects: 5, responseType: 'text',
+      headers: { 'User-Agent': UA_MOVIL },
+      validateStatus: () => true,
+    });
+    const final = r?.request?.res?.responseUrl || r?.request?.responseUrl;
+    return typeof final === 'string' && final ? final : url;
+  } catch { return url; }
+}
+
+// El texto del tuit, sin la coletilla del propio enlace de la foto.
+//
+// `display_text_range` dice donde acaba lo que la persona escribio: detras va el
+// `https://t.co/...` que X mete solo para la imagen, y ese no lo escribio nadie.
+// Se cuenta en PUNTOS DE CODIGO, no en bytes ni en unidades UTF-16: con un emoji
+// delante, cortar por indice de cadena parte el emoji por la mitad.
+function textoDeTuit(ficha) {
+  const bruto = String(ficha?.text || '');
+  if (!bruto) return '';
+  const r = ficha?.display_text_range;
+  let texto = bruto;
+  if (Array.isArray(r) && Number.isInteger(r[1])) {
+    texto = [...bruto].slice(r[0] || 0, r[1]).join('');
+  }
+  return texto.replace(/\s*https?:\/\/t\.co\/\w+\s*$/i, '').trim();
+}
+
+// El mejor mp4 de un video o un gif: el de mas bitrate de los que sean mp4.
+function mejorVariante(detalle) {
+  const v = detalle?.video_info?.variants;
+  if (!Array.isArray(v)) return null;
+  const mp4 = v.filter((x) => x && typeof x.url === 'string' && /mp4/i.test(x.content_type || ''));
+  if (!mp4.length) return null;
+  mp4.sort((a, b) => (Number(b.bitrate) || 0) - (Number(a.bitrate) || 0));
+  return mp4[0].url;
+}
+
+async function pedirFichaX(id) {
+  const { data } = await axios.get(FICHA_X, {
+    timeout: 20000,
+    params: { id, token: 'a', lang: 'es' },
+    headers: { 'User-Agent': UA_MOVIL, Accept: 'application/json' },
+  });
+  return (data && typeof data === 'object') ? data : null;
+}
+
+// Devuelve { medios, texto } o null si ahi no habia nada que traer.
+async function porX(url) {
+  const directa = await resolverAcortadorX(url);
+  const m = RX_ID_X.exec(directa);
+  if (!m) return null;
+
+  let ficha = null;
+  try {
+    ficha = await pedirFichaX(m[1]);
+  } catch (e) {
+    logger.warn(`redes: la ficha de X no contestó (${e.message.slice(0, 80)})`);
+    return null;
+  }
+  if (!ficha) return null;
+
+  let detalles = Array.isArray(ficha.mediaDetails) ? ficha.mediaDetails : [];
+  let texto = textoDeTuit(ficha);
+
+  // ── UN TUIT QUE CITA A OTRO ────────────────────────────────────────────
+  //
+  // Es la mitad de lo que se comparte, y visto desde fuera ES una imagen: lo
+  // que se ve debajo del texto es el tuit citado. Si el de arriba no lleva
+  // medios propios, se traen los del citado, porque es lo que la persona que
+  // pego el enlace tenia delante.
+  if (!detalles.length && Array.isArray(ficha.quoted_tweet?.mediaDetails) && ficha.quoted_tweet.mediaDetails.length) {
+    detalles = ficha.quoted_tweet.mediaDetails;
+    const citado = textoDeTuit(ficha.quoted_tweet);
+    const quien = ficha.quoted_tweet?.user?.screen_name;
+    if (citado) texto = `${texto}\n\n↪ ${quien ? `@${quien}: ` : ''}${citado}`.trim();
+  }
+
+  if (!detalles.length) return { medios: [], texto };
+
+  const medios = [];
+  for (const d of detalles.slice(0, TOPE_FOTOS_X)) {
+    const tipo = String(d?.type || '').toLowerCase();
+    const esVideo = tipo === 'video' || tipo === 'animated_gif';
+    const enlace = esVideo ? mejorVariante(d) : d?.media_url_https;
+    if (typeof enlace !== 'string' || !/^https?:\/\//i.test(enlace)) continue;
+
+    // Las fotos se piden en su tamaño original: sin esto llegan recortadas a la
+    // version que usa la tarjeta incrustada.
+    const pedir = esVideo ? enlace : `${enlace}${enlace.includes('?') ? '&' : '?'}name=orig`;
+    const ext = esVideo ? 'mp4' : (extensionDe(enlace) || 'jpg');
+    const fichero = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`);
+    try {
+      await downloadUrlToFile(pedir, fichero);
+      const { size } = await fs.stat(fichero);
+      if (size < 1024) { await fs.remove(fichero).catch(() => {}); continue; }
+      if (size > TOPE_WHATSAPP) {
+        await fs.remove(fichero).catch(() => {});
+        logger.info(`redes: un medio del tuit pesa ${Math.round(size / 1048576)} MB y se queda fuera`);
+        continue;
+      }
+      medios.push({
+        fichero,
+        tipo: esVideo ? 'video' : 'imagen',
+        ext,
+        bytes: size,
+        // EL TIPO LO DICE X, no el audio. `animated_gif` es exactamente lo que
+        // la red llama gif, asi que no hace falta adivinarlo por la pista de
+        // sonido: eso se queda para lo que llegue por yt-dlp.
+        ...(tipo === 'animated_gif' ? { animado: true } : {}),
+      });
+    } catch (e) {
+      logger.info(`redes: no pude bajar un medio del tuit (${e.message.slice(0, 60)})`);
+      await fs.remove(fichero).catch(() => {});
+    }
+  }
+  return { medios, texto };
 }
 
 // ─── UN TUIT DE FOTOS SON FOTOS, NO UN PASE ─────────────────────────────────
@@ -1777,6 +1932,28 @@ async function traer(url, plataforma) {
       fallaApi = e.message;
       logger.warn(`redes: la API falló para ${plataforma}: ${e.message}`);
     }
+    // ─── X VA POR SU FICHA PUBLICA, Y VA ANTES QUE YT-DLP ────────────────
+    //
+    // yt-dlp saca el video de un tuit, pero NO las fotos: contra un tuit con
+    // foto contesta cero formatos y cero miniaturas, asi que el comando decia
+    // «no he podido traerlo» con la foto delante. La ficha publica las da
+    // todas, dice de que tipo es cada medio, y de paso trae el texto.
+    //
+    // Se devuelve aqui mismo porque un tuit puede traer VARIOS medios, y eso no
+    // cabe en el `fichero` suelto con el que sigue el resto de la funcion.
+    if (!fichero && plataforma === 'x') {
+      try {
+        const tuit = await porX(url);
+        if (tuit && tuit.medios.length) return tuit;
+        // Sin medios pero con ficha: el tuit es solo texto. Se dice asi, que es
+        // distinto de «no he podido».
+        if (tuit) throw new Error('ese tuit no trae ni fotos ni vídeo');
+      } catch (e) {
+        if (/no trae ni fotos/.test(e.message)) throw e;
+        logger.warn(`redes: la ficha de X falló (${e.message.slice(0, 80)}); pruebo con yt-dlp`);
+      }
+    }
+
     // Pinterest tiene via propia y va ANTES que yt-dlp: yt-dlp solo entiende
     // pines de video, y la mayoria son fotos.
     if (!fichero && plataforma === 'pinterest') {
@@ -1888,5 +2065,5 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, buscar, buscarVarios, _porFotosSueltas: porFotosSueltas, esAnimado, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
+module.exports = { traer, buscar, buscarVarios, _porFotosSueltas: porFotosSueltas, esAnimado, _porX: porX, _textoDeTuit: textoDeTuit, _mejorVariante: mejorVariante, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
   _montarPase: montarPase, _comoEnlaces: comoEnlaces, _porYtDlpFotos: porYtDlpFotos, _fotosDeFicha: fotosDeFicha, _esSinVideo: esSinVideo, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };

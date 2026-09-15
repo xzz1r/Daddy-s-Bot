@@ -12966,8 +12966,15 @@ const ficheroDe = async (ext) => {
     // es la que pide la ficha, y devuelve dos fotos.
     {
       const bajador = require(path.join(R, 'src/utils/downloader'));
+      const axios = require(path.join(R, 'node_modules/axios'));
       const ytdlpReal = bajador.ytdlp;
       const bajarReal = bajador.downloadUrlToFile;
+      const getReal = axios.get;
+      // LA FICHA DE X, CAIDA A PROPOSITO. Este caso mide el RESPALDO: lo que
+      // pasa cuando la ficha publica no contesta y solo queda yt-dlp. Sin
+      // cortarla, la capa saldria a la red de verdad y volveria a ser de las
+      // que fallan por la carga y no por el codigo.
+      axios.get = async () => { throw new Error('ficha cortada en la prueba'); };
       const puestos = [];
       bajador.ytdlp = async (args) => {
         if (args.includes('-J')) {
@@ -12987,12 +12994,142 @@ const ficheroDe = async (ext) => {
       for (const f of puestos) basura.push(f);
       bajador.ytdlp = ytdlpReal;
       bajador.downloadUrlToFile = bajarReal;
+      axios.get = getReal;
 
       exige(!error, 'un tuit de solo fotos acaba en error (' + (error && error.message) + '): yt-dlp dice «No video formats found» y eso no es un fallo, es que el tuit son fotos');
       exige(salida && Array.isArray(salida.medios) && salida.medios.length === 2,
         'un tuit de dos fotos devuelve ' + JSON.stringify(salida && (salida.medios ? salida.medios.length : salida.tipo)) + ': tienen que salir las dos');
       exige(salida && salida.medios && salida.medios.every((m) => m.tipo === 'imagen'),
         'las fotos del tuit vuelven como vídeo: eso es el pase de diapositivas de Instagram, y en un tuit no hay canción que justifique convertir dos fotos en un vídeo');
+    }
+
+
+    // ── LA FICHA PUBLICA DE X: TODAS LAS FOTOS Y EL TEXTO ──────────────
+    //
+    // Es el camino por el que va de verdad *!x*, y el que arreglo lo que el
+    // dueño vio: «no envio ninguna». La ficha se finge entera —ni una peticion
+    // sale de aqui— con la forma que devuelve X: mediaDetails con su tipo,
+    // display_text_range para saber donde acaba el texto, y el tuit citado.
+    {
+      const bajador = require(path.join(R, 'src/utils/downloader'));
+      const axios = require(path.join(R, 'node_modules/axios'));
+      const getReal = axios.get;
+      const bajarReal = bajador.downloadUrlToFile;
+      const puestos = [];
+      const foto = (n) => ({ type: 'photo', media_url_https: 'https://pbs.twimg.com/media/f' + n + '.jpg' });
+      const gif = { type: 'animated_gif', video_info: { variants: [{ content_type: 'video/mp4', bitrate: 0, url: 'https://video.twimg.com/g.mp4' }] } };
+      // El m3u8 va CON bitrate y el mas alto de todos a proposito: sin eso, la
+      // lista se ordena sola y el mp4 gana por accidente, asi que quitar el
+      // filtro por tipo no cambiaba nada y la prueba no veia la diferencia.
+      // Es una lista de reproduccion, no un fichero: WhatsApp no la acepta.
+      const video = { type: 'video', video_info: { variants: [
+        { content_type: 'application/x-mpegURL', bitrate: 9999000, url: 'https://video.twimg.com/v.m3u8' },
+        { content_type: 'video/mp4', bitrate: 832000, url: 'https://video.twimg.com/medio.mp4' },
+        { content_type: 'video/mp4', bitrate: 2176000, url: 'https://video.twimg.com/alto.mp4' },
+      ] } };
+      let ficha = null;
+      axios.get = async () => ({ data: ficha });
+      bajador.downloadUrlToFile = async (u, dest) => { puestos.push({ u, dest }); await fs.writeFile(dest, Buffer.alloc(9000, 3)); };
+      for (const k of Object.keys(require.cache)) if (k.endsWith('utils/redes.js')) delete require.cache[k];
+      const rx = require(path.join(R, 'src/utils/redes'));
+      const limpiar = async (r) => { for (const m of ((r && r.medios) || [])) await fs.remove(m.fichero).catch(() => {}); };
+      const tuit = 'https://x.com/quien/status/1517621550924734464';
+
+      // CUATRO FOTOS: las cuatro, y en su tamaño original.
+      ficha = { text: 'Cuatro fotos https://t.co/aaa', display_text_range: [0, 12], mediaDetails: [foto(1), foto(2), foto(3), foto(4)] };
+      puestos.length = 0;
+      let r = await rx.traer(tuit, 'x').catch((e) => e);
+      exige(r && r.medios && r.medios.length === 4,
+        'un tuit de cuatro fotos devuelve ' + ((r && r.medios && r.medios.length) || JSON.stringify(String(r && r.message))) + ': el dueño pidio expresamente que salgan todas las de un mismo post');
+      exige(r && r.texto === 'Cuatro fotos',
+        'el texto del tuit sale como ' + JSON.stringify(r && r.texto) + ': display_text_range marca donde acaba lo que escribio la persona, y detras va el t.co de la propia foto');
+      exige(puestos.every((x) => /name=orig/.test(x.u)),
+        'las fotos se piden sin name=orig: llegan recortadas a la version pequeña que usa la tarjeta incrustada');
+      await limpiar(r);
+
+      // GIF: lo dice la ficha, no el audio.
+      ficha = { text: 'gif', display_text_range: [0, 3], mediaDetails: [gif] };
+      r = await rx.traer(tuit, 'x').catch((e) => e);
+      exige(r && r.medios && r.medios.length === 1 && r.medios[0].animado === true,
+        'un animated_gif de X no se marca como gif: lo dice la propia ficha, no hace falta adivinarlo por la pista de audio');
+      await limpiar(r);
+
+      // VIDEO: el mp4 de mas bitrate, nunca el m3u8.
+      ficha = { text: 'video', display_text_range: [0, 5], mediaDetails: [video] };
+      puestos.length = 0;
+      r = await rx.traer(tuit, 'x').catch((e) => e);
+      exige(r && r.medios && r.medios.length === 1 && r.medios[0].tipo === 'video' && !r.medios[0].animado,
+        'el video de un tuit no sale como video');
+      exige(puestos.length === 1 && /alto\.mp4/.test(puestos[0].u),
+        'se baja ' + (puestos[0] && puestos[0].u) + ': hay que coger el mp4 de mas bitrate, y un m3u8 no es un fichero que WhatsApp acepte');
+      await limpiar(r);
+
+      // EL TEXTO SE CORTA POR PUNTOS DE CODIGO, no por unidades UTF-16.
+      //
+      // Con un emoji delante, cortar por indice de cadena parte el emoji por
+      // la mitad: cada uno ocupa DOS unidades y el rango que manda X cuenta
+      // caracteres. Y el corte tiene que venir del rango, no de quitar el t.co
+      // del final: aqui detras del rango hay texto de verdad, asi que las dos
+      // formas de hacerlo dan resultados distintos y se ve cual es la buena.
+      ficha = { text: '🔥🔥 hola caracola https://t.co/aaa', display_text_range: [0, 7], mediaDetails: [foto(1)] };
+      r = await rx.traer(tuit, 'x').catch((e) => e);
+      exige(r && r.texto === '🔥🔥 hola',
+        'el texto sale como ' + JSON.stringify(r && r.texto) + ' y tenia que ser "🔥🔥 hola": el rango que manda X cuenta caracteres, y cortar por indice de cadena parte los emojis y se traga lo que sobra');
+      await limpiar(r);
+
+      // UN TUIT QUE CITA A OTRO: lo que se ve es el citado.
+      ficha = {
+        text: 'Mira esto https://t.co/bbb', display_text_range: [0, 9], mediaDetails: [],
+        quoted_tweet: { text: 'El estudio original', display_text_range: [0, 19], user: { screen_name: 'alguien' }, mediaDetails: [foto(9)] },
+      };
+      r = await rx.traer(tuit, 'x').catch((e) => e);
+      exige(r && r.medios && r.medios.length === 1,
+        'un tuit que cita a otro con foto no trae nada: lo que se ve debajo del texto ES el tuit citado, y es la mitad de lo que se comparte');
+      exige(r && /alguien/.test(r.texto || '') && /El estudio original/.test(r.texto || ''),
+        'el texto del citado no sale: ' + JSON.stringify(r && r.texto));
+      await limpiar(r);
+
+      // SOLO TEXTO: se dice, y se dice distinto de «no he podido».
+      ficha = { text: 'solo texto', display_text_range: [0, 10], mediaDetails: [] };
+      r = await rx.traer(tuit, 'x').catch((e) => e);
+      exige(r instanceof Error && /no trae ni fotos/.test(r.message),
+        'un tuit de solo texto contesta ' + JSON.stringify(String(r && (r.message || r.medios))) + ': no es lo mismo que no haber podido traerlo');
+
+      // Y EL ID SIN SUELO DE CIFRAS: el primer tuit de la historia es /20.
+      exige(/\/status\/20$/.test('https://x.com/jack/status/20'), 'control de la prueba');
+      ficha = { text: 'primero', display_text_range: [0, 7], mediaDetails: [foto(1)] };
+      r = await rx.traer('https://x.com/jack/status/20', 'x').catch((e) => e);
+      exige(r && r.medios && r.medios.length === 1,
+        'un id corto se cae por debajo del minimo de cifras y el tuit se va por otro camino');
+      await limpiar(r);
+
+      axios.get = getReal;
+      bajador.downloadUrlToFile = bajarReal;
+      for (const k of Object.keys(require.cache)) if (k.endsWith('utils/redes.js')) delete require.cache[k];
+    }
+
+    // ── EL TEXTO DEL TUIT, DE PIE DE LA PRIMERA FOTO ───────────────────
+    {
+      const dos = [await ficheroDe('jpg'), await ficheroDe('jpg')];
+      basura.push(...dos);
+      const o = await lanzar('!x https://x.com/a/status/20',
+        { medios: dos.map((f) => ({ fichero: f, tipo: 'imagen', ext: 'jpg', bytes: 9000 })), texto: 'Playing video games can be healthier' });
+      const conPie = o.filter((x) => x.c.caption);
+      exige(conPie.length === 1,
+        conPie.length + ' medios llevan pie: el texto va solo en el primero, o se repite una vez por foto');
+      exige(conPie[0] && /Playing video games/.test(conPie[0].c.caption),
+        'el pie no lleva el texto del tuit: sin el, al grupo le llega una imagen suelta sin contexto y en un tuit el texto suele ser la mitad del chiste');
+
+      const f = await ficheroDe('jpg'); basura.push(f);
+      const o2 = await lanzar('!x https://x.com/a/status/21',
+        { medios: [{ fichero: f, tipo: 'imagen', ext: 'jpg', bytes: 9000 }], texto: 'x'.repeat(4000) });
+      const c = o2.find((x) => x.c.caption);
+      exige(!!c && c.c.caption.length <= 900 && c.c.caption.endsWith('…'),
+        'un tuit largo sale entero de pie (' + (c && c.c.caption.length) + ' caracteres): WhatsApp lo corta con un «ver mas» y deja de ser un pie');
+
+      const f2 = await ficheroDe('mp4'); basura.push(f2);
+      const o3 = await lanzar('!x https://x.com/a/status/22', { fichero: f2, tipo: 'video', ext: 'mp4', bytes: 9000 });
+      exige(!o3.some((x) => x.c.caption !== undefined), 'se manda un pie vacio cuando el tuit no trae texto');
     }
 
   } catch (e) {
