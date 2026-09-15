@@ -344,6 +344,7 @@ _Cada línea: el nombre y todas sus formas. Cualquiera vale._
 ━━━━━ *HERRAMIENTAS* ━━━━━
 ${p}play · ${p}música · ${p}canción · ${p}song · ${p}playsong · ${p}playaudio
 ${p}tt · ${p}tiktok  ·  ${p}ig · ${p}insta · ${p}instagram  ·  ${p}pin · ${p}pinterest
+${p}x · ${p}twitter · ${p}tuit · ${p}tweet
 ${p}next · ${p}otra · ${p}siguiente
 ${p}s · ${p}sticker · ${p}stk
 ${p}toimg · ${p}stimg  ·  ${p}tovid  ·  ${p}ttp · ${p}texto
@@ -478,6 +479,7 @@ _Todo lleva ${PREFIJOS} delante. El número es lo que cuesta; sin número no cob
 ━━ *HERRAMIENTAS* ━━
 *${p}play* ${c('play')} <nombre> · *${p}tt* ${c('redes')} <enlace> · *${p}ig* ${c('redes')} <enlace>
 *${p}pin* ${c('redes')} <qué buscar> — o un enlace de Pinterest
+*${p}x* ${c('redes')} <enlace> — la foto, el gif o el vídeo del tuit
 _Responde a la foto con *${p}next* y saca otra de la misma búsqueda_
 *${p}s* ${c('sticker')} · *${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')}
 *${p}ttp* ${c('ttp')} <texto> · *${p}pfp* ${c('pfp')} · *${p}fk* ${c('fk')} @user

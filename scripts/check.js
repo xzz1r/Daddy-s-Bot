@@ -12787,6 +12787,284 @@ const nuevo = () => {
     if (fallos === antes) console.log(verde('   ✓ un solo reloj, un solo bloque de cooldown y una sola línea de aura en todo el bot'));
   }
 
+  // El guion del hijo de la capa 74. Tiene que parchear `traer` ANTES de que
+  // commands/redes.js lo capture al requerirse, asi que va en proceso aparte.
+  const MEMORIA_CAPA_74 = String.raw`
+'use strict';
+require('dotenv').config({ quiet: true });
+const path = require('path');
+const fs = require('fs-extra');
+const R = __RAIZ__;
+const quejas = [];
+const exige = (c, q) => { if (!c) quejas.push(q); };
+
+const redes = require(path.join(R, 'src/utils/redes'));
+let devuelve = null, pedido = null;
+redes.traer = async (url, plataforma) => { pedido = { url, plataforma }; if (devuelve instanceof Error) throw devuelve; return devuelve; };
+for (const k of Object.keys(require.cache)) if (k.endsWith('commands/redes.js')) delete require.cache[k];
+const as = require(path.join(R, 'src/utils/auraStore'));
+as.spendAura = async () => ({ ok: true, cobrado: 50, current: 5000 });
+as.addAura = async () => ({ current: 5000 });
+const cmd = require(path.join(R, 'src/commands/redes'));
+
+const GJ = '000000074@g.us';
+let n = 0;
+// UNA PERSONA DISTINTA EN CADA CASO: el comando lleva su propia cola por
+// usuario, asi que repetir remitente hace que el segundo caso choque con el
+// freno y no con lo que se esta midiendo. Me paso al escribir esto.
+const lanzar = async (texto, resultado) => {
+  devuelve = resultado; pedido = null;
+  const YO = '3460000' + (7400 + (++n)) + '@s.whatsapp.net';
+  const meta = { id: GJ, participants: [{ id: YO }] };
+  const out = [];
+  const sock = {
+    user: { id: '549199@s.whatsapp.net' },
+    sendMessage: async (j, c, o) => { out.push({ c, o }); return { key: { id: 'K' + (++n) } }; },
+    groupMetadata: async () => meta,
+  };
+  const msg = {
+    key: { remoteJid: GJ, fromMe: false, id: 'X' + (++n), participant: YO },
+    message: { extendedTextMessage: { text: texto, contextInfo: {} } },
+  };
+  await cmd.cmdX(sock, msg, texto.split(/\s+/).slice(1), meta);
+  return out;
+};
+const ficheroDe = async (ext) => {
+  const f = path.join(R, 'temp', 'x74_' + Math.random().toString(36).slice(2) + '.' + ext);
+  await fs.ensureDir(path.dirname(f));
+  await fs.writeFile(f, Buffer.alloc(9000, 1));
+  return f;
+};
+
+(async () => {
+  const basura = [];
+  try {
+    // ── LOS DOS NOMBRES DE LA RED, Y EL ACORTADOR ──────────────────────
+    for (const u of ['https://x.com/a/status/1', 'https://twitter.com/a/status/2',
+      'https://t.co/abc', 'https://vxtwitter.com/a/status/3', 'https://fxtwitter.com/a/status/4']) {
+      exige(redes.plataformaDe(u) === 'x',
+        'no reconoce ' + u + ' como X: el sitio cambio de nombre y quien comparte desde una app vieja pega un twitter.com');
+    }
+    exige(redes.plataformaDe('https://www.instagram.com/reel/C1/') === 'instagram', 'la expresion de X se ha comido Instagram');
+    exige(redes.plataformaDe('https://vt.tiktok.com/Z1/') === 'tiktok', 'la expresion de X se ha comido TikTok');
+    exige(redes.plataformaDe('https://www.pinterest.es/pin/1/') === 'pinterest', 'la expresion de X se ha comido Pinterest');
+
+    // ── VIDEO CON SONIDO: video normal ─────────────────────────────────
+    {
+      const f = await ficheroDe('mp4'); basura.push(f);
+      const o = await lanzar('!x https://x.com/a/status/10', { fichero: f, tipo: 'video', ext: 'mp4', bytes: 9000 });
+      const v = o.find((x) => x.c.video);
+      exige(!!v, 'un tuit con video no manda video');
+      exige(!!v && !v.c.gifPlayback, 'un video CON sonido se manda como gif: en bucle y sin controles, y el audio no se oye');
+      exige(pedido && pedido.plataforma === 'x', 'el comando pidio la descarga a la plataforma ' + (pedido && pedido.plataforma));
+    }
+
+    // ── GIF: mp4 SIN pista de audio ────────────────────────────────────
+    {
+      const f = await ficheroDe('mp4'); basura.push(f);
+      const o = await lanzar('!x https://x.com/a/status/11', { fichero: f, tipo: 'video', ext: 'mp4', bytes: 9000, animado: true });
+      const v = o.find((x) => x.c.video);
+      exige(!!v && v.c.gifPlayback === true,
+        'un gif de X llega como un clip mudo con boton de play: X los sirve como mp4 sin audio y sin gifPlayback WhatsApp no los pone en bucle');
+    }
+
+    // ── UNA FOTO: foto, y sin album ────────────────────────────────────
+    {
+      const f = await ficheroDe('jpg'); basura.push(f);
+      const o = await lanzar('!x https://x.com/a/status/12', { medios: [{ fichero: f, tipo: 'imagen', ext: 'jpg', bytes: 9000 }] });
+      exige(o.some((x) => x.c.image), 'un tuit de una sola foto no manda la foto');
+      exige(!o.some((x) => x.c.album), 'una sola foto abre un album: la burbuja de album con una foto dentro se ve peor que la foto');
+    }
+
+    // ── VARIAS FOTOS: album, y con la cuenta buena ─────────────────────
+    {
+      const tres = [await ficheroDe('jpg'), await ficheroDe('jpg'), await ficheroDe('jpg')];
+      basura.push(...tres);
+      const o = await lanzar('!x https://x.com/a/status/13',
+        { medios: tres.map((f) => ({ fichero: f, tipo: 'imagen', ext: 'jpg', bytes: 9000 })) });
+      const al = o.find((x) => x.c.album);
+      exige(!!al, 'tres fotos de un tuit salen en tres burbujas: es justo el spam que el album evita');
+      exige(!!al && al.c.album.expectedImageCount === 3,
+        'el album anuncia ' + (al && al.c.album.expectedImageCount) + ' fotos y hay 3: un album que espera una que no llega se queda cargando para siempre');
+      exige(o.filter((x) => x.c.image).length === 3, 'no llegan las tres fotos');
+    }
+
+    // ── FOTOS Y VIDEO EN EL MISMO TUIT: la cuenta de cada tipo ─────────
+    {
+      const f1 = await ficheroDe('jpg'), f2 = await ficheroDe('mp4');
+      basura.push(f1, f2);
+      const o = await lanzar('!x https://x.com/a/status/14', {
+        medios: [{ fichero: f1, tipo: 'imagen', ext: 'jpg', bytes: 9000 },
+          { fichero: f2, tipo: 'video', ext: 'mp4', bytes: 9000 }],
+      });
+      const al = o.find((x) => x.c.album);
+      exige(!!al && al.c.album.expectedImageCount === 1 && al.c.album.expectedVideoCount === 1,
+        'el album de un tuit con foto y video anuncia ' + JSON.stringify(al && al.c.album) + ': escrito fijo en "todo fotos" se queda esperando una foto que es un video');
+    }
+
+    // ── UN ENLACE DE OTRA RED: se le dice cual era el suyo ─────────────
+    {
+      const o = await lanzar('!x https://vt.tiktok.com/Z1/', null);
+      const t = o.map((x) => x.c.text || '').join(' ');
+      exige(/TikTok/.test(t), 'pegar un TikTok en !x contesta ' + JSON.stringify(t.slice(0, 70)) + ': el error casi siempre es ese y merece decirse');
+      exige(!pedido, 'se intento descargar por X un enlace que no es de X');
+    }
+
+    // ── SIN ENLACE: ni se cobra ni se intenta ──────────────────────────
+    {
+      const o = await lanzar('!x', null);
+      exige(/enlace de X/.test(o.map((x) => x.c.text || '').join(' ')), 'sin enlace no se pide el enlace de X');
+      exige(!pedido, 'sin enlace se intento descargar igual');
+      exige(!o.some((x) => x.c.delete), 'se borra el mensaje de quien escribio !x sin enlace: no se ha ejecutado nada');
+    }
+
+    // ── EL ENLACE NO SE QUEDA EN EL GRUPO ──────────────────────────────
+    {
+      const f = await ficheroDe('mp4'); basura.push(f);
+      const o = await lanzar('!x https://x.com/a/status/15', { fichero: f, tipo: 'video', ext: 'mp4', bytes: 9000 });
+      exige(o.some((x) => x.c.delete), 'el comando con el enlace se queda puesto: era justo lo que se venia a quitar');
+      const v = o.find((x) => x.c.video);
+      exige(!!v && v.o && v.o.quoted, 'el video no cita el comando: con tres peticiones a la vez nadie sabe cual es el suyo');
+    }
+
+    // ── Y AHORA LAS DOS REGLAS DE DENTRO, CONTRA FICHEROS DE VERDAD ────
+    //
+    // Lo de arriba prueba el COMANDO con la descarga fingida. Eso deja sin
+    // mirar justo las dos cosas que el dueño pidio —el gif y la foto—, que
+    // viven en utils/redes.js. Comprobado: dos mutaciones ahi dentro pasaban
+    // por delante de todo lo anterior sin que nada se pusiera rojo.
+    {
+      const { spawnSync } = require('child_process');
+      const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+      const mudo = path.join(R, 'temp', 'x74_mudo_' + Math.random().toString(36).slice(2) + '.mp4');
+      const sonoro = path.join(R, 'temp', 'x74_son_' + Math.random().toString(36).slice(2) + '.mp4');
+      basura.push(mudo, sonoro);
+      // Un mp4 de un segundo sin pista de audio: un gif de X, en la practica.
+      spawnSync(ffmpegPath, ['-y', '-f', 'lavfi', '-i', 'color=c=red:s=64x64:d=1', '-pix_fmt', 'yuv420p', mudo], { timeout: 60000 });
+      // Y el mismo con sonido: un video corriente.
+      spawnSync(ffmpegPath, ['-y', '-f', 'lavfi', '-i', 'color=c=red:s=64x64:d=1',
+        '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=mono', '-shortest', '-pix_fmt', 'yuv420p', sonoro], { timeout: 60000 });
+
+      if (!fs.existsSync(mudo) || !fs.existsSync(sonoro)) {
+        quejas.push('no pude montar los ficheros de prueba con ffmpeg: la regla del gif se queda sin comprobar');
+      } else {
+        const aMudo = await redes._analizarMedio(mudo);
+        const aSon = await redes._analizarMedio(sonoro);
+        exige(aMudo.probado && !aMudo.audio, 'ffmpeg no ve el mp4 sin audio como lo que es: ' + JSON.stringify(aMudo));
+        exige(aSon.probado && aSon.audio, 'ffmpeg no ve la pista de audio del mp4 con sonido: ' + JSON.stringify(aSon));
+        exige(redes.esAnimado(aMudo) === true,
+          'un mp4 SIN pista de audio no se marca como gif: asi es exactamente como X sirve los suyos, y sin la marca llegan como un clip mudo con boton de play');
+        exige(redes.esAnimado(aSon) === false,
+          'un mp4 CON sonido se marca como gif: llegaria en bucle, sin controles y sin que se oiga nada');
+      }
+    }
+
+    // ── EL TUIT DE SOLO FOTOS, POR EL CAMINO ENTERO ────────────────────
+    //
+    // Sin red: se le cambia a yt-dlp lo que contesta. La primera llamada es la
+    // descarga y falla como falla de verdad ante un tuit sin video; la segunda
+    // es la que pide la ficha, y devuelve dos fotos.
+    {
+      const bajador = require(path.join(R, 'src/utils/downloader'));
+      const ytdlpReal = bajador.ytdlp;
+      const bajarReal = bajador.downloadUrlToFile;
+      const puestos = [];
+      bajador.ytdlp = async (args) => {
+        if (args.includes('-J')) {
+          return JSON.stringify({ entries: [
+            { thumbnails: [{ url: 'https://pbs.twimg.com/media/aaa.jpg' }] },
+            { thumbnails: [{ url: 'https://pbs.twimg.com/media/bbb.jpg' }] },
+          ] });
+        }
+        throw new Error('ERROR: No video formats found!');
+      };
+      bajador.downloadUrlToFile = async (url, dest) => { await fs.writeFile(dest, Buffer.alloc(9000, 2)); puestos.push(dest); };
+      // redes.js desestructura las dos al requerirse: se recarga tras el parche.
+      for (const k of Object.keys(require.cache)) if (k.endsWith('utils/redes.js')) delete require.cache[k];
+      const redes2 = require(path.join(R, 'src/utils/redes'));
+      let salida = null, error = null;
+      try { salida = await redes2.traer('https://x.com/a/status/900', 'x'); } catch (e) { error = e; }
+      for (const f of puestos) basura.push(f);
+      bajador.ytdlp = ytdlpReal;
+      bajador.downloadUrlToFile = bajarReal;
+
+      exige(!error, 'un tuit de solo fotos acaba en error (' + (error && error.message) + '): yt-dlp dice «No video formats found» y eso no es un fallo, es que el tuit son fotos');
+      exige(salida && Array.isArray(salida.medios) && salida.medios.length === 2,
+        'un tuit de dos fotos devuelve ' + JSON.stringify(salida && (salida.medios ? salida.medios.length : salida.tipo)) + ': tienen que salir las dos');
+      exige(salida && salida.medios && salida.medios.every((m) => m.tipo === 'imagen'),
+        'las fotos del tuit vuelven como vídeo: eso es el pase de diapositivas de Instagram, y en un tuit no hay canción que justifique convertir dos fotos en un vídeo');
+    }
+
+  } catch (e) {
+    quejas.push('la prueba de !x revento: ' + (e && e.stack ? e.stack.split('\n')[0] : e));
+  } finally {
+    for (const f of basura) await fs.remove(f).catch(() => {});
+  }
+  console.log('CAPA74:' + JSON.stringify(quejas));
+  process.exit(0);
+})();
+`;
+
+  // ── 74. *!x* TRAE LA FOTO, EL GIF O EL VIDEO DE UN TUIT ─────────────────
+  //
+  // Lo pidio el dueño: «haz que haya un comando de !x y pase la foto, gif o
+  // video de X». Las TRES cosas, y cada una tiene su trampa:
+  //
+  //   · el VIDEO es el caso facil, y es el unico que sale solo
+  //   · el GIF no. X los sirve como MP4 SIN pista de audio —igual que hace su
+  //     propia app— asi que mandado como video corriente llega como un clip
+  //     mudo con boton de play. Hace falta `gifPlayback` para que WhatsApp lo
+  //     ponga en bucle, que es lo que el bot ya hace en las acciones.
+  //   · la FOTO tampoco: yt-dlp contesta «No video formats found» y eso moria
+  //     como error, asi que un tuit de fotos —la mitad de lo que se comparte—
+  //     habria dicho «no he podido traerlo».
+  //
+  // Y la red tiene DOS nombres: quien comparte desde una app vieja pega un
+  // twitter.com y quien comparte desde la de ahora pega un x.com. Los dos, mas
+  // el acortador t.co y los espejos que la gente usa para que el enlace se vea.
+  {
+    console.log('\n74. *!x* TRAE LA FOTO, EL GIF O EL VIDEO DE UN TUIT');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { execFileSync } = require('child_process');
+    const os5 = require('os');
+    const dir74 = fs.mkdtempSync(path.join(os5.tmpdir(), 'capa74-'));
+    try {
+      try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(dir74, 'node_modules'), 'dir'); } catch { /* el hijo lo dira */ }
+      fs.writeFileSync(path.join(dir74, 'x.js'), MEMORIA_CAPA_74.replace(/__RAIZ__/g, json(R)));
+      let salida = '';
+      try {
+        salida = execFileSync(process.execPath, [path.join(dir74, 'x.js')],
+          { encoding: 'utf8', timeout: 120000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (e) { salida = `${e.stdout || ''}${e.stderr || ''}`; }
+      const linea = salida.split('\n').reverse().find((l) => l.startsWith('CAPA74:'));
+      exige(!!linea, `la prueba de *!x* no contestó: ${salida.slice(-400).trim()}`);
+      if (linea) {
+        let quejas = [];
+        try { quejas = JSON.parse(linea.slice('CAPA74:'.length)); } catch { quejas = ['no pude leer el resultado']; }
+        for (const q of quejas) exige(false, q);
+      }
+    } finally {
+      fs.rmSync(dir74, { recursive: true, force: true });
+    }
+
+    // Y QUE EL COMANDO EXISTA DE VERDAD, en las cuatro listas que hay que tocar
+    // para que un comando nuevo funcione entero. Es el fallo de fondo que el
+    // propio check ya tiene escrito: alias, precio, permiso y ayuda viven en
+    // listas separadas y se desincronizan solas.
+    const mh = soloCodigo('src/handlers/messageHandler.js');
+    for (const alias of ['x', 'twitter', 'tuit', 'tweet']) {
+      exige(new RegExp(`case '${alias}':`).test(mh), `*!${alias}* no está en el switch: el comando no responde`);
+    }
+    exige(/'x', 'twitter', 'tuit', 'tweet',/.test(mh),
+      'los alias de *!x* no están en COBRAN_SOLOS y LENTOS: cobraría dos veces o no avisaría de que está trabajando');
+    const menu = soloCodigo('src/commands/social.js');
+    exige(/\{p\}x · \$\{p\}twitter/.test(menu) || /\$\{p\}x /.test(menu),
+      'el menú no enseña *!x*: un comando que no sale en el menú no existe para el grupo');
+
+    if (fallos === antes) console.log(verde('   ✓ *!x* trae foto, gif y vídeo, el gif se ve como gif, y el comando está en el menú'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     process.exit(fallos ? 1 : 0);

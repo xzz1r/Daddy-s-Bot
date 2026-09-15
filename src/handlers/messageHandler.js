@@ -36,6 +36,7 @@ const cmdClearCache = lazyCmd('../commands/music', 'cmdClearCache');
 const cmdTikTok = lazyCmd('../commands/redes', 'cmdTikTok');
 const cmdInstagram = lazyCmd('../commands/redes', 'cmdInstagram');
 const cmdPinterest = lazyCmd('../commands/redes', 'cmdPinterest');
+const cmdX = lazyCmd('../commands/redes', 'cmdX');
 const cmdNext = lazyCmd('../commands/redes', 'cmdNext');
 const cmdSticker = lazyCmd('../commands/sticker', 'cmdSticker');
 const { cmdTopRandom } = require('../commands/topsRandom');
@@ -305,6 +306,7 @@ for (const c of CMDS_PORCENTAJE) COBRO_CENTRAL[c] = 'percent';
 const LENTOS = new Set([
   'play', 'playsong', 'playaudio', 'musica', 'cancion',
   'tt', 'tiktok', 'ig', 'insta', 'instagram', 'pin', 'pinterest',
+  'x', 'twitter', 'tuit', 'tweet',
   's', 'sticker', 'stk', 'toimg', 'tovid',
   'pfp', 'fk', 'verificar', 'verify', 'check',
   'ttp', 'texto',
@@ -325,6 +327,7 @@ const LENTOS = new Set([
 const COBRAN_SOLOS = new Set([
   'play', 'playsong', 'playaudio', 's', 'sticker', 'stk', 'toimg', 'tovid',
   'tt', 'tiktok', 'ig', 'insta', 'instagram', 'pin', 'pinterest',
+  'x', 'twitter', 'tuit', 'tweet',
   'pfp', 'fk', 'verificar', 'verify', 'check', 'top5', 'top10',
   // vs/versus cobran dentro de cmdVs: tienen tres salidas sin respuesta (sin
   // menciones, contra uno mismo, y el silencio contra el owner) y cobrando
@@ -2500,6 +2503,16 @@ async function handleMessage(sock, msg, opciones = {}) {
       case 'pin':
       case 'pinterest':
         resultado = await cmdPinterest(sock, msg, args, groupMeta);
+        break;
+
+      // *!x* — la foto, el gif o el video de un tuit. Los alias son los dos
+      // nombres de la red (el de ahora y el de siempre) y lo que la gente
+      // escribe cuando no se acuerda de ninguno de los dos.
+      case 'x':
+      case 'twitter':
+      case 'tuit':
+      case 'tweet':
+        resultado = await cmdX(sock, msg, args, groupMeta);
         break;
       // *!next* sobre la foto que mando el bot: otra de la misma busqueda. No
       // lleva argumentos —la busqueda sale del mensaje al que se responde— asi

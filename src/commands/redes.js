@@ -252,8 +252,13 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
     const ids = [];
     let padre = null;
     if (lote.length > 1) {
+      // El numero de cada tipo, contado de verdad. Escrito fijo en «todo
+      // imagenes» valia mientras el album solo salia de *!pin*; un tuit puede
+      // traer fotos y video a la vez, y un album que anuncia cuatro fotos y
+      // recibe tres y un video se queda esperando la que falta.
+      const fotos = lote.filter((m) => m.tipo === 'imagen').length;
       padre = await sock.sendMessage(jid, {
-        album: { expectedImageCount: lote.length, expectedVideoCount: 0 },
+        album: { expectedImageCount: fotos, expectedVideoCount: lote.length - fotos },
       }, { quoted: msg }).catch((e) => {
         // Si el album no sale, no se pierde el comando: van sueltas.
         logger.warn(`${plataforma}: no pude abrir el album (${e.message}); las mando sueltas`);
@@ -263,9 +268,18 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
     }
 
     for (const m of lote) {
+      // `animado` viene marcado desde utils/redes.js cuando lo que se bajo es
+      // un MP4 sin pista de audio, que es como X sirve los GIF. Con
+      // gifPlayback WhatsApp lo pone en bucle y sin controles, igual que se ve
+      // en la propia red; sin el llega como un clip mudo con boton de play.
       const medio = m.tipo === 'imagen'
         ? { image: { url: m.fichero } }
-        : { video: { url: m.fichero }, mimetype: 'video/mp4', jpegThumbnail: null };
+        : {
+          video: { url: m.fichero },
+          mimetype: 'video/mp4',
+          jpegThumbnail: null,
+          ...(m.animado ? { gifPlayback: true } : {}),
+        };
       // La cita solo en la primera cuando no hay album: colgar las cinco del
       // mismo mensaje repite el recuadro cinco veces.
       const extra = padre?.key ? { albumParentKey: padre.key } : {};
@@ -324,5 +338,6 @@ async function cmdNext(sock, msg, args, groupMeta) {
 const cmdTikTok    = (sock, msg, args, groupMeta) => hazRed(sock, msg, args, groupMeta, 'tiktok');
 const cmdInstagram = (sock, msg, args, groupMeta) => hazRed(sock, msg, args, groupMeta, 'instagram');
 const cmdPinterest = (sock, msg, args, groupMeta) => hazRed(sock, msg, args, groupMeta, 'pinterest');
+const cmdX         = (sock, msg, args, groupMeta) => hazRed(sock, msg, args, groupMeta, 'x');
 
-module.exports = { cmdTikTok, cmdInstagram, cmdPinterest, cmdNext, _busquedas: busquedas, _hazRed: hazRed, _ESPERA_MS: ESPERA_MS };
+module.exports = { cmdTikTok, cmdInstagram, cmdPinterest, cmdX, cmdNext, _busquedas: busquedas, _hazRed: hazRed, _ESPERA_MS: ESPERA_MS };

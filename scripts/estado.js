@@ -341,8 +341,8 @@ if (!bot) {
     // El comando NO se deduce del nombre de la plataforma: `!tt` no es
     // «tiktok».slice(0,2). Escrito asi salia «!ti, !in, !pi», tres comandos que
     // no existen, en el aviso que se supone que te dice que escribir.
-    const COMANDO = { tiktok: '!tt', instagram: '!ig', pinterest: '!pin' };
-    let sinApi = ['tiktok', 'instagram', 'pinterest'];
+    const COMANDO = { tiktok: '!tt', instagram: '!ig', pinterest: '!pin', x: '!x' };
+    let sinApi = ['tiktok', 'instagram', 'pinterest', 'x'];
     try {
       const { hayApi } = require(path.join(RAIZ, 'src/utils/redes'));
       sinApi = sinApi.filter((x) => !hayApi(x));
@@ -380,7 +380,7 @@ if (!bot) {
   let hayApi = () => false;
   try { ({ ultimosFallos: fallos, hayApi } = require(path.join(RAIZ, 'src/utils/redes'))); fallos = fallos(); }
   catch { fallos = {}; }
-  const COMANDO = { tiktok: '!tt', instagram: '!ig', pinterest: '!pin' };
+  const COMANDO = { tiktok: '!tt', instagram: '!ig', pinterest: '!pin', x: '!x' };
   const RECIENTE = 7 * 24 * 3600000;
   // NI UN FALLO DE ANTES DE ESTE PROCESO. Paso justo al desplegar el arreglo de
   // Pinterest: `estado` seguia enseñando el «No video formats found» de doce

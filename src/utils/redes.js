@@ -78,6 +78,9 @@ const API_DE = {
   tiktok: (process.env.TIKTOK_API || process.env.REDES_API || '').trim(),
   instagram: (process.env.INSTAGRAM_API || process.env.REDES_API || '').trim(),
   pinterest: (process.env.PINTEREST_API || process.env.REDES_API || '').trim(),
+  // X acepta tambien TWITTER_API: el sitio cambio de nombre y el .env de la VPS
+  // puede llevar escrito cualquiera de los dos.
+  x: (process.env.X_API || process.env.TWITTER_API || process.env.REDES_API || '').trim(),
 };
 const TIEMPO_MAXIMO = 120000;
 // Lo que WhatsApp acepta como video en un mensaje. Por encima, el envio falla o
@@ -105,6 +108,22 @@ const PLATAFORMAS = {
     // pin.it es el acortador de la app.
     rx: /https?:\/\/(?:[\w-]+\.)?(?:pinterest\.[a-z.]+|pin\.it)\/\S+/i,
     formato: 'b',
+  },
+  x: {
+    nombre: 'X',
+    // LOS DOS NOMBRES Y EL ACORTADOR. La red se llama X y el dominio viejo
+    // sigue vivo y redirige, asi que quien comparte desde una app antigua pega
+    // un twitter.com y quien comparte desde la de ahora pega un x.com. Y t.co
+    // es el acortador que la propia red mete en los retuits.
+    //
+    // Se aceptan tambien los espejos que la gente usa para que el enlace se vea
+    // en otras apps (fxtwitter, vxtwitter, fixupx): llegan pegados tal cual y
+    // apuntan al mismo tuit.
+    rx: /https?:\/\/(?:[\w-]+\.)?(?:twitter\.com|x\.com|t\.co|fxtwitter\.com|vxtwitter\.com|fixupx\.com)\/\S+/i,
+    formato: 'b',
+    // Un tuit puede ser SOLO fotos, y eso no es un fallo: es la mitad de lo que
+    // se comparte. Lo mismo que Pinterest, y por eso las dos lo llevan marcado.
+    puedeSerFoto: true,
   },
 };
 
@@ -764,6 +783,18 @@ const EXTRA_DB = (() => {
 // detrás es la canción: un MP3 de 210 KB. El bot lo guardaba con extensión
 // `.mp4` y lo mandaba tan tranquilo, y WhatsApp contestaba «something is wrong
 // with the video file» — con razón, porque no era un vídeo.
+// UN GIF ES UN VIDEO QUE NO SUENA, y eso es todo lo que lo distingue.
+//
+// X sirve los GIF como MP4 sin pista de audio —igual que hace su propia app, y
+// por eso alli se ven en bucle y sin controles—. La extension no vale para
+// separarlos: un .mp4 es un .mp4 en los dos casos.
+//
+// Vive fuera de `traer` para que se pueda probar contra ficheros de verdad en
+// vez de mirando el codigo fuente.
+function esAnimado(medio) {
+  return Boolean(medio && medio.probado && !medio.audio);
+}
+
 function analizarMedio(fichero) {
   return new Promise((resolve) => {
     const proc = spawn(ffmpegPath, ['-hide_banner', '-i', fichero, '-t', '0', '-f', 'null', '-']);
@@ -1565,6 +1596,9 @@ async function porPinterest(url) {
 // tamaños de la misma foto. El ultimo es el original, sin recorte de tamaño en
 // los parametros. Medido: 2,2 s de metadatos y la foto entera detras.
 const TOPE_FOTOS_YTDLP = 20;
+// Un tuit no deja poner mas de cuatro imagenes, asi que pedir mas es bajar
+// miniaturas de la cuenta que no vienen a cuento.
+const TOPE_FOTOS_X = 4;
 
 // QUE ERRORES SIGNIFICAN «ESTO NO ES UN VIDEO» Y CUALES NO.
 //
@@ -1590,6 +1624,50 @@ function fotosDeFicha(ficha) {
     }
   }
   return fuera;
+}
+
+// ─── UN TUIT DE FOTOS SON FOTOS, NO UN PASE ─────────────────────────────────
+//
+// `porYtDlpFotos` monta un video-pase con las fotos encadenadas, y eso esta
+// bien para una publicacion de Instagram con musica: la cancion es la mitad de
+// lo que se comparte. En X no hay cancion, y un tuit con dos fotos convertido
+// en un video de dos diapositivas es peor que las dos fotos.
+//
+// Asi que aqui se bajan tal cual y se devuelven como una lista. El comando ya
+// sabe mandar varias en un album —lo hace con *!pin*— y una sola sale como una
+// foto normal.
+async function porFotosSueltas(url) {
+  let crudo = null;
+  try {
+    crudo = await ytdlp(['-J', '--no-warnings', '--ignore-no-formats-error', url], 60000);
+  } catch (e) {
+    logger.info(`redes: yt-dlp no supo describir el enlace (${e.message.slice(0, 80)})`);
+    return null;
+  }
+  let ficha = null;
+  try { ficha = JSON.parse(crudo); } catch { return null; }
+  const fotos = fotosDeFicha(ficha);
+  if (!fotos.length) return null;
+
+  const medios = [];
+  for (const enlace of fotos.slice(0, TOPE_FOTOS_X)) {
+    const ext = extensionDe(enlace);
+    const fichero = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.${esImagen(ext) ? ext : 'jpg'}`);
+    try {
+      await downloadUrlToFile(enlace, fichero);
+      const { size } = await fs.stat(fichero);
+      // Una miniatura de 3 KB no es la foto del tuit: es el icono de la cuenta.
+      if (size < 4096) { await fs.remove(fichero).catch(() => {}); continue; }
+      if (size > TOPE_WHATSAPP) { await fs.remove(fichero).catch(() => {}); continue; }
+      medios.push({ fichero, tipo: 'imagen', ext: extensionDe(fichero) || 'jpg', bytes: size });
+    } catch (e) {
+      logger.info(`redes: no pude bajar una foto del tuit (${e.message.slice(0, 60)})`);
+      await fs.remove(fichero).catch(() => {});
+    }
+  }
+  if (!medios.length) return null;
+  logger.info(`redes: el enlace no traia video, son ${medios.length} foto(s)`);
+  return medios;
 }
 
 // Devuelve el pase ya montado, o null si ahi no habia fotos tampoco.
@@ -1646,7 +1724,17 @@ async function porYtDlp(url, plataforma) {
   if (ultimo) {
     // «No video formats found» no es un fallo de red ni un bloqueo: es que eso
     // no es un video. Antes de rendirse, se le piden las fotos.
-    if (esSinVideo(ultimo.message)) {
+    //
+    // PERO NO A TODAS LAS PLATAFORMAS IGUAL. Esto monta un PASE: un video con
+    // las fotos encadenadas, que es lo correcto para una publicacion de
+    // Instagram —la cancion es la mitad de lo que se comparte— y lo incorrecto
+    // para un tuit, donde no hay cancion y dos fotos convertidas en un video de
+    // dos diapositivas se ven peor que las dos fotos.
+    //
+    // Las plataformas marcadas `puedeSerFoto` dejan pasar el error a proposito:
+    // `traer` lo recoge y baja las fotos sueltas, que es lo que hay que mandar.
+    // Sin esta linea el rescate de `traer` no llega a ejecutarse nunca.
+    if (esSinVideo(ultimo.message) && !PLATAFORMAS[plataforma]?.puedeSerFoto) {
       const pase = await porYtDlpFotos(url);
       if (pase) return pase;
     }
@@ -1706,6 +1794,14 @@ async function traer(url, plataforma) {
     try {
       if (!fichero) fichero = await porYtDlp(url, plataforma);
     } catch (e) {
+      // UN TUIT DE FOTOS NO ES UN FALLO. yt-dlp contesta «No video formats
+      // found» y hasta aqui eso moria como error, asi que *!x* con un tuit de
+      // fotos —la mitad de lo que se comparte— decia «no he podido traerlo».
+      // Se le vuelve a preguntar por las imagenes antes de darlo por perdido.
+      if (PLATAFORMAS[plataforma]?.puedeSerFoto) {
+        const fotos = await porFotosSueltas(url).catch(() => null);
+        if (fotos) return { medios: fotos };
+      }
       throw new Error(fallaApi ? `${fallaApi} · y yt-dlp: ${e.message}` : e.message);
     }
     if (!fichero) throw new Error(fallaApi || 'no pude sacar el vídeo de ahí');
@@ -1750,6 +1846,26 @@ async function traer(url, plataforma) {
           ? 'eso no es un vídeo: el enlace solo trae la canción (suele pasar con las publicaciones de fotos)'
           : 'eso no trae vídeo');
       }
+      // ─── UN GIF NO ES UN VIDEO MUDO, Y WHATSAPP NO LO SABE SOLO ───────
+      //
+      // X sirve los GIF como MP4 sin pista de audio: es lo mismo que hace la
+      // propia app y por eso alli se ven en bucle y sin controles. Mandado como
+      // video corriente llega como un clip mudo con su boton de play, que es
+      // justo lo que el dueño no pidio cuando dijo «la foto, gif o video de X».
+      //
+      // `gifPlayback` es lo que le dice a WhatsApp que lo trate como GIF. No
+      // convierte nada: los bytes son los mismos, y el propio bot ya lo usa en
+      // las acciones y en *!tovid* por este mismo motivo.
+      //
+      // Se decide por la AUSENCIA DE AUDIO y no por la extension: un .mp4 es un
+      // .mp4 en los dos casos, y lo unico que de verdad separa un GIF de un
+      // video corto es que el GIF no suena.
+      const animado = esAnimado(medio);
+
+      // Y sin audio no hay nada que nivelar: el nivelador arranca un ffmpeg
+      // para no tocar nada.
+      if (animado) return { fichero, tipo, ext, bytes: size, animado: true };
+
       const nivelado = await conAudioNivelado(fichero);
       if (nivelado !== fichero) {
         fichero = nivelado;
@@ -1772,5 +1888,5 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, buscar, buscarVarios, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
+module.exports = { traer, buscar, buscarVarios, _porFotosSueltas: porFotosSueltas, esAnimado, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
   _montarPase: montarPase, _comoEnlaces: comoEnlaces, _porYtDlpFotos: porYtDlpFotos, _fotosDeFicha: fotosDeFicha, _esSinVideo: esSinVideo, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };
