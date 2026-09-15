@@ -134,6 +134,13 @@ const PLATAFORMAS = {
     // Un tuit puede ser SOLO fotos, y eso no es un fallo: es la mitad de lo que
     // se comparte. Lo mismo que Pinterest, y por eso las dos lo llevan marcado.
     puedeSerFoto: true,
+    // EN X, UN MP4 SIN AUDIO ES UN GIF. Es como los sirve la propia red y por
+    // eso alli se ven en bucle. En TikTok o Instagram NO: un video sin musica
+    // sigue siendo un video, y mandarlo en bucle y sin boton de play seria
+    // cambiarle el comando a alguien que no ha pedido nada.
+    //
+    // Va como bandera de plataforma porque la heuristica solo es cierta aqui.
+    gifsSinAudio: true,
   },
 };
 
@@ -820,6 +827,47 @@ const EXTRA_DB = (() => {
 // Asi que se hace igual: un fotograma con ffmpeg, y el tamaño del propio
 // analisis que ya se hacia. Un gif son setenta kilobytes, asi que es barato. Y
 // si falla, se manda sin ella: una miniatura no vale un comando roto.
+// ─── Y ADEMAS SE REHACE, CON LA RECETA QUE YA FUNCIONA ──────────────────────
+//
+// Con la miniatura y el tamaño puestos, el gif POR FIN se dibujaba... y seguia
+// sin poder bajarse: el dueño le daba a descargar, luego a reproducir, y volvia
+// el boton de descarga. El fichero era correcto —faststart, H.264, yuv420p, 4,7
+// segundos, los 72.286 bytes que enseñaba la burbuja— asi que lo que no le
+// gustaba a WhatsApp no era nada que se viera desde fuera.
+//
+// En vez de seguir adivinando que campo del contenedor le sienta mal, se hace
+// lo unico que hay probado EN ESTE MISMO BOT: la receta de *!acciones*, cuyos
+// gif llevan meses reproduciendose en el grupo. Reencoda y de paso normaliza
+// todo lo que X mete en sus `tweet_video` y aqui no se ve.
+//
+// Cuesta un ffmpeg sobre un fichero de setenta kilobytes —medido: menos de
+// medio segundo— y solo lo pagan los gif. Si falla, se manda el original: es
+// exactamente lo que habia antes y no puede quedar peor.
+//
+// `-an` porque un gif no suena, y es lo que lo separa de un video en el envio.
+async function prepararGif(fichero) {
+  const salida = path.join(TEMP_DIR, `gif_${Date.now()}_${Math.random().toString(36).slice(2)}.mp4`);
+  try {
+    await new Promise((resolve, reject) => {
+      const ff = spawn(ffmpegPath, ['-y', '-i', fichero,
+        '-movflags', 'faststart', '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
+        '-vf', "scale='min(400,iw)':-2", '-crf', '28',
+        '-preset', 'veryfast', '-an', salida]);
+      const mata = setTimeout(() => { try { ff.kill('SIGKILL'); } catch {} reject(new Error('tiempo agotado')); }, 60000);
+      ff.on('error', (e) => { clearTimeout(mata); reject(e); });
+      ff.on('close', (c) => { clearTimeout(mata); c === 0 ? resolve() : reject(new Error(`ffmpeg ${c}`)); });
+    });
+    const { size } = await fs.stat(salida);
+    if (size < 1024) throw new Error('lo que salió está vacío');
+    await fs.remove(fichero).catch(() => {});
+    return salida;
+  } catch (e) {
+    logger.info(`redes: no pude rehacer el gif (${String(e.message).slice(0, 50)}); va el original`);
+    await fs.remove(salida).catch(() => {});
+    return fichero;
+  }
+}
+
 async function datosDeGif(fichero) {
   const medio = await analizarMedio(fichero).catch(() => ({}));
   let thumb = null;
@@ -838,7 +886,16 @@ async function datosDeGif(fichero) {
   } finally {
     await fs.remove(jpg).catch(() => {});
   }
-  return { thumb, ancho: medio.ancho || null, alto: medio.alto || null };
+  // La DURACION tambien va al mensaje. Baileys solo la calcula para el audio
+  // (Utils/messages.js:134), asi que un video sale siempre con `seconds` vacio.
+  // A uno normal le da igual —tiene su boton de play— pero un gif se pinta en
+  // linea y en bucle, y sin saber cuanto dura no hay bucle que montar.
+  return {
+    thumb,
+    ancho: medio.ancho || null,
+    alto: medio.alto || null,
+    segundos: medio.segundos || null,
+  };
 }
 
 // UN GIF ES UN VIDEO QUE NO SUENA, y eso es todo lo que lo distingue.
@@ -868,12 +925,16 @@ function analizarMedio(fichero) {
       const m = /Stream #\d+:\d+.*: Video: (\w+)/.exec(texto);
       // Y EL TAMAÑO. Hace falta para los gif: ver la nota de datosDeGif.
       const d = /Stream #\d+:\d+.*: Video: [^\n]*?[ ,](\d{2,5})x(\d{2,5})/.exec(texto);
+      const dur = /Duration: (\d+):(\d\d):(\d\d)\.(\d+)/.exec(texto);
       resolve({
         probado,
         video: m ? m[1].toLowerCase() : null,
         audio: /: Audio: /.test(texto),
         ancho: d ? Number(d[1]) : null,
         alto: d ? Number(d[2]) : null,
+        segundos: dur
+          ? Math.max(1, Math.round(Number(dur[1]) * 3600 + Number(dur[2]) * 60 + Number(dur[3]) + Number(`0.${dur[4]}`)))
+          : null,
       });
     });
   });
@@ -2159,7 +2220,15 @@ async function traer(url, plataforma) {
       // Se decide por la AUSENCIA DE AUDIO y no por la extension: un .mp4 es un
       // .mp4 en los dos casos, y lo unico que de verdad separa un GIF de un
       // video corto es que el GIF no suena.
-      const animado = esAnimado(medio);
+      // SOLO DONDE LA REGLA ES CIERTA. Esta marca la puse para X y la escribi
+      // en la rama generica, asi que se la estaba aplicando tambien a *!tt*,
+      // *!ig* y *!pin*: un TikTok sin musica pasaba a mandarse en bucle y sin
+      // boton de play. Nadie pidio eso y antes no pasaba.
+      //
+      // En X la regla es de la propia red —sus gif son mp4 mudos— y ademas solo
+      // hace falta cuando la ficha publica no contesta y hay que tirar de
+      // yt-dlp: por la ficha el tipo viene dicho y no hay que adivinarlo.
+      const animado = PLATAFORMAS[plataforma]?.gifsSinAudio ? esAnimado(medio) : false;
 
       // Y sin audio no hay nada que nivelar: el nivelador arranca un ffmpeg
       // para no tocar nada.
@@ -2187,5 +2256,5 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, buscar, buscarVarios, datosDeGif, _porFotosSueltas: porFotosSueltas, esAnimado, _porX: porX, _textoDeTuit: textoDeTuit, _mejorVariante: mejorVariante, _variantesMp4: variantesMp4, _varianteQueCabe: varianteQueCabe, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
+module.exports = { traer, buscar, buscarVarios, datosDeGif, prepararGif, _porFotosSueltas: porFotosSueltas, esAnimado, _porX: porX, _textoDeTuit: textoDeTuit, _mejorVariante: mejorVariante, _variantesMp4: variantesMp4, _varianteQueCabe: varianteQueCabe, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
   _montarPase: montarPase, _comoEnlaces: comoEnlaces, _porYtDlpFotos: porYtDlpFotos, _fotosDeFicha: fotosDeFicha, _esSinVideo: esSinVideo, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };

@@ -11,7 +11,7 @@
 // reencoda, no se carga en memoria y no se guarda nada.
 
 const fs = require('fs-extra');
-const { traer, buscar, buscarVarios, enlaceDe, plataformaDe, hayComoTraer, datosDeGif, PLATAFORMAS } = require('../utils/redes');
+const { traer, buscar, buscarVarios, enlaceDe, plataformaDe, hayComoTraer, datosDeGif, prepararGif, PLATAFORMAS } = require('../utils/redes');
 const { getSender, canonicalJid } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const logger = require('../utils/logger');
@@ -311,6 +311,13 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
       // Se los damos hechos, que ademas es lo que ya hacen las acciones y
       // *!tovid* —los dos sitios donde el gif si funcionaba—. Solo para gifs:
       // un video corriente no paga este ffmpeg.
+      // Y EL GIF SE REHACE ANTES DE MEDIRLO. Con la miniatura puesta el gif ya
+      // se dibujaba, pero seguia sin poder bajarse: WhatsApp lo descargaba, se
+      // le daba a reproducir y volvia el boton de descarga. El fichero de X era
+      // correcto por todos lados, asi que en vez de adivinar que campo del
+      // contenedor le sienta mal se rehace con la receta de *!acciones*, cuyos
+      // gif llevan meses reproduciendose en este grupo.
+      if (m.animado) m.fichero = await prepararGif(m.fichero);
       const extraGif = m.animado ? await datosDeGif(m.fichero).catch(() => ({})) : null;
 
       const medio = m.tipo === 'imagen'
@@ -321,6 +328,9 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
           jpegThumbnail: (extraGif && extraGif.thumb) || null,
           ...(m.animado ? { gifPlayback: true } : {}),
           ...(extraGif && extraGif.ancho ? { width: extraGif.ancho, height: extraGif.alto } : {}),
+          // Baileys solo calcula la duracion del audio, asi que un video sale
+          // siempre sin ella. Un gif se pinta en bucle y la necesita.
+          ...(extraGif && extraGif.segundos ? { seconds: extraGif.segundos } : {}),
           ...pie,
         };
       // La cita solo en la primera cuando no hay album: colgar las cinco del

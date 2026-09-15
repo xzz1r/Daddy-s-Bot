@@ -12799,6 +12799,7 @@ const quejas = [];
 const exige = (c, q) => { if (!c) quejas.push(q); };
 
 const redes = require(path.join(R, 'src/utils/redes'));
+const rxBase = redes;
 let devuelve = null, pedido = null;
 redes.traer = async (url, plataforma) => { pedido = { url, plataforma }; if (devuelve instanceof Error) throw devuelve; return devuelve; };
 for (const k of Object.keys(require.cache)) if (k.endsWith('commands/redes.js')) delete require.cache[k];
@@ -13206,6 +13207,17 @@ const ficheroDe = async (ext) => {
           { fichero: mudoReal, tipo: 'video', ext: 'mp4', bytes: 9000, animado: true });
         const v = o.find((x) => x.c.video);
         exige(!!v && v.c.gifPlayback === true, 'el gif no sale marcado como gif');
+        // LA DURACION. Baileys solo la calcula para el audio, asi que un video
+        // sale siempre sin ella; a uno normal le da igual —tiene su boton de
+        // play— pero un gif se pinta en bucle y sin saber cuanto dura no hay
+        // bucle que montar. El fichero de prueba dura un segundo.
+        exige(!!v && v.c.seconds === 1,
+          'el gif sale con seconds=' + JSON.stringify(v && v.c.seconds) + ' y el fichero dura 1 s');
+        // Y SE REHACE con la receta de las acciones, que es el unico gif que
+        // hay probado reproduciendose en el grupo del dueño. Se mira que el
+        // fichero que se manda NO es el que se bajo.
+        exige(!!v && v.c.video.url !== mudoReal,
+          'el gif se manda tal cual viene de X: el fichero era correcto por todos lados y aun asi WhatsApp no lo reproducia, asi que se rehace con la receta que si funciona');
         exige(!!v && v.c.jpegThumbnail && v.c.jpegThumbnail.length > 0,
           'el gif sale sin miniatura: jpegThumbnail en null hace que Baileys se salte tambien el ancho y el alto, y un gifPlayback sin relacion de aspecto no se dibuja — se baja y en el grupo no pasa nada');
         exige(!!v && v.c.width === 320 && v.c.height === 240,
@@ -13224,7 +13236,71 @@ const ficheroDe = async (ext) => {
         exige(!!v2 && !v2.c.gifPlayback, 'un video con sonido sale como gif');
         exige(!!v2 && v2.c.jpegThumbnail === null && v2.c.width === undefined,
           'un video corriente se lleva el ffmpeg de la miniatura: eso es lo que hacia que subir 13 KB tardara 1699 ms, y un video no lo necesita');
+        exige(!!v2 && v2.c.video.url === conSonido,
+          'un video corriente se reencoda: eso es un libx264 entero por cada reel en el unico core de la VPS, y solo hace falta para los gif');
+        exige(!!v2 && v2.c.seconds === undefined, 'un video corriente lleva duracion calculada a mano: no le hace falta y cuesta un ffmpeg');
       }
+    }
+
+    // ── Y LA REGLA DEL GIF NO SE LE APLICA A LOS OTROS TRES ────────────
+    //
+    // La marca de gif por ausencia de audio la escribi para X en la rama
+    // generica de traer(), asi que se la estaba aplicando tambien a *!tt*,
+    // *!ig* y *!pin*: un TikTok sin musica pasaba a mandarse en bucle y sin
+    // boton de play. Nadie pidio eso y antes no pasaba.
+    //
+    // En X la regla es de la propia red —sus gif son mp4 mudos—. En las otras
+    // tres, un video sin sonido sigue siendo un video.
+    //
+    // SE MIDE EJERCITANDO traer(), no leyendo las banderas. Escrito por
+    // banderas, quitar la condicion de traer() dejaba la prueba en verde con la
+    // regla otra vez aplicandose a todos: comprobado, la mutacion sobrevivia.
+    {
+      const bajador = require(path.join(R, 'src/utils/downloader'));
+      const axios2 = require(path.join(R, 'node_modules/axios'));
+      const { spawnSync } = require('child_process');
+      const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+      const ytdlpReal = bajador.ytdlp;
+      // LA FICHA, CORTADA. Aquí se mide la vía de yt-dlp, que es la que usa X
+      // cuando la ficha no llega. Sin cortarla, esta prueba salía a
+      // cdn.syndication.twimg.com de verdad con un id inventado —se veía el 404
+      // en el log— y volvía a ser de las que fallan por la red.
+      const getReal2 = axios2.get;
+      axios2.get = async () => { throw new Error('ficha cortada en la prueba'); };
+
+      // yt-dlp, fingido: escribe un mp4 MUDO de verdad donde le toca. El fichero
+      // tiene que ser real — la decision la toma ffmpeg mirando las pistas.
+      bajador.ytdlp = async (args) => {
+        const i = args.indexOf('-o');
+        const destino = String(args[i + 1]).replace('%(ext)s', 'mp4');
+        spawnSync(ffmpegPath, ['-y', '-f', 'lavfi', '-i', 'color=c=green:s=64x64:d=1', '-pix_fmt', 'yuv420p', destino], { timeout: 60000 });
+        return '';
+      };
+      for (const k of Object.keys(require.cache)) if (k.endsWith('utils/redes.js')) delete require.cache[k];
+      const rz = require(path.join(R, 'src/utils/redes'));
+
+      const porVia = async (plataforma, enlace) => {
+        const r = await rz.traer(enlace, plataforma).catch((e) => e);
+        const m = (r && r.medios) ? r.medios[0] : r;
+        const era = !!(m && m.animado);
+        if (m && m.fichero) await fs.remove(m.fichero).catch(() => {});
+        return era;
+      };
+
+      exige(await porVia('x', 'https://x.com/a/status/1234567890123456789') === true,
+        'un mp4 mudo que llega de X por la vía de yt-dlp no se marca como gif: es como los sirve la red y por ahí no hay otra forma de saberlo');
+      for (const [otra, enlace] of [
+        ['tiktok', 'https://vt.tiktok.com/ZS111/'],
+        ['instagram', 'https://www.instagram.com/reel/C111/'],
+        ['pinterest', 'https://www.pinterest.es/pin/111/'],
+      ]) {
+        exige(await porVia(otra, enlace) === false,
+          '*!' + otra + '* manda un vídeo sin sonido como gif —en bucle y sin botón de play—: escribí la regla de X en la rama de todos y le cambié el comando a quien no ha pedido nada');
+      }
+
+      bajador.ytdlp = ytdlpReal;
+      axios2.get = getReal2;
+      for (const k of Object.keys(require.cache)) if (k.endsWith('utils/redes.js')) delete require.cache[k];
     }
 
     // ── EL TEXTO DEL TUIT, DE PIE DE LA PRIMERA FOTO ───────────────────
