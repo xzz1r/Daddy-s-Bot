@@ -8,6 +8,7 @@ const { contarTirada } = require('../utils/casinoStore');
 const { TIRADA, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE, P_TOPE, MULT_CASTIGO, MULT_CASTIGO_GRANDE, P_TRAMO_GRANDE, TIRADAS_PAGADAS, bonoActividad, bonoVeterania, VETERANIA_TOPE, APUESTA, pApuestaDe, pApuestaVisible, PRECIOS, ARRANQUE, MILLONARIO, tirar, MOMENTUM } = require('../utils/economia');
 const { APUESTA_GANA, APUESTA_PIERDE } = require('../data/apuestaPhrases');
 const { fraseCooldown, AURA_TIRADA, AURA_APOSTAR, AURA_TOP_ANSIAS, AURA_TOP_POBRE } = require('../data/cooldownPhrases');
+const { bloqueCooldown, lineaAura, tiempoRestante } = require('../utils/formatoJuego');
 const { auraApagada, avisarApagada, toggleAura, reiniciarAviso } = require('../utils/auraSwitch');
 const { BOTE, ATRACO, CONTRA, RACHA, RIESGO, OBJETOS, VENTAJA, RECOMPENSA, IMPUESTO, REGALO_MIN } = require('../utils/economia');
 const { aportarAlBote } = require('../utils/roboStore');
@@ -39,14 +40,10 @@ const anuncioObjetivo = new Map(); // grupo -> diaClave, para no pinguear al caz
 // cortos: minuto y medio salia como "2min" y una espera de 20 segundos tambien.
 // Por debajo del minuto se dan segundos, y si hay minutos y sobran segundos se
 // dicen los dos.
-function duracion(ms) {
-  const total = Math.max(0, Math.ceil(ms / 1000));
-  const m = Math.floor(total / 60);
-  const seg = total % 60;
-  if (!m) return `${seg}s`;
-  if (!seg) return `${m}min`;
-  return `${m}min ${seg}s`;
-}
+// Una de las tres copias que habia del mismo reloj, cada una con su salida.
+// Ahora la forma vive en utils/formatoJuego.js y el nombre se queda porque lo
+// usan varios sitios de este fichero.
+const duracion = tiempoRestante;
 
 // Tirada de aura.
 //
@@ -766,11 +763,10 @@ async function showRanking(sock, msg, groupMeta) {
 
   const desde = Date.now() - (ultimoRanking.get(jid) || 0);
   if (desde < RANKING_COOLDOWN_MS) {
-    // En horas cuando pasa de una: "vuelve en 180 min" se lee peor que "en 3 h".
-    const min = Math.ceil((RANKING_COOLDOWN_MS - desde) / 60000);
-    const cuanto = min >= 60
-      ? `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ''}`
-      : `${min} min`;
+    // El reloj lo pinta utils/formatoJuego.js. Aqui habia una tercera forma de
+    // escribirlo ("3 h 20 min", con espacios) que no coincidia con la de robo
+    // ni con la de la tirada.
+    const restaTop = RANKING_COOLDOWN_MS - desde;
     // Se le pincha por donde le duele: el que ESTA en el top lo pide por
     // vanidad y el que no esta lo pide por envidia. Cuesta una lectura del
     // ranking, y solo en la rama que ya iba a rechazar la peticion.
@@ -806,7 +802,12 @@ async function showRanking(sock, msg, groupMeta) {
       // bot simplemente ha contestado otra cosa. Que hay un tiempo de espera se
       // deducia del "Vuelve en" de la segunda linea, y no se deducia: la gente
       // volvia a pedirlo. Se dice en la primera linea y en una palabra.
-      text: `*TOP EN COOLDOWN*\n${fraseCooldown(pool, `${jid}|top|${enTop ? 'ansias' : 'pobre'}`, 0)}\n_Vuelve en *${cuanto}*._${copia}`,
+      text: bloqueCooldown({
+        que: 'top',
+        frase: fraseCooldown(pool, `${jid}|top|${enTop ? 'ansias' : 'pobre'}`, 0),
+        queda: restaTop,
+        cola: copia,
+      }),
       // SIN mentions a proposito: es lo unico que separa enseñar la tabla de
       // volver a notificar a los diez.
     }, { quoted: msg });
@@ -1027,10 +1028,12 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
     const ultimo = ultimaApuesta.get(clave) || 0;
     const queda = APUESTA_COOLDOWN_MS - (Date.now() - ultimo);
     if (queda > 0) {
-      const h = Math.floor(queda / 3_600_000);
-      const m = Math.ceil((queda % 3_600_000) / 60_000);
       return sock.sendMessage(jid, {
-        text: `*APUESTA EN COOLDOWN*\n${fraseCooldown(AURA_APOSTAR, `${clave}|apostar`)}\n_Vuelve en *${h ? h + 'h ' : ''}${m}min*._`,
+        text: bloqueCooldown({
+          que: 'apuesta',
+          frase: fraseCooldown(AURA_APOSTAR, `${clave}|apostar`),
+          queda,
+        }),
       }, { quoted: msg });
     }
 
@@ -1134,7 +1137,9 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
       (devuelto ? `\n_El seguro te devuelve *${fmt(devuelto)}* de lo perdido._` : '') +
       `\n\n` +
       `${frase}\n\n` +
-      `${gana ? '+' : '−'}${fmt(Math.abs(delta))} → *${fmt(current)}* de aura` +
+      // Era la unica linea de movimiento SIN nombre delante, en un mensaje que
+      // si lo lleva arriba. Ahora la escribe el mismo sitio que las demas.
+      `${lineaAura(nm, gana ? Math.abs(delta) : -Math.abs(delta), current)}` +
       (alBote ? `\n_Una parte de lo que soltaste ha ido al bote del grupo, que sube a *${fmt(alBote)}*. Alguien se lo va a llevar y no vas a ser tú._` : '');
 
     return sock.sendMessage(jid, { text, mentions: [sender] }, { quoted: msg });
@@ -1292,7 +1297,11 @@ async function cmdAura(sock, msg, args, groupMeta) {
   const remaining = ROLL_COOLDOWN_MS - (Date.now() - last);
   if (remaining > 0) {
     return sock.sendMessage(jid, {
-      text: `*TIRADA EN COOLDOWN*\n${fraseCooldown(AURA_TIRADA, `${coolKey}|tirada`)}\n_Vuelve en *${duracion(remaining)}*._`,
+      text: bloqueCooldown({
+        que: 'tirada',
+        frase: fraseCooldown(AURA_TIRADA, `${coolKey}|tirada`),
+        queda: remaining,
+      }),
     }, { quoted: msg });
   }
   // Aqui hubo un tope de doce tiradas al dia. Se quito: un contador que se agota
@@ -1383,7 +1392,8 @@ async function cmdAura(sock, msg, args, groupMeta) {
     extraVet = Math.round(amount * vet);
     amount += extraVet;
   }
-  const sign = amount >= 0 ? '+' : '-';
+  // `sign` vivia aqui y lo usaba el titulo de la tirada. Lo pinta ahora
+  // lineaAura, con el menos de verdad y no con un guion.
   // AL OWNER NO SE LE ENSEÑA ESTA LINEA. NUNCA, y tampoco inventada.
   //
   // Llegue a fabricarle un recuento creible para que le saliera como a todos,
@@ -1454,9 +1464,13 @@ async function cmdAura(sock, msg, args, groupMeta) {
   } catch { /* sin objetivo el comando sigue; no es un dato sin el que no se tire */ }
 
   const text =
-    `*@${sender.split('@')[0]} ${sign}${fmt(Math.abs(amount))} de aura*\n` +
-    `${pickFresh(AURA[effectiveTier], `${jid}|aura|${effectiveTier}`)}\n\n` +
-    `Aura total: *${fmt(current)}*` +
+    // La tirada partia el movimiento en dos: el cambio en el titulo («+200 de
+    // aura») y el total cuatro lineas mas abajo («Aura total: 3.350»). Es la
+    // misma informacion que el resto de comandos dan en una linea, y el que
+    // tira veinte veces al dia la lee veinte veces en dos sitios distintos.
+    // Ahora va junta, arriba y en negrita: cuanto y con que te quedas.
+    `${lineaAura(`@${sender.split('@')[0]}`, amount, current, { negrita: true })}\n` +
+    `${pickFresh(AURA[effectiveTier], `${jid}|aura|${effectiveTier}`)}` +
     // Se DICE: un bono invisible no premia a nadie. El veterano no sabria que
     // cobra de mas y el que empieza no sabria que hay algo que perseguir.
 

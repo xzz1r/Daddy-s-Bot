@@ -1390,8 +1390,15 @@ const di=async(quien,texto,extra)=>{
           verifiedBizName: 'Tienda SL',
           message: { conversation: 'hola' },
         });
-        await new Promise((r) => setTimeout(r, 250));
-        vetada = await isBanned([empresa]);
+        // Misma historia que la de redes: una espera fija hace que la capa
+        // falle por la carga de la maquina y no por el codigo. Se espera a que
+        // el veto aparezca, con tope.
+        const t0B = Date.now();
+        vetada = false;
+        while (!vetada && Date.now() - t0B < 8000) {
+          vetada = await isBanned([empresa]);
+          if (!vetada) await new Promise((r) => setTimeout(r, 25));
+        }
       } catch { vetada = false; } finally {
         try { await unbanAccount([empresa]); await flushBanlist(); } catch {}
         try { if (!estabaAB) st.toggleAntiBusiness(GB, false); } catch {}
@@ -8653,7 +8660,23 @@ const di=async(quien,t)=>{out.length=0;
             messageTimestamp: Math.floor(Date.now() / 1000), pushName: 'X',
             message: { extendedTextMessage: { text: texto, contextInfo: {} } },
           });
-          await new Promise((r) => setTimeout(r, 250));
+          // SE ESPERA A QUE PASE ALGO, NO 250 ms.
+          //
+          // Esto era una espera fija, y una espera fija es una capa que falla
+          // cuando la maquina va cargada en vez de cuando el codigo esta mal.
+          // Le paso al dueño en la VPS —un core— con un rojo suelto que no
+          // reproducia nadie: «!ig con su enlace ya no manda nada», con !ig
+          // perfectamente. Las capas corren en paralelo, asi que la de al lado
+          // puede estar convirtiendo un video en ese mismo instante.
+          //
+          // Ahora se espera A LA CONDICION, con un tope generoso. Si de verdad
+          // no llega nada, tarda el tope y la queja sigue saliendo — pero
+          // entonces es de verdad.
+          const hayAlgo = () => visto.some((c) => c.video || c.image || c.delete);
+          const t0Red = Date.now();
+          while (!hayAlgo() && Date.now() - t0Red < 8000) {
+            await new Promise((r) => setTimeout(r, 25));
+          }
           const media = visto.some((c) => c.video || c.image);
           return {
             // CASTIGADO NO ES «HUBO UN BORRADO». Desde que el comando borra su
@@ -12486,6 +12509,282 @@ const meta = { id: GJ, subject: 'G', participants: [
     }
 
     if (fallos === antes) console.log(verde('   ✓ las líneas del dueño son él —ni cuentan ni pagan ni se les apunta—, se le escribe a una sola, y el co-dueño paga'));
+  }
+
+  // El guion del hijo de la capa 73. Va aparte para poder sustituir el almacen
+  // de aura y el del bote ANTES de que robo.js los capture al requerirse.
+  const MEMORIA_CAPA_73 = String.raw`
+'use strict';
+require('dotenv').config({ quiet: true });
+const path = require('path');
+const R = __RAIZ__;
+const quejas = [];
+const exige = (c, q) => { if (!c) quejas.push(q); };
+
+// EL RELOJ SE PUEDE ADELANTAR. Hay un caso que no se puede comprobar de otra
+// forma: asaltar, esperar a que caiga el cooldown, y robar. Sin esto habria que
+// dejar la capa seis minutos parada, asi que Date.now lleva un desfase.
+let desfase = 0;
+const ahoraReal = Date.now;
+Date.now = () => ahoraReal() + desfase;
+
+let saldo = 100000, bote = 5000, cobros = 0, vaciados = 0, aportes = 0;
+const as = require(path.join(R, 'src/utils/auraStore'));
+as.getAura = async () => saldo;
+as.spendAura = async (g, u, c) => { cobros++; if (saldo - c < 0) return { ok: false, saldo }; saldo -= c; return { ok: true, cobrado: c, current: saldo }; };
+as.addAura = async (g, u, c) => { saldo += c; return { current: saldo }; };
+as.flushAura = async () => {};
+const rs = require(path.join(R, 'src/utils/roboStore'));
+rs.verBote = async () => bote;
+rs.aportarAlBote = async (g, c) => { aportes++; bote += c; return bote; };
+rs.vaciarBote = async () => { vaciados++; const b = bote; bote = 0; return b; };
+rs.anotarGolpe = async () => {};
+rs.tieneEscudo = async () => false;
+rs.objetosDe = async () => ({});
+rs.ultimaVentaja = async () => 0;
+rs.tieneSocio = async () => false;
+rs.vetoTienda = async () => 0;
+
+const GJ = '000000073@g.us';
+const YO = '34600000073@s.whatsapp.net', OTRO = '34600000074@s.whatsapp.net';
+const meta = { id: GJ, subject: 'G', participants: [{ id: YO }, { id: OTRO }] };
+let n = 0;
+let out = [];
+const sock = { user: { id: '549199@s.whatsapp.net' }, sendMessage: async (j, c) => { out.push(c.text || ''); return {}; }, groupMetadata: async () => meta };
+const msg = (mencion) => ({
+  key: { remoteJid: GJ, participant: YO, fromMe: false, id: 'A' + (++n) },
+  message: mencion
+    ? { extendedTextMessage: { text: 'x', contextInfo: { mentionedJid: [mencion] } } }
+    : { conversation: 'x' },
+});
+const nuevo = () => {
+  for (const k of Object.keys(require.cache)) if (k.endsWith('commands/robo.js')) delete require.cache[k];
+  return require(path.join(R, 'src/commands/robo'));
+};
+
+(async () => {
+  try {
+    // 1. DOS ASALTOS A LA VEZ: una sola entrada.
+    {
+      const C = nuevo();
+      cobros = 0; vaciados = 0; aportes = 0; bote = 5000; saldo = 100000; out = [];
+      await Promise.all([C.cmdRobo(sock, msg(), ['asalto'], meta), C.cmdRobo(sock, msg(), ['asalto'], meta)]);
+      exige(cobros === 1,
+        'dos !robo asalto a la vez cobraron ' + cobros + ' entradas: el cooldown se reclama despues de dos await, asi que los dos pasan la puerta antes de que ninguno la cierre y el bote recibe dos tiradas por un solo turno');
+      exige(vaciados + aportes === 1,
+        'dos !robo asalto a la vez tiraron al bote ' + (vaciados + aportes) + ' veces: tiene que ser una');
+      exige(/EN COOLDOWN/.test(out.join(' ')),
+        'al segundo asalto simultaneo no se le dijo que estaba en cooldown: se fue en silencio y desde fuera parece que el comando se ha perdido');
+    }
+
+    // 2. TRAS UN !robo NORMAL, EL ASALTO DICE QUE ESPERA POR EL ROBO.
+    {
+      const C = nuevo();
+      saldo = 100000; bote = 5000; out = [];
+      await C.cmdRobo(sock, msg(OTRO), ['@' + OTRO.split('@')[0], '100'], meta);
+      out = [];
+      await C.cmdRobo(sock, msg(), ['asalto'], meta);
+      const t = out.join(' ');
+      exige(/ROBO EN COOLDOWN/.test(t),
+        'despues de un !robo normal, el !robo asalto contesta ' + JSON.stringify(t.split('\n')[0]) + ': decir "ASALTO EN COOLDOWN" a quien no ha tocado el bote se lee como que el bot se equivoca de comando');
+      exige(/comparten reloj/.test(t),
+        'no se explica que el robo y el asalto comparten cooldown: sin esa linea, que un comando bloquee al otro parece un fallo');
+    }
+
+    // 3. TRAS UN ASALTO, EL !robo NORMAL DICE QUE ESPERA POR EL ASALTO.
+    {
+      const C = nuevo();
+      saldo = 100000; bote = 5000; out = [];
+      await C.cmdRobo(sock, msg(), ['asalto'], meta);
+      out = [];
+      await C.cmdRobo(sock, msg(OTRO), ['@' + OTRO.split('@')[0], '100'], meta);
+      const t = out.join(' ');
+      exige(/ASALTO EN COOLDOWN/.test(t),
+        'despues de un asalto, el !robo normal contesta ' + JSON.stringify(t.split('\n')[0]) + ': el reloj lo gasto el asalto y es lo que hay que decir');
+    }
+
+    // 4. ASALTO, SE PASA EL RELOJ, ROBO: EL SIGUIENTE AVISO ES DEL ROBO.
+    //
+    // Es el unico camino que ejercita el borrado de la marca. Sin el, un asalto
+    // dejaba el bot diciendo «ASALTO EN COOLDOWN» para siempre, incluso despues
+    // de que la persona hubiera hecho tres robos normales.
+    {
+      const C = nuevo();
+      saldo = 100000; bote = 5000; out = []; desfase = 0;
+      await C.cmdRobo(sock, msg(), ['asalto'], meta);
+      desfase += 7 * 60 * 1000;           // se pasa el cooldown
+      out = [];
+      await C.cmdRobo(sock, msg(OTRO), ['@' + OTRO.split('@')[0], '100'], meta);
+      out = [];
+      await C.cmdRobo(sock, msg(OTRO), ['@' + OTRO.split('@')[0], '100'], meta);
+      const t = out.join(' ');
+      exige(/ROBO EN COOLDOWN/.test(t),
+        'despues de un asalto viejo y un robo nuevo, el aviso sigue diciendo ' + JSON.stringify(t.split('\n')[0]) + ': la marca de quien gasto el reloj no se borra al robar, asi que un asalto deja al bot hablando del bote para siempre');
+      desfase = 0;
+    }
+
+    // 5. SIN SALDO NO SE QUEMA EL COOLDOWN.
+    {
+      const C = nuevo();
+      saldo = 0; bote = 5000; out = [];
+      await C.cmdRobo(sock, msg(), ['asalto'], meta);
+      exige(/no fía/.test(out.join(' ')), 'sin saldo para la entrada no se avisa de que el bote no fia: ' + JSON.stringify(out.join(' ').slice(0, 80)));
+      saldo = 100000; out = [];
+      await C.cmdRobo(sock, msg(), ['asalto'], meta);
+      exige(!/EN COOLDOWN/.test(out.join(' ')),
+        'un asalto que no se pudo pagar quemo el cooldown igual: seis minutos de castigo por un comando que no llego a ocurrir');
+    }
+  } catch (e) {
+    quejas.push('la prueba del asalto revento: ' + (e && e.stack ? e.stack.split('\n')[0] : e));
+  }
+  console.log('CAPA73:' + JSON.stringify(quejas));
+  process.exit(0);
+})();
+`;
+
+  // ── 73. EL ASALTO AL BOTE NO SE PUEDE PAGAR DOS VECES ───────────────────
+  //
+  // DOS FALLOS EN EL MISMO SITIO, los dos reproducidos antes de tocar nada.
+  //
+  // 1. EL COOLDOWN SE RECLAMABA DESPUES DE DOS `await`. Dos *!robo asalto*
+  //    seguidos pasaban los dos por la comprobacion de arriba antes de que
+  //    ninguno llegara a marcar nada: dos entradas cobradas, dos tiradas al
+  //    bote, un solo cooldown. Medido: cobros=2.
+  //
+  //    El *!robo* normal lleva esta misma linea en sincrono y con el motivo
+  //    escrito al lado desde hace tiempo. El asalto —mismo reloj, misma
+  //    puerta— se habia escrito al reves.
+  //
+  // 2. LA CABECERA MENTIA. El asalto y el robo comparten cooldown a proposito,
+  //    pero el mensaje decia siempre «ASALTO EN COOLDOWN» y soltaba una pulla
+  //    sobre la entrada al bote. Quien acababa de hacer un *!robo* normal —sin
+  //    haber tocado el bote en su vida— leia que el asalto estaba en espera.
+  //    Eso no se lee como una regla: se lee como que el bot se equivoca de
+  //    comando, y es lo primero que el dueño llamo «bugeado».
+  //
+  // Se prueba EJECUTANDO el comando de verdad, con el almacen de aura y el del
+  // bote en memoria: esta capa no puede tocar el disco del bot.
+  {
+    console.log('\n73. EL ASALTO AL BOTE NO SE PUEDE PAGAR DOS VECES');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { execFileSync } = require('child_process');
+    const os4 = require('os');
+    const dir73 = fs.mkdtempSync(path.join(os4.tmpdir(), 'capa73-'));
+    try {
+      try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(dir73, 'node_modules'), 'dir'); } catch { /* el hijo lo dira */ }
+      fs.writeFileSync(path.join(dir73, 'a.js'), MEMORIA_CAPA_73.replace(/__RAIZ__/g, json(R)));
+      let salida = '';
+      try {
+        salida = execFileSync(process.execPath, [path.join(dir73, 'a.js')],
+          { encoding: 'utf8', timeout: 120000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (e) { salida = `${e.stdout || ''}${e.stderr || ''}`; }
+      const linea = salida.split('\n').reverse().find((l) => l.startsWith('CAPA73:'));
+      exige(!!linea, `la prueba del asalto no contestó: ${salida.slice(-400).trim()}`);
+      if (linea) {
+        let quejas = [];
+        try { quejas = JSON.parse(linea.slice('CAPA73:'.length)); } catch { quejas = ['no pude leer el resultado']; }
+        for (const q of quejas) exige(false, q);
+      }
+    } finally {
+      fs.rmSync(dir73, { recursive: true, force: true });
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ dos asaltos a la vez pagan una entrada, y el mensaje dice qué reloj está corriendo'));
+  }
+
+  // ── 72. LOS COOLDOWNS Y EL AURA SE ESCRIBEN IGUAL EN TODAS PARTES ───────
+  //
+  // El dueño mando el de *!robo asalto* y dijo: «me gusta bastante esa frase,
+  // ajustalas todas con este estandar, aunque con mas coherencia».
+  //
+  //   *ASALTO EN COOLDOWN*
+  //   La entrada al puto asalto no es un pase VIP. Es un ticket que se pica...
+  //   _Vuelve en *5min*._
+  //
+  // Lo que habia, medido: TRES relojes distintos para el mismo tiempo (robo
+  // "1h 30min", aura "5min 30s", vault "1 h 30 min"), CUATRO formas de decir
+  // que alguien ha ganado o perdido aura, y CINCO cooldowns de once sin la
+  // cabecera que dice que lo son — asi que el mensaje abria con una pulla y
+  // desde fuera no se leia como una espera.
+  //
+  // Ahora la forma vive en src/utils/formatoJuego.js y los once comandos la
+  // piden. Esta capa existe para que la duodecima no vuelva a escribirla a
+  // mano, que es exactamente como se llego a tener cuatro.
+  {
+    console.log('\n72. LOS COOLDOWNS Y EL AURA SE ESCRIBEN IGUAL EN TODAS PARTES');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const F = require(path.join(R, 'src/utils/formatoJuego'));
+
+    // ── EL RELOJ ────────────────────────────────────────────────────────
+    const relojes = [
+      [0, '0s'], [900, '1s'], [45000, '45s'],
+      // La unidad se elige DESPUES de redondear. Escrito al reves, 59,9 s salia
+      // como "60s" y 59 min y medio como "60min": cifras que nadie escribe.
+      [59999, '1min'], [60000, '1min'], [60001, '2min'],
+      [330000, '6min'], [3599999, '1h'], [3600000, '1h'], [5400000, '1h 30min'],
+      [86399999, '1d'], [86400000, '1d'], [180000000, '2d 2h'],
+    ];
+    for (const [ms, esperado] of relojes) {
+      exige(F.tiempoRestante(ms) === esperado,
+        `el reloj pinta ${ms} ms como "${F.tiempoRestante(ms)}" y tiene que ser "${esperado}"`);
+    }
+    // SIEMPRE HACIA ARRIBA. Mandar a alguien a volver antes de tiempo es
+    // mandarlo a comerse el mismo mensaje otra vez, y eso se lee como que el
+    // bot no lleva bien la cuenta.
+    for (const ms of [1, 999, 61000, 3601000, 90061000]) {
+      const t = F.tiempoRestante(ms);
+      const seg = /^(\d+)s$/.test(t) ? Number(t.slice(0, -1))
+        : /^(\d+)min$/.test(t) ? Number(t.slice(0, -3)) * 60
+          : null;
+      if (seg !== null) exige(seg * 1000 >= ms, `el reloj redondea ${ms} ms hacia abajo ("${t}"): se vuelve antes de tiempo`);
+    }
+
+    // ── EL BLOQUE ───────────────────────────────────────────────────────
+    const b = F.bloqueCooldown({ que: 'asalto', frase: 'La entrada no es un pase VIP.', queda: 300000 });
+    exige(b === '*ASALTO EN COOLDOWN*\nLa entrada no es un pase VIP.\n_Vuelve en *5min*._',
+      `el bloque de cooldown ya no tiene la forma que pidió el dueño:\n${JSON.stringify(b)}`);
+    exige(F.bloqueCooldown({ titulo: '@Fran EN GUARDIA', frase: 'x', queda: 60000 }).startsWith('*@Fran EN GUARDIA*'),
+      'el título propio (la guardia de la víctima, que es reloj de OTRA persona) ya no se respeta');
+
+    // ── LA LINEA DE AURA ────────────────────────────────────────────────
+    exige(F.lineaAura('@X', 200, 3350) === '@X  +200 → *3350*', `la línea de ganancia cambió: ${F.lineaAura('@X', 200, 3350)}`);
+    exige(F.lineaAura('@X', -200, 1120) === '@X  −200 → *1120*', `la línea de pérdida cambió: ${F.lineaAura('@X', -200, 1120)}`);
+    exige(F.lineaAura('@X', 0, 1120) === '@X  sin cambios → *1120*', `el "sin cambios" cambió: ${F.lineaAura('@X', 0, 1120)}`);
+    // El menos de verdad (U+2212) y no un guion: al lado de un + del mismo
+    // alto, un guion corto se lee como un separador.
+    exige(F.lineaAura('@X', -5, 1).includes('\u2212'), 'la pérdida usa un guion en vez del menos de verdad');
+
+    // ── Y QUE NADIE LO ESCRIBA A MANO ───────────────────────────────────
+    //
+    // Se buscan las DOS formas por las que se llego al desorden: un pie de
+    // "Vuelve en *…*" escrito en el comando, y una linea de movimiento de aura
+    // montada con fmt() y una flecha. Ambas fuera de formatoJuego.js.
+    const aMano = { reloj: [], aura: [] };
+    const andar72 = (dir) => {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        const abs = path.join(dir, e.name);
+        if (e.isDirectory()) { andar72(abs); continue; }
+        if (!e.name.endsWith('.js')) continue;
+        const rel = path.relative(R, abs).split(path.sep).join('/');
+        if (rel === 'src/utils/formatoJuego.js') continue;
+        const txt = soloCodigo(rel);
+        if (/Vuelve en \*/.test(txt)) aMano.reloj.push(rel);
+        if (/[+\u2212-]\$\{fmt\([^)]*\)\}\s*\u2192/.test(txt)) aMano.aura.push(rel);
+      }
+    };
+    andar72(path.join(R, 'src'));
+    exige(aMano.reloj.length === 0,
+      `hay ${aMano.reloj.length} fichero(s) escribiendo el pie del cooldown a mano (${aMano.reloj.join(', ')}): así se llegó a tener tres relojes distintos para el mismo tiempo — usa bloqueCooldown de utils/formatoJuego.js`);
+    exige(aMano.aura.length === 0,
+      `hay ${aMano.aura.length} fichero(s) montando una línea de aura a mano (${aMano.aura.join(', ')}): así se llegó a tener cuatro formas de decir lo mismo — usa lineaAura de utils/formatoJuego.js`);
+
+    // Y EL CONTROL: que los dos patrones sigan viendo lo que buscan.
+    exige(/Vuelve en \*/.test(soloCodigo('src/utils/formatoJuego.js')),
+      'el patrón del pie ya no encuentra ni el de formatoJuego.js: ha dejado de mirar');
+
+    if (fallos === antes) console.log(verde('   ✓ un solo reloj, un solo bloque de cooldown y una sola línea de aura en todo el bot'));
   }
 
   if (BREVE) {

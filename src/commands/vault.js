@@ -26,12 +26,10 @@ const logger = require('../utils/logger');
 
 const LINEA = '╾━━━━━━━━━━━━━━╼';
 
-function duracion(ms) {
-  const m = Math.ceil(ms / 60000);
-  if (m < 60) return `${m} min`;
-  const h = Math.floor(m / 60);
-  return `${h} h ${m % 60 ? `${m % 60} min` : ''}`.trim();
-}
+// La tercera copia del mismo reloj, y la unica que ponia espacios ("1 h 30
+// min") mientras robo escribia "1h 30min". Ahora sale de utils/formatoJuego.js.
+const { bloqueCooldown, tiempoRestante } = require('../utils/formatoJuego');
+const duracion = tiempoRestante;
 
 const frase = (pool, jid, clave, datos = {}) =>
   pickFresh(pool, `${jid}|vault|${clave}`)
@@ -87,8 +85,9 @@ async function cmdVault(sock, msg, args, groupMeta) {
     if (!r.ok) {
       if (r.motivo === 'enfriamiento') {
         return sock.sendMessage(jid, {
-          text: `*TODAVÍA NO*\n${frase(RX.ENFRIAMIENTO, jid, 'frio')}\n` +
-            `_Vuelve en *${duracion(r.espera)}*._`,
+          // «TODAVÍA NO» no decia QUE estaba esperando, que es la mitad del
+          // trabajo de la cabecera. Es la caja, y se dice.
+          text: bloqueCooldown({ que: 'caja', frase: frase(RX.ENFRIAMIENTO, jid, 'frio'), queda: r.espera }),
         }, { quoted: msg });
       }
       if (r.motivo === 'lleno') {

@@ -32,6 +32,7 @@ const { ROBO_FALLO_REMATE, ROB_WIN, ROB_FAIL, ROB_MAESTRO, ROB_PARCIAL, ROB_DESA
 const { fraseCooldown, ROBO: ROBO_CD, ROBO_ASALTO, ROBO_GUARDIA } = require('../data/cooldownPhrases');
 const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
+const { bloqueCooldown, lineaAura, tiempoRestante } = require('../utils/formatoJuego');
 
 // La escala vive en utils/economia.js. Aqui solo el cooldown, que es de ritmo
 // de juego y no de economia.
@@ -68,6 +69,12 @@ function topeRobo(auraLadron, auraVictima) {
 // ademas de sosa se leia igual las mil veces. Ahora rota, y se rie del que lo
 // intento en vez de describir lo que paso.
 const lastRob = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
+// QUÉ gastó el reloj: el robo o el asalto al bote. Los dos comparten cooldown
+// —a propósito, o asaltar seria la via para saltarselo— pero no comparten
+// mensaje: al que acaba de robar hay que decirle que espera por el robo, no
+// darle una pulla sobre la entrada al bote de un comando que no ha usado.
+// Se vacia con la misma llave que lastRob, asi que no crece por su cuenta.
+const ultimoFueAsalto = new Set();
 
 // El amaño del owner y su techo de racha viven en utils/rigOwner.js, y el
 // contador es COMPARTIDO con el duelo y el mog: el grupo ve las cinco dinamicas
@@ -319,13 +326,10 @@ const tag = (j) => `@${String(j).split('@')[0]}`;
 
 // "3h 20min" en vez de "12000000 ms". Se redondea hacia arriba: decirle a
 // alguien que le quedan 0 minutos cuando aun esta protegido es mentir.
-function restanteEnTexto(ms) {
-  const min = Math.ceil(ms / 60000);
-  if (min < 60) return `${min}min`;
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  return m ? `${h}h ${m}min` : `${h}h`;
-}
+// Era una copia local de lo que ahora vive en utils/formatoJuego.js, y habia
+// otras dos distintas en aura.js y vault.js para el mismo reloj. Se queda el
+// nombre porque lo usan doce sitios de este fichero.
+const restanteEnTexto = tiempoRestante;
 
 // ─── !robo bote ──────────────────────────────────────────────────────────────
 async function verElBote(sock, msg, jid) {
@@ -354,24 +358,53 @@ async function asaltarBote(sock, msg, jid, sender, groupMeta) {
 
   // El cooldown del robo normal también vale aquí: si no, asaltar el bote sería
   // la vía para saltárselo y el comando se convertiría en una tragaperras.
+  //
+  // Y SE DICE CUÁL ES. Antes la cabecera era siempre «ASALTO EN COOLDOWN», así
+  // que quien acababa de hacer un *!robo* normal —sin haber tocado el bote en
+  // su vida— leía que el asalto estaba en espera y una pulla sobre la entrada
+  // al bote. Eso no se lee como una regla: se lee como que el bot se ha
+  // equivocado de comando. Es lo primero que el dueño llamó «bugeado».
   const coolKey = `${jid}|${canonicalJid(sender)}`;
-  const queda = ROB_COOLDOWN_MS - (Date.now() - (lastRob.get(coolKey) || 0));
+  const desde = lastRob.get(coolKey) || 0;
+  const queda = ROB_COOLDOWN_MS - (Date.now() - desde);
   if (queda > 0) {
+    const fueAsalto = ultimoFueAsalto.has(coolKey);
     return sock.sendMessage(jid, {
-      text: `*ASALTO EN COOLDOWN*\n${fraseCooldown(ROBO_ASALTO, `${coolKey}|asalto`, 0.1)}\n_Vuelve en *${Math.ceil(queda / 60000)}min*._`,
+      text: bloqueCooldown({
+        que: fueAsalto ? 'asalto' : 'robo',
+        frase: fueAsalto
+          ? fraseCooldown(ROBO_ASALTO, `${coolKey}|asalto`, 0.1)
+          : fraseCooldown(ROBO_CD, `${coolKey}|robo`),
+        queda,
+        cola: fueAsalto ? '' : '\n_El asalto al bote y el robo comparten reloj._',
+      }),
     }, { quoted: msg });
   }
 
+  // EL COOLDOWN SE RECLAMA EN SÍNCRONO, ANTES DE CUALQUIER await.
+  //
+  // Estaba abajo, detrás del cobro. O sea que dos *!robo asalto* seguidos
+  // pasaban los dos por el `queda > 0` de arriba antes de que ninguno llegara a
+  // marcar nada, y los dos pagaban la entrada. Reproducido: dos entradas
+  // cobradas, dos tiradas al bote, un solo cooldown.
+  //
+  // El *!robo* normal lleva esta misma línea, en síncrono y con el motivo
+  // escrito al lado desde hace tiempo. El asalto —que es el mismo reloj y la
+  // misma puerta— se había escrito al revés.
+  limpiaMapa(lastRob);
+  lastRob.set(coolKey, Date.now());
+  ultimoFueAsalto.add(coolKey);
+
   // Cobro atómico: leer saldo y restar aparte dejaba dos asaltos simultáneos
-  // en negativo. Si no llega, el cooldown NO se gasta.
+  // en negativo. Si no llega, el cooldown se DEVUELVE: no ha habido asalto.
   const pago = await spendAura(jid, sender, BOTE.entrada, SALDO_MINIMO);
   if (!pago.ok) {
+    if (desde) lastRob.set(coolKey, desde); else lastRob.delete(coolKey);
+    ultimoFueAsalto.delete(coolKey);
     return sock.sendMessage(jid, {
       text: `La entrada son *${fmt(BOTE.entrada)}* y tienes *${fmt(pago.saldo)}*. El bote no fía.`,
     }, { quoted: msg });
   }
-  limpiaMapa(lastRob);
-  lastRob.set(coolKey, Date.now());
   const a = tag(sender);
 
   // El owner NO revienta siempre. El resto de amaños (robo, contra, duelo,
@@ -402,7 +435,7 @@ async function asaltarBote(sock, msg, jid, sender, groupMeta) {
   return sock.sendMessage(jid, {
     text: `*BOTE REVENTADO*\n╾━━━━━━━━━━━━━━╼\n\n` +
       `${fraseCon(RX.BOTE_REVIENTA, `${jid}|bote|revienta`, { '%A': a, '%C': fmt(premio) })}\n\n` +
-      `${a} +${fmt(premio)} → *${fmt(current)}* de aura`,
+      lineaAura(a, premio, current),
     mentions: [sender],
   }, { quoted: msg });
 }
@@ -484,7 +517,7 @@ async function laTienda(sock, msg, jid, sender, args, groupMeta) {
   const veto = await tienda.vetoTienda(jid, sender);
   if (veto) {
     return sock.sendMessage(jid, {
-      text: `${fraseCon(RX.ATRACO_VETADO, `${jid}|atraco|vetado`, { '%A': tag(sender) })}\n_Vuelve en *${restanteEnTexto(veto - Date.now())}*._`,
+      text: bloqueCooldown({ que: 'tienda', frase: fraseCon(RX.ATRACO_VETADO, `${jid}|atraco|vetado`, { '%A': tag(sender) }), queda: veto - Date.now() }),
       mentions: [sender],
     }, { quoted: msg });
   }
@@ -497,8 +530,12 @@ async function laTienda(sock, msg, jid, sender, args, groupMeta) {
     const espera = VENTAJA.cooldownHoras * 3600000;
     if (desde < espera) {
       return sock.sendMessage(jid, {
-        text: `La tienda solo fía *un* objeto de ventaja cada *${VENTAJA.cooldownHoras}h*, y ya gastaste el tuyo.\n` +
-          `_Vuelve en *${restanteEnTexto(espera - desde)}*. Mientras tanto, el escudo, el cebo y el socio no cuentan para esto._`,
+        text: bloqueCooldown({
+          que: 'ventaja',
+          frase: `La tienda solo fía *un* objeto de ventaja cada *${VENTAJA.cooldownHoras}h*, y ya gastaste el tuyo.`,
+          queda: espera - desde,
+          cola: '\n_Mientras tanto, el escudo, el cebo y el socio no cuentan para esto._',
+        }),
         mentions: [sender],
       }, { quoted: msg });
     }
@@ -646,7 +683,7 @@ async function contraatacar(sock, msg, jid, sender, groupMeta) {
     return sock.sendMessage(jid, {
       text: `${des.titulo}\n╾━━━━━━━━━━━━━━╼\n\n` +
         `${fraseCon(pool, `${jid}|contra|${clave}`, { '%A': a, '%V': v, '%C': fmt(real) })}\n\n` +
-        `${v} +${fmt(real)} → *${fmt(vN.current)}*${pieVel}`,
+        `${lineaAura(v, real, vN.current)}${pieVel}`,
       mentions: [sender, p.ladron],
     }, { quoted: msg });
   }
@@ -658,7 +695,7 @@ async function contraatacar(sock, msg, jid, sender, groupMeta) {
   return sock.sendMessage(jid, {
     text: `${des.titulo}\n\n` +
       `${fraseCon(poolMal, `${jid}|contra|${clave}`, { '%A': a, '%V': v, '%C': fmt(castigo) })}\n\n` +
-      `${v} −${fmt(castigo)} → *${fmt(vN.current)}*${pieVel}`,
+      `${lineaAura(v, -castigo, vN.current)}${pieVel}`,
     mentions: [sender, p.ladron],
   }, { quoted: msg });
 }
@@ -706,7 +743,7 @@ async function atracarTienda(sock, msg, jid, sender, groupMeta) {
   const veto = await tienda.vetoTienda(jid, sender);
   if (veto) {
     return sock.sendMessage(jid, {
-      text: `${fraseCon(RX.ATRACO_VETADO, `${jid}|atraco|vetado`, { '%A': yo })}\n_Vuelve en *${restanteEnTexto(veto - Date.now())}*._`,
+      text: bloqueCooldown({ que: 'tienda', frase: fraseCon(RX.ATRACO_VETADO, `${jid}|atraco|vetado`, { '%A': yo }), queda: veto - Date.now() }),
       mentions: [sender],
     }, { quoted: msg });
   }
@@ -757,7 +794,7 @@ async function atracarTienda(sock, msg, jid, sender, groupMeta) {
     return sock.sendMessage(jid, {
       text: `*ATRACO A LA TIENDA*\n╾━━━━━━━━━━━━━━╼\n\n` +
         `${fraseCon(RX.ATRACO_GANA, `${jid}|atraco|gana`, { '%A': yo, '%C': fmt(botin) })}\n\n` +
-        `${yo} +${fmt(botin)} → *${fmt(nuevo.current)}*\n_Quedan *${fmt(await tienda.verCaja(jid))}* en la caja._${pie}`,
+        `${lineaAura(yo, botin, nuevo.current)}\n_Quedan *${fmt(await tienda.verCaja(jid))}* en la caja._${pie}`,
       mentions: [sender],
     }, { quoted: msg });
   }
@@ -773,7 +810,7 @@ async function atracarTienda(sock, msg, jid, sender, groupMeta) {
   return sock.sendMessage(jid, {
     text: `*ATRACO FALLIDO*\n\n` +
       `${fraseCon(RX.ATRACO_FALLA, `${jid}|atraco|falla`, { '%A': yo, '%C': fmt(multa) })}\n\n` +
-      `${yo} −${fmt(multa)} → *${fmt(nuevo.current)}*\n` +
+      `${lineaAura(yo, -multa, nuevo.current)}\n` +
       `_Vetado de la tienda *${ATRACO.vetoHoras}h*. La multa se queda en la caja: ahora hay *${fmt(await tienda.verCaja(jid))}*._${pie}`,
     mentions: [sender],
   }, { quoted: msg });
@@ -930,9 +967,19 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const last = lastRob.get(coolKey) || 0;
   const remaining = ROB_COOLDOWN_MS - (Date.now() - last);
   if (remaining > 0) {
-    const mins = Math.ceil(remaining / 60_000);
+    // Igual que en el asalto: se dice QUÉ gastó el reloj. Quien acaba de
+    // reventar el bote y escribe *!robo* tiene que leer que espera por el
+    // asalto, no una pulla sobre un robo que no ha hecho.
+    const fueAsalto = ultimoFueAsalto.has(coolKey);
     return sock.sendMessage(jid, {
-      text: `*ROBO EN COOLDOWN*\n${fraseCooldown(ROBO_CD, `${coolKey}|robo`)}\n_Vuelve en *${mins}min*._`,
+      text: bloqueCooldown({
+        que: fueAsalto ? 'asalto' : 'robo',
+        frase: fueAsalto
+          ? fraseCooldown(ROBO_ASALTO, `${coolKey}|asalto`, 0.1)
+          : fraseCooldown(ROBO_CD, `${coolKey}|robo`),
+        queda: remaining,
+        cola: fueAsalto ? '\n_El asalto al bote y el robo comparten reloj._' : '',
+      }),
     }, { quoted: msg });
   }
 
@@ -951,7 +998,11 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   const escudo = escudoRestante(jid, canonicalJid(target));
   if (escudo > 0) {
     return sock.sendMessage(jid, {
-      text: `${fraseCooldown(ROBO_GUARDIA, `${jid}|guardia`, 0)}\n_@${target.split('@')[0]} sigue en guardia. Vuelve en *${escudo}min*._`,
+      text: bloqueCooldown({
+        titulo: `@${target.split('@')[0]} EN GUARDIA`,
+        frase: fraseCooldown(ROBO_GUARDIA, `${jid}|guardia`, 0),
+        queda: escudo * 60000,
+      }),
       mentions: [target],
     }, { quoted: msg });
   }
@@ -961,6 +1012,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // where no robbery actually happens, so a failed attempt doesn't burn 10 min.
   if (lastRob.size >= 2000) lastRob.delete(lastRob.keys().next().value);
   lastRob.set(coolKey, Date.now());
+  ultimoFueAsalto.delete(coolKey);
 
   const [auraA, auraV] = await Promise.all([
     getAura(jid, sender),
@@ -1290,7 +1342,11 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       `${titulo}\n` +
       `${aTag} le roba a ${vTag}${extra}\n\n` +
       `${phrase}\n\n` +
-      `${aTag} *${fmt(aNew.current)}* (+${fmt(monto)}) · ${vTag} *${fmt(vNew.current)}* (−${fmt(monto)})` +
+      // La CUARTA forma que habia de contar lo mismo, y la unica con el total
+      // delante y el movimiento en un parentesis detras. El robo con exito es
+      // justo donde mas se lee esta linea, asi que era el peor sitio para que
+      // no se pareciera a la del duelo, la del regalo ni la del contrarrobo.
+      `${lineaAura(aTag, monto, aNew.current)}\n${lineaAura(vTag, -monto, vNew.current)}` +
       // SE AVISA A LA VICTIMA, que si no el contraataque no existe.
       //
       // La ventana es de 90 segundos y el mensaje del robo no la mencionaba por
@@ -1346,10 +1402,10 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     // dos cuentan lo mismo (que fallo), asi que separarlos en dos bloques hacia
     // parecer que eran dos cosas distintas.
     `${phrase}\n\n` +
-    `${aTag} −${fmt(monto)} → *${fmt(aNew.current)}*\n` +
+    `${lineaAura(aTag, -monto, aNew.current)}\n` +
     (vNew
-      ? `${vTag} +${fmt(monto)} → *${fmt(vNew.current)}*`
-      : `${vTag} sin cambios → *${fmt(auraV)}*`) +
+      ? lineaAura(vTag, monto, vNew.current)
+      : lineaAura(vTag, 0, auraV)) +
     (boteAhora ? `\n_El bote del grupo sube a *${fmt(boteAhora)}*._` : '') +
     notaDinamicas;
   return sock.sendMessage(jid, { text, mentions: [sender, target] });

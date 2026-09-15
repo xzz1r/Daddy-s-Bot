@@ -5,6 +5,7 @@ const { getCached, setCached, listCached, clearCache } = require('../utils/music
 const { getSender, canonicalJid, isMainOwner } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo, SIN_SERVICIO } = require('../utils/auraCobro');
 const { fraseCooldown, PLAY } = require('../data/cooldownPhrases');
+const { bloqueCooldown } = require('../utils/formatoJuego');
 const logger = require('../utils/logger');
 const fs = require('fs-extra');
 
@@ -61,7 +62,9 @@ async function cmdPlay(sock, msg, args, groupMeta) {
     if (waitMs > 0) {
       await reembolsar();
       return sock.sendMessage(jid, {
-        text: `${fraseCooldown(PLAY, `${canonicalJid(quienPide)}|play`, 0)}\n_Vuelve en *${Math.ceil(waitMs / 1000)}s*._`,
+        // Sin cabecera, esto abria con una pulla y cerraba con un tiempo, y
+        // desde fuera no se leia como una espera. Mismo bloque que el resto.
+        text: bloqueCooldown({ que: 'play', frase: fraseCooldown(PLAY, `${canonicalJid(quienPide)}|play`, 0), queda: waitMs }),
       }, { quoted: msg });
     }
     // Fire the "Buscando..." notice without awaiting so yt-dlp starts immediately,

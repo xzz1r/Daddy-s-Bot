@@ -2,6 +2,7 @@ const { getSender, getTarget, sameUser } = require('../utils/wa');
 const { transferAura } = require('../utils/auraStore');
 const { fmt, parseCantidad } = require('../utils/helpers');
 const { aportarAlBote } = require('../utils/roboStore');
+const { lineaAura } = require('../utils/formatoJuego');
 
 // El minimo y el impuesto viven en utils/economia.js con el resto de la escala.
 const { REGALO_MIN: GIFT_MIN, IMPUESTO, impuestoDe } = require('../utils/economia');
@@ -71,8 +72,8 @@ async function cmdDar(sock, msg, args) {
     text:
       `*TRANSFERENCIA DE AURA*\n\n` +
       `${sTag} le pasa *${fmt(amount)} de aura* a ${tTag}\n\n` +
-      `${sTag}  −${fmt(cargo)} → *${fmt(result.fromNew)}*\n` +
-      `${tTag}  +${fmt(amount)} → *${fmt(result.toNew)}*\n\n` +
+      `${lineaAura(sTag, -cargo, result.fromNew)}\n` +
+      `${lineaAura(tTag, amount, result.toNew)}\n\n` +
       `_Impuesto de transferencia: *${fmt(impuesto)}*` +
       (alBote > 0 ? `, y *${fmt(alBote)}* se van al bote.` : '.') + `_`,
     mentions: [sender, target],

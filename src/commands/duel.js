@@ -2,6 +2,7 @@ const { isOwner, isMainOwner, isAdmin, getSender, getTarget, bareJid, sameUser, 
 const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/helpers');
 const { getAura, transferAura } = require('../utils/auraStore');
 const { ownerGana } = require('../utils/rigOwner');
+const { lineaAura } = require('../utils/formatoJuego');
 
 // Resolve a JID to its canonical form (preferring phone-JID) using the group
 // participant list. Fixes LID vs phone-JID mismatches in accept/reject checks:
@@ -148,8 +149,8 @@ async function resolveDuel(sock, jid, d, groupMeta) {
   const text =
     `*DUELO · ${fmt(d.stake)} de aura*\n\n` +
     `${phrase}\n\n` +
-    `@${winner.split('@')[0]}  +${fmt(d.stake)} → *${fmt(w.current)}*\n` +
-    `@${loser.split('@')[0]}  −${fmt(d.stake)} → *${fmt(l.current)}*`;
+    `${lineaAura(`@${winner.split('@')[0]}`, d.stake, w.current)}\n` +
+    `${lineaAura(`@${loser.split('@')[0]}`, -d.stake, l.current)}`;
 
   await sock.sendMessage(jid, { text, mentions: [winner, loser] });
 }
