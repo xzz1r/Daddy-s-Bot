@@ -845,20 +845,57 @@ const EXTRA_DB = (() => {
 // exactamente lo que habia antes y no puede quedar peor.
 //
 // `-an` porque un gif no suena, y es lo que lo separa de un video en el envio.
+// ─── Y NO SE TOCA NI UN FOTOGRAMA NI SE ENCOGE SIN MOTIVO ──────────────────
+//
+// La receta de *!acciones* venia con dos cosas que alli SI tienen sentido y
+// aqui no: encoger a 400 px y `crf 28`. En las acciones el gif se guarda en la
+// despensa y se manda cien veces, asi que cada kilobyte cuenta. Aqui se manda
+// una vez y se tira.
+//
+// El dueño lo noto en cuanto funciono: «van a menos FPS que el original». Los
+// fotogramas NO se pierden —medido: 47 de 47 en el suyo, y 90 de 90, 150 de
+// 150 y 72 de 72 en clips de 30, 50 y 24 fps— pero un `crf 28` con `preset
+// veryfast` embarra el movimiento, y eso se ve como tirones.
+//
+// Medido sobre su gif:
+//
+//   veryfast crf 28 (lo de antes)    68 KB     66 ms
+//   medium   crf 23 (esto)           92 KB    125 ms
+//
+// Sesenta milisegundos mas y veinte kilobytes en un fichero que se manda una
+// vez. Y el tope de ancho pasa de 400 a 720: un gif de 640 se estaba quedando
+// en 400 por una razon que aqui no existe.
+const GIF_COMPACTO = ["scale='min(400,iw)':-2", '-crf', '28', '-preset', 'veryfast'];
+const GIF_FIEL = ["scale='min(720,iw)':-2", '-crf', '23', '-preset', 'medium'];
+
+function rehacerGif(entrada, salida, [escala, ...resto]) {
+  return new Promise((resolve, reject) => {
+    const ff = spawn(ffmpegPath, ['-y', '-i', entrada,
+      '-movflags', 'faststart', '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
+      '-vf', escala, ...resto, '-an', salida]);
+    const mata = setTimeout(() => { try { ff.kill('SIGKILL'); } catch {} reject(new Error('tiempo agotado')); }, 60000);
+    ff.on('error', (e) => { clearTimeout(mata); reject(e); });
+    ff.on('close', (c) => { clearTimeout(mata); c === 0 ? resolve() : reject(new Error(`ffmpeg ${c}`)); });
+  });
+}
+
 async function prepararGif(fichero) {
   const salida = path.join(TEMP_DIR, `gif_${Date.now()}_${Math.random().toString(36).slice(2)}.mp4`);
   try {
-    await new Promise((resolve, reject) => {
-      const ff = spawn(ffmpegPath, ['-y', '-i', fichero,
-        '-movflags', 'faststart', '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
-        '-vf', "scale='min(400,iw)':-2", '-crf', '28',
-        '-preset', 'veryfast', '-an', salida]);
-      const mata = setTimeout(() => { try { ff.kill('SIGKILL'); } catch {} reject(new Error('tiempo agotado')); }, 60000);
-      ff.on('error', (e) => { clearTimeout(mata); reject(e); });
-      ff.on('close', (c) => { clearTimeout(mata); c === 0 ? resolve() : reject(new Error(`ffmpeg ${c}`)); });
-    });
-    const { size } = await fs.stat(salida);
+    await rehacerGif(fichero, salida, GIF_FIEL);
+    let { size } = await fs.stat(salida);
     if (size < 1024) throw new Error('lo que salió está vacío');
+
+    // Y SI SE PASA DE LO QUE ACEPTA WHATSAPP, la compacta. Un gif de X no
+    // llega ahi ni de lejos, pero mandar un fichero que no se puede enviar es
+    // peor que mandarlo con menos calidad.
+    if (size > TOPE_WHATSAPP) {
+      logger.info(`redes: el gif fiel pesa ${Math.round(size / 1048576)} MB; lo comprimo`);
+      await rehacerGif(fichero, salida, GIF_COMPACTO);
+      ({ size } = await fs.stat(salida));
+      if (size < 1024) throw new Error('lo que salió está vacío');
+    }
+
     await fs.remove(fichero).catch(() => {});
     return salida;
   } catch (e) {
