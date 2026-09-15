@@ -13029,6 +13029,12 @@ const ficheroDe = async (ext) => {
       ] } };
       let ficha = null;
       axios.get = async () => ({ data: ficha });
+      // Y LA CABECERA TAMBIEN. Elegir calidad pregunta cuanto pesa cada
+      // variante con un HEAD; sin cortarlo, la capa saldria a video.twimg.com
+      // de verdad y volveria a ser de las que fallan por la red.
+      const headReal = axios.head;
+      let pesos = {};
+      axios.head = async (u) => ({ headers: pesos[u] === undefined ? {} : { 'content-length': String(pesos[u]) } });
       bajador.downloadUrlToFile = async (u, dest) => { puestos.push({ u, dest }); await fs.writeFile(dest, Buffer.alloc(9000, 3)); };
       for (const k of Object.keys(require.cache)) if (k.endsWith('utils/redes.js')) delete require.cache[k];
       const rx = require(path.join(R, 'src/utils/redes'));
@@ -13103,9 +13109,71 @@ const ficheroDe = async (ext) => {
         'un id corto se cae por debajo del minimo de cifras y el tuit se va por otro camino');
       await limpiar(r);
 
+      // ── UN VIDEO LARGO COGE LA CALIDAD QUE CABE, NO LA MEJOR ─────────
+      //
+      // X publica el mismo video en varias calidades. Coger siempre la de
+      // arriba esta bien para un clip de diez segundos y mal para uno largo:
+      // se pasa de los 16 MB de WhatsApp y el comando contesta «pesa 23 MB»
+      // con la de en medio al lado, cabiendo de sobra. Es lo que el dueño
+      // llamo «da errores con videos largos».
+      const MB = 1048576;
+      ficha = { text: 'video largo', display_text_range: [0, 11], mediaDetails: [video] };
+      pesos = { 'https://video.twimg.com/alto.mp4': 23 * MB, 'https://video.twimg.com/medio.mp4': 9 * MB };
+      puestos.length = 0;
+      r = await rx.traer(tuit, 'x').catch((e) => e);
+      exige(puestos.length === 1 && /medio\.mp4/.test(puestos[0].u),
+        'con la mejor calidad pasada de tamaño se baja ' + (puestos[0] && puestos[0].u) + ': hay que coger la mejor QUE QUEPA, no rendirse con la buena al lado');
+      await limpiar(r);
+
+      // Y si cabe la de arriba, se coge la de arriba.
+      pesos = { 'https://video.twimg.com/alto.mp4': 5 * MB, 'https://video.twimg.com/medio.mp4': 2 * MB };
+      puestos.length = 0;
+      r = await rx.traer(tuit, 'x').catch((e) => e);
+      exige(puestos.length === 1 && /alto\.mp4/.test(puestos[0].u),
+        'con la mejor calidad cabiendo se baja ' + (puestos[0] && puestos[0].u) + ': bajar calidad sin necesidad es peor video por nada');
+      await limpiar(r);
+
+      // Si el servidor no dice cuanto pesa, se prueba la mejor igualmente: el
+      // tope de mas abajo sigue puesto y dira lo que hay.
+      pesos = {};
+      puestos.length = 0;
+      r = await rx.traer(tuit, 'x').catch((e) => e);
+      exige(puestos.length === 1 && /alto\.mp4/.test(puestos[0].u),
+        'sin content-length se descarta la mejor calidad a ciegas');
+      await limpiar(r);
+
       axios.get = getReal;
+      axios.head = headReal;
       bajador.downloadUrlToFile = bajarReal;
       for (const k of Object.keys(require.cache)) if (k.endsWith('utils/redes.js')) delete require.cache[k];
+    }
+
+    // ── X NO HEREDA LA API GENERICA DE REDES ───────────────────────────
+    //
+    // REDES_API existe para «lo mismo vale para las tres», y las tres son
+    // descargadores de TikTok e Instagram. Mandarle un tuit a uno de esos no
+    // es un respaldo: es una peticion que no entiende, que tarda sus veinte
+    // segundos de timeout y que se cuela POR DELANTE de la ficha publica de X.
+    // El dueño tiene esas APIs puestas en su .env, asi que esto le pasaba a el
+    // y no a mi, que lo tengo vacio: por eso *!x* iba aqui y no alli.
+    {
+      const { execFileSync } = require('child_process');
+      const guion = 'console.log(JSON.stringify(require(' + JSON.stringify(path.join(R, 'src/utils/redes')) + ')._API_DE));';
+      const leer = (env) => {
+        const salida = execFileSync(process.execPath, ['-e', guion],
+          { encoding: 'utf8', cwd: R, timeout: 60000, env: { ...process.env, ...env } });
+        return JSON.parse(salida.trim().split('\n').pop());
+      };
+      const conGenerica = leer({ REDES_API: 'https://generica.example/api?url={url}', X_API: '', TWITTER_API: '' });
+      exige(!conGenerica.x,
+        'con REDES_API puesta, *!x* la hereda: un tuit se le manda a un descargador de TikTok antes de mirar la ficha de X, y eso son veinte segundos de espera para acabar sin nada');
+      exige(!!conGenerica.tiktok && !!conGenerica.instagram,
+        'REDES_API ha dejado de valer para TikTok e Instagram: ahi si es el respaldo que se quiso');
+      const conSuya = leer({ REDES_API: '', X_API: 'https://mia.example/x?url={url}', TWITTER_API: '' });
+      exige(conSuya.x === 'https://mia.example/x?url={url}', 'X_API no se lee');
+      const conVieja = leer({ REDES_API: '', X_API: '', TWITTER_API: 'https://vieja.example/t?url={url}' });
+      exige(conVieja.x === 'https://vieja.example/t?url={url}',
+        'TWITTER_API no se lee: un .env de antes del cambio de nombre lleva esa escrita');
     }
 
     // ── EL TEXTO DEL TUIT, DE PIE DE LA PRIMERA FOTO ───────────────────

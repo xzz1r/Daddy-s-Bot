@@ -78,9 +78,19 @@ const API_DE = {
   tiktok: (process.env.TIKTOK_API || process.env.REDES_API || '').trim(),
   instagram: (process.env.INSTAGRAM_API || process.env.REDES_API || '').trim(),
   pinterest: (process.env.PINTEREST_API || process.env.REDES_API || '').trim(),
-  // X acepta tambien TWITTER_API: el sitio cambio de nombre y el .env de la VPS
-  // puede llevar escrito cualquiera de los dos.
-  x: (process.env.X_API || process.env.TWITTER_API || process.env.REDES_API || '').trim(),
+  // X NO HEREDA `REDES_API`, y es lo unico de esta tabla que no lo hace.
+  //
+  // REDES_API existe para «lo mismo vale para las tres», y las tres son
+  // descargadores de TikTok e Instagram. Mandarle un tuit a uno de esos no es
+  // un respaldo: es una peticion que no entiende, que tarda sus veinte segundos
+  // de timeout y que se cuela POR DELANTE de la ficha publica de X, que es la
+  // que si sabe leer un tuit. El dueño tiene TIKTOK_API e INSTAGRAM_API puestas
+  // en su .env; si ahi hubiera tambien una REDES_API, *!x* se estaria yendo a
+  // pedirle tuits a un servicio de TikTok antes de mirar donde tiene que mirar.
+  //
+  // Para X hay que ponerla a proposito: X_API o TWITTER_API, las dos formas
+  // porque el sitio cambio de nombre y un .env viejo lleva la otra escrita.
+  x: (process.env.X_API || process.env.TWITTER_API || '').trim(),
 };
 const TIEMPO_MAXIMO = 120000;
 // Lo que WhatsApp acepta como video en un mensaje. Por encima, el envio falla o
@@ -1690,14 +1700,58 @@ function textoDeTuit(ficha) {
   return texto.replace(/\s*https?:\/\/t\.co\/\w+\s*$/i, '').trim();
 }
 
-// El mejor mp4 de un video o un gif: el de mas bitrate de los que sean mp4.
-function mejorVariante(detalle) {
+// Todas las mp4 de un video, de mejor a peor. El m3u8 queda fuera a proposito:
+// es una lista de reproduccion, no un fichero, y WhatsApp no la acepta.
+function variantesMp4(detalle) {
   const v = detalle?.video_info?.variants;
-  if (!Array.isArray(v)) return null;
-  const mp4 = v.filter((x) => x && typeof x.url === 'string' && /mp4/i.test(x.content_type || ''));
-  if (!mp4.length) return null;
-  mp4.sort((a, b) => (Number(b.bitrate) || 0) - (Number(a.bitrate) || 0));
-  return mp4[0].url;
+  if (!Array.isArray(v)) return [];
+  return v
+    .filter((x) => x && typeof x.url === 'string' && /mp4/i.test(x.content_type || ''))
+    .sort((a, b) => (Number(b.bitrate) || 0) - (Number(a.bitrate) || 0))
+    .map((x) => x.url);
+}
+
+// El mejor mp4 a secas. Vale para los gif, que traen una sola variante.
+function mejorVariante(detalle) {
+  return variantesMp4(detalle)[0] || null;
+}
+
+// ─── UN VIDEO LARGO NO CABE EN EL DE MAS CALIDAD ────────────────────────────
+//
+// X publica el mismo video en varias calidades. Coger siempre la mejor esta
+// bien para un clip de diez segundos y esta MAL para uno largo: a partir de
+// unos minutos, la de arriba se pasa de los 16 MB que acepta WhatsApp y el
+// comando contestaba «pesa 23 MB» — con la de en medio ahi al lado, cabiendo
+// de sobra y con calidad de sobra tambien. Es lo que el dueño llamo «da
+// errores con videos largos».
+//
+// Se pregunta cuanto pesa cada una y se coge la MEJOR QUE QUEPA. Preguntar es
+// una peticion de cabecera, sin cuerpo: no se baja nada para averiguarlo.
+//
+// Y NO SE CALCULA CON EL BITRATE, que era lo primero que probe. El numero que
+// publica X es el de pico: para un video de 73 segundos daba 19 MB y el
+// fichero de verdad pesaba 5. Con esa cuenta se descarta la buena calidad por
+// nada.
+async function pesaDe(url) {
+  try {
+    const r = await axios.head(url, { timeout: 12000, maxRedirects: 5, headers: { 'User-Agent': UA_MOVIL } });
+    const n = Number(r?.headers?.['content-length']);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  } catch { return null; }
+}
+
+async function varianteQueCabe(detalle) {
+  const urls = variantesMp4(detalle);
+  if (urls.length <= 1) return urls[0] || null;
+  for (const u of urls) {
+    const pesa = await pesaDe(u);
+    // Si el servidor no dice cuanto pesa, se prueba esta: el tope de mas abajo
+    // sigue puesto y dira lo que hay. Es mejor que descartarla a ciegas.
+    if (pesa === null || pesa <= TOPE_WHATSAPP) return u;
+  }
+  // Ninguna cabe. Se coge la mas pequeña para que el aviso diga un peso real y
+  // no el de la que nadie iba a mandar.
+  return urls[urls.length - 1];
 }
 
 async function pedirFichaX(id) {
@@ -1746,7 +1800,10 @@ async function porX(url) {
   for (const d of detalles.slice(0, TOPE_FOTOS_X)) {
     const tipo = String(d?.type || '').toLowerCase();
     const esVideo = tipo === 'video' || tipo === 'animated_gif';
-    const enlace = esVideo ? mejorVariante(d) : d?.media_url_https;
+    // Un gif trae una sola variante y pesa lo que pesa: no hay nada que elegir.
+    const enlace = esVideo
+      ? (tipo === 'animated_gif' ? mejorVariante(d) : await varianteQueCabe(d))
+      : d?.media_url_https;
     if (typeof enlace !== 'string' || !/^https?:\/\//i.test(enlace)) continue;
 
     // Las fotos se piden en su tamaño original: sin esto llegan recortadas a la
@@ -2074,5 +2131,5 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, buscar, buscarVarios, _porFotosSueltas: porFotosSueltas, esAnimado, _porX: porX, _textoDeTuit: textoDeTuit, _mejorVariante: mejorVariante, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
+module.exports = { traer, buscar, buscarVarios, _porFotosSueltas: porFotosSueltas, esAnimado, _porX: porX, _textoDeTuit: textoDeTuit, _mejorVariante: mejorVariante, _variantesMp4: variantesMp4, _varianteQueCabe: varianteQueCabe, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
   _montarPase: montarPase, _comoEnlaces: comoEnlaces, _porYtDlpFotos: porYtDlpFotos, _fotosDeFicha: fotosDeFicha, _esSinVideo: esSinVideo, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };
