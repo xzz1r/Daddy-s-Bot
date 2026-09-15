@@ -1950,6 +1950,15 @@ async function traer(url, plataforma) {
         if (tuit) throw new Error('ese tuit no trae ni fotos ni vídeo');
       } catch (e) {
         if (/no trae ni fotos/.test(e.message)) throw e;
+        // SE APUNTA, no solo se loguea. Si la ficha no contesta —X estrangula
+        // a las IP de datacenter, y una VPS es exactamente eso— lo unico que
+        // queda es yt-dlp, que para X necesita pedirle un permiso a la MISMA
+        // puerta y se lo encuentra igual de cerrada. El grupo ve «no he podido
+        // traerlo» y el dueño no tiene forma de saber por que.
+        //
+        // Con esto sale en `npm run estado` con el motivo textual, que es donde
+        // ya salen los de TikTok, Instagram y Pinterest.
+        apuntarFallo('x', `la ficha pública no contestó: ${e.message}`);
         logger.warn(`redes: la ficha de X falló (${e.message.slice(0, 80)}); pruebo con yt-dlp`);
       }
     }
