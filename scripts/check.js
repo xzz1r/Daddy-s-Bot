@@ -13176,6 +13176,57 @@ const ficheroDe = async (ext) => {
         'TWITTER_API no se lee: un .env de antes del cambio de nombre lleva esa escrita');
     }
 
+    // ── UN GIF SALE CON MINIATURA Y TAMAÑO; UN VIDEO NO PAGA ESE FFMPEG ─
+    //
+    // ESTO ES LO QUE HACIA QUE EL GIF BAJARA Y EN EL GRUPO NO PASARA NADA.
+    //
+    // El bot manda jpegThumbnail en null en todo lo de redes a proposito: lo
+    // que dispara el ffmpeg interno de Baileys es un undefined, y ese proceso
+    // de mas costaba 1699 ms por envio. Pero esa MISMA puerta es la que
+    // rellena el ancho y el alto (Utils/messages.js:135 de Baileys), asi que
+    // con null el mensaje sale sin ninguno de los dos.
+    //
+    // A un video le da igual: tiene su burbuja y su boton de play. Un
+    // gifPlayback se pinta en linea y en bucle, y sin relacion de aspecto no
+    // hay nada que dibujar.
+    //
+    // Se usa el mp4 mudo de verdad que monto ffmpeg mas arriba: con un fichero
+    // de mentira no hay miniatura que sacar y la prueba no probaria nada.
+    {
+      const mudoReal = path.join(R, 'temp', 'x74_gif_' + Math.random().toString(36).slice(2) + '.mp4');
+      basura.push(mudoReal);
+      const { spawnSync } = require('child_process');
+      const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+      spawnSync(ffmpegPath, ['-y', '-f', 'lavfi', '-i', 'color=c=blue:s=320x240:d=1', '-pix_fmt', 'yuv420p', mudoReal], { timeout: 60000 });
+
+      if (!fs.existsSync(mudoReal)) {
+        quejas.push('no pude montar el mp4 de prueba: el gif se queda sin comprobar');
+      } else {
+        const o = await lanzar('!x https://x.com/a/status/30',
+          { fichero: mudoReal, tipo: 'video', ext: 'mp4', bytes: 9000, animado: true });
+        const v = o.find((x) => x.c.video);
+        exige(!!v && v.c.gifPlayback === true, 'el gif no sale marcado como gif');
+        exige(!!v && v.c.jpegThumbnail && v.c.jpegThumbnail.length > 0,
+          'el gif sale sin miniatura: jpegThumbnail en null hace que Baileys se salte tambien el ancho y el alto, y un gifPlayback sin relacion de aspecto no se dibuja — se baja y en el grupo no pasa nada');
+        exige(!!v && v.c.width === 320 && v.c.height === 240,
+          'el gif sale con tamaño ' + JSON.stringify([v && v.c.width, v && v.c.height]) + ' y el fichero es 320x240: sin ancho ni alto no hay burbuja que pintar');
+
+        // Y UN VIDEO CORRIENTE NO PAGA ESE FFMPEG. Es la otra mitad: sacar una
+        // miniatura de cada reel en el unico core de la VPS es justo lo que se
+        // quito en su dia.
+        const conSonido = path.join(R, 'temp', 'x74_son_' + Math.random().toString(36).slice(2) + '.mp4');
+        basura.push(conSonido);
+        spawnSync(ffmpegPath, ['-y', '-f', 'lavfi', '-i', 'color=c=blue:s=320x240:d=1',
+          '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=mono', '-shortest', '-pix_fmt', 'yuv420p', conSonido], { timeout: 60000 });
+        const o2 = await lanzar('!x https://x.com/a/status/31',
+          { fichero: conSonido, tipo: 'video', ext: 'mp4', bytes: 9000 });
+        const v2 = o2.find((x) => x.c.video);
+        exige(!!v2 && !v2.c.gifPlayback, 'un video con sonido sale como gif');
+        exige(!!v2 && v2.c.jpegThumbnail === null && v2.c.width === undefined,
+          'un video corriente se lleva el ffmpeg de la miniatura: eso es lo que hacia que subir 13 KB tardara 1699 ms, y un video no lo necesita');
+      }
+    }
+
     // ── EL TEXTO DEL TUIT, DE PIE DE LA PRIMERA FOTO ───────────────────
     {
       const dos = [await ficheroDe('jpg'), await ficheroDe('jpg')];

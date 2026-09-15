@@ -793,6 +793,54 @@ const EXTRA_DB = (() => {
 // detrás es la canción: un MP3 de 210 KB. El bot lo guardaba con extensión
 // `.mp4` y lo mandaba tan tranquilo, y WhatsApp contestaba «something is wrong
 // with the video file» — con razón, porque no era un vídeo.
+// ─── UN GIF SIN MINIATURA NI TAMAÑO NO SE DIBUJA ────────────────────────────
+//
+// Y ESTO ES LO QUE HACIA QUE *!x* BAJARA EL GIF Y EN EL GRUPO NO PASARA NADA.
+//
+// El bot manda `jpegThumbnail: null` a proposito en todo lo que baja de redes:
+// lo que dispara el ffmpeg interno de Baileys es `undefined`, y ese proceso de
+// mas en el unico core de la VPS es lo que hacia que subir 13 KB tardara 1699
+// ms. Para un video corriente eso no se nota: llega, se descarga y se ve.
+//
+// Pero mirando Baileys (Utils/messages.js:135) resulta que la miniatura y el
+// TAMAÑO salen de la misma puerta:
+//
+//     requiresThumbnailComputation = typeof uploadData['jpegThumbnail'] === 'undefined'
+//     ...
+//     if (!uploadData.width && originalImageDimensions) { width = ...; height = ... }
+//
+// O sea que al pasar `null` se salta las dos cosas, y el mensaje sale sin ancho
+// ni alto. Un video normal se dibuja igual —tiene su boton de play y su
+// burbuja—, pero un `gifPlayback` se pinta EN LINEA y en bucle: sin relacion de
+// aspecto no hay burbuja que dibujar.
+//
+// Los otros dos sitios del bot que mandan gif —*!acciones* y *!tovid*— pasan su
+// propia miniatura hecha a mano, y por eso funcionan. Este era el unico que no.
+//
+// Asi que se hace igual: un fotograma con ffmpeg, y el tamaño del propio
+// analisis que ya se hacia. Un gif son setenta kilobytes, asi que es barato. Y
+// si falla, se manda sin ella: una miniatura no vale un comando roto.
+async function datosDeGif(fichero) {
+  const medio = await analizarMedio(fichero).catch(() => ({}));
+  let thumb = null;
+  const jpg = path.join(TEMP_DIR, `thumb_${Date.now()}_${Math.random().toString(36).slice(2)}.jpg`);
+  try {
+    await new Promise((resolve, reject) => {
+      const ff = spawn(ffmpegPath, ['-y', '-i', fichero, '-frames:v', '1',
+        '-vf', "scale='min(64,iw)':-2", '-q:v', '8', jpg]);
+      const mata = setTimeout(() => { try { ff.kill('SIGKILL'); } catch {} reject(new Error('miniatura')); }, 8000);
+      ff.on('error', (e) => { clearTimeout(mata); reject(e); });
+      ff.on('close', (c) => { clearTimeout(mata); c === 0 ? resolve() : reject(new Error(`miniatura ${c}`)); });
+    });
+    thumb = await fs.readFile(jpg);
+  } catch (e) {
+    logger.info(`redes: sin miniatura para el gif (${String(e.message).slice(0, 50)})`);
+  } finally {
+    await fs.remove(jpg).catch(() => {});
+  }
+  return { thumb, ancho: medio.ancho || null, alto: medio.alto || null };
+}
+
 // UN GIF ES UN VIDEO QUE NO SUENA, y eso es todo lo que lo distingue.
 //
 // X sirve los GIF como MP4 sin pista de audio —igual que hace su propia app, y
@@ -818,7 +866,15 @@ function analizarMedio(fichero) {
       // pudo leer el fichero, y eso es otra cosa.
       const probado = /Stream #\d+:\d+/.test(texto);
       const m = /Stream #\d+:\d+.*: Video: (\w+)/.exec(texto);
-      resolve({ probado, video: m ? m[1].toLowerCase() : null, audio: /: Audio: /.test(texto) });
+      // Y EL TAMAÑO. Hace falta para los gif: ver la nota de datosDeGif.
+      const d = /Stream #\d+:\d+.*: Video: [^\n]*?[ ,](\d{2,5})x(\d{2,5})/.exec(texto);
+      resolve({
+        probado,
+        video: m ? m[1].toLowerCase() : null,
+        audio: /: Audio: /.test(texto),
+        ancho: d ? Number(d[1]) : null,
+        alto: d ? Number(d[2]) : null,
+      });
     });
   });
 }
@@ -2131,5 +2187,5 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, buscar, buscarVarios, _porFotosSueltas: porFotosSueltas, esAnimado, _porX: porX, _textoDeTuit: textoDeTuit, _mejorVariante: mejorVariante, _variantesMp4: variantesMp4, _varianteQueCabe: varianteQueCabe, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
+module.exports = { traer, buscar, buscarVarios, datosDeGif, _porFotosSueltas: porFotosSueltas, esAnimado, _porX: porX, _textoDeTuit: textoDeTuit, _mejorVariante: mejorVariante, _variantesMp4: variantesMp4, _varianteQueCabe: varianteQueCabe, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
   _montarPase: montarPase, _comoEnlaces: comoEnlaces, _porYtDlpFotos: porYtDlpFotos, _fotosDeFicha: fotosDeFicha, _esSinVideo: esSinVideo, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };

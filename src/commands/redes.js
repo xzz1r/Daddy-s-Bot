@@ -11,7 +11,7 @@
 // reencoda, no se carga en memoria y no se guarda nada.
 
 const fs = require('fs-extra');
-const { traer, buscar, buscarVarios, enlaceDe, plataformaDe, hayComoTraer, PLATAFORMAS } = require('../utils/redes');
+const { traer, buscar, buscarVarios, enlaceDe, plataformaDe, hayComoTraer, datosDeGif, PLATAFORMAS } = require('../utils/redes');
 const { getSender, canonicalJid } = require('../utils/wa');
 const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
 const logger = require('../utils/logger');
@@ -293,13 +293,34 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
       // en la propia red; sin el llega como un clip mudo con boton de play.
       const pie = (primero && pieTuit) ? { caption: pieTuit } : {};
       primero = false;
+
+      // ─── UN GIF NECESITA MINIATURA Y TAMAÑO; UN VIDEO NO ───────────────
+      //
+      // Aqui va `jpegThumbnail: null` a proposito en todo: lo que dispara el
+      // ffmpeg interno de Baileys es `undefined`, y ese proceso de mas en el
+      // unico core de la VPS es lo que hacia que subir 13 KB tardara 1699 ms.
+      //
+      // Pero esa misma puerta es la que rellena el ANCHO y el ALTO
+      // (Utils/messages.js:135 de Baileys), asi que con null el mensaje sale
+      // sin ninguno de los dos. A un video le da igual —tiene su burbuja y su
+      // boton de play—, pero un `gifPlayback` se pinta en linea y en bucle: sin
+      // relacion de aspecto no hay nada que dibujar, y en el grupo no pasa
+      // nada. Es lo que el dueño veia: «los GIFs siguen sin funcionar», con el
+      // fichero bajado y bien.
+      //
+      // Se los damos hechos, que ademas es lo que ya hacen las acciones y
+      // *!tovid* —los dos sitios donde el gif si funcionaba—. Solo para gifs:
+      // un video corriente no paga este ffmpeg.
+      const extraGif = m.animado ? await datosDeGif(m.fichero).catch(() => ({})) : null;
+
       const medio = m.tipo === 'imagen'
         ? { image: { url: m.fichero }, ...pie }
         : {
           video: { url: m.fichero },
           mimetype: 'video/mp4',
-          jpegThumbnail: null,
+          jpegThumbnail: (extraGif && extraGif.thumb) || null,
           ...(m.animado ? { gifPlayback: true } : {}),
+          ...(extraGif && extraGif.ancho ? { width: extraGif.ancho, height: extraGif.alto } : {}),
           ...pie,
         };
       // La cita solo en la primera cuando no hay album: colgar las cinco del
