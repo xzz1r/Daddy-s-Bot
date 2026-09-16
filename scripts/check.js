@@ -15191,6 +15191,175 @@ const ok = (c, t) => { if (!c) quejas.push(t); };
     if (fallos === antes) console.log(verde('   \u2713 sin SoundCloud, con colchón para el scrape, y diciendo por qué cuando no puede'));
   }
 
+  const MEMORIA_CAPA_84 = String.raw`
+require('dotenv').config({ quiet: true });
+// La API, fingida y DESPUES de dotenv: si el .env trae una de verdad, esta la
+// pisa. Una prueba no puede depender de lo que tenga configurado la maquina —
+// eso ya tumbo un despliegue una vez.
+process.env.TIKTOK_API = 'https://api.invalid/tt?';
+const fs = require('fs-extra');
+const path = require('path');
+const R = __RAIZ__;
+const { execFileSync } = require('child_process');
+const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+const D = fs.mkdtempSync(path.join(require('os').tmpdir(), 'cal-'));
+
+// Dos clips REALES, uno "HD" (ancho 720) y otro "SD" (ancho 360): el ancho dice
+// cuál llegó.
+const clip = (n, w) => {
+  const f = path.join(D, n + '.mp4');
+  execFileSync(ffmpegPath, ['-hide_banner','-loglevel','error','-y','-f','lavfi','-i','testsrc=s=' + w + 'x' + Math.round(w * 16 / 9) + ':d=3',
+    '-f','lavfi','-i','sine=f=440:d=3','-c:v','libx264','-preset','ultrafast','-crf','30','-c:a','aac','-shortest', f]);
+  return f;
+};
+const HD = clip('hd', 720), SD = clip('sd', 360);
+
+const rutaDl = require.resolve(path.join(R, 'src/utils/downloader'));
+const dlReal = require(rutaDl);
+let PESOS = {};            // url -> lo que dice HEAD
+let bajados = [];          // qué se llegó a bajar de verdad
+let bytesBajados = 0;
+require.cache[rutaDl].exports = Object.assign({}, dlReal, {
+  acquireDownloadSlot: async () => {}, releaseDownloadSlot: () => {},
+  downloadUrlToFile: async (url, dest, tope) => {
+    bajados.push(url);
+    const real = /hd/.test(url) ? HD : SD;
+    const { size } = await fs.stat(real);
+    const declarado = PESOS[url];
+    // Si DICE que pesa mucho, de verdad pesa mucho: se corta al llegar al tope.
+    if (declarado && declarado > (tope || Infinity)) {
+      bytesBajados += tope;
+      const e = new Error('pesa más de ' + Math.round(tope / 1048576) + 'MB');
+      e.demasiadoGrande = true; throw e;
+    }
+    bytesBajados += size;
+    await fs.copy(real, dest);
+  },
+});
+const axios = require('axios');
+axios.get = async (u) => {
+  if (/api\.invalid/.test(u)) return { data: { data: { hdplay: 'https://cdn.invalid/hd.mp4', play: 'https://cdn.invalid/sd.mp4' } } };
+  throw new Error('la prueba no sale a la red');
+};
+axios.head = async (u) => ({ status: 200, headers: PESOS[u] ? { 'content-length': String(PESOS[u]) } : {} });
+
+const redes = require(path.join(R, 'src/utils/redes'));
+const quejas = [];
+const ok = (c, t) => { if (!c) quejas.push(t); };
+const anchoDe = async (f) => (await redes._analizarMedio(f)).ancho;
+const MB = 1048576;
+
+(async () => {
+  // ── 1. El HD CABE: tiene que llegar el HD ───────────────────────────────
+  PESOS = { 'https://cdn.invalid/hd.mp4': 9 * MB, 'https://cdn.invalid/sd.mp4': 3 * MB };
+  bajados = []; bytesBajados = 0;
+  let r = await redes.traer('https://www.tiktok.com/@a/video/1', 'tiktok');
+  ok(await anchoDe(r.fichero) === 720, 'si el HD cabe, llega el HD');
+  ok(bajados.length === 1 && /hd/.test(bajados[0]), 'y solo se baja una vez');
+  await fs.remove(r.fichero).catch(() => {});
+
+  // ── 2. El HD NO cabe: llega el SD, SIN tirar 16 MB ──────────────────────
+  PESOS = { 'https://cdn.invalid/hd.mp4': 18 * MB, 'https://cdn.invalid/sd.mp4': 4 * MB };
+  bajados = []; bytesBajados = 0;
+  r = await redes.traer('https://www.tiktok.com/@a/video/2', 'tiktok');
+  ok(await anchoDe(r.fichero) === 360, 'si el HD no cabe, llega el SD (mejor eso que nada)');
+  ok(!bajados.some((u) => /hd/.test(u)), 'y el HD NO se llega a bajar: antes se tiraban 16 MB a la basura');
+  ok(bytesBajados < 1 * MB, 'apenas se mueven bytes de mas (' + (bytesBajados / MB).toFixed(1) + 'MB)');
+  await fs.remove(r.fichero).catch(() => {});
+
+  // ── 3. NINGUNO cabe: se dice el motivo de verdad ────────────────────────
+  PESOS = { 'https://cdn.invalid/hd.mp4': 30 * MB, 'https://cdn.invalid/sd.mp4': 22 * MB };
+  bajados = [];
+  let e = null;
+  try { await redes.traer('https://www.tiktok.com/@a/video/3', 'tiktok'); } catch (err) { e = err; }
+  ok(!!e && /pesa 22 MB/.test(e.message), 'si ninguno cabe, dice cuanto pesa el menor (' + (e && e.message) + ')');
+  ok(!!e && !/yt-dlp|Unexpected response|github\.com/.test(e.message),
+     'y el motivo sale LIMPIO, sin el mensaje de yt-dlp pegado detrás');
+  ok(!!e && e.demasiadoGrande === true, 'y va marcado, para no probar yt-dlp contra algo que ya sabemos que no cabe');
+  ok(!bajados.length, 'y no se baja ni un byte');
+
+  // ── 4. Sin cabecera de peso: se prueba igual, no se descarta a ciegas ───
+  PESOS = {};
+  bajados = [];
+  let e4 = null;
+  r = null;
+  try { r = await redes.traer('https://www.tiktok.com/@a/video/4', 'tiktok'); } catch (err) { e4 = err; }
+  ok(!e4, 'sin cabecera de peso NO se descarta a ciegas (' + (e4 && e4.message.slice(0, 60)) + ')');
+  ok(r && await anchoDe(r.fichero) === 720, 'y se prueba el mejor igual: el tope de la bajada ya lo cortaría si se pasara');
+  if (r) await fs.remove(r.fichero).catch(() => {});
+
+  await fs.remove(D);
+  console.log('CAPA84:' + JSON.stringify(quejas));
+})().catch(async (e) => {
+  await fs.remove(D).catch(() => {});
+  console.log('CAPA84:' + JSON.stringify(['la prueba de calidad revento: ' + (e && e.message)]));
+});
+`;
+
+  // ── 84. SE MANDA LA MEJOR CALIDAD QUE DE VERDAD QUEPA ──────────────────
+  //
+  // ESTO LO ROMPI YO, y el dueño lo noto antes que ninguna prueba: «los videos
+  // de las herramientas han bajado de calidad y las veo un poquillo lentas».
+  //
+  // La API devuelve VARIOS enlaces del mismo video ORDENADOS POR CALIDAD
+  // —`hdplay` antes que `play`, que es el mismo en peor— y el bucle se queda
+  // con el primero que baje entero. Al ponerle el tope de WhatsApp a la bajada,
+  // un video HD de 18 MB dejo de bajarse entero: aborta a los 16 MB, cae al
+  // `continue`, y el siguiente candidato es el MALO. O sea que el grupo recibia
+  // la version peor DESPUES de haber tirado 16 MB a la basura. Peor y mas
+  // lento, las dos cosas, y exactamente lo que se noto.
+  //
+  // (Antes de aquel arreglo tampoco estaba bien, solo fallaba distinto: el HD
+  // se bajaba entero y despues `traer` lo rechazaba por tamaño, asi que ese
+  // video no llegaba de ninguna manera.)
+  //
+  // Ahora se pregunta el peso de todos A LA VEZ y se salta lo que no cabe ANTES
+  // de gastar un byte, con lo que se coge el MEJOR que de verdad quepa. Es lo
+  // que ya hacia *!x* con las variantes de un tuit.
+  //
+  // Y TRES COSAS QUE NO PUEDEN PERDERSE POR EL CAMINO:
+  //
+  //   · el que NO declara peso no se descarta: se prueba, y el tope de la
+  //     bajada sigue puesto para cortarlo. Descartar a ciegas seria tirar un
+  //     candidato bueno porque su servidor no puso una cabecera.
+  //   · si NINGUNO cabe se dice eso —con el peso del menor, que es el numero
+  //     util— y no «no pude sacar el vídeo de ahí», que seria mentira.
+  //   · ese fallo va MARCADO, asi que no se prueba yt-dlp detras: lleva el
+  //     mismo tope, o sea veinte segundos para decir lo mismo peor y con su
+  //     mensaje pegado.
+  //
+  // La prueba mide el ANCHO del video que llega —720 o 360— que es la unica
+  // forma de saber cual de los dos candidatos salio, y cuantos bytes se han
+  // movido de verdad. Ni un viaje a la red.
+  {
+    console.log('\n84. SE MANDA LA MEJOR CALIDAD QUE DE VERDAD QUEPA');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   \u2717 ${queja}`)); } };
+    const { execFileSync } = require('child_process');
+    const os84 = require('os');
+    const dir84 = fs.mkdtempSync(path.join(os84.tmpdir(), 'capa84-'));
+    try {
+      try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(dir84, 'node_modules'), 'dir'); } catch { /* el hijo lo dira */ }
+      fs.writeFileSync(path.join(dir84, 'p.js'), MEMORIA_CAPA_84.replace(/__RAIZ__/g, json(R)));
+      let salida = '';
+      try {
+        salida = execFileSync(process.execPath, [path.join(dir84, 'p.js')],
+          { encoding: 'utf8', timeout: 180000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (e) { salida = `${e.stdout || ''}${e.stderr || ''}`; }
+      const linea = salida.split('\n').reverse().find((l) => l.startsWith('CAPA84:'));
+      exige(!!linea, `la prueba de calidad no contestó: ${salida.slice(-400).trim()}`);
+      if (linea) {
+        let quejas = [];
+        try { quejas = JSON.parse(linea.slice('CAPA84:'.length)); } catch { quejas = ['no pude leer el resultado']; }
+        for (const q of quejas) exige(false, q);
+      }
+    } finally {
+      fs.rmSync(dir84, { recursive: true, force: true });
+    }
+
+    if (fallos === antes) console.log(verde('   \u2713 llega la mejor calidad que cabe, sin tirar bytes y diciendo la verdad si no cabe ninguna'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     process.exit(fallos ? 1 : 0);

@@ -704,7 +704,39 @@ async function porApi(url, plataforma, yaNoHaceFaltaLaRed = null) {
     const f = cancion; cancion = null;
     await fs.remove(f).catch(() => {});
   };
+  // ─── SE PREGUNTA EL PESO ANTES DE BAJAR, Y SE ELIGE LA MEJOR QUE CABE ────
+  //
+  // ESTO ESTABA BAJANDO CALIDAD SIN QUERER, y es culpa de un arreglo mio. Los
+  // candidatos vienen ORDENADOS POR CALIDAD —`hdplay` antes que `play`, que es
+  // el mismo video en peor— y el bucle se queda con el primero que baje entero.
+  //
+  // Al ponerle el tope de WhatsApp a la bajada, un video HD de 18 MB dejo de
+  // bajarse entero: aborta a los 16 MB, cae al `continue`, y el siguiente
+  // candidato es el de PEOR calidad. O sea que el grupo recibia la version mala
+  // despues de haber tirado 16 MB a la basura. Peor y mas lento, las dos cosas
+  // a la vez, que es justo lo que noto el dueño.
+  //
+  // (Antes de aquel arreglo no era mejor, solo distinto: el HD se bajaba entero
+  // y despues `traer` lo rechazaba por tamaño. O sea que ese video no llegaba
+  // de ninguna manera.)
+  //
+  // Ahora se pregunta el peso de todos A LA VEZ y se descartan los que no caben
+  // ANTES de gastar un byte. Asi se coge el de MEJOR calidad que de verdad
+  // quepa, que es lo que habia que hacer desde el principio. Es lo mismo que ya
+  // hace *!x* con las variantes de un tuit.
+  //
+  // El que no dice lo que pesa NO se descarta: se prueba, y el tope de la
+  // bajada sigue puesto para cortarlo si se pasa. Descartar a ciegas seria
+  // tirar un candidato bueno porque su servidor no puso una cabecera.
+  const pesos = await Promise.all(candidatos.map((u) => (esImagen(extensionDe(u) || '') ? null : pesaDe(u))));
+  const cabenFuera = pesos.filter((x) => x !== null && x > TOPE_WHATSAPP).length;
+  if (cabenFuera) {
+    logger.info(`redes: ${cabenFuera} candidato(s) de ${plataforma} no caben en WhatsApp; voy al mejor que sí`);
+  }
+
   for (let i = 0; i < candidatos.length; i++) {
+    // Lo que ya se sabe que no cabe no se baja: son los 16 MB que se tiraban.
+    if (pesos[i] !== null && pesos[i] > TOPE_WHATSAPP) continue;
     const enlace = candidatos[i];
     const ext = extensionDe(enlace) || 'mp4';
     const fichero = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.${esImagen(ext) ? ext : 'mp4'}`);
@@ -757,6 +789,26 @@ async function porApi(url, plataforma, yaNoHaceFaltaLaRed = null) {
     if (fotoSuelta) { await fs.remove(fotoSuelta).catch(() => {}); fotoSuelta = null; }
     return fichero;
   }
+  // ─── Y SI NINGUNO CABIA, SE DICE ESO Y NO OTRA COSA ─────────────────────
+  //
+  // Saltarse todos los candidatos por tamaño y caer al final acabaria en «no
+  // pude sacar el vídeo de ahí», que es mentira: se saco perfectamente, lo que
+  // pasa es que no cabe en WhatsApp. Es el mismo motivo que ya se dice cuando
+  // el video se baja entero y se mide despues, con las mismas palabras.
+  //
+  // Se nombra el MAS PEQUEÑO de los que no cabian, que es el numero util: dice
+  // cuanto se pasa lo mejor que se podia haber mandado.
+  const medidos = pesos.filter((x) => x !== null && x > TOPE_WHATSAPP);
+  if (medidos.length && medidos.length === pesos.filter((x) => x !== null).length && !fotos.length) {
+    const menor = Math.min(...medidos);
+    // MARCADO, para que `traer` no lo mezcle con el fallo de yt-dlp ni pierda
+    // veinte segundos probando a bajar algo que ya sabemos que no cabe.
+    throw Object.assign(
+      new Error(`pesa ${Math.round(menor / 1048576)} MB y WhatsApp no pasa de ${Math.floor(TOPE_WHATSAPP / 1048576)}`),
+      { demasiadoGrande: true },
+    );
+  }
+
   // SI TODOS LOS ENLACES ERAN AUDIO, el motivo no es que la API fallara: es que
   // eso no es un video. Dicho de la otra forma, quien lo pego se queda pensando
   // que el bot esta roto.
@@ -2395,6 +2447,11 @@ async function traer(url, plataforma) {
       fichero = await porApi(url, plataforma, soltarHueco);
       if (!fichero && API_DE[plataforma]) fallaApi = 'la API no devolvió ningún enlace';
     } catch (e) {
+      // QUE NO QUEPA NO ES QUE LA API FALLARA. Sale entero y se corta aqui:
+      // yt-dlp lleva el MISMO tope, asi que probarlo es esperar veinte segundos
+      // para decir lo mismo peor — y con el mensaje de yt-dlp pegado detras,
+      // que a quien pego el enlace no le dice nada.
+      if (e.demasiadoGrande) throw e;
       fallaApi = e.message;
       logger.warn(`redes: la API falló para ${plataforma}: ${e.message}`);
     }
@@ -2462,7 +2519,7 @@ async function traer(url, plataforma) {
 
     const { size } = await fs.stat(fichero);
     if (size < 1024) throw new Error('lo que bajó está vacío');
-    // EL TOPE ES EL DE WHATSAPP, NO EL NUESTRO. MAX_BYTES son 25 MB y viene de
+    // EL TOPE ES EL DE WHATSAPP. MAX_BYTES son los mismos 16 MB y viene de
     // !play, donde el limite es el ancho de banda. Aqui manda otra cosa: el
     // cliente de WhatsApp no acepta video por encima de 16 MB, asi que mandar
     // 20 no es «un poco grande», es un envio que falla o que a la otra persona
