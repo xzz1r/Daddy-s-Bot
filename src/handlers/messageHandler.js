@@ -276,6 +276,31 @@ const COBRO_CENTRAL = {
   // privado, que para auraStore es un grupo nuevo con su arranque. Un monedero
   // paralelo al del grupo, que no es lo que cuesta un comando: es saltarselo.
   x: 'redes', twitter: 'redes', tuit: 'redes', tweet: 'redes',
+
+  // ─── Y LOS OTROS QUINCE QUE COBRAN POR DENTRO ────────────────────────────
+  //
+  // Los de redes entraron aqui a proposito y con su nota, pero el resto de
+  // COBRAN_SOLOS se quedo fuera: quince comandos —*!play* el primero, que es el
+  // lento mas usado— que por privado llegaban al comando y cobraban contra el
+  // JID del privado. Para auraStore eso es un grupo nuevo con su saldo de
+  // arranque: un monedero paralelo que nadie del grupo ve y que no se gasta
+  // nunca.
+  //
+  // ESTAR AQUI NO ES COBRAR DOS VECES. Mas abajo, el cobro central se salta a
+  // todo lo que esta en COBRAN_SOLOS; lo unico que se gana entrando en esta
+  // tabla es que la puerta del privado los cubra. Es lo mismo que ya hacian
+  // *!tt*, *!ig*, *!pin* y *!x*.
+  //
+  // El concepto es EL MISMO con el que cobra cada uno por dentro, porque es la
+  // clave del contador de usos: si no coincidiera, un reembolso descontaria del
+  // contador equivocado y el precio de otro comando se movería solo.
+  play: 'play', playsong: 'play', playaudio: 'play',
+  s: 'sticker', sticker: 'sticker', stk: 'sticker',
+  toimg: 'toimg',
+  tovid: 'tovid',
+  pfp: 'pfp',
+  fk: 'fk', verificar: 'fk', verify: 'fk', check: 'fk',
+  top5: 'top5', top10: 'top10',
   // 'count' e 'inactivos' NO estan, y es a proposito. El cobro central corre
   // ANTES del switch, asi que a un miembro se le cobraba y despues el comando
   // contestaba "solo los admins": pagaba por un rechazo. El catch solo
@@ -1264,6 +1289,41 @@ function peekGroupMeta(jid) {
 //
 // Asi que aqui el TTL SI se respeta. Devolviendo `undefined`, Baileys pregunta
 // el mismo: se pierde el ahorro en ese caso y no se pierde un mensaje.
+// ─── LO QUE YA SE PAGO, NO SE TIRA ──────────────────────────────────────────
+//
+// `groupFetchAllParticipating` es la consulta mas cara del proceso y el bot ya
+// la hace al arrancar, para las solicitudes de entrada: trae la metadata de
+// TODOS los grupos de una vez. Pero ese resultado vivia en su propia variable
+// de bot.js y esta cache no se enteraba.
+//
+// Asi que tras cada reinicio —cada despliegue, cada tope de RAM— el primer
+// comando de alguien volvia a pedir `groupMetadata` de su grupo, uno a uno, y
+// eso es lo que se ve como un bot mudo unos segundos justo despues de arrancar.
+// Trabajo pagado y tirado.
+//
+// Se siembra con lo que ya vino. Va por la MISMA puerta que el resto —misma
+// forma, misma marca de tiempo, misma invalidacion por evento— asi que no hay
+// dos caminos que mantener: si un join la invalida, la invalida igual venga de
+// donde venga.
+//
+// NO PISA LO QUE YA HAY. Si la cache tiene algo de ese grupo es porque se
+// consulto hace menos de lo que dure el TTL, y eso es igual de fresco o mas que
+// una lista traida al arrancar. Sembrar por encima solo serviria para rejuvenecer
+// un dato viejo.
+function sembrarGrupos(mapa) {
+  if (!mapa || typeof mapa !== 'object') return 0;
+  const ahora = Date.now();
+  let puestos = 0;
+  for (const [jid, meta] of Object.entries(mapa)) {
+    if (!jid.endsWith('@g.us') || !meta || !Array.isArray(meta.participants)) continue;
+    const hay = metaCache.get(jid);
+    if (hay && ahora - hay.ts < META_TTL) continue;
+    metaCache.set(jid, { meta, ts: ahora });
+    puestos++;
+  }
+  return puestos;
+}
+
 function metaParaBaileys(jid) {
   const c = metaCache.get(jid);
   if (!c || !c.meta) return undefined;
@@ -3262,8 +3322,23 @@ async function handleMessage(sock, msg, opciones = {}) {
         + (cobradoAqui > 0 ? `\n_Te devuelvo los ${cobradoAqui} de aura._` : ''),
     }, { quoted: msg }).catch(() => {});
   } finally {
-    // Aqui solo queda la medicion: el visto se manda mucho antes, para TODO
-    // mensaje y no solo para los comandos.
+    // ─── Y SE APAGA EL «ESCRIBIENDO…» ────────────────────────────────────
+    //
+    // Se encendia al empezar un comando lento y no se apagaba nunca: la unica
+    // presencia que mandaba el bot, aparte del `available` de arranque, era ese
+    // `composing`. WhatsApp lo deja colgado hasta que caduca solo, asi que el
+    // bot seguia «escribiendo» con el sticker YA puesto en el chat. Eso no se
+    // lee como cortesia, se lee como que va lento.
+    //
+    // Mismo criterio que al encenderlo, y por lo mismo: va atado a *!visto*
+    // —apagar el rastro no puede encenderlo por detras— se manda una vez, sin
+    // esperar, y si falla no rompe nada. El comando ya ha contestado.
+    if (LENTOS.has(command) && vistoActivo(config.autoRead)) {
+      sock.sendPresenceUpdate('paused', jid).catch(() => {});
+    }
+
+    // Y la medicion: el visto se manda mucho antes, para TODO mensaje y no solo
+    // para los comandos.
     const tardo = Date.now() - t0Cmd;
     if (tardo >= LENTO_MS) logger.warn(`LENTO: ${prefUsado || config.prefix}${command} tardo ${tardo} ms`);
   }
@@ -3273,6 +3348,8 @@ async function handleMessage(sock, msg, opciones = {}) {
 module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGroupMeta, PERMISO_ENLACE,
   // Para que el socket use la cache que ya existe en vez de preguntar por su cuenta.
   metaParaBaileys,
+  // Y para que lo que ya trajo el arranque no se vuelva a pedir comando a comando.
+  sembrarGrupos,
   CMDS_AURA, SOLO_CONSULTA,
   // Exportados para poder probar la deteccion de enlaces sin montar un socket.
   clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa,

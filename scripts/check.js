@@ -14845,6 +14845,212 @@ const PINES = Array.from({ length: 3 }, (_, i) => ({
     if (fallos === antes) console.log(verde('   \u2713 el freno es honesto, la cola llena se dice, y *!next* avisa cuando se acaban'));
   }
 
+  const MEMORIA_CAPA_82 = String.raw`
+'use strict';
+// El co-dueño va ANTES de cargar nada: config lo lee al requerirse.
+process.env.CO_OWNERS = '34600095000';
+require('dotenv').config({ quiet: true });
+const path = require('path');
+const R = __RAIZ__;
+const mh = require(path.join(R, 'src/handlers/messageHandler'));
+const { handleMessage } = mh;
+const { ffmpegSemaphore } = require(path.join(R, 'src/utils/helpers'));
+const { computeHash } = require(path.join(R, 'src/utils/phash'));
+const quejas = [];
+const ok = (c, t) => { if (!c) quejas.push(t); };
+
+let n = 0;
+const correr = async (texto, enPrivado) => {
+  const YO = enPrivado ? '34600095000@s.whatsapp.net' : ('34600095' + (++n) + '@s.whatsapp.net');
+  const JID = enPrivado ? YO : '000000095@g.us';
+  const presencias = [], dichos = [];
+  const sock = {
+    user: { id: '549199@s.whatsapp.net' },
+    sendMessage: async (j, c) => { dichos.push(c.text || '[MEDIA]'); return { key: { id: 'K' + (++n) } }; },
+    sendPresenceUpdate: async (p) => { presencias.push(p); },
+    groupMetadata: async () => ({ id: JID, participants: [{ id: YO }] }),
+    readMessages: async () => {},
+  };
+  const msg = { key: { remoteJid: JID, fromMe: false, id: 'M' + (++n), participant: enPrivado ? undefined : YO },
+    messageTimestamp: Math.floor(Date.now() / 1000), message: { conversation: texto } };
+  await handleMessage(sock, msg).catch(() => {});
+  await new Promise((r) => setTimeout(r, 150));
+  return { presencias, texto: dichos.join('\n') };
+};
+
+
+(async () => {
+  // ── 1. SEMBRAR LA CACHÉ ─────────────────────────────────────────────────
+  const G1 = '000000091@g.us', G2 = '000000092@g.us';
+  const META = (id) => ({ id, subject: 'x', participants: [{ id: '34600091@s.whatsapp.net' }] });
+  let consultas = 0;
+  const sock = { groupMetadata: async (j) => { consultas++; return META(j); } };
+
+  ok(mh.metaParaBaileys(G1) === undefined, 'antes de sembrar, la caché no tiene nada');
+  const puestos = mh.sembrarGrupos({ [G1]: META(G1), [G2]: META(G2) });
+  ok(puestos === 2, 'siembra los 2 grupos (sembro ' + puestos + ')');
+  consultas = 0;
+  const m1 = await mh.getGroupMeta(sock, G1);
+  ok(m1 && m1.id === G1, 'el primer comando ya encuentra su grupo');
+  ok(consultas === 0, 'y NO vuelve a preguntar (pregunto ' + consultas + ' veces): eso es lo que se veia como bot mudo tras reiniciar');
+  ok(!!mh.metaParaBaileys(G1), 'y Baileys también la tiene, sin pedirla');
+
+  // No pisa lo fresco ni mete basura.
+  ok(mh.sembrarGrupos({ [G1]: META(G1) }) === 0, 'sembrar dos veces no pisa lo que ya estaba fresco');
+  ok(mh.sembrarGrupos(null) === 0, 'sembrar con nada no revienta');
+  ok(mh.sembrarGrupos({ '34600@s.whatsapp.net': META('x') }) === 0, 'un privado no entra en la caché de grupos');
+  ok(mh.sembrarGrupos({ '000000093@g.us': { id: 'x' } }) === 0, 'una metadata sin participantes no entra');
+
+  // Un join la invalida igual que a las demás.
+  mh.invalidateGroupMeta(G2);
+  ok(mh.metaParaBaileys(G2) === undefined, 'lo sembrado se invalida igual con un join');
+
+  // ── 2. EL HASH DE FONDO NO ROBA EL FFMPEG ───────────────────────────────
+  // TODAS LAS PLAZAS, no una. El semaforo es min(2, nucleos): en la VPS de un
+  // core es 1, pero en una maquina de cuatro son 2, y cogiendo solo una quedaba
+  // la otra libre — el hash pasaba y la prueba decia que no se rendia. Era la
+  // prueba la que estaba mal.
+  const plazas = ffmpegSemaphore._plazas;
+  let cogidas = 0;
+  while (ffmpegSemaphore.tryAcquire()) cogidas++;
+  ok(cogidas === plazas, 'se cogen las ' + plazas + ' plaza(s) de ffmpeg (cogidas ' + cogidas + ')');
+  let e = null;
+  const t = Date.now();
+  try { await computeHash(Buffer.alloc(100), { sinEsperar: true }); } catch (err) { e = err; }
+  const ms = Date.now() - t;
+  ok(!!e && e.ffmpegOcupado === true, 'con el ffmpeg ocupado, el hash de fondo se rinde');
+  ok(ms < 100, 'y se rinde al instante (' + ms + 'ms), no esperando 10 s a que se libere');
+  for (let i = 0; i < cogidas; i++) ffmpegSemaphore.release();
+
+  // Y esperando sí espera (el camino de siempre, para lo que SÍ pidió alguien).
+  const h = await computeHash(Buffer.alloc(100));
+  ok(h === null, 'sin sinEsperar, un buffer que no es imagen devuelve null (no lanza)');
+
+  // ── LA PUERTA DEL PRIVADO ───────────────────────────────────────────────
+  for (const c of ['!play algo', '!s', '!toimg', '!tovid', '!pfp', '!fk', '!top5 algo']) {
+    const r = await correr(c, true);
+    ok(/se juega en el grupo/i.test(r.texto),
+       c + ' en privado dice donde se juega (' + (r.texto.slice(0, 40) || 'nada') + ')');
+  }
+  // Y en grupo NO dice eso.
+  const enGrupo = await correr('!play algo', false);
+  ok(!/se juega en el grupo/i.test(enGrupo.texto), 'en grupo *!play* no dice eso, claro');
+
+  // ── LA PRESENCIA SE APAGA ───────────────────────────────────────────────
+  ok(enGrupo.presencias.includes('composing'), 'un comando lento enciende el escribiendo (' + enGrupo.presencias.join(',') + ')');
+  ok(enGrupo.presencias.includes('paused'), 'y lo APAGA al terminar: antes se quedaba colgado hasta que WhatsApp se cansaba');
+  ok(enGrupo.presencias.indexOf('composing') < enGrupo.presencias.indexOf('paused'), 'en ese orden');
+
+  const rapido = await correr('!ping', false);
+  ok(!rapido.presencias.includes('composing') && !rapido.presencias.includes('paused'),
+     'un comando rapido no toca la presencia (' + (rapido.presencias.join(',') || 'ninguna') + ')');
+
+
+  console.log('CAPA82:' + JSON.stringify(quejas));
+})().catch((e) => {
+  console.log('CAPA82:' + JSON.stringify(['la prueba revento: ' + (e && e.message)]));
+});
+`;
+
+  // ── 82. LO QUE YA SE PAGO NO SE TIRA, Y EL FONDO NO ADELANTA ───────────
+  //
+  // Cuatro cosas distintas que se notan en lo mismo: que el bot parezca rapido
+  // sin pedirle NADA MAS a WhatsApp, que en una cuenta que ya estuvo en revision
+  // es la unica direccion segura.
+  //
+  // 1. LA METADATA QUE YA VINO. `groupFetchAllParticipating` es la consulta mas
+  //    cara del proceso y el bot ya la hace al arrancar. Pero ese resultado
+  //    vivia en bot.js y esta cache no se enteraba, asi que tras cada reinicio
+  //    —cada despliegue, cada tope de RAM— el primer comando de alguien volvia
+  //    a pedir `groupMetadata` de su grupo. Eso es lo que se ve como un bot
+  //    mudo unos segundos justo despues de arrancar: trabajo pagado y tirado.
+  //
+  //    Se siembra por la MISMA puerta que el resto —misma forma, misma marca de
+  //    tiempo, misma invalidacion por evento— y NO pisa lo que ya este fresco:
+  //    un dato de hace un minuto es mejor que una lista traida al arrancar.
+  //
+  // 2. EL HASH DE LAS FOTOS DE PERFIL NO ADELANTA A NADIE. El indexador es
+  //    trabajo de fondo que nadie ha pedido, y llamaba a ffmpeg con un
+  //    `acquire()` que ESPERA. En un core eso significa que el sticker que si
+  //    pidio alguien se queda detras de un indexado invisible — con un tope de
+  //    10 s. La despensa de gifs ya usaba `tryAcquire`; esto no.
+  //
+  //    Si el ffmpeg esta ocupado se suelta SIN FICHAR la cuenta, igual que con
+  //    un rate-overlimit: la proxima vez que esa persona escriba se vuelve a
+  //    encolar sola. Fichar ahi la dejaria tres dias sin indexar por haber
+  //    pasado en mal momento.
+  //
+  // 3. EL «ESCRIBIENDO…» SE APAGA. Se encendia para los comandos lentos y no se
+  //    apagaba nunca; WhatsApp lo deja colgado hasta que caduca solo, asi que
+  //    el bot seguia escribiendo con el sticker YA puesto en el chat. Eso no se
+  //    lee como cortesia, se lee como que va lento.
+  //
+  // 4. LOS QUINCE QUE COBRAN POR DENTRO, EN LA PUERTA DEL PRIVADO. Los de redes
+  //    entraron en su dia con su nota; el resto de COBRAN_SOLOS se quedo fuera.
+  //
+  //    OJO CON EL ALCANCE, porque el analisis que lo señalo lo conto mas grande
+  //    de lo que es: a un desconocido el bot le da SILENCIO TOTAL en privado —
+  //    hay un corte mucho mas arriba, `ownerEnPrivado`, que devuelve antes de
+  //    los comandos. El agujero era para los CO-DUEÑOS: `isOwner` los deja
+  //    pasar y `isMainOwner` no los exime, asi que llegaban al comando. Y eso
+  //    importa justo ahora, que los co-dueños pagan como todos.
+  {
+    console.log('\n82. LO QUE YA SE PAGÓ NO SE TIRA, Y EL TRABAJO DE FONDO NO ADELANTA');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   \u2717 ${queja}`)); } };
+    const { execFileSync } = require('child_process');
+    const os82 = require('os');
+    const dir82 = fs.mkdtempSync(path.join(os82.tmpdir(), 'capa82-'));
+    try {
+      try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(dir82, 'node_modules'), 'dir'); } catch { /* el hijo lo dira */ }
+      fs.writeFileSync(path.join(dir82, 'p.js'), MEMORIA_CAPA_82.replace(/__RAIZ__/g, json(R)));
+      let salida = '';
+      try {
+        salida = execFileSync(process.execPath, [path.join(dir82, 'p.js')],
+          { encoding: 'utf8', timeout: 180000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (e) { salida = `${e.stdout || ''}${e.stderr || ''}`; }
+      const linea = salida.split('\n').reverse().find((l) => l.startsWith('CAPA82:'));
+      exige(!!linea, `la prueba no contestó: ${salida.slice(-400).trim()}`);
+      if (linea) {
+        let quejas = [];
+        try { quejas = JSON.parse(linea.slice('CAPA82:'.length)); } catch { quejas = ['no pude leer el resultado']; }
+        for (const q of quejas) exige(false, q);
+      }
+    } finally {
+      fs.rmSync(dir82, { recursive: true, force: true });
+    }
+
+    // EL INDEXADOR, POR FUENTE. Conducirlo entero pediria socket, red y fotos;
+    // lo que importa cabe en una linea y es justo la que se puede perder en un
+    // refactor.
+    const pi82 = soloCodigo('src/utils/pfpIndexer.js');
+    exige(/computeHash\(buf, \{ sinEsperar: true \}\)/.test(pi82),
+      'el indexador de fotos vuelve a ESPERAR al ffmpeg: un sticker que sí pidió alguien se queda detrás de un indexado que no pidió nadie');
+    exige(/e\.ffmpegOcupado/.test(pi82),
+      'el indexador ficha la cuenta cuando el ffmpeg está ocupado: la dejaría tres días sin indexar por pasar en mal momento');
+
+    // Y LA INVARIANTE, para que no vuelva a quedarse ninguno fuera: todo lo que
+    // cobra por dentro tiene que estar TAMBIEN en COBRO_CENTRAL, que es lo
+    // unico que hace que la puerta del privado lo cubra. Son dos listas lejanas
+    // que se desincronizan solas — ya paso con *!x*, y despues con quince mas.
+    const mh82 = soloCodigo('src/handlers/messageHandler.js');
+    const tCobro = mh82.match(/const COBRO_CENTRAL = \{[\s\S]*?\n\};/);
+    const tSolos = mh82.match(/const COBRAN_SOLOS = new Set\(\[[\s\S]*?\n\]\);/);
+    exige(!!tCobro && !!tSolos, 'no pude leer COBRO_CENTRAL o COBRAN_SOLOS: esta guarda no está mirando nada');
+    if (tCobro && tSolos) {
+      const cobrados = new Set([...tCobro[0].matchAll(/([a-zá-úñ0-9]+):\s*'[a-z0-9]+'/g)].map((x) => x[1]));
+      const pct82 = mh82.match(/const CMDS_PORCENTAJE = \[([\s\S]*?)\];/);
+      if (pct82) for (const x of pct82[1].matchAll(/'([^']+)'/g)) cobrados.add(x[1]);
+      const solos = [...tSolos[0].matchAll(/'([a-zá-úñ0-9]+)'/g)].map((x) => x[1]);
+      exige(solos.length >= 20, `COBRAN_SOLOS solo tiene ${solos.length} entradas: la lectura se ha roto`);
+      const fuera = solos.filter((c) => !cobrados.has(c));
+      exige(fuera.length === 0,
+        `estos cobran por dentro pero se saltan la puerta del privado: ${fuera.join(', ')} — un co-dueño los usaría en DM contra un monedero que no es el del grupo`);
+    }
+
+    if (fallos === antes) console.log(verde('   \u2713 la caché se siembra al arrancar, el fondo cede el ffmpeg, la presencia se apaga y nadie se salta el privado'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     process.exit(fallos ? 1 : 0);

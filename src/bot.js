@@ -52,7 +52,7 @@ const STUB_SOLICITUD = new Set([144, 172]);
 // Barridos de autoaccept pendientes, por grupo. Junta las rafagas: si llegan
 // cinco solicitudes seguidas se hace UN barrido, no cinco.
 const autoAcceptPendiente = new Map();
-const { handleMessage, invalidateGroupMeta, getGroupMeta, metaParaBaileys } = require('./handlers/messageHandler');
+const { handleMessage, invalidateGroupMeta, getGroupMeta, metaParaBaileys, sembrarGrupos } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, isAutoAceptarEnabled, flushState, vistoActivo } = require('./utils/state');
 const { isOwner, sameUser, isBotAdmin, phoneMatch, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto } = require('./utils/wa');
 const { anotarDeuda, cobrarDeuda, flushDeuda } = require('./utils/adminDeuda');
@@ -259,6 +259,12 @@ async function listaDeGrupos() {
   try {
     gruposMeta = await withTimeout(sock.groupFetchAllParticipating(), TOPE_RED);
     gruposConocidos = Object.keys(gruposMeta || {});
+    // Y SE LE DA AL DISPATCHER, que si no vuelve a pedir grupo por grupo lo
+    // que acaba de llegar de todos juntos. Es la consulta mas cara del proceso
+    // y estaba pagandose dos veces: aqui al arrancar, y otra vez en el primer
+    // comando que escribiera alguien. Ver `sembrarGrupos`.
+    const sembrados = sembrarGrupos(gruposMeta);
+    if (sembrados) logger.info(`grupos: ${sembrados} metadata(s) servidas a la caché sin pedirlas otra vez`);
     gruposTs = ahora;
     gruposFallos = 0;
     gruposEsperaHasta = 0;

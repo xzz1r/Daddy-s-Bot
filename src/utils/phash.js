@@ -15,11 +15,17 @@ const FF_ARGS = [
 // caracteres, o null si ffmpeg no decodifica / se cuelga / la imagen es plana.
 // Todos los llamadores ya toleran null (recordAndMatch/matchOnly lo ignoran),
 // así que null = "sin huella útil, no registrar ni comparar".
-async function computeHash(buffer) {
+// `sinEsperar` lo pone el indexador automatico, que es trabajo de fondo: si el
+// unico ffmpeg esta ocupado con un sticker o un video que alguien SI ha pedido,
+// se rinde y vuelve en la siguiente vuelta de la cola. Esto se distingue de
+// «no se pudo» a proposito: un `null` significa «esta foto no da huella» y
+// ficha la cuenta para tres dias; quedarse sin ffmpeg no es eso.
+async function computeHash(buffer, { sinEsperar = false } = {}) {
   let out;
   try {
-    out = await ffmpegToBuffer(FF_ARGS, buffer, 10000);
-  } catch {
+    out = await ffmpegToBuffer(FF_ARGS, buffer, 10000, { sinEsperar });
+  } catch (e) {
+    if (e && e.ffmpegOcupado) throw e;
     return null;
   }
   if (!out || out.length < 72) return null;

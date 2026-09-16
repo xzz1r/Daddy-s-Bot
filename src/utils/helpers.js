@@ -437,9 +437,22 @@ const ffmpegSemaphore = createSemaphore(Math.max(1, Math.min(2, NUCLEOS)));
 // wedge the auto-indexer), and the shared ffmpegSemaphore so hashing/downscaling
 // can't push the process-wide ffmpeg count past 2 on a 1GB box lazy-require of
 // ffmpegPath avoids paying the binary-detection cost for non-media callers.
-async function ffmpegToBuffer(args, input = null, timeoutMs = 10000) {
+// `sinEsperar` es para el trabajo de FONDO: si el unico ffmpeg esta ocupado,
+// se rinde en vez de ponerse en la cola. Sin eso, un indexado que nadie ha
+// pedido se cuela delante del sticker que si pidio alguien — y en un core, eso
+// es el usuario esperando por un trabajo invisible. La despensa de gifs ya
+// usaba este criterio; el hash de las fotos de perfil, no.
+async function ffmpegToBuffer(args, input = null, timeoutMs = 10000, { sinEsperar = false } = {}) {
   const { ffmpegPath } = require('./ffmpeg');
-  await ffmpegSemaphore.acquire();
+  if (sinEsperar) {
+    if (!ffmpegSemaphore.tryAcquire()) {
+      const ocupado = new Error('ffmpeg ocupado');
+      ocupado.ffmpegOcupado = true;
+      throw ocupado;
+    }
+  } else {
+    await ffmpegSemaphore.acquire();
+  }
   try {
     return await new Promise((resolve, reject) => {
       const ff = spawn(ffmpegPath, args);

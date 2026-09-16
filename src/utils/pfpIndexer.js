@@ -138,7 +138,17 @@ function maybeIndex(sock, pfpJid, groupJid) {
         maxContentLength: 20 * 1024 * 1024, maxBodyLength: 20 * 1024 * 1024,
       });
       const buf = Buffer.from(res.data);
-      const hash = await computeHash(buf);
+      // SIN ESPERAR AL FFMPEG. Esto es trabajo de fondo que nadie ha pedido: si
+      // el unico core esta ocupado con un sticker, un *!tt* nivelando audio o
+      // una accion, ponerse en la cola significa que el usuario acaba esperando
+      // detras de un indexado invisible. El tope del hash son 10 s de ffmpeg;
+      // en una VPS de un core eso se lee como «el bot va lento».
+      //
+      // Si esta ocupado se vuelve a encolar y se prueba en la siguiente vuelta,
+      // con la misma pausa de dos segundos que ya lleva la cola. NO se ficha la
+      // cuenta: fichar aqui la dejaria tres dias sin indexar por haber pasado
+      // en mal momento.
+      const hash = await computeHash(buf, { sinEsperar: true });
       const matches = await recordAndMatch(groupJid || null, account, hash, Date.now());
       // Guarda la imagen (reducida) SOLO si la cuenta es sospechosa o muy activa,
       // para que !pfp pueda mostrar la última foto conocida si luego la ocultan.
@@ -148,6 +158,16 @@ function maybeIndex(sock, pfpJid, groupJid) {
     } catch (e) {
       // 429 / timeout: NO se ficha. El markTracked optimista de antes
       // bloqueaba la cuenta 3 días tras un rate-overlimit.
+      // EL FFMPEG OCUPADO NO ES UN FALLO DE ESTA CUENTA: se suelta sin fichar,
+      // igual que un rate-overlimit. La siguiente vez que esa persona escriba,
+      // `maybeIndex` la vuelve a encolar sola.
+      //
+      // Y no se reencola AQUI a proposito: volver a meterla en la cola seria
+      // volver a bajarse la foto —otra consulta a WhatsApp— y encima cada
+      // reintento costaria los dos segundos de pausa, dando vueltas mientras el
+      // ffmpeg siguiera ocupado. Esto es un indexado de fondo: puede esperar a
+      // que esa cuenta hable otra vez.
+      if (e && e.ffmpegOcupado) return;
       const msg = String(e?.message || e?.data || '');
       if (/rate-overlimit|429|timeout|ETIMEDOUT|ECONNRESET|ENOTFOUND/i.test(msg)) return;
       markTracked(account, Date.now());
