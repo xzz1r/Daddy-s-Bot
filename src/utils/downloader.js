@@ -516,36 +516,77 @@ async function intentar(query) {
 // La clave es la de la CACHE, no el texto crudo: "blinding lights" y
 // "Blinding Lights official video" son la misma peticion y ya lo eran para el
 // cache; seria raro que aqui no lo fueran.
-const enVuelo = new Map();   // cacheKey -> promesa
+// LA BAJADA, POR UNA VARIABLE. Es lo unico que hace falta para que el check
+// pueda probar el reparto de ficheros de verdad —quien borra, cuando y cuantas
+// veces— en vez de una copia suya escrita en la prueba, que es lo mismo que no
+// probarlo. En marcha siempre vale `intentar`.
+let bajarUna = intentar;
+
+const enVuelo = new Map();   // cacheKey -> { tarea, usuarios }
+
+// ─── QUIEN SUELTA EL ULTIMO, BORRA ──────────────────────────────────────────
+//
+// Cada quien recibe el suyo, con su propia marca de soltado: llamarlo dos veces
+// no descuenta dos, y olvidarse de llamarlo solo deja un fichero en temp/ hasta
+// el barrido — nunca borra el de otro que lo esta mandando.
+function repartoDe(registro, fichero) {
+  let soltado = false;
+  return async () => {
+    if (soltado) return;
+    soltado = true;
+    registro.usuarios--;
+    if (registro.usuarios > 0) return;
+    await fs.remove(fichero).catch(() => {});
+  };
+}
 
 async function downloadAudio(query) {
   const clave = cacheKey(query);
-  const yaVa = enVuelo.get(clave);
-  if (yaVa) {
-    // El seguidor recibe el MISMO objeto, con el buffer ya leido y marcado
-    // como compartido: no debe borrar el fichero (lo borra quien lo bajo) ni
-    // volver a guardarlo en cache. Si lo hiciera, borraria el fichero por
-    // debajo del otro mientras lo esta leyendo.
-    const r = await yaVa;
-    return { ...r, compartido: true };
+  const enCurso = enVuelo.get(clave);
+  if (enCurso) {
+    // Se apunta ANTES del await: entre el `get` y el `++` no puede colarse
+    // nadie, y si esperara primero el que bajo podria haber soltado ya.
+    enCurso.usuarios++;
+    let r;
+    try {
+      r = await enCurso.tarea;
+    } catch (e) {
+      // La bajada fallo: no hay fichero que soltar y el apunte sobra.
+      enCurso.usuarios--;
+      throw e;
+    }
+    return { ...r, compartido: true, soltar: repartoDe(enCurso, r.filePath) };
   }
 
-  const tarea = (async () => {
+  // ─── LA CANCION NO SE LEE A RAM: SE MANDA DESDE EL DISCO ─────────────────
+  //
+  // Esto leia el fichero ENTERO a un Buffer —hasta 25 MB— para que quien se
+  // colgara de la misma descarga tuviera los bytes en mano aunque el otro
+  // borrara el fichero. Resolvia ese problema y creaba otro mayor: en una
+  // maquina de 1 GB donde el bot ronda los 140, 25 MB mas la copia que hace
+  // Baileys al subirlo es de las cosas que acaban en un reinicio por tope de
+  // memoria. Y lo peor es que el comando YA estaba escrito para mandar desde
+  // disco —`{ audio: { url } }`, con su comentario explicando por que— pero
+  // este `readFile` de aqui arriba le ponia siempre un buffer delante, asi que
+  // esa rama no se usaba nunca.
+  //
+  // El fichero se borra cuando lo suelta el ULTIMO, no el primero. Si el
+  // proveedor devuelve los bytes por su cuenta se respetan: ahi no hay fichero
+  // del que leer.
+  const registro = { usuarios: 1, tarea: null };
+  registro.tarea = (async () => {
     await acquireDownloadSlot();
     try {
-      const r = await intentar(query);
-      // El buffer se lee AQUI, antes de resolver, para que quien esperaba tenga
-      // los bytes en mano pase lo que pase con el fichero despues.
-      const buffer = r.buffer || await fs.readFile(r.filePath);
-      return { ...r, buffer };
+      return await bajarUna(query);
     } finally {
       releaseDownloadSlot();
     }
   })();
 
-  enVuelo.set(clave, tarea);
+  enVuelo.set(clave, registro);
   try {
-    return await tarea;
+    const r = await registro.tarea;
+    return { ...r, soltar: repartoDe(registro, r.filePath) };
   } finally {
     enVuelo.delete(clave);
   }
@@ -558,6 +599,8 @@ async function downloadAudio(query) {
 module.exports = {
   _audioDuration: audioDuration, _duracionPorFfmpeg: duracionPorFfmpeg,
   downloadAudio, ordenDeKeys, sinCuota, PROVIDERS,
+  _repartoDe: repartoDe,
+  _conBajador: (f) => { const antes = bajarUna; bajarUna = f; return () => { bajarUna = antes; }; },
   acquireDownloadSlot, releaseDownloadSlot, ytdlp, downloadUrlToFile, hayYtDlp,
   YT_DLP, MAX_BYTES, TEMP_DIR,
 };

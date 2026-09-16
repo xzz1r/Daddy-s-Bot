@@ -114,7 +114,12 @@ async function cmdPlay(sock, msg, args, groupMeta) {
   //
   // Cuando la cancion viene ya en RAM —la trae asi el proveedor— se manda como
   // estaba: no hay fichero del que leer.
+  // EL SOLTAR VA EN UN `finally`, no detras de cada salida. Aqui hay tres
+  // maneras de terminar —se manda, pesa demasiado, o el envio revienta— y antes
+  // solo una de ellas borraba el fichero: por el camino de «pesa mas de 25MB»
+  // se quedaba en temp/ hasta el barrido.
   let audioBuffer = null;
+  let salida = null;
   try {
     audioBuffer = result.buffer || null;
     const bytes = audioBuffer
@@ -122,11 +127,14 @@ async function cmdPlay(sock, msg, args, groupMeta) {
       : await fs.stat(result.filePath).then((x) => x.size).catch(() => 0);
 
     if (bytes > 25 * 1024 * 1024) {
-      if (!fromCache && !result.compartido) cleanTemp(result.filePath).catch(() => {});
       await reembolsar();
-      return sock.sendMessage(jid, { text: 'La canción pesa más de 25MB y no puede enviarse.' }, { quoted: msg });
+      salida = await sock.sendMessage(jid, { text: 'La canción pesa más de 25MB y no puede enviarse.' }, { quoted: msg });
+      return salida;
     }
 
+    // `{ url }` y no el buffer: Baileys abre un createReadStream y la RAM del
+    // bot no se entera del tamaño. Si el proveedor trajo los bytes por su
+    // cuenta se mandan tal cual, que ahi no hay fichero del que leer.
     await sock.sendMessage(jid, {
       audio: audioBuffer || { url: result.filePath },
       mimetype: result.mimetype || 'audio/mp4',
@@ -138,20 +146,22 @@ async function cmdPlay(sock, msg, args, groupMeta) {
     logger.error(`Send audio error: ${err.message}`);
     await reembolsar();
     await sock.sendMessage(jid, { text: 'No pude enviar la canción. Prueba otra vez.' }, { quoted: msg });
+  } finally {
+    // Guardar en cache va ANTES de soltar y solo lo hace quien bajo: mientras
+    // el que bajo no suelte, el fichero sigue ahi para copiarlo. Los que se
+    // colgaron de su descarga ni lo guardan ni lo borran.
+    if (!fromCache && !result.compartido) {
+      const requester = isMainOwner(getSender(msg), msg.key.fromMe, groupMeta) ? '' : (msg.pushName || '').trim();
+      try { await setCached(query, result.filePath, result.title, result.mimetype, result.ext, audioBuffer, requester); } catch {}
+    }
+    // Y el ultimo en soltar borra. `soltar` viene de `downloadAudio`; de la
+    // cache no viene ninguno, y ese fichero no se toca porque es el de la cache.
+    if (!fromCache) {
+      if (typeof result.soltar === 'function') await result.soltar();
+      else cleanTemp(result.filePath).catch(() => {});
+    }
   }
 
-  // Cache and cleanup (only if it was a fresh download). Pass the buffer we
-  // already read so setCached doesn't re-read the file from disk.
-  // `compartido` = esta cancion la bajo OTRA peticion que iba en paralelo y
-  // este solo se colgo de ella. El fichero es suyo, asi que ni se borra (se lo
-  // quitaria de debajo mientras lo lee) ni se vuelve a guardar en cache.
-  if (!fromCache && !result.compartido) {
-    // Guarda quién pidió la canción (nombre de WhatsApp) para !cachelist. El
-    // owner principal (+33) queda excluido: sus pedidos no muestran solicitante.
-    const requester = isMainOwner(getSender(msg), msg.key.fromMe, groupMeta) ? '' : (msg.pushName || '').trim();
-    try { await setCached(query, result.filePath, result.title, result.mimetype, result.ext, audioBuffer, requester); } catch {}
-    cleanTemp(result.filePath).catch(() => {});
-  }
 }
 
 // !cachelist — muestra las canciones guardadas en cache (las que se envían al

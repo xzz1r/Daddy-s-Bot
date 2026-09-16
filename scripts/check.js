@@ -3221,21 +3221,33 @@ const di=async(quien,texto,extra)=>{
     const antes = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
 
-    exige(/enVuelo\.set\(clave, tarea\)/.test(dl) && /enVuelo\.delete\(clave\)/.test(dl),
+    exige(/enVuelo\.set\(clave, registro\)/.test(dl) && /enVuelo\.delete\(clave\)/.test(dl),
       'el single-flight de !play perdio su registro o su limpieza: si no se borra la clave al terminar, una descarga fallida deja esa cancion muerta para siempre');
 
-    // El buffer se lee ANTES de resolver. Si se resolviera antes, quien esperaba
-    // podria encontrarse el fichero ya borrado por el que lo bajo.
-    const iBuf = dl.indexOf('const buffer = r.buffer || await fs.readFile(r.filePath)');
-    const iRet = dl.indexOf('return { ...r, buffer }');
-    exige(iBuf !== -1 && iRet !== -1 && iBuf < iRet,
-      'el single-flight resuelve antes de leer el buffer: quien esperaba puede quedarse sin fichero');
+    // ANTES ESTO VIGILABA EL BUFFER, Y EL BUFFER YA NO ESTA.
+    //
+    // La garantia era: leer el fichero entero a RAM antes de resolver, para que
+    // quien esperaba tuviera los bytes aunque el otro borrara. Eso costaba hasta
+    // 25 MB de RAM en una maquina de 1 GB. La garantia ahora es otra: se cuenta
+    // cuantos la estan usando y borra EL ULTIMO, no el primero.
+    //
+    // Lo de abajo son las dos mitades de eso. Y a diferencia de antes, la capa
+    // 77 lo prueba EJECUTANDO: el comentario que habia aqui decia que probarlo
+    // pediria poder sustituirle la red a downloader.js y que el fallo no daba
+    // para tanto. Da para tanto, y la costura es una variable.
+    exige(/registro\.usuarios--/.test(dl) && /if \(registro\.usuarios > 0\) return;/.test(dl),
+      'el reparto de *!play* ya no cuenta usuarios: el primero en soltar le borra el fichero al otro mientras lo manda');
+    const iApunte = dl.indexOf('enCurso.usuarios++');
+    const iEspera = dl.indexOf('await enCurso.tarea');
+    exige(iApunte !== -1 && iEspera !== -1 && iApunte < iEspera,
+      'el que se cuelga de una descarga se apunta DESPUÉS de esperarla: para entonces el otro ya pudo soltar y borrar');
 
-    // Las DOS de music.js: ni borrar ni recachear lo que no es tuyo.
-    const borra = /if \(!fromCache && !result\.compartido\) cleanTemp/.test(mu);
+    // Las DOS de music.js: ni recachear lo que no es tuyo, ni soltar fuera del
+    // finally (por el camino de «pesa demasiado» se salia con un return).
     const cachea = /if \(!fromCache && !result\.compartido\) \{/.test(mu);
-    exige(borra && cachea,
-      'una peticion compartida volvio a borrar o recachear el fichero de otra: audio roto para quien lo bajo');
+    const suelta = /\} finally \{[\s\S]{0,900}?result\.soltar\(\)/.test(mu);
+    exige(cachea && suelta,
+      'una peticion compartida volvio a recachear el fichero de otra, o el soltar se salio del finally: audio roto o temp/ lleno');
     // Y LA OTRA MITAD, QUE ES LA QUE FALTABA. Las dos condiciones de arriba
     // miran `result.compartido`, pero quien pone esa marca es downloader.js, no
     // music.js. Quitandole el `compartido: true` al seguidor del single-flight,
@@ -3243,13 +3255,13 @@ const di=async(quien,texto,extra)=>{
     // .test()— y el seguidor volvia a borrar el fichero del que lo bajo, que es
     // exactamente el fallo que esta capa dice impedir. Probado.
     //
-    // Sigue siendo una comprobacion de texto, y conviene decirlo: probar esto
-    // ejecutando pediria refactorizar downloader.js para poder sustituirle la
-    // red, y el fallo no da para tanto. Lo que si cambia es DONDE mira: antes
-    // vigilaba music.js, que solo lee la marca, y no el fichero que la pone.
+    // Sigue siendo una comprobacion de texto, pero ya no es la unica: la capa 77
+    // ejercita este mismo camino con dos peticiones de verdad a la vez. Lo que
+    // esta linea añade es DONDE mira —el fichero que PONE la marca, no el que
+    // solo la lee— y eso se lee de un vistazo.
     {
       const dlSrc = soloCodigo('src/utils/downloader.js');
-      const iSeguidor = dlSrc.indexOf('const yaVa = enVuelo.get(clave)');
+      const iSeguidor = dlSrc.indexOf('const enCurso = enVuelo.get(clave)');
       const cuerpo = iSeguidor < 0 ? '' : dlSrc.slice(iSeguidor, iSeguidor + 400);
       exige(/compartido: true/.test(cuerpo),
         'el seguidor del single-flight de *!play* ya no se marca como compartido: va a borrarle el fichero al que lo bajo mientras lo esta leyendo');
@@ -13916,6 +13928,254 @@ const limpia = async (ms) => { for (const m of (ms || [])) await fs.remove(m.fic
       'el *!pin* ha perdido el tope de intentos: una busqueda mala se recorre la lista entera');
 
     if (fallos === antes) console.log(verde('   \u2713 las cinco bajan a la vez, salen por orden de acierto y *!next* sigue siendo el siguiente'));
+  }
+
+  const MEMORIA_CAPA_77 = String.raw`
+require('dotenv').config({ quiet: true });
+const fs = require('fs-extra');
+const path = require('path');
+const R = __RAIZ__;
+const dl = require(path.join(R, 'src/utils/downloader'));
+const quejas = [];
+const ok = (c, t) => { if (!c) quejas.push(t); };
+
+let bajadas = 0, soltar = null;
+const hacerFichero = async () => {
+  const f = path.join(dl.TEMP_DIR, 'playprueba_' + Date.now() + '_' + Math.random().toString(36).slice(2) + '.m4a');
+  await fs.outputFile(f, Buffer.alloc(8192, 3));
+  return f;
+};
+
+(async () => {
+  // ── 1. DOS PETICIONES A LA VEZ = UNA SOLA BAJADA ────────────────────────
+  let restaurar = dl._conBajador(async () => {
+    bajadas++;
+    await new Promise((r) => setTimeout(r, 120));
+    return { filePath: await hacerFichero(), title: 'x', mimetype: 'audio/mp4', ext: 'm4a' };
+  });
+  bajadas = 0;
+  const [a, b] = await Promise.all([dl.downloadAudio('misma cancion'), dl.downloadAudio('misma cancion')]);
+  ok(bajadas === 1, 'dos !play de lo mismo bajan una vez (bajó ' + bajadas + ')');
+  ok(a.filePath === b.filePath, 'y comparten el mismo fichero');
+  ok(!a.buffer && !b.buffer, 'ninguno trae la canción en RAM');
+  ok(b.compartido === true || a.compartido === true, 'el segundo va marcado como colgado del primero');
+  ok(typeof a.soltar === 'function' && typeof b.soltar === 'function', 'los dos reciben con qué soltar');
+
+  // ── 2. EL ULTIMO BORRA, EL PRIMERO NO ───────────────────────────────────
+  await a.soltar();
+  ok(await fs.pathExists(a.filePath), 'el primero en soltar NO borra: el otro la está mandando');
+  await a.soltar();
+  ok(await fs.pathExists(a.filePath), 'soltar dos veces no descuenta dos');
+  await b.soltar();
+  ok(!(await fs.pathExists(a.filePath)), 'el último en soltar sí borra');
+  restaurar();
+
+  // ── 3. UNA SOLA PETICION TAMBIEN BORRA ──────────────────────────────────
+  restaurar = dl._conBajador(async () => ({ filePath: await hacerFichero(), title: 'y', mimetype: 'audio/mp4', ext: 'm4a' }));
+  const solo = await dl.downloadAudio('otra cancion');
+  ok(await fs.pathExists(solo.filePath), 'antes de soltar, el fichero está');
+  await solo.soltar();
+  ok(!(await fs.pathExists(solo.filePath)), 'y al soltar se va');
+  restaurar();
+
+  // ── 4. SI LA BAJADA FALLA, EL QUE ESPERABA RECIBE EL FALLO ──────────────
+  restaurar = dl._conBajador(async () => { await new Promise((r) => setTimeout(r, 60)); throw new Error('sin cupo'); });
+  const res = await Promise.allSettled([dl.downloadAudio('rota'), dl.downloadAudio('rota')]);
+  ok(res.every((x) => x.status === 'rejected'), 'una bajada fallida falla para los dos, no se cuelga');
+  ok(res.every((x) => /sin cupo/.test(x.reason?.message || '')), 'y con el motivo de verdad');
+  restaurar();
+
+  // ── 5. SI EL PROVEEDOR TRAE LOS BYTES, SE RESPETAN ──────────────────────
+  restaurar = dl._conBajador(async () => ({ filePath: await hacerFichero(), buffer: Buffer.alloc(16, 9), title: 'z', mimetype: 'audio/mp4', ext: 'm4a' }));
+  const conBytes = await dl.downloadAudio('con bytes');
+  ok(Buffer.isBuffer(conBytes.buffer) && conBytes.buffer.length === 16,
+     'si el proveedor devuelve los bytes por su cuenta, se respetan');
+  await conBytes.soltar();
+  restaurar();
+
+  // ── 6. DESPUES DE SOLTAR, LA SIGUIENTE VUELVE A BAJAR ───────────────────
+  restaurar = dl._conBajador(async () => { bajadas++; return { filePath: await hacerFichero(), title: 'w', mimetype: 'audio/mp4', ext: 'm4a' }; });
+  bajadas = 0;
+  const u1 = await dl.downloadAudio('secuencial'); await u1.soltar();
+  const u2 = await dl.downloadAudio('secuencial'); await u2.soltar();
+  ok(bajadas === 2, 'dos peticiones seguidas (no a la vez) bajan dos veces (bajó ' + bajadas + ')');
+  restaurar();
+
+  for (const f of await fs.readdir(dl.TEMP_DIR)) {
+    if (f.startsWith('playprueba_')) await fs.remove(path.join(dl.TEMP_DIR, f)).catch(() => {});
+  }
+
+  // ── 7. EL COMANDO SUELTA POR LAS TRES SALIDAS, NO POR UNA ───────────────
+  //
+  // cmdPlay puede terminar de tres maneras: manda la cancion, dice que pesa
+  // demasiado, o el envio revienta. Antes solo la primera borraba el fichero:
+  // por el camino de «pesa mas de 25MB» se quedaba en temp/ hasta el barrido.
+  //
+  // Esto se prueba conduciendo el comando, no mirando si la linea esta escrita:
+  // una comprobacion de texto seguia pasando con el soltar desactivado, probado.
+  const rutaDl2 = require.resolve(path.join(R, 'src/utils/downloader'));
+  const dlReal2 = require(rutaDl2);
+  let ficheroDePrueba = null, soltado = false;
+  require.cache[rutaDl2].exports = Object.assign({}, dlReal2, {
+    downloadAudio: async () => {
+      ficheroDePrueba = await hacerFichero();
+      soltado = false;
+      return {
+        filePath: ficheroDePrueba, title: 't', mimetype: 'audio/mp4', ext: 'm4a',
+        soltar: async () => { soltado = true; await fs.remove(ficheroDePrueba).catch(() => {}); },
+      };
+    },
+  });
+  // El cobro y la cache, fuera de en medio: aqui se mira el fichero.
+  const rutaCobro = require.resolve(path.join(R, 'src/utils/auraCobro'));
+  const cobroReal = require(rutaCobro);
+  require.cache[rutaCobro].exports = Object.assign({}, cobroReal, {
+    cobrar: async () => ({ ok: true, pagado: 10 }),
+    devolver: async () => {},
+  });
+  const rutaCache = require.resolve(path.join(R, 'src/utils/musicCache'));
+  const cacheReal = require(rutaCache);
+  require.cache[rutaCache].exports = Object.assign({}, cacheReal, {
+    getCached: async () => null,
+    setCached: async () => {},
+  });
+  for (const k of Object.keys(require.cache)) if (k.endsWith('commands/music.js')) delete require.cache[k];
+  const music = require(path.join(R, 'src/commands/music'));
+
+  const correrPlay = async (tam) => {
+    const G = '000000077@g.us';
+    const YO = '34600077' + Math.floor(Math.random() * 900) + '@s.whatsapp.net';
+    const sock = {
+      user: { id: '549199@s.whatsapp.net' },
+      sendMessage: async (j, c) => {
+        if (c.audio && tam === 'revienta') throw new Error('envio roto fingido');
+        return { key: { id: 'K' } };
+      },
+      groupMetadata: async () => ({ id: G, participants: [{ id: YO }] }),
+      sendPresenceUpdate: async () => {},
+    };
+    const msg = { key: { remoteJid: G, fromMe: false, id: 'P' + Math.random(), participant: YO },
+      messageTimestamp: Math.floor(Date.now() / 1000), message: { conversation: '!play algo' } };
+    await music.cmdPlay(sock, msg, ['algo' + Math.random()], { id: G, participants: [{ id: YO }] }).catch(() => {});
+  };
+
+  await correrPlay('normal');
+  ok(soltado === true, 'tras mandar la canción, el comando suelta el fichero');
+  ok(!(await fs.pathExists(ficheroDePrueba)), 'y el fichero ya no está en temp/');
+
+  await correrPlay('revienta');
+  ok(soltado === true, 'si el envío revienta, el comando también suelta');
+  ok(!(await fs.pathExists(ficheroDePrueba)), 'y tampoco deja el fichero en temp/');
+
+  // Y LA SALIDA QUE ERA LA FUGA DE VERDAD: «pesa mas de 25MB». Esa se iba con
+  // un return propio que no borraba nada. El fichero se hace DISPERSO: pesa 26
+  // MB para quien lo mire y no ocupa ni disco ni RAM.
+  require.cache[rutaDl2].exports = Object.assign({}, dlReal2, {
+    downloadAudio: async () => {
+      ficheroDePrueba = await hacerFichero();
+      await fs.truncate(ficheroDePrueba, 26 * 1024 * 1024);
+      soltado = false;
+      return {
+        filePath: ficheroDePrueba, title: 't', mimetype: 'audio/mp4', ext: 'm4a',
+        soltar: async () => { soltado = true; await fs.remove(ficheroDePrueba).catch(() => {}); },
+      };
+    },
+  });
+  for (const k of Object.keys(require.cache)) if (k.endsWith('commands/music.js')) delete require.cache[k];
+  const music2 = require(path.join(R, 'src/commands/music'));
+  {
+    const G = '000000077@g.us';
+    const YO = '34600078' + Math.floor(Math.random() * 900) + '@s.whatsapp.net';
+    const dichos = [];
+    const sock = {
+      user: { id: '549199@s.whatsapp.net' },
+      sendMessage: async (j, c) => { dichos.push(c.text || (c.audio ? '[AUDIO]' : '')); return { key: { id: 'K' } }; },
+      groupMetadata: async () => ({ id: G, participants: [{ id: YO }] }),
+      sendPresenceUpdate: async () => {},
+    };
+    const msg = { key: { remoteJid: G, fromMe: false, id: 'Q' + Math.random(), participant: YO },
+      messageTimestamp: Math.floor(Date.now() / 1000), message: { conversation: '!play gorda' } };
+    await music2.cmdPlay(sock, msg, ['gorda' + Math.random()], { id: G, participants: [{ id: YO }] }).catch(() => {});
+    ok(dichos.some((t) => /25MB/.test(t)), 'una canción de 26 MB se rechaza y se dice');
+    ok(!dichos.includes('[AUDIO]'), 'y no se intenta mandar');
+    ok(soltado === true, 'por el camino de «pesa demasiado» TAMBIÉN se suelta el fichero');
+    ok(!(await fs.pathExists(ficheroDePrueba)), 'y no se queda en temp/ hasta el barrido');
+  }
+
+  console.log('CAPA77:' + JSON.stringify(quejas));
+})().catch((e) => {
+  console.log('CAPA77:' + JSON.stringify(['la prueba de *!play* revento: ' + (e && e.message)]));
+});
+`;
+
+  // ── 77. LA CANCION NO PASA POR LA RAM, Y LA BORRA EL ULTIMO ────────────
+  //
+  // *!play* leia el fichero ENTERO a un Buffer —hasta 25 MB— para pasarselo a
+  // Baileys, que lo unico que hace con el es subirlo. En una maquina de 1 GB
+  // donde el bot ronda los 140 MB, esos 25 mas la copia que hace Baileys al
+  // subirlo son de las cosas que acaban en un reinicio por tope de memoria.
+  //
+  // Lo bueno es que el comando YA estaba escrito para mandar desde disco, con
+  // su comentario explicando por que. Lo malo es que el `readFile` de
+  // `downloadAudio` le ponia SIEMPRE un buffer delante, asi que esa rama no se
+  // ejecutaba nunca. El arreglo estaba hecho y anulado aguas arriba.
+  //
+  // El buffer no estaba ahi por gusto: cuando dos personas piden la misma
+  // cancion a la vez, la segunda se cuelga de la descarga de la primera, y si
+  // la primera borra el fichero al terminar, la segunda se queda sin nada que
+  // mandar. Por eso ahora se cuenta cuantos la estan usando y BORRA EL ULTIMO,
+  // no el primero.
+  //
+  // Lo que mira esta capa es justo lo que puede salir mal con eso:
+  //
+  //   · que el primero en soltar no borre mientras el otro manda
+  //   · que soltar dos veces no descuente dos (seria borrar de mas)
+  //   · que el ultimo si borre (si no, temp/ se llena de canciones)
+  //   · que una bajada fallida falle para los dos y no deje a nadie colgado
+  //   · que despues de soltar, la siguiente peticion vuelva a bajar
+  //
+  // Se prueba la funcion DE VERDAD, no una copia suya escrita aqui: para eso
+  // `downloadAudio` llama a la bajada por una variable que el check sustituye.
+  // La primera version de esta prueba reimplementaba el reparto en la propia
+  // prueba, que es lo mismo que no probarlo.
+  {
+    console.log('\n77. LA CANCIÓN NO PASA POR LA RAM, Y LA BORRA EL ÚLTIMO');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   \u2717 ${queja}`)); } };
+    const { execFileSync } = require('child_process');
+    const os77 = require('os');
+    const dir77 = fs.mkdtempSync(path.join(os77.tmpdir(), 'capa77-'));
+    try {
+      try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(dir77, 'node_modules'), 'dir'); } catch { /* el hijo lo dira */ }
+      fs.writeFileSync(path.join(dir77, 'p.js'), MEMORIA_CAPA_77.replace(/__RAIZ__/g, json(R)));
+      let salida = '';
+      try {
+        salida = execFileSync(process.execPath, [path.join(dir77, 'p.js')],
+          { encoding: 'utf8', timeout: 120000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (e) { salida = `${e.stdout || ''}${e.stderr || ''}`; }
+      const linea = salida.split('\n').reverse().find((l) => l.startsWith('CAPA77:'));
+      exige(!!linea, `la prueba de *!play* no contestó: ${salida.slice(-400).trim()}`);
+      if (linea) {
+        let quejas = [];
+        try { quejas = JSON.parse(linea.slice('CAPA77:'.length)); } catch { quejas = ['no pude leer el resultado']; }
+        for (const q of quejas) exige(false, q);
+      }
+    } finally {
+      fs.rmSync(dir77, { recursive: true, force: true });
+    }
+
+    const dlSrc = soloCodigo('src/utils/downloader.js');
+    exige(!/r\.buffer \|\| await fs\.readFile\(r\.filePath\)/.test(dlSrc),
+      '*!play* ha vuelto a leer la canción entera a RAM antes de mandarla');
+    const musSrc = soloCodigo('src/commands/music.js');
+    exige(/audio: audioBuffer \|\| \{ url: result\.filePath \}/.test(musSrc),
+      '*!play* ya no manda la canción desde el disco');
+    // El soltar tiene que estar en un `finally`: por el camino de «pesa más de
+    // 25MB» se salia con un `return` y el fichero se quedaba en temp/.
+    exige(/\} finally \{[\s\S]{0,900}?result\.soltar\(\)/.test(musSrc),
+      'el fichero de *!play* se suelta detrás de una sola salida y no en un finally: por el camino de «pesa demasiado» se queda en temp/');
+
+    if (fallos === antes) console.log(verde('   \u2713 la canción se manda desde el disco y el fichero lo borra quien lo suelta el último'));
   }
 
   if (BREVE) {
