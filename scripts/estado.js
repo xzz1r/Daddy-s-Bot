@@ -352,8 +352,8 @@ if (!bot) {
       sinApi = sinApi.filter((x) => !hayApi(x));
     } catch { /* módulo nuevo o .env sin cargar: se avisa de las tres */ }
     aviso(sinApi.length
-      ? `falta yt-dlp: ${sinApi.map((x) => COMANDO[x]).join(', ')} no pueden bajar nada y !play se queda sin respaldo`
-      : 'falta yt-dlp: las redes van por API, pero !play se queda sin respaldo',
+      ? `falta yt-dlp: ${sinApi.map((x) => COMANDO[x]).join(', ')} no pueden bajar nada, y !play se queda sin el colchón que resuelve el id`
+      : 'falta yt-dlp: las redes van por API, pero !play se queda sin el colchón que resuelve el id',
       'pipx install yt-dlp   (o: pip install --user yt-dlp)');
   } else {
     // Y la VERSION importa mas que en otros sitios: TikTok e Instagram cambian
@@ -362,8 +362,17 @@ if (!bot) {
     const v = (sh(`${donde} --version 2>/dev/null`) || '').trim();
     const m = /^(\d{4})\.(\d{2})\.(\d{2})/.exec(v);
     const dias = m ? Math.round((Date.now() - Date.UTC(+m[1], +m[2] - 1, +m[3])) / 86400000) : null;
+    // DOS TRAMOS, Y EL PRIMERO AVISA ANTES DE QUE SE ROMPA. Esto tenia un solo
+    // corte a los 120 dias, que son cuatro meses: para entonces TikTok e
+    // Instagram ya han cambiado varias veces y el dueño lleva semanas viendo
+    // fallar *!tt* sin que nada le diga por que. yt-dlp saca version estable
+    // casi cada mes, asi que a los 60 dias ya vas tres o cuatro por detras —
+    // eso es un aviso, no una alarma. A los 120 si es un fallo.
     if (dias != null && dias > 120) {
-      aviso(`yt-dlp es de hace ${dias} dias (${v}): TikTok e Instagram ya habran cambiado`,
+      mal(`yt-dlp es de hace ${dias} días (${v}): TikTok e Instagram ya han cambiado y *!tt* / *!ig* fallarán sin decir por qué`,
+        'pipx upgrade yt-dlp   (o: pip install -U yt-dlp)');
+    } else if (dias != null && dias > 60) {
+      aviso(`yt-dlp es de hace ${dias} días (${v}): va tocando, antes de que empiece a fallar`,
         'pipx upgrade yt-dlp   (o: pip install -U yt-dlp)');
     } else bien(`yt-dlp ${v || 'presente'}`);
   }

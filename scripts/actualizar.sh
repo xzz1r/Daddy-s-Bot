@@ -133,6 +133,40 @@ npm install --omit=dev --ignore-scripts --no-fund --no-audit --loglevel=error
 # residuo de una instalación vieja — así que no hay nada que se quede sin él.
 rm -rf node_modules/sharp node_modules/@img
 
+# ─── YT-DLP SE PUDRE SOLO, Y NADIE LO DECIA AQUI ─────────────────────────────
+#
+# No es una dependencia de npm, asi que el `npm install` de arriba no lo toca y
+# se queda con la version del dia que se instalo. Y es la unica pieza del bot
+# que caduca por si sola: TikTok e Instagram cambian su web cada pocas semanas y
+# una copia vieja deja de sacar el video SIN DECIR POR QUE — el grupo solo ve
+# que *!tt* ya no funciona.
+#
+# `npm run estado` ya lo miraba, pero ese comando se escribe cuando algo va mal.
+# El despliegue es el momento en que el dueño SI esta mirando la pantalla, asi
+# que el aviso va aqui.
+#
+# SE AVISA, NO SE ACTUALIZA SOLO. Una actualizacion automatica de yt-dlp en
+# mitad de un despliegue es meter una pieza sin probar en el mismo paso que
+# reinicia el bot; y si esa version trae una regresion, el despliegue se lleva la
+# culpa. Se dice y lo decide quien despliega.
+YTDLP_BIN="$(command -v yt-dlp 2>/dev/null || echo "$HOME/.local/bin/yt-dlp")"
+if [ -x "$YTDLP_BIN" ]; then
+  YTDLP_V="$("$YTDLP_BIN" --version 2>/dev/null | head -1)"
+  # La version de yt-dlp ES la fecha (2026.08.19), asi que se lee y se restan dias.
+  YTDLP_DIAS="$(date -u +%s)"
+  YTDLP_FECHA="$(echo "$YTDLP_V" | tr '.' '-' | cut -d- -f1-3)"
+  YTDLP_TS="$(date -u -d "$YTDLP_FECHA" +%s 2>/dev/null || echo "")"
+  if [ -n "$YTDLP_TS" ]; then
+    DIAS=$(( (YTDLP_DIAS - YTDLP_TS) / 86400 ))
+    if [ "$DIAS" -gt 120 ]; then
+      echo "  · yt-dlp es de hace $DIAS días ($YTDLP_V): !tt e !ig van a fallar sin decir por qué"
+      echo "    → pipx upgrade yt-dlp   (o: pip install -U yt-dlp)"
+    elif [ "$DIAS" -gt 60 ]; then
+      echo "  · yt-dlp es de hace $DIAS días ($YTDLP_V): va tocando, antes de que empiece a fallar"
+    fi
+  fi
+fi
+
 # EL FFMPEG EMPAQUETADO, CUANDO ESTA MAQUINA YA TIENE EL SUYO. Son 66 MB, mas
 # que el resto de node_modules junto, y el bot solo usa uno de los dos.
 #
