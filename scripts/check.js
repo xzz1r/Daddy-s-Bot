@@ -621,6 +621,7 @@ async function capaStores() {
     comprueba(huerfanos.length === 0,
       `cobro: se cobra por comandos que no existen: ${huerfanos.join(', ')}`);
 
+
     // Alias gratis: se agrupan los case consecutivos que llaman al mismo
     // handler; si UNO de ellos cobra, todos tienen que cobrar.
     const grupos = [...mh.matchAll(/((?:\s*case '[^']+':[^\n]*\n)+)\s*await (cmd[A-Za-z]+)\(/g)];
@@ -8739,6 +8740,16 @@ const di=async(quien,t)=>{out.length=0;
           ['!insta https://instagram.com/p/Cxyz/', '!insta'],
           ['!pin https://pin.it/2wUMHRx8y', '!pin'],
           ['!pinterest https://www.pinterest.es/pin/123/', '!pinterest'],
+          // *!x* SE AÑADIO DESPUES Y NO ENTRO EN CMD_REDES. Durante tres
+          // commits, pedir un tuit en un grupo con antilink era un enlace de X
+          // sin permiso: borrado, aviso, y al tercero fuera. Por un comando del
+          // propio bot. Es lo mismo que ya paso con *!tt*, y por eso estos
+          // cuatro se quedan aqui: la tabla y el switch se escriben en sitios
+          // distintos y se desincronizan solos.
+          ['!x https://x.com/alguien/status/1234567890123456789', '!x'],
+          ['!twitter https://twitter.com/alguien/status/1234567890123456789', '!twitter'],
+          ['!tuit https://x.com/otro/status/9876543210987654321', '!tuit'],
+          ['!tweet https://fxtwitter.com/otro/status/1111111111111111111', '!tweet'],
         ];
         for (const [texto, nombre] of SUYOS) {
           const r = await lanzar(texto);
@@ -8754,6 +8765,15 @@ const di=async(quien,t)=>{out.length=0;
         const mezcla = await lanzar('!tt https://vt.tiktok.com/ZSq/ y https://chat.whatsapp.com/AB');
         exige(mezcla.castigado,
           'su enlace MÁS una invitación pasa limpio: basta con acompañar la invitación de un tiktok');
+
+        // La exencion de *!x* tiene que ser igual de estrecha que la de *!tt*:
+        // abrir la puerta para el tuit no puede abrirla para lo que venga detras.
+        const coladoX = await lanzar('!x https://chat.whatsapp.com/ABC123');
+        exige(coladoX.castigado,
+          '!x con una invitación a otro grupo se salta el antilink: escribir !x delante cuela lo que sea');
+        const mezclaX = await lanzar('!x https://x.com/a/status/1234567890123456789 y https://chat.whatsapp.com/AB');
+        exige(mezclaX.castigado,
+          'un tuit MÁS una invitación pasa limpio: basta con acompañar la invitación de un enlace de X');
       }
     } finally {
       redes.traer = traerReal;
@@ -13393,6 +13413,39 @@ const ficheroDe = async (ext) => {
     const menu = soloCodigo('src/commands/social.js');
     exige(/\{p\}x · \$\{p\}twitter/.test(menu) || /\$\{p\}x /.test(menu),
       'el menú no enseña *!x*: un comando que no sale en el menú no existe para el grupo');
+
+    // ── Y LAS DOS TABLAS DE REDES, QUE TIENEN QUE DECIR LO MISMO ─────────
+    //
+    // Un comando de redes vive en DOS listas mas, escritas lejos la una de la
+    // otra: CMD_REDES —lo que hace que el antilink no te borre tu propio
+    // comando— y COBRO_CENTRAL —la puerta del «eso se juega en el grupo»—.
+    // *!x* no entro en ninguna de las dos y estuvo asi tres commits: en un
+    // grupo con antilink, pedir un tuit era colar un enlace, y al tercero
+    // fuera. Por un comando del propio bot.
+    //
+    // Estar en CMD_REDES y no en COBRO_CENTRAL es el otro lado: por privado el
+    // comando llega igual y cobra contra el JID del privado, que para auraStore
+    // es un grupo nuevo con su propio arranque. Un monedero paralelo.
+    //
+    // Va aqui y no con las demas comprobaciones de cobro porque aquellas viven
+    // en una capa que se SALTA con el bot en marcha, que es justo como esta
+    // pasa desapercibida en la maquina del dueño.
+    const tablaCobro = mh.match(/const COBRO_CENTRAL = \{[\s\S]*?\n\};/);
+    const tablaRedes = mh.match(/const CMD_REDES = \{[\s\S]*?\n\};/);
+    exige(!!tablaCobro && !!tablaRedes, 'no pude leer CMD_REDES o COBRO_CENTRAL: esta guarda no está mirando nada');
+    if (tablaCobro && tablaRedes) {
+      const deCobro = [...tablaCobro[0].matchAll(/([a-zá-úñ0-9]+):\s*'([a-z0-9]+)'/g)];
+      const cobrados = new Set(deCobro.map((x) => x[1]));
+      const comoRedes = new Set(deCobro.filter((x) => x[2] === 'redes').map((x) => x[1]));
+      const exentos = new Set([...tablaRedes[0].matchAll(/([a-zá-úñ0-9]+):\s*'[a-z0-9]+'/g)].map((x) => x[1]));
+      exige(exentos.size >= 10, `CMD_REDES solo tiene ${exentos.size} alias: la lectura se ha roto y esto no mira nada`);
+      const sinPuerta = [...exentos].filter((c) => !cobrados.has(c));
+      exige(sinPuerta.length === 0,
+        `estos comandos de redes se saltan la puerta del privado (están en CMD_REDES, no en COBRO_CENTRAL): ${sinPuerta.join(', ')}`);
+      const sinAntilink = [...comoRedes].filter((c) => !exentos.has(c));
+      exige(sinAntilink.length === 0,
+        `estos cobran como redes y NO están exentos del antilink: ${sinAntilink.join(', ')} — pedir su enlace es colar un enlace, y al tercero baneado por usar un comando del bot`);
+    }
 
     if (fallos === antes) console.log(verde('   ✓ *!x* trae foto, gif y vídeo, el gif se ve como gif, y el comando está en el menú'));
   }

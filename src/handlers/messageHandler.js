@@ -271,6 +271,11 @@ const COBRO_CENTRAL = {
   tt: 'redes', tiktok: 'redes',
   ig: 'redes', insta: 'redes', instagram: 'redes',
   pin: 'redes', pinterest: 'redes',
+  // Y *!x*, por lo mismo. Sin esto, en un privado no pasaba por la puerta del
+  // «eso se juega en el grupo»: llegaba al comando y cobraba contra el JID del
+  // privado, que para auraStore es un grupo nuevo con su arranque. Un monedero
+  // paralelo al del grupo, que no es lo que cuesta un comando: es saltarselo.
+  x: 'redes', twitter: 'redes', tuit: 'redes', tweet: 'redes',
   // 'count' e 'inactivos' NO estan, y es a proposito. El cobro central corre
   // ANTES del switch, asi que a un miembro se le cobraba y despues el comando
   // contestaba "solo los admins": pagaba por un rechazo. El catch solo
@@ -1018,6 +1023,12 @@ const CMD_REDES = {
   tt: 'tiktok', tiktok: 'tiktok',
   ig: 'instagram', insta: 'instagram', instagram: 'instagram',
   pin: 'pinterest', pinterest: 'pinterest',
+  // *!x* SE AÑADIO DESPUES Y NO ENTRO AQUI. Lo de arriba lo dice: un comando
+  // que te gana un baneo no es un comando, es una trampa. Con el antilink
+  // puesto, `!x https://x.com/...` era un mensaje con un enlace de X — se
+  // borraba, sumaba aviso, y al tercero fuera. Exactamente lo que ya paso con
+  // *!tt*, otra vez, y por la misma razon: el comando se escribio y la tabla no.
+  x: 'x', twitter: 'x', tuit: 'x', tweet: 'x',
 };
 function esPeticionDeRedes(text) {
   if (!text || config.prefijoDe(text) === null) return false;

@@ -55,7 +55,11 @@ async function cmdPlay(sock, msg, args, groupMeta) {
   if (!pago.ok) {
     return sock.sendMessage(jid, { text: textoSinSaldo('play', pago, jid) }, { quoted: msg });
   }
-  const reembolsar = () => devolver(jid, quienPide, pago.pagado).catch(() => {});
+  // CON EL CONCEPTO. Sin el, `devolver` repone el aura pero NO borra el uso,
+  // y el uso es lo que encarece la siguiente vez. Tres intentos fallidos
+  // —sin cupo, sin red, sin resultado— y el cuarto costaba el doble por
+  // comandos que nadie llego a ver. *!tt* ya lo pasaba bien; esto no.
+  const reembolsar = () => devolver(jid, quienPide, pago.pagado, 'play').catch(() => {});
 
   if (!result) {
     const waitMs = onPlayCooldown(quienPide);

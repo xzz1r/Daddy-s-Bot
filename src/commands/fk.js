@@ -256,7 +256,11 @@ async function cmdFk(sock, msg, args, groupMeta) {
   }
   // Solo se cobra si hay analisis. Si no hay a quien analizar, o si el objetivo
   // es del tier owner (veredicto fijo, sin trabajo detras), se devuelve.
-  const reembolsar = () => devolver(jid, quienPide, pago.pagado).catch(() => {});
+  // CON EL CONCEPTO. Sin el, `devolver` repone el aura pero NO borra el uso,
+  // y el uso es lo que encarece la siguiente vez. Tres intentos fallidos
+  // —sin cupo, sin red, sin resultado— y el cuarto costaba el doble por
+  // comandos que nadie llego a ver. *!tt* ya lo pasaba bien; esto no.
+  const reembolsar = () => devolver(jid, quienPide, pago.pagado, 'fk').catch(() => {});
 
   const img = findImage(msg);
   if (img) {

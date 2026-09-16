@@ -206,7 +206,10 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
     const porTamano = /WhatsApp no pasa de|pesa \d+ MB/.test(e.message);
     // «ni fotos ni vídeo» es el tuit de solo texto: se dice tal cual, que es
     // distinto de «no he podido traerlo».
-    const sinVideo = /no es un vídeo|no trae vídeo|no trae ni fotos/.test(e.message);
+    // «ya no está» es el tuit borrado o de cuenta privada: X lo dice con todas
+    // las letras y se repite tal cual. Echarle la culpa al bot de un tuit que
+    // no existe hace que quien lo pego lo reintente tres veces.
+    const sinVideo = /no es un vídeo|no trae vídeo|no trae ni fotos|ya no está/.test(e.message);
     // Y el tercero: no hay nada con ese nombre. Es el unico motivo de una
     // busqueda que quien la escribio puede arreglar — escribiendo otra cosa.
     const sinResultados = /no encontré nada/.test(e.message);

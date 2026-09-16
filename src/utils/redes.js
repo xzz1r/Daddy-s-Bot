@@ -1995,10 +1995,27 @@ async function varianteQueCabe(detalle) {
   return urls[urls.length - 1];
 }
 
+// ─── EL TOKEN NO ES UNA LETRA CUALQUIERA: SALE DEL ID ───────────────────────
+//
+// Puse `token: 'a'` porque contestaba, y contesta. Pero el widget de verdad
+// —el que usa cualquier pagina con un tuit incrustado— lo CALCULA a partir del
+// id, y esa es la unica entrada que syndication trata como suya. Con una letra
+// suelta el servidor puede contestar vacio o 404 segun desde donde se pregunte
+// y segun el dia; y cuando eso pasa, *!x* se cae a yt-dlp, que en un tuit de
+// FOTOS no trae nada. El grupo lee «no he podido traerlo» con la foto delante.
+//
+// Que a mi me funcionara en local no dice nada: `npm run x` existe justamente
+// porque esto ya fallo en la VPS y no aqui.
+function tokenDeX(id) {
+  return ((Number(id) / 1e15) * Math.PI)
+    .toString(36)
+    .replace(/(0+|\.)/g, '');
+}
+
 async function pedirFichaX(id) {
   const { data } = await axios.get(FICHA_X, {
     timeout: 20000,
-    params: { id, token: 'a', lang: 'es' },
+    params: { id, token: tokenDeX(id), lang: 'es' },
     headers: { 'User-Agent': UA_MOVIL, Accept: 'application/json' },
   });
   return (data && typeof data === 'object') ? data : null;
@@ -2018,6 +2035,35 @@ async function porX(url) {
     return null;
   }
   if (!ficha) return null;
+
+  // ─── UN TUIT BORRADO CONTESTA 200, NO 404 ──────────────────────────────
+  //
+  // Probado contra el servidor de verdad: un tuit que ya no existe devuelve
+  // 200 con `__typename: "TweetTombstone"` y el motivo escrito dentro, en el
+  // idioma que se pidio («El autor de este post lo eliminó»). Sin medios y sin
+  // texto.
+  //
+  // Tratado como una ficha normal, eso acababa en «no he podido traerlo», que
+  // le echa la culpa al bot de algo que no es suyo: el tuit no esta. Peor, el
+  // que lo pego se queda pensando que el comando esta roto y lo repite.
+  //
+  // Se lanza con el motivo del propio X para que `traer` lo suba tal cual.
+  if (ficha.__typename === 'TweetTombstone') {
+    const porque = String(ficha?.tombstone?.text?.text || '')
+      .replace(/\s*Más información\s*$/i, '')
+      .replace(/\s*Learn more\s*$/i, '')
+      .trim()
+      // Sin el punto final: va detras de dos puntos en una frase que ya acaba.
+      .replace(/\.$/, '');
+    logger.info(`redes: el tuit ya no esta (${porque || 'sin motivo'})`);
+    // Con marca, no solo con texto: el motivo lo escribe X en el idioma que se
+    // pidio y no se le puede poner una expresion regular encima sin atarse a
+    // como lo redacte hoy. La marca es lo que `traer` mira para dejarlo pasar.
+    throw Object.assign(
+      new Error(porque ? `ese tuit ya no está: ${porque.toLowerCase()}` : 'ese tuit ya no está'),
+      { tuitFuera: true },
+    );
+  }
 
   let detalles = Array.isArray(ficha.mediaDetails) ? ficha.mediaDetails : [];
   let texto = textoDeTuit(ficha);
@@ -2269,7 +2315,9 @@ async function traer(url, plataforma) {
         // distinto de «no he podido».
         if (tuit) throw new Error('ese tuit no trae ni fotos ni vídeo');
       } catch (e) {
-        if (/no trae ni fotos/.test(e.message)) throw e;
+        // El tuit borrado sale entero: probar yt-dlp contra algo que no existe
+        // es esperar veinte segundos para decir lo mismo peor.
+        if (/no trae ni fotos/.test(e.message) || e.tuitFuera) throw e;
         // SE APUNTA, no solo se loguea. Si la ficha no contesta —X estrangula
         // a las IP de datacenter, y una VPS es exactamente eso— lo unico que
         // queda es yt-dlp, que para X necesita pedirle un permiso a la MISMA
@@ -2402,5 +2450,5 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, buscar, _aTandasDe: aTandasDe, buscarVarios, datosDeGif, prepararGif, _porFotosSueltas: porFotosSueltas, esAnimado, _porX: porX, _textoDeTuit: textoDeTuit, _mejorVariante: mejorVariante, _variantesMp4: variantesMp4, _varianteQueCabe: varianteQueCabe, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
+module.exports = { traer, buscar, _aTandasDe: aTandasDe, _tokenDeX: tokenDeX, buscarVarios, datosDeGif, prepararGif, _porFotosSueltas: porFotosSueltas, esAnimado, _porX: porX, _textoDeTuit: textoDeTuit, _mejorVariante: mejorVariante, _variantesMp4: variantesMp4, _varianteQueCabe: varianteQueCabe, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
   _montarPase: montarPase, _comoEnlaces: comoEnlaces, _porYtDlpFotos: porYtDlpFotos, _fotosDeFicha: fotosDeFicha, _esSinVideo: esSinVideo, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };
