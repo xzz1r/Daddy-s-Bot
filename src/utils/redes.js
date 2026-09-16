@@ -428,28 +428,66 @@ function montarConFfmpeg(fotos, musica, porFoto, ancho, alto, crf, salida) {
   });
 }
 
+// ─── VARIAS A LA VEZ, PERO NO TODAS, Y EN SU ORDEN ──────────────────────────
+//
+// `Promise.all` sobre un mapa entero lanza TODO de golpe: vale para cuatro o
+// cinco ficheros, no para veinte en una VPS de un nucleo. Esto mantiene como
+// mucho `ancho` en vuelo y va cogiendo el siguiente segun se libera un hueco.
+//
+// Devuelve en el orden de la lista, NO en el de llegada: cada resultado se
+// escribe en su sitio por indice. Eso es lo que hace que un pase de
+// diapositivas salga como lo publico quien lo publico.
+async function aTandasDe(lista, ancho, hacer) {
+  const salida = new Array(lista.length);
+  let siguiente = 0;
+  const obrero = async () => {
+    for (;;) {
+      const i = siguiente++;
+      if (i >= lista.length) return;
+      salida[i] = await hacer(lista[i], i);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.max(1, Math.min(ancho, lista.length)) }, obrero));
+  return salida;
+}
+
 async function montarPase(fotos, musicaUrl, audioYaBajado) {
   if (!fotos.length) return null;
   const basura = [];
   const limpiar = async () => { for (const f of basura) await fs.remove(f).catch(() => {}); };
 
   try {
-    // Las fotos, una a una y perdonando las que fallen: que el CDN tire una de
-    // siete no puede costar la publicación entera.
-    const enDisco = [];
-    for (let i = 0; i < fotos.length; i++) {
-      const ext = (String(fotos[i]).split('?')[0].split('.').pop() || '').toLowerCase();
+    // ─── DE CINCO EN CINCO, Y EN EL ORDEN DE LA PUBLICACION ────────────
+    //
+    // Perdonando las que fallen: que el CDN tire una de siete no puede costar
+    // la publicación entera.
+    //
+    // Y NO DE UNA EN UNA. Un carrusel llega a veinte fotos, y en fila son
+    // veinte viajes al CDN puestos uno detras de otro delante de un solo
+    // comando. Pero tampoco las veinte de golpe: esto corre en una VPS de un
+    // nucleo y un giga, y veinte descargas abiertas a la vez es justo lo que
+    // el tope de plazas existe para evitar. Cinco a la vez es casi toda la
+    // ganancia sin abrir la mano.
+    //
+    // El orden es el de la publicación porque `aTandasDe` escribe cada una en
+    // su sitio y no segun quien conteste antes. Aqui se nota el doble: estas
+    // fotos se montan en un pase de diapositivas, asi que el orden ES la
+    // publicación — barajarlas seria contar la historia al reves.
+    const bajadas = await aTandasDe(fotos, 5, async (url, i) => {
+      const ext = (String(url).split('?')[0].split('.').pop() || '').toLowerCase();
       const destino = path.join(TEMP_DIR, `pase_${Date.now()}_${i}_${Math.random().toString(36).slice(2)}.${esImagen(ext) ? ext : 'jpg'}`);
       try {
-        await downloadUrlToFile(fotos[i], destino);
+        await downloadUrlToFile(url, destino);
         const { size } = await fs.stat(destino);
         if (size < 512) throw new Error('vacía');
-        basura.push(destino);
-        enDisco.push(destino);
+        return destino;
       } catch {
         await fs.remove(destino).catch(() => {});
+        return null;
       }
-    }
+    });
+    const enDisco = [];
+    for (const d of bajadas) { if (d) { basura.push(d); enDisco.push(d); } }
     if (!enDisco.length) return null;
 
     // La canción: la que ya se bajó al descartar los candidatos, o la que diga
@@ -2364,5 +2402,5 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, buscar, buscarVarios, datosDeGif, prepararGif, _porFotosSueltas: porFotosSueltas, esAnimado, _porX: porX, _textoDeTuit: textoDeTuit, _mejorVariante: mejorVariante, _variantesMp4: variantesMp4, _varianteQueCabe: varianteQueCabe, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
+module.exports = { traer, buscar, _aTandasDe: aTandasDe, buscarVarios, datosDeGif, prepararGif, _porFotosSueltas: porFotosSueltas, esAnimado, _porX: porX, _textoDeTuit: textoDeTuit, _mejorVariante: mejorVariante, _variantesMp4: variantesMp4, _varianteQueCabe: varianteQueCabe, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
   _montarPase: montarPase, _comoEnlaces: comoEnlaces, _porYtDlpFotos: porYtDlpFotos, _fotosDeFicha: fotosDeFicha, _esSinVideo: esSinVideo, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };

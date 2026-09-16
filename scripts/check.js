@@ -13544,6 +13544,33 @@ const limpiar = async (ms) => { for (const m of (ms || [])) await fs.remove(m.fi
     await limpiar(sueltas);
   }
 
+  // ── 7. EL AYUDANTE DE TANDAS: EN ORDEN, CON TOPE, Y SIN COLGARSE ───────
+  //
+  // Lo usa el pase de diapositivas, que puede traer VEINTE fotos. Ahi no vale
+  // un Promise.all del mapa entero: veinte descargas abiertas de golpe en una
+  // VPS de un nucleo es justo lo que el tope de plazas existe para evitar.
+  let picoT = 0, vueloT = 0;
+  const lista = Array.from({ length: 20 }, (_, i) => i);
+  const devuelto = await redes._aTandasDe(lista, 5, async (n) => {
+    vueloT++; if (vueloT > picoT) picoT = vueloT;
+    // El ULTIMO tarda menos que el primero: si devolviera por llegada, se veria.
+    await new Promise((res) => setTimeout(res, 100 - n * 4));
+    vueloT--; return n * 10;
+  });
+  exige(devuelto.join(',') === lista.map((n) => n * 10).join(','),
+    'aTandasDe devuelve por orden de llegada y no por el de la lista: ' +
+    'un pase de diapositivas barajado cuenta la publicacion al reves');
+  exige(picoT === 5, 'aTandasDe abre ' + picoT + ' a la vez con un tope de 5: ' +
+    'veinte descargas de golpe es lo que el tope de plazas existe para evitar');
+  exige(devuelto.length === 20, 'aTandasDe pierde elementos (' + devuelto.length + ' de 20)');
+  exige((await redes._aTandasDe([], 5, async () => 1)).length === 0, 'aTandasDe revienta con una lista vacia');
+  let picoA = 0, vueloA = 0;
+  await redes._aTandasDe([1, 2, 3], 0, async () => {
+    vueloA++; if (vueloA > picoA) picoA = vueloA;
+    await new Promise((res) => setTimeout(res, 15)); vueloA--;
+  });
+  exige(picoA === 1, 'aTandasDe con ancho 0 no arranca ningun obrero y se cuelga para siempre');
+
   exige(!fuga, 'la capa se salio a la red (' + fuga + '): una prueba que necesita linea no prueba nada el dia que no la hay');
   console.log('CAPA75:' + JSON.stringify(quejas));
 })().catch((e) => {
@@ -13621,6 +13648,8 @@ const limpiar = async (ms) => { for (const m of (ms || [])) await fs.remove(m.fi
       'las fotos de un tuit han vuelto a bajarse de una en una');
     exige(/const bajadas = await Promise\.all\(fotos\.slice/.test(rd),
       'las fotos sueltas han vuelto a bajarse de una en una');
+    exige(/await aTandasDe\(fotos, 5,/.test(rd),
+      'el pase de diapositivas ha vuelto a bajar sus fotos de una en una: un carrusel llega a veinte');
     // El indice en el nombre no lo puede probar una prueba —dos nombres al azar
     // no chocan aunque los pidas mil veces— pero sin el, cuatro bajadas a la vez
     // comparten el mismo Date.now() y lo unico que las separa es la suerte.
