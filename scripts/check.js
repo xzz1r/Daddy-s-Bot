@@ -15066,6 +15066,23 @@ const correr = async (texto, enPrivado) => {
 require('dotenv').config({ quiet: true });
 const path = require('path');
 const R = __RAIZ__;
+
+// ─── NI UNA LLAMADA A LA API DE VERDAD ──────────────────────────────────────
+//
+// Esto tumbo un despliegue. La prueba llamaba a downloadAudio de verdad y daba
+// por hecho que no habia RAPIDAPI_KEY —porque en la maquina donde la escribi no
+// la hay— asi que en la VPS del dueño, que SI la tiene, la cancion se bajo: los
+// tres ok de abajo fallaron y el bot se quedo sin desplegar.
+//
+// Y lo peor no es el falso fallo: es que cada despliegue gastaba una llamada del
+// cupo MENSUAL de la API para no comprobar nada. Una comprobacion no puede
+// cobrarle al dueño por correrse.
+//
+// Se vacia la key aqui, despues de dotenv y antes de cargar el descargador, que
+// es cuando monta su lista de proveedores. Asi el camino es el mismo mire quien
+// mire: sin via, sin red, sin cupo, y el mismo resultado en las dos maquinas.
+process.env.RAPIDAPI_KEY = '';
+process.env.RAPIDAPI_HOST = '';
 const d = require(path.join(R, 'src/utils/downloader'));
 const fs = require('fs');
 const quejas = [];
@@ -15081,40 +15098,27 @@ const ok = (c, t) => { if (!c) quejas.push(t); };
   ok(!/SC_CANDIDATES|SC_PARALELO/.test(codigo), 'ni sus constantes');
   ok(!/MIMETYPES/.test(codigo), 'ni la tabla que solo usaba él');
 
-  // ── Y sin RAPIDAPI_KEY, !play falla DICIENDO por qué ───────────────────
-  // (en esta caja no hay key, así que esto es el camino real)
+  // ── Sin vía configurada, !play falla DICIENDO por qué ──────────────────
+  //
+  // La key se ha vaciado arriba, asi que esto no sale a la red ni gasta cupo:
+  // tryRapidApi corta en su primera linea al no tener proveedores.
   const t = Date.now();
   let e = null;
   try { await d.downloadAudio('duki goteo'); } catch (err) { e = err; }
   const ms = Date.now() - t;
-  ok(!!e, 'sin key, !play falla en vez de traer otra canción');
+  ok(!!e, 'sin vía configurada, !play falla en vez de traer otra canción');
   ok(e && e.causa === 'sin-via', 'y la causa dice que falta la key, no que no exista la cancion (' + (e && e.causa) + ')');
   ok(ms < 3000, 'y falla rapido (' + ms + 'ms): antes se iba 12-17 s a SoundCloud para traer un remix');
 
-  // ── El colchón de búsqueda, SOLO SI HAY RED ────────────────────────────
+  // ── EL COLCHON DE BUSQUEDA, POR FUENTE Y SIN SALIR A YOUTUBE ───────────
   //
-  // Esta parte si sale a internet, y una capa que necesita linea no dice nada
-  // el dia que no la hay. Se salta en silencio si no contesta: lo de arriba
-  // —que SoundCloud no ha vuelto y que sin key se dice— no necesita red y es lo
-  // que de verdad hay que vigilar.
-  const hayRed = await d._searchYouTubeId('test').then((x) => !!x).catch(() => false);
-  if (!hayRed) { console.log('CAPA83:' + JSON.stringify(quejas)); return; }
-  const t2 = Date.now();
-  const id = await d._idPorYtDlp('duki goteo');
-  ok(id === 'FRthkpJ_NFo', 'yt-dlp resuelve el id (' + id + ')');
-  ok(Date.now() - t2 < 8000, 'en ' + (Date.now() - t2) + 'ms');
-
-  // Y el camino principal sigue siendo el rápido.
-  const t3 = Date.now();
-  const idHtml = await d._searchYouTubeId('duki goteo');
-  const msHtml = Date.now() - t3;
-  ok(idHtml === id, 'el HTML da el MISMO id que yt-dlp');
-  ok(msHtml < 2000, 'y sigue siendo el rapido (' + msHtml + 'ms)');
-
-  // ACOTADO AL CUERPO DE tryRapidApi, no a todo el fichero: la llamada a
-  // yt-dlp aparece tambien en su propia DEFINICION, mas arriba, asi que
-  // comparar posiciones en el fichero entero comparaba la definicion contra una
-  // llamada. Con eso, quitar el colchon o invertir el orden pasaban la prueba.
+  // Esto llamaba a yt-dlp y al HTML de YouTube de verdad. Funcionaba, pero le
+  // costaba al dueño tres segundos y dos peticiones a YouTube EN CADA
+  // DESPLIEGUE, desde la IP del bot. Lo que hay que vigilar es que el colchon
+  // siga enchufado y en el orden correcto, y eso se lee sin red.
+  //
+  // Los numeros que justifican el orden estan medidos y escritos en su commit:
+  // 21 de 21 aciertos y 676 ms el HTML, 2064 ms yt-dlp para el MISMO video.
   const iTry = codigo.indexOf('async function tryRapidApi');
   const cuerpo = codigo.slice(iTry, codigo.indexOf('\n}', iTry));
   ok(/idPorYtDlp\(query\)/.test(cuerpo), 'tryRapidApi llama al colchón de yt-dlp: sin él, un fallo del HTML deja *!play* muerto');
