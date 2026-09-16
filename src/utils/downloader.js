@@ -11,33 +11,23 @@ const { ffmpegPath, ffprobePath } = require('./ffmpeg');
 const { cacheKey } = require('./musicCache');
 const logger = require('./logger');
 
-// Fuentes de música para !play, en cadena, buscando siempre la canción COMPLETA:
-//   1. API de terceros (RapidAPI): extrae el audio de YouTube en la IP del
-//      servicio, no en la nuestra, así se evita por completo el bot-check del
-//      datacenter. Da canciones populares completas sin login ni tokens propios.
-//      Necesita una key gratuita (config.rapidApiKey / RAPIDAPI_KEY en .env).
-//   2. SoundCloud (respaldo, sin key ni límite): se prueban varios resultados y
-//      se descarta cualquier preview de 30s midiendo la duración real.
-// Nunca se envía un recorte: si nada da la versión completa, se avisa.
+// UNA SOLA FUENTE PARA !play: la API de terceros (RapidAPI), que extrae el
+// audio de YouTube en la IP del servicio y no en la nuestra, asi que se evita
+// por completo el bot-check del datacenter. Necesita una key gratuita
+// (config.rapidApiKey / RAPIDAPI_KEY en .env).
+//
+// HABIA UN RESPALDO Y SE HA QUITADO. Era SoundCloud, y medido con dos canciones
+// conocidas tardaba 12,7 y 17,1 segundos para devolver «DUKI - GOTEO (REMIX)» y
+// «The Weeknd - Blinding Lights full»: despues de quince segundos de espera,
+// otra cancion. Un respaldo que contesta cualquier cosa es peor que ninguno,
+// porque el grupo no sabe que lo que suena no es lo que se pidio y quien lo
+// pidio cree que el bot no le entiende.
+//
+// Nunca se envía un recorte: si no hay version completa, se avisa. Y si la via
+// no puede, se dice por que —sin cupo, sin red, no encontrada— en vez de
+// devolver algo parecido.
 
 const MIN_FULL_SECONDS = 45;   // por debajo se considera preview/recorte
-const SC_CANDIDATES = 4;       // resultados de SoundCloud a probar
-// Cuantos candidatos se prueban A LA VEZ. Iban de uno en uno y cada yt-dlp
-// puede irse a su timeout de 180 s, asi que cuatro previews seguidas eran doce
-// minutos de espera. De dos en dos se parte por la mitad sin pasarse: son dos
-// yt-dlp por hueco del semaforo y el semaforo permite dos, o sea cuatro
-// procesos como mucho. En 1 GB de RAM tres por hueco (seis procesos) ya es
-// jugarsela, y por eso no son tres.
-const SC_PARALELO = 2;
-// LO QUE WHATSAPP ACEPTA COMO MEDIA EN LINEA SON 16 MB, y eso incluye el audio
-// igual que la foto y el video: comprobado contra la documentacion, no de
-// memoria. Por encima solo pasa como DOCUMENTO —hasta 2 GB— pero entonces llega
-// como un fichero adjunto, no como una cancion que se pueda reproducir en el
-// chat, que es justo lo que *!play* existe para dar.
-//
-// Estaba en 25, que no sale de ningun sitio. Una cancion de 20 MB se cobraba,
-// se bajaba entera, se subia... y fallaba o llegaba rota. En la banda de 16 a 25
-// el bot prometia algo que WhatsApp no iba a dejar pasar.
 const MAX_BYTES = 16 * 1024 * 1024;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -108,8 +98,8 @@ function buildProviders() {
 const PROVIDERS = buildProviders();
 
 console.log(PROVIDERS.length
-  ? `  !play fuente : RapidAPI x${PROVIDERS.length} key(s) + SoundCloud (respaldo)`
-  : '  !play fuente : SoundCloud (falta RAPIDAPI_KEY para la vía principal de YouTube)');
+  ? `  !play fuente : RapidAPI x${PROVIDERS.length} key(s)`
+  : '  !play fuente : NINGUNA — falta RAPIDAPI_KEY en el .env y ya no hay respaldo');
 
 // ── Control de concurrencia ───────────────────────────────────────────────────
 const MAX_CONCURRENT_DOWNLOADS = 2;
@@ -152,10 +142,6 @@ function releaseDownloadSlot() {
   if (next) next();
 }
 
-const MIMETYPES = {
-  m4a: 'audio/mp4', mp4: 'audio/mp4', mp3: 'audio/mpeg', aac: 'audio/aac',
-  ogg: 'audio/ogg', opus: 'audio/ogg; codecs=opus', webm: 'audio/webm',
-};
 
 const TEMP_DIR = path.dirname(tempFile('tmp'));
 
@@ -237,6 +223,35 @@ async function searchYouTubeId(query) {
   });
   const m = String(res.data).match(/"videoId":"([\w-]{11})"/);
   return m ? m[1] : null;
+}
+
+// ─── Y SI EL HTML NO DA EL ID, SE LO PEDIMOS A YT-DLP ───────────────────────
+//
+// Medido, 21 busquedas desde un datacenter —de una palabra, con acentos, y
+// escritas como escribe la gente—: el scrape acerto 21 de 21 en 676 ms de
+// media. Asi que se queda como via principal; cambiarla por esto seria pagar
+// tres veces mas por el mismo resultado (2064 ms de media, y en las 6 que se
+// compararon devolvio EXACTAMENTE el mismo video).
+//
+// Pero el scrape depende de que YouTube siga escribiendo `"videoId"` en su HTML,
+// y el dia que lo mueva de sitio esto deja de encontrar nada SIN AVISAR A NADIE.
+// Antes ese fallo caia a SoundCloud; ahora no hay a donde caer, asi que aqui
+// esta el colchon: dos segundos, y *!play* sigue vivo.
+//
+// Solo resuelve el ID. La descarga la sigue haciendo la API, que es lo que
+// evita el bot-check del datacenter.
+async function idPorYtDlp(query) {
+  try {
+    const out = await ytdlp(
+      ['--no-warnings', '--flat-playlist', '--print', 'id', `ytsearch1:${String(query).replace(/["\r\n]/g, ' ').trim()}`],
+      25000,
+    );
+    const id = String(out || '').trim().split('\n')[0];
+    return /^[\w-]{11}$/.test(id) ? id : null;
+  } catch (e) {
+    logger.info(`!play: yt-dlp tampoco resolvió el id (${e.message.slice(0, 60)})`);
+    return null;
+  }
 }
 
 function extractVideoId(query) {
@@ -376,7 +391,14 @@ function ordenDeKeys() {
 
 async function tryRapidApi(query) {
   if (!PROVIDERS.length) throw new Error('sin RAPIDAPI_KEY');
-  const videoId = extractVideoId(query) || await searchYouTubeId(query);
+  // El enlace pegado a pelo primero, luego el HTML —que es el rapido— y por
+  // ultimo yt-dlp, que solo entra cuando el HTML no ha dado nada.
+  let videoId = extractVideoId(query);
+  if (!videoId) videoId = await searchYouTubeId(query).catch(() => null);
+  if (!videoId) {
+    logger.warn('!play: el HTML de YouTube no dio el id; pruebo con yt-dlp');
+    videoId = await idPorYtDlp(query);
+  }
   if (!videoId) throw new Error('no se encontró el video');
 
   let lastErr = null;
@@ -395,7 +417,7 @@ async function tryRapidApi(query) {
       // "preview" es propiedad del vídeo (mismo videoId en todas las keys):
       // rotar repetiría la conversión para el mismo id y volvería a dar preview,
       // gastando tiempo en todas las keys. Es terminal para RapidAPI → que el
-      // caller caiga directo a SoundCloud.
+      // caller lo de por perdido.
       if (err.message === 'preview') break;
       if (err.quota) {
         sinCuota.set(i, Date.now());
@@ -409,7 +431,16 @@ async function tryRapidApi(query) {
   throw fin;
 }
 
-// ── Vía 2: SoundCloud (respaldo) ──────────────────────────────────────────────
+// ── yt-dlp: el lanzador, compartido con redes.js ─────────────────────────────
+//
+// AQUI YA NO HAY SOUNDCLOUD. Era el respaldo de *!play* y se ha quitado por lo
+// que hacia, no por lo que prometia: medido contra dos canciones conocidas,
+// tardaba 12,7 y 17,1 segundos y devolvia «DUKI - GOTEO (REMIX)» y «The Weeknd
+// - Blinding Lights full». O sea que despues de esperar quince segundos, quien
+// pidio una cancion recibia OTRA. Un respaldo que contesta cualquier cosa no es
+// un respaldo: es ruido con retraso.
+//
+// El lanzador se queda porque lo usa redes.js para TikTok e Instagram.
 
 function ytdlp(args, timeoutMs = 180000) {
   return new Promise((resolve, reject) => {
@@ -443,65 +474,6 @@ function ytdlp(args, timeoutMs = 180000) {
   });
 }
 
-async function scDownloadOne(url) {
-  const baseName = `audio_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-  const outTemplate = path.join(TEMP_DIR, `${baseName}__%(title).80B.%(ext)s`);
-  try {
-    await ytdlp([
-      url, '-f', 'bestaudio/best', '-o', outTemplate,
-      '--no-playlist', '--no-warnings', '--no-part',
-      '--max-filesize', '25M', '--no-mtime', '--socket-timeout', '20',
-    ]);
-    const files = await fs.readdir(TEMP_DIR);
-    const audioFile = files.find(f => f.startsWith(baseName));
-    if (!audioFile) throw new Error('No se encontró la canción');
-    const fullPath = path.join(TEMP_DIR, audioFile);
-    const stat = await fs.stat(fullPath);
-    if (stat.size < 1024) { await cleanTemp(fullPath); throw new Error('Archivo vacío'); }
-
-    const dur = await audioDuration(fullPath);
-    if (dur != null && dur < MIN_FULL_SECONDS) { await cleanTemp(fullPath); throw new Error('preview'); }
-
-    const titleMatch = audioFile.match(/__(.+)\.[^.]+$/);
-    const title = titleMatch ? titleMatch[1].trim() : 'Sin título';
-    const ext = path.extname(audioFile).slice(1).toLowerCase();
-    return { filePath: fullPath, title, mimetype: MIMETYPES[ext] || 'audio/mpeg', ext };
-  } catch (err) {
-    await cleanupPartials(baseName);
-    throw err;
-  }
-}
-
-async function trySoundCloud(query) {
-  if (/soundcloud\.com/i.test(query)) return scDownloadOne(query);
-  const clean = query.replace(/["\r\n]/g, ' ').trim();
-  let urls = [];
-  try {
-    const out = await ytdlp([`scsearch${SC_CANDIDATES}:${clean}`, '--flat-playlist', '--print', '%(url)s'], 30000);
-    urls = out.split('\n').map(l => l.trim()).filter(u => /^https?:\/\//i.test(u));
-  } catch {}
-  if (!urls.length) throw new Error('sin resultados en SoundCloud');
-
-  // De dos en dos, y el primero que traiga la cancion completa gana. Los demas
-  // del lote se descartan CON SU FICHERO: si dos terminan bien a la vez y solo
-  // se devuelve uno, el otro se queda en el disco para siempre. En un temp que
-  // nadie barre eso es una fuga lenta, que es la peor clase.
-  let lastErr = null;
-  for (let i = 0; i < urls.length; i += SC_PARALELO) {
-    const lote = urls.slice(i, i + SC_PARALELO);
-    const hechos = await Promise.allSettled(lote.map(u => scDownloadOne(u)));
-
-    let ganador = null;
-    for (const h of hechos) {
-      if (h.status === 'rejected') { lastErr = h.reason; continue; }
-      if (!ganador) ganador = h.value;
-      else cleanTemp(h.value.filePath).catch(() => {});   // el que llego tarde
-    }
-    if (ganador) return ganador;
-  }
-  throw lastErr || new Error('sin versión completa en SoundCloud');
-}
-
 // ── Entrada ───────────────────────────────────────────────────────────────────
 // EL PORQUE, NO SOLO EL QUE. Todo acababa en un unico
 // `No se encontró la canción completa`, y arriba music.js lo pasaba por un
@@ -511,33 +483,34 @@ async function trySoundCloud(query) {
 //
 // Ahora el error lleva `causa` y el comando decide con eso, no adivinando por
 // el texto.
+// ─── UNA SOLA VIA, Y QUE DIGA LA VERDAD CUANDO NO PUEDE ─────────────────────
+//
+// SoundCloud era el respaldo y se ha ido. Lo decidio el dueño —«nunca ha sido
+// necesario y es una mierda»— y la medida le da la razon: 12,7 y 17,1 segundos
+// para devolver «DUKI - GOTEO (REMIX)» y «The Weeknd - Blinding Lights full».
+// Despues de quince segundos de espera, otra cancion.
+//
+// Un respaldo que contesta cualquier cosa es peor que no tener respaldo: el
+// grupo no sabe que lo que suena no es lo que se pidio, y el que lo pidio cree
+// que el bot no entiende. Ahora, cuando no se puede, se dice.
 async function intentar(query) {
-  let sinCuota = false;
-  // Que una via diera una cancion DEMASIADO GRANDE no es lo mismo que no
-  // encontrarla: se encontro, pesa. Si las dos vias fallan por eso, el grupo
-  // tiene que leer eso y no «no encontre esa cancion», que manda a la gente a
-  // reescribir el nombre contra algo que no se arregla escribiendo.
-  let porTamano = false;
   try {
     return await tryRapidApi(query);
-  } catch (apiErr) {
-    if (apiErr.quota) sinCuota = true;
-    if (apiErr.demasiadoGrande) porTamano = true;
-    // "sin RAPIDAPI_KEY" no es quedarse sin cupo: es no haberlo tenido nunca.
-    logger.warn(`!play: API de terceros no disponible (${apiErr.message}); probando SoundCloud`);
-  }
-  try {
-    return await trySoundCloud(query);
-  } catch (scErr) {
-    logger.warn(`!play: SoundCloud tampoco dio la canción (${scErr.message})`);
-    if (scErr.demasiadoGrande) porTamano = true;
+  } catch (e) {
     const err = new Error('No se encontró la canción completa');
-    // Si RapidAPI se quedo sin cupo, el fallo de SoundCloud es secundario: lo
-    // que hay que decir es que la via principal esta agotada.
-    err.causa = sinCuota ? 'sin-cuota'
-      : porTamano ? 'grande'
-      : /red|network|timeout|ECONN|ENOTFOUND|socket/i.test(scErr.message) ? 'red'
+    // Por la MARCA, no por el texto. Ver la nota de arriba: adivinar la causa
+    // con una expresion regular sobre el mensaje daba siempre la misma rama.
+    err.causa = e.quota ? 'sin-cuota'
+      : e.demasiadoGrande ? 'grande'
+      // SIN KEY NO ES «NO LA ENCONTRE». Es que no hay por donde buscarla, y con
+      // el respaldo quitado eso deja de ser una rareza: si la key caduca o se
+      // borra del .env, TODOS los *!play* contestan lo mismo. Decir «no encontré
+      // esa canción» ahi manda al grupo a reescribir el nombre una y otra vez
+      // contra una via que no existe, y al dueño no le llega ninguna señal.
+      : /sin RAPIDAPI_KEY/i.test(e.message || '') ? 'sin-via'
+      : /red|network|timeout|ECONN|ENOTFOUND|socket/i.test(e.message || '') ? 'red'
       : 'no-encontrada';
+    logger.warn(`!play: no pude traer «${String(query).slice(0, 40)}» (${e.message}); causa: ${err.causa}`);
     throw err;
   }
 }
@@ -637,6 +610,7 @@ async function downloadAudio(query) {
 // control de concurrencia son dos limites distintos que se creen el mismo.
 module.exports = {
   _audioDuration: audioDuration, _duracionPorFfmpeg: duracionPorFfmpeg,
+  _idPorYtDlp: idPorYtDlp, _searchYouTubeId: searchYouTubeId,
   downloadAudio, ordenDeKeys, sinCuota, PROVIDERS,
   _repartoDe: repartoDe,
   _conBajador: (f) => { const antes = bajarUna; bajarUna = f; return () => { bajarUna = antes; }; },

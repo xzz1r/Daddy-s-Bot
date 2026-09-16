@@ -119,7 +119,8 @@ const config = {
   // bot-check del datacenter). Es la fuente principal de !play para canciones
   // populares completas. Se usa RapidAPI ("YouTube MP3" de ytjar por defecto).
   // Registro gratis en rapidapi.com; la key va en .env como RAPIDAPI_KEY=...
-  // Si está vacía, !play usa solo SoundCloud como respaldo.
+  // SIN ELLA NO HAY !play. El respaldo de SoundCloud se quitó: devolvía remixes
+  // y versiones «full» quince segundos tarde, o sea otra canción.
   rapidApiKey: process.env.RAPIDAPI_KEY || '',
   rapidApiHost: process.env.RAPIDAPI_HOST || 'youtube-mp36.p.rapidapi.com',
 

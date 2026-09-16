@@ -3267,13 +3267,24 @@ const di=async(quien,texto,extra)=>{
         'el seguidor del single-flight de *!play* ya no se marca como compartido: va a borrarle el fichero al que lo bajo mientras lo esta leyendo');
     }
 
-    // SoundCloud en paralelo: el que llega tarde tambien ocupa disco.
-    exige(/cleanTemp\(h\.value\.filePath\)/.test(dl),
-      'los candidatos de SoundCloud que ganan tarde ya no se borran: fuga lenta en temp, que es la peor clase');
+    // AQUI VIGILABA LOS CANDIDATOS DE SOUNDCLOUD, que se bajaban de dos en dos y
+    // dejaban en disco al que llegaba tarde. Esa via ya no existe: se quito
+    // porque devolvia remixes y versiones «full» quince segundos tarde. Sin
+    // sujeto que vigilar, la comprobacion se va — pero se deja escrito que si
+    // alguien vuelve a montar una carrera de descargas, el perdedor se borra.
+    exige(!/scsearch|trySoundCloud|SC_PARALELO/.test(dl),
+      'ha vuelto SoundCloud a *!play*: devolvía otra canción quince segundos tarde, y esa es la razón por la que se quitó');
 
-    // Y el error tiene que decir por que, no adivinarse por el texto.
-    exige(/err\.causa = sinCuota \? 'sin-cuota'/.test(dl) && /\[err\.causa\]/.test(mu),
-      '!play volvio a adivinar la causa del fallo por el texto del error: con las keys secas el grupo lee "no encontré esa canción"');
+    // Y EL ERROR TIENE QUE DECIR POR QUE, no adivinarse por el texto. La forma
+    // exacta cambio al quitar SoundCloud —ya no hay dos vias que cruzar, asi que
+    // la cuota se lee del propio error en vez de una variable de arrastre— pero
+    // la garantia es la misma: el fallo lleva `causa` puesta por una MARCA, y el
+    // comando decide con ella. Adivinar con una expresion regular sobre el
+    // mensaje daba siempre la misma rama, y con las keys secas el grupo leia «no
+    // encontré esa canción» y reescribia el nombre contra un cupo inexistente.
+    exige(/err\.causa = e\.quota \? 'sin-cuota'/.test(dl), '!play ya no marca la causa «sin cupo» desde el propio error');
+    exige(/e\.demasiadoGrande \? 'grande'/.test(dl), '!play ya no distingue «pesa demasiado» de «no la encontré»');
+    exige(/\[err\.causa\]/.test(mu), '!play volvio a adivinar la causa del fallo por el texto del error');
 
     if (fallos === antes) console.log(verde('   ✓ una descarga por cancion, sin ficheros huerfanos ni causas inventadas'));
   }
@@ -15049,6 +15060,131 @@ const correr = async (texto, enPrivado) => {
     }
 
     if (fallos === antes) console.log(verde('   \u2713 la caché se siembra al arrancar, el fondo cede el ffmpeg, la presencia se apaga y nadie se salta el privado'));
+  }
+
+  const MEMORIA_CAPA_83 = String.raw`
+require('dotenv').config({ quiet: true });
+const path = require('path');
+const R = __RAIZ__;
+const d = require(path.join(R, 'src/utils/downloader'));
+const fs = require('fs');
+const quejas = [];
+const ok = (c, t) => { if (!c) quejas.push(t); };
+
+(async () => {
+  const src = fs.readFileSync(path.join(R, 'src/utils/downloader.js'), 'utf8');
+  const codigo = src.split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
+
+  // ── SoundCloud, fuera de verdad ─────────────────────────────────────────
+  ok(!/scsearch/.test(codigo), 'no queda ninguna búsqueda de SoundCloud');
+  ok(!/trySoundCloud|scDownloadOne/.test(codigo), 'ni sus funciones');
+  ok(!/SC_CANDIDATES|SC_PARALELO/.test(codigo), 'ni sus constantes');
+  ok(!/MIMETYPES/.test(codigo), 'ni la tabla que solo usaba él');
+
+  // ── Y sin RAPIDAPI_KEY, !play falla DICIENDO por qué ───────────────────
+  // (en esta caja no hay key, así que esto es el camino real)
+  const t = Date.now();
+  let e = null;
+  try { await d.downloadAudio('duki goteo'); } catch (err) { e = err; }
+  const ms = Date.now() - t;
+  ok(!!e, 'sin key, !play falla en vez de traer otra canción');
+  ok(e && e.causa === 'sin-via', 'y la causa dice que falta la key, no que no exista la cancion (' + (e && e.causa) + ')');
+  ok(ms < 3000, 'y falla rapido (' + ms + 'ms): antes se iba 12-17 s a SoundCloud para traer un remix');
+
+  // ── El colchón de búsqueda, SOLO SI HAY RED ────────────────────────────
+  //
+  // Esta parte si sale a internet, y una capa que necesita linea no dice nada
+  // el dia que no la hay. Se salta en silencio si no contesta: lo de arriba
+  // —que SoundCloud no ha vuelto y que sin key se dice— no necesita red y es lo
+  // que de verdad hay que vigilar.
+  const hayRed = await d._searchYouTubeId('test').then((x) => !!x).catch(() => false);
+  if (!hayRed) { console.log('CAPA83:' + JSON.stringify(quejas)); return; }
+  const t2 = Date.now();
+  const id = await d._idPorYtDlp('duki goteo');
+  ok(id === 'FRthkpJ_NFo', 'yt-dlp resuelve el id (' + id + ')');
+  ok(Date.now() - t2 < 8000, 'en ' + (Date.now() - t2) + 'ms');
+
+  // Y el camino principal sigue siendo el rápido.
+  const t3 = Date.now();
+  const idHtml = await d._searchYouTubeId('duki goteo');
+  const msHtml = Date.now() - t3;
+  ok(idHtml === id, 'el HTML da el MISMO id que yt-dlp');
+  ok(msHtml < 2000, 'y sigue siendo el rapido (' + msHtml + 'ms)');
+
+  // ACOTADO AL CUERPO DE tryRapidApi, no a todo el fichero: la llamada a
+  // yt-dlp aparece tambien en su propia DEFINICION, mas arriba, asi que
+  // comparar posiciones en el fichero entero comparaba la definicion contra una
+  // llamada. Con eso, quitar el colchon o invertir el orden pasaban la prueba.
+  const iTry = codigo.indexOf('async function tryRapidApi');
+  const cuerpo = codigo.slice(iTry, codigo.indexOf('\n}', iTry));
+  ok(/idPorYtDlp\(query\)/.test(cuerpo), 'tryRapidApi llama al colchón de yt-dlp: sin él, un fallo del HTML deja *!play* muerto');
+  ok(/searchYouTubeId\(query\)/.test(cuerpo), 'y sigue llamando al HTML');
+  ok(cuerpo.indexOf('searchYouTubeId(query)') < cuerpo.indexOf('idPorYtDlp(query)'),
+     'el HTML se prueba ANTES que yt-dlp: al revés se pagarían 3x por el mismo resultado');
+
+  console.log('CAPA83:' + JSON.stringify(quejas));
+})().catch((e) => {
+  console.log('CAPA83:' + JSON.stringify(['la prueba de *!play* revento: ' + (e && e.message)]));
+});
+`;
+
+  // ── 83. *!play* TIENE UNA SOLA VIA, Y DICE CUANDO NO PUEDE ─────────────
+  //
+  // SoundCloud era el respaldo y se ha ido. Lo pidio el dueño —«nunca ha sido
+  // necesario y es una mierda»— y la medida le da la razon. Dos canciones
+  // conocidas, por ese camino:
+  //
+  //     duki goteo        17,1 s   ->  DUKI - GOTEO (REMIX)
+  //     blinding lights   12,7 s   ->  The Weeknd - Blinding Lights full
+  //
+  // O sea que despues de quince segundos de espera, OTRA cancion. Un respaldo
+  // que contesta cualquier cosa es peor que no tener respaldo: el grupo no sabe
+  // que lo que suena no es lo que se pidio, y quien lo pidio cree que el bot no
+  // le entiende.
+  //
+  // LO QUE SE QUEDA ES EL SCRAPE, y no por pereza: medido con 21 busquedas
+  // desde un datacenter —de una palabra, con acentos y ñ, oscuras, y escritas
+  // como escribe la gente— acerto 21 DE 21 en 676 ms de media. Cambiarlo por
+  // `yt-dlp ytsearch1` seria pagar 2064 ms por el mismo resultado: en las seis
+  // que se compararon devolvio EXACTAMENTE el mismo video.
+  //
+  // PERO EL SCRAPE ES FRAGIL, y ahora no hay a donde caer. Depende de que
+  // YouTube siga escribiendo la palabra `videoId` en su HTML; el dia que la
+  // mueva, esto deja de encontrar nada sin avisar a nadie. Asi que yt-dlp se
+  // queda de COLCHON: no se ejecuta nunca mientras el HTML funcione, y cuando
+  // deje de funcionar son dos segundos en vez de un comando muerto.
+  //
+  // Y SIN KEY SE DICE. Antes eso caia en «no encontré esa canción» —la canción
+  // existe, lo que falta es la key— y con el respaldo quitado deja de ser una
+  // rareza: si la key caduca, TODOS los *!play* contestarian eso y el grupo
+  // reescribiria el nombre contra una via que no esta puesta.
+  {
+    console.log('\n83. *!play* TIENE UNA SOLA VÍA, Y DICE CUÁNDO NO PUEDE');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   \u2717 ${queja}`)); } };
+    const { execFileSync } = require('child_process');
+    const os83 = require('os');
+    const dir83 = fs.mkdtempSync(path.join(os83.tmpdir(), 'capa83-'));
+    try {
+      try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(dir83, 'node_modules'), 'dir'); } catch { /* el hijo lo dira */ }
+      fs.writeFileSync(path.join(dir83, 'p.js'), MEMORIA_CAPA_83.replace(/__RAIZ__/g, json(R)));
+      let salida = '';
+      try {
+        salida = execFileSync(process.execPath, [path.join(dir83, 'p.js')],
+          { encoding: 'utf8', timeout: 180000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (e) { salida = `${e.stdout || ''}${e.stderr || ''}`; }
+      const linea = salida.split('\n').reverse().find((l) => l.startsWith('CAPA83:'));
+      exige(!!linea, `la prueba de *!play* no contestó: ${salida.slice(-400).trim()}`);
+      if (linea) {
+        let quejas = [];
+        try { quejas = JSON.parse(linea.slice('CAPA83:'.length)); } catch { quejas = ['no pude leer el resultado']; }
+        for (const q of quejas) exige(false, q);
+      }
+    } finally {
+      fs.rmSync(dir83, { recursive: true, force: true });
+    }
+
+    if (fallos === antes) console.log(verde('   \u2713 sin SoundCloud, con colchón para el scrape, y diciendo por qué cuando no puede'));
   }
 
   if (BREVE) {

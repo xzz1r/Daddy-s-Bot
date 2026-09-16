@@ -117,8 +117,11 @@ if (!fs.existsSync(envPath)) {
 
   // Keys de RapidAPI: se cuentan, NO se enseñan.
   const keys = String(env.RAPIDAPI_KEY || '').split(',').map(s => s.trim()).filter(Boolean);
-  if (!keys.length) aviso('sin RAPIDAPI_KEY: !play tira solo de SoundCloud, que falla más', 'añade la key al .env');
-  else if (keys.length === 1) aviso('solo 1 key de RapidAPI: cuando agote el cupo del mes, !play cae a SoundCloud',
+  // YA NO HAY RESPALDO, asi que esto dejo de ser un aviso y paso a ser un fallo:
+  // sin key, *!play* no funciona. Antes caia a SoundCloud, que contestaba otra
+  // cancion quince segundos tarde.
+  if (!keys.length) mal('sin RAPIDAPI_KEY: !play NO funciona (ya no hay respaldo)', 'añade la key al .env');
+  else if (keys.length === 1) aviso('solo 1 key de RapidAPI: cuando agote el cupo del mes, !play deja de funcionar',
     'pon una segunda separada por coma: RAPIDAPI_KEY=una,otra');
   else bien(`${keys.length} keys de RapidAPI — cuando una agota el cupo, salta a la siguiente`);
   const cortas = keys.filter(k => k.length < 30).length;
@@ -335,8 +338,9 @@ if (!bot) {
   } catch { donde = sh('command -v yt-dlp 2>/dev/null'); }
   if (!donde) {
     // QUE FALTE NO ES LO MISMO PARA TODOS. Quien tenga API de terceros puesta en
-    // las tres plataformas no necesita yt-dlp para nada de redes; !play si lo
-    // sigue queriendo para su respaldo de SoundCloud. Decirle «te faltan tres
+    // las tres plataformas no necesita yt-dlp para nada de redes; !play solo lo
+    // usa de colchon, para resolver el id cuando el HTML de YouTube no lo da.
+    // Decirle «te faltan tres
     // comandos» a quien no le faltan es como se enseña a ignorar los avisos.
     // El comando NO se deduce del nombre de la plataforma: `!tt` no es
     // «tiktok».slice(0,2). Escrito asi salia «!ti, !in, !pi», tres comandos que

@@ -83,7 +83,7 @@ async function cmdPlay(sock, msg, args, groupMeta) {
       result = await downloadAudio(query);
     } catch (err) {
       logger.error(`Download error: ${err.message}`);
-      // Caso más común: la búsqueda no devolvió resultado en SoundCloud. Mensaje
+      // Caso más común: la búsqueda no devolvió resultado. Mensaje
       // claro para el grupo; el detalle técnico queda en el log.
       // POR EL PORQUE, NO POR EL TEXTO. Aqui se adivinaba la causa haciendo
       // un regex sobre el mensaje del error, y el downloader terminaba SIEMPRE
@@ -98,6 +98,9 @@ async function cmdPlay(sock, msg, args, groupMeta) {
         // aquí manda a la persona a reescribir el nombre contra algo que no se
         // arregla escribiendo.
         'grande':        'Esa canción pesa más de 16MB y WhatsApp no la deja pasar como audio. Prueba con otra versión.',
+        // No es que no exista: es que el bot no tiene por dónde buscarla. Sin
+        // esto el grupo reescribe el nombre contra una vía que no está puesta.
+        'sin-via':       'El *!play* no está configurado ahora mismo. No es cosa tuya ni del nombre.',
       }[err.causa] || 'No pude descargar la canción en este momento. Intenta de nuevo.';
       await reembolsar();
       return sock.sendMessage(jid, { text }, { quoted: msg });
