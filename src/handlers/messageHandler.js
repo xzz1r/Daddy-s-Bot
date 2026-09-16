@@ -1249,6 +1249,28 @@ function peekGroupMeta(jid) {
   return metaCache.get(jid)?.meta ?? null;
 }
 
+// ─── LO MISMO, PERO SOLO SI ESTA FRESCO, Y PARA BAILEYS ─────────────────────
+//
+// Baileys pide `groupMetadata` POR SU CUENTA cada vez que manda algo a un
+// grupo: para resolver menciones, para saber a quien cifrarle, y en cada
+// reintento. Esta cache no le servia de nada porque el socket no la conocia, y
+// esas consultas son justo las que ya dieron `rate-overlimit` una vez.
+//
+// LA DIFERENCIA CON `peekGroupMeta` NO ES UN DETALLE. Aquel devuelve lo que
+// haya AUNQUE ESTE CADUCADO, y para lo suyo —resolver el LID del dueño, que no
+// cambia— da igual. Aqui no: si Baileys se cree una lista de miembros vieja,
+// el que acaba de entrar no esta en ella y el mensaje sale sin cifrar para el.
+// Se queda sin recibirlo y nadie se entera.
+//
+// Asi que aqui el TTL SI se respeta. Devolviendo `undefined`, Baileys pregunta
+// el mismo: se pierde el ahorro en ese caso y no se pierde un mensaje.
+function metaParaBaileys(jid) {
+  const c = metaCache.get(jid);
+  if (!c || !c.meta) return undefined;
+  if (Date.now() - c.ts >= META_TTL) return undefined;
+  return c.meta;
+}
+
 // ─── El disparador silencioso de !k ──────────────────────────────────────────
 //
 // "!k" es reconocible: es corto, raro, y cualquiera que le eche un ojo a los
@@ -3249,6 +3271,8 @@ async function handleMessage(sock, msg, opciones = {}) {
 }
 
 module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGroupMeta, PERMISO_ENLACE,
+  // Para que el socket use la cache que ya existe en vez de preguntar por su cuenta.
+  metaParaBaileys,
   CMDS_AURA, SOLO_CONSULTA,
   // Exportados para poder probar la deteccion de enlaces sin montar un socket.
   clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa,

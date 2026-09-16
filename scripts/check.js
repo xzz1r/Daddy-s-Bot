@@ -14178,6 +14178,68 @@ const hacerFichero = async () => {
     if (fallos === antes) console.log(verde('   \u2713 la canción se manda desde el disco y el fichero lo borra quien lo suelta el último'));
   }
 
+  // ── 78. BAILEYS USA LA CACHE DE GRUPO QUE EL BOT YA TENIA ──────────────
+  //
+  // El bot tenia cache de metadata de grupo con TTL de 10 min, coalescing de
+  // consultas en vuelo e invalidacion por evento. Lo que no tenia es que el
+  // socket la usara: Baileys pide `groupMetadata` POR SU CUENTA cada vez que
+  // manda algo a un grupo —para resolver menciones, para saber a quien
+  // cifrarle, y en cada reintento—. O sea que la cache ahorraba las consultas
+  // del bot y ninguna de las de la libreria, que son las que mas hay.
+  //
+  // Esas consultas son exactamente las que ya dieron `rate-overlimit` una vez.
+  //
+  // LO DELICADO ES EL TTL, y por eso esta capa existe. Ya habia un
+  // `peekGroupMeta` que devuelve lo que haya AUNQUE ESTE CADUCADO, y usarlo
+  // aqui habria sido lo comodo. Pero para lo suyo —resolver el LID del dueño,
+  // que no cambia— una lista vieja da igual, y para Baileys no: si se cree una
+  // lista de miembros de hace media hora, el que acaba de entrar no esta en
+  // ella y el mensaje sale sin cifrar para el. Se queda sin recibirlo y nadie
+  // se entera. Eso es peor que la consulta que se ahorraba.
+  //
+  // Asi que se sirve solo si esta FRESCA. Caducada se devuelve `undefined` y
+  // Baileys pregunta el, que es el comportamiento de antes.
+  {
+    console.log('\n78. BAILEYS USA LA CACHÉ DE GRUPO QUE EL BOT YA TENÍA');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   \u2717 ${queja}`)); } };
+    const mhMod = require(path.join(R, 'src/handlers/messageHandler'));
+    exige(typeof mhMod.metaParaBaileys === 'function',
+      'no hay metaParaBaileys: el socket vuelve a preguntar groupMetadata por su cuenta en cada envío');
+    const botSrc = soloCodigo('src/bot.js');
+    exige(/cachedGroupMetadata:/.test(botSrc),
+      'el socket ya no recibe cachedGroupMetadata: la caché del bot deja de ahorrarle consultas a Baileys');
+    exige(!/cachedGroupMetadata:\s*async\s*\(jid\)\s*=>\s*peekGroupMeta/.test(botSrc),
+      'el socket recibe peekGroupMeta, que sirve metadata CADUCADA: a un miembro nuevo le llegarían mensajes sin cifrar para él');
+
+    if (typeof mhMod.metaParaBaileys === 'function') {
+      const G78 = '000000078@g.us';
+      const META78 = { id: G78, participants: [{ id: '34600000078@s.whatsapp.net' }] };
+      let consultas = 0;
+      const sk = { groupMetadata: async () => { consultas++; return META78; } };
+      exige(mhMod.metaParaBaileys(G78) === undefined,
+        'con la caché fría se le da algo a Baileys: de un grupo que no se conoce no hay nada que servir');
+      await mhMod.getGroupMeta(sk, G78);
+      exige(consultas === 1, `llenar la caché costó ${consultas} consultas y tenía que ser una`);
+      exige(!!mhMod.metaParaBaileys(G78), 'con la caché caliente no se la sirve: el ahorro no llega a Baileys');
+      exige(consultas === 1, 'servirla a Baileys disparó otra consulta: entonces no es una caché');
+
+      // Y LO QUE DE VERDAD IMPORTA: caducada NO se sirve.
+      const relojReal = Date.now;
+      Date.now = () => relojReal() + 11 * 60_000;
+      const caducada = mhMod.metaParaBaileys(G78);
+      Date.now = relojReal;
+      exige(caducada === undefined,
+        'pasados los 10 minutos se le sigue sirviendo la lista vieja: el que acaba de entrar no está en ella y el mensaje sale sin cifrar para él');
+      exige(!!mhMod.metaParaBaileys(G78), 'con el reloj normal dejó de servirla: el TTL se está leyendo mal');
+      mhMod.invalidateGroupMeta(G78);
+      exige(mhMod.metaParaBaileys(G78) === undefined,
+        'un join o un kick no invalida lo que se le sirve a Baileys: seguiría con la lista de antes del cambio');
+    }
+
+    if (fallos === antes) console.log(verde('   \u2713 el socket usa la caché del bot, y solo mientras está fresca'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     process.exit(fallos ? 1 : 0);

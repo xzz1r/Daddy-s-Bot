@@ -52,7 +52,7 @@ const STUB_SOLICITUD = new Set([144, 172]);
 // Barridos de autoaccept pendientes, por grupo. Junta las rafagas: si llegan
 // cinco solicitudes seguidas se hace UN barrido, no cinco.
 const autoAcceptPendiente = new Map();
-const { handleMessage, invalidateGroupMeta, getGroupMeta } = require('./handlers/messageHandler');
+const { handleMessage, invalidateGroupMeta, getGroupMeta, metaParaBaileys } = require('./handlers/messageHandler');
 const { initState, isAdminNotifyEnabled, isAntiAdminEnabled, isAntiBusinessEnabled, isAutoAceptarEnabled, flushState, vistoActivo } = require('./utils/state');
 const { isOwner, sameUser, isBotAdmin, phoneMatch, canonicalJid, rememberMapping, flushOwnerJids, flushLidMap, anotarRestriccionContacto } = require('./utils/wa');
 const { anotarDeuda, cobrarDeuda, flushDeuda } = require('./utils/adminDeuda');
@@ -585,6 +585,19 @@ async function connectToWhatsApp() {
     // siempre significaba que quien no pudiera descifrar una respuesta se
     // quedaba sin ella para siempre. Ver mensajesRecientes.js.
     getMessage: recuperarMensaje,
+    // ─── LA CACHE DE GRUPO, ENCHUFADA AL SOCKET ──────────────────────────
+    //
+    // El bot ya tenia cache de metadata de grupo con TTL, coalescing y
+    // invalidacion por evento. Lo que NO tenia es que Baileys la usara: el
+    // socket preguntaba `groupMetadata` por su cuenta en cada envio a un grupo
+    // —menciones, a quien cifrar, cada reintento— y esas consultas son
+    // exactamente las que ya dieron `rate-overlimit` una vez.
+    //
+    // Devuelve `undefined` si esta caducada, a proposito: ahi Baileys pregunta
+    // el mismo. Servirle una lista de miembros vieja seria peor que no
+    // servirle nada — el que acaba de entrar no estaria en ella y el mensaje
+    // saldria sin cifrar para el. Ver `metaParaBaileys`.
+    cachedGroupMetadata: async (jid) => metaParaBaileys(jid),
     // El valor por defecto de la propia libreria es 30_000; este bot lo tenia
     // en 10_000 (el triple de frecuente) sin necesidad probada. Mas trafico de
     // fondo del que la libreria considera normal no aporta nada y es exactamente
