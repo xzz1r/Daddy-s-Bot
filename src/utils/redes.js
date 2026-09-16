@@ -477,7 +477,7 @@ async function montarPase(fotos, musicaUrl, audioYaBajado) {
       const ext = (String(url).split('?')[0].split('.').pop() || '').toLowerCase();
       const destino = path.join(TEMP_DIR, `pase_${Date.now()}_${i}_${Math.random().toString(36).slice(2)}.${esImagen(ext) ? ext : 'jpg'}`);
       try {
-        await downloadUrlToFile(url, destino);
+        await downloadUrlToFile(url, destino, TOPE_WHATSAPP);
         const { size } = await fs.stat(destino);
         if (size < 512) throw new Error('vacía');
         return destino;
@@ -499,7 +499,7 @@ async function montarPase(fotos, musicaUrl, audioYaBajado) {
     } else if (musicaUrl) {
       const destino = path.join(TEMP_DIR, `pase_${Date.now()}_son_${Math.random().toString(36).slice(2)}.mp3`);
       try {
-        await downloadUrlToFile(musicaUrl, destino);
+        await downloadUrlToFile(musicaUrl, destino, TOPE_WHATSAPP);
         const { size } = await fs.stat(destino);
         if (size < 1024) throw new Error('vacía');
         basura.push(destino);
@@ -653,7 +653,7 @@ async function porApi(url, plataforma) {
     const ext = extensionDe(enlace) || 'mp4';
     const fichero = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.${esImagen(ext) ? ext : 'mp4'}`);
     try {
-      await downloadUrlToFile(enlace, fichero);
+      await downloadUrlToFile(enlace, fichero, TOPE_WHATSAPP);
     } catch (e) {
       await fs.remove(fichero).catch(() => {});
       ultimoError = e;
@@ -1703,7 +1703,7 @@ async function buscarVarios(texto, clave, pinesDados = null, cuantos = 1) {
         // bajadas de la misma tanda no se llamen igual.
         const suyo = path.join(TEMP_DIR, `red_${Date.now()}_${i}_${Math.random().toString(36).slice(2)}.${ext}`);
         try {
-          await downloadUrlToFile(url, suyo);
+          await downloadUrlToFile(url, suyo, TOPE_WHATSAPP);
           const { size } = await fs.stat(suyo);
           if (size < 2048) throw new Error('llegó una miniatura');
           if (size > TOPE_WHATSAPP) throw new Error('pesa demasiado');
@@ -1808,11 +1808,11 @@ async function porPinterest(url) {
   // `originals` en vez del tamaño; si no existe, se queda la que dio la pagina.
   if (!video && /\/\d+x\//.test(enlace)) {
     try {
-      await downloadUrlToFile(enlace.replace(/\/\d+x\//, '/originals/'), fichero);
+      await downloadUrlToFile(enlace.replace(/\/\d+x\//, '/originals/'), fichero, TOPE_WHATSAPP);
       return fichero;
     } catch { /* no habia original: se sigue con la que vino */ }
   }
-  await downloadUrlToFile(enlace, fichero);
+  await downloadUrlToFile(enlace, fichero, TOPE_WHATSAPP);
   return fichero;
 }
 
@@ -2115,7 +2115,7 @@ async function porX(url) {
     // aunque el azar repita.
     const fichero = path.join(TEMP_DIR, `red_${Date.now()}_${i}_${Math.random().toString(36).slice(2)}.${ext}`);
     try {
-      await downloadUrlToFile(pedir, fichero);
+      await downloadUrlToFile(pedir, fichero, TOPE_WHATSAPP);
       const { size } = await fs.stat(fichero);
       if (size < 1024) { await fs.remove(fichero).catch(() => {}); return null; }
       if (size > TOPE_WHATSAPP) {
@@ -2173,7 +2173,7 @@ async function porFotosSueltas(url) {
     const ext = extensionDe(enlace);
     const fichero = path.join(TEMP_DIR, `red_${Date.now()}_${i}_${Math.random().toString(36).slice(2)}.${esImagen(ext) ? ext : 'jpg'}`);
     try {
-      await downloadUrlToFile(enlace, fichero);
+      await downloadUrlToFile(enlace, fichero, TOPE_WHATSAPP);
       const { size } = await fs.stat(fichero);
       // Una miniatura de 3 KB no es la foto del tuit: es el icono de la cuenta.
       if (size < 4096) { await fs.remove(fichero).catch(() => {}); return null; }

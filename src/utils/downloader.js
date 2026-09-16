@@ -29,7 +29,16 @@ const SC_CANDIDATES = 4;       // resultados de SoundCloud a probar
 // procesos como mucho. En 1 GB de RAM tres por hueco (seis procesos) ya es
 // jugarsela, y por eso no son tres.
 const SC_PARALELO = 2;
-const MAX_BYTES = 25 * 1024 * 1024;
+// LO QUE WHATSAPP ACEPTA COMO MEDIA EN LINEA SON 16 MB, y eso incluye el audio
+// igual que la foto y el video: comprobado contra la documentacion, no de
+// memoria. Por encima solo pasa como DOCUMENTO —hasta 2 GB— pero entonces llega
+// como un fichero adjunto, no como una cancion que se pueda reproducir en el
+// chat, que es justo lo que *!play* existe para dar.
+//
+// Estaba en 25, que no sale de ningun sitio. Una cancion de 20 MB se cobraba,
+// se bajaba entera, se subia... y fallaba o llegaba rota. En la banda de 16 a 25
+// el bot prometia algo que WhatsApp no iba a dejar pasar.
+const MAX_BYTES = 16 * 1024 * 1024;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -264,8 +273,19 @@ async function rapidConvert(videoId, provider) {
   throw new Error('la conversión tardó demasiado');
 }
 
-// Descarga una URL directa a un archivo, con tope de tamaño.
-async function downloadUrlToFile(url, dest) {
+// ─── EL TOPE LO PONE QUIEN LLAMA, PORQUE NO ES EL MISMO ─────────────────────
+//
+// Esto cortaba SIEMPRE en 25 MB, que es el tope que tenia *!play*. Pero lo que
+// WhatsApp acepta como media en linea —foto, video Y AUDIO— son 16 MB. Los 25
+// no salen de ningun sitio: por encima de 16 el envio falla o llega roto.
+//
+// Consecuencia en redes: un reel de 20 MB se bajaba ENTERO —veinte megas de
+// ancho de banda y sus segundos— para medirlo despues, rechazarlo y devolver el
+// aura. Ahora se corta en cuanto pasa del tope que de verdad va a poder salir.
+//
+// El fallo va marcado, no solo escrito: quien lo recibe tiene que poder decir
+// «pesa demasiado» sin leerle el mensaje a una expresion regular.
+async function downloadUrlToFile(url, dest, tope = MAX_BYTES) {
   // ESTA URL NO LA ESCRIBE NADIE DEL GRUPO: LA ELIGE LA API. El `lookup` con
   // freno ya impide que apunte a una IP interna, pero no puede con el esquema,
   // y axios en Node tambien entiende `file:` y `data:`: un proveedor que
@@ -281,7 +301,11 @@ async function downloadUrlToFile(url, dest) {
     const fail = (err) => { resp.data.destroy(); w.destroy(); reject(err); };
     resp.data.on('data', (c) => {
       bytes += c.length;
-      if (bytes > MAX_BYTES) fail(new Error('La canción pesa más de 25MB'));
+      if (bytes > tope) {
+        const err = new Error(`pesa más de ${Math.round(tope / 1048576)}MB`);
+        err.demasiadoGrande = true;
+        fail(err);
+      }
     });
     resp.data.on('error', fail);
     w.on('error', fail);
@@ -482,10 +506,16 @@ async function trySoundCloud(query) {
 // el texto.
 async function intentar(query) {
   let sinCuota = false;
+  // Que una via diera una cancion DEMASIADO GRANDE no es lo mismo que no
+  // encontrarla: se encontro, pesa. Si las dos vias fallan por eso, el grupo
+  // tiene que leer eso y no «no encontre esa cancion», que manda a la gente a
+  // reescribir el nombre contra algo que no se arregla escribiendo.
+  let porTamano = false;
   try {
     return await tryRapidApi(query);
   } catch (apiErr) {
     if (apiErr.quota) sinCuota = true;
+    if (apiErr.demasiadoGrande) porTamano = true;
     // "sin RAPIDAPI_KEY" no es quedarse sin cupo: es no haberlo tenido nunca.
     logger.warn(`!play: API de terceros no disponible (${apiErr.message}); probando SoundCloud`);
   }
@@ -493,10 +523,12 @@ async function intentar(query) {
     return await trySoundCloud(query);
   } catch (scErr) {
     logger.warn(`!play: SoundCloud tampoco dio la canción (${scErr.message})`);
+    if (scErr.demasiadoGrande) porTamano = true;
     const err = new Error('No se encontró la canción completa');
     // Si RapidAPI se quedo sin cupo, el fallo de SoundCloud es secundario: lo
     // que hay que decir es que la via principal esta agotada.
     err.causa = sinCuota ? 'sin-cuota'
+      : porTamano ? 'grande'
       : /red|network|timeout|ECONN|ENOTFOUND|socket/i.test(scErr.message) ? 'red'
       : 'no-encontrada';
     throw err;

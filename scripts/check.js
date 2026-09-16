@@ -14096,7 +14096,8 @@ const hacerFichero = async () => {
     const msg = { key: { remoteJid: G, fromMe: false, id: 'Q' + Math.random(), participant: YO },
       messageTimestamp: Math.floor(Date.now() / 1000), message: { conversation: '!play gorda' } };
     await music2.cmdPlay(sock, msg, ['gorda' + Math.random()], { id: G, participants: [{ id: YO }] }).catch(() => {});
-    ok(dichos.some((t) => /25MB/.test(t)), 'una canción de 26 MB se rechaza y se dice');
+    ok(dichos.some((t) => /16MB/.test(t)), 'una canción de 26 MB se rechaza y se dice con el tope de verdad');
+    ok(dichos.some((t) => /26\.0MB|26MB/.test(t)), 'y se dice cuánto pesa, no solo que pesa');
     ok(!dichos.includes('[AUDIO]'), 'y no se intenta mandar');
     ok(soltado === true, 'por el camino de «pesa demasiado» TAMBIÉN se suelta el fichero');
     ok(!(await fs.pathExists(ficheroDePrueba)), 'y no se queda en temp/ hasta el barrido');
@@ -14238,6 +14239,161 @@ const hacerFichero = async () => {
     }
 
     if (fallos === antes) console.log(verde('   \u2713 el socket usa la caché del bot, y solo mientras está fresca'));
+  }
+
+  const MEMORIA_CAPA_79 = String.raw`
+require('dotenv').config({ quiet: true });
+const fs = require('fs-extra');
+const path = require('path');
+const R = __RAIZ__;
+const { Readable } = require('stream');
+const axios = require('axios');
+const dl = require(path.join(R, 'src/utils/downloader'));
+const quejas = [];
+const ok = (c, t) => { if (!c) quejas.push(t); };
+const MB = 1048576;
+
+// NI UN VIAJE A LA RED, y tampoco a localhost: el guardia SSRF del propio bot
+// bloquea 127.0.0.1, que es exactamente su trabajo. Se finge el stream.
+let enviados = 0;
+const getReal = axios.get;
+axios.get = async (url) => {
+  const total = Number(new URL(url).searchParams.get('n')) || 0;
+  let puesto = 0;
+  const data = new Readable({
+    read() {
+      if (puesto >= total) return this.push(null);
+      const n = Math.min(64 * 1024, total - puesto);
+      puesto += n; enviados += n;
+      this.push(Buffer.alloc(n, 1));
+    },
+  });
+  return { data, headers: {}, status: 200 };
+};
+
+const U = (n) => 'https://ejemplo.invalid/f.bin?n=' + n;
+
+(async () => {
+  const dest = path.join(dl.TEMP_DIR, 'tope_' + Date.now() + '.bin');
+  ok(dl.MAX_BYTES === 16 * MB, 'el tope por defecto son 16MB (es ' + (dl.MAX_BYTES / MB) + ')');
+
+  // ── 20 MB con tope de 16: corta, y corta DURANTE la bajada ──────────────
+  enviados = 0;
+  let e = null;
+  try { await dl.downloadUrlToFile(U(20 * MB), dest, 16 * MB); } catch (err) { e = err; }
+  ok(!!e, 'un fichero de 20MB con tope de 16 no pasa');
+  ok(e && e.demasiadoGrande === true, 'y el fallo va marcado, no solo escrito');
+  ok(e && /16MB/.test(e.message), 'el mensaje dice el tope de verdad (' + (e && e.message) + ')');
+  ok(enviados < 18 * MB, 'corta durante la bajada, no despues (viajaron ' + (enviados / MB).toFixed(1) + 'MB de 20)');
+  await fs.remove(dest).catch(() => {});
+
+  // ── Lo que cabe, pasa entero ────────────────────────────────────────────
+  await dl.downloadUrlToFile(U(2 * MB), dest, 16 * MB);
+  ok((await fs.stat(dest)).size === 2 * MB, 'un fichero de 2MB pasa entero');
+  await fs.remove(dest).catch(() => {});
+
+  // ── Justo en el borde ───────────────────────────────────────────────────
+  await dl.downloadUrlToFile(U(16 * MB), dest, 16 * MB);
+  ok((await fs.stat(dest)).size === 16 * MB, 'uno de exactamente 16MB sí pasa: el tope es «más de», no «desde»');
+  await fs.remove(dest).catch(() => {});
+
+  // ── El tope por llamada manda ───────────────────────────────────────────
+  enviados = 0; e = null;
+  try { await dl.downloadUrlToFile(U(5 * MB), dest, 1 * MB); } catch (err) { e = err; }
+  ok(!!e && /1MB/.test(e.message), 'quien llama puede poner un tope más bajo');
+  ok(enviados < 3 * MB, 'y tambien corta pronto (viajaron ' + (enviados / MB).toFixed(1) + 'MB de 5)');
+  await fs.remove(dest).catch(() => {});
+
+  // ── Sin tope explícito, el de por defecto ───────────────────────────────
+  e = null;
+  try { await dl.downloadUrlToFile(U(18 * MB), dest); } catch (err) { e = err; }
+  ok(!!e && /16MB/.test(e.message), 'sin tope explícito usa los 16MB, no los 25 de antes');
+  await fs.remove(dest).catch(() => {});
+
+  // ── Y redes las pasa TODAS ──────────────────────────────────────────────
+  const rd = require('fs').readFileSync(path.join(R, 'src/utils/redes.js'), 'utf8')
+    .split('\n').filter((l) => !/^\s*\/\//.test(l)).join('\n');
+  // Hasta el punto y coma, no hasta el primer parentesis: una de las llamadas
+  // lleva un .replace() con una expresion regular dentro, y cortando en el
+  // primer parentesis de cierre esa se quedaba fuera de la cuenta. La primera
+  // version de esta linea acusaba al codigo de un fallo que era de la linea.
+  const llamadas = rd.match(/await downloadUrlToFile\([^;]*/g) || [];
+  const sinTope = llamadas.filter((l) => !l.includes('TOPE_WHATSAPP'));
+  ok(llamadas.length >= 8 && sinTope.length === 0,
+     'las ' + llamadas.length + ' bajadas de redes van con el tope de WhatsApp' +
+     (sinTope.length ? ' - sin tope: ' + sinTope.map((x) => x.slice(0, 50)).join(' | ') : ''));
+
+  axios.get = getReal;
+  console.log('CAPA79:' + JSON.stringify(quejas));
+})().catch((e) => {
+  console.log('CAPA79:' + JSON.stringify(['la prueba de los topes revento: ' + (e && e.message)]));
+});
+`;
+
+  // ── 79. NO SE BAJA LO QUE WHATSAPP NO VA A DEJAR PASAR ─────────────────
+  //
+  // COMPROBADO CONTRA LA DOCUMENTACION, no de memoria: lo que WhatsApp acepta
+  // como media EN LINEA son 16 MB, y eso incluye el audio igual que la foto y
+  // el video. Por encima solo pasa como DOCUMENTO —hasta 2 GB— pero entonces
+  // llega como un fichero adjunto, no como una cancion que se pueda dar al play
+  // en el chat ni como un video que se vea en la burbuja.
+  //
+  // El bot tenia DOS topes y ninguno era ese:
+  //
+  //   · `downloadUrlToFile` cortaba siempre en 25 MB, que era el tope de *!play*
+  //   · *!play* rechazaba por encima de 25 MB al ir a mandar
+  //
+  // De ahi salian dos cosas. En redes, un reel de 20 MB se bajaba ENTERO
+  // —veinte megas de ancho de banda y sus segundos, con el hueco de descarga
+  // cogido— para medirlo despues, rechazarlo y devolver el aura. Y en *!play*,
+  // toda la banda de 16 a 25 MB era una promesa falsa: se cobraba, se bajaba,
+  // se subia, y el envio fallaba o llegaba roto.
+  //
+  // Ahora el tope lo pone quien llama y por defecto son los 16 de verdad.
+  //
+  // La prueba mide LO QUE VIAJA POR EL CABLE, no lo que el fichero acaba
+  // pesando: cortar al final no ahorra nada, y eso es justo lo que se arregla.
+  // Sin red y sin localhost —el guardia SSRF del propio bot bloquea 127.0.0.1,
+  // que es su trabajo— asi que el stream va fingido.
+  {
+    console.log('\n79. NO SE BAJA LO QUE WHATSAPP NO VA A DEJAR PASAR');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   \u2717 ${queja}`)); } };
+    const { execFileSync } = require('child_process');
+    const os79 = require('os');
+    const dir79 = fs.mkdtempSync(path.join(os79.tmpdir(), 'capa79-'));
+    try {
+      try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(dir79, 'node_modules'), 'dir'); } catch { /* el hijo lo dira */ }
+      fs.writeFileSync(path.join(dir79, 'p.js'), MEMORIA_CAPA_79.replace(/__RAIZ__/g, json(R)));
+      let salida = '';
+      try {
+        salida = execFileSync(process.execPath, [path.join(dir79, 'p.js')],
+          { encoding: 'utf8', timeout: 120000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (e) { salida = `${e.stdout || ''}${e.stderr || ''}`; }
+      const linea = salida.split('\n').reverse().find((l) => l.startsWith('CAPA79:'));
+      exige(!!linea, `la prueba de los topes no contestó: ${salida.slice(-400).trim()}`);
+      if (linea) {
+        let quejas = [];
+        try { quejas = JSON.parse(linea.slice('CAPA79:'.length)); } catch { quejas = ['no pude leer el resultado']; }
+        for (const q of quejas) exige(false, q);
+      }
+    } finally {
+      fs.rmSync(dir79, { recursive: true, force: true });
+    }
+
+    // Y QUE NADIE VUELVA A ESCRIBIR UN 25 AHI. El numero no sale de ningun
+    // sitio: es el que habia antes de mirar lo que WhatsApp acepta de verdad.
+    const dlSrc79 = soloCodigo('src/utils/downloader.js');
+    exige(/const MAX_BYTES = 16 \* 1024 \* 1024;/.test(dlSrc79),
+      'el tope de bajada ha vuelto a no ser 16MB: o se baja de más, o se rechaza lo que sí cabía');
+    const musSrc79 = soloCodigo('src/commands/music.js');
+    exige(!/25 \* 1024 \* 1024/.test(musSrc79) && !/25MB/.test(musSrc79),
+      '*!play* vuelve a prometer 25MB: de 16 a 25 el envío falla o llega roto');
+    const rdSrc79 = soloCodigo('src/utils/redes.js');
+    exige(/const TOPE_WHATSAPP = 16 \* 1024 \* 1024;/.test(rdSrc79),
+      'el tope de redes ya no son los 16MB que WhatsApp acepta como media en línea');
+
+    if (fallos === antes) console.log(verde('   \u2713 nada se baja por encima de lo que WhatsApp deja pasar, y se corta durante la bajada'));
   }
 
   if (BREVE) {

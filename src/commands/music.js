@@ -1,4 +1,4 @@
-const { downloadAudio } = require('../utils/downloader');
+const { downloadAudio, MAX_BYTES } = require('../utils/downloader');
 const { cleanTemp } = require('../utils/helpers');
 const { incrementStat } = require('../utils/state');
 const { getCached, setCached, listCached, clearCache } = require('../utils/musicCache');
@@ -94,6 +94,10 @@ async function cmdPlay(sock, msg, args, groupMeta) {
         'sin-cuota':     'Me he quedado sin cupo de descargas por ahora. Prueba más tarde.',
         'red':           'No pude descargar la canción: fallo de red. Intenta de nuevo.',
         'no-encontrada': 'No encontré esa canción. Prueba con otro nombre o añade el artista.',
+        // Encontrada, pero WhatsApp no la deja pasar. Decir «no la encontré»
+        // aquí manda a la persona a reescribir el nombre contra algo que no se
+        // arregla escribiendo.
+        'grande':        'Esa canción pesa más de 16MB y WhatsApp no la deja pasar como audio. Prueba con otra versión.',
       }[err.causa] || 'No pude descargar la canción en este momento. Intenta de nuevo.';
       await reembolsar();
       return sock.sendMessage(jid, { text }, { quoted: msg });
@@ -116,7 +120,7 @@ async function cmdPlay(sock, msg, args, groupMeta) {
   // estaba: no hay fichero del que leer.
   // EL SOLTAR VA EN UN `finally`, no detras de cada salida. Aqui hay tres
   // maneras de terminar —se manda, pesa demasiado, o el envio revienta— y antes
-  // solo una de ellas borraba el fichero: por el camino de «pesa mas de 25MB»
+  // solo una de ellas borraba el fichero: por el camino de «pesa demasiado»
   // se quedaba en temp/ hasta el barrido.
   let audioBuffer = null;
   let salida = null;
@@ -126,9 +130,15 @@ async function cmdPlay(sock, msg, args, groupMeta) {
       ? audioBuffer.length
       : await fs.stat(result.filePath).then((x) => x.size).catch(() => 0);
 
-    if (bytes > 25 * 1024 * 1024) {
+    // 16 MB, NO 25. Es lo que WhatsApp deja pasar como audio en linea; por
+    // encima solo va como documento, y un documento no es una cancion que se
+    // pueda dar al play en el chat. Los 25 de antes prometian una banda entera
+    // —de 16 a 25— en la que el envio fallaba o llegaba roto.
+    if (bytes > MAX_BYTES) {
       await reembolsar();
-      salida = await sock.sendMessage(jid, { text: 'La canción pesa más de 25MB y no puede enviarse.' }, { quoted: msg });
+      salida = await sock.sendMessage(jid, {
+        text: `Esa canción pesa ${(bytes / 1048576).toFixed(1)}MB y WhatsApp no deja pasar de 16MB. No te he cobrado.`,
+      }, { quoted: msg });
       return salida;
     }
 
