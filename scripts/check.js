@@ -14460,6 +14460,147 @@ const U = (n) => 'https://ejemplo.invalid/f.bin?n=' + n;
     if (fallos === antes) console.log(verde('   \u2713 nada se baja por encima de lo que WhatsApp deja pasar, y se corta durante la bajada'));
   }
 
+  const MEMORIA_CAPA_80 = String.raw`
+process.env.TIKTOK_API = 'https://api.invalid/tt?';   // para que porApi tenga via
+require('dotenv').config({ quiet: true });
+const fs = require('fs-extra');
+const path = require('path');
+const R = __RAIZ__;
+const { execFileSync } = require('child_process');
+const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+
+const D = fs.mkdtempSync(path.join(require('os').tmpdir(), 'hueco2-'));
+const clip = path.join(D, 'c.mp4');
+execFileSync(ffmpegPath, ['-hide_banner','-loglevel','error','-y','-f','lavfi','-i','testsrc=s=480x854:d=10',
+  '-f','lavfi','-i','sine=f=440:d=10','-c:v','libx264','-preset','veryfast','-crf','30','-c:a','aac','-shortest', clip]);
+
+// EL CONTADOR DE HUECOS, ANTES DE QUE redes.js LO DESESTRUCTURE.
+const rutaDl = require.resolve(path.join(R, 'src/utils/downloader'));
+const dlReal = require(rutaDl);
+let cogidos = 0, sueltas = 0, negativos = false;
+require.cache[rutaDl].exports = Object.assign({}, dlReal, {
+  acquireDownloadSlot: async () => { cogidos++; },
+  releaseDownloadSlot: () => { cogidos--; sueltas++; if (cogidos < 0) negativos = true; },
+  downloadUrlToFile: async (url, dest) => { await fs.copy(clip, dest); },
+});
+
+const axios = require('axios');
+axios.get = async (u) => {
+  if (/api\.invalid/.test(u)) return { data: { data: { hdplay: 'https://cdn.invalid/v.mp4' } } };
+  throw new Error('la prueba no sale a la red');
+};
+
+const redes = require(path.join(R, 'src/utils/redes'));
+const { ffmpegSemaphore } = require(path.join(R, 'src/utils/helpers'));
+const quejas = [];
+const ok = (c, t) => { if (!c) quejas.push(t); };
+
+// Se mira cuantos huecos hay cogidos DENTRO del trabajo de ffmpeg.
+let huecosDuranteFfmpeg = [];
+const acqReal = ffmpegSemaphore.acquire.bind(ffmpegSemaphore);
+ffmpegSemaphore.acquire = async () => { huecosDuranteFfmpeg.push(cogidos); return acqReal(); };
+
+(async () => {
+  cogidos = 0; sueltas = 0; huecosDuranteFfmpeg = [];
+  const r = await redes.traer('https://www.tiktok.com/@a/video/123', 'tiktok');
+  ok(!!r && !!r.fichero, 'traer devuelve el vídeo');
+  ok(huecosDuranteFfmpeg.length > 0, 'el video paso por ffmpeg (' + huecosDuranteFfmpeg.length + ' veces)');
+  ok(huecosDuranteFfmpeg.every((n) => n === 0),
+     'EL HUECO ESTA LIBRE mientras corre el ffmpeg (huecos cogidos: ' + huecosDuranteFfmpeg.join(',') + ')');
+  ok(cogidos === 0, 'y al terminar no queda ninguno cogido (' + cogidos + ')');
+  ok(sueltas === 1, 'soltado una sola vez (' + sueltas + ')');
+  ok(!negativos, 'nunca se devolvió un hueco que no se tenía');
+  if (r && r.fichero) await fs.remove(r.fichero).catch(() => {});
+
+  // Y fallando, el hueco vuelve igual.
+  cogidos = 0; sueltas = 0;
+  axios.get = async () => { throw new Error('API caída fingida'); };
+  let e = null;
+  try { await redes.traer('https://www.tiktok.com/@a/video/999', 'tiktok'); } catch (err) { e = err; }
+  ok(!!e, 'con la API caída, traer falla');
+  ok(cogidos === 0 && sueltas === 1, 'y el hueco vuelve una sola vez (cogidos ' + cogidos + ', sueltas ' + sueltas + ')');
+
+  ffmpegSemaphore.acquire = acqReal;
+  await fs.remove(D);
+  console.log('CAPA80:' + JSON.stringify(quejas));
+})().catch(async (e) => {
+  await fs.remove(D).catch(() => {});
+  console.log('CAPA80:' + JSON.stringify(['la prueba del hueco revento: ' + (e && e.message)]));
+});
+`;
+
+  // ── 80. EL HUECO DE DESCARGA ES PARA LA RED, NO PARA EL FFMPEG ─────────
+  //
+  // Hay DOS huecos de descarga para todo el bot y existen para que cuatro
+  // enlaces seguidos no dejen la maquina sin ancho de banda. Pero se soltaban
+  // al final del todo, y dentro quedaba el trabajo de CPU:
+  //
+  //   · `conAudioNivelado`, que mide y reencodea el audio. Medido con un clip
+  //     de 20 s: 517 ms, y eso en una maquina de CUATRO nucleos, no en la de
+  //     uno que lo corre de verdad.
+  //   · el x264 del pase de diapositivas, lo mas caro que hace el bot.
+  //
+  // Medio segundo largo de hueco ocupado sin mover un byte. Y como *!play* usa
+  // ESTOS MISMOS dos huecos, un *!tt* nivelando audio era un *!play* que ni
+  // siquiera podia empezar a bajar. Eso no se ve como «el bot va lento»: se ve
+  // como que la cancion tarda en llegar y nadie sabe por que.
+  //
+  // DONDE SE SUELTA IMPORTA. Lo tuve un rato justo despues de la bajada y
+  // estaba mal: por encima queda el camino del pase de fotos, que vuelve a
+  // bajar —las fotos del carrusel— y se habria quedado sin hueco, que es justo
+  // lo que el tope existe para evitar. Ese camino avisa por su cuenta cuando
+  // termina de bajar, y suelta ahi.
+  //
+  // Y LA MARCA NO ES UN DETALLE. Sin ella se suelta dos veces —una en el sitio
+  // nuevo y otra en el `finally`— y eso devuelve un hueco que no se tiene: el
+  // contador se va a negativo y el tope deja de ser un tope. Probado: sin la
+  // marca, la cuenta acaba en -1.
+  //
+  // Esta capa conduce un *!tt* de verdad con la API fingida y mira CUANTOS
+  // HUECOS HAY COGIDOS en el momento en que arranca el ffmpeg. Ni un viaje a
+  // la red.
+  {
+    console.log('\n80. EL HUECO DE DESCARGA ES PARA LA RED, NO PARA EL FFMPEG');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   \u2717 ${queja}`)); } };
+    const { execFileSync } = require('child_process');
+    const os80 = require('os');
+    const dir80 = fs.mkdtempSync(path.join(os80.tmpdir(), 'capa80-'));
+    try {
+      try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(dir80, 'node_modules'), 'dir'); } catch { /* el hijo lo dira */ }
+      fs.writeFileSync(path.join(dir80, 'p.js'), MEMORIA_CAPA_80.replace(/__RAIZ__/g, json(R)));
+      let salida = '';
+      try {
+        salida = execFileSync(process.execPath, [path.join(dir80, 'p.js')],
+          { encoding: 'utf8', timeout: 180000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (e) { salida = `${e.stdout || ''}${e.stderr || ''}`; }
+      const linea = salida.split('\n').reverse().find((l) => l.startsWith('CAPA80:'));
+      exige(!!linea, `la prueba del hueco no contestó: ${salida.slice(-400).trim()}`);
+      if (linea) {
+        let quejas = [];
+        try { quejas = JSON.parse(linea.slice('CAPA80:'.length)); } catch { quejas = ['no pude leer el resultado']; }
+        for (const q of quejas) exige(false, q);
+      }
+    } finally {
+      fs.rmSync(dir80, { recursive: true, force: true });
+    }
+
+    // Y EL ORDEN, que es lo que una prueba de comportamiento no ve entera: que
+    // el pase avise DESPUES de bajar sus fotos y ANTES del x264. Si avisara
+    // antes de bajarlas, bajaria sin hueco; si avisara despues del encode, no
+    // serviria de nada.
+    const rd80 = soloCodigo('src/utils/redes.js');
+    const iBajaFotos = rd80.indexOf('const bajadas = await aTandasDe(fotos, 5,');
+    const iAviso = rd80.indexOf('yaNoHaceFaltaLaRed();');
+    const iEncode = rd80.indexOf('await ffmpegSemaphore.acquire();');
+    exige(iBajaFotos > 0 && iAviso > iBajaFotos,
+      'el pase suelta el hueco ANTES de bajar sus fotos: las bajaría sin hueco, que es lo que el tope existe para evitar');
+    exige(iAviso > 0 && iEncode > iAviso,
+      'el pase suelta el hueco DESPUÉS del x264: entonces no suelta nada, que es como estaba');
+
+    if (fallos === antes) console.log(verde('   \u2713 el hueco se suelta al acabar de bajar, no al acabar el ffmpeg'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     process.exit(fallos ? 1 : 0);

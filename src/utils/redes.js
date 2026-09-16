@@ -499,7 +499,10 @@ async function aTandasDe(lista, ancho, hacer) {
   return salida;
 }
 
-async function montarPase(fotos, musicaUrl, audioYaBajado) {
+// `yaNoHaceFaltaLaRed` se llama cuando todas las bajadas han terminado y solo
+// queda el trabajo de ffmpeg. Sirve para soltar el hueco de descarga ahi: ver
+// la nota de `traer`.
+async function montarPase(fotos, musicaUrl, audioYaBajado, yaNoHaceFaltaLaRed = null) {
   if (!fotos.length) return null;
   const basura = [];
   const limpiar = async () => { for (const f of basura) await fs.remove(f).catch(() => {}); };
@@ -566,6 +569,11 @@ async function montarPase(fotos, musicaUrl, audioYaBajado) {
       return sola;
     }
 
+    // DE AQUI EN ADELANTE NO SE TOCA LA RED. Todas las fotos y la cancion
+    // estan en disco; lo que queda es un x264, que es lo mas caro de CPU que
+    // hace el bot. Quien nos llamo puede soltar su hueco de descarga.
+    if (yaNoHaceFaltaLaRed) { try { yaNoHaceFaltaLaRed(); } catch { /* que no tumbe el pase */ } }
+
     await ffmpegSemaphore.acquire();
     try {
       // El lienzo: la proporcion de la primera foto, con el lado largo a 1920
@@ -617,7 +625,7 @@ async function montarPase(fotos, musicaUrl, audioYaBajado) {
 }
 
 // ── Vía 1: la API del .env ──────────────────────────────────────────────────
-async function porApi(url, plataforma) {
+async function porApi(url, plataforma, yaNoHaceFaltaLaRed = null) {
   const API = API_DE[plataforma];
   if (!API) return null;
   const destino = API.includes('{url}')
@@ -2246,7 +2254,7 @@ async function porFotosSueltas(url) {
 
 // Devuelve el pase ya montado, o null si ahi no habia fotos tampoco.
 // `cancion` es el fichero de audio que ya se hubiera bajado, si lo hay.
-async function porYtDlpFotos(url, cancion = null) {
+async function porYtDlpFotos(url, cancion = null, yaNoHaceFaltaLaRed = null) {
   let crudo = null;
   try {
     crudo = await ytdlp(['-J', '--no-warnings', '--ignore-no-formats-error', url], 60000);
@@ -2259,7 +2267,7 @@ async function porYtDlpFotos(url, cancion = null) {
   const fotos = fotosDeFicha(ficha);
   if (!fotos.length) return null;
   logger.info(`redes: no era un vídeo, son ${fotos.length} foto(s); monto el pase`);
-  return montarPase(fotos, null, cancion);
+  return montarPase(fotos, null, cancion, yaNoHaceFaltaLaRed);
 }
 
 async function porYtDlp(url, plataforma) {
@@ -2309,7 +2317,7 @@ async function porYtDlp(url, plataforma) {
     // `traer` lo recoge y baja las fotos sueltas, que es lo que hay que mandar.
     // Sin esta linea el rescate de `traer` no llega a ejecutarse nunca.
     if (esSinVideo(ultimo.message) && !PLATAFORMAS[plataforma]?.puedeSerFoto) {
-      const pase = await porYtDlpFotos(url);
+      const pase = await porYtDlpFotos(url, null, soltarHueco);
       if (pase) return pase;
     }
     throw ultimo;
@@ -2341,11 +2349,37 @@ async function porYtDlp(url, plataforma) {
 // dejen la máquina sin ancho de banda ni RAM.
 async function traer(url, plataforma) {
   await acquireDownloadSlot();
+
+  // ─── EL HUECO ES PARA LA RED, NO PARA EL FFMPEG ────────────────────────
+  //
+  // Hay DOS huecos de descarga para todo el bot, y existen para que cuatro
+  // enlaces seguidos no dejen la maquina sin ancho de banda. Pero se soltaban
+  // al final del todo, y por el camino quedaba dentro el trabajo de CPU:
+  //
+  //   · `conAudioNivelado`, que mide y reencodea el audio. Medido con un clip
+  //     de 20 s: 517 ms — y eso en una maquina de CUATRO nucleos, no en la de
+  //     uno que lo va a correr de verdad.
+  //   · el x264 del pase de diapositivas, que es lo mas caro que hace el bot.
+  //
+  // Medio segundo largo de hueco ocupado sin mover un byte. Y como *!play* usa
+  // ESTOS MISMOS dos huecos, un *!tt* nivelando audio era un *!play* que ni
+  // siquiera podia empezar a bajar.
+  //
+  // Asi que se suelta en cuanto los bytes estan en disco. Lo que viene despues
+  // no toca la red; y lo que si la toca —el pase, que baja sus propias fotos—
+  // avisa por `yaNoHaceFaltaLaRed` cuando termina de bajarlas, y suelta ahi.
+  //
+  // La marca no es un detalle: soltar dos veces devolveria un hueco que no se
+  // tiene y el tope dejaria de ser un tope. El `finally` sigue puesto como red
+  // de seguridad para las salidas por error.
+  let hueco = true;
+  const soltarHueco = () => { if (hueco) { hueco = false; releaseDownloadSlot(); } };
+
   let fichero = null;
   try {
     let fallaApi = null;
     try {
-      fichero = await porApi(url, plataforma);
+      fichero = await porApi(url, plataforma, soltarHueco);
       if (!fichero && API_DE[plataforma]) fallaApi = 'la API no devolvió ningún enlace';
     } catch (e) {
       fallaApi = e.message;
@@ -2439,7 +2473,7 @@ async function traer(url, plataforma) {
         // la verdad y deja al que pego el enlace sin su publicacion. Se le
         // vuelve a preguntar por las fotos, y la cancion ya bajada es la del
         // pase: no se pide dos veces.
-        const pase = await porYtDlpFotos(url, medio.audio ? fichero : null);
+        const pase = await porYtDlpFotos(url, medio.audio ? fichero : null, soltarHueco);
         if (pase) {
           await fs.remove(fichero).catch(() => {});
           fichero = pase;
@@ -2481,6 +2515,17 @@ async function traer(url, plataforma) {
       // para no tocar nada.
       if (animado) return { fichero, tipo, ext, bytes: size, animado: true };
 
+      // AQUI SE SUELTA, Y NO ANTES. Lo tuve un rato justo despues de la bajada
+      // y estaba mal: por encima queda el camino del pase de fotos, que vuelve
+      // a bajar —las fotos del carrusel— y se habria quedado sin hueco, que es
+      // justo lo que el tope existe para evitar. Ese camino trae su propio
+      // aviso y suelta cuando termina de bajar.
+      //
+      // De esta linea en adelante no se toca la red: `conAudioNivelado` mide y
+      // reencodea un fichero que ya esta en disco. Medio segundo largo en el
+      // que el hueco ya no hace falta y otro comando si lo necesita.
+      soltarHueco();
+
       const nivelado = await conAudioNivelado(fichero);
       if (nivelado !== fichero) {
         fichero = nivelado;
@@ -2495,7 +2540,9 @@ async function traer(url, plataforma) {
     apuntarFallo(plataforma, e.message);
     throw e;
   } finally {
-    releaseDownloadSlot();
+    // Red de seguridad: si se sale por error antes de llegar a donde se suelta,
+    // el hueco vuelve igual. La marca impide que se devuelva dos veces.
+    soltarHueco();
   }
 }
 
