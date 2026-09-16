@@ -1592,7 +1592,6 @@ async function buscarVarios(texto, clave, pinesDados = null, cuantos = 1) {
   const consulta = String(texto || '').replace(/\s+/g, ' ').trim().slice(0, LARGO_BUSQUEDA);
   if (!consulta) throw new Error('dime qué buscar');
   await acquireDownloadSlot();
-  let fichero = null;
   // Fuera del try A PROPOSITO: si algo revienta a mitad de la tanda, el catch
   // tiene que poder borrar lo que ya se bajo. Declarado dentro, el catch no lo
   // ve —es otro bloque— y esos ficheros se quedaban en temp/ hasta el barrido.
@@ -1647,38 +1646,84 @@ async function buscarVarios(texto, clave, pinesDados = null, cuantos = 1) {
     const intentados = new Set();
     let ultimo = null;
     const tope = INTENTOS_PIN + Math.max(0, cuantos - 1) * 2;
-    for (let n = 0; n < tope && medios.length < cuantos; n++) {
-      const pin = siguientePin(pines, clave, { reciclar: n === 0 });
-      if (!pin || intentados.has(pin.huella)) break;
-      intentados.add(pin.huella);
-      marcarVisto(clave, pin.huella);
+
+    // ─── UNA PIN ENTERA, DE PRINCIPIO A FIN ──────────────────────────────
+    //
+    // Cada pin trae varios candidatos —la misma foto en varios tamaños— y esos
+    // SI van en fila: son la misma foto, y en cuanto una baja las demas sobran.
+    // Lo que no tenia por que ir en fila son las pins entre si.
+    //
+    // No lanza nunca: una pin que no baja es un `null`, no un roto. Asi la
+    // tanda entera siempre termina y no se queda ningun fichero a medias por
+    // ahi cuando otra falla.
+    const bajarPin = async (pin, i) => {
       for (const url of pin.candidatos) {
         const ext = extensionDe(url) || 'jpg';
-        fichero = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`);
+        // EL NUMERO DE LA TANDA, NO LA HUELLA. La huella de una pin es su ruta
+        // —con sus barras y sus dos puntos— y metida en el nombre del fichero
+        // apunta a carpetas que no existen. Aqui solo hace falta que dos
+        // bajadas de la misma tanda no se llamen igual.
+        const suyo = path.join(TEMP_DIR, `red_${Date.now()}_${i}_${Math.random().toString(36).slice(2)}.${ext}`);
         try {
-          await downloadUrlToFile(url, fichero);
-          const { size } = await fs.stat(fichero);
+          await downloadUrlToFile(url, suyo);
+          const { size } = await fs.stat(suyo);
           if (size < 2048) throw new Error('llegó una miniatura');
           if (size > TOPE_WHATSAPP) throw new Error('pesa demasiado');
           // Que sea una foto DE VERDAD y no una pagina de error con nombre de
           // jpg: es la misma comprobacion que se le hace a los vídeos.
-          const medio = await analizarMedio(fichero);
+          const medio = await analizarMedio(suyo);
           if (!medio.probado || !ESTATICOS.has(medio.video)) throw new Error('no es una imagen');
-          medios.push({ fichero, tipo: 'imagen', ext, bytes: size });
-          fichero = null;   // ya es de `medios`: el catch de fuera no debe borrarlo
-          break;            // esta pin ya dio foto; a por la siguiente
+          return { fichero: suyo, tipo: 'imagen', ext, bytes: size };
         } catch (e) {
           ultimo = e;
-          await fs.remove(fichero).catch(() => {});
-          fichero = null;
+          await fs.remove(suyo).catch(() => {});
         }
+      }
+      return null;
+    };
+
+    // ─── LAS CINCO A LA VEZ, POR TANDAS, Y EN EL ORDEN DEL BUSCADOR ──────
+    //
+    // Cinco fotos eran cinco viajes al CDN puestos uno detras de otro. Medido
+    // con 250 ms de latencia por foto: 1317 ms para cinco, 264 ms para una.
+    // O sea que *!pin* de cinco costaba cinco veces lo que uno, y no porque
+    // hubiera que pensar nada entre foto y foto.
+    //
+    // Por tandas y no todas de golpe porque no todas bajan —miniaturas,
+    // paginas de error con nombre de jpg— y hay un presupuesto de intentos:
+    // se piden las que faltan, se mira cuantas cayeron, y si faltan se pide
+    // otra tanda mientras quede presupuesto. En el caso normal es UNA tanda.
+    //
+    // EL ORDEN ES EL DEL BUSCADOR, y aqui eso importa mas que en ningun otro
+    // sitio: `ordenarPines` ya las ha puesto de mas a menos concreta, asi que
+    // la primera es la que mejor responde a lo que se pidio. `Promise.all`
+    // devuelve en el orden del mapa y las tandas se van pegando detras, asi
+    // que lo que sale es la lista ordenada, no el orden en que contesto el CDN.
+    //
+    // `siguientePin` y `marcarVisto` se llaman al ARMAR la tanda, uno detras de
+    // otro como siempre: son los que hacen que *!next* sea el siguiente y no
+    // otro al azar, y eso no se puede hacer a la vez sin barajar la cuenta.
+    let gastados = 0;
+    while (medios.length < cuantos && gastados < tope) {
+      const tanda = [];
+      while (tanda.length < cuantos - medios.length && gastados < tope) {
+        const pin = siguientePin(pines, clave, { reciclar: gastados === 0 });
+        if (!pin || intentados.has(pin.huella)) break;
+        intentados.add(pin.huella);
+        marcarVisto(clave, pin.huella);
+        tanda.push(pin);
+        gastados++;
+      }
+      if (!tanda.length) break;
+      for (const salida of await Promise.all(tanda.map(bajarPin))) {
+        if (salida) medios.push(salida);
       }
     }
     if (medios.length) return { medios, pines };
     throw new Error(`encontré pines pero no pude bajar ninguno (${ultimo?.message || 'sin motivo'})`);
   } catch (e) {
-    if (fichero) await fs.remove(fichero).catch(() => {});
-    // Lo ya bajado en esta tanda tambien se tira: nadie lo va a mandar.
+    // Lo a medias lo borra cada pin en su propio catch; aqui solo queda lo que
+    // SI bajo, y tambien se tira: nadie lo va a mandar.
     for (const m of medios) await fs.remove(m.fichero).catch(() => {});
     apuntarFallo('pinterest', e.message);
     throw e;

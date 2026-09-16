@@ -13422,7 +13422,14 @@ require.cache[rutaDl].exports = Object.assign({}, dlReal, {
     await new Promise((r) => setTimeout(r, TARDA[url] == null ? 40 : TARDA[url]));
     enVuelo--;
     if (MARCA[url] == null) throw new Error('url sin marca: ' + url);
-    await fs.outputFile(dest, Buffer.alloc(8192, MARCA[url]));
+    // fs.outputFile crea las carpetas que falten; downloadUrlToFile no, que
+    // escribe con createWriteStream. Si el stub es mas permisivo que el de
+    // verdad, un nombre de fichero imposible pasa la prueba y revienta en el
+    // VPS. Ver la nota de la capa 76.
+    if (!fs.existsSync(path.dirname(dest))) {
+      throw new Error('ENOENT fingido: el nombre del fichero lleva carpetas que no existen (' + dest + ')');
+    }
+    await fs.promises.writeFile(dest, Buffer.alloc(8192, MARCA[url]));
   },
   ytdlp: async () => JSON.stringify({ entries: SUELTAS.map((u) => ({ url: u, ext: 'jpg', thumbnails: [{ url: u }] })) }),
 });
@@ -13621,6 +13628,212 @@ const limpiar = async (ms) => { for (const m of (ms || [])) await fs.remove(m.fi
       'el nombre del fichero ya no lleva el numero: dos bajadas simultaneas dependen del azar para no pisarse');
 
     if (fallos === antes) console.log(verde('   \u2713 un post sale entero, a la vez y en el orden de quien lo publicó'));
+  }
+
+  const MEMORIA_CAPA_76 = String.raw`
+'use strict';
+require('dotenv').config({ quiet: true });
+const path = require('path');
+const fs = require('fs-extra');
+const os = require('os');
+const { execFileSync } = require('child_process');
+const R = __RAIZ__;
+const quejas = [];
+const exige = (c, q) => { if (!c) quejas.push(q); };
+
+// Por src/utils/ffmpeg.js y NO por @ffmpeg-installer a pelo: el despliegue
+// borra ese paquete en las maquinas que traen su propio ffmpeg, y una capa que
+// lo pida directamente se muere solo en el VPS. Lo dice la capa 68.
+const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+
+const DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'capa76-fotos-'));
+// UNA FOTO DE VERDAD POR PIN, cada una de un ancho distinto, que es como se
+// sabe luego cual es cual. Con ruido encima y no un color liso: un color liso
+// comprime por debajo de 2 KB y esa via lo descarta como miniatura, con razon.
+const foto = (n) => {
+  const f = path.join(DIR, 'pin' + n + '.jpg');
+  if (!fs.existsSync(f)) {
+    execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi',
+      '-i', 'nullsrc=s=' + (300 + n * 10) + 'x300', '-vf', 'geq=random(1)*255:128:128',
+      '-frames:v', '1', f]);
+  }
+  return f;
+};
+
+// EL ESPIA VA PRIMERO: redes.js desestructura downloadUrlToFile al requerirse.
+const rutaDl = require.resolve(path.join(R, 'src/utils/downloader'));
+const dlReal = require(rutaDl);
+let pico = 0, enVuelo = 0, bajadas = 0;
+let CAEN = new Set();
+require.cache[rutaDl].exports = Object.assign({}, dlReal, {
+  downloadUrlToFile: async (url, dest) => {
+    const n = Number(/p(\d+)\.jpg/.exec(url)[1]);
+    bajadas++;
+    if (CAEN.has(n)) throw new Error('caida fingida');
+    enVuelo++; if (enVuelo > pico) pico = enVuelo;
+    // La ULTIMA en pedirse es la que MENOS tarda: si el orden saliera por
+    // llegada en vez de por puesto, saldria la primera y se notaria.
+    await new Promise((r) => setTimeout(r, Math.max(8, 120 - n * 10)));
+    enVuelo--;
+    // COMO EL DE VERDAD, QUE ES LO UNICO QUE VALE. downloadUrlToFile escribe
+    // con createWriteStream, y eso NO crea las carpetas que falten: si el
+    // nombre lleva barras dentro, revienta con ENOENT. fs.copy de fs-extra SI
+    // las crea, asi que con el puesto esta prueba se tragaba un nombre
+    // imposible sin rechistar — me paso, y lo cazaron las capas 56 y 66.
+    if (!fs.existsSync(path.dirname(dest))) {
+      throw new Error('ENOENT fingido: el nombre del fichero lleva carpetas que no existen (' + dest + ')');
+    }
+    await fs.promises.copyFile(foto(n), dest);
+  },
+});
+
+const redes = require(path.join(R, 'src/utils/redes'));
+
+// Ni un viaje a Pinterest: las pins se le dan hechas, que es para lo que
+// buscarVarios acepta pinesDados.
+const PINES = Array.from({ length: 30 }, (_, i) => ({
+  // LA HUELLA DE UNA PIN ES SU RUTA, con sus barras y sus dos puntos, no un
+  // nombre limpio. Escribiendo esto puse huellas tipo 'p0' y por eso no vi que
+  // el nombre del fichero se estaba montando con la huella dentro: apuntaba a
+  // carpetas que no existen y reventaba con ENOENT en el VPS. Lo cazaron las
+  // capas 56 y 66, no esta. Van como son de verdad.
+  huella: '/originals/aa/bb/p' + i + '.jpg',
+  candidatos: ['https://i.pinimg.com/originals/p' + i + '.jpg'],
+  titulo: 'foto ' + i, alt: 'foto ' + i, pos: i,
+}));
+
+const cuales = async (medios) => {
+  const out = [];
+  for (const m of medios) out.push((await redes._analizarMedio(m.fichero)).ancho / 10 - 30);
+  return out;
+};
+const limpia = async (ms) => { for (const m of (ms || [])) await fs.remove(m.fichero).catch(() => {}); };
+
+(async () => {
+  // ── 1. CINCO LIMPIAS: LAS CINCO MEJORES Y EN EL ORDEN DEL BUSCADOR ─────
+  redes._olvidarVistos(); CAEN = new Set(); pico = 0; bajadas = 0;
+  let r = await redes.buscarVarios('lo que sea', 'c76a', PINES, 5);
+  let q = await cuales(r.medios);
+  exige(r.medios.length === 5, 'un *!pin* de cinco con todo bien da ' + r.medios.length + ' y no 5');
+  exige(q.join(',') === '0,1,2,3,4',
+    'las fotos salen como ' + q.join(',') + ' y no en el orden del buscador: ' +
+    'ordenarPines ya las puso de mas a menos concreta, asi que la primera es la que mejor responde a lo que se pidio');
+  exige(pico === 5, 'las cinco fotos se bajan de una en una (pico de ' + pico + ' a la vez): ' +
+    'cinco viajes seguidos al CDN son cinco veces la espera delante de cada *!pin*');
+  await limpia(r.medios);
+
+  // ── 2. SI ALGUNAS SE CAEN, SE RELLENA Y NO SE DESCOLOCA ────────────────
+  redes._olvidarVistos(); CAEN = new Set([1, 3]); pico = 0; bajadas = 0;
+  r = await redes.buscarVarios('lo que sea', 'c76b', PINES, 5);
+  q = await cuales(r.medios);
+  exige(r.medios.length === 5, 'con dos pins caidas el *!pin* da ' + r.medios.length + ' y no 5: ' +
+    'no esta pidiendo una segunda tanda para rellenar');
+  exige(q.join(',') === '0,2,4,5,6',
+    'rellenando tras una caida las fotos salen como ' + q.join(',') + ': hay un hueco o se descolocan');
+  await limpia(r.medios);
+
+  // ── 3. SI NO BAJA NINGUNA, SE QUEJA Y NO SE COME EL PRESUPUESTO ────────
+  redes._olvidarVistos(); CAEN = new Set(Array.from({ length: 30 }, (_, i) => i)); bajadas = 0;
+  let revento = null;
+  try { await redes.buscarVarios('lo que sea', 'c76c', PINES, 5); } catch (e) { revento = e.message; }
+  exige(!!revento, 'si no baja ninguna pin el *!pin* no avisa: se queda callado');
+  // El tope es 6 + (5-1)*2 = 14, y hay 30 pins puestas a proposito para que lo
+  // que pare sea el presupuesto y no que se acaben.
+  exige(bajadas <= 14, 'el *!pin* probo ' + bajadas + ' pins con un tope de 14: ' +
+    'se salta el presupuesto de intentos y deja la plaza de descarga cogida de mas');
+
+  // ── 4. *!next* SIGUE SIENDO EL SIGUIENTE, NO OTRO AL AZAR ──────────────
+  redes._olvidarVistos(); CAEN = new Set();
+  r = await redes.buscarVarios('lo que sea', 'c76d', PINES, 5);
+  const primeras = await cuales(r.medios); await limpia(r.medios);
+  const r2 = await redes.buscarVarios('lo que sea', 'c76d', PINES, 5);
+  const segundas = await cuales(r2.medios); await limpia(r2.medios);
+  exige(segundas.join(',') === '5,6,7,8,9',
+    'la segunda tanda sale ' + primeras.join(',') + ' -> ' + segundas.join(',') + ': ' +
+    'las vistas no se estan apuntando al armar la tanda y *!next* repite');
+
+  // ── 5. EL *!pin* DE UNA SOLA NO SE HA MOVIDO ───────────────────────────
+  redes._olvidarVistos(); CAEN = new Set();
+  const uno = await redes.buscar('lo que sea', 'c76e', PINES);
+  exige(!!(uno && uno.fichero), 'el *!pin* de una ya no devuelve su objeto plano: rompe a quien lo llamaba');
+  if (uno && uno.fichero) {
+    const cual = (await cuales([uno]))[0];
+    exige(cual === 0, 'el *!pin* de una devuelve la numero ' + cual + ' y no la primera del buscador');
+    await limpia([uno]);
+  }
+
+  fs.rmSync(DIR, { recursive: true, force: true });
+  console.log('CAPA76:' + JSON.stringify(quejas));
+})().catch((e) => {
+  try { fs.rmSync(DIR, { recursive: true, force: true }); } catch (x) { /* da igual */ }
+  console.log('CAPA76:' + JSON.stringify(['la prueba del *!pin* revento: ' + (e && e.message)]));
+});
+`;
+
+  // ── 76. *!pin* TRAE SUS CINCO A LA VEZ Y POR ORDEN DE ACIERTO ──────────
+  //
+  // Mismo problema que la capa 75 y en el comando que mas se usa. *!pin* de
+  // cinco eran cinco viajes al CDN puestos uno detras de otro. Medido con
+  // 250 ms de latencia por foto: 1317 ms para cinco, 264 ms para una — o sea
+  // que pedir cinco costaba cinco veces lo que pedir una, y no porque hubiera
+  // nada que pensar entre foto y foto.
+  //
+  // Aqui el ORDEN importa mas que en ningun otro sitio del bot. `ordenarPines`
+  // ya las ha puesto de mas a menos concreta respecto a lo que se pidio, asi
+  // que la primera es LA RESPUESTA y las de detras son el «por si acaso». Si
+  // salen en el orden en que contesto el CDN, *!pin* deja de estar ordenado por
+  // acierto y pasa a estarlo por suerte. Eso es justo lo que el dueño ya se
+  // quejo una vez: «el buscador es una porqueria».
+  //
+  // Y hay tres cosas mas que la tanda no puede romper por ir en paralelo:
+  //
+  //   · EL PRESUPUESTO. No todas las pins bajan —miniaturas, paginas de error
+  //     con nombre de jpg— y por eso se intentan mas de las que se piden, pero
+  //     con un tope. Sin tope, un *!pin* de una busqueda mala se recorre la
+  //     lista entera con la plaza de descarga cogida.
+  //   · EL RELLENO. Si de las cinco caen dos, hay que pedir otra tanda con las
+  //     siguientes, no devolver tres.
+  //   · *!next*. Las vistas se apuntan al ARMAR la tanda, una detras de otra,
+  //     que es lo que hace que la siguiente vez salgan las siguientes y no las
+  //     mismas.
+  //
+  // Las pins van dadas y las fotos las pinta ffmpeg aqui mismo: ni un viaje a
+  // Pinterest. Cada foto tiene un ancho distinto y por ahi se sabe cual es
+  // cual cuando sale; la ultima en pedirse es la que menos tarda, asi que un
+  // orden por llegada se ve a simple vista.
+  {
+    console.log('\n76. *!pin* TRAE SUS CINCO A LA VEZ Y POR ORDEN DE ACIERTO');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   \u2717 ${queja}`)); } };
+    const { execFileSync } = require('child_process');
+    const os76 = require('os');
+    const dir76 = fs.mkdtempSync(path.join(os76.tmpdir(), 'capa76-'));
+    try {
+      try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(dir76, 'node_modules'), 'dir'); } catch { /* el hijo lo dira */ }
+      fs.writeFileSync(path.join(dir76, 'p.js'), MEMORIA_CAPA_76.replace(/__RAIZ__/g, json(R)));
+      let salida = '';
+      try {
+        salida = execFileSync(process.execPath, [path.join(dir76, 'p.js')],
+          { encoding: 'utf8', timeout: 180000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (e) { salida = `${e.stdout || ''}${e.stderr || ''}`; }
+      const linea = salida.split('\n').reverse().find((l) => l.startsWith('CAPA76:'));
+      exige(!!linea, `la prueba del *!pin* no contestó: ${salida.slice(-400).trim()}`);
+      if (linea) {
+        let quejas = [];
+        try { quejas = JSON.parse(linea.slice('CAPA76:'.length)); } catch { quejas = ['no pude leer el resultado']; }
+        for (const q of quejas) exige(false, q);
+      }
+    } finally {
+      fs.rmSync(dir76, { recursive: true, force: true });
+    }
+
+    const rd76 = soloCodigo('src/utils/redes.js');
+    exige(/await Promise\.all\(tanda\.map\(bajarPin\)\)/.test(rd76),
+      'las cinco fotos del *!pin* han vuelto a bajarse de una en una');
+    exige(/gastados < tope/.test(rd76),
+      'el *!pin* ha perdido el tope de intentos: una busqueda mala se recorre la lista entera');
+
+    if (fallos === antes) console.log(verde('   \u2713 las cinco bajan a la vez, salen por orden de acierto y *!next* sigue siendo el siguiente'));
   }
 
   if (BREVE) {
