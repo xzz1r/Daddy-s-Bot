@@ -13741,6 +13741,22 @@ const exige = (c, q) => { if (!c) quejas.push(q); };
 const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
 
 const DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'capa76-fotos-'));
+// Un GIF DE VERDAD. Los bordes no lo reconocen a proposito —solo saben de JPEG
+// y PNG— asi que tiene que acabar en ffmpeg, que es quien sabe que un gif no es
+// una foto estatica. Sin este caso, hacer que los bordes dieran por buena
+// cualquier cosa desconocida pasaba la prueba sin que nadie se enterara.
+const gifDe = (n) => {
+  const f = path.join(DIR, 'anim' + n + '.gif');
+  if (!fs.existsSync(f)) {
+    execFileSync(ffmpegPath, ['-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi',
+      // DEL MISMO ANCHO QUE LA FOTO QUE SUSTITUYE (300 + n*10): asi, si sale,
+      // se sabe CUAL salio. La primera version lo pinto de 120x120 y entonces
+      // preguntar si habia salido la numero 1 daba que no aunque hubiera salido:
+      // la mutacion sobrevivia por culpa de la prueba, no del codigo.
+      '-i', 'testsrc=s=' + (300 + n * 10) + 'x300:d=1', '-frames:v', '8', f]);
+  }
+  return f;
+};
 // UNA FOTO DE VERDAD POR PIN, cada una de un ancho distinto, que es como se
 // sabe luego cual es cual. Con ruido encima y no un color liso: un color liso
 // comprime por debajo de 2 KB y esa via lo descarta como miniatura, con razon.
@@ -13759,6 +13775,8 @@ const rutaDl = require.resolve(path.join(R, 'src/utils/downloader'));
 const dlReal = require(rutaDl);
 let pico = 0, enVuelo = 0, bajadas = 0;
 let CAEN = new Set();
+let CORTAR = new Set();
+let ANIMADAS = new Set();
 require.cache[rutaDl].exports = Object.assign({}, dlReal, {
   downloadUrlToFile: async (url, dest) => {
     const n = Number(/p(\d+)\.jpg/.exec(url)[1]);
@@ -13777,7 +13795,12 @@ require.cache[rutaDl].exports = Object.assign({}, dlReal, {
     if (!fs.existsSync(path.dirname(dest))) {
       throw new Error('ENOENT fingido: el nombre del fichero lleva carpetas que no existen (' + dest + ')');
     }
-    await fs.promises.copyFile(foto(n), dest);
+    await fs.promises.copyFile(ANIMADAS.has(n) ? gifDe(n) : foto(n), dest);
+    // Una foto que llega A MEDIAS, como cuando el CDN corta a mitad.
+    if (CORTAR.has(n)) {
+      const b = await fs.readFile(dest);
+      await fs.writeFile(dest, b.subarray(0, Math.floor(b.length * 0.4)));
+    }
   },
 });
 
@@ -13856,6 +13879,47 @@ const limpia = async (ms) => { for (const m of (ms || [])) await fs.remove(m.fic
     await limpia([uno]);
   }
 
+
+  // ── 6. UNA FOTO QUE LLEGA A MEDIAS YA NO PASA ──────────────────────────
+  //
+  // Comprobar que una pin es una foto costaba un ffmpeg por foto, y encima ESA
+  // COMPROBACION NO COMPROBABA LO QUE PARECIA: analizarMedio lanza ffmpeg con
+  // -t 0, lee la cabecera y para. Probado a cuatro cortes distintos —20%, 40%,
+  // 80% y 99%— y los da TODOS por buenos, porque la cabecera esta perfecta.
+  // Eso es lo que llega cuando el CDN corta a mitad, y el grupo lo ve como
+  // media foto gris.
+  //
+  // Los bordes si lo dicen: un JPEG entero acaba en FF D9. Aqui se baja una
+  // cortada a proposito y tiene que caer.
+  CAEN = new Set();
+  CORTAR = new Set([1]);
+  redes._olvidarVistos();
+  const conCortada = await redes.buscarVarios('lo que sea', 'c76f', PINES, 3);
+  const cuales3 = await cuales(conCortada.medios);
+  exige(conCortada.medios.length === 3,
+    'con una foto que llega a medias el *!pin* da ' + conCortada.medios.length + ' y no 3');
+  exige(!cuales3.includes(1),
+    'la foto que llego a medias ha salido igual (' + cuales3.join(',') + '): el grupo la ve gris a mitad');
+  await limpia(conCortada.medios);
+  CORTAR = new Set();
+
+  // ── 7. UN GIF NO ES UNA FOTO, Y LOS BORDES NO LO SABEN ─────────────────
+  //
+  // Los bordes solo reconocen JPEG y PNG; cualquier otra cosa tiene que acabar
+  // en ffmpeg, que es quien sabe decir que un gif no es una foto estatica. Si
+  // los bordes se pusieran a dar por bueno lo que no reconocen, un gif saldria
+  // en el album como si fuera una foto.
+  ANIMADAS = new Set([1]);
+  redes._olvidarVistos();
+  const conGif = await redes.buscarVarios('lo que sea', 'c76g', PINES, 3);
+  const cuales4 = await cuales(conGif.medios);
+  exige(conGif.medios.length === 3,
+    'con una pin animada el *!pin* da ' + conGif.medios.length + ' y no 3');
+  exige(!cuales4.includes(1),
+    'un gif ha salido como foto (' + cuales4.join(',') + '): lo que los bordes no reconocen tiene que ir a ffmpeg');
+  await limpia(conGif.medios);
+  ANIMADAS = new Set();
+
   fs.rmSync(DIR, { recursive: true, force: true });
   console.log('CAPA76:' + JSON.stringify(quejas));
 })().catch((e) => {
@@ -13927,7 +13991,7 @@ const limpia = async (ms) => { for (const m of (ms || [])) await fs.remove(m.fic
     exige(/gastados < tope/.test(rd76),
       'el *!pin* ha perdido el tope de intentos: una busqueda mala se recorre la lista entera');
 
-    if (fallos === antes) console.log(verde('   \u2713 las cinco bajan a la vez, salen por orden de acierto y *!next* sigue siendo el siguiente'));
+    if (fallos === antes) console.log(verde('   \u2713 las cinco bajan a la vez, salen por orden de acierto, y lo roto o animado no pasa'));
   }
 
   const MEMORIA_CAPA_77 = String.raw`

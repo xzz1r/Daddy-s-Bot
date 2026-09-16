@@ -58,6 +58,7 @@
 // agua, y solo si no queda ninguno cae al mejor a secas.
 
 const fs = require('fs-extra');
+const fsp = require('fs').promises;
 const path = require('path');
 const axios = require('axios');
 // Arma el freno de salidas (ver src/utils/redSegura.js): sin esto, una URL
@@ -255,6 +256,53 @@ const esEnlaceDeImagen = (u) => esImagen(extensionDe(u));
 // de «Video:» que un vídeo de verdad, y por eso hay que nombrarlos: sin esta
 // lista, un JPEG bajado con nombre de .mp4 pasa por vídeo.
 const ESTATICOS = new Set(['mjpeg', 'png', 'webp', 'bmp', 'tiff']);
+
+// ─── UNA FOTO ENTERA SE RECONOCE POR LOS BORDES, SIN LLAMAR A FFMPEG ────────
+//
+// Comprobar que una pin es una foto costaba UN FFMPEG POR FOTO. Medido en esta
+// maquina con fotos de medio mega: 13 ms cada una, 65 ms las cinco de un *!pin*
+// puestas en fila. Y desde que las cinco se bajan a la vez, son cinco procesos
+// naciendo a la vez en un nucleo.
+//
+// Pero lo importante no es el tiempo. Es que ESA COMPROBACION NO COMPRUEBA LO
+// QUE PARECE. `analizarMedio` lanza ffmpeg con `-t 0`, o sea que lee la
+// cabecera y para. Probado: un JPEG CORTADO AL 40% lo da por bueno, porque su
+// cabecera esta perfecta. Eso es justo lo que llega cuando el CDN corta a
+// mitad, y es lo que el grupo ve como media foto gris.
+//
+// Los bordes si lo dicen. Un JPEG entero acaba en FF D9 y un PNG entero acaba
+// en su trozo IEND; una descarga cortada no tiene ese final. Son dos lecturas
+// de unos pocos bytes: 0,6 ms en vez de 13.
+//
+// Lo que NO reconoce —webp, gif, cualquier otra cosa— se manda a ffmpeg como
+// siempre. Ahi no se gana nada y se perderia criterio: un gif tiene que seguir
+// cayendo, y quien sabe decir que un webp es estatico es ffmpeg.
+async function fotoEnteraPorBordes(fichero) {
+  let fh = null;
+  try {
+    fh = await fsp.open(fichero, 'r');
+    const { size } = await fh.stat();
+    if (size < 32) return null;
+    const cabeza = Buffer.alloc(8);
+    await fh.read(cabeza, 0, 8, 0);
+    const cola = Buffer.alloc(12);
+    await fh.read(cola, 0, 12, size - 12);
+
+    // JPEG: empieza por FF D8 y termina por FF D9.
+    if (cabeza[0] === 0xFF && cabeza[1] === 0xD8) {
+      return (cola[10] === 0xFF && cola[11] === 0xD9) ? 'jpg' : 'cortada';
+    }
+    // PNG: firma de 8 bytes y trozo final IEND.
+    if (cabeza[0] === 0x89 && cabeza[1] === 0x50 && cabeza[2] === 0x4E && cabeza[3] === 0x47) {
+      return cola.subarray(4, 8).toString('latin1') === 'IEND' ? 'png' : 'cortada';
+    }
+    return null;   // otra cosa: que lo mire ffmpeg
+  } catch {
+    return null;   // si no se puede ni abrir, que lo diga ffmpeg
+  } finally {
+    if (fh) await fh.close().catch(() => {});
+  }
+}
 
 // ─── LAS PUBLICACIONES DE FOTOS: UN PASE DE IMÁGENES CON SU CANCIÓN ─────────
 //
@@ -1708,9 +1756,14 @@ async function buscarVarios(texto, clave, pinesDados = null, cuantos = 1) {
           if (size < 2048) throw new Error('llegó una miniatura');
           if (size > TOPE_WHATSAPP) throw new Error('pesa demasiado');
           // Que sea una foto DE VERDAD y no una pagina de error con nombre de
-          // jpg: es la misma comprobacion que se le hace a los vídeos.
-          const medio = await analizarMedio(suyo);
-          if (!medio.probado || !ESTATICOS.has(medio.video)) throw new Error('no es una imagen');
+          // jpg. Por los bordes si se puede decidir —y de paso caza la cortada
+          // a medias, que ffmpeg da por buena—; si no, que lo mire ffmpeg.
+          const porBordes = await fotoEnteraPorBordes(suyo);
+          if (porBordes === 'cortada') throw new Error('llegó a medias');
+          if (porBordes === null) {
+            const medio = await analizarMedio(suyo);
+            if (!medio.probado || !ESTATICOS.has(medio.video)) throw new Error('no es una imagen');
+          }
           return { fichero: suyo, tipo: 'imagen', ext, bytes: size };
         } catch (e) {
           ultimo = e;
@@ -2450,5 +2503,5 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, buscar, _aTandasDe: aTandasDe, _tokenDeX: tokenDeX, buscarVarios, datosDeGif, prepararGif, _porFotosSueltas: porFotosSueltas, esAnimado, _porX: porX, _textoDeTuit: textoDeTuit, _mejorVariante: mejorVariante, _variantesMp4: variantesMp4, _varianteQueCabe: varianteQueCabe, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
+module.exports = { traer, buscar, _aTandasDe: aTandasDe, _fotoEnteraPorBordes: fotoEnteraPorBordes, _tokenDeX: tokenDeX, buscarVarios, datosDeGif, prepararGif, _porFotosSueltas: porFotosSueltas, esAnimado, _porX: porX, _textoDeTuit: textoDeTuit, _mejorVariante: mejorVariante, _variantesMp4: variantesMp4, _varianteQueCabe: varianteQueCabe, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
   _montarPase: montarPase, _comoEnlaces: comoEnlaces, _porYtDlpFotos: porYtDlpFotos, _fotosDeFicha: fotosDeFicha, _esSinVideo: esSinVideo, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };
