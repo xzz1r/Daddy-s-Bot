@@ -126,7 +126,14 @@ function acquireDownloadSlot() {
       } else if (downloadQueue.length < MAX_QUEUED_DOWNLOADS) {
         downloadQueue.push(tryRun);
       } else {
-        reject(new Error('Hay demasiadas descargas en cola, intenta de nuevo en un momento'));
+        // MARCADO, no solo escrito. Quien lo recibe tiene que poder decirle al
+        // grupo que la cola esta llena sin leerle el mensaje a una expresion
+        // regular; sin esto el motivo se perdia y salia un «no he podido
+        // traerlo» generico, que manda a la gente a reintentar contra una cola
+        // que sigue llena y la llena mas.
+        const lleno = new Error('Hay demasiadas descargas en cola, intenta de nuevo en un momento');
+        lleno.colaLlena = true;
+        reject(lleno);
       }
     };
     tryRun();

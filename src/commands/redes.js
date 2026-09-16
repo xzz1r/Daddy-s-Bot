@@ -24,16 +24,36 @@ const ESPERA_MS = 8000;
 const MAX_RECORDADOS = 2000;
 const ultimoUso = new Map();
 
-function enEspera(jid) {
+// ─── MIRAR NO ES MARCAR ─────────────────────────────────────────────────────
+//
+// Esto hacia las dos cosas de golpe, y marcaba AL ENTRAR AL COMANDO. O sea que
+// un *!tt* con un enlace roto, o de alguien sin aura, fallaba al instante y
+// dejaba a esa persona ocho segundos castigada sin haber ocupado nada. El freno
+// existe para que uno no acapare los dos huecos de descarga; quien no llega a
+// usar ninguno no tiene por que esperar a nada.
+//
+// Ahora se mira aqui y se marca abajo, justo antes de ponerse a bajar, que es
+// cuando de verdad se ocupa el hueco.
+function cuantoFalta(jid) {
+  const antes = ultimoUso.get(canonicalJid(jid));
+  if (!antes) return 0;
+  const va = Date.now() - antes;
+  return va < ESPERA_MS ? ESPERA_MS - va : 0;
+}
+
+function marcarUso(jid) {
   const k = canonicalJid(jid);
-  const antes = ultimoUso.get(k);
-  const ahora = Date.now();
-  if (antes && ahora - antes < ESPERA_MS) return ESPERA_MS - (ahora - antes);
   if (ultimoUso.size >= MAX_RECORDADOS && !ultimoUso.has(k)) {
     ultimoUso.delete(ultimoUso.keys().next().value);
   }
-  ultimoUso.set(k, ahora);
-  return 0;
+  ultimoUso.set(k, Date.now());
+}
+
+// Y DESHACERLO. Si la cola estaba llena, no se llego a ocupar ningun hueco: el
+// comando se quedo en la puerta. Cobrarle a esa persona ocho segundos de espera
+// es el mismo fallo que marcar al entrar, solo que un poco mas abajo.
+function olvidarUso(jid) {
+  ultimoUso.delete(canonicalJid(jid));
 }
 
 // ─── *!next*: OTRO RESULTADO DE LA MISMA BUSQUEDA ───────────────────────────
@@ -141,10 +161,16 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
   }
 
   const quien = getSender(msg);
-  const espera = enEspera(quien);
+  // ESTE FRENO ES TUYO, NO DEL GRUPO. El aviso decia «hay dos descargas a la vez
+  // para todo el grupo y las estas ocupando tu», y eso es falso: este reloj es
+  // por persona y salta aunque los dos huecos esten libres. Decirle a alguien
+  // que esta ocupando algo que no ocupa es mentirle, y ademas le manda a
+  // esperar por el motivo equivocado. La cola llena es otra cosa y ahora se
+  // dice aparte, mas abajo.
+  const espera = cuantoFalta(quien);
   if (espera) {
     return sock.sendMessage(jid, {
-      text: `Espera ${Math.ceil(espera / 1000)} s. Hay dos descargas a la vez para todo el grupo y las estás ocupando tú.`,
+      text: `Vas muy rápido. Espera ${Math.ceil(espera / 1000)} s antes de pedir otro.`,
     }, { quoted: msg });
   }
 
@@ -189,6 +215,11 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
     }).catch(() => {});
   }
 
+  // AQUI SE MARCA EL RELOJ, y no al entrar. De aqui no se sale sin ocupar un
+  // hueco de descarga: el enlace es bueno, la plataforma esta, y el aura ya
+  // esta cobrada. Lo de antes castigaba por intentarlo.
+  marcarUso(quien);
+
   let traido = null;
   const t0 = Date.now();
   try {
@@ -213,8 +244,20 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
     // Y el tercero: no hay nada con ese nombre. Es el unico motivo de una
     // busqueda que quien la escribio puede arreglar — escribiendo otra cosa.
     const sinResultados = /no encontré nada/.test(e.message);
+    // Y LA COLA LLENA, que hasta ahora se perdia. Los dos huecos estan cogidos
+    // y hay ocho esperando: reintentar no lo arregla, lo empeora. Antes esto
+    // caia en «no he podido traerlo de TikTok», que suena a que el enlace es
+    // malo — asi que la gente lo reintentaba, y cada reintento llenaba mas la
+    // cola. Va por la marca y no por el texto, que el texto cambia.
+    const colaLlena = e.colaLlena === true;
+    // Con la cola llena no se ocupo ningun hueco, asi que el reloj se borra:
+    // si no, reintentar «en un momento» se encuentra con otros ocho segundos
+    // de castigo por algo que no llego a pasar.
+    if (colaLlena) olvidarUso(quien);
     const num = `@${String(quienCanon).split('@')[0]}`;
-    const texto = porTamano
+    const texto = colaLlena
+      ? `${num} ahora mismo hay cola de descargas. Espera un momento y vuelve a pedirlo. No te he cobrado.`
+      : porTamano
       ? `${num} ese vídeo ${e.message.replace(/^.*?(pesa)/, '$1')} MB. No te he cobrado.`
       : sinVideo || sinResultados
         ? `${num} ${e.message}. No te he cobrado.`
@@ -287,6 +330,20 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
     // recorta antes: un tuit puede llevar cuatro mil caracteres.
     let pieTuit = String(traido.texto || '').trim();
     if (pieTuit.length > TOPE_PIE) pieTuit = `${pieTuit.slice(0, TOPE_PIE - 1).trimEnd()}…`;
+
+    // ─── Y SI LA BUSQUEDA SE HA DADO LA VUELTA, SE DICE ───────────────────
+    //
+    // Cuando ya no quedan resultados sin ver, la busqueda vuelve a empezar. Eso
+    // esta bien —mejor volver a empezar que no dar nada— pero se hacia EN
+    // SILENCIO: alguien escribia *!next* esperando otra y recibia una de hace
+    // cinco, sin ninguna señal. Pidio otra, no las de antes otra vez.
+    //
+    // Va en el pie y no en un mensaje aparte, por lo mismo que el texto de un
+    // tuit: una burbuja mas es justo lo que el album evita. Aqui no chocan: un
+    // tuit no se recicla y una busqueda no trae texto.
+    if (traido.seAcabaron && !pieTuit) {
+      pieTuit = `Ya te he enseñado todo lo que hay de «${busqueda}». Vuelvo a empezar.`;
+    }
 
     let primero = true;
     for (const m of lote) {

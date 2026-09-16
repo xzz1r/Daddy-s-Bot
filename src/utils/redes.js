@@ -1802,6 +1802,19 @@ async function buscarVarios(texto, clave, pinesDados = null, cuantos = 1) {
     // `siguientePin` y `marcarVisto` se llaman al ARMAR la tanda, uno detras de
     // otro como siempre: son los que hacen que *!next* sea el siguiente y no
     // otro al azar, y eso no se puede hacer a la vez sin barajar la cuenta.
+    // ─── SI YA SE HAN ENSEÑADO TODAS, SE DICE ────────────────────────────
+    //
+    // `siguientePin` con `reciclar` vuelve a la primera cuando ya no quedan sin
+    // ver. Eso esta bien —mejor volver a empezar que no dar nada— pero se hacia
+    // EN SILENCIO: alguien escribia *!next* esperando otra y recibia la misma
+    // de hace cinco, sin ninguna señal de que la lista se habia acabado. Pidio
+    // otra, no las de antes otra vez.
+    //
+    // Se mira ANTES de gastar nada, porque en cuanto empieza la tanda se marcan
+    // como vistas y ya no se puede saber.
+    const yaVistas = vistosDe(clave);
+    const seAcabaron = !!clave && pines.length > 0 && pines.every((p) => yaVistas.has(p.huella));
+
     let gastados = 0;
     while (medios.length < cuantos && gastados < tope) {
       const tanda = [];
@@ -1818,7 +1831,7 @@ async function buscarVarios(texto, clave, pinesDados = null, cuantos = 1) {
         if (salida) medios.push(salida);
       }
     }
-    if (medios.length) return { medios, pines };
+    if (medios.length) return { medios, pines, seAcabaron };
     throw new Error(`encontré pines pero no pude bajar ninguno (${ultimo?.message || 'sin motivo'})`);
   } catch (e) {
     // Lo a medias lo borra cada pin en su propio catch; aqui solo queda lo que

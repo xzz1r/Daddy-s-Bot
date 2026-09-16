@@ -14601,6 +14601,250 @@ ffmpegSemaphore.acquire = async () => { huecosDuranteFfmpeg.push(cogidos); retur
     if (fallos === antes) console.log(verde('   \u2713 el hueco se suelta al acabar de bajar, no al acabar el ffmpeg'));
   }
 
+  const MEMORIA_CAPA_81 = String.raw`
+require('dotenv').config({ quiet: true });
+const path = require('path');
+const fs = require('fs-extra');
+const os = require('os');
+const R = __RAIZ__;
+
+// Cobro fingido: aqui se mira lo que DICE el bot, no la economia.
+const rutaCobro = require.resolve(path.join(R, 'src/utils/auraCobro'));
+const cobroReal = require(rutaCobro);
+let HAY_AURA = true;
+require.cache[rutaCobro].exports = Object.assign({}, cobroReal, {
+  cobrar: async () => (HAY_AURA ? { ok: true, pagado: 40 } : { ok: false, saldo: 0, precio: 40 }),
+  devolver: async () => {},
+});
+
+const redes = require(path.join(R, 'src/utils/redes'));
+let fallo = null;
+// UN FICHERO DE VERDAD, NUESTRO Y EN UN SITIO NUESTRO.
+//
+// Aqui puse '/dev/null' porque el video no se llega a mandar y parecia que daba
+// igual de donde saliera la ruta. NO DA IGUAL: el comando limpia lo que baja, y
+// limpiar /dev/null es BORRAR /dev/null. Como el stdio 'ignore' de un spawn
+// abre justo ese fichero, a partir de ahi cualquier proceso que se lance falla
+// con ENOENT — que es como me entere, viendo la capa siguiente no arrancar.
+const DIRP = fs.mkdtempSync(path.join(os.tmpdir(), 'capa81-'));
+const falso = () => {
+  const f = path.join(DIRP, 'v' + Math.random().toString(36).slice(2) + '.mp4');
+  fs.writeFileSync(f, Buffer.alloc(64, 1));
+  return f;
+};
+redes.traer = async () => { if (fallo) throw fallo; return { fichero: falso(), tipo: 'video', ext: 'mp4', bytes: 64 }; };
+for (const k of Object.keys(require.cache)) if (k.endsWith('commands/redes.js')) delete require.cache[k];
+const cmd = require(path.join(R, 'src/commands/redes'));
+
+const quejas = [];
+const ok = (c, t) => { if (!c) quejas.push(t); };
+
+const G = '000000081@g.us';
+let n = 0;
+const lanzar = async (texto, quien) => {
+  const YO = quien || ('34600081' + (++n) + '@s.whatsapp.net');
+  const dichos = [];
+  const sock = {
+    user: { id: '549199@s.whatsapp.net' },
+    sendMessage: async (j, c) => { dichos.push(c.text || (c.video ? '[VIDEO]' : c.delete ? '[BORRA]' : '')); return { key: { id: 'K' + (++n) } }; },
+    groupMetadata: async () => ({ id: G, participants: [{ id: YO }] }),
+  };
+  const msg = { key: { remoteJid: G, fromMe: false, id: 'M' + (++n), participant: YO },
+    message: { extendedTextMessage: { text: texto, contextInfo: {} } } };
+  await cmd.cmdTikTok(sock, msg, texto.split(/\s+/).slice(1), { id: G, participants: [{ id: YO }] }).catch(() => {});
+  return { dichos, YO, texto: dichos.join('\n') };
+};
+
+(async () => {
+  const URL = 'https://vt.tiktok.com/ZSqDyW1bA/';
+
+  // ── 1. EL FRENO NO MIENTE ───────────────────────────────────────────────
+  fallo = null;
+  const uno = await lanzar('!tt ' + URL);
+  const r2 = await lanzar('!tt ' + URL, uno.YO);
+  ok(/vas muy rápido/i.test(r2.texto), 'el segundo seguido avisa del freno (' + r2.texto.slice(0, 60) + ')');
+  ok(!/para todo el grupo|ocupando tú/i.test(r2.texto),
+     'y ya NO dice que estás ocupando los huecos del grupo, que era falso');
+
+  // ── 2. FALLAR RÁPIDO NO CASTIGA... salvo si ocupaste hueco ──────────────
+  fallo = new Error('no pude sacar el vídeo de ahí');
+  const malo = await lanzar('!tt ' + URL);
+  ok(/no he podido traerlo/i.test(malo.texto), 'un enlace que falla lo dice');
+  const tras = await lanzar('!tt ' + URL, malo.YO);
+  ok(/vas muy rápido/i.test(tras.texto),
+     'quien SÍ ocupó un hueco espera igual: el freno es por usar, no por acertar');
+
+  // ── 3. UN COMANDO QUE NI EMPIEZA NO GASTA EL FRENO ──────────────────────
+  const sinEnlace = await lanzar('!tt');
+  ok(!/vas muy rápido/i.test(sinEnlace.texto), 'un !tt sin enlace no gasta el freno');
+  const despues = await lanzar('!tt ' + URL, sinEnlace.YO);
+  ok(!/vas muy rápido/i.test(despues.texto),
+     'y por eso el siguiente pasa: antes se marcaba al ENTRAR y castigaba por intentarlo');
+
+  // ── 4. QUE TE RECHACEN POR AURA NO GASTA EL FRENO ───────────────────────
+  //
+  // Es el caso que distingue marcar AL ENTRAR de marcar al ir a bajar: el
+  // enlace es bueno y la plataforma esta, asi que se llega al freno, pero el
+  // cobro dice que no y el comando no ocupa ningun hueco. Marcando al entrar,
+  // esa persona se comia ocho segundos por un comando que el bot le rechazo.
+  HAY_AURA = false;
+  const pobre = await lanzar('!tt ' + URL);
+  ok(!/vas muy rápido/i.test(pobre.texto), 'sin aura, el bot lo rechaza (no es un aviso de freno)');
+  HAY_AURA = true;
+  const conAura = await lanzar('!tt ' + URL, pobre.YO);
+  ok(!/vas muy rápido/i.test(conAura.texto),
+     'y en cuanto tiene aura puede pedir: que te rechacen no es haber usado un hueco');
+
+  // ── 5. LA COLA LLENA SE DICE, Y NO CASTIGA ──────────────────────────────
+  const lleno = new Error('Hay demasiadas descargas en cola, intenta de nuevo en un momento');
+  lleno.colaLlena = true;
+  fallo = lleno;
+  const cola = await lanzar('!tt ' + URL);
+  ok(/cola de descargas/i.test(cola.texto), 'la cola llena se dice (' + cola.texto.slice(0, 70) + ')');
+  ok(!/no he podido traerlo/i.test(cola.texto),
+     'y NO se disfraza de «no he podido traerlo», que manda a reintentar contra la cola');
+  fallo = null;
+  const reintento = await lanzar('!tt ' + URL, cola.YO);
+  ok(!/vas muy rápido/i.test(reintento.texto),
+     'y reintentar en seguida se puede: con la cola llena no se ocupó ningún hueco');
+
+  fs.rmSync(DIRP, { recursive: true, force: true });
+  console.log('CAPA81:' + JSON.stringify(quejas));
+})().catch((e) => {
+  console.log('CAPA81:' + JSON.stringify(['la prueba de los avisos revento: ' + (e && e.message)]));
+});
+`;
+
+  const MEMORIA_CAPA_81B = String.raw`
+require('dotenv').config({ quiet: true });
+const fs = require('fs-extra');
+const path = require('path');
+const { execFileSync } = require('child_process');
+const R = __RAIZ__;
+const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
+const D = fs.mkdtempSync(path.join(require('os').tmpdir(), 'next-'));
+
+const rutaDl = require.resolve(path.join(R, 'src/utils/downloader'));
+const dlReal = require(rutaDl);
+const foto = (n) => {
+  const f = path.join(D, 'p' + n + '.jpg');
+  if (!fs.existsSync(f)) execFileSync(ffmpegPath, ['-hide_banner','-loglevel','error','-y','-f','lavfi',
+    '-i','nullsrc=s=' + (300 + n * 10) + 'x300','-vf','geq=random(1)*255:128:128','-frames:v','1', f]);
+  return f;
+};
+require.cache[rutaDl].exports = Object.assign({}, dlReal, {
+  downloadUrlToFile: async (url, dest) => { await fs.promises.copyFile(foto(Number(/p(\d+)\.jpg/.exec(url)[1])), dest); },
+});
+const redes = require(path.join(R, 'src/utils/redes'));
+const quejas = [];
+const ok = (c, t) => { if (!c) quejas.push(t); };
+
+// Solo TRES pins: se agotan enseguida.
+const PINES = Array.from({ length: 3 }, (_, i) => ({
+  huella: '/originals/aa/p' + i + '.jpg',
+  candidatos: ['https://i.pinimg.com/originals/p' + i + '.jpg'],
+  titulo: 'x' + i, alt: 'x' + i, pos: i,
+}));
+
+(async () => {
+  redes._olvidarVistos();
+  const CLAVE = 'pin|g|prueba';
+  const a = await redes.buscarVarios('prueba', CLAVE, PINES, 1);
+  ok(a.seAcabaron === false, 'la primera no se ha dado la vuelta');
+  await fs.remove(a.medios[0].fichero).catch(() => {});
+  const b = await redes.buscarVarios('prueba', CLAVE, PINES, 1);
+  ok(b.seAcabaron === false, 'la segunda tampoco');
+  await fs.remove(b.medios[0].fichero).catch(() => {});
+  const c = await redes.buscarVarios('prueba', CLAVE, PINES, 1);
+  ok(c.seAcabaron === false, 'la tercera tampoco: todavía quedaba una sin ver');
+  await fs.remove(c.medios[0].fichero).catch(() => {});
+  const d = await redes.buscarVarios('prueba', CLAVE, PINES, 1);
+  ok(d.seAcabaron === true, 'la CUARTA sí: ya se han enseñado las tres y vuelve a empezar');
+  await fs.remove(d.medios[0].fichero).catch(() => {});
+
+  // Una búsqueda nueva no está agotada.
+  const e = await redes.buscarVarios('otra', 'pin|g|otra', PINES, 1);
+  ok(e.seAcabaron === false, 'una búsqueda nueva no avisa de nada');
+  await fs.remove(e.medios[0].fichero).catch(() => {});
+
+  await fs.remove(D);
+  console.log('CAPA81B:' + JSON.stringify(quejas));
+})().catch(async (e) => {
+  await fs.remove(D).catch(() => {});
+  console.log('CAPA81B:' + JSON.stringify(['la prueba de !next revento: ' + (e && e.message)]));
+});
+`;
+
+  // ── 81. EL BOT NO CASTIGA POR INTENTARLO NI DICE LO QUE NO ES ──────────
+  //
+  // Tres cosas que el bot decia o hacia mal, de la misma familia: contarle al
+  // grupo algo que no es cierto.
+  //
+  // EL FRENO DE REDES MENTIA. `enEspera` es por PERSONA y son ocho segundos;
+  // no tiene nada que ver con los dos huecos de descarga. Pero el aviso decia
+  // «hay dos descargas a la vez para todo el grupo y las estas ocupando tu»,
+  // que es falso cuando los dos huecos estan libres — y ademas manda a esperar
+  // por el motivo equivocado.
+  //
+  // Y CASTIGABA POR INTENTARLO. El reloj se marcaba AL ENTRAR al comando, o
+  // sea antes de saber si habia enlace, si la plataforma estaba, o si esa
+  // persona tenia aura. Un *!tt* rechazado por falta de aura dejaba ocho
+  // segundos de espera por un comando que el bot no llego a ejecutar. Ahora se
+  // marca justo antes de ponerse a bajar, que es cuando de verdad se ocupa un
+  // hueco.
+  //
+  // LA COLA LLENA SE PERDIA. Con los dos huecos cogidos y ocho esperando, el
+  // downloader lanza «hay demasiadas descargas en cola», pero el comando solo
+  // repetia tres motivos concretos y ese caia en «no he podido traerlo de
+  // TikTok» — que suena a enlace malo. Asi que la gente reintentaba, y cada
+  // reintento llenaba mas la cola. Ahora se dice, y ademas no gasta el freno:
+  // ahi no se llego a ocupar ningun hueco.
+  //
+  // *!next* RECICLABA EN SILENCIO. Cuando se acaban los resultados sin ver, la
+  // busqueda vuelve a la primera. Eso esta bien —mejor volver a empezar que no
+  // dar nada— pero sin decirlo, alguien pide otra y recibe una de hace cinco
+  // sin ninguna señal. Pidio otra, no las de antes otra vez.
+  {
+    console.log('\n81. EL BOT NO CASTIGA POR INTENTARLO NI DICE LO QUE NO ES');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   \u2717 ${queja}`)); } };
+    const { execFileSync } = require('child_process');
+    const os81 = require('os');
+    for (const [memoria, marca, nombre] of [[MEMORIA_CAPA_81, 'CAPA81:', 'los avisos'], [MEMORIA_CAPA_81B, 'CAPA81B:', '*!next*']]) {
+      const dir81 = fs.mkdtempSync(path.join(os81.tmpdir(), 'capa81-'));
+      try {
+        try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(dir81, 'node_modules'), 'dir'); } catch { /* el hijo lo dira */ }
+        fs.writeFileSync(path.join(dir81, 'p.js'), memoria.replace(/__RAIZ__/g, json(R)));
+        let salida = '';
+        try {
+          salida = execFileSync(process.execPath, [path.join(dir81, 'p.js')],
+            { encoding: 'utf8', timeout: 180000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'] });
+        } catch (e) { salida = `${e.stdout || ''}${e.stderr || ''}`; }
+        const linea = salida.split('\n').reverse().find((l) => l.startsWith(marca));
+        exige(!!linea, `la prueba de ${nombre} no contestó: ${salida.slice(-400).trim()}`);
+        if (linea) {
+          let quejas = [];
+          try { quejas = JSON.parse(linea.slice(marca.length)); } catch { quejas = ['no pude leer el resultado']; }
+          for (const q of quejas) exige(false, q);
+        }
+      } finally {
+        fs.rmSync(dir81, { recursive: true, force: true });
+      }
+    }
+
+    // Y QUE EL AVISO VIEJO NO VUELVA. Decia algo que no es verdad, y es el tipo
+    // de frase que se recopia sin mirar.
+    const cr81 = soloCodigo('src/commands/redes.js');
+    exige(!/para todo el grupo y las estás ocupando tú/.test(cr81),
+      'el aviso del freno vuelve a decir que estás ocupando los huecos del grupo, y eso es falso: ese reloj es por persona');
+    const iMira = cr81.indexOf('const espera = cuantoFalta(quien);');
+    const iMarca = cr81.indexOf('marcarUso(quien);');
+    exige(iMira > 0 && iMarca > iMira,
+      'el freno se vuelve a marcar al entrar al comando: castiga por intentarlo, aunque el bot rechace el comando');
+
+    if (fallos === antes) console.log(verde('   \u2713 el freno es honesto, la cola llena se dice, y *!next* avisa cuando se acaban'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     process.exit(fallos ? 1 : 0);
