@@ -1234,14 +1234,22 @@ const DUELO = {
 //     el único freno que tiene, porque la cuota no se puede ampliar gastando más
 //     CPU.
 const PRECIOS = {
-  // Los comandos de accion (!hug, !punch, !slap…). No cuesta 60 por lo que
-  // gasta —bajar un gif y convertirlo esta por debajo de un sticker— sino por
-  // lo que invita a hacer: van dirigidos a alguien y piden repetirse contra
-  // medio grupo. Con 150 de arranque son dos usos, y ese es el freno.
-  accion: 60,
-  // El doble. No porque gaste mas —gasta lo mismo— sino porque lo que arriesga
-  // es otra cosa: una cuenta que reparte esto a diario dura lo que dura. El
-  // precio es el unico freno que no depende de que nadie vigile.
+  // Los comandos de accion (!hug, !punch, !slap…). No cuesta lo que cuesta por
+  // lo que gasta —bajar un gif y convertirlo esta por debajo de un sticker—
+  // sino por lo que invita a hacer: van dirigidos a alguien y piden repetirse
+  // contra medio grupo.
+  //
+  // BAJO DE 60 A 45 POR DECISION DEL DUEÑO. Con 150 de arranque pasan de dos
+  // usos a tres, que es el freno que se buscaba sin que la primera tarde de
+  // alguien se acabe en dos mensajes. El de golpe seguido (RAFAGA) sigue
+  // cobrando el doble, asi que el freno contra el bucle no se toca: lo que
+  // baja es el precio de usarlo con cabeza.
+  accion: 45,
+  // EL DE NSFW NO BAJA, y ahora es el triple en vez del doble. No porque gaste
+  // mas —gasta lo mismo— sino porque lo que arriesga es otra cosa: una cuenta
+  // que reparte esto a diario dura lo que dura. El precio es el unico freno
+  // que no depende de que nadie vigile, y separarlo mas del normal es
+  // exactamente lo que se queria.
   accionNsfw: 120,
   // ─── Lo que consume recursos de verdad ─────────────────────────────────────
   tovid: 70,   // transcodifica el vídeo entero (CRF 12); lo más caro en CPU
@@ -1279,8 +1287,11 @@ const PRECIOS = {
   mog: 35,
   ship: 30,
   rizz: 30,
-  piropo: 30,
-  wingman: 30,
+  // Estos dos bajan de 30 a 20 por decision del dueño. Son los mas inofensivos
+  // del bloque —no mencionan a media docena de personas ni se prestan al bucle
+  // como un roast— y a 30 se usaban menos de lo que merecen.
+  piropo: 20,
+  wingman: 20,
   percent: 25,   // el precio común de gay, puta, iq, fea, crack y compañía
 };
 

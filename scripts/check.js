@@ -5543,8 +5543,23 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
         `despues de ${RAFAGA.gratis} cobros DEVUELTOS la siguiente ya cuesta ${tras.pagado}: se estan contando usos que no ocurrieron`);
 
       // Y quien lo intenta sin saldo tampoco gasta turno.
+      //
+      // SE LE VACIA LA CUENTA A PROPOSITO, no se confia en que el arranque no
+      // llegue para cinco. Esta prueba se apoyaba en que 150 de arranque no
+      // daban para cinco acciones a 60; al bajar el precio a 45 daban para
+      // tres, las tres cobraban de verdad y la prueba se ponia roja sin que
+      // nada estuviera roto. Restando el arranque entero, el escenario es el
+      // que dice ser —cinco intentos SIN saldo— cueste lo que cueste la accion.
       const pobre = `34600049${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`;
-      for (let i = 0; i < 5; i++) await cobrar(GR, pobre, 'accion', {});
+      const { ARRANQUE: ARR47 } = require(path.join(R, 'src/utils/economia'));
+      await addAura(GR, pobre, -ARR47);
+      for (let i = 0; i < 5; i++) {
+        const fallido = await cobrar(GR, pobre, 'accion', {});
+        if (fallido.ok) {
+          exige(false, 'el que no tiene saldo ha podido pagar: la prueba de "sin saldo" no está probando eso');
+          break;
+        }
+      }
       await addAura(GR, pobre, 20000);
       const primera = await cobrar(GR, pobre, 'accion', {});
       exige(primera.pagado === base,
