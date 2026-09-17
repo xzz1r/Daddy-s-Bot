@@ -252,17 +252,265 @@ for (const dir of ['src/commands', 'src/utils', 'src/data', 'src/handlers']) {
 }
 if (!fallos) console.log(verde('   ✓ todos los módulos importan'));
 
-// Fin del camino rapido. Se sale ANTES de la capa 3 porque de ahi en adelante
-// ya no se comprueba la maquina, se comprueba el codigo.
-if (RAPIDO) {
-  console.log = _log; console.error = _err;
-  if (fallos) {
-    _log(rojo(`\n${fallos} fallo(s) al compilar o importar en esta máquina.`));
-    _log('Detalle completo: npm run check');
-    process.exit(1);
+// ─── LAS DOS CAPAS DEL MENU, APARTE ──────────────────────────────────────────
+//
+// Viven en una funcion y no en linea con las demas porque se corren DOS veces:
+// en la puerta entera y tambien en el modo rapido de la VPS.
+//
+// El resto de capas no hace falta repetirlas alli —comprueban codigo, y el
+// codigo que llega a la VPS es el que ya paso la puerta— pero el menu es lo
+// unico que el bot enseña como documentacion de si mismo, y el dueño lo quiere
+// comprobado en cada despliegue. Cuestan segundos; las 89 cuestan dos minutos.
+async function capasDelMenu() {
+  // ── 20. EL MENU NO ANUNCIA LO QUE NO SE PUEDE USAR ───────────────────────
+  //
+  // El menu se parte por nivel para no enseñarle a nadie comandos que le van a
+  // rebotar. Estaba partido en dos —admin y miembro— y el bloque de ADMIN
+  // llevaba trece cosas que un admin no puede tocar: los interruptores del
+  // grupo, el degradado, los resets y !on/!off son isOwner.
+  //
+  // Y al repartirlos me equivoque en los dos sentidos, que es justo lo que esta
+  // capa vigila:
+  //   · leer "isOwner(" a secas mete en el bloque del dueño comandos que solo
+  //     usan isOwner para EXIMIRLE (a nadie le sale !roast del owner);
+  //   · quedarse con el primer simbolo de "isOwner(...) || isGroupAdmin(...)"
+  //     hace owner-only a seis comandos que son de admins.
+  //
+  // Asi que no se deduce el nivel del nombre: se lee LA PUERTA de cada uno —la
+  // expresion entera, no el primer simbolo— y se compara con el bloque donde el
+  // menu lo mete.
+  {
+    console.log('\n20. EL MENU NO ANUNCIA LO QUE NO SE PUEDE USAR');
+    const antes = fallos;
+    const { cmdHelp } = require(path.join(R, 'src/commands/social'));
+    const cfg = require(path.join(R, 'src/config'));
+    const OWN = `${String(cfg.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
+    const ADM = '34600000002@s.whatsapp.net';
+    const RASO = '34600000003@s.whatsapp.net';
+    const GRUPO = '000000000@g.us';
+    const metaM = { id: GRUPO, participants: [{ id: OWN, admin: 'admin' }, { id: ADM, admin: 'admin' }, { id: RASO }] };
+
+    const pedir = async (quien) => {
+      const out = [];
+      const s = { sendMessage: async (j, c) => { out.push(c); return {}; } };
+      await cmdHelp(s, { key: { remoteJid: GRUPO, participant: quien, fromMe: false, id: 'X' } }, metaM);
+      return out.at(-1)?.text || '';
+    };
+    const cmds = (txt) => new Set([...txt.matchAll(/!([a-zá-úñ0-9]+)/gi)].map((m) => m[1].toLowerCase()));
+
+    const mOwner = await pedir(OWN), mAdmin = await pedir(ADM), mRaso = await pedir(RASO);
+    const cO = cmds(mOwner), cA = cmds(mAdmin), cR = cmds(mRaso);
+
+    // Los tres menus son uno dentro de otro. Si un comando sale para el miembro
+    // y no para el owner, es que un bloque se quedo colgando de la condicion
+    // equivocada.
+    for (const [chico, grande, etq] of [[cR, cA, 'miembro ⊄ admin'], [cA, cO, 'admin ⊄ owner']]) {
+      const fuera = [...chico].filter((x) => !grande.has(x));
+      if (fuera.length) {
+        fallos++;
+        console.log(rojo(`   ✗ los menus dejaron de encajar (${etq}): ${fuera.join(', ')}`));
+      }
+    }
+    if (cO.size <= cA.size || cA.size <= cR.size) {
+      fallos++;
+      console.log(rojo(`   ✗ los tres menus salen iguales (${cR.size}/${cA.size}/${cO.size}): el corte por nivel no esta haciendo nada`));
+    }
+
+    // LA PUERTA DE CADA UNO, LEIDA ENTERA.
+    //
+    // Se coge la primera linea de la funcion que menciona un permiso y las DOS
+    // siguientes: ahi cabe el "|| isGroupAdmin(...)" partido en dos lineas, que
+    // es la forma que me engaño. Mirar 26 lineas era demasiado (pillaba
+    // comprobaciones sobre el objetivo, no sobre quien escribe) y una sola era
+    // demasiado poco.
+    const fuentes = {};
+    for (const f of fs.readdirSync(path.join(R, 'src/commands'))) {
+      if (f.endsWith('.js')) fuentes[f] = fs.readFileSync(path.join(R, 'src/commands', f), 'utf8');
+    }
+    fuentes['messageHandler.js'] = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+
+    const puertaDe = (fn) => {
+      for (const txt of Object.values(fuentes)) {
+        const m = txt.match(new RegExp(`^(?:async )?function ${fn}\\s*\\(`, 'm'));
+        if (!m) continue;
+        const cuerpo = txt.slice(m.index).replace(/\/\/[^\n]*/g, '').split('\n');
+        const i = cuerpo.findIndex((l) => /is(?:Main)?(?:Owner|GroupAdmin|Admin)\s*\(/.test(l));
+        if (i < 0) return null;
+        return cuerpo.slice(i, i + 3).join('\n');
+      }
+      return undefined;   // la funcion ya no existe
+    };
+
+    // Nivel esperado de cada comando que el menu mete en ADMIN o en OWNER.
+    // !promote no esta: es el unico mixto de verdad (con !antiadmin puesto es
+    // del dueño y sin el es de admins), y el menu ya lo dice en su linea.
+    // !resetaura y !clearcache tampoco: su puerta vive en el dispatcher.
+    const esperado = {
+      admin: { kick: 'cmdKick', del: 'cmdDel', mute: 'cmdMute', unmute: 'cmdUnmute',
+        tagall: 'cmdTodos', allow: 'cmdAllow', close: 'cmdClose', open: 'cmdOpen',
+        r: 'cmdPresentarse',
+        inactivos: 'cmdInactivos',
+        count: 'cmdCount', scan: 'cmdScan', marcarfake: 'cmdMarkFake', fkban: 'cmdFkBan',
+        fkunban: 'cmdFkUnban', fklist: 'cmdFkList', antifake: 'cmdAntiFake', notifadmin: 'cmdNotifAdmin' },
+      owner: { demote: 'cmdDemote', on: 'cmdOn', off: 'cmdOff', antilink: 'cmdAntiLink',
+        antifoto: 'cmdAntiFoto', antiempresa: 'cmdAntiBusiness', antiadmin: 'cmdAntiAdmin',
+        adminmode: 'cmdSoloAdmins', aura: 'interruptor', resetcount: 'cmdResetCount',
+        diag: 'cmdDiag' },
+    };
+    const mal = [], perdidas = [];
+    for (const [nivel, tabla] of Object.entries(esperado)) {
+      for (const [cmd, fn] of Object.entries(tabla)) {
+        const puerta = puertaDe(fn);
+        if (puerta === undefined) { perdidas.push(`${fn} (${cmd})`); continue; }
+        if (puerta === null) { mal.push(`!${cmd} ya no comprueba permisos y el menu lo pone en ${nivel.toUpperCase()}`); continue; }
+        const entraAdmin = /isGroupAdmin\s*\(|isAdmin\s*\(/.test(puerta);
+        if (nivel === 'admin' && !entraAdmin) mal.push(`!${cmd} esta en ADMIN y su puerta solo deja pasar al owner`);
+        if (nivel === 'owner' && entraAdmin) mal.push(`!${cmd} esta en OWNER y un admin si puede usarlo`);
+      }
+    }
+    if (perdidas.length) {
+      fallos++;
+      console.log(rojo(`   ✗ no encuentro la funcion de: ${perdidas.join(', ')} — la tabla de niveles se quedo vieja`));
+    }
+    if (mal.length) {
+      fallos++;
+      for (const x of mal) console.log(rojo(`   ✗ ${x}`));
+    }
+
+    // Y que cada uno salga DONDE toca en el menu de verdad, no solo en la tabla.
+    const soloAdmin = [...cA].filter((x) => !cR.has(x));
+    const soloOwner = [...cO].filter((x) => !cA.has(x));
+    for (const cmd of Object.keys(esperado.admin)) {
+      if (!soloAdmin.includes(cmd)) {
+        fallos++;
+        console.log(rojo(`   ✗ !${cmd} es de admins y el menu no lo saca en el bloque de ADMIN`));
+      }
+    }
+    for (const cmd of Object.keys(esperado.owner)) {
+      if (!soloOwner.includes(cmd) && cmd !== 'aura') {   // !aura sale antes, en su seccion
+        fallos++;
+        console.log(rojo(`   ✗ !${cmd} es del owner y el menu no lo saca en el bloque de OWNER`));
+      }
+    }
+
+    // NINGUN COMANDO DE PORCENTAJE SE PUEDE QUEDAR FUERA DEL MENU.
+    //
+    // Son veinticuatro nombres en una lista de messageHandler y cuatro lineas
+    // sueltas en el menu: dos sitios que no se hablan. Uno nuevo se añade a la
+    // lista, cobra, funciona y no lo descubre nadie porque no esta escrito.
+    //
+    // Los alias no cuentan como ausencia: *!L* y *!perdedor* son el MISMO case,
+    // asi que con que salga uno de los dos basta. Los grupos se sacan de las
+    // rafagas de "case" del dispatcher, que es donde esta la verdad de que dos
+    // nombres son la misma cosa — que es justo lo que fallaba al reves cuando
+    // el menu abria la lista con *!L*, un alias, en vez de con el comando.
+    {
+      const mh3 = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+      const sw3 = mh3.slice(mh3.indexOf('switch (command)'));
+      // Se recorre linea a linea, no con una expresion: el dispatcher escribe los
+      // alias de las dos formas —"case 'x':" a solas y "case 'y': await cmd(...)"
+      // en la misma linea— y una rafaga puede acabar de cualquiera de las dos.
+      // Un patron que exigiera la linea limpia parte el grupo justo en el ultimo,
+      // que es el que lleva el codigo; uno que la permitiera siempre pegaria
+      // entre si comandos vecinos que no tienen nada que ver.
+      const grupo = new Map();   // comando -> todos sus alias
+      {
+        let pend = [];
+        const cerrar = () => { for (const n of pend) grupo.set(n, pend); pend = []; };
+        for (const linea of sw3.split('\n')) {
+          const m = linea.match(/^[ \t]*case '([^']+)':(.*)$/);
+          if (!m) { cerrar(); continue; }
+          pend.push(m[1]);
+          if (m[2].trim()) cerrar();        // la rafaga acaba en la linea que trae codigo
+        }
+        cerrar();
+      }
+      const lista = mh3.match(/const CMDS_PORCENTAJE = \[([\s\S]*?)\];/);
+      const pct2 = lista ? [...lista[1].matchAll(/'([^']+)'/g)].map((x) => x[1]) : [];
+      if (pct2.length < 20) {
+        fallos++;
+        console.log(rojo(`   ✗ solo leo ${pct2.length} comandos de porcentaje: el patron de CMDS_PORCENTAJE se rompio y esta comprobacion se quedo ciega`));
+      }
+      const ausentes = pct2.filter((cmd) => !(grupo.get(cmd) || [cmd]).some((a) => cR.has(a)));
+      if (ausentes.length) {
+        fallos++;
+        console.log(rojo(`   ✗ comandos de porcentaje que cobran y el menu no nombra: ${ausentes.join(', ')}`));
+      }
+    }
+
+    if (fallos === antes) console.log(verde(`   ✓ cada comando en su nivel (${cR.size}/${cA.size}/${cO.size} comandos por menu)`));
   }
-  _log(verde(`  ✓ compila e importa en esta máquina (${ficheros.length} ficheros) — el resto lo aprobó el sello`));
-  process.exit(0);
+
+  // ── 46. LO QUE EL MENU ENSEÑA SE PUEDE TECLEAR ───────────────────────────
+  //
+  // El dispatcher quita tildes y eñes antes de comparar, asi que un `case` con
+  // eñe no se alcanza jamas y el alias se guarda como *punetazo*. Eso funciona:
+  // quien escribe "puñetazo" llega igual.
+  //
+  // Lo que no valia era ENSEÑARLO asi. El menu es el unico sitio donde el bot
+  // documenta su propio idioma, y ahi salian *!punetazo*, *!coscorron*,
+  // *!reirse*, *!musica* y *!cancion*: cinco faltas de ortografia en la pantalla
+  // que explica como se le habla.
+  //
+  // La tabla que lo arregla vive en social.js (COMO_SE_ESCRIBE) y es a mano,
+  // porque de "punetazo" no se puede deducir donde iba la eñe. Una tabla a mano
+  // se desincroniza sola, asi que aqui se comprueban las dos direcciones:
+  //
+  //   · cada clave tiene que ser un comando que el bot acepta de verdad;
+  //   · y el valor, al normalizarlo, tiene que dar EXACTAMENTE la clave — o sea,
+  //     que lo que se enseña se pueda teclear. Sin esto, un dia el menu anuncia
+  //     algo que no responde, que es peor que la falta de ortografia.
+  {
+    console.log('\n46. LO QUE EL MENU ENSEÑA SE PUEDE TECLEAR');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { normalizarComando } = require(path.join(R, 'src/handlers/messageHandler'));
+    const soc = fs.readFileSync(path.join(R, 'src/commands/social.js'), 'utf8');
+    const m = soc.match(/const COMO_SE_ESCRIBE = \{([\s\S]*?)\};/);
+    exige(!!m, 'social.js ya no tiene la tabla COMO_SE_ESCRIBE: el menu volvera a escribir *!punetazo* y *!musica* sin tilde');
+    if (m) {
+      const tabla = Object.fromEntries([...m[1].matchAll(/^\s*([a-z0-9_]+):\s*'([^']+)',/gm)].map((x) => [x[1], x[2]]));
+      exige(Object.keys(tabla).length > 0, 'la tabla COMO_SE_ESCRIBE se ha quedado vacia');
+      const disp = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+      const reales = new Set([...disp.matchAll(/^\s*case '([a-z0-9_]+)':/gm)].map((x) => x[1]));
+      for (const [clave, valor] of Object.entries(tabla)) {
+        exige(reales.has(clave),
+          `COMO_SE_ESCRIBE tiene "${clave}", que no es un comando: el menu ensenyaria algo que el bot no acepta`);
+        exige(normalizarComando(valor) === clave,
+          `el menu ensenyaria *!${valor}*, que al teclearlo llega como *!${normalizarComando(valor)}* y no como *!${clave}*`);
+        exige(valor !== clave,
+          `"${clave}" esta en COMO_SE_ESCRIBE sin cambiar nada: sobra`);
+      }
+      exige(/comoSeEscribe\(x\)/.test(soc),
+        'la lista larga del menu dejo de pasar por comoSeEscribe: vuelve a ensenyar los alias sin tilde');
+    }
+    if (fallos === antes) console.log(verde('   ✓ el menu escribe los comandos con su tilde y su eñe, y todos se pueden teclear asi'));
+  }
+}
+
+// Fin del camino rapido. Se sale ANTES de la capa 3 porque de ahi en adelante
+// ya no se comprueba la maquina, se comprueba el codigo — salvo el menu, que
+// se corre igual porque es lo que el grupo lee.
+//
+// El `return` es de modulo CommonJS y es lo que para el fichero aqui: sin el,
+// las capas de abajo son codigo de primer nivel y seguirian corriendo mientras
+// esta promesa espera.
+if (RAPIDO) {
+  capasDelMenu().then(() => {
+    console.log = _log; console.error = _err;
+    if (fallos) {
+      _log(rojo(`\n${fallos} fallo(s) al compilar, importar o en el menú de esta máquina.`));
+      _log('Detalle completo: npm run check');
+      process.exit(1);
+    }
+    _log(verde(`  ✓ compila, importa y el menú cuadra (${ficheros.length} ficheros) — el resto lo aprobó el sello`));
+    process.exit(0);
+  }).catch((e) => {
+    console.log = _log; console.error = _err;
+    _log(rojo(`\nla comprobación rápida se rompió: ${e && e.message}`));
+    process.exit(1);
+  });
+  return;
 }
 
 // ─── 3. ¿Responde? ───────────────────────────────────────────────────────────
@@ -2741,184 +2989,8 @@ const di=async(quien,texto,extra)=>{
     if (fallos === antes) console.log(verde('   ✓ en privado solo habla con el owner, y el owner sigue entrando'));
   }
 
-  // ── 20. EL MENU NO ANUNCIA LO QUE NO SE PUEDE USAR ───────────────────────
-  //
-  // El menu se parte por nivel para no enseñarle a nadie comandos que le van a
-  // rebotar. Estaba partido en dos —admin y miembro— y el bloque de ADMIN
-  // llevaba trece cosas que un admin no puede tocar: los interruptores del
-  // grupo, el degradado, los resets y !on/!off son isOwner.
-  //
-  // Y al repartirlos me equivoque en los dos sentidos, que es justo lo que esta
-  // capa vigila:
-  //   · leer "isOwner(" a secas mete en el bloque del dueño comandos que solo
-  //     usan isOwner para EXIMIRLE (a nadie le sale !roast del owner);
-  //   · quedarse con el primer simbolo de "isOwner(...) || isGroupAdmin(...)"
-  //     hace owner-only a seis comandos que son de admins.
-  //
-  // Asi que no se deduce el nivel del nombre: se lee LA PUERTA de cada uno —la
-  // expresion entera, no el primer simbolo— y se compara con el bloque donde el
-  // menu lo mete.
-  {
-    console.log('\n20. EL MENU NO ANUNCIA LO QUE NO SE PUEDE USAR');
-    const antes = fallos;
-    const { cmdHelp } = require(path.join(R, 'src/commands/social'));
-    const cfg = require(path.join(R, 'src/config'));
-    const OWN = `${String(cfg.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
-    const ADM = '34600000002@s.whatsapp.net';
-    const RASO = '34600000003@s.whatsapp.net';
-    const GRUPO = '000000000@g.us';
-    const metaM = { id: GRUPO, participants: [{ id: OWN, admin: 'admin' }, { id: ADM, admin: 'admin' }, { id: RASO }] };
 
-    const pedir = async (quien) => {
-      const out = [];
-      const s = { sendMessage: async (j, c) => { out.push(c); return {}; } };
-      await cmdHelp(s, { key: { remoteJid: GRUPO, participant: quien, fromMe: false, id: 'X' } }, metaM);
-      return out.at(-1)?.text || '';
-    };
-    const cmds = (txt) => new Set([...txt.matchAll(/!([a-zá-úñ0-9]+)/gi)].map((m) => m[1].toLowerCase()));
-
-    const mOwner = await pedir(OWN), mAdmin = await pedir(ADM), mRaso = await pedir(RASO);
-    const cO = cmds(mOwner), cA = cmds(mAdmin), cR = cmds(mRaso);
-
-    // Los tres menus son uno dentro de otro. Si un comando sale para el miembro
-    // y no para el owner, es que un bloque se quedo colgando de la condicion
-    // equivocada.
-    for (const [chico, grande, etq] of [[cR, cA, 'miembro ⊄ admin'], [cA, cO, 'admin ⊄ owner']]) {
-      const fuera = [...chico].filter((x) => !grande.has(x));
-      if (fuera.length) {
-        fallos++;
-        console.log(rojo(`   ✗ los menus dejaron de encajar (${etq}): ${fuera.join(', ')}`));
-      }
-    }
-    if (cO.size <= cA.size || cA.size <= cR.size) {
-      fallos++;
-      console.log(rojo(`   ✗ los tres menus salen iguales (${cR.size}/${cA.size}/${cO.size}): el corte por nivel no esta haciendo nada`));
-    }
-
-    // LA PUERTA DE CADA UNO, LEIDA ENTERA.
-    //
-    // Se coge la primera linea de la funcion que menciona un permiso y las DOS
-    // siguientes: ahi cabe el "|| isGroupAdmin(...)" partido en dos lineas, que
-    // es la forma que me engaño. Mirar 26 lineas era demasiado (pillaba
-    // comprobaciones sobre el objetivo, no sobre quien escribe) y una sola era
-    // demasiado poco.
-    const fuentes = {};
-    for (const f of fs.readdirSync(path.join(R, 'src/commands'))) {
-      if (f.endsWith('.js')) fuentes[f] = fs.readFileSync(path.join(R, 'src/commands', f), 'utf8');
-    }
-    fuentes['messageHandler.js'] = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
-
-    const puertaDe = (fn) => {
-      for (const txt of Object.values(fuentes)) {
-        const m = txt.match(new RegExp(`^(?:async )?function ${fn}\\s*\\(`, 'm'));
-        if (!m) continue;
-        const cuerpo = txt.slice(m.index).replace(/\/\/[^\n]*/g, '').split('\n');
-        const i = cuerpo.findIndex((l) => /is(?:Main)?(?:Owner|GroupAdmin|Admin)\s*\(/.test(l));
-        if (i < 0) return null;
-        return cuerpo.slice(i, i + 3).join('\n');
-      }
-      return undefined;   // la funcion ya no existe
-    };
-
-    // Nivel esperado de cada comando que el menu mete en ADMIN o en OWNER.
-    // !promote no esta: es el unico mixto de verdad (con !antiadmin puesto es
-    // del dueño y sin el es de admins), y el menu ya lo dice en su linea.
-    // !resetaura y !clearcache tampoco: su puerta vive en el dispatcher.
-    const esperado = {
-      admin: { kick: 'cmdKick', del: 'cmdDel', mute: 'cmdMute', unmute: 'cmdUnmute',
-        tagall: 'cmdTodos', allow: 'cmdAllow', close: 'cmdClose', open: 'cmdOpen',
-        r: 'cmdPresentarse',
-        inactivos: 'cmdInactivos',
-        count: 'cmdCount', scan: 'cmdScan', marcarfake: 'cmdMarkFake', fkban: 'cmdFkBan',
-        fkunban: 'cmdFkUnban', fklist: 'cmdFkList', antifake: 'cmdAntiFake', notifadmin: 'cmdNotifAdmin' },
-      owner: { demote: 'cmdDemote', on: 'cmdOn', off: 'cmdOff', antilink: 'cmdAntiLink',
-        antifoto: 'cmdAntiFoto', antiempresa: 'cmdAntiBusiness', antiadmin: 'cmdAntiAdmin',
-        adminmode: 'cmdSoloAdmins', aura: 'interruptor', resetcount: 'cmdResetCount',
-        diag: 'cmdDiag' },
-    };
-    const mal = [], perdidas = [];
-    for (const [nivel, tabla] of Object.entries(esperado)) {
-      for (const [cmd, fn] of Object.entries(tabla)) {
-        const puerta = puertaDe(fn);
-        if (puerta === undefined) { perdidas.push(`${fn} (${cmd})`); continue; }
-        if (puerta === null) { mal.push(`!${cmd} ya no comprueba permisos y el menu lo pone en ${nivel.toUpperCase()}`); continue; }
-        const entraAdmin = /isGroupAdmin\s*\(|isAdmin\s*\(/.test(puerta);
-        if (nivel === 'admin' && !entraAdmin) mal.push(`!${cmd} esta en ADMIN y su puerta solo deja pasar al owner`);
-        if (nivel === 'owner' && entraAdmin) mal.push(`!${cmd} esta en OWNER y un admin si puede usarlo`);
-      }
-    }
-    if (perdidas.length) {
-      fallos++;
-      console.log(rojo(`   ✗ no encuentro la funcion de: ${perdidas.join(', ')} — la tabla de niveles se quedo vieja`));
-    }
-    if (mal.length) {
-      fallos++;
-      for (const x of mal) console.log(rojo(`   ✗ ${x}`));
-    }
-
-    // Y que cada uno salga DONDE toca en el menu de verdad, no solo en la tabla.
-    const soloAdmin = [...cA].filter((x) => !cR.has(x));
-    const soloOwner = [...cO].filter((x) => !cA.has(x));
-    for (const cmd of Object.keys(esperado.admin)) {
-      if (!soloAdmin.includes(cmd)) {
-        fallos++;
-        console.log(rojo(`   ✗ !${cmd} es de admins y el menu no lo saca en el bloque de ADMIN`));
-      }
-    }
-    for (const cmd of Object.keys(esperado.owner)) {
-      if (!soloOwner.includes(cmd) && cmd !== 'aura') {   // !aura sale antes, en su seccion
-        fallos++;
-        console.log(rojo(`   ✗ !${cmd} es del owner y el menu no lo saca en el bloque de OWNER`));
-      }
-    }
-
-    // NINGUN COMANDO DE PORCENTAJE SE PUEDE QUEDAR FUERA DEL MENU.
-    //
-    // Son veinticuatro nombres en una lista de messageHandler y cuatro lineas
-    // sueltas en el menu: dos sitios que no se hablan. Uno nuevo se añade a la
-    // lista, cobra, funciona y no lo descubre nadie porque no esta escrito.
-    //
-    // Los alias no cuentan como ausencia: *!L* y *!perdedor* son el MISMO case,
-    // asi que con que salga uno de los dos basta. Los grupos se sacan de las
-    // rafagas de "case" del dispatcher, que es donde esta la verdad de que dos
-    // nombres son la misma cosa — que es justo lo que fallaba al reves cuando
-    // el menu abria la lista con *!L*, un alias, en vez de con el comando.
-    {
-      const mh3 = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
-      const sw3 = mh3.slice(mh3.indexOf('switch (command)'));
-      // Se recorre linea a linea, no con una expresion: el dispatcher escribe los
-      // alias de las dos formas —"case 'x':" a solas y "case 'y': await cmd(...)"
-      // en la misma linea— y una rafaga puede acabar de cualquiera de las dos.
-      // Un patron que exigiera la linea limpia parte el grupo justo en el ultimo,
-      // que es el que lleva el codigo; uno que la permitiera siempre pegaria
-      // entre si comandos vecinos que no tienen nada que ver.
-      const grupo = new Map();   // comando -> todos sus alias
-      {
-        let pend = [];
-        const cerrar = () => { for (const n of pend) grupo.set(n, pend); pend = []; };
-        for (const linea of sw3.split('\n')) {
-          const m = linea.match(/^[ \t]*case '([^']+)':(.*)$/);
-          if (!m) { cerrar(); continue; }
-          pend.push(m[1]);
-          if (m[2].trim()) cerrar();        // la rafaga acaba en la linea que trae codigo
-        }
-        cerrar();
-      }
-      const lista = mh3.match(/const CMDS_PORCENTAJE = \[([\s\S]*?)\];/);
-      const pct2 = lista ? [...lista[1].matchAll(/'([^']+)'/g)].map((x) => x[1]) : [];
-      if (pct2.length < 20) {
-        fallos++;
-        console.log(rojo(`   ✗ solo leo ${pct2.length} comandos de porcentaje: el patron de CMDS_PORCENTAJE se rompio y esta comprobacion se quedo ciega`));
-      }
-      const ausentes = pct2.filter((cmd) => !(grupo.get(cmd) || [cmd]).some((a) => cR.has(a)));
-      if (ausentes.length) {
-        fallos++;
-        console.log(rojo(`   ✗ comandos de porcentaje que cobran y el menu no nombra: ${ausentes.join(', ')}`));
-      }
-    }
-
-    if (fallos === antes) console.log(verde(`   ✓ cada comando en su nivel (${cR.size}/${cA.size}/${cO.size} comandos por menu)`));
-  }
+  await capasDelMenu();
 
   // ── 21. LOS BONOS DE ESCRIBIR SON DIARIOS, NO UN PEAJE ───────────────────
   //
@@ -5490,51 +5562,6 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     if (fallos === antes) console.log(verde('   ✓ el cartel sale a las 12 y a las 0 y sobrevive al reinicio, la rafaga cobra el doble a la cuarta y el remate no es parte del formato'));
   }
 
-  // ── 46. LO QUE EL MENU ENSEÑA SE PUEDE TECLEAR ───────────────────────────
-  //
-  // El dispatcher quita tildes y eñes antes de comparar, asi que un `case` con
-  // eñe no se alcanza jamas y el alias se guarda como *punetazo*. Eso funciona:
-  // quien escribe "puñetazo" llega igual.
-  //
-  // Lo que no valia era ENSEÑARLO asi. El menu es el unico sitio donde el bot
-  // documenta su propio idioma, y ahi salian *!punetazo*, *!coscorron*,
-  // *!reirse*, *!musica* y *!cancion*: cinco faltas de ortografia en la pantalla
-  // que explica como se le habla.
-  //
-  // La tabla que lo arregla vive en social.js (COMO_SE_ESCRIBE) y es a mano,
-  // porque de "punetazo" no se puede deducir donde iba la eñe. Una tabla a mano
-  // se desincroniza sola, asi que aqui se comprueban las dos direcciones:
-  //
-  //   · cada clave tiene que ser un comando que el bot acepta de verdad;
-  //   · y el valor, al normalizarlo, tiene que dar EXACTAMENTE la clave — o sea,
-  //     que lo que se enseña se pueda teclear. Sin esto, un dia el menu anuncia
-  //     algo que no responde, que es peor que la falta de ortografia.
-  {
-    console.log('\n46. LO QUE EL MENU ENSEÑA SE PUEDE TECLEAR');
-    const antes = fallos;
-    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
-    const { normalizarComando } = require(path.join(R, 'src/handlers/messageHandler'));
-    const soc = fs.readFileSync(path.join(R, 'src/commands/social.js'), 'utf8');
-    const m = soc.match(/const COMO_SE_ESCRIBE = \{([\s\S]*?)\};/);
-    exige(!!m, 'social.js ya no tiene la tabla COMO_SE_ESCRIBE: el menu volvera a escribir *!punetazo* y *!musica* sin tilde');
-    if (m) {
-      const tabla = Object.fromEntries([...m[1].matchAll(/^\s*([a-z0-9_]+):\s*'([^']+)',/gm)].map((x) => [x[1], x[2]]));
-      exige(Object.keys(tabla).length > 0, 'la tabla COMO_SE_ESCRIBE se ha quedado vacia');
-      const disp = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
-      const reales = new Set([...disp.matchAll(/^\s*case '([a-z0-9_]+)':/gm)].map((x) => x[1]));
-      for (const [clave, valor] of Object.entries(tabla)) {
-        exige(reales.has(clave),
-          `COMO_SE_ESCRIBE tiene "${clave}", que no es un comando: el menu ensenyaria algo que el bot no acepta`);
-        exige(normalizarComando(valor) === clave,
-          `el menu ensenyaria *!${valor}*, que al teclearlo llega como *!${normalizarComando(valor)}* y no como *!${clave}*`);
-        exige(valor !== clave,
-          `"${clave}" esta en COMO_SE_ESCRIBE sin cambiar nada: sobra`);
-      }
-      exige(/comoSeEscribe\(x\)/.test(soc),
-        'la lista larga del menu dejo de pasar por comoSeEscribe: vuelve a ensenyar los alias sin tilde');
-    }
-    if (fallos === antes) console.log(verde('   ✓ el menu escribe los comandos con su tilde y su eñe, y todos se pueden teclear asi'));
-  }
 
   // ── 31a. UN @lid AJENO NO PUEDE ACABAR SIENDO EL DUEÑO ───────────────────
   //
@@ -16171,6 +16198,28 @@ console.log('CAPA87:' + JSON.stringify(quejas));
       exige(rap.status === 0, `el modo rápido falla sobre código bueno: "${(rap.stdout || rap.stderr || '').slice(-160)}"`);
       exige(!fs.existsSync(path.join(caja, '.sello')),
         'el modo rápido ha sellado: la VPS se estaría dando permiso a sí misma y el sello dejaría de significar nada');
+
+      // Y EL MENU VA DENTRO DEL MODO RAPIDO.
+      //
+      // Lo pidio el dueño y tiene razon: el menu es lo unico que el bot enseña
+      // como documentacion de si mismo, y sale en el grupo. Cuesta centesimas
+      // frente a los dos minutos de la puerta entera, asi que se corre en cada
+      // despliegue aunque el sello cuadre. Se comprueba por el EFECTO: se le
+      // mete al menu una entrada que no es ningun comando y el rapido tiene que
+      // cortar. Si algun dia alguien saca capasDelMenu() del camino rapido,
+      // esto se pone rojo.
+      {
+        const soc = path.join(caja, 'src/commands/social.js');
+        const antesSoc = fs.readFileSync(soc, 'utf8');
+        fs.writeFileSync(soc, antesSoc.replace(
+          'const COMO_SE_ESCRIBE = {',
+          "const COMO_SE_ESCRIBE = {\n  comandoqueno_existe: 'comandoqueno_existe',"));
+        const conMenuRoto = spawnSync('node', [path.join(caja, 'scripts/check.js'), '--rapido'],
+          { encoding: 'utf8', timeout: 120000, cwd: caja, env: { ...process.env, OWNER_NUMBER: '34600000000' } });
+        exige(conMenuRoto.status !== 0,
+          'el modo rápido no mira el menú: un comando anunciado que no existe llegaría al grupo sin que el despliegue dijera nada');
+        fs.writeFileSync(soc, antesSoc);
+      }
 
       // Y SI CORTA. Un módulo que no importa en esta máquina para el despliegue.
       fs.appendFileSync(path.join(caja, 'src/utils/usuarios.js'), "\nrequire('modulo-que-no-existe-xyz');\n");
