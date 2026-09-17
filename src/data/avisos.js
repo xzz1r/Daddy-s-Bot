@@ -280,6 +280,33 @@ const DUELO_AJENO = [
 // Solo sale cuando hay una sugerencia de verdad. Si lo escrito no se parece a
 // nada, el bot se calla: reirse de alguien que quiza no estaba escribiendo un
 // comando es reirse de uno mismo.
+// ─── UN ADMIN ECHANDO GENTE EN MASA ─────────────────────────────────────────
+//
+// Se le acaba de quitar el rango por vaciar el grupo. El aviso sale DELANTE DE
+// TODOS a proposito: media docena de personas acaban de desaparecer y el resto
+// merece saber quien fue y que ya no puede seguir.
+//
+// Y va a por la persona, no a por el hecho. Quien hace esto no se equivoca: se
+// viene arriba con el boton, y eso se cura enseñandoselo.
+const PURGA_ADMIN = [
+  'Te has creído dios con el botón de expulsar. Ya no lo tienes, puto.',
+  'Seis en cinco minutos. Ni permiso ni cabeza para sacar gente en masa. Fuera el rango.',
+  'Le has cogido gusto a echar gente. Se te ha quitado el juguete, inútil.',
+  'Vaciar el grupo no te hace importante. Te hace exactamente lo que eres. Sin admin.',
+  'Eso no es moderar, es una rabieta con permisos. Ya no tienes permisos.',
+  'Has durado cinco minutos con el poder. Cinco. Rango retirado.',
+  'Nadie te dio admin para que jugaras a echar gente. Se te retira.',
+  'Te has emocionado sacando gente y el bot te ha sacado a ti del cargo.',
+  'Seis seguidas. O te robaron la cuenta o eres así. Sin admin en los dos casos.',
+  'El grupo no es tuyo y acabas de demostrar por qué no debe serlo. Rango fuera.',
+  'Echar gente en masa no es autoridad, ignorante. Es no saber estar. Ya no eres admin.',
+  'Se te ha ido de las manos en tiempo récord. Adiós al rango.',
+  'Te dieron un botón y lo has usado como un animal. Se te quita.',
+  'Cinco minutos tardaste en demostrar que no valías para esto.',
+  'Confundiste ser admin con hacer lo que te dé la gana. Ya no eres ninguna de las dos.',
+  'Esto no lo para un aviso: se para quitándote lo que has usado mal.',
+];
+
 const MAL_ESCRITO = [
   'No sabes escribir una puta palabra de cinco letras con el modelo delante.',
   'Analfabeto con wifi. Te lo corrijo yo, que tú no llegas.',
@@ -383,4 +410,4 @@ const OBJETIVO_DIA_CARTEL = [
 module.exports = {
   OBJETIVO_DIA_CARTEL,
   cabeceraDe,
-  MAL_ESCRITO, SOLO_GRUPOS, SIN_PERMISO, SOLO_ADMINS, A_TI_MISMO, CONTRA_UN_ADMIN, DUELO_AJENO };
+  MAL_ESCRITO, SOLO_GRUPOS, SIN_PERMISO, SOLO_ADMINS, PURGA_ADMIN, A_TI_MISMO, CONTRA_UN_ADMIN, DUELO_AJENO };

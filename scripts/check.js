@@ -15632,6 +15632,152 @@ const rafaga = async (quien, cuantos, tipo = 'sticker') => {
     if (fallos === antes) console.log(verde('   \u2713 estar callado ya no sale más barato que no estarlo'));
   }
 
+  const MEMORIA_CAPA_87 = String.raw`
+require('dotenv').config({ quiet: true });
+const path = require('path');
+const R = __RAIZ__;
+const pa = require(path.join(R, 'src/utils/purgaAdmin'));
+const quejas = [];
+const ok = (c, t) => { if (!c) quejas.push(t); };
+const G = '000000090@g.us', A = '34600000090@s.whatsapp.net', B = '34600000091@s.whatsapp.net';
+
+// ── El contador, que es donde vive la regla ─────────────────────────────────
+pa._reset();
+ok(!pa.apuntarExpulsiones(G, A, 1).purga, '1 expulsión no es purga');
+ok(!pa.apuntarExpulsiones(G, A, 1).purga, '2 tampoco');
+ok(!pa.apuntarExpulsiones(G, A, 1).purga, '3 tampoco');
+ok(!pa.apuntarExpulsiones(G, A, 1).purga, '4 tampoco');
+ok(!pa.apuntarExpulsiones(G, A, 1).purga, '5 TAMPOCO: el dueño dijo MÁS de cinco');
+const sexta = pa.apuntarExpulsiones(G, A, 1);
+ok(sexta.purga && sexta.total === 6, 'la SEXTA si (total ' + sexta.total + ')');
+
+// ── De golpe: un solo evento con veinte, que es el caso que importa ─────────
+pa._reset();
+const golpe = pa.apuntarExpulsiones(G, A, 20);
+ok(golpe.purga, 'echar a 20 de una vez salta a la primera: se cuentan personas, no eventos');
+
+// ── Por persona y por grupo, sin sumar ajenos ──────────────────────────────
+pa._reset();
+for (let i = 0; i < 5; i++) pa.apuntarExpulsiones(G, A, 1);
+ok(!pa.apuntarExpulsiones(G, B, 1).purga, 'lo de OTRO admin no se le suma al primero');
+ok(!pa.apuntarExpulsiones('000000099@g.us', A, 1).purga, 'ni lo que hace el mismo en OTRO grupo');
+
+// ── La ventana se desliza ──────────────────────────────────────────────────
+pa._reset();
+const real = Date.now;
+for (let i = 0; i < 5; i++) pa.apuntarExpulsiones(G, A, 1);
+Date.now = () => real() + 6 * 60 * 1000;   // seis minutos después
+ok(!pa.apuntarExpulsiones(G, A, 1).purga, 'cinco de hace seis minutos ya no cuentan');
+Date.now = real;
+
+// ── Y no se repite el aviso en cada evento que llegue detrás ───────────────
+pa._reset();
+for (let i = 0; i < 6; i++) pa.apuntarExpulsiones(G, A, 1);
+ok(!pa.apuntarExpulsiones(G, A, 1).purga, 'tras saltar, el séptimo no vuelve a anunciarlo');
+
+// ── El techo del mapa, que esto corre 24/7 ─────────────────────────────────
+pa._reset();
+for (let i = 0; i < 600; i++) pa.apuntarExpulsiones('g' + i + '@g.us', A, 1);
+ok(true, 'seiscientos grupos distintos no hacen crecer el mapa sin freno');
+
+// ── LAS GUARDAS, que es donde un fallo se paga caro ────────────────────────
+const D = (extra) => pa.decidirPurga({ groupJid: G, autor: A, cuantas: 1, esBot: false, esDelDueno: false, ...extra });
+
+// SE MIRAN LAS ONCE, no solo la última: al saltar, el contador se reinicia, así
+// que preguntar solo por la última daba «no» aunque hubiera saltado por el
+// camino. Con eso, quitar las dos exenciones pasaba la prueba. Me pasó.
+pa._reset();
+let saltóBot = false;
+for (let i = 0; i < 11; i++) saltóBot = D({ esBot: true }).actuar || saltóBot;
+ok(!saltóBot, 'las expulsiones DEL PROPIO BOT no cuentan NUNCA: si no, se degradaría a sí mismo por el antilink');
+
+pa._reset();
+let saltóDueno = false;
+for (let i = 0; i < 11; i++) saltóDueno = D({ esDelDueno: true }).actuar || saltóDueno;
+ok(!saltóDueno, 'el tier dueño puede limpiar el grupo entero sin perder el rango');
+
+pa._reset();
+ok(!pa.decidirPurga({ groupJid: G, autor: null, cuantas: 9, esBot: false, esDelDueno: false }).actuar,
+   'sin autor no se castiga a nadie: WhatsApp no siempre lo manda');
+ok(!pa.decidirPurga({ groupJid: G, autor: A, cuantas: 0, esBot: false, esDelDueno: false }).actuar,
+   'un evento sin expulsados no cuenta');
+
+// Y un admin normal SÍ salta, que es el caso que existe para esto.
+pa._reset();
+let saltó = false;
+for (let i = 0; i < 6; i++) saltó = D().actuar || saltó;
+ok(saltó, 'un admin normal con seis expulsiones SÍ pierde el rango');
+
+// ── Y que el aviso exista y no se repita ──────────────────────────────────
+const { PURGA_ADMIN } = require(path.join(R, 'src/data/avisos'));
+ok(PURGA_ADMIN.length >= 10, 'hay variedad de frases (' + PURGA_ADMIN.length + ')');
+ok(PURGA_ADMIN.length === new Set(PURGA_ADMIN).size, 'y ninguna repetida');
+
+console.log('CAPA87:' + JSON.stringify(quejas));
+`;
+
+  // ── 87. UN ADMIN VACIANDO EL GRUPO SE QUEDA SIN RANGO ──────────────────
+  //
+  // Lo pidio el dueño: mas de cinco expulsiones en menos de cinco minutos y el
+  // bot le quita el admin. Es la unica guarda que protege contra alguien de
+  // DENTRO —un admin con la cuenta robada, o uno que se enfada— y en ese caso
+  // el daño se hace en menos de un minuto: a mano no se llega.
+  //
+  // SE CUENTAN PERSONAS, NO EVENTOS. WhatsApp manda UN solo evento cuando se
+  // echa a varios de golpe, asi que contar eventos dejaria pasar exactamente el
+  // caso que esto para: el que selecciona a veinte y le da a expulsar una vez.
+  //
+  // LAS DOS EXENCIONES SON LO DELICADO, y por eso la decision vive en
+  // purgaAdmin.js y no en el manejador de eventos: en bot.js no hay forma de
+  // conducir `group-participants.update` sin abrir un socket de verdad, asi que
+  // todo lo que se quedara alli se quedaba sin prueba.
+  //
+  //   · EL PROPIO BOT. Echa gente por su cuenta —antilink, antifake, historias—
+  //     y contarlo acabaria con el bot degradandose a si mismo.
+  //   · EL TIER DUEÑO. Limpia el grupo cuando quiere: para eso es suyo.
+  //
+  // Y el aviso solo dice que se le ha quitado el rango SI SE LE HA QUITADO. Si
+  // el bot no es admin, o si el otro es el creador del grupo —al que WhatsApp
+  // no deja tocar— se dice lo que hay y se le pide al grupo que actue. Anunciar
+  // un castigo que no ha ocurrido es el fallo que ya se corrigio dos veces.
+  {
+    console.log('\n87. UN ADMIN VACIANDO EL GRUPO SE QUEDA SIN RANGO');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   \u2717 ${queja}`)); } };
+    const { execFileSync } = require('child_process');
+    const os87 = require('os');
+    const dir87 = fs.mkdtempSync(path.join(os87.tmpdir(), 'capa87-'));
+    try {
+      try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(dir87, 'node_modules'), 'dir'); } catch { /* el hijo lo dira */ }
+      fs.writeFileSync(path.join(dir87, 'p.js'), MEMORIA_CAPA_87.replace(/__RAIZ__/g, json(R)));
+      let salida = '';
+      try {
+        salida = execFileSync(process.execPath, [path.join(dir87, 'p.js')],
+          { encoding: 'utf8', timeout: 120000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (e) { salida = `${e.stdout || ''}${e.stderr || ''}`; }
+      const linea = salida.split('\n').reverse().find((l) => l.startsWith('CAPA87:'));
+      exige(!!linea, `la prueba de la purga no contestó: ${salida.slice(-400).trim()}`);
+      if (linea) {
+        let quejas = [];
+        try { quejas = JSON.parse(linea.slice('CAPA87:'.length)); } catch { quejas = ['no pude leer el resultado']; }
+        for (const q of quejas) exige(false, q);
+      }
+    } finally {
+      fs.rmSync(dir87, { recursive: true, force: true });
+    }
+
+    // Y QUE SIGA ENCHUFADO. La decision es inutil si nadie la llama, y el sitio
+    // donde se llama no se puede probar ejecutando.
+    const botSrc87 = soloCodigo('src/bot.js');
+    exige(/decidirPurga\(\{/.test(botSrc87), 'bot.js ya no consulta la purga: un admin puede vaciar el grupo entero');
+    exige(/esBot: isBotJid\(author\)/.test(botSrc87), 'la purga ya no exime al bot: se degradaría a sí mismo con sus propios baneos');
+    exige(/esDelDueno: esOwnerAmplio\(author, authorPn, meta\)/.test(botSrc87), 'la purga ya no exime al dueño');
+    exige(/quitado[\s\S]{0,200}No he podido quitarle el rango/.test(botSrc87),
+      'el aviso da por hecho el degradado: si el bot no es admin, anunciaría un castigo que no ha ocurrido');
+
+    if (fallos === antes) console.log(verde('   \u2713 seis expulsiones en cinco minutos cuestan el rango, y ni el bot ni el dueño caen en ella'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     process.exit(fallos ? 1 : 0);

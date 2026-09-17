@@ -79,8 +79,10 @@ const { flushObjetivoDia } = require('./utils/objetivoDia');
 const { guardOnJoin, allForms } = require('./commands/fk');
 const { businessEvidence } = require('./utils/businessCheck');
 const { aplicarParticipantes, aplicarAUno, formasDe } = require('./utils/participantes');
+const { decidirPurga } = require('./utils/purgaAdmin');
 const { getMemberFacts } = require('./utils/nickStore');
-const { ensureTemp, barrerHuerfanos, withTimeout, atomicWriteJson } = require('./utils/helpers');
+const { ensureTemp, barrerHuerfanos, withTimeout, atomicWriteJson, pickFresh } = require('./utils/helpers');
+const { PURGA_ADMIN } = require('./data/avisos');
 
 // Tope comun para las consultas de red que no lo tenian. Un socket colgado no
 // LANZA: se queda, y el try/catch de al lado no atrapa nada porque no hay error
@@ -1574,6 +1576,50 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
     //
     // Se le degrada a él y se intenta devolver al owner. El degradado es solo
     // eso: se le quita el admin, no se le banea ni se le echa.
+    // ─── UN ADMIN VACIANDO EL GRUPO SE QUEDA SIN RANGO ────────────────────
+    //
+    // Lo pidio el dueño: mas de cinco expulsiones en menos de cinco minutos y se
+    // le quita el admin. Es la unica guarda del bot que protege contra alguien
+    // de DENTRO — un admin al que le han robado la cuenta, o uno que se enfada y
+    // decide vaciar el grupo. En los dos casos el daño se hace en menos de un
+    // minuto y a mano no se llega.
+    //
+    // Se cuentan las EXPULSIONES, no los eventos: WhatsApp manda uno solo cuando
+    // se echa a varios de golpe, asi que contar eventos dejaria pasar justo el
+    // caso que esto para — al que selecciona a veinte y le da una vez.
+    //
+    // El tier dueño y el propio bot quedan fuera: el dueño limpia el grupo
+    // cuando quiere, y las expulsiones del bot son suyas (antilink, antifake) y
+    // contarlas seria que el bot se degradara a si mismo.
+    //
+    // Va ANTES del bloque de abajo a proposito. Ese solo salta si el expulsado
+    // es del tier dueño; una purga de miembros normales no lo despierta, que es
+    // exactamente el agujero.
+    if (action === 'remove') {
+      const { actuar, total } = decidirPurga({
+        groupJid,
+        autor: author,
+        cuantas: partJids.length,
+        esBot: isBotJid(author),
+        esDelDueno: esOwnerAmplio(author, authorPn, meta),
+      });
+      if (actuar) {
+        const quitado = await aplicarAUno(sock, groupJid, author, 'demote', meta);
+        const tag = `@${String(author).split('@')[0]}`;
+        logger.warn(`purga: ${author} echo a ${total} en ${groupJid}; degradado: ${quitado ? 'si' : 'NO'}`);
+        sock.sendMessage(groupJid, {
+          // Si el degradado no salio —el bot no es admin, o el otro es el
+          // creador del grupo, al que WhatsApp no deja tocar— NO se dice que se
+          // le ha quitado el rango. Anunciar un castigo que no ha ocurrido es el
+          // fallo que ya se corrigio en las expulsiones y en el antilink.
+          text: quitado
+            ? `${tag} ${pickFresh(PURGA_ADMIN, `purga|${groupJid}`)}`
+            : `${tag} acaba de echar a ${total} personas de golpe. No he podido quitarle el rango: dádselo vosotros a alguien que no lo use así.`,
+          mentions: [author],
+        }).catch(() => {});
+      }
+    }
+
     if (action === 'remove' && author && !isBotJid(author) && !esOwnerAmplio(author, authorPn, meta)) {
       // Se miran TODAS las formas del expulsado, no solo su id.
       //
