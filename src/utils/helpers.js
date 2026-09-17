@@ -791,8 +791,22 @@ function aviso(pool, chat, etiqueta) {
   // La cabecera —"Solo admins."— va delante y en su propia linea. Solo la
   // tienen los avisos que niegan por rango; el resto devuelve la frase pelada,
   // exactamente como antes.
-  const cab = require('../data/avisos').cabeceraDe?.(pool);
-  return cab ? `${cab}\n${frase}` : frase;
+  const AV = require('../data/avisos');
+  const cab = AV.cabeceraDe?.(pool);
+  if (!cab) return frase;
+  // Y el cierre DETRAS del remate. La cabecera dice de quien es el comando; el
+  // cierre dice que tu no lo tienes. Rota con su propia clave para que el mismo
+  // insulto no salga siempre acompañado del mismo final.
+  //
+  // Y si el remate YA empieza nombrando el comando, se descartan los cierres
+  // que tambien empiezan asi: "Ese comando es de admins. Ese comando no te va a
+  // responder." son dos frases seguidas con la misma cabeza y se lee a copia
+  // pegada. Mencionarlo de refilon mas adelante no molesta; abrir dos veces si.
+  const cierres = /ese comando/i.test(frase)
+    ? AV.SIN_ACCESO.filter((c) => !/^ese comando/i.test(c))
+    : AV.SIN_ACCESO;
+  const cierre = pickFresh(cierres, `${chat}|cierre|${etiqueta}`);
+  return `${cab}\n${frase} ${cierre}`;
 }
 
 // Escritor con debounce + candado. El patrón viejo (`saveTimer = null` ANTES

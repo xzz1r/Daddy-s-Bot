@@ -117,7 +117,7 @@ const SIN_PERMISO = [
 // suyo. Es el mismo arreglo que en !r con `Aviso:`, y por el mismo motivo.
 //
 // EL ATAQUE VA AL RANGO, no a la persona. No es "eres tonto", que no dice nada:
-// es que llevas aqui el mismo tiempo que ellos y sigues sin galones, que nadie
+// es que llevas aqui el mismo tiempo que ellos y sigues sin ser admin, que nadie
 // va a proponer tu nombre, que el comando no ha fallado — te ha reconocido y
 // por eso no hace nada. Eso escuece mas que un insulto porque es verificable.
 const SOLO_ADMINS = [
@@ -200,7 +200,7 @@ const A_TI_MISMO = [
 // El objetivo es un admin y quien lo intenta no llega. Se lee en el grupo, y
 // delante del propio admin, que es la mitad de la gracia.
 const CONTRA_UN_ADMIN = [
-  'Ese lleva galones. Busca a alguien de tu tamaño.',
+  'Ese es admin. Busca a alguien de tu tamaño.',
   'A un admin no. Elige a alguien que no pueda devolvértela.',
   'Contra un admin no. Aquí hay clases y ya sabes en cuál estás.',
   'No. Ese está por encima de ti, y se nota hasta en el intento.',
@@ -208,23 +208,23 @@ const CONTRA_UN_ADMIN = [
   'Ese no. Métete con los de tu liga, que hay de sobra.',
   'No puedes. Y esa persona sí puede contigo, por si se te ocurre insistir.',
   'Contra un admin no. Elige mejor a quién le tienes ganas.',
-  'No. Los galones existen exactamente para esto.',
-  'Ese tiene galones. Tú tienes ganas, que no es lo mismo.',
+  'No. El admin existe exactamente para esto.',
+  'Ese es admin. Tú tienes ganas, que no es lo mismo.',
   'A un admin no. Elige a alguien de tu altura.',
   'Contra ese no. Está arriba y se nota hasta en el intento.',
   'No. Ahí pierdes tú, y ni por escrito te sale.',
-  'A los de galones no. A ti sí, y por algo será.',
+  'A los que son admin no. A ti sí, y por algo será.',
   'Ese no. Busca en tu liga, que hay bastante donde elegir.',
   'Contra un admin no. Lo tuyo es encajar, no repartir.',
   'No puedes. Y si insisten desde arriba, te enteras.',
   'Ese está por encima. Baja un par de escalones y busca.',
   'A un admin no se le entra. Se le aguanta.',
-  'No. Los galones existen exactamente para pararte a ti.',
+  'No. El admin existe exactamente para pararte a ti.',
   'Contra ese no. Elige a alguien que no pueda echarte.',
   'Ese no es un rival, es un superior. Cámbialo.',
   'A un admin no. Eso lo sabías y lo has intentado igual.',
   'No. Hay clases, y acabas de comprobar en cuál estás.',
-  'Ese lleva galones desde antes de que se te ocurriera.',
+  'Ese es admin desde antes de que se te ocurriera.',
   'Contra un admin no. Ni con suerte ni con público.',
   'No puedes. Y desde arriba no hace falta este comando para devolvértela.',
   'Ese no. Prueba con alguien tan poca cosa como tú.',
@@ -362,6 +362,33 @@ const MAL_ESCRITO = [
 // Va en un Map del propio array a su texto para no tener que cambiar la firma de
 // aviso() ni tocar los seis sitios que lo llaman: el que tiene cabecera la
 // recibe, el que no, sigue igual.
+// El cierre del aviso de rango. Va DETRAS del insulto, no delante.
+//
+// La cabecera dice de quien es el comando; esto dice lo que te pasa a ti. Sin
+// esta linea el remate se lee como una pulla suelta y el que la recibe no ata
+// el insulto con el motivo — que es justo lo que hay que dejar claro, porque
+// este aviso lo lee el grupo entero y no solo quien escribio el comando.
+//
+// Cortos a proposito: el remate ya ocupa su linea y esto no puede robarle
+// sitio. Rotan aparte de las frases para que el mismo insulto no salga
+// siempre con el mismo cierre.
+const SIN_ACCESO = [
+  'No tienes acceso a ese comando.',
+  'Ese comando no lo puedes usar.',
+  'Así que no, ese comando no es para ti.',
+  'Ese comando se te queda cerrado.',
+  'Y no, no tienes acceso a ese comando.',
+  'Ese comando no te va a responder nunca.',
+  'Cero acceso a ese comando.',
+  'Ese comando lo tienes prohibido.',
+  'No puedes usar ese comando y ya está.',
+  'Ese comando no se te abre.',
+  'Por eso no tienes acceso a ese comando.',
+  'Ese comando no está a tu alcance.',
+  'Y ese comando sigue sin ser tuyo.',
+  'Acceso a ese comando: ninguno.',
+];
+
 const CABECERAS = new Map([
   [SOLO_ADMINS, '*Solo admins.*'],
   [SIN_PERMISO, '*Solo admins superiores.*'],
@@ -410,4 +437,4 @@ const OBJETIVO_DIA_CARTEL = [
 module.exports = {
   OBJETIVO_DIA_CARTEL,
   cabeceraDe,
-  MAL_ESCRITO, SOLO_GRUPOS, SIN_PERMISO, SOLO_ADMINS, PURGA_ADMIN, A_TI_MISMO, CONTRA_UN_ADMIN, DUELO_AJENO };
+  MAL_ESCRITO, SOLO_GRUPOS, SIN_PERMISO, SOLO_ADMINS, PURGA_ADMIN, SIN_ACCESO, A_TI_MISMO, CONTRA_UN_ADMIN, DUELO_AJENO };

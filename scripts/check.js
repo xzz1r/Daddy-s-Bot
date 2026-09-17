@@ -15778,6 +15778,104 @@ console.log('CAPA87:' + JSON.stringify(quejas));
     if (fallos === antes) console.log(verde('   \u2713 seis expulsiones en cinco minutos cuestan el rango, y ni el bot ni el dueño caen en ella'));
   }
 
+  // ── 88. EL AVISO DE RANGO DICE AL FINAL QUE NO TIENES ACCESO ──────────
+  //
+  // Los remates de SOLO_ADMINS y SIN_PERMISO son insultos, y un insulto suelto
+  // no explica nada: quien lo lee —y lo lee el grupo entero— tiene que atar la
+  // pulla con el motivo. La cabecera dice de QUIEN es el comando; el cierre
+  // dice que TU no lo tienes, y va detras porque delante ya esta la cabecera.
+  //
+  // LO QUE DE VERDAD SE VIGILA AQUI ES QUE EL CIERRE NO SE ESCAPE A LOS OTROS
+  // POOLS. `aviso()` es la misma puerta para todos, y colgar el cierre sin
+  // mirar la cabecera pondria "no tienes acceso a ese comando" al final de un
+  // comando MAL ESCRITO — que si tiene acceso, lo que ha hecho es escribirlo
+  // mal. Un aviso que miente es peor que un aviso soso.
+  //
+  // Y el largo se mide sobre el COMPUESTO, no sobre la frase. La guarda de 90
+  // caracteres de la capa 26 mira el pool; desde que hay dos mitades que crecen
+  // por separado, esa cuenta ya no dice lo que se lee en el movil. Se recorren
+  // TODAS las combinaciones, no una muestra: son 80 x 14 y salen gratis.
+  {
+    console.log('\n88. EL AVISO DE RANGO DICE AL FINAL QUE NO TIENES ACCESO');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const AV88 = require(path.join(R, 'src/data/avisos'));
+    const { aviso: aviso88 } = require(path.join(R, 'src/utils/helpers'));
+    const CIERRES = AV88.SIN_ACCESO;
+
+    exige(CIERRES.every((c) => /\bcomando\b/i.test(c)),
+      'algun cierre ya no nombra el comando: entonces no aclara de que va el insulto');
+
+    // 1) LOS DOS AVISOS DE RANGO LO LLEVAN, Y LO LLEVAN AL FINAL.
+    for (const nombre of ['SOLO_ADMINS', 'SIN_PERMISO']) {
+      const vistos = new Set();
+      for (let i = 0; i < 400; i++) {
+        const t = aviso88(AV88[nombre], `g88-${i}`, `e88-${i}`);
+        const linea = (t.split('\n')[1] || '');
+        const cierre = CIERRES.find((c) => linea.endsWith(c));
+        if (!cierre) {
+          exige(false, `${nombre} sale sin decir al final que no tienes acceso: "${linea.slice(-60)}"`);
+          break;
+        }
+        vistos.add(cierre);
+        // Y el remate sigue entero delante: el cierre acompaña, no sustituye.
+        const resto = linea.slice(0, linea.length - cierre.length).trim();
+        if (!AV88[nombre].includes(resto)) {
+          exige(false, `${nombre}: el cierre se ha comido el remate ("${linea.slice(0, 60)}")`);
+          break;
+        }
+      }
+      exige(vistos.size >= 5,
+        `${nombre} repite siempre el mismo cierre (${vistos.size} distinto(s) en 400): eso se lee como una plantilla`);
+    }
+
+    // 2) Y NO SE CUELA EN LOS QUE NO NIEGAN POR RANGO.
+    for (const nombre of ['MAL_ESCRITO', 'SOLO_GRUPOS', 'A_TI_MISMO', 'CONTRA_UN_ADMIN', 'DUELO_AJENO', 'PURGA_ADMIN']) {
+      if (!Array.isArray(AV88[nombre])) continue;
+      let colado = null;
+      for (let i = 0; i < 120 && !colado; i++) {
+        const t = aviso88(AV88[nombre], `x88-${i}`, `y88-${i}`);
+        if (CIERRES.some((c) => t.endsWith(c))) colado = t;
+      }
+      exige(!colado,
+        `${nombre} ha acabado diciendo que no tienes acceso al comando, y ahi eso es mentira: "${(colado || '').slice(0, 70)}"`);
+    }
+
+    // 3) EL COMPUESTO SE SIGUE LEYENDO DE UN VISTAZO. Todas las combinaciones.
+    // 130 era un tope MUERTO: la capa 26 ya limita la frase a 90 y el cierre
+    // mas largo mide 39, asi que 90+1+39 = 130 no lo pasaba nada. Se baja a 124
+    // —el peor compuesto real mide 121— y se comprueba que el numero SIGUE
+    // siendo alcanzable, para que no vuelva a quedarse de adorno al alargar un
+    // cierre.
+    const TOPE88 = 124;
+    const CIERRE_MAX = Math.max(...CIERRES.map((c) => c.length));
+    exige(TOPE88 < 90 + 1 + CIERRE_MAX,
+      `el tope del compuesto (${TOPE88}) es inalcanzable con frases de 90 y cierres de ${CIERRE_MAX}: no vigila nada`);
+    for (const nombre of ['SOLO_ADMINS', 'SIN_PERMISO']) {
+      let peor = '';
+      for (const f of AV88[nombre]) {
+        for (const c of CIERRES) {
+          const linea = `${f} ${c}`;
+          if (linea.length > peor.length) peor = linea;
+        }
+      }
+      exige(peor.length <= TOPE88,
+        `${nombre} + cierre llega a ${peor.length} caracteres y el tope es ${TOPE88}: "${peor.slice(0, 70)}…"`);
+    }
+
+    // 4) NI DOS FRASES SEGUIDAS ABRIENDO IGUAL.
+    for (const nombre of ['SOLO_ADMINS', 'SIN_PERMISO']) {
+      let doble = null;
+      for (let i = 0; i < 400 && !doble; i++) {
+        const linea = (aviso88(AV88[nombre], `z88-${i}`, `w88-${i}`).split('\n')[1] || '');
+        if ((linea.match(/Ese comando/g) || []).length > 1) doble = linea;
+      }
+      exige(!doble, `${nombre} saca dos frases seguidas abriendo por "Ese comando": "${(doble || '').slice(0, 80)}"`);
+    }
+
+    if (fallos === antes) console.log(verde('   ✓ el insulto se entiende: detrás va lo que no tienes, y solo donde es verdad'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     process.exit(fallos ? 1 : 0);
