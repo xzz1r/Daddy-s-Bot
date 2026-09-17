@@ -33,6 +33,22 @@ main() {
 
 cd "$(dirname "$0")/.."
 
+# ─── CRONOMETRO POR PASOS ────────────────────────────────────────────────────
+#
+# EXISTE PORQUE "TARDA MUCHO" NO ES UN DIAGNOSTICO. Se midio aqui que la puerta
+# se llevaba el 98 % del despliegue y se le puso un atajo, y aun asi hacia falta
+# saber si en ESTA maquina el reparto es el mismo: el disco, la red y el npm de
+# la VPS no son los de donde se escribe el codigo.
+#
+# `SECONDS` lo lleva bash solo, asi que esto no cuesta ni un proceso.
+TPASO=$SECONDS
+PASOS=""
+paso() {
+  PASOS="${PASOS}${1}|$((SECONDS - TPASO))
+"
+  TPASO=$SECONDS
+}
+
 # El repo y la rama van CLAVADOS aquí, no se leen de la máquina.
 #
 # EXISTE POR UN FALLO REAL Y MUY CARO DE VER. El script hacía `git pull origin
@@ -123,6 +139,7 @@ fi
 # (aura, casino, rachas, sesión) están en data/ y fuera de git, así que esto no
 # toca ni un punto de aura de nadie.
 git reset --hard --quiet "origin/${RAMA}"
+paso "git (fetch + reset)"
 
 DESPUES="$(git rev-parse --short HEAD)"
 CUANTOS="$(git rev-list --count "${ANTES}..${DESPUES}" 2>/dev/null || echo 0)"
@@ -130,6 +147,7 @@ CUANTOS="$(git rev-list --count "${ANTES}..${DESPUES}" 2>/dev/null || echo 0)"
 # --ignore-scripts y borrar sharp: sus binarios precompilados no siempre casan
 # con esta máquina y su postinstall es de lo poco que puede tumbar un despliegue.
 npm install --omit=dev --ignore-scripts --no-fund --no-audit --loglevel=error
+paso "npm install"
 
 # sharp y SUS BINARIOS. Se borraba la carpeta sharp pero no @img, que es donde
 # viven los binarios de verdad: 27 MB de libvips y un fallback WebAssembly que
@@ -208,6 +226,7 @@ fi
 # se reinicia: el bot sigue con el codigo viejo, que funciona, en vez de
 # quedarse sin nada. Cuesta unos segundos y se ha ganado ese derecho.
 echo
+paso "limpieza (sharp, ffmpeg, yt-dlp)"
 echo "→ Comprobando que el código nuevo arranca..."
 
 # PLACEHOLDERS TAMBIEN, y esto se aprendio por poco. Aqui solo corria `check`,
@@ -256,6 +275,8 @@ else
   MODO_CHECK="--breve"
 fi
 
+paso "placeholders"
+
 if ! npm run --silent check -- "$MODO_CHECK"; then
   echo
   echo "════════════════════════════════════════════"
@@ -271,7 +292,10 @@ fi
 # es el momento en que el bot se para y arranca con codigo distinto, y si algo
 # va a salir mal es aqui. Cuesta menos de un segundo y es la unica copia que se
 # hace sola aunque nadie se acuerde del cron.
+paso "comprobación ($MODO_CHECK)"
+
 bash scripts/respaldo.sh || echo "  (aviso: no se pudo hacer la copia de data/, se sigue igual)"
+paso "copia de data/"
 
 # CUANTAS HUELLAS HAY EN EL LOG ANTES DE REINICIAR.
 #
@@ -342,6 +366,7 @@ if pm2 describe guardian >/dev/null 2>&1; then
   echo "  · guardián reiniciado también"
 fi
 
+paso "pm2"
 pm2 save --force >/dev/null
 
 # Veredicto explícito. Sin esto no había forma de saber si el comando había
@@ -477,6 +502,20 @@ mantenimiento() {
       fi
     fi
   fi
+
+  # ─── DONDE SE FUERON LOS SEGUNDOS ──────────────────────────────────────────
+  #
+  # Va al final y siempre, no solo cuando algo va mal: si un dia el despliegue
+  # se alarga, la respuesta esta aqui y no hay que adivinarla ni pedir que
+  # alguien cronometre a mano. La puerta lleva su modo al lado —rapido o
+  # completo— porque es la diferencia entre 1 segundo y dos minutos.
+  echo
+  echo "  Tiempos ($((SECONDS))s en total):"
+  # Sin rellenar a columnas: printf cuenta BYTES, no letras, y un acento
+  # descuadra la fila entera. Con el guion delante se lee igual de bien.
+  printf '%s' "$PASOS" | while IFS='|' read -r que seg; do
+    [ -n "$que" ] && echo "    · ${que}: ${seg} s"
+  done
 }
 
 main "$@"

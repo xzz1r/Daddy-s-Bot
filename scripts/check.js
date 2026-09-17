@@ -99,12 +99,21 @@ const _log = console.log;
 const _err = console.error;
 let capasCorridas = 0, capasSaltadas = 0;
 const erroresGuardados = [];
+// LA CAPA EN LA QUE SE ESTA, para poder NOMBRARLA cuando algo falle.
+//
+// EXISTE POR UN FALLO QUE NO SE PUDO PERSEGUIR. Un pase de noventa capas fallo
+// una vez y no volvio a fallar en dieciseis; el modo breve habia dicho "1
+// fallo(s) en 90 capas" y nada mas, asi que no quedaba ni el nombre de la capa
+// por donde empezar a mirar. Un fallo intermitente que no se puede localizar
+// es el peor de todos: bloquea un despliegue y no deja rastro.
+let capaActual = '';
 if (BREVE) {
   console.log = (...a) => {
     const limpio = a.join(' ').replace(/\x1b\[\d+m/g, '');
-    if (/^\n?\s*\d+\./.test(limpio)) { capasCorridas++; return; }
+    const cab = limpio.match(/^\n?\s*(\d+\..*)$/);
+    if (cab) { capasCorridas++; capaActual = cab[1].trim(); return; }
     if (/—\s*(saltad|barrido)/i.test(limpio)) { capasSaltadas++; return; }
-    if (limpio.includes('✗')) _log(...a);
+    if (limpio.includes('✗')) { _log(`  [${capaActual}]`); _log(...a); }
   };
   console.error = (...a) => { erroresGuardados.push(a.join(' ')); };
 }
