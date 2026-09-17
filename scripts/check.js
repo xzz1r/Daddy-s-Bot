@@ -15360,6 +15360,128 @@ const MB = 1048576;
     if (fallos === antes) console.log(verde('   \u2713 llega la mejor calidad que cabe, sin tirar bytes y diciendo la verdad si no cabe ninguna'));
   }
 
+  const MEMORIA_CAPA_85 = String.raw`
+require('dotenv').config({ quiet: true });
+const path = require('path');
+const R = __RAIZ__;
+process.env.OWNER_NUMBER = '330000000033,570000000057';
+process.env.CO_OWNERS = '340000000034';
+for (const k of Object.keys(require.cache)) if (/config\.js|wa\.js|messageHandler\.js/.test(k)) delete require.cache[k];
+const wa = require(path.join(R, 'src/utils/wa'));
+const { handleMessage } = require(path.join(R, 'src/handlers/messageHandler'));
+const quejas = [];
+const ok = (c, t) => { if (!c) quejas.push(t); };
+
+// El caso real: WhatsApp direcciona el chat por LID y el telefono solo viene en
+// remoteJidAlt. Esa persona NUNCA ha escrito en el grupo, asi que el mapa esta
+// limpio para ella.
+const dm = async (key) => {
+  const dichos = [];
+  const sock = {
+    user: { id: '549199@s.whatsapp.net' },
+    sendMessage: async (j, c) => { dichos.push((c.text || '[MEDIA]').slice(0, 40)); return { key: { id: 'K' } }; },
+    sendPresenceUpdate: async () => {}, groupMetadata: async () => null, readMessages: async () => {},
+  };
+  const msg = { key: { fromMe: false, id: 'M' + Math.random(), ...key },
+    messageTimestamp: Math.floor(Date.now() / 1000), message: { conversation: '!ping' } };
+  await handleMessage(sock, msg).catch(() => {});
+  await new Promise((r) => setTimeout(r, 150));
+  return dichos.join(' | ');
+};
+
+(async () => {
+  // ── 1. EL CASO DEL DUEÑO: +57 por LID, sin haber hablado en el grupo ─────
+  const r57 = await dm({ remoteJid: '111111111111111@lid', remoteJidAlt: '570000000057@s.whatsapp.net', addressingMode: 'lid' });
+  ok(!!r57, 'el +57 por LID recibe respuesta en el privado (' + (r57 || 'SILENCIO') + ')');
+
+  // ── 2. Y el +33, igual ───────────────────────────────────────────────────
+  const r33 = await dm({ remoteJid: '222222222222222@lid', remoteJidAlt: '330000000033@s.whatsapp.net', addressingMode: 'lid' });
+  ok(!!r33, 'el +33 por LID tambien (' + (r33 || 'SILENCIO') + ')');
+
+  // ── 3. Por teléfono directo, como siempre ────────────────────────────────
+  ok(!!(await dm({ remoteJid: '570000000057@s.whatsapp.net' })), 'y por teléfono directo sigue funcionando');
+
+  // ── 4. LA PUERTA NO SE ABRE PARA CUALQUIERA ──────────────────────────────
+  const ajeno = await dm({ remoteJid: '333333333333333@lid', remoteJidAlt: '34699999999@s.whatsapp.net', addressingMode: 'lid' });
+  ok(!ajeno, 'un desconocido por LID sigue sin respuesta (' + (ajeno || 'SILENCIO') + ')');
+  const ajeno2 = await dm({ remoteJid: '34699999999@s.whatsapp.net' });
+  ok(!ajeno2, 'y por teléfono tampoco');
+
+  // ── 5. UN CO-DUEÑO SÍ, que también está en el tier ───────────────────────
+  const co = await dm({ remoteJid: '444444444444444@lid', remoteJidAlt: '340000000034@s.whatsapp.net', addressingMode: 'lid' });
+  ok(!!co, 'un co-dueño por LID tambien entra (' + (co || 'SILENCIO') + ')');
+
+  // ── 6. Y LA EQUIVALENCIA QUEDA APRENDIDA para todo lo demás ──────────────
+  ok(wa.isOwner('111111111111111@lid', false, null),
+     'tras ese privado, el bot ya reconoce ese LID como el dueño en cualquier sitio');
+
+  console.log('CAPA85:' + JSON.stringify(quejas));
+})().catch((e) => {
+  console.log('CAPA85:' + JSON.stringify(['la prueba del privado revento: ' + (e && e.message)]));
+});
+`;
+
+  // ── 85. EL DUEÑO ES EL DUEÑO EN EL PRIVADO, VENGA COMO VENGA ───────────
+  //
+  // El dueño tiene dos lineas en el tier y una de ellas no recibia respuesta en
+  // el privado: «no me responde al privado el bot como lo hace con el +33».
+  //
+  // Eran DOS agujeros que se sumaban, y los dos por lo mismo: el bot daba por
+  // hecho que a una persona se la conoce por su telefono.
+  //
+  // 1. `getSender` aprende la equivalencia LID<->telefono mirando
+  //    `participantAlt`, PERO SOLO SI HAY `participant` — y `participant` es un
+  //    campo de GRUPO. De un chat a solas no se aprendia nunca. Asi que si
+  //    WhatsApp direcciona a alguien por LID y esa persona no ha escrito en el
+  //    grupo, el bot no tiene forma de saber que ese `@lid` es su numero.
+  //
+  // 2. `ownerEnPrivado` miraba cinco formas del remitente y NO miraba
+  //    `remoteJidAlt`, que en un privado direccionado por LID es el unico sitio
+  //    donde aparece el telefono: `participantAlt` y `participantPn` no existen
+  //    ahi.
+  //
+  // Por eso una linea funcionaba y la otra no, y parecia cosa del .env: la que
+  // funcionaba tenia su LID aprendido de haber hablado en el grupo.
+  //
+  // Medido con las dos mutaciones a la vez —o sea el bot tal y como estaba— la
+  // prueba devuelve SILENCIO para las dos lineas y para el co-dueño. Con solo
+  // el arreglo de `getSender` ya contesta y ademas aprende; con solo el de
+  // `ownerEnPrivado` contesta pero no aprende. Se quedan los dos: el segundo
+  // hace que la puerta del dueño no dependa de que el aprendizaje haya salido
+  // bien, y esa puerta es la que decide quien puede mandarle al bot en privado.
+  //
+  // LO QUE NO PUEDE PASAR es que abrir esto se lo abra a cualquiera. Por eso la
+  // prueba lleva dos casos en negativo —un desconocido por LID y por telefono—
+  // y la mutacion que abre la puerta del todo los enciende a los dos.
+  {
+    console.log('\n85. EL DUEÑO ES EL DUEÑO EN EL PRIVADO, VENGA COMO VENGA');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   \u2717 ${queja}`)); } };
+    const { execFileSync } = require('child_process');
+    const os85 = require('os');
+    const dir85 = fs.mkdtempSync(path.join(os85.tmpdir(), 'capa85-'));
+    try {
+      try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(dir85, 'node_modules'), 'dir'); } catch { /* el hijo lo dira */ }
+      fs.writeFileSync(path.join(dir85, 'p.js'), MEMORIA_CAPA_85.replace(/__RAIZ__/g, json(R)));
+      let salida = '';
+      try {
+        salida = execFileSync(process.execPath, [path.join(dir85, 'p.js')],
+          { encoding: 'utf8', timeout: 120000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (e) { salida = `${e.stdout || ''}${e.stderr || ''}`; }
+      const linea = salida.split('\n').reverse().find((l) => l.startsWith('CAPA85:'));
+      exige(!!linea, `la prueba del privado no contestó: ${salida.slice(-400).trim()}`);
+      if (linea) {
+        let quejas = [];
+        try { quejas = JSON.parse(linea.slice('CAPA85:'.length)); } catch { quejas = ['no pude leer el resultado']; }
+        for (const q of quejas) exige(false, q);
+      }
+    } finally {
+      fs.rmSync(dir85, { recursive: true, force: true });
+    }
+
+    if (fallos === antes) console.log(verde('   \u2713 las dos líneas del dueño entran al privado, por LID o por teléfono, y nadie más'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     process.exit(fallos ? 1 : 0);

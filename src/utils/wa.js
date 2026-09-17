@@ -565,6 +565,30 @@ function getSender(msg) {
     if (altEsLid) rememberMapping(alt, msg.key.participant);
     else rememberMapping(msg.key.participant, alt);
   }
+
+  // ─── Y TAMBIEN SE APRENDE DE UN PRIVADO ─────────────────────────────────
+  //
+  // Lo de arriba solo mira `participant`, que EN UN PRIVADO NO EXISTE: es un
+  // campo de grupo. Asi que de un chat a solas no se aprendia nunca la
+  // equivalencia entre el LID de alguien y su telefono.
+  //
+  // Eso se nota justo donde mas duele. Si WhatsApp direcciona a una persona por
+  // LID y esa persona NUNCA ha escrito en el grupo, el bot no tiene forma de
+  // saber que ese `@lid` es su numero — y en el privado se queda mudo, porque
+  // `ownerEnPrivado` no la reconoce. Le paso al dueño con su segunda linea: el
+  // +33 funcionaba porque su LID se habia aprendido en el grupo, y el +57 no
+  // habia hablado alli todavia.
+  //
+  // En un privado los dos lados de la pareja vienen en la clave: `remoteJid` es
+  // como se dirige WhatsApp al chat, y `remoteJidAlt` es la otra forma del
+  // mismo. Con eso basta, y se aprende igual que en un grupo.
+  const rj = msg?.key?.remoteJid;
+  const rAlt = msg?.key?.remoteJidAlt;
+  if (rj && rAlt && !String(rj).endsWith('@g.us')) {
+    if (String(rAlt).endsWith('@lid')) rememberMapping(rAlt, rj);
+    else if (String(rj).endsWith('@lid')) rememberMapping(rj, rAlt);
+  }
+
   return p;
 }
 

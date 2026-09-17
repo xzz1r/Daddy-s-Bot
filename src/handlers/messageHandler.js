@@ -1728,6 +1728,13 @@ function ownerEnPrivado(msg, sender) {
     msg.key.participantPn,
     msg.key.remoteJid,
     canonicalJid(msg.key.remoteJid),
+    // `remoteJidAlt` FALTABA, y es la forma que importa aqui. En un privado no
+    // hay `participant` —eso es de grupo— asi que si WhatsApp direcciona el
+    // chat por LID, el telefono NO aparece en ninguna de las otras cinco: solo
+    // en esta. El dueño lo vio con su segunda linea, que no recibia respuesta
+    // en el privado mientras la primera si.
+    msg.key.remoteJidAlt,
+    canonicalJid(msg.key.remoteJidAlt),
   ];
   return formas.some((f) => f && isOwner(f, false, null));
 }
