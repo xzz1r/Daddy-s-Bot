@@ -354,6 +354,7 @@ ${p}cachelist · ${p}listacache · ${p}cache
 ━━━━━ *DINÁMICAS* ━━━━━
 ${p}roast · ${p}quemar · ${p}destruir · ${p}flamear
 ${p}mog · ${p}moggear  ·  ${p}ship  ·  ${p}rizz · ${p}piropo · ${p}wingman
+${p}top5 · ${p}top10
 ${p}puta ${p}guarra ${p}maricon ${p}incel ${p}gay ${p}femboy ${p}cerdo ${p}rata
 ${p}simp ${p}friki ${p}inutil ${p}perdedor · ${p}l  ·  ${p}fea ${p}infiel ${p}iq
 ${p}feminidad ${p}masculinidad ${p}linda ${p}hot ${p}sexy ${p}fiel ${p}crack ${p}ganador
@@ -374,7 +375,6 @@ ${p}asalto · ${p}asaltar  ·  ${p}atraco · ${p}atracar
 ${p}vault · ${p}safe  ·  ${p}lock · ${p}stash  ·  ${p}unlock
 
 ━━━━━ *ACTIVIDAD* ━━━━━
-${p}top5 · ${p}top10
 ${p}relevancia · ${p}importancia · ${p}relevance
 ${p}vs · ${p}versus  ·  ${p}fantasmas · ${p}fantasma · ${p}muertos
 ${esAdmin ? `
@@ -487,6 +487,7 @@ _Responde a la foto con *${p}next* y saca otra de la misma búsqueda_
 ━━ *DINÁMICAS* ━━
 _Sin @ va sobre ti, con @ sobre esa persona_
 *${p}roast* ${c('roast')} · *${p}mog* ${c('mog')} @a @b · *${p}ship* ${c('ship')} @a @b
+*${p}top5* ${c('top5')} · *${p}top10* ${c('top10')} <tema>
 *${p}rizz* ${c('rizz')} · *${p}piropo* ${c('piropo')} · *${p}wingman* ${c('wingman')}
 _De una palabra, ${PRECIOS.percent} cada uno, de más crudo a más suave:_
 *${p}puta ${p}guarra ${p}maricon ${p}incel ${p}gay ${p}femboy ${p}cerdo ${p}rata*
@@ -502,7 +503,6 @@ ${bloqueAcciones(p, c)}
 *${p}aura* la tirada · *${p}saldo* · *${p}top* · *${p}hoy* · *${p}guia*
 
 ━━ *ACTIVIDAD* ━━
-*${p}top5* ${c('top5')} · *${p}top10* ${c('top10')} <tema>
 *${p}fantasmas* ${c('fantasmas')} · *${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b
 ${esAdmin ? `
 ━━ *ADMIN* ━━
