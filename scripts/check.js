@@ -15876,6 +15876,181 @@ console.log('CAPA87:' + JSON.stringify(quejas));
     if (fallos === antes) console.log(verde('   ✓ el insulto se entiende: detrás va lo que no tienes, y solo donde es verdad'));
   }
 
+  // ── 89. UN @USUARIO NO ES UN TELEFONO Y NO ES UNA IDENTIDAD ────────────
+  //
+  // WhatsApp esta repartiendo nombres de usuario y eso entra por el sitio peor:
+  // !p y !purge, los dos comandos que vetan de TODOS los grupos a la vez.
+  //
+  // LO QUE PASABA ANTES DE ESTO, medido: extractNumbers('@juan1234567') devolvia
+  // ['1234567']. O sea que purgar a un @usuario sacaba de todos los grupos y
+  // metia en la lista negra al telefono +1234567 —una cuenta que no tiene nada
+  // que ver— y encima dejaba dentro al que se queria echar. Dos fallos de una
+  // sola orden, sin aviso y sin vuelta atras comoda.
+  //
+  // Y LO QUE NO PUEDE EMPEZAR A PASAR: vetar el usuario en si. Se cambia cuando
+  // uno quiere y al borrarlo WhatsApp lo suelta a los catorce dias para el
+  // siguiente, asi que un veto con el usuario dentro caza al que lo herede. Lo
+  // que se anota es el LID y el telefono, que no se mueven.
+  //
+  // Un usuario no puede ser solo numeros (regla de WhatsApp), y de ahi sale la
+  // linea que separa las dos cosas: "@573001234567" es un telefono, no un
+  // usuario, y tiene que seguir purgandose como telefono.
+  {
+    console.log('\n89. UN @USUARIO NO ES UN TELÉFONO Y NO ES UNA IDENTIDAD');
+    const antes89 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const U89 = require(path.join(R, 'src/utils/usuarios'));
+    const { extractNumbers: extraer89, cmdPurge: purgar89, _conBanlist: _conBanlist89 } = require(path.join(R, 'src/commands/purgaNumero'));
+
+    // 1) DE UN @USUARIO NO SALEN DIGITOS. Es la regresion de verdad.
+    for (const texto of ['@juan1234567', '!purge @juan1234567', '@pepe.9012345', '@a_1234567890']) {
+      const d = extraer89(texto);
+      exige(d.length === 0,
+        `"${texto}" sigue dando el teléfono ${d.join(', ')}: purgaría a un tercero y dejaría dentro al de verdad`);
+    }
+    // Y los telefonos siguen saliendo, con @usuario al lado o sin el.
+    exige(extraer89('@juan1234567 +34 600 095 001').join() === '34600095001',
+      'al tapar los @usuarios se ha perdido el teléfono que iba al lado');
+    exige(extraer89('@573001234567').join() === '573001234567',
+      'un @ seguido de solo dígitos es un teléfono (un usuario no puede ser solo números) y ha dejado de purgarse');
+    exige(extraer89('wa.me/34600095002').join() === '34600095002',
+      'los enlaces wa.me se han quedado por el camino: llevan letras y dígitos como un usuario, pero son teléfonos');
+
+    // 2) LAS REGLAS SON LAS DE WHATSAPP, no las que a uno le apetezcan.
+    for (const bueno of ['juan', 'a.b_c', 'juan1234567', 'x'.repeat(35)]) {
+      exige(U89.esUsuario(bueno), `"${bueno}" es un usuario válido de WhatsApp y el bot lo rechaza`);
+    }
+    for (const malo of ['ab', '573001234567', 'x'.repeat(36), 'www.cosa', 'algo.com', 'con espacio', 'MAYÚS!']) {
+      exige(!U89.esUsuario(malo), `"${malo}" no puede ser un usuario de WhatsApp y el bot lo acepta`);
+    }
+
+    // 3) EL BARRIDO DE VERDAD. Se conduce el comando entero.
+    // Esto NO se salta con el bot en marcha, y es a proposito: en el VPS el bot
+    // corre siempre, asi que una prueba que se salte ahi no vigila nada donde
+    // importa. Se puede porque el veto se sustituye por la costura y el barrido
+    // no escribe ni un byte en data/.
+    {
+      const vetados89 = [];
+      const soltar89 = _conBanlist89(async (formas) => { vetados89.push(...formas.map(String)); return formas.length; });
+      try {
+        U89._resetUsuarios();
+        const BOT89 = '34600095000@s.whatsapp.net';
+        const VICTIMA = '34600095001@s.whatsapp.net';   // el que lleva el @usuario
+        const TERCERO = '1234567@s.whatsapp.net';       // el que salia de los digitos
+        const linea89 = [];
+        const kicks89 = [];
+        const sock89 = {
+          user: { id: BOT89 },
+          sendMessage: async (jid, c) => { linea89.push(c.text || ''); return {}; },
+          onWhatsApp: async (jid) => [{ exists: true, jid }],
+          groupFetchAllParticipating: async () => ({
+            'g89@g.us': {
+              subject: 'G',
+              participants: [
+                { id: '777@lid', lid: '777@lid', phoneNumber: VICTIMA, username: 'juan1234567', admin: null },
+                { id: TERCERO, admin: null },
+                { id: BOT89, admin: 'superadmin' },
+              ],
+            },
+          }),
+          groupParticipantsUpdate: async (g, ids, accion) => {
+            kicks89.push({ g, ids, accion });
+            return ids.map((jid) => ({ jid, status: '200' }));
+          },
+        };
+        const cuerpo89 = '!purge @juan1234567';
+        await purgar89(sock89, {
+          key: { remoteJid: 'g89@g.us', fromMe: true, id: 'U1', participant: BOT89 },
+          message: { conversation: cuerpo89 },
+        }, ['@juan1234567'], { participants: [] });
+
+        const echados = kicks89.flatMap((k) => k.ids).map(String);
+        exige(echados.length > 0, '*!purge @usuario* no ha echado a nadie: el usuario no se resuelve');
+        exige(!echados.some((j) => j.startsWith('1234567@')),
+          'sigue echando al teléfono +1234567 que salía de los dígitos del @usuario');
+        exige(echados.some((j) => j === '777@lid' || j.startsWith('34600095001@')),
+          'no ha echado a quien lleva el @usuario puesto');
+
+        // El listado previo tiene que enseñar A QUIEN sale el usuario: es la
+        // unica ocasion de ver que apunta a quien uno cree.
+        exige(/@juan1234567/.test(linea89[0] || '') && /34600095001/.test(linea89[0] || ''),
+          'el listado previo no enseña a qué número resuelve el @usuario');
+
+        // Y EL VETO NO GUARDA EL USUARIO. Se mira lo que se le paso al veto.
+        exige(vetados89.length > 0, 'el purge no ha vetado nada: sin veto no hay nada que comprobar');
+        exige(!vetados89.some((f) => /juan1234567/.test(f)),
+          'el @usuario ha entrado en la lista negra: se puede cambiar y WhatsApp lo suelta a los 14 días, así que vetaría a quien lo herede');
+        exige(vetados89.some((f) => /34600095001|777@lid/.test(f)),
+          'la cuenta de verdad no ha quedado vetada: el @usuario servía para encontrarla, no para sustituirla');
+        exige(!vetados89.some((f) => f.startsWith('1234567@')),
+          'el teléfono inventado a partir del @usuario ha quedado vetado');
+
+        // 3b) Y POR EL CUERPO, NO SOLO POR args.
+        //
+        // El dispatcher parte por espacios, asi que un @usuario suelto llega
+        // por las dos vias y una prueba con args no distingue. Un listado de
+        // varios renglones —que es como se purga de verdad— solo llega por el
+        // cuerpo: sin leerlo, *!purge* con una lista de @usuarios no hace nada.
+        const kicksCuerpo = [];
+        const sockCuerpo = {
+          ...sock89,
+          sendMessage: async () => ({}),
+          groupParticipantsUpdate: async (g, ids, accion) => {
+            kicksCuerpo.push(...ids.map(String));
+            return ids.map((jid) => ({ jid, status: '200' }));
+          },
+        };
+        U89._resetUsuarios();
+        const cuerpoLista = '!purge\n@juan1234567\n@otro.nombre';
+        await purgar89(sockCuerpo, {
+          key: { remoteJid: 'g89@g.us', fromMe: true, id: 'U3', participant: BOT89 },
+          message: { conversation: cuerpoLista },
+        }, [], { participants: [] });
+        exige(kicksCuerpo.some((j) => j === '777@lid' || j.startsWith('34600095001@')),
+          'un listado de @usuarios por renglones no se lee: solo funcionan los que llegan partidos por espacios');
+
+        // 4) UN @USUARIO QUE NO SE ENCUENTRA SE DICE.
+        const linea90 = [];
+        const sockND = {
+          ...sock89,
+          sendMessage: async (jid, c) => { linea90.push(c.text || ''); return {}; },
+          groupFetchAllParticipating: async () => ({}),
+        };
+        U89._resetUsuarios();
+        await purgar89(sockND, {
+          key: { remoteJid: 'g89@g.us', fromMe: true, id: 'U2', participant: BOT89 },
+          message: { conversation: '!purge @nadie.aqui' },
+        }, ['@nadie.aqui'], { participants: [] });
+        exige(linea90.some((t) => /@nadie\.aqui/.test(t) && /no encuentro/i.test(t)),
+          'un @usuario que no está en ningún grupo se traga en silencio: el dueño se queda creyendo que lo purgó');
+        // 5) *!p* NO INVENTA UN TELEFONO A PARTIR DE UN @USUARIO.
+        //
+        // Va por numero y solo por numero, asi que aqui lo unico que hay que
+        // asegurar es que NO purgue: "!p @juan1234567" resolvia a +1234567 y
+        // barria esa cuenta de todos los grupos.
+        const { cmdPurgaNumero: pe89 } = require(path.join(R, 'src/commands/purgaNumero'));
+        const dichoP = [];
+        const kicksP = [];
+        await pe89({
+          ...sock89,
+          sendMessage: async (jid, c) => { dichoP.push(c.text || ''); return {}; },
+          groupParticipantsUpdate: async (g, ids) => { kicksP.push(...ids.map(String)); return []; },
+        }, {
+          key: { remoteJid: 'g89@g.us', fromMe: true, id: 'U4', participant: BOT89 },
+          message: { conversation: '!p @juan1234567' },
+        }, ['@juan1234567'], { participants: [] });
+        exige(kicksP.length === 0, '*!p @usuario* ha echado a alguien: va por número y el usuario no es un número');
+        exige(dichoP.some((t) => /purge/i.test(t) && /@juan1234567/.test(t)),
+          '*!p* con un @usuario no dice qué hacer: se queda mudo o suelta el uso genérico');
+      } finally {
+        soltar89();
+        U89._resetUsuarios();
+      }
+    }
+
+    if (fallos === antes89) console.log(verde('   ✓ el @usuario sirve para encontrar la cuenta, no para vetarla, y no se confunde con un teléfono'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     process.exit(fallos ? 1 : 0);

@@ -6,6 +6,7 @@ const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
 const { cobrar: cobrarAura, devolver: devolverAura, textoSinSaldo, esSinServicio } = require('../utils/auraCobro');
 const { PRECIOS, SUELO_TODOS } = require('../utils/economia');
 const { increment: incrementMsgCount } = require('../utils/messageCounter');
+const { aprenderDeMensaje } = require('../utils/usuarios');
 const { recordName } = require('../utils/nombreStore');
 const { recordFacts, getMemberFacts } = require('../utils/nickStore');
 const { noteOffence, forget, yaAvisado, marcarAvisado, olvidarAviso } = require('../utils/mediaSpam');
@@ -1792,6 +1793,12 @@ async function handleMessage(sock, msg, opciones = {}) {
       msg.pushName,
     ).catch(() => {});
   }
+
+  // EL @USUARIO TAMBIEN SE APUNTA ANTES DE CUALQUIER RETURN, y por el mismo
+  // motivo que el nombre: viene en la llave del mensaje, no en el contenido, y
+  // una reaccion o una historia lo traen igual que un mensaje normal. Es lo que
+  // deja que *!purge @alguien* encuentre a alguien cuya metadata esta vieja.
+  aprenderDeMensaje(msg);
 
   if (!msg.message) return;
 

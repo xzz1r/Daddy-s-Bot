@@ -193,6 +193,12 @@ function indexGroupMeta(groupMeta) {
     if (!p) continue;
     if (p.phoneNumber && p.id?.endsWith?.('@lid')) rememberMapping(p.id, p.phoneNumber);
     else if (p.lid && p.id) rememberMapping(p.lid, p.id);
+    // Y el @usuario, que Baileys ya trae en cada participante. Se aprende aqui
+    // y no en el manejador porque esto corre una vez por metadata —da igual si
+    // vino de la cache, de una consulta o de la siembra del arranque— y ya
+    // esta recorriendo la lista. Requerirlo aqui no cierra ningun circulo:
+    // usuarios.js no depende de nadie.
+    if (p.username) require('./usuarios').recordarUsuario(p.id, p.username);
   }
 }
 
