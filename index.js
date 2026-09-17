@@ -30,6 +30,11 @@ console.log(chalk.magenta(`
 const { COMMIT_ARRANQUE } = require('./src/utils/version');
 console.log(`  commit cargado : ${COMMIT_ARRANQUE}\n`);
 
+// El cartel de la fuente de *!play*, aqui y no dentro del modulo: asi lo dice
+// el bot al arrancar —que es cuando informa— y no cada herramienta que importe
+// el bajador.
+require('./src/utils/downloader').anunciarFuente();
+
 const { connectToWhatsApp } = require('./src/bot');
 
 connectToWhatsApp().catch((err) => {

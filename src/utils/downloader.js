@@ -97,9 +97,23 @@ function buildProviders() {
 }
 const PROVIDERS = buildProviders();
 
-console.log(PROVIDERS.length
-  ? `  !play fuente : RapidAPI x${PROVIDERS.length} key(s)`
-  : '  !play fuente : NINGUNA — falta RAPIDAPI_KEY en el .env y ya no hay respaldo');
+// EL CARTEL DE LA FUENTE SE ANUNCIA, NO SE IMPRIME AL IMPORTAR.
+//
+// Estaba en el cuerpo del modulo, o sea que lo escupia CUALQUIERA que
+// requiriese este fichero — y el que mas lo requiere no es el bot, es la
+// puerta: la capa 2 importa los 115 modulos y ese proceso no carga el .env.
+// Resultado, en mitad de cada despliegue salia
+//
+//   !play fuente : NINGUNA — falta RAPIDAPI_KEY en el .env
+//
+// que es MENTIRA en esa maquina —las keys estan, el bot las usa dos lineas mas
+// abajo— y ademas es justo la clase de aviso que hace parar un despliegue
+// bueno. Un banner de arranque pertenece al arranque.
+function anunciarFuente() {
+  console.log(PROVIDERS.length
+    ? `  !play fuente : RapidAPI x${PROVIDERS.length} key(s)`
+    : '  !play fuente : NINGUNA — falta RAPIDAPI_KEY en el .env y ya no hay respaldo');
+}
 
 // ── Control de concurrencia ───────────────────────────────────────────────────
 const MAX_CONCURRENT_DOWNLOADS = 2;
@@ -609,6 +623,7 @@ async function downloadAudio(query) {
 // problema para una cancion que para un video de TikTok, y dos copias del
 // control de concurrencia son dos limites distintos que se creen el mismo.
 module.exports = {
+  anunciarFuente,
   _audioDuration: audioDuration, _duracionPorFfmpeg: duracionPorFfmpeg,
   _idPorYtDlp: idPorYtDlp, _searchYouTubeId: searchYouTubeId,
   downloadAudio, ordenDeKeys, sinCuota, PROVIDERS,

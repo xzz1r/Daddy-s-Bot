@@ -16237,6 +16237,27 @@ console.log('CAPA87:' + JSON.stringify(quejas));
       exige(roto.status !== 0,
         'el modo rápido deja pasar un módulo que no importa: un npm install a medias desplegaría un bot que no arranca');
 
+      // NINGUN MODULO ESCUPE CARTELES AL IMPORTARSE.
+      //
+      // La capa 2 importa los 115 modulos, y ese proceso NO carga el .env. Un
+      // console.log en el cuerpo de un modulo sale por tanto en mitad de cada
+      // despliegue, contando lo que ve un proceso que no es el bot: llego a
+      // decir "falta RAPIDAPI_KEY en el .env" en una maquina que tiene las dos
+      // keys puestas. Eso no es un aviso, es un susto en medio de un despliegue
+      // que iba bien.
+      //
+      // Se comprueba por el efecto: importar el bajador no puede imprimir nada.
+      {
+        const mudo = spawnSync('node', ['-e', "require(process.argv[1])", path.join(R, 'src/utils/downloader.js')],
+          { encoding: 'utf8', timeout: 30000, cwd: R, env: { ...process.env, RAPIDAPI_KEY: '' } });
+        exige((mudo.stdout || '').trim() === '',
+          `importar el bajador imprime por su cuenta y sale en mitad del despliegue: "${(mudo.stdout || '').trim().slice(0, 80)}"`);
+        // Y el bot lo sigue diciendo al arrancar, que es donde informa.
+        const idx = fs.readFileSync(path.join(R, 'index.js'), 'utf8');
+        exige(/anunciarFuente\(\)/.test(idx),
+          'index.js ya no anuncia la fuente de *!play*: el bot arrancaria sin decir si tiene keys o no');
+      }
+
       // Y EL GUION DE DESPLIEGUE LO USA ASI Y NO DE OTRA FORMA.
       const act90 = fs.readFileSync(path.join(R, 'scripts/actualizar.sh'), 'utf8');
       exige(/sello\.js --cuadra/.test(act90),
