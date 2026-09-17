@@ -68,6 +68,33 @@ const verde = (s) => `\x1b[32m${s}\x1b[0m`;
 // bien, y prueba util cuando algo se rompe. Por eso se enseñan solo si hay
 // fallos, en vez de tirarlos.
 const BREVE = process.argv.includes('--breve') || process.argv.includes('-b');
+
+// ─── MODO RAPIDO ─────────────────────────────────────────────────────────────
+//
+// Corre SOLO lo que depende de la maquina: que compila aqui y que aqui importan
+// todos los modulos. Nada mas, y a proposito.
+//
+// El resto de capas comprueban COMPORTAMIENTO del codigo, y el codigo que llega
+// a la VPS es byte a byte el que ya paso la puerta entera antes de empujarlo.
+// Lo que cambia entre las dos maquinas no es el codigo: es el node_modules, el
+// disco y el .env. Eso es lo que se mira aqui.
+//
+// No se entra en este modo por escribirlo: el guion de despliegue solo lo pide
+// cuando el sello cuadra con lo que se acaba de bajar (scripts/sello.js). Si no
+// cuadra, corre las 89.
+const RAPIDO = process.argv.includes('--rapido');
+
+// Deja la huella del arbol que acaba de pasar la puerta ENTERA. Es lo unico que
+// autoriza el camino rapido de la VPS, asi que no se firma nada que no se haya
+// comprobado del todo: en modo rapido no se llama nunca.
+// AQUI VIVIO UN `if (RAPIDO) return;` Y ERA CODIGO MUERTO: el modo rapido sale
+// en la capa 2, muy por encima de las dos unicas llamadas a esto. Lo que impide
+// que el rapido selle es esa salida, no una guarda aqui — y la capa 90 lo
+// comprueba por el efecto (que no aparezca .sello), que es lo que seguiria
+// cazandolo si algun dia esa salida se mueve mas abajo.
+function sellar() {
+  try { require('./sello').escribirSello(); } catch (_) { /* sellar es un extra, no un requisito */ }
+}
 const _log = console.log;
 const _err = console.error;
 let capasCorridas = 0, capasSaltadas = 0;
@@ -224,6 +251,19 @@ for (const dir of ['src/commands', 'src/utils', 'src/data', 'src/handlers']) {
   }
 }
 if (!fallos) console.log(verde('   ✓ todos los módulos importan'));
+
+// Fin del camino rapido. Se sale ANTES de la capa 3 porque de ahi en adelante
+// ya no se comprueba la maquina, se comprueba el codigo.
+if (RAPIDO) {
+  console.log = _log; console.error = _err;
+  if (fallos) {
+    _log(rojo(`\n${fallos} fallo(s) al compilar o importar en esta máquina.`));
+    _log('Detalle completo: npm run check');
+    process.exit(1);
+  }
+  _log(verde(`  ✓ compila e importa en esta máquina (${ficheros.length} ficheros) — el resto lo aprobó el sello`));
+  process.exit(0);
+}
 
 // ─── 3. ¿Responde? ───────────────────────────────────────────────────────────
 console.log('\n3. RESPONDE');
@@ -16051,8 +16091,115 @@ console.log('CAPA87:' + JSON.stringify(quejas));
     if (fallos === antes89) console.log(verde('   ✓ el @usuario sirve para encontrar la cuenta, no para vetarla, y no se confunde con un teléfono'));
   }
 
+  // ── 90. EL ATAJO DEL DESPLIEGUE NO PUEDE APROBAR LO QUE NO SE COMPROBO ──
+  //
+  // El despliegue en la VPS tardaba ~114 s en un nucleo y ~112 de esos eran las
+  // 89 capas. Correrlas mejor no era una salida —paralelizarlas da 0,96x en un
+  // nucleo, medido— asi que ahora la VPS puede saltarselas: la puerta completa,
+  // al pasar en verde, deja la huella del arbol aprobado en .sello, y el guion
+  // de despliegue solo coge el atajo si lo que acaba de bajar da esa huella.
+  //
+  // ESTO ES UNA LLAVE, y una llave mal hecha es peor que no tener puerta. Lo
+  // que se vigila aqui es exactamente eso: que la huella no se pueda satisfacer
+  // con un arbol distinto del que se comprobo, ni por contenido, ni por nombre,
+  // ni quitando o añadiendo ficheros, ni aflojando la propia puerta — por eso
+  // scripts/ entra en la huella igual que src/.
+  //
+  // Y dos cosas mas, que son por donde se pudriria sola:
+  //   · el modo rapido NO SELLA. Si sellara, la VPS se daria permiso a si misma
+  //     y el sello dejaria de significar "esto paso las 89 capas".
+  //   · el modo rapido SI corta. Lo poco que corre —compila e importa— es justo
+  //     lo que solo se puede comprobar en esa maquina (npm install a medias,
+  //     disco lleno), y si eso falla el despliegue tiene que pararse igual.
+  {
+    console.log('\n90. EL ATAJO DEL DESPLIEGUE NO PUEDE APROBAR LO QUE NO SE COMPROBÓ');
+    const antes90 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const os90 = require('os');
+    const caja = fs.mkdtempSync(path.join(os90.tmpdir(), 'sello-'));
+    try {
+      for (const r of ['src', 'scripts']) fs.cpSync(path.join(R, r), path.join(caja, r), { recursive: true });
+      fs.copyFileSync(path.join(R, 'index.js'), path.join(caja, 'index.js'));
+      fs.mkdirSync(path.join(caja, 'data'), { recursive: true });
+      try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja, 'node_modules'), 'dir'); } catch {}
+
+      const sello = (args = '') => execSync(`node ${path.join(caja, 'scripts/sello.js')} ${args}`,
+        { encoding: 'utf8', timeout: 20000 }).trim();
+      const base = sello();
+      exige(/^\d+:[0-9a-f]{64}$/.test(base), `la huella no tiene la forma esperada: "${base}"`);
+
+      // Cada forma de cambiar el arbol tiene que cambiar la huella.
+      const mordiscos = [
+        ['tocar un fichero de src', () => fs.appendFileSync(path.join(caja, 'src/utils/usuarios.js'), '\n// x\n')],
+        ['tocar la propia puerta', () => fs.appendFileSync(path.join(caja, 'scripts/check.js'), '\n// x\n')],
+        ['tocar el arranque', () => fs.appendFileSync(path.join(caja, 'index.js'), '\n// x\n')],
+        ['renombrar un fichero', () => fs.renameSync(path.join(caja, 'src/utils/usuarios.js'), path.join(caja, 'src/utils/usuarios2.js'))],
+        ['mover un fichero de carpeta', () => fs.renameSync(path.join(caja, 'src/utils/usuarios.js'), path.join(caja, 'src/commands/usuarios.js'))],
+        ['añadir un fichero', () => fs.writeFileSync(path.join(caja, 'src/utils/colado.js'), 'module.exports={};\n')],
+        ['quitar un fichero', () => fs.unlinkSync(path.join(caja, 'src/utils/usuarios.js'))],
+      ];
+      for (const [que, hacer] of mordiscos) {
+        const respaldo = [];
+        for (const r of ['src', 'scripts']) {
+          respaldo.push([r, path.join(caja, `${r}.bak`)]);
+          fs.cpSync(path.join(caja, r), path.join(caja, `${r}.bak`), { recursive: true });
+        }
+        const idxBak = fs.readFileSync(path.join(caja, 'index.js'));
+        hacer();
+        const nueva = sello();
+        exige(nueva !== base, `${que} NO cambia la huella: el atajo aprobaría un árbol que nadie comprobó`);
+        for (const [r, bak] of respaldo) {
+          fs.rmSync(path.join(caja, r), { recursive: true, force: true });
+          fs.renameSync(bak, path.join(caja, r));
+        }
+        fs.writeFileSync(path.join(caja, 'index.js'), idxBak);
+        exige(sello() === base, `restaurar tras "${que}" no devuelve la huella: la huella no es estable`);
+      }
+
+      // --cuadra dice la verdad en los dos sentidos.
+      const salida = (args) => spawnSync('node', [path.join(caja, 'scripts/sello.js'), args], { encoding: 'utf8', timeout: 20000 });
+      exige(salida('--cuadra').status !== 0, 'sin .sello el guion dice que cuadra: la VPS cogería el atajo sin nada firmado');
+      sello('--escribir');
+      exige(salida('--cuadra').status === 0, 'recién sellado y dice que no cuadra: el atajo no se usaría nunca');
+      fs.appendFileSync(path.join(caja, 'src/utils/usuarios.js'), '\n// y\n');
+      exige(salida('--cuadra').status !== 0, 'el sello sigue cuadrando con un fichero cambiado: es una llave que abre cualquier puerta');
+
+      // EL MODO RAPIDO NO SELLA.
+      fs.rmSync(path.join(caja, '.sello'), { force: true });
+      const rap = spawnSync('node', [path.join(caja, 'scripts/check.js'), '--rapido'],
+        { encoding: 'utf8', timeout: 120000, cwd: caja, env: { ...process.env, OWNER_NUMBER: '34600000000' } });
+      exige(rap.status === 0, `el modo rápido falla sobre código bueno: "${(rap.stdout || rap.stderr || '').slice(-160)}"`);
+      exige(!fs.existsSync(path.join(caja, '.sello')),
+        'el modo rápido ha sellado: la VPS se estaría dando permiso a sí misma y el sello dejaría de significar nada');
+
+      // Y SI CORTA. Un módulo que no importa en esta máquina para el despliegue.
+      fs.appendFileSync(path.join(caja, 'src/utils/usuarios.js'), "\nrequire('modulo-que-no-existe-xyz');\n");
+      const roto = spawnSync('node', [path.join(caja, 'scripts/check.js'), '--rapido'],
+        { encoding: 'utf8', timeout: 120000, cwd: caja, env: { ...process.env, OWNER_NUMBER: '34600000000' } });
+      exige(roto.status !== 0,
+        'el modo rápido deja pasar un módulo que no importa: un npm install a medias desplegaría un bot que no arranca');
+
+      // Y EL GUION DE DESPLIEGUE LO USA ASI Y NO DE OTRA FORMA.
+      const act90 = fs.readFileSync(path.join(R, 'scripts/actualizar.sh'), 'utf8');
+      exige(/sello\.js --cuadra/.test(act90),
+        'actualizar.sh ya no comprueba el sello: o corre todo siempre, o coge el atajo a ciegas');
+      exige(/MODO_CHECK="--rapido"/.test(act90) && /MODO_CHECK="--breve"/.test(act90),
+        'actualizar.sh ya no tiene las dos ramas: sin la de --breve, un sello que no cuadra no cae en la puerta completa');
+      const tras = act90.slice(act90.indexOf('sello.js --cuadra'));
+      exige(tras.indexOf('--rapido') < tras.indexOf('--breve'),
+        'actualizar.sh usa el atajo en la rama equivocada: cogería --rapido justo cuando el sello NO cuadra');
+      exige(/git checkout -- \.sello/.test(act90),
+        'actualizar.sh no descarta .sello: si aquí corre la puerta completa, el sello reescrito bloquea el despliegue siguiente');
+    } finally {
+      fs.rmSync(caja, { recursive: true, force: true });
+    }
+
+    if (fallos === antes90) console.log(verde('   ✓ el atajo solo abre para el árbol exacto que pasó las 89 capas, y el modo rápido ni sella ni deja pasar un módulo roto'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
+    if (!fallos) sellar();
     process.exit(fallos ? 1 : 0);
   }
   console.log(`\n${'─'.repeat(70)}`);
@@ -16061,4 +16208,5 @@ console.log('CAPA87:' + JSON.stringify(quejas));
     process.exit(1);
   }
   console.log(verde('El bot arranca, carga y responde.'));
+  sellar();
 })();

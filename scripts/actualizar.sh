@@ -75,6 +75,10 @@ echo "→ Actualizando la rama ${RAMA}"
 # Es un fichero generado, no escrito a mano, y el reset de mas abajo lo deja
 # igual que en el repo de todas formas. Asi que se descarta y punto.
 git checkout -- package-lock.json 2>/dev/null || true
+# Y .sello, por lo mismo: si aqui llega a correr la puerta completa, la deja
+# sellada y eso es un cambio local que bloquearia el despliegue siguiente. Es un
+# fichero generado; el pull trae el bueno.
+git checkout -- .sello 2>/dev/null || true
 
 # El resto de cambios locales SI se avisan. Los .bak y demás restos hacen que el
 # pull falle o quede sucio, y borrar cambios de alguien sin decírselo no lo hace
@@ -226,7 +230,33 @@ if ! npm run --silent placeholders -- --breve; then
   exit 1
 fi
 
-if ! npm run --silent check -- --breve; then
+# LA PUERTA. Entera, salvo que el sello diga que este arbol EXACTO ya la paso.
+#
+# Medido en un solo nucleo, que es lo que tiene esta maquina: las 89 capas
+# tardan ~114 s y el resto del despliegue ~2 s. O sea que actualizar era casi
+# enteramente esto. Y no se arregla corriendolo mejor: paralelizar los 115
+# procesos hijo da 0,96x en un nucleo (el trabajo es CPU, no disco) y la cache
+# de compilacion de V8 no acierta porque cada hijo se copia src/ a un temporal
+# nuevo.
+#
+# Lo que si se puede es no repetir el trabajo. Esas capas comprueban CODIGO, y
+# el codigo que acaba de bajar es byte a byte el que paso la puerta entera antes
+# de empujarse. scripts/sello.js guarda la huella de ese arbol aprobado; aqui se
+# recalcula sobre lo bajado y solo se coge el atajo si cuadra EXACTAMENTE —
+# ruta y contenido de todo src/, todo scripts/ e index.js, la propia puerta
+# incluida, para que aflojarla rompa la huella.
+#
+# Si no cuadra —un fichero tocado a mano, una bajada a medias, un push sin pasar
+# la puerta— corre las 89 como siempre. El caso inseguro se protege solo.
+if node scripts/sello.js --cuadra 2>/dev/null; then
+  echo "→ El sello cuadra: se comprueba solo lo de esta máquina"
+  MODO_CHECK="--rapido"
+else
+  echo "→ Sin sello válido: se corre la comprobación completa"
+  MODO_CHECK="--breve"
+fi
+
+if ! npm run --silent check -- "$MODO_CHECK"; then
   echo
   echo "════════════════════════════════════════════"
   echo "  NO SE REINICIA: el código nuevo no pasa la comprobación."
