@@ -16276,6 +16276,97 @@ console.log('CAPA87:' + JSON.stringify(quejas));
     if (fallos === antes90) console.log(verde('   ✓ el atajo solo abre para el árbol exacto que pasó las 89 capas, y el modo rápido ni sella ni deja pasar un módulo roto'));
   }
 
+  // ── 91. LA COPIA DE LA QUE SE VUELVE CUBRE LO QUE NO SE RECUPERA ───────
+  //
+  // respaldo.sh guarda data/ —conteos, economia y la sesion de WhatsApp— y eso
+  // es lo que hace falta a diario. Pero deja fuera EL .env, y ahi viven las
+  // claves de las APIs: no estan en el repositorio y no pueden estarlo, porque
+  // es publico. Si alguien lo pisa, no hay de donde sacarlas. Es la unica
+  // perdida de esta maquina que no tiene vuelta atras por ningun camino.
+  //
+  // seguro.sh existe para cuando alguien va a TOCAR la maquina. Lo que se
+  // vigila aqui es que siga cubriendo las tres cosas que la hacen util —el
+  // .env, los datos y el commit en el que estaba— y, sobre todo, que no mienta:
+  // una copia que anuncia el .env sin llevarlo es peor que no tener copia,
+  // porque uno se confia.
+  {
+    console.log('\n91. LA COPIA DE LA QUE SE VUELVE CUBRE LO QUE NO SE RECUPERA');
+    const antes91 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const os91 = require('os');
+    const caja = fs.mkdtempSync(path.join(os91.tmpdir(), 'seguro-'));
+    const dest = path.join(caja, 'copias');
+    try {
+      // Un repo de mentira con lo justo: data/, .env y git.
+      fs.mkdirSync(path.join(caja, 'repo/data/auth'), { recursive: true });
+      fs.mkdirSync(path.join(caja, 'repo/scripts'), { recursive: true });
+      fs.copyFileSync(path.join(R, 'scripts/seguro.sh'), path.join(caja, 'repo/scripts/seguro.sh'));
+      fs.writeFileSync(path.join(caja, 'repo/data/aura.json'), '{"quien":123}');
+      fs.writeFileSync(path.join(caja, 'repo/data/auth/creds.json'), '{"sesion":1}');
+      fs.writeFileSync(path.join(caja, 'repo/.env'), 'RAPIDAPI_KEY=secreto-de-prueba\n');
+      fs.writeFileSync(path.join(caja, 'repo/ecosystem.config.js'), 'module.exports={};\n');
+      const git = (cmd) => execSync(`git ${cmd}`, { cwd: path.join(caja, 'repo'), stdio: 'pipe' });
+      git('init -q');
+      git('config user.email t@t.t'); git('config user.name t');
+      git('add -A'); git('commit -qm x');
+
+      const salida = execSync('bash scripts/seguro.sh antes-de-tocar', {
+        cwd: path.join(caja, 'repo'), encoding: 'utf8', timeout: 60000,
+        env: { ...process.env, RESPALDO_DIR: dest, HOME: caja },
+      });
+
+      const copias = fs.readdirSync(dest).filter((f) => f.endsWith('.tar.gz'));
+      exige(copias.length === 1, `la copia no se creo (${copias.length} ficheros en el destino)`);
+      if (copias.length === 1) {
+        const tar = path.join(dest, copias[0]);
+        const dentro = execSync(`tar -tzf ${tar}`, { encoding: 'utf8' }).split('\n');
+        exige(dentro.includes('.env'),
+          'la copia NO lleva el .env: es lo único de esta máquina que no se recupera de ningún sitio');
+        exige(dentro.some((f) => f.startsWith('data/auth/')),
+          'la copia no lleva la sesión de WhatsApp: recuperarla exige volver a emparejar con el teléfono');
+        exige(dentro.some((f) => /ESTADO-GIT\.txt$/.test(f)),
+          'la copia no guarda en qué commit estaba: "vuelve a como estaba" se queda sin sitio al que volver');
+        // El commit tiene que estar DENTRO, no solo en la pantalla.
+        const estado = execSync(`tar -xzOf ${tar} ESTADO-GIT.txt`, { encoding: 'utf8' });
+        exige(/commit: [0-9a-f]{7,}/.test(estado), `el estado guardado no trae el commit: "${estado.slice(0, 60)}"`);
+        // Y la vuelta atras tiene que estar escrita, con su commit corto.
+        exige(/git reset --hard [0-9a-f]{7,}/.test(salida),
+          'la copia no imprime cómo volver a ese punto: una copia que nadie sabe restaurar no es una copia');
+        exige(/pm2 stop/.test(salida) && salida.indexOf('pm2 stop') < salida.indexOf('tar -xzf'),
+          'la vuelta atrás no para el bot antes de restaurar: se sobrescribirían los datos con el bot escribiendo encima');
+        // Permisos: lleva claves dentro.
+        exige((fs.statSync(tar).mode & 0o077) === 0,
+          'la copia con el .env dentro queda legible por otros usuarios de la máquina');
+      }
+
+      // QUE LA COPIA SE PUEDA ABRIR SE COMPRUEBA SOBRE EL FUENTE, y es la unica
+      // de esta capa que no se mide por el efecto. No hay forma de provocar a
+      // voluntad un tar.gz cortado —haria falta llenar el disco a mitad de
+      // escritura— asi que se exige que la comprobacion siga ahi. Un tar que se
+      // corta deja un fichero que existe y parece bueno, y de eso uno se entera
+      // el dia que lo necesita. respaldo.sh lleva la misma guarda por lo mismo.
+      {
+        const sgSrc = fs.readFileSync(path.join(R, 'scripts/seguro.sh'), 'utf8');
+        exige(/tar -tzf "\$FICHERO"[^\n]*\n\s*rm -f "\$FICHERO"/.test(sgSrc.replace(/then\n/g, '\n')) || /if ! tar -tzf "\$FICHERO"/.test(sgSrc),
+          'seguro.sh ya no comprueba que la copia se pueda abrir: un tar cortado deja un fichero que parece bueno hasta el día que hace falta');
+      }
+
+      // Y NO PUEDE MENTIR SOBRE LO QUE LLEVA.
+      fs.unlinkSync(path.join(caja, 'repo/.env'));
+      fs.rmSync(dest, { recursive: true, force: true });
+      const sinEnv = execSync('bash scripts/seguro.sh sin-env', {
+        cwd: path.join(caja, 'repo'), encoding: 'utf8', timeout: 60000,
+        env: { ...process.env, RESPALDO_DIR: dest, HOME: caja },
+      });
+      exige(/SIN \.env/.test(sinEnv),
+        'sin .env la copia sigue anunciándolo: uno se confía de una copia que no cubre lo que cree');
+    } finally {
+      fs.rmSync(caja, { recursive: true, force: true });
+    }
+
+    if (fallos === antes91) console.log(verde('   ✓ la copia lleva el .env, la sesión y el commit, dice la verdad de lo que lleva y explica cómo volver'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     if (!fallos) sellar();

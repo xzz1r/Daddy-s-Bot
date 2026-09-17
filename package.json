@@ -23,7 +23,8 @@
     "audio": "node scripts/audio.js",
     "enlace": "node scripts/enlace.js",
     "actos": "node scripts/actos.js",
-    "x": "node scripts/x.js"
+    "x": "node scripts/x.js",
+    "seguro": "bash scripts/seguro.sh"
   },
   "repository": {
     "type": "git",
