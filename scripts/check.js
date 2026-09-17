@@ -15482,6 +15482,156 @@ const dm = async (key) => {
     if (fallos === antes) console.log(verde('   \u2713 las dos líneas del dueño entran al privado, por LID o por teléfono, y nadie más'));
   }
 
+  const MEMORIA_CAPA_86 = String.raw`
+require('dotenv').config({ quiet: true });
+const path = require('path');
+const R = __RAIZ__;
+process.env.OWNER_NUMBER = '330000000033';
+for (const k of Object.keys(require.cache)) if (/config\.js|wa\.js|group\.js|mediaSpam\.js|messageHandler\.js/.test(k)) delete require.cache[k];
+const G = require(path.join(R, 'src/commands/group'));
+const ms = require(path.join(R, 'src/utils/mediaSpam'));
+const { handleMessage } = require(path.join(R, 'src/handlers/messageHandler'));
+const quejas = [];
+const ok = (c, t) => { if (!c) quejas.push(t); };
+
+const GR = '000000087@g.us';
+let n = 0;
+const CONTENIDO = {
+  sticker: { stickerMessage: { url: 'x', mimetype: 'image/webp', fileSha256: Buffer.alloc(4) } },
+  foto:    { imageMessage:   { url: 'x', mimetype: 'image/jpeg' } },
+  video:   { videoMessage:   { url: 'x', mimetype: 'video/mp4' } },
+};
+let baneados = [];
+const rafaga = async (quien, cuantos, tipo = 'sticker') => {
+  const borrados = [], textos = [];
+  const sock = {
+    user: { id: '549199@s.whatsapp.net' },
+    sendMessage: async (j, c) => {
+      if (c.delete) borrados.push(c.delete.id); else if (c.text) textos.push(c.text.slice(0, 50));
+      return { key: { id: 'K' + (++n) } };
+    },
+    groupMetadata: async () => ({ id: GR, participants: [
+      { id: quien }, { id: '549199@s.whatsapp.net', admin: 'admin' }] }),
+    readMessages: async () => {}, sendPresenceUpdate: async () => {},
+  };
+  for (let i = 0; i < cuantos; i++) {
+    const msg = { key: { remoteJid: GR, fromMe: false, id: 'S' + (++n), participant: quien },
+      messageTimestamp: Math.floor(Date.now() / 1000),
+      message: CONTENIDO[tipo] };
+    await handleMessage(sock, msg).catch(() => {});
+  }
+  await new Promise((r) => setTimeout(r, 250));
+  return { borrados, textos };
+};
+
+(async () => {
+  // ── 1. SIN MUTEAR: 6 stickers seguidos disparan el antispam ─────────────
+  ms._reset();
+  const LIBRE = '34600000871@s.whatsapp.net';
+  let r = await rafaga(LIBRE, 6);
+  ok(r.borrados.length >= 5, 'sin mutear, la rafaga de stickers se borra (' + r.borrados.length + ' borrados)');
+  ok(r.textos.some((t) => /sticker|spam|ráfaga|para/i.test(t)), 'y se le avisa (' + (r.textos.join(' | ') || 'NADA') + ')');
+
+  // ── 2. MUTEADO: la misma ráfaga ─────────────────────────────────────────
+  ms._reset();
+  const MUDO = '34600000872@s.whatsapp.net';
+  G.muteUser(GR, MUDO, Date.now() + 60_000);
+  r = await rafaga(MUDO, 6);
+  ok(r.borrados.length === 6, 'muteado, los 6 stickers se borran igual (' + r.borrados.length + ')');
+  ok(r.textos.some((t) => /sticker|spam|ráfaga/i.test(t)),
+     'PERO se le cuenta como spam? (' + (r.textos.join(' | ') || 'NINGUN AVISO - no cuenta') + ')');
+  // LA PRIMERA RÁFAGA AVISA, NO ECHA. Sin esta línea, banear a la primera pasaba
+  // la prueba: la de más abajo solo miraba que a la segunda se le echara, y eso
+  // también se cumple si se le echa siempre.
+  ok(!r.textos.some((t) => /baneado|lista negra/i.test(t)),
+     'y a la PRIMERA solo se avisa, no se echa (' + r.textos.join(' | ') + ')');
+
+  // ── 3. LA ESCALERA: a la SEGUNDA ráfaga, fuera ──────────────────────────
+  const r2 = await rafaga(MUDO, 6);
+  ok(r2.textos.some((t) => /baneado|lista negra/i.test(t)),
+     'y a la segunda rafaga se le echa (' + (r2.textos.join(' | ') || 'NADA') + ')');
+
+  // ── 4. FOTOS Y VÍDEOS, el mismo agujero ────────────────────────────────
+  for (const tipo of ['foto', 'video']) {
+    ms._reset();
+    const Q = '3460000088' + (tipo === 'foto' ? '1' : '2') + '@s.whatsapp.net';
+    G.muteUser(GR, Q, Date.now() + 60_000);
+    const rr = await rafaga(Q, 6, tipo);
+    ok(rr.textos.some((t) => /callado|spam/i.test(t)),
+       'muteado, una rafaga de ' + tipo + ' tambien cuenta (' + (rr.textos.join(' | ') || 'NO CUENTA') + ')');
+  }
+
+  // ── 5. UN SILENCIADO TRANQUILO NO RECIBE NADA ──────────────────────────
+  ms._reset();
+  const TRANQUI = '34600000883@s.whatsapp.net';
+  G.muteUser(GR, TRANQUI, Date.now() + 60_000);
+  const paz = await rafaga(TRANQUI, 2);
+  ok(paz.borrados.length === 2, 'dos stickers sueltos se borran igual');
+  ok(!paz.textos.length, 'y NO se le avisa de nada: dos no es una rafaga (' + (paz.textos.join(' | ') || 'silencio, bien') + ')');
+
+  console.log('CAPA86:' + JSON.stringify(quejas));
+})().catch((e) => {
+  console.log('CAPA86:' + JSON.stringify(['la prueba del silenciado revento: ' + (e && e.message)]));
+});
+`;
+
+  // ── 86. AL SILENCIADO TAMBIEN SE LE CUENTA EL SPAM ─────────────────────
+  //
+  // Lo conto el dueño: «cuando una persona es muteada, esta spamea varios
+  // stickers y aparentemente estos no cuentan como spam». Y no contaban.
+  //
+  // El antispam de medios vive abajo del todo, y el guardia del muteo hace
+  // `return` mucho antes: al silenciado se le borraba cada sticker y ahi se
+  // acababa. Medido: seis stickers de alguien callado = seis borrados y CERO
+  // consecuencias, mientras que los mismos seis de alguien que no lo esta le
+  // borran la rafaga y le avisan al quinto.
+  //
+  // O sea que estar castigado salia mas barato que no estarlo, que es justo al
+  // reves de lo razonable — y explica el sintoma: el que acaba de ser muteado
+  // se pone a meter stickers precisamente porque no le pasa nada.
+  //
+  // Ahora se cuenta con EL MISMO contador y los MISMOS topes (5 stickers en 5 s,
+  // 5 fotos en 30 s, 3 videos en 1 min), asi que no hay dos antispams que
+  // mantener. Lo unico que cambia es que aqui no hay que borrar nada: el muteo
+  // ya lo hizo.
+  //
+  // Y VA PARA LOS TRES TIPOS, no solo para stickers. El agujero era el mismo
+  // con fotos y videos; tapar uno dejando los otros es invitar a probar con
+  // fotos.
+  //
+  // LO QUE NO CAMBIA: la escalera. Primera rafaga avisa, segunda echa. El aviso
+  // se manda AUNQUE ESTE CALLADO, porque si no el baneo de la siguiente llegaria
+  // sin que nadie lo hubiera avisado. Y al dueño, a los admins y al caso de que
+  // el bot no sea admin no se les toca, igual que abajo.
+  {
+    console.log('\n86. AL SILENCIADO TAMBIÉN SE LE CUENTA EL SPAM');
+    const antes = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   \u2717 ${queja}`)); } };
+    const { execFileSync } = require('child_process');
+    const os86 = require('os');
+    const dir86 = fs.mkdtempSync(path.join(os86.tmpdir(), 'capa86-'));
+    try {
+      try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(dir86, 'node_modules'), 'dir'); } catch { /* el hijo lo dira */ }
+      fs.writeFileSync(path.join(dir86, 'p.js'), MEMORIA_CAPA_86.replace(/__RAIZ__/g, json(R)));
+      let salida = '';
+      try {
+        salida = execFileSync(process.execPath, [path.join(dir86, 'p.js')],
+          { encoding: 'utf8', timeout: 120000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (e) { salida = `${e.stdout || ''}${e.stderr || ''}`; }
+      const linea = salida.split('\n').reverse().find((l) => l.startsWith('CAPA86:'));
+      exige(!!linea, `la prueba del silenciado no contestó: ${salida.slice(-400).trim()}`);
+      if (linea) {
+        let quejas = [];
+        try { quejas = JSON.parse(linea.slice('CAPA86:'.length)); } catch { quejas = ['no pude leer el resultado']; }
+        for (const q of quejas) exige(false, q);
+      }
+    } finally {
+      fs.rmSync(dir86, { recursive: true, force: true });
+    }
+
+    if (fallos === antes) console.log(verde('   \u2713 estar callado ya no sale más barato que no estarlo'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     process.exit(fallos ? 1 : 0);

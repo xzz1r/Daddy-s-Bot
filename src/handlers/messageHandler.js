@@ -1927,7 +1927,65 @@ async function handleMessage(sock, msg, opciones = {}) {
   if (!msg.key.fromMe && jid.endsWith('@g.us') && sender && isMuted(jid, sender)) {
     const metaMute = await getGroupMeta(sock, jid);
     if (!isOwner(sender, msg.key.fromMe, metaMute)
-        && await borrarDeSilenciado(sock, jid, msg, sender, metaMute)) return;
+        && await borrarDeSilenciado(sock, jid, msg, sender, metaMute)) {
+      // ─── Y EL SPAM SE CUENTA IGUAL AUNQUE ESTE CALLADO ──────────────────
+      //
+      // Lo conto el dueño: «cuando una persona es muteada, esta spamea varios
+      // stickers y aparentemente estos no cuentan como spam».
+      //
+      // Y no contaban. El antispam de medios vive mas abajo, y este `return`
+      // pasa por delante: al silenciado se le borraba cada sticker y ahi se
+      // acababa. O sea que el que estaba callado podia meter cien stickers sin
+      // consecuencia ninguna, mientras que al que no lo estaba se le borraba la
+      // rafaga y se le avisaba a los cinco. Justo al reves de lo razonable.
+      //
+      // El contador es el MISMO y los topes son los mismos, asi que no hay dos
+      // antispams que mantener. Lo unico que cambia es que aqui no hay que
+      // borrar nada: el muteo ya lo hizo.
+      //
+      // Va para sticker, foto y video —los tres que el sistema ya vigila— y no
+      // solo para stickers: el agujero era el mismo para los tres, y arreglar
+      // uno dejando los otros es invitar a probar con fotos.
+      const vid = msg.message?.videoMessage;
+      const tipoSpam = msg.message?.stickerMessage ? 'sticker'
+        : msg.message?.imageMessage ? 'image'
+        : (vid && !vid.gifPlayback) ? 'video'
+        : null;
+      if (tipoSpam) {
+        const { spam } = noteOffence(jid, sender, tipoSpam, idABorrar(msg));
+        // Al dueño y a los admins no se les cuenta, igual que abajo. Si el bot
+        // no es admin tampoco: no podria expulsar, y avisar de un castigo que
+        // no puede aplicar es peor que callarse.
+        const protegidoM = !metaMute
+          || isGroupAdmin(sender, msg.key.fromMe, metaMute)
+          || esOwnerDelMensaje(msg, sender, senderPn, metaMute);
+        if (spam && !protegidoM && isBotAdmin(sock, metaMute)) {
+          forget(jid, sender);
+          const numM = sender.split('@')[0];
+          if (yaAvisado(jid, sender)) {
+            olvidarAviso(jid, sender);
+            await banAccount(allForms(sender, metaMute), `spam de ${tipoSpam} estando silenciado en ${jid}`, 'auto')
+              .catch((e) => logger.unaVez('vetar por spam de silenciado', e));
+            const fueraM = await expulsar(sock, jid, sender, metaMute);
+            sock.sendMessage(jid, {
+              text: fueraM
+                ? `@${numM} baneado por seguir spameando estando callado.`
+                : `@${numM} a la lista negra por spam estando callado.`,
+              mentions: [sender],
+            }).catch(() => {});
+          } else {
+            marcarAvisado(jid, sender);
+            // El aviso SI se manda, aunque este silenciado: si no, el baneo de
+            // la siguiente rafaga llegaria sin que nadie lo haya avisado.
+            sock.sendMessage(jid, {
+              text: `@${numM} estás callado y aun así spameas. A la siguiente ráfaga te vas del grupo.`,
+              mentions: [sender],
+            }).catch(() => {});
+          }
+        }
+      }
+      return;
+    }
   }
   // El owner principal no cuenta para el ranking de actividad (!count): sus
   // mensajes no deben inflar la tabla. Los co-owners y el resto sí cuentan.
