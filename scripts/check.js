@@ -3289,12 +3289,21 @@ const di=async(quien,texto,extra)=>{
         'robo.js ya no exporta pistaCifra: no hay forma de comprobar que el consejo se dosifica');
       if (typeof pistaCifra === 'function') {
         const g = `000000000@g.us`;
-        const quien = `34600009${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`;
+        // DOS CUENTAS DISTINTAS DE VERDAD, no dos sorteos del mismo bombo.
+        //
+        // Eran `34600009` mas tres digitos al azar, y la tercera comprobacion
+        // —"a otra persona SI le sale"— sacaba OTRO numero del mismo rango de
+        // novecientos. Una vez de cada novecientas salia el mismo, o sea la
+        // misma persona, y entonces la prueba se contradecia sola y daba un
+        // rojo que no era del bot. Con el reloj y un contador no se repiten.
+        let n16 = 0;
+        const cuenta16 = () => `346${String(Date.now()).slice(-9)}${n16++}@s.whatsapp.net`;
+        const quien = cuenta16();
         exige(pistaCifra(g, quien) === true, 'el consejo de la cifra no sale ni la primera vez');
         exige(pistaCifra(g, quien) === false,
           'el consejo de *!robo @alguien 200* vuelve a salir en todos los robos: repetido cien veces no enseña nada');
         // Y a otra persona SI le sale: el freno es por persona, no global.
-        exige(pistaCifra(g, `34600009${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`) === true,
+        exige(pistaCifra(g, cuenta16()) === true,
           'el consejo se apaga para todo el grupo cuando lo ve uno: entonces no lo aprende nadie mas');
       }
     }
@@ -16750,7 +16759,12 @@ const manda = async (quien, tipo, opciones) => {
       const bloque = src.slice(ini94, src.indexOf('\n};', ini94));
       const frases = [...bloque.matchAll(/^      '(.*)',$/gm)].map((m) => m[1]);
       exige(frases.length > 40, `no encuentro las frases del bono (${frases.length})`);
-      const aMano = frases.filter((f) => NUMS94.some((n) => new RegExp(`^[^%]*(?<![\\w.])${n}(?![\\w.])`).test(f)));
+      // EL LOOKAHEAD TENIA UN AGUJERO Y SE COLARON TRES. Era `(?![\\w.])`, que
+      // rechaza el punto — puesto para no partir "1.000" por la mitad. Pero un
+      // numero al final de una frase va seguido de punto, asi que "200. El aura
+      // paga a los que aparecen…" pasaba con el 200 escrito a mano. Ahora se
+      // excluye solo el digito, que es lo que de verdad parte un millar.
+      const aMano = frases.filter((f) => NUMS94.some((n) => new RegExp(`^[^%]*(?<![\\d.])${n}(?!\\d)`).test(f)));
       exige(aMano.length === 0,
         `${aMano.length} frase(s) del bono llevan el hito escrito a mano en vez de %M: "${(aMano[0] || '').slice(0, 70)}"`);
     }
