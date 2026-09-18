@@ -97,6 +97,22 @@ const TIEMPO_MAXIMO = 120000;
 // Lo que WhatsApp acepta como video en un mensaje. Por encima, el envio falla o
 // le llega roto a quien lo recibe: no es un limite nuestro que podamos subir.
 const TOPE_WHATSAPP = 16 * 1024 * 1024;
+// LO QUE SE PUEDE BAJAR NO ES LO QUE SE PUEDE MANDAR, y confundirlo era lo que
+// hacia que los videos salieran peor de lo que la red los sirve.
+//
+// WhatsApp no pasa de 16 MB en linea —comprobado, y por encima solo cabe como
+// documento—, pero de ahi no se sigue que haya que DESCARTAR la copia buena.
+// Se sigue que hay que hacerla caber. Antes, un 1080 de 20 MB se saltaba y se
+// mandaba el 480 del mismo video; ahora se baja el bueno y se ajusta.
+//
+// 40 MB es el techo de la bajada: cubre de sobra un vertical de minuto y medio
+// a 1080, y corta los casos absurdos antes de gastar red.
+const TOPE_BAJADA = 40 * 1024 * 1024;
+// Por encima de esto no se recodifica: en un nucleo, medido, un 1080p de 30 s
+// tarda 24 s. Tres minutos serian mas de dos minutos de CPU con el grupo
+// esperando y el ffmpeg de los stickers parado detras. Ahi es mejor mandar lo
+// que quepa tal cual.
+const MAX_SEGUNDOS_RECODIFICAR = 180;
 
 // El id de cada plataforma es el mismo que usa el comando, para que un error no
 // tenga que traducirse por el camino.
@@ -781,19 +797,21 @@ async function porApi(url, plataforma, yaNoHaceFaltaLaRed = null) {
   // bajada sigue puesto para cortarlo si se pasa. Descartar a ciegas seria
   // tirar un candidato bueno porque su servidor no puso una cabecera.
   const pesos = await Promise.all(candidatos.map((u) => (esImagen(extensionDe(u) || '') ? null : pesaDe(u))));
-  const cabenFuera = pesos.filter((x) => x !== null && x > TOPE_WHATSAPP).length;
+  const cabenFuera = pesos.filter((x) => x !== null && x > TOPE_BAJADA).length;
   if (cabenFuera) {
     logger.info(`redes: ${cabenFuera} candidato(s) de ${plataforma} no caben en WhatsApp; voy al mejor que sí`);
   }
 
   for (let i = 0; i < candidatos.length; i++) {
     // Lo que ya se sabe que no cabe no se baja: son los 16 MB que se tiraban.
-    if (pesos[i] !== null && pesos[i] > TOPE_WHATSAPP) continue;
+    // Se descarta lo que no se puede ni bajar, no lo que no cabe en el envio:
+    // eso ultimo se arregla recodificando, y descartarlo era tirar el 1080.
+    if (pesos[i] !== null && pesos[i] > TOPE_BAJADA) continue;
     const enlace = candidatos[i];
     const ext = extensionDe(enlace) || 'mp4';
     const fichero = path.join(TEMP_DIR, `red_${Date.now()}_${Math.random().toString(36).slice(2)}.${esImagen(ext) ? ext : 'mp4'}`);
     try {
-      await downloadUrlToFile(enlace, fichero, TOPE_WHATSAPP);
+      await downloadUrlToFile(enlace, fichero, TOPE_BAJADA);
     } catch (e) {
       await fs.remove(fichero).catch(() => {});
       ultimoError = e;
@@ -829,11 +847,17 @@ async function porApi(url, plataforma, yaNoHaceFaltaLaRed = null) {
       }
       // El formato que no se reproduce en todos los telefonos solo se descarta
       // si queda alguna opcion detras: mejor uno dudoso que ninguno.
-      if (medio.probado && !REPRODUCE_BIEN(medio.video) && i < candidatos.length - 1) {
-        logger.info(`redes: el mejor venia en ${medio.video}, que no se reproduce en todos los telefonos; voy al siguiente`);
-        await fs.remove(fichero).catch(() => {});
-        continue;
-      }
+      // AQUI VIVIA EL DESCARTE DEL HEVC, y era de lo que mas calidad costaba.
+      //
+      // TikTok e Instagram sirven su copia buena en HEVC/H.265 cada vez mas, y
+      // ese formato no se abre en todos los telefonos. La respuesta era tirarlo
+      // y coger el siguiente candidato, que casi siempre es el de MENOS
+      // resolucion: o sea, renunciar al 1080 por un problema de formato.
+      //
+      // Ahora no se tira: se convierte a H.264 mas abajo, que lo abre todo el
+      // mundo. Ver `ajustarParaWhatsApp`. Lo unico que queda de aquello es el
+      // atajo del dueño: con REDES_HEVC=1 se manda tal cual, sin recodificar,
+      // porque es instantaneo y sin perdida.
     }
     // Se encontró vídeo de verdad: lo que se había guardado por si acaso ya no
     // hace falta.
@@ -1256,6 +1280,103 @@ function subirAudio(entrada, ganancia, conLimitador = false) {
 // El semáforo es el MISMO que usan los stickers, *!toimg* y *!ttp*, y en la VPS
 // tiene una sola plaza porque tiene un solo core. Se coge aquí para que nivelar
 // el audio de un TikTok no se ejecute encima del sticker de otro.
+// ─── QUE QUEPA SIN BAJAR DE CALIDAD ──────────────────────────────────────────
+//
+// Lo pidio el dueño asi: calidad maxima, y comprimido lo mas que se pueda sin
+// perderla. Que es lo contrario de lo que hacia el bot, que ante un video
+// grande o en HEVC cogia OTRA copia peor de la misma publicacion.
+//
+// Aqui no se cambia de copia: se coge la buena y se ajusta. Una sola pasada, y
+// SOLO cuando hace falta:
+//
+//   · Si ya es H.264 y cabe en los 16 MB, no se toca nada. Es el caso de la
+//     inmensa mayoria de los TikToks (2-8 MB) y cuesta cero.
+//   · Si viene en HEVC/AV1/VP9, se pasa a H.264, que lo abre cualquier
+//     telefono. Medido en un nucleo: 24 s un vertical 1080 de 30 s.
+//   · Si pesa mas de lo que WhatsApp deja mandar, se le pone techo de bitrate
+//     calculado a partir de la duracion para que caiga por debajo por
+//     construccion, en vez de probar y repetir.
+//
+// LA RESOLUCION NO SE TOCA. Encoger es la forma facil de hacer que quepa y es
+// justo lo que el dueño no quiere: un 1080 recomprimido se ve mejor que un 480
+// intacto. Lo que se ajusta es el bitrate.
+//
+// CRF 23 manda y el techo solo muerde cuando el CRF no basta. Asi un video
+// corto sale practicamente igual que la fuente, y uno largo se aprieta lo justo.
+function techoDeBitrate(segundos) {
+  // 92 % del tope para dejar sitio a la cabecera y al audio; el audio va aparte.
+  const bitsDisponibles = TOPE_WHATSAPP * 8 * 0.92;
+  const kbps = Math.floor(bitsDisponibles / Math.max(1, segundos) / 1000) - 128;
+  // Suelo y techo: por debajo de 600 kbps no merece la pena mandarlo, y por
+  // encima de 8.000 el CRF ya manda solo.
+  return Math.max(600, Math.min(8000, kbps));
+}
+
+async function ajustarParaWhatsApp(fichero) {
+  if (!/\.mp4$/i.test(fichero)) return fichero;
+  let datos = null;
+  try { datos = await analizarMedio(fichero); } catch { return fichero; }
+  if (!datos || !datos.probado) return fichero;
+
+  let peso = 0;
+  try { peso = (await fs.stat(fichero)).size; } catch { return fichero; }
+
+  const codecRaro = !REPRODUCE_BIEN(datos.video);
+  const noCabe = peso > TOPE_WHATSAPP;
+  if (!codecRaro && !noCabe) return fichero;
+
+  // Un clip muy largo cuesta mas CPU de la que hay. Se manda como venga: si no
+  // cabe, el que llama ya sabe decirlo.
+  if (datos.segundos && datos.segundos > MAX_SEGUNDOS_RECODIFICAR) {
+    logger.info(`redes: ${datos.segundos}s es demasiado para recodificar en esta maquina; va tal cual`);
+    return fichero;
+  }
+
+  const kbps = techoDeBitrate(datos.segundos || 30);
+  const salida = fichero.replace(/\.mp4$/i, '') + `_q${Math.random().toString(36).slice(2, 6)}.mp4`;
+  const motivo = codecRaro ? `${datos.video} no lo abre todo el mundo` : `${Math.round(peso / 1048576)} MB no caben`;
+
+  await ffmpegSemaphore.acquire();
+  try {
+    const hecho = await new Promise((resolve) => {
+      const proc = spawn(ffmpegPath, [
+        '-hide_banner', '-loglevel', 'error', '-y',
+        '-i', fichero,
+        '-c:v', 'libx264',
+        // veryfast y no medium: medido en un nucleo, medium tarda 43 s contra
+        // 24 s y el resultado pesa lo mismo. En una maquina de un core, ese
+        // rato es el grupo entero esperando.
+        '-preset', 'veryfast',
+        '-crf', '23',
+        '-maxrate', `${kbps}k`, '-bufsize', `${kbps * 2}k`,
+        '-pix_fmt', 'yuv420p',
+        '-c:a', 'aac', '-b:a', '128k',
+        '-movflags', '+faststart',
+        salida,
+      ]);
+      const matar = setTimeout(() => { try { proc.kill('SIGKILL'); } catch {} }, 240000);
+      proc.on('error', () => { clearTimeout(matar); resolve(false); });
+      proc.on('close', (c) => { clearTimeout(matar); resolve(c === 0); });
+    });
+    if (!hecho) { await fs.remove(salida).catch(() => {}); return fichero; }
+    const nuevoPeso = (await fs.stat(salida).catch(() => ({ size: Infinity }))).size;
+    // Si el arreglo no arregla —sale igual de grande y ademas recodificado— se
+    // tira y se devuelve la fuente. Recodificar para empeorar no tiene sentido.
+    if (nuevoPeso > TOPE_WHATSAPP && nuevoPeso >= peso) {
+      await fs.remove(salida).catch(() => {});
+      return fichero;
+    }
+    logger.info(`redes: recodificado (${motivo}): ${Math.round(peso / 1048576)} MB → ${Math.round(nuevoPeso / 1048576)} MB`);
+    await fs.remove(fichero).catch(() => {});
+    return salida;
+  } catch {
+    await fs.remove(salida).catch(() => {});
+    return fichero;
+  } finally {
+    ffmpegSemaphore.release();
+  }
+}
+
 async function conAudioNivelado(fichero) {
   if (!/\.mp4$/i.test(fichero)) return fichero;
   await ffmpegSemaphore.acquire();
@@ -2643,12 +2764,19 @@ async function traer(url, plataforma) {
       // justo lo que el tope existe para evitar. Ese camino trae su propio
       // aviso y suelta cuando termina de bajar.
       //
-      // De esta linea en adelante no se toca la red: `conAudioNivelado` mide y
-      // reencodea un fichero que ya esta en disco. Medio segundo largo en el
-      // que el hueco ya no hace falta y otro comando si lo necesita.
+      // De esta linea en adelante no se toca la red: lo que queda —ajustar y
+      // nivelar— trabaja sobre un fichero que ya esta en disco. Antes era medio
+      // segundo; desde que el ajuste puede recodificar un 1080, pueden ser
+      // veinticinco. Razon de mas para soltar el hueco aqui: mientras uno
+      // recodifica, otro puede estar bajando.
       soltarHueco();
 
-      const nivelado = await conAudioNivelado(fichero);
+      // PRIMERO SE HACE QUE QUEPA, DESPUES SE NIVELA EL AUDIO. En ese orden
+      // por dos razones: el ajuste ya reencodea el audio a 128k, asi que
+      // nivelar antes seria trabajo tirado; y el nivelado copia el video tal
+      // cual, o sea que no deshace lo que el ajuste acaba de hacer.
+      const ajustado = await ajustarParaWhatsApp(fichero);
+      const nivelado = await conAudioNivelado(ajustado);
       if (nivelado !== fichero) {
         fichero = nivelado;
         ext = extensionDe(fichero) || 'mp4';
@@ -2673,5 +2801,9 @@ async function traer(url, plataforma) {
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
 module.exports = {
+  _ajustarParaWhatsApp: ajustarParaWhatsApp,
+  _techoDeBitrate: techoDeBitrate,
+  _TOPE_WHATSAPP: TOPE_WHATSAPP,
+  _TOPE_BAJADA: TOPE_BAJADA,
   esPerfil, traer, buscar, _aTandasDe: aTandasDe, _fotoEnteraPorBordes: fotoEnteraPorBordes, _tokenDeX: tokenDeX, buscarVarios, datosDeGif, prepararGif, _porFotosSueltas: porFotosSueltas, esAnimado, _porX: porX, _textoDeTuit: textoDeTuit, _mejorVariante: mejorVariante, _variantesMp4: variantesMp4, _varianteQueCabe: varianteQueCabe, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
   _montarPase: montarPase, _comoEnlaces: comoEnlaces, _porYtDlpFotos: porYtDlpFotos, _fotosDeFicha: fotosDeFicha, _esSinVideo: esSinVideo, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };

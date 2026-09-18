@@ -14511,10 +14511,21 @@ const U = (n) => 'https://ejemplo.invalid/f.bin?n=' + n;
   // lleva un .replace() con una expresion regular dentro, y cortando en el
   // primer parentesis de cierre esa se quedaba fuera de la cuenta. La primera
   // version de esta linea acusaba al codigo de un fallo que era de la linea.
+  // EL TOPE YA NO ES EL DE WHATSAPP, Y ES UN CAMBIO DE DECISION DEL DUEÑO.
+  //
+  // Esta comprobacion exigia que TODA bajada llevara TOPE_WHATSAPP, con el
+  // argumento de no gastar red en algo que no se va a poder mandar. El dueño
+  // pidio lo contrario: calidad maxima, comprimido lo que haga falta. Asi que
+  // ahora se baja la copia buena aunque pase de 16 MB y se ajusta despues.
+  //
+  // Lo que esta linea sigue protegiendo es lo mismo de antes —que ninguna
+  // bajada vaya SIN tope, que es como se llena un disco de 1 GB— solo que el
+  // tope bueno ahora es TOPE_BAJADA para el video y TOPE_WHATSAPP para lo que
+  // no se puede recodificar (fotos, musica de los pases).
   const llamadas = rd.match(/await downloadUrlToFile\([^;]*/g) || [];
-  const sinTope = llamadas.filter((l) => !l.includes('TOPE_WHATSAPP'));
+  const sinTope = llamadas.filter((l) => !/TOPE_WHATSAPP|TOPE_BAJADA/.test(l));
   ok(llamadas.length >= 8 && sinTope.length === 0,
-     'las ' + llamadas.length + ' bajadas de redes van con el tope de WhatsApp' +
+     'las ' + llamadas.length + ' bajadas de redes van con un tope' +
      (sinTope.length ? ' - sin tope: ' + sinTope.map((x) => x.slice(0, 50)).join(' | ') : ''));
 
   axios.get = getReal;
@@ -15377,21 +15388,31 @@ const MB = 1048576;
   ok(bajados.length === 1 && /hd/.test(bajados[0]), 'y solo se baja una vez');
   await fs.remove(r.fichero).catch(() => {});
 
-  // ── 2. El HD NO cabe: llega el SD, SIN tirar 16 MB ──────────────────────
+  // ── 2. El HD no cabe EN EL ENVIO: se baja igual y se ajusta ─────────────
+  //
+  // AQUI VIVIA LA POLITICA CONTRARIA, y la cambio el dueño. Esta prueba exigia
+  // que un HD de 18 MB no se bajara y llegara el SD de 360 — "mejor eso que
+  // nada". Lo que el dueño quiere es lo otro: calidad maxima y comprimido lo
+  // que haga falta. Asi que ahora el HD SI se baja (18 MB estan por debajo del
+  // tope de bajada) y se recodifica para que quepa, y lo que llega al grupo es
+  // el de 720, no el de 360.
   PESOS = { 'https://cdn.invalid/hd.mp4': 18 * MB, 'https://cdn.invalid/sd.mp4': 4 * MB };
   bajados = []; bytesBajados = 0;
   r = await redes.traer('https://www.tiktok.com/@a/video/2', 'tiktok');
-  ok(await anchoDe(r.fichero) === 360, 'si el HD no cabe, llega el SD (mejor eso que nada)');
-  ok(!bajados.some((u) => /hd/.test(u)), 'y el HD NO se llega a bajar: antes se tiraban 16 MB a la basura');
-  ok(bytesBajados < 1 * MB, 'apenas se mueven bytes de mas (' + (bytesBajados / MB).toFixed(1) + 'MB)');
+  ok(await anchoDe(r.fichero) === 720,
+     'el HD de 18 MB no llega: se ha cambiado por una copia peor en vez de ajustarlo (llegó ' + (await anchoDe(r.fichero)) + 'p de ancho)');
+  ok(bajados.some((u) => /hd/.test(u)), 'ni siquiera se ha intentado bajar el HD');
   await fs.remove(r.fichero).catch(() => {});
 
-  // ── 3. NINGUNO cabe: se dice el motivo de verdad ────────────────────────
-  PESOS = { 'https://cdn.invalid/hd.mp4': 30 * MB, 'https://cdn.invalid/sd.mp4': 22 * MB };
+  // ── 3. NINGUNO se puede ni bajar: se dice el motivo de verdad ───────────
+  //
+  // Los pesos suben porque el tope que descarta ya no es el de WhatsApp (16 MB)
+  // sino el de la bajada (40): por debajo de ese se baja y se ajusta.
+  PESOS = { 'https://cdn.invalid/hd.mp4': 90 * MB, 'https://cdn.invalid/sd.mp4': 60 * MB };
   bajados = [];
   let e = null;
   try { await redes.traer('https://www.tiktok.com/@a/video/3', 'tiktok'); } catch (err) { e = err; }
-  ok(!!e && /pesa 22 MB/.test(e.message), 'si ninguno cabe, dice cuanto pesa el menor (' + (e && e.message) + ')');
+  ok(!!e && /pesa 60 MB/.test(e.message), 'si ninguno cabe, dice cuanto pesa el menor (' + (e && e.message) + ')');
   ok(!!e && !/yt-dlp|Unexpected response|github\.com/.test(e.message),
      'y el motivo sale LIMPIO, sin el mensaje de yt-dlp pegado detrás');
   ok(!!e && e.demasiadoGrande === true, 'y va marcado, para no probar yt-dlp contra algo que ya sabemos que no cabe');
@@ -16977,6 +16998,106 @@ const manda = async (quien, tipo, opciones) => {
     }
 
     if (fallos === antes95) console.log(verde('   ✓ con el mapa frío se resuelve antes de negar, y el dueño sigue blindado'));
+  }
+
+  // ── 96. EL VÍDEO SE AJUSTA PARA QUE QUEPA, NO SE CAMBIA POR UNO PEOR ───
+  //
+  // Lo pidio el dueño asi: calidad maxima y comprimido lo mas que se pueda sin
+  // perderla. Antes el bot hacia lo contrario — ante un video grande o en HEVC
+  // cogia OTRA copia de la misma publicacion, que casi siempre es la de menos
+  // resolucion. Un 1080 se convertia en un 480 por un problema de formato o por
+  // dos megas de mas.
+  //
+  // Medido en un nucleo, que es la maquina del dueño:
+  //
+  //   HEVC 1080p de 30 s     18 MB → 12 MB   26 s
+  //   H.264 1080p de 33 MB   32 MB → 15 MB   25 s
+  //   lo que ya cabe                          0 s   (no se toca)
+  //
+  // LO QUE VIGILA ESTA CAPA es que ese coste solo se pague cuando hace falta, y
+  // que cuando se paga sirva de algo: que el resultado quepa, que se pueda
+  // reproducir, y que la resolucion NO baje — encoger es la forma facil de que
+  // quepa y es justo lo que el dueño no quiere.
+  {
+    console.log('\n96. EL VÍDEO SE AJUSTA PARA QUE QUEPA, NO SE CAMBIA POR UNO PEOR');
+    const antes96 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const {
+      _ajustarParaWhatsApp: ajustar96,
+      _techoDeBitrate: techo96,
+      _TOPE_WHATSAPP: TOPE96,
+      _TOPE_BAJADA: BAJADA96,
+    } = require(path.join(R, 'src/utils/redes'));
+
+    // 1) EL TOPE DE BAJADA ES MAYOR QUE EL DE ENVIO. Si fueran el mismo, la
+    //    copia buena no llegaria ni a bajarse y no habria nada que ajustar.
+    exige(BAJADA96 > TOPE96,
+      `el tope de bajada (${BAJADA96}) no supera al de envío (${TOPE96}): la copia buena no llegaría a bajarse`);
+
+    // 2) EL TECHO DE BITRATE BAJA CON LA DURACION, que es lo que hace que un
+    //    clip largo quepa sin tener que encogerlo.
+    exige(techo96(15) > techo96(60) && techo96(60) > techo96(180),
+      `el techo de bitrate no baja con la duración: ${techo96(15)} / ${techo96(60)} / ${techo96(180)}`);
+    for (const seg of [5, 30, 90, 180]) {
+      const bits = techo96(seg) * 1000 * seg;
+      exige(bits < TOPE96 * 8 || techo96(seg) === 8000,
+        `con ${seg}s el techo de ${techo96(seg)}k no cabe en ${Math.round(TOPE96 / 1048576)} MB`);
+    }
+
+    // 3) Y EL AJUSTE DE VERDAD, con ficheros hechos aqui. Sin red.
+    const os96 = require('os');
+    const caja96 = fs.mkdtempSync(path.join(os96.tmpdir(), 'video-'));
+    try {
+      const { ffmpegPath: ff96 } = require(path.join(R, 'src/utils/ffmpeg'));
+      const { execFileSync: ejecutar96 } = require('child_process');
+      const crear = (nombre, args) => {
+        const f = path.join(caja96, nombre);
+        ejecutar96(ff96, ['-hide_banner', '-loglevel', 'error', '-y',
+          '-f', 'lavfi', '-i', 'testsrc2=size=720x1280:rate=30:duration=6',
+          '-f', 'lavfi', '-i', 'sine=frequency=440:duration=6',
+          ...args, '-shortest', f], { timeout: 180000 });
+        return f;
+      };
+      const mide = (f) => {
+        const txt = (() => {
+          try { return ejecutar96(ff96, ['-hide_banner', '-i', f], { encoding: 'utf8', stdio: 'pipe', timeout: 60000 }); }
+          catch (e) { return `${e.stdout || ''}${e.stderr || ''}`; }
+        })();
+        const codec = (/Stream #\d+:\d+.*: Video: (\w+)/.exec(txt) || [])[1];
+        const dim = /Stream #\d+:\d+.*: Video: [^\n]*?[ ,](\d{2,5})x(\d{2,5})/.exec(txt);
+        return { codec, ancho: dim ? Number(dim[1]) : null, alto: dim ? Number(dim[2]) : null,
+          bytes: fs.statSync(f).size };
+      };
+
+      // a) H.264 que ya cabe: NO SE TOCA. Es el caso de casi todos los TikToks
+      //    y pagar 25 s de CPU por el seria el peor cambio posible.
+      const pequeno = crear('cabe.mp4', ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '30', '-pix_fmt', 'yuv420p', '-c:a', 'aac']);
+      const antesP = mide(pequeno);
+      exige(antesP.bytes <= TOPE96, `el fichero de prueba "ya cabe" pesa ${antesP.bytes} y no sirve para probar eso`);
+      const salP = await ajustar96(pequeno);
+      exige(salP === pequeno,
+        'un vídeo que ya es H.264 y ya cabe se recodifica igual: son 25 s de CPU por nada en el caso más común');
+
+      // b) HEVC: se convierte, y sale algo que reproduce cualquier telefono.
+      const hevc = crear('hevc.mp4', ['-c:v', 'libx265', '-preset', 'ultrafast', '-crf', '30', '-tag:v', 'hvc1', '-pix_fmt', 'yuv420p', '-c:a', 'aac']);
+      const antesH = mide(hevc);
+      exige(antesH.codec === 'hevc', `el fichero HEVC de prueba salió en ${antesH.codec}`);
+      const salH = await ajustar96(hevc);
+      exige(salH !== hevc, 'un vídeo en HEVC se manda tal cual: no se abre en todos los teléfonos');
+      if (salH !== hevc) {
+        const despH = mide(salH);
+        exige(despH.codec === 'h264', `el HEVC se convirtió a ${despH.codec} y no a h264`);
+        // LA RESOLUCION NO BAJA. Encoger es la forma facil de hacer que quepa y
+        // es exactamente lo que el dueño NO quiere.
+        exige(despH.ancho === antesH.ancho && despH.alto === antesH.alto,
+          `al convertir se encogió de ${antesH.ancho}x${antesH.alto} a ${despH.ancho}x${despH.alto}: la resolución no se toca`);
+        exige(despH.bytes <= TOPE96, `lo convertido pesa ${despH.bytes} y no cabe en WhatsApp`);
+      }
+    } finally {
+      fs.rmSync(caja96, { recursive: true, force: true });
+    }
+
+    if (fallos === antes96) console.log(verde('   ✓ lo que ya cabe no se toca, y lo que no cabe se ajusta sin bajar de resolución'));
   }
 
   if (BREVE) {
