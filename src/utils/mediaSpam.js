@@ -19,6 +19,11 @@ const { canonicalJid } = require('./wa');
 // en cuando no es spam y no debe acumular nada.
 const RULES = {
   video:   { limit: 3, windowMs: 60 * 1000 }, // 3 vídeos en 1 minuto
+  // EL GIF CUENTA APARTE Y COMO UN VIDEO. WhatsApp lo manda como videoMessage
+  // con `gifPlayback`, asi que es exactamente el mismo peso y el mismo ruido.
+  // Va en su propia clave para que tres GIF y tres videos no se sumen en el
+  // mismo monton: son dos rafagas distintas y cada una tiene su cuenta.
+  gif:     { limit: 3, windowMs: 60 * 1000 },
   image:   { limit: 5, windowMs: 30 * 1000 }, // 5 fotos en 30 segundos
   sticker: { limit: 5, windowMs: 5 * 1000 },  // 5 stickers en 5 segundos
 };

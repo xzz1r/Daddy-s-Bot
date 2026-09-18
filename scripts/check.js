@@ -16537,6 +16537,186 @@ console.log('CAPA87:' + JSON.stringify(quejas));
     if (fallos === antes92) console.log(verde('   ✓ un perfil se rechaza leyendo la dirección, y ningún rechazo se queda con el aura'));
   }
 
+  const MEMORIA_CAPA_93 = String.raw`
+require('dotenv').config({ quiet: true });
+const path = require('path');
+const R = __RAIZ__;
+process.env.OWNER_NUMBER = '330000000093';
+for (const k of Object.keys(require.cache)) if (/config\.js|wa\.js|group\.js|mediaSpam\.js|messageHandler\.js/.test(k)) delete require.cache[k];
+const ms = require(path.join(R, 'src/utils/mediaSpam'));
+const G93 = require(path.join(R, 'src/commands/group'));
+const { handleMessage } = require(path.join(R, 'src/handlers/messageHandler'));
+const quejas = [];
+const ok = (c, t) => { if (!c) quejas.push(t); };
+
+// CADA ESCENARIO EN SU PROPIO GRUPO. La metadata se cachea por grupo, asi que
+// reusar el mismo JID hacia que el segundo caso viera los participantes del
+// primero — y el admin llegaba sin su marca de admin. El fallo era de la
+// prueba, no del bot, y de los que dan un rojo que parece de verdad.
+let gr = 0;
+const nuevoGrupo = () => '0000009' + (30 + (++gr)) + '@g.us';
+const BOT = '549193@s.whatsapp.net';
+let n = 0;
+const CONTENIDO = {
+  foto:  { imageMessage: { url: 'x', mimetype: 'image/jpeg' } },
+  video: { videoMessage: { url: 'x', mimetype: 'video/mp4' } },
+  // UN GIF ES ESTO, y no otra cosa: WhatsApp no manda bytes de GIF, manda un
+  // video con la bandera puesta. Si esta prueba lo fingiera de otra forma no
+  // estaria probando nada de lo que pasa en el grupo.
+  gif:   { videoMessage: { url: 'x', mimetype: 'video/mp4', gifPlayback: true } },
+};
+
+const manda = async (quien, tipo, opciones) => {
+  const o = opciones || {};
+  const GR = o.grupo;
+  const borrados = [], textos = [];
+  const sock = {
+    user: { id: BOT },
+    sendMessage: async (j, c) => {
+      if (c.delete) borrados.push(c.delete.id); else if (c.text) textos.push(c.text);
+      return { key: { id: 'K' + (++n) } };
+    },
+    groupMetadata: async () => ({ id: GR, participants: [
+      { id: quien, admin: o.admin ? 'admin' : null }, { id: BOT, admin: 'admin' }] }),
+    groupParticipantsUpdate: async () => [],
+    readMessages: async () => {}, sendPresenceUpdate: async () => {},
+  };
+  const cuerpo = o.texto
+    ? { extendedTextMessage: { text: o.texto } }
+    : CONTENIDO[tipo];
+  await handleMessage(sock, {
+    key: { remoteJid: GR, fromMe: Boolean(o.fromMe), id: 'M' + (++n), participant: o.fromMe ? BOT : quien },
+    messageTimestamp: Math.floor(Date.now() / 1000),
+    message: cuerpo,
+  }).catch(() => {});
+  await new Promise((r) => setTimeout(r, 120));
+  return { borrados, textos: textos.join(' | ') };
+};
+
+(async () => {
+  const A = '34600000931@s.whatsapp.net';
+
+  // 1. EL FALLO QUE SE ARREGLA: un GIF de alguien se borra.
+  ms._reset();
+  const g1 = nuevoGrupo();
+  let r = await manda(A, 'gif', { grupo: g1 });
+  ok(r.borrados.length === 1, 'un GIF suelto NO se borra (' + r.borrados.length + ' borrados)');
+  // 2. Y no se le acusa de algo que WhatsApp no le deja hacer.
+  ok(!/ver una vez/i.test(r.textos),
+     'al GIF se le dice que iba sin "ver una vez", y un GIF no puede enviarse asi: ' + r.textos);
+  ok(/gif/i.test(r.textos), 'el aviso del GIF no nombra el GIF: ' + (r.textos || 'NADA'));
+
+  // 3. NO SE ROMPE LO QUE YA FUNCIONABA.
+  ms._reset();
+  r = await manda('34600000932@s.whatsapp.net', 'video', { grupo: nuevoGrupo() });
+  ok(r.borrados.length === 1, 'un video suelto ha dejado de borrarse (' + r.borrados.length + ')');
+  ok(/ver una vez/i.test(r.textos), 'al video ya no se le pide "ver una vez": ' + r.textos);
+  ms._reset();
+  r = await manda('34600000933@s.whatsapp.net', 'foto', { grupo: nuevoGrupo() });
+  ok(r.borrados.length === 1, 'una foto suelta ha dejado de borrarse (' + r.borrados.length + ')');
+
+  // 4. LO QUE MANDA EL PROPIO BOT NO SE TOCA. Es el riesgo de verdad de este
+  //    cambio: !hug, !slap, !tt e !ig mandan GIF, y borrarselos a si mismo
+  //    dejaria esos comandos sin salida visible.
+  ms._reset();
+  r = await manda(A, 'gif', { fromMe: true, grupo: nuevoGrupo() });
+  ok(r.borrados.length === 0,
+     'el bot se borra sus PROPIOS GIF: !hug, !slap, !tt e !ig se quedarian sin nada que ensenar');
+
+  // 5. A un admin no se le borra.
+  ms._reset();
+  r = await manda('34600000934@s.whatsapp.net', 'gif', { admin: true, grupo: nuevoGrupo() });
+  ok(r.borrados.length === 0, 'se le borra el GIF a un admin');
+
+  // 6. LA RAFAGA DE GIF ACABA EN BAN, y el motivo tampoco miente.
+  ms._reset();
+  const B = '34600000935@s.whatsapp.net';
+  let ultimo = { borrados: [], textos: '' };
+  const g6 = nuevoGrupo();
+  for (let i = 0; i < 3; i++) ultimo = await manda(B, 'gif', { grupo: g6 });
+  ok(/baneado|lista negra/i.test(ultimo.textos),
+     'tres GIF en un minuto no acaban en ban: ' + (ultimo.textos || 'NADA'));
+  ok(!/ver una vez/i.test(ultimo.textos),
+     'el ban por GIF sigue diciendo "ver una vez": ' + ultimo.textos);
+
+  // 7. GIF Y VIDEO CUENTAN POR SEPARADO. Si compartieran monton, dos de cada
+  //    uno sumarian cuatro y echarian a alguien que no ha pasado de dos de nada.
+  ms._reset();
+  const C = '34600000936@s.whatsapp.net';
+  let mezcla = { textos: '' };
+  const g7 = nuevoGrupo();
+  mezcla = await manda(C, 'gif', { grupo: g7 });
+  mezcla = await manda(C, 'video', { grupo: g7 });
+  mezcla = await manda(C, 'gif', { grupo: g7 });
+  mezcla = await manda(C, 'video', { grupo: g7 });
+  ok(!/baneado|lista negra/i.test(mezcla.textos),
+     'dos GIF y dos videos suman en el mismo monton y echan a alguien que no llego al limite de ninguno: ' + mezcla.textos);
+
+  // 8. AL SILENCIADO EL GIF TAMBIEN LE CUENTA.
+  //
+  // Su mensaje ya lo borra el muteo, asi que lo unico que se puede mirar es si
+  // el bot lo APUNTA como spam. Sin esto, callar a alguien le salia gratis para
+  // los GIF: podia soltar los que quisiera sin que ninguno contara.
+  ms._reset();
+  const g8 = nuevoGrupo();
+  const MUDO = '34600000937@s.whatsapp.net';
+  G93.muteUser(g8, MUDO, Date.now() + 60000);
+  let mudo = { textos: '' };
+  for (let i = 0; i < 3; i++) mudo = await manda(MUDO, 'gif', { grupo: g8 });
+  ok(/spam|aviso|ráfaga|baneado|lista negra|fuera/i.test(mudo.textos),
+     'a un silenciado los GIF no le cuentan como spam: callarle le sale gratis para eso (' + (mudo.textos || 'NADA') + ')');
+
+  console.log('CAPA93:' + JSON.stringify(quejas));
+  process.exit(0);
+})().catch((e) => { console.log('CAPA93:' + JSON.stringify(['la prueba se rompio: ' + e.message])); process.exit(0); });
+`;
+
+  // ── 93. UN GIF TAMBIÉN ES UN VÍDEO DE ALGUIEN ─────────────────────────
+  //
+  // Lo pidio el dueño: la gente manda GIF suyos y el bot no los borraba.
+  //
+  // Estaban exentos, y con un argumento que era cierto: WhatsApp los manda como
+  // video pero no deja enviarlos en "ver una vez", asi que exigirselo no tenia
+  // sentido. La conclusion era la equivocada. Lo que persigue esa regla no es
+  // que la gente pulse un boton: es que en el grupo no se queden fotos ni
+  // videos de nadie de forma permanente. Un GIF de uno mismo es eso exactamente,
+  // y al no poder ser efimero la unica manera de cumplir la norma es borrarlo.
+  // La excepcion dejaba abierto justo el hueco que la regla existe para cerrar.
+  //
+  // EL RIESGO DE ESTE CAMBIO NO ES EL FALSO POSITIVO, ES EL SUICIDIO: !hug,
+  // !slap, !tt e !ig mandan GIF. Si el bot empieza a borrar GIF y no se
+  // distingue de los suyos, se borra su propia salida y esos comandos se
+  // quedan mudos. Por eso la prueba de que lo del bot no se toca es tan
+  // importante como la de que lo de la gente si.
+  {
+    console.log('\n93. UN GIF TAMBIÉN ES UN VÍDEO DE ALGUIEN');
+    const antes93 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   \u2717 ${queja}`)); } };
+    const { execFileSync: ejecutar93 } = require('child_process');
+    const os93 = require('os');
+    const dir93 = fs.mkdtempSync(path.join(os93.tmpdir(), 'capa93-'));
+    try {
+      try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(dir93, 'node_modules'), 'dir'); } catch { /* el hijo lo dira */ }
+      fs.writeFileSync(path.join(dir93, 'p.js'), MEMORIA_CAPA_93.replace(/__RAIZ__/g, json(R)));
+      let salida = '';
+      try {
+        salida = ejecutar93(process.execPath, [path.join(dir93, 'p.js')],
+          { encoding: 'utf8', timeout: 120000, cwd: R, stdio: ['ignore', 'pipe', 'pipe'] });
+      } catch (e) { salida = `${e.stdout || ''}${e.stderr || ''}`; }
+      const linea = salida.split('\n').reverse().find((l) => l.startsWith('CAPA93:'));
+      exige(!!linea, `la prueba de los GIF no contestó: ${salida.slice(-400).trim()}`);
+      if (linea) {
+        let quejas = [];
+        try { quejas = JSON.parse(linea.slice('CAPA93:'.length)); } catch { quejas = ['no pude leer el resultado']; }
+        for (const q of quejas) exige(false, q);
+      }
+    } finally {
+      fs.rmSync(dir93, { recursive: true, force: true });
+    }
+
+    if (fallos === antes93) console.log(verde('   \u2713 el GIF de alguien se borra y se le dice por qué, y los del bot no se tocan'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     if (!fallos) sellar();

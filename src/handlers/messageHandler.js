@@ -1956,7 +1956,7 @@ async function handleMessage(sock, msg, opciones = {}) {
       const vid = msg.message?.videoMessage;
       const tipoSpam = msg.message?.stickerMessage ? 'sticker'
         : msg.message?.imageMessage ? 'image'
-        : (vid && !vid.gifPlayback) ? 'video'
+        : vid ? (vid.gifPlayback ? 'gif' : 'video')
         : null;
       if (tipoSpam) {
         const { spam } = noteOffence(jid, sender, tipoSpam, idABorrar(msg));
@@ -2378,8 +2378,21 @@ async function handleMessage(sock, msg, opciones = {}) {
   // momento, sea del tipo que sea. Además, la ráfaga se castiga con ban: tres
   // vídeos en 1 minuto o cinco fotos en 30 segundos del mismo número.
   //
-  // Los GIF quedan fuera: WhatsApp los manda como vídeo pero no se pueden
-  // enviar en modo efímero, así que exigirlo no tendría sentido.
+  // LOS GIF TAMBIÉN SE BORRAN, y antes no.
+  //
+  // Estaban exentos con este argumento: WhatsApp los manda como vídeo pero no
+  // se pueden enviar en modo efímero, así que exigir "ver una vez" no tenía
+  // sentido. El argumento es cierto y la conclusión era la equivocada.
+  //
+  // Lo que persigue esta regla no es que la gente pulse un botón: es que en el
+  // grupo no se queden fotos ni vídeos de nadie de forma permanente. Un GIF de
+  // uno mismo es eso exactamente — y al no poder ser efímero, la única manera
+  // de cumplir la norma es borrarlo. La excepción dejaba justo el hueco por el
+  // que se colaba lo que la regla existe para evitar.
+  //
+  // Y POR ESO EL AVISO CAMBIA SEGÚN EL TIPO. Decirle a alguien que su GIF iba
+  // "sin ver una vez" sería pedirle algo que WhatsApp no le deja hacer. Al GIF
+  // se le dice lo que es: aquí no se queda.
   // Spam de stickers: 5 en 5 segundos.
   //
   // Va a DOS tiempos, distinto de fotos y vídeos. Una foto sin "ver una vez"
@@ -2435,7 +2448,11 @@ async function handleMessage(sock, msg, opciones = {}) {
 
   const video = msg.message?.videoMessage;
   const foto  = msg.message?.imageMessage;
-  const medio = (video && !video.gifPlayback) ? 'video' : (foto ? 'image' : null);
+  const medio = video ? (video.gifPlayback ? 'gif' : 'video') : (foto ? 'image' : null);
+  // Cómo se llama cada uno cuando hay que nombrarlo, y por qué cae. El GIF no
+  // puede ir en "ver una vez", así que su motivo es otro y se dice otro.
+  const NOMBRE_MEDIO = { video: 'vídeos', image: 'fotos', gif: 'GIF' };
+  const MOTIVO_MEDIO = { video: ' sin *ver una vez*', image: ' sin *ver una vez*', gif: '' };
 
   if (jid.endsWith('@g.us') && medio && !eraViewOnce && !esComandoDeMedia(text)) {
     const meta = await getGroupMeta(sock, jid);
@@ -2463,8 +2480,8 @@ async function handleMessage(sock, msg, opciones = {}) {
         const fuera = await expulsar(sock, jid, sender, meta);
         sock.sendMessage(jid, {
           text: fuera
-            ? `@${sender.split('@')[0]} baneado por spam de ${medio === 'video' ? 'videos' : 'fotos'} sin *ver una vez*.`
-            : `@${sender.split('@')[0]} a la lista negra por spam de ${medio === 'video' ? 'videos' : 'fotos'} sin *ver una vez*.`,
+            ? `@${sender.split('@')[0]} baneado por spam de ${NOMBRE_MEDIO[medio]}${MOTIVO_MEDIO[medio]}.`
+            : `@${sender.split('@')[0]} a la lista negra por spam de ${NOMBRE_MEDIO[medio]}${MOTIVO_MEDIO[medio]}.`,
           mentions: [sender],
         }).catch(() => {});
         return;
@@ -2478,7 +2495,9 @@ async function handleMessage(sock, msg, opciones = {}) {
         if (videoOnceWarn.size >= 2000) videoOnceWarn.delete(videoOnceWarn.keys().next().value);
         videoOnceWarn.set(wKey, Date.now());
         sock.sendMessage(jid, {
-          text: `@${sender.split('@')[0]} las fotos y los videos se envían siempre en *ver una vez*. Borrado.`,
+          text: medio === 'gif'
+            ? `@${sender.split('@')[0]} aquí los GIF no se quedan. Borrado.`
+            : `@${sender.split('@')[0]} las fotos y los videos se envían siempre en *ver una vez*. Borrado.`,
           mentions: [sender],
         }).catch(() => {});
       }
