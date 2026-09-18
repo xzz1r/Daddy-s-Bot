@@ -16829,6 +16829,142 @@ const manda = async (quien, tipo, opciones) => {
     if (fallos === antes94) console.log(verde('   ✓ el número del cuerpo sale del hito, así que no puede separarse de la cabecera'));
   }
 
+  // ── 95. EL BLINDAJE DEL DUEÑO NIEGA AL DUEÑO, NO A TODO EL GRUPO ───────
+  //
+  // SE VIO EN EL GRUPO: alguien respondio a un mensaje con *!anal* y el bot
+  // contesto "No he podido traer el gif. No te he cobrado.". Parecia la web
+  // caida y no lo era.
+  //
+  // Ese aviso sale por DOS caminos distintos y a proposito iguales: cuando la
+  // descarga falla de verdad, y cuando el blindaje del anonimato se niega a
+  // actuar. El blindaje niega si el objetivo llega como @lid y no se puede
+  // traducir a un telefono — sin traducir no hay forma de saber si es el dueño,
+  // y la regla del anonimato manda sobre que el comando salga.
+  //
+  // EL PROBLEMA ERA CUANDO SE DISPARA. El mapa de @lid se llena con la metadata
+  // del grupo, y despues de un reinicio esta vacio. En un grupo LID —todos los
+  // de ahora— y respondiendo a un mensaje —que es como se usa esto— el objetivo
+  // SIEMPRE es un @lid. Asi que durante el rato frio de cada despliegue el
+  // blindaje negaba contra CUALQUIERA, no contra el dueño.
+  //
+  // Ahora, antes de negar, se pide la metadata y se intenta traducir otra vez.
+  // Si se resuelve, se decide de verdad; si no, se niega igual que antes.
+  //
+  // COMO SE DISTINGUE UNA COSA DE LA OTRA SIN RED: se le deja la cuenta a cero.
+  // El blindaje devuelve ANTES de cobrar, asi que si salta sale su aviso; si no
+  // salta, el comando llega al cobro y lo que sale es el aviso de sin saldo.
+  // Dos mensajes distintos para dos caminos que de otro modo son identicos.
+  {
+    console.log('\n95. EL BLINDAJE DEL DUEÑO NIEGA AL DUEÑO, NO A TODO EL GRUPO');
+    const antes95 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const os95 = require('os');
+    const caja95 = fs.mkdtempSync(path.join(os95.tmpdir(), 'blindaje-'));
+    try {
+      fs.cpSync(path.join(R, 'src'), path.join(caja95, 'src'), { recursive: true });
+      fs.mkdirSync(path.join(caja95, 'data'), { recursive: true });
+      try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja95, 'node_modules'), 'dir'); } catch {}
+      const guion = path.join(caja95, 'b95.js');
+      fs.writeFileSync(guion, [
+        "process.env.OWNER_NUMBER = '34600095999';",
+        "const path = require('path');",
+        `const ROOT = ${JSON.stringify(caja95)};`,
+        "const acc = require(path.join(ROOT, 'src/commands/acciones'));",
+        "const G = '000000095@g.us';",
+        "const DUENO_TEL = '34600095999@s.whatsapp.net';",
+        "const DUENO_LID = '111111111111@lid';",
+        "const OTRO_TEL = '34600095001@s.whatsapp.net';",
+        "const OTRO_LID = '222222222222@lid';",
+        "// Uno que NO toca ninguna otra prueba: en cuanto un @lid se resuelve",
+        "// una vez, el mapa se lo queda para todo el proceso y ya no sirve",
+        "// para comprobar el caso de la metadata caida.",
+        "const TERCERO_TEL = '34600095004@s.whatsapp.net';",
+        "const TERCERO_LID = '444444444444@lid';",
+        "const QUIEN = '34600095002@s.whatsapp.net';",
+        "const META = { id: G, participants: [",
+        "  { id: DUENO_LID, phoneNumber: DUENO_TEL },",
+        "  { id: OTRO_LID, phoneNumber: OTRO_TEL },",
+        "  { id: TERCERO_LID, phoneNumber: TERCERO_TEL },",
+        "  { id: QUIEN }, { id: '34600095003@s.whatsapp.net' }] };",
+        "const probar = async (accion, objetivo, opciones) => {",
+        "  const o = opciones || {};",
+        "  const dicho = [];",
+        "  const sock = {",
+        "    user: { id: '34600095003@s.whatsapp.net' },",
+        "    sendMessage: async (j, c) => { dicho.push(c.text || ''); return {}; },",
+        "    sendPresenceUpdate: async () => {},",
+        "    groupMetadata: async () => { if (o.sinMetadata) throw new Error('sin metadata'); return META; },",
+        "  };",
+        "  const msg = { key: { remoteJid: G, participant: QUIEN, fromMe: false, id: 'A' + Math.random() },",
+        "    message: { extendedTextMessage: { text: '!' + accion, contextInfo: { participant: objetivo } } } };",
+        "  await acc[accion](sock, msg, [], o.conMeta ? META : null).catch((e) => dicho.push('EXCEPCION ' + e.message));",
+        "  return dicho.join(' | ');",
+        "};",
+        "(async () => {",
+        "  // LA CUENTA A CERO ES EL DISCRIMINADOR. El blindaje devuelve ANTES",
+        "  // de cobrar; si no salta, el comando llega al cobro y se queda sin",
+        "  // saldo. Dos avisos distintos para dos caminos que si no son iguales.",
+        "  const { getAura, addAura } = require(path.join(ROOT, 'src/utils/auraStore'));",
+        "  await addAura(G, QUIEN, -(await getAura(G, QUIEN)));",
+        "  const r = { saldo: await getAura(G, QUIEN) };",
+        "  r.otroSinMapa = await probar('anal', OTRO_LID, {});",
+        "  r.dueno = await probar('anal', DUENO_LID, {});",
+        "  r.perdido = await probar('anal', '999999999999@lid', {});",
+        "  r.sinRed = await probar('anal', TERCERO_LID, { sinMetadata: true });",
+        "  r.sfw = await probar('hug', OTRO_LID, {});",
+        "  process.stdout.write('BLINDAJE' + JSON.stringify(r));",
+        "  process.exit(0);",
+        "})().catch((e) => { process.stdout.write('ERROR' + e.message); process.exit(1); });",
+      ].join('\n'));
+
+      const { execFileSync: ejecutar95 } = require('child_process');
+      let bruto = '';
+      try {
+        bruto = ejecutar95(process.execPath, [guion], { encoding: 'utf8', timeout: 120000, cwd: caja95 });
+      } catch (e) { bruto = `${e.stdout || ''}${e.stderr || ''}`; }
+      const marca = bruto.indexOf('BLINDAJE');
+      if (marca < 0) {
+        exige(false, `la prueba del blindaje no contestó: ${bruto.slice(-250)}`);
+      } else {
+        const r = JSON.parse(bruto.slice(marca + 8));
+        const NEGADO = /No he podido traer el gif/i;
+        exige(r.saldo === 0,
+          `la cuenta de prueba no está a cero (${r.saldo}): sin eso los dos caminos dan el mismo aviso y esto no prueba nada`);
+
+        // 1. EL CASO DEL GRUPO: mapa frío, objetivo que NO es el dueño.
+        exige(!NEGADO.test(r.otroSinMapa),
+          `con el mapa frío se niega contra alguien que no es el dueño: "${r.otroSinMapa.slice(0, 70)}"`);
+
+        // 2. Y EL BLINDAJE SIGUE BLINDANDO. Esto es lo que no se puede perder.
+        exige(NEGADO.test(r.dueno),
+          `el blindaje ya no protege al dueño: "${r.dueno.slice(0, 70)}"`);
+
+        // 3. Un @lid que no resuelve ni con metadata se sigue negando: sin
+        //    saber quién es, la regla del anonimato manda.
+        exige(NEGADO.test(r.perdido),
+          `un @lid que nadie puede traducir ya no se niega: "${r.perdido.slice(0, 70)}"`);
+
+        // 4. CON LA CACHÉ CALIENTE, UN @lid DEL GRUPO SE RESUELVE AUNQUE LA
+        //    CONSULTA FALLE, y eso es lo correcto: el bot ya sabe quién es, no
+        //    hace falta volver a preguntarlo. Aquí vivió una comprobación que
+        //    exigía lo contrario —negar si `groupMetadata` lanzaba— y era un
+        //    error mío: la caché es una fuente tan buena como la consulta. Lo
+        //    que de verdad protege el anonimato es el caso de arriba, el @lid
+        //    que NO resuelve por ningún camino, y ese sigue negándose.
+        exige(!NEGADO.test(r.sinRed),
+          `un @lid del grupo ya conocido se niega solo porque la consulta falle: la caché vale igual — "${r.sinRed.slice(0, 70)}"`);
+
+        // 5. El blindaje es solo para NSFW: una acción normal no lo mira.
+        exige(!NEGADO.test(r.sfw),
+          `una acción que no es NSFW pasa por el blindaje: "${r.sfw.slice(0, 70)}"`);
+      }
+    } finally {
+      fs.rmSync(caja95, { recursive: true, force: true });
+    }
+
+    if (fallos === antes95) console.log(verde('   ✓ con el mapa frío se resuelve antes de negar, y el dueño sigue blindado'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     if (!fallos) sellar();

@@ -981,8 +981,41 @@ function hazAccion(nombre) {
     // Escrito aqui, y no confiado al efecto lateral de otra funcion, que es
     // justo lo que hizo falta para verlo.
     if (groupMeta) indexGroupMeta(groupMeta);
-    const sinResolver = String(objetivo).endsWith('@lid')
+    let sinResolver = String(objetivo).endsWith('@lid')
       && String(canonicalJid(objetivo) || objetivo).endsWith('@lid');
+
+    // ANTES DE NEGAR, SE INTENTA RESOLVERLO UNA VEZ MÁS.
+    //
+    // La guarda de arriba niega cuando el @lid no se puede traducir a un
+    // teléfono, y eso es correcto: sin traducir no se puede saber si el
+    // objetivo es el dueño, y la regla del anonimato manda. Pero el aviso que
+    // suelta es el mismo que cuando la web falla, así que desde fuera parece
+    // que el bot está roto.
+    //
+    // Y PASA MÁS DE LO QUE DEBERÍA. El mapa de @lid se llena con la metadata
+    // del grupo, y justo después de un reinicio está vacío: hasta que se llena,
+    // TODOS los @lid están sin traducir y la guarda niega contra cualquiera. En
+    // un grupo LID —o sea, en todos los de ahora— y respondiendo a un mensaje
+    // —que es como se usa esto— el objetivo SIEMPRE llega como @lid. Con
+    // despliegues a diario, eso es un rato de "no he podido traer el gif" cada
+    // vez, sin que nada vaya mal.
+    //
+    // Pedir la metadata cierra ese hueco sin tocar la regla: si se resuelve, se
+    // sabe quién es y se decide de verdad; si no, se niega igual que antes. La
+    // consulta va por getGroupMeta, que cachea y lleva su propio tope, así que
+    // pedirla aquí no abre la puerta a que alguien la dispare en bucle.
+    //
+    // El require va DENTRO a propósito: el manejador ya carga este fichero, y
+    // pedirlo arriba cerraría el círculo al arrancar.
+    if (nsfw && sinResolver) {
+      const fresca = await require('../handlers/messageHandler')
+        .getGroupMeta(sock, jid).catch(() => null);
+      if (fresca) {
+        indexGroupMeta(fresca);
+        sinResolver = String(canonicalJid(objetivo) || objetivo).endsWith('@lid');
+      }
+    }
+
     if (nsfw && (sinResolver || isMainOwner(objetivo, false, groupMeta))) {
       return sock.sendMessage(jid, {
         text: 'No he podido traer el gif. No te he cobrado.',
