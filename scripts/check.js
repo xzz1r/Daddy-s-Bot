@@ -5517,7 +5517,21 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
       const { addAura } = require(path.join(R, 'src/utils/auraStore'));
       const { PRECIOS } = require(path.join(R, 'src/utils/economia'));
       const GR = '000000049@g.us';
-      const quien = `34600049${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`;
+      // LAS CUENTAS DE PRUEBA SON IRREPETIBLES, y esto costo un fallo
+      // intermitente que tardo en cazarse.
+      //
+      // Eran `34600049` + tres digitos al azar: novecientas posibles. Y
+      // data/aura.json NO se borra entre pases, asi que cada ejecucion deja ahi
+      // su cuenta con veinte mil de saldo. A las pocas decenas de pases un
+      // sorteo repite una de las viejas — y entonces la prueba de "sin saldo"
+      // arrancaba con veinte mil en el bolsillo y se ponia roja sin que hubiera
+      // nada roto. Un fallo que sale uno de cada diez pases y no deja rastro es
+      // peor que uno que sale siempre.
+      //
+      // Con el reloj delante no se repiten ni entre pases ni dentro del mismo.
+      let n49 = 0;
+      const cuenta49 = () => `346${String(Date.now()).slice(-9)}${n49++}@s.whatsapp.net`;
+      const quien = cuenta49();
       await addAura(GR, quien, 20000);
       const pagados = [];
       for (let i = 0; i < RAFAGA.gratis + 2; i++) {
@@ -5532,7 +5546,7 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
 
       // Y UN COMANDO DEVUELTO NO CUENTA. Sin esto, una tarde con la web caida
       // deja a alguien pagando el doble por gifs que no llego a ver.
-      const otro = `34600049${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`;
+      const otro = cuenta49();
       await addAura(GR, otro, 20000);
       for (let i = 0; i < RAFAGA.gratis; i++) {
         const r = await cobrar(GR, otro, 'accion', {});
@@ -5550,9 +5564,14 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
       // tres, las tres cobraban de verdad y la prueba se ponia roja sin que
       // nada estuviera roto. Restando el arranque entero, el escenario es el
       // que dice ser —cinco intentos SIN saldo— cueste lo que cueste la accion.
-      const pobre = `34600049${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`;
-      const { ARRANQUE: ARR47 } = require(path.join(R, 'src/utils/economia'));
-      await addAura(GR, pobre, -ARR47);
+      const pobre = cuenta49();
+      // Y SE VACIA LEYENDO EL SALDO, no restando el arranque a ciegas. Restar
+      // una constante solo vale si la cuenta valia exactamente eso, y con un
+      // almacen que sobrevive a los pases eso no se puede dar por hecho.
+      const { getAura: saldoDe47 } = require(path.join(R, 'src/utils/auraStore'));
+      await addAura(GR, pobre, -(await saldoDe47(GR, pobre)));
+      exige(await saldoDe47(GR, pobre) === 0,
+        'la cuenta de prueba no se ha quedado a cero: el escenario de "sin saldo" no es el que dice ser');
       for (let i = 0; i < 5; i++) {
         const fallido = await cobrar(GR, pobre, 'accion', {});
         if (fallido.ok) {
