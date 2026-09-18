@@ -155,6 +155,58 @@ function enlaceDe(texto, plataforma) {
   return m ? m[0].replace(/[)\]}.,;]+$/, '') : null;
 }
 
+// ─── UN PERFIL NO ES UNA PUBLICACIÓN ─────────────────────────────────────────
+//
+// PASO EN EL GRUPO. Alguien pego `!ig https://instagram.com/frndzz_b?stkn=…`
+// —la direccion del PERFIL, la que reparte la propia app al compartir una
+// cuenta— y el bot lo trago como si fuera un reel: cobraba los 50, se metia en
+// la cola de descargas, ocupaba un hueco y a los veinte segundos contestaba que
+// no habia podido traerlo. Nada de eso hacia falta: en un perfil no hay ningun
+// medio que bajar y se sabe ANTES de tocar la red, leyendo la direccion.
+//
+// LO QUE SE MIRA ES SI HAY CONTENIDO, no si parece un perfil. Es la unica forma
+// que no se rompe sola: las tres redes cambian cada dos por tres el formato del
+// nombre de usuario, pero la parte que identifica una publicacion —/p/, /reel/,
+// /video/, /status/— lleva años igual porque es la que usan sus propios
+// enlaces compartidos.
+//
+// Y LOS ACORTADORES PASAN SIEMPRE. vm.tiktok.com, vt.tiktok.com y t.co no
+// dicen que hay detras: pueden ser un video o un perfil, y solo se sabe
+// siguiendo el salto. Rechazarlos por si acaso seria romper la forma mas comun
+// de compartir un TikTok.
+const PERFILES = {
+  instagram: {
+    // /p/, /reel/, /reels/, /tv/ y /share/ valen esten donde esten en la ruta:
+    // Instagram reparte tanto instagram.com/reel/ID como
+    // instagram.com/usuario/reel/ID segun desde donde se comparta.
+    contenido: /\/(?:p|reel|reels|tv|share)\/[\w-]+/i,
+    // Una historia solo es contenido CON su numero detras. Sin el es la lista
+    // de historias de esa cuenta, que es otro perfil con otro nombre.
+    ademas: /\/stories\/[^/]+\/\d+/i,
+  },
+  tiktok: {
+    contenido: /\/(?:video|photo|v)\/[\w-]+/i,
+    corto: /(?:vm|vt)\.tiktok\.com\/|tiktok\.com\/t\//i,
+  },
+  x: {
+    contenido: /\/status(?:es)?\/\d+/i,
+    corto: /\bt\.co\//i,
+  },
+};
+
+// true = ese enlace no apunta a ninguna publicación (es un perfil, una lista o
+// la portada). Solo contesta por las tres redes que lo tienen definido; para
+// el resto devuelve false, que es lo que había antes.
+function esPerfil(url, plataforma) {
+  const reglas = PERFILES[plataforma];
+  if (!reglas || !url) return false;
+  const u = String(url);
+  if (reglas.corto && reglas.corto.test(u)) return false;
+  if (reglas.contenido.test(u)) return false;
+  if (reglas.ademas && reglas.ademas.test(u)) return false;
+  return true;
+}
+
 // ¿A qué plataforma pertenece un enlace? Solo para decirle a quien se equivoca
 // de comando cuál era el suyo.
 function plataformaDe(texto) {
@@ -2620,5 +2672,6 @@ async function traer(url, plataforma) {
 // tres plataformas resueltas por fuera.
 const hayApi = (plataforma) => !!API_DE[plataforma];
 
-module.exports = { traer, buscar, _aTandasDe: aTandasDe, _fotoEnteraPorBordes: fotoEnteraPorBordes, _tokenDeX: tokenDeX, buscarVarios, datosDeGif, prepararGif, _porFotosSueltas: porFotosSueltas, esAnimado, _porX: porX, _textoDeTuit: textoDeTuit, _mejorVariante: mejorVariante, _variantesMp4: variantesMp4, _varianteQueCabe: varianteQueCabe, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
+module.exports = {
+  esPerfil, traer, buscar, _aTandasDe: aTandasDe, _fotoEnteraPorBordes: fotoEnteraPorBordes, _tokenDeX: tokenDeX, buscarVarios, datosDeGif, prepararGif, _porFotosSueltas: porFotosSueltas, esAnimado, _porX: porX, _textoDeTuit: textoDeTuit, _mejorVariante: mejorVariante, _variantesMp4: variantesMp4, _varianteQueCabe: varianteQueCabe, _pinesDe: pinesDe, _pinesDeResultados: pinesDeResultados, _huellaDe: huellaDe, _PIN: PIN, _olvidarGalletas: () => { galletasGuardadas = null; }, _ordenarPines: ordenarPines, _siguientePin: siguientePin, _puntuar: puntuar, _textoDePin: textoDePin, _olvidarVistos: () => { vistosPorClave.clear(); }, _marcarVisto: marcarVisto, enlaceDe, plataformaDe, hayApi, hayComoTraer, ultimosFallos, PLATAFORMAS, _porYtDlp: porYtDlp, _porApi: porApi, _porPinterest: porPinterest, _conAudioNivelado: conAudioNivelado, _medirAudio: medirAudio, _analizarMedio: analizarMedio, _API_DE: API_DE,
   _montarPase: montarPase, _comoEnlaces: comoEnlaces, _porYtDlpFotos: porYtDlpFotos, _fotosDeFicha: fotosDeFicha, _esSinVideo: esSinVideo, _extensionDe: extensionDe, _imagenesDe: imagenesDe, _musicaDe: musicaDe, _medirFichero: medirFichero };

@@ -11,9 +11,9 @@
 // reencoda, no se carga en memoria y no se guarda nada.
 
 const fs = require('fs-extra');
-const { traer, buscar, buscarVarios, enlaceDe, plataformaDe, hayComoTraer, datosDeGif, prepararGif, PLATAFORMAS } = require('../utils/redes');
+const { traer, buscar, buscarVarios, enlaceDe, plataformaDe, esPerfil, hayComoTraer, datosDeGif, prepararGif, PLATAFORMAS } = require('../utils/redes');
 const { getSender, canonicalJid } = require('../utils/wa');
-const { cobrar, devolver, textoSinSaldo } = require('../utils/auraCobro');
+const { cobrar, devolver, textoSinSaldo, SIN_SERVICIO } = require('../utils/auraCobro');
 const logger = require('../utils/logger');
 
 // UN ENLACE CADA OCHO SEGUNDOS POR PERSONA. No es por el precio —el aura ya
@@ -144,7 +144,26 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
       : plataforma === 'pinterest'
         ? `Escribe qué buscar detrás del comando, o pega el enlace de ${nombre}.`
         : `Pega el enlace de ${nombre} detrás del comando.`;
-    return sock.sendMessage(jid, { text: aviso }, { quoted: msg });
+    // SIN_SERVICIO PARA QUE EL COBRO SE DESHAGA. El cobro de `redes` es central
+    // y ocurre ANTES de llegar aqui, asi que escribir *!ig* a secas —o pegar un
+    // enlace de otra red— costaba 50 de aura por leer un «pega el enlace».
+    // Devolver un mensaje cualquiera no lo deshace; este centinela si.
+    await sock.sendMessage(jid, { text: aviso }, { quoted: msg });
+    return SIN_SERVICIO;
+  }
+
+  // UN PERFIL NO SE INTENTA. Se sabe leyendo la direccion, sin tocar la red.
+  //
+  // Antes entraba en la cola, ocupaba un hueco de descarga durante veinte
+  // segundos y acababa en «no he podido traerlo», que ademas es mentira: no es
+  // que no pudiera, es que ahi no hay nada. Y el aura se cobraba igual.
+  if (url && esPerfil(url, plataforma)) {
+    const que = plataforma === 'x' ? 'un tuit' : plataforma === 'tiktok' ? 'un vídeo' : 'una publicación';
+    await sock.sendMessage(jid, {
+      text: `Eso es un *perfil* de ${nombre}, no ${que}. Ahí no hay nada que bajar.\n\n` +
+        `_Abre ${que === 'un tuit' ? 'el tuit' : que === 'un vídeo' ? 'el vídeo' : 'la publicación'} y pega ESE enlace._`,
+    }, { quoted: msg });
+    return SIN_SERVICIO;
   }
 
   // SIN POR DONDE TRAERLO, NI SE COBRA NI SE INTENTA. Sin API para esa
@@ -157,7 +176,8 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
   // diría «no está disponible» en una máquina donde funciona perfectamente.
   if (!busqueda && !hayComoTraer(plataforma)) {
     logger.warn(`${plataforma}: sin API y sin yt-dlp, no hay por dónde traerlo`);
-    return sock.sendMessage(jid, { text: `${nombre} no está disponible ahora mismo.` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: `${nombre} no está disponible ahora mismo.` }, { quoted: msg });
+    return SIN_SERVICIO;
   }
 
   const quien = getSender(msg);

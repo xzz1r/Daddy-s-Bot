@@ -16382,6 +16382,142 @@ console.log('CAPA87:' + JSON.stringify(quejas));
     if (fallos === antes91) console.log(verde('   ✓ la copia lleva el .env, la sesión y el commit, dice la verdad de lo que lleva y explica cómo volver'));
   }
 
+  // ── 92. UN PERFIL NO SE INTENTA, Y RECHAZAR NO SE COBRA ────────────────
+  //
+  // PASO EN EL GRUPO, con la captura delante: alguien pego el enlace de un
+  // PERFIL de Instagram —el que reparte la propia app al compartir una cuenta,
+  // con su `?stkn=` detras— y el bot lo trato como si fuera un reel. Cobra los
+  // 50, entra en la cola, ocupa uno de los dos huecos de descarga durante
+  // veinte segundos y termina diciendo que no ha podido traerlo. Y eso ultimo
+  // ademas es mentira: no es que no pudiera, es que en un perfil no hay ningun
+  // medio que bajar. Se sabe leyendo la direccion, sin tocar la red.
+  //
+  // Y AL TIRAR DE ESE HILO SALIO ALGO PEOR. El cobro de `redes` es CENTRAL:
+  // ocurre en el manejador, antes de que el comando llegue a mirar nada. Asi
+  // que todos sus rechazos —*!ig* a secas, un enlace de otra red, la
+  // plataforma sin via— cobraban 50 de aura por contestar "pega el enlace".
+  // El manejador sabe deshacerlo, pero solo si el comando devuelve
+  // SIN_SERVICIO, y ninguno de esos tres lo hacia.
+  //
+  // Se comprueba lo que le pasa a la CUENTA, no lo que dice el mensaje: que el
+  // saldo despues de un rechazo sea el mismo que antes. Es la unica forma de
+  // que esto no se pudra — mañana alguien cambia la frase y la guarda seguiria
+  // verde mientras el aura se sigue evaporando.
+  {
+    console.log('\n92. UN PERFIL NO SE INTENTA, Y RECHAZAR NO SE COBRA');
+    const antes92 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { esPerfil } = require(path.join(R, 'src/utils/redes'));
+
+    // 1) LA LECTURA DE LA DIRECCION. Las tres redes, con sus formas reales.
+    const casos = [
+      ['instagram', 'https://www.instagram.com/frndzz_b?stkn=N3gzYUhabWFqZzBabXN6', true, 'el perfil que reparte la app al compartir una cuenta'],
+      ['instagram', 'https://www.instagram.com/alguien/', true, 'un perfil pelado'],
+      ['instagram', 'https://www.instagram.com/stories/alguien/', true, 'la lista de historias de una cuenta'],
+      ['instagram', 'https://www.instagram.com/p/ABC123/', false, 'una publicación'],
+      ['instagram', 'https://www.instagram.com/reel/ABC123/', false, 'un reel'],
+      ['instagram', 'https://www.instagram.com/alguien/reel/ABC123/', false, 'un reel compartido con el usuario delante'],
+      ['instagram', 'https://www.instagram.com/stories/alguien/3210/', false, 'una historia concreta'],
+      ['tiktok', 'https://www.tiktok.com/@alguien', true, 'un perfil de TikTok'],
+      ['tiktok', 'https://www.tiktok.com/@alguien/video/7300000000000000000', false, 'un vídeo'],
+      ['tiktok', 'https://www.tiktok.com/@alguien/photo/7300000000000000000', false, 'una publicación de fotos'],
+      ['tiktok', 'https://vm.tiktok.com/ZM8abcdef/', false, 'el acortador de la app, que no dice qué hay detrás'],
+      ['tiktok', 'https://vt.tiktok.com/ZS8abcdef/', false, 'el otro acortador'],
+      ['x', 'https://x.com/alguien', true, 'un perfil de X'],
+      ['x', 'https://twitter.com/alguien', true, 'un perfil con el dominio viejo'],
+      ['x', 'https://x.com/alguien/status/1800000000000000000', false, 'un tuit'],
+      ['x', 'https://twitter.com/i/status/1800000000000000000', false, 'un tuit por la ruta interna'],
+      ['x', 'https://t.co/abc123', false, 'el acortador de la propia red'],
+      ['pinterest', 'https://www.pinterest.com/alguien/', false, 'Pinterest no entra en esto y tiene que seguir igual'],
+    ];
+    for (const [plat, url, esperado, que] of casos) {
+      const dio = esPerfil(url, plat);
+      exige(dio === esperado,
+        `${plat}: ${que} se lee como ${dio ? 'perfil' : 'contenido'} y es lo contrario — ${url}`);
+    }
+
+    // 2) EL COMANDO DE VERDAD, Y LO QUE LE PASA AL SALDO.
+    //
+    // EN UN HIJO CON SUS PROPIOS DATOS, y no aqui, porque esto escribe aura de
+    // verdad. Hacerlo en el repositorio obligaria a saltarse la prueba con el
+    // bot en marcha — que en el VPS es SIEMPRE— y una prueba que se salta justo
+    // donde importa no vigila nada. Es la misma razon que la costura de la
+    // banlist en la capa 89.
+    {
+      const os92 = require('os');
+      const caja92 = fs.mkdtempSync(path.join(os92.tmpdir(), 'perfil-'));
+      try {
+        fs.cpSync(path.join(R, 'src'), path.join(caja92, 'src'), { recursive: true });
+        fs.mkdirSync(path.join(caja92, 'data'), { recursive: true });
+        try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja92, 'node_modules'), 'dir'); } catch {}
+        const guion = path.join(caja92, 'p92.js');
+        fs.writeFileSync(guion, [
+          "const path = require('path');",
+          `const ROOT = ${JSON.stringify(caja92)};`,
+          "const { cmdInstagram } = require(path.join(ROOT, 'src/commands/redes'));",
+          "const { esSinServicio } = require(path.join(ROOT, 'src/utils/auraCobro'));",
+          "const { addAura, getAura } = require(path.join(ROOT, 'src/utils/auraStore'));",
+          "const G = '000000092@g.us';",
+          "const YO = '34600092111@s.whatsapp.net';",
+          "const BOT = '34600092000@s.whatsapp.net';",
+          "const meta = { id: G, participants: [{ id: YO }, { id: BOT }] };",
+          "(async () => {",
+          "  await addAura(G, YO, 5000);",
+          "  const salida = { casos: [] };",
+          "  const probar = async (texto) => {",
+          "    const dicho = [];",
+          "    const sk = { user: { id: BOT }, sendPresenceUpdate: async () => {},",
+          "      sendMessage: async (j, c) => { dicho.push(c.text || ''); return {}; } };",
+          "    const r = await cmdInstagram(sk, { key: { remoteJid: G, participant: YO, fromMe: false, id: 'R' + Math.random() },",
+          "      message: { conversation: texto } }, texto.split(/\\s+/).slice(1), meta);",
+          "    return { dicho: dicho.join(' | '), sinServicio: esSinServicio(r) };",
+          "  };",
+          "  const saldoAntes = await getAura(G, YO);",
+          "  salida.casos.push(await probar('!ig https://www.instagram.com/frndzz_b?stkn=N3gzYUhabWFqZzBabXN6'));",
+          "  salida.casos.push(await probar('!ig'));",
+          "  salida.casos.push(await probar('!ig https://www.tiktok.com/@alguien/video/7300000000000000000'));",
+          "  salida.saldoAntes = saldoAntes;",
+          "  salida.saldoDespues = await getAura(G, YO);",
+          "  process.stdout.write('RESULTADO' + JSON.stringify(salida));",
+          "  process.exit(0);",
+          "})().catch((e) => { process.stdout.write('ERROR' + e.message); process.exit(1); });",
+        ].join('\n'));
+
+        const { execFileSync: ejecutar92 } = require('child_process');
+        const bruto = ejecutar92(process.execPath, [guion],
+          { encoding: 'utf8', timeout: 60000, cwd: caja92 });
+        const marca = bruto.indexOf('RESULTADO');
+        if (marca < 0) {
+          exige(false, `el hijo de !ig no devolvió nada útil: ${bruto.slice(0, 160)}`);
+        } else {
+          const res = JSON.parse(bruto.slice(marca + 9));
+          const [perfil, vacio, otraRed] = res.casos;
+
+          exige(/perfil/i.test(perfil.dicho),
+            `*!ig* con un perfil no dice que es un perfil: "${perfil.dicho.slice(0, 70)}"`);
+          exige(!/no he podido|no pude/i.test(perfil.dicho),
+            'sigue contestando que no ha podido traerlo: eso es mentira, en un perfil no hay nada que traer');
+          exige(perfil.sinServicio,
+            'el rechazo del perfil no devuelve SIN_SERVICIO: el manejador ya cobró 50 y no los va a deshacer');
+
+          exige(vacio.sinServicio,
+            '*!ig* a secas no devuelve SIN_SERVICIO: contestar "pega el enlace" costaba 50 de aura');
+          exige(/TikTok/i.test(otraRed.dicho),
+            'un enlace de otra red no dice de cuál es');
+          exige(otraRed.sinServicio,
+            'pegar un enlace de otra red no devuelve SIN_SERVICIO: equivocarse de comando costaba 50');
+
+          exige(res.saldoDespues === res.saldoAntes,
+            `tres rechazos seguidos mueven el saldo de ${res.saldoAntes} a ${res.saldoDespues}: alguien cobra por no hacer nada`);
+        }
+      } finally {
+        fs.rmSync(caja92, { recursive: true, force: true });
+      }
+    }
+
+    if (fallos === antes92) console.log(verde('   ✓ un perfil se rechaza leyendo la dirección, y ningún rechazo se queda con el aura'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     if (!fallos) sellar();
