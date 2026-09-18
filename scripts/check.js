@@ -16717,6 +16717,118 @@ const manda = async (quien, tipo, opciones) => {
     if (fallos === antes93) console.log(verde('   \u2713 el GIF de alguien se borra y se le dice por qué, y los del bot no se tocan'));
   }
 
+  // ── 94. LA CABECERA Y EL CUERPO DEL BONO DICEN EL MISMO NÚMERO ─────────
+  //
+  // PASO EN EL GRUPO, con la captura delante:
+  //
+  //     *BONO DE AURA · TIER 1 · 100 MENSAJES*
+  //     200 mensajes. Poco, pero mas de lo que ha escrito la mitad del grupo…
+  //     _Proximo bono: Tier 1 a los 200 — faltan 100 mensajes_
+  //
+  // Tres cifras en cinco lineas que no cuadran entre si. La cabecera ya se
+  // habia arreglado en su dia para que dijera el hito cruzado; las FRASES se
+  // quedaron con el numero viejo escrito dentro. Y tier 1 tiene tres hitos —50,
+  // 100 y 200— asi que diecisiete de sus veinticuatro frases decian "200" en
+  // los tres. Dos de cada tres bonos de tier 1 salian mintiendo.
+  //
+  // VA EN SU PROPIA CAPA Y EN UN HIJO. La capa 21 ya conduce los hitos, pero
+  // entera esta detras de `botEnMarcha()` —escribe casino.json y aura.json— y
+  // en el VPS el bot corre SIEMPRE: una comprobacion metida ahi no se ejecuta
+  // jamas donde importa. Con datos propios no hace falta saltarsela.
+  {
+    console.log('\n94. LA CABECERA Y EL CUERPO DEL BONO DICEN EL MISMO NÚMERO');
+    const antes94 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { HITOS: HITOS94 } = require(path.join(R, 'src/utils/economia'));
+    const NUMS94 = HITOS94.map((h) => h.n);
+
+    // 1) NINGUNA FRASE LLEVA EL HITO ESCRITO A MANO. Mientras el numero viva
+    //    dentro del texto, un cambio en HITOS lo deja mintiendo sin avisar.
+    {
+      const src = fs.readFileSync(path.join(R, 'src/utils/casino.js'), 'utf8');
+      const ini94 = src.indexOf('const PHRASES = {');
+      const bloque = src.slice(ini94, src.indexOf('\n};', ini94));
+      const frases = [...bloque.matchAll(/^      '(.*)',$/gm)].map((m) => m[1]);
+      exige(frases.length > 40, `no encuentro las frases del bono (${frases.length})`);
+      const aMano = frases.filter((f) => NUMS94.some((n) => new RegExp(`^[^%]*(?<![\\w.])${n}(?![\\w.])`).test(f)));
+      exige(aMano.length === 0,
+        `${aMano.length} frase(s) del bono llevan el hito escrito a mano en vez de %M: "${(aMano[0] || '').slice(0, 70)}"`);
+    }
+
+    // 2) Y EL MENSAJE DE VERDAD, HITO POR HITO, en un hijo con datos propios.
+    {
+      const os94 = require('os');
+      const caja94 = fs.mkdtempSync(path.join(os94.tmpdir(), 'bono-'));
+      try {
+        fs.cpSync(path.join(R, 'src'), path.join(caja94, 'src'), { recursive: true });
+        fs.mkdirSync(path.join(caja94, 'data'), { recursive: true });
+        try { fs.symlinkSync(path.join(R, 'node_modules'), path.join(caja94, 'node_modules'), 'dir'); } catch {}
+        const guion = path.join(caja94, 'b94.js');
+        fs.writeFileSync(guion, [
+          "const path = require('path');",
+          `const ROOT = ${JSON.stringify(caja94)};`,
+          "const { checkCasinoMilestone } = require(path.join(ROOT, 'src/utils/casino'));",
+          "const avisos = [];",
+          "const sock = { sendMessage: async (j, c) => { avisos.push(c.text || ''); return {}; } };",
+          "(async () => {",
+          "  const G = '000000094@g.us', U = '34600000094@s.whatsapp.net';",
+          "  for (let i = 1; i <= 1100; i++) await checkCasinoMilestone(sock, G, U);",
+          // SEGUNDA PERSONA, CON EL CONTADOR ADELANTADO. Es la unica forma de
+          // distinguir si la frase usa el HITO o el CONTADOR: mientras avanzan
+          // juntos dan el mismo numero y las dos versiones pasan la prueba.
+          // Aqui se le suben 210 mensajes sin cobrar ningun bono —lo que pasa
+          // con la dinamica apagada, o con un lote de mensajes atrasados— y
+          // entonces el primer bono es el de 50 con el contador en 211.
+          "  const { incrementCasinoCount } = require(path.join(ROOT, 'src/utils/casinoStore'));",
+          "  const U2 = '34600000095@s.whatsapp.net';",
+          "  for (let i = 0; i < 210; i++) await incrementCasinoCount(G, U2);",
+          "  const antes = avisos.length;",
+          "  await checkCasinoMilestone(sock, G, U2);",
+          "  process.stdout.write('BONOS' + JSON.stringify({ hitos: avisos.slice(0, antes), adelantado: avisos.slice(antes) }));",
+          "  process.exit(0);",
+          "})().catch((e) => { process.stdout.write('ERROR' + e.message); process.exit(1); });",
+        ].join('\n'));
+
+        const { execFileSync: ejecutar94 } = require('child_process');
+        let bruto = '';
+        try {
+          bruto = ejecutar94(process.execPath, [guion], { encoding: 'utf8', timeout: 120000, cwd: caja94 });
+        } catch (e) { bruto = `${e.stdout || ''}${e.stderr || ''}`; }
+        const marca = bruto.indexOf('BONOS');
+        if (marca < 0) {
+          exige(false, `la prueba del bono no contestó: ${bruto.slice(-200)}`);
+        } else {
+          const { hitos: avisos, adelantado } = JSON.parse(bruto.slice(marca + 5));
+          // EL CASO DEL CONTADOR ADELANTADO. Su bono tiene que ser el de 50 —el
+          // primero sin cobrar— y decir 50 arriba y 50 abajo, aunque lleve 211
+          // mensajes escritos. Si la frase usara el contador, diria 211.
+          const conta = adelantado[0] || '';
+          exige(/TIER 1 · 50 MENSAJES/.test(conta),
+            `con el contador adelantado el bono no es el de 50: "${conta.split('\n')[0]}"`);
+          exige(!/\b211\b/.test(conta.split('\n\n')[2] || ''),
+            `la frase usa el CONTADOR y no el hito: con 211 mensajes el bono de 50 dice 211 — "${(conta.split('\n\n')[2] || '').slice(0, 70)}"`);
+          exige(avisos.length === HITOS94.length,
+            `${avisos.length} bonos en 1.100 mensajes y los hitos son ${HITOS94.length}`);
+          avisos.forEach((a, i) => {
+            const hito = HITOS94[i]?.n;
+            if (hito === undefined) return;
+            // El cuerpo es la frase: tercer bloque del mensaje.
+            const cuerpo = a.split('\n\n')[2] || '';
+            exige(!/%M/.test(cuerpo), `el bono de ${hito} saca el hueco %M sin sustituir: "${cuerpo.slice(0, 60)}"`);
+            const otros = NUMS94.filter((n) => n !== hito)
+              .filter((n) => new RegExp(`(?<![\\w.])${n.toLocaleString('es-ES').replace('.', '\\.?')}(?![\\w.])`).test(cuerpo));
+            exige(otros.length === 0,
+              `el bono de ${hito} dice ${otros.join(', ')} en el cuerpo: la cabecera y la frase no cuadran — "${cuerpo.slice(0, 80)}"`);
+          });
+        }
+      } finally {
+        fs.rmSync(caja94, { recursive: true, force: true });
+      }
+    }
+
+    if (fallos === antes94) console.log(verde('   ✓ el número del cuerpo sale del hito, así que no puede separarse de la cabecera'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     if (!fallos) sellar();

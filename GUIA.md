@@ -605,6 +605,7 @@ copia legible; si las dos discrepan, la del código tiene razón.
 | `apuestaPhrases.js` (aura) | `%A` apostador, `%C` cantidad, `%S` saldo final |
 | `vaultPhrases.js` (la caja) | `%N` nombre, `%C` cantidad, `%Z` lo guardado, `%S` saldo a la vista |
 | `rachaPhrases.js` | `%N` nombre, `%D` días de racha, `%P` días perdidos |
+| `casino.js` (los bonos) | `%M` el hito que se acaba de cruzar (50, 100, 200, 500 o 1.000). **Nunca escribas el número a mano dentro de la frase**: Tier 1 tiene tres hitos y las frases se quedaron diciendo «200 mensajes» en los tres, así que la cabecera y el cuerpo del mismo mensaje se contradecían. Lo sustituye `casino.js` al elegir la frase |
 | `activity.js`, `duel.js` | `%W` ganador, `%L` perdedor |
 | `accionPhrases.js` | `%A` quien la hace, `%V` quien la recibe |
 | `avisos.js` | `%V` la persona del cartel del día. **Solo el pool `OBJETIVO_DIA_CARTEL` lo usa**; el resto de avisos van sin huecos, se mandan tal cual. Lo sustituye el manejador de mensajes, no un comando, porque ese cartel se cuelga solo con el primer mensaje del día y no lo pide nadie |

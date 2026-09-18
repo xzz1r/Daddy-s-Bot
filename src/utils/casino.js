@@ -23,89 +23,89 @@ const { isBotEnabled, isAuraEnabled } = require('./state');
 const PHRASES = {
   tier1: {
     win: [
-      '200 mensajes y el aura responde. No es el bono gordo, pero es aura real que los fantasmas del grupo no van a ver nunca.',
+      '%M mensajes y el aura responde. No es el bono gordo, pero es aura real que los fantasmas del grupo no van a ver nunca.',
       'Primer tramo cubierto. El aura paga lo básico: poco, pero más de lo que gana el que solo lee.',
-      '200 mensajes registrados. El aura sube porque se ha ganado escribiendo, que es la única forma que existe.',
+      '%M mensajes registrados. El aura sube porque se ha ganado escribiendo, que es la única forma que existe.',
       'Actividad confirmada y aura entregada. Hay gente aquí que lleva semanas sin acercarse a este número.',
-      '200 mensajes: el mínimo para que el aura empiece a tenerte en cuenta. Cobrado.',
-      '200 mensajes. Poco, pero más de lo que ha escrito la mitad del grupo en todo el mes.',
+      '%M mensajes: el mínimo para que el aura empiece a tenerte en cuenta. Cobrado.',
+      '%M mensajes. Poco, pero más de lo que ha escrito la mitad del grupo en todo el mes.',
       'Tier 1 cubierto. El aura paga y el que no escribe no cobra. Así de fácil.',
-      '200 mensajes y el aura responde en consecuencia. Poco pero honrado, como tu aportación.',
-      'Actividad registrada. 200 mensajes que los muertos del grupo no van a juntar ni en sueños.',
+      '%M mensajes y el aura responde en consecuencia. Poco pero honrado, como tu aportación.',
+      'Actividad registrada. %M mensajes que los muertos del grupo no van a juntar ni en sueños.',
       '200. El aura paga a los que aparecen y a los demás les paga una mierda.',
     ],
     bigwin: [
-      'El aura salió generosa en el primer tramo. 200 mensajes que rindieron más de lo normal.',
+      'El aura salió generosa en el primer tramo. %M mensajes que rindieron más de lo normal.',
       'Bono por encima de la media en Tier 1. El aura tiene su propia lógica y hoy jugó a favor.',
-      '200 mensajes y el aura decidió pagar de más. No se puede predecir, por eso engancha.',
+      '%M mensajes y el aura decidió pagar de más. No se puede predecir, por eso engancha.',
       'Tier 1 con bonificación. Mismo esfuerzo, mejor retorno. El aura no siempre paga igual.',
-      'Bono generoso en Tier 1. 200 mensajes que han rendido más de lo que suelen. Buena tirada.',
-      '200 mensajes y el aura ha soltado más de la cuenta. No preguntes por qué, disfruta.',
+      'Bono generoso en Tier 1. %M mensajes que han rendido más de lo que suelen. Buena tirada.',
+      '%M mensajes y el aura ha soltado más de la cuenta. No preguntes por qué, disfruta.',
       'Tier 1 pagado por encima. El aura tiene días buenos y hoy te ha tocado uno.',
-      'Bono alto en el primer tramo. 200 mensajes bien pagados por una vez.',
+      'Bono alto en el primer tramo. %M mensajes bien pagados por una vez.',
     ],
     jackpot: [
-      'BOTE EN EL PRIMER TRAMO. 200 mensajes y el aura se desbordó. Los que no escriben que tomen nota.',
-      '200 mensajes y el aura reventó por arriba. Bono grande en el tramo de entrada. Raro y documentado.',
+      'BOTE EN EL PRIMER TRAMO. %M mensajes y el aura se desbordó. Los que no escriben que tomen nota.',
+      '%M mensajes y el aura reventó por arriba. Bono grande en el tramo de entrada. Raro y documentado.',
       'Bote gordo de aura en Tier 1. Poco habitual, completamente real, y el marcador lo confirma.',
-      'BOTE DE TIER 1. 200 mensajes y el aura ha pagado como si fueran mil. Suerte descomunal.',
-      '200 mensajes y bote confirmado. Esto no pasa todos los días y el grupo lo acaba de ver.',
-      'Bote en el tramo de entrada. 200 mensajes y un premio que no se merece cualquiera.',
+      'BOTE DE TIER 1. %M mensajes y el aura ha pagado como si fueran mil. Suerte descomunal.',
+      '%M mensajes y bote confirmado. Esto no pasa todos los días y el grupo lo acaba de ver.',
+      'Bote en el tramo de entrada. %M mensajes y un premio que no se merece cualquiera.',
     ],
   },
   tier2: {
     win: [
-      '500 mensajes. Hay gente en este grupo que no llega ni a 50. El aura premia a los que se quedan.',
+      '%M mensajes. Hay gente en este grupo que no llega ni a 50. El aura premia a los que se quedan.',
       'Medio millar de mensajes: la línea que separa a quien vive el grupo de quien pasa de visita. El aura lo nota.',
-      '500 mensajes registrados. Constancia que el relleno del grupo no conoce ni de lejos.',
-      'El contador marca 500 y el aura responde en consecuencia. Eso no lo alcanza cualquiera.',
-      '500 mensajes. El segundo tramo y un bono que la mitad del grupo no va a oler en la vida.',
-      '500 registrados. A estas alturas ya no eres activo, eres residente. El aura paga en consecuencia.',
-      '500 mensajes y el aura responde. Constancia real, no de la que se presume sin números.',
+      '%M mensajes registrados. Constancia que el relleno del grupo no conoce ni de lejos.',
+      'El contador marca %M y el aura responde en consecuencia. Eso no lo alcanza cualquiera.',
+      '%M mensajes. El segundo tramo y un bono que la mitad del grupo no va a oler en la vida.',
+      '%M registrados. A estas alturas ya no eres activo, eres residente. El aura paga en consecuencia.',
+      '%M mensajes y el aura responde. Constancia real, no de la que se presume sin números.',
       'Medio millar. Los que llevan tres mensajes al día que miren y aprendan.',
     ],
     bigwin: [
-      '500 mensajes y el aura respondió con generosidad. Bono de Tier 2 por encima de lo normal.',
+      '%M mensajes y el aura respondió con generosidad. Bono de Tier 2 por encima de lo normal.',
       'Bono gordo por llegar a los 500. La constancia tiene su propia economía y hoy pagó bien.',
-      '500 mensajes y el aura recompensó en serio. No todos llegan aquí; el que llega, cobra.',
-      '500 mensajes y bono alto. El aura distingue entre constancia y presencia y hoy ha pagado la primera.',
-      'Tier 2 con premio generoso. 500 mensajes bien pagados. Esto no se regala.',
-      'Bono grande en Tier 2. 500 mensajes que han rendido más de lo que suelen.',
+      '%M mensajes y el aura recompensó en serio. No todos llegan aquí; el que llega, cobra.',
+      '%M mensajes y bono alto. El aura distingue entre constancia y presencia y hoy ha pagado la primera.',
+      'Tier 2 con premio generoso. %M mensajes bien pagados. Esto no se regala.',
+      'Bono grande en Tier 2. %M mensajes que han rendido más de lo que suelen.',
     ],
     jackpot: [
-      'BOTE DE TIER 2. 500 mensajes y el aura se desbordó. De los premios que hacen abrir el chat.',
-      '500 mensajes y bote confirmado en Tier 2. Esto queda en el registro del grupo. Los inactivos que miren.',
-      'Bote histórico de aura en Tier 2. 500 mensajes reales y un premio que el grupo no va a olvidar.',
+      'BOTE DE TIER 2. %M mensajes y el aura se desbordó. De los premios que hacen abrir el chat.',
+      '%M mensajes y bote confirmado en Tier 2. Esto queda en el registro del grupo. Los inactivos que miren.',
+      'Bote histórico de aura en Tier 2. %M mensajes reales y un premio que el grupo no va a olvidar.',
       'BOTE EN TIER 2. Medio millar de mensajes y el aura ha reventado por arriba. Raro y sonoro.',
-      '500 mensajes y bote gordo. El grupo tiene un ganador y el ganador tiene una cifra que enseñar.',
-      'Bote de Tier 2 confirmado. 500 mensajes y un premio de los que se recuerdan.',
+      '%M mensajes y bote gordo. El grupo tiene un ganador y el ganador tiene una cifra que enseñar.',
+      'Bote de Tier 2 confirmado. %M mensajes y un premio de los que se recuerdan.',
     ],
   },
   tier3: {
     win: [
-      '1000 mensajes. Eso no se ve todos los días en ningún grupo. El aura lo reconoce y lo paga entero.',
+      '%M mensajes. Eso no se ve todos los días en ningún grupo. El aura lo reconoce y lo paga entero.',
       'Mil mensajes registrados. Hay quien cierra el chat antes de llegar a diez. Otra liga confirmada.',
-      '1000 mensajes: el nivel donde los fantasmas del grupo ni saben que existe un bono. El que llega, cobra.',
-      'El contador llega a 1000 y el aura abre el tramo máximo. Presencia de las que se recompensan solas.',
+      '%M mensajes: el nivel donde los fantasmas del grupo ni saben que existe un bono. El que llega, cobra.',
+      'El contador llega a %M y el aura abre el tramo máximo. Presencia de las que se recompensan solas.',
       'Mil mensajes. A los que han mandado diez hoy les queda lejos incluso el concepto.',
-      '1000 mensajes registrados y el aura paga el tramo más alto. Constancia de las que cuestan.',
+      '%M mensajes registrados y el aura paga el tramo más alto. Constancia de las que cuestan.',
       '1000. El tramo que existe para que los que llegan sepan que hay nivel, y los que no, que hay distancia.',
       'Mil mensajes reales. El aura distingue y hoy ha distinguido en tu favor.',
     ],
     bigwin: [
-      '1000 mensajes y el aura entró en modo gran bono. Ese nivel de actividad se paga distinto.',
+      '%M mensajes y el aura entró en modo gran bono. Ese nivel de actividad se paga distinto.',
       'Tier 3 desbloqueado. Mil mensajes y un bono de aura de los que quedan en la historia del grupo.',
-      '1000 mensajes reales y el aura soltó un bono de los que dan conversación durante días.',
+      '%M mensajes reales y el aura soltó un bono de los que dan conversación durante días.',
       'Bono alto en Tier 3. Mil mensajes y un premio que la mayoría no va a ver nunca.',
-      '1000 mensajes y el aura ha pagado por encima. El tramo más alto rindiendo más de lo normal.',
+      '%M mensajes y el aura ha pagado por encima. El tramo más alto rindiendo más de lo normal.',
       'Gran bono en el tercer tramo. Mil mensajes y una recompensa que vale la constancia.',
     ],
     jackpot: [
-      '1000 MENSAJES, BOTE MÁXIMO DE AURA. El premio más alto que existe. El grupo acaba de ver algo poco común.',
+      '%M MENSAJES, BOTE MÁXIMO DE AURA. El premio más alto que existe. El grupo acaba de ver algo poco común.',
       'Mil mensajes y el aura llegó a su bote máximo. Constancia legendaria, premio legendario. El grupo es testigo.',
-      'BOTE DE TIER 3 CONFIRMADO. 1000 mensajes y aura histórica. Esto va al hall de la fama sin discusión.',
+      'BOTE DE TIER 3 CONFIRMADO. %M mensajes y aura histórica. Esto va al hall de la fama sin discusión.',
       'BOTE MÁXIMO. Mil mensajes y el premio más grande que da el sistema. Esto no pasa dos veces en la misma semana.',
-      '1000 mensajes y bote reventado en Tier 3. El grupo entero acaba de presenciar algo que no se repite.',
+      '%M mensajes y bote reventado en Tier 3. El grupo entero acaba de presenciar algo que no se repite.',
       'BOTE EN EL TRAMO FINAL. Mil mensajes y una cantidad de aura que va a dejar huella.',
     ],
   },
@@ -284,7 +284,21 @@ async function checkCasinoMilestone(sock, jid, sender) {
   const phrasePool = label === 'redemption'
     ? PHRASES.redemption
     : PHRASES[`tier${tier}`][label];
-  const phrase = pickFresh(phrasePool, `${jid}|casino|${label}|${tier}`);
+  // %M ES EL HITO QUE SE ACABA DE CRUZAR, y va aqui por lo mismo que la
+  // cabecera: escrito a mano se separa del hito y miente.
+  //
+  // PASO DE VERDAD Y SALIO EN EL GRUPO. Tier 1 tiene TRES hitos —50, 100 y
+  // 200— y diecisiete de sus veinticuatro frases llevaban "200 mensajes"
+  // escrito dentro. Asi que al cruzar los 100 el mensaje decia a la vez
+  // "TIER 1 · 100 MENSAJES" en la cabecera y "200 mensajes" en el cuerpo, y
+  // debajo "faltan 100 para el siguiente". Tres cifras que no cuadraban entre
+  // si en cinco lineas, y dos de cada tres bonos de tier 1 salian asi.
+  //
+  // La cabecera ya se habia arreglado antes por este mismo motivo. Las frases
+  // se quedaron con el numero viejo dentro, que es justo el error que este
+  // fichero ya habia cometido una vez.
+  const phrase = pickFresh(phrasePool, `${jid}|casino|${label}|${tier}`)
+    .replace(/%M/g, fmt(toca.n));
 
   // ─── ¿Se anuncia, o se cobra y punto? ──────────────────────────────────────
   //

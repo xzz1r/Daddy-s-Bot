@@ -58,6 +58,10 @@ const CONTRATO = {
   // cuelga solo con el primer mensaje del dia y no lo pide nadie.
   'src/data/avisos.js':            { permite: ['%V'],                          sustituye: 'src/handlers/messageHandler.js' },
   'src/data/rachaPhrases.js':      { permite: ['%N', '%P', '%D'],              sustituye: 'src/utils/casino.js' },
+  // %M es el hito que se acaba de cruzar (50, 100, 200, 500 o 1.000). Lo pone
+  // casino.js al elegir la frase, y existe para que el numero del cuerpo no se
+  // pueda separar del de la cabecera: escrito a mano, se separo.
+  'src/utils/casino.js':           { permite: ['%M'],                          sustituye: 'src/utils/casino.js' },
   'src/data/roboExtraPhrases.js':  { permite: ['%A', '%C', '%N', '%V', '%H'],  sustituye: 'src/commands/robo.js' },
 };
 
