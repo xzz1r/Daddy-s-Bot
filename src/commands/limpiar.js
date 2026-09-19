@@ -89,6 +89,7 @@ async function cmdLimpiar(sock, msg, args, groupMeta) {
       ? msg.messageTimestamp.toNumber()
       : msg.messageTimestamp) || Math.floor(Date.now() / 1000),
     addressingMode: msg.key.addressingMode || '',
+    key: msg.key,
   };
 
   enCurso.add(jid);
@@ -96,7 +97,7 @@ async function cmdLimpiar(sock, msg, args, groupMeta) {
     const lista = await hist.reunir(sock, jid, n, cmdId ? [cmdId] : [], ancla);
     if (!lista.length) {
       return sock.sendMessage(jid, {
-        text: 'No pude leer el historial. Prueba otra vez.',
+        text: 'WhatsApp no me mandó el historial. El teléfono de esta cuenta tiene que estar en línea. Lo que entre a partir de ahora sí lo borro.',
       }, { quoted: msg });
     }
 

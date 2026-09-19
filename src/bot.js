@@ -90,7 +90,7 @@ const { PURGA_ADMIN } = require('./data/avisos');
 const TOPE_RED = 8000;
 const { VF_STATIC } = require('./utils/sticker');
 const { recordar: recordarMensaje, recuperar: recuperarMensaje } = require('./utils/mensajesRecientes');
-const { recordar: recordarHistorial, ingestarLote: ingestarHistorial, flush: flushHistorial } = require('./utils/historialGrupo');
+const { recordar: recordarHistorial, ingestarEvento: ingestarHistorial, flush: flushHistorial } = require('./utils/historialGrupo');
 const logger = require('./utils/logger');
 
 const AUTH_DIR = path.join(__dirname, '../data/auth');
@@ -2014,8 +2014,8 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
 
   // Historial que WhatsApp manda a trozos (al conectar, o cuando !limpiar
   // pide lo de ANTES). Sin esto el bot solo veía lo que llegaba en vivo.
-  sock.ev.on('messaging-history.set', ({ messages }) => {
-    ingestarHistorial(messages);
+  sock.ev.on('messaging-history.set', (data) => {
+    ingestarHistorial(data);
   });
 
   sock.ev.on('messages.upsert', ({ messages, type }) => {

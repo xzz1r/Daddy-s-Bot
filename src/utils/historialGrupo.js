@@ -93,9 +93,10 @@ function colaDe(jid) {
   return cola;
 }
 
-function recordar(msg) {
-  const jid = msg?.key?.remoteJid;
-  if (!jid || !jid.endsWith('@g.us')) return false;
+function recordar(msg, jidForzado) {
+  let jid = jidForzado || msg?.key?.remoteJid;
+  if (jid && !String(jid).endsWith('@g.us') && jidForzado) jid = jidForzado;
+  if (!jid || !String(jid).endsWith('@g.us')) return false;
   const id = msg.key?.id;
   if (!id) return false;
   if (msg.messageStubType && !msg.message) return false;
@@ -110,17 +111,64 @@ function recordar(msg) {
     addressingMode: msg.key.addressingMode || '',
     ts: tsSeg(msg) || Math.floor(Date.now() / 1000),
     fromMe: Boolean(msg.key.fromMe),
+    key: {
+      remoteJid: jid,
+      id,
+      fromMe: Boolean(msg.key.fromMe),
+      ...(msg.key.participant ? { participant: msg.key.participant } : {}),
+      ...(msg.key.addressingMode ? { addressingMode: msg.key.addressingMode } : {}),
+      ...(msg.key.participantAlt ? { participantAlt: msg.key.participantAlt } : {}),
+      ...(msg.key.remoteJidAlt ? { remoteJidAlt: msg.key.remoteJidAlt } : {}),
+    },
   });
   recortar(cola);
   programarGuardado();
   return true;
 }
 
-function ingestarLote(messages) {
+function ingestarLote(messages, jidGrupo) {
   if (!Array.isArray(messages)) return 0;
   let n = 0;
-  for (const m of messages) if (recordar(m)) n++;
+  for (const m of messages) if (recordar(m, jidGrupo)) n++;
   return n;
+}
+
+function ingestarEvento(data, jidGrupo) {
+  if (!data) return 0;
+  let n = ingestarLote(data.messages, jidGrupo);
+  for (const chat of data.chats || []) {
+    const cid = chat.id;
+    if (jidGrupo && cid && cid !== jidGrupo && bareJid(cid) !== bareJid(jidGrupo)) continue;
+    for (const wrap of chat.messages || []) {
+      const m = wrap.message || wrap;
+      if (recordar(m, jidGrupo || cid)) n++;
+    }
+  }
+  return n;
+}
+
+function tsMsDe(ts) {
+  const n = Number(typeof ts?.toNumber === 'function' ? ts.toNumber() : ts || 0);
+  if (!n) return Date.now();
+  return n < 1e12 ? n * 1000 : n;
+}
+
+function claveDeAncla(jid, ancla) {
+  const k = ancla.key || {};
+  const id = k.id || ancla.id;
+  return {
+    remoteJid: k.remoteJid || jid,
+    id,
+    fromMe: Boolean(k.fromMe || ancla.fromMe),
+    ...(k.participant || ancla.participant
+      ? { participant: k.participant || ancla.participant }
+      : {}),
+    ...(k.addressingMode || ancla.addressingMode
+      ? { addressingMode: k.addressingMode || ancla.addressingMode }
+      : {}),
+    ...(k.participantAlt ? { participantAlt: k.participantAlt } : {}),
+    ...(k.remoteJidAlt ? { remoteJidAlt: k.remoteJidAlt } : {}),
+  };
 }
 
 function tomar(jid, n, exceptoIds) {
@@ -153,34 +201,45 @@ function cuantos(jid) {
 }
 
 async function pedirPagina(sock, jid, ancla) {
-  if (typeof sock.fetchMessageHistory !== 'function' || !ancla?.id) return 0;
+  if (typeof sock.fetchMessageHistory !== 'function' || !(ancla?.id || ancla?.key?.id)) return 0;
   const antes = cuantos(jid);
+  const key = claveDeAncla(jid, ancla);
+  const tsMs = tsMsDe(ancla.ts);
   let off = () => {};
   const llegada = new Promise((resolve) => {
     if (!sock.ev?.on) return resolve();
-    const onHist = ({ messages } = {}) => {
-      const toca = (messages || []).some((m) => m?.key?.remoteJid === jid);
-      ingestarLote(messages);
-      if (toca) { off(); resolve(); }
+    const onHist = (data = {}) => {
+      if (ingestarEvento(data, jid) > 0) { off(); resolve(); }
     };
-    off = () => { try { sock.ev.off('messaging-history.set', onHist); } catch { /* ya no está */ } };
+    const onUpsert = ({ messages } = {}) => {
+      let added = 0;
+      for (const m of messages || []) {
+        if (m?.key?.remoteJid === jid && recordar(m)) added++;
+      }
+      if (added > 0) { off(); resolve(); }
+    };
+    off = () => {
+      try { sock.ev.off('messaging-history.set', onHist); } catch { /* ya no está */ }
+      try { sock.ev.off('messages.upsert', onUpsert); } catch { /* ya no está */ }
+    };
     sock.ev.on('messaging-history.set', onHist);
+    sock.ev.on('messages.upsert', onUpsert);
   });
+  let sesion = '';
   try {
-    await sock.fetchMessageHistory(PAGINA, {
-      remoteJid: jid,
-      id: ancla.id,
-      fromMe: Boolean(ancla.fromMe),
-      ...(ancla.participant ? { participant: ancla.participant } : {}),
-    }, ancla.ts || Math.floor(Date.now() / 1000));
+    sesion = await sock.fetchMessageHistory(PAGINA, key, tsMs) || '';
   } catch (e) {
-    logger.warn(`historial: no pude pedir más de ${jid}: ${e.message}`);
+    logger.warn(`historial: fetch falló en ${jid}: ${e.message}`);
     off();
     return 0;
   }
-  await withTimeout(llegada, 8000, null);
+  await withTimeout(llegada, 20000, null);
   off();
-  return Math.max(0, cuantos(jid) - antes);
+  const añadidos = Math.max(0, cuantos(jid) - antes);
+  if (!añadidos) {
+    logger.warn(`historial: WhatsApp no mandó nada de ${jid} (sesión=${sesion || '?'}, ancla=${key.id}, ts=${tsMs})`);
+  }
+  return añadidos;
 }
 
 async function reunir(sock, jid, n, exceptoIds, ancla) {
@@ -223,6 +282,7 @@ function cargar() {
           addressingMode: x.addressingMode || '',
           ts: Number(x.ts) || 0,
           fromMe: Boolean(x.fromMe),
+          key: x.key && x.key.id ? x.key : undefined,
         });
       }
       recortar(cola);
@@ -240,7 +300,7 @@ function reset() {
 cargar();
 
 module.exports = {
-  recordar, ingestarLote, tomar, quitar, cuantos, reunir, masAntiguo, flush,
+  recordar, ingestarLote, ingestarEvento, tomar, quitar, cuantos, reunir, masAntiguo, flush,
   TOPE_POR_GRUPO, MAX_GRUPOS, PAGINA,
   _reset: reset, _tieneContenido: tieneContenido, _pedirPagina: pedirPagina,
 };

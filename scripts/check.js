@@ -17242,8 +17242,8 @@ const manda = async (quien, tipo, opciones) => {
       const sockHist = {
         user: { id: BOT97 },
         ev: ev97,
-        fetchMessageHistory: async (_n, key) => {
-          pedidos97.push(key);
+        fetchMessageHistory: async (_n, key, ts) => {
+          pedidos97.push({ key, ts });
           const viejo = sobre97('H1', RASO97, 'del historial de antes');
           viejo.messageTimestamp = Math.floor(Date.now() / 1000) - 3600;
           ev97.emit('messaging-history.set', { messages: [viejo] });
@@ -17254,6 +17254,8 @@ const manda = async (quien, tipo, opciones) => {
       await limp97.cmdLimpiar(sockHist, sobre97('CMD', OWN97, '!limpiar 1'), ['1'], meta97);
       exige(pedidos97.length > 0,
         'con pocas claves no pide el historial a WhatsApp: !limpiar solo borra lo de esta sesión');
+      exige(pedidos97[0].ts > 1e12,
+        `el timestamp se manda en segundos (${pedidos97[0].ts}): WhatsApp lo ignora y no suelta el historial`);
       const idsHist = vistoHist.filter((v) => v.content && v.content.delete).map((v) => v.content.delete.id);
       exige(idsHist.includes('H1'),
         `pidió el historial y no borró lo que trajo: ${idsHist.join(',')}`);
