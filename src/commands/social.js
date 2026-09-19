@@ -516,7 +516,7 @@ ${esAdmin ? `
 ` : ''}${esOwner ? `
 ━━ *SUPERIORES* ━━
 *${p}demote* · *${p}resetaura* · *${p}resetcount* · *${p}on*/*${p}off* · *${p}clearcache* · *${p}diag*
-*${p}limpiar* 20 — borra los últimos 20 para todos
+*${p}limpiar* 1000 — borra los últimos 1000 para todos
 *${p}listanegra* — la lista negra global: ver, meter números y sacarlos
 _on/off:_ *${p}antiadmin* *${p}antilink* *${p}antiempresa* *${p}antifoto* *${p}adminmode* *${p}aura*
 ` : ''}

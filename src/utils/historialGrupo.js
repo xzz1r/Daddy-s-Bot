@@ -13,7 +13,7 @@
 
 const { bareJid } = require('./wa');
 
-const TOPE_POR_GRUPO = 200;
+const TOPE_POR_GRUPO = 1000;
 const MAX_GRUPOS = 40;
 const VENTANA_MS = 24 * 60 * 60 * 1000;
 

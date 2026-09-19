@@ -17143,8 +17143,13 @@ const manda = async (quien, tipo, opciones) => {
     const paraTodos = (k) => k && isJidGroup(k.remoteJid) && k.fromMe === false && !!k.participant;
 
     hist97._reset();
-    limp97._setPausa(0);
     limp97._enCurso.clear();
+    exige(limp97.MAX === 1000, `el tope de !limpiar ya no es 1000: es ${limp97.MAX}`);
+    exige(hist97.TOPE_POR_GRUPO >= limp97.MAX,
+      `el almacén (${hist97.TOPE_POR_GRUPO}) no cabe el tope (${limp97.MAX}): !limpiar 1000 no tendría 1000 claves`);
+    const limpSrc97 = fs.readFileSync(path.join(R, 'src/commands/limpiar.js'), 'utf8');
+    exige(/Promise\.allSettled/.test(limpSrc97) && !/PAUSA_MS|setTimeout/.test(limpSrc97),
+      '!limpiar volvió a borrar de uno en uno con pausa: el dueño lo pidió de golpe');
     try {
       // ── El almacén no guarda ruido ────────────────────────────────────────
       hist97.recordar(sobre97('R1', RASO97, 'hola'));
@@ -17237,7 +17242,6 @@ const manda = async (quien, tipo, opciones) => {
         'claveBorrado ya no fuerza fromMe=false: el borrado pasa a ser solo para el bot');
     } finally {
       hist97._reset();
-      limp97._setPausa(150);
       limp97._enCurso.clear();
     }
     if (fallos === antes97) console.log(verde('   ✓ borra N para todos, también lo del dueño, y no se lo traga un admin'));

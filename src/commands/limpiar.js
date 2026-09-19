@@ -23,16 +23,9 @@ const { aviso } = require('../utils/helpers');
 const logger = require('../utils/logger');
 const hist = require('../utils/historialGrupo');
 
-const MAX = 100;
-const espera = (ms) => new Promise((r) => setTimeout(r, ms));
-let PAUSA_MS = 150;
+const MAX = 1000;
 
 const enCurso = new Set();
-
-function esFreno(err) {
-  const s = String(err?.output?.content?.[0]?.attrs?.type || err?.message || err || '');
-  return /rate-overlimit|not-acceptable|429|try again/i.test(s);
-}
 
 // Siempre fromMe=false. En Baileys eso es lo que pone edit=8 (para todos)
 // cuando el destino es un grupo. fromMe=true se convierte en edit=7 y el
@@ -95,37 +88,31 @@ async function cmdLimpiar(sock, msg, args, groupMeta) {
 
   enCurso.add(jid);
   try {
-    // El comando, primero: si tarda en los demás, al menos no se queda
-    // *!limpiar 40* a la vista mientras van cayendo.
+    // Todos a la vez. Una pausa entre cada uno convertía *!limpiar 200* en
+    // medio minuto de mensajes cayendo de uno en uno. El socket ya serializa
+    // lo que WhatsApp aguanta; nosotros no le ponemos cola encima.
+    const items = [];
     if (cmdId) {
-      try {
-        await borrarUno(sock, {
-          id: cmdId,
-          participant: sender,
-          remoteJid: jid,
-          addressingMode: msg.key.addressingMode || '',
-        });
-        hist.quitar(jid, cmdId);
-      } catch (e) {
-        logger.warn(`limpiar: no pude borrar el comando en ${jid}: ${e?.message || e}`);
-      }
+      items.push({
+        id: cmdId,
+        participant: sender,
+        remoteJid: jid,
+        addressingMode: msg.key.addressingMode || '',
+      });
     }
+    items.push(...lista.slice().reverse());
 
-    // Del más nuevo al más viejo: lo último que se ve es lo primero que se va.
-    const orden = lista.slice().reverse();
+    const resultados = await Promise.allSettled(items.map(async (item) => {
+      await borrarUno(sock, item);
+      hist.quitar(jid, item.id);
+    }));
     let ok = 0;
-    for (const item of orden) {
-      try {
-        await borrarUno(sock, item);
-        hist.quitar(jid, item.id);
-        ok++;
-      } catch (e) {
-        logger.warn(`limpiar: no pude borrar ${item.id} en ${jid}: ${e?.output?.content?.[0]?.attrs?.type || e?.message || e}`);
-        if (esFreno(e)) break;
-      }
-      if (PAUSA_MS) await espera(PAUSA_MS);
+    for (const r of resultados) {
+      if (r.status === 'fulfilled') { ok++; continue; }
+      const e = r.reason;
+      logger.warn(`limpiar: no pude borrar en ${jid}: ${e?.output?.content?.[0]?.attrs?.type || e?.message || e}`);
     }
-    logger.info(`limpiar en ${jid}: ${ok}/${orden.length}`);
+    logger.info(`limpiar en ${jid}: ${ok}/${items.length}`);
   } finally {
     enCurso.delete(jid);
   }
@@ -133,6 +120,5 @@ async function cmdLimpiar(sock, msg, args, groupMeta) {
 
 module.exports = {
   cmdLimpiar, claveBorrado, MAX,
-  _setPausa: (ms) => { PAUSA_MS = ms; },
   _enCurso: enCurso,
 };
