@@ -364,7 +364,7 @@ async function capasDelMenu() {
       owner: { demote: 'cmdDemote', on: 'cmdOn', off: 'cmdOff', antilink: 'cmdAntiLink',
         antifoto: 'cmdAntiFoto', antiempresa: 'cmdAntiBusiness', antiadmin: 'cmdAntiAdmin',
         adminmode: 'cmdSoloAdmins', aura: 'interruptor', resetcount: 'cmdResetCount',
-        diag: 'cmdDiag' },
+        diag: 'cmdDiag', limpiar: 'cmdLimpiar' },
     };
     const mal = [], perdidas = [];
     for (const [nivel, tabla] of Object.entries(esperado)) {
@@ -17098,6 +17098,149 @@ const manda = async (quien, tipo, opciones) => {
     }
 
     if (fallos === antes96) console.log(verde('   ✓ lo que ya cabe no se toca, y lo que no cabe se ajusta sin bajar de resolución'));
+  }
+
+  // ── 97. !limpiar BORRA PARA TODOS, TAMBIÉN LO DEL DUEÑO ──────────────────
+  //
+  // WhatsApp no deja vaciar un chat. Este comando encadena el borrado de admin
+  // (`edit=8`) sobre las claves que el bot ha ido guardando. Tres cosas que, si
+  // se rompen, el grupo ve el comando "funcionar" y el historial intacto:
+  //
+  //   1. fromMe tiene que ir en false. Si va en true, Baileys pone edit=7 y
+  //      el mensaje solo desaparece del teléfono del bot.
+  //   2. El participante tiene que ir en la clave. Sin él el servidor no sabe
+  //      de quién es el mensaje.
+  //   3. Lo que escribió el dueño también se borra. !del lo salta a propósito;
+  //      este comando existe justo para no saltarlo.
+  {
+    console.log('\n97. !limpiar BORRA PARA TODOS, TAMBIÉN LO DEL DUEÑO');
+    const antes97 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { isJidGroup } = require('@whiskeysockets/baileys');
+    const cfg97 = require(path.join(R, 'src/config'));
+    const hist97 = require(path.join(R, 'src/utils/historialGrupo'));
+    const limp97 = require(path.join(R, 'src/commands/limpiar'));
+    const OWN97 = `${String(cfg97.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
+    const BOT97 = '34600000097@s.whatsapp.net';
+    const ADM97 = '34611111197@s.whatsapp.net';
+    const RASO97 = '34622222297@s.whatsapp.net';
+    const G97 = '120363000000097@g.us';
+    const meta97 = { id: G97, subject: 'G', participants: [
+      { id: OWN97, admin: 'superadmin' },
+      { id: BOT97, admin: 'admin' },
+      { id: ADM97, admin: 'admin' },
+      { id: RASO97 },
+    ] };
+    const sock97 = (visto) => ({
+      user: { id: BOT97 },
+      sendMessage: async (jid, content) => { visto.push({ jid, content }); return { key: { id: 'x' } }; },
+    });
+    const sobre97 = (id, quien, texto, extra = {}) => ({
+      key: { remoteJid: G97, id, participant: quien, fromMe: quien === BOT97, ...extra },
+      messageTimestamp: Math.floor(Date.now() / 1000),
+      message: { conversation: texto },
+    });
+    const paraTodos = (k) => k && isJidGroup(k.remoteJid) && k.fromMe === false && !!k.participant;
+
+    hist97._reset();
+    limp97._setPausa(0);
+    limp97._enCurso.clear();
+    try {
+      // ── El almacén no guarda ruido ────────────────────────────────────────
+      hist97.recordar(sobre97('R1', RASO97, 'hola'));
+      hist97.recordar({
+        key: { remoteJid: G97, id: 'REAC', participant: RASO97, fromMe: false },
+        messageTimestamp: Math.floor(Date.now() / 1000),
+        message: { reactionMessage: { key: { id: 'R1' }, text: '👍' } },
+      });
+      hist97.recordar({
+        key: { remoteJid: G97, id: 'PROT', participant: RASO97, fromMe: false },
+        messageTimestamp: Math.floor(Date.now() / 1000),
+        message: { protocolMessage: { type: 0, key: { id: 'R1' } } },
+      });
+      hist97.recordar({
+        key: { remoteJid: G97, id: 'VIEJO', participant: RASO97, fromMe: false },
+        messageTimestamp: Math.floor((Date.now() - 48 * 60 * 60 * 1000) / 1000),
+        message: { conversation: 'de ayer' },
+      });
+      hist97.recordar({
+        key: { remoteJid: '34600000000@s.whatsapp.net', id: 'PRIV', fromMe: false },
+        messageTimestamp: Math.floor(Date.now() / 1000),
+        message: { conversation: 'privado' },
+      });
+      exige(hist97.cuantos(G97) === 1,
+        `el almacén guardó ruido (reacción/protocolo/viejo/privado): ${hist97.cuantos(G97)} claves`);
+
+      hist97._reset();
+      hist97.recordar(sobre97('M1', RASO97, 'uno'));
+      hist97.recordar(sobre97('M2', ADM97, 'dos'));
+      hist97.recordar(sobre97('M3', OWN97, 'tres — del dueño'));
+      hist97.recordar(sobre97('M4', BOT97, 'cuatro — del bot'));
+      hist97.recordar(sobre97('M5', RASO97, 'cinco'));
+      hist97.recordar(sobre97('CMD', OWN97, '!limpiar 3'));
+      exige(hist97.cuantos(G97) === 6, `esperaba 6 claves y hay ${hist97.cuantos(G97)}`);
+
+      // ── El dueño pide 3: se van los 3 últimos + el comando ────────────────
+      const visto97 = [];
+      const cmdMsg97 = sobre97('CMD', OWN97, '!limpiar 3');
+      await limp97.cmdLimpiar(sock97(visto97), cmdMsg97, ['3'], meta97);
+
+      const borrados97 = visto97.filter((v) => v.content && v.content.delete).map((v) => v.content.delete);
+      const ids97 = borrados97.map((k) => k.id);
+      exige(ids97.includes('CMD'), 'el *!limpiar* se queda en el chat: !del sí se borra a sí mismo y este no');
+      exige(ids97.includes('M3'), 'el mensaje del dueño NO se borró: este comando existe para no saltárselo');
+      exige(ids97.includes('M4'), 'el mensaje del bot no se borró');
+      exige(ids97.includes('M5'), 'el último mensaje del grupo no se borró');
+      exige(!ids97.includes('M1') && !ids97.includes('M2'),
+        `pidió 3 y se llevó mensajes de más: ${ids97.join(',')}`);
+      exige(borrados97.length === 4,
+        `tenían que ser comando + 3 y salieron ${borrados97.length}: ${ids97.join(',')}`);
+      const malClave = borrados97.filter((k) => !paraTodos(k));
+      exige(malClave.length === 0,
+        `algún borrado NO es para todos (fromMe/grupo/participant): ${JSON.stringify(malClave)}`);
+      exige(visto97.every((v) => !v.content?.text),
+        'si sale bien, no tiene que escribir nada: un "listo" es otro mensaje que borrar');
+
+      // ── Un admin raso no puede usarlo ─────────────────────────────────────
+      hist97.recordar(sobre97('M6', RASO97, 'sigue'));
+      const vistoAdm = [];
+      await limp97.cmdLimpiar(sock97(vistoAdm), sobre97('A1', ADM97, '!limpiar 3'), ['3'], meta97);
+      exige(!vistoAdm.some((v) => v.content && v.content.delete),
+        'un admin raso ha borrado mensajes con !limpiar: la puerta tenía que ser del tier dueño');
+      exige(vistoAdm.some((v) => v.content?.text),
+        'un admin raso no recibe negativa: parece que el comando no existe, y está en el menú');
+
+      // ── Sin cifra, no borra ───────────────────────────────────────────────
+      const vistoUso = [];
+      await limp97.cmdLimpiar(sock97(vistoUso), sobre97('U1', OWN97, '!limpiar'), [], meta97);
+      exige(!vistoUso.some((v) => v.content && v.content.delete),
+        '!limpiar sin número ha empezado a borrar');
+      exige(/limpiar 20/.test(vistoUso.at(-1)?.content?.text || ''),
+        `sin número no dice cómo se usa: "${vistoUso.at(-1)?.content?.text || ''}"`);
+
+      // ── El tope se dice, no se recorta en silencio ────────────────────────
+      const vistoTope = [];
+      await limp97.cmdLimpiar(sock97(vistoTope), sobre97('T1', OWN97, `!limpiar ${limp97.MAX + 1}`), [String(limp97.MAX + 1)], meta97);
+      exige(!vistoTope.some((v) => v.content && v.content.delete),
+        'por encima del tope ha empezado a borrar igual');
+      exige(new RegExp(String(limp97.MAX)).test(vistoTope.at(-1)?.content?.text || ''),
+        `el tope no se dice: "${vistoTope.at(-1)?.content?.text || ''}"`);
+
+      // ── El dispatcher y el historial de bot.js siguen enganchados ─────────
+      const mh97 = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+      const bot97 = fs.readFileSync(path.join(R, 'src/bot.js'), 'utf8');
+      exige(/case 'limpiar':/.test(mh97) && /case 'wipe':/.test(mh97),
+        '!limpiar / !wipe no están en el dispatcher');
+      exige(/recordarHistorial\(msg\)/.test(bot97),
+        'bot.js ya no apunta las claves: !limpiar no tendría nada que borrar');
+      exige(/fromMe:\s*false/.test(fs.readFileSync(path.join(R, 'src/commands/limpiar.js'), 'utf8')),
+        'claveBorrado ya no fuerza fromMe=false: el borrado pasa a ser solo para el bot');
+    } finally {
+      hist97._reset();
+      limp97._setPausa(150);
+      limp97._enCurso.clear();
+    }
+    if (fallos === antes97) console.log(verde('   ✓ borra N para todos, también lo del dueño, y no se lo traga un admin'));
   }
 
   if (BREVE) {

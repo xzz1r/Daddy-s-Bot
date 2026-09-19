@@ -397,6 +397,7 @@ ${p}antilink · ${p}antifoto · ${p}antiempresa · ${p}antibusiness · ${p}antia
 ${p}adminmode · ${p}soloadmins · ${p}soloadmin  ·  ${p}aura on/off
 ${p}resetcount · ${p}resetconteo  ·  ${p}resetaura
 ${p}clearcache · ${p}borracache  ·  ${p}diag
+${p}limpiar · ${p}wipe
 ` : ''}
 ${p}ping · ${p}info · ${p}estado · ${p}status · ${p}whoami
 ${p}help · ${p}ayuda · ${p}menu · ${p}commands`;
@@ -515,6 +516,7 @@ ${esAdmin ? `
 ` : ''}${esOwner ? `
 ━━ *SUPERIORES* ━━
 *${p}demote* · *${p}resetaura* · *${p}resetcount* · *${p}on*/*${p}off* · *${p}clearcache* · *${p}diag*
+*${p}limpiar* 20 — borra los últimos 20 para todos
 *${p}listanegra* — la lista negra global: ver, meter números y sacarlos
 _on/off:_ *${p}antiadmin* *${p}antilink* *${p}antiempresa* *${p}antifoto* *${p}adminmode* *${p}aura*
 ` : ''}

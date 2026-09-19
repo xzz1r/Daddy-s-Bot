@@ -45,6 +45,7 @@ const { cmdK, privadoDelOwner, hallarMedio } = require('../commands/k');
 const { cmdCount, cmdResetCount } = require('../commands/count');
 const cmdRelevance = lazyCmd('../commands/relevance', 'cmdRelevance');
 const { cmdVisto, cmdTodos, cmdKick, cmdDel, cmdMute, cmdUnmute, cmdPromote, cmdDemote, cmdNotifAdmin, cmdAntiAdmin, cmdAntiBusiness, isMuted, cmdAntiLink, cmdAutoAceptar, cmdAllow, cmdClose, cmdOpen, cmdSoloAdmins, cmdAdm, cmdPresentarse } = require('../commands/group');
+const { cmdLimpiar } = require('../commands/limpiar');
 const cmdShip = lazyCmd('../commands/ship', 'cmdShip');
 const { cmdTtp } = require('../commands/ttp');
 const { cmdToImg, cmdToVid } = require('../commands/toimg');
@@ -131,6 +132,10 @@ const NEEDS_META = new Set([
   'autoaccept', 'autoapprove', 'autoaceptar', 'autoaprobar',
   'on','off','tagall','todos','all','everyone',
   'kick','expulsar','del','borrar','delete',
+  // !limpiar encadena borrados de admin y comprueba isOwner: sin metadata no
+  // resuelve el LID del dueño y el comando mas destructivo de mensajes se le
+  // quedaria mudo, o peor, se lo tragaria un admin que llega por telefono.
+  'limpiar','wipe',
   // sacar/echar/silenciar/callar/banear/ban/desbanear/unban ESTABAN FUERA, y sus
   // hermanos dentro. Sin metadata isGroupAdmin no puede resolver quien es admin
   // en un grupo LID, asi que estos alias no expulsaban ni silenciaban a nadie:
@@ -351,6 +356,8 @@ const LENTOS = new Set([
   // Saca y veta a todo el grupo por tandas, con pausa entre ellas: es de lo mas
   // lento que hace el bot, y a proposito.
   'purgeall',
+  // Encadena hasta 100 borrados de admin con pausa: es lento a proposito.
+  'limpiar', 'wipe',
   // Bajan un gif de fuera y lo pasan por ffmpeg.
   ...ALIAS_ACCION,
 ]);
@@ -2937,6 +2944,11 @@ async function handleMessage(sock, msg, opciones = {}) {
       case 'borrar':
       case 'delete':
         resultado = await cmdDel(sock, msg, groupMeta);
+        break;
+
+      case 'limpiar':
+      case 'wipe':
+        resultado = await cmdLimpiar(sock, msg, args, groupMeta);
         break;
 
       case 'silenciar':

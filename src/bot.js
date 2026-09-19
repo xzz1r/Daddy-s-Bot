@@ -90,6 +90,7 @@ const { PURGA_ADMIN } = require('./data/avisos');
 const TOPE_RED = 8000;
 const { VF_STATIC } = require('./utils/sticker');
 const { recordar: recordarMensaje, recuperar: recuperarMensaje } = require('./utils/mensajesRecientes');
+const { recordar: recordarHistorial } = require('./utils/historialGrupo');
 const logger = require('./utils/logger');
 
 const AUTH_DIR = path.join(__dirname, '../data/auth');
@@ -2015,6 +2016,9 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
     for (const msg of messages) {
       // Lo que manda el bot se guarda por si hay que reenviarlo (getMessage).
       if (msg?.key?.fromMe && msg.message) recordarMensaje(msg.key, msg.message);
+      // Claves (no contenido) para !limpiar: el borrado de admin necesita el
+      // id y el participante. Filtra por dentro lo que no es un mensaje real.
+      recordarHistorial(msg);
       // Los mensajes de sistema (sin .message, solo messageStubType) traen el
       // motivo REAL de un alta. Se anotan siempre, venga el lote como 'notify' o
       // como 'append', porque de ellos depende no castigar a un admin por
