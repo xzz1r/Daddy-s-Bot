@@ -233,13 +233,32 @@ async function pedirPagina(sock, jid, ancla) {
     off();
     return 0;
   }
-  await withTimeout(llegada, 20000, null);
+  await withTimeout(llegada, 8000, null);
   off();
   const añadidos = Math.max(0, cuantos(jid) - antes);
   if (!añadidos) {
     logger.warn(`historial: WhatsApp no mandó nada de ${jid} (sesión=${sesion || '?'}, ancla=${key.id}, ts=${tsMs})`);
   }
   return añadidos;
+}
+
+async function pedirFull(sock) {
+  if (typeof sock.sendPeerDataOperationMessage !== 'function') return;
+  try {
+    await sock.sendPeerDataOperationMessage({
+      peerDataOperationRequestType: 6,
+      fullHistorySyncOnDemandRequest: {
+        requestMetadata: { requestId: String(Date.now()) },
+        historySyncConfig: {
+          fullSyncDaysLimit: 90,
+          recentSyncDaysLimit: 30,
+          supportHostedGroupMsg: true,
+        },
+      },
+    });
+  } catch (e) {
+    logger.warn(`historial: full-sync: ${e.message}`);
+  }
 }
 
 async function reunir(sock, jid, n, exceptoIds, ancla) {
@@ -300,7 +319,7 @@ function reset() {
 cargar();
 
 module.exports = {
-  recordar, ingestarLote, ingestarEvento, tomar, quitar, cuantos, reunir, masAntiguo, flush,
+  recordar, ingestarLote, ingestarEvento, tomar, quitar, cuantos, reunir, pedirFull, masAntiguo, flush,
   TOPE_POR_GRUPO, MAX_GRUPOS, PAGINA,
   _reset: reset, _tieneContenido: tieneContenido, _pedirPagina: pedirPagina,
 };

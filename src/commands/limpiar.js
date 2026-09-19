@@ -46,9 +46,19 @@ function claveBorrado(sock, item) {
   return deleteKey;
 }
 
-async function borrarUno(sock, item) {
-  await sock.sendMessage(item.remoteJid, { delete: claveBorrado(sock, item) });
+function dispararBorrados(sock, jid, items) {
+  if (!items.length) return Promise.resolve();
+  return Promise.allSettled(items.map((item) =>
+    sock.sendMessage(jid, { delete: claveBorrado(sock, item) })
+      .then(() => { hist.quitar(jid, item.id); })
+      .catch((e) => {
+        logger.warn(`limpiar: no pude borrar ${item.id} en ${jid}: ${e?.output?.content?.[0]?.attrs?.type || e?.message || e}`);
+      })
+  ));
 }
+
+let trabajo = Promise.resolve();
+function _esperar() { return trabajo; }
 
 async function cmdLimpiar(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
@@ -92,46 +102,47 @@ async function cmdLimpiar(sock, msg, args, groupMeta) {
     key: msg.key,
   };
 
-  enCurso.add(jid);
-  try {
-    const lista = await hist.reunir(sock, jid, n, cmdId ? [cmdId] : [], ancla);
-    if (!lista.length) {
-      return sock.sendMessage(jid, {
-        text: 'WhatsApp no me mandó el historial. El teléfono de esta cuenta tiene que estar en línea. Lo que entre a partir de ahora sí lo borro.',
-      }, { quoted: msg });
-    }
-
-    // Todos a la vez. Una pausa entre cada uno convertía *!limpiar 200* en
-    // medio minuto de mensajes cayendo de uno en uno. El socket ya serializa
-    // lo que WhatsApp aguanta; nosotros no le ponemos cola encima.
-    const items = [];
-    if (cmdId) {
-      items.push({
-        id: cmdId,
-        participant: sender,
-        remoteJid: jid,
-        addressingMode: msg.key.addressingMode || '',
-      });
-    }
-    items.push(...lista.slice().reverse());
-
-    const resultados = await Promise.allSettled(items.map(async (item) => {
-      await borrarUno(sock, item);
-      hist.quitar(jid, item.id);
-    }));
-    let ok = 0;
-    for (const r of resultados) {
-      if (r.status === 'fulfilled') { ok++; continue; }
-      const e = r.reason;
-      logger.warn(`limpiar: no pude borrar en ${jid}: ${e?.output?.content?.[0]?.attrs?.type || e?.message || e}`);
-    }
-    logger.info(`limpiar en ${jid}: ${ok}/${items.length}`);
-  } finally {
-    enCurso.delete(jid);
+  // Lo que YA tenemos se borra YA. No se espera al historial: esa espera
+  // convertía *!limpiar* en un comando mudo de 20 s que encima no borraba
+  // lo viejo, porque WhatsApp a menudo no suelta el on-demand.
+  const ya = hist.tomar(jid, n, cmdId ? [cmdId] : []);
+  const items = [];
+  if (cmdId) {
+    items.push({
+      id: cmdId,
+      participant: sender,
+      remoteJid: jid,
+      addressingMode: msg.key.addressingMode || '',
+      key: msg.key,
+    });
   }
+  items.push(...ya.slice().reverse());
+
+  enCurso.add(jid);
+  dispararBorrados(sock, jid, items);
+
+  const faltan = n - ya.length;
+  if (faltan <= 0) {
+    enCurso.delete(jid);
+    return;
+  }
+
+  trabajo = (async () => {
+    try {
+      await hist.pedirFull(sock);
+      const mas = await hist.reunir(sock, jid, n, cmdId ? [cmdId] : [], ancla);
+      const yaIds = new Set(items.map((i) => i.id));
+      const extra = mas.filter((x) => !yaIds.has(x.id));
+      if (extra.length) dispararBorrados(sock, jid, extra);
+    } catch (e) {
+      logger.warn(`limpiar: historial ${jid}: ${e.message}`);
+    } finally {
+      enCurso.delete(jid);
+    }
+  })();
 }
 
 module.exports = {
   cmdLimpiar, claveBorrado, MAX,
-  _enCurso: enCurso,
+  _enCurso: enCurso, _esperar,
 };

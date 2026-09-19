@@ -17191,6 +17191,7 @@ const manda = async (quien, tipo, opciones) => {
       const visto97 = [];
       const cmdMsg97 = sobre97('CMD', OWN97, '!limpiar 3');
       await limp97.cmdLimpiar(sock97(visto97), cmdMsg97, ['3'], meta97);
+      await limp97._esperar();
 
       const borrados97 = visto97.filter((v) => v.content && v.content.delete).map((v) => v.content.delete);
       const ids97 = borrados97.map((k) => k.id);
@@ -17252,6 +17253,7 @@ const manda = async (quien, tipo, opciones) => {
       };
       hist97.recordar(sobre97('CMD', OWN97, '!limpiar 1'));
       await limp97.cmdLimpiar(sockHist, sobre97('CMD', OWN97, '!limpiar 1'), ['1'], meta97);
+      await limp97._esperar();
       exige(pedidos97.length > 0,
         'con pocas claves no pide el historial a WhatsApp: !limpiar solo borra lo de esta sesión');
       exige(pedidos97[0].ts > 1e12,
@@ -17259,6 +17261,29 @@ const manda = async (quien, tipo, opciones) => {
       const idsHist = vistoHist.filter((v) => v.content && v.content.delete).map((v) => v.content.delete.id);
       exige(idsHist.includes('H1'),
         `pidió el historial y no borró lo que trajo: ${idsHist.join(',')}`);
+
+      // ── No se espera al historial para borrar lo que ya hay ──────────────
+      hist97._reset();
+      limp97._enCurso.clear();
+      hist97.recordar(sobre97('V1', RASO97, 'vivo'));
+      hist97.recordar(sobre97('CMD3', OWN97, '!limpiar 10'));
+      const vistoRapido = [];
+      let fetchColgado = false;
+      const sockRapido = {
+        user: { id: BOT97 },
+        ev: new EventEmitter(),
+        fetchMessageHistory: () => { fetchColgado = true; return new Promise(() => {}); },
+        sendPeerDataOperationMessage: () => { fetchColgado = true; return new Promise(() => {}); },
+        sendMessage: async (jid, content) => { vistoRapido.push({ jid, content }); return { key: { id: 'x' } }; },
+      };
+      const t0 = Date.now();
+      await limp97.cmdLimpiar(sockRapido, sobre97('CMD3', OWN97, '!limpiar 10'), ['10'], meta97);
+      const dt = Date.now() - t0;
+      exige(dt < 80, `!limpiar esperó ${dt}ms al historial: tiene que borrar lo que hay y seguir`);
+      const idsRapido = vistoRapido.filter((v) => v.content && v.content.delete).map((v) => v.content.delete.id);
+      exige(idsRapido.includes('V1') && idsRapido.includes('CMD3'),
+        `no borró lo que ya tenía mientras pedía historial: ${idsRapido.join(',')}`);
+      limp97._enCurso.clear();
 
       // ── El dispatcher y el historial de bot.js siguen enganchados ─────────
       const mh97 = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
