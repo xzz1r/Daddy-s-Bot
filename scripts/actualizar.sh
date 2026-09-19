@@ -148,6 +148,7 @@ CUANTOS="$(git rev-list --count "${ANTES}..${DESPUES}" 2>/dev/null || echo 0)"
 # con esta máquina y su postinstall es de lo poco que puede tumbar un despliegue.
 npm install --omit=dev --ignore-scripts --no-fund --no-audit --loglevel=error
 paso "npm install"
+node scripts/parche-baileys-historial.js || true
 
 # sharp y SUS BINARIOS. Se borraba la carpeta sharp pero no @img, que es donde
 # viven los binarios de verdad: 27 MB de libvips y un fallback WebAssembly que

@@ -129,7 +129,6 @@ async function cmdLimpiar(sock, msg, args, groupMeta) {
 
   trabajo = (async () => {
     try {
-      await hist.pedirFull(sock);
       const mas = await hist.reunir(sock, jid, n, cmdId ? [cmdId] : [], ancla);
       const yaIds = new Set(items.map((i) => i.id));
       const extra = mas.filter((x) => !yaIds.has(x.id));

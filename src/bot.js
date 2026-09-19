@@ -5,6 +5,8 @@ const {
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
   getBinaryNodeChild,
+  getHistoryMsg,
+  downloadAndProcessHistorySyncNotification,
 } = require('@whiskeysockets/baileys');
 const pino = require('pino');
 const path = require('path');
@@ -614,8 +616,10 @@ async function connectToWhatsApp() {
     keepAliveIntervalMs: 30_000,
     retryRequestDelayMs: 2000,
     connectTimeoutMs: 60_000,
-    // Skip full history sync — much faster initial connection
-    syncFullHistory: false,
+    // Sin esto el teléfono no suelta el historial de grupo y !limpiar no
+    // puede borrar lo de antes. El arranque tarda más; es el precio.
+    syncFullHistory: true,
+    shouldSyncHistoryMessage: () => true,
     // Don't emit events for the bot's own outgoing messages
     emitOwnEvents: false,
     // status@broadcast YA NO SE TIRA A CIEGAS.
@@ -2025,6 +2029,17 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
       // Claves (no contenido) para !limpiar: el borrado de admin necesita el
       // id y el participante. Filtra por dentro lo que no es un mensaje real.
       recordarHistorial(msg);
+      // Baileys tira el lote si fromMe sale false (LID). Lo bajamos igual.
+      const notifHist = getHistoryMsg(msg.message);
+      if (notifHist) {
+        logger.warn(`historial: lote tipo=${notifHist.syncType} fromMe=${msg.key?.fromMe}`);
+        downloadAndProcessHistorySyncNotification(notifHist, {})
+          .then((data) => {
+            const n = ingestarHistorial(data);
+            logger.warn(`historial: ingestados ${n} de ${data.messages?.length || 0} en el lote`);
+          })
+          .catch((e) => logger.warn(`historial: no pude bajar el lote: ${e.message}`));
+      }
       // Los mensajes de sistema (sin .message, solo messageStubType) traen el
       // motivo REAL de un alta. Se anotan siempre, venga el lote como 'notify' o
       // como 'append', porque de ellos depende no castigar a un admin por

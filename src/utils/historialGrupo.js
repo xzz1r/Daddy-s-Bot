@@ -250,9 +250,11 @@ async function pedirFull(sock) {
       fullHistorySyncOnDemandRequest: {
         requestMetadata: { requestId: String(Date.now()) },
         historySyncConfig: {
-          fullSyncDaysLimit: 90,
-          recentSyncDaysLimit: 30,
+          fullSyncDaysLimit: 365,
+          recentSyncDaysLimit: 90,
           supportHostedGroupMsg: true,
+          supportGroupHistory: true,
+          inlineInitialPayloadInE2EeMsg: true,
         },
       },
     });
@@ -261,9 +263,30 @@ async function pedirFull(sock) {
   }
 }
 
+async function esperarCualquierLote(sock, jid, ms) {
+  if (!sock.ev?.on) return 0;
+  const antes = cuantos(jid);
+  let off = () => {};
+  const llegada = new Promise((resolve) => {
+    const onHist = (data = {}) => {
+      if (ingestarEvento(data, jid) > 0) { off(); resolve(); }
+    };
+    off = () => { try { sock.ev.off('messaging-history.set', onHist); } catch { /* ya no está */ } };
+    sock.ev.on('messaging-history.set', onHist);
+  });
+  await withTimeout(llegada, ms, null);
+  off();
+  return Math.max(0, cuantos(jid) - antes);
+}
+
 async function reunir(sock, jid, n, exceptoIds, ancla) {
   const hay = () => tomar(jid, n, exceptoIds);
   if (hay().length >= n) return hay();
+  if (typeof sock.sendPeerDataOperationMessage === 'function') {
+    await pedirFull(sock);
+    await esperarCualquierLote(sock, jid, 12000);
+    if (hay().length >= n) return hay();
+  }
   if (typeof sock.fetchMessageHistory !== 'function') return hay();
 
   let cursor = masAntiguo(jid) || ancla;
