@@ -356,7 +356,7 @@ const LENTOS = new Set([
   // Saca y veta a todo el grupo por tandas, con pausa entre ellas: es de lo mas
   // lento que hace el bot, y a proposito.
   'purgeall',
-  // Hasta mil borrados de admin en paralelo.
+  // Hasta mil borrados, y si faltan claves pide el historial al teléfono.
   'limpiar', 'wipe',
   // Bajan un gif de fuera y lo pasan por ffmpeg.
   ...ALIAS_ACCION,

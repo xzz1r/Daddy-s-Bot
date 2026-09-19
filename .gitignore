@@ -23,6 +23,8 @@ data/robo.json
 # primer !mute, git status lo veia como fichero nuevo, actualizar.sh se negaba a
 # actualizar y el arreglo que imprime —git clean -fd— lo borraba.
 data/mutes.json
+# Claves de mensajes para !limpiar. Sin texto, pero son ids del grupo.
+data/historialGrupo.json
 # Ventana anti-repeticion de frases. Es estado del grupo y ademas cambia con
 # cada mensaje: subirlo seria ruido puro en cada commit.
 data/pickhistory.json

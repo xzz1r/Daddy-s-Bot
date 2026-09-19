@@ -17173,8 +17173,10 @@ const manda = async (quien, tipo, opciones) => {
         messageTimestamp: Math.floor(Date.now() / 1000),
         message: { conversation: 'privado' },
       });
-      exige(hist97.cuantos(G97) === 1,
-        `el almacén guardó ruido (reacción/protocolo/viejo/privado): ${hist97.cuantos(G97)} claves`);
+      exige(hist97.cuantos(G97) === 2 && hist97.tomar(G97, 10).some((x) => x.id === 'VIEJO'),
+        `el historial de antes no se guarda (${hist97.cuantos(G97)} claves): !limpiar no puede borrar lo que ya estaba`);
+      exige(!hist97.tomar(G97, 10).some((x) => x.id === 'REAC' || x.id === 'PROT' || x.id === 'PRIV'),
+        'el almacén guardó ruido (reacción/protocolo/privado)');
 
       hist97._reset();
       hist97.recordar(sobre97('M1', RASO97, 'uno'));
@@ -17231,13 +17233,43 @@ const manda = async (quien, tipo, opciones) => {
       exige(new RegExp(String(limp97.MAX)).test(vistoTope.at(-1)?.content?.text || ''),
         `el tope no se dice: "${vistoTope.at(-1)?.content?.text || ''}"`);
 
+      // ── Con el almacén corto, pide el historial de ANTES a WhatsApp ──────
+      hist97._reset();
+      const { EventEmitter } = require('events');
+      const ev97 = new EventEmitter();
+      const pedidos97 = [];
+      const vistoHist = [];
+      const sockHist = {
+        user: { id: BOT97 },
+        ev: ev97,
+        fetchMessageHistory: async (_n, key) => {
+          pedidos97.push(key);
+          const viejo = sobre97('H1', RASO97, 'del historial de antes');
+          viejo.messageTimestamp = Math.floor(Date.now() / 1000) - 3600;
+          ev97.emit('messaging-history.set', { messages: [viejo] });
+        },
+        sendMessage: async (jid, content) => { vistoHist.push({ jid, content }); return { key: { id: 'x' } }; },
+      };
+      hist97.recordar(sobre97('CMD', OWN97, '!limpiar 1'));
+      await limp97.cmdLimpiar(sockHist, sobre97('CMD', OWN97, '!limpiar 1'), ['1'], meta97);
+      exige(pedidos97.length > 0,
+        'con pocas claves no pide el historial a WhatsApp: !limpiar solo borra lo de esta sesión');
+      const idsHist = vistoHist.filter((v) => v.content && v.content.delete).map((v) => v.content.delete.id);
+      exige(idsHist.includes('H1'),
+        `pidió el historial y no borró lo que trajo: ${idsHist.join(',')}`);
+
       // ── El dispatcher y el historial de bot.js siguen enganchados ─────────
       const mh97 = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
       const bot97 = fs.readFileSync(path.join(R, 'src/bot.js'), 'utf8');
+      const histSrc97 = fs.readFileSync(path.join(R, 'src/utils/historialGrupo.js'), 'utf8');
       exige(/case 'limpiar':/.test(mh97) && /case 'wipe':/.test(mh97),
         '!limpiar / !wipe no están en el dispatcher');
       exige(/recordarHistorial\(msg\)/.test(bot97),
         'bot.js ya no apunta las claves: !limpiar no tendría nada que borrar');
+      exige(/messaging-history\.set/.test(bot97),
+        'bot.js ya no come el historial que manda WhatsApp: lo de antes no llega nunca');
+      exige(/fetchMessageHistory/.test(histSrc97),
+        'ya no se pide el historial al teléfono: !limpiar vuelve a estar ciego al reiniciar');
       exige(/fromMe:\s*false/.test(fs.readFileSync(path.join(R, 'src/commands/limpiar.js'), 'utf8')),
         'claveBorrado ya no fuerza fromMe=false: el borrado pasa a ser solo para el bot');
     } finally {

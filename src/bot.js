@@ -90,7 +90,7 @@ const { PURGA_ADMIN } = require('./data/avisos');
 const TOPE_RED = 8000;
 const { VF_STATIC } = require('./utils/sticker');
 const { recordar: recordarMensaje, recuperar: recuperarMensaje } = require('./utils/mensajesRecientes');
-const { recordar: recordarHistorial } = require('./utils/historialGrupo');
+const { recordar: recordarHistorial, ingestarLote: ingestarHistorial, flush: flushHistorial } = require('./utils/historialGrupo');
 const logger = require('./utils/logger');
 
 const AUTH_DIR = path.join(__dirname, '../data/auth');
@@ -2012,6 +2012,12 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
     }
   });
 
+  // Historial que WhatsApp manda a trozos (al conectar, o cuando !limpiar
+  // pide lo de ANTES). Sin esto el bot solo veía lo que llegaba en vivo.
+  sock.ev.on('messaging-history.set', ({ messages }) => {
+    ingestarHistorial(messages);
+  });
+
   sock.ev.on('messages.upsert', ({ messages, type }) => {
     for (const msg of messages) {
       // Lo que manda el bot se guarda por si hay que reenviarlo (getMessage).
@@ -2135,7 +2141,7 @@ async function gracefulShutdown(code = 0) {
     flushState(), flushCounts(), flushAura(), flushCache(),
     flushCasino(), flushPfpHashes(), flushBanlist(), flushPfpCache(), flushNicks(), flushLinkPerms(),
     flushJoinRequests(), flushRobo(), flushMutes(), flushRacha(), flushNames(), flushPickHistory(),
-    flushObjetivoDia(), flushDeuda(),
+    flushObjetivoDia(), flushDeuda(), flushHistorial(),
   ]);
   await Promise.race([flushes, new Promise(r => setTimeout(r, 3000))]);
   if (sock) {

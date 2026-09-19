@@ -3,9 +3,9 @@
 // !limpiar N — borra los últimos N mensajes del grupo PARA TODOS.
 //
 // WhatsApp no deja vaciar un chat entero. Lo que sí deja es el borrado de
-// admin, el mismo que usa !del: un mensaje por uno, `edit=8`. Este comando
-// encadena esos borrados sobre lo que el bot ha visto desde el último
-// arranque (ver utils/historialGrupo.js).
+// admin, el mismo que usa !del: un mensaje por uno, `edit=8`. Si el bot no
+// tiene N claves en RAM, se las pide al teléfono (el historial de ANTES,
+// no solo lo de esta sesión). Ver utils/historialGrupo.js.
 //
 // A diferencia de !del, AQUÍ NO SE SALTA AL TIER DUEÑO. El dueño pidió
 // borrar también lo suyo. Por eso la puerta es isOwner: un admin raso no
@@ -79,15 +79,27 @@ async function cmdLimpiar(sock, msg, args, groupMeta) {
   }
 
   const cmdId = msg.key.id;
-  const lista = hist.tomar(jid, n, cmdId ? [cmdId] : []);
-  if (!lista.length) {
-    return sock.sendMessage(jid, {
-      text: 'No hay nada reciente que borrar. Solo cuento lo que he visto desde el último arranque.',
-    }, { quoted: msg });
-  }
+  hist.recordar(msg);
+  const ancla = {
+    id: cmdId,
+    participant: sender,
+    remoteJid: jid,
+    fromMe: Boolean(msg.key.fromMe),
+    ts: Number(typeof msg.messageTimestamp?.toNumber === 'function'
+      ? msg.messageTimestamp.toNumber()
+      : msg.messageTimestamp) || Math.floor(Date.now() / 1000),
+    addressingMode: msg.key.addressingMode || '',
+  };
 
   enCurso.add(jid);
   try {
+    const lista = await hist.reunir(sock, jid, n, cmdId ? [cmdId] : [], ancla);
+    if (!lista.length) {
+      return sock.sendMessage(jid, {
+        text: 'No pude leer el historial. Prueba otra vez.',
+      }, { quoted: msg });
+    }
+
     // Todos a la vez. Una pausa entre cada uno convertía *!limpiar 200* en
     // medio minuto de mensajes cayendo de uno en uno. El socket ya serializa
     // lo que WhatsApp aguanta; nosotros no le ponemos cola encima.

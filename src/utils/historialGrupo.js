@@ -1,21 +1,31 @@
 'use strict';
 
-// Claves de los últimos mensajes de cada grupo, para poder borrarlos después.
+// Claves de los últimos mensajes de cada grupo, para !limpiar.
 //
-// NO ES UN HISTORIAL. No se guarda el texto, ni el medio, ni quién dijo qué:
-// solo el id y el participante, que es lo que WhatsApp pide para un borrado de
-// admin (`edit=8`). Sin esas claves el bot no puede revocar un mensaje que ya
-// pasó, y WhatsApp no ofrece "vaciar el chat para todos".
+// NO ES EL TEXTO. Solo id, participante y marca de tiempo: lo que WhatsApp
+// pide para un borrado de admin (`edit=8`). Sin esas claves el bot no puede
+// revocar un mensaje que ya pasó.
 //
-// Vive en RAM y se pierde al reiniciar. Un lote de sincronización viejo no
-// entra: solo lo visto en las últimas 24 h, y con tope por grupo. Guardar más
-// sería copiar la conversación, que este bot no hace.
+// El dueño hizo !limpiar para borrar el historial de ANTES, no solo lo que
+// el bot ha visto desde el último arranque. Por eso:
+//
+//   · se guardan también los mensajes viejos (no hay recorte de 24 h)
+//   · se persisten en disco, o un reinicio deja el comando ciego otra vez
+//   · si al pedir N no hay N, se le piden al teléfono (fetchMessageHistory,
+//     de 50 en 50, que es el tope de WhatsApp) y llegan por
+//     `messaging-history.set`
 
+const fs = require('fs');
+const path = require('path');
 const { bareJid } = require('./wa');
+const { atomicWriteJson, withTimeout } = require('./helpers');
+const logger = require('./logger');
 
 const TOPE_POR_GRUPO = 1000;
 const MAX_GRUPOS = 40;
-const VENTANA_MS = 24 * 60 * 60 * 1000;
+const PAGINA = 50;
+const PAGINAS_MAX = 20;
+const HIST_FILE = path.join(__dirname, '../../data/historialGrupo.json');
 
 const SKIP = new Set([
   'reactionMessage', 'encReactionMessage',
@@ -23,7 +33,9 @@ const SKIP = new Set([
   'messageContextInfo',
 ]);
 
-const grupos = new Map(); // groupJid -> [{ id, participant, remoteJid, addressingMode }]
+const grupos = new Map(); // groupJid -> [{ id, participant, remoteJid, addressingMode, ts, fromMe }]
+let persistir = true;
+let timer = null;
 
 function tieneContenido(message) {
   if (!message) return false;
@@ -44,40 +56,71 @@ function tieneContenido(message) {
   return true;
 }
 
-function tsMs(msg) {
+function tsSeg(msg) {
   const bruto = msg?.messageTimestamp;
   const seg = Number(typeof bruto?.toNumber === 'function' ? bruto.toNumber() : bruto || 0);
-  return seg > 0 ? seg * 1000 : 0;
+  return seg > 0 ? seg : 0;
+}
+
+function recortar(cola) {
+  if (cola.length <= TOPE_POR_GRUPO) return;
+  cola.sort((a, b) => a.ts - b.ts);
+  cola.splice(0, cola.length - TOPE_POR_GRUPO);
+}
+
+function programarGuardado() {
+  if (!persistir || timer) return;
+  timer = setTimeout(() => {
+    timer = null;
+    flush().catch((e) => logger.warn(`historial: no pude guardar (${e.message})`));
+  }, 2000);
+  timer.unref?.();
+}
+
+function colaDe(jid) {
+  let cola = grupos.get(jid);
+  if (!cola) {
+    if (grupos.size >= MAX_GRUPOS) {
+      const viejo = grupos.keys().next().value;
+      grupos.delete(viejo);
+    }
+    cola = [];
+    grupos.set(jid, cola);
+  } else {
+    grupos.delete(jid);
+    grupos.set(jid, cola);
+  }
+  return cola;
 }
 
 function recordar(msg) {
   const jid = msg?.key?.remoteJid;
-  if (!jid || !jid.endsWith('@g.us')) return;
+  if (!jid || !jid.endsWith('@g.us')) return false;
   const id = msg.key?.id;
-  if (!id) return;
-  if (!tieneContenido(msg.message)) return;
-  const cuando = tsMs(msg);
-  if (cuando && Date.now() - cuando > VENTANA_MS) return;
+  if (!id) return false;
+  if (msg.messageStubType && !msg.message) return false;
+  if (msg.message && !tieneContenido(msg.message)) return false;
 
-  let cola = grupos.get(jid);
-  if (!cola) {
-    if (grupos.size >= MAX_GRUPOS) grupos.delete(grupos.keys().next().value);
-    cola = [];
-    grupos.set(jid, cola);
-  } else {
-    // LRU: reinsertar no reordena en un Map.
-    grupos.delete(jid);
-    grupos.set(jid, cola);
-  }
-
-  if (cola.some((x) => x.id === id)) return;
+  const cola = colaDe(jid);
+  if (cola.some((x) => x.id === id)) return false;
   cola.push({
     id,
     participant: msg.key.participant ? bareJid(msg.key.participant) : '',
     remoteJid: jid,
     addressingMode: msg.key.addressingMode || '',
+    ts: tsSeg(msg) || Math.floor(Date.now() / 1000),
+    fromMe: Boolean(msg.key.fromMe),
   });
-  if (cola.length > TOPE_POR_GRUPO) cola.shift();
+  recortar(cola);
+  programarGuardado();
+  return true;
+}
+
+function ingestarLote(messages) {
+  if (!Array.isArray(messages)) return 0;
+  let n = 0;
+  for (const m of messages) if (recordar(m)) n++;
+  return n;
 }
 
 function tomar(jid, n, exceptoIds) {
@@ -87,6 +130,14 @@ function tomar(jid, n, exceptoIds) {
   const candidatos = skip.size ? cola.filter((x) => !skip.has(x.id)) : cola;
   if (n >= candidatos.length) return candidatos.slice();
   return candidatos.slice(-n);
+}
+
+function masAntiguo(jid) {
+  const cola = grupos.get(jid);
+  if (!cola || !cola.length) return null;
+  let best = cola[0];
+  for (const x of cola) if (x.ts < best.ts) best = x;
+  return best;
 }
 
 function quitar(jid, id) {
@@ -101,12 +152,95 @@ function cuantos(jid) {
   return grupos.get(jid)?.length || 0;
 }
 
-function reset() {
-  grupos.clear();
+async function pedirPagina(sock, jid, ancla) {
+  if (typeof sock.fetchMessageHistory !== 'function' || !ancla?.id) return 0;
+  const antes = cuantos(jid);
+  let off = () => {};
+  const llegada = new Promise((resolve) => {
+    if (!sock.ev?.on) return resolve();
+    const onHist = ({ messages } = {}) => {
+      const toca = (messages || []).some((m) => m?.key?.remoteJid === jid);
+      ingestarLote(messages);
+      if (toca) { off(); resolve(); }
+    };
+    off = () => { try { sock.ev.off('messaging-history.set', onHist); } catch { /* ya no está */ } };
+    sock.ev.on('messaging-history.set', onHist);
+  });
+  try {
+    await sock.fetchMessageHistory(PAGINA, {
+      remoteJid: jid,
+      id: ancla.id,
+      fromMe: Boolean(ancla.fromMe),
+      ...(ancla.participant ? { participant: ancla.participant } : {}),
+    }, ancla.ts || Math.floor(Date.now() / 1000));
+  } catch (e) {
+    logger.warn(`historial: no pude pedir más de ${jid}: ${e.message}`);
+    off();
+    return 0;
+  }
+  await withTimeout(llegada, 8000, null);
+  off();
+  return Math.max(0, cuantos(jid) - antes);
 }
 
+async function reunir(sock, jid, n, exceptoIds, ancla) {
+  const hay = () => tomar(jid, n, exceptoIds);
+  if (hay().length >= n) return hay();
+  if (typeof sock.fetchMessageHistory !== 'function') return hay();
+
+  let cursor = masAntiguo(jid) || ancla;
+  for (let i = 0; i < PAGINAS_MAX && hay().length < n && cursor?.id; i++) {
+    const idAntes = cursor.id;
+    const añadidos = await pedirPagina(sock, jid, cursor);
+    const siguiente = masAntiguo(jid);
+    if (!añadidos || !siguiente || siguiente.id === idAntes) break;
+    cursor = siguiente;
+  }
+  return hay();
+}
+
+async function flush() {
+  if (timer) { clearTimeout(timer); timer = null; }
+  if (!persistir) return;
+  const o = {};
+  for (const [k, v] of grupos) o[k] = v;
+  await atomicWriteJson(HIST_FILE, o);
+}
+
+function cargar() {
+  try {
+    const d = JSON.parse(fs.readFileSync(HIST_FILE, 'utf8'));
+    if (!d || typeof d !== 'object') return;
+    for (const [jid, arr] of Object.entries(d)) {
+      if (!jid.endsWith('@g.us') || !Array.isArray(arr)) continue;
+      const cola = [];
+      for (const x of arr) {
+        if (!x || !x.id) continue;
+        cola.push({
+          id: String(x.id),
+          participant: x.participant ? bareJid(x.participant) : '',
+          remoteJid: jid,
+          addressingMode: x.addressingMode || '',
+          ts: Number(x.ts) || 0,
+          fromMe: Boolean(x.fromMe),
+        });
+      }
+      recortar(cola);
+      if (cola.length) grupos.set(jid, cola);
+    }
+  } catch { /* ENOENT o JSON inválido: se empieza vacío y se rellena solo */ }
+}
+
+function reset() {
+  grupos.clear();
+  persistir = false;
+  if (timer) { clearTimeout(timer); timer = null; }
+}
+
+cargar();
+
 module.exports = {
-  recordar, tomar, quitar, cuantos,
-  TOPE_POR_GRUPO, MAX_GRUPOS, VENTANA_MS,
-  _reset: reset, _tieneContenido: tieneContenido,
+  recordar, ingestarLote, tomar, quitar, cuantos, reunir, masAntiguo, flush,
+  TOPE_POR_GRUPO, MAX_GRUPOS, PAGINA,
+  _reset: reset, _tieneContenido: tieneContenido, _pedirPagina: pedirPagina,
 };
