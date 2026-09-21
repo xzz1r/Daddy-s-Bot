@@ -14,6 +14,7 @@ const { allForms } = require('./fk');
 const { allow, disallow, listAllowed, MAX_AVISOS, DURACION_MS } = require('../utils/linkPerms');
 const { SCAN_VALID_MS, scannableMembers, executePurge, purgeReport } = require('../utils/purge');
 const { AVISOS_KICK } = require('../data/kickPhrases');
+const UNOS_KICK = AVISOS_KICK.map((a) => a.uno);
 const { A_TI_MISMO, CONTRA_UN_ADMIN, SIN_PERMISO, SOLO_ADMINS, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
 
@@ -441,10 +442,14 @@ async function cmdVisto(sock, msg, args, groupMeta) {
 const AVISO_ANTES_KICK_MS = 1000;
 const esperaKick = (ms) => new Promise((r) => setTimeout(r, ms));
 
-function avisoDeKick(jids) {
+function avisoDeKick(jids, groupJid) {
   const ids = [...new Set((Array.isArray(jids) ? jids : [jids]).filter(Boolean))];
   const menciones = ids.map((j) => `@${String(j).split('@')[0]}`).join(' ');
-  const pick = AVISOS_KICK[Math.floor(Math.random() * AVISOS_KICK.length)] || AVISOS_KICK[0];
+  // pickFresh, no Math.random: si no, las mismas tres salen una semana y el
+  // resto del pool no existe. La clave va por grupo para que un kick en uno
+  // no le quite frases al otro.
+  const uno = pickFresh(UNOS_KICK, `${groupJid || 'x'}|kick`);
+  const pick = AVISOS_KICK.find((a) => a.uno === uno) || AVISOS_KICK[0];
   const plantilla = ids.length === 1 ? pick.uno : pick.varios;
   return {
     text: String(plantilla).replace(/%M/g, menciones),
@@ -517,7 +522,7 @@ async function cmdKick(sock, msg, args, groupMeta) {
     // el 200 — o sea que en un grupo LID (se pide por telefono, contesta por
     // @lid) el bot anunciaba la lista entera como expulsada sin haber echado a
     // nadie.
-    const payload = avisoDeKick(targets);
+    const payload = avisoDeKick(targets, jid);
     await sock.sendMessage(jid, payload);
     await esperaKick(AVISO_ANTES_KICK_MS);
 

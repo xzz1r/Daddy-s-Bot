@@ -2428,7 +2428,7 @@ const di=async(quien,texto,extra)=>{
     const { cmdKick, avisoDeKick } = require(path.join(R, 'src/commands/group'));
     const { AVISOS_KICK } = require(path.join(R, 'src/data/kickPhrases'));
 
-    exige(AVISOS_KICK.length >= 8, 'el pool de !kick se quedó en los huesos');
+    exige(AVISOS_KICK.length >= 50, `el pool de !kick se quedó en ${AVISOS_KICK.length} avisos: con menos de 50 la ventana anti-repetición tapa poco`);
     for (const f of AVISOS_KICK) {
       exige(typeof f?.uno === 'string' && typeof f?.varios === 'string', 'aviso de kick incompleto');
       exige(f.uno.includes('%M') && f.varios.includes('%M'), 'aviso de kick no menciona');
@@ -2472,12 +2472,28 @@ const di=async(quien,texto,extra)=>{
       'avisoDeKick conjugó en vosotros');
 
     const grKick = fs.readFileSync(path.join(R, 'src/commands/group.js'), 'utf8');
-    const iAvisoKick = grKick.indexOf('avisoDeKick(targets)');
+    const iAvisoKick = grKick.indexOf('avisoDeKick(targets');
     const iKickApply = grKick.indexOf("aplicarParticipantes(sock, jid, targets, 'remove'");
     exige(iAvisoKick > 0 && iKickApply > iAvisoKick,
       'el aviso de !kick tiene que salir ANTES del kick: si no, no lo ven');
     exige(/esperaKick\(AVISO_ANTES_KICK_MS\)/.test(grKick),
       '!kick no deja margen para que vean la frase');
+    exige(/pickFresh\(UNOS_KICK/.test(grKick),
+      '!kick volvió a Math.random: las mismas tres frases salen una semana y el resto del pool no existe');
+
+    {
+      const Grep = '120363kicknorep@g.us';
+      const vistos = new Set();
+      let repetidaEn = 0;
+      const tope = Math.min(30, Math.floor(AVISOS_KICK.length * 0.6));
+      for (let i = 0; i < tope; i++) {
+        const t = avisoDeKick(['57300111222@s.whatsapp.net'], Grep).text;
+        if (vistos.has(t)) { repetidaEn = i + 1; break; }
+        vistos.add(t);
+      }
+      exige(repetidaEn === 0,
+        `!kick repitió una frase a la expulsión ${repetidaEn} del mismo grupo: pickFresh no está tapando`);
+    }
 
     const timeline = [];
     const BOT = '11111111111@s.whatsapp.net';
