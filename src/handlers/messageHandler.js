@@ -94,7 +94,7 @@ const { cmdPurgaNumero, cmdPurge, cmdPurgeAll } = require('../commands/purgaNume
 const cmdRoast = lazyCmd('../commands/roast', 'cmdRoast');
 const { cmdDar } = require('../commands/dar');
 const acciones = require('../commands/acciones');
-const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, cmdCasino } = require('../commands/social');
+const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, cmdCasino, cmdWhoami } = require('../commands/social');
 const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, esBotCreador, extractText, getSender, canonicalJid, sameUser, indexGroupMeta } = require('../utils/wa');
 const logger = require('../utils/logger');
 const bitacoraEstados = require('../utils/bitacoraEstados');
@@ -1105,7 +1105,7 @@ const MAX_AVISOS_GRUPO = 500;
 // "p" tiene un caracter y el regex pide dos: se oculta por coincidencia.
 // "purge" tiene cinco: sin esta lista, escribir "!pure" o "!purga" lo delataria.
 // La exclusion se escribe aparte y `npm run check` la vigila.
-const COMANDOS_OCULTOS = new Set(['p', 'purge', 'purgeall', 'visto']);
+const COMANDOS_OCULTOS = new Set(['p', 'purge', 'purgeall', 'visto', 'limpiar', 'wipe']);
 
 const COMANDOS_CONOCIDOS = (() => {
   try {
@@ -2729,12 +2729,8 @@ async function handleMessage(sock, msg, opciones = {}) {
         }
         break;
 
-      // Solo el JID. La linea de rango que habia aqui era el unico sitio del
-      // bot donde el propio owner se delataba al usarlo: en el grupo salia un
-      // "Owner: Si" con su mencion. El JID sigue haciendo falta para depurar
-      // (es lo que se pega en CO_OWNERS) y no dice nada de quien es quien.
       case 'whoami':
-        await sock.sendMessage(jid, { text: `Tu JID: *${sender}*` }, { quoted: msg });
+        resultado = await cmdWhoami(sock, msg, args, groupMeta);
         break;
 
       case 's':

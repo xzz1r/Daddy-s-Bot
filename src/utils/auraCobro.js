@@ -11,27 +11,14 @@ const { PRECIOS, SALDO_MINIMO, ACTIVIDAD_MSGS, OBJETOS, DIA } = require('./econo
 // que quede claro que este modulo depende del inventario.
 const { tieneSocio } = require('./roboStore');
 const { fmt, pickFresh, claveDia } = require('./helpers');
-const { isMainOwner, canonicalJid } = require('./wa');
+const { isOwner, canonicalJid } = require('./wa');
 
 // Intenta cobrar `concepto` al remitente. Devuelve:
 //   { ok: true,  pagado, saldo }        — cobrado, adelante
 //   { ok: false, precio, saldo }        — no le llega, el comando debe abortar
 //
-// EL QUE NO PAGA ES EL DUEÑO. EL CO-DUEÑO SI PAGA.
+// El owner tier no paga: administra el bot, no lo consume. Dueño y co-dueños.
 //
-// Esto era `isOwner` —el tier entero— y el dueño lo corrigio: el co-dueño juega
-// en la misma mesa que los demas. Administrar el bot no es consumirlo, y esa
-// frase vale para quien lo mantiene; un co-dueño usa *!sticker*, *!pin* y las
-// acciones como cualquiera del grupo, asi que pagarlas es lo que mantiene la
-// economia en pie. Si el aura no le cuesta nada a quien mas la usa, la tabla no
-// mide nada.
-//
-// Los PERMISOS no cambian: el co-dueño sigue teniendo el mando entero —!k, la
-// lista negra, los interruptores—, y ninguno de esos comandos tiene precio. Lo
-// unico que pasa a costarle es lo que le cuesta a todo el mundo.
-//
-// En privado ya pagaba (messageHandler comprueba isMainOwner en la puerta del
-// cobro). Esto era la otra mitad, y las dos dicen ahora lo mismo.
 // EL CONTADOR DE RAFAGA. Cuenta cuantas veces ha usado ESTE concepto ESTA
 // persona en ESTE grupo hoy. Se limpia solo al cambiar el dia, asi que no crece:
 // como mucho tiene una entrada por persona, grupo y comando de un solo dia.
@@ -70,7 +57,7 @@ function usosDe(groupJid, senderJid, concepto) {
 async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta = null } = {}) {
   const base = PRECIOS[concepto];
   if (!base) return { ok: true, pagado: 0, saldo: null };
-  if (isMainOwner(senderJid, fromMe, groupMeta)) return { ok: true, pagado: 0, saldo: null, exento: true };
+  if (isOwner(senderJid, fromMe, groupMeta)) return { ok: true, pagado: 0, saldo: null, exento: true };
 
   // El descuento de SOCIO se aplica aqui, en el unico sitio por el que pasan
   // todos los cobros. Ponerlo en cada comando seria garantizar que a alguno se

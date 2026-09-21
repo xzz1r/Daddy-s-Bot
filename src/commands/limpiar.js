@@ -18,7 +18,7 @@
 
 const config = require('../config');
 const { isOwner, isBotAdmin, getSender, bareJid } = require('../utils/wa');
-const { SIN_PERMISO, SOLO_GRUPOS } = require('../data/avisos');
+const { SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
 const logger = require('../utils/logger');
 const hist = require('../utils/historialGrupo');
@@ -66,9 +66,7 @@ async function cmdLimpiar(sock, msg, args, groupMeta) {
     return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   const sender = getSender(msg);
-  if (!isOwner(sender, msg.key.fromMe, groupMeta)) {
-    return sock.sendMessage(jid, { text: aviso(SIN_PERMISO, jid, 'permiso') }, { quoted: msg });
-  }
+  if (!isOwner(sender, msg.key.fromMe, groupMeta)) return;
   if (!isBotAdmin(sock, groupMeta)) {
     return sock.sendMessage(jid, { text: 'No soy admin aquí. Así no puedo borrar nada.' }, { quoted: msg });
   }

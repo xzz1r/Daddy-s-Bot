@@ -823,4 +823,5 @@ module.exports = {
   bareJid,
   canonicalJid,
   sameUser,
+  participantePorJid,
 };

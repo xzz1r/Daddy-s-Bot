@@ -1,6 +1,6 @@
 const { getState, setState, toggleGroup } = require('../utils/state');
 const { formatUptime, fmt, pickFresh } = require('../utils/helpers');
-const { isOwner, isMainOwner, isGroupAdmin, getSender } = require('../utils/wa');
+const { isOwner, isMainOwner, isGroupAdmin, getSender, getTarget, bareJid, canonicalJid, isAdmin, isBotJid, esMiembroActual, participantePorJid, phoneMatch } = require('../utils/wa');
 const { getCasinoCount, msUntilReset, tiradasDeHoy, hitosCobrados } = require('../utils/casinoStore');
 const { verRacha } = require('../utils/rachaStore');
 const { nextMilestone } = require('../utils/casino');
@@ -122,6 +122,64 @@ async function cmdPing(sock, msg) {
 }
 
 // !info - bot status
+function numeroDeWhoami(args) {
+  const todo = (args || []).join(' ');
+  const enlace = todo.match(/(?:wa\.me\/|phone=)(\d{6,15})/i);
+  const digitos = enlace ? enlace[1] : todo.replace(/\D/g, '');
+  if (digitos.length >= 8 && digitos.length <= 15) return digitos;
+  return '';
+}
+
+function rangoEnGrupo(sock, persona, groupMeta) {
+  if (isBotJid(sock, persona)) return 'este bot';
+  // El rango del BOT va primero: dueño y co-dueño mandan aquí aunque en
+  // WhatsApp salgan como admin o como miembro. Sin esto, !whoami decía
+  // "admin" y el co-dueño no sabía si el bot lo reconocía.
+  if (isMainOwner(persona, false, groupMeta)) return 'dueño';
+  if (isOwner(persona, false, groupMeta)) return 'co-dueño';
+  if (!groupMeta?.participants) return null;
+  const p = participantePorJid(groupMeta, bareJid(persona))
+    || participantePorJid(groupMeta, canonicalJid(persona));
+  if (p) {
+    if (p.admin === 'superadmin') return 'creador';
+    if (p.admin === 'admin') return 'admin';
+    return 'miembro';
+  }
+  if (isAdmin(groupMeta.participants, persona)) return 'admin';
+  if (esMiembroActual(persona, groupMeta)) return 'miembro';
+  return 'no está en este grupo';
+}
+
+function personaDeWhoami(msg, args, groupMeta) {
+  const mencionado = getTarget(msg);
+  if (mencionado) return mencionado;
+  const digitos = numeroDeWhoami(args);
+  if (digitos) {
+    if (groupMeta?.participants) {
+      for (const p of groupMeta.participants) {
+        for (const f of [p.id, p.lid, p.phoneNumber]) {
+          if (f && phoneMatch(String(f).replace(/\D/g, ''), digitos)) return p.id || f;
+        }
+      }
+    }
+    return `${digitos}@s.whatsapp.net`;
+  }
+  return getSender(msg);
+}
+
+// !whoami — JID y rango de quien lo pide. Con mención, respuesta o número,
+// el de esa cuenta. El rango es el del bot (dueño / co-dueño) y, si no, el
+// de WhatsApp en este grupo (creador / admin / miembro). No se escribe
+// "owner": esa palabra es la que delata quién manda.
+async function cmdWhoami(sock, msg, args, groupMeta) {
+  const jid = msg.key.remoteJid;
+  const persona = personaDeWhoami(msg, args, groupMeta);
+  const lineas = [`*JID:* ${bareJid(persona)}`];
+  const rango = rangoEnGrupo(sock, persona, groupMeta);
+  if (rango) lineas.push(`*Rango:* ${rango}`);
+  await sock.sendMessage(jid, { text: lineas.join('\n') }, { quoted: msg });
+}
+
 async function cmdInfo(sock, msg) {
   const jid = msg.key.remoteJid;
   const state = getState();
@@ -397,7 +455,6 @@ ${p}antilink · ${p}antifoto · ${p}antiempresa · ${p}antibusiness · ${p}antia
 ${p}adminmode · ${p}soloadmins · ${p}soloadmin  ·  ${p}aura on/off
 ${p}resetcount · ${p}resetconteo  ·  ${p}resetaura
 ${p}clearcache · ${p}borracache  ·  ${p}diag
-${p}limpiar · ${p}wipe
 ` : ''}
 ${p}ping · ${p}info · ${p}estado · ${p}status · ${p}whoami
 ${p}help · ${p}ayuda · ${p}menu · ${p}commands`;
@@ -516,7 +573,6 @@ ${esAdmin ? `
 ` : ''}${esOwner ? `
 ━━ *SUPERIORES* ━━
 *${p}demote* · *${p}resetaura* · *${p}resetcount* · *${p}on*/*${p}off* · *${p}clearcache* · *${p}diag*
-*${p}limpiar* 1000 — borra los últimos 1000 para todos
 *${p}listanegra* — la lista negra global: ver, meter números y sacarlos
 _on/off:_ *${p}antiadmin* *${p}antilink* *${p}antiempresa* *${p}antifoto* *${p}adminmode* *${p}aura*
 ` : ''}
@@ -526,5 +582,5 @@ _Contacto: wa.me/${config.contacto}_` : ''}`;
   await sock.sendMessage(jid, { text }, { quoted: msg });
 }
 
-module.exports = { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, cmdCasino };
+module.exports = { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, cmdCasino, cmdWhoami };
 

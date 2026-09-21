@@ -364,7 +364,7 @@ async function capasDelMenu() {
       owner: { demote: 'cmdDemote', on: 'cmdOn', off: 'cmdOff', antilink: 'cmdAntiLink',
         antifoto: 'cmdAntiFoto', antiempresa: 'cmdAntiBusiness', antiadmin: 'cmdAntiAdmin',
         adminmode: 'cmdSoloAdmins', aura: 'interruptor', resetcount: 'cmdResetCount',
-        diag: 'cmdDiag', limpiar: 'cmdLimpiar' },
+        diag: 'cmdDiag' },
     };
     const mal = [], perdidas = [];
     for (const [nivel, tabla] of Object.entries(esperado)) {
@@ -5313,7 +5313,7 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
     // ese es un falso positivo barato comparado con no ver nada.
     const menu = fs.readFileSync(path.join(R, 'src/commands/social.js'), 'utf8');
 
-    for (const oculto of ['p', 'purge', 'visto']) {
+    for (const oculto of ['p', 'purge', 'visto', 'limpiar', 'wipe']) {
       // 1) fuera del menu
       exige(!new RegExp(`\\$\\{p\\}${oculto}\\b`).test(menu),
         `*!${oculto}* ha aparecido en el menu: es un comando que no puede saber nadie que existe`);
@@ -5328,8 +5328,9 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
       const bloque = src.match(/const COMANDOS_OCULTOS = new Set\(\[([^\]]*)\]\)/);
       const ocultos = bloque ? [...bloque[1].matchAll(/'([^']+)'/g)].map((m) => m[1]) : [];
       ocultosDecl = ocultos;
-      exige(ocultos.includes('p') && ocultos.includes('purge') && ocultos.includes('visto'),
-        `COMANDOS_OCULTOS es [${ocultos.join(', ')}]: falta alguno de los tres que no pueden asomar`);
+      exige(ocultos.includes('p') && ocultos.includes('purge') && ocultos.includes('visto')
+        && ocultos.includes('limpiar') && ocultos.includes('wipe'),
+        `COMANDOS_OCULTOS es [${ocultos.join(', ')}]: falta alguno que no puede asomar`);
     }
     // Y que *!visto* siga siendo solo del dueño PRINCIPAL, no del tier entero:
     // un co-owner apagando el visto de la cuenta sin que el dueño se entere es
@@ -12531,24 +12532,22 @@ const meta = { id: GJ, subject: 'G', participants: [
 
     // ── QUIEN PAGA POR UN COMANDO EN EL GRUPO ─────────────────────────────
     //
-    // El dueño no paga: administra el bot. El CO-DUEÑO SI, y lo pidio asi el
-    // dueño — usa *!sticker* y las acciones como cualquiera del grupo, y si el
-    // aura no le cuesta nada a quien mas la usa, la tabla no mide nada.
-    //
-    // Esto era 'isOwner' —el tier entero— y por eso el co-dueño iba gratis.
+    // El owner tier no paga: administra el bot. Dueño (todas sus lineas) y
+    // co-dueños. Se pidio revertir el cobro al co-dueño: *!sticker*, *!pin* y
+    // las acciones no le cuestan aura. Quien no es del tier si paga.
     const { cobrar } = require(path.join(R, 'src/utils/auraCobro'));
     for (const [quien, pagaEsperado, como] of [
       [FR, false, 'la primera linea del dueño'],
       [CO, false, 'la segunda linea del dueño'],
-      [COO, true, 'un co-dueño'],
+      [COO, false, 'un co-dueño'],
       [FUERA, true, 'alguien del grupo'],
     ]) {
       cobros = [];
       const r = await cobrar(GJ, j(quien), 'sticker', { fromMe: false, groupMeta: meta });
       const pago = cobros.length > 0;
       exige(pago === pagaEsperado, pagaEsperado
-        ? como + ' no paga por un comando del grupo: va exento como si fuera el dueño, y el dueño dijo que en la mesa juegan todos menos el'
-        : como + ' esta pagando por un comando del grupo: administra el bot, no lo consume');
+        ? como + ' no paga por un comando del grupo: va exento y no es del owner tier'
+        : como + ' esta pagando por un comando del grupo: el owner tier administra el bot, no lo consume');
       exige((r.exento === true) === !pagaEsperado,
         como + ' devuelve la marca de exento al reves: ' + JSON.stringify(r));
       if (pago) exige(cobros[0][2] > 0, como + ' pasa por el cobro pero con precio 0: eso es ir gratis por la puerta de al lado');
@@ -12564,7 +12563,7 @@ const meta = { id: GJ, subject: 'G', participants: [
 })();
 `;
 
-  // ── 71. EL DUEÑO SON SUS NUMEROS; EL CO-DUEÑO PAGA COMO TODOS ───────────
+  // ── 71. EL DUEÑO SON SUS NUMEROS; EL TIER NO PAGA ───────────────────────
   //
   // El dueño tiene dos lineas propias y las usa como la misma persona. Meter la
   // segunda en CO_OWNERS le daba el MANDO pero no la IDENTIDAD, y la diferencia
@@ -12585,7 +12584,7 @@ const meta = { id: GJ, subject: 'G', participants: [
   // el entorno desde el principio), y al contador de mensajes hay que ponerle
   // el espia ANTES del primer require de messageHandler.
   {
-    console.log('\n71. EL DUEÑO SON SUS NUMEROS; EL CO-DUEÑO PAGA COMO TODOS');
+    console.log('\n71. EL DUEÑO SON SUS NUMEROS; EL TIER NO PAGA');
     const antes = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
     const { execFileSync } = require('child_process');
@@ -12670,7 +12669,7 @@ const meta = { id: GJ, subject: 'G', participants: [
         'la regla del número suelto ya no encuentra ni los usos legítimos de bot.js: ha dejado de mirar');
     }
 
-    if (fallos === antes) console.log(verde('   ✓ las líneas del dueño son él —ni cuentan ni pagan ni se les apunta—, se le escribe a una sola, y el co-dueño paga'));
+    if (fallos === antes) console.log(verde('   ✓ las líneas del dueño son él —ni cuentan ni pagan ni se les apunta—, se le escribe a una sola, y el co-dueño tampoco paga'));
   }
 
   // El guion del hijo de la capa 73. Va aparte para poder sustituir el almacen
@@ -17215,8 +17214,8 @@ const manda = async (quien, tipo, opciones) => {
       await limp97.cmdLimpiar(sock97(vistoAdm), sobre97('A1', ADM97, '!limpiar 3'), ['3'], meta97);
       exige(!vistoAdm.some((v) => v.content && v.content.delete),
         'un admin raso ha borrado mensajes con !limpiar: la puerta tenía que ser del tier dueño');
-      exige(vistoAdm.some((v) => v.content?.text),
-        'un admin raso no recibe negativa: parece que el comando no existe, y está en el menú');
+      exige(!vistoAdm.some((v) => v.content?.text),
+        'un admin raso recibe respuesta de !limpiar: el comando es oculto y tenía que callarse');
 
       // ── Sin cifra, no borra ───────────────────────────────────────────────
       const vistoUso = [];
@@ -17304,6 +17303,83 @@ const manda = async (quien, tipo, opciones) => {
       limp97._enCurso.clear();
     }
     if (fallos === antes97) console.log(verde('   ✓ borra N para todos, también lo del dueño, y no se lo traga un admin'));
+  }
+
+  // ── 98. !whoami DICE EL RANGO DE QUIEN LO PIDE ──────────────────────────
+  //
+  // Durante un tiempo solo contestaba el JID. Ahora dice el rango: dueño,
+  // co-dueño, o el de WhatsApp en este grupo. También mira a otra cuenta
+  // (mención, respuesta o número). No se escribe "owner".
+  {
+    console.log('\n98. !whoami DICE EL RANGO DE QUIEN LO PIDE');
+    const antes98 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const soc98 = require(path.join(R, 'src/commands/social'));
+    const cfg98 = require(path.join(R, 'src/config'));
+    const OWN98 = `${String(cfg98.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
+    const COO98 = `${String((cfg98.coOwners || [])[0] || '34600000009').replace(/\D/g, '')}@s.whatsapp.net`;
+    const BOT98 = '34600000097@s.whatsapp.net';
+    const ADM98 = '34611111198@s.whatsapp.net';
+    const RASO98 = '34622222298@s.whatsapp.net';
+    const G98 = '120363000000098@g.us';
+    const meta98 = { id: G98, subject: 'G', participants: [
+      { id: OWN98, admin: 'superadmin' },
+      { id: COO98, admin: 'admin' },
+      { id: BOT98, admin: 'admin' },
+      { id: ADM98, admin: 'admin' },
+      { id: RASO98 },
+    ] };
+    const visto98 = [];
+    const sock98 = {
+      user: { id: BOT98 },
+      sendMessage: async (jid, content) => { visto98.push(content); return { key: { id: 'x' } }; },
+    };
+    const base98 = (id, quien, texto, extra = {}) => ({
+      key: { remoteJid: G98, id, participant: quien, fromMe: false },
+      message: extra.mencion
+        ? { extendedTextMessage: { text: texto, contextInfo: { mentionedJid: [extra.mencion] } } }
+        : extra.cita
+          ? { extendedTextMessage: { text: texto, contextInfo: { participant: extra.cita, stanzaId: 'Q' } } }
+          : { conversation: texto },
+    });
+    const ultimo98 = () => visto98.at(-1)?.text || '';
+
+    await soc98.cmdWhoami(sock98, base98('W1', RASO98, '!whoami'), [], meta98);
+    exige(/34622222298/.test(ultimo98()) && /\*Rango:\* miembro/.test(ultimo98()),
+      `un miembro no ve su rango: "${ultimo98()}"`);
+
+    await soc98.cmdWhoami(sock98, base98('W2', ADM98, '!whoami'), [], meta98);
+    exige(/34611111198/.test(ultimo98()) && /\*Rango:\* admin/.test(ultimo98()),
+      `un admin no ve su rango: "${ultimo98()}"`);
+
+    await soc98.cmdWhoami(sock98, base98('W3', COO98, '!whoami'), [], meta98);
+    exige(new RegExp(COO98.replace(/@.*$/, '')).test(ultimo98()) && /\*Rango:\* co-dueño/.test(ultimo98()),
+      `un co-dueño no ve su rango: "${ultimo98()}"`);
+
+    await soc98.cmdWhoami(sock98, base98('W4', OWN98, '!whoami'), [], meta98);
+    exige(new RegExp(String(cfg98.ownerNumber).replace(/\D/g, '')).test(ultimo98()) && /\*Rango:\* dueño/.test(ultimo98()),
+      `el dueño no ve su rango: "${ultimo98()}"`);
+
+    await soc98.cmdWhoami(sock98, base98('W5', RASO98, '!whoami', { mencion: ADM98 }), [], meta98);
+    exige(/34611111198/.test(ultimo98()) && /\*Rango:\* admin/.test(ultimo98()),
+      `con mención no dice el rango del mencionado: "${ultimo98()}"`);
+
+    await soc98.cmdWhoami(sock98, base98('W6', RASO98, '!whoami', { cita: ADM98 }), [], meta98);
+    exige(/34611111198/.test(ultimo98()) && /\*Rango:\* admin/.test(ultimo98()),
+      `respondiendo a alguien no dice su rango: "${ultimo98()}"`);
+
+    await soc98.cmdWhoami(sock98, base98('W7', RASO98, '!whoami 34611111198'), ['34611111198'], meta98);
+    exige(/34611111198/.test(ultimo98()) && /\*Rango:\* admin/.test(ultimo98()),
+      `con el número no dice el rango de esa cuenta: "${ultimo98()}"`);
+
+    exige(!/\bowner\b/i.test(visto98.map((v) => v.text || '').join('\n')),
+      '!whoami dice "owner" en el grupo: esa palabra señala quién manda el bot');
+
+    const menu98 = fs.readFileSync(path.join(R, 'src/commands/social.js'), 'utf8');
+    exige(!/\$\{p\}limpiar\b/.test(menu98) && !/\$\{p\}wipe\b/.test(menu98),
+      '!limpiar / !wipe siguen en el menú y el dueño los quería ocultos');
+
+    if (fallos === antes98) console.log(verde('   ✓ !whoami dice el rango, y !limpiar no asoma en el menú'));
   }
 
   if (BREVE) {
