@@ -4145,7 +4145,7 @@ const di=async(quien,texto,extra)=>{
       // Las palabras que significan «no eres inteligente». Se amplio cuando el
       // dueño mando escribirlas DIRECTAS: imbecil, idiota, corto, cretino y
       // cerebro son ataques al intelecto en el idioma, no adornos.
-      const INTELECTO = /cabeza|cerebro|corto|cortito|listo|sab(es|er)|no sé|leer|le[ií]do|pensa|piensa|entiend|entend|retien|razon|diagn|alfabeto|analfabeto|ignorante|in[uú]til|imb[eé]cil|idiota|est[uú]pido|cretino|tonto|adivin|das para|da para|idioma|s[ií]ntoma|acierta|nivel|techo|tope|l[ií]mite|m[aá]ximo|capacidad|hueca|de serie|de f[aá]brica|copia|estudia|entrena|resuelve|mide|cr[ií]o/i;
+      const INTELECTO = /cabeza|cerebro|corto|cortito|listo|sab(es|er)|no sé|leer|le[ií]do|pensa|piensa|entiend|entend|retien|razon|diagn|alfabeto|analfabeto|ignorante|in[uú]til|imb[eé]cil|idiota|est[uú]pido|cretino|tonto|adivin|das para|da para|idioma|s[ií]ntoma|acierta|nivel|techo|tope|l[ií]mite|m[aá]ximo|capacidad|hueca|sesera|mollera|coco|neuronas|de serie|de f[aá]brica|copia|estudia|entrena|resuelve|mide|cr[ií]o/i;
       const conMarca = AV.MAL_ESCRITO.filter((f) => INTELECTO.test(f)).length;
       exige(conMarca >= Math.ceil(AV.MAL_ESCRITO.length * 0.7),
         `solo ${conMarca} de ${AV.MAL_ESCRITO.length} frases de MAL_ESCRITO atacan al intelecto: el pool se esta volviendo descriptivo otra vez`);
@@ -4162,7 +4162,7 @@ const di=async(quien,texto,extra)=>{
       //
       // Se pide suelo y no pleno por lo mismo que arriba: hay formas de decirlo
       // que no llevan ninguna de estas palabras.
-      const TECHO = /techo|tope|l[ií]mite|m[aá]ximo|list[oó]n|hasta ah[ií]|hasta aqu[ií]|hasta d[oó]nde|no da para|da de s[ií]|das para|dar siempre|no das|no llegas|llegas|de serie|de f[aá]brica|de nacimiento|naciste|permanente|no se arregla|no se entrena|no se compra|no se cura|no tiene repuesto|repuesto|ah[ií] se queda|ah[ií] te vas|ah[ií] vives|eres t[uú]|lo que eres|lo que hay|nivel|suelo|capacidad|cerebro|cabeza|corto|cortito|piensas|mide|diagn|s[ií]ntoma|material|cr[ií]o|mismo problema/i;
+      const TECHO = /techo|tope|l[ií]mite|m[aá]ximo|list[oó]n|hasta ah[ií]|hasta aqu[ií]|hasta d[oó]nde|no da para|da de s[ií]|das para|dar siempre|no das|no llegas|llegas|de serie|de f[aá]brica|de nacimiento|naciste|permanente|no se arregla|no se entrena|no se compra|no se cura|no tiene repuesto|repuesto|ah[ií] se queda|ah[ií] te vas|ah[ií] vives|eres t[uú]|lo que eres|lo que hay|nivel|suelo|capacidad|cerebro|cabeza|sesera|mollera|coco|neuronas|corto|cortito|piensas|mide|diagn|s[ií]ntoma|material|cr[ií]o|mismo problema/i;
       const conTecho = AV.MAL_ESCRITO.filter((f) => TECHO.test(f)).length;
       exige(conTecho >= Math.ceil(AV.MAL_ESCRITO.length * 0.7),
         `solo ${conTecho} de ${AV.MAL_ESCRITO.length} frases de MAL_ESCRITO enmarcan el fallo como el TECHO de esa persona: sin eso son insultos sueltos, que es lo que el dueño mando quitar`);
@@ -4188,6 +4188,45 @@ const di=async(quien,texto,extra)=>{
       const cantan = AV.MAL_ESCRITO.filter((f) => CANTANUM.test(f));
       exige(cantan.length === 0,
         `MAL_ESCRITO afirma un numero de letras que depende del comando y casi nunca acierta: "${cantan[0] || ''}"`);
+
+      // Y QUE NO SE VUELVA UNA PLANTILLA.
+      //
+      // «Las frases molan, pero espero que no sean tan repetitivas», y tenia
+      // motivo: al quitar el «cinco letras» de doce frases, las doce acabaron
+      // diciendo «una palabra» y esa expresion paso a salir en 21 de 57 — el
+      // 37 %. Con 57 frases distintas el aviso seguia sonando siempre igual,
+      // porque lo que se repite no es la frase, es el MOLDE.
+      //
+      // Se mide la frecuencia por frase de cada palabra de contenido. Las del
+      // registro —«eres», «puta»— andan por el 25 % y eso es sano: son el tono,
+      // no el molde. El techo se pone en 30 %, que deja sitio al tono y caza la
+      // concentracion en una sola forma de decir las cosas.
+      const VACIAS = new Set(['que', 'de', 'la', 'el', 'y', 'a', 'en', 'no', 'un', 'una', 'es', 'lo',
+        'se', 'te', 'tu', 'su', 'al', 'del', 'por', 'con', 'para', 'ni', 'si', 'los', 'las', 'me',
+        'le', 'ya', 'mas', 'eso', 'esa', 'ese', 'esto', 'asi', 'hay', 'ha', 'has', 'he', 'sin',
+        'como', 'pero', 'o', 'e']);
+      const sinTildes = (t) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const df = new Map();
+      for (const f of AV.MAL_ESCRITO) {
+        const ws = new Set(sinTildes(f).replace(/[^a-z ]/g, ' ').split(/\s+/)
+          .filter((w) => w.length > 2 && !VACIAS.has(w)));
+        for (const w of ws) df.set(w, (df.get(w) || 0) + 1);
+      }
+      const masRepetida = [...df.entries()].sort((a, b) => b[1] - a[1])[0] || ['', 0];
+      exige(masRepetida[1] <= Math.ceil(AV.MAL_ESCRITO.length * 0.30),
+        `"${masRepetida[0]}" sale en ${masRepetida[1]} de las ${AV.MAL_ESCRITO.length} frases de MAL_ESCRITO (${Math.round(masRepetida[1] / AV.MAL_ESCRITO.length * 100)} %): el pool se esta volviendo una plantilla con el mismo molde`);
+
+      // Lo mismo con el ARRANQUE: si la mitad empieza por «Eres», da igual lo
+      // distinto que sea el resto, porque lo primero que se lee es siempre lo
+      // mismo.
+      const inicios = new Map();
+      for (const f of AV.MAL_ESCRITO) {
+        const w = sinTildes(f).split(/[ ,.]/)[0];
+        inicios.set(w, (inicios.get(w) || 0) + 1);
+      }
+      const arranque = [...inicios.entries()].sort((a, b) => b[1] - a[1])[0] || ['', 0];
+      exige(arranque[1] <= Math.ceil(AV.MAL_ESCRITO.length * 0.22),
+        `${arranque[1]} de ${AV.MAL_ESCRITO.length} frases de MAL_ESCRITO empiezan por "${arranque[0]}": lo primero que se lee es siempre lo mismo`);
 
       // Y QUE HAYA DE SOBRA. Este aviso lo dispara cualquiera que teclee mal, o
       // sea a diario, y con la ventana de pickFresh un pool corto se recita.
