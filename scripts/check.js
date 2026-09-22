@@ -4142,7 +4142,10 @@ const di=async(quien,texto,extra)=>{
       // que las cumplan todas: se pide un SUELO. Si la mayoria deja de llevar
       // la marca explicita, el pool se esta deslizando otra vez hacia describir
       // el fallo en vez de atacar a quien lo comete, que es lo que paso antes.
-      const INTELECTO = /cabeza|corto\b|listo|sab(es|er)|no sé|leer|le[ií]do|pensa|piensa|entiend|entend|diagn|alfabeto|analfabeto|ignorante|in[uú]til|adivin|m[eé]rito|das para|da para|idioma|s[ií]ntoma|acierta|nivel|techo|de serie|de f[aá]brica|copia|estudia|entrena|manejas|resuelve|resuelto|empezar|mide|error|cr[ií]o/i;
+      // Las palabras que significan «no eres inteligente». Se amplio cuando el
+      // dueño mando escribirlas DIRECTAS: imbecil, idiota, corto, cretino y
+      // cerebro son ataques al intelecto en el idioma, no adornos.
+      const INTELECTO = /cabeza|cerebro|corto|cortito|listo|sab(es|er)|no sé|leer|le[ií]do|pensa|piensa|entiend|entend|retien|razon|diagn|alfabeto|analfabeto|ignorante|in[uú]til|imb[eé]cil|idiota|est[uú]pido|cretino|tonto|adivin|das para|da para|idioma|s[ií]ntoma|acierta|nivel|techo|tope|l[ií]mite|m[aá]ximo|capacidad|hueca|de serie|de f[aá]brica|copia|estudia|entrena|resuelve|mide|cr[ií]o/i;
       const conMarca = AV.MAL_ESCRITO.filter((f) => INTELECTO.test(f)).length;
       exige(conMarca >= Math.ceil(AV.MAL_ESCRITO.length * 0.7),
         `solo ${conMarca} de ${AV.MAL_ESCRITO.length} frases de MAL_ESCRITO atacan al intelecto: el pool se esta volviendo descriptivo otra vez`);
@@ -4159,7 +4162,7 @@ const di=async(quien,texto,extra)=>{
       //
       // Se pide suelo y no pleno por lo mismo que arriba: hay formas de decirlo
       // que no llevan ninguna de estas palabras.
-      const TECHO = /techo|tope|l[ií]mite|m[aá]ximo|list[oó]n|hasta ah[ií]|hasta aqu[ií]|hasta d[oó]nde|no da para|da de s[ií]|das para|dar siempre|no llegas|llegas|de serie|de f[aá]brica|no se arregla|no se entrena|no se compra|repuesto|lo que hay|nivel|suelo|capacidad|cerebro|cabeza|corto|piensas|mide|diagn|s[ií]ntoma|material|cr[ií]o|no ser t[uú]/i;
+      const TECHO = /techo|tope|l[ií]mite|m[aá]ximo|list[oó]n|hasta ah[ií]|hasta aqu[ií]|hasta d[oó]nde|no da para|da de s[ií]|das para|dar siempre|no das|no llegas|llegas|de serie|de f[aá]brica|de nacimiento|naciste|permanente|no se arregla|no se entrena|no se compra|no se cura|no tiene repuesto|repuesto|ah[ií] se queda|ah[ií] te vas|ah[ií] vives|eres t[uú]|lo que eres|lo que hay|nivel|suelo|capacidad|cerebro|cabeza|corto|cortito|piensas|mide|diagn|s[ií]ntoma|material|cr[ií]o|mismo problema/i;
       const conTecho = AV.MAL_ESCRITO.filter((f) => TECHO.test(f)).length;
       exige(conTecho >= Math.ceil(AV.MAL_ESCRITO.length * 0.7),
         `solo ${conTecho} de ${AV.MAL_ESCRITO.length} frases de MAL_ESCRITO enmarcan el fallo como el TECHO de esa persona: sin eso son insultos sueltos, que es lo que el dueño mando quitar`);
@@ -8146,10 +8149,23 @@ const di=async(quien,t)=>{out.length=0;
         exige(conBarra.split('\n').length === conBang.split('\n').length,
           `*/${c}* y *!${c}* contestan cosas distintas`);
       }
-      exige(/^\*\/pinng\*/.test(r.corrector[1]),
+      // LO QUE IMPORTA ES EL PREFIJO, no la redaccion. La primera linea cambio
+      // —el dueño pidio que aclare SIEMPRE que asi no se escribe— asi que esto
+      // ya no puede anclarse al principio del texto. Lo que sigue siendo
+      // obligatorio es que la correccion salga con el prefijo que tecleo la
+      // persona: a quien escribe con barra hay que contestarle con barra, o
+      // parece que la barra no vale.
+      exige(/\*\/pinng\*/.test(r.corrector[1]) && /\*\/ping\*/.test(r.corrector[1]) && !/\*!/.test(r.corrector[1]),
         `el corrector contesta "${String(r.corrector[1]).split('\n')[0]}" a quien escribio */pinng*: con el otro prefijo delante parece que la barra no vale`);
-      exige(/^\*!pinng\*/.test(r.corrector[0]),
+      exige(/\*!pinng\*/.test(r.corrector[0]) && /\*!ping\*/.test(r.corrector[0]) && !/\*\//.test(r.corrector[0]),
         'el corrector ha dejado de contestar con el prefijo canonico a quien escribe con el canonico');
+      // Y QUE ACLARE QUE ESTA MAL ESCRITO, SIEMPRE Y LO PRIMERO. Palabras del
+      // dueño: «debes aclarar primero que asi no se escribe el comando».
+      for (const [i, quien] of [[0, 'el prefijo canonico'], [1, 'la barra']]) {
+        const prim = String(r.corrector[i]).split('\n')[0];
+        exige(/no se escribe/i.test(prim),
+          `con ${quien} el corrector no dice que este mal escrito, y tiene que decirlo lo primero: "${prim}"`);
+      }
       // Primero, que el apagado apague de verdad: si no, lo de abajo pasa en
       // verde sin haber probado nada. Es el fallo que tuvo esta misma guarda:
       // apagaba con un admin cualquiera, y *!off* es solo del dueño, asi que el
@@ -10382,7 +10398,7 @@ const di=async(quien,t)=>{out.length=0;
         key: { remoteJid: G, participant: q, fromMe: false, id: `S58-${n++}` },
         message: { conversation: t }, pushName: 'p', messageTimestamp: Math.floor(Date.now() / 1000),
       });
-      const corrige = () => textos.some((t) => /no existe\. Era/.test(t));
+      const corrige = () => textos.some((t) => /no se escribe/i.test(t));
       const A = `3460000581${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`;
       const B = `3460000582${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`;
       const C = `3460000583${Math.floor(Math.random() * 900 + 100)}@s.whatsapp.net`;

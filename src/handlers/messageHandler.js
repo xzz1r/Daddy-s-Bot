@@ -3384,10 +3384,18 @@ async function handleMessage(sock, msg, opciones = {}) {
         const sug = frenoLibre(sender) ? sugerirComando(command) : null;
         if (sug) {
           apuntarSugerencia(sender);
-          // La correccion primero —es la parte util— y el remate debajo. Mismo
-          // reparto que los avisos de rango: informar y picar no compiten.
+          // LA CORRECCION VA PRIMERO Y VA SIEMPRE. Lo pidio el dueño con esas
+          // palabras: «debes aclarar primero que asi no se escribe el comando.
+          // Siempre».
+          //
+          // Por eso va pegada al insulto en el MISMO mensaje y no en uno
+          // aparte: si fueran dos envios, el freno de treinta segundos o una
+          // caida de red podrian dejar salir el remate a secas, y entonces al
+          // que escribio mal se le estaria llamando corto sin decirle siquiera
+          // que estaba mal escrito. Informar y picar no compiten, pero el orden
+          // no es negociable.
           await sock.sendMessage(jid, {
-            text: `*${prefUsado}${command}* no existe. Era *${prefUsado}${sug}*.\n` +
+            text: `Así no se escribe. Es *${prefUsado}${sug}*, no *${prefUsado}${command}*.\n` +
                   aviso(MAL_ESCRITO, jid, 'malescrito'),
           }, { quoted: msg }).catch(() => {});
         }
