@@ -17763,6 +17763,163 @@ const manda = async (quien, tipo, opciones) => {
     if (fallos === antes100) console.log(verde('   ✓ el latido aguanta sin socket, se anuncia con uno bueno, y se para al desmontar'));
   }
 
+  // ── 101. LA CAJA: SE PUEDE REVENTAR, SE PUEDE GASTAR, Y NADA SE EVAPORA ──
+  //
+  // Tres cambios del dueño en el mismo sitio, y los tres mueven aura:
+  //
+  //   · *!lock* estaba OP — lo guardado era introbable al 100 %. Ahora un golpe
+  //     maestro fuerza la caja (CAJA.forzable).
+  //   · pagar con lo guardado: si no llega el suelto, el precio sale de la caja
+  //     con impuesto, en vez del «no tienes aura» con 1.200 dentro.
+  //   · el robo subio de 38 % a 48 % de acierto.
+  //
+  // Lo que se vigila aqui es la parte que no se puede tener mal: que las
+  // CUENTAS CUADREN. «No pueden haber errores en los conteos de absoluta nada.»
+  {
+    console.log('\n101. LA CAJA: SE PUEDE REVENTAR, SE PUEDE GASTAR, Y NADA SE EVAPORA');
+    const antes101 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const eco101 = require(path.join(R, 'src/utils/economia'));
+    const { CAJA: C101, PRECIOS: P101, SALDO_MINIMO: SM101 } = eco101;
+    const as101 = require(path.join(R, 'src/utils/auraStore'));
+    const { cobrar: cobrar101 } = require(path.join(R, 'src/utils/auraCobro'));
+    const rs101 = require(path.join(R, 'src/utils/roboStore'));
+    const G101 = '000000101@g.us';
+    let n101 = 0;
+    const cuenta101 = () => `3460001${`${Date.now()}`.slice(-5)}${n101++}@s.whatsapp.net`;
+
+    // La caja dejo de ser un bunker: los tres ajustes tienen que seguir puestos.
+    exige(C101.forzable > 0 && C101.forzable <= 0.5,
+      `CAJA.forzable es ${C101.forzable}: en 0 la caja vuelve a ser introbable, y por encima de 0,5 un solo robo la vacía`);
+    exige(C101.capacidad <= 1500,
+      `la caja vuelve a caber ${C101.capacidad}: con tanto sitio se aparca la fortuna entera y el robo no alcanza nada`);
+    exige(C101.comision >= 0.2,
+      `sacar de la caja cuesta ${C101.comision}: el dueño lo subió para que esconderse no saliera barato`);
+
+    // ── 1. PAGAR CON LO GUARDADO CUADRA AL CÉNTIMO ────────────────────────
+    //
+    // Es lo que mas facil se descuadra: hay que sacar el precio MAS el
+    // impuesto, y el impuesto tiene que acabar en el bote, no evaporado.
+    for (const [etq, suelto, dentro] of [
+      ['sin suelto, caja de sobra', 0, 500],
+      ['algo de suelto y el resto', 30, 500],
+      ['un suelto de casi todo   ', P101.play - 1, 500],
+    ]) {
+      const U = cuenta101();
+      await as101.addAura(G101, U, -(await as101.getAura(G101, U)));
+      await as101.addAura(G101, U, dentro + 10);
+      await as101.meterEnCaja(G101, U, dentro);
+      await as101.addAura(G101, U, -(await as101.getAura(G101, U)));
+      if (suelto) await as101.addAura(G101, U, suelto);
+
+      const s0 = await as101.getAura(G101, U);
+      const c0 = await as101.verCaja(G101, U);
+      const b0 = await rs101.verBote(G101).catch(() => 0);
+      const r = await cobrar101(G101, U, 'play', {});
+      const s1 = await as101.getAura(G101, U);
+      const c1 = await as101.verCaja(G101, U);
+      const b1 = await rs101.verBote(G101).catch(() => 0);
+
+      exige(r.ok, `${etq}: con ${dentro} guardados sigue diciendo que no llega — el dueño pidió justo lo contrario`);
+      if (r.ok) {
+        const sale = (s0 - s1) + (c0 - c1);
+        const llega = r.pagado + (b1 - b0);
+        exige(sale === llega,
+          `${etq}: del bolsillo salen ${sale} y solo se justifican ${llega} (precio ${r.pagado} + bote ${b1 - b0}): se está evaporando aura`);
+        exige(r.pagado === P101.play,
+          `${etq}: ha cobrado ${r.pagado} y el precio es ${P101.play}`);
+        exige((b1 - b0) === (r.impuestoCaja || 0),
+          `${etq}: el impuesto de la caja (${r.impuestoCaja}) no ha llegado al bote (subió ${b1 - b0})`);
+        exige((r.impuestoCaja || 0) > 0,
+          `${etq}: pagar desde la caja ha salido GRATIS: sin impuesto, esconder el aura no tiene coste`);
+      }
+    }
+
+    // ── 2. SI LA CAJA NO LLEGA, NO SE COBRA NADA A MEDIAS ─────────────────
+    {
+      const U = cuenta101();
+      await as101.addAura(G101, U, -(await as101.getAura(G101, U)));
+      await as101.addAura(G101, U, 70);
+      await as101.meterEnCaja(G101, U, 60);          // menos que precio+impuesto
+      await as101.addAura(G101, U, -(await as101.getAura(G101, U)));
+      const c0 = await as101.verCaja(G101, U);
+      const r = await cobrar101(G101, U, 'play', {});
+      const c1 = await as101.verCaja(G101, U);
+      exige(!r.ok, 'con la caja corta ha cobrado igual: eso deja el saldo en negativo por la puerta de al lado');
+      exige(c0 === c1,
+        `con la caja corta le ha sacado ${c0 - c1} y no le ha dado nada: un cobro a medias es peor que un "no llega"`);
+    }
+
+    // ── 3. LO FORZADO NO SE DESCUENTA DOS VECES ───────────────────────────
+    //
+    // El fallo obvio de esta mecánica: sumar lo de la caja a `monto` y que
+    // drainAura se lo cobre OTRA VEZ del saldo suelto.
+    {
+      const { cmdRobo } = require(path.join(R, 'src/commands/robo'));
+      const BOT101 = '34600000101@s.whatsapp.net';
+      const A = cuenta101(), V = cuenta101();
+      await as101.addAura(G101, A, 3000);
+      await as101.addAura(G101, V, 3000);
+      await as101.meterEnCaja(G101, V, 400);
+      const sa0 = await as101.getAura(G101, A);
+      const sv0 = await as101.getAura(G101, V);
+      const cv0 = await as101.verCaja(G101, V);
+      const dicho = [];
+      const sock101 = { user: { id: BOT101 }, sendMessage: async (j, c) => { dicho.push(c.text || ''); return { key: { id: 'x' } }; } };
+      const meta101 = { id: G101, participants: [{ id: BOT101, admin: 'admin' }, { id: A }, { id: V }] };
+      const dado = Math.random;
+      Math.random = () => 0.001;   // rama de éxito -> golpe maestro
+      try {
+        await cmdRobo(sock101, {
+          key: { remoteJid: G101, id: `X101${n101}`, participant: A, fromMe: false },
+          message: { extendedTextMessage: { text: '!robar 300', contextInfo: { mentionedJid: [V] } } },
+        }, ['300'], meta101);
+      } finally { Math.random = dado; }
+      const sa1 = await as101.getAura(G101, A);
+      const sv1 = await as101.getAura(G101, V);
+      const cv1 = await as101.verCaja(G101, V);
+      const txt = dicho.join('\n');
+
+      exige(cv1 < cv0, 'un golpe maestro NO ha tocado la caja: lo guardado vuelve a ser inmune y eso es lo que el dueño llamó OP');
+      exige((cv0 - cv1) === Math.floor(cv0 * C101.forzable),
+        `de la caja ha salido ${cv0 - cv1} y tenía que salir el ${C101.forzable * 100} % de ${cv0}`);
+      exige(/revent/i.test(txt),
+        'le ha reventado la caja y el mensaje no lo dice: la víctima ve aura menos y no sabe por qué');
+      // LA CUENTA. Lo que pierde la víctima = lo que gana el ladrón + lo que se
+      // le queda al ladrón encima como recompensa. Ni un punto más.
+      const pierde = (sv0 - sv1) + (cv0 - cv1);
+      const gana = sa1 - sa0;
+      exige(pierde >= gana,
+        `el ladrón gana ${gana} y la víctima solo pierde ${pierde}: se está creando aura de la nada`);
+      exige(pierde - gana <= Math.round(pierde * 0.25),
+        `la víctima pierde ${pierde} y el ladrón solo recibe ${gana}: se están evaporando ${pierde - gana}`);
+    }
+
+    // ── 4. UN ROBO NORMAL NO ABRE LA CAJA ─────────────────────────────────
+    {
+      const { cmdRobo } = require(path.join(R, 'src/commands/robo'));
+      const BOT101 = '34600000101@s.whatsapp.net';
+      const A = cuenta101(), V = cuenta101();
+      await as101.addAura(G101, A, 3000);
+      await as101.addAura(G101, V, 3000);
+      await as101.meterEnCaja(G101, V, 400);
+      const cv0 = await as101.verCaja(G101, V);
+      const sock101 = { user: { id: BOT101 }, sendMessage: async () => ({ key: { id: 'x' } }) };
+      const meta101 = { id: G101, participants: [{ id: BOT101, admin: 'admin' }, { id: A }, { id: V }] };
+      const dado = Math.random;
+      Math.random = () => 0.30;    // éxito, pero NO maestro
+      try {
+        await cmdRobo(sock101, {
+          key: { remoteJid: G101, id: `Y101${n101}`, participant: A, fromMe: false },
+          message: { extendedTextMessage: { text: '!robar 300', contextInfo: { mentionedJid: [V] } } },
+        }, ['300'], meta101);
+      } finally { Math.random = dado; }
+      exige(await as101.verCaja(G101, V) === cv0,
+        'un robo normal ha abierto la caja: solo el golpe maestro puede, o guardar deja de servir para nada');
+    }
+    if (fallos === antes101) console.log(verde('   ✓ la caja se puede reventar y se puede gastar, y en los dos casos las cuentas cuadran'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     if (!fallos) sellar();

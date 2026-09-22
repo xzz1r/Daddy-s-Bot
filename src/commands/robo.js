@@ -19,9 +19,9 @@ const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
 //
 // Cuesta 0,44 ms medidos por robo.
 
-const { getAura, addAura, drainAura, spendAura, flushAura } = require('../utils/auraStore');
+const { getAura, addAura, drainAura, spendAura, flushAura, forzarCaja } = require('../utils/auraStore');
 const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/helpers');
-const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA, SALDO_MINIMO } = require('../utils/economia');
+const { ROBO, RIESGO, ROBO_BASE, ROBO_LIMITES, ROBO_OWNER_MIN, ROBO_OWNER_EXITO, ROBO_OWNER_VISIBLE, BOTE, ATRACO, OBJETOS, VENTAJA, CONTRA, DIANA, OBJETIVO_DIA, MOMENTUM, RECOMPENSA, SALDO_MINIMO, CAJA } = require('../utils/economia');
 const { ownerGana } = require('../utils/rigOwner');
 const { fichaFalsaBuscado } = require('../utils/fachada');
 const tienda = require('../utils/roboStore');
@@ -104,12 +104,24 @@ function calcChance(aO, aA, vO, vA, auraA, auraV) {
 //
 // `mult` se aplica sobre lo apostado. Positivo: pasa de la víctima al ladrón.
 // Negativo: sale del ladrón (y en el desastre, entra a la víctima).
+//
+// DOS NUMEROS TOCADOS AL SUBIR EL ROBO (lo pidio el dueño, ver ROBO_BASE):
+//
+//  · `parcial` pasa de x0,4 a x0,65. Era un TERCIO de los aciertos pagando
+//    menos de la mitad de lo apostado: ganabas y salias perdiendo, que es
+//    justo la sensacion de «esto no sirve de nada».
+//  · `desastre` baja de 0,30 a 0,22 de los fallos. Perderlo TODO una de cada
+//    tres derrotas era lo que hacia que no compensara acercarse. Sigue
+//    pasando, pero una de cada cinco.
+//
+// Lo que NO se toca son los multiplicadores del fallo (−0,5 y −1,0): si
+// perder no duele, no hay apuesta.
 const DESENLACES = {
   maestro:  { peso: 0.12, mult:  1.8, titulo: '*ROBO REDONDO*' },
   limpio:   { peso: 0.55, mult:  1.0, titulo: '*ROBO EXITOSO*' },
-  parcial:  { peso: 0.33, mult:  0.4, titulo: '*ROBO A MEDIAS*' },
+  parcial:  { peso: 0.33, mult: 0.65, titulo: '*ROBO A MEDIAS*' },
   fallo:    { peso: 0.70, mult: -0.5, titulo: '*ROBO FALLIDO*' },
-  desastre: { peso: 0.30, mult: -1.0, titulo: '*DESASTRE TOTAL*' },
+  desastre: { peso: 0.22, mult: -1.0, titulo: '*DESASTRE TOTAL*' },
 };
 
 // Cada desenlace tiene su propio pool: el texto de un golpe maestro no puede
@@ -1308,6 +1320,26 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     monto = movido;
     const vNew = { current: vTras };
 
+    // ─── EL GOLPE MAESTRO REVIENTA LA CAJA ──────────────────────────────────
+    //
+    // El dueño la veia rota: guardar el aura era inmunidad total al robo. Ahora
+    // esconderse es una capa mas de defensa, no un interruptor de invencible.
+    //
+    // Solo el maestro, que es el 12 % de los aciertos: con el 48 % de acierto
+    // sale una de cada diecisiete. La caja tiene que seguir sirviendo.
+    //
+    // VA APARTE DE `monto` Y ES A PROPOSITO. `monto` es lo que salio del saldo
+    // suelto y es la cifra sobre la que se calculan la recompensa, el golpe
+    // apuntado y la ventana de contraataque. Lo de la caja ni se retiene ni
+    // cuenta para la cabeza del ladron: se lo lleva entero. Sumarlo a `monto`
+    // haria que a la victima se le descontara DOS VECES —una en drainAura y
+    // otra de la caja— que es el fallo obvio de esta mecanica.
+    let forzado = 0;
+    if (clave === 'maestro') {
+      const caja = await forzarCaja(jid, target, CAJA.forzable).catch(() => ({ ok: false }));
+      if (caja.ok) forzado = caja.sacado;
+    }
+
     const enSuCabeza = isMainOwner(sender, msg.key.fromMe, groupMeta) ? 0 : Math.min(
       RECOMPENSA.tope,
       Math.round(monto * RECOMPENSA.fraccionDeGolpe),
@@ -1322,7 +1354,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
 
     // La victima tiene una ventana para devolver el golpe.
     anotarParaContra(jid, target, sender, monto);
-    const aNew = await addAura(jid, sender, +monto - enSuCabeza + cobrada);
+    const aNew = await addAura(jid, sender, +monto - enSuCabeza + cobrada + forzado);
     const phrase = pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag);
     // AQUI IBA UNA TERCERA FORMA DE DECIR EL DESENLACE.
     //
@@ -1340,6 +1372,10 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       // buscado no ve el cobro, la lista sigue pareciendo decorativa.
       + (cobrada ? `\n_Llevaba precio en la cabeza: *+${fmt(cobrada)}* de recompensa encima del botín._` : '')
       + (esObjDia ? `\n_Era el objetivo del día: botín +${Math.round(OBJETIVO_DIA.bonoBotin * 100)}%._` : '')
+      // La caja forzada SE DICE. Es lo mas gordo que puede pasar en un robo y
+      // si no sale aqui, la victima solo ve que le falta aura de la caja y no
+      // sabe por que. Una linea, y solo cuando de verdad habia algo dentro.
+      + (forzado ? `\n_Le reventó la caja: *+${fmt(forzado)}* que tenía guardados._` : '')
       // *!buscados* se nombra AQUI porque la guia ya no lo lista, y este es el
       // unico momento en que a alguien le importa: acaba de ver que una cabeza
       // vale dinero. Un comando que solo vive en una lista que nadie lee es un

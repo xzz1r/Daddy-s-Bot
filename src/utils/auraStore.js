@@ -493,6 +493,64 @@ async function sacarDeCaja(groupJid, userJid, cuanto) {
   });
 }
 
+// FORZAR LA CAJA. Se la lleva un golpe maestro (ver CAJA.forzable).
+//
+// No se destruye nada: lo que sale de la caja va al ladron, y quien llama se
+// encarga de abonarlo. Devuelve cuanto ha sacado para que el que cobra no
+// tenga que volver a leer la caja —entre la lectura y el abono cabe otro
+// comando— y para que la cifra que se anuncia sea la que de verdad se movio.
+async function forzarCaja(groupJid, victimaJid, fraccion) {
+  await load();
+  const qKey = `${groupJid}|${canonicalJid(victimaJid)}`;
+  return serialized(qKey, () => {
+    const z = cajaDe(groupJid);
+    const kZ = foldPerson(z, victimaJid);
+    const dentro = z[kZ] || 0;
+    if (dentro <= 0) return { ok: false, sacado: 0, dentro: 0 };
+    const sacado = Math.min(dentro, Math.max(1, Math.floor(dentro * fraccion)));
+    z[kZ] = dentro - sacado;
+    if (z[kZ] === 0) delete z[kZ];
+    scheduleSave();
+    return { ok: true, sacado, dentro: z[kZ] || 0 };
+  });
+}
+
+// PAGAR CON LO GUARDADO. Lo pidio el dueño: «que descuente lo que se tenga
+// guardado en el banco para que cuando se compre algo con eso no diga que no
+// tienes aura, simplemente descuente del banco con impuestos».
+//
+// `faltan` es lo que NO cubre el suelto. Se saca de la caja lo justo para
+// taparlo MAS el impuesto, asi que lo que se cobra de dentro es
+// `faltan / (1 - impuesto)` redondeado hacia arriba: el que paga nota que le
+// ha costado mas, que es lo que tiene que notar.
+//
+// Va en una sola operacion serializada por la misma razon que spendAura: leer
+// la caja, decidir y escribir en tres pasos deja que dos comandos a la vez
+// gasten el mismo aura.
+async function cobrarDeCaja(groupJid, userJid, faltan, impuesto) {
+  await load();
+  const qKey = `${groupJid}|${canonicalJid(userJid)}`;
+  return serialized(qKey, () => {
+    const n = Math.ceil(faltan);
+    if (!(n > 0)) return { ok: false, motivo: 'cantidad' };
+    const z = cajaDe(groupJid);
+    const kZ = foldPerson(z, userJid);
+    const dentro = z[kZ] || 0;
+    if (dentro <= 0) return { ok: false, motivo: 'vacio', dentro: 0 };
+
+    const bruto = Math.ceil(n / (1 - impuesto));
+    if (bruto > dentro) return { ok: false, motivo: 'no llega', dentro, bruto };
+
+    z[kZ] = dentro - bruto;
+    if (z[kZ] === 0) delete z[kZ];
+    scheduleSave();
+    // `cubierto` es lo que de verdad se ha pagado con esto; `impuestoPagado` es
+    // lo que se ha quedado por el camino. Los dos suman `bruto`, y quien llama
+    // manda el impuesto al bote para que no se evapore.
+    return { ok: true, bruto, cubierto: n, impuestoPagado: bruto - n, dentro: z[kZ] || 0 };
+  });
+}
+
 async function getAuraRanking(groupJid) {
   await load();
   const g = store[groupJid];
@@ -597,4 +655,4 @@ async function flushAura() {
 }
 
 module.exports = { getAura, addAura, spendAura, drainAura, transferAura, getAuraRanking, resetAura, flushAura, STARTING_AURA,
-  verCaja, esperaCaja, meterEnCaja, sacarDeCaja };
+  verCaja, esperaCaja, meterEnCaja, sacarDeCaja, forzarCaja, cobrarDeCaja };

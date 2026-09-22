@@ -757,14 +757,34 @@ const RIESGO = {
 // de un casino de verdad. O sea que robar sale ligeramente a perder a la larga,
 // que es lo que hace que ganar tenga gracia, pero la pérdida por intento es
 // calderilla al lado de lo que da escribir.
+// SUBIDO DIEZ PUNTOS, Y LO PIDIO EL DUEÑO: «los !robo son demasiado poco
+// efectivos. Demasiado poco».
+//
+// Medido antes de tocar nada, con un miembro en el punto dulce:
+//
+//     acierta 38 %  ·  pero un tercio de los aciertos era un ROBO A MEDIAS
+//     (x0,4), asi que solo el 21 % de los robos salia limpio o mejor
+//     · 62 % falla, y el 18,6 % del total era un desastre (pierdes lo apostado)
+//     · valor esperado: −6,2 por cada 100 apostados
+//
+// O sea que tres de cada cuatro robos dejaban al ladron igual o peor, y a la
+// larga el comando salia a perder. Eso estaba PUESTO A PROPOSITO —la nota de
+// abajo lo explicaba como ventaja de la casa— y el dueño lo ha revisado.
+//
+// Con la base en 48 se acierta casi la mitad de las veces y, con el ROBO A
+// MEDIAS subido a x0,65 y los desastres bajados al 22 % de los fallos, el
+// esperado pasa a +14,8 por cada 100. Sigue fallando mas de la mitad de las
+// veces: la diferencia es que ahora acertar paga.
 const ROBO_BASE = {
-  owner: 0.46,    // owner tier (co-owners); el owner principal va aparte
-  admin: 0.42,
-  miembro: 0.38,
+  owner: 0.56,    // owner tier (co-owners); el owner principal va aparte
+  admin: 0.52,
+  miembro: 0.48,
 };
 const ROBO_LIMITES = {
   suelo: 0.15,       // ni con todo en contra baja de aquí
-  techo: 0.60,       // ni con todo a favor sube de aquí
+  // El techo sube con la base para que venganza y ventaja sigan valiendo lo
+  // mismo: antes eran 22 puntos de recorrido (38 → 60) y siguen siendo 22.
+  techo: 0.70,       // ni con todo a favor sube de aquí
   techoOwner: 0.88,
 };
 
@@ -1349,13 +1369,43 @@ const REGALO_MIN = 1;
 // El aura guardada SÍ cuenta para el ranking. Si no contara, todo el mundo
 // guardaría para caerse de *!top* y dejar de ser objetivo del día: la caja
 // protege tu dinero, no tu reputación.
+// LA CAJA ERA UN BUNKER Y EL DUEÑO LA VIO ROTA: «lo de !lock lo veo muy
+// desbalanceado (esta OP)».
+//
+// Y lo estaba. Lo guardado era INTROBABLE al 100 %, cabian 2.000 —mas que el
+// saldo de casi cualquiera— y sacarlo costaba un 15 %. O sea que la jugada
+// optima era meter todo dentro y volverse inmune al robo: el comando mas
+// divertido del bot dejaba de poder tocarte por 15 % una vez.
+//
+// Se toca por los tres lados a la vez, que es lo que pidio:
+//
+//  1. CABE MENOS (2.000 -> 1.200). Una fortuna entera ya no entra; lo que
+//     sobra se queda fuera y es robable.
+//  2. ESCONDERSE CUESTA MAS (15 % -> 22 %, y de 2 h a 3 h entre cierres).
+//     Meter y sacar a demanda deja de salir barato.
+//  3. SE PUEDE REVENTAR. Ver `forzable`: un golpe maestro fuerza la caja.
+//     Esconder pasa de ser inmunidad a ser una capa mas de defensa.
 const CAJA = {
-  capacidad: 2000,        // una caja tiene fondo, no es una cámara acorazada
-  comision: 0.15,         // lo que cuesta abrirla (el impuesto normal es 0,12)
+  capacidad: 1200,        // una caja tiene fondo, no es una cámara acorazada
+  comision: 0.22,         // lo que cuesta abrirla (el impuesto normal es 0,12)
   comisionMinima: 1,      // sacar algo siempre cuesta algo
   minimoGuardar: 50,      // por debajo de esto no merece la pena ni cerrarla
-  enfriamientoMs: 2 * 3600000,   // dos horas entre cierre y cierre
+  enfriamientoMs: 3 * 3600000,   // tres horas entre cierre y cierre
   alBote: 1,              // la comisión entera va al bote: no se destruye aura
+
+  // LO QUE SE LLEVA UN GOLPE MAESTRO DE DENTRO DE LA CAJA.
+  //
+  // Solo el maestro, que es el 12 % de los aciertos: contando el 48 % de acierto
+  // sale una de cada diecisiete robos. Es raro a proposito — la caja tiene que
+  // seguir sirviendo para algo— pero deja de ser un sitio donde el aura esta a
+  // salvo pase lo que pase. Si te la fuerzan, se lo lleva el ladron entero: no
+  // se destruye nada.
+  forzable: 0.30,
+
+  // Y EL IMPUESTO DE PAGAR CON LO GUARDADO. Ver cobrarDeCaja: cuando no llega
+  // el suelto, el precio sale de la caja pagando esto. Es la misma comision de
+  // abrirla, porque es exactamente lo que se esta haciendo.
+  impuestoPago: 0.22,
 };
 
 const IMPUESTO = {

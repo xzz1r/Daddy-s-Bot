@@ -5,11 +5,11 @@
 // consulta a WhatsApp) y se devuelve si el recurso falla, para que nadie pague
 // por una canción que no llegó.
 
-const { spendAura, addAura } = require('./auraStore');
-const { PRECIOS, SALDO_MINIMO, OBJETOS, DIA } = require('./economia');
+const { spendAura, addAura, getAura, cobrarDeCaja } = require('./auraStore');
+const { PRECIOS, SALDO_MINIMO, OBJETOS, DIA, CAJA } = require('./economia');
 // require perezoso: roboStore importa de aqui? No, pero se deja explicito para
 // que quede claro que este modulo depende del inventario.
-const { tieneSocio } = require('./roboStore');
+const { tieneSocio, aportarAlBote } = require('./roboStore');
 const { fmt, pickFresh, claveDia } = require('./helpers');
 const { isOwner, canonicalJid } = require('./wa');
 
@@ -104,9 +104,52 @@ async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta
   // de que ninguno escriba y los dos cobran. Con el saldo justo eso dejaba al
   // usuario en negativo comprando, que es lo que SALDO_MINIMO impide.
   const r = await spendAura(groupJid, senderJid, precio, SALDO_MINIMO);
-  if (!r.ok) return { ok: false, precio, saldo: r.saldo };
-  apuntarUso(groupJid, senderJid, concepto);
-  return { ok: true, pagado: precio, saldo: r.current, precioBase: base, rafaga: precio > base };
+  if (r.ok) {
+    apuntarUso(groupJid, senderJid, concepto);
+    return { ok: true, pagado: precio, saldo: r.current, precioBase: base, rafaga: precio > base };
+  }
+
+  // ─── SI NO LLEGA EL SUELTO, SE TIRA DE LA CAJA ──────────────────────────
+  //
+  // Lo pidio el dueño: «que descuente lo que se tenga guardado en el banco
+  // para que cuando se compre algo con eso no diga que no tienes aura,
+  // simplemente descuente del banco con impuestos».
+  //
+  // Antes daba igual lo guardado: el cobro miraba el suelto, no llegaba y
+  // salia el «no te llega» con 1.200 dentro de la caja. Para gastarlos habia
+  // que acordarse de *!unlock*, pagar el 22 % y volver a escribir el comando.
+  //
+  // Ahora se tapa el hueco solo, y CUESTA: sale de la caja lo que falta mas el
+  // impuesto, que es la misma comision de abrirla —porque es exactamente lo
+  // que se esta haciendo—. Asi pagar con lo escondido sigue siendo peor que
+  // pagar con lo suelto, que es lo que mantiene la caja siendo una decision.
+  //
+  // OJO CON EL ORDEN: primero se cobra de la caja y solo despues se descuenta
+  // el suelto. Al reves, un corte entre las dos mitades dejaria el suelto
+  // gastado y la caja intacta.
+  const suelto = Math.max(0, (r.saldo ?? 0) - SALDO_MINIMO);
+  const faltan = precio - suelto;
+  if (faltan > 0) {
+    const caja = await cobrarDeCaja(groupJid, senderJid, faltan, CAJA.impuestoPago)
+      .catch(() => ({ ok: false }));
+    if (caja.ok) {
+      // El impuesto va al bote, igual que el de *!unlock*: si se evaporase,
+      // cada pago desde la caja encogeria la economia del grupo un poco.
+      if (caja.impuestoPagado > 0) {
+        await aportarAlBote(groupJid, caja.impuestoPagado).catch(() => {});
+      }
+      // Y lo suelto se gasta entero, que es lo que el hueco daba por hecho.
+      if (suelto > 0) await spendAura(groupJid, senderJid, suelto, SALDO_MINIMO).catch(() => {});
+      apuntarUso(groupJid, senderJid, concepto);
+      const saldoTras = await getAura(groupJid, senderJid).catch(() => null);
+      return {
+        ok: true, pagado: precio, saldo: saldoTras, precioBase: base, rafaga: precio > base,
+        // Para que el comando pueda decirlo: se ha pagado con lo escondido.
+        deLaCaja: caja.bruto, impuestoCaja: caja.impuestoPagado, cajaRestante: caja.dentro,
+      };
+    }
+  }
+  return { ok: false, precio, saldo: r.saldo };
 }
 
 // Devuelve lo cobrado. Se llama cuando el recurso falló después del cobro.
