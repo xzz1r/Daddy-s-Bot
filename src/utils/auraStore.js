@@ -519,35 +519,55 @@ async function forzarCaja(groupJid, victimaJid, fraccion) {
 // guardado en el banco para que cuando se compre algo con eso no diga que no
 // tienes aura, simplemente descuente del banco con impuestos».
 //
-// `faltan` es lo que NO cubre el suelto. Se saca de la caja lo justo para
-// taparlo MAS el impuesto, asi que lo que se cobra de dentro es
-// `faltan / (1 - impuesto)` redondeado hacia arriba: el que paga nota que le
-// ha costado mas, que es lo que tiene que notar.
+// Se gasta el suelto hasta SALDO_MINIMO y lo que falte sale de la caja MAS el
+// impuesto: lo que se cobra de dentro es `faltan / (1 - impuesto)` redondeado
+// hacia arriba, y el que paga nota que le ha costado mas, que es lo que tiene
+// que notar.
 //
-// Va en una sola operacion serializada por la misma razon que spendAura: leer
-// la caja, decidir y escribir en tres pasos deja que dos comandos a la vez
-// gasten el mismo aura.
-async function cobrarDeCaja(groupJid, userJid, faltan, impuesto) {
+// SUELTO Y CAJA EN LA MISMA OPERACION, y esto es el arreglo. Antes eran tres
+// pasos —leer el suelto, cobrar la caja, gastar el suelto— y entre el segundo y
+// el tercero cabia otro comando de la misma persona. Medido con dos a la vez
+// (uno de 120 y otro de 30, con 30 sueltos y la caja llena): el de 30 se comia
+// el suelto, el de 120 cobraba 90 de la caja, el gasto del suelto fallaba EN
+// SILENCIO y el cobro decia «120 pagados». Si luego se devolvia, se devolvian
+// 120: treinta de aura de la nada. Aqui la lectura y las dos restas van dentro
+// del mismo bloque serializado, y lo que se devuelve es lo que de verdad se
+// cobro.
+async function pagarConCaja(groupJid, userJid, precio, impuesto, minimo = 0) {
   await load();
   const qKey = `${groupJid}|${canonicalJid(userJid)}`;
   return serialized(qKey, () => {
-    const n = Math.ceil(faltan);
+    const n = Math.ceil(precio);
     if (!(n > 0)) return { ok: false, motivo: 'cantidad' };
+    if (!store[groupJid]) store[groupJid] = {};
+    const kA = foldPerson(store[groupJid], userJid);
+    const saldo = store[groupJid][kA] === undefined ? STARTING_AURA : store[groupJid][kA];
+    const suelto = Math.max(0, Math.min(n, saldo - minimo));
+    const faltan = n - suelto;
+    // Si entre el primer intento y este le ha entrado aura y el suelto ya
+    // llega, se cobra de ahi y ya: contestar «no te llega» seria mentira.
+    if (faltan <= 0) {
+      store[groupJid][kA] = saldo - n;
+      scheduleSave();
+      return { ok: true, suelto: n, bruto: 0, cubierto: 0, impuestoPagado: 0,
+        dentro: cajaDe(groupJid)[canonicalJid(userJid)] || 0, current: store[groupJid][kA] };
+    }
+
     const z = cajaDe(groupJid);
     const kZ = foldPerson(z, userJid);
     const dentro = z[kZ] || 0;
-    if (dentro <= 0) return { ok: false, motivo: 'vacio', dentro: 0 };
-
-    const bruto = Math.ceil(n / (1 - impuesto));
-    if (bruto > dentro) return { ok: false, motivo: 'no llega', dentro, bruto };
+    if (dentro <= 0) return { ok: false, motivo: 'vacio', dentro: 0, saldo };
+    const bruto = Math.ceil(faltan / (1 - impuesto));
+    if (bruto > dentro) return { ok: false, motivo: 'no llega', dentro, bruto, saldo };
 
     z[kZ] = dentro - bruto;
     if (z[kZ] === 0) delete z[kZ];
+    store[groupJid][kA] = saldo - suelto;
     scheduleSave();
-    // `cubierto` es lo que de verdad se ha pagado con esto; `impuestoPagado` es
-    // lo que se ha quedado por el camino. Los dos suman `bruto`, y quien llama
-    // manda el impuesto al bote para que no se evapore.
-    return { ok: true, bruto, cubierto: n, impuestoPagado: bruto - n, dentro: z[kZ] || 0 };
+    // `suelto + cubierto` es el precio; `impuestoPagado` es lo que se queda por
+    // el camino y quien llama lo manda al bote para que no se evapore.
+    return { ok: true, suelto, bruto, cubierto: faltan, impuestoPagado: bruto - faltan,
+      dentro: z[kZ] || 0, current: store[groupJid][kA] };
   });
 }
 
@@ -655,4 +675,4 @@ async function flushAura() {
 }
 
 module.exports = { getAura, addAura, spendAura, drainAura, transferAura, getAuraRanking, resetAura, flushAura, STARTING_AURA,
-  verCaja, esperaCaja, meterEnCaja, sacarDeCaja, forzarCaja, cobrarDeCaja };
+  verCaja, esperaCaja, meterEnCaja, sacarDeCaja, forzarCaja, pagarConCaja };

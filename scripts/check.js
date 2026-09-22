@@ -18466,6 +18466,64 @@ const manda = async (quien, tipo, opciones) => {
     exige(LV103.COBRO_CENTRAL.caso === 'caso' && LV103.COBRO_CENTRAL.expediente === 'caso', '!caso o !expediente no cobran');
     if (fallos === antes103) console.log(verde('   ✓ el expediente sale con datos y veredicto, del dueño hay silencio y se devuelve, y la inactividad manda'));
   }
+
+  // ── 104. PAGAR CON LA CAJA: LO QUE SE ANUNCIA ES LO QUE SE COBRA ─────────
+  //
+  // El pago desde la caja eran tres pasos y otro comando de la misma persona
+  // cabia en medio: con 30 sueltos, uno de 120 y otro de 30 a la vez, el de
+  // 120 decia «120 pagados» habiendo cobrado 90, y al devolverlo aparecian 30
+  // de aura de la nada. Se prueba con los dos comandos A LA VEZ, que es lo
+  // unico que lo destapa.
+  {
+    console.log('\n104. PAGAR CON LA CAJA: LO QUE SE ANUNCIA ES LO QUE SE COBRA');
+    const antes104 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const A4 = require(path.join(R, 'src/utils/auraStore'));
+    const C4 = require(path.join(R, 'src/utils/auraCobro'));
+    const { PRECIOS: P4, SALDO_MINIMO: SM4 } = require(path.join(R, 'src/utils/economia'));
+    const caro = Object.keys(P4).find((k) => P4[k] >= 60);
+    const barato = Object.keys(P4).find((k) => P4[k] >= 10 && P4[k] <= 30);
+    const total = async (g, u) => (await A4.getAura(g, u)) + (await A4.verCaja(g, u));
+    const prepara = async (g, u, suelto) => {
+      await A4.addAura(g, u, 5000); await A4.meterEnCaja(g, u, 1000);
+      await A4.addAura(g, u, SM4 + suelto - (await A4.getAura(g, u)));
+    };
+
+    // 1. Los dos a la vez.
+    {
+      const G = `12036300000${`${Date.now()}`.slice(-4)}104@g.us`;
+      const U = '34600001041@s.whatsapp.net';
+      await prepara(G, U, P4[barato]);
+      const t0 = await total(G, U);
+      const [ra, rb] = await Promise.all([C4.cobrar(G, U, caro), C4.cobrar(G, U, barato)]);
+      const salio = t0 - (await total(G, U));
+      const dicho = [ra, rb].reduce((acc, r) => acc + (r.ok ? r.pagado + (r.impuestoCaja || 0) : 0), 0);
+      exige(ra.ok && rb.ok, `con la caja llena algun cobro dice que no llega: ${caro}=${ra.ok} ${barato}=${rb.ok}`);
+      exige(salio === dicho, `a la vez: salen ${salio} de aura y los cobros anuncian ${dicho} — el pago desde la caja no es atomico`);
+      const t1 = await total(G, U);
+      await C4.devolver(G, U, ra.pagado, caro);
+      exige((await total(G, U)) - t1 === ra.pagado && ra.pagado === P4[caro],
+        `devolver ${caro} no deja las cuentas donde estaban: se devuelve ${ra.pagado} y cuesta ${P4[caro]}`);
+      exige((await A4.getAura(G, U)) >= SM4, 'pagando con la caja el suelto baja del minimo');
+    }
+
+    // 2. Solo, sin carreras: suelto hasta el minimo y el resto de la caja con
+    //    su impuesto, que va al bote y no se evapora.
+    {
+      const tienda4 = require(path.join(R, 'src/utils/roboStore'));
+      const G = `12036300000${`${Date.now()}`.slice(-4)}114@g.us`;
+      const U = '34600001042@s.whatsapp.net';
+      await prepara(G, U, 10);
+      const bote0 = await tienda4.verBote(G);
+      const t0 = await total(G, U);
+      const r = await C4.cobrar(G, U, caro);
+      exige(r.ok && r.deLaCaja > 0 && r.pagado === P4[caro], `pagar ${caro} con 10 sueltos y la caja llena no sale: ${JSON.stringify(r)}`);
+      exige((await A4.getAura(G, U)) === SM4, 'el suelto no se gasta hasta el minimo antes de tirar de la caja');
+      exige(t0 - (await total(G, U)) === r.pagado + r.impuestoCaja, 'lo que sale de saldo y caja no es precio + impuesto');
+      exige((await tienda4.verBote(G)) - bote0 === r.impuestoCaja, 'el impuesto de pagar con la caja no llega al bote');
+    }
+    if (fallos === antes104) console.log(verde('   ✓ dos cobros a la vez cobran lo que anuncian, la devolucion es exacta y el impuesto llega al bote'));
+  }
   }
 
   if (BREVE) {

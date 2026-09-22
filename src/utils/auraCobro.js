@@ -5,7 +5,7 @@
 // consulta a WhatsApp) y se devuelve si el recurso falla, para que nadie pague
 // por una canción que no llegó.
 
-const { spendAura, addAura, getAura, cobrarDeCaja } = require('./auraStore');
+const { spendAura, addAura, pagarConCaja, flushAura } = require('./auraStore');
 const { PRECIOS, SALDO_MINIMO, OBJETOS, DIA, CAJA, ADMIN } = require('./economia');
 // require perezoso: roboStore importa de aqui? No, pero se deja explicito para
 // que quede claro que este modulo depende del inventario.
@@ -136,30 +136,28 @@ async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta
   // que se esta haciendo—. Asi pagar con lo escondido sigue siendo peor que
   // pagar con lo suelto, que es lo que mantiene la caja siendo una decision.
   //
-  // OJO CON EL ORDEN: primero se cobra de la caja y solo despues se descuenta
-  // el suelto. Al reves, un corte entre las dos mitades dejaria el suelto
-  // gastado y la caja intacta.
-  const suelto = Math.max(0, (r.saldo ?? 0) - SALDO_MINIMO);
-  const faltan = precio - suelto;
-  if (faltan > 0) {
-    const caja = await cobrarDeCaja(groupJid, senderJid, faltan, CAJA.impuestoPago)
-      .catch(() => ({ ok: false }));
-    if (caja.ok) {
-      // El impuesto va al bote, igual que el de *!unlock*: si se evaporase,
-      // cada pago desde la caja encogeria la economia del grupo un poco.
-      if (caja.impuestoPagado > 0) {
-        await aportarAlBote(groupJid, caja.impuestoPagado).catch(() => {});
-      }
-      // Y lo suelto se gasta entero, que es lo que el hueco daba por hecho.
-      if (suelto > 0) await spendAura(groupJid, senderJid, suelto, SALDO_MINIMO).catch(() => {});
-      apuntarUso(groupJid, senderJid, concepto);
-      const saldoTras = await getAura(groupJid, senderJid).catch(() => null);
-      return {
-        ok: true, pagado: precio, saldo: saldoTras, precioBase: base, rafaga: precio > base,
-        // Para que el comando pueda decirlo: se ha pagado con lo escondido.
-        deLaCaja: caja.bruto, impuestoCaja: caja.impuestoPagado, cajaRestante: caja.dentro,
-      };
+  // Suelto y caja se cobran en UNA operacion (ver pagarConCaja): en tres
+  // pasos, otro comando de la misma persona se colaba en medio y el cobro
+  // anunciaba un precio que no habia cobrado entero.
+  const caja = await pagarConCaja(groupJid, senderJid, precio, CAJA.impuestoPago, SALDO_MINIMO)
+    .catch(() => ({ ok: false }));
+  if (caja.ok) {
+    // El impuesto va al bote, igual que el de *!unlock*: si se evaporase,
+    // cada pago desde la caja encogeria la economia del grupo un poco.
+    //
+    // Y ANTES SE VUELCA EL AURA. El bote vive en robo.json, que se guarda antes
+    // que aura.json: sin esto, un corte en medio deja el impuesto en el bote y
+    // la caja sin descontar — aura inventada. La misma regla que sigue robo.js.
+    if (caja.impuestoPagado > 0) {
+      await flushAura().catch(() => {});
+      await aportarAlBote(groupJid, caja.impuestoPagado).catch(() => {});
     }
+    apuntarUso(groupJid, senderJid, concepto);
+    return {
+      ok: true, pagado: caja.suelto + caja.cubierto, saldo: caja.current, precioBase: base, rafaga: precio > base,
+      // Para que el comando pueda decirlo: se ha pagado con lo escondido.
+      deLaCaja: caja.bruto, impuestoCaja: caja.impuestoPagado, cajaRestante: caja.dentro,
+    };
   }
   return { ok: false, precio, saldo: r.saldo };
 }
