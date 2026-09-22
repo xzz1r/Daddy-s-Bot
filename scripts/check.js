@@ -17617,6 +17617,85 @@ const manda = async (quien, tipo, opciones) => {
     if (fallos === antes98) console.log(verde('   ✓ en el grupo !whoami no delata a nadie del tier, y en el privado sí responde'));
   }
 
+  // ── 99. EL ROBO QUE SALE BIEN NO ARRASTRA COLA ──────────────────────────
+  //
+  // El dueño lo vio en el grupo: el mensaje de un robo con éxito eran doce
+  // líneas, y en un móvil se parten en quince. «Pura contaminación visual».
+  //
+  // Se recortó, y el riesgo de recortar es pasarse: aquí abajo está lo que NO
+  // puede perderse por mucho que se siga limpiando —el dinero, el chiste y la
+  // ventana de 90 s, que caduca— y lo que no puede volver, que es la cola de
+  // estadísticas, el tutorial y las dos cosas que se decían dos veces.
+  {
+    console.log('\n99. EL ROBO QUE SALE BIEN NO ARRASTRA COLA');
+    const antes99 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { cmdRobo } = require(path.join(R, 'src/commands/robo'));
+    const { addAura } = require(path.join(R, 'src/utils/auraStore'));
+    const G99 = '000000099@g.us';
+    const sello99 = `${Date.now()}`.slice(-6);
+    const A99 = `3460009${sello99}1@s.whatsapp.net`;
+    const V99 = `3460009${sello99}2@s.whatsapp.net`;
+    const BOT99 = '34600000099@s.whatsapp.net';
+    const visto99 = [];
+    const sock99 = {
+      user: { id: BOT99 },
+      sendMessage: async (j, c) => { visto99.push(c.text || ''); return { key: { id: 'x' } }; },
+    };
+    const meta99 = { id: G99, participants: [{ id: BOT99, admin: 'admin' }, { id: A99 }, { id: V99 }] };
+
+    await addAura(G99, A99, 4000);
+    await addAura(G99, V99, 4000);
+    // Dado bajo = primera rama del exito = el golpe maestro, que es el que mas
+    // cola llevaba (titular, explicacion, objetivo del dia y recompensa).
+    const dadoReal = Math.random;
+    Math.random = () => 0.001;
+    try {
+      await cmdRobo(sock99, {
+        key: { remoteJid: G99, id: `R99${sello99}`, participant: A99, fromMe: false },
+        message: { extendedTextMessage: { text: '!robar 200', contextInfo: { mentionedJid: [V99] } } },
+      }, ['200'], meta99);
+    } finally { Math.random = dadoReal; }
+
+    const txt99 = visto99.join('\n');
+    exige(/ROBO/.test(txt99), `el robo no ha contestado nada: ${JSON.stringify(txt99.slice(0, 120))}`);
+    if (/ROBO/.test(txt99)) {
+      // ── LO QUE NO SE PUEDE PERDER ─────────────────────────────────────────
+      // El dinero, las dos patas. Sin esto no hay economia que mirar.
+      exige(/\+\d+\s*→/.test(txt99) && /−\d+\s*→/.test(txt99),
+        `el robo ya no dice cuánto se movió ni cómo quedan: ${JSON.stringify(txt99.slice(0, 200))}`);
+      // La ventana, que CADUCA en 90 s. Si no sale aqui, no sale en ningun
+      // sitio donde sirva: nadie se acuerda de un comando por el menu.
+      exige(/!contrarobo/.test(txt99),
+        'el robo ya no avisa de !contrarobo: esa ventana dura 90 s y sin el aviso no la usa nadie');
+      // El precio en la cabeza es lo unico que hace que !buscados exista.
+      exige(/!buscados/.test(txt99),
+        'el robo ya no dice que el ladrón lleva precio encima: !buscados se queda en una lista que nadie abre');
+
+      // ── LO QUE NO PUEDE VOLVER ────────────────────────────────────────────
+      exige(!/\btope \d/.test(txt99),
+        `ha vuelto la cola de estadísticas ("tope N · NN%") al robo que sale bien: ahí no responde a nada`);
+      exige(!/para elegir/.test(txt99),
+        'ha vuelto el tutorial de "*!robo @alguien 200* para elegir" pegado a cada robo');
+      exige(!/Caliente\./.test(txt99),
+        'ha vuelto el aviso de "Caliente" al robo: eso ya lo dice *!aura* en el momento en que de verdad se aplica');
+      // Y NADA DOS VECES. Era el fallo de fondo: "objetivo del dia" salia en la
+      // cola Y arriba con su porcentaje, y el desenlace se contaba en el
+      // titular, en una linea suelta y otra vez en la frase.
+      const objDia = (txt99.match(/objetivo del d[ií]a/gi) || []).length;
+      exige(objDia <= 1,
+        `"objetivo del día" sale ${objDia} veces en el mismo mensaje: se dice una o ninguna`);
+      exige(!/se llevó bastante más de lo que iba a por|Lo pillaron a mitad/.test(txt99),
+        'ha vuelto la línea que repite lo que ya dice el titular (*ROBO REDONDO* / *ROBO A MEDIAS*)');
+
+      // Y QUE NO SE VUELVA A INFLAR. Doce lineas era el problema.
+      const lineas99 = txt99.split('\n').filter((l) => l.trim()).length;
+      exige(lineas99 <= 8,
+        `el mensaje del robo ha vuelto a ${lineas99} líneas: se recortó a 8 porque en un móvil cada una se parte en dos`);
+    }
+    if (fallos === antes99) console.log(verde('   ✓ el robo dice el dinero, el chiste y los 90 s, y no arrastra cola ni repite nada'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     if (!fallos) sellar();

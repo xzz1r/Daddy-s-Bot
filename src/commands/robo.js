@@ -1324,10 +1324,17 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     anotarParaContra(jid, target, sender, monto);
     const aNew = await addAura(jid, sender, +monto - enSuCabeza + cobrada);
     const phrase = pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag);
+    // AQUI IBA UNA TERCERA FORMA DE DECIR EL DESENLACE.
+    //
+    // «Le salio redondo: se llevo bastante mas de lo que iba a por» debajo de un
+    // titular que pone *ROBO REDONDO* y encima de una frase que dice «se llevo
+    // tanto que @V va a tener que pedir prestado para volver a existir». Tres
+    // veces lo mismo, y la del medio es la unica que no aporta ni titular ni
+    // chiste. Igual con *ROBO A MEDIAS* y su «lo pillaron a mitad».
+    //
+    // El titular ya lo dice de un vistazo, que es justo para lo que esta.
     const extra =
-      (clave === 'maestro' ? '\n_Le salió redondo: se llevó bastante más de lo que iba a por._'
-     : clave === 'parcial' ? '\n_Lo pillaron a mitad y solo pudo llevarse una parte._'
-     : '')
+      ''
       // Las dos patas de la recompensa se DICEN. Si el ladron no ve que le
       // retienen, cree que el bot le ha pagado de menos; y si el que caza a un
       // buscado no ve el cobro, la lista sigue pareciendo decorativa.
@@ -1357,7 +1364,36 @@ async function cmdRobo(sock, msg, args, groupMeta) {
       // Va aqui y no en el menu porque un aviso sirve cuando llega en el
       // segundo en que hace falta, no en una lista que se lee una vez.
       `\n_${vTag}: ${CONTRA.ventanaSeg}s para *!contrarobo* — doble o nada._` +
-      notaDinamicas;
+      // EL ROBO QUE SALE BIEN SE QUEDA EN LO QUE PASO. Aqui iba `notaDinamicas`
+      // entero y eran DOS lineas mas de cola, que en un movil se parten en
+      // cuatro. El dueño lo vio en el grupo: contaminacion visual.
+      //
+      // De lo que llevaba, esto es lo que se va y por que:
+      //
+      //  · `tope N · NN%` — estadistica de la tirada. En un robo que SALE no
+      //    responde a nada: ya sabes cuanto te llevaste, esta abajo en verde.
+      //    En el que falla si contesta «que posibilidades tenia», asi que ahi
+      //    sigue puesto.
+      //  · `*!robo @alguien 200* para elegir` — tutorial. Mismo caso que el
+      //    parrafo de aura que se quito del "no te llega": la peña no aprende
+      //    el juego en la cola de un mensaje que lee por el chiste.
+      //  · los motivos de riesgo (`codicia (−14%)`…) — explican una derrota.
+      //    Pegados a una victoria son ruido. Se quedan en el fallo, que es
+      //    donde el desglose del owner tiene que seguir saliendo para que su
+      //    ausencia no lo delate.
+      //  · `objetivo del día` — SALIA DOS VECES EN EL MISMO MENSAJE: una aqui
+      //    dentro de los motivos y otra arriba en `Era el objetivo del dia`.
+      //    Quitando esta cola, queda la de arriba, que es la que dice cuanto.
+      //  · `Caliente. La proxima *!aura* lleva un +N%` — se anuncia OTRA VEZ en
+      //    *!aura*, y alli en el momento en que de verdad se aplica
+      //    («Vienes de un golpe: esta tirada llevaba un +N%»). Un efecto que
+      //    se cuenta cuando se gana y cuando se gasta se cuenta una vez: al
+      //    gastarlo.
+      //
+      // Lo que SI se queda es `notaTope`, que no es cola ni estadistica:
+      // explica por que el numero es mas pequeño de lo que se pidio («ibas a
+      // por 400, solo tenia 90»). Sin eso, el recorte parece que cobra mal.
+      notaTope;
     return sock.sendMessage(jid, { text, mentions: [sender, target] });
   }
 
