@@ -2094,7 +2094,7 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
       const notifHist = getHistoryMsg(msg.message);
       if (notifHist) {
         // info y no warn: con syncFullHistory apagado esto sale poco, pero un
-        // WARN por lote llenaba el log de una VPS que no tiene logrotate.
+        // WARN por lote llenaba el log entre dos rotaciones de pm2-logrotate.
         logger.info(`historial: lote tipo=${notifHist.syncType} fromMe=${msg.key?.fromMe}`);
         downloadAndProcessHistorySyncNotification(notifHist, {})
           .then((data) => {

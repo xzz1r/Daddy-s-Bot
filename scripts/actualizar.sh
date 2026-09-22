@@ -252,8 +252,8 @@ fi
 
 # LA PUERTA. Entera, salvo que el sello diga que este arbol EXACTO ya la paso.
 #
-# Medido en un solo nucleo, que es lo que tiene esta maquina: las 89 capas
-# tardan ~114 s y el resto del despliegue ~2 s. O sea que actualizar era casi
+# Medido en un solo nucleo, que es lo que tiene esta maquina: la puerta entera
+# tardaba ~114 s y el resto del despliegue ~2 s. O sea que actualizar era casi
 # enteramente esto. Y no se arregla corriendolo mejor: paralelizar los 115
 # procesos hijo da 0,96x en un nucleo (el trabajo es CPU, no disco) y la cache
 # de compilacion de V8 no acierta porque cada hijo se copia src/ a un temporal
@@ -267,7 +267,7 @@ fi
 # incluida, para que aflojarla rompa la huella.
 #
 # Si no cuadra —un fichero tocado a mano, una bajada a medias, un push sin pasar
-# la puerta— corre las 89 como siempre. El caso inseguro se protege solo.
+# la puerta— corre entera como siempre. El caso inseguro se protege solo.
 if node scripts/sello.js --cuadra 2>/dev/null; then
   echo "→ El sello cuadra: se comprueba solo lo de esta máquina"
   MODO_CHECK="--rapido"
