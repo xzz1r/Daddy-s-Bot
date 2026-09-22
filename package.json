@@ -24,7 +24,8 @@
     "enlace": "node scripts/enlace.js",
     "actos": "node scripts/actos.js",
     "x": "node scripts/x.js",
-    "seguro": "bash scripts/seguro.sh"
+    "seguro": "bash scripts/seguro.sh",
+    "ci": "bash scripts/ci-local.sh"
   },
   "repository": {
     "type": "git",

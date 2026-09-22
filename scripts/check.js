@@ -18665,6 +18665,34 @@ const manda = async (quien, tipo, opciones) => {
     }
     if (fallos === antes106) console.log(verde('   ✓ ni una linea de adorno en lo que manda el bot'));
   }
+
+  // ── 107. EL CI LOCAL Y EL DE GITHUB PRUEBAN LO MISMO ────────────────────
+  //
+  // `npm run ci` existe para que lo que se empuja salga verde en GitHub a la
+  // primera: cada rojo alli es un correo al dueño. Solo sirve si las dos
+  // pruebas son iguales: mismo `npm ci`, mismo check y las mismas
+  // herramientas. Si el workflow instala algo que el guion local no exige, el
+  // local vuelve a dar verde donde GitHub da rojo — que es como salieron los
+  // dos primeros correos.
+  {
+    console.log('\n107. EL CI LOCAL Y EL DE GITHUB PRUEBAN LO MISMO');
+    const antes107 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const wf = fs.readFileSync(path.join(R, '.github/workflows/check.yml'), 'utf8');
+    const loc = fs.readFileSync(path.join(R, 'scripts/ci-local.sh'), 'utf8');
+    const pkg = require(path.join(R, 'package.json'));
+    exige(pkg.scripts.ci === 'bash scripts/ci-local.sh', 'npm run ci ya no corre scripts/ci-local.sh');
+    const npmCi = (t) => (t.match(/npm ci [^\n]*/) || [''])[0].replace(/\s+--loglevel=\S+/, '').trim();
+    exige(npmCi(wf) && npmCi(wf) === npmCi(loc), `el npm ci no es el mismo: GitHub «${npmCi(wf)}», local «${npmCi(loc)}»`);
+    exige(/node scripts\/check\.js/.test(wf) && /node scripts\/check\.js/.test(loc), 'uno de los dos ya no corre scripts/check.js');
+    exige(/git clone/.test(loc), 'el ci local ya no prueba en un clon limpio: vuelve a probar la copia con su data/');
+    const instala = [...wf.matchAll(/(?:pipx|pip3?|apt-get|apt) install(?: -y)?((?: [\w.+-]+)+)/g)]
+      .flatMap((m) => m[1].trim().split(/\s+/)).filter((x) => !x.startsWith('-'));
+    const exigidas = ((loc.match(/for herramienta in ([^;]+);/) || [])[1] || '').trim().split(/\s+/);
+    const faltan = instala.filter((h) => !exigidas.includes(h));
+    exige(faltan.length === 0, `GitHub instala ${faltan.join(', ')} y el ci local no lo exige: aqui daria verde y alli rojo`);
+    if (fallos === antes107) console.log(verde(`   ✓ los dos hacen el mismo npm ci, corren el mismo check y piden lo mismo (${instala.join(', ') || 'nada'})`));
+  }
   }
 
   if (BREVE) {

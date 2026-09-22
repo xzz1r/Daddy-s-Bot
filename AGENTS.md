@@ -10,6 +10,11 @@ Cómo se escribe una frase: `GUIA.md`. Cómo se valida: `npm run check`.
 un clon limpio: sin `data/`, sin `.env`, sin la despensa. Si una capa solo pasa
 con el estado de la VPS, ahí sale en rojo, y eso es un fallo de la capa.
 
+**Antes de cada push: `npm run ci`.** Prueba lo commiteado en un clon limpio,
+igual que GitHub. `npm run check` en tu copia no basta: tiene `data/` y
+herramientas que GitHub no tiene. Cada run rojo es un correo al dueño; si
+`npm run ci` no sale verde, no se empuja.
+
 ## Añadir un comando o un alias
 
 Dos sitios, y la puerta exige los dos:
