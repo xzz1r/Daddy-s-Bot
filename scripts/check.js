@@ -4228,6 +4228,25 @@ const di=async(quien,texto,extra)=>{
       exige(arranque[1] <= Math.ceil(AV.MAL_ESCRITO.length * 0.22),
         `${arranque[1]} de ${AV.MAL_ESCRITO.length} frases de MAL_ESCRITO empiezan por "${arranque[0]}": lo primero que se lee es siempre lo mismo`);
 
+      // ESPAÑOL NEUTRAL. En el grupo hay gente de Paraguay, Colombia y España,
+      // y el bot escribe para los tres. El dueño lo pidio al ver «sesera»,
+      // «mollera» y «coco»: «utiliza palabras mas contemporaneas y procura ser
+      // mas neutral en tu vocabulario».
+      //
+      // Son palabras que en media America o no se usan o suenan a otra epoca, y
+      // un insulto que el que lo recibe tiene que traducir no pega. Se vigilan
+      // las que se colaron, no todas las de España que existen: el objetivo es
+      // que no vuelvan ESTAS, que son las que ya pasaron una vez.
+      //
+      // Lo que se puso en su sitio: cabeza, cerebro y neuronas para la cabeza;
+      // carajo donde habia hostia o cojones; imbecil e idiota donde habia
+      // gilipollas; bruto donde habia tonto del culo; cagarla donde habia
+      // joderlo. Todas se entienden igual en los tres sitios.
+      const REGIONAL = /sesera|mollera|\bcoco\b|hostia|gilipollas|cojones|tonto del culo|menud[oa] |capullo|pringado|flipa/i;
+      const regionales = AV.MAL_ESCRITO.filter((f) => REGIONAL.test(f));
+      exige(regionales.length === 0,
+        `MAL_ESCRITO vuelve a usar vocabulario solo de España, y el grupo no es solo de España: "${regionales[0] || ''}"`);
+
       // Y QUE HAYA DE SOBRA. Este aviso lo dispara cualquiera que teclee mal, o
       // sea a diario, y con la ventana de pickFresh un pool corto se recita.
       exige(AV.MAL_ESCRITO.length >= 50,
