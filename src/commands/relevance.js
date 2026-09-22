@@ -400,7 +400,7 @@ async function cmdRelevance(sock, msg, groupMeta) {
 
   const text =
     `*RELEVANCIA EN EL GRUPO*\n` +
-    `╾━━━━━━━━━━━━━━╼\n\n` +
+    `\n` +
     `${nm} — *${label}*\n\n` +
     `${phrase}`;
 

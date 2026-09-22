@@ -988,6 +988,11 @@ programa.
 La regla que sale de los seis: **edita el pool que estás trabajando y solo ese.**
 Un cambio que toca 62 pools para arreglar 6 va a romper algo siempre.
 
+**7. Nada de líneas de adorno.** Ni `╾━━━━━━╼` bajo los títulos ni `━━ *X* ━━`
+alrededor de las cabeceras. El dueño: «son inmediatamente visibles como
+producto de IA». Un título en negrita y una línea en blanco ya separan. La capa
+106 del check no deja pasar ninguna.
+
 **Y actualiza antes de empezar.** Si tu rama viene de una base vieja, al empujar
 devuelves código que ya se quitó y el bot deja de cargar. Ha pasado:
 

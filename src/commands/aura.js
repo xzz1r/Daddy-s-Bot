@@ -1110,7 +1110,7 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
 
     const text =
       `*APUESTA — ${gana ? 'GANA' : 'PIERDE'}*\n` +
-      `╾━━━━━━━━━━━━━━╼\n\n` +
+      `\n` +
       `${nm} puso *${fmt(apuesta)}* sobre la mesa.` +
       (recortada ? `\n_Ibas a por ${fmt(bruto)}, pero es todo lo que puedes cubrir._` : '') +
       `\n_${Math.round(pVisible * 100)}% de salir · ×${mult.toFixed(2)} si gana${sello ? ` · ${sello}` : ''}._` +

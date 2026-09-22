@@ -82,7 +82,7 @@ function avisoDeVeto(hits) {
       '_Se comprobó que son *números virtuales* (VoIP), no líneas reales. ' +
       'Quedan en la lista negra: si vuelven a entrar, se les echa solo._';
   return {
-    text: `*CUENTA PURGADA*\n╾━━━━━━━━━━━━━━╼\n\n${cuerpo}`,
+    text: `*CUENTA PURGADA*\n\n${cuerpo}`,
     mentions: tags.map((t) => t.mention),
   };
 }
@@ -410,7 +410,7 @@ async function cmdPurgaNumero(sock, msg, args, groupMeta) {
   const linea = (t, l) => (l.length ? `\n\n*${t}* (${l.length})\n${l.map((x) => `· ${x}`).join('\n')}` : '');
   return sock.sendMessage(jid, {
     text:
-      `*PURGA DE +${digitos}*\n╾━━━━━━━━━━━━━━╼\n\n` +
+      `*PURGA DE +${digitos}*\n\n` +
       (visto ? `Estaba en *${visto}* grupo(s).` : 'No estaba en ningún grupo del bot.') +
       linea('Fuera', fuera) +
       linea('No pude: el bot no es admin', sinPermiso) +
@@ -593,7 +593,7 @@ async function cmdPurge(sock, msg, args, groupMeta) {
     : '';
   await sock.sendMessage(jid, {
     text:
-      `*PURGE — listado*\n╾━━━━━━━━━━━━━━╼\n\n` +
+      `*PURGE — listado*\n\n` +
       `Voy a purgar *${total}* cuenta(s):\n${listado}${tope}${noHallados}\n\n` +
       `_Comprobando cuentas…_`,
   }, { quoted: msg });
@@ -659,7 +659,7 @@ async function cmdPurge(sock, msg, args, groupMeta) {
   const numsTxt = cuentas.map((c) => (c.usuario ? `@${c.usuario} (+${c.digitos})` : `+${c.digitos}`)).join(', ');
   return sock.sendMessage(jid, {
     text:
-      `*PURGE*\n╾━━━━━━━━━━━━━━╼\n\n` +
+      `*PURGE*\n\n` +
       `Cuentas: ${numsTxt}\n` +
       (visto ? `Vistos en *${visto}* presencia(s) de grupo.` : 'No estaban en ningún grupo del bot.') +
       linea('Fuera', fuera) +
@@ -756,7 +756,7 @@ async function cmdPurgeAll(sock, msg, args, groupMeta) {
     const fallado = codigo && vigente && codigo !== pendiente.codigo ? '\n_Ese código no es._' : '';
     return sock.sendMessage(jid, {
       text:
-        `*VACIAR EL GRUPO*\n╾━━━━━━━━━━━━━━╼\n\n` +
+        `*VACIAR EL GRUPO*\n\n` +
         `Voy a sacar y vetar a *${objetivos.length}* persona(s). Se quedan fuera ` +
         `el bot${guardia ? ', el guardián' : ''} y el tier dueño.\n\n` +
         `El veto es *global y permanente*: para revertirlo hay que desbanear a ` +
@@ -769,7 +769,7 @@ async function cmdPurgeAll(sock, msg, args, groupMeta) {
   purgeallPendiente.delete(jid);
 
   await sock.sendMessage(jid, {
-    text: `*VACIANDO EL GRUPO*\n╾━━━━━━━━━━━━━━╼\n\n${objetivos.length} persona(s). Esto tarda un poco.`,
+    text: `*VACIANDO EL GRUPO*\n\n${objetivos.length} persona(s). Esto tarda un poco.`,
   }, { quoted: msg });
 
   // El veto ANTES de expulsar. Si la ráfaga de expulsiones la corta WhatsApp a
@@ -795,7 +795,7 @@ async function cmdPurgeAll(sock, msg, args, groupMeta) {
 
   return sock.sendMessage(jid, {
     text:
-      `*GRUPO VACIADO*\n╾━━━━━━━━━━━━━━╼\n\n` +
+      `*GRUPO VACIADO*\n\n` +
       `Fuera: *${fuera}* de ${objetivos.length}\n` +
       `Vetadas: *${vetados}* forma(s) de cuenta\n` +
       (fallidos.length ? `\nNo pude sacar a ${fallidos.length}: ${fallidos.slice(0, 10).map((d) => `+${d}`).join(', ')}${fallidos.length > 10 ? '…' : ''}\n_Suele ser quien creó el grupo: a ese no lo puede echar nadie._\n` : '') +

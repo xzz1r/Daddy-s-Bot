@@ -379,7 +379,7 @@ const comoSeEscribe = (x) => COMO_SE_ESCRIBE[x] || x;
 function bloqueAccionesTodo(p) {
   if (!ACTIVAS.length) return '';
   const cada = ACTIVAS.map((n) => ACCIONES[n].cmds.map((x) => `${p}${comoSeEscribe(x)}`).join(' · '));
-  return `\n━━━━━ *ACCIONES* ━━━━━\n${filas(cada, 2, '  ·  ').join('\n')}\n`;
+  return `\n*ACCIONES*\n${filas(cada, 2, '  ·  ').join('\n')}\n`;
 }
 
 // El menu corto: solo el nombre en ingles, y el precio pegado al que cuesta el
@@ -407,14 +407,14 @@ function bloqueAcciones(p, c) {
     lineas.push(...filas(sfw.map(nombre), 3, ' · '));
   }
   if (nsfw.length) lineas.push(`${nsfw.map(nombre).join(' · ')} ${c('accionNsfw')}`);
-  return `\n━━ *ACCIONES* ━━\n${lineas.join('\n')}\n`;
+  return `\n*ACCIONES*\n${lineas.join('\n')}\n`;
 }
 
 function textoCompleto(p, c, esAdmin, esOwner) {
   return `*TODOS LOS COMANDOS*
 _Cada línea: el nombre y todas sus formas. Cualquiera vale._
 
-━━━━━ *HERRAMIENTAS* ━━━━━
+*HERRAMIENTAS*
 ${p}play · ${p}música · ${p}canción · ${p}song · ${p}playsong · ${p}playaudio
 ${p}tt · ${p}tiktok  ·  ${p}ig · ${p}insta · ${p}instagram  ·  ${p}pin · ${p}pinterest
 ${p}x · ${p}twitter · ${p}tuit · ${p}tweet
@@ -424,7 +424,7 @@ ${p}toimg · ${p}stimg  ·  ${p}tovid  ·  ${p}ttp · ${p}texto
 ${p}pfp · ${p}foto  ·  ${p}fk · ${p}verificar · ${p}verify · ${p}check
 ${p}cachelist · ${p}listacache · ${p}cache
 
-━━━━━ *DINÁMICAS* ━━━━━
+*DINÁMICAS*
 ${p}roast · ${p}quemar · ${p}destruir · ${p}flamear
 ${p}mog · ${p}moggear  ·  ${p}ship  ·  ${p}rizz · ${p}piropo · ${p}wingman
 ${p}top5 · ${p}top10
@@ -432,14 +432,14 @@ ${p}puta ${p}guarra ${p}maricon ${p}incel ${p}gay ${p}femboy ${p}cerdo ${p}rata
 ${p}simp ${p}friki ${p}inutil ${p}perdedor · ${p}l  ·  ${p}fea ${p}infiel ${p}iq
 ${p}feminidad ${p}masculinidad ${p}linda ${p}hot ${p}sexy ${p}fiel ${p}crack ${p}ganador
 
-━━━━━ *AURA* ━━━━━
+*AURA*
 ${p}aura  ·  ${p}saldo · ${p}miaura  ·  ${p}top · ${p}ranking · ${p}auratop
 ${p}hoy  ·  ${p}casino  ·  ${p}apostar · ${p}apuesta · ${p}apuestas
 ${p}duel · ${p}duelo · ${p}1v1
 ${p}dar · ${p}regalar · ${p}transferir · ${p}pagar · ${p}donar
 ${p}guia · ${p}aurahelp · ${p}guiaaura
 ${bloqueAccionesTodo(p)}
-━━━━━ *ROBO* ━━━━━
+*ROBO*
 ${p}robo · ${p}robar
 ${p}contrarobo · ${p}contraataque · ${p}contraatacar · ${p}vengarse
 ${p}buscados · ${p}cartel · ${p}wanted · ${p}mostwanted · ${p}recompensas
@@ -447,12 +447,12 @@ ${p}tienda · ${p}shop  ·  ${p}comprar  ·  ${p}bote  ·  ${p}caja · ${p}regis
 ${p}asalto · ${p}asaltar  ·  ${p}atraco · ${p}atracar
 ${p}vault · ${p}safe  ·  ${p}lock · ${p}stash  ·  ${p}unlock
 
-━━━━━ *ACTIVIDAD* ━━━━━
+*ACTIVIDAD*
 ${p}relevancia · ${p}importancia · ${p}relevance
 ${p}caso · ${p}expediente
 ${p}vs · ${p}versus  ·  ${p}fantasmas · ${p}fantasma · ${p}muertos
 ${esAdmin ? `
-━━━━━ *ADMIN* ━━━━━
+*ADMINS*
 ${p}kick · ${p}expulsar · ${p}sacar · ${p}echar
 ${p}del · ${p}borrar · ${p}delete  ·  ${p}mute · ${p}silenciar · ${p}callar
 ${p}unmute · ${p}desmute  ·  ${p}tagall · ${p}todos · ${p}all · ${p}everyone
@@ -464,7 +464,7 @@ ${p}fkban · ${p}banear · ${p}ban  ·  ${p}fkunban · ${p}desbanear · ${p}unba
 ${p}fklist  ·  ${p}antifake · ${p}antifk
 ${p}notifadmin  ·  ${p}autoaccept · ${p}autoaceptar · ${p}autoapprove · ${p}autoaprobar
 ` : ''}${esOwner ? `
-━━━━━ *ADMINS SUPERIORES* ━━━━━
+*ADMINS SUPERIORES*
 ${p}on · ${p}off  ·  ${p}demote · ${p}degradar
 ${p}listanegra
 ${p}antilink · ${p}antifoto · ${p}antiempresa · ${p}antibusiness · ${p}antiadmin
@@ -550,7 +550,7 @@ async function cmdHelp(sock, msg, groupMeta, args = []) {
 `*${config.botName}*
 _Todo lleva ${PREFIJOS} delante. El número es lo que cuesta; sin número no cobra._
 
-━━ *HERRAMIENTAS* ━━
+*HERRAMIENTAS*
 *${p}play* ${c('play')} <nombre> · *${p}tt* ${c('redes')} <enlace> · *${p}ig* ${c('redes')} <enlace>
 *${p}pin* ${c('redes')} <qué buscar> — o un enlace de Pinterest
 *${p}x* ${c('redes')} <enlace> — la foto, el gif o el vídeo del tuit
@@ -558,7 +558,7 @@ _Responde a la foto con *${p}next* y saca otra de la misma búsqueda_
 *${p}s* ${c('sticker')} — hacer sticker · *${p}toimg* ${c('toimg')} · *${p}tovid* ${c('tovid')}
 *${p}ttp* ${c('ttp')} <texto> · *${p}pfp* ${c('pfp')} · *${p}fk* ${c('fk')} @user
 
-━━ *DINÁMICAS* ━━
+*DINÁMICAS*
 _Sin @ va sobre ti, con @ sobre esa persona_
 *${p}roast* ${c('roast')} · *${p}mog* ${c('mog')} @a @b · *${p}ship* ${c('ship')} @a @b
 *${p}top5* ${c('top5')} · *${p}top10* ${c('top10')} <tema>
@@ -568,7 +568,7 @@ _De una palabra, ${PRECIOS.percent} cada uno, de más crudo a más suave:_
 *${p}simp ${p}friki ${p}inutil ${p}perdedor ${p}fea ${p}infiel ${p}iq ${p}feminidad*
 *${p}masculinidad ${p}linda ${p}hot ${p}sexy ${p}fiel ${p}crack ${p}ganador*
 ${bloqueAcciones(p, c)}
-━━ *AURA Y ROBO* ━━
+*AURA Y ROBO*
 *${p}robo* @user <cant.> · *${p}contrarobo* · *${p}buscados*
 *${p}asalto* · *${p}atraco* — contra la casa, no contra nadie
 *${p}vault* · *${p}lock* <cant.> · *${p}unlock* <cant.> — a salvo del robo
@@ -576,11 +576,11 @@ ${bloqueAcciones(p, c)}
 *${p}tienda* · *${p}comprar* <objeto> · *${p}bote* · *${p}caja*
 *${p}aura* la tirada · *${p}saldo* · *${p}top* · *${p}hoy* · *${p}guia*
 
-━━ *ACTIVIDAD* ━━
+*ACTIVIDAD*
 *${p}fantasmas* ${c('fantasmas')} · *${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b
 *${p}caso* ${c('caso')} @user — su expediente: mensajes, aura, robos, cuánto lleva callado
 ${esAdmin ? `
-━━ *ADMIN* ━━
+*ADMINS*
 *${p}kick* · *${p}unmute* · *${p}del* · *${p}tagall* · *${p}allow*
 *${p}mute* @user <tiempo> — le borro todo lo que escriba (*60s* · *60m* · *60h* · *7d*)
 *${p}fkban* · *${p}fkunban* · *${p}marcarfake* · *${p}fklist* · *${p}scan*
@@ -589,7 +589,7 @@ ${esAdmin ? `
 *${p}antifake* · *${p}notifadmin* · *${p}autoaccept* — on/off
 _Y todo te cuesta un *${Math.round(ADMIN.descuento * 100)} %* menos que al resto. Por ser admin._
 ` : ''}${esOwner ? `
-━━ *SUPERIORES* ━━
+*ADMINS SUPERIORES*
 *${p}demote* · *${p}resetaura* · *${p}resetcount* · *${p}on*/*${p}off* · *${p}clearcache* · *${p}diag*
 *${p}listanegra* — la lista negra global: ver, meter números y sacarlos
 _on/off:_ *${p}antiadmin* *${p}antilink* *${p}antiempresa* *${p}antifoto* *${p}adminmode* *${p}aura*

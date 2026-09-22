@@ -76,7 +76,7 @@ async function verLista(sock, jid, msg, pagina) {
   const trozo = unicas.slice((p - 1) * POR_PAGINA, p * POR_PAGINA);
   const pie = paginas > 1 ? `\n\nPágina ${p}/${paginas} — *!listanegra ver ${p + 1}* para la siguiente.` : '';
   return sock.sendMessage(jid, {
-    text: `*LISTA NEGRA* (${unicas.length} cuenta${unicas.length === 1 ? '' : 's'})\n╾━━━━━━━━━━━━━━╼\n\n${trozo.map(pinta).join('\n')}${pie}`,
+    text: `*LISTA NEGRA* (${unicas.length} cuenta${unicas.length === 1 ? '' : 's'})\n\n${trozo.map(pinta).join('\n')}${pie}`,
   }, { quoted: msg });
 }
 
@@ -225,7 +225,7 @@ async function cmdListaNegra(sock, msg, args, groupMeta) {
     : { fuera: 0, sinPoder: 0 };
   const total = await banCount();
 
-  const lineas = ['*LISTA NEGRA*\n╾━━━━━━━━━━━━━━╼\n'];
+  const lineas = ['*LISTA NEGRA*\n'];
   if (nuevos.length) lineas.push(`A la basura: ${nuevos.join(', ')}`);
   if (repetidos.length) {
     lineas.push(repetidos.length === 1

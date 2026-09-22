@@ -125,9 +125,9 @@ async function cmdTopRandom(sock, msg, n, args, groupMeta) {
 
   const text =
     `*TOP ${n} — ${topic.toUpperCase()}*\n` +
-    `╾━━━━━━━━━━━━━━╼\n\n` +
+    `\n` +
     lineas.join('\n') +
-    `\n\n╾━━━━━━━━━━━━━━╼\n` +
+    `\n\n` +
     `_${rellenar(pickFresh(CIERRES, `${jid}|top`), picked)}_`;
 
   await sock.sendMessage(jid, { text, mentions }, { quoted: msg });

@@ -802,7 +802,7 @@ async function cmdDiag(sock, msg, groupMeta) {
   const meta = groupMeta || await getGroupMeta(sock, jid).catch(() => null);
   const si = (b) => (b ? 'SI' : 'NO');
 
-  let text = '*DIAGNOSTICO DE GUARDAS*\n╾━━━━━━━━━━━━━━╼\n\n';
+  let text = '*DIAGNOSTICO DE GUARDAS*\n\n';
   // NO BASTA CON DECIR SI ES ADMIN. Lo que decide si el bot se puede desarmar es
   // COMO lo es: al creador del grupo no le puede quitar el admin nadie —lo
   // impide WhatsApp, no el codigo— y a un admin corriente se lo quita cualquier

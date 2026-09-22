@@ -192,10 +192,9 @@ async function cmdRoast(sock, msg, groupMeta) {
     const num = target.split('@')[0].split(':')[0];
     const text =
       `${pickFresh(HEADERS, `${jid}|roast|hdr`)}\n` +
-      `╾━━━━━━━━━━━━━━╼\n\n` +
+      `\n` +
       `Víctima: @${num}\n\n` +
       `${pickFresh(OWNER_ROAST, `${jid}|roast|owner`).replace(/%N/g, `@${num}`)}\n\n` +
-      `╾━━━━━━━━━━━━━━╼\n` +
       `${pickFresh(CLOSERS, `${jid}|roast|end`)}`;
     return sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });
   }
@@ -286,7 +285,7 @@ async function cmdRoast(sock, msg, groupMeta) {
   const text =
     `${pickFresh(HEADERS, `${jid}|roast|hdr`)}\n\n` +
     `${roastText}\n` +
-    `╾━━━━━━━━━━━━━━╼\n` +
+    `\n` +
     `${pickFresh(CLOSERS, `${jid}|roast|end`)}`;
 
   await sock.sendMessage(jid, { text, mentions: [target] }, { quoted: msg });

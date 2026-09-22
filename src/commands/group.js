@@ -359,7 +359,7 @@ async function cmdAdm(sock, msg, args, groupMeta) {
 
   const text =
     `*SE BUSCAN ADMINS*\n` +
-    `╾━━━━━━━━━━━━━━╼\n\n` +
+    `\n` +
     `Se abren plazas de administración en el grupo.\n\n` +
     `No se busca a cualquiera: hace falta *criterio*, cabeza fría y saber cuándo ` +
     `no hacer nada. El que quiera el cargo por el cargo, que ni escriba.\n\n` +
@@ -1427,7 +1427,7 @@ const REMATES = [
 // concordar con nadie. El arreglo de estilo y el de gramatica son el mismo.
 function textoPresentacion(clave) {
   return '*PRESENTACIÓN OBLIGATORIA*\n' +
-    '╾━━━━━━━━━━━━━━╼\n\n' +
+    '\n' +
     '*Quién:* solo los nuevos.\n' +
     // LA FOTO SE DICE OBLIGATORIA AQUI, EN LA PROPIA ORDEN.
     //

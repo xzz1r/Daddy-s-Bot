@@ -18635,6 +18635,36 @@ const manda = async (quien, tipo, opciones) => {
     exige(devoluciones >= 7, `solo encuentro ${devoluciones} devoluciones: el codigo cambio de forma y esto ya no mide lo que dice`);
     if (fallos === antes105) console.log(verde(`   ✓ ningun camino de dinero traga errores sin avisar, y las ${devoluciones} devoluciones llevan su concepto`));
   }
+
+  // ── 106. SIN LINEAS DE ADORNO ───────────────────────────────────────────
+  //
+  // Lo pidio el dueño: «estas lineas son inmediatamente visibles como producto
+  // de IA». Iban debajo de cada titulo (╾━━━╼) y alrededor de las cabeceras
+  // del menu (━━ *ADMIN* ━━). El titulo en negrita y una linea en blanco ya
+  // separan; lo demas es decoracion que delata. Se mira todo src/ menos los
+  // comentarios, que el grupo no lee.
+  {
+    console.log('\n106. SIN LINEAS DE ADORNO');
+    const antes106 = fallos;
+    const ADORNO = /[╾╼━═▬┄┈╌┅┉]/;
+    const malas = [];
+    const recorre = (dir) => {
+      for (const f of fs.readdirSync(path.join(R, dir))) {
+        const rel = `${dir}/${f}`;
+        if (fs.statSync(path.join(R, rel)).isDirectory()) { recorre(rel); continue; }
+        if (!f.endsWith('.js')) continue;
+        fs.readFileSync(path.join(R, rel), 'utf8').split('\n').forEach((l, i) => {
+          if (ADORNO.test(l) && !/^\s*(\/\/|\*|\/\*)/.test(l)) malas.push(`${rel}:${i + 1}`);
+        });
+      }
+    };
+    recorre('src');
+    if (malas.length) {
+      fallos++;
+      console.log(rojo(`   ✗ lineas de adorno en lo que manda el bot (${malas.length}): ${malas.slice(0, 6).join(', ')}`));
+    }
+    if (fallos === antes106) console.log(verde('   ✓ ni una linea de adorno en lo que manda el bot'));
+  }
   }
 
   if (BREVE) {

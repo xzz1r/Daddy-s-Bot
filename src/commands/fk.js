@@ -624,7 +624,7 @@ async function cmdFkList(sock, msg, args, groupMeta) {
   const recortado = filas.length > MAX;
   return sock.sendMessage(jid, {
     text: `*LISTA NEGRA* — ${filas.length} ${filas.length === 1 ? 'cuenta' : 'cuentas'}\n` +
-      `╾━━━━━━━━━━━━━━╼\n\n` +
+      `\n` +
       filas.slice(0, MAX).join('\n\n') +
       (recortado ? `\n\n_y ${filas.length - MAX} más._` : ''),
   }, { quoted: msg });

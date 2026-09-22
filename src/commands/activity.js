@@ -498,7 +498,6 @@ async function cmdInactivos(sock, msg, groupMeta) {
   const cuantos = flojos.length === 1 ? '1 miembro' : `${flojos.length} miembros`;
   const cabecera =
     `*${pickFresh(AMENAZAS, `${jid}|inactivos|amenaza`)}*\n` +
-    `╾━━━━━━━━━━━━━━╼\n` +
     `_${cuantos} con ${UMBRAL_INACTIVO} mensajes o menos:_\n\n`;
   const amenaza = `\n\n_${pickFresh(AVISO_PURGA, `${jid}|inactivos`)}_`;
 

@@ -353,7 +353,7 @@ async function verElBote(sock, msg, jid) {
     }, { quoted: msg });
   }
   return sock.sendMessage(jid, {
-    text: `*EL BOTE DEL GRUPO*\n╾━━━━━━━━━━━━━━╼\n\n` +
+    text: `*EL BOTE DEL GRUPO*\n\n` +
       `Hay *${fmt(bote)}* de aura ahí dentro.\n` +
       `Lo han puesto todos los que fallaron robando.\n\n` +
       `_*!robo asalto* — cuesta ${fmt(BOTE.entrada)} y sale bien ${Math.round(BOTE.probabilidad * 100)} de cada 100 veces. El que acierta se lo lleva ENTERO._`,
@@ -446,7 +446,7 @@ async function asaltarBote(sock, msg, jid, sender, groupMeta) {
   const { current } = await addAura(jid, sender, premio);
   await tienda.anotarGolpe(jid, sender, premio);
   return sock.sendMessage(jid, {
-    text: `*BOTE REVENTADO*\n╾━━━━━━━━━━━━━━╼\n\n` +
+    text: `*BOTE REVENTADO*\n\n` +
       `${fraseCon(RX.BOTE_REVIENTA, `${jid}|bote|revienta`, { '%A': a, '%C': fmt(premio) })}\n\n` +
       lineaAura(a, premio, current),
     mentions: [sender],
@@ -504,7 +504,7 @@ async function laTienda(sock, msg, jid, sender, args, groupMeta) {
     const enCaja = await tienda.verCaja(jid);
 
     return sock.sendMessage(jid, {
-      text: `*LA TIENDA DEL LADRÓN*\n╾━━━━━━━━━━━━━━╼\n\n${lineas}\n\n${avisoVentaja}\n\n` +
+      text: `*LA TIENDA DEL LADRÓN*\n\n${lineas}\n\n${avisoVentaja}\n\n` +
         `*LLEVAS ENCIMA*\n` +
         (llevo.length ? llevo.map(l => `· ${l}`).join('\n') : `_${pickFresh(RX.INVENTARIO_VACIO, `${jid}|inv|vacio`)}_`) +
         `\n\n_Se compra con *!comprar <lo que sea>*._` +
@@ -696,7 +696,7 @@ async function contraatacar(sock, msg, jid, sender, groupMeta) {
                : clave === 'raspado'   ? RX.CONTRA_RASPADO
                : RX.CONTRA_GANA;
     return sock.sendMessage(jid, {
-      text: `${des.titulo}\n╾━━━━━━━━━━━━━━╼\n\n` +
+      text: `${des.titulo}\n\n` +
         `${fraseCon(pool, `${jid}|contra|${clave}`, { '%A': a, '%V': v, '%C': fmt(real) })}\n\n` +
         `${lineaAura(v, real, vN.current)}${pieVel}`,
       mentions: [sender, p.ladron],
@@ -731,7 +731,7 @@ async function verLaCaja(sock, msg, jid) {
                : seguridad < 0.20 ? 'con el tendero mirando la puerta'
                : 'en alerta, y con razon';
   return sock.sendMessage(jid, {
-    text: `*LA CAJA DE LA TIENDA*\n╾━━━━━━━━━━━━━━╼\n\n` +
+    text: `*LA CAJA DE LA TIENDA*\n\n` +
       `Dentro hay *${fmt(caja)}*.\n` +
       `La tienda está *${estado}*: *${Math.round(chance * 100)} %* de entrar.\n\n` +
       `_Se llena con lo que compra el grupo (un ${Math.round(ATRACO.fraccionDeCompra * 100)} % de cada objeto). ` +
@@ -809,7 +809,7 @@ async function atracarTienda(sock, msg, jid, sender, groupMeta) {
     await flushAura().catch(() => {});
     await tienda.anotarGolpe(jid, sender, botin);
     return sock.sendMessage(jid, {
-      text: `*ATRACO A LA TIENDA*\n╾━━━━━━━━━━━━━━╼\n\n` +
+      text: `*ATRACO A LA TIENDA*\n\n` +
         `${fraseCon(RX.ATRACO_GANA, `${jid}|atraco|gana`, { '%A': yo, '%C': fmt(botin) })}\n\n` +
         `${lineaAura(yo, botin, nuevo.current)}\n_Quedan *${fmt(await tienda.verCaja(jid))}* en la caja._${pie}`,
       mentions: [sender],
@@ -889,7 +889,7 @@ async function topLadrones(sock, msg, jid, groupMeta) {
     }, { quoted: msg });
   }
 
-  let text = '*LOS MÁS BUSCADOS*\n_Últimos 7 días_\n╾━━━━━━━━━━━━━━╼\n\n';
+  let text = '*LOS MÁS BUSCADOS*\n_Últimos 7 días_\n\n';
   let mayor = 0;
   r.forEach((x, i) => {
     const premio = Math.min(RECOMPENSA.tope, x.premio || 0);

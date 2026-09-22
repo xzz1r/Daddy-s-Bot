@@ -24,7 +24,6 @@ const { auraApagada, avisarApagada } = require('../utils/auraSwitch');
 const RX = require('../data/vaultPhrases');
 const logger = require('../utils/logger');
 
-const LINEA = '╾━━━━━━━━━━━━━━╼';
 
 // La tercera copia del mismo reloj, y la unica que ponia espacios ("1 h 30
 // min") mientras robo escribia "1h 30min". Ahora sale de utils/formatoJuego.js.
@@ -103,7 +102,7 @@ async function cmdVault(sock, msg, args, groupMeta) {
     }
 
     return sock.sendMessage(jid, {
-      text: `*BAJO LLAVE*\n${LINEA}\n\n` +
+      text: `*BAJO LLAVE*\n\n` +
         `${nm} guarda *${fmt(r.guardado)}*.\n` +
         `_Dentro *${fmt(r.dentro)}* · a la vista *${fmt(r.saldo)}*` +
         (r.hueco > 0 ? ` · cabe *${fmt(r.hueco)}* más_` : ` · la caja está llena_`) + `\n\n` +
@@ -146,7 +145,7 @@ async function cmdVault(sock, msg, args, groupMeta) {
     }
 
     return sock.sendMessage(jid, {
-      text: `*FUERA DE LA CAJA*\n${LINEA}\n\n` +
+      text: `*FUERA DE LA CAJA*\n\n` +
         `${nm} saca *${fmt(r.sacado)}* y le llegan *${fmt(r.neto)}*.\n` +
         `_La cerradura se queda *${fmt(r.comision)}* (${Math.round(CAJA.comision * 100)} %), que van al bote._\n` +
         `_Queda dentro *${fmt(r.dentro)}* · a la vista *${fmt(r.saldo)}*_\n\n` +
@@ -170,7 +169,7 @@ async function cmdVault(sock, msg, args, groupMeta) {
   const coste = Math.max(CAJA.comisionMinima, Math.round(dentro * CAJA.comision));
 
   return sock.sendMessage(jid, {
-    text: `*TU CAJA*\n${LINEA}\n\n` +
+    text: `*TU CAJA*\n\n` +
       `Dentro: *${fmt(dentro)}* de *${fmt(CAJA.capacidad)}*\n` +
       `A la vista: *${fmt(saldo)}* — esto sí te lo pueden robar.\n\n` +
       `_Sacarlo todo costaría *${fmt(coste)}*._\n` +
