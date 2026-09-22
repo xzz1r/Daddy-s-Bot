@@ -561,6 +561,8 @@ async function laTienda(sock, msg, jid, sender, args, groupMeta) {
     }, { quoted: msg });
   }
   if (obj.ventaja) await tienda.anotarVentaja(jid, sender);
+  // El cargo al disco antes que el abono (capa 4 de check.js).
+  await flushAura().catch(() => {});
   // Y una parte de lo pagado se queda EN LA CAJA en vez de destruirse, para que
   // haya algo que atracar. El resto se sigue destruyendo: la tienda no deja de
   // ser un sumidero, solo devuelve una parte y con mucho riesgo por medio.
@@ -802,6 +804,8 @@ async function atracarTienda(sock, msg, jid, sender, groupMeta) {
     const frac = ATRACO.botin.min + Math.random() * (ATRACO.botin.max - ATRACO.botin.min);
     const botin = await tienda.sacarDeCaja(jid, frac);
     const nuevo = await addAura(jid, sender, botin);
+    // El abono al disco antes que el golpe (capa 4 de check.js).
+    await flushAura().catch(() => {});
     await tienda.anotarGolpe(jid, sender, botin);
     return sock.sendMessage(jid, {
       text: `*ATRACO A LA TIENDA*\n╾━━━━━━━━━━━━━━╼\n\n` +
@@ -817,6 +821,8 @@ async function atracarTienda(sock, msg, jid, sender, groupMeta) {
   const { cobrado: multa, current: trasMulta } = await drainAura(
     jid, sender, Math.min(Math.round(caja * ATRACO.multa), ATRACO.multaTope));
   const nuevo = { current: trasMulta };
+  // La multa al disco antes que la caja de la tienda (capa 4 de check.js).
+  await flushAura().catch(() => {});
   await tienda.aportarACaja(jid, multa);
   await tienda.vetarDeTienda(jid, sender, Date.now() + ATRACO.vetoHoras * 3600000);
   return sock.sendMessage(jid, {

@@ -14,7 +14,7 @@
 // ranking sin que nadie sepa por qué. Yendo al bote, el aura sigue en el grupo
 // y encima engorda el premio de !asalto: lo que uno paga por esconderse acaba
 // siendo el botín de otro.
-const { verCaja, esperaCaja, meterEnCaja, sacarDeCaja, getAura } = require('../utils/auraStore');
+const { verCaja, esperaCaja, meterEnCaja, sacarDeCaja, getAura, flushAura } = require('../utils/auraStore');
 const { aportarAlBote } = require('../utils/roboStore');
 const { CAJA } = require('../utils/economia');
 const { getSender } = require('../utils/wa');
@@ -137,7 +137,11 @@ async function cmdVault(sock, msg, args, groupMeta) {
     // la tiene: se anota y se sigue. Perder la aportación es un error menor;
     // devolver el movimiento entero por esto sería mucho peor.
     if (r.comision > 0 && CAJA.alBote > 0) {
-      aportarAlBote(jid, Math.round(r.comision * CAJA.alBote))
+      // La caja vive en aura.json y el bote en robo.json, que se guarda antes:
+      // se vuelca el aura primero para que un corte no deje la comision en el
+      // bote y la caja sin descontar.
+      flushAura().catch(() => {})
+        .then(() => aportarAlBote(jid, Math.round(r.comision * CAJA.alBote)))
         .catch((e) => logger.warn(`vault: la comision no llego al bote: ${e.message}`));
     }
 

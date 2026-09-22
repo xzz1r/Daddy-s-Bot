@@ -1,5 +1,5 @@
 const { getSender, getTarget, sameUser } = require('../utils/wa');
-const { transferAura } = require('../utils/auraStore');
+const { transferAura, flushAura } = require('../utils/auraStore');
 const { fmt, parseCantidad } = require('../utils/helpers');
 const { aportarAlBote } = require('../utils/roboStore');
 const { lineaAura } = require('../utils/formatoJuego');
@@ -63,7 +63,13 @@ async function cmdDar(sock, msg, args) {
   // pierde es que esa parte se destruya tambien, que es el lado seguro del
   // error — nunca se crea aura de la nada por un fallo de disco.
   const alBote = Math.round(result.retenido * IMPUESTO.alBote);
-  if (alBote > 0) aportarAlBote(jid, alBote).catch(() => {});
+  //
+  // Y el aura se vuelca antes que el bote: robo.json se guarda antes que
+  // aura.json, y un corte en medio dejaria el impuesto en el bote con la
+  // transferencia sin apuntar. Sigue sin bloquear la respuesta.
+  if (alBote > 0) {
+    flushAura().catch(() => {}).then(() => aportarAlBote(jid, alBote)).catch(() => {});
+  }
 
   const sTag = `@${sender.split('@')[0]}`;
   const tTag = `@${target.split('@')[0]}`;

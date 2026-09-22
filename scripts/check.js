@@ -10724,36 +10724,45 @@ const di=async(quien,t)=>{out.length=0;
         'entre apuntar el hito y pagarlo ya no se vuelca casino.json: un corte en esa ventana repaga el bono entero');
     }
 
-    // 4. Y EL ROBO, LO MISMO: el cargo al disco antes que el abono.
+    // 4. EL CARGO AL DISCO ANTES QUE EL ABONO, EN TODO EL BOT.
     //
-    //    El saldo esta en aura.json (8 s) y el bote en robo.json (3 s). El
-    //    fichero de destino volcaba ANTES que el de origen, asi que el disco
-    //    podia quedarse con el bote cobrado y la victima intacta.
+    //    El saldo esta en aura.json (8 s) y el bote y la caja de la tienda en
+    //    robo.json (3 s). Si robo.json vuelca primero, un corte en medio deja
+    //    en disco el abono hecho y el cargo sin hacer: aura inventada.
+    //
+    //    ANTES SOLO MIRABA robo.js, con una excepcion por regex («si antes pone
+    //    sacarDeCaja, el origen es la tienda»), y se escaparon cinco: la
+    //    perdida de *!aura* al bote, el impuesto de *!dar*, la comision de
+    //    *!unlock* —cuyo sacarDeCaja es el de la caja de AURA, justo lo
+    //    contrario de lo que la excepcion suponia—, la compra en la tienda y
+    //    la multa del atraco.
+    //
+    //    AHORA NO HAY EXCEPCIONES: toda escritura de valor en robo.json va
+    //    precedida de un volcado del aura. Cuando el origen era la tienda sobra,
+    //    pero no hace daño, y una regla sin excepciones no se puede engañar.
     {
-      //
-      // LA REGLA, ESCRITA COMO REGLA Y NO COMO UNA LISTA DE LINEAS: solo
-      // importan los sitios donde el AURA es el origen. Si el origen es el bote
-      // —reventarlo, vaciar la caja— el fichero de destino es aura.json, que
-      // vuelca mas tarde, y entonces el disco solo puede perder aura, que es el
-      // lado seguro. Asi que se busca cada escritura a robo.json que venga
-      // precedida de un cargo de aura, y se exige el volcado en medio.
-      const rob = soloCodigo('src/commands/robo.js');
-      const escrituras = [...rob.matchAll(/tienda\.(aportarAlBote|anotarGolpe)\(/g)];
-      exige(escrituras.length >= 4, `solo encuentro ${escrituras.length} escrituras a robo.json: el fichero ha cambiado de forma`);
-      let mirados = 0;
-      for (const m of escrituras) {
-        const antesDe = rob.slice(Math.max(0, m.index - 700), m.index);
-        // La excepcion, y es la unica: cuando el origen es el bote o la caja
-        // —reventarlo, atracarla— el destino es aura.json, que vuelca MAS TARDE
-        // que robo.json. Ahi el disco solo puede perder aura, nunca inventarla,
-        // asi que no hace falta ordenar nada.
-        if (/vaciarBote\(|sacarDeCaja\(/.test(antesDe)) continue;
-        mirados++;
-        exige(/flushAura\(/.test(antesDe),
-          `hay un ${m[1]} que se apunta sin volcar el aura justo antes: el disco puede quedarse con el abono hecho y el cargo sin hacer, o sea aura inventada`);
+      const sitios = [];
+      for (const dir of ['src/commands', 'src/utils', 'src/handlers']) {
+        for (const f of fs.readdirSync(path.join(R, dir))) {
+          if (!f.endsWith('.js') || f === 'roboStore.js') continue;
+          const rel = `${dir}/${f}`;
+          // Los comentarios se vacian en vez de quitarse, para que el numero de
+          // linea de la queja sea el del fichero de verdad.
+          const src = fs.readFileSync(path.join(R, rel), 'utf8').split('\n')
+            .map((l) => (/^\s*(\/\/|\*|\/\*)/.test(l) ? '' : l)).join('\n');
+          for (const m of src.matchAll(/\b(?:tienda\.)?(aportarAlBote|aportarACaja|anotarGolpe)\(/g)) {
+            const antesDe = src.slice(Math.max(0, m.index - 700), m.index);
+            if (/function\s+$/.test(antesDe)) continue;
+            sitios.push(rel);
+            exige(/flushAura\(/.test(antesDe),
+              `${rel}:${src.slice(0, m.index).split('\n').length}: ${m[1]} sin volcar el aura justo antes — un corte en medio deja el abono en disco y el cargo no: aura inventada`);
+          }
+        }
       }
-      exige(mirados >= 4,
-        `solo ${mirados} de las ${escrituras.length} escrituras a robo.json pasan por la regla: el fichero cambió de forma y esto ya no mide lo que dice`);
+      exige(sitios.length >= 12, `solo encuentro ${sitios.length} escrituras de valor a robo.json: el codigo cambio de forma y esto ya no mide lo que dice`);
+      for (const f of ['src/commands/aura.js', 'src/commands/dar.js', 'src/commands/vault.js', 'src/utils/auraCobro.js']) {
+        exige(sitios.includes(f), `${f} ya no escribe en robo.json o no se esta mirando: la regla dejo de cubrirlo`);
+      }
     }
 
     // 5. LOS FORMATEADORES IZADOS. Construir un Intl.DateTimeFormat cuesta 60 us

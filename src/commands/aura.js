@@ -1,6 +1,6 @@
 const { isOwner, isMainOwner, isAdmin, getTarget, getSender, canonicalJid, sameUser, soloMiembros } = require('../utils/wa');
 const { pickFresh, fmt, parseCantidad, resolverCantidad, etiquetaRiesgo } = require('../utils/helpers');
-const { getAura, addAura, getAuraRanking } = require('../utils/auraStore');
+const { getAura, addAura, getAuraRanking, flushAura } = require('../utils/auraStore');
 const { getUserCount } = require('../utils/messageCounter');
 const { getName, recordName, cargar: cargarNombres } = require('../utils/nombreStore');
 const logger = require('../utils/logger');
@@ -1091,7 +1091,14 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
     // asi el bote crece aunque el grupo no robe, y una apuesta gorda perdida se
     // convierte en algo que todos van a querer reventar.
     let alBote = 0;
-    if (!gana && delta < 0) alBote = await aportarAlBote(jid, Math.abs(delta) * BOTE.fraccionDeApuesta);
+    //
+    // El aura se vuelca ANTES: el bote vive en robo.json, que se guarda antes
+    // que aura.json, y un corte en medio dejaria el bote cobrado y la perdida
+    // sin apuntar. Aura inventada.
+    if (!gana && delta < 0) {
+      await flushAura().catch(() => {});
+      alBote = await aportarAlBote(jid, Math.abs(delta) * BOTE.fraccionDeApuesta);
+    }
 
     const nm = `@${sender.split('@')[0]}`;
     const frase = pickFresh(gana ? POOL_APUESTA_GANA : POOL_APUESTA_PIERDE, `${jid}|apuesta|${gana ? 'gana' : 'pierde'}`)
