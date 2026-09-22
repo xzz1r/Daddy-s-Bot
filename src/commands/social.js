@@ -449,6 +449,7 @@ ${p}vault · ${p}safe  ·  ${p}lock · ${p}stash  ·  ${p}unlock
 
 ━━━━━ *ACTIVIDAD* ━━━━━
 ${p}relevancia · ${p}importancia · ${p}relevance
+${p}caso · ${p}expediente
 ${p}vs · ${p}versus  ·  ${p}fantasmas · ${p}fantasma · ${p}muertos
 ${esAdmin ? `
 ━━━━━ *ADMIN* ━━━━━
@@ -577,6 +578,7 @@ ${bloqueAcciones(p, c)}
 
 ━━ *ACTIVIDAD* ━━
 *${p}fantasmas* ${c('fantasmas')} · *${p}relevancia* ${c('relevancia')} · *${p}vs* ${c('vs')} @a @b
+*${p}caso* ${c('caso')} @user — su expediente: mensajes, aura, robos, cuánto lleva callado
 ${esAdmin ? `
 ━━ *ADMIN* ━━
 *${p}kick* · *${p}unmute* · *${p}del* · *${p}tagall* · *${p}allow*

@@ -18350,6 +18350,81 @@ const manda = async (quien, tipo, opciones) => {
     if (fallos === antes102) {
       console.log(verde(`   ✓ un miembro gana ${(PP.miembro * 100).toFixed(0)} % (veterano ${(pVet * 100).toFixed(0)} %), la tirada da +${esperado(PP.miembro).toFixed(1)} de media y los roles no se solapan`));
     }
+
+  // ── 103. !caso: EL EXPEDIENTE, Y DEL DUEÑO NADA ─────────────────────────
+  //
+  // Lo que se vigila es lo que se puede romper sin que nadie lo vea: que el
+  // dueño siga sin expediente —su contador esta a cero por diseño y un «0
+  // mensajes» lo delataria—, que no se le cobre a quien pregunta por el, que
+  // el puesto cuadre con el de *!count* (si no, la diferencia delata a alguien
+  // oculto en medio) y que el veredicto siga persiguiendo la inactividad antes
+  // que nada.
+  {
+    console.log('\n103. !caso: EL EXPEDIENTE, Y DEL DUEÑO NADA');
+    const antes103 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const caso = require(path.join(R, 'src/commands/caso'));
+    const cfg103 = require(path.join(R, 'src/config'));
+    const { addAura: add103, getAura: get103 } = require(path.join(R, 'src/utils/auraStore'));
+    const { SIN_SERVICIO: SS } = require(path.join(R, 'src/utils/auraCobro'));
+    const OWN103 = `${String(cfg103.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
+    const G103 = `12036300000${`${Date.now()}`.slice(-4)}103@g.us`;
+    const BOT103 = '34600000103@s.whatsapp.net';
+    const A103 = '34600001031@s.whatsapp.net';
+    const meta103 = { id: G103, participants: [{ id: BOT103, admin: 'admin' }, { id: OWN103, admin: 'superadmin' }, { id: A103 }] };
+    const dicho = [];
+    const sock103 = { user: { id: BOT103 }, sendMessage: async (j, c) => { dicho.push(c.text || ''); return { key: { id: 'x' } }; } };
+    const pide = (quien, objetivo) => ({
+      key: { remoteJid: G103, participant: quien, fromMe: false, id: `K${Math.random()}` },
+      message: { extendedTextMessage: { text: '!caso', contextInfo: objetivo ? { mentionedJid: [objetivo] } : {} } },
+    });
+
+    // 1. Del dueño: nada, y SIN_SERVICIO para que se devuelva lo cobrado.
+    dicho.length = 0;
+    const r1 = await caso.cmdCaso(sock103, pide(A103, OWN103), [], meta103);
+    exige(dicho.length === 0, `!caso @dueño contesta: "${(dicho[0] || '').slice(0, 60)}" — su contador esta a cero y eso lo delata`);
+    exige(r1 === SS, '!caso @dueño no devuelve SIN_SERVICIO: al que pregunta se le cobra por nada');
+    // Y el dueño preguntando por si mismo, igual.
+    dicho.length = 0;
+    await caso.cmdCaso(sock103, pide(OWN103, null), [], meta103);
+    exige(dicho.length === 0, 'el dueño pide su propio expediente y el bot contesta: lo mismo, lo delata');
+
+    // 2. De un miembro: expediente con sus datos y un veredicto.
+    await add103(G103, A103, 2000 - (await get103(G103, A103)));
+    dicho.length = 0;
+    await caso.cmdCaso(sock103, pide(OWN103, A103), [], meta103);
+    const t = dicho[0] || '';
+    exige(/EXPEDIENTE/.test(t) && /Mensajes:/.test(t) && /Aura: \*2\.?000\*/.test(t),
+      `el expediente de un miembro no sale con sus datos: "${t.slice(0, 120)}"`);
+    exige(/\n_.+_$/.test(t), 'el expediente no termina en un veredicto');
+    // Y nada de lineas de ceros: sin robos, no hay linea de robos.
+    exige(!/Robos:/.test(t), 'sale una linea de robos con ceros: eso es ruido');
+
+    // 3. El veredicto persigue la inactividad ANTES que nada (GUIA.md), y al
+    //    que sostiene el grupo no se le castiga por hacerlo.
+    const dic = caso._dictamen;
+    const base = { mensajes: 500, aura: 800, golpes: 0, cabeza: 0, silencio: 0, ultimo: '2026-01-01', puestoMensajes: 5 };
+    exige(dic({ ...base, silencio: 40, puestoMensajes: 1 }) === 'fantasmaLargo',
+      'un mes callado y sale otro veredicto: la inactividad tiene que ir delante de todo');
+    exige(dic({ ...base, silencio: 10, aura: -50 }) === 'fantasma', 'una semana callado pierde contra estar en negativo');
+    exige(dic({ ...base, mensajes: 0, ultimo: null, silencio: null }) === 'nunca', 'quien no ha escrito nunca no sale como tal');
+    exige(dic({ ...base, puestoMensajes: 1 }) === 'pilar', 'el que mas escribe no sale como pilar del grupo');
+    exige(dic({ ...base, aura: 3000 }) === 'rico' && dic({ ...base, aura: 20 }) === 'pobre',
+      'rico y pobre no salen con los cortes de siempre (1.500 y 100)');
+    exige(!caso.VEREDICTOS.pilar.some((f) => /pringad|no tienes vida|vive aqu[ií]|enganchad/i.test(f)),
+      'el veredicto del que sostiene el grupo le reprocha escribir: eso castiga justo lo que el bot quiere');
+
+    // 4. Los dias se cuentan con fechas de verdad, tambien cruzando de mes.
+    exige(caso._diasEntre('2026-08-30', '2026-09-02') === 3, `de 30-ago a 2-sep salen ${caso._diasEntre('2026-08-30', '2026-09-02')} dias y son 3`);
+    exige(caso._diasEntre('2024-02-28', '2024-03-01') === 2, 'el año bisiesto se cuenta mal');
+
+    // 5. Esta enganchado y cuesta lo mismo que mirar datos en *!count*.
+    const { PRECIOS: P103 } = require(path.join(R, 'src/utils/economia'));
+    const LV103 = require(path.join(R, 'src/handlers/messageHandler'))._listas;
+    exige(P103.caso === P103.count, `!caso cuesta ${P103.caso} y !count ${P103.count}: mirar datos cuesta lo mismo`);
+    exige(LV103.COBRO_CENTRAL.caso === 'caso' && LV103.COBRO_CENTRAL.expediente === 'caso', '!caso o !expediente no cobran');
+    if (fallos === antes103) console.log(verde('   ✓ el expediente sale con datos y veredicto, del dueño hay silencio y se devuelve, y la inactividad manda'));
+  }
   }
 
   if (BREVE) {

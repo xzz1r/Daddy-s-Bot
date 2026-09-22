@@ -386,4 +386,4 @@ async function cmdResetCount(sock, msg, groupMeta) {
   }, { quoted: msg });
 }
 
-module.exports = { cmdCount, cmdResetCount, MEMBER_PHRASES, ADMIN_PHRASES, fechaCorta };
+module.exports = { cmdCount, cmdResetCount, MEMBER_PHRASES, ADMIN_PHRASES, fechaCorta, rankedUsers };

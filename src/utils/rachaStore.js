@@ -187,6 +187,9 @@ async function verRacha(groupJid, userJid, ahora = Date.now()) {
     dias: viva ? p.dias : 0,
     hoyCuenta: p.ultimo === hoy,
     msgs: p.dia === hoy ? p.msgs : 0,
+    // El ultimo dia que escribio, en la misma clave de dia que todo lo demas.
+    // Lo usa *!caso* para decir cuanto lleva callado.
+    ultimo: p.ultimo || null,
   };
 }
 

@@ -92,6 +92,7 @@ const cmdFantasmas = lazyCmd('../commands/activity', 'cmdFantasmas');
 const cmdInactivos = lazyCmd('../commands/activity', 'cmdInactivos');
 const { cmdPurgaNumero, cmdPurge, cmdPurgeAll } = require('../commands/purgaNumero');
 const cmdRoast = lazyCmd('../commands/roast', 'cmdRoast');
+const cmdCaso = lazyCmd('../commands/caso', 'cmdCaso');
 const { cmdDar } = require('../commands/dar');
 const acciones = require('../commands/acciones');
 const { construirListas } = require('./comandos');
@@ -2697,6 +2698,12 @@ async function handleMessage(sock, msg, opciones = {}) {
 
       case 'top10':
         resultado = await cmdTopRandom(sock, msg, 10, args, groupMeta);
+        break;
+
+      // El expediente: junta lo que el bot ya guarda de alguien. Ver caso.js.
+      case 'caso':
+      case 'expediente':
+        resultado = await cmdCaso(sock, msg, args, groupMeta);
         break;
 
       case 'conteo':

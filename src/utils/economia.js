@@ -1325,6 +1325,7 @@ const PRECIOS = {
   vs: 30,
   fantasmas: 30,
   count: 25,
+  caso: 25,       // !caso: el expediente. Lo mismo que !count, que es lo que cuesta mirar datos
   relevancia: 25,
 
   // ─── Las dinámicas ─────────────────────────────────────────────────────────

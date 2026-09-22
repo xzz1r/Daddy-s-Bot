@@ -47,6 +47,7 @@ const FAMILIAS = [
   { nombres: ['top5'], meta: true, cobraDentro: true, cobro: 'top5' },
   { nombres: ['top10'], meta: true, cobraDentro: true, cobro: 'top10' },
   { nombres: ['count', 'conteo'], meta: true, lento: true },
+  { nombres: ['caso', 'expediente'], meta: true, lento: true, cobro: 'caso' },
   { grupo: 'CMDS_PORCENTAJE', meta: true, cobro: 'percent' },
   { nombres: ['importancia', 'relevancia', 'relevance'], meta: true, lento: true, cobro: 'relevancia' },
   { nombres: ['resetcount', 'resetconteo'], meta: true },
