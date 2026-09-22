@@ -1435,6 +1435,19 @@ const CAJA = {
   impuestoPago: 0.22,
 };
 
+// ─── EL DESCUENTO DE LOS ADMINS ─────────────────────────────────────────────
+//
+// Lo pidio el dueño: «hazle un descuento exclusivo a los admins en todos los
+// comandos, se merecen esa exclusividad».
+//
+// NO ES GRATIS COMO EL OWNER, Y ES A PROPOSITO. El owner no paga porque
+// administra el bot; un admin JUEGA en la misma mesa que los demas, solo que
+// con ventaja. Si tambien fuese gratis, media tabla dejaria de gastar aura y
+// la economia se partiria en dos: los que pagan y los que no.
+const ADMIN = {
+  descuento: 0.15,
+};
+
 const IMPUESTO = {
   porcentaje: 0.12,
   minimo: 1,      // toda transferencia paga al menos esto
@@ -1489,7 +1502,7 @@ function tirar([min, max]) {
 }
 
 module.exports = {
-  CAJA,
+  CAJA, ADMIN,
   MILLONARIO, ARRANQUE, SUELO_TODOS,
   TIRADA, TIRADA_MIN, TIRADA_MAX, P_POSITIVA, ACTIVIDAD_MSGS, ACTIVIDAD_BONO, ACTIVIDAD_TOPE,
   PRIMERA_DEL_DIA, HITOS, CONTADOR, DIA,

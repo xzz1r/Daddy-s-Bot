@@ -4,7 +4,7 @@ const { isOwner, isMainOwner, isGroupAdmin, getSender, getTarget, bareJid, canon
 const { getCasinoCount, msUntilReset, tiradasDeHoy, hitosCobrados } = require('../utils/casinoStore');
 const { verRacha } = require('../utils/rachaStore');
 const { nextMilestone } = require('../utils/casino');
-const { PRECIOS, APUESTA, CONTRA, ACTIVIDAD_MSGS, TIRADAS_PAGADAS, RACHA } = require('../utils/economia');
+const { PRECIOS, APUESTA, CONTRA, ACTIVIDAD_MSGS, TIRADAS_PAGADAS, RACHA, ADMIN } = require('../utils/economia');
 const { ACCIONES, ACTIVAS } = require('./acciones');
 const { RAFAGA } = require('../utils/auraCobro');
 const config = require('../config');
@@ -585,6 +585,7 @@ ${esAdmin ? `
 *${p}close* · *${p}open* · *${p}promote* · *${p}count* ${c('count')} · *${p}inactivos* ${c('inactivos')}
 *${p}r* — pide a los nuevos que se presenten, sin un @ a la vista
 *${p}antifake* · *${p}notifadmin* · *${p}autoaccept* — on/off
+_Y todo te cuesta un *${Math.round(ADMIN.descuento * 100)} %* menos que al resto. Por ser admin._
 ` : ''}${esOwner ? `
 ━━ *SUPERIORES* ━━
 *${p}demote* · *${p}resetaura* · *${p}resetcount* · *${p}on*/*${p}off* · *${p}clearcache* · *${p}diag*

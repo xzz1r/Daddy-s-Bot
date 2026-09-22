@@ -5877,6 +5877,60 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
         'cinco intentos sin saldo encarecen la primera de verdad: se cuenta lo que se intenta en vez de lo que se usa');
     }
 
+    // ── EL ADMIN PAGA MENOS. TODO. ────────────────────────────────────────
+    //
+    // «Hazle un descuento exclusivo a los admins en todos los comandos. Se
+    // merecen esa exclusividad.»
+    //
+    // Va en cobrar(), que es el unico sitio por el que pasan todos los cobros,
+    // asi que se conduce el cobro de verdad y con varios conceptos: si alguien
+    // lo mete en un comando suelto, el resto se queda fuera y el descuento deja
+    // de ser «en todos», que es justo lo que se pidio.
+    {
+      const { cobrar: cob } = require(path.join(R, 'src/utils/auraCobro'));
+      const { ADMIN: A, PRECIOS: P } = require(path.join(R, 'src/utils/economia'));
+      const { addAura: add, getAura: get } = require(path.join(R, 'src/utils/auraStore'));
+      const GA = '000000103@g.us';
+      const BOTA = '34600000103@s.whatsapp.net';
+      let k = 0;
+      const cta = () => `3460001031${`${Date.now()}`.slice(-4)}${k++}@s.whatsapp.net`;
+      const meta = (u, esAdmin) => ({ id: GA, participants: [
+        { id: BOTA, admin: 'admin' }, { id: u, ...(esAdmin ? { admin: 'admin' } : {}) }] });
+
+      exige(A && A.descuento > 0 && A.descuento < 1,
+        `ADMIN.descuento es ${A && A.descuento}: sin eso el descuento de los admins no existe`);
+      // Es una ventaja, no una exencion: el owner no paga porque administra el
+      // bot, pero un admin juega en la misma mesa. Si le saliera casi gratis,
+      // media tabla dejaria de gastar aura.
+      exige(A.descuento <= 0.5,
+        `el descuento de admin es del ${A.descuento * 100} %: por ahi arriba deja de ser ventaja y parte la economia en dos`);
+
+      for (const concepto of ['play', 'sticker', 'accion']) {
+        if (!P[concepto]) continue;
+        const raso = cta(); const jefe = cta();
+        await add(GA, raso, 9000); await add(GA, jefe, 9000);
+        const a0 = await get(GA, raso); const b0 = await get(GA, jefe);
+        const rA = await cob(GA, raso, concepto, { groupMeta: meta(raso, false) });
+        const rB = await cob(GA, jefe, concepto, { groupMeta: meta(jefe, true) });
+        const a1 = await get(GA, raso); const b1 = await get(GA, jefe);
+
+        exige(rA.ok && rB.ok, `*!${concepto}*: el cobro de prueba no ha salido (${rA.ok}/${rB.ok})`);
+        exige(rB.pagado < rA.pagado,
+          `*!${concepto}*: el admin paga ${rB.pagado} y el raso ${rA.pagado}: el descuento no llega a este comando`);
+        // Y LO COBRADO ES LO QUE SE MUEVE. Un descuento que se anuncia y no se
+        // aplica al saldo es peor que no tenerlo.
+        exige((a0 - a1) === rA.pagado && (b0 - b1) === rB.pagado,
+          `*!${concepto}*: dice cobrar ${rB.pagado} y del saldo del admin salen ${b0 - b1}`);
+        exige(rB.pagado >= 1,
+          `*!${concepto}*: al admin le sale gratis (${rB.pagado}), y un precio de 0 es decoracion`);
+      }
+
+      // Y el menu se lo dice, con la cifra sacada de la constante y no a mano.
+      const menu103 = fs.readFileSync(path.join(R, 'src/commands/social.js'), 'utf8');
+      exige(/ADMIN\.descuento \* 100/.test(menu103),
+        'el menu no dice al admin que tiene descuento, o lo dice con la cifra a mano: el dia que cambie la constante el menu mentira');
+    }
+
     // ── EL "NO TE LLEGA" NO VUELVE A SER UN TUTORIAL ──────────────────
     //
     // Ese mensaje llego a tener CINCO lineas: la burla, el precio, un parrafo
@@ -5900,7 +5954,11 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
         `el "no te llega" tiene ${normal.split('\n').filter((l) => l.trim()).length} lineas y tienen que ser dos —burla y datos—: ahí volvió el tutorial`);
       exige(!/bonos|hito|para siempre|suerte para|!aura/i.test(normal),
         `el "no te llega" vuelve a explicar el juego en vez de mandar a hablar: "${normal}"`);
-      exige(/habl|escrib|particip/i.test(normal),
+      // `boca` y `aporta` tambien mandan a hablar. Sin ellas esta guarda era
+      // INTERMITENTE: de los 16 cierres, «Abre la boca en el grupo y sube» no
+      // lleva ninguna de las tres primeras palabras, asi que el pase salia rojo
+      // el 6 % de las veces —una de cada dieciseis— sin que nada estuviera mal.
+      exige(/habl|escrib|particip|boca|aporta/i.test(normal),
         `el "no te llega" ya no dice que el aura se gana hablando, que es lo único que tenía que decir: "${normal}"`);
       exige(normal.includes(`*${basePlay}*`) && normal.includes('*12*'),
         `el "no te llega" ha dejado de decir el precio o el saldo: "${normal}"`);

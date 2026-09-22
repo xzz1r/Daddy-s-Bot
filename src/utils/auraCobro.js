@@ -6,12 +6,12 @@
 // por una canción que no llegó.
 
 const { spendAura, addAura, getAura, cobrarDeCaja } = require('./auraStore');
-const { PRECIOS, SALDO_MINIMO, OBJETOS, DIA, CAJA } = require('./economia');
+const { PRECIOS, SALDO_MINIMO, OBJETOS, DIA, CAJA, ADMIN } = require('./economia');
 // require perezoso: roboStore importa de aqui? No, pero se deja explicito para
 // que quede claro que este modulo depende del inventario.
 const { tieneSocio, aportarAlBote } = require('./roboStore');
 const { fmt, pickFresh, claveDia } = require('./helpers');
-const { isOwner, canonicalJid } = require('./wa');
+const { isOwner, isGroupAdmin, canonicalJid } = require('./wa');
 
 // Intenta cobrar `concepto` al remitente. Devuelve:
 //   { ok: true,  pagado, saldo }        — cobrado, adelante
@@ -68,6 +68,18 @@ async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta
       precio = Math.max(1, Math.round(base * (1 - OBJETOS.socio.descuento)));
     }
   } catch { /* si el fichero de objetos falla, se cobra el precio entero */ }
+
+  // EL DESCUENTO DE LOS ADMINS. Lo pidio el dueño: «hazle un descuento
+  // exclusivo a los admins en todos los comandos, se merecen esa
+  // exclusividad». Todos los comandos con precio, sin excepciones.
+  //
+  // El owner tier no pasa por aqui: salio arriba sin pagar nada.
+  //
+  // El suelo es 1. Un comando con precio no puede acabar saliendo gratis,
+  // porque entonces el precio es decoracion.
+  if (groupMeta && isGroupAdmin(senderJid, fromMe, groupMeta)) {
+    precio = Math.max(1, Math.round(precio * (1 - ADMIN.descuento)));
+  }
 
   // ─── LA CUARTA DEL DIA CUESTA EL DOBLE ──────────────────────────────────
   //
