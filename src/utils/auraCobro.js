@@ -6,7 +6,7 @@
 // por una canción que no llegó.
 
 const { spendAura, addAura } = require('./auraStore');
-const { PRECIOS, SALDO_MINIMO, ACTIVIDAD_MSGS, OBJETOS, DIA } = require('./economia');
+const { PRECIOS, SALDO_MINIMO, OBJETOS, DIA } = require('./economia');
 // require perezoso: roboStore importa de aqui? No, pero se deja explicito para
 // que quede claro que este modulo depende del inventario.
 const { tieneSocio } = require('./roboStore');
@@ -192,34 +192,52 @@ const MISERIA = [
   'Pobre como una rata y con las mismas ganas de gastar. Vuelve cuando sumes, pringado.',
 ];
 
-// Texto del rechazo: el precio, el saldo y CÓMO remontar.
+// EL CIERRE: HABLA MAS. Y NADA MAS.
 //
-// Antes terminaba en "tienes 3" y ya. Es el único momento en el que alguien
-// mira el aura de verdad — acaba de chocarse con ella — y era justo cuando el
-// bot se callaba, así que el que no sabía de qué iba se quedaba igual.
+// Aqui habia un tutorial de tres lineas —las dos vias de ganar aura, los cinco
+// hitos de mensajes del dia y la suerte permanente cada mil—. El dueño lo
+// corto: «la peña no se va a volver experta con esos tutoriales de aura
+// nunca». Y tenia razon en lo que importa, que es donde sale: pegado a un
+// insulto que iba a ser lo unico que leyeran.
 //
-// Se dicen las dos vías reales y en ese orden, porque ese es el peso que tienen
-// de verdad: escribir da mucho más que tirar (unas catorce veces más al día para
-// alguien activo). Poner *!aura* primero enseñaría a jugar a quien lo que
-// necesita es participar.
-//
-// Dos líneas y sin cifras: los importes cambian y una nota que miente es peor
-// que no tenerla.
+// De las dos vias, la que vale es escribir —da unas catorce veces mas al dia
+// que tirar— asi que es la unica que se dice. Y se dice en la misma linea del
+// precio, para que el mensaje entero quepa en dos.
+const HABLA_MAS = [
+  'Habla más, que es gratis.',
+  'Se gana hablando. Tú no hablas.',
+  'Escribe en el grupo y tendrás.',
+  'El aura se gana hablando, no mirando.',
+  'Abre la boca en el grupo y sube.',
+  'Habla más y deja de mendigar.',
+  'Participa, que esto no cae del cielo.',
+  'Se consigue escribiendo. Pruébalo alguna vez.',
+  'Habla en el grupo. Ahí se gana.',
+  'Escribe. Es lo único que lo sube.',
+  'El que habla, cobra. Tú no cobras.',
+  'Menos pedir y más escribir.',
+  'Sube hablando, y tú llevas el día mudo.',
+  'Se gana participando. Tú solo vienes a gastar.',
+  'Habla, aporta, y vuelve con saldo.',
+  'Escribe algo en el grupo. Por una vez.',
+];
+
+// Texto del rechazo: la burla, cuanto cuesta, cuanto tienes y habla mas.
 function textoSinSaldo(concepto, { precio, saldo }, jid) {
   // La burla rota por grupo: pickFresh evita que salga la misma dos veces
   // seguidas, que es lo que convierte un chiste en un mensaje de error.
   const burla = pickFresh(MISERIA, `${jid || 'x'}|miseria`);
-  // SI HOY LE SALE MAS CARO, SE DICE. Un precio que sube sin avisar se lee como
-  // un fallo del bot, no como un freno: la primera reaccion de cualquiera es
-  // "me esta cobrando mal". Con la linea puesta, el mismo mensaje explica que
-  // lleva cuatro seguidas y que por eso vale el doble.
+  const cierre = pickFresh(HABLA_MAS, `${jid || 'x'}|hablamas`);
+  // SI HOY LE SALE MAS CARO, SE DICE — pero en tres palabras, no en un parrafo.
+  // Un precio que sube sin avisar se lee como un fallo del bot: la primera
+  // reaccion de cualquiera es "me esta cobrando mal", y eso acaba en una queja
+  // al dueño. Cabe entre parentesis y no rompe las dos lineas.
   const base = PRECIOS[concepto];
-  const recargo = base && precio > base
-    ? `\n_Van *${RAFAGA.gratis}* hoy a precio normal, así que esta y las siguientes valen el doble. Mañana vuelve a ${fmt(base)}._`
-    : '';
+  const doble = base && precio > base ? ' (hoy te sale el doble)' : '';
+  // Una sola tirada de cursiva: WhatsApp cierra el tramo en el primer `_` que
+  // pilla, asi que partirlo en dos deja las marcas a la vista.
   return `${burla}\n\n` +
-    `_Cuesta *${fmt(precio)}* y tienes *${fmt(saldo)}*._${recargo}\n` +
-    `_Se gana con *!aura* y con los bonos de 50, 100, 200, 500 y 1000 mensajes del día. Cada ${fmt(ACTIVIDAD_MSGS)} mensajes que escribes tus tiradas ganan suerte para siempre._`;
+    `_Cuesta *${fmt(precio)}*${doble} y tienes *${fmt(saldo)}*. ${cierre}_`;
 }
 
 module.exports = { cobrar, devolver, textoSinSaldo, MISERIA, SIN_SERVICIO, esSinServicio, RAFAGA, usosDe, _usos: usos };

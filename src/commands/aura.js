@@ -254,7 +254,7 @@ const AURA = {
     'Te han puesto en copia de un correo que no era para ti. Has aparecido. Punto.', // ANALOGÍA
     'Un chupito de cortesía. Ni copa, ni hielo, ni segunda ronda.', // ANALOGÍA
     'Te ha tocado el relleno del bocadillo: atún del barato.', // ANALOGÍA
-    'Te ha tocado el asiento del cine que nadie quería.', // ANALOGÍA
+    'Has ganado y no se ha enterado nadie. Como todo lo que haces aquí.',
     'Wifi de treinta minutos en el aeropuerto. Navega.', // ANALOGÍA
     'Sello de pagado en una factura de tres euros. El cajero ni ha levantado la vista.', // ANALOGÍA
     'La ola ha sido de un solo tipo. Una mano. Y se baja.', // ANALOGÍA

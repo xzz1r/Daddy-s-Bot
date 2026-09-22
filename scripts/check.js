@@ -5647,6 +5647,46 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
         'cinco intentos sin saldo encarecen la primera de verdad: se cuenta lo que se intenta en vez de lo que se usa');
     }
 
+    // ── EL "NO TE LLEGA" NO VUELVE A SER UN TUTORIAL ──────────────────
+    //
+    // Ese mensaje llego a tener CINCO lineas: la burla, el precio, un parrafo
+    // de la racha y otro con las dos vias de ganar aura, los cinco hitos de
+    // mensajes del dia y la suerte permanente cada mil. El dueño lo corto:
+    // «la peña no se va a volver experta con esos tutoriales de aura nunca».
+    //
+    // Se queda en dos: la burla y una linea con cuanto cuesta, cuanto tienes y
+    // habla mas. Lo que se vigila aqui es que no vuelva a crecer, que siga
+    // mandando a hablar —que es la via que de verdad da aura— y que si hoy
+    // cuesta el doble lo diga, porque un precio que sube sin avisar se lee como
+    // que el bot cobra mal y acaba en una queja.
+    {
+      const { textoSinSaldo } = require(path.join(R, 'src/utils/auraCobro'));
+      const { PRECIOS: P6 } = require(path.join(R, 'src/utils/economia'));
+      const basePlay = P6.play;
+      const normal = textoSinSaldo('play', { precio: basePlay, saldo: 12 }, '000000051@g.us');
+      const caro = textoSinSaldo('play', { precio: basePlay * 2, saldo: 12 }, '000000052@g.us');
+
+      exige(normal.split('\n').filter((l) => l.trim()).length === 2,
+        `el "no te llega" tiene ${normal.split('\n').filter((l) => l.trim()).length} lineas y tienen que ser dos —burla y datos—: ahí volvió el tutorial`);
+      exige(!/bonos|hito|para siempre|suerte para|!aura/i.test(normal),
+        `el "no te llega" vuelve a explicar el juego en vez de mandar a hablar: "${normal}"`);
+      exige(/habl|escrib|particip/i.test(normal),
+        `el "no te llega" ya no dice que el aura se gana hablando, que es lo único que tenía que decir: "${normal}"`);
+      exige(normal.includes(`*${basePlay}*`) && normal.includes('*12*'),
+        `el "no te llega" ha dejado de decir el precio o el saldo: "${normal}"`);
+      exige(/doble/i.test(caro) && !/doble/i.test(normal),
+        'el recargo de la racha o no se dice cuando toca, o se dice cuando no toca: un precio que sube sin avisar se lee como que el bot cobra mal');
+      exige(caro.split('\n').filter((l) => l.trim()).length === 2,
+        `con recargo el mensaje se va a ${caro.split('\n').filter((l) => l.trim()).length} lineas: ese aviso tiene que caber en la misma`);
+      // Y que el cierre rote, o en tres usos seguidos es el mismo renglon.
+      const cierres = new Set();
+      for (let i = 0; i < 6; i++) {
+        cierres.add(textoSinSaldo('play', { precio: basePlay, saldo: 1 }, '000000053@g.us').split('\n').pop());
+      }
+      exige(cierres.size >= 4,
+        `el cierre se repite (${cierres.size} distintos en 6): pegado a una burla que si rota, canta`);
+    }
+
     // ── EL REMATE DEL DIA NO PUEDE SER PARTE DEL FORMATO ─────────────────
     {
       const { anotarYRematar, CADA } = require(path.join(R, 'src/utils/percentDia'));
