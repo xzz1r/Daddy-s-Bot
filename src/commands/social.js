@@ -130,13 +130,28 @@ function numeroDeWhoami(args) {
   return '';
 }
 
-function rangoEnGrupo(sock, persona, groupMeta) {
+function rangoEnGrupo(sock, persona, groupMeta, enPrivado = false) {
   if (isBotJid(sock, persona)) return 'este bot';
-  // El rango del BOT va primero: dueño y co-dueño mandan aquí aunque en
-  // WhatsApp salgan como admin o como miembro. Sin esto, !whoami decía
-  // "admin" y el co-dueño no sabía si el bot lo reconocía.
-  if (isMainOwner(persona, false, groupMeta)) return 'dueño';
-  if (isOwner(persona, false, groupMeta)) return 'co-dueño';
+  // EL RANGO DEL BOT NO SALE EN EL GRUPO. NUNCA. NI EL TUYO.
+  //
+  // ESTO SE VIO EN PRODUCCION Y ES LA PEOR FUGA QUE HA TENIDO EL BOT.
+  // Cualquiera podia escribir *!whoami @alguien* y el bot contestaba
+  // "*Rango:* dueño" en cuanto acertaba con la cuenta. O sea que averiguar
+  // quien manda en el bot costaba probar tres o cuatro menciones — y ni eso,
+  // porque escribiendolo el propio dueño en el grupo salia igual.
+  //
+  // La version anterior cuido la PALABRA —evito escribir "owner" porque
+  // "esa palabra es la que delata quien manda"— pero no el DATO, que es lo
+  // que delata. Cambiar la etiqueta no cambia lo que se esta diciendo.
+  //
+  // Aqui se decide por DONDE se pregunta, no por quien: en el privado del bot
+  // solo entra el tier dueño (la puerta del manejador lo cierra al resto), asi
+  // que ahi el dato no sale de casa. En un grupo no se dice jamas, y quien
+  // quiera saber su propio rango lo tiene a un mensaje privado.
+  if (enPrivado) {
+    if (isMainOwner(persona, false, groupMeta)) return 'dueño';
+    if (isOwner(persona, false, groupMeta)) return 'co-dueño';
+  }
   if (!groupMeta?.participants) return null;
   const p = participantePorJid(groupMeta, bareJid(persona))
     || participantePorJid(groupMeta, canonicalJid(persona));
@@ -175,7 +190,7 @@ async function cmdWhoami(sock, msg, args, groupMeta) {
   const jid = msg.key.remoteJid;
   const persona = personaDeWhoami(msg, args, groupMeta);
   const lineas = [`*JID:* ${bareJid(persona)}`];
-  const rango = rangoEnGrupo(sock, persona, groupMeta);
+  const rango = rangoEnGrupo(sock, persona, groupMeta, !jid.endsWith('@g.us'));
   if (rango) lineas.push(`*Rango:* ${rango}`);
   await sock.sendMessage(jid, { text: lineas.join('\n') }, { quoted: msg });
 }

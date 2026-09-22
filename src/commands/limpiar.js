@@ -126,15 +126,39 @@ async function cmdLimpiar(sock, msg, args, groupMeta) {
   }
 
   trabajo = (async () => {
+    let borrados = items.length;
     try {
       const mas = await hist.reunir(sock, jid, n, cmdId ? [cmdId] : [], ancla);
       const yaIds = new Set(items.map((i) => i.id));
       const extra = mas.filter((x) => !yaIds.has(x.id));
-      if (extra.length) dispararBorrados(sock, jid, extra);
+      if (extra.length) {
+        dispararBorrados(sock, jid, extra);
+        borrados += extra.length;
+      }
     } catch (e) {
       logger.warn(`limpiar: historial ${jid}: ${e.message}`);
     } finally {
       enCurso.delete(jid);
+    }
+
+    // SI SE QUEDA CORTO, SE DICE.
+    //
+    // El silencio al salir bien es a proposito —un "listo, borre 20" es otro
+    // mensaje que hay que borrar despues— pero eso solo vale cuando se ha hecho
+    // lo que se pidio. Pedir 200 y borrar 12 sin abrir la boca se lee como que
+    // funciono, y quien lo escribio se queda pensando que el grupo esta limpio.
+    //
+    // Es el mismo fallo que ya se corrigio en las expulsiones y en el antilink:
+    // el bot no puede dar por hecho un resultado que no ha comprobado.
+    //
+    // El aviso se cuenta descontando el propio *!limpiar*, que tambien se borra
+    // pero no lo pidio nadie.
+    const pedidos = n;
+    const hechos = Math.max(0, borrados - (cmdId ? 1 : 0));
+    if (hechos < pedidos) {
+      await sock.sendMessage(jid, {
+        text: `Borrados *${hechos}* de ${pedidos}. No tengo más mensajes recientes de este chat.`,
+      }).catch(() => {});
     }
   })();
 }

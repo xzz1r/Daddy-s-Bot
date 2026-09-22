@@ -616,10 +616,24 @@ async function connectToWhatsApp() {
     keepAliveIntervalMs: 30_000,
     retryRequestDelayMs: 2000,
     connectTimeoutMs: 60_000,
-    // Sin esto el teléfono no suelta el historial de grupo y !limpiar no
-    // puede borrar lo de antes. El arranque tarda más; es el precio.
-    syncFullHistory: true,
-    shouldSyncHistoryMessage: () => true,
+    // ARRANQUE RAPIDO, POR DECISION DEL DUEÑO.
+    //
+    // Esto estuvo en `true` para que *!limpiar* alcanzara los mensajes de
+    // ANTES de que el bot se conectara. El precio era permanente y se pagaba en
+    // cada arranque: el telefono vuelca el historial COMPLETO de todos los
+    // chats, y esta maquina es de un nucleo y 1 GB —la misma en la que hubo que
+    // borrar sharp y el ffmpeg empaquetado para que cupiera—. El bot reconecta
+    // en cada despliegue y en cada corte de red, asi que eso no era un coste de
+    // una vez: era el arranque de siempre, mas lento y con mas RAM.
+    //
+    // El dueño lo zanjo: alcanzar lo viejo era util el dia que lo pidio y hoy
+    // ya no. Asi que vuelve a `false` y *!limpiar* trabaja con lo que el bot ha
+    // visto en vivo, que es lo que se borra el 99 % de las veces.
+    //
+    // La peticion bajo demanda (fetchMessageHistory) SIGUE ahi para cuando el
+    // comando se queda corto: esa es acotada, va por peticion y no cuesta nada
+    // mientras nadie la use.
+    syncFullHistory: false,
     // Don't emit events for the bot's own outgoing messages
     emitOwnEvents: false,
     // status@broadcast YA NO SE TIRA A CIEGAS.
@@ -2032,11 +2046,13 @@ function reintentarBusiness(_sockAlJoin, groupJid, kickId, phoneJid, intento = 0
       // Baileys tira el lote si fromMe sale false (LID). Lo bajamos igual.
       const notifHist = getHistoryMsg(msg.message);
       if (notifHist) {
-        logger.warn(`historial: lote tipo=${notifHist.syncType} fromMe=${msg.key?.fromMe}`);
+        // info y no warn: con syncFullHistory apagado esto sale poco, pero un
+        // WARN por lote llenaba el log de una VPS que no tiene logrotate.
+        logger.info(`historial: lote tipo=${notifHist.syncType} fromMe=${msg.key?.fromMe}`);
         downloadAndProcessHistorySyncNotification(notifHist, {})
           .then((data) => {
             const n = ingestarHistorial(data);
-            logger.warn(`historial: ingestados ${n} de ${data.messages?.length || 0} en el lote`);
+            logger.info(`historial: ingestados ${n} de ${data.messages?.length || 0} en el lote`);
           })
           .catch((e) => logger.warn(`historial: no pude bajar el lote: ${e.message}`));
       }

@@ -17321,13 +17321,30 @@ const manda = async (quien, tipo, opciones) => {
     if (fallos === antes97) console.log(verde('   ✓ borra N para todos, también lo del dueño, y no se lo traga un admin'));
   }
 
-  // ── 98. !whoami DICE EL RANGO DE QUIEN LO PIDE ──────────────────────────
+  // ── 98. !whoami NO DICE EN EL GRUPO QUIÉN MANDA EL BOT ──────────────────
   //
-  // Durante un tiempo solo contestaba el JID. Ahora dice el rango: dueño,
-  // co-dueño, o el de WhatsApp en este grupo. También mira a otra cuenta
-  // (mención, respuesta o número). No se escribe "owner".
+  // ESTO SE VIO EN PRODUCCION Y ES LA PEOR FUGA QUE HA TENIDO EL BOT.
+  //
+  // *!whoami* paso a decir el rango, y con mencion el de otra cuenta. O sea que
+  // cualquiera del grupo escribia *!whoami @alguien* y el bot contestaba
+  // "*Rango:* dueño" en cuanto acertaba. Averiguar quien manda el bot costaba
+  // tres o cuatro menciones. Y ni eso: escribiendolo el propio dueño en el
+  // grupo salia igual.
+  //
+  // La version anterior cuido la PALABRA —evitaba escribir "owner" porque "esa
+  // palabra es la que delata quien manda"— pero no el DATO. Cambiar la etiqueta
+  // no cambia lo que se esta diciendo.
+  //
+  // LA REGLA AHORA ES POR DONDE SE PREGUNTA, no por quien: en el privado del
+  // bot solo entra el tier dueño, asi que ahi el dato no sale de casa; en un
+  // grupo no se dice jamas, ni del que pregunta ni de nadie. Lo que si se dice
+  // en el grupo es el rango de WhatsApp, que cualquiera ve tocando el nombre.
+  //
+  // Lo que vigila esta capa es EL DATO, no la palabra: que "dueño" y "co-dueño"
+  // no aparezcan en un grupo por ningun camino —preguntando por uno mismo, por
+  // mencion, por cita o por numero— y que en el privado si.
   {
-    console.log('\n98. !whoami DICE EL RANGO DE QUIEN LO PIDE');
+    console.log('\n98. !whoami NO DICE EN EL GRUPO QUIÉN MANDA EL BOT');
     const antes98 = fallos;
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
     const soc98 = require(path.join(R, 'src/commands/social'));
@@ -17368,13 +17385,36 @@ const manda = async (quien, tipo, opciones) => {
     exige(/34611111198/.test(ultimo98()) && /\*Rango:\* admin/.test(ultimo98()),
       `un admin no ve su rango: "${ultimo98()}"`);
 
+    // EN EL GRUPO, EL TIER NO EXISTE. Ni preguntando por uno mismo.
     await soc98.cmdWhoami(sock98, base98('W3', COO98, '!whoami'), [], meta98);
-    exige(new RegExp(COO98.replace(/@.*$/, '')).test(ultimo98()) && /\*Rango:\* co-dueño/.test(ultimo98()),
-      `un co-dueño no ve su rango: "${ultimo98()}"`);
+    exige(!/due|co-due/i.test(ultimo98()),
+      `el co-dueño preguntando en el GRUPO ve su tier, y eso lo lee todo el grupo: "${ultimo98()}"`);
 
     await soc98.cmdWhoami(sock98, base98('W4', OWN98, '!whoami'), [], meta98);
-    exige(new RegExp(String(cfg98.ownerNumber).replace(/\D/g, '')).test(ultimo98()) && /\*Rango:\* dueño/.test(ultimo98()),
-      `el dueño no ve su rango: "${ultimo98()}"`);
+    exige(!/due|co-due/i.test(ultimo98()),
+      `el dueño preguntando en el GRUPO se delata solo: "${ultimo98()}"`);
+
+    // Y LO QUE DESTAPO EL FALLO: cualquiera apuntando al dueño.
+    await soc98.cmdWhoami(sock98, base98('W4b', RASO98, '!whoami', { mencion: OWN98 }), [], meta98);
+    exige(!/due|co-due/i.test(ultimo98()),
+      `un miembro mencionando al dueño averigua quién manda el bot: "${ultimo98()}"`);
+    await soc98.cmdWhoami(sock98, base98('W4c', RASO98, '!whoami', { cita: COO98 }), [], meta98);
+    exige(!/due|co-due/i.test(ultimo98()),
+      `citando a un co-dueño se destapa el tier: "${ultimo98()}"`);
+    const digOwn98 = String(cfg98.ownerNumber).replace(/\D/g, '');
+    await soc98.cmdWhoami(sock98, base98('W4d', RASO98, `!whoami ${digOwn98}`), [digOwn98], meta98);
+    exige(!/due|co-due/i.test(ultimo98()),
+      `escribiendo el número del dueño se destapa el tier: "${ultimo98()}"`);
+
+    // EN EL PRIVADO SI, que ahi solo entra el tier dueño.
+    const vistoPriv = [];
+    const sockPriv = { user: { id: BOT98 }, sendMessage: async (j, c) => { vistoPriv.push(c.text || ''); return {}; } };
+    await soc98.cmdWhoami(sockPriv, {
+      key: { remoteJid: OWN98, id: 'WP', fromMe: false },
+      message: { conversation: '!whoami' },
+    }, [], null);
+    exige(/\*Rango:\* dueño/.test(vistoPriv.at(-1) || ''),
+      `en el privado del bot el dueño ya no ve su rango: "${vistoPriv.at(-1)}"`);
 
     await soc98.cmdWhoami(sock98, base98('W5', RASO98, '!whoami', { mencion: ADM98 }), [], meta98);
     exige(/34611111198/.test(ultimo98()) && /\*Rango:\* admin/.test(ultimo98()),
@@ -17388,14 +17428,18 @@ const manda = async (quien, tipo, opciones) => {
     exige(/34611111198/.test(ultimo98()) && /\*Rango:\* admin/.test(ultimo98()),
       `con el número no dice el rango de esa cuenta: "${ultimo98()}"`);
 
-    exige(!/\bowner\b/i.test(visto98.map((v) => v.text || '').join('\n')),
+    // Y NI LA PALABRA NI EL DATO, en NINGUNA de las respuestas de grupo.
+    const todo98 = visto98.map((v) => v.text || '').join('\n');
+    exige(!/\bowner\b/i.test(todo98),
       '!whoami dice "owner" en el grupo: esa palabra señala quién manda el bot');
+    exige(!/due[ñn]o/i.test(todo98),
+      `!whoami dice "dueño" en alguna respuesta de grupo: ${JSON.stringify(todo98.slice(0, 120))}`);
 
     const menu98 = fs.readFileSync(path.join(R, 'src/commands/social.js'), 'utf8');
     exige(!/\$\{p\}limpiar\b/.test(menu98) && !/\$\{p\}wipe\b/.test(menu98),
       '!limpiar / !wipe siguen en el menú y el dueño los quería ocultos');
 
-    if (fallos === antes98) console.log(verde('   ✓ !whoami dice el rango, y !limpiar no asoma en el menú'));
+    if (fallos === antes98) console.log(verde('   ✓ en el grupo !whoami no delata a nadie del tier, y en el privado sí responde'));
   }
 
   if (BREVE) {
