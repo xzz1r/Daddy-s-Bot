@@ -4242,6 +4242,27 @@ const di=async(quien,texto,extra)=>{
       // suene a plantilla —«puedes usar la misma terminologia, pero no la
       // misma estructura para que no se vea repetitivo»—.
 
+      // CADA FRASE TIENE QUE DECIR QUE LO ESCRIBIO MAL.
+      //
+      // El dueño lo vio en una: ««Qué carajo te pasa en la cabeza. Es un puto
+      // comando» — le falta aclarar que lo escribió mal».
+      //
+      // Y tenia razon aunque la correccion salga en la linea de encima: «es un
+      // puto comando» se queda a medias —¿un comando QUE?— y el insulto acaba
+      // flotando, como si le llamara corto porque si. La frase tiene que morder
+      // SOBRE LO QUE ACABA DE HACER, no al lado.
+      //
+      // Estaban asi 27 de 57. Se conectan de formas distintas a proposito —«lo
+      // has destrozado al teclearlo», «mira lo que has puesto», «te ha salido
+      // otra cosa», «ni teclearlo bien»— porque rematarlas todas con «y lo has
+      // escrito mal» seria arreglar esto rompiendo lo de abajo.
+      // `escri` y no `escrib`: «escrito» y «escrita» no llevan la b, y con
+      // `escrib` la guarda daba por flotante una frase que si conectaba.
+      const ACTO = /escri|teclea|aciert|romper|rompe|roto|torcido|mal puest|mal escrit|has puesto|acabas de poner|ponerlo|te sale|salido|ha quedado|has dejado|fallad|fallar|fallo|cagarla|joderlo|entera|entero|no ha podido|no has podido|te ha ganado|medirte|visto el nivel|devolver|destroz|autocorrector|errores de dedo|analfabeto/i;
+      const flotantes = AV.MAL_ESCRITO.filter((f) => !ACTO.test(f));
+      exige(flotantes.length === 0,
+        `${flotantes.length} frase(s) de MAL_ESCRITO insultan sin decir que lo escribio mal, y asi el insulto flota: "${flotantes[0] || ''}"`);
+
       // LA ESTRUCTURA, QUE ES LO QUE DE VERDAD CANSA.
       //
       // «Puedes usar la misma terminologia —neuronas, retraso, etc— pero no la
