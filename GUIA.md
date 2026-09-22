@@ -1010,6 +1010,15 @@ git pull origin main
   es un banco**. Aquí nadie "realiza una operación" — se echa el candado y se
   mira por encima del hombro. El bot no felicita al que guarda: le recuerda que
   esconder es de cobardes y que sacarlo va a costarle dinero.
+- **Expediente** (`!caso` · `!expediente`): no tira dados. Junta lo que el bot
+  ya guarda de alguien —mensajes, aura y caja, robos de la semana, precio en la
+  cabeza, veto de la tienda, objetivo del día, último día que escribió— y dicta
+  UN veredicto por orden de gravedad: la inactividad primero, luego las deudas y
+  los robos, y rico o pobre al final (rico ≥ 1.500 contando la caja). Los
+  veredictos están en `src/commands/caso.js` y siguen dos reglas: **sin género**
+  (se dice lo que hace, no «callado» ni «buscado») y **al que sostiene el grupo
+  no se le reprocha escribir**. Del dueño no hay expediente: silencio, y se
+  devuelve lo cobrado.
 - **Racha**: solo habla en hitos (7, 15, 30, 50, 100, 200, 365 días) y al romper
   una racha larga. El resto de días paga en silencio, a propósito.
 - **Acciones** (veintiuna: `!hug` · `!cuddle` · `!punch` · `!stare` · `!fuck` y

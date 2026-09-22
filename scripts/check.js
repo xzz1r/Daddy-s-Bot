@@ -18418,6 +18418,47 @@ const manda = async (quien, tipo, opciones) => {
     exige(caso._diasEntre('2026-08-30', '2026-09-02') === 3, `de 30-ago a 2-sep salen ${caso._diasEntre('2026-08-30', '2026-09-02')} dias y son 3`);
     exige(caso._diasEntre('2024-02-28', '2024-03-01') === 2, 'el año bisiesto se cuenta mal');
 
+    // 4b. Lo que tiene guardado cuenta para rico y pobre, como en el top: con
+    //     el saldo a secas, quien lo esconde todo saldria de muerto de hambre.
+    exige(dic({ ...base, aura: 50, caja: 2000 }) === 'rico',
+      'quien tiene 2.000 en la caja y 50 sueltos sale como pobre: el expediente no mira la caja');
+
+    // 4c. Sin genero (capa 44): el veredicto le llega igual a un tio que a una
+    //     tia. «Muerto de hambre» se queda: es la expresion que pidio el dueño y
+    //     no cambia con quien la recibe.
+    {
+      const tio = /\b(callado|mudo|desaparecido|buscado|ladr[oó]n|millonario|rico|enganchado|pringado)\b|\bbuscarlo\b|(^|\s)él(?=[\s,.]|$)/i;
+      const malas = Object.values(caso.VEREDICTOS).flat().filter((f) => tio.test(f.replace(/muerto de hambre/i, '')));
+      exige(malas.length === 0, `veredictos en masculino, que a una tia le llegan igual: ${malas.slice(0, 3).join(' | ')}`);
+    }
+
+    // 4d. Los robos: la ventana es de siete dias y la linea lo tiene que decir,
+    //     con el botin; y el veto de la tienda sale si lo hay.
+    {
+      const tienda103 = require(path.join(R, 'src/utils/roboStore'));
+      await tienda103.anotarGolpe(G103, A103, 340);
+      await tienda103.vetarDeTienda(G103, A103, Date.now() + 3600000);
+      dicho.length = 0;
+      await caso.cmdCaso(sock103, pide(OWN103, A103), [], meta103);
+      const t2 = dicho[0] || '';
+      exige(/Robos: \*1\* golpe esta semana · \*340\* de botín/.test(t2),
+        `la linea de robos no dice la semana o el botin: "${(t2.match(/Robos:.*/) || [''])[0]}"`);
+      exige(/tienda/.test(t2), 'quien tiene la tienda vetada no lo lleva en el expediente');
+    }
+
+    // 4e. Con mensajes contados y sin dia apuntado en la racha (la racha es
+    //     posterior al contador), «Última vez: nunca» seria mentira.
+    {
+      const cnt103 = require(path.join(R, 'src/utils/messageCounter'));
+      const B103 = '34600001032@s.whatsapp.net';
+      for (let i = 0; i < 3; i++) await cnt103.increment(G103, B103);
+      dicho.length = 0;
+      await caso.cmdCaso(sock103, pide(OWN103, B103), [], { ...meta103, participants: [...meta103.participants, { id: B103 }] });
+      const t3 = dicho[0] || '';
+      exige(/Mensajes: \*3\*/.test(t3), `el expediente no ve los mensajes contados: "${t3.slice(0, 100)}"`);
+      exige(!/Última vez: nunca/.test(t3), 'quien tiene mensajes y ningun dia en la racha sale con «Última vez: nunca»: mentira');
+    }
+
     // 5. Esta enganchado y cuesta lo mismo que mirar datos en *!count*.
     const { PRECIOS: P103 } = require(path.join(R, 'src/utils/economia'));
     const LV103 = require(path.join(R, 'src/handlers/messageHandler'))._listas;

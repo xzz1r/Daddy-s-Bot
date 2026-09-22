@@ -31,8 +31,10 @@ rico (≥ 1.500) rico en un bot de WhatsApp. Pools `gainPobre` / `gainRico`.
 El dueño pidió ideas molonas. Estas usan datos que el bot **ya tiene** y hoy
 no junta.
 
-1. **`!caso @user` — el expediente.** Actividad, aura, robos, ships, días
-   en silencio. Un parte de conducta, no otra tirada random.
+1. **`!caso @user` — HECHO.** Mensajes, aura y caja, robos de la semana,
+   precio en la cabeza, veto de la tienda, objetivo del día y días en
+   silencio, con un veredicto que sale de esos datos. Los ships no salen:
+   `!ship` no guarda nada y no se inventa. Del dueño, silencio (capa 103).
 2. **Memoria de rencor.** Si el martes te moggeó y hoy vuelves a pedirlo,
    el bot lo cita. El grupo genera mitología solo.
 3. **Testamento al echar.** El aviso de kick ahora es plantilla. Debería
@@ -42,4 +44,4 @@ no junta.
 5. **`!circulo`.** Grafo de quién responde a quién. «Le hablas a tres y
    los tres te dejan en visto» duele más que mil analogías.
 
-No las implementes de rebote. `!caso` ya está elegida y en marcha.
+No las implementes de rebote. Si el dueño elige otra, esa y bien.

@@ -23,7 +23,8 @@
 const { getSender, getTarget, isMainOwner, sameUser, soloMiembros } = require('../utils/wa');
 const { getUserCount, getActiveUsers } = require('../utils/messageCounter');
 const { getAura, verCaja, getAuraRanking } = require('../utils/auraStore');
-const { rankingLadrones, recompensaDe } = require('../utils/roboStore');
+const { rankingLadrones, recompensaDe, vetoTienda } = require('../utils/roboStore');
+const { objetivoDelDia, esObjetivoDelDia } = require('../utils/objetivoDia');
 const { verRacha, diaDe } = require('../utils/rachaStore');
 const { rankedUsers } = require('./count');
 const { SIN_SERVICIO } = require('../utils/auraCobro');
@@ -39,55 +40,59 @@ const POBRE = 100;
 // La inactividad va delante de todo porque es la unica falta que el bot
 // persigue de verdad (GUIA.md). Y al que sostiene el grupo no se le castiga
 // por sostenerlo: su veredicto no le reprocha escribir.
+//
+// SIN GENERO: le llega igual a un tio que a una tia (GUIA.md, capa 44). Nada
+// de «callado», «buscado» o «millonario»: se dice lo que hace, no como es.
 const VEREDICTOS = {
   nunca: [
     'No ha escrito nunca. Ni un hola. Está aquí de adorno.',
-    'Cero mensajes desde que entró. Una foto de perfil y nada más.',
-    'Miembro de pleno derecho que no ha dicho ni mu. Ocupa plaza.',
+    'Cero mensajes desde que entró. Una foto de perfil y poco más.',
+    'Ocupa plaza y no ha dicho ni mu. Ni para despedirse va a abrir la boca.',
   ],
   fantasmaLargo: [
-    'Fantasma de manual. Ocupa plaza y no paga ni con presencia.',
-    'Más de un mes mudo. A estas alturas es decoración.',
-    'Un mes sin escribir, y nadie lo ha echado de menos. Eso es lo peor.',
+    'Más de un mes sin escribir. Ocupa plaza y no paga ni con presencia.',
+    'Un mes sin decir nada. A estas alturas es decoración.',
+    'Un mes sin escribir y nadie lo ha notado. Eso es lo que más duele.',
     'Existe en la lista de miembros y en ningún otro sitio.',
   ],
   fantasma: [
     'Una semana larga sin abrir la boca. Lee todo y no aporta nada.',
     'Mira el grupo desde la puerta. Hace días que no entra.',
-    'Desaparecido en combate, y nadie ha ido a buscarlo.',
-    'Se le ve en línea y no escribe. Cotilla profesional.',
+    'Se le ve en línea y no escribe. Cotilla de manual.',
+    'Una semana sin dar señales. Si no fuera por la foto de perfil, nadie sabría que sigue aquí.',
   ],
   insolvente: [
-    'En números rojos. Debe aura a un bot de WhatsApp.',
+    'En números rojos. Le debe aura a un bot de WhatsApp.',
     'Insolvente. Ni el bot le fía ya.',
     'Su cuenta está en negativo y sigue tirando. Vicio puro.',
   ],
   reincidente: [
     'Reincidente. Si hay algo que robar, ya ha pasado por ahí.',
-    'Ladrón habitual. El grupo debería dormir con la cartera debajo de la almohada.',
+    'Robar ya es su oficio. El grupo debería dormir con la cartera debajo de la almohada.',
     'Vive de lo ajeno. Tiene más golpes que conversaciones.',
   ],
   buscado: [
     'Tiene precio en la cabeza. Cualquiera puede ir a cobrarlo.',
-    'Buscado. Hay gente con ganas de ir a por él.',
+    'Hay gente con ganas de ir a por su cabeza, y con motivos.',
+    'El precio se lo ha ganado a pulso. Ahora que no se queje.',
   ],
   ausente: [
-    'Lleva unos días callado. Se le está olvidando cómo se escribe.',
+    'Unos días sin escribir. Se le está olvidando cómo se hace.',
     'Viene, mira y se va. Unos días así y ya es costumbre.',
     'Se está enfriando. Un par de días más y pasa a mueble.',
   ],
   pilar: [
     'Sostiene el grupo a base de mensajes. Nada que alegar.',
-    'Si se calla este, el grupo se muere. Así de claro.',
+    'Si deja de escribir, el grupo se muere. Así de claro.',
     'Habla más que nadie. Por lo menos alguien lo hace.',
   ],
   rico: [
-    'Rico en un bot de WhatsApp. Eso no es un logro, es un diagnóstico.',
+    'Tanta aura en un bot de WhatsApp no es un logro, es un diagnóstico.',
     'Más aura que casi nadie y la misma vida de siempre.',
-    'Millonario de chat. Fuera de aquí eso no vale nada.',
+    'Una fortuna de chat. Fuera de aquí no le llega ni para el pan.',
   ],
   pobre: [
-    'Muerto de hambre. Su cuenta da pena hasta al bot.',
+    'Un muerto de hambre de manual. Su cuenta da pena hasta al bot.',
     'Pobre de solemnidad. Pide comandos con la mirada.',
     'No tiene ni para un sticker. Así va por la vida.',
   ],
@@ -114,8 +119,11 @@ function dictamen(d) {
   if (d.cabeza > 0) return 'buscado';
   if (d.silencio !== null && d.silencio >= 2) return 'ausente';
   if (d.puestoMensajes > 0 && d.puestoMensajes <= 3) return 'pilar';
-  if (d.aura >= RICO) return 'rico';
-  if (d.aura < POBRE) return 'pobre';
+  // Rico y pobre miran TODO lo que tiene, caja incluida, igual que el top.
+  // Con el saldo a secas, quien lo guarda todo saldria de muerto de hambre.
+  const tiene = d.aura + (d.caja || 0);
+  if (tiene >= RICO) return 'rico';
+  if (tiene < POBRE) return 'pobre';
   return 'normal';
 }
 
@@ -136,7 +144,7 @@ async function cmdCaso(sock, msg, args, groupMeta) {
   // Ver la nota de arriba: del dueño, silencio y se devuelve lo cobrado.
   if (isMainOwner(persona, false, groupMeta)) return SIN_SERVICIO;
 
-  const [mensajes, activos, aura, caja, ranking, ladrones, cabeza, racha] = await Promise.all([
+  const [mensajes, activos, aura, caja, ranking, ladrones, cabeza, racha, veto] = await Promise.all([
     getUserCount(jid, persona),
     getActiveUsers(jid, 1),
     getAura(jid, persona),
@@ -145,6 +153,7 @@ async function cmdCaso(sock, msg, args, groupMeta) {
     rankingLadrones(jid),
     recompensaDe(jid, persona),
     verRacha(jid, persona),
+    vetoTienda(jid, persona),
   ]);
 
   const porMensajes = rankedUsers(activos, groupMeta);
@@ -153,11 +162,15 @@ async function cmdCaso(sock, msg, args, groupMeta) {
   const iA = porAura.findIndex((u) => sameUser(u.jid, persona));
   const ladron = ladrones.find((l) => sameUser(l.jid, persona));
   const golpes = ladron ? ladron.golpes : 0;
+  const botin = ladron ? ladron.total : 0;
+  // El mismo objetivo que anuncia el cartel, con el mismo ranking que *!top*.
+  // Si falla, el expediente sale igual: es un dato de mas, no el parte.
+  const objetivo = await objetivoDelDia(jid, groupMeta, porAura).catch(() => null);
   const hoy = diaDe(Date.now());
   const silencio = racha.ultimo ? Math.max(0, diasEntre(racha.ultimo, hoy)) : null;
 
   const d = {
-    mensajes, aura, golpes, cabeza, silencio, ultimo: racha.ultimo,
+    mensajes, aura, caja, golpes, cabeza, silencio, ultimo: racha.ultimo,
     puestoMensajes: iM >= 0 ? iM + 1 : 0,
   };
   const tipo = dictamen(d);
@@ -168,13 +181,23 @@ async function cmdCaso(sock, msg, args, groupMeta) {
   lineas.push(`Mensajes: *${fmt(mensajes)}*${iM >= 0 ? ` · ${iM + 1}.º del grupo` : ''}`);
   lineas.push(`Aura: *${fmt(aura)}*${iA >= 0 ? ` · ${iA + 1}.º` : ''}${caja > 0 ? ` · *${fmt(caja)}* en la caja` : ''}`);
   // Sin golpes ni precio no hay linea: una fila de ceros es ruido.
+  // Los golpes se podan a los siete dias (roboStore), asi que la linea lo dice:
+  // «3 golpes» a secas sonaria a historial de toda la vida.
   if (golpes > 0 || cabeza > 0) {
     const partes = [];
-    if (golpes > 0) partes.push(`*${fmt(golpes)}* ${golpes === 1 ? 'golpe' : 'golpes'}`);
+    if (golpes > 0) partes.push(`*${fmt(golpes)}* ${golpes === 1 ? 'golpe' : 'golpes'} esta semana`);
+    if (botin > 0) partes.push(`*${fmt(botin)}* de botín`);
     if (cabeza > 0) partes.push(`*${fmt(cabeza)}* por su cabeza`);
     lineas.push(`Robos: ${partes.join(' · ')}`);
   }
-  lineas.push(`Última vez: ${cuando(silencio)}${racha.dias > 1 ? ` · racha de *${fmt(racha.dias)}* días` : ''}`);
+  if (esObjetivoDelDia(objetivo, persona)) lineas.push('Hoy es *el objetivo del día*: robarle paga más.');
+  if (veto > 0) lineas.push('Intentó atracar la tienda y le salió mal: tiene la entrada vetada.');
+  // La racha empezo a guardarse despues que el contador: hay gente con cientos
+  // de mensajes y ningun dia apuntado. A esa gente «Última vez: nunca» le
+  // mentiria, asi que sin dato no hay linea.
+  if (silencio !== null || mensajes === 0) {
+    lineas.push(`Última vez: ${cuando(silencio)}${racha.dias > 1 ? ` · racha de *${fmt(racha.dias)}* días` : ''}`);
+  }
   lineas.push(`_${veredicto}_`);
 
   return sock.sendMessage(jid, { text: lineas.join('\n'), mentions: [persona] }, { quoted: msg });
