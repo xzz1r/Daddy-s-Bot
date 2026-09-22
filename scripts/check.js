@@ -4228,24 +4228,64 @@ const di=async(quien,texto,extra)=>{
       exige(arranque[1] <= Math.ceil(AV.MAL_ESCRITO.length * 0.22),
         `${arranque[1]} de ${AV.MAL_ESCRITO.length} frases de MAL_ESCRITO empiezan por "${arranque[0]}": lo primero que se lee es siempre lo mismo`);
 
-      // ESPAÑOL NEUTRAL. En el grupo hay gente de Paraguay, Colombia y España,
-      // y el bot escribe para los tres. El dueño lo pidio al ver «sesera»,
-      // «mollera» y «coco»: «utiliza palabras mas contemporaneas y procura ser
-      // mas neutral en tu vocabulario».
+      // AQUI HUBO UNA GUARDA DE ESPAÑOL NEUTRAL Y EL DUEÑO LA TUMBO.
       //
-      // Son palabras que en media America o no se usan o suenan a otra epoca, y
-      // un insulto que el que lo recibe tiene que traducir no pega. Se vigilan
-      // las que se colaron, no todas las de España que existen: el objetivo es
-      // que no vuelvan ESTAS, que son las que ya pasaron una vez.
+      // Se puso al ver «sesera», «mollera» y «coco», que ademas de ser de
+      // España suenan a otra epoca. Pero de ahi se salto a prohibir tambien
+      // gilipollas, hostia, cojones y tonto del culo, y eso ya no era lo que
+      // habia pedido: «lo de la nacionalidad de los randoms del grupo da igual,
+      // me gusta lo neutral tirando a lo español España».
       //
-      // Lo que se puso en su sitio: cabeza, cerebro y neuronas para la cabeza;
-      // carajo donde habia hostia o cojones; imbecil e idiota donde habia
-      // gilipollas; bruto donde habia tonto del culo; cagarla donde habia
-      // joderlo. Todas se entienden igual en los tres sitios.
-      const REGIONAL = /sesera|mollera|\bcoco\b|hostia|gilipollas|cojones|tonto del culo|menud[oa] |capullo|pringado|flipa/i;
-      const regionales = AV.MAL_ESCRITO.filter((f) => REGIONAL.test(f));
-      exige(regionales.length === 0,
-        `MAL_ESCRITO vuelve a usar vocabulario solo de España, y el grupo no es solo de España: "${regionales[0] || ''}"`);
+      // O sea que el filtro estaba resolviendo un problema que no existe y
+      // quitandole filo al pool. Fuera. Lo que si se queda es lo de abajo: que
+      // la ESTRUCTURA no se repita, que es lo que de verdad hace que un pool
+      // suene a plantilla —«puedes usar la misma terminologia, pero no la
+      // misma estructura para que no se vea repetitivo»—.
+
+      // LA ESTRUCTURA, QUE ES LO QUE DE VERDAD CANSA.
+      //
+      // «Puedes usar la misma terminologia —neuronas, retraso, etc— pero no la
+      // misma estructura para que no se vea repetitivo.» Ahi esta la clave: que
+      // «cerebro» salga siete veces no se nota, porque es el tema. Lo que se
+      // nota es que quince frases sean «Eres X, y ademas Y».
+      //
+      // Se clasifica cada frase por su ESQUELETO —como arranca y como esta
+      // montada— y se exige que ninguno pase del 20 %. Con eso el vocabulario
+      // queda libre, que es justo lo que pidio, y lo que se vigila es la forma.
+      const ESQUELETOS = [
+        ['cópula (Eres X)',        /^(eres|.{0,18} es lo que eres)/],
+        ['posesión (Tienes X)',    /^(tienes|no tienes)/],
+        ['posesivo (Tu X…)',       /^(tu |tus )/],
+        ['atribución (Ese es tu X)',/^(ese es|eso es|este es)/],
+        ['exclamativa (Qué X…)',  /^que /],
+        ['pregunta',                /\?/],
+        ['contraste (No es X, es Y)', /^(no es|eso no|no escribes|no lo has)/],
+        ['enumeración (Ni X ni Y)', /^ni /],
+        ['capacidad (No das/sabes)', /^(no das|no llegas|no sabes|no entiendes|no hay|no te)/],
+        ['impersonal (Esto lo…)',  /^(esto|escribir|teclear|copiar|un comando|una puta|ni una)/],
+        ['al grupo',                /^(el grupo|delante|se te ha visto|nadie|una puta palabra mal)/],
+        ['locativo (Ahí…)',       /^ahi /],
+        ['temporal (Hasta aquí…)',/^(hasta|el mismo|manana)/],
+      ];
+      const sinT2 = (t) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const porEsqueleto = new Map();
+      for (const f of AV.MAL_ESCRITO) {
+        const t = sinT2(f);
+        const e = (ESQUELETOS.find(([, re]) => re.test(t)) || ['otra'])[0];
+        porEsqueleto.set(e, (porEsqueleto.get(e) || 0) + 1);
+      }
+      // «otra» es el RESIDUO, no un molde: son las que no encajan en ninguno de
+      // los de arriba, o sea las que estan montadas de formas que ni siquiera
+      // hizo falta listar. Que sean muchas es señal de variedad, no de lo
+      // contrario, asi que queda fuera del recuento de dominancia. Contarla
+      // daba un rojo por tener el pool DEMASIADO variado.
+      porEsqueleto.delete('otra');
+      const dominante = [...porEsqueleto.entries()].sort((a, b) => b[1] - a[1])[0] || ['', 0];
+      exige(dominante[1] <= Math.ceil(AV.MAL_ESCRITO.length * 0.20),
+        `${dominante[1]} de ${AV.MAL_ESCRITO.length} frases de MAL_ESCRITO están montadas igual —${dominante[0]}—: el vocabulario puede repetirse, la estructura no`);
+      // Y que haya variedad de formas, no dos moldes alternandose.
+      exige(porEsqueleto.size >= 8,
+        `las frases de MAL_ESCRITO solo usan ${porEsqueleto.size} formas distintas de montar la frase: con tan pocas suena a plantilla por mucho que cambien las palabras`);
 
       // Y QUE HAYA DE SOBRA. Este aviso lo dispara cualquiera que teclee mal, o
       // sea a diario, y con la ventana de pickFresh un pool corto se recita.
