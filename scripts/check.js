@@ -5877,6 +5877,42 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
         'cinco intentos sin saldo encarecen la primera de verdad: se cuenta lo que se intenta en vez de lo que se usa');
     }
 
+    // ── GANAR AURA: EL CHISTE VA SOBRE SU ECONOMIA ────────────────────────
+    //
+    // El dueño: «ganar aura no requiere chiste, pero si lo pones puede ser un
+    // chiste hacia su economia: si es pobre, atacar su pobreza y llamarlo
+    // muerto de hambre; si es rico, decir que es rico en un bot de WhatsApp y
+    // es bastante miserable. Rico es a partir de 1.5k».
+    //
+    // Se vigila lo que se puede romper sin que nadie lo vea: el umbral, que los
+    // dos pools existan y no se hayan cruzado —llamar pobre al que ve 5.000 en
+    // la linea de encima es una frase que se contradice sola— y que no vuelvan
+    // ni el pool viejo ni sus analogias.
+    {
+      const au = fs.readFileSync(path.join(R, 'src/commands/aura.js'), 'utf8');
+      const poolDe = (n) => {
+        const m = au.match(new RegExp(`\\n  ${n}: \\[\\n([\\s\\S]*?)\\n  \\],`));
+        return m ? [...m[1].matchAll(/^    '(.*)',$/gm)].map((x) => x[1]) : null;
+      };
+      const pobre = poolDe('gainPobre'); const rico = poolDe('gainRico');
+      exige(/const UMBRAL_RICO = 1500;/.test(au), 'el umbral de rico ya no es 1.500, que es el que fijo el dueño');
+      exige(/effectiveTier === 'gain'\) effectiveTier = current >= UMBRAL_RICO \? 'gainRico' : 'gainPobre'/.test(au),
+        'la eleccion entre pobre y rico ya no mira el saldo DESPUES de cobrar, que es el que sale en la primera linea');
+      exige(!!pobre && pobre.length >= 40, `gainPobre tiene ${pobre && pobre.length} frases: sale en casi todas las subidas y se recita`);
+      exige(!!rico && rico.length >= 25, `gainRico tiene ${rico && rico.length} frases`);
+      exige(!poolDe('gain'), 'ha vuelto el pool `gain` de antes, el de las analogias que le pegaban al que gana');
+      if (pobre && rico) {
+        const cruzadaP = pobre.filter((f) => /\bric[oa]s?\b|millonari|forrad|magnate/i.test(f)); // «fortuna» no: «para ti esto es una fortuna» es ironia sobre el pobre
+        const cruzadaR = rico.filter((f) => /pobre|tieso|muerto de hambre|miseria|indigente/i.test(f));
+        exige(cruzadaP.length === 0, `gainPobre llama rico a alguien que ve menos de 1.500 encima: "${cruzadaP[0] || ''}"`);
+        exige(cruzadaR.length === 0, `gainRico llama pobre a alguien que ve 1.500 o mas encima: "${cruzadaR[0] || ''}"`);
+        // Y que TODAS hablen de su economia, que es la unica licencia que hay
+        const ECO = /pobre|tieso|hambre|miseria|ruina|cuenta|saldo|cartera|bolsillo|indigente|dos velas|fiado|migajas|calderilla|sueldo|aguinaldo|pastizal|suelto|sobrevivir|ric[oa]|millonari|forrad|magnate|fortuna|dinero|aura|currículum|montón|cenas|comando|robar|roban|sótano|eco|UCI|sticker|progresas|suerte|vergüenza|riqueza|no tenías nada/i;
+        const sinEco = [...pobre, ...rico].filter((f) => !ECO.test(f));
+        exige(sinEco.length === 0, `hay frases de ganar que no hablan de su economia: "${sinEco[0] || ''}"`);
+      }
+    }
+
     // ── EL ADMIN PAGA MENOS. TODO. ────────────────────────────────────────
     //
     // «Hazle un descuento exclusivo a los admins en todos los comandos. Se

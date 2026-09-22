@@ -50,8 +50,10 @@ Habla de la PERSONA y de lo que acaba de pasar (ganó poco, perdió, spameó
 
 ```
 ANTES  Nokia que aún enciende. No sabe cómo apagarse. El saldo tampoco.
-ASÍ    Has ganado y el ranking ni se ha enterado. El número se mueve,
-       tú no.
+ASÍ    (gain ya está hecho: se partió en gainPobre/gainRico y el chiste va
+       sobre su economía, no sobre haber ganado. Ver GUIA.md. Este ejemplo
+       decía «el número se mueve, tú no», que le pegaba al que gana y
+       contradecía la guía.)
 
 ANTES  Bajaste como baja un calcetín: solo, sin ceremonia.
 ASÍ    Perdiste y el grupo siguió hablando. Ni un visto. Eso es lo que

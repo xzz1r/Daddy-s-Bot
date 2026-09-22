@@ -450,11 +450,19 @@ Hay **dos formas de fallar aquí, y las dos están en el corpus**:
 verdad. El fantasma, el que lleva treinta días leyendo y cero escribiendo, el
 que ocupa plaza: ahí va todo el arsenal y sin freno.
 
-**Al que gana no se le quita la victoria.** Un aviso corto y se le deja en paz:
-el dato, un remate de una línea y fuera. Ni celebración ni insulto.
+**Al que gana no se le quita la victoria.** Ganar aura no necesita chiste. Si
+lo lleva, **va sobre su economía, no sobre el hecho de ganar** (lo fijó el dueño):
 
-La regla exacta: **el chiste puede ir sobre la mesa, sobre el grupo o sobre la
-suerte, pero no sobre el que acaba de ganar.**
+- **Pobre** (menos de 1.500 después de cobrar): se le recuerda que es un muerto
+  de hambre. *«Hoy cenas, muerto de hambre.»*
+- **Rico** (1.500 o más): se le recuerda que es rico dentro de un bot de
+  WhatsApp, que es bastante miserable. *«Rico. En aura. En un bot. Piénsalo un
+  segundo.»*
+
+Por eso `gain` ya no existe: son `gainPobre` y `gainRico`, y el motor elige por
+el saldo que sale en la primera línea del mensaje (`UMBRAL_RICO` en aura.js).
+
+Lo que sigue prohibido es usar la victoria como palo:
 
 > Bien: «La mesa paga y se queda mirando al cabrón con odio.»
 > Bien: «Nadie sabía cómo quitarte el respeto que acabas de ganar.»
@@ -463,10 +471,10 @@ suerte, pero no sobre el que acaba de ganar.**
 > Mal: «Te dieron el pan de la cesta que nadie cogió. Gratis, duro, y tú
 > haciendo fiesta.»
 
-Los dos malos son de `gain`, el pool de la subida pequeña de aura, y ahí está
-escrito así de arriba abajo: la ganancia se usa como palo para pegarle al que
-gana. Las imágenes son buenas —café de máquina, miga de croissant, modo ahorro
-de batería—; lo que sobra es el remate contra la persona.
+Los dos malos eran del antiguo `gain`, que estaba escrito así de arriba abajo:
+la ganancia como palo para pegarle al que gana, envuelta en analogías (café de
+máquina, miga de croissant, modo ahorro). Se reescribió entero: ni analogía ni
+palo por ganar, solo su economía.
 
 **Al que pierde se le remata.** Aquí sí va el arsenal entero y la frase larga.
 

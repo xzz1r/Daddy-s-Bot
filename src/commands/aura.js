@@ -124,10 +124,13 @@ function rollAura(targetIsOwner, targetIsAdmin, plusActividad = 0, dePago = true
 }
 
 
-// AURA.gain y AURA.loss: analogías baratas. El chiste es el objeto (wifi,
-// nokia, brick de leche, calcetín), no quien acaba de ganar o perder.
-// Líneas con `// ANALOGÍA` — brief en PENDIENTE.md. Los cinco ejemplos
-// marcados «intocables» en blessed/loss/cursed no se tocan.
+// Lo que queda marcado con `// ANALOGÍA` esta pendiente — brief en
+// PENDIENTE.md. Los cinco ejemplos marcados «intocables» en blessed/loss/cursed
+// no se tocan. `gain` ya no existe: se partio en gainPobre y gainRico.
+// A partir de aqui se es RICO a efectos de chiste. Lo fijo el dueño: «rico es
+// a partir de 1.5k».
+const UMBRAL_RICO = 1500;
+
 const AURA = {
   blessed: [
     // ── Ejemplos del usuario (intocables) ──
@@ -228,127 +231,96 @@ const AURA = {
     'Te han dado el respeto de la rabia: no te quieren ahí, y ahí estás.',
     'Se lo han tragado con miedo a que se les note.',
   ],
-  gain: [
-    'Café de máquina: dos sorbos y a cenicero. El ranking ni se ha enterado.', // ANALOGÍA
-    'Miga de croissant en la barba. El saldo se mueve. El grupo, no.', // ANALOGÍA
-    'Modo ahorro de batería: dura más. El chat sigue igual.', // ANALOGÍA
-    'El wifi del vecino llega flojo y se corta en cuanto te fías.', // ANALOGÍA
-    'El ticket del súper tiene más presencia que este resultado.', // ANALOGÍA
-    'Like de compromiso. Verde, sí. El grupo sigue a lo suyo.', // ANALOGÍA
-    'El kiosko te ha dado el cambio. Cuéntalo en voz alta y se acaba el turno.', // ANALOGÍA
-    'Hoy el aura te trató como a un cliente habitual: sin palos.', // ANALOGÍA
-    'El banco te mira igual de mal. Hoy no te cobra.', // ANALOGÍA
-    'Notificación de más uno. El teléfono ni vibra. El chat tampoco.', // ANALOGÍA
-    'Pizza fría a las cuatro. Nadie la reclamó. Ahora está en tu plato.', // ANALOGÍA
-    'Ganas, sí. Lo justo para que no se note en la tabla, joder.',
-    'Asiento del fondo del bus. Llegas. Nadie se ha girado.', // ANALOGÍA
-    'La cola avanzó un puesto. Sigues viendo la nuca del de delante.', // ANALOGÍA
-    'Cupón que caduca mañana. El azar se arrepiente rápido.', // ANALOGÍA
-    'Una subida tan pequeña que redondeando no existe. Cuenta igual.',
-    'Marca blanca del súper. Misma función, cara cutre, y el número en verde.', // ANALOGÍA
-    'Sube el número y no se mueve la tabla. El puesto sigue donde estaba.',
-    'Nokia que aún enciende. No sabe cómo apagarse. El saldo tampoco.', // ANALOGÍA
-    'Brick de leche a punto de caducar. Lo abres hoy o huele mañana.', // ANALOGÍA
-    'Has ganado algo que mañana no vas a recordar. El dato es de hoy.',
-    'Ración de cortesía que no pediste. El camarero ya está en otra mesa.', // ANALOGÍA
-    'La tabla no se ha enterado, y hace bien. Esto no mueve un puto puesto.',
-    'Te pagaron en puntos del súper. El sandwichera sale en 2041.', // ANALOGÍA
-    'Te han puesto en copia de un correo que no era para ti. Has aparecido. Punto.', // ANALOGÍA
-    'Un chupito de cortesía. Ni copa, ni hielo, ni segunda ronda.', // ANALOGÍA
-    'Te ha tocado el relleno del bocadillo: atún del barato.', // ANALOGÍA
-    'Has ganado y no se ha enterado nadie. Como todo lo que haces aquí.',
-    'Wifi de treinta minutos en el aeropuerto. Navega.', // ANALOGÍA
-    'Sello de pagado en una factura de tres euros. El cajero ni ha levantado la vista.', // ANALOGÍA
-    'La ola ha sido de un solo tipo. Una mano. Y se baja.', // ANALOGÍA
-    'Caramelo de menta del plato de la entrada. Gratis, duro y de nadie.', // ANALOGÍA
-    'Subiste como el agua del vaso: por capilaridad, sin que nadie lo pidiera.', // ANALOGÍA
-    'El número de espera ha bajado uno. Sigues en la sala.', // ANALOGÍA
-    'Envío estándar: llega tarde y sin aviso.', // ANALOGÍA
-    'Un ok en el puto chat. Ni sticker. Ni un jaja. Ok.',
-    'Recorte del cupón: vale para la próxima, que igual no llega.', // ANALOGÍA
-    'Subida de termostato de un grado. Sigues en manga larga.', // ANALOGÍA
-    'Último palito de la bolsa. El paquete se acaba en el siguiente.', // ANALOGÍA
-    'Te pagaron el cubierto y el agua. El resto de la carta sigue siendo para otros.', // ANALOGÍA
-    'Cabezazo de cortesía. Contacto, sí. Gol, no.', // ANALOGÍA
-    'Subiste lo que sube un globo pinchado: un palmo, y se oye el aire.', // ANALOGÍA
-    'Hueles un segundo y el bote se queda en el escaparate.', // ANALOGÍA
-    'Verde de semáforo en ámbar. Pasa. Si te confías, el siguiente no espera.', // ANALOGÍA
-    'Hielo que sobró del cubo. Frío prestado. Mañana es un charco.', // ANALOGÍA
-    'Cabe en el vueltos de un café. Ni el camarero te ha deseado nada.', // ANALOGÍA
-    'Planta de plástico del súper: sigue viva porque nadie ha tenido tiempo de matarla.', // ANALOGÍA
-    'Tiempo añadido. Un minuto. El partido ya estaba decidido.', // ANALOGÍA
-    'Llaves del trastero. No del piso. Del trastero.', // ANALOGÍA
-    'Subiste como el pan de molde: una rebanada, y la bolsa sigue llena de aire.', // ANALOGÍA
-    'Un guiño. Un guiño, no un beso.', // ANALOGÍA
-    'Subida de andén: el tren no para, pero ya no estás en las vías.', // ANALOGÍA
-    'Pan de la cesta que nadie cogió. Gratis y duro.', // ANALOGÍA
-    'Post-it verde en la frente. El resto del expediente, igual.', // ANALOGÍA
-    'Modo invitado: entras, no guardas nada, y mañana ni se acuerda el chat.', // ANALOGÍA
-    'Sumas lo que suma un voto nulo: sale en el acta y no cambia nada.', // ANALOGÍA
-    'Asiento plegable del pasillo. Llegas sentado. El paisaje es el de siempre.', // ANALOGÍA
-    'Cama de hotel de tres estrellas: sosa y con el minibar cerrado.', // ANALOGÍA
-    'Un peldaño de parking: no ves la calle, pero ya no estás en el sótano.', // ANALOGÍA
-    'Chupito de hierbas que regalan a las once. Lo ponen y recogen el vaso.', // ANALOGÍA
-    'Un visto en verde. El doble tick, y nada detrás.',
-    'Bolsa de plástico de pago. La llevas. El ticket, dentro.', // ANALOGÍA
-    'Te dio para el café solo, no para el con leche. Pide eso y no mires la vitrina.', // ANALOGÍA
-    'De extra en la escena. Sale el nombre en los créditos del final, en gris.', // ANALOGÍA
-    'Trozo de chorizo que cae de la tapa. El plato era de otro. El trozo, tuyo.', // ANALOGÍA
-    'La mesa paga en céntimos y sigue a lo suyo.', // ANALOGÍA
-    'Pequeña subida. El grupo lo vio, bostezó y siguió con lo suyo.',
-    'El aura te dio un hueso. El chat no ha levantado la cabeza.', // ANALOGÍA
-    'Sticker de pulgar. El cumplido más vago del puto chat, y ha salido.',
-    'El visto sin respuesta. Subiste. Nadie tenía nada que decir encima.',
-    'El segundo del bar. Ni menú, ni corona, ni foto. Lo que sobra.', // ANALOGÍA
-    'El like de tu tía en el estado. Cariño obligatorio, cero ganas.', // ANALOGÍA
-    'Has recogido del suelo lo que otro soltó. El suelo paga cuando le da la gana.', // ANALOGÍA
-    'Has subido lo que se sube sin querer. El número está, el discurso no.',
-    'Fila de espera que avanzó un puesto. El mostrador sigue lejos.', // ANALOGÍA
-    'Cómetelo antes de que se enfríe y nadie pregunte de quién era.', // ANALOGÍA
-    'Hoy no hubo palo. El aura se ha limitado a no morder.',
-    'Un puñado pequeño. Positivo. La tabla ni pestañea.',
-    'Subiste como sube el IVA: poco, inevitable, y a nadie le hace ilusión.', // ANALOGÍA
-    'Lo justo para no salir en rojo en el puto ticket. El cajero ni te ha mirado.', // ANALOGÍA
-    'Joder, una ganancia de esas que dan más pereza que alegría.',
-    'Transferencia corta. Acepta y no pongas concepto.', // ANALOGÍA
-    'Un número que no da ni para el gordo ni para el café.', // ANALOGÍA
-    'Verde en la pantalla y silencio en el grupo. No se ha dado cuenta nadie.',
-    'Funciona el mando y nadie te va a pedir el canal.', // ANALOGÍA
-    'Te ha salido el parche oficial. Sigue siendo el mismo juego, con un parche.', // ANALOGÍA
-    'Has ganado lo mismo que se pierde en un café. El saldo, un café más alto.', // ANALOGÍA
-    'Subiste lo que sube el sueldo en un restaurante: un insulto disfrazado de cifra.', // ANALOGÍA
-    'Coño, sumar esto cuesta más energía de la que da.',
-    'Te ha tocado ganar y suena a céntimos. La prensa del grupo ni abre el teletipo.',
-    'El puto grupo está mirando el partido. Este número no lo para.',
-    'Ganancia sin consecuencias. Ni las buenas ni las malas.',
-    'No tocas el volante, no eliges la radio, y aun así el coche ha avanzado un palmo.', // ANALOGÍA
-    'La mesa suelta migajas y se queda tan ancha. Hoy te ha tocado una.', // ANALOGÍA
-    'Joder, el aura ha hecho la mínima. La mínima cuenta. El marcador, en verde.',
-    'El saldo pica hacia arriba como pica un mosco: se nota y se olvida.', // ANALOGÍA
-    'El aura ha firmado con letra pequeña. La letra grande se la queda otro día.', // ANALOGÍA
-    'Has ganado y el grupo ni ha parado el hilo. El hilo mandaba más.',
-    'Joder, sumaste monedas. No da para titular. Da para el marcador.',
-    'Sigues donde estabas en la tabla. El saldo, un pelín menos abajo.',
-    'Sello en la tarjeta de fidelidad. El premio gordo sigue en el horizonte.', // ANALOGÍA
-    'El recambio de la cafetera: sale, quema el vaso, y ya.', // ANALOGÍA
-    'La mesa ha tenido que soltarlo. Poco. Lo ha soltado igual.', // ANALOGÍA
-    'El semáforo te ha dejado pasar en el último amarillo. El cruce, hecho.', // ANALOGÍA
-    'Un palmo de sombra. El toldo es de otro. El palmo, tuyo.', // ANALOGÍA
-    'El portero automático te ha abierto. Un segundo. Luego vuelve a cerrar.', // ANALOGÍA
-    'La máquina del metro te ha devuelto el céntimo de más. El tren no espera.', // ANALOGÍA
-    'La radio del taxi ha acertado una. El taxista ni se ha inmutado.', // ANALOGÍA
-    'El despertador ha sonado un minuto más tarde. El minuto, ganado.', // ANALOGÍA
-    'El ascensor ha parado en tu piso sin que nadie pulsara el de al lado.', // ANALOGÍA
-    'El mando ha encontrado la pila. El canal, el de siempre.', // ANALOGÍA
-    'La cola del pan ha avanzado dos. El de delante sigue pidiendo roscos.', // ANALOGÍA
-    'El parquímetro te ha regalado cinco minutos. El aviso naranja, después.', // ANALOGÍA
-    'La lavadora ha terminado en el primer ciclo. Nadie estaba esperando el pitido.', // ANALOGÍA
-    'El timbre ha sonado y era el del rellano de al lado. Hoy no tocaba palo.', // ANALOGÍA
-    'El cubata de cortesía del cierre. Lo ponen cuando ya no hay hielo.', // ANALOGÍA
-    'La mesa ha pagado con calderilla. La calderilla cuenta. El camarero, a otra.', // ANALOGÍA
-    'El ranking te ha dejado en el mismo sitio con el número un poco menos feo.',
-    'El chat ha hecho un visto colectivo y ha vuelto al audio de antes.',
-    'El aura ha soltado lo justo para no salir en rojo. Lo justo, y se ha ido.',
+  // GANAR NO NECESITA CHISTE. Si lo lleva, va sobre SU ECONOMIA y no sobre
+  // el hecho de ganar: al pobre se le recuerda que es un muerto de hambre, al
+  // rico que es rico dentro de un bot de WhatsApp. Lo decidio el dueño; ver
+  // UMBRAL_RICO y GUIA.md.
+  gainPobre: [
+    'Muerto de hambre, pero hoy con algo en el bolsillo.',
+    'Sube. Sigues siendo pobre, pero un pobre con suerte.',
+    'Para ti esto es una fortuna, y eso dice mucho de tu cuenta.',
+    'Ya tienes para un comando. No te lo gastes todo de golpe, pobre.',
+    'Hoy cenas, muerto de hambre.',
+    '¿Lo notas? Es lo más parecido a tener dinero que vas a sentir.',
+    'Tu cuenta respira un poco. Sigue en la UCI, pero respira.',
+    'Un muerto de hambre con un poco menos de hambre. Algo es algo.',
+    'Para cualquiera sería calderilla. Para ti es el sueldo del mes.',
+    'Lo guardas o lo gastas en un sticker, que es lo que vas a hacer.',
+    'Sube tu saldo y baja un poco la vergüenza de mirarlo.',
+    'Pobre sigues siendo. Pobre con aura extra, eso sí.',
+    'Ni con esto sales de la ruina, pero ya ves la puerta.',
+    'El más pobre del grupo acaba de cobrar. Que no se entere nadie.',
+    'Aprovecha, que mañana vuelves a estar tieso.',
+    'Te ha tocado. Con lo tieso que vas, no lo sueltes.',
+    'Tu economía acaba de pasar de desastre a casi desastre.',
+    'Esto no te saca de pobre, pero te da para disimular un rato.',
+    'Hasta los muertos de hambre tienen días buenos. Hoy es el tuyo.',
+    'Cobras. Tu cuenta no se lo cree ni ella.',
+    'Sigue siendo una miseria, pero ahora es una miseria con algo más.',
+    'Con esto ya no eres el más pobre. Casi.',
+    'Pobre, pero hoy pobre con suelto.',
+    'Primer paso para salir de la miseria. Te quedan todos los demás.',
+    'Lo justo para que no te vean llorar mirando el saldo.',
+    'Acabas de subir de indigente a pobre de toda la vida.',
+    'Si te roban ahora, por lo menos habrá algo que robar.',
+    'Cuenta de muerto de hambre y cara de que te ha tocado la lotería. No te flipes.',
+    'Tu aura sube y tu pobreza sigue en su sitio, mirándote.',
+    'Algo cae en la cuenta más vacía del grupo. Qué eco hace.',
+    'Para un tieso como tú, esto es un aguinaldo.',
+    'Cobras migajas y las celebras como un banquete. Muy de pobre.',
+    'Ganas, pobre. Pero sigues en el sótano del ranking.',
+    'Hoy tu cuenta no da pena. Da un poco menos de pena.',
+    'Muerto de hambre con suerte: la especie más rara del grupo.',
+    'Esto no es riqueza. Es que antes no tenías nada.',
+    'De la miseria absoluta a la miseria de siempre. Progresas.',
+    'Guárdalo rápido, que con lo pobre que eres te lo quitan en un robo.',
+    'Tanto tiempo a dos velas y por fin algo.',
+    'Tu cartera sigue siendo la de un pobre, pero ya pesa algo.',
+    'Ahora ya puedes pagar un comando sin pedir fiado.',
+    'El pobre del grupo ha cobrado. Ojo, que se viene arriba.',
+    'Poco, pero para ti es un pastizal. Eso es lo triste.',
+    'Hoy no eres el más tieso del grupo. Mañana ya veremos.',
+    'Menos pobre que hace un minuto. No mucho menos.',
+    'Tieso y con suerte. No dura, pero hoy cuenta.',
+    'Muerto de hambre, esto no es para gastarlo, es para sobrevivir.',
+  ],
+  gainRico: [
+    'Rico en un bot de WhatsApp. Qué vida tan miserable, la verdad.',
+    'Más aura para el que ya tiene de sobra. Y sigue sin tener vida.',
+    'Millonario de un chat de amigos. Enmárcalo.',
+    'Toda esa fortuna y fuera de aquí no te da ni para un café.',
+    'Cuanta más aura, más horas perdidas aquí. Las cuentas salen solas.',
+    'Rico aquí dentro. Fuera, lo de siempre.',
+    'Acumulas aura como si te fueran a dar algo por ella. No te van a dar nada.',
+    'El rico del grupo cobra otra vez. Qué emoción tan triste.',
+    'Tu fortuna crece y tu vida social sigue exactamente donde estaba.',
+    'Más aura. Ahora solo te falta algo que hacer con ella.',
+    'Mucho saldo para alguien que vive dentro de un grupo de WhatsApp.',
+    'Nuevo rico del bot. Lo más alto que vas a llegar en la vida.',
+    'Ser rico aquí dentro no impresiona a nadie de fuera.',
+    'Esa cuenta la has llenado a base de horas que no vuelven.',
+    'Rico. En aura. En un bot. Piénsalo un segundo.',
+    'Ya tienes más aura que casi nadie y la misma vida de antes.',
+    'Tu saldo engorda. Lo que hay detrás de la pantalla, no.',
+    'Otra subida para la fortuna más inútil del mundo.',
+    'Te has hecho rico donde no cuenta. Felicidades, supongo.',
+    'Cuanta más aura juntas, más se nota lo que no tienes fuera.',
+    'El magnate del grupo. Magnate de nada.',
+    'Tanto dinero de mentira y ni una cosa de verdad que comprar.',
+    'Cobras encima de lo que ya tenías. Qué forma más triste de ser rico.',
+    'Rico de chat. Si lo pones en el currículum, avisa.',
+    'Esa fortuna vale exactamente lo mismo fuera de aquí: nada.',
+    'Sube la cuenta del rico y baja un poco más su dignidad.',
+    'Más aura para quien ya no sabe en qué gastarla. Síntoma.',
+    'La persona más rica de un grupo de WhatsApp. Léelo en voz alta.',
+    'Ricachón de bot. Lo más triste que se puede ser con dinero.',
+    'Te sobra aura y te falta todo lo demás.',
+    'Otra más al montón. Ese montón no te va a hacer compañía.',
+    'Con esa cuenta podrías comprar medio bot. Y seguirías aquí.',
+    'Un millonario de aura cobrando más aura. Qué necesidad.',
+    'Rico, sí. De algo que se borra con un reinicio.',
+    'Toda esa fortuna y la gastas en insultar a la gente. Muy de rico.',
+    'Forrado en un bot. Tu familia estaría orgullosa, si lo entendiera.',
   ],
   loss: [
     // ── Ejemplos del usuario (intocables) ──
@@ -1420,7 +1392,13 @@ async function cmdAura(sock, msg, args, groupMeta) {
   const { previous, current } = await addAura(jid, sender, amount);
 
   // Already in the red and going deeper: use spiral phrases
-  const effectiveTier = (previous < 0 && amount < 0) ? 'spiral' : tier;
+  // La subida pequeña se parte por lo que tiene DESPUES de cobrar: el chiste va
+  // sobre su economia. Por debajo de UMBRAL_RICO es un muerto de hambre; por
+  // encima, un rico de bot de WhatsApp. Se mira el saldo de despues porque es
+  // el que sale en la primera linea del mensaje: si el chiste llamara pobre a
+  // alguien que ve 1.600 justo encima, la frase se contradice sola.
+  let effectiveTier = (previous < 0 && amount < 0) ? 'spiral' : tier;
+  if (effectiveTier === 'gain') effectiveTier = current >= UMBRAL_RICO ? 'gainRico' : 'gainPobre';
 
   const pct = (x) => Math.round(Math.abs(x) * 100);
   let extraPuerta = '';
