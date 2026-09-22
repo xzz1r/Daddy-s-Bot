@@ -309,8 +309,21 @@ const PURGA_ADMIN = [
 
 // COMANDO MAL ESCRITO. EL ESTANDAR, QUE LO PUSO EL DUEÑO:
 //
-//   «Deben ser hirientes y atacar siempre al intelecto, ya sea de forma
-//   abstracta o directa, pero siempre hiriente.»
+//   «Deben ser hirientes y atacar siempre al intelecto —inteligencia,
+//   capacidades, facultades de razonamiento basicas como TECHO para ese
+//   individuo, es importante— de forma directa e hiriente. Puedes incluir
+//   lenguaje vulgar tambien.»
+//
+// EL TECHO ES EL EJE, y es lo que separa este pool de un insulto cualquiera.
+// No se trata de decir que ha fallado: se trata de decir que ESTO ES HASTA
+// DONDE LLEGA. «Cinco putas letras y ahi esta tu techo» no habla del fallo,
+// habla del limite de la persona — y de que manana va a ser el mismo.
+//
+//     ASI NO   La has roto igual, animal.            (insulto, sin techo)
+//     ASI SI   Cinco putas letras y ahi esta tu techo. No da para mas esa cabeza.
+//
+// Lo vulgar esta permitido y se usa en cerca de la mitad, no en todas: si todas
+// llevan taco, el taco deja de pegar y lo unico que queda es el ruido.
 //
 // Cada linea tiene que cumplir LAS DOS cosas. Un pase por la de abajo y la
 // frase sobra, por antigua que sea — se tiraron 23 de golpe justo por esto:
@@ -341,62 +354,64 @@ const PURGA_ADMIN = [
 // frases con marca explicita: si la mayoria la pierde, el pool se esta
 // deslizando otra vez hacia describir.
 const MAL_ESCRITO = [
+  'Cinco putas letras y ahí está tu techo. No da para más esa cabeza.',
+  'Acabas de tocar tu límite, y era copiar una palabra. Qué puta miseria.',
+  'Ese es tu máximo. Una palabra copiada, y ni eso. Asúmelo.',
+  'Tu cabeza llega hasta aquí y aquí se ha parado. Cinco letras, gilipollas.',
+  'No es que hoy no te saliera. Es que hasta ahí das, y hasta ahí vas a dar siempre.',
+  'Has encontrado tu techo en un comando de cuatro letras, y ahí te quedas.',
+  'El límite de lo tuyo era copiar, y lo acabas de suspender. Qué puto desastre.',
+  'Tu capacidad máxima es esta: leer algo corto y devolverlo hecho mierda.',
+  'Esto es lo más lejos que llega tu cabeza. Y es una puta palabra.',
+  'Hasta aquí razonas. Cinco letras. Lo demás de tu vida es esto mismo, más largo.',
+  'Ni con el modelo delante. Ese es tu tope y no hay más que rascar.',
+  'Lo tuyo no es un mal día. Es el techo, y lo acabas de enseñar entero.',
+  'Te has quedado sin cabeza a las cinco letras. Imagina en algo que importe.',
+  'No sabes seguir dos pasos seguidos. Leer y repetir. Ese es tu tope, hostia.',
+  'Copiar es lo más bajo que se le puede pedir a un cerebro, y el tuyo ha fallado.',
+  'No hay que razonar nada y aun así te ha podido. Ese es tu techo, y es bajísimo.',
+  'Se te da un dato y lo devuelves roto. Eso es lo que hay en esa puta cabeza.',
+  'Tu cerebro no procesa cinco letras seguidas. Cinco, hijo de puta.',
+  'Ni lees, ni copias, ni aciertas. ¿Qué cojones da de sí esa cabeza exactamente?',
+  'Lo que te falta no es cuidado. Es cerebro, y de eso no se compra.',
+  'No es falta de atención. Es falta de material, y el material eres tú.',
+  'Te dan la respuesta hecha y encuentras la forma de joderla. Eso es un cerebro roto.',
+  'Aquí no había nada que entender, solo repetir. Y no te ha dado la cabeza ni para eso.',
+  'Cero razonamiento y has fallado igual. Ahí tienes medido tu techo, imbécil.',
   'Analfabeto con wifi. Te lo corrijo yo, que tú no llegas.',
-  'Escribirlo mal no es tener prisa. Es ser corto.',
-  'No te ha fallado el móvil. Te ha fallado lo de dentro.',
-  'Te falla la cabeza antes que el dedo, y eso en tu caso ya es decir algo.',
+  'Eres tonto de una forma muy concreta: la que no se arregla.',
+  'Qué puto desastre de cabeza tienes. Y encima la usas en público.',
+  'Imbécil, era copiar. Ni pensar ni entender: copiar. Y ni a eso llegas.',
+  'No escribes mal. Piensas mal, y escribir solo saca a la luz hasta dónde das.',
+  'Estúpido hasta para lo que no tiene dificultad. Ahí es donde se ve el techo.',
+  'Te falta cabeza y te sobra confianza. La peor puta mezcla que hay.',
+  'Mediocre no. Mediocre sería acertar a veces. Tú tienes el listón más abajo.',
+  'Incompetente para una palabra de cinco letras. Ese es el suelo, y ahí vives.',
+  'Lo tuyo no lo arregla el autocorrector: corrige letras, no cretinos.',
+  'Escribes igual de mal que piensas, y piensas como una puta piedra.',
+  'Ni eso sabes hacer. Literalmente ni eso: ese es tu suelo, inútil.',
+  'Hay que ser corto de cojones para fallar lo que viene con la respuesta puesta.',
+  'No te ha fallado el móvil. Te ha fallado lo de dentro, y eso no tiene repuesto.',
+  'Se te ha visto el nivel en cinco letras. Cinco, y todo el grupo lo ha leído.',
+  'Una puta palabra mal escrita y ya sabe el grupo exactamente hasta dónde das.',
+  'Esto mide una sola cosa y acabas de dar tu resultado delante de todos.',
   'Escribir mal es normal. Escribir así de mal es un diagnóstico.',
-  'Fallar esto no es tener los dedos gordos. Es lo otro.',
-  'Tu problema no está en el teclado. El tuyo no se arregla cambiando de móvil.',
+  'No es prisa. Es que no das para más, y el grupo entero lo está leyendo.',
+  'Nadie se ha sorprendido, y eso dice más de tu cabeza que el propio fallo.',
+  'Te falta leer, y antes de leer te falta lo básico. Menuda puta base tienes.',
+  'No hace falta ser listo para escribirlo. Basta con no ser tú.',
+  'El fallo dura una línea. Lo que dice de tu cabeza, no.',
+  'Esto lo acierta cualquiera. Cualquiera, joder. Y luego estás tú, que no.',
+  'Esto lo resuelve un crío de ocho años. Y tú no has podido, hostia.',
   'No te falta práctica. Te falta cabeza, y eso no se entrena.',
   'No es despiste. El despiste se tiene a ratos y tú lo llevas de serie.',
   'Hay errores de dedo y luego está el tuyo, que viene de fábrica.',
-  'Eso no lo falla un dedo. Eso lo falla lo que hay detrás del dedo.',
-  'No es que escribas mal, es que no hay nada detrás que escriba bien.',
-  'Lo tuyo no lo arregla el autocorrector: corrige letras, no cabezas.',
   'Lo que te falta no se compra ni se estudia. Se nace con ello o no.',
   'Hay cosas que no se arreglan leyendo más. La tuya es una de ellas.',
-  'No has fallado escribiendo. Has fallado pensando, que es lo tuyo.',
-  'Tienes el mismo problema que hace un mes, y no es el teclado.',
-  'No sabes escribir una puta palabra de cinco letras con el modelo delante.',
-  'Una palabra. Cinco letras. Y tu cabeza no ha dado para copiarla.',
-  'Copiar no exige entender nada. Por eso pesa tanto que hayas fallado.',
-  'Aquí no había nada que pensar, y has fallado igual. Tiene su mérito.',
-  'Te has equivocado en lo único que venía con la respuesta puesta. Eso no se falla, se es.',
-  'Esto no pide saber nada y tú has encontrado la forma de fallarlo.',
-  'Esto lo acierta cualquiera. Cualquiera. Y luego estás tú.',
-  'Era leer y repetir. Dos pasos. Te has caído en el primero.',
-  'Cuatro letras en el orden que ya te daban hecho. Ni aun así te ha dado la cabeza.',
-  'El comando estaba resuelto, solo había que repetirlo. Ahí es donde se te ve.',
-  'Esto lo resuelve un crío. Literalmente un crío.',
-  'El comando era la parte fácil. Imagínate lo que viene después.',
-  'Se te pide copiar y devuelves ruido. Eso lo explica casi todo.',
-  'No lo entiendes, no lo copias, no lo aciertas. Tres de tres.',
-  'Ni con la respuesta delante. Eso ya no es un fallo, es tu techo.',
-  'Tu techo son cinco letras y acabas de darte contra él.',
-  'Se te ha visto el nivel en cinco letras. Cinco.',
-  'Si esto es lo que das con el modelo delante, no hay por dónde bajar más.',
-  'Esto mide una sola cosa, y acabas de dar tu resultado.',
-  'A esto no se llega por prisa. Se llega desde bastante más abajo.',
-  'Te sobra confianza para lo poco que manejas.',
-  'No es que no lo sepas. Es que contigo no hay por dónde empezar.',
-  'Escribes como si te hubieran enseñado el alfabeto esta misma mañana.',
-  'Escribes igual de mal que piensas. Al menos eres coherente.',
-  'Escribes el comando como quien no ha leído nunca nada.',
-  'Lo has escrito como piensas: a trozos y sin orden.',
-  'Lo que has escrito no existe en ningún idioma. Tampoco en el tuyo.',
+  'El bot corrige errores. Lo tuyo no es un error, es lo que hay.',
+  'Tienes el mismo problema que hace un mes, y el que viene igual. No es el teclado.',
   'Lo que has escrito no es un comando, es un síntoma.',
-  'No sé qué has escrito. Tú tampoco, y eso es lo grave.',
-  'Hasta el bot ha tenido que adivinarte. Y el bot no piensa.',
-  'El bot corrige errores. Lo tuyo no es un error.',
-  'No lo has escrito mal. Lo has escrito como tú, que es peor.',
-  'Te falta leer. Y antes de leer, te faltan bastantes más cosas.',
-  'No hace falta ser listo para escribirlo. Basta con no ser tú.',
-  'Nadie se ha sorprendido, y eso dice más de tu cabeza que el propio fallo.',
-  'Ni eso sabes hacer. Literalmente ni eso, inútil.',
-  'No es prisa. Es que no das para más, y todo el grupo lo está leyendo.',
-  'No sé si tienes prisa o es que no sabes. Apuesto por lo segundo.',
-  'El fallo dura una línea. Lo que dice de ti, no.',
+  'No sé qué has escrito. Tú tampoco, y eso es exactamente el problema.',
 ];
 
 // CABECERA POR POOL. Solo la tienen los avisos que niegan por RANGO: ahi hace

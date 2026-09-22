@@ -4147,6 +4147,23 @@ const di=async(quien,texto,extra)=>{
       exige(conMarca >= Math.ceil(AV.MAL_ESCRITO.length * 0.7),
         `solo ${conMarca} de ${AV.MAL_ESCRITO.length} frases de MAL_ESCRITO atacan al intelecto: el pool se esta volviendo descriptivo otra vez`);
 
+      // EL TECHO ES EL EJE. El dueño lo subrayo al afinar el encargo: hay que
+      // atacar «las facultades de razonamiento basicas como TECHO para ese
+      // individuo, es importante».
+      //
+      // Es lo que separa este pool de un insulto cualquiera. No basta con decir
+      // que ha fallado ni con llamarle algo: hay que decir que ESTO ES HASTA
+      // DONDE LLEGA, y que mañana va a ser lo mismo. «La has roto igual,
+      // animal» insulta y no dice nada; «cinco putas letras y ahi esta tu
+      // techo» mide a la persona.
+      //
+      // Se pide suelo y no pleno por lo mismo que arriba: hay formas de decirlo
+      // que no llevan ninguna de estas palabras.
+      const TECHO = /techo|tope|l[ií]mite|m[aá]ximo|list[oó]n|hasta ah[ií]|hasta aqu[ií]|hasta d[oó]nde|no da para|da de s[ií]|das para|dar siempre|no llegas|llegas|de serie|de f[aá]brica|no se arregla|no se entrena|no se compra|repuesto|lo que hay|nivel|suelo|capacidad|cerebro|cabeza|corto|piensas|mide|diagn|s[ií]ntoma|material|cr[ií]o|no ser t[uú]/i;
+      const conTecho = AV.MAL_ESCRITO.filter((f) => TECHO.test(f)).length;
+      exige(conTecho >= Math.ceil(AV.MAL_ESCRITO.length * 0.7),
+        `solo ${conTecho} de ${AV.MAL_ESCRITO.length} frases de MAL_ESCRITO enmarcan el fallo como el TECHO de esa persona: sin eso son insultos sueltos, que es lo que el dueño mando quitar`);
+
       // Y QUE HAYA DE SOBRA. Este aviso lo dispara cualquiera que teclee mal, o
       // sea a diario, y con la ventana de pickFresh un pool corto se recita.
       exige(AV.MAL_ESCRITO.length >= 50,
