@@ -27,12 +27,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
       # Igual que en la VPS: sin dependencias de desarrollo y sin scripts de
       # instalacion (sharp y compania no hacen falta para comprobar nada).
       - run: npm ci --omit=dev --ignore-scripts --no-fund --no-audit
+      # yt-dlp, como en la VPS (lo instala setup.sh). Sin el, y sin API
+      # configurada, *!tt*, *!ig* y *!x* ni se intentan, y las capas que los
+      # prueban no tendrian nada que probar. Es una herramienta del sistema,
+      # igual que Node: no es estado de la maquina.
+      - run: pipx install yt-dlp
       - run: node scripts/check.js
