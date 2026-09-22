@@ -668,6 +668,100 @@ function restaurar(copia, antes) {
   }
 }
 
+// EL REGISTRO DE COMANDOS, CONTRA EL SWITCH.
+//
+// Esto vivia dentro de «4. GUARDAN», que SE SALTA cuando el bot esta corriendo
+// (state.json tocado en el ultimo minuto) — o sea SIEMPRE en la VPS. Ninguna de
+// estas comprobaciones toca datos: comparan el registro, la tabla de cobro y el
+// switch. Asi que ni las de antes (alias gratis, cobros por comandos que no
+// existen) ni la de familias habian corrido nunca en la maquina del dueño. Se
+// vio al probar la guarda al reves: con un alias metido a proposito en un solo
+// sitio seguia en verde, porque ni siquiera se estaba ejecutando.
+async function capaRegistro() {
+  console.log('\n4b. EL REGISTRO DE COMANDOS CUADRA CON EL SWITCH');
+  const antesReg = fallos;
+  const comprueba = (c, q) => {
+    if (c) return;
+    fallos++;
+    console.log(rojo(`   ✗ ${q}`));
+  };
+  // Y EL COBRO TIENE QUE CUADRAR CON EL SWITCH, en las dos direcciones:
+  //
+  //  · una clave de precio sin case cobra por un comando que no existe — le paso
+  //    a !coach, que se llevaba 30 y contestaba "no existe";
+  //  · un alias fuera de la tabla sale GRATIS mientras su canonico cobra, que es
+  //    lo que pasaba con !quemar, !destruir, !muertos, !texto e !importancia.
+  {
+    const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+    const cases = new Set([...mh.matchAll(/case '([^']+)':/g)].map((m) => m[1]));
+    // LA TABLA VIVA, no el texto. Leida del fichero con regex, al pasar las
+    // listas al registro esto se quedaba vacio y las dos comprobaciones de abajo
+    // pasaban en verde SIN MIRAR NADA. Ahora sale del modulo cargado, porcentaje
+    // incluido.
+    const claves = Object.keys(require(path.join(R, 'src/handlers/messageHandler'))._listas.COBRO_CENTRAL);
+    comprueba(claves.length >= 60, `la tabla de cobro solo tiene ${claves.length} entradas: esta guarda no mira nada`);
+    const huerfanos = claves.filter((c) => !cases.has(c));
+    comprueba(huerfanos.length === 0,
+      `cobro: se cobra por comandos que no existen: ${huerfanos.join(', ')}`);
+
+
+    // Alias gratis: se agrupan los case consecutivos que llaman al mismo
+    // handler; si UNO de ellos cobra, todos tienen que cobrar.
+    const grupos = [...mh.matchAll(/((?:\s*case '[^']+':[^\n]*\n)+)\s*await (cmd[A-Za-z]+)\(/g)];
+    const sueltos = [];
+    for (const g of grupos) {
+      const alias = [...g[1].matchAll(/case '([^']+)'/g)].map((x) => x[1]);
+      const conCobro = alias.filter((a) => claves.includes(a));
+      if (conCobro.length && conCobro.length !== alias.length) {
+        sueltos.push(...alias.filter((a) => !claves.includes(a)));
+      }
+    }
+    comprueba(sueltos.length === 0,
+      `cobro: alias gratis mientras su hermano cobra por el mismo trabajo: ${sueltos.join(', ')}`);
+
+    // LAS FAMILIAS DEL SWITCH Y LAS DEL REGISTRO SON LAS MISMAS.
+    //
+    // Aqui habia una comprobacion que perseguia alias descolgados de sus
+    // hermanos en NEEDS_META y COBRAN_SOLOS, y su comentario decia: «la solucion
+    // de verdad es una sola tabla por comando de la que salgan las cuatro
+    // cosas; eso es una reescritura del dispatcher y no se hace a ciegas». Se
+    // hizo, por pasos (src/handlers/comandos.js): las listas salen del registro,
+    // asi que un alias ya no puede tener propiedades distintas a su familia.
+    //
+    // Lo que queda por vigilar es el hueco entre los dos sitios que siguen
+    // existiendo: el `case` del switch y la fila del registro. Un alias en uno y
+    // no en el otro es exactamente como nacio *!conteo*: metido en una lista, sin
+    // `case`, y sin funcionar durante no se sabe cuanto.
+    {
+      const { FAMILIAS } = require(path.join(R, 'src/handlers/comandos'));
+      const accs = new Set(require(path.join(R, 'src/commands/acciones')).ALIAS_ACTIVOS);
+      const pcts = new Set(require(path.join(R, 'src/handlers/messageHandler'))._listas.CMDS_PORCENTAJE);
+      const sw = mh.slice(mh.indexOf('switch (command) {'));
+      const lin = sw.slice(0, sw.indexOf('\n      default:')).split('\n');
+      const delSwitch = []; let cur = [];
+      for (const l of lin) {
+        const m = [...l.matchAll(/case '([^']+)':/g)].map((x) => x[1]);
+        if (m.length && /^\s*case '/.test(l)) { cur.push(...m); continue; }
+        if (cur.length) { delSwitch.push(cur); cur = []; }
+      }
+      comprueba(delSwitch.length >= 80, `solo encuentro ${delSwitch.length} familias en el switch: la lectura se ha roto`);
+      const explicitas = FAMILIAS.filter((f) => f.nombres).map((f) => [...f.nombres].sort().join(','));
+      const reg = new Set(explicitas);
+      const sinFila = delSwitch.filter((g) => !g.every((c) => accs.has(c)) && !g.every((c) => pcts.has(c)))
+        .map((g) => [...g].sort().join(',')).filter((k) => !reg.has(k));
+      comprueba(sinFila.length === 0,
+        `familias del switch que no son una fila del registro (alias añadido en un sitio y no en el otro): ${sinFila.slice(0, 3).join(' | ')}`);
+      const enSwitch = new Set(delSwitch.flat());
+      const sinCase = FAMILIAS.filter((f) => f.nombres).flatMap((f) => f.nombres).filter((c) => !enSwitch.has(c));
+      comprueba(sinCase.length === 0,
+        `comandos en el registro sin \`case\` en el switch: ${sinCase.join(', ')} — existen en las listas pero no responden`);
+      const duplicados = explicitas.flatMap((k) => k.split(',')).filter((c, i, a) => a.indexOf(c) !== i);
+      comprueba(duplicados.length === 0, `comandos en dos familias del registro a la vez: ${duplicados.join(', ')}`);
+    }
+  }
+  if (fallos === antesReg) console.log(verde('   ✓ cada familia del switch es una fila del registro, y la tabla de cobro cuadra con los case'));
+}
+
 async function capaStores() {
   console.log('\n4. GUARDAN');
   if (botEnMarcha()) {
@@ -895,86 +989,6 @@ async function capaStores() {
     }
     comprueba(dobles.length === 0,
       `dispatcher: alias duplicados en el switch (gana el primero y el segundo queda muerto): ${dobles.join(', ')}`);
-  }
-
-  // Y EL COBRO TIENE QUE CUADRAR CON EL SWITCH, en las dos direcciones:
-  //
-  //  · una clave de precio sin case cobra por un comando que no existe — le paso
-  //    a !coach, que se llevaba 30 y contestaba "no existe";
-  //  · un alias fuera de la tabla sale GRATIS mientras su canonico cobra, que es
-  //    lo que pasaba con !quemar, !destruir, !muertos, !texto e !importancia.
-  {
-    const mh = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
-    const cases = new Set([...mh.matchAll(/case '([^']+)':/g)].map((m) => m[1]));
-    const tabla = mh.match(/const COBRO_CENTRAL = \{[\s\S]*?\n\};/);
-    const claves = tabla ? [...tabla[0].matchAll(/([a-zá-úñ0-9]+):\s*'[a-z0-9]+'/g)].map((x) => x[1]) : [];
-    // Los de porcentaje NO estan en el literal: se meten con un bucle sobre
-    // CMDS_PORCENTAJE. Sin esto la comprobacion acusaba a fiel e infiel de salir
-    // gratis cuando cobran perfectamente — un falso positivo que habria mandado
-    // a alguien a "arreglar" algo que funciona.
-    const pct = mh.match(/const CMDS_PORCENTAJE = \[([\s\S]*?)\];/);
-    if (pct) for (const x of pct[1].matchAll(/'([^']+)'/g)) claves.push(x[1]);
-    const huerfanos = claves.filter((c) => !cases.has(c));
-    comprueba(huerfanos.length === 0,
-      `cobro: se cobra por comandos que no existen: ${huerfanos.join(', ')}`);
-
-
-    // Alias gratis: se agrupan los case consecutivos que llaman al mismo
-    // handler; si UNO de ellos cobra, todos tienen que cobrar.
-    const grupos = [...mh.matchAll(/((?:\s*case '[^']+':[^\n]*\n)+)\s*await (cmd[A-Za-z]+)\(/g)];
-    const sueltos = [];
-    for (const g of grupos) {
-      const alias = [...g[1].matchAll(/case '([^']+)'/g)].map((x) => x[1]);
-      const conCobro = alias.filter((a) => claves.includes(a));
-      if (conCobro.length && conCobro.length !== alias.length) {
-        sueltos.push(...alias.filter((a) => !claves.includes(a)));
-      }
-    }
-    comprueba(sueltos.length === 0,
-      `cobro: alias gratis mientras su hermano cobra por el mismo trabajo: ${sueltos.join(', ')}`);
-
-    // LA MISMA COMPROBACION PARA LAS OTRAS DOS LISTAS A MANO.
-    //
-    // Este es el fallo de fondo del fichero y merece decirse claro: el alias, el
-    // precio, el permiso y la ayuda de cada comando viven en CUATRO listas
-    // separadas que se mantienen a mano. Nada obliga a que cuadren, asi que se
-    // desincronizan solas y en silencio — el historial de comentarios de
-    // COBRO_CENTRAL y NEEDS_META es literalmente la lista de las veces que ya
-    // paso: !quemar gratis mientras !roast cobraba, !piropo y !wingman cobrando
-    // sin metadata (y por tanto cobrandole al owner), los alias en español de
-    // !play igual, !coach cobrando por un comando inexistente.
-    //
-    // La solucion de verdad es una sola tabla por comando de la que salgan las
-    // cuatro cosas. Eso es una reescritura del dispatcher y no se hace a ciegas
-    // sobre un bot en produccion. Lo que si se puede hacer hoy, y es lo que
-    // impide que el problema siga creciendo, es que la desincronizacion deje de
-    // ser silenciosa: si un alias entra en una lista y sus hermanos no, aqui
-    // salta.
-    for (const [nombre, re] of [['NEEDS_META', /const NEEDS_META = new Set\(\[([\s\S]*?)\]\);/],
-                                ['COBRAN_SOLOS', /const COBRAN_SOLOS = new Set\(\[([\s\S]*?)\]\);/]]) {
-      const m = mh.match(re);
-      if (!m) { comprueba(false, `no encuentro la lista ${nombre}`); continue; }
-      const dentro = new Set([...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1]));
-      const rotos = [];
-      for (const g of grupos) {
-        const alias = [...g[1].matchAll(/case '([^']+)'/g)].map((x) => x[1]);
-        // COBRAN_SOLOS solo se consulta cuando el comando tiene precio en
-        // COBRO_CENTRAL, asi que un alias fuera de la lista solo hace daño —
-        // cobro doble— si ademas cobra. Sin este filtro la comprobacion acusaba
-        // a los alias de !play, que cobran por dentro y no estan en la tabla de
-        // precios: no se les cobra dos veces porque no se les cobra fuera.
-        const pertinentes = nombre === 'COBRAN_SOLOS'
-          ? alias.filter((a) => claves.includes(a))
-          : alias;
-        if (!pertinentes.length) continue;
-        const hay = pertinentes.filter((a) => dentro.has(a));
-        if (hay.length && hay.length !== pertinentes.length) {
-          rotos.push(`${pertinentes.filter((a) => !dentro.has(a)).join('/')} (sus hermanos ${hay.join('/')} si estan)`);
-        }
-      }
-      comprueba(rotos.length === 0,
-        `${nombre}: alias descolgados de sus hermanos: ${rotos.join('; ')}`);
-    }
   }
 
   // EL COOLDOWN DE !aura top. Las reglas que ya se rompieron una vez cada una
@@ -1244,6 +1258,7 @@ async function capaStores() {
   const avisosReales = logger.warn;
   const capturados = [];
   logger.warn = (m) => { capturados.push(String(m)); };
+  await capaRegistro();
   try { await capaStores(); }
   catch (e) { fallos++; console.log(rojo(`   ✗ los stores lanzaron: ${e.message.split('\n')[0]}`)); }
   finally {
@@ -2171,7 +2186,7 @@ const di=async(quien,texto,extra)=>{
     }
     exige(/cmdPurge/.test(mh) && /case 'purge':/.test(mh),
       '!purge esta escrito pero no enganchado al dispatcher');
-    exige(/'p','purge'/.test(mh) || /'purge'/.test(mh.match(/const NEEDS_META[\s\S]*?\]\)/)?.[0] || ''),
+    exige(require(path.join(R, 'src/handlers/messageHandler'))._listas.NEEDS_META.has('purge'),
       '!purge tiene que pedir metadata: sin ella isMainOwner no resuelve el LID del owner');
     const avisoAntes = pn.indexOf('await sock.sendMessage(gJid, payload)');
     const kickDesp = pn.indexOf("aplicarParticipantes(sock, gJid, ids, 'remove'");
@@ -3657,7 +3672,7 @@ const di=async(quien,texto,extra)=>{
     const bot = fs.readFileSync(path.join(R, 'src/bot.js'), 'utf8');
 
     const m = mh.match(/const NEEDS_META = new Set\(\[([\s\S]*?)\]\);/);
-    const dentro = new Set([...(m?.[1] || '').matchAll(/'([^']+)'/g)].map((x) => x[1]));
+    const dentro = require(path.join(R, 'src/handlers/messageHandler'))._listas.NEEDS_META;
     const gruposMeta = [...mh.matchAll(/((?:\s*case '[^']+':[^\n]*\n)+)\s*await (cmdAura|cmdRobo|cmdDar|cmdHelp|cmdCasino|cmdCacheList)\(/g)];
     const faltan = [];
     for (const g of gruposMeta) {
@@ -9213,7 +9228,7 @@ const di=async(quien,t)=>{out.length=0;
       const mh = soloCodigo('src/handlers/messageHandler.js');
       for (const c of ['tt', 'tiktok', 'ig', 'insta', 'instagram', 'pin', 'pinterest']) {
         exige(new RegExp(`case '${c}':`).test(mh), `!${c} no está en el switch: el comando no existe`);
-        exige(new RegExp(`${c}: 'redes'`).test(mh), `!${c} no cobra: sale gratis mientras sus hermanos cuestan`);
+        exige(require(path.join(R, 'src/handlers/messageHandler'))._listas.COBRO_CENTRAL[c] === 'redes', `!${c} no cobra: sale gratis mientras sus hermanos cuestan`);
       }
       const { PRECIOS } = require(path.join(R, 'src/utils/economia'));
       exige(typeof PRECIOS.redes === 'number' && PRECIOS.redes > 0, 'el concepto `redes` no tiene precio');
@@ -13992,7 +14007,7 @@ const ficheroDe = async (ext) => {
     for (const alias of ['x', 'twitter', 'tuit', 'tweet']) {
       exige(new RegExp(`case '${alias}':`).test(mh), `*!${alias}* no está en el switch: el comando no responde`);
     }
-    exige(/'x', 'twitter', 'tuit', 'tweet',/.test(mh),
+    exige(['x', 'twitter', 'tuit', 'tweet'].every((a) => require(path.join(R, 'src/handlers/messageHandler'))._listas.COBRAN_SOLOS.has(a) && require(path.join(R, 'src/handlers/messageHandler'))._listas.LENTOS.has(a)),
       'los alias de *!x* no están en COBRAN_SOLOS y LENTOS: cobraría dos veces o no avisaría de que está trabajando');
     const menu = soloCodigo('src/commands/social.js');
     exige(/\{p\}x · \$\{p\}twitter/.test(menu) || /\$\{p\}x /.test(menu),
@@ -14014,11 +14029,11 @@ const ficheroDe = async (ext) => {
     // Va aqui y no con las demas comprobaciones de cobro porque aquellas viven
     // en una capa que se SALTA con el bot en marcha, que es justo como esta
     // pasa desapercibida en la maquina del dueño.
-    const tablaCobro = mh.match(/const COBRO_CENTRAL = \{[\s\S]*?\n\};/);
+    const tablaCobro = require(path.join(R, 'src/handlers/messageHandler'))._listas.COBRO_CENTRAL;
     const tablaRedes = mh.match(/const CMD_REDES = \{[\s\S]*?\n\};/);
     exige(!!tablaCobro && !!tablaRedes, 'no pude leer CMD_REDES o COBRO_CENTRAL: esta guarda no está mirando nada');
     if (tablaCobro && tablaRedes) {
-      const deCobro = [...tablaCobro[0].matchAll(/([a-zá-úñ0-9]+):\s*'([a-z0-9]+)'/g)];
+      const deCobro = Object.entries(tablaCobro).map(([k, v]) => [null, k, v]);
       const cobrados = new Set(deCobro.map((x) => x[1]));
       const comoRedes = new Set(deCobro.filter((x) => x[2] === 'redes').map((x) => x[1]));
       const exentos = new Set([...tablaRedes[0].matchAll(/([a-zá-úñ0-9]+):\s*'[a-z0-9]+'/g)].map((x) => x[1]));
@@ -15617,19 +15632,25 @@ const correr = async (texto, enPrivado) => {
     // cobra por dentro tiene que estar TAMBIEN en COBRO_CENTRAL, que es lo
     // unico que hace que la puerta del privado lo cubra. Son dos listas lejanas
     // que se desincronizan solas — ya paso con *!x*, y despues con quince mas.
-    const mh82 = soloCodigo('src/handlers/messageHandler.js');
-    const tCobro = mh82.match(/const COBRO_CENTRAL = \{[\s\S]*?\n\};/);
-    const tSolos = mh82.match(/const COBRAN_SOLOS = new Set\(\[[\s\S]*?\n\]\);/);
-    exige(!!tCobro && !!tSolos, 'no pude leer COBRO_CENTRAL o COBRAN_SOLOS: esta guarda no está mirando nada');
-    if (tCobro && tSolos) {
-      const cobrados = new Set([...tCobro[0].matchAll(/([a-zá-úñ0-9]+):\s*'[a-z0-9]+'/g)].map((x) => x[1]));
-      const pct82 = mh82.match(/const CMDS_PORCENTAJE = \[([\s\S]*?)\];/);
-      if (pct82) for (const x of pct82[1].matchAll(/'([^']+)'/g)) cobrados.add(x[1]);
-      const solos = [...tSolos[0].matchAll(/'([a-zá-úñ0-9]+)'/g)].map((x) => x[1]);
-      exige(solos.length >= 20, `COBRAN_SOLOS solo tiene ${solos.length} entradas: la lectura se ha roto`);
-      const fuera = solos.filter((c) => !cobrados.has(c));
+    // CON LAS LISTAS VIVAS. Leidas del texto, esta guarda era CIEGA a los 72
+    // alias de acciones: entran en COBRAN_SOLOS con `...ALIAS_ACCION`, y la
+    // regex solo veia lo que iba entre comillas. Pasaba en verde sin haberlos
+    // mirado nunca.
+    //
+    // Ahora los ve, y no estan en COBRO_CENTRAL. No es un fallo: una accion se
+    // niega sola en privado ANTES de cobrar («Esto es de grupo»), asi que la
+    // puerta del privado no tiene nada que parar. Se excluyen, y se exige que
+    // esa negativa siga ahi — si alguien la quita, la excepcion deja de valer.
+    {
+      const LV82 = require(path.join(R, 'src/handlers/messageHandler'))._listas;
+      const accs82 = new Set(require(path.join(R, 'src/commands/acciones')).ALIAS_ACTIVOS);
+      exige(LV82.COBRAN_SOLOS.size >= 90, `COBRAN_SOLOS solo tiene ${LV82.COBRAN_SOLOS.size} entradas: la lectura se ha roto`);
+      const fuera = [...LV82.COBRAN_SOLOS].filter((c) => !LV82.COBRO_CENTRAL[c] && !accs82.has(c));
       exige(fuera.length === 0,
         `estos cobran por dentro pero se saltan la puerta del privado: ${fuera.join(', ')} — un co-dueño los usaría en DM contra un monedero que no es el del grupo`);
+      const acc82 = fs.readFileSync(path.join(R, 'src/commands/acciones.js'), 'utf8');
+      exige(/if \(!jid\.endsWith\('@g\.us'\)\) \{\s*return sock\.sendMessage\(jid, \{ text: 'Esto es de grupo/.test(acc82),
+        'las acciones ya no se niegan solas en privado: sin eso, su excepcion a la puerta del privado deja de valer');
     }
 
     if (fallos === antes) console.log(verde('   \u2713 la caché se siembra al arrancar, el fondo cede el ffmpeg, la presencia se apaga y nadie se salta el privado'));

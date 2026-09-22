@@ -455,7 +455,7 @@ ${esAdmin ? `
 ${p}kick · ${p}expulsar · ${p}sacar · ${p}echar
 ${p}del · ${p}borrar · ${p}delete  ·  ${p}mute · ${p}silenciar · ${p}callar
 ${p}unmute · ${p}desmute  ·  ${p}tagall · ${p}todos · ${p}all · ${p}everyone
-${p}close · ${p}cerrar  ·  ${p}open · ${p}abrir  ·  ${p}count
+${p}close · ${p}cerrar  ·  ${p}open · ${p}abrir  ·  ${p}count · ${p}conteo
 ${p}inactivos · ${p}inactivo
 ${p}promote · ${p}ascender  ·  ${p}allow · ${p}permitir  ·  ${p}r · ${p}presentarse · ${p}presentacion
 ${p}scan · ${p}escanear  ·  ${p}marcarfake · ${p}fake

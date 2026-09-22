@@ -94,6 +94,7 @@ const { cmdPurgaNumero, cmdPurge, cmdPurgeAll } = require('../commands/purgaNume
 const cmdRoast = lazyCmd('../commands/roast', 'cmdRoast');
 const { cmdDar } = require('../commands/dar');
 const acciones = require('../commands/acciones');
+const { construirListas } = require('./comandos');
 const { cmdOn, cmdOff, cmdPing, cmdInfo, cmdHelp, cmdCasino, cmdWhoami } = require('../commands/social');
 const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, esBotCreador, extractText, getSender, canonicalJid, sameUser, indexGroupMeta } = require('../utils/wa');
 const logger = require('../utils/logger');
@@ -116,6 +117,22 @@ const { aviso } = require('../utils/helpers');
 // escrito nada.
 const NOMBRES_ACCION = acciones.ACTIVAS;
 const ALIAS_ACCION = acciones.ALIAS_ACTIVOS;
+
+// Los comandos de porcentaje comparten precio. Se listan por nombre porque el
+// dispatcher los reparte uno a uno y no hay forma de reconocerlos por patrón
+// sin arriesgarse a cobrar de más por algo que no lo es.
+const CMDS_PORCENTAJE = [
+  'gay', 'maricon', 'femboy', 'incel', 'simp', 'friki', 'rata', 'cerdo', 'inutil',
+  'perdedor', 'l', 'ganador', 'crack', 'puta', 'guarra', 'fea', 'linda', 'hot', 'sexy',
+  'iq', 'fiel', 'infiel', 'feminidad', 'masculinidad',
+];
+
+// LAS LISTAS POR COMANDO SALEN DEL REGISTRO (src/handlers/comandos.js). Antes
+// eran siete listas escritas a mano aqui abajo; un alias nuevo habia que
+// meterlo en todas y se hacia mal. Ahora se añade a su familia en el registro
+// y hereda todo. Los comentarios de cada lista se quedan donde estaban: siguen
+// explicando por que cada comando esta en cada una.
+const LISTAS = construirListas({ ALIAS_ACCION, CMDS_PORCENTAJE });
 // Del nombre TECLEADO al handler. Los alias no pueden colgar de un `case` que
 // llame al canonico a mano: se olvida uno y ese alias sale gratis o revienta.
 const ACCION_DE = {};
@@ -123,124 +140,79 @@ for (const n of NOMBRES_ACCION) for (const c of acciones.ACCIONES[n].cmds) ACCIO
 const accionPorNombre = (c) => ACCION_DE[c];
 
 // Commands that need group metadata — skip the network call for everything else
-const NEEDS_META = new Set([
-  // autoaccept mira DOS cosas que solo estan en la metadata: si quien lo pide es
-  // admin y si el bot lo es. Sin ella daba las dos por falsas: contestaba "no
-  // soy admin" siendo admin, y a un admin que no fuera el owner se llevaba un
-  // "Solo admins". El comando acababa en manos del owner sin que nadie lo
-  // hubiera decidido.
-  'autoaccept', 'autoapprove', 'autoaceptar', 'autoaprobar',
-  'on','off','tagall','todos','all','everyone',
-  'kick','expulsar','del','borrar','delete',
-  // !limpiar encadena borrados de admin y comprueba isOwner: sin metadata no
-  // resuelve el LID del dueño y el comando mas destructivo de mensajes se le
-  // quedaria mudo, o peor, se lo tragaria un admin que llega por telefono.
-  'limpiar','wipe',
-  // sacar/echar/silenciar/callar/banear/ban/desbanear/unban ESTABAN FUERA, y sus
-  // hermanos dentro. Sin metadata isGroupAdmin no puede resolver quien es admin
-  // en un grupo LID, asi que estos alias no expulsaban ni silenciaban a nadie:
-  // el comando existia, contestaba "solo los admins" al admin que lo escribia.
-  // Los detecta ahora `npm run check`.
-  'sacar','echar','silenciar','callar',
-  // !r menciona a TODO el grupo para que vean el aviso; la orden es solo para
-  // los nuevos. Sin metadata no hay lista y el ping sale vacio.
-  'r','presentarse','presentacion',
-  'banear','ban','fkban','desbanear','unban','fkunban',
-  // !p / !purge comprueban isMainOwner y sin metadata no resolverian su LID:
-  // el comando mas destructivo del bot se le quedaria mudo justo al unico que
-  // lo puede usar.
-  'p','purge','purgeall',
-  // importancia (alias de relevancia), quemar/destruir (de roast) y muertos (de
-  // fantasmas) COBRAN desde que se metieron en COBRO_CENTRAL, y sin metadata
-  // auraCobro no reconoce al owner: le cobraba a quien va exento.
-  'importancia','quemar','destruir','muertos',
-  'ship','mute','unmute','desmute',
-  'promote','ascender','demote','degradar','notifadmin','antiadmin','antiempresa','antibusiness','antifoto',
-  'antilink','allow','permitir','close','cerrar','open','abrir',
-  'adminmode','soloadmins','soloadmin','adm','contrarobo','contraataque','contraatacar','vengarse',
-  'atraco','atracar','caja','registradora',
-  'buscados','wanted','mostwanted','recompensas','cartel',
-  's','sticker','stk',   // cmdSticker SI recibe groupMeta
-  // Los que cobran aura SI necesitan groupMeta: auraCobro exime al owner tier y
-  // sin la metadata no puede resolver quien lo es, asi que al owner le cobraria.
-  'play','playsong','playaudio','musica','cancion','song',
-  'pfp','foto',
-  // piropo y wingman COBRAN (30, como !rizz) y no estaban aqui, asi que cobraban
-  // sin metadata: sin ella isOwner no puede reconocer al owner tier en un grupo
-  // LID y se le cobraba a quien va exento. Lo mismo con los alias en español de
-  // !play, que cobran por dentro mientras 'play' si estaba en la lista.
-  'piropo','wingman',
-  'toimg','stimg','tovid',   // tambien cobran desde que el aura es moneda
-  // ttp, texto e iq ESTABAN FUERA y cobran los tres. Se sacaron porque sus
-  // handlers no usan groupMeta, asi que pedirla solo añadia una peticion de red
-  // —hasta 8 s con la cache fria— antes de ejecutarlos.
-  //
-  // El razonamiento era bueno y ha dejado de serlo: la metadata NO la pide el
-  // handler, la pide el COBRO, que exime al owner y sin ella no puede resolver
-  // su LID. O sea que el ahorro se pagaba cobrandole al owner en los grupos LID,
-  // que es justo donde esta el bot. Y desde que META_TTL son 10 min con la
-  // consulta compartida, el coste que justificaba el intercambio casi no existe:
-  // la cache fria pasa de ser cada 30 s a cada 10 min, y una sola vez.
-  'ttp','texto','iq',
-  'gay','simp','sexy','hot','rata','maricon','friki',
-  'crack','cerdo','feminidad','masculinidad','inutil','femboy','perdedor','l','ganador',
-  'puta','guarra','fiel','infiel','linda','fea','incel',
-  'rizz',
-  'aura','guia','aurahelp','guiaaura',   // la guia entra por cmdAura, que exime al owner de pagar
-  'resetaura','inactivos','inactivo','fantasma','fantasmas','mog','moggear','roast','flamear',
-  'duel','duelo','1v1',
-  'robo','robar',
-  'vs','versus',          // cmdVs receives groupMeta for isOwner/isGroupAdmin checks
-  'scan','escanear',
-  'fk','verificar','verify','check','marcarfake','fake',
-  'fkban','fkunban','fklist','listanegra','antifake','antifk',
-  'count','resetcount','resetconteo',
-  'top5','top10',   // el sorteo cruza los conteos con la lista de miembros
-  // 'top' y 'ranking' NO ESTABAN, y son el ranking de aura. Sin metadata
-  // soloMiembros() no puede filtrar y DEVUELVE A TODO EL MUNDO, asi que *!top*
-  // listaba a gente que ya se habia ido del grupo mientras *!aura top* no. Dos
-  // formas del mismo comando dando rankings distintos.
-  //
-  // Y ahora ademas hacen falta porque *!top 10 <tema>* se desvia al sorteo, que
-  // cobra: sin metadata el cobro no reconoce al owner en grupos LID.
-  'top','ranking','auratop',
-  'k',              // isOwner necesita la metadata para resolver el LID del owner
-  'diag',
-  'relevancia','relevance',   // isMainOwner necesita meta para resolver LID → teléfono
-  // !casino es la puerta directa a lo mismo que !aura hoy, y ese texto NO se le
-  // contesta al owner principal (le sacaba "Mensajes hoy: 0", que es justo la
-  // contradiccion que lo delata). Sin metadata isMainOwner no resuelve su LID en
-  // los grupos modernos y el aviso se le colaria por esta via.
-  'casino',
-  // Owner-gated commands also need meta in groups to resolve LID → phone
-  // for isOwner checks (otherwise co-owners always fail in modern groups).
-  'clearcache','borracache','whoami',
-  // !visto comprueba isMainOwner: sin metadata no resuelve su LID en un grupo
-  // moderno y el dueño se quedaria fuera de su propio interruptor.
-  'visto',
-  // !cachelist cobra por el dispatcher. Sin metadata isOwner no resuelve el LID
-  // y se le cobra al owner las 12 de aura.
-  'cachelist','listacache','cache',
-  // Subcomandos de aura/robo/dar con puerta propia. Sin metadata:
-  //   · !apostar / !dar usan isOwner/canonicalJid → el owner en @lid se trata
-  //     como miembro (peor acierto, transferencia partida en dos identidades);
-  //   · !top ya estaba, pero !saldo/!hoy/!tienda/!bote/!asalto no: mismos
-  //     handlers, distinta puerta, distinto tratamiento. El check de hermanos
-  //     no los cazaba porque NINGUNO de esos grupos estaba en la lista.
-  //   · !help sin meta enseña el menú de miembro a un admin que llega por @lid.
-  'apostar','apuesta','apuestas',
-  'hoy','saldo','miaura',
-  'tienda','shop','comprar','bote',
-  'asalto','asaltar',
-  // La caja mueve saldo y vive en la misma familia que el robo: entra por lo
-  // mismo que sus hermanos.
-  'vault','safe','lock','unlock','stash',
-  'regalar','transferir','pagar','dar','donar',
-  // Las acciones van dirigidas a alguien: sin metadata el @ no se resuelve y en
-  // un grupo LID acaba mencionando a quien no es.
-  ...ALIAS_ACCION,
-  'ayuda','help','menu','commands',
-]);
+// autoaccept mira DOS cosas que solo estan en la metadata: si quien lo pide es
+// admin y si el bot lo es. Sin ella daba las dos por falsas: contestaba "no
+// soy admin" siendo admin, y a un admin que no fuera el owner se llevaba un
+// "Solo admins". El comando acababa en manos del owner sin que nadie lo
+// hubiera decidido.
+// !limpiar encadena borrados de admin y comprueba isOwner: sin metadata no
+// resuelve el LID del dueño y el comando mas destructivo de mensajes se le
+// quedaria mudo, o peor, se lo tragaria un admin que llega por telefono.
+// sacar/echar/silenciar/callar/banear/ban/desbanear/unban ESTABAN FUERA, y sus
+// hermanos dentro. Sin metadata isGroupAdmin no puede resolver quien es admin
+// en un grupo LID, asi que estos alias no expulsaban ni silenciaban a nadie:
+// el comando existia, contestaba "solo los admins" al admin que lo escribia.
+// Los detecta ahora `npm run check`.
+// !r menciona a TODO el grupo para que vean el aviso; la orden es solo para
+// los nuevos. Sin metadata no hay lista y el ping sale vacio.
+// !p / !purge comprueban isMainOwner y sin metadata no resolverian su LID:
+// el comando mas destructivo del bot se le quedaria mudo justo al unico que
+// lo puede usar.
+// importancia (alias de relevancia), quemar/destruir (de roast) y muertos (de
+// fantasmas) COBRAN desde que se metieron en COBRO_CENTRAL, y sin metadata
+// auraCobro no reconoce al owner: le cobraba a quien va exento.
+// s, sticker, stk: cmdSticker SI recibe groupMeta
+// Los que cobran aura SI necesitan groupMeta: auraCobro exime al owner tier y
+// sin la metadata no puede resolver quien lo es, asi que al owner le cobraria.
+// piropo y wingman COBRAN (30, como !rizz) y no estaban aqui, asi que cobraban
+// sin metadata: sin ella isOwner no puede reconocer al owner tier en un grupo
+// LID y se le cobraba a quien va exento. Lo mismo con los alias en español de
+// !play, que cobran por dentro mientras 'play' si estaba en la lista.
+// toimg, stimg, tovid: tambien cobran desde que el aura es moneda
+// ttp, texto e iq ESTABAN FUERA y cobran los tres. Se sacaron porque sus
+// handlers no usan groupMeta, asi que pedirla solo añadia una peticion de red
+// —hasta 8 s con la cache fria— antes de ejecutarlos.
+//
+// El razonamiento era bueno y ha dejado de serlo: la metadata NO la pide el
+// handler, la pide el COBRO, que exime al owner y sin ella no puede resolver
+// su LID. O sea que el ahorro se pagaba cobrandole al owner en los grupos LID,
+// que es justo donde esta el bot. Y desde que META_TTL son 10 min con la
+// consulta compartida, el coste que justificaba el intercambio casi no existe:
+// la cache fria pasa de ser cada 30 s a cada 10 min, y una sola vez.
+// aura, guia, aurahelp, guiaaura: la guia entra por cmdAura, que exime al owner de pagar
+// vs, versus: cmdVs receives groupMeta for isOwner/isGroupAdmin checks
+// top5, top10: el sorteo cruza los conteos con la lista de miembros
+// 'top' y 'ranking' NO ESTABAN, y son el ranking de aura. Sin metadata
+// soloMiembros() no puede filtrar y DEVUELVE A TODO EL MUNDO, asi que *!top*
+// listaba a gente que ya se habia ido del grupo mientras *!aura top* no. Dos
+// formas del mismo comando dando rankings distintos.
+//
+// Y ahora ademas hacen falta porque *!top 10 <tema>* se desvia al sorteo, que
+// cobra: sin metadata el cobro no reconoce al owner en grupos LID.
+// k: isOwner necesita la metadata para resolver el LID del owner
+// relevancia, relevance: isMainOwner necesita meta para resolver LID → teléfono
+// !casino es la puerta directa a lo mismo que !aura hoy, y ese texto NO se le
+// contesta al owner principal (le sacaba "Mensajes hoy: 0", que es justo la
+// contradiccion que lo delata). Sin metadata isMainOwner no resuelve su LID en
+// los grupos modernos y el aviso se le colaria por esta via.
+// Owner-gated commands also need meta in groups to resolve LID → phone
+// for isOwner checks (otherwise co-owners always fail in modern groups).
+// !visto comprueba isMainOwner: sin metadata no resuelve su LID en un grupo
+// moderno y el dueño se quedaria fuera de su propio interruptor.
+// !cachelist cobra por el dispatcher. Sin metadata isOwner no resuelve el LID
+// y se le cobra al owner las 12 de aura.
+// Subcomandos de aura/robo/dar con puerta propia. Sin metadata:
+//   · !apostar / !dar usan isOwner/canonicalJid → el owner en @lid se trata
+//     como miembro (peor acierto, transferencia partida en dos identidades);
+//   · !top ya estaba, pero !saldo/!hoy/!tienda/!bote/!asalto no: mismos
+//     handlers, distinta puerta, distinto tratamiento. El check de hermanos
+//     no los cazaba porque NINGUNO de esos grupos estaba en la lista.
+//   · !help sin meta enseña el menú de miembro a un admin que llega por @lid.
+// La caja mueve saldo y vive en la misma familia que el robo: entra por lo
+// mismo que sus hermanos.
+// Las acciones van dirigidas a alguien: sin metadata el @ no se resuelve y en
+// un grupo LID acaba mencionando a quien no es.
+const NEEDS_META = LISTAS.NEEDS_META;
 
 // La familia del aura que se congela con *!aura off*: todo lo que mueve saldo.
 //
@@ -259,75 +231,44 @@ const NEEDS_META = new Set([
 //
 // Los de esta tabla se cobran ANTES de ejecutar nada. Si no llega el saldo, el
 // comando ni se lanza.
-const COBRO_CENTRAL = {
-  // LOS ALIAS TAMBIEN COBRAN. El cobro mira el nombre TECLEADO, asi que un alias
-  // que falte aqui sale gratis mientras su canonico cobra: !quemar era gratis y
-  // !roast costaba 35, por el mismo comando y el mismo trabajo. Cinco estaban
-  // asi. Si se añade un alias al switch, tiene que entrar tambien aqui.
-  roast: 'roast', flamear: 'roast', quemar: 'roast', destruir: 'roast',
-  mog: 'mog', moggear: 'mog',
-  ship: 'ship',
-  // 'coach' NO esta: cobraba 30 y despues caia en el default con un "no existe
-  // ese comando". Se le cobraba al usuario por un comando que el bot no tiene.
-  // O se implementa el case, o no se cobra; lo segundo es lo honesto.
-  rizz: 'rizz', piropo: 'piropo', wingman: 'wingman',
-  // Los tres de redes cobran DENTRO (estan en COBRAN_SOLOS): devuelven el aura
-  // si el video no llega. Aqui entran igual para que la puerta del privado
-  // —«eso se juega en el grupo»— los cubra como a los demas de pago.
-  tt: 'redes', tiktok: 'redes',
-  ig: 'redes', insta: 'redes', instagram: 'redes',
-  pin: 'redes', pinterest: 'redes',
-  // Y *!x*, por lo mismo. Sin esto, en un privado no pasaba por la puerta del
-  // «eso se juega en el grupo»: llegaba al comando y cobraba contra el JID del
-  // privado, que para auraStore es un grupo nuevo con su arranque. Un monedero
-  // paralelo al del grupo, que no es lo que cuesta un comando: es saltarselo.
-  x: 'redes', twitter: 'redes', tuit: 'redes', tweet: 'redes',
+// LOS ALIAS TAMBIEN COBRAN. El cobro mira el nombre TECLEADO, asi que un alias
+// que falte aqui sale gratis mientras su canonico cobra: !quemar era gratis y
+// !roast costaba 35, por el mismo comando y el mismo trabajo. Cinco estaban
+// asi. Si se añade un alias al switch, tiene que entrar tambien aqui.
+// 'coach' NO esta: cobraba 30 y despues caia en el default con un "no existe
+// ese comando". Se le cobraba al usuario por un comando que el bot no tiene.
+// O se implementa el case, o no se cobra; lo segundo es lo honesto.
+// Los tres de redes cobran DENTRO (estan en COBRAN_SOLOS): devuelven el aura
+// si el video no llega. Aqui entran igual para que la puerta del privado
+// —«eso se juega en el grupo»— los cubra como a los demas de pago.
+// Y *!x*, por lo mismo. Sin esto, en un privado no pasaba por la puerta del
+// «eso se juega en el grupo»: llegaba al comando y cobraba contra el JID del
+// privado, que para auraStore es un grupo nuevo con su arranque. Un monedero
+// paralelo al del grupo, que no es lo que cuesta un comando: es saltarselo.
+// ─── Y LOS OTROS QUINCE QUE COBRAN POR DENTRO ────────────────────────────
+//
+// Los de redes entraron aqui a proposito y con su nota, pero el resto de
+// COBRAN_SOLOS se quedo fuera: quince comandos —*!play* el primero, que es el
+// lento mas usado— que por privado llegaban al comando y cobraban contra el
+// JID del privado. Para auraStore eso es un grupo nuevo con su saldo de
+// arranque: un monedero paralelo que nadie del grupo ve y que no se gasta
+// nunca.
+//
+// ESTAR AQUI NO ES COBRAR DOS VECES. Mas abajo, el cobro central se salta a
+// todo lo que esta en COBRAN_SOLOS; lo unico que se gana entrando en esta
+// tabla es que la puerta del privado los cubra. Es lo mismo que ya hacian
+// *!tt*, *!ig*, *!pin* y *!x*.
+//
+// El concepto es EL MISMO con el que cobra cada uno por dentro, porque es la
+// clave del contador de usos: si no coincidiera, un reembolso descontaria del
+// contador equivocado y el precio de otro comando se movería solo.
+// 'count' e 'inactivos' NO estan, y es a proposito. El cobro central corre
+// ANTES del switch, asi que a un miembro se le cobraba y despues el comando
+// contestaba "solo los admins": pagaba por un rechazo. El catch solo
+// devuelve el aura si salta una excepcion, y un return no lo es. Se cobran
+// dentro, despues del permiso.
+const COBRO_CENTRAL = LISTAS.COBRO_CENTRAL;
 
-  // ─── Y LOS OTROS QUINCE QUE COBRAN POR DENTRO ────────────────────────────
-  //
-  // Los de redes entraron aqui a proposito y con su nota, pero el resto de
-  // COBRAN_SOLOS se quedo fuera: quince comandos —*!play* el primero, que es el
-  // lento mas usado— que por privado llegaban al comando y cobraban contra el
-  // JID del privado. Para auraStore eso es un grupo nuevo con su saldo de
-  // arranque: un monedero paralelo que nadie del grupo ve y que no se gasta
-  // nunca.
-  //
-  // ESTAR AQUI NO ES COBRAR DOS VECES. Mas abajo, el cobro central se salta a
-  // todo lo que esta en COBRAN_SOLOS; lo unico que se gana entrando en esta
-  // tabla es que la puerta del privado los cubra. Es lo mismo que ya hacian
-  // *!tt*, *!ig*, *!pin* y *!x*.
-  //
-  // El concepto es EL MISMO con el que cobra cada uno por dentro, porque es la
-  // clave del contador de usos: si no coincidiera, un reembolso descontaria del
-  // contador equivocado y el precio de otro comando se movería solo.
-  play: 'play', playsong: 'play', playaudio: 'play',
-  s: 'sticker', sticker: 'sticker', stk: 'sticker',
-  toimg: 'toimg',
-  tovid: 'tovid',
-  pfp: 'pfp',
-  fk: 'fk', verificar: 'fk', verify: 'fk', check: 'fk',
-  top5: 'top5', top10: 'top10',
-  // 'count' e 'inactivos' NO estan, y es a proposito. El cobro central corre
-  // ANTES del switch, asi que a un miembro se le cobraba y despues el comando
-  // contestaba "solo los admins": pagaba por un rechazo. El catch solo
-  // devuelve el aura si salta una excepcion, y un return no lo es. Se cobran
-  // dentro, despues del permiso.
-  relevancia: 'relevancia', relevance: 'relevancia', importancia: 'relevancia',
-  vs: 'vs', versus: 'vs',
-  fantasmas: 'fantasmas', fantasma: 'fantasmas', muertos: 'fantasmas',
-  ttp: 'ttp', texto: 'ttp',
-  cachelist: 'cachelist', listacache: 'cachelist', cache: 'cachelist',
-};
-
-// Los comandos de porcentaje comparten precio. Se listan por nombre porque el
-// dispatcher los reparte uno a uno y no hay forma de reconocerlos por patrón
-// sin arriesgarse a cobrar de más por algo que no lo es.
-const CMDS_PORCENTAJE = [
-  'gay', 'maricon', 'femboy', 'incel', 'simp', 'friki', 'rata', 'cerdo', 'inutil',
-  'perdedor', 'l', 'ganador', 'crack', 'puta', 'guarra', 'fea', 'linda', 'hot', 'sexy',
-  'iq', 'fiel', 'infiel', 'feminidad', 'masculinidad',
-];
-for (const c of CMDS_PORCENTAJE) COBRO_CENTRAL[c] = 'percent';
 
 // Estos YA cobran por dentro, y ahí tiene que seguir: son los que gastan un
 // recurso externo (descarga, ffmpeg, API) y devuelven el aura si el recurso
@@ -339,42 +280,18 @@ for (const c of CMDS_PORCENTAJE) COBRO_CENTRAL[c] = 'percent';
 // metadata del grupo. Lo que se resuelve en memoria (un porcentaje, un saldo,
 // el menu) contesta antes de que el "escribiendo…" llegue a verse, y ahi es
 // ruido.
-const LENTOS = new Set([
-  'play', 'playsong', 'playaudio', 'musica', 'cancion',
-  'tt', 'tiktok', 'ig', 'insta', 'instagram', 'pin', 'pinterest',
-  'x', 'twitter', 'tuit', 'tweet',
-  's', 'sticker', 'stk', 'toimg', 'tovid',
-  'pfp', 'fk', 'verificar', 'verify', 'check',
-  'ttp', 'texto',
-  'scan', 'escanear',
-  'inactivos', 'inactivo', 'fantasmas', 'fantasma', 'muertos',
-  'relevancia', 'relevance', 'importancia',
-  'vs', 'versus',
-  'count', 'conteo',
-  'roast', 'flamear', 'quemar', 'destruir',
-  'purge', 'p',
-  // Saca y veta a todo el grupo por tandas, con pausa entre ellas: es de lo mas
-  // lento que hace el bot, y a proposito.
-  'purgeall',
-  // Hasta mil borrados, y si faltan claves pide el historial al teléfono.
-  'limpiar', 'wipe',
-  // Bajan un gif de fuera y lo pasan por ffmpeg.
-  ...ALIAS_ACCION,
-]);
+// Saca y veta a todo el grupo por tandas, con pausa entre ellas: es de lo mas
+// lento que hace el bot, y a proposito.
+// Hasta mil borrados, y si faltan claves pide el historial al teléfono.
+// Bajan un gif de fuera y lo pasan por ffmpeg.
+const LENTOS = LISTAS.LENTOS;
 
-const COBRAN_SOLOS = new Set([
-  'play', 'playsong', 'playaudio', 's', 'sticker', 'stk', 'toimg', 'tovid',
-  'tt', 'tiktok', 'ig', 'insta', 'instagram', 'pin', 'pinterest',
-  'x', 'twitter', 'tuit', 'tweet',
-  'pfp', 'fk', 'verificar', 'verify', 'check', 'top5', 'top10',
-  // vs/versus cobran dentro de cmdVs: tienen tres salidas sin respuesta (sin
-  // menciones, contra uno mismo, y el silencio contra el owner) y cobrando
-  // fuera se pagaba por ellas.
-  'vs', 'versus',
-  // Las acciones cobran dentro: piden un gif a una web de fuera y devuelven el
-  // aura si no llega.
-  ...ALIAS_ACCION,
-]);
+// vs/versus cobran dentro de cmdVs: tienen tres salidas sin respuesta (sin
+// menciones, contra uno mismo, y el silencio contra el owner) y cobrando
+// fuera se pagaba por ellas.
+// Las acciones cobran dentro: piden un gif a una web de fuera y devuelven el
+// aura si no llega.
+const COBRAN_SOLOS = LISTAS.COBRAN_SOLOS;
 
 // El fuente de este mismo fichero, leido UNA vez.
 //
@@ -427,16 +344,8 @@ const FUENTE_PROPIA = (() => {
 // economia apagada, como la guia y el propio !aura on. La tienda igual: el
 // catalogo se enseña y la compra se para, y eso se decide dentro de laTienda
 // porque el mismo comando hace las dos cosas segun lleve o no un objeto detras.
-const CMDS_AURA = new Set([
-  'robo', 'robar',
-  'duel', 'duelo', '1v1',
-  'dar', 'donar', 'regalar', 'transferir', 'pagar',
-  'asalto', 'asaltar',
-  'atraco', 'atracar',
-  'contrarobo', 'contraataque', 'contraatacar', 'vengarse',
-  // Meter y sacar de la caja mueven saldo: con la economia apagada, no.
-  'lock', 'unlock', 'stash',
-]);
+// Meter y sacar de la caja mueven saldo: con la economia apagada, no.
+const CMDS_AURA = LISTAS.CMDS_AURA;
 
 // Los que cuelgan de los mismos comandos y SOLO LEEN. Se listan aparte, y no
 // como un simple "los que no estan", para que la guarda pueda distinguir un
@@ -445,15 +354,10 @@ const CMDS_AURA = new Set([
 // tienda/shop/comprar estan aqui porque su freno vive dentro de laTienda: el
 // escaparate se ve siempre, la compra se para. Taparlos desde fuera apagaria
 // tambien el escaparate.
-const SOLO_CONSULTA = new Set([
-  'bote', 'caja', 'registradora',
-  'buscados', 'wanted', 'mostwanted', 'recompensas', 'cartel',
-  'tienda', 'shop', 'comprar',
-  // *!vault* a secas solo mira lo que hay dentro. Es el mismo caso que
-  // *!bote* o *!caja*: apagar el juego no puede dejar el marcador a oscuras.
-  // Sus dos verbos SI estan tapados, arriba.
-  'vault', 'safe',
-]);
+// *!vault* a secas solo mira lo que hay dentro. Es el mismo caso que
+// *!bote* o *!caja*: apagar el juego no puede dejar el marcador a oscuras.
+// Sus dos verbos SI estan tapados, arriba.
+const SOLO_CONSULTA = LISTAS.SOLO_CONSULTA;
 
 // Comandos que TRABAJAN sobre la foto o el vídeo que llevan adjunto. La guarda
 // de medios sin "ver una vez" los deja pasar: mandar una foto con el pie *!s*
@@ -464,15 +368,11 @@ const SOLO_CONSULTA = new Set([
 //
 // Es una lista cerrada a propósito. Si valiera cualquier texto que empiece por
 // el prefijo, bastaría con poner *!loquesea* de pie para saltarse la norma.
-const MEDIA_CMDS = new Set([
-  's','sticker','stk',
-  'toimg','stimg','tovid',
-  'fk','verificar','verify','check',
-  // marcarfake y fake NO estan aqui: no miran el medio adjunto, trabajan sobre
-  // una mencion o una cita. Tenerlos dentro era justo el atajo que esta lista
-  // dice impedir — bastaba con poner *!marcarfake* de pie de foto para saltarse
-  // la norma de ver-una-vez y el contador de rafagas.
-]);
+// marcarfake y fake NO estan aqui: no miran el medio adjunto, trabajan sobre
+// una mencion o una cita. Tenerlos dentro era justo el atajo que esta lista
+// dice impedir — bastaba con poner *!marcarfake* de pie de foto para saltarse
+// la norma de ver-una-vez y el contador de rafagas.
+const MEDIA_CMDS = LISTAS.MEDIA_CMDS;
 
 // Expulsa y dice si WhatsApp lo aceptó DE VERDAD.
 //
@@ -2799,6 +2699,7 @@ async function handleMessage(sock, msg, opciones = {}) {
         resultado = await cmdTopRandom(sock, msg, 10, args, groupMeta);
         break;
 
+      case 'conteo':
       case 'count':
         resultado = await cmdCount(sock, msg, groupMeta, args);
         break;
@@ -3490,6 +3391,9 @@ async function handleMessage(sock, msg, opciones = {}) {
 module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGroupMeta, PERMISO_ENLACE,
   // Para que la capa pueda conducir el corrector sin montar un grupo entero.
   _sugerirComando: sugerirComando,
+  // Las listas por comando, VIVAS. La puerta las lee de aqui en vez de
+  // parsear el texto del fichero con regex.
+  _listas: { NEEDS_META, COBRO_CENTRAL, LENTOS, COBRAN_SOLOS, CMDS_AURA, SOLO_CONSULTA, MEDIA_CMDS, CMDS_PORCENTAJE },
   // Para que el socket use la cache que ya existe en vez de preguntar por su cuenta.
   metaParaBaileys,
   // Y para que lo que ya trajo el arranque no se vuelva a pedir comando a comando.

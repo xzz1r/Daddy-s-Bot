@@ -4,6 +4,18 @@ Bot de WhatsApp. El contenido vive en `src/data/` (y los pools de `!aura`
 en `src/commands/aura.js`). El motor en `src/commands/` y `src/utils/`.
 Cómo se escribe una frase: `GUIA.md`. Cómo se valida: `npm run check`.
 
+## Añadir un comando o un alias
+
+Dos sitios, y la puerta exige los dos:
+
+1. El `case` en el `switch` de `src/handlers/messageHandler.js` (el cuerpo).
+2. Su fila en `src/handlers/comandos.js`: la familia con todos sus alias y sus
+   propiedades (metadata, «escribiendo…», precio, cobra dentro, economía).
+
+Un alias nuevo se añade a la fila de su comando y hereda todo. No hay listas
+sueltas que tocar: salen del registro. La capa 4b falla si un alias está en un
+sitio y no en el otro.
+
 ## Analogías: CERRADO
 
 El encargo de las analogías baratas está terminado: `npm run analogias` da
