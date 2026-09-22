@@ -17920,6 +17920,66 @@ const manda = async (quien, tipo, opciones) => {
     if (fallos === antes101) console.log(verde('   ✓ la caja se puede reventar y se puede gastar, y en los dos casos las cuentas cuadran'));
   }
 
+  // ── 102. LA TIRADA NI REGALA NI DRENA ───────────────────────────────────
+  //
+  // El dueño: «la peña siempre gana y no tiene gracia de ese modo». Y era
+  // literal: un miembro ganaba el 75 % de las tiradas (80 % de veterano) con un
+  // esperado de +13,8 de aura POR TIRADA. Se bajó quince puntos.
+  //
+  // Pero esto YA SE TOCÓ AL REVÉS una vez: el 75 se puso porque «había
+  // demasiada gente en números rojos y sin aura no se puede usar el bot». Así
+  // que esta capa vigila las dos orillas, no una. Entre ellas hay sitio de
+  // sobra; fuera, el comando se rompe de una forma o de la otra.
+  {
+    console.log('\n102. LA TIRADA NI REGALA NI DRENA');
+    const antes102 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const e102 = require(path.join(R, 'src/utils/economia'));
+    const { TIRADA: T, P_POSITIVA: PP, P_TOPE: PT, P_TRAMO_GRANDE: PG,
+            MULT_CASTIGO: MC, MULT_CASTIGO_GRANDE: MCG } = e102;
+
+    // El esperado de una tirada, con los tramos y multiplicadores de verdad.
+    const mG = (T.grande[0] + T.grande[1]) / 2;
+    const mQ = (T.pequena[0] + T.pequena[1]) / 2;
+    const premio = PG.gana * mG + (1 - PG.gana) * mQ;
+    const castigo = PG.pierde * mG * MCG + (1 - PG.pierde) * mQ * MC;
+    const esperado = (p) => p * premio - (1 - p) * castigo;
+
+    // El veterano es el que más gana: es el que marca el techo real.
+    const pVet = Math.min(PT.miembro, PP.miembro + e102.ACTIVIDAD_TOPE);
+
+    // ── ORILLA DE ARRIBA: que no vuelva a regalar ─────────────────────────
+    exige(PP.miembro <= 0.65,
+      `un miembro gana el ${(PP.miembro * 100).toFixed(0)} % de las tiradas: por ahí arriba es lo que el dueño llamó «siempre gana»`);
+    exige(pVet <= 0.70,
+      `el veterano llega al ${(pVet * 100).toFixed(0)} %: el bono de actividad está devolviendo la tirada a donde estaba`);
+
+    // ── ORILLA DE ABAJO: que no seque al grupo ────────────────────────────
+    //
+    // Si la tirada pasa a dar negativo, el comando que todo el mundo usa te
+    // quita aura por usarlo, y se vuelve al problema de los números rojos.
+    exige(esperado(PP.miembro) > 0,
+      `la tirada de un miembro raso da ${esperado(PP.miembro).toFixed(1)} de media: en negativo, *!aura* drena y se vuelve a llenar el grupo de gente sin saldo`);
+    exige(esperado(PP.miembro) >= 1.5,
+      `la tirada da ${esperado(PP.miembro).toFixed(1)} de media: tan al filo, una mala racha deja seco a cualquiera`);
+
+    // ── Y LOS ROLES NO SE SOLAPAN ─────────────────────────────────────────
+    // Si se solapan, un miembro veterano alcanza a un admin recién nombrado y
+    // el rango deja de significar nada.
+    exige(PT.miembro < PP.admin,
+      `el techo de un miembro (${PT.miembro}) llega a la base de un admin (${PP.admin}): el rol deja de valer`);
+    exige(PT.admin < PP.owner,
+      `el techo de un admin (${PT.admin}) llega a la base del owner (${PP.owner})`);
+    // Y que el hueco no se estire tampoco: si el owner gana MUCHÍSIMO más que
+    // el resto, eso se nota sin contar nada y lo delata.
+    exige((PP.owner - PP.miembro) <= 0.20,
+      `el owner gana ${((PP.owner - PP.miembro) * 100).toFixed(0)} puntos más que un miembro: esa diferencia se ve a ojo y señala quién manda el bot`);
+
+    if (fallos === antes102) {
+      console.log(verde(`   ✓ un miembro gana ${(PP.miembro * 100).toFixed(0)} % (veterano ${(pVet * 100).toFixed(0)} %), la tirada da +${esperado(PP.miembro).toFixed(1)} de media y los roles no se solapan`));
+    }
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     if (!fallos) sellar();

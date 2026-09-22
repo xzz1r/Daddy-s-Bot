@@ -92,8 +92,10 @@ function rollAura(targetIsOwner, targetIsAdmin, plusActividad = 0, dePago = true
   const base = P_POSITIVA[rol];
 
   // Cada rol tiene su propio techo y los tres rangos NO se solapan: un miembro
-  // llega como mucho al 80 y la base de un admin ya es 82, asi que ni el mas
+  // llega como mucho al 65 y la base de un admin ya es 67, asi que ni el mas
   // veterano alcanza a un admin recien nombrado. Lo mismo entre admin y owner.
+  // (Las cifras bajaron quince puntos cuando el dueño dijo que «la peña siempre
+  // gana»; el que las mueva que mantenga el hueco, o el rol deja de valer.)
   const pPos = Math.min(P_TOPE[rol], base + plusActividad);
 
   if (Math.random() < pPos) {

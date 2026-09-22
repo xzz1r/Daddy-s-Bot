@@ -141,10 +141,35 @@ const TIRADA_MAX = { grande: TIRADA.grande[1], pequena: TIRADA.pequena[1] };
 // 75 se los comia: un miembro veterano igualaba al admin y el rol dejaba de
 // valer para nada. Ahora cada rol tiene su propia base Y su propio techo, y los
 // tres rangos no se solapan en ningun punto.
+// BAJADO QUINCE PUNTOS, Y LO PIDIO EL DUEÑO: «la peña siempre gana y no tiene
+// gracia de ese modo».
+//
+// Y era literal. Medido antes de tocar nada, un miembro ganaba el 75 % de las
+// tiradas —el 80 % pasados los 3.000 mensajes— con un esperado de +13,8 de aura
+// POR TIRADA. Eso no es una tirada, es un grifo: el resultado estaba cantado
+// tres de cada cuatro veces y perder era la anecdota.
+//
+// OJO CON EL SUELO, que esto ya se toco al reves una vez. El 75 se puso porque
+// «habia demasiada gente en numeros rojos y sin aura no se puede usar el bot».
+// Ese limite sigue mandando, asi que el sitio al que se baja no es libre:
+//
+//     75 % -> +13,8 por tirada   (hoy: gana casi siempre)
+//     65 % -> + 6,7
+//     60 % -> + 3,1              <- aqui
+//     55 % -> − 0,4              (a partir de aqui la tirada DRENA)
+//
+// En 60 la tirada sigue dando de media, asi que nadie se seca por tirar, pero
+// se pierde dos de cada cinco veces y ganar vuelve a significar algo. Bajar
+// hasta 55 la convertiria en un sumidero y devolveria el problema de los rojos.
+//
+// Se bajan los TRES roles lo mismo para que la jerarquia no se mueva: el hueco
+// entre miembro y owner sigue siendo de 13 puntos, que es lo que habia. Y los
+// rangos siguen sin solaparse — el techo de un miembro (65) queda por debajo de
+// la base de un admin (67), y el de un admin (70) por debajo de la del owner.
 const P_POSITIVA = {
-  owner: 0.88,   // gana casi 9 de cada 10
-  admin: 0.82,
-  miembro: 0.75, // 75/25 pedido por el owner
+  owner: 0.73,
+  admin: 0.67,
+  miembro: 0.60,
 };
 
 // ─── El bono de veterania: suerte que se acumula ─────────────────────────────
@@ -178,10 +203,12 @@ const ACTIVIDAD_BONO = 0.03;   // +3 % de acierto por escalón, acumulables
 // Un miembro llega como mucho al 80, justo por debajo de la BASE del admin (82),
 // asi que ni el mas veterano alcanza a un admin recien nombrado. Y un admin
 // llega como mucho al 85, por debajo del 88 del owner.
+// Los techos bajan los mismos quince puntos, o el bono de actividad devolveria
+// al veterano justo donde estaba.
 const P_TOPE = {
-  owner: 0.88,
-  admin: 0.85,
-  miembro: 0.80,
+  owner: 0.73,
+  admin: 0.70,
+  miembro: 0.65,
 };
 const P_TOPE_MIEMBRO = P_TOPE.miembro;   // se mantiene el nombre viejo: lo usan otros modulos
 const ACTIVIDAD_TOPE = 0.13;
