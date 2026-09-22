@@ -4117,6 +4117,47 @@ const di=async(quien,texto,extra)=>{
       const lecciones = AV.MAL_ESCRITO.filter((f) => CLASE.test(f));
       exige(lecciones.length === 0,
         `MAL_ESCRITO vuelve a dar clase en vez de atacar: ${lecciones[0] || ''}`);
+
+      // Y EL AVISO NO GASTA SU LINEA REPITIENDO LA DE ARRIBA.
+      //
+      // El mensaje ya sale asi:
+      //
+      //     *!anla* no existe. Era *!anal*.
+      //     <frase>
+      //
+      // O sea que la correccion YA ESTA DADA. Las frases que volvian a decirla
+      // —«hay uno parecido y tu no has dado con el», «ese comando no existe»—
+      // gastaban su unica linea en repetir el renglon de encima en vez de
+      // pegar, y eran justo las que el dueño vio flojas.
+      const REPITE = /el que quer[ií]as|hay uno parecido|est[aá] a dos letras|ese comando no existe|no hay comando que/i;
+      const repetidas = AV.MAL_ESCRITO.filter((f) => REPITE.test(f));
+      exige(repetidas.length === 0,
+        `MAL_ESCRITO repite la correccion que ya sale en la linea de arriba: "${repetidas[0] || ''}"`);
+
+      // SIEMPRE AL INTELECTO. Encargo del dueño: «deben ser hirientes y atacar
+      // siempre al intelecto, ya sea de forma abstracta o directa».
+      //
+      // La parte ABSTRACTA no se puede medir con una lista de palabras —«te ha
+      // fallado lo de dentro» ataca la cabeza sin nombrarla— asi que no se pide
+      // que las cumplan todas: se pide un SUELO. Si la mayoria deja de llevar
+      // la marca explicita, el pool se esta deslizando otra vez hacia describir
+      // el fallo en vez de atacar a quien lo comete, que es lo que paso antes.
+      const INTELECTO = /cabeza|corto\b|listo|sab(es|er)|no sé|leer|le[ií]do|pensa|piensa|entiend|entend|diagn|alfabeto|analfabeto|ignorante|in[uú]til|adivin|m[eé]rito|das para|da para|idioma|s[ií]ntoma|acierta|nivel|techo|de serie|de f[aá]brica|copia|estudia|entrena|manejas|resuelve|resuelto|empezar|mide|error|cr[ií]o/i;
+      const conMarca = AV.MAL_ESCRITO.filter((f) => INTELECTO.test(f)).length;
+      exige(conMarca >= Math.ceil(AV.MAL_ESCRITO.length * 0.7),
+        `solo ${conMarca} de ${AV.MAL_ESCRITO.length} frases de MAL_ESCRITO atacan al intelecto: el pool se esta volviendo descriptivo otra vez`);
+
+      // Y QUE HAYA DE SOBRA. Este aviso lo dispara cualquiera que teclee mal, o
+      // sea a diario, y con la ventana de pickFresh un pool corto se recita.
+      exige(AV.MAL_ESCRITO.length >= 50,
+        `MAL_ESCRITO se ha quedado en ${AV.MAL_ESCRITO.length} frases: con la ventana de pickFresh eso se repite`);
+      exige(new Set(AV.MAL_ESCRITO).size === AV.MAL_ESCRITO.length,
+        'MAL_ESCRITO tiene frases repetidas');
+      // Van DEBAJO de la correccion: si se alargan, el aviso pasa a ser un
+      // parrafo y se pierde el golpe.
+      const largasME = AV.MAL_ESCRITO.filter((f) => f.length > 95);
+      exige(largasME.length === 0,
+        `MAL_ESCRITO tiene ${largasME.length} frase(s) de mas de 95 caracteres: "${(largasME[0] || '').slice(0, 60)}…"`);
     }
 
     // AUTOACEPTAR APRUEBA, Y SOLO APRUEBA.

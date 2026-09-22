@@ -307,52 +307,96 @@ const PURGA_ADMIN = [
   'Esto no lo para un aviso: se para quitándote lo que has usado mal.',
 ];
 
+// COMANDO MAL ESCRITO. EL ESTANDAR, QUE LO PUSO EL DUEÑO:
+//
+//   «Deben ser hirientes y atacar siempre al intelecto, ya sea de forma
+//   abstracta o directa, pero siempre hiriente.»
+//
+// Cada linea tiene que cumplir LAS DOS cosas. Un pase por la de abajo y la
+// frase sobra, por antigua que sea — se tiraron 23 de golpe justo por esto:
+//
+//  · NO DESCRIBIR EL FALLO. «Estaba escrito y has puesto otra cosa» cuenta lo
+//    que ya se ve. Lo que duele no es el fallo, es lo que el fallo dice de
+//    quien lo comete.
+//  · NO INSULTAR SIN APUNTAR. «La has roto igual, animal» es un insulto, pero
+//    no toca la cabeza: vale para cualquier cosa que se haga mal.
+//  · NO REMATAR EN SARCASMO. «Impresionante lo tuyo», «Enhorabuena», «Como
+//    todo lo tuyo» son finales que se desinflan. El remate tiene que cerrar
+//    mas fuerte que el principio.
+//  · NO DAR CLASE. Si dice lo que deberia hacer la proxima vez, es un consejo
+//    con tono de superioridad y no pica. La capa lo vigila.
+//  · NO REPETIR LA CORRECCION. El mensaje sale asi:
+//
+//        *!anla* no existe. Era *!anal*.
+//        <frase>
+//
+//    La correccion YA ESTA DADA arriba. Una frase que vuelve a decir «hay uno
+//    parecido y no has dado con el» gasta su unica linea repitiendo el
+//    renglon de encima. La capa tambien lo vigila.
+//
+// Las dos formas valen y las dos estan: la DIRECTA nombra la cabeza («te falta
+// cabeza, y eso no se entrena») y la ABSTRACTA la señala sin nombrarla («te ha
+// fallado lo de dentro», «lo que hay detras del dedo»). La abstracta no se
+// puede medir con una lista de palabras, asi que la capa pide un SUELO de
+// frases con marca explicita: si la mayoria la pierde, el pool se esta
+// deslizando otra vez hacia describir.
 const MAL_ESCRITO = [
-  'No sabes escribir una puta palabra de cinco letras con el modelo delante.',
   'Analfabeto con wifi. Te lo corrijo yo, que tú no llegas.',
-  'Un comando. Una palabra. Y la has roto igual, animal.',
-  'Ni eso sabes hacer. Literalmente ni eso, inútil.',
-  'Lo tenías copiado ahí arriba y aun así lo has escrito como el puto culo.',
-  'Te falla la cabeza antes que el dedo, y eso en tu caso ya es decir algo.',
-  'Esto no pide saber nada y tú has encontrado la forma de fallarlo. Enhorabuena.',
   'Escribirlo mal no es tener prisa. Es ser corto.',
-  'Escribes igual de mal que aportas, o sea que al menos eres coherente.',
-  'Una palabra. Una. Y la has partido por la mitad, ignorante.',
-  'Ni con el comando delante de los ojos. Impresionante lo tuyo.',
-  'No es prisa. Es que no das para más y todo el grupo lo está leyendo.',
-  'Te lo tengo que adivinar yo. Todos los putos días igual.',
-  'Fallas lo que no tiene dificultad ninguna. Párate a pensar en eso.',
-  'Ni el teclado tiene la culpa esta vez. Esta vez eres tú.',
-  'Escribirlo bien era el mínimo absoluto y no has llegado.',
-  'No sabes escribir el comando que quieres usar. Ahí lo dejo.',
-  'Te lo corrijo yo porque si no no sales de ahí en toda la tarde.',
-  'Lo has intentado y ha salido otra cosa. Como todo lo tuyo.',
-  'Ni copiando, que es lo que de verdad asusta.',
-  'Fallar esto no es tener los dedos gordos. Es lo otro.',
-  'Escribes el comando como quien no ha leído nunca nada.',
-  'Eso no se falla con prisa. Se falla siendo tú.',
-  'Una palabra corta te ha ganado delante de todo el grupo.',
-  'Cinco letras y han podido contigo. Cinco.',
-  'El puto comando estaba escrito arriba. Arriba. Y lo has copiado mal.',
-  'Hay gente que no sabe escribir y hay tú, que encima insiste.',
   'No te ha fallado el móvil. Te ha fallado lo de dentro.',
-  'Escribes como si te acabaran de enseñar el alfabeto esta mañana.',
-  'Ese comando no existe, ignorante. El que querías está a dos letras.',
-  'Ni con autocorrector. Piensa en el mérito que tiene eso.',
-  'Se te ha entendido igual, que es lo humillante del asunto.',
-  'No hace falta ser listo para escribirlo. Solo no ser tú.',
-  'Te has equivocado en lo único que no tenía forma de salir mal.',
-  'Hasta el bot ha tenido que adivinarte. Y el bot no piensa.',
-  'Una palabra mal escrita y ya sabemos todo lo que hay que saber de ti.',
+  'Te falla la cabeza antes que el dedo, y eso en tu caso ya es decir algo.',
   'Escribir mal es normal. Escribir así de mal es un diagnóstico.',
-  'Ese no es el comando. Ni de lejos. Ni con buena voluntad.',
-  'Lo has escrito con la misma atención con la que haces todo lo demás.',
-  'No sé si tienes prisa o es que no sabes. Apuesto por lo segundo.',
-  'Pones el mismo cuidado escribiendo que aportando al grupo: ninguno.',
-  'Eso que has escrito no significa nada. Igual que lo que sueles decir.',
-  'Un comando de cuatro letras y lo has convertido en otra cosa. Animal.',
-  'No hay comando que se llame así. Hay uno parecido y tú no has dado con él.',
+  'Fallar esto no es tener los dedos gordos. Es lo otro.',
+  'Tu problema no está en el teclado. El tuyo no se arregla cambiando de móvil.',
+  'No te falta práctica. Te falta cabeza, y eso no se entrena.',
+  'No es despiste. El despiste se tiene a ratos y tú lo llevas de serie.',
+  'Hay errores de dedo y luego está el tuyo, que viene de fábrica.',
+  'Eso no lo falla un dedo. Eso lo falla lo que hay detrás del dedo.',
+  'No es que escribas mal, es que no hay nada detrás que escriba bien.',
+  'Lo tuyo no lo arregla el autocorrector: corrige letras, no cabezas.',
+  'Lo que te falta no se compra ni se estudia. Se nace con ello o no.',
+  'Hay cosas que no se arreglan leyendo más. La tuya es una de ellas.',
+  'No has fallado escribiendo. Has fallado pensando, que es lo tuyo.',
+  'Tienes el mismo problema que hace un mes, y no es el teclado.',
+  'No sabes escribir una puta palabra de cinco letras con el modelo delante.',
+  'Una palabra. Cinco letras. Y tu cabeza no ha dado para copiarla.',
+  'Copiar no exige entender nada. Por eso pesa tanto que hayas fallado.',
+  'Aquí no había nada que pensar, y has fallado igual. Tiene su mérito.',
+  'Te has equivocado en lo único que venía con la respuesta puesta. Eso no se falla, se es.',
+  'Esto no pide saber nada y tú has encontrado la forma de fallarlo.',
+  'Esto lo acierta cualquiera. Cualquiera. Y luego estás tú.',
+  'Era leer y repetir. Dos pasos. Te has caído en el primero.',
+  'Cuatro letras en el orden que ya te daban hecho. Ni aun así te ha dado la cabeza.',
+  'El comando estaba resuelto, solo había que repetirlo. Ahí es donde se te ve.',
+  'Esto lo resuelve un crío. Literalmente un crío.',
+  'El comando era la parte fácil. Imagínate lo que viene después.',
+  'Se te pide copiar y devuelves ruido. Eso lo explica casi todo.',
+  'No lo entiendes, no lo copias, no lo aciertas. Tres de tres.',
+  'Ni con la respuesta delante. Eso ya no es un fallo, es tu techo.',
+  'Tu techo son cinco letras y acabas de darte contra él.',
+  'Se te ha visto el nivel en cinco letras. Cinco.',
+  'Si esto es lo que das con el modelo delante, no hay por dónde bajar más.',
+  'Esto mide una sola cosa, y acabas de dar tu resultado.',
+  'A esto no se llega por prisa. Se llega desde bastante más abajo.',
+  'Te sobra confianza para lo poco que manejas.',
+  'No es que no lo sepas. Es que contigo no hay por dónde empezar.',
+  'Escribes como si te hubieran enseñado el alfabeto esta misma mañana.',
+  'Escribes igual de mal que piensas. Al menos eres coherente.',
+  'Escribes el comando como quien no ha leído nunca nada.',
+  'Lo has escrito como piensas: a trozos y sin orden.',
+  'Lo que has escrito no existe en ningún idioma. Tampoco en el tuyo.',
+  'Lo que has escrito no es un comando, es un síntoma.',
+  'No sé qué has escrito. Tú tampoco, y eso es lo grave.',
+  'Hasta el bot ha tenido que adivinarte. Y el bot no piensa.',
+  'El bot corrige errores. Lo tuyo no es un error.',
+  'No lo has escrito mal. Lo has escrito como tú, que es peor.',
   'Te falta leer. Y antes de leer, te faltan bastantes más cosas.',
+  'No hace falta ser listo para escribirlo. Basta con no ser tú.',
+  'Nadie se ha sorprendido, y eso dice más de tu cabeza que el propio fallo.',
+  'Ni eso sabes hacer. Literalmente ni eso, inútil.',
+  'No es prisa. Es que no das para más, y todo el grupo lo está leyendo.',
+  'No sé si tienes prisa o es que no sabes. Apuesto por lo segundo.',
+  'El fallo dura una línea. Lo que dice de ti, no.',
 ];
 
 // CABECERA POR POOL. Solo la tienen los avisos que niegan por RANGO: ahi hace
