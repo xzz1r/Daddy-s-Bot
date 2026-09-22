@@ -1128,17 +1128,40 @@ const COMANDOS_CONOCIDOS = (() => {
 })();
 
 // Distancia de edicion, cortada en cuanto se pasa del maximo que nos interesa.
+// CUENTA LAS LETRAS CAMBIADAS DE ORDEN COMO UN SOLO FALLO, y por eso hay dos
+// filas guardadas en vez de una.
+//
+// Esto era Levenshtein a secas, donde cambiar dos letras de sitio cuesta DOS
+// —una por sacarla y otra por meterla— y el margen de un comando de cuatro
+// letras es UNO. Resultado: *!anla* no se corregia. Ni *!pign*, ni *!duel*.
+// Y la transposicion es el error de tecleo mas comun que hay: el dedo llega
+// antes que el otro.
+//
+// Medido antes de tocarlo, por si acercar los comandos los volvia
+// confundibles: de los 285 que hay, CERO pares pasan a estar dentro del margen
+// el uno del otro. O sea que esto solo caza erratas, no inventa sugerencias
+// nuevas entre comandos que ya existian.
+//
+// El corte temprano se queda: esta funcion se llama una vez por comando
+// conocido cada vez que alguien escribe algo que no existe.
 function distancia(a, b, max) {
   if (Math.abs(a.length - b.length) > max) return max + 1;
+  let prev2 = null;
   let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
   for (let i = 1; i <= a.length; i++) {
     const fila = [i];
     let mejor = i;
     for (let j = 1; j <= b.length; j++) {
       fila[j] = Math.min(prev[j] + 1, fila[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      // Las dos ultimas letras estan cruzadas: una sola operacion, no dos.
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
+        const conCambio = prev2[j - 2] + 1;
+        if (conCambio < fila[j]) fila[j] = conCambio;
+      }
       if (fila[j] < mejor) mejor = fila[j];
     }
     if (mejor > max) return max + 1;
+    prev2 = prev;
     prev = fila;
   }
   return prev[b.length];
@@ -3465,6 +3488,8 @@ async function handleMessage(sock, msg, opciones = {}) {
 }
 
 module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGroupMeta, PERMISO_ENLACE,
+  // Para que la capa pueda conducir el corrector sin montar un grupo entero.
+  _sugerirComando: sugerirComando,
   // Para que el socket use la cache que ya existe en vez de preguntar por su cuenta.
   metaParaBaileys,
   // Y para que lo que ya trajo el arranque no se vuelva a pedir comando a comando.

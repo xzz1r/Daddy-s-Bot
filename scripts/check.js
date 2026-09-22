@@ -4242,6 +4242,34 @@ const di=async(quien,texto,extra)=>{
       // suene a plantilla —«puedes usar la misma terminologia, pero no la
       // misma estructura para que no se vea repetitivo»—.
 
+      // LAS LETRAS CAMBIADAS DE ORDEN TAMBIEN SE CORRIGEN.
+      //
+      // *!anla* no se corregia, y es el ejemplo que el dueño llevaba usando
+      // toda la conversacion. La distancia era Levenshtein a secas: cruzar dos
+      // letras cuesta DOS operaciones y el margen de un comando de cuatro
+      // letras es UNO. Con eso, el error de tecleo mas comun que hay —el dedo
+      // que llega antes que el otro— no disparaba el corrector.
+      {
+        const mh = require(path.join(R, 'src/handlers/messageHandler'));
+        const sug = mh._sugerirComando;
+        exige(typeof sug === 'function', 'messageHandler ya no expone el corrector: esta guarda no mira nada');
+        if (typeof sug === 'function') {
+          // Casos SIN empate. *!pign* no sirve de prueba: esta a distancia 1 de
+          // *!pin* (quitando la g) Y de *!ping* (cruzando las letras), asi que
+          // cual de los dos gana depende del orden de la lista y no de si la
+          // transposicion cuenta. Lo comprobe esperando «ping» y salio «pin»:
+          // el fallo era mio, no del corrector.
+          for (const [malo, bueno] of [['anla', 'anal'], ['duleo', 'duelo'],
+            ['rosat', 'roast'], ['sitcker', 'sticker'], ['tpo', 'top']]) {
+            exige(sug(malo) === bueno,
+              `*!${malo}* no se corrige a *!${bueno}*: las letras cambiadas de orden vuelven a contar como dos fallos`);
+          }
+          // Y que no invente: algo que no se parece a nada no se corrige.
+          exige(sug('zzzqqq') === null,
+            'el corrector sugiere algo para "zzzqqq": con el margen tan suelto va a corregir lo que no es');
+        }
+      }
+
       // CADA FRASE TIENE QUE DECIR QUE LO ESCRIBIO MAL.
       //
       // El dueño lo vio en una: ««Qué carajo te pasa en la cabeza. Es un puto
