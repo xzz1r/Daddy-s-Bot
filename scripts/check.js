@@ -4167,6 +4167,28 @@ const di=async(quien,texto,extra)=>{
       exige(conTecho >= Math.ceil(AV.MAL_ESCRITO.length * 0.7),
         `solo ${conTecho} de ${AV.MAL_ESCRITO.length} frases de MAL_ESCRITO enmarcan el fallo como el TECHO de esa persona: sin eso son insultos sueltos, que es lo que el dueño mando quitar`);
 
+      // NADIE ESTA COPIANDO NADA. Lo vio el dueño: doce frases decian «era
+      // copiar», «una palabra copiada», «ni con el modelo delante». Pero aqui
+      // no hay de donde copiar — el que escribe mal un comando se lo esta
+      // escribiendo de memoria, no transcribiendolo de ningun sitio. El
+      // reproche correcto es que solo tenia que escribir UN COMANDO BIEN.
+      const COPIAR = /copia|copiar|copiando|copiada|modelo delante|leer y repetir|respuesta puesta|te lo dan hecho|te dan la respuesta|lo ten[i\u00ed]as ah[i\u00ed]/i;
+      const copiones = AV.MAL_ESCRITO.filter((f) => COPIAR.test(f));
+      exige(copiones.length === 0,
+        `MAL_ESCRITO vuelve a reprochar que no ha sabido COPIAR, y aqui no hay nada que copiar: el comando se escribe de memoria. "${copiones[0] || ''}"`);
+
+      // Y NINGUNA CANTA UN NUMERO DE LETRAS.
+      //
+      // Llegaron a ser doce diciendo «cinco letras». De los 285 comandos del
+      // bot solo 52 tienen cinco letras, asi que la frase mentia el 82 % de las
+      // veces — y con *!limpiar* (siete) o *!s* (una) quedaba en ridiculo. «No
+      // pueden haber errores en los conteos de absoluta nada»: tambien cuando
+      // el numero va dentro de un insulto.
+      const CANTANUM = /\b(dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez)\s+(letras|palabras|pasos|caracteres)/i;
+      const cantan = AV.MAL_ESCRITO.filter((f) => CANTANUM.test(f));
+      exige(cantan.length === 0,
+        `MAL_ESCRITO afirma un numero de letras que depende del comando y casi nunca acierta: "${cantan[0] || ''}"`);
+
       // Y QUE HAYA DE SOBRA. Este aviso lo dispara cualquiera que teclee mal, o
       // sea a diario, y con la ventana de pickFresh un pool corto se recita.
       exige(AV.MAL_ESCRITO.length >= 50,
