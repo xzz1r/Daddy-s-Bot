@@ -25,6 +25,21 @@ const hist = require('../utils/historialGrupo');
 
 const MAX = 1000;
 
+// LOS BORRADOS SALEN EN LOTES, NO TODOS DE GOLPE.
+//
+// Antes se hacia `Promise.allSettled(items.map(...))`: con *!limpiar 300* eso
+// son 301 escrituras cifradas al socket EN EL MISMO TICK. Medido en banco con
+// 300 mensajes: pico de 301 borrados simultaneos. En una VPS de un nucleo y
+// 1 GB eso es el pico que se nota, y WhatsApp responde a la reventa de la cola
+// con rate-overlimit — o sea que la prisa hacia que se borrara MENOS.
+//
+// 20 por lote esta elegido a proposito: el uso normal es *!limpiar 20*, y eso
+// cabe entero en el primer lote. Quien borra poco no espera nada; el que pide
+// 300 paga 250 ms cada 20. Los primeros salen igual de rapido que antes, que
+// era el motivo de no esperar al historial.
+const POR_LOTE = 20;
+const PAUSA_ENTRE_LOTES = 250;
+
 const enCurso = new Set();
 
 // Siempre fromMe=false. En Baileys eso es lo que pone edit=8 (para todos)
@@ -46,15 +61,39 @@ function claveBorrado(sock, item) {
   return deleteKey;
 }
 
-function dispararBorrados(sock, jid, items) {
-  if (!items.length) return Promise.resolve();
-  return Promise.allSettled(items.map((item) =>
-    sock.sendMessage(jid, { delete: claveBorrado(sock, item) })
-      .then(() => { hist.quitar(jid, item.id); })
-      .catch((e) => {
-        logger.warn(`limpiar: no pude borrar ${item.id} en ${jid}: ${e?.output?.content?.[0]?.attrs?.type || e?.message || e}`);
-      })
-  ));
+// Devuelve CUANTOS SE BORRARON DE VERDAD, sin contar los ids de `sinContar`
+// (ahi va el propio *!limpiar*, que se borra pero no lo pidio nadie).
+//
+// Que devuelva el numero real no es un detalle: antes se daba por hecho que
+// todo lo enviado se habia borrado, y `allSettled` se traga los fallos. Con la
+// racha de rate-overlimit de arriba, el banco dio 200 borrados de 300 y el bot
+// no dijo ni una palabra. Es la misma regla que ya esta escrita en
+// joinRequests: contarlos todos como hechos seria mentir en el recuento.
+//
+// El que falla NO se quita de la cola (`quitar` solo corre en el `then`), asi
+// que sigue ahi y una segunda pasada lo alcanza.
+async function dispararBorrados(sock, jid, items, sinContar) {
+  if (!items.length) return 0;
+  const saltar = sinContar instanceof Set ? sinContar : new Set(sinContar || []);
+  let hechos = 0;
+  for (let i = 0; i < items.length; i += POR_LOTE) {
+    const lote = items.slice(i, i + POR_LOTE);
+    const res = await Promise.allSettled(lote.map((item) =>
+      sock.sendMessage(jid, { delete: claveBorrado(sock, item) })
+        .then(() => { hist.quitar(jid, item.id); })
+        .catch((e) => {
+          logger.warn(`limpiar: no pude borrar ${item.id} en ${jid}: ${e?.output?.content?.[0]?.attrs?.type || e?.message || e}`);
+          throw e;
+        })
+    ));
+    for (let k = 0; k < lote.length; k++) {
+      if (res[k].status === 'fulfilled' && !saltar.has(lote[k].id)) hechos++;
+    }
+    if (i + POR_LOTE < items.length) {
+      await new Promise((r) => setTimeout(r, PAUSA_ENTRE_LOTES));
+    }
+  }
+  return hechos;
 }
 
 let trabajo = Promise.resolve();
@@ -116,24 +155,26 @@ async function cmdLimpiar(sock, msg, args, groupMeta) {
   }
   items.push(...ya.slice().reverse());
 
-  enCurso.add(jid);
-  dispararBorrados(sock, jid, items);
+  // El propio *!limpiar* se borra, pero no lo pidio nadie: fuera del recuento.
+  const sinContar = cmdId ? new Set([cmdId]) : new Set();
 
+  enCurso.add(jid);
+  // Arranca YA y sin await: el primer lote sale en este mismo tick. La promesa
+  // se guarda porque es la que trae el numero REAL de borrados.
+  const primera = dispararBorrados(sock, jid, items, sinContar);
   const faltan = n - ya.length;
-  if (faltan <= 0) {
-    enCurso.delete(jid);
-    return;
-  }
 
   trabajo = (async () => {
-    let borrados = items.length;
+    let hechos = 0;
     try {
-      const mas = await hist.reunir(sock, jid, n, cmdId ? [cmdId] : [], ancla);
-      const yaIds = new Set(items.map((i) => i.id));
-      const extra = mas.filter((x) => !yaIds.has(x.id));
-      if (extra.length) {
-        dispararBorrados(sock, jid, extra);
-        borrados += extra.length;
+      hechos += await primera;
+      // Al historial solo se va si lo que habia en RAM no llegaba. Y se va
+      // DESPUES de haber borrado lo de arriba, no antes.
+      if (faltan > 0) {
+        const mas = await hist.reunir(sock, jid, n, cmdId ? [cmdId] : [], ancla);
+        const yaIds = new Set(items.map((i) => i.id));
+        const extra = mas.filter((x) => !yaIds.has(x.id));
+        if (extra.length) hechos += await dispararBorrados(sock, jid, extra, sinContar);
       }
     } catch (e) {
       logger.warn(`limpiar: historial ${jid}: ${e.message}`);
@@ -141,23 +182,24 @@ async function cmdLimpiar(sock, msg, args, groupMeta) {
       enCurso.delete(jid);
     }
 
-    // SI SE QUEDA CORTO, SE DICE.
+    // SI SE QUEDA CORTO, SE DICE. Y EL NUMERO ES EL DE VERDAD.
     //
     // El silencio al salir bien es a proposito —un "listo, borre 20" es otro
     // mensaje que hay que borrar despues— pero eso solo vale cuando se ha hecho
     // lo que se pidio. Pedir 200 y borrar 12 sin abrir la boca se lee como que
     // funciono, y quien lo escribio se queda pensando que el grupo esta limpio.
     //
-    // Es el mismo fallo que ya se corrigio en las expulsiones y en el antilink:
-    // el bot no puede dar por hecho un resultado que no ha comprobado.
+    // `hechos` sale de contar los envios que WhatsApp acepto, uno a uno. La
+    // primera version de este aviso conto los INTENTOS y por eso callaba: en el
+    // banco, con 100 borrados rechazados de 300, le salia la cuenta redonda y
+    // no abria la boca. Es el mismo fallo que ya se corrigio en las
+    // expulsiones y en el antilink: el bot no da por hecho un resultado que no
+    // ha comprobado.
     //
-    // El aviso se cuenta descontando el propio *!limpiar*, que tambien se borra
-    // pero no lo pidio nadie.
-    const pedidos = n;
-    const hechos = Math.max(0, borrados - (cmdId ? 1 : 0));
-    if (hechos < pedidos) {
+    // Lo que fallo sigue en la cola, asi que repetir el comando lo alcanza.
+    if (hechos < n) {
       await sock.sendMessage(jid, {
-        text: `Borrados *${hechos}* de ${pedidos}. No tengo más mensajes recientes de este chat.`,
+        text: `Borrados *${hechos}* de ${n}. El resto no lo tengo o WhatsApp no me dejó; repite el comando si quieres que insista.`,
       }).catch(() => {});
     }
   })();

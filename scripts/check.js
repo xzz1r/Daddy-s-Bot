@@ -17162,9 +17162,20 @@ const manda = async (quien, tipo, opciones) => {
     exige(limp97.MAX === 1000, `el tope de !limpiar ya no es 1000: es ${limp97.MAX}`);
     exige(hist97.TOPE_POR_GRUPO >= limp97.MAX,
       `el almacén (${hist97.TOPE_POR_GRUPO}) no cabe el tope (${limp97.MAX}): !limpiar 1000 no tendría 1000 claves`);
-    const limpSrc97 = fs.readFileSync(path.join(R, 'src/commands/limpiar.js'), 'utf8');
-    exige(/Promise\.allSettled/.test(limpSrc97) && !/PAUSA_MS|setTimeout/.test(limpSrc97),
-      '!limpiar volvió a borrar de uno en uno con pausa: el dueño lo pidió de golpe');
+    // Aqui habia un grep exigiendo que NO existiera ningun `setTimeout` en el
+    // fichero, para que los borrados salieran todos de golpe. El dueno reviso
+    // esa decision: *!limpiar* le consumia demasiado en la VPS.
+    //
+    // Y el grep vigilaba la PALABRA, no el comportamiento. Medido en banco con
+    // 300 mensajes, «de golpe» eran 301 escrituras cifradas en el mismo tick;
+    // WhatsApp contestaba a la cola reventada con rate-overlimit, asi que la
+    // prisa hacia que se borrara MENOS.
+    //
+    // Lo que importa de verdad son dos cosas, y las dos se comprueban abajo
+    // pidiendo borrados de verdad en vez de leyendo el fichero: que el pico
+    // simultaneo quede acotado, y que los primeros salgan sin esperar a nada
+    // (el caso de `dt < 80`, mas abajo).
+    const TOPE_PICO97 = 40;
     try {
       // ── El almacén no guarda ruido ────────────────────────────────────────
       hist97.recordar(sobre97('R1', RASO97, 'hola'));
@@ -17314,6 +17325,82 @@ const manda = async (quien, tipo, opciones) => {
         'ya no se pide el historial al teléfono: !limpiar vuelve a estar ciego al reiniciar');
       exige(/fromMe:\s*false/.test(fs.readFileSync(path.join(R, 'src/commands/limpiar.js'), 'utf8')),
         'claveBorrado ya no fuerza fromMe=false: el borrado pasa a ser solo para el bot');
+
+      // ── El pico de borrados simultáneos está acotado ─────────────────────
+      //
+      // La VPS es de un núcleo y 1 GB. Cada borrado es una escritura cifrada
+      // al socket, así que soltar 300 en el mismo tick es el pico que el dueño
+      // notaba — y WhatsApp lo castiga con rate-overlimit, o sea borrando
+      // menos. Se mide de verdad: el socket cuenta cuántos hay en vuelo.
+      hist97._reset();
+      limp97._enCurso.clear();
+      for (let i = 0; i < 200; i++) hist97.recordar(sobre97(`P${i}`, RASO97, `p${i}`));
+      hist97.recordar(sobre97('CMDP', OWN97, '!limpiar 200'));
+      let enVuelo97 = 0;
+      let pico97 = 0;
+      const sockPico = {
+        user: { id: BOT97 },
+        ev: new EventEmitter(),
+        fetchMessageHistory: () => new Promise(() => {}),
+        sendMessage: async (jid, content) => {
+          if (content?.delete) {
+            enVuelo97++;
+            if (enVuelo97 > pico97) pico97 = enVuelo97;
+            await new Promise((r) => setTimeout(r, 1));
+            enVuelo97--;
+          }
+          return { key: { id: 'x' } };
+        },
+      };
+      await limp97.cmdLimpiar(sockPico, sobre97('CMDP', OWN97, '!limpiar 200'), ['200'], meta97);
+      await limp97._esperar();
+      exige(pico97 > 0 && pico97 <= TOPE_PICO97,
+        `!limpiar 200 soltó ${pico97} borrados a la vez (el tope es ${TOPE_PICO97}): eso es el pico que revienta la VPS y hace que WhatsApp limite`);
+      limp97._enCurso.clear();
+
+      // ── El recuento que da es el REAL, no el de los intentos ─────────────
+      //
+      // `allSettled` se traga los fallos. Contando envíos en vez de borrados,
+      // el banco daba 200 de 300 y el bot no decía nada: el dueño se quedaba
+      // creyendo que el grupo estaba limpio. "No pueden haber errores en los
+      // conteos de absoluta nada."
+      hist97._reset();
+      limp97._enCurso.clear();
+      for (let i = 0; i < 30; i++) hist97.recordar(sobre97(`F${i}`, RASO97, `f${i}`));
+      hist97.recordar(sobre97('CMDF', OWN97, '!limpiar 30'));
+      let nEnv97 = 0;
+      let rechazados97 = 0;
+      const textos97 = [];
+      const sockFalla = {
+        user: { id: BOT97 },
+        ev: new EventEmitter(),
+        fetchMessageHistory: () => new Promise(() => {}),
+        sendMessage: async (jid, content) => {
+          if (content?.delete) {
+            nEnv97++;
+            // Uno de cada tres lo rechaza WhatsApp, como en un rate limit real.
+            if (nEnv97 % 3 === 0) { rechazados97++; throw new Error('rate-overlimit'); }
+            return { key: { id: 'x' } };
+          }
+          textos97.push(String(content?.text || ''));
+          return { key: { id: 'x' } };
+        },
+      };
+      await limp97.cmdLimpiar(sockFalla, sobre97('CMDF', OWN97, '!limpiar 30'), ['30'], meta97);
+      await limp97._esperar();
+      const aviso97 = textos97.find((t) => /Borrados/.test(t)) || '';
+      exige(!!aviso97,
+        `WhatsApp rechazó ${rechazados97} borrados de ${nEnv97} y el bot no dijo nada: se lee como que funcionó`);
+      const dicho97 = Number((aviso97.match(/Borrados \*(\d+)\*/) || [])[1]);
+      // Envíos aceptados, menos el propio !limpiar, que se borra pero no lo pidió nadie.
+      const ok97 = nEnv97 - rechazados97 - 1;
+      exige(dicho97 === ok97,
+        `dice haber borrado ${dicho97} y los que WhatsApp aceptó fueron ${ok97}: el recuento miente`);
+      exige(/30/.test(aviso97), `el aviso no dice de cuántos era: "${aviso97}"`);
+      // Lo rechazado sigue en la cola: repetir el comando tiene que alcanzarlo.
+      exige(hist97.cuantos(G97) >= rechazados97 - 1,
+        `los ${rechazados97} borrados que fallaron se perdieron de la cola (quedan ${hist97.cuantos(G97)}): repetir !limpiar ya no los alcanza`);
+      limp97._enCurso.clear();
     } finally {
       hist97._reset();
       limp97._enCurso.clear();
