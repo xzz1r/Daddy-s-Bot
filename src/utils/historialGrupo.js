@@ -242,51 +242,23 @@ async function pedirPagina(sock, jid, ancla) {
   return añadidos;
 }
 
-async function pedirFull(sock) {
-  if (typeof sock.sendPeerDataOperationMessage !== 'function') return;
-  try {
-    await sock.sendPeerDataOperationMessage({
-      peerDataOperationRequestType: 6,
-      fullHistorySyncOnDemandRequest: {
-        requestMetadata: { requestId: String(Date.now()) },
-        historySyncConfig: {
-          fullSyncDaysLimit: 365,
-          recentSyncDaysLimit: 90,
-          supportHostedGroupMsg: true,
-          supportGroupHistory: true,
-          inlineInitialPayloadInE2EeMsg: true,
-        },
-      },
-    });
-  } catch (e) {
-    logger.warn(`historial: full-sync: ${e.message}`);
-  }
-}
-
-async function esperarCualquierLote(sock, jid, ms) {
-  if (!sock.ev?.on) return 0;
-  const antes = cuantos(jid);
-  let off = () => {};
-  const llegada = new Promise((resolve) => {
-    const onHist = (data = {}) => {
-      if (ingestarEvento(data, jid) > 0) { off(); resolve(); }
-    };
-    off = () => { try { sock.ev.off('messaging-history.set', onHist); } catch { /* ya no está */ } };
-    sock.ev.on('messaging-history.set', onHist);
-  });
-  await withTimeout(llegada, ms, null);
-  off();
-  return Math.max(0, cuantos(jid) - antes);
-}
-
 async function reunir(sock, jid, n, exceptoIds, ancla) {
   const hay = () => tomar(jid, n, exceptoIds);
   if (hay().length >= n) return hay();
-  if (typeof sock.sendPeerDataOperationMessage === 'function') {
-    await pedirFull(sock);
-    await esperarCualquierLote(sock, jid, 12000);
-    if (hay().length >= n) return hay();
-  }
+  // AQUI SE PEDIA UN FULL-SYNC DE 365 DIAS. Cada vez que *!limpiar* se quedaba
+  // corto, el bot le pedia al telefono que volcara UN AÑO de TODOS los chats —
+  // no de este grupo: de todos— y se quedaba 12 s esperando el lote. Era, de
+  // largo, lo mas caro que hacia el comando, y no pasaba una vez al arrancar
+  // sino cada vez que faltaban claves. En una VPS de un nucleo y 1 GB eso es el
+  // consumo que noto el dueño.
+  //
+  // Y encima casi nunca servia: el telefono suelta ese volcado cuando le
+  // apetece, asi que las mas de las veces se pagaban los 12 s de espera para
+  // seguir igual. Lo que si funciona esta justo debajo — paginar con
+  // fetchMessageHistory, que va acotado, va por peticion y va A ESTE GRUPO.
+  //
+  // El dueño lo zanjo: alcanzar lo viejo era util el dia que lo pidio y hoy es
+  // irrelevante.
   if (typeof sock.fetchMessageHistory !== 'function') return hay();
 
   let cursor = masAntiguo(jid) || ancla;
@@ -342,7 +314,7 @@ function reset() {
 cargar();
 
 module.exports = {
-  recordar, ingestarLote, ingestarEvento, tomar, quitar, cuantos, reunir, pedirFull, masAntiguo, flush,
+  recordar, ingestarLote, ingestarEvento, tomar, quitar, cuantos, reunir, masAntiguo, flush,
   TOPE_POR_GRUPO, MAX_GRUPOS, PAGINA,
   _reset: reset, _tieneContenido: tieneContenido, _pedirPagina: pedirPagina,
 };

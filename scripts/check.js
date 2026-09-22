@@ -1407,7 +1407,22 @@ const di=async(quien,texto,extra)=>{
     // la prueba pasaba igual.
     //
     // Quien llega de verdad a esa linea es un CO-OWNER: entra al privado del bot
-    // pero no es el dueño principal, o sea que no esta exento de pagar. Y va en
+    // pero no es el dueño principal.
+    //
+    // OJO, QUE EL PORQUE CAMBIO Y LA PRUEBA NO. Cuando se escribio esto el
+    // co-dueño pagaba como todos, asi que se le paraba por no estar exento.
+    // Hoy NO paga —el owner tier entero va exento en cobrarAura, lo pidio el
+    // dueño— y aun asi se le sigue parando, porque esa puerta no pregunta
+    // cuanto te cuesta: pregunta DONDE se juega. *!ship* y los 24 de porcentaje
+    // son cosa del grupo; en un DM no divierten a nadie y algunos dibujan.
+    //
+    // Por eso esta prueba sigue siendo la unica que mira esa linea, y por eso
+    // importa que siga viva: si alguien alinea la puerta a isOwner «por
+    // coherencia», la condicion pasa a ser IMPOSIBLE —ownerEnPrivado ya solo
+    // deja entrar al owner tier— y el aviso no vuelve a salir nunca. Se
+    // comprueba justo debajo del caso del co-dueño.
+    //
+    // Va en
     // un proceso APARTE porque wa.js congela la lista de co-owners al cargarse:
     // tocar la config a estas alturas no cambiaria nada, igual que ya pasaba en
     // la capa de las acciones explicitas.
@@ -1453,6 +1468,27 @@ const di=async(quien,texto,extra)=>{
     } else {
       fallos++;
       console.log(rojo('   ✗ un comando de pago se ha servido entero por privado: ahi no hay aura que cobrar, asi que sale gratis'));
+    }
+
+    // Y QUE LA PUERTA SIGA PUDIENDO CERRARSE.
+    //
+    // La prueba de arriba va con un co-dueño porque es EL UNICO que llega a esa
+    // linea: ownerEnPrivado, mucho mas arriba, ya devuelve antes con cualquier
+    // otro. O sea que si la puerta se alineara a isOwner —cosa que parece
+    // coherente, porque el tier entero va exento de pagar— la condicion se
+    // volveria imposible de cumplir y el aviso no saldria nunca mas.
+    //
+    // Entonces la prueba de arriba tambien dejaria de fallar, porque el comando
+    // seguiria sin servirse... solo que por el corte de ownerEnPrivado, no por
+    // esta puerta. Un verde que no mira nada. Esto lo impide.
+    const puerta6 = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8')
+      .match(/if \(![\s\S]{0,40}endsWith\('@g\.us'\) && conceptoCobro && !(isMainOwner|isOwner)\(/);
+    if (!puerta6) {
+      fallos++;
+      console.log(rojo('   ✗ no encuentro la puerta del privado en messageHandler: la prueba de arriba ya no sabe que esta midiendo'));
+    } else if (puerta6[1] !== 'isMainOwner') {
+      fallos++;
+      console.log(rojo(`   ✗ la puerta del privado usa ${puerta6[1]} y tiene que usar isMainOwner: al owner tier entero ya lo deja pasar ownerEnPrivado, asi que eximirlo aqui tambien deja la condicion imposible de cumplir — codigo muerto y un aviso que no vuelve a salir`));
     }
   }
 
@@ -15149,7 +15185,8 @@ const correr = async (texto, enPrivado) => {
   //    hay un corte mucho mas arriba, `ownerEnPrivado`, que devuelve antes de
   //    los comandos. El agujero era para los CO-DUEÑOS: `isOwner` los deja
   //    pasar y `isMainOwner` no los exime, asi que llegaban al comando. Y eso
-  //    importa justo ahora, que los co-dueños pagan como todos.
+  //    importa aunque los co-dueños ya NO paguen: esa puerta no esta ahi por
+  //    el precio, sino porque eso se juega en el grupo.
   {
     console.log('\n82. LO QUE YA SE PAGÓ NO SE TIRA, Y EL TRABAJO DE FONDO NO ADELANTA');
     const antes = fallos;
@@ -17266,9 +17303,13 @@ const manda = async (quien, tipo, opciones) => {
       const ev97 = new EventEmitter();
       const pedidos97 = [];
       const vistoHist = [];
+      let pidioFull97 = false;
       const sockHist = {
         user: { id: BOT97 },
         ev: ev97,
+        // Si vuelve a existir, aqui se entera: pedir el full-sync era volcar UN
+        // AÑO de TODOS los chats, no solo de este grupo, y encima esperando 12 s.
+        sendPeerDataOperationMessage: async () => { pidioFull97 = true; return ''; },
         fetchMessageHistory: async (_n, key, ts) => {
           pedidos97.push({ key, ts });
           const viejo = sobre97('H1', RASO97, 'del historial de antes');
@@ -17287,6 +17328,13 @@ const manda = async (quien, tipo, opciones) => {
       const idsHist = vistoHist.filter((v) => v.content && v.content.delete).map((v) => v.content.delete.id);
       exige(idsHist.includes('H1'),
         `pidió el historial y no borró lo que trajo: ${idsHist.join(',')}`);
+      // Y QUE LO PIDA ACOTADO. Volvio a salir en el repaso: cada *!limpiar* que
+      // se quedaba corto disparaba un full-sync de 365 dias de TODOS los chats
+      // y se plantaba 12 s esperandolo. Era lo mas caro del comando, pasaba
+      // cada vez y casi nunca servia —el telefono suelta ese volcado cuando le
+      // apetece—. Paginar con fetchMessageHistory va acotado y va a este grupo.
+      exige(!pidioFull97,
+        '!limpiar volvió a pedir el full-sync de 365 días: eso vuelca todos los chats del teléfono cada vez que el comando se queda corto, y es justo el consumo que el dueño mandó quitar');
 
       // ── No se espera al historial para borrar lo que ya hay ──────────────
       hist97._reset();

@@ -2654,6 +2654,18 @@ async function handleMessage(sock, msg, opciones = {}) {
   // seria inventar una segunda economia), se arregla diciendo donde se juega.
   // Al owner no le afecta: no paga en ningun sitio y usa el privado para
   // administrar.
+  //
+  // Y AQUI PONE isMainOwner A PROPOSITO, aunque el owner tier ENTERO este
+  // exento de pagar (lo resuelve cobrarAura). No es un descuido ni la mitad de
+  // un cambio: la puerta no pregunta cuanto te cuesta, pregunta DONDE se juega.
+  // Un co-dueño tampoco paga, y aun asi *!ship*, *!iq* y los 24 de porcentaje
+  // siguen siendo cosa del grupo — en un DM no divierten a nadie y algunos
+  // dibujan imagenes, o sea trabajo real de una VPS de un nucleo.
+  //
+  // Cambiarlo a isOwner «por coherencia» convierte esta linea en CODIGO MUERTO:
+  // ownerEnPrivado, mucho mas arriba, ya solo deja entrar al owner tier al
+  // privado, asi que si ademas se eximiera al tier entero la condicion no
+  // podria cumplirse nunca. La capa 6 lo vigila.
   if (!jid.endsWith('@g.us') && conceptoCobro && !isMainOwner(sender, msg.key.fromMe, null)) {
     await sock.sendMessage(jid, { text: 'Eso se juega en el grupo. Aquí no hay aura que gastar.' }, { quoted: msg });
     return;
