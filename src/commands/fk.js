@@ -260,7 +260,7 @@ async function cmdFk(sock, msg, args, groupMeta) {
   // y el uso es lo que encarece la siguiente vez. Tres intentos fallidos
   // —sin cupo, sin red, sin resultado— y el cuarto costaba el doble por
   // comandos que nadie llego a ver. *!tt* ya lo pasaba bien; esto no.
-  const reembolsar = () => devolver(jid, quienPide, pago.pagado, 'fk').catch(() => {});
+  const reembolsar = () => devolver(jid, quienPide, pago.pagado, 'fk').catch((e) => logger.unaVez('fk: devolver', e));
 
   const img = findImage(msg);
   if (img) {

@@ -59,7 +59,7 @@ async function cmdPlay(sock, msg, args, groupMeta) {
   // y el uso es lo que encarece la siguiente vez. Tres intentos fallidos
   // —sin cupo, sin red, sin resultado— y el cuarto costaba el doble por
   // comandos que nadie llego a ver. *!tt* ya lo pasaba bien; esto no.
-  const reembolsar = () => devolver(jid, quienPide, pago.pagado, 'play').catch(() => {});
+  const reembolsar = () => devolver(jid, quienPide, pago.pagado, 'play').catch((e) => logger.unaVez('play: devolver', e));
 
   if (!result) {
     const waitMs = onPlayCooldown(quienPide);

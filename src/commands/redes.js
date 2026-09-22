@@ -198,7 +198,7 @@ async function hazRed(sock, msg, args, groupMeta, plataforma, consultaDada = nul
   if (!pago.ok) {
     return sock.sendMessage(jid, { text: textoSinSaldo('redes', pago, jid) }, { quoted: msg });
   }
-  const devolverAura = () => devolver(jid, quien, pago.pagado, 'redes').catch(() => {});
+  const devolverAura = () => devolver(jid, quien, pago.pagado, 'redes').catch((e) => logger.unaVez('redes: devolver', e));
 
   // ─── EL ENLACE SE BORRA EN CUANTO EL BOT SE PONE A ELLO ───────────────────
   //

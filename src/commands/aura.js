@@ -1054,7 +1054,8 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
     // AMULETO: se gasta al tirar, gane o pierda. Un objeto que solo se gastara
     // al perder seria gratis cuando funciona, y entonces no es una apuesta: es
     // un descuento.
-    const conAmuleto = await tiendaObj.gastarUso(jid, sender, 'amuleto').catch(() => false);
+    const conAmuleto = await tiendaObj.gastarUso(jid, sender, 'amuleto')
+      .catch((e) => { logger.unaVez('aura: gastar amuleto', e); return false; });
     if (conAmuleto) {
       pReal = Math.min(0.95, pReal + OBJETOS.amuleto.bono);
       pVisible = Math.min(0.95, pVisible + OBJETOS.amuleto.bono);
@@ -1076,7 +1077,8 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
     // detalle: sin el, el seguro vale mas cuanto mas apuestas y comprarlo por
     // 600 para cubrir una apuesta de 5.000 seria ganar aura sin jugar.
     let devuelto = 0;
-    if (!gana && delta < 0 && await tiendaObj.gastarUso(jid, sender, 'seguro').catch(() => false)) {
+    if (!gana && delta < 0 && await tiendaObj.gastarUso(jid, sender, 'seguro')
+      .catch((e) => { logger.unaVez('aura: gastar seguro', e); return false; })) {
       devuelto = Math.min(
         Math.round(Math.abs(delta) * OBJETOS.seguro.recupera),
         OBJETOS.seguro.topeDevuelto,

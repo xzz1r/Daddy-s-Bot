@@ -286,7 +286,8 @@ async function cmdToVid(sock, msg, groupMeta) {
   if (!pago.ok) {
     return sock.sendMessage(jid, { text: textoSinSaldo('tovid', pago, jid) }, { quoted: msg });
   }
-  const reembolsar = () => devolver(jid, senderJid, pago.pagado).catch(() => {});
+  // Con el concepto: una conversion que no salio no cuenta para la rafaga.
+  const reembolsar = () => devolver(jid, senderJid, pago.pagado, 'tovid').catch((e) => logger.unaVez('tovid: devolver', e));
 
   try {
     const stream = await downloadContentFromMessage(media.data, media.dl || media.type);
@@ -345,7 +346,7 @@ async function cmdToImg(sock, msg, groupMeta) {
   if (!pago.ok) {
     return sock.sendMessage(jid, { text: textoSinSaldo('toimg', pago, jid) }, { quoted: msg });
   }
-  const reembolsar = () => devolver(jid, senderJid, pago.pagado).catch(() => {});
+  const reembolsar = () => devolver(jid, senderJid, pago.pagado, 'toimg').catch((e) => logger.unaVez('toimg: devolver', e));
 
   try {
     const stream = await downloadContentFromMessage(media.data, media.dl || media.type);

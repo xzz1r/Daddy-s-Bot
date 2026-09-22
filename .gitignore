@@ -53,7 +53,11 @@ data/adminDeuda.json
 data/guardianVistos.json
 data/pfpcache/
 data/music_cache/
-temp/
+# temp/* y no temp/: con la carpeta entera ignorada, el !temp/.gitkeep de mas
+# abajo no puede volver a incluirla (git no entra en carpetas ignoradas) y un
+# clon nuevo llegaba sin temp/. Lo que escribe ahi fallaba con ENOENT hasta
+# que el bot arrancaba y la creaba.
+temp/*
 .env
 # Y CUALQUIER RESPALDO DEL .env. Esto paro un despliegue de verdad: para meter
 # una linea nueva en el tier del dueño se hizo `cp .env .env.bak` antes de

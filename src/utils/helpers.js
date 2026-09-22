@@ -841,8 +841,19 @@ function createDebouncedSaver(getData, file, delayMs, onError) {
   async function flush() {
     if (timer) { clearTimeout(timer); timer = null; }
     for (;;) {
+      // QUIEN ESPERA NO MARCA NADA. Aqui habia un `dirty = true` dentro de la
+      // espera, y con dos flush() a la vez era un bucle sin fin: el que escribe
+      // acaba, ve `dirty` —puesto por el que espera, no por un cambio—, vuelve
+      // a escribir; el que espera despierta con la escritura ya en marcha,
+      // vuelve a marcar, y asi para siempre. Ninguno de los dos volvia: dos
+      // robos a la vez dejaban los dos comandos sin respuesta y el disco
+      // reescribiendo aura.json sin parar.
+      //
+      // Marcar sobra: todo cambio pasa por schedule(), que pone `dirty` aunque
+      // haya una escritura en curso. Si algo cambio despues de la foto que se
+      // esta escribiendo, `dirty` ya lo dice; si no cambio nada, lo que se esta
+      // escribiendo ya lo lleva todo y el que espera puede volver.
       while (writing) {
-        dirty = true;
         await new Promise((r) => waiters.push(r));
       }
       if (!dirty) return;

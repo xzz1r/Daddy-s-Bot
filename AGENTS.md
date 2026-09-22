@@ -4,6 +4,12 @@ Bot de WhatsApp. El contenido vive en `src/data/` (y los pools de `!aura`
 en `src/commands/aura.js`). El motor en `src/commands/` y `src/utils/`.
 Cómo se escribe una frase: `GUIA.md`. Cómo se valida: `npm run check`.
 
+## La puerta también corre en GitHub
+
+`.github/workflows/check.yml` corre `npm run check` en cada push a `main`, en
+un clon limpio: sin `data/`, sin `.env`, sin la despensa. Si una capa solo pasa
+con el estado de la VPS, ahí sale en rojo, y eso es un fallo de la capa.
+
 ## Añadir un comando o un alias
 
 Dos sitios, y la puerta exige los dos:

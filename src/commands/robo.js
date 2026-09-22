@@ -32,6 +32,7 @@ const { ROBO_FALLO_REMATE, ROB_WIN, ROB_FAIL, ROB_MAESTRO, ROB_PARCIAL, ROB_DESA
 const { fraseCooldown, ROBO: ROBO_CD, ROBO_ASALTO, ROBO_GUARDIA } = require('../data/cooldownPhrases');
 const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
+const logger = require('../utils/logger');
 const { bloqueCooldown, lineaAura, tiempoRestante } = require('../utils/formatoJuego');
 
 // La escala vive en utils/economia.js. Aqui solo el cooldown, que es de ritmo
@@ -1342,7 +1343,8 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     // otra de la caja— que es el fallo obvio de esta mecanica.
     let forzado = 0;
     if (clave === 'maestro') {
-      const caja = await forzarCaja(jid, target, CAJA.forzable).catch(() => ({ ok: false }));
+      const caja = await forzarCaja(jid, target, CAJA.forzable)
+        .catch((e) => { logger.unaVez('robo: forzar caja', e); return { ok: false }; });
       if (caja.ok) forzado = caja.sacado;
     }
 

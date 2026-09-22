@@ -640,13 +640,21 @@ const OTROS = [
 // Se detecta por la marca de tiempo de state.json, que el bot reescribe cada
 // pocos segundos mientras corre. Si esta fresca, la capa se salta: mas vale no
 // comprobar que corromper los datos del grupo.
+//
+// SE MIRA UNA VEZ, AL EMPEZAR, y no en cada capa. Las primeras capas cargan el
+// bot y ESCRIBEN state.json ellas mismas, asi que preguntando mas tarde la
+// comprobacion se encontraba su propia huella y creia que habia un bot en
+// marcha: en un clon limpio —el de GitHub Actions— se saltaban tres bloques
+// sin que corriera ningun bot. En la VPS no cambia nada: alli el bot ya esta
+// corriendo al empezar.
 const DATA = path.join(R, 'data');
-function botEnMarcha() {
+const BOT_EN_MARCHA_AL_EMPEZAR = (() => {
   try {
     const st = fs.statSync(path.join(DATA, 'state.json'));
     return Date.now() - st.mtimeMs < 60 * 1000;
   } catch { return false; }
-}
+})();
+function botEnMarcha() { return BOT_EN_MARCHA_AL_EMPEZAR; }
 
 // Y aunque no lo este, se devuelve data/ como estaba: la capa crea un grupo de
 // pruebas y toca la banlist, que es global.
@@ -659,6 +667,21 @@ function copiaSeguridad() {
   }
   return copia;
 }
+// LA CACHE DE require, COMO SE ENCONTRO. Las capas que prueban un almacen
+// desde cero borran su modulo de la cache para cargarlo limpio. Si al acabar
+// solo lo vuelven a borrar, la siguiente capa carga OTRA instancia mientras
+// auraCobro, caso y compañia siguen atados a la de antes: dos auraStore con dos
+// saldos distintos, y las capas de despues fallan por algo que no es suyo.
+// Estuvo escondido mucho tiempo porque esas capas no se ejecutaban nunca (ver
+// BOT_EN_MARCHA_AL_EMPEZAR).
+function fotoModulos() {
+  const antes = { ...require.cache };
+  return () => {
+    for (const k of Object.keys(require.cache)) if (!(k in antes)) delete require.cache[k];
+    Object.assign(require.cache, antes);
+  };
+}
+
 function restaurar(copia, antes) {
   let ahora = [];
   try { ahora = fs.readdirSync(DATA).filter((f) => f.endsWith('.json')); } catch { return; }
@@ -3084,10 +3107,12 @@ const di=async(quien,texto,extra)=>{
   {
     console.log('\n21. LOS BONOS DE ESCRIBIR SON DIARIOS');
     const antes = fallos;
+    const exige21 = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
     if (botEnMarcha()) {
       console.log('   — saltada: el bot esta corriendo y escribiria sobre sus datos');
     } else {
       const habia = new Set(fs.readdirSync(DATA).filter((f) => f.endsWith('.json')));
+      const volverModulos = fotoModulos();
       const copia = copiaSeguridad();
       try {
         for (const k of Object.keys(require.cache)) {
@@ -3121,14 +3146,20 @@ const di=async(quien,texto,extra)=>{
         }
         // El de 200 tiene que llevar el extra plano. Es lo que pidio el dueño
         // ("al menos 75 por 200 mensajes") y sin el vuelve a pagar calderilla.
-        const primero = Number((avisos[0]?.match(/\+([\d.,]+) de aura/) || [])[1]?.replace(/[.,]/g, ''));
+        //
+        // SE BUSCA EL AVISO DEL 200, NO EL PRIMERO. Cuando se escribio esto el
+        // 200 era el primer hito; ahora van antes el 50 y el 100, y la capa
+        // —que no corria— seguia leyendo avisos[0] y midiendo el bono de 50.
+        const i200 = HITOS.findIndex((h) => h.n === 200);
+        exige21(i200 >= 0, 'ya no hay hito de 200 y el extra plano cuelga de el: revisa casino.js');
+        const primero = Number((avisos[i200]?.match(/\+([\d.,]+) de aura/) || [])[1]?.replace(/[.,]/g, ''));
         if (!(primero >= PRIMERA_DEL_DIA)) {
           fallos++;
           console.log(rojo(`   ✗ el bono de 200 paga ${primero} y el extra plano solo ya son ${PRIMERA_DEL_DIA}: no se esta aplicando`));
         }
         // Y los siguientes NO lo llevan: si lo llevaran, compoundaria con el
         // volumen, que es lo que obligo a que el extra fuera plano.
-        const resto = avisos.slice(1).map((a) => Number((a.match(/\+([\d.,]+) de aura/) || [])[1]?.replace(/[.,]/g, '')));
+        const resto = avisos.filter((_, i) => i !== i200).map((a) => Number((a.match(/\+([\d.,]+) de aura/) || [])[1]?.replace(/[.,]/g, '')));
 
         // El dia siguiente: la ventana caduca y los tres hitos vuelven a estar
         // disponibles. Sin esto, un `hitos` que no se limpiara dejaria al grupo
@@ -3145,9 +3176,11 @@ const di=async(quien,texto,extra)=>{
         const avisos2 = [];
         const sock2 = { sendMessage: async (j, c) => { avisos2.push(c.text); return {}; } };
         for (let i = 1; i <= 250; i++) await cm2(sock2, GB, UB);
-        if (avisos2.length !== 1) {
+        // 250 mensajes cruzan todos los hitos hasta 250, una vez cada uno.
+        const tocan250 = HITOS.filter((h) => h.n <= 250).length;
+        if (avisos2.length !== tocan250) {
           fallos++;
-          console.log(rojo(`   ✗ al caducar la ventana de 24 h el hito de 200 sale ${avisos2.length} veces en vez de 1: los hitos cobrados no se reinician`));
+          console.log(rojo(`   ✗ al empezar el dia nuevo, 250 mensajes sueltan ${avisos2.length} bonos y tocan ${tocan250}: los hitos cobrados no se reinician`));
         }
 
         // Dos mensajes que cruzan el umbral a la vez NO pueden cobrar dos veces.
@@ -3163,6 +3196,8 @@ const di=async(quien,texto,extra)=>{
         let dobles = 0;
         const sock3 = { sendMessage: async () => { dobles++; return {}; } };
         for (let i = 1; i <= 198; i++) await cm3(sock3, GC, UB);
+        // Solo cuenta la tanda: los bonos de 50 y 100 ya se cobraron arriba.
+        dobles = 0;
         await Promise.all([cm3(sock3, GC, UB), cm3(sock3, GC, UB), cm3(sock3, GC, UB), cm3(sock3, GC, UB)]);
         if (dobles !== 1) {
           fallos++;
@@ -3285,7 +3320,10 @@ const di=async(quien,texto,extra)=>{
             }
 
             const copias = [];
-            for (const f of ['casinoStore.js', 'rachaStore.js', 'objetivoDia.js']) {
+            // objetivoDia.js fuera: su Intl es el de la franja de 12 h del
+            // cartel, no un calculo del dia, y que su dia coincide con el del
+            // bot ya lo comprueba arriba la comparacion minuto a minuto.
+            for (const f of ['casinoStore.js', 'rachaStore.js']) {
               const src = fs.readFileSync(path.join(R, 'src/utils', f), 'utf8').replace(/\/\/[^\n]*/g, '');
               if (/Intl\.DateTimeFormat/.test(src)) copias.push(f);
             }
@@ -3311,12 +3349,10 @@ const di=async(quien,texto,extra)=>{
         }
 
         if (fallos === antes) {
-          console.log(verde(`   ✓ tres bonos al dia (${resto.length + 1}), cabecera correcta, extra plano solo en el primero, corte a hora fija y vuelven mañana`));
+          console.log(verde(`   ✓ ${resto.length + 1} bonos al dia, uno por hito, cabecera correcta, extra plano solo en el de 200, corte a hora fija y vuelven mañana`));
         }
       } finally {
-        for (const k of Object.keys(require.cache)) {
-          if (/utils[\/\\](casino|casinoStore|auraStore|rachaStore)\.js$/.test(k)) delete require.cache[k];
-        }
+        volverModulos();
         restaurar(copia, habia);
       }
     }
@@ -5022,6 +5058,7 @@ const di=async(quien,texto,extra)=>{
       console.log('   — saltada: el bot esta corriendo y escribiria sobre sus datos');
     } else {
       const habia = new Set(fs.readdirSync(DATA).filter((f) => f.endsWith('.json')));
+      const volverModulos = fotoModulos();
       const copia = copiaSeguridad();
       try {
         for (const k of Object.keys(require.cache)) {
@@ -5074,9 +5111,7 @@ const di=async(quien,texto,extra)=>{
         exige(/600000292/.test(t3),
           '!inactivos ya no saca al que de verdad no escribe: la red de seguridad se ha comido el comando entero');
       } finally {
-        for (const k of Object.keys(require.cache)) {
-          if (/utils[\/\\](messageCounter|wa)\.js$|commands[\/\\]activity\.js$/.test(k)) delete require.cache[k];
-        }
+        volverModulos();
         restaurar(copia, habia);
       }
     }
@@ -7786,6 +7821,15 @@ const G='120@g.us', LID='919191919191@lid', TEL='34600111222@s.whatsapp.net', SU
         const aOscuras = await tira(n, NADIE, null);
         exige(/No he podido traer el gif/.test(aOscuras.texto) && !aOscuras.medio,
           `*!${n}* sigue adelante con una mencion @lid que no puede traducir: ahi no sabe si el objetivo es el dueño, y en la duda tiene que negarse`);
+        // CON UN GIF EN LA DESPENSA, y es lo que hace la prueba independiente de
+        // la maquina. Sin el, el comando sale a la red a buscarlo, y donde no
+        // hay red —o la web va lenta— contesta «No he podido traer el gif»,
+        // que es LA MISMA frase que el blindaje: la prueba se ponia roja en un
+        // clon limpio y verde en la VPS, donde la despensa ya estaba llena.
+        // Aqui solo se mide si el blindaje se mete donde no le toca.
+        const A0 = acc.ACCIONES[n];
+        acc._guardarEnDespensa(acc._claveDespensa(A0.cat, A0.nsfw, A0.catNsfw),
+          { mp4: Buffer.from('gif-de-prueba'), thumb: null }, true);
         const cualquiera = await tira(n, V_LID, metaLid);
         exige(!/No he podido traer el gif/.test(cualquiera.texto),
           `*!${n}* se niega tambien contra un miembro cualquiera mencionado por @lid: el blindaje dejo de apuntar a una persona y paso a apagar el comando`);
@@ -12490,6 +12534,21 @@ ${manejador}
       await saver.flush();
       const disk2 = JSON.parse(fs.readFileSync(file, 'utf8'));
       exige(disk2.v === 5, `flush concurrente dejó ${disk2.v}, no el 5: se perdió una mutación`);
+
+      // VARIOS flush() A LA VEZ, que es lo que pasa con dos robos o dos
+      // perdidas de *!aura* en el mismo instante. Hubo un bucle sin fin: el que
+      // esperaba marcaba `dirty`, el que escribia volvia a escribir, y ninguno
+      // volvia nunca. La carrera va contra un reloj: colgado tiene que salir en
+      // rojo, no dejar la puerta parada para siempre.
+      n.v = 6; saver.schedule();
+      const tres = Promise.all([saver.flush(), saver.flush(), saver.flush()]);
+      n.v = 7; saver.schedule();   // un cambio con la escritura ya en marcha
+      const acabo = await Promise.race([tres.then(() => true), new Promise((r) => setTimeout(() => r(false), 3000))]);
+      exige(acabo, 'tres flush() a la vez no vuelven en 3 s: el volcador se ha quedado en bucle y el comando que lo espera no contesta nunca');
+      if (acabo) {
+        const disk3 = JSON.parse(fs.readFileSync(file, 'utf8'));
+        exige(disk3.v === 7, `con tres flush() a la vez quedó ${disk3.v} en disco y no el 7: el cambio de en medio se perdió`);
+      }
     } finally {
       fs.rmSync(dir, { recursive: true, force: true });
     }
@@ -18532,6 +18591,49 @@ const manda = async (quien, tipo, opciones) => {
       exige((await tienda4.verBote(G)) - bote0 === r.impuestoCaja, 'el impuesto de pagar con la caja no llega al bote');
     }
     if (fallos === antes104) console.log(verde('   ✓ dos cobros a la vez cobran lo que anuncian, la devolucion es exacta y el impuesto llega al bote'));
+  }
+
+  // ── 105. EL DINERO NO FALLA EN SILENCIO ─────────────────────────────────
+  //
+  // El fallo de la capa 104 se escondio detras de un `.catch(() => {})`: el
+  // gasto del suelto fallaba y nadie se enteraba. En un cobro, una devolucion
+  // o el bote, un error tragado sin rastro es un descuadre que no se puede
+  // investigar. El respaldo se mantiene —el comando no se cae por esto—, pero
+  // deja una linea en el log.
+  //
+  // Y TODA DEVOLUCION LLEVA SU CONCEPTO. Sin el, el uso no se descuenta y una
+  // conversion que no salio cuenta para la rafaga: la cuarta del dia sale al
+  // doble por algo que no se entrego. Asi estaban *!toimg* y *!tovid*.
+  {
+    console.log('\n105. EL DINERO NO FALLA EN SILENCIO');
+    const antes105 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const dinero = /\b(addAura|spendAura|transferAura|drainAura|aportarAlBote|aportarACaja|vaciarBote|devolver|pagarConCaja|meterEnCaja|sacarDeCaja|forzarCaja|cobrar|cobrarRecompensa|anotarGolpe|darObjeto|gastarUso|gastarIndulto|gastarGanzua|cobrarDeuda|anotarDeuda|resetAura)\(/;
+    let mudos = 0, devoluciones = 0;
+    for (const dir of ['src/commands', 'src/utils', 'src/handlers']) {
+      for (const f of fs.readdirSync(path.join(R, dir))) {
+        if (!f.endsWith('.js')) continue;
+        const rel = `${dir}/${f}`;
+        const src = fs.readFileSync(path.join(R, rel), 'utf8').split('\n')
+          .map((l) => (/^\s*(\/\/|\*|\/\*)/.test(l) ? '' : l)).join('\n');
+        const linea = (i) => src.slice(0, i).split('\n').length;
+        for (const m of src.matchAll(/\.catch\(\(\w*\) => (\{\s*\}|null|false|0|undefined|\(\{[^)]*\}\))\)/g)) {
+          const frase = src.slice(Math.max(0, m.index - 160), m.index).split(/[;{}]\s*\n/).pop();
+          const d = frase.match(dinero);
+          if (!d) continue;
+          mudos++;
+          exige(false, `${rel}:${linea(m.index)}: ${d[1]} con un .catch mudo — si falla, el descuadre no deja rastro`);
+        }
+        if (f === 'auraCobro.js') continue;
+        for (const m of src.matchAll(/\bdevolver\(([^()]*(?:\([^()]*\))?[^()]*)\)/g)) {
+          devoluciones++;
+          exige(m[1].split(',').length >= 4,
+            `${rel}:${linea(m.index)}: devolver sin concepto — lo devuelto sigue contando para la rafaga`);
+        }
+      }
+    }
+    exige(devoluciones >= 7, `solo encuentro ${devoluciones} devoluciones: el codigo cambio de forma y esto ya no mide lo que dice`);
+    if (fallos === antes105) console.log(verde(`   ✓ ningun camino de dinero traga errores sin avisar, y las ${devoluciones} devoluciones llevan su concepto`));
   }
   }
 

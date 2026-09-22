@@ -12,6 +12,7 @@ const { PRECIOS, SALDO_MINIMO, OBJETOS, DIA, CAJA, ADMIN } = require('./economia
 const { tieneSocio, aportarAlBote } = require('./roboStore');
 const { fmt, pickFresh, claveDia } = require('./helpers');
 const { isOwner, isGroupAdmin, canonicalJid } = require('./wa');
+const logger = require('./logger');
 
 // Intenta cobrar `concepto` al remitente. Devuelve:
 //   { ok: true,  pagado, saldo }        — cobrado, adelante
@@ -140,7 +141,7 @@ async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta
   // pasos, otro comando de la misma persona se colaba en medio y el cobro
   // anunciaba un precio que no habia cobrado entero.
   const caja = await pagarConCaja(groupJid, senderJid, precio, CAJA.impuestoPago, SALDO_MINIMO)
-    .catch(() => ({ ok: false }));
+    .catch((e) => { logger.unaVez('cobro: pagar con la caja', e); return { ok: false }; });
   if (caja.ok) {
     // El impuesto va al bote, igual que el de *!unlock*: si se evaporase,
     // cada pago desde la caja encogeria la economia del grupo un poco.
@@ -150,7 +151,8 @@ async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta
     // la caja sin descontar — aura inventada. La misma regla que sigue robo.js.
     if (caja.impuestoPagado > 0) {
       await flushAura().catch(() => {});
-      await aportarAlBote(groupJid, caja.impuestoPagado).catch(() => {});
+      await aportarAlBote(groupJid, caja.impuestoPagado)
+        .catch((e) => logger.unaVez('cobro: impuesto de la caja al bote', e));
     }
     apuntarUso(groupJid, senderJid, concepto);
     return {

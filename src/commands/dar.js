@@ -2,6 +2,7 @@ const { getSender, getTarget, sameUser } = require('../utils/wa');
 const { transferAura, flushAura } = require('../utils/auraStore');
 const { fmt, parseCantidad } = require('../utils/helpers');
 const { aportarAlBote } = require('../utils/roboStore');
+const logger = require('../utils/logger');
 const { lineaAura } = require('../utils/formatoJuego');
 
 // El minimo y el impuesto viven en utils/economia.js con el resto de la escala.
@@ -68,7 +69,8 @@ async function cmdDar(sock, msg, args) {
   // aura.json, y un corte en medio dejaria el impuesto en el bote con la
   // transferencia sin apuntar. Sigue sin bloquear la respuesta.
   if (alBote > 0) {
-    flushAura().catch(() => {}).then(() => aportarAlBote(jid, alBote)).catch(() => {});
+    flushAura().catch(() => {}).then(() => aportarAlBote(jid, alBote))
+      .catch((e) => logger.unaVez('dar: impuesto al bote', e));
   }
 
   const sTag = `@${sender.split('@')[0]}`;
