@@ -46,6 +46,50 @@ process.umask(0o077);
 // temporizadores corriendo a la vez.
 let refrescoPresencia = null;
 
+// EL LATIDO DE PRESENCIA TIRO EL BOT, Y ESTO SE VIO EN PRODUCCION.
+//
+// Era esto, en linea, dentro del setInterval:
+//
+//     sock.sendPresenceUpdate('available').catch(() => {});
+//
+// `sock` es la variable del MODULO, y hay tres sitios que la ponen a null al
+// desmontar (scheduleReconnect, el reenganche de connectToWhatsApp y el cierre
+// por logout). Ninguno paraba este intervalo. Asi que:
+//
+//     conecta  -> intervalo creado
+//     se cae   -> sock = null, el intervalo sigue vivo
+//     +10 min  -> dispara -> sock.sendPresenceUpdate sobre null
+//
+// Y el `.catch(() => {})` NO salvaba nada: el TypeError es sincrono y pasa
+// ANTES de que exista promesa a la que encadenar nada. Sale por el manejador de
+// excepciones no capturadas, que guarda lo que puede y mata el proceso:
+//
+//     TypeError: Cannot read properties of null (reading 'sendPresenceUpdate')
+//         at Timeout._onTimeout (src/bot.js:1038)
+//     [ERROR] El estado en memoria ya no es de fiar: guardo lo que se pueda y salgo
+//
+// Un bot caido cada vez que la red falla mas de diez minutos. Es el mismo fallo
+// que ya estaba escrito arriba para requestPairingCode —«scheduleReconnect la
+// pone a null al desmontar»— y se arregla igual: se mira el socket ANTES de
+// tocarlo, y ademas se para el latido al desmontar para que no quede colgando.
+function latidoPresencia() {
+  const miSock = sock;
+  if (!miSock || typeof miSock.sendPresenceUpdate !== 'function') {
+    // Sin socket no hay a quien anunciarse. El que reconecte pondra otro.
+    pararLatidoPresencia();
+    return;
+  }
+  // try/catch ademas del catch de la promesa: dentro de un temporizador, lo que
+  // se lanza sincrono no lo recoge nadie y tira el proceso.
+  try {
+    Promise.resolve(miSock.sendPresenceUpdate('available')).catch(() => {});
+  } catch { /* el socket se murio entre la comprobacion y la llamada */ }
+}
+
+function pararLatidoPresencia() {
+  if (refrescoPresencia) { clearInterval(refrescoPresencia); refrescoPresencia = null; }
+}
+
 // Los avisos de sistema que significan "alguien ha pedido entrar". El 144 es el
 // caso normal (por enlace) y el 172 cuando un no-admin añade a alguien; los dos
 // abren una solicitud que hay que aprobar.
@@ -367,6 +411,9 @@ function scheduleReconnect(delay) {
     try { sock.end(); } catch {}
     sock = null;
   }
+  // El latido cierra sobre el socket del modulo: si no se para aqui, sigue
+  // disparando cada 10 min contra un null. Ver latidoPresencia.
+  pararLatidoPresencia();
   botIds = null;
   // connectToWhatsApp awaits disk/network work BEFORE it attaches the
   // connection.update listener. If that pre-work rejects on a reconnect, the
@@ -480,6 +527,7 @@ async function connectToWhatsApp() {
     try { sock.end(); } catch {}
     sock = null;
     botIds = null;
+    pararLatidoPresencia();
   }
 
   await fs.ensureDir(AUTH_DIR);
@@ -843,6 +891,7 @@ async function connectToWhatsApp() {
             try { sock.ev.removeAllListeners(); } catch {}
             try { sock.end(); } catch {}
             sock = null;
+            pararLatidoPresencia();
             return;
           }
 
@@ -1047,10 +1096,8 @@ async function connectToWhatsApp() {
           // cliente de verdad reanuncia su presencia cada pocos minutos; esto
           // hace lo mismo. Es un nodo diminuto cada diez minutos, nada que
           // moleste ni con la cuenta en revision.
-          if (refrescoPresencia) clearInterval(refrescoPresencia);
-          refrescoPresencia = setInterval(() => {
-            sock.sendPresenceUpdate('available').catch(() => {});
-          }, 10 * 60 * 1000);
+          pararLatidoPresencia();
+          refrescoPresencia = setInterval(latidoPresencia, 10 * 60 * 1000);
           refrescoPresencia.unref?.();
         })();
       }
@@ -2310,4 +2357,4 @@ function _sockDePrueba(s) {
   gruposFallos = 0;
 }
 
-module.exports = { connectToWhatsApp, listaDeGrupos, sondearSolicitudes, avisarDegradacion, saldarDeudaDeAdmin, _sockDePrueba };
+module.exports = { connectToWhatsApp, listaDeGrupos, sondearSolicitudes, avisarDegradacion, saldarDeudaDeAdmin, _sockDePrueba, _latidoPresencia: latidoPresencia, _pararLatido: pararLatidoPresencia };

@@ -17696,6 +17696,73 @@ const manda = async (quien, tipo, opciones) => {
     if (fallos === antes99) console.log(verde('   ✓ el robo dice el dinero, el chiste y los 90 s, y no arrastra cola ni repite nada'));
   }
 
+  // ── 100. EL LATIDO DE PRESENCIA NO PUEDE TIRAR EL BOT ───────────────────
+  //
+  // ESTO PASO EN PRODUCCION Y SE LLEVO EL PROCESO POR DELANTE:
+  //
+  //   TypeError: Cannot read properties of null (reading 'sendPresenceUpdate')
+  //       at Timeout._onTimeout (src/bot.js:1038)
+  //   [ERROR] El estado en memoria ya no es de fiar: guardo lo que se pueda y salgo
+  //
+  // El intervalo que reanuncia la presencia cada 10 min cerraba sobre `sock`,
+  // que es del MODULO, y hay tres sitios que lo ponen a null al desmontar.
+  // Ninguno paraba el intervalo, así que tras una caída de más de diez minutos
+  // el temporizador disparaba contra un null. El `.catch(() => {})` que llevaba
+  // no cubría nada: el TypeError es síncrono y ocurre antes de que exista
+  // promesa.
+  //
+  // Se conduce de verdad, con el seam `_sockDePrueba`, porque es EXACTAMENTE
+  // el estado en el que el bot vive mientras reconecta.
+  {
+    console.log('\n100. EL LATIDO DE PRESENCIA NO PUEDE TIRAR EL BOT');
+    const antes100 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const bot100 = require(path.join(R, 'src/bot'));
+    exige(typeof bot100._latidoPresencia === 'function',
+      'bot.js ya no expone el latido: esta guarda no está mirando nada');
+
+    if (typeof bot100._latidoPresencia === 'function') {
+      const aguanta = (montaje, como) => {
+        bot100._sockDePrueba(montaje);
+        try { bot100._latidoPresencia(); return null; } catch (e) { return `${e.constructor.name}: ${e.message}`; }
+        finally { bot100._pararLatido?.(); }
+      };
+
+      // 1. EL CASO REAL: reconectando, sin socket.
+      exige(!aguanta(null),
+        `el latido revienta sin socket —el caso exacto que tiró el bot en producción—: ${aguanta(null)}`);
+      // 2. Socket a medio morir: existe pero ya no trae el método.
+      exige(!aguanta({ user: { id: 'x' } }),
+        'el latido revienta con un socket a medio cerrar');
+      // 3. Lo que lanza SÍNCRONO dentro de un temporizador no lo recoge nadie.
+      exige(!aguanta({ sendPresenceUpdate: () => { throw new Error('socket muerto'); } }),
+        'el latido deja escapar una excepción síncrona: dentro de un setInterval eso mata el proceso');
+      // 4. Y una promesa rechazada tampoco puede quedar suelta.
+      exige(!aguanta({ sendPresenceUpdate: () => Promise.reject(new Error('timeout')) }),
+        'el latido deja una promesa rechazada sin recoger');
+
+      // 5. Y CON SOCKET BUENO TIENE QUE ANUNCIARSE. Una guarda que se traga
+      //    todo también pasaría las cuatro de arriba sin hacer su trabajo.
+      let anunciado = null;
+      bot100._sockDePrueba({ sendPresenceUpdate: (v) => { anunciado = v; return Promise.resolve(); } });
+      bot100._latidoPresencia();
+      exige(anunciado === 'available',
+        `con un socket bueno el latido no se anuncia (mandó ${JSON.stringify(anunciado)}): el visto se apaga solo a los diez minutos`);
+      bot100._pararLatido?.();
+      bot100._sockDePrueba(null);
+
+      // Y QUE SE PARE AL DESMONTAR, en los tres sitios que sueltan el socket.
+      // Si no, queda un temporizador disparando cada 10 min contra nada.
+      const botSrc100 = fs.readFileSync(path.join(R, 'src/bot.js'), 'utf8');
+      const sueltan = (botSrc100.match(/^\s*sock = null;/gm) || []).length;
+      const paran = (botSrc100.match(/pararLatidoPresencia\(\);/g) || []).length;
+      exige(sueltan >= 3, `esperaba al menos 3 sitios que sueltan el socket y hay ${sueltan}: la cuenta de abajo ya no significa nada`);
+      exige(paran >= sueltan,
+        `hay ${sueltan} sitios que ponen sock a null y solo ${paran} que paran el latido: alguno deja el temporizador colgando`);
+    }
+    if (fallos === antes100) console.log(verde('   ✓ el latido aguanta sin socket, se anuncia con uno bueno, y se para al desmontar'));
+  }
+
   if (BREVE) {
     resumenBreve(fallos);
     if (!fallos) sellar();
