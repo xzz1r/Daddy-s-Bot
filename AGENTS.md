@@ -4,33 +4,17 @@ Bot de WhatsApp. El contenido vive en `src/data/` (y los pools de `!aura`
 en `src/commands/aura.js`). El motor en `src/commands/` y `src/utils/`.
 Cómo se escribe una frase: `GUIA.md`. Cómo se valida: `npm run check`.
 
-## Pendiente ahora mismo (haz esto primero)
+## Analogías: CERRADO
 
-Hay **225 frases** marcadas con `// ANALOGÍA`. El dueño: analogías baratas
-fuera, ataques directos y con coherencia.
+El encargo de las analogías baratas está terminado: `npm run analogias` da
+cero. No hay que reescribir nada de eso. Si aparece una frase nueva con un
+objeto en vez de la persona, es una regresión, no trabajo pendiente.
 
-**Dónde (lo dijo él, no se adivina):**
+Regla de `!aura` al ganar (la fijó el dueño, ver GUIA.md): ganar no necesita
+chiste; si lo lleva, va sobre su economía — pobre (< 1.500) muerto de hambre,
+rico (≥ 1.500) rico en un bot de WhatsApp. Pools `gainPobre` / `gainRico`.
 
-- `!aura gana` / `!aura pierde` — `AURA.gain` y `AURA.loss` en
-  `src/commands/aura.js`. El chiste es un nokia, un brick de leche, un
-  calcetín, una planta de IKEA. No la persona.
-- Cooldown de `!aura` — `AURA_TIRADA` en `src/data/cooldownPhrases.js`.
-  Cubilete, galleta de la suerte, filete, bola ocho.
-- Comando mal escrito — `MAL_ESCRITO` en `src/data/avisos.js`.
-- Roast de quien usa acciones — tres líneas en `ROAST_USUARIO`
-  (`src/data/accionPhrases.js`). El resto de ese pool ya está bien.
-
-**No está** en `!fiel` / `!infiel`. Eso es dinámica. No se toca.
-
-- Brief: [`PENDIENTE.md`](PENDIENTE.md)
-- `grep -n "ANALOGÍA" src/commands/aura.js src/data/cooldownPhrases.js src/data/avisos.js src/data/accionPhrases.js`
-- Reescribe la línea, quita la marca. Los cinco ejemplos `intocables` del
-  dueño al inicio de `blessed` / `loss` / `cursed` no se tocan.
-- Acabado = `npm run analogias` exit 0 y `npm run check` verde.
-
-Si el usuario pide otra cosa y todavía quedan marcas, avísale.
-
-## Ideas (no implementar mientras queden analogías)
+## Ideas
 
 El dueño pidió ideas molonas. Estas usan datos que el bot **ya tiene** y hoy
 no junta.
@@ -46,4 +30,4 @@ no junta.
 5. **`!circulo`.** Grafo de quién responde a quién. «Le hablas a tres y
    los tres te dejan en visto» duele más que mil analogías.
 
-No las implementes de rebote. Si el dueño elige una, esa y bien.
+No las implementes de rebote. `!caso` ya está elegida y en marcha.

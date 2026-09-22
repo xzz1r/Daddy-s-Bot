@@ -1,6 +1,6 @@
 # PENDIENTE — analogías baratas (Grok terminal)
 
-Encargo del dueño, 9 sep 2026. **No está hecho.** 225 frases marcadas
+Encargo del dueño, 9 sep 2026. **HECHO (22 sep 2026): `npm run analogias` da cero.** Se deja como registro. 225 frases marcadas
 con `// ANALOGÍA`. Este fichero es el brief.
 
 ## El encargo, en una línea

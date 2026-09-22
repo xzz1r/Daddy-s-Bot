@@ -5877,6 +5877,20 @@ const sock={user:{id:BOT},sendPresenceUpdate:async()=>{},readMessages:async()=>{
         'cinco intentos sin saldo encarecen la primera de verdad: se cuenta lo que se intenta en vez de lo que se usa');
     }
 
+    // ── LAS ANALOGIAS BARATAS NO VUELVEN ─────────────────────────────────
+    //
+    // El encargo se cerro el 22 sep: 225 frases marcadas, cero pendientes. Sin
+    // esto, la marca `// ANALOGIA` podia volver a aparecer y nadie se enteraba
+    // hasta pasar `npm run analogias` a mano, que es lo que ya no hace nadie
+    // cuando un encargo esta cerrado.
+    {
+      const donde = ['src/commands/aura.js', 'src/data/cooldownPhrases.js', 'src/data/avisos.js', 'src/data/accionPhrases.js'];
+      for (const f of donde) {
+        const n = (fs.readFileSync(path.join(R, f), 'utf8').match(/^\s+['"`].*\/\/ ANALOG\u00cdA/gm) || []).length;
+        exige(n === 0, `${f} vuelve a tener ${n} frase(s) marcadas como analogia barata: el encargo estaba cerrado`);
+      }
+    }
+
     // ── GANAR AURA: EL CHISTE VA SOBRE SU ECONOMIA ────────────────────────
     //
     // El dueño: «ganar aura no requiere chiste, pero si lo pones puede ser un
