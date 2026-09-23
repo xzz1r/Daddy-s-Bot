@@ -46,8 +46,9 @@ no junta.
    precio en la cabeza, veto de la tienda, objetivo del día y días en
    silencio, con un veredicto que sale de esos datos. Los ships no salen:
    `!ship` no guarda nada y no se inventa. Del dueño, silencio (capa 103).
-2. **Memoria de rencor.** Si el martes te moggeó y hoy vuelves a pedirlo,
-   el bot lo cita. El grupo genera mitología solo.
+2. **Memoria de rencor — HECHO.** `!mog`, `!duel`, `!robo` y `!ship` se
+   acuerdan del cruce anterior entre esas dos personas y lo citan una vez al
+   día (utils/rencor.js). Solo texto, nada del tier dueño (capa 109).
 3. **Testamento al echar.** El aviso de kick ahora es plantilla. Debería
    leer el expediente: mensajes, aura, a quién shippeaba.
 4. **`!cartel @user`.** pfp + recompensa en aura + último delito. Ya hay

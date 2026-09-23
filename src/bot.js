@@ -112,6 +112,7 @@ const { flushPickHistory } = require('./utils/helpers');
 const { flushAura } = require('./utils/auraStore');
 const { flushCasino } = require('./utils/casinoStore');
 const { flushRacha } = require('./utils/rachaStore');
+const { flushRencor } = require('./utils/rencorStore');
 const { flushNicks, recordFacts } = require('./utils/nickStore');
 const { flushCache } = require('./utils/musicCache');
 const { flush: flushPfpHashes } = require('./utils/pfpStore');
@@ -2219,7 +2220,7 @@ async function gracefulShutdown(code = 0) {
     flushState(), flushCounts(), flushAura(), flushCache(),
     flushCasino(), flushPfpHashes(), flushBanlist(), flushPfpCache(), flushNicks(), flushLinkPerms(),
     flushJoinRequests(), flushRobo(), flushMutes(), flushRacha(), flushNames(), flushPickHistory(),
-    flushObjetivoDia(), flushDeuda(), flushHistorial(),
+    flushObjetivoDia(), flushDeuda(), flushHistorial(), flushRencor(),
   ]);
   await Promise.race([flushes, new Promise(r => setTimeout(r, 3000))]);
   if (sock) {

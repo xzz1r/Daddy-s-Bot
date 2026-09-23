@@ -3,6 +3,7 @@ const { pickFresh, fmt, parseCantidad, resolverCantidad } = require('../utils/he
 const { getAura, transferAura } = require('../utils/auraStore');
 const { ownerGana } = require('../utils/rigOwner');
 const { lineaAura } = require('../utils/formatoJuego');
+const rencor = require('../utils/rencor');
 
 // Resolve a JID to its canonical form (preferring phone-JID) using the group
 // participant list. Fixes LID vs phone-JID mismatches in accept/reject checks:
@@ -146,9 +147,14 @@ async function resolveDuel(sock, jid, d, groupMeta) {
     .replace(/%W/g, `@${winner.split('@')[0]}`)
     .replace(/%L/g, `@${loser.split('@')[0]}`);
 
+  // Si ya se batieron otro dia, el bot se acuerda (utils/rencor.js).
+  const memoria = await rencor.duelo({ grupo: jid, gana: winner, pierde: loser, cifra: d.stake, groupMeta });
+
   const text =
     `*DUELO · ${fmt(d.stake)} de aura*\n\n` +
-    `${phrase}\n\n` +
+    `${phrase}` +
+    (memoria ? `\n_${memoria}_` : '') +
+    `\n\n` +
     `${lineaAura(`@${winner.split('@')[0]}`, d.stake, w.current)}\n` +
     `${lineaAura(`@${loser.split('@')[0]}`, -d.stake, l.current)}`;
 
@@ -283,11 +289,18 @@ async function cmdDuel(sock, msg, args, groupMeta) {
     ts: Date.now(),
   });
 
+  // EL PRECEDENTE, si ya se batieron otro dia. Va al lanzarlo, que es cuando
+  // el retado decide: saber que la ultima vez perdio 200 es parte de decidir.
+  const precedente = await rencor.precedenteDuelo({
+    grupo: jid, retador: pending.get(jid).challenger, retado: pending.get(jid).target, groupMeta,
+  });
+
   await sock.sendMessage(jid, {
     text:
       `*DUELO LANZADO*\n\n` +
       `@${sender.split('@')[0]} reta a @${target.split('@')[0]} por *${fmt(stake)}* de aura.\n` +
       (recortado ? `_Tope entre los dos: ${fmt(maxStake)}_\n` : '') +
+      (precedente ? `_${precedente}_\n` : '') +
       `\n@${target.split('@')[0]} · *!duel aceptar* o *!duel rechazar*\n` +
       `_(expira en 90s)_`,
     mentions: [sender, target],

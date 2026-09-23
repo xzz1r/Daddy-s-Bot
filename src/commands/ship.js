@@ -4,6 +4,7 @@ const config = require('../config');
 const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
 const { SIN_SERVICIO } = require('../utils/auraCobro');
+const rencor = require('../utils/rencor');
 
 // ¿Es este JID uno de los numeros de config.shipAlto?
 //
@@ -462,11 +463,15 @@ async function cmdShip(sock, msg, args, groupMeta) {
   const labelA = resolveLabel(a, groupParticipants);
   const labelB = resolveLabel(b, groupParticipants);
 
+  // Si ya se les shipeo otro dia, el bot compara (utils/rencor.js).
+  const memoria = await rencor.ship({ grupo: jid, a, b, compat, groupMeta });
+
   const text =
     `*Ship*\n\n` +
     `${labelA}  +  ${labelB}\n\n` +
     `${bar}  *${compat}%*\n\n` +
-    `${verdict}`;
+    `${verdict}` +
+    (memoria ? `\n\n_${memoria}_` : '');
 
   await sock.sendMessage(jid, { text, mentions: [a, b] }, { quoted: msg });
 }

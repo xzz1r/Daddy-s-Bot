@@ -1220,6 +1220,11 @@ async function capaStores() {
   // VPS sigue cerrado, y la capa 61 la vuelve a cerrar del todo para medir el
   // freno de verdad.
   require(path.join(R, 'src/utils/redSegura')).permitirLoopback(true);
+  // LA MEMORIA DE RENCOR, A UN FICHERO DE PRUEBA DESDE EL PRIMER COMANDO. La
+  // prueba de abajo tira !mog, !ship, !duel y !robo cientos de veces, y cada
+  // cruce se apunta. En la VPS el check corre con el bot encendido: dos
+  // procesos escribiendo el mismo data/rencor.json se pisan.
+  require(path.join(R, 'src/utils/rencorStore'))._usarFichero(path.join(os.tmpdir(), `rencor-check-${process.pid}.json`));
   for (const c of comandos) {
     for (let i = 0; i < TIRADAS; i++) {
       try {
@@ -18766,6 +18771,222 @@ const manda = async (quien, tipo, opciones) => {
         `filas del registro que no empiezan por el nombre del menu: ${mal.join(', ')} — el corrector ofreceria un alias en vez del nombre de siempre`);
     }
     if (fallos === antes108) console.log(verde('   ✓ en un empate ofrece las opciones, siempre con el nombre del menu, y lo oculto no asoma'));
+  }
+
+  // ── 109. LA MEMORIA DE RENCOR SE ACUERDA, Y DEL DUEÑO NO ────────────────
+  //
+  // El bot se acuerda de lo que paso entre dos personas y lo saca la proxima
+  // vez que se cruzan (utils/rencor.js). Lo que se vigila:
+  //
+  //  · que salga en el primer cruce del dia y solo si hubo otro dia antes:
+  //    diez !mog seguidos no pueden ser diez recuerdos;
+  //  · que elija bien: repite, revancha o racha; en el robo, reincide,
+  //    venganza, se le acaba o ni vengarse; en el ship, sube, baja o igual;
+  //  · que NADA del tier dueño se apunte ni se cite. Ganan con ventaja, y
+  //    una racha suya contada delataria el amaño y quien es;
+  //  · que las dos formas de una persona (@lid y telefono) sean una sola
+  //    historia: una racha partida en dos es un conteo mal hecho;
+  //  · y que las frases digan el dato, no tengan genero ni huecos raros.
+  //
+  // Los dias se simulan moviendo el reloj: un recuerdo de «ayer» no se puede
+  // probar esperando a mañana.
+  {
+    console.log('\n109. LA MEMORIA DE RENCOR SE ACUERDA, Y DEL DUEÑO NO');
+    const antes109 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const RS = require(path.join(R, 'src/utils/rencorStore'));
+    const RC = require(path.join(R, 'src/utils/rencor'));
+    const FR = require(path.join(R, 'src/data/rencorPhrases'));
+    const cfg109 = require(path.join(R, 'src/config'));
+    const OWN = `${String(cfg109.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
+    RS._usarFichero(path.join(os.tmpdir(), `rencor109-${process.pid}.json`));
+    const relojReal = Date.now;
+    const azarReal = Math.random;
+    const DIA_MS = 86400000;
+    // Un lunes a mediodia, lejos del corte del dia: «un dia despues» es otro
+    // dia del bot sin discusion.
+    const base = Date.UTC(2026, 8, 7, 12, 0);
+    const enDia = (n) => { Date.now = () => base + n * DIA_MS; };
+    const sello = `${relojReal()}`.slice(-5);
+    const A = `346${sello}1091@s.whatsapp.net`, B = `346${sello}1092@s.whatsapp.net`;
+    const C = `346${sello}1093@s.whatsapp.net`, D = `346${sello}1094@s.whatsapp.net`;
+    const t = (j) => `@${j.split('@')[0]}`;
+    const meta = (g) => ({ id: g, participants: [{ id: A }, { id: B }, { id: C }, { id: D }, { id: OWN, admin: 'superadmin' }] });
+    const tipo = () => RC._ultimoTipo();
+    const limpio = (l) => !/%[A-Z]/.test(l);
+    try {
+      // 1. !mog: el primero no, el segundo del dia no, al dia siguiente si.
+      {
+        const G = `1203630${sello}1091@g.us`, m = meta(G);
+        enDia(0);
+        exige(await RC.mog({ grupo: G, gana: A, pierde: B, groupMeta: m }) === '', 'el primer mog entre dos ya sale con recuerdo: no hay nada que recordar');
+        exige(await RC.mog({ grupo: G, gana: A, pierde: B, groupMeta: m }) === '', 'el segundo mog del mismo dia sale con recuerdo: eso es eco, no memoria');
+        enDia(1); RC._nuevoTipo();
+        let l = await RC.mog({ grupo: G, gana: A, pierde: B, groupMeta: m });
+        exige(tipo() === 'mog|repite', `al dia siguiente, el mismo ganador no sale como repeticion (${tipo()})`);
+        exige(l.includes(t(A)) && l.includes(t(B)) && limpio(l), `el recuerdo no nombra a los dos o lleva un hueco sin rellenar: "${l}"`);
+        exige(/\bayer\b/i.test(l), `el recuerdo del dia anterior no dice «ayer»: "${l}"`);
+        exige(await RC.mog({ grupo: G, gana: A, pierde: B, groupMeta: m }) === '', 'el recuerdo sale dos veces el mismo dia');
+        enDia(3); RC._nuevoTipo();
+        l = await RC.mog({ grupo: G, gana: A, pierde: B, groupMeta: m });
+        exige(tipo() === 'mog|racha' && /\btres\b/i.test(l), `tres seguidas en tres dias distintos no salen como racha de tres (${tipo()}): "${l}"`);
+        enDia(5); RC._nuevoTipo();
+        l = await RC.mog({ grupo: G, gana: B, pierde: A, groupMeta: m });
+        exige(tipo() === 'mog|revancha' && limpio(l), `cuando gana el otro no sale como revancha (${tipo()})`);
+      }
+
+      // 2. El tier dueño: ni se apunta ni se cita, en ningun juego.
+      {
+        const G = `1203630${sello}1092@g.us`, m = meta(G);
+        for (const d of [0, 1, 2]) {
+          enDia(d);
+          const lineas = [
+            await RC.mog({ grupo: G, gana: OWN, pierde: C, groupMeta: m }),
+            await RC.duelo({ grupo: G, gana: C, pierde: OWN, cifra: 100, groupMeta: m }),
+            await RC.robo({ grupo: G, ladron: OWN, victima: C, ok: true, cifra: 300, groupMeta: m }),
+            await RC.ship({ grupo: G, a: OWN, b: C, compat: 5, groupMeta: m }),
+            await RC.precedenteDuelo({ grupo: G, retador: C, retado: OWN, groupMeta: m }),
+          ];
+          exige(lineas.every((x) => x === ''), `el recuerdo cita un cruce del dueño: "${lineas.find((x) => x)}"`);
+        }
+        let apuntados = 0;
+        for (const j of ['mog', 'duelo', 'robo', 'ship']) apuntados += (await RS.historia(G, OWN, C, j)).length;
+        exige(apuntados === 0, `se han apuntado ${apuntados} cruces del dueño: una racha suya, contada, delata el amaño y quien es`);
+      }
+
+      // 3. !robo: solo deja rencor lo que SALIO, en las dos direcciones.
+      {
+        const G = `1203630${sello}1093@g.us`, m = meta(G);
+        const r = (ladron, victima, ok, cifra) => RC.robo({ grupo: G, ladron, victima, ok, cifra, groupMeta: m });
+        enDia(0); exige(await r(A, B, true, 300) === '', 'el primer robo entre dos ya sale con recuerdo');
+        const pasos = [
+          [1, B, A, true, 'robo|venganza', 'quien fue robado roba al ladron y no sale como venganza'],
+          [2, A, B, false, 'robo|niVengarse', 'el robado intenta vengarse, falla, y no sale como venganza fallida'],
+          [3, A, B, true, 'robo|venganza', 'un robo que FALLO cuenta como el ultimo: tiene que mirar el ultimo que salio'],
+          [4, A, B, false, 'robo|seAcaba', 'el ladron vuelve a por la misma victima, falla, y no sale como que se le acabo'],
+          [5, A, B, true, 'robo|reincide', 'el ladron vuelve a robar a la misma victima y no sale como reincidente'],
+        ];
+        for (const [d, la, vi, ok, esperado, queja] of pasos) {
+          enDia(d); RC._nuevoTipo();
+          const l = await r(la, vi, ok, 100 + d);
+          exige(tipo() === esperado && limpio(l) && l.includes(t(la)) && l.includes(t(vi)), `${queja} (${tipo()}): "${l}"`);
+        }
+      }
+
+      // 4. !ship: se compara con el % de la vez anterior.
+      {
+        const G = `1203630${sello}1094@g.us`, m = meta(G);
+        const s = (compat) => RC.ship({ grupo: G, a: A, b: C, compat, groupMeta: m });
+        enDia(0); exige(await s(12) === '', 'el primer ship entre dos ya sale con recuerdo');
+        enDia(1); RC._nuevoTipo(); let l = await s(80);
+        exige(tipo() === 'ship|sube' && (l.includes('12 %') || !FR.SHIP_SUBE.every((f) => f.includes('%C'))), `de 12 a 80 no sale como subida (${tipo()}): "${l}"`);
+        enDia(2); RC._nuevoTipo(); l = await s(20);
+        exige(tipo() === 'ship|baja', `de 80 a 20 no sale como bajada (${tipo()})`);
+        enDia(3); RC._nuevoTipo(); l = await s(25);
+        exige(tipo() === 'ship|igual', `de 20 a 25 no sale como lo mismo (${tipo()})`);
+      }
+
+      // 5. !duel: el precedente al lanzarlo no apunta nada, y el resultado si.
+      {
+        const G = `1203630${sello}1095@g.us`, m = meta(G);
+        enDia(0); exige(await RC.duelo({ grupo: G, gana: A, pierde: B, cifra: 200, groupMeta: m }) === '', 'el primer duelo ya sale con recuerdo');
+        enDia(1); RC._nuevoTipo();
+        let l = await RC.precedenteDuelo({ grupo: G, retador: B, retado: A, groupMeta: m });
+        exige(tipo() === 'duelo|pide' && l.includes(t(A)) && l.includes(t(B)) && limpio(l), `quien perdio y vuelve a retar no sale como que pide revancha (${tipo()}): "${l}"`);
+        RC._nuevoTipo();
+        l = await RC.precedenteDuelo({ grupo: G, retador: A, retado: B, groupMeta: m });
+        exige(tipo() === 'duelo|vuelve', `quien gano y vuelve a retar no sale como tal (${tipo()})`);
+        exige((await RS.historia(G, A, B, 'duelo')).length === 1, 'el precedente apunta un duelo que todavia no ha pasado');
+        RC._nuevoTipo();
+        l = await RC.duelo({ grupo: G, gana: B, pierde: A, cifra: 150, groupMeta: m });
+        exige(tipo() === 'duelo|revancha' && limpio(l), `el duelo de vuelta no sale como revancha (${tipo()})`);
+      }
+
+      // 6. Las dos formas de una persona son una sola historia.
+      {
+        const G = `1203630${sello}1096@g.us`, m = meta(G);
+        const LID = `9${sello}109600@lid`;
+        enDia(0); await RC.mog({ grupo: G, gana: LID, pierde: B, groupMeta: m });
+        require(path.join(R, 'src/utils/wa')).rememberMapping(LID, D);
+        enDia(1); RC._nuevoTipo();
+        const l = await RC.mog({ grupo: G, gana: D, pierde: B, groupMeta: m });
+        exige(tipo() === 'mog|repite' && l.includes(t(D)),
+          `lo que se apunto con el @lid no se junta con el telefono: la historia se parte en dos (${tipo()})`);
+      }
+
+      // 7. «ayer», «el lunes», «la semana pasada», y el castellano bien puesto.
+      {
+        const casos = [[1, 'ayer'], [3, 'el lunes'], [9, 'la semana pasada'], [20, 'hace 20 días']];
+        for (const [n, esperado] of casos) {
+          const dicho = RC._cuando(base, base + n * DIA_MS);
+          exige(dicho === esperado, `${n} dias despues de un lunes dice «${dicho}» y es «${esperado}»`);
+        }
+        exige(RC._rellena('Lo de %D fue así.', { D: 'el martes' }) === 'Lo del martes fue así.', 'no contrae «de el martes» en «del martes»');
+        exige(RC._rellena('%D ganó %A.', { D: 'ayer', A: '@1' }) === 'Ayer ganó @1.', 'la frase que empieza por el dia no lleva mayuscula');
+      }
+
+      // 8. Enganchado de verdad en los comandos: el segundo dia sale la linea.
+      {
+        const { cmdMog } = require(path.join(R, 'src/commands/mog'));
+        const { cmdShip } = require(path.join(R, 'src/commands/ship'));
+        const G = `1203630${sello}1097@g.us`, m = meta(G);
+        const dicho = [];
+        const sock = { user: { id: '34600000109@s.whatsapp.net' }, sendMessage: async (j, c) => { dicho.push(c.text || ''); return { key: { id: 'x' } }; } };
+        const pide = (texto, menciones) => ({
+          key: { remoteJid: G, participant: C, fromMe: false, id: `K109${Math.random()}` },
+          message: { extendedTextMessage: { text: texto, contextInfo: { mentionedJid: menciones } } },
+        });
+        Math.random = () => 0.1;
+        for (const d of [0, 1]) {
+          enDia(d); dicho.length = 0;
+          await cmdMog(sock, pide('!mog', [A, B]), m);
+          await cmdShip(sock, pide('!ship', [A, B]), [], m);
+          const [mogTxt, shipTxt] = dicho;
+          const conLinea = (x) => /\n\n_[^\n]+_$/.test(x || '');
+          if (d === 0) exige(!conLinea(mogTxt) && !conLinea(shipTxt), 'el primer !mog o !ship de una pareja ya lleva recuerdo');
+          else {
+            exige(conLinea(mogTxt), `el !mog del dia siguiente no lleva el recuerdo: "${(mogTxt || '').slice(-120)}"`);
+            exige(conLinea(shipTxt), `el !ship del dia siguiente no lleva el recuerdo: "${(shipTxt || '').slice(-120)}"`);
+          }
+        }
+        // !duel y !robo, por el fuente: los dos desenlaces del robo y los dos
+        // momentos del duelo tienen que preguntar a la memoria.
+        const robo = soloCodigo('src/commands/robo.js');
+        exige((robo.match(/rencor\.robo\(/g) || []).length === 2 && /ok: true/.test(robo) && /ok: false/.test(robo),
+          '!robo ya no pregunta a la memoria en los dos desenlaces (sale bien y sale mal)');
+        const duel = soloCodigo('src/commands/duel.js');
+        exige(/rencor\.duelo\(/.test(duel) && /rencor\.precedenteDuelo\(/.test(duel),
+          '!duel ya no pregunta a la memoria al lanzarlo o al resolverlo');
+      }
+
+      // 9. Las frases: los huecos que dicen el dato, y sin genero.
+      {
+        const PERMITIDOS = new Set(['%A', '%V', '%D', '%C', '%N']);
+        const GENERO = /(?<!\b(?:ha|han|he|has|hemos|había|habia|haber|hubiera)\s)\b(?:callad|mud|desaparecid|buscad|pringad|tranquil|list|crecid|escaldad|despistad|convencid|humillad|derrotad|arruinad|enamorad|tont|cansad|jodid|content|orgullos|avergonzad)[oa]s?\b|(?:^|\s)él(?=[\s,.]|$)/i;
+        const malas = [];
+        for (const [nombre, pool] of Object.entries(FR)) {
+          exige(Array.isArray(pool) && pool.length >= 8, `${nombre} tiene ${pool && pool.length} frases: con menos de ocho se repite a la tercera`);
+          for (const f of pool || []) {
+            const huecos = f.match(/%[A-Z]+/g) || [];
+            const raro = huecos.find((h) => !PERMITIDOS.has(h));
+            if (raro) malas.push(`${nombre}: hueco ${raro} que nadie rellena`);
+            if (!f.includes('%A') || !f.includes('%V')) malas.push(`${nombre}: no nombra a los dos («${f.slice(0, 50)}…»)`);
+            const racha = /RACHA/.test(nombre);
+            if (!racha && !f.includes('%D')) malas.push(`${nombre}: no dice cuando fue («${f.slice(0, 50)}…»)`);
+            if (racha && !f.includes('%N')) malas.push(`${nombre}: una racha que no dice cuantas`);
+            if (!racha && f.includes('%N')) malas.push(`${nombre}: %N fuera de una racha, ahi no se rellena`);
+            if (/^MOG_/.test(nombre) && f.includes('%C')) malas.push(`${nombre}: %C en un mog, que no tiene cifra`);
+            if (/[—;]/.test(f)) malas.push(`${nombre}: raya larga o punto y coma («${f.slice(0, 40)}…»)`);
+            if (GENERO.test(f)) malas.push(`${nombre}: con genero, y le llega igual a cualquiera («${f.slice(0, 50)}…»)`);
+          }
+        }
+        exige(malas.length === 0, `frases de la memoria mal hechas (${malas.length}): ${malas.slice(0, 3).join(' · ')}`);
+      }
+    } finally {
+      Date.now = relojReal;
+      Math.random = azarReal;
+    }
+    if (fallos === antes109) console.log(verde('   ✓ se acuerda al dia siguiente y no el mismo dia, elige bien cada situacion, junta las dos formas de una persona, y del dueño no apunta nada'));
   }
   }
 

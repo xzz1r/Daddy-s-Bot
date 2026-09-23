@@ -6,6 +6,7 @@ const { ownerGana } = require('../utils/rigOwner');
 const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
 const { SIN_SERVICIO } = require('../utils/auraCobro');
+const rencor = require('../utils/rencor');
 
 // Rigged by role, but not blatantly: the owner has a real edge yet can still
 // lose, admins have a slighter edge, members fight on equal ground.
@@ -176,11 +177,15 @@ async function cmdMog(sock, msg, groupMeta) {
     .replace(/%M/g, `@${numM}`)
     .replace(/%L/g, `@${numL}`);
 
+  // Si estos dos ya se midieron otro dia, el bot se acuerda (utils/rencor.js).
+  const memoria = await rencor.mog({ grupo: jid, gana: mogger, pierde: mogged, groupMeta });
+
   const text =
     `*MOG CHECK*\n\n` +
     `@${numA} *vs* @${numB}\n\n` +
     `@${numM} *moggea* a @${numL}\n` +
-    `${phrase}`;
+    `${phrase}` +
+    (memoria ? `\n\n_${memoria}_` : '');
 
   await sock.sendMessage(jid, { text, mentions: [a, b] }, { quoted: msg });
 }

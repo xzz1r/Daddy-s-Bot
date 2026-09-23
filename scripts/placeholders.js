@@ -63,6 +63,9 @@ const CONTRATO = {
   // pueda separar del de la cabecera: escrito a mano, se separo.
   'src/utils/casino.js':           { permite: ['%M'],                          sustituye: 'src/utils/casino.js' },
   'src/data/roboExtraPhrases.js':  { permite: ['%A', '%C', '%N', '%V', '%H'],  sustituye: 'src/commands/robo.js' },
+  // La memoria de rencor. %A gana (o roba), %V pierde (o le roban), %D cuando
+  // fue la vez anterior, %C la cifra de entonces, %N cuantas seguidas.
+  'src/data/rencorPhrases.js':     { permite: ['%A', '%V', '%D', '%C', '%N'],  sustituye: 'src/utils/rencor.js' },
 };
 
 // Una "frase" es una línea que es solo un literal de texto largo terminado en

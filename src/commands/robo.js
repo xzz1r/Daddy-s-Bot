@@ -34,6 +34,7 @@ const { A_TI_MISMO, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
 const logger = require('../utils/logger');
 const { bloqueCooldown, lineaAura, tiempoRestante } = require('../utils/formatoJuego');
+const rencor = require('../utils/rencor');
 
 // La escala vive en utils/economia.js. Aqui solo el cooldown, que es de ritmo
 // de juego y no de economia.
@@ -1364,6 +1365,10 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     anotarParaContra(jid, target, sender, monto);
     const aNew = await addAura(jid, sender, +monto - enSuCabeza + cobrada + forzado);
     const phrase = pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag);
+    // Si ya hubo robo entre estos dos otro dia, el bot se acuerda
+    // (utils/rencor.js). Una linea, y solo cuando hay historia: el robo que
+    // sale bien se queda corto, que es lo que pidio el dueño.
+    const memoria = await rencor.robo({ grupo: jid, ladron: sender, victima: target, ok: true, cifra: monto, groupMeta });
     // AQUI IBA UNA TERCERA FORMA DE DECIR EL DESENLACE.
     //
     // «Le salio redondo: se llevo bastante mas de lo que iba a por» debajo de un
@@ -1392,7 +1397,9 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     const text =
       `${titulo}\n` +
       `${aTag} le roba a ${vTag}${extra}\n\n` +
-      `${phrase}\n\n` +
+      `${phrase}` +
+      (memoria ? `\n_${memoria}_` : '') +
+      `\n\n` +
       // La CUARTA forma que habia de contar lo mismo, y la unica con el total
       // delante y el movimiento en un parentesis detras. El robo con exito es
       // justo donde mas se lee esta linea, asi que era el peor sitio para que
@@ -1457,6 +1464,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     boteAhora = await tienda.aportarAlBote(jid, monto * BOTE.fraccionDeFallo);
   }
   const phrase = pickFresh(FRASES_POR_DESENLACE[clave](), `${jid}|robo|${clave}`).replace(/%A/g, aTag).replace(/%V/g, vTag);
+  const memoria = await rencor.robo({ grupo: jid, ladron: sender, victima: target, ok: false, cifra: stake, groupMeta });
   const text =
     `${titulo}\n` +
     // LA CIFRA QUE IBA A ROBAR, EN EL TITULAR.
@@ -1481,7 +1489,9 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     // Y el remate y el desenlace van PEGADOS, sin linea en blanco en medio: los
     // dos cuentan lo mismo (que fallo), asi que separarlos en dos bloques hacia
     // parecer que eran dos cosas distintas.
-    `${phrase}\n\n` +
+    `${phrase}` +
+    (memoria ? `\n_${memoria}_` : '') +
+    `\n\n` +
     `${lineaAura(aTag, -monto, aNew.current)}\n` +
     (vNew
       ? lineaAura(vTag, monto, vNew.current)

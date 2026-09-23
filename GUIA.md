@@ -616,6 +616,7 @@ copia legible; si las dos discrepan, la del código tiene razón.
 | `casino.js` (los bonos) | `%M` el hito que se acaba de cruzar (50, 100, 200, 500 o 1.000). **Nunca escribas el número a mano dentro de la frase**: Tier 1 tiene tres hitos y las frases se quedaron diciendo «200 mensajes» en los tres, así que la cabecera y el cuerpo del mismo mensaje se contradecían. Lo sustituye `casino.js` al elegir la frase |
 | `activity.js`, `duel.js` | `%W` ganador, `%L` perdedor |
 | `accionPhrases.js` | `%A` quien la hace, `%V` quien la recibe |
+| `rencorPhrases.js` (la memoria de rencor) | `%A` quien gana hoy (en el robo, quien roba), `%V` quien pierde (a quien roban), `%D` cuándo fue la vez anterior («ayer», «el martes»), `%C` la cifra de entonces, `%N` cuántas seguidas (solo en las rachas). Toda frase nombra a **los dos** y dice **cuándo**: la capa 109 lo exige |
 | `avisos.js` | `%V` la persona del cartel del día. **Solo el pool `OBJETIVO_DIA_CARTEL` lo usa**; el resto de avisos van sin huecos, se mandan tal cual. Lo sustituye el manejador de mensajes, no un comando, porque ese cartel se cuelga solo con el primer mensaje del día y no lo pide nadie |
 | `mog.js` | `%M` / `%L` |
 | `iq.js` | `%IQ` |
@@ -1024,6 +1025,16 @@ git pull origin main
   (se dice lo que hace, no «callado» ni «buscado») y **al que sostiene el grupo
   no se le reprocha escribir**. Del dueño no hay expediente: silencio, y se
   devuelve lo cobrado.
+- **Memoria de rencor** (`src/utils/rencor.js`): el bot se acuerda de lo que
+  pasó entre dos personas en `!mog`, `!duel`, `!robo` y `!ship`, y lo saca la
+  próxima vez que se cruzan: *«El martes @B ya perdió contra @A. Hoy lo ha
+  vuelto a pedir y se lo ha vuelto a comer entero.»* Sale **una vez al día por
+  pareja** (el primer cruce) y solo si la vez anterior fue otro día. Es **solo
+  texto**: no toca aura, ni tiradas, ni echa a nadie. Y **nada del tier dueño**
+  se apunta ni se cita, porque sus rachas delatarían el amaño. Situaciones:
+  repite, revancha y racha (tres o más); en el robo, reincide, venganza, se le
+  acaba y ni vengarse; en el ship, sube, baja o igual. Las frases, en
+  `src/data/rencorPhrases.js`.
 - **Racha**: solo habla en hitos (7, 15, 30, 50, 100, 200, 365 días) y al romper
   una racha larga. El resto de días paga en silencio, a propósito.
 - **Acciones** (veintiuna: `!hug` · `!cuddle` · `!punch` · `!stare` · `!fuck` y
