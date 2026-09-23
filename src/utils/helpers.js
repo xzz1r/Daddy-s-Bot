@@ -327,6 +327,47 @@ function pickFresh(pool, key, window = 50) {
   return pool[elegido];
 }
 
+// UNA BARAJA, PARA LOS POOLS PEQUEÑOS QUE SE LEEN DE SEGUIDO.
+//
+// pickFresh bloquea el 60 % reciente y sortea entre el resto. En un pool de 15
+// eso son 6 candidatas, y una frase puede volver antes de que hayan salido
+// todas: en el aviso de *!r*, que el grupo ve cada vez que entra alguien, se
+// nota a la segunda semana.
+//
+// Esto reparte como una baraja: salen TODAS en orden aleatorio sin repetir
+// ninguna, y al acabar se baraja otra vez. La ultima de una vuelta nunca abre
+// la siguiente, que es la unica repeticion que quedaria a la vista. Va por
+// clave (una baraja por grupo) y usa el mismo historial en disco que
+// pickFresh, asi que un reinicio no la vuelve a empezar.
+const _FIN_DE_VUELTA = '|';
+function pickBaraja(pool, key) {
+  if (!Array.isArray(pool) || pool.length === 0) return '';
+  if (!key || pool.length === 1) return pool[Math.floor(Math.random() * pool.length)];
+  if (!_historialCargado) _cargarHistorial();
+
+  let hist = _pickHistory.get(key) || [];
+  if (_pickHistory.has(key)) _pickHistory.delete(key);
+  else if (_pickHistory.size >= _MAX_PICK_KEYS) _pickHistory.delete(_pickHistory.keys().next().value);
+
+  const hashes = _hashesDe(pool);
+  const vuelta = new Set(hist.slice(hist.lastIndexOf(_FIN_DE_VUELTA) + 1));
+  let libres = [];
+  for (let i = 0; i < pool.length; i++) if (!vuelta.has(hashes[i])) libres.push(i);
+  if (!libres.length) {
+    const ultima = hist[hist.length - 1];
+    hist = [ultima, _FIN_DE_VUELTA];
+    libres = pool.map((_, i) => i).filter((i) => hashes[i] !== ultima);
+  }
+  const elegido = libres[Math.floor(Math.random() * libres.length)];
+  // Solo hace falta la vuelta en curso (y lo que haya antes de su marca).
+  hist.push(hashes[elegido]);
+  const marca = hist.lastIndexOf(_FIN_DE_VUELTA);
+  if (marca > 1) hist = hist.slice(marca - 1);
+  _pickHistory.set(key, hist);
+  _programarGuardado();
+  return pool[elegido];
+}
+
 function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -906,4 +947,4 @@ module.exports = {
   // necesite la comprobacion tiene tieneArsenal, que ya lo hace bien.
   tieneArsenal,
   parseCantidad, resolverCantidad, etiquetaRiesgo, limpiarToken,
-  fmt, ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, withTimeout, shuffle, streamToBuffer, atomicWriteJson, readJsonOrEnoent, barrerHuerfanos, MAX_DOWNLOAD_BYTES, MAX_MEDIA_BYTES, createSemaphore, ffmpegSemaphore, ffmpegToBuffer, createDebouncedSaver };
+  fmt, ensureTemp, tempFile, cleanTemp, formatUptime, pick, pickFresh, pickBaraja, withTimeout, shuffle, streamToBuffer, atomicWriteJson, readJsonOrEnoent, barrerHuerfanos, MAX_DOWNLOAD_BYTES, MAX_MEDIA_BYTES, createSemaphore, ffmpegSemaphore, ffmpegToBuffer, createDebouncedSaver };

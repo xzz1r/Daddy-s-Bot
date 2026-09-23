@@ -3922,8 +3922,12 @@ const di=async(quien,texto,extra)=>{
       '!r dejo de decir que es solo para los nuevos: el resto del grupo no tiene que presentarse');
     exige(!av || !/(antigu|llevan tiempo|todo el mundo|todos se present)/i.test(av.text || ''),
       '!r vuelve a pedir la presentación a gente que ya está');
-    exige(!av || (av.text || '').length < 230,
+    // 300 y no 230: el dueño pidio que el aviso diga de entrada que esto es
+    // humor negro y quien no entra, y esa linea no cabia en el tope de antes.
+    exige(!av || (av.text || '').length < 300,
       `!r se esta alargando (${av?.text?.length} caracteres): es un aviso, no un comunicado`);
+    exige(!av || /humor negro/i.test(av.text || ''),
+      '!r ya no dice que esto es humor negro: el dueño lo quiere en la primera impresion');
     // LA FOTO SE PIDE COMO OBLIGACION, no como sugerencia.
     //
     // Y SE MIRA EN LA LINEA QUE LA PIDE, no en el mensaje entero. La primera
@@ -3972,8 +3976,8 @@ const di=async(quien,texto,extra)=>{
       const gsrc = fs.readFileSync(path.join(R, 'src/commands/group.js'), 'utf8');
       const bloque = gsrc.slice(gsrc.indexOf('const REMATES'), gsrc.indexOf('];', gsrc.indexOf('const REMATES')));
       const remates = [...bloque.matchAll(/^  '(.+)',$/gm)].map((m) => m[1]);
-      exige(remates.length >= 8,
-        `solo hay ${remates.length} remates para !r: con menos de 8 se repiten a la vista`);
+      exige(remates.length >= 15,
+        `solo hay ${remates.length} remates para !r: el dueño los dejo en 15`);
       exige(new Set(remates).size === remates.length, 'hay remates de !r repetidos');
       exige(remates.every((r) => r.length < 110),
         'algun remate de !r se alarga: el aviso tiene que caber de un vistazo');
@@ -3993,8 +3997,19 @@ const di=async(quien,texto,extra)=>{
       const amenaza = remates.filter((r) => /\b(ech[ao]|expuls|banea|fuera del grupo|te saco|los saco|te vas|se va a la calle)/i.test(r));
       exige(amenaza.length === 0,
         `remates de !r que amenazan con algo que el bot no hace: ${amenaza.slice(0, 2).join(' · ')}`);
-      exige(/pickFresh\(REMATES/.test(gsrc),
-        'el remate de !r dejo de rotar: la misma frase en cada aviso se quema a la tercera');
+      exige(/pickBaraja\(REMATES/.test(gsrc),
+        'el remate de !r ya no sale de la baraja: con quince, pickFresh puede repetir antes de que salgan todos');
+      // LA BARAJA, EJECUTADA: tres vueltas seguidas del pool de !r, y en cada
+      // una salen los quince sin repetir, y nunca dos iguales seguidos.
+      {
+        const { pickBaraja } = require(path.join(R, 'src/utils/helpers'));
+        const clave = `check|baraja|${process.pid}`;
+        const salen = [];
+        for (let i = 0; i < remates.length * 3; i++) salen.push(pickBaraja(remates, clave));
+        const vueltasBien = [0, 1, 2].every((v) => new Set(salen.slice(v * remates.length, (v + 1) * remates.length)).size === remates.length);
+        exige(vueltasBien, 'la baraja de !r repite un remate antes de que hayan salido todos');
+        exige(salen.every((x, i) => i === 0 || x !== salen[i - 1]), 'la baraja de !r saca el mismo remate dos veces seguidas');
+      }
       // Y por grupo, no global: lanzado desde el privado sale en varios a la vez
       // y el mismo texto repetido en todos delata que es un boton.
       exige(/textoPresentacion\(grupo\)/.test(gsrc),
