@@ -27,6 +27,17 @@ Un alias nuevo se añade a la fila de su comando y hereda todo. No hay listas
 sueltas que tocar: salen del registro. La capa 4b falla si un alias está en un
 sitio y no en el otro.
 
+## Una persona, una historia
+
+La misma persona llega unas veces con su @lid y otras con su teléfono, y el
+bot aprende que son la misma cuando WhatsApp manda el par. Todo lo que se
+guarde por persona se junta con `src/utils/persona.js`: `juntarPersona` para
+los almacenes en disco, `juntarEnMapa` para los Map en memoria. Cada almacén
+solo dice cómo se juntan SUS valores (el saldo resta el arranque, la caja
+suma, una caducidad se queda con la más lejana). La capa 111 pasa cada almacén
+por «apunta con el @lid, aprende el teléfono, lee» y falla si alguien se hace
+su propia copia.
+
 ## Analogías: CERRADO
 
 El encargo de las analogías baratas está terminado: `npm run analogias` da

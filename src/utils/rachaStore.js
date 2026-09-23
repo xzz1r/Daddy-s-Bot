@@ -17,7 +17,7 @@
 //   ultimo — el último día que llegó a contar
 
 const path = require('path');
-const { canonicalJid } = require('./wa');
+const { juntarPersona, esObjeto } = require('./persona');
 const { readJsonOrEnoent, claveDia, createDebouncedSaver } = require('./helpers');
 const { RACHA, DIA } = require('./economia');
 const logger = require('./logger');
@@ -62,27 +62,12 @@ function scheduleSave() { saver.schedule(); }
 
 // Junta las formas LID/teléfono de la misma persona. Sin esto, la racha se
 // parte en dos y o se pierde la larga o se cobra el goteo dos veces.
-function foldRacha(g, userJid) {
-  const key = canonicalJid(userJid);
-  const partes = [];
-  const extra = [];
-  if (g[key] && typeof g[key] === 'object') partes.push(g[key]);
-  const keyEsLid = typeof key === 'string' && key.endsWith('@lid');
-  for (const k of Object.keys(g)) {
-    if (k === key) continue;
-    if (!keyEsLid && !k.endsWith('@lid')) continue;
-    if (canonicalJid(k) !== key) continue;
-    if (g[k] && typeof g[k] === 'object') partes.push(g[k]);
-    extra.push(k);
-  }
-  if (partes.length <= 1) {
-    if (partes.length === 1 && g[key] === undefined) {
-      g[key] = partes[0];
-      if (extra[0]) delete g[extra[0]];
-      scheduleSave();
-    }
-    return key;
-  }
+//
+// Encontrarlas es cosa de utils/persona.js. Lo de aqui es como se juntan dos
+// fichas: el dia que se esta contando es el mas nuevo (y si las dos cuentan el
+// mismo, sus mensajes se suman), la racha es la mas larga y el ultimo dia que
+// conto, el mas reciente.
+function combinarRacha(partes) {
   const merged = { dia: null, msgs: 0, dias: 0, ultimo: null };
   for (const p of partes) {
     if (!merged.dia || (p.dia && p.dia > merged.dia)) {
@@ -94,10 +79,13 @@ function foldRacha(g, userJid) {
     merged.dias = Math.max(merged.dias, p.dias || 0);
     if (!merged.ultimo || (p.ultimo && p.ultimo > merged.ultimo)) merged.ultimo = p.ultimo;
   }
-  for (const k of extra) delete g[k];
-  g[key] = merged;
-  scheduleSave();
-  return key;
+  return merged;
+}
+
+function foldRacha(g, userJid) {
+  const { clave, cambio } = juntarPersona(g, userJid, combinarRacha, { valido: esObjeto });
+  if (cambio) scheduleSave();
+  return clave;
 }
 
 // El día al que pertenece un instante. Es el día del bot entero (DIA), no uno

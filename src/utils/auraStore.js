@@ -1,5 +1,6 @@
 const path = require('path');
 const { canonicalJid } = require('./wa');
+const { juntarPersona, agruparPorPersona, sumar, elMayor } = require('./persona');
 const { readJsonOrEnoent, createDebouncedSaver } = require('./helpers');
 const logger = require('./logger');
 
@@ -235,36 +236,41 @@ function scheduleSave() { saver.schedule(); }
 // @lid antes de que WhatsApp mandara el par acaba con dos saldos: el viejo se
 // vuelve invisible (aura perdida) y en el ranking sale dos veces.
 //
-// El saldo unido NO es la suma a secas: cada entrada partida arrancó por su
-// cuenta en STARTING_AURA, así que hay que descontar ese arranque de más una
-// vez por cada entrada sobrante. Con dos entradas de 1000 (el arranque) el
-// resultado es 1000, no 2000.
+// Encontrar las formas de la persona es comun a todo el bot (utils/persona.js).
+// Lo que es de aqui es COMO SE JUNTAN, y cada mapa tiene su regla:
 //
+//   · el SALDO no se suma a secas: cada entrada partida arranco por su cuenta
+//     en STARTING_AURA, asi que se descuenta ese arranque una vez por cada
+//     entrada sobrante. Con dos entradas de 1000 (el arranque) sale 1000, no
+//     2000. Y el suelo es lo que ya tenian: dos de 20 no dan -110.
+//   · la CAJA si se suma a secas: lo guardado empieza en cero, no en el
+//     arranque. Aqui se usaba la regla del saldo y 300 + 200 guardados salian
+//     350: 150 de aura desaparecian al juntar.
+//   · la hora del ultimo cierre de la caja se queda con la mas reciente, que es
+//     la que manda en el enfriamiento.
+function combinarSaldo(partes) {
+  const total = partes.reduce((a, b) => a + b, 0);
+  const fusionado = total - STARTING_AURA * (partes.length - 1);
+  return Math.max(fusionado, Math.min(...partes));
+}
+
 // Devuelve la clave canónica, ya con todo dentro y las sobrantes borradas.
 function foldPerson(g, userJid) {
-  const key = canonicalJid(userJid);
-  const partes = [];
-  if (g[key] !== undefined) partes.push(g[key]);
-  const keyEsLid = typeof key === 'string' && key.endsWith('@lid');
-  for (const k of Object.keys(g)) {
-    if (k === key) continue;
-    if (!keyEsLid && !k.endsWith('@lid')) continue;
-    if (canonicalJid(k) !== key) continue;
-    partes.push(g[k]);
-    delete g[k];
-  }
-  if (partes.length <= 1) {
-    if (partes.length === 1 && g[key] === undefined) g[key] = partes[0];
-    return key;
-  }
-  const total = partes.reduce((a, b) => a + b, 0);
-  const duplicados = partes.length - 1;
-  const fusionado = total - STARTING_AURA * duplicados;
-  // Dos identidades ya por debajo del arranque (20+20) daban -110. El suelo
-  // es lo que ya tenían, no un agujero inventado.
-  g[key] = Math.max(fusionado, Math.min(...partes));
-  scheduleSave();
-  return key;
+  const { clave, cambio } = juntarPersona(g, userJid, combinarSaldo);
+  if (cambio) scheduleSave();
+  return clave;
+}
+
+function foldCaja(z, userJid) {
+  const { clave, cambio } = juntarPersona(z, userJid, sumar);
+  if (cambio) scheduleSave();
+  return clave;
+}
+
+function foldCierre(ts, userJid) {
+  const { clave, cambio } = juntarPersona(ts, userJid, elMayor);
+  if (cambio) scheduleSave();
+  return clave;
 }
 
 async function getAura(groupJid, userJid) {
@@ -410,14 +416,15 @@ function tsDe(groupJid) {
 async function verCaja(groupJid, userJid) {
   await load();
   const z = cajaDe(groupJid);
-  const key = foldPerson(z, userJid);
+  const key = foldCaja(z, userJid);
   return z[key] || 0;
 }
 
 // Cuanto falta para poder volver a guardar. 0 = ya puede.
 async function esperaCaja(groupJid, userJid) {
   await load();
-  const t = tsDe(groupJid)[canonicalJid(userJid)] || 0;
+  const ts = tsDe(groupJid);
+  const t = ts[foldCierre(ts, userJid)] || 0;
   return Math.max(0, CAJA.enfriamientoMs - (Date.now() - t));
 }
 
@@ -431,12 +438,12 @@ async function meterEnCaja(groupJid, userJid, cuanto) {
     if (!(n >= CAJA.minimoGuardar)) return { ok: false, motivo: 'minimo' };
 
     const ts = tsDe(groupJid);
-    const kTs = canonicalJid(userJid);
+    const kTs = foldCierre(ts, userJid);
     const espera = CAJA.enfriamientoMs - (Date.now() - (ts[kTs] || 0));
     if (espera > 0) return { ok: false, motivo: 'enfriamiento', espera };
 
     const z = cajaDe(groupJid);
-    const kZ = foldPerson(z, userJid);
+    const kZ = foldCaja(z, userJid);
     const dentro = z[kZ] || 0;
     const hueco = CAJA.capacidad - dentro;
     if (hueco <= 0) return { ok: false, motivo: 'lleno', dentro };
@@ -467,7 +474,7 @@ async function sacarDeCaja(groupJid, userJid, cuanto) {
   const qKey = `${groupJid}|${canonicalJid(userJid)}`;
   return serialized(qKey, () => {
     const z = cajaDe(groupJid);
-    const kZ = foldPerson(z, userJid);
+    const kZ = foldCaja(z, userJid);
     const dentro = z[kZ] || 0;
     if (dentro <= 0) return { ok: false, motivo: 'vacio' };
 
@@ -504,7 +511,7 @@ async function forzarCaja(groupJid, victimaJid, fraccion) {
   const qKey = `${groupJid}|${canonicalJid(victimaJid)}`;
   return serialized(qKey, () => {
     const z = cajaDe(groupJid);
-    const kZ = foldPerson(z, victimaJid);
+    const kZ = foldCaja(z, victimaJid);
     const dentro = z[kZ] || 0;
     if (dentro <= 0) return { ok: false, sacado: 0, dentro: 0 };
     const sacado = Math.min(dentro, Math.max(1, Math.floor(dentro * fraccion)));
@@ -550,11 +557,11 @@ async function pagarConCaja(groupJid, userJid, precio, impuesto, minimo = 0) {
       store[groupJid][kA] = saldo - n;
       scheduleSave();
       return { ok: true, suelto: n, bruto: 0, cubierto: 0, impuestoPagado: 0,
-        dentro: cajaDe(groupJid)[canonicalJid(userJid)] || 0, current: store[groupJid][kA] };
+        dentro: cajaDe(groupJid)[foldCaja(cajaDe(groupJid), userJid)] || 0, current: store[groupJid][kA] };
     }
 
     const z = cajaDe(groupJid);
-    const kZ = foldPerson(z, userJid);
+    const kZ = foldCaja(z, userJid);
     const dentro = z[kZ] || 0;
     if (dentro <= 0) return { ok: false, motivo: 'vacio', dentro: 0, saldo };
     const bruto = Math.ceil(faltan / (1 - impuesto));
@@ -578,29 +585,19 @@ async function getAuraRanking(groupJid) {
   // Une las formas de cada persona antes de ordenar: si no, el mismo miembro
   // sale dos veces y la fila del @lid pinta un número interno que WhatsApp no
   // resuelve como mención.
-  const por = new Map(); // clave canónica -> { jid, aura, extras }
-  for (const k in g) {
-    const id = canonicalJid(k);
-    // EL REPRESENTANTE ES LA FORMA CANONICA, NO LA CLAVE CRUDA.
-    //
-    // Aqui se guardaba `k` tal cual y solo se cambiaba si aparecia una segunda
-    // forma sin @lid. O sea que a quien tenia UN SOLO monton guardado bajo su
-    // @lid —lo normal si acumulo aura antes de que el bot aprendiera su
-    // telefono, que es lo que pasa tras cada reinicio en un grupo LID— el
-    // ranking le pintaba el @lid en crudo: un numero que no es de nadie, que
-    // WhatsApp no convierte en nombre y que ademas no le notifica.
-    //
-    // canonicalJid ya devuelve el telefono en cuanto se conoce la pareja, asi
-    // que basta con preferirlo. El @lid solo sobrevive cuando de verdad no se
-    // sabe el telefono. Es exactamente lo que hace mergeByPerson en
-    // messageCounter, donde este mismo fallo se corrigio y aqui se quedo: por
-    // eso !count mencionaba bien y !top no, con los mismos datos delante.
-    const rep = id.endsWith('@lid') ? k : id;
-    const prev = por.get(id);
-    if (!prev) { por.set(id, { jid: rep, aura: g[k], extras: 0 }); continue; }
-    prev.aura += g[k];
-    prev.extras++;
-    if (!rep.endsWith('@lid')) prev.jid = rep; // el teléfono es el que se puede mencionar
+  //
+  // EL REPRESENTANTE ES LA FORMA CANONICA, NO LA CLAVE CRUDA (el telefono en
+  // cuanto se sabe): un @lid en el ranking es un numero que no es de nadie, que
+  // WhatsApp no convierte en nombre y que ademas no le notifica. Por eso !count
+  // mencionaba bien y !top no, con los mismos datos delante. Ahora los dos
+  // agrupan con la misma pieza (utils/persona.js).
+  //
+  // Y el saldo de quien esta partido se junta con la MISMA regla que getAura:
+  // antes el top restaba el arranque sin el suelo, y con dos entradas de 100 el
+  // top decia 50 y el saldo 100.
+  const por = new Map(); // clave canónica -> { jid, aura }
+  for (const [id, { rep, claves }] of agruparPorPersona(Object.keys(g))) {
+    por.set(id, { jid: rep, aura: claves.length === 1 ? g[claves[0]] : combinarSaldo(claves.map((c) => g[c])) });
   }
   // LO GUARDADO CUENTA PARA EL RANKING, y esa es la mitad del diseño de la caja.
   //
@@ -613,15 +610,15 @@ async function getAuraRanking(groupJid) {
   // mas rico del grupo, con una diana igual de grande, solo que lo que tienes
   // guardado no te lo pueden tocar.
   const escondido = store[CLAVE_CAJA]?.[groupJid] || {};
-  for (const k in escondido) {
-    const id = canonicalJid(k);
+  for (const [id, { rep, claves }] of agruparPorPersona(Object.keys(escondido))) {
+    const guardado = sumar(claves.map((c) => escondido[c]));
     const prev = por.get(id);
-    if (prev) prev.aura += escondido[k];
-    else por.set(id, { jid: id.endsWith('@lid') ? k : id, aura: STARTING_AURA + escondido[k], extras: 0 });
+    if (prev) prev.aura += guardado;
+    else por.set(id, { jid: rep, aura: STARTING_AURA + guardado });
   }
 
   return [...por.values()]
-    .map(({ jid, aura, extras }) => ({ jid, aura: aura - STARTING_AURA * extras }))
+    .map(({ jid, aura }) => ({ jid, aura }))
     // Fuera los que estan a cero o en rojo. Un top es de los que van ganando;
     // rellenarlo con gente a 0 solo alarga la lista y no dice nada de nadie.
     .filter((r) => r.aura > 0)

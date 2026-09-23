@@ -11,7 +11,8 @@ const { PRECIOS, SALDO_MINIMO, OBJETOS, DIA, CAJA, ADMIN } = require('./economia
 // que quede claro que este modulo depende del inventario.
 const { tieneSocio, aportarAlBote } = require('./roboStore');
 const { fmt, pickFresh, claveDia } = require('./helpers');
-const { isOwner, isGroupAdmin, canonicalJid } = require('./wa');
+const { isOwner, isGroupAdmin } = require('./wa');
+const { clavesMapa, juntarEnMapa, sumar } = require('./persona');
 const logger = require('./logger');
 
 // Intenta cobrar `concepto` al remitente. Devuelve:
@@ -32,27 +33,32 @@ let diaUsos = null;
 // no es cuando cambia el dia para este grupo.
 const hoyClave = () => claveDia(Date.now(), DIA.zona, DIA.horaCorte);
 
+// La cuenta de la persona, con lo que llevara con su otra forma ya sumado: si
+// el bot aprende su telefono a media tarde, las tres de precio normal no se
+// vuelven a estrenar (utils/persona.js).
+const cuentaDe = (groupJid, senderJid, concepto) =>
+  juntarEnMapa(usos, clavesMapa(`${groupJid}|`, senderJid, `|${concepto}`), sumar);
+
 function apuntarUso(groupJid, senderJid, concepto) {
   const hoy = hoyClave();
   if (diaUsos !== hoy) { usos.clear(); diaUsos = hoy; }
-  const k = `${groupJid}|${canonicalJid(senderJid)}|${concepto}`;
-  const n = (usos.get(k) || 0) + 1;
-  usos.set(k, n);
+  const { clave, valor } = cuentaDe(groupJid, senderJid, concepto);
+  const n = (valor || 0) + 1;
+  usos.set(clave, n);
   return n;
 }
 
 function descontarUso(groupJid, senderJid, concepto) {
   if (diaUsos !== hoyClave()) return;
-  const k = `${groupJid}|${canonicalJid(senderJid)}|${concepto}`;
-  const n = usos.get(k);
-  if (n > 1) usos.set(k, n - 1); else usos.delete(k);
+  const { clave, valor } = cuentaDe(groupJid, senderJid, concepto);
+  if (valor > 1) usos.set(clave, valor - 1); else usos.delete(clave);
 }
 
 // Cuantas le quedan a precio normal. Lo usa el texto de "no te llega" para
 // explicar por que hoy le sale mas caro que ayer.
 function usosDe(groupJid, senderJid, concepto) {
   if (diaUsos !== hoyClave()) return 0;
-  return usos.get(`${groupJid}|${canonicalJid(senderJid)}|${concepto}`) || 0;
+  return cuentaDe(groupJid, senderJid, concepto).valor || 0;
 }
 
 async function cobrar(groupJid, senderJid, concepto, { fromMe = false, groupMeta = null } = {}) {

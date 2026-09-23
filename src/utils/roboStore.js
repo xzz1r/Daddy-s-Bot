@@ -14,7 +14,8 @@
 //   } }
 
 const path = require('path');
-const { canonicalJid } = require('./wa');
+const { canonicalJid, sameUser } = require('./wa');
+const { juntarPersona, esObjeto } = require('./persona');
 const { readJsonOrEnoent, createDebouncedSaver } = require('./helpers');
 const { OBJETOS } = require('./economia');
 const logger = require('./logger');
@@ -86,35 +87,17 @@ async function flushRobo() {
 
 // Junta inventario LID/teléfono. Sin esto, el escudo comprado bajo @lid
 // desaparece al resolverse el teléfono y se puede volver a pagar.
-function foldObjetos(objetos, persona) {
-  const key = canonicalJid(persona);
-  if (!objetos || typeof objetos !== 'object') return key;
-  const partes = [];
-  const extra = [];
-  if (objetos[key] && typeof objetos[key] === 'object') partes.push(objetos[key]);
-  const keyEsLid = typeof key === 'string' && key.endsWith('@lid');
-  for (const k of Object.keys(objetos)) {
-    if (k === key) continue;
-    if (!keyEsLid && !k.endsWith('@lid')) continue;
-    if (canonicalJid(k) !== key) continue;
-    if (objetos[k] && typeof objetos[k] === 'object') partes.push(objetos[k]);
-    extra.push(k);
-  }
-  if (partes.length <= 1) {
-    if (partes.length === 1 && objetos[key] === undefined) {
-      objetos[key] = partes[0];
-      if (extra[0]) delete objetos[extra[0]];
-      scheduleSave();
-    }
-    return key;
-  }
+//
+// Encontrar las dos formas es cosa de utils/persona.js; lo de aqui es como se
+// juntan dos inventarios: los usos (ganzúa, amuleto, seguro) se suman, y las
+// caducidades y marcas de tiempo se quedan con la más lejana, que es la que
+// todavía protege.
+function combinarObjetos(partes) {
   const merged = {};
   for (const o of partes) {
     for (const [campo, valor] of Object.entries(o)) {
       if (valor == null) continue;
       if (typeof valor !== 'number') { merged[campo] = valor; continue; }
-      // Usos (ganzúa, amuleto, seguro): se suman. Caducidades y marcas de
-      // tiempo: se queda la más lejana, que es la que todavía protege.
       if (CON_USOS.has(campo)) {
         merged[campo] = (merged[campo] || 0) + valor;
       } else {
@@ -122,10 +105,13 @@ function foldObjetos(objetos, persona) {
       }
     }
   }
-  for (const k of extra) delete objetos[k];
-  objetos[key] = merged;
-  scheduleSave();
-  return key;
+  return merged;
+}
+
+function foldObjetos(objetos, persona) {
+  const { clave, cambio } = juntarPersona(objetos, persona, combinarObjetos, { valido: esObjeto });
+  if (cambio) scheduleSave();
+  return clave;
 }
 
 function grupo(g) {
@@ -387,10 +373,26 @@ async function anotarGolpe(g, quien, cuanto, premio = 0) {
   scheduleSave();
 }
 
+// Poda lo que ya salio de la semana y pone cada golpe a nombre de la forma
+// canonica de quien lo dio.
+//
+// LO SEGUNDO ES LO QUE SOSTIENE LA RECOMPENSA. Un golpe se apunta con la forma
+// que tenia el ladron EN ESE MOMENTO: si robo con su @lid y luego el bot
+// aprendio su telefono, esos golpes se quedaban a nombre de alguien que ya no
+// existe. Medido: 120 de recompensa por su cabeza se quedaban en 0 al mirarla,
+// el ladron salia DOS veces en *!buscados* y al cazarlo se cobraba solo la
+// mitad nueva. Se renombran aqui porque por aqui pasa toda lectura.
 function podar(x) {
   const corte = Date.now() - VENTANA_RANKING_MS;
   x.golpes = x.golpes.filter(gp => gp && gp.ts > corte);
   if (x.golpes.length > MAX_GOLPES) x.golpes = x.golpes.slice(-MAX_GOLPES);
+  let renombrados = false;
+  for (const gp of x.golpes) {
+    if (!String(gp.quien).endsWith('@lid')) continue;
+    const c = canonicalJid(gp.quien);
+    if (c !== gp.quien) { gp.quien = c; renombrados = true; }
+  }
+  if (renombrados) scheduleSave();
 }
 
 // Ranking de la semana: quién ha robado más aura, no quién ha robado más veces.
@@ -421,8 +423,7 @@ async function recompensaDe(g, quien) {
   await load();
   const x = grupo(g);
   podar(x);
-  const k = canonicalJid(quien);
-  return x.golpes.reduce((acc, gp) => acc + (gp.quien === k ? (gp.premio || 0) : 0), 0);
+  return x.golpes.reduce((acc, gp) => acc + (sameUser(gp.quien, quien) ? (gp.premio || 0) : 0), 0);
 }
 
 // Se cobra la cabeza: devuelve lo que habia y lo deja a cero.
@@ -430,10 +431,9 @@ async function cobrarRecompensa(g, quien) {
   await load();
   const x = grupo(g);
   podar(x);
-  const k = canonicalJid(quien);
   let total = 0;
   for (const gp of x.golpes) {
-    if (gp.quien === k && gp.premio) { total += gp.premio; gp.premio = 0; }
+    if (gp.premio && sameUser(gp.quien, quien)) { total += gp.premio; gp.premio = 0; }
   }
   if (total) scheduleSave();
   return total;

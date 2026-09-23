@@ -35,6 +35,7 @@ const { aviso } = require('../utils/helpers');
 const logger = require('../utils/logger');
 const { bloqueCooldown, lineaAura, tiempoRestante } = require('../utils/formatoJuego');
 const rencor = require('../utils/rencor');
+const { clavesMapa, juntarEnMapa } = require('../utils/persona');
 
 // La escala vive en utils/economia.js. Aqui solo el cooldown, que es de ritmo
 // de juego y no de economia.
@@ -77,6 +78,23 @@ const lastRob = new Map(); // `${groupJid}|${canonicalJid}` -> timestamp
 // darle una pulla sobre la entrada al bote de un comando que no ha usado.
 // Se vacia con la misma llave que lastRob, asi que no crece por su cuenta.
 const ultimoFueAsalto = new Set();
+
+// La llave del reloj del robo, con las dos formas de la persona ya juntas
+// (utils/persona.js): si el bot aprende su telefono entre dos robos, la espera
+// que empezo con el @lid sigue contando. La marca de «fue un asalto» viaja con
+// el reloj mas reciente, que es el que manda.
+function llaveRobo(jid, sender) {
+  const claves = clavesMapa(`${jid}|`, sender);
+  let masNueva = null;
+  for (const k of claves) {
+    if (lastRob.has(k) && (masNueva === null || lastRob.get(k) > lastRob.get(masNueva))) masNueva = k;
+  }
+  const asalto = masNueva !== null && ultimoFueAsalto.has(masNueva);
+  const { clave } = juntarEnMapa(lastRob, claves);
+  for (const k of claves) ultimoFueAsalto.delete(k);
+  if (asalto) ultimoFueAsalto.add(clave);
+  return clave;
+}
 
 // El amaño del owner y su techo de racha viven en utils/rigOwner.js, y el
 // contador es COMPARTIDO con el duelo y el mog: el grupo ve las cinco dinamicas
@@ -274,9 +292,10 @@ function ajustarProbabilidad(base, { grupo, ladron, victima, stake, maxStake, es
 }
 
 // ¿Está la víctima protegida por un robo reciente? Devuelve los minutos que
-// quedan, o 0 si se le puede robar.
+// quedan, o 0 si se le puede robar. La víctima llega tal cual, sin canonizar:
+// asi se encuentra tambien el escudo que se le puso con su otra forma.
 function escudoRestante(grupo, victima) {
-  const hasta = robadoHasta.get(`${grupo}|${victima}`) || 0;
+  const hasta = juntarEnMapa(robadoHasta, clavesMapa(`${grupo}|`, victima)).valor || 0;
   const queda = hasta - Date.now();
   return queda > 0 ? Math.ceil(queda / 60000) : 0;
 }
@@ -378,7 +397,7 @@ async function asaltarBote(sock, msg, jid, sender, groupMeta) {
   // su vida— leía que el asalto estaba en espera y una pulla sobre la entrada
   // al bote. Eso no se lee como una regla: se lee como que el bot se ha
   // equivocado de comando. Es lo primero que el dueño llamó «bugeado».
-  const coolKey = `${jid}|${canonicalJid(sender)}`;
+  const coolKey = llaveRobo(jid, sender);
   const desde = lastRob.get(coolKey) || 0;
   const queda = ROB_COOLDOWN_MS - (Date.now() - desde);
   if (queda > 0) {
@@ -613,8 +632,11 @@ function anotarParaContra(grupo, victima, ladron, cuanto) {
 }
 
 async function contraatacar(sock, msg, jid, sender, groupMeta) {
-  const k = `${jid}|${canonicalJid(sender)}`;
-  const p = pendienteContra.get(k);
+  // Con las dos formas de la victima: el robo pudo apuntarse con su @lid y la
+  // respuesta llegar cuando el bot ya sabe su telefono. Si hay dos, el robo
+  // mas reciente.
+  const { clave: k, valor: p } = juntarEnMapa(pendienteContra, clavesMapa(`${jid}|`, sender),
+    (vs) => vs.reduce((a, b) => (b.ts > a.ts ? b : a)));
   const v = tag(sender);
 
   if (!p || Date.now() - p.ts > CONTRA.ventanaSeg * 1000) {
@@ -983,7 +1005,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   }
 
   // Cooldown por atacante y grupo. La cifra es ROB_COOLDOWN_MS.
-  const coolKey = `${jid}|${canonicalJid(sender)}`;
+  const coolKey = llaveRobo(jid, sender);
   const last = lastRob.get(coolKey) || 0;
   const remaining = ROB_COOLDOWN_MS - (Date.now() - last);
   if (remaining > 0) {
@@ -1015,7 +1037,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
     }, { quoted: msg });
   }
 
-  const escudo = escudoRestante(jid, canonicalJid(target));
+  const escudo = escudoRestante(jid, target);
   if (escudo > 0) {
     return sock.sendMessage(jid, {
       text: bloqueCooldown({
@@ -1121,7 +1143,7 @@ async function cmdRobo(sock, msg, args, groupMeta) {
   // Diana: el nº1 de la semana esta mas en guardia pero paga mas. El bono de
   // botin se aplica abajo, sobre el monto.
   const buscado = await tienda.masBuscado(jid);
-  const esDiana = Boolean(buscado && canonicalJid(target) === buscado.jid);
+  const esDiana = Boolean(buscado && sameUser(target, buscado.jid));
   if (esDiana) {
     chanceFinal = Math.max(ROBO_LIMITES.suelo, chanceFinal + DIANA.bonoProbabilidad);
     motivos.push('el más buscado va avisado');

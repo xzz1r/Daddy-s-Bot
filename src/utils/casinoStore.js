@@ -1,5 +1,5 @@
 const path = require('path');
-const { canonicalJid } = require('./wa');
+const { juntarPersona, clavesDe, sumaPersona, sumar } = require('./persona');
 const { DIA } = require('./economia');
 const { readJsonOrEnoent, claveDia, msHastaCorte: msHastaCorteDia, createDebouncedSaver } = require('./helpers');
 const logger = require('./logger');
@@ -120,12 +120,12 @@ function freshBucket(groupJid) {
 // solo y sin ningún temporizador.
 async function contarTirada(groupJid, userJid) {
   await load();
-  const key = canonicalJid(userJid);
   const g = freshBucket(groupJid);
-  // Misma persona, mismas tiradas: si no se colapsan, un @lid y un teléfono
+  // Misma persona, mismas tiradas: si no se juntan, un @lid y un teléfono
   // dan hasta el doble de tiradas de pago al día.
-  const n = colapsar(g.tiradas, key) + 1;
-  g.tiradas[key] = n;
+  const { clave } = juntarPersona(g.tiradas, userJid, sumar);
+  const n = (Number(g.tiradas[clave]) || 0) + 1;
+  g.tiradas[clave] = n;
   scheduleSave();
   return n;
 }
@@ -136,15 +136,7 @@ async function tiradasDeHoy(groupJid, userJid) {
   const g = store[groupJid];
   if (!g || typeof g.dia !== 'string' || !g.tiradas) return 0;
   if (g.dia !== diaDe(Date.now())) return 0;
-  const key = canonicalJid(userJid);
-  let total = 0;
-  const keyEsLid = typeof key === 'string' && key.endsWith('@lid');
-  for (const k in g.tiradas) {
-    if (k === key) { total += g.tiradas[k]; continue; }
-    if (!keyEsLid && !String(k).endsWith('@lid')) continue;
-    if (canonicalJid(k) === key) total += g.tiradas[k];
-  }
-  return total;
+  return sumaPersona(g.tiradas, userJid);
 }
 
 // ─── Hitos ya cobrados hoy ───────────────────────────────────────────────────
@@ -162,73 +154,53 @@ async function tiradasDeHoy(groupJid, userJid) {
 // reinicia solo con la ventana y sin ningun temporizador.
 //
 // Se guarda la lista de cobrados y no un simple "el ultimo": si el contador da
-// un salto (colapsar junta dos formas de la misma persona de golpe), con un
+// un salto (al juntar dos formas de la misma persona de golpe), con un
 // "ultimo" se perderia el hito saltado para siempre; con la lista, el siguiente
 // mensaje lo cobra igual.
+//
+// Los hitos de dos formas de la misma persona se juntan por UNION: lo cobrado
+// con el @lid esta cobrado tambien con el telefono.
+const unirHitos = (listas) => [...new Set(listas.flat())].sort((a, b) => a - b);
+const esLista = (v) => Array.isArray(v);
+
+// Solo lectura: lo cobrado con cualquiera de sus formas.
 async function hitosCobrados(groupJid, userJid) {
   await load();
   const g = store[groupJid];
   if (!g || typeof g.dia !== 'string' || !g.hitos) return [];
   if (g.dia !== diaDe(Date.now())) return [];
-  return g.hitos[canonicalJid(userJid)] || [];
+  const { claves } = clavesDe(g.hitos, userJid);
+  return unirHitos(claves.map((k) => g.hitos[k]).filter(esLista));
 }
 
 async function apuntarHito(groupJid, userJid, hito) {
   await load();
-  const key = canonicalJid(userJid);
   const g = freshBucket(groupJid);
-  const ya = g.hitos[key] || [];
+  const { clave } = juntarPersona(g.hitos, userJid, unirHitos, { valido: esLista });
+  const ya = esLista(g.hitos[clave]) ? g.hitos[clave] : [];
   if (ya.includes(hito)) return false;   // ya estaba: no se paga dos veces
-  g.hitos[key] = [...ya, hito];
+  g.hitos[clave] = [...ya, hito];
   scheduleSave();
   return true;
 }
 
-// Junta lo que la misma persona tenga anotado bajo varias formas y lo deja en
-// una sola clave canónica. Sin esto, quien llega unas veces por @lid y otras
-// por teléfono partía su cuenta diaria en dos montones: los hitos de 200/500/
-// 1000 se retrasaban (o, peor, se cobraban dos veces, uno por cada montón).
-//
-// Es el mismo criterio que messageCounter y auraStore: la clave es canonicalJid.
-function colapsar(counts, key) {
-  let total = counts[key] || 0;
-  const keyEsLid = typeof key === 'string' && key.endsWith('@lid');
-  for (const k in counts) {
-    if (k === key) continue;
-    // Sin un @lid de por medio no hay dos formas de la misma persona: nos
-    // ahorramos canonicalJid en cada clave, en cada mensaje.
-    if (!keyEsLid && !String(k).endsWith('@lid')) continue;
-    if (canonicalJid(k) !== key) continue;
-    total += counts[k];
-    delete counts[k];
-  }
-  return total;
-}
-
+// Quien llega unas veces por @lid y otras por teléfono partía su cuenta diaria
+// en dos montones: los hitos de 200/500/1000 se retrasaban (o, peor, se
+// cobraban dos veces, uno por cada montón). Las dos formas se juntan con la
+// pieza comun (utils/persona.js), la misma que el aura, la racha y el robo.
 async function incrementCasinoCount(groupJid, userJid) {
   await load();
-  const key = canonicalJid(userJid);
   const g = freshBucket(groupJid);
-  const next = colapsar(g.counts, key) + 1;
-  g.counts[key] = next;
-  // LOS HITOS SE COLAPSAN CON LOS CONTADORES, no despues ni por separado.
+  const { clave } = juntarPersona(g.counts, userJid, sumar);
+  const next = (Number(g.counts[clave]) || 0) + 1;
+  g.counts[clave] = next;
+  // LOS HITOS SE JUNTAN CON LOS CONTADORES, no despues ni por separado.
   //
   // Si una persona llega unas veces por @lid y otras por telefono, sus dos
   // montones se funden aqui — y si el recuerdo de lo cobrado se quedara en el
   // monton que se borra, el bono del dia se volveria a pagar entero bajo la
   // clave nueva. Se juntan los dos lados y gana la union.
-  {
-    const union = new Set(g.hitos[key] || []);
-    const keyEsLid = typeof key === 'string' && key.endsWith('@lid');
-    for (const k in g.hitos) {
-      if (k === key) continue;
-      if (!keyEsLid && !String(k).endsWith('@lid')) continue;
-      if (canonicalJid(k) !== key) continue;
-      for (const h of g.hitos[k]) union.add(h);
-      delete g.hitos[k];
-    }
-    if (union.size) g.hitos[key] = [...union].sort((a, b) => a - b);
-  }
+  juntarPersona(g.hitos, userJid, unirHitos, { valido: esLista });
   scheduleSave();
   return next;
 }
@@ -242,15 +214,7 @@ async function getCasinoCount(groupJid, userJid) {
   const g = store[groupJid];
   if (!g || typeof g.dia !== 'string' || !g.counts) return 0;
   if (g.dia !== diaDe(Date.now())) return 0;
-  const key = canonicalJid(userJid);
-  let total = 0;
-  const keyEsLid = typeof key === 'string' && key.endsWith('@lid');
-  for (const k in g.counts) {
-    if (k === key) { total += g.counts[k]; continue; }
-    if (!keyEsLid && !String(k).endsWith('@lid')) continue;
-    if (canonicalJid(k) === key) total += g.counts[k];
-  }
-  return total;
+  return sumaPersona(g.counts, userJid);
 }
 
 // Milliseconds until current window resets (0 if expired / unknown).

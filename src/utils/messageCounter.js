@@ -1,5 +1,6 @@
 const path = require('path');
 const { canonicalJid, rememberMapping } = require('./wa');
+const { agruparPorPersona, sumaPersona, sumar } = require('./persona');
 const { readJsonOrEnoent, createDebouncedSaver } = require('./helpers');
 const logger = require('./logger');
 
@@ -74,28 +75,14 @@ async function increment(groupJid, userJid, altJid = null) {
   scheduleSave();
 }
 
-// Agrupa las claves de un grupo por persona. Dos claves son la misma persona
-// exactamente cuando su canonicalJid coincide (es lo que hace sameUser por
-// dentro), así que agrupar por esa clave es equivalente y va en O(n) en vez de
-// comparar todas contra todas.
-//
-// Como representante se prefiere la forma de teléfono: es la que sirve para
-// mencionar, y los rankings pintan menciones.
+// Agrupa las claves de un grupo por persona y suma sus montones. El
+// representante es la forma de TELEFONO siempre que se sepa cual es: es la que
+// sirve para mencionar, y los rankings pintan menciones. El agrupado es el de
+// todo el bot (utils/persona.js), el mismo que usa el top del aura.
 function mergeByPerson(group) {
   const out = new Map(); // canonicalKey -> { jid, count }
-  for (const k in group) {
-    const id = canonicalJid(k);
-    // El representante es la forma de TELEFONO siempre que se sepa cual es, y
-    // por eso se prefiere `id` (ya canonizado) sobre la clave cruda: si la
-    // persona solo tiene un monton y esta guardado bajo su @lid, quedarse con
-    // la clave dejaba un "@919191919191" en el ranking — un numero que no es de
-    // nadie y que WhatsApp no sabe convertir en un nombre. El @lid solo
-    // sobrevive cuando de verdad no se conoce el telefono.
-    const rep = id.endsWith('@lid') ? k : id;
-    const prev = out.get(id);
-    if (!prev) { out.set(id, { jid: rep, count: group[k] }); continue; }
-    prev.count += group[k];
-    if (!rep.endsWith('@lid')) prev.jid = rep;
+  for (const [id, { rep, claves }] of agruparPorPersona(Object.keys(group))) {
+    out.set(id, { jid: rep, count: sumar(claves.map((k) => group[k])) });
   }
   return out;
 }
@@ -140,26 +127,13 @@ async function getActiveUsers(groupJid, minMessages = 10) {
   return out;
 }
 
+// Los montones viejos escritos bajo otra forma se suman todos: es la misma
+// persona, y sus mensajes son todos suyos.
 async function getUserCount(groupJid, userJid) {
   await load();
   const group = counts[groupJid];
   if (!group) return 0;
-  const key = canonicalJid(userJid);
-  // Camino rápido: la clave ya está canonizada y no hay ninguna otra forma suya
-  // suelta en el archivo. Es el caso normal una vez conocida la correspondencia.
-  const directo = group[key];
-  const keyEsLid = typeof key === 'string' && key.endsWith('@lid');
-  let total = 0, otras = 0;
-  for (const k in group) {
-    if (k === key) continue;
-    if (!keyEsLid && !String(k).endsWith('@lid')) continue;
-    if (canonicalJid(k) !== key) continue;
-    total += group[k];
-    otras++;
-  }
-  if (!otras) return directo || 0;
-  // Quedaban montones bajo una forma antigua: se suman todos.
-  return (directo || 0) + total;
+  return sumaPersona(group, userJid);
 }
 
 async function flushCounts() {

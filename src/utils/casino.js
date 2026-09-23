@@ -233,7 +233,7 @@ async function checkCasinoMilestone(sock, jid, sender) {
   // EL UMBRAL MAS BAJO QUE YA SE HA CRUZADO Y AUN NO SE HA COBRADO HOY.
   //
   // El mas bajo y no el mas alto a proposito: si el contador da un salto —
-  // colapsar junta dos formas de la misma persona de golpe— pueden quedar dos
+  // al juntar dos formas de la misma persona de golpe— pueden quedar dos
   // umbrales cruzados a la vez. Cobrando el mas bajo primero no se pierde
   // ninguno; el siguiente mensaje cobra el otro. Quedarse con el mas alto
   // regalaria el de abajo, y saltar los dos de una vez soltaria dos avisos

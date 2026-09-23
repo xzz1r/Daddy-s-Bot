@@ -105,6 +105,12 @@ function bareJid(j) {
 // even in DMs where we have no metadata to look up.
 const lidToPhone = new Map();
 const MAX_LID_CACHE = 2000;
+// Y el camino de vuelta, telefono -> @lid, con las mismas parejas. Lo usa
+// utils/persona.js para encontrar lo que alguien dejo apuntado con su @lid
+// cuando ahora llega por su telefono (una mencion, un privado). Se toca en los
+// mismos sitios que el otro, alta y desalojo, asi que nunca guarda una pareja
+// que el de ida ya no tiene.
+const phoneToLid = new Map();
 
 // Y se guardan en disco, no solo en memoria.
 //
@@ -124,7 +130,10 @@ try {
   const obj = JSON.parse(fs.readFileSync(LID_MAP_FILE, 'utf8'));
   if (obj && typeof obj === 'object') {
     for (const [k, v] of Object.entries(obj)) {
-      if (k.endsWith('@lid') && typeof v === 'string' && !v.endsWith('@lid')) lidToPhone.set(k, v);
+      if (k.endsWith('@lid') && typeof v === 'string' && !v.endsWith('@lid')) {
+        lidToPhone.set(k, v);
+        phoneToLid.set(v, k);
+      }
     }
   }
 } catch { /* ENOENT o JSON invalido: se empieza vacio y se re-aprende solo */ }
@@ -162,11 +171,15 @@ function rememberMapping(lid, phone) {
   // acaba tirando mapeos que se están usando cada minuto mientras conserva
   // otros vistos una vez y nunca más.
   const yaEstaba = lidToPhone.get(k) === v;
-  if (lidToPhone.has(k)) lidToPhone.delete(k);
-  else if (lidToPhone.size >= MAX_LID_CACHE) {
-    lidToPhone.delete(lidToPhone.keys().next().value);
-  }
+  const suelta = (lid) => {
+    const tel = lidToPhone.get(lid);
+    if (phoneToLid.get(tel) === lid) phoneToLid.delete(tel);
+    lidToPhone.delete(lid);
+  };
+  if (lidToPhone.has(k)) suelta(k);
+  else if (lidToPhone.size >= MAX_LID_CACHE) suelta(lidToPhone.keys().next().value);
   lidToPhone.set(k, v);
+  phoneToLid.set(v, k);
   // Solo se guarda cuando el par es NUEVO. Reordenar el LRU pasa en cada
   // mensaje y programar un guardado por cada uno seria escribir el fichero
   // entero cada cinco segundos para nada.
@@ -216,6 +229,12 @@ function canonicalJid(jid) {
     if (phone) return phone;
   }
   return bare;
+}
+
+// El @lid de un telefono, si el bot lo sabe. null si no.
+function lidDe(jid) {
+  if (!jid) return null;
+  return phoneToLid.get(bareJid(jid)) || null;
 }
 
 // True when two JIDs refer to the same person, bridging LID↔phone through the
@@ -822,6 +841,7 @@ module.exports = {
   flushLidMap,
   bareJid,
   canonicalJid,
+  lidDe,
   sameUser,
   participantePorJid,
 };

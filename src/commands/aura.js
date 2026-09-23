@@ -18,6 +18,7 @@ const { objetivoDelDia, esObjetivoDelDia, diaClave } = require('../utils/objetiv
 const { ownerGana } = require('../utils/rigOwner');
 const { SIN_PERMISO, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
+const { clavesMapa, juntarEnMapa } = require('../utils/persona');
 
 // SUBIDO desde minuto y medio por decision del owner. La cifra esta abajo, en
 // la constante, y NO se repite aqui: este comentario decia "QUINCE MINUTOS"
@@ -990,7 +991,10 @@ async function jugarApuesta(sock, msg, groupMeta, args) {
   if (auraApagada(jid)) return avisarApagada(sock, jid, msg);
 
   const sender = getSender(msg);
-  const clave = `${jid}|${canonicalJid(sender)}`;
+  // La clave canonica, con el reloj de su otra forma ya dentro: si el bot
+  // aprende su telefono entre dos apuestas, la espera no se estrena de cero
+  // (utils/persona.js).
+  const { clave } = juntarEnMapa(ultimaApuesta, clavesMapa(`${jid}|`, sender));
   if (apuestaEnCurso.has(clave)) return;   // ya hay uno en vuelo
   apuestaEnCurso.add(clave);
 
@@ -1275,8 +1279,8 @@ async function cmdAura(sock, msg, args, groupMeta) {
   // dejar el marcador a oscuras.
   if (auraApagada(jid)) return avisarApagada(sock, jid, msg);
 
-  const coolKey = `${jid}|${canonicalJid(sender)}`;
-  const last = lastRoll.get(coolKey) || 0;
+  // Con las dos formas de la persona juntas, igual que la apuesta.
+  const { clave: coolKey, valor: last = 0 } = juntarEnMapa(lastRoll, clavesMapa(`${jid}|`, sender));
   const remaining = ROLL_COOLDOWN_MS - (Date.now() - last);
   if (remaining > 0) {
     return sock.sendMessage(jid, {

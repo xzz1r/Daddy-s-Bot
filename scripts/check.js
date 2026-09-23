@@ -19025,6 +19025,306 @@ const manda = async (quien, tipo, opciones) => {
       'actualizar.sh ya no repone temp/.gitkeep antes de mirar si hay cambios: una VPS donde ya se borro sigue sin poder desplegar');
     if (fallos === antes110) console.log(verde('   ✓ el barrido se lleva lo viejo y deja el .gitkeep, y el despliegue lo repone si falta'));
   }
+
+  // ── 111. UNA PERSONA, UNA HISTORIA: EL @lid Y EL TELÉFONO SON LA MISMA ──
+  //
+  // WhatsApp nombra a la misma persona con su @lid y con su telefono, y el bot
+  // aprende que son la misma cuando llega el par. Lo que se apunto antes con
+  // el @lid tiene que seguir siendo suyo despues. Aqui pasa CADA almacen por
+  // esa situacion —apuntar con una forma, aprender el par, leer con la otra—
+  // y con las cuentas exactas.
+  //
+  // Tres fallaban, medidos: el *!allow* acababa en BAN (el permiso se quedaba
+  // en el @lid y los avisos caian en el telefono), la caja perdia 150 al
+  // juntarse (300 + 200 guardados daban 350), y la recompensa por cabeza se
+  // quedaba en 0 con el ladron dos veces en *!buscados*. Todos juntan con la
+  // misma pieza (utils/persona.js), y esta capa es la que impide que un
+  // almacen nuevo vuelva a hacerse su propia copia a medias.
+  {
+    console.log('\n111. UNA PERSONA, UNA HISTORIA: EL @lid Y EL TELÉFONO SON LA MISMA');
+    const antes111 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const WA = require(path.join(R, 'src/utils/wa'));
+    const P = require(path.join(R, 'src/utils/persona'));
+    const A = require(path.join(R, 'src/utils/auraStore'));
+    const RS = require(path.join(R, 'src/utils/roboStore'));
+    const eco = require(path.join(R, 'src/utils/economia'));
+    const sello111 = `${Date.now()}`.slice(-6);
+    const G = `120363111${sello111}@g.us`;
+    let n111 = 0;
+    // Alguien nuevo: su @lid y su telefono, que el bot aun no sabe juntar.
+    const persona = () => {
+      n111++;
+      const k = String(n111).padStart(3, '0');
+      return { L: `1110${sello111}${k}@lid`, T: `346000951${k}@s.whatsapp.net` };
+    };
+    const iguales = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+    // ── 0. La pieza misma ─────────────────────────────────────────────────
+    {
+      const { L, T } = persona();
+      exige(iguales(P.formasDe(L), [L]), `sin el par, ${L} tiene formas ${JSON.stringify(P.formasDe(L))}`);
+      WA.rememberMapping(L, T);
+      exige(P.formasDe(L)[0] === T && P.formasDe(L).includes(L),
+        'con el par aprendido, las formas de un @lid no empiezan por el telefono o no traen el @lid');
+      exige(P.formasDe(T).includes(L),
+        'desde el telefono no se llega al @lid: lo apuntado con el @lid no se encuentra si la persona llega por su telefono');
+      const o = { [L]: 2, [T]: 3, otro: 7 };
+      const { clave } = P.juntarPersona(o, L, P.sumar);
+      exige(clave === T && o[T] === 5 && !(L in o) && o.otro === 7,
+        `juntarPersona deja ${JSON.stringify(o)}: tenia que quedar el telefono con 5, sin el @lid y sin tocar a nadie mas`);
+    }
+
+    // ── 1. El saldo y el top ──────────────────────────────────────────────
+    {
+      const { L, T } = persona();
+      const base = await A.getAura(G, L);
+      await A.addAura(G, L, 300);
+      await A.addAura(G, T, 200);
+      WA.rememberMapping(L, T);
+      const [dL, dT] = [await A.getAura(G, L), await A.getAura(G, T)];
+      exige(dL === base + 500 && dT === base + 500,
+        `saldo partido: ganó 300 con el @lid y 200 con el telefono y ahora tiene ${dT - base} (y ${dL - base} leido por el @lid)`);
+      const filas = (await A.getAuraRanking(G)).filter((r) => WA.sameUser(r.jid, T));
+      exige(filas.length === 1 && filas[0].jid === T && filas[0].aura === base + 500,
+        `en el top sale ${filas.length} vez/veces (${JSON.stringify(filas)}): tiene que salir una, por su telefono y con ${base + 500}`);
+    }
+
+    // ── 2. La caja: se SUMA, no se junta como un saldo ────────────────────
+    {
+      const { L, T } = persona();
+      await A.addAura(G, L, 1000);
+      await A.addAura(G, T, 1000);
+      const r1 = await A.meterEnCaja(G, L, 300);
+      const r2 = await A.meterEnCaja(G, T, 200);
+      exige(r1.ok && r2.ok, `la prueba no ha podido guardar: ${JSON.stringify([r1, r2])}`);
+      const saldoL = await A.getAura(G, L), saldoT = await A.getAura(G, T);
+      WA.rememberMapping(L, T);
+      const dentro = await A.verCaja(G, T);
+      exige(dentro === 500,
+        `guardó 300 con el @lid y 200 con el telefono y la caja dice ${dentro}: ${dentro < 500 ? 'se evapora' : 'se crea'} aura al juntarla`);
+      exige(await A.verCaja(G, L) === 500, 'leida por el @lid, la caja no da lo mismo que por el telefono');
+      exige(await A.esperaCaja(G, L) > 0 && await A.esperaCaja(G, T) > 0,
+        'tras juntar las dos formas la caja se puede volver a cerrar sin esperar');
+      const fila = (await A.getAuraRanking(G)).filter((r) => WA.sameUser(r.jid, T));
+      const saldo = await A.getAura(G, T);
+      exige(saldo === saldoL + saldoT - A.STARTING_AURA,
+        `el saldo suelto al juntar da ${saldo} y tenía que dar ${saldoL + saldoT - A.STARTING_AURA}`);
+      exige(fila.length === 1 && fila[0].aura === saldo + 500,
+        `en el top cuenta ${JSON.stringify(fila)} y tenía que ser una fila con suelto + caja = ${saldo + 500}`);
+    }
+
+    // Y la espera entre cierres, cuando solo cerró con una forma: la de la
+    // otra no puede estar libre.
+    {
+      const { L, T } = persona();
+      await A.addAura(G, L, 1000);
+      const r = await A.meterEnCaja(G, L, 100);
+      WA.rememberMapping(L, T);
+      exige(r.ok && await A.esperaCaja(G, T) > 0,
+        'cerró la caja con el @lid y por su telefono no tiene que esperar: el enfriamiento se quedó en la otra forma');
+      const otra = await A.meterEnCaja(G, T, 100);
+      exige(!otra.ok && otra.motivo === 'enfriamiento',
+        `cerró con el @lid y por el telefono ha podido volver a cerrar al momento (${JSON.stringify(otra)})`);
+    }
+
+    // ── 3. La recompensa por cabeza y *!buscados* ─────────────────────────
+    {
+      const { L, T } = persona();
+      await RS.anotarGolpe(G, L, 400, 120);
+      WA.rememberMapping(L, T);
+      const rec = await RS.recompensaDe(G, T);
+      exige(rec === 120, `robó con el @lid dejando 120 de recompensa y por su telefono vale ${rec}`);
+      exige(await RS.recompensaDe(G, L) === 120, 'mencionado por su @lid, su cabeza ya no vale lo que tenía');
+      let filas = (await RS.rankingLadrones(G)).filter((r) => WA.sameUser(r.jid, T));
+      exige(filas.length === 1 && filas[0].jid === T && filas[0].total === 400,
+        `en *!buscados* sale ${JSON.stringify(filas)}: una fila, por su telefono y con 400`);
+      await RS.anotarGolpe(G, T, 100, 40);
+      filas = (await RS.rankingLadrones(G)).filter((r) => WA.sameUser(r.jid, T));
+      exige(filas.length === 1 && filas[0].total === 500 && filas[0].golpes === 2,
+        `tras otro golpe con el telefono, *!buscados* dice ${JSON.stringify(filas)}: una fila, 500 en 2 golpes`);
+      const cobrada = await RS.cobrarRecompensa(G, L);
+      exige(cobrada === 160, `al cazarlo se cobran ${cobrada} y su cabeza valía 160`);
+      exige(await RS.recompensaDe(G, T) === 0, 'cobrada la recompensa, sigue quedando algo: se podría cobrar dos veces');
+    }
+
+    // ── 4. Los objetos de la tienda ───────────────────────────────────────
+    {
+      const conUsos = Object.keys(eco.OBJETOS).find((k) => typeof eco.OBJETOS[k].usos === 'number');
+      const { L, T } = persona();
+      await RS.darObjeto(G, L, conUsos, 2);
+      await RS.darObjeto(G, T, conUsos, 1);
+      await RS.darObjeto(G, L, 'escudo', Date.now() + 3600000);
+      WA.rememberMapping(L, T);
+      const o = await RS.objetosDe(G, T);
+      exige(o[conUsos] === 3, `compró ${conUsos} 2 con el @lid y 1 con el telefono y le quedan ${o[conUsos]}`);
+      exige(await RS.tieneEscudo(G, T), 'el escudo comprado con el @lid no le protege por su telefono: se puede volver a pagar');
+    }
+
+    // ── 5. La racha ───────────────────────────────────────────────────────
+    {
+      const RA = require(path.join(R, 'src/utils/rachaStore'));
+      const { L, T } = persona();
+      for (let i = 0; i < eco.RACHA.minMensajes; i++) await RA.anotarMensaje(G, L);
+      WA.rememberMapping(L, T);
+      const r = await RA.verRacha(G, T);
+      exige(r.hoyCuenta && r.dias === 1 && r.msgs === eco.RACHA.minMensajes,
+        `escribió ${eco.RACHA.minMensajes} con el @lid y por su telefono la racha dice ${JSON.stringify(r)}`);
+      await RA.anotarMensaje(G, T);
+      const r2 = await RA.verRacha(G, L);
+      exige(r2.msgs === eco.RACHA.minMensajes + 1, `lo que escribe con el telefono no suma a lo del @lid: ${r2.msgs}`);
+    }
+
+    // ── 6. El contador del dia, sus hitos y las tiradas ───────────────────
+    {
+      const CS = require(path.join(R, 'src/utils/casinoStore'));
+      const { L, T } = persona();
+      for (let i = 0; i < 3; i++) await CS.incrementCasinoCount(G, L);
+      for (let i = 0; i < 2; i++) await CS.incrementCasinoCount(G, T);
+      await CS.apuntarHito(G, L, 200);
+      await CS.contarTirada(G, L);
+      await CS.contarTirada(G, T);
+      WA.rememberMapping(L, T);
+      // Lo primero, antes de que otro mensaje lo junte todo de paso.
+      exige((await CS.hitosCobrados(G, T)).includes(200), 'el hito cobrado con el @lid no consta por el telefono');
+      exige(await CS.getCasinoCount(G, T) === 5 && await CS.getCasinoCount(G, L) === 5,
+        `3 mensajes con el @lid y 2 con el telefono cuentan ${await CS.getCasinoCount(G, T)}`);
+      exige(await CS.incrementCasinoCount(G, T) === 6, 'el siguiente mensaje no sigue la cuenta junta');
+      exige(await CS.apuntarHito(G, T, 200) === false, 'el hito cobrado con el @lid se puede cobrar otra vez con el telefono');
+      exige(await CS.tiradasDeHoy(G, T) === 2, `tiradas del dia partidas: ${await CS.tiradasDeHoy(G, T)} de 2`);
+      exige(await CS.contarTirada(G, L) === 3, 'la siguiente tirada no sigue la cuenta junta: las de pago se estrenan otra vez');
+    }
+
+    // ── 7. Los mensajes (!count, !top, !inactivos) ────────────────────────
+    {
+      const MC = require(path.join(R, 'src/utils/messageCounter'));
+      const { L, T } = persona();
+      for (let i = 0; i < 4; i++) await MC.increment(G, L);
+      for (let i = 0; i < 2; i++) await MC.increment(G, T);
+      WA.rememberMapping(L, T);
+      exige(await MC.getUserCount(G, L) === 6 && await MC.getUserCount(G, T) === 6,
+        `4 mensajes con el @lid y 2 con el telefono cuentan ${await MC.getUserCount(G, T)}`);
+      const filas = (await MC.getActiveUsers(G, 1)).filter((r) => WA.sameUser(r.jid, T));
+      exige(filas.length === 1 && filas[0].jid === T && filas[0].count === 6,
+        `en los rankings de mensajes sale ${JSON.stringify(filas)}: una fila, por su telefono y con 6`);
+    }
+
+    // ── 8. *!allow*: EL PERMISO NO ACABA EN BAN ───────────────────────────
+    {
+      const LP = require(path.join(R, 'src/utils/linkPerms'));
+      // El caso que se vio: permiso con el @lid, el bot aprende el telefono y
+      // la persona pone su enlace.
+      {
+        const { L, T } = persona();
+        await LP.allow(G, L);
+        WA.rememberMapping(L, T);
+        exige(await LP.isAllowed(G, [L, T]) && await LP.isAllowed(G, [T]),
+          'el permiso dado con el @lid se pierde al aprender el telefono: su enlace se borra, se le avisa y al tercero se le BANEA');
+        const lista = (await LP.listAllowed(G)).filter((j) => WA.sameUser(j, T));
+        exige(iguales(lista, [T]), `*!allow* sin nadie lista ${JSON.stringify(lista)}: una vez y por su telefono`);
+      }
+      // La ficha que ya quedo partida antes del arreglo: permiso vivo en el
+      // @lid y dos avisos en el telefono, puestos por no verlo.
+      {
+        const { L, T } = persona();
+        await LP.allow(G, L);
+        await LP.noteWarning(G, T);
+        await LP.noteWarning(G, T);
+        WA.rememberMapping(L, T);
+        exige(await LP.isAllowed(G, [T]),
+          'dos avisos puestos sin ver un permiso vigente se lo quitan: el siguiente enlace es el tercer aviso y el BAN');
+      }
+      // Los avisos de dos fichas viejas no se suman: no se sabe cuales son de
+      // antes de un perdon, y sumar de mas es banear de mas.
+      {
+        const { L, T } = persona();
+        await LP.noteWarning(G, L);
+        await LP.noteWarning(G, L);
+        await LP.noteWarning(G, T);
+        WA.rememberMapping(L, T);
+        const r = await LP.noteWarning(G, T);
+        exige(!r.ban && r.avisos === 2,
+          `con 2 avisos viejos en el @lid y 1 en el telefono, el siguiente enlace da ${r.avisos} avisos${r.ban ? ' y BAN' : ''}: se han sumado`);
+      }
+    }
+
+    // ── 9. La rafaga de precio normal ─────────────────────────────────────
+    {
+      const CO = require(path.join(R, 'src/utils/auraCobro'));
+      const concepto = Object.keys(eco.PRECIOS).find((k) => eco.PRECIOS[k] > 0);
+      const { L, T } = persona();
+      await A.addAura(G, L, 5000);
+      await CO.cobrar(G, L, concepto, {});
+      await CO.cobrar(G, L, concepto, {});
+      WA.rememberMapping(L, T);
+      exige(CO.usosDe(G, T, concepto) === 2 && CO.usosDe(G, L, concepto) === 2,
+        `usó ${concepto} dos veces con el @lid y por su telefono lleva ${CO.usosDe(G, T, concepto)}: las de precio normal se estrenan otra vez`);
+      await CO.cobrar(G, T, concepto, {});
+      exige(CO.usosDe(G, L, concepto) === 3, 'lo que usa con el telefono no sigue la cuenta del @lid');
+    }
+
+    // ── 10. Las esperas del robo ──────────────────────────────────────────
+    //
+    // Se prueba con el comando de verdad: robo con el @lid, el bot aprende el
+    // telefono, y el segundo robo —a OTRA victima, para que no lo pare el
+    // escudo de la primera— tiene que encontrarse la espera.
+    {
+      const RB = require(path.join(R, 'src/commands/robo'));
+      const BOT = '34600000111@s.whatsapp.net';
+      const { L, T } = persona();
+      const V1 = persona().T, V2 = persona().T;
+      for (const q of [L, V1, V2]) await A.addAura(G, q, 3000);
+      const dicho = [];
+      const sock = { user: { id: BOT }, sendMessage: async (j, c) => { dicho.push(c.text || ''); return { key: { id: 'x' } }; } };
+      const meta = { id: G, participants: [{ id: BOT, admin: 'admin' }, { id: L }, { id: V1 }, { id: V2 }] };
+      const robar = (quien, victima) => RB.cmdRobo(sock, {
+        key: { remoteJid: G, id: `R111${n111++}`, participant: quien, fromMe: false },
+        message: { extendedTextMessage: { text: '!robar 100', contextInfo: { mentionedJid: [victima] } } },
+      }, ['100'], meta);
+      const dado = Math.random;
+      Math.random = () => 0.30;
+      try {
+        await robar(L, V1);
+        WA.rememberMapping(L, T);
+        dicho.length = 0;
+        const v2 = await A.getAura(G, V2);
+        await robar(T, V2);
+        exige(/EN COOLDOWN/.test(dicho.join('\n')) && await A.getAura(G, V2) === v2,
+          'robó con el @lid, el bot aprendió su telefono y ha podido robar otra vez sin esperar');
+      } finally { Math.random = dado; }
+      // Y el escudo de la victima, igual: se le puso con su @lid.
+      const vic = persona();
+      RB.anotarRoboExitoso(G, WA.canonicalJid(T), WA.canonicalJid(vic.L));
+      WA.rememberMapping(vic.L, vic.T);
+      exige(RB.escudoRestante(G, vic.T) > 0 && RB.escudoRestante(G, vic.L) > 0,
+        'a la victima robada con su @lid se le va el escudo en cuanto el bot sabe su telefono: la pueden vaciar entre cinco');
+    }
+
+    // ── 11. Ningún almacén se hace su propia copia ───────────────────────
+    //
+    // Los que juntan formas lo hacen con la pieza comun. Una copia nueva de
+    // «recorrer las claves buscando las @lid del mismo telefono» es como se
+    // quedaron partidos los de antes: cada una con su regla a medias.
+    {
+      const copias = [];
+      const dir = path.join(R, 'src');
+      const recorre = (d) => {
+        for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+          const f = path.join(d, e.name);
+          if (e.isDirectory()) recorre(f);
+          else if (e.name.endsWith('.js') && e.name !== 'persona.js' && e.name !== 'wa.js') {
+            const t = fs.readFileSync(f, 'utf8');
+            if (/endsWith\('@lid'\)[^\n]*\n[^\n]*canonicalJid\(k\)\s*[!=]==/.test(t) || /canonicalJid\(k\)\s*[!=]==\s*key/.test(t)) {
+              copias.push(path.relative(R, f));
+            }
+          }
+        }
+      };
+      recorre(dir);
+      exige(!copias.length, `vuelve a haber copias propias de juntar @lid y telefono en ${copias.join(', ')}: usa utils/persona.js`);
+    }
+    if (fallos === antes111) console.log(verde('   ✓ saldo, caja, top, recompensa, objetos, racha, contadores, permisos, rafaga y esperas: la misma persona con sus dos formas'));
+  }
   }
 
   if (BREVE) {

@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const { canonicalJid } = require('./wa');
+const { juntarPersona, agruparPorPersona, esObjeto } = require('./persona');
 const { atomicWriteJson, readJsonOrEnoent } = require('./helpers');
 const logger = require('./logger');
 
@@ -13,9 +13,9 @@ const logger = require('./logger');
 //            Al tercero se le banea, así que esto NO puede vivir solo en
 //            memoria: un reinicio le regalaría los avisos ya gastados.
 //
-// La clave es canonicalJid, igual que en aura y en el contador: si no, la misma
-// persona tendría un permiso por cada forma de su JID y los avisos se le
-// partirían en dos montones.
+// La clave es canonicalJid, igual que en aura y en el contador, y las formas
+// viejas se juntan al leer (ficha): si no, la misma persona tendría un permiso
+// por cada forma de su JID y los avisos se le partirían en dos montones.
 
 const FILE = path.join(__dirname, '../../data/linkperms.json');
 
@@ -74,9 +74,40 @@ function scheduleSave() {
   }, 3000);
 }
 
+// DOS FICHAS DE LA MISMA PERSONA SE JUNTAN EN UNA, y aqui estaba el ban.
+//
+// El permiso se da mencionando a alguien, y en un grupo LID la mencion es su
+// @lid. Si el bot aun no sabia su telefono, la ficha se guardaba bajo el @lid.
+// En cuanto lo aprendia, canonicalJid() de CUALQUIERA de sus formas pasaba a
+// dar el telefono, y el permiso se quedaba en una clave que ya nadie miraba.
+// Reproducido: permiso dado, telefono aprendido, enlace publicado — borrado y
+// aviso. Al tercero, BAN, con el permiso de un admin vigente.
+//
+// Ahora cada lectura junta las dos fichas (utils/persona.js). Manda la mas
+// reciente, que es la ultima vez que se toco algo: un permiso, un aviso, un
+// perdon, una retirada. Con una excepcion, que es justo ese fallo: un AVISO no
+// tapa un permiso que sigue VIVO en la otra forma. Si hay un aviso posterior a
+// un permiso vigente es que el permiso no se estaba viendo, porque con el
+// visto no se habria borrado nada.
+//
+// Los avisos de dos fichas viejas NO se suman. No se sabe cuales llegaron antes
+// de un perdon (el ban limpia los avisos, y un permiso tambien), y sumarlos
+// podria juntar tres de dos epocas distintas y banear por algo ya perdonado.
+// Un aviso de menos es un enlace de mas; uno de mas es un ban injusto.
+function combinarFichas(fichas) {
+  const orden = [...fichas].sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  const base = orden[0];
+  if (!vivo(base) && (base.avisos || 0) > 0) {
+    const permiso = orden.find(vivo);
+    if (permiso) return permiso;
+  }
+  return base;
+}
+
 function ficha(grupo, jid) {
   const g = store[grupo] || (store[grupo] = {});
-  const k = canonicalJid(jid);
+  const { clave: k, cambio } = juntarPersona(g, jid, combinarFichas, { valido: esObjeto });
+  if (cambio) scheduleSave();
   return { g, k, rec: g[k] };
 }
 
@@ -106,11 +137,10 @@ async function disallow(grupo, jid) {
 // el permiso pudo darse sobre una y el mensaje llegar con otra.
 async function isAllowed(grupo, forms) {
   await load();
-  const g = store[grupo];
-  if (!g) return false;
+  if (!store[grupo]) return false;
   for (const f of (Array.isArray(forms) ? forms : [forms])) {
     if (!f) continue;
-    if (vivo(g[canonicalJid(f)])) return true;
+    if (vivo(ficha(grupo, f).rec)) return true;
   }
   return false;
 }
@@ -144,8 +174,14 @@ async function listAllowed(grupo) {
   const g = store[grupo];
   if (!g) return [];
   // Solo los que lo tienen VIVO: listar permisos caducados es prometer algo
-  // que el bot ya no cumple.
-  return Object.keys(g).filter(k => vivo(g[k]));
+  // que el bot ya no cumple. Y una vez por persona, con la forma que se puede
+  // mencionar: con el permiso partido salia dos veces, una de ellas un @lid.
+  const out = [];
+  for (const { rep, claves } of agruparPorPersona(Object.keys(g)).values()) {
+    const fichas = claves.map((k) => g[k]).filter(esObjeto);
+    if (fichas.length && vivo(fichas.length === 1 ? fichas[0] : combinarFichas(fichas))) out.push(rep);
+  }
+  return out;
 }
 
 async function flushLinkPerms() {
