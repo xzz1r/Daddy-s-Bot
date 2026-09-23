@@ -60,10 +60,14 @@ const espera = (ms) => new Promise((r) => setTimeout(r, ms));
 function etiquetasDe(hits) {
   const items = Array.isArray(hits) ? hits : [hits];
   return items.map((h) => {
+    // EL TEXTO DE LA MENCION ES EL DE LA CUENTA QUE SE MENCIONA. WhatsApp solo
+    // pinta un @ como mencion si lo que va detras es el usuario del JID de
+    // `mentions`. Aqui se escribia el telefono y se mencionaba al participante,
+    // que en un grupo LID es su @lid: el aviso de *!p* salia con un
+    // «@34600…» en texto plano, sin tocar a nadie. Ahora van los dos a juego.
     if (h && typeof h === 'object' && (h.digitos || h.hit)) {
       const mention = h.hit?.p?.id || `${h.digitos}@s.whatsapp.net`;
-      const label = h.digitos || String(mention).split('@')[0];
-      return { label, mention };
+      return { label: String(mention).split('@')[0].split(':')[0], mention };
     }
     const label = String(h);
     return { label, mention: `${label}@s.whatsapp.net` };
@@ -408,9 +412,13 @@ async function cmdPurgaNumero(sock, msg, args, groupMeta) {
   const anotadas = await _banAccount([...formas], 'numero virtual (!p)', bareJid(sender));
 
   const linea = (t, l) => (l.length ? `\n\n*${t}* (${l.length})\n${l.map((x) => `· ${x}`).join('\n')}` : '');
+  // Con su @, como todos los avisos de expulsion: el que lo pidio ve a quien
+  // se ha llevado por delante, no un numero suelto.
+  const quien = `${digitos}@s.whatsapp.net`;
   return sock.sendMessage(jid, {
+    mentions: [quien],
     text:
-      `*PURGA DE +${digitos}*\n\n` +
+      `*PURGA DE @${digitos}*\n\n` +
       (visto ? `Estaba en *${visto}* grupo(s).` : 'No estaba en ningún grupo del bot.') +
       linea('Fuera', fuera) +
       linea('No pude: el bot no es admin', sinPermiso) +
@@ -656,8 +664,9 @@ async function cmdPurge(sock, msg, args, groupMeta) {
   }
 
   const linea = (t, l) => (l.length ? `\n\n*${t}* (${l.length})\n${l.map((x) => `· ${x}`).join('\n')}` : '');
-  const numsTxt = cuentas.map((c) => (c.usuario ? `@${c.usuario} (+${c.digitos})` : `+${c.digitos}`)).join(', ');
+  const numsTxt = cuentas.map((c) => (c.usuario ? `@${c.usuario} (@${c.digitos})` : `@${c.digitos}`)).join(', ');
   return sock.sendMessage(jid, {
+    mentions: cuentas.map((c) => `${c.digitos}@s.whatsapp.net`),
     text:
       `*PURGE*\n\n` +
       `Cuentas: ${numsTxt}\n` +
@@ -787,7 +796,7 @@ async function cmdPurgeAll(sock, msg, args, groupMeta) {
     const tanda = objetivos.slice(i, i + PURGEALL_TANDA).map((p) => p.id);
     const r = await aplicarParticipantes(sock, jid, tanda, 'remove', meta);
     fuera += r.ok.length;
-    for (const f of r.fallidos) fallidos.push(digitos(f.jid));
+    for (const f of r.fallidos) fallidos.push(f.jid);
     if (i + PURGEALL_TANDA < objetivos.length) await espera(PAUSA_MS);
   }
 
@@ -798,8 +807,9 @@ async function cmdPurgeAll(sock, msg, args, groupMeta) {
       `*GRUPO VACIADO*\n\n` +
       `Fuera: *${fuera}* de ${objetivos.length}\n` +
       `Vetadas: *${vetados}* forma(s) de cuenta\n` +
-      (fallidos.length ? `\nNo pude sacar a ${fallidos.length}: ${fallidos.slice(0, 10).map((d) => `+${d}`).join(', ')}${fallidos.length > 10 ? '…' : ''}\n_Suele ser quien creó el grupo: a ese no lo puede echar nadie._\n` : '') +
+      (fallidos.length ? `\nNo pude sacar a ${fallidos.length}: ${fallidos.slice(0, 10).map((j) => `@${digitos(j)}`).join(', ')}${fallidos.length > 10 ? '…' : ''}\n_Suele ser quien creó el grupo: a ese no lo puede echar nadie._\n` : '') +
       `\n_El veto es global. Para readmitir a alguien: *!unban* su número._`,
+    mentions: fallidos.slice(0, 10),
   }, { quoted: msg });
 }
 

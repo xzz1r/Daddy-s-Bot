@@ -542,7 +542,9 @@ async function cmdFkBan(sock, msg, args, groupMeta) {
 
   const total = await banCount();
   return sock.sendMessage(jid, {
-    text: `${shortAcc(canonicalJid(target))} añadido a la lista negra global (${total} cuentas).` +
+    // Con su @, como todos los avisos de expulsion. `mentions` ya llevaba al
+    // objetivo, pero el texto era el numero recortado y WhatsApp no lo pintaba.
+    text: `@${String(target).split('@')[0].split(':')[0]} añadido a la lista negra global (${total} cuentas).` +
       (kicked ? ' Expulsado.' : '') +
       `\nCon *!antifake on* no podrá entrar a ningún grupo del bot.`,
     mentions: [target],
