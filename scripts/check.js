@@ -19484,6 +19484,77 @@ const manda = async (quien, tipo, opciones) => {
     }
     if (fallos === antes115) console.log(verde('   ✓ fotos y videos en visto; audios, notas de video y «ver una vez» ademas abiertos'));
   }
+
+  // ── 116. EL BOT NO SE INSULTA A SI MISMO, Y EL RESET LIMPIA EL TOP ──────
+  //
+  // Paso en el grupo: alguien respondio con *!puta* a un mensaje del bot y el
+  // bot se lo aplico a si mismo, porque el objetivo es la mencion o el autor
+  // del mensaje citado. Lo pidio el dueño: que no pase, y que al que no sabe
+  // mencionar se le ataque la inteligencia. *!contrarobo* es la excepcion: se
+  // escribe respondiendo al aviso del bot, y solo cuenta mencionarlo adrede.
+  //
+  // Y tras *!resetaura*, la espera de tres horas del top seguia corriendo y no
+  // se podia ver el marcador nuevo.
+  {
+    console.log('\n116. EL BOT NO SE INSULTA A SI MISMO, Y EL RESET LIMPIA EL TOP');
+    const antes116 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const mh116 = require(path.join(R, 'src/handlers/messageHandler'));
+    const BOT = '34600000116@s.whatsapp.net', OTRO = '34600001163@s.whatsapp.net';
+    const sock = { user: { id: BOT } };
+    const responde = (texto, citado, menciones = []) => ({
+      key: { remoteJid: '120363000000000116@g.us', participant: '34600001161@s.whatsapp.net', id: 'A116' },
+      message: { extendedTextMessage: { text: texto, contextInfo: { participant: citado, stanzaId: 'Q', mentionedJid: menciones } } },
+    });
+    const a = mh116._apuntaAlBot;
+    exige(typeof a === 'function', 'messageHandler ya no expone _apuntaAlBot: esta capa no mira nada');
+    if (typeof a === 'function') {
+      exige(a(sock, responde('!puta', BOT), 'puta'), '*!puta* respondiendo al bot se lo aplica al bot');
+      exige(a(sock, responde('!robar 100', BOT), 'robar'), '*!robar* respondiendo al bot le roba al bot');
+      exige(a(sock, responde('!mog', BOT), 'mog'), '*!mog* respondiendo al bot va contra el bot');
+      exige(!a(sock, responde('!puta @otro', BOT, [OTRO]), 'puta'), 'con una mencion a otra persona, responder al bot no deberia contar como apuntarle');
+      exige(!a(sock, responde('!contrarobo', BOT), 'contrarobo'),
+        '*!contrarobo* respondiendo al aviso del bot se corta: es justo como se usa');
+      exige(a(sock, responde('!contrarobo @bot', BOT, [BOT]), 'contrarobo'), '*!contrarobo* mencionando al bot adrede no se corta');
+      exige(!a(sock, responde('!menu', BOT), 'menu'), '*!menu* respondiendo al bot se corta, y no va contra nadie');
+      exige(!a(sock, responde('!puta', OTRO), 'puta'), 'responder a otra persona se toma por apuntar al bot');
+    }
+    // El corte va ANTES del cobro y del «escribiendo…»: aqui no se trabaja nada.
+    {
+      const src = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+      const iCorte = src.indexOf('if (apuntaAlBot(sock, msg, command)) {');
+      const iCobro = src.indexOf('const conceptoCobro = COBRO_CENTRAL[command];');
+      const iEscr = src.indexOf("sock.sendPresenceUpdate('composing', jid)");
+      exige(iCorte > 0 && iCorte < iCobro && iCorte < iEscr, 'el corte del bot va despues del cobro o del «escribiendo…»: se cobraria por no hacer nada');
+      const { AL_BOT } = require(path.join(R, 'src/data/avisos'));
+      exige(AL_BOT.length >= 15, `solo hay ${AL_BOT.length} frases para quien apunta al bot`);
+      exige(AL_BOT.every((f) => /menci[oó]n|menciona|respond|señal|apunt|dedo|puntería/i.test(f)),
+        'alguna frase para quien apunta al bot no le dice que ha apuntado mal: el ataque es a que no sabe mencionar');
+    }
+    // El reset limpia la espera del top.
+    {
+      const cfg = require(path.join(R, 'src/config'));
+      const OWN = `${String(cfg.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
+      const A = require(path.join(R, 'src/utils/auraStore'));
+      const { cmdAura, cmdResetAura } = require(path.join(R, 'src/commands/aura'));
+      const G = `120363116${`${Date.now()}`.slice(-6)}@g.us`;
+      const U1 = '34600001164@s.whatsapp.net', U2 = '34600001165@s.whatsapp.net';
+      const meta = { id: G, participants: [{ id: BOT, admin: 'admin' }, { id: OWN, admin: 'superadmin' }, { id: U1 }, { id: U2 }] };
+      await A.addAura(G, U1, 500); await A.addAura(G, U2, 300);
+      const out = [];
+      const s116 = { user: { id: BOT }, sendMessage: async (j, c) => { out.push(c); return { key: { id: 'x' } }; } };
+      const top = async () => {
+        out.length = 0;
+        await cmdAura(s116, { key: { remoteJid: G, participant: U1, fromMe: false, id: `T${Math.random()}` } }, ['top'], meta);
+        return out.some((c) => (c.mentions || []).length > 0);
+      };
+      exige(await top(), 'el top de prueba no ha salido: esta comprobacion no mira nada');
+      exige(!(await top()), 'el top sale dos veces seguidas: la espera no esta puesta y esto no prueba nada');
+      await cmdResetAura(s116, { key: { remoteJid: G, participant: OWN, fromMe: true, id: 'RS116' } }, meta);
+      exige(await top(), 'tras *!resetaura* el top sigue en espera: el grupo no puede ver el marcador nuevo');
+    }
+    if (fallos === antes116) console.log(verde('   ✓ el bot no se aplica comandos a si mismo, y el reset deja pedir el top al momento'));
+  }
   }
 
   if (BREVE) {

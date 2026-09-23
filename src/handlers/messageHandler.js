@@ -27,14 +27,14 @@ const { isMuted } = require('../commands/group');
 const { maybeIndex } = require('../utils/pfpIndexer');
 const acciones = require('../commands/acciones');
 const { construirListas, cargarComando } = require('./comandos');
-const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, esBotCreador, extractText, getSender, canonicalJid, sameUser, indexGroupMeta } = require('../utils/wa');
+const { isOwner, isMainOwner, isGroupAdmin, isBotAdmin, isBotJid, esBotCreador, extractText, getSender, getTarget, canonicalJid, sameUser, indexGroupMeta } = require('../utils/wa');
 const logger = require('../utils/logger');
 const bitacoraEstados = require('../utils/bitacoraEstados');
 
 const { clasificarMensaje, classifyLinks, textoParaEnlaces, esInvitacionNativa, PERMISO_ENLACE, puedeAnunciar, anotarTropiezo, perfilMirado } = require('../utils/antilink');
-const { MAL_ESCRITO, OBJETIVO_DIA_CARTEL } = require('../data/avisos');
+const { MAL_ESCRITO, OBJETIVO_DIA_CARTEL, AL_BOT } = require('../data/avisos');
 const { cartelDelDia } = require('../utils/objetivoDia');
-const { aviso } = require('../utils/helpers');
+const { aviso, pickBaraja } = require('../utils/helpers');
 
 // LOS COMANDOS DE ACCION, EN UN SITIO. Se sacan del propio modulo para no
 // tenerlos escritos seis veces —dispatcher, cobro, metadata, lentos y las dos
@@ -737,6 +737,23 @@ function marcarVisto(sock, msg, { verUnaVez = false } = {}) {
     const priv = await sock.fetchPrivacySettings?.().catch(() => null);
     await sock.sendReceipts([msg.key], !priv || priv.readreceipts === 'all' ? 'played' : 'played-self');
   }).catch((e) => logger.unaVez('marcar audio escuchado', e));
+}
+
+// ¿Este comando, que va contra otra persona, apunta al bot? `aOtro` en el
+// registro dice cuales van contra alguien. Con 'mencion' solo cuenta haber
+// mencionado al bot a proposito: *!contrarobo* se escribe respondiendo al
+// aviso del bot, y eso es justo como tiene que usarse.
+function apuntaAlBot(sock, msg, command) {
+  const modo = LISTAS.A_OTRO.get(command);
+  if (!modo) return false;
+  if (modo === 'mencion') {
+    const menciones = [];
+    for (const v of Object.values(msg.message || {})) {
+      if (v && typeof v === 'object' && Array.isArray(v.contextInfo?.mentionedJid)) menciones.push(...v.contextInfo.mentionedJid);
+    }
+    return menciones.some((j) => isBotJid(sock, j));
+  }
+  return isBotJid(sock, getTarget(msg));
 }
 
 // !diag — herramienta de diagnostico de las guardas automaticas.
@@ -2524,6 +2541,26 @@ async function handleMessage(sock, msg, opciones = {}) {
     return;
   }
 
+  // EL BOT NO SE INSULTA NI SE ROBA A SI MISMO.
+  //
+  // Paso en el grupo: alguien respondio con *!puta* a un mensaje del bot, y
+  // como el objetivo de un comando es la mencion o, si no la hay, el autor del
+  // mensaje citado, el bot se lo aplico a si mismo: «@Jean Claude es 85 %
+  // puta» y un parrafo insultandose. Lo mismo con *!robar* respondiendo a su
+  // aviso de un robo.
+  //
+  // Casi siempre es que la persona queria a otra y ha respondido al mensaje
+  // equivocado. Asi que no se ejecuta, no se cobra, y se le ataca la
+  // inteligencia a quien lo escribio, que es lo que pidio el dueño. Va antes
+  // del «escribiendo…» y del cobro por eso mismo: aqui no se trabaja nada.
+  if (apuntaAlBot(sock, msg, command)) {
+    await sock.sendMessage(jid, {
+      text: `@${String(sender).split('@')[0]} ${pickBaraja(AL_BOT, `${jid}|albot`)}`,
+      mentions: [sender],
+    }, { quoted: msg }).catch(() => {});
+    return;
+  }
+
   // "ESCRIBIENDO…" EN LO QUE TARDA, Y VA AQUI Y NO EN CADA COMANDO.
   //
   // Un !fk se va treinta segundos a tres buscadores, un !tovid pasa por ffmpeg
@@ -2699,6 +2736,7 @@ module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGro
   _sugerirComando: sugerirComando,
   _sugerenciasComando: sugerenciasComando,
   _marcarVisto: marcarVisto,
+  _apuntaAlBot: apuntaAlBot,
   // Las listas por comando, VIVAS. La puerta las lee de aqui en vez de
   // parsear el texto del fichero con regex.
   _listas: { NEEDS_META, COBRO_CENTRAL, LENTOS, COBRAN_SOLOS, CMDS_AURA, SOLO_CONSULTA, MEDIA_CMDS, CMDS_PORCENTAJE },

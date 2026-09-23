@@ -684,6 +684,13 @@ const huellaDe = (r) => r.map((x) => `${x.jid}:${x.aura}`).join('|');
 // a los diez del top, que era justo el problema.
 const ultimoTop = new Map();       // grupo -> { filas: [{jid, aura}], ts }
 
+// La espera, la huella y la copia del top de un grupo, fuera. Lo usa el reset.
+function olvidarTop(jid) {
+  ultimoRanking.delete(jid);
+  huellaRanking.delete(jid);
+  ultimoTop.delete(jid);
+}
+
 // La copia en gris del ranking, pintada con NOMBRES.
 //
 // El ranking de verdad escribe "@50412345678" y adjunta el array de mentions;
@@ -1512,9 +1519,14 @@ async function cmdResetAura(sock, msg, groupMeta) {
     return sock.sendMessage(jid, { text: aviso(SOLO_GRUPOS, jid, 'grupos') }, { quoted: msg });
   }
   await resetAura(jid);
+  // Y EL TOP TAMBIEN EMPIEZA DE CERO. Lo pidio el dueño: tras un reset, la
+  // espera de tres horas del *!aura top* seguia contando y el grupo no podia
+  // ver el marcador nuevo, y la copia en gris enseñaba el top de antes del
+  // reset como si siguiera valiendo. Se olvida todo lo del top de este grupo.
+  olvidarTop(jid);
   return sock.sendMessage(jid, {
     text: `Aura de todos reseteada. El marcador vuelve a *${SUELO_TODOS}* para todo el mundo.`,
   }, { quoted: msg });
 }
 
-module.exports = { cmdAura, cmdResetAura };
+module.exports = { cmdAura, cmdResetAura, _olvidarTop: olvidarTop };

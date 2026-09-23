@@ -197,6 +197,29 @@ const A_TI_MISMO = [
   'No. Hace falta un segundo, y tú solo has traído tu nombre.',
 ];
 
+// Alguien le ha lanzado al BOT un comando que va contra otra persona: casi
+// siempre porque ha respondido a un mensaje del bot en vez de al de quien
+// queria. Lo pidio el dueño: que el bot no se insulte ni se robe a si mismo,
+// y que en vez de eso se le ataque la inteligencia al que no sabe mencionar.
+// Van detras de su @. En baraja: salen las quince antes de repetir ninguna.
+const AL_BOT = [
+  '¿Seguro que esa mención no iba para ti? Ni para señalar a alguien te llega la cabeza.',
+  'Me has respondido a mí. Querías a otra persona y ni señalarla sabes. Así vas por la vida.',
+  'Eso iba para otra persona y me has apuntado a mí. Mencionar bien es lo mínimo, y ni eso.',
+  'Tenías que mencionar a alguien y has elegido al bot. Ni el dedo te obedece.',
+  'Responder al mensaje equivocado también es un talento. El tuyo, en concreto.',
+  'A mí no. Aprende a mencionar a quien quieres y luego hablamos de lo demás.',
+  '¿Me estás apuntando a mí? Mencionar a una persona son dos toques y has fallado los dos.',
+  'Esa mención no iba para mí, iba para alguien a quien no has sabido encontrar. Qué nivel.',
+  'Si no sabes a quién responder, lo de jugar contra otra persona te queda grande.',
+  'El bot no juega contra sí mismo. Quien no sabe mencionar a nadie parece que sí.',
+  'Querías a otra persona y me has mencionado a mí. Con esa puntería mejor no toques nada.',
+  'Esa respuesta iba mal dirigida y lo sabes. Mencionar no es tan difícil, salvo para ti.',
+  '¿Me has respondido a mí para eso? Ni la mención te sale a la primera.',
+  'Primero aprende a quién le respondes. Lo del juego viene después, si llega.',
+  'Has apuntado al bot. La próxima vez mira a quién mencionas antes de darle a enviar.',
+];
+
 // El objetivo es un admin y quien lo intenta no llega. Se lee en el grupo, y
 // delante del propio admin, que es la mitad de la gracia.
 const CONTRA_UN_ADMIN = [
@@ -495,4 +518,4 @@ const OBJETIVO_DIA_CARTEL = [
 module.exports = {
   OBJETIVO_DIA_CARTEL,
   cabeceraDe,
-  MAL_ESCRITO, SOLO_GRUPOS, SIN_PERMISO, SOLO_ADMINS, PURGA_ADMIN, SIN_ACCESO, A_TI_MISMO, CONTRA_UN_ADMIN, DUELO_AJENO };
+  MAL_ESCRITO, SOLO_GRUPOS, SIN_PERMISO, SOLO_ADMINS, PURGA_ADMIN, SIN_ACCESO, A_TI_MISMO, AL_BOT, CONTRA_UN_ADMIN, DUELO_AJENO };

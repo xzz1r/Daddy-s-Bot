@@ -32,6 +32,11 @@
 //   consulta    solo mira la economia, no la mueve: sigue con ella apagada
 //   media       su texto acompaña a una foto/video; la moderacion no lo toma
 //               por media suelta
+//   aOtro       va contra otra persona. Si esa persona resulta ser el BOT (lo
+//               normal: se ha respondido a un mensaje suyo), no se ejecuta ni
+//               se cobra, y se le ataca la inteligencia al que lo ha escrito.
+//               'mencion' si solo cuenta la mencion explicita: *!contrarobo*
+//               se escribe respondiendo al aviso del bot, y eso es lo correcto
 //
 // El contexto de `hace`: { de, sock, msg, args, meta, command, jid, sender,
 // viaTriggerK }. `de('music')` es src/commands/music.js, cargado la primera vez
@@ -68,7 +73,7 @@ async function soloDueno(c, hacer) {
 // Los de porcentaje comparten precio y metadata, y cada uno es su funcion de
 // percent.js.
 const porcentaje = (nombres, fn) => ({
-  nombres, meta: true, cobro: 'percent',
+  nombres, meta: true, cobro: 'percent', aOtro: true,
   hace: (c) => c.de('percent')[fn](c.sock, c.msg, c.meta),
 });
 
@@ -128,7 +133,7 @@ const FAMILIAS = [
   { nombres: ['count', 'conteo'], meta: true, lento: true,
     hace: (c) => c.de('count').cmdCount(c.sock, c.msg, c.meta, c.args) },
   // El expediente: junta lo que el bot ya guarda de alguien. Ver caso.js.
-  { nombres: ['caso', 'expediente'], meta: true, lento: true, cobro: 'caso',
+  { nombres: ['caso', 'expediente'], meta: true, lento: true, cobro: 'caso', aOtro: true,
     hace: (c) => c.de('caso').cmdCaso(c.sock, c.msg, c.args, c.meta) },
 
   // ─── Los de porcentaje ─────────────────────────────────────────────────────
@@ -157,7 +162,7 @@ const FAMILIAS = [
   porcentaje(['ganador'], 'cmdGanador'),
   // *!iq* comparte precio con los de porcentaje, pero no es uno: saca una CIFRA
   // de IQ y vive aparte.
-  { nombres: ['iq'], meta: true, cobro: 'percent',
+  { nombres: ['iq'], meta: true, cobro: 'percent', aOtro: true,
     hace: (c) => c.de('iq').cmdIQ(c.sock, c.msg) },
 
   { nombres: ['relevancia', 'importancia', 'relevance'], meta: true, lento: true, cobro: 'relevancia',
@@ -243,7 +248,7 @@ const FAMILIAS = [
     hace: (c) => c.de('group').cmdMute(c.sock, c.msg, c.args, c.meta) },
   { nombres: ['unmute', 'desmute'], meta: true,
     hace: (c) => c.de('group').cmdUnmute(c.sock, c.msg, c.args, c.meta) },
-  { nombres: ['ship'], meta: true, cobro: 'ship',
+  { nombres: ['ship'], meta: true, cobro: 'ship', aOtro: true,
     hace: (c) => c.de('ship').cmdShip(c.sock, c.msg, c.args, c.meta) },
   { nombres: ['ttp', 'texto'], meta: true, lento: true, cobro: 'ttp',
     hace: (c) => c.de('ttp').cmdTtp(c.sock, c.msg, c.args) },
@@ -253,11 +258,11 @@ const FAMILIAS = [
     hace: (c) => c.de('toimg').cmdToVid(c.sock, c.msg, c.meta) },
   { nombres: ['pfp', 'foto'], meta: true, lento: true, cobraDentro: true, cobro: 'pfp',
     hace: (c) => c.de('pfp').cmdPfp(c.sock, c.msg, c.args, c.meta) },
-  { nombres: ['rizz'], meta: true, cobro: 'rizz',
+  { nombres: ['rizz'], meta: true, cobro: 'rizz', aOtro: true,
     hace: (c) => c.de('wingman').cmdRizz(c.sock, c.msg, c.meta) },
   // piropo y wingman no USAN la metadata (no miran roles), pero la piden: el
   // cobro central exime al owner y sin ella no resuelve su LID.
-  { nombres: ['piropo', 'wingman'], meta: true, cobro: { piropo: 'piropo', wingman: 'wingman' },
+  { nombres: ['piropo', 'wingman'], meta: true, cobro: { piropo: 'piropo', wingman: 'wingman' }, aOtro: true,
     hace: (c) => (c.command === 'wingman'
       ? c.de('wingman').cmdWingman(c.sock, c.msg)
       : c.de('wingman').cmdPiropo(c.sock, c.msg)) },
@@ -292,11 +297,11 @@ const FAMILIAS = [
     hace: (c) => c.de('aura').cmdAura(c.sock, c.msg, ['info'], c.meta) },
   { nombres: ['resetaura'], meta: true,
     hace: (c) => c.de('aura').cmdResetAura(c.sock, c.msg, c.meta) },
-  { nombres: ['mog', 'moggear'], meta: true, cobro: 'mog',
+  { nombres: ['mog', 'moggear'], meta: true, cobro: 'mog', aOtro: true,
     hace: (c) => c.de('mog').cmdMog(c.sock, c.msg, c.meta) },
-  { nombres: ['roast', 'quemar', 'destruir', 'flamear'], meta: true, lento: true, cobro: 'roast',
+  { nombres: ['roast', 'quemar', 'destruir', 'flamear'], meta: true, lento: true, cobro: 'roast', aOtro: true,
     hace: (c) => c.de('roast').cmdRoast(c.sock, c.msg, c.meta) },
-  { nombres: ['dar', 'regalar', 'transferir', 'pagar', 'donar'], meta: true, aura: true,
+  { nombres: ['dar', 'regalar', 'transferir', 'pagar', 'donar'], meta: true, aura: true, aOtro: true,
     hace: (c) => c.de('dar').cmdDar(c.sock, c.msg, c.args) },
 
   // ─── El robo y su tienda ───────────────────────────────────────────────────
@@ -304,7 +309,7 @@ const FAMILIAS = [
   // *!atraco* estuvo en la fila del robo y era un bug: contestaba "Dime a quien
   // robas" en vez de entrar a la tienda, con el comando anunciado en el menu y
   // en la guia. Ahora un nombre en dos filas no arranca.
-  { nombres: ['robo', 'robar'], meta: true, aura: true,
+  { nombres: ['robo', 'robar'], meta: true, aura: true, aOtro: true,
     hace: (c) => c.de('robo').cmdRobo(c.sock, c.msg, c.args, c.meta) },
   // La tienda y el bote tienen nombre propio para quien los usa, aunque por
   // dentro cuelguen de !robo.
@@ -315,7 +320,7 @@ const FAMILIAS = [
   // subcomando obliga a saberse la sintaxis justo cuando hay noventa segundos
   // para responder y el que te acaba de robar esta mirando. Se escribe lo que
   // se piensa: contrarobo.
-  { nombres: ['contrarobo', 'contraataque', 'contraatacar', 'vengarse'], meta: true, aura: true, hace: robo('contra') },
+  { nombres: ['contrarobo', 'contraataque', 'contraatacar', 'vengarse'], meta: true, aura: true, aOtro: 'mencion', hace: robo('contra') },
   // !visto — oculto y solo del dueño. No sale en el menu ni lo sugiere el
   // corrector: ver COMANDOS_OCULTOS y cmdVisto en group.js.
   { nombres: ['visto'], meta: true,
@@ -330,7 +335,7 @@ const FAMILIAS = [
   { nombres: ['unlock'], meta: true, aura: true, hace: vault('unlock') },
   // LAS ACCIONES. Un solo destino para todos sus nombres: el modulo sabe cual
   // le toca por el nombre tecleado.
-  { grupo: 'ALIAS_ACCION', meta: true, lento: true, cobraDentro: true,
+  { grupo: 'ALIAS_ACCION', meta: true, lento: true, cobraDentro: true, aOtro: true,
     hace: (c) => c.de('acciones').ejecutarAccion(c.command, c.sock, c.msg, c.args, c.meta) },
   { nombres: ['asalto', 'asaltar'], meta: true, aura: true, hace: robo('asalto') },
   // El atraco a la tienda, con nombre propio por el mismo motivo que el
@@ -343,10 +348,10 @@ const FAMILIAS = [
   // pedir la lista: si quien la encargo no lo encuentra, nadie lo va a
   // encontrar.
   { nombres: ['buscados', 'wanted', 'mostwanted', 'recompensas', 'cartel'], meta: true, consulta: true, hace: robo('top') },
-  { nombres: ['duel', 'duelo', '1v1'], meta: true, aura: true,
+  { nombres: ['duel', 'duelo', '1v1'], meta: true, aura: true, aOtro: true,
     hace: (c) => c.de('duel').cmdDuel(c.sock, c.msg, c.args, c.meta) },
 
-  { nombres: ['vs', 'versus'], meta: true, lento: true, cobraDentro: true, cobro: 'vs',
+  { nombres: ['vs', 'versus'], meta: true, lento: true, cobraDentro: true, cobro: 'vs', aOtro: true,
     hace: (c) => c.de('activity').cmdVs(c.sock, c.msg, c.args, c.meta) },
   // !fantasmas ordena a los que hablan POCO; !inactivos saca a los que no han
   // escrito NUNCA. Son dos listas distintas a proposito.
@@ -390,6 +395,8 @@ function construirListas({ ALIAS_ACCION, familiaDe = null }) {
   const FAMILIA = new Map();
   // Nombre -> lo que hace.
   const EJECUTA = new Map();
+  // Nombre -> true | 'mencion' (ver `aOtro`).
+  const A_OTRO = new Map();
   FAMILIAS.forEach((f, i) => {
     const nombres = f.grupo ? [...(grupos[f.grupo] || [])] : f.nombres;
     if (typeof f.hace !== 'function') {
@@ -407,13 +414,14 @@ function construirListas({ ALIAS_ACCION, familiaDe = null }) {
       if (f.aura) CMDS_AURA.add(n);
       if (f.consulta) SOLO_CONSULTA.add(n);
       if (f.media) MEDIA_CMDS.add(n);
+      if (f.aOtro) A_OTRO.set(n, f.aOtro);
       const c = f.cobro && (typeof f.cobro === 'string' ? f.cobro : f.cobro[n]);
       if (c) COBRO_CENTRAL[n] = c;
     }
   });
   // Los de porcentaje, sacados de su precio: comparten concepto y son los unicos.
   const CMDS_PORCENTAJE = Object.keys(COBRO_CENTRAL).filter((n) => COBRO_CENTRAL[n] === 'percent');
-  return { NEEDS_META, LENTOS, COBRAN_SOLOS, CMDS_AURA, SOLO_CONSULTA, MEDIA_CMDS, COBRO_CENTRAL, CMDS_PORCENTAJE, FAMILIA, EJECUTA };
+  return { NEEDS_META, LENTOS, COBRAN_SOLOS, CMDS_AURA, SOLO_CONSULTA, MEDIA_CMDS, COBRO_CENTRAL, CMDS_PORCENTAJE, FAMILIA, EJECUTA, A_OTRO };
 }
 
 module.exports = { FAMILIAS, construirListas, cargarComando };
