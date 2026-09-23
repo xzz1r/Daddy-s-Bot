@@ -3921,7 +3921,11 @@ const di=async(quien,texto,extra)=>{
       '!r dejo de pedir foto y edad, que es todo lo que tiene que pedir');
     exige(!av || /nuev/i.test(av.text || ''),
       '!r dejo de decir que es solo para los nuevos: el resto del grupo no tiene que presentarse');
-    exige(!av || !/(antigu|llevan tiempo|todo el mundo|todos se present)/i.test(av.text || ''),
+    // Se mira la ORDEN, no el parrafo de humor negro: ahi «se ríe todo el
+    // mundo» es la norma del grupo, no una peticion de presentarse. Mirando el
+    // mensaje entero salia rojo o verde segun la frase que tocara.
+    const orden25 = (av?.text || '').split('\n\n').filter((x) => !/humor negro/i.test(x)).join('\n\n');
+    exige(!av || !/(antigu|llevan tiempo|todo el mundo|todos se present)/i.test(orden25),
       '!r vuelve a pedir la presentación a gente que ya está');
     // 420 y no 230: el dueño pidio que el aviso lleve tambien lo que es el
     // grupo, y ese parrafo no cabia en el tope de antes. Es el techo con la
