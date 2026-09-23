@@ -99,3 +99,6 @@ data/redesFallos.json
 
 # La senyal de "quiero vincular el guardian ahora": es un acto de esta maquina.
 data/vincularGuardian
+
+# La sesion de Instagram para yt-dlp (ver conSesion en utils/redes.js).
+data/instagram_cookies.txt

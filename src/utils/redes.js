@@ -168,7 +168,45 @@ function enlaceDe(texto, plataforma) {
   const p = PLATAFORMAS[plataforma];
   if (!p) return null;
   const m = p.rx.exec(String(texto || ''));
-  return m ? m[0].replace(/[)\]}.,;]+$/, '') : null;
+  if (!m) return null;
+  const enlace = m[0].replace(/[)\]}.,;]+$/, '');
+  return plataforma === 'instagram' ? sinRastro(enlace) : enlace;
+}
+
+// EL ENLACE DE INSTAGRAM, SIN LO QUE LE PEGA LA APP AL COMPARTIR.
+//
+// La app añade parametros de rastreo que no dicen nada de la publicacion:
+// `igsh=` desde hace tiempo y `stkn=` desde hace poco. Paso en el grupo: un
+// `instagram.com/p/…/?stkn=…` acabo en «no he podido traerlo de Instagram».
+// A yt-dlp le da igual, pero una API de fuera que espera la direccion limpia
+// puede no reconocer la publicacion con la cola pegada. Lo que identifica el
+// post es la ruta; la consulta y el ancla sobran, asi que se quitan.
+function sinRastro(enlace) {
+  try {
+    const u = new URL(enlace);
+    u.search = '';
+    u.hash = '';
+    return u.toString();
+  } catch {
+    return String(enlace).replace(/[?#].*$/, '');
+  }
+}
+
+// LA SESION DE INSTAGRAM, SI EL DUEÑO LA PONE.
+//
+// Desde la IP de un servidor Instagram ya no suelta nada sin sesion: ni reels
+// ni fotos ni la pagina embebida. Comprobado desde un datacenter: «redirected to
+// the login page, you have exceeded the rate-limit for accessing posts
+// anonymously». La via de verdad es INSTAGRAM_API; esto es el respaldo para el
+// dia que la API falle. Si existe data/instagram_cookies.txt (formato Netscape,
+// el que exporta cualquier extension de cookies), yt-dlp entra con ella. Mejor
+// de una cuenta secundaria: es una sesion, y no tiene por que ser la tuya.
+// data/ no va al repositorio, asi que el fichero no sale de la VPS.
+const COOKIES_IG = path.join(__dirname, '../../data/instagram_cookies.txt');
+function conSesion(args, url) {
+  if (plataformaDe(url) !== 'instagram') return args;
+  try { require('fs').accessSync(COOKIES_IG); } catch { return args; }
+  return ['--cookies', COOKIES_IG, ...args];
 }
 
 // ─── UN PERFIL NO ES UNA PUBLICACIÓN ─────────────────────────────────────────
@@ -2455,7 +2493,7 @@ async function porX(url) {
 async function porFotosSueltas(url) {
   let crudo = null;
   try {
-    crudo = await ytdlp(['-J', '--no-warnings', '--ignore-no-formats-error', url], 60000);
+    crudo = await ytdlp(conSesion(['-J', '--no-warnings', '--ignore-no-formats-error', url], url), 60000);
   } catch (e) {
     logger.info(`redes: yt-dlp no supo describir el enlace (${e.message.slice(0, 80)})`);
     return null;
@@ -2495,7 +2533,7 @@ async function porFotosSueltas(url) {
 async function porYtDlpFotos(url, cancion = null, yaNoHaceFaltaLaRed = null) {
   let crudo = null;
   try {
-    crudo = await ytdlp(['-J', '--no-warnings', '--ignore-no-formats-error', url], 60000);
+    crudo = await ytdlp(conSesion(['-J', '--no-warnings', '--ignore-no-formats-error', url], url), 60000);
   } catch (e) {
     logger.info(`redes: yt-dlp no supo describir el enlace (${e.message.slice(0, 80)})`);
     return null;
@@ -2535,7 +2573,7 @@ async function porYtDlp(url, plataforma) {
   let ultimo = null;
   for (const espera of REINTENTOS) {
     if (espera) await new Promise((r) => setTimeout(r, espera));
-    try { await ytdlp(args, TIEMPO_MAXIMO); ultimo = null; break; } catch (e) {
+    try { await ytdlp(conSesion(args, url), TIEMPO_MAXIMO); ultimo = null; break; } catch (e) {
       ultimo = e;
       const estrangulado = /empty media response|rate.?limit|429|too many|temporarily/i.test(e.message || '');
       if (!estrangulado) break;

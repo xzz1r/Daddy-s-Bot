@@ -19332,6 +19332,33 @@ const manda = async (quien, tipo, opciones) => {
     }
     if (fallos === antes112) console.log(verde('   ✓ !p, !purge, !kick y !fkban mencionan con su @ a quien sale, tambien en grupos LID'));
   }
+
+  // ── 113. EL ENLACE DE INSTAGRAM VA LIMPIO ───────────────────────────────
+  //
+  // Paso en el grupo: `instagram.com/p/…/?stkn=…` acabo en «no he podido
+  // traerlo de Instagram». La app pega parametros de rastreo (`stkn=`,
+  // `igsh=`) que no identifican nada, y una API de fuera que espera la
+  // direccion limpia puede no reconocer la publicacion con ellos. Se quitan, y
+  // un perfil sigue siendo un perfil.
+  {
+    console.log('\n113. EL ENLACE DE INSTAGRAM VA LIMPIO');
+    const antes113 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const RD = require(path.join(R, 'src/utils/redes'));
+    for (const [pegado, limpio] of [
+      ['mira https://www.instagram.com/p/DdXox9JzaUT/?stkn=YnV4bHZkNzE1MGV0 jaja', 'https://www.instagram.com/p/DdXox9JzaUT/'],
+      ['https://www.instagram.com/reel/C1a2B3c4D5e/?igsh=MWx4dGZ5', 'https://www.instagram.com/reel/C1a2B3c4D5e/'],
+      ['https://instagram.com/usuario/reel/C1a2B3c4D5e?utm_source=ig_web#x', 'https://instagram.com/usuario/reel/C1a2B3c4D5e'],
+    ]) {
+      const dio = RD.enlaceDe(pegado, 'instagram');
+      exige(dio === limpio, `el enlace de Instagram sale "${dio}" y tenia que salir "${limpio}"`);
+    }
+    exige(RD.esPerfil(RD.enlaceDe('https://instagram.com/frndzz_b?stkn=abc', 'instagram'), 'instagram'),
+      'un perfil con `?stkn=` deja de reconocerse como perfil al limpiarlo');
+    exige(RD.enlaceDe('https://vm.tiktok.com/ZMabc/?x=1', 'tiktok') === 'https://vm.tiktok.com/ZMabc/?x=1',
+      'la limpieza se ha extendido a TikTok, y ahi la consulta puede ser parte del enlace');
+    if (fallos === antes113) console.log(verde('   ✓ el enlace de Instagram llega sin la cola de rastreo, y un perfil sigue siendo un perfil'));
+  }
   }
 
   if (BREVE) {
