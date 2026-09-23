@@ -27,12 +27,17 @@
 //   media       su texto acompaña a una foto/video; la moderacion no lo toma
 //               por media suelta
 //
+// EL PRIMER NOMBRE DE CADA FILA ES EL QUE ENSEÑA EL MENU. El corrector lo usa:
+// cuando una errata se parece a dos formas del mismo comando, ofrece esa. Si
+// no, a *!relevanc* le ofrecia *!relevance*, que es el alias ingles, y a *!pla*
+// *!playsong*. La capa 108 compara cada fila con el menu corto.
+//
 // `grupo` es una familia que no se escribe aqui porque ya tiene su fuente:
 // los alias de acciones (acciones.ALIAS_ACTIVOS) y los de porcentaje. Si mañana
 // hay una accion nueva, entra sola.
 
 const FAMILIAS = [
-  { nombres: ['musica', 'cancion', 'song', 'playsong', 'playaudio', 'play'], meta: true, lento: true, cobraDentro: true, cobro: 'play' },
+  { nombres: ['play', 'musica', 'cancion', 'song', 'playsong', 'playaudio'], meta: true, lento: true, cobraDentro: true, cobro: 'play' },
   { nombres: ['tt', 'tiktok'], lento: true, cobraDentro: true, cobro: 'redes' },
   { nombres: ['ig', 'insta', 'instagram'], lento: true, cobraDentro: true, cobro: 'redes' },
   { nombres: ['pin', 'pinterest'], lento: true, cobraDentro: true, cobro: 'redes' },
@@ -49,7 +54,7 @@ const FAMILIAS = [
   { nombres: ['count', 'conteo'], meta: true, lento: true },
   { nombres: ['caso', 'expediente'], meta: true, lento: true, cobro: 'caso' },
   { grupo: 'CMDS_PORCENTAJE', meta: true, cobro: 'percent' },
-  { nombres: ['importancia', 'relevancia', 'relevance'], meta: true, lento: true, cobro: 'relevancia' },
+  { nombres: ['relevancia', 'importancia', 'relevance'], meta: true, lento: true, cobro: 'relevancia' },
   { nombres: ['resetcount', 'resetconteo'], meta: true },
   { nombres: ['r', 'presentarse', 'presentacion'], meta: true },
   { nombres: ['tagall', 'todos', 'all', 'everyone'], meta: true },
@@ -67,8 +72,8 @@ const FAMILIAS = [
   { nombres: ['scan', 'escanear'], meta: true, lento: true },
   { nombres: ['fk', 'verificar', 'verify', 'check'], meta: true, lento: true, cobraDentro: true, media: true, cobro: 'fk' },
   { nombres: ['marcarfake', 'fake'], meta: true },
-  { nombres: ['banear', 'ban', 'fkban'], meta: true },
-  { nombres: ['desbanear', 'unban', 'fkunban'], meta: true },
+  { nombres: ['fkban', 'banear', 'ban'], meta: true },
+  { nombres: ['fkunban', 'desbanear', 'unban'], meta: true },
   { nombres: ['fklist'], meta: true },
   { nombres: ['listanegra'], meta: true },
   { nombres: ['p'], meta: true, lento: true },
@@ -77,13 +82,13 @@ const FAMILIAS = [
   { nombres: ['antifake', 'antifk'], meta: true },
   { nombres: ['close', 'cerrar'], meta: true },
   { nombres: ['open', 'abrir'], meta: true },
-  { nombres: ['sacar', 'echar', 'kick', 'expulsar'], meta: true },
+  { nombres: ['kick', 'expulsar', 'sacar', 'echar'], meta: true },
   { nombres: ['del', 'borrar', 'delete'], meta: true },
   { nombres: ['limpiar', 'wipe'], meta: true, lento: true },
-  { nombres: ['silenciar', 'callar', 'mute'], meta: true },
+  { nombres: ['mute', 'silenciar', 'callar'], meta: true },
   { nombres: ['unmute', 'desmute'], meta: true },
   { nombres: ['ship'], meta: true, cobro: 'ship' },
-  { nombres: ['texto', 'ttp'], meta: true, lento: true, cobro: 'ttp' },
+  { nombres: ['ttp', 'texto'], meta: true, lento: true, cobro: 'ttp' },
   { nombres: ['toimg', 'stimg'], meta: true, lento: true, cobraDentro: true, media: true, cobro: 'toimg' },
   { nombres: ['tovid'], meta: true, lento: true, cobraDentro: true, media: true, cobro: 'tovid' },
   { nombres: ['pfp', 'foto'], meta: true, lento: true, cobraDentro: true, cobro: 'pfp' },
@@ -91,14 +96,14 @@ const FAMILIAS = [
   { nombres: ['piropo', 'wingman'], meta: true, cobro: { piropo: 'piropo', wingman: 'wingman' } },
   { nombres: ['aura'], meta: true },
   { nombres: ['apostar', 'apuesta', 'apuestas'], meta: true },
-  { nombres: ['ranking', 'top', 'auratop'], meta: true },
+  { nombres: ['top', 'ranking', 'auratop'], meta: true },
   { nombres: ['hoy'], meta: true },
   { nombres: ['saldo', 'miaura'], meta: true },
   { nombres: ['guia', 'aurahelp', 'guiaaura'], meta: true },
   { nombres: ['resetaura'], meta: true },
   { nombres: ['mog', 'moggear'], meta: true, cobro: 'mog' },
-  { nombres: ['quemar', 'destruir', 'roast', 'flamear'], meta: true, lento: true, cobro: 'roast' },
-  { nombres: ['regalar', 'transferir', 'pagar', 'dar', 'donar'], meta: true, aura: true },
+  { nombres: ['roast', 'quemar', 'destruir', 'flamear'], meta: true, lento: true, cobro: 'roast' },
+  { nombres: ['dar', 'regalar', 'transferir', 'pagar', 'donar'], meta: true, aura: true },
   { nombres: ['robo', 'robar'], meta: true, aura: true },
   { nombres: ['tienda', 'shop'], meta: true, consulta: true },
   { nombres: ['comprar'], meta: true, consulta: true },
@@ -115,17 +120,20 @@ const FAMILIAS = [
   { nombres: ['buscados', 'wanted', 'mostwanted', 'recompensas', 'cartel'], meta: true, consulta: true },
   { nombres: ['duel', 'duelo', '1v1'], meta: true, aura: true },
   { nombres: ['vs', 'versus'], meta: true, lento: true, cobraDentro: true, cobro: 'vs' },
-  { nombres: ['muertos', 'fantasma', 'fantasmas'], meta: true, lento: true, cobro: 'fantasmas' },
+  { nombres: ['fantasmas', 'fantasma', 'muertos'], meta: true, lento: true, cobro: 'fantasmas' },
   { nombres: ['inactivos', 'inactivo'], meta: true, lento: true },
   { nombres: ['on'], meta: true },
   { nombres: ['off'], meta: true },
   { nombres: ['ping'] },
   { nombres: ['info', 'estado', 'status'] },
   { nombres: ['casino'], meta: true },
-  { nombres: ['ayuda', 'help', 'menu', 'commands'], meta: true },
+  { nombres: ['menu', 'help', 'ayuda', 'commands'], meta: true },
 ];
 
-function construirListas({ ALIAS_ACCION, CMDS_PORCENTAJE }) {
+// `familiaDe` dice de que comando es un nombre de grupo (los alias de una misma
+// accion son una familia: *!fuck*, *!follar*, *!joder*). Sin el, cada nombre de
+// grupo es su propia familia, que es lo que son los de porcentaje.
+function construirListas({ ALIAS_ACCION, CMDS_PORCENTAJE, familiaDe = null }) {
   const grupos = { ALIAS_ACCION, CMDS_PORCENTAJE };
   const NEEDS_META = new Set();
   const LENTOS = new Set();
@@ -134,9 +142,14 @@ function construirListas({ ALIAS_ACCION, CMDS_PORCENTAJE }) {
   const SOLO_CONSULTA = new Set();
   const MEDIA_CMDS = new Set();
   const COBRO_CENTRAL = {};
-  for (const f of FAMILIAS) {
+  // Nombre -> familia. Lo usa el corrector: una errata que se parece a dos
+  // alias del MISMO comando no es una duda, y una que se parece a dos comandos
+  // distintos si.
+  const FAMILIA = new Map();
+  FAMILIAS.forEach((f, i) => {
     const nombres = f.grupo ? [...(grupos[f.grupo] || [])] : f.nombres;
     for (const n of nombres) {
+      FAMILIA.set(n, f.grupo ? `${f.grupo}:${(familiaDe && familiaDe(n)) || n}` : `fila${i}`);
       if (f.meta) NEEDS_META.add(n);
       if (f.lento) LENTOS.add(n);
       if (f.cobraDentro) COBRAN_SOLOS.add(n);
@@ -146,8 +159,8 @@ function construirListas({ ALIAS_ACCION, CMDS_PORCENTAJE }) {
       const c = f.cobro && (typeof f.cobro === 'string' ? f.cobro : f.cobro[n]);
       if (c) COBRO_CENTRAL[n] = c;
     }
-  }
-  return { NEEDS_META, LENTOS, COBRAN_SOLOS, CMDS_AURA, SOLO_CONSULTA, MEDIA_CMDS, COBRO_CENTRAL };
+  });
+  return { NEEDS_META, LENTOS, COBRAN_SOLOS, CMDS_AURA, SOLO_CONSULTA, MEDIA_CMDS, COBRO_CENTRAL, FAMILIA };
 }
 
 module.exports = { FAMILIAS, construirListas };

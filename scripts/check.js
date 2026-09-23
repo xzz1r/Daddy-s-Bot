@@ -12144,7 +12144,7 @@ const di=async(quien,t)=>{out.length=0;
     // ffmpeg empaquetado en las maquinas que traen el suyo —66 MB que sobran—
     // asi que `require('@ffmpeg-installer/ffmpeg')` revienta justo en el VPS y
     // en ningun sitio mas. Esta capa se murio alli entera, y en local seguia
-    // verde. src/utils/ffmpeg.js prueba el empaquetado, luego el del sistema.
+    // verde. src/utils/ffmpeg.js prueba el del sistema, luego el empaquetado.
     const { ffmpegPath } = require(path.join(R, 'src/utils/ffmpeg'));
     const redes = require(path.join(R, 'src/utils/redes'));
     const { _hazRed: hazRed } = require(path.join(R, 'src/commands/redes'));
@@ -18692,6 +18692,80 @@ const manda = async (quien, tipo, opciones) => {
     const faltan = instala.filter((h) => !exigidas.includes(h));
     exige(faltan.length === 0, `GitHub instala ${faltan.join(', ')} y el ci local no lo exige: aqui daria verde y alli rojo`);
     if (fallos === antes107) console.log(verde(`   ✓ los dos hacen el mismo npm ci, corren el mismo check y piden lo mismo (${instala.join(', ') || 'nada'})`));
+  }
+
+  // ── 108. EL CORRECTOR NO ADIVINA ────────────────────────────────────────
+  //
+  // Antes elegia UNO aunque la errata estuviera igual de cerca de dos
+  // comandos, y ganaba el que se hubiera escrito antes en el codigo: *!sip*
+  // era *!ship* por la linea en que estaba, no por nada que tuviera que ver con
+  // lo que se queria escribir. Ahora, en un empate, ofrece las opciones.
+  //
+  // Y la lista sale del registro, no de leer el propio fuente. El nombre que se
+  // ofrece de cada comando es el primero de su fila, que tiene que ser el que
+  // enseña el menu: si no, a *!relevanc* le sale *!relevance*.
+  {
+    console.log('\n108. EL CORRECTOR NO ADIVINA');
+    const antes108 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const mh = require(path.join(R, 'src/handlers/messageHandler'));
+    const sug = mh._sugerenciasComando;
+    exige(typeof sug === 'function', 'messageHandler ya no expone _sugerenciasComando: esta capa no mira nada');
+    if (typeof sug === 'function') {
+      const igual = (e, esperado) => {
+        const r = sug(e);
+        exige(JSON.stringify([...r].sort()) === JSON.stringify([...esperado].sort()),
+          `*!${e}* ofrece [${r.join(', ')}] y tendria que ofrecer [${esperado.join(', ')}]`);
+      };
+      // Empates de verdad: los dos.
+      igual('sip', ['ship', 'simp']);
+      igual('pign', ['pin', 'ping']);
+      // Sin empate, uno, y el nombre del menu.
+      igual('anla', ['anal']);
+      igual('relevanc', ['relevancia']);
+      igual('pla', ['play']);
+      igual('fanta', ['fantasmas']);
+      // Dos formas del mismo comando no son una duda.
+      igual('apues', ['apuesta']);
+      // Lo oculto no asoma ni en un empate.
+      for (const e of ['vist', 'purg', 'purgea', 'limpia', 'wip']) {
+        const r = sug(e);
+        exige(!r.some((x) => ['p', 'purge', 'purgeall', 'visto', 'limpiar', 'wipe'].includes(x)),
+          `*!${e}* ofrece un comando oculto: [${r.join(', ')}]`);
+      }
+      exige(sug('zzzqqq').length === 0, 'el corrector ofrece algo para "zzzqqq"');
+      exige(sug('anti').length <= 5, `*!anti* ofrece ${sug('anti').length} opciones: eso ya no es una correccion, es un menu`);
+    }
+    // Ya no lee su propio fuente.
+    const fuenteMH = soloCodigo('src/handlers/messageHandler.js');
+    exige(!/readFileSync\(__filename/.test(fuenteMH),
+      'messageHandler vuelve a leer su propio fuente en el arranque: la lista del corrector sale del registro');
+
+    // El primer nombre de cada fila del registro es el que enseña el menu.
+    {
+      const { cmdHelp } = require(path.join(R, 'src/commands/social'));
+      const cfg = require(path.join(R, 'src/config'));
+      const OWN = `${String(cfg.ownerNumber).replace(/\D/g, '')}@s.whatsapp.net`;
+      const G = '120363000000000108@g.us';
+      const BOT = '34600000108@s.whatsapp.net';
+      const meta = { id: G, subject: 'G', participants: [{ id: BOT, admin: 'admin' }, { id: OWN, admin: 'superadmin' }] };
+      let menu = '';
+      await cmdHelp({ user: { id: BOT }, sendMessage: async (j, c) => { menu += c.text || ''; return {}; } },
+        { key: { remoteJid: G, participant: OWN, fromMe: false, id: 'M108' } }, meta, []);
+      const p = cfg.prefix;
+      const enMenu = new Set([...menu.matchAll(new RegExp(`\\*${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([a-z0-9]+)\\*`, 'g'))].map((m) => m[1]));
+      exige(enMenu.size > 40, `del menu salen ${enMenu.size} comandos: la lectura del menu se ha roto y esto no compara nada`);
+      const { FAMILIAS } = require(path.join(R, 'src/handlers/comandos'));
+      const mal = [];
+      for (const f of FAMILIAS) {
+        if (f.grupo) continue;
+        const salen = f.nombres.filter((n) => enMenu.has(n));
+        if (salen.length && !salen.includes(f.nombres[0])) mal.push(`${f.nombres[0]} (el menu enseña ${salen.join('/')})`);
+      }
+      exige(mal.length === 0,
+        `filas del registro que no empiezan por el nombre del menu: ${mal.join(', ')} — el corrector ofreceria un alias en vez del nombre de siempre`);
+    }
+    if (fallos === antes108) console.log(verde('   ✓ en un empate ofrece las opciones, siempre con el nombre del menu, y lo oculto no asoma'));
   }
   }
 

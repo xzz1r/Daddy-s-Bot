@@ -133,7 +133,10 @@ const CMDS_PORCENTAJE = [
 // meterlo en todas y se hacia mal. Ahora se añade a su familia en el registro
 // y hereda todo. Los comentarios de cada lista se quedan donde estaban: siguen
 // explicando por que cada comando esta en cada una.
-const LISTAS = construirListas({ ALIAS_ACCION, CMDS_PORCENTAJE });
+const LISTAS = construirListas({
+  ALIAS_ACCION, CMDS_PORCENTAJE,
+  familiaDe: (c) => NOMBRES_ACCION.find((n) => acciones.ACCIONES[n].cmds.includes(c)),
+});
 // Del nombre TECLEADO al handler. Los alias no pueden colgar de un `case` que
 // llame al canonico a mano: se olvida uno y ese alias sale gratis o revienta.
 const ACCION_DE = {};
@@ -293,18 +296,6 @@ const LENTOS = LISTAS.LENTOS;
 // Las acciones cobran dentro: piden un gif a una web de fuera y devuelven el
 // aura si no llega.
 const COBRAN_SOLOS = LISTAS.COBRAN_SOLOS;
-
-// El fuente de este mismo fichero, leido UNA vez.
-//
-// Dos sitios lo necesitan —la lista de comandos que tapa !aura off y la de
-// comandos conocidos para el "¿querias decir...?"— y cada uno hacia su propio
-// readFileSync de ~100 KB en el require. Dos lecturas sincronas del mismo
-// fichero antes de abrir el socket, para sacar lo mismo.
-//
-// Si la lectura falla, las dos deducciones caen a su respaldo y el bot arranca.
-const FUENTE_PROPIA = (() => {
-  try { return fs.readFileSync(__filename, 'utf8'); } catch { return ''; }
-})();
 
 // Los comandos que MUEVEN AURA y que por tanto tapa el interruptor de !aura off.
 //
@@ -1008,25 +999,16 @@ const MAX_AVISOS_GRUPO = 500;
 // La exclusion se escribe aparte y `npm run check` la vigila.
 const COMANDOS_OCULTOS = new Set(['p', 'purge', 'purgeall', 'visto', 'limpiar', 'wipe']);
 
-const COMANDOS_CONOCIDOS = (() => {
-  try {
-    // Se reutiliza la lectura de arriba. Eran DOS readFileSync del propio
-    // fichero (~100 KB cada uno) en el require, bloqueando el arranque para
-    // leer exactamente lo mismo dos veces.
-    const src = FUENTE_PROPIA;
-    // Y fuera las acciones apagadas. El corrector se saca de los `case`, y una
-    // accion sin frases conserva el suyo: sin esto, escribir "!hig" contestaria
-    // "¿querias decir *!hug*?" y *!hug* no hace nada todavia. Ofrecer un
-    // comando que no responde es peor que no ofrecer ninguno.
-    const apagadas = new Set(
-      Object.keys(acciones.ACCIONES)
-        .filter((n) => !acciones.ACTIVAS.includes(n))
-        .flatMap((n) => acciones.ACCIONES[n].cmds),
-    );
-    return [...new Set([...src.matchAll(/^\s*case '([a-zá-úñ0-9_]+)':/gmi)].map(m => m[1]))]
-      .filter((c) => c.length >= 2 && !COMANDOS_OCULTOS.has(c) && !apagadas.has(c));
-  } catch { return []; }
-})();
+// LOS COMANDOS QUE CONOCE EL CORRECTOR SALEN DEL REGISTRO, no de leer este
+// fichero. Aqui se leia el propio fuente —100 KB en el arranque— y se sacaban
+// los `case` con una expresion regular: cualquier `case '...'` que un dia se
+// escribiera en otro switch de este fichero se habria colado como comando. El
+// registro ya es la lista de verdad (y la capa 4b la ata al switch).
+//
+// Las acciones apagadas no entran solas: el registro solo tiene las que tienen
+// frases. Escribir "!hig" no puede ofrecer *!hug* si *!hug* no hace nada.
+const COMANDOS_CONOCIDOS = [...LISTAS.FAMILIA.keys()]
+  .filter((c) => c.length >= 2 && !COMANDOS_OCULTOS.has(c));
 
 // Distancia de edicion, cortada en cuanto se pasa del maximo que nos interesa.
 // CUENTA LAS LETRAS CAMBIADAS DE ORDEN COMO UN SOLO FALLO, y por eso hay dos
@@ -1070,18 +1052,48 @@ function distancia(a, b, max) {
 
 // El parecido exigido sube con lo corto que sea lo escrito: en algo de 3 letras
 // una distancia de 2 ya es otra palabra distinta.
-function sugerirComando(escrito) {
-  if (!escrito || escrito.length < 3) return null;
+//
+// EN UN EMPATE SE OFRECEN LOS DOS, NO EL PRIMERO DE LA LISTA. *!sip* esta igual
+// de cerca de *!ship* que de *!simp*, y *!pign* de *!pin* que de *!ping*. Antes
+// ganaba el que estuviera antes en el codigo, que no dice nada de lo que se
+// queria escribir: acertaba o fallaba por casualidad. Medido sobre 135.000
+// erratas generadas a partir de los comandos: 134.625 tienen una sola
+// respuesta; 690 empataban, y ahora se dice «Es *!ship* o *!simp*». Uno por
+// comando: dos alias del mismo no son una duda (*!apues* -> *!apuesta*, no
+// «*!apuesta* o *!apuestas*»). Y como mucho cinco, que es el peor caso que hay
+// (*!anti*: los cinco interruptores). Con tres, *!anti* se dejaba fuera justo
+// *!antiadmin*, que era lo que ofrecia antes.
+function sugerenciasComando(escrito) {
+  if (!escrito || escrito.length < 3) return [];
   const max = escrito.length <= 4 ? 1 : 2;
-  let mejor = null, mejorD = max + 1;
-  for (const c of COMANDOS_CONOCIDOS) {
-    // Un comando que EMPIEZA por lo escrito casi siempre es lo que se buscaba
-    // (*!apues* -> *!apuesta*), aunque la distancia sea mayor que el margen.
-    if (c.length > escrito.length && c.startsWith(escrito)) return c;
-    const d = distancia(escrito, c, max);
-    if (d < mejorD) { mejorD = d; mejor = c; }
+  // Un comando que EMPIEZA por lo escrito casi siempre es lo que se buscaba
+  // (*!apues* -> *!apuesta*), aunque la distancia sea mayor que el margen.
+  let cerca = COMANDOS_CONOCIDOS.filter((c) => c.length > escrito.length && c.startsWith(escrito));
+  if (!cerca.length) {
+    let mejorD = max + 1;
+    for (const c of COMANDOS_CONOCIDOS) {
+      const d = distancia(escrito, c, max);
+      if (d < mejorD) { mejorD = d; cerca = [c]; } else if (d === mejorD && d <= max) cerca.push(c);
+    }
+    if (mejorD > max) return [];
   }
-  return mejorD <= max ? mejor : null;
+  // Uno por familia: el primero de su fila en el registro, que es el que
+  // enseña el menu (*!relevancia*, no *!relevance*). `cerca` sale en el orden
+  // del registro, asi que basta con quedarse con el primero que aparezca. Y
+  // luego del mas corto al mas largo, para que el orden en que se ofrecen no
+  // dependa de en que linea se escribio cada comando.
+  const porFamilia = new Map();
+  for (const c of cerca) {
+    const f = LISTAS.FAMILIA.get(c) || c;
+    if (!porFamilia.has(f)) porFamilia.set(f, c);
+  }
+  return [...porFamilia.values()]
+    .sort((a, b) => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0))
+    .slice(0, 5);
+}
+
+function sugerirComando(escrito) {
+  return sugerenciasComando(escrito)[0] || null;
 }
 
 // Una sugerencia por persona cada 30 s. Sin esto, quien se pelea con el teclado
@@ -3312,8 +3324,8 @@ async function handleMessage(sock, msg, opciones = {}) {
       default: {
         // El freno primero: si esta persona ya se llevo una correccion hace menos
         // de treinta segundos, ni se busca.
-        const sug = frenoLibre(sender) ? sugerirComando(command) : null;
-        if (sug) {
+        const sugs = frenoLibre(sender) ? sugerenciasComando(command) : [];
+        if (sugs.length) {
           apuntarSugerencia(sender);
           // LA CORRECCION VA PRIMERO Y VA SIEMPRE. Lo pidio el dueño con esas
           // palabras: «debes aclarar primero que asi no se escribe el comando.
@@ -3325,8 +3337,11 @@ async function handleMessage(sock, msg, opciones = {}) {
           // que escribio mal se le estaria llamando corto sin decirle siquiera
           // que estaba mal escrito. Informar y picar no compiten, pero el orden
           // no es negociable.
+          const opciones = sugs.map((s) => `*${prefUsado}${s}*`);
+          const es = opciones.length === 1 ? opciones[0]
+            : `${opciones.slice(0, -1).join(', ')} o ${opciones[opciones.length - 1]}`;
           await sock.sendMessage(jid, {
-            text: `Así no se escribe. Es *${prefUsado}${sug}*, no *${prefUsado}${command}*.\n` +
+            text: `Así no se escribe. Es ${es}, no *${prefUsado}${command}*.\n` +
                   aviso(MAL_ESCRITO, jid, 'malescrito'),
           }, { quoted: msg }).catch(() => {});
         }
@@ -3398,6 +3413,7 @@ async function handleMessage(sock, msg, opciones = {}) {
 module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGroupMeta, PERMISO_ENLACE,
   // Para que la capa pueda conducir el corrector sin montar un grupo entero.
   _sugerirComando: sugerirComando,
+  _sugerenciasComando: sugerenciasComando,
   // Las listas por comando, VIVAS. La puerta las lee de aqui en vez de
   // parsear el texto del fichero con regex.
   _listas: { NEEDS_META, COBRO_CENTRAL, LENTOS, COBRAN_SOLOS, CMDS_AURA, SOLO_CONSULTA, MEDIA_CMDS, CMDS_PORCENTAJE },
