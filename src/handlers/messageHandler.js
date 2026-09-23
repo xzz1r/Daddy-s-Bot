@@ -693,6 +693,46 @@ async function historiaPorBroadcast(sock, msg, deteccion) {
   }
 }
 
+// EL VISTO, Y EN LOS AUDIOS TAMBIEN EL «ESCUCHADO».
+//
+// Lo pidio el dueño: que se note que el bot lo ha visto y escuchado todo. Con
+// las fotos y los videos basta el visto: WhatsApp no tiene otro estado para
+// ellos, el doble check azul ES el «visto». Los audios y las notas de video si
+// lo tienen: el microfono azul de «reproducido», que es otro acuse
+// (`played`) y que el bot no mandaba nunca. Un audio con los checks azules y
+// el microfono gris dice «lo he visto y no lo he querido oir».
+//
+// El `played` solo sale si los acuses de lectura estan abiertos en la cuenta:
+// con ellos cerrados WhatsApp no enseña ni el visto, y mandar el escuchado
+// seria enseñar por la puerta de atras justo lo que se ha cerrado.
+const esParaEscuchar = (m) => {
+  const x = m?.ephemeralMessage?.message || m?.viewOnceMessageV2?.message
+    || m?.viewOnceMessage?.message || m?.viewOnceMessageV2Extension?.message || m;
+  return Boolean(x?.audioMessage || x?.ptvMessage);
+};
+
+function marcarVisto(sock, msg) {
+  // EL FALLO SE DICE UNA VEZ, no se traga.
+  //
+  // Esto era `.catch(() => {})` y ahi se fue media tarde: si readMessages
+  // reventaba —o si ni siquiera existia en el socket, que la interrogacion lo
+  // dejaba pasar en silencio— no habia absolutamente ninguna señal. Se veia el
+  // visto sin aparecer y el codigo aparentemente perfecto.
+  //
+  // Una vez y no en cada mensaje: si falla, falla siempre, y llenar el log con
+  // la misma linea mil veces es otra forma de no decir nada.
+  const p = sock.readMessages?.([msg.key]);
+  if (!p) { avisarVistoRoto('sock.readMessages no existe en este socket'); return null; }
+  const leido = p.catch((e) => avisarVistoRoto(e?.message || String(e)));
+  if (!esParaEscuchar(msg.message) || typeof sock.sendReceipts !== 'function') return leido;
+  // Detras del visto: el escuchado sin el visto no existe en ningun movil.
+  return leido.then(async () => {
+    const priv = await sock.fetchPrivacySettings?.().catch(() => null);
+    if (priv && priv.readreceipts !== 'all') return;
+    await sock.sendReceipts([msg.key], 'played');
+  }).catch((e) => logger.unaVez('marcar audio escuchado', e));
+}
+
 // !diag — herramienta de diagnostico de las guardas automaticas.
 //
 // Existe por un motivo concreto: el bot borra a quien MENCIONA al grupo en un
@@ -1774,9 +1814,7 @@ async function handleMessage(sock, msg, opciones = {}) {
       //
       // Una vez y no en cada mensaje: si falla, falla siempre, y llenar el log
       // con la misma linea mil veces es otra forma de no decir nada.
-      const p = sock.readMessages?.([msg.key]);
-      if (!p) { avisarVistoRoto('sock.readMessages no existe en este socket'); return; }
-      p.catch((e) => avisarVistoRoto(e?.message || String(e)));
+      marcarVisto(sock, msg);
     });
   }
 
@@ -2654,6 +2692,7 @@ module.exports = { handleMessage, normalizarComando, invalidateGroupMeta, getGro
   // Para que la capa pueda conducir el corrector sin montar un grupo entero.
   _sugerirComando: sugerirComando,
   _sugerenciasComando: sugerenciasComando,
+  _marcarVisto: marcarVisto,
   // Las listas por comando, VIVAS. La puerta las lee de aqui en vez de
   // parsear el texto del fichero con regex.
   _listas: { NEEDS_META, COBRO_CENTRAL, LENTOS, COBRAN_SOLOS, CMDS_AURA, SOLO_CONSULTA, MEDIA_CMDS, CMDS_PORCENTAJE },

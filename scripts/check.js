@@ -3050,7 +3050,9 @@ const di=async(quien,texto,extra)=>{
       fallos++;
       console.log(rojo('   ✗ no esta la puerta del privado en handleMessage'));
     } else {
-      const iVisto = mh.indexOf('sock.readMessages?.');
+      // La LLAMADA al visto dentro de handleMessage, no la funcion que lo manda,
+      // que vive mas arriba en el fichero.
+      const iVisto = mh.indexOf('marcarVisto(sock, msg);');
       const iSwitch = mh.indexOf('const hace = EJECUTA.get(command);');
       const iContador = mh.indexOf("incrementStat('messagesReceived')");
       for (const [i, que] of [[iVisto, 'del visto'], [iSwitch, 'del switch de comandos'], [iContador, 'de los contadores']]) {
@@ -19427,6 +19429,42 @@ const manda = async (quien, tipo, opciones) => {
     }
     if (hallados.length) { fallos++; console.log(rojo(`   ✗ vuelve a salir «bardear», que el dueño mando quitar: ${hallados.join(', ')}`)); }
     if (fallos === antes114) console.log(verde('   ✓ ni rastro de «bardear»'));
+  }
+
+  // ── 115. LOS AUDIOS SE MARCAN ESCUCHADOS, NO SOLO VISTOS ────────────────
+  //
+  // Lo pidio el dueño: que se note que el bot lo ve y lo escucha todo. Fotos y
+  // videos solo tienen el visto (el doble check azul). Audios y notas de video
+  // tienen ademas el «reproducido», y sin el un audio queda con los checks
+  // azules y el microfono gris. Con los acuses cerrados en la cuenta, nada.
+  {
+    console.log('\n115. LOS AUDIOS SE MARCAN ESCUCHADOS, NO SOLO VISTOS');
+    const antes115 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const { _marcarVisto } = require(path.join(R, 'src/handlers/messageHandler'));
+    exige(typeof _marcarVisto === 'function', 'messageHandler ya no expone _marcarVisto: esta capa no mira nada');
+    const prueba = async (message, acuses = 'all') => {
+      const hechos = [];
+      const sock = {
+        readMessages: async () => { hechos.push('read'); },
+        sendReceipts: async (k, t) => { hechos.push(t); },
+        fetchPrivacySettings: async () => ({ readreceipts: acuses }),
+      };
+      await _marcarVisto(sock, { key: { remoteJid: '120363000000000115@g.us', id: 'M115', participant: '34600000115@s.whatsapp.net' }, message });
+      return hechos.join(',');
+    };
+    if (typeof _marcarVisto === 'function') {
+      exige(await prueba({ audioMessage: { ptt: true } }) === 'read,played', 'una nota de voz se queda en visto: el microfono no se pone azul');
+      exige(await prueba({ audioMessage: {} }) === 'read,played', 'un audio se queda en visto sin marcarse escuchado');
+      exige(await prueba({ ptvMessage: {} }) === 'read,played', 'una nota de video se queda en visto sin marcarse reproducida');
+      exige(await prueba({ ephemeralMessage: { message: { audioMessage: { ptt: true } } } }) === 'read,played',
+        'un audio en un chat con mensajes temporales no se marca escuchado');
+      exige(await prueba({ imageMessage: {} }) === 'read', 'una foto recibe algo mas que el visto');
+      exige(await prueba({ videoMessage: {} }) === 'read', 'un video recibe algo mas que el visto');
+      exige(await prueba({ audioMessage: { ptt: true } }, 'none') === 'read',
+        'con los acuses cerrados en la cuenta se manda el escuchado: se enseña por detras lo que se ha cerrado');
+    }
+    if (fallos === antes115) console.log(verde('   ✓ fotos y videos en visto, audios y notas de video ademas escuchados'));
   }
   }
 
