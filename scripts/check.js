@@ -4084,7 +4084,7 @@ const di=async(quien,texto,extra)=>{
     }
 
     // El de grupos lo lee el dueño. Sin sangre.
-    const duro = /\b(mierda|puta|puto|coña|gilipollas|imbécil|idiota|pena|decorado)\b/i;
+    const duro = /\b(mierda|puta|puto|coña|gilipo(?:ll|y)as|imbécil|idiota|pena|decorado)\b/i;
     const conSangre = AV.SOLO_GRUPOS.filter((f) => duro.test(f));
     exige(conSangre.length === 0,
       `SOLO_GRUPOS lleva ${conSangre.length} frase(s) con sangre y ese aviso solo lo lee el owner tier: ${conSangre[0] || ''}`);
@@ -19554,6 +19554,31 @@ const manda = async (quien, tipo, opciones) => {
       exige(await top(), 'tras *!resetaura* el top sigue en espera: el grupo no puede ver el marcador nuevo');
     }
     if (fallos === antes116) console.log(verde('   ✓ el bot no se aplica comandos a si mismo, y el reset deja pedir el top al momento'));
+  }
+
+  // ── 117. «GILIPOYAS», CON Y ─────────────────────────────────────────────
+  //
+  // Regla del dueño: toda palabra que acabe en «pollas» se escribe «poyas»
+  // («gilipoyas»). Se mira cada fichero de src/ y la guia.
+  {
+    console.log('\n117. «GILIPOYAS», CON Y');
+    const antes117 = fallos;
+    const hallados = [];
+    const mira = (f) => {
+      const m = fs.readFileSync(f, 'utf8').match(/[a-záéíóúñ]*pollas(?![a-záéíóúñ])/i);
+      if (m) hallados.push(`${path.relative(R, f)} («${m[0]}»)`);
+    };
+    const recorre = (d) => {
+      for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        const f = path.join(d, e.name);
+        if (e.isDirectory()) recorre(f);
+        else if (/\.(js|json|md)$/.test(e.name)) mira(f);
+      }
+    };
+    recorre(path.join(R, 'src'));
+    try { mira(path.join(R, 'GUIA.md')); } catch {}
+    if (hallados.length) { fallos++; console.log(rojo(`   ✗ vuelve a salir «pollas», y el dueño lo quiere con y: ${hallados.slice(0, 4).join(', ')}`)); }
+    if (fallos === antes117) console.log(verde('   ✓ todo lo que acaba en «pollas» se escribe «poyas»'));
   }
   }
 

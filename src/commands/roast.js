@@ -84,7 +84,7 @@ function getActivityPhrases(count) {
       `${c} mensajes, %N. Nadie escribe tanto para decir tan poco. Cada uno es otra prueba de que el volumen no compensa la falta absoluta de contenido.`,
       `%N, ${c} mensajes. El grupo te lee por obligación, no por interés. Llenas la pantalla de mierda y la gente hace scroll para llegar a lo que importa.`,
       `Con ${c} mensajes eres ruido con notificaciones, %N. Si hablaras la mitad y pensaras el doble el grupo lo agradecería. Pero pensar nunca fue lo tuyo.`,
-      `${c} mensajes, %N, y sigues siendo el mismo don nadie que el primer día. Has confundido estar presente con ser importante. No es lo mismo, gilipollas.`,
+      `${c} mensajes, %N, y sigues siendo el mismo don nadie que el primer día. Has confundido estar presente con ser importante. No es lo mismo, gilipoyas.`,
       `%N con ${c} mensajes. Necesitas atención con la desesperación de quien no la recibe en ningún otro sitio. Se te huele desde el otro lado de la pantalla.`,
       `${c} mensajes, %N. El grupo se movería igual si escribieras la cuarta parte. La diferencia sería que habría menos basura que saltarse. Puto spam con patas.`,
       `Con ${c} mensajes, %N, eres el que siempre tiene algo que decir y nunca nada que aportar. Esa distancia la llevas recorriendo tú solo desde el día uno.`,

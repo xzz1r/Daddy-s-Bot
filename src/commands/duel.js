@@ -55,7 +55,7 @@ function rollWinner(cO, cA, tO, tA) {
 // %W winner, %L loser
 let DUEL_WIN = [
   '%W desarmó a %L en el primer intercambio. %L pierde tanto que la derrota ya le llama por su nombre, le abraza y le hace la cena. Puto fracasado de manual.',
-  '%W ni se despeinó. %L tenía la excusa lista antes que la estrategia, porque este gilipollas ensaya el fracaso en casa antes de venir a exhibirlo gratis al grupo.',
+  '%W ni se despeinó. %L tenía la excusa lista antes que la estrategia, porque este gilipoyas ensaya el fracaso en casa antes de venir a exhibirlo gratis al grupo.',
   '%W lo tenía leído de memoria. %L es de manual, sí, del manual de cómo ser un puto inútil y perder hasta respirando, edición sobada de tanto releerla él solo.',
   '%W barre a %L delante del grupo, el único sitio donde a %L lo mencionan, aunque sea para esto. Aprovéchalo, perdedor.',
   '%W gana sin sudar. %L se derrumbó él solito, como se le cae a la mierda todo lo que ese pringado intenta sostener con sus manitas temblorosas.',

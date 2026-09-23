@@ -143,7 +143,7 @@ const ANALOGIA = [
 // Medida sobre el propio corpus: son las que aparecen pegadas al final cuatro
 // veces o mas. No entra «joder» ni «hostia», que ahi son interjeccion.
 const EPITETOS = [
-  'cabron', 'cabrona', 'gilipollas', 'pringado', 'pringada', 'inutil', 'puto inutil',
+  'cabron', 'cabrona', 'gilipoyas', 'pringado', 'pringada', 'inutil', 'puto inutil',
   'patetico', 'patetica', 'basura', 'fracasado', 'fracasada', 'don nadie', 'mierda',
   'asco', 'muerto de hambre', 'desperdicio', 'ridiculo', 'ridicula', 'cutre', 'guarra',
   'guarro', 'puto guarro', 'cabronazo', 'perdedor', 'perdedora', 'cobarde', 'parasito',

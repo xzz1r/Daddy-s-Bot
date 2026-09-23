@@ -68,7 +68,7 @@ const HITO = [
 // ─── Volver después de romper una racha larga ────────────────────────────────
 const ROTA = [
   'Se acabó, %N. *%P días* a la puta basura por no aparecer una tarde.',
-  '%N vuelve con la cara de gilipollas del que ha tirado *%P días* por nada. Y es exactamente eso.',
+  '%N vuelve con la cara de gilipoyas del que ha tirado *%P días* por nada. Y es exactamente eso.',
   'Mira quién ha vuelto. Tarde: tus *%P días* ya se los comió el calendario, muerto de hambre.',
   'Bienvenido de vuelta, %N. Tu racha de *%P días* se quedó por el camino. Empiezas de cero como todo el mundo.',
   '%N reaparece y se encuentra el marcador a cero. *%P días* tirados por faltar uno. Así funciona esto.',

@@ -295,7 +295,7 @@ Qué implica para escribir, y es más exigente que antes:
 
 El arsenal que se mide sigue siendo este:
 
-> puto/puta · mierda · joder · coño · polla · cabrón · gilipollas · pringado ·
+> puto/puta · mierda · joder · coño · polla · cabrón · gilipoyas · pringado ·
 > fracasado · inútil · patético · basura · parásito · don nadie · muerto de
 > hambre · cero a la izquierda · asco · vergüenza · ridículo · escoria · guarro ·
 > cutre · miseria · desperdicio
@@ -369,7 +369,7 @@ quien lee un parte, no como quien está picado.
 final sube el arsenal que mide `npm run progreso` y deja el texto peor. Es
 trampa y se nota.
 
-> Bien: «Suerte de gilipollas y ni una gota de mérito.»
+> Bien: «Suerte de gilipoyas y ni una gota de mérito.»
 > Mal: «No has ganado nada. Y, cabrón, punto final del parte.»
 
 **6. El halago también cobra.** Cuando toca cumplido, se dice de verdad y se

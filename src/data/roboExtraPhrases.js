@@ -38,7 +38,7 @@ const BOTE_REVIENTA = [
 ];
 
 const BOTE_FALLA = [
-  '%A ha pagado por hacer el gilipollas delante de todos. El bote engorda con su donativo.',
+  '%A ha pagado por hacer el gilipoyas delante de todos. El bote engorda con su donativo.',
   'Ni de coña. %A rebota, el bote se queda tan pancho y el grupo se queda con la cara que ha puesto.',
   '%A al bote lo que un mosquito a un camión. Otra puta entrada tirada a la basura.',
   '%A intentó reventar el bote y solo consiguió engordarlo. La entrada se queda dentro, gracias por participar.',
@@ -336,7 +336,7 @@ const COMPRA_POBRE = [
 ];
 
 const ESCUDO_SALVA = [
-  '%A se ha estampado contra el escudo de %V como un gilipollas contra una puerta de cristal.',
+  '%A se ha estampado contra el escudo de %V como un gilipoyas contra una puerta de cristal.',
   'Blindado. %A ha ido a robar y ha vuelto con las manos vacías y una hostia de realidad.',
   '%V tenía escudo. %A se estrelló contra él como un mosquito contra un parabrisas.',
   'Intento inútil: %V pagó por no tener que aguantar a gente como %A.',
@@ -381,7 +381,7 @@ const CEBO_PICA = [
   'El señuelo de %V ha funcionado. %A picó como quien pica: con ambición y sin cabeza.',
   '%A fue a por el más gordo de la tabla y resulta que era de cartón. Menudo pardillo.',
   'Cebo perfecto. %A ha robado aire envasado y %V se parte de risa.',
-  '%V brillaba como un diamante y por dentro era cristal. %A se lo tragó entero, el muy gilipollas.',
+  '%V brillaba como un diamante y por dentro era cristal. %A se lo tragó entero, el muy gilipoyas.',
   '%A ha picado. %V iba disfrazado de rico y no tiene ni para el autobús.',
   'Menudo ridículo: %A calculando el golpe perfecto sobre un muerto de hambre.',
   '%V puso el cebo y %A mordio como el pardillo que es.',
@@ -404,7 +404,7 @@ const CEBO_PICA = [
 // ─── El contraataque ─────────────────────────────────────────────────────────
 const CONTRA_GANA = [
   '%V le ha metido la mano en el bolsillo a %A y le ha sacado %C. Por listo, cabrón.',
-  '%A disfrutó del botín treinta segundos. Ahora %V tiene %C y él tiene cara de gilipollas.',
+  '%A disfrutó del botín treinta segundos. Ahora %V tiene %C y él tiene cara de gilipoyas.',
   'Vuelta y media: %C de vuelta a %V. Eso pasa por robarle al que sí tiene cojones de responder.',
   '%V no se quedó llorando: fue a por %A y le sacó %C. Justicia poética con intereses.',
   'Contraataque limpio. %A robó y duró treinta segundos disfrutándolo: %V se llevó %C de vuelta.',
@@ -544,7 +544,7 @@ const DIANA_GOLPE = [
 const CONTRA_DEMOLEDOR = [
   '%V no ha contraatacado, le ha reventado la cara. %A suelta %C y encima da las gracias, el muy imbécil.',
   '%A pilló %C prestados y ha soltado hasta el sofá. %V se lo lleva todo.',
-  '%V le ha sacado %C a %A y le ha dejado el bolsillo del revés y la cara de gilipollas puesta.',
+  '%V le ha sacado %C a %A y le ha dejado el bolsillo del revés y la cara de gilipoyas puesta.',
   '%A se llevó calderilla y ha pagado la puta hipoteca: %C para %V.',
   '%V no iba a por lo suyo, iba a hacerle daño. %C y a callar.',
   'A %A le han devuelto el golpe con intereses y por escrito. −%C.',
@@ -552,7 +552,7 @@ const CONTRA_DEMOLEDOR = [
   'A %A le ha salido el robo más caro que a un tonto un abogado. %C.',
   '%V ha entrado a por lo suyo y ha salido con lo de %A también. %C, así de fácil.',
   '%V recoge %C de encima de %A y ni mira atrás.',
-  '%A quería aura fácil y se topó con %V. %C de multa por gilipollas.',
+  '%A quería aura fácil y se topó con %V. %C de multa por gilipoyas.',
   '%V le ha dado la vuelta al robo entero: %C.',
   'De ladrón a donante en noventa segundos. %A aporta %C y una mierda de excusa.',
   '%A ha descubierto hoy lo que es cagarla de verdad. %V cobra %C.',
@@ -565,7 +565,7 @@ const CONTRA_DEMOLEDOR = [
   'A %A lo han echado de su propio botín a hostias. Pierde %C.',
   '%V le ha sacado %C. Eso no es recuperar, es desplumar.',
   '%A tenía el aura calentita y %V se la ha llevado con sartén y todo: %C.',
-  'Robaste a quien no debías, %A. Aquí tienes la factura, gilipollas: %C.',
+  'Robaste a quien no debías, %A. Aquí tienes la factura, gilipoyas: %C.',
   '%V ha respondido con tanta mala hostia que hasta al grupo le ha dado pena. %C.',
   '%A pasó de listo a ejemplo en un solo turno. %C para %V.',
   'Demoledor. %A ya no tiene ni el botín ni la puta dignidad. %V +%C.',
@@ -608,7 +608,7 @@ const CONTRA_RASPADO = [
 ];
 
 const CONTRA_RUINA = [
-  '%V fue a por la revancha y ha vuelto debiendo %C. Hay que ser gilipollas.',
+  '%V fue a por la revancha y ha vuelto debiendo %C. Hay que ser gilipoyas.',
   '%A le roba, %V responde, y %A cobra %C MÁS. Hay que ser imbécil.',
   'Un robo normal y %V lo ha convertido en un desastre suyo. %C más para %A.',
   'Hay que tener talento para salir peor de una venganza. %V paga %C, campeón.',
@@ -631,7 +631,7 @@ const CONTRA_RUINA = [
   'Ruina total para %V, que ha pagado %C por el privilegio de hacer el ridículo.',
   '%A tenía el botín y ahora tiene el botín y la propina. %V −%C.',
   '%V se ha tirado a la piscina y estaba %A abajo con la factura: %C.',
-  'Insistir sale caro, gilipollas. %C más al bolsillo de %A.',
+  'Insistir sale caro, gilipoyas. %C más al bolsillo de %A.',
   '%V ha encontrado la forma de estar peor que antes. %C.',
   'El contraataque le ha costado más que el robo. %V paga %C y no aprende ni a hostias.',
   '%A ni se lo esperaba. %V ha ido, ha fallado, y ha soltado %C encima.',
@@ -687,7 +687,7 @@ const ATRACO_FALLA = [
   '%A se ha llevado por delante un expositor y %C de multa. Del botín, nada de nada.',
   'Atraco fallido. %A paga %C y encima el dinero se queda EN la caja. Qué puto arte.',
   '%A ha tardado más en huir que en entrar. %C de multa y veto, tonto del culo.',
-  'La tienda no se atraca con esa cara de gilipollas, %A. %C.',
+  'La tienda no se atraca con esa cara de gilipoyas, %A. %C.',
   '%A ha demostrado por qué tiene que comprar las cosas como todo el mundo. −%C.',
   'Pillado con la mano dentro como un crío. %A paga %C y se queda fuera.',
   '%A ha hecho el ridículo delante de la casa entera. %C de multa por payaso.',
@@ -711,7 +711,7 @@ const ATRACO_FALLA = [
 ];
 
 const ATRACO_VACIA = [
-  'La caja tiene %N. Ni para el taxi de vuelta, gilipollas.',
+  'La caja tiene %N. Ni para el taxi de vuelta, gilipoyas.',
   'Atracar eso sería pedir limosna con pasamontañas. Quedan %N.',
   '%A, la caja está a %N. Compra algo primero y vuelve, listillo.',
   'No hay una mierda que robar: %N en la caja. La tienda está más tiesa que tú.',
@@ -752,7 +752,7 @@ const ATRACO_VETADO = [
   'Ni comprar ni robar: %A está vetado. Que espere y se joda.',
   'El tendero ve a %A y baja la persiana. Así de bien cae el cabrón.',
   '%A está en la lista negra de su propia tienda. Enhorabuena, campeón.',
-  'Vetado por gilipollas. %A vuelve cuando pase el castigo.',
+  'Vetado por gilipoyas. %A vuelve cuando pase el castigo.',
   'La tienda le tiene ganas a %A. Mejor que no aparezca todavía.',
   '%A no puede entrar. Hay carteles con su careto y todo.',
   'Prohibido el paso a %A. Lo pone en la puerta, con faltas de ortografía y todo.',

@@ -250,7 +250,7 @@ process.once('exit', _guardarYa);
 //
 // Ahora: con ñ vale cualquier sufijo (coño, coños, coñazo) y sin ñ solo la
 // palabra entera (cono, conos), que es como se escribe cuando falta la tecla.
-const ARSENAL = /\b(puto?s?|puta?s?|mierda|joder|co(?:ñ\w*|nos?\b)|polla|cabr[oó]n|gilipollas|pringad|fracasad|in[uú]til|pat[eé]tic|basura|par[aá]sito|don nadie|muerto de hambre|cero a la izquierda|asco|verg[uü]enza|rid[ií]cul|escoria|guarr|cutre|miseria|desperdicio)\w*/gi;
+const ARSENAL = /\b(puto?s?|puta?s?|mierda|joder|co(?:ñ\w*|nos?\b)|polla|cabr[oó]n|gilipo(?:ll|y)as|pringad|fracasad|in[uú]til|pat[eé]tic|basura|par[aá]sito|don nadie|muerto de hambre|cero a la izquierda|asco|verg[uü]enza|rid[ií]cul|escoria|guarr|cutre|miseria|desperdicio)\w*/gi;
 
 // ¿Lleva esta frase vocabulario del arsenal?
 //

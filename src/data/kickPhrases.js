@@ -30,8 +30,8 @@ const AVISOS_KICK = [
     varios: '%M eran fantasmas de mierda. Se les sentaba al lado y se les olvidaba, coño.\nEl grupo aprendió a funcionar sin mirarlos. No van a faltar porque nunca estuvieron. Cadáveres con número de teléfono. Fuera, don nadies.',
   },
   {
-    uno: '%M mira alrededor, gilipollas. Nadie se está moviendo para quedarte.\nSi importaras una mierda, alguien habría abierto la boca. Te echan delante de todos y el único ruido eres tú desapareciendo. No tienes a nadie. Fuera, patético.',
-    varios: '%M miren alrededor, gilipollas. Nadie se está moviendo para quedárselos.\nSi importaran una mierda, alguien habría abierto la boca. Los echan delante de todos y el único ruido son ustedes desapareciendo. No tienen a nadie. Fuera, patéticos.',
+    uno: '%M mira alrededor, gilipoyas. Nadie se está moviendo para quedarte.\nSi importaras una mierda, alguien habría abierto la boca. Te echan delante de todos y el único ruido eres tú desapareciendo. No tienes a nadie. Fuera, patético.',
+    varios: '%M miren alrededor, gilipoyas. Nadie se está moviendo para quedárselos.\nSi importaran una mierda, alguien habría abierto la boca. Los echan delante de todos y el único ruido son ustedes desapareciendo. No tienen a nadie. Fuera, patéticos.',
   },
   {
     uno: '%M no hay «déjame explicar», inútil. El grupo no te debe una audiencia. Te debe una salida.\nLlevas tiempo siendo un problema que nadie quería nombrar. Hoy se nombra: sobras, puta. No hay segunda ronda. Vete.',
@@ -86,8 +86,8 @@ const AVISOS_KICK = [
     varios: '%M se fueron hace tiempo. Hoy solo se hace oficial, fantasmas de mierda.\nDejaron de contar el día en que el grupo aprendió a ignorarlos, maricones. Estar en la lista no es pertenecer. Nadie va a pelear por sus nombres. Nadie va a decir «pena». Fuera.'
   },
   {
-    uno: '%M este grupo no es un refugio para el que no pinta una mierda, guarra.\nEntraste como si el sitio fuera un derecho. Se gana, y tú no lo ganaste. Hoy se corrige. No hay «una oportunidad más». Fuera, gilipollas.',
-    varios: '%M este grupo no es un refugio para el que no pinta una mierda, guarras.\nEntraron como si el sitio fuera un derecho. Se gana, y ustedes no lo ganaron. Hoy se corrige. No hay «una oportunidad más». Fuera, gilipollas.',
+    uno: '%M este grupo no es un refugio para el que no pinta una mierda, guarra.\nEntraste como si el sitio fuera un derecho. Se gana, y tú no lo ganaste. Hoy se corrige. No hay «una oportunidad más». Fuera, gilipoyas.',
+    varios: '%M este grupo no es un refugio para el que no pinta una mierda, guarras.\nEntraron como si el sitio fuera un derecho. Se gana, y ustedes no lo ganaron. Hoy se corrige. No hay «una oportunidad más». Fuera, gilipoyas.',
   },
   {
     uno: '%M nadie en este grupo te quiere cerca, y se te nota a kilómetros, puta.\nNo caes, no aportas, no follas y aun así te quedaste pegado. Confundiste que no te echaran con que te aceptaran. Te acaban de echar. Se te acabó el cuento. Fuera, miseria.',
@@ -142,8 +142,8 @@ const AVISOS_KICK = [
     varios: '%M se creyeron protagonistas de un chat donde nadie los habría puesto ni de extras, maricones.\nHablaban poco y pensaban mucho en ustedes. El grupo funcionaba mejor cuando no aparecían. Hoy se corta el papel. Fuera.'
   },
   {
-    uno: '%M esta expulsión llega tarde, gilipollas, y se nota.\nHace semanas que el grupo te tenía sentenciado. Solo faltaba que alguien pulsara. Hoy pulsan. El resto ya lo había decidido. Tú te enteras ahora. Lárgate.',
-    varios: '%M esta expulsión llega tarde, gilipollas, y se nota.\nHace semanas que el grupo los tenía sentenciados. Solo faltaba que alguien pulsara. Hoy pulsan. El resto ya lo había decidido. Ustedes se enteran ahora. Los echan. Lárguense.'
+    uno: '%M esta expulsión llega tarde, gilipoyas, y se nota.\nHace semanas que el grupo te tenía sentenciado. Solo faltaba que alguien pulsara. Hoy pulsan. El resto ya lo había decidido. Tú te enteras ahora. Lárgate.',
+    varios: '%M esta expulsión llega tarde, gilipoyas, y se nota.\nHace semanas que el grupo los tenía sentenciados. Solo faltaba que alguien pulsara. Hoy pulsan. El resto ya lo había decidido. Ustedes se enteran ahora. Los echan. Lárguense.'
   },
   {
     uno: '%M lo más memorable que has hecho aquí es que te echen, retrasado.\nHasta hoy no había un momento tuyo que alguien pudiera contar. Ahora sí: el final. Un fracaso tan limpio que no deja ni anécdota. Fuera.',
@@ -202,16 +202,16 @@ const AVISOS_KICK = [
     varios: '%M se creyeron que este grupo existía para entretenerlos, putas. Lo leían, se aburrían, no daban nada y aun así se quejaban.\nEl grupo no les debía el espectáculo. Les debía una salida. Hoy la cobra. Fuera.',
   },
   {
-    uno: '%M el grupo ya te había reemplazado, gilipollas. Nadie lo dijo porque nadie te tenía en la cuenta.\nHoy se actualiza la lista para que coincida con la realidad. Llevas fuera de verdad desde hace tiempo. Esto es el empujón. Fuera.',
-    varios: '%M el grupo ya los había reemplazado, gilipollas. Nadie lo dijo porque nadie los tenía en la cuenta.\nHoy se actualiza la lista para que coincida con la realidad y los echan. Llevan fuera de verdad desde hace tiempo. Esto es el empujón. Fuera.'
+    uno: '%M el grupo ya te había reemplazado, gilipoyas. Nadie lo dijo porque nadie te tenía en la cuenta.\nHoy se actualiza la lista para que coincida con la realidad. Llevas fuera de verdad desde hace tiempo. Esto es el empujón. Fuera.',
+    varios: '%M el grupo ya los había reemplazado, gilipoyas. Nadie lo dijo porque nadie los tenía en la cuenta.\nHoy se actualiza la lista para que coincida con la realidad y los echan. Llevan fuera de verdad desde hace tiempo. Esto es el empujón. Fuera.'
   },
   {
     uno: '%M llamabas lealtad a quedarte muteado. No es lealtad. Es esconderse, puta.\nEl grupo no premia al que ocupa sin aparecer. No fuiste fiel: fuiste invisible. La invisibilidad no se condecora. Te echan. Fuera.',
     varios: '%M llamaban lealtad a quedarse muteados. No es lealtad. Es esconderse, putas.\nEl grupo no premia al que ocupa sin aparecer. No fueron fieles: fueron invisibles. La invisibilidad no se condecora. Los echan. Fuera.'
   },
   {
-    uno: '%M te han querido echar antes. En la cabeza de más de uno, gilipollas. Hoy alguien lo hace y el resto va a respirar.\nNo es un capricho. El grupo te tenía sentenciado en privado. Hoy lo dice en voz alta. Fuera.',
-    varios: '%M los han querido echar antes. En la cabeza de más de uno, gilipollas. Hoy alguien lo hace y el resto va a respirar.\nNo es un capricho. El grupo los tenía sentenciados en privado. Hoy los echa en voz alta. Fuera.',
+    uno: '%M te han querido echar antes. En la cabeza de más de uno, gilipoyas. Hoy alguien lo hace y el resto va a respirar.\nNo es un capricho. El grupo te tenía sentenciado en privado. Hoy lo dice en voz alta. Fuera.',
+    varios: '%M los han querido echar antes. En la cabeza de más de uno, gilipoyas. Hoy alguien lo hace y el resto va a respirar.\nNo es un capricho. El grupo los tenía sentenciados en privado. Hoy los echa en voz alta. Fuera.',
   },
   {
     uno: '%M no eras miembro. Eras público, maricón. Y un público que no aplaude, no paga y no se va es un problema.\nTe sentaste a mirar y confundiste la entrada con un derecho. El derecho se acaba. Fuera.',

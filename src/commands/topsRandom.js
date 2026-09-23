@@ -34,7 +34,7 @@ const CIERRES = [
   'Los {N} de la vergüenza, servidos en bandeja de mierda.',
   'Ahí tenéis la mierda que ha escupido el bot hoy. Los {N} de turno.',
   '{N} nombres y ni una puta excusa entre todos.',
-  'Enhorabuena, gilipollas. Sois {N} y os jodéis igual.',
+  'Enhorabuena, gilipoyas. Sois {N} y os jodéis igual.',
   'El bot ha meado esta lista y os ha tocado a los {N}.',
   'Sois {N} de mierda, repartíos la vergüenza como podáis.',
   'Ni Dios pidió esto, pero ahí quedáis los {N}.',

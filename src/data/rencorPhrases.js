@@ -39,7 +39,7 @@ const MOG_REPITE = [
   '%V pierde otra vez contra %A. Ya pasó %D, y la genética de %V no ha mejorado una puta mierda desde entonces.',
   'El mismo resultado que %D. %V sigue pidiendo el mog contra %A con la esperanza de que la cara le cambie por insistir.',
   'Repetición de %D: %A arriba, %V abajo. Lo único que ha cambiado es la cantidad de gente mirando.',
-  'Hay quien aprende a la primera. %V perdió %D contra %A y ha vuelto a por la segunda, que ya es de ser gilipollas.',
+  'Hay quien aprende a la primera. %V perdió %D contra %A y ha vuelto a por la segunda, que ya es de ser gilipoyas.',
   '%D %A se lo dejó claro a %V. Hoy se lo explica más despacio, a ver si esta vez le entra.',
   'Otra vez %A, otra vez %V debajo. Si lo de %D no dolió lo suficiente, esto ya debería.',
   '%V ha vuelto a medirse con %A después de lo de %D. No es valentía, es no tener ni memoria ni espejo.',

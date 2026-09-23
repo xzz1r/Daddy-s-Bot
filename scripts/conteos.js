@@ -191,7 +191,7 @@ async function manda(quien, alt, texto, parts, menciones = null, grupo = G) {
 
     // !top5 cruza los conteos con la lista de miembros: si el cruce falla, el
     // sorteo se queda sin gente y contesta "no hay suficientes".
-    const top = await envia('!top5 gilipollas');
+    const top = await envia('!top5 gilipoyas');
     const plazas = (top.match(/^\s*\*\d+\.\*  @\d+$/gm) || []).length;
     const fuera = [num(de('MUDO')), EX.tel.split('@')[0]];
     const colados = (top.match(/@(\d+)/g) || []).some(m => fuera.includes(m.slice(1)));

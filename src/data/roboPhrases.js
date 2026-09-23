@@ -5,7 +5,7 @@
 const ROBO_FALLO_REMATE = [
   'y le salió como el puto culo',
   'y le salió como todo en su puta vida: mal',
-  'y se estrelló como el gilipollas que es',
+  'y se estrelló como el gilipoyas que es',
   'y le duró menos que la dignidad, que ya es decir',
   'y acabó haciendo el ridículo, su especialidad',
   'y la cagó con una puntería que asusta',
@@ -35,7 +35,7 @@ const ROBO_FALLO_REMATE = [
   'y el marcador le recordó su sitio: abajo, don nadie',
   'y salió escaldado, que es su temperatura de siempre',
   'y la víctima ni se enteró: amenaza nivel desperdicio',
-  'y pagó la clase. La clase era: no eres esto, gilipollas',
+  'y pagó la clase. La clase era: no eres esto, gilipoyas',
   'y el intento quedó en anécdota de risa. Otra. La suya.',
   'y se le vio el hambre y la nada. Las dos. Qué asco',
   'y no fue un fallo. Fue un retrato. Firmado, fracasado',
@@ -60,7 +60,7 @@ const ROBO_FALLO_REMATE = [
   'y el grupo no se sorprendió. La sorpresa se jubiló con él',
   'y se fue sin un aura y con un puto récord más de nada',
   'y la multa le queda mejor que el plan. La multa es honesta',
-  'y ni cerca. Ni lejos. En el sitio de siempre: fuera, gilipollas',
+  'y ni cerca. Ni lejos. En el sitio de siempre: fuera, gilipoyas',
   'y se le cayó la chulería en el primer paso. Había un solo paso',
   'y el golpe le salió en espejo: se robó a sí mismo, ridículo',
   'y quedó a deber un delito. Ni delinquir se le da, fracasado',
@@ -84,7 +84,7 @@ const ROBO_FALLO_REMATE = [
   'y la víctima no se defendió. No hacía falta. Él se cae solo',
   'y pagó por la foto mental en la que ganaba. La foto era un montaje',
   'y se le acabó el cuento en el primer verbo. El verbo era robar. No sabe',
-  'y el grupo archivó el intento en "otra más". El archivo pesa, gilipollas',
+  'y el grupo archivó el intento en "otra más". El archivo pesa, gilipoyas',
   'y volvió al sofá con menos. El sofá no le pregunta. Menos mal',
   'y se pegó el batacazo con la elegancia de un cubo. Un cubo, inútil',
   'y el no le llegó antes que el plan. El plan era lento. Él, más',
@@ -106,7 +106,7 @@ const ROBO_FALLO_REMATE = [
 ];
 
 const ROB_WIN = [
-  '%A le roba el aura a %V en plena cara del grupo. %V se defendió como se defiende de todo en la vida: con cero éxito y mucha cara de gilipollas.',
+  '%A le roba el aura a %V en plena cara del grupo. %V se defendió como se defiende de todo en la vida: con cero éxito y mucha cara de gilipoyas.',
   'Saqueo limpio de %A sobre %V. El aura cambió de dueño tan rápido que %V todavía la está buscando en los bolsillos, el puto infeliz.',
   '%A le arranca el aura a %V sin una puta resistencia. Robarle a %V es como quitarle el móvil a una estatua: ni se mueve, ni se queja, ni se entera.',
   'Robo consumado. %A entró, cogió el aura de %V y se fue silbando. %V se quedó con cara de puto pasmado, la única que sabe poner este inútil ante cualquier cosa.',
@@ -292,7 +292,7 @@ const ROB_WIN = [
 ];
 
 const ROB_FAIL = [
-  '%A intentó robarle el aura a %V y falló como falla en todo: con confianza de gilipollas y puntería de tuerto. Ahora paga la multa, lo único que se le da bien.',
+  '%A intentó robarle el aura a %V y falló como falla en todo: con confianza de gilipoyas y puntería de tuerto. Ahora paga la multa, lo único que se le da bien.',
   'Robo de mierda de %A. %V ni se despeinó. Hasta el universo se ríe de los que salen a robar sin tener ni idea, y %A acaba de dar el espectáculo gratis.',
   '%A salió a robar y volvió con menos. Hasta para delinquir eres un fracaso, %A. Te salía más rentable quedarte quieto, tu puta especialidad.',
   'Intento de robo de %A sobre %V: bloqueado, expuesto y cobrado con intereses. %A pagó por creerse listo. La lección no la va a aprender: para eso hace falta una cabeza.',
@@ -600,7 +600,7 @@ const ROB_MAESTRO = [
   '%V se creía intocable. %A lo tocó, lo vació y se fue. Fin de la fantasía.',
   'Robo limpio, qué vergüenza de rival de %A. %V se queda con lo que siempre tuvo: nada y una opinión que a nadie importa.',
   'Saqueo total: %A se llevó casi el doble de %V. %V, te han dejado el esqueleto, inútil.',
-  '%A entró, arrasó y salió. %V se quedó mirando como un gilipollas el hueco donde antes tenía algo.',
+  '%A entró, arrasó y salió. %V se quedó mirando como un gilipoyas el hueco donde antes tenía algo.',
   'Saqueo de manual: %A dejó a %V en cifras negativas y en ridículo permanente.',
   '%A se llevó casi el doble. %V, lo tuyo ya no es esa mala suerte que no existe, inútil, es una condición crónica.',
   '%A saqueó a %V hasta el forro. No queda ni el orgullo, que ya era bastante poco.',
@@ -758,7 +758,7 @@ const ROB_PARCIAL = [
   'Un pellizco. Un titular. Una mentira. %A llama robo a una limosna. %V llama a esto lo de siempre: este inútil.',
   '%A no da para desvalijar a %V. Da para molestar. Molestar es de parásitos. Ahí está.',
   'Saqueo flojo, de los que se cuentan para no decir "no pude". %A no pudo. %V lo sabía. El grupo también. Una miseria.',
-  '%A se lleva un cacho y se le cae la pose. La pose pedía el saco. El cacho pide silencio, gilipollas.',
+  '%A se lleva un cacho y se le cae la pose. La pose pedía el saco. El cacho pide silencio, gilipoyas.',
   'Medio golpe, media fuga, cero carácter. %A es un ladrón de rebajas. %V, el escaparate que no se vacía. Cutre y público.',
   '%A entra a por todo y sale con el cambio. El cambio le queda grande. %V ni se despeina, qué asco de amenaza.',
   'Parcial como su vida: a medias, ruidoso y sin cierre. %A se apunta un tanto de miseria. %V sigue entero.',
