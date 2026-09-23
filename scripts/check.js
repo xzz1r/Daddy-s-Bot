@@ -18988,6 +18988,43 @@ const manda = async (quien, tipo, opciones) => {
     }
     if (fallos === antes109) console.log(verde('   ✓ se acuerda al dia siguiente y no el mismo dia, elige bien cada situacion, junta las dos formas de una persona, y del dueño no apunta nada'));
   }
+
+  // ── 110. EL BARRIDO DE temp/ NO SE LLEVA EL .gitkeep ────────────────────
+  //
+  // temp/.gitkeep esta en git para que un clon limpio traiga la carpeta. El
+  // barrido horario borraba todo lo de mas de una hora, .gitkeep incluido, y
+  // en la VPS eso dejo el arbol con «D temp/.gitkeep»: actualizar.sh se nego a
+  // desplegar. Se prueba con el barrido de verdad y ficheros envejecidos.
+  {
+    console.log('\n110. EL BARRIDO DE temp/ NO SE LLEVA EL .gitkeep');
+    const antes110 = fallos;
+    const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
+    const TMP = path.join(R, 'temp');
+    const keep = path.join(TMP, '.gitkeep');
+    const viejo = path.join(TMP, `prueba110-${process.pid}.tmp`);
+    const habia = fs.existsSync(keep);
+    const mtime = habia ? fs.statSync(keep).mtime : null;
+    try {
+      fs.mkdirSync(TMP, { recursive: true });
+      if (!habia) fs.writeFileSync(keep, '');
+      fs.writeFileSync(viejo, 'x');
+      const hace2h = new Date(Date.now() - 2 * 3600 * 1000);
+      fs.utimesSync(keep, hace2h, hace2h);
+      fs.utimesSync(viejo, hace2h, hace2h);
+      await require(path.join(R, 'src/utils/helpers')).ensureTemp();
+      exige(!fs.existsSync(viejo), 'el barrido de temp/ ya no borra lo viejo: la prueba no esta probando nada');
+      exige(fs.existsSync(keep), 'el barrido de temp/ se lleva el .gitkeep: el arbol queda sucio y actualizar.sh no despliega');
+    } finally {
+      try { fs.unlinkSync(viejo); } catch {}
+      if (!habia) { try { fs.unlinkSync(keep); } catch {} } else if (mtime) { try { fs.utimesSync(keep, mtime, mtime); } catch {} }
+    }
+    const act = fs.readFileSync(path.join(R, 'scripts/actualizar.sh'), 'utf8');
+    const iRepone = act.indexOf('git checkout -- temp/.gitkeep');
+    const iSucio = act.indexOf('git status --porcelain');
+    exige(iRepone > 0 && iRepone < iSucio,
+      'actualizar.sh ya no repone temp/.gitkeep antes de mirar si hay cambios: una VPS donde ya se borro sigue sin poder desplegar');
+    if (fallos === antes110) console.log(verde('   ✓ el barrido se lleva lo viejo y deja el .gitkeep, y el despliegue lo repone si falta'));
+  }
   }
 
   if (BREVE) {

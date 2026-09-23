@@ -95,6 +95,10 @@ git checkout -- package-lock.json 2>/dev/null || true
 # sellada y eso es un cambio local que bloquearia el despliegue siguiente. Es un
 # fichero generado; el pull trae el bueno.
 git checkout -- .sello 2>/dev/null || true
+# Y temp/.gitkeep: solo existe para que la carpeta llegue en un clon limpio. El
+# barrido horario de temp/ se lo llevaba por delante (ya no), y su falta
+# bloqueaba el despliegue con «D temp/.gitkeep». Se repone y punto.
+git checkout -- temp/.gitkeep 2>/dev/null || true
 
 # El resto de cambios locales SI se avisan. Los .bak y demás restos hacen que el
 # pull falle o quede sucio, y borrar cambios de alguien sin decírselo no lo hace

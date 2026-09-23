@@ -14,6 +14,9 @@ async function barrerTemp() {
     const entries = await fs.readdir(TEMP_DIR);
     const now = Date.now();
     await Promise.all(entries.map(async (name) => {
+      // .gitkeep esta en git para que temp/ exista en un clon limpio. Borrarlo
+      // deja el arbol sucio, y actualizar.sh se niega a desplegar.
+      if (name === '.gitkeep') return;
       const full = path.join(TEMP_DIR, name);
       try {
         const stat = await fs.stat(full);
