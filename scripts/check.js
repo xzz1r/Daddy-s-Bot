@@ -3905,7 +3905,8 @@ const di=async(quien,texto,extra)=>{
     };
 
     const salida = await lanzar(ADM_R);
-    const av = salida.find((x) => x.a === GR);
+    // La orden, no el aviso de humor negro que sale antes en su propio mensaje.
+    const av = salida.find((x) => x.a === GR && /PRESENTACIÓN/.test(x.text || ''));
     // Desde un grupo, SOLO ese grupo. Un admin satélite no patea al resto.
     // La ronda global se pide desde el privado del owner.
     const conAviso = salida.filter((x) => /PRESENTACIÓN/.test(x.text || '')).map((x) => x.a);
@@ -3922,12 +3923,24 @@ const di=async(quien,texto,extra)=>{
       '!r dejo de decir que es solo para los nuevos: el resto del grupo no tiene que presentarse');
     exige(!av || !/(antigu|llevan tiempo|todo el mundo|todos se present)/i.test(av.text || ''),
       '!r vuelve a pedir la presentación a gente que ya está');
-    // 300 y no 230: el dueño pidio que el aviso diga de entrada que esto es
-    // humor negro y quien no entra, y esa linea no cabia en el tope de antes.
-    exige(!av || (av.text || '').length < 300,
+    // 420 y no 230: el dueño pidio que el aviso lleve tambien lo que es el
+    // grupo, y ese parrafo no cabia en el tope de antes. Es el techo con la
+    // frase de humor negro mas larga y el remate mas largo juntos.
+    exige(!av || (av.text || '').length < 420,
       `!r se esta alargando (${av?.text?.length} caracteres): es un aviso, no un comunicado`);
-    exige(!av || /humor negro/i.test(av.text || ''),
-      '!r ya no dice que esto es humor negro: el dueño lo quiere en la primera impresion');
+    // LO QUE ES EL GRUPO VA EN EL MISMO MENSAJE, EN SU PROPIO PARRAFO Y ANTES
+    // DE LA ORDEN. Lo pidio el dueño asi, y lo corrigio dos veces: ni una linea
+    // suelta entre las normas, ni un mensaje aparte.
+    {
+      const t = av?.text || '';
+      const parrafos = t.split('\n\n');
+      const iHumor = parrafos.findIndex((x) => /humor negro/i.test(x));
+      const iOrden = parrafos.findIndex((x) => /\*Quién:\*/.test(x));
+      exige(iHumor >= 0, '!r ya no dice que esto es un grupo de humor negro');
+      exige(iHumor < 0 || (iHumor < iOrden && !/\*Quién:\*|\*Qué:\*/.test(parrafos[iHumor])),
+        'el aviso de humor negro tiene que ir en su propio parrafo y antes de la orden');
+      exige(salida.filter((x) => x.a === GR).length === 1, '!r manda mas de un mensaje: el humor negro va dentro de la presentacion');
+    }
     // LA FOTO SE PIDE COMO OBLIGACION, no como sugerencia.
     //
     // Y SE MIRA EN LA LINEA QUE LA PIDE, no en el mensaje entero. La primera
@@ -3976,8 +3989,8 @@ const di=async(quien,texto,extra)=>{
       const gsrc = fs.readFileSync(path.join(R, 'src/commands/group.js'), 'utf8');
       const bloque = gsrc.slice(gsrc.indexOf('const REMATES'), gsrc.indexOf('];', gsrc.indexOf('const REMATES')));
       const remates = [...bloque.matchAll(/^  '(.+)',$/gm)].map((m) => m[1]);
-      exige(remates.length >= 15,
-        `solo hay ${remates.length} remates para !r: el dueño los dejo en 15`);
+      exige(remates.length >= 8,
+        `solo hay ${remates.length} remates para !r: con menos de 8 se repiten a la vista`);
       exige(new Set(remates).size === remates.length, 'hay remates de !r repetidos');
       exige(remates.every((r) => r.length < 110),
         'algun remate de !r se alarga: el aviso tiene que caber de un vistazo');
@@ -3997,18 +4010,27 @@ const di=async(quien,texto,extra)=>{
       const amenaza = remates.filter((r) => /\b(ech[ao]|expuls|banea|fuera del grupo|te saco|los saco|te vas|se va a la calle)/i.test(r));
       exige(amenaza.length === 0,
         `remates de !r que amenazan con algo que el bot no hace: ${amenaza.slice(0, 2).join(' · ')}`);
-      exige(/pickBaraja\(REMATES/.test(gsrc),
-        'el remate de !r ya no sale de la baraja: con quince, pickFresh puede repetir antes de que salgan todos');
-      // LA BARAJA, EJECUTADA: tres vueltas seguidas del pool de !r, y en cada
-      // una salen los quince sin repetir, y nunca dos iguales seguidos.
+      exige(/pickFresh\(REMATES/.test(gsrc),
+        'el remate de !r dejo de rotar: la misma frase en cada aviso se quema a la tercera');
+      // EL AVISO DE HUMOR NEGRO: quince, en baraja, sin genero y sin amenazas.
+      // La baraja se ejecuta: tres vueltas, las quince en cada una sin
+      // repetir, y nunca la misma dos veces seguidas.
       {
+        const { HUMOR_NEGRO } = require(path.join(R, 'src/data/humorNegroPhrases'));
+        exige(HUMOR_NEGRO.length === 15, `el aviso de humor negro tiene ${HUMOR_NEGRO.length} frases y el dueño lo dejo en 15`);
+        exige(new Set(HUMOR_NEGRO).size === HUMOR_NEGRO.length, 'hay frases de humor negro repetidas');
+        exige(/pickBaraja\(HUMOR_NEGRO/.test(gsrc), 'el aviso de humor negro ya no sale de la baraja: con quince, puede repetir antes de tiempo');
+        const alLector = HUMOR_NEGRO.filter((f) => /\b(bienvenid[oa]s?\b(?! la gente)|callad[oa]|tont[oa]|guap[oa]|nuev[oa]s?\b|list[oa]s?\b)/i.test(f));
+        exige(alLector.length === 0, `frases de humor negro con genero hacia quien lee: ${alLector.slice(0, 2).join(' · ')}`);
+        const amenazan = HUMOR_NEGRO.filter((f) => /\b(ech[ao]|expuls|banea|fuera del grupo|te saco|te vas)/i.test(f));
+        exige(amenazan.length === 0, `frases de humor negro que amenazan con algo que el bot no hace: ${amenazan[0] || ''}`);
         const { pickBaraja } = require(path.join(R, 'src/utils/helpers'));
-        const clave = `check|baraja|${process.pid}`;
+        const clave = `check|humornegro|${process.pid}`;
         const salen = [];
-        for (let i = 0; i < remates.length * 3; i++) salen.push(pickBaraja(remates, clave));
-        const vueltasBien = [0, 1, 2].every((v) => new Set(salen.slice(v * remates.length, (v + 1) * remates.length)).size === remates.length);
-        exige(vueltasBien, 'la baraja de !r repite un remate antes de que hayan salido todos');
-        exige(salen.every((x, i) => i === 0 || x !== salen[i - 1]), 'la baraja de !r saca el mismo remate dos veces seguidas');
+        for (let i = 0; i < HUMOR_NEGRO.length * 3; i++) salen.push(pickBaraja(HUMOR_NEGRO, clave));
+        exige([0, 1, 2].every((v) => new Set(salen.slice(v * 15, (v + 1) * 15)).size === 15),
+          'la baraja del aviso de humor negro repite una frase antes de que hayan salido todas');
+        exige(salen.every((x, i) => i === 0 || x !== salen[i - 1]), 'la baraja del aviso de humor negro saca la misma dos veces seguidas');
       }
       // Y por grupo, no global: lanzado desde el privado sale en varios a la vez
       // y el mismo texto repetido en todos delata que es un boton.
@@ -19373,6 +19395,34 @@ const manda = async (quien, tipo, opciones) => {
     exige(RD.enlaceDe('https://vm.tiktok.com/ZMabc/?x=1', 'tiktok') === 'https://vm.tiktok.com/ZMabc/?x=1',
       'la limpieza se ha extendido a TikTok, y ahi la consulta puede ser parte del enlace');
     if (fallos === antes113) console.log(verde('   ✓ el enlace de Instagram llega sin la cola de rastreo, y un perfil sigue siendo un perfil'));
+  }
+
+  // ── 114. NI UN «BARDEAR» EN TODO EL BOT ─────────────────────────────────
+  //
+  // Lo pidio el dueño con esas palabras: fuera de todo el bot. Se mira cada
+  // fichero de src/ por la palabra y sus formas (bardear, bardea, bardean,
+  // bardeo…), sin tocar las que solo la contienen: cobarde, bombardeo.
+  {
+    console.log('\n114. NI UN «BARDEAR» EN TODO EL BOT');
+    const antes114 = fallos;
+    const hallados = [];
+    const recorre = (d) => {
+      for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        const f = path.join(d, e.name);
+        if (e.isDirectory()) recorre(f);
+        else if (/\.(js|json|md)$/.test(e.name)) {
+          const t = fs.readFileSync(f, 'utf8');
+          const m = t.match(/(?<![a-záéíóúñ])bard[eé][aeéo]?[a-záéíóúñ]*/i);
+          if (m) hallados.push(`${path.relative(R, f)} («${m[0]}»)`);
+        }
+      }
+    };
+    recorre(path.join(R, 'src'));
+    for (const f of ['GUIA.md']) {
+      try { if (/(?<![a-záéíóúñ])bard[eé]/i.test(fs.readFileSync(path.join(R, f), 'utf8'))) hallados.push(f); } catch {}
+    }
+    if (hallados.length) { fallos++; console.log(rojo(`   ✗ vuelve a salir «bardear», que el dueño mando quitar: ${hallados.join(', ')}`)); }
+    if (fallos === antes114) console.log(verde('   ✓ ni rastro de «bardear»'));
   }
   }
 

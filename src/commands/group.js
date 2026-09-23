@@ -17,6 +17,7 @@ const { AVISOS_KICK } = require('../data/kickPhrases');
 const UNOS_KICK = AVISOS_KICK.map((a) => a.uno);
 const { A_TI_MISMO, CONTRA_UN_ADMIN, SIN_PERMISO, SOLO_ADMINS, SOLO_GRUPOS } = require('../data/avisos');
 const { aviso } = require('../utils/helpers');
+const { HUMOR_NEGRO } = require('../data/humorNegroPhrases');
 
 // In-memory mute store: `groupJid|bareJid` -> expireTimestamp
 // Hard-capped: insertion-ordered Map evicts oldest entry past the cap so a
@@ -1390,37 +1391,27 @@ async function cmdSoloAdmins(sock, msg, args, groupMeta) {
 // escribir blando: "das pena", "careto", "te has visto" valen para cualquiera.
 // Y ninguno amenaza con echar: el bot no lo hace.
 const REMATES = [
-  // LO QUE PIDIO EL DUEÑO: que el aviso diga desde la primera linea que esto es
-  // humor negro, y que no entran cristales, ni peña fea, ni IQ bajo, y si la
-  // gente con buen humor. Cada remate ataca UNO de esos frentes y acaba
-  // empujando a mandar la foto: el grupo se presenta a si mismo en el mismo
-  // aviso en que pide que te presentes tu.
+  // LA FORMA QUE FUNCIONA: excusa citada -> se desmonta con un dato concreto ->
+  // orden que humilla. Lo que hace daño es el dato ("seiscientas en la
+  // galería"), no el insulto: le quita la salida antes de que la use. Un remate
+  // sin dato es una opinión y se ignora.
   //
-  // Quince y en baraja (pickBaraja): salen todos antes de repetir ninguno.
-  // Ninguno viene con genero (lo lee el grupo entero) ni amenaza con echar a
-  // nadie: el bot no lo hace. Las dos cosas las vigila check.js.
-
-  // El humor negro, dicho de entrada.
-  'Esto es humor negro. Aquí nos reímos de la muerte, de la enfermedad y de ti. Foto y edad para empezar.',
-  'Humor negro sin frenos ni disculpas. Lo único que se respeta aquí es a quien da la cara. Mándala.',
-  'Si un chiste te hace llorar, te has equivocado de grupo. Si no, foto y edad, que el infierno no espera.',
-  // Los de cristal.
-  'Gente de cristal no entra. Aquí nadie pide perdón por un chiste y nadie lo va a pedir por ti. Foto y edad.',
-  '¿Te ofendes rápido? Aquí nos hemos reído de cosas mucho peores que tú. Preséntate y compruébalo.',
-  // El buen humor.
-  'Aquí se pide buen humor, no permiso. Si sabes reírte de ti, empieza por tu foto.',
-  'Se busca gente que aguante una broma y sepa devolverla. La primera la haces tú: foto y edad.',
-  // La peña fea.
-  'Sin foto damos por hecho lo peor de tu cara. Casi siempre acertamos. Demuestra lo contrario.',
-  'Aquí la belleza no es obligatoria, pero la cara sí. Enséñala y que el grupo decida.',
-  'Caretos de lástima no, gracias. Si crees que el tuyo pasa el corte, mándalo y lo votamos.',
-  // El IQ bajo.
-  'Para entrar hace falta un IQ decente. La prueba es fácil: foto y edad, sin preguntar cómo.',
-  'Para leer esto hacen falta dos neuronas. Para cumplirlo, una. Foto y edad.',
-  'Si «foto y edad» te parece difícil, el problema no es la foto. Inténtalo igual.',
-  // Todo junto.
-  '«Hola, buenas» no es una presentación. Aquí se entra con cara, edad y un poco de cerebro.',
-  'Aquí entra gente con cara, cabeza y aguante. Enseña las tres, empezando por la cara.',
+  // Cada uno ataca una excusa DISTINTA de las que de verdad frenan a la gente
+  // —el careto, la edad, el que da largas, el que mira sin exponerse, el que va
+  // de que le da igual— y por eso son diez y no diez variantes de lo mismo.
+  //
+  // Ninguno puede venir con género (lo lee el grupo entero) ni amenazar con
+  // echar a nadie: el bot no lo hace. Las dos cosas las vigila check.js.
+  '«no tengo foto» con seiscientas en la galería. Elige una y deja de hacer el ridículo.',
+  '«luego la mando» y nunca llega. Son diez segundos, hazlo ya.',
+  '«es que salgo mal en las fotos» y en persona también. Manda una y acabamos antes.',
+  'Llevas leyendo desde que entraste y sin dar la cara. Aquí no se mira gratis.',
+  '«paso de estas chorradas» lo dice quien lleva media hora dándole vueltas. Manda la foto.',
+  'Mandas la foto y te «olvidas» de la edad. No cuela. Pon el número.',
+  '«no me gusta exponerme» en un grupo de doscientos. Entraste por tu cuenta, da la cara.',
+  'Cuarenta fotos hechas buscando la buena. No la hay. Manda la última y ya.',
+  'Esperando a ver quién se presenta primero para copiar el tono. No hay tono. Sal tú.',
+  'Un «hola» no es una presentación. Foto y edad, o vuelve a tu agujero.',
 ];
 
 
@@ -1438,11 +1429,12 @@ const REMATES = [
 function textoPresentacion(clave) {
   return '*PRESENTACIÓN OBLIGATORIA*\n' +
     '\n' +
-    // LO PRIMERO QUE SE LEE ES DONDE SE HA METIDO. Lo pidio el dueño: que el
-    // nuevo sepa desde la primera linea que esto es humor negro y que tipo de
-    // gente no entra. Va fijo porque es la norma del grupo; lo que rota es el
-    // remate, que la ataca por un frente distinto cada vez.
-    '*Esto es:* humor negro. Buen humor sí. Gente de cristal, peña fea e IQ bajo, no.\n' +
+    // LO QUE ES ESTE GRUPO, EN SU PROPIO PARRAFO Y LO PRIMERO. Lo pidio el
+    // dueño: que el nuevo sepa desde la primera impresion que esto es humor
+    // negro y que gente no entra. Una de quince, en baraja por grupo (salen
+    // todas antes de repetir ninguna). Ver humorNegroPhrases.js.
+    `*Esto es humor negro.* ${pickBaraja(HUMOR_NEGRO, `${clave}|humornegro`)}\n` +
+    '\n' +
     '*Quién:* solo los nuevos.\n' +
     // LA FOTO SE DICE OBLIGATORIA AQUI, EN LA PROPIA ORDEN.
     //
@@ -1454,7 +1446,7 @@ function textoPresentacion(clave) {
     // frase, y ninguno lo hacia: quedaban pegados con cola detras de una
     // preposicion que no les pedia nada. `Aviso:` solo anuncia, asi que el
     // remate vuelve a ser una frase entera con sujeto y verbo — y puede pegar.
-    `*Aviso:* ${pickBaraja(REMATES, `${clave}|presentacion`)}`;
+    `*Aviso:* ${pickFresh(REMATES, `${clave}|presentacion`)}`;
 }
 
 async function cmdPresentarse(sock, msg, args, groupMeta) {
