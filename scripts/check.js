@@ -19431,7 +19431,7 @@ const manda = async (quien, tipo, opciones) => {
     if (fallos === antes114) console.log(verde('   ✓ ni rastro de «bardear»'));
   }
 
-  // ── 115. LOS AUDIOS SE MARCAN ESCUCHADOS, NO SOLO VISTOS ────────────────
+  // ── 115. LOS AUDIOS SE MARCAN ESCUCHADOS Y LO DE «VER UNA VEZ», ABIERTO ──
   //
   // Lo pidio el dueño: que se note que el bot lo ve y lo escucha todo. Fotos y
   // videos solo tienen el visto (el doble check azul). Audios y notas de video
@@ -19443,14 +19443,14 @@ const manda = async (quien, tipo, opciones) => {
     const exige = (cond, queja) => { if (!cond) { fallos++; console.log(rojo(`   ✗ ${queja}`)); } };
     const { _marcarVisto } = require(path.join(R, 'src/handlers/messageHandler'));
     exige(typeof _marcarVisto === 'function', 'messageHandler ya no expone _marcarVisto: esta capa no mira nada');
-    const prueba = async (message, acuses = 'all') => {
+    const prueba = async (message, acuses = 'all', verUnaVez = false) => {
       const hechos = [];
       const sock = {
         readMessages: async () => { hechos.push('read'); },
         sendReceipts: async (k, t) => { hechos.push(t); },
         fetchPrivacySettings: async () => ({ readreceipts: acuses }),
       };
-      await _marcarVisto(sock, { key: { remoteJid: '120363000000000115@g.us', id: 'M115', participant: '34600000115@s.whatsapp.net' }, message });
+      await _marcarVisto(sock, { key: { remoteJid: '120363000000000115@g.us', id: 'M115', participant: '34600000115@s.whatsapp.net' }, message }, { verUnaVez });
       return hechos.join(',');
     };
     if (typeof _marcarVisto === 'function') {
@@ -19460,11 +19460,29 @@ const manda = async (quien, tipo, opciones) => {
       exige(await prueba({ ephemeralMessage: { message: { audioMessage: { ptt: true } } } }) === 'read,played',
         'un audio en un chat con mensajes temporales no se marca escuchado');
       exige(await prueba({ imageMessage: {} }) === 'read', 'una foto recibe algo mas que el visto');
+      // «Ver una vez»: abrirlo es el mismo acuse que escuchar un audio. Llega
+      // desenvuelto, con la marca aparte, que es como lo pasa handleMessage.
+      exige(await prueba({ imageMessage: { viewOnce: true } }, 'all', true) === 'read,played',
+        'una foto de «ver una vez» se queda en visto y sin abrir');
+      exige(await prueba({ videoMessage: { viewOnce: true } }, 'all', true) === 'read,played',
+        'un video de «ver una vez» se queda en visto y sin abrir');
+      exige(/marcarVisto\(sock, msg, \{ verUnaVez: eraViewOnce \}\)/.test(fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8')),
+        'handleMessage ya no le pasa a marcarVisto si era «ver una vez»: con el sobre abierto no hay forma de saberlo');
       exige(await prueba({ videoMessage: {} }) === 'read', 'un video recibe algo mas que el visto');
-      exige(await prueba({ audioMessage: { ptt: true } }, 'none') === 'read',
-        'con los acuses cerrados en la cuenta se manda el escuchado: se enseña por detras lo que se ha cerrado');
+      exige(await prueba({ audioMessage: { ptt: true } }, 'none') === 'read,played-self',
+        'con los acuses cerrados el escuchado no sigue la misma regla que el visto (played-self, como read-self)');
+      // Y EL MISMO INTERRUPTOR QUE EL VISTO: la unica llamada esta dentro del
+      // bloque de vistoActivo, asi que *!visto off* apaga las dos cosas.
+      {
+        const mhSrc = fs.readFileSync(path.join(R, 'src/handlers/messageHandler.js'), 'utf8');
+        const iBloque = mhSrc.indexOf('if (vistoActivo(config.autoRead) && !msg.key.fromMe) {');
+        const llamada = 'marcarVisto(sock, msg, { verUnaVez: eraViewOnce });';
+        const iLlamada = mhSrc.indexOf(llamada);
+        exige(iBloque > 0 && iLlamada > iBloque && iLlamada - iBloque < 1500 && mhSrc.split(llamada).length === 2,
+          'el escuchado y el abierto ya no van con el interruptor de !visto');
+      }
     }
-    if (fallos === antes115) console.log(verde('   ✓ fotos y videos en visto, audios y notas de video ademas escuchados'));
+    if (fallos === antes115) console.log(verde('   ✓ fotos y videos en visto; audios, notas de video y «ver una vez» ademas abiertos'));
   }
   }
 

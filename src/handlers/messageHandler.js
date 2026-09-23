@@ -702,16 +702,23 @@ async function historiaPorBroadcast(sock, msg, deteccion) {
 // (`played`) y que el bot no mandaba nunca. Un audio con los checks azules y
 // el microfono gris dice «lo he visto y no lo he querido oir».
 //
-// El `played` solo sale si los acuses de lectura estan abiertos en la cuenta:
-// con ellos cerrados WhatsApp no enseña ni el visto, y mandar el escuchado
-// seria enseñar por la puerta de atras justo lo que se ha cerrado.
+// Y LO MISMO CON LO DE «VER UNA VEZ». Abrirlo es el mismo acuse que escuchar
+// un audio (`played`), y es lo que al que lo manda le sale como «Abierto». Sin
+// el, la foto o el video se quedaban en visto y sin abrir. Aqui el mensaje ya
+// llega desenvuelto, asi que la marca la pasa quien llama (`eraViewOnce`, que
+// se mira antes de abrir el sobre).
+//
+// VA CON EL MISMO INTERRUPTOR Y LA MISMA REGLA QUE EL VISTO. Lo pidio el
+// dueño asi: *!visto* lo enciende y lo apaga todo junto. Y con los acuses de
+// lectura cerrados en la cuenta se manda la version «solo para mi»
+// (`played-self`), igual que Baileys hace con el visto (`read-self`).
 const esParaEscuchar = (m) => {
   const x = m?.ephemeralMessage?.message || m?.viewOnceMessageV2?.message
     || m?.viewOnceMessage?.message || m?.viewOnceMessageV2Extension?.message || m;
   return Boolean(x?.audioMessage || x?.ptvMessage);
 };
 
-function marcarVisto(sock, msg) {
+function marcarVisto(sock, msg, { verUnaVez = false } = {}) {
   // EL FALLO SE DICE UNA VEZ, no se traga.
   //
   // Esto era `.catch(() => {})` y ahi se fue media tarde: si readMessages
@@ -724,12 +731,11 @@ function marcarVisto(sock, msg) {
   const p = sock.readMessages?.([msg.key]);
   if (!p) { avisarVistoRoto('sock.readMessages no existe en este socket'); return null; }
   const leido = p.catch((e) => avisarVistoRoto(e?.message || String(e)));
-  if (!esParaEscuchar(msg.message) || typeof sock.sendReceipts !== 'function') return leido;
+  if (!(esParaEscuchar(msg.message) || verUnaVez) || typeof sock.sendReceipts !== 'function') return leido;
   // Detras del visto: el escuchado sin el visto no existe en ningun movil.
   return leido.then(async () => {
     const priv = await sock.fetchPrivacySettings?.().catch(() => null);
-    if (priv && priv.readreceipts !== 'all') return;
-    await sock.sendReceipts([msg.key], 'played');
+    await sock.sendReceipts([msg.key], !priv || priv.readreceipts === 'all' ? 'played' : 'played-self');
   }).catch((e) => logger.unaVez('marcar audio escuchado', e));
 }
 
@@ -1814,7 +1820,7 @@ async function handleMessage(sock, msg, opciones = {}) {
       //
       // Una vez y no en cada mensaje: si falla, falla siempre, y llenar el log
       // con la misma linea mil veces es otra forma de no decir nada.
-      marcarVisto(sock, msg);
+      marcarVisto(sock, msg, { verUnaVez: eraViewOnce });
     });
   }
 
