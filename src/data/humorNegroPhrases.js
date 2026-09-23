@@ -14,25 +14,25 @@
 // bot no lo hace. Lo vigila la capa 25 de check.js.
 
 const HUMOR_NEGRO = [
-  // CON FILO. La primera tanda era de folleto («aquí la sensibilidad se deja
-  // en la puerta») y el dueño lo pidio como todo el bot: directo, ofensivo,
-  // hiriente y vulgar. Siguen atacando los cuatro temas, sin genero y sin
-  // amenazar con echar a nadie.
-  'Aquí nos reímos de la muerte, del cáncer y de tu puta cara. Si eso te parece demasiado, te has equivocado de grupo, gilipoyas.',
-  'Gente de cristal, peña fea y gente sin cerebro, a otro sitio. Si te has visto en alguna de las tres, disimula y ríete, que es lo único que te queda.',
-  'Si un chiste te hace llorar, ve a llorarle a tu madre. Aquí nadie pide perdón por una broma, y menos por ti.',
-  'Se busca gente con cara presentable, dos neuronas que se hablen y aguante. Si te falta alguna, que no se note, que ya se nota bastante.',
-  'Normas: nadie se ofende, nadie lloriquea y se piensa antes de escribir. Quien falle en la tercera va a ser el chiste del día, y con motivo.',
-  'La sensibilidad se deja en la puerta, y la dignidad también. Aquí se entra con humor, con cara y con un mínimo de cerebro. Lo demás sobra.',
-  'Si un chiste sobre tu madre te jode el día, este no es tu grupo. Si te sacas uno peor sobre la tuya, estás en casa.',
-  'Sin filtro y sin tutorial. Si necesitas que te expliquen el chiste, el chiste eres tú, subnormal.',
-  'Aquí nadie viene a hacer amigos, viene a reírse de los demás. Y si tu cara no acompaña, más te vale que acompañe la gracia.',
-  'Aquí se hacen chistes de enfermos, de muertos y de gente fea de cojones. Con suerte no eres ninguna de las tres cosas. Con más suerte, te ríes igual.',
-  'Se admite casi todo menos llorar por un chiste, tener una cara de mierda sin gracia que la compense y no pillar una broma a la primera.',
-  'Aquí el respeto se gana haciendo reír, no quejándose. Quien viene a quejarse acaba siendo el puto material de los demás.',
-  'Entrar es gratis, aguantar ya es otra cosa. Si te ofendes se nota, y aquí lo que se nota se usa en tu contra hasta que te rías.',
-  'Si tu IQ no llega a tres cifras, léelo dos veces y despacio: aquí se viene a reír, no a lloriquear. Lo demás lo irás pillando, o no.',
-  'Bienvenida la gente que se ríe de sí misma. La que no, que vaya practicando, porque aquí se va a descojonar de ella el grupo entero.',
+  // SON AVISOS, NO INSULTOS SUELTOS. Lo aclaro el dueño: cada frase dice a la
+  // vez QUE GENTE ES BIENVENIDA (humor negro, cerebro, cara decente, aguante)
+  // y CUAL DEBE ABSTENERSE (gente fea, low IQ, sin humor, de cristal). Con
+  // filo y vulgar, como todo el bot, pero con la forma de una norma de entrada.
+  'Bienvenida la gente con humor, cerebro y cara decente. Abstenerse gente fea de cojones, low IQ y quien se ofenda por un chiste.',
+  'Aquí entra quien se ríe de todo, empezando por su propia desgracia. Ni peña fea, ni low IQ, ni gente de cristal.',
+  'Se busca: sentido del humor, piel dura y un IQ decente. Se evita: caras que asustan, cerebros apagados y gente que llora con un chiste.',
+  'Si tienes gracia y una cara que se puede mirar, pasa. Si tu cara da pena, tu IQ no llega o te ofendes por todo, este no es tu sitio.',
+  'Lo que queremos: gente con humor negro y algo en la cabeza. Lo que sobra: gente fea, gente sin gracia y gente con el IQ por los suelos.',
+  'Aquí se viene a reírse de todo sin llorar. Abstenerse gente de cristal, gente sin humor, gente fea y gente que no pilla una broma a la primera.',
+  'Aquí caben las personas con humor negro y buena cara. Las feas, las de IQ bajo y las que se ofenden, que busquen otro grupo, que aquí van a sufrir.',
+  'Requisitos: aguantar un chiste, tener dos neuronas y no dar asco a la vista. Si fallas en alguno, que no se note, porque aquí se nota todo.',
+  'Humor sí, llantos no. Cabeza sí, low IQ no. Cara decente sí, peña fea no. Así de simple, gilipoyas.',
+  'No es sitio para gente fea, para gente sin dos dedos de frente ni para gente sin humor. Para el resto, adelante y sin llorar.',
+  'Se valora la mala leche, el ingenio y una cara que no espante. Sobran la gente fea, la gente lenta y la que llora por un chiste.',
+  'Aquí se hacen chistes de todo y de todos. Si eres de cristal, de IQ bajo o tu cara no aguanta una foto, ahórrate la vergüenza.',
+  'Esto no es para la peña fea, ni para la que no pilla un chiste, ni para la que se ofende. Si no eres ninguna de las tres, se agradece la gracia que traigas.',
+  'Buscamos gente con humor, cerebro y cara presentable. Si te faltan dos de las tres, date la vuelta, que aquí no se regala compasión.',
+  'Gente con humor negro, adelante. Gente fea, gente con low IQ y gente sin sentido del humor, abstenerse, que aquí nadie les va a tener pena.',
 ];
 
 module.exports = { HUMOR_NEGRO };
